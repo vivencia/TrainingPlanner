@@ -393,8 +393,6 @@ Rectangle {
 		anchors.fill: calendar
 
 		property int currentMonth: startDate.getMonth()
-		readonly property int startMonth: startDate.getMonth()
-		readonly property int endMonth : endDate.getMonth()
 
 		model: ListModel {
 			id: monthsModel
@@ -416,13 +414,13 @@ Rectangle {
 				anchors.centerIn: parent
 				font.pixelSize: fontSizePx * 1.5
 				text: name
-				scale: index === monthsList.currentMonth - monthsList.startMonth ? 1.5 : 1
+				scale: index === monthsList.currentMonth ? 1.5 : 1
 				color: appSettings.fontColor
 			}
 
 			MouseArea {
 				anchors.fill: parent
-				onClicked: monthChosen(monthsModel.get(index).monthidx);
+				onClicked: monthChosen(monthsList.currentIndex);
 			}
 		}
 
@@ -430,7 +428,7 @@ Rectangle {
 			visible = true;
 			calendar.visible = false;
 			currentMonth = calendar.currentMonth;
-			monthsList.positionViewAtIndex(currentMonth - startMonth, ListView.SnapToItem);
+			monthsList.positionViewAtIndex(currentMonth, ListView.SnapToItem);
 		}
 
 		function hide(): void {

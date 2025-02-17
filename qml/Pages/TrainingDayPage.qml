@@ -231,8 +231,8 @@ TPPage {
 
 							sourceComponent: TimePicker {
 								id: dlgTimeIn
-								hrsDisplay: appUtils.getHourOrMinutesFromStrTime(txtInTime.text)
-								minutesDisplay: appUtils.getMinutesOrSeconsFromStrTime(txtInTime.text)
+								hrsDisplay: appUtils.getHourFromStrTime(txtInTime.text)
+								minutesDisplay: appUtils.getMinutesFromStrTime(txtInTime.text)
 								parentPage: trainingDayPage
 
 								onTimeSet: (hour, minutes) => tDayManager.timeIn = hour + ":" + minutes;
@@ -286,8 +286,8 @@ TPPage {
 
 							sourceComponent: TimePicker {
 								id: dlgTimeOut
-								hrsDisplay: appUtils.getHourOrMinutesFromStrTime(txtOutTime.text)
-								minutesDisplay: appUtils.getMinutesOrSeconsFromStrTime(txtOutTime.text)
+								hrsDisplay: appUtils.getHourFromStrTime(txtOutTime.text)
+								minutesDisplay: appUtils.getMinutesFromStrTime(txtOutTime.text)
 								parentPage: trainingDayPage
 								bOnlyFutureTime: tDayManager.mainDateIsToday ? tDayManager.editMode : false
 

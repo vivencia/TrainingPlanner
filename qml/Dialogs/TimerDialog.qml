@@ -315,7 +315,7 @@ TPPopup {
 
 				onClicked: {
 					if (!mainTimer.active)
-						mainTimer.startTimer("-");
+						mainTimer.startTimer();
 					else
 						mainTimer.stopTimer();
 				}

@@ -76,6 +76,7 @@ TPPopup {
 					height: 25
 					spacing: 0
 					padding: 5
+					enabled: index === 0 && String(coachesList[index]).charAt(0) !== '*'
 
 					TPCheckBox {
 						text: coachesList[index]
@@ -109,6 +110,7 @@ TPPopup {
 		id: btnSendRequest
 		text: qsTr("Send request to the selected coaches")
 		visible: coachesList.length > 0
+		enabled: false
 
 		anchors {
 			left: parent.left

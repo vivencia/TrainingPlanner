@@ -419,10 +419,10 @@ void DBUserModel::uploadResume(const QString &resumeFileName)
 		{
 			const qsizetype idx{resumeFileName_ok.lastIndexOf('.')};
 			const QString &extension{idx > 0 ? resumeFileName_ok.last(resumeFileName_ok.length() - idx) : QString{}};
-			const QString &localResumeFileName{m_appDataPath + "resume"_L1 + extension};
-			if (QFile::copy(resumeFileName_ok, localResumeFileName))
+			const QString &localResumeFilePath{m_appDataPath + "resume"_L1 + extension};
+			if (QFile::copy(resumeFileName_ok, localResumeFilePath))
 			{
-				QFile *resume{new QFile{localResumeFileName, this}};
+				QFile *resume{new QFile{localResumeFilePath, this}};
 				if (resume->open(QIODeviceBase::ReadOnly))
 				{
 					connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,resume] (const QString &key, const QString &value) {
@@ -451,7 +451,7 @@ void DBUserModel::uploadResume(const QString &resumeFileName)
 static QString getResumeFile(const QString &dir)
 {
 	QDir directory{dir};
-	const QStringList& resume_types{directory.entryList(QStringList{} << "*.pdf"_L1 << "*.odf"_L1 << "*.docx"_L1, QDir::Files)};
+	const QStringList &resume_types{directory.entryList(QStringList{} << "*.pdf"_L1 << "*.odt"_L1 << "*.docx"_L1, QDir::Files)};
 	for (const auto &it : resume_types)
 	{
 		if (it.contains("resume"))
@@ -474,36 +474,39 @@ void DBUserModel::downloadResume(const uint coach_index)
 	{
 		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,coach_index] (const QString &key, const QString &value) {
 			QString localResumeFileName{std::move(getResumeFile(m_appDataPath))};
-			QFileInfo fi{localResumeFileName};
-			QDateTime m_time;
-			if (fi.exists())
-				m_time = std::move(fi.lastModified());
-			qDebug() << m_time.toSecsSinceEpoch();
-			connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [this,localResumeFileName]
+			const QString &localResumeFilePath{std::move(m_appDataPath + localResumeFileName)};
+			connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [this,localResumeFilePath]
 						(const int ret_code, const QString &filename, const QByteArray &contents) {
 				switch (ret_code)
 				{
 					case 0: //file downloaded
 					{
-						QFile *resume{new QFile{localResumeFileName, this}};
+						const QString &resumeFileName{m_appDataPath + filename};
+						QFile *resume{new QFile{resumeFileName, this}};
 						static_cast<void>(resume->remove());
 						if (resume->open(QIODeviceBase::WriteOnly|QIODeviceBase::NewOnly))
 						{
 							resume->write(contents);
 							resume->close();
-							appOsInterface()->openURL(localResumeFileName);
+							appOsInterface()->openURL(resumeFileName);
 						}
 						delete resume;
 					}
 					break;
 					case 1: //online file and local file are the same
-						appOsInterface()->openURL(localResumeFileName);
+						appOsInterface()->openURL(localResumeFilePath);
 					break;
 					default: //some error
 						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, filename + contents);
 				}
-			});
-			appOnlineServices()->getBinFile(key, value, "resume"_L1, m_onlineUserInfo.at(coach_index).at(USER_COL_ID), m_time);
+			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+			QFileInfo fi{localResumeFilePath};
+			QDateTime c_time;
+			if (fi.exists())
+				c_time = std::move(fi.birthTime());
+			else
+				localResumeFileName = std::move("resume"_L1);
+			appOnlineServices()->getBinFile(key, value, localResumeFileName, m_onlineUserInfo.at(coach_index).at(USER_COL_ID), c_time);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		appKeyChain()->readKey(_userId(0));
 	}
@@ -575,7 +578,16 @@ void DBUserModel::getOnlineCoachesList()
 					connect(this, &DBUserModel::userProfileAcquired, this, [this,coaches] {
 						QStringList coaches_names{m_onlineUserInfo.count()};
 						for (uint i{0}; i < m_onlineUserInfo.count(); ++i)
-							coaches_names.append(m_onlineUserInfo.at(i).at(USER_COL_NAME));
+						{
+
+							coaches_names[i] = m_onlineUserInfo.at(i).at(USER_COL_NAME);
+							if (m_onlineUserInfo.at(i).at(USER_COL_ID) == _userId(0))
+							{
+								if (i > 0)
+									coaches_names.swapItemsAt(0, i);
+								coaches_names[i].prepend('*');
+							}
+						}
 						emit coachesListReceived(coaches_names);
 					}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 					m_onlineUserInfo.clear();
@@ -822,11 +834,11 @@ void DBUserModel::sendAvatarToServer()
 void DBUserModel::downloadAvatarFromServer(const uint row)
 {
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,row] (const QString &key, const QString &value) {
-		connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [this,row]
+		const QString &localAvatarFileName{_localAvatarFilePath.arg(_userId(row))};
+		connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [this,row,localAvatarFileName]
 						(const int ret_code, const QString &filename, const QByteArray &contents) {
 			if (ret_code == 0)
 			{
-				const QString &localAvatarFileName{m_appDataPath + filename};
 				QFile *avatarImg{new QFile{localAvatarFileName, this}};
 				if (!avatarImg->exists() || avatarImg->remove())
 				{
@@ -840,7 +852,12 @@ void DBUserModel::downloadAvatarFromServer(const uint row)
 				setAvatar(row, localAvatarFileName, false);
 			}
 		});
-		appOnlineServices()->getBinFile(key, value, key + "_avatar"_L1, key);
+		QFileInfo fi{localAvatarFileName};
+		QDateTime m_time;
+		if (fi.exists())
+		if (m_time.isValid())
+			m_time = std::move(fi.lastModified());
+		appOnlineServices()->getBinFile(key, value, key + "_avatar"_L1, key, m_time);
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appKeyChain()->readKey(_userId(row));
 }

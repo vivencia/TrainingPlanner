@@ -8,6 +8,8 @@
 #include <QSettings>
 #include <QTranslator>
 
+using namespace Qt::Literals::StringLiterals;
+
 TranslationClass* TranslationClass::app_tr{nullptr};
 
 void TranslationClass::selectLanguage()
@@ -17,7 +19,7 @@ void TranslationClass::selectLanguage()
 	if (bConfigEmpty)
 	{
 		#ifndef Q_OS_ANDROID
-		const QString& sysLocale{std::setlocale(LC_NAME, "")};
+		const QString &sysLocale{std::setlocale(LC_NAME, "")};
 		strLocale = sysLocale.first(sysLocale.indexOf('.'));
 		#else
 		strLocale = QLocale::system().name();

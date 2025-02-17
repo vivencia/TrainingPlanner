@@ -29,7 +29,7 @@ QmlExerciseEntry::~QmlExerciseEntry()
 	delete m_exerciseEntry;
 }
 
-void QmlExerciseEntry::setExerciseEntry(QQuickItem* item)
+void QmlExerciseEntry::setExerciseEntry(QQuickItem *item)
 {
 	m_exerciseEntry = item;
 	m_setsLayout = m_exerciseEntry->findChild<QQuickItem*>("exerciseSetsLayout"_L1);
@@ -98,7 +98,7 @@ void QmlExerciseEntry::setExerciseName(const QString& new_value, const bool bFro
 		{
 			for (uint i(0); i < m_setObjects.count(); ++i)
 			{
-				QmlSetEntry* const setObj(m_setObjects.at(i));
+				QmlSetEntry *const setObj(m_setObjects.at(i));
 				if (setObj->type() == SET_TYPE_GIANT)
 				{
 					setObj->setExerciseName1(appUtils()->getCompositeValue(0, new_value, comp_exercise_separator));
@@ -369,7 +369,7 @@ void QmlExerciseEntry::changeSetType(const uint set_number, const uint new_type,
 
 void QmlExerciseEntry::changeSetMode(const uint set_number)
 {
-	QmlSetEntry* setObj(m_setObjects.at(set_number));
+	QmlSetEntry *setObj(m_setObjects.at(set_number));
 	switch(setObj->mode())
 	{
 		case SET_MODE_UNDEFINED:
@@ -485,7 +485,7 @@ void QmlExerciseEntry::simpleExercisesList(const bool show, const bool multi_sel
 	m_tDayPage->simpleExercisesList(m_exercise_idx, show, multi_sel, comp_exercise);
 }
 
-void QmlExerciseEntry::insertSetEntry(const uint set_number, QmlSetEntry* new_setobject)
+void QmlExerciseEntry::insertSetEntry(const uint set_number, QmlSetEntry *new_setobject)
 {
 	if (set_number >= m_setObjects.count())
 	{
@@ -524,7 +524,7 @@ void QmlExerciseEntry::createSetObject_part2(const uint set_number, const uint s
 	}
 	#endif
 
-	QmlSetEntry* newSetEntry{new QmlSetEntry{this, this, m_tDayModel, m_exercise_idx}};
+	QmlSetEntry *newSetEntry{new QmlSetEntry{this, this, m_tDayModel, m_exercise_idx}};
 	const uint set_type(m_tDayModel->setType(m_exercise_idx, set_number));
 
 	newSetEntry->_setExerciseName(m_tDayModel->exerciseName(m_exercise_idx));
@@ -550,7 +550,7 @@ void QmlExerciseEntry::createSetObject_part2(const uint set_number, const uint s
 
 	m_setObjectProperties.insert("setManager"_L1, QVariant::fromValue(newSetEntry));
 
-	QQuickItem* item (static_cast<QQuickItem*>(m_setComponents[set_type_cpp]->
+	QQuickItem *item (static_cast<QQuickItem*>(m_setComponents[set_type_cpp]->
 								createWithInitialProperties(m_setObjectProperties, appQmlEngine()->rootContext())));
 	appQmlEngine()->setObjectOwnership(item, QQmlEngine::CppOwnership);
 	m_setObjects.at(set_number)->setSetEntry(item);
@@ -589,7 +589,7 @@ void QmlExerciseEntry::setCreated(const uint set_number, const uint nsets, auto 
 		emit hasSetsChanged();
 		m_exerciseEntry->setProperty("showSets", true);
 		const uint view_set(nsets > 1 ? 0 : m_setObjects.count() - 1);
-		QQuickItem* setObj(m_setObjects.at(view_set)->setEntry());
+		QQuickItem *setObj(m_setObjects.at(view_set)->setEntry());
 		QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, exerciseEntry()->y() + exerciseEntry()->height() + setObj->y() + setObj->height()));
 	}
 }
@@ -623,11 +623,11 @@ inline int QmlExerciseEntry::findCurrentSet()
 	{
 		for(uint i(0); i < m_setObjects.count(); ++i)
 		{
-			QmlSetEntry* set(m_setObjects.at(i));
+			QmlSetEntry *set(m_setObjects.at(i));
 			if (!m_tDayModel->setCompleted(m_exercise_idx, i))
 			{
 				set->setCurrent(true);
-				const QQuickItem* const setObj(set->setEntry());
+				const QQuickItem *const setObj(set->setEntry());
 				QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, setObj->y() + setObj->height()));
 				return i;
 			}
@@ -640,12 +640,12 @@ inline int QmlExerciseEntry::findCurrentSet()
 
 void QmlExerciseEntry::startRestTimer(const uint set_number, const QString& startTime, const bool bStopWatch)
 {
-	TPTimer* set_timer(m_tDayPage->restTimer());
+	TPTimer *set_timer(m_tDayPage->restTimer());
 	if (!set_timer->isActive())
 	{
 		set_timer->setStopWatch(bStopWatch);
 		set_timer->prepareTimer(startTime);
-		QmlSetEntry* const setObj(m_setObjects.at(set_number));
+		QmlSetEntry *const setObj(m_setObjects.at(set_number));
 		setObj->setRestTime(startTime);
 		connect(set_timer, &TPTimer::secondsChanged, this, [this,set_timer,setObj] () {
 			setObj->setRestTime(set_timer->strMinutes() + ':' + set_timer->strSeconds());
@@ -658,16 +658,16 @@ void QmlExerciseEntry::startRestTimer(const uint set_number, const QString& star
 
 void QmlExerciseEntry::stopRestTimer(const uint set_number)
 {
-	TPTimer* set_timer(m_tDayPage->restTimer());
+	TPTimer *set_timer(m_tDayPage->restTimer());
 	if (set_timer->isActive())
 	{
 		set_timer->stopTimer();
 		disconnect(set_timer, nullptr, nullptr, nullptr);
-		QmlSetEntry* const setObj(m_setObjects.at(set_number));
+		QmlSetEntry *const setObj(m_setObjects.at(set_number));
 		if (setObj->autoRestTime())
 			setObj->setRestTime(setObj->restTime(), false); //update the model with the current value displayed
 		else
-			setObj->setRestTime(appUtils()->formatTime(set_timer->elapsedTime(), false, true), false);
+			setObj->setRestTime(appUtils()->formatTime(set_timer->elapsedTime(), TPUtils::TF_QML_DISPLAY_NO_SEC), false);
 	}
 }
 

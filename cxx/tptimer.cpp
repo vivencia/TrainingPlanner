@@ -23,7 +23,7 @@ TPTimer::~TPTimer()
 		delete m_alarmSound;
 }
 
-void TPTimer::prepareTimer(const QString& strStartTime)
+void TPTimer::prepareTimer(const QString &strStartTime)
 {
 	m_displayStartingTime = strStartTime;
 	prepareFromString();
@@ -35,16 +35,16 @@ void TPTimer::prepareTimer(const QString& strStartTime)
 	emit progressValueChanged();
 }
 
-void TPTimer::startTimer(const QString& initialTimeOfDay)
+void TPTimer::startTimer(const QString &initialTimeOfDay)
 {
 	if (!mb_paused)
 	{
 		m_elapsedTime.setHMS(0, 0, 0);
 		m_initialTime.setHMS(m_hours, m_minutes, m_seconds);
-		if (initialTimeOfDay.contains('-'))
+		if (initialTimeOfDay.isEmpty() || initialTimeOfDay.contains('-'))
 			m_timeOfDay = std::move(QTime::currentTime());
 		else
-			m_timeOfDay = std::move(appUtils()->timeFromStrTime(initialTimeOfDay));
+			m_timeOfDay = std::move(appUtils()->getTimeFromTimeString(initialTimeOfDay));
 	}
 	else
 	{
@@ -109,7 +109,7 @@ QString TPTimer::strHours() const
 	return ret;
 }
 
-void TPTimer::setStrHours(QString& str_hours)
+void TPTimer::setStrHours(QString &str_hours)
 {
 	if (str_hours.length() == 1)
 		str_hours.prepend('0');
@@ -124,7 +124,7 @@ QString TPTimer::strMinutes() const
 	return ret;
 }
 
-void TPTimer::setStrMinutes(QString& str_minutes)
+void TPTimer::setStrMinutes(QString &str_minutes)
 {
 	if (str_minutes.length() == 1)
 		str_minutes.prepend('0');
@@ -139,14 +139,14 @@ QString TPTimer::strSeconds() const
 	return ret;
 }
 
-void TPTimer::setStrSeconds(QString& str_seconds)
+void TPTimer::setStrSeconds(QString &str_seconds)
 {
 	if (str_seconds.length() == 1)
 		str_seconds.prepend('0');
 	prepareTimer(m_displayStartingTime.replace(6, 2, str_seconds));
 }
 
-void TPTimer::setAlarmSoundFile(const QString& soundFileName)
+void TPTimer::setAlarmSoundFile(const QString &soundFileName)
 {
 	if (!m_alarmSound)
 	{

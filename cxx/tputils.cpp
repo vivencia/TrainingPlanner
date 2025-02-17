@@ -84,7 +84,7 @@ QDate TPUtils::getDateFromDateString(const QString &strdate, const DATE_FORMAT f
 			return QDate::fromJulianDay(strdate.toLongLong());
 		break;
 		case DF_ONLINE:
-			year = strdate.first(2).toInt();
+			year = strdate.first(2).toInt() + 2000;
 			month = strdate.sliced(2, 2).toInt();
 			day = strdate.sliced(4, 2).toInt();
 		break;
@@ -232,22 +232,41 @@ QString TPUtils::addTimeToStrTime(const QString &strTime, const int addmins, con
 	return ret;
 }
 
-QString TPUtils::getHourOrMinutesFromStrTime(const QString &strTime) const
+QString TPUtils::getHourFromStrTime(const QString &strTime, const TIME_FORMAT format) const
 {
-	const int idx(strTime.indexOf(':'));
-	return idx > 1 ? strTime.first(idx) : QString();
+	switch (format)
+	{
+		case TF_QML_DISPLAY_COMPLETE:
+		case TF_QML_DISPLAY_NO_SEC:
+		case TF_ONLINE:
+		case TF_FANCY:
+		case TF_FANCY_SECS:
+			return strTime.left(2);
+		break;
+		case TF_QML_DISPLAY_NO_HOUR:
+		break;
+	}
+	return QString{};
 }
 
-QString TPUtils::getMinutesOrSeconsFromStrTime(const QString &strTime) const
+QString TPUtils::getMinutesFromStrTime(const QString &strTime, const TIME_FORMAT format) const
 {
-	const int idx(strTime.indexOf(':'));
-	return idx > 1 ? strTime.sliced(idx+1) : QString();
-}
-
-QString TPUtils::calculateTimeDifference_str(const QString &strTimeInit, const QString &strTimeFinal) const
-{
-	const QTime& time(calculateTimeDifference(strTimeInit, strTimeFinal));
-	return time.toString("hh:mm:ss"_L1);
+	switch (format)
+	{
+		case TF_QML_DISPLAY_COMPLETE:
+			return strTime.sliced(3, 2);
+		case TF_QML_DISPLAY_NO_SEC:
+			return strTime.right(2);
+		case TF_QML_DISPLAY_NO_HOUR:
+			return strTime.left(2);
+		case TF_ONLINE:
+			return strTime.sliced(2, 2);
+		case TF_FANCY:
+			return strTime.sliced(strTime.length()-5, 2);
+		case TF_FANCY_SECS:
+			return strTime.sliced(4, 2);
+	}
+	return QString{};
 }
 
 QTime TPUtils::calculateTimeDifference(const QString &strTimeInit, const QString &strTimeFinal) const
@@ -265,8 +284,8 @@ QTime TPUtils::calculateTimeDifference(const QString &strTimeInit, const QString
 
 QDateTime TPUtils::getDateTimeFromOnlineString(const QString &datetime) const
 {
-	QDate date;
-	QTime time;
+	const QDate &date{getDateFromDateString(datetime.right(6), DF_ONLINE)};
+	const QTime &time{getTimeFromTimeString(datetime.left(6), TF_ONLINE)};
 	return QDateTime{date, time};
 }
 
@@ -287,11 +306,11 @@ QString TPUtils::makeDoubleCompositeValue(const QString &defaultValue, const uin
 
 QString TPUtils::getCompositeValue(const uint idx, const QString &compositeString, const QLatin1Char &chr_sep) const
 {
-	QString::const_iterator itr(compositeString.constBegin());
-	const QString::const_iterator& itr_end(compositeString.constEnd());
-	int n_seps(-1);
-	int chr_pos(0);
-	uint last_sep_pos(0);
+	QString::const_iterator itr{compositeString.constBegin()};
+	const QString::const_iterator& itr_end{compositeString.constEnd()};
+	int n_seps{-1};
+	int chr_pos{0};
+	uint last_sep_pos{0};
 
 	while (itr != itr_end)
 	{
@@ -305,13 +324,13 @@ QString TPUtils::getCompositeValue(const uint idx, const QString &compositeStrin
 		++chr_pos;
 		++itr;
 	}
-	return idx == 0 ? compositeString : QString();
+	return idx == 0 ? compositeString : QString{};
 }
 
 void TPUtils::setCompositeValue(const uint idx, const QString &newValue, QString &compositeString, const QLatin1Char &chr_sep) const
 {
-	int sep_pos(compositeString.indexOf(chr_sep));
-	int n_seps(-1);
+	qsizetype sep_pos{compositeString.indexOf(chr_sep)};
+	qsizetype n_seps{-1};
 
 	if (sep_pos == -1)
 	{
@@ -326,7 +345,7 @@ void TPUtils::setCompositeValue(const uint idx, const QString &newValue, QString
 		return;
 	}
 
-	uint last_sep_pos(0);
+	qsizetype last_sep_pos{0};
 	do {
 		++n_seps;
 		if (idx == n_seps)
@@ -345,8 +364,8 @@ void TPUtils::setCompositeValue(const uint idx, const QString &newValue, QString
 
 void TPUtils::removeFieldFromCompositeValue(const uint idx, QString &compositeString, const QLatin1Char &chr_sep) const
 {
-	int sep_pos(compositeString.indexOf(chr_sep));
-	int n_seps(-1), del_pos_1(0), del_pos_2(-1);
+	qsizetype sep_pos{compositeString.indexOf(chr_sep)};
+	qsizetype n_seps{-1}, del_pos_1{0}, del_pos_2{-1};
 	do {
 		++n_seps;
 		if (n_seps == idx)

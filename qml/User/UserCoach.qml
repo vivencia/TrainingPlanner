@@ -138,7 +138,7 @@ Frame {
 			id: chooseFileDlg
 			title: qsTr("Choose the file to import from")
 			defaultSuffix: "txt"
-			nameFilters: [qsTr("Supported file types") + " (*.pdf *.odf *.docx)"]
+			nameFilters: [qsTr("Supported file types") + " (*.pdf *.odt *.docx)"]
 			currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
 			fileMode: FileDialog.OpenFile
 

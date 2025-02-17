@@ -30,8 +30,8 @@ public:
 	explicit TPTimer(QObject* parent = nullptr);
 	virtual ~TPTimer();
 
-	Q_INVOKABLE void prepareTimer(const QString& strStartTime = QString());
-	Q_INVOKABLE void startTimer(const QString& initialTimeOfDay = QString());
+	Q_INVOKABLE void prepareTimer(const QString &strStartTime = QString{});
+	Q_INVOKABLE void startTimer(const QString &initialTimeOfDay = QString{});
 	Q_INVOKABLE void stopTimer();
 	Q_INVOKABLE void pauseTimer();
 	Q_INVOKABLE void resetTimer(const bool start);
@@ -39,23 +39,23 @@ public:
 	inline int hours() const { return m_hours; }
 	inline void setHours(const uint n_hours) { m_hours = n_hours; emit hoursChanged(); }
 	QString strHours() const;
-	void setStrHours(QString& str_hours);
+	void setStrHours(QString &str_hours);
 
 	inline int minutes() const { return m_minutes; }
 	inline void setMinutes(const uint n_minutes) { m_minutes = n_minutes; emit minutesChanged(); }
 	QString strMinutes() const;
-	void setStrMinutes(QString& str_minutes);
+	void setStrMinutes(QString &str_minutes);
 
 	inline int seconds() const { return m_seconds; }
 	inline void setSeconds(const uint n_seconds) { m_seconds = n_seconds; emit secondsChanged(); }
 	QString strSeconds() const;
-	void setStrSeconds(QString& str_seconds);
+	void setStrSeconds(QString &str_seconds);
 
 	inline bool stopWatch() const { return mb_stopWatch; }
 	inline bool timerForward() const { return mb_timerForward; }
 	inline void setStopWatch(const bool forward_timer) { mb_stopWatch = mb_timerForward = forward_timer; emit stopWatchChanged(); }
-	inline const QString& alarmSoundFile() const { return m_alarmSoundFile; }
-	void setAlarmSoundFile(const QString& soundFileName);
+	inline const QString &alarmSoundFile() const { return m_alarmSoundFile; }
+	void setAlarmSoundFile(const QString &soundFileName);
 
 	Q_INVOKABLE void stopAlarmSound();
 	Q_INVOKABLE void setAlarmSoundLoops(const uint nloops);

@@ -6,8 +6,6 @@
 #include <QObject>
 #include <QUrl>
 
-using namespace Qt::Literals::StringLiterals;
-
 class TPUtils : public QObject
 {
 
@@ -54,12 +52,22 @@ public:
 	QTime getTimeFromTimeString(const QString &strtime, const TIME_FORMAT format = TF_QML_DISPLAY_NO_SEC) const;
 	Q_INVOKABLE inline QString getCurrentTimeString(const TIME_FORMAT format = TF_QML_DISPLAY_NO_SEC) const { return formatTime(QTime::currentTime(), format); }
 	Q_INVOKABLE QString addTimeToStrTime(const QString &strTime, const int addmins, const int addsecs) const;
-	Q_INVOKABLE inline QString getHourFromCurrentTime() const { return getHourOrMinutesFromStrTime(QTime::currentTime().toString("hh:mm"_L1)); }
-	Q_INVOKABLE inline QString getMinutesFromCurrentTime() const { return getMinutesOrSeconsFromStrTime(QTime::currentTime().toString("hh:mm"_L1)); }
-	Q_INVOKABLE QString getHourOrMinutesFromStrTime(const QString &strTime) const;
-	Q_INVOKABLE QString getMinutesOrSeconsFromStrTime(const QString &strTime) const;
+	Q_INVOKABLE inline QString getHourFromCurrentTime() const
+	{
+		return getHourFromStrTime(formatTime(QTime::currentTime(), TF_QML_DISPLAY_NO_SEC));
+	}
+	Q_INVOKABLE inline QString getMinutesFromCurrentTime() const
+	{
+		return getMinutesFromStrTime(formatTime(QTime::currentTime(), TF_QML_DISPLAY_NO_SEC));
+	}
+	Q_INVOKABLE QString getHourFromStrTime(const QString &strTime, const TIME_FORMAT format = TF_QML_DISPLAY_NO_SEC) const;
+	Q_INVOKABLE QString getMinutesFromStrTime(const QString &strTime, const TIME_FORMAT format = TF_QML_DISPLAY_NO_SEC) const;
 	Q_INVOKABLE QTime getCurrentTime() const { return QTime::currentTime(); }
-	QString calculateTimeDifference_str(const QString &strTimeInit, const QString &strTimeFinal) const;
+	inline QString calculateTimeDifference_str(const QString &strTimeInit, const QString &strTimeFinal) const
+	{
+		return formatTime(calculateTimeDifference(strTimeInit, strTimeFinal), TF_QML_DISPLAY_COMPLETE);
+	}
+
 	QTime calculateTimeDifference(const QString &strTimeInit, const QString &strTimeFinal) const;
 
 	QDateTime getDateTimeFromOnlineString(const QString &datetime) const;
