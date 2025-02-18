@@ -89,7 +89,7 @@ create_admin_user() {
 
 create_users_db() {
     run_as_sudo rm -f "${USERS_DB}"
-    if sqlite3 -line ${USERS_DB} 'CREATE TABLE IF NOT EXISTS users_table (id INTEGER PRIMARY KEY, name TEXT, birthday INTEGER, sex TEXT, phone TEXT, email TEXT, social TEXT, role TEXT, coach_role TEXT, goal TEXT,  use_mode INTEGER DEFAULT 1, current_coach INTEGER, current_user INTEGER, password TEXT);' &>/dev/null; then
+    if sqlite3 -line ${USERS_DB} 'CREATE TABLE IF NOT EXISTS users_table (id INTEGER PRIMARY KEY, name TEXT, birthday INTEGER, sex TEXT, phone TEXT, email TEXT, social TEXT, role TEXT, coach_role TEXT, goal TEXT,  use_mode INTEGER DEFAULT 1, coaches INTEGER, clients INTEGER, password TEXT);' &>/dev/null; then
         run_as_sudo chown -R $NGINX_USER:$NGINX_USER $USERS_DB
         run_as_sudo chmod 664 $USERS_DB
         echo "Users database created"

@@ -148,7 +148,6 @@ bool TPListModel::exportContentsOnlyToFile(const QString &filename, const bool a
 				}
 			}
 		}
-		outFile->write("\n", 1);
 		outFile->close();
 	}
 	delete outFile;

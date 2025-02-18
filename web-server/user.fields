@@ -1,6 +1,5 @@
 id
 name
-password
 birthday
 sex
 phone
@@ -10,5 +9,6 @@ role
 coach_role
 goal
 use_mode
-current_coach
-current_user
+coaches
+clients
+password

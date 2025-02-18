@@ -28,19 +28,15 @@ inline QString makeCommandURL(const QString& option, const QString& value, const
 		ret += '&' + url_paramether_passwd + '=' + passwd;
 	if (!option2.isEmpty())
 	{
-		ret += '&' + option2;
+		ret += '&' + option2 + '=';
 		if (!value2.isEmpty())
-			ret += '=' + value2;
-		else
-			ret = std::move("=1"_L1);
+			ret += value2;
 	}
 	if (!option3.isEmpty())
 	{
-		ret += '&' + option3;
+		ret += '&' + option3 + '=';
 		if (!value3.isEmpty())
-			ret += '=' + value3;
-		else
-			ret = std::move("=1"_L1);
+			ret += value3;
 	}
 	/*if (!option4.isEmpty())
 		ret += '&' + option4;
@@ -133,7 +129,7 @@ void TPOnlineServices::sendRequestToCoach(const QString &username, const QString
 
 void TPOnlineServices::sendFile(const QString &username, const QString &passwd, QFile *file, const QString &targetUser, const bool b_internal_signal_only)
 {
-	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "upload"_L1, targetUser)};
+	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "upload"_L1, targetUser.isEmpty() ? username : targetUser)};
 	uploadFile(url, file, b_internal_signal_only);
 }
 

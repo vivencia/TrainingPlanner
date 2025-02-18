@@ -78,11 +78,11 @@ function upload_file($uploadDir) {
         }
         else {
             echo $_FILES['file'];
-            echo "Return code: 21: No file uploaded or an error occurred.\r\n";
+            echo "Return code: 21 No file uploaded or an error occurred.\r\n";
         }
     }
     else {
-        echo "Return code: 22: Invalid request method.\r\n";
+        echo "Return code: 22 Invalid request method.\r\n";
     }
     return false;
 }
@@ -107,7 +107,7 @@ function download_file($file, $downloadDir) {
         //only return the contents of the file. Any extra string will only get in the way
         return true;
     }
-    echo "Return code 1: File not found: ", basename($filename);
+    echo "Return code: 1 File not found: ", $filename;
     return false;
 }
 
@@ -127,11 +127,11 @@ function get_binfile($binfile, $targetuser) {
     echo "Return code: 1 File not found: ", $binfile . " in " . $src_dir;
 }
 
-function check_file_mtime($binfile, $targetuser) {
+function check_file_ctime($binfile, $targetuser) {
     global $rootdir;
     $filename = $rootdir . $targetuser . "/" . $binfile;
     if (is_file($filename))
-        echo "Return code: 0 ", date('Hisymd', filemtime($filename));
+        echo "Return code: 0 ", date('Hisymd', filectime($filename));
     else
         echo "Return code: 1 File not found:  ", $filename;
 }
@@ -343,12 +343,12 @@ if ($username) { //regular, most common usage: download/upload file/info from/to
             }
 
             //?user=1739556367374&password=lrTp1$&getbinfile=resume&fromuser=1739556367374
-            if (isset($_GET['checkfilemtime'])) {
-                $binfile = $_GET['checkfilemtime'];
+            if (isset($_GET['checkfilectime'])) {
+                $binfile = $_GET['checkfilectime'];
                 if ($binfile) {
                     $targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] : '';
                     if ($targetuser) {
-                        check_file_mtime($binfile, $targetuser);
+                        check_file_ctime($binfile, $targetuser);
                         exit;
                     }
                 }

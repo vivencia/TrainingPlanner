@@ -192,10 +192,10 @@ TPPage {
 					id: coachesModel
 
 					function populate(): void {
-						const currentCoach = userModel.userName(userModel.currentCoach(userModel.userRow(mesoManager.coach)));
+						const currentCoach = userModel.currentCoachName(userModel.userRow(mesocyclesModel.client));
 						append({ "text": currentCoach, "value": 0, "enabled": true });
 						const coaches = userModel.getCoaches();
-						for(let i = 0; i < coaches.length; ++i) {
+						for (let i = 0; i < coaches.length; ++i) {
 							if (coaches[i] !== currentCoach)
 								append({ "text": coaches[i], "value": i, "enabled": true });
 						}

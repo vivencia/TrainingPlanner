@@ -38,8 +38,8 @@ void DBUserTable::createTable()
 										"coach_role TEXT,"
 										"goal TEXT,"
 										"use_mode INTEGER DEFAULT 1,"
-										"current_coach INTEGER, "
-										"current_user INTEGER"
+										"coaches TEXT, "
+										"clients TEXT"
 									")"_L1
 		};
 		const bool ok = query.exec(strQuery);
@@ -93,19 +93,19 @@ void DBUserTable::saveUser()
 		{
 			//from_list is set to 0 because an edited exercise, regardless of its id, is considered different from the default list provided exercise
 			strQuery = std::move(u"UPDATE users_table SET name=\'%1\', birthday=%2, sex=\'%3\', phone=\'%4\', email=\'%5\', social=\'%6\', "
-						"role=\'%7\', coach_role=\'%8\', goal=\'%9\', use_mode=%10, current_coach=%11, current_user=%12 WHERE id=%13"_s
+						"role=\'%7\', coach_role=\'%8\', goal=\'%9\', use_mode=%10, coaches=\'%11\', clients=\'%12\' WHERE id=%13"_s
 				.arg(m_model->_userName(row), m_model->_birthDate(row), m_model->_sex(row), m_model->_phone(row), m_model->_email(row),
 					m_model->_socialMedia(row), m_model->_userRole(row), m_model->_coachRole(row), m_model->_goal(row), m_model->_appUseMode(row),
-					m_model->_currentCoach(row), m_model->_currentClient(), m_model->_userId(row)));
+					m_model->coaches(row), m_model->clients(row), m_model->_userId(row)));
 		}
 		else
 		{
 			strQuery = std::move(u"INSERT INTO users_table "
-				"(id,name,birthday,sex,phone,email,social,role,coach_role,goal,use_mode,current_coach,current_user)"
-				" VALUES(%1, \'%2\', %3, \'%4\', \'%5\', \'%6\', \'%7\', \'%8\',\'%9\', \'%10\', %11, %12, %13)"_s
+				"(id,name,birthday,sex,phone,email,social,role,coach_role,goal,use_mode,coaches,clients)"
+				" VALUES(%1, \'%2\', %3, \'%4\', \'%5\', \'%6\', \'%7\', \'%8\',\'%9\', \'%10\', %11, \'%12\', \'%13\')"_s
 					.arg(m_model->_userId(row), m_model->_userName(row), m_model->_birthDate(row), m_model->_sex(row),
 					m_model->_phone(row), m_model->_email(row), m_model->_socialMedia(row), m_model->_userRole(row), m_model->_coachRole(row),
-					m_model->_goal(row), m_model->_appUseMode(row), m_model->_currentCoach(row), m_model->_currentClient()));
+					m_model->_goal(row), m_model->_appUseMode(row), m_model->coaches(row), m_model->clients(row)));
 		}
 		ok = query.exec(strQuery);
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);

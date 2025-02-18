@@ -99,7 +99,7 @@ uint DBMesocyclesModel::createNewMesocycle(const bool bCreatePage)
 {
 	beginInsertRows(QModelIndex{}, count(), count());
 	const uint meso_idx{newMesocycle(std::move(QStringList{} << STR_MINUS_ONE << QString{} << QString{} << QString{} <<
-		QString{} << QString{} << std::move("ABCDERR"_L1) << appUserModel()->currentCoachName(0) << appUserModel()->userName(0) <<
+		QString{} << QString{} << std::move("ABCDERR"_L1) << appUserModel()->currentCoachName() << appUserModel()->userName(0) <<
 		QString{} << QString{} << STR_ONE))};
 	emit countChanged();
 	endInsertRows();

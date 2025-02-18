@@ -11,9 +11,11 @@ FocusScope {
 	signal passwordAccepted();
 	signal passwordUnacceptable();
 
+	property string notAllowableChars: "# &=\'\""
+
 	TPLabel {
 		id: lblPassword
-		text: userModel.passwordLabel
+		text: userModel.passwordLabel + "(" + notAllowableChars + qsTr(" not allowed)")
 		height: 25
 
 		anchors {
@@ -28,6 +30,7 @@ FocusScope {
 		heightAdjustable: false
 		echoMode: btnShowHidePassword.show ? TextInput.Normal : TextInput.Password
 		inputMethodHints: Qt.ImhSensitiveData|Qt.ImhNoPredictiveText
+		validator: RegularExpressionValidator { regularExpression: /^[^# &="']*$/ }
 		ToolTip.text: userModel.invalidPasswordLabel
 		focus: true
 		height: 25
@@ -45,12 +48,14 @@ FocusScope {
 		}
 
 		onTextEdited: {
-			if (text.length < 6) {
-				if (inputOK)
-					passwordUnacceptable();
+			if (acceptableInput) {
+				if (text.length < 6) {
+					if (inputOK)
+						passwordUnacceptable();
+				}
+				inputOK = text.length >= 6;
+				ToolTip.visible = !inputOK;
 			}
-			inputOK = text.length >= 6;
-			ToolTip.visible = !inputOK;
 		}
 
 		anchors {

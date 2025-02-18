@@ -248,28 +248,6 @@ const int DBUserModel::getRowByCoachName(const QString &coachname) const
 	return -1;
 }
 
-QStringList DBUserModel::getCoaches() const
-{
-	QStringList coaches;
-	for (uint i{0}; i < m_modeldata.count(); ++i)
-	{
-		if (isCoach(i))
-			coaches.append(m_modeldata.at(i).at(USER_COL_NAME));
-	}
-	return coaches;
-}
-
-QStringList DBUserModel::getClients() const
-{
-	QStringList clients;
-	for (uint i{0}; i < m_modeldata.count(); ++i)
-	{
-		if (isUser(i))
-			clients.append(m_modeldata.at(i).at(USER_COL_NAME));
-	}
-	return clients;
-}
-
 uint DBUserModel::userRow(const QString &userName) const
 {
 	for (uint i{0}; i < m_modeldata.count(); ++i)
@@ -316,6 +294,52 @@ void DBUserModel::setAvatar(const int row, const QString &new_avatar, const bool
 			sendAvatarToServer();
 		}
 	}
+}
+
+QStringList DBUserModel::coachesList(const uint row) const
+{
+	QStringList coaches_names;
+	if (row != 0 && isCoach((0)))
+		coaches_names.append(userName(0));
+	else
+	{
+		const QString &coaches_str{coaches(row)};
+		QString name{std::move(appUtils()->getCompositeValue(0, coaches_str, record_separator))};
+		qsizetype i{0};
+		while (!name.isEmpty())
+		{
+			coaches_names.append(std::move(name));
+			name = std::move(appUtils()->getCompositeValue(++i, coaches_str, record_separator));
+		}
+	}
+	return coaches_names;
+}
+
+const QString DBUserModel::currentCoachName(const uint row) const
+{
+	return appUtils()->getCompositeValue(0, coaches(row), record_separator);
+}
+
+QStringList DBUserModel::clientsList(const uint row) const
+{
+	QStringList clients_names;
+	if (row == 0 && isCoach((0)))
+	{
+		const QString &clients_str{clients(row)};
+		QString name{std::move(appUtils()->getCompositeValue(0, clients_str, record_separator))};
+		qsizetype i{0};
+		while (!name.isEmpty())
+		{
+			clients_names.append(std::move(name));
+			name = std::move(appUtils()->getCompositeValue(++i, clients_str, record_separator));
+		}
+	}
+	return clients_names;
+}
+
+const QString DBUserModel::currentClientName() const
+{
+	return appUtils()->getCompositeValue(0, clients(0), record_separator);
 }
 
 void DBUserModel::checkUserOnline(const QString &email, const QString &password)
@@ -890,23 +914,23 @@ int DBUserModel::_importFromFile(const QString &filename, QList<QStringList> &ta
 					bFoundModelInfo = strstr(buf, tableIdStr.toLatin1().constData()) != NULL;
 				else
 				{
-					if (col < USER_COL_APP_USE_MODE)
+					if (col < USER_TOTAL_COLS)
 					{
-						value = buf;
-						value = value.remove(0, value.indexOf(':') + 2).simplified();
-						if (!isFieldFormatSpecial(col))
-							modeldata[col] = std::move(value);
+						if (col == USER_COL_APP_USE_MODE)
+							modeldata[USER_COL_APP_USE_MODE] = QString::number(APP_USE_MODE_SINGLE_COACH);
 						else
-							modeldata[col] = std::move(formatFieldToImport(col, value));
+						{
+							value = buf;
+							value = value.remove(0, value.indexOf(':') + 2).simplified();
+							if (!isFieldFormatSpecial(col))
+								modeldata[col] = std::move(value);
+							else
+								modeldata[col] = std::move(formatFieldToImport(col, value));
+						}
 						++col;
 					}
-					else if (col == USER_COL_APP_USE_MODE)
-					{
-						modeldata[USER_COL_APP_USE_MODE] = QString::number(APP_USE_MODE_SINGLE_COACH);
-						modeldata[USER_COL_CURRENT_COACH] = "0"_L1;
-						modeldata[USER_COL_CURRENT_CLIENT] = "0"_L1;
+					else
 						break;
-					}
 				}
 			}
 		}

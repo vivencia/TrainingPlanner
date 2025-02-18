@@ -56,7 +56,7 @@ Frame {
 	TPTextInput {
 		id: txtPhone
 		inputMethodHints: Qt.ImhDigitsOnly
-		inputMask: "+55\\(99\\)99999\\-9999\\"
+		inputMask: "+55\\(99\\)99999\\-9999;_"
 		ToolTip.text: qsTr("Invalid phone number")
 		height: controlsHeight
 		width: frmContact.width*0.7
