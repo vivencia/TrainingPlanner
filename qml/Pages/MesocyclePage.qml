@@ -192,15 +192,18 @@ TPPage {
 					id: coachesModel
 
 					function populate(): void {
-						const currentCoach = userModel.currentCoachName(userModel.userRow(mesocyclesModel.client));
-						append({ "text": currentCoach, "value": 0, "enabled": true });
-						const coaches = userModel.getCoaches();
-						for (let i = 0; i < coaches.length; ++i) {
-							if (coaches[i] !== currentCoach)
+							const coaches = userModel.coachesNames;
+							for(let i = 0; i < coaches.length; ++i)
 								append({ "text": coaches[i], "value": i, "enabled": true });
+							cboCoaches.currentIndex = Qt.binding(function() { return cboCoaches.find(mesoManager.client); });
 						}
-						cboCoaches.currentIndex = Qt.binding(function() { return cboCoaches.find(mesoManager.coach); });
-					}
+
+						Connections {
+							target: userModel
+							function onCoachesNamesChanged() { clear(); populate(); }
+						}
+
+						Component.onCompleted: populate();
 				}
 
 				onActivated: (index) => mesoManager.coach = textAt(index);
@@ -246,15 +249,18 @@ TPPage {
 						id: clientsModel
 
 						function populate(): void {
-							const currentClient = userModel.userName(userModel.currentClient());
-							append({ "text": currentClient, "value": 0, "enabled": true });
-							const clients = userModel.getClients();
-							for(let i = 0; i < clients.length; ++i) {
-								if (clients[i] !== currentClient)
-									append({ "text": clients[i], "value": i, "enabled": true });	
-							}
+							const clients = userModel.clientsNames;
+							for(let i = 0; i < clients.length; ++i)
+								append({ "text": clients[i], "value": i, "enabled": true });
 							cboClients.currentIndex = Qt.binding(function() { return cboClients.find(mesoManager.client); });
 						}
+
+						Connections {
+							target: userModel
+							function onClientsNamesChanged() { clear(); populate(); }
+						}
+
+						Component.onCompleted: populate();
 					}
 
 					onActivated: (index) => mesoManager.client = textAt(index);
@@ -591,22 +597,5 @@ TPPage {
 
 	function changeCalendar(): void {
 		mesoManager.changeMesoCalendar(calendarChangeDlg.customBoolProperty1, calendarChangeDlg.customBoolProperty2);
-	}
-
-	function updateCoachesAndClientsModels(use_mode: int): void {
-		switch (use_mode) {
-			case -1:
-				coachesModel.populate();
-				clientsModel.populate();
-			break;
-			case 0:
-				coachesModel.clear();
-				coachesModel.populate();
-			break;
-			case 1:
-				clientsModel.clear();
-				clientsModel.populate();
-			break;
-		}
 	}
 } //Page

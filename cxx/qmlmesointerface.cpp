@@ -573,12 +573,6 @@ void QMLMesoInterface::createMesocyclePage_part2()
 	connect(this, &QMLMesoInterface::removePageFromMainMenu, appItemManager(), &QmlItemManager::removeMainMenuShortCut);
 	emit addPageToMainMenu(appMesoModel()->name(m_mesoIdx), m_mesoPage);
 
-	QMetaObject::invokeMethod(m_mesoPage, "updateCoachesAndClientsModels", Q_ARG(int, -1));
-	connect(appUserModel(), &DBUserModel::userAddedOrRemoved, this, [this] (const uint user_row, const bool bAdded) {
-		const int mode{appUserModel()->appUseMode(user_row) == APP_USE_MODE_SINGLE_COACH ? 0 : 1};
-		QMetaObject::invokeMethod(m_mesoPage, "updateCoachesAndClientsModels", Q_ARG(int, mode));
-	});
-
 	connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint field) {
 		if (user_row == 0 && field == USER_COL_APP_USE_MODE)
 			setPropertiesBasedOnUseMode();

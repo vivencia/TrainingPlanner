@@ -15,10 +15,15 @@ QmlUserInterface::~QmlUserInterface()
 		delete m_settingsPage;
 		delete m_settingsComponent;
 	}
-	if (m_clientsOrCoachesPage)
+	if (m_coachesPage)
 	{
-		delete m_clientsOrCoachesPage;
-		delete m_clientsOrCoachesComponent;
+		delete m_coachesPage;
+		delete m_coachesComponent;
+	}
+	if (m_clientsPage)
+	{
+		delete m_clientsPage;
+		delete m_clientsComponent;
 	}
 }
 
@@ -47,36 +52,44 @@ void QmlUserInterface::getSettingsPage(const uint startPageIndex)
 void QmlUserInterface::removeUser(const uint user_row, const bool bCoach)
 {
 	appDBInterface()->removeUser(user_row, bCoach);
-	const int curUserRow(appUserModel()->removeUser(user_row, bCoach));
-	int firstUserRow(-1), lastUserRow(-1);
-	if (curUserRow > 0)
-	{
-		firstUserRow = appUserModel()->findFirstUser(bCoach);
-		lastUserRow = appUserModel()->findLastUser(bCoach);
-	}
-	m_clientsOrCoachesPage->setProperty("curUserRow", curUserRow);
-	m_clientsOrCoachesPage->setProperty("firstUserRow", firstUserRow);
-	m_clientsOrCoachesPage->setProperty("lastUserRow", lastUserRow);
+	appUserModel()->removeUser(user_row, bCoach);
 }
 
-void QmlUserInterface::getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches)
+void QmlUserInterface::getCoachesPage()
 {
-	setClientsOrCoachesPagesProperties(bManageClients, bManageCoaches);
-
-	if (m_clientsOrCoachesPage)
-		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_clientsOrCoachesPage));
+	if (m_coachesPage)
+		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_coachesPage));
 	else
 	{
-		m_clientsOrCoachesProperties.insert("userManager"_L1, QVariant::fromValue(this));
-		m_clientsOrCoachesComponent = new QQmlComponent{m_qmlEngine, QUrl{"qrc:/qml/Pages/ClientsOrCoachesPage.qml"_L1}, QQmlComponent::Asynchronous};
-		if (m_clientsOrCoachesComponent->status() != QQmlComponent::Ready)
+		m_coachesProperties.insert("userManager"_L1, QVariant::fromValue(this));
+		m_coachesComponent = new QQmlComponent{m_qmlEngine, QUrl{"qrc:/qml/Pages/CoachesPage.qml"_L1}, QQmlComponent::Asynchronous};
+		if (m_coachesComponent->status() != QQmlComponent::Ready)
 		{
-			connect(m_clientsOrCoachesComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status) {
-					return createClientsOrCoachesPage();
+			connect(m_coachesComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status) {
+					return createCoachesPage();
 			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		}
 		else
-			createClientsOrCoachesPage();
+			createCoachesPage();
+	}
+}
+
+void QmlUserInterface::getClientsPage()
+{
+	if (m_clientsPage)
+		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_clientsPage));
+	else
+	{
+		m_clientsProperties.insert("userManager"_L1, QVariant::fromValue(this));
+		m_clientsComponent = new QQmlComponent{m_qmlEngine, QUrl{"qrc:/qml/Pages/ClientsPage.qml"_L1}, QQmlComponent::Asynchronous};
+		if (m_clientsComponent->status() != QQmlComponent::Ready)
+		{
+			connect(m_clientsComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status) {
+					return createClientsPage();
+			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		}
+		else
+			createClientsPage();
 	}
 }
 
@@ -84,15 +97,12 @@ void QmlUserInterface::userModifiedSlot(const uint user_row, const uint field)
 {
 	if (user_row == 0 && field == USER_COL_APP_USE_MODE)
 		m_userPage->setProperty("useMode", appUserModel()->appUseMode(0)); //if user_row == 0, then m_userPage exists
-	else
+	if (field == USER_COL_AVATAR)
 	{
-		if (field == USER_COL_AVATAR)
-		{
-			if (m_userPage)
-				QMetaObject::invokeMethod(m_userPage, "avatarChangedBySexSelection", Q_ARG(int, static_cast<int>(user_row)));
-			if (m_clientsOrCoachesPage)
-				QMetaObject::invokeMethod(m_clientsOrCoachesPage, "avatarChangedBySexSelection", Q_ARG(int, static_cast<int>(user_row)));
-		}
+		if (m_userPage)
+			QMetaObject::invokeMethod(m_userPage, "avatarChangedBySexSelection", Q_ARG(int, static_cast<int>(user_row)));
+		if (m_clientsPage)
+			QMetaObject::invokeMethod(m_clientsPage, "avatarChangedBySexSelection", Q_ARG(int, static_cast<int>(user_row)));
 	}
 }
 
@@ -122,74 +132,50 @@ void QmlUserInterface::createSettingsPage()
 	}
 }
 
-void QmlUserInterface::createClientsOrCoachesPage()
+void QmlUserInterface::createCoachesPage()
 {
 	#ifndef QT_NO_DEBUG
-	if (m_clientsOrCoachesComponent->status() == QQmlComponent::Error)
+	if (m_coachesComponent->status() == QQmlComponent::Error)
 	{
-		qDebug() << m_clientsOrCoachesComponent->errorString();
-		for (uint i(0); i < m_clientsOrCoachesComponent->errors().count(); ++i)
-			qDebug() << m_clientsOrCoachesComponent->errors().at(i).description();
+		qDebug() << m_coachesComponent->errorString();
+		for (uint i(0); i < m_coachesComponent->errors().count(); ++i)
+			qDebug() << m_coachesComponent->errors().at(i).description();
 		return;
 	}
 	#endif
-	if (m_clientsOrCoachesComponent->status() == QQmlComponent::Ready)
+	if (m_coachesComponent->status() == QQmlComponent::Ready)
 	{
-		m_clientsOrCoachesPage = static_cast<QQuickItem*>(m_clientsOrCoachesComponent->createWithInitialProperties(
-				m_clientsOrCoachesProperties, m_qmlEngine->rootContext()));
-		m_qmlEngine->setObjectOwnership(m_clientsOrCoachesPage, QQmlEngine::CppOwnership);
-		m_clientsOrCoachesPage->setParentItem(m_mainWindow->contentItem());
-		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_clientsOrCoachesPage));
+		m_coachesPage = static_cast<QQuickItem*>(m_coachesComponent->createWithInitialProperties(
+				m_coachesProperties, m_qmlEngine->rootContext()));
+		m_qmlEngine->setObjectOwnership(m_coachesPage, QQmlEngine::CppOwnership);
+		m_coachesPage->setParentItem(m_mainWindow->contentItem());
+		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_coachesPage));
 
 		connect(appUserModel(), SIGNAL(userModified(const uint,const uint)), this, SLOT(userModifiedSlot(const uint,const uint)),
 			static_cast<Qt::ConnectionType>(Qt::UniqueConnection|Qt::AutoConnection));
 	}
 }
 
-void QmlUserInterface::setClientsOrCoachesPagesProperties(const bool bManageClients, const bool bManageCoaches)
+void QmlUserInterface::createClientsPage()
 {
-	int curUserRow(0), firstUserRow(-1), lastUserRow(-1);
-
-	if (appUserModel()->appUseMode(0) == APP_USE_MODE_SINGLE_USER)
+	#ifndef QT_NO_DEBUG
+	if (m_clientsComponent->status() == QQmlComponent::Error)
+	{
+		qDebug() << m_clientsComponent->errorString();
+		for (uint i(0); i < m_clientsComponent->errors().count(); ++i)
+			qDebug() << m_clientsComponent->errors().at(i).description();
 		return;
-
-	if (bManageClients)
-	{
-		if (appUserModel()->appUseMode(0) == APP_USE_MODE_SINGLE_COACH || APP_USE_MODE_COACH_USER_WITH_COACH)
-		{
-			firstUserRow = appUserModel()->findFirstUser(false);
-			lastUserRow = appUserModel()->findLastUser(false);
-			curUserRow = appUserModel()->currentClient();
-		}
 	}
-
-	if (bManageCoaches)
+	#endif
+	if (m_clientsComponent->status() == QQmlComponent::Ready)
 	{
-		if (appUserModel()->appUseMode(0) == APP_USE_MODE_SINGLE_USER_WITH_COACH || APP_USE_MODE_COACH_USER_WITH_COACH)
-		{
-			firstUserRow = appUserModel()->findFirstUser(true);
-			lastUserRow = appUserModel()->findLastUser(true);
-			curUserRow = appUserModel()->currentCoach(0);
-		}
-	}
+		m_clientsPage = static_cast<QQuickItem*>(m_clientsComponent->createWithInitialProperties(
+				m_clientsProperties, m_qmlEngine->rootContext()));
+		m_qmlEngine->setObjectOwnership(m_clientsPage, QQmlEngine::CppOwnership);
+		m_clientsPage->setParentItem(m_mainWindow->contentItem());
+		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_clientsPage));
 
-	if (curUserRow == 0)
-		curUserRow = lastUserRow;
-	if (m_clientsOrCoachesPage)
-	{
-		m_clientsOrCoachesPage->setProperty("curUserRow", curUserRow);
-		m_clientsOrCoachesPage->setProperty("firstUserRow", firstUserRow);
-		m_clientsOrCoachesPage->setProperty("lastUserRow", lastUserRow);
-		m_clientsOrCoachesPage->setProperty("showUsers", bManageClients);
-		m_clientsOrCoachesPage->setProperty("showCoaches", bManageCoaches);
-
-	}
-	else
-	{
-		m_clientsOrCoachesProperties.insert(u"curUserRow"_s, curUserRow);
-		m_clientsOrCoachesProperties.insert(u"firstUserRow"_s, firstUserRow);
-		m_clientsOrCoachesProperties.insert(u"lastUserRow"_s, lastUserRow);
-		m_clientsOrCoachesProperties.insert(u"showUsers"_s, bManageClients);
-		m_clientsOrCoachesProperties.insert(u"showCoaches"_s, bManageCoaches);
+		connect(appUserModel(), SIGNAL(userModified(const uint,const uint)), this, SLOT(userModifiedSlot(const uint,const uint)),
+			static_cast<Qt::ConnectionType>(Qt::UniqueConnection|Qt::AutoConnection));
 	}
 }

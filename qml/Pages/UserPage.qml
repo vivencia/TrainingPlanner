@@ -83,7 +83,7 @@ TPPage {
 			text: qsTr("Manage coach(es)/trainer(s)")
 			flat: false
 			autoResize: true
-			enabled: useMode >= 3
+			visible: useMode >= 3
 
 			anchors {
 				horizontalCenter: parent.horizontalCenter
@@ -91,7 +91,7 @@ TPPage {
 				topMargin: 5
 			}
 
-			onClicked: userManager.getClientsOrCoachesPage(false, true);
+			onClicked: userManager.getCoachesPage();
 		}
 
 		TPButton {
@@ -99,7 +99,7 @@ TPPage {
 			text: qsTr("Manage clients")
 			flat: false
 			autoResize: true
-			enabled: useMode === 2 || useMode === 4
+			visible: useMode === 2 || useMode === 4
 
 			anchors {
 				horizontalCenter: parent.horizontalCenter
@@ -107,7 +107,7 @@ TPPage {
 				bottomMargin: 15
 			}
 
-			onClicked: userManager.getClientsOrCoachesPage(true, false);
+			onClicked: userManager.getClientsPage();
 		}
 	}
 

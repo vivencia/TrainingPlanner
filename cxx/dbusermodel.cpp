@@ -163,6 +163,10 @@ uint DBUserModel::removeUser(const int row, const bool bCoach)
 {
 	if (row >= 1 && row < m_modeldata.count())
 	{
+		if (isCoach(row))
+			delCoachName(row);
+		if (isClient(row))
+			delClientName(row);
 		removeRow(row);
 		emit userAddedOrRemoved(row, false);
 		return findNextUser(bCoach);
@@ -294,52 +298,6 @@ void DBUserModel::setAvatar(const int row, const QString &new_avatar, const bool
 			sendAvatarToServer();
 		}
 	}
-}
-
-QStringList DBUserModel::coachesList(const uint row) const
-{
-	QStringList coaches_names;
-	if (row != 0 && isCoach((0)))
-		coaches_names.append(userName(0));
-	else
-	{
-		const QString &coaches_str{coaches(row)};
-		QString name{std::move(appUtils()->getCompositeValue(0, coaches_str, record_separator))};
-		qsizetype i{0};
-		while (!name.isEmpty())
-		{
-			coaches_names.append(std::move(name));
-			name = std::move(appUtils()->getCompositeValue(++i, coaches_str, record_separator));
-		}
-	}
-	return coaches_names;
-}
-
-const QString DBUserModel::currentCoachName(const uint row) const
-{
-	return appUtils()->getCompositeValue(0, coaches(row), record_separator);
-}
-
-QStringList DBUserModel::clientsList(const uint row) const
-{
-	QStringList clients_names;
-	if (row == 0 && isCoach((0)))
-	{
-		const QString &clients_str{clients(row)};
-		QString name{std::move(appUtils()->getCompositeValue(0, clients_str, record_separator))};
-		qsizetype i{0};
-		while (!name.isEmpty())
-		{
-			clients_names.append(std::move(name));
-			name = std::move(appUtils()->getCompositeValue(++i, clients_str, record_separator));
-		}
-	}
-	return clients_names;
-}
-
-const QString DBUserModel::currentClientName() const
-{
-	return appUtils()->getCompositeValue(0, clients(0), record_separator);
 }
 
 void DBUserModel::checkUserOnline(const QString &email, const QString &password)

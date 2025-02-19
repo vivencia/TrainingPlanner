@@ -76,7 +76,6 @@ TPPopup {
 			height: 50
 
 			contentItem: Text {
-				id: txtCity
 				text: mesosList[index]
 				font.pixelSize: appSettings.fontSize
 				fontSizeMode: Text.Fit
