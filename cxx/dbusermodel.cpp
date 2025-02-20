@@ -16,18 +16,20 @@
 #include <QFile>
 #include <QQuickWindow>
 #include <QStandardPaths>
+#include <QTimer>
 
 #include <utility>
 
 DBUserModel* DBUserModel::_appUserModel(nullptr);
-QString DBUserModel::_localAvatarFilePath{};
 
 static const QLatin1StringView& userProfileFileName{"profile.txt"_L1};
 static const QLatin1StringView& userLocalDataFileName{"user.data"_L1};
 static const QString &tpNetworkTitle{qApp->tr("TP Network")};
 
+#define POLLING_INTERVAL 300000 //5 minutes
+
 DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
-	: TPListModel{parent}, m_searchRow{-1}
+	: TPListModel{parent}, m_searchRow{-1}, m_clientsRequestsTimer{nullptr}, m_coachesAnswersTimer{nullptr}
 {
 	setObjectName(DBUserObjectName);
 	m_tableId = USERS_TABLE_ID;
@@ -49,7 +51,9 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 
 		mb_mainUserConfigured = appSettings()->mainUserConfigured();
 		m_appDataPath = std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/Files/"_L1);
-		_localAvatarFilePath = m_appDataPath + "%1_avatar.png"_L1;
+		m_localAvatarFilePath = std::move(m_appDataPath + "%1_avatar.png"_L1);
+		m_onlineCoachesDir = std::move(m_appDataPath + "online_coaches/"_L1);
+		m_requestsDir = std::move(m_appDataPath + "requests/"_L1);
 		connect(this, &DBUserModel::userModified, this, [this] (const uint user_row, const uint) {
 			appDBInterface()->saveUser(user_row);
 		});
@@ -283,7 +287,7 @@ void DBUserModel::setAvatar(const int row, const QString &new_avatar, const bool
 	if (upload) {
 		TPImage img{nullptr};
 		img.setSource(new_avatar);
-		img.saveToDisk(_localAvatarFilePath.arg(_userId(row)));
+		img.saveToDisk(m_localAvatarFilePath.arg(_userId(row)));
 		emit userModified(row, USER_COL_AVATAR);
 
 		if (row == 0)
@@ -353,33 +357,12 @@ void DBUserModel::setCoachPublicStatus(const bool bPublic)
 			connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,bPublic] (const int ret_code, const QString &ret_string) {
 				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Coach registration") + record_separator + ret_string);
 				mb_coachRegistered = ret_code == 0 && bPublic;
+				if (mb_coachRegistered == true)
+					startClientRequestsPolling();
 			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 			appOnlineServices()->addOrRemoveCoach(key, value, bPublic);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		appKeyChain()->readKey(_userId(0));
-	}
-}
-
-void DBUserModel::isCoachAlreadyRegisteredOnline()
-{
-	if (isCoach(0)) //Only applicable to the main user that is a coach
-	{
-		if (!onlineCheckIn())
-		{
-			connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this] () {
-				isCoachAlreadyRegisteredOnline();
-			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-			return;
-		}
-
-		if (!mb_coachRegistered)
-		{
-			connect(this, &DBUserModel::coachesListReceived, this, [this] (const QStringList &coaches_list) {
-				mb_coachRegistered = coaches_list.contains(userName(0));
-				emit coachOnlineStatus(mb_coachRegistered == true);
-			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-			getOnlineCoachesList();
-		}
 	}
 }
 
@@ -552,29 +535,32 @@ void DBUserModel::getOnlineCoachesList()
 {
 	if (onlineCheckIn())
 	{
+		QDir requestsDir{m_onlineCoachesDir};
+		if (!requestsDir.exists())
+			requestsDir.mkpath(m_onlineCoachesDir);
 		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this] (const QString &key, const QString &value) {
 			connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString &ret_string) {
-				const QStringList &coaches{ret_string.split(' ')};
-				if (!coaches.isEmpty() && !coaches.first().contains("does not"_L1))
+				if (ret_code == 0)
 				{
-					connect(this, &DBUserModel::userProfileAcquired, this, [this,coaches] {
-						QStringList coaches_names{m_onlineUserInfo.count()};
-						for (uint i{0}; i < m_onlineUserInfo.count(); ++i)
-						{
-
-							coaches_names[i] = m_onlineUserInfo.at(i).at(USER_COL_NAME);
-							if (m_onlineUserInfo.at(i).at(USER_COL_ID) == _userId(0))
-							{
-								if (i > 0)
-									coaches_names.swapItemsAt(0, i);
-								coaches_names[i].prepend('*');
-							}
-						}
-						emit coachesListReceived(coaches_names);
+					const QStringList &coaches{ret_string.split(' ')};
+					connect(this, &DBUserModel::userProfileAcquired, this, [this,coaches] (const QString &userid, const bool success) {
+						const QString &coach_profile{m_onlineCoachesDir + userid + ".txt"_L1};
+						if (_importFromFile(coach_profile, m_onlineUserInfo) == APPWINDOW_MSG_READ_FROM_FILE_OK)
+							addAvailableCoach(m_onlineUserInfo.last().at(USER_COL_NAME), m_onlineUserInfo.last().at(USER_COL_ID) == _userId(0));
 					}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+
 					m_onlineUserInfo.clear();
 					for (uint i{0}; i < coaches.count(); ++i)
-						getUserOnlineProfile(coaches.at(i));
+					{
+						const QString &coach_profile{m_onlineCoachesDir + coaches.at(i) + ".txt"_L1};
+						if (!QFile::exists(coach_profile))
+							getUserOnlineProfile(coaches.at(i), coach_profile);
+						else
+						{
+							if (_importFromFile(coach_profile, m_onlineUserInfo) == APPWINDOW_MSG_READ_FROM_FILE_OK)
+								addAvailableCoach(m_onlineUserInfo.last().at(USER_COL_NAME), m_onlineUserInfo.last().at(USER_COL_ID) == _userId(0));
+						}
+					}
 				}
 			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 			appOnlineServices()->getCoachesList(key, value);
@@ -583,34 +569,57 @@ void DBUserModel::getOnlineCoachesList()
 	}
 }
 
-void DBUserModel::getUserOnlineProfile(const QString &netID, uint n_max_profiles)
+//Only applicable to the main user that is a coach
+void DBUserModel::checkIfCoachRegisteredOnline()
+{
+	if (isCoach(0))
+	{
+		if (!onlineCheckIn())
+		{
+			connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this] () {
+				checkIfCoachRegisteredOnline();
+			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+			return;
+		}
+
+		if (!mb_coachRegistered)
+		{
+			connect(this, &DBUserModel::coachesListReceived, this, [this] (const QStringList &coaches_list) {
+				mb_coachRegistered = coaches_list.contains(userName(0));
+				emit coachOnlineStatus(mb_coachRegistered == true);
+				if (mb_coachRegistered == true)
+					startClientRequestsPolling();
+			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+			getOnlineCoachesList();
+		}
+	}
+}
+
+void DBUserModel::getUserOnlineProfile(const QString &netID, const QString &save_as_filename)
 {
 	if (!onlineCheckIn())
 	{
-		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this,netID,n_max_profiles] () {
-			getUserOnlineProfile(netID, n_max_profiles);
+		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this,netID,save_as_filename] () {
+			getUserOnlineProfile(netID, save_as_filename);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		return;
 	}
 
-	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,netID,n_max_profiles] (const QString &key, const QString &value) {
-		connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [this,netID,n_max_profiles]
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,netID,save_as_filename] (const QString &key, const QString &value) {
+		connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [this,netID,save_as_filename]
 						(const int ret_code, const QString &filename, const QByteArray &contents) {
 			if (ret_code == 0)
 			{
-				const QString &temp_profile_filename{m_appDataPath + "temp_profile.txt"_L1};
-				QFile *temp_profile{new QFile{temp_profile_filename, this}};
-				if (temp_profile->open(QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text))
+				QFile *profile{new QFile{save_as_filename, this}};
+				if (profile->open(QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text))
 				{
-					temp_profile->write(contents);
-					temp_profile->close();
-					if (_importFromFile(temp_profile_filename, m_onlineUserInfo) == APPWINDOW_MSG_READ_FROM_FILE_OK)
-						m_onlineUserInfo.last()[USER_COL_ID] = netID;
-					static_cast<void>(temp_profile->remove());
+					profile->write(contents);
+					profile->close();
+					emit userProfileAcquired(netID, true);
 				}
-				delete temp_profile;
-				if (n_max_profiles == m_onlineUserInfo.count())
-					emit userProfileAcquired();
+				else
+					emit userProfileAcquired(netID, false);
+				delete profile;
 			}
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		appOnlineServices()->getFile(key, value, userProfileFileName, netID);
@@ -816,7 +825,7 @@ void DBUserModel::sendAvatarToServer()
 void DBUserModel::downloadAvatarFromServer(const uint row)
 {
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,row] (const QString &key, const QString &value) {
-		const QString &localAvatarFileName{_localAvatarFilePath.arg(_userId(row))};
+		const QString &localAvatarFileName{m_localAvatarFilePath.arg(_userId(row))};
 		connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [this,row,localAvatarFileName]
 						(const int ret_code, const QString &filename, const QByteArray &contents) {
 			if (ret_code == 0)
@@ -842,6 +851,52 @@ void DBUserModel::downloadAvatarFromServer(const uint row)
 		appOnlineServices()->getBinFile(key, value, key + "_avatar"_L1, key, m_time);
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appKeyChain()->readKey(_userId(row));
+}
+
+void DBUserModel::startClientRequestsPolling()
+{
+	if (!m_clientsRequestsTimer)
+	{
+		m_clientsRequestsTimer = new QTimer{this};
+		m_clientsRequestsTimer->setInterval(POLLING_INTERVAL);
+		m_clientsRequestsTimer->callOnTimeout([this] () { pollClientsRequests(); });
+		m_clientsRequestsTimer->start();
+
+		QDir requestsDir{m_requestsDir};
+		if (!requestsDir.exists())
+			requestsDir.mkpath(m_requestsDir);
+	}
+	pollClientsRequests();
+}
+
+void DBUserModel::pollClientsRequests()
+{
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this] (const QString &key, const QString &value) {
+		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString &ret_string) {
+			if (ret_code == 0)
+			{
+				const QStringList &requests_list{ret_string.split(' ', Qt::SkipEmptyParts)};
+				for (uint i{0}; i < requests_list.count(); ++i)
+				{
+					const QString &request_filename{m_requestsDir + requests_list.at(i) + ".txt"_L1};
+					if (!QFile::exists(request_filename))
+						getUserOnlineProfile(request_filename, request_filename);
+				}
+			}
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		appOnlineServices()->checkClientsRequests(key, value);
+	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	appKeyChain()->readKey(_userId(0));
+}
+
+void DBUserModel::startCoachesAnswerPolling()
+{
+
+}
+
+void DBUserModel::pollCoachesAnswers()
+{
+
 }
 
 int DBUserModel::_importFromFile(const QString &filename, QList<QStringList> &targetModel)

@@ -139,14 +139,14 @@ function check_file_ctime($binfile, $targetuser) {
 function scan_dir($path) {
     $files = array_values(array_diff(scandir($path), array('.', '..')));
     foreach ($files as &$file) {
-        echo $file . "\r\n";
+        echo $file . " ";
     }
 }
 
 function add_coach($coach) {
     global $coaches_file;
     if (!file_exists($coaches_file)) {
-        $fh = fopen($coaches_file, "w")  or die("Return code: 10 Unable to open coaches file!" .$coaches_file . "\r\n");
+        $fh = fopen($coaches_file, "w")  or die("Return code: 10 Unable to create coaches file!" .$coaches_file . "\r\n");
         chmod($coaches_file, 0664);
     }
     else {
@@ -185,6 +185,7 @@ function del_coach($coach) {
 function get_coaches() {
     global $coaches_file;
     if (file_exists($coaches_file)) {
+        echo "Return code: 0 ";
         $coaches = file($coaches_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($coaches as $coach) {
             echo $coach . " ";
@@ -196,24 +197,51 @@ function get_coaches() {
 
 function request_coach($username, $coach) {
     global $rootdir;
-    $user_info_file = $rootdir . $username . "/profile.txt";
-    $requests_dir = $rootdir . $coach . "/requests/";
-    if (!is_dir($requests_dir)) {
-        if (mkdir($requests_dir, 0775, true))
-            chmod($requests_dir, 0775);
-        else {
-            echo "Return code: 13 Could not create requests dir";
-            return false;
+    $requests_file = $rootdir . $coach . "/requests.txt";
+    if (!file_exists($requests_file)) {
+        $fh = fopen($requests_file, "w")  or die("Return code: 10 Unable to create requests file!" .$requests_file . "\r\n");
+        chmod($requests_file, 0664);
+    }
+    else {
+        $clients = file($requests_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($clients as $line) {
+            if ($line == $username) {
+                echo "Return code 11: Client request already placed.\r\n";
+                return;
+            }
+        }
+        $fh = fopen($requests_file, "a+")  or die("Return code: 10 Unable to open requests file to append new request!" .$requests_file . "\r\n");
+    }
+    fwrite($fh, $username . "\n");
+    fclose($fh);
+    echo "Return code: 0 Client request OK.\r\n";
+}
+
+function list_clients_requests($coach) {
+    global $rootdir;
+    $requests_file = $rootdir . $coach . "/requests.txt";
+    if (file_exists($requests_file)) {
+        echo "Return code: 0 ";
+        $clients = file($requests_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($clients as $client) {
+            echo $client . " ";
         }
     }
-    $coach_request_file = $requests_dir . $user_name . ".txt";
-    if (file_exists($coach_request_file))
-        unlink($coach_request_file);
-    if (copy($user_info_file, $coach_request_file)) {
-        echo "Return code: 0 Client request to coach successful";
-        return;
+    else
+        echo "Return code: 12 Requests file does not exist" . $requests_file;
+}
+
+function get_clients_requests($username) {
+    global $rootdir;
+    $requests_dir = $rootdir . $username . "/requests/";
+    if (is_dir($requests_dir)) {
+        $files = array_values(array_diff(scandir($requests_dir), array('.', '..')));
+        foreach ($files as &$file) {
+            download_file(basename($file), $requests_dir);
+        }
     }
-    echo "Return code: 14 Could not complete client request to coach";
+    else
+        echo "Return code: 13 requests dir does not exist";
 }
 
 function run_htpasswd($cmd_args, $username, $password) {
@@ -313,6 +341,14 @@ if ($username) { //regular, most common usage: download/upload file/info from/to
                 $coach = $_GET['requestcoach'];
                 if ($coach)
                     request_coach($username, $coach);
+                exit;
+            }
+            if (isset($_GET['listclientsrequests'])) {
+                list_clients_requests($username);
+                exit;
+            }
+            if (isset($_GET['getclientsrequests'])) {
+                get_clients_requests($username);
                 exit;
             }
             if (isset($_GET['upload'])) {

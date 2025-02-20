@@ -32,6 +32,7 @@ public:
 	void alterUser(const QString &old_username, const QString &new_username, const QString &new_passwd);
 	void addOrRemoveCoach(const QString &username, const QString &passwd, const bool bAdd);
 	void sendRequestToCoach(const QString &username, const QString &passwd, const QString& coach_net_name);
+	void checkClientsRequests(const QString &username, const QString &passwd);
 
 	void sendFile(const QString &username, const QString &passwd, QFile *file,
 					const QString &targetUser = QString{}, const bool b_internal_signal_only = false);

@@ -220,8 +220,6 @@ Frame {
 		if (!bReady) {
 			bCoachOK = app_use_mode === 2 || app_use_mode === 4;
 			optCoachUse.checked = bCoachOK;
-			if (bCoachOK)
-				userModel.isCoachAlreadyRegisteredOnline();
 			chkHaveCoach.checked = app_use_mode === 3 || app_use_mode === 4;
 		}
 	}

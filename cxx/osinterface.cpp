@@ -64,7 +64,7 @@ OSInterface::OSInterface(QObject *parent)
 	m_appDataFilesPath = std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)) + '/';
 	m_checkConnectionTimer = new QTimer{this};
 	m_checkConnectionTimer->setInterval(CONNECTION_CHECK_TIMEOUT);
-	m_checkConnectionTimer->callOnTimeout( [this] () { checkInternetConnection(); });
+	m_checkConnectionTimer->callOnTimeout([this] () { checkInternetConnection(); });
 	m_checkConnectionTimer->start();
 	checkInternetConnection();
 

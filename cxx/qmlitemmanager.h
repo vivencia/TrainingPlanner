@@ -33,7 +33,8 @@ public:
 	Q_INVOKABLE void tryToImport(const QList<bool>& selectedFields);
 	Q_INVOKABLE void displayImportDialogMessageAfterMesoSelection(const int meso_idx);
 	Q_INVOKABLE void getSettingsPage(const uint startPageIndex);
-	Q_INVOKABLE void getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches);
+	Q_INVOKABLE void getCoachesPage();
+	Q_INVOKABLE void getClientsPage();
 	Q_INVOKABLE void getExercisesPage(QmlTDayInterface* connectPage = nullptr);
 	Q_INVOKABLE void getWeatherPage();
 	Q_INVOKABLE void getStatisticsPage();

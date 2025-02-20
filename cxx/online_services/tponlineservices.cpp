@@ -127,6 +127,12 @@ void TPOnlineServices::sendRequestToCoach(const QString &username, const QString
 	makeNetworkRequest(url);
 }
 
+void TPOnlineServices::checkClientsRequests(const QString &username, const QString &passwd)
+{
+	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "listclientsrequests"_L1)};
+	makeNetworkRequest(url);
+}
+
 void TPOnlineServices::sendFile(const QString &username, const QString &passwd, QFile *file, const QString &targetUser, const bool b_internal_signal_only)
 {
 	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "upload"_L1, targetUser.isEmpty() ? username : targetUser)};

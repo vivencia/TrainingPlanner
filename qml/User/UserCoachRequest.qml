@@ -17,17 +17,6 @@ TPPopup {
 	property list<string> coachesList;
 	property list<bool> selectedCoaches;
 
-	Connections {
-		target: userModel
-		function onCoachesListReceived(coaches_list: list<string>): void {
-			coachesList = 0;
-			coachesList = coaches_list;
-			selectedCoaches.length = 0;
-			for (let i = 0; i < coachesList.length; ++i)
-				selectedCoaches.push(false);
-		}
-	}
-
 	onOpened: userModel.getOnlineCoachesList();
 
 	TPLabel {
@@ -69,17 +58,17 @@ TPPopup {
 
 			Repeater {
 				id: coachesRepeater
-				model: coachesList
+				model: userModel.availableCoachesNames
 
 				delegate: Row {
 					Layout.fillWidth: true
 					height: 25
 					spacing: 0
 					padding: 5
-					enabled: index === 0 && String(coachesList[index]).charAt(0) !== '*'
+					enabled: index === 0 && String(coachesRepeater.model.get(index)).charAt(0) !== '*'
 
 					TPCheckBox {
-						text: coachesList[index]
+						text: userModel.availableCoachesNames[index]
 						width: itemsLayout.width*0.65
 						multiLine: true
 

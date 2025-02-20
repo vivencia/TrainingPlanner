@@ -214,11 +214,18 @@ void QmlItemManager::getSettingsPage(const uint startPageIndex)
 	m_usersManager->getSettingsPage(startPageIndex);
 }
 
-void QmlItemManager::getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches)
+void QmlItemManager::getCoachesPage()
 {
 	if (!m_usersManager)
 		m_usersManager = new QmlUserInterface{this, appQmlEngine(), appMainWindow()};
-	m_usersManager->getClientsOrCoachesPage(bManageClients, bManageCoaches);
+	m_usersManager->getCoachesPage();
+}
+
+void QmlItemManager::getClientsPage()
+{
+	if (!m_usersManager)
+		m_usersManager = new QmlUserInterface{this, appQmlEngine(), appMainWindow()};
+	m_usersManager->getClientsPage();
 }
 
 void QmlItemManager::getExercisesPage(QmlTDayInterface *connectPage)

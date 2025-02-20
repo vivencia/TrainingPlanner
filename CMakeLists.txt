@@ -102,7 +102,9 @@ set( CXX_SOURCES
 	cxx/weather/openweathermapbackend.cpp
 
 	cxx/statistics/tpstatistics.h cxx/statistics/tpstatistics.cpp
+
 	cxx/online_services/tponlineservices.h cxx/online_services/tponlineservices.cpp
+	cxx/online_services/onlineuserinfo.h cxx/online_services/onlineuserinfo.cpp
 
 	cxx/tpkeychain/tpkeychain.h cxx/tpkeychain/tpkeychain.cpp
 	cxx/tpkeychain/keychain.h cxx/tpkeychain/keychain_p.h cxx/tpkeychain/keychain.cpp
