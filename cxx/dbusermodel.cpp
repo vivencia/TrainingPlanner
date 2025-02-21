@@ -9,6 +9,7 @@
 #include "tputils.h"
 #include "translationclass.h"
 #include "online_services/tponlineservices.h"
+#include "online_services/onlineuserinfo.h"
 #include "tpkeychain/tpkeychain.h"
 
 #include <QDateTime>
@@ -29,7 +30,7 @@ static const QString &tpNetworkTitle{qApp->tr("TP Network")};
 #define POLLING_INTERVAL 300000 //5 minutes
 
 DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
-	: TPListModel{parent}, m_searchRow{-1}, m_clientsRequestsTimer{nullptr}, m_coachesAnswersTimer{nullptr}
+	: TPListModel{parent}, m_searchRow{-1}, m_availableCoaches{nullptr}, m_clientsRequestsTimer{nullptr}, m_coachesAnswersTimer{nullptr}
 {
 	setObjectName(DBUserObjectName);
 	m_tableId = USERS_TABLE_ID;
@@ -503,63 +504,60 @@ void DBUserModel::mainUserConfigurationFinished()
 	}
 }
 
-void DBUserModel::sendRequestToCoaches(const QList<bool>& selectedCoaches)
+void DBUserModel::sendRequestToCoaches()
 {
-	if (!onlineCheckIn())
+	if (m_availableCoaches)
 	{
-		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this,selectedCoaches] () {
-			sendRequestToCoaches(selectedCoaches);
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		return;
-	}
-
-	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,selectedCoaches] (const QString &key, const QString &value) {
-		for (uint i{0}; i < selectedCoaches.count(); ++i)
-		{
-			if (selectedCoaches.at(i))
+		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this] (const QString &key, const QString &value) {
+			for (uint i{0}; i < m_availableCoaches->nSelected(); ++i)
 			{
-				connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString &ret_string) {
-					if (ret_code == 0)
-						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Coach contacting") + record_separator + ret_string);
-					else
-						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, ret_string);
-				}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-				appOnlineServices()->sendRequestToCoach(key, value, m_onlineUserInfo.at(i).at(USER_COL_ID));
+				if (m_availableCoaches->isSelected(i))
+				{
+					connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString &ret_string) {
+						if (ret_code == 0)
+							appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Coach contacting") + record_separator + ret_string);
+						else
+							appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, ret_string);
+					}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+					appOnlineServices()->sendRequestToCoach(key, value, m_availableCoaches->data(i, USER_COL_ID));
+				}
 			}
-		}
-	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-	appKeyChain()->readKey(_userId(0));
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		appKeyChain()->readKey(_userId(0));
+	}
 }
 
-void DBUserModel::getOnlineCoachesList()
+void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 {
 	if (onlineCheckIn())
 	{
 		QDir requestsDir{m_onlineCoachesDir};
 		if (!requestsDir.exists())
 			requestsDir.mkpath(m_onlineCoachesDir);
-		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this] (const QString &key, const QString &value) {
-			connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString &ret_string) {
+		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,get_list_only] (const QString &key, const QString &value) {
+			connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,get_list_only] (const int ret_code, const QString &ret_string) {
 				if (ret_code == 0)
 				{
 					const QStringList &coaches{ret_string.split(' ')};
+					if (get_list_only)
+					{
+						emit coachesListReceived(coaches);
+						return;
+					}
+					if (!m_availableCoaches)
+						m_availableCoaches = new OnlineUserInfo{this};
+					m_availableCoaches->sanitize(coaches, USER_COL_NAME);
 					connect(this, &DBUserModel::userProfileAcquired, this, [this,coaches] (const QString &userid, const bool success) {
 						const QString &coach_profile{m_onlineCoachesDir + userid + ".txt"_L1};
-						if (_importFromFile(coach_profile, m_onlineUserInfo) == APPWINDOW_MSG_READ_FROM_FILE_OK)
-							addAvailableCoach(m_onlineUserInfo.last().at(USER_COL_NAME), m_onlineUserInfo.last().at(USER_COL_ID) == _userId(0));
+						m_availableCoaches->dataFromFileSource(coach_profile);
+						emit availableCoachesChanged();
 					}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 
-					m_onlineUserInfo.clear();
 					for (uint i{0}; i < coaches.count(); ++i)
 					{
 						const QString &coach_profile{m_onlineCoachesDir + coaches.at(i) + ".txt"_L1};
 						if (!QFile::exists(coach_profile))
 							getUserOnlineProfile(coaches.at(i), coach_profile);
-						else
-						{
-							if (_importFromFile(coach_profile, m_onlineUserInfo) == APPWINDOW_MSG_READ_FROM_FILE_OK)
-								addAvailableCoach(m_onlineUserInfo.last().at(USER_COL_NAME), m_onlineUserInfo.last().at(USER_COL_ID) == _userId(0));
-						}
 					}
 				}
 			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
@@ -590,7 +588,7 @@ void DBUserModel::checkIfCoachRegisteredOnline()
 				if (mb_coachRegistered == true)
 					startClientRequestsPolling();
 			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-			getOnlineCoachesList();
+			getOnlineCoachesList(true);
 		}
 	}
 }
@@ -954,5 +952,5 @@ int DBUserModel::_importFromFile(const QString &filename, QList<QStringList> &ta
 	delete inFile;
 	if (bFoundModelInfo)
 		targetModel.append(std::move(modeldata));
-	return col >= USER_COL_APP_USE_MODE ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
+	return col == USER_TOTAL_COLS ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
 }

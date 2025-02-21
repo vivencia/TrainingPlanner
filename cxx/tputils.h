@@ -31,19 +31,10 @@ public:
 	explicit inline TPUtils(QObject *parent = nullptr) : QObject{parent}, m_appLocale{nullptr} { app_utils = this; }
 	inline ~TPUtils() { delete m_appLocale; }
 
-	Q_INVOKABLE const QString getCorrectPath(const QUrl& url) const;
+	Q_INVOKABLE QString getCorrectPath(const QUrl& url) const;
 	Q_INVOKABLE int getFileType(const QString &filename) const;
-	Q_INVOKABLE inline QString getFileName(const QString &filepath, const bool without_extension = false) const
-	{
-		QString ret{std::move(QFileInfo(filepath).fileName())};
-		if (without_extension)
-		{
-			qsizetype ext_idx{filepath.lastIndexOf('.')};
-			if (ext_idx > 0)
-				ret.remove(ext_idx, ret.length() - ext_idx);
-		}
-		return ret;
-	};
+	Q_INVOKABLE QString getFilePath(const QString &filename) const;
+	Q_INVOKABLE QString getFileName(const QString &filepath, const bool without_extension = false) const;
 	Q_INVOKABLE void copyToClipBoard(const QString &text) const;
 	Q_INVOKABLE bool canReadFile(const QString &filename) const;
 

@@ -8,7 +8,7 @@
 
 TPUtils* TPUtils::app_utils(nullptr);
 
-const QString TPUtils::getCorrectPath(const QUrl &url) const
+QString TPUtils::getCorrectPath(const QUrl &url) const
 {
 	QString path{url.toString(QUrl::PrettyDecoded|QUrl::PreferLocalFile|QUrl::RemoveScheme)};
 	if (path.startsWith("file://"_L1))
@@ -25,6 +25,26 @@ int TPUtils::getFileType(const QString &filename) const
 			return 1;
 		else return (filename.endsWith(".png"_L1) || filename.endsWith(".jpg"_L1)) ? 0 : -1;
 	#endif
+}
+
+QString TPUtils::getFilePath(const QString &filename) const
+{
+	const qsizetype ext_idx{filename.lastIndexOf('/')};
+	if (ext_idx > 0)
+		return filename.left(ext_idx + 1); //include the trainling '/'
+	return QString{};
+}
+
+QString TPUtils::getFileName(const QString &filepath, const bool without_extension) const
+{
+	QString ret{std::move(QFileInfo(filepath).fileName())};
+	if (without_extension)
+	{
+		const qsizetype ext_idx{filepath.lastIndexOf('.')};
+		if (ext_idx > 0)
+			ret.remove(ext_idx, ret.length() - ext_idx);
+	}
+	return ret;
 }
 
 void TPUtils::copyToClipBoard(const QString &text) const

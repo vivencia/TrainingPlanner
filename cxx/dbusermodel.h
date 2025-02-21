@@ -30,6 +30,7 @@
 #define USER_COL_AVATAR 20 //not in database, but used on model and GUI operations
 
 QT_FORWARD_DECLARE_CLASS(QTimer)
+QT_FORWARD_DECLARE_CLASS(OnlineUserInfo)
 
 class DBUserModel : public TPListModel
 {
@@ -54,7 +55,7 @@ Q_PROPERTY(QString invalidPasswordLabel READ invalidPasswordLabel NOTIFY labelsC
 Q_PROPERTY(QString checkEmailLabel READ checkEmailLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString importUserLabel READ importUserLabel NOTIFY labelsChanged FINAL)
 
-Q_PROPERTY(QStringList availableCoachesNames READ availableCoachesNames NOTIFY availableCoachesNamesChanged FINAL)
+Q_PROPERTY(OnlineUserInfo* availableCoaches READ availableCoaches NOTIFY availableCoachesChanged FINAL)
 Q_PROPERTY(QStringList coachesNames READ coachesNames NOTIFY coachesNamesChanged FINAL)
 Q_PROPERTY(QStringList clientsNames READ clientsNames NOTIFY clientsNamesChanged FINAL)
 Q_PROPERTY(bool haveCoaches READ haveCoaches NOTIFY haveCoachesChanged FINAL)
@@ -262,16 +263,7 @@ public:
 		}
 	}
 
-	inline const QStringList availableCoachesNames(const uint row = 0) const { return m_availableCoachesNames; }
-	inline void addAvailableCoach(const QString &coach_name, const bool prepend)
-	{
-		if (prepend)
-			m_availableCoachesNames.insert(0, coach_name);
-		else
-			m_availableCoachesNames.append(coach_name);
-		emit availableCoachesNamesChanged();
-	}
-
+	inline OnlineUserInfo *availableCoaches() const { return m_availableCoaches; }
 	inline bool haveCoaches() const { return m_coachesNames.count() > 0; }
 	inline const QString &coaches(const uint row) const { return m_modeldata.at(row).at(USER_COL_COACHES); }
 	inline const QStringList coachesNames(const uint row = 0) const
@@ -321,8 +313,8 @@ public:
 	Q_INVOKABLE void downloadResume(const uint coach_index);
 	Q_INVOKABLE void mainUserConfigurationFinished();
 	Q_INVOKABLE inline bool isCoachRegistered() { return mb_coachRegistered ? mb_coachRegistered == true : false; }
-	Q_INVOKABLE void sendRequestToCoaches(const QList<bool> &selectedCoaches);
-	Q_INVOKABLE void getOnlineCoachesList();
+	Q_INVOKABLE void sendRequestToCoaches();
+	Q_INVOKABLE void getOnlineCoachesList(const bool get_list_only = false);
 
 	void checkIfCoachRegisteredOnline();
 	void getUserOnlineProfile(const QString &netName, const QString &save_as_filename);
@@ -353,24 +345,25 @@ signals:
 	void labelsChanged();
 	void haveCoachesChanged();
 	void haveClientsChanged();
-	void availableCoachesNamesChanged();
 	void coachesNamesChanged();
 	void clientsNamesChanged();
+	void coachesListReceived(const QStringList &coaches_list);
+	void availableCoachesChanged();
 	void userAddedOrRemoved(const uint row, const bool bAdded);
 	void userOnlineCheckResult(const bool registered);
 	void userOnlineImportFinished(const bool result);
 	void mainUserConfigurationFinishedSignal();
 	void mainUserOnlineCheckInChanged();
 	void coachOnlineStatus(bool registered);
-	void userProfileAcquired(const QString& userid, const bool success);
-	void userPasswordAvailable(const QString& password);
+	void userProfileAcquired(const QString &userid, const bool success);
+	void userPasswordAvailable(const QString &password);
 
 private:
 	int m_searchRow;
 	QString m_appDataPath, m_onlineUserId;
 	std::optional<bool> mb_userRegistered, mb_coachRegistered;
-	QList<QStringList> m_onlineUserInfo;
-	QStringList m_availableCoachesNames, m_coachesNames, m_clientsNames;
+	OnlineUserInfo *m_availableCoaches, *m_pendingCoaches, *m_pendingClients;
+	QStringList m_coachesNames, m_clientsNames;
 	bool mb_mainUserConfigured;
 	QTimer *m_clientsRequestsTimer, *m_coachesAnswersTimer;
 
@@ -390,6 +383,7 @@ private:
 	QString m_localAvatarFilePath, m_onlineCoachesDir, m_requestsDir;
 	static DBUserModel *_appUserModel;
 	friend DBUserModel *appUserModel();
+	friend class OnlineUserInfo;
 };
 
 inline DBUserModel *appUserModel() { return DBUserModel::_appUserModel; }

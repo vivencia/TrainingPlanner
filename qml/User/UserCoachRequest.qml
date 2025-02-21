@@ -15,7 +15,6 @@ TPPopup {
 
 	required property int userRow
 	property list<string> coachesList;
-	property list<bool> selectedCoaches;
 
 	onOpened: userModel.getOnlineCoachesList();
 
@@ -58,30 +57,22 @@ TPPopup {
 
 			Repeater {
 				id: coachesRepeater
-				model: userModel.availableCoachesNames
+				model: userModel.availableCoaches
 
 				delegate: Row {
 					Layout.fillWidth: true
 					height: 25
 					spacing: 0
 					padding: 5
-					enabled: index === 0 && String(coachesRepeater.model.get(index)).charAt(0) !== '*'
+					enabled: !userModel.availableCoaches.isUserDefault(index)
 
 					TPCheckBox {
-						text: userModel.availableCoachesNames[index]
+						text: userModel.availableCoaches.display
 						width: itemsLayout.width*0.65
 						multiLine: true
+						checked: model.selected
 
-						onCheckedChanged: {
-							selectedCoaches[index] = checked;
-							for (let i = 0; i < selectedCoaches.length; ++i) {
-								if (selectedCoaches[i] === true) {
-									btnSendRequest.enabled = true;
-									return;
-								}
-							}
-							btnSendRequest.enabled = false;
-						}
+						onClicked: userModel.availableCoaches.selected = checked;
 					} //CheckBox
 
 					TPButton {
@@ -99,7 +90,7 @@ TPPopup {
 		id: btnSendRequest
 		text: qsTr("Send request to the selected coaches")
 		visible: coachesList.length > 0
-		enabled: false
+		enabled: userModel.availableCoaches.anySelected
 
 		anchors {
 			left: parent.left
@@ -110,6 +101,6 @@ TPPopup {
 			bottomMargin: 5
 		}
 
-		onClicked: userModel.sendRequestToCoaches(selectedCoaches);
+		onClicked: userModel.sendRequestToCoaches();
 	}
 }

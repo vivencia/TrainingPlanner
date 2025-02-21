@@ -115,7 +115,7 @@ void DBExercisesModel::newExercise(const QString& name, const QString& subname, 
 
 void DBExercisesModel::removeExercise(const uint index)
 {
-	beginRemoveRows(QModelIndex(), index, index);
+	beginRemoveRows(QModelIndex{}, index, index);
 	m_modeldata.remove(index);
 	m_indexProxy.remove(index);
 	if (!m_bFilterApplied)
@@ -138,7 +138,7 @@ void DBExercisesModel::removeExercise(const uint index)
 
 void DBExercisesModel::setFilter(const QString& filter)
 {
-	beginRemoveRows(QModelIndex(), 0, count()-1);
+	beginRemoveRows(QModelIndex{}, 0, count()-1);
 	m_indexProxy.clear();
 	endRemoveRows();
 
@@ -155,7 +155,7 @@ void DBExercisesModel::setFilter(const QString& filter)
 			{
 				if (subject.contains(words_list.at(i), Qt::CaseInsensitive))
 				{
-					beginInsertRows(QModelIndex(), count(), count());
+					beginInsertRows(QModelIndex{}, count(), count());
 					m_indexProxy.append(idx);
 					endInsertRows();
 					m_filteredIndices.append(idx);
@@ -170,7 +170,7 @@ void DBExercisesModel::setFilter(const QString& filter)
 		if (m_bFilterApplied)
 		{
 			m_bFilterApplied = false;
-			beginInsertRows(QModelIndex(), 0, m_modeldata.count());
+			beginInsertRows(QModelIndex{}, 0, m_modeldata.count());
 			for (uint i (0); i < m_modeldata.count(); ++i)
 				m_indexProxy.append(i);
 			endInsertRows();
@@ -199,14 +199,14 @@ void DBExercisesModel::search(const QString& search_term)
 					if (!bFound)
 					{
 						bFound = true;
-						beginRemoveRows(QModelIndex(), 0, count()-1);
+						beginRemoveRows(QModelIndex{}, 0, count()-1);
 						m_indexProxy.clear();
 						endRemoveRows();
 						resetPrivateData();
 						setCurrentRow(-1);
 						m_bFilterApplied = true;
 					}
-					beginInsertRows(QModelIndex(), count(), count());
+					beginInsertRows(QModelIndex{}, count(), count());
 					m_indexProxy.append(idx);
 					endInsertRows();
 				}
@@ -214,7 +214,7 @@ void DBExercisesModel::search(const QString& search_term)
 		}
 		if (!bFound)
 		{
-			beginRemoveRows(QModelIndex(), 0, count()-1);
+			beginRemoveRows(QModelIndex{}, 0, count()-1);
 			m_indexProxy.clear();
 			endRemoveRows();
 			if (m_filteredIndices.isEmpty())
@@ -236,18 +236,18 @@ void DBExercisesModel::search(const QString& search_term)
 
 			if (indexProxyModified)
 			{
-				beginRemoveRows(QModelIndex(), 0, count()-1);
+				beginRemoveRows(QModelIndex{}, 0, count()-1);
 				m_indexProxy.clear();
 				endRemoveRows();
 				if (!m_bFilterApplied)
 				{
-					beginInsertRows(QModelIndex(), 0, m_modeldata.count());
+					beginInsertRows(QModelIndex{}, 0, m_modeldata.count());
 					for (uint i {0}; i < m_modeldata.count(); ++i)
 						m_indexProxy.append(i);
 				}
 				else
 				{
-					beginInsertRows(QModelIndex(), 0, m_filteredIndices.count());
+					beginInsertRows(QModelIndex{}, 0, m_filteredIndices.count());
 					for (uint i {0}; i < m_filteredIndices.count(); ++i)
 						m_indexProxy.append(m_filteredIndices.at(i));
 				}
@@ -487,12 +487,13 @@ QVariant DBExercisesModel::data(const QModelIndex& index, int role) const
 	return QVariant();
 }
 
-bool DBExercisesModel::setData(const QModelIndex &index, const QVariant& value, int role)
+bool DBExercisesModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-	const int row(index.row());
-	if(row >= 0 && row < m_modeldata.count())
+	const int row{index.row()};
+	if (row >= 0 && row < m_modeldata.count())
 	{
-		switch(role) {
+		const int field{role-Qt::UserRole};
+		switch (role) {
 			case exerciseIdRole:
 			case mainNameRole:
 			case subNameRole:
@@ -504,18 +505,18 @@ bool DBExercisesModel::setData(const QModelIndex &index, const QVariant& value, 
 			case mediaPathRole:
 			case actualIndexRole:
 				if (!m_bFilterApplied)
-					m_modeldata[row][role-Qt::UserRole] = std::move(value.toString());
+					m_modeldata[row][field] = std::move(value.toString());
 				else
-					m_modeldata[m_indexProxy.at(row)][role-Qt::UserRole] = std::move(value.toString());
+					m_modeldata[m_indexProxy.at(row)][field] = std::move(value.toString());
 				emit dataChanged(index, index, QList<int>() << role);
 				return true;
 
 			case fromListRole:
 			case selectedRole:
 				if (!m_bFilterApplied)
-					m_modeldata[row][role-Qt::UserRole] = value.toBool() ? STR_ONE : STR_ZERO;
+					m_modeldata[row][field] = value.toBool() ? STR_ONE : STR_ZERO;
 				else
-					m_modeldata[m_indexProxy.at(row)][role-Qt::UserRole] = value.toBool() ? STR_ONE : STR_ZERO;
+					m_modeldata[m_indexProxy.at(row)][field] = value.toBool() ? STR_ONE : STR_ZERO;
 				emit dataChanged(index, index, QList<int>() << role);
 				return true;
 		}

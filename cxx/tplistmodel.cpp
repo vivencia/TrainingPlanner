@@ -7,7 +7,7 @@
 void TPListModel::removeRow(const uint row)
 {
 	Q_ASSERT_X(row < m_modeldata.count(), "TPListModel::removeRow", "out of range row");
-	beginRemoveRows(QModelIndex(), row, row);
+	beginRemoveRows(QModelIndex{}, row, row);
 	m_modeldata.remove(row);
 	if (m_currentRow >= row)
 		setCurrentRow(m_currentRow > 0 ? m_currentRow - 1 : 0);
@@ -17,7 +17,7 @@ void TPListModel::removeRow(const uint row)
 
 void TPListModel::appendList(const QStringList &list)
 {
-	beginInsertRows(QModelIndex(), count(), count());
+	beginInsertRows(QModelIndex{}, count(), count());
 	m_modeldata.append(list);
 	emit countChanged();
 	endInsertRows();
@@ -25,7 +25,7 @@ void TPListModel::appendList(const QStringList &list)
 
 void TPListModel::appendList(QStringList &&list)
 {
-	beginInsertRows(QModelIndex(), count(), count());
+	beginInsertRows(QModelIndex{}, count(), count());
 	m_modeldata.append(std::move(list));
 	emit countChanged();
 	endInsertRows();
@@ -33,7 +33,7 @@ void TPListModel::appendList(QStringList &&list)
 
 void TPListModel::clear()
 {
-	beginRemoveRows(QModelIndex(), 0, count()-1);
+	beginRemoveRows(QModelIndex{}, 0, count()-1);
 	m_modeldata.clear();
 	m_exportRows.clear();
 	setReady(false);
@@ -64,14 +64,14 @@ void TPListModel::moveRow(const uint from, const uint to)
 
 		if (to > from)
 		{
-			beginMoveRows(QModelIndex(), from, from, QModelIndex(), to+1);
-			for(uint i(from); i < to; ++i)
+			beginMoveRows(QModelIndex{}, from, from, QModelIndex{}, to+1);
+			for(uint i{from}; i < to; ++i)
 				m_modeldata[i] = std::move(m_modeldata[i+1]);
 		}
 		else
 		{
-			beginMoveRows(QModelIndex(), to, to, QModelIndex(), from+1);
-			for(uint i(from); i > to; --i)
+			beginMoveRows(QModelIndex{}, to, to, QModelIndex{}, from+1);
+			for(uint i{from}; i > to; --i)
 				m_modeldata[i] = std::move(m_modeldata[i-1]);
 		}
 		m_modeldata[to] = std::move(tempList);
@@ -86,7 +86,7 @@ void TPListModel::moveRow(const uint from, const uint to)
 }
 
 //Called when importing from a text file
-bool TPListModel::isDifferent(const TPListModel* const model) const
+bool TPListModel::isDifferent(const TPListModel *const model) const
 {
 	if (model->count() > 0)
 	{

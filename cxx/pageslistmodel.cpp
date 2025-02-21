@@ -23,7 +23,7 @@ void PagesListModel::addMainMenuShortCut(const QString& label, QQuickItem* page)
 			return;
 	}
 
-	beginInsertRows(QModelIndex(), count(), count());
+	beginInsertRows(QModelIndex{}, count(), count());
 	pageInfo* pageinfo{new pageInfo};
 	pageinfo->displayText = label;
 	pageinfo->page = page;
@@ -39,7 +39,7 @@ void PagesListModel::removeMainMenuShortCut(QQuickItem* page)
 		if (m_modeldata.at(i)->page == page)
 		{
 			QMetaObject::invokeMethod(appMainWindow(), "popFromStack", Q_ARG(QQuickItem*, page));
-			beginRemoveRows(QModelIndex(), i, i);
+			beginRemoveRows(QModelIndex{}, i, i);
 			delete m_modeldata.at(i);
 			m_modeldata.remove(i);
 			emit countChanged();
@@ -54,7 +54,7 @@ void PagesListModel::removeMainMenuShortCut(const uint index)
 	if (index < m_modeldata.count())
 	{
 		QMetaObject::invokeMethod(appMainWindow(), "popFromStack", Q_ARG(QQuickItem*, m_modeldata.at(index)->page));
-		beginRemoveRows(QModelIndex(), index, index);
+		beginRemoveRows(QModelIndex{}, index, index);
 		delete m_modeldata.at(index);
 		m_modeldata.remove(index);
 		emit countChanged();

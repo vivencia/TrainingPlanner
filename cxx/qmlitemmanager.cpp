@@ -29,6 +29,7 @@
 #include "translationclass.h"
 
 #include "online_services/tponlineservices.h"
+#include "online_services/onlineuserinfo.h"
 #include "weather/weatherinfo.h"
 
 #include <QFile>
@@ -39,13 +40,13 @@
 #include <QQuickWindow>
 #include <QSettings>
 
-QmlItemManager* QmlItemManager::_appItemManager(nullptr);
-QQmlApplicationEngine* QmlItemManager::_appQmlEngine(nullptr);
-QQuickWindow* QmlItemManager::_appMainWindow(nullptr);
+QmlItemManager* QmlItemManager::_appItemManager{nullptr};
+QQmlApplicationEngine* QmlItemManager::_appQmlEngine{nullptr};
+QQuickWindow* QmlItemManager::_appMainWindow{nullptr};
 
-QmlItemManager::QmlItemManager(QQmlApplicationEngine* qml_engine)
-		: QObject{nullptr}, m_usersManager(nullptr), m_exercisesListManager(nullptr),
-			m_weatherPage(nullptr), m_statisticsPage(nullptr), m_allWorkoutsPage(nullptr)
+QmlItemManager::QmlItemManager(QQmlApplicationEngine *qml_engine)
+		: QObject{nullptr}, m_usersManager{nullptr}, m_exercisesListManager{nullptr},
+			m_weatherPage{nullptr}, m_statisticsPage{nullptr}, m_allWorkoutsPage{nullptr}
 {
 	_appItemManager = this;
 	appDBInterface()->init();
@@ -97,9 +98,10 @@ void QmlItemManager::configureQmlEngine()
 	qmlRegisterType<TPStatistics>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "Statistics");
 	qmlRegisterType<PagesListModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "PagesListModel");
 	qmlRegisterType<TPWorkoutsCalendar>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "WorkoutsCalendar");
+	qmlRegisterType<OnlineUserInfo>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "OnlineUserInfo");
 
 	//Root context properties. MainWindow app properties
-	QList<QQmlContext::PropertyPair> properties(9);
+	QList<QQmlContext::PropertyPair> properties{9};
 	properties[0] = std::move(QQmlContext::PropertyPair{ "appSettings"_L1, QVariant::fromValue(appSettings()) });
 	properties[1] = std::move(QQmlContext::PropertyPair{ "appUtils"_L1, QVariant::fromValue(appUtils()) });
 	properties[2] = std::move(QQmlContext::PropertyPair{ "appTr"_L1, QVariant::fromValue(appTr()) });
@@ -112,7 +114,7 @@ void QmlItemManager::configureQmlEngine()
 	appQmlEngine()->rootContext()->setContextProperties(properties);
 
 	const QUrl &url{"qrc:/qml/main.qml"_L1};
-	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(), [url] (const QObject* const obj, const QUrl& objUrl) {
+	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(), [url] (const QObject *const obj, const QUrl &objUrl) {
 		if (!obj && url == objUrl)
 		{
 			LOG_MESSAGE("*******************Mainwindow not loaded*******************")
