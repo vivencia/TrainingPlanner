@@ -23,7 +23,7 @@ Q_PROPERTY(bool anySelected READ allSelected NOTIFY selectedChanged FINAL)
 Q_PROPERTY(bool anySelected READ noneSelected NOTIFY selectedChanged FINAL)
 
 enum RoleNames {
-	iDRole = Qt::UserRole + USER_COL_ID,
+	idRole = Qt::UserRole + USER_COL_ID,
 	nameRole = Qt::UserRole + USER_COL_NAME,
 	birthdayRole = Qt::UserRole + USER_COL_BIRTHDAY,
 	sexRole = Qt::UserRole + USER_COL_SEX,
@@ -48,6 +48,17 @@ public:
 	{
 		Q_ASSERT_X(row < count(), "OnlineUserInfo::data", "row out of range");
 		return m_modeldata.at(row).at(user_field);
+	}
+	inline void setData(const uint row, const uint user_field, const QString &value)
+	{
+		Q_ASSERT_X(row < count(), "OnlineUserInfo::setData", "row out of range");
+		m_modeldata[row][user_field] = value;
+	}
+	inline void setData(const uint row, const uint user_field, QString &&value)
+	{
+		Q_ASSERT_X(row < count(), "OnlineUserInfo::setData", "row out of range");
+		m_modeldata[row][user_field] = std::move(value);
+		emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>() << Qt::UserRole+user_field);
 	}
 
 	inline bool isSelected(const uint row) const
@@ -84,7 +95,7 @@ public:
 
 	bool dataFromFileSource(const QString &filename);
 	bool dataFromString(const QString &user_data);
-	void removeUserInfo(const uint row);
+	void removeUserInfo(const uint row, const bool remove_source);
 	//Remove all items from m_modeldata that are not in user_list. Use field to look for matches
 	void sanitize(const QStringList &user_list, const uint field);
 
@@ -95,7 +106,8 @@ public:
 	}
 	void makeUserDefault(const uint row);
 
-	inline QList<QStringList> &modeldata() { return m_modeldata; } //use it to move data into appUserModel()::m_modeldata
+	inline QStringList &modeldata(const uint row) { return m_modeldata[row]; } //used to move data into appUserModel()::m_modeldata
+	inline const QStringList &modeldata(const uint row) const { return m_modeldata.at(row); } //used to copy data into appUserModel()::m_modeldata
 
 	inline int rowCount(const QModelIndex& parent) const override final { Q_UNUSED(parent); return count(); }
 	QVariant data(const QModelIndex &index, int role) const override final;

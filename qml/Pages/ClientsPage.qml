@@ -41,6 +41,7 @@ TPPage {
 		}
 		TabButton {
 			text: qsTr("Pending requests")
+			enabled: userModel.pendingClientsRequests.count > 0
 		}
 
 		anchors {
@@ -102,7 +103,7 @@ TPPage {
 					}
 
 					onClicked: {
-						curRow = userModel.userRow(userModel.clientsNames[index]);
+						curRow = userModel.findUserByName(userModel.clientsNames[index]);
 						clientsList.currentIndex = index;
 					}
 				} //ItemDelegate
@@ -119,7 +120,7 @@ TPPage {
 				contentWidth: availableWidth
 				spacing: 0
 				clip: true
-				model: userModel.pendingClientsNames
+				model: userModel.pendingClientsRequests
 				height: 0.9*parent.height
 
 				ScrollBar.vertical: ScrollBar {
@@ -152,7 +153,13 @@ TPPage {
 								(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
 					}
 
-					onClicked: pendingClientsList.currentIndex = index;
+					onClicked: {
+						const tempRow = userModel.getTemporaryUserInfo(userModel.pendingClientsRequests, index);
+						if (tempRow > 0) {
+							curRow = tempRow;
+							pendingClientsList.currentIndex = index;
+						}
+					}
 				} //ItemDelegate
 			} //ListView: pendingClientsList
 
@@ -171,7 +178,7 @@ TPPage {
 					text: qsTr("Accept client")
 					autoResize: true
 
-					onClicked: userModel.acceptCoach(userModel.clientsNames[pendingClientsList.currentIndex]);
+					onClicked: userModel.acceptClient(userModel.pendingClientsRequests, pendingClientsList.currentIndex);
 				}
 				TPButton {
 					text: qsTr("View profile")

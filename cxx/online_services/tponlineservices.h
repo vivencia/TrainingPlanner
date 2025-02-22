@@ -33,6 +33,7 @@ public:
 	void addOrRemoveCoach(const QString &username, const QString &passwd, const bool bAdd);
 	void sendRequestToCoach(const QString &username, const QString &passwd, const QString& coach_net_name);
 	void checkClientsRequests(const QString &username, const QString &passwd);
+	void removeClientRequest(const QString &username, const QString &passwd, const QString &client);
 
 	void sendFile(const QString &username, const QString &passwd, QFile *file,
 					const QString &targetUser = QString{}, const bool b_internal_signal_only = false);

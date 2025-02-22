@@ -5,7 +5,7 @@
 OnlineUserInfo::OnlineUserInfo(QObject *parent)
 	: QAbstractListModel{parent}, m_nselected{0}
 {
-	m_roleNames[iDRole] = std::move("id");
+	m_roleNames[idRole] = std::move("id");
 	m_roleNames[nameRole] = std::move("name");
 	m_roleNames[birthdayRole] = std::move("birthday");
 	m_roleNames[sexRole] = std::move("sex");
@@ -57,9 +57,11 @@ bool OnlineUserInfo::dataFromString(const QString &user_data)
 }
 
 
-void OnlineUserInfo::removeUserInfo(const uint row)
+void OnlineUserInfo::removeUserInfo(const uint row, const bool remove_source)
 {
 	Q_ASSERT_X(row < count(), "OnlineUserInfo::data", "row out of range");
+	if (remove_source)
+		static_cast<void>(QFile::remove(data(row, USER_EXTRA_SOURCE)));
 	beginRemoveRows(QModelIndex{}, row, row);
 	m_modeldata.remove(row);
 	m_extraInfo.remove(row);
@@ -84,7 +86,7 @@ void OnlineUserInfo::sanitize(const QStringList &user_list, const uint field)
 			}
 		}
 		if (!found)
-			removeUserInfo(i);
+			removeUserInfo(i, true);
 	}
 }
 
@@ -109,7 +111,7 @@ QVariant OnlineUserInfo::data(const QModelIndex &index, int role) const
 	{
 		switch (role)
 		{
-			case iDRole: return m_modeldata.at(row).at(USER_COL_ID);
+			case idRole: return m_modeldata.at(row).at(USER_COL_ID);
 			case nameRole: return m_modeldata.at(row).at(USER_COL_NAME);
 			case birthdayRole: return m_modeldata.at(row).at(USER_COL_BIRTHDAY);
 			case sexRole: return m_modeldata.at(row).at(USER_COL_SEX);
@@ -135,7 +137,7 @@ bool OnlineUserInfo::setData(const QModelIndex &index, const QVariant &value, in
 	{
 		switch (role)
 		{
-			case iDRole:
+			case idRole:
 			case nameRole:
 			case birthdayRole:
 			case sexRole:
@@ -146,8 +148,7 @@ bool OnlineUserInfo::setData(const QModelIndex &index, const QVariant &value, in
 			case coachRole:
 			case goalRole:
 			case useModeRole:
-				m_modeldata[row][role-Qt::UserRole] = std::move(value.toString());
-				emit dataChanged(index, index, QList<int>() << role);
+				setData(row, role-Qt::UserRole, std::move(value.toString()));
 				return true;
 			case displayTextRole:
 				m_extraInfo[row][USER_EXTRA_NAME] = std::move(value.toString());

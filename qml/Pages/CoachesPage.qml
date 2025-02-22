@@ -41,6 +41,7 @@ TPPage {
 		}
 		TabButton {
 			text: qsTr("Pending answers")
+			enabled: userModel.pendingCoachesResponses.count > 0
 		}
 
 		anchors {
@@ -102,7 +103,7 @@ TPPage {
 					}
 
 					onClicked: {
-						curRow = userModel.userRow(userModel.coachesNames[index]);
+						curRow = userModel.findUserByName(userModel.coachesNames[index]);
 						coachesList.currentIndex = index;
 					}
 				} //ItemDelegate
@@ -119,7 +120,7 @@ TPPage {
 				contentWidth: availableWidth
 				spacing: 0
 				clip: true
-				model: userModel.pendingCoachesNames
+				model: userModel.pendingCoachesResponses
 				height: 0.9*parent.height
 
 				ScrollBar.vertical: ScrollBar {
@@ -152,7 +153,13 @@ TPPage {
 								(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
 					}
 
-					onClicked: pendingCoachesList.currentIndex = index;
+					onClicked: {
+						const tempRow = userModel.getTemporaryUserInfo(userModel.pendingCoachesResponses, index);
+						if (tempRow > 0) {
+							curRow = tempRow;
+							pendingCoachesList.currentIndex = index;
+						}
+					}
 				} //ItemDelegate
 			} //ListView: pendingCoachesList
 

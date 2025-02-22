@@ -217,6 +217,25 @@ function request_coach($username, $coach) {
     echo "Return code: 0 Client request OK.\r\n";
 }
 
+function delete_coach_request($coach, $client) {
+    global $rootdir;
+    $requests_file = $rootdir . $coach . "/requests.txt";
+    if (!file_exists($requests_file)) {
+        $clients = file($requests_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($clients as $line) {
+            if ($line != $client) {
+                $new_clients = $new_clients . $line . "\r\n";
+            }
+        }
+        $fh = fopen($requests_file, "w")  or die("Return code: 10 Unable to open requests file!" .$requests_file . "\r\n");
+        fwrite($fh, $new_clients);
+        fclose($fh);
+        echo "Return code: 0 Client removed from the coach's request file file.\r\n";
+    }
+    else
+        echo "Return code: 12 Coach's requests file does not exist";
+}
+
 function list_clients_requests($coach) {
     global $rootdir;
     $requests_file = $rootdir . $coach . "/requests.txt";
@@ -343,6 +362,13 @@ if ($username) { //regular, most common usage: download/upload file/info from/to
                     request_coach($username, $coach);
                 exit;
             }
+            if (isset($_GET['deletecoachrequest'])) {
+                $client = $_GET['deletecoachrequest'];
+                if ($client)
+                    delete_coach_request($username, $client);
+                exit;
+            }
+
             if (isset($_GET['listclientsrequests'])) {
                 list_clients_requests($username);
                 exit;
