@@ -140,12 +140,34 @@ TPPage {
 					width: parent.width
 					height: 25
 
-					contentItem: Text {
-						text: model.get(index).text //userModel.coachesNames[index]
-						font.pixelSize: appSettings.fontSize
-						fontSizeMode: Text.Fit
-						leftPadding: 5
-						bottomPadding: 2
+					contentItem: Item {
+						Text {
+							id: txtCoachName
+							text: name
+							font.pixelSize: 0
+							fontSizeMode: Text.Fit
+							leftPadding: 5
+							bottomPadding: 2
+							width: parent.width*0.7
+
+							anchors {
+								verticalCenter: parent.verticalCenter
+								left: parent.left
+							}
+						}
+
+						TPButton {
+							text: qsTr("Profile")
+							autoResize: true
+
+							anchors {
+								verticalCenter: parent.verticalCenter
+								left: txtClientName.right
+								right: parent.right
+							}
+
+							onClicked: userModel.downloadResume(pendingCoachesList.currentIndex);
+						}
 					}
 
 					background: Rectangle {
@@ -167,24 +189,17 @@ TPPage {
 				uniformCellSizes: true
 				height: 25
 
-				anchors {
-					top: pendingCoachesList.bottom
-					topMargin: 5
-					left: parent.left
-					right: parent.right
-				}
-
 				TPButton {
-					text: qsTr("Accept coach")
+					text: qsTr("Accept")
 					autoResize: true
 
-					onClicked: userModel.acceptCoach(userModel.coachesNames[pendingCoachesList.currentIndex]);
+					onClicked: userModel.acceptUser(userModel.pendingCoachesResponses, pendingClientsList.currentIndex);
 				}
 				TPButton {
-					text: qsTr("View résumé")
+					text: qsTr("Decline")
 					autoResize: true
 
-					onClicked: userModel.downloadResume(pendingCoachesList.currentIndex);
+					onClicked: userModel.rejectUser(userModel.pendingCoachesResponses, pendingClientsList.currentIndex);
 				}
 			}
 		}//Item

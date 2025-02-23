@@ -90,6 +90,19 @@ void OnlineUserInfo::sanitize(const QStringList &user_list, const uint field)
 	}
 }
 
+void OnlineUserInfo::clear()
+{
+	if (count() > 0)
+	{
+		beginRemoveRows(QModelIndex{}, 0, count()-1);
+		m_modeldata.clear();
+		m_extraInfo.clear();
+		m_sourcePath.clear();
+		emit countChanged();
+		endRemoveRows();
+	}
+}
+
 void OnlineUserInfo::makeUserDefault(const uint row)
 {
 	Q_ASSERT_X(row < count(), "makeUserDefault::data", "row out of range");

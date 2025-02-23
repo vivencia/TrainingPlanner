@@ -141,8 +141,8 @@ TPPage {
 					height: 25
 
 					contentItem: Text {
-						text: model.get(index).text //userModel.clientsNames[index]
-						font.pixelSize: appSettings.fontSize
+						text: name
+						font.pixelSize: 0
 						fontSizeMode: Text.Fit
 						leftPadding: 5
 						bottomPadding: 2
@@ -150,7 +150,7 @@ TPPage {
 
 					background: Rectangle {
 						color: index === pendingClientsList.currentIndex ? appSettings.entrySelectedColor :
-								(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
+							(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
 					}
 
 					onClicked: {
@@ -175,16 +175,16 @@ TPPage {
 				}
 
 				TPButton {
-					text: qsTr("Accept client")
+					text: qsTr("Accept")
 					autoResize: true
 
-					onClicked: userModel.acceptClient(userModel.pendingClientsRequests, pendingClientsList.currentIndex);
+					onClicked: userModel.acceptUser(userModel.pendingClientsRequests, pendingClientsList.currentIndex);
 				}
 				TPButton {
-					text: qsTr("View profile")
+					text: qsTr("Decline")
 					autoResize: true
 
-					onClicked: userModel.downloadResume(pendingClientsList.currentIndex);
+					onClicked: userModel.rejectUser(userModel.pendingClientsRequests, pendingClientsList.currentIndex);
 				}
 			}
 		}//Item

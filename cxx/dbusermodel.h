@@ -92,13 +92,16 @@ public:
 		{
 			//DBUserTable calls here when reading from the database. When we get the data for the main user, initialize the network connection
 			static_cast<void>(onlineCheckIn());
-			if (isCoach(last_idx))
+			if (isCoach(0))
 			{
-				m_coachesNames.append(userName(last_idx));
+				m_coachesNames.append(userName(0));
 				checkIfCoachRegisteredOnline();
 			}
-			if (isClient(last_idx))
-				m_clientsNames.append(userName(last_idx));
+			if (isClient(0))
+			{
+				m_clientsNames.append(userName(0));
+				startCoachesAnswerPolling();
+			}
 		}
 		else
 		{
@@ -248,16 +251,16 @@ public:
 		{
 			if (new_use_opt != APP_USE_MODE_SINGLE_COACH && new_use_opt != APP_USE_MODE_COACH_USER_WITH_COACH)
 			{
-				delCoachName(row);
-				addClientName(row);
+				delCoach(row);
+				addClient(row);
 				emit clientsNamesChanged();
 				if (mb_coachRegistered == true)
 					setCoachPublicStatus(false);
 			}
 			else
 			{
-				addCoachName(row);
-				delClientName(row);
+				addCoach(row);
+				delClient(row);
 			}
 			m_modeldata[row][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
 			emit userModified(row, USER_COL_APP_USE_MODE);
@@ -268,39 +271,21 @@ public:
 	inline OnlineUserInfo *pendingCoachesResponses() const { return m_pendingCoachesResponses; }
 	inline bool haveCoaches() const { return m_coachesNames.count() > 0; }
 	inline const QString &coaches(const uint row) const { return m_modeldata.at(row).at(USER_COL_COACHES); }
-	inline const QStringList coachesNames(const uint row = 0) const
-	{
-		return row != 0 && isCoach((0)) ? QStringList{userName(0)} : m_coachesNames;
-	}
-	inline void addCoachName(const uint row)
-	{
-		m_coachesNames.append(userName(row));
-		emit coachesNamesChanged();
-	}
-	inline void delCoachName(const uint row)
-	{
-		if (m_coachesNames.removeOne(userName(row)))
-			emit coachesNamesChanged();
-	}
+	void addCoach(const uint row);
+	void delCoach(const uint coach_idx);
+	inline void delCoach(const QString &coach) { delCoach(m_coachesNames.indexOf(coach)); }
 	const QString currentCoachName(const uint row) const;
 	void checkCoachesReponses();
 
 	inline OnlineUserInfo *pendingClientsRequests() const { return m_pendingClientRequests; }
 	inline bool haveClients() const { return m_clientsNames.count() > 0; }
 	inline const QString &clients(const uint row) const { return m_modeldata.at(row).at(USER_COL_CLIENTS); }
+	void addClient(const uint row);
+	void delClient(const uint client_idx);
+	inline void delClient(const QString &client) { delClient(m_coachesNames.indexOf(client)); }
 	inline const QStringList clientsNames(const uint row = 0) const
 	{
 		return row == 0 && isCoach((0)) ? m_clientsNames : QStringList{};
-	}
-	inline void addClientName(const uint row)
-	{
-		m_clientsNames.append(userName(row));
-		emit clientsNamesChanged();
-	}
-	inline void delClientName(const uint row)
-	{
-		if (m_clientsNames.removeOne(userName(row)))
-			emit clientsNamesChanged();
 	}
 	void checkClientsReponses();
 
@@ -311,7 +296,8 @@ public:
 		if (row < count())
 			m_modeldata[row][USER_COL_CLIENTS] = b_temp ? std::move("temp"_L1) : QString{};
 	}
-	void acceptUser(OnlineUserInfo* userInfo, const int userInfoRow);
+	Q_INVOKABLE void acceptUser(OnlineUserInfo* userInfo, const int userInfoRow);
+	Q_INVOKABLE void rejectUser(OnlineUserInfo* userInfo, const int userInfoRow);
 
 	Q_INVOKABLE inline void cancelPendingOnlineRequests()
 	{
@@ -395,7 +381,7 @@ private:
 	void pollCoachesAnswers();
 	int _importFromFile(const QString &filename, QList<QStringList> &targetModel);
 
-	QString m_localAvatarFilePath, m_onlineCoachesDir, m_requestsDir;
+	QString m_localAvatarFilePath, m_onlineCoachesDir, m_dirForRequestedCoaches, m_dirForClientsRequests;
 	static DBUserModel *_appUserModel;
 	friend DBUserModel *appUserModel();
 	friend class OnlineUserInfo;

@@ -98,6 +98,7 @@ public:
 	void removeUserInfo(const uint row, const bool remove_source);
 	//Remove all items from m_modeldata that are not in user_list. Use field to look for matches
 	void sanitize(const QStringList &user_list, const uint field);
+	void clear();
 
 	Q_INVOKABLE inline bool isUserDefault(const uint row) const
 	{
@@ -108,6 +109,8 @@ public:
 
 	inline QStringList &modeldata(const uint row) { return m_modeldata[row]; } //used to move data into appUserModel()::m_modeldata
 	inline const QStringList &modeldata(const uint row) const { return m_modeldata.at(row); } //used to copy data into appUserModel()::m_modeldata
+	inline void setModelData(QStringList &&model) { m_modeldata.append(std::move(model)); }
+	inline void setModelData(const QStringList &model) { m_modeldata.append(model); }
 
 	inline int rowCount(const QModelIndex& parent) const override final { Q_UNUSED(parent); return count(); }
 	QVariant data(const QModelIndex &index, int role) const override final;

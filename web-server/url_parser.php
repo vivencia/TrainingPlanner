@@ -214,7 +214,7 @@ function request_coach($username, $coach) {
     }
     fwrite($fh, $username . "\n");
     fclose($fh);
-    echo "Return code: 0 Client request OK.\r\n";
+    echo "Return code: 0 Coach request OK.\r\n";
 }
 
 function delete_coach_request($coach, $client) {
@@ -231,9 +231,12 @@ function delete_coach_request($coach, $client) {
         fwrite($fh, $new_clients);
         fclose($fh);
         echo "Return code: 0 Client removed from the coach's request file file.\r\n";
+        return true;
     }
-    else
+    else {
         echo "Return code: 12 Coach's requests file does not exist";
+        return false;
+    }
 }
 
 function list_clients_requests($coach) {
@@ -250,9 +253,9 @@ function list_clients_requests($coach) {
         echo "Return code: 12 Requests file does not exist" . $requests_file;
 }
 
-function get_clients_requests($username) {
+function get_clients_requests($coach) {
     global $rootdir;
-    $requests_dir = $rootdir . $username . "/requests/";
+    $requests_dir = $rootdir . $coach . "/requests/";
     if (is_dir($requests_dir)) {
         $files = array_values(array_diff(scandir($requests_dir), array('.', '..')));
         foreach ($files as &$file) {
@@ -260,7 +263,88 @@ function get_clients_requests($username) {
         }
     }
     else
-        echo "Return code: 13 requests dir does not exist";
+        echo "Return code: 13 Requests dir does not exist";
+}
+
+function accept_client_request($coach, $client)
+{
+    if (delete_coach_request($coach, $client)) {
+        global $rootdir;
+        $accepts_file = $rootdir . $client . "/coaches_accepted.txt";
+        if (!file_exists($accepts_file)) {
+            $fh = fopen($accepts_file, "w")  or die("Return code: 10 Unable to create accepts file!" .$accepts_file . "\r\n");
+            chmod($accepts_file, 0664);
+        }
+        else {
+            $coaches = file($accepts_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            foreach ($coaches as $line) coach{
+                if ($line == $coach) {
+                    echo "Return code 11: Coach accept answer already placed.\r\n";
+                    return;
+                }
+            }
+            $fh = fopen($accepts_file, "a+")  or die("Return code: 10 Unable to open accepts file to append new anwer!" .$accepts_file . "\r\n");
+        }
+        fwrite($fh, $coach . "\n");
+        fclose($fh);
+        echo "Return code: 0 Coach's answer to client's request OK";
+        return true;
+    }
+    echo "Return code: 11 Could not place coach's answer to client";
+    return false;
+}
+
+function reject_client_request($coach, $client)
+{
+    if (delete_coach_request($coach, $client)) {
+        global $rootdir;
+        $rejects_file = $rootdir . $client . "/coaches_rejected.txt";
+        if (!file_exists($rejects_file)) {
+            $fh = fopen($rejects_file, "w")  or die("Return code: 10 Unable to create rejects file!" .$rejects_file . "\r\n");
+            chmod($rejects_file, 0664);
+        }
+        else {
+            $coaches = file($rejects_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            foreach ($coaches as $line) coach{
+                if ($line == $coach) {
+                    echo "Return code 11: Coach reject answer already placed.\r\n";
+                    return;
+                }
+            }
+            $fh = fopen($rejects_file, "a+")  or die("Return code: 10 Unable to open accepts file to append new anwer!" .$rejects_file . "\r\n");
+        }
+        fwrite($fh, $coach . "\n");
+        fclose($fh);
+        echo "Return code: 0 Coach's answer to client's request REJECTED";
+        return true;
+    }
+    echo "Return code: 11 Could not place coach's answer to client";
+    return false;
+}
+
+function list_coaches_answers($client) {
+    $answer = "";
+    global $rootdir;
+
+    $accepts_file = $rootdir . $client . "/coaches_accepted.txt";
+    if (file_exists($accepts_file)) {
+        $coaches = file($accepts_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($coaches as $coach) {
+            $answer = $answer.$coach."AOK "
+        }
+    }
+
+    $rejects_file = $rootdir . $client . "/coaches_rejected.txt";
+    if (file_exists($rejects_file)) {
+        $coaches = file($rejects_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($coaches as $coach) {
+            $answer = $answer.$coach."NAY "
+        }
+    }
+    if ($answer != "")
+        echo "Return code: 0 ".$answer;
+    else
+        echo "Return code: 1 No coaches's answers";
 }
 
 function run_htpasswd($cmd_args, $username, $password) {
@@ -375,6 +459,22 @@ if ($username) { //regular, most common usage: download/upload file/info from/to
             }
             if (isset($_GET['getclientsrequests'])) {
                 get_clients_requests($username);
+                exit;
+            }
+            if (isset($_GET['acceptclientrequest'])) {
+                $client = $_GET['acceptclientrequest'];
+                if ($client)
+                    accept_client_request($username, $client);
+                exit;
+            }
+            if (isset($_GET['rejectclientrequest'])) {
+                $client = $_GET['rejecttclientrequest'];
+                if ($client)
+                    reject_client_request($username, $client);
+                exit;
+            }
+            if (isset($_GET['listcoachesanswers'])) {
+                list_coaches_answers($username);
                 exit;
             }
             if (isset($_GET['upload'])) {
