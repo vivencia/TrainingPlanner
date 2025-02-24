@@ -57,7 +57,7 @@ constexpr uint CONNECTION_CHECK_TIMEOUT{10*60*1000};
 constexpr uint CONNECTION_ERR_TIMEOUT{20*1000};
 
 OSInterface::OSInterface(QObject *parent)
-	: QObject{parent}, m_networkStatus{0}
+	: QObject{parent}, m_networkStatus{0}, m_bchecking_ic{false}
 {
 	app_os_interface = this;
 	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(aboutToExit()));
@@ -119,6 +119,9 @@ OSInterface::OSInterface(QObject *parent)
 
 void OSInterface::checkInternetConnection()
 {
+	if (m_bchecking_ic)
+		return;
+	m_bchecking_ic = true;
 	int network_status{0};
     QTcpSocket checkConnectionSocket;
     checkConnectionSocket.connectToHost("google.com"_L1, 443); // 443 for HTTPS or use Port 80 for HTTP
@@ -144,7 +147,7 @@ void OSInterface::checkInternetConnection()
 	{
 		setNetworkStatus(network_status);
 		connect(appOnlineServices(), &TPOnlineServices::serverOnline, this, &OSInterface::checkServerResponseSlot,
-			static_cast<Qt::ConnectionType>(Qt::UniqueConnection|Qt::SingleShotConnection));
+			static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		appOnlineServices()->checkServer(network_status);
 	}
 	else
@@ -181,9 +184,12 @@ void OSInterface::checkServerResponseSlot(const bool online, int network_status)
 		configureLocalServer();
 	#endif
 #endif
+	if (online)
+		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, "TrainingPlanner App"_L1 + record_separator + "Connected online!"_L1);
 	setBit(network_status, online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
 	unSetBit(network_status, !online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
 	setNetworkStatus(network_status);
+	m_bchecking_ic = false;
 }
 
 #ifdef Q_OS_ANDROID

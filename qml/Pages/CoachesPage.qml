@@ -38,6 +38,8 @@ TPPage {
 		TabButton {
 			text: qsTr("Coaches or Trainers")
 			enabled: userModel.haveCoaches
+
+			onClicked: curRow = Qt.binding(function() { return userModel.currentRow; });
 		}
 		TabButton {
 			text: qsTr("Pending answers")
@@ -48,7 +50,7 @@ TPPage {
 			top: lblMain.bottom
 			topMargin: 5
 			left: parent.left
-			lertMargin: 5
+			leftMargin: 5
 			right: parent.right
 			rightMargin: 5
 		}
@@ -61,7 +63,8 @@ TPPage {
 
 		Item {
 			enabled: userModel.haveCoaches
-			anchors.fill: parent
+			Layout.fillWidth: true
+			Layout.fillHeight: true
 
 			ListView {
 				id: coachesList
@@ -90,7 +93,7 @@ TPPage {
 					height: 25
 
 					contentItem: Text {
-						text: model.get(index).text //userModel.coachesNames[index]
+						text: userModel.coachesNames[index]
 						font.pixelSize: appSettings.fontSize
 						fontSizeMode: Text.Fit
 						leftPadding: 5
@@ -104,15 +107,24 @@ TPPage {
 
 					onClicked: {
 						curRow = userModel.findUserByName(userModel.coachesNames[index]);
+						userModel.currentRow = curRow;
 						coachesList.currentIndex = index;
 					}
 				} //ItemDelegate
+
+				Component.onCompleted: {
+					if (userModel.haveCoaches) {
+						userModel.currentRow = userModel.findUserByName(userModel.coachesNames[0]);
+						coachesList.currentIndex = 0;
+					}
+				}
 			} //ListView: coachesList
 		}
 
 		Item {
-			anchors.fill: parent
-			enabled: userModel.haveCoachAnswer
+			enabled: userModel.pendingCoachesResponses.count > 0
+			Layout.fillWidth: true
+			Layout.fillHeight: true
 
 			ListView {
 				id: pendingCoachesList
@@ -143,7 +155,7 @@ TPPage {
 					contentItem: Item {
 						Text {
 							id: txtCoachName
-							text: name
+							text: display
 							font.pixelSize: 0
 							fontSizeMode: Text.Fit
 							leftPadding: 5
@@ -176,11 +188,8 @@ TPPage {
 					}
 
 					onClicked: {
-						const tempRow = userModel.getTemporaryUserInfo(userModel.pendingCoachesResponses, index);
-						if (tempRow > 0) {
-							curRow = tempRow;
+						if (userModel.getTemporaryUserInfo(userModel.pendingCoachesResponses, index) > 0)
 							pendingCoachesList.currentIndex = index;
-						}
 					}
 				} //ItemDelegate
 			} //ListView: pendingCoachesList

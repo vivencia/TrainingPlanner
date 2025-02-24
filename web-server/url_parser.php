@@ -277,7 +277,7 @@ function accept_client_request($coach, $client)
         }
         else {
             $coaches = file($accepts_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-            foreach ($coaches as $line) coach{
+            foreach ($coaches as $line) {
                 if ($line == $coach) {
                     echo "Return code 11: Coach accept answer already placed.\r\n";
                     return;
@@ -305,7 +305,7 @@ function reject_client_request($coach, $client)
         }
         else {
             $coaches = file($rejects_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-            foreach ($coaches as $line) coach{
+            foreach ($coaches as $line) {
                 if ($line == $coach) {
                     echo "Return code 11: Coach reject answer already placed.\r\n";
                     return;
@@ -330,7 +330,7 @@ function list_coaches_answers($client) {
     if (file_exists($accepts_file)) {
         $coaches = file($accepts_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($coaches as $coach) {
-            $answer = $answer.$coach."AOK "
+            $answer = $answer.$coach."AOK ";
         }
     }
 
@@ -338,7 +338,7 @@ function list_coaches_answers($client) {
     if (file_exists($rejects_file)) {
         $coaches = file($rejects_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($coaches as $coach) {
-            $answer = $answer.$coach."NAY "
+            $answer = $answer.$coach."NAY ";
         }
     }
     if ($answer != "")

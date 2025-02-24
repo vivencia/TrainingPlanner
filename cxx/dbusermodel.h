@@ -30,6 +30,7 @@
 
 QT_FORWARD_DECLARE_CLASS(QTimer)
 QT_FORWARD_DECLARE_CLASS(OnlineUserInfo)
+Q_DECLARE_OPAQUE_POINTER(OnlineUserInfo*)
 
 class DBUserModel : public TPListModel
 {
@@ -269,6 +270,8 @@ public:
 
 	inline OnlineUserInfo *availableCoaches() const { return m_availableCoaches; }
 	inline OnlineUserInfo *pendingCoachesResponses() const { return m_pendingCoachesResponses; }
+	inline QStringList coachesNames() const { return m_coachesNames; }
+	inline const QString defaultCoach() const { return m_coachesNames.count() > 0 ? m_coachesNames.at(0) : QString{}; }
 	inline bool haveCoaches() const { return m_coachesNames.count() > 0; }
 	inline const QString &coaches(const uint row) const { return m_modeldata.at(row).at(USER_COL_COACHES); }
 	void addCoach(const uint row);
@@ -278,15 +281,13 @@ public:
 	void checkCoachesReponses();
 
 	inline OnlineUserInfo *pendingClientsRequests() const { return m_pendingClientRequests; }
+	inline QStringList clientsNames() const { return m_clientsNames; }
+	inline const QString defaultClient() const { return m_clientsNames.count() > 0 ? m_clientsNames.at(0) : QString{}; }
 	inline bool haveClients() const { return m_clientsNames.count() > 0; }
 	inline const QString &clients(const uint row) const { return m_modeldata.at(row).at(USER_COL_CLIENTS); }
 	void addClient(const uint row);
 	void delClient(const uint client_idx);
-	inline void delClient(const QString &client) { delClient(m_coachesNames.indexOf(client)); }
-	inline const QStringList clientsNames(const uint row = 0) const
-	{
-		return row == 0 && isCoach((0)) ? m_clientsNames : QStringList{};
-	}
+	inline void delClient(const QString &client) { delClient(m_clientsNames.indexOf(client)); }
 	void checkClientsReponses();
 
 	Q_INVOKABLE int getTemporaryUserInfo(OnlineUserInfo* tempUser, const int userInfoRow);

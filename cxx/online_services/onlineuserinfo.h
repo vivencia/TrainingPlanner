@@ -17,10 +17,11 @@ class OnlineUserInfo : public QAbstractListModel
 Q_OBJECT
 QML_ELEMENT
 
+Q_PROPERTY(int currentRow READ currentRow WRITE setCurrentRow NOTIFY currentRowChanged FINAL)
 Q_PROPERTY(uint count READ count NOTIFY countChanged)
 Q_PROPERTY(bool anySelected READ anySelected NOTIFY selectedChanged FINAL)
-Q_PROPERTY(bool anySelected READ allSelected NOTIFY selectedChanged FINAL)
-Q_PROPERTY(bool anySelected READ noneSelected NOTIFY selectedChanged FINAL)
+Q_PROPERTY(bool allSelected READ allSelected NOTIFY selectedChanged FINAL)
+Q_PROPERTY(bool noneSelected READ noneSelected NOTIFY selectedChanged FINAL)
 
 enum RoleNames {
 	idRole = Qt::UserRole + USER_COL_ID,
@@ -109,9 +110,18 @@ public:
 
 	inline QStringList &modeldata(const uint row) { return m_modeldata[row]; } //used to move data into appUserModel()::m_modeldata
 	inline const QStringList &modeldata(const uint row) const { return m_modeldata.at(row); } //used to copy data into appUserModel()::m_modeldata
-	inline void setModelData(QStringList &&model) { m_modeldata.append(std::move(model)); }
-	inline void setModelData(const QStringList &model) { m_modeldata.append(model); }
+	inline void setModelData(QStringList &&model) { m_modeldata.append(std::move(model)); setCurrentRow(count()-1); }
+	inline void setModelData(const QStringList &model) { m_modeldata.append(model); setCurrentRow(count()-1); }
 
+	inline int currentRow() const { return m_currentRow; }
+	inline void setCurrentRow(const int new_row)
+	{
+		if (m_currentRow != new_row)
+		{
+			m_currentRow = new_row;
+			emit currentRowChanged();
+		}
+	}
 	inline int rowCount(const QModelIndex& parent) const override final { Q_UNUSED(parent); return count(); }
 	QVariant data(const QModelIndex &index, int role) const override final;
 	bool setData(const QModelIndex &index, const QVariant &value, int role) override final;
@@ -121,6 +131,7 @@ public:
 signals:
 	void countChanged();
 	void selectedChanged();
+	void currentRowChanged();
 
 private:
 	QHash<int, QByteArray> m_roleNames;
@@ -128,6 +139,7 @@ private:
 	QList<QStringList> m_extraInfo;
 	QString m_sourcePath;
 	uint m_nselected;
+	int m_currentRow;
 };
 
 #endif // ONLINEUSERINFO_H

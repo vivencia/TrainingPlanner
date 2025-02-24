@@ -59,6 +59,7 @@ public:
 	#endif
 	}
 
+	inline bool internetConnectionCheckInPlace() const { return m_bchecking_ic; }
 	void checkInternetConnection();
 	inline bool internetOK() const { return isBitSet(m_networkStatus, HAS_INTERNET); }
 	inline bool tpServerOK() const { return isBitSet(m_networkStatus, SERVER_UP_AND_RUNNING); }
@@ -128,6 +129,7 @@ private:
 	QString m_appDataFilesPath;
 	int m_networkStatus;
 	QTimer *m_checkConnectionTimer;
+	bool m_bchecking_ic;
 
 #ifdef Q_OS_ANDROID
 	TPAndroidNotification* m_AndroidNotification;

@@ -13,11 +13,11 @@ TPPage {
 	objectName: "ClientsPage"
 
 	required property UserManager userManager
-	property int curRow: -1
+	property int curRow: userModel.currentRow
 
 	TPLabel {
 		id: lblMain
-		text: qsTr("Clients or Trainers");
+		text: qsTr("Clients");
 		font: AppGlobals.extraLargeFont
 		width: parent.width
 		horizontalAlignment: Text.AlignHCenter
@@ -38,17 +38,22 @@ TPPage {
 		TabButton {
 			text: qsTr("Clients")
 			enabled: userModel.haveClients
+
+			onClicked: curRow = Qt.binding(function() { return userModel.currentRow; });
 		}
 		TabButton {
 			text: qsTr("Pending requests")
 			enabled: userModel.pendingClientsRequests.count > 0
+
+			onClicked: curRow = Qt.binding(function() { return userModel.getTemporaryUserInfo(
+										userModel.pendingClientsRequests, userModel.pendingClientsRequests.currentRow); });
 		}
 
 		anchors {
 			top: lblMain.bottom
 			topMargin: 5
 			left: parent.left
-			lertMargin: 5
+			leftMargin: 5
 			right: parent.right
 			rightMargin: 5
 		}
@@ -61,7 +66,8 @@ TPPage {
 
 		Item {
 			enabled: userModel.haveClients
-			anchors.fill: parent
+			Layout.fillWidth: true
+			Layout.fillHeight: true
 
 			ListView {
 				id: clientsList
@@ -90,7 +96,7 @@ TPPage {
 					height: 25
 
 					contentItem: Text {
-						text: model.get(index).text //userModel.clientsNames[index]
+						text: name
 						font.pixelSize: appSettings.fontSize
 						fontSizeMode: Text.Fit
 						leftPadding: 5
@@ -104,15 +110,24 @@ TPPage {
 
 					onClicked: {
 						curRow = userModel.findUserByName(userModel.clientsNames[index]);
+						userModel.currentRow = curRow;
 						clientsList.currentIndex = index;
 					}
 				} //ItemDelegate
+
+				Component.onCompleted: {
+					if (userModel.haveClients) {
+						userModel.currentRow = userModel.findUserByName(userModel.clientsNames[0]);
+						clientsList.currentIndex = 0;
+					}
+				}
 			} //ListView: clientsList
 		}
 
 		Item {
-			anchors.fill: parent
-			enabled: userModel.haveCoachAnswer
+			enabled: userModel.pendingClientsRequests.count > 0
+			Layout.fillWidth: true
+			Layout.fillHeight: true
 
 			ListView {
 				id: pendingClientsList
@@ -141,7 +156,7 @@ TPPage {
 					height: 25
 
 					contentItem: Text {
-						text: name
+						text: model.name
 						font.pixelSize: 0
 						fontSizeMode: Text.Fit
 						leftPadding: 5
@@ -154,11 +169,8 @@ TPPage {
 					}
 
 					onClicked: {
-						const tempRow = userModel.getTemporaryUserInfo(userModel.pendingClientsRequests, index);
-						if (tempRow > 0) {
-							curRow = tempRow;
+						if (userModel.getTemporaryUserInfo(userModel.pendingClientsRequests, index) > 0)
 							pendingClientsList.currentIndex = index;
-						}
 					}
 				} //ItemDelegate
 			} //ListView: pendingClientsList

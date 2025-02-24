@@ -273,7 +273,7 @@ void DBUserModel::setAvatar(const int row, const QString &new_avatar, const bool
 	}
 }
 
-int DBUserModel::getTemporaryUserInfo(OnlineUserInfo* tempUser, const int userInfoRow)
+int DBUserModel::getTemporaryUserInfo(OnlineUserInfo *tempUser, const int userInfoRow)
 {
 	if (!tempUser || userInfoRow == -1)
 	{
@@ -287,6 +287,7 @@ int DBUserModel::getTemporaryUserInfo(OnlineUserInfo* tempUser, const int userIn
 	{
 		m_tempRow = m_modeldata.count();
 		m_modeldata.append(tempUser->modeldata(userInfoRow));
+		tempUser->setCurrentRow(userInfoRow);
 		setRowTemp(m_tempRow, true);
 		return m_tempRow;
 	}
@@ -786,7 +787,7 @@ QString DBUserModel::formatFieldToImport(const uint field, const QString &fieldV
 
 bool DBUserModel::onlineCheckIn()
 {
-	if (!appOsInterface()->tpServerOK())
+	if (!appOsInterface()->tpServerOK() && !appOsInterface()->internetConnectionCheckInPlace())
 	{
 		auto conn = std::make_shared<QMetaObject::Connection>();
 		*conn =  connect(appOsInterface(), &OSInterface::networkStatusChanged, this, [this,conn] () {

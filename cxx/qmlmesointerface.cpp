@@ -63,7 +63,7 @@ void QMLMesoInterface::setOwnMeso(const bool new_value, const bool bFromQml)
 			m_bOwnMeso = new_value;
 			emit ownMesoChanged();
 			appMesoModel()->setOwnMeso(m_mesoIdx, m_bOwnMeso);
-			setClient(m_bOwnMeso ? appUserModel()->userName(0) : appUserModel()->userName(appUserModel()->currentClient()));
+			setClient(m_bOwnMeso ? appUserModel()->userName(0) : appUserModel()->defaultClient());
 		}
 	}
 	else

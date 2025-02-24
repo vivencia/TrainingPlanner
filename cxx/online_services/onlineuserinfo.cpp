@@ -3,7 +3,7 @@
 #include "../tputils.h"
 
 OnlineUserInfo::OnlineUserInfo(QObject *parent)
-	: QAbstractListModel{parent}, m_nselected{0}
+	: QAbstractListModel{parent}, m_nselected{0}, m_currentRow{-1}
 {
 	m_roleNames[idRole] = std::move("id");
 	m_roleNames[nameRole] = std::move("name");
@@ -34,6 +34,7 @@ bool OnlineUserInfo::dataFromFileSource(const QString &filename)
 		setData(QModelIndex{}, m_modeldata.last().at(USER_COL_NAME), displayTextRole);
 		setData(QModelIndex{}, STR_ZERO, selectedRole);
 		setData(QModelIndex{}, filename, sourceFileRole);
+		setCurrentRow(count()-1);
 	}
 	endInsertRows();
 	return imported;
@@ -52,6 +53,7 @@ bool OnlineUserInfo::dataFromString(const QString &user_data)
 	emit countChanged();
 	setData(QModelIndex{}, m_modeldata.last().at(USER_COL_NAME), displayTextRole);
 	setData(QModelIndex{}, STR_ZERO, selectedRole);
+	setCurrentRow(count()-1);
 	endInsertRows();
 	return true;
 }
@@ -67,6 +69,12 @@ void OnlineUserInfo::removeUserInfo(const uint row, const bool remove_source)
 	m_extraInfo.remove(row);
 	if (count() == 0)
 		m_sourcePath.clear();
+	if (m_currentRow >= row)
+	{
+		m_currentRow--;
+		if (m_currentRow < 0 && count() > 0)
+			m_currentRow = 0;
+	}
 	emit countChanged();
 	endRemoveRows();
 }
@@ -94,12 +102,15 @@ void OnlineUserInfo::clear()
 {
 	if (count() > 0)
 	{
+		beginResetModel();
 		beginRemoveRows(QModelIndex{}, 0, count()-1);
 		m_modeldata.clear();
 		m_extraInfo.clear();
 		m_sourcePath.clear();
+		m_currentRow = -1;
 		emit countChanged();
 		endRemoveRows();
+		endResetModel();
 	}
 }
 
