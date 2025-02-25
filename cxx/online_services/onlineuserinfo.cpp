@@ -49,6 +49,8 @@ bool OnlineUserInfo::dataFromString(const QString &user_data)
 		tempmodeldata.removeLast(); //remove the password field
 	beginInsertRows(QModelIndex{}, count(), count());
 	m_modeldata.append(std::move(tempmodeldata));
+	m_modeldata.last()[USER_COL_COACHES].clear(); //not needed. Shouldn't even be downloaded, but itś easier to erase here
+	m_modeldata.last()[USER_COL_CLIENTS].clear(); //not needed. Shouldn't even be downloaded, but itś easier to erase here
 	m_extraInfo.append(std::move(QStringList{}));
 	emit countChanged();
 	setData(QModelIndex{}, m_modeldata.last().at(USER_COL_NAME), displayTextRole);

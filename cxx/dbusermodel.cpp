@@ -40,7 +40,6 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 	if (bMainUserModel)
 	{
 		_appUserModel = this;
-		m_exportName = std::move(tr("Coach information"));
 
 		mColumnNames.reserve(USER_TOTAL_COLS);
 		for (uint i{0}; i < USER_TOTAL_COLS; ++i)
@@ -287,6 +286,7 @@ int DBUserModel::getTemporaryUserInfo(OnlineUserInfo *tempUser, const int userIn
 	{
 		m_tempRow = m_modeldata.count();
 		m_modeldata.append(tempUser->modeldata(userInfoRow));
+		downloadAvatarFromServer(m_tempRow);
 		tempUser->setCurrentRow(userInfoRow);
 		setRowTemp(m_tempRow, true);
 		return m_tempRow;
@@ -296,10 +296,10 @@ int DBUserModel::getTemporaryUserInfo(OnlineUserInfo *tempUser, const int userIn
 
 void DBUserModel::addCoach(const uint row)
 {
-	appUtils()->setCompositeValue(m_coachesNames.count(), _userName(row), m_modeldata[row][USER_COL_COACHES], record_separator);
+	appUtils()->setCompositeValue(m_coachesNames.count(), _userId(row), m_modeldata[row][USER_COL_COACHES], record_separator);
+	emit userModified(row, USER_COL_COACHES);
 	m_coachesNames.append(_userName(row));
 	emit coachesNamesChanged();
-	emit userModified(row, USER_COL_COACHES);
 }
 
 void DBUserModel::delCoach(const uint coach_idx)
@@ -319,10 +319,10 @@ void DBUserModel::delCoach(const uint coach_idx)
 
 void DBUserModel::addClient(const uint row)
 {
-	appUtils()->setCompositeValue(m_clientsNames.count(), _userName(row), m_modeldata[row][USER_COL_CLIENTS], record_separator);
+	appUtils()->setCompositeValue(m_clientsNames.count(), _userId(row), m_modeldata[row][USER_COL_CLIENTS], record_separator);
+	emit userModified(row, USER_COL_CLIENTS);
 	m_clientsNames.append(_userName(row));
 	emit clientsNamesChanged();
-	emit userModified(row, USER_COL_CLIENTS);
 }
 
 void DBUserModel::delClient(const uint client_idx)
@@ -374,6 +374,7 @@ void DBUserModel::rejectUser(OnlineUserInfo* userInfo, const int userInfoRow)
 		if (_userId(m_tempRow) == user_id)
 			getTemporaryUserInfo(nullptr, -1);
 		userInfo->removeUserInfo(userInfoRow, true);
+		removeLocalAvatarFile(user_id);
 		appOnlineServices()->rejectClientRequest(key, value, user_id);
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appKeyChain()->readKey(_userId(0));
@@ -940,11 +941,18 @@ void DBUserModel::downloadAvatarFromServer(const uint row)
 		QFileInfo fi{localAvatarFileName};
 		QDateTime m_time;
 		if (fi.exists())
-		if (m_time.isValid())
-			m_time = std::move(fi.lastModified());
-		appOnlineServices()->getBinFile(key, value, key + "_avatar"_L1, key, m_time);
+		{
+			if (m_time.isValid())
+				m_time = std::move(fi.lastModified());
+		}
+		appOnlineServices()->getBinFile(key, value, _userId(row) + "_avatar"_L1, _userId(row), m_time);
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appKeyChain()->readKey(_userId(row));
+}
+
+inline void DBUserModel::removeLocalAvatarFile(const QString &user_id)
+{
+	static_cast<void>(QFile::remove(m_localAvatarFilePath.arg(user_id)));
 }
 
 void DBUserModel::startClientRequestsPolling()

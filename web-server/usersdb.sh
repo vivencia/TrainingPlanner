@@ -143,7 +143,6 @@ get_field_value() {
 }
 
 REQUESTED_ID=""
-#argument must be in the format: field=value password i.e. email=john@mail.com 123456
 get_id() {
     FIELD=$(echo "${1}" | cut -d '=' -f 1)
     VALUE=$(echo "${1}" | cut -d '=' -f 2)

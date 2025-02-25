@@ -96,11 +96,13 @@ public:
 			if (isCoach(0))
 			{
 				m_coachesNames.append(userName(0));
+				m_exportName = std::move(tr("Coach information"));
 				checkIfCoachRegisteredOnline();
 			}
 			if (isClient(0))
 			{
 				m_clientsNames.append(userName(0));
+				m_exportName = std::move(tr("Client information"));
 				startCoachesAnswerPolling();
 			}
 		}
@@ -254,14 +256,17 @@ public:
 			{
 				delCoach(row);
 				addClient(row);
-				emit clientsNamesChanged();
 				if (mb_coachRegistered == true)
 					setCoachPublicStatus(false);
+				if (row == 0)
+					m_exportName = std::move(tr("Client information"));
 			}
 			else
 			{
 				addCoach(row);
 				delClient(row);
+				if (row == 0)
+					m_exportName = std::move(tr("Coach information"));
 			}
 			m_modeldata[row][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
 			emit userModified(row, USER_COL_APP_USE_MODE);
@@ -376,6 +381,7 @@ private:
 	void sendUserInfoToServer();
 	void sendAvatarToServer();
 	void downloadAvatarFromServer(const uint row);
+	void removeLocalAvatarFile(const QString &user_id);
 	void startClientRequestsPolling();
 	void pollClientsRequests(const bool get_list_only = false);
 	void startCoachesAnswerPolling();
