@@ -96,7 +96,7 @@ TPPage {
 					height: 25
 
 					contentItem: Text {
-						text: name
+						text: display
 						font.pixelSize: appSettings.fontSize
 						fontSizeMode: Text.Fit
 						leftPadding: 5
@@ -138,6 +138,7 @@ TPPage {
 				model: userModel.pendingClientsRequests
 				height: 0.9*parent.height
 
+				onModelChanged: console.log(userModel.pendingClientsRequests.count);
 				ScrollBar.vertical: ScrollBar {
 					policy: ScrollBar.AsNeeded
 					active: true; visible: pendingClientsList.contentHeight > pendingClientsList.height

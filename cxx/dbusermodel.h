@@ -302,8 +302,8 @@ public:
 		if (row < count())
 			m_modeldata[row][USER_COL_CLIENTS] = b_temp ? std::move("temp"_L1) : QString{};
 	}
-	Q_INVOKABLE void acceptUser(OnlineUserInfo* userInfo, const int userInfoRow);
-	Q_INVOKABLE void rejectUser(OnlineUserInfo* userInfo, const int userInfoRow);
+	Q_INVOKABLE void acceptUser(OnlineUserInfo *userInfo, const int userInfoRow);
+	Q_INVOKABLE void rejectUser(OnlineUserInfo *userInfo, const int userInfoRow);
 
 	Q_INVOKABLE inline void cancelPendingOnlineRequests()
 	{
@@ -335,6 +335,7 @@ public:
 			case USER_COL_BIRTHDAY:
 			case USER_COL_SEX:
 			case USER_COL_SOCIALMEDIA:
+			case USER_COL_APP_USE_MODE:
 				return true;
 		}
 	}
@@ -384,8 +385,10 @@ private:
 	void removeLocalAvatarFile(const QString &user_id);
 	void startClientRequestsPolling();
 	void pollClientsRequests(const bool get_list_only = false);
+	void addPendingClient(const QString &user_id);
 	void startCoachesAnswerPolling();
 	void pollCoachesAnswers();
+	void addAvailableCoach(const QString &user_id);
 	int _importFromFile(const QString &filename, QList<QStringList> &targetModel);
 
 	QString m_localAvatarFilePath, m_onlineCoachesDir, m_dirForRequestedCoaches, m_dirForClientsRequests;

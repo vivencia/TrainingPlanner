@@ -122,6 +122,9 @@ public:
 			emit currentRowChanged();
 		}
 	}
+
+	bool containsUser(const QString &userid) const;
+
 	inline int rowCount(const QModelIndex& parent) const override final { Q_UNUSED(parent); return count(); }
 	QVariant data(const QModelIndex &index, int role) const override final;
 	bool setData(const QModelIndex &index, const QVariant &value, int role) override final;

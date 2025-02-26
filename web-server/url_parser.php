@@ -490,17 +490,15 @@ if ($username) { //regular, most common usage: download/upload file/info from/to
                     $filedir = $rootdir .  $_GET['fromuser'];
                 else
                     $filedir = $rootdir . $username;
-                download_file($_GET['file'], $fileDir);
+                download_file($_GET['file'], $filedir);
                 exit;
             }
             if (isset($_GET['getbinfile'])) {
                 $binfile = $_GET['getbinfile'];
                 if ($binfile) {
-                    $targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] : '';
-                    if ($targetuser) {
-                        get_binfile($binfile, $targetuser);
-                        exit;
-                    }
+                    $targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] : $username;
+                    get_binfile($binfile, $targetuser);
+                    exit;
                 }
             }
 

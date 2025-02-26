@@ -102,6 +102,7 @@ Frame {
 		TPCheckBox {
 			id: chkOnlineCoach
 			text: qsTr("Make myself available online for TP users to contact me")
+			checked: userModel.isCoachRegistered();
 			multiLine: true
 			height: itemHeight
 			Layout.preferredWidth: parent.width/2
@@ -168,49 +169,11 @@ Frame {
 		}
 
 		anchors {
-			bottom: btnFindCoachOnline.top
-			left: parent.left
-			right: parent.right
-		}
-	}
-
-	TPButton {
-		id: btnFindCoachOnline
-		text: qsTr("Look online for available coaches");
-		visible: userRow === 0 && appSettings.mainUserConfigured
-		enabled: chkHaveCoach.checked
-		autoResize: true
-		fixedSize: true
-		height: 25
-
-		onClicked: displayOnlineCoachesMenu();
-
-		anchors {
 			bottom: parent.bottom
 			bottomMargin: -10
 			left: parent.left
 			right: parent.right
 		}
-	}
-
-	property UserCoachRequest requestDlg: null
-	function displayOnlineCoachesMenu(): void {
-		if (requestDlg === null) {
-			function createRequestDialog() {
-				let component = Qt.createComponent("qrc:/qml/User/UserCoachRequest.qml", Qt.Asynchronous);
-
-				function finishCreation() {
-					requestDlg = component.createObject(contentItem, { parentPage: topFrame.parentPage, userRow: topFrame.userRow });
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			createRequestDialog();
-		}
-		requestDlg.show1(-1);
 	}
 
 	function getUserInfo(): void {

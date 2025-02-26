@@ -83,7 +83,8 @@ void OnlineUserInfo::removeUserInfo(const uint row, const bool remove_source)
 
 void OnlineUserInfo::sanitize(const QStringList &user_list, const uint field)
 {
-	for (uint i{count()-1}; i >= 0; --i)
+	qsizetype i{count()};
+	while (--i >= 0)
 	{
 		const QString fieldValue{m_modeldata.at(i).at(field)};
 		bool found{false};
@@ -128,6 +129,19 @@ void OnlineUserInfo::makeUserDefault(const uint row)
 		m_extraInfo[0][USER_EXTRA_NAME].prepend('*');
 		emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>() << displayTextRole);
 	}
+}
+
+bool OnlineUserInfo::containsUser(const QString &userid) const
+{
+	auto itr{m_modeldata.constBegin()};
+	const auto itr_end{m_modeldata.constEnd()};
+	while (itr != itr_end)
+	{
+		if ((*itr).at(USER_COL_ID) == userid)
+			return true;
+		++itr;
+	}
+	return false;
 }
 
 QVariant OnlineUserInfo::data(const QModelIndex &index, int role) const

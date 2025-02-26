@@ -90,6 +90,7 @@ void DBUserModel::updateColumnNames()
 	mColumnNames[USER_COL_USERROLE] = std::move(tr("Your are: "));
 	mColumnNames[USER_COL_COACHROLE] = std::move(tr("Professional job: "));
 	mColumnNames[USER_COL_GOAL] = std::move(tr("Goal: "));
+	mColumnNames[USER_COL_APP_USE_MODE] = std::move(tr("App use mode: "));
 }
 
 QString DBUserModel::passwordLabel() const { return tr("Password:"); }
@@ -340,7 +341,7 @@ void DBUserModel::delClient(const uint client_idx)
 	}
 }
 
-void DBUserModel::acceptUser(OnlineUserInfo* userInfo, const int userInfoRow)
+void DBUserModel::acceptUser(OnlineUserInfo *userInfo, const int userInfoRow)
 {
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,userInfo,userInfoRow] (const QString &key, const QString &value) {
 		const QString &user_id{userInfo->data(userInfoRow, USER_COL_ID)};
@@ -356,7 +357,7 @@ void DBUserModel::acceptUser(OnlineUserInfo* userInfo, const int userInfoRow)
 		}
 		const int new_app_use_mode{userInfo->data(userInfoRow, USER_COL_COACHES) == STR_ONE ? APP_USE_MODE_SINGLE_COACH : APP_USE_MODE_SINGLE_USER};
 		m_modeldata.last()[USER_COL_COACHES] = QString{};
-		m_modeldata.last()[USER_COL_APP_USE_MODE] = QString::number(new_app_use_mode);
+		m_modeldata.last()[USER_COL_APP_USE_MODE] = std::move(QString::number(new_app_use_mode));
 		if (new_app_use_mode == APP_USE_MODE_SINGLE_COACH)
 			addCoach(count()-1);
 		else
@@ -367,7 +368,7 @@ void DBUserModel::acceptUser(OnlineUserInfo* userInfo, const int userInfoRow)
 	appKeyChain()->readKey(_userId(0));
 }
 
-void DBUserModel::rejectUser(OnlineUserInfo* userInfo, const int userInfoRow)
+void DBUserModel::rejectUser(OnlineUserInfo *userInfo, const int userInfoRow)
 {
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,userInfo,userInfoRow] (const QString &key, const QString &value) {
 		const QString &user_id{userInfo->data(userInfoRow, USER_COL_ID)};
@@ -624,7 +625,7 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 			connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,get_list_only] (const int ret_code, const QString &ret_string) {
 				if (ret_code == 0)
 				{
-					const QStringList &coaches{ret_string.split(' ')};
+					QStringList coaches{std::move(ret_string.split(' '))};
 					if (get_list_only)
 					{
 						emit coachesListReceived(coaches);
@@ -633,28 +634,37 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 					if (!m_availableCoaches)
 						m_availableCoaches = new OnlineUserInfo{this};
 					m_availableCoaches->sanitize(coaches, USER_COL_NAME);
-					connect(this, &DBUserModel::userProfileAcquired, this, [this,coaches] (const QString &userid, const bool success) {
-						if (success)
-						{
-							const QString &coach_profile{profileFile_template.arg(m_onlineCoachesDir, userid)};
-							if (m_availableCoaches->dataFromFileSource(coach_profile))
-							{
-								//Indicate that the online user is a coach. acceptUser will look for this info in order to setup the new user and the main user's field:
-								//add the newly accepted user as a coach(USER_COL_COACHES) or as a client(USER_COL_CLIENTS)
-								m_availableCoaches->setData(m_availableCoaches->count()-1, USER_COL_COACHES, STR_ONE);
-								emit availableCoachesChanged();
-							}
-						}
-					}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 
-					for (uint i{0}; i < coaches.count(); ++i)
+					//First pass
+					for (qsizetype i{coaches.count()-1}; i >= 0; --i)
 					{
-						if (findUserById(coaches.at(i)) == -1) //only coaches that are not already a coach of main user
+						if (findUserById(coaches.at(i)) == -1)
 						{
 							const QString &coach_profile{m_onlineCoachesDir + coaches.at(i) + ".txt"_L1};
-							if (!QFile::exists(coach_profile))
-								getUserOnlineProfile(coaches.at(i), coach_profile);
+							if (QFile::exists(coach_profile))
+							{
+								addAvailableCoach(coaches.at(i));
+								coaches.remove(i);
+							}
 						}
+						else
+							coaches.remove(i); //coach is already in the database, therefore not available
+					}
+
+					//Second pass
+					qsizetype n_connections{coaches.count()};
+					auto conn = std::make_shared<QMetaObject::Connection>();
+					*conn = connect(this, &DBUserModel::userProfileAcquired, this, [this,conn,coaches,n_connections]
+																				(const QString &userid, const bool success) mutable {
+						if (--n_connections == 0)
+							disconnect(*conn);
+						if (success)
+							addAvailableCoach(userid);
+					});
+					for (qsizetype x{0}; x < coaches.count(); ++x)
+					{
+						const QString &coach_profile{m_onlineCoachesDir + coaches.at(x) + ".txt"_L1};
+						getUserOnlineProfile(coaches.at(x), coach_profile);
 					}
 				}
 			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
@@ -680,7 +690,7 @@ void DBUserModel::checkIfCoachRegisteredOnline()
 		if (!mb_coachRegistered)
 		{
 			connect(this, &DBUserModel::coachesListReceived, this, [this] (const QStringList &coaches_list) {
-				mb_coachRegistered = coaches_list.contains(userName(0));
+				mb_coachRegistered = coaches_list.contains(_userId(0));
 				emit coachOnlineStatus(mb_coachRegistered == true);
 				if (mb_coachRegistered == true)
 					startClientRequestsPolling();
@@ -765,6 +775,14 @@ QString DBUserModel::formatFieldToExport(const uint field, const QString &fieldV
 			QString strSocial{fieldValue};
 			return strSocial.replace(record_separator, fancy_record_separator1);
 		}
+		case USER_COL_APP_USE_MODE:
+			switch (fieldValue.at(0).toLatin1())
+			{
+				case '1': return tr("User");
+				case '2': return tr("Coach");
+				case '3': return tr("Client");
+				default: return tr("Coach and Client");
+			}
 		default: return QString{};
 	}
 }
@@ -782,6 +800,15 @@ QString DBUserModel::formatFieldToImport(const uint field, const QString &fieldV
 			QString strSocial{fieldValue};
 			return strSocial.replace(fancy_record_separator1, record_separator);
 		}
+		case USER_COL_APP_USE_MODE:
+			if (fieldValue == tr("User"))
+				return "1"_L1;
+			else if (fieldValue == tr("Coach"))
+				return "2"_L1;
+			else if (fieldValue == tr("Client"))
+				return "3"_L1;
+			else
+				return "4"_L1;
 		default: return QString{};
 	}
 }
@@ -977,7 +1004,7 @@ void DBUserModel::pollClientsRequests(const bool get_list_only)
 		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,get_list_only,key,value] (const int ret_code, const QString &ret_string) {
 			if (ret_code == 0)
 			{
-				const QStringList &requests_list{ret_string.split(' ', Qt::SkipEmptyParts)};
+				QStringList requests_list{std::move(ret_string.split(' ', Qt::SkipEmptyParts))};
 				if (get_list_only)
 				{
 					emit clientsListReceived(requests_list);
@@ -987,36 +1014,62 @@ void DBUserModel::pollClientsRequests(const bool get_list_only)
 					m_pendingClientRequests = new OnlineUserInfo{this};
 				m_pendingClientRequests->sanitize(requests_list, USER_COL_NAME);
 
-				connect(this, &DBUserModel::userProfileAcquired, this, [this,requests_list] (const QString &userid, const bool success) {
-					if (success)
-					{
-						const QString &client_profile{profileFile_template.arg(m_dirForClientsRequests, userid)};
-						if (m_pendingClientRequests->dataFromFileSource(client_profile))
-						{
-							//Indicate that the online user is a client. acceptUser will look for this info in order to setup the new user and the main user's field:
-							//add the newly accpted user as a coach(USER_COL_COACHES) or as a client(USER_COL_CLIENTS)
-							m_availableCoaches->setData(m_availableCoaches->count()-1, USER_COL_COACHES, STR_ZERO);
-							emit pendingClientsRequestsChanged();
-						}
-					}
-				}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-
-				for (uint i{0}; i < requests_list.count(); ++i)
+				//First pass
+				for (qsizetype i{requests_list.count()-1}; i >= 0; --i)
 				{
 					if (findUserById(requests_list.at(i)) == -1)
 					{
 						const QString &client_profile{m_dirForClientsRequests + requests_list.at(i) + ".txt"_L1};
-						if (!QFile::exists(client_profile))
-							getUserOnlineProfile(requests_list.at(i), client_profile);
+						if (QFile::exists(client_profile))
+						{
+							addPendingClient(requests_list.at(i));
+							requests_list.remove(i);
+						}
 					}
 					else
+					{
 						appOnlineServices()->removeClientRequest(key, value, requests_list.at(i));
+						requests_list.remove(i);
+					}
+				}
+
+				//Second pass
+				qsizetype n_connections{requests_list.count()};
+				auto conn = std::make_shared<QMetaObject::Connection>();
+				*conn = connect(this, &DBUserModel::userProfileAcquired, this, [this,conn,requests_list,n_connections]
+																				(const QString &userid, const bool success) mutable {
+						if (--n_connections == 0)
+							disconnect(*conn);
+						if (success)
+							addPendingClient(userid);
+				});
+				for (qsizetype x{0}; x < requests_list.count(); ++x)
+				{
+					const QString &client_profile{m_dirForClientsRequests + requests_list.at(x) + ".txt"_L1};
+					getUserOnlineProfile(requests_list.at(x), client_profile);
 				}
 			}
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		appOnlineServices()->checkClientsRequests(key, value);
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appKeyChain()->readKey(_userId(0));
+}
+
+void DBUserModel::addPendingClient(const QString &user_id)
+{
+	if (!m_pendingClientRequests->containsUser(user_id))
+	{
+		const QString &client_profile{profileFile_template.arg(m_dirForClientsRequests, user_id)};
+		if (m_pendingClientRequests->dataFromFileSource(client_profile))
+		{
+			const qsizetype last_idx{m_pendingClientRequests->count()-1};
+			m_pendingClientRequests->setData(last_idx, USER_COL_ID,user_id);
+			//Indicate that the online user is a client. acceptUser will look for this info in order to setup the new user and the main user's field:
+			//add the newly accpted user as a coach(USER_COL_COACHES) or as a client(USER_COL_CLIENTS)
+			m_pendingClientRequests->setData(last_idx, USER_COL_COACHES, STR_ZERO);
+			emit pendingClientsRequestsChanged();
+		}
+	}
 }
 
 void DBUserModel::startCoachesAnswerPolling()
@@ -1060,6 +1113,23 @@ void DBUserModel::pollCoachesAnswers()
 	appKeyChain()->readKey(_userId(0));
 }
 
+void DBUserModel::addAvailableCoach(const QString &user_id)
+{
+	if (!m_availableCoaches->containsUser(user_id))
+	{
+		const QString &coach_profile{profileFile_template.arg(m_onlineCoachesDir, user_id)};
+		if (m_availableCoaches->dataFromFileSource(coach_profile))
+		{
+			const qsizetype last_idx{m_availableCoaches->count()-1};
+			m_availableCoaches->setData(last_idx, USER_COL_ID, user_id);
+			//Indicate that the online user is a coach. acceptUser will look for this info in order to setup the new user and the main user's field:
+			//add the newly accepted user as a coach(USER_COL_COACHES) or as a client(USER_COL_CLIENTS)
+			m_availableCoaches->setData(last_idx, USER_COL_COACHES, STR_ONE);
+			emit availableCoachesChanged();
+		}
+	}
+}
+
 int DBUserModel::_importFromFile(const QString &filename, QList<QStringList> &targetModel)
 {
 	QFile *inFile{new QFile{filename, this}};
@@ -1088,19 +1158,14 @@ int DBUserModel::_importFromFile(const QString &filename, QList<QStringList> &ta
 					bFoundModelInfo = strstr(buf, tableIdStr.toLatin1().constData()) != NULL;
 				else
 				{
-					if (col < USER_TOTAL_COLS)
+					if (col < USER_COL_COACHES)
 					{
-						if (col == USER_COL_APP_USE_MODE)
-							modeldata[USER_COL_APP_USE_MODE] = QString::number(APP_USE_MODE_SINGLE_COACH);
+						value = buf;
+						value = value.remove(0, value.indexOf(':') + 2).simplified();
+						if (!isFieldFormatSpecial(col))
+							modeldata[col] = std::move(value);
 						else
-						{
-							value = buf;
-							value = value.remove(0, value.indexOf(':') + 2).simplified();
-							if (!isFieldFormatSpecial(col))
-								modeldata[col] = std::move(value);
-							else
-								modeldata[col] = std::move(formatFieldToImport(col, value));
-						}
+							modeldata[col] = std::move(formatFieldToImport(col, value));
 						++col;
 					}
 					else
@@ -1113,7 +1178,11 @@ int DBUserModel::_importFromFile(const QString &filename, QList<QStringList> &ta
 	}
 	inFile->close();
 	delete inFile;
-	if (bFoundModelInfo)
+	if (bFoundModelInfo && col == USER_COL_COACHES)
+	{
 		targetModel.append(std::move(modeldata));
-	return col == USER_TOTAL_COLS ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
+		return APPWINDOW_MSG_READ_FROM_FILE_OK;
+	}
+	else
+		return APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
 }

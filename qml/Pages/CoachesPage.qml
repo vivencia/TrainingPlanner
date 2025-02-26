@@ -214,6 +214,22 @@ TPPage {
 		}//Item
 	} //StackLayout
 
+	TPButton {
+		id: btnFindCoachOnline
+		text: qsTr("Look online for available coaches");
+		autoResize: true
+		fixedSize: true
+		height: 25
+
+		onClicked: displayOnlineCoachesMenu();
+
+		anchors {
+			top: listsLayout.bottom
+			topMargin: 10
+			horizontalCenter: parent.horizontalCenter
+		}
+	}
+
 	ScrollView {
 		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 		ScrollBar.vertical.policy: ScrollBar.AlwaysOn
@@ -222,7 +238,7 @@ TPPage {
 		enabled: userModel.haveCoaches
 
 		anchors {
-			top: listsLayout.bottom
+			top: btnFindCoachOnline.bottom
 			topMargin: 10
 			left: parent.left
 			right: parent.right
@@ -297,5 +313,25 @@ TPPage {
 		usrContact.getUserInfo();
 		usrCoach.getUserInfo();
 		usrProfile.getUserInfo();
+	}
+
+	property UserCoachRequest requestDlg: null
+	function displayOnlineCoachesMenu(): void {
+		if (requestDlg === null) {
+			function createRequestDialog() {
+				let component = Qt.createComponent("qrc:/qml/User/UserCoachRequest.qml", Qt.Asynchronous);
+
+				function finishCreation() {
+					requestDlg = component.createObject(coachesPage, { parentPage: coachesPage });
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			createRequestDialog();
+		}
+		requestDlg.show1(-1);
 	}
 }

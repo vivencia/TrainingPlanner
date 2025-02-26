@@ -13,7 +13,6 @@ TPPopup {
 	width: appSettings.pageWidth*0.8
 	height: appSettings.pageHeight * 0.4
 
-	required property int userRow
 	property list<string> coachesList;
 
 	onOpened: userModel.getOnlineCoachesList();

@@ -33,12 +33,14 @@ void TPListModel::appendList(QStringList &&list)
 
 void TPListModel::clear()
 {
-	beginRemoveRows(QModelIndex{}, 0, count()-1);
+	beginResetModel();
+	//beginRemoveRows(QModelIndex{}, 0, count()-1);
 	m_modeldata.clear();
 	m_exportRows.clear();
 	setReady(false);
 	emit countChanged();
-	endRemoveRows();
+	//endRemoveRows();
+	endResetModel();
 }
 
 void TPListModel::clearFast()
