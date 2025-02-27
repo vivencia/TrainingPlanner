@@ -27,7 +27,7 @@ Frame {
 	property bool bPasswordOK
 	property bool bBirthDateOK
 	property bool bSexOK
-	readonly property int nControls: 7
+	readonly property int nControls: userRow === 0 ? 7 : 5
 	readonly property int controlsHeight: 25
 	readonly property int moduleHeight: nControls*(controlsHeight) + 15
 
@@ -94,6 +94,7 @@ Frame {
 
 	TPPassword {
 		id: passwordControl
+		visible: userRow === 0
 		enabled: bNameOK
 
 		anchors {
@@ -118,7 +119,7 @@ Frame {
 		height: controlsHeight
 
 		anchors {
-			top: passwordControl.bottom
+			top: userRow === 0 ? passwordControl.bottom : txtName.bottom
 			topMargin: 10
 			left: parent.left
 			leftMargin: 5

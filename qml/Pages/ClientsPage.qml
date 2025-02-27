@@ -45,8 +45,11 @@ TPPage {
 			text: qsTr("Pending requests")
 			enabled: userModel.pendingClientsRequests.count > 0
 
-			onClicked: curRow = Qt.binding(function() { return userModel.getTemporaryUserInfo(
-										userModel.pendingClientsRequests, userModel.pendingClientsRequests.currentRow); });
+			onClicked: {
+				curRow = userModel.getTemporaryUserInfo(userModel.pendingClientsRequests, userModel.pendingClientsRequests.currentRow);
+				if (curRow > 0)
+					pendingClientsList.currentIndex = userModel.pendingClientsRequests.currentRow;
+			}
 		}
 
 		anchors {
@@ -62,67 +65,66 @@ TPPage {
 	StackLayout {
 		id: listsLayout
 		currentIndex: tabbar.currentIndex
-		height: 0.3*clientsPage.height
+		height: 0.2*clientsPage.height
 
-		Item {
+		anchors {
+			top: tabbar.bottom
+			topMargin: 5
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+		}
+
+		ListView {
+			id: clientsList
+			contentHeight: availableHeight
+			contentWidth: availableWidth
+			spacing: 0
+			clip: true
+			model: userModel.clientsNames
 			enabled: userModel.haveClients
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 
-			ListView {
-				id: clientsList
-				contentHeight: availableHeight
-				contentWidth: availableWidth
+			ScrollBar.vertical: ScrollBar {
+				policy: ScrollBar.AsNeeded
+				active: true; visible: pendingClientsList.contentHeight > pendingClientsList.height
+			}
+
+			delegate: ItemDelegate {
 				spacing: 0
-				clip: true
-				model: userModel.clientsNames
-				height: 0.9*parent.height
+				padding: 5
+				width: parent.width
+				height: 25
 
-				ScrollBar.vertical: ScrollBar {
-					policy: ScrollBar.AsNeeded
-					active: true; visible: pendingClientsList.contentHeight > pendingClientsList.height
+				contentItem: Text {
+					text: modelData
+					font.pixelSize: appSettings.fontSize
+					fontSizeMode: Text.Fit
+					leftPadding: 5
+					bottomPadding: 2
 				}
 
-				anchors {
-					top: parent.top
-					left: parent.left
-					right: parent.right
+				background: Rectangle {
+					color: index === clientsList.currentIndex ? appSettings.entrySelectedColor :
+							(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
 				}
 
-				delegate: ItemDelegate {
-					spacing: 0
-					padding: 5
-					width: parent.width
-					height: 25
-
-					contentItem: Text {
-						text: display
-						font.pixelSize: appSettings.fontSize
-						fontSizeMode: Text.Fit
-						leftPadding: 5
-						bottomPadding: 2
-					}
-
-					background: Rectangle {
-						color: index === clientsList.currentIndex ? appSettings.entrySelectedColor :
-								(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
-					}
-
-					onClicked: {
-						curRow = userModel.findUserByName(userModel.clientsNames[index]);
-						userModel.currentRow = curRow;
-						clientsList.currentIndex = index;
-					}
-				} //ItemDelegate
-
-				Component.onCompleted: {
-					if (userModel.haveClients) {
-						userModel.currentRow = userModel.findUserByName(userModel.clientsNames[0]);
-						clientsList.currentIndex = 0;
-					}
+				onClicked: {
+					curRow = userModel.findUserByName(userModel.clientsNames[index]);
+					userModel.currentRow = curRow;
+					clientsList.currentIndex = index;
 				}
-			} //ListView: clientsList
-		}
+			} //ItemDelegate
+
+			Component.onCompleted: {
+				if (userModel.haveClients) {
+					userModel.currentRow = userModel.findUserByName(userModel.clientsNames[0]);
+					clientsList.currentIndex = 0;
+				}
+			}
+		} //ListView: clientsList
 
 		Item {
 			enabled: userModel.pendingClientsRequests.count > 0
@@ -136,9 +138,8 @@ TPPage {
 				spacing: 0
 				clip: true
 				model: userModel.pendingClientsRequests
-				height: 0.9*parent.height
+				height: 0.8*parent.height
 
-				onModelChanged: console.log(userModel.pendingClientsRequests.count);
 				ScrollBar.vertical: ScrollBar {
 					policy: ScrollBar.AsNeeded
 					active: true; visible: pendingClientsList.contentHeight > pendingClientsList.height
@@ -150,27 +151,19 @@ TPPage {
 					right: parent.right
 				}
 
-				delegate: ItemDelegate {
-					spacing: 0
-					padding: 5
-					width: parent.width
+				delegate: TPButton {
+					id: delegate
+					text: name
+					fixedSize: true
+					rounded: false
 					height: 25
-
-					contentItem: Text {
-						text: model.name
-						font.pixelSize: 0
-						fontSizeMode: Text.Fit
-						leftPadding: 5
-						bottomPadding: 2
-					}
-
-					background: Rectangle {
-						color: index === pendingClientsList.currentIndex ? appSettings.entrySelectedColor :
+					width: pendingClientsList.width
+					backgroundColor: index === pendingClientsList.currentIndex ? appSettings.entrySelectedColor :
 							(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
-					}
 
 					onClicked: {
-						if (userModel.getTemporaryUserInfo(userModel.pendingClientsRequests, index) > 0)
+						curRow = userModel.getTemporaryUserInfo(userModel.pendingClientsRequests, index);
+						if (curRow > 0)
 							pendingClientsList.currentIndex = index;
 					}
 				} //ItemDelegate
@@ -190,12 +183,14 @@ TPPage {
 				TPButton {
 					text: qsTr("Accept")
 					autoResize: true
+					Layout.alignment: Qt.AlignCenter
 
 					onClicked: userModel.acceptUser(userModel.pendingClientsRequests, pendingClientsList.currentIndex);
 				}
 				TPButton {
 					text: qsTr("Decline")
 					autoResize: true
+					Layout.alignment: Qt.AlignCenter
 
 					onClicked: userModel.rejectUser(userModel.pendingClientsRequests, pendingClientsList.currentIndex);
 				}

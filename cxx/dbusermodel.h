@@ -4,6 +4,7 @@
 #include "tplistmodel.h"
 #include "tpglobals.h"
 #include "tputils.h"
+#include "online_services/onlineuserinfo.h"
 
 #define USER_COL_ID 0
 #define USER_COL_NAME 1
@@ -29,8 +30,6 @@
 #define USER_COL_AVATAR 20 //not in database, but used on model and GUI operations
 
 QT_FORWARD_DECLARE_CLASS(QTimer)
-QT_FORWARD_DECLARE_CLASS(OnlineUserInfo)
-Q_DECLARE_OPAQUE_POINTER(OnlineUserInfo*)
 
 class DBUserModel : public TPListModel
 {
@@ -240,10 +239,7 @@ public:
 		emit userModified(row, USER_COL_GOAL);
 	}
 
-	Q_INVOKABLE inline QString avatar(const int row) const
-	{
-		return row >= 0 && row < m_modeldata.count() ? !_userId(row).isEmpty() ? m_localAvatarFilePath.arg(_userId(row)) : QString{} : QString{};
-	}
+	Q_INVOKABLE QString avatar(const int row) const;
 	Q_INVOKABLE void setAvatar(const int row, const QString &new_avatar, const bool upload = true);
 
 	Q_INVOKABLE inline uint appUseMode(const int row) const { return row >= 0 && row < m_modeldata.count() ? _appUseMode(row).toUInt() : 0; }
@@ -380,6 +376,7 @@ private:
 	QString generateUniqueUserId() const;
 	void sendProfileToServer();
 	void sendUserInfoToServer();
+	QFileInfo getAvatarFile(const QString &userid) const;
 	void sendAvatarToServer();
 	void downloadAvatarFromServer(const uint row);
 	void removeLocalAvatarFile(const QString &user_id);

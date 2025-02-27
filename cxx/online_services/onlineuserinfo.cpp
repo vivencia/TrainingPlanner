@@ -1,6 +1,24 @@
 #include "onlineuserinfo.h"
 
 #include "../tputils.h"
+#include "../dbusermodel.h"
+
+enum RoleNames {
+	idRole = Qt::UserRole + USER_COL_ID,
+	nameRole = Qt::UserRole + USER_COL_NAME,
+	birthdayRole = Qt::UserRole + USER_COL_BIRTHDAY,
+	sexRole = Qt::UserRole + USER_COL_SEX,
+	phoneRole = Qt::UserRole + USER_COL_PHONE,
+	emailRole = Qt::UserRole + USER_COL_EMAIL,
+	socialMediaRole = Qt::UserRole + USER_COL_SOCIALMEDIA,
+	userRole = Qt::UserRole + USER_COL_USERROLE,
+	coachRole = Qt::UserRole + USER_COL_COACHROLE,
+	goalRole = Qt::UserRole + USER_COL_GOAL,
+	useModeRole = Qt::UserRole + USER_COL_APP_USE_MODE,
+	displayTextRole = useModeRole+1,
+	selectedRole = displayTextRole+1,
+	sourceFileRole = selectedRole+1
+};
 
 OnlineUserInfo::OnlineUserInfo(QObject *parent)
 	: QAbstractListModel{parent}, m_nselected{0}, m_currentRow{-1}
@@ -21,19 +39,38 @@ OnlineUserInfo::OnlineUserInfo(QObject *parent)
 	m_roleNames[sourceFileRole] = std::move("source");
 }
 
+void OnlineUserInfo::setSelected(const uint row, bool selected)
+{
+	Q_ASSERT_X(row < count(), "OnlineUserInfo::setSelected", "row out of range");
+	if (m_extraInfo.at(row).at(USER_EXTRA_SELECTED) == "1"_L1 && !selected)
+		--m_nselected;
+	else if (m_extraInfo.at(row).at(USER_EXTRA_SELECTED) == "0"_L1 && selected)
+		++m_nselected;
+	m_extraInfo[row][USER_EXTRA_SELECTED] = selected ? "1"_L1 : "0"_L1;
+	emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << selectedRole);
+}
+
+void OnlineUserInfo::setSourceFile(const uint row, const QString &source_file)
+{
+	Q_ASSERT_X(row < count(), "OnlineUserInfo::setSourceFile", "row out of range");
+	m_extraInfo[row][USER_EXTRA_SOURCE] = source_file;
+	emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << sourceFileRole);
+}
+
 bool OnlineUserInfo::dataFromFileSource(const QString &filename)
 {
 	beginInsertRows(QModelIndex{}, count(), count());
 	bool imported{appUserModel()->_importFromFile(filename, m_modeldata) == APPWINDOW_MSG_READ_FROM_FILE_OK};
 	if (imported)
 	{
-		m_extraInfo.append(std::move(QStringList{}));
+		m_extraInfo.append(std::move(QStringList{3}));
 		if (count() == 1)
 			m_sourcePath = appUtils()->getFilePath(filename);
 		emit countChanged();
-		setData(QModelIndex{}, m_modeldata.last().at(USER_COL_NAME), displayTextRole);
-		setData(QModelIndex{}, STR_ZERO, selectedRole);
-		setData(QModelIndex{}, filename, sourceFileRole);
+		QModelIndex lastindex{index(m_extraInfo.count()-1, 0)};
+		setData(lastindex, m_modeldata.last().at(USER_COL_NAME), displayTextRole);
+		setData(lastindex, STR_ZERO, selectedRole);
+		setData(lastindex, filename, sourceFileRole);
 		setCurrentRow(count()-1);
 	}
 	endInsertRows();
@@ -49,12 +86,13 @@ bool OnlineUserInfo::dataFromString(const QString &user_data)
 		tempmodeldata.removeLast(); //remove the password field
 	beginInsertRows(QModelIndex{}, count(), count());
 	m_modeldata.append(std::move(tempmodeldata));
-	m_modeldata.last()[USER_COL_COACHES].clear(); //not needed. Shouldn't even be downloaded, but itś easier to erase here
-	m_modeldata.last()[USER_COL_CLIENTS].clear(); //not needed. Shouldn't even be downloaded, but itś easier to erase here
-	m_extraInfo.append(std::move(QStringList{}));
+	m_modeldata.last()[USER_COL_COACHES].clear(); //not needed. Shouldn't even be downloaded, but it's easier to erase here
+	m_modeldata.last()[USER_COL_CLIENTS].clear(); //not needed. Shouldn't even be downloaded, but it's easier to erase here
+	m_extraInfo.append(std::move(QStringList{3}));
 	emit countChanged();
-	setData(QModelIndex{}, m_modeldata.last().at(USER_COL_NAME), displayTextRole);
-	setData(QModelIndex{}, STR_ZERO, selectedRole);
+	QModelIndex lastindex{index(m_extraInfo.count()-1, 0)};
+	setData(lastindex, m_modeldata.last().at(USER_COL_NAME), displayTextRole);
+	setData(lastindex, STR_ZERO, selectedRole);
 	setCurrentRow(count()-1);
 	endInsertRows();
 	return true;
@@ -81,9 +119,10 @@ void OnlineUserInfo::removeUserInfo(const uint row, const bool remove_source)
 	endRemoveRows();
 }
 
-void OnlineUserInfo::sanitize(const QStringList &user_list, const uint field)
+bool OnlineUserInfo::sanitize(const QStringList &user_list, const uint field)
 {
-	qsizetype i{count()};
+	const qsizetype n{count()};
+	qsizetype i{n};
 	while (--i >= 0)
 	{
 		const QString fieldValue{m_modeldata.at(i).at(field)};
@@ -99,6 +138,7 @@ void OnlineUserInfo::sanitize(const QStringList &user_list, const uint field)
 		if (!found)
 			removeUserInfo(i, true);
 	}
+	return n != count();
 }
 
 void OnlineUserInfo::clear()
@@ -127,7 +167,7 @@ void OnlineUserInfo::makeUserDefault(const uint row)
 		m_extraInfo.swapItemsAt(0, row);
 		m_modeldata.swapItemsAt(0, row);
 		m_extraInfo[0][USER_EXTRA_NAME].prepend('*');
-		emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>() << displayTextRole);
+		emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << displayTextRole);
 	}
 }
 
@@ -192,7 +232,7 @@ bool OnlineUserInfo::setData(const QModelIndex &index, const QVariant &value, in
 				return true;
 			case displayTextRole:
 				m_extraInfo[row][USER_EXTRA_NAME] = std::move(value.toString());
-				emit dataChanged(index, index, QList<int>() << role);
+				emit dataChanged(index, index, QList<int>{} << role);
 				return true;
 			case sourceFileRole:
 				setSourceFile(row, value.toString());

@@ -4,10 +4,10 @@
 
 using namespace Qt::Literals::StringLiterals;
 
-static const uint avatarWidth(140);
-static const uint avatarHeight(140);
-static const QString& avatarsFile(":/images/avatars.png"_L1);
-TPImageProvider* TPImageProvider::mtpImageProvider(nullptr);
+static const uint avatarWidth{140};
+static const uint avatarHeight{140};
+static const QString &avatarsFile{":/images/avatars.png"_L1};
+TPImageProvider *TPImageProvider::mtpImageProvider{nullptr};
 
 TPImageProvider::TPImageProvider()
 	: QQuickImageProvider{QQuickImageProvider::Image, QQmlImageProviderBase::ForceAsynchronousImageLoading}
@@ -16,27 +16,27 @@ TPImageProvider::TPImageProvider()
 	mtpImageProvider = this;
 }
 
-QImage TPImageProvider::requestImage(const QString& strid, QSize* size, const QSize&)
+QImage TPImageProvider::requestImage(const QString &strid, QSize *size, const QSize&)
 {
 	if (size)
 		*size = QSize(avatarWidth, avatarHeight);
 
-	const uint id(strid.last(strid.length() - 1).toUInt());
+	const uint id{strid.last(strid.length() - 1).toUInt()};
 	return getAvatar(static_cast<uint>(id), strid.first(1));
 }
 
-QImage TPImageProvider::getAvatar(const QString& imagePath)
+QImage TPImageProvider::getAvatar(const QString &imagePath)
 {
-	const QString& avatarId(imagePath.last(imagePath.length() - imagePath.lastIndexOf('/') - 1));
-	bool bOK(false);
-	const int id(avatarId.last(avatarId.length() - 1).toUInt(&bOK));
+	const QString &avatarId{imagePath.last(imagePath.length() - imagePath.lastIndexOf('/') - 1)};
+	bool bOK{false};
+	const uint id{avatarId.last(avatarId.length() - 1).toUInt(&bOK)};
 	return bOK ? getAvatar(id, avatarId.first(1)) : QImage();
 }
 
-QImage TPImageProvider::getAvatar(const uint id, const QString& strSex)
+QImage TPImageProvider::getAvatar(const uint id, const QString &strSex)
 {
-	const uint x((id % 5) * avatarWidth);
-	uint y(0);
+	const uint x{(id % 5) * avatarWidth};
+	uint y{0};
 	if (strSex == "m"_L1)
 	{
 		if (id >= 5)
@@ -53,5 +53,5 @@ QImage TPImageProvider::getAvatar(const uint id, const QString& strSex)
 		else
 			y = 0;
 	}
-	return mAllAvatars.copy(QRect(x, y, avatarWidth, avatarHeight));
+	return mAllAvatars.copy(QRect{static_cast<int>(x), static_cast<int>(y), avatarWidth, avatarHeight});
 }

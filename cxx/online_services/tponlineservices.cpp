@@ -183,7 +183,7 @@ void TPOnlineServices::getBinFile(const QString &username, const QString &passwd
 			if (ret_code == 0)
 			{
 				const QDateTime &online_ctime{appUtils()->getDateTimeFromOnlineString(ret_string)};
-				if (online_ctime > c_time) //online file is newer. Download if
+				if (online_ctime > c_time) //online file is newer. Download it
 					getBinFile(username, passwd, dot_idx > 0 ? filename_without_extension : filename, targetUser, QDateTime{});
 				else //local file is up to date. Use it
 					emit fileReceived(1, ret_string, QByteArray{});

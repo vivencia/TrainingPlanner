@@ -71,6 +71,8 @@ void TPImage::setSource(const QString &source)
 
 		if (mImage.load(mSource))
 		{
+			const qsizetype ext_idx{mSource.lastIndexOf('.')};
+			mSourceExtension = ext_idx > 0 ? std::move(mSource.right(mSource.length()-ext_idx-1)) : QString {};
 			if (mbCanColorize)
 				colorize(mImage, mImage);
 			maybeResize(true);

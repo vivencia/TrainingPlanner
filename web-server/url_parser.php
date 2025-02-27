@@ -90,9 +90,9 @@ function upload_file($uploadDir) {
 function download_file($file, $downloadDir) {
     $filename=$downloadDir . "/" . $file;
     if (file_exists($filename)) {
-        $file_desciptor = basename($filename)."%%";
-        $size = strlen($filename) + filesize($filename);
-        echo $file_desciptor;
+        $file_name = basename($filename)."%%";
+        $size = strlen($file_name) + filesize($filename);
+        echo $file_name;
         header('Content-Description: File Transfer');
         if (substr($filename,-4) == ".txt")
             header('Content-Type: text/plain');

@@ -53,7 +53,7 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 
 		mb_mainUserConfigured = appSettings()->mainUserConfigured();
 		m_appDataPath = std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/Files/"_L1);
-		m_localAvatarFilePath = std::move(m_appDataPath + "%1_avatar.png"_L1);
+		m_localAvatarFilePath = std::move(m_appDataPath + "%1_avatar.%2"_L1);
 		m_onlineCoachesDir = std::move(m_appDataPath + "online_coaches/"_L1);
 		m_dirForRequestedCoaches = std::move(m_appDataPath + "requested_coaches/"_L1);
 		m_dirForClientsRequests = std::move(m_appDataPath + "clients_requests/"_L1);
@@ -251,12 +251,23 @@ void DBUserModel::getPassword()
 	}
 }
 
+QString DBUserModel::avatar(const int row) const
+{
+	if (row >= 0 && row < m_modeldata.count() && !_userId(row).isEmpty())
+	{
+		QFileInfo fi{getAvatarFile(_userId(row))};
+		if (fi.exists())
+			return fi.filePath();
+	}
+	return QString {};
+}
+
 void DBUserModel::setAvatar(const int row, const QString &new_avatar, const bool upload)
 {
 	if (upload) {
 		TPImage img{nullptr};
 		img.setSource(new_avatar);
-		img.saveToDisk(m_localAvatarFilePath.arg(_userId(row)));
+		img.saveToDisk(m_localAvatarFilePath.arg(_userId(row), img.sourceExtension()));
 		emit userModified(row, USER_COL_AVATAR);
 
 		if (row == 0)
@@ -633,7 +644,8 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 					}
 					if (!m_availableCoaches)
 						m_availableCoaches = new OnlineUserInfo{this};
-					m_availableCoaches->sanitize(coaches, USER_COL_NAME);
+					if (m_availableCoaches->sanitize(coaches, USER_COL_NAME))
+						emit availableCoachesChanged();
 
 					//First pass
 					for (qsizetype i{coaches.count()-1}; i >= 0; --i)
@@ -926,6 +938,21 @@ void DBUserModel::sendUserInfoToServer()
 	}
 }
 
+QFileInfo DBUserModel::getAvatarFile(const QString &userid) const
+{
+	const QDir localFilesDir{m_appDataPath};
+	const QFileInfoList &images{localFilesDir.entryInfoList(QDir::Files|QDir::NoDotAndDotDot|QDir::NoSymLinks)};
+	auto itr{images.constBegin()};
+	const auto itr_end{images.constEnd()};
+	while (itr != itr_end)
+	{
+		if ((*itr).fileName().startsWith(userid))
+			return *itr;
+		++itr;
+	}
+	return QFileInfo{};
+}
+
 void DBUserModel::sendAvatarToServer()
 {
 	QFile *avatar_file{new QFile{avatar(0), this}};
@@ -947,12 +974,17 @@ void DBUserModel::sendAvatarToServer()
 void DBUserModel::downloadAvatarFromServer(const uint row)
 {
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,row] (const QString &key, const QString &value) {
-		const QString &localAvatarFileName{m_localAvatarFilePath.arg(_userId(row))};
-		connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [this,row,localAvatarFileName]
+		QFileInfo fi{getAvatarFile(_userId(row))};
+		QDateTime m_time;
+		if (fi.exists())
+			m_time = std::move(fi.lastModified());
+
+		connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [this,row]
 						(const int ret_code, const QString &filename, const QByteArray &contents) {
 			if (ret_code == 0)
 			{
-				QFile *avatarImg{new QFile{localAvatarFileName, this}};
+				const QString &imagefile{m_appDataPath + filename};
+				QFile *avatarImg{new QFile{imagefile, this}};
 				if (!avatarImg->exists() || avatarImg->remove())
 				{
 					if (avatarImg->open(QIODeviceBase::WriteOnly))
@@ -962,24 +994,19 @@ void DBUserModel::downloadAvatarFromServer(const uint row)
 					}
 				}
 				delete avatarImg;
-				setAvatar(row, localAvatarFileName, false);
+				setAvatar(row, imagefile, false);
 			}
-		});
-		QFileInfo fi{localAvatarFileName};
-		QDateTime m_time;
-		if (fi.exists())
-		{
-			if (m_time.isValid())
-				m_time = std::move(fi.lastModified());
-		}
-		appOnlineServices()->getBinFile(key, value, _userId(row) + "_avatar"_L1, _userId(row), m_time);
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		appOnlineServices()->getBinFile(key, value, m_time.isNull() ? _userId(row) + "_avatar"_L1 : fi.fileName(), _userId(row), m_time);
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appKeyChain()->readKey(_userId(row));
 }
 
 inline void DBUserModel::removeLocalAvatarFile(const QString &user_id)
 {
-	static_cast<void>(QFile::remove(m_localAvatarFilePath.arg(user_id)));
+	QFileInfo fi{getAvatarFile(user_id)};
+	if (fi.exists())
+		static_cast<void>(QFile::remove(fi.filePath()));
 }
 
 void DBUserModel::startClientRequestsPolling()
@@ -1012,7 +1039,8 @@ void DBUserModel::pollClientsRequests(const bool get_list_only)
 				}
 				if (!m_pendingClientRequests)
 					m_pendingClientRequests = new OnlineUserInfo{this};
-				m_pendingClientRequests->sanitize(requests_list, USER_COL_NAME);
+				if (m_pendingClientRequests->sanitize(requests_list, USER_COL_NAME))
+					emit pendingClientsRequestsChanged();
 
 				//First pass
 				for (qsizetype i{requests_list.count()-1}; i >= 0; --i)

@@ -105,6 +105,7 @@ Frame {
 
 		anchors {
 			left: txtPhone.right
+			leftMargin: 5
 			verticalCenter: txtPhone.verticalCenter
 		}
 
@@ -121,6 +122,7 @@ Frame {
 
 		anchors {
 			left: btnWhatsApp.right
+			leftMargin: 5
 			verticalCenter: txtPhone.verticalCenter
 		}
 
@@ -178,6 +180,7 @@ Frame {
 
 		anchors {
 			left: txtEmail.right
+			leftMargin: 5
 			verticalCenter: txtEmail.verticalCenter
 		}
 

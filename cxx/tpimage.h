@@ -22,6 +22,7 @@ public:
 
 	inline QString source() const { return mSource; }
 	void setSource(const QString &source);
+	inline const QString &sourceExtension() const { return mSourceExtension; }
 	inline bool dropShadow() const { return mDropShadow; }
 	void setDropShadow(const bool drop_shadow);
 	inline int imgSize() const { return mSize.width(); }
@@ -39,7 +40,7 @@ signals:
 	void imgSizeChanged();
 
 private:
-	QString mSource;
+	QString mSource, mSourceExtension;
 	QImage mImage;
 	QImage mImageDisabled;
 	QImage mImageShadow;
