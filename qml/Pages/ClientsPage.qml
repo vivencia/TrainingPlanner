@@ -151,15 +151,24 @@ TPPage {
 					right: parent.right
 				}
 
-				delegate: TPButton {
-					id: delegate
-					text: name
-					fixedSize: true
-					rounded: false
-					height: 25
+				delegate: ItemDelegate {
+					spacing: 0
+					padding: 5
 					width: pendingClientsList.width
-					backgroundColor: index === pendingClientsList.currentIndex ? appSettings.entrySelectedColor :
+					height: 25
+
+					contentItem: Text {
+						text: name
+						font.pixelSize: appSettings.fontSize
+						fontSizeMode: Text.Fit
+						leftPadding: 5
+						bottomPadding: 2
+					}
+
+					background: Rectangle {
+						color: index === pendingClientsList.currentIndex ? appSettings.entrySelectedColor :
 							(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
+					}
 
 					onClicked: {
 						curRow = userModel.getTemporaryUserInfo(userModel.pendingClientsRequests, index);

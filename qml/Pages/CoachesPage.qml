@@ -13,7 +13,7 @@ TPPage {
 	objectName: "CoachesPage"
 
 	required property UserManager userManager
-	property int curRow: -1
+	property int curRow: userModel.currentRow
 
 	TPLabel {
 		id: lblMain
@@ -44,6 +44,12 @@ TPPage {
 		TabButton {
 			text: qsTr("Pending answers")
 			enabled: userModel.pendingCoachesResponses.count > 0
+
+			onClicked: {
+				curRow = userModel.getTemporaryUserInfo(userModel.pendingCoachesResponses, userModel.pendingCoachesResponses.currentRow);
+				if (curRow > 0)
+					pendingCoachesList.currentIndex = userModel.pendingCoachesResponses.currentRow;
+			}
 		}
 
 		anchors {
@@ -59,67 +65,67 @@ TPPage {
 	StackLayout {
 		id: listsLayout
 		currentIndex: tabbar.currentIndex
-		height: 0.3*coachesPage.height
+		height: 0.2*coachesPage.height
 
-		Item {
+		anchors {
+			top: tabbar.bottom
+			topMargin: 5
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+		}
+
+		ListView {
+			id: coachesList
+			contentHeight: availableHeight
+			contentWidth: availableWidth
+			spacing: 0
+			clip: true
+			model: userModel.coachesNames
 			enabled: userModel.haveCoaches
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 
-			ListView {
-				id: coachesList
-				contentHeight: availableHeight
-				contentWidth: availableWidth
+			ScrollBar.vertical: ScrollBar {
+				policy: ScrollBar.AsNeeded
+				active: true; visible: pendingCoachesList.contentHeight > pendingCoachesList.height
+			}
+
+			delegate: ItemDelegate {
 				spacing: 0
-				clip: true
-				model: userModel.coachesNames
-				height: 0.9*parent.height
+				padding: 5
+				width: parent.width
+				height: 25
 
-				ScrollBar.vertical: ScrollBar {
-					policy: ScrollBar.AsNeeded
-					active: true; visible: pendingCoachesList.contentHeight > pendingCoachesList.height
+				contentItem: Text {
+					text: userModel.coachesNames[index]
+					font.pixelSize: appSettings.fontSize
+					fontSizeMode: Text.Fit
+					leftPadding: 5
+					bottomPadding: 2
 				}
 
-				anchors {
-					top: parent.top
-					left: parent.left
-					right: parent.right
+				background: Rectangle {
+					color: index === coachesList.currentIndex ? appSettings.entrySelectedColor :
+							(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
 				}
 
-				delegate: ItemDelegate {
-					spacing: 0
-					padding: 5
-					width: parent.width
-					height: 25
-
-					contentItem: Text {
-						text: userModel.coachesNames[index]
-						font.pixelSize: appSettings.fontSize
-						fontSizeMode: Text.Fit
-						leftPadding: 5
-						bottomPadding: 2
-					}
-
-					background: Rectangle {
-						color: index === coachesList.currentIndex ? appSettings.entrySelectedColor :
-								(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
-					}
-
-					onClicked: {
-						curRow = userModel.findUserByName(userModel.coachesNames[index]);
-						userModel.currentRow = curRow;
-						coachesList.currentIndex = index;
-					}
-				} //ItemDelegate
-
-				Component.onCompleted: {
-					if (userModel.haveCoaches) {
-						userModel.currentRow = userModel.findUserByName(userModel.coachesNames[0]);
-						coachesList.currentIndex = 0;
-					}
+				onClicked: {
+					curRow = userModel.findUserByName(userModel.coachesNames[index]);
+					userModel.currentRow = curRow;
+					coachesList.currentIndex = index;
 				}
-			} //ListView: coachesList
-		}
+			} //ItemDelegate
+
+			Component.onCompleted: {
+				if (userModel.haveCoaches) {
+					userModel.currentRow = userModel.findUserByName(userModel.coachesNames[0]);
+					coachesList.currentIndex = 0;
+				}
+			}
+		} //ListView: coachesList
+
 
 		Item {
 			enabled: userModel.pendingCoachesResponses.count > 0
@@ -133,7 +139,7 @@ TPPage {
 				spacing: 0
 				clip: true
 				model: userModel.pendingCoachesResponses
-				height: 0.9*parent.height
+				height: 0.8*parent.height
 
 				ScrollBar.vertical: ScrollBar {
 					policy: ScrollBar.AsNeeded
@@ -149,14 +155,14 @@ TPPage {
 				delegate: ItemDelegate {
 					spacing: 0
 					padding: 5
-					width: parent.width
+					width: pendingCoachesList.width
 					height: 25
 
 					contentItem: Item {
 						Text {
 							id: txtCoachName
-							text: display
-							font.pixelSize: 0
+							text: name
+							font.pixelSize: appSettings.fontSize
 							fontSizeMode: Text.Fit
 							leftPadding: 5
 							bottomPadding: 2
@@ -188,7 +194,8 @@ TPPage {
 					}
 
 					onClicked: {
-						if (userModel.getTemporaryUserInfo(userModel.pendingCoachesResponses, index) > 0)
+						curRow = userModel.getTemporaryUserInfo(userModel.pendingCoachesResponses, index);
+						if (curRow > 0)
 							pendingCoachesList.currentIndex = index;
 					}
 				} //ItemDelegate
@@ -198,17 +205,26 @@ TPPage {
 				uniformCellSizes: true
 				height: 25
 
+				anchors {
+					top: pendingCoachesList.bottom
+					topMargin: 5
+					left: parent.left
+					right: parent.right
+				}
+
 				TPButton {
 					text: qsTr("Accept")
 					autoResize: true
+					Layout.alignment: Qt.AlignCenter
 
-					onClicked: userModel.acceptUser(userModel.pendingCoachesResponses, pendingClientsList.currentIndex);
+					onClicked: userModel.acceptUser(userModel.pendingCoachesResponses, pendingCoachesList.currentIndex);
 				}
 				TPButton {
 					text: qsTr("Decline")
 					autoResize: true
+					Layout.alignment: Qt.AlignCenter
 
-					onClicked: userModel.rejectUser(userModel.pendingCoachesResponses, pendingClientsList.currentIndex);
+					onClicked: userModel.rejectUser(userModel.pendingCoachesResponses, pendingCoachesList.currentIndex);
 				}
 			}
 		}//Item

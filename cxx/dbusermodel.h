@@ -94,13 +94,13 @@ public:
 			static_cast<void>(onlineCheckIn());
 			if (isCoach(0))
 			{
-				m_coachesNames.append(userName(0));
+				m_coachesNames.append(_userName(0));
 				m_exportName = std::move(tr("Coach information"));
 				checkIfCoachRegisteredOnline();
 			}
 			if (isClient(0))
 			{
-				m_clientsNames.append(userName(0));
+				m_clientsNames.append(_userName(0));
 				m_exportName = std::move(tr("Client information"));
 				startCoachesAnswerPolling();
 			}
@@ -109,9 +109,9 @@ public:
 		{
 
 			if (isCoach(0) && isClient(last_idx))
-				m_clientsNames.append(userName(last_idx));
+				m_clientsNames.append(_userName(last_idx));
 			else if (isCoach(last_idx))
-				m_coachesNames.append(userName(last_idx));
+				m_coachesNames.append(_userName(last_idx));
 		}
 	}
 
@@ -369,7 +369,7 @@ private:
 	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses;
 	QStringList m_coachesNames, m_clientsNames;
 	bool mb_mainUserConfigured;
-	QTimer *m_clientsRequestsTimer, *m_coachesAnswersTimer;
+	QTimer *m_clientsRequestsTimer, *m_coachesAnswersTimer, *m_mainTimer;
 
 	bool onlineCheckIn();
 	void registerUserOnline();
@@ -384,8 +384,11 @@ private:
 	void pollClientsRequests(const bool get_list_only = false);
 	void addPendingClient(const QString &user_id);
 	void startCoachesAnswerPolling();
-	void pollCoachesAnswers();
+	void pollCoachesAnswers(const bool get_list_only = false);
+	void addCoachAnswer(const QString &user_id);
 	void addAvailableCoach(const QString &user_id);
+	void startCurrentClientsPolling();
+	void pollCurrentClients(const bool get_list_only = false);
 	int _importFromFile(const QString &filename, QList<QStringList> &targetModel);
 
 	QString m_localAvatarFilePath, m_onlineCoachesDir, m_dirForRequestedCoaches, m_dirForClientsRequests;

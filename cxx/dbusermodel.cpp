@@ -32,7 +32,7 @@ static const QString &profileFile_template{"%1%2.txt"};
 
 DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 	: TPListModel{parent}, m_searchRow{-1}, m_availableCoaches{nullptr}, m_pendingClientRequests{nullptr}, m_pendingCoachesResponses{nullptr},
-		m_clientsRequestsTimer{nullptr}, m_coachesAnswersTimer{nullptr}, m_tempRow{-1}
+		m_clientsRequestsTimer{nullptr}, m_coachesAnswersTimer{nullptr}, m_mainTimer{nullptr}, m_tempRow{-1}
 {
 	setObjectName(DBUserObjectName);
 	m_tableId = USERS_TABLE_ID;
@@ -96,7 +96,7 @@ void DBUserModel::updateColumnNames()
 QString DBUserModel::passwordLabel() const { return tr("Password:"); }
 QString DBUserModel::newUserLabel() const
 {
-	return !m_modeldata.isEmpty() && !userName(0).isEmpty() ? tr("Continue Setup") : tr("Create a new user");
+	return !m_modeldata.isEmpty() && !_userName(0).isEmpty() ? tr("Continue Setup") : tr("Create a new user");
 }
 
 QString DBUserModel::existingUserLabel() const { return tr("User already registered"); }
@@ -370,10 +370,16 @@ void DBUserModel::acceptUser(OnlineUserInfo *userInfo, const int userInfoRow)
 		m_modeldata.last()[USER_COL_COACHES] = QString{};
 		m_modeldata.last()[USER_COL_APP_USE_MODE] = std::move(QString::number(new_app_use_mode));
 		if (new_app_use_mode == APP_USE_MODE_SINGLE_COACH)
+		{
 			addCoach(count()-1);
+			appOnlineServices()->acceptCoachAnswer(key, value, user_id);
+		}
 		else
+		{
 			addClient(count()-1);
-		appOnlineServices()->acceptClientRequest(key, value, user_id);
+			appOnlineServices()->acceptClientRequest(key, value, user_id);
+		}
+
 		//No need to emit the userModified signal here because either addCoach() or addClient() will
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appKeyChain()->readKey(_userId(0));
@@ -705,7 +711,10 @@ void DBUserModel::checkIfCoachRegisteredOnline()
 				mb_coachRegistered = coaches_list.contains(_userId(0));
 				emit coachOnlineStatus(mb_coachRegistered == true);
 				if (mb_coachRegistered == true)
+				{
 					startClientRequestsPolling();
+					startCurrentClientsPolling();
+				}
 			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 			getOnlineCoachesList(true);
 		}
@@ -1102,43 +1111,92 @@ void DBUserModel::addPendingClient(const QString &user_id)
 
 void DBUserModel::startCoachesAnswerPolling()
 {
-	QDir coaches_dir{m_dirForRequestedCoaches};
-	if (coaches_dir.exists() && !coaches_dir.isEmpty(QDir::Files|QDir::Readable|QDir::NoDotAndDotDot))
+	if (!m_coachesAnswersTimer)
 	{
-		if (!m_coachesAnswersTimer)
-		{
-			m_coachesAnswersTimer = new QTimer{this};
-			m_coachesAnswersTimer->setInterval(POLLING_INTERVAL);
-			m_coachesAnswersTimer->callOnTimeout([this] () { pollCoachesAnswers(); });
-			m_coachesAnswersTimer->start();
-		}
-		pollCoachesAnswers();
+		m_coachesAnswersTimer = new QTimer{this};
+		m_coachesAnswersTimer->setInterval(POLLING_INTERVAL);
+		m_coachesAnswersTimer->callOnTimeout([this] () { pollCoachesAnswers(); });
+		m_coachesAnswersTimer->start();
+		QDir coaches_dir{m_dirForRequestedCoaches};
+		if (!coaches_dir.exists())
+			coaches_dir.mkpath(m_dirForRequestedCoaches);
 	}
+	pollCoachesAnswers();
 }
 
-void DBUserModel::pollCoachesAnswers()
+void DBUserModel::pollCoachesAnswers(const bool get_list_only)
 {
-	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this] (const QString &key, const QString &value) {
-		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,key,value] (const int ret_code, const QString &ret_string) {
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,get_list_only] (const QString &key, const QString &value) {
+		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,get_list_only,key,value] (const int ret_code, const QString &ret_string) {
 			if (ret_code == 0)
 			{
-				const QStringList &answers_list{ret_string.split(' ', Qt::SkipEmptyParts)};
+				QStringList answers_list{std::move(ret_string.split(' ', Qt::SkipEmptyParts))};
+				if (get_list_only)
+				{
+					emit coachesListReceived(answers_list);
+					return;
+				}
 				if (!m_pendingCoachesResponses)
 					m_pendingCoachesResponses = new OnlineUserInfo{this};
-				else
-					m_pendingCoachesResponses->clear();
+				if (m_pendingCoachesResponses->sanitize(answers_list, USER_COL_NAME))
+					emit pendingCoachesResponsesChanged();
 
-				for (uint i{0}; i < m_availableCoaches->count(); ++i)
+				//First pass
+				for (qsizetype i{answers_list.count()-1}; i >= 0; --i)
 				{
-					if (answers_list.contains(m_availableCoaches->data(i, USER_COL_ID)))
-						m_pendingCoachesResponses->setModelData(m_availableCoaches->modeldata(i));
+					if (findUserById(answers_list.at(i)) == -1)
+					{
+						const QString &coach_profile{m_dirForRequestedCoaches + answers_list.at(i) + ".txt"_L1};
+						if (QFile::exists(coach_profile))
+						{
+							addCoachAnswer(answers_list.at(i));
+							answers_list.remove(i);
+						}
+					}
+					else
+					{
+						appOnlineServices()->removeCoachAnwers(key, value, answers_list.at(i));
+						answers_list.remove(i);
+					}
 				}
-				emit pendingCoachesResponsesChanged();
+
+				//Second pass
+				qsizetype n_connections{answers_list.count()};
+				auto conn = std::make_shared<QMetaObject::Connection>();
+				*conn = connect(this, &DBUserModel::userProfileAcquired, this, [this,conn,answers_list,n_connections]
+																				(const QString &userid, const bool success) mutable {
+						if (--n_connections == 0)
+							disconnect(*conn);
+						if (success)
+							addCoachAnswer(userid);
+				});
+				for (qsizetype x{0}; x < answers_list.count(); ++x)
+				{
+					const QString &coach_profile{m_dirForRequestedCoaches + answers_list.at(x) + ".txt"_L1};
+					getUserOnlineProfile(answers_list.at(x), coach_profile);
+				}
 			}
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		appOnlineServices()->checkCoachesAnswers(key, value);
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appKeyChain()->readKey(_userId(0));
+}
+
+void DBUserModel::addCoachAnswer(const QString &user_id)
+{
+	if (!m_pendingCoachesResponses->containsUser(user_id))
+	{
+		const QString &coach_profile{profileFile_template.arg(m_onlineCoachesDir, user_id)};
+		if (m_pendingCoachesResponses->dataFromFileSource(coach_profile))
+		{
+			const qsizetype last_idx{m_pendingCoachesResponses->count()-1};
+			m_pendingCoachesResponses->setData(last_idx, USER_COL_ID, user_id);
+			//Indicate that the online user is a coach. acceptUser will look for this info in order to setup the new user and the main user's field:
+			//add the newly accepted user as a coach(USER_COL_COACHES) or as a client(USER_COL_CLIENTS)
+			m_pendingCoachesResponses->setData(last_idx, USER_COL_COACHES, STR_ONE);
+			emit pendingCoachesResponsesChanged();
+		}
+	}
 }
 
 void DBUserModel::addAvailableCoach(const QString &user_id)
@@ -1156,6 +1214,80 @@ void DBUserModel::addAvailableCoach(const QString &user_id)
 			emit availableCoachesChanged();
 		}
 	}
+}
+
+void DBUserModel::startCurrentClientsPolling()
+{
+	if (!m_mainTimer)
+	{
+		m_mainTimer = new QTimer{this};
+		m_mainTimer->setInterval(POLLING_INTERVAL);
+		m_mainTimer->callOnTimeout([this] () { pollClientsRequests(); });
+		m_mainTimer->start();
+
+		QDir requestsDir{m_dirForClientsRequests};
+		if (!requestsDir.exists())
+			requestsDir.mkpath(m_dirForClientsRequests);
+	}
+	pollClientsRequests();
+}
+
+void DBUserModel::pollCurrentClients(const bool get_list_only)
+{
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,get_list_only] (const QString &key, const QString &value) {
+		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,get_list_only,key,value] (const int ret_code, const QString &ret_string) {
+			if (ret_code == 0)
+			{
+				QStringList requests_list{std::move(ret_string.split(' ', Qt::SkipEmptyParts))};
+				if (get_list_only)
+				{
+					emit clientsListReceived(requests_list);
+					return;
+				}
+				if (!m_pendingClientRequests)
+					m_pendingClientRequests = new OnlineUserInfo{this};
+				if (m_pendingClientRequests->sanitize(requests_list, USER_COL_NAME))
+					emit pendingClientsRequestsChanged();
+
+				//First pass
+				for (qsizetype i{requests_list.count()-1}; i >= 0; --i)
+				{
+					if (findUserById(requests_list.at(i)) == -1)
+					{
+						const QString &client_profile{m_dirForClientsRequests + requests_list.at(i) + ".txt"_L1};
+						if (QFile::exists(client_profile))
+						{
+							addPendingClient(requests_list.at(i));
+							requests_list.remove(i);
+						}
+					}
+					else
+					{
+						appOnlineServices()->removeClientRequest(key, value, requests_list.at(i));
+						requests_list.remove(i);
+					}
+				}
+
+				//Second pass
+				qsizetype n_connections{requests_list.count()};
+				auto conn = std::make_shared<QMetaObject::Connection>();
+				*conn = connect(this, &DBUserModel::userProfileAcquired, this, [this,conn,requests_list,n_connections]
+																				(const QString &userid, const bool success) mutable {
+						if (--n_connections == 0)
+							disconnect(*conn);
+						if (success)
+							addPendingClient(userid);
+				});
+				for (qsizetype x{0}; x < requests_list.count(); ++x)
+				{
+					const QString &client_profile{m_dirForClientsRequests + requests_list.at(x) + ".txt"_L1};
+					getUserOnlineProfile(requests_list.at(x), client_profile);
+				}
+			}
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		appOnlineServices()->checkClientsRequests(key, value);
+	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	appKeyChain()->readKey(_userId(0));
 }
 
 int DBUserModel::_importFromFile(const QString &filename, QList<QStringList> &targetModel)

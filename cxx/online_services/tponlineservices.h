@@ -37,6 +37,9 @@ public:
 	void acceptClientRequest(const QString &username, const QString &passwd, const QString &client);
 	void rejectClientRequest(const QString &username, const QString &passwd, const QString &client);
 	void checkCoachesAnswers(const QString &username, const QString &passwd);
+	void removeCoachAnwers(const QString &username, const QString &passwd, const QString &coach);
+	void acceptCoachAnswer(const QString &username, const QString &passwd, const QString &coach);
+	void rejectCoachAnswer(const QString &username, const QString &passwd, const QString &coach);
 
 	void sendFile(const QString &username, const QString &passwd, QFile *file,
 					const QString &targetUser = QString{}, const bool b_internal_signal_only = false);

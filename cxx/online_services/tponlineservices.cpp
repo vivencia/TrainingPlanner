@@ -135,7 +135,7 @@ void TPOnlineServices::checkClientsRequests(const QString &username, const QStri
 
 void TPOnlineServices::removeClientRequest(const QString &username, const QString &passwd, const QString &client)
 {
-	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "deletecoachrequest"_L1, client)};
+	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "deleteclientrequest"_L1, client)};
 	makeNetworkRequest(url);
 }
 
@@ -154,6 +154,24 @@ void TPOnlineServices::rejectClientRequest(const QString &username, const QStrin
 void TPOnlineServices::checkCoachesAnswers(const QString &username, const QString &passwd)
 {
 	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "listcoachesanswers"_L1)};
+	makeNetworkRequest(url);
+}
+
+void TPOnlineServices::removeCoachAnwers(const QString &username, const QString &passwd, const QString &coach)
+{
+	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "deletecoachanswer"_L1, coach)};
+	makeNetworkRequest(url);
+}
+
+void TPOnlineServices::acceptCoachAnswer(const QString &username, const QString &passwd, const QString &coach)
+{
+	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "acceptcoachanswer"_L1, coach)};
+	makeNetworkRequest(url);
+}
+
+void TPOnlineServices::rejectCoachAnswer(const QString &username, const QString &passwd, const QString &coach)
+{
+	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "rejectcoachanswer"_L1, coach)};
 	makeNetworkRequest(url);
 }
 
