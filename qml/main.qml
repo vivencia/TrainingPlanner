@@ -26,6 +26,7 @@ ApplicationWindow {
 	signal openFileChosen(filepath: string, filetype: int);
 	signal openFileRejected(filepath: string);
 	signal passwordDialogClosed(resultCode: int, password: string);
+	signal keepNoLongerAvailableUser(keep: bool);
 
 	Component.onCompleted: {
 		if (Qt.platform.os === "android")
@@ -252,6 +253,28 @@ ApplicationWindow {
 			createPasswordDialog();
 		}
 		passwdDlg.show(-1);
+	}
+
+	property TPBalloonTip userNoLongerAvailableDlg: null
+	function showUserNoLongerAvailable(title: string, message: string): void {
+		if (userNoLongerAvailableDlg === null) {
+			function createDialog() {
+				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+
+				function finishCreation() {
+					userNoLongerAvailableDlg = component.createObject(contentItem, { parentPage: homePage, title:title, message:message, modal:true });
+					userNoLongerAvailableDlg.button1Clicked.connect(function () { keepNoLongerAvailableUser(false); });
+					userNoLongerAvailableDlg.button2Clicked.connect(function () { keepNoLongerAvailableUser(true); });
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			createDialog();
+		}
+		userNoLongerAvailableDlg.show(-1);
 	}
 
 	TPBalloonTip {

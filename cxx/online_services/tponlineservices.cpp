@@ -175,6 +175,30 @@ void TPOnlineServices::rejectCoachAnswer(const QString &username, const QString 
 	makeNetworkRequest(url);
 }
 
+void TPOnlineServices::checkCurrentClients(const QString &username, const QString &passwd)
+{
+	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "getclients"_L1)};
+	makeNetworkRequest(url);
+}
+
+void TPOnlineServices::removeClientFromCoach(const QString &username, const QString &passwd, const QString &client)
+{
+	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "removecurclient"_L1, client)};
+	makeNetworkRequest(url);
+}
+
+void TPOnlineServices::checkCurrentCoaches(const QString &username, const QString &passwd)
+{
+	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "getcoaches"_L1)};
+	makeNetworkRequest(url);
+}
+
+void TPOnlineServices::removeCoachFromClient(const QString &username, const QString &passwd, const QString &coach)
+{
+	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "removecurcoach"_L1, coach)};
+	makeNetworkRequest(url);
+}
+
 void TPOnlineServices::sendFile(const QString &username, const QString &passwd, QFile *file, const QString &targetUser, const bool b_internal_signal_only)
 {
 	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "upload"_L1, targetUser.isEmpty() ? username : targetUser)};

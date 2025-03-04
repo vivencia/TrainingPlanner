@@ -40,6 +40,10 @@ public:
 	void removeCoachAnwers(const QString &username, const QString &passwd, const QString &coach);
 	void acceptCoachAnswer(const QString &username, const QString &passwd, const QString &coach);
 	void rejectCoachAnswer(const QString &username, const QString &passwd, const QString &coach);
+	void checkCurrentClients(const QString &username, const QString &passwd);
+	void removeClientFromCoach(const QString &username, const QString &passwd, const QString &client);
+	void checkCurrentCoaches(const QString &username, const QString &passwd);
+	void removeCoachFromClient(const QString &username, const QString &passwd, const QString &coach);
 
 	void sendFile(const QString &username, const QString &passwd, QFile *file,
 					const QString &targetUser = QString{}, const bool b_internal_signal_only = false);

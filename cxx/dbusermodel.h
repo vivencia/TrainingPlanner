@@ -30,6 +30,8 @@
 #define USER_COL_AVATAR 20 //not in database, but used on model and GUI operations
 
 QT_FORWARD_DECLARE_CLASS(QTimer)
+QT_FORWARD_DECLARE_CLASS(QMutex)
+QT_FORWARD_DECLARE_CLASS(QWaitCondition)
 
 class DBUserModel : public TPListModel
 {
@@ -92,17 +94,16 @@ public:
 		{
 			//DBUserTable calls here when reading from the database. When we get the data for the main user, initialize the network connection
 			static_cast<void>(onlineCheckIn());
+			startServerPolling();
 			if (isCoach(0))
 			{
 				m_coachesNames.append(_userName(0));
 				m_exportName = std::move(tr("Coach information"));
-				checkIfCoachRegisteredOnline();
 			}
 			if (isClient(0))
 			{
 				m_clientsNames.append(_userName(0));
 				m_exportName = std::move(tr("Client information"));
-				startCoachesAnswerPolling();
 			}
 		}
 		else
@@ -117,7 +118,7 @@ public:
 
 	Q_INVOKABLE void createMainUser();
 	Q_INVOKABLE void removeMainUser();
-	Q_INVOKABLE uint removeUser(const int row, const bool bCoach);
+	Q_INVOKABLE void removeUser(const int row);
 
 	Q_INVOKABLE int findFirstUser(const bool bCoach = false);
 	Q_INVOKABLE int findNextUser(const bool bCoach = false);
@@ -316,9 +317,6 @@ public:
 	Q_INVOKABLE void sendRequestToCoaches();
 	Q_INVOKABLE void getOnlineCoachesList(const bool get_list_only = false);
 
-	void checkIfCoachRegisteredOnline();
-	void getUserOnlineProfile(const QString &netName, const QString &save_as_filename);
-
 	inline int importFromFile(const QString &filename) override { return _importFromFile(filename, m_modeldata); }
 	bool updateFromModel(TPListModel*) override;
 	bool importFromString(const QString &user_data);
@@ -340,6 +338,7 @@ public:
 
 public slots:
 	void getPasswordFromUserInput(const int resultCode, const QString &password);
+	void slot_keepNoLongerAvailableUser(bool keep);
 
 signals:
 	void userModified(const uint row, const uint field = 100); //100 all fields
@@ -368,30 +367,35 @@ private:
 	std::optional<bool> mb_userRegistered, mb_coachRegistered;
 	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses;
 	QStringList m_coachesNames, m_clientsNames;
-	bool mb_mainUserConfigured;
-	QTimer *m_clientsRequestsTimer, *m_coachesAnswersTimer, *m_mainTimer;
+	bool mb_mainUserConfigured, mb_keepUnavailableUser;
+	QTimer *m_mainTimer;
+	QMutex *m_mutex;
+    QWaitCondition *m_condition;
 
 	bool onlineCheckIn();
 	void registerUserOnline();
 	QString generateUniqueUserId() const;
+	void checkIfCoachRegisteredOnline();
+	void getUserOnlineProfile(const QString &netName, const QString &save_as_filename);
 	void sendProfileToServer();
 	void sendUserInfoToServer();
 	QFileInfo getAvatarFile(const QString &userid) const;
 	void sendAvatarToServer();
 	void downloadAvatarFromServer(const uint row);
 	void removeLocalAvatarFile(const QString &user_id);
-	void startClientRequestsPolling();
+	void startServerPolling();
+	void pollServer();
 	void pollClientsRequests(const bool get_list_only = false);
 	void addPendingClient(const QString &user_id);
-	void startCoachesAnswerPolling();
 	void pollCoachesAnswers(const bool get_list_only = false);
 	void addCoachAnswer(const QString &user_id);
 	void addAvailableCoach(const QString &user_id);
-	void startCurrentClientsPolling();
 	void pollCurrentClients(const bool get_list_only = false);
+	void pollCurrentCoaches(const bool get_list_only = false);
 	int _importFromFile(const QString &filename, QList<QStringList> &targetModel);
 
-	QString m_localAvatarFilePath, m_onlineCoachesDir, m_dirForRequestedCoaches, m_dirForClientsRequests;
+	QString m_localProfileFile, m_localAvatarFilePath, m_onlineCoachesDir, m_dirForRequestedCoaches, m_dirForClientsRequests,
+						m_dirForCurrentClients, m_dirForCurrentCoaches;
 	static DBUserModel *_appUserModel;
 	friend DBUserModel *appUserModel();
 	friend class OnlineUserInfo;
