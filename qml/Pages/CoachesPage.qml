@@ -76,56 +76,86 @@ TPPage {
 			rightMargin: 5
 		}
 
-		ListView {
-			id: coachesList
-			contentHeight: availableHeight
-			contentWidth: availableWidth
-			spacing: 0
-			clip: true
-			model: userModel.coachesNames
+		Item {
 			enabled: userModel.haveCoaches
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 
-			ScrollBar.vertical: ScrollBar {
-				policy: ScrollBar.AsNeeded
-				active: true; visible: pendingCoachesList.contentHeight > pendingCoachesList.height
-			}
-
-			delegate: ItemDelegate {
+			ListView {
+				id: coachesList
+				contentHeight: availableHeight
+				contentWidth: availableWidth
 				spacing: 0
-				padding: 5
-				width: parent.width
+				clip: true
+				model: userModel.coachesNames
+
+				ScrollBar.vertical: ScrollBar {
+					policy: ScrollBar.AsNeeded
+					active: true; visible: pendingCoachesList.contentHeight > pendingCoachesList.height
+				}
+
+				anchors {
+					top: parent.top
+					left: parent.left
+					right: parent.right
+				}
+
+				delegate: ItemDelegate {
+					spacing: 0
+					padding: 5
+					width: parent.width
+					height: 25
+
+					contentItem: Text {
+						text: userModel.coachesNames[index]
+						font.pixelSize: appSettings.fontSize
+						fontSizeMode: Text.Fit
+						leftPadding: 5
+						bottomPadding: 2
+					}
+
+					background: Rectangle {
+						color: index === coachesList.currentIndex ? appSettings.entrySelectedColor :
+								(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
+					}
+
+					onClicked: {
+						curRow = userModel.findUserByName(userModel.coachesNames[index]);
+						userModel.currentRow = curRow;
+						coachesList.currentIndex = index;
+					}
+				} //ItemDelegate
+
+				Component.onCompleted: {
+					if (userModel.haveCoaches) {
+						userModel.currentRow = userModel.findUserByName(userModel.coachesNames[0]);
+						coachesList.currentIndex = 0;
+					}
+				}
+			} //ListView: coachesList
+
+			RowLayout {
+				uniformCellSizes: true
 				height: 25
 
-				contentItem: Text {
-					text: userModel.coachesNames[index]
-					font.pixelSize: appSettings.fontSize
-					fontSizeMode: Text.Fit
-					leftPadding: 5
-					bottomPadding: 2
+				anchors {
+					top: coachesList.bottom
+					topMargin: 5
+					left: parent.left
+					right: parent.right
 				}
 
-				background: Rectangle {
-					color: index === coachesList.currentIndex ? appSettings.entrySelectedColor :
-							(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
-				}
+				TPButton {
+					text: qsTr("Remove")
+					autoResize: true
+					Layout.alignment: Qt.AlignCenter
 
-				onClicked: {
-					curRow = userModel.findUserByName(userModel.coachesNames[index]);
-					userModel.currentRow = curRow;
-					coachesList.currentIndex = index;
-				}
-			} //ItemDelegate
-
-			Component.onCompleted: {
-				if (userModel.haveCoaches) {
-					userModel.currentRow = userModel.findUserByName(userModel.coachesNames[0]);
-					coachesList.currentIndex = 0;
+					onClicked: showRemoveMessage(false,
+								qsTr("Remove ") + userModel.userName(curRow) + "?",
+								qsTr("The coach will be notified of your decision, but might still contact you unless you block them"));
 				}
 			}
-		} //ListView: coachesList
-
+		} //Item
 
 		Item {
 			enabled: userModel.pendingCoachesResponses.count > 0
@@ -224,7 +254,9 @@ TPPage {
 					autoResize: true
 					Layout.alignment: Qt.AlignCenter
 
-					onClicked: userModel.rejectUser(userModel.pendingCoachesResponses, pendingCoachesList.currentIndex);
+					onClicked: showRemoveMessage(true,
+								qsTr("Decline ") + userModel.pendingCoachesResponses.display(userModel.pendingCoachesResponses.currentRow) + "?",
+								qsTr("The coach will receive your reply, but might choose to send another answer unless you block them"));
 				}
 			}
 		}//Item
@@ -292,9 +324,9 @@ TPPage {
 	}
 
 	property TPBalloonTip msgRemoveUser: null
-	function showRemoveMessage() {
+	function showRemoveMessage(decline: bool, Title: string, Message: string): void {
 		if (!appSettings.alwaysAskConfirmation) {
-			userManager.removeUser(curRow, showCoaches);
+			removeOrDecline(decline);
 			return;
 		}
 
@@ -303,9 +335,9 @@ TPPage {
 				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					msgRemoveUser = component.createObject(coachesPage, { parentPage: coachesPage, imageSource: "remove",
-						title: "Placeholder", message: qsTr("This action cannot be undone."), button1Text: qsTr("Yes"), button2Text: qsTr("No") });
-					msgRemoveUser.button1Clicked.connect(function () { userManager.removeUser(curRow, showCoaches); });
+					msgRemoveUser = component.createObject(coachesPage, { parentPage: coachesPage, imageSource: "remove", title: Title, message: Message });
+					msgRemoveUser.button1Clicked.connect(function () { removeOrDecline(decline); });
+					msgRemoveUser.show(-1);
 				}
 
 				if (component.status === Component.Ready)
@@ -315,8 +347,18 @@ TPPage {
 			}
 			createMessageBox();
 		}
-		msgRemoveUser.title = qsTr("Remove ") + userModel.userName(curRow) + "?"
-		msgRemoveUser.show(-1);
+		else {
+			msgRemoveUser.title = Title;
+			msgRemoveUser.message = Message;
+			msgRemoveUser.show(-1);
+		}
+	}
+
+	function removeOrDecline(decline: bool) {
+		if (!decline)
+			userManager.removeCoach(curRow);
+		else
+			userModel.rejectUser(userModel.pendingCoachesResponses, pendingCoachesList.currentIndex);
 	}
 
 	function avatarChangedBySexSelection(row: int) {

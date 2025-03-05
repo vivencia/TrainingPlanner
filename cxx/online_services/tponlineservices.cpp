@@ -205,18 +205,12 @@ void TPOnlineServices::sendFile(const QString &username, const QString &passwd, 
 	uploadFile(url, file, b_internal_signal_only);
 }
 
-void TPOnlineServices::getFile(const QString &username, const QString &passwd, const QString &file, const QString &targetUser)
+void TPOnlineServices::getFile(const QString &username, const QString &passwd, const QString &filename,
+									const QString &targetUser, const QString &localFilePath)
 {
-	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "file"_L1, file, !targetUser.isEmpty() ? "fromuser"_L1 : QString{}, targetUser)};
-	makeNetworkRequest(url);
-}
-
-void TPOnlineServices::getBinFile(const QString &username, const QString &passwd, const QString &filename,
-									const QString &targetUser, const QDateTime& c_time)
-{
-	if (!c_time.isNull())
+	if (!localFilePath.isEmpty())
 	{
-		connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,username,passwd,filename,targetUser,c_time]
+		connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,username,passwd,filename,targetUser,localFilePath]
 				(const int ret_code, const QString &ret_string) {
 			QString filename_without_extension;
 			const qsizetype dot_idx{filename.lastIndexOf('.')};
@@ -224,9 +218,14 @@ void TPOnlineServices::getBinFile(const QString &username, const QString &passwd
 				filename_without_extension = std::move(filename.left(dot_idx));
 			if (ret_code == 0)
 			{
+				QFileInfo fi{localFilePath};
+				QDateTime c_time;
+				if (fi.exists())
+					c_time = std::move(fi.birthTime());
+
 				const QDateTime &online_ctime{appUtils()->getDateTimeFromOnlineString(ret_string)};
 				if (online_ctime > c_time) //online file is newer. Download it
-					getBinFile(username, passwd, dot_idx > 0 ? filename_without_extension : filename, targetUser, QDateTime{});
+					getFile(username, passwd, dot_idx > 0 ? filename_without_extension : filename, targetUser, QString{});
 				else //local file is up to date. Use it
 					emit fileReceived(1, ret_string, QByteArray{});
 			}
@@ -235,20 +234,23 @@ void TPOnlineServices::getBinFile(const QString &username, const QString &passwd
 				if (dot_idx > 0)
 				{
 					//filename is not on server. Try to download the same file with different extension because the owner might have uploaded
-					//a different file, i.e. a jpeg avatar intead of a png; an odt resume instead of a pdf
-					const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "getbinfile"_L1, filename_without_extension, "fromuser"_L1, targetUser)};
+					//a different file, i.e. a jpeg avatar intead of a png; an odt resume instead of a pdf. Not applicable to .txt files
+					const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "getbinfile"_L1, filename_without_extension,
+						!targetUser.isEmpty() ? "fromuser"_L1 : QString{}, targetUser)};
 					makeNetworkRequest(url);
 				}
 				else //Error. Nothing we can do
 					emit fileReceived(2, ret_string, QByteArray{});
 			}
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "checkfilectime"_L1, filename, "fromuser"_L1, targetUser)};
+		const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "checkfilectime"_L1, filename,
+							!targetUser.isEmpty() ? "fromuser"_L1 : QString{}, targetUser)};
 		makeNetworkRequest(url, true);
 	}
 	else
 	{
-		const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "getbinfile"_L1, filename, "fromuser"_L1, targetUser)};
+		const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, filename.endsWith(".txt"_L1) ? "file"_L1 : "getbinfile"_L1, filename,
+							!targetUser.isEmpty() ? "fromuser"_L1 : QString{}, targetUser)};
 		makeNetworkRequest(url);
 	}
 }

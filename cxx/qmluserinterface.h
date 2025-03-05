@@ -21,7 +21,6 @@ public:
 	~QmlUserInterface();
 
 	void getSettingsPage(const uint startPageIndex);
-	Q_INVOKABLE void removeUser(const uint user_row, const bool bCoach);
 	Q_INVOKABLE void getCoachesPage();
 	Q_INVOKABLE void getClientsPage();
 

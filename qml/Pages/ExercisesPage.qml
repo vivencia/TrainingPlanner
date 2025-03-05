@@ -342,8 +342,6 @@ TPPage {
 		id: exportTypeTip
 		title: bShare ? qsTr("Share custom exercises?") : qsTr("Export custom exercises to file?")
 		imageSource:  "export"
-		button1Text: qsTr("Yes")
-		button2Text: qsTr("No")
 		parentPage: exercisesPage
 		closeButtonVisible: true
 

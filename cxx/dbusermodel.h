@@ -151,8 +151,6 @@ public:
 		{
 			m_modeldata[row][USER_COL_NAME] = new_name;
 			emit userModified(row, USER_COL_NAME);
-			if (m_modeldata.count() > 1 && m_modeldata.at(row).at(USER_COL_ID) == STR_MINUS_ONE)
-				emit userAddedOrRemoved(row, true);
 		}
 	}
 
@@ -301,6 +299,8 @@ public:
 	}
 	Q_INVOKABLE void acceptUser(OnlineUserInfo *userInfo, const int userInfoRow);
 	Q_INVOKABLE void rejectUser(OnlineUserInfo *userInfo, const int userInfoRow);
+	Q_INVOKABLE void removeCoach(const uint row);
+	Q_INVOKABLE void removeClient(const uint row);
 
 	Q_INVOKABLE inline void cancelPendingOnlineRequests()
 	{
@@ -342,6 +342,7 @@ public slots:
 
 signals:
 	void userModified(const uint row, const uint field = 100); //100 all fields
+	void userRemoved(const uint row);
 	void labelsChanged();
 	void haveCoachesChanged();
 	void haveClientsChanged();
@@ -352,7 +353,6 @@ signals:
 	void availableCoachesChanged();
 	void pendingCoachesResponsesChanged();
 	void pendingClientsRequestsChanged();
-	void userAddedOrRemoved(const uint row, const bool bAdded);
 	void userOnlineCheckResult(const bool registered);
 	void userOnlineImportFinished(const bool result);
 	void mainUserConfigurationFinishedSignal();

@@ -1,7 +1,6 @@
 #ifndef TPDATABASETABLE_H
 #define TPDATABASETABLE_H
 
-#include "tplistmodel.h"
 #include "tpglobals.h"
 
 #include <QObject>
@@ -16,10 +15,10 @@ class TPDatabaseTable : public QObject
 {
 
 public:
-	TPDatabaseTable(const TPDatabaseTable& other) = delete;
-	TPDatabaseTable& operator() (const TPDatabaseTable& other) = delete;
-	TPDatabaseTable (TPDatabaseTable&& other) = delete;
-	TPDatabaseTable& operator() (TPDatabaseTable&& other) = delete;
+	TPDatabaseTable(const TPDatabaseTable &other) = delete;
+	TPDatabaseTable& operator() (const TPDatabaseTable &other) = delete;
+	TPDatabaseTable (TPDatabaseTable &&other) = delete;
+	TPDatabaseTable& operator() (TPDatabaseTable &&other) = delete;
 
 	virtual void createTable() = 0;
 	virtual void updateTable() = 0;
@@ -33,9 +32,9 @@ public:
 	inline void setResolved(const bool resolved) { mb_resolved = resolved; }
 	inline void setWaitForThreadToFinish(const bool wait) { mb_waitForFinished = wait; }
 	inline bool waitForThreadToFinish() const { return mb_waitForFinished; }
-	inline void addExecArg(const QVariant& arg) { m_execArgs.append(arg); }
+	inline void addExecArg(const QVariant &arg) { m_execArgs.append(arg); }
 	inline void clearExecArgs() { m_execArgs.clear(); }
-	inline void changeExecArg(const QVariant& arg, const uint pos)
+	inline void changeExecArg(const QVariant &arg, const uint pos)
 	{
 		if (pos < m_execArgs.count())
 			m_execArgs[pos] = arg;
@@ -49,7 +48,7 @@ public:
 	{
 		if (bReadOnly)
 			mSqlLiteDB.setConnectOptions("QSQLITE_OPEN_READONLY"_L1);
-		const bool ok = mSqlLiteDB.open();
+		const bool ok{mSqlLiteDB.open()};
 		#ifndef QT_NO_DEBUG
 		if (!ok)
 		{
@@ -78,7 +77,7 @@ public:
 	#define setQueryResult(result, message, location) \
 		_setQueryResult(result, location, message)
 
-	inline void _setQueryResult(const bool bResultOK, const std::source_location& location, const QString& message = QString())
+	inline void _setQueryResult(const bool bResultOK, const std::source_location &location, const QString &message = QString())
 	{
 		mb_result = bResultOK;
 		if (!message.isEmpty())
@@ -106,8 +105,8 @@ public:
 	#endif
 
 protected:
-	explicit inline TPDatabaseTable(QObject* parent = nullptr)
-		: QObject{parent}, doneFunc(nullptr), mb_result(false), mb_resolved(false), mb_waitForFinished(false) {}
+	explicit inline TPDatabaseTable(QObject *parent = nullptr)
+		: QObject{parent}, doneFunc{nullptr}, mb_result{false}, mb_resolved{false}, mb_waitForFinished{false} {}
 
 	QSqlDatabase mSqlLiteDB;
 	QVariantList m_execArgs;

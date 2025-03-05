@@ -611,8 +611,8 @@ TPPage {
 			let component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				changeSplitLetterDialog = component.createObject(trainingDayPage, { parentPage: trainingDayPage, button1Text: qsTr("Yes"),
-					button2Text: qsTr("No"), customStringProperty1: qsTr("Really change split?"), customStringProperty2: qsTr("Clear exercises list?"),
+				changeSplitLetterDialog = component.createObject(trainingDayPage, { parentPage: trainingDayPage,
+					customStringProperty1: qsTr("Really change split?"), customStringProperty2: qsTr("Clear exercises list?"),
 					customStringProperty3: "remove", customItemSource:"TPDialogWithMessageAndCheckBox.qml" });
 				changeSplitLetterDialog.button1Clicked.connect( function() {
 					tDayManager.changeSplit(cboSplitLetter.valueAt(cboSplitLetter.currentIndex), changeSplitLetterDialog.customBoolProperty1);
@@ -636,7 +636,7 @@ TPPage {
 
 				function finishCreation() {
 					msgClearExercises = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Clear exercises list?"),
-						message: qsTr("All exercises changes will be removed"), button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "revert-day.png" } );
+						message: qsTr("All exercises changes will be removed"), imageSource: "revert-day.png" } );
 					msgClearExercises.button1Clicked.connect(function () { tDayManager.clearExercises(); } );
 				}
 
@@ -835,7 +835,7 @@ TPPage {
 
 				function finishCreation() {
 					msgRemoveExercise = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Remove Exercise?"),
-						button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "remove" } );
+						imageSource: "remove" } );
 					msgRemoveExercise.button1Clicked.connect(function () { tDayManager.removeExercise(exerciseidx); } );
 				}
 
@@ -858,7 +858,7 @@ TPPage {
 
 				function finishCreation() {
 					msgRemoveSet = component.createObject(trainingDayPage, { parentPage: trainingDayPage, imageSource: "remove",
-						message: qsTr("This action cannot be undone."), button1Text: qsTr("Yes"), button2Text: qsTr("No") } );
+						message: qsTr("This action cannot be undone.") } );
 					msgRemoveSet.button1Clicked.connect(function () { tDayManager.removeSetFromExercise(exerciseidx, setnumber); } );
 				}
 
@@ -881,7 +881,7 @@ TPPage {
 
 				function finishCreation() {
 					resetWorkoutMsg = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Reset workout?"),
-						message: qsTr("Exercises will not be afected"), button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "reset.png" } );
+						message: qsTr("Exercises will not be afected"), imageSource: "reset.png" } );
 					resetWorkoutMsg.button1Clicked.connect(function () { tDayManager.resetWorkout(); } );
 				}
 
@@ -958,8 +958,6 @@ TPPage {
 			id: exportTypeTip
 			title: bShare ? qsTr("Share workout?") : qsTr("Export workout to file?")
 			imageSource: "export.png"
-			button1Text: qsTr("Yes")
-			button2Text: qsTr("No")
 			parentPage: trainingDayPage
 			closeButtonVisible: true
 

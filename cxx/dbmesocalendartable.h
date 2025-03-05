@@ -3,11 +3,12 @@
 
 #include "tpdatabasetable.h"
 
+#include <QDate>
 #include <QObject>
 
 class DBMesoCalendarModel;
 
-static const QString& DBMesoCalendarFileName("MesoCalendar.db.sqlite"_L1);
+static const QString &DBMesoCalendarFileName("MesoCalendar.db.sqlite"_L1);
 
 struct st_workoutDayInfo {
 	int meso_id;
@@ -23,7 +24,7 @@ class DBMesoCalendarTable final : public TPDatabaseTable
 {
 
 public:
-	explicit DBMesoCalendarTable(const QString& dbFilePath, DBMesoCalendarModel* model = nullptr);
+	explicit DBMesoCalendarTable(const QString &dbFilePath, DBMesoCalendarModel *model = nullptr);
 	inline ~DBMesoCalendarTable() { clearWorkoutsInfoList(); }
 
 	void createTable() override final;
@@ -32,19 +33,19 @@ public:
 	void saveMesoCalendar();
 	void updateMesoCalendarEntry();
 	void updateDayIsFinished();
-	void dayInfo(const QDate& date, QStringList& dayInfoList);
+	void dayInfo(const QDate &date, QStringList &dayInfoList);
 	void changeMesoCalendar();
 	void updateMesoCalendar();
 
 	void workoutDayInfoForEntireMeso();
-	inline const QList<st_workoutDayInfo*>& workoutsInfo() const { return m_workoutsInfoList; }
+	inline const QList<st_workoutDayInfo*> &workoutsInfo() const { return m_workoutsInfoList; }
 
 	//Functions for TPStatistics
 	void completedDaysForSplitWithinTimePeriod();
-	inline const QList<QDate>& retrievedDates() const { return m_completedWorkoutDates; }
+	inline const QList<QDate> &retrievedDates() const { return m_completedWorkoutDates; }
 
 private:
-	DBMesoCalendarModel* m_model;
+	DBMesoCalendarModel *m_model;
 	QList<QDate> m_completedWorkoutDates;
 	QList<st_workoutDayInfo*> m_workoutsInfoList;
 

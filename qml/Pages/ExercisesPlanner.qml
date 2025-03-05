@@ -250,8 +250,6 @@ TPPage {
 		title: qsTr("Import Exercises Plan?")
 		message: qsTr("Import the exercises plan for training division <b>") + splitManager.currentSplitLetter +
 						 qsTr("</b> from <b>") + splitManager.prevMesoName() + "</b>?"
-		button1Text: qsTr("Yes")
-		button2Text: qsTr("No")
 		imageSource: "remove"
 		parentPage: pagePlanner
 

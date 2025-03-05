@@ -204,8 +204,6 @@ ListView {
 				id: msgDlg
 				title: qsTr("Remove Program?")
 				message: qsTr("This action cannot be undone. Note: removing a Program does not remove the workout records.")
-				button1Text: qsTr("Yes")
-				button2Text: qsTr("No")
 				imageSource: "remove"
 				parentPage: homePage
 

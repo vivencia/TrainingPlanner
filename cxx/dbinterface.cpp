@@ -22,7 +22,7 @@
 #include <QStandardPaths>
 #include <QThread>
 
-DBInterface* DBInterface::app_db_interface(nullptr);
+DBInterface *DBInterface::app_db_interface(nullptr);
 
 void DBInterface::init()
 {
@@ -121,7 +121,7 @@ void DBInterface::createThread(TPDatabaseTable *worker, const std::function<void
 {
 	worker->setCallbackForDoneFunc([this] (TPDatabaseTable *obj) { return threadFinished(obj); });
 
-	QThread* thread{new QThread()};
+	QThread *thread{new QThread()};
 	connect(thread, &QThread::started, worker, execFunc);
 	connect(thread, &QThread::finished, thread, &QThread::deleteLater);
 	worker->moveToThread(thread);
@@ -189,7 +189,7 @@ void DBInterface::saveUser(const uint row)
 	createThread(worker, [worker] () { worker->saveUser(); });
 }
 
-void DBInterface::removeUser(const uint row, const bool bCoach)
+void DBInterface::removeUser(const uint row)
 {
 	DBUserTable *worker{new DBUserTable{m_DBFilePath}};
 	worker->addExecArg(appUserModel()->userId(row));
@@ -637,7 +637,7 @@ void DBInterface::deleteTrainingDayTable(const bool bRemoveFile)
 //-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 //-----------------------------------------------------------STATISTICS-----------------------------------------------------------
-void DBInterface::getExercisesForSplitWithinMeso(const uint meso_idx, const QChar& splitLetter)
+void DBInterface::getExercisesForSplitWithinMeso(const uint meso_idx, const QChar &splitLetter)
 {
 	DBMesoSplitTable *worker{new DBMesoSplitTable{m_DBFilePath}};
 	auto conn = std::make_shared<QMetaObject::Connection>();
@@ -654,7 +654,7 @@ void DBInterface::getExercisesForSplitWithinMeso(const uint meso_idx, const QCha
 	createThread(worker, [worker] () { return worker->getExercisesForSplitWithinMeso(); });
 }
 
-void DBInterface::completedDaysForSplitWithinTimePeriod(const QChar& splitLetter, const QDate &startDate, const QDate &endDate)
+void DBInterface::completedDaysForSplitWithinTimePeriod(const QChar &splitLetter, const QDate &startDate, const QDate &endDate)
 {
 	DBMesoCalendarTable *worker{new DBMesoCalendarTable{m_DBFilePath}};
 	auto conn = std::make_shared<QMetaObject::Connection>();
@@ -671,7 +671,7 @@ void DBInterface::completedDaysForSplitWithinTimePeriod(const QChar& splitLetter
 	createThread(worker, [worker] () { return worker->completedDaysForSplitWithinTimePeriod(); });
 }
 
-void DBInterface::workoutsInfoForTimePeriod(const QStringList& exercises, const QList<QDate>& workoutDates)
+void DBInterface::workoutsInfoForTimePeriod(const QStringList &exercises, const QList<QDate> &workoutDates)
 {
 	DBTrainingDayTable *worker{new DBTrainingDayTable{m_DBFilePath}};
 	auto conn = std::make_shared<QMetaObject::Connection>();

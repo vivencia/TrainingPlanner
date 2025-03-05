@@ -49,12 +49,6 @@ void QmlUserInterface::getSettingsPage(const uint startPageIndex)
 	}
 }
 
-void QmlUserInterface::removeUser(const uint user_row, const bool bCoach)
-{
-	appDBInterface()->removeUser(user_row, bCoach);
-	appUserModel()->removeUser(user_row, bCoach);
-}
-
 void QmlUserInterface::getCoachesPage()
 {
 	if (m_coachesPage)

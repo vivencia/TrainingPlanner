@@ -44,7 +44,7 @@ public:
 	//-----------------------------------------------------------USER TABLE-----------------------------------------------------------
 	void getAllUsers();
 	void saveUser(const uint row);
-	void removeUser(const uint row, const bool bCoach);
+	void removeUser(const uint row);
 	void deleteUserTable(const bool bRemoveFile);
 	//-----------------------------------------------------------USER TABLE-----------------------------------------------------------
 
@@ -71,9 +71,9 @@ public:
 	void deleteMesoSplitTable(const bool bRemoveFile);
 	void loadCompleteMesoSplit(const uint meso_idx, const QChar& splitLetter);
 	void loadAllSplits(const uint meso_idx);
-	void saveMesoSplitComplete(DBMesoSplitModel* model);
+	void saveMesoSplitComplete(DBMesoSplitModel *model);
 	bool mesoHasPlan(const uint meso_id, const QString &splitLetter) const;
-	void loadSplitFromPreviousMeso(const uint prev_meso_id, DBMesoSplitModel* model);
+	void loadSplitFromPreviousMeso(const uint prev_meso_id, DBMesoSplitModel *model);
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
@@ -88,21 +88,21 @@ public:
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
-	void getTrainingDay(DBTrainingDayModel* tDayModel);
-	void getTrainingDayExercises(DBTrainingDayModel* tDayModel);
-	void verifyTDayOptions(DBTrainingDayModel* tDayModel);
-	void loadExercisesFromDate(const QString &strDate, DBTrainingDayModel* tDayModel);
-	void loadExercisesFromMesoPlan(DBTrainingDayModel* tDayModel, DBMesoSplitModel* const splitModel);
-	void convertTDayToPlan(const DBTrainingDayModel* const tDayModel, DBMesoSplitModel* const splitModel);
-	void saveTrainingDay(DBTrainingDayModel* const tDayModel);
+	void getTrainingDay(DBTrainingDayModel *tDayModel);
+	void getTrainingDayExercises(DBTrainingDayModel *tDayModel);
+	void verifyTDayOptions(DBTrainingDayModel *tDayModel);
+	void loadExercisesFromDate(const QString &strDate, DBTrainingDayModel *tDayModel);
+	void loadExercisesFromMesoPlan(DBTrainingDayModel *tDayModel, DBMesoSplitModel *const splitModel);
+	void convertTDayToPlan(const DBTrainingDayModel *const tDayModel, DBMesoSplitModel *const splitModel);
+	void saveTrainingDay(DBTrainingDayModel *const tDayModel);
 	void removeTrainingDay(const uint meso_idx);
 	void deleteTrainingDayTable(const bool bRemoveFile);
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------STATISTICS-----------------------------------------------------------
-	void getExercisesForSplitWithinMeso(const uint meso_idx, const QChar& splitLetter);
-	void completedDaysForSplitWithinTimePeriod(const QChar& splitLetter, const QDate& startDate, const QDate& endDate);
-	void workoutsInfoForTimePeriod(const QStringList& exercises, const QList<QDate>& workoutDates);
+	void getExercisesForSplitWithinMeso(const uint meso_idx, const QChar &splitLetter);
+	void completedDaysForSplitWithinTimePeriod(const QChar &splitLetter, const QDate &startDate, const QDate &endDate);
+	void workoutsInfoForTimePeriod(const QStringList &exercises, const QList<QDate> &workoutDates);
 	//-----------------------------------------------------------STATISTICS-----------------------------------------------------------
 
 signals:
@@ -117,12 +117,12 @@ private:
 	QString m_DBFilePath;
 
 	struct workerLocks {
-		inline TPDatabaseTable* nextObj() const { return dbObjs.at(++currentIndex); }
-		inline TPDatabaseTable* at(const uint index) const { return dbObjs.at(index); }
+		inline TPDatabaseTable *nextObj() const { return dbObjs.at(++currentIndex); }
+		inline TPDatabaseTable *at(const uint index) const { return dbObjs.at(index); }
 		inline bool hasNext() const { return (currentIndex + 1) < dbObjs.count(); }
 		inline bool canStartThread() const { return (dbObjs.count() == 1 || dbObjs.at(currentIndex)->resolved()); }
 		inline uint count() const { return dbObjs.count(); }
-		inline void appendObj(TPDatabaseTable* dbobj) { dbObjs.append(dbobj); }
+		inline void appendObj(TPDatabaseTable *dbobj) { dbObjs.append(dbobj); }
 		inline void removeAt(const uint index) { if (index < dbObjs.count()) { dbObjs.removeAt(index); if (currentIndex > 0) currentIndex--; } }
 		bool hasID(const uint id) const {
 			for (uint i{0}; i < dbObjs.count(); ++i)

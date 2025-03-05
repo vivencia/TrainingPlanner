@@ -47,18 +47,17 @@ public:
 
 	void sendFile(const QString &username, const QString &passwd, QFile *file,
 					const QString &targetUser = QString{}, const bool b_internal_signal_only = false);
-	void getFile(const QString &username, const QString &passwd, const QString &file, const QString &targetUser = QString{});
 
 	/**
-	 * @brief getBinFile
+	 * @brief getFile
 	 * @param username
 	 * @param passwd
 	 * @param filename Must contain an extension when c_time is not null. And, conversely, must not contain an extension when c_time is valid
 	 * @param targetUser
 	 * @param c_time
 	 */
-	void getBinFile(const QString &username, const QString &passwd, const QString &filename,
-					const QString &targetUser, const QDateTime &c_time);
+	void getFile(const QString &username, const QString &passwd, const QString &filename,
+					const QString &targetUser, const QString &localFilePath);
 	void getCoachesList(const QString &username, const QString &passwd);
 
 signals:

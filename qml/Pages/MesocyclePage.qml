@@ -577,7 +577,7 @@ TPPage {
 
 			function finishCreation() {
 				calendarChangeDlg = component.createObject(mainwindow, { parentPage: mesoPropertiesPage, title:qsTr("Adjust meso calendar?"),
-					button1Text: qsTr("Yes"), button2Text: qsTr("No"), customItemSource:"TPAdjustMesoCalendarFrame.qml" });
+					customItemSource:"TPAdjustMesoCalendarFrame.qml" });
 				calendarChangeDlg.button1Clicked.connect(changeCalendar);
 				calendarChangeDlg.button2Clicked.connect(function() { alreadyCalled = false; }); //A "No", warrants a possible new confirmation
 			}

@@ -1,15 +1,16 @@
 #include "tpdatabasetable.h"
-#include "tpglobals.h"
 
 #include <QFile>
+
+using namespace Qt::Literals::StringLiterals;
 
 void TPDatabaseTable::removeEntry(const bool bUseMesoId)
 {
 	if (openDatabase())
 	{
-		bool ok(false);
+		bool ok{false};
 		QSqlQuery query{getQuery()};
-		const QString& strQuery("DELETE FROM "_L1 + m_tableName + (bUseMesoId ? " WHERE meso_id="_L1 : " WHERE id="_L1) + m_execArgs.at(0).toString());
+		const QString &strQuery("DELETE FROM "_L1 + m_tableName + (bUseMesoId ? " WHERE meso_id="_L1 : " WHERE id="_L1) + m_execArgs.at(0).toString());
 		ok = query.exec(strQuery);
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
@@ -22,8 +23,8 @@ void TPDatabaseTable::clearTable()
 	if (openDatabase())
 	{
 		QSqlQuery query{getQuery()};
-		const QString& strQuery{std::move("DELETE FROM "_L1 + m_tableName)};
-		const bool ok = query.exec(strQuery);
+		const QString &strQuery{std::move("DELETE FROM "_L1 + m_tableName)};
+		const bool ok{query.exec(strQuery)};
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	if (doneFunc)
@@ -32,7 +33,7 @@ void TPDatabaseTable::clearTable()
 
 void TPDatabaseTable::removeDBFile()
 {
-	const bool ok = QFile::remove(mSqlLiteDB.databaseName());
+	const bool ok{QFile::remove(mSqlLiteDB.databaseName())};
 	if (ok)
 		createTable();
 	setQueryResult(ok, "", SOURCE_LOCATION);
