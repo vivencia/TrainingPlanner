@@ -1,6 +1,8 @@
 #include "dbusertable.h"
+
 #include "dbusermodel.h"
 #include "tpglobals.h"
+#include "tputils.h"
 
 #include <QFile>
 #include <QSqlQuery>
@@ -14,7 +16,7 @@ DBUserTable::DBUserTable(const QString &dbFilePath, DBUserModel *model)
 	m_tableName = std::move("users_table"_L1);
 	m_tableID = USERS_TABLE_ID;
 	setObjectName(DBUserObjectName);
-	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
+	m_UniqueID = appUtils()->generateUniqueId();
 	const QString &cnx_name("db_exercises_connection"_L1 + QString::number(m_UniqueID));
 	mSqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name));
 	const QString &dbname(dbFilePath + DBUserFileName);

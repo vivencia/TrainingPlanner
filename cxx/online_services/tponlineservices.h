@@ -23,29 +23,29 @@ public:
 	inline ~TPOnlineServices() { delete m_networkManager; }
 
 	void checkServer(int network_status);
-	void checkOnlineUser(const QString &query, const QString &passwd);
-	void getOnlineUserData(const QString &user_id);
-	void checkUser(const QString &username, const QString &passwd);
-	void registerUser(const QString &username, const QString &passwd);
-	void updateOnlineUserInfo(const QString &username, const QString &passwd, QFile *file);
-	void removeUser(const QString &username);
-	void alterUser(const QString &old_username, const QString &new_username, const QString &new_passwd);
-	void addOrRemoveCoach(const QString &username, const QString &passwd, const bool bAdd);
-	void sendRequestToCoach(const QString &username, const QString &passwd, const QString& coach_net_name);
-	void checkClientsRequests(const QString &username, const QString &passwd);
-	void removeClientRequest(const QString &username, const QString &passwd, const QString &client);
-	void acceptClientRequest(const QString &username, const QString &passwd, const QString &client);
-	void rejectClientRequest(const QString &username, const QString &passwd, const QString &client);
-	void checkCoachesAnswers(const QString &username, const QString &passwd);
-	void removeCoachAnwers(const QString &username, const QString &passwd, const QString &coach);
-	void acceptCoachAnswer(const QString &username, const QString &passwd, const QString &coach);
-	void rejectCoachAnswer(const QString &username, const QString &passwd, const QString &coach);
-	void checkCurrentClients(const QString &username, const QString &passwd);
-	void removeClientFromCoach(const QString &username, const QString &passwd, const QString &client);
-	void checkCurrentCoaches(const QString &username, const QString &passwd);
-	void removeCoachFromClient(const QString &username, const QString &passwd, const QString &coach);
+	void checkOnlineUser(const int requestid, const QString &query, const QString &passwd);
+	void getOnlineUserData(const int requestid, const QString &user_id);
+	void checkUser(const int requestid, const QString &username, const QString &passwd);
+	void registerUser(const int requestid, const QString &username, const QString &passwd);
+	void updateOnlineUserInfo(const int requestid, const QString &username, const QString &passwd, QFile *file);
+	void removeUser(const int requestid, const QString &username);
+	void alterUser(const int requestid, const QString &old_username, const QString &new_username, const QString &new_passwd);
+	void addOrRemoveCoach(const int requestid, const QString &username, const QString &passwd, const bool bAdd);
+	void sendRequestToCoach(const int requestid, const QString &username, const QString &passwd, const QString& coach_net_name);
+	void checkClientsRequests(const int requestid, const QString &username, const QString &passwd);
+	void removeClientRequest(const int requestid, const QString &username, const QString &passwd, const QString &client);
+	void acceptClientRequest(const int requestid, const QString &username, const QString &passwd, const QString &client);
+	void rejectClientRequest(const int requestid, const QString &username, const QString &passwd, const QString &client);
+	void checkCoachesAnswers(const int requestid, const QString &username, const QString &passwd);
+	void removeCoachAnwers(const int requestid, const QString &username, const QString &passwd, const QString &coach);
+	void acceptCoachAnswer(const int requestid, const QString &username, const QString &passwd, const QString &coach);
+	void rejectCoachAnswer(const int requestid, const QString &username, const QString &passwd, const QString &coach);
+	void checkCurrentClients(const int requestid, const QString &username, const QString &passwd);
+	void removeClientFromCoach(const int requestid, const QString &username, const QString &passwd, const QString &client);
+	void checkCurrentCoaches(const int requestid, const QString &username, const QString &passwd);
+	void removeCoachFromClient(const int requestid, const QString &username, const QString &passwd, const QString &coach);
 
-	void sendFile(const QString &username, const QString &passwd, QFile *file,
+	void sendFile(const int requestid, const QString &username, const QString &passwd, QFile *file,
 					const QString &targetUser = QString{}, const bool b_internal_signal_only = false);
 
 	/**
@@ -56,20 +56,20 @@ public:
 	 * @param targetUser
 	 * @param c_time
 	 */
-	void getFile(const QString &username, const QString &passwd, const QString &filename,
+	void getFile(const int requestid, const QString &username, const QString &passwd, const QString &filename,
 					const QString &targetUser, const QString &localFilePath);
-	void getCoachesList(const QString &username, const QString &passwd);
+	void getCoachesList(const int requestid, const QString &username, const QString &passwd);
 
 signals:
-	void networkRequestProcessed(const int ret_code, const QString &ret_string);
-	void _networkRequestProcessed(const int ret_code, const QString &ret_string);
-	void fileReceived(const int ret_code, const QString& filename, const QByteArray &contents);
+	void networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string);
+	void _networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string);
+	void fileReceived(const int request_id, const int ret_code, const QString& filename, const QByteArray &contents);
 	void serverOnline(const bool online, int network_status);
 
 private:
-	void makeNetworkRequest(const QUrl &url, const bool b_internal_signal_only = false);
-	void handleServerRequestReply(QNetworkReply *reply, const bool b_internal_signal_only = false);
-	void uploadFile(const QUrl &url, QFile *file, const bool b_internal_signal_only = false);
+	void makeNetworkRequest(const int requestid, const QUrl &url, const bool b_internal_signal_only = false);
+	void handleServerRequestReply(const int requestid, QNetworkReply *reply, const bool b_internal_signal_only = false);
+	void uploadFile(const int requestid, const QUrl &url, QFile *file, const bool b_internal_signal_only = false);
 
 	QNetworkAccessManager *m_networkManager;
 

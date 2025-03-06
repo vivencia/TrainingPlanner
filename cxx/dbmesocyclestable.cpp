@@ -1,21 +1,23 @@
 #include "dbmesocyclestable.h"
+
 #include "dbmesocyclesmodel.h"
 #include "tpglobals.h"
+#include "tputils.h"
 
 #include <QFile>
 #include <QSqlQuery>
 #include <QTime>
 
-DBMesocyclesTable::DBMesocyclesTable(const QString& dbFilePath, DBMesocyclesModel* model)
+DBMesocyclesTable::DBMesocyclesTable(const QString &dbFilePath, DBMesocyclesModel *model)
 	: TPDatabaseTable{}, m_model{model}
 {
 	m_tableName = std::move("mesocycles_table"_L1);
 	m_tableID = MESOCYCLES_TABLE_ID;
 	setObjectName(DBMesocyclesObjectName);
-	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
-	const QString& cnx_name{"db_meso_connection"_L1 + QString::number(m_UniqueID)};
+	m_UniqueID = appUtils()->generateUniqueId();
+	const QString &cnx_name{"db_meso_connection"_L1 + QString::number(m_UniqueID)};
 	mSqlLiteDB = QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name);
-	const QString& dbname{dbFilePath + DBMesocyclesFileName};
+	const QString &dbname{dbFilePath + DBMesocyclesFileName};
 	mSqlLiteDB.setDatabaseName(dbname);
 }
 
@@ -24,7 +26,7 @@ void DBMesocyclesTable::createTable()
 	if (openDatabase())
 	{
 		QSqlQuery query{getQuery()};
-		const QString& strQuery{"CREATE TABLE IF NOT EXISTS mesocycles_table ("
+		const QString &strQuery{"CREATE TABLE IF NOT EXISTS mesocycles_table ("
 										"id INTEGER PRIMARY KEY AUTOINCREMENT,"
 										"meso_name TEXT,"
 										"meso_start_date INTEGER,"
@@ -124,7 +126,7 @@ void DBMesocyclesTable::getAllMesocycles()
 	{
 		bool ok{false};
 		QSqlQuery query{getQuery()};
-		const QString& strQuery{"SELECT * FROM mesocycles_table"_L1};
+		const QString &strQuery{"SELECT * FROM mesocycles_table"_L1};
 
 		if (query.exec(strQuery))
 		{

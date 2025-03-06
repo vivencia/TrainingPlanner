@@ -6,16 +6,16 @@
 #include <QFile>
 #include <QSqlQuery>
 
-DBTrainingDayTable::DBTrainingDayTable(const QString& dbFilePath, DBTrainingDayModel* model)
+DBTrainingDayTable::DBTrainingDayTable(const QString &dbFilePath, DBTrainingDayModel *model)
 	: TPDatabaseTable{nullptr}, m_model(model)
 {
 	m_tableName = std::move("training_day_table"_L1);
 	m_tableID = TRAININGDAY_TABLE_ID;
 	setObjectName(DBTrainingDayObjectName);
-	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
-	const QString& cnx_name("db_trainingday_connection"_L1 + QString::number(m_UniqueID));
+	m_UniqueID = appUtils()->generateUniqueId();
+	const QString &cnx_name("db_trainingday_connection"_L1 + QString::number(m_UniqueID));
 	mSqlLiteDB = QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name);
-	const QString& dbname(dbFilePath + DBTrainingDayFileName);
+	const QString &dbname(dbFilePath + DBTrainingDayFileName);
 	mSqlLiteDB.setDatabaseName( dbname );
 }
 
@@ -24,7 +24,7 @@ void DBTrainingDayTable::createTable()
 	if (openDatabase())
 	{
 		QSqlQuery query{getQuery()};
-		const QString& strQuery{"CREATE TABLE IF NOT EXISTS training_day_table ("
+		const QString &strQuery{"CREATE TABLE IF NOT EXISTS training_day_table ("
 										"id INTEGER PRIMARY KEY AUTOINCREMENT,"
 										"meso_id INTEGER,"
 										"date INTEGER,"
@@ -107,11 +107,11 @@ void DBTrainingDayTable::updateTable()
 				{
 					if (mSqlLiteDB.transaction())
 					{
-						const QString& queryStart( QStringLiteral("INSERT INTO training_day_table "
+						const QString &queryStart( QStringLiteral("INSERT INTO training_day_table "
 									"(meso_id,date,day_number,split_letter,time_in,time_out,location,notes,"
 									"exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted)"
 									" VALUES ") );
-						const QString& queryValuesTemplate("(%1, %2, \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\', \'%11\', \'%12\', \'%13\', \'%14\', \'%15\', \'%16\'),");
+						const QString &queryValuesTemplate("(%1, %2, \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\', \'%11\', \'%12\', \'%13\', \'%14\', \'%15\', \'%16\'),");
 						QString queryValues;
 
 						for (uint i(0), n(0); i < oldTableInfo.count(); ++i, ++n)
@@ -158,13 +158,13 @@ void DBTrainingDayTable::getTrainingDay()
 	if (openDatabase(true))
 	{
 		QSqlQuery query{getQuery()};
-		const QString& strQuery{"SELECT id,meso_id,date,day_number,split_letter,time_in,time_out,location,notes "
+		const QString &strQuery{"SELECT id,meso_id,date,day_number,split_letter,time_in,time_out,location,notes "
 										"FROM training_day_table WHERE date="_L1 + m_execArgs.at(0).toString()};
 		if (query.exec(strQuery))
 		{
 			if (query.first ())
 			{
-				QStringList& split_info(m_model->getRow(0));
+				QStringList &split_info(m_model->getRow(0));
 				for (uint i(TDAY_COL_ID); i < TDAY_TOTAL_COLS; ++i)
 					split_info[i] = std::move(query.value(static_cast<int>(i)).toString());
 				m_model->setReady(true);
@@ -185,7 +185,7 @@ void DBTrainingDayTable::getTrainingDayExercises(const bool bClearSomeFieldsForR
 	{
 		bool ok(false);
 		QSqlQuery query{getQuery()};
-		const QString& strQuery{"SELECT exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted "
+		const QString &strQuery{"SELECT exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted "
 						"FROM training_day_table WHERE date=%1 AND meso_id=%2"_L1.arg(m_execArgs.at(0).toString(), m_execArgs.at(1).toString())};
 
 		if (query.exec(strQuery))
@@ -207,7 +207,7 @@ void DBTrainingDayTable::getTrainingDayExercises(const bool bClearSomeFieldsForR
 
 inline QString DBTrainingDayTable::formatDate(const uint julianDay) const
 {
-	const QDate& date{QDate::fromJulianDay(julianDay)};
+	const QDate &date{QDate::fromJulianDay(julianDay)};
 	return appUtils()->appLocale()->toString(date, "ddd d/M/yyyy"_L1);
 }
 
@@ -217,7 +217,7 @@ void DBTrainingDayTable::getPreviousTrainingDaysInfo()
 	{
 		bool ok(false);
 		QSqlQuery query{getQuery()};
-		const QString& mainDate{m_execArgs.at(2).toString()};
+		const QString &mainDate{m_execArgs.at(2).toString()};
 		m_model->appendRow();
 		m_model->setDateStr(mainDate); //QmlItemManager needs this to know if the received model is the one it's looking for
 
@@ -249,7 +249,7 @@ void DBTrainingDayTable::getPreviousTrainingDaysInfo()
 				if (query.first())
 				{
 					do {
-						const QString& lastLocation{query.value(0).toString()};
+						const QString &lastLocation{query.value(0).toString()};
 						if (!lastLocation.isEmpty())
 						{
 							m_model->setLocation(lastLocation, false);
@@ -269,10 +269,10 @@ void DBTrainingDayTable::saveTrainingDay()
 {
 	if (openDatabase())
 	{
-		bool ok(false);
-		const QStringList& tDayInfoList{m_model->getSaveInfo()};
+		bool ok{false};
+		const QStringList &tDayInfoList{m_model->getSaveInfo()};
 		QSqlQuery query{getQuery()};
-		bool bUpdate(false);
+		bool bUpdate{false};
 		QString strQuery;
 
 		if (query.exec("SELECT id FROM training_day_table WHERE date=%1"_L1.arg(m_model->dateStr())))
@@ -324,9 +324,9 @@ void DBTrainingDayTable::removeTrainingDay()
 	if (openDatabase())
 	{
 		QSqlQuery query{getQuery()};
-		const QString& strQuery{"DELETE FROM training_day_table WHERE date=%1 AND meso_id=%2"_L1.arg(
+		const QString &strQuery{"DELETE FROM training_day_table WHERE date=%1 AND meso_id=%2"_L1.arg(
 							m_model->dateStr(), m_model->mesoIdStr())};
-		const bool ok = query.exec(strQuery);
+		const bool ok{query.exec(strQuery)};
 		if (ok)
 		{
 			m_model->clearFast();
@@ -342,8 +342,8 @@ void DBTrainingDayTable::workoutsInfoForTimePeriod()
 	m_workoutsInfo.clear();
 	if (openDatabase(true))
 	{
-		const QStringList& exercises{m_execArgs.at(0).toStringList()};
-		const QList<QDate>& dates{m_execArgs.at(1).value<QList<QDate>>()};
+		const QStringList &exercises{m_execArgs.at(0).toStringList()};
+		const QList<QDate> &dates{m_execArgs.at(1).value<QList<QDate>>()};
 
 		QString datesList{'('};
 		for (uint i(0); i < dates.count(); ++i)
@@ -352,7 +352,7 @@ void DBTrainingDayTable::workoutsInfoForTimePeriod()
 		datesList.append(')');
 
 		QSqlQuery query{getQuery()};
-		const QString& strQuery{"SELECT exercises,setsreps,setsweights FROM training_day_table WHERE date IN(%1)"_L1.arg(datesList)};
+		const QString &strQuery{"SELECT exercises,setsreps,setsweights FROM training_day_table WHERE date IN(%1)"_L1.arg(datesList)};
 
 		bool ok(false);
 		if (query.exec(strQuery))
@@ -361,7 +361,7 @@ void DBTrainingDayTable::workoutsInfoForTimePeriod()
 			{
 				do
 				{
-					const QString& exercise{query.value(0).toString()};
+					const QString &exercise{query.value(0).toString()};
 					if (exercises.contains(exercise))
 					{
 						QList<QStringList> workout;

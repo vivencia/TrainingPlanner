@@ -210,7 +210,7 @@ TPPage {
 
 							anchors {
 								verticalCenter: parent.verticalCenter
-								left: txtClientName.right
+								left: txtCoachName.right
 								right: parent.right
 							}
 
@@ -237,7 +237,7 @@ TPPage {
 
 				anchors {
 					top: pendingCoachesList.bottom
-					topMargin: 5
+					topMargin: 10
 					left: parent.left
 					right: parent.right
 				}

@@ -91,7 +91,7 @@ TPPage {
 
 				ScrollBar.vertical: ScrollBar {
 					policy: ScrollBar.AsNeeded
-					active: true; visible: pendingClientsList.contentHeight > pendingClientsList.height
+					active: true; visible: clientsList.contentHeight > clientsList.height
 				}
 
 				anchors {
@@ -140,7 +140,7 @@ TPPage {
 
 				anchors {
 					top: clientsList.bottom
-					topMargin: 5
+					topMargin: 10
 					left: parent.left
 					right: parent.right
 				}
@@ -297,7 +297,7 @@ TPPage {
 				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					msgRemoveUser = component.createObject(coachesPage, { parentPage: coachesPage, imageSource: "remove", title: Title, message: Message });
+					msgRemoveUser = component.createObject(clientsPage, { parentPage: clientsPage, imageSource: "remove", title: Title, message: Message });
 					msgRemoveUser.button1Clicked.connect(function () { removeOrDecline(decline); });
 					msgRemoveUser.show(-1);
 				}

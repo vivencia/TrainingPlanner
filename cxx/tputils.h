@@ -31,6 +31,8 @@ public:
 	explicit inline TPUtils(QObject *parent = nullptr) : QObject{parent}, m_appLocale{nullptr} { app_utils = this; }
 	inline ~TPUtils() { delete m_appLocale; }
 
+	inline int generateUniqueId() const { return QTime::currentTime().msecsSinceStartOfDay(); }
+
 	Q_INVOKABLE QString getCorrectPath(const QUrl& url) const;
 	Q_INVOKABLE int getFileType(const QString &filename) const;
 	Q_INVOKABLE QString getFilePath(const QString &filename) const;

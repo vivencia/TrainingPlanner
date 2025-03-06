@@ -290,6 +290,8 @@ ApplicationWindow {
 	TPBalloonTip {
 		id: activityFinishedTip
 		parentPage: homePage
+		button1Text: ""
+		button2Text: ""
 	}
 
 	function displayResultMessage(title: string, message: string): void {

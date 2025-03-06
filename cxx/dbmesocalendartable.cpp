@@ -1,6 +1,8 @@
 #include "dbmesocalendartable.h"
+
 #include "dbmesocalendarmodel.h"
 #include "tpglobals.h"
+#include "tputils.h"
 
 #include <QFile>
 #include <QSqlError>
@@ -13,10 +15,10 @@ DBMesoCalendarTable::DBMesoCalendarTable(const QString &dbFilePath, DBMesoCalend
 	m_tableName = std::move("mesocycles_calendar_table"_L1);
 	m_tableID = MESOCALENDAR_TABLE_ID;
 	setObjectName(DBMesoCalendarObjectName);
-	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
-	const QString &cnx_name("db_mesocal_connection-"_L1 + QString::number(m_UniqueID));
+	m_UniqueID = appUtils()->generateUniqueId();
+	const QString &cnx_name{"db_mesocal_connection-"_L1 + QString::number(m_UniqueID)};
 	mSqlLiteDB = QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name);
-	const QString &dbname(dbFilePath + DBMesoCalendarFileName);
+	const QString &dbname{dbFilePath + DBMesoCalendarFileName};
 	mSqlLiteDB.setDatabaseName(dbname);
 }
 

@@ -288,7 +288,6 @@ public:
 	void addClient(const uint row);
 	void delClient(const uint client_idx);
 	inline void delClient(const QString &client) { delClient(m_clientsNames.indexOf(client)); }
-	void checkClientsReponses();
 
 	Q_INVOKABLE int getTemporaryUserInfo(OnlineUserInfo* tempUser, const int userInfoRow);
 	inline bool isRowTemp(const uint row) const { return row < count() ? m_modeldata.at(row).at(USER_COL_CLIENTS) == "temp"_L1 : false; }
@@ -367,7 +366,7 @@ private:
 	std::optional<bool> mb_userRegistered, mb_coachRegistered;
 	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses;
 	QStringList m_coachesNames, m_clientsNames;
-	bool mb_mainUserConfigured, mb_keepUnavailableUser;
+	bool mb_mainUserConfigured, mb_onlineCheckInInProgress, mb_keepUnavailableUser;
 	QTimer *m_mainTimer;
 	QMutex *m_mutex;
     QWaitCondition *m_condition;
