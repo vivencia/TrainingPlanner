@@ -8,6 +8,28 @@
 
 TPUtils* TPUtils::app_utils(nullptr);
 
+int TPUtils::generateUniqueId(const QLatin1StringView &seed) const
+{
+	if (seed.isEmpty())
+		return QTime::currentTime().msecsSinceStartOfDay();
+	else
+	{
+		int n{0};
+		int shift{2};
+		auto itr{seed.constBegin()};
+		const auto itr_end{seed.constEnd()};
+		do {
+			n += static_cast<int>(*itr);
+			if (--shift == 0)
+			{
+				n <<= 8;
+				shift = 3;
+			}
+		} while (++itr != itr_end);
+		return n;
+	}
+}
+
 QString TPUtils::getCorrectPath(const QUrl &url) const
 {
 	QString path{url.toString(QUrl::PrettyDecoded|QUrl::PreferLocalFile|QUrl::RemoveScheme)};

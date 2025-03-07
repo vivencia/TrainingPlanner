@@ -310,7 +310,7 @@ public:
 	Q_INVOKABLE inline bool mainUserRegistered() const { return mb_userRegistered && mb_userRegistered == true; }
 	Q_INVOKABLE void setCoachPublicStatus(const bool bPublic);
 	Q_INVOKABLE void uploadResume(const QString &resumeFileName);
-	Q_INVOKABLE void downloadResume(const uint coach_index);
+	Q_INVOKABLE void downloadResume(OnlineUserInfo *user_info, const uint index);
 	Q_INVOKABLE void mainUserConfigurationFinished();
 	Q_INVOKABLE inline bool isCoachRegistered() { return mb_coachRegistered ? mb_coachRegistered == true : false; }
 	Q_INVOKABLE void sendRequestToCoaches();
@@ -362,7 +362,7 @@ signals:
 
 private:
 	int m_searchRow, m_tempRow;
-	QString m_appDataPath, m_onlineUserId;
+	QString m_appDataPath, m_onlineUserId, m_password;
 	std::optional<bool> mb_userRegistered, mb_coachRegistered;
 	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses;
 	QStringList m_coachesNames, m_clientsNames;
@@ -384,13 +384,13 @@ private:
 	void removeLocalAvatarFile(const QString &user_id);
 	void startServerPolling();
 	void pollServer();
-	void pollClientsRequests(const bool get_list_only = false);
+	void pollClientsRequests();
 	void addPendingClient(const QString &user_id);
-	void pollCoachesAnswers(const bool get_list_only = false);
+	void pollCoachesAnswers();
 	void addCoachAnswer(const QString &user_id);
 	void addAvailableCoach(const QString &user_id);
-	void pollCurrentClients(const bool get_list_only = false);
-	void pollCurrentCoaches(const bool get_list_only = false);
+	void pollCurrentClients();
+	void pollCurrentCoaches();
 	int _importFromFile(const QString &filename, QList<QStringList> &targetModel);
 
 	QString m_localProfileFile, m_localAvatarFilePath, m_onlineCoachesDir, m_dirForRequestedCoaches, m_dirForClientsRequests,

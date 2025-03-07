@@ -182,7 +182,7 @@ function del_coach($coach) {
         echo "Return code: 12 Public coaches file does not exist";
 }
 
-function get_coaches() {
+function get_online_coaches() {
     global $coaches_file;
     if (file_exists($coaches_file)) {
         echo "Return code: 0 ";
@@ -572,8 +572,8 @@ if ($username) { //regular, most common usage: download/upload file/info from/to
                 exit;
             }
 
-            if (isset($_GET['getcoaches'])) {
-                get_coaches();
+            if (isset($_GET['getonlinecoaches'])) {
+                get_online_coaches();
                 exit;
             }
             if (isset($_GET['requestcoach'])) {

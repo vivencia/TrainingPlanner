@@ -6,6 +6,8 @@
 #include <QObject>
 #include <QUrl>
 
+#include <random>
+
 class TPUtils : public QObject
 {
 
@@ -31,7 +33,7 @@ public:
 	explicit inline TPUtils(QObject *parent = nullptr) : QObject{parent}, m_appLocale{nullptr} { app_utils = this; }
 	inline ~TPUtils() { delete m_appLocale; }
 
-	inline int generateUniqueId() const { return QTime::currentTime().msecsSinceStartOfDay(); }
+	int generateUniqueId(const QLatin1StringView &seed = QLatin1StringView{}) const;
 
 	Q_INVOKABLE QString getCorrectPath(const QUrl& url) const;
 	Q_INVOKABLE int getFileType(const QString &filename) const;

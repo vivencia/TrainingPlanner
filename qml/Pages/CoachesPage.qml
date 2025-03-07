@@ -214,7 +214,7 @@ TPPage {
 								right: parent.right
 							}
 
-							onClicked: userModel.downloadResume(pendingCoachesList.currentIndex);
+							onClicked: userModel.downloadResume(userModel.pendingCoachesResponses, userModel.pendingCoachesResponses.currentRow);
 						}
 					}
 

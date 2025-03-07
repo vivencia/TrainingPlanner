@@ -78,7 +78,7 @@ TPPopup {
 						text: qsTr("Résumé")
 						width: itemsLayout.width*0.3
 
-						onClicked: userModel.downloadResume(index);
+						onClicked: userModel.downloadResume(userModel.availableCoaches, index);
 					}
 				} //Row
 			} //Repeater

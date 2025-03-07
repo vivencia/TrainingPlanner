@@ -58,7 +58,7 @@ public:
 	 */
 	void getFile(const int requestid, const QString &username, const QString &passwd, const QString &filename,
 					const QString &targetUser, const QString &localFilePath);
-	void getCoachesList(const int requestid, const QString &username, const QString &passwd);
+	void getOnlineCoachesList(const int requestid, const QString &username, const QString &passwd);
 
 signals:
 	void networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string);

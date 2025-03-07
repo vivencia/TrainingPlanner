@@ -42,7 +42,6 @@ inline QString makeCommandURL(const QString& option, const QString& value, const
 		ret += '&' + option4;
 	if (!value4.isEmpty())
 		ret += '=' + value4;*/
-	LOG_MESSAGE(ret)
 	return ret;
 }
 
@@ -266,18 +265,19 @@ void TPOnlineServices::getFile(const int requestid, const QString &username, con
 	}
 }
 
-void TPOnlineServices::getCoachesList(const int requestid, const QString &username, const QString &passwd)
+void TPOnlineServices::getOnlineCoachesList(const int requestid, const QString &username, const QString &passwd)
 {
-	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "getcoaches"_L1)};
+	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "getonlinecoaches"_L1)};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::makeNetworkRequest(const int requestid, const QUrl &url, const bool b_internal_signal_only)
 {
+	LOG_MESSAGE(url.toDisplayString() + " * "_L1 + QString::number(requestid))
 	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{url})};
 	connect(reply, &QNetworkReply::finished, this, [this,requestid,reply,b_internal_signal_only]() {
 		handleServerRequestReply(requestid, reply, b_internal_signal_only);
-	});
+	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 }
 
 void TPOnlineServices::handleServerRequestReply(const int requestid, QNetworkReply *reply, const bool b_internal_signal_only)
@@ -288,7 +288,7 @@ void TPOnlineServices::handleServerRequestReply(const int requestid, QNetworkRep
 	{
 		reply->deleteLater();
 
-		const QHttpHeaders& headers{reply->headers()};
+		const QHttpHeaders &headers{reply->headers()};
 		if (headers.contains("Content-Type"_L1))
 		{
 			const QString &fileType{headers.value("Content-Type"_L1).toByteArray()};
@@ -311,7 +311,7 @@ void TPOnlineServices::handleServerRequestReply(const int requestid, QNetworkRep
 		replyString = std::move(QString::fromUtf8(reply->readAll()));
 		if (reply->error())
 			replyString += " ***** "_L1 + std::move(reply->errorString());
-		LOG_MESSAGE(replyString);
+		LOG_MESSAGE(replyString + " * "_L1 + QString::number(requestid))
 		//Slice off "Return code: "
 		const qsizetype ret_code_idx{replyString.indexOf("Return code: "_L1) + 13};
 		if (ret_code_idx >= 13)
