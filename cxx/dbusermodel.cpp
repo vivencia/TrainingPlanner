@@ -30,7 +30,7 @@ static const QLatin1StringView& userLocalDataFileName{"user.data"_L1};
 static const QString &tpNetworkTitle{qApp->tr("TP Network")};
 static const QString &profileFile_template{"%1%2.txt"};
 
-#define POLLING_INTERVAL 1000*60
+#define POLLING_INTERVAL 1000*60*20
 
 DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 	: TPListModel{parent}, m_searchRow{-1}, m_tempRow{-1}, m_availableCoaches{nullptr}, m_pendingClientRequests{nullptr},
@@ -744,7 +744,7 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 						}
 						if (!m_availableCoaches)
 							m_availableCoaches = new OnlineUserInfo{this};
-						if (m_availableCoaches->sanitize(coaches, USER_COL_NAME))
+						if (m_availableCoaches->sanitize(coaches, USER_COL_ID))
 							emit availableCoachesChanged();
 
 						//First pass
@@ -1141,7 +1141,11 @@ void DBUserModel::downloadAvatarFromServer(const uint row)
 				}
 			}
 		});
-		appOnlineServices()->getFile(requestid, key, value, _userId(row) + "_avatar"_L1, _userId(row), getAvatarFile(_userId(row)).filePath());
+		const QFileInfo &avatar_fi{getAvatarFile(_userId(row))};
+		if (avatar_fi.exists())
+			appOnlineServices()->getFile(requestid, key, value, avatar_fi.fileName(), _userId(row), avatar_fi.filePath());
+		else
+			appOnlineServices()->getFile(requestid, key, value, _userId(0) + "_avatar.png", _userId(row));
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appKeyChain()->readKey(_userId(row));
 }
@@ -1246,7 +1250,7 @@ void DBUserModel::pollClientsRequests()
 				QStringList requests_list{std::move(ret_string.split(' ', Qt::SkipEmptyParts))};
 				if (!m_pendingClientRequests)
 					m_pendingClientRequests = new OnlineUserInfo{this};
-				if (m_pendingClientRequests->sanitize(requests_list, USER_COL_NAME))
+				if (m_pendingClientRequests->sanitize(requests_list, USER_COL_ID))
 					emit pendingClientsRequestsChanged();
 
 				//First pass
@@ -1288,7 +1292,7 @@ void DBUserModel::addPendingClient(const QString &user_id)
 		if (m_pendingClientRequests->dataFromFileSource(client_profile))
 		{
 			const qsizetype last_idx{m_pendingClientRequests->count()-1};
-			m_pendingClientRequests->setData(last_idx, USER_COL_ID,user_id);
+			m_pendingClientRequests->setData(last_idx, USER_COL_ID, user_id);
 			//Indicate that the online user is a client. acceptUser will look for this info in order to setup the new user and the main user's field:
 			//add the newly accpted user as a coach(USER_COL_COACHES) or as a client(USER_COL_CLIENTS)
 			m_pendingClientRequests->setData(last_idx, USER_COL_COACHES, STR_ZERO);
@@ -1311,7 +1315,7 @@ void DBUserModel::pollCoachesAnswers()
 				QStringList answers_list{std::move(ret_string.split(' ', Qt::SkipEmptyParts))};
 				if (!m_pendingCoachesResponses)
 					m_pendingCoachesResponses = new OnlineUserInfo{this};
-				if (m_pendingCoachesResponses->sanitize(answers_list, USER_COL_NAME))
+				if (m_pendingCoachesResponses->sanitize(answers_list, USER_COL_ID))
 					emit pendingCoachesResponsesChanged();
 
 				//First pass

@@ -192,7 +192,7 @@ QVariant OnlineUserInfo::data(const QModelIndex &index, int role) const
 		switch (role)
 		{
 			case idRole: return m_modeldata.at(row).at(USER_COL_ID);
-			case nameRole: qDebug() << row << ", " << m_extraInfo.at(row).at(USER_EXTRA_NAME); return m_modeldata.at(row).at(USER_COL_NAME);
+			case nameRole: return m_modeldata.at(row).at(USER_COL_NAME);
 			case birthdayRole: return m_modeldata.at(row).at(USER_COL_BIRTHDAY);
 			case sexRole: return m_modeldata.at(row).at(USER_COL_SEX);
 			case phoneRole: return m_modeldata.at(row).at(USER_COL_PHONE);

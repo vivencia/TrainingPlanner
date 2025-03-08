@@ -57,7 +57,7 @@ public:
 	 * @param c_time
 	 */
 	void getFile(const int requestid, const QString &username, const QString &passwd, const QString &filename,
-					const QString &targetUser, const QString &localFilePath);
+					const QString &targetUser, const QString &localFilePath = QString{});
 	void getOnlineCoachesList(const int requestid, const QString &username, const QString &passwd);
 
 signals:

@@ -88,6 +88,7 @@ TPPage {
 				spacing: 0
 				clip: true
 				model: userModel.coachesNames
+				height: 0.8*parent.height
 
 				ScrollBar.vertical: ScrollBar {
 					policy: ScrollBar.AsNeeded

@@ -252,7 +252,7 @@ void TPOnlineServices::getFile(const int requestid, const QString &username, con
 						emit fileReceived(request_id, 2, ret_string, QByteArray{});
 				}
 			}
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		});
 		const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "checkfilectime"_L1, filename,
 							!targetUser.isEmpty() ? "fromuser"_L1 : QString{}, targetUser)};
 		makeNetworkRequest(requestid, url, true);
