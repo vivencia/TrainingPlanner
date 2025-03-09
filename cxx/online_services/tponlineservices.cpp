@@ -215,54 +215,34 @@ void TPOnlineServices::getFile(const int requestid, const QString &username, con
 {
 	if (!localFilePath.isEmpty())
 	{
-		auto conn = std::make_shared<QMetaObject::Connection>();
-		*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid,username,passwd,filename,targetUser,localFilePath]
-				(const int request_id, const int ret_code, const QString &ret_string) {
-			if (request_id == requestid)
-			{
-				disconnect(*conn);
-				QString filename_without_extension;
-				const qsizetype dot_idx{filename.lastIndexOf('.')};
-				if (dot_idx > 0)
-					filename_without_extension = std::move(filename.left(dot_idx));
-				if (ret_code == 0)
+		QFileInfo fi{localFilePath};
+		if (fi.isFile() && fi.isWritable())
+		{
+			auto conn = std::make_shared<QMetaObject::Connection>();
+			*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid,username,passwd,filename,targetUser,localFilePath]
+							(const int request_id, const int ret_code, const QString &ret_string) {
+				if (request_id == requestid)
 				{
-					QFileInfo fi{localFilePath};
-					QDateTime c_time;
-					if (fi.exists())
-						c_time = std::move(fi.birthTime());
-
-					const QDateTime &online_ctime{appUtils()->getDateTimeFromOnlineString(ret_string)};
-					if (online_ctime > c_time) //online file is newer. Download it
-						getFile(requestid, username, passwd, dot_idx > 0 ? filename_without_extension : filename, targetUser, QString{});
-					else //local file is up to date. Use it
-						emit fileReceived(request_id, 1, ret_string, QByteArray{});
-				}
-				else
-				{
-					if (dot_idx > 0)
+					disconnect(*conn);
+					if (ret_code == 0)
 					{
-						//filename is not on server. Try to download the same file with different extension because the owner might have uploaded
-						//a different file, i.e. a jpeg avatar intead of a png; an odt resume instead of a pdf. Not applicable to .txt files
-						const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "getbinfile"_L1, filename_without_extension,
-							!targetUser.isEmpty() ? "fromuser"_L1 : QString{}, targetUser)};
-						makeNetworkRequest(requestid, url, false);
+						if (localFileUpToDate(ret_string, localFilePath)) //local file is up to date. Use it
+							emit fileReceived(request_id, 1, ret_string, QByteArray{});
+						else
+							getFile(requestid, username, passwd, filename, targetUser);
 					}
-					else //Error. Nothing we can do
-						emit fileReceived(request_id, 2, ret_string, QByteArray{});
 				}
-			}
-		});
-		const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "checkfilectime"_L1, filename,
-							!targetUser.isEmpty() ? "fromuser"_L1 : QString{}, targetUser)};
-		makeNetworkRequest(requestid, url, true);
+			});
+			const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "checkfilectime"_L1, filename.lastIndexOf('.') > 0 ?
+							filename : appUtils()->getFileName(localFilePath), !targetUser.isEmpty() ? "fromuser"_L1 : QString{}, targetUser)};
+			makeNetworkRequest(requestid, url, true);
+			return;
+		}
 	}
-	else
-	{
-		const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, filename.endsWith(".txt"_L1) ? "file"_L1 : "getbinfile"_L1, filename,
-							!targetUser.isEmpty() ? "fromuser"_L1 : QString{}, targetUser)};
-		makeNetworkRequest(requestid, url);
-	}
+	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, filename.lastIndexOf('.') > 0 ?
+				(filename.endsWith(".txt"_L1) ? "file"_L1 : "getbinfile"_L1) : "getbinfile"_L1, filename,
+					!targetUser.isEmpty() ? "fromuser"_L1 : QString{}, targetUser)};
+	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::getOnlineCoachesList(const int requestid, const QString &username, const QString &passwd)
@@ -353,4 +333,14 @@ void TPOnlineServices::uploadFile(const int requestid, const QUrl &url, QFile *f
 		});
 		multiPart->setParent(reply); // Let the reply manage the multipart's lifecycle
 	}
+}
+
+bool TPOnlineServices::localFileUpToDate(const QString &onlineDate, const QString &localFile) const
+{
+	QFileInfo fi{localFile};
+	QDateTime c_time;
+	if (fi.exists())
+		c_time = std::move(fi.birthTime());
+	const QDateTime &online_ctime{appUtils()->getDateTimeFromOnlineString(onlineDate)};
+	return c_time >= online_ctime;
 }

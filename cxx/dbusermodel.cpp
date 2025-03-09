@@ -275,9 +275,16 @@ QString DBUserModel::avatar(const int row) const
 {
 	if (row >= 0 && row < m_modeldata.count() && !_userId(row).isEmpty())
 	{
-		QFileInfo fi{getAvatarFile(_userId(row))};
-		if (fi.exists())
-			return fi.filePath();
+		if (row != m_tempRow)
+		{
+			QFileInfo fi{getAvatarFile(_userId(row))};
+			if (fi.exists())
+				return fi.filePath();
+		}
+		else
+		{
+
+		}
 	}
 	return QString {};
 }
@@ -473,7 +480,7 @@ void DBUserModel::checkUserOnline(const QString &email, const QString &password)
 				}
 				emit userOnlineCheckResult(ret_code == 0);
 			}
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		});
 		appOnlineServices()->checkOnlineUser(requestid, "email="_L1 + email, password);
 	}
 }
@@ -616,11 +623,9 @@ void DBUserModel::downloadResume(OnlineUserInfo *user_info, const uint index)
 	if (index < user_info->count())
 	{
 		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,user_info,index] (const QString &key, const QString &value) {
-			QString localResumeFileName{std::move(getResumeFile(m_appDataPath))};
-			const QString &localResumeFilePath{std::move(m_appDataPath + localResumeFileName)};
 			const int requestid{appUtils()->generateUniqueId("downloadResume"_L1)};
 			auto conn = std::make_shared<QMetaObject::Connection>();
-			*conn = connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [this,conn,requestid,localResumeFilePath]
+			*conn = connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [this,conn,requestid,user_info,index]
 							(const int request_id, const int ret_code, const QString &filename, const QByteArray &contents) {
 				if (request_id == requestid)
 				{
@@ -629,7 +634,7 @@ void DBUserModel::downloadResume(OnlineUserInfo *user_info, const uint index)
 					{
 						case 0: //file downloaded
 						{
-							const QString &resumeFileName{m_appDataPath + filename};
+							user_info->setResume(index, filename);
 							QFile *resume{new QFile{resumeFileName, this}};
 							static_cast<void>(resume->remove());
 							if (resume->open(QIODeviceBase::WriteOnly|QIODeviceBase::NewOnly))
@@ -649,8 +654,8 @@ void DBUserModel::downloadResume(OnlineUserInfo *user_info, const uint index)
 					}
 				}
 			});
-			localResumeFileName = std::move("resume"_L1);
-			appOnlineServices()->getFile(requestid, key, value, localResumeFileName, user_info->data(index, USER_COL_ID), localResumeFilePath);
+			appOnlineServices()->getFile(requestid, key, value, appUtils()->getFileName(user_info->associatedFile(index, ASSOCIATED_FILES_RESUME), true),
+					user_info->data(index, USER_COL_ID), user_info->associatedFile(index, ASSOCIATED_FILES_RESUME));
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		appKeyChain()->readKey(_userId(0));
 	}
@@ -917,15 +922,23 @@ void DBUserModel::registerUserOnline()
 							connect(appMainWindow(), SIGNAL(passwordDialogClosed(int,QString)), this, SLOT(getPasswordFromUserInput(int,QString)));
 						break;
 						case 6: //User does not exist in the online database
-							connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int request_id, const int ret_code, const QString &ret_string) {
-								if (ret_code == 0)
+						{
+							auto conn2 = std::make_shared<QMetaObject::Connection>();
+							*conn2 = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn2,requestid]
+														(const int request_id, const int ret_code, const QString &ret_string) {
+								if (request_id == requestid)
 								{
-									mb_userRegistered = true;
-									emit mainUserOnlineCheckInChanged();
+									disconnect(*conn2);
+									if (ret_code == 0)
+									{
+										mb_userRegistered = true;
+										emit mainUserOnlineCheckInChanged();
+									}
+									appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tpNetworkTitle + record_separator + tr("User information updated"));
 								}
-								appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tpNetworkTitle + record_separator + tr("User information updated"));
-							}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+							});
 							appOnlineServices()->registerUser(requestid, key, value);
+						}
 						break;
 						default:
 							appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, ret_string);
@@ -1022,7 +1035,7 @@ void DBUserModel::sendProfileToServer()
 						profile->close();
 						delete profile;
 					}
-				}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+				});
 				appOnlineServices()->sendFile(requestid, key, value, profile);
 			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 			appKeyChain()->readKey(_userId(0));
@@ -1069,13 +1082,10 @@ QFileInfo DBUserModel::getAvatarFile(const QString &userid) const
 {
 	const QDir localFilesDir{m_appDataPath};
 	const QFileInfoList &images{localFilesDir.entryInfoList(QDir::Files|QDir::NoDotAndDotDot|QDir::NoSymLinks)};
-	auto itr{images.constBegin()};
-	const auto itr_end{images.constEnd()};
-	while (itr != itr_end)
+	for (const auto &it: images)
 	{
-		if ((*itr).fileName().startsWith(userid))
-			return *itr;
-		++itr;
+		if (it.fileName().startsWith(userid))
+			return it;
 	}
 	return QFileInfo{};
 }
@@ -1141,11 +1151,7 @@ void DBUserModel::downloadAvatarFromServer(const uint row)
 				}
 			}
 		});
-		const QFileInfo &avatar_fi{getAvatarFile(_userId(row))};
-		if (avatar_fi.exists())
-			appOnlineServices()->getFile(requestid, key, value, avatar_fi.fileName(), _userId(row), avatar_fi.filePath());
-		else
-			appOnlineServices()->getFile(requestid, key, value, _userId(0) + "_avatar.png", _userId(row));
+		appOnlineServices()->getFile(requestid, key, value, _userId(row) + "_avatar", _userId(row), getAvatarFile(_userId(row)).filePath());
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appKeyChain()->readKey(_userId(row));
 }

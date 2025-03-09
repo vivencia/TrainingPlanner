@@ -107,7 +107,7 @@ function download_file($file, $downloadDir) {
         //only return the contents of the file. Any extra string will only get in the way
         return true;
     }
-    echo "Return code: 1 File not found: ", $filename;
+    echo "Return code: 1 File not found: ", $filename, "**download_file**";
     return false;
 }
 
@@ -124,16 +124,16 @@ function get_binfile($binfile, $targetuser) {
             }
         }
     }
-    echo "Return code: 1 File not found: ", $binfile . " in " . $src_dir;
+    echo "Return code: 1 File not found: ", $binfile . " in " . $src_dir, "**get_binfile**";
 }
 
-function check_file_ctime($binfile, $targetuser) {
+function check_file_ctime($file, $targetuser) {
     global $rootdir;
-    $filename = $rootdir . $targetuser . "/" . $binfile;
+    $filename = $rootdir . $targetuser . "/" . $file;
     if (is_file($filename))
         echo "Return code: 0 ", date('Hisymd', filectime($filename));
     else
-        echo "Return code: 1 File not found:  ", $filename;
+        echo "Return code: 1 File not found:  ", $filename, "**check_file_ctime**";
 }
 
 function scan_dir($path) {
@@ -677,11 +677,11 @@ if ($username) { //regular, most common usage: download/upload file/info from/to
 
             //?user=1739556367374&password=lrTp1$&getbinfile=resume&fromuser=1739556367374
             if (isset($_GET['checkfilectime'])) {
-                $binfile = $_GET['checkfilectime'];
-                if ($binfile) {
+                $file = $_GET['checkfilectime'];
+                if ($file) {
                     $targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] : '';
                     if ($targetuser) {
-                        check_file_ctime($binfile, $targetuser);
+                        check_file_ctime($file, $targetuser);
                         exit;
                     }
                 }

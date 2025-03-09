@@ -70,6 +70,7 @@ private:
 	void makeNetworkRequest(const int requestid, const QUrl &url, const bool b_internal_signal_only = false);
 	void handleServerRequestReply(const int requestid, QNetworkReply *reply, const bool b_internal_signal_only = false);
 	void uploadFile(const int requestid, const QUrl &url, QFile *file, const bool b_internal_signal_only = false);
+	bool localFileUpToDate(const QString &onlineDate, const QString &localFile) const;
 
 	QNetworkAccessManager *m_networkManager;
 

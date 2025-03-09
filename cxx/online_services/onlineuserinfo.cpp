@@ -3,6 +3,8 @@
 #include "../tputils.h"
 #include "../dbusermodel.h"
 
+constexpr uint totalExtraFields{6};
+
 enum RoleNames {
 	idRole = Qt::UserRole + USER_COL_ID,
 	nameRole = Qt::UserRole + USER_COL_NAME,
@@ -17,7 +19,10 @@ enum RoleNames {
 	useModeRole = Qt::UserRole + USER_COL_APP_USE_MODE,
 	displayRole = useModeRole+1,
 	selectedRole = displayRole+1,
-	sourceFileRole = selectedRole+1
+	sourceFileRole = selectedRole+1,
+	profileRole = sourceFileRole+1,
+	avatarRole = profileRole+1,
+	resumeRole = avatarRole+1
 };
 
 OnlineUserInfo::OnlineUserInfo(QObject *parent)
@@ -57,13 +62,27 @@ void OnlineUserInfo::setSourceFile(const uint row, const QString &source_file)
 	emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << sourceFileRole);
 }
 
+void OnlineUserInfo::setAvatar(const uint row, const QString &filename)
+{
+	Q_ASSERT_X(row < count(), "OnlineUserInfo::setAvatar", "row out of range");
+	m_extraInfo[row][USER_EXTRA_SOURCE+ASSOCIATED_FILES_AVATAR] = m_sourcePath+filename;
+	emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << avatarRole);
+}
+
+void OnlineUserInfo::setResume(const uint row, const QString &filename)
+{
+	Q_ASSERT_X(row < count(), "OnlineUserInfo::setResume", "row out of range");
+	m_extraInfo[row][USER_EXTRA_SOURCE+ASSOCIATED_FILES_RESUME] = m_sourcePath+filename;
+	emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << resumeRole);
+}
+
 bool OnlineUserInfo::dataFromFileSource(const QString &filename)
 {
 	beginInsertRows(QModelIndex{}, count(), count());
 	bool imported{appUserModel()->_importFromFile(filename, m_modeldata) == APPWINDOW_MSG_READ_FROM_FILE_OK};
 	if (imported)
 	{
-		m_extraInfo.append(std::move(QStringList{3}));
+		m_extraInfo.append(std::move(QStringList{totalExtraFields}));
 		if (count() == 1)
 			m_sourcePath = appUtils()->getFilePath(filename);
 		emit countChanged();
@@ -71,6 +90,9 @@ bool OnlineUserInfo::dataFromFileSource(const QString &filename)
 		setData(lastindex, m_modeldata.last().at(USER_COL_NAME), displayRole);
 		setData(lastindex, STR_ZERO, selectedRole);
 		setData(lastindex, filename, sourceFileRole);
+		setData(lastindex, QString{m_sourcePath + m_modeldata.last().at(USER_COL_ID) + "_profile.txt"_L1}, profileRole);
+		setData(lastindex, QString{m_modeldata.last().at(USER_COL_ID) + "_avatar"_L1}, avatarRole);
+		setData(lastindex, QString{m_modeldata.last().at(USER_COL_ID) + "_resume"_L1}, resumeRole);
 		setCurrentRow(count()-1);
 	}
 	endInsertRows();
@@ -88,11 +110,14 @@ bool OnlineUserInfo::dataFromString(const QString &user_data)
 	m_modeldata.append(std::move(tempmodeldata));
 	m_modeldata.last()[USER_COL_COACHES].clear(); //not needed. Shouldn't even be downloaded, but it's easier to erase here
 	m_modeldata.last()[USER_COL_CLIENTS].clear(); //not needed. Shouldn't even be downloaded, but it's easier to erase here
-	m_extraInfo.append(std::move(QStringList{3}));
+	m_extraInfo.append(std::move(QStringList{totalExtraFields}));
 	emit countChanged();
 	QModelIndex lastindex{index(m_extraInfo.count()-1, 0)};
 	setData(lastindex, m_modeldata.last().at(USER_COL_NAME), displayRole);
 	setData(lastindex, STR_ZERO, selectedRole);
+	setData(lastindex, QString{m_sourcePath + m_modeldata.last().at(USER_COL_ID) + "_profile.txt"_L1}, profileRole);
+	setData(lastindex, QString{m_modeldata.last().at(USER_COL_ID) + "_avatar"_L1}, avatarRole);
+	setData(lastindex, QString{m_modeldata.last().at(USER_COL_ID) + "_resume"_L1}, resumeRole);
 	setCurrentRow(count()-1);
 	endInsertRows();
 	return true;
@@ -105,6 +130,9 @@ void OnlineUserInfo::removeUserInfo(const uint row, const bool remove_source)
 	if (remove_source)
 		static_cast<void>(QFile::remove(data(row, USER_EXTRA_SOURCE)));
 	beginRemoveRows(QModelIndex{}, row, row);
+	static_cast<void>(QFile::remove(associatedFile(row, ASSOCIATED_FILES_PROFILE)));
+	static_cast<void>(QFile::remove(associatedFile(row, ASSOCIATED_FILES_AVATAR)));
+	static_cast<void>(QFile::remove(associatedFile(row, ASSOCIATED_FILES_RESUME)));
 	m_modeldata.remove(row);
 	m_extraInfo.remove(row);
 	if (count() == 0)
@@ -173,13 +201,10 @@ void OnlineUserInfo::makeUserDefault(const uint row)
 
 bool OnlineUserInfo::containsUser(const QString &userid) const
 {
-	auto itr{m_modeldata.constBegin()};
-	const auto itr_end{m_modeldata.constEnd()};
-	while (itr != itr_end)
+	for (const auto &it: m_modeldata)
 	{
-		if ((*itr).at(USER_COL_ID) == userid)
+		if (it.at(USER_COL_ID) == userid)
 			return true;
-		++itr;
 	}
 	return false;
 }
@@ -205,6 +230,10 @@ QVariant OnlineUserInfo::data(const QModelIndex &index, int role) const
 			case displayRole: return m_extraInfo.at(row).at(USER_EXTRA_NAME);
 			case selectedRole: return isSelected(row);
 			case sourceFileRole: return sourceFile(row);
+			case profileRole:
+			case avatarRole:
+			case resumeRole:
+				return associatedFile(row, role-displayRole);
 		}
 	}
 	return QVariant();
@@ -232,13 +261,23 @@ bool OnlineUserInfo::setData(const QModelIndex &index, const QVariant &value, in
 				return true;
 			case displayRole:
 				m_extraInfo[row][USER_EXTRA_NAME] = std::move(value.toString());
-				emit dataChanged(index, index, QList<int>{} << role);
+				emit dataChanged(index, index, QList<int>{} << displayRole);
 				return true;
 			case sourceFileRole:
 				setSourceFile(row, value.toString());
 				return true;
 			case selectedRole:
 				setSelected(row, value.toBool());
+				return true;
+			case profileRole:
+				m_extraInfo[row][USER_EXTRA_SOURCE+ASSOCIATED_FILES_PROFILE] = std::move(value.toString());
+				emit dataChanged(index, index, QList<int>{} << profileRole);
+				return true;
+			case avatarRole:
+				setAvatar(row, value.toString());
+				return true;
+			case resumeRole:
+				setResume(row, value.toString());
 				return true;
 		}
 	}

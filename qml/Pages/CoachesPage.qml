@@ -77,7 +77,6 @@ TPPage {
 		}
 
 		Item {
-			enabled: userModel.haveCoaches
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 
@@ -89,6 +88,7 @@ TPPage {
 				clip: true
 				model: userModel.coachesNames
 				height: 0.8*parent.height
+				enabled: userModel.haveCoaches
 
 				ScrollBar.vertical: ScrollBar {
 					policy: ScrollBar.AsNeeded
@@ -138,6 +138,7 @@ TPPage {
 			RowLayout {
 				uniformCellSizes: true
 				height: 25
+				visible: userModel.haveCoaches
 
 				anchors {
 					top: coachesList.bottom
@@ -149,6 +150,7 @@ TPPage {
 				TPButton {
 					text: qsTr("Remove")
 					autoResize: true
+					enabled: curRow != 0
 					Layout.alignment: Qt.AlignCenter
 
 					onClicked: showRemoveMessage(false,
@@ -159,7 +161,6 @@ TPPage {
 		} //Item
 
 		Item {
-			enabled: userModel.pendingCoachesResponses.count > 0
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 
@@ -171,6 +172,7 @@ TPPage {
 				clip: true
 				model: userModel.pendingCoachesResponses
 				height: 0.8*parent.height
+				enabled: userModel.pendingCoachesResponses.count > 0
 
 				ScrollBar.vertical: ScrollBar {
 					policy: ScrollBar.AsNeeded
@@ -206,7 +208,7 @@ TPPage {
 						}
 
 						TPButton {
-							text: qsTr("Profile")
+							text: qsTr("Résumé")
 							autoResize: true
 
 							anchors {
@@ -235,10 +237,11 @@ TPPage {
 			RowLayout {
 				uniformCellSizes: true
 				height: 25
+				visible: userModel.pendingCoachesResponses.count > 0
 
 				anchors {
 					top: pendingCoachesList.bottom
-					topMargin: 10
+					topMargin: 5
 					left: parent.left
 					right: parent.right
 				}
