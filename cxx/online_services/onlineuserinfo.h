@@ -66,6 +66,12 @@ public:
 		return m_extraInfo.at(row).at(USER_EXTRA_SOURCE);
 	}
 	void setSourceFile(const uint row, const QString &source_file);
+	/**
+	 * @brief setProfile/setAvatar/setResume
+	 * @param row
+	 * @param filename: just filename, without path. m_sourceFile's path will be prepended to it along with userId
+	 */
+	void setProfile(const uint row, const QString &filename);
 	void setAvatar(const uint row, const QString &filename);
 	void setResume(const uint row, const QString &filename);
 	inline const QString &associatedFile(const uint row, const uint af_index) const { return m_extraInfo.at(row).at(USER_EXTRA_SOURCE+af_index); }

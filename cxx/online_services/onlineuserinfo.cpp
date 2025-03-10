@@ -62,17 +62,24 @@ void OnlineUserInfo::setSourceFile(const uint row, const QString &source_file)
 	emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << sourceFileRole);
 }
 
+void OnlineUserInfo::setProfile(const uint row, const QString &filename)
+{
+	Q_ASSERT_X(row < count(), "OnlineUserInfo::setProfile", "row out of range");
+	m_extraInfo[row][USER_EXTRA_SOURCE+ASSOCIATED_FILES_PROFILE] = std::move(m_sourcePath + data(row, USER_COL_ID) + '_' + filename);
+	emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << profileRole);
+}
+
 void OnlineUserInfo::setAvatar(const uint row, const QString &filename)
 {
 	Q_ASSERT_X(row < count(), "OnlineUserInfo::setAvatar", "row out of range");
-	m_extraInfo[row][USER_EXTRA_SOURCE+ASSOCIATED_FILES_AVATAR] = m_sourcePath+filename;
+	m_extraInfo[row][USER_EXTRA_SOURCE+ASSOCIATED_FILES_AVATAR] = std::move(m_sourcePath + data(row, USER_COL_ID) + '_' + filename);
 	emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << avatarRole);
 }
 
 void OnlineUserInfo::setResume(const uint row, const QString &filename)
 {
 	Q_ASSERT_X(row < count(), "OnlineUserInfo::setResume", "row out of range");
-	m_extraInfo[row][USER_EXTRA_SOURCE+ASSOCIATED_FILES_RESUME] = m_sourcePath+filename;
+	m_extraInfo[row][USER_EXTRA_SOURCE+ASSOCIATED_FILES_RESUME] = std::move(m_sourcePath + data(row, USER_COL_ID) + '_' + filename);
 	emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << resumeRole);
 }
 
@@ -82,18 +89,18 @@ bool OnlineUserInfo::dataFromFileSource(const QString &filename)
 	bool imported{appUserModel()->_importFromFile(filename, m_modeldata) == APPWINDOW_MSG_READ_FROM_FILE_OK};
 	if (imported)
 	{
+		const qsizetype row{m_modeldata.count()-1};
 		m_extraInfo.append(std::move(QStringList{totalExtraFields}));
-		if (count() == 1)
+		if (row == 0)
 			m_sourcePath = appUtils()->getFilePath(filename);
 		emit countChanged();
-		QModelIndex lastindex{index(m_extraInfo.count()-1, 0)};
-		setData(lastindex, m_modeldata.last().at(USER_COL_NAME), displayRole);
-		setData(lastindex, STR_ZERO, selectedRole);
-		setData(lastindex, filename, sourceFileRole);
-		setData(lastindex, QString{m_sourcePath + m_modeldata.last().at(USER_COL_ID) + "_profile.txt"_L1}, profileRole);
-		setData(lastindex, QString{m_modeldata.last().at(USER_COL_ID) + "_avatar"_L1}, avatarRole);
-		setData(lastindex, QString{m_modeldata.last().at(USER_COL_ID) + "_resume"_L1}, resumeRole);
-		setCurrentRow(count()-1);
+		setData(index(row, 0), m_modeldata.last().at(USER_COL_NAME), displayRole);
+		setSelected(row, false);
+		setSourceFile(row, filename);
+		setProfile(row, "profile.txt"_L1);
+		setAvatar(row, "avatar"_L1);
+		setResume(row, "resume"_L1);
+		setCurrentRow(row);
 	}
 	endInsertRows();
 	return imported;
@@ -107,18 +114,19 @@ bool OnlineUserInfo::dataFromString(const QString &user_data)
 	if (tempmodeldata.count() > USER_TOTAL_COLS)
 		tempmodeldata.removeLast(); //remove the password field
 	beginInsertRows(QModelIndex{}, count(), count());
+	const qsizetype row{m_modeldata.count()};
 	m_modeldata.append(std::move(tempmodeldata));
 	m_modeldata.last()[USER_COL_COACHES].clear(); //not needed. Shouldn't even be downloaded, but it's easier to erase here
 	m_modeldata.last()[USER_COL_CLIENTS].clear(); //not needed. Shouldn't even be downloaded, but it's easier to erase here
 	m_extraInfo.append(std::move(QStringList{totalExtraFields}));
 	emit countChanged();
-	QModelIndex lastindex{index(m_extraInfo.count()-1, 0)};
-	setData(lastindex, m_modeldata.last().at(USER_COL_NAME), displayRole);
-	setData(lastindex, STR_ZERO, selectedRole);
-	setData(lastindex, QString{m_sourcePath + m_modeldata.last().at(USER_COL_ID) + "_profile.txt"_L1}, profileRole);
-	setData(lastindex, QString{m_modeldata.last().at(USER_COL_ID) + "_avatar"_L1}, avatarRole);
-	setData(lastindex, QString{m_modeldata.last().at(USER_COL_ID) + "_resume"_L1}, resumeRole);
-	setCurrentRow(count()-1);
+	setData(index(row, 0), m_modeldata.last().at(USER_COL_NAME), displayRole);
+	setSelected(row, false);
+	setSourceFile(row, QString{});
+	setProfile(row, "profile.txt"_L1);
+	setAvatar(row, "avatar"_L1);
+	setResume(row, "resume"_L1);
+	setCurrentRow(row);
 	endInsertRows();
 	return true;
 }
@@ -270,8 +278,7 @@ bool OnlineUserInfo::setData(const QModelIndex &index, const QVariant &value, in
 				setSelected(row, value.toBool());
 				return true;
 			case profileRole:
-				m_extraInfo[row][USER_EXTRA_SOURCE+ASSOCIATED_FILES_PROFILE] = std::move(value.toString());
-				emit dataChanged(index, index, QList<int>{} << profileRole);
+				setProfile(row, value.toString());
 				return true;
 			case avatarRole:
 				setAvatar(row, value.toString());

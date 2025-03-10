@@ -107,12 +107,34 @@ TPPage {
 					width: parent.width
 					height: 25
 
-					contentItem: Text {
-						text: userModel.coachesNames[index]
-						font.pixelSize: appSettings.fontSize
-						fontSizeMode: Text.Fit
-						leftPadding: 5
-						bottomPadding: 2
+					contentItem: Item {
+						Text {
+							id: txtCoachName
+							text: userModel.coachesNames[index]
+							font.pixelSize: appSettings.fontSize
+							fontSizeMode: Text.Fit
+							leftPadding: 5
+							bottomPadding: 2
+							width: parent.width*0.7
+
+							anchors {
+								verticalCenter: parent.verticalCenter
+								left: parent.left
+							}
+						}
+
+						TPButton {
+							text: qsTr("Résumé")
+							autoResize: true
+
+							anchors {
+								verticalCenter: parent.verticalCenter
+								left: txtCoachName.right
+								right: parent.right
+							}
+
+							onClicked: userModel.viewResume(userRow);
+						}
 					}
 
 					background: Rectangle {
@@ -193,7 +215,7 @@ TPPage {
 
 					contentItem: Item {
 						Text {
-							id: txtCoachName
+							id: txtPendingCoachName
 							text: name
 							font.pixelSize: appSettings.fontSize
 							fontSizeMode: Text.Fit
@@ -213,11 +235,11 @@ TPPage {
 
 							anchors {
 								verticalCenter: parent.verticalCenter
-								left: txtCoachName.right
+								left: txtPendingCoachName.right
 								right: parent.right
 							}
 
-							onClicked: userModel.downloadResume(userModel.pendingCoachesResponses, userModel.pendingCoachesResponses.currentRow);
+							onClicked: userModel.downloadResume(curRow);
 						}
 					}
 

@@ -274,6 +274,8 @@ public:
 	inline const QString defaultCoach() const { return m_coachesNames.count() > 0 ? m_coachesNames.at(0) : QString{}; }
 	inline bool haveCoaches() const { return m_coachesNames.count() > 0; }
 	inline const QString &coaches(const uint row) const { return m_modeldata.at(row).at(USER_COL_COACHES); }
+	void copyTempUserFilesToFinalUserDir(const QString &destDir, OnlineUserInfo *userInfo, const int userInfoRow) const;
+	void clearUserDir(const QString &dir) const;
 	void addCoach(const uint row);
 	void delCoach(const uint coach_idx);
 	inline void delCoach(const QString &coach) { delCoach(m_coachesNames.indexOf(coach)); }
@@ -310,7 +312,8 @@ public:
 	Q_INVOKABLE inline bool mainUserRegistered() const { return mb_userRegistered && mb_userRegistered == true; }
 	Q_INVOKABLE void setCoachPublicStatus(const bool bPublic);
 	Q_INVOKABLE void uploadResume(const QString &resumeFileName);
-	Q_INVOKABLE void downloadResume(OnlineUserInfo *user_info, const uint index);
+	Q_INVOKABLE void downloadResume(const uint row);
+	Q_INVOKABLE void viewResume(const uint row);
 	Q_INVOKABLE void mainUserConfigurationFinished();
 	Q_INVOKABLE inline bool isCoachRegistered() { return mb_coachRegistered ? mb_coachRegistered == true : false; }
 	Q_INVOKABLE void sendRequestToCoaches();
@@ -364,7 +367,7 @@ private:
 	int m_searchRow, m_tempRow;
 	QString m_appDataPath, m_onlineUserId, m_password;
 	std::optional<bool> mb_userRegistered, mb_coachRegistered;
-	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses;
+	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses, *m_tempRowUserInfo;
 	QStringList m_coachesNames, m_clientsNames;
 	bool mb_mainUserConfigured, mb_onlineCheckInInProgress, mb_keepUnavailableUser;
 	QTimer *m_mainTimer;
@@ -374,14 +377,13 @@ private:
 	bool onlineCheckIn();
 	void registerUserOnline();
 	QString generateUniqueUserId() const;
+	QString resume(const uint row) const;
 	void checkIfCoachRegisteredOnline();
 	void getUserOnlineProfile(const QString &netName, const QString &save_as_filename);
 	void sendProfileToServer();
 	void sendUserInfoToServer();
-	QFileInfo getAvatarFile(const QString &userid) const;
 	void sendAvatarToServer();
 	void downloadAvatarFromServer(const uint row);
-	void removeLocalAvatarFile(const QString &user_id);
 	void startServerPolling();
 	void pollServer();
 	void pollClientsRequests();

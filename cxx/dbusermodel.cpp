@@ -146,7 +146,6 @@ void DBUserModel::removeUser(const int row)
 			delCoach(_userId(row));
 		if (isClient(row))
 			delClient(_userId(row));
-		removeLocalAvatarFile(_userId(row));
 		emit userModified(0);
 	}
 }
@@ -273,17 +272,22 @@ void DBUserModel::getPassword()
 
 QString DBUserModel::avatar(const int row) const
 {
-	if (row >= 0 && row < m_modeldata.count() && !_userId(row).isEmpty())
+	if (row < m_modeldata.count() && !_userId(row).isEmpty())
 	{
 		if (row != m_tempRow)
 		{
-			QFileInfo fi{getAvatarFile(_userId(row))};
-			if (fi.exists())
-				return fi.filePath();
+			const QDir localFilesDir{row == 0 ? m_appDataPath : isCoach(row) ? m_dirForCurrentCoaches : m_dirForCurrentClients};
+			const QFileInfoList &images{localFilesDir.entryInfoList(QDir::Files|QDir::NoDotAndDotDot|QDir::NoSymLinks)};
+			for (const auto &it: images)
+			{
+				if (it.fileName().startsWith("avatar"_L1))
+					return it.filePath();
+			}
 		}
 		else
 		{
-
+			if (m_tempRowUserInfo)
+				return m_tempRowUserInfo->associatedFile(m_tempRowUserInfo->currentRow(), ASSOCIATED_FILES_AVATAR);
 		}
 	}
 	return QString {};
@@ -291,23 +295,22 @@ QString DBUserModel::avatar(const int row) const
 
 void DBUserModel::setAvatar(const int row, const QString &new_avatar, const bool upload)
 {
-	if (upload) {
-		TPImage img{nullptr};
-		img.setSource(new_avatar);
-		img.saveToDisk(m_localAvatarFilePath.arg(_userId(row), img.sourceExtension()));
-		emit userModified(row, USER_COL_AVATAR);
+	static_cast<void>(QFile::remove(avatar(row)));
+	TPImage img{nullptr};
+	img.setSource(new_avatar);
+	img.saveToDisk(m_localAvatarFilePath.arg(_userId(row), img.sourceExtension()));
+	emit userModified(row, USER_COL_AVATAR);
 
-		if (row == 0)
+	if (row == 0 && upload)
+	{
+		if (!onlineCheckIn())
 		{
-			if (!onlineCheckIn())
-			{
-				connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this] () {
-					sendAvatarToServer();
-				}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-				return;
-			}
-			sendAvatarToServer();
+			connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this] () {
+				sendAvatarToServer();
+			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+			return;
 		}
+		sendAvatarToServer();
 	}
 }
 
@@ -319,12 +322,14 @@ int DBUserModel::getTemporaryUserInfo(OnlineUserInfo *tempUser, const int userIn
 		{
 			m_modeldata.remove(m_tempRow);
 			m_tempRow = -1;
+			m_tempRowUserInfo = nullptr;
 		}
 	}
 	else if (userInfoRow < tempUser->count())
 	{
 		m_tempRow = m_modeldata.count();
 		m_modeldata.append(tempUser->modeldata(userInfoRow));
+		m_tempRowUserInfo = tempUser;
 		downloadAvatarFromServer(m_tempRow);
 		tempUser->setCurrentRow(userInfoRow);
 		setRowTemp(m_tempRow, true);
@@ -333,15 +338,37 @@ int DBUserModel::getTemporaryUserInfo(OnlineUserInfo *tempUser, const int userIn
 	return -1;
 }
 
+void DBUserModel::copyTempUserFilesToFinalUserDir(const QString &destDir, OnlineUserInfo *userInfo, const int userInfoRow) const
+{
+	static_cast<void>(QFile::copy(userInfo->associatedFile(userInfoRow, ASSOCIATED_FILES_PROFILE), destDir + userProfileFileName));
+	QString extension{userInfo->associatedFile(userInfoRow, ASSOCIATED_FILES_AVATAR)};
+	qsizetype dot_idx{extension.lastIndexOf('.')};
+	extension.remove(0, extension.length() - dot_idx);
+	static_cast<void>(QFile::copy(userInfo->associatedFile(userInfoRow, ASSOCIATED_FILES_AVATAR), destDir + "avatar"_L1 + extension));
+	extension = userInfo->associatedFile(userInfoRow, ASSOCIATED_FILES_RESUME);
+	dot_idx = extension.lastIndexOf('.');
+	extension.remove(0, extension.length() - dot_idx);
+	static_cast<void>(QFile::copy(userInfo->associatedFile(userInfoRow, ASSOCIATED_FILES_RESUME), destDir + "resume"_L1 + extension));
+}
+
+void DBUserModel::clearUserDir(const QString &dir) const
+{
+	QDir directory{dir};
+	const QFileInfoList &user_files{directory.entryInfoList(QStringList{} << "*.*"_L1, QDir::NoDotAndDotDot|QDir::Files)};
+	for (const auto &it : user_files)
+	{
+		if (it.isFile())
+			static_cast<void>(QFile::remove(it.filePath()));
+	}
+	static_cast<void>(directory.rmdir(dir));
+}
+
 void DBUserModel::addCoach(const uint row)
 {
 	appUtils()->setCompositeValue(m_coachesNames.count(), _userId(row), m_modeldata[row][USER_COL_COACHES], record_separator);
 	emit userModified(row, USER_COL_COACHES);
 	m_coachesNames.append(_userName(row));
 	emit coachesNamesChanged();
-	const QString &requestedCoachProfile{m_localProfileFile.arg(m_dirForRequestedCoaches, _userId(row))};
-	if (QFile::copy(requestedCoachProfile, m_localProfileFile.arg(m_dirForCurrentCoaches, _userId(row))))
-		static_cast<void>(QFile::remove(requestedCoachProfile));
 }
 
 void DBUserModel::delCoach(const uint coach_idx)
@@ -352,9 +379,9 @@ void DBUserModel::delCoach(const uint coach_idx)
 		if (row > 0)
 		{
 			appUtils()->removeFieldFromCompositeValue(coach_idx, m_modeldata[row][USER_COL_COACHES], record_separator);
+			clearUserDir(m_coachesNames.at(coach_idx));
 			m_coachesNames.remove(coach_idx);
 			emit coachesNamesChanged();
-			static_cast<void>(QFile::remove(m_localProfileFile.arg(m_dirForCurrentCoaches, _userId(row))));
 			connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,row] (const QString &key, const QString &value) {
 				appOnlineServices()->removeCoachFromClient(0, key, value, _userId(row));
 			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
@@ -369,9 +396,6 @@ void DBUserModel::addClient(const uint row)
 	emit userModified(row, USER_COL_CLIENTS);
 	m_clientsNames.append(_userName(row));
 	emit clientsNamesChanged();
-	const QString &requestingClientProfile{m_localProfileFile.arg(m_dirForClientsRequests, _userId(row))};
-	if (QFile::copy(requestingClientProfile, m_localProfileFile.arg(m_dirForCurrentClients, _userId(row))))
-		static_cast<void>(QFile::remove(requestingClientProfile));
 }
 
 void DBUserModel::delClient(const uint client_idx)
@@ -382,6 +406,7 @@ void DBUserModel::delClient(const uint client_idx)
 		if (row > 0)
 		{
 			appUtils()->removeFieldFromCompositeValue(client_idx, m_modeldata[row][USER_COL_CLIENTS], record_separator);
+			clearUserDir(m_coachesNames.at(client_idx));
 			m_clientsNames.remove(client_idx);
 			emit clientsNamesChanged();
 			static_cast<void>(QFile::remove(m_localProfileFile.arg(m_dirForCurrentClients, _userId(row))));
@@ -397,6 +422,11 @@ void DBUserModel::acceptUser(OnlineUserInfo *userInfo, const int userInfoRow)
 {
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,userInfo,userInfoRow] (const QString &key, const QString &value) {
 		const QString &user_id{userInfo->data(userInfoRow, USER_COL_ID)};
+		const bool bIsCoach{userInfo->data(userInfoRow, USER_COL_COACHES) == STR_ONE};
+		const int new_app_use_mode{bIsCoach ? APP_USE_MODE_SINGLE_COACH : APP_USE_MODE_SINGLE_USER};
+		const QString &destDir{(bIsCoach ? m_dirForCurrentCoaches : m_dirForCurrentClients) + user_id + '/'};
+		copyTempUserFilesToFinalUserDir(destDir, userInfo, userInfoRow);
+
 		if (_userId(m_tempRow) == user_id)
 		{
 			setRowTemp(m_tempRow, false);
@@ -407,10 +437,10 @@ void DBUserModel::acceptUser(OnlineUserInfo *userInfo, const int userInfoRow)
 			addUser_fast(std::move(userInfo->modeldata(userInfoRow)));
 			userInfo->removeUserInfo(userInfoRow, true);
 		}
-		const int new_app_use_mode{userInfo->data(userInfoRow, USER_COL_COACHES) == STR_ONE ? APP_USE_MODE_SINGLE_COACH : APP_USE_MODE_SINGLE_USER};
+
 		m_modeldata.last()[USER_COL_COACHES] = QString{};
 		m_modeldata.last()[USER_COL_APP_USE_MODE] = std::move(QString::number(new_app_use_mode));
-		if (new_app_use_mode == APP_USE_MODE_SINGLE_COACH)
+		if (bIsCoach)
 		{
 			addCoach(count()-1);
 			appOnlineServices()->acceptClientRequest(0, key, value, user_id);
@@ -421,7 +451,6 @@ void DBUserModel::acceptUser(OnlineUserInfo *userInfo, const int userInfoRow)
 			appOnlineServices()->acceptCoachAnswer(0, key, value, user_id);
 
 		}
-
 		//No need to emit the userModified signal here because either addCoach() or addClient() will
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appKeyChain()->readKey(_userId(0));
@@ -433,7 +462,6 @@ void DBUserModel::rejectUser(OnlineUserInfo *userInfo, const int userInfoRow)
 		const QString &user_id{userInfo->data(userInfoRow, USER_COL_ID)};
 		if (_userId(m_tempRow) == user_id)
 			getTemporaryUserInfo(nullptr, -1);
-		removeLocalAvatarFile(user_id);
 		if (userInfo->data(userInfoRow, USER_COL_COACHES) == STR_ONE)
 			appOnlineServices()->rejectCoachAnswer(0, key, value, user_id);
 		else
@@ -610,22 +638,22 @@ static QString getResumeFile(const QString &dir)
 	return QString {};
 }
 
-void DBUserModel::downloadResume(OnlineUserInfo *user_info, const uint index)
+void DBUserModel::downloadResume(const uint row)
 {
 	if (!onlineCheckIn())
 	{
-		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this,user_info,index] () {
-			downloadResume(user_info, index);
+		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this,row] () {
+			downloadResume(row);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		return;
 	}
 
-	if (index < user_info->count())
+	if (row < m_modeldata.count())
 	{
-		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,user_info,index] (const QString &key, const QString &value) {
+		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,row] (const QString &key, const QString &value) {
 			const int requestid{appUtils()->generateUniqueId("downloadResume"_L1)};
 			auto conn = std::make_shared<QMetaObject::Connection>();
-			*conn = connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [this,conn,requestid,user_info,index]
+			*conn = connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [this,conn,requestid,row]
 							(const int request_id, const int ret_code, const QString &filename, const QByteArray &contents) {
 				if (request_id == requestid)
 				{
@@ -634,31 +662,48 @@ void DBUserModel::downloadResume(OnlineUserInfo *user_info, const uint index)
 					{
 						case 0: //file downloaded
 						{
-							user_info->setResume(index, filename);
-							QFile *resume{new QFile{resumeFileName, this}};
+							QString destDir;
+							if (row == 0 )
+								destDir = m_appDataPath;
+							else if (row == m_tempRow && m_tempRowUserInfo)
+							{
+								destDir = m_tempRowUserInfo->sourcePath();
+								m_tempRowUserInfo->setResume(m_tempRowUserInfo->currentRow(), filename);
+							}
+							else
+								destDir = m_appDataPath + _userId(row) + '/';
+
+							const QString &localResumeFile{destDir + filename};
+							QFile *resume{new QFile{localResumeFile, this}};
 							static_cast<void>(resume->remove());
 							if (resume->open(QIODeviceBase::WriteOnly|QIODeviceBase::NewOnly))
 							{
 								resume->write(contents);
 								resume->close();
-								appOsInterface()->openURL(resumeFileName);
+								appOsInterface()->openURL(localResumeFile);
 							}
 							delete resume;
 						}
 						break;
 						case 1: //online file and local file are the same
-							appOsInterface()->openURL(localResumeFilePath);
+							viewResume(row);
 						break;
 						default: //some error
 							appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, filename + contents);
 					}
 				}
 			});
-			appOnlineServices()->getFile(requestid, key, value, appUtils()->getFileName(user_info->associatedFile(index, ASSOCIATED_FILES_RESUME), true),
-					user_info->data(index, USER_COL_ID), user_info->associatedFile(index, ASSOCIATED_FILES_RESUME));
+			appOnlineServices()->getFile(requestid, key, value, "resume", _userId(row), resume(row));
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		appKeyChain()->readKey(_userId(0));
 	}
+}
+
+void DBUserModel::viewResume(const uint row)
+{
+	const QString &localResumeFile{getResumeFile(m_dirForCurrentCoaches)};
+	if (QFile::exists(localResumeFile))
+		appOsInterface()->openURL(localResumeFile);
 }
 
 void DBUserModel::mainUserConfigurationFinished()
@@ -958,6 +1003,29 @@ inline QString DBUserModel::generateUniqueUserId() const
 	return QString::number(QDateTime::currentMSecsSinceEpoch());
 }
 
+QString DBUserModel::resume(const uint row) const
+{
+	if (row < m_modeldata.count() && !_userId(row).isEmpty())
+	{
+		if (row != m_tempRow)
+		{
+			const QDir localFilesDir{row == 0 ? m_appDataPath : isCoach(row) ? m_dirForCurrentCoaches : m_dirForCurrentClients};
+			const QFileInfoList &files{localFilesDir.entryInfoList(QDir::Files|QDir::NoDotAndDotDot|QDir::NoSymLinks)};
+			for (const auto &it: files)
+			{
+				if (it.fileName().startsWith("resume"_L1))
+					return it.filePath();
+			}
+		}
+		else
+		{
+			if (m_tempRowUserInfo)
+				return m_tempRowUserInfo->associatedFile(m_tempRowUserInfo->currentRow(), ASSOCIATED_FILES_RESUME);
+		}
+	}
+	return QString {};
+}
+
 //Only applicable to the main user that is a coach
 void DBUserModel::checkIfCoachRegisteredOnline()
 {
@@ -1078,18 +1146,6 @@ void DBUserModel::sendUserInfoToServer()
 	}
 }
 
-QFileInfo DBUserModel::getAvatarFile(const QString &userid) const
-{
-	const QDir localFilesDir{m_appDataPath};
-	const QFileInfoList &images{localFilesDir.entryInfoList(QDir::Files|QDir::NoDotAndDotDot|QDir::NoSymLinks)};
-	for (const auto &it: images)
-	{
-		if (it.fileName().startsWith(userid))
-			return it;
-	}
-	return QFileInfo{};
-}
-
 void DBUserModel::sendAvatarToServer()
 {
 	QFile *avatar_file{new QFile{avatar(0), this}};
@@ -1129,7 +1185,15 @@ void DBUserModel::downloadAvatarFromServer(const uint row)
 				{
 					case 0: //file downloaded
 					{
-						const QString &imagefile{m_appDataPath + filename};
+						QString destDir;
+						if (row == 0 )
+							destDir = m_appDataPath;
+						else if (row == m_tempRow && m_tempRowUserInfo)
+							destDir = m_tempRowUserInfo->sourcePath();
+						else
+							destDir = m_appDataPath + _userId(row) + '/';
+
+						const QString &imagefile{destDir + filename};
 						QFile *avatarImg{new QFile{imagefile, this}};
 						if (!avatarImg->exists() || avatarImg->remove())
 						{
@@ -1144,23 +1208,15 @@ void DBUserModel::downloadAvatarFromServer(const uint row)
 					}
 					break;
 					case 1: //online file and local file are the same
-						setAvatar(row, m_appDataPath + filename, false);
 					break;
 					default: //some error
 						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, filename + contents);
 				}
 			}
 		});
-		appOnlineServices()->getFile(requestid, key, value, _userId(row) + "_avatar", _userId(row), getAvatarFile(_userId(row)).filePath());
+		appOnlineServices()->getFile(requestid, key, value, _userId(row) + "_avatar", _userId(row), avatar(row));
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appKeyChain()->readKey(_userId(row));
-}
-
-inline void DBUserModel::removeLocalAvatarFile(const QString &user_id)
-{
-	QFileInfo fi{getAvatarFile(user_id)};
-	if (fi.exists())
-		static_cast<void>(QFile::remove(fi.filePath()));
 }
 
 void DBUserModel::startServerPolling()
