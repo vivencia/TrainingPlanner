@@ -239,7 +239,7 @@ public:
 	}
 
 	Q_INVOKABLE QString avatar(const int row) const;
-	Q_INVOKABLE void setAvatar(const int row, const QString &new_avatar, const bool upload = true);
+	Q_INVOKABLE void setAvatar(const int row, const QString &new_avatar, const bool saveToDisk = true, const bool upload = true);
 
 	Q_INVOKABLE inline uint appUseMode(const int row) const { return row >= 0 && row < m_modeldata.count() ? _appUseMode(row).toUInt() : 0; }
 	inline const QString &_appUseMode(const uint row) const { return m_modeldata.at(row).at(USER_COL_APP_USE_MODE); }
@@ -313,7 +313,6 @@ public:
 	Q_INVOKABLE void setCoachPublicStatus(const bool bPublic);
 	Q_INVOKABLE void uploadResume(const QString &resumeFileName);
 	Q_INVOKABLE void downloadResume(const uint row);
-	Q_INVOKABLE void viewResume(const uint row);
 	Q_INVOKABLE void mainUserConfigurationFinished();
 	Q_INVOKABLE inline bool isCoachRegistered() { return mb_coachRegistered ? mb_coachRegistered == true : false; }
 	Q_INVOKABLE void sendRequestToCoaches();
@@ -378,6 +377,7 @@ private:
 	void registerUserOnline();
 	QString generateUniqueUserId() const;
 	QString resume(const uint row) const;
+	void viewResume(const uint row);
 	void checkIfCoachRegisteredOnline();
 	void getUserOnlineProfile(const QString &netName, const QString &save_as_filename);
 	void sendProfileToServer();
@@ -395,7 +395,7 @@ private:
 	void pollCurrentCoaches();
 	int _importFromFile(const QString &filename, QList<QStringList> &targetModel);
 
-	QString m_localProfileFile, m_localAvatarFilePath, m_onlineCoachesDir, m_dirForRequestedCoaches, m_dirForClientsRequests,
+	QString m_localProfileFile, m_onlineCoachesDir, m_dirForRequestedCoaches, m_dirForClientsRequests,
 						m_dirForCurrentClients, m_dirForCurrentCoaches;
 	static DBUserModel *_appUserModel;
 	friend DBUserModel *appUserModel();

@@ -89,14 +89,19 @@ void QmlUserInterface::getClientsPage()
 
 void QmlUserInterface::userModifiedSlot(const uint user_row, const uint field)
 {
-	if (user_row == 0 && field == USER_COL_APP_USE_MODE)
-		m_userPage->setProperty("useMode", appUserModel()->appUseMode(0)); //if user_row == 0, then m_userPage exists
-	if (field == USER_COL_AVATAR)
+	if (user_row == 0)
 	{
-		if (m_userPage)
-			QMetaObject::invokeMethod(m_userPage, "avatarChangedBySexSelection", Q_ARG(int, static_cast<int>(user_row)));
-		if (m_clientsPage)
-			QMetaObject::invokeMethod(m_clientsPage, "avatarChangedBySexSelection", Q_ARG(int, static_cast<int>(user_row)));
+		switch(field)
+		{
+			case USER_COL_APP_USE_MODE:
+				m_userPage->setProperty("useMode", appUserModel()->appUseMode(0)); //if user_row == 0, then m_userPage exists
+			break;
+			case USER_COL_AVATAR:
+				if (m_userPage)
+					QMetaObject::invokeMethod(m_userPage, "avatarChangedBySexSelection", Q_ARG(int, static_cast<int>(user_row)));
+				if (m_clientsPage)
+					QMetaObject::invokeMethod(m_clientsPage, "avatarChangedBySexSelection", Q_ARG(int, static_cast<int>(user_row)));
+		}
 	}
 }
 

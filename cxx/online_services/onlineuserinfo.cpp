@@ -62,28 +62,31 @@ void OnlineUserInfo::setSourceFile(const uint row, const QString &source_file)
 	emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << sourceFileRole);
 }
 
-void OnlineUserInfo::setProfile(const uint row, const QString &filename)
+void OnlineUserInfo::setProfile(const uint row, const QString &filename, const bool override)
 {
 	Q_ASSERT_X(row < count(), "OnlineUserInfo::setProfile", "row out of range");
-	m_extraInfo[row][USER_EXTRA_SOURCE+ASSOCIATED_FILES_PROFILE] = std::move(m_sourcePath + data(row, USER_COL_ID) + '_' + filename);
+	m_extraInfo[row][USER_EXTRA_SOURCE+ASSOCIATED_FILES_PROFILE] = override ? filename :
+									std::move(m_sourcePath + data(row, USER_COL_ID) + '_' + filename);
 	emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << profileRole);
 }
 
-void OnlineUserInfo::setAvatar(const uint row, const QString &filename)
+void OnlineUserInfo::setAvatar(const uint row, const QString &filename, const bool override)
 {
 	Q_ASSERT_X(row < count(), "OnlineUserInfo::setAvatar", "row out of range");
-	m_extraInfo[row][USER_EXTRA_SOURCE+ASSOCIATED_FILES_AVATAR] = std::move(m_sourcePath + data(row, USER_COL_ID) + '_' + filename);
+	m_extraInfo[row][USER_EXTRA_SOURCE+ASSOCIATED_FILES_AVATAR] = override ? filename :
+									std::move(m_sourcePath + data(row, USER_COL_ID) + '_' + filename);
 	emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << avatarRole);
 }
 
-void OnlineUserInfo::setResume(const uint row, const QString &filename)
+void OnlineUserInfo::setResume(const uint row, const QString &filename, const bool override)
 {
 	Q_ASSERT_X(row < count(), "OnlineUserInfo::setResume", "row out of range");
-	m_extraInfo[row][USER_EXTRA_SOURCE+ASSOCIATED_FILES_RESUME] = std::move(m_sourcePath + data(row, USER_COL_ID) + '_' + filename);
+	m_extraInfo[row][USER_EXTRA_SOURCE+ASSOCIATED_FILES_RESUME] = override ? filename :
+									std::move(m_sourcePath + data(row, USER_COL_ID) + '_' + filename);
 	emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << resumeRole);
 }
 
-bool OnlineUserInfo::dataFromFileSource(const QString &filename)
+bool OnlineUserInfo::dataFromFileSource(const QString &filename, const QString &new_user_id)
 {
 	beginInsertRows(QModelIndex{}, count(), count());
 	bool imported{appUserModel()->_importFromFile(filename, m_modeldata) == APPWINDOW_MSG_READ_FROM_FILE_OK};
@@ -94,6 +97,7 @@ bool OnlineUserInfo::dataFromFileSource(const QString &filename)
 		if (row == 0)
 			m_sourcePath = appUtils()->getFilePath(filename);
 		emit countChanged();
+		setData(row, USER_COL_ID, new_user_id);
 		setData(index(row, 0), m_modeldata.last().at(USER_COL_NAME), displayRole);
 		setSelected(row, false);
 		setSourceFile(row, filename);
@@ -106,7 +110,7 @@ bool OnlineUserInfo::dataFromFileSource(const QString &filename)
 	return imported;
 }
 
-bool OnlineUserInfo::dataFromString(const QString &user_data)
+bool OnlineUserInfo::dataFromString(const QString &user_data, const QString &new_user_id)
 {
 	QStringList tempmodeldata{std::move(user_data.split('\n'))};
 	if (tempmodeldata.count() < USER_TOTAL_COLS)
@@ -120,6 +124,7 @@ bool OnlineUserInfo::dataFromString(const QString &user_data)
 	m_modeldata.last()[USER_COL_CLIENTS].clear(); //not needed. Shouldn't even be downloaded, but it's easier to erase here
 	m_extraInfo.append(std::move(QStringList{totalExtraFields}));
 	emit countChanged();
+	setData(row, USER_COL_ID, new_user_id);
 	setData(index(row, 0), m_modeldata.last().at(USER_COL_NAME), displayRole);
 	setSelected(row, false);
 	setSourceFile(row, QString{});

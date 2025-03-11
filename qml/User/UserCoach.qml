@@ -48,6 +48,7 @@ Frame {
 		id: optPersonalUse
 		text: qsTr("I will use this application to track my own workouts only")
 		multiLine: true
+		actionable: userRow === 0
 		height: itemHeight
 
 		onClicked: {
@@ -69,6 +70,7 @@ Frame {
 		id: optCoachUse
 		text: qsTr("I will use this application to track my own workouts and/or coach or train other people")
 		multiLine: true
+		actionable: userRow === 0
 		height: itemHeight
 
 		onClicked: {
@@ -104,6 +106,7 @@ Frame {
 			text: qsTr("Make myself available online for TP users to contact me")
 			checked: userModel.isCoachRegistered();
 			multiLine: true
+			actionable: userRow === 0
 			height: itemHeight
 			Layout.preferredWidth: parent.width/2
 
@@ -159,6 +162,7 @@ Frame {
 		id: chkHaveCoach
 		text: qsTr("I have a coach or a personal trainer")
 		multiLine: true
+		actionable: userRow === 0
 		height: 25
 
 		onClicked: {

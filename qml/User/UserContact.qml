@@ -58,6 +58,7 @@ Frame {
 		inputMethodHints: Qt.ImhDigitsOnly
 		inputMask: "+55\\(99\\)99999\\-9999;_"
 		ToolTip.text: qsTr("Invalid phone number")
+		readOnly: userRow !== 0
 		height: controlsHeight
 		width: frmContact.width*0.7
 
@@ -147,6 +148,7 @@ Frame {
 		id: txtEmail
 		inputMethodHints: Qt.ImhLowercaseOnly|Qt.ImhEmailCharactersOnly|Qt.ImhNoAutoUppercase
 		enabled: bPhoneOK
+		readOnly: userRow !== 0
 		ToolTip.text: userModel.invalidEmailLabel
 		height: controlsHeight
 		width: parent.width*0.9
@@ -233,6 +235,7 @@ Frame {
 		id: txtSocial
 		height: controlsHeight
 		enabled: bEmailOK
+		readOnly: userRow !== 0
 		width: parent.width*0.90
 		ToolTip.text: qsTr("Social media address is invalid")
 

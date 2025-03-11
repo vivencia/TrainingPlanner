@@ -60,6 +60,7 @@ Frame {
 	TPTextInput {
 		id: txtName
 		height: controlsHeight
+		readOnly: userRow !== 0
 		ToolTip.text: qsTr("The name is too short")
 
 		property bool bTextChanged: false
@@ -162,6 +163,7 @@ Frame {
 			id: btnBirthDate
 			imageSource: "calendar.png"
 			imageSize: 30
+			enabled: userRow !== 0
 			anchors.left: txtBirthdate.right
 			anchors.verticalCenter: txtBirthdate.verticalCenter
 
@@ -192,6 +194,7 @@ Frame {
 		TPRadioButton {
 			id: chkMale
 			text: qsTr("Male")
+			actionable: userRow === 0
 			height: controlsHeight
 			width: frmSex.width/2
 
@@ -214,6 +217,7 @@ Frame {
 		TPRadioButton {
 			id: chkFemale
 			text: qsTr("Female")
+			actionable: userRow === 0
 			height: controlsHeight
 			width: frmSex.width/2
 

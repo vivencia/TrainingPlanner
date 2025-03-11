@@ -56,7 +56,7 @@ void DBExercisesTable::getAllExercises()
 	{
 		bool ok(false);
 		QSqlQuery query{getQuery()};
-		const QString &strQuery{"SELECT * FROM exercises_table"_L1};
+		const QString &strQuery{"SELECT * FROM exercises_table ORDER BY ROWID"_L1};
 		if (query.exec(strQuery))
 		{
 			if (query.first())

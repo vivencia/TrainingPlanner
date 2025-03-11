@@ -222,6 +222,7 @@ Frame {
 		}
 
 		MouseArea {
+			enabled: userRow === 0
 			anchors.fill: parent
 			onClicked: showAvatarsPopup();
 		}
@@ -263,6 +264,15 @@ Frame {
 			imgAvatar.source = userModel.avatar(userRow);
 	}
 
+	function makeModelsSelectable(): void {
+		for (let i = 0; i < roleModelUser.count; ++i)
+			roleModelUser.get(i).enabled = userRow === 0;
+		for (let x = 0; x < roleModelCoach.count; ++x)
+			roleModelCoach.get(x).enabled = userRow === 0;
+		for (let y = 0; y < goalModel.count; ++y)
+			goalModel.get(y).enabled = userRow === 0;
+	}
+
 	function getUserInfo(): void {
 		appUseMode = userModel.appUseMode(userRow);
 		const client_role = userModel.userRole(userRow);
@@ -275,6 +285,7 @@ Frame {
 		bCoachRoleOK = coach_role.length > 5;
 		cboCoachRole.currentIndex = bCoachRoleOK ? cboCoachRole.find(coach_role) : -1;
 		imgAvatar.source = userModel.avatar(userRow);
+		makeModelsSelectable();
 	}
 
 	function focusOnFirstField(): void {

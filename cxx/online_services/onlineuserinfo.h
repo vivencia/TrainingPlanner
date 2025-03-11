@@ -71,13 +71,13 @@ public:
 	 * @param row
 	 * @param filename: just filename, without path. m_sourceFile's path will be prepended to it along with userId
 	 */
-	void setProfile(const uint row, const QString &filename);
-	void setAvatar(const uint row, const QString &filename);
-	void setResume(const uint row, const QString &filename);
+	void setProfile(const uint row, const QString &filename, const bool override = false);
+	void setAvatar(const uint row, const QString &filename, const bool override = false);
+	void setResume(const uint row, const QString &filename, const bool override = false);
 	inline const QString &associatedFile(const uint row, const uint af_index) const { return m_extraInfo.at(row).at(USER_EXTRA_SOURCE+af_index); }
 
-	bool dataFromFileSource(const QString &filename);
-	bool dataFromString(const QString &user_data);
+	bool dataFromFileSource(const QString &filename, const QString &new_user_id);
+	bool dataFromString(const QString &user_data, const QString &new_user_id);
 	void removeUserInfo(const uint row, const bool remove_source);
 	//Remove all items from m_modeldata that are not in user_list. Use field to look for matches
 	bool sanitize(const QStringList &user_list, const uint field);

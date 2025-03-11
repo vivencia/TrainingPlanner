@@ -17,6 +17,7 @@ Item {
 	property int imageWidth: 20
 	property bool checked
 	property bool multiLine: false
+	property bool actionable: true
 
 	signal clicked();
 	signal pressAndHold();
@@ -79,6 +80,7 @@ Item {
 	}
 
 	MouseArea {
+		enabled: actionable
 		anchors.fill: parent
 		z: 2
 

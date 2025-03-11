@@ -11,6 +11,7 @@ Item {
 	property alias textColor: lblText.color
 	property bool checked
 	property bool multiLine: false
+	property bool actionable: true
 
 	signal clicked();
 	signal pressAndHold();
@@ -67,6 +68,7 @@ Item {
 	}
 
 	MouseArea {
+		enabled: actionable
 		anchors.fill: parent
 
 		onClicked: {

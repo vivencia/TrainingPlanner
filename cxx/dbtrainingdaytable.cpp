@@ -284,12 +284,12 @@ void DBTrainingDayTable::saveTrainingDay()
 
 		if (bUpdate)
 		{
-			strQuery = std::move("UPDATE training_day_table SET date=%1, day_number=\'%2\', "
-							"split_letter=\'%3\', time_in=\'%4\', time_out=\'%5\', location=\'%6\', notes=\'%7\', "_L1
+			strQuery = std::move(u"UPDATE training_day_table SET date=%1, day_number=\'%2\', "
+							"split_letter=\'%3\', time_in=\'%4\', time_out=\'%5\', location=\'%6\', notes=\'%7\', "_s
 								.arg(m_model->dateStr(), m_model->trainingDay(), m_model->splitLetter(),
 									m_model->timeIn(), m_model->timeOut(), m_model->location(), m_model->dayNotes())) +
-						std::move("exercises=\'%1\', setstypes=\'%2\', setsresttimes=\'%3\', "
-							"setssubsets=\'%4\', setsreps=\'%5\', setsweights=\'%6\', setsnotes=\'%7\', setscompleted=\'%8\' WHERE id=%9"_L1
+						std::move(u"exercises=\'%1\', setstypes=\'%2\', setsresttimes=\'%3\', "
+							"setssubsets=\'%4\', setsreps=\'%5\', setsweights=\'%6\', setsnotes=\'%7\', setscompleted=\'%8\' WHERE id=%9"_s
 								.arg(tDayInfoList.at(TDAY_EXERCISES_COL_NAMES), tDayInfoList.at(TDAY_EXERCISES_COL_TYPES),
 									tDayInfoList.at(TDAY_EXERCISES_COL_RESTTIMES), tDayInfoList.at(TDAY_EXERCISES_COL_SUBSETS),
 									tDayInfoList.at(TDAY_EXERCISES_COL_REPS), tDayInfoList.at(TDAY_EXERCISES_COL_WEIGHTS),
@@ -297,11 +297,11 @@ void DBTrainingDayTable::saveTrainingDay()
 		}
 		else
 		{
-			strQuery = std::move("INSERT INTO training_day_table "
+			strQuery = std::move(u"INSERT INTO training_day_table "
 							"(meso_id,date,day_number,split_letter,time_in,time_out,location,notes,"
 							"exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted)"
 							" VALUES(%1, %2, \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\',"
-							"\'%9\', \'%10\', \'%11\', \'%12\', \'%13\', \'%14\', \'%15\', \'%16\')"_L1
+							"\'%9\', \'%10\', \'%11\', \'%12\', \'%13\', \'%14\', \'%15\', \'%16\')"_s
 								.arg(m_model->mesoIdStr(), m_model->dateStr(), m_model->trainingDay(), m_model->splitLetter(),
 									m_model->timeIn(), m_model->timeOut(), m_model->location(), m_model->dayNotes(),
 									tDayInfoList.at(TDAY_EXERCISES_COL_NAMES), tDayInfoList.at(TDAY_EXERCISES_COL_TYPES),

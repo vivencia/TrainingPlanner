@@ -2,11 +2,11 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+
 import "../"
 import "../TPWidgets"
 import "../User"
-
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPage {
 	id: coachesPage
@@ -133,7 +133,7 @@ TPPage {
 								right: parent.right
 							}
 
-							onClicked: userModel.viewResume(userRow);
+							onClicked: userModel.downloadResume(userRow);
 						}
 					}
 

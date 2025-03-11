@@ -30,6 +30,7 @@ static const QLatin1StringView& userLocalDataFileName{"user.data"_L1};
 static const QString &tpNetworkTitle{qApp->tr("TP Network")};
 static const QString &profileFile_template{"%1%2.txt"};
 
+//#define POLLING_INTERVAL 1000*60
 #define POLLING_INTERVAL 1000*60*20
 
 DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
@@ -55,18 +56,19 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 
 		mb_mainUserConfigured = appSettings()->mainUserConfigured();
 		m_appDataPath = std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/Files/"_L1);
-		m_localAvatarFilePath = std::move(m_appDataPath + "%1_avatar.%2"_L1);
 		m_onlineCoachesDir = std::move(m_appDataPath + "online_coaches/"_L1);
 		m_dirForRequestedCoaches = std::move(m_appDataPath + "requested_coaches/"_L1);
 		m_dirForClientsRequests = std::move(m_appDataPath + "clients_requests/"_L1);
 		m_dirForCurrentClients = std::move(m_appDataPath + "clients/"_L1);
 		m_dirForCurrentCoaches = std::move(m_appDataPath + "coaches/"_L1);
 		m_localProfileFile = std::move("%1/%2.txt"_L1);
-		connect(this, &DBUserModel::userModified, this, [this] (const uint row, const uint) {
-			appDBInterface()->saveUser(row);
+		connect(this, &DBUserModel::userModified, this, [this] (const uint row, const uint field) {
+			if (row == 0 || field == 100)
+				appDBInterface()->saveUser(row);
 		});
 		connect(this, &DBUserModel::userRemoved, this, [this] (const uint row) {
-			appDBInterface()->removeUser(row);
+			if (row > 0)
+				appDBInterface()->removeUser(row);
 		});
 
 		/*connect(appKeyChain(), &TPKeyChain::keyRestored, this, [&] (const QString &key, const QString &value) {
@@ -272,17 +274,21 @@ void DBUserModel::getPassword()
 
 QString DBUserModel::avatar(const int row) const
 {
-	if (row < m_modeldata.count() && !_userId(row).isEmpty())
+	if (row >= 0 && row < m_modeldata.count() && !_userId(row).isEmpty())
 	{
 		if (row != m_tempRow)
 		{
-			const QDir localFilesDir{row == 0 ? m_appDataPath : isCoach(row) ? m_dirForCurrentCoaches : m_dirForCurrentClients};
+			const QDir &localFilesDir{row == 0 ? m_appDataPath : isCoach(row) ? m_dirForCurrentCoaches : m_dirForCurrentClients};
 			const QFileInfoList &images{localFilesDir.entryInfoList(QDir::Files|QDir::NoDotAndDotDot|QDir::NoSymLinks)};
-			for (const auto &it: images)
+			const auto &it = std::find_if(images.cbegin(), images.cend(), [] (auto image_fi) {
+				return image_fi.fileName().contains("_avatar."_L1);
+			});
+			return it != images.cend() ? it->filePath() : QString{};
+			/*for (const auto &it: images)
 			{
-				if (it.fileName().startsWith("avatar"_L1))
+				if (it.fileName().contains("_avatar."_L1))
 					return it.filePath();
-			}
+			}*/
 		}
 		else
 		{
@@ -293,12 +299,21 @@ QString DBUserModel::avatar(const int row) const
 	return QString {};
 }
 
-void DBUserModel::setAvatar(const int row, const QString &new_avatar, const bool upload)
+void DBUserModel::setAvatar(const int row, const QString &new_avatar, const bool saveToDisk, const bool upload)
 {
-	static_cast<void>(QFile::remove(avatar(row)));
-	TPImage img{nullptr};
-	img.setSource(new_avatar);
-	img.saveToDisk(m_localAvatarFilePath.arg(_userId(row), img.sourceExtension()));
+	if (saveToDisk)
+	{
+		TPImage img{nullptr};
+		img.setSource(new_avatar);
+		QString localAvatarFilePath{};
+		if (row != m_tempRow)
+		{
+			const QDir &localFilesDir{row == 0 ? m_appDataPath : isCoach(row) ? m_dirForCurrentCoaches : m_dirForCurrentClients};
+			localAvatarFilePath = std::move(_userId(row) + "_avatar."_L1 + img.sourceExtension());
+		}
+		static_cast<void>(QFile::remove(avatar(row)));
+		img.saveToDisk(localAvatarFilePath);
+	}
 	emit userModified(row, USER_COL_AVATAR);
 
 	if (row == 0 && upload)
@@ -366,7 +381,7 @@ void DBUserModel::clearUserDir(const QString &dir) const
 void DBUserModel::addCoach(const uint row)
 {
 	appUtils()->setCompositeValue(m_coachesNames.count(), _userId(row), m_modeldata[row][USER_COL_COACHES], record_separator);
-	emit userModified(row, USER_COL_COACHES);
+	emit userModified(0, USER_COL_COACHES);
 	m_coachesNames.append(_userName(row));
 	emit coachesNamesChanged();
 }
@@ -393,7 +408,7 @@ void DBUserModel::delCoach(const uint coach_idx)
 void DBUserModel::addClient(const uint row)
 {
 	appUtils()->setCompositeValue(m_clientsNames.count(), _userId(row), m_modeldata[row][USER_COL_CLIENTS], record_separator);
-	emit userModified(row, USER_COL_CLIENTS);
+	emit userModified(0, USER_COL_CLIENTS);
 	m_clientsNames.append(_userName(row));
 	emit clientsNamesChanged();
 }
@@ -451,7 +466,7 @@ void DBUserModel::acceptUser(OnlineUserInfo *userInfo, const int userInfoRow)
 			appOnlineServices()->acceptCoachAnswer(0, key, value, user_id);
 
 		}
-		//No need to emit the userModified signal here because either addCoach() or addClient() will
+		emit userModified(count() - 1);
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appKeyChain()->readKey(_userId(0));
 }
@@ -697,13 +712,6 @@ void DBUserModel::downloadResume(const uint row)
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		appKeyChain()->readKey(_userId(0));
 	}
-}
-
-void DBUserModel::viewResume(const uint row)
-{
-	const QString &localResumeFile{getResumeFile(m_dirForCurrentCoaches)};
-	if (QFile::exists(localResumeFile))
-		appOsInterface()->openURL(localResumeFile);
 }
 
 void DBUserModel::mainUserConfigurationFinished()
@@ -1009,11 +1017,11 @@ QString DBUserModel::resume(const uint row) const
 	{
 		if (row != m_tempRow)
 		{
-			const QDir localFilesDir{row == 0 ? m_appDataPath : isCoach(row) ? m_dirForCurrentCoaches : m_dirForCurrentClients};
+			const QDir &localFilesDir{row == 0 ? m_appDataPath : isCoach(row) ? m_dirForCurrentCoaches : m_dirForCurrentClients};
 			const QFileInfoList &files{localFilesDir.entryInfoList(QDir::Files|QDir::NoDotAndDotDot|QDir::NoSymLinks)};
 			for (const auto &it: files)
 			{
-				if (it.fileName().startsWith("resume"_L1))
+				if (it.fileName().contains("_resume."_L1))
 					return it.filePath();
 			}
 		}
@@ -1024,6 +1032,13 @@ QString DBUserModel::resume(const uint row) const
 		}
 	}
 	return QString {};
+}
+
+void DBUserModel::viewResume(const uint row)
+{
+	const QString &localResumeFile{getResumeFile(m_dirForCurrentCoaches)};
+	if (QFile::exists(localResumeFile))
+		appOsInterface()->openURL(localResumeFile);
 }
 
 //Only applicable to the main user that is a coach
@@ -1204,7 +1219,9 @@ void DBUserModel::downloadAvatarFromServer(const uint row)
 							}
 						}
 						delete avatarImg;
-						setAvatar(row, imagefile, false);
+						if (row == m_tempRow && m_tempRowUserInfo)
+							m_tempRowUserInfo->setAvatar(m_tempRowUserInfo->currentRow(), imagefile, true);
+						setAvatar(row, imagefile, false, false);
 					}
 					break;
 					case 1: //online file and local file are the same
@@ -1351,13 +1368,11 @@ void DBUserModel::addPendingClient(const QString &user_id)
 	if (!m_pendingClientRequests->containsUser(user_id))
 	{
 		const QString &client_profile{profileFile_template.arg(m_dirForClientsRequests, user_id)};
-		if (m_pendingClientRequests->dataFromFileSource(client_profile))
+		if (m_pendingClientRequests->dataFromFileSource(client_profile, user_id))
 		{
-			const qsizetype last_idx{m_pendingClientRequests->count()-1};
-			m_pendingClientRequests->setData(last_idx, USER_COL_ID, user_id);
 			//Indicate that the online user is a client. acceptUser will look for this info in order to setup the new user and the main user's field:
 			//add the newly accpted user as a coach(USER_COL_COACHES) or as a client(USER_COL_CLIENTS)
-			m_pendingClientRequests->setData(last_idx, USER_COL_COACHES, STR_ZERO);
+			m_pendingClientRequests->setData(m_pendingClientRequests->count()-1, USER_COL_COACHES, STR_ZERO);
 			emit pendingClientsRequestsChanged();
 		}
 	}
@@ -1425,13 +1440,11 @@ void DBUserModel::addCoachAnswer(const QString &user_id)
 	if (!m_pendingCoachesResponses->containsUser(user_id))
 	{
 		const QString &coach_profile{profileFile_template.arg(m_dirForRequestedCoaches, user_id)};
-		if (m_pendingCoachesResponses->dataFromFileSource(coach_profile))
+		if (m_pendingCoachesResponses->dataFromFileSource(coach_profile, user_id))
 		{
-			const qsizetype last_idx{m_pendingCoachesResponses->count()-1};
-			m_pendingCoachesResponses->setData(last_idx, USER_COL_ID, user_id);
 			//Indicate that the online user is a coach. acceptUser will look for this info in order to setup the new user and the main user's field:
 			//add the newly accepted user as a coach(USER_COL_COACHES) or as a client(USER_COL_CLIENTS)
-			m_pendingCoachesResponses->setData(last_idx, USER_COL_COACHES, STR_ONE);
+			m_pendingCoachesResponses->setData(m_pendingCoachesResponses->count()-1, USER_COL_COACHES, STR_ONE);
 			emit pendingCoachesResponsesChanged();
 		}
 	}
@@ -1442,13 +1455,11 @@ void DBUserModel::addAvailableCoach(const QString &user_id)
 	if (!m_availableCoaches->containsUser(user_id))
 	{
 		const QString &coach_profile{profileFile_template.arg(m_onlineCoachesDir, user_id)};
-		if (m_availableCoaches->dataFromFileSource(coach_profile))
+		if (m_availableCoaches->dataFromFileSource(coach_profile, user_id))
 		{
-			const qsizetype last_idx{m_availableCoaches->count()-1};
-			m_availableCoaches->setData(last_idx, USER_COL_ID, user_id);
 			//Indicate that the online user is a coach. acceptUser will look for this info in order to setup the new user and the main user's field:
 			//add the newly accepted user as a coach(USER_COL_COACHES) or as a client(USER_COL_CLIENTS)
-			m_availableCoaches->setData(last_idx, USER_COL_COACHES, STR_ONE);
+			m_availableCoaches->setData(m_availableCoaches->count()-1, USER_COL_COACHES, STR_ONE);
 			emit availableCoachesChanged();
 		}
 	}

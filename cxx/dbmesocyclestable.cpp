@@ -126,7 +126,7 @@ void DBMesocyclesTable::getAllMesocycles()
 	{
 		bool ok{false};
 		QSqlQuery query{getQuery()};
-		const QString &strQuery{"SELECT * FROM mesocycles_table"_L1};
+		const QString &strQuery{"SELECT * FROM mesocycles_table ORDER BY ROWID"_L1};
 
 		if (query.exec(strQuery))
 		{
