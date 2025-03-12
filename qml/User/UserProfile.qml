@@ -22,7 +22,7 @@ Frame {
 	property bool bClientRoleOK: false
 	property bool bGoalOK: false
 	property int appUseMode
-	readonly property int nVisibleControls: lblCoachRole.visible ? 6 : 4
+	readonly property int nVisibleControls: lblCoachRole.visible ? 9 : 7
 	readonly property int controlsHeight: 25
 	readonly property int controlsSpacing: 10
 	readonly property int moduleHeight: nVisibleControls*(controlsHeight+controlsSpacing) + imgAvatar.height
@@ -45,7 +45,7 @@ Frame {
 	Component.onCompleted: getUserInfo();
 
 	ListModel {
-		id: roleModelUser
+		id: userRoleModel
 		ListElement { text: qsTr("Occasional Gym Goer"); value: 0; enabled: true; }
 		ListElement { text: qsTr("Serious Gym Goer"); value: 1; enabled: true; }
 		ListElement { text: qsTr("Aspiring Athlete"); value: 2; enabled: true; }
@@ -55,11 +55,23 @@ Frame {
 	}
 
 	ListModel {
-		id: roleModelCoach
+		id: coachRoleModel
 		ListElement { text: qsTr("Personal Trainer"); value: 0; enabled: true; }
 		ListElement { text: qsTr("Athletes coach"); value: 1; enabled: true; }
 		ListElement { text: qsTr("Physical Therapist"); value: 2; enabled: true; }
 		ListElement { text: qsTr("Other"); value: 5; enabled: true; }
+	}
+
+	ListModel {
+		id: userGoalModel
+		ListElement { text: qsTr("General Fitness"); value: 0; enabled: true; }
+		ListElement { text: qsTr("Loose Weight"); value: 1; enabled: true; }
+		ListElement { text: qsTr("Improve Health"); value: 2; enabled: true; }
+		ListElement { text: qsTr("Support for Other Sport"); value: 3; enabled: true; }
+		ListElement { text: qsTr("Muscle Gain"); value: 4; enabled: true; }
+		ListElement { text: qsTr("Strength"); value: 5; enabled: true; }
+		ListElement { text: qsTr("Bodybuilding"); value: 6; enabled: true; }
+		ListElement { text: qsTr("Other"); value: 7; enabled: true; }
 	}
 
 	background: Rectangle {
@@ -86,7 +98,7 @@ Frame {
 
 	TPComboBox {
 		id: cboUserRole
-		model: roleModelUser
+		model: userRoleModel
 		visible: appUseMode !== 2
 		height: controlsHeight
 		width: parent.width*0.80
@@ -100,8 +112,35 @@ Frame {
 		}
 
 		onActivated: (index) => {
-			userModel.setUserRole(userRow, textAt(index));
-			bClientRoleOK = true;
+			if (index < userRoleModel.count - 1) {
+				userModel.setUserRole(userRow, textAt(index));
+				bClientRoleOK = true;
+			}
+			else {
+				bClientRoleOK = false;
+				txtUserRole.forceActiveFocus();
+			}
+		}
+	}
+
+	TPTextInput {
+		id: txtUserRole
+		visible: cboUserRole.currentIndex === userRoleModel.count - 1
+		height: controlsHeight
+
+		anchors {
+			top: cboUserRole.bottom
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+		}
+
+		onTextEdited: bClientRoleOK = text.length > 1
+
+		onEditingFinished: {
+			if (bClientRoleOK)
+				userModel.setUserRole(userRow, text);
 		}
 	}
 
@@ -113,7 +152,7 @@ Frame {
 		width: parent.width*0.20
 
 		anchors {
-			top: cboUserRole.bottom
+			top: txtUserRole.visible ? txtUserRole.bottom : cboUserRole.bottom
 			topMargin: 5
 			left: parent.left
 			leftMargin: 5
@@ -124,23 +163,11 @@ Frame {
 
 	TPComboBox {
 		id: cboGoal
-		model: goalModel
+		model: userGoalModel
 		visible: appUseMode !== 2
 		enabled: bClientRoleOK || bCoachRoleOK
 		height: controlsHeight
 		width: parent.width*0.80
-
-		ListModel {
-			id: goalModel
-			ListElement { text: qsTr("General Fitness"); value: 0; enabled: true; }
-			ListElement { text: qsTr("Loose Weight"); value: 1; enabled: true; }
-			ListElement { text: qsTr("Improve Health"); value: 2; enabled: true; }
-			ListElement { text: qsTr("Support for Other Sport"); value: 3; enabled: true; }
-			ListElement { text: qsTr("Muscle Gain"); value: 4; enabled: true; }
-			ListElement { text: qsTr("Strength"); value: 5; enabled: true; }
-			ListElement { text: qsTr("Bodybuilding"); value: 6; enabled: true; }
-			ListElement { text: qsTr("Other"); value: 7; enabled: true; }
-		}
 
 		anchors {
 			top: lblGoal.bottom
@@ -151,8 +178,35 @@ Frame {
 		}
 
 		onActivated: (index) => {
-			userModel.setGoal(userRow, textAt(index));
-			bGoalOK = true;
+			if (index < userGoalModel.count - 1) {
+				userModel.setGoal(userRow, textAt(index));
+				bGoalOK = true;
+			}
+			else {
+				bGoalOK = false;
+				txtUserGoal.forceActiveFocus();
+			}
+		}
+	}
+
+	TPTextInput {
+		id: txtUserGoal
+		visible: cboGoal.visible && cboGoal.currentIndex === userGoalModel.count - 1
+		height: controlsHeight
+
+		anchors {
+			top: cboGoal.bottom
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+		}
+
+		onTextEdited: bGoalOK = text.length > 1
+
+		onEditingFinished: {
+			if (bGoalOK)
+				userModel.setGoal(userRow, text);
 		}
 	}
 
@@ -164,7 +218,7 @@ Frame {
 		width: parent.width*0.15
 
 		anchors {
-			top: cboGoal.visible ? cboGoal.bottom : cboUserRole.bottom
+			top: cboGoal.visible ? txtUserGoal.visible ? txtUserGoal.bottom : cboGoal.bottom : cboUserRole.bottom
 			topMargin: controlsSpacing
 			left: parent.left
 			leftMargin: 5
@@ -175,7 +229,7 @@ Frame {
 
 	TPComboBox {
 		id: cboCoachRole
-		model: roleModelCoach
+		model: coachRoleModel
 		visible: appUseMode === 2 || appUseMode === 4
 		height: controlsHeight
 		width: parent.width*0.80
@@ -189,8 +243,35 @@ Frame {
 		}
 
 		onActivated: (index) => {
-			userModel.setCoachRole(userRow, textAt(index));
-			bCoachRoleOK = true;
+			if (index < userGoalModel.count - 1) {
+				userModel.setCoachRole(userRow, textAt(index));
+				bCoachRoleOK = true;
+			}
+			else {
+				bCoachRoleOK = false;
+				txtCoachRole.forceActiveFocus();
+			}
+		}
+	}
+
+	TPTextInput {
+		id: txtCoachRole
+		visible: cboCoachRole.visible && cboCoachRole.currentIndex === coachRoleModel.count - 1
+		height: controlsHeight
+
+		anchors {
+			top: cboCoachRole.bottom
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+		}
+
+		onTextEdited: bCoachRoleOK = text.length > 1
+
+		onEditingFinished: {
+			if (bCoachRoleOK)
+				userModel.setCoachRole(userRow, text);
 		}
 	}
 
@@ -202,7 +283,7 @@ Frame {
 		width: parent.width*0.2
 
 		anchors {
-			top: cboCoachRole.visible ? cboCoachRole.bottom : cboGoal.bottom
+			top: cboCoachRole.visible ? txtCoachRole.visible ? txtCoachRole.bottom : cboCoachRole.bottom : cboGoal.bottom
 			topMargin: controlsSpacing
 			left: parent.left
 			leftMargin: 5
@@ -211,6 +292,7 @@ Frame {
 
 	TPImage {
 		id: imgAvatar
+		enabled: bReady
 		height: 100
 		width: 100
 
@@ -265,25 +347,60 @@ Frame {
 	}
 
 	function makeModelsSelectable(): void {
-		for (let i = 0; i < roleModelUser.count; ++i)
-			roleModelUser.get(i).enabled = userRow === 0;
-		for (let x = 0; x < roleModelCoach.count; ++x)
-			roleModelCoach.get(x).enabled = userRow === 0;
-		for (let y = 0; y < goalModel.count; ++y)
-			goalModel.get(y).enabled = userRow === 0;
+		const enabled = userRow === 0;
+		for (let i = 0; i < userRoleModel.count; ++i)
+			userRoleModel.get(i).enabled = enabled;
+		for (let x = 0; x < coachRoleModel.count; ++x)
+			coachRoleModel.get(x).enabled = enabled;
+		for (let y = 0; y < userGoalModel.count; ++y)
+			userGoalModel.get(y).enabled = enabled;
 	}
 
 	function getUserInfo(): void {
+		if (userRow === -1)
+			return;
+		let idx;
 		appUseMode = userModel.appUseMode(userRow);
+
 		const client_role = userModel.userRole(userRow);
-		bClientRoleOK = client_role.length > 5;
-		cboUserRole.currentIndex = bClientRoleOK ? cboUserRole.find(client_role) : -1;
+		bClientRoleOK = client_role.length > 1;
+		if (!bClientRoleOK)
+			cboUserRole.currentIndex = 0;
+		else {
+			idx = cboUserRole.find(client_role);
+			if (idx < 0) {
+				idx = userRoleModel.count - 1;
+				txtUserRole.text = client_role;
+			}
+			cboUserRole.currentIndex = idx;
+		}
+
 		const user_goal = userModel.goal(userRow);
 		bGoalOK = user_goal.length > 1;
-		cboGoal.currentIndex = bGoalOK ? cboGoal.find(user_goal) : -1;
+		if (!bGoalOK)
+			cboGoal.currentIndex = 0;
+		else {
+			idx = cboGoal.find(user_goal);
+			if (idx < 0) {
+				idx = userGoalModel.count - 1;
+				txtUserGoal.text = user_goal;
+			}
+			cboGoal.currentIndex = idx;
+		}
+
 		const coach_role = userModel.coachRole(userRow);
-		bCoachRoleOK = coach_role.length > 5;
-		cboCoachRole.currentIndex = bCoachRoleOK ? cboCoachRole.find(coach_role) : -1;
+		bCoachRoleOK = coach_role.length > 1;
+		if (!bCoachRoleOK)
+			cboCoachRole.currentIndex = 0;
+		else {
+			idx = cboCoachRole.find(coach_role);
+			if (idx < 0) {
+				idx = coachRoleModel.count - 1;
+				txtCoachRole.text = coach_role;
+			}
+			cboCoachRole.currentIndex = idx;
+		}
+
 		imgAvatar.source = userModel.avatar(userRow);
 		makeModelsSelectable();
 	}

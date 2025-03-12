@@ -280,7 +280,7 @@ QString DBUserModel::avatar(const int row) const
 		{
 			const QDir &localFilesDir{row == 0 ? m_appDataPath : isCoach(row) ? m_dirForCurrentCoaches : m_dirForCurrentClients};
 			const QFileInfoList &images{localFilesDir.entryInfoList(QDir::Files|QDir::NoDotAndDotDot|QDir::NoSymLinks)};
-			const auto &it = std::find_if(images.cbegin(), images.cend(), [] (auto image_fi) {
+			const auto &it = std::find_if(images.cbegin(), images.cend(), [] (const auto image_fi) {
 				return image_fi.fileName().contains("_avatar."_L1);
 			});
 			return it != images.cend() ? it->filePath() : QString{};
@@ -587,6 +587,32 @@ void DBUserModel::setCoachPublicStatus(const bool bPublic)
 	}
 }
 
+void DBUserModel::viewResume(const uint row)
+{
+	if (row < m_modeldata.count() && !_userId(row).isEmpty())
+	{
+		QString localResumeFile{};
+		if (row != m_tempRow)
+		{
+			const QDir &localFilesDir{row == 0 ? m_appDataPath : m_dirForCurrentCoaches};
+			const QFileInfoList &doc_files{localFilesDir.entryInfoList(QStringList{} << "*.pdf"_L1 << "*.odt"_L1 << "*.docx"_L1, QDir::Files)};
+
+			const auto &it = std::find_if(doc_files.cbegin(), doc_files.cend(), [] (const auto fi) {
+				return fi.fileName().contains("_resume."_L1);
+			});
+			if (it != doc_files.cend())
+				localResumeFile = std::move(it->filePath());
+		}
+		else
+		{
+			if (m_tempRowUserInfo)
+				localResumeFile = m_tempRowUserInfo->associatedFile(m_tempRowUserInfo->currentRow(), ASSOCIATED_FILES_AVATAR);
+		}
+		if (!localResumeFile.isEmpty())
+			appOsInterface()->openURL(localResumeFile);
+	}
+}
+
 void DBUserModel::uploadResume(const QString &resumeFileName)
 {
 	if (isCoach(0)) //Only applicable to the main user that is a coach
@@ -638,79 +664,6 @@ void DBUserModel::uploadResume(const QString &resumeFileName)
 			}
 		}
 		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Résumé uploading") + record_separator + tr("Failed to open file"));
-	}
-}
-
-static QString getResumeFile(const QString &dir)
-{
-	QDir directory{dir};
-	const QStringList &resume_types{directory.entryList(QStringList{} << "*.pdf"_L1 << "*.odt"_L1 << "*.docx"_L1, QDir::Files)};
-	for (const auto &it : resume_types)
-	{
-		if (it.contains("resume"))
-			return it;
-	}
-	return QString {};
-}
-
-void DBUserModel::downloadResume(const uint row)
-{
-	if (!onlineCheckIn())
-	{
-		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this,row] () {
-			downloadResume(row);
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		return;
-	}
-
-	if (row < m_modeldata.count())
-	{
-		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,row] (const QString &key, const QString &value) {
-			const int requestid{appUtils()->generateUniqueId("downloadResume"_L1)};
-			auto conn = std::make_shared<QMetaObject::Connection>();
-			*conn = connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [this,conn,requestid,row]
-							(const int request_id, const int ret_code, const QString &filename, const QByteArray &contents) {
-				if (request_id == requestid)
-				{
-					disconnect(*conn);
-					switch (ret_code)
-					{
-						case 0: //file downloaded
-						{
-							QString destDir;
-							if (row == 0 )
-								destDir = m_appDataPath;
-							else if (row == m_tempRow && m_tempRowUserInfo)
-							{
-								destDir = m_tempRowUserInfo->sourcePath();
-								m_tempRowUserInfo->setResume(m_tempRowUserInfo->currentRow(), filename);
-							}
-							else
-								destDir = m_appDataPath + _userId(row) + '/';
-
-							const QString &localResumeFile{destDir + filename};
-							QFile *resume{new QFile{localResumeFile, this}};
-							static_cast<void>(resume->remove());
-							if (resume->open(QIODeviceBase::WriteOnly|QIODeviceBase::NewOnly))
-							{
-								resume->write(contents);
-								resume->close();
-								appOsInterface()->openURL(localResumeFile);
-							}
-							delete resume;
-						}
-						break;
-						case 1: //online file and local file are the same
-							viewResume(row);
-						break;
-						default: //some error
-							appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, filename + contents);
-					}
-				}
-			});
-			appOnlineServices()->getFile(requestid, key, value, "resume", _userId(row), resume(row));
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		appKeyChain()->readKey(_userId(0));
 	}
 }
 
@@ -1034,13 +987,6 @@ QString DBUserModel::resume(const uint row) const
 	return QString {};
 }
 
-void DBUserModel::viewResume(const uint row)
-{
-	const QString &localResumeFile{getResumeFile(m_dirForCurrentCoaches)};
-	if (QFile::exists(localResumeFile))
-		appOsInterface()->openURL(localResumeFile);
-}
-
 //Only applicable to the main user that is a coach
 void DBUserModel::checkIfCoachRegisteredOnline()
 {
@@ -1234,6 +1180,66 @@ void DBUserModel::downloadAvatarFromServer(const uint row)
 		appOnlineServices()->getFile(requestid, key, value, _userId(row) + "_avatar", _userId(row), avatar(row));
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appKeyChain()->readKey(_userId(row));
+}
+
+void DBUserModel::downloadResumeFromServer(const uint row)
+{
+	if (!onlineCheckIn())
+	{
+		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this,row] () {
+			downloadResumeFromServer(row);
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		return;
+	}
+
+	if (row < m_modeldata.count())
+	{
+		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,row] (const QString &key, const QString &value) {
+			const int requestid{appUtils()->generateUniqueId("downloadResumeFromServer"_L1)};
+			auto conn = std::make_shared<QMetaObject::Connection>();
+			*conn = connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [this,conn,requestid,row]
+							(const int request_id, const int ret_code, const QString &filename, const QByteArray &contents) {
+				if (request_id == requestid)
+				{
+					disconnect(*conn);
+					switch (ret_code)
+					{
+						case 0: //file downloaded
+						{
+							QString destDir;
+							if (row == 0 )
+								destDir = m_appDataPath;
+							else if (row == m_tempRow && m_tempRowUserInfo)
+								destDir = m_tempRowUserInfo->sourcePath();
+							else
+								destDir = m_appDataPath + _userId(row) + '/';
+
+							const QString &localResumeFile{destDir + filename};
+							QFile *resume{new QFile{localResumeFile, this}};
+							static_cast<void>(resume->remove());
+							if (resume->open(QIODeviceBase::WriteOnly|QIODeviceBase::NewOnly))
+							{
+								resume->write(contents);
+								resume->close();
+								appOsInterface()->openURL(localResumeFile);
+							}
+							delete resume;
+							if (row == m_tempRow && m_tempRowUserInfo)
+								m_tempRowUserInfo->setResume(m_tempRowUserInfo->currentRow(), filename, true);
+						}
+						break;
+						case 1: //online file and local file are the same
+							viewResume(row);
+						break;
+						default: //some error
+							appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, filename + contents);
+					}
+				}
+			});
+			appOnlineServices()->getFile(requestid, key, value, "resume", _userId(row), resume(row));
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		appKeyChain()->readKey(_userId(0));
+	}
 }
 
 void DBUserModel::startServerPolling()

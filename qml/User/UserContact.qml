@@ -273,6 +273,8 @@ Frame {
 	}
 
 	function getUserInfo(): void {
+		if (userRow === -1)
+			return;
 		txtPhone.text = userModel.phone(userRow);
 		bPhoneOK = txtPhone.text.length >= 17
 		const email = userModel.email(userRow);

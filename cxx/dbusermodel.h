@@ -311,8 +311,8 @@ public:
 	Q_INVOKABLE void importFromOnlineServer();
 	Q_INVOKABLE inline bool mainUserRegistered() const { return mb_userRegistered && mb_userRegistered == true; }
 	Q_INVOKABLE void setCoachPublicStatus(const bool bPublic);
+	Q_INVOKABLE void viewResume(const uint row);
 	Q_INVOKABLE void uploadResume(const QString &resumeFileName);
-	Q_INVOKABLE void downloadResume(const uint row);
 	Q_INVOKABLE void mainUserConfigurationFinished();
 	Q_INVOKABLE inline bool isCoachRegistered() { return mb_coachRegistered ? mb_coachRegistered == true : false; }
 	Q_INVOKABLE void sendRequestToCoaches();
@@ -377,13 +377,13 @@ private:
 	void registerUserOnline();
 	QString generateUniqueUserId() const;
 	QString resume(const uint row) const;
-	void viewResume(const uint row);
 	void checkIfCoachRegisteredOnline();
 	void getUserOnlineProfile(const QString &netName, const QString &save_as_filename);
 	void sendProfileToServer();
 	void sendUserInfoToServer();
 	void sendAvatarToServer();
 	void downloadAvatarFromServer(const uint row);
+	void downloadResumeFromServer(const uint row);
 	void startServerPolling();
 	void pollServer();
 	void pollClientsRequests();

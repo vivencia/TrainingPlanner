@@ -102,8 +102,6 @@ bool OnlineUserInfo::dataFromFileSource(const QString &filename, const QString &
 		setSelected(row, false);
 		setSourceFile(row, filename);
 		setProfile(row, "profile.txt"_L1);
-		setAvatar(row, "avatar"_L1);
-		setResume(row, "resume"_L1);
 		setCurrentRow(row);
 	}
 	endInsertRows();
@@ -129,8 +127,6 @@ bool OnlineUserInfo::dataFromString(const QString &user_data, const QString &new
 	setSelected(row, false);
 	setSourceFile(row, QString{});
 	setProfile(row, "profile.txt"_L1);
-	setAvatar(row, "avatar"_L1);
-	setResume(row, "resume"_L1);
 	setCurrentRow(row);
 	endInsertRows();
 	return true;

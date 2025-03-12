@@ -133,7 +133,7 @@ TPPage {
 								right: parent.right
 							}
 
-							onClicked: userModel.downloadResume(userRow);
+							onClicked: userModel.viewResume(curRow);
 						}
 					}
 
@@ -239,7 +239,7 @@ TPPage {
 								right: parent.right
 							}
 
-							onClicked: userModel.downloadResume(curRow);
+							onClicked: userModel.viewResume(curRow);
 						}
 					}
 

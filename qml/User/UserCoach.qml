@@ -181,6 +181,8 @@ Frame {
 	}
 
 	function getUserInfo(): void {
+		if (userRow === -1)
+			return;
 		const app_use_mode = userModel.appUseMode(userRow);
 		bReady = app_use_mode === 1 || app_use_mode === 3;
 		optPersonalUse.checked = bReady;

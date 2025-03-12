@@ -239,6 +239,8 @@ Frame {
 	}
 
 	function getUserInfo(): void {
+		if (userRow === -1)
+			return;
 		txtName.text = userModel.userName(userRow);
 		bNameOK = txtName.text.length >= 5;
 		txtBirthdate.text = userModel.birthDateFancy(userRow);
