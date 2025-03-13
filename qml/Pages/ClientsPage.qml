@@ -205,9 +205,12 @@ TPPage {
 					}
 
 					onClicked: {
-						curRow = userModel.getTemporaryUserInfo(userModel.pendingClientsRequests, index);
-						if (curRow > 0)
+						const newrow = userModel.getTemporaryUserInfo(userModel.pendingClientsRequests, index);
+						if (newrow > 0) {
+							curRow = -1;
+							curRow = newrow;
 							pendingClientsList.currentIndex = index;
+						}
 					}
 				} //ItemDelegate
 			} //ListView: pendingClientsList

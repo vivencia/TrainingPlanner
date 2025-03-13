@@ -249,9 +249,12 @@ TPPage {
 					}
 
 					onClicked: {
-						curRow = userModel.getTemporaryUserInfo(userModel.pendingCoachesResponses, index);
-						if (curRow > 0)
+						const newrow = userModel.getTemporaryUserInfo(userModel.pendingCoachesResponses, index);
+						if (newrow > 0) {
+							curRow = -1;
+							curRow = newrow;
 							pendingCoachesList.currentIndex = index;
+						}
 					}
 				} //ItemDelegate
 			} //ListView: pendingCoachesList

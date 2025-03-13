@@ -193,7 +193,7 @@ void DBInterface::removeUser(const uint row)
 {
 	DBUserTable *worker{new DBUserTable{m_DBFilePath}};
 	worker->addExecArg(appUserModel()->userId(row));
-	createThread(worker, [worker] () { return worker->removeEntry(); });
+	createThread(worker, [worker] () { return worker->removeUser(); });
 }
 
 void DBInterface::deleteUserTable(const bool bRemoveFile)

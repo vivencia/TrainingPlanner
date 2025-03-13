@@ -19,6 +19,7 @@ public:
 	virtual void updateTable() override final {}
 	void getAllUsers();
 	void saveUser();
+	void removeUser();
 
 private:
 	DBUserModel *m_model;

@@ -608,13 +608,16 @@ void OSInterface::shareFile(const QString &fileName) const
 }
 void OSInterface::openURL(const QString &address) const
 {
-	#ifdef Q_OS_ANDROID
-	androidOpenURL(address);
-	#else
-	auto* __restrict proc(new QProcess());
-	proc->startDetached("xdg-open"_L1, QStringList() << address);
-	delete proc;
-	#endif
+	if (!address.isEmpty())
+	{
+		#ifdef Q_OS_ANDROID
+		androidOpenURL(address);
+		#else
+		auto* __restrict proc{new QProcess{}};
+		proc->startDetached("xdg-open"_L1, QStringList{} << address);
+		delete proc;
+		#endif
+	}
 }
 
 void OSInterface::startChatApp(const QString &phone, const QString &appname) const
@@ -622,12 +625,17 @@ void OSInterface::startChatApp(const QString &phone, const QString &appname) con
 	if (phone.length() < 17)
 		return;
 	QString phoneNumbers;
-	QString::const_iterator itr{phone.constBegin()};
+	for (const auto it: phone)
+	{
+		if (it.isDigit())
+			phoneNumbers += it;
+	}
+	/*QString::const_iterator itr{phone.constBegin()};
 	const QString::const_iterator &itr_end{phone.constEnd()};
 	do {
 		if ((*itr).isDigit())
 			phoneNumbers += *itr;
-	} while (++itr != itr_end);
+	} while (++itr != itr_end);*/
 
 	QString address;
 	if (appname.contains("Whats"_L1))

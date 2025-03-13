@@ -274,8 +274,6 @@ public:
 	inline const QString defaultCoach() const { return m_coachesNames.count() > 0 ? m_coachesNames.at(0) : QString{}; }
 	inline bool haveCoaches() const { return m_coachesNames.count() > 0; }
 	inline const QString &coaches(const uint row) const { return m_modeldata.at(row).at(USER_COL_COACHES); }
-	void copyTempUserFilesToFinalUserDir(const QString &destDir, OnlineUserInfo *userInfo, const int userInfoRow) const;
-	void clearUserDir(const QString &dir) const;
 	void addCoach(const uint row);
 	void delCoach(const uint coach_idx);
 	inline void delCoach(const QString &coach) { delCoach(m_coachesNames.indexOf(coach)); }
@@ -291,7 +289,7 @@ public:
 	void delClient(const uint client_idx);
 	inline void delClient(const QString &client) { delClient(m_clientsNames.indexOf(client)); }
 
-	Q_INVOKABLE int getTemporaryUserInfo(OnlineUserInfo* tempUser, const int userInfoRow);
+	Q_INVOKABLE int getTemporaryUserInfo(OnlineUserInfo *tempUser, const uint userInfoRow);
 	inline bool isRowTemp(const uint row) const { return row < count() ? m_modeldata.at(row).at(USER_COL_CLIENTS) == "temp"_L1 : false; }
 	inline void setRowTemp(const uint row, const bool b_temp)
 	{
@@ -384,6 +382,9 @@ private:
 	void sendAvatarToServer();
 	void downloadAvatarFromServer(const uint row);
 	void downloadResumeFromServer(const uint row);
+	void moveTempUserFilesToFinalUserDir(const QString &destDir, OnlineUserInfo *userInfo, const int userInfoRow) const;
+	void clearTempUserFiles(OnlineUserInfo *userInfo, const int userInfoRow) const;
+	void clearUserDir(const QString &dir) const;
 	void startServerPolling();
 	void pollServer();
 	void pollClientsRequests();

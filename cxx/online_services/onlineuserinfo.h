@@ -9,10 +9,6 @@
 #define USER_EXTRA_SELECTED 1
 #define USER_EXTRA_SOURCE 2
 
-#define ASSOCIATED_FILES_PROFILE 1
-#define ASSOCIATED_FILES_AVATAR 2
-#define ASSOCIATED_FILES_RESUME 3
-
 using namespace Qt::Literals::StringLiterals;
 
 class OnlineUserInfo : public QAbstractListModel
@@ -66,15 +62,6 @@ public:
 		return m_extraInfo.at(row).at(USER_EXTRA_SOURCE);
 	}
 	void setSourceFile(const uint row, const QString &source_file);
-	/**
-	 * @brief setProfile/setAvatar/setResume
-	 * @param row
-	 * @param filename: just filename, without path. m_sourceFile's path will be prepended to it along with userId
-	 */
-	void setProfile(const uint row, const QString &filename, const bool override = false);
-	void setAvatar(const uint row, const QString &filename, const bool override = false);
-	void setResume(const uint row, const QString &filename, const bool override = false);
-	inline const QString &associatedFile(const uint row, const uint af_index) const { return m_extraInfo.at(row).at(USER_EXTRA_SOURCE+af_index); }
 
 	bool dataFromFileSource(const QString &filename, const QString &new_user_id);
 	bool dataFromString(const QString &user_data, const QString &new_user_id);
