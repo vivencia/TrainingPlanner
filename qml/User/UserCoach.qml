@@ -96,7 +96,7 @@ Frame {
 
 		anchors {
 			top: optCoachUse.bottom
-			topMargin: 5
+			topMargin: 10
 			left: parent.left
 			right: parent.right
 		}

@@ -130,12 +130,11 @@ void QmlItemManager::configureQmlEngine()
 	connect(appMainWindow(), SIGNAL(openFileRejected(QString)), this, SLOT(importSlot_FileChosen(QString)));
 	appQmlEngine()->rootContext()->setContextProperty("mainwindow"_L1, QVariant::fromValue(appMainWindow()));
 
-	if (!appSettings()->mainUserConfigured())
+	if (!appUserModel()->mainUserConfigured())
 	{
 		QMetaObject::invokeMethod(appMainWindow(), "showFirstUseTimeDialog");
 		connect(appUserModel(), &DBUserModel::mainUserConfigurationFinishedSignal, this, [this] () {
 			disconnect(appUserModel(), nullptr, this, nullptr);
-			appSettings()->setMainUserConfigured(true);
 			appOsInterface()->initialCheck();
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	}

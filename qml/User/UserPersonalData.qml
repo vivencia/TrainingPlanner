@@ -163,7 +163,7 @@ Frame {
 			id: btnBirthDate
 			imageSource: "calendar.png"
 			imageSize: 30
-			enabled: userRow !== 0
+			enabled: bPasswordOK && userRow === 0
 			anchors.left: txtBirthdate.right
 			anchors.verticalCenter: txtBirthdate.verticalCenter
 

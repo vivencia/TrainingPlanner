@@ -5,7 +5,6 @@
 #include "qmlitemmanager.h"
 #include "tpglobals.h"
 #include "tpimage.h"
-#include "tpsettings.h"
 #include "tputils.h"
 #include "translationclass.h"
 #include "online_services/tponlineservices.h"
@@ -54,7 +53,6 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 		});
 		updateColumnNames();
 
-		mb_mainUserConfigured = appSettings()->mainUserConfigured();
 		m_appDataPath = std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/Files/"_L1);
 		m_onlineCoachesDir = std::move(m_appDataPath + "online_coaches/"_L1);
 		m_dirForRequestedCoaches = std::move(m_appDataPath + "requested_coaches/"_L1);
@@ -120,8 +118,7 @@ void DBUserModel::createMainUser()
 	if (m_modeldata.isEmpty())
 	{
 		m_modeldata.insert(0, std::move(QStringList{} << std::move(generateUniqueUserId()) << QString{} << std::move("2424151"_L1) <<
-			"2"_L1 << QString{} << QString{} << QString{} << QString{} << QString{} << QString{} << QString::number(APP_USE_MODE_SINGLE_USER)
-			<< STR_ZERO << STR_ZERO));
+			"2"_L1 << QString{} << QString{} << QString{} << QString{} << QString{} << QString{} << STR_ZERO << STR_ZERO << STR_ZERO));
 		emit userModified(0);
 	}
 }
@@ -303,12 +300,8 @@ void DBUserModel::setAvatar(const int row, const QString &new_avatar, const bool
 	{
 		TPImage img{nullptr};
 		img.setSource(new_avatar);
-		QString localAvatarFilePath{};
-		if (row != m_tempRow)
-		{
-			const QDir &localFilesDir{row == 0 ? m_appDataPath : isCoach(row) ? m_dirForCurrentCoaches : m_dirForCurrentClients};
-			localAvatarFilePath = std::move(_userId(row) + "_avatar."_L1 + img.sourceExtension());
-		}
+		const QDir &localFilesDir{row == 0 ? m_appDataPath : isCoach(row) ? m_dirForCurrentCoaches : m_dirForCurrentClients};
+		const QString &localAvatarFilePath = localFilesDir.absolutePath() + '/' + std::move(_userId(row) + "_avatar."_L1 + img.sourceExtension());
 		static_cast<void>(QFile::remove(avatar(row)));
 		img.saveToDisk(localAvatarFilePath);
 	}
@@ -347,6 +340,18 @@ int DBUserModel::getTemporaryUserInfo(OnlineUserInfo *tempUser, const uint userI
 		return m_tempRow;
 	}
 	return -1;
+}
+
+bool DBUserModel::mainUserConfigured() const
+{
+	if (m_modeldata.count() >= 1)
+	{
+		if (isCoach(0))
+			return (!m_modeldata.at(0).at(USER_COL_COACHROLE).isEmpty());
+		else if (isClient(0))
+			return (!m_modeldata.at(0).at(USER_COL_GOAL).isEmpty());
+	}
+	return false;
 }
 
 void DBUserModel::addCoach(const uint row)
@@ -619,7 +624,6 @@ void DBUserModel::uploadResume(const QString &resumeFileName)
 
 void DBUserModel::mainUserConfigurationFinished()
 {
-	mb_mainUserConfigured = true;
 	emit mainUserConfigurationFinishedSignal();
 
 	if (!onlineCheckIn())
@@ -857,7 +861,7 @@ bool DBUserModel::onlineCheckIn()
 
 void DBUserModel::registerUserOnline()
 {
-	if (mb_mainUserConfigured)
+	if (mainUserConfigured())
 	{
 		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this] (const QString &key, const QString &value) {
 			const int requestid{appUtils()->generateUniqueId("registerUserOnline"_L1)};

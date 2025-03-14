@@ -32,9 +32,7 @@
 #define COLOR_SCHEME_INDEX 24
 
 #define ASK_CONFIRMATION_INDEX 25
-#define USER_INDEX 26
-
-#define WEATHER_CITIES_INDEX 27
+#define WEATHER_CITIES_INDEX 26
 
 #define SETTINGS_FIELD_COUNT WEATHER_CITIES_INDEX + 1
 
@@ -71,9 +69,7 @@ Q_PROPERTY(QString weightUnit READ weightUnit WRITE setWeightUnit NOTIFY weightU
 
 Q_PROPERTY(int lastViewedMesoIdx READ lastViewedMesoIdx WRITE setLastViewedMesoIdx NOTIFY lastViewedMesoIdxChanged)
 Q_PROPERTY(uint weatherCitiesCount READ weatherCitiesCount NOTIFY weatherCitiesCountChanged)
-
 Q_PROPERTY(bool alwaysAskConfirmation READ alwaysAskConfirmation WRITE setAlwaysAskConfirmation NOTIFY alwaysAskConfirmationChanged)
-Q_PROPERTY(bool mainUserConfigured READ mainUserConfigured WRITE setMainUserConfigured NOTIFY mainUserConfiguredChanged)
 
 public:
 	explicit TPSettings(QObject* parent = nullptr);
@@ -81,10 +77,10 @@ public:
 	inline QString appVersion() const { return value(m_propertyNames.value(APP_VERSION_INDEX), m_defaultValues.at(APP_VERSION_INDEX)).toString(); }
 
 	inline QString appLocale() const { return value(m_propertyNames.value(APP_LOCALE_INDEX), m_defaultValues.at(APP_LOCALE_INDEX)).toString(); }
-	inline void setAppLocale(const QString& new_value) { changeValue(APP_LOCALE_INDEX, new_value); emit appLocaleChanged(); }
+	inline void setAppLocale(const QString &new_value) { changeValue(APP_LOCALE_INDEX, new_value); emit appLocaleChanged(); }
 
 	inline QString themeStyle() const { return value(m_propertyNames.value(THEME_STYLE_INDEX), m_defaultValues.at(THEME_STYLE_INDEX)).toString(); }
-	inline void setThemeStyle(const QString& new_value) { changeValue(THEME_STYLE_INDEX, new_value); emit themeStyleChanged(); }
+	inline void setThemeStyle(const QString &new_value) { changeValue(THEME_STYLE_INDEX, new_value); emit themeStyleChanged(); }
 
 	inline uint windowWidth() const { return m_defaultValues.at(WINDOW_WIDTH_INDEX).toUInt(); }
 	inline uint windowHeight() const { return m_defaultValues.at(WINDOW_HEIGHT_INDEX).toUInt(); }
@@ -115,23 +111,20 @@ public:
 	inline uint extraLargeFontSize() const { return m_defaultValues.at(EXTRALARGEFONT_SIZE_INDEX).toUInt(); }
 
 	inline QString weightUnit() const { return value(m_propertyNames.value(WEIGHT_UNIT_INDEX), m_defaultValues.at(WEIGHT_UNIT_INDEX)).toString(); }
-	inline void setWeightUnit(const QString& new_value) { changeValue(WEIGHT_UNIT_INDEX, new_value); emit weightUnitChanged(); }
+	inline void setWeightUnit(const QString &new_value) { changeValue(WEIGHT_UNIT_INDEX, new_value); emit weightUnitChanged(); }
 	inline QString exercisesListVersion() const { return value(m_propertyNames.value(EXERCISES_VERSION_INDEX), m_defaultValues.at(EXERCISES_VERSION_INDEX)).toString(); }
-	inline void setExercisesListVersion(const QString& new_value) { changeValue(EXERCISES_VERSION_INDEX, new_value); }
+	inline void setExercisesListVersion(const QString &new_value) { changeValue(EXERCISES_VERSION_INDEX, new_value); }
 	inline int lastViewedMesoIdx() const { return value(m_propertyNames.value(MESO_IDX_INDEX), m_defaultValues.at(MESO_IDX_INDEX)).toInt(); }
 	inline void setLastViewedMesoIdx(const int new_value) { changeValue(MESO_IDX_INDEX, QString::number(new_value)); emit lastViewedMesoIdxChanged(); }
 
 	inline uint weatherCitiesCount() const { return m_weatherLocations.count(); }
-	void addWeatherCity(const QString& city, const QString& latitude, const QString& longitude);
+	void addWeatherCity(const QString &city, const QString &latitude, const QString &longitude);
 	Q_INVOKABLE void removeWeatherCity(const uint idx);
 	Q_INVOKABLE QString weatherCity(const uint idx);
 	Q_INVOKABLE QGeoCoordinate weatherCityCoordinates(const uint idx);
 
 	inline bool alwaysAskConfirmation() const { return value(m_propertyNames.value(ASK_CONFIRMATION_INDEX), m_defaultValues.at(ASK_CONFIRMATION_INDEX)).toBool(); }
 	inline void setAlwaysAskConfirmation(const bool new_value) { changeValue(ASK_CONFIRMATION_INDEX, QString::number(new_value)); emit alwaysAskConfirmationChanged(); }
-
-	inline bool mainUserConfigured() const { return value(m_propertyNames.value(USER_INDEX), m_defaultValues.at(USER_INDEX)).toBool(); }
-	inline void setMainUserConfigured(const bool new_value) { changeValue(USER_INDEX, QString::number(static_cast<uint>(new_value))); emit mainUserConfiguredChanged(); }
 
 signals:
 	void appLocaleChanged();
@@ -142,14 +135,13 @@ signals:
 	void lastViewedMesoIdxChanged();
 	void weatherCitiesCountChanged();
 	void alwaysAskConfirmationChanged();
-	void mainUserConfiguredChanged();
 
 private:
 	QMap<uint,QString> m_propertyNames;
 	QStringList m_defaultValues;
 	QStringList m_weatherLocations;
 
-	inline void changeValue(const uint index, const QVariant& new_value)
+	inline void changeValue(const uint index, const QVariant &new_value)
 	{
 		setValue(m_propertyNames.value(index), new_value);
 		sync();

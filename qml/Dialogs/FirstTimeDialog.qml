@@ -112,7 +112,7 @@ TPPopup {
 
 		TPButton {
 			id: btnNext
-			text: qsTr("Next")
+			text: stackLayout.currentIndex < stackLayout.count - 1 ? qsTr("Next") : qsTr("Conclude")
 			imageSource: "next.png"
 			hasDropShadow: false
 			enabled: stackLayout.currentIndex < stackLayout.count ? stackLayout.itemAt(stackLayout.currentIndex).bReady : false

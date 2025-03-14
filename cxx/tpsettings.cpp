@@ -23,7 +23,6 @@ TPSettings::TPSettings(QObject* parent) : QSettings{parent}
 	m_propertyNames.insert(EXERCISES_VERSION_INDEX, std::move("exercisesListVersion"_L1));
 	m_propertyNames.insert(MESO_IDX_INDEX, std::move("lastViewedMesoIdx"_L1));
 	m_propertyNames.insert(ASK_CONFIRMATION_INDEX, std::move("alwaysAskConfirmation"_L1));
-	m_propertyNames.insert(USER_INDEX, std::move("mainUserConfigured"_L1));
 	m_propertyNames.insert(WEATHER_CITIES_INDEX, std::move("weatherLocations"_L1));
 
 	m_defaultValues.reserve(QML_PROPERTIES);
@@ -35,7 +34,6 @@ TPSettings::TPSettings(QObject* parent) : QSettings{parent}
 	m_defaultValues[WEIGHT_UNIT_INDEX] = std::move("(kg)"_L1);
 	m_defaultValues[MESO_IDX_INDEX] = STR_MINUS_ONE;
 	m_defaultValues[ASK_CONFIRMATION_INDEX] = STR_ONE;
-	m_defaultValues[USER_INDEX] = STR_ZERO;
 
 	getScreenMeasures();
 	const QFontInfo fi{QGuiApplication::font()};
@@ -57,7 +55,7 @@ void TPSettings::getScreenMeasures()
 
 #ifdef Q_OS_ANDROID
 	const QScreen* screen(QGuiApplication::primaryScreen());
-	const QRect& screenGeometry = screen->availableGeometry();
+	const QRect &screenGeometry = screen->availableGeometry();
 	const uint sWidth{static_cast<uint>(screenGeometry.width())};
 	const uint sHeight{static_cast<uint>(screenGeometry.height())};
 	screenWidth = std::move(QString::number(sWidth));
@@ -217,11 +215,11 @@ QGeoCoordinate TPSettings::weatherCityCoordinates(const uint idx)
 	return coord;
 }
 
-void TPSettings::addWeatherCity(const QString& city, const QString& latitude, const QString& longitude)
+void TPSettings::addWeatherCity(const QString &city, const QString &latitude, const QString &longitude)
 {
-	for(uint i(0); i < m_weatherLocations.count(); ++i)
+	for (const auto location: m_weatherLocations)
 	{
-		if (m_weatherLocations.at(i).contains(city, Qt::CaseInsensitive))
+		if (location.contains(city, Qt::CaseInsensitive))
 			return;
 	}
 	m_weatherLocations.append(city + record_separator + latitude + record_separator + longitude + record_separator);

@@ -26,6 +26,12 @@ TextField {
 	property bool heightAdjustable: true
 	property int suggestedHeight: 25
 
+	readonly property FontMetrics currentFontMetrics: FontMetrics {
+		font.family: control.font.family
+		font.pixelSize: control.font.pixelSize
+		font.weight: control.font.weight
+	}
+
 	signal enterOrReturnKeyPressed()
 
 	MouseArea {
@@ -67,21 +73,21 @@ TextField {
 	}
 
 	onTextChanged: {
-		//if (heightAdjustable && text.length > 0) {
-		//	adjustHeight();
-			//console.log("on text changed", text, implicitWidth, width, textWidth);
-		//}
+		adjustHeight();
 		positionCaret();
 	}
 
+	onTextEdited: adjustHeight();
 	onReadOnlyChanged: positionCaret();
-	onWidthChanged: {
-		if (heightAdjustable && width >= 30 && text.length > 0) {
-			const textWidth = AppGlobals.fontMetricsRegular.boundingRect(text).width;
-			implicitHeight = textWidth > width ? Math.ceil(textWidth/width) * suggestedHeight : suggestedHeight;
+	onWidthChanged: adjustHeight();
+
+	function adjustHeight(): void {
+		if (heightAdjustable && width >= 100 && text.length > 20) {
+			const textWidth = currentFontMetrics.boundingRect(text).width;
+			height = implicitHeight = textWidth > width ? Math.ceil(textWidth/width) * suggestedHeight : suggestedHeight;
 		}
-	//const textWidth = AppGlobals.fontMetricsRegular.boundingRect(text).width;
-	//console.log("on width changed", text, implicitWidth, width, textWidth);
+		else
+			height = implicitHeight = suggestedHeight;
 	}
 
 	function positionCaret(): void {

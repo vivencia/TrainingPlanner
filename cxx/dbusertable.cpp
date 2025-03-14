@@ -39,7 +39,7 @@ void DBUserTable::createTable()
 										"role TEXT,"
 										"coach_role TEXT,"
 										"goal TEXT,"
-										"use_mode INTEGER DEFAULT 1,"
+										"use_mode INTEGER,"
 										"coaches TEXT, "
 										"clients TEXT"
 									")"_L1
@@ -84,7 +84,7 @@ void DBUserTable::saveUser()
 		const uint row{m_execArgs.at(0).toUInt()};
 		bool bUpdate{false};
 		QString strQuery;
-		if (query.exec("SELECT id FROM users_table WHERE userid=%1"_L1.arg(m_model->_userId(row))))
+		if (query.exec("SELECT userid FROM users_table WHERE userid=%1"_L1.arg(m_model->_userId(row))))
 		{
 			if (query.first())
 				bUpdate = query.value(0).toUInt() >= 0;

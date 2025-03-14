@@ -182,7 +182,6 @@ public:
 	{
 		m_modeldata[row][USER_COL_SEX] = QString::number(new_sex);
 		emit userModified(row, USER_COL_SEX);
-		setAvatar(row, new_sex == 0 ? std::move("image://tpimageprovider/m5"_L1) : std::move("image://tpimageprovider/f1"_L1));
 	}
 
 	Q_INVOKABLE inline QString phone(const int row) const { return row >= 0 && row < m_modeldata.count() ? _phone(row) : QString{}; }
@@ -240,6 +239,10 @@ public:
 
 	Q_INVOKABLE QString avatar(const int row) const;
 	Q_INVOKABLE void setAvatar(const int row, const QString &new_avatar, const bool saveToDisk = true, const bool upload = true);
+	Q_INVOKABLE inline QString defaultAvatar(const uint row) const
+	{
+		return sex(row) == 0 ? "image://tpimageprovider/m0"_L1 : "image://tpimageprovider/f1"_L1;
+	}
 
 	Q_INVOKABLE inline uint appUseMode(const int row) const { return row >= 0 && row < m_modeldata.count() ? _appUseMode(row).toUInt() : 0; }
 	inline const QString &_appUseMode(const uint row) const { return m_modeldata.at(row).at(USER_COL_APP_USE_MODE); }
@@ -296,6 +299,9 @@ public:
 		if (row < count())
 			m_modeldata[row][USER_COL_CLIENTS] = b_temp ? std::move("temp"_L1) : QString{};
 	}
+
+	bool mainUserConfigured() const;
+
 	Q_INVOKABLE void acceptUser(OnlineUserInfo *userInfo, const int userInfoRow);
 	Q_INVOKABLE void rejectUser(OnlineUserInfo *userInfo, const int userInfoRow);
 	Q_INVOKABLE void removeCoach(const uint row);
@@ -307,7 +313,7 @@ public:
 	}
 	Q_INVOKABLE void checkUserOnline(const QString &email, const QString &password);
 	Q_INVOKABLE void importFromOnlineServer();
-	Q_INVOKABLE inline bool mainUserRegistered() const { return mb_userRegistered && mb_userRegistered == true; }
+	Q_INVOKABLE inline bool mainUserRegistered() const { return mb_userRegistered.has_value() && mb_userRegistered == true; }
 	Q_INVOKABLE void setCoachPublicStatus(const bool bPublic);
 	Q_INVOKABLE void viewResume(const uint row);
 	Q_INVOKABLE void uploadResume(const QString &resumeFileName);
@@ -362,11 +368,11 @@ signals:
 
 private:
 	int m_searchRow, m_tempRow;
-	QString m_appDataPath, m_onlineUserId, m_password;
+	QString m_appDataPath, m_onlineUserId, m_password, m_defaultAvatar;
 	std::optional<bool> mb_userRegistered, mb_coachRegistered;
 	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses, *m_tempRowUserInfo;
 	QStringList m_coachesNames, m_clientsNames;
-	bool mb_mainUserConfigured, mb_onlineCheckInInProgress, mb_keepUnavailableUser;
+	bool mb_onlineCheckInInProgress, mb_keepUnavailableUser;
 	QTimer *m_mainTimer;
 	QMutex *m_mutex;
     QWaitCondition *m_condition;

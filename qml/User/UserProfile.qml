@@ -18,9 +18,9 @@ Frame {
 	required property int userRow
 	required property TPPage parentPage
 	property bool bReady: (bClientRoleOK || bCoachRoleOK) & bGoalOK
-	property bool bCoachRoleOK: false
-	property bool bClientRoleOK: false
-	property bool bGoalOK: false
+	property bool bClientRoleOK: appUseMode !== 2
+	property bool bGoalOK: appUseMode !== 2
+	property bool bCoachRoleOK: appUseMode === 2 || appUseMode === 4
 	property int appUseMode
 	readonly property int nVisibleControls: lblCoachRole.visible ? 9 : 7
 	readonly property int controlsHeight: 25
@@ -130,6 +130,7 @@ Frame {
 
 		anchors {
 			top: cboUserRole.bottom
+			topMargin: 5
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -165,7 +166,7 @@ Frame {
 		id: cboGoal
 		model: userGoalModel
 		visible: appUseMode !== 2
-		enabled: bClientRoleOK || bCoachRoleOK
+		enabled: bClientRoleOK
 		height: controlsHeight
 		width: parent.width*0.80
 
@@ -196,6 +197,7 @@ Frame {
 
 		anchors {
 			top: cboGoal.bottom
+			topMargin: 5
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -231,6 +233,7 @@ Frame {
 		id: cboCoachRole
 		model: coachRoleModel
 		visible: appUseMode === 2 || appUseMode === 4
+		enabled: bClientRoleOK && bGoalOK
 		height: controlsHeight
 		width: parent.width*0.80
 
@@ -261,6 +264,7 @@ Frame {
 
 		anchors {
 			top: cboCoachRole.bottom
+			topMargin: 5
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -401,7 +405,11 @@ Frame {
 			cboCoachRole.currentIndex = idx;
 		}
 
-		imgAvatar.source = userModel.avatar(userRow);
+		const avatar_src = userModel.avatar(userRow);
+		if (avatar_src !== "")
+			imgAvatar.source = userModel.avatar(userRow);
+		else
+			imgAvatar.source = userModel.defaultAvatar(userRow);
 		makeModelsSelectable();
 	}
 
