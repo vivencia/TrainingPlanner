@@ -124,7 +124,7 @@ TPPopup {
 
 			onClicked: {
 				if (stackLayout.currentIndex === stackLayout.count - 1) {
-					userModel.mainUserConfigurationFinished();
+					userModel.setMainUserConfigurationFinished();
 					closePopup();
 				}
 				else {

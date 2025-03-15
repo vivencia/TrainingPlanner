@@ -133,8 +133,7 @@ void QmlItemManager::configureQmlEngine()
 	if (!appUserModel()->mainUserConfigured())
 	{
 		QMetaObject::invokeMethod(appMainWindow(), "showFirstUseTimeDialog");
-		connect(appUserModel(), &DBUserModel::mainUserConfigurationFinishedSignal, this, [this] () {
-			disconnect(appUserModel(), nullptr, this, nullptr);
+		connect(appUserModel(), &DBUserModel::mainUserConfigurationFinished, this, [this] () {
 			appOsInterface()->initialCheck();
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	}

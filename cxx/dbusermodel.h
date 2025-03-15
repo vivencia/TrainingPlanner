@@ -63,6 +63,7 @@ Q_PROPERTY(QStringList coachesNames READ coachesNames NOTIFY coachesNamesChanged
 Q_PROPERTY(QStringList clientsNames READ clientsNames NOTIFY clientsNamesChanged FINAL)
 Q_PROPERTY(bool haveCoaches READ haveCoaches NOTIFY haveCoachesChanged FINAL)
 Q_PROPERTY(bool haveClients READ haveClients NOTIFY haveClientsChanged FINAL)
+Q_PROPERTY(bool mainUserConfigured READ mainUserConfigured NOTIFY mainUserConfigurationFinished FINAL)
 
 public:
 	explicit DBUserModel(QObject *parent = nullptr, const bool bMainUserModel = true);
@@ -317,7 +318,7 @@ public:
 	Q_INVOKABLE void setCoachPublicStatus(const bool bPublic);
 	Q_INVOKABLE void viewResume(const uint row);
 	Q_INVOKABLE void uploadResume(const QString &resumeFileName);
-	Q_INVOKABLE void mainUserConfigurationFinished();
+	Q_INVOKABLE void setMainUserConfigurationFinished();
 	Q_INVOKABLE inline bool isCoachRegistered() { return mb_coachRegistered ? mb_coachRegistered == true : false; }
 	Q_INVOKABLE void sendRequestToCoaches();
 	Q_INVOKABLE void getOnlineCoachesList(const bool get_list_only = false);
@@ -360,7 +361,7 @@ signals:
 	void pendingClientsRequestsChanged();
 	void userOnlineCheckResult(const bool registered);
 	void userOnlineImportFinished(const bool result);
-	void mainUserConfigurationFinishedSignal();
+	void mainUserConfigurationFinished();
 	void mainUserOnlineCheckInChanged();
 	void coachOnlineStatus(bool registered);
 	void userProfileAcquired(const QString &userid, const bool success);

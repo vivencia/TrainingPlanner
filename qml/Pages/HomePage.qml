@@ -48,7 +48,7 @@ TPPage {
 
 	Loader {
 		id: mesosListLoader
-		active: appSettings.mainUserConfigured
+		active: userModel.mainUserConfigured
 		asynchronous: true
 		source: "qrc:/qml/Pages/HomePageElements/MesosList.qml"
 
@@ -59,7 +59,7 @@ TPPage {
 	}
 
 	footer: Loader {
-		active: appSettings.mainUserConfigured
+		active: userModel.mainUserConfigured
 		asynchronous: true
 		source: "qrc:/qml/Pages/HomePageElements/Footer.qml"
 	} // footer

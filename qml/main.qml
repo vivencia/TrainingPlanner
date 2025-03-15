@@ -18,7 +18,7 @@ ApplicationWindow {
 	title: "Training Planner"
 	flags: Qt.platform.os === "android" ? Qt.Window | Qt.FramelessWindowHint | Qt.WA_KeepScreenOn : Qt.Window
 
-	property bool bBackButtonEnabled: appSettings.mainUserConfigured
+	property bool bBackButtonEnabled: userModel.mainUserConfigured
 	property int backKey
 
 	signal saveFileChosen(filepath: string);
@@ -46,14 +46,14 @@ ApplicationWindow {
 	}
 
 	header: Loader {
-		active: appSettings.mainUserConfigured
+		active: userModel.mainUserConfigured
 		asynchronous: true
 		source: "qrc:/qml/Dialogs/NavBar.qml"
 	}
 
 	Loader {
 		id: mainMenu
-		active: appSettings.mainUserConfigured
+		active: userModel.mainUserConfigured
 		asynchronous: true
 		source: "qrc:/qml/Dialogs/MainMenu.qml"
 	}

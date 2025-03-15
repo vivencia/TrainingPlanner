@@ -15,6 +15,13 @@ TPPage {
 	required property UserManager userManager
 	property int curRow: userModel.currentRow
 
+	onPageActivated: {
+		//Online data might change. Keep up with it
+		usrData.getUserInfo();
+		usrContact.getUserInfo();
+		usrProfile.getUserInfo();
+	}
+
 	TPLabel {
 		id: lblMain
 		text: qsTr("Coaches or Trainers");
@@ -392,14 +399,6 @@ TPPage {
 
 	function avatarChangedBySexSelection(row: int) {
 		usrProfile.defaultAvatarChanged(row);
-	}
-
-	function whenPageActivated(): void {
-		//Online data might change. Keep up with it
-		usrData.getUserInfo();
-		usrContact.getUserInfo();
-		usrCoach.getUserInfo();
-		usrProfile.getUserInfo();
 	}
 
 	property UserCoachRequest requestDlg: null

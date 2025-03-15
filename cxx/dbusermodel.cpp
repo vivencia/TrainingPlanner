@@ -622,28 +622,30 @@ void DBUserModel::uploadResume(const QString &resumeFileName)
 	}
 }
 
-void DBUserModel::mainUserConfigurationFinished()
+void DBUserModel::setMainUserConfigurationFinished()
 {
-	emit mainUserConfigurationFinishedSignal();
+	emit mainUserConfigurationFinished();
 
-	if (!onlineCheckIn())
-	{
-		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this] () {
-			mainUserConfigurationFinished();
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		return;
-	}
 	if (!mainUserRegistered())
 	{
 		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this] () {
-			mainUserConfigurationFinished();
+			setMainUserConfigurationFinished();
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		registerUserOnline();
+		return;
+	}
+	if (!onlineCheckIn())
+	{
+		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this] () {
+			setMainUserConfigurationFinished();
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		return;
 	}
 	else
 	{
 		sendProfileToServer();
 		sendUserInfoToServer();
+		startServerPolling();
 	}
 }
 
@@ -1043,6 +1045,7 @@ void DBUserModel::sendUserInfoToServer()
 					{
 						disconnect(*conn);
 						userdata->close();
+						static_cast<void>(QFile::remove(userdata->fileName()));
 						delete userdata;
 						if (ret_code == 0)
 							appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tpNetworkTitle + record_separator + tr("Online user information updated"));
@@ -1250,6 +1253,7 @@ void DBUserModel::startServerPolling()
 
 		if (isCoach(0))
 		{
+			m_pendingClientRequests = new OnlineUserInfo{this};
 			QDir requestsDir{m_dirForClientsRequests};
 			if (!requestsDir.exists())
 				requestsDir.mkpath(m_dirForClientsRequests);
@@ -1259,6 +1263,7 @@ void DBUserModel::startServerPolling()
 		}
 		if (isClient(0))
 		{
+			m_pendingCoachesResponses = new OnlineUserInfo{this};
 			QDir requests_dir{m_dirForRequestedCoaches};
 			if (!requests_dir.exists())
 				requests_dir.mkpath(m_dirForRequestedCoaches);
@@ -1322,8 +1327,6 @@ void DBUserModel::pollClientsRequests()
 			if (ret_code == 0)
 			{
 				QStringList requests_list{std::move(ret_string.split(' ', Qt::SkipEmptyParts))};
-				if (!m_pendingClientRequests)
-					m_pendingClientRequests = new OnlineUserInfo{this};
 				if (m_pendingClientRequests->sanitize(requests_list, USER_COL_ID))
 					emit pendingClientsRequestsChanged();
 
@@ -1385,8 +1388,6 @@ void DBUserModel::pollCoachesAnswers()
 			if (ret_code == 0)
 			{
 				QStringList answers_list{std::move(ret_string.split(' ', Qt::SkipEmptyParts))};
-				if (!m_pendingCoachesResponses)
-					m_pendingCoachesResponses = new OnlineUserInfo{this};
 				if (m_pendingCoachesResponses->sanitize(answers_list, USER_COL_ID))
 					emit pendingCoachesResponsesChanged();
 

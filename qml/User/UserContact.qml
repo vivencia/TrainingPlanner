@@ -156,8 +156,14 @@ Frame {
 		onEditingFinished: userModel.setEmail(userRow, text);
 
 		onTextEdited: {
-			bEmailOK = text.indexOf("@") !== -1 && text.indexOf(".") !== -1;
-			ToolTip.visible = !bEmailOK;
+			const dot_idx = text.indexOf(".");
+			let emailok = false;
+			if (dot_idx !== -1) {
+				if (dot_idx <= text.length - 3)
+					emailok = text.indexOf("@") !== -1;
+			}
+			ToolTip.visible = !emailok;
+			bEmailOK = emailok;
 		}
 
 		onEnterOrReturnKeyPressed: {

@@ -122,7 +122,7 @@ TPPage {
 
 	function whenPageDeActivated(): void {
 		if (mainUserModified) {
-			userModel.mainUserConfigurationFinished();
+			userModel.setMainUserConfigurationFinished();
 			mainUserModified = false;
 		}
 	}

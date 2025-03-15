@@ -246,7 +246,7 @@ Frame {
 		}
 
 		onActivated: (index) => {
-			if (index < userGoalModel.count - 1) {
+			if (index < coachRoleModel.count - 1) {
 				userModel.setCoachRole(userRow, textAt(index));
 				bCoachRoleOK = true;
 			}
