@@ -126,6 +126,7 @@ Frame {
 	TPTextInput {
 		id: txtUserRole
 		visible: cboUserRole.currentIndex === userRoleModel.count - 1
+		readOnly: userRow !== 0
 		height: controlsHeight
 
 		anchors {
@@ -193,6 +194,7 @@ Frame {
 	TPTextInput {
 		id: txtUserGoal
 		visible: cboGoal.visible && cboGoal.currentIndex === userGoalModel.count - 1
+		readOnly: userRow !== 0
 		height: controlsHeight
 
 		anchors {
@@ -260,6 +262,7 @@ Frame {
 	TPTextInput {
 		id: txtCoachRole
 		visible: cboCoachRole.visible && cboCoachRole.currentIndex === coachRoleModel.count - 1
+		readOnly: userRow !== 0
 		height: controlsHeight
 
 		anchors {

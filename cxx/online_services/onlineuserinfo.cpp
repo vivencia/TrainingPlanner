@@ -50,6 +50,7 @@ void OnlineUserInfo::setSelected(const uint row, bool selected)
 		++m_nselected;
 	m_extraInfo[row][USER_EXTRA_SELECTED] = selected ? "1"_L1 : "0"_L1;
 	emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << selectedRole);
+	emit selectedChanged();
 }
 
 void OnlineUserInfo::setSourceFile(const uint row, const QString &source_file)

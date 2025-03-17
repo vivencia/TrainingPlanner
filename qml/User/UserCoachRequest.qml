@@ -51,7 +51,6 @@ TPPopup {
 
 		ColumnLayout {
 			id: itemsLayout
-			spacing: 5
 			anchors.fill: parent
 
 			Repeater {
@@ -59,26 +58,33 @@ TPPopup {
 				model: userModel.availableCoaches
 
 				delegate: Row {
+					required property string display
+					required property bool selected
+					required property int index
+
 					Layout.fillWidth: true
 					height: 25
 					spacing: 0
-					padding: 5
+					padding: 0
 					enabled: !userModel.availableCoaches.isUserDefault(index)
 
 					TPCheckBox {
-						text: userModel.availableCoaches.display
+						text: display
 						width: itemsLayout.width*0.65
 						multiLine: true
-						checked: model.selected
+						checked: selected
 
-						onClicked: userModel.availableCoaches.selected = checked;
+						onClicked: {
+							selected = checked;
+							userModel.availableCoaches.setSelected(index, selected);
+						}
 					} //CheckBox
 
 					TPButton {
 						text: qsTr("Résumé")
 						width: itemsLayout.width*0.3
 
-						onClicked: userModel.downloadResume(userModel.availableCoaches, index);
+						onClicked: userModel.viewResume(userModel.availableCoaches, index);
 					}
 				} //Row
 			} //Repeater
@@ -88,7 +94,7 @@ TPPopup {
 	TPButton {
 		id: btnSendRequest
 		text: qsTr("Send request to the selected coaches")
-		visible: coachesList.length > 0
+		visible: userModel.availableCoaches.count > 0
 		enabled: userModel.availableCoaches.anySelected
 
 		anchors {

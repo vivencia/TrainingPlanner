@@ -29,8 +29,8 @@ static const QLatin1StringView& userLocalDataFileName{"user.data"_L1};
 static const QString &tpNetworkTitle{qApp->tr("TP Network")};
 static const QString &profileFile_template{"%1%2.txt"};
 
-//#define POLLING_INTERVAL 1000*60
-#define POLLING_INTERVAL 1000*60*20
+#define POLLING_INTERVAL 1000*60
+//#define POLLING_INTERVAL 1000*60*20
 
 DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 	: TPListModel{parent}, m_searchRow{-1}, m_tempRow{-1}, m_availableCoaches{nullptr}, m_pendingClientRequests{nullptr},
@@ -561,13 +561,6 @@ void DBUserModel::setCoachPublicStatus(const bool bPublic)
 	}
 }
 
-void DBUserModel::viewResume(const uint row)
-{
-	const QString &localResumeFile{resume(row)};
-	if (!localResumeFile.isEmpty())
-		appOsInterface()->openURL(localResumeFile);
-}
-
 void DBUserModel::uploadResume(const QString &resumeFileName)
 {
 	if (isCoach(0)) //Only applicable to the main user that is a coach
@@ -658,7 +651,8 @@ void DBUserModel::sendRequestToCoaches()
 			{
 				if (m_availableCoaches->isSelected(i))
 				{
-					const int requestid{appUtils()->generateUniqueId("sendRequestToCoaches"_L1)};
+					const int requestid{appUtils()->generateUniqueId(QLatin1StringView{
+						QString{"sendRequestToCoaches"_L1 + m_availableCoaches->data(i, USER_COL_ID)}.toLatin1()})};
 					auto conn = std::make_shared<QMetaObject::Connection>();
 					*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid,i]
 										(const int request_id, const int ret_code, const QString &ret_string) {
@@ -709,8 +703,6 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 							emit coachesListReceived(coaches);
 							return;
 						}
-						if (!m_availableCoaches)
-							m_availableCoaches = new OnlineUserInfo{this};
 						if (m_availableCoaches->sanitize(coaches, USER_COL_ID))
 							emit availableCoachesChanged();
 
@@ -924,7 +916,7 @@ QString DBUserModel::resume(const uint row) const
 {
 	if (row < m_modeldata.count() && !_userId(row).isEmpty())
 	{
-		const QString &userid{_userId(0)};
+		const QString &userid{_userId(row)};
 		const QDir &localFilesDir{row == 0 ? m_appDataPath : row != m_tempRow ?
 						(isCoach(row) ? m_dirForCurrentCoaches + userid : m_dirForCurrentClients) + userid :
 								m_tempRowUserInfo->sourcePath()};
@@ -962,7 +954,7 @@ void DBUserModel::getUserOnlineProfile(const QString &netID, const QString &save
 	}
 
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,netID,save_as_filename] (const QString &key, const QString &value) {
-		const int requestid{appUtils()->generateUniqueId(QLatin1StringView{netID.toLatin1()})};
+		const int requestid{appUtils()->generateUniqueId(QLatin1StringView{QString{"getUserOnlineProfile"_L1 + netID.toLatin1()}.toLatin1()})};
 		auto conn = std::make_shared<QMetaObject::Connection>();
 		*conn = connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [this,conn,requestid,netID,save_as_filename]
 							(const int request_id, const int ret_code, const QString &filename, const QByteArray &contents) {
@@ -1155,35 +1147,31 @@ void DBUserModel::downloadResumeFromServer(const uint row)
 				if (request_id == requestid)
 				{
 					disconnect(*conn);
-					switch (ret_code)
+					if (ret_code > 1) //some error
+						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, filename + contents);
+					else
 					{
-						case 0: //file downloaded
-						{
-							QString destDir;
-							if (row == 0 )
-								destDir = m_appDataPath;
-							else if (row == m_tempRow && m_tempRowUserInfo)
-								destDir = m_tempRowUserInfo->sourcePath();
-							else
-								destDir = m_appDataPath + _userId(row) + '/';
+						QString destDir;
+						if (row == 0 )
+							destDir = m_appDataPath;
+						else if (row == m_tempRow && m_tempRowUserInfo)
+							destDir = m_tempRowUserInfo->sourcePath();
+						else
+							destDir = m_appDataPath + _userId(row) + '/';
 
-							const QString &localResumeFile{destDir + filename};
+						const QString &localResumeFile{destDir + filename};
+						if (ret_code == 0) //file downloaded
+						{
 							QFile *resume{new QFile{localResumeFile, this}};
 							static_cast<void>(resume->remove());
 							if (resume->open(QIODeviceBase::WriteOnly|QIODeviceBase::NewOnly))
 							{
 								resume->write(contents);
 								resume->close();
-								appOsInterface()->openURL(localResumeFile);
 							}
 							delete resume;
 						}
-						break;
-						case 1: //online file and local file are the same
-							viewResume(row);
-						break;
-						default: //some error
-							appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, filename + contents);
+						appOsInterface()->openURL(localResumeFile);
 					}
 				}
 			});
@@ -1264,6 +1252,7 @@ void DBUserModel::startServerPolling()
 		if (isClient(0))
 		{
 			m_pendingCoachesResponses = new OnlineUserInfo{this};
+			m_availableCoaches = new OnlineUserInfo{this};
 			QDir requests_dir{m_dirForRequestedCoaches};
 			if (!requests_dir.exists())
 				requests_dir.mkpath(m_dirForRequestedCoaches);

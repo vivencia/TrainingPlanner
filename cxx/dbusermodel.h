@@ -316,7 +316,14 @@ public:
 	Q_INVOKABLE void importFromOnlineServer();
 	Q_INVOKABLE inline bool mainUserRegistered() const { return mb_userRegistered.has_value() && mb_userRegistered == true; }
 	Q_INVOKABLE void setCoachPublicStatus(const bool bPublic);
-	Q_INVOKABLE void viewResume(const uint row);
+	Q_INVOKABLE inline void viewResume(const uint row)
+	{
+		downloadResumeFromServer(row);
+	}
+	Q_INVOKABLE inline void viewResume(OnlineUserInfo *tempUser, const uint userInfoRow)
+	{
+		viewResume(getTemporaryUserInfo(tempUser, userInfoRow));
+	}
 	Q_INVOKABLE void uploadResume(const QString &resumeFileName);
 	Q_INVOKABLE void setMainUserConfigurationFinished();
 	Q_INVOKABLE inline bool isCoachRegistered() { return mb_coachRegistered ? mb_coachRegistered == true : false; }

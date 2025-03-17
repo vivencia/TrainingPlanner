@@ -50,7 +50,7 @@ public:
 		Q_ASSERT_X(row < count(), "OnlineUserInfo::setSelected", "row out of range");
 		return m_extraInfo.at(row).at(USER_EXTRA_SELECTED) == "1"_L1;
 	}
-	void setSelected(const uint row, bool selected);
+	Q_INVOKABLE void setSelected(const uint row, bool selected);
 	inline uint nSelected() const { return m_nselected; }
 	inline bool allSelected() const { return m_nselected == count(); }
 	inline bool anySelected() const { return m_nselected > 0; }
