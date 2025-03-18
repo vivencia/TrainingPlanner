@@ -198,6 +198,7 @@ set( QML_SOURCES
     "qml/TPWidgets/TPButtonImage.qml"
     "qml/TPWidgets/TPFloatingControl.qml"
     "qml/TPWidgets/TPCheckBox.qml"
+    "qml/TPWidgets/TPClientsList.qml"
     "qml/TPWidgets/TPColorRectangle.qml"
     "qml/TPWidgets/TPComboBox.qml"
     "qml/TPWidgets/TPComplexDialog.qml"

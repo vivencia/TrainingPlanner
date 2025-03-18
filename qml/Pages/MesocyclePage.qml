@@ -17,6 +17,19 @@ TPPage {
 	readonly property bool bMesoNameOK: txtMesoName.text.length >= 5
 
 	property TPBalloonTip newMesoTip: exportDlgLoader.item
+
+	Connections {
+		target: mesoManager
+		function onNewMesoFieldCounterChanged(fieldCounter: int): void {
+			if (newMesoTip)
+				newMesoMessageHandler(fieldCounter);
+		}
+	}
+	Connections {
+		target: userModel
+		function onCoachesNamesChanged() { coachesModel.clear(); coachesModel.populate(); }
+	}
+
 	Loader {
 		id: exportDlgLoader
 		active: mesoManager.isNewMeso ? mesoManager.newMesoFieldCounter >= 0 : mesoManager.newMesoFieldCounter === 0
@@ -28,6 +41,7 @@ TPPage {
 			title: qsTr("New program setup incomplete")
 			imageEnabled: false
 			imageSource: "set-completed"
+			subImageLabel: String(mesoManager.newMesoFieldCounter)
 			closeButtonVisible: false
 			closable: false
 
@@ -58,59 +72,6 @@ TPPage {
 		}
 	}
 
-	Connections {
-		target: mesoManager
-		function onNewMesoFieldCounterChanged(fieldCounter: int): void {
-			if (newMesoTip)
-				newMesoMessageHandler(fieldCounter);
-		}
-	}
-
-	header: TPToolBar {
-		TPButton {
-			text: qsTr("Calendar")
-			imageSource: "meso-calendar.png"
-			imageSize: 20
-			enabled: !mesoManager.isNewMeso
-
-			anchors {
-				right: parent.right
-				verticalCenter: parent.verticalCenter
-				rightMargin: 20
-			}
-
-			onClicked: mesoManager.getCalendarPage();
-		}
-
-		TPImage {
-			id: imgNewMesoOK
-			source: "set-completed"
-			enabled: !mesoManager.isNewMeso
-			width: 45
-			height: 45
-
-			anchors {
-				left: parent.left
-				verticalCenter: parent.verticalCenter
-				leftMargin: 50
-			}
-		}
-
-		TPLabel {
-			id: lblNewMesoRequiredFieldsCounter
-			text: String(mesoManager.newMesoFieldCounter)
-			visible: mesoManager.isNewMeso
-			font: AppGlobals.smallFont
-
-			anchors {
-				left: imgNewMesoOK.right
-				leftMargin: 5
-				bottom: parent.bottom
-				bottomMargin: 5
-			}
-		}
-	}
-
 	ScrollView {
 		contentWidth: availableWidth
 		ScrollBar.vertical.interactive: true
@@ -121,18 +82,38 @@ TPPage {
 			fill: parent
 			leftMargin: 5
 			rightMargin: 5
-			topMargin: 10
-			bottomMargin: 10
+			topMargin: 5
+			bottomMargin: 5
 		}
 
 		ColumnLayout {
 			id: colMain
 			spacing: 5
 			anchors.fill: parent
-			anchors.topMargin: 15
+
+			TPLabel {
+				text: mesoManager.clientLabel
+				visible: mesoManager.ownerIsCoach && !mesoManager.ownMeso
+			}
+
+			TPClientsList {
+				id: clientsList
+				clientRow: userModel.clientRow(mesoManager.client)
+				buttonString: qsTr("Go to client's page")
+				height: 0.2*mesoPropertiesPage.height
+				allowNotConfirmedClients: false
+				Layout.fillWidth: true
+
+				onClientSelected: (userRow) => {
+					mesoManager.client = userModel.userName(userRow);
+					mesoManager.ownMeso = userRow === 0;
+				}
+				onButtonClicked: itemManager.getClientsPage();
+			} //TPClientsList
 
 			TPLabel {
 				text: mesoManager.nameLabel
+				Layout.topMargin: 10
 
 				TPButton {
 					imageSource: "set-completed"
@@ -173,104 +154,6 @@ TPPage {
 						cboCoaches.forceActiveFocus();
 					else
 						cboClients.forceActiveFocus();
-				}
-			}
-
-			TPLabel {
-				id: lblCoaches
-				text: mesoManager.coachLabel
-				visible: mesoManager.hasCoach
-				Layout.fillWidth: true
-			}
-
-			TPComboBox {
-				id: cboCoaches
-				visible: mesoManager.hasCoach
-				implicitWidth: parent.width*0.8
-
-				model: ListModel {
-					id: coachesModel
-
-					function populate(): void {
-							const coaches = userModel.coachesNames;
-							for(let i = 0; i < coaches.length; ++i)
-								append({ "text": coaches[i], "value": i, "enabled": true });
-							cboCoaches.currentIndex = Qt.binding(function() { return cboCoaches.find(mesoManager.client); });
-						}
-
-						Connections {
-							target: userModel
-							function onCoachesNamesChanged() { clear(); populate(); }
-						}
-
-						Component.onCompleted: populate();
-				}
-
-				onActivated: (index) => mesoManager.coach = textAt(index);
-
-				TPButton {
-					imageSource: "manage-coaches"
-
-					anchors {
-						left: parent.right
-						leftMargin: 5
-						verticalCenter: parent.verticalCenter
-					}
-
-					onClicked: itemManager.getClientsOrCoachesPage(false, true);
-				}
-			}
-
-			TPCheckBox {
-				text: qsTr("This program is for myself")
-				checked: mesoManager.ownMeso
-				visible: mesoManager.ownerIsCoach
-				Layout.fillWidth: true
-
-				onClicked: mesoManager.ownMeso = checked;
-			}
-
-			Row {
-				visible: mesoManager.ownerIsCoach && !mesoManager.ownMeso
-				spacing: 5
-				Layout.fillWidth: true
-
-				TPLabel {
-					text: mesoManager.clientLabel
-					width: 0.20*parent.width
-				}
-
-				TPComboBox {
-					id: cboClients
-					implicitWidth: 0.7*parent.width
-					Layout.minimumWidth: width
-
-					model: ListModel {
-						id: clientsModel
-
-						function populate(): void {
-							const clients = userModel.clientsNames;
-							for(let i = 0; i < clients.length; ++i)
-								append({ "text": clients[i], "value": i, "enabled": true });
-							cboClients.currentIndex = Qt.binding(function() { return cboClients.find(mesoManager.client); });
-						}
-
-						Connections {
-							target: userModel
-							function onClientsNamesChanged() { clear(); populate(); }
-						}
-
-						Component.onCompleted: populate();
-					}
-
-					onActivated: (index) => mesoManager.client = textAt(index);
-				}
-
-				TPButton {
-					id: btnManageClients
-					imageSource: "manage-clients"
-
-					onClicked: itemManager.getClientsOrCoachesPage(true, false);
 				}
 			}
 

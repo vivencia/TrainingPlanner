@@ -83,89 +83,17 @@ TPPage {
 			rightMargin: 5
 		}
 
-		Item {
+		TPClientsList {
+			id: clientsList
+			buttonString: qsTr("Remove")
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 
-			ListView {
-				id: clientsList
-				contentHeight: availableHeight
-				contentWidth: availableWidth
-				spacing: 0
-				clip: true
-				model: userModel.clientsNames
-				height: 0.8*parent.height
-				enabled: userModel.haveClients
-
-				ScrollBar.vertical: ScrollBar {
-					policy: ScrollBar.AsNeeded
-					active: true; visible: clientsList.contentHeight > clientsList.height
-				}
-
-				anchors {
-					top: parent.top
-					left: parent.left
-					right: parent.right
-				}
-
-				delegate: ItemDelegate {
-					spacing: 0
-					padding: 5
-					width: parent.width
-					height: 25
-
-					contentItem: Text {
-						text: modelData
-						font.pixelSize: appSettings.fontSize
-						fontSizeMode: Text.Fit
-						leftPadding: 5
-						bottomPadding: 2
-					}
-
-					background: Rectangle {
-						color: index === clientsList.currentIndex ? appSettings.entrySelectedColor :
-								(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
-					}
-
-					onClicked: {
-						curRow = userModel.findUserByName(userModel.clientsNames[index]);
-						userModel.currentRow = curRow;
-						clientsList.currentIndex = index;
-					}
-				} //ItemDelegate
-
-				Component.onCompleted: {
-					if (userModel.haveClients) {
-						userModel.currentRow = userModel.findUserByName(userModel.clientsNames[0]);
-						clientsList.currentIndex = 0;
-					}
-				}
-			} //ListView: clientsList
-
-			RowLayout {
-				uniformCellSizes: true
-				height: 25
-				visible: userModel.haveClients
-
-				anchors {
-					top: clientsList.bottom
-					topMargin: 5
-					left: parent.left
-					right: parent.right
-				}
-
-				TPButton {
-					text: qsTr("Remove")
-					autoResize: true
-					enabled: curRow != 0
-					Layout.alignment: Qt.AlignCenter
-
-					onClicked: showRemoveMessage(false,
-								qsTr("Remove ") + userModel.userName(curRow) + "?",
-								qsTr("The client will be notified of your decision, but might still contact you unless you block them"));
-				}
-			}
-		} //Item
+			onClientSelected: (userRow) => curRow = userRow;
+			onButtonClicked: showRemoveMessage(false,
+						qsTr("Remove ") + userModel.userName(curRow) + "?",
+						qsTr("The client will be notified of your decision, but might still contact you unless you block them"));
+		} //TPClientsList
 
 		Item {
 			Layout.fillWidth: true

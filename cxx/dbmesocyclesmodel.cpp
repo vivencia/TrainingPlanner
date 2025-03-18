@@ -483,24 +483,10 @@ QDate DBMesocyclesModel::getMesoMaximumEndDate(const QString &clientName, const 
 
 void DBMesocyclesModel::updateColumnLabels()
 {
-	QString strCoach;
-	QString strClient;
-	switch (appUserModel()->appUseMode(0))
-	{
-		case APP_USE_MODE_SINGLE_USER: break;
-		case APP_USE_MODE_SINGLE_COACH:
-			strClient = std::move(tr("Client: "));
-		break;
-		case APP_USE_MODE_SINGLE_USER_WITH_COACH:
-			strCoach = std::move(tr("Coach/Trainer: "));
-		break;
-		case APP_USE_MODE_COACH_USER_WITH_COACH:
-			strClient = std::move(tr("Client: "));
-			strCoach = std::move(tr("Coach/Trainer: "));
-		break;
-	}
-	mColumnNames[MESOCYCLES_COL_COACH] = std::move(strCoach);
-	mColumnNames[MESOCYCLES_COL_CLIENT] = std::move(strClient);
+	if (appUserModel()->isCoach(0))
+		mColumnNames[MESOCYCLES_COL_COACH] = std::move(tr("Coach/Trainer: "));
+	if (appUserModel()->isClient(0))
+		mColumnNames[MESOCYCLES_COL_CLIENT] = std::move(tr("Client: "));
 }
 
 int DBMesocyclesModel::exportToFile(const QString &filename, const bool, const bool, const bool) const

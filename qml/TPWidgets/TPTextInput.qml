@@ -10,6 +10,7 @@ TextField {
 	color: enabled ? textColor : appSettings.disabledFontColor
 	wrapMode: heightAdjustable ? TextInput.WordWrap : TextInput.NoWrap
 	verticalAlignment: suggestedHeight === 25 ? Text.AlignVCenter : Text.AlignTop
+	validator: RegularExpressionValidator { regularExpression: /^[^#!?&="']*$/ }
 	leftInset: 0
 	rightInset: 0
 	topInset: 0

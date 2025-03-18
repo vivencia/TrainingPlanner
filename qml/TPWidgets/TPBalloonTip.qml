@@ -20,6 +20,7 @@ TPPopup {
 	property string imageSource: ""
 	property string backColor: appSettings.primaryColor
 	property string textColor: appSettings.fontColor
+	property string subImageLabel: ""
 	property bool highlightMessage: false
 	property bool closable: true
 	property bool imageEnabled: true
@@ -77,6 +78,20 @@ TPPopup {
 		}
 
 		onSourceChanged: anchorElements();
+	}
+
+	TPLabel {
+		id: lblImageSibling
+		text: subImageLabel
+		visible: subImageLabel.length > 0
+		font: AppGlobals.smallFont
+
+		anchors {
+			left: imgElement.right
+			leftMargin: -5
+			bottom: imgElement.bottom
+			bottomMargin: -5
+		}
 	}
 
 	TPLabel {

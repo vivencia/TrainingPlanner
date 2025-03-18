@@ -366,48 +366,47 @@ function list_coaches_answers($client) {
 
 function accept_coach_answer($client, $coach)
 {
-    if (delete_coach_answer($client, $coach)) {
-        global $rootdir;
-        $clients_file = $rootdir . $coach . "/clients.txt";
-        if (!file_exists($clients_file)) {
-            $fh = fopen($clients_file, "w")  or die("Return code: 10 Unable to create coach's clients file! " .$clients_file . "\r\n");
-            chmod($clients_file, 0664);
-        }
-        else {
-            $clients = file($clients_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-            foreach ($clients as $line) {
-                if ($line == $client) {
-                    echo "Return code 11: ".$client." is already a client of ".$coach."\r\n";
-                    return;
-                }
-            }
-            $fh = fopen($clients_file, "a+")  or die("Return code: 10 Unable to open coach's clients file for appending! " .$clients_file . "\r\n");
-        }
-        fwrite($fh, $client . "\n");
-        fclose($fh);
-
-        $coaches_file = $rootdir . $client . "/coaches.txt";
-        if (!file_exists($coaches_file)) {
-            $fh = fopen($coaches_file, "w")  or die("Return code: 10 Unable to create client's coaches file! " .$coaches_file . "\r\n");
-            chmod($coaches_file, 0664);
-        }
-        else {
-            $coaches = file($coaches_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-            foreach ($coaches as $line) {
-                if ($line == $coach) {
-                    echo "Return code 11: ".$client." is already a client of ".$coach."\r\n";
-                    return;
-                }
-            }
-            $fh = fopen($coaches_file, "a+")  or die("Return code: 10 Unable to open client's coaches file for appending! " .$coaches_file . "\r\n");
-        }
-        fwrite($fh, $coach . "\n");
-        fclose($fh);
-        echo "Return code: 0 ".$client." is now a client of ".$coach;
-        return true;
+    ob_start();
+    delete_coach_answer($client, $coach);
+    ob_end_clean();
+    global $rootdir;
+    $clients_file = $rootdir . $coach . "/clients.txt";
+    if (!file_exists($clients_file)) {
+        $fh = fopen($clients_file, "w")  or die("Return code: 10 Unable to create coach's clients file! " .$clients_file . "\r\n");
+        chmod($clients_file, 0664);
     }
-    echo "Return code: 11 Could not make ".$client." a client of ".$coach;
-    return false;
+    else {
+        $clients = file($clients_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($clients as $line) {
+            if ($line == $client) {
+                echo "Return code 11: ".$client." is already a client of ".$coach."\r\n";
+                return;
+            }
+        }
+        $fh = fopen($clients_file, "a+")  or die("Return code: 10 Unable to open coach's clients file for appending! " .$clients_file . "\r\n");
+    }
+    fwrite($fh, $client . "\n");
+    fclose($fh);
+
+    $coaches_file = $rootdir . $client . "/coaches.txt";
+    if (!file_exists($coaches_file)) {
+        $fh = fopen($coaches_file, "w")  or die("Return code: 10 Unable to create client's coaches file! " .$coaches_file . "\r\n");
+        chmod($coaches_file, 0664);
+    }
+    else {
+        $coaches = file($coaches_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($coaches as $line) {
+            if ($line == $coach) {
+                echo "Return code 11: ".$client." is already a client of ".$coach."\r\n";
+                return;
+            }
+        }
+        $fh = fopen($coaches_file, "a+")  or die("Return code: 10 Unable to open client's coaches file for appending! " .$coaches_file . "\r\n");
+    }
+    fwrite($fh, $coach . "\n");
+    fclose($fh);
+    echo "Return code: 0 ".$client." is now a client of ".$coach;
+    return true;
 }
 
 function reject_coach_answer($client, $coach)

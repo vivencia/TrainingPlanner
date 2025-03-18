@@ -32,8 +32,20 @@ static const QString &profileFile_template{"%1%2.txt"};
 #define POLLING_INTERVAL 1000*60
 //#define POLLING_INTERVAL 1000*60*20
 
+//A non-confirmed user both has appUseMode set to APP_USE_MODE_PENDING_CLIENT and
+//appended to their name an additional string containing the not allowed char '!'
+static inline QString userNameWithoutConfirmationWarning(const QString &userName)
+{
+	if (userName.contains('!'))
+	{
+		const qsizetype sep_idx{userName.indexOf('!')};
+		return userName.left(sep_idx-1);
+	}
+	return userName;
+}
+
 DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
-	: TPListModel{parent}, m_searchRow{-1}, m_tempRow{-1}, m_availableCoaches{nullptr}, m_pendingClientRequests{nullptr},
+	: TPListModel{parent}, m_tempRow{-1}, m_availableCoaches{nullptr}, m_pendingClientRequests{nullptr},
 		m_pendingCoachesResponses{nullptr}, mb_onlineCheckInInProgress{false}, m_mainTimer{nullptr}
 {
 	setObjectName(DBUserObjectName);
@@ -149,71 +161,6 @@ void DBUserModel::removeUser(const int row)
 	}
 }
 
-int DBUserModel::findFirstUser(const bool bCoach)
-{
-	int searchRow(1);
-	m_searchRow = -1;
-	for (; searchRow < m_modeldata.count(); ++searchRow)
-	{
-		if (m_modeldata.at(searchRow).at(USER_COL_APP_USE_MODE) == (bCoach ? "2"_L1 : "0"_L1))
-		{
-			m_searchRow = searchRow;
-			break;
-		}
-	}
-	return m_searchRow;
-}
-
-int DBUserModel::findNextUser(const bool bCoach)
-{
-	if (m_searchRow == m_modeldata.count() - 1)
-		return m_searchRow;
-	else if (m_searchRow <= 0)
-		return findFirstUser(bCoach);
-
-	int searchRow(m_searchRow + 1);
-	for (; searchRow < m_modeldata.count(); ++searchRow)
-	{
-		if (m_modeldata.at(searchRow).at(USER_COL_APP_USE_MODE) == (bCoach ? "2"_L1 : "0"_L1))
-		{
-			m_searchRow = searchRow;
-			break;
-		}
-	}
-	return m_searchRow;
-}
-
-int DBUserModel::findPrevUser(const bool bCoach)
-{
-	if (m_searchRow <= 1)
-		return findFirstUser(bCoach);
-
-	int searchRow(m_searchRow - 1);
-	for (; searchRow >= 0; --searchRow)
-	{
-		if (m_modeldata.at(searchRow).at(USER_COL_APP_USE_MODE) == (bCoach ? "2"_L1 : "0"_L1))
-		{
-			m_searchRow = searchRow;
-			break;
-		}
-	}
-	return m_searchRow;
-}
-
-int DBUserModel::findLastUser(const bool bCoach)
-{
-	int searchRow(m_modeldata.count() - 1);
-	for (; searchRow >= 0; --searchRow)
-	{
-		if (m_modeldata.at(searchRow).at(USER_COL_APP_USE_MODE) == (bCoach ? "2"_L1 : "0"_L1))
-		{
-			m_searchRow = searchRow;
-			break;
-		}
-	}
-	return m_searchRow;
-}
-
 const int DBUserModel::getRowByCoachName(const QString &coachname) const
 {
 	for (uint i{0}; i < m_modeldata.count(); ++i)
@@ -229,11 +176,13 @@ const int DBUserModel::getRowByCoachName(const QString &coachname) const
 
 int DBUserModel::findUserByName(const QString &userName) const
 {
+	if (userName.startsWith('*'))
+		return 0;
 	for (uint i{0}; i < m_modeldata.count(); ++i)
 	{
 		if (i != m_tempRow)
 		{
-			if (m_modeldata.at(i).at(USER_COL_NAME) == userName)
+			if (m_modeldata.at(i).at(USER_COL_NAME) == userNameWithoutConfirmationWarning(userName))
 				return i;
 		}
 	}
@@ -409,12 +358,25 @@ void DBUserModel::delClient(const uint client_idx)
 	}
 }
 
+//When client changes name remotely or when changing from not yet accepted coach(main user) to accepted coach
+void DBUserModel::changeClient(const uint row, const QString &oldname)
+{
+	appUtils()->setCompositeValue(m_clientsNames.count(), _userId(row), m_modeldata[row][USER_COL_CLIENTS], record_separator);
+	emit userModified(0, USER_COL_CLIENTS);
+	const qsizetype idx{m_clientsNames.indexOf(oldname)};
+	if (idx >= 0)
+	{
+		m_clientsNames[idx] = _userName(row);
+		emit clientsNamesChanged();
+	}
+}
+
 void DBUserModel::acceptUser(OnlineUserInfo *userInfo, const int userInfoRow)
 {
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,userInfo,userInfoRow] (const QString &key, const QString &value) {
 		const QString &user_id{userInfo->data(userInfoRow, USER_COL_ID)};
 		const bool userIsCoach{userInfo->data(userInfoRow, USER_COL_COACHES) == STR_ONE};
-		const int new_app_use_mode{userIsCoach ? APP_USE_MODE_SINGLE_COACH : APP_USE_MODE_SINGLE_USER};
+		const int new_app_use_mode{userIsCoach ? APP_USE_MODE_SINGLE_COACH : APP_USE_MODE_PENDING_CLIENT};
 		const QString &destDir{(userIsCoach ? m_dirForCurrentCoaches : m_dirForCurrentClients) + user_id + '/'};
 		moveTempUserFilesToFinalUserDir(destDir, userInfo, userInfoRow);
 
@@ -428,18 +390,21 @@ void DBUserModel::acceptUser(OnlineUserInfo *userInfo, const int userInfoRow)
 
 		m_modeldata.last()[USER_COL_COACHES] = QString{};
 		m_modeldata.last()[USER_COL_APP_USE_MODE] = std::move(QString::number(new_app_use_mode));
+		const uint lastidx{count()-1};
 		if (userIsCoach)
 		{
-			addCoach(count()-1);
+			addCoach(lastidx);
 			appOnlineServices()->acceptCoachAnswer(0, key, value, user_id);
 		}
 		else
 		{
-			addClient(count()-1);
+			//Only when the user confirms the coach's acceptance, can they be effectively included as client of main user
+			m_modeldata.last()[USER_COL_NAME] = std::move(_userName(lastidx) + tr(" !Pending confirmation!"));
+			addClient(lastidx);
 			appOnlineServices()->acceptClientRequest(0, key, value, user_id);
 		}
 		userInfo->removeUserInfo(userInfoRow, false);
-		emit userModified(count() - 1);
+		emit userModified(lastidx);
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appKeyChain()->readKey(_userId(0));
 }
@@ -1469,6 +1434,8 @@ void DBUserModel::pollCurrentClients()
 				{
 					if (!clients_list.contains(_userId(i)))
 					{
+						if (appUseMode(i) == APP_USE_MODE_PENDING_CLIENT)
+							continue;
 						m_mutex = new QMutex{};
 						m_condition = new QWaitCondition{};
 						if (!connected)
@@ -1476,14 +1443,26 @@ void DBUserModel::pollCurrentClients()
 							connect(appMainWindow(), SIGNAL(keepNoLongerAvailableUser(bool)), this, SLOT(slot_keepNoLongerAvailableUser(bool)));
 							connected = true;
 						}
-						QMetaObject::invokeMethod(appMainWindow(), "showUserNoLongerAvailable", Q_ARG(QString, _userId(i) + tr(" - unavailable")),
+						if (QMetaObject::invokeMethod(appMainWindow(), "showUserNoLongerAvailable", Q_ARG(QString, _userId(i) + tr(" - unavailable")),
 							Q_ARG(QString, tr("The user is no longer available as your client. If you need to know more about this, contact them to "
-							"find out the reason. Remove the user from your list of clients?")));
-						// Lock mutex and wait
-						QMutexLocker locker(m_mutex);
-						m_condition->wait(m_mutex); // Blocks here until woken the signal comming from QML
-						if (!mb_keepUnavailableUser)
-							removeUser(i);
+							"find out the reason. Remove the user from your list of clients?"))))
+						{
+							// Lock mutex and wait
+							QMutexLocker locker(m_mutex);
+							m_condition->wait(m_mutex); // Blocks here until woken the signal comming from QML
+							if (!mb_keepUnavailableUser)
+								removeUser(i);
+						}
+					}
+					else
+					{
+						if (_userName(i).last(1) == '!')
+						{
+							const QString &oldUserName{_userName(i)};
+							setUserName(i, userNameWithoutConfirmationWarning(oldUserName));
+							setAppUseMode(i, APP_USE_MODE_SINGLE_USER);
+							changeClient(i, oldUserName);
+						}
 					}
 				}
 				if (m_mutex != nullptr)

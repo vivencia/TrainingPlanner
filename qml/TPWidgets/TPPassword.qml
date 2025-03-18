@@ -11,7 +11,7 @@ FocusScope {
 	signal passwordAccepted();
 	signal passwordUnacceptable();
 
-	property string notAllowableChars: "# &=\'\""
+	property string notAllowableChars: "# &?=\'\""
 
 	TPLabel {
 		id: lblPassword
@@ -30,7 +30,7 @@ FocusScope {
 		heightAdjustable: false
 		echoMode: btnShowHidePassword.show ? TextInput.Normal : TextInput.Password
 		inputMethodHints: Qt.ImhSensitiveData|Qt.ImhNoPredictiveText
-		validator: RegularExpressionValidator { regularExpression: /^[^# &="']*$/ }
+		validator: RegularExpressionValidator { regularExpression: /^[^# &?="']*$/ }
 		ToolTip.text: userModel.invalidPasswordLabel
 		focus: true
 		height: 25

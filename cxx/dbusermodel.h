@@ -26,6 +26,7 @@
 #define APP_USE_MODE_SINGLE_COACH 2
 #define APP_USE_MODE_SINGLE_USER_WITH_COACH 3
 #define APP_USE_MODE_COACH_USER_WITH_COACH 4
+#define APP_USE_MODE_PENDING_CLIENT 5
 
 #define USER_COL_AVATAR 20 //not in database, but used on model and GUI operations
 
@@ -98,18 +99,17 @@ public:
 			startServerPolling();
 			if (isCoach(0))
 			{
-				m_coachesNames.append(_userName(0));
+				m_coachesNames.append(tr("**Myself"));
 				m_exportName = std::move(tr("Coach information"));
 			}
 			if (isClient(0))
 			{
-				m_clientsNames.append(_userName(0));
+				m_clientsNames.append(tr("**Myself"));
 				m_exportName = std::move(tr("Client information"));
 			}
 		}
 		else
 		{
-
 			if (isCoach(0) && isClient(last_idx))
 				m_clientsNames.append(_userName(last_idx));
 			else if (isCoach(last_idx))
@@ -121,10 +121,6 @@ public:
 	Q_INVOKABLE void removeMainUser();
 	Q_INVOKABLE void removeUser(const int row);
 
-	Q_INVOKABLE int findFirstUser(const bool bCoach = false);
-	Q_INVOKABLE int findNextUser(const bool bCoach = false);
-	Q_INVOKABLE int findPrevUser(const bool bCoach = false);
-	Q_INVOKABLE int findLastUser(const bool bCoach = false);
 	const int getRowByCoachName(const QString &coachname) const;
 	inline bool isCoach(const uint row) const
 	{
@@ -133,8 +129,7 @@ public:
 	}
 	inline bool isClient(const uint row) const
 	{
-		const uint app_use_mode{appUseMode(row)};
-		return app_use_mode == APP_USE_MODE_SINGLE_USER_WITH_COACH || app_use_mode == APP_USE_MODE_COACH_USER_WITH_COACH;
+		return appUseMode(row) != APP_USE_MODE_SINGLE_COACH;
 	}
 
 	Q_INVOKABLE int findUserByName(const QString &userName) const;
@@ -251,22 +246,6 @@ public:
 	{
 		if (new_use_opt != appUseMode(row))
 		{
-			if (new_use_opt != APP_USE_MODE_SINGLE_COACH && new_use_opt != APP_USE_MODE_COACH_USER_WITH_COACH)
-			{
-				delCoach(row);
-				addClient(row);
-				if (mb_coachRegistered == true)
-					setCoachPublicStatus(false);
-				if (row == 0)
-					m_exportName = std::move(tr("Client information"));
-			}
-			else
-			{
-				addCoach(row);
-				delClient(row);
-				if (row == 0)
-					m_exportName = std::move(tr("Coach information"));
-			}
 			m_modeldata[row][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
 			emit userModified(row, USER_COL_APP_USE_MODE);
 		}
@@ -275,6 +254,7 @@ public:
 	inline OnlineUserInfo *availableCoaches() const { return m_availableCoaches; }
 	inline OnlineUserInfo *pendingCoachesResponses() const { return m_pendingCoachesResponses; }
 	inline QStringList coachesNames() const { return m_coachesNames; }
+	Q_INVOKABLE inline int coachRow(const QString &coach_name) const { return m_coachesNames.indexOf(coach_name); }
 	inline const QString defaultCoach() const { return m_coachesNames.count() > 0 ? m_coachesNames.at(0) : QString{}; }
 	inline bool haveCoaches() const { return m_coachesNames.count() > 0; }
 	inline const QString &coaches(const uint row) const { return m_modeldata.at(row).at(USER_COL_COACHES); }
@@ -286,11 +266,13 @@ public:
 
 	inline OnlineUserInfo *pendingClientsRequests() const { return m_pendingClientRequests; }
 	inline QStringList clientsNames() const { return m_clientsNames; }
+	Q_INVOKABLE inline int clientRow(const QString &client_name) const { return m_clientsNames.indexOf(client_name); }
 	inline const QString defaultClient() const { return m_clientsNames.count() > 0 ? m_clientsNames.at(0) : QString{}; }
 	inline bool haveClients() const { return m_clientsNames.count() > 0; }
 	inline const QString &clients(const uint row) const { return m_modeldata.at(row).at(USER_COL_CLIENTS); }
 	void addClient(const uint row);
 	void delClient(const uint client_idx);
+	void changeClient(const uint row, const QString &oldname);
 	inline void delClient(const QString &client) { delClient(m_clientsNames.indexOf(client)); }
 
 	Q_INVOKABLE int getTemporaryUserInfo(OnlineUserInfo *tempUser, const uint userInfoRow);
@@ -375,7 +357,7 @@ signals:
 	void userPasswordAvailable(const QString &password);
 
 private:
-	int m_searchRow, m_tempRow;
+	int m_tempRow;
 	QString m_appDataPath, m_onlineUserId, m_password, m_defaultAvatar;
 	std::optional<bool> mb_userRegistered, mb_coachRegistered;
 	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses, *m_tempRowUserInfo;
