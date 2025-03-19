@@ -1,5 +1,4 @@
-#ifndef DBMESOCYCLESMODEL_H
-#define DBMESOCYCLESMODEL_H
+#pragma once
 
 #include "tplistmodel.h"
 
@@ -283,4 +282,3 @@ private:
 };
 
 inline DBMesocyclesModel* appMesoModel() { return DBMesocyclesModel::app_meso_model; }
-#endif // DBMESOCYCLESMODEL_H

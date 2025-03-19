@@ -421,6 +421,33 @@ void TPUtils::removeFieldFromCompositeValue(const uint idx, QString &compositeSt
 	compositeString.remove(del_pos_1, del_pos_2 - del_pos_1 + 1);
 }
 
+int TPUtils::fieldOfValue(const QString &value, const QString &compositeString, const QLatin1Char &chr_sep) const
+{
+	qsizetype sep_pos{compositeString.indexOf(chr_sep)};
+	if (sep_pos != -1)
+	{
+		qsizetype value_start{sep_pos+1};
+		qsizetype value_end{compositeString.indexOf(chr_sep, value_start)};
+		if (value_end != -1 && value_end != value_start)
+		{
+			int idx{0};
+			do {
+				const QString &word{compositeString.sliced(value_start, value_end-value_start)};
+				if (word == value)
+					return idx;
+				sep_pos = compositeString.indexOf(chr_sep, value_end+1);
+				if (sep_pos != -1)
+				{
+					++idx;
+					value_start = sep_pos+1;
+					value_end = compositeString.indexOf(chr_sep, value_start);
+				}
+			} while (sep_pos != -1);
+		}
+	}
+	return -1;
+}
+
 bool TPUtils::stringsAreSimiliar(const QString &string1, const QString &string2) const
 {
 	const QStringList& words2{string2.split(' ')};

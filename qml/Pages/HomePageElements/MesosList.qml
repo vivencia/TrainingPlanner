@@ -205,6 +205,7 @@ ListView {
 				title: qsTr("Remove Program?")
 				message: qsTr("This action cannot be undone. Note: removing a Program does not remove the workout records.")
 				imageSource: "remove"
+				keepAbove: true
 				parentPage: homePage
 
 				property int mesoidx

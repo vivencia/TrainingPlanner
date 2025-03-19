@@ -1,6 +1,4 @@
-#ifndef DBUSERMODEL_H
-#define DBUSERMODEL_H
-
+#pragma once
 #include "tplistmodel.h"
 #include "tpglobals.h"
 #include "tputils.h"
@@ -17,10 +15,8 @@
 #define USER_COL_COACHROLE 8
 #define USER_COL_GOAL 9
 #define USER_COL_APP_USE_MODE 10
-#define USER_COL_COACHES 11
-#define USER_COL_CLIENTS 12
 
-#define USER_TOTAL_COLS USER_COL_CLIENTS + 1
+#define USER_TOTAL_COLS USER_COL_APP_USE_MODE + 1
 
 #define APP_USE_MODE_SINGLE_USER 1
 #define APP_USE_MODE_SINGLE_COACH 2
@@ -31,8 +27,6 @@
 #define USER_COL_AVATAR 20 //not in database, but used on model and GUI operations
 
 QT_FORWARD_DECLARE_CLASS(QTimer)
-QT_FORWARD_DECLARE_CLASS(QMutex)
-QT_FORWARD_DECLARE_CLASS(QWaitCondition)
 
 class DBUserModel : public TPListModel
 {
@@ -88,35 +82,7 @@ public:
 	QString checkEmailLabel() const;
 	QString importUserLabel() const;
 
-	inline void addUser_fast(QStringList &&user_info)
-	{
-		m_modeldata.append(std::move(user_info));
-		const qsizetype last_idx{m_modeldata.count()-1};
-		if (last_idx == 0)
-		{
-			//DBUserTable calls here when reading from the database. When we get the data for the main user, initialize the network connection
-			static_cast<void>(onlineCheckIn());
-			startServerPolling();
-			if (isCoach(0))
-			{
-				m_coachesNames.append(tr("**Myself"));
-				m_exportName = std::move(tr("Coach information"));
-			}
-			if (isClient(0))
-			{
-				m_clientsNames.append(tr("**Myself"));
-				m_exportName = std::move(tr("Client information"));
-			}
-		}
-		else
-		{
-			if (isCoach(0) && isClient(last_idx))
-				m_clientsNames.append(_userName(last_idx));
-			else if (isCoach(last_idx))
-				m_coachesNames.append(_userName(last_idx));
-		}
-	}
-
+	void addUser(QStringList &&user_info);
 	Q_INVOKABLE void createMainUser();
 	Q_INVOKABLE void removeMainUser();
 	Q_INVOKABLE void removeUser(const int row);
@@ -135,8 +101,7 @@ public:
 	Q_INVOKABLE int findUserByName(const QString &userName) const;
 	Q_INVOKABLE int findUserById(const QString &userId) const;
 
-	inline int userId(const uint row) const { return _userId(row).toInt(); }
-	inline const QString &_userId(const int row) const { return m_modeldata.at(row).at(USER_COL_ID); }
+	inline const QString &userId(const int row) const { return m_modeldata.at(row).at(USER_COL_ID); }
 	inline void setUserId(const uint row, const QString &new_id) { m_modeldata[row][USER_COL_ID] = new_id; }
 
 	Q_INVOKABLE inline QString userName(const int row) const { return row >= 0 && row < m_modeldata.count() ? _userName(row) : QString{}; }
@@ -242,14 +207,7 @@ public:
 
 	Q_INVOKABLE inline uint appUseMode(const int row) const { return row >= 0 && row < m_modeldata.count() ? _appUseMode(row).toUInt() : 0; }
 	inline const QString &_appUseMode(const uint row) const { return m_modeldata.at(row).at(USER_COL_APP_USE_MODE); }
-	Q_INVOKABLE inline void setAppUseMode(const int row, const int new_use_opt)
-	{
-		if (new_use_opt != appUseMode(row))
-		{
-			m_modeldata[row][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
-			emit userModified(row, USER_COL_APP_USE_MODE);
-		}
-	}
+	Q_INVOKABLE void setAppUseMode(const int row, const int new_use_opt);
 
 	inline OnlineUserInfo *availableCoaches() const { return m_availableCoaches; }
 	inline OnlineUserInfo *pendingCoachesResponses() const { return m_pendingCoachesResponses; }
@@ -257,10 +215,8 @@ public:
 	Q_INVOKABLE inline int coachRow(const QString &coach_name) const { return m_coachesNames.indexOf(coach_name); }
 	inline const QString defaultCoach() const { return m_coachesNames.count() > 0 ? m_coachesNames.at(0) : QString{}; }
 	inline bool haveCoaches() const { return m_coachesNames.count() > 0; }
-	inline const QString &coaches(const uint row) const { return m_modeldata.at(row).at(USER_COL_COACHES); }
 	void addCoach(const uint row);
-	void delCoach(const uint coach_idx);
-	inline void delCoach(const QString &coach) { delCoach(m_coachesNames.indexOf(coach)); }
+	void delCoach(const uint row);
 	const QString currentCoachName(const uint row) const;
 	void checkCoachesReponses();
 
@@ -269,20 +225,11 @@ public:
 	Q_INVOKABLE inline int clientRow(const QString &client_name) const { return m_clientsNames.indexOf(client_name); }
 	inline const QString defaultClient() const { return m_clientsNames.count() > 0 ? m_clientsNames.at(0) : QString{}; }
 	inline bool haveClients() const { return m_clientsNames.count() > 0; }
-	inline const QString &clients(const uint row) const { return m_modeldata.at(row).at(USER_COL_CLIENTS); }
 	void addClient(const uint row);
-	void delClient(const uint client_idx);
+	void delClient(const uint row);
 	void changeClient(const uint row, const QString &oldname);
-	inline void delClient(const QString &client) { delClient(m_clientsNames.indexOf(client)); }
 
 	Q_INVOKABLE int getTemporaryUserInfo(OnlineUserInfo *tempUser, const uint userInfoRow);
-	inline bool isRowTemp(const uint row) const { return row < count() ? m_modeldata.at(row).at(USER_COL_CLIENTS) == "temp"_L1 : false; }
-	inline void setRowTemp(const uint row, const bool b_temp)
-	{
-		if (row < count())
-			m_modeldata[row][USER_COL_CLIENTS] = b_temp ? std::move("temp"_L1) : QString{};
-	}
-
 	bool mainUserConfigured() const;
 
 	Q_INVOKABLE void acceptUser(OnlineUserInfo *userInfo, const int userInfoRow);
@@ -333,7 +280,9 @@ public:
 
 public slots:
 	void getPasswordFromUserInput(const int resultCode, const QString &password);
-	void slot_keepNoLongerAvailableUser(bool keep);
+	void slot_removeNoLongerAvailableUser(const int row, bool remove);
+	void slot_revokeCoachStatus(int new_use_opt, bool revoke);
+	void slot_revokeClientStatus(int new_use_opt, bool revoke);
 
 signals:
 	void userModified(const uint row, const uint field = 100); //100 all fields
@@ -362,10 +311,8 @@ private:
 	std::optional<bool> mb_userRegistered, mb_coachRegistered;
 	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses, *m_tempRowUserInfo;
 	QStringList m_coachesNames, m_clientsNames;
-	bool mb_onlineCheckInInProgress, mb_keepUnavailableUser;
+	bool mb_onlineCheckInInProgress;
 	QTimer *m_mainTimer;
-	QMutex *m_mutex;
-    QWaitCondition *m_condition;
 
 	bool onlineCheckIn();
 	void registerUserOnline();
@@ -400,5 +347,3 @@ private:
 };
 
 inline DBUserModel *appUserModel() { return DBUserModel::_appUserModel; }
-
-#endif // DBUSERMODEL_H

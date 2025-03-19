@@ -1,5 +1,4 @@
-#ifndef TPONLINESERVICES_H
-#define TPONLINESERVICES_H
+#pragma once
 
 #include <QObject>
 #include <QNetworkAccessManager>
@@ -79,4 +78,3 @@ private:
 };
 
 inline TPOnlineServices* appOnlineServices() { return TPOnlineServices::_appOnlineServices; }
-#endif // TPONLINESERVICES_H

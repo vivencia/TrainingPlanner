@@ -636,7 +636,7 @@ TPPage {
 
 				function finishCreation() {
 					msgClearExercises = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Clear exercises list?"),
-						message: qsTr("All exercises changes will be removed"), imageSource: "revert-day.png" } );
+						keepAbove: true, message: qsTr("All exercises changes will be removed"), imageSource: "revert-day.png" } );
 					msgClearExercises.button1Clicked.connect(function () { tDayManager.clearExercises(); } );
 				}
 
@@ -835,7 +835,7 @@ TPPage {
 
 				function finishCreation() {
 					msgRemoveExercise = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Remove Exercise?"),
-						imageSource: "remove" } );
+						keepAbove: true, imageSource: "remove" } );
 					msgRemoveExercise.button1Clicked.connect(function () { tDayManager.removeExercise(exerciseidx); } );
 				}
 
@@ -857,7 +857,7 @@ TPPage {
 				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					msgRemoveSet = component.createObject(trainingDayPage, { parentPage: trainingDayPage, imageSource: "remove",
+					msgRemoveSet = component.createObject(trainingDayPage, { parentPage: trainingDayPage, keepAbove: true, imageSource: "remove",
 						message: qsTr("This action cannot be undone.") } );
 					msgRemoveSet.button1Clicked.connect(function () { tDayManager.removeSetFromExercise(exerciseidx, setnumber); } );
 				}

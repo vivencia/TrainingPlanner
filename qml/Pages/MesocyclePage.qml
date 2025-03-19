@@ -42,8 +42,7 @@ TPPage {
 			imageEnabled: false
 			imageSource: "set-completed"
 			subImageLabel: String(mesoManager.newMesoFieldCounter)
-			closeButtonVisible: false
-			closable: false
+			keepAbove: true
 
 			onClosed: {
 				if (mesoManager.newMesoFieldCounter === 0)

@@ -1,6 +1,4 @@
-#ifndef TPLISTMODEL_H
-#define TPLISTMODEL_H
-
+#pragma once
 #include <QAbstractListModel>
 #include <QQmlEngine>
 #include <QDate>
@@ -95,5 +93,3 @@ protected:
 	friend class DBTrainingDayModel;
 	friend class DBUserModel;
 };
-
-#endif // TPLISTMODEL_H

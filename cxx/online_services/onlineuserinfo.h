@@ -1,5 +1,4 @@
-#ifndef ONLINEUSERINFO_H
-#define ONLINEUSERINFO_H
+#pragma once
 
 #include <QAbstractListModel>
 #include <QObject>
@@ -8,6 +7,7 @@
 #define USER_EXTRA_NAME 0
 #define USER_EXTRA_SELECTED 1
 #define USER_EXTRA_SOURCE 2
+#define USER_EXTRA_ISCOACH 3
 
 using namespace Qt::Literals::StringLiterals;
 
@@ -63,6 +63,13 @@ public:
 	}
 	void setSourceFile(const uint row, const QString &source_file);
 
+	inline const bool isCoach(const uint row) const
+	{
+		Q_ASSERT_X(row < count(), "OnlineUserInfo::isCoach", "row out of range");
+		return m_extraInfo.at(row).at(USER_EXTRA_ISCOACH) == "1"_L1;
+	}
+	void setIsCoach(const uint row, bool coach);
+
 	bool dataFromFileSource(const QString &filename, const QString &new_user_id);
 	bool dataFromString(const QString &user_data, const QString &new_user_id);
 	void removeUserInfo(const uint row, const bool remove_source);
@@ -94,7 +101,7 @@ public:
 
 	bool containsUser(const QString &userid) const;
 
-	inline int rowCount(const QModelIndex& parent) const override final { Q_UNUSED(parent); return count(); }
+	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
 	QVariant data(const QModelIndex &index, int role) const override final;
 	bool setData(const QModelIndex &index, const QVariant &value, int role) override final;
 	// return the roles mapping to be used by QML
@@ -113,5 +120,3 @@ private:
 	uint m_nselected;
 	int m_currentRow;
 };
-
-#endif // ONLINEUSERINFO_H

@@ -7,7 +7,7 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPopup {
 	id: balloon
-	keepAbove: true
+	keepAbove: false
 	closeButtonVisible: false
 	focus: false
 	width: appSettings.pageWidth * 0.8
@@ -22,7 +22,6 @@ TPPopup {
 	property string textColor: appSettings.fontColor
 	property string subImageLabel: ""
 	property bool highlightMessage: false
-	property bool closable: true
 	property bool imageEnabled: true
 
 	property int startYPosition: 0
@@ -185,7 +184,6 @@ TPPopup {
 
 	MouseArea {
 		id: mouseArea
-		enabled: closable
 		z: 1
 		anchors.fill: parent
 
@@ -240,7 +238,7 @@ TPPopup {
 
 	function show(ypos: int): void {
 		balloon.height = (title.length > 0 ? lblTitle.height + 5 : 0) + (imageSource.length > 0 ? Math.max(imgElement.height, lblMessage.height) : lblMessage.height) +
-					(button1Text.length > 0 ? btn1.height + 10 : 0) + 5;
+					10 + (button1Text.length > 0 ? btn1.height + 10 : 0) + 5;
 		show1(ypos);
 	}
 

@@ -737,7 +737,7 @@
     <message>
         <location filename="../cxx/dbusermodel.cpp" line="389"/>
         <source> !Pending confirmation!</source>
-        <translation>!Confirmação pendente!</translation>
+        <translation> !Confirmação pendente!</translation>
     </message>
     <message>
         <location filename="../cxx/dbusermodel.cpp" line="505"/>

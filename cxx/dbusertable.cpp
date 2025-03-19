@@ -39,9 +39,7 @@ void DBUserTable::createTable()
 										"role TEXT,"
 										"coach_role TEXT,"
 										"goal TEXT,"
-										"use_mode INTEGER,"
-										"coaches TEXT, "
-										"clients TEXT"
+										"use_mode INTEGER"
 									")"_L1
 		};
 		const bool ok = query.exec(strQuery);
@@ -65,7 +63,7 @@ void DBUserTable::getAllUsers()
 					QStringList user_info{USER_TOTAL_COLS};
 					for (uint i{USER_COL_ID}; i < USER_TOTAL_COLS; ++i)
 						user_info[i] = std::move(query.value(static_cast<int>(i)).toString());
-					m_model->addUser_fast(std::move(user_info));
+					m_model->addUser(std::move(user_info));
 				} while (query.next());
 				m_model->setReady(true);
 				ok = true;
@@ -84,7 +82,7 @@ void DBUserTable::saveUser()
 		const uint row{m_execArgs.at(0).toUInt()};
 		bool bUpdate{false};
 		QString strQuery;
-		if (query.exec("SELECT userid FROM users_table WHERE userid=%1"_L1.arg(m_model->_userId(row))))
+		if (query.exec("SELECT userid FROM users_table WHERE userid=%1"_L1.arg(m_model->userId(row))))
 		{
 			if (query.first())
 				bUpdate = query.value(0).toUInt() >= 0;
@@ -98,16 +96,16 @@ void DBUserTable::saveUser()
 						"role=\'%7\', coach_role=\'%8\', goal=\'%9\', use_mode=%10, coaches=\'%11\', clients=\'%12\' WHERE userid=%13"_s
 				.arg(m_model->_userName(row), m_model->_birthDate(row), m_model->_sex(row), m_model->_phone(row), m_model->_email(row),
 					m_model->_socialMedia(row), m_model->_userRole(row), m_model->_coachRole(row), m_model->_goal(row), m_model->_appUseMode(row),
-					m_model->coaches(row), m_model->clients(row), m_model->_userId(row)));
+					m_model->userId(row)));
 		}
 		else
 		{
 			strQuery = std::move(u"INSERT INTO users_table "
 				"(userid,name,birthday,sex,phone,email,social,role,coach_role,goal,use_mode,coaches,clients)"
 				" VALUES(%1, \'%2\', %3, \'%4\', \'%5\', \'%6\', \'%7\', \'%8\',\'%9\', \'%10\', %11, \'%12\', \'%13\')"_s
-					.arg(m_model->_userId(row), m_model->_userName(row), m_model->_birthDate(row), m_model->_sex(row),
+					.arg(m_model->userId(row), m_model->_userName(row), m_model->_birthDate(row), m_model->_sex(row),
 					m_model->_phone(row), m_model->_email(row), m_model->_socialMedia(row), m_model->_userRole(row), m_model->_coachRole(row),
-					m_model->_goal(row), m_model->_appUseMode(row), m_model->coaches(row), m_model->clients(row)));
+					m_model->_goal(row), m_model->_appUseMode(row)));
 		}
 		ok = query.exec(strQuery);
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);

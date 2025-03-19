@@ -281,6 +281,7 @@ TPPage {
 		title: qsTr("Remove Exercise?")
 		message: exerciseName + qsTr("\nThis action cannot be undone.")
 		imageSource: "remove"
+		keepAbove: true
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 		onButton1Clicked: splitManager.currentSplitModel.removeExercise(removeRow);

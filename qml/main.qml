@@ -26,7 +26,9 @@ ApplicationWindow {
 	signal openFileChosen(filepath: string, filetype: int);
 	signal openFileRejected(filepath: string);
 	signal passwordDialogClosed(resultCode: int, password: string);
-	signal keepNoLongerAvailableUser(keep: bool);
+	signal removeNoLongerAvailableUser(row: int, remove: bool);
+	signal revokeCoachStatus(new_use_opt: int, revoke: bool);
+	signal revokeClientStatus(new_use_opt: int, revoke: bool);
 
 	Component.onCompleted: {
 		if (Qt.platform.os === "android")
@@ -256,15 +258,15 @@ ApplicationWindow {
 	}
 
 	property TPBalloonTip userNoLongerAvailableDlg: null
-	function showUserNoLongerAvailable(title: string, message: string): void {
+	function showUserNoLongerAvailable(row: int, title: string, message: string): void {
 		if (userNoLongerAvailableDlg === null) {
 			function createDialog() {
 				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					userNoLongerAvailableDlg = component.createObject(contentItem, { parentPage: homePage, title:title, message:message, modal:true });
-					userNoLongerAvailableDlg.button1Clicked.connect(function () { keepNoLongerAvailableUser(false); });
-					userNoLongerAvailableDlg.button2Clicked.connect(function () { keepNoLongerAvailableUser(true); });
+					userNoLongerAvailableDlg = component.createObject(contentItem, { parentPage: homePage, title:title, message:message, keepAbove: true });
+					userNoLongerAvailableDlg.button1Clicked.connect(function () { removeNoLongerAvailableUser(row, true); });
+					userNoLongerAvailableDlg.button2Clicked.connect(function () { removeNoLongerAvailableUser(row, false); });
 				}
 
 				if (component.status === Component.Ready)
@@ -275,6 +277,50 @@ ApplicationWindow {
 			createDialog();
 		}
 		userNoLongerAvailableDlg.show(-1);
+	}
+
+	property TPBalloonTip revokeCoachStatusDlg: null
+	function showRevokeCoachStatus(new_use_opt: int, title: string, message: string): void {
+		if (revokeCoachStatusDlg === null) {
+			function createDialog() {
+				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+
+				function finishCreation() {
+					revokeCoachStatusDlg = component.createObject(contentItem, { parentPage: homePage, title:title, message:message });
+					revokeCoachStatusDlg.button1Clicked.connect(function () { revokeCoachStatus(new_use_opt, true); });
+					revokeCoachStatusDlg.button2Clicked.connect(function () { revokeCoachStatus(new_use_opt, false); });
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			createDialog();
+		}
+		revokeCoachStatusDlg.show(-1);
+	}
+
+	property TPBalloonTip revokeClientStatusDlg: null
+	function showRevokeClientStatus(new_use_opt: int, title: string, message: string): void {
+		if (revokeClientStatusDlg === null) {
+			function createDialog() {
+				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+
+				function finishCreation() {
+					revokeClientStatusDlg = component.createObject(contentItem, { parentPage: homePage, title:title, message:message });
+					revokeClientStatusDlg.button1Clicked.connect(function () { revokeClientStatus(new_use_opt, true); });
+					revokeClientStatusDlg.button2Clicked.connect(function () { revokeClientStatus(new_use_opt, false); });
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			createDialog();
+		}
+		revokeClientStatusDlg.show(-1);
 	}
 
 	TPBalloonTip {

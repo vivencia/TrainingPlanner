@@ -19,7 +19,8 @@ enum RoleNames {
 	useModeRole = Qt::UserRole + USER_COL_APP_USE_MODE,
 	displayRole = useModeRole+1,
 	selectedRole = displayRole+1,
-	sourceFileRole = selectedRole+1
+	sourceFileRole = selectedRole+1,
+	isCoachRole = sourceFileRole+1
 };
 
 OnlineUserInfo::OnlineUserInfo(QObject *parent)
@@ -39,6 +40,7 @@ OnlineUserInfo::OnlineUserInfo(QObject *parent)
 	m_roleNames[displayRole] = std::move("display");
 	m_roleNames[selectedRole] = std::move("selected");
 	m_roleNames[sourceFileRole] = std::move("source");
+	m_roleNames[isCoachRole] = std::move("iscoach");
 }
 
 void OnlineUserInfo::setSelected(const uint row, bool selected)
@@ -58,6 +60,13 @@ void OnlineUserInfo::setSourceFile(const uint row, const QString &source_file)
 	Q_ASSERT_X(row < count(), "OnlineUserInfo::setSourceFile", "row out of range");
 	m_extraInfo[row][USER_EXTRA_SOURCE] = source_file;
 	emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << sourceFileRole);
+}
+
+void OnlineUserInfo::setIsCoach(const uint row, bool coach)
+{
+	Q_ASSERT_X(row < count(), "OnlineUserInfo::setIsCoach", "row out of range");
+	m_extraInfo[row][USER_EXTRA_ISCOACH] = coach ? "1"_L1 : "0"_L1;
+	emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << isCoachRole);
 }
 
 bool OnlineUserInfo::dataFromFileSource(const QString &filename, const QString &new_user_id)
@@ -91,8 +100,6 @@ bool OnlineUserInfo::dataFromString(const QString &user_data, const QString &new
 	beginInsertRows(QModelIndex{}, count(), count());
 	const qsizetype row{m_modeldata.count()};
 	m_modeldata.append(std::move(tempmodeldata));
-	m_modeldata.last()[USER_COL_COACHES].clear(); //not needed. Shouldn't even be downloaded, but it's easier to erase here
-	m_modeldata.last()[USER_COL_CLIENTS].clear(); //not needed. Shouldn't even be downloaded, but it's easier to erase here
 	m_extraInfo.append(std::move(QStringList{totalExtraFields}));
 	emit countChanged();
 	setData(row, USER_COL_ID, new_user_id);
@@ -208,6 +215,7 @@ QVariant OnlineUserInfo::data(const QModelIndex &index, int role) const
 			case displayRole: return m_extraInfo.at(row).at(USER_EXTRA_NAME);
 			case selectedRole: return isSelected(row);
 			case sourceFileRole: return sourceFile(row);
+			case isCoachRole: return isCoach(row);
 		}
 	}
 	return QVariant();
@@ -237,11 +245,14 @@ bool OnlineUserInfo::setData(const QModelIndex &index, const QVariant &value, in
 				m_extraInfo[row][USER_EXTRA_NAME] = std::move(value.toString());
 				emit dataChanged(index, index, QList<int>{} << displayRole);
 				return true;
+			case selectedRole:
+				setSelected(row, value.toBool());
+				return true;
 			case sourceFileRole:
 				setSourceFile(row, value.toString());
 				return true;
-			case selectedRole:
-				setSelected(row, value.toBool());
+			case isCoachRole:
+				setIsCoach(row, value.toBool());
 				return true;
 		}
 	}

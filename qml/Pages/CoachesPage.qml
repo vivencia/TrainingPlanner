@@ -371,7 +371,8 @@ TPPage {
 				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					msgRemoveUser = component.createObject(coachesPage, { parentPage: coachesPage, imageSource: "remove", title: Title, message: Message });
+					msgRemoveUser = component.createObject(coachesPage, { parentPage: coachesPage, imageSource: "remove", keepAbove: true,
+															title: Title, message: Message });
 					msgRemoveUser.button1Clicked.connect(function () { removeOrDecline(decline); });
 					msgRemoveUser.show(-1);
 				}

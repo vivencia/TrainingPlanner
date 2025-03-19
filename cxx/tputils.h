@@ -83,6 +83,7 @@ public:
 	QString getCompositeValue(const uint idx, const QString &compositeString, const QLatin1Char &chr_sep) const;
 	void setCompositeValue(const uint idx, const QString &newValue, QString &compositeString, const QLatin1Char &chr_sep) const;
 	void removeFieldFromCompositeValue(const uint idx, QString &compositeString, const QLatin1Char &chr_sep) const;
+	int fieldOfValue(const QString &value, const QString &compositeString, const QLatin1Char &chr_sep) const;
 	inline QString string_strings( const std::initializer_list<QString> &strings, const QLatin1Char &chr_sep) const
 	{
 		QString ret;
