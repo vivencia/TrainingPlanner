@@ -1,5 +1,4 @@
-#ifndef DBINTERFACE_H
-#define DBINTERFACE_H
+#pragma once
 
 #include "tplistmodel.h"
 #include "tpdatabasetable.h"
@@ -150,4 +149,3 @@ private:
 };
 
 inline DBInterface *appDBInterface() { return DBInterface::app_db_interface; }
-#endif // DBINTERFACE_H

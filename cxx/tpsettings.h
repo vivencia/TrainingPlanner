@@ -1,5 +1,4 @@
-#ifndef TPSETTINGS_H
-#define TPSETTINGS_H
+#pragma once
 
 #include <QGeoCoordinate>
 #include <QSettings>
@@ -153,4 +152,3 @@ private:
 };
 
 inline TPSettings* appSettings() { return TPSettings::app_settings; }
-#endif // TPSETTINGS_H

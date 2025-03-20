@@ -316,7 +316,7 @@ function delete_coach_answer($client, $coach) {
     if (file_exists($accepts_file)) {
         $coaches = file($accepts_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($coaches as $line) {
-            if ($line != $coach."AOK ")
+            if ($line != $coach)
                 $answers = $answers . $line . "\r\n";
         }
         $fh = fopen($accepts_file, "w") or die("Return code: 10 Unable to open requests file!" .$accepts_file . "\r\n");
@@ -328,7 +328,7 @@ function delete_coach_answer($client, $coach) {
             $answers = "";
             $coaches = file($rejects_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
             foreach ($coaches as $line) {
-                if ($line != $coach."NAY ")
+                if ($line != $coach)
                     $answers = $answers . $line . "\r\n";
             }
             echo "Return code: 0 Coache's answer removed from the client's answers files.\r\n";
@@ -544,8 +544,7 @@ function run_dbscript($cmd, $cmd_opt, $userid, $print_output) {
 
 $username = isset($_GET['user']) ? $_GET['user'] : '';
 
-if ($username) { //regular, most common usage: download/upload file/info from/to server
-    #echo "User name OK\r\n";
+if ($username) {
     $password = isset($_GET['password']) ? $_GET['password'] : '';
     if (!$password)
         die("Missing password\r\n");
@@ -555,138 +554,244 @@ if ($username) { //regular, most common usage: download/upload file/info from/to
             #echo "Authentication Successful! Welcome ", $username;
             #echo "\r\n";
 
-            $fileDir=$rootdir . $username;
+            if ($username != "admin") {
 
-            if (isset($_GET['listfiles'])) {
-                scan_dir($fileDir);
-                exit;
-            }
+                $fileDir=$rootdir . $username;
 
-            if (isset($_GET['addcoach'])) {
-                add_coach($username);
-                exit;
-            }
-            if (isset($_GET['delcoach'])) {
-                del_coach($username);
-                exit;
-            }
-
-            if (isset($_GET['getonlinecoaches'])) {
-                get_online_coaches();
-                exit;
-            }
-            if (isset($_GET['requestcoach'])) {
-                $coach = $_GET['requestcoach'];
-                if ($coach)
-                    request_coach($username, $coach);
-                exit;
-            }
-            if (isset($_GET['deleteclientrequest'])) {
-                $client = $_GET['deleteclientrequest'];
-                if ($client)
-                    delete_client_request($username, $client);
-                exit;
-            }
-            if (isset($_GET['listclientsrequests'])) {
-                list_clients_requests($username);
-                exit;
-            }
-            if (isset($_GET['acceptclientrequest'])) {
-                $client = $_GET['acceptclientrequest'];
-                if ($client)
-                    accept_client_request($username, $client);
-                exit;
-            }
-            if (isset($_GET['rejectclientrequest'])) {
-                $client = $_GET['rejecttclientrequest'];
-                if ($client)
-                    reject_client_request($username, $client);
-                exit;
-            }
-
-            if (isset($_GET['deletecoachanswer'])) {
-                $coach = $_GET['deletecoachanswer'];
-                if ($coach)
-                    delete_coach_answer($username, $coach);
-                exit;
-            }
-            if (isset($_GET['listcoachesanswers'])) {
-                list_coaches_answers($username);
-                exit;
-            }
-            if (isset($_GET['acceptcoachanswer'])) {
-                $coach = $_GET['acceptcoachanswer'];
-                if ($coach)
-                    accept_coach_answer($username, $coach);
-                exit;
-            }
-            if (isset($_GET['rejectcoachanswer'])) {
-                $coach = $_GET['rejectcoachanswer'];
-                if ($coach)
-                    reject_coach_answer($username, $coach);
-                exit;
-            }
-
-            if (isset($_GET['getclients'])) {
-                get_clients_list($username);
-                exit;
-            }
-            if (isset($_GET['removecurclient'])) {
-                $client = $_GET['removecurclient'];
-                if ($client)
-                    remove_client_from_clients($username, $client);
-                exit;
-            }
-
-            if (isset($_GET['getcoaches'])) {
-                get_coaches_list($username);
-                exit;
-            }
-            if (isset($_GET['removecurcoach'])) {
-                $coach = $_GET['removecurcoach'];
-                if ($coach)
-                    remove_coach_from_coaches($username, $coach);
-                exit;
-            }
-
-            if (isset($_GET['upload'])) {
-                $otheruser = $_GET['upload'];
-                if ($otheruser) {
-                    $fileDir=$rootdir . $otheruser;
-                }
-                upload_file($fileDir);
-                exit;
-            }
-            if (isset($_GET['file'])) {
-                if (isset($_GET['fromuser']))
-                    $filedir = $rootdir .  $_GET['fromuser'];
-                else
-                    $filedir = $rootdir . $username;
-                download_file($_GET['file'], $filedir);
-                exit;
-            }
-            if (isset($_GET['getbinfile'])) {
-                $binfile = $_GET['getbinfile'];
-                if ($binfile) {
-                    $targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] : $username;
-                    get_binfile($binfile, $targetuser);
+                if (isset($_GET['listfiles'])) {
+                    scan_dir($fileDir);
                     exit;
                 }
-            }
 
-            //?user=1739556367374&password=lrTp1$&getbinfile=resume&fromuser=1739556367374
-            if (isset($_GET['checkfilectime'])) {
-                $file = $_GET['checkfilectime'];
-                if ($file) {
-                    $targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] : '';
-                    if ($targetuser) {
-                        check_file_ctime($file, $targetuser);
+                if (isset($_GET['addcoach'])) {
+                    add_coach($username);
+                    exit;
+                }
+                if (isset($_GET['delcoach'])) {
+                    del_coach($username);
+                    exit;
+                }
+
+                if (isset($_GET['getonlinecoaches'])) {
+                    get_online_coaches();
+                    exit;
+                }
+                if (isset($_GET['requestcoach'])) {
+                    $coach = $_GET['requestcoach'];
+                    if ($coach)
+                        request_coach($username, $coach);
+                    exit;
+                }
+                if (isset($_GET['deleteclientrequest'])) {
+                    $client = $_GET['deleteclientrequest'];
+                    if ($client)
+                        delete_client_request($username, $client);
+                    exit;
+                }
+                if (isset($_GET['listclientsrequests'])) {
+                    list_clients_requests($username);
+                    exit;
+                }
+                if (isset($_GET['acceptclientrequest'])) {
+                    $client = $_GET['acceptclientrequest'];
+                    if ($client)
+                        accept_client_request($username, $client);
+                    exit;
+                }
+                if (isset($_GET['rejectclientrequest'])) {
+                    $client = $_GET['rejecttclientrequest'];
+                    if ($client)
+                        reject_client_request($username, $client);
+                    exit;
+                }
+
+                if (isset($_GET['deletecoachanswer'])) {
+                    $coach = $_GET['deletecoachanswer'];
+                    if ($coach)
+                        delete_coach_answer($username, $coach);
+                    exit;
+                }
+                if (isset($_GET['listcoachesanswers'])) {
+                    list_coaches_answers($username);
+                    exit;
+                }
+                if (isset($_GET['acceptcoachanswer'])) {
+                    $coach = $_GET['acceptcoachanswer'];
+                    if ($coach)
+                        accept_coach_answer($username, $coach);
+                    exit;
+                }
+                if (isset($_GET['rejectcoachanswer'])) {
+                    $coach = $_GET['rejectcoachanswer'];
+                    if ($coach)
+                        reject_coach_answer($username, $coach);
+                    exit;
+                }
+
+                if (isset($_GET['getclients'])) {
+                    get_clients_list($username);
+                    exit;
+                }
+                if (isset($_GET['removecurclient'])) {
+                    $client = $_GET['removecurclient'];
+                    if ($client)
+                        remove_client_from_clients($username, $client);
+                    exit;
+                }
+
+                if (isset($_GET['getcoaches'])) {
+                    get_coaches_list($username);
+                    exit;
+                }
+                if (isset($_GET['removecurcoach'])) {
+                    $coach = $_GET['removecurcoach'];
+                    if ($coach)
+                        remove_coach_from_coaches($username, $coach);
+                    exit;
+                }
+
+                if (isset($_GET['upload'])) {
+                    $otheruser = $_GET['upload'];
+                    if ($otheruser) {
+                        $fileDir=$rootdir . $otheruser;
+                    }
+                    upload_file($fileDir);
+                    exit;
+                }
+                if (isset($_GET['file'])) {
+                    if (isset($_GET['fromuser']))
+                        $filedir = $rootdir .  $_GET['fromuser'];
+                    else
+                        $filedir = $rootdir . $username;
+                    download_file($_GET['file'], $filedir);
+                    exit;
+                }
+                if (isset($_GET['getbinfile'])) {
+                    $binfile = $_GET['getbinfile'];
+                    if ($binfile) {
+                        $targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] : $username;
+                        get_binfile($binfile, $targetuser);
                         exit;
                     }
                 }
-            }
 
-            echo "Missing action argument\r\n";
+                //?user=1739556367374&password=lrTp1$&getbinfile=resume&fromuser=1739556367374
+                if (isset($_GET['checkfilectime'])) {
+                    $file = $_GET['checkfilectime'];
+                    if ($file) {
+                        $targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] : '';
+                        if ($targetuser) {
+                            check_file_ctime($file, $targetuser);
+                            exit;
+                        }
+                    }
+                }
+
+                echo "Missing action argument\r\n";
+            }
+            else { //username == admin
+                //user management
+                $query = isset($_GET['onlineuser']) ? $_GET['onlineuser'] : '';
+                if ($query) { //Check if there is an already existing user in the online database. The  unique key used to identify an user is decided on the TrainingPlanner app source code. This script is agnostic to it
+                    $userpassword = isset($_GET['userpassword']) ? $_GET['userpassword'] : '';
+                    run_dbscript("getid", $query . ' ' . $userpassword , "", true);
+                    exit;
+                }
+
+                $userid = isset($_GET['onlinedata']) ? $_GET['onlinedata'] : '';
+                if ($userid) { //Check if there is an already existing user in the online database. The  unique key used to identify an user is decided on the TrainingPlanner app source code. This script is agnostic to it
+                    run_dbscript("getall", "", $userid, true);
+                    exit;
+                }
+
+                $username = isset($_GET['checkuser']) ? $_GET['checkuser'] : '';
+                if ($username) { //check if user exists
+                    $user_password = isset($_GET['userpassword']) ? $_GET['userpassword'] : '';
+                    $return_var = run_htpasswd("-bv", $username, $user_password);
+                    switch ($return_var) {
+                        case 0: $error_string = "User exists and password is correct"; break;
+                        case 3: $error_string = "User exists and password is wrong"; break;
+                        case 6: $error_string = "User does not exist"; break;
+                        default: $error_string = "User does not exist"; break;
+                    }
+                    echo "Return code: $return_var $error_string\r\n";
+                    exit;
+                }
+
+                $username = isset($_GET['adduser']) ? $_GET['adduser'] : '';
+                if ($username) { //new user creation. Encrypt password onto file and create the user's dir
+                    $new_user_password = isset($_GET['userpassword']) ? $_GET['userpassword'] : '';
+                    $ok = run_htpasswd("-bB", $username, $new_user_password);
+                    if ($ok == 0) {
+                        $userdir = $rootdir . $username;
+                        if (!is_dir($userdir)) {
+                            if (!mkdir($userdir, 0775))
+                                $ok = 1;
+                            else
+                                chmod($userdir, 0775);
+                         }
+                    }
+                    if ($ok == 0)
+                        echo "Return code: 0 ".$username." successfully created\r\n";
+                    else
+                        echo "Return code: 30 Error creating user ".$username."\r\n";
+                    exit;
+                }
+
+                $userid = isset($_GET['alteronlineuser']) ? $_GET['alteronlineuser'] : '';
+                if ($userid) { //dbscript expects the file user.data to have been previously uploaded to $userid dir
+                    if (update_datafile_with_password($userid))
+                        run_dbscript("add", "", $userid, true);
+                    exit;
+                }
+
+                $username = isset($_GET['deluser']) ? $_GET['deluser'] : '';
+                if ($username) { //remove user and their dir
+                    $ok = run_htpasswd("-D", $username, "");
+                    if ($ok == 0) {
+                        run_dbscript("del", "", $username, false);
+                        $userdir = $rootdir . $username;
+                        if (is_dir($userdir)) {
+                            if (!erasedir($userdir))
+                                $ok = 1;
+                        }
+                    }
+                    if ($ok == 0)
+                        echo "Return code: 0 ".$username." successfully removed\r\n";
+                    else
+                        echo "Return code: 31 ".$username." removal failed\r\n";
+                    exit;
+                }
+
+                $username = isset($_GET['moduser']) ? $_GET['moduser'] : '';
+                if ($username) { //remove moduser, create newuser and rename moduser dir to newuser
+                    $cmd_args = "-D";
+                    $ok = run_htpasswd("-D", $username, "");
+                    if ($ok == 0) {
+                        $new_username = isset($_GET['newuser']) ? $_GET['newuser'] : '';
+                        $new_password = isset($_GET['newpassword']) ? $_GET['newpassword'] : '';
+                        $ok = run_htpasswd("-bB", $new_username, $new_password);
+                        if ($ok == 0) {
+                            $userdir = $rootdir . $username;
+                            if (is_dir($userdir)) {
+                                if (!rename($rootdir . $username, $rootdir . $new_username))
+                                    $ok = 1;
+                            }
+                            else {
+                                if (!mkdir($userdir, 0775))
+                                    $ok = 1;
+                                else
+                                    chmod($userdir, 0775);
+                            }
+                        }
+                    }
+                    if ($ok == 0)
+                        echo "Return code: 0 User successfully modified\r\n";
+                    else
+                        echo "Return code: 32 User modification failed\r\n";
+                    exit;
+                }
+            }
         }
         else {
             // Authentication failed
@@ -695,110 +800,7 @@ if ($username) { //regular, most common usage: download/upload file/info from/to
         }
     }
 }
-else { //user management
-
-    $query = isset($_GET['onlineuser']) ? $_GET['onlineuser'] : '';
-    if ($query) { //Check if there is an already existing user in the online database. The  unique key used to identify an user is decided on the TrainingPlanner app source code. This script is agnostic to it
-        $password = isset($_GET['password']) ? $_GET['password'] : '';
-        run_dbscript("getid", $query . ' ' . $password , "", true);
-        exit;
-    }
-
-    $userid = isset($_GET['onlinedata']) ? $_GET['onlinedata'] : '';
-    if ($userid) { //Check if there is an already existing user in the online database. The  unique key used to identify an user is decided on the TrainingPlanner app source code. This script is agnostic to it
-        run_dbscript("getall", "", $userid, true);
-        exit;
-    }
-
-    $userid = isset($_GET['alteronlineuser']) ? $_GET['alteronlineuser'] : '';
-    if ($userid) { //dbscript expects the file user.data to have been previously uploaded to $userid dir
-        if (update_datafile_with_password($userid))
-            run_dbscript("add", "", $userid, true);
-        exit;
-    }
-
-    $username = isset($_GET['checkuser']) ? $_GET['checkuser'] : '';
-    if ($username) { //check if user exists
-        $user_password = isset($_GET['password']) ? $_GET['password'] : '';
-        $return_var = run_htpasswd("-bv", $username, $user_password);
-        switch ($return_var) {
-            case 0: $error_string = "User exists and password is correct"; break;
-            case 3: $error_string = "User exists and password is wrong"; break;
-            case 6: $error_string = "User does not exist"; break;
-            default: $error_string = "User does not exist"; break;
-        }
-        echo "Return code: $return_var $error_string\r\n";
-        exit;
-    }
-
-    $username = isset($_GET['adduser']) ? $_GET['adduser'] : '';
-    if ($username) { //new user creation. Encrypt password onto file and create the user's dir
-        $new_user_password = isset($_GET['password']) ? $_GET['password'] : '';
-        $ok = run_htpasswd("-bB", $username, $new_user_password);
-        if ($ok == 0) {
-            $userdir = $rootdir . $username;
-            if (!is_dir($userdir)) {
-                if (!mkdir($userdir, 0775))
-                    $ok = 1;
-                else
-                    chmod($userdir, 0775);
-             }
-        }
-        if ($ok == 0)
-            echo "Return code: 0 User successfully created\r\n";
-        else
-            echo "Return code: 30 Error creating user\r\n";
-        exit;
-    }
-
-    $username = isset($_GET['deluser']) ? $_GET['deluser'] : '';
-    if ($username) { //remove user and their dir
-        $ok = run_htpasswd("-D", $username, "");
-        if ($ok == 0) {
-            run_dbscript("del", "", $username, false);
-            $userdir = $rootdir . $username;
-            if (is_dir($userdir)) {
-                if (!erasedir($userdir))
-                    $ok = 1;
-            }
-        }
-        if ($ok == 0)
-            echo "Return code: 0 User successfully removed\r\n";
-        else
-            echo "Return code: 31 User removal failed\r\n";
-        exit;
-    }
-
-    $username = isset($_GET['moduser']) ? $_GET['moduser'] : '';
-    if ($username) { //remove moduser, create newuser and rename moduser dir to newuser
-        $cmd_args = "-D";
-        $ok = run_htpasswd("-D", $username, "");
-        if ($ok == 0) {
-            $new_username = isset($_GET['newuser']) ? $_GET['newuser'] : '';
-            $new_password = isset($_GET['password']) ? $_GET['password'] : '';
-            $ok = run_htpasswd("-bB", $new_username, $new_password);
-            if ($ok == 0) {
-                $userdir = $rootdir . $username;
-                if (is_dir($userdir)) {
-                    if (!rename($rootdir . $username, $rootdir . $new_username))
-                        $ok = 1;
-                }
-                else {
-                    if (!mkdir($userdir, 0775))
-                        $ok = 1;
-                    else
-                        chmod($userdir, 0775);
-                }
-            }
-        }
-        if ($ok == 0)
-            echo "Return code: 0 User successfully modified\r\n";
-        else
-            echo "Return code: 32 User modification failed\r\n";
-        exit;
-    }
-
+else
     print_r2("Welcome to the TrainingPlanner app server!");
-}
 
 ?>

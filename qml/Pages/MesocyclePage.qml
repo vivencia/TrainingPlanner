@@ -92,7 +92,7 @@ TPPage {
 
 			TPLabel {
 				text: mesoManager.clientLabel
-				visible: mesoManager.ownerIsCoach && !mesoManager.ownMeso
+				visible: mesoManager.ownerIsCoach
 			}
 
 			TPClientsList {
@@ -101,6 +101,7 @@ TPPage {
 				buttonString: qsTr("Go to client's page")
 				height: 0.2*mesoPropertiesPage.height
 				allowNotConfirmedClients: false
+				visible: mesoManager.ownerIsCoach
 				Layout.fillWidth: true
 
 				onClientSelected: (userRow) => {

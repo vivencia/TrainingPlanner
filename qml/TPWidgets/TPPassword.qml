@@ -11,11 +11,16 @@ FocusScope {
 	signal passwordAccepted();
 	signal passwordUnacceptable();
 
-	property string notAllowableChars: "# &?=\'\""
+	readonly property string notAllowableChars: "# &?=\'\""
+	readonly property string customLabel: ""
+	readonly property string matchAgainst: ""
+	readonly property bool includeNotAllowableChars: true
+	readonly property bool showAcceptButton: true
 
 	TPLabel {
 		id: lblPassword
-		text: userModel.passwordLabel + "(" + notAllowableChars + qsTr(" not allowed)")
+		text: (customLabel.length === 0 ? userModel.passwordLabel : customLabel) +
+					(includeNotAllowableChars ? "(" + notAllowableChars + qsTr(" not allowed)") : "")
 		height: 25
 
 		anchors {
@@ -31,14 +36,15 @@ FocusScope {
 		echoMode: btnShowHidePassword.show ? TextInput.Normal : TextInput.Password
 		inputMethodHints: Qt.ImhSensitiveData|Qt.ImhNoPredictiveText
 		validator: RegularExpressionValidator { regularExpression: /^[^# &?="']*$/ }
-		ToolTip.text: userModel.invalidPasswordLabel
+		ToolTip.text: matchOK ? userModel.invalidPasswordLabel : qsTr("Passwords do not match")
 		focus: true
 		height: 25
 
 		property bool inputOK: false
+		property bool matchOK: true
 
 		onEnterOrReturnKeyPressed: {
-			if (inputOK)
+			if (inputOK && matchOK)
 				passwordAccepted();
 		}
 
@@ -55,6 +61,16 @@ FocusScope {
 				}
 				inputOK = text.length >= 6;
 				ToolTip.visible = !inputOK;
+				if (inputOK) {
+					if (matchAgainst.length > 0) {
+						matchOK = text === matchAgainst;
+						ToolTip.visible = !matchOK;
+						if (matchOK)
+							passwordAccepted();
+						else
+							passwordUnacceptable();
+					}
+				}
 			}
 		}
 
@@ -110,7 +126,8 @@ FocusScope {
 		id: btnAccept
 		imageSource: "set-completed"
 		height: 25
-		enabled: txtPassword.inputOK
+		enabled: txtPassword.inputOK && txtPassword.matchOK
+		visible: showAcceptButton
 
 		anchors {
 			verticalCenter: txtPassword.verticalCenter

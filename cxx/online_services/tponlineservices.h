@@ -28,7 +28,8 @@ public:
 	void registerUser(const int requestid, const QString &username, const QString &passwd);
 	void updateOnlineUserInfo(const int requestid, const QString &username, const QString &passwd, QFile *file);
 	void removeUser(const int requestid, const QString &username);
-	void alterUser(const int requestid, const QString &old_username, const QString &new_username, const QString &new_passwd);
+	void changePassword(const int requestid, const QString &username, const QString &old_passwd, const QString &new_passwd);
+
 	void addOrRemoveCoach(const int requestid, const QString &username, const QString &passwd, const bool bAdd);
 	void sendRequestToCoach(const int requestid, const QString &username, const QString &passwd, const QString& coach_net_name);
 	void checkClientsRequests(const int requestid, const QString &username, const QString &passwd);

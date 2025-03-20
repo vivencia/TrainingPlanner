@@ -52,7 +52,7 @@ extern "C"
 #include <QTcpSocket>
 #include <QTimer>
 
-OSInterface* OSInterface::app_os_interface(nullptr);
+OSInterface *OSInterface::app_os_interface(nullptr);
 constexpr uint CONNECTION_CHECK_TIMEOUT{10*60*1000};
 constexpr uint CONNECTION_ERR_TIMEOUT{20*1000};
 
@@ -206,14 +206,14 @@ void OSInterface::checkPendingIntents() const
 }
 
 /*
- * As default we're going the Java - way with one simple JNI call (recommended)
- * if altImpl is true we're going the pure JNI way
- * HINT: we don't use altImpl anymore
+  *As default we're going the Java - way with one simple JNI call (recommended)
+  *if altImpl is true we're going the pure JNI way
+  *HINT: we don't use altImpl anymore
  *
- * If a requestId was set we want to get the Activity Result back (recommended)
- * We need the Request Id and Result Id to control our workflow
+  *If a requestId was set we want to get the Activity Result back (recommended)
+  *We need the Request Id and Result Id to control our workflow
 */
-bool OSInterface::sendFile(const QString &filePath, const QString &title, const QString &mimeType, const int& requestId) const
+bool OSInterface::sendFile(const QString &filePath, const QString &title, const QString &mimeType, const int &requestId) const
 {
 	const QJniObject &jsPath = QJniObject::fromString(filePath);
 	const QJniObject &jsTitle = QJniObject::fromString(title);
@@ -330,12 +330,12 @@ void OSInterface::checkWorkouts()
 {
 	if (appMesoModel()->count() > 0)
 	{
-		DBMesoCalendarTable* calTable{new DBMesoCalendarTable{appDBInterface()->dbFilesPath()}};
+		DBMesoCalendarTable *calTable{new DBMesoCalendarTable{appDBInterface()->dbFilesPath()}};
 		QStringList dayInfoList;
 		calTable->dayInfo(QDate::currentDate(), dayInfoList);
 		if (!dayInfoList.isEmpty())
 		{
-			notificationData* data{new notificationData{}};
+			notificationData *data{new notificationData{}};
 			data->title = std::move("TrainingPlanner "_L1) + data->start_time.toString("dd/MM - hh:mm"_L1);
 			const QString &splitLetter{dayInfoList.at(2)};
 			if (splitLetter != "R"_L1) //day is training day
@@ -413,7 +413,7 @@ void OSInterface::execNotification(const short action, const short id)
 {
 	for (qsizetype i{0}; i < m_notifications.count(); ++i)
 	{
-		if (m_notifications.at(i)->id == id && !m_notifications.at(i)->resolved)
+		if (m_notifications.at(i)->id == id & &!m_notifications.at(i)->resolved)
 		{
 			switch (action)
 			{
@@ -429,7 +429,7 @@ void OSInterface::execNotification(const short action, const short id)
 	}
 }
 
-void OSInterface::removeNotification(notificationData* data)
+void OSInterface::removeNotification(notificationData *data)
 {
 	m_AndroidNotification->cancelNotification(data->id);
 	if (data->action == NOTIFY_START_WORKOUT)
@@ -453,7 +453,7 @@ extern "C"
 JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_setFileUrlReceived(
 						JNIEnv *env, jobject obj, jstring url)
 {
-	const char* urlStr = env->GetStringUTFChars(url, NULL);
+	const char *urlStr = env->GetStringUTFChars(url, NULL);
 	Q_UNUSED (obj)
 	appOsInterface()->setFileUrlReceived(urlStr);
 	env->ReleaseStringUTFChars(url, urlStr);
@@ -463,7 +463,7 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_setF
 JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_setFileReceivedAndSaved(
 						JNIEnv *env, jobject obj, jstring url)
 {
-	const char* urlStr = env->GetStringUTFChars(url, NULL);
+	const char *urlStr = env->GetStringUTFChars(url, NULL);
 	Q_UNUSED (obj)
 	appOsInterface()->setFileReceivedAndSaved(urlStr);
 	env->ReleaseStringUTFChars(url, urlStr);
@@ -492,9 +492,9 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_noti
 
 #else
 
-QString OSInterface::executeAndCaptureOutput(const QString &program, QStringList& arguments, const bool b_asRoot, int* exitCode)
+QString OSInterface::executeAndCaptureOutput(const QString &program, QStringList &arguments, const bool b_asRoot, int *exitCode)
 {
-	auto* __restrict proc{new QProcess()};
+	auto *__restrict proc{new QProcess()};
 	QString app;
 
 	if (b_asRoot)
@@ -576,9 +576,9 @@ void OSInterface::processArguments() const
 
 void OSInterface::restartApp()
 {
-	char* args[2] = { nullptr, nullptr };
+	char *args[2] = { nullptr, nullptr };
 	const QString &argv0{qApp->arguments().at(0)};
-	args[0] = static_cast<char*>(::malloc(static_cast<size_t>(argv0.toLocal8Bit().size()) * sizeof(char)));
+	args[0] = static_cast<char*>(::malloc(static_cast<size_t>(argv0.toLocal8Bit().size())  *sizeof(char)));
 	::strncpy(args[0], argv0.toLocal8Bit().constData(), argv0.length());
 	::execv(args[0], args);
 	::free(args[0]);
@@ -613,7 +613,7 @@ void OSInterface::openURL(const QString &address) const
 		#ifdef Q_OS_ANDROID
 		androidOpenURL(address);
 		#else
-		auto* __restrict proc{new QProcess{}};
+		auto *__restrict proc{new QProcess{}};
 		proc->startDetached("xdg-open"_L1, QStringList{} << address);
 		delete proc;
 		#endif
@@ -658,10 +658,10 @@ void OSInterface::sendMail(const QString &address, const QString &subject, const
 		}
 	}
 	#else
-	const QStringList& args (QStringList() <<
-		"--utf8"_L1 << "--subject"_L1 << QChar('\'') + subject + QChar('\'') << "--attach"_L1 << attachment_file <<
-			QChar('\'') + address + QChar('\''));
-	auto* __restrict proc(new QProcess ());
+	const QStringList &args (QStringList{} <<
+		"--utf8"_L1 << "--subject"_L1 << QChar{'\''} + subject + QChar{'\''} << "--attach"_L1 << attachment_file <<
+			QChar{'\''} + address + QChar{'\''});
+	auto *__restrict proc(new QProcess ());
 	proc->start("xdg-email"_L1, args);
 	connect(proc, &QProcess::finished, this, [&,proc,address,subject] (int exitCode, QProcess::ExitStatus)
 	{
@@ -669,7 +669,7 @@ void OSInterface::sendMail(const QString &address, const QString &subject, const
 		{
 			if (appUserModel()->email(0).contains("gmail.com"_L1))
 			{
-				const QString &gmailURL(u"https://mail.google.com/mail/u/%1/?view=cm&to=%2&su=%3"_s.arg(appUserModel()->email(0), address, subject));
+				const QString &gmailURL{u"https://mail.google.com/mail/u/%1/?view=cm&to=%2&su=%3"_s.arg(appUserModel()->email(0), address, subject)};
 				openURL(gmailURL);
 			}
 		}

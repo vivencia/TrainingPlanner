@@ -95,7 +95,7 @@ Frame {
 
 	TPPassword {
 		id: passwordControl
-		visible: userRow === 0
+		visible: userRow === 0 && !userModel.mainUserConfigured
 		enabled: bNameOK
 
 		anchors {
@@ -111,6 +111,20 @@ Frame {
 		onPasswordAccepted: {
 			bPasswordOK = true;
 			userModel.setPassword(getPassword());
+		}
+	}
+
+	Loader {
+		id: changePasswordLoader
+		active: userRow === 0 && userModel.mainUserConfigured
+		asynchronous: true
+		source: "qrc:/qml/User/UserChangePassword.qml"
+
+		onLoaded: item.show(-1);
+
+		anchors {
+			fill: parent
+			margins: 10
 		}
 	}
 

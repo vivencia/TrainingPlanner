@@ -1,5 +1,4 @@
-#ifndef DBUSERTABLE_H
-#define DBUSERTABLE_H
+#pragma once
 
 #include "tpdatabasetable.h"
 
@@ -25,4 +24,3 @@ private:
 	DBUserModel *m_model;
 };
 
-#endif // DBUSERTABLE_H

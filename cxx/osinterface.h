@@ -1,5 +1,4 @@
-#ifndef OSINTERFACE_H
-#define OSINTERFACE_H
+#pragma once
 
 #include "tpglobals.h"
 
@@ -66,7 +65,7 @@ public:
 	inline int networkStatus() const { return m_networkStatus; }
 	void setNetworkStatus(int new_status);
 
-	inline const QString& appDataFilesPath() const { return m_appDataFilesPath; }
+	inline const QString &appDataFilesPath() const { return m_appDataFilesPath; }
 	inline void initialCheck()
 	{
 		#ifdef Q_OS_ANDROID
@@ -81,19 +80,19 @@ public:
 	}
 
 #ifdef Q_OS_ANDROID
-	void setFileUrlReceived(const QString& url) const;
-	void setFileReceivedAndSaved(const QString& url) const;
-	bool checkFileExists(const QString& url) const;
+	void setFileUrlReceived(const QString &url) const;
+	void setFileReceivedAndSaved(const QString &url) const;
+	bool checkFileExists(const QString &url) const;
 	void onActivityResult(int requestCode, int resultCode);
 	void execNotification(const short action, const short id);
-	void removeNotification(notificationData* data);
+	void removeNotification(notificationData *data);
 
 	void checkPendingIntents() const;
-	bool sendFile(const QString& filePath, const QString& title, const QString& mimeType, const int& requestId) const;
-	void androidOpenURL(const QString& address) const;
-	bool androidSendMail(const QString& address, const QString& subject, const QString& attachment) const;
-	bool viewFile(const QString& filePath, const QString& title) const;
-	QString readFileFromAndroidFileDialog(const QString& android_uri) const;
+	bool sendFile(const QString &filePath, const QString &title, const QString &mimeType, const int &requestId) const;
+	void androidOpenURL(const QString &address) const;
+	bool androidSendMail(const QString &address, const QString &subject, const QString &attachment) const;
+	bool viewFile(const QString &filePath, const QString &title) const;
+	QString readFileFromAndroidFileDialog(const QString &android_uri) const;
 	void startAppNotifications();
 	void checkNotificationsStatus();
 	void checkWorkouts();
@@ -107,11 +106,11 @@ public:
 #endif
 
 	void checkOnlineResources();
-	void shareFile(const QString& fileName) const;
-	Q_INVOKABLE void openURL(const QString& address) const;
-	Q_INVOKABLE void startChatApp(const QString& phone, const QString& appname) const;
-	Q_INVOKABLE void sendMail(const QString& address, const QString& subject, const QString& attachment_file) const;
-	Q_INVOKABLE void viewExternalFile(const QString& filename) const;
+	void shareFile(const QString &fileName) const;
+	Q_INVOKABLE void openURL(const QString &address) const;
+	Q_INVOKABLE void startChatApp(const QString &phone, const QString &appname) const;
+	Q_INVOKABLE void sendMail(const QString &address, const QString &subject, const QString &attachment_file) const;
+	Q_INVOKABLE void viewExternalFile(const QString &filename) const;
 
 signals:
 #ifdef Q_OS_ANDROID
@@ -132,15 +131,14 @@ private:
 	bool m_bchecking_ic;
 
 #ifdef Q_OS_ANDROID
-	TPAndroidNotification* m_AndroidNotification;
+	TPAndroidNotification *m_AndroidNotification;
 	bool mb_appSuspended, m_bTodaysWorkoutFinishedConnected;
 	QList<notificationData*> m_notifications;
 	QTimer *m_notificationsTimer;
 #endif
 
-	static OSInterface* app_os_interface;
-	friend OSInterface* appOsInterface();
+	static OSInterface *app_os_interface;
+	friend OSInterface *appOsInterface();
 };
 
-inline OSInterface* appOsInterface() { return OSInterface::app_os_interface; }
-#endif // OSINTERFACE_H
+inline OSInterface *appOsInterface() { return OSInterface::app_os_interface; }

@@ -34,12 +34,8 @@ static const QString &profileFile_template{"%1%2.txt"};
 //appended to their name an additional string containing the not allowed char '!'
 static inline QString userNameWithoutConfirmationWarning(const QString &userName)
 {
-	if (userName.contains('!'))
-	{
-		const qsizetype sep_idx{userName.indexOf('!')};
-		return userName.left(sep_idx-1);
-	}
-	return userName;
+	const qsizetype sep_idx{userName.indexOf('!')};
+	return userName.left(sep_idx-1);
 }
 
 DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
@@ -328,7 +324,7 @@ void DBUserModel::setAppUseMode(const int row, const int new_use_opt)
 		else
 		{
 			m_modeldata[row][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
-			emit userModified(row, USER_COL_APP_USE_MODE);
+			emit userModified(row);
 		}
 	}
 }
@@ -498,16 +494,40 @@ void DBUserModel::checkUserOnline(const QString &email, const QString &password)
 			if (request_id == requestid)
 			{
 				disconnect(*conn);
-				if (ret_code == 0)
+				if (ret_code == 0) //Password matches server's. Store it for the session
 				{
 					m_onlineUserId = ret_string;
-					appKeyChain()->writeKey(userId(0), password); //Password matches server's. Store it for the session
+					setPassword(password);
 				}
 				emit userOnlineCheckResult(ret_code == 0);
 			}
 		});
 		appOnlineServices()->checkOnlineUser(requestid, "email="_L1 + email, password);
 	}
+}
+
+void DBUserModel::changePassword(const QString &old_password, const QString &new_password)
+{
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,old_password,new_password] (const QString &key, const QString &value) {
+		const int requestid{appUtils()->generateUniqueId("changePassword"_L1)};
+		auto conn = std::make_shared<QMetaObject::Connection>();
+		*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid,key,new_password]
+							(const int request_id, const int ret_code, const QString &ret_string) {
+			if (request_id == requestid)
+			{
+				disconnect(*conn);
+				if (ret_code == 0)
+				{
+					appKeyChain()->deleteKey(key);
+					setPassword(new_password);
+				}
+				else
+					appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, ret_string);
+			}
+		});
+		appOnlineServices()->changePassword(requestid, key, old_password, new_password);
+	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	appKeyChain()->readKey(userId(0));
 }
 
 void DBUserModel::importFromOnlineServer()

@@ -1,5 +1,4 @@
-#ifndef TPGLOBALS_H
-#define TPGLOBALS_H
+#pragma once
 
 #include <QString>
 
@@ -129,4 +128,3 @@ inline bool isBitSet(const T& __restrict var, const unsigned char bit)
 	else
 		return static_cast<bool>(var & 1);
 }
-#endif // TPGLOBALS_H

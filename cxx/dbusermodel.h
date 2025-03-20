@@ -115,7 +115,7 @@ public:
 		}
 	}
 
-	Q_INVOKABLE void setPassword(const QString& passwd);
+	Q_INVOKABLE void setPassword(const QString &passwd);
 	Q_INVOKABLE void getPassword();
 
 	Q_INVOKABLE inline QDate birthDate(const int row) const
@@ -242,6 +242,7 @@ public:
 		disconnect(this, &DBUserModel::mainUserOnlineCheckInChanged, nullptr, nullptr);
 	}
 	Q_INVOKABLE void checkUserOnline(const QString &email, const QString &password);
+	Q_INVOKABLE void changePassword(const QString &old_password, const QString &new_password);
 	Q_INVOKABLE void importFromOnlineServer();
 	Q_INVOKABLE inline bool mainUserRegistered() const { return mb_userRegistered.has_value() && mb_userRegistered == true; }
 	Q_INVOKABLE void setCoachPublicStatus(const bool bPublic);

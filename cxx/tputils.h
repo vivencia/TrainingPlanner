@@ -1,5 +1,4 @@
-#ifndef TPUTILS_H
-#define TPUTILS_H
+#pragma once
 
 #include <QDateTime>
 #include <QFileInfo>
@@ -114,5 +113,3 @@ private:
 };
 
 inline TPUtils *appUtils() { return TPUtils::app_utils; }
-
-#endif // TPUTILS_H
