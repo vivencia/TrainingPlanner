@@ -12,28 +12,27 @@ TPPopup {
 	width: appSettings.pageWidth * 0.8
 	height: nControls*controlsHeight
 
-	property int startYPosition: 0
-	property int finalXPos: 0
-	readonly property int nControls: 8
+	readonly property int nControls: 9
 	readonly property int controlsHeight: 25
 
 	onOpened: {
-		txtCurPassword.clear();
-		txtNewPassword.clear();
-		txtNewPasswordMatch.clear();
+		txtCurPassword.setPasswordText("");
+		txtNewPassword.setPasswordText("");
+		txtConfirmPassword.setPasswordText("");
 		txtCurPassword.forceActiveFocus();
 	}
 
 	TPLabel {
 		id: lblTitle
 		text: qsTr("Change password")
+		horizontalAlignment: Text.AlignHCenter
 
 		anchors {
-			top: parent.top
+			top: changePasswdDlg.top
 			topMargin: 5
-			left: parent.left
+			left: changePasswdDlg.left
 			leftMargin: 5
-			right: parent.right
+			right: changePasswdDlg.right
 			rightMargin: 20
 		}
 	}
@@ -52,9 +51,9 @@ TPPopup {
 		anchors {
 			top: lblTitle.bottom
 			topMargin: 5
-			left: parent.left
+			left: changePasswdDlg.left
 			leftMargin: 5
-			right: parent.right
+			right: changePasswdDlg.right
 			rightMargin: 5
 		}
 	}
@@ -72,11 +71,11 @@ TPPopup {
 		onPasswordUnacceptable: txtConfirmPassword.enabled = false;
 
 		anchors {
-			top: lblCurPassword.bottom
+			top: txtCurPassword.bottom
 			topMargin: 5
-			left: parent.left
+			left: changePasswdDlg.left
 			leftMargin: 5
-			right: parent.right
+			right: changePasswdDlg.right
 			rightMargin: 5
 		}
 	}
@@ -94,9 +93,9 @@ TPPopup {
 		anchors {
 			top: txtNewPassword.bottom
 			topMargin: 5
-			left: parent.left
+			left: changePasswdDlg.left
 			leftMargin: 5
-			right: parent.right
+			right: changePasswdDlg.right
 			rightMargin: 5
 		}
 	}

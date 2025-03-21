@@ -298,7 +298,7 @@ void DBUserModel::setAppUseMode(const int row, const int new_use_opt)
 	{
 		if (row == 0)
 		{
-			if (isCoach(0))
+			if (isCoach(0) && m_clientsNames.count() > 0)
 			{
 				if (new_use_opt != APP_USE_MODE_SINGLE_COACH && new_use_opt != APP_USE_MODE_COACH_USER_WITH_COACH)
 				{
@@ -309,9 +309,9 @@ void DBUserModel::setAppUseMode(const int row, const int new_use_opt)
 						Q_ARG(QString, tr("All your clients will be removed and cannot be automatically retrieved")));
 				}
 			}
-			if (isClient(0))
+			if (isClient(0) && m_coachesNames.count() > 0)
 			{
-				if (new_use_opt != APP_USE_MODE_SINGLE_COACH)
+				if (new_use_opt == APP_USE_MODE_SINGLE_COACH)
 				{
 					connect(appMainWindow(), SIGNAL(revokeClientStatus(int,bool)), this, SLOT(slot_revokeClientStatus(int,bool)), Qt::SingleShotConnection);
 					QMetaObject::invokeMethod(appMainWindow(), "showRevokeClientStatus",
@@ -320,6 +320,8 @@ void DBUserModel::setAppUseMode(const int row, const int new_use_opt)
 						Q_ARG(QString, tr("All your clients will be removed and cannot be automatically retrieved")));
 				}
 			}
+			m_modeldata[row][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
+			emit userModified(0, USER_COL_APP_USE_MODE);
 		}
 		else
 		{
@@ -1385,10 +1387,13 @@ void DBUserModel::pollClientsRequests()
 				auto conn = std::make_shared<QMetaObject::Connection>();
 				*conn = connect(this, &DBUserModel::userProfileAcquired, this, [this,conn,requests_list,n_connections]
 																				(const QString &userid, const bool success) mutable {
-					if (--n_connections == 0)
-						disconnect(*conn);
-					if (success)
-						addPendingClient(userid);
+					if (requests_list.contains(userid))
+					{
+						if (--n_connections == 0)
+							disconnect(*conn);
+						if (success)
+							addPendingClient(userid);
+					}
 				});
 				for (qsizetype x{0}; x < requests_list.count(); ++x)
 				{
@@ -1451,10 +1456,16 @@ void DBUserModel::pollCoachesAnswers()
 				auto conn = std::make_shared<QMetaObject::Connection>();
 				*conn = connect(this, &DBUserModel::userProfileAcquired, this, [this,conn,answers_list,n_connections]
 																			(const QString &userid, const bool success) mutable {
-					if (--n_connections == 0)
-						disconnect(*conn);
-					if (success)
-						addCoachAnswer(userid);
+					const auto &it = std::find_if(answers_list.cbegin(), answers_list.cend(), [userid] (const auto coach) {
+						return coach.startsWith(userid);
+					});
+					if (it != answers_list.cend())
+					{
+						if (--n_connections == 0)
+							disconnect(*conn);
+						if (success)
+							addCoachAnswer(userid);
+					}
 				});
 				for (qsizetype x{0}; x < answers_list.count(); ++x)
 				{
@@ -1510,6 +1521,10 @@ void DBUserModel::pollCurrentClients()
 				bool connected{false};
 				for (qsizetype i{m_modeldata.count()-1}; i >= 1 ; --i)
 				{
+					if (i == m_tempRow)
+						continue;
+					else if (!isClient(i))
+						continue;
 					if (!clients_list.contains(userId(i)))
 					{
 						if (appUseMode(i) == APP_USE_MODE_PENDING_CLIENT)
@@ -1558,6 +1573,10 @@ void DBUserModel::pollCurrentCoaches()
 				bool connected{false};
 				for (qsizetype i{m_modeldata.count()-1}; i >= 1 ; --i)
 				{
+					if (i == m_tempRow)
+						continue;
+					else if (!isCoach(i))
+						continue;
 					if (!coaches_list.contains(userId(i)))
 					{
 						if (!connected)

@@ -139,16 +139,10 @@ bool OnlineUserInfo::sanitize(const QStringList &user_list, const uint field)
 	while (--i >= 0)
 	{
 		const QString fieldValue{m_modeldata.at(i).at(field)};
-		bool found{false};
-		for (uint x{0}; x < user_list.count(); ++x)
-		{
-			if (user_list.at(x) == fieldValue)
-			{
-				found = true;
-				break;
-			}
-		}
-		if (!found)
+		const auto &it = std::find_if(user_list.cbegin(), user_list.cend(), [fieldValue] (const auto user) {
+			return user.startsWith(fieldValue);
+		});
+		if (it == user_list.cend())
 			removeUserInfo(i, true);
 	}
 	return n != count();

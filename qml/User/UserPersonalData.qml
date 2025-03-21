@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
@@ -93,10 +94,11 @@ Frame {
 		}
 	}
 
-	TPPassword {
-		id: passwordControl
-		visible: userRow === 0 && !userModel.mainUserConfigured
-		enabled: bNameOK
+	StackLayout {
+		id: passwordLayout
+		visible: userRow === 0
+		currentIndex: userModel.mainUserConfigured ? 0 : 1
+		height: userModel.mainUserConfigured ? btnChangePassword.height : passwordControl.height
 
 		anchors {
 			top: txtName.bottom
@@ -107,25 +109,41 @@ Frame {
 			rightMargin: 5
 		}
 
-		onPasswordUnacceptable: bPasswordOK = false;
-		onPasswordAccepted: {
-			bPasswordOK = true;
-			userModel.setPassword(getPassword());
+		TPButton {
+			id: btnChangePassword
+			text: qsTr("Change password")
+			imageSource: "password"
+			flat: false
+			fixedSize: true
+			Layout.maximumWidth: 0.8*parent.width
+			Layout.alignment: Qt.AlignCenter
+
+			onClicked: changePasswordLoader.active = true;
+		}
+
+		TPPassword {
+			id: passwordControl
+			enabled: bNameOK
+			Layout.fillHeight: true
+			Layout.fillWidth: true
+
+			onPasswordUnacceptable: bPasswordOK = false;
+			onPasswordAccepted: {
+				bPasswordOK = true;
+				userModel.setPassword(getPassword());
+			}
 		}
 	}
 
 	Loader {
 		id: changePasswordLoader
-		active: userRow === 0 && userModel.mainUserConfigured
+		active: false
 		asynchronous: true
-		source: "qrc:/qml/User/UserChangePassword.qml"
+		sourceComponent: UserChangePassword {
+			parentPage: frmUserData.parentPage
+		}
 
 		onLoaded: item.show(-1);
-
-		anchors {
-			fill: parent
-			margins: 10
-		}
 	}
 
 	TPLabel {
@@ -134,7 +152,7 @@ Frame {
 		height: controlsHeight
 
 		anchors {
-			top: userRow === 0 ? passwordControl.bottom : txtName.bottom
+			top: userRow === 0 ? passwordLayout.bottom : txtName.bottom
 			topMargin: 10
 			left: parent.left
 			leftMargin: 5
@@ -265,6 +283,7 @@ Frame {
 		bSexOK = sex <= 1;
 		userModel.userPasswordAvailable.connect(getUserPassword);
 		userModel.getPassword();
+		bPasswordOK = userModel.mainUserConfigured
 	}
 
 	function getUserPassword(password): void {

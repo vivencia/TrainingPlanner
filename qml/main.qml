@@ -244,7 +244,7 @@ ApplicationWindow {
 				let component = Qt.createComponent("qrc:/qml/Dialogs/PasswordDialog.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					passwdDlg = component.createObject(contentItem, { parentPage: homePage, title:title, message:message });
+					passwdDlg = component.createObject(contentItem, { parentPage: homePage, title: title, message: message });
 				}
 
 				if (component.status === Component.Ready)
@@ -264,7 +264,7 @@ ApplicationWindow {
 				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					userNoLongerAvailableDlg = component.createObject(contentItem, { parentPage: homePage, title:title, message:message, keepAbove: true });
+					userNoLongerAvailableDlg = component.createObject(contentItem, { parentPage: homePage, title: title, message: message, keepAbove: true });
 					userNoLongerAvailableDlg.button1Clicked.connect(function () { removeNoLongerAvailableUser(row, true); });
 					userNoLongerAvailableDlg.button2Clicked.connect(function () { removeNoLongerAvailableUser(row, false); });
 				}
@@ -286,7 +286,7 @@ ApplicationWindow {
 				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					revokeCoachStatusDlg = component.createObject(contentItem, { parentPage: homePage, title:title, message:message });
+					revokeCoachStatusDlg = component.createObject(contentItem, { parentPage: homePage, title: title, message: message });
 					revokeCoachStatusDlg.button1Clicked.connect(function () { revokeCoachStatus(new_use_opt, true); });
 					revokeCoachStatusDlg.button2Clicked.connect(function () { revokeCoachStatus(new_use_opt, false); });
 				}

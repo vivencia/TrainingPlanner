@@ -8,14 +8,15 @@ FocusScope {
 	height: 60
 	implicitHeight: 60
 
-	signal passwordAccepted();
-	signal passwordUnacceptable();
+	property string customLabel: ""
+	property string matchAgainst: ""
+	property bool includeNotAllowableChars: true
+	property bool showAcceptButton: true
 
 	readonly property string notAllowableChars: "# &?=\'\""
-	readonly property string customLabel: ""
-	readonly property string matchAgainst: ""
-	readonly property bool includeNotAllowableChars: true
-	readonly property bool showAcceptButton: true
+
+	signal passwordAccepted();
+	signal passwordUnacceptable();
 
 	TPLabel {
 		id: lblPassword
@@ -138,7 +139,7 @@ FocusScope {
 	}
 
 	function setPasswordText(passwd: string): void {
-		if (passwd.length >= 6)
+		if (passwd.length >= 6 || passwd.length === 0)
 			txtPassword.text = passwd;
 	}
 

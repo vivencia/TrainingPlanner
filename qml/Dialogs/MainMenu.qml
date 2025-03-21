@@ -248,7 +248,7 @@ Drawer {
 		id: btnExit
 		text: qsTr("Exit")
 		imageSource: "application-exit.png"
-		leftAlign: false
+		rightAlignIcon: true
 		rounded: false
 
 		anchors {

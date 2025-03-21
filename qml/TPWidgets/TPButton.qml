@@ -24,7 +24,7 @@ Rectangle {
 	property bool highlighted: false
 	property bool fixedSize: false
 	property bool flat: true
-	property bool leftAlign: true
+	property bool rightAlignIcon: false
 	property bool rounded: true
 	property bool checkable: false
 	property bool hasDropShadow: true
@@ -94,12 +94,8 @@ Rectangle {
 
 			function finishCreation() {
 				_buttonImage = component.createObject(button,
-					{imageSource: imageSource, bIconOnly: text.length === 0, textUnderIcon: textUnderIcon,
-							width: imageSize, height: imageSize, dropShadow: hasDropShadow});
-				if (button.text.length === 0) {
-					fixedSize = true;
-					width = height = imageSize;
-				}
+					{imageSource: imageSource, width: imageSize, height: imageSize, dropShadow: hasDropShadow});
+				anchorComponents();
 			}
 
 			if (component.status === Component.Ready)
@@ -127,6 +123,8 @@ Rectangle {
 		verticalAlignment: Text.AlignVCenter
 		horizontalAlignment: Text.AlignHCenter
 
+		property bool bCompleted: false
+
 		onSizeChanged: {
 			if (!fixedSize) {
 				_canResize = false;
@@ -136,36 +134,15 @@ Rectangle {
 		}
 
 		Component.onCompleted: {
-			if (imageSource.length > 0) {
-				if (!textUnderIcon) {
-					anchors.verticalCenter = button.verticalCenter;
-					if (leftAlign) {
-						anchors.left = button.left;
-						anchors.leftMargin = 5;
-					}
-					else {
-						anchors.right = button.right;
-						anchors.rightMargin = 5;
-					}
-				}
-				else {
-					anchors.horizontalCenter = button.horizontalCenter;
-					anchors.bottom = button.bottom;
-					anchors.bottomMargin = 5
-				}
-			}
-			else {
-				anchors.horizontalCenter = button.horizontalCenter;
-				anchors.verticalCenter = button.verticalCenter;
-			}
-
+			bCompleted = true;
 			if (fixedSize) {
-				width = button.width - 10;
-				if (height > button.height)
-					height = button.height;
+				buttonText.width = button.width - 10;
+				if (buttonText.height > button.height)
+					buttonText.height = button.height;
 				if (!autoResize)
-					heightAvailable = button.height - 10 - (imageSource.length > 1 ? imageSize : 0);
+					buttonText.heightAvailable = button.height - 10 - (imageSource.length > 1 ? imageSize : 0);
 			}
+			anchorComponents();
 		}
 	}
 
@@ -227,6 +204,47 @@ Rectangle {
 				_bEmitSignal = false;
 				button.clicked(button.clickId);
 			}
+		}
+	}
+
+	function anchorComponents(): void {
+		if (imageSource.length > 0) {
+			if (!buttonText.bCompleted && !_buttonImage)
+				return;
+			if (button.text.length === 0) {
+				fixedSize = true;
+				_buttonImage.anchors.centerIn = button;
+				return;
+			}
+
+			if (!textUnderIcon) {
+				buttonText.anchors.verticalCenter = button.verticalCenter;
+				_buttonImage.anchors.verticalCenter = button.verticalCenter;
+
+				buttonText.anchors.horizontalCenter = button.horizontalCenter;
+				buttonText.anchors.verticalCenter = button.verticalCenter;
+				if (!rightAlignIcon) {
+					buttonText.anchors.horizontalCenterOffset = -imageSize/2;
+					_buttonImage.anchors.left = buttonText.right;
+				}
+				else {
+					buttonText.anchors.horizontalCenterOffset = imageSize/2;
+					_buttonImage.anchors.right = buttonText.left;
+				}
+			}
+			else {
+				buttonText.anchors.horizontalCenter = button.horizontalCenter;
+				buttonText.anchors.bottom = button.bottom;
+				buttonText.anchors.bottomMargin = 5
+				_buttonImage.anchors.top = button.top;
+				_buttonImage.anchors.topMargin = 5;
+				_buttonImage.anchors.horizontalCenter = button.horizontalCenter;
+				_buttonImage.anchors.bottomMargin = 10;
+			}
+		}
+		else {
+			buttonText.anchors.horizontalCenter = button.horizontalCenter;
+			buttonText.anchors.verticalCenter = button.verticalCenter;
 		}
 	}
 } //Rectangle
