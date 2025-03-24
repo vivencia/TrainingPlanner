@@ -25,7 +25,8 @@ FocusScope {
 		height: 25
 
 		anchors {
-			top: control.top
+			top: parent.top
+			topMargin: -5
 			left: parent.left
 			right: parent.right
 		}
@@ -37,12 +38,11 @@ FocusScope {
 		echoMode: btnShowHidePassword.show ? TextInput.Normal : TextInput.Password
 		inputMethodHints: Qt.ImhSensitiveData|Qt.ImhNoPredictiveText
 		validator: RegularExpressionValidator { regularExpression: /^[^# &?="']*$/ }
-		ToolTip.text: matchOK ? userModel.invalidPasswordLabel : qsTr("Passwords do not match")
 		focus: true
 		height: 25
 
-		property bool inputOK: false
-		property bool matchOK: true
+		property bool inputOK
+		property bool matchOK
 
 		onEnterOrReturnKeyPressed: {
 			if (inputOK && matchOK)
@@ -57,20 +57,26 @@ FocusScope {
 		onTextEdited: {
 			if (acceptableInput) {
 				if (text.length < 6) {
-					if (inputOK)
-						passwordUnacceptable();
+					matchOK = inputOK = false;
+					passwordUnacceptable();
+					ToolTip.text = userModel.invalidPasswordLabel
+					ToolTip.visible = true;
 				}
-				inputOK = text.length >= 6;
-				ToolTip.visible = !inputOK;
-				if (inputOK) {
+				else {
+					inputOK = true;
+					ToolTip.visible = false;
 					if (matchAgainst.length > 0) {
 						matchOK = text === matchAgainst;
-						ToolTip.visible = !matchOK;
 						if (matchOK)
 							passwordAccepted();
-						else
+						else {
 							passwordUnacceptable();
+							ToolTip.text = qsTr("Passwords do not match")
+							ToolTip.visible = true;
+						}
 					}
+					else
+						passwordAccepted();
 				}
 			}
 		}
@@ -79,7 +85,8 @@ FocusScope {
 			top: lblPassword.bottom
 			topMargin: 5
 			left: parent.left
-			right: btnAccept.left
+			right: parent.right
+			rightMargin: showAcceptButton ? 20 : 0
 		}
 
 		TPButton {

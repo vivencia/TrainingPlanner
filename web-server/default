@@ -19,13 +19,19 @@
 # Default server configuration
 #
 server {
-	listen 80 default_server;
+	listen 0.0.0.0:80;     # Listen on all interfaces
+	#listen 80 default_server;
 	listen [::]:80 default_server;
 
 	# SSL configuration
 	#
 	# listen 443 ssl default_server;
-	# listen [::]:443 ssl default_server;
+	#listen 0.0.0.0:443;     # Listen on all interfaces
+	#listen [::]:443 ssl default_server;
+
+	#ssl_certificate /var/www/html/trainingplanner/admin/tpserver.;  # Replace with your certificate path
+    #ssl_certificate_key /var/www/html/trainingplanner/admin/tpserver.key;  # Replace with your key path
+
 	#
 	# Note: You should disable gzip for SSL traffic.
 	# See: https://bugs.debian.org/773332
@@ -44,7 +50,8 @@ server {
 	# Add index.php to the list if you are using PHP
 	index index.html index.htm index.nginx-debian.html;
 
-	server_name _;
+	#server_name tpserver.com;
+	server_name tpserver 192.168.10.8;  # Optional
 
 	location /trainingplanner/ {
 		# First attempt to serve request as file, then
@@ -60,32 +67,6 @@ server {
         fastcgi_pass unix:/run/php/php8.2-fpm.sock;  # PHP-FPM socket (adjust as needed)
         fastcgi_param SCRIPT_FILENAME /var/www/html/trainingplanner/scripts/url_parser.php;  # Path to your PHP script
         include fastcgi_params;
-
-
-        # Extract the filename from the URL argument (e.g., /download/?file=somefile.txt)
-        # set $file_path $arg_file;
-
-        # Check if the file exists and is a valid file (i.e., not a directory)
-        # if ($file_path = "") {
-         #    return 400 "File parameter is missing.";
-        # }
-
-        # Define the directory where files are stored
-        # set $download_dir /var/www/html/trainingplanner;
-
-        # Ensure the requested file is within the allowed directory (to avoid directory traversal)
-        # if ($file_path !~ ^[a-zA-Z0-9_-]+\.txt$) {
-        #     return 400 "Invalid file type requested.";
-        # }
-
-        # Ensure the file exists
-        # if (!-f $download_dir/$file_path) {
-        #     return 404 "File not found.";
-        # }
-
-        # Serve the file for download
-        #root $download_dir;
-        # add_header Content-Disposition 'attachment; filename=$file_path';
 	}
 
 }

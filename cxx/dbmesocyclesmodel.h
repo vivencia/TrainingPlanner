@@ -41,23 +41,23 @@ Q_PROPERTY(int currentMesoIdx READ currentMesoIdx WRITE setCurrentMesoIdx NOTIFY
 	};
 
 public:
-	explicit DBMesocyclesModel(QObject* parent = nullptr, const bool bMainAppModel = true);
+	explicit DBMesocyclesModel(QObject *parent = nullptr, const bool bMainAppModel = true);
 	~DBMesocyclesModel();
 	void fillColumnNames();
-	QMLMesoInterface* mesoManager(const uint meso_idx);
+	QMLMesoInterface *mesoManager(const uint meso_idx);
 
 	Q_INVOKABLE void getMesocyclePage(const uint meso_idx);
-	Q_INVOKABLE uint createNewMesocycle(const bool bCreatePage);
+	Q_INVOKABLE uint createNewMesocycle(const bool bCreatePage, const bool bOwnMeso);
 	Q_INVOKABLE void removeMesocycle(const uint meso_idx);
 	Q_INVOKABLE void getExercisesPlannerPage(const uint meso_idx);
 	Q_INVOKABLE void getMesoCalendarPage(const uint meso_idx);
 	Q_INVOKABLE void exportMeso(const uint meso_idx, const bool bShare, const bool bCoachInfo);
 	Q_INVOKABLE inline void todaysWorkout() { openSpecificWorkout(mostRecentOwnMesoIdx(), QDate::currentDate()); }
-	void openSpecificWorkout(const uint meso_idx, const QDate& date);
+	void openSpecificWorkout(const uint meso_idx, const QDate &date);
 
-	const uint newMesocycle(QStringList&& infolist);
-	inline DBMesoSplitModel* mesoSplitModel() { return m_splitModel; }
-	inline DBMesoCalendarModel* mesoCalendarModel(const uint meso_idx) const { return m_calendarModelList.value(meso_idx); }
+	const uint newMesocycle(QStringList &&infolist);
+	inline DBMesoSplitModel *mesoSplitModel() { return m_splitModel; }
+	inline DBMesoCalendarModel *mesoCalendarModel(const uint meso_idx) const { return m_calendarModelList.value(meso_idx); }
 
 	inline bool isNewMeso(const uint meso_idx) const { return m_isNewMeso.at(meso_idx) != 0; }
 	Q_INVOKABLE inline bool isNewMeso() const { return currentMesoIdx() >= 0 ? isNewMeso(currentMesoIdx()) : true; }
@@ -77,11 +77,11 @@ public:
 			emit viewedMesoHasDataChanged();
 	}
 
-	void setWorkoutIsFinished(const uint meso_idx, const QDate& date, const bool bFinished);
+	void setWorkoutIsFinished(const uint meso_idx, const QDate &date, const bool bFinished);
 	void setModified(const uint meso_idx, const uint field);
 
 	int idxFromId(const uint meso_id) const;
-	inline const QString& id(const uint meso_idx) const
+	inline const QString &id(const uint meso_idx) const
 	{
 		return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_ID);
 	}
@@ -89,15 +89,15 @@ public:
 	{
 		return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_ID).toInt();
 	}
-	void setId(const uint meso_idx, const QString& new_id);
+	void setId(const uint meso_idx, const QString &new_id);
 
-	inline const QString& name(const uint meso_idx) const
+	inline const QString &name(const uint meso_idx) const
 	{
 		return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_NAME);
 	}
-	void setName(const uint meso_idx, const QString& new_name);
+	void setName(const uint meso_idx, const QString &new_name);
 
-	inline const QString& strStartDate(const uint meso_idx) const
+	inline const QString &strStartDate(const uint meso_idx) const
 	{
 		return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_STARTDATE);
 	}
@@ -105,9 +105,9 @@ public:
 	{
 		return meso_idx >= 0 ? QDate::fromJulianDay(m_modeldata.at(meso_idx).at(MESOCYCLES_COL_STARTDATE).toLongLong()) : QDate();
 	}
-	void setStartDate(const uint meso_idx, const QDate& new_date);
+	void setStartDate(const uint meso_idx, const QDate &new_date);
 
-	inline const QString& strEndDate(const uint meso_idx) const
+	inline const QString &strEndDate(const uint meso_idx) const
 	{
 		return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_ENDDATE);
 	}
@@ -116,80 +116,80 @@ public:
 		return meso_idx >= 0 ? isRealMeso(meso_idx) ?
 			QDate::fromJulianDay(m_modeldata.at(meso_idx).at(MESOCYCLES_COL_ENDDATE).toLongLong()) : QDate::currentDate().addDays(730) : QDate();
 	}
-	void setEndDate(const uint meso_idx, const QDate& new_date);
+	void setEndDate(const uint meso_idx, const QDate &new_date);
 
-	inline const QString& notes(const uint meso_idx) const
+	inline const QString &notes(const uint meso_idx) const
 	{
 		return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_NOTE);
 	}
-	inline void setNotes(const uint meso_idx, const QString& new_notes)
+	inline void setNotes(const uint meso_idx, const QString &new_notes)
 	{
 		m_modeldata[meso_idx][MESOCYCLES_COL_NOTE] = new_notes;
 		setModified(meso_idx, MESOCYCLES_COL_NOTE);
 	}
 
-	inline const QString& nWeeks(const uint meso_idx) const
+	inline const QString &nWeeks(const uint meso_idx) const
 	{
 		return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_WEEKS);
 	}
-	inline void setWeeks(const uint meso_idx, const QString& new_weeks)
+	inline void setWeeks(const uint meso_idx, const QString &new_weeks)
 	{
 		m_modeldata[meso_idx][MESOCYCLES_COL_WEEKS] = new_weeks;
 		setModified(meso_idx, MESOCYCLES_COL_WEEKS);
 	}
 
-	inline const QString& split(const uint meso_idx) const
+	inline const QString &split(const uint meso_idx) const
 	{
 		return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_SPLIT);
 	}
-	void setSplit(const uint meso_idx, const QString& new_split);
+	void setSplit(const uint meso_idx, const QString &new_split);
 
-	inline const QString& coach(const uint meso_idx) const
+	inline const QString &coach(const uint meso_idx) const
 	{
 		return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_COACH);
 	}
-	inline void setCoach(const uint meso_idx, const QString& new_coach)
+	inline void setCoach(const uint meso_idx, const QString &new_coach)
 	{
 		m_modeldata[meso_idx][MESOCYCLES_COL_COACH] = new_coach;
 		setModified(meso_idx, MESOCYCLES_COL_COACH);
 		emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>() << mesoCoachRole);
 	}
 
-	inline const QString& client(const uint meso_idx) const
+	inline const QString &client(const uint meso_idx) const
 	{
 		return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_CLIENT);
 	}
-	inline void setClient(const uint meso_idx, const QString& new_client)
+	inline void setClient(const uint meso_idx, const QString &new_client)
 	{
 		m_modeldata[meso_idx][MESOCYCLES_COL_CLIENT] = new_client;
 		setModified(meso_idx, MESOCYCLES_COL_CLIENT);
 		emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>() << mesoClientRole);
 	}
 
-	bool isOwnMeso(const int meso_idx) const;
+	Q_INVOKABLE bool isOwnMeso(const int meso_idx) const;
 	void setOwnMeso(const uint meso_idx, const bool bOwnMeso);
 
-	inline const QString& file(const uint meso_idx) const
+	inline const QString &file(const uint meso_idx) const
 	{
 		return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_FILE);
 	}
-	inline void setFile(const uint meso_idx, const QString& new_file)
+	inline void setFile(const uint meso_idx, const QString &new_file)
 	{
 		m_modeldata[meso_idx][MESOCYCLES_COL_FILE] = new_file;
 		setModified(meso_idx, MESOCYCLES_COL_FILE);
 	}
 
-	inline const QString& type(const uint meso_idx) const
+	inline const QString &type(const uint meso_idx) const
 	{
 		return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_TYPE);
 	}
-	inline void setType(const uint meso_idx, const QString& new_type)
+	inline void setType(const uint meso_idx, const QString &new_type)
 	{
 		m_modeldata[meso_idx][MESOCYCLES_COL_TYPE] = new_type;
 		setModified(meso_idx, MESOCYCLES_COL_TYPE);
 	}
 
-	inline const QString& realMeso(const uint meso_idx) const
+	inline const QString &realMeso(const uint meso_idx) const
 	{
 		return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_REALMESO);
 	}
@@ -205,8 +205,8 @@ public:
 
 	inline uint newMesoFieldCounter(const uint meso_idx) const { return m_newMesoFieldCounter.at(meso_idx); }
 
-	Q_INVOKABLE QString muscularGroup(const uint meso_idx, const QChar& splitLetter) const;
-	void setMuscularGroup(const uint meso_idx, const QChar& splitLetter, const QString& newSplitValue, const bool bEmitSignal = true);
+	Q_INVOKABLE QString muscularGroup(const uint meso_idx, const QChar &splitLetter) const;
+	void setMuscularGroup(const uint meso_idx, const QChar &splitLetter, const QString &newSplitValue, const bool bEmitSignal = true);
 
 	QString splitLetter(const uint meso_idx, const uint day_of_week) const;
 	QVariant data(const QModelIndex &index, int role) const override;
@@ -218,11 +218,11 @@ public:
 
 	inline bool newMesoCalendarChanged(const uint meso_idx) const { return m_newMesoCalendarChanged.at(meso_idx); }
 	inline void setNewMesoCalendarChanged(const uint meso_idx, const bool changed) { m_newMesoCalendarChanged[meso_idx] = changed; }
-	bool isDateWithinMeso(const int meso_idx, const QDate& date) const;
+	bool isDateWithinMeso(const int meso_idx, const QDate &date) const;
 	void findNextOwnMeso();
-	int getPreviousMesoId(const QString& clientName, const int current_mesoid) const;
-	QDate getMesoMinimumStartDate(const QString& clientName, const uint exclude_idx) const;
-	QDate getMesoMaximumEndDate(const QString& clientName, const uint exclude_idx) const;
+	int getPreviousMesoId(const QString &clientName, const int current_mesoid) const;
+	QDate getMesoMinimumStartDate(const QString &clientName, const uint exclude_idx) const;
+	QDate getMesoMaximumEndDate(const QString &clientName, const uint exclude_idx) const;
 	void updateColumnLabels();
 
 	//When importing a complete program: importIdx() will be set to -1 because we will be getting a new meso model. When other parts of the code
@@ -231,9 +231,9 @@ public:
 	//the recently added meso
 	inline int importIdx() const { return m_importMesoIdx; }
 	inline void setImportIdx(const int new_import_idx) { m_importMesoIdx = new_import_idx; }
-	int exportToFile(const QString& filename, const bool = true, const bool = true, const bool = true) const override;
-	int importFromFile(const QString& filename) override;
-	bool updateFromModel(const uint meso_idx, TPListModel* model);
+	int exportToFile(const QString &filename, const bool = true, const bool = true, const bool = true) const override;
+	int importFromFile(const QString &filename) override;
+	bool updateFromModel(const uint meso_idx, TPListModel *model);
 
 	inline bool isFieldFormatSpecial (const uint field) const override
 	{
@@ -249,8 +249,8 @@ public:
 		}
 	}
 
-	QString formatFieldToExport(const uint field, const QString& fieldValue) const override;
-	QString formatFieldToImport(const uint field, const QString& fieldValue, const QString& fieldName) const;
+	QString formatFieldToExport(const uint field, const QString &fieldValue) const override;
+	QString formatFieldToImport(const uint field, const QString &fieldValue, const QString &fieldName) const;
 
 signals:
 	void mesoIdxChanged(const uint old_meso_idx, const uint new_meso_idx);
@@ -258,7 +258,7 @@ signals:
 	void newMesoFieldCounterChanged(const uint meso_idx, const uint field);
 	void mesoChanged(const uint meso_idx, const uint field);
 	void mesoCalendarFieldsChanged(const uint meso_idx, const uint field);
-	void muscularGroupChanged(const uint meso_idx, const uint splitIndex, const QChar& splitLetter);
+	void muscularGroupChanged(const uint meso_idx, const uint splitIndex, const QChar &splitLetter);
 	void mostRecentOwnMesoChanged(const int meso_idx);
 	void currentMesoIdxChanged();
 	void canHaveTodaysWorkoutChanged();
@@ -268,7 +268,7 @@ signals:
 
 private:
 	QList<QMLMesoInterface*> m_mesoManagerList;
-	DBMesoSplitModel* m_splitModel;
+	DBMesoSplitModel *m_splitModel;
 	QList<DBMesoCalendarModel*> m_calendarModelList;
 	QList<short> m_isNewMeso;
 	QList<short> m_newMesoFieldCounter;
@@ -277,8 +277,8 @@ private:
 	int m_currentMesoIdx, m_mostRecentOwnMesoIdx, m_importMesoIdx;
 	bool m_bCanHaveTodaysWorkout, m_bViewedMesoHasData;
 
-	static DBMesocyclesModel* app_meso_model;
-	friend DBMesocyclesModel* appMesoModel();
+	static DBMesocyclesModel *app_meso_model;
+	friend DBMesocyclesModel *appMesoModel();
 };
 
-inline DBMesocyclesModel* appMesoModel() { return DBMesocyclesModel::app_meso_model; }
+inline DBMesocyclesModel *appMesoModel() { return DBMesocyclesModel::app_meso_model; }

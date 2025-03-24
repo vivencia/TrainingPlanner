@@ -88,12 +88,12 @@ public:
 	Q_INVOKABLE void removeUser(const int row);
 
 	const int getRowByCoachName(const QString &coachname) const;
-	inline bool isCoach(const uint row) const
+	Q_INVOKABLE inline bool isCoach(const uint row) const
 	{
 		const uint app_use_mode{appUseMode(row)};
 		return app_use_mode == APP_USE_MODE_SINGLE_COACH || app_use_mode == APP_USE_MODE_COACH_USER_WITH_COACH;
 	}
-	inline bool isClient(const uint row) const
+	Q_INVOKABLE inline bool isClient(const uint row) const
 	{
 		return appUseMode(row) != APP_USE_MODE_SINGLE_COACH;
 	}
@@ -145,7 +145,7 @@ public:
 		emit userModified(row, USER_COL_SEX);
 	}
 
-	Q_INVOKABLE inline QString phone(const int row) const { return row >= 0 && row < m_modeldata.count() ? _phone(row) : QString{}; }
+	Q_INVOKABLE inline QString phone(const int row) const { return row >= 0 && row < m_modeldata.count() ? _phone(row) : m_emptyString; }
 	inline const QString &_phone(const uint row) const { return m_modeldata.at(row).at(USER_COL_PHONE); }
 	Q_INVOKABLE inline void setPhone(const int row, const QString &new_phone)
 	{
@@ -153,7 +153,7 @@ public:
 		emit userModified(row, USER_COL_PHONE);
 	}
 
-	Q_INVOKABLE inline QString email(const int row) const { return row >= 0 && row < m_modeldata.count() ? _email(row) : QString{}; }
+	Q_INVOKABLE inline QString email(const int row) const { return row >= 0 && row < m_modeldata.count() ? _email(row) : m_emptyString; }
 	inline const QString &_email(const uint row) const { return m_modeldata.at(row).at(USER_COL_EMAIL); }
 	Q_INVOKABLE inline void setEmail(const int row, const QString &new_email)
 	{
@@ -164,8 +164,8 @@ public:
 	Q_INVOKABLE inline QString socialMedia(const int row, const int index) const
 	{
 		return row >= 0 && row < m_modeldata.count() ?
-		appUtils()->getCompositeValue(index, _socialMedia(row), record_separator) :
-		QString{};
+			appUtils()->getCompositeValue(index, _socialMedia(row), record_separator) :
+			QString{};
 	}
 	inline const QString &_socialMedia(const uint row) const { return m_modeldata.at(row).at(USER_COL_SOCIALMEDIA); }
 	Q_INVOKABLE inline void setSocialMedia(const int row, const uint index, const QString &new_social)
@@ -174,7 +174,7 @@ public:
 		emit userModified(row, USER_COL_SOCIALMEDIA);
 	}
 
-	Q_INVOKABLE inline QString userRole(const int row) const { return row >= 0 && row < m_modeldata.count() ? _userRole(row) : QString{}; }
+	Q_INVOKABLE inline QString userRole(const int row) const { return row >= 0 && row < m_modeldata.count() ? _userRole(row) : m_emptyString; }
 	inline const QString &_userRole(const uint row) const { return m_modeldata.at(row).at(USER_COL_USERROLE); }
 	Q_INVOKABLE inline void setUserRole(const int row, const QString &new_role)
 	{
@@ -182,7 +182,7 @@ public:
 		emit userModified(row, USER_COL_USERROLE);
 	}
 
-	Q_INVOKABLE inline QString coachRole(const int row) const { return row >= 0 && row < m_modeldata.count() ? _coachRole(row) : QString{}; }
+	Q_INVOKABLE inline QString coachRole(const int row) const { return row >= 0 && row < m_modeldata.count() ? _coachRole(row) : m_emptyString; }
 	inline const QString &_coachRole(const uint row) const { return m_modeldata.at(row).at(USER_COL_COACHROLE); }
 	Q_INVOKABLE inline void setCoachRole(const int row, const QString &new_role)
 	{
@@ -213,7 +213,7 @@ public:
 	inline OnlineUserInfo *pendingCoachesResponses() const { return m_pendingCoachesResponses; }
 	inline QStringList coachesNames() const { return m_coachesNames; }
 	Q_INVOKABLE inline int coachRow(const QString &coach_name) const { return m_coachesNames.indexOf(coach_name); }
-	inline const QString defaultCoach() const { return m_coachesNames.count() > 0 ? m_coachesNames.at(0) : QString{}; }
+	inline const QString &defaultCoach() const { return m_coachesNames.count() > 0 ? m_coachesNames.last() : m_emptyString; }
 	inline bool haveCoaches() const { return m_coachesNames.count() > 0; }
 	void addCoach(const uint row);
 	void delCoach(const uint row);
@@ -223,7 +223,7 @@ public:
 	inline OnlineUserInfo *pendingClientsRequests() const { return m_pendingClientRequests; }
 	inline QStringList clientsNames() const { return m_clientsNames; }
 	Q_INVOKABLE inline int clientRow(const QString &client_name) const { return m_clientsNames.indexOf(client_name); }
-	inline const QString defaultClient() const { return m_clientsNames.count() > 0 ? m_clientsNames.at(0) : QString{}; }
+	inline const QString &defaultClient() const { return m_clientsNames.count() > 0 ? m_clientsNames.last() : m_emptyString; }
 	inline bool haveClients() const { return m_clientsNames.count() > 0; }
 	void addClient(const uint row);
 	void delClient(const uint row);
@@ -308,7 +308,7 @@ signals:
 
 private:
 	int m_tempRow;
-	QString m_appDataPath, m_onlineUserId, m_password, m_defaultAvatar;
+	QString m_appDataPath, m_onlineUserId, m_password, m_defaultAvatar, m_emptyString;
 	std::optional<bool> mb_userRegistered, mb_coachRegistered;
 	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses, *m_tempRowUserInfo;
 	QStringList m_coachesNames, m_clientsNames;

@@ -92,7 +92,7 @@ TPPage {
 
 			TPLabel {
 				text: mesoManager.clientLabel
-				visible: mesoManager.ownerIsCoach
+				visible: !mesoManager.ownMeso && mesoManager.ownerIsCoach
 			}
 
 			TPClientsList {
@@ -101,13 +101,10 @@ TPPage {
 				buttonString: qsTr("Go to client's page")
 				height: 0.2*mesoPropertiesPage.height
 				allowNotConfirmedClients: false
-				visible: mesoManager.ownerIsCoach
+				visible: !mesoManager.ownMeso && mesoManager.ownerIsCoach
 				Layout.fillWidth: true
 
-				onClientSelected: (userRow) => {
-					mesoManager.client = userModel.userName(userRow);
-					mesoManager.ownMeso = userRow === 0;
-				}
+				onClientSelected: (userRow) => mesoManager.client = userModel.userName(userRow);
 				onButtonClicked: itemManager.getClientsPage();
 			} //TPClientsList
 

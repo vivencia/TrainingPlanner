@@ -633,7 +633,7 @@ int QmlItemManager::incorporateImportedData(TPListModel* model, const int wanted
 		case MESOCYCLES_TABLE_ID:
 			if (appMesoModel()->isDifferent(model))
 			{
-				const uint meso_idx{appMesoModel()->createNewMesocycle(false)};
+				const uint meso_idx{appMesoModel()->createNewMesocycle(false, false)};
 				if ((ok = appMesoModel()->updateFromModel(meso_idx, model)))
 				{
 					//If we are importing a complete program with splits as well, let them save split code to the database. The code to save a

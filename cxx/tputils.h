@@ -34,14 +34,14 @@ public:
 
 	int generateUniqueId(const QLatin1StringView &seed = QLatin1StringView{}) const;
 
-	Q_INVOKABLE QString getCorrectPath(const QUrl& url) const;
+	Q_INVOKABLE QString getCorrectPath(const QUrl &url) const;
 	Q_INVOKABLE int getFileType(const QString &filename) const;
 	Q_INVOKABLE QString getFilePath(const QString &filename) const;
 	Q_INVOKABLE QString getFileName(const QString &filepath, const bool without_extension = false) const;
 	Q_INVOKABLE void copyToClipBoard(const QString &text) const;
 	Q_INVOKABLE bool canReadFile(const QString &filename) const;
 
-	inline QLocale* appLocale() const { return m_appLocale; }
+	inline QLocale *appLocale() const { return m_appLocale; }
 
 	Q_INVOKABLE QString formatDate(const QDate &date, const DATE_FORMAT format = DF_QML_DISPLAY) const;
 	inline QString formatTodayDate() const { return formatDate(QDate::currentDate()); }
@@ -50,6 +50,9 @@ public:
 	QDate getNextMonday(const QDate &fromDate) const;
 	QDate createDate(const QDate &fromDate, const int years, const int months, const int days) const;
 	Q_INVOKABLE inline QDate getDayBefore(const QDate &date) const { return date.addDays(-1); }
+	Q_INVOKABLE inline QDate yesterday() const { return QDate::currentDate().addDays(-1); }
+	Q_INVOKABLE inline QDate tomorrow() const { return QDate::currentDate().addDays(1); }
+	Q_INVOKABLE inline QDate today() const { return QDate::currentDate(); }
 	int daysInMonth(const int month, const int year) const;
 
 	Q_INVOKABLE QString formatTime(const QTime &time, const TIME_FORMAT format = TF_QML_DISPLAY_NO_SEC) const;

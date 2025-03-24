@@ -129,15 +129,9 @@ void DBUserModel::addUser(QStringList &&user_info)
 		static_cast<void>(onlineCheckIn());
 		startServerPolling();
 		if (isCoach(0))
-		{
-			m_coachesNames.append(tr("**Myself"));
 			m_exportName = std::move(tr("Coach information"));
-		}
 		if (isClient(0))
-		{
-			m_clientsNames.append(tr("**Myself"));
 			m_exportName = std::move(tr("Client information"));
-		}
 	}
 	else
 	{

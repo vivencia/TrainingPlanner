@@ -94,11 +94,28 @@ Frame {
 		}
 	}
 
-	StackLayout {
-		id: passwordLayout
-		visible: userRow === 0
-		currentIndex: userModel.mainUserConfigured ? 0 : 1
-		height: userModel.mainUserConfigured ? btnChangePassword.height : passwordControl.height
+	TPButton {
+		id: btnChangePassword
+		text: qsTr("Change password")
+		imageSource: "password"
+		flat: false
+		fixedSize: true
+		width: parent.width*0.7
+		visible: userRow === 0 && userModel.mainUserConfigured
+
+		anchors {
+			top: txtName.bottom
+			topMargin: 5
+			horizontalCenter: parent.horizontalCenter
+		}
+
+		onClicked: changePasswordLoader.active = true;
+	}
+
+	TPPassword {
+		id: passwordControl
+		enabled: bNameOK
+		visible: userRow === 0 && !userModel.mainUserConfigured
 
 		anchors {
 			top: txtName.bottom
@@ -109,29 +126,10 @@ Frame {
 			rightMargin: 5
 		}
 
-		TPButton {
-			id: btnChangePassword
-			text: qsTr("Change password")
-			imageSource: "password"
-			flat: false
-			fixedSize: true
-			Layout.maximumWidth: 0.8*parent.width
-			Layout.alignment: Qt.AlignCenter
-
-			onClicked: changePasswordLoader.active = true;
-		}
-
-		TPPassword {
-			id: passwordControl
-			enabled: bNameOK
-			Layout.fillHeight: true
-			Layout.fillWidth: true
-
-			onPasswordUnacceptable: bPasswordOK = false;
-			onPasswordAccepted: {
-				bPasswordOK = true;
-				userModel.setPassword(getPassword());
-			}
+		onPasswordUnacceptable: bPasswordOK = false;
+		onPasswordAccepted: {
+			bPasswordOK = true;
+			userModel.setPassword(getPassword());
 		}
 	}
 
@@ -152,7 +150,7 @@ Frame {
 		height: controlsHeight
 
 		anchors {
-			top: userRow === 0 ? passwordLayout.bottom : txtName.bottom
+			top: userRow === 0 ? userModel.mainUserConfigured ? btnChangePassword.bottom : passwordControl.bottom : txtName.bottom
 			topMargin: 10
 			left: parent.left
 			leftMargin: 5

@@ -4,6 +4,8 @@ import QtQuick.Layouts
 
 import "../"
 import "../TPWidgets"
+import "HomePageElements"
+
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPage {
@@ -46,22 +48,68 @@ TPPage {
 		}
 	}
 
-	Loader {
-		id: mesosListLoader
-		active: userModel.mainUserConfigured
-		asynchronous: true
-		source: "qrc:/qml/Pages/HomePageElements/MesosList.qml"
+	SwipeView {
+		id: mesoView
+		currentIndex: userModel.mainUserConfigured ? (userModel.isClient(0) ? 0 : 1) : -1
+		interactive: true
+		anchors.fill: parent
+
+		readonly property list<string> pageTitle: [qsTr("My Programs"), qsTr("Clients' Programs")]
+
+		Loader {
+			id: ownMesosListLoader
+			active: userModel.mainUserConfigured && userModel.isClient(0)
+			asynchronous: true
+
+			sourceComponent: MesosList {
+				mainUserPrograms: true
+			}
+		}
+
+		Loader {
+			id: clientsMesosListLoader
+			active: userModel.mainUserConfigured && userModel.isCoach(0)
+			asynchronous: true
+
+			sourceComponent: MesosList {
+				mainUserPrograms: false
+			}
+		}
+	} //SwipeView
+
+	PageIndicator {
+		id: indicator
+		count: mesoView.count
+		currentIndex: mesoView.currentIndex
+		visible: userModel.mainUserConfigured
+		height: 25
+		width: parent.width
+
+		delegate: TPLabel {
+			text: mesoView.pageTitle[index]
+			width: parent.width/2
+			horizontalAlignment: Text.AlignHCenter
+
+			required property int index
+
+			background: Rectangle {
+				radius: width/2
+				opacity: index === indicator.currentIndex ? 0.95 : pressed ? 0.7 : 0.45
+				color: index === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
+			}
+
+			Behavior on opacity {
+				OpacityAnimator {
+					duration: 200
+				}
+			}
+		}
 
 		anchors {
-			fill: parent
-			margins: 10
+			bottom: parent.bottom
+			bottomMargin: ownMesosListLoader.height*0.21
+			horizontalCenter: parent.horizontalCenter
 		}
 	}
-
-	footer: Loader {
-		active: userModel.mainUserConfigured
-		asynchronous: true
-		source: "qrc:/qml/Pages/HomePageElements/Footer.qml"
-	} // footer
 } //Page
 

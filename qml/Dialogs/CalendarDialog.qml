@@ -8,7 +8,7 @@ TPPopup {
     id: calendarPopup
 	keepAbove: !simpleCalendar
 	width: datePickerControl.width
-	height: datePickerControl.height + 30
+	height: datePickerControl.height + buttonsLayout.childrenRect.height + btnOK.height + 15
 	x: (appSettings.pageWidth - width) / 2 // horizontally centered
 	finalYPos: (appSettings.pageHeight - height) / 2 // vertically centered
 
@@ -45,7 +45,7 @@ TPPopup {
 
 	ColumnLayout {
 		anchors.fill: parent
-		spacing: 0
+		spacing: 5
 
 		TPDatePicker {
 			id: datePickerControl
@@ -58,12 +58,50 @@ TPPopup {
 			Component.onCompleted: datePickerControl.setDate(showDate);
 		}
 
+		Row {
+			id: buttonsLayout
+			spacing: 2
+			Layout.fillWidth: true
+
+			readonly property int buttonWidth: (parent.width-5)/3
+
+			TPButton {
+				id: btnYesterday
+				text: qsTr("Yesterday")
+				flat: false
+				autoResize: true
+				fixedSize: true
+				width: parent.buttonWidth
+
+				onClicked: datePickerControl.setDate2(appUtils.yesterday());
+			}
+			TPButton {
+				id: btnToday
+				text: qsTr("Today")
+				flat: false
+				autoResize: true
+				fixedSize: true
+				width: parent.buttonWidth
+
+				onClicked: datePickerControl.setDate2(appUtils.today());
+			}
+			TPButton {
+				id: btnTomorrow
+				text: qsTr("Tomorrow")
+				flat: false
+				autoResize: true
+				fixedSize: true
+				width: parent.buttonWidth
+
+				onClicked: datePickerControl.setDate2(appUtils.tomorrow());
+			}
+		}
+
 		TPButton {
 			id: btnOK
 			text: "OK"
 			flat: false
-			Layout.alignment: Qt.AlignVCenter|Qt.AlignRight
-			Layout.rightMargin: 5
+			Layout.alignment: Qt.AlignCenter
 
 			onClicked: {
 				dateSelected(datePickerControl.selectedDate)

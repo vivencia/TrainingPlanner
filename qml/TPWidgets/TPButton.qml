@@ -31,7 +31,7 @@ Rectangle {
 	property bool checked: false
 	property bool autoResize: false
 	property int clickId: -1
-	property int imageSize: hasDropShadow ? 30 : 20
+	property int imageSize: height
 
 	//Local variables. Do not use outside this file
 	property bool _canResize: true
@@ -125,24 +125,27 @@ Rectangle {
 
 		property bool bCompleted: false
 
-		onSizeChanged: {
+		onSizeChanged: resize();
+
+		Component.onCompleted: {
+			bCompleted = true;
+			resize();
+			anchorComponents();
+		}
+
+		function resize() {
 			if (!fixedSize) {
 				_canResize = false;
 				width = _textWidth;
 				button.width = _textWidth + (textUnderIcon ? 10 : (imageSource.length > 0 ? imageSize : 0)) + 20
 			}
-		}
-
-		Component.onCompleted: {
-			bCompleted = true;
-			if (fixedSize) {
-				buttonText.width = button.width - 10;
-				if (buttonText.height > button.height)
-					buttonText.height = button.height;
-				if (!autoResize)
-					buttonText.heightAvailable = button.height - 10 - (imageSource.length > 1 ? imageSize : 0);
+			else {
+				width = textUnderIcon ? button.width - 10 : button.width - (imageSource.length > 0 ? imageSize : 0) - 10;
+				if (height > button.height)
+					height = button.height;
 			}
-			anchorComponents();
+			if (!autoResize)
+				heightAvailable = button.height - 10 - (imageSource.length > 1 ? imageSize : 0);
 		}
 	}
 

@@ -7,12 +7,13 @@ import "../TPWidgets"
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPopup {
-	id: changePasswdDlg
+	id: passwdDlg
 	keepAbove: true
+	dim: true
 	width: appSettings.pageWidth * 0.8
 	height: nControls*controlsHeight
 
-	readonly property int nControls: 9
+	readonly property int nControls: 10
 	readonly property int controlsHeight: 25
 
 	onOpened: {
@@ -28,11 +29,11 @@ TPPopup {
 		horizontalAlignment: Text.AlignHCenter
 
 		anchors {
-			top: changePasswdDlg.top
+			top: parent.top
 			topMargin: 5
-			left: changePasswdDlg.left
-			leftMargin: 5
-			right: changePasswdDlg.right
+			left: parent.left
+			leftMargin: 15
+			right: parent.right
 			rightMargin: 20
 		}
 	}
@@ -50,10 +51,10 @@ TPPopup {
 
 		anchors {
 			top: lblTitle.bottom
-			topMargin: 5
-			left: changePasswdDlg.left
+			topMargin: 10
+			left: parent.left
 			leftMargin: 5
-			right: changePasswdDlg.right
+			right: parent.right
 			rightMargin: 5
 		}
 	}
@@ -72,10 +73,10 @@ TPPopup {
 
 		anchors {
 			top: txtCurPassword.bottom
-			topMargin: 5
-			left: changePasswdDlg.left
+			topMargin: 0
+			left: parent.left
 			leftMargin: 5
-			right: changePasswdDlg.right
+			right: parent.right
 			rightMargin: 5
 		}
 	}
@@ -92,10 +93,10 @@ TPPopup {
 
 		anchors {
 			top: txtNewPassword.bottom
-			topMargin: 5
-			left: changePasswdDlg.left
+			topMargin: 0
+			left: parent.left
 			leftMargin: 5
-			right: changePasswdDlg.right
+			right: parent.right
 			rightMargin: 5
 		}
 	}
@@ -122,7 +123,7 @@ TPPopup {
 
 			onClicked: {
 				userModel.changePassword(txtCurPassword.getPassword(), txtNewPassword.getPassword());
-				changePasswdDlg.closePopup();
+				passwdDlg.closePopup();
 				enabled = false;
 			}
 		}
@@ -135,7 +136,7 @@ TPPopup {
 			Layout.alignment: Qt.AlignCenter
 			Layout.maximumWidth: availableWidth - btn1.width - 10
 
-			onClicked: changePasswdDlg.closePopup();
+			onClicked: passwdDlg.closePopup();
 		}
 	}
 

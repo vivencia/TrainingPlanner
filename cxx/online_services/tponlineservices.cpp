@@ -21,7 +21,7 @@ inline QString makeCommandURL(const QString& username, const QString& passwd = Q
 								const QString &option3 = QString{}, const QString &value3 = QString{}
 								)
 {
-	QString ret{"http://127.0.0.1/trainingplanner/?"_L1 + "user="_L1 + username + "&password="_L1 + passwd};
+	QString ret{"http://192.168.10.8/trainingplanner/?"_L1 + "user="_L1 + username + "&password="_L1 + passwd};
 	if (!option1.isEmpty())
 	{
 		ret += '&' + option1 + '=';

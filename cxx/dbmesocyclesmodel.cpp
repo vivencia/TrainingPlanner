@@ -15,9 +15,9 @@
 
 #define NEW_MESO_REQUIRED_FIELDS 4
 
-DBMesocyclesModel* DBMesocyclesModel::app_meso_model(nullptr);
+DBMesocyclesModel *DBMesocyclesModel::app_meso_model(nullptr);
 
-DBMesocyclesModel::DBMesocyclesModel(QObject* parent, const bool bMainAppModel)
+DBMesocyclesModel::DBMesocyclesModel(QObject *parent, const bool bMainAppModel)
 	: TPListModel{parent}, m_mostRecentOwnMesoIdx{-1}, m_bCanHaveTodaysWorkout{false}
 {
 	setObjectName(DBMesocyclesObjectName);
@@ -76,13 +76,13 @@ DBMesocyclesModel::~DBMesocyclesModel()
 		delete m_mesoManagerList.at(i);
 }
 
-QMLMesoInterface* DBMesocyclesModel::mesoManager(const uint meso_idx)
+QMLMesoInterface *DBMesocyclesModel::mesoManager(const uint meso_idx)
 {
 	if (meso_idx >= m_mesoManagerList.count())
 	{
 		for (qsizetype i{m_mesoManagerList.count()}; i <= meso_idx ; ++i)
 		{
-			QMLMesoInterface* mesomanager{new QMLMesoInterface{this, static_cast<uint>(i)}};
+			QMLMesoInterface *mesomanager{new QMLMesoInterface{this, static_cast<uint>(i)}};
 			m_mesoManagerList.append(mesomanager);
 		}
 	}
@@ -95,12 +95,12 @@ void DBMesocyclesModel::getMesocyclePage(const uint meso_idx)
 	mesoManager(meso_idx)->getMesocyclePage();
 }
 
-uint DBMesocyclesModel::createNewMesocycle(const bool bCreatePage)
+uint DBMesocyclesModel::createNewMesocycle(const bool bCreatePage, const bool bOwnMeso)
 {
 	beginInsertRows(QModelIndex{}, count(), count());
 	const uint meso_idx{newMesocycle(std::move(QStringList{} << STR_MINUS_ONE << QString{} << QString{} << QString{} <<
-		QString{} << QString{} << std::move("ABCDERR"_L1) << appUserModel()->defaultCoach() << appUserModel()->defaultClient() <<
-		QString{} << QString{} << STR_ONE))};
+		QString{} << QString{} << std::move("ABCDERR"_L1) << appUserModel()->defaultCoach() <<
+			(bOwnMeso ? appUserModel()->_userName(0) : appUserModel()->defaultClient()) << QString{} << QString{} << STR_ONE))};
 	emit countChanged();
 	endInsertRows();
 
@@ -236,7 +236,7 @@ void DBMesocyclesModel::setModified(const uint meso_idx, const uint field)
 
 int DBMesocyclesModel::idxFromId(const uint meso_id) const
 {
-	const QString mesoIdStr{std::move(QString::number(meso_id))};
+	const QString &mesoIdStr{QString::number(meso_id)};
 	for (uint i{0}; i < m_modeldata.count(); ++i)
 	{
 		if (m_modeldata.at(i).at(MESOCYCLES_COL_ID) == mesoIdStr)
@@ -245,7 +245,7 @@ int DBMesocyclesModel::idxFromId(const uint meso_id) const
 	return -1;
 }
 
-QString DBMesocyclesModel::muscularGroup(const uint meso_idx, const QChar& splitLetter) const
+QString DBMesocyclesModel::muscularGroup(const uint meso_idx, const QChar &splitLetter) const
 {
 	return splitLetter != 'R' ? m_splitModel->splitX(meso_idx, appUtils()->splitLetterToMesoSplitIndex(splitLetter)) : QString{};
 }
@@ -330,7 +330,7 @@ void DBMesocyclesModel::setSplit(const uint meso_idx, const QString &new_split)
 bool DBMesocyclesModel::isOwnMeso(const int meso_idx) const
 {
 	Q_ASSERT_X(meso_idx >= 0 && meso_idx < m_modeldata.count(), "DBMesocyclesModel::isOwnMeso", "out of range meso_idx");
-	return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_CLIENT) == appUserModel()->userName(0);
+	return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_CLIENT) == appUserModel()->_userName(0);
 }
 
 void DBMesocyclesModel::setOwnMeso(const uint meso_idx, const bool bOwnMeso)
@@ -363,9 +363,16 @@ void DBMesocyclesModel::setCurrentMesoIdx(const int meso_idx, const bool bEmitSi
 {
 	if (meso_idx != m_currentMesoIdx)
 	{
-		m_currentMesoIdx = meso_idx;
 		if (meso_idx >= 0 && meso_idx < m_isNewMeso.count())
+		{
+			m_currentMesoIdx = meso_idx;
 			setCurrentlyViewedMeso(meso_idx, bEmitSignal);
+		}
+		else
+		{
+			if (m_currentMesoIdx < 0 || m_currentMesoIdx > m_isNewMeso.count())
+				m_currentMesoIdx = m_isNewMeso.count()-1;
+		}
 		if (bEmitSignal)
 		{
 			appSettings()->setLastViewedMesoIdx(meso_idx);
@@ -401,7 +408,7 @@ void DBMesocyclesModel::findNextOwnMeso()
 	}
 }
 
-QVariant DBMesocyclesModel::data(const QModelIndex& index, int role) const
+QVariant DBMesocyclesModel::data(const QModelIndex &index, int role) const
 {
 	const int row{index.row()};
 	if(row >= 0 && row < m_modeldata.count())
@@ -409,10 +416,7 @@ QVariant DBMesocyclesModel::data(const QModelIndex& index, int role) const
 		switch(role)
 		{
 			case mesoNameRole:
-				if (appUserModel()->userName(0) == client(row))
-					return QVariant("<b>**  "_L1 + name(row) + "  **</b>"_L1);
-				else
-					return QVariant("<b>"_L1 + name(row) + "</b>"_L1);
+				return QVariant("<b>"_L1 + name(row) + "</b>"_L1);
 			case mesoStartDateRole:
 				return QVariant(mColumnNames.at(MESOCYCLES_COL_STARTDATE) + "<b>"_L1 +
 					(!isNewMeso(row) ? appUtils()->formatDate(startDate(row)) : tr("Not set")) + "</b>"_L1);
@@ -444,7 +448,7 @@ bool DBMesocyclesModel::isDateWithinMeso(const int meso_idx, const QDate &date) 
 
 int DBMesocyclesModel::getPreviousMesoId(const QString &clientName, const int current_mesoid) const
 {
-	int meso_idx(count()-1);
+	int meso_idx{static_cast<int>(count()-1)};
 	for (; meso_idx >= 0; --meso_idx)
 	{
 		if (client(meso_idx) == clientName)
@@ -456,7 +460,7 @@ int DBMesocyclesModel::getPreviousMesoId(const QString &clientName, const int cu
 
 QDate DBMesocyclesModel::getMesoMinimumStartDate(const QString &clientName, const uint exclude_idx) const
 {
-	int meso_idx(count()-1);
+	int meso_idx{static_cast<int>(count()-1)};
 	for (; meso_idx >= 0; --meso_idx)
 	{
 		if (meso_idx != exclude_idx)
@@ -471,7 +475,7 @@ QDate DBMesocyclesModel::getMesoMinimumStartDate(const QString &clientName, cons
 
 QDate DBMesocyclesModel::getMesoMaximumEndDate(const QString &clientName, const uint exclude_idx) const
 {
-	int meso_idx(exclude_idx+1);
+	uint meso_idx{exclude_idx+1};
 	for (; meso_idx < count(); ++meso_idx)
 	{
 		if (client(meso_idx) == clientName)
@@ -572,12 +576,12 @@ int DBMesocyclesModel::importFromFile(const QString &filename)
 	return col >= MESOCYCLES_COL_SPLIT ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
 }
 
-bool DBMesocyclesModel::updateFromModel(const uint meso_idx, TPListModel* model)
+bool DBMesocyclesModel::updateFromModel(const uint meso_idx, TPListModel *model)
 {
 	setImportMode(true);
 	for (uint i{MESOCYCLES_COL_NAME}; i < MESOCYCLES_TOTAL_COLS; ++i)
 		m_modeldata[meso_idx][i] = std::move(model->m_modeldata[0][i]);
-	DBMesoSplitModel* splitModel{static_cast<DBMesocyclesModel*>(model)->mesoSplitModel()};
+	DBMesoSplitModel *splitModel{static_cast<DBMesocyclesModel*>(model)->mesoSplitModel()};
 	for (uint i{MESOSPLIT_A}; i < SIMPLE_MESOSPLIT_TOTAL_COLS; ++i)
 		m_splitModel->m_modeldata[meso_idx][i] = std::move(splitModel->m_modeldata[0][i]);
 	setImportIdx(meso_idx);
