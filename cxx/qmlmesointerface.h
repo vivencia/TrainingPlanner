@@ -219,6 +219,7 @@ private:
 	void createMesocyclePage_part2();
 	void setPropertiesBasedOnUseMode();
 	void updateMuscularGroupFromOutside(const uint splitIndex);
+	void sendMesocycleFileToServer();
 };
 
 #endif // QMLMESOINTERFACE_H

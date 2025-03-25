@@ -1,3 +1,8 @@
+#include <QtGlobal>
+
+#ifndef Q_OS_ANDROID
+#ifdef Q_OS_LINUX
+
 #if defined(HAVE_LIBSECRET)
 #  include <libsecret/secret.h>
 #endif
@@ -277,3 +282,5 @@ LibSecretKeyring &LibSecretKeyring::instance()
 
     return instance;
 }
+#endif //Q_OS_LINUX
+#endif //Q_OS_ANDROID

@@ -176,7 +176,7 @@ Pane {
 							right: parent.right
 						}
 
-						onClicked: showMGDialog(this, index, splitRepeater.itemAt(index).children[0]);
+						onClicked: showMGDialog(this, index, splitRepeater.itemAt(index).children[2]);
 					}
 				} //Item
 
@@ -190,17 +190,7 @@ Pane {
 					Layout.maximumHeight: 80
 
 					Component.onCompleted: {
-						text = Qt.binding(function() {
-							switch (cboSplit.currentIndex) {
-								case 0: return mesoManager.muscularGroupA;
-								case 1: return mesoManager.muscularGroupB;
-								case 2: return mesoManager.muscularGroupC;
-								case 3: return mesoManager.muscularGroupD;
-								case 4: return mesoManager.muscularGroupD;
-								case 5: return mesoManager.muscularGroupF;
-								case 6: return mesoManager.muscularGroupR;
-							}
-						});
+						createBindings();
 
 						textChanged.connect(function() {
 							switch (cboSplit.currentIndex) {
@@ -213,7 +203,21 @@ Pane {
 							}
 						});
 					}
-				}
+
+					function createBindings(): void {
+						text = Qt.binding(function() {
+							switch (cboSplit.currentIndex) {
+								case 0: return mesoManager.muscularGroupA;
+								case 1: return mesoManager.muscularGroupB;
+								case 2: return mesoManager.muscularGroupC;
+								case 3: return mesoManager.muscularGroupD;
+								case 4: return mesoManager.muscularGroupD;
+								case 5: return mesoManager.muscularGroupF;
+								case 6: return mesoManager.muscularGroupR;
+							}
+						});
+					}
+				} //TPTextInput
 			} //RowLayout
 		} //Repeater
 	} //GridLayout
@@ -260,8 +264,8 @@ Pane {
 	}
 
 	property MuscularGroupPicker filterDlg: null
-	property TPLabel curLabel: null
-	function showMGDialog(button: TPButton, letter_index: int, label: TPLabel): void {
+	property TPTextInput txtWidget: null
+	function showMGDialog(button: TPButton, letter_index: int, text_widget: TPTextInput): void {
 		if (filterDlg === null) {
 			let component = Qt.createComponent("qrc:/qml/Dialogs/MuscularGroupPicker.qml", Qt.Asynchronous);
 
@@ -275,16 +279,16 @@ Pane {
 				component.statusChanged.connect(finishCreation);
 		}
 
-		function setLabelText(groups) {
-			curLabel.text = groups;
+		function setWidgetText(groups) {
+			txtWidget.text = groups;
 			bMesoSplitChanged = true;
+			txtWidget.createBindings();
 		}
 
-		filterDlg.muscularGroupCreated.disconnect(setLabelText);
-		curLabel = label;
+		filterDlg.muscularGroupCreated.disconnect(setWidgetText);
+		txtWidget = text_widget;
 
-		filterDlg.initialGroups = label.text;
-		filterDlg.muscularGroupCreated.connect(setLabelText);
-		filterDlg.show(button, 3);
+		filterDlg.muscularGroupCreated.connect(setWidgetText);
+		filterDlg.show(text_widget.text, button, 3);
 	}
 } //Pane

@@ -19,14 +19,13 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QSettings>
-#include <QStandardPaths>
 #include <QThread>
 
 DBInterface *DBInterface::app_db_interface(nullptr);
 
 void DBInterface::init()
 {
-	m_DBFilePath = std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/Files/Database/"_L1);
+	m_DBFilePath = appUtils()->localAppFilesDir() + "Database/"_L1;
 	QDir appDir{m_DBFilePath};
 	if (!appDir.mkpath(m_DBFilePath))
 	{

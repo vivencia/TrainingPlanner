@@ -100,6 +100,7 @@ public:
 
 	Q_INVOKABLE int findUserByName(const QString &userName) const;
 	Q_INVOKABLE int findUserById(const QString &userId) const;
+	const QString &userIdFromFieldValue(const uint field, const QString &value) const;
 
 	inline const QString &userId(const int row) const { return m_modeldata.at(row).at(USER_COL_ID); }
 	inline void setUserId(const uint row, const QString &new_id) { m_modeldata[row][USER_COL_ID] = new_id; }
@@ -260,6 +261,7 @@ public:
 	Q_INVOKABLE void sendRequestToCoaches();
 	Q_INVOKABLE void getOnlineCoachesList(const bool get_list_only = false);
 
+	void sendFileToServer(const QString &filename, const QString &subdir = QString{}, const QString &targetUser = QString{});
 	inline int importFromFile(const QString &filename) override { return _importFromFile(filename, m_modeldata); }
 	bool updateFromModel(TPListModel*) override;
 	bool importFromString(const QString &user_data);
@@ -308,7 +310,7 @@ signals:
 
 private:
 	int m_tempRow;
-	QString m_appDataPath, m_onlineUserId, m_password, m_defaultAvatar, m_emptyString;
+	QString m_onlineUserId, m_password, m_defaultAvatar, m_emptyString;
 	std::optional<bool> mb_userRegistered, mb_coachRegistered;
 	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses, *m_tempRowUserInfo;
 	QStringList m_coachesNames, m_clientsNames;

@@ -240,11 +240,15 @@ qt_add_executable(TrainingPlanner
 	${SERVER_FILES}
 )
 
+if(NOT ANDROID)
 pkg_check_modules(LIBSECRET REQUIRED libsecret-1)
         add_definitions(-DHAVE_LIBSECRET=1)
         INCLUDE_DIRECTORIES(${LIBSECRET_INCLUDE_DIRS})
         LINK_DIRECTORIES(${LIBSECRET_LIBRARY_DIRS})
         list(APPEND keychain_LIBRARIES_PRIVATE ${LIBSECRET_LIBRARIES})
+else()
+	set (keychain_LIBRARIES_PRIVATE "")
+endif(ANDROID)
 
 target_link_libraries(TrainingPlanner PUBLIC
 	Qt6::Core

@@ -7,13 +7,13 @@
 
 class DBMesocyclesModel;
 
-static const QString& DBMesocyclesFileName("Mesocycles.db.sqlite"_L1);
+static const QLatin1StringView &DBMesocyclesFileName{"Mesocycles.db.sqlite"_L1};
 
 class DBMesocyclesTable final : public TPDatabaseTable
 {
 
 public:
-	explicit DBMesocyclesTable(const QString& dbFilePath, DBMesocyclesModel* model = nullptr);
+	explicit DBMesocyclesTable(const QString &dbFilePath, DBMesocyclesModel *model = nullptr);
 
 	void createTable() override final;
 	void updateTable() override final;
@@ -21,7 +21,7 @@ public:
 	void saveMesocycle();
 
 private:
-	DBMesocyclesModel* m_model;
+	DBMesocyclesModel *m_model;
 };
 
 #endif // DBMESOCYCLESTABLE_H

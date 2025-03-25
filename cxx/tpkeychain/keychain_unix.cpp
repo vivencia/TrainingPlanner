@@ -6,6 +6,11 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. For licensing and distribution        *
  * details, check the accompanying file 'COPYING'.                            *
  *****************************************************************************/
+#include <QtGlobal>
+
+#ifndef Q_OS_ANDROID
+#ifdef Q_OS_LINUX
+
 #include "keychain_p.h"
 #include "libsecret_p.h"
 #include "plaintextstore_p.h"
@@ -89,3 +94,6 @@ bool QKeychain::isAvailable()
 {
     return LibSecretKeyring::isAvailable();
 }
+
+#endif //Q_OS_LINUX
+#endif //Q_OS_ANDROID

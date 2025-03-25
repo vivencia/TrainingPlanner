@@ -54,7 +54,7 @@ void DBExercisesTable::getAllExercises()
 {
 	if (openDatabase(true))
 	{
-		bool ok(false);
+		bool ok{false};
 		QSqlQuery query{getQuery()};
 		const QString &strQuery{"SELECT * FROM exercises_table ORDER BY ROWID"_L1};
 		if (query.exec(strQuery))
@@ -102,7 +102,7 @@ void DBExercisesTable::updateExercisesList()
 		bool ok{false};
 		QSqlQuery query{getQuery()};
 		QString queryValues;
-		uint idx(0);
+		uint idx{0};
 
 		//remove previous list entries from DB
 		const QString &strQuery{"DELETE FROM exercises_table WHERE from_list=1"_L1};
@@ -160,7 +160,7 @@ void DBExercisesTable::saveExercises()
 							"sets=\'%4\', reps=\'%5\', weight=\'%6\', weight_unit=\'%7\', media_path=\'%8\', from_list=0 WHERE id=%9 "_L1};
 		for (uint i(0); i < m_model->modifiedIndicesCount(); ++i)
 		{
-			const uint &idx(m_model->modifiedIndex(i));
+			const uint &idx{m_model->modifiedIndex(i)};
 			const QString &exerciseId = m_model->id(idx);
 			if (m_model->_id(idx) > highest_id)
 				highest_id = m_model->_id(idx);

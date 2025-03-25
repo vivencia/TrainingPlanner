@@ -37,7 +37,7 @@ public:
 	[[nodiscard]] inline const QString &columnLabel(const uint col) const { return mColumnNames.at(col); }
 
 	bool isDifferent(const TPListModel* const model) const;
-	bool exportContentsOnlyToFile(const QString &filename, const bool appendInfo = false);
+	bool exportContentsOnlyToFile(const QString &filename, const bool appendInfo = false) const;
 	virtual int exportToFile(const QString &filename, const bool writeHeader = true, const bool writeEnd = true, const bool appendInfo = true) const;
 	virtual int importFromFile(const QString &filename) { Q_UNUSED(filename); return false; }
 	virtual bool updateFromModel(TPListModel*) { return false; }

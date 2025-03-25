@@ -14,7 +14,6 @@ TPPopup {
 	property string buttonLabel: qsTr("Filter")
 	property bool useFancyNames: false
 	property bool shown: true
-	property string initialGroups
 	readonly property int dlgHeight: appSettings.pageHeight * 0.5
 	signal muscularGroupCreated(group: string);
 
@@ -42,21 +41,6 @@ TPPopup {
 	Behavior on height {
 		NumberAnimation {
 			easing.type: Easing.InOutBack
-		}
-	}
-
-	onInitialGroupsChanged: {
-		const groups = initialGroups.split('|');
-		for (let y=0; y < groupsModel.count; ++y)
-			groupsRepeater.itemAt(y).checked = false;
-
-		for (let i=0; i < groups.length; ++i) {
-			for (let x=0; x < groupsModel.count; ++x) {
-				if (groupsModel.get(x).display === groups[i])
-					groupsRepeater.itemAt(x).checked = true;
-				//groupsModel.set(x, {selected: groupsModel.get(x).display === groups[i]});
-				//groupsModel.setProperty(x, "selected", groupsModel.get(x).display === groups[i]);
-			}
 		}
 	}
 
@@ -166,8 +150,25 @@ TPPopup {
 		}
 	}
 
-	function show(targetItem: Item, pos: int): void {
+	function show(initialGroups: string, targetItem: Item, pos: int): void {
+		selectInitialGroups(initialGroups);
 		shown = true;
 		show2(targetItem, pos);
+	}
+
+	function selectInitialGroups(initialGroups: string): void {
+		const groups = initialGroups.split('|');
+		for (let x=0; x < groupsModel.count; ++x) {
+			let included = false;
+			for (let i=0; i < groups.length; ++i) {
+				if (groupsModel.get(x).display === groups[i]) {
+					included = true;
+					break;
+				}
+			}
+			groupsRepeater.itemAt(x).checked = included;
+		}
+		//groupsModel.set(x, {selected: groupsModel.get(x).display === groups[i]});
+		//groupsModel.setProperty(x, "selected", groupsModel.get(x).display === groups[i]);
 	}
 }

@@ -94,8 +94,8 @@ TPPopup {
 	TPButton {
 		id: btnSendRequest
 		text: qsTr("Send request to the selected coaches")
-		visible: userModel.availableCoaches.count > 0
-		enabled: userModel.availableCoaches.anySelected
+		visible: userModel.availableCoaches ? userModel.availableCoaches.count > 0 : false
+		enabled: userModel.availableCoaches ? userModel.availableCoaches.anySelected : false
 
 		anchors {
 			left: parent.left

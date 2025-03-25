@@ -4,13 +4,13 @@
 #include "dbmesocyclesmodel.h"
 #include "dbmesosplitmodel.h"
 #include "dbtrainingdaymodel.h"
+#include "dbusermodel.h"
 #include "qmlitemmanager.h"
 #include "qmlmesocalendarinterface.h"
 #include "qmlmesosplitinterface.h"
 #include "qmltdayinterface.h"
 #include "tputils.h"
 #include "translationclass.h"
-#include "dbusermodel.h"
 
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -513,10 +513,11 @@ void QMLMesoInterface::createMesocyclePage()
 	{
 		setName(std::move(tr("New Program")), false);
 		const QDate &minimumStartDate{appUtils()->getNextMonday(appMesoModel()->getMesoMinimumStartDate(appMesoModel()->client(m_mesoIdx), 99999))};
-		setStartDate(minimumStartDate, false);
-		setEndDate(appUtils()->createDate(minimumStartDate, 0, 2, 0), false);
+		const QDate &currentDate{QDate::currentDate()};
+		setStartDate(currentDate, false);
+		setEndDate(appUtils()->createDate(currentDate, 0, 2, 0), false);
 		setMinimumMesoStartDate(minimumStartDate);
-		setMaximumMesoEndDate(appUtils()->createDate(QDate::currentDate(), 0, 6, 0));
+		setMaximumMesoEndDate(appUtils()->createDate(currentDate, 0, 6, 0));
 	}
 
 	setCoach(appMesoModel()->coach(m_mesoIdx), false);
@@ -603,7 +604,10 @@ void QMLMesoInterface::createMesocyclePage_part2()
 		if (meso_idx == m_mesoIdx)
 		{
 			if (!appMesoModel()->isNewMeso(meso_idx))
+			{
 				appDBInterface()->saveMesocycle(meso_idx);
+				sendMesocycleFileToServer();
+			}
 		}
 	});
 
@@ -643,5 +647,17 @@ void QMLMesoInterface::updateMuscularGroupFromOutside(const uint splitIndex)
 		case 3: setMuscularGroupD(appMesoModel()->muscularGroup(m_mesoIdx, 'D'), false); break;
 		case 4: setMuscularGroupE(appMesoModel()->muscularGroup(m_mesoIdx, 'E'), false); break;
 		case 5: setMuscularGroupF(appMesoModel()->muscularGroup(m_mesoIdx, 'F'), false); break;
+	}
+}
+
+void QMLMesoInterface::sendMesocycleFileToServer()
+{
+	QString mesocycleFile{std::move(appUtils()->localAppFilesDir() + appUserModel()->userIdFromFieldValue(USER_COL_NAME, client()))};
+	if (appUtils()->mkdir(mesocycleFile))
+	{
+		mesocycleFile = std::move(QString{'/' + name() + ".txt"_L1});
+		appMesoModel()->setExportRow(m_mesoIdx);
+		if (appMesoModel()->exportContentsOnlyToFile(mesocycleFile))
+			appUserModel()->sendFileToServer(mesocycleFile, "mesocycles"_L1, client());
 	}
 }

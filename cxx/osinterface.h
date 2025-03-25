@@ -125,7 +125,6 @@ public slots:
 	void checkServerResponseSlot(const bool online, int network_status);
 
 private:
-	QString m_appDataFilesPath;
 	int m_networkStatus;
 	QTimer *m_checkConnectionTimer;
 	bool m_bchecking_ic;

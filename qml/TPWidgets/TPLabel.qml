@@ -11,18 +11,16 @@ Label {
 	font: AppGlobals.regularFont
 	minimumPixelSize: appSettings.smallFontSize
 	maximumLineCount: singleLine ? 1 : 50
-	fontSizeMode: Text.Fit
+	fontSizeMode: Text.FixedSize
 	width: _preferredWidth
 	height: _preferredHeight
 	verticalAlignment: Text.AlignVCenter
 
 	property string fontColor: appSettings.fontColor
 	property int widthAvailable: appSettings.pageWidth - 20
-	//TEST: property int widthAvailable: width
 	property int heightAvailable: 25
 	property bool singleLine: wrapMode === Text.NoWrap ? true : width > _textWidth
 	property int lineCount: singleLine ? 1 : Math.ceil(_textWidth/width) + 1
-	//TEST: property int lineCount: singleLine ? 1 : Math.ceil(_textWidth/widthAvailable) + 1
 	property int _textWidth
 	property int _textHeight
 	readonly property int _preferredWidth: widthAvailable >= 20 ? Math.min(_textWidth, widthAvailable) : _textWidth
@@ -61,8 +59,9 @@ Label {
 		lineCount = (singleLine ? 0 : Math.ceil(_textWidth/widthAvailable)) + (hasNewLineEscapeChr ? text.split('\n').length - 1: 0);
 		if (_textWidth > control.width)
 		{
-			if (font.pixelSize > AppGlobals.smallFont.pixelSize)
-				font.pixelSize *= 0.9;
+			fontSizeMode = Text.Fit;
+			//if (font.pixelSize > AppGlobals.smallFont.pixelSize)
+			//	font.pixelSize *= 0.9;
 			if (!singleLine) {
 				if (control.height >= 15 && lineCount * font.pixelSize*1.35 > control.height)
 					wrapMode = Text.WordWrap;

@@ -15,7 +15,6 @@
 #include <QDir>
 #include <QFile>
 #include <QQuickWindow>
-#include <QStandardPaths>
 #include <QTimer>
 
 #include <utility>
@@ -59,12 +58,11 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 		});
 		updateColumnNames();
 
-		m_appDataPath = std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/Files/"_L1);
-		m_onlineCoachesDir = std::move(m_appDataPath + "online_coaches/"_L1);
-		m_dirForRequestedCoaches = std::move(m_appDataPath + "requested_coaches/"_L1);
-		m_dirForClientsRequests = std::move(m_appDataPath + "clients_requests/"_L1);
-		m_dirForCurrentClients = std::move(m_appDataPath + "clients/"_L1);
-		m_dirForCurrentCoaches = std::move(m_appDataPath + "coaches/"_L1);
+		m_onlineCoachesDir = std::move(appUtils()->localAppFilesDir() + "online_coaches/"_L1);
+		m_dirForRequestedCoaches = std::move(appUtils()->localAppFilesDir() + "requested_coaches/"_L1);
+		m_dirForClientsRequests = std::move(appUtils()->localAppFilesDir() + "clients_requests/"_L1);
+		m_dirForCurrentClients = std::move(appUtils()->localAppFilesDir() + "clients/"_L1);
+		m_dirForCurrentCoaches = std::move(appUtils()->localAppFilesDir() + "coaches/"_L1);
 		m_localProfileFile = std::move("%1/%2.txt"_L1);
 		connect(this, &DBUserModel::userModified, this, [this] (const uint row, const uint field) {
 			if (row == 0 || field == 100)
@@ -219,6 +217,16 @@ int DBUserModel::findUserById(const QString &userId) const
 	return -1;
 }
 
+const QString &DBUserModel::userIdFromFieldValue(const uint field, const QString &value) const
+{
+	const auto &it = std::find_if(m_modeldata.cbegin(), m_modeldata.cend(), [field,value] (const auto user_info) {
+		return user_info.at(field) == value;
+	});
+	if (it != m_modeldata.cend())
+		return it->at(USER_COL_ID);
+	return m_emptyString;
+}
+
 void DBUserModel::setPassword(const QString &password)
 {
 	appKeyChain()->writeKey(userId(0), password);
@@ -245,7 +253,7 @@ QString DBUserModel::avatar(const int row) const
 	if (row >= 0 && row < m_modeldata.count() && !userId(row).isEmpty())
 	{
 		const QString &userid{userId(row)};
-		const QDir &localFilesDir{row == 0 ? m_appDataPath : row != m_tempRow ?
+		const QDir &localFilesDir{row == 0 ? appUtils()->localAppFilesDir() : row != m_tempRow ?
 						(isCoach(row) ? m_dirForCurrentCoaches + userid : m_dirForCurrentClients + userid) :
 								m_tempRowUserInfo->sourcePath()};
 		const QFileInfoList &images{localFilesDir.entryInfoList(QDir::Files|QDir::NoDotAndDotDot|QDir::NoSymLinks)};
@@ -266,7 +274,7 @@ void DBUserModel::setAvatar(const int row, const QString &new_avatar, const bool
 	{
 		TPImage img{nullptr};
 		img.setSource(new_avatar);
-		const QDir &localFilesDir{row == 0 ? m_appDataPath : isCoach(row) ? m_dirForCurrentCoaches : m_dirForCurrentClients};
+		const QDir &localFilesDir{row == 0 ? appUtils()->localAppFilesDir() : isCoach(row) ? m_dirForCurrentCoaches : m_dirForCurrentClients};
 		const QString &localAvatarFilePath = localFilesDir.absolutePath() + '/' + std::move(userId(row) + "_avatar."_L1 + img.sourceExtension());
 		static_cast<void>(QFile::remove(avatar(row)));
 		img.saveToDisk(localAvatarFilePath);
@@ -603,7 +611,7 @@ void DBUserModel::uploadResume(const QString &resumeFileName)
 		{
 			const qsizetype idx{resumeFileName_ok.lastIndexOf('.')};
 			const QString &extension{idx > 0 ? resumeFileName_ok.last(resumeFileName_ok.length() - idx) : QString{}};
-			const QString &localResumeFilePath{m_appDataPath + "resume"_L1 + extension};
+			const QString &localResumeFilePath{appUtils()->localAppFilesDir() + "resume"_L1 + extension};
 			if (QFile::copy(resumeFileName_ok, localResumeFilePath))
 			{
 				QFile *resume_file{new QFile{localResumeFilePath, this}};
@@ -708,9 +716,7 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 {
 	if (onlineCheckIn())
 	{
-		QDir requestsDir{m_onlineCoachesDir};
-		if (!requestsDir.exists())
-			requestsDir.mkpath(m_onlineCoachesDir);
+		static_cast<void>(appUtils()->mkdir(m_onlineCoachesDir));
 		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,get_list_only] (const QString &key, const QString &value) {
 			const int requestid{appUtils()->generateUniqueId("getOnlineCoachesList"_L1)};
 			auto conn = std::make_shared<QMetaObject::Connection>();
@@ -759,6 +765,11 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		appKeyChain()->readKey(userId(0));
 	}
+}
+
+void DBUserModel::sendFileToServer(const QString &filename, const QString &subdir, const QString &targetUser)
+{
+
 }
 
 bool DBUserModel::updateFromModel(TPListModel *model)
@@ -964,7 +975,7 @@ QString DBUserModel::resume(const uint row) const
 	if (row < m_modeldata.count() && !userId(row).isEmpty())
 	{
 		const QString &userid{userId(row)};
-		const QDir &localFilesDir{row == 0 ? m_appDataPath : row != m_tempRow ?
+		const QDir &localFilesDir{row == 0 ? appUtils()->localAppFilesDir() : row != m_tempRow ?
 						(isCoach(row) ? m_dirForCurrentCoaches + userid : m_dirForCurrentClients) + userid :
 								m_tempRowUserInfo->sourcePath()};
 		const QFileInfoList &files{localFilesDir.entryInfoList(QDir::Files|QDir::NoDotAndDotDot|QDir::NoSymLinks)};
@@ -1040,7 +1051,7 @@ void DBUserModel::getUserOnlineProfile(const QString &netID, const QString &save
 
 void DBUserModel::sendProfileToServer()
 {
-	const QString &localProfile{m_appDataPath + userProfileFileName};
+	const QString &localProfile{appUtils()->localAppFilesDir() + userProfileFileName};
 	if (exportToFile(localProfile, true, true, false) == APPWINDOW_MSG_EXPORT_OK)
 	{
 		QFile *profile{new QFile{localProfile, this}};
@@ -1069,7 +1080,7 @@ void DBUserModel::sendProfileToServer()
 
 void DBUserModel::sendUserInfoToServer()
 {
-	const QString &localUserData{m_appDataPath + userLocalDataFileName};
+	const QString &localUserData{appUtils()->localAppFilesDir() + userLocalDataFileName};
 	if (exportContentsOnlyToFile(localUserData))
 	{
 		QFile *userdata{new QFile{localUserData, this}};
@@ -1142,11 +1153,11 @@ void DBUserModel::downloadAvatarFromServer(const uint row)
 					{
 						QString destDir;
 						if (row == 0 )
-							destDir = m_appDataPath;
+							destDir = appUtils()->localAppFilesDir();
 						else if (row == m_tempRow && m_tempRowUserInfo)
 							destDir = m_tempRowUserInfo->sourcePath();
 						else
-							destDir = m_appDataPath + userId(row) + '/';
+							destDir = appUtils()->localAppFilesDir() + userId(row) + '/';
 
 						const QString &imagefile{destDir + filename};
 						QFile *avatarImg{new QFile{imagefile, this}};
@@ -1200,11 +1211,11 @@ void DBUserModel::downloadResumeFromServer(const uint row)
 					{
 						QString destDir;
 						if (row == 0 )
-							destDir = m_appDataPath;
+							destDir = appUtils()->localAppFilesDir();
 						else if (row == m_tempRow && m_tempRowUserInfo)
 							destDir = m_tempRowUserInfo->sourcePath();
 						else
-							destDir = m_appDataPath + userId(row) + '/';
+							destDir = appUtils()->localAppFilesDir() + userId(row) + '/';
 
 						const QString &localResumeFile{destDir + filename};
 						if (ret_code == 0) //file downloaded
@@ -1289,23 +1300,15 @@ void DBUserModel::startServerPolling()
 		if (isCoach(0))
 		{
 			m_pendingClientRequests = new OnlineUserInfo{this};
-			QDir requestsDir{m_dirForClientsRequests};
-			if (!requestsDir.exists())
-				requestsDir.mkpath(m_dirForClientsRequests);
-			QDir clientsDir{m_dirForCurrentClients};
-			if (!clientsDir.exists())
-				clientsDir.mkpath(m_dirForCurrentClients);
+			static_cast<void>(appUtils()->mkdir(m_dirForClientsRequests));
+			static_cast<void>(appUtils()->mkdir(m_dirForCurrentClients));
 		}
 		if (isClient(0))
 		{
 			m_pendingCoachesResponses = new OnlineUserInfo{this};
 			m_availableCoaches = new OnlineUserInfo{this};
-			QDir requests_dir{m_dirForRequestedCoaches};
-			if (!requests_dir.exists())
-				requests_dir.mkpath(m_dirForRequestedCoaches);
-			QDir coaches_dir{m_dirForCurrentCoaches};
-			if (!coaches_dir.exists())
-				coaches_dir.mkpath(m_dirForCurrentCoaches);
+			static_cast<void>(appUtils()->mkdir(m_dirForRequestedCoaches));
+			static_cast<void>(appUtils()->mkdir(m_dirForCurrentCoaches));
 		}
 	}
 	pollServer();

@@ -15,13 +15,14 @@ TPOnlineServices* TPOnlineServices::_appOnlineServices{nullptr};
 
 static const QLatin1StringView root_user{"admin"};
 static const QLatin1StringView root_passwd{"admin"};
+static const QLatin1StringView server_addr{"http://192.168.10.8/trainingplanner/"};
 
 inline QString makeCommandURL(const QString& username, const QString& passwd = QString{}, const QString &option1 = QString{},
 								const QString &value1 = QString{}, const QString &option2 = QString{}, const QString &value2 = QString{},
 								const QString &option3 = QString{}, const QString &value3 = QString{}
 								)
 {
-	QString ret{"http://192.168.10.8/trainingplanner/?"_L1 + "user="_L1 + username + "&password="_L1 + passwd};
+	QString ret{server_addr + "?user="_L1 + username + "&password="_L1 + passwd};
 	if (!option1.isEmpty())
 	{
 		ret += '&' + option1 + '=';
@@ -49,7 +50,7 @@ inline QString makeCommandURL(const QString& username, const QString& passwd = Q
 */
 void TPOnlineServices::checkServer(int network_status)
 {
-	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{QUrl{"http://127.0.0.1/trainingplanner"_L1}})};
+	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{QUrl{server_addr}})};
 	connect(reply, &QNetworkReply::finished, this, [this,reply,network_status]() {
 		bool server_ok{false};
 		if (reply)
@@ -103,7 +104,7 @@ void TPOnlineServices::updateOnlineUserInfo(const int requestid, const QString &
 				emit networkRequestProcessed(request_id, ret_code, ret_string);
 		}
 	});
-	sendFile(requestid, username, passwd, file, QString{}, true);
+	sendFile(requestid, username, passwd, file, QString{}, QString{}, true);
 }
 
 void TPOnlineServices::removeUser(const int requestid, const QString &username)
@@ -202,10 +203,10 @@ void TPOnlineServices::removeCoachFromClient(const int requestid, const QString 
 	makeNetworkRequest(requestid, url);
 }
 
-void TPOnlineServices::sendFile(const int requestid, const QString &username, const QString &passwd, QFile *file,
-									const QString &targetUser, const bool b_internal_signal_only)
+void TPOnlineServices::sendFile(const int requestid, const QString &username, const QString &passwd, QFile *file, const QString &subdir,
+	const QString &targetUser, const bool b_internal_signal_only)
 {
-	const QUrl &url{makeCommandURL(username, passwd, "upload"_L1, targetUser.isEmpty() ? username : targetUser)};
+	const QUrl &url{makeCommandURL(username, passwd, "upload"_L1, subdir, "targetuser", targetUser.isEmpty() ? username : targetUser)};
 	uploadFile(requestid, url, file, b_internal_signal_only);
 }
 

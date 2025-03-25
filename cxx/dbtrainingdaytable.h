@@ -7,7 +7,7 @@
 
 class DBTrainingDayModel;
 
-static const QString& DBTrainingDayFileName("TrainingDay.db.sqlite"_L1);
+static const QLatin1StringView &DBTrainingDayFileName("TrainingDay.db.sqlite"_L1);
 
 class DBTrainingDayTable final : public TPDatabaseTable
 {

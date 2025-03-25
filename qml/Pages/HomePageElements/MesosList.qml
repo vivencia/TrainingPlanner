@@ -326,7 +326,7 @@ Item {
 				verticalCenterOffset: mainUserPrograms ? -30 : -15
 			}
 
-			onClicked: mesocyclesModel.createNewMesocycle(true, mainUserPrograms);
+			onClicked: mesocyclesModel.startNewMesocycle(true, mainUserPrograms);
 		}
 
 		TPButton {

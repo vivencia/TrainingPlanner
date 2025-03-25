@@ -116,7 +116,7 @@ bool TPListModel::isDifferent(const TPListModel *const model) const
 	return true;
 }
 
-bool TPListModel::exportContentsOnlyToFile(const QString &filename, const bool appendInfo)
+bool TPListModel::exportContentsOnlyToFile(const QString &filename, const bool appendInfo) const
 {
 	QFile *outFile{new QFile{filename}};
 	const bool bOK{outFile->open(appendInfo ? QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text :
@@ -149,6 +149,7 @@ bool TPListModel::exportContentsOnlyToFile(const QString &filename, const bool a
 					outFile->write("\n", 1);
 				}
 			}
+			const_cast<TPListModel*>(this)->m_exportRows.clear();
 		}
 		outFile->close();
 	}
@@ -220,6 +221,7 @@ int TPListModel::exportToFile(const QString &filename, const bool writeHeader, c
 				}
 				outFile->write("\n", 1);
 			}
+			const_cast<TPListModel*>(this)->m_exportRows.clear();
 		}
 		if (writeEnd)
 			outFile->write(STR_END_EXPORT.toUtf8().constData());

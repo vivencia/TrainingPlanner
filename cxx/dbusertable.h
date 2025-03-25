@@ -6,7 +6,7 @@
 
 class DBUserModel;
 
-static const QString &DBUserFileName{"Users.db.sqlite"_L1};
+static const QLatin1StringView &DBUserFileName{"Users.db.sqlite"_L1};
 
 class DBUserTable : public TPDatabaseTable
 {

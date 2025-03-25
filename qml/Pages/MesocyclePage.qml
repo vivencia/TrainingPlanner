@@ -41,6 +41,8 @@ TPPage {
 			title: qsTr("New program setup incomplete")
 			imageEnabled: false
 			imageSource: "set-completed"
+			button1Text: "OK"
+			button2Text: ""
 			subImageLabel: String(mesoManager.newMesoFieldCounter)
 			keepAbove: true
 

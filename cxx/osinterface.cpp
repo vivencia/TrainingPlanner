@@ -1,24 +1,23 @@
 #include "osinterface.h"
-#include "tputils.h"
+
 #include "dbusermodel.h"
 #include "dbinterface.h"
 #include "qmlitemmanager.h"
+#include "tputils.h"
 #include "online_services/tponlineservices.h"
 
 #ifdef Q_OS_ANDROID
-#include "tpandroidnotification.h"
-#include "qmlitemmanager.h"
 #include "dbmesocyclesmodel.h"
-#include "dbinterface.h"
 #include "dbmesocalendartable.h"
+#include "tpandroidnotification.h"
 
 #include <QJniObject>
 #include <qnativeinterface.h>
-	#if QT_VERSION == QT_VERSION_CHECK(6, 8, 1)
-		#include <QtCore/6.8.1/QtCore/private/qandroidextras_p.h>
-	#else
-		#include <QtCore/6.8.0/QtCore/private/qandroidextras_p.h>
-	#endif
+#if QT_VERSION == QT_VERSION_CHECK(6, 8, 2)
+	#include <QtCore/6.8.2/QtCore/private/qandroidextras_p.h>
+#else
+	#include <QtCore/6.8.0/QtCore/private/qandroidextras_p.h>
+#endif
 
 //"(Landroid/content/Context;Landroid/net/Uri;)Ljava/lang/String;"
 // String f(Context, Uri)
@@ -48,7 +47,6 @@ extern "C"
 #include <QFileInfo>
 #include <QGuiApplication>
 #include <QProcess>
-#include <QStandardPaths>
 #include <QTcpSocket>
 #include <QTimer>
 
@@ -61,7 +59,6 @@ OSInterface::OSInterface(QObject *parent)
 {
 	app_os_interface = this;
 	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(aboutToExit()));
-	m_appDataFilesPath = std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)) + '/';
 	m_checkConnectionTimer = new QTimer{this};
 	m_checkConnectionTimer->setInterval(CONNECTION_CHECK_TIMEOUT);
 	m_checkConnectionTimer->callOnTimeout([this] () { checkInternetConnection(); });
@@ -285,7 +282,7 @@ QString OSInterface::readFileFromAndroidFileDialog(const QString &android_uri) c
 	if (android_uri.startsWith("//com"_L1))
 	{
 		const QString &properFilename{"content:"_L1 + android_uri};
-		const QString &localFile{m_appDataFilesPath + "tempfile"_L1};
+		const QString &localFile{appUtils()->localAppFilesDir() + "tempfile"_L1};
 		static_cast<void>(QFile::remove(localFile));
 		return QFile::copy(properFilename, localFile) ? properFilename : QString();
 	}
@@ -298,7 +295,7 @@ void OSInterface::startAppNotifications()
 	m_notificationsTimer = new QTimer{this};
 	m_notificationsTimer->setInterval(30*60*1000); //every 30min
 	m_notificationsTimer->callOnTimeout([this] () { checkNotificationsStatus(); } );
-	m_notificationsTimer.start();
+	m_notificationsTimer->start();
 	m_bTodaysWorkoutFinishedConnected = false;
 	checkWorkouts();
 }
@@ -413,7 +410,7 @@ void OSInterface::execNotification(const short action, const short id)
 {
 	for (qsizetype i{0}; i < m_notifications.count(); ++i)
 	{
-		if (m_notifications.at(i)->id == id & &!m_notifications.at(i)->resolved)
+		if (m_notifications.at(i)->id == id && !m_notifications.at(i)->resolved)
 		{
 			switch (action)
 			{
@@ -683,7 +680,7 @@ void OSInterface::viewExternalFile(const QString &filename) const
 	if (!appUtils()->canReadFile(appUtils()->getCorrectPath(filename)))
 		return;
 	#ifdef Q_OS_ANDROID
-	const QString &localFile{m_appDataFilesPath + "tempfile"_L1 + filename.last(4)};
+	const QString &localFile{appUtils()->localAppFilesDir() + "tempfile"_L1 + filename.last(4)};
 	static_cast<void>(QFile::remove(localFile));
 	if (QFile::copy(filename, localFile))
 		viewFile(localFile, tr("View file with..."));

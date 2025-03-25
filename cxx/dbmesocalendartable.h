@@ -8,7 +8,7 @@
 
 class DBMesoCalendarModel;
 
-static const QString &DBMesoCalendarFileName("MesoCalendar.db.sqlite"_L1);
+static const QLatin1StringView &DBMesoCalendarFileName("MesoCalendar.db.sqlite"_L1);
 
 struct st_workoutDayInfo {
 	int meso_id;

@@ -1,6 +1,9 @@
-#ifndef QTKEYCHAIN_LIBSECRET_P_H
-#define QTKEYCHAIN_LIBSECRET_P_H
+#pragma once
 
+#include <QtGlobal>
+
+#ifndef Q_OS_ANDROID
+#ifdef Q_OS_LINUX
 #include <QLibrary>
 
 #include "keychain_p.h"
@@ -26,4 +29,5 @@ private:
     static LibSecretKeyring &instance();
 };
 
-#endif
+#endif //Q_OS_LINUX
+#endif //Q_OS_ANDROID

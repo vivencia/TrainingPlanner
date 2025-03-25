@@ -3,10 +3,19 @@
 #include "tpsettings.h"
 
 #include <QClipboard>
+#include <QDir>
 #include <QGuiApplication>
 #include <QLocale>
+#include <QStandardPaths>
 
 TPUtils* TPUtils::app_utils(nullptr);
+
+TPUtils::TPUtils(QObject *parent)
+	: QObject{parent}, m_appLocale{nullptr},
+		m_localAppFilesDir{std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)) + QLatin1Char('/')}
+{
+	app_utils = this;
+}
 
 int TPUtils::generateUniqueId(const QLatin1StringView &seed) const
 {
@@ -29,6 +38,14 @@ int TPUtils::generateUniqueId(const QLatin1StringView &seed) const
 		} while (++itr != itr_end);
 		return n;
 	}
+}
+
+bool TPUtils::mkdir(const QString &dir) const
+{
+	QDir fs_dir{dir};
+	if (!fs_dir.exists())
+		return fs_dir.mkpath(dir);
+	return true;
 }
 
 QString TPUtils::getCorrectPath(const QUrl &url) const

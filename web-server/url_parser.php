@@ -64,6 +64,12 @@ function upload_file($uploadDir) {
             // Get file details
             $fileTmpPath = $_FILES['file']['tmp_name'];
             $fileName = $_FILES['file']['name'];
+            if (!is_dir($uploadDir)) {
+                if (!mkdir($uploadDir, 0775)) {
+                        echo "Return code: 20 Failed to create upload dir " . $uploadDir . "\r\n";
+                        return false;
+                }
+            }
             $uploadFilePath = $uploadDir . "/" . basename($fileName);
             // Move the uploaded file to the upload directory
             if (move_uploaded_file($fileTmpPath, $uploadFilePath)) {
@@ -274,7 +280,7 @@ function accept_client_request($coach, $client)
         }
         fwrite($fh, $coach . "\n");
         fclose($fh);
-        echo "Return code: 0 Coach's answer to client's request OK";
+        echo "Return code: 0 Coach's(".$coach.") answer to client's(".$client.") request OK";
         return true;
     }
     echo "Return code: 11 Could not place coach's answer to client";
@@ -651,10 +657,12 @@ if ($username) {
                 }
 
                 if (isset($_GET['upload'])) {
-                    $otheruser = $_GET['upload'];
-                    if ($otheruser) {
-                        $fileDir=$rootdir . $otheruser;
-                    }
+                    $targetuser = $_GET['targetuser'];
+                    if ($targetuser)
+                        $fileDir = $rootdir . $targetuser;
+                    $subdir = $_GET['upload'];
+                    if ($subdir)
+                        $fileDir . "/" . $subdir;
                     upload_file($fileDir);
                     exit;
                 }
@@ -763,32 +771,25 @@ if ($username) {
                     exit;
                 }
 
-                $username = isset($_GET['moduser']) ? $_GET['moduser'] : '';
-                if ($username) { //remove moduser, create newuser and rename moduser dir to newuser
-                    $cmd_args = "-D";
-                    $ok = run_htpasswd("-D", $username, "");
-                    if ($ok == 0) {
-                        $new_username = isset($_GET['newuser']) ? $_GET['newuser'] : '';
-                        $new_password = isset($_GET['newpassword']) ? $_GET['newpassword'] : '';
-                        $ok = run_htpasswd("-bB", $new_username, $new_password);
-                        if ($ok == 0) {
-                            $userdir = $rootdir . $username;
-                            if (is_dir($userdir)) {
-                                if (!rename($rootdir . $username, $rootdir . $new_username))
-                                    $ok = 1;
-                            }
-                            else {
-                                if (!mkdir($userdir, 0775))
-                                    $ok = 1;
-                                else
-                                    chmod($userdir, 0775);
-                            }
+                $username = isset($_GET['changepassword']) ? $_GET['changepassword'] : '';
+                if ($username) {
+                    $cur_password = isset($_GET['oldpassword']) ? $_GET['oldpassword'] : '';
+                    $return_var = run_htpasswd("-bv", $username, $cur_password);
+                    if ($return_var != 0) {
+                        switch ($return_var) {
+                            case 3: $error_string = "Current password is wrong"; break;
+                            case 6: $error_string = "User does not exist"; break;
+                            default: $error_string = "Could not verify the current password. Try again later"; break;
                         }
+                        echo "Return code: $return_var $error_string\r\n";
+                        exit;
                     }
+                    $new_password = isset($_GET['newpassword']) ? $_GET['newpassword'] : '';
+                    $ok = run_htpasswd("-bB", $username, $new_password);
                     if ($ok == 0)
-                        echo "Return code: 0 User successfully modified\r\n";
+                        echo "Return code: 0 ".$username." password successfully modified\r\n";
                     else
-                        echo "Return code: 32 User modification failed\r\n";
+                        echo "Return code: 32 ".$username." password modification failed\r\n";
                     exit;
                 }
             }

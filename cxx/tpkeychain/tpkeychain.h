@@ -1,5 +1,4 @@
-#ifndef TPKEYCHAIN_H
-#define TPKEYCHAIN_H
+#pragma once
 
 #include <QObject>
 
@@ -15,7 +14,7 @@ public:
     Q_INVOKABLE void writeKey(const QString &key, const QString &value);
     Q_INVOKABLE void deleteKey(const QString &key);
 
-Q_SIGNALS:
+signals:
     void keyStored(const QString &key);
     void keyRestored(const QString &key, const QString &value);
     void keyDeleted(const QString &key);
@@ -27,5 +26,3 @@ private:
 };
 
 inline TPKeyChain *appKeyChain() { return TPKeyChain::_appKeyChain; }
-
-#endif // TPKEYCHAIN_H

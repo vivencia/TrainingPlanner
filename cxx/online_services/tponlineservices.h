@@ -45,7 +45,7 @@ public:
 	void checkCurrentCoaches(const int requestid, const QString &username, const QString &passwd);
 	void removeCoachFromClient(const int requestid, const QString &username, const QString &passwd, const QString &coach);
 
-	void sendFile(const int requestid, const QString &username, const QString &passwd, QFile *file,
+	void sendFile(const int requestid, const QString &username, const QString &passwd, QFile *file, const QString &subdir = QString{},
 					const QString &targetUser = QString{}, const bool b_internal_signal_only = false);
 
 	/**

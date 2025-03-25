@@ -95,7 +95,7 @@ void DBMesocyclesModel::getMesocyclePage(const uint meso_idx)
 	mesoManager(meso_idx)->getMesocyclePage();
 }
 
-uint DBMesocyclesModel::createNewMesocycle(const bool bCreatePage, const bool bOwnMeso)
+uint DBMesocyclesModel::startNewMesocycle(const bool bCreatePage, const bool bOwnMeso)
 {
 	beginInsertRows(QModelIndex{}, count(), count());
 	const uint meso_idx{newMesocycle(std::move(QStringList{} << STR_MINUS_ONE << QString{} << QString{} << QString{} <<
@@ -495,12 +495,12 @@ void DBMesocyclesModel::updateColumnLabels()
 
 int DBMesocyclesModel::exportToFile(const QString &filename, const bool, const bool, const bool) const
 {
+	const uint exportrow{m_exportRows.at(0)};
 	int res{this->TPListModel::exportToFile(filename, true, false)};
 	if (res >= 0)
 	{
-		m_splitModel->setExportRow(m_exportRows.at(0));
+		m_splitModel->setExportRow(exportrow);
 		res = m_splitModel->TPListModel::exportToFile(filename, false, true);
-		const_cast<DBMesocyclesModel*>(this)->m_exportRows.clear();
 	}
 	return res;
 }
