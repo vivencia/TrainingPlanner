@@ -106,9 +106,24 @@ TPPage {
 				visible: !mesoManager.ownMeso && mesoManager.ownerIsCoach
 				Layout.fillWidth: true
 
-				onClientSelected: (userRow) => mesoManager.client = userModel.userName(userRow);
+				onClientSelected: (userRow) => mesoManager.client = userModel.userId(userRow);
 				onButtonClicked: itemManager.getClientsPage();
 			} //TPClientsList
+
+			TPLabel {
+				id: lblCoachName
+				text: mesoManager.coachLabel
+				visible: !mesoManager.ownMeso && mesoManager.ownerIsCoach
+			}
+
+			TPTextInput {
+				id: txtCoachName
+				text: mesoManager.coach
+				readOnly: true
+				visible: lblCoachName.visible
+				width: 0.9*parent.width
+				Layout.preferredWidth: width
+			}
 
 			TPLabel {
 				text: mesoManager.nameLabel

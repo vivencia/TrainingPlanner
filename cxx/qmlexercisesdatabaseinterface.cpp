@@ -5,6 +5,7 @@
 #include "qmlitemmanager.h"
 #include "qmltdayinterface.h"
 #include "osinterface.h"
+#include "tputils.h"
 #include "translationclass.h"
 
 #include <QQmlApplicationEngine>
@@ -43,7 +44,7 @@ void QmlExercisesDatabaseInterface::exportExercises(const bool bShare)
 	int exportFileMessageId{0};
 	if (appExercisesModel()->collectExportData())
 	{
-		const QString& exportFileName{appOsInterface()->appDataFilesPath() + tr("TrainingPlanner Exercises List") + ".txt"_L1};
+		const QString& exportFileName{appUtils()->localAppFilesDir() + tr("TrainingPlanner Exercises List") + ".txt"_L1};
 		exportFileMessageId = appExercisesModel()->exportToFile(exportFileName);
 		if (exportFileMessageId >= 0)
 		{

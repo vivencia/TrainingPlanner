@@ -145,7 +145,7 @@ function check_file_ctime($file, $targetuser) {
 function scan_dir($path) {
     $files = array_values(array_diff(scandir($path), array('.', '..')));
     foreach ($files as &$file) {
-        echo $file . " ";
+        echo $file . "|" . date('Hisymd', filectime($file)) . " ";
     }
 }
 
@@ -561,10 +561,8 @@ if ($username) {
             #echo "\r\n";
 
             if ($username != "admin") {
-
-                $fileDir=$rootdir . $username;
-
                 if (isset($_GET['listfiles'])) {
+                    $fileDir=$rootdir . $username  . "/" . $_GET['listfiles'];
                     scan_dir($fileDir);
                     exit;
                 }

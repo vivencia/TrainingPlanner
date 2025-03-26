@@ -189,30 +189,14 @@ const int DBUserModel::getRowByCoachName(const QString &coachname) const
 	return -1;
 }
 
-int DBUserModel::findUserByName(const QString &userName) const
+int DBUserModel::userRowFromFieldValue(const uint field, const QString &value) const
 {
-	if (userName.startsWith('*'))
-		return 0;
-	for (uint i{0}; i < m_modeldata.count(); ++i)
+	int row(0);
+	for (const auto &it : m_modeldata)
 	{
-		if (i != m_tempRow)
-		{
-			if (m_modeldata.at(i).at(USER_COL_NAME) == userName)
-				return i;
-		}
-	}
-	return -1;
-}
-
-int DBUserModel::findUserById(const QString &userId) const
-{
-	for (uint i{0}; i < m_modeldata.count(); ++i)
-	{
-		if (i != m_tempRow)
-		{
-			if (m_modeldata.at(i).at(USER_COL_ID) == userId)
-				return i;
-		}
+		if (it.at(field) == value)
+			return row;
+		++row;
 	}
 	return -1;
 }
@@ -595,55 +579,15 @@ void DBUserModel::setCoachPublicStatus(const bool bPublic)
 
 void DBUserModel::uploadResume(const QString &resumeFileName)
 {
-	if (isCoach(0)) //Only applicable to the main user that is a coach
+	const QString &resumeFileName_ok{appUtils()->getCorrectPath(resumeFileName)};
+	QFileInfo fi{resumeFileName_ok};
+	if (fi.isReadable())
 	{
-		if (!onlineCheckIn())
-		{
-			connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this,resumeFileName] () {
-				uploadResume(resumeFileName);
-			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-			return;
-		}
-
-		const QString &resumeFileName_ok{appUtils()->getCorrectPath(resumeFileName)};
-		QFileInfo fi{resumeFileName_ok};
-		if (fi.isReadable())
-		{
-			const qsizetype idx{resumeFileName_ok.lastIndexOf('.')};
-			const QString &extension{idx > 0 ? resumeFileName_ok.last(resumeFileName_ok.length() - idx) : QString{}};
-			const QString &localResumeFilePath{appUtils()->localAppFilesDir() + "resume"_L1 + extension};
-			if (QFile::copy(resumeFileName_ok, localResumeFilePath))
-			{
-				QFile *resume_file{new QFile{localResumeFilePath, this}};
-				if (resume_file->open(QIODeviceBase::ReadOnly))
-				{
-					connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,resume_file] (const QString &key, const QString &value) {
-						const int requestid{appUtils()->generateUniqueId("uploadResume"_L1)};
-						auto conn = std::make_shared<QMetaObject::Connection>();
-						*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid,resume_file]
-											(const int request_id, const int ret_code, const QString &ret_string) {
-							if (request_id == requestid)
-							{
-								disconnect(*conn);
-								appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Résumé uploading") + record_separator + ret_string);
-								resume_file->close();
-								resume_file->remove();
-								delete resume_file;
-							}
-						});
-						appOnlineServices()->sendFile(requestid, key, value, resume_file);
-					}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-					appKeyChain()->readKey(userId(0));
-					return;
-				}
-				else
-				{
-					resume_file->remove();
-					delete resume_file;
-				}
-			}
-		}
-		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Résumé uploading") + record_separator + tr("Failed to open file"));
+		const qsizetype idx{resumeFileName_ok.lastIndexOf('.')};
+		const QString &extension{idx > 0 ? resumeFileName_ok.last(resumeFileName_ok.length() - idx) : QString{}};
+		const QString &localResumeFilePath{appUtils()->localAppFilesDir() + "resume"_L1 + extension};
+		if (QFile::copy(resumeFileName_ok, localResumeFilePath))
+			sendFileToServer(localResumeFilePath, tr("Résumé uploaded successfully!"), QString{}, userId(0), true);
 	}
 }
 
@@ -739,7 +683,8 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 						//First pass
 						for (qsizetype i{coaches.count()-1}; i >= 0; --i)
 						{
-							if (findUserById(coaches.at(i)) != -1)
+							const int userrow{userRowFromFieldValue(USER_COL_ID, coaches.at(i))};
+							if (userrow != -1 && userrow != m_tempRow)
 								coaches.remove(i); //coach is already in the database, therefore not available
 						}
 
@@ -767,9 +712,50 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 	}
 }
 
-void DBUserModel::sendFileToServer(const QString &filename, const QString &subdir, const QString &targetUser)
+void DBUserModel::sendFileToServer(const QString &filename, const QString &successMessage, const QString &subdir, const QString &targetUser,
+									const bool removeLocalFile)
 {
+	if (!onlineCheckIn())
+		{
+			connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [=,this] () {
+				sendFileToServer(filename, successMessage, subdir, targetUser, removeLocalFile);
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		return;
+	}
 
+	QFile *upload_file{new QFile{filename, this}};
+	if (upload_file->open(QIODeviceBase::ReadOnly))
+	{
+		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [=,this] (const QString &key, const QString &value) {
+			const int requestid{appUtils()->generateUniqueId(QLatin1StringView{QString{
+								"sendFileToServer"_L1 + std::move(appUtils()->getFileName(filename).toLatin1())}.toLatin1()})};
+			auto conn = std::make_shared<QMetaObject::Connection>();
+			*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [=,this]
+								(const int request_id, const int ret_code, const QString &ret_string) {
+				if (request_id == requestid)
+				{
+					disconnect(*conn);
+					if (removeLocalFile)
+						QFile::remove(filename);
+					else
+						upload_file->close();
+
+					if (ret_code == 0 && !successMessage.isEmpty())
+						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tpNetworkTitle + record_separator + successMessage);
+					else
+						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, ret_string);
+					delete upload_file;
+				}
+			});
+			appOnlineServices()->sendFile(requestid, key, value, upload_file, subdir, targetUser);
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		appKeyChain()->readKey(userId(0));
+	}
+	else
+	{
+		delete upload_file;
+		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, tr("Failed to open ") + filename);
+	}
 }
 
 bool DBUserModel::updateFromModel(TPListModel *model)
@@ -1053,88 +1039,14 @@ void DBUserModel::sendProfileToServer()
 {
 	const QString &localProfile{appUtils()->localAppFilesDir() + userProfileFileName};
 	if (exportToFile(localProfile, true, true, false) == APPWINDOW_MSG_EXPORT_OK)
-	{
-		QFile *profile{new QFile{localProfile, this}};
-		if (profile->open(QIODeviceBase::ReadOnly))
-		{
-			connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,profile] (const QString &key, const QString &value) {
-				const int requestid{appUtils()->generateUniqueId("sendProfileToServer"_L1)};
-				auto conn = std::make_shared<QMetaObject::Connection>();
-				*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid,profile]
-									(const int request_id, const int ret_code, const QString &ret_string) {
-					if (request_id == requestid)
-					{
-						disconnect(*conn);
-						profile->close();
-						delete profile;
-					}
-				});
-				appOnlineServices()->sendFile(requestid, key, value, profile);
-			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-			appKeyChain()->readKey(userId(0));
-		}
-		else
-			delete profile;
-	}
+		sendFileToServer(localProfile, QString{}, QString{}, userId(0));
 }
 
 void DBUserModel::sendUserInfoToServer()
 {
 	const QString &localUserData{appUtils()->localAppFilesDir() + userLocalDataFileName};
 	if (exportContentsOnlyToFile(localUserData))
-	{
-		QFile *userdata{new QFile{localUserData, this}};
-		if (userdata->open(QIODeviceBase::ReadOnly))
-		{
-			connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,userdata] (const QString &key, const QString &value) {
-				const int requestid{appUtils()->generateUniqueId("sendUserInfoToServer"_L1)};
-				auto conn = std::make_shared<QMetaObject::Connection>();
-				*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid,userdata]
-										(const int request_id, const int ret_code, const QString &ret_string) {
-					if (request_id == requestid)
-					{
-						disconnect(*conn);
-						userdata->close();
-						static_cast<void>(QFile::remove(userdata->fileName()));
-						delete userdata;
-						if (ret_code == 0)
-							appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tpNetworkTitle + record_separator + tr("Online user information updated"));
-						else
-							appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, tpNetworkTitle + record_separator + ret_string);
-					}
-				});
-				appOnlineServices()->updateOnlineUserInfo(requestid, key, value, userdata);
-			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-			appKeyChain()->readKey(userId(0));
-		}
-		else
-			delete userdata;
-	}
-}
-
-void DBUserModel::sendAvatarToServer()
-{
-	QFile *avatar_file{new QFile{avatar(0), this}};
-	if (avatar_file->open(QIODeviceBase::ReadOnly))
-	{
-		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,avatar_file] (const QString &key, const QString &value) {
-			const int requestid{appUtils()->generateUniqueId("sendAvatarToServer"_L1)};
-			auto conn = std::make_shared<QMetaObject::Connection>();
-			*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid,avatar_file]
-									(const int request_id, const int ret_code, const QString &ret_string) {
-				if (request_id == requestid)
-				{
-					disconnect(*conn);
-					avatar_file->close();
-					delete avatar_file;
-				}
-			});
-			appOnlineServices()->sendFile(requestid, key, value, avatar_file);
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		appKeyChain()->readKey(userId(0));
-	}
-	else
-		delete avatar_file;
+		sendFileToServer(localUserData, tr("Online user information updated"), QString{}, userId(0), true);
 }
 
 void DBUserModel::downloadAvatarFromServer(const uint row)
@@ -1372,7 +1284,8 @@ void DBUserModel::pollClientsRequests()
 				//First pass
 				for (qsizetype i{requests_list.count()-1}; i >= 0; --i)
 				{
-					if (findUserById(requests_list.at(i)) != -1)
+					const int userrow{userRowFromFieldValue(USER_COL_ID, requests_list.at(i))};
+					if (userrow != -1 && userrow != m_tempRow)
 					{
 						appOnlineServices()->removeClientRequest(0, userId(0), m_password, requests_list.at(i));
 						requests_list.remove(i);
@@ -1438,7 +1351,8 @@ void DBUserModel::pollCoachesAnswers()
 					if (coach_id.endsWith("AOK"_L1))
 					{
 						coach_id.chop(3);
-						if (findUserById(coach_id) != -1)
+						const int userrow{userRowFromFieldValue(USER_COL_ID, coach_id)};
+						if (userrow != -1 && userrow != m_tempRow)
 						{
 							appOnlineServices()->removeCoachAnwers(requestid, userId(0), m_password, coach_id);
 							answers_list.remove(i);

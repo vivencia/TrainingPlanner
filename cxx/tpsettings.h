@@ -87,6 +87,8 @@ public:
 	inline uint pageHeight() const { return m_defaultValues.at(PAGE_HEIGHT_INDEX).toUInt(); }
 	inline uint heightToWidthRatio() const { return m_defaultValues.at(HEIGHT_TO_WIDTH_RATIO_INDEX).toUInt(); }
 
+	Q_INVOKABLE QStringList colorSchemes() const { return m_colorSchemes; }
+
 	void setColorScheme(const uint new_value, const bool bFromQml = true);
 	inline uint colorScheme() const { return m_defaultValues.at(COLOR_SCHEME_INDEX).toUInt(); }
 	inline QString primaryColor() const { return m_defaultValues.at(COLOR_INDEX); }
@@ -100,8 +102,11 @@ public:
 	inline QString disabledFontColor() const { return m_defaultValues.at(DISABLED_FONT_COLOR_INDEX); }
 
 	Q_INVOKABLE QString colorForScheme(const uint scheme) const;
+	Q_INVOKABLE void setColorForScheme(const QColor &color);
 	Q_INVOKABLE QString lightColorForScheme(const uint scheme) const;
+	Q_INVOKABLE void setLightColorForScheme(const QColor &color);
 	Q_INVOKABLE QString darkColorForScheme(const uint scheme) const;
+	Q_INVOKABLE void setDarkColorForScheme(const QColor &color);
 
 	void setFontSize(const uint new_value, const bool bFromQml = true);
 	inline uint fontSize() const { return m_defaultValues.at(FONT_SIZE_INDEX).toUInt(); }
@@ -139,6 +144,7 @@ private:
 	QMap<uint,QString> m_propertyNames;
 	QStringList m_defaultValues;
 	QStringList m_weatherLocations;
+	QStringList m_colorSchemes;
 
 	inline void changeValue(const uint index, const QVariant &new_value)
 	{

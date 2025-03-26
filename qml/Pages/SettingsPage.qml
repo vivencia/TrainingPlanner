@@ -252,137 +252,31 @@ TPPage {
 				Layout.alignment: Qt.AlignCenter
 			}
 
-			GridLayout {
-				columns: 2
-				rows: 6
-				uniformCellHeights: true
-				uniformCellWidths: true
+			Repeater {
+				id: colorSchemeRepeater
+				model: appSettings.colorSchemes
 				Layout.fillWidth: true
+				Layout.leftMargin: 10
 
-				TPRadioButton {
-					text: qsTr("Blue")
-					checked: appSettings.colorScheme === 0
-					Layout.column: 0
-					Layout.row: 0
-					Layout.leftMargin: 10
-					Layout.fillWidth: true
+				delegate: RowLayout {
+					width: parent.width
+					spacing: 20
 
-					onClicked: appSettings.colorScheme = 0;
-					Component.onCompleted: appSettings.colorChanged.connect(function() { checked = appSettings.colorScheme === 0; });
-				}
+					required property int index
 
-				TPColorRectangle {
-					midColor: appSettings.colorForScheme(0)
-					lightColor: appSettings.lightColorForScheme(0)
-					darkColor: appSettings.darkColorForScheme(0)
-					Layout.column: 1
-					Layout.row: 0
-					Layout.leftMargin: 20
-				}
+					TPRadioButton {
+						text: appSettings.colorSchemes[index]
+						checked: appSettings.colorScheme === index
 
-				TPRadioButton {
-					text: qsTr("Green")
-					checked: appSettings.colorScheme === 1
-					Layout.column: 0
-					Layout.row: 1
-					Layout.leftMargin: 10
-					Layout.fillWidth: true
+						onClicked: appSettings.colorScheme = index;
+						Component.onCompleted: appSettings.colorChanged.connect(function() { checked = appSettings.colorScheme === index; });
+					}
 
-					onClicked: appSettings.colorScheme = 1;
-					Component.onCompleted: appSettings.colorChanged.connect(function() { checked = appSettings.colorScheme === 1; });
-				}
-
-				TPColorRectangle {
-					midColor: appSettings.colorForScheme(1)
-					lightColor: appSettings.lightColorForScheme(1)
-					darkColor: appSettings.darkColorForScheme(1)
-					Layout.column: 1
-					Layout.row: 1
-					Layout.leftMargin: 20
-				}
-
-				TPRadioButton {
-					text: qsTr("Red")
-					checked: appSettings.colorScheme === 2
-					Layout.column: 0
-					Layout.row: 2
-					Layout.leftMargin: 10
-					Layout.fillWidth: true
-
-					onClicked: appSettings.colorScheme = 2;
-					Component.onCompleted: appSettings.colorChanged.connect(function() { checked = appSettings.colorScheme === 2; });
-				}
-
-				TPColorRectangle {
-					midColor: appSettings.colorForScheme(2)
-					lightColor: appSettings.lightColorForScheme(2)
-					darkColor: appSettings.darkColorForScheme(2)
-					Layout.column: 1
-					Layout.row: 2
-					Layout.leftMargin: 20
-				}
-
-				TPRadioButton {
-					text: qsTr("Gray")
-					checked: appSettings.colorScheme === 3
-					Layout.column: 0
-					Layout.row: 3
-					Layout.leftMargin: 10
-					Layout.fillWidth: true
-
-					onClicked: appSettings.colorScheme = 3;
-					Component.onCompleted: appSettings.colorChanged.connect(function() { checked = appSettings.colorScheme === 3; });
-				}
-
-				TPColorRectangle {
-					midColor: appSettings.colorForScheme(3)
-					lightColor: appSettings.lightColorForScheme(3)
-					darkColor: appSettings.darkColorForScheme(3)
-					Layout.column: 1
-					Layout.row: 3
-					Layout.leftMargin: 20
-				}
-
-				TPRadioButton {
-					text: qsTr("Dark")
-					checked: appSettings.colorScheme === 4
-					Layout.column: 0
-					Layout.row: 4
-					Layout.leftMargin: 10
-					Layout.fillWidth: true
-
-					onClicked: appSettings.colorScheme = 4;
-					Component.onCompleted: appSettings.colorChanged.connect(function() { checked = appSettings.colorScheme === 4; });
-				}
-
-				TPColorRectangle {
-					midColor: appSettings.colorForScheme(4)
-					lightColor: appSettings.lightColorForScheme(4)
-					darkColor: appSettings.darkColorForScheme(4)
-					Layout.column: 1
-					Layout.row: 4
-					Layout.leftMargin: 20
-				}
-
-				TPRadioButton {
-					text: qsTr("Light")
-					checked: appSettings.colorScheme === 5
-					Layout.column: 0
-					Layout.row: 5
-					Layout.leftMargin: 10
-					Layout.fillWidth: true
-
-					onClicked: appSettings.colorScheme = 5;
-					Component.onCompleted: appSettings.colorChanged.connect(function() { checked = appSettings.colorScheme === 5; });
-				}
-
-				TPColorRectangle {
-					midColor: appSettings.colorForScheme(5)
-					lightColor: appSettings.lightColorForScheme(5)
-					darkColor: appSettings.darkColorForScheme(5)
-					Layout.column: 1
-					Layout.row: 5
-					Layout.leftMargin: 20
+					TPColorRectangle {
+						midColor: appSettings.colorForScheme(index)
+						lightColor: appSettings.lightColorForScheme(index)
+						darkColor: appSettings.darkColorForScheme(index)
+					}
 				}
 			}
 //------------------------------------------------------COLORS------------------------------------------------------

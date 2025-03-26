@@ -156,7 +156,7 @@ void QmlItemManager::chooseFileToImport()
 	QMetaObject::invokeMethod(appMainWindow(), "chooseFileToImport", Q_ARG(int, IFC_ANY));
 }
 
-void QmlItemManager::tryToImport(const QList<bool>& selectedFields)
+void QmlItemManager::tryToImport(const QList<bool> &selectedFields)
 {
 	uint wanted_content{0};
 	if (isBitSet(m_fileContents, IFC_MESO))
@@ -250,7 +250,7 @@ void QmlItemManager::getWeatherPage()
 			createWeatherPage_part2();
 	}
 	else
-		m_pagesManager->addMainMenuShortCut(QString(), m_weatherPage);
+		m_pagesManager->addMainMenuShortCut(QString{}, m_weatherPage);
 }
 
 void QmlItemManager::getStatisticsPage()
@@ -268,7 +268,7 @@ void QmlItemManager::getStatisticsPage()
 			createStatisticsPage_part2();
 	}
 	else
-		m_pagesManager->addMainMenuShortCut(QString(), m_statisticsPage);
+		m_pagesManager->addMainMenuShortCut(QString{}, m_statisticsPage);
 }
 
 void QmlItemManager::getAllWorkoutsPage()
@@ -286,18 +286,18 @@ void QmlItemManager::getAllWorkoutsPage()
 			createAllWorkoutsPage_part2();
 	}
 	else
-		m_pagesManager->addMainMenuShortCut(QString(), m_allWorkoutsPage);
+		m_pagesManager->addMainMenuShortCut(QString{}, m_allWorkoutsPage);
 }
 
-const QString& QmlItemManager::setExportFileName(const QString& filename)
+const QString &QmlItemManager::setExportFileName(const QString &filename)
 {
-	m_exportFilename = appOsInterface()->appDataFilesPath() + filename;
+	m_exportFilename = std::move(appUtils()->localAppFilesDir() + filename);
 	return m_exportFilename;
 }
 
 void QmlItemManager::continueExport(int exportMessageId, const bool bShare)
 {
-	const QString& filename{appUtils()->getFileName(m_exportFilename)};
+	const QString &filename{appUtils()->getFileName(m_exportFilename)};
 	if (exportMessageId == APPWINDOW_MSG_EXPORT_OK)
 	{
 		if (bShare)
@@ -324,7 +324,7 @@ void QmlItemManager::displayActivityResultMessage(const int requestCode, const i
 	QFile::remove(m_exportFilename);
 }
 
-void QmlItemManager::getPasswordDialog(const QString& title, const QString& message) const
+void QmlItemManager::getPasswordDialog(const QString &title, const QString &message) const
 {
 	connect(appMainWindow(), SIGNAL(passwordDialogClosed(int,QString)), this, SLOT(qmlPasswordDialogClosed_slot(int,QString)),
 		static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
@@ -340,7 +340,7 @@ void QmlItemManager::selectWhichMesoToImportInto()
 		message = std::move(tr("You're trying to import a one day workout. Select in which program you'd wish to include it."));
 	QStringList mesoInfo;
 	QList<int> idxsList;
-	const QDate& today{QDate::currentDate()};
+	const QDate &today{QDate::currentDate()};
 	for (uint i{0}; i < appMesoModel()->count(); ++i)
 	{
 		if (appMesoModel()->isDateWithinMeso(i, today))
@@ -353,7 +353,7 @@ void QmlItemManager::selectWhichMesoToImportInto()
 	QMetaObject::invokeMethod(appMainWindow(), "selectMesoDialog", Q_ARG(QString, message), Q_ARG(QStringList, mesoInfo), Q_ARG(QList<int>, idxsList));
 }
 
-void QmlItemManager::displayImportDialogMessage(const uint fileContents, const QString& filename)
+void QmlItemManager::displayImportDialogMessage(const uint fileContents, const QString &filename)
 {
 	m_fileContents = fileContents;
 	m_importFilename = filename;
@@ -367,7 +367,7 @@ void QmlItemManager::displayImportDialogMessage(const uint fileContents, const Q
 	}
 	if (isBitSet(m_fileContents, IFC_MESOSPLIT))
 	{
-		const bool newMesoImport(appMesoModel()->importIdx() == -1);
+		const bool newMesoImport{appMesoModel()->importIdx() == -1};
 		if (newMesoImport && !(isBitSet(m_fileContents, IFC_MESO)))
 		{
 			auto conn = std::make_shared<QMetaObject::Connection>();
@@ -463,18 +463,18 @@ void QmlItemManager::displayImportDialogMessage(const uint fileContents, const Q
 	QMetaObject::invokeMethod(appMainWindow(), "createImportConfirmDialog", Q_ARG(QStringList, importOptions), Q_ARG(QList<bool>, selectedFields));
 }
 
-void QmlItemManager::openRequestedFile(const QString& filename, const int wanted_content)
+void QmlItemManager::openRequestedFile(const QString &filename, const int wanted_content)
 {
 	#ifdef Q_OS_ANDROID
-	const QString& androidFilename{appOsInterface()->readFileFromAndroidFileDialog(filename)};
+	const QString &androidFilename{appOsInterface()->readFileFromAndroidFileDialog(filename)};
 	if (androidFilename.isEmpty())
 	{
 		displayMessageOnAppWindow(APPWINDOW_MSG_OPEN_FAILED, filename);
 		return;
 	}
-	QFile* inFile{new QFile{androidFilename}};
+	QFile *inFile{new QFile{androidFilename}};
 	#else
-	QFile* inFile{new QFile{filename}};
+	QFile *inFile{new QFile{filename}};
 	#endif
 	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
@@ -482,8 +482,8 @@ void QmlItemManager::openRequestedFile(const QString& filename, const int wanted
 		return;
 	}
 
-	uint fileContents(0);
-	qint64 lineLength(0);
+	uint fileContents{0};
+	qint64 lineLength{0};
 	char buf[128];
 	QString inData;
 
@@ -566,7 +566,7 @@ void QmlItemManager::openRequestedFile(const QString& filename, const int wanted
 		displayMessageOnAppWindow(APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE);
 }
 
-void QmlItemManager::importFromFile(const QString& filename, const int wanted_content)
+void QmlItemManager::importFromFile(const QString &filename, const int wanted_content)
 {
 	int importFileMessageId{APPWINDOW_MSG_IMPORT_FAILED};
 	if (isBitSet(wanted_content, IFC_USER))
@@ -586,7 +586,7 @@ void QmlItemManager::importFromFile(const QString& filename, const int wanted_co
 	if (isBitSet(wanted_content, IFC_MESOSPLIT))
 	{
 		DBMesoSplitModel* splitModels[6];
-		for (uint i(0), ifc(IFC_MESOSPLIT_A); i < 6; ++i, ++ifc)
+		for (uint i{0}, ifc(IFC_MESOSPLIT_A); i < 6; ++i, ++ifc)
 		{
 			if (isBitSet(wanted_content, ifc))
 			{
@@ -692,7 +692,7 @@ void QmlItemManager::mainWindowStarted() const
 	appOsInterface()->initialCheck();
 }
 
-void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QString& fileName) const
+void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QString &fileName) const
 {
 	QString title, message;
 	switch (message_id)
@@ -784,7 +784,7 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 	QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(QString, title), Q_ARG(QString, message));
 }
 
-void QmlItemManager::exportSlot(const QString& filePath)
+void QmlItemManager::exportSlot(const QString &filePath)
 {
 	int messageId(APPWINDOW_MSG_EXPORT_FAILED);
 	if (!filePath.isEmpty())
@@ -802,7 +802,7 @@ void QmlItemManager::exportSlot(const QString& filePath)
 	m_exportFilename.clear();
 }
 
-void QmlItemManager::importSlot_FileChosen(const QString& filePath, const int fileType)
+void QmlItemManager::importSlot_FileChosen(const QString &filePath, const int fileType)
 {
 	if (!filePath.isEmpty())
 		openRequestedFile(filePath, static_cast<importFileContents>(fileType));
@@ -810,7 +810,7 @@ void QmlItemManager::importSlot_FileChosen(const QString& filePath, const int fi
 		displayMessageOnAppWindow(APPWINDOW_MSG_IMPORT_CANCELED);
 }
 
-void QmlItemManager::addMainMenuShortCut(const QString& label, QQuickItem* page)
+void QmlItemManager::addMainMenuShortCut(const QString &label, QQuickItem* page)
 {
 	m_pagesManager->addMainMenuShortCut(label, page);
 }
@@ -827,14 +827,14 @@ void QmlItemManager::createWeatherPage_part2()
 	if (m_weatherComponent->status() == QQmlComponent::Error)
 	{
 		qDebug() << m_weatherComponent->errorString();
-		for (uint i(0); i < m_weatherComponent->errors().count(); ++i)
+		for (uint i{0}; i < m_weatherComponent->errors().count(); ++i)
 			qDebug() << m_weatherComponent->errors().at(i).description();
 		return;
 	}
 	#endif
 	appQmlEngine()->setObjectOwnership(m_weatherPage, QQmlEngine::CppOwnership);
 	m_weatherPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
-	m_pagesManager->addMainMenuShortCut(QString(), m_weatherPage);
+	m_pagesManager->addMainMenuShortCut(QString{}, m_weatherPage);
 }
 
 void QmlItemManager::createStatisticsPage_part2()
@@ -844,14 +844,14 @@ void QmlItemManager::createStatisticsPage_part2()
 	if (m_statisticsComponent->status() == QQmlComponent::Error)
 	{
 		qDebug() << m_statisticsComponent->errorString();
-		for (uint i(0); i < m_statisticsComponent->errors().count(); ++i)
+		for (uint i{0}; i < m_statisticsComponent->errors().count(); ++i)
 			qDebug() << m_statisticsComponent->errors().at(i).description();
 		return;
 	}
 	#endif
 	appQmlEngine()->setObjectOwnership(m_statisticsPage, QQmlEngine::CppOwnership);
 	m_statisticsPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
-	m_pagesManager->addMainMenuShortCut(QString(), m_statisticsPage);
+	m_pagesManager->addMainMenuShortCut(QString{}, m_statisticsPage);
 }
 
 void QmlItemManager::createAllWorkoutsPage_part2()
@@ -865,14 +865,14 @@ void QmlItemManager::createAllWorkoutsPage_part2()
 	if (m_allWorkoutsComponent->status() == QQmlComponent::Error)
 	{
 		qDebug() << m_allWorkoutsComponent->errorString();
-		for (uint i(0); i < m_allWorkoutsComponent->errors().count(); ++i)
+		for (uint i{0}; i < m_allWorkoutsComponent->errors().count(); ++i)
 			qDebug() << m_allWorkoutsComponent->errors().at(i).description();
 		return;
 	}
 	#endif
 	appQmlEngine()->setObjectOwnership(m_allWorkoutsPage, QQmlEngine::CppOwnership);
 	m_allWorkoutsPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
-	m_pagesManager->addMainMenuShortCut(QString(), m_allWorkoutsPage);
+	m_pagesManager->addMainMenuShortCut(QString{}, m_allWorkoutsPage);
 
 	connect(appMesoModel(), &DBMesocyclesModel::mesoCalendarFieldsChanged, m_wokoutsCalendar, &TPWorkoutsCalendar::reScanMesocycles);
 	connect(appMesoModel(), &DBMesocyclesModel::isNewMesoChanged, m_wokoutsCalendar, &TPWorkoutsCalendar::reScanMesocycles);

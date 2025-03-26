@@ -65,7 +65,6 @@ public:
 	inline int networkStatus() const { return m_networkStatus; }
 	void setNetworkStatus(int new_status);
 
-	inline const QString &appDataFilesPath() const { return m_appDataFilesPath; }
 	inline void initialCheck()
 	{
 		#ifdef Q_OS_ANDROID

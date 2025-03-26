@@ -42,9 +42,9 @@ Item {
 			id: mesoDelegate
 			visible: {
 				if (mainUserPrograms)
-					return mesocyclesModel.isOwnMeso
+					return mesocyclesModel.isOwnMeso(index);
 				else
-					return !mesocyclesModel.isOwnMeso;
+					return !mesocyclesModel.isOwnMeso(index);
 			}
 			width: parent ? parent.width : 0
 

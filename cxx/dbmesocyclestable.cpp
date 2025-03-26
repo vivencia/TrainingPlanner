@@ -34,8 +34,8 @@ void DBMesocyclesTable::createTable()
 										"meso_note TEXT,"
 										"meso_nweeks INTEGER,"
 										"meso_split TEXT,"
-										"meso_coach TEXT,"
-										"meso_client TEXT,"
+										"meso_coach INTEGER,"
+										"meso_client INTEGER,"
 										"meso_program_file TEXT,"
 										"meso_type TEXT,"
 										"real_meso INTEGER"
@@ -166,7 +166,7 @@ void DBMesocyclesTable::saveMesocycle()
 		if (bUpdate)
 		{
 			strQuery = std::move(u"UPDATE mesocycles_table SET meso_name=\'%1\', meso_start_date=%2, meso_end_date=%3, "
-							"meso_note=\'%4\', meso_nweeks=%5, meso_split=\'%6\', meso_coach=\'%7\', meso_client=\'%8\', "
+							"meso_note=\'%4\', meso_nweeks=%5, meso_split=\'%6\', meso_coach=%7, meso_client=%8, "
 							"meso_program_file=\'%9\', meso_type=\'%10\', real_meso=\'%11\' WHERE id=%12"_s
 								.arg(m_model->name(row), m_model->strStartDate(row), m_model->strEndDate(row), m_model->notes(row),
 									m_model->nWeeks(row), m_model->split(row), m_model->coach(row), m_model->client(row),
@@ -177,7 +177,7 @@ void DBMesocyclesTable::saveMesocycle()
 			strQuery = std::move(u"INSERT INTO mesocycles_table "
 							"(meso_name,meso_start_date,meso_end_date,meso_note,meso_nweeks,meso_split,"
 							"meso_coach,meso_client,meso_program_file,meso_type,real_meso)"
-							" VALUES(\'%1\', %2, %3, \'%4\', %5, \'%6\', \'%7\', \'%8\', \'%9\', \'%10\', %11)"_s
+							" VALUES(\'%1\', %2, %3, \'%4\', %5, \'%6\', %7, %8, \'%9\', \'%10\', %11)"_s
 								.arg(m_model->name(row), m_model->strStartDate(row), m_model->strEndDate(row), m_model->notes(row),
 									m_model->nWeeks(row), m_model->split(row), m_model->coach(row), m_model->client(row),
 									m_model->file(row), m_model->type(row), m_model->realMeso(row)));

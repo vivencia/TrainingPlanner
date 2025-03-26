@@ -99,8 +99,8 @@ uint DBMesocyclesModel::startNewMesocycle(const bool bCreatePage, const bool bOw
 {
 	beginInsertRows(QModelIndex{}, count(), count());
 	const uint meso_idx{newMesocycle(std::move(QStringList{} << STR_MINUS_ONE << QString{} << QString{} << QString{} <<
-		QString{} << QString{} << std::move("ABCDERR"_L1) << appUserModel()->defaultCoach() <<
-			(bOwnMeso ? appUserModel()->_userName(0) : appUserModel()->defaultClient()) << QString{} << QString{} << STR_ONE))};
+		QString{} << QString{} << std::move("ABCDERR"_L1) << appUserModel()->userId(0) <<
+			(bOwnMeso ? appUserModel()->userId(0) : appUserModel()->defaultClient()) << QString{} << QString{} << STR_ONE))};
 	emit countChanged();
 	endInsertRows();
 
@@ -330,7 +330,7 @@ void DBMesocyclesModel::setSplit(const uint meso_idx, const QString &new_split)
 bool DBMesocyclesModel::isOwnMeso(const int meso_idx) const
 {
 	Q_ASSERT_X(meso_idx >= 0 && meso_idx < m_modeldata.count(), "DBMesocyclesModel::isOwnMeso", "out of range meso_idx");
-	return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_CLIENT) == appUserModel()->_userName(0);
+	return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_CLIENT) == appUserModel()->userId(0);
 }
 
 void DBMesocyclesModel::setOwnMeso(const uint meso_idx, const bool bOwnMeso)
@@ -416,7 +416,7 @@ QVariant DBMesocyclesModel::data(const QModelIndex &index, int role) const
 		switch(role)
 		{
 			case mesoNameRole:
-				return QVariant("<b>"_L1 + name(row) + "</b>"_L1);
+				return QVariant("<b>"_L1 + (name(row).isEmpty() ? tr("New Program") : name(row)) + "</b>"_L1);
 			case mesoStartDateRole:
 				return QVariant(mColumnNames.at(MESOCYCLES_COL_STARTDATE) + "<b>"_L1 +
 					(!isNewMeso(row) ? appUtils()->formatDate(startDate(row)) : tr("Not set")) + "</b>"_L1);
@@ -427,10 +427,10 @@ QVariant DBMesocyclesModel::data(const QModelIndex &index, int role) const
 				return QVariant(mColumnNames.at(MESOCYCLES_COL_SPLIT) + "<b>"_L1 + split(row) + "</b>"_L1);
 			case mesoCoachRole:
 				if (!coach(row).isEmpty())
-					return QVariant(mColumnNames.at(MESOCYCLES_COL_COACH) + "<b>"_L1 + coach(row) + "</b>"_L1);
+					return QVariant(mColumnNames.at(MESOCYCLES_COL_COACH) + "<b>"_L1 + appUserModel()->userNameFromId(coach(row)) + "</b>"_L1);
 			case mesoClientRole:
 				if (!client(row).isEmpty())
-					return QVariant(mColumnNames.at(MESOCYCLES_COL_CLIENT) + "<b>"_L1 + client(row) + "</b>"_L1);
+					return QVariant(mColumnNames.at(MESOCYCLES_COL_CLIENT) + "<b>"_L1 + appUserModel()->userNameFromId(client(row)) + "</b>"_L1);
 		}
 	}
 	return QString{};
@@ -446,26 +446,26 @@ bool DBMesocyclesModel::isDateWithinMeso(const int meso_idx, const QDate &date) 
 	return false;
 }
 
-int DBMesocyclesModel::getPreviousMesoId(const QString &clientName, const int current_mesoid) const
+int DBMesocyclesModel::getPreviousMesoId(const QString &userid, const int current_mesoid) const
 {
 	int meso_idx{static_cast<int>(count()-1)};
 	for (; meso_idx >= 0; --meso_idx)
 	{
-		if (client(meso_idx) == clientName)
+		if (client(meso_idx) == userid)
 			if (_id(meso_idx) < current_mesoid)
 				break;
 	}
 	return meso_idx >= 0 ? _id(meso_idx) : -1;
 }
 
-QDate DBMesocyclesModel::getMesoMinimumStartDate(const QString &clientName, const uint exclude_idx) const
+QDate DBMesocyclesModel::getMesoMinimumStartDate(const QString &userid, const uint exclude_idx) const
 {
 	int meso_idx{static_cast<int>(count()-1)};
 	for (; meso_idx >= 0; --meso_idx)
 	{
 		if (meso_idx != exclude_idx)
 		{
-			if (client(meso_idx) == clientName)
+			if (client(meso_idx) == userid)
 				if (id(meso_idx) != STR_MINUS_ONE && isRealMeso(meso_idx))
 					break;
 		}
@@ -473,12 +473,12 @@ QDate DBMesocyclesModel::getMesoMinimumStartDate(const QString &clientName, cons
 	return meso_idx >= 0 ? endDate(meso_idx) : appUtils()->createDate(QDate::currentDate(), 0, -6, 0);
 }
 
-QDate DBMesocyclesModel::getMesoMaximumEndDate(const QString &clientName, const uint exclude_idx) const
+QDate DBMesocyclesModel::getMesoMaximumEndDate(const QString &userid, const uint exclude_idx) const
 {
 	uint meso_idx{exclude_idx+1};
 	for (; meso_idx < count(); ++meso_idx)
 	{
-		if (client(meso_idx) == clientName)
+		if (client(meso_idx) == userid)
 			if (id(meso_idx) != STR_MINUS_ONE && isRealMeso(meso_idx))
 				break;
 	}

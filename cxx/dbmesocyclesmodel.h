@@ -220,9 +220,9 @@ public:
 	inline void setNewMesoCalendarChanged(const uint meso_idx, const bool changed) { m_newMesoCalendarChanged[meso_idx] = changed; }
 	bool isDateWithinMeso(const int meso_idx, const QDate &date) const;
 	void findNextOwnMeso();
-	int getPreviousMesoId(const QString &clientName, const int current_mesoid) const;
-	QDate getMesoMinimumStartDate(const QString &clientName, const uint exclude_idx) const;
-	QDate getMesoMaximumEndDate(const QString &clientName, const uint exclude_idx) const;
+	int getPreviousMesoId(const QString &userid, const int current_mesoid) const;
+	QDate getMesoMinimumStartDate(const QString &userid, const uint exclude_idx) const;
+	QDate getMesoMaximumEndDate(const QString &userid, const uint exclude_idx) const;
 	void updateColumnLabels();
 
 	//When importing a complete program: importIdx() will be set to -1 because we will be getting a new meso model. When other parts of the code

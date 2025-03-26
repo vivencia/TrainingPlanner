@@ -54,6 +54,11 @@ TPPage {
 		interactive: true
 		anchors.fill: parent
 
+		onCurrentIndexChanged: {
+			homePage.colorLight = currentIndex === 0 ? "green" : "yellow"
+			homePage.colorDark = currentIndex === 0 ? "brown" : "darkgray"
+		}
+
 		readonly property list<string> pageTitle: [qsTr("My Programs"), qsTr("Clients' Programs")]
 
 		Loader {

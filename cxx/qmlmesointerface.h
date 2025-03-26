@@ -98,10 +98,10 @@ public:
 	void setName(const QString &new_value, const bool bFromQml = true);
 	Q_INVOKABLE void acceptName();
 
-	[[nodiscard]] inline QString coach() const { return m_coach; }
+	[[nodiscard]] QString coach() const;
 	void setCoach(const QString &new_value, const bool bFromQml = true);
 
-	[[nodiscard]] inline QString client() const { return m_client; }
+	[[nodiscard]] QString client() const;
 	void setClient(const QString &new_value, const bool bFromQml = true);
 
 	[[nodiscard]] inline QString type() const { return m_type; }
@@ -215,6 +215,7 @@ private:
 	QmlMesoSplitInterface *m_exercisesPage;
 	QmlMesoCalendarInterface *m_calendarPage;
 
+	QString mesoCycleFileNameTemplate() const;
 	void createMesocyclePage();
 	void createMesocyclePage_part2();
 	void setPropertiesBasedOnUseMode();

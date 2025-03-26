@@ -98,8 +98,9 @@ public:
 		return appUseMode(row) != APP_USE_MODE_SINGLE_COACH;
 	}
 
-	Q_INVOKABLE int findUserByName(const QString &userName) const;
-	Q_INVOKABLE int findUserById(const QString &userId) const;
+	Q_INVOKABLE inline int findUserByName(const QString &username) const { return userRowFromFieldValue(USER_COL_NAME, username); }
+	inline QString userNameFromId(const QString &userid) const { return userName(userRowFromFieldValue(USER_COL_ID, userid)); }
+	int userRowFromFieldValue(const uint field, const QString &value) const;
 	const QString &userIdFromFieldValue(const uint field, const QString &value) const;
 
 	inline const QString &userId(const int row) const { return m_modeldata.at(row).at(USER_COL_ID); }
@@ -214,7 +215,6 @@ public:
 	inline OnlineUserInfo *pendingCoachesResponses() const { return m_pendingCoachesResponses; }
 	inline QStringList coachesNames() const { return m_coachesNames; }
 	Q_INVOKABLE inline int coachRow(const QString &coach_name) const { return m_coachesNames.indexOf(coach_name); }
-	inline const QString &defaultCoach() const { return m_coachesNames.count() > 0 ? m_coachesNames.last() : m_emptyString; }
 	inline bool haveCoaches() const { return m_coachesNames.count() > 0; }
 	void addCoach(const uint row);
 	void delCoach(const uint row);
@@ -223,8 +223,8 @@ public:
 
 	inline OnlineUserInfo *pendingClientsRequests() const { return m_pendingClientRequests; }
 	inline QStringList clientsNames() const { return m_clientsNames; }
-	Q_INVOKABLE inline int clientRow(const QString &client_name) const { return m_clientsNames.indexOf(client_name); }
-	inline const QString &defaultClient() const { return m_clientsNames.count() > 0 ? m_clientsNames.last() : m_emptyString; }
+	Q_INVOKABLE inline int clientRow(const QString &userid) const { return m_clientsNames.indexOf(userName(userRowFromFieldValue(USER_COL_ID, userid))); }
+	inline const QString &defaultClient() const { return m_clientsNames.count() > 0 ? userIdFromFieldValue(USER_COL_NAME, m_clientsNames.last()) : m_emptyString; }
 	inline bool haveClients() const { return m_clientsNames.count() > 0; }
 	void addClient(const uint row);
 	void delClient(const uint row);
@@ -261,7 +261,8 @@ public:
 	Q_INVOKABLE void sendRequestToCoaches();
 	Q_INVOKABLE void getOnlineCoachesList(const bool get_list_only = false);
 
-	void sendFileToServer(const QString &filename, const QString &subdir = QString{}, const QString &targetUser = QString{});
+	void sendFileToServer(const QString &filename, const QString &successMessage = QString{}, const QString &subdir = QString{},
+							const QString &targetUser = QString{}, const bool removeLocalFile = false);
 	inline int importFromFile(const QString &filename) override { return _importFromFile(filename, m_modeldata); }
 	bool updateFromModel(TPListModel*) override;
 	bool importFromString(const QString &user_data);
@@ -325,7 +326,7 @@ private:
 	void getUserOnlineProfile(const QString &netName, const QString &save_as_filename);
 	void sendProfileToServer();
 	void sendUserInfoToServer();
-	void sendAvatarToServer();
+	inline void sendAvatarToServer() { sendFileToServer(avatar(0), QString{}, QString{}, userId(0)); }
 	void downloadAvatarFromServer(const uint row);
 	void downloadResumeFromServer(const uint row);
 	void moveTempUserFilesToFinalUserDir(const QString &destDir, OnlineUserInfo *userInfo, const int userInfoRow) const;

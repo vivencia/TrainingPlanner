@@ -13,7 +13,7 @@ TPPage {
 	objectName: "CoachesPage"
 
 	required property UserManager userManager
-	property int curRow: userModel.currentRow
+	property int curRow
 
 	onPageActivated: {
 		//Online data might change. Keep up with it
@@ -158,7 +158,8 @@ TPPage {
 
 				Component.onCompleted: {
 					if (userModel.haveCoaches) {
-						userModel.currentRow = userModel.findUserByName(userModel.coachesNames[0]);
+						curRow = userModel.findUserByName(userModel.coachesNames[0]);
+						userModel.currentRow = curRow;
 						coachesList.currentIndex = 0;
 					}
 				}

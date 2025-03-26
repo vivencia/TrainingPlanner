@@ -59,7 +59,7 @@ void QMLMesoInterface::setOwnMeso(const bool new_value, const bool bFromQml)
 			m_bOwnMeso = new_value;
 			emit ownMesoChanged();
 			appMesoModel()->setOwnMeso(m_mesoIdx, m_bOwnMeso);
-			setClient(m_bOwnMeso ? appUserModel()->userName(0) : appUserModel()->defaultClient());
+			setClient(m_bOwnMeso ? appUserModel()->userId(0) : appUserModel()->defaultClient());
 		}
 	}
 	else
@@ -137,6 +137,11 @@ void QMLMesoInterface::acceptName()
 	appMesoModel()->setName(m_mesoIdx, m_name);
 }
 
+QString QMLMesoInterface::coach() const
+{
+	return appUserModel()->userNameFromId(m_coach);
+}
+
 void QMLMesoInterface::setCoach(const QString &new_value, const bool bFromQml)
 {
 	if (bFromQml)
@@ -150,6 +155,11 @@ void QMLMesoInterface::setCoach(const QString &new_value, const bool bFromQml)
 	}
 	else
 		m_coach = new_value;
+}
+
+QString QMLMesoInterface::client() const
+{
+	return appUserModel()->userNameFromId(m_client);
 }
 
 void QMLMesoInterface::setClient(const QString &new_value, const bool bFromQml)
@@ -499,6 +509,11 @@ DBTrainingDayModel *QMLMesoInterface::tDayModelForToday()
 	return tDayPage ? tDayPage->tDayModel() : nullptr;
 }
 
+inline QString QMLMesoInterface::mesoCycleFileNameTemplate() const
+{
+	return name() + std::move("-meso.txt"_L1);
+}
+
 void QMLMesoInterface::createMesocyclePage()
 {
 	if (!appMesoModel()->isNewMeso(m_mesoIdx))
@@ -631,7 +646,7 @@ void QMLMesoInterface::createMesocyclePage_part2()
 
 void QMLMesoInterface::setPropertiesBasedOnUseMode()
 {
-	const uint useMode(appUserModel()->appUseMode(0));
+	const uint useMode{appUserModel()->appUseMode(0)};
 	setOwnerIsCoach(useMode == APP_USE_MODE_SINGLE_COACH || useMode == APP_USE_MODE_COACH_USER_WITH_COACH);
 	setHasCoach(useMode == APP_USE_MODE_SINGLE_USER_WITH_COACH || useMode == APP_USE_MODE_COACH_USER_WITH_COACH);
 	emit labelsChanged();
@@ -652,12 +667,13 @@ void QMLMesoInterface::updateMuscularGroupFromOutside(const uint splitIndex)
 
 void QMLMesoInterface::sendMesocycleFileToServer()
 {
-	QString mesocycleFile{std::move(appUtils()->localAppFilesDir() + appUserModel()->userIdFromFieldValue(USER_COL_NAME, client()))};
+	QString mesocycleFile{std::move(appUtils()->localAppFilesDir() + appMesoModel()->client(m_mesoIdx)) + '/'};
 	if (appUtils()->mkdir(mesocycleFile))
 	{
-		mesocycleFile = std::move(QString{'/' + name() + ".txt"_L1});
+		mesocycleFile += std::move(mesoCycleFileNameTemplate());
 		appMesoModel()->setExportRow(m_mesoIdx);
 		if (appMesoModel()->exportContentsOnlyToFile(mesocycleFile))
-			appUserModel()->sendFileToServer(mesocycleFile, "mesocycles"_L1, client());
+			appUserModel()->sendFileToServer(mesocycleFile, client() != appUserModel()->userId(0) ? tr("Exercises Program sent to client") : QString{},
+				"mesocycles"_L1, client());
 	}
 }
