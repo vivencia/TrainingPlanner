@@ -101,5 +101,6 @@
         <file>images/password.png</file>
         <file>images/flat/hide-password.png</file>
         <file>images/flat/show-password.png</file>
+        <file>images/color-choose.png</file>
     </qresource>
 </RCC>

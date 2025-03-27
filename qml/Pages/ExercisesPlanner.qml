@@ -50,12 +50,12 @@ TPPage {
 		height: 20
 
 		delegate: Label {
-			width: 20
-			height: 20
 			text: splitView.itemAt(index).splitModel.splitLetter()
 			color: appSettings.fontColor
 			font.bold: true
 			fontSizeMode: Text.Fit
+			width: 20
+			height: 20
 			horizontalAlignment: Text.AlignHCenter
 			verticalAlignment: Text.AlignVCenter
 

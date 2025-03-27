@@ -55,23 +55,25 @@ Q_PROPERTY(uint colorScheme READ colorScheme WRITE setColorScheme NOTIFY colorCh
 Q_PROPERTY(QString appVersion READ appVersion CONSTANT)
 Q_PROPERTY(QString appLocale READ appLocale WRITE setAppLocale NOTIFY appLocaleChanged)
 Q_PROPERTY(QString themeStyle READ themeStyle WRITE setThemeStyle NOTIFY themeStyleChanged)
-Q_PROPERTY(QString primaryColor READ primaryColor NOTIFY colorChanged)
-Q_PROPERTY(QString primaryDarkColor READ primaryDarkColor NOTIFY colorChanged)
-Q_PROPERTY(QString primaryLightColor READ primaryLightColor NOTIFY colorChanged)
+Q_PROPERTY(QString primaryColor READ primaryColor WRITE setPrimaryColor NOTIFY colorChanged)
+Q_PROPERTY(QString primaryLightColor READ primaryLightColor WRITE setPrimaryLightColor NOTIFY colorChanged)
+Q_PROPERTY(QString primaryDarkColor READ primaryDarkColor WRITE setPrimaryDarkColor NOTIFY colorChanged)
 Q_PROPERTY(QString paneBackgroundColor READ paneBackgroundColor NOTIFY colorChanged)
 Q_PROPERTY(QString entrySelectedColor READ entrySelectedColor NOTIFY colorChanged)
 Q_PROPERTY(QString listEntryColor1 READ listEntryColor1 NOTIFY colorChanged)
 Q_PROPERTY(QString listEntryColor2 READ listEntryColor2 NOTIFY colorChanged)
-Q_PROPERTY(QString fontColor READ fontColor NOTIFY colorChanged)
-Q_PROPERTY(QString disabledFontColor READ disabledFontColor NOTIFY colorChanged)
+Q_PROPERTY(QString fontColor READ fontColor WRITE setFontColor NOTIFY colorChanged)
+Q_PROPERTY(QString disabledFontColor READ disabledFontColor WRITE setDisabledFontColor NOTIFY colorChanged)
 Q_PROPERTY(QString weightUnit READ weightUnit WRITE setWeightUnit NOTIFY weightUnitChanged)
 
 Q_PROPERTY(int lastViewedMesoIdx READ lastViewedMesoIdx WRITE setLastViewedMesoIdx NOTIFY lastViewedMesoIdxChanged)
 Q_PROPERTY(uint weatherCitiesCount READ weatherCitiesCount NOTIFY weatherCitiesCountChanged)
 Q_PROPERTY(bool alwaysAskConfirmation READ alwaysAskConfirmation WRITE setAlwaysAskConfirmation NOTIFY alwaysAskConfirmationChanged)
 
+Q_PROPERTY(QStringList colorSchemes READ colorSchemes FINAL CONSTANT)
+
 public:
-	explicit TPSettings(QObject* parent = nullptr);
+	explicit TPSettings(QObject *parent = nullptr);
 
 	inline QString appVersion() const { return value(m_propertyNames.value(APP_VERSION_INDEX), m_defaultValues.at(APP_VERSION_INDEX)).toString(); }
 
@@ -87,26 +89,28 @@ public:
 	inline uint pageHeight() const { return m_defaultValues.at(PAGE_HEIGHT_INDEX).toUInt(); }
 	inline uint heightToWidthRatio() const { return m_defaultValues.at(HEIGHT_TO_WIDTH_RATIO_INDEX).toUInt(); }
 
-	Q_INVOKABLE QStringList colorSchemes() const { return m_colorSchemes; }
+	QStringList colorSchemes() const { return m_colorSchemes; }
 
 	void setColorScheme(const uint new_value, const bool bFromQml = true);
 	inline uint colorScheme() const { return m_defaultValues.at(COLOR_SCHEME_INDEX).toUInt(); }
-	inline QString primaryColor() const { return m_defaultValues.at(COLOR_INDEX); }
-	inline QString primaryLightColor() const { return m_defaultValues.at(LIGHT_COLOR_INDEX); }
-	inline QString primaryDarkColor() const { return m_defaultValues.at(DARK_COLOR_INDEX); }
-	inline QString paneBackgroundColor() const { return m_defaultValues.at(PANE_COLOR_INDEX); }
-	inline QString entrySelectedColor() const { return m_defaultValues.at(SELECTED_COLOR_INDEX); }
+	inline QString primaryColor() const { return value(m_propertyNames.value(COLOR_INDEX), m_defaultValues.at(COLOR_INDEX)).toString(); }
+	void setPrimaryColor(const QColor &color);
+	inline QString primaryLightColor() const { return value(m_propertyNames.value(LIGHT_COLOR_INDEX), m_defaultValues.at(LIGHT_COLOR_INDEX)).toString(); }
+	void setPrimaryLightColor(const QColor &color);
+	inline QString primaryDarkColor() const { return value(m_propertyNames.value(DARK_COLOR_INDEX), m_defaultValues.at(DARK_COLOR_INDEX)).toString(); }
+	void setPrimaryDarkColor(const QColor &color);
+	inline QString paneBackgroundColor() const { return value(m_propertyNames.value(PANE_COLOR_INDEX), m_defaultValues.at(PANE_COLOR_INDEX)).toString(); }
+	inline QString entrySelectedColor() const { return value(m_propertyNames.value(SELECTED_COLOR_INDEX), m_defaultValues.at(SELECTED_COLOR_INDEX)).toString(); }
 	inline QString listEntryColor1() const { return m_defaultValues.at(LISTS_COLOR_1_INDEX); }
 	inline QString listEntryColor2() const { return m_defaultValues.at(LISTS_COLOR_2_INDEX); }
-	inline QString fontColor() const { return m_defaultValues.at(FONT_COLOR_INDEX); }
-	inline QString disabledFontColor() const { return m_defaultValues.at(DISABLED_FONT_COLOR_INDEX); }
+	inline QString fontColor() const { return value(m_propertyNames.value(FONT_COLOR_INDEX), m_defaultValues.at(FONT_COLOR_INDEX)).toString(); }
+	void setFontColor(const QColor &color);
+	inline QString disabledFontColor() const { return value(m_propertyNames.value(DISABLED_FONT_COLOR_INDEX), m_defaultValues.at(DISABLED_FONT_COLOR_INDEX)).toString(); }
+	void setDisabledFontColor(const QColor &color);
 
 	Q_INVOKABLE QString colorForScheme(const uint scheme) const;
-	Q_INVOKABLE void setColorForScheme(const QColor &color);
 	Q_INVOKABLE QString lightColorForScheme(const uint scheme) const;
-	Q_INVOKABLE void setLightColorForScheme(const QColor &color);
 	Q_INVOKABLE QString darkColorForScheme(const uint scheme) const;
-	Q_INVOKABLE void setDarkColorForScheme(const QColor &color);
 
 	void setFontSize(const uint new_value, const bool bFromQml = true);
 	inline uint fontSize() const { return m_defaultValues.at(FONT_SIZE_INDEX).toUInt(); }

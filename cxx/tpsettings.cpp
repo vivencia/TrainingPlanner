@@ -7,6 +7,16 @@
 #include <QFontInfo>
 #include <QScreen>
 
+enum ColorSchemes {
+	Custom = 0,
+	Dark,
+	Light,
+	Blue,
+	Green,
+	Red,
+	Gray
+};
+
 constexpr uint QML_PROPERTIES(25);
 
 TPSettings* TPSettings::app_settings(nullptr);
@@ -23,6 +33,8 @@ TPSettings::TPSettings(QObject* parent) : QSettings{parent}
 	m_propertyNames.insert(DARK_COLOR_INDEX, std::move("darkColor"_L1));
 	m_propertyNames.insert(PANE_COLOR_INDEX, std::move("paneColor"_L1));
 	m_propertyNames.insert(SELECTED_COLOR_INDEX, std::move("selectedColor"_L1));
+	m_propertyNames.insert(FONT_COLOR_INDEX, std::move("fontColor"_L1));
+	m_propertyNames.insert(DISABLED_FONT_COLOR_INDEX, std::move("disabledFontColor"_L1));
 	m_propertyNames.insert(COLOR_SCHEME_INDEX, std::move("colorScheme"_L1));
 	m_propertyNames.insert(FONT_SIZE_INDEX, std::move("fontPixelSize"_L1));
 	m_propertyNames.insert(WEIGHT_UNIT_INDEX, std::move("weightUnit"_L1));
@@ -42,7 +54,7 @@ TPSettings::TPSettings(QObject* parent) : QSettings{parent}
 	m_defaultValues[ASK_CONFIRMATION_INDEX] = STR_ONE;
 
 	m_colorSchemes.reserve(7);
-	m_colorSchemes << std::move(tr("Custom")) << std::move(tr("Dark")) << std::move(tr("Light")) << std::move(tr("Blue")) <<
+	m_colorSchemes << std::move(tr("Custom(click on the regions of the rectangle on the right to change colors)")) << std::move(tr("Dark")) << std::move(tr("Light")) << std::move(tr("Blue")) <<
 					std::move(tr("Green")) << std::move(tr("Red")) << std::move(tr("Gray"));
 
 	getScreenMeasures();
@@ -100,34 +112,38 @@ void TPSettings::setColorScheme(const uint new_value, const bool bFromQml)
 
 	switch (new_value)
 	{
-		case 0: //Custom
+		case Custom:
+		{
+			paneBackColor = std::move(m_defaultValues[PANE_COLOR_INDEX]);
+			entrySelColor = std::move(m_defaultValues[SELECTED_COLOR_INDEX]);
+		}
 		break;
-		case 1: //Dark
+		case Dark:
 			paneBackColor = std::move("#3e3d48"_L1);
 			entrySelColor = std::move("#6c6f73"_L1);
 			disabledfntColor = std::move("e8e8e8"_L1);
 			m_defaultValues[LISTS_COLOR_1_INDEX] = std::move("#c8e3f0"_L1);
 			m_defaultValues[LISTS_COLOR_2_INDEX] = std::move("#d4f1ff"_L1);
 		break;
-		case 2: //Light
+		case Light:
 			paneBackColor = std::move("#ffffff"_L1);
 			entrySelColor = std::move("#e6f5ff"_L1);
 			fntColor = std::move("#1a28e7"_L1);
 			disabledfntColor = std::move("#bdcae6"_L1);
 		break;
-		case 3: //Blue
+		case Blue:
 			paneBackColor = std::move("#1976d2"_L1);
 			entrySelColor = std::move("#6caaed"_L1);
 		break;
-		case 4: //Green
+		case Green:
 			paneBackColor = std::move("#60d219"_L1);
 			entrySelColor = std::move("#228b22"_L1);
 		break;
-		case 5: //Red
+		case Red:
 			paneBackColor = std::move("#d21a45"_L1);
 			entrySelColor = std::move("#a82844"_L1);
 		break;
-		case 6: //Gray
+		case Gray:
 			paneBackColor = std::move("#929299"_L1);
 			entrySelColor = std::move("#65696c"_L1);
 			fntColor = std::move("000000"_L1);
@@ -148,62 +164,85 @@ void TPSettings::setColorScheme(const uint new_value, const bool bFromQml)
 	emit colorChanged();
 }
 
+void TPSettings::setPrimaryColor(const QColor &color)
+{
+	changeValue(COLOR_INDEX, color.name());
+	emit colorChanged();
+}
+
+void TPSettings::setPrimaryLightColor(const QColor &color)
+{
+	changeValue(LIGHT_COLOR_INDEX, color.name());
+	emit colorChanged();
+}
+
+void TPSettings::setPrimaryDarkColor(const QColor &color)
+{
+	changeValue(DARK_COLOR_INDEX, color.name());
+	changeValue(PANE_COLOR_INDEX, color.lightness() <= 180 ? color.lighter(125).name() : color.darker(280).name());
+	changeValue(SELECTED_COLOR_INDEX, color.lightness() <= 180 ? color.lighter(115).name() : color.darker(250).name());
+	const QColor white {"#ffffff"_L1};
+	const QColor black {"#000000"_L1};
+	changeValue(FONT_COLOR_INDEX, color.lightness() <= 127 ? white.name() : black.name());
+	changeValue(DISABLED_FONT_COLOR_INDEX, color.lightness() <= 127 ? white.darker(150).name() : black.lighter(115).name());
+	emit colorChanged();
+}
+
+void TPSettings::setFontColor(const QColor &color)
+{
+	changeValue(FONT_COLOR_INDEX, color.name());
+	emit colorChanged();
+}
+
+void TPSettings::setDisabledFontColor(const QColor &color)
+{
+	changeValue(DISABLED_FONT_COLOR_INDEX, color.name());
+	emit colorChanged();
+}
+
 QString TPSettings::colorForScheme(const uint scheme) const
 {
 	switch (scheme)
 	{
-		case 0: return value(m_propertyNames.value(COLOR_INDEX)).toString(); break;
-		case 1: return std::move("#9ea6a3"_L1); break;
-		case 2: return std::move("#e6e5d6"_L1); break;
-		case 3: return std::move("#47a0f3"_L1); break;
-		case 4: return std::move("#97dd81"_L1); break;
-		case 5: return std::move("#fd9ab1"_L1); break;
-		case 6: return std::move("#cccccc"_L1); break;
+		case Custom: return value(m_propertyNames.value(COLOR_INDEX), m_defaultValues[COLOR_INDEX]).toString(); break;
+		case Dark: return std::move("#9ea6a3"_L1); break;
+		case Light: return std::move("#e6e5d6"_L1); break;
+		case Blue: return std::move("#47a0f3"_L1); break;
+		case Green: return std::move("#97dd81"_L1); break;
+		case Red: return std::move("#fd9ab1"_L1); break;
+		case Gray: return std::move("#cccccc"_L1); break;
 	}
 	return QString {};
-}
-
-void TPSettings::setColorForScheme(const QColor &color)
-{
-	m_defaultValues[COLOR_INDEX] = color.name(QColor::HexRgb);
 }
 
 QString TPSettings::lightColorForScheme(const uint scheme) const
 {
 	switch (scheme)
 	{
-		case 0: return value(m_propertyNames.value(LIGHT_COLOR_INDEX)).toString(); break;
-		case 1: return std::move("#d7e2de"_L1); break;
-		case 2: return std::move("#ffffff"_L1); break;
-		case 3: return std::move("#bbdefb"_L1); break;
-		case 4: return std::move("#d4fdc0"_L1); break;
-		case 5: return std::move("#ebafc7"_L1); break;
-		case 6: return std::move("#f3f3f3"_L1); break;
+		case Custom: return value(m_propertyNames.value(LIGHT_COLOR_INDEX), m_defaultValues[LIGHT_COLOR_INDEX]).toString(); break;
+		case Dark: return std::move("#d7e2de"_L1); break;
+		case Light: return std::move("#ffffff"_L1); break;
+		case Blue: return std::move("#bbdefb"_L1); break;
+		case Green: return std::move("#d4fdc0"_L1); break;
+		case Red: return std::move("#ebafc7"_L1); break;
+		case Gray: return std::move("#f3f3f3"_L1); break;
 	}
 	return QString {};
-}
-
-void TPSettings::setLightColorForScheme(const QColor &color)
-{
-
 }
 
 QString TPSettings::darkColorForScheme(const uint scheme) const
 {
 	switch (scheme)
 	{
-		case 0: return std::move("#1976d2"_L1); break;
-		case 1: return std::move("#12a35a"_L1); break;
-		case 2: return std::move("#fd1c20"_L1); break;
-		case 3: return std::move("#c1c1c1"_L1); break;
-		case 4: return std::move("#000000"_L1); break;
-		default: return std::move("#d7d7da"_L1); break;
+		case Custom: return value(m_propertyNames.value(DARK_COLOR_INDEX), m_defaultValues[DARK_COLOR_INDEX]).toString(); break;
+		case Dark: return std::move("#000000"_L1); break;
+		case Light: return std::move("#d7d7da"_L1); break;
+		case Blue: return std::move("#1976d2"_L1); break;
+		case Green: return std::move("#12a35a"_L1); break;
+		case Red: return std::move("#fd1c20"_L1); break;
+		case Gray: return std::move("#c1c1c1"_L1); break;
 	}
-}
-
-void TPSettings::setDarkColorForScheme(const QColor &color)
-{
-
+	return QString{};
 }
 
 void TPSettings::setFontSize(const uint new_value, const bool bFromQml)
@@ -248,7 +287,7 @@ QGeoCoordinate TPSettings::weatherCityCoordinates(const uint idx)
 
 void TPSettings::addWeatherCity(const QString &city, const QString &latitude, const QString &longitude)
 {
-	for (const auto location: m_weatherLocations)
+	for (const auto &location: m_weatherLocations)
 	{
 		if (location.contains(city, Qt::CaseInsensitive))
 			return;

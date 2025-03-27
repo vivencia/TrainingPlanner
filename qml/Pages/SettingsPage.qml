@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Dialogs
 
 import "../"
 import "../TPWidgets"
@@ -255,18 +256,21 @@ TPPage {
 			Repeater {
 				id: colorSchemeRepeater
 				model: appSettings.colorSchemes
-				Layout.fillWidth: true
-				Layout.leftMargin: 10
 
-				delegate: RowLayout {
-					width: parent.width
+				Row {
 					spacing: 20
+					Layout.fillWidth: true
+					Layout.topMargin: 10
+					Layout.leftMargin: 10
+					Layout.rightMargin: 10
 
 					required property int index
 
 					TPRadioButton {
 						text: appSettings.colorSchemes[index]
 						checked: appSettings.colorScheme === index
+						multiLine: index === 0
+						width: parent.width*0.6
 
 						onClicked: appSettings.colorScheme = index;
 						Component.onCompleted: appSettings.colorChanged.connect(function() { checked = appSettings.colorScheme === index; });
@@ -276,10 +280,99 @@ TPPage {
 						midColor: appSettings.colorForScheme(index)
 						lightColor: appSettings.lightColorForScheme(index)
 						darkColor: appSettings.darkColorForScheme(index)
+						clickable: index === 0
+						width: parent.width*0.3
 					}
 				}
 			}
 //------------------------------------------------------COLORS------------------------------------------------------
+
+			Rectangle {
+				height: 3
+				color: appSettings.fontColor
+				Layout.fillWidth: true
+			}
+
+//------------------------------------------------------FONT-COLORS------------------------------------------------------
+			TPLabel {
+				text: qsTr("Font Color")
+				Layout.alignment: Qt.AlignCenter
+			}
+
+			Row {
+				spacing: 0
+				padding: 0
+				Layout.fillWidth: true
+				Layout.leftMargin: 10
+				Layout.rightMargin: 10
+
+				TPLabel {
+					id: lblEnabled
+					text: qsTr("Enabled text")
+					width: parent.width*0.4
+				}
+				TPButton {
+					imageSource: "color-choose"
+					width: 30
+					height: 30
+					Layout.leftMargin: -5
+
+					onClicked: colorDlg.show(lblEnabled);
+				}
+
+				TPLabel {
+					id: lblDisabled
+					text: qsTr("Disabled text")
+					enabled: false
+					width: parent.width*0.4
+
+					Layout.leftMargin: 20
+				}
+				TPButton {
+					imageSource: "color-choose"
+					width: 30
+					height: 30
+					Layout.leftMargin: 5
+
+					onClicked: colorDlg.show(lblDisabled);
+				}
+			}
+
+
+			TPButton {
+				id: btnCustomFontColor
+				text: qsTr("Use selected colors")
+				Layout.alignment: Qt.AlignCenter
+
+				onClicked: {
+					appSettings.fontColor = lblEnabled.color;
+					appSettings.disabledFontColor = lblDisabled.color;
+					enabled = false;
+				}
+			}
+
+			ColorDialog {
+				id: colorDlg
+
+				property TPLabel testLabel
+
+				onAccepted: {
+					if (testLabel.color !== selectedColor) {
+						testLabel.color = selectedColor;
+						btnCustomFontColor.enabled = true;
+					}
+				}
+
+				function show(label: TPLabel): void {
+					testLabel = label;
+					selectedColor = testLabel.color;
+					open();
+				}
+			}
+//------------------------------------------------------FONT-COLORS------------------------------------------------------
+			Item { //Empty item to clear space for the page swipe indicators
+				height: 30
+			}
 		} //ColumnLayout
 	} //ScrollView
 }

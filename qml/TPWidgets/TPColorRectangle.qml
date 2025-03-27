@@ -2,16 +2,16 @@ import QtQuick
 import QtQuick.Dialogs
 
 Rectangle {
+	id: darkRec
+	height: width
+	border.color: "transparent"
+	color: darkColor
+	z: 0
+
 	property string darkColor
 	property string midColor
 	property string lightColor
 	property bool clickable: false
-
-	id: darkRec
-	width: appSettings.pageWidth/3
-	height: width
-	border.color: "transparent"
-	color: darkColor
 
 	Rectangle {
 		id: midRec
@@ -21,16 +21,13 @@ Rectangle {
 		color: midColor
 		anchors.verticalCenter: parent.verticalCenter
 		anchors.horizontalCenter: parent.horizontalCenter
+		z: 1
 
 		MouseArea {
 			enabled: clickable
 			anchors.fill: parent
-			z: 1
 
-			onClicked: {
-				colorDlg.colorIdx = 1;
-				colorDlg.open();
-			}
+			onClicked: colorDlg.show(0, midColor);
 		}
 
 		Rectangle {
@@ -41,16 +38,13 @@ Rectangle {
 			color: lightColor
 			anchors.verticalCenter: parent.verticalCenter
 			anchors.horizontalCenter: parent.horizontalCenter
+			z: 2
 
 			MouseArea {
 				enabled: clickable
 				anchors.fill: parent
-				z: 2
 
-				onClicked: {
-					colorDlg.colorIdx = 2;
-					colorDlg.open();
-				}
+				onClicked: colorDlg.show(1, lightColor);
 			}
 		}
 	}
@@ -58,34 +52,36 @@ Rectangle {
 	MouseArea {
 		enabled: clickable
 		anchors.fill: parent
-		z: 0
 
-		onClicked: {
-			colorDlg.colorIdx = 0;
-			colorDlg.open();
-		}
+		onClicked: colorDlg.show(2, darkColor);
 	}
 
 	ColorDialog {
 		id: colorDlg
 
-		property int colorIdx
+		property int _colorIdx
 
 		onAccepted: {
-			switch (colorIdx) {
+			switch (_colorIdx) {
 				case 0:
-					darkColor = selectedColor;
-					appSettings.setDarkColorForScheme(selectedColor);
+					midColor = selectedColor;
+					appSettings.primaryColor = selectedColor;
 				break;
 				case 1:
-					midColor = selectedColor;
-					appSettings.setColorForScheme(selectedColor);
+					lightColor = selectedColor;
+					appSettings.primaryLightColor = selectedColor;
 				break;
 				case 2:
-					lightColor = selectedColor;
-					appSettings.setLightColorForScheme(selectedColor);
+					darkColor = selectedColor;
+					appSettings.primaryDarkColor = selectedColor;
 				break;
 			}
+		}
+
+		function show(colorIdx: int, initialColor: color): void {
+			_colorIdx = colorIdx;
+			selectedColor = initialColor;
+			open();
 		}
 	}
 }
