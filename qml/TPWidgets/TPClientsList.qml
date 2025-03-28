@@ -46,6 +46,7 @@ Item {
 
 			contentItem: Text {
 				text: modelData
+				color: appSettings.fontColor
 				font.pixelSize: appSettings.fontSize
 				fontSizeMode: Text.Fit
 				leftPadding: 5

@@ -143,10 +143,16 @@ function check_file_ctime($file, $targetuser) {
 }
 
 function scan_dir($path) {
-    $files = array_values(array_diff(scandir($path), array('.', '..')));
-    foreach ($files as &$file) {
-        echo $file . "|" . date('Hisymd', filectime($file)) . " ";
+    if (is_dir($path)) {
+        $files = array_values(array_diff(scandir($path), array('.', '..')));
+        if (count($files) > 0) {
+            echo "Return code: 0 ";
+            foreach ($files as &$file)
+                echo $file . "|" . date('Hisymd', filectime($file)) . "| ";
+            return true;
+        }
     }
+    echo "Return code: 1 Dir is empty of does not exist ", $path, "**scan_dir**";
 }
 
 function add_coach($coach) {

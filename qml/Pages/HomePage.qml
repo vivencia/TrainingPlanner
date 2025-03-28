@@ -55,8 +55,8 @@ TPPage {
 		anchors.fill: parent
 
 		onCurrentIndexChanged: {
-			homePage.colorLight = currentIndex === 0 ? "green" : "yellow"
-			homePage.colorDark = currentIndex === 0 ? "brown" : "darkgray"
+			homePage.colorLight = currentIndex === 0 ? appSettings.primaryDarkColor : appSettings.primaryColor
+			homePage.colorDark = currentIndex === 0 ? appSettings.primaryColor : appSettings.primaryLightColor
 		}
 
 		readonly property list<string> pageTitle: [qsTr("My Programs"), qsTr("Clients' Programs")]

@@ -30,7 +30,7 @@ QMLMesoInterface::~QMLMesoInterface()
 	if (m_calendarPage)
 		delete m_calendarPage;
 
-	for (const auto it: m_tDayPages)
+	for (const auto &it: m_tDayPages)
 		delete it;
 }
 
@@ -667,13 +667,9 @@ void QMLMesoInterface::updateMuscularGroupFromOutside(const uint splitIndex)
 
 void QMLMesoInterface::sendMesocycleFileToServer()
 {
-	QString mesocycleFile{std::move(appUtils()->localAppFilesDir() + appMesoModel()->client(m_mesoIdx)) + '/'};
-	if (appUtils()->mkdir(mesocycleFile))
-	{
-		mesocycleFile += std::move(mesoCycleFileNameTemplate());
-		appMesoModel()->setExportRow(m_mesoIdx);
-		if (appMesoModel()->exportContentsOnlyToFile(mesocycleFile))
-			appUserModel()->sendFileToServer(mesocycleFile, client() != appUserModel()->userId(0) ? tr("Exercises Program sent to client") : QString{},
-				"mesocycles"_L1, client());
-	}
+	const QString &mesocycleFile{appUtils()->localAppMesocyclesDir() + mesoCycleFileNameTemplate()};
+	appMesoModel()->setExportRow(m_mesoIdx);
+	if (appMesoModel()->exportContentsOnlyToFile(mesocycleFile))
+		appUserModel()->sendFileToServer(mesocycleFile, client() != appUserModel()->userId(0) ? tr("Exercises Program sent to client") : QString{},
+			"mesocycles"_L1, client());
 }

@@ -212,7 +212,7 @@ QVariant OnlineUserInfo::data(const QModelIndex &index, int role) const
 			case isCoachRole: return isCoach(row);
 		}
 	}
-	return QVariant();
+	return QVariant{};
 }
 
 bool OnlineUserInfo::setData(const QModelIndex &index, const QVariant &value, int role)

@@ -76,8 +76,8 @@ void TPSettings::getScreenMeasures()
 	QString screenWidth, screenHeight, heightToWidthScreenRatio, qmlPageHeight;
 
 #ifdef Q_OS_ANDROID
-	const QScreen* screen(QGuiApplication::primaryScreen());
-	const QRect &screenGeometry = screen->availableGeometry();
+	const QScreen *screen{QGuiApplication::primaryScreen()};
+	const QRect &screenGeometry{screen->availableGeometry()};
 	const uint sWidth{static_cast<uint>(screenGeometry.width())};
 	const uint sHeight{static_cast<uint>(screenGeometry.height())};
 	screenWidth = std::move(QString::number(sWidth));

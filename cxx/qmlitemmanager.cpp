@@ -40,9 +40,9 @@
 #include <QQuickWindow>
 #include <QSettings>
 
-QmlItemManager* QmlItemManager::_appItemManager{nullptr};
-QQmlApplicationEngine* QmlItemManager::_appQmlEngine{nullptr};
-QQuickWindow* QmlItemManager::_appMainWindow{nullptr};
+QmlItemManager *QmlItemManager::_appItemManager{nullptr};
+QQmlApplicationEngine *QmlItemManager::_appQmlEngine{nullptr};
+QQuickWindow *QmlItemManager::_appMainWindow{nullptr};
 
 QmlItemManager::QmlItemManager(QQmlApplicationEngine *qml_engine)
 		: QObject{nullptr}, m_usersManager{nullptr}, m_exercisesListManager{nullptr},
@@ -115,7 +115,7 @@ void QmlItemManager::configureQmlEngine()
 
 	const QUrl &url{"qrc:/qml/main.qml"_L1};
 	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(), [url] (const QObject *const obj, const QUrl &objUrl) {
-		if (!obj && url == objUrl)
+		if (!obj &&url == objUrl)
 		{
 			LOG_MESSAGE("*******************Mainwindow not loaded*******************")
 			QCoreApplication::exit(-1);
@@ -161,13 +161,13 @@ void QmlItemManager::tryToImport(const QList<bool> &selectedFields)
 	uint wanted_content{0};
 	if (isBitSet(m_fileContents, IFC_MESO))
 	{
-		setBit(wanted_content, isBitSet(m_fileContents, IFC_USER) && selectedFields.at(1) ? IFC_USER : 0);
+		setBit(wanted_content, isBitSet(m_fileContents, IFC_USER) &&selectedFields.at(1) ? IFC_USER : 0);
 		setBit(wanted_content, selectedFields.at(0) ? IFC_MESO : 0);
 	}
 	if (isBitSet(m_fileContents, IFC_MESOSPLIT))
 	{
 		const int fieldStart{isBitSet(m_fileContents, IFC_MESO) ? 2 : 0};
-		if (isBitSet(m_fileContents, IFC_MESO) && !isBitSet(wanted_content, IFC_MESO))
+		if (isBitSet(m_fileContents, IFC_MESO) &&!isBitSet(wanted_content, IFC_MESO))
 		{
 			auto conn = std::make_shared<QMetaObject::Connection>();
 			*conn = connect(this, &QmlItemManager::mesoForImportSelected, this, [this,conn,selectedFields] () {
@@ -195,8 +195,8 @@ void QmlItemManager::tryToImport(const QList<bool> &selectedFields)
 	}
 	else
 	{
-		setBit(wanted_content, isBitSet(m_fileContents, IFC_TDAY) && selectedFields.at(0) ? IFC_TDAY : 0);
-		setBit(wanted_content, isBitSet(m_fileContents, IFC_EXERCISES) && selectedFields.at(0) ? IFC_EXERCISES : 0);
+		setBit(wanted_content, isBitSet(m_fileContents, IFC_TDAY) &&selectedFields.at(0) ? IFC_TDAY : 0);
+		setBit(wanted_content, isBitSet(m_fileContents, IFC_EXERCISES) &&selectedFields.at(0) ? IFC_EXERCISES : 0);
 	}
 	importFromFile(m_importFilename, wanted_content);
 }
@@ -368,7 +368,7 @@ void QmlItemManager::displayImportDialogMessage(const uint fileContents, const Q
 	if (isBitSet(m_fileContents, IFC_MESOSPLIT))
 	{
 		const bool newMesoImport{appMesoModel()->importIdx() == -1};
-		if (newMesoImport && !(isBitSet(m_fileContents, IFC_MESO)))
+		if (newMesoImport &&!(isBitSet(m_fileContents, IFC_MESO)))
 		{
 			auto conn = std::make_shared<QMetaObject::Connection>();
 			*conn = connect(this, &QmlItemManager::mesoForImportSelected, this, [this,conn] () {
@@ -571,21 +571,21 @@ void QmlItemManager::importFromFile(const QString &filename, const int wanted_co
 	int importFileMessageId{APPWINDOW_MSG_IMPORT_FAILED};
 	if (isBitSet(wanted_content, IFC_USER))
 	{
-		DBUserModel* usermodel{new DBUserModel{this, false}};
+		DBUserModel *usermodel{new DBUserModel{this, false}};
 		usermodel->deleteLater();
 		if (usermodel->importFromFile(filename) == APPWINDOW_MSG_READ_FROM_FILE_OK)
 			importFileMessageId = incorporateImportedData(usermodel);
 	}
 	if (isBitSet(wanted_content, IFC_MESO))
 	{
-		DBMesocyclesModel* mesomodel{new DBMesocyclesModel{this, false}};
+		DBMesocyclesModel *mesomodel{new DBMesocyclesModel{this, false}};
 		mesomodel->deleteLater();
 		if (mesomodel->importFromFile(filename) == APPWINDOW_MSG_READ_FROM_FILE_OK)
 			importFileMessageId = incorporateImportedData(mesomodel, wanted_content);
 	}
 	if (isBitSet(wanted_content, IFC_MESOSPLIT))
 	{
-		DBMesoSplitModel* splitModels[6];
+		DBMesoSplitModel *splitModels[6];
 		for (uint i{0}, ifc(IFC_MESOSPLIT_A); i < 6; ++i, ++ifc)
 		{
 			if (isBitSet(wanted_content, ifc))
@@ -601,14 +601,14 @@ void QmlItemManager::importFromFile(const QString &filename, const int wanted_co
 	}
 	else if (isBitSet(wanted_content, IFC_TDAY))
 	{
-		DBTrainingDayModel* tDayModel{new DBTrainingDayModel{this}};
+		DBTrainingDayModel *tDayModel{new DBTrainingDayModel{this}};
 		tDayModel->setImportMode(true);
 		if (tDayModel->importFromFile(filename) == APPWINDOW_MSG_READ_FROM_FILE_OK)
 			importFileMessageId = incorporateImportedData(tDayModel);
 	}
 	else if (isBitSet(wanted_content, IFC_EXERCISES))
 	{
-		DBExercisesModel* exercisesModel{new DBExercisesModel{this, false}};
+		DBExercisesModel *exercisesModel{new DBExercisesModel{this, false}};
 		exercisesModel->deleteLater();
 		if (exercisesModel->importFromFile(filename) == APPWINDOW_MSG_READ_FROM_FILE_OK)
 			importFileMessageId = incorporateImportedData(exercisesModel);
@@ -617,7 +617,7 @@ void QmlItemManager::importFromFile(const QString &filename, const int wanted_co
 	displayMessageOnAppWindow(importFileMessageId, filename);
 }
 
-int QmlItemManager::incorporateImportedData(TPListModel* model, const int wanted_content)
+int QmlItemManager::incorporateImportedData(TPListModel *model, const int wanted_content)
 {
 	bool ok(false);
 	switch (model->tableID())
@@ -646,8 +646,8 @@ int QmlItemManager::incorporateImportedData(TPListModel* model, const int wanted
 		break;
 		case MESOSPLIT_TABLE_ID:
 		{
-			DBMesoSplitModel* newSplitModel{static_cast<DBMesoSplitModel*>(const_cast<TPListModel*>(model))};
-			DBMesoSplitModel* splitModel{appMesoModel()->mesoManager(appMesoModel()->currentMesoIdx())->plannerSplitModel(newSplitModel->_splitLetter())};
+			DBMesoSplitModel *newSplitModel{static_cast<DBMesoSplitModel*>(const_cast<TPListModel*>(model))};
+			DBMesoSplitModel *splitModel{appMesoModel()->mesoManager(appMesoModel()->currentMesoIdx())->plannerSplitModel(newSplitModel->_splitLetter())};
 			if (splitModel) //exercises planner page for the current meso has been loaded in the session
 			{
 				if ((ok = splitModel->updateFromModel(newSplitModel)))
@@ -667,8 +667,8 @@ int QmlItemManager::incorporateImportedData(TPListModel* model, const int wanted
 		break;
 		case TRAININGDAY_TABLE_ID:
 		{
-			DBTrainingDayModel* newTDayModel{static_cast<DBTrainingDayModel*>(const_cast<TPListModel*>(model))};
-			DBTrainingDayModel* tDayModel{appMesoModel()->mesoManager(appMesoModel()->currentMesoIdx())->tDayModelForToday()};
+			DBTrainingDayModel *newTDayModel{static_cast<DBTrainingDayModel*>(const_cast<TPListModel*>(model))};
+			DBTrainingDayModel *tDayModel{appMesoModel()->mesoManager(appMesoModel()->currentMesoIdx())->tDayModelForToday()};
 			if (tDayModel)
 			{
 				if ((ok = tDayModel->updateFromModel(newTDayModel)))
@@ -810,12 +810,12 @@ void QmlItemManager::importSlot_FileChosen(const QString &filePath, const int fi
 		displayMessageOnAppWindow(APPWINDOW_MSG_IMPORT_CANCELED);
 }
 
-void QmlItemManager::addMainMenuShortCut(const QString &label, QQuickItem* page)
+void QmlItemManager::addMainMenuShortCut(const QString &label, QQuickItem *page)
 {
 	m_pagesManager->addMainMenuShortCut(label, page);
 }
 
-void QmlItemManager::removeMainMenuShortCut(QQuickItem* page)
+void QmlItemManager::removeMainMenuShortCut(QQuickItem *page)
 {
 	m_pagesManager->removeMainMenuShortCut(page);
 }

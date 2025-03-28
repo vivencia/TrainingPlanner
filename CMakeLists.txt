@@ -105,6 +105,7 @@ set( CXX_SOURCES
 
 	cxx/online_services/tponlineservices.h cxx/online_services/tponlineservices.cpp
 	cxx/online_services/onlineuserinfo.h cxx/online_services/onlineuserinfo.cpp
+	cxx/online_services/tponlinemessages.h cxx/online_services/tponlinemessages.cpp
 
 	cxx/tpkeychain/tpkeychain.h cxx/tpkeychain/tpkeychain.cpp
 	cxx/tpkeychain/keychain.h cxx/tpkeychain/keychain_p.h cxx/tpkeychain/keychain.cpp

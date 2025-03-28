@@ -341,6 +341,7 @@ private:
 	void addAvailableCoach(const QString &user_id);
 	void pollCurrentClients();
 	void pollCurrentCoaches();
+	void checkNewMesos();
 	int _importFromFile(const QString &filename, QList<QStringList> &targetModel);
 
 	QString m_localProfileFile, m_onlineCoachesDir, m_dirForRequestedCoaches, m_dirForClientsRequests,

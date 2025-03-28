@@ -47,6 +47,7 @@ public:
 
 	void sendFile(const int requestid, const QString &username, const QString &passwd, QFile *file, const QString &subdir = QString{},
 					const QString &targetUser = QString{}, const bool b_internal_signal_only = false);
+	void listFiles(const int requestid, const QString &username, const QString &passwd, const QString &subdir);
 
 	/**
 	 * @brief getFile
@@ -63,6 +64,7 @@ public:
 signals:
 	void networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string);
 	void _networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string);
+	void networkListReceived(const int request_id, const int ret_code, const QStringList &ret_list);
 	void fileReceived(const int request_id, const int ret_code, const QString& filename, const QByteArray &contents);
 	void serverOnline(const bool online, int network_status);
 

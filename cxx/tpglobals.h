@@ -4,7 +4,7 @@
 
 using namespace Qt::Literals::StringLiterals;
 
-static const QString& TP_APP_VERSION("v20250106-A"_L1);
+static const QString& TP_APP_VERSION("v202504 Alpha 1"_L1);
 
 #ifndef QT_NO_DEBUG
 #include <QDebug>

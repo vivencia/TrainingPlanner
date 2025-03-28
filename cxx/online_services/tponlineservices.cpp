@@ -210,6 +210,34 @@ void TPOnlineServices::sendFile(const int requestid, const QString &username, co
 	uploadFile(requestid, url, file, b_internal_signal_only);
 }
 
+void TPOnlineServices::listFiles(const int requestid, const QString &username, const QString &passwd, const QString &subdir)
+{
+	auto conn = std::make_shared<QMetaObject::Connection>();
+	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid,username,passwd,subdir]
+					(const int request_id, const int ret_code, const QString &ret_string) {
+		if (request_id == requestid)
+		{
+			disconnect(*conn);
+			QStringList new_files;
+			if (ret_code == 0)
+			{
+				const QString &localDir{appUtils()->localAppFilesDir() + subdir};
+				const QStringList &remote_files_list{ret_string.split(' ', Qt::SkipEmptyParts)};
+				for (const auto &remote_file_info : remote_files_list)
+				{
+					QString filename{std::move(appUtils()->getCompositeValue(0, remote_file_info, fancy_record_separator1))};
+					const QString &online_date{appUtils()->getCompositeValue(1, remote_file_info, fancy_record_separator1)};
+					if (!localFileUpToDate(online_date, localDir + filename))
+						new_files.append(std::move(filename));
+				}
+			}
+			emit networkListReceived(request_id, ret_code, new_files);
+		}
+	});
+	const QUrl &url{makeCommandURL(username, passwd, "listfiles"_L1, subdir)};
+	makeNetworkRequest(requestid, url, true);
+}
+
 void TPOnlineServices::getFile(const int requestid, const QString &username, const QString &passwd, const QString &filename,
 									const QString &targetUser, const QString &localFilePath)
 {
@@ -338,9 +366,11 @@ void TPOnlineServices::uploadFile(const int requestid, const QUrl &url, QFile *f
 bool TPOnlineServices::localFileUpToDate(const QString &onlineDate, const QString &localFile) const
 {
 	QFileInfo fi{localFile};
-	QDateTime c_time;
 	if (fi.exists())
-		c_time = std::move(fi.birthTime());
-	const QDateTime &online_ctime{appUtils()->getDateTimeFromOnlineString(onlineDate)};
-	return c_time >= online_ctime;
+	{
+		const QDateTime &c_time{fi.birthTime()};
+		const QDateTime &online_ctime{appUtils()->getDateTimeFromOnlineString(onlineDate)};
+		return c_time >= online_ctime;
+	}
+	return false;
 }

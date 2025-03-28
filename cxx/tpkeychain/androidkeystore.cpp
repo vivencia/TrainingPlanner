@@ -4,8 +4,6 @@
 
 #include "androidkeystore_p.h"
 
-#include <QAndroidJniEnvironment>
-
 using namespace QKeychain;
 
 using namespace android::content;

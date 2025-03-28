@@ -1222,6 +1222,9 @@ void DBUserModel::startServerPolling()
 			static_cast<void>(appUtils()->mkdir(m_dirForRequestedCoaches));
 			static_cast<void>(appUtils()->mkdir(m_dirForCurrentCoaches));
 		}
+		static_cast<void>(appUtils()->mkdir(appUtils()->localAppMesocyclesDir()));
+		static_cast<void>(appUtils()->mkdir(appUtils()->localAppWorkoutsDir()));
+		static_cast<void>(appUtils()->mkdir(appUtils()->localAppMessagesDir()));
 	}
 	pollServer();
 }
@@ -1257,11 +1260,10 @@ void DBUserModel::pollServer()
 		{
 			pollCoachesAnswers();
 			pollCurrentCoaches();
+			checkNewMesos();
 		}
-		//TODO
 		//checkMessages();
 		//checkWorkouts();
-		//checkNewMesos();
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appKeyChain()->readKey(userId(0));
 }
@@ -1507,6 +1509,25 @@ void DBUserModel::pollCurrentCoaches()
 		}
 	});
 	appOnlineServices()->checkCurrentCoaches(requestid, userId(0), m_password);
+}
+
+void DBUserModel::checkNewMesos()
+{
+	const int requestid{appUtils()->generateUniqueId("checkNewMesos"_L1)};
+	auto conn = std::make_shared<QMetaObject::Connection>();
+	*conn = connect(appOnlineServices(), &TPOnlineServices::networkListReceived, this, [this,conn,requestid]
+							(const int request_id, const int ret_code, const QStringList &ret_list) {
+		if (request_id == requestid)
+		{
+			disconnect(*conn);
+			if (ret_code == 0)
+			{
+
+
+			}
+		}
+	});
+	appOnlineServices()->listFiles(requestid, userId(0), m_password, appUtils()->localAppMesocyclesDir(false));
 }
 
 int DBUserModel::_importFromFile(const QString &filename, QList<QStringList> &targetModel)
