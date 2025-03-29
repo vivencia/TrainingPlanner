@@ -105,7 +105,8 @@ set( CXX_SOURCES
 
 	cxx/online_services/tponlineservices.h cxx/online_services/tponlineservices.cpp
 	cxx/online_services/onlineuserinfo.h cxx/online_services/onlineuserinfo.cpp
-	cxx/online_services/tponlinemessages.h cxx/online_services/tponlinemessages.cpp
+    cxx/online_services/tpmessagesmanager.h cxx/online_services/tpmessagesmanager.cpp
+    cxx/online_services/tpmessage.h cxx/online_services/tpmessage.cpp
 
 	cxx/tpkeychain/tpkeychain.h cxx/tpkeychain/tpkeychain.cpp
 	cxx/tpkeychain/keychain.h cxx/tpkeychain/keychain_p.h cxx/tpkeychain/keychain.cpp
@@ -158,6 +159,7 @@ set( QML_SOURCES
     "qml/Dialogs/MainMenu.qml"
     "qml/Dialogs/MuscularGroupPicker.qml"
     "qml/Dialogs/NavBar.qml"
+    "qml/Dialogs/OnlineMessages.qml"
     "qml/Dialogs/PasswordDialog.qml"
     "qml/Dialogs/SelectMesoForImport.qml"
     "qml/Dialogs/TimePicker.qml"
@@ -179,7 +181,6 @@ set( QML_SOURCES
 	"qml/Pages/ExercisesPage.qml"
     "qml/Pages/ExercisesPlanner.qml"
     "qml/Pages/HomePage.qml"
-
     "qml/Pages/HomePageElements/MesosList.qml"
 	"qml/Pages/MesoCalendarPage.qml"
 	"qml/Pages/MesocyclePage.qml"

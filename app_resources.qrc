@@ -102,5 +102,6 @@
         <file>images/flat/hide-password.png</file>
         <file>images/flat/show-password.png</file>
         <file>images/color-choose.png</file>
+        <file>images/messages.png</file>
     </qresource>
 </RCC>

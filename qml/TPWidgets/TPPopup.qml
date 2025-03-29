@@ -13,7 +13,7 @@ Popup {
 	padding: 0
 
 	required property Page parentPage
-	property bool keepAbove
+	property bool keepAbove: false
 	property bool bVisible: false
 	property bool closeButtonVisible: true
 	property int finalYPos: 0

@@ -28,8 +28,10 @@
 #include "tpworkoutscalendar.h"
 #include "translationclass.h"
 
-#include "online_services/tponlineservices.h"
 #include "online_services/onlineuserinfo.h"
+#include "online_services/tpmessagesmanager.h"
+#include "online_services/tponlineservices.h"
+
 #include "weather/weatherinfo.h"
 
 #include <QFile>
@@ -99,9 +101,10 @@ void QmlItemManager::configureQmlEngine()
 	qmlRegisterType<PagesListModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "PagesListModel");
 	qmlRegisterType<TPWorkoutsCalendar>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "WorkoutsCalendar");
 	qmlRegisterType<OnlineUserInfo>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "OnlineUserInfo");
+	qmlRegisterType<TPMessagesManager>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "MessagesManager");
 
 	//Root context properties. MainWindow app properties
-	QList<QQmlContext::PropertyPair> properties{9};
+	QList<QQmlContext::PropertyPair> properties{10};
 	properties[0] = std::move(QQmlContext::PropertyPair{ "appSettings"_L1, QVariant::fromValue(appSettings()) });
 	properties[1] = std::move(QQmlContext::PropertyPair{ "appUtils"_L1, QVariant::fromValue(appUtils()) });
 	properties[2] = std::move(QQmlContext::PropertyPair{ "appTr"_L1, QVariant::fromValue(appTr()) });
@@ -111,6 +114,7 @@ void QmlItemManager::configureQmlEngine()
 	properties[6] = std::move(QQmlContext::PropertyPair{ "itemManager"_L1, QVariant::fromValue(this) });
 	properties[7] = std::move(QQmlContext::PropertyPair{ "appStatistics"_L1, QVariant::fromValue(appStatistics()) });
 	properties[8] = std::move(QQmlContext::PropertyPair{ "pagesListModel"_L1, QVariant::fromValue(m_pagesManager = new PagesListModel{this}) });
+	properties[9] = std::move(QQmlContext::PropertyPair{ "appMessages"_L1, QVariant::fromValue(new TPMessagesManager{this}) });
 	appQmlEngine()->rootContext()->setContextProperties(properties);
 
 	const QUrl &url{"qrc:/qml/main.qml"_L1};
