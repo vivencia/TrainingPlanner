@@ -2,8 +2,19 @@
 
 #include "tpmessagesmanager.h"
 #include "../tpglobals.h"
+#include "../tputils.h"
 
 static const QVariant emptyData{};
+
+QString TPMessage::date() const
+{
+	return appUtils()->formatDate(m_ctime.date(), TPUtils::DF_LOCALE);
+}
+
+QString TPMessage::time() const
+{
+	return appUtils()->formatTime(m_ctime.time(), TPUtils::TF_QML_DISPLAY_NO_SEC);
+}
 
 void TPMessage::plug()
 {
@@ -20,7 +31,10 @@ int TPMessage::insertAction(const QString& actionLabel, const std::function<void
 		setSticky(remove.value());
 	}
 	emit actionsChanged();
-	return m_actions.count() - 1;
+	const qsizetype n_action{m_actions.count() - 1};
+	if (n_action == 0)
+		emit hasActionsChanged();
+	return n_action;
 }
 
 void TPMessage::removeAction(const int action_id)
@@ -30,6 +44,8 @@ void TPMessage::removeAction(const int action_id)
 		m_actions.remove(action_id);
 		m_actionFuncs.remove(action_id);
 		emit actionsChanged();
+		if (m_actions.isEmpty())
+			emit hasActionsChanged();
 	}
 }
 
@@ -58,4 +74,11 @@ void TPMessage::removeData(const int data_id)
 {
 	if (data_id >= 0 && data_id < m_data.count())
 		m_data.remove(data_id);
+}
+
+void TPMessage::setPlugged(const bool plugged)
+{
+	if (!m_plugged && plugged)
+		m_ctime = std::move(QDateTime::currentDateTime());
+	m_plugged = plugged;
 }

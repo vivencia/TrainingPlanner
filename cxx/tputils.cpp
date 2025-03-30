@@ -107,6 +107,8 @@ QString TPUtils::formatDate(const QDate &date, const DATE_FORMAT format) const
 		case DF_QML_DISPLAY:
 			return m_appLocale->toString(date, "ddd d/M/yyyy"_L1);
 		break;
+		case DF_LOCALE:
+			return m_appLocale->toString(date, QLocale::ShortFormat);
 		case DF_CATALOG:
 			return QString::number(date.year()) + QString::number(date.month()) + QString::number(date.day());
 		break;
@@ -134,6 +136,9 @@ QDate TPUtils::getDateFromDateString(const QString &strdate, const DATE_FORMAT f
 				month = strdate.sliced(fSlashIdx+1, fSlashIdx2-fSlashIdx-1).toInt();
 				year = strdate.last(4).toInt();
 			}
+		break;
+		case DF_LOCALE:
+
 		break;
 		case DF_CATALOG:
 			year = strdate.first(4).toInt();

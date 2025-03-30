@@ -14,8 +14,11 @@ QML_ELEMENT
 Q_PROPERTY(int id READ id WRITE setId NOTIFY idChanged FINAL)
 Q_PROPERTY(QString displayText READ displayText WRITE setDisplayText NOTIFY displayTextChanged FINAL)
 Q_PROPERTY(QString iconSource READ iconSource WRITE setIconSource NOTIFY iconSourceChanged FINAL)
+Q_PROPERTY(QString date READ CONSTANT FINAL)
+Q_PROPERTY(QString time READ CONSTANT FINAL)
 Q_PROPERTY(QStringList actions READ actions NOTIFY actionsChanged FINAL)
-Q_PROPERTY(bool sticky READ sticky WRITE setSticky FINAL)
+Q_PROPERTY(bool sticky READ sticky WRITE setSticky CONSTANT FINAL)
+Q_PROPERTY(bool hasActions READ hasActions NOTIFY hasActionsChanged FINAL)
 
 public:
 	inline explicit TPMessage(TPMessagesManager* parent) : QObject{nullptr}, m_parent{parent}, m_id{-1},
@@ -39,6 +42,9 @@ public:
 	inline QString iconSource() const { return m_icon; }
 	void setIconSource(const QString &new_icon, const bool emitSignal = true) { m_icon = new_icon; if (emitSignal) emit iconSourceChanged(); }
 
+	QString date() const;
+	QString time() const;
+
 	inline const bool plugged() const { return m_plugged; }
 	void plug();
 
@@ -47,6 +53,8 @@ public:
 
 	inline const bool sticky() const { return m_sticky; }
 	inline void setSticky(const bool sticky) { m_sticky = sticky; }
+
+	inline const bool hasActions() const { return !m_actions.isEmpty(); }
 
 	/**
 	 * @param message_id
@@ -96,6 +104,7 @@ signals:
 	void displayTextChanged();
 	void iconSourceChanged();
 	void actionsChanged();
+	void hasActionsChanged();
 
 private:
 	TPMessagesManager* m_parent;
@@ -105,9 +114,10 @@ private:
 	QString m_icon;
 	QStringList m_actions;
 	QVariantList m_data;
+	QDateTime m_ctime;
 	QList<std::function<void(const QVariant &var)>> m_actionFuncs;
 
-	inline void setPlugged(const bool plugged) { m_plugged = plugged; }
+	void setPlugged(const bool plugged);
 	friend class TPMessagesManager;
 };
 

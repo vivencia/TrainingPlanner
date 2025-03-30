@@ -19,6 +19,7 @@ public:
 	inline uint count() const { return m_data.count(); }
 
 	TPMessage *message(const int message_id) const;
+	Q_INVOKABLE inline TPMessage *messageEntry(const int index) const { return index >= 0 && index < m_data.count() ? m_data.at(index) : nullptr; }
 
 	/**
 	 * @brief Add a message to be displayed to the user based on online data received
