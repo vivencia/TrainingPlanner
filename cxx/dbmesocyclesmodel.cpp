@@ -622,3 +622,13 @@ QString DBMesocyclesModel::formatFieldToImport(const uint field, const QString &
 	}
 	return QString{}; //never reached
 }
+
+void DBMesocyclesModel::sendMesoToUser(const uint meso_idx)
+{
+	m_mesoManagerList.at(meso_idx)->sendMesocycleFileToServer();
+}
+
+void DBMesocyclesModel::viewOnlineMeso(const QString &mesoName)
+{
+
+}

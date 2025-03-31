@@ -48,6 +48,7 @@ public:
 	void sendFile(const int requestid, const QString &username, const QString &passwd, QFile *file, const QString &subdir = QString{},
 					const QString &targetUser = QString{}, const bool b_internal_signal_only = false);
 	void listFiles(const int requestid, const QString &username, const QString &passwd, const QString &subdir);
+	void removeFile(const int requestid, const QString &username, const QString &passwd, const QString &filename, const QString &subdir = QString{});
 
 	/**
 	 * @brief getFile

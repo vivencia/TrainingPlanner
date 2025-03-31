@@ -58,16 +58,25 @@ void TPMessage::execAction(const int action_id)
 		if (lastChar.toLatin1() > set_separator)
 			remove = lastChar == record_separator;
 		if (m_actionFuncs.at(action_id) != nullptr)
-			m_actionFuncs.at(action_id);
+			m_actionFuncs.at(action_id)(m_data.at(action_id));
 		emit actionTriggered(action_id, remove);
 	}
 }
 
-int TPMessage::insertData(const QVariant &data)
+uint TPMessage::insertData(const QVariant &data, const int action_id)
 {
-	m_data.append(data);
-	return m_data.count() - 1;
-
+	if (action_id < 0)
+	{
+		m_data.append(data);
+		return m_data.count() - 1;
+	}
+	else if (action_id >= m_data.count())
+	{
+		for (qsizetype i{m_data.count()}; i <= action_id ; ++i)
+			m_data.append(QVariant{});
+	}
+	m_data[action_id] = data;
+	return action_id;
 }
 
 void TPMessage::removeData(const int data_id)

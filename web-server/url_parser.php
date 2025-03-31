@@ -567,11 +567,6 @@ if ($username) {
             #echo "\r\n";
 
             if ($username != "admin") {
-                if (isset($_GET['listfiles'])) {
-                    $fileDir=$rootdir . $username  . "/" . $_GET['listfiles'];
-                    scan_dir($fileDir);
-                    exit;
-                }
 
                 if (isset($_GET['addcoach'])) {
                     add_coach($username);
@@ -685,6 +680,18 @@ if ($username) {
                         get_binfile($binfile, $targetuser);
                         exit;
                     }
+                }
+                if (isset($_GET['listfiles'])) {
+                    $fileDir=$rootdir . $username  . "/" . $_GET['listfiles'];
+                    scan_dir($fileDir);
+                    exit;
+                }
+                if (isset($_GET['delfile'])) {
+                    $subdir = isset($_GET['subdir']) ? $_GET['subdir'] . "/" : '';
+                    $file=$rootdir . $username  . "/" . $subdir . $_GET['delfile'];
+                    if (is_file($file))
+                        unlink($file);
+                    exit;
                 }
 
                 //?user=1739556367374&password=lrTp1$&getbinfile=resume&fromuser=1739556367374

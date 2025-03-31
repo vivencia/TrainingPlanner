@@ -463,6 +463,15 @@ TPPage {
 					onTextChanged: cursorPosition = 0;
 				}
 			}
+
+			TPButton {
+				text: qstr("Send to client")
+				visible: mesoManager.ownMeso
+				enabled: !mesoManager.isNewMeso
+				Layout.alignment: Qt.AlignCenter
+
+				onClicked: mesoManager.sendMesocycleFileToServer();
+			}
 		} //ColumnLayout
 	} //ScrollView
 

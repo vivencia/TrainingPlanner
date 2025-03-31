@@ -1,14 +1,17 @@
 #include "dbusermodel.h"
 
 #include "dbinterface.h"
-#include "osinterface.h"
+#include "dbmesocyclesmodel.h"
 #include "qmlitemmanager.h"
+#include "osinterface.h"
 #include "tpglobals.h"
 #include "tpimage.h"
 #include "tputils.h"
 #include "translationclass.h"
-#include "online_services/tponlineservices.h"
 #include "online_services/onlineuserinfo.h"
+#include "online_services/tpmessage.h"
+#include "online_services/tpmessagesmanager.h"
+#include "online_services/tponlineservices.h"
 #include "tpkeychain/tpkeychain.h"
 
 #include <QDateTime>
@@ -716,10 +719,8 @@ void DBUserModel::sendFileToServer(const QString &filename, const QString &succe
 									const bool removeLocalFile)
 {
 	if (!onlineCheckIn())
-		{
-			connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [=,this] () {
-				sendFileToServer(filename, successMessage, subdir, targetUser, removeLocalFile);
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	{
+		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tpNetworkTitle + record_separator + tr("Online server unavailable. Tray again later"));
 		return;
 	}
 
@@ -756,6 +757,62 @@ void DBUserModel::sendFileToServer(const QString &filename, const QString &succe
 		delete upload_file;
 		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, tr("Failed to open ") + filename);
 	}
+}
+
+int DBUserModel::downloadFileFromServer(const QString &filename, const QString &localFile, const QString &successMessage, const QString &subdir)
+{
+	if (!onlineCheckIn())
+	{
+		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tpNetworkTitle + record_separator + tr("Online server unavailable. Tray again later"));
+		return -1;
+	}
+
+	QLatin1StringView v{filename.toLatin1().constData()};
+	const int requestid{appUtils()->generateUniqueId(v)};
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [=,this] (const QString &key, const QString &value) {
+		auto conn = std::make_shared<QMetaObject::Connection>();
+		*conn = connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [=,this]
+							(const int request_id, const int ret_code, const QString &filename, const QByteArray &contents) {
+			if (request_id == requestid)
+			{
+				disconnect(*conn);
+				switch (ret_code)
+				{
+					case 0: //file downloaded
+					{
+						QString destDir;
+						if (localFile.isEmpty())
+							destDir = std::move(appUtils()->localAppFilesDir());
+						else
+							destDir = std::move(appUtils()->getFilePath(localFile));
+
+						const QString &localFileName{destDir + filename};
+						QFile *localFile{new QFile{localFileName, this}};
+						if (!localFile->exists() || localFile->remove())
+						{
+							if (localFile->open(QIODeviceBase::WriteOnly))
+							{
+								localFile->write(contents);
+								localFile->close();
+							}
+						}
+						delete localFile;
+						emit fileDownloaded(true, requestid, localFileName);
+					}
+					break;
+					case 1: //online file and local file are the same
+						emit fileDownloaded(true, requestid, localFile);
+					break;
+					default: //some error
+						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, filename + contents);
+						emit fileDownloaded(false, requestid, localFile);
+				}
+			}
+		});
+		appOnlineServices()->getFile(requestid, key, value, filename, subdir, localFile);
+	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	appKeyChain()->readKey(userId(0));
+	return requestid;
 }
 
 bool DBUserModel::updateFromModel(TPListModel *model)
@@ -1513,21 +1570,36 @@ void DBUserModel::pollCurrentCoaches()
 
 void DBUserModel::checkNewMesos()
 {
-	const int requestid{appUtils()->generateUniqueId("checkNewMesos"_L1)};
-	auto conn = std::make_shared<QMetaObject::Connection>();
-	*conn = connect(appOnlineServices(), &TPOnlineServices::networkListReceived, this, [this,conn,requestid]
+	for (const auto &coach : static_cast<const QStringList>(m_coachesNames))
+	{
+		QLatin1StringView v{QString{"checkNewMesos"_L1 + coach.toLatin1()}.toLatin1()};
+		const int requestid{appUtils()->generateUniqueId(v)};
+		auto conn = std::make_shared<QMetaObject::Connection>();
+		*conn = connect(appOnlineServices(), &TPOnlineServices::networkListReceived, this, [this,conn,requestid,coach]
 							(const int request_id, const int ret_code, const QStringList &ret_list) {
-		if (request_id == requestid)
-		{
-			disconnect(*conn);
-			if (ret_code == 0)
+			if (request_id == requestid)
 			{
-
-
+				disconnect(*conn);
+				if (ret_code == 0)
+				{
+					for (const auto &it : ret_list)
+					{
+						if (it.endsWith(onlineMesoFileSuffix))
+						{
+							TPMessage *new_message{new TPMessage(coach + tr(" has sent you a new Exercises Program"), "message-meso"_L1, appMessagesManager())};
+							new_message->insertData(it, 0);
+							new_message->insertAction(tr("View"), [=] (const QVariant &mesofile) {
+											appMesoModel()->viewOnlineMeso(mesofile.toString()); }, false);
+							new_message->insertAction(tr("Delete"), [=,this] (const QVariant &subdir) {
+											appOnlineServices()->removeFile(request_id, userId(0), m_password, it, coach); });
+							new_message->plug();
+						}
+					}
+				}
 			}
-		}
-	});
-	appOnlineServices()->listFiles(requestid, userId(0), m_password, appUtils()->localAppMesocyclesDir(false));
+		});
+		appOnlineServices()->listFiles(requestid, userId(0), m_password, coach);
+	}
 }
 
 int DBUserModel::_importFromFile(const QString &filename, QList<QStringList> &targetModel)

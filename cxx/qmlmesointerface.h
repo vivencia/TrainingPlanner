@@ -161,6 +161,7 @@ public:
 	void getMesocyclePage();
 	void exportMeso(const bool bShare, const bool bCoachInfo);
 	void importMeso(const QString &filename = QString());
+	Q_INVOKABLE void sendMesocycleFileToServer();
 
 	[[nodiscard]] DBMesoSplitModel *plannerSplitModel(const QChar &splitLetter);
 	[[nodiscard]] DBTrainingDayModel *tDayModelForToday();
@@ -220,7 +221,6 @@ private:
 	void createMesocyclePage_part2();
 	void setPropertiesBasedOnUseMode();
 	void updateMuscularGroupFromOutside(const uint splitIndex);
-	void sendMesocycleFileToServer();
 };
 
 #endif // QMLMESOINTERFACE_H

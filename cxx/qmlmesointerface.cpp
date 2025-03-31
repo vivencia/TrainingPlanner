@@ -498,6 +498,17 @@ void QMLMesoInterface::importMeso(const QString &filename)
 		appItemManager()->openRequestedFile(filename, IFC_MESO);
 }
 
+void QMLMesoInterface::sendMesocycleFileToServer()
+{
+	const QString &mesocycleFile{appUtils()->localAppMesocyclesDir() + mesoCycleFileNameTemplate()};
+	appMesoModel()->setExportRow(m_mesoIdx);
+	if (appMesoModel()->exportContentsOnlyToFile(mesocycleFile))
+	{
+		appUserModel()->sendFileToServer(mesocycleFile, !ownMeso() ? tr("Exercises Program sent to client") : QString{},
+			ownMeso() ? "mesocycles"_L1 : m_coach, client());
+	}
+}
+
 DBMesoSplitModel *QMLMesoInterface::plannerSplitModel(const QChar &splitLetter)
 {
 	return m_exercisesPage ? m_exercisesPage->splitModel(splitLetter) : nullptr;
@@ -511,7 +522,7 @@ DBTrainingDayModel *QMLMesoInterface::tDayModelForToday()
 
 inline QString QMLMesoInterface::mesoCycleFileNameTemplate() const
 {
-	return name() + std::move("-meso.txt"_L1);
+	return name() + std::move(onlineMesoFileSuffix);
 }
 
 void QMLMesoInterface::createMesocyclePage()
@@ -663,13 +674,4 @@ void QMLMesoInterface::updateMuscularGroupFromOutside(const uint splitIndex)
 		case 4: setMuscularGroupE(appMesoModel()->muscularGroup(m_mesoIdx, 'E'), false); break;
 		case 5: setMuscularGroupF(appMesoModel()->muscularGroup(m_mesoIdx, 'F'), false); break;
 	}
-}
-
-void QMLMesoInterface::sendMesocycleFileToServer()
-{
-	const QString &mesocycleFile{appUtils()->localAppMesocyclesDir() + mesoCycleFileNameTemplate()};
-	appMesoModel()->setExportRow(m_mesoIdx);
-	if (appMesoModel()->exportContentsOnlyToFile(mesocycleFile))
-		appUserModel()->sendFileToServer(mesocycleFile, client() != appUserModel()->userId(0) ? tr("Exercises Program sent to client") : QString{},
-			"mesocycles"_L1, client());
 }

@@ -17,7 +17,7 @@ Q_PROPERTY(QString iconSource READ iconSource WRITE setIconSource NOTIFY iconSou
 Q_PROPERTY(QString date READ CONSTANT FINAL)
 Q_PROPERTY(QString time READ CONSTANT FINAL)
 Q_PROPERTY(QStringList actions READ actions NOTIFY actionsChanged FINAL)
-Q_PROPERTY(bool sticky READ sticky WRITE setSticky CONSTANT FINAL)
+Q_PROPERTY(bool sticky READ sticky WRITE setSticky FINAL)
 Q_PROPERTY(bool hasActions READ hasActions NOTIFY hasActionsChanged FINAL)
 
 public:
@@ -82,9 +82,10 @@ public:
 	/**
 	 * @brief Used to store information across classes
 	 * @param data Anything that QVariant can handle
-	 * @return data_id
+	 * @param action_id Associate data with an action or not
+	 * @return The index of the inserted data(which will be equal to action_id if it's not -1)
 	 */
-	int insertData(const QVariant &data);
+	uint insertData(const QVariant &data, const int action_id = -1);
 	inline const QVariant &_data(const uint data_id) const
 	{
 		Q_ASSERT_X(data_id < m_data.count(), "TPMessage::_data", "data_id out of range");

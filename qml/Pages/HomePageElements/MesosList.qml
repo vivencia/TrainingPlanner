@@ -171,12 +171,7 @@ Item {
 						leftMargin: 5
 					}
 
-					onClicked: {
-						if (Qt.platform.os === "android")
-							showExportMenu(index);
-						else
-							exportTypeTip.init(index, false);
-					}
+					onClicked: showExportMenu(index);
 				}
 			} //swipe.left: Rectangle
 
@@ -369,9 +364,21 @@ Item {
 		if (exportMenu === null) {
 			let exportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
 			exportMenu = exportMenuComponent.createObject(homePage, { parentPage: homePage });
-			exportMenu.addEntry(qsTr("Export"), "save-day.png", 0, true);
-			exportMenu.addEntry(qsTr("Share"), "export.png", 1, true);
-			exportMenu.menuEntrySelected.connect(function(id) { exportTypeTip.init(meso_idx, id === 1); });
+			if (!mesocyclesModel.isOwnMeso(meso_idx)) {
+				const userid = mesocyclesModel.client(meso_idx);
+				exportMenu.addEntry(qsTr("Send to ") + userModel.userNameFromId(userid), userModel.avatarFromId(userid), 10, true);
+			}
+			exportMenu.addEntry(qsTr("Export"), "save-day.png", 20, true);
+
+			if (Qt.platform.os === "android")
+				exportMenu.addEntry(qsTr("Share"), "export.png", 30, true);
+			exportMenu.menuEntrySelected.connect(function(id) {
+				switch (id) {
+					case 10: mesocyclesModel.sendMesoToUser(meso_id); break;
+					case 20: exportTypeTip.init(meso_idx, false); break;
+					case 30: exportTypeTip.init(meso_idx, true); break;
+				}
+			});
 		}
 		exportMenu.show2(btnExport, 0);
 	}

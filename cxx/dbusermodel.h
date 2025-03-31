@@ -99,7 +99,7 @@ public:
 	}
 
 	Q_INVOKABLE inline int findUserByName(const QString &username) const { return userRowFromFieldValue(USER_COL_NAME, username); }
-	inline QString userNameFromId(const QString &userid) const { return userName(userRowFromFieldValue(USER_COL_ID, userid)); }
+	Q_INVOKABLE inline QString userNameFromId(const QString &userid) const { return userName(userRowFromFieldValue(USER_COL_ID, userid)); }
 	int userRowFromFieldValue(const uint field, const QString &value) const;
 	const QString &userIdFromFieldValue(const uint field, const QString &value) const;
 
@@ -200,6 +200,7 @@ public:
 		emit userModified(row, USER_COL_GOAL);
 	}
 
+	Q_INVOKABLE inline QString avatarFromId(const QString &userid) const { return avatar(userRowFromFieldValue(USER_COL_ID, userid)); }
 	Q_INVOKABLE QString avatar(const int row) const;
 	Q_INVOKABLE void setAvatar(const int row, const QString &new_avatar, const bool saveToDisk = true, const bool upload = true);
 	Q_INVOKABLE inline QString defaultAvatar(const uint row) const
@@ -263,6 +264,8 @@ public:
 
 	void sendFileToServer(const QString &filename, const QString &successMessage = QString{}, const QString &subdir = QString{},
 							const QString &targetUser = QString{}, const bool removeLocalFile = false);
+	int downloadFileFromServer(const QString &filename, const QString &localFile = QString{}, const QString &successMessage = QString{},
+								const QString &subdir = QString{});
 	inline int importFromFile(const QString &filename) override { return _importFromFile(filename, m_modeldata); }
 	bool updateFromModel(TPListModel*) override;
 	bool importFromString(const QString &user_data);
@@ -308,6 +311,7 @@ signals:
 	void coachOnlineStatus(bool registered);
 	void userProfileAcquired(const QString &userid, const bool success);
 	void userPasswordAvailable(const QString &password);
+	void fileDownloaded(const bool success, const uint requestid, const QString &localFileName);
 
 private:
 	int m_tempRow;

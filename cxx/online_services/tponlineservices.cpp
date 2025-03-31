@@ -238,6 +238,12 @@ void TPOnlineServices::listFiles(const int requestid, const QString &username, c
 	makeNetworkRequest(requestid, url, true);
 }
 
+void TPOnlineServices::removeFile(const int requestid, const QString &username, const QString &passwd, const QString &filename, const QString &subdir)
+{
+	const QUrl &url{makeCommandURL(username, passwd, "delfile"_L1, filename, "subdir"_L1, subdir)};
+	makeNetworkRequest(requestid, url, true);
+}
+
 void TPOnlineServices::getFile(const int requestid, const QString &username, const QString &passwd, const QString &filename,
 									const QString &targetUser, const QString &localFilePath)
 {
