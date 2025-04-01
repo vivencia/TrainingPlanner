@@ -27,6 +27,7 @@ Frame {
 	property bool bReady: false
 	property bool bCoachOK: false
 	property bool bChooseResume: false
+	property bool bRescindCoaching: false
 	property bool bResumeSent: false
 	readonly property int moduleHeight: 0.35*appSettings.pageHeight
 	readonly property int itemHeight: implicitHeight/4
@@ -116,9 +117,15 @@ Frame {
 			}
 
 			onClicked: {
-				userModel.setCoachPublicStatus(checked);
-				if (checked)
-					bCoachOK = bResumeSent;
+				if (!checked && userModel.isCoachRegistered()) {
+					if (userModel.haveClients)
+						bRescindCoaching = true;
+				}
+				else {
+					userModel.setCoachPublicStatus(checked);
+					if (checked)
+						bCoachOK = bResumeSent;
+				}
 			}
 		}
 
@@ -131,6 +138,30 @@ Frame {
 
 			onClicked: bChooseResume = true;
 		}
+	}
+
+	Loader {
+		id: rescindCoachingLoader
+		active: bRescindCoaching
+		asynchronous: true
+
+		sourceComponent: TPBalloonTip {
+			id: rescindDlg
+			title: qsTr("Rescind from coaching?")
+			message: qsTr("You currently have clients that will no longer be your clients if you continue")
+			imageSource: "warning"
+
+			onButton1Clicked: {
+				userModel.setCoachPublicStatus(false);
+				bRescindCoaching = false;
+			}
+			onButton2Clicked: {
+				chkOnlineCoach.checked = true;
+				bRescindCoaching = false;
+			}
+		}
+
+		onLoaded: item.show(-1);
 	}
 
 	Loader {

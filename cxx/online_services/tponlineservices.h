@@ -47,8 +47,10 @@ public:
 
 	void sendFile(const int requestid, const QString &username, const QString &passwd, QFile *file, const QString &subdir = QString{},
 					const QString &targetUser = QString{}, const bool b_internal_signal_only = false);
-	void listFiles(const int requestid, const QString &username, const QString &passwd, const QString &subdir);
-	void removeFile(const int requestid, const QString &username, const QString &passwd, const QString &filename, const QString &subdir = QString{});
+	void listFiles(const int requestid, const QString &username, const QString &passwd, const QString &subdir = QString{},
+					const QString &targetUser = QString{});
+	void removeFile(const int requestid, const QString &username, const QString &passwd, const QString &filename, const QString &subdir = QString{},
+					const QString &targetUser = QString{});
 
 	/**
 	 * @brief getFile
@@ -58,8 +60,8 @@ public:
 	 * @param targetUser
 	 * @param c_time
 	 */
-	void getFile(const int requestid, const QString &username, const QString &passwd, const QString &filename,
-					const QString &targetUser, const QString &localFilePath = QString{});
+	void getFile(const int requestid, const QString &username, const QString &passwd, const QString &filename, const QString &subdir = {},
+					const QString &targetUser = QString{}, const QString &localFilePath = QString{});
 	void getOnlineCoachesList(const int requestid, const QString &username, const QString &passwd);
 
 signals:

@@ -85,7 +85,7 @@ TextField {
 	function adjustHeight(): void {
 		if (heightAdjustable && width >= 100 && text.length > 20) {
 			const textWidth = currentFontMetrics.boundingRect(text).width;
-			height = implicitHeight = textWidth > width ? Math.ceil(textWidth/width) * suggestedHeight : suggestedHeight;
+			height = implicitHeight = textWidth > width ? (Math.ceil(textWidth/width) - 1) * suggestedHeight : suggestedHeight;
 		}
 		else
 			height = implicitHeight = suggestedHeight;

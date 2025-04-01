@@ -519,7 +519,9 @@ void OSInterface::configureLocalServer(bool second_pass)
 	if (!second_pass)
 	{
 		QProcess *checkConfiguration{new QProcess{this}};
-		connect(checkConfiguration, &QProcess::finished, this, [this] (int exitCode, QProcess::ExitStatus) {
+		auto conn = std::make_shared<QMetaObject::Connection>();
+		*conn = connect(checkConfiguration, &QProcess::finished, this, [this,conn] (int exitCode, QProcess::ExitStatus) {
+			disconnect(*conn);
 			switch (exitCode)
 			{
 				case 0:

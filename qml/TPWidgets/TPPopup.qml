@@ -16,6 +16,7 @@ Popup {
 	property bool keepAbove: false
 	property bool bVisible: false
 	property bool closeButtonVisible: true
+	property bool disableMouseHandling: false
 	property int finalYPos: 0
 	property int startYPos: 0
 	property alias btnClose: btnCloseWindow
@@ -61,8 +62,11 @@ Popup {
 	}
 
 	TPMouseArea {
+		enabled: !disableMouseHandling
 		movableWidget: tpPopup
 		movingWidget: backgroundEffect
+		onPressed: (mouse) => pressedFunction(mouse);
+		onPositionChanged: (mouse) => positionChangedFunction(mouse);
 	}
 
 	contentItem {

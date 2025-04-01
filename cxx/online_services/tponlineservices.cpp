@@ -210,7 +210,7 @@ void TPOnlineServices::sendFile(const int requestid, const QString &username, co
 	uploadFile(requestid, url, file, b_internal_signal_only);
 }
 
-void TPOnlineServices::listFiles(const int requestid, const QString &username, const QString &passwd, const QString &subdir)
+void TPOnlineServices::listFiles(const int requestid, const QString &username, const QString &passwd, const QString &subdir, const QString &targetUser)
 {
 	auto conn = std::make_shared<QMetaObject::Connection>();
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid,username,passwd,subdir]
@@ -234,17 +234,18 @@ void TPOnlineServices::listFiles(const int requestid, const QString &username, c
 			emit networkListReceived(request_id, ret_code, new_files);
 		}
 	});
-	const QUrl &url{makeCommandURL(username, passwd, "listfiles"_L1, subdir)};
+	const QUrl &url{makeCommandURL(username, passwd, "listfiles"_L1, subdir, "fromuser"_L1, targetUser)};
 	makeNetworkRequest(requestid, url, true);
 }
 
-void TPOnlineServices::removeFile(const int requestid, const QString &username, const QString &passwd, const QString &filename, const QString &subdir)
+void TPOnlineServices::removeFile(const int requestid, const QString &username, const QString &passwd, const QString &filename,
+										const QString &subdir, const QString &targetUser)
 {
-	const QUrl &url{makeCommandURL(username, passwd, "delfile"_L1, filename, "subdir"_L1, subdir)};
+	const QUrl &url{makeCommandURL(username, passwd, "delfile"_L1, filename, "subdir"_L1, subdir, "fromuser"_L1, targetUser)};
 	makeNetworkRequest(requestid, url, true);
 }
 
-void TPOnlineServices::getFile(const int requestid, const QString &username, const QString &passwd, const QString &filename,
+void TPOnlineServices::getFile(const int requestid, const QString &username, const QString &passwd, const QString &filename, const QString &subdir,
 									const QString &targetUser, const QString &localFilePath)
 {
 	if (!localFilePath.isEmpty())
@@ -268,14 +269,13 @@ void TPOnlineServices::getFile(const int requestid, const QString &username, con
 				}
 			});
 			const QUrl &url{makeCommandURL(username, passwd, "checkfilectime"_L1, filename.lastIndexOf('.') > 0 ?
-							filename : appUtils()->getFileName(localFilePath), !targetUser.isEmpty() ? "fromuser"_L1 : QString{}, targetUser)};
+							filename : appUtils()->getFileName(localFilePath), "subdir"_L1, subdir, "fromuser"_L1, targetUser)};
 			makeNetworkRequest(requestid, url, true);
 			return;
 		}
 	}
 	const QUrl &url{makeCommandURL(username, passwd, filename.lastIndexOf('.') > 0 ?
-				(filename.endsWith(".txt"_L1) ? "file"_L1 : "getbinfile"_L1) : "getbinfile"_L1, filename,
-					!targetUser.isEmpty() ? "fromuser"_L1 : QString{}, targetUser)};
+				(filename.endsWith(".txt"_L1) ? "file"_L1 : "getbinfile"_L1) : "getbinfile"_L1, filename, "subdir"_L1, subdir, "fromuser"_L1, targetUser)};
 	makeNetworkRequest(requestid, url);
 }
 

@@ -74,6 +74,8 @@ Popup {
 			movableWidget: mainIcon
 			enabled: !fullDialogVisible
 
+			onPressed: (mouse) => pressedFunction(mouse);
+			onPositionChanged: (mouse) => positionChangedFunction(mouse);
 			onMouseClicked: {
 				fullDialogVisible = true;
 				expand.start();
@@ -114,6 +116,8 @@ Popup {
 			movingWidget: topBar
 			movableWidget: onlineMsgsDlg
 
+			onPressed: (mouse) => pressedFunction(mouse);
+			onPositionChanged: (mouse) => positionChangedFunction(mouse);
 			onMouseClicked: {
 				fullDialogVisible = false;
 				shrink.start();

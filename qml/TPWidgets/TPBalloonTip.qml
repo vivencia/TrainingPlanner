@@ -11,6 +11,7 @@ TPPopup {
 	closeButtonVisible: false
 	focus: false
 	width: appSettings.pageWidth * 0.8
+	disableMouseHandling: true
 
 	property string message: ""
 	property string title: ""
@@ -23,6 +24,7 @@ TPPopup {
 	property string subImageLabel: ""
 	property bool highlightMessage: false
 	property bool imageEnabled: true
+	property bool movable: false
 
 	property int startYPosition: 0
 	property int finalXPos: 0
@@ -182,27 +184,27 @@ TPPopup {
 		}
 	}
 
-	MouseArea {
-		id: mouseArea
-		z: 1
-		anchors.fill: parent
+	TPMouseArea {
+		movingWidget: parent
+		movableWidget: parent
 
-		property point prevPos
-
-		onPressed: (mouse) => prevPos = { x: mouse.x, y: mouse.y };
-
-		onPositionChanged: {
-			const deltaX = mouseX - prevPos.x;
-			if (Math.abs(deltaX) >= 10) {
-				x += deltaX;
-				if (deltaX > 0)
-					finalXPos = appSettings.pageWidth + 300;
-				else
-					finalXPos = -300;
-				alternateCloseTransition.start();
-				balloon.closePopup();
+		onPressed: (mouse) => pressedFunction(mouse);
+		onPositionChanged: (mouse) => {
+			if (!balloon.movable) {
+				const deltaX = mouse.x - prevPos.x;
+				if (Math.abs(deltaX) >= 10) {
+					x += deltaX;
+					if (deltaX > 0)
+						finalXPos = appSettings.pageWidth + 300;
+					else
+						finalXPos = -300;
+					alternateCloseTransition.start();
+					balloon.closePopup();
+				}
+				prevPos = { x: mouse.x, y: mouse.y };
 			}
-			prevPos = { x: mouseX, y: mouseY };
+			else
+				positionChangedFunction(mouse);
 		}
 	}
 

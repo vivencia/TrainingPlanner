@@ -327,6 +327,8 @@ ApplicationWindow {
 		id: textCopiedInfo
 		height: 40
 		message: qsTr("Text copied to the clipboard")
+		button1Text: ""
+		button2Text: ""
 		parentPage: homePage
 	}
 	function showTextCopiedMessage(): void {

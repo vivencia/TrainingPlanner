@@ -236,8 +236,6 @@ public:
 
 	Q_INVOKABLE void acceptUser(OnlineUserInfo *userInfo, const int userInfoRow);
 	Q_INVOKABLE void rejectUser(OnlineUserInfo *userInfo, const int userInfoRow);
-	Q_INVOKABLE void removeCoach(const uint row);
-	Q_INVOKABLE void removeClient(const uint row);
 
 	Q_INVOKABLE inline void cancelPendingOnlineRequests()
 	{
@@ -265,7 +263,9 @@ public:
 	void sendFileToServer(const QString &filename, const QString &successMessage = QString{}, const QString &subdir = QString{},
 							const QString &targetUser = QString{}, const bool removeLocalFile = false);
 	int downloadFileFromServer(const QString &filename, const QString &localFile = QString{}, const QString &successMessage = QString{},
-								const QString &subdir = QString{});
+							   const QString &subdir = QString{}, const QString &targetUser = QString{});
+	void removeFileFromServer(const QString &filename, const QString &subdir = QString{}, const QString &targetUser = QString{});
+
 	inline int importFromFile(const QString &filename) override { return _importFromFile(filename, m_modeldata); }
 	bool updateFromModel(TPListModel*) override;
 	bool importFromString(const QString &user_data);

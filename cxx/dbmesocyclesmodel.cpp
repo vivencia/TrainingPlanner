@@ -48,8 +48,17 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent, const bool bMainAppModel)
 		});
 
 		connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint field) {
-			if (user_row == 0 && field == USER_COL_APP_USE_MODE)
-				updateColumnLabels();
+			if (user_row == 0)
+			{
+				switch (field)
+				{
+					case 100:
+					case USER_COL_APP_USE_MODE:
+						updateColumnLabels();
+					break;
+					default: break;
+				}
+			}
 		});
 	}
 }
@@ -64,7 +73,6 @@ void DBMesocyclesModel::fillColumnNames()
 	mColumnNames[MESOCYCLES_COL_SPLIT] = std::move(tr("Weekly Training Division: "));
 	mColumnNames[MESOCYCLES_COL_TYPE] = std::move(tr("Type: "));
 	mColumnNames[MESOCYCLES_COL_REALMESO] = std::move(tr("Mesocycle-style program: "));
-	updateColumnLabels();
 }
 
 DBMesocyclesModel::~DBMesocyclesModel()
@@ -99,7 +107,7 @@ uint DBMesocyclesModel::startNewMesocycle(const bool bCreatePage, const bool bOw
 {
 	beginInsertRows(QModelIndex{}, count(), count());
 	const uint meso_idx{newMesocycle(std::move(QStringList{} << STR_MINUS_ONE << QString{} << QString{} << QString{} <<
-		QString{} << QString{} << std::move("ABCDERR"_L1) << appUserModel()->userId(0) <<
+		QString{} << QString{} << std::move("RRRRRRR"_L1) << appUserModel()->userId(0) <<
 			(bOwnMeso ? appUserModel()->userId(0) : appUserModel()->defaultClient()) << QString{} << QString{} << STR_ONE))};
 	emit countChanged();
 	endInsertRows();

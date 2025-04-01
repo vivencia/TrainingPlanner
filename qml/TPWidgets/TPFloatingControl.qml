@@ -51,6 +51,8 @@ Rectangle {
 		movingWidget: dragWidget
 		movableWidget: control
 
+		onPressed: (mouse) => pressedFunction(mouse);
+		onPositionChanged: (mouse) => positionChangedFunction(mouse);
 		onMouseClicked: anim.start();
 		onMoved: (x, y) => {
 			if (emitMoveSignal)

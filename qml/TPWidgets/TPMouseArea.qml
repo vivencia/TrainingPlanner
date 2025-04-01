@@ -21,24 +21,24 @@ MouseArea {
 		bPressed = false;
 	}
 
-	onPressed: (mouse) => {
+	function pressedFunction(mouse: MouseEvent): void {
 		prevPos = { x: mouse.x, y: mouse.y };
 		bPressed = true;
 	}
 
-	onPositionChanged: {
+	function positionChangedFunction(mouse: MouseEvent): void {
 		if (bPressed) {
 			bMoved = true;
-			const deltaX = mouseX - prevPos.x;
+			const deltaX = mouse.x - prevPos.x;
 			if (Math.abs(deltaX) < 10) {
-				const deltaY = mouseY - prevPos.y;
+				const deltaY = mouse.y - prevPos.y;
 				if (Math.abs(deltaY) < 10) {
 					movableWidget.x += deltaX;
 					movableWidget.y += deltaY;
 					moved(movableWidget.x, movableWidget.y);
 				}
 			}
-			prevPos = { x: mouseX, y: mouseY };
+			prevPos = { x: mouse.x, y: mouse.y };
 		}
 	}
 }

@@ -93,6 +93,7 @@ TPPage {
 		delegate: TPLabel {
 			text: mesoView.pageTitle[index]
 			width: parent.width/2
+			elide: Text.ElideMiddle
 			horizontalAlignment: Text.AlignHCenter
 
 			required property int index

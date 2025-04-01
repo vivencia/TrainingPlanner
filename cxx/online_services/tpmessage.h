@@ -14,10 +14,10 @@ QML_ELEMENT
 Q_PROPERTY(int id READ id WRITE setId NOTIFY idChanged FINAL)
 Q_PROPERTY(QString displayText READ displayText WRITE setDisplayText NOTIFY displayTextChanged FINAL)
 Q_PROPERTY(QString iconSource READ iconSource WRITE setIconSource NOTIFY iconSourceChanged FINAL)
-Q_PROPERTY(QString date READ CONSTANT FINAL)
-Q_PROPERTY(QString time READ CONSTANT FINAL)
+Q_PROPERTY(QString date READ date CONSTANT)
+Q_PROPERTY(QString time READ time CONSTANT)
 Q_PROPERTY(QStringList actions READ actions NOTIFY actionsChanged FINAL)
-Q_PROPERTY(bool sticky READ sticky WRITE setSticky FINAL)
+Q_PROPERTY(bool sticky READ sticky WRITE setSticky NOTIFY stickyChanged FINAL)
 Q_PROPERTY(bool hasActions READ hasActions NOTIFY hasActionsChanged FINAL)
 
 public:
@@ -52,7 +52,7 @@ public:
 	inline void setAutoDelete(const bool autodelete) { m_autodelete = autodelete; }
 
 	inline const bool sticky() const { return m_sticky; }
-	inline void setSticky(const bool sticky) { m_sticky = sticky; }
+	inline void setSticky(const bool sticky) { m_sticky = sticky;  emit stickyChanged(); }
 
 	inline const bool hasActions() const { return !m_actions.isEmpty(); }
 
@@ -105,6 +105,7 @@ signals:
 	void displayTextChanged();
 	void iconSourceChanged();
 	void actionsChanged();
+	void stickyChanged();
 	void hasActionsChanged();
 
 private:

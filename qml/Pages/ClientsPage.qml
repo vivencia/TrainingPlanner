@@ -17,6 +17,7 @@ TPPage {
 
 	onPageActivated: {
 		//Online data might change. Keep up with it
+		curRow = userModel.currentRow;
 		usrData.getUserInfo();
 		usrContact.getUserInfo();
 		usrProfile.getUserInfo();
@@ -144,6 +145,7 @@ TPPage {
 						if (newrow > 0) {
 							curRow = -1;
 							curRow = newrow;
+							userModel.currentRow = curRow;
 							pendingClientsList.currentIndex = index;
 						}
 					}
@@ -261,7 +263,7 @@ TPPage {
 
 	function removeOrDecline(decline: bool) {
 		if (!decline)
-			userManager.removeClient(curRow);
+			userManager.removeUser(curRow);
 		else
 			userModel.rejectUser(userModel.pendingClientsRequests, pendingClientsList.currentIndex);
 	}

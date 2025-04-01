@@ -505,7 +505,7 @@ void QMLMesoInterface::sendMesocycleFileToServer()
 	if (appMesoModel()->exportContentsOnlyToFile(mesocycleFile))
 	{
 		appUserModel()->sendFileToServer(mesocycleFile, !ownMeso() ? tr("Exercises Program sent to client") : QString{},
-			ownMeso() ? "mesocycles"_L1 : m_coach, client());
+			ownMeso() ? appUtils()->localAppMesocyclesDir(true) : m_coach + '/' + appUtils()->localAppMesocyclesDir(true), client());
 	}
 }
 

@@ -16,7 +16,7 @@ TPPage {
 	required property MesoManager mesoManager
 	readonly property bool bMesoNameOK: txtMesoName.text.length >= 5
 
-	property TPBalloonTip newMesoTip: exportDlgLoader.item
+	property TPBalloonTip newMesoTip: newMesoLoader.item
 
 	Connections {
 		target: mesoManager
@@ -31,12 +31,11 @@ TPPage {
 	}
 
 	Loader {
-		id: exportDlgLoader
+		id: newMesoLoader
 		active: mesoManager.isNewMeso ? mesoManager.newMesoFieldCounter >= 0 : mesoManager.newMesoFieldCounter === 0
 		asynchronous: true
 
 		sourceComponent: TPBalloonTip {
-			id: newMesoTip
 			parentPage: mesoPropertiesPage
 			title: qsTr("New program setup incomplete")
 			imageEnabled: false
@@ -45,6 +44,7 @@ TPPage {
 			button2Text: ""
 			subImageLabel: String(mesoManager.newMesoFieldCounter)
 			keepAbove: true
+			movable: true
 
 			onClosed: {
 				if (mesoManager.newMesoFieldCounter === 0)
@@ -54,7 +54,7 @@ TPPage {
 
 		onLoaded: {
 			newMesoMessageHandler(mesoManager.newMesoFieldCounter);
-			newMesoTip.show(-2);
+			item.show(-2);
 		}
 	}
 
@@ -163,12 +163,7 @@ TPPage {
 
 				onEditingFinished: mesoManager.name = text;
 
-				onEnterOrReturnKeyPressed: {
-					if (cboCoaches.visible)
-						cboCoaches.forceActiveFocus();
-					else
-						cboClients.forceActiveFocus();
-				}
+				onEnterOrReturnKeyPressed: cboMesoType.forceActiveFocus();
 			}
 
 			Row {
@@ -222,6 +217,7 @@ TPPage {
 				visible: cboMesoType.currentIndex === typeModel.count - 1
 				width: parent.width
 				Layout.maximumWidth: width
+				Layout.minimumWidth: width
 
 				onEditingFinished: mesoManager.type = text;
 				onEnterOrReturnKeyPressed: txtMesoFile.forceActiveFocus();
@@ -465,7 +461,7 @@ TPPage {
 			}
 
 			TPButton {
-				text: qstr("Send to client")
+				text: qsTr("Send to client")
 				visible: mesoManager.ownMeso
 				enabled: !mesoManager.isNewMeso
 				Layout.alignment: Qt.AlignCenter

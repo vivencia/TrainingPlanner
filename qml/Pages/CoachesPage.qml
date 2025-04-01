@@ -118,6 +118,7 @@ TPPage {
 						Text {
 							id: txtCoachName
 							text: userModel.coachesNames[index]
+							color: appSettings.fontColor
 							font.pixelSize: appSettings.fontSize
 							fontSizeMode: Text.Fit
 							leftPadding: 5
@@ -394,7 +395,7 @@ TPPage {
 
 	function removeOrDecline(decline: bool) {
 		if (!decline)
-			userManager.removeCoach(curRow);
+			userManager.removeUser(curRow);
 		else
 			userModel.rejectUser(userModel.pendingCoachesResponses, pendingCoachesList.currentIndex);
 	}
