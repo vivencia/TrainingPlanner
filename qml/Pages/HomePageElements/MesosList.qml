@@ -259,38 +259,36 @@ Item {
 				id: mesoContent
 				spacing: 2
 
-				readonly property string fntColor: index === mesocyclesModel.currentMesoIdx ? appSettings.fontColor : appSettings.disabledFontColor
-
 				TPLabel {
 					text: mesoName
-					fontColor: mesoContent.fntColor
+					fontColor: appSettings.fontColor
 					horizontalAlignment: Text.AlignHCenter
 					Layout.bottomMargin: 10
 					Layout.maximumWidth: parent.width
 				}
 				TPLabel {
 					text: mesoCoach
-					fontColor: mesoContent.fntColor
+					fontColor: appSettings.fontColor
 					Layout.maximumWidth: parent.width
 					visible: mainUserPrograms
 				}
 				TPLabel {
 					text: mesoClient
-					fontColor: mesoContent.fntColor
+					fontColor: appSettings.fontColor
 					Layout.maximumWidth: parent.width
 					visible: !mainUserPrograms
 				}
 				TPLabel {
 					text: mesoStartDate
-					fontColor: mesoContent.fntColor
+					fontColor: appSettings.fontColor
 				}
 				TPLabel {
 					text: mesoEndDate
-					fontColor: mesoContent.fntColor
+					fontColor: appSettings.fontColor
 				}
 				TPLabel {
 					text: mesoSplit
-					fontColor: mesoContent.fntColor
+					fontColor: appSettings.fontColor
 					Layout.maximumWidth: parent.width
 				}
 			}

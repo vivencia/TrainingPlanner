@@ -23,6 +23,7 @@ class DBMesoCalendarModel;
 class QMLMesoInterface;
 
 static const QLatin1StringView onlineMesoFileSuffix{"-meso.txt"};
+static const QLatin1StringView mesosDir{"mesocycles/"};
 
 class DBMesocyclesModel : public TPListModel
 {

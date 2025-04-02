@@ -500,13 +500,10 @@ void QMLMesoInterface::importMeso(const QString &filename)
 
 void QMLMesoInterface::sendMesocycleFileToServer()
 {
-	const QString &mesocycleFile{appUtils()->localAppMesocyclesDir() + mesoCycleFileNameTemplate()};
+	const QString &mesocycleFile{appUserModel()->localDir(m_client) + mesosDir + mesoCycleFileNameTemplate()};
 	appMesoModel()->setExportRow(m_mesoIdx);
 	if (appMesoModel()->exportContentsOnlyToFile(mesocycleFile))
-	{
-		appUserModel()->sendFileToServer(mesocycleFile, !ownMeso() ? tr("Exercises Program sent to client") : QString{},
-			ownMeso() ? appUtils()->localAppMesocyclesDir(true) : m_coach + '/' + appUtils()->localAppMesocyclesDir(true), client());
-	}
+		appUserModel()->sendFileToServer(mesocycleFile, !ownMeso() ? tr("Exercises Program sent to client") : QString{}, mesosDir, m_client);
 }
 
 DBMesoSplitModel *QMLMesoInterface::plannerSplitModel(const QChar &splitLetter)
@@ -632,7 +629,8 @@ void QMLMesoInterface::createMesocyclePage_part2()
 			if (!appMesoModel()->isNewMeso(meso_idx))
 			{
 				appDBInterface()->saveMesocycle(meso_idx);
-				sendMesocycleFileToServer();
+				if (ownMeso())
+					sendMesocycleFileToServer();
 			}
 		}
 	});

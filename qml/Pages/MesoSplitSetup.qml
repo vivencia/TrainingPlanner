@@ -69,17 +69,33 @@ Pane {
 
 			property int highest_letter_idx: 0;
 
-			RowLayout {
+			delegate: RowLayout {
+				id: delegateRow
 				Layout.fillWidth: true
+				//objectName: "delegateRow"
+
+				required property int index
+				readonly property int delegateIndex: index
+
+				/*Component.onCompleted: {
+					for (let i = 0; i < children.length; ++i)
+					{
+						console.log(i, children[i].objectName);
+						for (let x = 0; x < children[i].children.length; ++x)
+							console.log(i,x, children[i].children[x].objectName);
+					}
+				}*/
 
 				TPLabel {
-					text: daysOfWeek[index]
+					//objectName: "label"
+					text: daysOfWeek[delegateIndex]
 					width: col1Width
 					Layout.minimumWidth: col1Width
 					Layout.maximumWidth: col1Width
 				}
 
 				Item {
+					//objectName: "item"
 					height: 50
 					Layout.minimumHeight: 50
 					Layout.maximumHeight: 50
@@ -87,8 +103,12 @@ Pane {
 					Layout.maximumWidth: col2Width
 
 					TPComboBox {
+						//objectName: "combo"
 						// Don't allow a day to skip a letter. Letters must be added sequentially or be repeated, never skipped
 						id: cboSplit
+
+						readonly property int nDelegateRows: 7
+						readonly property int nLastDelegateIdx: 6
 
 						anchors {
 							top: parent.top
@@ -108,17 +128,18 @@ Pane {
 
 						onActivated: (cboindex) => {
 							let mesoSplit = txtMesoSplit.text;
-							txtMesoSplit.text = mesoSplit.substring(0,index) + valueAt(cboindex) + mesoSplit.substring(index+1);
+							txtMesoSplit.text = mesoSplit.substring(0,delegateRow.delegateIndex) +
+													valueAt(cboindex) + mesoSplit.substring(delegateRow.delegateIndex+1);
 							bMesoSplitChanged = true;
 							let last_letter_idx = cboindex + 1;
-							if (last_letter_idx === 7) {
+							if (last_letter_idx === nDelegateRows) {
 								last_letter_idx = 0;
-								if (index >= 1) {
-									let prev_index = index-1;
+								if (delegateRow.delegateIndex >= 1) {
+									let prev_index = delegateRow.delegateIndex-1;
 									let prev_item_index;
 									do {
-										prev_item_index = splitRepeater.itemAt(prev_index).children[1].currentIndex;
-										if (prev_item_index !== 6) {
+										prev_item_index = splitRepeater.itemAt(prev_index).children[1].children[0].currentIndex;
+										if (prev_item_index !== nLastDelegateIdx) {
 											last_letter_idx = prev_item_index + 1;
 											break;
 										}
@@ -126,46 +147,40 @@ Pane {
 								}
 							}
 
-							for (let i = index + 1; i < 7; ++i) {
-								const cboBox = splitRepeater.itemAt(i).children[1];
+							for (let i = delegateRow.delegateIndex + 1; i < nDelegateRows; ++i) {
+								const cboBox = splitRepeater.itemAt(i).children[1].children[0];
 								const curIdx = cboBox.currentIndex;
 								if (curIdx > last_letter_idx && curIdx !== 6)
 									cboBox.currentIndex = last_letter_idx;
-								//let cboModel = cboBox.model;
-								for (let x = 0; x < 6; ++x)
+								for (let x = delegateRow.delegateIndex; x < nLastDelegateIdx; ++x)
 									cboBox.model.get(x).enabled = x <= last_letter_idx;
 							}
 						}
 
 						Component.onCompleted: {
-							currentIndex = Qt.binding(function() { return indexOfValue(txtMesoSplit.text.charAt(index)); });
+							currentIndex = Qt.binding(function() { return indexOfValue(txtMesoSplit.text.charAt(delegateRow.delegateIndex)); });
 							btnMuscularGroups.visible = Qt.binding(function() { return currentIndex !== 6; });
-							if (index >=1)
-							{
-								let last_letter_idx = indexOfValue(currentValue);
-								if (last_letter_idx === 6) {
-									let prev_index = index-1;
+							let last_letter_idx = indexOfValue(currentValue);
+								if (last_letter_idx === nLastDelegateIdx) {
+									let prev_index = delegateRow.delegateIndex-1;
 									let prev_item_index;
 									do {
-										prev_item_index = splitRepeater.itemAt(prev_index).children[1].currentIndex;
-										if (prev_item_index !== 6) {
+										prev_item_index = splitRepeater.itemAt(prev_index).children[1].children[0].currentIndex;
+										if (prev_item_index !== nLastDelegateIdx) {
 											last_letter_idx = prev_item_index + 1;
 											break;
 										}
 									} while (--prev_index >= 0);
 								}
 
-								for (let x = 0; x < 6; ++x)
+								for (let x = delegateRow.delegateIndex; x < nLastDelegateIdx; ++x)
 									model.get(x).enabled = x <= last_letter_idx;
-							}
-							else {
-								for (let y = 1; y < 6; ++y)
-									model.get(y).enabled = false;
-							}
+
 						}
 					}
 
 					TPButton {
+						//objectName: "button"
 						id: btnMuscularGroups
 						imageSource: "choose.png"
 						imageSize: 25
@@ -181,6 +196,7 @@ Pane {
 				} //Item
 
 				TPTextInput {
+					//objectName: "text"
 					id: txtSplit
 					readOnly: true
 					suggestedHeight: 50
@@ -193,7 +209,7 @@ Pane {
 						createBindings();
 
 						textChanged.connect(function() {
-							switch (cboSplit.currentIndex) {
+							switch (splitRepeater.itemAt(index).children[1].children[0].currentIndex) {
 								case 0: mesoManager.muscularGroupA = text; break;
 								case 1: mesoManager.muscularGroupB = text; break;
 								case 2: mesoManager.muscularGroupC = text; break;
@@ -206,7 +222,7 @@ Pane {
 
 					function createBindings(): void {
 						text = Qt.binding(function() {
-							switch (cboSplit.currentIndex) {
+							switch (splitRepeater.itemAt(index).children[1].children[0].currentIndex) {
 								case 0: return mesoManager.muscularGroupA;
 								case 1: return mesoManager.muscularGroupB;
 								case 2: return mesoManager.muscularGroupC;

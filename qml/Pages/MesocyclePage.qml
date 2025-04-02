@@ -462,7 +462,7 @@ TPPage {
 
 			TPButton {
 				text: qsTr("Send to client")
-				visible: mesoManager.ownMeso
+				visible: !mesoManager.ownMeso
 				enabled: !mesoManager.isNewMeso
 				Layout.alignment: Qt.AlignCenter
 

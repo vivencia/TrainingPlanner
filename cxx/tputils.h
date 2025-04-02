@@ -34,18 +34,6 @@ public:
 	inline ~TPUtils() { delete m_appLocale; }
 
 	inline const QString &localAppFilesDir() const { return m_localAppFilesDir; }
-	inline const QString localAppMesocyclesDir(const bool fullpath = true) const
-	{
-		return fullpath ? QString{m_localAppFilesDir + std::move("mesocycles/"_L1)} : "mesocycles/"_L1;
-	}
-	inline const QString localAppWorkoutsDir(const bool fullpath = true) const
-	{
-		return fullpath ? QString{m_localAppFilesDir + std::move("workouts/"_L1)} : "workouts/"_L1;
-	}
-	inline const QString localAppMessagesDir(const bool fullpath = true) const
-	{
-		return fullpath ? QString{m_localAppFilesDir + std::move("messages/"_L1)} : "messages/"_L1;
-	}
 
 	int generateUniqueId(const QLatin1StringView &seed = QLatin1StringView{}) const;
 	bool mkdir(const QString &dir) const;

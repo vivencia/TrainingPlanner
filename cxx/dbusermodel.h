@@ -102,6 +102,8 @@ public:
 	Q_INVOKABLE inline QString userNameFromId(const QString &userid) const { return userName(userRowFromFieldValue(USER_COL_ID, userid)); }
 	int userRowFromFieldValue(const uint field, const QString &value) const;
 	const QString &userIdFromFieldValue(const uint field, const QString &value) const;
+	inline const QString localDir(const QString &userid) const { return localDir(userRowFromFieldValue(USER_COL_ID, userid)); }
+	const QString localDir(const int row) const;
 
 	inline const QString &userId(const int row) const { return m_modeldata.at(row).at(USER_COL_ID); }
 	inline void setUserId(const uint row, const QString &new_id) { m_modeldata[row][USER_COL_ID] = new_id; }
@@ -333,7 +335,7 @@ private:
 	inline void sendAvatarToServer() { sendFileToServer(avatar(0), QString{}, QString{}, userId(0)); }
 	void downloadAvatarFromServer(const uint row);
 	void downloadResumeFromServer(const uint row);
-	void moveTempUserFilesToFinalUserDir(const QString &destDir, OnlineUserInfo *userInfo, const int userInfoRow) const;
+	void copyTempUserFilesToFinalUserDir(const QString &destDir, OnlineUserInfo *userInfo, const int userInfoRow) const;
 	void clearTempUserFiles(OnlineUserInfo *userInfo, const int userInfoRow) const;
 	void clearUserDir(const QString &dir) const;
 	void startServerPolling();
@@ -348,7 +350,7 @@ private:
 	void checkNewMesos();
 	int _importFromFile(const QString &filename, QList<QStringList> &targetModel);
 
-	QString m_localProfileFile, m_onlineCoachesDir, m_dirForRequestedCoaches, m_dirForClientsRequests,
+	QString m_onlineCoachesDir, m_dirForRequestedCoaches, m_dirForClientsRequests,
 						m_dirForCurrentClients, m_dirForCurrentCoaches;
 	static DBUserModel *_appUserModel;
 	friend DBUserModel *appUserModel();
