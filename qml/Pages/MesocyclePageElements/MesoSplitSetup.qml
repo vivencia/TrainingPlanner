@@ -2,9 +2,9 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import "../TPWidgets"
-import "../Dialogs"
-import ".."
+import "../../TPWidgets"
+import "../../Dialogs"
+import "../.."
 
 Pane {
 	id: trainingSplitPane
@@ -161,21 +161,20 @@ Pane {
 							currentIndex = Qt.binding(function() { return indexOfValue(txtMesoSplit.text.charAt(delegateRow.delegateIndex)); });
 							btnMuscularGroups.visible = Qt.binding(function() { return currentIndex !== 6; });
 							let last_letter_idx = indexOfValue(currentValue);
-								if (last_letter_idx === nLastDelegateIdx) {
-									let prev_index = delegateRow.delegateIndex-1;
-									let prev_item_index;
-									do {
-										prev_item_index = splitRepeater.itemAt(prev_index).children[1].children[0].currentIndex;
-										if (prev_item_index !== nLastDelegateIdx) {
-											last_letter_idx = prev_item_index + 1;
-											break;
-										}
-									} while (--prev_index >= 0);
-								}
+							if (last_letter_idx === nLastDelegateIdx) {
+								let prev_index = delegateRow.delegateIndex-1;
+								let prev_item_index;
+								do {
+									prev_item_index = splitRepeater.itemAt(prev_index).children[1].children[0].currentIndex;
+									if (prev_item_index !== nLastDelegateIdx) {
+										last_letter_idx = prev_item_index + 1;
+										break;
+									}
+								} while (--prev_index >= 0);
+							}
 
-								for (let x = delegateRow.delegateIndex; x < nLastDelegateIdx; ++x)
-									model.get(x).enabled = x <= last_letter_idx;
-
+							for (let x = delegateRow.delegateIndex; x < nLastDelegateIdx; ++x)
+								model.get(x).enabled = x <= last_letter_idx;
 						}
 					}
 
@@ -214,7 +213,7 @@ Pane {
 								case 1: mesoManager.muscularGroupB = text; break;
 								case 2: mesoManager.muscularGroupC = text; break;
 								case 3: mesoManager.muscularGroupD = text; break;
-								case 4: mesoManager.muscularGroupD = text; break;
+								case 4: mesoManager.muscularGroupE = text; break;
 								case 5: mesoManager.muscularGroupF = text; break;
 							}
 						});
@@ -227,7 +226,7 @@ Pane {
 								case 1: return mesoManager.muscularGroupB;
 								case 2: return mesoManager.muscularGroupC;
 								case 3: return mesoManager.muscularGroupD;
-								case 4: return mesoManager.muscularGroupD;
+								case 4: return mesoManager.muscularGroupE;
 								case 5: return mesoManager.muscularGroupF;
 								case 6: return mesoManager.muscularGroupR;
 							}

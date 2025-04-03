@@ -798,7 +798,7 @@ void QmlItemManager::exportSlot(const QString &filePath)
 		if (file.exists())
 			messageId = file.remove() ? APPWINDOW_MSG_EXPORT_OK : APPWINDOW_MSG_EXPORT_FAILED;
 		if (messageId == APPWINDOW_MSG_EXPORT_OK)
-			if (!QFile::copy(m_exportFilename, filePath))
+			if (!appUtils()->copyFile(m_exportFilename, filePath))
 				messageId = APPWINDOW_MSG_EXPORT_FAILED;
 	}
 	displayMessageOnAppWindow(messageId);

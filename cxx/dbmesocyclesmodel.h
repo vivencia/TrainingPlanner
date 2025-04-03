@@ -22,7 +22,6 @@ class DBMesoSplitModel;
 class DBMesoCalendarModel;
 class QMLMesoInterface;
 
-static const QLatin1StringView onlineMesoFileSuffix{"-meso.txt"};
 static const QLatin1StringView mesosDir{"mesocycles/"};
 
 class DBMesocyclesModel : public TPListModel
@@ -254,6 +253,7 @@ public:
 	QString formatFieldToExport(const uint field, const QString &fieldValue) const override;
 	QString formatFieldToImport(const uint field, const QString &fieldValue, const QString &fieldName) const;
 
+	QString mesoFileName(const uint meso_idx) const;
 	Q_INVOKABLE void sendMesoToUser(const uint meso_idx);
 	void viewOnlineMeso(const QString &mesoName);
 

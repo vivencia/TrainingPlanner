@@ -4,19 +4,22 @@ import QtQuick.Layouts
 
 import "../"
 
-Column {
+Item {
 	id: frmMesoAdjust
-	padding: 0
-	spacing: 10
-	height: chkPreserveOldCalendar.implicitHeight + optPreserveOldCalendar.implicitHeight + optPreserveOldCalendarUntilYesterday.implicitHeight + 30
+	height: chkPreserveOldCalendar.implicitHeight + optPreserveOldCalendar.implicitHeight + optPreserveOldCalendarUntilYesterday.implicitHeight + 20
 
-	required property var parentDlg
+	required property TPComplexDialog parentDlg
 
 	TPCheckBox {
 		id: chkPreserveOldCalendar
 		text: qsTr("Preserve previous calendar information?")
 		checked: false
-		width: frmMesoAdjust.width
+
+		anchors {
+			top: parent.top
+			left: parent.left
+			right: parent.right
+		}
 
 		onClicked: {
 			if (checked) {
@@ -35,8 +38,14 @@ Column {
 		text: qsTr("All of the old information")
 		enabled: chkPreserveOldCalendar.checked
 		checked: false
-		width: frmMesoAdjust.width
-		Layout.leftMargin: 15
+
+		anchors {
+			top: chkPreserveOldCalendar.bottom
+			topMargin: 5
+			left: parent.left
+			leftMargin: 15
+			right: parent.right
+		}
 
 		onClicked: optPreserveOldCalendarUntilYesterday.checked = false;
 		onCheckedChanged: parentDlg.customBoolProperty1 = checked;
@@ -47,8 +56,14 @@ Column {
 		text: qsTr("Up until yesterday - ") + appUtils.formatDate(appUtils.getDayBefore(new Date()))
 		checked: false
 		enabled: chkPreserveOldCalendar.checked
-		width: frmMesoAdjust.width
-		Layout.leftMargin: 15
+
+		anchors {
+			top: optPreserveOldCalendar.bottom
+			topMargin: 5
+			left: parent.left
+			leftMargin: 15
+			right: parent.right
+		}
 
 		onClicked: optPreserveOldCalendar.checked = false;
 		onCheckedChanged: parentDlg.customBoolProperty2 = checked;

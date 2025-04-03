@@ -216,7 +216,6 @@ private:
 	QmlMesoSplitInterface *m_exercisesPage;
 	QmlMesoCalendarInterface *m_calendarPage;
 
-	QString mesoCycleFileNameTemplate() const;
 	void createMesocyclePage();
 	void createMesocyclePage_part2();
 	void setPropertiesBasedOnUseMode();

@@ -631,6 +631,11 @@ QString DBMesocyclesModel::formatFieldToImport(const uint field, const QString &
 	return QString{}; //never reached
 }
 
+QString DBMesocyclesModel::mesoFileName(const uint meso_idx) const
+{
+	return appUserModel()->localDir(client(meso_idx)) + mesosDir + name(meso_idx) + ".txt"_L1;
+}
+
 void DBMesocyclesModel::sendMesoToUser(const uint meso_idx)
 {
 	m_mesoManagerList.at(meso_idx)->sendMesocycleFileToServer();

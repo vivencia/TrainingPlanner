@@ -8,6 +8,7 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 import "../"
 import "../Dialogs"
 import "../TPWidgets"
+import "./MesocyclePageElements"
 
 TPPage {
 	id: mesoPropertiesPage
@@ -462,6 +463,7 @@ TPPage {
 
 			TPButton {
 				text: qsTr("Send to client")
+				flat: false
 				visible: !mesoManager.ownMeso
 				enabled: !mesoManager.isNewMeso
 				Layout.alignment: Qt.AlignCenter

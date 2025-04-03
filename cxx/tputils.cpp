@@ -40,14 +40,6 @@ int TPUtils::generateUniqueId(const QLatin1StringView &seed) const
 	}
 }
 
-bool TPUtils::mkdir(const QString &dir) const
-{
-	QDir fs_dir{dir};
-	if (!fs_dir.exists())
-		return fs_dir.mkpath(dir);
-	return true;
-}
-
 QString TPUtils::getCorrectPath(const QUrl &url) const
 {
 	QString path{url.toString(QUrl::PrettyDecoded|QUrl::PreferLocalFile|QUrl::RemoveScheme)};
@@ -65,6 +57,14 @@ int TPUtils::getFileType(const QString &filename) const
 			return 1;
 		else return (filename.endsWith(".png"_L1) || filename.endsWith(".jpg"_L1)) ? 0 : -1;
 	#endif
+}
+
+bool TPUtils::canReadFile(const QString &filename) const
+{
+	const QFileInfo file{filename};
+	if (file.isFile())
+		return file.isReadable();
+	return false;
 }
 
 QString TPUtils::getFilePath(const QString &filename) const
@@ -92,12 +92,46 @@ void TPUtils::copyToClipBoard(const QString &text) const
 	qApp->clipboard()->setText(text);
 }
 
-bool TPUtils::canReadFile(const QString &filename) const
+bool TPUtils::mkdir(const QString &fileOrDir) const
 {
-	const QFileInfo file{filename};
-	if (file.isFile())
-		return file.isReadable();
+	const QFileInfo fi{fileOrDir};
+	const QString &path{(!fi.exists() || fi.isFile()) ? getFilePath(fileOrDir) : fileOrDir};
+	QDir fs_dir{path};
+	if (!fs_dir.exists())
+		return fs_dir.mkpath(path);
+	return true;
+}
+
+bool TPUtils::copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath) const
+{
+	if (QFile::exists(srcFile))
+	{
+		if (createPath)
+		{
+			const QString &filepath{getFilePath(dstFileOrDir)};
+			if (!mkdir(filepath))
+				return false;
+		}
+		const QFileInfo fi{dstFileOrDir};
+		const QString &dstFile{fi.isDir() ? dstFileOrDir + getFileName(srcFile) : dstFileOrDir};
+		return QFile::copy(srcFile, dstFile);
+	}
 	return false;
+}
+
+QFile *TPUtils::openFile(const QString &filename, QIODeviceBase::OpenMode flags) const
+{
+	const bool exists{QFile::exists(filename)};
+	if (!exists && (flags & QIODeviceBase::ReadOnly))
+		return nullptr;
+	if (mkdir(filename))
+	{
+		QFile *file{new QFile{filename}};
+		if (file->open(flags))
+			return file;
+		delete file;
+	}
+	return nullptr;
 }
 
 QString TPUtils::formatDate(const QDate &date, const DATE_FORMAT format) const

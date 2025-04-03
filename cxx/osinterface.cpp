@@ -284,7 +284,7 @@ QString OSInterface::readFileFromAndroidFileDialog(const QString &android_uri) c
 		const QString &properFilename{"content:"_L1 + android_uri};
 		const QString &localFile{appUtils()->localAppFilesDir() + "tempfile"_L1};
 		static_cast<void>(QFile::remove(localFile));
-		return QFile::copy(properFilename, localFile) ? properFilename : QString();
+		return appUtils()->copyFile(properFilename, localFile) ? properFilename : QString();
 	}
 	// else: uri is not a uri it's already been translated by QShareUtils via android's open with or share
 	return android_uri;
@@ -684,7 +684,7 @@ void OSInterface::viewExternalFile(const QString &filename) const
 	#ifdef Q_OS_ANDROID
 	const QString &localFile{appUtils()->localAppFilesDir() + "tempfile"_L1 + filename.last(4)};
 	static_cast<void>(QFile::remove(localFile));
-	if (QFile::copy(filename, localFile))
+	if (appUtils()->copyFile(filename, localFile))
 		viewFile(localFile, tr("View file with..."));
 	else
 		qDebug() << "could not copy:  " << filename << "    to   " << localFile;

@@ -36,15 +36,17 @@ public:
 	inline const QString &localAppFilesDir() const { return m_localAppFilesDir; }
 
 	int generateUniqueId(const QLatin1StringView &seed = QLatin1StringView{}) const;
-	bool mkdir(const QString &dir) const;
 
 	Q_INVOKABLE QString getCorrectPath(const QUrl &url) const;
 	Q_INVOKABLE int getFileType(const QString &filename) const;
-	Q_INVOKABLE QString getFilePath(const QString &filename) const;
-	Q_INVOKABLE QString getFileName(const QString &filepath, const bool without_extension = false) const;
-	Q_INVOKABLE void copyToClipBoard(const QString &text) const;
 	Q_INVOKABLE bool canReadFile(const QString &filename) const;
+	QString getFilePath(const QString &filename) const;
+	QString getFileName(const QString &filepath, const bool without_extension = false) const;
+	bool mkdir(const QString &fileOrDir) const;
+	bool copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath = true) const;
+	QFile *openFile(const QString &filename, QIODeviceBase::OpenMode flags) const;
 
+	Q_INVOKABLE void copyToClipBoard(const QString &text) const;
 	inline QLocale *appLocale() const { return m_appLocale; }
 
 	Q_INVOKABLE QString formatDate(const QDate &date, const DATE_FORMAT format = DF_QML_DISPLAY) const;

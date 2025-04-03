@@ -24,9 +24,11 @@
 
 DBUserModel* DBUserModel::_appUserModel(nullptr);
 
-static const QLatin1StringView& userProfileFileName{"profile.txt"_L1};
+static const QLatin1StringView& userProfileFileNameName{"profile.txt"_L1};
 static const QLatin1StringView& userLocalDataFileName{"user.data"_L1};
 static const QString &tpNetworkTitle{qApp->tr("TP Network")};
+
+static inline QString profileFileName(const QString &dir, const QString &userid) { return dir + userid + ".txt"_L1; }
 
 #define POLLING_INTERVAL 1000*60
 //#define POLLING_INTERVAL 1000*60*20
@@ -585,7 +587,7 @@ void DBUserModel::uploadResume(const QString &resumeFileName)
 		const QString &extension{idx > 0 ? resumeFileName_ok.last(resumeFileName_ok.length() - idx) : QString{}};
 		const QString &localResumeFilePath{appUtils()->localAppFilesDir() + "resume"_L1 + extension};
 		const QString &previousResumeFilePath{resume(0)};
-		if (QFile::copy(resumeFileName_ok, localResumeFilePath))
+		if (appUtils()->copyFile(resumeFileName_ok, localResumeFilePath))
 		{
 			sendFileToServer(localResumeFilePath, tr("Résumé uploaded successfully!"), QString{}, userId(0), true);
 			if (previousResumeFilePath != localResumeFilePath)
@@ -641,9 +643,7 @@ void DBUserModel::sendRequestToCoaches()
 							if (ret_code == 0)
 							{
 								const QString &coach_id{m_availableCoaches->data(i, USER_COL_ID)};
-								const QString &coach_dir{m_dirForRequestedCoaches + coach_id + '/'};
-								static_cast<void>(appUtils()->mkdir(coach_dir));
-								if (QFile::copy(m_onlineCoachesDir + coach_id + ".txt"_L1,  coach_dir + "profile.txt"_L1))
+								if (appUtils()->copyFile(profileFileName(m_onlineCoachesDir, coach_id), profileFileName(m_dirForRequestedCoaches, coach_id)))
 								{
 									appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Coach contacting") +
 										record_separator + tr("Online coach contacted ") + m_availableCoaches->data(i, USER_COL_NAME));
@@ -705,7 +705,7 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 						});
 						for (qsizetype x{0}; x < coaches.count(); ++x)
 						{
-							const QString &coach_profile{m_onlineCoachesDir + coaches.at(x) + ".txt"_L1};
+							const QString &coach_profile{profileFileName(m_onlineCoachesDir, coaches.at(x))};
 							getUserOnlineProfile(coaches.at(x), coach_profile);
 						}
 					}
@@ -726,8 +726,8 @@ void DBUserModel::sendFileToServer(const QString &filename, const QString &succe
 		return;
 	}
 
-	QFile *upload_file{new QFile{filename, this}};
-	if (upload_file->open(QIODeviceBase::ReadOnly))
+	QFile *upload_file{appUtils()->openFile(filename, QIODeviceBase::ReadOnly)};
+	if (upload_file)
 	{
 		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [=,this] (const QString &key, const QString &value) {
 			const int requestid{appUtils()->generateUniqueId(QLatin1StringView{QString{
@@ -755,10 +755,7 @@ void DBUserModel::sendFileToServer(const QString &filename, const QString &succe
 		appKeyChain()->readKey(userId(0));
 	}
 	else
-	{
-		delete upload_file;
 		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, tr("Failed to open ") + filename);
-	}
 }
 
 int DBUserModel::downloadFileFromServer(const QString &filename, const QString &localFile, const QString &successMessage,
@@ -1059,7 +1056,7 @@ void DBUserModel::checkIfCoachRegisteredOnline()
 
 void DBUserModel::getUserOnlineProfile(const QString &netID, const QString &save_as_filename)
 {
-	const int request_id{downloadFileFromServer(userProfileFileName, save_as_filename, QString{}, QString{}, netID)};
+	const int request_id{downloadFileFromServer(userProfileFileNameName, save_as_filename, QString{}, QString{}, netID)};
 	if (request_id != -1)
 	{
 		auto conn = std::make_shared<QMetaObject::Connection>();
@@ -1075,7 +1072,7 @@ void DBUserModel::getUserOnlineProfile(const QString &netID, const QString &save
 
 void DBUserModel::sendProfileToServer()
 {
-	const QString &localProfile{localDir(0) + userProfileFileName};
+	const QString &localProfile{localDir(0) + userProfileFileNameName};
 	setExportRow(0);
 	if (exportToFile(localProfile, true, true, false) == APPWINDOW_MSG_EXPORT_OK)
 		sendFileToServer(localProfile, QString{}, QString{}, userId(0));
@@ -1130,7 +1127,7 @@ void DBUserModel::copyTempUserFilesToFinalUserDir(const QString &destDir, Online
 		directory.mkdir(destDir);
 	const QFileInfoList &tempuser_files{directory.entryInfoList(QStringList{} << "*.*"_L1, QDir::NoDotAndDotDot|QDir::Files)};
 	for (const auto &it : tempuser_files)
-		static_cast<void>(QFile::copy(it.filePath(), destDir + it.fileName()));
+		static_cast<void>(appUtils()->copyFile(it.filePath(), destDir));
 }
 
 void DBUserModel::clearTempUserFiles(OnlineUserInfo *userInfo, const int userInfoRow) const
@@ -1272,7 +1269,7 @@ void DBUserModel::pollClientsRequests()
 				});
 				for (qsizetype x{0}; x < requests_list.count(); ++x)
 				{
-					const QString &client_profile{m_dirForClientsRequests + requests_list.at(x) + ".txt"_L1};
+					const QString &client_profile{profileFileName(m_dirForClientsRequests, requests_list.at(x))};
 					getUserOnlineProfile(requests_list.at(x), client_profile);
 				}
 			}
@@ -1349,7 +1346,7 @@ void DBUserModel::pollCoachesAnswers()
 				{
 					QString coach_id{std::move(answers_list.at(x))};
 					coach_id.chop(3);
-					const QString &coach_profile{m_dirForRequestedCoaches + coach_id + ".txt"};
+					const QString &coach_profile{profileFileName(m_dirForRequestedCoaches, coach_id)};
 					getUserOnlineProfile(coach_id, coach_profile);
 				}
 			}
@@ -1496,16 +1493,13 @@ void DBUserModel::checkNewMesos()
 				{
 					for (const auto &it : ret_list)
 					{
-						if (it.endsWith(onlineMesoFileSuffix))
-						{
-							TPMessage *new_message{new TPMessage(coach + tr(" has sent you a new Exercises Program"), "message-meso"_L1, appMessagesManager())};
-							new_message->insertData(it, 0);
-							new_message->insertAction(tr("View"), [=] (const QVariant &mesofile) {
+						TPMessage *new_message{new TPMessage(coach + tr(" has sent you a new Exercises Program"), "message-meso"_L1, appMessagesManager())};
+						new_message->insertData(it, 0);
+						new_message->insertAction(tr("View"), [=] (const QVariant &mesofile) {
 											appMesoModel()->viewOnlineMeso(mesofile.toString()); }, false);
-							new_message->insertAction(tr("Delete"), [=,this] (const QVariant &subdir) {
+						new_message->insertAction(tr("Delete"), [=,this] (const QVariant &subdir) {
 											appOnlineServices()->removeFile(request_id, userId(0), m_password, it, coach); });
-							new_message->plug();
-						}
+						new_message->plug();
 					}
 				}
 			}

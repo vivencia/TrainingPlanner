@@ -184,8 +184,8 @@ set( QML_SOURCES
     "qml/Pages/HomePageElements/MesosList.qml"
 	"qml/Pages/MesoCalendarPage.qml"
 	"qml/Pages/MesocyclePage.qml"
+	"qml/Pages/MesocyclePageElements/MesoSplitSetup.qml"
     "qml/Pages/MesoSplitPlanner.qml"
-    "qml/Pages/MesoSplitSetup.qml"
     "qml/Pages/SettingsPage.qml"
     "qml/Pages/StatisticsPage.qml"
     "qml/Pages/TPPage.qml"
@@ -250,7 +250,7 @@ pkg_check_modules(LIBSECRET REQUIRED libsecret-1)
         list(APPEND keychain_LIBRARIES_PRIVATE ${LIBSECRET_LIBRARIES})
 else()
 	set (keychain_LIBRARIES_PRIVATE "")
-endif(ANDROID)
+endif(NOT ANDROID)
 
 target_link_libraries(TrainingPlanner PUBLIC
 	Qt6::Core

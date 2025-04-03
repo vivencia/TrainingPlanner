@@ -500,7 +500,7 @@ void QMLMesoInterface::importMeso(const QString &filename)
 
 void QMLMesoInterface::sendMesocycleFileToServer()
 {
-	const QString &mesocycleFile{appUserModel()->localDir(m_client) + mesosDir + mesoCycleFileNameTemplate()};
+	const QString &mesocycleFile{appMesoModel()->mesoFileName(m_mesoIdx)};
 	appMesoModel()->setExportRow(m_mesoIdx);
 	if (appMesoModel()->exportContentsOnlyToFile(mesocycleFile))
 		appUserModel()->sendFileToServer(mesocycleFile, !ownMeso() ? tr("Exercises Program sent to client") : QString{}, mesosDir, m_client);
@@ -515,11 +515,6 @@ DBTrainingDayModel *QMLMesoInterface::tDayModelForToday()
 {
 	QmlTDayInterface *tDayPage(m_tDayPages.value(QDate::currentDate()));
 	return tDayPage ? tDayPage->tDayModel() : nullptr;
-}
-
-inline QString QMLMesoInterface::mesoCycleFileNameTemplate() const
-{
-	return name() + std::move(onlineMesoFileSuffix);
 }
 
 void QMLMesoInterface::createMesocyclePage()

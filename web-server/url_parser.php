@@ -1,12 +1,20 @@
 <?php
 
-//mkdir() does not set the permissions specified. Must use chmod() afterwards
-
 $rootdir="/var/www/html/trainingplanner/";
 $scriptsdir=$rootdir . "scripts/";
 $htpasswd_file=$scriptsdir . ".passwds";
 $coaches_file=$rootdir . "admin/coaches";
 $htpasswd="/usr/bin/htpasswd"; //use fullpath
+$developmentMode=true;
+
+if ($developmentMode) {
+    $dirMode = 0775;
+    $fileMode = 0664;
+}
+else {
+    $dirMode = 0755;
+    $fileMode = 0644;
+}
 
 // set the default timezone to use.
 date_default_timezone_set('America/Sao_Paulo');
@@ -30,6 +38,22 @@ function erasedir($path) {
     }
     closedir($dir);
     return rmdir($path);
+}
+
+//!!Attention!! mkdir() does not set the permissions specified. Must use chmod() afterwards
+function create_dir($directory) {
+    global $dirMode;
+    if (!is_dir($directory)) {
+        if (!mkdir($directory))
+            return false;
+        chmod($directory, $dirMode);
+    }
+    return true;
+}
+
+function chper($file) {
+    global $fileMode;
+    chmod($file, $fileMode);
 }
 
 // Function to verify credentials against .htpasswd file
@@ -64,16 +88,14 @@ function upload_file($uploadDir) {
             // Get file details
             $fileTmpPath = $_FILES['file']['tmp_name'];
             $fileName = $_FILES['file']['name'];
-            if (!is_dir($uploadDir)) {
-                if (!mkdir($uploadDir, 0775)) {
-                        echo "Return code: 20 Failed to create upload dir " . $uploadDir . "\r\n";
-                        return false;
-                }
+            if (!create_dir($uploadDir)) {
+                    echo "Return code: 20 Failed to create upload dir " . $uploadDir . "\r\n";
+                    return false;
             }
             $uploadFilePath = $uploadDir . "/" . basename($fileName);
             // Move the uploaded file to the upload directory
             if (move_uploaded_file($fileTmpPath, $uploadFilePath)) {
-                chmod($uploadFilePath, 0664);
+                chper($uploadFilePath);
                 echo "Return code: 0 File uploaded successfully: " . htmlspecialchars($fileName);
                 echo "\r\n";
                 return true;
@@ -94,6 +116,7 @@ function upload_file($uploadDir) {
 }
 
 function download_file($file, $downloadDir) {
+    global $fileMode;
     $filename=$downloadDir . "/" . $file;
     if (file_exists($filename)) {
         $file_name = basename($filename)."%%";
@@ -155,7 +178,7 @@ function add_coach($coach) {
     global $coaches_file;
     if (!file_exists($coaches_file)) {
         $fh = fopen($coaches_file, "w") or die("Return code: 10 Unable to create coaches file!" .$coaches_file . "\r\n");
-        chmod($coaches_file, 0664);
+        chmod($coaches_file, $fileMode);
     }
     else {
         $coaches = file($coaches_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -208,7 +231,7 @@ function request_coach($username, $coach) {
     $requests_file = $rootdir . $coach . "/requests.txt";
     if (!file_exists($requests_file)) {
         $fh = fopen($requests_file, "w") or die("Return code: 10 Unable to create requests file!" .$requests_file . "\r\n");
-        chmod($requests_file, 0664);
+        chper($requests_file);
     }
     else {
         $clients = file($requests_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -268,7 +291,7 @@ function accept_client_request($coach, $client)
         $accepts_file = $rootdir . $client . "/coaches_accepted.txt";
         if (!file_exists($accepts_file)) {
             $fh = fopen($accepts_file, "w")  or die("Return code: 10 Unable to create accepts file!" .$accepts_file . "\r\n");
-            chmod($accepts_file, 0664);
+            chper($accepts_file);
         }
         else {
             $coaches = file($accepts_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -296,7 +319,7 @@ function reject_client_request($coach, $client)
         $rejects_file = $rootdir . $client . "/coaches_rejected.txt";
         if (!file_exists($rejects_file)) {
             $fh = fopen($rejects_file, "w")  or die("Return code: 10 Unable to create rejects file!" .$rejects_file . "\r\n");
-            chmod($rejects_file, 0664);
+            chper($rejects_file);
         }
         else {
             $coaches = file($rejects_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -381,7 +404,7 @@ function accept_coach_answer($client, $coach)
     $clients_file = $rootdir . $coach . "/clients.txt";
     if (!file_exists($clients_file)) {
         $fh = fopen($clients_file, "w")  or die("Return code: 10 Unable to create coach's clients file! " .$clients_file . "\r\n");
-        chmod($clients_file, 0664);
+        chper($clients_file);
     }
     else {
         $clients = file($clients_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -399,7 +422,7 @@ function accept_coach_answer($client, $coach)
     $coaches_file = $rootdir . $client . "/coaches.txt";
     if (!file_exists($coaches_file)) {
         $fh = fopen($coaches_file, "w")  or die("Return code: 10 Unable to create client's coaches file! " .$coaches_file . "\r\n");
-        chmod($coaches_file, 0664);
+        chper($coaches_file);
     }
     else {
         $coaches = file($coaches_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -652,12 +675,11 @@ if ($username) {
                 }
 
                 if (isset($_GET['upload'])) {
+                    $subdir = $_GET['upload'];
                     $targetuser = $_GET['targetuser'];
                     if ($targetuser)
                         $fileDir = $rootdir . $targetuser;
-                    $subdir = $_GET['upload'];
-                    if ($subdir)
-                        $fileDir . "/" . $subdir;
+                    $fileDir = $fileDir . "/" . $subdir;
                     upload_file($fileDir);
                     exit;
                 }
@@ -743,12 +765,8 @@ if ($username) {
                     $ok = run_htpasswd("-bB", $username, $new_user_password);
                     if ($ok == 0) {
                         $userdir = $rootdir . $username;
-                        if (!is_dir($userdir)) {
-                            if (!mkdir($userdir, 0775))
-                                $ok = 1;
-                            else
-                                chmod($userdir, 0775);
-                         }
+                        if (!create_dir($userdir))
+                            $ok = 1;
                     }
                     if ($ok == 0)
                         echo "Return code: 0 ".$username." successfully created\r\n";
