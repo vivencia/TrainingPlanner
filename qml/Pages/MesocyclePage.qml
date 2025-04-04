@@ -33,12 +33,12 @@ TPPage {
 
 	Loader {
 		id: newMesoLoader
-		active: mesoManager.isNewMeso ? mesoManager.newMesoFieldCounter >= 0 : mesoManager.newMesoFieldCounter === 0
+		active: mesoManager.isTempMeso ? (mesoManager.isNewMeso ? mesoManager.newMesoFieldCounter >= 0 :
+				mesoManager.newMesoFieldCounter === 0 || mesoManager.newMesoFieldCounter === 20) : false
 		asynchronous: true
 
 		sourceComponent: TPBalloonTip {
 			parentPage: mesoPropertiesPage
-			title: qsTr("New program setup incomplete")
 			imageEnabled: false
 			imageSource: "set-completed"
 			button1Text: "OK"
@@ -61,7 +61,10 @@ TPPage {
 
 	function newMesoMessageHandler(fieldCounter: int): void {
 		switch (fieldCounter) {
-			case 4: newMesoTip.message = qsTr("Change and/or accept the program's name"); break;
+			case 4:
+				newMesoTip.title = qsTr("New program setup incomplete");
+				newMesoTip.message = qsTr("Change and/or accept the program's name");
+				break;
 			case 3: newMesoTip.message = qsTr("Change and/or accept the start date"); break;
 			case 2: newMesoTip.message = qsTr("Change and/or accept the end date"); break;
 			case 1: newMesoTip.message = qsTr("Change and/or accept the split division"); break;
@@ -70,6 +73,13 @@ TPPage {
 				newMesoTip.title = qsTr("New program setup complete!");
 				newMesoTip.message = qsTr("Required fields setup");
 				newMesoTip.showTimed(5000, -3);
+			break;
+			case 20:
+				newMesoTip.title = qsTr("Accept program from coach?");
+				newMesoTip.message = qsTr("Until you accept this program you can only view it");
+				newMesoTip.button1Text = qsTr("Yes");
+				newMesoTip.button2Text = qsTr("No");
+				newMesoTip.button1Clicked.connect(function() { mesoManager.incorporateMeso();} )
 			break;
 		}
 	}
@@ -159,6 +169,7 @@ TPPage {
 				text: mesoManager.name
 				ToolTip.text: qsTr("Name too short")
 				ToolTip.visible:!bMesoNameOK;
+				readOnly: !mesoManager.ownMeso
 				width: 0.9*parent.width
 				Layout.preferredWidth: width
 
@@ -179,7 +190,9 @@ TPPage {
 				TPComboBox {
 					id: cboMesoType
 					width: 0.75*parent.width
+					editable: !mesoManager.ownMeso
 					Layout.minimumWidth: width
+					currentIndex: find(mesoManager.type)
 
 					model: ListModel {
 						id: typeModel
@@ -191,16 +204,6 @@ TPPage {
 						ListElement { text: qsTr("Physical Recovery"); value: 5; enabled: true; }
 						ListElement { text: qsTr("Physical Maintenance"); value: 6; enabled: true; }
 						ListElement { text: qsTr("Other"); value: 7; enabled: true; }
-
-						Component.onCompleted: {
-							for (let i = 0; i < count; ++i) {
-								if (get(i) === mesoManager.type)
-								{
-									cboMesoType.currentIndex = i;
-									return;
-								}
-							}
-						}
 					}
 
 					onActivated: (index) => {
@@ -216,6 +219,7 @@ TPPage {
 				id: txtMesoTypeOther
 				text: mesoManager.type
 				visible: cboMesoType.currentIndex === typeModel.count - 1
+				readOnly: !mesoManager.ownMeso
 				width: parent.width
 				Layout.maximumWidth: width
 				Layout.minimumWidth: width
@@ -322,6 +326,7 @@ TPPage {
 				TPButton {
 					id: btnStartDate
 					imageSource: "calendar.png"
+					enabled: !mesoManager.ownMeso
 					anchors.left: txtMesoStartDate.right
 					anchors.verticalCenter: txtMesoStartDate.verticalCenter
 
@@ -350,6 +355,7 @@ TPPage {
 					imageSource: "set-completed"
 					checkable: true
 					fixedSize: true
+					enabled: !mesoManager.ownMeso
 					visible: mesoManager.isNewMeso
 					height: 25
 					width: 25
@@ -393,6 +399,7 @@ TPPage {
 				TPButton {
 					id: btnEndDate
 					imageSource: "calendar.png"
+					enabled: !mesoManager.ownMeso
 					anchors.left: txtMesoEndDate.right
 					anchors.verticalCenter: txtMesoEndDate.verticalCenter
 
@@ -441,6 +448,7 @@ TPPage {
 					id: txtMesoNotes
 					text: mesoManager.notes
 					color: "black"
+					readOnly: !mesoManager.ownMeso
 					font.pixelSize: appSettings.fontSize
 					font.bold: true
 					topPadding: appSettings.fontSize

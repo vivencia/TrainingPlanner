@@ -24,6 +24,7 @@ Q_PROPERTY(bool hasCoach READ hasCoach WRITE setHasCoach NOTIFY hasCoachChanged 
 Q_PROPERTY(bool realMeso READ realMeso WRITE setRealMeso NOTIFY realMesoChanged FINAL)
 Q_PROPERTY(bool ownMeso READ ownMeso WRITE setOwnMeso NOTIFY ownMesoChanged FINAL)
 Q_PROPERTY(bool isNewMeso READ isNewMeso NOTIFY isNewMesoChanged FINAL)
+Q_PROPERTY(bool isTempMeso READ isTempMeso NOTIFY isTempMesoChanged FINAL)
 
 Q_PROPERTY(QString nameLabel READ nameLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString coachLabel READ coachLabel NOTIFY labelsChanged FINAL)
@@ -83,6 +84,7 @@ public:
 	void setOwnMeso(const bool new_value, const bool bFromQml = true);
 
 	[[nodiscard]] bool isNewMeso() const;
+	[[nodiscard]] bool isTempMeso() const;
 
 	QString nameLabel() const;
 	QString coachLabel() const;
@@ -162,6 +164,7 @@ public:
 	void exportMeso(const bool bShare, const bool bCoachInfo);
 	void importMeso(const QString &filename = QString());
 	Q_INVOKABLE void sendMesocycleFileToServer();
+	Q_INVOKABLE void incorporateMeso();
 
 	[[nodiscard]] DBMesoSplitModel *plannerSplitModel(const QChar &splitLetter);
 	[[nodiscard]] DBTrainingDayModel *tDayModelForToday();
@@ -172,6 +175,7 @@ signals:
 	void realMesoChanged();
 	void ownMesoChanged();
 	void isNewMesoChanged();
+	void isTempMesoChanged();
 	void labelsChanged();
 	void nameChanged();
 	void coachChanged();

@@ -18,7 +18,7 @@
 DBMesocyclesModel *DBMesocyclesModel::app_meso_model(nullptr);
 
 DBMesocyclesModel::DBMesocyclesModel(QObject *parent, const bool bMainAppModel)
-	: TPListModel{parent}, m_mostRecentOwnMesoIdx{-1}, m_bCanHaveTodaysWorkout{false}
+	: TPListModel{parent}, m_mostRecentOwnMesoIdx{-1}, m_lowestTempMesoId{-1}, m_bCanHaveTodaysWorkout{false}
 {
 	setObjectName(DBMesocyclesObjectName);
 	m_tableId = MESOCYCLES_TABLE_ID;
@@ -106,7 +106,7 @@ void DBMesocyclesModel::getMesocyclePage(const uint meso_idx)
 uint DBMesocyclesModel::startNewMesocycle(const bool bCreatePage, const bool bOwnMeso)
 {
 	beginInsertRows(QModelIndex{}, count(), count());
-	const uint meso_idx{newMesocycle(std::move(QStringList{} << STR_MINUS_ONE << QString{} << QString{} << QString{} <<
+	const uint meso_idx{newMesocycle(std::move(QStringList{} << QString::number(m_lowestTempMesoId--) << QString{} << QString{} << QString{} <<
 		QString{} << QString{} << std::move("RRRRRRR"_L1) << appUserModel()->userId(0) <<
 			(bOwnMeso ? appUserModel()->userId(0) : appUserModel()->defaultClient()) << QString{} << QString{} << STR_ONE))};
 	emit countChanged();
@@ -424,7 +424,7 @@ QVariant DBMesocyclesModel::data(const QModelIndex &index, int role) const
 		switch(role)
 		{
 			case mesoNameRole:
-				return QVariant("<b>"_L1 + (name(row).isEmpty() ? tr("New Program") : name(row)) + "</b>"_L1);
+				return QVariant("<b>"_L1 + (name(row).isEmpty() ? tr("New Program") : name(row)) + (_id(row) < 0 ? tr(" (Temporary)") : QString{}) + "</b>"_L1);
 			case mesoStartDateRole:
 				return QVariant(mColumnNames.at(MESOCYCLES_COL_STARTDATE) + "<b>"_L1 +
 					(!isNewMeso(row) ? appUtils()->formatDate(startDate(row)) : tr("Not set")) + "</b>"_L1);
@@ -641,7 +641,27 @@ void DBMesocyclesModel::sendMesoToUser(const uint meso_idx)
 	m_mesoManagerList.at(meso_idx)->sendMesocycleFileToServer();
 }
 
-void DBMesocyclesModel::viewOnlineMeso(const QString &mesoName)
+void DBMesocyclesModel::viewOnlineMeso(const QString &mesoFileName)
 {
+	const int meso_idx{importFromContentsOnlyFile(mesoFileName)};
+	if (meso_idx >= 0)
+	{
+		m_modeldata[meso_idx][MESOCYCLES_COL_ID] = std::move(QString::number(m_lowestTempMesoId--));
+		QMLMesoInterface *mesomanager{new QMLMesoInterface{this, static_cast<uint>(meso_idx)}};
+		m_mesoManagerList.append(mesomanager);
+		mesomanager->setNewMesoFieldCounter(20);
+		getMesocyclePage(static_cast<uint>(meso_idx));
+	}
+}
 
+void DBMesocyclesModel::maybeIncorporateMeso(const uint meso_idx)
+{
+	QFile *mesoFile{appUtils()->openFile(mesoFileName(meso_idx), QIODeviceBase::ReadWrite|QIODeviceBase::Text)};
+	if (!mesoFile)
+		return;
+
+	mesoFile->write(id(meso_idx).toUtf8().constData());
+	mesoFile->write("\n", 1);
+	mesoFile->close();
+	delete mesoFile;
 }

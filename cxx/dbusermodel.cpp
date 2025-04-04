@@ -843,7 +843,7 @@ bool DBUserModel::importFromString(const QString &user_data)
 	if (modeldata.count() < USER_TOTAL_COLS)
 		return false;
 	if (modeldata.count() > USER_TOTAL_COLS)
-		modeldata.removeLast(); //remove the password field
+		modeldata.resize(USER_TOTAL_COLS); //remove the password field and anything else that does not belong
 	m_modeldata.append(std::move(modeldata));
 	emit userModified(m_modeldata.count() - 1);
 	return true;
@@ -1082,7 +1082,7 @@ void DBUserModel::sendUserInfoToServer()
 {
 	const QString &localUserData{localDir(0) + userLocalDataFileName};
 	setExportRow(0);
-	if (exportContentsOnlyToFile(localUserData))
+	if (exportContentsOnlyToFile(localUserData, true))
 		sendFileToServer(localUserData, tr("Online user information updated"), QString{}, userId(0), true);
 }
 

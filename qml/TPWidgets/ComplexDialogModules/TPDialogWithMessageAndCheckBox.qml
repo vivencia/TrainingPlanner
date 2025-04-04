@@ -6,10 +6,9 @@ import "../"
 import "../.."
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
-Column {
+Item {
 	id: mainLayout
-	padding: 5
-	spacing: 5
+	height: row.height + checkbox.implicitHeight + 10
 
 	required property TPComplexDialog parentDlg
 
@@ -19,12 +18,14 @@ Column {
 
 	RowLayout {
 		id: row
-		Layout.leftMargin: 5
-		Layout.rightMargin: 5
-		Layout.topMargin: 10
-		Layout.fillWidth: true
 		spacing: 5
 		height: Math.max(lblMessage.height, imgElement.height)
+
+		anchors {
+			top: parent.top
+			left: parent.left
+			right: parent.right
+		}
 
 		TPImage {
 			id: imgElement
@@ -51,11 +52,14 @@ Column {
 		id: checkbox
 		text: parentDlg.customStringProperty2
 		checked: false
-		width: parent.width
-		Layout.leftMargin: 10
-		Layout.rightMargin: 5
-		Layout.topMargin: 5
-		Layout.bottomMargin: 5
+
+		anchors {
+			top: row.bottom
+			topMargin: 5
+			left: parent.left
+			leftMargin: 10
+			right: parent.right
+		}
 
 		onCheckedChanged: parentDlg.customBoolProperty1 = checked;
 	} //TPCheckBox

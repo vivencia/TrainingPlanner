@@ -372,7 +372,7 @@ Frame {
 		const client_role = userModel.userRole(userRow);
 		bClientRoleOK = client_role.length > 1;
 		if (!bClientRoleOK)
-			cboUserRole.currentIndex = 0;
+			cboUserRole.currentIndex = -1;
 		else {
 			idx = cboUserRole.find(client_role);
 			if (idx < 0) {
@@ -385,7 +385,7 @@ Frame {
 		const user_goal = userModel.goal(userRow);
 		bGoalOK = user_goal.length > 1;
 		if (!bGoalOK)
-			cboGoal.currentIndex = 0;
+			cboGoal.currentIndex = -1;
 		else {
 			idx = cboGoal.find(user_goal);
 			if (idx < 0) {
@@ -398,7 +398,7 @@ Frame {
 		const coach_role = userModel.coachRole(userRow);
 		bCoachRoleOK = coach_role.length > 1;
 		if (!bCoachRoleOK)
-			cboCoachRole.currentIndex = 0;
+			cboCoachRole.currentIndex = 1;
 		else {
 			idx = cboCoachRole.find(coach_role);
 			if (idx < 0) {

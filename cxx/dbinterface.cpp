@@ -296,6 +296,8 @@ void DBInterface::saveMesocycle(const uint meso_idx)
 				//information the simple split contains. saveMesoSplit() code can interfere with the other threads so we do not call it
 				if (!appMesoModel()->importMode())
 					saveMesoSplit(meso_idx);
+				if (!appMesoModel()->isOwnMeso(meso_idx))
+					appMesoModel()->maybeIncorporateMeso(meso_idx);
 			}
 		});
 	}

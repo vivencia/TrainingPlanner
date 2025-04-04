@@ -71,6 +71,11 @@ bool QMLMesoInterface::isNewMeso() const
 	return appMesoModel()->isNewMeso(m_mesoIdx);
 }
 
+bool QMLMesoInterface::isTempMeso() const
+{
+	return appMesoModel()->_id(m_mesoIdx) < 0;
+}
+
 QString QMLMesoInterface::nameLabel() const
 {
 	return appMesoModel()->columnLabel(MESOCYCLES_COL_NAME);
@@ -504,6 +509,11 @@ void QMLMesoInterface::sendMesocycleFileToServer()
 	appMesoModel()->setExportRow(m_mesoIdx);
 	if (appMesoModel()->exportContentsOnlyToFile(mesocycleFile))
 		appUserModel()->sendFileToServer(mesocycleFile, !ownMeso() ? tr("Exercises Program sent to client") : QString{}, mesosDir, m_client);
+}
+
+void QMLMesoInterface::incorporateMeso()
+{
+	appDBInterface()->saveMesocycle(m_mesoIdx);
 }
 
 DBMesoSplitModel *QMLMesoInterface::plannerSplitModel(const QChar &splitLetter)

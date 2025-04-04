@@ -106,6 +106,7 @@ Pane {
 						//objectName: "combo"
 						// Don't allow a day to skip a letter. Letters must be added sequentially or be repeated, never skipped
 						id: cboSplit
+						editable: !mesoManager.ownMeso
 
 						readonly property int nDelegateRows: 7
 						readonly property int nLastDelegateIdx: 6
@@ -183,6 +184,7 @@ Pane {
 						id: btnMuscularGroups
 						imageSource: "choose.png"
 						imageSize: 25
+						enabled: !mesoManager.ownMeso
 
 						anchors {
 							bottom: parent.bottom

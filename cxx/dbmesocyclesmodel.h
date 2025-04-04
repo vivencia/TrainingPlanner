@@ -255,7 +255,8 @@ public:
 
 	QString mesoFileName(const uint meso_idx) const;
 	Q_INVOKABLE void sendMesoToUser(const uint meso_idx);
-	void viewOnlineMeso(const QString &mesoName);
+	void viewOnlineMeso(const QString &mesoFileName);
+	void maybeIncorporateMeso(const uint meso_idx);
 
 signals:
 	void mesoIdxChanged(const uint old_meso_idx, const uint new_meso_idx);
@@ -279,7 +280,7 @@ private:
 	QList<short> m_newMesoFieldCounter;
 	QList<bool> m_newMesoCalendarChanged;
 	QList<QStringList> m_usedSplits;
-	int m_currentMesoIdx, m_mostRecentOwnMesoIdx, m_importMesoIdx;
+	int m_currentMesoIdx, m_mostRecentOwnMesoIdx, m_importMesoIdx, m_lowestTempMesoId;
 	bool m_bCanHaveTodaysWorkout, m_bViewedMesoHasData;
 
 	static DBMesocyclesModel *app_meso_model;

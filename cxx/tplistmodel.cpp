@@ -117,7 +117,7 @@ bool TPListModel::isDifferent(const TPListModel *const model) const
 	return true;
 }
 
-bool TPListModel::exportContentsOnlyToFile(const QString &filename, const bool appendInfo) const
+bool TPListModel::exportContentsOnlyToFile(const QString &filename, const bool useRealId, const bool appendInfo) const
 {
 	QFile *outFile{appUtils()->openFile(filename, appendInfo ? QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text :
 							QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text)};
@@ -128,7 +128,13 @@ bool TPListModel::exportContentsOnlyToFile(const QString &filename, const bool a
 	{
 		for (const auto &itr : m_modeldata)
 		{
-			for (uint i{0}; i < itr.count(); ++i)
+			uint i{0};
+			if (!useRealId)
+			{
+				outFile->write("-1", 2);
+				i = 1;
+			}
+			for (; i < itr.count(); ++i)
 			{
 				outFile->write(itr.at(i).toUtf8().constData());
 				outFile->write("\n", 1);
@@ -150,6 +156,26 @@ bool TPListModel::exportContentsOnlyToFile(const QString &filename, const bool a
 	outFile->close();
 	delete outFile;
 	return true;
+}
+
+int TPListModel::importFromContentsOnlyFile(const QString &filename)
+{
+	QFile *inFile{appUtils()->openFile(filename, QIODeviceBase::ReadOnly|QIODeviceBase::Text)};
+	if (!inFile)
+		return -1;
+
+	char buf[512];
+	QStringList modeldata(m_fieldCount);
+	while (inFile->readLine(buf, sizeof(buf)) != -1)
+		modeldata.append(QString::fromLocal8Bit(buf));
+	inFile->close();
+	delete inFile;
+	if (modeldata.count() < m_fieldCount)
+		return -1;
+	if (modeldata.count() > m_fieldCount)
+		modeldata.resize(m_fieldCount);
+	m_modeldata.append(std::move(modeldata));
+	return m_modeldata.count() - 1;
 }
 
 int TPListModel::exportToFile(const QString &filename, const bool writeHeader, const bool writeEnd, const bool appendInfo) const

@@ -4,10 +4,10 @@ import QtQuick.Layouts
 
 import "../"
 
-Column {
+Item {
 	id: grpIntent
-	padding: 0
-	spacing: 5
+	height: optMesoPlan.implicitHeight + optPreviousDay.implicitHeight + cboPreviousTDaysDates.height +
+				optLoadFromFile.implicitHeight + optEmptySession.implicitHeight + 20
 
 	required property var parentDlg
 
@@ -32,7 +32,13 @@ Column {
 		checked: parentDlg.customIntProperty1 === 1
 		multiLine: true
 		visible: parentDlg.customBoolProperty1	//bHasMesoPlan
-		width: parent.width
+		height: visible ? implicitHeight : 0
+
+		anchors {
+			top: parent.top
+			left: parent.left
+			right: parent.right
+		}
 
 		onClicked: parentDlg.customIntProperty1 = 1;
 	}
@@ -43,7 +49,14 @@ Column {
 		checked: parentDlg.customIntProperty1 === 2
 		multiLine: true
 		visible: parentDlg.customBoolProperty2	//bHasPreviousTDays
-		width: grpIntent.width
+		height: visible ? implicitHeight : 0
+
+		anchors {
+			top: parentDlg.customBoolProperty1 ? optMesoPlan.bottom : parent.top
+			topMargin: 5
+			left: parent.left
+			right: parent.right
+		}
 
 		onClicked: parentDlg.customIntProperty1 = 2;
 	}
@@ -53,8 +66,15 @@ Column {
 		model: parentDlg.customModel
 		visible: parentDlg.customBoolProperty2	//bHasPreviousTDays
 		enabled: optPreviousDay.checked
-		width: grpIntent.width
-		Layout.leftMargin: 20
+		height: visible ? 25 : 0
+
+		anchors {
+			top: optPreviousDay.bottom
+			topMargin: 5
+			left: parent.left
+			leftMargin: 15
+			right: parent.right
+		}
 
 		onActivated: (index) => parentDlg.customStringProperty1 = currentText;
 
@@ -69,7 +89,14 @@ Column {
 		text: qsTr("Import workout from file")
 		checked: parentDlg.customIntProperty1 === 3
 		visible: parentDlg.customBoolProperty3	//noExercises
-		width: grpIntent.width
+		height: visible ? implicitHeight : 0
+
+		anchors {
+			top: parentDlg.customBoolProperty2 ? cboPreviousTDaysDates.bottom : optMesoPlan
+			topMargin: 5
+			left: parent.left
+			right: parent.right
+		}
 
 		onClicked: parentDlg.customIntProperty1 = 3;
 	}
@@ -78,19 +105,15 @@ Column {
 		id: optEmptySession
 		text: qsTr("Start a new session")
 		checked: parentDlg.customIntProperty1 === 4
-		width: grpIntent.width
+
+		anchors {
+			top: parentDlg.customBoolProperty3 ? optLoadFromFile.bottom : parentDlg.customBoolProperty2 ?
+								cboPreviousTDaysDates.bottom : parentDlg.customBoolProperty1 ? optMesoPlan.bottom : parent.top
+			topMargin: 5
+			left: parent.left
+			right: parent.right
+		}
 
 		onClicked: parentDlg.customIntProperty1 = 4;
-	}
-
-	function resize(): void {
-		grpIntent.height = optMesoPlan.implicitHeight + optPreviousDay.implicitHeight + cboPreviousTDaysDates.height +
-								optLoadFromFile.implicitHeight + optEmptySession.implicitHeight;
-		if (!parentDlg.customBoolProperty1)
-			grpIntent.height -= optMesoPlan.implicitHeight;
-		if (!parentDlg.customBoolProperty2)
-			grpIntent.height -= (optPreviousDay.implicitHeight + cboPreviousTDaysDates.height);
-		if (!parentDlg.customBoolProperty3)
-			grpIntent.height -= optLoadFromFile.implicitHeight;
 	}
 }
