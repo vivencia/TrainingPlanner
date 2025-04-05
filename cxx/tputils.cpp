@@ -40,6 +40,14 @@ int TPUtils::generateUniqueId(const QLatin1StringView &seed) const
 	}
 }
 
+int TPUtils::idFromString(const QString &string_id) const
+{
+	const int id{std::accumulate(string_id.cbegin(), string_id.cend(), 0, [] (int sum, const QChar &chr) {
+		return sum + static_cast<int>(chr.toLatin1());
+	})};
+	return id;
+}
+
 QString TPUtils::getCorrectPath(const QUrl &url) const
 {
 	QString path{url.toString(QUrl::PrettyDecoded|QUrl::PreferLocalFile|QUrl::RemoveScheme)};

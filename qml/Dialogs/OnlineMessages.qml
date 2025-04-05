@@ -38,6 +38,11 @@ Popup {
 			duration: 200
 			easing.type: Easing.InOutCubic
 		}
+
+		onFinished: {
+			onlineMsgsDlg.x = appSettings.pageWidth - 80;
+			onlineMsgsDlg.y = 180;
+		}
 	}
 	ParallelAnimation
 	{
@@ -59,14 +64,21 @@ Popup {
 			duration: 200
 			easing.type: Easing.InOutCubic
 		}
+
+		onFinished: {
+			onlineMsgsDlg.x = appSettings.pageWidth - onlineMsgsDlg.width;
+			if (onlineMsgsDlg.y + onlineMsgsDlg.height > appSettings.pageHeight)
+				onlineMsgsDlg.y = appSettings.pageHeight - onlineMsgsDlg.height;
+		}
 	}
 
 	TPImage {
 		id: mainIcon
 		source: "messages"
-		dropShadow: false
-		width: 100
-		height: 100
+		width: 50
+		height: 50
+		x: appSettings.pageWidth - 80
+		y: 180
 		visible: !fullDialogVisible
 
 		TPMouseArea {
@@ -94,8 +106,8 @@ Popup {
 
 			anchors {
 				horizontalCenter: parent.horizontalCenter;
-				horizontalCenterOffset: - smallIcon.width/2
-				verticalCenter: parent.horizontalCenter;
+				horizontalCenterOffset: 0 - smallIcon.width/2
+				verticalCenter: parent.verticalCenter;
 			}
 		}
 
@@ -108,12 +120,12 @@ Popup {
 
 			anchors {
 				left: topBarText.right
-				verticalCenter: parent.horizontalCenter;
+				verticalCenter: parent.verticalCenter;
 			}
 		}
 
 		TPMouseArea {
-			movingWidget: topBar
+			movingWidget: parent
 			movableWidget: onlineMsgsDlg
 
 			onPressed: (mouse) => pressedFunction(mouse);
@@ -147,11 +159,11 @@ Popup {
 
 		ScrollBar.vertical: ScrollBar {
 			policy: ScrollBar.AsNeeded
-			active: true; visible: pendingCoachesList.contentHeight > pendingCoachesList.height
+			active: true; visible: messagesList.contentHeight > messagesList.height
 		}
 		ScrollBar.horizontal: ScrollBar {
 			policy: ScrollBar.AsNeeded
-			active: true; visible: pendingCoachesList.contentWidth > pendingCoachesList.width
+			active: true; visible: messagesList.contentWidth > messagesList.width
 		}
 
 		delegate: SwipeDelegate {
@@ -206,7 +218,7 @@ Popup {
 				TPLabel {
 					id: lblMessage
 					text: appMessages.messageEntry(index).displayText
-					heightAvailable: minimumMessageHeight
+					heightAvailable: messagesList.minimumMessageHeight
 					widthAvailable: parent.width - 10
 					wrapMode: delegateItem.showActions ? Text.NoWrap : Text.WordWrap
 					singleLine: !delegateItem.showActions

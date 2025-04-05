@@ -48,6 +48,7 @@ ApplicationWindow {
 	}
 
 	header: Loader {
+		id: navBar
 		active: userModel.mainUserConfigured
 		asynchronous: true
 		source: "qrc:/qml/Dialogs/NavBar.qml"
@@ -58,6 +59,13 @@ ApplicationWindow {
 		active: userModel.mainUserConfigured
 		asynchronous: true
 		source: "qrc:/qml/Dialogs/MainMenu.qml"
+	}
+
+	Loader {
+		id: appMessagesWidget
+		active: appMessages ? appMessages.count > 0 : false
+		asynchronous: true
+		source: "qrc:/qml/Dialogs/OnlineMessages.qml"
 	}
 
 	function openMainMenu(): void {

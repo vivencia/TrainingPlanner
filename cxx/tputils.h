@@ -36,6 +36,7 @@ public:
 	inline const QString &localAppFilesDir() const { return m_localAppFilesDir; }
 
 	int generateUniqueId(const QLatin1StringView &seed = QLatin1StringView{}) const;
+	int idFromString(const QString &string_id) const; //not unique
 
 	Q_INVOKABLE QString getCorrectPath(const QUrl &url) const;
 	Q_INVOKABLE int getFileType(const QString &filename) const;

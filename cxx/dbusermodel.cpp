@@ -1493,18 +1493,23 @@ void DBUserModel::checkNewMesos()
 				{
 					for (const auto &it : ret_list)
 					{
-						TPMessage *new_message{new TPMessage(coach + tr(" has sent you a new Exercises Program"), "message-meso"_L1, appMessagesManager())};
-						new_message->insertData(it, 0);
-						new_message->insertAction(tr("View"), [=] (const QVariant &mesofile) {
+						const int id{appUtils()->idFromString(it)};
+						if (!appMessagesManager()->message(id))
+						{
+							TPMessage *new_message{new TPMessage(coach + tr(" has sent you a new Exercises Program"), "message-meso"_L1, appMessagesManager())};
+							new_message->setId(id);
+							new_message->insertData(it, 0);
+							new_message->insertAction(tr("View"), [=] (const QVariant &mesofile) {
 											appMesoModel()->viewOnlineMeso(mesofile.toString()); }, false);
-						new_message->insertAction(tr("Delete"), [=,this] (const QVariant &subdir) {
+							new_message->insertAction(tr("Delete"), [=,this] (const QVariant &subdir) {
 											appOnlineServices()->removeFile(request_id, userId(0), m_password, it, coach); });
-						new_message->plug();
+							new_message->plug();
+						}
 					}
 				}
 			}
 		});
-		appOnlineServices()->listFiles(requestid, userId(0), m_password, mesosDir, coach);
+		appOnlineServices()->listFiles(requestid, userId(0), m_password, mesosDir + userIdFromFieldValue(USER_COL_NAME, coach), userId(0));
 	}
 }
 

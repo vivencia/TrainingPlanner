@@ -222,11 +222,11 @@ void TPOnlineServices::listFiles(const int requestid, const QString &username, c
 			if (ret_code == 0)
 			{
 				const QString &localDir{appUtils()->localAppFilesDir() + subdir};
-				const QStringList &remote_files_list{ret_string.split(' ', Qt::SkipEmptyParts)};
-				for (const auto &remote_file_info : remote_files_list)
+				const QStringList &remote_files_list{ret_string.split(fancy_record_separator1, Qt::SkipEmptyParts)};
+				for (uint i{0}; i < remote_files_list.count(); i=+2)
 				{
-					QString filename{std::move(appUtils()->getCompositeValue(0, remote_file_info, fancy_record_separator1))};
-					const QString &online_date{appUtils()->getCompositeValue(1, remote_file_info, fancy_record_separator1)};
+					QString filename{std::move(remote_files_list.at(i))};
+					const QString &online_date{remote_files_list.at(i+1)};
 					if (!localFileUpToDate(online_date, localDir + filename))
 						new_files.append(std::move(filename));
 				}

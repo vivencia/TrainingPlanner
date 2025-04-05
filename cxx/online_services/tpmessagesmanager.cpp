@@ -38,9 +38,11 @@ std::optional<int> TPMessagesManager::addMessage(TPMessage *msg)
 	{
 		beginInsertRows(QModelIndex{}, count(), count());
 		const QLatin1StringView v{std::move(msg->_displayText().toLatin1())};
-		msg->setId(appUtils()->generateUniqueId(v));
+		if (msg->id() == -1) //do not override an id set elsewhere
+			msg->setId(appUtils()->generateUniqueId(v));
 		m_data.append(msg);
 		endInsertRows();
+		emit countChanged();
 		msg->setPlugged(true);
 		connect(msg, &TPMessage::actionTriggered, this, [this,msg] (const int action_id, const std::optional<bool> remove_message) {
 			emit actionTriggered(msg->id(), action_id);

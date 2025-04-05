@@ -167,7 +167,7 @@ function scan_dir($path) {
         if (count($files) > 0) {
             echo "Return code: 0 ";
             foreach ($files as &$file)
-                echo $file . "|" . date('Hisymd', filectime($file)) . "| ";
+                echo $file . "|" . date('Hisymd', filectime($file)) . "|";
             return true;
         }
     }
