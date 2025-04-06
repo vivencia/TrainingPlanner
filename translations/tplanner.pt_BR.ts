@@ -493,22 +493,22 @@
 <context>
     <name>DBMesocyclesModel</name>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="60"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="69"/>
         <source>Start date: </source>
         <translation>Início: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="61"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="70"/>
         <source>End date: </source>
         <translation>Término: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="63"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="72"/>
         <source>Number of weeks: </source>
         <translation>Número de semanas: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="64"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="73"/>
         <source>Weekly Training Division: </source>
         <translation>Divisão Semanal dos Treinos: </translation>
     </message>
@@ -518,64 +518,69 @@
         <translation>Programa de Treinamento</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="59"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="68"/>
         <source>Program&apos;s name: </source>
         <translation>Nome do programa: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="62"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="71"/>
         <source>Program&apos;s considerations: </source>
         <translation>Considerações sobre o programa: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="66"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="75"/>
         <source>Mesocycle-style program: </source>
         <translation>Programa do tipo Mesociclo: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="419"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="427"/>
         <source>New Program</source>
         <translation>Novo Programa</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="422"/>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="425"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="427"/>
+        <source> (Temporary)</source>
+        <translation> (Temporário)</translation>
+    </message>
+    <message>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="430"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="433"/>
         <source>Not set</source>
         <translation>Não escolhida</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="493"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="501"/>
         <source>Client: </source>
         <translation>Cliente: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="491"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="499"/>
         <source>Coach/Trainer: </source>
         <translation>Coach/Treinador: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="604"/>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="621"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="612"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="629"/>
         <source>Yes</source>
         <translation>Sim</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="604"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="612"/>
         <source>No</source>
         <translation>Não</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="617"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="625"/>
         <source>Coach</source>
         <translation>Treinador</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="619"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="627"/>
         <source>Client</source>
         <translation>Cliente</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="65"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="74"/>
         <source>Type: </source>
         <translation>Tipo: </translation>
     </message>
@@ -688,234 +693,234 @@
 <context>
     <name>DBUserModel</name>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="99"/>
+        <location filename="../cxx/dbusermodel.cpp" line="103"/>
         <source>Name: </source>
         <translation>Nome: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="100"/>
+        <location filename="../cxx/dbusermodel.cpp" line="104"/>
         <source>Birthday: </source>
         <translation>Aniversário: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="101"/>
+        <location filename="../cxx/dbusermodel.cpp" line="105"/>
         <source>Sex: </source>
         <translation>Sexo: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="102"/>
+        <location filename="../cxx/dbusermodel.cpp" line="106"/>
         <source>Phone: </source>
         <translation>Cel: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="105"/>
+        <location filename="../cxx/dbusermodel.cpp" line="109"/>
         <source>Your are: </source>
         <translation>Você é: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="108"/>
+        <location filename="../cxx/dbusermodel.cpp" line="112"/>
         <source>App use mode: </source>
         <translation>Tipo de uso: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="111"/>
+        <location filename="../cxx/dbusermodel.cpp" line="115"/>
         <source>Password:</source>
         <translation>Senha:</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="114"/>
+        <location filename="../cxx/dbusermodel.cpp" line="118"/>
         <source>Continue Setup</source>
         <translation>Continuar configuração</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="114"/>
+        <location filename="../cxx/dbusermodel.cpp" line="118"/>
         <source>Create a new user</source>
         <translation>Criar um novo usuário</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="117"/>
+        <location filename="../cxx/dbusermodel.cpp" line="121"/>
         <source>User already registered</source>
         <translation>Usuário já registrado</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="118"/>
+        <location filename="../cxx/dbusermodel.cpp" line="122"/>
         <source>Invalid email address</source>
         <translation>E-mail inválido</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="119"/>
+        <location filename="../cxx/dbusermodel.cpp" line="123"/>
         <source>Password must have 6 characters or more</source>
         <translation>A senha deve conter 6 caracteres ou mais</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="120"/>
+        <location filename="../cxx/dbusermodel.cpp" line="124"/>
         <source>Check</source>
         <translation>Verificar</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="121"/>
+        <location filename="../cxx/dbusermodel.cpp" line="125"/>
         <source>Import</source>
         <translation>Importar</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="297"/>
+        <location filename="../cxx/dbusermodel.cpp" line="306"/>
         <source>Revoke coach status</source>
         <translation>Deixar de ser treinador</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="298"/>
-        <location filename="../cxx/dbusermodel.cpp" line="309"/>
+        <location filename="../cxx/dbusermodel.cpp" line="307"/>
+        <location filename="../cxx/dbusermodel.cpp" line="318"/>
         <source>All your clients will be removed and cannot be automatically retrieved</source>
         <translation>Todos seus clientes serão removidos e não poderão ser automaticamente recuperados</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="308"/>
+        <location filename="../cxx/dbusermodel.cpp" line="317"/>
         <source>Revoke client status</source>
         <translation>Deixar de ser cliente</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="432"/>
+        <location filename="../cxx/dbusermodel.cpp" line="438"/>
         <source> !Pending confirmation!</source>
         <translation> !Confirmação pendente!</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="554"/>
+        <location filename="../cxx/dbusermodel.cpp" line="561"/>
         <source>Coach registration</source>
         <translation>Registro de treinador</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="585"/>
+        <location filename="../cxx/dbusermodel.cpp" line="592"/>
         <source>Résumé uploaded successfully!</source>
         <translation>Currículo enviado com sucesso!</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1497"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1499"/>
         <source> has sent you a new Exercises Program</source>
         <translation> enviou-lhe um novo Programa de Exercícios</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1499"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1502"/>
         <source>View</source>
         <translation>Visualizar</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1501"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1504"/>
         <source>Delete</source>
         <translation>Remover</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="641"/>
+        <location filename="../cxx/dbusermodel.cpp" line="648"/>
         <source>Coach contacting</source>
         <translation>Contato com o treinador</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="642"/>
+        <location filename="../cxx/dbusermodel.cpp" line="649"/>
         <source>Online coach contacted </source>
         <translation>Treinador contactado </translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="718"/>
-        <location filename="../cxx/dbusermodel.cpp" line="762"/>
+        <location filename="../cxx/dbusermodel.cpp" line="725"/>
+        <location filename="../cxx/dbusermodel.cpp" line="766"/>
         <source>Online server unavailable. Tray again later</source>
         <translation>Servidor temporariamente indisponível. Tente novamente mais tarde</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="753"/>
+        <location filename="../cxx/dbusermodel.cpp" line="758"/>
         <source>Failed to open </source>
         <translation>Falha ao abrir </translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="893"/>
-        <location filename="../cxx/dbusermodel.cpp" line="918"/>
+        <location filename="../cxx/dbusermodel.cpp" line="900"/>
+        <location filename="../cxx/dbusermodel.cpp" line="925"/>
         <source>Male</source>
         <translation>Homen</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="893"/>
+        <location filename="../cxx/dbusermodel.cpp" line="900"/>
         <source>Female</source>
         <translation>Mulher</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="902"/>
-        <location filename="../cxx/dbusermodel.cpp" line="925"/>
+        <location filename="../cxx/dbusermodel.cpp" line="909"/>
+        <location filename="../cxx/dbusermodel.cpp" line="932"/>
         <source>User</source>
         <translation>Usuário</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="903"/>
-        <location filename="../cxx/dbusermodel.cpp" line="927"/>
+        <location filename="../cxx/dbusermodel.cpp" line="910"/>
+        <location filename="../cxx/dbusermodel.cpp" line="934"/>
         <source>Coach</source>
         <translation>Treinador</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="904"/>
-        <location filename="../cxx/dbusermodel.cpp" line="929"/>
+        <location filename="../cxx/dbusermodel.cpp" line="911"/>
+        <location filename="../cxx/dbusermodel.cpp" line="936"/>
         <source>Client</source>
         <translation>Cliente</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="905"/>
+        <location filename="../cxx/dbusermodel.cpp" line="912"/>
         <source>Coach and Client</source>
         <translation>Treinador e Cliente</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="946"/>
+        <location filename="../cxx/dbusermodel.cpp" line="953"/>
         <source>Connected to server</source>
         <translation>Conectado ao servidos</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="951"/>
+        <location filename="../cxx/dbusermodel.cpp" line="958"/>
         <source>Server unreachable</source>
         <translation>Servidor fora de alcance</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1000"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1007"/>
         <source>User information updated</source>
         <translation>Informações do usuário atualizadas</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1082"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1086"/>
         <source>Online user information updated</source>
         <translation>Informações remotas do usuário atualizadas</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1418"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1468"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1419"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1469"/>
         <source> - unavailable</source>
         <translation> - indisponível</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1419"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1420"/>
         <source>The user is no longer available as your client. If you need to know more about this, contact them to find out the reason. Remove the user from your list of clients?</source>
         <translation>O usuário não está mais disponível como seu cliente. Se deseja saber mais sobre isso, contacte-o para obter uma resposta. Remover o usuário da sua lista de clientes?</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1469"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1470"/>
         <source>The user is no longer available as your coach. If you need to know more about this, contact them to find out the reason. Remove the user from your list of coaches?</source>
         <translation>O usuário não está mais disponível como seu treinador. Se deseja saber mais sobre isso, contacte-o para obter uma resposta. Remover o usuário da sua lista de treinadores?</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="104"/>
+        <location filename="../cxx/dbusermodel.cpp" line="108"/>
         <source>Social Media: </source>
         <translation>Media Social: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="133"/>
+        <location filename="../cxx/dbusermodel.cpp" line="137"/>
         <source>Coach information</source>
         <translation>Informações do Treinador</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="135"/>
+        <location filename="../cxx/dbusermodel.cpp" line="139"/>
         <source>Client information</source>
         <translation>Informações do Cliente</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="106"/>
+        <location filename="../cxx/dbusermodel.cpp" line="110"/>
         <source>Professional job: </source>
         <translation>Profissão: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="107"/>
+        <location filename="../cxx/dbusermodel.cpp" line="111"/>
         <source>Goal: </source>
         <translation>Objetivo: </translation>
     </message>
@@ -1323,57 +1328,57 @@ Esta ação não pode ser desfeita.</translation>
 <context>
     <name>MesoSplitSetup</name>
     <message>
-        <location filename="../qml/Pages/MesoSplitSetup.qml" line="44"/>
+        <location filename="../qml/Pages/MesocyclePageElements/MesoSplitSetup.qml" line="44"/>
         <source>On any training program, there should be at least one rest day(R) per week</source>
         <translation>Em qualquer programa de treinamento, deve haver, pelo menos, um dia de recesso(R) por semana</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoSplitSetup.qml" line="21"/>
+        <location filename="../qml/Pages/MesocyclePageElements/MesoSplitSetup.qml" line="21"/>
         <source>Mon</source>
         <translation>Seg</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoSplitSetup.qml" line="21"/>
+        <location filename="../qml/Pages/MesocyclePageElements/MesoSplitSetup.qml" line="21"/>
         <source>Tue</source>
         <translation>Ter</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoSplitSetup.qml" line="21"/>
+        <location filename="../qml/Pages/MesocyclePageElements/MesoSplitSetup.qml" line="21"/>
         <source>Wed</source>
         <translation>Qua</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoSplitSetup.qml" line="21"/>
+        <location filename="../qml/Pages/MesocyclePageElements/MesoSplitSetup.qml" line="21"/>
         <source>Thu</source>
         <translation>Qui</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoSplitSetup.qml" line="21"/>
+        <location filename="../qml/Pages/MesocyclePageElements/MesoSplitSetup.qml" line="21"/>
         <source>Fri</source>
         <translation>Sex</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoSplitSetup.qml" line="21"/>
+        <location filename="../qml/Pages/MesocyclePageElements/MesoSplitSetup.qml" line="21"/>
         <source>Sat</source>
         <translation>Sáb</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoSplitSetup.qml" line="21"/>
+        <location filename="../qml/Pages/MesocyclePageElements/MesoSplitSetup.qml" line="21"/>
         <source>Sun</source>
         <translation>Dom</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoSplitSetup.qml" line="227"/>
+        <location filename="../qml/Pages/MesocyclePageElements/MesoSplitSetup.qml" line="244"/>
         <source>Accept changes</source>
         <translation>Aceitar mudanças</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoSplitSetup.qml" line="249"/>
+        <location filename="../qml/Pages/MesocyclePageElements/MesoSplitSetup.qml" line="266"/>
         <source>Exercises Planner</source>
         <translation>Programa de Exercícios</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoSplitSetup.qml" line="273"/>
+        <location filename="../qml/Pages/MesocyclePageElements/MesoSplitSetup.qml" line="290"/>
         <source>Define</source>
         <translation>Definir</translation>
     </message>
@@ -1381,127 +1386,147 @@ Esta ação não pode ser desfeita.</translation>
 <context>
     <name>MesocyclePage</name>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="63"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="66"/>
         <source>Change and/or accept the program&apos;s name</source>
         <translation>Mudar e/ou aceitar o nome do programa</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="64"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="68"/>
         <source>Change and/or accept the start date</source>
         <translation>Mudar e/ou aceitar a data de início</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="65"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="69"/>
         <source>Change and/or accept the end date</source>
         <translation>Mudar e/ou aceitar a data de término</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="66"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="70"/>
         <source>Change and/or accept the split division</source>
         <translation>Mudar e/ou aceitar a divisão de treinos</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="69"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="73"/>
         <source>New program setup complete!</source>
         <translation>Novo programa configurado!</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="70"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="74"/>
         <source>Required fields setup</source>
         <translation>Campos necessários configurados</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="41"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="65"/>
         <source>New program setup incomplete</source>
         <translation>Novo programa incompleto</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="159"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="170"/>
         <source>Name too short</source>
         <translation>Nome muito curto</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="103"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="114"/>
         <source>Go to client&apos;s page</source>
         <translation>Ir para a página do cliente</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="185"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="78"/>
+        <source>Accept program from coach?</source>
+        <translation>Aceitar Programa do treinador?</translation>
+    </message>
+    <message>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="79"/>
+        <source>Until you accept this program you can only view it</source>
+        <translation>Até que você aceite este Programa você não pode usá-lo</translation>
+    </message>
+    <message>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="80"/>
+        <source>Yes</source>
+        <translation>Sim</translation>
+    </message>
+    <message>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="81"/>
+        <source>No</source>
+        <translation>Não</translation>
+    </message>
+    <message>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="199"/>
         <source>Weigth Loss</source>
         <translation>Perder Peso</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="186"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="200"/>
         <source>Muscle Gain</source>
         <translation>Ganho muscular</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="187"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="201"/>
         <source>Bulking</source>
         <translation>Bulking</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="188"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="202"/>
         <source>Pre-contest</source>
         <translation>Pre-contest</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="189"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="203"/>
         <source>Strength Build-up</source>
         <translation>Ganhar força</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="190"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="204"/>
         <source>Physical Recovery</source>
         <translation>Recuperação física</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="191"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="205"/>
         <source>Physical Maintenance</source>
         <translation>Manutenção física</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="192"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="206"/>
         <source>Other</source>
         <translation>Outro</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="227"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="233"/>
         <source>Instructions file</source>
         <translation>Arquivo de instruções</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="253"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="259"/>
         <source>Choose the instruction&apos;s file for this mesocycles</source>
         <translation>Escolha o arquivo de instruções para este mesociclo</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="254"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="260"/>
         <source>PDF Files</source>
         <translation>Arquivos PDF</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="254"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="260"/>
         <source>Documents</source>
         <translation>Documentos</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="331"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="338"/>
         <source>Mesocycle-style program</source>
         <translation>Programa tipo Mesociclo</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="335"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="342"/>
         <source>A Mesocycle is a short-term program, with defined starting and ending points and a specific goal in sight</source>
         <translation>Um Mesociclo é um programa de curto prazo, com início e término bem definidos, e um objectivo específico em vista</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="463"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="473"/>
         <source>Send to client</source>
         <translation>Enviar ao cliente</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="480"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="491"/>
         <source>Adjust meso calendar?</source>
         <translation>Ajustar calendário do programa?</translation>
     </message>
@@ -1525,7 +1550,7 @@ Esta ação não pode ser desfeita.</translation>
     </message>
     <message>
         <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="154"/>
-        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="371"/>
+        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="369"/>
         <source>Export</source>
         <translation>Exportar</translation>
     </message>
@@ -1545,52 +1570,52 @@ Esta ação não pode ser desfeita.</translation>
         <translation>Esta ação não pode ser desfeita: Nota: informações sobre os treinos não serão removidas.</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="313"/>
+        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="311"/>
         <source>New Training Program</source>
         <translation>Novo Programa de Treinamento</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="329"/>
+        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="327"/>
         <source>Import program from file</source>
         <translation>Importar programa de um arquivo</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="345"/>
+        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="343"/>
         <source>Today&apos;s workout</source>
         <translation>Treino de hoje</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="369"/>
+        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="367"/>
         <source>Send to </source>
         <translation>Enviar para </translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="395"/>
+        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="393"/>
         <source>Yes</source>
         <translation>Sim</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="396"/>
+        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="394"/>
         <source>No</source>
         <translation>Não</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="374"/>
+        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="372"/>
         <source>Share</source>
         <translation>Compartilhar</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="392"/>
+        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="390"/>
         <source>Share complete program?</source>
         <translation>Compartilhar o programa completo?</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="392"/>
+        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="390"/>
         <source>Export complete program to file?</source>
         <translation>Exportar o programa completo para um arquivo?</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="393"/>
+        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="391"/>
         <source>Include Coach data?</source>
         <translation>Incluir dados do treinador?</translation>
     </message>
@@ -1711,12 +1736,12 @@ Esta ação não pode ser desfeita.</translation>
         <translation>Aproveite seu dia de dancanso dos treinos!</translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="603"/>
+        <location filename="../cxx/osinterface.cpp" line="605"/>
         <source>Send file</source>
         <translation>Enviar arquivo</translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="686"/>
+        <location filename="../cxx/osinterface.cpp" line="688"/>
         <source>View file with...</source>
         <translation>Visualizar arquivo com...</translation>
     </message>
@@ -1724,7 +1749,7 @@ Esta ação não pode ser desfeita.</translation>
 <context>
     <name>OnlineMessages</name>
     <message>
-        <location filename="../qml/Dialogs/OnlineMessages.qml" line="91"/>
+        <location filename="../qml/Dialogs/OnlineMessages.qml" line="123"/>
         <source>Messages</source>
         <translation>Mensagens</translation>
     </message>
@@ -1837,22 +1862,22 @@ Esta ação não pode ser desfeita.</translation>
 <context>
     <name>QMLMesoInterface</name>
     <message>
-        <location filename="../cxx/qmlmesointerface.cpp" line="427"/>
+        <location filename="../cxx/qmlmesointerface.cpp" line="432"/>
         <source> - TP Complete Meso.txt</source>
         <translation> - TP Mesociclo Completo.txt</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlmesointerface.cpp" line="507"/>
+        <location filename="../cxx/qmlmesointerface.cpp" line="511"/>
         <source>Exercises Program sent to client</source>
         <translation>Programa de Exercícios enviado ao cliente</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlmesointerface.cpp" line="540"/>
+        <location filename="../cxx/qmlmesointerface.cpp" line="542"/>
         <source>New Program</source>
         <translation>Novo Programa</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlmesointerface.cpp" line="565"/>
+        <location filename="../cxx/qmlmesointerface.cpp" line="567"/>
         <source>Rest day</source>
         <translation>Recesso</translation>
     </message>
@@ -2431,17 +2456,17 @@ Esta ação não pode ser desfeita.</translation>
 <context>
     <name>TPAdjustMesoCalendarFrame</name>
     <message>
-        <location filename="../qml/TPWidgets/ComplexDialogModules/TPAdjustMesoCalendarFrame.qml" line="17"/>
+        <location filename="../qml/TPWidgets/ComplexDialogModules/TPAdjustMesoCalendarFrame.qml" line="15"/>
         <source>Preserve previous calendar information?</source>
         <translation>Manter informações do calendário antigo?</translation>
     </message>
     <message>
-        <location filename="../qml/TPWidgets/ComplexDialogModules/TPAdjustMesoCalendarFrame.qml" line="35"/>
+        <location filename="../qml/TPWidgets/ComplexDialogModules/TPAdjustMesoCalendarFrame.qml" line="38"/>
         <source>All of the old information</source>
         <translation>Toda informação</translation>
     </message>
     <message>
-        <location filename="../qml/TPWidgets/ComplexDialogModules/TPAdjustMesoCalendarFrame.qml" line="47"/>
+        <location filename="../qml/TPWidgets/ComplexDialogModules/TPAdjustMesoCalendarFrame.qml" line="56"/>
         <source>Up until yesterday - </source>
         <translation>Até o dia de ontem - </translation>
     </message>
@@ -2449,12 +2474,25 @@ Esta ação não pode ser desfeita.</translation>
 <context>
     <name>TPBalloonTip</name>
     <message>
-        <location filename="../qml/TPWidgets/TPBalloonTip.qml" line="17"/>
+        <location filename="../qml/TPWidgets/TPBalloonTip.qml" line="18"/>
         <source>Yes</source>
         <translation>Sim</translation>
     </message>
     <message>
-        <location filename="../qml/TPWidgets/TPBalloonTip.qml" line="18"/>
+        <location filename="../qml/TPWidgets/TPBalloonTip.qml" line="19"/>
+        <source>No</source>
+        <translation>Não</translation>
+    </message>
+</context>
+<context>
+    <name>TPComplexDialog</name>
+    <message>
+        <location filename="../qml/TPWidgets/TPComplexDialog.qml" line="14"/>
+        <source>Yes</source>
+        <translation>Sim</translation>
+    </message>
+    <message>
+        <location filename="../qml/TPWidgets/TPComplexDialog.qml" line="15"/>
         <source>No</source>
         <translation>Não</translation>
     </message>
@@ -2672,17 +2710,17 @@ Esta ação não pode ser desfeita.</translation>
         <translation> do mesociclo</translation>
     </message>
     <message>
-        <location filename="../qml/TPWidgets/ComplexDialogModules/TPTDayIntentGroup.qml" line="42"/>
+        <location filename="../qml/TPWidgets/ComplexDialogModules/TPTDayIntentGroup.qml" line="48"/>
         <source>Base this session off the one from the one the days in the list below</source>
         <translation>Basear esta sessão em uma das seguintes sessões anteriores</translation>
     </message>
     <message>
-        <location filename="../qml/TPWidgets/ComplexDialogModules/TPTDayIntentGroup.qml" line="69"/>
+        <location filename="../qml/TPWidgets/ComplexDialogModules/TPTDayIntentGroup.qml" line="89"/>
         <source>Import workout from file</source>
         <translation>Importar treino de um arquivo</translation>
     </message>
     <message>
-        <location filename="../qml/TPWidgets/ComplexDialogModules/TPTDayIntentGroup.qml" line="79"/>
+        <location filename="../qml/TPWidgets/ComplexDialogModules/TPTDayIntentGroup.qml" line="106"/>
         <source>Start a new session</source>
         <translation>Começar uma nova sessão</translation>
     </message>
@@ -2690,8 +2728,8 @@ Esta ação não pode ser desfeita.</translation>
 <context>
     <name>TPUtils</name>
     <message>
-        <location filename="../cxx/tputils.cpp" line="218"/>
-        <location filename="../cxx/tputils.cpp" line="225"/>
+        <location filename="../cxx/tputils.cpp" line="260"/>
+        <location filename="../cxx/tputils.cpp" line="267"/>
         <source>and</source>
         <translation>e</translation>
     </message>
@@ -3385,12 +3423,12 @@ Vamos iniciar criando seu perfil de usuário.</translation>
 <context>
     <name>main</name>
     <message>
-        <location filename="../qml/main.qml" line="123"/>
+        <location filename="../qml/main.qml" line="131"/>
         <source>Proceed with action?</source>
         <translation>Proceder com a acção?</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="329"/>
+        <location filename="../qml/main.qml" line="337"/>
         <source>Text copied to the clipboard</source>
         <translation>Texto copiado para a área de transferência</translation>
     </message>

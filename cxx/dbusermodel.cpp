@@ -1500,9 +1500,13 @@ void DBUserModel::checkNewMesos()
 							new_message->setId(id);
 							new_message->insertData(it, 0);
 							new_message->insertAction(tr("View"), [=] (const QVariant &mesofile) {
-											appMesoModel()->viewOnlineMeso(mesofile.toString()); }, false);
+											appMesoModel()->viewOnlineMeso(mesofile.toString()); });
 							new_message->insertAction(tr("Delete"), [=,this] (const QVariant &subdir) {
-											appOnlineServices()->removeFile(request_id, userId(0), m_password, it, coach); });
+											appOnlineServices()->removeFile(request_id, userId(0), m_password, it, coach); }, true);
+							new_message->insertAction(tr("Viewtttt 1"), [=] (const QVariant &mesofile) {
+											appMesoModel()->viewOnlineMeso(mesofile.toString()); });
+							new_message->insertAction(tr("Viewwwwwwww 2"), [=] (const QVariant &mesofile) {
+											appMesoModel()->viewOnlineMeso(mesofile.toString()); });
 							new_message->plug();
 						}
 					}

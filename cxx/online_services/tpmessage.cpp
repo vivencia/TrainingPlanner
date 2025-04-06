@@ -55,7 +55,7 @@ void TPMessage::execAction(const int action_id)
 	{
 		const QChar &lastChar{m_actions.at(action_id).last(1).at(0)};
 		std::optional<bool> remove{std::nullopt};
-		if (lastChar.toLatin1() > set_separator)
+		if (lastChar.toLatin1() < set_separator)
 			remove = lastChar == record_separator;
 		if (m_actionFuncs.at(action_id) != nullptr)
 			m_actionFuncs.at(action_id)(m_data.at(action_id));

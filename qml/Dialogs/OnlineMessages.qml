@@ -10,13 +10,22 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 Popup {
 	id: onlineMsgsDlg
 	objectName: "TPPopup"
-	closePolicy: Popup.CloseOnPressOutside
+	closePolicy: Popup.NoAutoClose
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	spacing: 0
 	padding: 0
+	x: appSettings.pageWidth - 80
+	y: 180
+	width: mainIcon.width
+	height: mainIcon.height
 	visible: fullDialogVisible ? true : appMessages.count > 0
 
 	property bool fullDialogVisible: false
+	readonly property int dlgMaxWidth: appSettings.pageWidth * 0.8
+
+	background: Rectangle {
+		color: "lightblue"
+	}
 
 	ParallelAnimation
 	{
@@ -42,6 +51,7 @@ Popup {
 		onFinished: {
 			onlineMsgsDlg.x = appSettings.pageWidth - 80;
 			onlineMsgsDlg.y = 180;
+			fullDialogVisible = false;
 		}
 	}
 	ParallelAnimation
@@ -52,7 +62,7 @@ Popup {
 		PropertyAnimation {
 			target: onlineMsgsDlg
 			property: "width"
-			to: appSettings.pageWidth * 0.8
+			to: onlineMsgsDlg.dlgMaxWidth
 			duration: 200
 			easing.type: Easing.InOutCubic
 		}
@@ -66,7 +76,7 @@ Popup {
 		}
 
 		onFinished: {
-			onlineMsgsDlg.x = appSettings.pageWidth - onlineMsgsDlg.width;
+			onlineMsgsDlg.x = appSettings.pageWidth - onlineMsgsDlg.width - 10;
 			if (onlineMsgsDlg.y + onlineMsgsDlg.height > appSettings.pageHeight)
 				onlineMsgsDlg.y = appSettings.pageHeight - onlineMsgsDlg.height;
 		}
@@ -77,9 +87,11 @@ Popup {
 		source: "messages"
 		width: 50
 		height: 50
-		x: appSettings.pageWidth - 80
-		y: 180
 		visible: !fullDialogVisible
+		anchors {
+			verticalCenter: parent.verticalCenter
+			horizontalCenter: parent.horizontalCenter
+		}
 
 		TPMouseArea {
 			movingWidget: mainIcon
@@ -99,6 +111,12 @@ Popup {
 		id: topBar
 		visible: fullDialogVisible
 		height: 30
+
+		anchors {
+			top: parent.top
+			left: parent.left
+			right: parent.right
+		}
 
 		TPLabel {
 			id: topBarText
@@ -130,10 +148,7 @@ Popup {
 
 			onPressed: (mouse) => pressedFunction(mouse);
 			onPositionChanged: (mouse) => positionChangedFunction(mouse);
-			onMouseClicked: {
-				fullDialogVisible = false;
-				shrink.start();
-			}
+			onMouseClicked: shrink.start();
 		}
 	}
 
@@ -170,25 +185,23 @@ Popup {
 			id: delegateItem
 			swipe.enabled: !appMessages.messageEntry(index).sticky
 			clip: true
-			padding: 5
+			padding: 0
 			spacing: 5
-			implicitHeight: index === messagesList.currentIndex ? (appMessages.messageEntry(index).hasActions ? messageLayout.height : messagesList.minimumMessageHeight)
-								: lblMessage.height
+			width: messagesList.width
 
 			property bool showActions: false
 
-			ColumnLayout {
+			contentItem: ColumnLayout {
 				id: messageLayout
 				spacing: 5
 				opacity: 1 + swipe.position
-				anchors {
-					fill: parent
-					margins: 5
-				}
 
-				Row {
-					height: 15
+				RowLayout {
+					id: messageTextLayout
+					height: 20
 					Layout.fillWidth: true
+					Layout.leftMargin: 5
+					Layout.rightMargin: 5
 
 					TPImage {
 						source: appMessages.messageEntry(index).iconSource
@@ -199,14 +212,14 @@ Popup {
 
 					TPLabel {
 						text: appMessages.messageEntry(index).date + "  " + appMessages.messageEntry(index).time
-						fontSizeMode: Text.Fit
+						font: AppGlobals.smallFont
 						height: 15
 						Layout.leftMargin: 20
 					}
 
 					TPButton {
 						id: btnFoldIcon
-						imageSource: showActions ? "fold-up" : "fold-down"
+						imageSource: delegateItem.showActions ? "fold-up.png" : "fold-down.png"
 						hasDropShadow: false
 						imageSize: 15
 						Layout.alignment: Qt.AlignRight
@@ -218,13 +231,17 @@ Popup {
 				TPLabel {
 					id: lblMessage
 					text: appMessages.messageEntry(index).displayText
+					color: "black"
 					heightAvailable: messagesList.minimumMessageHeight
-					widthAvailable: parent.width - 10
-					wrapMode: delegateItem.showActions ? Text.NoWrap : Text.WordWrap
+					elide: delegateItem.showActions ? Text.ElideNone : Text.ElideRight
 					singleLine: !delegateItem.showActions
-					Layout.fillWidth: true
 					Layout.leftMargin: 5
 					Layout.rightMargin: 5
+					width: onlineMsgsDlg.dlgMaxWidth - 10
+					Layout.minimumWidth: width
+					Layout.maximumWidth: width
+					Layout.maximumHeight: _preferredHeight
+					Layout.minimumHeight: _preferredHeight
 
 					MouseArea {
 						anchors.fill: parent
@@ -232,26 +249,90 @@ Popup {
 					}
 				}
 
-				Repeater {
-					id: actionsRepeater
-					model: appMessages.messageEntry(index).acions
+				GridLayout {
+					id: actionsLayout
+					columns: 3
+					visible: delegateItem.showActions
+					columnSpacing: 2
+					rowSpacing: 5
 					Layout.fillWidth: true
 					Layout.leftMargin: 5
 					Layout.rightMargin: 5
 
-					property int delegateIndex: index
+					Repeater {
+						id: actionsRepeater
+						model: appMessages.messageEntry(index).actions
 
-					delegate: GridLayout {
-						columns: 3
-						required property int index
+						readonly property int msgIndex: index
+						delegate: TPButton {
+							required property int index
+							text: appMessages.messageEntry(actionsRepeater.msgIndex).actions[index]
+							onClicked: appMessages.messageEntry(actionsRepeater.msgIndex).execAction(index);
+						}
 
-						TPButton {
-							text: appMessages.messageEntry(actionsRepeater.delegateIndex).acions[index]
-							onClicked: appMessages.messageEntry(actionsRepeater.delegateIndex).execAction(index);
+						onItemAdded: (index, item) => {
+							//items are added in reverse order(last to first)
+							if (index === 0) {
+								messagesList.messagesHeight += (model.length % 3 + 1)*30 + lblMessage.preferredHeight() + messageTextLayout.height;
+								let i = 0;
+								let rowWidth = 0;
+								do {
+									rowWidth += actionsRepeater.itemAt(i).width;
+									if (i != 0 && i % 2 === 0) {
+										console.log(i, actionsRepeater.itemAt(i-2).text, actionsRepeater.itemAt(i-2).Layout.leftMargin, rowWidth);
+										actionsRepeater.itemAt(i-2).Layout.leftMargin = (dlgMaxWidth - rowWidth)/2;
+										console.log(i, actionsRepeater.itemAt(i-2).text, actionsRepeater.itemAt(i-2).Layout.leftMargin);
+										rowWidth = 0;
+									}
+								} while (++i < actionsRepeater.count);
+								if (i % 2 !== 0) {
+									if (--i % 2 !== 0)
+										--i;
+									actionsRepeater.itemAt(i).Layout.leftMargin = (dlgMaxWidth - rowWidth)/2;
+								}
+							}
 						}
 					}
 				}
+			} //ColumnLayout
+
+			Rectangle {
+				id: removeBackground
+				anchors.fill: parent
+				color: "lightgray"
+				radius: 6
+				layer.enabled: true
+				visible: false
 			}
+
+			swipe.right: MultiEffect {
+				id: removeRec
+				anchors.fill: parent
+				source: removeBackground
+				shadowEnabled: true
+				shadowOpacity: 0.5
+				blurMax: 16
+				shadowBlur: 1
+				shadowHorizontalOffset: 5
+				shadowVerticalOffset: 5
+				shadowColor: "black"
+				shadowScale: 1
+				opacity: delegateItem.swipe.complete ? 0.8 : 0-delegateItem.swipe.position
+				Behavior on opacity { NumberAnimation {} }
+
+				TPImage {
+					source: "remove"
+					width: 50
+					height: 50
+
+					anchors {
+						horizontalCenter: parent.horizontalCenter
+						verticalCenter: parent.verticalCenter
+					}
+				}
+			} //swipe.right
+
+			swipe.onCompleted: appMessages.removeMessage(appMessages.messageEntry(index));
 
 			Rectangle {
 				id: backRec
@@ -276,16 +357,6 @@ Popup {
 				shadowScale: 1
 				opacity: 0.8
 			}
-
-			contentItem: ColumnLayout {
-
-			}
-
-			onClicked: {
-				curRow = userModel.findUserByName(userModel.coachesNames[index]);
-				userModel.currentRow = curRow;
-				coachesList.currentIndex = index;
-			}
-		}
-	}
+		} //delegate
+	} // messagesList
 }

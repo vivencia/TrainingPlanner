@@ -71,8 +71,11 @@ public:
 	}
 	inline QString action(const int action_id) const
 	{
-		if (action_id >= 0 &&  action_id < m_actions.count())
-			return m_actions.at(action_id);
+		if (action_id >= 0 && action_id < m_actions.count())
+		{
+			const QString &actionText{m_actions.at(action_id)};
+			return actionText.last(1).toLatin1() > 31 ? actionText : actionText.chopped(1);
+		}
 		return QString{};
 	}
 	inline QStringList actions() const { return m_actions; }

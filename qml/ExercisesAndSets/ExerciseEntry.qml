@@ -97,7 +97,7 @@ SwipeDelegate {
 
 			TPButton {
 				id: btnFoldIcon
-				imageSource: showSets ? "fold-up" : "fold-down"
+				imageSource: showSets ? "fold-up.png" : "fold-down.png"
 				hasDropShadow: false
 				imageSize: 18
 				Layout.preferredWidth: 18

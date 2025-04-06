@@ -34,6 +34,14 @@ Label {
 
 	signal sizeChanged()
 
+	function preferredLineCount(): int {
+		return Math.ceil(_textWidth/width) + 1;
+	}
+
+	function preferredHeight(): int {
+		return heightAvailable != 25 ? Math.min(preferredLineCount() * _textHeight, heightAvailable) : preferredLineCount() * _textHeight;
+	}
+
 	/*Rectangle {
 		border.color: "black"
 		color: "transparent"

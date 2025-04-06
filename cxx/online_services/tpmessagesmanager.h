@@ -28,7 +28,7 @@ public:
 	 */
 	std::optional<int> addMessage(TPMessage *msg);
 	inline void removeMessage(const int message_id) { removeMessage(message(message_id)); }
-	void removeMessage(TPMessage *msg);
+	Q_INVOKABLE void removeMessage(TPMessage *msg);
 
 	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
 	QVariant data(const QModelIndex &index, int role) const override final;

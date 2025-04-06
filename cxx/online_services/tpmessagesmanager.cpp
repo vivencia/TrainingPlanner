@@ -26,7 +26,7 @@ TPMessagesManager::TPMessagesManager(QObject *parent)
 
 TPMessage *TPMessagesManager::message(const int message_id) const
 {
-	const auto &it = std::find_if(m_data.cbegin(), m_data.cend(), [message_id] (const auto msg) {
+	const auto it = std::find_if(m_data.cbegin(), m_data.cend(), [message_id] (const auto msg) {
 		return msg->id() == message_id;
 	});
 	return it != m_data.cend() ? *it : nullptr;
