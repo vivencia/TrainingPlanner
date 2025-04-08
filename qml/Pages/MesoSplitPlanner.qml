@@ -5,6 +5,7 @@ import QtQuick.Controls
 import "../"
 import "../ExercisesAndSets"
 import "../TPWidgets"
+import "../Dialogs"
 
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
@@ -57,11 +58,11 @@ Frame {
 		}
 	}
 
-	Rectangle {
-		id: recMuscularGroup
-		color: appSettings.paneBackgroundColor
-		radius: 6
-		height: txtGroups.height
+	TPTextInput {
+		id: txtGroups
+		text: splitModel.muscularGroup()
+		readOnly: true
+		suggestedHeight: 50
 
 		anchors {
 			top: lblGroups.bottom
@@ -71,24 +72,14 @@ Frame {
 			right: parent.right
 			rightMargin: 35
 		}
-
-		TPLabel {
-			id: txtGroups
-			text: splitModel.muscularGroup()
-			anchors {
-				fill: parent
-				leftMargin: 5
-				rightMargin: 5
-			}
-		}
 	}
 
 	TPButton {
 		imageSource: "choose.png"
 
 		anchors {
-			left: recMuscularGroup.right
-			verticalCenter: recMuscularGroup.verticalCenter
+			left: txtGroups.right
+			verticalCenter: txtGroups.verticalCenter
 		}
 
 		onClicked: mesocyclesModel.getMesocyclePage(splitManager.mesoIdx());
@@ -101,7 +92,7 @@ Frame {
 			currentIndex: splitModel.currentRow
 
 			anchors {
-				top: recMuscularGroup.bottom
+				top: txtGroups.bottom
 				topMargin: 10
 				left: parent.left
 				leftMargin: 5
@@ -168,8 +159,10 @@ Frame {
 						}
 
 						function onSetsNumberChanged(row): void {
-							if (splitModel.currentRow === row)
+							if (splitModel.currentRow === row) {
 								buttonsRepeater.model = splitModel.setsNumber(row);
+								lblSetsNumber.text = splitModel.setsNumberLabel + splitModel.setsNumber(index);
+							}
 						}
 					}
 
@@ -203,8 +196,8 @@ Frame {
 							id: btnMoveExerciseUp
 							imageSource: "up.png"
 							hasDropShadow: false
-							height: 30
-							width: 30
+							height: 20
+							width: 20
 							enabled: index === splitModel.currentRow ? index > 0 : false
 
 							anchors {
@@ -220,8 +213,8 @@ Frame {
 							id: btnMoveExerciseDown
 							imageSource: "down.png"
 							hasDropShadow: false
-							height: 30
-							width: 30
+							height: 20
+							width: 20
 							enabled: index === splitModel.currentRow ? index < splitModel.count-1 : false
 
 							anchors {
@@ -258,18 +251,28 @@ Frame {
 						onEditFinished: (new_text) => splitModel.setSetsNotes(index, new_text);
 					}
 
-					Pane {
+					GroupBox {
 						id: paneSets
+						label: TPLabel {
+							id: lblSetsNumber
+							text: splitModel.setsNumberLabel + splitModel.setsNumber(index)
+							width: parent.width
+							horizontalAlignment: Text.AlignHCenter
+						}
 						Layout.fillWidth: true
-						Layout.leftMargin: -20
+						Layout.leftMargin: 0
 						Layout.rightMargin: 0
-						Layout.bottomMargin: 0
-						Layout.topMargin: -20
+						Layout.bottomMargin: 10
+						Layout.topMargin: 0
+						padding: 0
+						spacing: 0
 						height: appSettings.pageHeight*0.3
 						enabled: index === splitModel.currentRow
 
 						background: Rectangle {
 							color: "transparent"
+							border.color: appSettings.fontColor
+							radius: 6
 						}
 
 						ColumnLayout {
@@ -277,16 +280,10 @@ Frame {
 							anchors.fill: parent
 							spacing: 5
 
-							Frame {
+							Item {
 								Layout.minimumWidth: listItem.width
 								Layout.maximumWidth: listItem.width
 								Layout.preferredHeight: 30
-								clip: true
-
-								background: Rectangle {
-									border.width: 0
-									color: "transparent"
-								}
 
 								TPButton {
 									id: btnAddSet
@@ -336,13 +333,15 @@ Frame {
 
 											contentItem: Label {
 												text: tabbutton.text
+												leftPadding: 2
+												rightPadding: 2
+												horizontalAlignment: Qt.AlignHCenter
 												font.pixelSize: appSettings.smallFontSize
 												color: appSettings.fontColor
 											}
 
 											background: Rectangle {
 												border.color: appSettings.fontColor
-												radius: 6
 												opacity: 0.8
 												color: enabled ? checked ? appSettings.primaryDarkColor : appSettings.primaryColor : "gray"
 											}
@@ -361,31 +360,30 @@ Frame {
 
 									anchors {
 										right: parent.right
-										rightMargin: -10
+										rightMargin: 5
 										verticalCenter: parent.verticalCenter
 									}
 
 									onClicked: splitModel.delSet(index);
 								}
-							} //Frame
-
+							} //Item
 
 							RowLayout {
-								Layout.leftMargin: 20
-								Layout.rightMargin: 20
+								Layout.leftMargin: 10
+								Layout.rightMargin: 10
 
 								TPLabel {
 									text: splitModel.typeLabel
 									width: listItem.width*0.4
 									Layout.preferredWidth: width
+									Layout.maximumWidth: width
 								}
 								TPComboBox {
 									id: cboSetType
 									enabled: index === splitModel.currentRow
 									model: AppGlobals.setTypesModel
 									currentIndex: splitModel.setType(index, splitModel.workingSet)
-									width: listItem.width*0.55
-									Layout.rightMargin: 5
+									Layout.fillWidth: true
 
 									onActivated: (cboIndex) => splitModel.setSetType(index, splitModel.workingSet, cboIndex);
 
@@ -483,8 +481,8 @@ Frame {
 								type: SetInputField.Type.RepType
 								availableWidth: listItem.width - 40
 								visible: cboSetType.currentIndex !== 4
-								Layout.leftMargin: 20
-								Layout.rightMargin: 20
+								Layout.leftMargin: 10
+								Layout.rightMargin: 10
 
 								onValueChanged: (str) => splitModel.setSetReps1(index, splitModel.workingSet, str);
 								onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
@@ -543,8 +541,8 @@ Frame {
 								type: SetInputField.Type.WeightType
 								availableWidth: listItem.width - 40
 								visible: cboSetType.currentIndex !== 4
-								Layout.leftMargin: 20
-								Layout.rightMargin: 20
+								Layout.leftMargin: 10
+								Layout.rightMargin: 10
 
 								onValueChanged: (str) => splitModel.setSetWeight1(index, splitModel.workingSet, str);
 

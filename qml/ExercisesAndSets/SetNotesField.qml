@@ -34,7 +34,6 @@ Item {
 
 		anchors {
 			left: lblMain.right
-			leftMargin: -(lblMain.width - lblMain._textWidth)
 			verticalCenter: lblMain.verticalCenter
 		}
 

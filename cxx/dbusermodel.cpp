@@ -1494,7 +1494,7 @@ void DBUserModel::checkNewMesos()
 					for (const auto &it : ret_list)
 					{
 						const int id{appUtils()->idFromString(it)};
-						if (!appMessagesManager()->message(id))
+						if (appMessagesManager()->message(id) == nullptr)
 						{
 							TPMessage *new_message{new TPMessage(coach + tr(" has sent you a new Exercises Program"), "message-meso"_L1, appMessagesManager())};
 							new_message->setId(id);
@@ -1503,10 +1503,6 @@ void DBUserModel::checkNewMesos()
 											appMesoModel()->viewOnlineMeso(mesofile.toString()); });
 							new_message->insertAction(tr("Delete"), [=,this] (const QVariant &subdir) {
 											appOnlineServices()->removeFile(request_id, userId(0), m_password, it, coach); }, true);
-							new_message->insertAction(tr("Viewtttt 1"), [=] (const QVariant &mesofile) {
-											appMesoModel()->viewOnlineMeso(mesofile.toString()); });
-							new_message->insertAction(tr("Viewwwwwwww 2"), [=] (const QVariant &mesofile) {
-											appMesoModel()->viewOnlineMeso(mesofile.toString()); });
 							new_message->plug();
 						}
 					}

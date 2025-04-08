@@ -12,7 +12,7 @@ Rectangle {
 	opacity: checked ? 0.7 : 1
 	color: backgroundColor
 	height: 25
-	width: buttonText._textWidth + (textUnderIcon ? 0 : (imageSource.length > 0 ? imageSize : 0)) + 10
+	width: defaultWidth()
 
 	property color textColor: appSettings.fontColor
 	property alias font: buttonText.font
@@ -31,7 +31,7 @@ Rectangle {
 	property bool checked: false
 	property bool autoResize: false
 	property int clickId: -1
-	property int imageSize: height
+	property int imageSize: textUnderIcon ? fixedSize ? height/2 : 25 : height
 
 	//Local variables. Do not use outside this file
 	property bool _canResize: true
@@ -41,6 +41,10 @@ Rectangle {
 
 	signal clicked(int clickid);
 	signal check(int clickid);
+
+	function defaultWidth(): int {
+		return buttonText._textWidth + (textUnderIcon ? 0 : (imageSource.length > 0 ? imageSize : 0)) + 10;
+	}
 
 	onImageSourceChanged: {
 		if (_buttonImage)
@@ -73,17 +77,23 @@ Rectangle {
 			return;
 		}
 
-		if (!fixedSize && width >= 20 && text.length > 0) {
-			const fwidth = buttonText._textWidth;
-			if (fwidth >= width) {
-				buttonText.wrapMode = Text.WordWrap;
-				buttonText.singleLine = false;
-				buttonText.width = textUnderIcon ? width - 10 : width - (imageSource.length > 0 ? imageSize : 0) - 10;
-				buttonText.lineCount = Math.ceil(fwidth/width) + 1;
-				buttonText.height = buttonText.lineCount * buttonText._textHeight;
-				if (buttonText.height > height)
-					implicitHeight = height = textUnderIcon ? buttonText.height + imageSize : buttonText.height;
+		if (!fixedSize) {
+			if (width >= 20 && text.length > 0) {
+				const fwidth = buttonText._textWidth;
+				if (fwidth >= width) {
+					buttonText.wrapMode = Text.WordWrap;
+					buttonText.width = buttonText.defaultWidth();
+					buttonText.lineCount = Math.ceil(fwidth/width) + 1;
+					buttonText.height = buttonText.lineCount * buttonText._textHeight;
+					if (buttonText.height > height)
+						implicitHeight = height = textUnderIcon ? buttonText.height + imageSize : buttonText.height;
+				}
 			}
+		}
+		else {
+			buttonText.width = buttonText.defaultWidth();
+			if (buttonText.height > height)
+				buttonText.height = height;
 		}
 	}
 
@@ -133,6 +143,10 @@ Rectangle {
 			anchorComponents();
 		}
 
+		function defaultWidth(): int {
+			return textUnderIcon ? button.width - 10 : button.width - (imageSource.length > 0 ? imageSize : 0) - 10;
+		}
+
 		function resize() {
 			if (!fixedSize) {
 				_canResize = false;
@@ -140,7 +154,7 @@ Rectangle {
 				button.width = _textWidth + (textUnderIcon ? 10 : (imageSource.length > 0 ? imageSize : 0)) + 20
 			}
 			else {
-				width = textUnderIcon ? button.width - 10 : button.width - (imageSource.length > 0 ? imageSize : 0) - 10;
+				width = defaultWidth();
 				if (height > button.height)
 					height = button.height;
 			}

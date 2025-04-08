@@ -192,7 +192,7 @@ Pane {
 							right: parent.right
 						}
 
-						onClicked: showMGDialog(this, index, splitRepeater.itemAt(index).children[2]);
+						onClicked: showMGDialog(this, splitRepeater.itemAt(index).children[2]);
 					}
 				} //Item
 
@@ -282,7 +282,7 @@ Pane {
 
 	property MuscularGroupPicker filterDlg: null
 	property TPTextInput txtWidget: null
-	function showMGDialog(button: TPButton, letter_index: int, text_widget: TPTextInput): void {
+	function showMGDialog(button: TPButton, text_widget: TPTextInput): void {
 		if (filterDlg === null) {
 			let component = Qt.createComponent("qrc:/qml/Dialogs/MuscularGroupPicker.qml", Qt.Asynchronous);
 

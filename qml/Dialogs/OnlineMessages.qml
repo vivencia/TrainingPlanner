@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Effects
 
 import "../"
 import "../TPWidgets"
@@ -24,7 +23,7 @@ Popup {
 	readonly property int dlgMaxWidth: appSettings.pageWidth * 0.8
 
 	background: Rectangle {
-		color: "lightblue"
+		color: "transparent"
 	}
 
 	ParallelAnimation
@@ -49,8 +48,9 @@ Popup {
 		}
 
 		onFinished: {
-			onlineMsgsDlg.x = appSettings.pageWidth - 80;
-			onlineMsgsDlg.y = 180;
+			onlineMsgsDlg.x = onlineMsgsDlg.width;
+			if (onlineMsgsDlg.x + mainIcon.width > appSettings.pageWidth)
+				onlineMsgsDlg.x -= appSettings.pageWidth - 80;
 			fullDialogVisible = false;
 		}
 	}
@@ -159,7 +159,7 @@ Popup {
 		spacing: 5
 		clip: true
 		model: appMessages
-		height: messagesHeight > maxHeight ? maxHeight : messagesHeight
+		height: maxHeight
 		visible: fullDialogVisible
 
 		anchors {
@@ -169,16 +169,11 @@ Popup {
 		}
 
 		readonly property int maxHeight: appSettings.pageHeight*0.5
-		readonly property int minimumMessageHeight: maxHeight*0.2
 		property int messagesHeight: 0
 
 		ScrollBar.vertical: ScrollBar {
 			policy: ScrollBar.AsNeeded
 			active: true; visible: messagesList.contentHeight > messagesList.height
-		}
-		ScrollBar.horizontal: ScrollBar {
-			policy: ScrollBar.AsNeeded
-			active: true; visible: messagesList.contentWidth > messagesList.width
 		}
 
 		delegate: SwipeDelegate {
@@ -191,40 +186,60 @@ Popup {
 
 			property bool showActions: false
 
-			contentItem: ColumnLayout {
+			function setShowActions(show: bool) {
+				if (show !== showActions) {
+					messagesList.messagesHeight -= actionsLayout.childrenRect.height + lblMessage.height;
+					showActions = show;
+					messagesList.messagesHeight += actionsLayout.childrenRect.height + lblMessage.height;
+				}
+			}
+
+			background: Rectangle {
+				id: backRec
+				opacity: 0.8
+				color: index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
+			}
+
+			contentItem: Column {
 				id: messageLayout
 				spacing: 5
+				padding: 5
 				opacity: 1 + swipe.position
 
-				RowLayout {
-					id: messageTextLayout
-					height: 20
-					Layout.fillWidth: true
-					Layout.leftMargin: 5
-					Layout.rightMargin: 5
+				MouseArea {
+					width:  childrenRect.width
+					height: childrenRect.height
+					onClicked: delegateItem.setShowActions(!delegateItem.showActions);
 
-					TPImage {
-						source: appMessages.messageEntry(index).iconSource
-						dropShadow: false
-						width: 15
-						height: 15
-					}
+					RowLayout {
+						id: messageTextLayout
+						height: 20
+						Layout.fillWidth: true
+						Layout.leftMargin: 10
+						Layout.rightMargin: 10
 
-					TPLabel {
-						text: appMessages.messageEntry(index).date + "  " + appMessages.messageEntry(index).time
-						font: AppGlobals.smallFont
-						height: 15
-						Layout.leftMargin: 20
-					}
+						TPImage {
+							source: appMessages.messageEntry(index).iconSource
+							dropShadow: false
+							width: 20
+							height: 20
+						}
 
-					TPButton {
-						id: btnFoldIcon
-						imageSource: delegateItem.showActions ? "fold-up.png" : "fold-down.png"
-						hasDropShadow: false
-						imageSize: 15
-						Layout.alignment: Qt.AlignRight
-						Layout.rightMargin: 5
-						onClicked: delegateItem.showActions = !delegateItem.showActions;
+						TPLabel {
+							text: appMessages.messageEntry(index).date + "  " + appMessages.messageEntry(index).time
+							font: AppGlobals.smallFont
+							height: 15
+							Layout.leftMargin: 20
+						}
+
+						TPImage {
+							id: btnFoldIcon
+							source: delegateItem.showActions ? "fold-up.png" : "fold-down.png"
+							dropShadow: false
+							width: 18
+							height: 18
+							Layout.leftMargin: 30
+						}
 					}
 				}
 
@@ -232,32 +247,29 @@ Popup {
 					id: lblMessage
 					text: appMessages.messageEntry(index).displayText
 					color: "black"
-					heightAvailable: messagesList.minimumMessageHeight
 					elide: delegateItem.showActions ? Text.ElideNone : Text.ElideRight
+					wrapMode: delegateItem.showActions ? Text.WordWrap : Text.NoWrap
 					singleLine: !delegateItem.showActions
-					Layout.leftMargin: 5
-					Layout.rightMargin: 5
 					width: onlineMsgsDlg.dlgMaxWidth - 10
-					Layout.minimumWidth: width
-					Layout.maximumWidth: width
-					Layout.maximumHeight: _preferredHeight
-					Layout.minimumHeight: _preferredHeight
+					height: delegateItem.showActions ? preferredHeight() : heightAvailable
+					Layout.leftMargin: 20
 
 					MouseArea {
 						anchors.fill: parent
-						onClicked: delegateItem.showActions = !delegateItem.showActions;
+						onClicked: delegateItem.setShowActions(!delegateItem.showActions);
 					}
 				}
 
 				GridLayout {
 					id: actionsLayout
-					columns: 3
+					columns: 2
 					visible: delegateItem.showActions
 					columnSpacing: 2
 					rowSpacing: 5
-					Layout.fillWidth: true
-					Layout.leftMargin: 5
-					Layout.rightMargin: 5
+					Layout.maximumWidth: dlgMaxWidth
+					Layout.minimumWidth: dlgMaxWidth
+
+					readonly property int maxButtonWidth: (dlgMaxWidth - 25)/3
 
 					Repeater {
 						id: actionsRepeater
@@ -265,60 +277,77 @@ Popup {
 
 						readonly property int msgIndex: index
 						delegate: TPButton {
-							required property int index
 							text: appMessages.messageEntry(actionsRepeater.msgIndex).actions[index]
+							width: constrainSize ? actionsLayout.maxButtonWidth : defaultWidth()
+							fixedSize: constrainSize
+							autoResize: constrainSize
+							Layout.leftMargin: 0
+							Layout.rightMargin: 0
 							onClicked: appMessages.messageEntry(actionsRepeater.msgIndex).execAction(index);
+
+							required property int index
+							property bool constrainSize: false
 						}
 
+						//items are added in reverse order(last to first)
 						onItemAdded: (index, item) => {
-							//items are added in reverse order(last to first)
-							if (index === 0) {
-								messagesList.messagesHeight += (model.length % 3 + 1)*30 + lblMessage.preferredHeight() + messageTextLayout.height;
-								let i = 0;
-								let rowWidth = 0;
-								do {
-									rowWidth += actionsRepeater.itemAt(i).width;
-									if (i != 0 && i % 2 === 0) {
-										console.log(i, actionsRepeater.itemAt(i-2).text, actionsRepeater.itemAt(i-2).Layout.leftMargin, rowWidth);
-										actionsRepeater.itemAt(i-2).Layout.leftMargin = (dlgMaxWidth - rowWidth)/2;
-										console.log(i, actionsRepeater.itemAt(i-2).text, actionsRepeater.itemAt(i-2).Layout.leftMargin);
-										rowWidth = 0;
+							if (index % 2 === 0) {
+								let itemsWidths = new Array(2);
+								itemsWidths[0] = item;
+								itemsWidths[1] = null;
+								let rowWidth = item.width;
+
+								if (actionsRepeater.itemAt(index+1)) {
+									const item1 = actionsRepeater.itemAt(index+1);
+									if (item1.width > itemsWidths[0].width) {
+										itemsWidths[1] = itemsWidths[0];
+										itemsWidths[0] = item1;
 									}
-								} while (++i < actionsRepeater.count);
-								if (i % 2 !== 0) {
-									if (--i % 2 !== 0)
-										--i;
-									actionsRepeater.itemAt(i).Layout.leftMargin = (dlgMaxWidth - rowWidth)/2;
+									else
+										itemsWidths[1] = item1;
+									rowWidth += item1.width;
 								}
+								/*if (actionsRepeater.itemAt(index+2)) {
+									const item2 = actionsRepeater.itemAt(index+2);
+									if (item2.width > itemsWidths[1].width) {
+										itemsWidths[2] = itemsWidths[1];
+										itemsWidths[1] = itemsWidths[0];
+										itemsWidths[0] = item2;
+									}
+									else if (item2.width > itemsWidths[0].width) {
+										itemsWidths[2] = itemsWidths[1];
+										itemsWidths[1] = item2;
+									}
+									else
+										itemsWidths[2] = item2;
+									rowWidth += item2.width;
+								}*/
+
+								if (rowWidth >= dlgMaxWidth) {
+									rowWidth -= itemsWidths[0].width;
+									itemsWidths[0].constrainSize = true;
+									rowWidth += itemsWidths[0].width;
+									if (rowWidth >= dlgMaxWidth) {
+										rowWidth -= itemsWidths[1].width;
+										itemsWidths[1].constrainSize = true;
+										rowWidth += itemsWidths[1].width;
+
+									}
+								}
+								item.Layout.leftMargin = (dlgMaxWidth - rowWidth)/2;
 							}
+							if (index === 0)
+								messagesList.messagesHeight += actionsLayout.childrenRect.height + lblMessage.height + messageTextLayout.height;
 						}
 					}
 				}
 			} //ColumnLayout
 
-			Rectangle {
+			swipe.right: Rectangle {
 				id: removeBackground
 				anchors.fill: parent
-				color: "lightgray"
-				radius: 6
-				layer.enabled: true
-				visible: false
-			}
-
-			swipe.right: MultiEffect {
-				id: removeRec
-				anchors.fill: parent
-				source: removeBackground
-				shadowEnabled: true
-				shadowOpacity: 0.5
-				blurMax: 16
-				shadowBlur: 1
-				shadowHorizontalOffset: 5
-				shadowVerticalOffset: 5
-				shadowColor: "black"
-				shadowScale: 1
+				color: SwipeDelegate.pressed ? Qt.darker("tomato", 1.1) : "tomato"
 				opacity: delegateItem.swipe.complete ? 0.8 : 0-delegateItem.swipe.position
-				Behavior on opacity { NumberAnimation {} }
 
 				TPImage {
 					source: "remove"
@@ -331,32 +360,7 @@ Popup {
 					}
 				}
 			} //swipe.right
-
 			swipe.onCompleted: appMessages.removeMessage(appMessages.messageEntry(index));
-
-			Rectangle {
-				id: backRec
-				anchors.fill: parent
-				radius: 6
-				layer.enabled: true
-				color: index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
-				visible: false
-			}
-
-			background: MultiEffect {
-				id: messageEffect
-				visible: true
-				source: backRec
-				shadowEnabled: true
-				shadowOpacity: 0.5
-				blurMax: 16
-				shadowBlur: 1
-				shadowHorizontalOffset: 5
-				shadowVerticalOffset: 5
-				shadowColor: "black"
-				shadowScale: 1
-				opacity: 0.8
-			}
 		} //delegate
 	} // messagesList
 }

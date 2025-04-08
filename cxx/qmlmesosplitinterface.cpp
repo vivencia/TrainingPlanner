@@ -5,7 +5,6 @@
 #include "dbmesocyclesmodel.h"
 #include "dbmesosplitmodel.h"
 #include "qmlitemmanager.h"
-#include "osinterface.h"
 #include "tputils.h"
 
 #include <QQmlApplicationEngine>

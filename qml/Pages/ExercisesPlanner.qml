@@ -92,10 +92,10 @@ TPPage {
 			text: qsTr("Clear")
 			imageSource: "clear.png"
 			textUnderIcon: true
-			enabled: splitManager.hasExercises
 			fixedSize: true
 			rounded: false
 			flat: false
+			enabled: splitManager.hasExercises
 			width: splitToolBar.buttonWidth
 			height: footerHeight - 4
 

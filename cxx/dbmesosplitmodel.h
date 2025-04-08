@@ -34,6 +34,7 @@ class DBMesoSplitModel : public TPListModel
 Q_OBJECT
 
 Q_PROPERTY(int workingSet READ workingSet WRITE setWorkingSet NOTIFY workingSetChanged)
+Q_PROPERTY(QString setsNumberLabel READ setsNumberLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString instructionsLabel READ instructionsLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString typeLabel READ typeLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString subSetsLabel READ subSetsLabel NOTIFY labelsChanged FINAL)
@@ -64,6 +65,7 @@ public:
 		m_modeldata[row][field] = value;
 	}
 
+	inline QString setsNumberLabel() const { return columnLabel(MESOSPLIT_COL_SETSNUMBER); }
 	inline QString instructionsLabel() const { return columnLabel(MESOSPLIT_COL_NOTES); }
 	inline QString typeLabel() const { return columnLabel(MESOSPLIT_COL_SETTYPE); }
 	inline QString subSetsLabel() const { return columnLabel(MESOSPLIT_COL_SUBSETSNUMBER); }
