@@ -43,7 +43,7 @@ Label {
 	}
 
 	/*Rectangle {
-		border.color: "black"
+		border.color: appSettings.fontColor
 		color: "transparent"
 		anchors.fill: parent
 	}*/

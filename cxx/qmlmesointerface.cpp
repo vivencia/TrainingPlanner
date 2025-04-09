@@ -635,7 +635,20 @@ void QMLMesoInterface::createMesocyclePage_part2()
 			{
 				appDBInterface()->saveMesocycle(meso_idx);
 				if (ownMeso())
+				{
+					if (!m_bCanExport)
+					{
+						m_bCanExport = appDBInterface()->mesoHasAllPlans(meso_idx);
+						if (m_bCanExport)
+							emit canExportChanged();
+					}
 					sendMesocycleFileToServer();
+				}
+			}
+			if (m_bCanExport)
+			{
+				m_bCanExport = false;
+				emit canExportChanged();
 			}
 		}
 	});

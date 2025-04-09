@@ -411,6 +411,14 @@ bool DBInterface::mesoHasPlan(const uint meso_id, const QString &splitLetter) co
 	return false;
 }
 
+bool DBInterface::mesoHasAllPlans(const uint meso_idx) const
+{
+	DBMesoSplitTable *meso_split{new DBMesoSplitTable{m_DBFilePath}};
+	const bool ret(meso_split->mesoHasAllPlans(meso_idx));
+	meso_split->deleteLater();
+	return ret;
+}
+
 void DBInterface::loadSplitFromPreviousMeso(const uint prev_meso_id, DBMesoSplitModel *model)
 {
 	DBMesoSplitTable *worker{new DBMesoSplitTable{m_DBFilePath, model}};

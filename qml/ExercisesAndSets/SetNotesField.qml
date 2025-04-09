@@ -10,8 +10,9 @@ Item {
 	implicitHeight: lblMain.height + setNotesArea.height + 10
 
 	property string info: qsTr("Notes:")
-	property string readOnly
 	property string text
+	property bool editable
+
 	signal editFinished(string new_text)
 
 	TPLabel {
@@ -59,6 +60,7 @@ Item {
 		TextArea {
 			id: txtNotes
 			text: control.text
+			readOnly: !editable
 			color: appSettings.fontColor
 			font.pixelSize: appSettings.fontSize
 			font.bold: true

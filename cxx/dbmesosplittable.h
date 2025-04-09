@@ -30,6 +30,7 @@ public:
 	void getCompleteMesoSplit(const bool bEmitSignal = true); //only for empty models
 	void saveMesoSplitComplete();
 	bool mesoHasPlan(const QString &mesoId, const QString &splitLetter);
+	bool mesoHasAllPlans(const uint meso_idx);
 	void convertTDayExercisesToMesoPlan(const DBTrainingDayModel *const tDayModel);
 	inline DBMesoSplitModel *model() const { return m_model; }
 	inline void setAnotherModel(DBMesoSplitModel *new_model) { m_model = new_model; }

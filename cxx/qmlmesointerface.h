@@ -25,6 +25,7 @@ Q_PROPERTY(bool realMeso READ realMeso WRITE setRealMeso NOTIFY realMesoChanged 
 Q_PROPERTY(bool ownMeso READ ownMeso WRITE setOwnMeso NOTIFY ownMesoChanged FINAL)
 Q_PROPERTY(bool isNewMeso READ isNewMeso NOTIFY isNewMesoChanged FINAL)
 Q_PROPERTY(bool isTempMeso READ isTempMeso NOTIFY isTempMesoChanged FINAL)
+Q_PROPERTY(bool canExport READ canExport WRITE setCanExport NOTIFY canExportChanged FINAL)
 
 Q_PROPERTY(QString nameLabel READ nameLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString coachLabel READ coachLabel NOTIFY labelsChanged FINAL)
@@ -85,6 +86,8 @@ public:
 
 	[[nodiscard]] bool isNewMeso() const;
 	[[nodiscard]] bool isTempMeso() const;
+	[[nodiscard]] inline bool canExport() const { return m_bCanExport; }
+	inline void setCanExport(const bool can_export) { m_bCanExport = can_export; emit canExportChanged(); }
 
 	QString nameLabel() const;
 	QString coachLabel() const;
@@ -176,6 +179,7 @@ signals:
 	void ownMesoChanged();
 	void isNewMesoChanged();
 	void isTempMesoChanged();
+	void canExportChanged();
 	void labelsChanged();
 	void nameChanged();
 	void coachChanged();
@@ -209,7 +213,7 @@ private:
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	uint m_mesoIdx;
-	bool m_bOwnerIsCoach, m_bHasCoach, m_bRealMeso, m_bOwnMeso;
+	bool m_bCanExport, m_bOwnerIsCoach, m_bHasCoach, m_bRealMeso, m_bOwnMeso;
 	QString m_name, m_coach, m_client, m_type, m_file, m_strStartDate, m_strEndDate, m_weeks, m_split, m_notes;
 	QDate m_startDate, m_endDate, m_minimumMesoStartDate, m_maximumMesoEndDate;
 	QStringList m_muscularGroup;

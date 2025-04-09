@@ -264,7 +264,7 @@ Pane {
 	TPButton {
 		id: btnCreateExercisePlan
 		text: qsTr("Exercises Planner")
-		enabled: bMesoSplitTextOK
+		enabled: !mesoManager.isNewMeso && bMesoSplitTextOK
 		flat: false
 
 		anchors {

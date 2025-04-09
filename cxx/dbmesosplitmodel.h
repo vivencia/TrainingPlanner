@@ -42,7 +42,7 @@ Q_PROPERTY(QString subSetsLabel READ subSetsLabel NOTIFY labelsChanged FINAL)
 public:
 	explicit DBMesoSplitModel(QObject* parent, const bool bComplete, const uint meso_idx = 0);
 	void convertFromTDayModel(const DBTrainingDayModel* const tDayModel);
-	void addExerciseFromDatabase(QStringList* exercise_info);
+	void addExerciseFromDatabase(QStringList &&exercise_info);
 	inline bool completeSplit() const { return mb_Complete; }
 
 	//------------------------------------------- Simple Split model used by appMesoModel() -------------------------------------------
@@ -60,9 +60,9 @@ public:
 	inline const QString& splitX(const uint row, const uint split_idx) const { return m_modeldata.at(row).at(split_idx); }
 	//------------------------------------------- Simple Split model used by appMesoModel() -------------------------------------------
 
-	inline void setFast(const uint row, const uint field, const QString& value)
+	inline void setFast(const uint row, const uint field, QString&& value)
 	{
-		m_modeldata[row][field] = value;
+		m_modeldata[row][field] = std::move(value);
 	}
 
 	inline QString setsNumberLabel() const { return columnLabel(MESOSPLIT_COL_SETSNUMBER); }

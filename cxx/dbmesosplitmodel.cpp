@@ -48,9 +48,9 @@ void DBMesoSplitModel::convertFromTDayModel(const DBTrainingDayModel *const tDay
 	setReady(true);
 }
 
-void DBMesoSplitModel::addExerciseFromDatabase(QStringList *exercise_info)
+void DBMesoSplitModel::addExerciseFromDatabase(QStringList &&exercise_info)
 {
-	appendList(std::move(*(exercise_info)));
+	appendList(std::move(exercise_info));
 	m_exerciseIsNew.append(0);
 }
 
@@ -75,7 +75,7 @@ void DBMesoSplitModel::appendExercise()
 	appendList(std::move(QStringList{} << std::move(tr("Choose exercise...")) << STR_ZERO << " "_L1 << STR_MINUS_ONE <<
 				STR_ZERO << "10"_L1 << "20"_L1 << STR_ZERO));
 	setCurrentRow(count() - 1);
-	uchar newExerciseRequiredFields(0);
+	uchar newExerciseRequiredFields{0};
 	setBit(newExerciseRequiredFields, MESOSPLIT_COL_EXERCISENAME);
 	setBit(newExerciseRequiredFields, MESOSPLIT_COL_SETSNUMBER);
 	setBit(newExerciseRequiredFields, MESOSPLIT_COL_SETTYPE);
@@ -86,10 +86,10 @@ void DBMesoSplitModel::appendExercise()
 
 void DBMesoSplitModel::addSet(const uint row)
 {
-	int nsets(setsNumber(row));
+	uint nsets{setsNumber(row)};
 	if (nsets < 10)
 	{
-		const uint referenceSet(nsets > 0 ? nsets-1 : 0);
+		const uint referenceSet{nsets > 0 ? nsets-1 : 0};
 		QString exercise1data{std::move(appUtils()->getCompositeValue(0, _setsReps(row), comp_exercise_separator))};
 		appUtils()->setCompositeValue(nsets, setReps1(row, referenceSet), exercise1data, set_separator);
 
@@ -132,7 +132,7 @@ void DBMesoSplitModel::addSet(const uint row)
 
 void DBMesoSplitModel::delSet(const uint row)
 {
-	uint nsets(setsNumber(row));
+	uint nsets{setsNumber(row)};
 	if (nsets > 1)
 	{
 		QString exercise1data{std::move(appUtils()->getCompositeValue(0, _setsReps(row), comp_exercise_separator))};

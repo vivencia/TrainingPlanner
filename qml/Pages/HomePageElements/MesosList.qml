@@ -132,7 +132,6 @@ Item {
 					backgroundColor: "transparent"
 					rounded: false
 					flat: false
-					autoResize: true
 					textUnderIcon: true
 					fixedSize: true
 					width: parent.width/2 - 10

@@ -72,6 +72,7 @@ public:
 	void loadAllSplits(const uint meso_idx);
 	void saveMesoSplitComplete(DBMesoSplitModel *model);
 	bool mesoHasPlan(const uint meso_id, const QString &splitLetter) const;
+	bool mesoHasAllPlans(const uint meso_idx) const;
 	void loadSplitFromPreviousMeso(const uint prev_meso_id, DBMesoSplitModel *model);
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 

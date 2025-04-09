@@ -19,6 +19,7 @@ FocusScope {
 	property bool showLabel: true
 	property bool showButtons: true
 	property bool clearInput: true
+	property bool editable: true
 	property list<string> labelText: [ qsTr("Weight") + appSettings.weightUnit + ':', qsTr("Reps:"), qsTr("Rest time:"), qsTr("SubSets:") ]
 	property color borderColor: appSettings.fontColor
 	property color labelColor: appSettings.fontColor
@@ -96,7 +97,7 @@ FocusScope {
 			width: 20
 			height: 20
 			visible: showButtons && type === SetInputField.Type.TimeType
-
+			enabled: editable
 
 			anchors {
 				left: showLabel ? lblMain.right : parent.left
@@ -118,6 +119,7 @@ FocusScope {
 			width: 20
 			height: 20
 			visible: showButtons
+			enabled: editable
 
 			anchors {
 				left: btnIncreaseMinutes.visible ? btnIncreaseMinutes.right : showLabel ? lblMain.right : parent.left
@@ -139,7 +141,7 @@ FocusScope {
 			validator: validatorType[type]
 			inputMethodHints: type <= SetInputField.Type.RepType ? Qt.ImhFormattedNumbersOnly : Qt.ImhDigitsOnly
 			maximumLength: maxLen[type]
-			readOnly: type === SetInputField.Type.TimeType
+			readOnly: !editable || type === SetInputField.Type.TimeType
 			padding: 0
 			focus: type !== SetInputField.Type.TimeType
 
@@ -193,6 +195,7 @@ FocusScope {
 			width: 20
 			height: 20
 			visible: showButtons
+			enabled: editable
 
 			anchors {
 				left: txtMain.right
@@ -215,6 +218,7 @@ FocusScope {
 			width: 20
 			height: 20
 			visible: showButtons && type === SetInputField.Type.TimeType
+			enabled: editable
 
 			anchors {
 				left: btnIncrease.right

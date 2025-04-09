@@ -13,7 +13,7 @@ Item {
 	property bool showRemoveButton: true
 	property bool bCanEmitTextChanged: false
 	property bool bTextChanged: false
-	property bool bEditable: true
+	property bool editable: true
 
 	signal exerciseChanged(string new_exercise)
 	signal removeButtonClicked()
@@ -135,7 +135,7 @@ Item {
 		imageSize: 25
 		height: 25
 		width: 25
-		enabled: bEditable
+		enabled: editable
 
 		anchors {
 			left: txtField.right
@@ -156,7 +156,7 @@ Item {
 		height: 25
 		width: 25
 		visible: showRemoveButton
-		enabled: bEditable
+		enabled: editable
 
 		anchors {
 			left: btnEditExercise.right
