@@ -107,7 +107,7 @@ public:
 
 signals:
 	void databaseReady(const uint db_id);
-	void databaseReadyWithData(const uint table_idx, QVariant data);
+	void databaseReadyWithData(const uint table_idx, const QVariant &data);
 
 public slots:
 	void cleanUpThreads();

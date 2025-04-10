@@ -33,8 +33,8 @@ TPPopup {
 			entryComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPButton.qml", Qt.Asynchronous);
 
 		function finishCreation() {
-			let button = entryComponent.createObject(mainLayout, { text: label, imageSource: img, clickId: id,
-				rounded: false, imageSize: 20, color: "transparent", "Layout.fillWidth": true });
+			let button = entryComponent.createObject(mainLayout, { text: label, imageSource: img, clickId: id, rounded: false,
+									color: "transparent", "Layout.fillWidth": true });
 			if (bvisible) {
 				entriesTotalHeight += button.height + 7;
 				if (button.width > largestEntryWidth)

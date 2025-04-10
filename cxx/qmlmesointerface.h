@@ -25,7 +25,7 @@ Q_PROPERTY(bool realMeso READ realMeso WRITE setRealMeso NOTIFY realMesoChanged 
 Q_PROPERTY(bool ownMeso READ ownMeso WRITE setOwnMeso NOTIFY ownMesoChanged FINAL)
 Q_PROPERTY(bool isNewMeso READ isNewMeso NOTIFY isNewMesoChanged FINAL)
 Q_PROPERTY(bool isTempMeso READ isTempMeso NOTIFY isTempMesoChanged FINAL)
-Q_PROPERTY(bool canExport READ canExport WRITE setCanExport NOTIFY canExportChanged FINAL)
+Q_PROPERTY(bool canExport READ canExport NOTIFY canExportChanged FINAL)
 
 Q_PROPERTY(QString nameLabel READ nameLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString coachLabel READ coachLabel NOTIFY labelsChanged FINAL)
@@ -87,7 +87,6 @@ public:
 	[[nodiscard]] bool isNewMeso() const;
 	[[nodiscard]] bool isTempMeso() const;
 	[[nodiscard]] inline bool canExport() const { return m_bCanExport; }
-	inline void setCanExport(const bool can_export) { m_bCanExport = can_export; emit canExportChanged(); }
 
 	QString nameLabel() const;
 	QString coachLabel() const;
@@ -165,7 +164,7 @@ public:
 
 	void getMesocyclePage();
 	void exportMeso(const bool bShare, const bool bCoachInfo);
-	void importMeso(const QString &filename = QString());
+	void importMeso(const QString &filename = QString{});
 	Q_INVOKABLE void sendMesocycleFileToServer();
 	Q_INVOKABLE void incorporateMeso();
 
@@ -202,7 +201,7 @@ signals:
 	void newMesoFieldCounterChanged(const int fieldCounter);
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
-	void displayMessageOnAppWindow(const int message_id, const QString &filename = QString());
+	void displayMessageOnAppWindow(const int message_id, const QString &filename = QString{});
 	void addPageToMainMenu(const QString &label, QQuickItem *page);
 	void removePageFromMainMenu(QQuickItem *page);
 

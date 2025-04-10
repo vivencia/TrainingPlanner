@@ -473,7 +473,7 @@ TPPage {
 				text: qsTr("Send to client")
 				flat: false
 				visible: !mesoManager.ownMeso
-				enabled: !mesoManager.isNewMeso
+				enabled: mesoManager.canExport
 				Layout.alignment: Qt.AlignCenter
 
 				onClicked: mesoManager.sendMesocycleFileToServer();

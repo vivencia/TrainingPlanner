@@ -237,6 +237,8 @@ Rectangle {
 			if (!textUnderIcon) {
 				buttonText.anchors.verticalCenter = button.verticalCenter;
 				_buttonImage.anchors.verticalCenter = button.verticalCenter;
+				if (hasDropShadow)
+					_buttonImage.anchors.verticalCenterOffset = 5;
 
 				buttonText.anchors.horizontalCenter = button.horizontalCenter;
 				buttonText.anchors.verticalCenter = button.verticalCenter;

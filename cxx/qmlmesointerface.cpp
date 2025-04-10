@@ -452,7 +452,7 @@ void QMLMesoInterface::exportMeso(const bool bShare, const bool bCoachInfo)
 			}
 			if (splitletter != 'R')
 			{
-				DBMesoSplitModel *splitModel(appMesoModel()->mesoManager(m_mesoIdx)->plannerSplitModel(splitletter));
+				DBMesoSplitModel *splitModel(plannerSplitModel(splitletter));
 				if (!splitModel)
 				{
 					auto conn = std::make_shared<QMetaObject::Connection>();
@@ -462,11 +462,13 @@ void QMLMesoInterface::exportMeso(const bool bShare, const bool bCoachInfo)
 						{
 							disconnect(*conn);
 							const QMap<QChar,DBMesoSplitModel*> &allSplits(data.value<QMap<QChar,DBMesoSplitModel*>>());
-							QMap<QChar,DBMesoSplitModel*>::const_iterator splitModel(allSplits.constBegin());
+							for (const auto splitModel : allSplits)
+								splitModel->exportToFile(exportFileName);
+							/*QMap<QChar,DBMesoSplitModel*>::const_iterator splitModel(allSplits.constBegin());
 							const QMap<QChar,DBMesoSplitModel*>::const_iterator mapEnd(allSplits.constEnd());
 							do {
 								(*splitModel)->exportToFile(exportFileName);
-							} while (++splitModel != mapEnd);
+							} while (++splitModel != mapEnd);*/
 							appItemManager()->continueExport(exportFileMessageId, bShare);
 						}
 					});
@@ -482,7 +484,7 @@ void QMLMesoInterface::exportMeso(const bool bShare, const bool bCoachInfo)
 						if (++i < appMesoModel()->split(m_mesoIdx).length())
 						{
 							splitletter = appMesoModel()->split(m_mesoIdx).at(i);
-							splitModel = splitletter != 'R' ? appMesoModel()->mesoManager(m_mesoIdx)->plannerSplitModel(splitletter) : nullptr;
+							splitModel = splitletter != 'R' ? plannerSplitModel(splitletter) : nullptr;
 						}
 						else
 							break;
@@ -508,7 +510,33 @@ void QMLMesoInterface::sendMesocycleFileToServer()
 	const QString &mesocycleFile{appMesoModel()->mesoFileName(m_mesoIdx)};
 	appMesoModel()->setExportRow(m_mesoIdx);
 	if (appMesoModel()->exportContentsOnlyToFile(mesocycleFile))
-		appUserModel()->sendFileToServer(mesocycleFile, !ownMeso() ? tr("Exercises Program sent to client") : QString{}, mesosDir, m_client);
+	{
+		char splitletter{'A'};
+		DBMesoSplitModel *splitModel{plannerSplitModel(splitletter)};
+
+		if (splitModel != nullptr)
+		{
+			do {
+				splitModel->exportContentsOnlyToFile(mesocycleFile, false, true);
+			} while ((splitModel = plannerSplitModel(++splitletter)) != nullptr);
+			appUserModel()->sendFileToServer(mesocycleFile, !ownMeso() ? tr("Exercises Program sent to client") : QString{}, mesosDir, m_client);
+		}
+		else
+		{
+			auto conn = std::make_shared<QMetaObject::Connection>();
+			*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this,&mesocycleFile]
+															(const uint table_idx, const QVariant &data) {
+				if (table_idx == MESOSPLIT_TABLE_ID)
+				{
+					disconnect(*conn);
+					const QMap<QChar,DBMesoSplitModel*> &allSplits(data.value<QMap<QChar,DBMesoSplitModel*>>());
+					for (const auto splitModel : allSplits)
+						splitModel->exportContentsOnlyToFile(mesocycleFile, false, true);
+					appUserModel()->sendFileToServer(mesocycleFile, !ownMeso() ? tr("Exercises Program sent to client") : QString{}, mesosDir, m_client);
+				}
+			});
+		}
+	}
 }
 
 void QMLMesoInterface::incorporateMeso()
@@ -611,13 +639,13 @@ void QMLMesoInterface::createMesocyclePage_part2()
 			QMap<QDate,QmlTDayInterface*>::const_iterator itr(m_tDayPages.constBegin());
 			while (itr != itr_end)
 			{
-				(*itr)->setMesoIdx(new_meso_idx);
+				(*itr)->setMesoIdx(m_mesoIdx);
 				++itr;
 			}
 			if (m_exercisesPage)
-				m_exercisesPage->setMesoIdx(new_meso_idx);
+				m_exercisesPage->setMesoIdx(m_mesoIdx);
 			if (m_calendarPage)
-				m_calendarPage->setMesoIdx(new_meso_idx);
+				m_calendarPage->setMesoIdx(m_mesoIdx);
 		}
 	});
 	connect(appMesoModel(), &DBMesocyclesModel::mesoCalendarFieldsChanged, this, [this] (const uint meso_idx, const uint field) {
@@ -628,30 +656,6 @@ void QMLMesoInterface::createMesocyclePage_part2()
 		if (meso_idx == m_mesoIdx)
 			updateMuscularGroupFromOutside(splitIndex);
 	});
-	connect(appMesoModel(), &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint meso_field) {
-		if (meso_idx == m_mesoIdx)
-		{
-			if (!appMesoModel()->isNewMeso(meso_idx))
-			{
-				appDBInterface()->saveMesocycle(meso_idx);
-				if (ownMeso())
-				{
-					if (!m_bCanExport)
-					{
-						m_bCanExport = appDBInterface()->mesoHasAllPlans(meso_idx);
-						if (m_bCanExport)
-							emit canExportChanged();
-					}
-					sendMesocycleFileToServer();
-				}
-			}
-			if (m_bCanExport)
-			{
-				m_bCanExport = false;
-				emit canExportChanged();
-			}
-		}
-	});
 
 	if (appMesoModel()->isNewMeso(m_mesoIdx))
 	{
@@ -661,9 +665,30 @@ void QMLMesoInterface::createMesocyclePage_part2()
 		});
 		connect(appMesoModel(), &DBMesocyclesModel::newMesoFieldCounterChanged, this, [this] (const uint meso_idx, const uint /*not yet used*/) {
 			if (meso_idx == m_mesoIdx)
-				setNewMesoFieldCounter(appMesoModel()->newMesoFieldCounter(meso_idx));
+				setNewMesoFieldCounter(appMesoModel()->newMesoFieldCounter(m_mesoIdx));
 		});
 	}
+
+	connect(appMesoModel(), &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint meso_field) {
+		if (meso_idx == m_mesoIdx)
+		{
+			if (!appMesoModel()->isNewMeso(m_mesoIdx))
+			{
+				appDBInterface()->saveMesocycle(m_mesoIdx);
+				if (!ownMeso())
+					appMesoModel()->checkIfCanExport(m_mesoIdx);
+				else
+					sendMesocycleFileToServer();
+			}
+		}
+	});
+	connect(appMesoModel(), &DBMesocyclesModel::canExportChanged, this, [this] (const uint meso_idx, const bool can_export) {
+		if (meso_idx == m_mesoIdx)
+		{
+			m_bCanExport = can_export;
+			emit canExportChanged();
+		}
+	});
 
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
 		appMesoModel()->fillColumnNames();

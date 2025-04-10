@@ -198,7 +198,7 @@ Frame {
 							hasDropShadow: false
 							height: 20
 							width: 20
-							visible: mesoModel.isOwnMeso(splitManager.mesoIdx())
+							visible: mesocyclesModel.isOwnMeso(splitManager.mesoIdx())
 							enabled: index === splitModel.currentRow ? index > 0 : false
 
 							anchors {
@@ -216,7 +216,7 @@ Frame {
 							hasDropShadow: false
 							height: 20
 							width: 20
-							visible: mesoModel.isOwnMeso(splitManager.mesoIdx())
+							visible: mesocyclesModel.isOwnMeso(splitManager.mesoIdx())
 							enabled: index === splitModel.currentRow ? index < splitModel.count-1 : false
 
 							anchors {
@@ -233,7 +233,7 @@ Frame {
 						id: txtExerciseName
 						text: splitModel.exerciseName(index)
 						enabled: index === splitModel.currentRow
-						editable: mesoModel.isOwnMeso(splitManager.mesoIdx())
+						editable: mesocyclesModel.isOwnMeso(splitManager.mesoIdx())
 						width: parent.width
 						height: appSettings.pageHeight*0.1
 						Layout.preferredWidth: width
@@ -249,7 +249,7 @@ Frame {
 					SetNotesField {
 						info: splitModel.instructionsLabel
 						text: splitModel.setsNotes(index)
-						editable: mesoModel.isOwnMeso(splitManager.mesoIdx())
+						editable: mesocyclesModel.isOwnMeso(splitManager.mesoIdx())
 						Layout.fillWidth: true
 
 						onEditFinished: (new_text) => splitModel.setSetsNotes(index, new_text);
@@ -294,7 +294,7 @@ Frame {
 									imageSource: "plus"
 									hasDropShadow: false
 									imageSize: 30
-									visible: mesoModel.isOwnMeso(splitManager.mesoIdx())
+									visible: mesocyclesModel.isOwnMeso(splitManager.mesoIdx())
 									z:2
 
 									onClicked: {
@@ -361,7 +361,7 @@ Frame {
 									imageSource: "minus"
 									hasDropShadow: false
 									imageSize: 30
-									visible: mesoModel.isOwnMeso(splitManager.mesoIdx())
+									visible: mesocyclesModel.isOwnMeso(splitManager.mesoIdx())
 									z:2
 
 									anchors {
@@ -389,7 +389,7 @@ Frame {
 									id: cboSetType
 									enabled: index === splitModel.currentRow
 									model: AppGlobals.setTypesModel
-									editable: mesoModel.isOwnMeso(splitManager.mesoIdx())
+									editable: mesocyclesModel.isOwnMeso(splitManager.mesoIdx())
 									currentIndex: splitModel.setType(index, splitModel.workingSet)
 									Layout.fillWidth: true
 
@@ -417,7 +417,7 @@ Frame {
 								SetInputField {
 									id: txtNSubsets
 									text: splitModel.setSubsets(index, splitModel.workingSet)
-									editable: mesoModel.isOwnMeso(splitManager.mesoIdx())
+									editable: mesocyclesModel.isOwnMeso(splitManager.mesoIdx())
 									type: SetInputField.Type.SetType
 									availableWidth: listItem.width*0.3
 									showLabel: false
@@ -458,7 +458,7 @@ Frame {
 
 									MouseArea {
 										anchors.fill: parent
-										enabled: mesoModel.isOwnMeso(splitManager.mesoIdx())
+										enabled: mesocyclesModel.isOwnMeso(splitManager.mesoIdx())
 										onClicked: {
 											splitModel.currentRow = index;
 											splitManager.simpleExercisesList(splitModel, true, false, 1);
@@ -477,7 +477,7 @@ Frame {
 
 									MouseArea {
 										anchors.fill: parent
-										enabled: mesoModel.isOwnMeso(splitManager.mesoIdx())
+										enabled: mesocyclesModel.isOwnMeso(splitManager.mesoIdx())
 										onClicked: {
 											splitModel.currentRow = index;
 											splitManager.simpleExercisesList(splitModel, true, false, 2);
@@ -492,7 +492,7 @@ Frame {
 								type: SetInputField.Type.RepType
 								availableWidth: listItem.width - 40
 								visible: cboSetType.currentIndex !== 4
-								editable: mesoModel.isOwnMeso(splitManager.mesoIdx())
+								editable: mesocyclesModel.isOwnMeso(splitManager.mesoIdx())
 								Layout.leftMargin: 10
 								Layout.rightMargin: 10
 
@@ -519,7 +519,7 @@ Frame {
 									text: splitModel.setReps1(index, splitModel.workingSet)
 									type: SetInputField.Type.RepType
 									availableWidth: listItem.width*0.55
-									editable: mesoModel.isOwnMeso(splitManager.mesoIdx())
+									editable: mesocyclesModel.isOwnMeso(splitManager.mesoIdx())
 
 									onValueChanged: (str) => splitModel.setSetReps1(index, splitModel.workingSet, str);
 									onEnterOrReturnKeyPressed: txtNReps2.forceActiveFocus();
@@ -538,7 +538,7 @@ Frame {
 									type: SetInputField.Type.RepType
 									availableWidth: listItem.width*0.4
 									showLabel: false
-									editable: mesoModel.isOwnMeso(splitManager.mesoIdx())
+									editable: mesocyclesModel.isOwnMeso(splitManager.mesoIdx())
 
 									onValueChanged: (str) => splitModel.setSetReps2(index, splitModel.workingSet, str);
 									onEnterOrReturnKeyPressed: txtNWeight1.forceActiveFocus();
@@ -558,8 +558,8 @@ Frame {
 								text: splitModel.setWeight1(index, splitModel.workingSet)
 								type: SetInputField.Type.WeightType
 								availableWidth: listItem.width - 40
+								editable: mesocyclesModel.isOwnMeso(splitManager.mesoIdx())
 								visible: cboSetType.currentIndex !== 4
-								editable: mesoModel.isOwnMeso(splitManager.mesoIdx())
 								Layout.leftMargin: 10
 								Layout.rightMargin: 10
 
@@ -587,6 +587,7 @@ Frame {
 									text: splitModel.setWeight1(index, splitModel.workingSet)
 									type: SetInputField.Type.WeightType
 									availableWidth: listItem.width*0.55
+									editable: mesocyclesModel.isOwnMeso(splitManager.mesoIdx())
 
 									onValueChanged: (str) => splitModel.setSetWeight1(index, splitModel.workingSet, str);
 									onEnterOrReturnKeyPressed: txtNWeight2.forceActiveFocus();
@@ -605,6 +606,7 @@ Frame {
 									type: SetInputField.Type.WeightType
 									showLabel: false
 									availableWidth: listItem.width*0.4
+									editable: mesocyclesModel.isOwnMeso(splitManager.mesoIdx())
 
 									onValueChanged: (str) => splitModel.setSetWeight2(index, splitModel.workingSet, str);
 

@@ -63,7 +63,7 @@ public:
 	inline bool isNewMeso(const uint meso_idx) const { return m_isNewMeso.at(meso_idx) != 0; }
 	Q_INVOKABLE inline bool isNewMeso() const { return currentMesoIdx() >= 0 ? isNewMeso(currentMesoIdx()) : true; }
 
-	inline bool canHaveTodaysWorkout() const { return m_bCanHaveTodaysWorkout; }
+	[[nodiscard]] inline bool canHaveTodaysWorkout() const { return m_bCanHaveTodaysWorkout; }
 	void changeCanHaveTodaysWorkout(const uint meso_idx);
 
 	Q_INVOKABLE inline void setCurrentlyViewedMeso(const uint meso_idx, const bool bEmitSignal = true)
@@ -226,6 +226,9 @@ public:
 	QDate getMesoMaximumEndDate(const QString &userid, const uint exclude_idx) const;
 	void updateColumnLabels();
 
+	[[nodiscard]] inline bool canExport(const uint meso_idx) const { return meso_idx < m_canExport.count() ? m_canExport.at(meso_idx) : false; }
+	void checkIfCanExport(const uint meso_idx);
+
 	//When importing a complete program: importIdx() will be set to -1 because we will be getting a new meso model. When other parts of the code
 	//check importIdx() and get a -1, they will act in accordance with whole program import. After the meso model has been succesfully imported
 	//and incorporated into the database and appMesoModel(), any other model that depends on a meso_idx can query mesoIdx() which will now reflect
@@ -261,6 +264,7 @@ public:
 signals:
 	void mesoIdxChanged(const uint old_meso_idx, const uint new_meso_idx);
 	void isNewMesoChanged(const uint meso_idx, const uint = 9999); //2nd parameter only need by TPWorkoutsCalendar
+	void canExportChanged(const uint meso_idx, const bool can_export);
 	void newMesoFieldCounterChanged(const uint meso_idx, const uint field);
 	void mesoChanged(const uint meso_idx, const uint field);
 	void mesoCalendarFieldsChanged(const uint meso_idx, const uint field);
@@ -279,6 +283,7 @@ private:
 	QList<short> m_isNewMeso;
 	QList<short> m_newMesoFieldCounter;
 	QList<bool> m_newMesoCalendarChanged;
+	QList<bool> m_canExport;
 	QList<QStringList> m_usedSplits;
 	int m_currentMesoIdx, m_mostRecentOwnMesoIdx, m_importMesoIdx, m_lowestTempMesoId;
 	bool m_bCanHaveTodaysWorkout, m_bViewedMesoHasData;

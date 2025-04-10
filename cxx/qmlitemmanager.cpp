@@ -602,6 +602,7 @@ void QmlItemManager::importFromFile(const QString &filename, const int wanted_co
 					importFileMessageId = incorporateImportedData(splitModels[i], wanted_content);
 			}
 		}
+		appMesoModel()->checkIfCanExport(appMesoModel()->importIdx());
 	}
 	else if (isBitSet(wanted_content, IFC_TDAY))
 	{

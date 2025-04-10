@@ -136,6 +136,8 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 	m_isNewMeso.remove(meso_idx);
 	m_newMesoFieldCounter.remove(meso_idx);
 	m_splitModel->removeRow(meso_idx);
+	m_newMesoCalendarChanged.remove(meso_idx);
+	m_canExport.remove(meso_idx);
 	removeRow(meso_idx);
 
 	if (meso_idx < m_mesoManagerList.count())
@@ -198,6 +200,7 @@ const uint DBMesocyclesModel::newMesocycle(QStringList &&infolist)
 	m_splitModel->setMesoId(meso_idx, id(meso_idx));
 	m_calendarModelList.append(new DBMesoCalendarModel{this, meso_idx});
 	m_newMesoCalendarChanged.append(false);
+	m_canExport.append(false);
 	if (isOwnMeso(meso_idx))
 	{
 		m_mostRecentOwnMesoIdx = meso_idx;
@@ -352,6 +355,11 @@ void DBMesocyclesModel::setOwnMeso(const uint meso_idx, const bool bOwnMeso)
 			emit mostRecentOwnMesoChanged(m_mostRecentOwnMesoIdx);
 			changeCanHaveTodaysWorkout(meso_idx);
 		}
+		if (!bOwnMeso)
+		{
+			m_modeldata[meso_idx][MESOCYCLES_COL_CLIENT].clear();
+			m_canExport[meso_idx] = false;
+		}
 	}
 }
 
@@ -499,6 +507,29 @@ void DBMesocyclesModel::updateColumnLabels()
 		mColumnNames[MESOCYCLES_COL_COACH] = std::move(tr("Coach/Trainer: "));
 	if (appUserModel()->isClient(0))
 		mColumnNames[MESOCYCLES_COL_CLIENT] = std::move(tr("Client: "));
+}
+
+void DBMesocyclesModel::checkIfCanExport(const uint meso_idx)
+{
+	if (isOwnMeso(meso_idx) && !isNewMeso(meso_idx))
+	{
+		if (appDBInterface()->mesoHasAllPlans(m_mesoIdx))
+		{
+			if (!m_canExport.at(meso_idx))
+			{
+				m_canExport[meso_idx] = true;
+				emit canExportChanged(meso_idx, true);
+			}
+		}
+		else
+		{
+			if (m_canExport.at(meso_idx))
+			{
+				m_canExport[meso_idx] = false;
+				emit canExportChanged(meso_idx, false);
+			}
+		}
+	}
 }
 
 int DBMesocyclesModel::exportToFile(const QString &filename, const bool, const bool, const bool) const

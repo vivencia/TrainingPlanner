@@ -364,25 +364,7 @@ void QmlMesoSplitInterface::createMesoSplitPage_part2(const QChar& splitletter)
 		else
 		{
 			appDBInterface()->saveMesoSplitComplete(splitmodel);
-			/*if (!appMesoModel()->isNewMeso(m_mesoIdx))
-			{
-				appDBInterface()->saveMesocycle(meso_idx);
-				if (ownMeso())
-				{
-					if (!m_bCanExport)
-					{
-						m_bCanExport = appDBInterface()->mesoHasAllPlans(meso_idx);
-						if (m_bCanExport)
-							emit canExportChanged();
-					}
-					sendMesocycleFileToServer();
-				}
-			}
-			if (m_bCanExport)
-			{
-				m_bCanExport = false;
-				emit canExportChanged();
-			}*/
+			appMesoModel()->checkIfCanExport(m_mesoIdx);
 		}
 	});
 }
