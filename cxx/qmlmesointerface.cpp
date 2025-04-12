@@ -507,41 +507,53 @@ void QMLMesoInterface::importMeso(const QString &filename)
 
 void QMLMesoInterface::sendMesocycleFileToServer()
 {
-	const QString &mesocycleFile{appMesoModel()->mesoFileName(m_mesoIdx)};
-	appMesoModel()->setExportRow(m_mesoIdx);
-	if (appMesoModel()->exportContentsOnlyToFile(mesocycleFile))
+	QFile *mesoFile{appUtils()->openFile(appMesoModel()->mesoFileName(m_mesoIdx), QIODeviceBase::ReadWrite|QIODeviceBase::Truncate|QIODeviceBase::Text)};
+	if (mesoFile)
 	{
-		char splitletter{'A'};
-		DBMesoSplitModel *splitModel{plannerSplitModel(splitletter)};
+		appMesoModel()->setExportRow(m_mesoIdx);
+		if (appMesoModel()->exportContentsOnlyToFile(mesoFile))
+		{
+			char splitletter{'A'};
+			DBMesoSplitModel *splitModel{plannerSplitModel(splitletter)};
 
-		if (splitModel != nullptr)
-		{
-			do {
-				splitModel->exportContentsOnlyToFile(mesocycleFile, false, true);
-			} while ((splitModel = plannerSplitModel(++splitletter)) != nullptr);
-			appUserModel()->sendFileToServer(mesocycleFile, !ownMeso() ? tr("Exercises Program sent to client") : QString{}, mesosDir, m_client);
-		}
-		else
-		{
-			auto conn = std::make_shared<QMetaObject::Connection>();
-			*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this,&mesocycleFile]
+			if (splitModel != nullptr)
+			{
+				do {
+					splitModel->exportContentsOnlyToFile(mesoFile);
+				} while ((splitModel = plannerSplitModel(++splitletter)) != nullptr);
+				mesoFile->close();
+				delete mesoFile;
+				appUserModel()->sendFileToServer(mesoFile->fileName(), !ownMeso() ? tr("Exercises Program sent to client") : QString{},
+													mesosDir, m_client);
+			}
+			else
+			{
+				auto conn = std::make_shared<QMetaObject::Connection>();
+				*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [this,conn,mesoFile]
 															(const uint table_idx, const QVariant &data) {
-				if (table_idx == MESOSPLIT_TABLE_ID)
-				{
-					disconnect(*conn);
-					const QMap<QChar,DBMesoSplitModel*> &allSplits(data.value<QMap<QChar,DBMesoSplitModel*>>());
-					for (const auto splitModel : allSplits)
-						splitModel->exportContentsOnlyToFile(mesocycleFile, false, true);
-					appUserModel()->sendFileToServer(mesocycleFile, !ownMeso() ? tr("Exercises Program sent to client") : QString{}, mesosDir, m_client);
-				}
-			});
+					if (table_idx == MESOSPLIT_TABLE_ID)
+					{
+						disconnect(*conn);
+						const QMap<QChar,DBMesoSplitModel*> &allSplits(data.value<QMap<QChar,DBMesoSplitModel*>>());
+						for (const auto splitModel : allSplits)
+							splitModel->exportContentsOnlyToFile(mesoFile);
+						mesoFile->close();
+						delete mesoFile;
+						appUserModel()->sendFileToServer(mesoFile->fileName(), !ownMeso() ? tr("Exercises Program sent to client") : QString{},
+															mesosDir, m_client);
+					}
+				});
+			}
 		}
 	}
 }
 
+#include "online_services/tponlineservices.h"
 void QMLMesoInterface::incorporateMeso()
 {
 	appDBInterface()->saveMesocycle(m_mesoIdx);
+	static_cast<void>(QFile::remove(appMesoModel()->mesoFileName(m_mesoIdx)));
+	appOnlineServices()->removeFile()
 }
 
 DBMesoSplitModel *QMLMesoInterface::plannerSplitModel(const QChar &splitLetter)

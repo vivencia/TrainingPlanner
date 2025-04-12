@@ -18,6 +18,20 @@ void TPDatabaseTable::removeEntry(const bool bUseMesoId)
 		doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
+void TPDatabaseTable::removeTemporaries(const bool bUseMesoId)
+{
+	if (openDatabase())
+	{
+		bool ok{false};
+		QSqlQuery query{getQuery()};
+		const QString &strQuery("DELETE FROM "_L1 + m_tableName + (bUseMesoId ? " WHERE meso_id < 0"_L1 : " WHERE id < 0"_L1));
+		ok = query.exec(strQuery);
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
+	}
+	if (doneFunc)
+		doneFunc(static_cast<TPDatabaseTable*>(this));
+}
+
 void TPDatabaseTable::clearTable()
 {
 	if (openDatabase())

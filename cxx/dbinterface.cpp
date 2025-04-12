@@ -78,6 +78,7 @@ void DBInterface::init()
 		delete db_user;
 	}
 
+	sanityCheck();
 	getExercisesListVersion();
 	getAllUsers();
 	getAllMesocycles();
@@ -91,6 +92,13 @@ void DBInterface::init()
 		//user.removeDBFile();
 		//appSettings()->saveAppVersion(TP_APP_VERSION);
 	}
+}
+
+//So far, only DBMesoSplitTable has a sanity chack to make
+void DBInterface::sanityCheck()
+{
+	DBMesoSplitTable *worker{new DBMesoSplitTable{m_DBFilePath}};
+	createThread(worker, [worker] () { worker->removeTemporaries(); });
 }
 
 void DBInterface::threadFinished(TPDatabaseTable *dbObj)
@@ -277,13 +285,14 @@ void DBInterface::saveMesocycle(const uint meso_idx)
 {
 	DBMesocyclesTable *worker{new DBMesocyclesTable{m_DBFilePath, appMesoModel()}};
 
-	if (appMesoModel()->_id(meso_idx) == -1)
+	if (appMesoModel()->_id(meso_idx) < 0)
 	{
+		const int oldMeso_id{appMesoModel()->_id(meso_idx)};
 		if (appMesoModel()->importMode())
 			worker->setWaitForThreadToFinish(true);
 
 		auto conn = std::make_shared<QMetaObject::Connection>();
-		*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,meso_idx,worker] (const uint db_id) {
+		*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,meso_idx,worker,oldMeso_id] (const uint db_id) {
 			if (db_id == worker->uniqueID())
 			{
 				disconnect(*conn);
@@ -292,12 +301,14 @@ void DBInterface::saveMesocycle(const uint meso_idx)
 					appMesoModel()->setNewMesoCalendarChanged(meso_idx, false);
 					changeMesoCalendar(meso_idx, false, false);
 				}
+				if (appMesoModel()->importMode())
+					replaceMesoId(meso_idx, oldMeso_id);
 				//When importing multiple splits the code to save them will be handling the database access and will contain the same
 				//information the simple split contains. saveMesoSplit() code can interfere with the other threads so we do not call it
-				if (!appMesoModel()->importMode())
+				/*if (!appMesoModel()->importMode())
 					saveMesoSplit(meso_idx);
 				if (!appMesoModel()->isOwnMeso(meso_idx))
-					appMesoModel()->maybeIncorporateMeso(meso_idx);
+					appMesoModel()->maybeIncorporateMeso(meso_idx);*/
 			}
 		});
 	}
@@ -329,6 +340,14 @@ void DBInterface::saveMesoSplit(const uint meso_idx)
 {
 	DBMesoSplitTable *worker{new DBMesoSplitTable{m_DBFilePath, appMesoModel()->mesoSplitModel()}};
 	worker->addExecArg(meso_idx);
+	createThread(worker, [worker] () { worker->saveMesoSplit(); });
+}
+
+void DBInterface::replaceMesoId(const uint meso_idx, const int old_meso_id)
+{
+	DBMesoSplitTable *worker{new DBMesoSplitTable{m_DBFilePath, appMesoModel()->mesoSplitModel()}};
+	worker->addExecArg(QString::number(old_meso_id));
+	worker->addExecArg(appMesoModel()->id(meso_idx));
 	createThread(worker, [worker] () { worker->saveMesoSplit(); });
 }
 

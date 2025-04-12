@@ -437,7 +437,7 @@ int DBMesoSplitModel::exportToFile(const QString &filename, const bool, const bo
 bool DBMesoSplitModel::checkIfFileContentMatchesThisSplit(QFile *inFile)
 {
 	char buf[256];
-	int lineLength(0);
+	int lineLength{0};
 	QString inData;
 	while ((lineLength = inFile->readLine(buf, sizeof(buf))) != -1)
 	{
@@ -448,7 +448,7 @@ bool DBMesoSplitModel::checkIfFileContentMatchesThisSplit(QFile *inFile)
 			if (idx != -1)
 			{
 				idx += 7;
-				const QChar &splitletter(inData.sliced(idx+2, 1).at(0));
+				const QChar &splitletter{inData.sliced(idx+2, 1).at(0)};
 				if (splitletter == _splitLetter())
 				{
 					idx = inData.indexOf('-', idx+1);

@@ -41,6 +41,7 @@ public:
 	}
 
 	void removeEntry(const bool bUseMesoId = false);
+	void removeTemporaries(const bool bUseMesoId = false);
 	void clearTable();
 	void removeDBFile();
 

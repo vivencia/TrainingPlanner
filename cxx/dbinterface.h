@@ -38,6 +38,7 @@ public:
 
 	inline const QString &dbFilesPath() const { return m_DBFilePath; }
 	void init();
+	void sanityCheck();
 	void threadFinished(TPDatabaseTable *dbObj);
 
 	//-----------------------------------------------------------USER TABLE-----------------------------------------------------------
@@ -66,6 +67,7 @@ public:
 
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 	void saveMesoSplit(const uint meso_idx);
+	void replaceMesoId(const uint meso_idx, const int old_meso_id);
 	void removeMesoSplit(const uint meso_idx);
 	void deleteMesoSplitTable(const bool bRemoveFile);
 	void loadCompleteMesoSplit(const uint meso_idx, const QChar& splitLetter);

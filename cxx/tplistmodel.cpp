@@ -117,13 +117,25 @@ bool TPListModel::isDifferent(const TPListModel *const model) const
 	return true;
 }
 
-bool TPListModel::exportContentsOnlyToFile(const QString &filename, const bool useRealId, const bool appendInfo) const
+bool TPListModel::exportContentsOnlyToFile(const QString &filename, const bool useRealId) const
 {
-	QFile *outFile{appUtils()->openFile(filename, appendInfo ? QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text :
-							QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text)};
-	if (!outFile)
+	bool res{false};
+	QFile *outFile{appUtils()->openFile(filename, QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text)};
+	if (outFile)
+	{
+		res = exportContentsOnlyToFile(outFile, useRealId);
+		outFile->close();
+		delete outFile;
+	}
+	return res;
+}
+
+bool TPListModel::exportContentsOnlyToFile(QFile *outFile, const bool useRealId) const
+{
+	if (!outFile || !outFile->isOpen())
 		return false;
 
+	outFile->write(QString{"##0x"_L1 + QString::number(tableID()) + "\n"_L1}.toUtf8().constData());
 	if (m_exportRows.isEmpty())
 	{
 		for (const auto &itr : m_modeldata)
@@ -153,29 +165,58 @@ bool TPListModel::exportContentsOnlyToFile(const QString &filename, const bool u
 		}
 		const_cast<TPListModel*>(this)->m_exportRows.clear();
 	}
-	outFile->close();
-	delete outFile;
 	return true;
 }
 
-int TPListModel::importFromContentsOnlyFile(const QString &filename)
+int TPListModel::importFromContentsOnlyFile(const QString &filename, int row)
 {
+	int res{-1};
 	QFile *inFile{appUtils()->openFile(filename, QIODeviceBase::ReadOnly|QIODeviceBase::Text)};
-	if (!inFile)
+	if (inFile)
+	{
+		res = importFromContentsOnlyFile(inFile, row);
+		inFile->close();
+		delete inFile;
+	}
+	return res;
+}
+
+int TPListModel::importFromContentsOnlyFile(QFile *inFile, int row)
+{
+	if (!inFile || !inFile->canReadLine())
 		return -1;
 
 	char buf[512];
 	QStringList modeldata(m_fieldCount);
+	bool bFoundModelInfo{false};
+	const char *tableIdStr{QString{"##0x"_L1 + QString::number(tableID())}.toLatin1().constData()};
 	while (inFile->readLine(buf, sizeof(buf)) != -1)
-		modeldata.append(QString::fromLocal8Bit(buf));
-	inFile->close();
-	delete inFile;
+	{
+		if (strstr(buf, "##0x") != NULL)
+		{
+			if (!bFoundModelInfo)
+				bFoundModelInfo = strstr(buf, tableIdStr) != NULL;
+			else
+			{
+				inFile->seek(inFile->pos()-strlen(buf));
+				break;
+			}
+		}
+		else
+			modeldata.append(QString::fromLocal8Bit(buf));
+	}
 	if (modeldata.count() < m_fieldCount)
 		return -1;
 	if (modeldata.count() > m_fieldCount)
 		modeldata.resize(m_fieldCount);
-	m_modeldata.append(std::move(modeldata));
-	return m_modeldata.count() - 1;
+	if (row == -1)
+	{
+		row = m_modeldata.count();
+		m_modeldata.append(std::move(modeldata));
+	}
+	else if (row < m_modeldata.count())
+		m_modeldata.replace(row, std::move(modeldata));
+	return row;
 }
 
 int TPListModel::exportToFile(const QString &filename, const bool writeHeader, const bool writeEnd, const bool appendInfo) const

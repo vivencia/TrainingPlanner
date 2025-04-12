@@ -26,6 +26,7 @@ public:
 	void updateTable() override final;
 	void getAllMesoSplits();
 	void saveMesoSplit();
+	void replaceMesoId();
 	void getAllSplits();
 	void getCompleteMesoSplit(const bool bEmitSignal = true); //only for empty models
 	void saveMesoSplitComplete();

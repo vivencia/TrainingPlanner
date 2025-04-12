@@ -3,6 +3,8 @@
 #include <QQmlEngine>
 #include <QDate>
 
+QT_FORWARD_DECLARE_CLASS(QFile)
+
 class TPListModel : public QAbstractListModel
 {
 
@@ -37,8 +39,21 @@ public:
 	[[nodiscard]] inline const QString &columnLabel(const uint col) const { return mColumnNames.at(col); }
 
 	bool isDifferent(const TPListModel* const model) const;
-	bool exportContentsOnlyToFile(const QString &filename, const bool useRealId = false, const bool appendInfo = false) const;
-	int importFromContentsOnlyFile(const QString &filename);
+
+	/**
+	 * @brief exportContentsOnlyToFile
+	 * @param filename Full path of the file to be written. Either may or may not exist, it will be overwritten if it does or created if not.
+	 *					The file will will be opened/created, all its contents will be filled with m_modeldata and closed.
+	 * @param useRealId Exported information either contains the id used in the local database or not
+	 * @param inFile An already opened file with the options to read/write, either append or truncate and text(export) or read-only and text(import).
+	 *				Closing of the file, and deletion of the object, will not be handled by the function
+	 * @return
+	 */
+	bool exportContentsOnlyToFile(const QString &filename, const bool useRealId = false) const;
+	bool exportContentsOnlyToFile(QFile *outFile, const bool useRealId = false) const;
+	int importFromContentsOnlyFile(const QString &filename, int row = -1);
+	int importFromContentsOnlyFile(QFile *inFile, int row = -1);
+
 	virtual int exportToFile(const QString &filename, const bool writeHeader = true, const bool writeEnd = true, const bool appendInfo = true) const;
 	virtual int importFromFile(const QString &filename) { Q_UNUSED(filename); return false; }
 	virtual bool updateFromModel(TPListModel*) { return false; }

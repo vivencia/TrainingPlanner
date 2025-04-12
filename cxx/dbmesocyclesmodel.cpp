@@ -553,18 +553,18 @@ int DBMesocyclesModel::importFromFile(const QString &filename)
 		return  APPWINDOW_MSG_OPEN_FAILED;
 	}
 
-	QStringList modeldata(MESOCYCLES_TOTAL_COLS);
+	QStringList modeldata{MESOCYCLES_TOTAL_COLS};
 	modeldata[0] = STR_MINUS_ONE;
-	QStringList splitmodeldata(SIMPLE_MESOSPLIT_TOTAL_COLS);
+	QStringList splitmodeldata{SIMPLE_MESOSPLIT_TOTAL_COLS};
 	splitmodeldata[MESOSPLIT_COL_ID] = STR_MINUS_ONE;
 	splitmodeldata[MESOSPLIT_COL_MESOID] = STR_MINUS_ONE;
 
-	uint col(MESOCYCLES_COL_NAME);
+	uint col{MESOCYCLES_COL_NAME};
 	QString value;
 	char buf[512];
-	qint64 lineLength(0);
+	qint64 lineLength{0};
 	const QString tableIdStr("0x000"_L1 + QString::number(MESOCYCLES_TABLE_ID));
-	bool bFoundModelInfo(false);
+	bool bFoundModelInfo{false};
 
 	while ((lineLength = inFile->readLine(buf, sizeof(buf))) != -1)
 	{
@@ -590,7 +590,7 @@ int DBMesocyclesModel::importFromFile(const QString &filename)
 					else
 					{
 						value = buf;
-						const int splitidx(appUtils()->splitLetterToMesoSplitIndex(value.at(value.indexOf(':')-1)));
+						const uint splitidx{appUtils()->splitLetterToMesoSplitIndex(value.at(value.indexOf(':')-1))};
 						if (splitidx >= 2 && splitidx <= 7)
 							splitmodeldata[splitidx] = std::move(value.remove(0, value.indexOf(':') + 2).simplified());
 						else
@@ -674,14 +674,35 @@ void DBMesocyclesModel::sendMesoToUser(const uint meso_idx)
 
 void DBMesocyclesModel::viewOnlineMeso(const QString &mesoFileName)
 {
-	const int meso_idx{importFromContentsOnlyFile(mesoFileName)};
-	if (meso_idx >= 0)
+	QFile *mesoFile{appUtils()->openFile(mesoFileName, QIODeviceBase::ReadOnly|QIODeviceBase::Text)};
+	if (mesoFile)
 	{
-		m_modeldata[meso_idx][MESOCYCLES_COL_ID] = std::move(QString::number(m_lowestTempMesoId--));
-		QMLMesoInterface *mesomanager{new QMLMesoInterface{this, static_cast<uint>(meso_idx)}};
-		m_mesoManagerList.append(mesomanager);
-		mesomanager->setNewMesoFieldCounter(20);
-		getMesocyclePage(static_cast<uint>(meso_idx));
+		const uint meso_idx{startNewMesocycle(false, false)};
+		setImportMode(true);
+		if (importFromContentsOnlyFile(mesoFile, meso_idx) == meso_idx)
+		{
+			m_modeldata[meso_idx][MESOCYCLES_COL_ID] = std::move(QString::number(m_lowestTempMesoId--));
+			m_mesoManagerList.at(meso_idx)->setNewMesoFieldCounter(20);
+			//Save the splits with a negative mesoId. This will only hold for the current session. Upon a new start up, the databases will be rid of all
+			//negative Ids. If the meso is incorporated, the mesoIds will be replaced with the correct mesoId.
+			DBMesoSplitModel* splitModel{new DBMesoSplitModel(this, true, meso_idx)};
+			if (splitModel->importFromContentsOnlyFile(mesoFile))
+			{
+				splitModel->setMesoId(0, id(meso_idx));
+				char splitletter{'A'};
+				do
+				{
+					splitModel->setSplitLetter(splitletter);
+					appDBInterface()->saveMesoSplitComplete(splitModel);
+					splitModel->clearFast();
+					++splitletter;
+				} while (splitModel->importFromContentsOnlyFile(mesoFile) != -1);
+			}
+			delete splitModel;
+			mesoFile->close();
+			delete mesoFile;
+			getMesocyclePage(static_cast<uint>(meso_idx));
+		}
 	}
 }
 
