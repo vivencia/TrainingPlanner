@@ -142,6 +142,21 @@ QFile *TPUtils::openFile(const QString &filename, QIODeviceBase::OpenMode flags)
 	return nullptr;
 }
 
+void TPUtils::scanDir(const QString &path, QStringList& results, const QString &match, const bool follow_tree)
+{
+	QDir dir{path};
+	if (dir.isReadable())
+	{
+		results.append(std::move(dir.entryList(QStringList{match}, QDir::Files|QDir::NoDotAndDotDot)));
+		if (follow_tree)
+		{
+			QStringList subdirs{dir.entryList(QDir::Dirs|QDir::NoDotAndDotDot)};
+			for (const auto &subdir: subdirs)
+				scanDir(subdir, results, match, true);
+		}
+	}
+}
+
 QString TPUtils::formatDate(const QDate &date, const DATE_FORMAT format) const
 {
 	switch (format)

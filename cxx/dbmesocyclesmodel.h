@@ -257,9 +257,11 @@ public:
 	QString formatFieldToImport(const uint field, const QString &fieldValue, const QString &fieldName) const;
 
 	QString mesoFileName(const uint meso_idx) const;
+	void removeMesoFile(const uint meso_idx);
 	Q_INVOKABLE void sendMesoToUser(const uint meso_idx);
-	void viewOnlineMeso(const QString &mesoFileName);
-	void maybeIncorporateMeso(const uint meso_idx);
+
+	void viewOnlineMeso(const QString &coach, const QString &mesoFileName);
+	void scanTemporaryMesocycles();
 
 signals:
 	void mesoIdxChanged(const uint old_meso_idx, const uint new_meso_idx);

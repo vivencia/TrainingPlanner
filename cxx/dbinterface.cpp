@@ -279,6 +279,7 @@ void DBInterface::getAllMesocycles()
 		DBMesoSplitTable worker2{m_DBFilePath, appMesoModel()->mesoSplitModel()};
 		worker2.getAllMesoSplits();
 	}
+	appMesoModel()->scanTemporaryMesocycles();
 }
 
 void DBInterface::saveMesocycle(const uint meso_idx)
@@ -301,8 +302,12 @@ void DBInterface::saveMesocycle(const uint meso_idx)
 					appMesoModel()->setNewMesoCalendarChanged(meso_idx, false);
 					changeMesoCalendar(meso_idx, false, false);
 				}
+				//The splits are already saved with a negative meso_id
 				if (appMesoModel()->importMode())
+				{
 					replaceMesoId(meso_idx, oldMeso_id);
+					appMesoModel()->removeMesoFile(meso_idx);
+				}
 				//When importing multiple splits the code to save them will be handling the database access and will contain the same
 				//information the simple split contains. saveMesoSplit() code can interfere with the other threads so we do not call it
 				/*if (!appMesoModel()->importMode())
@@ -348,7 +353,7 @@ void DBInterface::replaceMesoId(const uint meso_idx, const int old_meso_id)
 	DBMesoSplitTable *worker{new DBMesoSplitTable{m_DBFilePath, appMesoModel()->mesoSplitModel()}};
 	worker->addExecArg(QString::number(old_meso_id));
 	worker->addExecArg(appMesoModel()->id(meso_idx));
-	createThread(worker, [worker] () { worker->saveMesoSplit(); });
+	createThread(worker, [worker] () { worker->replaceMesoId(); });
 }
 
 void DBInterface::removeMesoSplit(const uint meso_idx)

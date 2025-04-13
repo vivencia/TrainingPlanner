@@ -138,6 +138,7 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 	m_splitModel->removeRow(meso_idx);
 	m_newMesoCalendarChanged.remove(meso_idx);
 	m_canExport.remove(meso_idx);
+	removeMesoFile(meso_idx);
 	removeRow(meso_idx);
 
 	if (meso_idx < m_mesoManagerList.count())
@@ -667,53 +668,103 @@ QString DBMesocyclesModel::mesoFileName(const uint meso_idx) const
 	return appUserModel()->localDir(client(meso_idx)) + mesosDir + name(meso_idx) + ".txt"_L1;
 }
 
-void DBMesocyclesModel::sendMesoToUser(const uint meso_idx)
+void DBMesocyclesModel::removeMesoFile(const uint meso_idx)
 {
-	m_mesoManagerList.at(meso_idx)->sendMesocycleFileToServer();
+	const QString &mesofilename{mesoFileName(meso_idx)};
+	appUserModel()->removeFileFromServer(mesofilename, mesosDir, coach(meso_idx));
+	static_cast<void>(QFile::remove(mesofilename));
 }
 
-void DBMesocyclesModel::viewOnlineMeso(const QString &mesoFileName)
+void DBMesocyclesModel::sendMesoToUser(const uint meso_idx)
 {
-	QFile *mesoFile{appUtils()->openFile(mesoFileName, QIODeviceBase::ReadOnly|QIODeviceBase::Text)};
+	QFile *mesoFile{appUtils()->openFile(appMesoModel()->mesoFileName(m_mesoIdx), QIODeviceBase::ReadWrite|QIODeviceBase::Truncate|QIODeviceBase::Text)};
 	if (mesoFile)
 	{
-		const uint meso_idx{startNewMesocycle(false, false)};
-		setImportMode(true);
-		if (importFromContentsOnlyFile(mesoFile, meso_idx) == meso_idx)
+		appMesoModel()->setExportRow(m_mesoIdx);
+		if (appMesoModel()->exportContentsOnlyToFile(mesoFile))
 		{
-			m_modeldata[meso_idx][MESOCYCLES_COL_ID] = std::move(QString::number(m_lowestTempMesoId--));
-			m_mesoManagerList.at(meso_idx)->setNewMesoFieldCounter(20);
-			//Save the splits with a negative mesoId. This will only hold for the current session. Upon a new start up, the databases will be rid of all
-			//negative Ids. If the meso is incorporated, the mesoIds will be replaced with the correct mesoId.
-			DBMesoSplitModel* splitModel{new DBMesoSplitModel(this, true, meso_idx)};
-			if (splitModel->importFromContentsOnlyFile(mesoFile))
+			char splitletter{'A'};
+			DBMesoSplitModel *splitModel{m_mesoManagerList.at(meso_idx)->plannerSplitModel(splitletter)};
+
+			if (splitModel != nullptr)
 			{
-				splitModel->setMesoId(0, id(meso_idx));
-				char splitletter{'A'};
-				do
-				{
-					splitModel->setSplitLetter(splitletter);
-					appDBInterface()->saveMesoSplitComplete(splitModel);
-					splitModel->clearFast();
-					++splitletter;
-				} while (splitModel->importFromContentsOnlyFile(mesoFile) != -1);
+				do {
+					splitModel->exportContentsOnlyToFile(mesoFile);
+				} while ((splitModel = m_mesoManagerList.at(meso_idx)->plannerSplitModel(++splitletter)) != nullptr);
+				mesoFile->close();
+				appUserModel()->sendFileToServer(mesoFile->fileName(), !isOwnMeso(meso_idx) ? tr("Exercises Program sent to client") : QString{},
+													mesosDir, client(meso_idx));
+				delete mesoFile;
 			}
-			delete splitModel;
-			mesoFile->close();
-			delete mesoFile;
-			getMesocyclePage(static_cast<uint>(meso_idx));
+			else
+			{
+				auto conn = std::make_shared<QMetaObject::Connection>();
+				*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [this,conn,mesoFile,meso_idx]
+															(const uint table_idx, const QVariant &data) {
+					if (table_idx == MESOSPLIT_TABLE_ID)
+					{
+						disconnect(*conn);
+						const QMap<QChar,DBMesoSplitModel*> &allSplits(data.value<QMap<QChar,DBMesoSplitModel*>>());
+						for (const auto splitModel : allSplits)
+							splitModel->exportContentsOnlyToFile(mesoFile);
+						mesoFile->close();
+						appUserModel()->sendFileToServer(mesoFile->fileName(), !isOwnMeso(meso_idx) ? tr("Exercises Program sent to client") : QString{},
+															mesosDir, client(meso_idx));
+						delete mesoFile;
+					}
+				});
+			}
 		}
 	}
 }
 
-void DBMesocyclesModel::maybeIncorporateMeso(const uint meso_idx)
+void DBMesocyclesModel::viewOnlineMeso(const QString &coach, const QString &mesoFileName)
 {
-	QFile *mesoFile{appUtils()->openFile(mesoFileName(meso_idx), QIODeviceBase::ReadWrite|QIODeviceBase::Text)};
-	if (!mesoFile)
-		return;
+	connect(appUserModel(), &DBUserModel::fileDownloaded, this, [this] (const bool success, const uint, const QString &localFileName) {
+		if (success)
+		{
+			QFile *mesoFile{appUtils()->openFile(localFileName, QIODeviceBase::ReadOnly|QIODeviceBase::Text)};
+			if (mesoFile)
+			{
+				const uint meso_idx{startNewMesocycle(false, false)};
+				setImportMode(true);
+				if (importFromContentsOnlyFile(mesoFile, meso_idx) == meso_idx)
+				{
+					m_modeldata[meso_idx][MESOCYCLES_COL_ID] = std::move(QString::number(m_lowestTempMesoId--));
+					m_mesoManagerList.at(meso_idx)->setNewMesoFieldCounter(20);
+					//Save the splits with a negative mesoId. This will only hold for the current session. Upon a new start up, the databases will be rid of all
+					//negative Ids. If the meso is incorporated, the mesoIds will be replaced with the correct mesoId.
+					DBMesoSplitModel* splitModel{new DBMesoSplitModel(this, true, meso_idx)};
+					if (splitModel->importFromContentsOnlyFile(mesoFile))
+					{
+						splitModel->setMesoId(0, id(meso_idx));
+						char splitletter{'A'};
+						do
+						{
+							splitModel->setSplitLetter(splitletter);
+							appDBInterface()->saveMesoSplitComplete(splitModel);
+							splitModel->clearFast();
+							++splitletter;
+						} while (splitModel->importFromContentsOnlyFile(mesoFile) != -1);
+					}
+					delete splitModel;
+					mesoFile->close();
+					delete mesoFile;
+					getMesocyclePage(static_cast<uint>(meso_idx));
+				}
+			}
+		}
+	});
+	appUserModel()->downloadFileFromServer(mesoFileName, appUserModel()->localDir(appUserModel()->userId(0)) + mesosDir + coach + '/',
+		QString{}, mesosDir, coach);
+}
 
-	mesoFile->write(id(meso_idx).toUtf8().constData());
-	mesoFile->write("\n", 1);
-	mesoFile->close();
-	delete mesoFile;
+void DBMesocyclesModel::scanTemporaryMesocycles()
+{
+	QStringList mesos;
+	appUtils()->scanDir(appUserModel()->localDir(appUserModel()->userId(0)) + mesosDir, mesos, "*.txt"_L1, true);
+	if (!mesos.isEmpty())
+	{
+
+	}
 }

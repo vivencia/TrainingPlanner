@@ -371,7 +371,7 @@ Item {
 				exportMenu.addEntry(qsTr("Share"), "export.png", 30, true);
 			exportMenu.menuEntrySelected.connect(function(id) {
 				switch (id) {
-					case 10: mesocyclesModel.sendMesoToUser(meso_id); break;
+					case 10: mesocyclesModel.sendMesoToUser(meso_idx); break;
 					case 20: exportTypeTip.init(meso_idx, false); break;
 					case 30: exportTypeTip.init(meso_idx, true); break;
 				}
