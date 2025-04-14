@@ -1500,7 +1500,7 @@ void DBUserModel::checkNewMesos()
 							new_message->setId(id);
 							new_message->insertData(it, 0);
 							new_message->insertAction(tr("View"), [=] (const QVariant &mesofile) {
-											appMesoModel()->viewOnlineMeso(mesosDir + coach + '/' + it); });
+											appMesoModel()->viewOnlineMeso(coach, it); });
 							new_message->insertAction(tr("Delete"), [=,this] (const QVariant &subdir) {
 											appOnlineServices()->removeFile(request_id, userId(0), m_password, it, coach); }, true);
 							new_message->plug();

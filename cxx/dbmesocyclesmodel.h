@@ -68,14 +68,7 @@ public:
 
 	Q_INVOKABLE inline void setCurrentlyViewedMeso(const uint meso_idx, const bool bEmitSignal = true)
 	{
-		setViewedMesoHasData(!isNewMeso(meso_idx), bEmitSignal);
-	}
-	Q_INVOKABLE inline bool viewedMesoHasData() const { return m_bViewedMesoHasData; }
-	inline void setViewedMesoHasData(const bool bHasData, const bool bEmitSignal = true)
-	{
-		m_bViewedMesoHasData = bHasData;
-		if (bEmitSignal)
-			emit viewedMesoHasDataChanged();
+		checkIfCanExport(meso_idx, bEmitSignal);
 	}
 
 	void setWorkoutIsFinished(const uint meso_idx, const QDate &date, const bool bFinished);
@@ -160,6 +153,7 @@ public:
 	{
 		return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_CLIENT);
 	}
+	Q_INVOKABLE QString mesoClient(const uint meso_idx) const { return meso_idx < m_modeldata.count() ? client(meso_idx) : QString {}; }
 	inline void setClient(const uint meso_idx, const QString &new_client)
 	{
 		m_modeldata[meso_idx][MESOCYCLES_COL_CLIENT] = new_client;
@@ -227,7 +221,7 @@ public:
 	void updateColumnLabels();
 
 	[[nodiscard]] inline bool canExport(const uint meso_idx) const { return meso_idx < m_canExport.count() ? m_canExport.at(meso_idx) : false; }
-	void checkIfCanExport(const uint meso_idx);
+	void checkIfCanExport(const uint meso_idx, const bool bEmitSignal = true);
 
 	//When importing a complete program: importIdx() will be set to -1 because we will be getting a new meso model. When other parts of the code
 	//check importIdx() and get a -1, they will act in accordance with whole program import. After the meso model has been succesfully imported
@@ -259,7 +253,7 @@ public:
 	QString mesoFileName(const uint meso_idx) const;
 	void removeMesoFile(const uint meso_idx);
 	Q_INVOKABLE void sendMesoToUser(const uint meso_idx);
-
+	int newMesoFromFile(const QString &filename);
 	void viewOnlineMeso(const QString &coach, const QString &mesoFileName);
 	void scanTemporaryMesocycles();
 
@@ -274,7 +268,6 @@ signals:
 	void mostRecentOwnMesoChanged(const int meso_idx);
 	void currentMesoIdxChanged();
 	void canHaveTodaysWorkoutChanged();
-	void viewedMesoHasDataChanged();
 	void todaysWorkoutFinished();
 	void usedSplitsChanged(const uint meso_idx);
 
@@ -288,7 +281,7 @@ private:
 	QList<bool> m_canExport;
 	QList<QStringList> m_usedSplits;
 	int m_currentMesoIdx, m_mostRecentOwnMesoIdx, m_importMesoIdx, m_lowestTempMesoId;
-	bool m_bCanHaveTodaysWorkout, m_bViewedMesoHasData;
+	bool m_bCanHaveTodaysWorkout;
 
 	static DBMesocyclesModel *app_meso_model;
 	friend DBMesocyclesModel *appMesoModel();

@@ -53,7 +53,7 @@ TPPopup {
 	}
 
 	function clear(): void {
-		for(var i = 0; i < entriesList.length; ++i)
+		for(let i = 0; i < entriesList.length; ++i)
 			entriesList[i].destroy();
 		entriesList.length = 0;
 		entriesTotalHeight = 0;
@@ -61,13 +61,21 @@ TPPopup {
 	}
 
 	function enableMenuEntry(id: int, benabled: bool): void {
-		if (id < entriesList.length)
-			entriesList[id].enabled = benabled;;
+		for(let i = 0; i < entriesList.length; ++i) {
+			if (entriesList[i].clickId === id) {
+				entriesList[i].enabled = benabled;
+				return;
+			}
+		}
 	}
 
 	function setMenuText(id: int, newText: string): void {
-		if (id < entriesList.length)
-			entriesList[id].text = newText;
+		for(let i = 0; i < entriesList.length; ++i) {
+			if (entriesList[i].clickId === id) {
+				entriesList[i].text = newText;
+				return;
+			}
+		}
 	}
 
 	function menuEntryClicked(buttonid: int): void {

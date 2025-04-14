@@ -112,7 +112,7 @@ void DBMesoSplitTable::getAllMesoSplits()
 					++meso_idx;
 					if (meso_idx >= m_model->count())
 						break;
-				} while (query.next ());
+				} while (query.next());
 				ok = true;
 				m_model->setReady(true);
 			}
@@ -396,9 +396,11 @@ bool DBMesoSplitTable::mesoHasAllPlans(const uint meso_idx)
 			query_fields.chop(1);
 			QSqlQuery query{getQuery()};
 			const QString &strQuery{u"SELECT %1 FROM mesocycles_splits WHERE meso_id=%2"_s.arg(query_fields, appMesoModel()->id(meso_idx))};
-			ok = query.exec(strQuery);
-			if (ok)
-				ok = query.size() == splitLetters.count();
+			if (query.exec(strQuery))
+			{
+				if (query.first())
+					ok = query.value(splitLetters.count()-1).isValid();
+			}
 			setQueryResult(ok, strQuery, SOURCE_LOCATION);
 		}
 	}

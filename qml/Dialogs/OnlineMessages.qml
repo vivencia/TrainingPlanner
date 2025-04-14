@@ -36,7 +36,7 @@ Popup {
 			property: "width"
 			to: mainIcon.width
 			duration: 200
-			easing.type: Easing.InOutCubic
+			easing.type: Easing.OutQuad
 		}
 
 		PropertyAnimation {
@@ -44,7 +44,7 @@ Popup {
 			property: "height"
 			to: mainIcon.height
 			duration: 200
-			easing.type: Easing.InOutCubic
+			easing.type: Easing.OutQuad
 		}
 
 		onFinished: {
@@ -64,7 +64,7 @@ Popup {
 			property: "width"
 			to: onlineMsgsDlg.dlgMaxWidth
 			duration: 200
-			easing.type: Easing.InOutCubic
+			easing.type: Easing.OutQuad
 		}
 
 		PropertyAnimation {
@@ -72,7 +72,7 @@ Popup {
 			property: "height"
 			to: messagesList.height + topBar.height
 			duration: 200
-			easing.type: Easing.InOutCubic
+			easing.type: Easing.OutQuad
 		}
 
 		onFinished: {
@@ -95,7 +95,7 @@ Popup {
 
 		TPMouseArea {
 			movingWidget: mainIcon
-			movableWidget: mainIcon
+			movableWidget: onlineMsgsDlg
 			enabled: !fullDialogVisible
 
 			onPressed: (mouse) => pressedFunction(mouse);

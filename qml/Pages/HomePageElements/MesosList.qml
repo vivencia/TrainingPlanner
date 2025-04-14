@@ -8,7 +8,8 @@ import "../../TPWidgets"
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 Item {
-	property bool viewedMesoHasData
+	property int viewedMesoIdx
+	property bool viewedMesoCanBeExported
 	property bool mainUserPrograms
 
 	ListView {
@@ -33,8 +34,9 @@ Item {
 
 		Connections {
 			target: mesocyclesModel
-			function onViewedMesoHasDataChanged() {
-				viewedMesoHasData = mesocyclesModel.viewedMesoHasData();
+			function onCanExportChanged(meso_idx: int, can_export: bool) : void {
+				viewedMesoIdx = meso_idx;
+				viewedMesoCanBeExported = can_export;
 			}
 		}
 
@@ -158,7 +160,7 @@ Item {
 					flat: false
 					textUnderIcon: true
 					fixedSize: true
-					enabled: viewedMesoHasData
+					enabled: viewedMesoIdx === index ? viewedMesoCanBeExported : false
 					width: parent.width/2 - 10
 					height: parent.height/2 - 10
 					z:1
@@ -170,7 +172,7 @@ Item {
 						leftMargin: 5
 					}
 
-					onClicked: showExportMenu(index);
+					onClicked: showExportMenu(index, this);
 				}
 			} //swipe.left: Rectangle
 
@@ -357,13 +359,14 @@ Item {
 	}
 
 	property TPFloatingMenuBar exportMenu: null
-	function showExportMenu(meso_idx): void {
+	function showExportMenu(meso_idx: int, callButton: TPButton): void {
 		if (exportMenu === null) {
 			let exportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
 			exportMenu = exportMenuComponent.createObject(homePage, { parentPage: homePage });
 			if (!mesocyclesModel.isOwnMeso(meso_idx)) {
-				const userid = mesocyclesModel.client(meso_idx);
-				exportMenu.addEntry(qsTr("Send to ") + userModel.userNameFromId(userid), userModel.avatarFromId(userid), 10, true);
+				const userid = mesocyclesModel.mesoClient(meso_idx);
+				if (userid !== "")
+					exportMenu.addEntry(qsTr("Send to ") + userModel.userNameFromId(userid), userModel.avatarFromId(userid), 10, true);
 			}
 			exportMenu.addEntry(qsTr("Export"), "save-day.png", 20, true);
 
@@ -377,12 +380,11 @@ Item {
 				}
 			});
 		}
-		exportMenu.show2(btnExport, 0);
+		exportMenu.show2(callButton, 0);
 	}
 
 	Loader {
 		id: exportTypeTip
-		active: viewedMesoHasData
 		asynchronous: true
 		sourceComponent: TPComplexDialog {
 			id: dialog
@@ -395,12 +397,17 @@ Item {
 			closeButtonVisible: true
 			parentPage: homePage
 
-			onButton1Clicked: mesocyclesModel.exportMeso(mesoIdx, bShare, customBoolProperty1);
+			onButton1Clicked: {
+				mesocyclesModel.exportMeso(mesoIdx, bShare, customBoolProperty1);
+				exportTypeTip.active = false;
+			}
 		}
 
 		property int mesoIdx
 		property bool bShare
+
 		function init(meso_idx: int, share: bool): void {
+			active = true;
 			mesoIdx = meso_idx;
 			bShare = share;
 			item.show(-1);
