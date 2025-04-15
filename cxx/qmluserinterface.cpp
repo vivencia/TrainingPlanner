@@ -87,24 +87,6 @@ void QmlUserInterface::getClientsPage()
 	}
 }
 
-void QmlUserInterface::userModifiedSlot(const uint user_row, const uint field)
-{
-	if (user_row == 0)
-	{
-		switch(field)
-		{
-			case USER_COL_APP_USE_MODE:
-				m_userPage->setProperty("useMode", appUserModel()->appUseMode(0)); //if user_row == 0, then m_userPage exists
-			break;
-			case USER_COL_AVATAR:
-				if (m_userPage)
-					QMetaObject::invokeMethod(m_userPage, "avatarChangedBySexSelection", Q_ARG(int, static_cast<int>(user_row)));
-				if (m_clientsPage)
-					QMetaObject::invokeMethod(m_clientsPage, "avatarChangedBySexSelection", Q_ARG(int, static_cast<int>(user_row)));
-		}
-	}
-}
-
 void QmlUserInterface::createSettingsPage()
 {
 	#ifndef QT_NO_DEBUG
@@ -125,9 +107,6 @@ void QmlUserInterface::createSettingsPage()
 		m_userPage = m_settingsPage->findChild<QQuickItem*>("userPage"_L1);
 		m_userPage->setProperty("useMode", appUserModel()->appUseMode(0));
 		m_userPage->setProperty("userManager", QVariant::fromValue(this));
-
-		connect(appUserModel(), SIGNAL(userModified(const uint,const uint)), this, SLOT(userModifiedSlot(const uint,const uint)),
-			static_cast<Qt::ConnectionType>(Qt::UniqueConnection|Qt::AutoConnection));
 	}
 }
 
@@ -149,9 +128,6 @@ void QmlUserInterface::createCoachesPage()
 		m_qmlEngine->setObjectOwnership(m_coachesPage, QQmlEngine::CppOwnership);
 		m_coachesPage->setParentItem(m_mainWindow->contentItem());
 		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_coachesPage));
-
-		connect(appUserModel(), SIGNAL(userModified(const uint,const uint)), this, SLOT(userModifiedSlot(const uint,const uint)),
-			static_cast<Qt::ConnectionType>(Qt::UniqueConnection|Qt::AutoConnection));
 	}
 }
 
@@ -173,8 +149,5 @@ void QmlUserInterface::createClientsPage()
 		m_qmlEngine->setObjectOwnership(m_clientsPage, QQmlEngine::CppOwnership);
 		m_clientsPage->setParentItem(m_mainWindow->contentItem());
 		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_clientsPage));
-
-		connect(appUserModel(), SIGNAL(userModified(const uint,const uint)), this, SLOT(userModifiedSlot(const uint,const uint)),
-			static_cast<Qt::ConnectionType>(Qt::UniqueConnection|Qt::AutoConnection));
 	}
 }

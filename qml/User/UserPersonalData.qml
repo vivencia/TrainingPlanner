@@ -230,10 +230,10 @@ Frame {
 
 			onClicked: {
 				bSexOK = true;
-				chkFemale.checked = !checked;
-				if (checked) {
+				if (chkFemale.checked) {
+					chkFemale.checked = false
 					userModel.setSex(userRow, 0);
-					userModel.setAvatar(userRow, "image://tpimageprovider/m5");
+					userModel.setAvatar(userRow, userModel.defaultAvatar());
 				}
 			}
 
@@ -253,10 +253,10 @@ Frame {
 
 			onClicked: {
 				bSexOK = true;
-				chkMale.checked = !checked;
-				if (checked) {
+				if (chkMale.checked) {
+					chkMale.checked = false;
 					userModel.setSex(userRow, 1);
-					userModel.setAvatar(userRow, "image://tpimageprovider/f0");
+					userModel.setAvatar(userRow, userModel.defaultAvatar());
 				}
 			}
 

@@ -360,8 +360,9 @@ void TPOnlineServices::uploadFile(const int requestid, const QUrl &url, QFile *f
 		multiPart->append(filePart);
 		//file->setParent(multiPart); // MultiPart will manage file deletion
 
-		// Send the request
 		LOG_MESSAGE(url.toDisplayString() + " * "_L1 + QString::number(requestid))
+
+		// Send the request
 		QNetworkReply *reply{m_networkManager->post(request, multiPart)};
 		connect(reply, &QNetworkReply::finished, this, [this,requestid,reply,b_internal_signal_only]() {
 			handleServerRequestReply(requestid, reply, b_internal_signal_only);

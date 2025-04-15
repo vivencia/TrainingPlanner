@@ -249,18 +249,19 @@ void DBUserModel::getPassword()
 	}
 }
 
-QString DBUserModel::avatar(const int row) const
+QString DBUserModel::avatar(const uint row, const bool checkServer)
 {
-	if (row >= 0 && row < m_modeldata.count() && !userId(row).isEmpty())
+	if (row < m_modeldata.count() && !userId(row).isEmpty())
 	{
+		if (checkServer && row > 0)
+			downloadAvatarFromServer(row);
 		const QString &userid{userId(row)};
 		const QDir &localFilesDir{localDir(row)};
 		const QFileInfoList &images{localFilesDir.entryInfoList(QDir::Files|QDir::NoDotAndDotDot|QDir::NoSymLinks)};
 		const auto &it = std::find_if(images.cbegin(), images.cend(), [userid] (const auto image_fi) {
 			return image_fi.fileName().contains("avatar."_L1);
 		});
-		if (it != images.cend())
-			return it->filePath();
+		return it != images.cend() ? it->filePath() : defaultAvatar(row);
 	}
 	return QString {};
 }
@@ -272,7 +273,7 @@ void DBUserModel::setAvatar(const int row, const QString &new_avatar, const bool
 		TPImage img{nullptr};
 		img.setSource(new_avatar);
 		const QString &localAvatarFilePath{localDir(row) + "avatar."_L1 + img.sourceExtension()};
-		static_cast<void>(QFile::remove(avatar(row)));
+		static_cast<void>(QFile::remove(avatar(row, false)));
 		img.saveToDisk(localAvatarFilePath);
 	}
 	emit userModified(row, USER_COL_AVATAR);
@@ -1088,7 +1089,10 @@ void DBUserModel::sendUserInfoToServer()
 
 void DBUserModel::downloadAvatarFromServer(const uint row)
 {
-	const int request_id{downloadFileFromServer(userId(row) + "_avatar", avatar(row), QString{}, QString{}, userId(row))};
+	QString avatar_file{std::move(avatar(row, false))};
+	if (avatar_file.startsWith("image://"_L1))
+		avatar_file = std::move(localDir(row));
+	const int request_id{downloadFileFromServer("avatar", avatar_file, QString{}, QString{}, userId(row))};
 	if (request_id != -1)
 	{
 		auto conn = std::make_shared<QMetaObject::Connection>();
@@ -1481,10 +1485,11 @@ void DBUserModel::checkNewMesos()
 {
 	for (const auto &coach : static_cast<const QStringList>(m_coachesNames))
 	{
-		QLatin1StringView v{QString{"checkNewMesos"_L1 + coach.toLatin1()}.toLatin1()};
+		const QString &coach_id{appUserModel()->userIdFromFieldValue(USER_COL_NAME, coach)};
+		QLatin1StringView v{QString{"checkNewMesos"_L1 + coach_id.toLatin1()}.toLatin1()};
 		const int requestid{appUtils()->generateUniqueId(v)};
 		auto conn = std::make_shared<QMetaObject::Connection>();
-		*conn = connect(appOnlineServices(), &TPOnlineServices::networkListReceived, this, [this,conn,requestid,coach]
+		*conn = connect(appOnlineServices(), &TPOnlineServices::networkListReceived, this, [this,conn,requestid,coach,coach_id]
 							(const int request_id, const int ret_code, const QStringList &ret_list) {
 			if (request_id == requestid)
 			{
@@ -1498,11 +1503,11 @@ void DBUserModel::checkNewMesos()
 						{
 							TPMessage *new_message{new TPMessage(coach + tr(" has sent you a new Exercises Program"), "message-meso"_L1, appMessagesManager())};
 							new_message->setId(id);
-							new_message->insertData(it, 0);
+							new_message->insertData(it, -1);
 							new_message->insertAction(tr("View"), [=] (const QVariant &mesofile) {
-											appMesoModel()->viewOnlineMeso(coach, it); });
-							new_message->insertAction(tr("Delete"), [=,this] (const QVariant &subdir) {
-											appOnlineServices()->removeFile(request_id, userId(0), m_password, it, coach); }, true);
+											appMesoModel()->viewOnlineMeso(coach_id, mesofile.toString()); });
+							new_message->insertAction(tr("Delete"), [=,this] (const QVariant &mesofile) {
+											appOnlineServices()->removeFile(request_id, userId(0), m_password, mesofile.toString(), mesosDir, coach_id); }, true);
 							new_message->plug();
 						}
 					}

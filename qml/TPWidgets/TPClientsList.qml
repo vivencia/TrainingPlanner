@@ -9,7 +9,7 @@ Item {
 	signal buttonClicked
 
 	property string buttonString: ""
-	property int clientRow: 0
+	property int clientRow: -1
 	property bool allowNotConfirmedClients: true
 
 	ListView {
@@ -63,13 +63,7 @@ Item {
 					if (userModel.clientsNames[index].indexOf('!') >= 0)
 						return;
 				}
-
-				const userrow = userModel.findUserByName(userModel.clientsNames[index]);
-				if (userrow >= 0) {
-					userModel.currentRow = userrow;
-					clientRow = index;
-					clientSelected(userrow);
-				}
+				selectItem(index);
 			}
 		} //ItemDelegate
 	}
@@ -95,6 +89,17 @@ Item {
 			Layout.alignment: Qt.AlignCenter
 
 			onClicked: buttonClicked();
+		}
+	}
+
+	function selectItem(index: int): void {
+		if (listview.currentIndex !== index) {
+			const userrow = userModel.findUserByName(userModel.clientsNames[index]);
+			if (userrow > 0) {
+				clientRow = index;
+				clientSelected(userrow);
+				listview.currentIndex = index;
+			}
 		}
 	}
 }

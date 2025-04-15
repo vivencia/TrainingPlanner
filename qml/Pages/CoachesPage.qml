@@ -400,10 +400,6 @@ TPPage {
 			userModel.rejectUser(userModel.pendingCoachesResponses, pendingCoachesList.currentIndex);
 	}
 
-	function avatarChangedBySexSelection(row: int) {
-		usrProfile.defaultAvatarChanged(row);
-	}
-
 	property UserCoachRequest requestDlg: null
 	function displayOnlineCoachesMenu(): void {
 		if (requestDlg === null) {

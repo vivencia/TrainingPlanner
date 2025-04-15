@@ -16,11 +16,10 @@ TPPage {
 	property int curRow: userModel.currentRow
 
 	onPageActivated: {
-		//Online data might change. Keep up with it
-		curRow = userModel.currentRow;
-		usrData.getUserInfo();
-		usrContact.getUserInfo();
-		usrProfile.getUserInfo();
+		if (listsLayout.currentIndex === 0)
+			clientsList.selectItem(clientsList.clientRow !== -1 ? clientsList.clientRow : 0);
+		else
+			pendingClientsList.selectItem(userModel.pendingClientsRequests.count > 0 ? userModel.pendingClientsRequests.currentRow : 0);
 	}
 
 	TPLabel {
@@ -140,16 +139,19 @@ TPPage {
 							(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
 					}
 
-					onClicked: {
+					onClicked: selectItem(index);
+				} //ItemDelegate
+
+				function selectItem(index: int): void {
+					if (index !== currentIndex) {
 						const newrow = userModel.getTemporaryUserInfo(userModel.pendingClientsRequests, index);
 						if (newrow > 0) {
 							curRow = -1;
 							curRow = newrow;
-							userModel.currentRow = curRow;
-							pendingClientsList.currentIndex = index;
+							currentIndex = index;
 						}
 					}
-				} //ItemDelegate
+				}
 			} //ListView: pendingClientsList
 
 			RowLayout {
@@ -266,9 +268,5 @@ TPPage {
 			userManager.removeUser(curRow);
 		else
 			userModel.rejectUser(userModel.pendingClientsRequests, pendingClientsList.currentIndex);
-	}
-
-	function avatarChangedBySexSelection(row: int) {
-		usrProfile.defaultAvatarChanged(row);
 	}
 }

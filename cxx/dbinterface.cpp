@@ -392,7 +392,7 @@ void DBInterface::loadAllSplits(const uint meso_idx)
 {
 	const QString &mesoSplit{appMesoModel()->split(meso_idx)};
 	QMap<QChar,DBMesoSplitModel*> allSplits;
-	for(char c('A'); c <= char('F'); ++c)
+	for(char c{'A'}; c <= char{'F'}; ++c)
 	{
 		if (appMesoModel()->split(meso_idx).contains(c))
 		{

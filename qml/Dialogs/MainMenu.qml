@@ -14,13 +14,17 @@ Drawer {
 	padding: 0
 	edge: Qt.LeftEdge
 
-	onOpened: {
-		if (userModel.avatar(0) !== imgAvatar.source) {
-			imgAvatar.source = userModel.avatar(0);
-			imgAvatar.update();
+	Connections {
+		target: userModel
+		function onUserModified(row: int, field: int): void {
+			if (row === 0) {
+				switch (field) {
+					case 1: lblAvatar.text = userModel.userName(0); break;
+					case 20: imgAvatar.source = userModel.avatar(0, false); break;
+					default: break;
+				}
+			}
 		}
-		if (userModel.userName(0) !== lblAvatar.text)
-			lblAvatar.text = userModel.userName(0);
 	}
 
 	background: Rectangle {
@@ -81,6 +85,7 @@ Drawer {
 		TPImage {
 			id: imgAvatar
 			dropShadow: true
+			source: userModel.avatar(0)
 			width: parent.height*0.25
 			height: width
 			x: (parent.width-width)/2
@@ -101,6 +106,7 @@ Drawer {
 
 		TPLabel {
 			id: lblAvatar
+			text: userModel.userName(0);
 			horizontalAlignment: Text.AlignHCenter
 			width: parent.width
 		}

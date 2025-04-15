@@ -24,9 +24,6 @@ public:
 	Q_INVOKABLE void getCoachesPage();
 	Q_INVOKABLE void getClientsPage();
 
-public slots:
-	void userModifiedSlot(const uint user_row, const uint field);
-
 private:
 	QQmlApplicationEngine *m_qmlEngine;
 	QQuickWindow *m_mainWindow;

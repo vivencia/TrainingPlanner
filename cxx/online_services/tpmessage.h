@@ -63,7 +63,7 @@ public:
 	 * @return action_id
 	 */
 	int insertAction(const QString& actionLabel, const std::function<void(const QVariant &var)> &actionFunc = nullptr,
-						std::optional<bool> remove = std::nullopt);
+					 std::optional<bool> remove = std::nullopt);
 	inline const QString &_action(const uint action_id) const
 	{
 		Q_ASSERT_X(action_id < m_actions.count(), "TPMessage::_action", "action_id out of range");
@@ -96,7 +96,7 @@ public:
 	}
 	inline QVariant data(const int data_id) const
 	{
-		if (data_id >= 0 &&  data_id < m_data.count())
+		if (data_id >= 0 && data_id < m_data.count())
 			return m_data.at(data_id);
 		return QVariant{};
 	}

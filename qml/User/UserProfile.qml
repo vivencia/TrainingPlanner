@@ -33,7 +33,7 @@ Frame {
 			if (row === userRow) {
 				switch (field) {
 					case 100: getUserInfo(); break;
-					case 20: imgAvatar.source = userModel.avatar(userRow); break;
+					case 20: imgAvatar.source = userModel.avatar(userRow, false); break;
 					case 10: appUseMode = userModel.appUseMode(userRow); break;
 					default: break;
 				}
@@ -408,11 +408,7 @@ Frame {
 			cboCoachRole.currentIndex = idx;
 		}
 
-		const avatar_src = userModel.avatar(userRow);
-		if (avatar_src !== "")
-			imgAvatar.source = userModel.avatar(userRow);
-		else
-			imgAvatar.source = userModel.defaultAvatar(userRow);
+		imgAvatar.source = userModel.avatar(userRow);
 		makeModelsSelectable();
 	}
 

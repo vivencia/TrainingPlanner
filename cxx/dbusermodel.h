@@ -202,8 +202,8 @@ public:
 		emit userModified(row, USER_COL_GOAL);
 	}
 
-	Q_INVOKABLE inline QString avatarFromId(const QString &userid) const { return avatar(userRowFromFieldValue(USER_COL_ID, userid)); }
-	Q_INVOKABLE QString avatar(const int row) const;
+	Q_INVOKABLE inline QString avatarFromId(const QString &userid) { return avatar(userRowFromFieldValue(USER_COL_ID, userid)); }
+	Q_INVOKABLE QString avatar(const uint row, const bool checkServer = true);
 	Q_INVOKABLE void setAvatar(const int row, const QString &new_avatar, const bool saveToDisk = true, const bool upload = true);
 	Q_INVOKABLE inline QString defaultAvatar(const uint row) const
 	{

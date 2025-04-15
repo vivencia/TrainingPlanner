@@ -138,17 +138,17 @@ bool TPListModel::exportContentsOnlyToFile(QFile *outFile, const bool useRealId)
 	outFile->write(QString{"##0x"_L1 + QString::number(tableID()) + "\n"_L1}.toUtf8().constData());
 	if (m_exportRows.isEmpty())
 	{
-		for (const auto &itr : m_modeldata)
+		for (const auto &modeldata : m_modeldata)
 		{
 			uint i{0};
 			if (!useRealId)
 			{
-				outFile->write("-1", 2);
+				outFile->write("-1\n", 3);
 				i = 1;
 			}
-			for (; i < itr.count(); ++i)
+			for (; i < modeldata.count(); ++i)
 			{
-				outFile->write(itr.at(i).toUtf8().constData());
+				outFile->write(modeldata.at(i).toUtf8().constData());
 				outFile->write("\n", 1);
 			}
 		}
@@ -157,14 +157,24 @@ bool TPListModel::exportContentsOnlyToFile(QFile *outFile, const bool useRealId)
 	{
 		for (uint x{0}; x < m_exportRows.count(); ++x)
 		{
+			uint i{0};
 			for (const auto &modeldata : m_modeldata.at(m_exportRows.at(x)))
 			{
-				outFile->write(modeldata.toUtf8().constData());
-				outFile->write("\n", 1);
+				if (i == 0 && !useRealId)
+				{
+					outFile->write("-1\n", 3);
+					i = 1;
+				}
+				else
+				{
+					outFile->write(modeldata.toUtf8().constData());
+					outFile->write("\n", 1);
+				}
 			}
 		}
 		const_cast<TPListModel*>(this)->m_exportRows.clear();
 	}
+	outFile->flush();
 	return true;
 }
 
@@ -183,7 +193,7 @@ int TPListModel::importFromContentsOnlyFile(const QString &filename, int row)
 
 int TPListModel::importFromContentsOnlyFile(QFile *inFile, int row)
 {
-	if (!inFile || !inFile->canReadLine())
+	if (!inFile)
 		return -1;
 
 	char buf[512];
