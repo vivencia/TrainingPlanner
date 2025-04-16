@@ -727,29 +727,28 @@ int DBMesocyclesModel::newMesoFromFile(const QString &filename)
 	{
 		const uint meso_idx{startNewMesocycle(false, false)};
 		setImportMode(true);
-		if (importFromContentsOnlyFile(mesoFile, meso_idx) == meso_idx)
+		if (importFromContentsOnlyFile(mesoFile, meso_idx) == 0)
 		{
 			m_modeldata[meso_idx][MESOCYCLES_COL_ID] = std::move(QString::number(m_lowestTempMesoId--));
-			m_mesoManagerList.at(meso_idx)->setNewMesoFieldCounter(20);
+			setNewMesoFieldCounter(meso_idx, 20);
 			//Save the splits with a negative mesoId. This will only hold for the current session. Upon a new start up, the databases will be rid of all
 			//negative Ids. If the meso is incorporated, the mesoIds will be replaced with the correct mesoId.
 			DBMesoSplitModel* splitModel{new DBMesoSplitModel(this, true, meso_idx)};
-			if (splitModel->importFromContentsOnlyFile(mesoFile))
+			splitModel->setImportMode(true);
+			splitModel->deleteLater();
+			char splitletter{'A'};
+			while (splitModel->importFromContentsOnlyFile(mesoFile) != -1)
 			{
-				splitModel->setMesoId(0, id(meso_idx));
-				char splitletter{'A'};
-				do
-				{
-					splitModel->setSplitLetter(splitletter);
-					appDBInterface()->saveMesoSplitComplete(splitModel);
-					splitModel->clearFast();
-					++splitletter;
-				} while (splitModel->importFromContentsOnlyFile(mesoFile) != -1);
+				splitModel->setSplitLetter(splitletter++);
+				appDBInterface()->saveMesoSplitComplete(splitModel);
+				splitModel->clearFast();
 			}
-			delete splitModel;
 			mesoFile->close();
 			delete mesoFile;
-			return meso_idx;
+			qDebug() << char(appMesoModel()->split(meso_idx).right(1).at(0).cell());
+			qDebug() << char(appMesoModel()->split(meso_idx).right(1).at(0).cell()+1);
+			//if (splitletter == appMesoModel()->split(meso_idx).right(1).at(0).cell()+1)
+				return meso_idx;
 		}
 	}
 	return -1;
@@ -780,14 +779,11 @@ void DBMesocyclesModel::viewOnlineMeso(const QString &coach, const QString &meso
 
 void DBMesocyclesModel::scanTemporaryMesocycles()
 {
-	QStringList mesos;
+	QFileInfoList mesos;
 	appUtils()->scanDir(appUserModel()->localDir(appUserModel()->userId(0)) + mesosDir, mesos, "*.txt"_L1, true);
 	if (!mesos.isEmpty())
 	{
 		for(const auto &mesofile : std::as_const(mesos))
-		{
-			if (newMesoFromFile(mesofile) < 0)
-				static_cast<void>(QFile::remove(mesofile));
-		}
+			static_cast<void>(newMesoFromFile(mesofile.filePath()));
 	}
 }

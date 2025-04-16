@@ -356,8 +356,6 @@ void DBMesoSplitTable::saveMesoSplitComplete()
 		}
 		ok = query.exec(strQuery);
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);
-		if (m_model->importMode())
-			delete m_model;
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

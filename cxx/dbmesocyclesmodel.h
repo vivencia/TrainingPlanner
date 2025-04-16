@@ -199,6 +199,7 @@ public:
 	}
 
 	inline uint newMesoFieldCounter(const uint meso_idx) const { return m_newMesoFieldCounter.at(meso_idx); }
+	inline void setNewMesoFieldCounter(const uint meso_idx, const uint field_counter) { m_newMesoFieldCounter[meso_idx] = field_counter; }
 
 	Q_INVOKABLE QString muscularGroup(const uint meso_idx, const QChar &splitLetter) const;
 	void setMuscularGroup(const uint meso_idx, const QChar &splitLetter, const QString &newSplitValue, const bool bEmitSignal = true);

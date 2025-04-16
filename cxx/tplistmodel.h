@@ -51,8 +51,8 @@ public:
 	 */
 	bool exportContentsOnlyToFile(const QString &filename, const bool useRealId = false) const;
 	bool exportContentsOnlyToFile(QFile *outFile, const bool useRealId = false) const;
-	int importFromContentsOnlyFile(const QString &filename, int row = -1);
-	int importFromContentsOnlyFile(QFile *inFile, int row = -1);
+	int importFromContentsOnlyFile(const QString &filename, const int row = -1);
+	int importFromContentsOnlyFile(QFile *inFile, const int row = -1);
 
 	virtual int exportToFile(const QString &filename, const bool writeHeader = true, const bool writeEnd = true, const bool appendInfo = true) const;
 	virtual int importFromFile(const QString &filename) { Q_UNUSED(filename); return false; }

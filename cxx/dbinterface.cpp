@@ -98,7 +98,7 @@ void DBInterface::init()
 void DBInterface::sanityCheck()
 {
 	DBMesoSplitTable *worker{new DBMesoSplitTable{m_DBFilePath}};
-	createThread(worker, [worker] () { worker->removeTemporaries(); });
+	createThread(worker, [worker] () { worker->removeTemporaries(true); });
 }
 
 void DBInterface::threadFinished(TPDatabaseTable *dbObj)
@@ -419,6 +419,8 @@ void DBInterface::loadAllSplits(const uint meso_idx)
 void DBInterface::saveMesoSplitComplete(DBMesoSplitModel *model)
 {
 	DBMesoSplitTable *worker{new DBMesoSplitTable{m_DBFilePath, model}};
+	if (model->importMode())
+		worker->setWaitForThreadToFinish(true);
 	worker->addExecArg(appMesoModel()->id(model->mesoIdx()));
 	createThread(worker, [worker] () { worker->saveMesoSplitComplete(); });
 }

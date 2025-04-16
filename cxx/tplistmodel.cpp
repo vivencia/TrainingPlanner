@@ -151,6 +151,7 @@ bool TPListModel::exportContentsOnlyToFile(QFile *outFile, const bool useRealId)
 				outFile->write(modeldata.at(i).toUtf8().constData());
 				outFile->write("\n", 1);
 			}
+			outFile->write("##!!\n", 5);
 		}
 	}
 	else
@@ -171,6 +172,7 @@ bool TPListModel::exportContentsOnlyToFile(QFile *outFile, const bool useRealId)
 					outFile->write("\n", 1);
 				}
 			}
+			outFile->write("##!!\n", 5);
 		}
 		const_cast<TPListModel*>(this)->m_exportRows.clear();
 	}
@@ -178,7 +180,7 @@ bool TPListModel::exportContentsOnlyToFile(QFile *outFile, const bool useRealId)
 	return true;
 }
 
-int TPListModel::importFromContentsOnlyFile(const QString &filename, int row)
+int TPListModel::importFromContentsOnlyFile(const QString &filename, const int row)
 {
 	int res{-1};
 	QFile *inFile{appUtils()->openFile(filename, QIODeviceBase::ReadOnly|QIODeviceBase::Text)};
@@ -191,15 +193,17 @@ int TPListModel::importFromContentsOnlyFile(const QString &filename, int row)
 	return res;
 }
 
-int TPListModel::importFromContentsOnlyFile(QFile *inFile, int row)
+int TPListModel::importFromContentsOnlyFile(QFile *inFile, const int row)
 {
 	if (!inFile)
 		return -1;
 
-	char buf[512];
-	QStringList modeldata(m_fieldCount);
+	const qsizetype prevCount{m_modeldata.count()};
+	QStringList modeldata;
+	modeldata.reserve(m_fieldCount);
 	bool bFoundModelInfo{false};
 	const char *tableIdStr{QString{"##0x"_L1 + QString::number(tableID())}.toLatin1().constData()};
+	char buf[512];
 	while (inFile->readLine(buf, sizeof(buf)) != -1)
 	{
 		if (strstr(buf, "##0x") != NULL)
@@ -212,21 +216,22 @@ int TPListModel::importFromContentsOnlyFile(QFile *inFile, int row)
 				break;
 			}
 		}
+		else if (strstr(buf, "##!!") != NULL)
+		{
+			if (modeldata.count() >= m_fieldCount)
+			{
+				if (modeldata.count() > m_fieldCount)
+					modeldata.resize(m_fieldCount);
+				if (row == -1)
+					m_modeldata.append(std::move(modeldata));
+				else if (row < m_modeldata.count())
+					m_modeldata.replace(row, std::move(modeldata));
+			}
+		}
 		else
-			modeldata.append(QString::fromLocal8Bit(buf));
+			modeldata.append(std::move(QString{buf}.chopped(1)));
 	}
-	if (modeldata.count() < m_fieldCount)
-		return -1;
-	if (modeldata.count() > m_fieldCount)
-		modeldata.resize(m_fieldCount);
-	if (row == -1)
-	{
-		row = m_modeldata.count();
-		m_modeldata.append(std::move(modeldata));
-	}
-	else if (row < m_modeldata.count())
-		m_modeldata.replace(row, std::move(modeldata));
-	return row;
+	return m_modeldata.count()-prevCount;
 }
 
 int TPListModel::exportToFile(const QString &filename, const bool writeHeader, const bool writeEnd, const bool appendInfo) const

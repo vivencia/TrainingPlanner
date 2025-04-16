@@ -24,7 +24,7 @@ void TPDatabaseTable::removeTemporaries(const bool bUseMesoId)
 	{
 		bool ok{false};
 		QSqlQuery query{getQuery()};
-		const QString &strQuery("DELETE FROM "_L1 + m_tableName + (bUseMesoId ? " WHERE meso_id < 0"_L1 : " WHERE id < 0"_L1));
+		const QString &strQuery("DELETE FROM "_L1 + m_tableName + (bUseMesoId ? " WHERE meso_id<0"_L1 : " WHERE id<0"_L1));
 		ok = query.exec(strQuery);
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}

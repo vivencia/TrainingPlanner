@@ -45,7 +45,7 @@ std::optional<int> TPMessagesManager::addMessage(TPMessage *msg)
 		emit countChanged();
 		msg->setPlugged(true);
 		connect(msg, &TPMessage::actionTriggered, this, [this,msg] (const int action_id, const std::optional<bool> remove_message) {
-			emit actionTriggered(msg->id(), action_id);
+			//emit actionTriggered(msg->id(), action_id);
 			if (remove_message.has_value())
 			{
 				if (remove_message.value())

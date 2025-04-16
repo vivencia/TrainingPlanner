@@ -142,17 +142,17 @@ QFile *TPUtils::openFile(const QString &filename, QIODeviceBase::OpenMode flags)
 	return nullptr;
 }
 
-void TPUtils::scanDir(const QString &path, QStringList& results, const QString &match, const bool follow_tree)
+void TPUtils::scanDir(const QString &path, QFileInfoList &results, const QString &match, const bool follow_tree)
 {
 	QDir dir{path};
 	if (dir.isReadable())
 	{
-		results.append(std::move(dir.entryList(QStringList{match}, QDir::Files|QDir::NoDotAndDotDot)));
+		results.append(std::move(dir.entryInfoList(QStringList{match}, QDir::Files|QDir::NoDotAndDotDot)));
 		if (follow_tree)
 		{
 			QStringList subdirs{dir.entryList(QDir::Dirs|QDir::NoDotAndDotDot)};
 			for (const auto &subdir: subdirs)
-				scanDir(subdir, results, match, true);
+				scanDir(path + subdir, results, match, true);
 		}
 	}
 }
