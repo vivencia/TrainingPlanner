@@ -7,6 +7,7 @@
 #include "dbmesosplitmodel.h"
 #include "dbtrainingdaymodel.h"
 #include "dbusermodel.h"
+#include "homepagemesomodel.h"
 
 #include "qmlexerciseentry.h"
 #include "qmlexercisesdatabaseinterface.h"
@@ -102,6 +103,7 @@ void QmlItemManager::configureQmlEngine()
 	qmlRegisterType<TPWorkoutsCalendar>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "WorkoutsCalendar");
 	qmlRegisterType<OnlineUserInfo>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "OnlineUserInfo");
 	qmlRegisterType<TPMessagesManager>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "MessagesManager");
+	qmlRegisterType<homePageMesoModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "HomePageMesoModel");
 
 	//Root context properties. MainWindow app properties
 	QList<QQmlContext::PropertyPair> properties{10};

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "tplistmodel.h"
+//Must include the header files of properties that are pointers
+#include "homepagemesomodel.h"
 
 #define MESOCYCLES_COL_ID 0
 #define MESOCYCLES_COL_NAME 1
@@ -18,9 +20,18 @@
 
 #define MESOCYCLES_COL_MUSCULARGROUP 20
 
-class DBMesoSplitModel;
-class DBMesoCalendarModel;
-class QMLMesoInterface;
+enum MesoRoleNames {
+	mesoNameRole = Qt::UserRole+MESOCYCLES_COL_NAME,
+	mesoStartDateRole = Qt::UserRole+MESOCYCLES_COL_STARTDATE,
+	mesoEndDateRole = Qt::UserRole+MESOCYCLES_COL_ENDDATE,
+	mesoSplitRole = Qt::UserRole+MESOCYCLES_COL_SPLIT,
+	mesoCoachRole = Qt::UserRole+MESOCYCLES_COL_COACH,
+	mesoClientRole = Qt::UserRole+MESOCYCLES_COL_CLIENT
+};
+
+QT_FORWARD_DECLARE_CLASS(DBMesoSplitModel)
+QT_FORWARD_DECLARE_CLASS(DBMesoCalendarModel)
+QT_FORWARD_DECLARE_CLASS(QMLMesoInterface)
 
 static const QLatin1StringView mesosDir{"mesocycles/"};
 
@@ -31,15 +42,8 @@ Q_OBJECT
 
 Q_PROPERTY(bool canHaveTodaysWorkout READ canHaveTodaysWorkout NOTIFY canHaveTodaysWorkoutChanged FINAL)
 Q_PROPERTY(int currentMesoIdx READ currentMesoIdx WRITE setCurrentMesoIdx NOTIFY currentMesoIdxChanged FINAL)
-
-	enum RoleNames {
-		mesoNameRole = Qt::UserRole+MESOCYCLES_COL_NAME,
-		mesoStartDateRole = Qt::UserRole+MESOCYCLES_COL_STARTDATE,
-		mesoEndDateRole = Qt::UserRole+MESOCYCLES_COL_ENDDATE,
-		mesoSplitRole = Qt::UserRole+MESOCYCLES_COL_SPLIT,
-		mesoCoachRole = Qt::UserRole+MESOCYCLES_COL_COACH,
-		mesoClientRole = Qt::UserRole+MESOCYCLES_COL_CLIENT
-	};
+Q_PROPERTY(homePageMesoModel* ownMesos READ ownMesos CONSTANT FINAL)
+Q_PROPERTY(homePageMesoModel* clientMesos READ clientMesos CONSTANT FINAL)
 
 public:
 	explicit DBMesocyclesModel(QObject *parent = nullptr, const bool bMainAppModel = true);
@@ -48,7 +52,7 @@ public:
 	QMLMesoInterface *mesoManager(const uint meso_idx);
 
 	Q_INVOKABLE void getMesocyclePage(const uint meso_idx);
-	Q_INVOKABLE uint startNewMesocycle(const bool bCreatePage, const bool bOwnMeso);
+	Q_INVOKABLE uint startNewMesocycle(const bool bCreatePage, const std::optional<bool> bOwnMeso = std::nullopt);
 	Q_INVOKABLE void removeMesocycle(const uint meso_idx);
 	Q_INVOKABLE void getExercisesPlannerPage(const uint meso_idx);
 	Q_INVOKABLE void getMesoCalendarPage(const uint meso_idx);
@@ -59,6 +63,9 @@ public:
 	const uint newMesocycle(QStringList &&infolist);
 	inline DBMesoSplitModel *mesoSplitModel() { return m_splitModel; }
 	inline DBMesoCalendarModel *mesoCalendarModel(const uint meso_idx) const { return m_calendarModelList.value(meso_idx); }
+
+	Q_INVOKABLE inline homePageMesoModel* ownMesos() const { return m_ownMesos; }
+	Q_INVOKABLE inline homePageMesoModel* clientMesos() const { return m_clientMesos; }
 
 	inline bool isNewMeso(const uint meso_idx) const { return m_isNewMeso.at(meso_idx) != 0; }
 	Q_INVOKABLE inline bool isNewMeso() const { return currentMesoIdx() >= 0 ? isNewMeso(currentMesoIdx()) : true; }
@@ -161,8 +168,8 @@ public:
 		emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>() << mesoClientRole);
 	}
 
-	Q_INVOKABLE bool isOwnMeso(const int meso_idx) const;
-	void setOwnMeso(const uint meso_idx, const bool bOwnMeso);
+	Q_INVOKABLE std::optional<bool> isOwnMeso(const int meso_idx) const;
+	void setOwnMeso(const uint meso_idx);
 
 	inline const QString &file(const uint meso_idx) const
 	{
@@ -205,7 +212,6 @@ public:
 	void setMuscularGroup(const uint meso_idx, const QChar &splitLetter, const QString &newSplitValue, const bool bEmitSignal = true);
 
 	QString splitLetter(const uint meso_idx, const uint day_of_week) const;
-	QVariant data(const QModelIndex &index, int role) const override;
 	inline int currentMesoIdx() const { return m_currentMesoIdx; }
 	void setCurrentMesoIdx(const int meso_idx, const bool bEmitSignal = true);
 	inline int mostRecentOwnMesoIdx() const { return m_mostRecentOwnMesoIdx; }
@@ -281,6 +287,8 @@ private:
 	QList<bool> m_newMesoCalendarChanged;
 	QList<bool> m_canExport;
 	QList<QStringList> m_usedSplits;
+	homePageMesoModel *m_ownMesos;
+	homePageMesoModel *m_clientMesos;
 	int m_currentMesoIdx, m_mostRecentOwnMesoIdx, m_importMesoIdx, m_lowestTempMesoId;
 	bool m_bCanHaveTodaysWorkout;
 

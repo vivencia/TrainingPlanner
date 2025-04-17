@@ -113,9 +113,9 @@ void DBInterface::threadFinished(TPDatabaseTable *dbObj)
 	{
 		const TPDatabaseTable *const nextDbObj{m_WorkerLock[dbObj->tableID()].nextObj()};
 		LOG_MESSAGE("Database  " << dbObjName << " - " << nextDbObj->uniqueID() <<" starting in sequence of previous thread")
-		nextDbObj->thread()->start();
 		if (nextDbObj->waitForThreadToFinish())
 			nextDbObj->thread()->wait();
+		nextDbObj->thread()->start();
 	}
 }
 
@@ -150,7 +150,9 @@ void DBInterface::createThread(TPDatabaseTable *worker, const std::function<void
 			thread->wait();
 	}
 	else
+	{
 		LOG_MESSAGE("Database  " << worker->objectName() << "  Waiting for it to be free: " << worker->uniqueID())
+	}
 }
 
 void DBInterface::cleanUpThreads()

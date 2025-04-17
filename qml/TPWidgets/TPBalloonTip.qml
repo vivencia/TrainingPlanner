@@ -25,6 +25,7 @@ TPPopup {
 	property bool highlightMessage: false
 	property bool imageEnabled: true
 	property bool movable: false
+	property bool anchored: false
 
 	property int startYPosition: 0
 	property int finalXPos: 0
@@ -111,8 +112,6 @@ TPPopup {
 			rightMargin: 5
 		}
 
-		Component.onCompleted: anchorElements();
-		onSizeChanged: anchorElements();
 		onTextChanged: anchorElements();
 	}
 
@@ -253,6 +252,9 @@ TPPopup {
 	}
 
 	function anchorElements() {
+		if (anchored)
+			return;
+
 		if (lblMessage.height < 50) {
 			if (imageSource.length > 0) {
 				imgElement.anchors.top = title.length > 0 ? lblTitle.bottom : balloon.top;
@@ -268,5 +270,6 @@ TPPopup {
 				imgElement.anchors.verticalCenter = lblMessage.verticalCenter;
 		}
 		lblMessage.anchors.left = imageSource.length > 0 ? imgElement.right : balloon.left;
+		anchored = true;
 	}
 }

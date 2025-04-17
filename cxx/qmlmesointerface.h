@@ -22,7 +22,7 @@ Q_OBJECT
 Q_PROPERTY(bool ownerIsCoach READ ownerIsCoach WRITE setOwnerIsCoach NOTIFY ownerIsCoachChanged FINAL)
 Q_PROPERTY(bool hasCoach READ hasCoach WRITE setHasCoach NOTIFY hasCoachChanged FINAL)
 Q_PROPERTY(bool realMeso READ realMeso WRITE setRealMeso NOTIFY realMesoChanged FINAL)
-Q_PROPERTY(bool ownMeso READ ownMeso WRITE setOwnMeso NOTIFY ownMesoChanged FINAL)
+Q_PROPERTY(bool ownMeso READ ownMeso NOTIFY ownMesoChanged FINAL)
 Q_PROPERTY(bool isNewMeso READ isNewMeso NOTIFY isNewMesoChanged FINAL)
 Q_PROPERTY(bool isTempMeso READ isTempMeso NOTIFY isTempMesoChanged FINAL)
 Q_PROPERTY(bool canExport READ canExport NOTIFY canExportChanged FINAL)
@@ -82,8 +82,6 @@ public:
 	void setRealMeso(const bool new_value, const bool bFromQml = true);
 
 	[[nodiscard]] inline bool ownMeso() const { return m_bOwnMeso; }
-	void setOwnMeso(const bool new_value, const bool bFromQml = true);
-
 	[[nodiscard]] bool isNewMeso() const;
 	[[nodiscard]] bool isTempMeso() const;
 	[[nodiscard]] inline bool canExport() const { return m_bCanExport; }

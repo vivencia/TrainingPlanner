@@ -4,6 +4,7 @@
 #include "dbmesocalendarmodel.h"
 #include "dbmesosplitmodel.h"
 #include "dbusermodel.h"
+#include "homepagemesomodel.h"
 #include "qmlitemmanager.h"
 #include "qmlmesointerface.h"
 #include "tpglobals.h"
@@ -31,12 +32,8 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent, const bool bMainAppModel)
 		app_meso_model = this;
 		m_exportName = std::move(tr("Training Program"));
 
-		m_roleNames[mesoNameRole] = std::move("mesoName");
-		m_roleNames[mesoStartDateRole] = std::move("mesoStartDate");
-		m_roleNames[mesoEndDateRole] = std::move("mesoEndDate");
-		m_roleNames[mesoSplitRole] = std::move("mesoSplit");
-		m_roleNames[mesoCoachRole] = std::move("mesoCoach");
-		m_roleNames[mesoClientRole] = std::move("mesoClient");
+		m_ownMesos = new homePageMesoModel{this};
+		m_clientMesos = new homePageMesoModel{this};
 
 		mColumnNames.reserve(MESOCYCLES_TOTAL_COLS);
 		for(uint i{0}; i < MESOCYCLES_TOTAL_COLS; ++i)
@@ -77,11 +74,13 @@ void DBMesocyclesModel::fillColumnNames()
 
 DBMesocyclesModel::~DBMesocyclesModel()
 {
+	delete m_ownMesos;
+	delete m_clientMesos;
 	delete m_splitModel;
-	for (uint i{0}; i < m_calendarModelList.count(); ++i)
-		delete m_calendarModelList.at(i);
-	for (uint i{0}; i < m_mesoManagerList.count(); ++i)
-		delete m_mesoManagerList.at(i);
+	for (auto calendarModelList : std::as_const(m_calendarModelList))
+		delete calendarModelList;
+	for (auto mesoManagerList : std::as_const(m_mesoManagerList))
+		delete mesoManagerList;
 }
 
 QMLMesoInterface *DBMesocyclesModel::mesoManager(const uint meso_idx)
@@ -103,12 +102,13 @@ void DBMesocyclesModel::getMesocyclePage(const uint meso_idx)
 	mesoManager(meso_idx)->getMesocyclePage();
 }
 
-uint DBMesocyclesModel::startNewMesocycle(const bool bCreatePage, const bool bOwnMeso)
+uint DBMesocyclesModel::startNewMesocycle(const bool bCreatePage, const std::optional<bool> bOwnMeso)
 {
 	beginInsertRows(QModelIndex{}, count(), count());
 	const uint meso_idx{newMesocycle(std::move(QStringList{} << QString::number(m_lowestTempMesoId--) << QString{} << QString{} << QString{} <<
 		QString{} << QString{} << std::move("RRRRRRR"_L1) << appUserModel()->userId(0) <<
-			(bOwnMeso ? appUserModel()->userId(0) : appUserModel()->defaultClient()) << QString{} << QString{} << STR_ONE))};
+			(bOwnMeso.has_value() ? (bOwnMeso.value() ? appUserModel()->userId(0) : appUserModel()->defaultClient()) : QString{}) <<
+						QString{} << QString{} << STR_ONE))};
 	emit countChanged();
 	endInsertRows();
 
@@ -139,6 +139,12 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 	m_newMesoCalendarChanged.remove(meso_idx);
 	m_canExport.remove(meso_idx);
 	removeMesoFile(meso_idx);
+
+	if (isOwnMeso(meso_idx))
+		m_ownMesos->removeData(m_modeldata.at(meso_idx));
+	else
+		m_clientMesos->removeData(m_modeldata.at(meso_idx));
+
 	removeRow(meso_idx);
 
 	if (meso_idx < m_mesoManagerList.count())
@@ -199,12 +205,8 @@ const uint DBMesocyclesModel::newMesocycle(QStringList &&infolist)
 	m_calendarModelList.append(new DBMesoCalendarModel{this, meso_idx});
 	m_newMesoCalendarChanged.append(false);
 	m_canExport.append(false);
-	if (isOwnMeso(meso_idx))
-	{
-		m_mostRecentOwnMesoIdx = meso_idx;
-		emit mostRecentOwnMesoChanged(m_mostRecentOwnMesoIdx);
-		changeCanHaveTodaysWorkout(meso_idx);
-	}
+	setOwnMeso(meso_idx);
+
 	m_usedSplits.append(QStringList{});
 	makeUsedSplits(meso_idx);
 	m_isNewMeso.append(0);
@@ -336,28 +338,30 @@ void DBMesocyclesModel::setSplit(const uint meso_idx, const QString &new_split)
 	}
 }
 
-bool DBMesocyclesModel::isOwnMeso(const int meso_idx) const
+std::optional<bool> DBMesocyclesModel::isOwnMeso(const int meso_idx) const
 {
 	Q_ASSERT_X(meso_idx >= 0 && meso_idx < m_modeldata.count(), "DBMesocyclesModel::isOwnMeso", "out of range meso_idx");
-	return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_CLIENT) == appUserModel()->userId(0);
+	const QString &_client{m_modeldata.at(meso_idx).at(MESOCYCLES_COL_CLIENT)};
+	std::optional<bool> ret{std::nullopt};
+	if (!_client.isEmpty())
+		ret = m_modeldata.at(meso_idx).at(MESOCYCLES_COL_CLIENT) == appUserModel()->userId(0);
+	return ret;
 }
 
-void DBMesocyclesModel::setOwnMeso(const uint meso_idx, const bool bOwnMeso)
+void DBMesocyclesModel::setOwnMeso(const uint meso_idx)
 {
-	if (isOwnMeso(meso_idx) != bOwnMeso)
+	std::optional<bool> b_ownMeso{isOwnMeso(meso_idx)};
+	if (b_ownMeso.has_value())
 	{
-		const int cur_ownmeso{m_mostRecentOwnMesoIdx};
-		findNextOwnMeso();
-		if (cur_ownmeso != m_mostRecentOwnMesoIdx)
+		if (b_ownMeso.value())
 		{
+			m_mostRecentOwnMesoIdx = meso_idx;
 			emit mostRecentOwnMesoChanged(m_mostRecentOwnMesoIdx);
 			changeCanHaveTodaysWorkout(meso_idx);
+			m_ownMesos->appendData(m_modeldata.at(meso_idx), meso_idx);
 		}
-		if (!bOwnMeso)
-		{
-			m_modeldata[meso_idx][MESOCYCLES_COL_CLIENT].clear();
-			m_canExport[meso_idx] = false;
-		}
+		else
+			m_clientMesos->appendData(m_modeldata.at(meso_idx), meso_idx);
 	}
 }
 
@@ -420,34 +424,6 @@ void DBMesocyclesModel::findNextOwnMeso()
 			break;
 		}
 	}
-}
-
-QVariant DBMesocyclesModel::data(const QModelIndex &index, int role) const
-{
-	const int row{index.row()};
-	if(row >= 0 && row < m_modeldata.count())
-	{
-		switch(role)
-		{
-			case mesoNameRole:
-				return QVariant("<b>"_L1 + (name(row).isEmpty() ? tr("New Program") : name(row)) + (_id(row) < 0 ? tr(" (Temporary)") : QString{}) + "</b>"_L1);
-			case mesoStartDateRole:
-				return QVariant(mColumnNames.at(MESOCYCLES_COL_STARTDATE) + "<b>"_L1 +
-					(!isNewMeso(row) ? appUtils()->formatDate(startDate(row)) : tr("Not set")) + "</b>"_L1);
-			case mesoEndDateRole:
-				return QVariant(mColumnNames.at(MESOCYCLES_COL_ENDDATE) + "<b>"_L1 +
-					(!isNewMeso(row) ? appUtils()->formatDate(endDate(row)) : tr("Not set")) + "</b>"_L1);
-			case mesoSplitRole:
-				return QVariant(mColumnNames.at(MESOCYCLES_COL_SPLIT) + "<b>"_L1 + split(row) + "</b>"_L1);
-			case mesoCoachRole:
-				if (!coach(row).isEmpty())
-					return QVariant(mColumnNames.at(MESOCYCLES_COL_COACH) + "<b>"_L1 + appUserModel()->userNameFromId(coach(row)) + "</b>"_L1);
-			case mesoClientRole:
-				if (!client(row).isEmpty())
-					return QVariant(mColumnNames.at(MESOCYCLES_COL_CLIENT) + "<b>"_L1 + appUserModel()->userNameFromId(client(row)) + "</b>"_L1);
-		}
-	}
-	return QString{};
 }
 
 bool DBMesocyclesModel::isDateWithinMeso(const int meso_idx, const QDate &date) const
@@ -676,12 +652,14 @@ void DBMesocyclesModel::removeMesoFile(const uint meso_idx)
 
 void DBMesocyclesModel::sendMesoToUser(const uint meso_idx)
 {
-	QFile *mesoFile{appUtils()->openFile(appMesoModel()->mesoFileName(meso_idx), QIODeviceBase::ReadWrite|QIODeviceBase::Truncate|QIODeviceBase::Text)};
+	QFile *mesoFile{appUtils()->openFile(mesoFileName(meso_idx), QIODeviceBase::ReadWrite|QIODeviceBase::Truncate|QIODeviceBase::Text)};
 	if (mesoFile)
 	{
-		appMesoModel()->setExportRow(meso_idx);
-		if (appMesoModel()->exportContentsOnlyToFile(mesoFile))
+		setExportRow(meso_idx);
+		if (exportContentsOnlyToFile(mesoFile))
 		{
+			mesoSplitModel()->exportContentsOnlyToFile(mesoFile); //export meso split(muscular groups)
+
 			char splitletter{'A'};
 			DBMesoSplitModel *splitModel{nullptr};
 			if (meso_idx < m_mesoManagerList.count())
@@ -706,7 +684,7 @@ void DBMesocyclesModel::sendMesoToUser(const uint meso_idx)
 					{
 						disconnect(*conn);
 						const QMap<QChar,DBMesoSplitModel*> &allSplits(data.value<QMap<QChar,DBMesoSplitModel*>>());
-						for (const auto splitModel : allSplits)
+						for (const auto &splitModel : allSplits)
 							splitModel->exportContentsOnlyToFile(mesoFile, true);
 						mesoFile->close();
 						appUserModel()->sendFileToServer(mesoFile->fileName(), !isOwnMeso(meso_idx) ? tr("Exercises Program sent to client") : QString{},
@@ -729,26 +707,35 @@ int DBMesocyclesModel::newMesoFromFile(const QString &filename)
 		setImportMode(true);
 		if (importFromContentsOnlyFile(mesoFile, meso_idx) == 0)
 		{
-			m_modeldata[meso_idx][MESOCYCLES_COL_ID] = std::move(QString::number(m_lowestTempMesoId--));
-			setNewMesoFieldCounter(meso_idx, 20);
 			//Save the splits with a negative mesoId. This will only hold for the current session. Upon a new start up, the databases will be rid of all
 			//negative Ids. If the meso is incorporated, the mesoIds will be replaced with the correct mesoId.
-			DBMesoSplitModel* splitModel{new DBMesoSplitModel(this, true, meso_idx)};
-			splitModel->setImportMode(true);
-			splitModel->deleteLater();
-			char splitletter{'A'};
-			while (splitModel->importFromContentsOnlyFile(mesoFile) != -1)
+			m_modeldata[meso_idx][MESOCYCLES_COL_ID] = std::move(QString::number(m_lowestTempMesoId--));
+			setNewMesoFieldCounter(meso_idx, 20);
+			m_isNewMeso[meso_idx] = 0;
+			makeUsedSplits(meso_idx);
+			setOwnMeso(meso_idx);
+
+			if (mesoSplitModel()->importFromContentsOnlyFile(mesoFile))
 			{
-				splitModel->setSplitLetter(splitletter++);
-				appDBInterface()->saveMesoSplitComplete(splitModel);
-				splitModel->clearFast();
+				mesoSplitModel()->setImportMode(true);
+				appDBInterface()->saveMesoSplit(meso_idx);
+				for (const auto &splitletter: m_usedSplits.at(meso_idx))
+				{
+					DBMesoSplitModel* splitModel{new DBMesoSplitModel(this, true, meso_idx)};
+					splitModel->setImportMode(true);
+					splitModel->deleteLater();
+					if (splitModel->importFromContentsOnlyFile(mesoFile) != -1)
+					{
+						splitModel->setSplitLetter(splitletter);
+						appDBInterface()->saveMesoSplitComplete(splitModel);
+					}
+				}
+
+				mesoFile->close();
+				delete mesoFile;
+				if (appDBInterface()->mesoHasAllPlans(meso_idx))
+					return meso_idx;
 			}
-			mesoFile->close();
-			delete mesoFile;
-			qDebug() << char(appMesoModel()->split(meso_idx).right(1).at(0).cell());
-			qDebug() << char(appMesoModel()->split(meso_idx).right(1).at(0).cell()+1);
-			//if (splitletter == appMesoModel()->split(meso_idx).right(1).at(0).cell()+1)
-				return meso_idx;
 		}
 	}
 	return -1;

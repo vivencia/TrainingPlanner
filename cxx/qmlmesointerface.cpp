@@ -50,22 +50,6 @@ void QMLMesoInterface::setRealMeso(const bool new_value, const bool bFromQml)
 		m_bRealMeso = new_value;
 }
 
-void QMLMesoInterface::setOwnMeso(const bool new_value, const bool bFromQml)
-{
-	if (bFromQml)
-	{
-		if (m_bOwnMeso != new_value)
-		{
-			m_bOwnMeso = new_value;
-			emit ownMesoChanged();
-			appMesoModel()->setOwnMeso(m_mesoIdx, m_bOwnMeso);
-			setClient(m_bOwnMeso ? appUserModel()->userId(0) : appUserModel()->defaultClient());
-		}
-	}
-	else
-		m_bOwnMeso = new_value;
-}
-
 bool QMLMesoInterface::isNewMeso() const
 {
 	return appMesoModel()->isNewMeso(m_mesoIdx);
@@ -552,7 +536,6 @@ void QMLMesoInterface::createMesocyclePage()
 	setType(appMesoModel()->type(m_mesoIdx), false);
 	setFile(appMesoModel()->file(m_mesoIdx), false);
 	setPropertiesBasedOnUseMode();
-	setOwnMeso(appMesoModel()->isOwnMeso(m_mesoIdx), false);
 	setRealMeso(appMesoModel()->isRealMeso(m_mesoIdx), false);
 	setSplit(appMesoModel()->split(m_mesoIdx), false);
 	setNotes(appMesoModel()->notes(m_mesoIdx), false);

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <QAbstractListModel>
-#include <QObject>
 #include <QQmlEngine>
 
 #define USER_EXTRA_NAME 0

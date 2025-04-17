@@ -3,7 +3,7 @@
 #include "../tputils.h"
 #include "../dbusermodel.h"
 
-constexpr uint totalExtraFields{6};
+constexpr uint totalExtraFields{4};
 
 enum RoleNames {
 	idRole = Qt::UserRole + USER_COL_ID,

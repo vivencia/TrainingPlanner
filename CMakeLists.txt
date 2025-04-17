@@ -240,6 +240,7 @@ qt_add_executable(TrainingPlanner
 	${RESOURCE_FILES}
 	${QM_FILES}
 	${SERVER_FILES}
+    cxx/homepagemesomodel.h cxx/homepagemesomodel.cpp
 )
 
 if(NOT ANDROID)

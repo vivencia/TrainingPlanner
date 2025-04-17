@@ -28,9 +28,9 @@ public:
 	~TPStatistics();
 
 	//Q_INVOKABLE void update(QAbstractSeries* series);
-	Q_INVOKABLE inline void setStartDate(const QDate& startdate) { m_startDate = startdate; }
-	Q_INVOKABLE inline void setEndDate(const QDate& enddate) { m_endDate = enddate; }
-	Q_INVOKABLE void createDataSet(const uint meso_idx, const QChar& splitLetter);
+	Q_INVOKABLE inline void setStartDate(const QDate &startdate) { m_startDate = startdate; }
+	Q_INVOKABLE inline void setEndDate(const QDate &enddate) { m_endDate = enddate; }
+	Q_INVOKABLE void createDataSet(const uint meso_idx, const QChar &splitLetter);
 	Q_INVOKABLE void includeExercise(const uint exercise_idx, const bool include);
 	Q_INVOKABLE void generateDataSet();
 	Q_INVOKABLE void update(const int exercise_idx, QAbstractSeries* series);
@@ -45,22 +45,22 @@ public:
 	int exercisesSeries() const;
 
 signals:
-	void exercisesListChanged(const int meso_idx, const QString& splitLetter);
+	void exercisesListChanged(const int meso_idx, const QString &splitLetter);
 	void exercisesSeriesChanged();
 	void xAxisChanged();
 	void yAxisChanged();
 
 private:
 	QList<DataSet*> m_dataSet;
-	DataSet* m_workingDataSet;
+	DataSet *m_workingDataSet;
 	QDate m_startDate, m_endDate;
 	double m_xmin, m_xmax, m_ymin, m_ymax;
 
-	void generateExercisesForPlotting(statsInfo* splitInfo = nullptr);
-	void createXData(const QList<QDate>&dates);
-	void createYData(const QList<QList<QStringList>>& workoutInfo);
-	friend TPStatistics* appStatistics();
-	static TPStatistics* _appStatistics;
+	void generateExercisesForPlotting(statsInfo *splitInfo = nullptr);
+	void createXData(const QList<QDate> &dates);
+	void createYData(const QList<QList<QStringList>> &workoutInfo);
+	friend TPStatistics *appStatistics();
+	static TPStatistics *_appStatistics;
 };
 
 inline TPStatistics* appStatistics()

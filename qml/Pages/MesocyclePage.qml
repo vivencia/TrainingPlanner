@@ -33,13 +33,12 @@ TPPage {
 
 	Loader {
 		id: newMesoLoader
-		active: mesoManager.isTempMeso ? (mesoManager.isNewMeso ? mesoManager.newMesoFieldCounter >= 0 :
-				mesoManager.newMesoFieldCounter === 0 || mesoManager.newMesoFieldCounter === 20) : false
+		active: mesoManager.isTempMeso ? (mesoManager.isNewMeso ?
+			mesoManager.newMesoFieldCounter >= 0 : mesoManager.newMesoFieldCounter === 0 || mesoManager.newMesoFieldCounter === 20) : false
 		asynchronous: true
 
 		sourceComponent: TPBalloonTip {
 			parentPage: mesoPropertiesPage
-			imageEnabled: false
 			imageSource: "set-completed"
 			button1Text: "OK"
 			button2Text: ""
@@ -69,7 +68,6 @@ TPPage {
 			case 2: newMesoTip.message = qsTr("Change and/or accept the end date"); break;
 			case 1: newMesoTip.message = qsTr("Change and/or accept the split division"); break;
 			case 0:
-				newMesoTip.imageEnabled = true;
 				newMesoTip.title = qsTr("New program setup complete!");
 				newMesoTip.message = qsTr("Required fields setup");
 				newMesoTip.showTimed(5000, -3);
@@ -192,8 +190,12 @@ TPPage {
 					width: 0.75*parent.width
 					editable: !mesoManager.ownMeso
 					Layout.minimumWidth: width
-					currentIndex: find(mesoManager.type)
-
+					currentIndex: {
+						let cboidx = find(mesoManager.type);
+						if (cboidx === -1)
+							cboidx = typeModel.count - 1;
+						return cboidx;
+					}
 					model: ListModel {
 						id: typeModel
 						ListElement { text: qsTr("Weigth Loss"); value: 0; enabled: true; }

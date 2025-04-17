@@ -8,13 +8,15 @@ import "../../TPWidgets"
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 Item {
+	required property HomePageMesoModel mesoModel
+	required property bool mainUserPrograms
+
 	property int viewedMesoIdx
 	property bool viewedMesoCanBeExported
-	property bool mainUserPrograms
 
 	ListView {
 		id: mesosListView
-		model: mesocyclesModel
+		model: mesoModel
 		boundsBehavior: Flickable.StopAtBounds
 		spacing: 10
 		width: parent.width
@@ -42,17 +44,11 @@ Item {
 
 		delegate: SwipeDelegate {
 			id: mesoDelegate
-			visible: {
-				if (mainUserPrograms)
-					return mesocyclesModel.isOwnMeso(index);
-				else
-					return !mesocyclesModel.isOwnMeso(index);
-			}
 			width: parent ? parent.width : 0
 
-			onClicked: mesocyclesModel.getMesocyclePage(index);
-			onPressAndHold: mesocyclesModel.currentMesoIdx = index;
-			swipe.onOpened: mesocyclesModel.setCurrentlyViewedMeso(index);
+			onClicked: mesocyclesModel.getMesocyclePage(mesoModel.mesoRow(index));
+			onPressAndHold: mesocyclesModel.currentMesoIdx = mesoModel.mesoRow(index);
+			swipe.onOpened: mesocyclesModel.setCurrentlyViewedMeso(mesoModel.mesoRow(index));
 
 			Rectangle {
 				id: optionsRec
@@ -99,7 +95,7 @@ Item {
 						leftMargin: 5
 					}
 
-					onClicked: mesocyclesModel.getMesocyclePage(index);
+					onClicked: mesocyclesModel.getMesocyclePage(mesoModel.mesoRow(index));
 				}
 
 				TPButton {
@@ -123,7 +119,7 @@ Item {
 						leftMargin: 5
 					}
 
-					onClicked: mesocyclesModel.getMesoCalendarPage(index);
+					onClicked: mesocyclesModel.getMesoCalendarPage(mesoModel.mesoRow(index));
 				}
 
 				TPButton {
@@ -147,7 +143,7 @@ Item {
 						leftMargin: 5
 					}
 
-					onClicked: mesocyclesModel.getExercisesPlannerPage(index);
+					onClicked: mesocyclesModel.getExercisesPlannerPage(mesoModel.mesoRow(index));
 				}
 
 				TPButton {
@@ -160,7 +156,7 @@ Item {
 					flat: false
 					textUnderIcon: true
 					fixedSize: true
-					enabled: viewedMesoIdx === index ? viewedMesoCanBeExported : false
+					enabled: viewedMesoIdx === mesoModel.mesoRow(index) ? viewedMesoCanBeExported : false
 					width: parent.width/2 - 10
 					height: parent.height/2 - 10
 					z:1
@@ -172,7 +168,7 @@ Item {
 						leftMargin: 5
 					}
 
-					onClicked: showExportMenu(index, this);
+					onClicked: showExportMenu(mesoModel.mesoRow(index), this);
 				}
 			} //swipe.left: Rectangle
 
@@ -211,7 +207,7 @@ Item {
 						verticalCenter: parent.verticalCenter
 					}
 
-					onClicked: msgDlg.init(index);
+					onClicked: msgDlg.init(mesoModel.mesoRow(index));
 				}
 
 				TPBalloonTip {
@@ -237,7 +233,7 @@ Item {
 				anchors.fill: parent
 				radius: 6
 				layer.enabled: true
-				color: index === mesocyclesModel.currentMesoIdx ? appSettings.primaryColor : appSettings.listEntryColor2
+				color: mesoModel.mesoRow(index) === mesocyclesModel.currentMesoIdx ? appSettings.primaryColor : appSettings.listEntryColor2
 				visible: false
 			}
 
