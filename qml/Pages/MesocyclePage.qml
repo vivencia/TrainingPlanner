@@ -42,7 +42,6 @@ TPPage {
 			imageSource: "set-completed"
 			button1Text: "OK"
 			button2Text: ""
-			subImageLabel: String(mesoManager.newMesoFieldCounter)
 			keepAbove: true
 			movable: true
 
@@ -53,6 +52,8 @@ TPPage {
 		}
 
 		onLoaded: {
+			if (mesoManager.newMesoFieldCounter !== 20)
+				newMesoTip.subImageLabel = String(mesoManager.newMesoFieldCounter);
 			newMesoMessageHandler(mesoManager.newMesoFieldCounter);
 			item.show(-2);
 		}

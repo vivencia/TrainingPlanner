@@ -164,6 +164,8 @@ Pane {
 							let last_letter_idx = indexOfValue(currentValue);
 							if (last_letter_idx === nLastDelegateIdx) {
 								let prev_index = delegateRow.delegateIndex-1;
+								if (prev_index < 0)
+									return;
 								let prev_item_index;
 								do {
 									prev_item_index = splitRepeater.itemAt(prev_index).children[1].children[0].currentIndex;

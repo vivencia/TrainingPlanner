@@ -346,6 +346,8 @@ void DBInterface::deleteMesocyclesTable(const bool bRemoveFile)
 void DBInterface::saveMesoSplit(const uint meso_idx)
 {
 	DBMesoSplitTable *worker{new DBMesoSplitTable{m_DBFilePath, appMesoModel()->mesoSplitModel()}};
+	if (appMesoModel()->mesoSplitModel()->importMode())
+		worker->setWaitForThreadToFinish(true);
 	worker->addExecArg(meso_idx);
 	createThread(worker, [worker] () { worker->saveMesoSplit(); });
 }

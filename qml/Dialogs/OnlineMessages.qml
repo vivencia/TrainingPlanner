@@ -17,10 +17,15 @@ Popup {
 	y: 180
 	width: mainIcon.width
 	height: mainIcon.height
-	visible: fullDialogVisible ? true : appMessages.count > 0
+	visible: appMessages.count > 0
 
 	property bool fullDialogVisible: false
 	readonly property int dlgMaxWidth: appSettings.pageWidth * 0.8
+
+	property int msgCount: appMessages.count
+	onMsgCountChanged: {
+		console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$  ", msgCount);
+	}
 
 	background: Rectangle {
 		color: "transparent"

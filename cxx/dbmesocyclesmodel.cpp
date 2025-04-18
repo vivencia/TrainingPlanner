@@ -201,7 +201,6 @@ const uint DBMesocyclesModel::newMesocycle(QStringList &&infolist)
 	const uint meso_idx{count()-1};
 
 	m_splitModel->appendList_fast(std::move(QStringList{SIMPLE_MESOSPLIT_TOTAL_COLS}));
-	m_splitModel->setMesoId(meso_idx, id(meso_idx));
 	m_calendarModelList.append(new DBMesoCalendarModel{this, meso_idx});
 	m_newMesoCalendarChanged.append(false);
 	m_canExport.append(false);
@@ -715,10 +714,12 @@ int DBMesocyclesModel::newMesoFromFile(const QString &filename)
 			makeUsedSplits(meso_idx);
 			setOwnMeso(meso_idx);
 
-			if (mesoSplitModel()->importFromContentsOnlyFile(mesoFile))
+			if (mesoSplitModel()->importFromContentsOnlyFile(mesoFile, meso_idx) == 0)
 			{
+				mesoSplitModel()->setMesoId(meso_idx, id(meso_idx));
 				mesoSplitModel()->setImportMode(true);
 				appDBInterface()->saveMesoSplit(meso_idx);
+				mesoSplitModel()->setImportMode(false);
 				for (const auto &splitletter: m_usedSplits.at(meso_idx))
 				{
 					DBMesoSplitModel* splitModel{new DBMesoSplitModel(this, true, meso_idx)};

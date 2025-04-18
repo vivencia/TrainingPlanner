@@ -186,9 +186,9 @@ QDate TPUtils::getDateFromDateString(const QString &strdate, const DATE_FORMAT f
 	{
 		case DF_QML_DISPLAY:
 			{
-				const int spaceIdx(strdate.indexOf(' '));
-				const int fSlashIdx(strdate.indexOf('/'));
-				const int fSlashIdx2 = strdate.indexOf('/', fSlashIdx+1);
+				const qsizetype spaceIdx{strdate.indexOf(' ')};
+				const qsizetype fSlashIdx{strdate.indexOf('/')};
+				const qsizetype fSlashIdx2{strdate.indexOf('/', fSlashIdx+1)};
 				day = strdate.sliced(spaceIdx+1, fSlashIdx-spaceIdx-1).toInt();
 				month = strdate.sliced(fSlashIdx+1, fSlashIdx2-fSlashIdx-1).toInt();
 				year = strdate.last(4).toInt();
@@ -216,13 +216,13 @@ QDate TPUtils::getDateFromDateString(const QString &strdate, const DATE_FORMAT f
 
 uint TPUtils::calculateNumberOfWeeks(const QDate &date1, const QDate &date2) const
 {
-	uint n(0);
-	const uint week1(date1.weekNumber());
-	const uint week2(date2.weekNumber());
+	uint n{0};
+	const int week1{date1.weekNumber()};
+	const int week2{date2.weekNumber()};
 	//Every 6 years we have a 53 week year
 	if (week2 < week1)
 	{
-		const uint totalWeeksInYear(QDate::currentDate().year() != 2026 ? 52 : 53);
+		const int totalWeeksInYear{QDate::currentDate().year() != 2026 ? 52 : 53};
 		n = (totalWeeksInYear - week1) + week2;
 	}
 	else
@@ -329,8 +329,8 @@ QTime TPUtils::getTimeFromTimeString(const QString &strtime, const TIME_FORMAT f
 
 QString TPUtils::addTimeToStrTime(const QString &strTime, const int addmins, const int addsecs) const
 {
-	int secs(QStringView{strTime}.sliced(3, 2).toUInt());
-	int mins(QStringView{strTime}.first(2).toUInt());
+	int secs{QStringView{strTime}.sliced(3, 2).toInt()};
+	int mins{QStringView{strTime}.first(2).toInt()};
 
 	secs += addsecs;
 	if (secs > 59)
@@ -349,8 +349,8 @@ QString TPUtils::addTimeToStrTime(const QString &strTime, const int addmins, con
 		mins = 0;
 		secs = 0;
 	}
-	const QString &ret((mins <= 9 ? STR_ZERO + QString::number(mins) : QString::number(mins)) + QChar(':') +
-		(secs <= 9 ? STR_ZERO + QString::number(secs) : QString::number(secs)));
+	const QString &ret{(mins <= 9 ? STR_ZERO + QString::number(mins) : QString::number(mins)) + QChar(':') +
+		(secs <= 9 ? STR_ZERO + QString::number(secs) : QString::number(secs))};
 	return ret;
 }
 
@@ -393,15 +393,15 @@ QString TPUtils::getMinutesFromStrTime(const QString &strTime, const TIME_FORMAT
 
 QTime TPUtils::calculateTimeDifference(const QString &strTimeInit, const QString &strTimeFinal) const
 {
-	int hour(strTimeFinal.first(2).toInt() - strTimeInit.first(2).toInt());
-	int min (strTimeFinal.last(2).toInt() - strTimeInit.last(2).toInt());
+	int hour{strTimeFinal.first(2).toInt() - strTimeInit.first(2).toInt()};
+	int min {strTimeFinal.last(2).toInt() - strTimeInit.last(2).toInt()};
 
 	if (min < 0)
 	{
 		hour--;
 		min += 60;
 	}
-	return QTime(hour, min, 0);
+	return QTime{hour, min, 0};
 }
 
 QDateTime TPUtils::getDateTimeFromOnlineString(const QString &datetime) const
@@ -428,15 +428,13 @@ QString TPUtils::makeDoubleCompositeValue(const QString &defaultValue, const uin
 
 QString TPUtils::getCompositeValue(const uint idx, const QString &compositeString, const QLatin1Char &chr_sep) const
 {
-	QString::const_iterator itr{compositeString.constBegin()};
-	const QString::const_iterator& itr_end{compositeString.constEnd()};
 	int n_seps{-1};
 	int chr_pos{0};
 	uint last_sep_pos{0};
 
-	while (itr != itr_end)
+	for (const auto &chr : compositeString)
 	{
-		if ((*itr).toLatin1() == chr_sep)
+		if (chr.toLatin1() == chr_sep)
 		{
 			if (++n_seps == idx)
 				return compositeString.sliced(last_sep_pos, chr_pos);	
@@ -444,7 +442,6 @@ QString TPUtils::getCompositeValue(const uint idx, const QString &compositeStrin
 			chr_pos = -1;
 		}
 		++chr_pos;
-		++itr;
 	}
 	return idx == 0 ? compositeString : QString{};
 }

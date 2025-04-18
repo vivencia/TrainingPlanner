@@ -45,7 +45,6 @@ std::optional<int> TPMessagesManager::addMessage(TPMessage *msg)
 		emit countChanged();
 		msg->setPlugged(true);
 		connect(msg, &TPMessage::actionTriggered, this, [this,msg] (const int action_id, const std::optional<bool> remove_message) {
-			//emit actionTriggered(msg->id(), action_id);
 			if (remove_message.has_value())
 			{
 				if (remove_message.value())
@@ -72,6 +71,7 @@ void TPMessagesManager::removeMessage(TPMessage *msg)
 			if (msg->autoDelete())
 				delete msg;
 			emit countChanged();
+			emit dataChanged(QModelIndex{}, QModelIndex{}); //Needed because this is the only signal the QML side is getting, but I don't know why
 			endRemoveRows();
 		}
 	}

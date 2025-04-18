@@ -11,7 +11,7 @@ class TPMessagesManager : public QAbstractListModel
 Q_OBJECT
 QML_ELEMENT
 
-Q_PROPERTY(uint count READ count NOTIFY countChanged)
+Q_PROPERTY(uint count READ count NOTIFY countChanged FINAL)
 
 public:
 	explicit TPMessagesManager(QObject *parent = nullptr);
@@ -38,7 +38,6 @@ public:
 
 signals:
 	void countChanged();
-	void actionTriggered(const int message_id, const int action_id);
 
 private:
 	QList<TPMessage*> m_data;

@@ -131,7 +131,7 @@ void DBMesoSplitTable::saveMesoSplit()
 		const uint row{m_execArgs.at(0).toUInt()};
 		bool bUpdate{false};
 
-		if (query.exec("SELECT id FROM mesocycles_splits WHERE id=%1"_L1.arg(m_model->id(row))))
+		if (query.exec("SELECT id FROM mesocycles_splits WHERE meso_id=%1"_L1.arg(m_model->mesoId(row))))
 		{
 			if (query.first())
 				bUpdate = query.value(0).toUInt() >= 0;
@@ -154,11 +154,6 @@ void DBMesoSplitTable::saveMesoSplit()
 							m_model->splitF(row), m_model->mesoId(row)));
 		}
 		ok = query.exec(strQuery);
-		if (ok)
-		{
-			if (!bUpdate)
-				m_model->setId(row, query.lastInsertId().toString());
-		}
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
@@ -340,19 +335,17 @@ void DBMesoSplitTable::saveMesoSplitComplete()
 			strQuery = std::move(u"UPDATE mesocycles_splits SET split%1_exercisesnames=\'%2\', "
 								"split%1_exercisesset_n=\'%3\', split%1_exercisesset_notes=\'%4\', "
 								"split%1_exercisesset_types=\'%5\', split%1_exercisesset_subsets=\'%6\', "
-								"split%1_exercisesset_reps=\'%7\', split%1_exercisesset_weight=\'%8\', "
-								"split%1=\'%9\' WHERE meso_id=%10"_s
-								.arg(m_model->splitLetter(), exercises, setsnumber, setsnotes, setstypes, setssubsets,
-										setsreps, setsweight, m_model->muscularGroup(), mesoId));
+								"split%1_exercisesset_reps=\'%7\', split%1_exercisesset_weight=\'%8\' "
+								"WHERE meso_id=%9"_s
+								.arg(m_model->splitLetter(), exercises, setsnumber, setsnotes, setstypes, setssubsets, setsreps, setsweight, mesoId));
 		}
 		else
 		{
 			strQuery = std::move(u"INSERT INTO mesocycles_splits (meso_id, split%1_exercisesnames, split%1_exercisesset_n, split%1_exercisesset_notes, "
 								"split%1_exercisesset_types, split%1_exercisesset_subsets, split%1_exercisesset_reps, "
-								"split%1_exercisesset_weight, split%1)"
-								" VALUES(\'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\')"_s
-								.arg(m_model->splitLetter(), mesoId, exercises, setsnumber, setsnotes, setstypes, setssubsets,
-										setsreps, setsweight, m_model->muscularGroup()));
+								"split%1_exercisesset_weight)"
+								" VALUES(\'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\')"_s
+								.arg(m_model->splitLetter(), mesoId, exercises, setsnumber, setsnotes, setstypes, setssubsets, setsreps, setsweight));
 		}
 		ok = query.exec(strQuery);
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);

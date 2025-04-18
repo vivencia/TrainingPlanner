@@ -213,7 +213,7 @@ void TPOnlineServices::sendFile(const int requestid, const QString &username, co
 void TPOnlineServices::listFiles(const int requestid, const QString &username, const QString &passwd, const QString &subdir, const QString &targetUser)
 {
 	auto conn = std::make_shared<QMetaObject::Connection>();
-	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid,username,passwd,subdir]
+	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid,username,passwd,subdir,targetUser]
 					(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid)
 		{
@@ -221,7 +221,7 @@ void TPOnlineServices::listFiles(const int requestid, const QString &username, c
 			QStringList new_files;
 			if (ret_code == 0)
 			{
-				const QString &localDir{appUtils()->localAppFilesDir() + subdir};
+				const QString &localDir{appUtils()->localAppFilesDir() + targetUser + '/' + subdir + '/'};
 				const QStringList &remote_files_list{ret_string.split(fancy_record_separator1, Qt::SkipEmptyParts)};
 				for (uint i{0}; i < remote_files_list.count(); i=+2)
 				{
@@ -291,7 +291,7 @@ void TPOnlineServices::makeNetworkRequest(const int requestid, const QUrl &url, 
 	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{url})};
 	connect(reply, &QNetworkReply::finished, this, [this,requestid,reply,b_internal_signal_only]() {
 		handleServerRequestReply(requestid, reply, b_internal_signal_only);
-	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	}, Qt::SingleShotConnection);
 }
 
 void TPOnlineServices::handleServerRequestReply(const int requestid, QNetworkReply *reply, const bool b_internal_signal_only)

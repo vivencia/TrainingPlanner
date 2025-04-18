@@ -51,7 +51,6 @@ TPPopup {
 		horizontalAlignment: Text.AlignHCenter
 		heightAvailable: 30
 		visible: title.length > 0
-		width: parent.width - (closeButtonVisible ? 20 : 10)
 
 		anchors {
 			top: parent.top
@@ -61,7 +60,7 @@ TPPopup {
 			right: btnClose.left
 		}
 
-		onTextChanged: anchorElements();
+		onTextChanged: anchored = false;
 	}
 
 	TPImage {
@@ -73,13 +72,12 @@ TPPopup {
 		height: 50
 
 		anchors {
-			top: title.length > 0 ? lblTitle.bottom : parent.top
-			topMargin: 20
+			topMargin: 10
 			left: parent.left
 			leftMargin: 5
 		}
 
-		onSourceChanged: anchorElements();
+		onSourceChanged: anchored = false;
 	}
 
 	TPLabel {
@@ -112,7 +110,7 @@ TPPopup {
 			rightMargin: 5
 		}
 
-		onTextChanged: anchorElements();
+		onTextChanged: anchored = false;
 	}
 
 	RowLayout {
@@ -240,6 +238,8 @@ TPPopup {
 	function show(ypos: int): void {
 		balloon.height = (title.length > 0 ? lblTitle.height + 5 : 0) + (imageSource.length > 0 ? Math.max(imgElement.height, lblMessage.height) : lblMessage.height) +
 					10 + (button1Text.length > 0 ? btn1.height + 10 : 0) + 5;
+		if (!anchored)
+			anchorElements();
 		show1(ypos);
 	}
 
@@ -252,13 +252,9 @@ TPPopup {
 	}
 
 	function anchorElements() {
-		if (anchored)
-			return;
-
 		if (lblMessage.height < 50) {
 			if (imageSource.length > 0) {
 				imgElement.anchors.top = title.length > 0 ? lblTitle.bottom : balloon.top;
-				imgElement.anchors.topMargin = 5;
 				lblMessage.anchors.verticalCenter = imgElement.verticalCenter;
 			}
 			else
