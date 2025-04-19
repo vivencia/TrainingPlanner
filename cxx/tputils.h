@@ -42,7 +42,8 @@ public:
 	Q_INVOKABLE int getFileType(const QString &filename) const;
 	Q_INVOKABLE bool canReadFile(const QString &filename) const;
 	QString getFilePath(const QString &filename) const;
-	QString getFileName(const QString &filepath, const bool without_extension = false) const;
+	QString getLastDirInPath(const QString &filename) const;
+	QString getFileName(const QString &filename, const bool without_extension = false) const;
 	bool mkdir(const QString &fileOrDir) const;
 	bool copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath = true) const;
 	QFile *openFile(const QString &filename, QIODeviceBase::OpenMode flags) const;

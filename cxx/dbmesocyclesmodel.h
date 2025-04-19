@@ -221,6 +221,7 @@ public:
 	inline bool newMesoCalendarChanged(const uint meso_idx) const { return m_newMesoCalendarChanged.at(meso_idx); }
 	inline void setNewMesoCalendarChanged(const uint meso_idx, const bool changed) { m_newMesoCalendarChanged[meso_idx] = changed; }
 	bool isDateWithinMeso(const int meso_idx, const QDate &date) const;
+	bool mesoPlanExists(const QString &mesoName, const QString &coach, const QString &client) const;
 	void findNextOwnMeso();
 	int getPreviousMesoId(const QString &userid, const int current_mesoid) const;
 	QDate getMesoMinimumStartDate(const QString &userid, const uint exclude_idx) const;

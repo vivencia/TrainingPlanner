@@ -15,7 +15,6 @@ TPPage {
 	objectName: "mesoPage"
 
 	required property MesoManager mesoManager
-	readonly property bool bMesoNameOK: txtMesoName.text.length >= 5
 
 	property TPBalloonTip newMesoTip: newMesoLoader.item
 
@@ -104,7 +103,7 @@ TPPage {
 
 			TPLabel {
 				text: mesoManager.clientLabel
-				visible: !mesoManager.ownMeso && mesoManager.ownerIsCoach
+				visible: !mesoManager.ownMeso
 			}
 
 			TPClientsList {
@@ -113,7 +112,7 @@ TPPage {
 				buttonString: qsTr("Go to client's page")
 				height: 0.2*mesoPropertiesPage.height
 				allowNotConfirmedClients: false
-				visible: !mesoManager.ownMeso && mesoManager.ownerIsCoach
+				visible: !mesoManager.ownMeso
 				Layout.fillWidth: true
 
 				onClientSelected: (userRow) => mesoManager.client = userModel.userId(userRow);
@@ -123,7 +122,7 @@ TPPage {
 			TPLabel {
 				id: lblCoachName
 				text: mesoManager.coachLabel
-				visible: !mesoManager.ownMeso && mesoManager.ownerIsCoach
+				visible: !mesoManager.ownMeso
 			}
 
 			TPTextInput {
@@ -144,7 +143,7 @@ TPPage {
 					fixedSize: true
 					checkable: true
 					visible: mesoManager.isNewMeso
-					enabled: bMesoNameOK
+					enabled: mesoManager.mesoNameOK
 					height: 25
 					width: 25
 
@@ -166,8 +165,8 @@ TPPage {
 			TPTextInput {
 				id: txtMesoName
 				text: mesoManager.name
-				ToolTip.text: qsTr("Name too short")
-				ToolTip.visible:!bMesoNameOK;
+				ToolTip.text: mesoManager.mesoNameErrorTooltip
+				ToolTip.visible: !mesoManager.mesoNameOK
 				readOnly: !mesoManager.ownMeso
 				width: 0.9*parent.width
 				Layout.preferredWidth: width

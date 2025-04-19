@@ -19,10 +19,9 @@ class QMLMesoInterface : public QObject
 
 Q_OBJECT
 
-Q_PROPERTY(bool ownerIsCoach READ ownerIsCoach WRITE setOwnerIsCoach NOTIFY ownerIsCoachChanged FINAL)
-Q_PROPERTY(bool hasCoach READ hasCoach WRITE setHasCoach NOTIFY hasCoachChanged FINAL)
+Q_PROPERTY(bool mesoNameOK READ mesoNameOK WRITE setMesoNameOK NOTIFY mesoNameOKChanged FINAL)
 Q_PROPERTY(bool realMeso READ realMeso WRITE setRealMeso NOTIFY realMesoChanged FINAL)
-Q_PROPERTY(bool ownMeso READ ownMeso NOTIFY ownMesoChanged FINAL)
+Q_PROPERTY(bool ownMeso READ ownMeso WRITE setOwnMeso NOTIFY ownMesoChanged FINAL)
 Q_PROPERTY(bool isNewMeso READ isNewMeso NOTIFY isNewMesoChanged FINAL)
 Q_PROPERTY(bool isTempMeso READ isTempMeso NOTIFY isTempMesoChanged FINAL)
 Q_PROPERTY(bool canExport READ canExport NOTIFY canExportChanged FINAL)
@@ -36,6 +35,7 @@ Q_PROPERTY(QString endDateLabel READ endDateLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString weeksLabel READ weeksLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString splitLabel READ splitLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString notesLabel READ notesLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString mesoNameErrorTooltip READ mesoNameErrorTooltip NOTIFY mesoNameOKChanged FINAL)
 
 Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged FINAL)
 Q_PROPERTY(QString coach READ coach WRITE setCoach NOTIFY coachChanged FINAL)
@@ -69,23 +69,42 @@ public:
 	~QMLMesoInterface();
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
+	[[nodiscard]] inline bool mesoNameOK() const { return m_bMesoNameOK; }
+	inline void setMesoNameOK(const bool new_value, const bool bEmitSignal = true)
+	{
+		if (m_bMesoNameOK != new_value)
+		{
+			m_bMesoNameOK = new_value;
+			if (bEmitSignal)
+				emit mesoNameOKChanged();
+		}
+	}
+
 	[[nodiscard]] inline const uint mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const uint new_value) { m_mesoIdx = new_value; }
-
-	[[nodiscard]] inline bool ownerIsCoach() const { return m_bOwnerIsCoach; }
-	inline void setOwnerIsCoach(const bool new_value) { if (m_bOwnerIsCoach != new_value) { m_bOwnerIsCoach = new_value; emit ownerIsCoachChanged(); } };
-
-	[[nodiscard]] inline bool hasCoach() const { return m_bHasCoach; }
-	inline void setHasCoach(const bool new_value) { if (m_bHasCoach != new_value) { m_bHasCoach = new_value; emit hasCoachChanged(); } };
 
 	[[nodiscard]] inline bool realMeso() const { return m_bRealMeso; }
 	void setRealMeso(const bool new_value, const bool bFromQml = true);
 
 	[[nodiscard]] inline bool ownMeso() const { return m_bOwnMeso; }
+	inline void setOwnMeso(const bool new_value, const bool bEmitSignal = true)
+	{
+		if (m_bOwnMeso != new_value)
+		{
+			m_bOwnMeso = new_value;
+			if (bEmitSignal)
+				emit ownMesoChanged();
+		}
+	}
+
 	[[nodiscard]] bool isNewMeso() const;
 	[[nodiscard]] bool isTempMeso() const;
 	[[nodiscard]] inline bool canExport() const { return m_bCanExport; }
 
+	inline QString mesoNameErrorTooltip() const
+	{
+		return m_bMesoNameOK ? QString{} : name().length() < 5 ? tr("Error: name too short") : tr("Error: Name already in use.");
+	}
 	QString nameLabel() const;
 	QString coachLabel() const;
 	QString clientLabel() const;
@@ -170,8 +189,7 @@ public:
 	[[nodiscard]] DBTrainingDayModel *tDayModelForToday();
 
 signals:
-	void ownerIsCoachChanged();
-	void hasCoachChanged();
+	void mesoNameOKChanged();
 	void realMesoChanged();
 	void ownMesoChanged();
 	void isNewMesoChanged();
@@ -210,7 +228,7 @@ private:
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	uint m_mesoIdx;
-	bool m_bCanExport, m_bOwnerIsCoach, m_bHasCoach, m_bRealMeso, m_bOwnMeso;
+	bool m_bCanExport, m_bRealMeso, m_bMesoNameOK, m_bOwnMeso;
 	QString m_name, m_coach, m_client, m_type, m_file, m_strStartDate, m_strEndDate, m_weeks, m_split, m_notes;
 	QDate m_startDate, m_endDate, m_minimumMesoStartDate, m_maximumMesoEndDate;
 	QStringList m_muscularGroup;
@@ -223,7 +241,6 @@ private:
 
 	void createMesocyclePage();
 	void createMesocyclePage_part2();
-	void setPropertiesBasedOnUseMode();
 	void updateMuscularGroupFromOutside(const uint splitIndex);
 };
 

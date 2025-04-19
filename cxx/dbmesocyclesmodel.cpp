@@ -204,7 +204,9 @@ const uint DBMesocyclesModel::newMesocycle(QStringList &&infolist)
 	m_calendarModelList.append(new DBMesoCalendarModel{this, meso_idx});
 	m_newMesoCalendarChanged.append(false);
 	m_canExport.append(false);
-	setOwnMeso(meso_idx);
+	//A temporary meso will not have enough info at this time to have it determined if it's a own meos or not
+	if (_id(meso_idx) >= 0)
+		setOwnMeso(meso_idx);
 
 	m_usedSplits.append(QStringList{});
 	makeUsedSplits(meso_idx);
@@ -411,6 +413,22 @@ void DBMesocyclesModel::makeUsedSplits(const uint meso_idx)
 			usedSplit->append(QString{chr});
 	}
 	emit usedSplitsChanged(meso_idx);
+}
+
+bool DBMesocyclesModel::mesoPlanExists(const QString &mesoName, const QString &coach, const QString &client) const
+{
+	for (const QStringList &modeldata : m_modeldata)
+	{
+		if (modeldata.at(MESOCYCLES_COL_NAME) == mesoName)
+		{
+			if (modeldata.at(MESOCYCLES_COL_COACH) == coach)
+			{
+				if (modeldata.at(MESOCYCLES_COL_CLIENT) == client)
+					return true;
+			}
+		}
+	}
+	return false;
 }
 
 void DBMesocyclesModel::findNextOwnMeso()
@@ -639,13 +657,14 @@ QString DBMesocyclesModel::formatFieldToImport(const uint field, const QString &
 
 QString DBMesocyclesModel::mesoFileName(const uint meso_idx) const
 {
-	return appUserModel()->localDir(client(meso_idx)) + mesosDir + name(meso_idx) + ".txt"_L1;
+	return appUserModel()->localDir(client(meso_idx)) + mesosDir +
+			(coach(meso_idx) != appUserModel()->userId(0) ? coach(meso_idx) + '/': QString{}) + name(meso_idx) + ".txt"_L1;
 }
 
 void DBMesocyclesModel::removeMesoFile(const uint meso_idx)
 {
 	const QString &mesofilename{mesoFileName(meso_idx)};
-	appUserModel()->removeFileFromServer(mesofilename, mesosDir, coach(meso_idx));
+	appUserModel()->removeFileFromServer(appUtils()->getFileName(mesofilename), mesosDir, coach(meso_idx));
 	static_cast<void>(QFile::remove(mesofilename));
 }
 
@@ -772,6 +791,9 @@ void DBMesocyclesModel::scanTemporaryMesocycles()
 	if (!mesos.isEmpty())
 	{
 		for(const auto &mesofile : std::as_const(mesos))
-			static_cast<void>(newMesoFromFile(mesofile.filePath()));
+		{
+			if (!mesoPlanExists(appUtils()->getFileName(mesofile.fileName(), true), appUtils()->getLastDirInPath(mesofile.filePath()), appUserModel()->userId(0)))
+				static_cast<void>(newMesoFromFile(mesofile.filePath()));
+		}
 	}
 }

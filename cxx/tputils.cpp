@@ -8,7 +8,9 @@
 #include <QLocale>
 #include <QStandardPaths>
 
-TPUtils* TPUtils::app_utils(nullptr);
+#include <ranges>
+
+TPUtils* TPUtils::app_utils{nullptr};
 
 TPUtils::TPUtils(QObject *parent)
 	: QObject{parent}, m_appLocale{nullptr},
@@ -77,22 +79,44 @@ bool TPUtils::canReadFile(const QString &filename) const
 
 QString TPUtils::getFilePath(const QString &filename) const
 {
-	const qsizetype ext_idx{filename.lastIndexOf('/')};
-	if (ext_idx > 0)
-		return filename.left(ext_idx + 1); //include the trainling '/'
-	return QString{};
+	const qsizetype slash_idx{filename.lastIndexOf('/')};
+	if (slash_idx > 0)
+		return filename.left(slash_idx + 1); //include the trainling '/'
+	return filename;
 }
 
-QString TPUtils::getFileName(const QString &filepath, const bool without_extension) const
+QString TPUtils::getLastDirInPath(const QString &filename) const
 {
-	QString ret{std::move(QFileInfo(filepath).fileName())};
-	if (without_extension)
+	const QString &filePath{getFilePath(filename)};
+	QString ret;
+	for (const auto &chr : filePath | std::views::reverse)
 	{
-		const qsizetype ext_idx{filepath.lastIndexOf('.')};
-		if (ext_idx > 0)
-			ret.remove(ext_idx, ret.length() - ext_idx);
+		if (chr != '/')
+			ret += chr;
+		else
+		{
+			if (ret.length() > 0)
+				break;
+		}
 	}
 	return ret;
+}
+
+QString TPUtils::getFileName(const QString &filename, const bool without_extension) const
+{
+	QString f_name;
+	const qsizetype slash_idx{filename.lastIndexOf('/')};
+	if (slash_idx > 0)
+		f_name = std::move(filename.right(filename.length() - slash_idx -1));
+
+	if (without_extension)
+	{
+		const qsizetype dot_idx{slash_idx > 0 ? f_name.lastIndexOf('.') : filename.lastIndexOf('.')};
+		if (dot_idx > 0)
+			return slash_idx > 0 ? f_name.left(dot_idx) : filename.left(dot_idx);
+	}
+
+	return slash_idx > 0 ? f_name : filename;
 }
 
 void TPUtils::copyToClipBoard(const QString &text) const
@@ -694,7 +718,7 @@ QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QStr
 			return QString::number(static_cast<uint>(result));
 		break;
 
-		default: return QString();
+		default: return QString{};
 	}
 }
 

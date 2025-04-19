@@ -710,7 +710,7 @@ if ($username) {
                 if (isset($_GET['delfile'])) {
                     $subdir = isset($_GET['subdir']) ? $_GET['subdir'] . "/" : '';
                     $targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : '';
-                    $file=$rootdir . $username  . "/" . $targetuser . $subdir . $_GET['delfile'];
+                    $file=$rootdir . $username  . "/" . $subdir . $targetuser . $_GET['delfile'];
                     if (is_file($file))
                         unlink($file);
                     exit;

@@ -827,7 +827,7 @@ void DBUserModel::removeFileFromServer(const QString &filename, const QString &s
 	const int requestid{appUtils()->generateUniqueId(v)};
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [=,this] (const QString &key, const QString &value) {
 		appOnlineServices()->removeFile(requestid, key, value, filename, subdir, targetUser);
-	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	}, Qt::SingleShotConnection);
 	appKeyChain()->readKey(userId(0));
 }
 
@@ -1496,19 +1496,22 @@ void DBUserModel::checkNewMesos()
 				disconnect(*conn);
 				if (ret_code == 0)
 				{
-					for (const auto &it : ret_list)
+					for (const auto &mesoFileName : ret_list)
 					{
-						const int id{appUtils()->idFromString(it)};
-						if (appMessagesManager()->message(id) == nullptr)
+						if (!appMesoModel()->mesoPlanExists(appUtils()->getFileName(mesoFileName, true), coach_id, userId(0)))
 						{
-							TPMessage *new_message{new TPMessage(coach + tr(" has sent you a new Exercises Program"), "message-meso"_L1, appMessagesManager())};
-							new_message->setId(id);
-							new_message->insertData(it, -1);
-							new_message->insertAction(tr("View"), [=] (const QVariant &mesofile) {
-											appMesoModel()->viewOnlineMeso(coach_id, mesofile.toString()); }, true);
-							new_message->insertAction(tr("Delete"), [=,this] (const QVariant &mesofile) {
-											appOnlineServices()->removeFile(request_id, userId(0), m_password, mesofile.toString(), mesosDir, coach_id); }, true);
-							new_message->plug();
+							const int id{appUtils()->idFromString(mesoFileName)};
+							if (appMessagesManager()->message(id) == nullptr)
+							{
+								TPMessage *new_message{new TPMessage(coach + tr(" has sent you a new Exercises Program"), "message-meso"_L1, appMessagesManager())};
+								new_message->setId(id);
+								new_message->insertData(mesoFileName);
+								new_message->insertAction(tr("View"), [=] (const QVariant &mesofile) {
+												appMesoModel()->viewOnlineMeso(coach_id, mesofile.toString()); }, true);
+								new_message->insertAction(tr("Delete"), [=,this] (const QVariant &mesofile) {
+												appOnlineServices()->removeFile(request_id, userId(0), m_password, mesofile.toString(), mesosDir, coach_id); }, true);
+								new_message->plug();
+							}
 						}
 					}
 				}

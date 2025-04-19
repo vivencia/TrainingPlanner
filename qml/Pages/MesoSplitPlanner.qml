@@ -375,15 +375,14 @@ Frame {
 							} //Item
 
 							RowLayout {
-								Layout.leftMargin: 10
-								Layout.rightMargin: 10
+								Layout.leftMargin: 5
+								Layout.rightMargin: 5
 								Layout.topMargin: 5
 
 								TPLabel {
 									text: splitModel.typeLabel
 									width: listItem.width*0.4
 									Layout.preferredWidth: width
-									Layout.maximumWidth: width
 								}
 								TPComboBox {
 									id: cboSetType
@@ -391,7 +390,8 @@ Frame {
 									model: AppGlobals.setTypesModel
 									editable: mesocyclesModel.isOwnMeso(splitManager.mesoIdx())
 									currentIndex: splitModel.setType(index, splitModel.workingSet)
-									Layout.fillWidth: true
+									width: listItem.width*0.50
+									Layout.preferredWidth: width
 
 									onActivated: (cboIndex) => splitModel.setSetType(index, splitModel.workingSet, cboIndex);
 
@@ -443,9 +443,10 @@ Frame {
 							RowLayout {
 								uniformCellSizes: true
 								visible: cboSetType.currentIndex === 4
+								spacing: 5
 								Layout.fillWidth: true
 								Layout.topMargin: 10
-								Layout.leftMargin: 10
+								Layout.leftMargin: 5
 
 								TPLabel {
 									id: lblExercise1
@@ -453,8 +454,7 @@ Frame {
 									wrapMode: Text.WordWrap
 									width: listItem.width*0.5
 									Layout.preferredWidth: width
-									Layout.preferredHeight: _preferredHeight
-									Layout.alignment: Qt.AlignHCenter
+									Layout.minimumHeight: _preferredHeight
 
 									MouseArea {
 										anchors.fill: parent
@@ -472,8 +472,7 @@ Frame {
 									wrapMode: Text.WordWrap
 									width: listItem.width*0.5
 									Layout.preferredWidth: width
-									Layout.preferredHeight: _preferredHeight
-									Layout.alignment: Qt.AlignRight
+									Layout.minimumHeight: _preferredHeight
 
 									MouseArea {
 										anchors.fill: parent

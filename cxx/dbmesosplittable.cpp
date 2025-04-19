@@ -166,7 +166,7 @@ void DBMesoSplitTable::replaceMesoId()
 		QSqlQuery query{getQuery()};
 		const QByteArray &oldMesoId{m_execArgs.at(0).toByteArray()};
 		const QByteArray &newMesoId{m_execArgs.at(1).toByteArray()};
-		const QString &strQuery{"UPDATE mesocycles_splits SET meso_id=%1 WHERE meso_id=%2"_L1.arg(oldMesoId).arg(newMesoId)};
+		const QString &strQuery{"UPDATE mesocycles_splits SET meso_id=%1 WHERE meso_id=%2"_L1.arg(newMesoId).arg(oldMesoId)};
 		const bool ok{query.exec(strQuery)};
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}

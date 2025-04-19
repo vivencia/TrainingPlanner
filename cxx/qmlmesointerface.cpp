@@ -30,7 +30,7 @@ QMLMesoInterface::~QMLMesoInterface()
 	if (m_calendarPage)
 		delete m_calendarPage;
 
-	for (const auto &it: m_tDayPages)
+	for (const auto &it: std::as_const(m_tDayPages))
 		delete it;
 }
 
@@ -111,14 +111,26 @@ void QMLMesoInterface::setName(const QString &new_value, const bool bFromQml)
 	{
 		if (m_name != new_value)
 		{
-			m_name = new_value;
-			emit nameChanged();
-			if (!isNewMeso())
-				acceptName();
+			if (new_value.length() >= 5)
+			{
+				if (!appMesoModel()->mesoPlanExists(new_value, m_coach, m_client))
+				{
+					m_name = new_value;
+					emit nameChanged();
+					if (!isNewMeso())
+						acceptName();
+					setMesoNameOK(true);
+					return;
+				}
+			}
+			setMesoNameOK(false);
 		}
 	}
 	else
+	{
 		m_name = new_value;
+		setMesoNameOK(true, false);
+	}
 }
 
 void QMLMesoInterface::acceptName()
@@ -533,9 +545,9 @@ void QMLMesoInterface::createMesocyclePage()
 
 	setCoach(appMesoModel()->coach(m_mesoIdx), false);
 	setClient(appMesoModel()->client(m_mesoIdx), false);
+	setOwnMeso(appMesoModel()->isOwnMeso(m_mesoIdx).value(), false);
 	setType(appMesoModel()->type(m_mesoIdx), false);
 	setFile(appMesoModel()->file(m_mesoIdx), false);
-	setPropertiesBasedOnUseMode();
 	setRealMeso(appMesoModel()->isRealMeso(m_mesoIdx), false);
 	setSplit(appMesoModel()->split(m_mesoIdx), false);
 	setNotes(appMesoModel()->notes(m_mesoIdx), false);
@@ -579,11 +591,6 @@ void QMLMesoInterface::createMesocyclePage_part2()
 	connect(this, &QMLMesoInterface::addPageToMainMenu, appItemManager(), &QmlItemManager::addMainMenuShortCut);
 	connect(this, &QMLMesoInterface::removePageFromMainMenu, appItemManager(), &QmlItemManager::removeMainMenuShortCut);
 	emit addPageToMainMenu(appMesoModel()->name(m_mesoIdx), m_mesoPage);
-
-	connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint field) {
-		if (user_row == 0 && field == USER_COL_APP_USE_MODE)
-			setPropertiesBasedOnUseMode();
-	});
 
 	connect(appMesoModel(), &DBMesocyclesModel::mesoIdxChanged, this, [this] (const uint old_meso_idx, const uint new_meso_idx) {
 		if (old_meso_idx == m_mesoIdx)
@@ -648,14 +655,6 @@ void QMLMesoInterface::createMesocyclePage_part2()
 		appMesoModel()->fillColumnNames();
 		emit labelsChanged();
 	});
-}
-
-void QMLMesoInterface::setPropertiesBasedOnUseMode()
-{
-	const uint useMode{appUserModel()->appUseMode(0)};
-	setOwnerIsCoach(useMode == APP_USE_MODE_SINGLE_COACH || useMode == APP_USE_MODE_COACH_USER_WITH_COACH);
-	setHasCoach(useMode == APP_USE_MODE_SINGLE_USER_WITH_COACH || useMode == APP_USE_MODE_COACH_USER_WITH_COACH);
-	emit labelsChanged();
 }
 
 void QMLMesoInterface::updateMuscularGroupFromOutside(const uint splitIndex)
