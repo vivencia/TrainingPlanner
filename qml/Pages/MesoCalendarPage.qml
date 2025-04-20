@@ -134,19 +134,34 @@ TPPage {
 					property bool bIsTrainingDay: false
 					property bool bDayIsFinished: false
 					property bool highlighted: false
-					property string colorValue
 
-					Component.onCompleted: {
-						let colorValue = "transparent";
-						if ( monthGrid.month === model.month ) {
-							if (mesoCalendarModel.isTrainingDay(model.month+1, model.day-1)) {
-								colorValue =  appSettings.listEntryColor2;
+					function highlightDay(highlighted: bool): void {
+						if (highlighted)
+							animExpand.start();
+						else
+							animShrink.start();
+					}
+
+					function decorateRect(month: int, day: int, dayFinished: bool): void {
+						if (month === monthGrid.month) {
+							if (mesoCalendarModel.isTrainingDay(month, day)) {
+								color = appSettings.listEntryColor2;
 								bIsTrainingDay = true;
-								bDayIsFinished = mesoCalendarModel.isDayFinished(model.month+1, model.day-1);
+								bDayIsFinished = dayFinished;
+								return;
 							}
 						}
-						color = colorValue
+						color = "transparent";
 					}
+
+					Connections {
+						target: mesoCalendarModel
+						function onDayIsFinishedChanged(date: Date, bFinished: bool) : void {
+							decorateRect(date.getMonth(), date.getDate(), bFinished);
+						}
+					}
+
+					Component.onCompleted: decorateRect(model.month+1, model.day, mesoCalendarModel.isDayFinished(model.month+1, model.day-1));
 
 					Text {
 						anchors.centerIn: parent
@@ -181,13 +196,6 @@ TPPage {
 						}
 					}
 
-					function highlightDay(highlighted: bool): void {
-						if (highlighted)
-							animExpand.start();
-						else
-							animShrink.start();
-					}
-
 					MouseArea {
 						anchors.fill: parent
 						hoverEnabled: true
@@ -210,7 +218,7 @@ TPPage {
 	} //ListView
 
 	footer: TPToolBar {
-		height: footerHeight*2
+		height: footerHeight*2.3
 
 		TPLabel {
 			id: lblInfo
@@ -223,6 +231,7 @@ TPPage {
 
 			anchors {
 				top: parent.top
+				topMargin: 10
 				horizontalCenter: parent.horizontalCenter
 			}
 		}
@@ -248,8 +257,8 @@ TPPage {
 			text: qsTr("Change only this day")
 
 			anchors {
-				top: lblInfo.bottom
-				topMargin: 5
+				verticalCenter: parent.verticalCenter
+				verticalCenterOffset: -height/2
 				left: cboSplitLetter.right
 				leftMargin: 10
 				right: parent.right
@@ -258,6 +267,7 @@ TPPage {
 		TPRadioButton {
 			id: optChangeAfterThisDay
 			text: qsTr("Adjust calendar from this day on")
+			multiLine: true
 
 			anchors {
 				top: optChangeOnlyThisDay.bottom

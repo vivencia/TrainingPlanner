@@ -43,20 +43,6 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent, const bool bMainAppModel)
 		connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
 			fillColumnNames();
 		});
-
-		connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint field) {
-			if (user_row == 0)
-			{
-				switch (field)
-				{
-					case 100:
-					case USER_COL_APP_USE_MODE:
-						updateColumnLabels();
-					break;
-					default: break;
-				}
-			}
-		});
 	}
 }
 
@@ -67,6 +53,8 @@ void DBMesocyclesModel::fillColumnNames()
 	mColumnNames[MESOCYCLES_COL_ENDDATE] = std::move(tr("End date: "));
 	mColumnNames[MESOCYCLES_COL_NOTE] = std::move(tr("Program's considerations: "));
 	mColumnNames[MESOCYCLES_COL_WEEKS] = std::move(tr("Number of weeks: "));
+	mColumnNames[MESOCYCLES_COL_COACH] = std::move(tr("Coach/Trainer: "));
+	mColumnNames[MESOCYCLES_COL_CLIENT] = std::move(tr("Client: "));
 	mColumnNames[MESOCYCLES_COL_SPLIT] = std::move(tr("Weekly Training Division: "));
 	mColumnNames[MESOCYCLES_COL_TYPE] = std::move(tr("Type: "));
 	mColumnNames[MESOCYCLES_COL_REALMESO] = std::move(tr("Mesocycle-style program: "));
@@ -217,7 +205,7 @@ const uint DBMesocyclesModel::newMesocycle(QStringList &&infolist)
 
 void DBMesocyclesModel::changeCanHaveTodaysWorkout(const uint meso_idx)
 {
-	if (meso_idx == currentMesoIdx() && isOwnMeso(meso_idx))
+	if (isOwnMeso(meso_idx))
 	{
 		if (m_bCanHaveTodaysWorkout != isDateWithinMeso(meso_idx, QDate::currentDate()))
 		{
@@ -282,7 +270,7 @@ void DBMesocyclesModel::setName(const uint meso_idx, const QString &new_name)
 		emit newMesoFieldCounterChanged(meso_idx, MESOCYCLES_COL_NAME);
 	}
 	setModified(meso_idx, MESOCYCLES_COL_NAME);
-	emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>() << mesoNameRole);
+	m_curMesos->emitDataChanged(meso_idx, mesoNameRole);
 }
 
 void DBMesocyclesModel::setStartDate(const uint meso_idx, const QDate &new_date)
@@ -294,7 +282,7 @@ void DBMesocyclesModel::setStartDate(const uint meso_idx, const QDate &new_date)
 		emit newMesoFieldCounterChanged(meso_idx, MESOCYCLES_COL_STARTDATE);
 	}
 	setModified(meso_idx, MESOCYCLES_COL_STARTDATE);
-	emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>{} << mesoStartDateRole);
+	m_curMesos->emitDataChanged(meso_idx, mesoStartDateRole);
 	changeCanHaveTodaysWorkout(meso_idx);
 	if (!isNewMeso(meso_idx) && m_newMesoFieldCounter.at(meso_idx) == NEW_MESO_REQUIRED_FIELDS)
 		emit mesoCalendarFieldsChanged(meso_idx, MESOCYCLES_COL_STARTDATE);
@@ -311,7 +299,7 @@ void DBMesocyclesModel::setEndDate(const uint meso_idx, const QDate &new_date)
 		emit newMesoFieldCounterChanged(meso_idx, MESOCYCLES_COL_ENDDATE);
 	}
 	setModified(meso_idx, MESOCYCLES_COL_ENDDATE);
-	emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>{} << mesoEndDateRole);
+	m_curMesos->emitDataChanged(meso_idx, mesoEndDateRole);
 	changeCanHaveTodaysWorkout(meso_idx);
 	if (!isNewMeso(meso_idx) && m_newMesoFieldCounter.at(meso_idx) == NEW_MESO_REQUIRED_FIELDS)
 		emit mesoCalendarFieldsChanged(meso_idx, MESOCYCLES_COL_ENDDATE);
@@ -330,7 +318,7 @@ void DBMesocyclesModel::setSplit(const uint meso_idx, const QString &new_split)
 			emit newMesoFieldCounterChanged(meso_idx, MESOCYCLES_COL_SPLIT);
 		}
 		setModified(meso_idx, MESOCYCLES_COL_SPLIT);
-		emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>{} << mesoSplitRole);
+		m_curMesos->emitDataChanged(meso_idx, mesoSplitRole);
 		if (!isNewMeso(meso_idx) && m_newMesoFieldCounter.at(meso_idx) == NEW_MESO_REQUIRED_FIELDS)
 			emit mesoCalendarFieldsChanged(meso_idx, MESOCYCLES_COL_SPLIT);
 		else
@@ -490,14 +478,6 @@ QDate DBMesocyclesModel::getMesoMaximumEndDate(const QString &userid, const uint
 				break;
 	}
 	return meso_idx < count() ? endDate(meso_idx) : appUtils()->createDate(QDate::currentDate(), 0, 6, 0);
-}
-
-void DBMesocyclesModel::updateColumnLabels()
-{
-	if (appUserModel()->isCoach(0))
-		mColumnNames[MESOCYCLES_COL_COACH] = std::move(tr("Coach/Trainer: "));
-	if (appUserModel()->isClient(0))
-		mColumnNames[MESOCYCLES_COL_CLIENT] = std::move(tr("Client: "));
 }
 
 void DBMesocyclesModel::checkIfCanExport(const uint meso_idx, const bool bEmitSignal)

@@ -58,6 +58,7 @@ public:
 
 signals:
 	void calendarChanged(const QDate& startDate, const QDate& endDate);
+	void dayIsFinishedChanged(const QDate &day, const bool bFinished);
 };
 
 #endif // DBMESOCALENDARMODEL_H

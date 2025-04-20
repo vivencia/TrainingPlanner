@@ -311,7 +311,7 @@ TPPage {
 			SetNotesField {
 				info: qsTr("This training session considerations:")
 				text: tDayManager.dayNotes
-				readOnly: !tDayManager.dayIsEditable
+				editable: tDayManager.dayIsEditable
 				visible: tDayManager.splitLetter !== "R"
 				Layout.fillWidth: true
 

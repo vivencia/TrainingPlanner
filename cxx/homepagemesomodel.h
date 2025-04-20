@@ -31,6 +31,13 @@ public:
 		removeRow(row);
 	}
 
+	inline void emitDataChanged(const uint meso_idx, const int role)
+	{
+		const int row{findMesoIdx(meso_idx)};
+		if (row >= 0)
+			emit dataChanged(index(row, 0), index(row, 0), QList<int>{} << role);
+	}
+
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
 	QVariant data(const QModelIndex &index, int role) const override final;
 	inline virtual int rowCount(const QModelIndex& parent) const override final { Q_UNUSED(parent); return count(); }

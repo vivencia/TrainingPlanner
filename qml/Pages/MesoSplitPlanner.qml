@@ -144,7 +144,7 @@ Frame {
 					Connections {
 						target: splitModel
 
-						function onExerciseNameChanged(row): void {
+						function onExerciseNameChanged(row: int): void {
 							if (splitModel.currentRow === row) {
 								if (splitModel.exerciseIsComposite(row))
 									cboSetType.currentIndex = 4;
@@ -158,10 +158,26 @@ Frame {
 							}
 						}
 
-						function onSetsNumberChanged(row): void {
+						function onSetsNumberChanged(row: int): void {
 							if (splitModel.currentRow === row) {
 								buttonsRepeater.model = splitModel.setsNumber(row);
 								lblSetsNumber.text = splitModel.setsNumberLabel + splitModel.setsNumber(index);
+							}
+						}
+
+						function onWorkingSetChanged(row: int): void {
+							if (splitModel.currentRow === row) {
+								const workingSet = splitModel.workingSet;
+								cboSetType.currentIndex = splitModel.setType(row, workingSet);
+								txtNSubsets.text = splitModel.setSubsets(row, workingSet);
+								txtNReps.text = splitModel.setReps1(row, workingSet);
+								txtNWeight.text = splitModel.setWeight1(row, workingSet);
+								if (repsLoader.active) {
+									repsLoader.nReps1 = splitModel.setReps1(row, workingSet);
+									repsLoader.nReps2 = splitModel.setReps2(row, workingSet);
+									weightsLoader.nWeight1 = splitModel.setWeight1(row, workingSet);
+									weightsLoader.nWeight2 = splitModel.setWeight1(row, workingSet);
+								}
 							}
 						}
 					}
@@ -394,13 +410,6 @@ Frame {
 									Layout.preferredWidth: width
 
 									onActivated: (cboIndex) => splitModel.setSetType(index, splitModel.workingSet, cboIndex);
-
-									Component.onCompleted: {
-										splitModel.workingSetChanged.connect(function(row) {
-											if (index === row)
-												currentIndex = splitModel.setType(row, splitModel.workingSet);
-										});
-									}
 								}
 							}
 
@@ -423,14 +432,6 @@ Frame {
 									showLabel: false
 
 									onValueChanged: (str) => splitModel.setSetsSubsets(index, splitModel.workingSet, str);
-
-									Component.onCompleted: {
-										splitModel.workingSetChanged.connect(function(row) {
-											if (index === row)
-												text = splitModel.setSubsets(row, splitModel.workingSet);
-										});
-									}
-
 									onEnterOrReturnKeyPressed: {
 										if (txtNReps.visible)
 											txtNReps.forceActiveFocus();
@@ -459,10 +460,7 @@ Frame {
 									MouseArea {
 										anchors.fill: parent
 										enabled: mesocyclesModel.isOwnMeso(splitManager.mesoIdx())
-										onClicked: {
-											splitModel.currentRow = index;
-											splitManager.simpleExercisesList(splitModel, true, false, 1);
-										}
+										onClicked: splitManager.simpleExercisesList(splitModel, true, false, 1);
 									}
 								}
 
@@ -477,10 +475,7 @@ Frame {
 									MouseArea {
 										anchors.fill: parent
 										enabled: mesocyclesModel.isOwnMeso(splitManager.mesoIdx())
-										onClicked: {
-											splitModel.currentRow = index;
-											splitManager.simpleExercisesList(splitModel, true, false, 2);
-										}
+										onClicked: splitManager.simpleExercisesList(splitModel, true, false, 2);
 									}
 								}
 							}
@@ -497,17 +492,15 @@ Frame {
 
 								onValueChanged: (str) => splitModel.setSetReps1(index, splitModel.workingSet, str);
 								onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
-								Component.onCompleted: {
-									splitModel.workingSetChanged.connect(function(row) {
-										if (index === row)
-											text = splitModel.setReps1(row, splitModel.workingSet);
-									});
-								}
 							}
 
 							Loader {
+								id: repsLoader
 								active: cboSetType.currentIndex === 4
 								asynchronous: true
+
+								property string nReps1: splitModel.setReps1(index, splitModel.workingSet)
+								property string nReps2: splitModel.setReps2(index, splitModel.workingSet)
 
 								sourceComponent: RowLayout {
 									Layout.fillWidth: true
@@ -515,25 +508,18 @@ Frame {
 
 								SetInputField {
 									id: txtNReps1
-									text: splitModel.setReps1(index, splitModel.workingSet)
+									text: repsLoader.nReps1
 									type: SetInputField.Type.RepType
 									availableWidth: listItem.width*0.55
 									editable: mesocyclesModel.isOwnMeso(splitManager.mesoIdx())
 
 									onValueChanged: (str) => splitModel.setSetReps1(index, splitModel.workingSet, str);
 									onEnterOrReturnKeyPressed: txtNReps2.forceActiveFocus();
-
-									Component.onCompleted: {
-										splitModel.workingSetChanged.connect(function(row) {
-											if (index === row)
-												text = splitModel.setReps1(row, splitModel.workingSet);
-										});
-									}
 								}
 
 								SetInputField {
 									id: txtNReps2
-									text: splitModel.setReps2(index, splitModel.workingSet)
+									text: repsLoader.nReps2
 									type: SetInputField.Type.RepType
 									availableWidth: listItem.width*0.4
 									showLabel: false
@@ -541,13 +527,6 @@ Frame {
 
 									onValueChanged: (str) => splitModel.setSetReps2(index, splitModel.workingSet, str);
 									onEnterOrReturnKeyPressed: txtNWeight1.forceActiveFocus();
-
-									Component.onCompleted: {
-										splitModel.workingSetChanged.connect(function(row) {
-											if (index === row)
-												text = splitModel.setReps2(row, splitModel.workingSet);
-										});
-									}
 								}
 							} //RowLayout
 							} //Loader
@@ -563,18 +542,15 @@ Frame {
 								Layout.rightMargin: 10
 
 								onValueChanged: (str) => splitModel.setSetWeight1(index, splitModel.workingSet, str);
-
-								Component.onCompleted: {
-									splitModel.workingSetChanged.connect(function(row) {
-										if (index === row)
-											text = splitModel.setWeight1(row, splitModel.workingSet);
-									});
-								}
 							}
 
 							Loader {
+								id: weightsLoader
 								active: cboSetType.currentIndex === 4
 								asynchronous: true
+
+								property string nWeight1: splitModel.setWeight1(index, splitModel.workingSet)
+								property string nWeight2: splitModel.setWeight2(index, splitModel.workingSet)
 
 								sourceComponent: RowLayout {
 								visible: cboSetType.currentIndex === 4
@@ -583,38 +559,24 @@ Frame {
 
 								SetInputField {
 									id: txtNWeight1
-									text: splitModel.setWeight1(index, splitModel.workingSet)
+									text: weightsLoader.nWeight1
 									type: SetInputField.Type.WeightType
 									availableWidth: listItem.width*0.55
 									editable: mesocyclesModel.isOwnMeso(splitManager.mesoIdx())
 
 									onValueChanged: (str) => splitModel.setSetWeight1(index, splitModel.workingSet, str);
 									onEnterOrReturnKeyPressed: txtNWeight2.forceActiveFocus();
-
-									Component.onCompleted: {
-										splitModel.workingSetChanged.connect(function(row) {
-											if (index === row)
-												text = splitModel.setWeight1(row, splitModel.workingSet);
-										});
-									}
 								}
 
 								SetInputField {
 									id: txtNWeight2
-									text: splitModel.setWeight2(index, splitModel.workingSet)
+									text: weightsLoader.nWeight2
 									type: SetInputField.Type.WeightType
 									showLabel: false
 									availableWidth: listItem.width*0.4
 									editable: mesocyclesModel.isOwnMeso(splitManager.mesoIdx())
 
 									onValueChanged: (str) => splitModel.setSetWeight2(index, splitModel.workingSet, str);
-
-									Component.onCompleted: {
-										splitModel.workingSetChanged.connect(function(row) {
-											if (index === row)
-												text = splitModel.setWeight2(row, splitModel.workingSet);
-										});
-									}
 								}
 							} //RowLayout
 							} //Loader

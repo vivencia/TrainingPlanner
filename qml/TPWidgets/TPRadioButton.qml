@@ -50,6 +50,7 @@ Item {
 	TPLabel {
 		id: lblText
 		wrapMode: multiLine ? Text.WordWrap : Text.NoWrap
+		//width: Math.max(control.implicitWidth, control.width)
 		topPadding: 5
 		bottomPadding: 5
 		leftPadding: 0

@@ -319,6 +319,7 @@ void DBMesoCalendarModel::setDayIsFinished(const QDate& date, const bool bFinish
 			QStringList dayInfo{std::move(m_modeldata.at(i).at(date.day()-1).split(','))};
 			dayInfo.replace(MESOCALENDAR_COL_TRAININGCOMPLETE, bFinished ? STR_ONE : STR_ZERO);
 			m_modeldata[i].replace(date.day()-1, std::move(dayInfo.join(',')));
+			emit dayIsFinishedChanged(date, bFinished);
 		}
 	}
 }

@@ -4,17 +4,13 @@ import QtQuick.Layouts
 
 import "../"
 
-Item {
+ColumnLayout {
 	id: grpIntent
-	height: optMesoPlan.implicitHeight + optPreviousDay.implicitHeight + cboPreviousTDaysDates.height +
-				optLoadFromFile.implicitHeight + optEmptySession.implicitHeight + 20
+	spacing: 5
 
-	required property var parentDlg
+	required property TPComplexDialog parentDlg
 
-	Component.onCompleted: {
-		parentDlg.customIntProperty1 = 4;
-		parentDlg.dialogOpened.connect(resize);
-	}
+	Component.onCompleted: parentDlg.customIntProperty1 = 4;
 
 	Connections {
         target: parentDlg
@@ -32,13 +28,7 @@ Item {
 		checked: parentDlg.customIntProperty1 === 1
 		multiLine: true
 		visible: parentDlg.customBoolProperty1	//bHasMesoPlan
-		height: visible ? implicitHeight : 0
-
-		anchors {
-			top: parent.top
-			left: parent.left
-			right: parent.right
-		}
+		Layout.maximumWidth: grpIntent.width
 
 		onClicked: parentDlg.customIntProperty1 = 1;
 	}
@@ -49,14 +39,7 @@ Item {
 		checked: parentDlg.customIntProperty1 === 2
 		multiLine: true
 		visible: parentDlg.customBoolProperty2	//bHasPreviousTDays
-		height: visible ? implicitHeight : 0
-
-		anchors {
-			top: parentDlg.customBoolProperty1 ? optMesoPlan.bottom : parent.top
-			topMargin: 5
-			left: parent.left
-			right: parent.right
-		}
+		Layout.maximumWidth: grpIntent.width
 
 		onClicked: parentDlg.customIntProperty1 = 2;
 	}
@@ -66,18 +49,9 @@ Item {
 		model: parentDlg.customModel
 		visible: parentDlg.customBoolProperty2	//bHasPreviousTDays
 		enabled: optPreviousDay.checked
-		height: visible ? 25 : 0
-
-		anchors {
-			top: optPreviousDay.bottom
-			topMargin: 5
-			left: parent.left
-			leftMargin: 15
-			right: parent.right
-		}
+		Layout.alignment: Qt.AlignCenter
 
 		onActivated: (index) => parentDlg.customStringProperty1 = currentText;
-
 		onEnabledChanged: {
 			if (enabled)
 				parentDlg.customStringProperty1 = currentText;
@@ -89,14 +63,7 @@ Item {
 		text: qsTr("Import workout from file")
 		checked: parentDlg.customIntProperty1 === 3
 		visible: parentDlg.customBoolProperty3	//noExercises
-		height: visible ? implicitHeight : 0
-
-		anchors {
-			top: parentDlg.customBoolProperty2 ? cboPreviousTDaysDates.bottom : optMesoPlan
-			topMargin: 5
-			left: parent.left
-			right: parent.right
-		}
+		Layout.maximumWidth: grpIntent.width
 
 		onClicked: parentDlg.customIntProperty1 = 3;
 	}
@@ -105,14 +72,7 @@ Item {
 		id: optEmptySession
 		text: qsTr("Start a new session")
 		checked: parentDlg.customIntProperty1 === 4
-
-		anchors {
-			top: parentDlg.customBoolProperty3 ? optLoadFromFile.bottom : parentDlg.customBoolProperty2 ?
-								cboPreviousTDaysDates.bottom : parentDlg.customBoolProperty1 ? optMesoPlan.bottom : parent.top
-			topMargin: 5
-			left: parent.left
-			right: parent.right
-		}
+		Layout.maximumWidth: grpIntent.width
 
 		onClicked: parentDlg.customIntProperty1 = 4;
 	}

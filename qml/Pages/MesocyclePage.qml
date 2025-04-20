@@ -101,38 +101,45 @@ TPPage {
 			spacing: 5
 			anchors.fill: parent
 
-			TPLabel {
-				text: mesoManager.clientLabel
-				visible: !mesoManager.ownMeso
-			}
-
-			TPClientsList {
-				id: clientsList
-				clientRow: userModel.clientRow(mesoManager.client)
-				buttonString: qsTr("Go to client's page")
-				height: 0.2*mesoPropertiesPage.height
-				allowNotConfirmedClients: false
-				visible: !mesoManager.ownMeso
+			Loader {
+				active: !mesoManager.ownMeso
+				asynchronous: true
 				Layout.fillWidth: true
 
-				onClientSelected: (userRow) => mesoManager.client = userModel.userId(userRow);
-				onButtonClicked: itemManager.getClientsPage();
-			} //TPClientsList
+				sourceComponent: ColumnLayout {
+					spacing: 5
 
-			TPLabel {
-				id: lblCoachName
-				text: mesoManager.coachLabel
-				visible: !mesoManager.ownMeso
-			}
+					TPLabel {
+						id: lblClient
+						text: mesoManager.clientLabel
+					}
 
-			TPTextInput {
-				id: txtCoachName
-				text: mesoManager.coach
-				readOnly: true
-				visible: lblCoachName.visible
-				width: 0.9*parent.width
-				Layout.preferredWidth: width
-			}
+					TPClientsList {
+						id: clientsList
+						clientRow: userModel.clientRow(mesoManager.client)
+						buttonString: qsTr("Go to client's page")
+						height: 0.2*mesoPropertiesPage.height
+						allowNotConfirmedClients: false
+						Layout.fillWidth: true
+						Layout.preferredHeight: height
+
+						onClientSelected: (userRow) => mesoManager.client = userModel.userId(userRow);
+						onButtonClicked: itemManager.getClientsPage();
+					} //TPClientsList
+
+					TPLabel {
+						id: lblCoachName
+						text: mesoManager.coachLabel
+					}
+
+					TPTextInput {
+						id: txtCoachName
+						text: mesoManager.coach
+						readOnly: true
+						Layout.fillWidth: true
+					}
+				} //ColumnLayout: Loader sourceComponent
+			} //Loader
 
 			TPLabel {
 				text: mesoManager.nameLabel
@@ -167,12 +174,10 @@ TPPage {
 				text: mesoManager.name
 				ToolTip.text: mesoManager.mesoNameErrorTooltip
 				ToolTip.visible: !mesoManager.mesoNameOK
-				readOnly: !mesoManager.ownMeso
 				width: 0.9*parent.width
 				Layout.preferredWidth: width
 
 				onEditingFinished: mesoManager.name = text;
-
 				onEnterOrReturnKeyPressed: cboMesoType.forceActiveFocus();
 			}
 
@@ -188,7 +193,6 @@ TPPage {
 				TPComboBox {
 					id: cboMesoType
 					width: 0.75*parent.width
-					editable: !mesoManager.ownMeso
 					Layout.minimumWidth: width
 					currentIndex: {
 						let cboidx = find(mesoManager.type);
@@ -221,10 +225,8 @@ TPPage {
 				id: txtMesoTypeOther
 				text: mesoManager.type
 				visible: cboMesoType.currentIndex === typeModel.count - 1
-				readOnly: !mesoManager.ownMeso
 				width: parent.width
-				Layout.maximumWidth: width
-				Layout.minimumWidth: width
+				Layout.fillWidth: true
 
 				onEditingFinished: mesoManager.type = text;
 				onEnterOrReturnKeyPressed: txtMesoFile.forceActiveFocus();
@@ -328,7 +330,6 @@ TPPage {
 				TPButton {
 					id: btnStartDate
 					imageSource: "calendar.png"
-					enabled: !mesoManager.ownMeso
 					anchors.left: txtMesoStartDate.right
 					anchors.verticalCenter: txtMesoStartDate.verticalCenter
 
@@ -357,7 +358,6 @@ TPPage {
 					imageSource: "set-completed"
 					checkable: true
 					fixedSize: true
-					enabled: !mesoManager.ownMeso
 					visible: mesoManager.isNewMeso
 					height: 25
 					width: 25
@@ -401,7 +401,6 @@ TPPage {
 				TPButton {
 					id: btnEndDate
 					imageSource: "calendar.png"
-					enabled: !mesoManager.ownMeso
 					anchors.left: txtMesoEndDate.right
 					anchors.verticalCenter: txtMesoEndDate.verticalCenter
 
@@ -450,7 +449,6 @@ TPPage {
 					id: txtMesoNotes
 					text: mesoManager.notes
 					color: "black"
-					readOnly: !mesoManager.ownMeso
 					font.pixelSize: appSettings.fontSize
 					font.bold: true
 					topPadding: appSettings.fontSize

@@ -565,9 +565,9 @@ void QMLMesoInterface::createMesocyclePage()
 	m_mesoComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/MesocyclePage.qml"_L1}, QQmlComponent::Asynchronous};
 	if (m_mesoComponent->status() != QQmlComponent::Ready)
 	{
-		connect(m_mesoComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status) {
+		connect(m_mesoComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status) {
 					createMesocyclePage_part2();
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		}, Qt::SingleShotConnection);
 	}
 	else
 		createMesocyclePage_part2();

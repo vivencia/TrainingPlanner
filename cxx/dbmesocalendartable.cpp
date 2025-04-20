@@ -177,31 +177,38 @@ void DBMesoCalendarTable::saveMesoCalendar()
 {
 	if (openDatabase())
 	{
-		bool ok(false);
-		QSqlQuery query{getQuery()};
-
-		const QString &queryStart{"INSERT INTO mesocycles_calendar_table "
-									"(meso_id, training_day, training_split, training_complete, year, month, day) VALUES "_L1};
-		QString queryValues;
-		QStringList day_info;
-
-		static_cast<void>(mSqlLiteDB.transaction());
-		for (uint i(0), x(0); i < m_model->count(); ++i)
+		if (mSqlLiteDB.transaction())
 		{
-			for (x = 0; x < m_model->getRow_const(i).count(); ++x)
+			bool ok{true};
+			QSqlQuery query{getQuery()};
+			const QString &queryStart{"INSERT INTO mesocycles_calendar_table "
+									"(meso_id, training_day, training_split, training_complete, year, month, day) VALUES "_L1};
+			QString queryValues;
+			QStringList day_info;
+
+			for (uint i{0}, x{0}; i < m_model->count(); ++i)
 			{
-				day_info = std::move(m_model->getDayInfo(i, x).split(','));
-				queryValues += std::move('(' + day_info.at(MESOCALENDAR_COL_MESOID) + ',' + day_info.at(MESOCALENDAR_COL_TRAINING_DAY) +
-						",\'"_L1 + day_info.at(MESOCALENDAR_COL_SPLITLETTER) + "\',"_L1 +
-								day_info.at(MESOCALENDAR_COL_TRAININGCOMPLETE) + ',' + day_info.at(MESOCALENDAR_COL_YEAR) + ',' +
-								day_info.at(MESOCALENDAR_COL_MONTH) + ',' + QString::number(x+1) + "),"_L1);
+				for (x = 0; x < m_model->getRow_const(i).count(); ++x)
+				{
+					day_info = std::move(m_model->getDayInfo(i, x).split(','));
+					queryValues += std::move('(' + day_info.at(MESOCALENDAR_COL_MESOID) + ',' + day_info.at(MESOCALENDAR_COL_TRAINING_DAY) +
+							",\'"_L1 + day_info.at(MESOCALENDAR_COL_SPLITLETTER) + "\',"_L1 +
+									day_info.at(MESOCALENDAR_COL_TRAININGCOMPLETE) + ',' + day_info.at(MESOCALENDAR_COL_YEAR) + ',' +
+									day_info.at(MESOCALENDAR_COL_MONTH) + ',' + QString::number(x+1) + "),"_L1);
+				}
+				queryValues.chop(1);
+				//Save one month at a time
+				if (!query.exec(queryStart + queryValues))
+				{
+					ok = false;
+					break;
+				}
+				queryValues.clear();
 			}
-			queryValues.chop(1);
-			ok = query.exec(queryStart + queryValues); //Save one month at a time
-			queryValues.clear();
+			if (ok)
+				ok = mSqlLiteDB.commit();
+			setQueryResult(ok, queryStart + queryValues, SOURCE_LOCATION);
 		}
-		static_cast<void>(mSqlLiteDB.commit());
-		setQueryResult(ok, queryStart + queryValues, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

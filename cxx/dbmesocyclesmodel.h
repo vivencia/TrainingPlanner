@@ -64,8 +64,9 @@ public:
 	inline DBMesoSplitModel *mesoSplitModel() { return m_splitModel; }
 	inline DBMesoCalendarModel *mesoCalendarModel(const uint meso_idx) const { return m_calendarModelList.value(meso_idx); }
 
-	Q_INVOKABLE inline homePageMesoModel* ownMesos() const { return m_ownMesos; }
-	Q_INVOKABLE inline homePageMesoModel* clientMesos() const { return m_clientMesos; }
+	inline homePageMesoModel *currentHomePageMesoModel() { return m_curMesos; }
+	Q_INVOKABLE inline homePageMesoModel *ownMesos() const { return m_ownMesos; }
+	Q_INVOKABLE inline homePageMesoModel *clientMesos() const { return m_clientMesos; }
 
 	inline bool isNewMeso(const uint meso_idx) const { return m_isNewMeso.at(meso_idx) != 0; }
 	Q_INVOKABLE inline bool isNewMeso() const { return currentMesoIdx() >= 0 ? isNewMeso(currentMesoIdx()) : true; }
@@ -75,6 +76,7 @@ public:
 
 	Q_INVOKABLE inline void setCurrentlyViewedMeso(const uint meso_idx, const bool bEmitSignal = true)
 	{
+		m_curMesos = isOwnMeso(meso_idx) ? m_ownMesos : m_clientMesos;
 		checkIfCanExport(meso_idx, bEmitSignal);
 	}
 
@@ -226,7 +228,6 @@ public:
 	int getPreviousMesoId(const QString &userid, const int current_mesoid) const;
 	QDate getMesoMinimumStartDate(const QString &userid, const uint exclude_idx) const;
 	QDate getMesoMaximumEndDate(const QString &userid, const uint exclude_idx) const;
-	void updateColumnLabels();
 
 	[[nodiscard]] inline bool canExport(const uint meso_idx) const { return meso_idx < m_canExport.count() ? m_canExport.at(meso_idx) : false; }
 	void checkIfCanExport(const uint meso_idx, const bool bEmitSignal = true);
@@ -288,8 +289,7 @@ private:
 	QList<bool> m_newMesoCalendarChanged;
 	QList<bool> m_canExport;
 	QList<QStringList> m_usedSplits;
-	homePageMesoModel *m_ownMesos;
-	homePageMesoModel *m_clientMesos;
+	homePageMesoModel *m_curMesos, *m_ownMesos, *m_clientMesos;
 	int m_currentMesoIdx, m_mostRecentOwnMesoIdx, m_importMesoIdx, m_lowestTempMesoId;
 	bool m_bCanHaveTodaysWorkout;
 
