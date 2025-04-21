@@ -1,5 +1,5 @@
 #include "dbtrainingdaytable.h"
-#include "dbtrainingdaymodel.h"
+#include "dbworkoutmodel.h"
 #include "tputils.h"
 #include "tpglobals.h"
 

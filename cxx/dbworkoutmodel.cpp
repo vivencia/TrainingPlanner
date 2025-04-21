@@ -1,4 +1,4 @@
-#include "dbtrainingdaymodel.h"
+#include "dbworkoutmodel.h"
 #include "tpglobals.h"
 #include "dbmesosplitmodel.h"
 //#include "dbexercisesmodel.h"

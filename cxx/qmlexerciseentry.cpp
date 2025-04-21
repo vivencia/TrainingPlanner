@@ -1,6 +1,6 @@
 #include "qmlexerciseentry.h"
 
-#include "dbtrainingdaymodel.h"
+#include "dbworkoutmodel.h"
 #include "qmlsetentry.h"
 #include "qmlitemmanager.h"
 #include "qmltdayinterface.h"

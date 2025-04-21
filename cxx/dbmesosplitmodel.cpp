@@ -1,7 +1,7 @@
 #include "dbmesosplitmodel.h"
 
 #include "dbmesocyclesmodel.h"
-#include "dbtrainingdaymodel.h"
+#include "dbworkoutmodel.h"
 #include "tpglobals.h"
 #include "tputils.h"
 #include "translationclass.h"

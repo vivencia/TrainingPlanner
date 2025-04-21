@@ -1,6 +1,6 @@
 #include "qmlsetentry.h"
 #include "qmlexerciseentry.h"
-#include "dbtrainingdaymodel.h"
+#include "dbworkoutmodel.h"
 #include "tputils.h"
 
 #include <QQuickItem>

@@ -2,7 +2,7 @@
 
 #include "dbinterface.h"
 #include "dbmesosplitmodel.h"
-#include "dbtrainingdaymodel.h"
+#include "dbworkoutmodel.h"
 #include "qmlexerciseentry.h"
 #include "qmlitemmanager.h"
 #include "qmltdayinterface.h"

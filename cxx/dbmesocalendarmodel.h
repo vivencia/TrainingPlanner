@@ -3,15 +3,20 @@
 
 #include "tplistmodel.h"
 
-#define MESOCALENDAR_COL_ID 0
-#define MESOCALENDAR_COL_MESOID 1
-#define MESOCALENDAR_COL_TRAINING_DAY 2
-#define MESOCALENDAR_COL_SPLITLETTER 3
-#define MESOCALENDAR_COL_TRAININGCOMPLETE 4
-#define MESOCALENDAR_COL_YEAR 5
-#define MESOCALENDAR_COL_MONTH 6
-#define MESOCALENDAR_COL_DAY 7
-#define MESOCALENDAR_TOTAL_COLS MESOCALENDAR_COL_MONTH + 1
+#define MESOCALENDAR_COL_MESOID 0
+#define MESOCALENDAR_COL_WORKOUTID 1
+#define MESOCALENDAR_COL_DATE 2
+#define MESOCALENDAR_COL_WORKOUTNUMBER 3
+#define MESOCALENDAR_COL_SPLITLETTER 4
+#define MESOCALENDAR_COL_TIMEIN 5
+#define MESOCALENDAR_COL_TIMEOUT 6
+#define MESOCALENDAR_COL_LOCATION 7
+#define MESOCALENDAR_COL_NOTES 8
+#define MESOCALENDAR_COL_TRAINING_COMPLETED 9
+#define MESOCALENDAR_TOTAL_COLS MESOCALENDAR_COL_TRAINING_COMPLETED + 1
+
+QT_FORWARD_DECLARE_CLASS(DBWorkoutModel)
+QT_FORWARD_DECLARE_CLASS(DBCalendarModel)
 
 class DBMesoCalendarModel : public TPListModel
 {
@@ -19,46 +24,50 @@ class DBMesoCalendarModel : public TPListModel
 Q_OBJECT
 
 public:
-	explicit DBMesoCalendarModel(QObject* parent, const uint meso_idx);
+	explicit inline DBMesoCalendarModel(QObject *parent, const uint meso_idx);
+	std::optional<QString> dataForDatabase(const uint meso_idx) const;
+	void dataFromDatabase(const uint meso_idx, const QString &dbdata);
+	[[nodiscard]] const int calendarDay(const uint meso_idx, const QDate& date) const;
 
-	void createModel();
-	void changeModel(const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilDayBefore, const QDate& endDate);
-	void updateModel(const QDate& startDate, const QString& newSplitLetter);
-	void updateDay(const QDate& date, const QString& tDay, const QString& splitLetter);
+	[[nodiscard]] const std::optional<QString> mesoId(const uint meso_idx, const uint calendar_day) const;
+	void setMesoId(const uint meso_idx, const uint calendar_day, const QString &new_meso_id);
 
-	inline const QString& getDayInfo(const uint row, const uint day) const { return m_modeldata.at(row).at(day); }
+	[[nodiscard]] const std::optional<QString> workoutId(const uint meso_idx, const uint calendar_day) const;
+	void setWorkoutId(const uint meso_idx, const uint calendar_day, const QString &new_workout_id);
 
-	Q_INVOKABLE uint getMonth(const uint index) const
-	{
-		return index < count() ? static_cast<QString>(m_modeldata.at(index).at(0)).split(',').at(MESOCALENDAR_COL_MONTH).toUInt() - 1 : 0;
-	}
+	[[nodiscard]] const std::optional<QDate> date(const uint meso_idx, const uint calendar_day) const;
+	void setDate(const uint meso_idx, const uint calendar_day, const QDate &new_date);
 
-	Q_INVOKABLE uint getYear(const uint index) const
-	{
-		return index < count() ? static_cast<QString>(m_modeldata.at(index).at(0)).split(',').at(MESOCALENDAR_COL_YEAR).toUInt() : 0;
-	}
+	[[nodiscard]] const std::optional<QString> workoutNumber(const uint meso_idx, const uint calendar_day) const;
+	void setWorkoutNumber(const uint meso_idx, const uint calendar_day, const QString &new_number);
 
-	Q_INVOKABLE uint getIndex(const QDateTime& date) const
-	{
-		for( uint i(0); i < m_modeldata.count(); ++i)
-		{
-			if (m_modeldata.at(i).at(0).split(',').at(MESOCALENDAR_COL_MONTH).toUInt() == date.date().month())
-				return i;
-		}
-		return 0;
-	}
+	[[nodiscard]] const std::optional<QString> splitLetter(const uint meso_idx, const uint calendar_day) const;
+	void setSplitLetter(const uint meso_idx, const uint calendar_day, const QString &new_splitletter);
 
-	Q_INVOKABLE int getTrainingDay(const uint month, const uint day) const;
-	Q_INVOKABLE QString getSplitLetter(const uint month, const uint day) const;
-	Q_INVOKABLE bool isTrainingDay(const uint month, const uint day) const;
-	Q_INVOKABLE bool isPartOfMeso(const uint month, const uint day) const;
-	Q_INVOKABLE bool isDayFinished(const uint month, const uint day) const;
-	void setDayIsFinished(const QDate& date, const bool bFinished);
-	uint getLastTrainingDayBeforeDate(const QDate& date) const;
+	[[nodiscard]] const std::optional<QTime> timeIn(const uint meso_idx, const uint calendar_day) const;
+	void setTimeIn(const uint meso_idx, const uint calendar_day, const QTime &new_timein);
 
-signals:
-	void calendarChanged(const QDate& startDate, const QDate& endDate);
-	void dayIsFinishedChanged(const QDate &day, const bool bFinished);
+	[[nodiscard]] const std::optional<QTime> timeOut(const uint meso_idx, const uint calendar_day) const;
+	void setTimeOut(const uint meso_idx, const uint calendar_day, const QTime &new_timeout);
+
+	[[nodiscard]] const std::optional<QString> location(const uint meso_idx, const uint calendar_day) const;
+	void setLocation(const uint meso_idx, const uint calendar_day, const QString &new_location);
+
+	[[nodiscard]] const std::optional<QString> notes(const uint meso_idx, const uint calendar_day) const;
+	void setNotes(const uint meso_idx, const uint calendar_day, const QString &new_notes);
+
+	[[nodiscard]] const std::optional<bool> trainingCompleted(const uint meso_idx, const uint calendar_day) const;
+	void setTrainingCompleted(const uint meso_idx, const uint calendar_day, const bool completed);
+
+	Q_INVOKABLE inline DBCalendarModel *calendar(const uint meso_idx) const { return m_calendars.at(meso_idx); }
+	Q_INVOKABLE inline DBWorkoutModel *workout(const uint calendar_day) const { return m_workouts.at(calendar_day); }
+
+private:
+	QList<DBWorkoutModel*> m_workouts;
+	QList<DBCalendarModel*> m_calendars;
+
+	inline std::optional<QString> dayInfo(const uint meso_idx, const uint calendar_day, const uint field) const;
+	inline void setDayInfo(const uint meso_idx, const uint calendar_day, const uint field, const QString &new_value);
 };
 
 #endif // DBMESOCALENDARMODEL_H

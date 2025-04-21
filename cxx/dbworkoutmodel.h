@@ -1,5 +1,5 @@
-#ifndef DBTRAININGDAYMODEL_H
-#define DBTRAININGDAYMODEL_H
+#ifndef DBWORKOUTMODEL_H
+#define DBWORKOUTMODEL_H
 
 #include "tplistmodel.h"
 #include "tpglobals.h"
@@ -251,4 +251,4 @@ private:
 
 //Q_DECLARE_METATYPE(DBTrainingDayModel*)
 
-#endif // DBTRAININGDAYMODEL_H
+#endif // DBWORKOUTMODEL_H

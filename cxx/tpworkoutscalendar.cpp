@@ -144,7 +144,7 @@ QVariant TPWorkoutsCalendar::data(const QModelIndex& index, int role) const
 			break;
 		}
 	}
-	return QVariant();
+	return QVariant{};
 }
 
 void TPWorkoutsCalendar::findDateInList()

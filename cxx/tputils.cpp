@@ -205,6 +205,9 @@ QString TPUtils::formatDate(const QDate &date, const DATE_FORMAT format) const
 
 QDate TPUtils::getDateFromDateString(const QString &strdate, const DATE_FORMAT format) const
 {
+	if (strdate.isEmpty())
+		return QDate{};
+
 	int day{0}, month{0}, year{0};
 	switch (format)
 	{

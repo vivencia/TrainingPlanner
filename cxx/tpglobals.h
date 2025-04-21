@@ -4,13 +4,13 @@
 
 using namespace Qt::Literals::StringLiterals;
 
-static const QString& TP_APP_VERSION("v202504 Alpha 1"_L1);
+static const QString &TP_APP_VERSION("v202504 Alpha 1"_L1);
 
 #ifndef QT_NO_DEBUG
 #include <QDebug>
 #include <source_location>
 #define SOURCE_LOCATION {std::source_location::current()}
-#define DEFINE_SOURCE_LOCATION const std::source_location& location SOURCE_LOCATION;;
+#define DEFINE_SOURCE_LOCATION const std::source_location &location SOURCE_LOCATION;;
 #define PRINT_SOURCE_LOCATION qDebug().noquote() << location.file_name() << "::"_L1 << location.function_name() << "::"_L1 << location.line();
 #define SUCCESS_MESSAGE(message1, message2) { qDebug() << ' '; qDebug() << "******SUCCESS******"_L1; qDebug() << message << message2; \
 			qDebug() << "******SUCCESS******"_L1; qDebug() << ' '; }
@@ -35,7 +35,7 @@ static const QLatin1Char comp_exercise_separator(30);
 static const QLatin1Char set_separator(31);
 static const QLatin1Char fancy_record_separator1('|');
 static const QLatin1Char fancy_record_separator2(';');
-static const QString& comp_exercise_fancy_separator(" + "_L1);
+static const QString &comp_exercise_fancy_separator(" + "_L1);
 
 static const uint APP_TABLES_NUMBER(6);
 static const uint EXERCISES_TABLE_ID(0x0001);
@@ -45,17 +45,17 @@ static const uint MESOCALENDAR_TABLE_ID(0x0004);
 static const uint TRAININGDAY_TABLE_ID(0x0005);
 static const uint USERS_TABLE_ID(0x0006);
 
-static const QString& DBExercisesObjectName("Exercises"_L1);
-static const QString& DBMesocyclesObjectName("Mesocycles"_L1);
-static const QString& DBMesoSplitObjectName("MesocyclesSplits"_L1);
-static const QString& DBMesoCalendarObjectName("MesoCalendar"_L1);
-static const QString& DBTrainingDayObjectName("TrainingDay"_L1);
-static const QString& DBUserObjectName("UserProfile"_L1);
+static const QString &DBExercisesObjectName("Exercises"_L1);
+static const QString &DBMesocyclesObjectName("Mesocycles"_L1);
+static const QString &DBMesoSplitObjectName("MesocyclesSplits"_L1);
+static const QString &DBMesoCalendarObjectName("MesoCalendar"_L1);
+static const QString &DBTrainingDayObjectName("TrainingDay"_L1);
+static const QString &DBUserObjectName("UserProfile"_L1);
 
-static const QString& STR_MINUS_ONE("-1"_L1);
-static const QString& STR_ZERO("0"_L1);
-static const QString& STR_ONE("1"_L1);
-static const QString& STR_END_EXPORT("####\n\n"_L1);
+static const QString &STR_MINUS_ONE("-1"_L1);
+static const QString &STR_ZERO("0"_L1);
+static const QString &STR_ONE("1"_L1);
+static const QString &STR_END_EXPORT("####\n\n"_L1);
 
 enum {
 	IFC_USER = 1,
@@ -103,7 +103,7 @@ enum {
 #define SET_TYPE_REVERSE_PYRAMID 6
 
 template <typename T>
-inline void setBit(T& __restrict var, const unsigned char bit)
+inline void setBit(T &__restrict var, const unsigned char bit)
 {
 	if ((bit - 1) >= 0)
 		var |= (2 << (bit - 1));
@@ -112,7 +112,7 @@ inline void setBit(T& __restrict var, const unsigned char bit)
 }
 
 template <typename T>
-inline void unSetBit(T& __restrict var, const unsigned char bit)
+inline void unSetBit(T &__restrict var, const unsigned char bit)
 {
 	if ((bit - 1) >= 0)
 		var &= ~(2 << (bit - 1));
@@ -121,7 +121,7 @@ inline void unSetBit(T& __restrict var, const unsigned char bit)
 }
 
 template <typename T>
-inline bool isBitSet(const T& __restrict var, const unsigned char bit)
+inline bool isBitSet(const T &__restrict var, const unsigned char bit)
 {
 	if ((bit - 1) >= 0)
 		return static_cast<bool>(var & (2 << (bit - 1)));

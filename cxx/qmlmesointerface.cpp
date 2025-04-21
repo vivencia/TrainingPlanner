@@ -3,7 +3,7 @@
 #include "dbinterface.h"
 #include "dbmesocyclesmodel.h"
 #include "dbmesosplitmodel.h"
-#include "dbtrainingdaymodel.h"
+#include "dbworkoutmodel.h"
 #include "dbusermodel.h"
 #include "qmlitemmanager.h"
 #include "qmlmesocalendarinterface.h"

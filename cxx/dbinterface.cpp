@@ -9,7 +9,7 @@
 #include "dbmesocalendartable.h"
 #include "dbmesocalendarmodel.h"
 #include "dbtrainingdaytable.h"
-#include "dbtrainingdaymodel.h"
+#include "dbworkoutmodel.h"
 #include "dbusertable.h"
 #include "dbusermodel.h"
 #include "tpglobals.h"

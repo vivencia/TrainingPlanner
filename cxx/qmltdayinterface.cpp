@@ -5,7 +5,7 @@
 #include "dbmesocalendarmodel.h"
 #include "dbmesocyclesmodel.h"
 #include "dbmesosplitmodel.h"
-#include "dbtrainingdaymodel.h"
+#include "dbworkoutmodel.h"
 #include "qmlexerciseentry.h"
 #include "qmlexerciseinterface.h"
 #include "qmlitemmanager.h"

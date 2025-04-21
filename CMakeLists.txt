@@ -80,9 +80,11 @@ set( CXX_SOURCES
 	cxx/tplistmodel.h cxx/tplistmodel.cpp
 	cxx/dbexercisesmodel.h cxx/dbexercisesmodel.cpp
 	cxx/dbmesocyclesmodel.h cxx/dbmesocyclesmodel.cpp
+	cxx/homepagemesomodel.h cxx/homepagemesomodel.cpp
 	cxx/dbmesosplitmodel.h cxx/dbmesosplitmodel.cpp
 	cxx/dbmesocalendarmodel.h cxx/dbmesocalendarmodel.cpp
-	cxx/dbtrainingdaymodel.h cxx/dbtrainingdaymodel.cpp
+	cxx/dbworkoutmodel.h cxx/dbworkoutmodel.cpp
+    cxx/dbcalendarmodel.h cxx/dbcalendarmodel.cpp
 	cxx/dbusermodel.h cxx/dbusermodel.cpp
 	cxx/pageslistmodel.h cxx/pageslistmodel.cpp
 	cxx/tpworkoutscalendar.h cxx/tpworkoutscalendar.cpp
@@ -240,7 +242,6 @@ qt_add_executable(TrainingPlanner
 	${RESOURCE_FILES}
 	${QM_FILES}
 	${SERVER_FILES}
-    cxx/homepagemesomodel.h cxx/homepagemesomodel.cpp
 )
 
 if(NOT ANDROID)
