@@ -92,6 +92,14 @@ const std::optional<QDate> DBMesoCalendarModel::date(const uint meso_idx, const 
 	return std::nullopt;
 }
 
+const std::optional<QDate> DBMesoCalendarModel::nThDate(const uint meso_idx, const uint nth_month) const
+{
+	std::optional<QDate> initialDate{std::move(date(meso_idx, 0))};
+	if (initialDate.has_value())
+		return initialDate.value().addMonths(nth_month);
+	return initialDate;
+}
+
 void DBMesoCalendarModel::setDate(const uint meso_idx, const uint calendar_day, const QDate &new_date)
 {
 	setDayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_DATE, appUtils()->formatDate(new_date, TPUtils::DF_DATABASE));

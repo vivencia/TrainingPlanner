@@ -1,36 +1,24 @@
-#ifndef DBWORKOUTMODEL_H
-#define DBWORKOUTMODEL_H
+#pragma once
 
 #include "tplistmodel.h"
-#include "tpglobals.h"
 
-#define TDAY_COL_ID 0
-#define TDAY_COL_MESOID 1
-#define TDAY_COL_DATE 2
-#define TDAY_COL_TRAININGDAYNUMBER 3
-#define TDAY_COL_SPLITLETTER 4
-#define TDAY_COL_TIMEIN 5
-#define TDAY_COL_TIMEOUT 6
-#define TDAY_COL_LOCATION 7
-#define TDAY_COL_NOTES 8
-#define TDAY_TOTAL_COLS TDAY_COL_NOTES + 1
-
-#define TDAY_EXERCISES_COL_NAMES 0
-#define TDAY_EXERCISES_COL_TYPES 1
-#define TDAY_EXERCISES_COL_RESTTIMES 2
-#define TDAY_EXERCISES_COL_SUBSETS 3
-#define TDAY_EXERCISES_COL_REPS 4
-#define TDAY_EXERCISES_COL_WEIGHTS 5
-#define TDAY_EXERCISES_COL_NOTES 6
-#define TDAY_EXERCISES_COL_COMPLETED 7
-#define TDAY_EXERCISES_TOTALCOLS TDAY_EXERCISES_COL_COMPLETED+1
+#define WORKOUT_COL_CALENDARID 0
+#define WORKOUT_COL_EXERCISES 1
+#define WORKOUT_COL_SETTYPES 2
+#define WORKOUT_COL_RESTTIMES 3
+#define WORKOUT_COL_SUBSETS 4
+#define WORKOUT_COL_REPS 5
+#define WORKOUT_COL_WEIGHTS 6
+#define WORKOUT_COL_NOTES 7
+#define WORKOUT_COL_COMPLETED 8
+#define TDAY_EXERCISES_TOTALCOLS WORKOUT_COL_COMPLETED+1
 
 #define TDDAY_MODEL_ROW 0
 #define USE_LAST_SET_DATA 100
 
-class DBExercisesModel;
-class DBMesoSplitModel;
-class appWindowMessageID;
+QT_FORWARD_DECLARE_CLASS(DBMesoCalendarModel)
+QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
+QT_FORWARD_DECLARE_CLASS(DBMesoSplitModel);
 
 class DBTrainingDayModel : public TPListModel
 {
@@ -39,10 +27,9 @@ Q_OBJECT
 QML_ELEMENT
 
 Q_PROPERTY(uint exerciseCount READ exerciseCount NOTIFY exerciseCountChanged)
-Q_PROPERTY(QString splitLetter READ splitLetter WRITE setSplitLetter NOTIFY splitLetterChanged FINAL)
 
 public:
-	explicit DBTrainingDayModel(QObject* parent, const uint meso_idx = 0);
+	explicit DBTrainingDayModel(DBMesoCalendarModel *parent, const uint meso_idx);
 	~DBTrainingDayModel() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; }
 
 	void fromDataBase(const QStringList& list, const bool bClearSomeFieldsForReUse = false);
@@ -77,87 +64,6 @@ public:
 
 	void moveExercise(const uint from, const uint to);
 	uint getWorkoutNumberForTrainingDay() const;
-
-	inline const int id() const { return count() == 1 ? idStr().toInt() : -1; }
-	inline const QString& idStr() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_ID); }
-	inline void setId(const QString& new_id) { m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_ID] = new_id; }
-
-	inline const int mesoId() const { return count() == 1 ? mesoIdStr().toInt(): -1; }
-	inline const QString& mesoIdStr() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_MESOID); }
-	inline void setMesoId(const QString& mesoid) { m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_MESOID] = mesoid; }
-
-	QDate date() const { return count() == 1 ? QDate::fromJulianDay(dateStr().toLongLong()) : QDate::currentDate(); }
-	inline const QString& dateStr() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_DATE); }
-	inline void setDate(const QDate& date)
-	{
-		m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_DATE] = std::move(QString::number(date.toJulianDay()));
-	}
-	inline void setDateStr(const QString& date_str) { m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_DATE] = date_str; }
-
-	inline const QString& trainingDay() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_TRAININGDAYNUMBER); }
-	inline void setTrainingDay(const QString& trainingday, const bool bEmitSave = true)
-	{
-		if (trainingday != m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_TRAININGDAYNUMBER))
-		{
-			m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_TRAININGDAYNUMBER] = trainingday;
-			if (bEmitSave)
-				emit tDayChanged();
-		}
-	}
-
-	inline QChar _splitLetter() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_SPLITLETTER).at(0); }
-	inline const QString& splitLetter() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_SPLITLETTER); }
-	inline void setSplitLetter(const QString& splitletter, const bool bEmitSave = true)
-	{
-		if (splitletter != m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_SPLITLETTER))
-		{
-			m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_SPLITLETTER] = splitletter;
-			emit splitLetterChanged();
-			if (bEmitSave)
-				emit tDayChanged();
-		}
-	}
-
-	inline const QString& timeIn() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_TIMEIN); }
-	inline void setTimeIn(const QString& timein, const bool bEmitSave = true)
-	{
-		if (timein != m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_TIMEIN))
-		{
-			m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_TIMEIN] = timein;
-			if (bEmitSave)
-				emit tDayChanged();
-		}
-	}
-
-	inline const QString& timeOut() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_TIMEOUT); }
-	inline void setTimeOut(const QString& timeout, const bool bEmitSave = true)
-	{
-		if (timeout != m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_TIMEOUT))
-		{
-			m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_TIMEOUT] = timeout;
-			if (bEmitSave)
-				emit tDayChanged();
-		}
-	}
-
-	inline const QString& location() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_LOCATION); }
-	inline void setLocation(const QString& location, const bool bEmitSave = true)
-	{
-		if (location != m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_LOCATION))
-		{
-			m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_LOCATION] = location;
-			if (bEmitSave)
-				emit tDayChanged();
-		}
-	}
-
-	inline const QString& dayNotes() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_NOTES); }
-	inline void setDayNotes(const QString& day_notes, const bool bEmitSave = true)
-	{
-		m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_NOTES] = day_notes;
-		if (bEmitSave)
-			emit tDayChanged();
-	}
 
 	const uint inline exerciseCount() const { return m_ExerciseData.count(); }
 	inline const uint setsNumber(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->nsets; }
@@ -230,9 +136,9 @@ signals:
 
 private:
 	struct exerciseEntry {
-		QString name;
 		uint nsets;
-		QStringList type;
+		QString exercise;
+		QStringList settype;
 		QStringList resttime;
 		QStringList subsets;
 		QStringList reps;
@@ -248,7 +154,3 @@ private:
 
 	friend class DBMesoSplitModel;
 };
-
-//Q_DECLARE_METATYPE(DBTrainingDayModel*)
-
-#endif // DBWORKOUTMODEL_H

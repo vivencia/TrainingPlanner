@@ -9,7 +9,7 @@
 #include <QtMath>
 #include <utility>
 
-DBTrainingDayModel::DBTrainingDayModel(QObject* parent, const uint meso_idx)
+DBTrainingDayModel::DBTrainingDayModel(DBMesoCalendarModel *parent, const uint meso_idx)
 	: TPListModel(parent, static_cast<int>(meso_idx))
 {
 	setObjectName(DBTrainingDayObjectName);

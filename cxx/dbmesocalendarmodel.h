@@ -37,6 +37,7 @@ public:
 
 	[[nodiscard]] const std::optional<QDate> date(const uint meso_idx, const uint calendar_day) const;
 	void setDate(const uint meso_idx, const uint calendar_day, const QDate &new_date);
+	[[nodiscard]] const std::optional<QDate> nThDate(const uint meso_idx, const uint nth_month) const;
 
 	[[nodiscard]] const std::optional<QString> workoutNumber(const uint meso_idx, const uint calendar_day) const;
 	void setWorkoutNumber(const uint meso_idx, const uint calendar_day, const QString &new_number);
