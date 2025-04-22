@@ -7,6 +7,13 @@
 #include "tpglobals.h"
 #include "tputils.h"
 
+struct stDayInfo
+{
+	QString data;
+	QString date;
+	TPBool modified;
+};
+
 void DBMesoCalendarModel::createCalendar(const uint meso_idx)
 {
 	QDate startDate{std::move(appMesoModel()->startDate(meso_idx))};
@@ -16,8 +23,12 @@ void DBMesoCalendarModel::createCalendar(const uint meso_idx)
 	QString::const_iterator splitletter{split.constBegin()};
 	for (uint i{0}; i < n_days; ++i)
 	{
-		m_modeldata[meso_idx].append(std::move(appUtils()->string_strings({appMesoModel()->id(meso_idx), STR_MINUS_ONE, appUtils()->formatDate(startDate, TPUtils::DF_DATABASE),
-			QString::number(i+1), *splitletter, QString{}, QString{}, QString{}, QString{}, STR_ZERO}, record_separator)));
+		stDayInfo *dayinfo{new stDayInfo{}};
+		dayinfo->date = appUtils()->formatDate(startDate, TPUtils::DF_DATABASE);
+		dayinfo->data = std::move(appUtils()->string_strings({appMesoModel()->id(meso_idx), STR_MINUS_ONE, dayinfo->date,
+			QString::number(i+1), *splitletter, QString{}, QString{}, QString{}, QString{}, STR_ZERO}, record_separator));
+		m_dayInfoList[meso_idx].append(dayinfo);
+
 		startDate = std::move(startDate.addDays(1));
 		if (++splitletter == split.constEnd())
 			splitletter = split.constBegin();
@@ -28,32 +39,25 @@ void DBMesoCalendarModel::createCalendar(const uint meso_idx)
 
 std::optional<QString> DBMesoCalendarModel::dayInfo(const uint meso_idx, const uint calendar_day, const uint field) const
 {
-	if (meso_idx < m_modeldata.count())
+	if (meso_idx < m_dayInfoList.count())
 	{
-		if (calendar_day < m_modeldata.at(meso_idx).count())
-			return  appUtils()->getCompositeValue(field, m_modeldata.at(meso_idx).at(calendar_day), record_separator);
+		if (calendar_day < m_dayInfoList.at(meso_idx).count())
+			return  appUtils()->getCompositeValue(field, m_dayInfoList.at(meso_idx).at(calendar_day)->data, record_separator);
 	}
 	return std::nullopt;
 }
 
 void DBMesoCalendarModel::setDayInfo(const uint meso_idx, const uint calendar_day, const uint field, const QString &new_value)
 {
-	if (meso_idx < m_modeldata.count())
+	if (meso_idx < m_dayInfoList.count())
 	{
-		if (calendar_day < m_modeldata.at(meso_idx).count())
+		if (calendar_day < m_dayInfoList.at(meso_idx).count())
 		{
-			appUtils()->setCompositeValue(field, new_value, m_modeldata[meso_idx][calendar_day], record_separator);
-			m_modified[meso_idx][calendar_day] = true;
+			stDayInfo *dayinfo{m_dayInfoList.at(meso_idx).at(calendar_day)};
+			appUtils()->setCompositeValue(field, new_value, dayinfo->data, record_separator);
+			dayinfo->modified = true;
 		}
 	}
-}
-
-DBMesoCalendarModel::DBMesoCalendarModel(QObject *parent)
-	: TPListModel(parent, 10000)
-{
-	m_tableId = MESOCALENDAR_TABLE_ID;
-	m_fieldCount = MESOCALENDAR_TOTAL_COLS;
-	setObjectName(DBMesoCalendarObjectName);
 }
 
 void DBMesoCalendarModel::removeCalendarForMeso(const uint meso_idx)
@@ -64,18 +68,18 @@ void DBMesoCalendarModel::removeCalendarForMeso(const uint meso_idx)
 	m_calendars.remove(meso_idx);
 	delete m_workouts.at(meso_idx);
 	m_workouts.remove(meso_idx);
-	m_modified.remove(meso_idx);
 	for (uint i{meso_idx}; i < m_calendars.count(); ++i)
 	{
 		m_calendars.at(i)->setMesoIdx(i);
 		m_workouts.at(i)->setMesoIdx(i);
 	}
-	m_modeldata.remove(meso_idx);
+	qDeleteAll(m_dayInfoList.at(meso_idx));
+	m_dayInfoList.remove(meso_idx);
 }
 
 void DBMesoCalendarModel::addNewCalendarForMeso(const uint new_mesoidx)
 {
-	appendList_fast(std::move(QStringList{3}));
+	m_dayInfoList.append(QList<stDayInfo*>{});
 	m_calendars.append(new DBCalendarModel{this, new_mesoidx});
 	m_workouts.append(new DBWorkoutModel{this, new_mesoidx});
 	auto conn = std::make_shared<QMetaObject::Connection>();
@@ -90,11 +94,11 @@ void DBMesoCalendarModel::addNewCalendarForMeso(const uint new_mesoidx)
 
 const int DBMesoCalendarModel::calendarDay(const uint meso_idx, const QDate& date) const
 {
-	if (meso_idx < m_modeldata.count())
+	if (meso_idx < m_dayInfoList.count())
 	{
 		QDate calendarDate{std::move(appMesoModel()->startDate(meso_idx))};
 		const int calendar_day{static_cast<int>(calendarDate.daysTo(date))};
-		if (calendar_day >= 0 && calendar_day < m_modeldata.at(meso_idx).count())
+		if (calendar_day >= 0 && calendar_day < m_dayInfoList.at(meso_idx).count())
 			return calendar_day;
 	}
 	return -1;
