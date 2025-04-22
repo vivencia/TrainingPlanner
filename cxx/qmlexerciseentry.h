@@ -6,7 +6,7 @@
 #include "qmlexerciseinterface.h"
 
 class QQuickItem;
-class DBTrainingDayModel;
+class DBWorkoutModel;
 class QmlTDayInterface;
 class QmlSetEntry;
 
@@ -36,7 +36,7 @@ Q_PROPERTY(bool canEditRestTimeTracking READ canEditRestTimeTracking WRITE setCa
 Q_PROPERTY(bool allSetsCompleted READ allSetsCompleted WRITE setAllSetsCompleted NOTIFY allSetsCompletedChanged FINAL)
 
 public:
-	inline explicit QmlExerciseEntry(QObject* parent, QmlTDayInterface* tDayPage, DBTrainingDayModel* tDayModel, const uint exercise_idx)
+	inline explicit QmlExerciseEntry(QObject* parent, QmlTDayInterface* tDayPage, DBWorkoutModel* tDayModel, const uint exercise_idx)
 		: QObject{parent}, m_tDayPage(tDayPage), m_tDayModel(tDayModel), m_exercise_idx(exercise_idx), m_type(0),
 				m_setTimer(nullptr), m_setComponents{nullptr} {}
 	~QmlExerciseEntry();
@@ -146,7 +146,7 @@ signals:
 
 private:
 	QmlTDayInterface* m_tDayPage;
-	DBTrainingDayModel* m_tDayModel;
+	DBWorkoutModel* m_tDayModel;
 	uint m_exercise_idx;
 	QQuickItem* m_exerciseEntry;
 	QString m_name, m_sets, m_reps, m_weight, m_restTime;

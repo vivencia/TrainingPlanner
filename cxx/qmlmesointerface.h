@@ -9,7 +9,7 @@ class QmlTDayInterface;
 class QmlMesoSplitInterface;
 class QmlMesoCalendarInterface;
 class DBMesoSplitModel;
-class DBTrainingDayModel;
+class DBWorkoutModel;
 
 class QQmlComponent;
 class QQuickItem;
@@ -186,7 +186,7 @@ public:
 	Q_INVOKABLE void incorporateMeso();
 
 	[[nodiscard]] DBMesoSplitModel *plannerSplitModel(const QChar &splitLetter);
-	[[nodiscard]] DBTrainingDayModel *tDayModelForToday();
+	[[nodiscard]] DBWorkoutModel *tDayModelForToday();
 
 signals:
 	void mesoNameOKChanged();

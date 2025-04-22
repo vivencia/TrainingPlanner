@@ -201,7 +201,7 @@ void QmlTDayInterface::getTrainingDayPage()
 		const QString& tday{QString::number(mesoCal->getTrainingDay(m_Date.month(), m_Date.day()-1))};
 		const QString& strSplitLetter{mesoCal->getSplitLetter(m_Date.month(), m_Date.day()-1)};
 
-		m_tDayModel = new DBTrainingDayModel{this, m_mesoIdx};
+		m_tDayModel = new DBWorkoutModel{this, m_mesoIdx};
 		m_tDayModel->appendRow();
 		m_tDayModel->setMesoId(appMesoModel()->id(m_mesoIdx));
 		m_tDayModel->setDate(m_Date);
@@ -575,7 +575,7 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 
 			if (data.isValid())
 			{
-				const DBTrainingDayModel* const tDayModel{data.value<DBTrainingDayModel*>()};
+				const DBWorkoutModel* const tDayModel{data.value<DBWorkoutModel*>()};
 				//The connected signal is only meant for the working page. All *possible* other pages are not to be affected by it, so we must filter them out
 				if (tDayModel->dateStr() == m_tDayModel->dateStr())
 				{
@@ -631,7 +631,7 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 			QMetaObject::invokeMethod(m_tDayPage, "changeComboModel", Q_ARG(QString, appMesoModel()->split(m_mesoIdx)));
 	});
 
-	connect(m_tDayModel, &DBTrainingDayModel::tDayChanged, this, [this] () {
+	connect(m_tDayModel, &DBWorkoutModel::tDayChanged, this, [this] () {
 		appDBInterface()->saveTrainingDay(m_tDayModel);
 	});
 
@@ -705,7 +705,7 @@ void QmlTDayInterface::calculateWorkoutTime()
 	}
 }
 
-void QmlTDayInterface::setTrainingDayPageEmptyDayOrChangedDayOptions(const DBTrainingDayModel* const tDayModel)
+void QmlTDayInterface::setTrainingDayPageEmptyDayOrChangedDayOptions(const DBWorkoutModel* const tDayModel)
 {
 	setLastWorkOutLocation(tDayModel->location());
 	setHasMesoPlan(tDayModel->trainingDay() == STR_ONE); //trainingDay() is just a placeholder for the value we need

@@ -8,7 +8,7 @@
 #include "dbmesosplitmodel.h"
 #include "dbmesocalendartable.h"
 #include "dbmesocalendarmodel.h"
-#include "dbtrainingdaytable.h"
+#include "dbworkouttable.h"
 #include "dbworkoutmodel.h"
 #include "dbusertable.h"
 #include "dbusermodel.h"
@@ -66,7 +66,7 @@ void DBInterface::init()
 	f_info.setFile(m_DBFilePath + DBTrainingDayFileName);
 	if (!f_info.isReadable())
 	{
-		DBTrainingDayTable *db_tday{new DBTrainingDayTable{m_DBFilePath}};
+		DBWorkoutsTable *db_tday{new DBWorkoutsTable{m_DBFilePath}};
 		db_tday->createTable();
 		delete db_tday;
 	}
@@ -323,7 +323,10 @@ void DBInterface::saveMesocycle(const uint meso_idx)
 		});
 	}
 	else
+	{
 		saveMesoSplit(meso_idx);
+		saveMesoCalendar(meso_idx);
+	}
 
 	worker->addExecArg(meso_idx);
 	createThread(worker, [worker] () { worker->saveMesocycle(); });
@@ -472,9 +475,16 @@ void DBInterface::loadSplitFromPreviousMeso(const uint prev_meso_id, DBMesoSplit
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 void DBInterface::getMesoCalendar(const uint meso_idx)
 {
-	DBMesoCalendarTable *worker{new DBMesoCalendarTable{m_DBFilePath, appMesoModel()->mesoCalendarModel(meso_idx)}};
+	DBMesoCalendarTable *worker{new DBMesoCalendarTable{m_DBFilePath, appMesoModel()->mesoCalendarModel()}};
 	worker->addExecArg(appMesoModel()->id(meso_idx));
 	createThread(worker, [worker] () { worker->getMesoCalendar(); });
+}
+
+void DBInterface::saveMesoCalendar(const uint meso_idx)
+{
+	DBMesoCalendarTable *worker{new DBMesoCalendarTable{m_DBFilePath, appMesoModel()->mesoCalendarModel()}};
+	worker->addExecArg(meso_idx);
+	createThread(worker, [worker] () { worker->saveMesoCalendar(); });
 }
 
 void DBInterface::changeMesoCalendar(const uint meso_idx, const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilDayBefore)
@@ -564,9 +574,9 @@ void DBInterface::getWorkoutDayInfoForAllWorkouts(const uint meso_id)
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
 //-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
-void DBInterface::getTrainingDay(DBTrainingDayModel *tDayModel)
+void DBInterface::getTrainingDay(DBWorkoutModel *tDayModel)
 {
-	DBTrainingDayTable *worker{new DBTrainingDayTable{m_DBFilePath, tDayModel}};
+	DBWorkoutsTable *worker{new DBWorkoutsTable{m_DBFilePath, tDayModel}};
 	worker->addExecArg(tDayModel->dateStr());
 	worker->addExecArg(appMesoModel()->id(tDayModel->mesoIdx()));
 	auto conn = std::make_shared<QMetaObject::Connection>();
@@ -583,9 +593,9 @@ void DBInterface::getTrainingDay(DBTrainingDayModel *tDayModel)
 	createThread(worker, [worker] () { return worker->getTrainingDay(); });
 }
 
-void DBInterface::getTrainingDayExercises(DBTrainingDayModel *tDayModel)
+void DBInterface::getTrainingDayExercises(DBWorkoutModel *tDayModel)
 {
-	DBTrainingDayTable *worker{new DBTrainingDayTable{m_DBFilePath, const_cast<DBTrainingDayModel*>(tDayModel)}};
+	DBWorkoutsTable *worker{new DBWorkoutsTable{m_DBFilePath, const_cast<DBWorkoutModel*>(tDayModel)}};
 	worker->addExecArg(tDayModel->dateStr());
 	worker->addExecArg(appMesoModel()->id(tDayModel->mesoIdx()));
 	auto conn = std::make_shared<QMetaObject::Connection>();
@@ -600,12 +610,12 @@ void DBInterface::getTrainingDayExercises(DBTrainingDayModel *tDayModel)
 	createThread(worker, [worker] () { return worker->getTrainingDayExercises(); } );
 }
 
-void DBInterface::verifyTDayOptions(DBTrainingDayModel *tDayModel)
+void DBInterface::verifyTDayOptions(DBWorkoutModel *tDayModel)
 {
 	if (tDayModel->splitLetter() >= "A"_L1 && tDayModel->splitLetter() <= "F"_L1)
 	{
-		DBTrainingDayModel *tempModel{new DBTrainingDayModel{this, static_cast<uint>(tDayModel->mesoIdx())}};
-		DBTrainingDayTable *worker{new DBTrainingDayTable{m_DBFilePath, tempModel}};
+		DBWorkoutModel *tempModel{new DBWorkoutModel{this, static_cast<uint>(tDayModel->mesoIdx())}};
+		DBWorkoutsTable *worker{new DBWorkoutsTable{m_DBFilePath, tempModel}};
 		worker->addExecArg(appMesoModel()->id(tDayModel->mesoIdx()));
 		worker->addExecArg(tDayModel->splitLetter());
 		worker->addExecArg(tDayModel->dateStr());
@@ -614,7 +624,7 @@ void DBInterface::verifyTDayOptions(DBTrainingDayModel *tDayModel)
 			if (db_id == worker->uniqueID())
 			{
 				disconnect(*conn);
-				DBTrainingDayModel *tempModel{worker->model()};
+				DBWorkoutModel *tempModel{worker->model()};
 				//setTrainingDay does not relate to training day in the temporary model. It's only a place to store a value we need this model to carry
 				const bool bHasMesoPlan(mesoHasPlan(appMesoModel()->_id(tDayModel->mesoIdx()), tDayModel->splitLetter()));
 				tempModel->setTrainingDay(bHasMesoPlan ? STR_ONE : STR_ZERO);
@@ -626,16 +636,16 @@ void DBInterface::verifyTDayOptions(DBTrainingDayModel *tDayModel)
 	}
 }
 
-void DBInterface::loadExercisesFromDate(const QString &strDate, DBTrainingDayModel *tDayModel)
+void DBInterface::loadExercisesFromDate(const QString &strDate, DBWorkoutModel *tDayModel)
 {
 	const QDate &date{appUtils()->getDateFromDateString(strDate)};
-	DBTrainingDayTable *worker{new DBTrainingDayTable{m_DBFilePath, tDayModel}};
+	DBWorkoutsTable *worker{new DBWorkoutsTable{m_DBFilePath, tDayModel}};
 	worker->addExecArg(appMesoModel()->id(tDayModel->mesoIdx()));
 	worker->addExecArg(QString::number(date.toJulianDay()));
 	createThread(worker, [worker] () { return worker->getTrainingDayExercises(true); });
 }
 
-void DBInterface::loadExercisesFromMesoPlan(DBTrainingDayModel *tDayModel, DBMesoSplitModel *const splitModel)
+void DBInterface::loadExercisesFromMesoPlan(DBWorkoutModel *tDayModel, DBMesoSplitModel *const splitModel)
 {
 	if (splitModel->count() == 0)
 	{
@@ -651,7 +661,7 @@ void DBInterface::loadExercisesFromMesoPlan(DBTrainingDayModel *tDayModel, DBMes
 		tDayModel->convertMesoSplitModelToTDayModel(splitModel);
 }
 
-void DBInterface::convertTDayToPlan(const DBTrainingDayModel *const tDayModel, DBMesoSplitModel *const splitModel)
+void DBInterface::convertTDayToPlan(const DBWorkoutModel *const tDayModel, DBMesoSplitModel *const splitModel)
 {
 	DBMesoSplitTable *worker{new DBMesoSplitTable{m_DBFilePath, splitModel}};
 	worker->addExecArg(appMesoModel()->id(tDayModel->mesoIdx()));
@@ -659,21 +669,30 @@ void DBInterface::convertTDayToPlan(const DBTrainingDayModel *const tDayModel, D
 	createThread(worker, [worker,tDayModel] () { return worker->convertTDayExercisesToMesoPlan(tDayModel); });
 }
 
-void DBInterface::saveTrainingDay(DBTrainingDayModel *const tDayModel)
+void DBInterface::saveTrainingDay(DBWorkoutModel *const tDayModel)
 {
-	DBTrainingDayTable *worker{new DBTrainingDayTable{m_DBFilePath, tDayModel}};
+	DBWorkoutsTable *worker{new DBWorkoutsTable{m_DBFilePath, tDayModel}};
 	createThread(worker, [worker] () { return worker->saveTrainingDay(); });
 }
 
-void DBInterface::removeTrainingDay(const uint meso_idx)
+void DBInterface::removeWorkout(const uint meso_idx, const QDate &date)
 {
-	DBTrainingDayTable *worker{new DBTrainingDayTable{m_DBFilePath}};
-	createThread(worker, [worker] () { return worker->removeTrainingDay(); } );
+	DBWorkoutsTable *worker{new DBWorkoutsTable{m_DBFilePath}};
+	worker->addExecArg(appMesoModel()->id(meso_idx));
+	worker->addExecArg(appUtils()->formatDate(date, TPUtils::DF_DATABASE));
+	createThread(worker, [worker] () { return worker->removeWorkout(); } );
+}
+
+void DBInterface::removeWorkoutsForMeso(const uint meso_idx)
+{
+	DBWorkoutsTable *worker{new DBWorkoutsTable{m_DBFilePath}};
+	worker->addExecArg(appMesoModel()->id(meso_idx));
+	createThread(worker, [worker] () { return worker->removeEntry(true); });
 }
 
 void DBInterface::deleteTrainingDayTable(const bool bRemoveFile)
 {
-	DBTrainingDayTable *worker{new DBTrainingDayTable{m_DBFilePath}};
+	DBWorkoutsTable *worker{new DBWorkoutsTable{m_DBFilePath}};
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 //-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
@@ -715,7 +734,7 @@ void DBInterface::completedDaysForSplitWithinTimePeriod(const QChar &splitLetter
 
 void DBInterface::workoutsInfoForTimePeriod(const QStringList &exercises, const QList<QDate> &workoutDates)
 {
-	DBTrainingDayTable *worker{new DBTrainingDayTable{m_DBFilePath}};
+	DBWorkoutsTable *worker{new DBWorkoutsTable{m_DBFilePath}};
 	auto conn = std::make_shared<QMetaObject::Connection>();
 		*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,worker] (const uint db_id) {
 		if (db_id == worker->uniqueID())

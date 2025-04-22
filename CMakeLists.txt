@@ -74,7 +74,7 @@ set( CXX_SOURCES
 	cxx/dbmesocyclestable.h cxx/dbmesocyclestable.cpp
 	cxx/dbmesosplittable.h cxx/dbmesosplittable.cpp
 	cxx/dbmesocalendartable.h cxx/dbmesocalendartable.cpp
-	cxx/dbtrainingdaytable.h cxx/dbtrainingdaytable.cpp
+    cxx/dbworkouttable.h cxx/dbworkouttable.cpp
 	cxx/dbusertable.h cxx/dbusertable.cpp
 
 	cxx/tplistmodel.h cxx/tplistmodel.cpp

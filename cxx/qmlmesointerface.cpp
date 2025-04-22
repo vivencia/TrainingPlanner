@@ -516,7 +516,7 @@ DBMesoSplitModel *QMLMesoInterface::plannerSplitModel(const QChar &splitLetter)
 	return m_exercisesPage ? m_exercisesPage->splitModel(splitLetter) : nullptr;
 }
 
-DBTrainingDayModel *QMLMesoInterface::tDayModelForToday()
+DBWorkoutModel *QMLMesoInterface::tDayModelForToday()
 {
 	QmlTDayInterface *tDayPage(m_tDayPages.value(QDate::currentDate()));
 	return tDayPage ? tDayPage->tDayModel() : nullptr;

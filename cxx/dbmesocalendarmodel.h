@@ -2,6 +2,7 @@
 #define DBMESOCALENDARMODEL_H
 
 #include "tplistmodel.h"
+#include "tputils.h"
 
 #define MESOCALENDAR_COL_MESOID 0
 #define MESOCALENDAR_COL_WORKOUTID 1
@@ -23,10 +24,13 @@ class DBMesoCalendarModel : public TPListModel
 
 Q_OBJECT
 
+friend class DBMesoCalendarTable;
+
 public:
-	explicit inline DBMesoCalendarModel(QObject *parent, const uint meso_idx);
-	std::optional<QString> dataForDatabase(const uint meso_idx) const;
-	void dataFromDatabase(const uint meso_idx, const QString &dbdata);
+	explicit inline DBMesoCalendarModel(QObject *parent);
+	void removeCalendarForMeso(const uint meso_idx);
+	void addNewCalendarForMeso(const uint new_mesoidx);
+
 	[[nodiscard]] const int calendarDay(const uint meso_idx, const QDate& date) const;
 
 	[[nodiscard]] const std::optional<QString> mesoId(const uint meso_idx, const uint calendar_day) const;
@@ -66,9 +70,14 @@ public:
 private:
 	QList<DBWorkoutModel*> m_workouts;
 	QList<DBCalendarModel*> m_calendars;
+	QList<QList<TPBool>> m_modified;
 
+	void createCalendar(const uint meso_idx);
 	inline std::optional<QString> dayInfo(const uint meso_idx, const uint calendar_day, const uint field) const;
 	inline void setDayInfo(const uint meso_idx, const uint calendar_day, const uint field, const QString &new_value);
+
+	inline const QStringList &modeldata(const uint meso_idx) const { return m_modeldata.at(meso_idx); }
+	inline const QList<TPBool> &modified(const uint meso_idx) const { return m_modified.at(meso_idx); }
 };
 
 #endif // DBMESOCALENDARMODEL_H

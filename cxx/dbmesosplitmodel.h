@@ -23,7 +23,7 @@
 #define MESOSPLIT_F 7
 #define SIMPLE_MESOSPLIT_TOTAL_COLS 8
 
-class DBTrainingDayModel;
+class DBWorkoutModel;
 class DBExercisesModel;
 class DBMesocyclesModel;
 class QFile;
@@ -41,7 +41,7 @@ Q_PROPERTY(QString subSetsLabel READ subSetsLabel NOTIFY labelsChanged FINAL)
 
 public:
 	explicit DBMesoSplitModel(QObject *parent, const bool bComplete, const uint meso_idx = 0);
-	void convertFromTDayModel(const DBTrainingDayModel *const tDayModel);
+	void convertFromTDayModel(const DBWorkoutModel *const tDayModel);
 	void addExerciseFromDatabase(QStringList &&exercise_info);
 	inline bool completeSplit() const { return mb_Complete; }
 

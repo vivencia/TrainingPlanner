@@ -28,7 +28,7 @@ DBMesoSplitModel::DBMesoSplitModel(QObject *parent, const bool bComplete, const 
 	});
 }
 
-void DBMesoSplitModel::convertFromTDayModel(const DBTrainingDayModel *const tDayModel)
+void DBMesoSplitModel::convertFromTDayModel(const DBWorkoutModel *const tDayModel)
 {
 	m_modeldata.clear();
 	for (uint i(0); i < tDayModel->m_ExerciseData.count(); ++i)

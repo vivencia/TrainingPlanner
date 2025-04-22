@@ -4,7 +4,7 @@
 #include "../dbmesocyclesmodel.h"
 #include "../dbmesosplittable.h"
 #include "../dbinterface.h"
-//#include "../dbtrainingdaymodel.h"
+//#include "../DBWorkoutModel.h"
 
 #include <QtCharts/QtCharts>
 #include <QtCharts/QAreaSeries>

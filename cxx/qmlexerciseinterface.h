@@ -5,7 +5,7 @@
 #include <QVariantMap>
 
 class QmlExerciseEntry;
-class DBTrainingDayModel;
+class DBWorkoutModel;
 class TPTimer;
 class QmlTDayInterface;
 
@@ -18,7 +18,7 @@ class QmlExerciseInterface : public QObject
 Q_OBJECT
 
 public:
-	inline explicit QmlExerciseInterface(QObject* parent, QmlTDayInterface* tDayPage, DBTrainingDayModel *tDayModel, QQuickItem* parentLayout)
+	inline explicit QmlExerciseInterface(QObject* parent, QmlTDayInterface* tDayPage, DBWorkoutModel *tDayModel, QQuickItem* parentLayout)
 		: QObject{parent}, m_tDayPage(tDayPage), m_tDayModel(tDayModel), m_parentLayout(parentLayout),
 			m_exercisesComponent(nullptr), m_simpleExercisesListRequester(-1) {}
 	~QmlExerciseInterface();
@@ -38,7 +38,7 @@ public:
 
 private:
 	QmlTDayInterface* m_tDayPage;
-	DBTrainingDayModel* m_tDayModel;
+	DBWorkoutModel* m_tDayModel;
 	QQuickItem* m_parentLayout;
 	QVariantMap m_exercisesProperties;
 	QQmlComponent* m_exercisesComponent;

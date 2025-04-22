@@ -257,6 +257,31 @@ uint TPUtils::calculateNumberOfWeeks(const QDate &date1, const QDate &date2) con
 	return n+1; //+1 include current week
 }
 
+uint TPUtils::calculateNumberOfMonths(const QDate &date1, const QDate &date2) const
+{
+	int n_months{0};
+	if (date1.year() == date2.year())
+	{
+		n_months = date2.month() - date1.month() + 1;
+		if (n_months < 0)
+			n_months *= -1;
+	}
+	else
+	{
+		if (date2.year() > date1.year())
+		{
+			n_months = date2.month();
+			n_months += 12 - date1.month() + 1;
+		}
+		else
+		{
+			n_months = date1.month();
+			n_months += 12 - date2.month() + 1;
+		}
+	}
+	return n_months;
+}
+
 QDate TPUtils::getNextMonday(const QDate &fromDate) const
 {
 	constexpr uint daysToNextMonday[7]{ 7, 6, 5, 4, 3, 2, 1 };

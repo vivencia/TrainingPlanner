@@ -1,19 +1,19 @@
-#ifndef DBTRAININGDAYTABLE_H
-#define DBTRAININGDAYTABLE_H
+#ifndef DBWORKOUTTABLE_H
+#define DBWORKOUTTABLE_H
 
 #include "tpdatabasetable.h"
 
 #include <QObject>
 
-class DBTrainingDayModel;
+class DBWorkoutModel;
 
 static const QLatin1StringView &DBTrainingDayFileName("TrainingDay.db.sqlite"_L1);
 
-class DBTrainingDayTable final : public TPDatabaseTable
+class DBWorkoutsTable final : public TPDatabaseTable
 {
 
 public:
-	explicit DBTrainingDayTable(const QString& dbFilePath, DBTrainingDayModel* model = nullptr);
+	explicit DBWorkoutsTable(const QString& dbFilePath, DBWorkoutModel* model = nullptr);
 
 	void createTable() override final;
 	void updateTable() override final;
@@ -21,18 +21,18 @@ public:
 	void getTrainingDayExercises(const bool bClearSomeFieldsForReUse = false);
 	void getPreviousTrainingDaysInfo();
 	void saveTrainingDay();
-	void removeTrainingDay();
+	void removeWorkout();
 
-	inline DBTrainingDayModel* model() const { return m_model; }
+	inline DBWorkoutModel* model() const { return m_model; }
 
 	//Functions for TPStatistics
 	void workoutsInfoForTimePeriod();
 	inline const QList<QList<QStringList>>& workoutsInfo() const { return m_workoutsInfo; }
 
 private:
-	DBTrainingDayModel* m_model;
+	DBWorkoutModel* m_model;
 	QList<QList<QStringList>> m_workoutsInfo;
 	inline QString formatDate(const uint julianDay) const;
 };
 
-#endif // DBTRAININGDAYTABLE_H
+#endif // DBWORKOUTTABLE_H

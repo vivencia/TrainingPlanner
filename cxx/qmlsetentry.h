@@ -9,7 +9,7 @@
 #define SET_MODE_SET_COMPLETED 3
 
 class QmlExerciseEntry;
-class DBTrainingDayModel;
+class DBWorkoutModel;
 
 class QQuickItem;
 
@@ -48,7 +48,7 @@ Q_PROPERTY(bool hasSubSets READ hasSubSets NOTIFY hasSubSetsChanged FINAL)
 Q_PROPERTY(bool isManuallyModified READ isManuallyModified WRITE setIsManuallyModified NOTIFY isManuallyModifiedChanged FINAL)
 
 public:
-	inline explicit QmlSetEntry(QObject* parent, QmlExerciseEntry* parentExercise, DBTrainingDayModel* tDayModel, const uint exercise_idx)
+	inline explicit QmlSetEntry(QObject* parent, QmlExerciseEntry* parentExercise, DBWorkoutModel* tDayModel, const uint exercise_idx)
 		: QObject{parent}, m_parentExercise(parentExercise), m_tDayModel(tDayModel), m_exercise_idx(exercise_idx), m_setEntry(nullptr),
 		m_type(9999), m_number(9999), m_mode(9999), m_nsubsets(9999),
 		m_bEditable(false), m_bCompleted(false), m_bLastSet(false), m_bTrackRestTime(false), m_bAutoRestTime(false),
@@ -203,7 +203,7 @@ signals:
 
 private:
 	QmlExerciseEntry* m_parentExercise;
-	DBTrainingDayModel* m_tDayModel;
+	DBWorkoutModel* m_tDayModel;
 	uint m_exercise_idx;
 
 	QQuickItem* m_setEntry;

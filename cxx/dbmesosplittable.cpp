@@ -31,8 +31,8 @@ void DBMesoSplitTable::createTable()
 	{
 		QSqlQuery query{getQuery()};
 		const QString &strQuery{"CREATE TABLE IF NOT EXISTS mesocycles_splits ("
-										"id INTEGER PRIMARY KEY AUTOINCREMENT,"
-										"meso_id INTEGER,"
+										"id INTEGER PRIMARY KEY AUTOINCREMENT, "
+										"meso_id INTEGER, "
 										"splitA TEXT, "
 										"splitB TEXT DEFAULT \"\", "
 										"splitC TEXT DEFAULT \"\", "
@@ -398,7 +398,7 @@ bool DBMesoSplitTable::mesoHasAllPlans(const uint meso_idx)
 	return ok;
 }
 
-void DBMesoSplitTable::convertTDayExercisesToMesoPlan(const DBTrainingDayModel *const tDayModel)
+void DBMesoSplitTable::convertTDayExercisesToMesoPlan(const DBWorkoutModel *const tDayModel)
 {
 	m_model->convertFromTDayModel(tDayModel);
 	saveMesoSplitComplete();

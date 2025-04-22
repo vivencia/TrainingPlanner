@@ -1,11 +1,11 @@
 #pragma once
 
-#include <QAbstractItemModel>
+#include <QAbstractListModel>
 #include <QQmlEngine>
 
 QT_FORWARD_DECLARE_CLASS(DBMesoCalendarModel)
 
-class DBCalendarModel : public QAbstractItemModel
+class DBCalendarModel : public QAbstractListModel
 {
 
 Q_OBJECT
@@ -14,8 +14,10 @@ QML_ELEMENT
 Q_PROPERTY(uint count READ count NOTIFY countChanged)
 
 public:
-	explicit DBCalendarModel(DBMesoCalendarModel *parent, const uint meso_idx, const uint n_months);
+	explicit DBCalendarModel(DBMesoCalendarModel *parent, const uint meso_idx);
 	inline uint count() const { return m_nmonths; }
+	inline void setNMonths(const uint new_nmonths) { m_nmonths = new_nmonths; emit countChanged(); }
+	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; }
 
 	Q_INVOKABLE QString workoutNumber(const int year, const int month, const int day) const;
 	Q_INVOKABLE QString splitLetter(const int year, const int month, const int day) const;
@@ -33,7 +35,7 @@ public:
 
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
 	QVariant data(const QModelIndex &index, int role) const override final;
-	inline virtual int rowCount(const QModelIndex& parent) const override final { Q_UNUSED(parent); return count(); }
+	inline int rowCount(const QModelIndex& parent) const override final { Q_UNUSED(parent); return count(); }
 
 signals:
 	void countChanged();

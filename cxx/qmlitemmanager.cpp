@@ -1,5 +1,6 @@
 #include "qmlitemmanager.h"
 
+#include "dbcalendarmodel.h"
 #include "dbinterface.h"
 #include "dbexercisesmodel.h"
 #include "dbmesocalendarmodel.h"
@@ -84,9 +85,10 @@ void QmlItemManager::configureQmlEngine()
 	qmlRegisterType<DBUserModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBUserModel");
 	qmlRegisterType<DBExercisesModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBExercisesModel");
 	qmlRegisterType<DBMesocyclesModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBMesocyclesModel");
+	qmlRegisterType<DBCalendarModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBCalendarModel");
 	qmlRegisterType<DBMesoSplitModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBMesoSplitModel");
 	qmlRegisterType<DBMesoCalendarModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBMesoCalendarModel");
-	qmlRegisterType<DBTrainingDayModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBTrainingDayModel");
+	qmlRegisterType<DBWorkoutModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBWorkoutModel");
 	qmlRegisterType<TPTimer>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "TPTimer");
 	qmlRegisterType<TPImage>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "TPImage");
 	qmlRegisterType<QmlUserInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "UserManager");
@@ -608,7 +610,7 @@ void QmlItemManager::importFromFile(const QString &filename, const int wanted_co
 	}
 	else if (isBitSet(wanted_content, IFC_TDAY))
 	{
-		DBTrainingDayModel *tDayModel{new DBTrainingDayModel{this}};
+		DBWorkoutModel *tDayModel{new DBWorkoutModel{this}};
 		tDayModel->setImportMode(true);
 		if (tDayModel->importFromFile(filename) == APPWINDOW_MSG_READ_FROM_FILE_OK)
 			importFileMessageId = incorporateImportedData(tDayModel);
@@ -674,8 +676,8 @@ int QmlItemManager::incorporateImportedData(TPListModel *model, const int wanted
 		break;
 		case TRAININGDAY_TABLE_ID:
 		{
-			DBTrainingDayModel *newTDayModel{static_cast<DBTrainingDayModel*>(const_cast<TPListModel*>(model))};
-			DBTrainingDayModel *tDayModel{appMesoModel()->mesoManager(appMesoModel()->currentMesoIdx())->tDayModelForToday()};
+			DBWorkoutModel *newTDayModel{static_cast<DBWorkoutModel*>(const_cast<TPListModel*>(model))};
+			DBWorkoutModel *tDayModel{appMesoModel()->mesoManager(appMesoModel()->currentMesoIdx())->tDayModelForToday()};
 			if (tDayModel)
 			{
 				if ((ok = tDayModel->updateFromModel(newTDayModel)))

@@ -1,4 +1,4 @@
-#include "dbtrainingdaytable.h"
+#include "dbworkouttable.h"
 #include "dbworkoutmodel.h"
 #include "tputils.h"
 #include "tpglobals.h"
@@ -6,7 +6,7 @@
 #include <QFile>
 #include <QSqlQuery>
 
-DBTrainingDayTable::DBTrainingDayTable(const QString &dbFilePath, DBTrainingDayModel *model)
+DBWorkoutsTable::DBWorkoutsTable(const QString &dbFilePath, DBWorkoutModel *model)
 	: TPDatabaseTable{nullptr}, m_model(model)
 {
 	m_tableName = std::move("training_day_table"_L1);
@@ -19,7 +19,7 @@ DBTrainingDayTable::DBTrainingDayTable(const QString &dbFilePath, DBTrainingDayM
 	mSqlLiteDB.setDatabaseName( dbname );
 }
 
-void DBTrainingDayTable::createTable()
+void DBWorkoutsTable::createTable()
 {
 	if (openDatabase())
 	{
@@ -48,7 +48,7 @@ void DBTrainingDayTable::createTable()
 	}
 }
 
-void DBTrainingDayTable::updateTable()
+void DBWorkoutsTable::updateTable()
 {
 	/*m_result = false;
 	QList<QStringList> oldTableInfo;
@@ -140,11 +140,11 @@ void DBTrainingDayTable::updateTable()
 					}
 					if (!m_result)
 					{
-						MSG_OUT("DBTrainingDayTable updateDatabase Database error:  " << mSqlLiteDB.lastError().databaseText())
-						MSG_OUT("DBTrainingDayTable updateDatabase Driver error:  " << mSqlLiteDB.lastError().driverText())
+						MSG_OUT("DBWorkoutsTable updateDatabase Database error:  " << mSqlLiteDB.lastError().databaseText())
+						MSG_OUT("DBWorkoutsTable updateDatabase Driver error:  " << mSqlLiteDB.lastError().driverText())
 					}
 					else
-						MSG_OUT("DBTrainingDayTable updateDatabase SUCCESS")
+						MSG_OUT("DBWorkoutsTable updateDatabase SUCCESS")
 					mSqlLiteDB.close();
 				}
 			}
@@ -153,7 +153,7 @@ void DBTrainingDayTable::updateTable()
 	doneFunc(static_cast<TPDatabaseTable*>(this));*/
 }
 
-void DBTrainingDayTable::getTrainingDay()
+void DBWorkoutsTable::getTrainingDay()
 {
 	if (openDatabase(true))
 	{
@@ -179,7 +179,7 @@ void DBTrainingDayTable::getTrainingDay()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void DBTrainingDayTable::getTrainingDayExercises(const bool bClearSomeFieldsForReUse)
+void DBWorkoutsTable::getTrainingDayExercises(const bool bClearSomeFieldsForReUse)
 {
 	if (openDatabase(true))
 	{
@@ -205,13 +205,13 @@ void DBTrainingDayTable::getTrainingDayExercises(const bool bClearSomeFieldsForR
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-inline QString DBTrainingDayTable::formatDate(const uint julianDay) const
+inline QString DBWorkoutsTable::formatDate(const uint julianDay) const
 {
 	const QDate &date{QDate::fromJulianDay(julianDay)};
 	return appUtils()->appLocale()->toString(date, "ddd d/M/yyyy"_L1);
 }
 
-void DBTrainingDayTable::getPreviousTrainingDaysInfo()
+void DBWorkoutsTable::getPreviousTrainingDaysInfo()
 {
 	if (openDatabase(true))
 	{
@@ -265,7 +265,7 @@ void DBTrainingDayTable::getPreviousTrainingDaysInfo()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void DBTrainingDayTable::saveTrainingDay()
+void DBWorkoutsTable::saveTrainingDay()
 {
 	if (openDatabase())
 	{
@@ -319,13 +319,13 @@ void DBTrainingDayTable::saveTrainingDay()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void DBTrainingDayTable::removeTrainingDay()
+void DBWorkoutsTable::removeWorkout()
 {
 	if (openDatabase())
 	{
 		QSqlQuery query{getQuery()};
 		const QString &strQuery{"DELETE FROM training_day_table WHERE date=%1 AND meso_id=%2"_L1.arg(
-							m_model->dateStr(), m_model->mesoIdStr())};
+							m_execArgs.at(1).toString(), m_execArgs.at(0).toString())};
 		const bool ok{query.exec(strQuery)};
 		if (ok)
 		{
@@ -337,7 +337,7 @@ void DBTrainingDayTable::removeTrainingDay()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void DBTrainingDayTable::workoutsInfoForTimePeriod()
+void DBWorkoutsTable::workoutsInfoForTimePeriod()
 {
 	m_workoutsInfo.clear();
 	if (openDatabase(true))

@@ -56,6 +56,8 @@ public:
 	inline QString formatTodayDate() const { return formatDate(QDate::currentDate()); }
 	QDate getDateFromDateString(const QString &strdate, const DATE_FORMAT format = DF_QML_DISPLAY) const;
 	uint calculateNumberOfWeeks(const QDate &date1, const QDate &date2) const;
+	//The returned value contains the number of months in between the dates plus the starting month
+	uint calculateNumberOfMonths(const QDate &date1, const QDate &date2) const;
 	QDate getNextMonday(const QDate &fromDate) const;
 	QDate createDate(const QDate &fromDate, const int years, const int months, const int days) const;
 	Q_INVOKABLE inline QDate getDayBefore(const QDate &date) const { return date.addDays(-1); }
@@ -125,3 +127,22 @@ private:
 };
 
 inline TPUtils *appUtils() { return TPUtils::app_utils; }
+
+class TPBool {
+public:
+    // Default constructor initializes the value to false
+    inline TPBool() : m_value(false) {}
+
+    // Constructor to initialize with a specific boolean value
+    inline explicit TPBool(bool val) : m_value{val} {}
+
+    // Operator overloading to allow implicit conversion to bool
+    operator bool() const {
+        return m_value;
+    }
+
+	bool operator=(bool val) { m_value = val; return m_value; }
+
+private:
+    bool m_value;
+};

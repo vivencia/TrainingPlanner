@@ -62,7 +62,7 @@ public:
 
 	const uint newMesocycle(QStringList &&infolist);
 	inline DBMesoSplitModel *mesoSplitModel() { return m_splitModel; }
-	inline DBMesoCalendarModel *mesoCalendarModel(const uint meso_idx) const { return m_calendarModelList.value(meso_idx); }
+	inline DBMesoCalendarModel *mesoCalendarModel() const { return m_calendarModel; }
 
 	inline homePageMesoModel *currentHomePageMesoModel() { return m_curMesos; }
 	Q_INVOKABLE inline homePageMesoModel *ownMesos() const { return m_ownMesos; }
@@ -80,7 +80,6 @@ public:
 		checkIfCanExport(meso_idx, bEmitSignal);
 	}
 
-	void setWorkoutIsFinished(const uint meso_idx, const QDate &date, const bool bFinished);
 	void setModified(const uint meso_idx, const uint field);
 
 	int idxFromId(const uint meso_id) const;
@@ -283,13 +282,13 @@ signals:
 private:
 	QList<QMLMesoInterface*> m_mesoManagerList;
 	DBMesoSplitModel *m_splitModel;
-	QList<DBMesoCalendarModel*> m_calendarModelList;
+	DBMesoCalendarModel* m_calendarModel;
+	homePageMesoModel *m_curMesos, *m_ownMesos, *m_clientMesos;
 	QList<short> m_isNewMeso;
 	QList<short> m_newMesoFieldCounter;
 	QList<bool> m_newMesoCalendarChanged;
 	QList<bool> m_canExport;
 	QList<QStringList> m_usedSplits;
-	homePageMesoModel *m_curMesos, *m_ownMesos, *m_clientMesos;
 	int m_currentMesoIdx, m_mostRecentOwnMesoIdx, m_importMesoIdx, m_lowestTempMesoId;
 	bool m_bCanHaveTodaysWorkout;
 

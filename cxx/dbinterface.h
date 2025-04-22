@@ -13,7 +13,7 @@ class DBMesocyclesModel;
 class DBExercisesModel;
 class DBMesoSplitModel;
 class DBMesoCalendarModel;
-class DBTrainingDayModel;
+class DBWorkoutModel;
 class DBUserModel;
 class RunCommands;
 class QmlItemManager;
@@ -80,6 +80,7 @@ public:
 
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 	void getMesoCalendar(const uint meso_idx);
+	void saveMesoCalendar(const uint meso_idx);
 	void changeMesoCalendar(const uint meso_idx, const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilDayBefore);
 	void updateMesoCalendarModel(const uint meso_idx, const QDate& date, const QString &splitLetter);
 	void updateMesoCalendarEntry(const uint meso_idx, const QDate& date, const QString &trainingDay, const QString &splitLetter);
@@ -90,14 +91,15 @@ public:
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
-	void getTrainingDay(DBTrainingDayModel *tDayModel);
-	void getTrainingDayExercises(DBTrainingDayModel *tDayModel);
-	void verifyTDayOptions(DBTrainingDayModel *tDayModel);
-	void loadExercisesFromDate(const QString &strDate, DBTrainingDayModel *tDayModel);
-	void loadExercisesFromMesoPlan(DBTrainingDayModel *tDayModel, DBMesoSplitModel *const splitModel);
-	void convertTDayToPlan(const DBTrainingDayModel *const tDayModel, DBMesoSplitModel *const splitModel);
-	void saveTrainingDay(DBTrainingDayModel *const tDayModel);
-	void removeTrainingDay(const uint meso_idx);
+	void getTrainingDay(DBWorkoutModel *tDayModel);
+	void getTrainingDayExercises(DBWorkoutModel *tDayModel);
+	void verifyTDayOptions(DBWorkoutModel *tDayModel);
+	void loadExercisesFromDate(const QString &strDate, DBWorkoutModel *tDayModel);
+	void loadExercisesFromMesoPlan(DBWorkoutModel *tDayModel, DBMesoSplitModel *const splitModel);
+	void convertTDayToPlan(const DBWorkoutModel *const tDayModel, DBMesoSplitModel *const splitModel);
+	void saveTrainingDay(DBWorkoutModel *const tDayModel);
+	void removeWorkout(const uint meso_idx, const QDate &date);
+	void removeWorkoutsForMeso(const uint meso_idx);
 	void deleteTrainingDayTable(const bool bRemoveFile);
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 

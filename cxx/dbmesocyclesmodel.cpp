@@ -21,29 +21,26 @@ DBMesocyclesModel *DBMesocyclesModel::app_meso_model(nullptr);
 DBMesocyclesModel::DBMesocyclesModel(QObject *parent, const bool bMainAppModel)
 	: TPListModel{parent}, m_mostRecentOwnMesoIdx{-1}, m_lowestTempMesoId{-1}, m_bCanHaveTodaysWorkout{false}
 {
+	app_meso_model = this;
 	setObjectName(DBMesocyclesObjectName);
 	m_tableId = MESOCYCLES_TABLE_ID;
 	m_fieldCount = MESOCYCLES_TOTAL_COLS;
-	m_splitModel = new DBMesoSplitModel{this, false, 10000};
 	setCurrentMesoIdx(appSettings()->lastViewedMesoIdx(), false);
+	m_exportName = std::move(tr("Training Program"));
 
-	if (bMainAppModel)
-	{
-		app_meso_model = this;
-		m_exportName = std::move(tr("Training Program"));
+	mColumnNames.reserve(MESOCYCLES_TOTAL_COLS);
+	for(uint i{0}; i < MESOCYCLES_TOTAL_COLS; ++i)
+		mColumnNames.append(std::move(QString{}));
+	fillColumnNames();
 
-		m_ownMesos = new homePageMesoModel{this};
-		m_clientMesos = new homePageMesoModel{this};
+	m_splitModel = new DBMesoSplitModel{this, false, 10000};
+	m_calendarModel = new DBMesoCalendarModel{this};
+	m_ownMesos = new homePageMesoModel{this};
+	m_clientMesos = new homePageMesoModel{this};
 
-		mColumnNames.reserve(MESOCYCLES_TOTAL_COLS);
-		for(uint i{0}; i < MESOCYCLES_TOTAL_COLS; ++i)
-			mColumnNames.append(std::move(QString{}));
+	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
 		fillColumnNames();
-
-		connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
-			fillColumnNames();
-		});
-	}
+	});
 }
 
 void DBMesocyclesModel::fillColumnNames()
@@ -65,8 +62,7 @@ DBMesocyclesModel::~DBMesocyclesModel()
 	delete m_ownMesos;
 	delete m_clientMesos;
 	delete m_splitModel;
-	for (auto calendarModelList : std::as_const(m_calendarModelList))
-		delete calendarModelList;
+	delete m_calendarModel;
 	for (auto mesoManagerList : std::as_const(m_mesoManagerList))
 		delete mesoManagerList;
 }
@@ -118,9 +114,7 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 {
 	if (_id(meso_idx) >= 0)
 		appDBInterface()->removeMesocycle(meso_idx);
-
-	delete m_calendarModelList.at(meso_idx);
-	m_calendarModelList.remove(meso_idx);
+	m_calendarModel->removeCalendarForMeso(meso_idx);
 	m_isNewMeso.remove(meso_idx);
 	m_newMesoFieldCounter.remove(meso_idx);
 	m_splitModel->removeRow(meso_idx);
@@ -139,13 +133,6 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 	{
 		delete m_mesoManagerList.at(meso_idx);
 		m_mesoManagerList.removeAt(meso_idx);
-	}
-
-	for (uint i{meso_idx}; i < count(); ++i)
-	{
-		m_splitModel->setMesoIdx(i);
-		m_calendarModelList.at(i)->setMesoIdx(i);
-		emit mesoIdxChanged(i+1, i);
 	}
 
 	const int most_recent_ownMesoIdx{m_mostRecentOwnMesoIdx};
@@ -189,7 +176,8 @@ const uint DBMesocyclesModel::newMesocycle(QStringList &&infolist)
 	const uint meso_idx{count()-1};
 
 	m_splitModel->appendList_fast(std::move(QStringList{SIMPLE_MESOSPLIT_TOTAL_COLS}));
-	m_calendarModelList.append(new DBMesoCalendarModel{this, meso_idx});
+	m_calendarModel->addNewCalendarForMeso(meso_idx);
+
 	m_newMesoCalendarChanged.append(false);
 	m_canExport.append(false);
 	//A temporary meso will not have enough info at this time to have it determined if it's a own meos or not
@@ -213,14 +201,6 @@ void DBMesocyclesModel::changeCanHaveTodaysWorkout(const uint meso_idx)
 			emit canHaveTodaysWorkoutChanged();
 		}
 	}
-}
-
-void DBMesocyclesModel::setWorkoutIsFinished(const uint meso_idx, const QDate &date, const bool bFinished)
-{
-	m_calendarModelList.value(meso_idx)->setDayIsFinished(date, bFinished);
-	appDBInterface()->setDayIsFinished(meso_idx, date, bFinished);
-	if (bFinished && date == QDate::currentDate())
-		emit todaysWorkoutFinished();
 }
 
 void DBMesocyclesModel::setModified(const uint meso_idx, const uint field)

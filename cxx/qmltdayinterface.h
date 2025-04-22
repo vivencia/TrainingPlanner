@@ -5,7 +5,7 @@
 #include <QObject>
 #include <QVariantMap>
 
-class DBTrainingDayModel;
+class DBWorkoutModel;
 class DBMesoSplitModel;
 class QmlExerciseInterface;
 class QmlExerciseEntry;
@@ -127,7 +127,7 @@ public:
 	void removeExerciseObject(const uint exercise_idx, const bool bAsk);
 	void moveExercise(const uint exercise_idx, const uint new_idx);
 
-	inline DBTrainingDayModel* tDayModel() const { return m_tDayModel; }
+	inline DBWorkoutModel* tDayModel() const { return m_tDayModel; }
 	inline QQuickItem* tDayPage() const { return m_tDayPage; }
 
 	void simpleExercisesList(const uint exercise_idx, const bool show, const bool multi_sel, const uint comp_exercise);
@@ -176,7 +176,7 @@ public slots:
 
 private:
 	QQmlComponent* m_tDayComponent;
-	DBTrainingDayModel* m_tDayModel;
+	DBWorkoutModel* m_tDayModel;
 	QQuickItem* m_tDayPage;
 	QVariantMap m_tDayProperties;
 	QmlExerciseInterface* m_exerciseManager;
@@ -198,7 +198,7 @@ private:
 	void loadExercises();
 	void updateTDayPageWithNewCalendarInfo(const QDate& startDate, const QDate& endDate);
 	void calculateWorkoutTime();
-	void setTrainingDayPageEmptyDayOrChangedDayOptions(const DBTrainingDayModel* const model);
+	void setTrainingDayPageEmptyDayOrChangedDayOptions(const DBWorkoutModel* const model);
 };
 
 #endif // QMLTDAYINTERFACE_H

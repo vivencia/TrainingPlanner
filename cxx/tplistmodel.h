@@ -106,6 +106,6 @@ protected:
 	friend class DBMesocyclesModel;
 	friend class DBMesoSplitModel;
 	friend class DBMesoCalendarModel;
-	friend class DBTrainingDayModel;
+	friend class DBWorkoutModel;
 	friend class DBUserModel;
 };

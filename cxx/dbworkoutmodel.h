@@ -20,7 +20,7 @@ QT_FORWARD_DECLARE_CLASS(DBMesoCalendarModel)
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(DBMesoSplitModel);
 
-class DBTrainingDayModel : public TPListModel
+class DBWorkoutModel : public TPListModel
 {
 
 Q_OBJECT
@@ -29,8 +29,8 @@ QML_ELEMENT
 Q_PROPERTY(uint exerciseCount READ exerciseCount NOTIFY exerciseCountChanged)
 
 public:
-	explicit DBTrainingDayModel(DBMesoCalendarModel *parent, const uint meso_idx);
-	~DBTrainingDayModel() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; }
+	explicit DBWorkoutModel(DBMesoCalendarModel *parent, const uint meso_idx);
+	~DBWorkoutModel() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; }
 
 	void fromDataBase(const QStringList& list, const bool bClearSomeFieldsForReUse = false);
 	const QStringList getSaveInfo() const;
