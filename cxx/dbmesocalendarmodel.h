@@ -13,20 +13,50 @@
 #define MESOCALENDAR_COL_NOTES 8
 #define MESOCALENDAR_COL_TRAINING_COMPLETED 9
 #define MESOCALENDAR_TOTAL_COLS MESOCALENDAR_COL_TRAINING_COMPLETED + 1
+#define MESOCALENDAR_RENEW_DATABASE MESOCALENDAR_TOTAL_COLS + 1
 
 QT_FORWARD_DECLARE_CLASS(DBWorkoutModel)
 QT_FORWARD_DECLARE_CLASS(DBCalendarModel)
-QT_FORWARD_DECLARE_STRUCT(stDayInfo);
+
+class TPBool {
+public:
+    // Default constructor initializes the value to false
+    inline TPBool() : m_value(false) {}
+
+    // Constructor to initialize with a specific boolean value
+    inline explicit TPBool(bool val) : m_value{val} {}
+
+    // Operator overloading to allow implicit conversion to bool
+    operator bool() const {
+        return m_value;
+    }
+
+	bool operator=(bool val) { m_value = val; return m_value; }
+
+private:
+    bool m_value;
+};
 
 class DBMesoCalendarModel : public QObject
 {
 
 Q_OBJECT
 
+friend class DBMesoCalendarTable;
+
+struct stDayInfo
+{
+	QString data;
+	QString date;
+	TPBool modified;
+};
+
 public:
 	explicit inline DBMesoCalendarModel(QObject *parent) : QObject{parent} {}
 	void removeCalendarForMeso(const uint meso_idx);
+	void addCalendarForMeso(const uint meso_idx);
 	void addNewCalendarForMeso(const uint new_mesoidx);
+	void remakeMesoCalendar(const uint meso_idx, const bool preserve_old_info);
 
 	[[nodiscard]] inline const QList<stDayInfo*> &dayInfo(const uint meso_idx) const { return m_dayInfoList.at(meso_idx); }
 	[[nodiscard]] const int calendarDay(const uint meso_idx, const QDate& date) const;
@@ -65,10 +95,25 @@ public:
 	Q_INVOKABLE inline DBCalendarModel *calendar(const uint meso_idx) const { return m_calendars.at(meso_idx); }
 	Q_INVOKABLE inline DBWorkoutModel *workout(const uint calendar_day) const { return m_workouts.at(calendar_day); }
 
+	inline bool hasDBData(const uint meso_idx) const { return m_dbDataReady.at(meso_idx); }
+
+signals:
+	void calendarChanged(const uint meso_idx, const int calendar_day = -1, const uint field = MESOCALENDAR_TOTAL_COLS);
+
 private:
 	QList<QList<stDayInfo*>> m_dayInfoList;
 	QList<DBWorkoutModel*> m_workouts;
 	QList<DBCalendarModel*> m_calendars;
+	QList<TPBool> m_dbDataReady;
+
+	inline const QList<stDayInfo*> &mesoCalendar(const uint meso_idx) const { return m_dayInfoList.at(meso_idx); }
+	inline QList<stDayInfo*> &mesoCalendar(const uint meso_idx) { return m_dayInfoList[meso_idx]; }
+	inline void setDBDataReady(const uint meso_idx, const bool ready, const bool emit_signal = false)
+	{
+		m_dbDataReady[meso_idx] = ready;
+		if (emit_signal)
+			emit calendarChanged(meso_idx);
+	}
 
 	void createCalendar(const uint meso_idx);
 	inline std::optional<QString> dayInfo(const uint meso_idx, const uint calendar_day, const uint field) const;

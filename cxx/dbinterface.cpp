@@ -113,9 +113,9 @@ void DBInterface::threadFinished(TPDatabaseTable *dbObj)
 	{
 		const TPDatabaseTable *const nextDbObj{m_WorkerLock[dbObj->tableID()].nextObj()};
 		LOG_MESSAGE("Database  " << dbObjName << " - " << nextDbObj->uniqueID() <<" starting in sequence of previous thread")
+		nextDbObj->thread()->start();
 		if (nextDbObj->waitForThreadToFinish())
 			nextDbObj->thread()->wait();
-		nextDbObj->thread()->start();
 	}
 }
 
@@ -128,7 +128,7 @@ void DBInterface::createThread(TPDatabaseTable *worker, const std::function<void
 {
 	worker->setCallbackForDoneFunc([this] (TPDatabaseTable *obj) { return threadFinished(obj); });
 
-	QThread *thread{new QThread()};
+	QThread *thread{new QThread{}};
 	connect(thread, &QThread::started, worker, execFunc);
 	connect(thread, &QThread::finished, thread, &QThread::deleteLater);
 	worker->moveToThread(thread);
@@ -157,12 +157,12 @@ void DBInterface::createThread(TPDatabaseTable *worker, const std::function<void
 
 void DBInterface::cleanUpThreads()
 {
-	TPDatabaseTable *dbObj(nullptr);
-	bool locks_empty(true);
+	TPDatabaseTable *dbObj{nullptr};
+	bool locks_empty{true};
 
-	for (uint x(1); x <= APP_TABLES_NUMBER; ++x)
+	for (uint x{1}; x <= APP_TABLES_NUMBER; ++x)
 	{
-		for(int i(m_WorkerLock[x].count() - 1); i >= 0 ; --i)
+		for(int i{static_cast<int>(m_WorkerLock[x].count()) - 1}; i >= 0 ; --i)
 		{
 			dbObj = m_WorkerLock[x].at(i);
 			if (dbObj->resolved())
@@ -476,7 +476,7 @@ void DBInterface::loadSplitFromPreviousMeso(const uint prev_meso_id, DBMesoSplit
 void DBInterface::getMesoCalendar(const uint meso_idx)
 {
 	DBMesoCalendarTable *worker{new DBMesoCalendarTable{m_DBFilePath, appMesoModel()->mesoCalendarModel()}};
-	worker->addExecArg(appMesoModel()->id(meso_idx));
+	worker->addExecArg(meso_idx);
 	createThread(worker, [worker] () { worker->getMesoCalendar(); });
 }
 
@@ -487,61 +487,10 @@ void DBInterface::saveMesoCalendar(const uint meso_idx)
 	createThread(worker, [worker] () { worker->saveMesoCalendar(); });
 }
 
-void DBInterface::changeMesoCalendar(const uint meso_idx, const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilDayBefore)
+void DBInterface::remakeMesoCalendar(const uint meso_idx)
 {
-	if (bPreserveOldInfo && !appMesoModel()->mesoCalendarModel(meso_idx)->isReady())
-	{
-		connect(this, &DBInterface::databaseReady, this, [this,meso_idx,bPreserveOldInfo,bPreserveOldInfoUntilDayBefore] ()
-		{
-			return changeMesoCalendar(meso_idx, bPreserveOldInfo, bPreserveOldInfoUntilDayBefore);
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		getMesoCalendar(meso_idx);
-		return;
-	}
-	DBMesoCalendarTable *worker{new DBMesoCalendarTable{m_DBFilePath, appMesoModel()->mesoCalendarModel(meso_idx)}};
-	worker->addExecArg(appMesoModel()->id(meso_idx)); //needed to remove the calendar records for the meso
-	worker->addExecArg(bPreserveOldInfo);
-	worker->addExecArg(bPreserveOldInfoUntilDayBefore);
-
-	const QDate &endDate{bPreserveOldInfo && bPreserveOldInfoUntilDayBefore ?
-					QDate::currentDate() :
-					appMesoModel()->endDate(meso_idx)};
-	worker->addExecArg(endDate);
-	createThread(worker, [worker] () { worker->changeMesoCalendar(); });
-}
-
-void DBInterface::updateMesoCalendarModel(const uint meso_idx, const QDate &date, const QString &splitLetter)
-{
-	DBMesoCalendarTable *worker{new DBMesoCalendarTable{m_DBFilePath, appMesoModel()->mesoCalendarModel(meso_idx)}};
-	worker->addExecArg(appMesoModel()->id(meso_idx)); //needed to remove the calendar records for the meso
-	worker->addExecArg(date);
-	worker->addExecArg(splitLetter);
-	createThread(worker, [worker] () { worker->updateMesoCalendar(); });
-}
-
-void DBInterface::updateMesoCalendarEntry(const uint meso_idx, const QDate &date, const QString &trainingDay, const QString &splitLetter)
-{
-	DBMesoCalendarTable *worker{new DBMesoCalendarTable{m_DBFilePath, appMesoModel()->mesoCalendarModel(meso_idx)}};
-	worker->addExecArg(date);
-	worker->addExecArg(trainingDay);
-	worker->addExecArg(splitLetter);
-	createThread(worker, [worker] () { worker->updateMesoCalendarEntry(); });
-}
-
-void DBInterface::setDayIsFinished(const uint meso_idx, const QDate &date, const bool bFinished)
-{
-	if (!appMesoModel()->mesoCalendarModel(meso_idx)->isReady())
-	{
-		connect(this, &DBInterface::databaseReady, this, [this,meso_idx,date,bFinished] () {
-			return setDayIsFinished(meso_idx, date, bFinished);
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		getMesoCalendar(meso_idx);
-		return;
-	}
-	DBMesoCalendarTable *worker{new DBMesoCalendarTable{m_DBFilePath, appMesoModel()->mesoCalendarModel(meso_idx)}};
-	worker->addExecArg(date);
-	worker->addExecArg(bFinished);
-	createThread(worker, [worker] () { worker->updateDayIsFinished(); });
+	removeMesoCalendar(meso_idx);
+	saveMesoCalendar(meso_idx);
 }
 
 void DBInterface::removeMesoCalendar(const uint meso_idx)
@@ -555,21 +504,6 @@ void DBInterface::deleteMesoCalendarTable(const uint meso_idx, const bool bRemov
 {
 	DBMesoCalendarTable *worker{new DBMesoCalendarTable{m_DBFilePath}};
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
-}
-
-void DBInterface::getWorkoutDayInfoForAllWorkouts(const uint meso_id)
-{
-	DBMesoCalendarTable *worker{new DBMesoCalendarTable{m_DBFilePath}};
-	auto conn = std::make_shared<QMetaObject::Connection>();
-		*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,worker] (const uint db_id) {
-		if (db_id == worker->uniqueID())
-		{
-			disconnect(*conn);
-			emit databaseReadyWithData(MESOCALENDAR_TABLE_ID, QVariant::fromValue(worker->workoutsInfo()));
-		}
-	});
-	worker->addExecArg(meso_id);
-	createThread(worker, [worker] () { return worker->workoutDayInfoForEntireMeso(); });
 }
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 

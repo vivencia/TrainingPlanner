@@ -38,6 +38,18 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent, const bool bMainAppModel)
 	m_ownMesos = new homePageMesoModel{this};
 	m_clientMesos = new homePageMesoModel{this};
 
+	connect(m_calendarModel, &DBMesoCalendarModel::calendarChanged, this, [this] (const uint meso_idx, const int calendar_day, const uint field) {
+		switch (field)
+		{
+			case MESOCALENDAR_TOTAL_COLS:
+			case MESOCALENDAR_COL_TRAINING_COMPLETED:
+				appDBInterface()->saveMesoCalendar(meso_idx);
+			break;
+			case MESOCALENDAR_RENEW_DATABASE:
+				appDBInterface()->remakeMesoCalendar(meso_idx);
+			break;
+		}
+	});
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
 		fillColumnNames();
 	});
@@ -176,13 +188,14 @@ const uint DBMesocyclesModel::newMesocycle(QStringList &&infolist)
 	const uint meso_idx{count()-1};
 
 	m_splitModel->appendList_fast(std::move(QStringList{SIMPLE_MESOSPLIT_TOTAL_COLS}));
-	m_calendarModel->addNewCalendarForMeso(meso_idx);
 
 	m_newMesoCalendarChanged.append(false);
 	m_canExport.append(false);
 	//A temporary meso will not have enough info at this time to have it determined if it's a own meos or not
 	if (_id(meso_idx) >= 0)
 		setOwnMeso(meso_idx);
+	else
+		m_calendarModel->addNewCalendarForMeso(meso_idx);
 
 	m_usedSplits.append(QStringList{});
 	makeUsedSplits(meso_idx);

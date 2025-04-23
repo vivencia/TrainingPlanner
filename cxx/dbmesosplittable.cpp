@@ -381,7 +381,10 @@ bool DBMesoSplitTable::mesoHasAllPlans(const uint meso_idx)
 		if (!splitLetters.isEmpty())
 		{
 			const QString &field_template{"split%1_exercisesnames,"_L1};
-			QString query_fields{std::move(std::accumulate(splitLetters.cbegin(), splitLetters.cend(), QString{}, [field_template] (QString fields, const QString &splitletter) {
+			QString query_fields{std::move(std::accumulate(splitLetters.cbegin(),
+											splitLetters.cend(),
+											QString{},
+											[field_template] (const QString &fields, const QString &splitletter) {
 				return fields + std::move(field_template.arg(splitletter));
 			}))};
 			query_fields.chop(1);

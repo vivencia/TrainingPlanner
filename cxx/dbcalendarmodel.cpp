@@ -10,7 +10,7 @@ enum RoleNames {
 const auto &value = []<typename T>(const std::optional<T> &retValue) { return retValue.has_value() ? retValue.value() : T{}; };
 
 DBCalendarModel::DBCalendarModel(DBMesoCalendarModel *parent, const uint meso_idx)
-	: QAbstractListModel{parent}, m_calendarManager{parent}, m_mesoIdx(meso_idx)
+	: QAbstractListModel{parent}, m_calendarManager{parent}, m_mesoIdx(meso_idx), m_nmonths{0}
 {
 	m_roleNames[yearRole] = std::move("year");
 	m_roleNames[monthRole] = std::move("month");

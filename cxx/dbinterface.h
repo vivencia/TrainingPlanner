@@ -81,13 +81,9 @@ public:
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 	void getMesoCalendar(const uint meso_idx);
 	void saveMesoCalendar(const uint meso_idx);
-	void changeMesoCalendar(const uint meso_idx, const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilDayBefore);
-	void updateMesoCalendarModel(const uint meso_idx, const QDate& date, const QString &splitLetter);
-	void updateMesoCalendarEntry(const uint meso_idx, const QDate& date, const QString &trainingDay, const QString &splitLetter);
-	void setDayIsFinished(const uint meso_idx, const QDate& date, const bool bFinished);
+	void remakeMesoCalendar(const uint meso_idx);
 	void removeMesoCalendar(const uint meso_idx);
 	void deleteMesoCalendarTable(const uint meso_idx, const bool bRemoveFile);
-	void getWorkoutDayInfoForAllWorkouts(const uint meso_id);
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------

@@ -31,11 +31,6 @@ public:
 	void updateTable() override final;
 	void getMesoCalendar();
 	void saveMesoCalendar();
-	void updateMesoCalendarEntry();
-	void updateDayIsFinished();
-	void dayInfo(const QDate &date, QStringList &dayInfoList);
-	void changeMesoCalendar();
-	void updateMesoCalendar();
 
 	void workoutDayInfoForEntireMeso();
 	inline const QList<st_workoutDayInfo*> &workoutsInfo() const { return m_workoutsInfoList; }
