@@ -53,7 +53,7 @@ public:
 	inline QLocale *appLocale() const { return m_appLocale; }
 
 	Q_INVOKABLE QString formatDate(const QDate &date, const DATE_FORMAT format = DF_QML_DISPLAY) const;
-	inline QString formatTodayDate() const { return formatDate(QDate::currentDate()); }
+	inline QString formatTodayDate(const DATE_FORMAT format = DF_QML_DISPLAY) const { return std::move(formatDate(QDate::currentDate())); }
 	QDate getDateFromDateString(const QString &strdate, const DATE_FORMAT format = DF_QML_DISPLAY) const;
 	uint calculateNumberOfWeeks(const QDate &date1, const QDate &date2) const;
 	//The returned value contains the number of months in between the dates plus the starting month

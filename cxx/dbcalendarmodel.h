@@ -11,12 +11,12 @@ class DBCalendarModel : public QAbstractListModel
 Q_OBJECT
 QML_ELEMENT
 
-Q_PROPERTY(uint count READ count NOTIFY countChanged)
+Q_PROPERTY(uint count READ count NOTIFY modelChanged)
 
 public:
 	explicit DBCalendarModel(DBMesoCalendarModel *parent, const uint meso_idx);
 	inline uint count() const { return m_nmonths; }
-	inline void setNMonths(const uint new_nmonths) { m_nmonths = new_nmonths; emit countChanged(); }
+	inline void setNMonths(const uint new_nmonths) { m_nmonths = new_nmonths; emit modelChanged(); }
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; }
 
 	Q_INVOKABLE QString workoutNumber(const int year, const int month, const int day) const;
@@ -38,7 +38,7 @@ public:
 	inline int rowCount(const QModelIndex& parent) const override final { Q_UNUSED(parent); return count(); }
 
 signals:
-	void countChanged();
+	void modelChanged();
 
 private:
 	DBMesoCalendarModel* m_calendarManager;

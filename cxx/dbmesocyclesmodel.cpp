@@ -43,6 +43,7 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent, const bool bMainAppModel)
 		{
 			case MESOCALENDAR_TOTAL_COLS:
 			case MESOCALENDAR_COL_TRAINING_COMPLETED:
+			case MESOCALENDAR_COL_SPLITLETTER:
 				appDBInterface()->saveMesoCalendar(meso_idx);
 			break;
 			case MESOCALENDAR_RENEW_DATABASE:

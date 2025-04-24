@@ -57,6 +57,7 @@ public:
 	void addCalendarForMeso(const uint meso_idx);
 	void addNewCalendarForMeso(const uint new_mesoidx);
 	void remakeMesoCalendar(const uint meso_idx, const bool preserve_old_info);
+	void alterCalendarSplits(const uint meso_idx, const QDate &start_date, const QDate &end_date, const QChar &new_splitletter);
 
 	[[nodiscard]] inline const QList<stDayInfo*> &dayInfo(const uint meso_idx) const { return m_dayInfoList.at(meso_idx); }
 	[[nodiscard]] const int calendarDay(const uint meso_idx, const QDate& date) const;
@@ -75,7 +76,7 @@ public:
 	void setWorkoutNumber(const uint meso_idx, const uint calendar_day, const QString &new_number);
 
 	[[nodiscard]] const std::optional<QString> splitLetter(const uint meso_idx, const uint calendar_day) const;
-	void setSplitLetter(const uint meso_idx, const uint calendar_day, const QString &new_splitletter);
+	void setSplitLetter(const uint meso_idx, const uint calendar_day, const QString &new_splitletter, const bool emit_signal = true);
 
 	[[nodiscard]] const std::optional<QTime> timeIn(const uint meso_idx, const uint calendar_day) const;
 	void setTimeIn(const uint meso_idx, const uint calendar_day, const QTime &new_timein);
@@ -115,7 +116,8 @@ private:
 			emit calendarChanged(meso_idx);
 	}
 
+	uint populateCalendarDays(const uint meso_idx, QDate &start_date, const QDate &end_date, const QString &split);
 	void createCalendar(const uint meso_idx);
 	inline std::optional<QString> dayInfo(const uint meso_idx, const uint calendar_day, const uint field) const;
-	inline void setDayInfo(const uint meso_idx, const uint calendar_day, const uint field, const QString &new_value);
+	inline void setDayInfo(const uint meso_idx, const uint calendar_day, const uint field, const QString &new_value, const bool emit_signal = true);
 };

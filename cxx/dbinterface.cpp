@@ -305,20 +305,6 @@ void DBInterface::saveMesocycle(const uint meso_idx)
 					replaceMesoId(meso_idx, oldMeso_id);
 					appMesoModel()->removeMesoFile(meso_idx);
 				}
-				else {
-					if (appMesoModel()->newMesoCalendarChanged(meso_idx))
-					{
-						appMesoModel()->setNewMesoCalendarChanged(meso_idx, false);
-						changeMesoCalendar(meso_idx, false, false);
-					}
-				}
-
-				//When importing multiple splits the code to save them will be handling the database access and will contain the same
-				//information the simple split contains. saveMesoSplit() code can interfere with the other threads so we do not call it
-				/*if (!appMesoModel()->importMode())
-					saveMesoSplit(meso_idx);
-				if (!appMesoModel()->isOwnMeso(meso_idx))
-					appMesoModel()->maybeIncorporateMeso(meso_idx);*/
 			}
 		});
 	}

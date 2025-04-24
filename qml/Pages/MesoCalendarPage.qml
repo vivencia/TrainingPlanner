@@ -11,7 +11,7 @@ TPPage {
 	objectName: "mesoCalendarPage"
 
 	required property CalendarManager calendarManager
-	required property DBMesoCalendarModel mesoCalendarModel
+	required property DBCalendarModel calendarModel
 
 	property date _today
 	property bool bAlreadyLoaded: false
@@ -48,7 +48,7 @@ TPPage {
 
 	ListView {
 		id: calendar
-		model: mesoCalendarModel
+		model: calendarModel
 		snapMode: ListView.SnapToItem
 		spacing: 2
 		anchors.fill: parent
@@ -86,7 +86,7 @@ TPPage {
 
 				Text {
 					anchors.centerIn: parent
-					text: calendar.monthsNames[mesoCalendarModel.getMonth(index)] + " " + mesoCalendarModel.getYear(index);
+					text: calendar.monthsNames[calendarModel.getMonth(index)] + " " + calendarModel.getYear(index);
 					font.pixelSize: appSettings.extraLargeFontSize
 					font.bold: true
 				}
@@ -112,8 +112,8 @@ TPPage {
 			MonthGrid {
 				id: monthGrid
 				locale: Qt.locale(appSettings.appLocale)
-				month: mesoCalendarModel.getMonth(index)
-				year: mesoCalendarModel.getYear(index)
+				month: calendarModel.getMonth(index)
+				year: calendarModel.getYear(index)
 				spacing: 0
 				anchors.top: weekTitles.bottom
 				width: parent.width
@@ -144,7 +144,7 @@ TPPage {
 
 					function decorateRect(month: int, day: int, dayFinished: bool): void {
 						if (month === monthGrid.month) {
-							if (mesoCalendarModel.isTrainingDay(month, day)) {
+							if (calendarModel.isTrainingDay(month, day)) {
 								color = appSettings.listEntryColor2;
 								bIsTrainingDay = true;
 								bDayIsFinished = dayFinished;
@@ -155,17 +155,17 @@ TPPage {
 					}
 
 					Connections {
-						target: mesoCalendarModel
+						target: calendarModel
 						function onDayIsFinishedChanged(date: Date, bFinished: bool) : void {
 							decorateRect(date.getMonth(), date.getDate(), bFinished);
 						}
 					}
 
-					Component.onCompleted: decorateRect(model.month+1, model.day, mesoCalendarModel.isDayFinished(model.month+1, model.day-1));
+					Component.onCompleted: decorateRect(model.month+1, model.day, calendarModel.isDayFinished(model.month+1, model.day-1));
 
 					Text {
 						anchors.centerIn: parent
-						text: monthGrid.month === model.month ? bIsTrainingDay ? model.day + "-" + mesoCalendarModel.getSplitLetter(model.month+1, model.day-1) : model.day : ""
+						text: monthGrid.month === model.month ? bIsTrainingDay ? model.day + "-" + calendarModel.getSplitLetter(model.month+1, model.day-1) : model.day : ""
 						color: todayDate ? "red" : appSettings.fontColor
 						font.bold: true
 						font.pixelSize: appSettings.fontSize
@@ -319,16 +319,16 @@ TPPage {
 	function pageActivation(): void {
 		_today = new Date();
 		if (!bAlreadyLoaded) {
-			mesoCalendarModel.calendarChanged.connect(reloadModel);
+			calendarModel.calendarChanged.connect(reloadModel);
 			selectDay(_today.getFullYear(), _today.getMonth(), _today.getDate());
-			calendar.positionViewAtIndex(mesoCalendarModel.getIndex(_today), ListView.Center);
+			calendar.positionViewAtIndex(calendarModel.getIndex(_today), ListView.Center);
 			bAlreadyLoaded = true;
 		}
 	}
 
 	function reloadModel(): void {
 		calendar.model = null;
-		calendar.model = mesoCalendarModel;
+		calendar.model = calendarModel;
 	}
 
 	//Javascript date values differ from QDate's and TP's and Qt's

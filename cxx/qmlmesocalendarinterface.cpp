@@ -13,6 +13,13 @@
 #include <QQuickItem>
 #include <QQuickWindow>
 
+QmlMesoCalendarInterface::QmlMesoCalendarInterface(QObject *parent, const uint meso_idx)
+	: QObject{parent}, m_calComponent{nullptr}, m_calPage{nullptr}, m_mesoIdx{meso_idx},
+		m_calendarModel{appMesoModel()->mesoCalendarModel()->calendar(meso_idx)}
+{
+	connect(m_calendarModel, &DBCalendarModel::modelChanged, this, &QmlMesoCalendarInterface::calendarModelChanged);
+}
+
 QmlMesoCalendarInterface::~QmlMesoCalendarInterface()
 {
 	emit removePageFromMainMenu(m_calPage);
@@ -24,7 +31,7 @@ void QmlMesoCalendarInterface::getMesoCalendarPage()
 {
 	if (!m_calComponent)
 	{
-		if (!appMesoModel()->mesoCalendarModel(m_mesoIdx)->isReady())
+		if (!appMesoModel()->mesoCalendarModel()->hasDBData(m_mesoIdx))
 			appDBInterface()->getMesoCalendar(m_mesoIdx);
 		createMesoCalendarPage();
 	}
@@ -32,12 +39,14 @@ void QmlMesoCalendarInterface::getMesoCalendarPage()
 		emit addPageToMainMenu(tr("Calendar: ") + appMesoModel()->name(m_mesoIdx), m_calPage);
 }
 
-void QmlMesoCalendarInterface::changeCalendar(const bool bUntillTheEnd, const QString& newSplitLetter)
+void QmlMesoCalendarInterface::changeSplitLetter(const QString &newSplitLetter, const bool bUntillTheEnd)
 {
 	if (!bUntillTheEnd)
-		appDBInterface()->updateMesoCalendarEntry(m_mesoIdx, m_selectedDate, m_selectedTrainingDay, newSplitLetter);
+		m_calendarModel->setSplitLetter(m_selectedDate.year(), m_selectedDate.month(), m_selectedDate.day(), newSplitLetter);
 	else
-		appDBInterface()->updateMesoCalendarModel(m_mesoIdx, m_selectedDate, newSplitLetter);
+	{
+
+	}
 }
 
 void QmlMesoCalendarInterface::getTrainingDayPage(const QDate& date)
