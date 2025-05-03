@@ -94,14 +94,6 @@ enum {
 #define APPWINDOW_MSG_CUSTOM_WARNING 1001
 #define APPWINDOW_MSG_CUSTOM_ERROR 1002
 
-#define SET_TYPE_REGULAR 0
-#define SET_TYPE_PYRAMID 1
-#define SET_TYPE_DROP 2
-#define SET_TYPE_CLUSTER 3
-#define SET_TYPE_GIANT 4
-#define SET_TYPE_MYOREPS 5
-#define SET_TYPE_REVERSE_PYRAMID 6
-
 template <typename T>
 inline void setBit(T &__restrict var, const unsigned char bit)
 {

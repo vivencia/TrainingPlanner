@@ -1,6 +1,6 @@
 #include "tpstatistics.h"
 
-#include "../dbmesocalendarmodel.h"
+#include "../DBMesoCalendarManager.h"
 #include "../dbmesocyclesmodel.h"
 #include "../dbmesosplittable.h"
 #include "../dbinterface.h"

@@ -37,7 +37,7 @@ private:
     bool m_value;
 };
 
-class DBMesoCalendarModel : public QObject
+class DBMesoCalendarManager : public QObject
 {
 
 Q_OBJECT
@@ -52,12 +52,13 @@ struct stDayInfo
 };
 
 public:
-	explicit inline DBMesoCalendarModel(QObject *parent) : QObject{parent} {}
+	explicit inline DBMesoCalendarManager(QObject *parent) : QObject{parent} {}
 	void removeCalendarForMeso(const uint meso_idx);
 	void addCalendarForMeso(const uint meso_idx);
 	void addNewCalendarForMeso(const uint new_mesoidx);
 	void remakeMesoCalendar(const uint meso_idx, const bool preserve_old_info);
 	void alterCalendarSplits(const uint meso_idx, const QDate &start_date, const QDate &end_date, const QChar &new_splitletter);
+	DBWorkoutModel *workoutForDay(const uint meso_idx, const QDate &date);
 
 	[[nodiscard]] inline const QList<stDayInfo*> &dayInfo(const uint meso_idx) const { return m_dayInfoList.at(meso_idx); }
 	[[nodiscard]] const int calendarDay(const uint meso_idx, const QDate& date) const;
@@ -94,7 +95,7 @@ public:
 	void setTrainingCompleted(const uint meso_idx, const uint calendar_day, const bool completed);
 
 	Q_INVOKABLE inline DBCalendarModel *calendar(const uint meso_idx) const { return m_calendars.at(meso_idx); }
-	Q_INVOKABLE inline DBWorkoutModel *workout(const uint calendar_day) const { return m_workouts.at(calendar_day); }
+	Q_INVOKABLE inline DBWorkoutModel *workout(const uint meso_idx, const uint calendar_day) const { return m_workouts.at(meso_idx).at(calendar_day); }
 
 	inline bool hasDBData(const uint meso_idx) const { return m_dbDataReady.at(meso_idx); }
 
@@ -103,7 +104,7 @@ signals:
 
 private:
 	QList<QList<stDayInfo*>> m_dayInfoList;
-	QList<DBWorkoutModel*> m_workouts;
+	QList<QList<DBWorkoutModel*>> m_workouts;
 	QList<DBCalendarModel*> m_calendars;
 	QList<TPBool> m_dbDataReady;
 

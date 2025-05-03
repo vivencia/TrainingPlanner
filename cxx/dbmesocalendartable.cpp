@@ -1,6 +1,6 @@
 #include "dbmesocalendartable.h"
 
-#include "dbmesocalendarmodel.h"
+#include "DBMesoCalendarManager.h"
 #include "tpglobals.h"
 #include "tputils.h"
 
@@ -9,7 +9,7 @@
 #include <QSqlQuery>
 #include <QTime>
 
-DBMesoCalendarTable::DBMesoCalendarTable(const QString &dbFilePath, DBMesoCalendarModel *model)
+DBMesoCalendarTable::DBMesoCalendarTable(const QString &dbFilePath, DBMesoCalendarManager *model)
 	: TPDatabaseTable{}, m_model{model}
 {
 	m_tableName = std::move("mesocycles_calendar_table"_L1);
@@ -56,13 +56,13 @@ void DBMesoCalendarTable::getMesoCalendar()
 			if (query.first())
 			{
 				m_model->addCalendarForMeso(meso_idx);
-				QList<DBMesoCalendarModel::stDayInfo*> *meso_calendar{&m_model->mesoCalendar(meso_idx)};
+				QList<DBMesoCalendarManager::stDayInfo*> *meso_calendar{&m_model->mesoCalendar(meso_idx)};
 				do
 				{
-					DBMesoCalendarModel::stDayInfo *day_info{new DBMesoCalendarModel::stDayInfo{}};
+					DBMesoCalendarManager::stDayInfo *day_info{new DBMesoCalendarManager::stDayInfo{}};
 					day_info->date = std::move(query.value(0).toString());
 					day_info->data = std::move(query.value(1).toString());
-					meso_calendar->append(day_info);
+                    meso_calendar->append(std::move(day_info));
 				} while (query.next ());
 
 			}
@@ -100,7 +100,7 @@ void DBMesoCalendarTable::saveMesoCalendar()
 				QString dbdata{std::move(std::accumulate(m_model->mesoCalendar(meso_idx).cbegin(),
 												 m_model->mesoCalendar(meso_idx).cend(),
 												 QString{},
-												 [this,meso_id,queryValuesTemplate] (const QString &data, DBMesoCalendarModel::stDayInfo *day_info) {
+												 [this,meso_id,queryValuesTemplate] (const QString &data, DBMesoCalendarManager::stDayInfo *day_info) {
 					return data + queryValuesTemplate.arg(meso_id, day_info->date, day_info->data);
 				}))};
 				dbdata.chop(1);
@@ -112,7 +112,7 @@ void DBMesoCalendarTable::saveMesoCalendar()
 				QString dbdata{std::move(std::accumulate(m_model->mesoCalendar(meso_idx).cbegin(),
 												 m_model->mesoCalendar(meso_idx).cend(),
 												 QString{},
-												 [this,meso_id,queryCommand] (const QString &data, DBMesoCalendarModel::stDayInfo *day_info) {
+												 [this,meso_id,queryCommand] (const QString &data, DBMesoCalendarManager::stDayInfo *day_info) {
 					if (day_info->modified)
 					{
 						day_info->modified = false;

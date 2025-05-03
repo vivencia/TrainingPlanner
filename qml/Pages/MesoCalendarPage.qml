@@ -13,7 +13,7 @@ TPPage {
 	required property CalendarManager calendarManager
 	required property DBCalendarModel calendarModel
 
-	property date _today
+	property alias _today: appUtils.today()
 	property bool bAlreadyLoaded: false
 
 	header: TPToolBar {
@@ -60,11 +60,6 @@ TPPage {
 									qsTr("May"), qsTr("June"), qsTr("July"), qsTr("August"),
 									qsTr("September"), qsTr("October"), qsTr("November"), qsTr("December")]
 
-		property date dayInfoDate
-		property int currentDay
-		property int currentMonth
-		property int currentYear
-
 		ScrollBar.vertical: ScrollBar {
 			policy: ScrollBar.AsNeeded
 			active: true//ScrollBar.AlwaysOn
@@ -86,7 +81,7 @@ TPPage {
 
 				Text {
 					anchors.centerIn: parent
-					text: calendar.monthsNames[calendarModel.getMonth(index)] + " " + calendarModel.getYear(index);
+					text: calendar.monthsNames[calendarModel.month(index)] + " " + calendarModel.year(index);
 					font.pixelSize: appSettings.extraLargeFontSize
 					font.bold: true
 				}
@@ -112,14 +107,14 @@ TPPage {
 			MonthGrid {
 				id: monthGrid
 				locale: Qt.locale(appSettings.appLocale)
-				month: calendarModel.getMonth(index)
-				year: calendarModel.getYear(index)
+				month: calendarModel.month(index)
+				year: calendarModel.year(index)
 				spacing: 0
 				anchors.top: weekTitles.bottom
 				width: parent.width
 				height: calendar.cellSize * 8
 
-				property var selectedDay: null
+				property Rectangle selectedDay: null
 
 				delegate: Rectangle {
 					id: dayEntry
@@ -129,10 +124,15 @@ TPPage {
 					border.color: "green"
 					border.width: bDayIsFinished ? 2 : 0
 					opacity: !highlighted ? 1 : 0.5
+					color: dayIsPartOfMeso ? appSettings.listEntryColor2 : "transparent"
 
-					readonly property bool todayDate: model.month === _today.getMonth() && model.day === _today.getDate()
-					property bool bIsTrainingDay: false
-					property bool bDayIsFinished: false
+					function getDate(): date {
+						return Date(model.year, model.month, model.day);
+					}
+
+					readonly property bool todayDate: getDate() === _today
+					property bool dayIsPartOfMeso: calendarModel.isPartOfMeso(getDate())
+					property bool bDayIsFinished: calendarModel.completed(getDate())
 					property bool highlighted: false
 
 					function highlightDay(highlighted: bool): void {
@@ -142,33 +142,31 @@ TPPage {
 							animShrink.start();
 					}
 
-					function decorateRect(month: int, day: int, dayFinished: bool): void {
-						if (month === monthGrid.month) {
-							if (calendarModel.isTrainingDay(month, day)) {
-								color = appSettings.listEntryColor2;
-								bIsTrainingDay = true;
-								bDayIsFinished = dayFinished;
-								return;
-							}
-						}
-						color = "transparent";
-					}
-
 					Connections {
 						target: calendarModel
-						function onDayIsFinishedChanged(date: Date, bFinished: bool) : void {
-							decorateRect(date.getMonth(), date.getDate(), bFinished);
+						function onCompletedChanged(date: Date) : void {
+							if (date === getDate())
+								bDayIsFinished = calendarModel.completed(date);
 						}
 					}
-
-					Component.onCompleted: decorateRect(model.month+1, model.day, calendarModel.isDayFinished(model.month+1, model.day-1));
 
 					Text {
 						anchors.centerIn: parent
-						text: monthGrid.month === model.month ? bIsTrainingDay ? model.day + "-" + calendarModel.getSplitLetter(model.month+1, model.day-1) : model.day : ""
+						text: setText(dayEntry.getDate())
 						color: todayDate ? "red" : appSettings.fontColor
 						font.bold: true
 						font.pixelSize: appSettings.fontSize
+
+						function setText(for_date: date): string {
+							return calendarModel.isPartOfMeso(for_date) ? model.day + "-" + calendarModel.splitLetter(this_date) : "";
+						}
+
+						Connections {
+							target: calendarModel
+							function onSplitLetterChanged(date: Date) : void {
+								text = setText(date);
+							}
+						}
 					}
 
 					SequentialAnimation { // Expand the button
@@ -199,7 +197,6 @@ TPPage {
 					MouseArea {
 						anchors.fill: parent
 						hoverEnabled: true
-						enabled: dayEntry.bIsTrainingDay
 
 						onClicked: {
 							if (monthGrid.selectedDay)
@@ -215,6 +212,8 @@ TPPage {
 				} //delegate: Rectangle
 			} //MonthGrid
 		} //delegate: Rectangle
+
+		Component.onCompleted: positionViewAtIndex(calendarModel.getIndex(_today), ListView.Center);
 	} //ListView
 
 	footer: TPToolBar {
@@ -222,7 +221,7 @@ TPPage {
 
 		TPLabel {
 			id: lblInfo
-			text: calendarManager.dayInfo(calendar.currentYear, calendar.currentMonth+1, calendar.currentDay-1)
+			text: calendarManager.dayInfo()
 			wrapMode: Text.WordWrap
 			horizontalAlignment: Text.AlignHCenter
 			verticalAlignment: Text.AlignVCenter
@@ -242,7 +241,8 @@ TPPage {
 			currentIndex: indexOfValue(calendarManager.selectedSplitLetter);
 			width: parent.width*0.2
 
-			onActivated: (index) => optChangeOnlyThisDay.enabled = optChangeAfterThisDay.enabled = calendarManager.selectedSplitLetter !== valueAt(index);
+			onActivated: (index) => optChangeOnlyThisDay.enabled = optChangeAfterThisDay.enabled =
+															calendarManager.selectedSplitLetter !== valueAt(index);
 
 			anchors {
 				top: optChangeOnlyThisDay.bottom
@@ -310,35 +310,14 @@ TPPage {
 				bottomMargin: 5
 			}
 
-			onClicked: calendarManager.getTrainingDayPage(calendar.dayInfoDate);
+			onClicked: calendarManager.getTrainingDayPage();
 		}
 	} // footer: ToolBar
 
-	Component.onCompleted: mesoCalendarPage.StackView.activating.connect(pageActivation);
-
-	function pageActivation(): void {
-		_today = new Date();
-		if (!bAlreadyLoaded) {
-			calendarModel.calendarChanged.connect(reloadModel);
-			selectDay(_today.getFullYear(), _today.getMonth(), _today.getDate());
-			calendar.positionViewAtIndex(calendarModel.getIndex(_today), ListView.Center);
-			bAlreadyLoaded = true;
-		}
-	}
-
-	function reloadModel(): void {
-		calendar.model = null;
-		calendar.model = calendarModel;
-	}
-
-	//Javascript date values differ from QDate's and TP's and Qt's
-	//Month: JS 0-11 TP: 1-12 Qt:1-12
-	//Date: JS 1-31 TP:0-30 Qt: 1-31
+	//Javascript month values differ from QDate's
+	//JS 0-11 Qt:1-12
 	function selectDay(year, month, day): void {
-		calendar.currentDay = day;
-		calendar.currentMonth = month;
-		calendar.currentYear = year;
-		calendar.dayInfoDate = new Date(year, month, day);
+		calendarManager.selectedDate = Date(year, month, day);
 		optChangeOnlyThisDay.checked = optChangeAfterThisDay.checked = false;
 		optChangeOnlyThisDay.enabled = optChangeAfterThisDay.enabled = false;
 	}

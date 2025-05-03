@@ -7,7 +7,7 @@
 #include "dbmesosplittable.h"
 #include "dbmesosplitmodel.h"
 #include "dbmesocalendartable.h"
-#include "dbmesocalendarmodel.h"
+#include "DBMesoCalendarManager.h"
 #include "dbworkouttable.h"
 #include "dbworkoutmodel.h"
 #include "dbusertable.h"

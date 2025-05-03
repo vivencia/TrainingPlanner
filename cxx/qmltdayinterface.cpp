@@ -2,7 +2,7 @@
 
 #include "dbexercisesmodel.h"
 #include "dbinterface.h"
-#include "dbmesocalendarmodel.h"
+#include "DBMesoCalendarManager.h"
 #include "dbmesocyclesmodel.h"
 #include "dbmesosplitmodel.h"
 #include "dbworkoutmodel.h"
@@ -197,7 +197,7 @@ void QmlTDayInterface::getTrainingDayPage()
 			return;
 		}
 
-		const DBMesoCalendarModel* const mesoCal(appMesoModel()->mesoCalendarModel(m_mesoIdx));
+		const DBMesoCalendarManager* const mesoCal(appMesoModel()->mesoCalendarModel(m_mesoIdx));
 		const QString& tday{QString::number(mesoCal->getTrainingDay(m_Date.month(), m_Date.day()-1))};
 		const QString& strSplitLetter{mesoCal->getSplitLetter(m_Date.month(), m_Date.day()-1)};
 
@@ -611,7 +611,7 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 		setTimeOut("--:--"_L1, false);
 	}
 
-	connect(appMesoModel()->mesoCalendarModel(m_mesoIdx), &DBMesoCalendarModel::calendarChanged, this, [this]
+	connect(appMesoModel()->mesoCalendarModel(m_mesoIdx), &DBMesoCalendarManager::calendarChanged, this, [this]
 																				(const QDate& startDate, const QDate& endDate) {
 		if (m_tDayPage)
 			updateTDayPageWithNewCalendarInfo(startDate, endDate);
@@ -646,7 +646,7 @@ void QmlTDayInterface::updateTDayPageWithNewCalendarInfo(const QDate& startDate,
 		if (m_Date <= endDate)
 		{
 			bool tDayChanged{false};
-			const DBMesoCalendarModel* const mesoCal{appMesoModel()->mesoCalendarModel(m_mesoIdx)};
+			const DBMesoCalendarManager* const mesoCal{appMesoModel()->mesoCalendarModel(m_mesoIdx)};
 			const QString& tDay{QString::number(mesoCal->getTrainingDay(m_Date.month(), m_Date.day()))};
 			if (tDay != m_tDayModel->trainingDay())
 			{

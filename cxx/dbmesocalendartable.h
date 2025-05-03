@@ -6,7 +6,7 @@
 #include <QDate>
 #include <QObject>
 
-class DBMesoCalendarModel;
+class DBMesoCalendarManager;
 
 static const QLatin1StringView &DBMesoCalendarFileName("MesoCalendar.db.sqlite"_L1);
 
@@ -24,7 +24,7 @@ class DBMesoCalendarTable final : public TPDatabaseTable
 {
 
 public:
-	explicit DBMesoCalendarTable(const QString &dbFilePath, DBMesoCalendarModel *model = nullptr);
+	explicit DBMesoCalendarTable(const QString &dbFilePath, DBMesoCalendarManager *model = nullptr);
 	inline ~DBMesoCalendarTable() { clearWorkoutsInfoList(); }
 
 	void createTable() override final;
@@ -40,7 +40,7 @@ public:
 	inline const QList<QDate> &retrievedDates() const { return m_completedWorkoutDates; }
 
 private:
-	DBMesoCalendarModel *m_model;
+	DBMesoCalendarManager *m_model;
 	QList<QDate> m_completedWorkoutDates;
 	QList<st_workoutDayInfo*> m_workoutsInfoList;
 

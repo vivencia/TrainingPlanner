@@ -12,7 +12,7 @@
 class DBMesocyclesModel;
 class DBExercisesModel;
 class DBMesoSplitModel;
-class DBMesoCalendarModel;
+class DBMesoCalendarManager;
 class DBWorkoutModel;
 class DBUserModel;
 class RunCommands;

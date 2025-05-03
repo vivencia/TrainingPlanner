@@ -1,7 +1,7 @@
 #include "dbmesocyclesmodel.h"
 
 #include "dbinterface.h"
-#include "dbmesocalendarmodel.h"
+#include "DBMesoCalendarManager.h"
 #include "dbmesosplitmodel.h"
 #include "dbusermodel.h"
 #include "homepagemesomodel.h"
@@ -34,11 +34,11 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent, const bool bMainAppModel)
 	fillColumnNames();
 
 	m_splitModel = new DBMesoSplitModel{this, false, 10000};
-	m_calendarModel = new DBMesoCalendarModel{this};
+	m_calendarModel = new DBMesoCalendarManager{this};
 	m_ownMesos = new homePageMesoModel{this};
 	m_clientMesos = new homePageMesoModel{this};
 
-	connect(m_calendarModel, &DBMesoCalendarModel::calendarChanged, this, [this] (const uint meso_idx, const int calendar_day, const uint field) {
+	connect(m_calendarModel, &DBMesoCalendarManager::calendarChanged, this, [this] (const uint meso_idx, const int calendar_day, const uint field) {
 		switch (field)
 		{
 			case MESOCALENDAR_TOTAL_COLS:

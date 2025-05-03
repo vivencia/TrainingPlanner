@@ -105,7 +105,7 @@ protected:
 	friend class DBExercisesModel;
 	friend class DBMesocyclesModel;
 	friend class DBMesoSplitModel;
-	friend class DBMesoCalendarModel;
+	friend class DBMesoCalendarManager;
 	friend class DBWorkoutModel;
 	friend class DBUserModel;
 };

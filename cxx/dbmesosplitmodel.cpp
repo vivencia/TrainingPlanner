@@ -31,7 +31,7 @@ DBMesoSplitModel::DBMesoSplitModel(QObject *parent, const bool bComplete, const 
 void DBMesoSplitModel::convertFromTDayModel(const DBWorkoutModel *const tDayModel)
 {
 	m_modeldata.clear();
-	for (uint i(0); i < tDayModel->m_ExerciseData.count(); ++i)
+	for (uint i(0); i < tDayModel->m_exerciseData.count(); ++i)
 	{
 		QStringList exerciseInfo(COMPLETE_MESOSPLIT_TOTAL_COLS);
 		exerciseInfo[MESOSPLIT_COL_EXERCISENAME] = tDayModel->exerciseName(i);
@@ -249,6 +249,16 @@ void DBMesoSplitModel::setSetType(const uint row, const uint set_number, const u
 		emit setTypeChanged(row);
 	if (exerciseName(row).isEmpty())
 		setExerciseName(row, new_type != SET_TYPE_GIANT ? tr("Choose exercise...") : tr("Choose exercises..."));
+}
+
+QString DBMesoSplitModel::setRestTime(const int row, const uint set_number) const
+{
+	return (row >= 0 && row < m_modeldata.count()) ? appUtils()->getCompositeValue(set_number, _setsRestTimes(row), set_separator) : STR_ZERO;
+}
+
+QString DBMesoSplitModel::setSetRestTime(const uint row, const uint set_number, const QString &new_setresttime)
+{
+	appUtils()->setCompositeValue(set_number, new_setresttime, m_modeldata[row][MESOSPLIT_COL_RESTTIMES], set_separator);
 }
 
 QString DBMesoSplitModel::setSubsets(const int row, const uint set_number) const

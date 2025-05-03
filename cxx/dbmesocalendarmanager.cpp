@@ -1,4 +1,4 @@
-#include "dbmesocalendarmodel.h"
+#include "dbmesocalendarmanager.h"
 
 #include "dbcalendarmodel.h"
 #include "dbinterface.h"
@@ -9,7 +9,7 @@
 
 #include <ranges>
 
-uint DBMesoCalendarModel::populateCalendarDays(const uint meso_idx, QDate &start_date, const QDate &end_date, const QString &split)
+uint DBMesoCalendarManager::populateCalendarDays(const uint meso_idx, QDate &start_date, const QDate &end_date, const QString &split)
 {
 	const uint n_days{static_cast<uint>(start_date.daysTo(end_date))+1};
 	m_dayInfoList[meso_idx].reserve(n_days);
@@ -30,7 +30,7 @@ uint DBMesoCalendarModel::populateCalendarDays(const uint meso_idx, QDate &start
 	return appUtils()->calculateNumberOfMonths(start_date, end_date);
 }
 
-void DBMesoCalendarModel::createCalendar(const uint meso_idx)
+void DBMesoCalendarManager::createCalendar(const uint meso_idx)
 {
 	QDate startDate{std::move(appMesoModel()->startDate(meso_idx))};
 	const uint n_months{populateCalendarDays(meso_idx, startDate, appMesoModel()->endDate(meso_idx), appMesoModel()->split(meso_idx))};
@@ -38,7 +38,7 @@ void DBMesoCalendarModel::createCalendar(const uint meso_idx)
 	setDBDataReady(meso_idx, true, true);
 }
 
-std::optional<QString> DBMesoCalendarModel::dayInfo(const uint meso_idx, const uint calendar_day, const uint field) const
+std::optional<QString> DBMesoCalendarManager::dayInfo(const uint meso_idx, const uint calendar_day, const uint field) const
 {
 	if (meso_idx < m_dayInfoList.count())
 	{
@@ -48,7 +48,7 @@ std::optional<QString> DBMesoCalendarModel::dayInfo(const uint meso_idx, const u
 	return std::nullopt;
 }
 
-void DBMesoCalendarModel::setDayInfo(const uint meso_idx, const uint calendar_day, const uint field, const QString &new_value, const bool emit_signal)
+void DBMesoCalendarManager::setDayInfo(const uint meso_idx, const uint calendar_day, const uint field, const QString &new_value, const bool emit_signal)
 {
 	if (meso_idx < m_dayInfoList.count())
 	{
@@ -63,35 +63,36 @@ void DBMesoCalendarModel::setDayInfo(const uint meso_idx, const uint calendar_da
 	}
 }
 
-void DBMesoCalendarModel::removeCalendarForMeso(const uint meso_idx)
+void DBMesoCalendarManager::removeCalendarForMeso(const uint meso_idx)
 {
 	appDBInterface()->removeMesoCalendar(meso_idx);
 	appDBInterface()->removeWorkoutsForMeso(meso_idx);
 	delete m_calendars.at(meso_idx);
 	m_calendars.remove(meso_idx);
-	delete m_workouts.at(meso_idx);
+	qDeleteAll(m_workouts.at(meso_idx));
 	m_workouts.remove(meso_idx);
 	m_dbDataReady.remove(meso_idx);
 	for (uint i{meso_idx}; i < m_calendars.count(); ++i)
 	{
 		m_calendars.at(i)->setMesoIdx(i);
-		m_workouts.at(i)->setMesoIdx(i);
+		for (const auto workout: m_workouts.at(i))
+			workout->setMesoIdx(i);
 	}
 	qDeleteAll(m_dayInfoList.at(meso_idx));
 	m_dayInfoList.remove(meso_idx);
 }
 
-void DBMesoCalendarModel::addCalendarForMeso(const uint meso_idx)
+void DBMesoCalendarManager::addCalendarForMeso(const uint meso_idx)
 {
 	uint n_days{0};
 	if (appMesoModel()->_id(meso_idx) >= 0)
 		n_days = static_cast<uint>(appMesoModel()->startDate(meso_idx).daysTo(appMesoModel()->endDate(meso_idx)) + 1);
 	m_dayInfoList.append(QList<stDayInfo*>{n_days});
 	m_calendars.append(new DBCalendarModel{this, meso_idx});
-	m_workouts.append(new DBWorkoutModel{this, meso_idx});
+	m_workouts.append(QList<DBWorkoutModel*>{n_days});
 }
 
-void DBMesoCalendarModel::addNewCalendarForMeso(const uint new_mesoidx)
+void DBMesoCalendarManager::addNewCalendarForMeso(const uint new_mesoidx)
 {
 	addCalendarForMeso(new_mesoidx);
 	auto conn = std::make_shared<QMetaObject::Connection>();
@@ -104,7 +105,7 @@ void DBMesoCalendarModel::addNewCalendarForMeso(const uint new_mesoidx)
 	});
 }
 
-void DBMesoCalendarModel::remakeMesoCalendar(const uint meso_idx, const bool preserve_old_info)
+void DBMesoCalendarManager::remakeMesoCalendar(const uint meso_idx, const bool preserve_old_info)
 {
 	if (!hasDBData(meso_idx))
 	{
@@ -154,7 +155,7 @@ void DBMesoCalendarModel::remakeMesoCalendar(const uint meso_idx, const bool pre
 	setDBDataReady(meso_idx, true, true);
 }
 
-void DBMesoCalendarModel::alterCalendarSplits(const uint meso_idx, const QDate &start_date, const QDate &end_date, const QChar &new_splitletter)
+void DBMesoCalendarManager::alterCalendarSplits(const uint meso_idx, const QDate &start_date, const QDate &end_date, const QChar &new_splitletter)
 {
 	int day{calendarDay(meso_idx, start_date)};
 	if (day >= 0)
@@ -164,7 +165,7 @@ void DBMesoCalendarModel::alterCalendarSplits(const uint meso_idx, const QDate &
 		{
 			const int day_of_week{start_date.dayOfWeek()-1};
 			const QString &split{appMesoModel()->split(meso_idx)};
-			uint i{0};
+			uint i {0};
 
 			QString::iterator splitletter = const_cast<QString::iterator>(split.begin());
 			do {
@@ -189,7 +190,28 @@ void DBMesoCalendarModel::alterCalendarSplits(const uint meso_idx, const QDate &
 	}
 }
 
-const int DBMesoCalendarModel::calendarDay(const uint meso_idx, const QDate &date) const
+DBWorkoutModel *DBMesoCalendarManager::workoutForDay(const uint meso_idx, const QDate &date)
+{
+	DBWorkoutModel *w_model{nullptr};
+	if (meso_idx < m_dayInfoList.count())
+	{
+		const int cal_day{calendarDay(meso_idx, date)};
+		if (cal_day >= 0)
+		{
+			QList<DBWorkoutModel*> *workouts{&(m_workouts[meso_idx])};
+			if (cal_day >= workouts->count())
+			{
+				for (uint i{static_cast<uint>(workouts->count())}; i < cal_day; ++i)
+					workouts->append(new DBWorkoutModel{this, meso_idx, i});
+			}
+			else
+				w_model = workouts->at(cal_day);
+		}
+	}
+	return w_model;
+}
+
+const int DBMesoCalendarManager::calendarDay(const uint meso_idx, const QDate &date) const
 {
 	if (meso_idx < m_dayInfoList.count())
 	{
@@ -201,27 +223,27 @@ const int DBMesoCalendarModel::calendarDay(const uint meso_idx, const QDate &dat
 	return -1;
 }
 
-const std::optional<QString> DBMesoCalendarModel::mesoId(const uint meso_idx, const uint calendar_day) const
+const std::optional<QString> DBMesoCalendarManager::mesoId(const uint meso_idx, const uint calendar_day) const
 {
 	return dayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_MESOID);
 }
 
-void DBMesoCalendarModel::setMesoId(const uint meso_idx, const uint calendar_day, const QString &new_meso_id)
+void DBMesoCalendarManager::setMesoId(const uint meso_idx, const uint calendar_day, const QString &new_meso_id)
 {
 	setDayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_MESOID, new_meso_id);
 }
 
-const std::optional<QString> DBMesoCalendarModel::workoutId(const uint meso_idx, const uint calendar_day) const
+const std::optional<QString> DBMesoCalendarManager::workoutId(const uint meso_idx, const uint calendar_day) const
 {
 	return dayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_WORKOUTID);
 }
 
-void DBMesoCalendarModel::setWorkoutId(const uint meso_idx, const uint calendar_day, const QString &new_workout_id)
+void DBMesoCalendarManager::setWorkoutId(const uint meso_idx, const uint calendar_day, const QString &new_workout_id)
 {
 	setDayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_WORKOUTID, new_workout_id);
 }
 
-const std::optional<QDate> DBMesoCalendarModel::date(const uint meso_idx, const uint calendar_day) const
+const std::optional<QDate> DBMesoCalendarManager::date(const uint meso_idx, const uint calendar_day) const
 {
 	const std::optional<QString> value{std::move(dayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_DATE))};
 	if (value.has_value())
@@ -229,7 +251,7 @@ const std::optional<QDate> DBMesoCalendarModel::date(const uint meso_idx, const 
 	return std::nullopt;
 }
 
-const std::optional<QDate> DBMesoCalendarModel::nThDate(const uint meso_idx, const uint nth_month) const
+const std::optional<QDate> DBMesoCalendarManager::nThDate(const uint meso_idx, const uint nth_month) const
 {
 	std::optional<QDate> initialDate{std::move(date(meso_idx, 0))};
 	if (initialDate.has_value())
@@ -237,32 +259,32 @@ const std::optional<QDate> DBMesoCalendarModel::nThDate(const uint meso_idx, con
 	return initialDate;
 }
 
-void DBMesoCalendarModel::setDate(const uint meso_idx, const uint calendar_day, const QDate &new_date)
+void DBMesoCalendarManager::setDate(const uint meso_idx, const uint calendar_day, const QDate &new_date)
 {
 	setDayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_DATE, appUtils()->formatDate(new_date, TPUtils::DF_DATABASE));
 }
 
-const std::optional<QString> DBMesoCalendarModel::workoutNumber(const uint meso_idx, const uint calendar_day) const
+const std::optional<QString> DBMesoCalendarManager::workoutNumber(const uint meso_idx, const uint calendar_day) const
 {
 	return dayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_WORKOUTNUMBER);
 }
 
-void DBMesoCalendarModel::setWorkoutNumber(const uint meso_idx, const uint calendar_day, const QString &new_number)
+void DBMesoCalendarManager::setWorkoutNumber(const uint meso_idx, const uint calendar_day, const QString &new_number)
 {
 	setDayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_WORKOUTNUMBER, new_number);
 }
 
-const std::optional<QString> DBMesoCalendarModel::splitLetter(const uint meso_idx, const uint calendar_day) const
+const std::optional<QString> DBMesoCalendarManager::splitLetter(const uint meso_idx, const uint calendar_day) const
 {
 	return dayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_SPLITLETTER);
 }
 
-void DBMesoCalendarModel::setSplitLetter(const uint meso_idx, const uint calendar_day, const QString &new_splitletter, const bool emit_signal)
+void DBMesoCalendarManager::setSplitLetter(const uint meso_idx, const uint calendar_day, const QString &new_splitletter, const bool emit_signal)
 {
 	setDayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_SPLITLETTER, new_splitletter, emit_signal);
 }
 
-const std::optional<QTime> DBMesoCalendarModel::timeIn(const uint meso_idx, const uint calendar_day) const
+const std::optional<QTime> DBMesoCalendarManager::timeIn(const uint meso_idx, const uint calendar_day) const
 {
 	const std::optional<QString> value{std::move(dayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_TIMEIN))};
 	if (value.has_value())
@@ -270,12 +292,12 @@ const std::optional<QTime> DBMesoCalendarModel::timeIn(const uint meso_idx, cons
 	return std::nullopt;
 }
 
-void DBMesoCalendarModel::setTimeIn(const uint meso_idx, const uint calendar_day, const QTime &new_timein)
+void DBMesoCalendarManager::setTimeIn(const uint meso_idx, const uint calendar_day, const QTime &new_timein)
 {
 	setDayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_TIMEIN, appUtils()->formatTime(new_timein, TPUtils::TF_QML_DISPLAY_NO_SEC));
 }
 
-const std::optional<QTime> DBMesoCalendarModel::timeOut(const uint meso_idx, const uint calendar_day) const
+const std::optional<QTime> DBMesoCalendarManager::timeOut(const uint meso_idx, const uint calendar_day) const
 {
 	const std::optional<QString> value{std::move(dayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_TIMEOUT))};
 	if (value.has_value())
@@ -283,32 +305,32 @@ const std::optional<QTime> DBMesoCalendarModel::timeOut(const uint meso_idx, con
 	return std::nullopt;
 }
 
-void DBMesoCalendarModel::setTimeOut(const uint meso_idx, const uint calendar_day, const QTime &new_timeout)
+void DBMesoCalendarManager::setTimeOut(const uint meso_idx, const uint calendar_day, const QTime &new_timeout)
 {
 	setDayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_TIMEIN, appUtils()->formatTime(new_timeout, TPUtils::TF_QML_DISPLAY_NO_SEC));
 }
 
-const std::optional<QString> DBMesoCalendarModel::location(const uint meso_idx, const uint calendar_day) const
+const std::optional<QString> DBMesoCalendarManager::location(const uint meso_idx, const uint calendar_day) const
 {
 	return dayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_LOCATION);
 }
 
-void DBMesoCalendarModel::setLocation(const uint meso_idx, const uint calendar_day, const QString &new_location)
+void DBMesoCalendarManager::setLocation(const uint meso_idx, const uint calendar_day, const QString &new_location)
 {
 	setDayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_LOCATION, new_location);
 }
 
-const std::optional<QString> DBMesoCalendarModel::notes(const uint meso_idx, const uint calendar_day) const
+const std::optional<QString> DBMesoCalendarManager::notes(const uint meso_idx, const uint calendar_day) const
 {
 	return dayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_NOTES);
 }
 
-void DBMesoCalendarModel::setNotes(const uint meso_idx, const uint calendar_day, const QString &new_notes)
+void DBMesoCalendarManager::setNotes(const uint meso_idx, const uint calendar_day, const QString &new_notes)
 {
 	setDayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_NOTES, new_notes);
 }
 
-const std::optional<bool> DBMesoCalendarModel::trainingCompleted(const uint meso_idx, const uint calendar_day) const
+const std::optional<bool> DBMesoCalendarManager::trainingCompleted(const uint meso_idx, const uint calendar_day) const
 {
 	const std::optional<QString> value{std::move(dayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_TRAINING_COMPLETED))};
 	if (value.has_value())
@@ -316,7 +338,7 @@ const std::optional<bool> DBMesoCalendarModel::trainingCompleted(const uint meso
 	return std::nullopt;
 }
 
-void DBMesoCalendarModel::setTrainingCompleted(const uint meso_idx, const uint calendar_day, const bool completed)
+void DBMesoCalendarManager::setTrainingCompleted(const uint meso_idx, const uint calendar_day, const bool completed)
 {
 	setDayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_TIMEIN, completed ? STR_ONE : STR_ZERO);
 }

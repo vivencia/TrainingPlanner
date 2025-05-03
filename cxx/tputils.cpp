@@ -489,13 +489,22 @@ QString TPUtils::getCompositeValue(const uint idx, const QString &compositeStrin
 		if (chr.toLatin1() == chr_sep)
 		{
 			if (++n_seps == idx)
-				return compositeString.sliced(last_sep_pos, chr_pos);	
+				return compositeString.sliced(last_sep_pos, chr_pos);
 			last_sep_pos += chr_pos + 1;
 			chr_pos = -1;
 		}
 		++chr_pos;
 	}
 	return idx == 0 ? compositeString : QString{};
+}
+
+QString TPUtils::lastValueInComposite(const QString &compositeString, const QLatin1Char &chr_sep) const
+{
+	const int last_field{static_cast<int>(nFieldsInCompositeString(compositeString, chr_sep) - 1)};
+	if (last_field >= 0)
+		return getCompositeValue(last_field, compositeString, chr_sep);
+	else
+		return compositeString;
 }
 
 void TPUtils::setCompositeValue(const uint idx, const QString &newValue, QString &compositeString, const QLatin1Char &chr_sep) const
@@ -575,6 +584,28 @@ int TPUtils::fieldOfValue(const QString &value, const QString &compositeString, 
 		}
 	}
 	return -1;
+}
+
+QString TPUtils::subSetOfCompositeValue(const QString &value, const uint from, const uint n, const QLatin1Char &chr_sep) const
+{
+	int n_seps{-1};
+	int chr_pos{0};
+	uint last_sep_pos{0};
+	QString ret;
+
+	for (const auto &chr : value)
+	{
+		if (chr.toLatin1() == chr_sep)
+		{
+			if (n_seps <= from)
+				ret += value.sliced(last_sep_pos, chr_pos + 1);
+			if (++n_seps >= n)
+				break;
+			last_sep_pos += chr_pos + 1;
+		}
+		++chr_pos;
+	}
+	return ret.isEmpty() ? value + chr_sep : ret;
 }
 
 bool TPUtils::stringsAreSimiliar(const QString &string1, const QString &string2) const

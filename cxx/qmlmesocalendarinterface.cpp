@@ -1,7 +1,7 @@
 #include "qmlmesocalendarinterface.h"
 
 #include "dbinterface.h"
-#include "dbmesocalendarmodel.h"
+#include "DBMesoCalendarManager.h"
 #include "dbmesocyclesmodel.h"
 #include "dbmesosplitmodel.h"
 #include "qmlitemmanager.h"
@@ -15,9 +15,12 @@
 
 QmlMesoCalendarInterface::QmlMesoCalendarInterface(QObject *parent, const uint meso_idx)
 	: QObject{parent}, m_calComponent{nullptr}, m_calPage{nullptr}, m_mesoIdx{meso_idx},
-		m_calendarModel{appMesoModel()->mesoCalendarModel()->calendar(meso_idx)}
+	  m_calendarModel{appMesoModel()->mesoCalendarModel()->calendar(meso_idx)}, m_selectedDate{std::move(appUtils()->today())}
 {
-	connect(m_calendarModel, &DBCalendarModel::modelChanged, this, &QmlMesoCalendarInterface::calendarModelChanged);
+	connect(m_calendarModel, &DBCalendarModel::modelChanged, this, [this] () {
+		m_calPage->setProperty("calendarModel", 0);
+		m_calPage->setProperty("calendarModel", QVariant::fromValue(m_calendarModel));
+	});
 }
 
 QmlMesoCalendarInterface::~QmlMesoCalendarInterface()
@@ -49,35 +52,30 @@ void QmlMesoCalendarInterface::changeSplitLetter(const QString &newSplitLetter, 
 	}
 }
 
-void QmlMesoCalendarInterface::getTrainingDayPage(const QDate& date)
+void QmlMesoCalendarInterface::getTrainingDayPage()
 {
-	qobject_cast<QMLMesoInterface*>(parent())->getTrainingDayPage(date);
+	qobject_cast<QMLMesoInterface*>(parent())->getTrainingDayPage(m_selectedDate);
 }
 
-QString QmlMesoCalendarInterface::dayInfo(const uint year, const uint month, const uint day)
+QString QmlMesoCalendarInterface::dayInfo()
 {
-	if (day == 0 || year == 0)
-		return QString();
-	const DBMesoCalendarModel* const mesoCal(appMesoModel()->mesoCalendarModel(m_mesoIdx));
-	const bool bDayOK(mesoCal->isPartOfMeso(month, day));
-	if (bDayOK)
-	{
-		m_selectedSplitLetter = std::move(mesoCal->getSplitLetter(month, day));
-		emit selectedSplitLetterChanged();
-		m_selectedTrainingDay = std::move(QString::number(mesoCal->getTrainingDay(month, day)));
-		static_cast<void>(m_selectedDate.setDate(static_cast<int>(year), static_cast<int>(month), static_cast<int>(day+1)));
+	if (!m_selectedDate.isValid())
+		return QString{};
 
-		if (m_selectedSplitLetter != "R"_L1)
-			return std::move(appUtils()->formatDate(m_selectedDate)) + std::move(tr(": Workout #")) +
-				m_selectedTrainingDay + std::move(tr(" Split: ")) + m_selectedSplitLetter + " - "_L1 +
-				std::move(appMesoModel()->mesoSplitModel()->splitX(m_mesoIdx, appUtils()->splitLetterToMesoSplitIndex(m_selectedSplitLetter)));
-		else
-			return std::move(appUtils()->formatDate(m_selectedDate)) + std::move(tr(": Rest day"));
-	}
-	else
+	m_selectedSplitLetter = std::move(m_calendarModel->splitLetter(m_selectedDate));
+	m_selectedTrainingDay = std::move(m_calendarModel->workoutNumber(m_selectedDate));
+	emit selectedSplitLetterChanged();
+
+	if (m_selectedSplitLetter.isEmpty())
 		return tr("Selected day is not part of the current mesocycle");
-}
+	else if (m_selectedSplitLetter != "R"_L1)
+		return std::move(appUtils()->formatDate(m_selectedDate)) + std::move(tr(": Workout #")) +
+			m_selectedTrainingDay + std::move(tr(" Split: ")) + m_selectedSplitLetter + " - "_L1 +
+			std::move(appMesoModel()->mesoSplitModel()->splitX(m_mesoIdx, appUtils()->splitLetterToMesoSplitIndex(m_selectedSplitLetter)));
+	else
+		return std::move(appUtils()->formatDate(m_selectedDate)) + std::move(tr(": Rest day"));
 
+}
 
 QString QmlMesoCalendarInterface::nameLabel() const
 {
@@ -94,13 +92,13 @@ void QmlMesoCalendarInterface::createMesoCalendarPage()
 {
 	m_calComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/MesoCalendarPage.qml"_L1}, QQmlComponent::Asynchronous};
 	m_calProperties.insert("calendarManager"_L1, QVariant::fromValue(this));
-	m_calProperties.insert("mesoCalendarModel"_L1, QVariant::fromValue(appMesoModel()->mesoCalendarModel(m_mesoIdx)));
+	m_calProperties.insert("calendarModel"_L1, QVariant::fromValue(m_calendarModel));
 
 	if (m_calComponent->status() != QQmlComponent::Ready)
 	{
 		connect(m_calComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status) {
 			createMesoCalendarPage_part2();
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		}, Qt::SingleShotConnection);
 	}
 	else
 		createMesoCalendarPage_part2();
@@ -113,7 +111,7 @@ void QmlMesoCalendarInterface::createMesoCalendarPage_part2()
 	if (m_calComponent->status() == QQmlComponent::Error)
 	{
 		qDebug() << m_calComponent->errorString();
-		for (uint i(0); i < m_calComponent->errors().count(); ++i)
+		for (uint i{0}; i < m_calComponent->errors().count(); ++i)
 			qDebug() << m_calComponent->errors().at(i).description();
 		return;
 	}

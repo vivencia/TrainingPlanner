@@ -7,11 +7,12 @@
 #define MESOSPLIT_COL_SETSNUMBER 1
 #define MESOSPLIT_COL_NOTES 2
 #define MESOSPLIT_COL_SETTYPE 3
-#define MESOSPLIT_COL_SUBSETSNUMBER 4
-#define MESOSPLIT_COL_REPSNUMBER 5
-#define MESOSPLIT_COL_WEIGHT 6
-#define MESOSPLIT_COL_WORKINGSET 7
-#define COMPLETE_MESOSPLIT_TOTAL_COLS 8
+#define MESOSPLIT_COL_RESTTIMES 4
+#define MESOSPLIT_COL_SUBSETSNUMBER 5
+#define MESOSPLIT_COL_REPSNUMBER 6
+#define MESOSPLIT_COL_WEIGHT 7
+#define MESOSPLIT_COL_WORKINGSET 8
+#define COMPLETE_MESOSPLIT_TOTAL_COLS 9
 
 #define MESOSPLIT_COL_ID 0
 #define MESOSPLIT_COL_MESOID 1
@@ -78,7 +79,7 @@ public:
 	bool isFieldUserModified(const uint row, const uint field) const;
 
 	inline const QChar &_splitLetter() const { return m_splitLetter; }
-	Q_INVOKABLE inline QString splitLetter() const { return QString(m_splitLetter); }
+	Q_INVOKABLE inline QString splitLetter() const { return QString{m_splitLetter}; }
 	Q_INVOKABLE inline void setSplitLetter(const QChar &splitLetter) { m_splitLetter = splitLetter; }
 	Q_INVOKABLE inline void setSplitLetter(const QString &splitLetter ) { setSplitLetter(splitLetter.at(0)); }
 
@@ -108,6 +109,10 @@ public:
 	inline const QString &_setsTypes(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_SETTYPE); }
 	Q_INVOKABLE int setType(const int row, const uint set_number) const;
 	Q_INVOKABLE void setSetType(const uint row, const uint set_number, const uint new_type, const bool b_emit_modified = true);
+
+	inline const QString &_setsRestTimes(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_RESTTIMES); }
+	Q_INVOKABLE QString setRestTime(const int row, const uint set_number) const;
+	Q_INVOKABLE QString setSetRestTime(const uint row, const uint set_number, const QString &new_setresttime);
 
 	inline const QString &_setsSubSets(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_SUBSETSNUMBER); }
 	Q_INVOKABLE QString setSubsets(const int row, const uint set_number) const;

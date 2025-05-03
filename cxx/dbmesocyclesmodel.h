@@ -30,7 +30,7 @@ enum MesoRoleNames {
 };
 
 QT_FORWARD_DECLARE_CLASS(DBMesoSplitModel)
-QT_FORWARD_DECLARE_CLASS(DBMesoCalendarModel)
+QT_FORWARD_DECLARE_CLASS(DBMesoCalendarManager)
 QT_FORWARD_DECLARE_CLASS(QMLMesoInterface)
 
 static const QLatin1StringView mesosDir{"mesocycles/"};
@@ -62,7 +62,7 @@ public:
 
 	const uint newMesocycle(QStringList &&infolist);
 	inline DBMesoSplitModel *mesoSplitModel() { return m_splitModel; }
-	inline DBMesoCalendarModel *mesoCalendarModel() const { return m_calendarModel; }
+	inline DBMesoCalendarManager *mesoCalendarModel() const { return m_calendarModel; }
 
 	inline homePageMesoModel *currentHomePageMesoModel() { return m_curMesos; }
 	Q_INVOKABLE inline homePageMesoModel *ownMesos() const { return m_ownMesos; }
@@ -282,7 +282,7 @@ signals:
 private:
 	QList<QMLMesoInterface*> m_mesoManagerList;
 	DBMesoSplitModel *m_splitModel;
-	DBMesoCalendarModel* m_calendarModel;
+	DBMesoCalendarManager* m_calendarModel;
 	homePageMesoModel *m_curMesos, *m_ownMesos, *m_clientMesos;
 	QList<short> m_isNewMeso;
 	QList<short> m_newMesoFieldCounter;

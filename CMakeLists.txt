@@ -82,7 +82,7 @@ set( CXX_SOURCES
 	cxx/dbmesocyclesmodel.h cxx/dbmesocyclesmodel.cpp
 	cxx/homepagemesomodel.h cxx/homepagemesomodel.cpp
 	cxx/dbmesosplitmodel.h cxx/dbmesosplitmodel.cpp
-	cxx/dbmesocalendarmodel.h cxx/dbmesocalendarmodel.cpp
+	cxx/dbmesocalendarmanager.h cxx/dbmesocalendarmanager.cpp
 	cxx/dbworkoutmodel.h cxx/dbworkoutmodel.cpp
     cxx/dbcalendarmodel.h cxx/dbcalendarmodel.cpp
 	cxx/dbusermodel.h cxx/dbusermodel.cpp
@@ -103,6 +103,7 @@ set( CXX_SOURCES
 	cxx/weather/openweathermapbackend.h
 	cxx/weather/openweathermapbackend.cpp
 
+    cxx/exercises_helper/setpredictionvalues.h cxx/exercises_helper/setpredictionvalues.cpp
 	cxx/statistics/tpstatistics.h cxx/statistics/tpstatistics.cpp
 
 	cxx/online_services/tponlineservices.h cxx/online_services/tponlineservices.cpp

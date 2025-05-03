@@ -87,16 +87,17 @@ public:
 	}
 
 	QTime calculateTimeDifference(const QString &strTimeInit, const QString &strTimeFinal) const;
-
 	QDateTime getDateTimeFromOnlineString(const QString &datetime) const;
 
 	QString makeCompositeValue(const QString &defaultValue, const uint n_fields, const QLatin1Char &chr_sep) const;
 	QString makeDoubleCompositeValue(const QString &defaultValue, const uint n_fields1, const uint n_fields2,
 										const QLatin1Char &chr_sep1, const QLatin1Char &chr_sep2) const;
 	QString getCompositeValue(const uint idx, const QString &compositeString, const QLatin1Char &chr_sep) const;
+	QString lastValueInComposite(const QString &compositeString, const QLatin1Char &chr_sep) const;
 	void setCompositeValue(const uint idx, const QString &newValue, QString &compositeString, const QLatin1Char &chr_sep) const;
 	void removeFieldFromCompositeValue(const uint idx, QString &compositeString, const QLatin1Char &chr_sep) const;
 	int fieldOfValue(const QString &value, const QString &compositeString, const QLatin1Char &chr_sep) const;
+	QString subSetOfCompositeValue(const QString &value, const uint from, const uint n, const QLatin1Char &chr_sep) const;
 	inline QString string_strings( const std::initializer_list<QString> &strings, const QLatin1Char &chr_sep) const
 	{
 		QString ret;
@@ -104,6 +105,7 @@ public:
 			ret += i + chr_sep;
 		return ret;
 	}
+	inline uint nFieldsInCompositeString(const QString &compositeString, const QLatin1Char &chr_sep) const { return compositeString.count(chr_sep); }
 
 	bool stringsAreSimiliar(const QString &string1, const QString &string2) const;
 	QString stripDiacriticsFromString(const QString &src) const;

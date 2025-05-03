@@ -3,7 +3,7 @@
 #include "dbcalendarmodel.h"
 #include "dbinterface.h"
 #include "dbexercisesmodel.h"
-#include "dbmesocalendarmodel.h"
+#include "DBMesoCalendarManager.h"
 #include "dbmesocyclesmodel.h"
 #include "dbmesosplitmodel.h"
 #include "dbworkoutmodel.h"
@@ -86,7 +86,7 @@ void QmlItemManager::configureQmlEngine()
 	qmlRegisterType<DBExercisesModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBExercisesModel");
 	qmlRegisterType<DBMesocyclesModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBMesocyclesModel");
 	qmlRegisterType<DBMesoSplitModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBMesoSplitModel");
-	qmlRegisterType<DBMesoCalendarModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBMesoCalendarModel");
+	qmlRegisterType<DBMesoCalendarManager>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBMesoCalendarManager");
 	qmlRegisterType<DBCalendarModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBCalendarModel");
 	qmlRegisterType<DBWorkoutModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBWorkoutModel");
 	qmlRegisterType<TPTimer>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "TPTimer");

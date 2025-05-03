@@ -39,8 +39,8 @@ public:
 	}
 
 	Q_INVOKABLE void changeSplitLetter(const QString &newSplitLetter, const bool bUntillTheEnd);
-	Q_INVOKABLE void getTrainingDayPage(const QDate &date);
-	Q_INVOKABLE QString dayInfo(const uint year, const uint month, const uint day);
+	Q_INVOKABLE void getTrainingDayPage();
+	Q_INVOKABLE QString dayInfo();
 	QString nameLabel() const;
 	QString dateLabel() const;
 	inline QString selectedSplitLetter() const { return m_selectedSplitLetter; }
@@ -49,7 +49,6 @@ signals:
 	void addPageToMainMenu(const QString &label, QQuickItem *page);
 	void removePageFromMainMenu(QQuickItem *page);
 	void selectedDateChanged();
-	void calendarModelChanged();
 	void nameLabelChanged();
 	void dateLabelChanged();
 	void selectedSplitLetterChanged();
