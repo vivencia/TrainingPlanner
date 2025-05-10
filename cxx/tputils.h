@@ -50,6 +50,13 @@ public:
 	void scanDir(const QString &path, QFileInfoList &results, const QString &match = QString{}, const bool follow_tree = false);
 	bool writeDataToFile(QFile *out_file, const QList<QStringList> &data, const QList<uint> &export_rows = QList<uint>{},
 							const QString &header = QString{}, const bool use_real_id = true) const;
+	bool writeDataToFile(QFile *out_file,
+					const QList<QStringList> &data,
+					const QList<std::function<QString(void)>> &field_description,
+					const std::function<QString(const uint field, const QString &value)> &formatToExport = nullptr,
+					const QList<const uint> &export_rows = QList<uint>{},
+					const QString &header = QString{}
+	);
 	int readDataFromFile(QFile *in_file, QList<QStringList> &data, const uint field_count, const	QString &identifier, const int row = -1);
 
 	Q_INVOKABLE void copyToClipBoard(const QString &text) const;

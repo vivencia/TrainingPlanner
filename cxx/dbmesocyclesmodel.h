@@ -60,9 +60,15 @@ Q_PROPERTY(QString startDateLabel READ startDateLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString endDateLabel READ endDateLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString notesLabel READ notesLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString nWeeksLabel READ nWeeksLabel NOTIFY labelChanged FINAL)
+Q_PROPERTY(QString splitLabel READ splitLabel NOTIFY labelChanged FINAL)
+Q_PROPERTY(QString splitLabelA READ splitLabelA NOTIFY labelChanged FINAL)
+Q_PROPERTY(QString splitLabelB READ splitLabelA NOTIFY labelChanged FINAL)
+Q_PROPERTY(QString splitLabelC READ splitLabelA NOTIFY labelChanged FINAL)
+Q_PROPERTY(QString splitLabelD READ splitLabelA NOTIFY labelChanged FINAL)
+Q_PROPERTY(QString splitLabelE READ splitLabelA NOTIFY labelChanged FINAL)
+Q_PROPERTY(QString splitLabelF READ splitLabelA NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString coachLabel READ coachLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString clientLabel READ clientLabel NOTIFY labelChanged FINAL)
-Q_PROPERTY(QString splitLabel READ splitLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString typeLabel READ typeLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString realMesoLabel READ realMesoLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString nonMesoLabel READ nonMesoLabel NOTIFY labelChanged FINAL)
@@ -291,9 +297,15 @@ public:
 	inline const QString endDateLabel() const { return tr("End date: "); }
 	inline const QString notesLabel() const { return tr("Program's considerations: "); }
 	inline const QString nWeeksLabel() const { return tr("Number of weeks: "); }
+	inline const QString splitLabel() const { return tr("Weekly training division: "); }
+	inline const QString splitLabelA() const { return tr("Muscular groups for division A: "); }
+	inline const QString splitLabelB() const { return tr("Muscular groups for division B: "); }
+	inline const QString splitLabelC() const { return tr("Muscular groups for division C: "); }
+	inline const QString splitLabelD() const { return tr("Muscular groups for division D: "); }
+	inline const QString splitLabelE() const { return tr("Muscular groups for division E: "); }
+	inline const QString splitLabelF() const { return tr("Muscular groups for division F: "); }
 	inline const QString coachLabel() const { return tr("Coach/Trainer: "); }
 	inline const QString clientLabel() const { return tr("Client: "); }
-	inline const QString splitLabel() const { return tr("Weekly Training Division: "); }
 	inline const QString typeLabel() const { return tr("Type: "); }
 	inline const QString realMesoLabel() const { return tr("Mesocycle-style program: "); }
 	inline const QString nonMesoLabel() const { return tr("Mesocycle-style program: "); }
@@ -330,7 +342,7 @@ public:
 	//the recently added meso
 	inline int importIdx() const { return m_importMesoIdx; }
 	inline void setImportIdx(const int new_import_idx) { m_importMesoIdx = new_import_idx; }
-	int exportToFile(const QString &filename, const bool = true, const bool = true, const bool = true) const;
+	int exportToFile(const uint meso_idx, const QString &filename) const;
 	int importFromFile(const QString &filename);
 	//bool updateFromModel(const uint meso_idx, TPListModel *model);
 

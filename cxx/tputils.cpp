@@ -218,6 +218,63 @@ bool TPUtils::writeDataToFile(QFile *out_file, const QList<QStringList> &data, c
 	return true;
 }
 
+bool TPUtils::writeDataToFile(QFile *out_file,
+								const QList<QStringList> &data,
+								const QList<std::function<QString(void)>> &field_description,
+								const std::function<QString(const uint field, const QString &value)> &formatToExport,
+								const QList<const uint> &export_rows,
+								const QString &header)
+{
+	if (!out_file || !out_file->isOpen())
+		return false;
+
+	if (!header.isEmpty())
+		out_file->write(header.toUtf8().constData());
+
+	if (export_rows.isEmpty())
+	{
+		for (const auto &modeldata : data)
+		{
+			for (uint i{0}; i < modeldata.count(); ++i)
+			{
+				if (field_description.at(i) != nullptr)
+				{
+					out_file->write(field_description.at(i)().toUtf8().constData());
+					if (formatToExport == nullptr)
+						out_file->write(modeldata.at(i).toUtf8().constData());
+					else
+						out_file->write(formatToExport(i, modeldata.at(i)).toUtf8().constData());
+					out_file->write("\n", 1);
+				}
+			}
+			out_file->write("##!!\n", 5);
+		}
+	}
+	else
+	{
+		for (uint x{0}; x < export_rows.count(); ++x)
+		{
+			for (const auto &modeldata : data.at(export_rows.at(x)))
+			{
+				uint i{0};
+				if (field_description.at(i) != nullptr)
+				{
+					out_file->write(field_description.at(i)().toUtf8().constData());
+					if (formatToExport == nullptr)
+						out_file->write(modeldata.toUtf8().constData());
+					else
+						out_file->write(formatToExport(i, modeldata).toUtf8().constData());
+					out_file->write("\n", 1);
+				}
+				++i;
+			}
+			out_file->write("##!!\n", 5);
+		}
+	}
+	out_file->flush();
+	return true;
+}
+
 int TPUtils::readDataFromFile(QFile *in_file, QList<QStringList>& data, const uint field_count, const QString& identifier, const int row)
 {
 	if (!in_file || !in_file->isOpen())

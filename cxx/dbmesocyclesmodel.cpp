@@ -470,16 +470,40 @@ void DBMesocyclesModel::checkIfCanExport(const uint meso_idx, const bool bEmitSi
 	}
 }
 
-int DBMesocyclesModel::exportToFile(const QString &filename, const bool, const bool, const bool) const
+int DBMesocyclesModel::exportToFile(const uint meso_idx, const QString &filename) const
 {
-	const uint exportrow{m_exportRows.at(0)};
-	int res{this->TPListModel::exportToFile(filename, true, false)};
-	if (res >= 0)
-	{
-		m_splitModel->setExportRow(exportrow);
-		res = m_splitModel->TPListModel::exportToFile(filename, false, true);
-	}
-	return res;
+	QFile *out_file{appUtils()->openFile(filename, QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text)};
+	if (!out_file)
+		return APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
+
+	const QList<const uint> &export_row{QList<const uint>{} << meso_idx};
+	QList<std::function<QString(void)>> field_description{QList<std::function<QString(void)>>{} << nullptr <<
+										[this] () { return mesoNameLabel(); } <<
+										[this] () { return startDateLabel(); } <<
+										[this] () { return endDateLabel(); } <<
+										[this] () { return notesLabel(); } <<
+										[this] () { return nWeeksLabel(); } <<
+										[this] () { return splitLabel(); } <<
+										[this] () { return splitLabelA(); } <<
+										[this] () { return splitLabelB(); } <<
+										[this] () { return splitLabelC(); } <<
+										[this] () { return splitLabelD(); } <<
+										[this] () { return splitLabelE(); } <<
+										[this] () { return splitLabelF(); } <<
+										[this] () { return coachLabel(); } <<
+										[this] () { return clientLabel(); } <<
+										nullptr <<
+										[this] () { return typeLabel(); } <<
+										[this] () { return realMesoLabel(); }
+	};
+	if (!appUtils()->writeDataToFile(out_file,
+					m_mesoData,
+					field_description,
+					[this] (const uint field, const QString &value) { return formatFieldToExport(field, value); },
+					export_row,
+					QString{"## "_L1 + tr("Exercises Program") + " - 0x00"_L1 + QString::number(MESOCYCLES_TABLE_ID) + "\n\n"_L1}))
+			return APPWINDOW_MSG_EXPORT_FAILED;
+	return APPWINDOW_MSG_EXPORT_OK;
 }
 
 int DBMesocyclesModel::importFromFile(const QString &filename)
