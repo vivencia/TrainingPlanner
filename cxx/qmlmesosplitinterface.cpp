@@ -1,6 +1,6 @@
 #include "qmlmesosplitinterface.h"
 
-#include "dbexercisesmodel.h"
+#include "dbexerciseslistmodel.h"
 #include "dbinterface.h"
 #include "dbmesocyclesmodel.h"
 #include "dbmesosplitmodel.h"
@@ -177,12 +177,68 @@ void QmlMesoSplitInterface::importMesoSplit(const QString& filename)
 		appItemManager()->openRequestedFile(filename, IFC_MESOSPLIT);
 }
 
+static void muscularGroupSimplified(QString &muscularGroup)
+{
+	muscularGroup = muscularGroup.replace(',', ' ').simplified();
+	const QStringList &words(muscularGroup.split(' '));
+
+	if (words.count() > 0)
+	{
+		QStringList::const_iterator itr(words.begin());
+		const QStringList::const_iterator &itr_end(words.end());
+		muscularGroup.clear();
+
+		do
+		{
+			if((*itr).length() < 3)
+				continue;
+			if (!muscularGroup.isEmpty())
+				muscularGroup.append(' ');
+			muscularGroup.append((*itr).toLower());
+			if (muscularGroup.endsWith('s', Qt::CaseInsensitive))
+				muscularGroup.chop(1);
+			muscularGroup.remove('.');
+			muscularGroup.remove('(');
+			muscularGroup.remove(')');
+		} while (++itr != itr_end);
+	}
+}
+
+QString QmlMesoSplitInterface::findSwappableModel() const
+{
+	QString muscularGroup1{std::move(appMesoModel()->muscularGroup(mesoIdx(), currentSplitLetter().at(0)))};
+	if (!muscularGroup1.isEmpty())
+	{
+		muscularGroupSimplified(muscularGroup1);
+		QString muscularGroup2;
+		const QString &mesoSplit{appMesoModel()->split(mesoIdx())};
+		QString::const_iterator itr{mesoSplit.constBegin()};
+		const QString::const_iterator &itr_end{mesoSplit.constEnd()};
+
+		do {
+			if ((*itr) == QChar('R'))
+				continue;
+			else if ((*itr) == currentSplitLetter().at(0))
+				continue;
+
+			muscularGroup2 = appMesoModel()->muscularGroup(mesoIdx(), *itr);
+			if (!muscularGroup2.isEmpty())
+			{
+				muscularGroupSimplified(muscularGroup2);
+				if (appUtils()->stringsAreSimiliar(muscularGroup1, muscularGroup2))
+					return static_cast<QString>(*itr);
+			}
+		} while (++itr != itr_end);
+	}
+	return QString{};
+}
+
 QQuickItem* QmlMesoSplitInterface::setCurrentPage(const int index)
 {
 	m_currentSplitPage = m_splitPages.value(QChar(static_cast<int>('A') + index));
 	m_currentSplitLetter = std::move(m_splitPages.key(m_currentSplitPage));
 	m_bHasExercises = currentSplitModel()->count() > 1;
-	m_currentSwappableLetter = std::move(currentSplitModel()->findSwappableModel());
+	m_currentSwappableLetter = std::move(findSwappableModel());
 	emit currentPageChanged();
 	return m_currentSplitPage;
 }
@@ -195,29 +251,29 @@ void QmlMesoSplitInterface::exerciseSelected()
 	QString exerciseName, nReps, nWeight;
 	const bool b_is_composite(appExercisesModel()->selectedEntriesCount() > 1);
 
-	exerciseName = std::move(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) + " - "_L1 +
+	exerciseName = std::move(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_MAINNAME) + " - "_L1 +
 					appExercisesModel()->selectedEntriesValue_fast(0, 2));
 
 	if (!b_is_composite)
 	{
-		nReps = std::move(appUtils()->makeCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_REPSNUMBER),
+		nReps = std::move(appUtils()->makeCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_REPSNUMBER),
 							nsets, set_separator));
-		nWeight = std::move(appUtils()->makeCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_WEIGHT),
+		nWeight = std::move(appUtils()->makeCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_WEIGHT),
 							nsets, set_separator));
 	}
 	else
 	{
-		nReps = std::move(appUtils()->makeDoubleCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_REPSNUMBER),
+		nReps = std::move(appUtils()->makeDoubleCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_REPSNUMBER),
 							nsets, 2, set_separator, comp_exercise_separator));
-		nWeight = std::move(appUtils()->makeDoubleCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_WEIGHT),
+		nWeight = std::move(appUtils()->makeDoubleCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_WEIGHT),
 							nsets, 2, set_separator, comp_exercise_separator));
-		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_MAINNAME) + " - "_L1 +
+		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_LIST_COL_MAINNAME) + " - "_L1 +
 						appExercisesModel()->selectedEntriesValue_fast(1, 2), exerciseName, comp_exercise_separator);
 		appUtils()->setCompositeValue(1, appUtils()->makeCompositeValue(
-										appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_REPSNUMBER), nsets, set_separator),
+										appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_LIST_COL_REPSNUMBER), nsets, set_separator),
 										nReps, comp_exercise_separator);
 		appUtils()->setCompositeValue(1, appUtils()->makeCompositeValue(
-										appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_WEIGHT), nsets, set_separator),
+										appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_LIST_COL_WEIGHT), nsets, set_separator),
 										nWeight, comp_exercise_separator);
 	}
 

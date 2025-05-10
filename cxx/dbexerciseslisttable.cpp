@@ -1,6 +1,6 @@
-#include "dbexercisestable.h"
+#include "dbexerciseslisttable.h"
 
-#include "dbexercisesmodel.h"
+#include "dbexerciseslistmodel.h"
 #include "tpglobals.h"
 #include "tputils.h"
 
@@ -9,7 +9,7 @@
 #include <QSqlQuery>
 #include <QTime>
 
-DBExercisesTable::DBExercisesTable(const QString &dbFilePath, DBExercisesModel *model)
+DBExercisesTable::DBExercisesTable(const QString &dbFilePath, DBExercisesListModel *model)
 	: TPDatabaseTable{}, m_model(model), m_exercisesTableLastId(1000)
 {
 	m_tableName = std::move("exercises_table"_L1);
@@ -64,10 +64,10 @@ void DBExercisesTable::getAllExercises()
 				do
 				{
 					m_model->appendList(std::move(QStringList(EXERCISES_TOTAL_COLS)));
-					for (uint i(EXERCISES_COL_ID); i < EXERCISES_COL_ACTUALINDEX; ++i)
+					for (uint i(EXERCISES_LIST_COL_ID); i < EXERCISES_LIST_COL_ACTUALINDEX; ++i)
 						m_model->lastRow()[i] = std::move(query.value(static_cast<int>(i)).toString());
-					m_model->lastRow()[EXERCISES_COL_ACTUALINDEX] = std::move(QString::number(m_model->count()));
-					m_model->lastRow()[EXERCISES_COL_SELECTED] = STR_ZERO;
+					m_model->lastRow()[EXERCISES_LIST_COL_ACTUALINDEX] = std::move(QString::number(m_model->count()));
+					m_model->lastRow()[EXERCISES_LIST_COL_SELECTED] = STR_ZERO;
 				} while (query.next ());
 				const uint highest_id (m_model->_id(m_model->count() - 1));
 				if (highest_id >= m_exercisesTableLastId)

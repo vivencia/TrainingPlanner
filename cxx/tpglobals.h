@@ -42,7 +42,7 @@ static const uint EXERCISES_TABLE_ID(0x0001);
 static const uint MESOCYCLES_TABLE_ID(0x0002);
 static const uint MESOSPLIT_TABLE_ID(0x0003);
 static const uint MESOCALENDAR_TABLE_ID(0x0004);
-static const uint TRAININGDAY_TABLE_ID(0x0005);
+static const uint WORKOUT_TABLE_ID(0x0005);
 static const uint USERS_TABLE_ID(0x0006);
 
 static const QString &DBExercisesObjectName("Exercises"_L1);

@@ -15,26 +15,29 @@
 #define MESOCALENDAR_TOTAL_COLS MESOCALENDAR_COL_TRAINING_COMPLETED + 1
 #define MESOCALENDAR_RENEW_DATABASE MESOCALENDAR_TOTAL_COLS + 1
 
-QT_FORWARD_DECLARE_CLASS(DBWorkoutModel)
+QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(DBCalendarModel)
+QT_FORWARD_DECLARE_STRUCT(stDayInfo);
+
+using DBWorkoutModel = DBExercisesModel;
 
 class TPBool {
 public:
-    // Default constructor initializes the value to false
-    inline TPBool() : m_value(false) {}
+	// Default constructor initializes the value to false
+	inline TPBool() : m_value(false) {}
 
-    // Constructor to initialize with a specific boolean value
-    inline explicit TPBool(bool val) : m_value{val} {}
+	// Constructor to initialize with a specific boolean value
+	inline explicit TPBool(bool val) : m_value{val} {}
 
-    // Operator overloading to allow implicit conversion to bool
-    operator bool() const {
-        return m_value;
-    }
+	// Operator overloading to allow implicit conversion to bool
+	operator bool() const {
+		return m_value;
+	}
 
 	bool operator=(bool val) { m_value = val; return m_value; }
 
 private:
-    bool m_value;
+	bool m_value;
 };
 
 class DBMesoCalendarManager : public QObject
@@ -43,13 +46,6 @@ class DBMesoCalendarManager : public QObject
 Q_OBJECT
 
 friend class DBMesoCalendarTable;
-
-struct stDayInfo
-{
-	QString data;
-	QString date;
-	TPBool modified;
-};
 
 public:
 	explicit inline DBMesoCalendarManager(QObject *parent) : QObject{parent} {}

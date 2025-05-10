@@ -48,6 +48,9 @@ public:
 	bool copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath = true) const;
 	QFile *openFile(const QString &filename, QIODeviceBase::OpenMode flags) const;
 	void scanDir(const QString &path, QFileInfoList &results, const QString &match = QString{}, const bool follow_tree = false);
+	bool writeDataToFile(QFile *out_file, const QList<QStringList> &data, const QList<uint> &export_rows = QList<uint>{},
+							const QString &header = QString{}, const bool use_real_id = true) const;
+	int readDataFromFile(QFile *in_file, QList<QStringList> &data, const uint field_count, const	QString &identifier, const int row = -1);
 
 	Q_INVOKABLE void copyToClipBoard(const QString &text) const;
 	inline QLocale *appLocale() const { return m_appLocale; }

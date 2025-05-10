@@ -40,6 +40,7 @@ public:
 	Q_INVOKABLE void simpleExercisesList(DBMesoSplitModel* splitModel, const bool show, const bool multi_sel = false, const uint exercise_idx = 0);
 	Q_INVOKABLE void exportMesoSplit(const bool bShare, const QString& splitLetter);
 	Q_INVOKABLE void importMesoSplit(const QString& filename = QString());
+	Q_INVOKABLE QString findSwappableModel() const;
 	Q_INVOKABLE QString prevMesoName() const { return m_prevMesoName; }
 	Q_INVOKABLE QQuickItem* setCurrentPage(const int index);
 

@@ -166,6 +166,99 @@ QFile *TPUtils::openFile(const QString &filename, QIODeviceBase::OpenMode flags)
 	return nullptr;
 }
 
+bool TPUtils::writeDataToFile(QFile *out_file, const QList<QStringList> &data, const QList<uint> &export_rows,
+							  const QString &header, const bool use_real_id) const
+{
+	if (!out_file || !out_file->isOpen())
+		return false;
+
+	if (!header.isEmpty())
+		out_file->write(header.toUtf8().constData());
+
+	if (export_rows.isEmpty())
+	{
+		for (const auto &modeldata : data)
+		{
+			uint i{0};
+			if (!use_real_id)
+			{
+				out_file->write("-1\n", 3);
+				i = 1;
+			}
+			for (; i < modeldata.count(); ++i)
+			{
+				out_file->write(modeldata.at(i).toUtf8().constData());
+				out_file->write("\n", 1);
+			}
+			out_file->write("##!!\n", 5);
+		}
+	}
+	else
+	{
+		for (uint x{0}; x < export_rows.count(); ++x)
+		{
+			uint i{0};
+			for (const auto &modeldata : data.at(export_rows.at(x)))
+			{
+				if (i == 0 && !use_real_id)
+				{
+					out_file->write("-1\n", 3);
+					i = 1;
+				}
+				else
+				{
+					out_file->write(modeldata.toUtf8().constData());
+					out_file->write("\n", 1);
+				}
+			}
+			out_file->write("##!!\n", 5);
+		}
+	}
+	out_file->flush();
+	return true;
+}
+
+int TPUtils::readDataFromFile(QFile *in_file, QList<QStringList>& data, const uint field_count, const QString& identifier, const int row)
+{
+	if (!in_file || !in_file->isOpen())
+		return -1;
+
+	const qsizetype prevCount{data.count()};
+	QStringList read_data{field_count};
+
+	bool identifier_found{false};
+	const char *identifier_in_file{QString{"##0x"_L1 + identifier}.toLatin1().constData()};
+	char buf[512];
+	while (in_file->readLine(buf, sizeof(buf)) != -1)
+	{
+		if (strstr(buf, "##0x") != NULL)
+		{
+			if (!identifier_found)
+				identifier_found = strstr(buf, identifier_in_file) != NULL;
+			else
+			{
+				in_file->seek(in_file->pos()-strlen(buf));
+				break;
+			}
+		}
+		else if (strstr(buf, "##!!") != NULL)
+		{
+			if (read_data.count() >= field_count)
+			{
+				if (read_data.count() > field_count)
+					read_data.resize(field_count);
+				if (row == -1)
+					data.append(std::move(read_data));
+				else if (row < data.count())
+					data.replace(row, std::move(read_data));
+			}
+		}
+		else
+			read_data.append(std::move(QString{buf}.chopped(1)));
+	}
+	return data.count() - prevCount;
+}
+
 void TPUtils::scanDir(const QString &path, QFileInfoList &results, const QString &match, const bool follow_tree)
 {
 	QDir dir{path};
@@ -811,3 +904,4 @@ void TPUtils::setAppLocale(const QString &localeStr, const bool bWriteConfig)
 	if (bWriteConfig)
 		appSettings()->setAppLocale(localeStr);
 }
+

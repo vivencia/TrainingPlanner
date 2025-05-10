@@ -156,7 +156,7 @@ void TPStatistics::generateDataSet()
 			createXData(dates);
 			auto conn2 = std::make_shared<QMetaObject::Connection>();
 			*conn2 = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this] (const uint table_idx, QVariant data2) {
-				if (table_idx == TRAININGDAY_TABLE_ID)
+				if (table_idx == WORKOUT_TABLE_ID)
 				{
 					disconnect(*conn2);
 					createYData(data2.value<QList<QList<QStringList>>>());

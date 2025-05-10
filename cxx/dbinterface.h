@@ -10,10 +10,10 @@
 #include <QTimer>
 
 class DBMesocyclesModel;
-class DBExercisesModel;
+class DBExercisesListModel;
 class DBMesoSplitModel;
 class DBMesoCalendarManager;
-class DBWorkoutModel;
+class DBExercisesModel;
 class DBUserModel;
 class RunCommands;
 class QmlItemManager;
@@ -87,13 +87,13 @@ public:
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
-	void getTrainingDay(DBWorkoutModel *tDayModel);
-	void getTrainingDayExercises(DBWorkoutModel *tDayModel);
-	void verifyTDayOptions(DBWorkoutModel *tDayModel);
-	void loadExercisesFromDate(const QString &strDate, DBWorkoutModel *tDayModel);
-	void loadExercisesFromMesoPlan(DBWorkoutModel *tDayModel, DBMesoSplitModel *const splitModel);
-	void convertTDayToPlan(const DBWorkoutModel *const tDayModel, DBMesoSplitModel *const splitModel);
-	void saveTrainingDay(DBWorkoutModel *const tDayModel);
+	void getTrainingDay(DBExercisesModel *tDayModel);
+	void getTrainingDayExercises(DBExercisesModel *tDayModel);
+	void verifyTDayOptions(DBExercisesModel *tDayModel);
+	void loadExercisesFromDate(const QString &strDate, DBExercisesModel *tDayModel);
+	void loadExercisesFromMesoPlan(DBExercisesModel *tDayModel, DBMesoSplitModel *const splitModel);
+	void convertTDayToPlan(const DBExercisesModel *const tDayModel, DBMesoSplitModel *const splitModel);
+	void saveTrainingDay(DBExercisesModel *const tDayModel);
 	void removeWorkout(const uint meso_idx, const QDate &date);
 	void removeWorkoutsForMeso(const uint meso_idx);
 	void deleteTrainingDayTable(const bool bRemoveFile);

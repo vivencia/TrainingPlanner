@@ -1,5 +1,5 @@
 #include "dbinterface.h"
-#include "dbexercisesmodel.h"
+#include "dbexerciseslistmodel.h"
 #include "dbmesocyclesmodel.h"
 #include "dbusermodel.h"
 #include "osinterface.h"
@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 		DBInterface appDB{};
 		DBUserModel userModel{};
 		DBMesocyclesModel mesocyclesModel{};
-		DBExercisesModel exercisesModel{};
+		DBExercisesListModel exercisesModel{};
 		QQmlApplicationEngine qmlEngine;
 		QmlItemManager rootQmlManager{&qmlEngine};
 		return app.exec();

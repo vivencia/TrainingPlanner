@@ -1,6 +1,6 @@
 #include "qmltdayinterface.h"
 
-#include "dbexercisesmodel.h"
+#include "dbexerciseslistmodel.h"
 #include "dbinterface.h"
 #include "DBMesoCalendarManager.h"
 #include "dbmesocyclesmodel.h"
@@ -467,28 +467,28 @@ void QmlTDayInterface::silenceTimeWarning()
 void QmlTDayInterface::exerciseSelected(QmlExerciseEntry* exerciseEntry)
 {
 	const bool b_is_composite(appExercisesModel()->selectedEntriesCount() > 1);
-	const QString& nSets{appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SETSNUMBER)};
-	const QString& nReps{b_is_composite ? appUtils()->makeCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_REPSNUMBER),
-							2, comp_exercise_separator) : appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_REPSNUMBER)};
-	const QString& nWeight{b_is_composite ? appUtils()->makeCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_WEIGHT),
-							2, comp_exercise_separator) : appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_WEIGHT)};
+	const QString& nSets{appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_SETSNUMBER)};
+	const QString& nReps{b_is_composite ? appUtils()->makeCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_REPSNUMBER),
+							2, comp_exercise_separator) : appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_REPSNUMBER)};
+	const QString& nWeight{b_is_composite ? appUtils()->makeCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_WEIGHT),
+							2, comp_exercise_separator) : appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_WEIGHT)};
 
 	QString exerciseName;
 	if (b_is_composite)
 	{
 		exerciseName = std::move(appUtils()->string_strings({
-					appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) +
-						(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SUBNAME).isEmpty() ? QString() :
-							" - "_L1 + appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SUBNAME)),
-					appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_MAINNAME) +
-						(appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_SUBNAME).isEmpty() ? QString() :
-							" - "_L1 + appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_SUBNAME))}, comp_exercise_separator));
+					appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_MAINNAME) +
+						(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_SUBNAME).isEmpty() ? QString() :
+							" - "_L1 + appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_SUBNAME)),
+					appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_LIST_COL_MAINNAME) +
+						(appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_LIST_COL_SUBNAME).isEmpty() ? QString() :
+							" - "_L1 + appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_LIST_COL_SUBNAME))}, comp_exercise_separator));
 	}
 	else
 	{
-		exerciseName = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME);
-		if (!appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SUBNAME).isEmpty())
-			exerciseName += " - "_L1 + appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SUBNAME);
+		exerciseName = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_MAINNAME);
+		if (!appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_SUBNAME).isEmpty())
+			exerciseName += " - "_L1 + appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_SUBNAME);
 	}
 
 	if (!exerciseEntry)
@@ -554,7 +554,7 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 	setHeaderText();
 
 	connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [this] (const uint table_id, QVariant data) {
-		if (table_id == TRAININGDAY_TABLE_ID)
+		if (table_id == WORKOUT_TABLE_ID)
 		{
 			const bool bFinished(!m_tDayModel->timeOut().isEmpty());
 

@@ -1,6 +1,6 @@
 #include "dbmesocalendartable.h"
 
-#include "DBMesoCalendarManager.h"
+#include "dbmesocalendarmanager.h"
 #include "tpglobals.h"
 #include "tputils.h"
 

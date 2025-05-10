@@ -70,7 +70,7 @@ set( CXX_SOURCES
 	cxx/tpandroidnotification.h cxx/tpandroidnotification.cpp
 
 	cxx/tpdatabasetable.h cxx/tpdatabasetable.cpp
-	cxx/dbexercisestable.h cxx/dbexercisestable.cpp
+	cxx/dbexerciseslisttable.h cxx/dbexerciseslisttable.cpp
 	cxx/dbmesocyclestable.h cxx/dbmesocyclestable.cpp
 	cxx/dbmesosplittable.h cxx/dbmesosplittable.cpp
 	cxx/dbmesocalendartable.h cxx/dbmesocalendartable.cpp
@@ -78,12 +78,12 @@ set( CXX_SOURCES
 	cxx/dbusertable.h cxx/dbusertable.cpp
 
 	cxx/tplistmodel.h cxx/tplistmodel.cpp
-	cxx/dbexercisesmodel.h cxx/dbexercisesmodel.cpp
+	cxx/dbexerciseslistmodel.h cxx/dbexerciseslistmodel.cpp
 	cxx/dbmesocyclesmodel.h cxx/dbmesocyclesmodel.cpp
 	cxx/homepagemesomodel.h cxx/homepagemesomodel.cpp
-	cxx/dbmesosplitmodel.h cxx/dbmesosplitmodel.cpp
+
 	cxx/dbmesocalendarmanager.h cxx/dbmesocalendarmanager.cpp
-	cxx/dbworkoutmodel.h cxx/dbworkoutmodel.cpp
+
     cxx/dbcalendarmodel.h cxx/dbcalendarmodel.cpp
 	cxx/dbusermodel.h cxx/dbusermodel.cpp
 	cxx/pageslistmodel.h cxx/pageslistmodel.cpp
@@ -103,7 +103,7 @@ set( CXX_SOURCES
 	cxx/weather/openweathermapbackend.h
 	cxx/weather/openweathermapbackend.cpp
 
-    cxx/exercises_helper/setpredictionvalues.h cxx/exercises_helper/setpredictionvalues.cpp
+
 	cxx/statistics/tpstatistics.h cxx/statistics/tpstatistics.cpp
 
 	cxx/online_services/tponlineservices.h cxx/online_services/tponlineservices.cpp
@@ -243,6 +243,7 @@ qt_add_executable(TrainingPlanner
 	${RESOURCE_FILES}
 	${QM_FILES}
 	${SERVER_FILES}
+	cxx/dbexercisesmodel.h cxx/dbexercisesmodel.cpp
 )
 
 if(NOT ANDROID)

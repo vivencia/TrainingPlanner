@@ -17,10 +17,8 @@ public:
 
 	void createTable() override final;
 	void updateTable() override final;
-	void getTrainingDay();
-	void getTrainingDayExercises(const bool bClearSomeFieldsForReUse = false);
-	void getPreviousTrainingDaysInfo();
-	void saveTrainingDay();
+	void getWorkout();
+	void saveWorkout();
 	void removeWorkout();
 
 	inline DBWorkoutModel* model() const { return m_model; }
@@ -32,7 +30,6 @@ public:
 private:
 	DBWorkoutModel* m_model;
 	QList<QList<QStringList>> m_workoutsInfo;
-	inline QString formatDate(const uint julianDay) const;
 };
 
 #endif // DBWORKOUTTABLE_H

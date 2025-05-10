@@ -1,23 +1,23 @@
-#ifndef DBEXERCISESMODEL_H
-#define DBEXERCISESMODEL_H
+#ifndef DBEXERCISESLISTMODEL_H
+#define DBEXERCISESLISTMODEL_H
 
 #include "tplistmodel.h"
 
-#define EXERCISES_COL_ID 0
-#define EXERCISES_COL_MAINNAME 1
-#define EXERCISES_COL_SUBNAME 2
-#define EXERCISES_COL_MUSCULARGROUP 3
-#define EXERCISES_COL_SETSNUMBER 4
-#define EXERCISES_COL_REPSNUMBER 5
-#define EXERCISES_COL_WEIGHT 6
-#define EXERCISES_COL_WEIGHTUNIT 7
-#define EXERCISES_COL_MEDIAPATH 8
-#define EXERCISES_COL_FROMAPPLIST 9
-#define EXERCISES_COL_ACTUALINDEX 10
-#define EXERCISES_COL_SELECTED 11
-#define EXERCISES_TOTAL_COLS EXERCISES_COL_SELECTED+1
+#define EXERCISES_LIST_COL_ID 0
+#define EXERCISES_LIST_COL_MAINNAME 1
+#define EXERCISES_LIST_COL_SUBNAME 2
+#define EXERCISES_LIST_COL_MUSCULARGROUP 3
+#define EXERCISES_LIST_COL_SETSNUMBER 4
+#define EXERCISES_LIST_COL_REPSNUMBER 5
+#define EXERCISES_LIST_COL_WEIGHT 6
+#define EXERCISES_LIST_COL_WEIGHTUNIT 7
+#define EXERCISES_LIST_COL_MEDIAPATH 8
+#define EXERCISES_LIST_COL_FROMAPPLIST 9
+#define EXERCISES_LIST_COL_ACTUALINDEX 10
+#define EXERCISES_LIST_COL_SELECTED 11
+#define EXERCISES_TOTAL_COLS EXERCISES_LIST_COL_SELECTED+1
 
-class DBExercisesModel : public TPListModel
+class DBExercisesListModel : public TPListModel
 {
 
 Q_OBJECT
@@ -25,93 +25,93 @@ QML_ELEMENT
 
 enum RoleNames {
 	exerciseIdRole = Qt::UserRole,
-	mainNameRole = Qt::UserRole+EXERCISES_COL_MAINNAME,
-	subNameRole = Qt::UserRole+EXERCISES_COL_SUBNAME,
-	muscularGroupRole = Qt::UserRole+EXERCISES_COL_MUSCULARGROUP,
-	nSetsRole = Qt::UserRole+EXERCISES_COL_SETSNUMBER,
-	nRepsRole = Qt::UserRole+EXERCISES_COL_REPSNUMBER,
-	nWeightRole = Qt::UserRole+EXERCISES_COL_WEIGHT,
-	uWeightRole = Qt::UserRole+EXERCISES_COL_WEIGHTUNIT,
-	mediaPathRole = Qt::UserRole+EXERCISES_COL_MEDIAPATH,
-	fromListRole = Qt::UserRole+EXERCISES_COL_FROMAPPLIST,
-	actualIndexRole = Qt::UserRole+EXERCISES_COL_ACTUALINDEX,
-	selectedRole = Qt::UserRole+EXERCISES_COL_SELECTED
+	mainNameRole = Qt::UserRole+EXERCISES_LIST_COL_MAINNAME,
+	subNameRole = Qt::UserRole+EXERCISES_LIST_COL_SUBNAME,
+	muscularGroupRole = Qt::UserRole+EXERCISES_LIST_COL_MUSCULARGROUP,
+	nSetsRole = Qt::UserRole+EXERCISES_LIST_COL_SETSNUMBER,
+	nRepsRole = Qt::UserRole+EXERCISES_LIST_COL_REPSNUMBER,
+	nWeightRole = Qt::UserRole+EXERCISES_LIST_COL_WEIGHT,
+	uWeightRole = Qt::UserRole+EXERCISES_LIST_COL_WEIGHTUNIT,
+	mediaPathRole = Qt::UserRole+EXERCISES_LIST_COL_MEDIAPATH,
+	fromListRole = Qt::UserRole+EXERCISES_LIST_COL_FROMAPPLIST,
+	actualIndexRole = Qt::UserRole+EXERCISES_LIST_COL_ACTUALINDEX,
+	selectedRole = Qt::UserRole+EXERCISES_LIST_COL_SELECTED
 };
 
 public:
-	explicit DBExercisesModel(QObject* parent = nullptr, const bool bMainExercisesModel = true);
+	explicit DBExercisesListModel(QObject* parent = nullptr, const bool bMainExercisesModel = true);
 	void fillColumnNames();
 
-	inline const QString& id(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_COL_ID); }
-	inline const int _id(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_COL_ID).toInt(); }
-	inline void setId(const uint index, const QString& new_id) { m_modeldata[m_indexProxy.at(index)][EXERCISES_COL_ID] = new_id; }
+	inline const QString& id(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_ID); }
+	inline const int _id(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_ID).toInt(); }
+	inline void setId(const uint index, const QString& new_id) { m_modeldata[m_indexProxy.at(index)][EXERCISES_LIST_COL_ID] = new_id; }
 
-	Q_INVOKABLE inline QString mainName(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_COL_MAINNAME); }
+	Q_INVOKABLE inline QString mainName(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_MAINNAME); }
 	Q_INVOKABLE inline void setMainName(const uint index, const QString& new_name)
 	{
-		m_modeldata[m_indexProxy.at(index)][EXERCISES_COL_MAINNAME] = new_name;
+		m_modeldata[m_indexProxy.at(index)][EXERCISES_LIST_COL_MAINNAME] = new_name;
 		addModifiedIndex(index);
 	}
 
-	Q_INVOKABLE inline QString subName(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_COL_SUBNAME); }
+	Q_INVOKABLE inline QString subName(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_SUBNAME); }
 	Q_INVOKABLE inline void setSubName(const uint index, const QString& new_name)
 	{
-		m_modeldata[m_indexProxy.at(index)][EXERCISES_COL_SUBNAME] = new_name;
+		m_modeldata[m_indexProxy.at(index)][EXERCISES_LIST_COL_SUBNAME] = new_name;
 		addModifiedIndex(index);
 	}
 
 	Q_INVOKABLE QString muscularGroup(const uint index) const;
 	Q_INVOKABLE inline void setMuscularGroup(const uint index, const QString& new_group)
 	{
-		m_modeldata[m_indexProxy.at(index)][EXERCISES_COL_MUSCULARGROUP] = new_group;
+		m_modeldata[m_indexProxy.at(index)][EXERCISES_LIST_COL_MUSCULARGROUP] = new_group;
 		addModifiedIndex(index);
 	}
 
-	Q_INVOKABLE inline QString setsNumber(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_COL_SETSNUMBER); }
+	Q_INVOKABLE inline QString setsNumber(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_SETSNUMBER); }
 	Q_INVOKABLE inline void setSetsNumber(const uint index, const QString& new_nsets)
 	{
-		m_modeldata[m_indexProxy.at(index)][EXERCISES_COL_SETSNUMBER] = new_nsets;
+		m_modeldata[m_indexProxy.at(index)][EXERCISES_LIST_COL_SETSNUMBER] = new_nsets;
 		addModifiedIndex(index);
 	}
 
-	Q_INVOKABLE inline QString repsNumber(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_COL_REPSNUMBER); }
+	Q_INVOKABLE inline QString repsNumber(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_REPSNUMBER); }
 	Q_INVOKABLE inline void setRepsNumber(const uint index, const QString& new_nreps)
 	{
-		m_modeldata[m_indexProxy.at(index)][EXERCISES_COL_REPSNUMBER] = new_nreps;
+		m_modeldata[m_indexProxy.at(index)][EXERCISES_LIST_COL_REPSNUMBER] = new_nreps;
 		addModifiedIndex(index);
 	}
 
-	Q_INVOKABLE inline QString weight(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_COL_WEIGHT); }
+	Q_INVOKABLE inline QString weight(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_WEIGHT); }
 	Q_INVOKABLE inline void setWeight(const uint index, const QString& new_weight)
 	{
-		m_modeldata[m_indexProxy.at(index)][EXERCISES_COL_WEIGHT] = new_weight;
+		m_modeldata[m_indexProxy.at(index)][EXERCISES_LIST_COL_WEIGHT] = new_weight;
 		addModifiedIndex(index);
 	}
 
-	Q_INVOKABLE inline QString weightUnit(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_COL_WEIGHTUNIT); }
+	Q_INVOKABLE inline QString weightUnit(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_WEIGHTUNIT); }
 	Q_INVOKABLE inline void setWeightUnit(const uint index, const QString& new_unit)
 	{
-		m_modeldata[m_indexProxy.at(index)][EXERCISES_COL_WEIGHTUNIT] = new_unit;
+		m_modeldata[m_indexProxy.at(index)][EXERCISES_LIST_COL_WEIGHTUNIT] = new_unit;
 		addModifiedIndex(index);
 	}
 
-	Q_INVOKABLE inline QString mediaPath(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_COL_MEDIAPATH); }
+	Q_INVOKABLE inline QString mediaPath(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_MEDIAPATH); }
 	Q_INVOKABLE inline void setMediaPath(const uint index, const QString& new_path)
 	{
-		m_modeldata[m_indexProxy.at(index)][EXERCISES_COL_MEDIAPATH] = new_path;
+		m_modeldata[m_indexProxy.at(index)][EXERCISES_LIST_COL_MEDIAPATH] = new_path;
 		addModifiedIndex(index);
 	}
 
-	Q_INVOKABLE inline uint actualIndex(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_COL_ACTUALINDEX).toUInt(); }
+	Q_INVOKABLE inline uint actualIndex(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_ACTUALINDEX).toUInt(); }
 	Q_INVOKABLE inline void setActualIndex(const uint index, const uint new_index)
 	{
-		m_modeldata[m_indexProxy.at(index)][EXERCISES_COL_ACTUALINDEX] = QString::number(new_index);
+		m_modeldata[m_indexProxy.at(index)][EXERCISES_LIST_COL_ACTUALINDEX] = QString::number(new_index);
 	}
 
-	Q_INVOKABLE inline bool isSelected(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_COL_SELECTED) == Qt::StringLiterals::operator""_L1("1", 1); }
+	Q_INVOKABLE inline bool isSelected(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_SELECTED) == Qt::StringLiterals::operator""_L1("1", 1); }
 	Q_INVOKABLE inline void setSelected(const uint index, const bool selected)
 	{
-		m_modeldata[m_indexProxy.at(index)][EXERCISES_COL_SELECTED] = selected ? Qt::StringLiterals::operator""_L1("1", 1) : Qt::StringLiterals::operator""_L1("0", 1);
+		m_modeldata[m_indexProxy.at(index)][EXERCISES_LIST_COL_SELECTED] = selected ? Qt::StringLiterals::operator""_L1("1", 1) : Qt::StringLiterals::operator""_L1("0", 1);
 	}
 
 	inline uint count() const override { return m_indexProxy.count(); }
@@ -173,9 +173,9 @@ private:
 	int m_exercisesTableLastId;
 	bool m_bFilterApplied;
 
-	static DBExercisesModel* app_exercises_model;
-	friend DBExercisesModel* appExercisesModel();
+	static DBExercisesListModel* app_exercises_model;
+	friend DBExercisesListModel* appExercisesModel();
 };
 
-inline DBExercisesModel* appExercisesModel() { return DBExercisesModel::app_exercises_model; }
-#endif // DBEXERCISESMODEL_H
+inline DBExercisesListModel* appExercisesModel() { return DBExercisesListModel::app_exercises_model; }
+#endif // DBEXERCISESLISTMODEL_H

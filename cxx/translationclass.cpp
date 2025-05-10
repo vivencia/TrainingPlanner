@@ -10,7 +10,7 @@
 
 using namespace Qt::Literals::StringLiterals;
 
-TranslationClass* TranslationClass::app_tr{nullptr};
+TranslationClass *TranslationClass::app_tr{nullptr};
 
 void TranslationClass::selectLanguage()
 {
@@ -20,7 +20,7 @@ void TranslationClass::selectLanguage()
 	{
 		#ifndef Q_OS_ANDROID
 		const QString &sysLocale{std::setlocale(LC_NAME, "")};
-		strLocale = sysLocale.first(sysLocale.indexOf('.'));
+		strLocale = std::move(sysLocale.first(sysLocale.indexOf('.')));
 		#else
 		strLocale = QLocale::system().name();
 		#endif
@@ -31,7 +31,7 @@ void TranslationClass::selectLanguage()
 		appUtils()->setAppLocale("en_US"_L1, false);
 }
 
-void TranslationClass::switchToLanguage(const QString& language)
+void TranslationClass::switchToLanguage(const QString &language)
 {
 	if (language == appUtils()->strLocale())
 		return;

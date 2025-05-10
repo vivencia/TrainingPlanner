@@ -2,7 +2,7 @@
 
 #include "dbcalendarmodel.h"
 #include "dbinterface.h"
-#include "dbexercisesmodel.h"
+#include "dbexerciseslistmodel.h"
 #include "DBMesoCalendarManager.h"
 #include "dbmesocyclesmodel.h"
 #include "dbmesosplitmodel.h"
@@ -83,7 +83,7 @@ void QmlItemManager::configureQmlEngine()
 	QQuickStyle::setStyle(appSettings()->themeStyle());
 
 	qmlRegisterType<DBUserModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBUserModel");
-	qmlRegisterType<DBExercisesModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBExercisesModel");
+	qmlRegisterType<DBExercisesListModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBExercisesListModel");
 	qmlRegisterType<DBMesocyclesModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBMesocyclesModel");
 	qmlRegisterType<DBMesoSplitModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBMesoSplitModel");
 	qmlRegisterType<DBMesoCalendarManager>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBMesoCalendarManager");
@@ -519,7 +519,7 @@ void QmlItemManager::openRequestedFile(const QString &filename, const int wanted
 						if (wanted_content == IFC_ANY || wanted_content == IFC_MESO)
 							setBit(fileContents, IFC_MESO);
 					}
-					else if (inData.indexOf(QString::number(TRAININGDAY_TABLE_ID)) != -1)
+					else if (inData.indexOf(QString::number(WORKOUT_TABLE_ID)) != -1)
 					{
 						if (wanted_content == IFC_ANY || wanted_content == IFC_TDAY)
 							setBit(fileContents, IFC_TDAY);
@@ -617,7 +617,7 @@ void QmlItemManager::importFromFile(const QString &filename, const int wanted_co
 	}
 	else if (isBitSet(wanted_content, IFC_EXERCISES))
 	{
-		DBExercisesModel *exercisesModel{new DBExercisesModel{this, false}};
+		DBExercisesListModel *exercisesModel{new DBExercisesListModel{this, false}};
 		exercisesModel->deleteLater();
 		if (exercisesModel->importFromFile(filename) == APPWINDOW_MSG_READ_FROM_FILE_OK)
 			importFileMessageId = incorporateImportedData(exercisesModel);
@@ -674,7 +674,7 @@ int QmlItemManager::incorporateImportedData(TPListModel *model, const int wanted
 				appMesoModel()->setImportMode(false);
 		}
 		break;
-		case TRAININGDAY_TABLE_ID:
+		case WORKOUT_TABLE_ID:
 		{
 			DBWorkoutModel *newTDayModel{static_cast<DBWorkoutModel*>(const_cast<TPListModel*>(model))};
 			DBWorkoutModel *tDayModel{appMesoModel()->mesoManager(appMesoModel()->currentMesoIdx())->tDayModelForToday()};

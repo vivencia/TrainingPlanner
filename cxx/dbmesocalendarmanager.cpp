@@ -1,13 +1,20 @@
 #include "dbmesocalendarmanager.h"
 
 #include "dbcalendarmodel.h"
+#include "dbexercisesmodel.h"
 #include "dbinterface.h"
 #include "dbmesocyclesmodel.h"
-#include "dbworkoutmodel.h"
 #include "tpglobals.h"
 #include "tputils.h"
 
 #include <ranges>
+
+struct stDayInfo
+{
+	QString data;
+	QString date;
+	TPBool modified;
+};
 
 uint DBMesoCalendarManager::populateCalendarDays(const uint meso_idx, QDate &start_date, const QDate &end_date, const QString &split)
 {
@@ -202,7 +209,7 @@ DBWorkoutModel *DBMesoCalendarManager::workoutForDay(const uint meso_idx, const 
 			if (cal_day >= workouts->count())
 			{
 				for (uint i{static_cast<uint>(workouts->count())}; i < cal_day; ++i)
-					workouts->append(new DBWorkoutModel{this, meso_idx, i});
+					workouts->append(new DBWorkoutModel{this, meso_idx, static_cast<int>(i)});
 			}
 			else
 				w_model = workouts->at(cal_day);

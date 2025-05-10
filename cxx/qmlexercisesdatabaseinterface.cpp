@@ -1,6 +1,6 @@
 #include "qmlexercisesdatabaseinterface.h"
 
-#include "dbexercisesmodel.h"
+#include "dbexerciseslistmodel.h"
 #include "dbinterface.h"
 #include "qmlitemmanager.h"
 #include "qmltdayinterface.h"
@@ -31,13 +31,13 @@ const uint QmlExercisesDatabaseInterface::removeExercise(const uint row)
 	return row > 0 ? row - 1 : 0;
 }
 
-QString QmlExercisesDatabaseInterface::exerciseNameLabel() const { return appExercisesModel()->columnLabel(EXERCISES_COL_MAINNAME); }
-QString QmlExercisesDatabaseInterface::exerciseSubNameLabel() const { return appExercisesModel()->columnLabel(EXERCISES_COL_SUBNAME); }
-QString QmlExercisesDatabaseInterface::muscularGroupLabel() const { return appExercisesModel()->columnLabel(EXERCISES_COL_MUSCULARGROUP); }
-QString QmlExercisesDatabaseInterface::setsNumberLabel() const { return appExercisesModel()->columnLabel(EXERCISES_COL_SETSNUMBER); }
-QString QmlExercisesDatabaseInterface::repsNumberLabel() const { return appExercisesModel()->columnLabel(EXERCISES_COL_REPSNUMBER); }
-QString QmlExercisesDatabaseInterface::weightLabel() const { return appExercisesModel()->columnLabel(EXERCISES_COL_WEIGHT); }
-QString QmlExercisesDatabaseInterface::mediaLabel() const { return appExercisesModel()->columnLabel(EXERCISES_COL_MEDIAPATH); }
+QString QmlExercisesDatabaseInterface::exerciseNameLabel() const { return appExercisesModel()->columnLabel(EXERCISES_LIST_COL_MAINNAME); }
+QString QmlExercisesDatabaseInterface::exerciseSubNameLabel() const { return appExercisesModel()->columnLabel(EXERCISES_LIST_COL_SUBNAME); }
+QString QmlExercisesDatabaseInterface::muscularGroupLabel() const { return appExercisesModel()->columnLabel(EXERCISES_LIST_COL_MUSCULARGROUP); }
+QString QmlExercisesDatabaseInterface::setsNumberLabel() const { return appExercisesModel()->columnLabel(EXERCISES_LIST_COL_SETSNUMBER); }
+QString QmlExercisesDatabaseInterface::repsNumberLabel() const { return appExercisesModel()->columnLabel(EXERCISES_LIST_COL_REPSNUMBER); }
+QString QmlExercisesDatabaseInterface::weightLabel() const { return appExercisesModel()->columnLabel(EXERCISES_LIST_COL_WEIGHT); }
+QString QmlExercisesDatabaseInterface::mediaLabel() const { return appExercisesModel()->columnLabel(EXERCISES_LIST_COL_MEDIAPATH); }
 
 void QmlExercisesDatabaseInterface::exportExercises(const bool bShare)
 {

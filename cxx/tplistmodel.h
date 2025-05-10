@@ -102,10 +102,9 @@ protected:
 	bool m_bReady, m_bModified, m_bImportMode;
 	QString m_filterString, m_exportName;
 
-	friend class DBExercisesModel;
+	friend class DBExercisesListModel;
 	friend class DBMesocyclesModel;
 	friend class DBMesoSplitModel;
 	friend class DBMesoCalendarManager;
-	friend class DBWorkoutModel;
 	friend class DBUserModel;
 };

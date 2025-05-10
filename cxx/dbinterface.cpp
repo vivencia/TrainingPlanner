@@ -1,7 +1,7 @@
 #include "dbinterface.h"
 
-#include "dbexercisestable.h"
-#include "dbexercisesmodel.h"
+#include "dbexerciseslisttable.h"
+#include "dbexerciseslistmodel.h"
 #include "dbmesocyclestable.h"
 #include "dbmesocyclesmodel.h"
 #include "dbmesosplittable.h"
@@ -507,7 +507,7 @@ void DBInterface::getTrainingDay(DBWorkoutModel *tDayModel)
 			if (tDayModel->exerciseCount() == 0)
 				verifyTDayOptions(tDayModel);
 			else
-				emit databaseReadyWithData(TRAININGDAY_TABLE_ID, QVariant());
+				emit databaseReadyWithData(WORKOUT_TABLE_ID, QVariant());
 		}
 	});
 	createThread(worker, [worker] () { return worker->getTrainingDay(); });
@@ -548,7 +548,7 @@ void DBInterface::verifyTDayOptions(DBWorkoutModel *tDayModel)
 				//setTrainingDay does not relate to training day in the temporary model. It's only a place to store a value we need this model to carry
 				const bool bHasMesoPlan(mesoHasPlan(appMesoModel()->_id(tDayModel->mesoIdx()), tDayModel->splitLetter()));
 				tempModel->setTrainingDay(bHasMesoPlan ? STR_ONE : STR_ZERO);
-				emit databaseReadyWithData(TRAININGDAY_TABLE_ID, QVariant::fromValue(tempModel));
+				emit databaseReadyWithData(WORKOUT_TABLE_ID, QVariant::fromValue(tempModel));
 				delete tempModel;
 			}
 		});
@@ -660,7 +660,7 @@ void DBInterface::workoutsInfoForTimePeriod(const QStringList &exercises, const 
 		if (db_id == worker->uniqueID())
 		{
 			disconnect(*conn);
-			emit databaseReadyWithData(TRAININGDAY_TABLE_ID, QVariant::fromValue(worker->workoutsInfo()));
+			emit databaseReadyWithData(WORKOUT_TABLE_ID, QVariant::fromValue(worker->workoutsInfo()));
 		}
 	});
 	worker->addExecArg(exercises);
