@@ -6,8 +6,12 @@
 #include "tputils.h"
 #include "translationclass.h"
 
+#include <QApplication>
 #include <QtMath>
 #include <utility>
+
+static const QString &splitFileIdentifier{"0x03"_L1};
+static const QString &workoutFileIdentifier{"0x05"_L1};
 
 struct stSet {
 	uint number;
@@ -159,19 +163,40 @@ void DBExercisesModel::clearExercises()
 	m_exerciseData.clear();
 }
 
-int DBExercisesModel::exportToFile(const QString &filename) const
+int DBExercisesModel::exportToFile(const QString &filename, QFile *out_file) const
 {
 	if (exerciseCount() == 0)
 		return APPWINDOW_MSG_NOTHING_TO_EXPORT;
 
-	QFile *out_file{appUtils()->openFile(filename, QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text)};
 	if (!out_file)
-		return APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
+	{
+		out_file = appUtils()->openFile(filename, QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text);
+		if (!out_file)
+			return APPWINDOW_MSG_OPEN_FAILED;
+	}
+
+	const QList<QStringList> &split_data{std::move(QList<QStringList>{} << toDatabase())};
+	const int ret{appUtils()->writeDataToFile(out_file, identifierInFile(), split_data)};
+	out_file->close();
+	return ret;
+}
+
+int DBExercisesModel::exportToFormattedFile(const QString &filename, QFile *out_file) const
+{
+	if (exerciseCount() == 0)
+		return APPWINDOW_MSG_NOTHING_TO_EXPORT;
+
+	if (!out_file)
+	{
+		out_file = {appUtils()->openFile(filename, QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text)};
+		if (!out_file)
+			return APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
+	}
 
 	const QString &strHeader{
 		m_calendarDay >= 0 ?
-			"## "_L1 + tr("Workout") + " - 0x00"_L1 + QString::number(WORKOUT_TABLE_ID) + "\n\n"_L1 :
-			"## "_L1 + tr("Exercises Program") + " - 0x0"_L1 + QString::number(MESOSPLIT_TABLE_ID) + "\n\n"_L1
+			"####"_L1 + *m_identifierInFile + tr("Workout") + "\n\n"_L1 :
+			"####"_L1 + *m_identifierInFile + tr("Exercises Program") + "\n\n"_L1
 	};
 
 	out_file->write(strHeader.toUtf8().constData());
@@ -219,20 +244,33 @@ int DBExercisesModel::exportToFile(const QString &filename) const
 	out_file->write("\n\n", 2);
 	out_file->write(STR_END_EXPORT.toUtf8().constData());
 	out_file->close();
-	delete out_file;
 	return APPWINDOW_MSG_EXPORT_OK;
 }
 
-int DBExercisesModel::importFromFile(const QString& filename)
+int DBExercisesModel::importFromFile(const QString& filename, QFile *in_file)
 {
-	QFile *in_file{appUtils()->openFile(filename, QIODeviceBase::ReadOnly|QIODeviceBase::Text)};
 	if (!in_file)
-		return APPWINDOW_MSG_OPEN_FAILED;
+	{
+		in_file = appUtils()->openFile(filename, QIODeviceBase::ReadOnly|QIODeviceBase::Text);
+		if (!in_file)
+			return APPWINDOW_MSG_OPEN_FAILED;
+	}
+	return APPWINDOW_MSG_READ_FROM_FILE_OK;
+}
+
+int DBExercisesModel::importFromFormattedFile(const QString& filename, QFile *in_file)
+{
+	if (!in_file)
+	{
+		in_file = appUtils()->openFile(filename, QIODeviceBase::ReadOnly|QIODeviceBase::Text);
+		if (!in_file)
+			return APPWINDOW_MSG_OPEN_FAILED;
+	}
 
 	QString value;
 	uint exercise_number(0);
-	const QString &tableIdStr("0x00"_L1 + QString::number(m_calendarDay >= 0 ? WORKOUT_TABLE_ID : MESOSPLIT_TABLE_ID));
-	bool found_table_id(false);
+	const char *identifier_in_file{QString{"####"_L1 + *m_identifierInFile}.toLatin1().constData()};
+	bool found_table_id{false}, found_extra_info{false};
 	char buf[128];
 	qint64 lineLength(0);
 
@@ -252,69 +290,74 @@ int DBExercisesModel::importFromFile(const QString& filename)
 			if (lineLength > 10)
 			{
 				if (!found_table_id)
-					found_table_id = strstr(buf, tableIdStr.toLatin1().constData()) != NULL;
+					found_table_id = strstr(buf, identifier_in_file) != NULL;
 				else
 				{
-					if(strncmp(buf, exercise_delim, exercise_delim_len) == 0)
+					if (!found_extra_info)
+						found_extra_info = importExtraInfo(QString{buf}.simplified());
+					else
 					{
-						const uint exercise_number{addExercise()};
-						uint exercise_idx{0}, set_field{0};
-						int set_number{-1};
-						bool adding_sets{false};
-						while ((lineLength = in_file->readLine(buf, sizeof(buf))) != -1)
+						if(strncmp(buf, exercise_delim, exercise_delim_len) == 0)
 						{
-							if (lineLength > 5)
+							const uint exercise_number{addExercise()};
+							uint exercise_idx{0}, set_field{0};
+							int set_number{-1};
+							bool adding_sets{false};
+							while ((lineLength = in_file->readLine(buf, sizeof(buf))) != -1)
 							{
-								if (!adding_sets)
+								if (lineLength > 5)
 								{
-									if(strncmp(buf, sub_exercise_delim, sub_exercise_delim_len) == 0)
+									if (!adding_sets)
 									{
-										addSubExercise(exercise_number);
-										value = buf;
-										value.remove(0, sub_exercise_delim_len);
-										setExerciseName(exercise_number, exercise_idx, std::move(value.trimmed()));
-										adding_sets = true;
-									}
-								}
-								else
-								{
-									if (set_number == -1)
-									{
-										if(strncmp(buf, set_delim, set_delim_len) == 0)
+										if(strncmp(buf, sub_exercise_delim, sub_exercise_delim_len) == 0)
 										{
-											set_number = addSet(exercise_number, exercise_idx);
-											set_field = 0;
+											addSubExercise(exercise_number);
+											value = buf;
+											value.remove(0, sub_exercise_delim_len);
+											setExerciseName(exercise_number, exercise_idx, std::move(value.trimmed()));
+											adding_sets = true;
 										}
 									}
 									else
 									{
-										value = buf;
-										value = std::move(value.remove(0, value.indexOf(':') + 2).trimmed());
-										switch (set_field)
+										if (set_number == -1)
 										{
-											case 0:
-												setSetType(exercise_number, exercise_idx, set_number, formatSetTypeToImport(value));
-											break;
-											case 1:
-												setTrackRestTime(exercise_number, exercise_idx, !value.contains(tr("As needed")));
-												if (trackRestTime(exercise_number, exercise_idx))
-													setSetRestTime(exercise_number, exercise_idx, set_number, value);
-												else
-													setSetRestTime(exercise_number, exercise_idx, set_number, "00:00"_L1);
-											break;
-											case 2:
-												setSetReps(exercise_number, exercise_idx, set_number,
-													std::move(value.replace(comp_exercise_fancy_separator, QString{comp_exercise_separator})));
-											break;
-											case 3:
-												setSetWeight(exercise_number, exercise_idx, set_number,
-													std::move(value.replace(comp_exercise_fancy_separator, QString{comp_exercise_separator})));
-											break;
-											case 4:
-												setSetNotes(exercise_number, exercise_idx, set_number, std::move(value));
-											break;
+											if(strncmp(buf, set_delim, set_delim_len) == 0)
+											{
+												set_number = addSet(exercise_number, exercise_idx);
+												set_field = 0;
+											}
 										}
-										set_field++;
+										else
+										{
+											value = buf;
+											value = std::move(value.remove(0, value.indexOf(':') + 2).trimmed());
+											switch (set_field)
+											{
+												case 0:
+													setSetType(exercise_number, exercise_idx, set_number, formatSetTypeToImport(value));
+												break;
+												case 1:
+													setTrackRestTime(exercise_number, exercise_idx, !value.contains(tr("As needed")));
+													if (trackRestTime(exercise_number, exercise_idx))
+														setSetRestTime(exercise_number, exercise_idx, set_number, value);
+													else
+														setSetRestTime(exercise_number, exercise_idx, set_number, "00:00"_L1);
+												break;
+												case 2:
+													setSetReps(exercise_number, exercise_idx, set_number,
+														std::move(value.replace(comp_exercise_fancy_separator, QString{comp_exercise_separator})));
+												break;
+												case 3:
+													setSetWeight(exercise_number, exercise_idx, set_number,
+														std::move(value.replace(comp_exercise_fancy_separator, QString{comp_exercise_separator})));
+												break;
+												case 4:
+													setSetNotes(exercise_number, exercise_idx, set_number, std::move(value));
+												break;
+											}
+											set_field++;
+										}
 									}
 								}
 							}
@@ -328,7 +371,6 @@ int DBExercisesModel::importFromFile(const QString& filename)
 			break;
 	}
 	in_file->close();
-	delete in_file;
 	return exerciseCount() > 0 ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
 }
 
@@ -723,6 +765,13 @@ void DBExercisesModel::commonConstructor()
 	m_roleNames[setsNumberRole] = std::move("setsNumber");
 	m_roleNames[exerciseCompletedRole] = std::move("exerciseCompleted");
 	m_roleNames[workingSetRole] = std::move("workingSet");
+	if (m_calendarDay >= 0)
+	{
+		m_splitLetter = m_calendarManager->splitLetter(m_mesoIdx, m_calendarDay).value().at(0);
+		m_identifierInFile = &workoutFileIdentifier;
+	}
+	else
+		m_identifierInFile = &splitFileIdentifier;
 }
 
 const QString DBExercisesModel::formatSetTypeToExport(stSet* set) const
@@ -754,15 +803,38 @@ TPSetTypes DBExercisesModel::formatSetTypeToImport(const QString& fieldValue) co
 		return Regular;
 }
 
+static const QString &calendarDayExtraInfo{qApp->tr(" Workout #: ")};
+
 //Don't put any colon ':' in here. Import will fail. All value()s returned from std::optional by calendarManager() are assumed to
 //contain a valid value because export will only be an option if those values are valid. Those checks are made elsewhere in the code path.
 const QString DBExercisesModel::exportExtraInfo() const
 {
-	const QChar &splitLetter{calendarManager()->splitLetter(mesoIdx(), m_calendarDay).value().at(0)};
-	QString extra_info{std::move(splitLabel() + splitLetter + " ("_L1 + appMesoModel()->muscularGroup(mesoIdx(), splitLetter) + ')')};
+	QString extra_info{std::move(splitLabel() + splitLetter() + " ("_L1 + appMesoModel()->muscularGroup(mesoIdx(), splitLetter()) + ')')};
 	if (m_calendarDay >= 0)
-		extra_info += std::forward<QString>(std::move(tr(" at ")) + std::move(appUtils()->formatDate(calendarManager()->date(mesoIdx(), m_calendarDay).value())));
+		extra_info += std::forward<QString>(calendarDayExtraInfo + std::move(QString::number(m_calendarDay)) +
+						std::move(tr(" at ")) + std::move(appUtils()->formatDate(calendarManager()->date(mesoIdx(), m_calendarDay).value())));
 	return extra_info;
+}
+
+bool DBExercisesModel::importExtraInfo(const QString &maybe_extra_info)
+{
+	if (maybe_extra_info.contains(splitLabel()))
+	{
+		m_splitLetter = maybe_extra_info.sliced(maybe_extra_info.indexOf(':') + 2, 1).at(0);
+		if (m_splitLetter.cell() >= 'A' && m_splitLetter.cell() <= 'F')
+		{
+			const int cal_day_idx{static_cast<int>(maybe_extra_info.indexOf(calendarDayExtraInfo) + calendarDayExtraInfo.length())};
+			if (cal_day_idx > calendarDayExtraInfo.length()) //workoutModel
+			{
+				bool ok;
+				m_calendarDay = maybe_extra_info.sliced(cal_day_idx, maybe_extra_info.indexOf(' ', cal_day_idx + 1)).toUInt(&ok);
+				return ok;
+			}
+			else //splitModel
+				return true;
+		}
+	}
+	return false;
 }
 
 QString DBExercisesModel::increaseStringTimeBy(const QString &strtime, const uint add_mins, const uint add_secs)

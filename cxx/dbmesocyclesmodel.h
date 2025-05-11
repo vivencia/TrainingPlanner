@@ -40,6 +40,8 @@ QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(DBMesoCalendarManager)
 QT_FORWARD_DECLARE_CLASS(QMLMesoInterface)
 
+QT_FORWARD_DECLARE_CLASS(QFile)
+
 using DBSplitModel = DBExercisesModel;
 
 static const QLatin1StringView mesosDir{"mesocycles/"};
@@ -343,7 +345,9 @@ public:
 	inline int importIdx() const { return m_importMesoIdx; }
 	inline void setImportIdx(const int new_import_idx) { m_importMesoIdx = new_import_idx; }
 	int exportToFile(const uint meso_idx, const QString &filename) const;
-	int importFromFile(const QString &filename);
+	int exportToFormattedFile(const uint meso_idx, const QString &filename) const;
+	int importFromFile(const uint meso_idx, const QString &filename);
+	int importFromFormattedFile(const uint meso_idx, const QString &filename);
 	//bool updateFromModel(const uint meso_idx, TPListModel *model);
 
 	inline bool isFieldFormatSpecial (const uint field) const
@@ -361,7 +365,7 @@ public:
 	}
 
 	QString formatFieldToExport(const uint field, const QString &fieldValue) const;
-	QString formatFieldToImport(const uint field, const QString &fieldValue, const QString &fieldName) const;
+	QString formatFieldToImport(const uint field, const QString &fieldValue) const;
 
 	QString mesoFileName(const uint meso_idx) const;
 	void removeMesoFile(const uint meso_idx);
@@ -401,6 +405,8 @@ private:
 
 	static DBMesocyclesModel *app_meso_model;
 	friend DBMesocyclesModel *appMesoModel();
+
+	int exportToFile_splitData(const uint meso_idx, QFile *mesoFile = nullptr);
 };
 
 inline DBMesocyclesModel *appMesoModel() { return DBMesocyclesModel::app_meso_model; }

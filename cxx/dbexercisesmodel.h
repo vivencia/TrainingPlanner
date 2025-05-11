@@ -20,6 +20,8 @@ QT_FORWARD_DECLARE_CLASS(DBMesoCalendarManager)
 QT_FORWARD_DECLARE_STRUCT(exerciseEntry)
 QT_FORWARD_DECLARE_STRUCT(stSet)
 
+QT_FORWARD_DECLARE_CLASS(QFile)
+
 enum {
 	Regular = 0,
 	Pyramid = 1,
@@ -73,13 +75,17 @@ public:
 	inline const uint mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; }
 	inline int calendarDay() const { return m_calendarDay; }
+	inline const QChar &splitLetter() const { return m_splitLetter; }
 
 	bool fromDataBase(const QStringList &data, const bool bClearSomeFieldsForReUse = false);
 	const QStringList toDatabase() const;
 	void clearExercises();
 
-	int exportToFile(const QString &filename) const;
-	int importFromFile(const QString &filename);
+	int exportToFile(const QString &filename, QFile *out_file = nullptr) const;
+	int exportToFormattedFile(const QString &filename, QFile *out_file = nullptr) const;
+	int importFromFile(const QString &filename, QFile *in_file = nullptr);
+	int importFromFormattedFile(const QString &filename, QFile *in_file = nullptr);
+	inline const QString &identifierInFile() const { return *m_identifierInFile; }
 
 	const uint inline exerciseCount() const { return m_exerciseData.count(); }
 	const uint setsNumber(const uint exercise_number) const;
@@ -176,6 +182,7 @@ signals:
 private:
 	DBMesoCalendarManager *m_calendarManager;
 	QString m_id, m_mesoId;
+	const QString *m_identifierInFile;
 	uint m_mesoIdx, m_workingExercise;
 	int m_calendarDay;
 	QChar m_splitLetter;
@@ -186,6 +193,7 @@ private:
 	const QString formatSetTypeToExport(stSet *set) const;
 	TPSetTypes formatSetTypeToImport(const QString &fieldValue) const;
 	const QString exportExtraInfo() const;
+	bool importExtraInfo(const QString &maybe_extra_info);
 	QString increaseStringTimeBy(const QString &strtime, const uint add_mins, const uint add_secs);
 	void setSuggestedTime(const uint set_number, const QList<stSet*> &sets);
 	void setSuggestedSubSets(const uint set_number, const QList<stSet*> &sets);

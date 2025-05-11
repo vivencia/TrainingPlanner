@@ -160,20 +160,25 @@ QFile *TPUtils::openFile(const QString &filename, QIODeviceBase::OpenMode flags)
 	{
 		QFile *file{new QFile{filename}};
 		if (file->open(flags))
+		{
+			file->deleteLater();
 			return file;
+		}
 		delete file;
 	}
 	return nullptr;
 }
 
-bool TPUtils::writeDataToFile(QFile *out_file, const QList<QStringList> &data, const QList<uint> &export_rows,
-							  const QString &header, const bool use_real_id) const
+bool TPUtils::writeDataToFile(QFile *out_file,
+								const QString &identifier,
+								const QList<QStringList> &data,
+								const QList<uint> &export_rows,
+								const bool use_real_id) const
 {
 	if (!out_file || !out_file->isOpen())
 		return false;
 
-	if (!header.isEmpty())
-		out_file->write(header.toUtf8().constData());
+	out_file->write(QString{"##%%"_L1 + identifier + '\n'}.toUtf8().constData());
 
 	if (export_rows.isEmpty())
 	{
@@ -218,18 +223,22 @@ bool TPUtils::writeDataToFile(QFile *out_file, const QList<QStringList> &data, c
 	return true;
 }
 
-bool TPUtils::writeDataToFile(QFile *out_file,
+bool TPUtils::writeDataToFormattedFile(QFile *out_file,
+								const QString &identifier,
 								const QList<QStringList> &data,
 								const QList<std::function<QString(void)>> &field_description,
 								const std::function<QString(const uint field, const QString &value)> &formatToExport,
-								const QList<const uint> &export_rows,
-								const QString &header)
+								const QList<uint> &export_rows,
+								const QString &header) const
 {
 	if (!out_file || !out_file->isOpen())
 		return false;
 
+	QString first_line{std::move("####"_L1 + identifier)};
 	if (!header.isEmpty())
-		out_file->write(header.toUtf8().constData());
+		first_line += std::forward<QString>("  "_L1 + header);
+	first_line += std::forward<QString>(std::move("\n\n"_L1));
+	out_file->write(first_line.toUtf8().constData());
 
 	if (export_rows.isEmpty())
 	{
@@ -275,45 +284,96 @@ bool TPUtils::writeDataToFile(QFile *out_file,
 	return true;
 }
 
-int TPUtils::readDataFromFile(QFile *in_file, QList<QStringList>& data, const uint field_count, const QString& identifier, const int row)
+int TPUtils::readDataFromFile(QFile *in_file,
+								QList<QStringList> &data,
+								const uint field_count,
+								const QString &identifier,
+								const int row) const
 {
 	if (!in_file || !in_file->isOpen())
 		return -1;
 
 	const qsizetype prevCount{data.count()};
 	QStringList read_data{field_count};
-
 	bool identifier_found{false};
-	const char *identifier_in_file{QString{"##0x"_L1 + identifier}.toLatin1().constData()};
+	const char *identifier_in_file{QString{"##%%"_L1 + identifier}.toUtf8().constData()};
 	char buf[512];
+
 	while (in_file->readLine(buf, sizeof(buf)) != -1)
 	{
-		if (strstr(buf, "##0x") != NULL)
+		if (!identifier_found)
+			identifier_found = strstr(buf, identifier_in_file) != NULL;
+		else
 		{
-			if (!identifier_found)
-				identifier_found = strstr(buf, identifier_in_file) != NULL;
-			else
+			if (strstr(buf, "##%%") != NULL) //Found the beginning of another data set, rewind and return
 			{
 				in_file->seek(in_file->pos()-strlen(buf));
 				break;
 			}
-		}
-		else if (strstr(buf, "##!!") != NULL)
-		{
-			if (read_data.count() >= field_count)
+			else if (strstr(buf, "##!!") != NULL)
 			{
-				if (read_data.count() > field_count)
-					read_data.resize(field_count);
-				if (row == -1)
-					data.append(std::move(read_data));
-				else if (row < data.count())
-					data.replace(row, std::move(read_data));
+				if (read_data.count() >= field_count)
+				{
+					if (read_data.count() > field_count)
+						read_data.resize(field_count);
+					if (row == -1)
+						data.append(std::move(read_data));
+					else if (row < data.count())
+						data.replace(row, std::move(read_data));
+				}
+			}
+			else
+				read_data.append(std::move(QString{buf}.chopped(1)));
+		}
+
+	}
+	return identifier_found ? data.count() - prevCount : APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE;
+}
+
+int TPUtils::readDataFromFormattedFile(QFile *in_file,
+									   QStringList &data,
+									   const QString &identifier,
+									   const std::function<QString(const uint field, const QString &value)> &formatToImport) const
+{
+	if (!in_file || !in_file->isOpen())
+		return -1;
+
+	bool identifier_found{false};
+	const char *identifier_in_file{QString{"####"_L1 + identifier}.toLatin1().constData()};
+	char buf[512];
+	QString value;
+	uint field{1}; //skip ID
+	int line_length{0};
+
+	while ((line_length = in_file->readLine(buf, sizeof(buf))) != -1)
+	{
+		if (line_length < 5)
+			continue;
+
+		if (!identifier_found)
+			identifier_found = strstr(buf, identifier_in_file) != NULL;
+		else
+		{
+			if (strstr(buf, "####") != NULL) //Found the beginning of another data set, rewind and return
+			{
+				in_file->seek(in_file->pos()-strlen(buf));
+				break;
+			}
+			else if (strstr(buf, "##!!") != NULL)
+				break;
+			else
+			{
+				value = buf;
+				value = std::move(value.remove(0, value.indexOf(':') + 2).simplified());
+				if (formatToImport == nullptr)
+					data[field] = std::move(value);
+				else
+					data[field] = std::move(formatToImport(field, value));
+				++field;
 			}
 		}
-		else
-			read_data.append(std::move(QString{buf}.chopped(1)));
 	}
-	return data.count() - prevCount;
+	return identifier_found ? field : APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE;
 }
 
 void TPUtils::scanDir(const QString &path, QFileInfoList &results, const QString &match, const bool follow_tree)
