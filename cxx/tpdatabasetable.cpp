@@ -1,5 +1,7 @@
 #include "tpdatabasetable.h"
 
+#include "tpglobals.h"
+
 #include <QFile>
 
 using namespace Qt::Literals::StringLiterals;

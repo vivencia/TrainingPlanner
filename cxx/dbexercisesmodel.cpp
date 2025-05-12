@@ -175,10 +175,10 @@ int DBExercisesModel::exportToFile(const QString &filename, QFile *out_file) con
 			return APPWINDOW_MSG_OPEN_FAILED;
 	}
 
-	const QList<QStringList> &split_data{std::move(QList<QStringList>{} << toDatabase())};
-	const int ret{appUtils()->writeDataToFile(out_file, identifierInFile(), split_data)};
+	const QList<QStringList> &data{std::move(QList<QStringList>{} << toDatabase())};
+	const bool ret{appUtils()->writeDataToFile(out_file, identifierInFile(), data)};
 	out_file->close();
-	return ret;
+	return ret ? APPWINDOW_MSG_EXPORT_OK : APPWINDOW_MSG_EXPORT_FAILED;
 }
 
 int DBExercisesModel::exportToFormattedFile(const QString &filename, QFile *out_file) const
@@ -255,7 +255,20 @@ int DBExercisesModel::importFromFile(const QString& filename, QFile *in_file)
 		if (!in_file)
 			return APPWINDOW_MSG_OPEN_FAILED;
 	}
-	return APPWINDOW_MSG_READ_FROM_FILE_OK;
+
+	QStringList data{WORKOUT_TOTALCOLS};
+	QList<QStringList> exercise_data{1};
+	exercise_data[0] = std::move(data);
+	int ret{appUtils()->readDataFromFile(in_file, exercise_data, WORKOUT_TOTALCOLS, identifierInFile())};
+	if (ret != APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE)
+	{
+		if (fromDataBase(exercise_data.at(0)))
+			ret = APPWINDOW_MSG_READ_FROM_FILE_OK;
+		else
+			ret = APPWINDOW_MSG_IMPORT_FAILED;
+	}
+	in_file->close();
+	return ret;
 }
 
 int DBExercisesModel::importFromFormattedFile(const QString& filename, QFile *in_file)

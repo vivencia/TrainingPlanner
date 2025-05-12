@@ -107,12 +107,12 @@ void DBInterface::threadFinished(TPDatabaseTable *dbObj)
 	dbObj->setResolved(true);
 	if (dbObj->waitForThreadToFinish())
 		dbObj->thread()->quit();
-	LOG_MESSAGE("Database  " << dbObjName << " - " << dbObj->uniqueID() << " calling databaseReady()")
-	emit databaseReady(dbObj->uniqueID());
+	LOG_MESSAGE("Database  " << dbObjName << " - " << dbObj->uniqueId() << " calling databaseReady()")
+	emit databaseReady(dbObj->uniqueId());
 	if (m_WorkerLock[dbObj->tableID()].hasNext())
 	{
 		const TPDatabaseTable *const nextDbObj{m_WorkerLock[dbObj->tableID()].nextObj()};
-		LOG_MESSAGE("Database  " << dbObjName << " - " << nextDbObj->uniqueID() <<" starting in sequence of previous thread")
+		LOG_MESSAGE("Database  " << dbObjName << " - " << nextDbObj->uniqueId() <<" starting in sequence of previous thread")
 		nextDbObj->thread()->start();
 		if (nextDbObj->waitForThreadToFinish())
 			nextDbObj->thread()->wait();
@@ -144,14 +144,14 @@ void DBInterface::createThread(TPDatabaseTable *worker, const std::function<void
 	m_WorkerLock[worker->tableID()].appendObj(worker);
 	if (m_WorkerLock[worker->tableID()].canStartThread())
 	{
-		LOG_MESSAGE("Database  " << worker->objectName() << " -  " << worker->uniqueID() << " starting immediatelly")
+		LOG_MESSAGE("Database  " << worker->objectName() << " -  " << worker->uniqueId() << " starting immediatelly")
 		thread->start();
 		if (worker->waitForThreadToFinish())
 			thread->wait();
 	}
 	else
 	{
-		LOG_MESSAGE("Database  " << worker->objectName() << "  Waiting for it to be free: " << worker->uniqueID())
+		LOG_MESSAGE("Database  " << worker->objectName() << "  Waiting for it to be free: " << worker->uniqueId())
 	}
 }
 
@@ -167,7 +167,7 @@ void DBInterface::cleanUpThreads()
 			dbObj = m_WorkerLock[x].at(i);
 			if (dbObj->resolved())
 			{
-				LOG_MESSAGE("cleanUpThreads: " << dbObj->objectName() << "uniqueID: " << dbObj->uniqueID());
+				LOG_MESSAGE("cleanUpThreads: " << dbObj->objectName() << "uniqueId: " << dbObj->uniqueId());
 				dbObj->disconnect();
 				dbObj->deleteLater();
 				m_WorkerLock[x].removeAt(i);
@@ -296,7 +296,7 @@ void DBInterface::saveMesocycle(const uint meso_idx)
 
 		auto conn = std::make_shared<QMetaObject::Connection>();
 		*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,meso_idx,worker,oldMeso_id] (const uint db_id) {
-			if (db_id == worker->uniqueID())
+			if (db_id == worker->uniqueId())
 			{
 				disconnect(*conn);
 				//The splits are already saved with a negative meso_id
@@ -501,7 +501,7 @@ void DBInterface::getTrainingDay(DBWorkoutModel *tDayModel)
 	worker->addExecArg(appMesoModel()->id(tDayModel->mesoIdx()));
 	auto conn = std::make_shared<QMetaObject::Connection>();
 	*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,worker,tDayModel] (const uint db_id) {
-		if (db_id == worker->uniqueID())
+		if (db_id == worker->uniqueId())
 		{
 			disconnect(*conn);
 			if (tDayModel->exerciseCount() == 0)
@@ -520,7 +520,7 @@ void DBInterface::getTrainingDayExercises(DBWorkoutModel *tDayModel)
 	worker->addExecArg(appMesoModel()->id(tDayModel->mesoIdx()));
 	auto conn = std::make_shared<QMetaObject::Connection>();
 	*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,worker,tDayModel] (const uint db_id) {
-		if (db_id == worker->uniqueID())
+		if (db_id == worker->uniqueId())
 		{
 			disconnect(*conn);
 			if (tDayModel->exerciseCount() == 0)
@@ -541,7 +541,7 @@ void DBInterface::verifyTDayOptions(DBWorkoutModel *tDayModel)
 		worker->addExecArg(tDayModel->dateStr());
 		auto conn = std::make_shared<QMetaObject::Connection>();
 		*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,worker,tDayModel] (const uint db_id) {
-			if (db_id == worker->uniqueID())
+			if (db_id == worker->uniqueId())
 			{
 				disconnect(*conn);
 				DBWorkoutModel *tempModel{worker->model()};
@@ -623,7 +623,7 @@ void DBInterface::getExercisesForSplitWithinMeso(const uint meso_idx, const QCha
 	DBMesoSplitTable *worker{new DBMesoSplitTable{m_DBFilePath}};
 	auto conn = std::make_shared<QMetaObject::Connection>();
 		*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,worker] (const uint db_id) {
-		if (db_id == worker->uniqueID())
+		if (db_id == worker->uniqueId())
 		{
 			disconnect(*conn);
 			emit databaseReadyWithData(MESOSPLIT_TABLE_ID, QVariant::fromValue(worker->retrievedStats()));
@@ -640,7 +640,7 @@ void DBInterface::completedDaysForSplitWithinTimePeriod(const QChar &splitLetter
 	DBMesoCalendarTable *worker{new DBMesoCalendarTable{m_DBFilePath}};
 	auto conn = std::make_shared<QMetaObject::Connection>();
 		*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,worker] (const uint db_id) {
-		if (db_id == worker->uniqueID())
+		if (db_id == worker->uniqueId())
 		{
 			disconnect(*conn);
 			emit databaseReadyWithData(MESOCALENDAR_TABLE_ID, QVariant::fromValue(worker->retrievedDates()));
@@ -657,7 +657,7 @@ void DBInterface::workoutsInfoForTimePeriod(const QStringList &exercises, const 
 	DBWorkoutsTable *worker{new DBWorkoutsTable{m_DBFilePath}};
 	auto conn = std::make_shared<QMetaObject::Connection>();
 		*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,worker] (const uint db_id) {
-		if (db_id == worker->uniqueID())
+		if (db_id == worker->uniqueId())
 		{
 			disconnect(*conn);
 			emit databaseReadyWithData(WORKOUT_TABLE_ID, QVariant::fromValue(worker->workoutsInfo()));

@@ -82,7 +82,7 @@ public:
 	inline uint fieldCount() const { return MESOCYCLES_TOTAL_COLS; }
 	inline uint count() const { return m_mesoData.count(); }
 	QMLMesoInterface *mesoManager(const uint meso_idx);
-	inline DBSplitModel *splitModel(const uint meso_idx, const QChar &splitLetter) const { return m_splitModels.at(meso_idx).value(splitLetter); }
+	DBSplitModel *splitModel(const uint meso_idx, const QChar &split_letter);
 
 	Q_INVOKABLE void getMesocyclePage(const uint meso_idx);
 	Q_INVOKABLE uint startNewMesocycle(const bool bCreatePage, const std::optional<bool> bOwnMeso = std::nullopt);
@@ -375,6 +375,7 @@ public:
 	void scanTemporaryMesocycles();
 
 signals:
+	void deferredActionFinished(const uint action_id, const int action_result);
 	void mesoIdxChanged(const uint old_meso_idx, const uint new_meso_idx);
 	void labelChanged();
 	void isNewMesoChanged(const uint meso_idx, const uint = 9999); //2nd parameter only need by TPWorkoutsCalendar
@@ -389,7 +390,7 @@ signals:
 	void todaysWorkoutFinished();
 	void usedSplitsChanged(const uint meso_idx);
 
-private:
+private:	
 	QList<QStringList> m_mesoData;
 	QList<QMLMesoInterface*> m_mesoManagerList;
 	QList<QMap<QChar,DBSplitModel*>> m_splitModels;
@@ -406,7 +407,13 @@ private:
 	static DBMesocyclesModel *app_meso_model;
 	friend DBMesocyclesModel *appMesoModel();
 
-	int exportToFile_splitData(const uint meso_idx, QFile *mesoFile = nullptr);
+	inline QString newMesoTemporaryId() { return QString::number(m_lowestTempMesoId--); }
+	void loadSplitModels(const uint meso_idx, const uint id);
+	int continueExport(const uint meso_idx, const QString &filename, const bool formatted) const;
+	int exportToFile_splitData(const uint meso_idx, QFile *mesoFile, const bool formatted) const;
+
+signals:
+	void internalSignal(const uint _meso_idx, const uint _id, const bool _result);
 };
 
 inline DBMesocyclesModel *appMesoModel() { return DBMesocyclesModel::app_meso_model; }

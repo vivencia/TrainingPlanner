@@ -5,8 +5,8 @@
 
 #include <QObject>
 
-class DBMesoSplitModel;
-class DBWorkoutModel;
+QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
+using DBMesoSplitModel = DBExercisesModel;
 
 static const QLatin1StringView &DBMesoSplitFileName{"MesocyclesSplits.db.sqlite"_L1};
 
@@ -24,15 +24,13 @@ public:
 
 	void createTable() override final;
 	void updateTable() override final;
-	void getAllMesoSplits();
+	void getMesoSplit();
 	void saveMesoSplit();
 	void replaceMesoId();
 	void getAllSplits();
-	void getCompleteMesoSplit(const bool bEmitSignal = true); //only for empty models
 	void saveMesoSplitComplete();
 	bool mesoHasPlan(const QString &mesoId, const QString &splitLetter);
 	bool mesoHasAllPlans(const uint meso_idx);
-	void convertTDayExercisesToMesoPlan(const DBWorkoutModel *const tDayModel);
 	inline DBMesoSplitModel *model() const { return m_model; }
 	inline void setAnotherModel(DBMesoSplitModel *new_model) { m_model = new_model; }
 

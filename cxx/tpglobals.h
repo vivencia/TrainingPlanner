@@ -29,28 +29,13 @@ static const QString &TP_APP_VERSION("v202504 Alpha 1"_L1);
 #define LOG_MESSAGE(message)
 #endif
 
-static const QLatin1Char record_separator(28);
-static const QLatin1Char exercises_separator(29);
-static const QLatin1Char comp_exercise_separator(30);
-static const QLatin1Char set_separator(31);
-static const QLatin1Char fancy_record_separator1('|');
-static const QLatin1Char fancy_record_separator2(';');
-static const QString &comp_exercise_fancy_separator(" + "_L1);
-
-static const uint APP_TABLES_NUMBER(6);
-static const uint EXERCISES_TABLE_ID(0x0001);
-static const uint MESOCYCLES_TABLE_ID(0x0002);
-static const uint MESOSPLIT_TABLE_ID(0x0003);
-static const uint MESOCALENDAR_TABLE_ID(0x0004);
-static const uint WORKOUT_TABLE_ID(0x0005);
-static const uint USERS_TABLE_ID(0x0006);
-
-static const QString &DBExercisesObjectName("Exercises"_L1);
-static const QString &DBMesocyclesObjectName("Mesocycles"_L1);
-static const QString &DBMesoSplitObjectName("MesocyclesSplits"_L1);
-static const QString &DBMesoCalendarObjectName("MesoCalendar"_L1);
-static const QString &DBTrainingDayObjectName("TrainingDay"_L1);
-static const QString &DBUserObjectName("UserProfile"_L1);
+constexpr QLatin1Char record_separator(28);
+constexpr QLatin1Char exercises_separator(29);
+constexpr QLatin1Char comp_exercise_separator(30);
+constexpr QLatin1Char set_separator(31);
+constexpr QLatin1Char fancy_record_separator1('|');
+constexpr QLatin1Char fancy_record_separator2(';');
+constexpr QLatin1StringView comp_exercise_fancy_separator(" + "_L1);
 
 static const QString &STR_MINUS_ONE("-1"_L1);
 static const QString &STR_ZERO("0"_L1);
@@ -93,6 +78,13 @@ enum {
 #define APPWINDOW_MSG_CUSTOM_MESSAGE 1000
 #define APPWINDOW_MSG_CUSTOM_WARNING 1001
 #define APPWINDOW_MSG_CUSTOM_ERROR 1002
+#define APPWINDOW_MSG_DEFERRED_ACTION 2000
+
+static int deferredActionId()
+{
+	static uint da_id{APPWINDOW_MSG_DEFERRED_ACTION};
+	return da_id++;
+}
 
 template <typename T>
 inline void setBit(T &__restrict var, const unsigned char bit)
