@@ -9,17 +9,17 @@
 #include <QSqlQuery>
 #include <QTime>
 
-DBMesoCalendarTable::DBMesoCalendarTable(const QString &dbFilePath, DBMesoCalendarManager *model)
-	: TPDatabaseTable{}, m_model{model}
+DBMesoCalendarTable::DBMesoCalendarTable(DBMesoCalendarManager *model)
+	: TPDatabaseTable{MESOCALENDAR_TABLE_ID}, m_model{model}
 {
 	m_tableName = std::move("mesocycles_calendar_table"_L1);
-	m_tableID = MESOCALENDAR_TABLE_ID;
-	setObjectName(DBMesoCalendarObjectName);
 	m_UniqueID = appUtils()->generateUniqueId();
 	const QString &cnx_name{"db_mesocal_connection-"_L1 + QString::number(m_UniqueID)};
-	mSqlLiteDB = QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name);
-	const QString &dbname{dbFilePath + DBMesoCalendarFileName};
-	mSqlLiteDB.setDatabaseName(dbname);
+	mSqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name));
+	mSqlLiteDB.setDatabaseName(dbFilePath(m_tableId));
+	#ifndef QT_NO_QDEBUG
+	setObjectName("MesoCalendarTable");
+	#endif
 }
 
 void DBMesoCalendarTable::createTable()
@@ -34,11 +34,6 @@ void DBMesoCalendarTable::createTable()
 		const bool ok = query.exec(strQuery);
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
-}
-
-void DBMesoCalendarTable::updateTable()
-{
-	//doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void DBMesoCalendarTable::getMesoCalendar()
@@ -56,10 +51,10 @@ void DBMesoCalendarTable::getMesoCalendar()
 			if (query.first())
 			{
 				m_model->addCalendarForMeso(meso_idx);
-				QList<DBMesoCalendarManager::stDayInfo*> *meso_calendar{&m_model->mesoCalendar(meso_idx)};
+				QList<stDayInfo*> *meso_calendar{&m_model->mesoCalendar(meso_idx)};
 				do
 				{
-					DBMesoCalendarManager::stDayInfo *day_info{new DBMesoCalendarManager::stDayInfo{}};
+					stDayInfo *day_info{new stDayInfo{}};
 					day_info->date = std::move(query.value(0).toString());
 					day_info->data = std::move(query.value(1).toString());
                     meso_calendar->append(std::move(day_info));
@@ -100,7 +95,7 @@ void DBMesoCalendarTable::saveMesoCalendar()
 				QString dbdata{std::move(std::accumulate(m_model->mesoCalendar(meso_idx).cbegin(),
 												 m_model->mesoCalendar(meso_idx).cend(),
 												 QString{},
-												 [this,meso_id,queryValuesTemplate] (const QString &data, DBMesoCalendarManager::stDayInfo *day_info) {
+												 [this,meso_id,queryValuesTemplate] (const QString &data, stDayInfo *day_info) {
 					return data + queryValuesTemplate.arg(meso_id, day_info->date, day_info->data);
 				}))};
 				dbdata.chop(1);
@@ -112,7 +107,7 @@ void DBMesoCalendarTable::saveMesoCalendar()
 				QString dbdata{std::move(std::accumulate(m_model->mesoCalendar(meso_idx).cbegin(),
 												 m_model->mesoCalendar(meso_idx).cend(),
 												 QString{},
-												 [this,meso_id,queryCommand] (const QString &data, DBMesoCalendarManager::stDayInfo *day_info) {
+												 [this,meso_id,queryCommand] (const QString &data, stDayInfo *day_info) {
 					if (day_info->modified)
 					{
 						day_info->modified = false;

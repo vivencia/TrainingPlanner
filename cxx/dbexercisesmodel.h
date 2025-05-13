@@ -6,14 +6,15 @@
 #define EXERCISES_COL_ID 0
 #define EXERCISES_COL_MESOID 1
 #define EXERCISES_COL_CALENDARDAY 2
-#define EXERCISES_COL_EXERCISES 3
-#define EXERCISES_COL_SETTYPES 4
-#define EXERCISES_COL_RESTTIMES 5
-#define EXERCISES_COL_SUBSETS 6
-#define EXERCISES_COL_REPS 7
-#define EXERCISES_COL_WEIGHTS 8
-#define EXERCISES_COL_NOTES 9
-#define EXERCISES_COL_COMPLETED 10
+#define EXERCISES_COL_SPLITLETTER 3
+#define EXERCISES_COL_EXERCISES 4
+#define EXERCISES_COL_SETTYPES 5
+#define EXERCISES_COL_RESTTIMES 6
+#define EXERCISES_COL_SUBSETS 7
+#define EXERCISES_COL_REPS 8
+#define EXERCISES_COL_WEIGHTS 9
+#define EXERCISES_COL_NOTES 10
+#define EXERCISES_COL_COMPLETED 11
 #define WORKOUT_TOTALCOLS EXERCISES_COL_COMPLETED+1
 
 QT_FORWARD_DECLARE_CLASS(DBMesoCalendarManager)
@@ -56,13 +57,13 @@ Q_PROPERTY(QString splitLabel READ splitLabel NOTIFY labelChanged FINAL)
 public:
 	inline explicit DBExercisesModel(DBMesoCalendarManager *parent, const uint meso_idx, const int calendar_day)
 		: QAbstractListModel{reinterpret_cast<QObject*>(parent)},
-		  m_calendarManager{parent}, m_mesoIdx{meso_idx}, m_calendarDay{calendar_day}
+			m_calendarManager{parent}, m_mesoIdx{meso_idx}, m_calendarDay{calendar_day}, m_splitLetter{'N'}
 	{
 		commonConstructor();
 	}
 	inline explicit DBExercisesModel(DBMesoCalendarManager *parent, const uint meso_idx, const QChar &splitletter)
 		: QAbstractListModel{reinterpret_cast<QObject*>(parent)},
-		  m_calendarManager{parent}, m_mesoIdx{meso_idx}, m_calendarDay{-1}, m_splitLetter{splitletter}
+			m_calendarManager{parent}, m_mesoIdx{meso_idx}, m_calendarDay{-1}, m_splitLetter{splitletter}
 	{
 		commonConstructor();
 	}
@@ -76,9 +77,11 @@ public:
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; }
 	inline int calendarDay() const { return m_calendarDay; }
 	inline const QChar &splitLetter() const { return m_splitLetter; }
+	inline bool importModel() const { return m_importMode; }
+	inline void setImportMode(const bool import_mode) { m_importMode = import_mode; }
 
 	bool fromDataBase(const QStringList &data, const bool bClearSomeFieldsForReUse = false);
-	const QStringList toDatabase() const;
+	const QStringList toDatabase(const bool to_export_file = false) const;
 	void clearExercises();
 
 	int exportToFile(const QString &filename, QFile *out_file = nullptr) const;
@@ -185,6 +188,7 @@ private:
 	const QString *m_identifierInFile;
 	uint m_mesoIdx, m_workingExercise;
 	int m_calendarDay;
+	bool m_importMode;
 	QChar m_splitLetter;
 	QList<exerciseEntry*> m_exerciseData;
 	QHash<int, QByteArray> m_roleNames;

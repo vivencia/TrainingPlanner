@@ -2,9 +2,32 @@
 
 #include "tpglobals.h"
 
+#include "dbexerciseslisttable.h"
+#include "dbmesocalendartable.h"
+#include "dbmesocyclestable.h"
+#include "dbusertable.h"
+#include "dbworkoutsorsplitstable.h"
+
 #include <QFile>
 
 using namespace Qt::Literals::StringLiterals;
+
+TPDatabaseTable *TPDatabaseTable::createDBTable(const uint table_id, const bool auto_delete)
+{
+	TPDatabaseTable *db_table{nullptr};
+	switch (table_id)
+	{
+		case EXERCISES_TABLE_ID: db_table = new DBExercisesTable{nullptr}; break;
+		case MESOCYCLES_TABLE_ID: db_table = new DBMesocyclesTable{nullptr}; break;
+		case MESOSPLIT_TABLE_ID: db_table = new DBWorkoutsOrSplitsTable{MESOSPLIT_TABLE_ID}; break;
+		case MESOCALENDAR_TABLE_ID: db_table = new DBMesoCalendarTable{nullptr}; break;
+		case WORKOUT_TABLE_ID: db_table = new DBWorkoutsOrSplitsTable{WORKOUT_TABLE_ID}; break;
+		case USERS_TABLE_ID: db_table = new DBUserTable{nullptr}; break;
+	}
+	if (db_table && auto_delete)
+		db_table->deleteLater();
+	return db_table;
+}
 
 void TPDatabaseTable::removeEntry(const bool bUseMesoId)
 {

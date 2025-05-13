@@ -1,27 +1,23 @@
-#ifndef DBMESOCYCLESTABLE_H
-#define DBMESOCYCLESTABLE_H
+#pragma once
 
 #include "tpdatabasetable.h"
 
 #include <QObject>
 
-class DBMesocyclesModel;
-
-static const QLatin1StringView &DBMesocyclesFileName{"Mesocycles.db.sqlite"_L1};
+QT_FORWARD_DECLARE_CLASS(DBMesocyclesModel)
 
 class DBMesocyclesTable final : public TPDatabaseTable
 {
 
 public:
-	explicit DBMesocyclesTable(const QString &dbFilePath, DBMesocyclesModel *model = nullptr);
+	explicit DBMesocyclesTable(DBMesocyclesModel *model);
 
 	void createTable() override final;
-	void updateTable() override final;
+	virtual void updateTable() override final {}
+
 	void getAllMesocycles();
 	void saveMesocycle();
 
 private:
 	DBMesocyclesModel *m_model;
 };
-
-#endif // DBMESOCYCLESTABLE_H

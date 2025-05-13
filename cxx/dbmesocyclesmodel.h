@@ -38,11 +38,10 @@ enum MesoRoleNames {
 
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(DBMesoCalendarManager)
+QT_FORWARD_DECLARE_CLASS(DBSplitModel)
 QT_FORWARD_DECLARE_CLASS(QMLMesoInterface)
 
 QT_FORWARD_DECLARE_CLASS(QFile)
-
-using DBSplitModel = DBExercisesModel;
 
 static const QLatin1StringView mesosDir{"mesocycles/"};
 

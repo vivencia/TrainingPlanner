@@ -9,13 +9,6 @@
 
 #include <ranges>
 
-struct stDayInfo
-{
-	QString data;
-	QString date;
-	TPBool modified;
-};
-
 uint DBMesoCalendarManager::populateCalendarDays(const uint meso_idx, QDate &start_date, const QDate &end_date, const QString &split)
 {
 	const uint n_days{static_cast<uint>(start_date.daysTo(end_date))+1};
@@ -73,7 +66,7 @@ void DBMesoCalendarManager::setDayInfo(const uint meso_idx, const uint calendar_
 void DBMesoCalendarManager::removeCalendarForMeso(const uint meso_idx)
 {
 	appDBInterface()->removeMesoCalendar(meso_idx);
-	appDBInterface()->removeWorkoutsForMeso(meso_idx);
+	appDBInterface()->removeAllWorkouts(meso_idx);
 	delete m_calendars.at(meso_idx);
 	m_calendars.remove(meso_idx);
 	qDeleteAll(m_workouts.at(meso_idx));
@@ -96,7 +89,7 @@ void DBMesoCalendarManager::addCalendarForMeso(const uint meso_idx)
 		n_days = static_cast<uint>(appMesoModel()->startDate(meso_idx).daysTo(appMesoModel()->endDate(meso_idx)) + 1);
 	m_dayInfoList.append(QList<stDayInfo*>{n_days});
 	m_calendars.append(new DBCalendarModel{this, meso_idx});
-	m_workouts.append(QList<DBWorkoutModel*>{n_days});
+	m_workouts.append(QList<DBExercisesModel*>{n_days});
 }
 
 void DBMesoCalendarManager::addNewCalendarForMeso(const uint new_mesoidx)
@@ -128,7 +121,7 @@ void DBMesoCalendarManager::remakeMesoCalendar(const uint meso_idx, const bool p
 	}
 
 	appDBInterface()->removeMesoCalendar(meso_idx);
-	appDBInterface()->removeWorkoutsForMeso(meso_idx);
+	appDBInterface()->removeAllWorkouts(meso_idx);
 	QDate startDate{std::move(appMesoModel()->startDate(meso_idx))};
 	QDate oldStartDate{std::move(date(meso_idx, 0).value())};
 
@@ -182,14 +175,14 @@ void DBMesoCalendarManager::alterCalendarSplits(const uint meso_idx, const QDate
 						break;
 				}
 				++i;
-			} while (++splitletter != split.cend());
-			if (splitletter == split.cend())
+			} while (++splitletter != const_cast<QString::iterator>(split.end()));
+			if (splitletter == const_cast<QString::iterator>(split.end()))
 				return; //error: new_splitletter does not belong to split
 
 			for (; day <= last_day; ++day)
 			{
 				setSplitLetter(meso_idx, day, *splitletter, false);
-				if (++splitletter != split.cend())
+				if (++splitletter != const_cast<QString::iterator>(split.end()))
 					splitletter = const_cast<QString::iterator>(split.begin());
 			}
 			emit calendarChanged(meso_idx);
@@ -197,19 +190,19 @@ void DBMesoCalendarManager::alterCalendarSplits(const uint meso_idx, const QDate
 	}
 }
 
-DBWorkoutModel *DBMesoCalendarManager::workoutForDay(const uint meso_idx, const QDate &date)
+DBExercisesModel *DBMesoCalendarManager::workoutForDay(const uint meso_idx, const QDate &date)
 {
-	DBWorkoutModel *w_model{nullptr};
+	DBExercisesModel *w_model{nullptr};
 	if (meso_idx < m_dayInfoList.count())
 	{
 		const int cal_day{calendarDay(meso_idx, date)};
 		if (cal_day >= 0)
 		{
-			QList<DBWorkoutModel*> *workouts{&(m_workouts[meso_idx])};
+			QList<DBExercisesModel*> *workouts{&(m_workouts[meso_idx])};
 			if (cal_day >= workouts->count())
 			{
 				for (uint i{static_cast<uint>(workouts->count())}; i < cal_day; ++i)
-					workouts->append(new DBWorkoutModel{this, meso_idx, static_cast<int>(i)});
+					workouts->append(new DBExercisesModel{this, meso_idx, static_cast<int>(i)});
 			}
 			else
 				w_model = workouts->at(cal_day);

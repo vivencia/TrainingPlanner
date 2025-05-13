@@ -1,6 +1,5 @@
 #pragma once
 
-#include "tplistmodel.h"
 #include "tpdatabasetable.h"
 
 #include <QObject>
@@ -9,18 +8,12 @@
 #include <QFile>
 #include <QTimer>
 
-class DBMesocyclesModel;
-class DBExercisesListModel;
-class DBMesoSplitModel;
-class DBMesoCalendarManager;
-class DBExercisesModel;
-class DBUserModel;
-class RunCommands;
-class QmlItemManager;
-
-#ifdef Q_OS_ANDROID
-class TPAndroidNotification;
-#endif
+QT_FORWARD_DECLARE_CLASS(DBExercisesListModel)
+QT_FORWARD_DECLARE_CLASS(DBMesocyclesModel)
+QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
+QT_FORWARD_DECLARE_CLASS(DBMesoCalendarManager)
+QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
+QT_FORWARD_DECLARE_CLASS(DBUserModel)
 
 //****THIS CLASS MUST NOT ALTER THE MODELS IT USES, UNLESS WHEN LOADING DATA FROM THE DATABASE*****
 
@@ -31,12 +24,11 @@ Q_OBJECT
 
 public:
 	explicit inline DBInterface()
-		: QObject{nullptr}, mb_importMode(false) { app_db_interface = this; }
+		: QObject{nullptr} { app_db_interface = this; }
 	inline DBInterface(const DBInterface& other) = delete;
 	inline DBInterface &operator()(const DBInterface& other) = delete;
 	inline ~DBInterface() {}
 
-	inline const QString &dbFilesPath() const { return m_DBFilePath; }
 	void init();
 	void sanityCheck();
 	void threadFinished(TPDatabaseTable *dbObj);
@@ -66,16 +58,12 @@ public:
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
-	void saveMesoSplit(const uint meso_idx);
-	void replaceMesoId(const uint meso_idx, const int old_meso_id);
-	void removeMesoSplit(const uint meso_idx);
+	void getMesoSplit(DBExercisesModel *model);
+	void saveMesoSplit(DBExercisesModel *model);
+	void removeMesoSplit(DBExercisesModel *model);
+	void removeAllMesoSplits(const uint meso_idx);
 	void deleteMesoSplitTable(const bool bRemoveFile);
-	void loadCompleteMesoSplit(const uint meso_idx, const QChar& splitLetter);
-	void loadAllSplits(const uint meso_idx);
-	void saveMesoSplitComplete(DBMesoSplitModel *model);
-	bool mesoHasPlan(const uint meso_id, const QString &splitLetter) const;
-	bool mesoHasAllPlans(const uint meso_idx) const;
-	void loadSplitFromPreviousMeso(const uint prev_meso_id, DBMesoSplitModel *model);
+	bool mesoHasAllSplitPlans(const uint meso_idx) const;
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
@@ -86,18 +74,13 @@ public:
 	void deleteMesoCalendarTable(const uint meso_idx, const bool bRemoveFile);
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
-	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
-	void getTrainingDay(DBExercisesModel *tDayModel);
-	void getTrainingDayExercises(DBExercisesModel *tDayModel);
-	void verifyTDayOptions(DBExercisesModel *tDayModel);
-	void loadExercisesFromDate(const QString &strDate, DBExercisesModel *tDayModel);
-	void loadExercisesFromMesoPlan(DBExercisesModel *tDayModel, DBMesoSplitModel *const splitModel);
-	void convertTDayToPlan(const DBExercisesModel *const tDayModel, DBMesoSplitModel *const splitModel);
-	void saveTrainingDay(DBExercisesModel *const tDayModel);
-	void removeWorkout(const uint meso_idx, const QDate &date);
-	void removeWorkoutsForMeso(const uint meso_idx);
-	void deleteTrainingDayTable(const bool bRemoveFile);
-	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
+	//-----------------------------------------------------------WORKOUT TABLE-----------------------------------------------------------
+	void getWorkout(DBExercisesModel *model);
+	void saveWorkout(DBExercisesModel *model);
+	void removeWorkout(DBExercisesModel *model);
+	void removeAllWorkouts(const uint meso_idx);
+	void deleteWorkoutsTable(const bool bRemoveFile);
+	//-----------------------------------------------------------WORKOUT TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------STATISTICS-----------------------------------------------------------
 	void getExercisesForSplitWithinMeso(const uint meso_idx, const QChar &splitLetter);
@@ -113,9 +96,6 @@ public slots:
 	void cleanUpThreads();
 
 private:
-	bool mb_importMode;
-	QString m_DBFilePath;
-
 	struct workerLocks {
 		inline TPDatabaseTable *nextObj() const { return dbObjs.at(++currentIndex); }
 		inline TPDatabaseTable *at(const uint index) const { return dbObjs.at(index); }
@@ -127,7 +107,7 @@ private:
 		bool hasID(const uint id) const {
 			for (uint i{0}; i < dbObjs.count(); ++i)
 			{
-				if (dbObjs.at(i)->uniqueID() == id)
+				if (dbObjs.at(i)->uniqueId() == id)
 					return true;
 			}
 			return false;

@@ -1,5 +1,4 @@
-#ifndef DBMESOCALENDARTABLE_H
-#define DBMESOCALENDARTABLE_H
+#pragma once
 
 #include "tpdatabasetable.h"
 
@@ -7,8 +6,6 @@
 #include <QObject>
 
 class DBMesoCalendarManager;
-
-static const QLatin1StringView &DBMesoCalendarFileName("MesoCalendar.db.sqlite"_L1);
 
 struct st_workoutDayInfo {
 	int meso_id;
@@ -24,11 +21,11 @@ class DBMesoCalendarTable final : public TPDatabaseTable
 {
 
 public:
-	explicit DBMesoCalendarTable(const QString &dbFilePath, DBMesoCalendarManager *model = nullptr);
+	explicit DBMesoCalendarTable(DBMesoCalendarManager *model);
 	inline ~DBMesoCalendarTable() { clearWorkoutsInfoList(); }
 
 	void createTable() override final;
-	void updateTable() override final;
+	virtual void updateTable() override final {}
 	void getMesoCalendar();
 	void saveMesoCalendar();
 
@@ -46,5 +43,3 @@ private:
 
 	inline void clearWorkoutsInfoList() { qDeleteAll(m_workoutsInfoList); m_workoutsInfoList.clear(); }
 };
-
-#endif // DBMESOCALENDARTABLE_H

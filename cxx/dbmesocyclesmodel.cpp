@@ -16,6 +16,8 @@
 
 #define NEW_MESO_REQUIRED_FIELDS 4
 
+using DBSplitModel = DBExercisesModel;
+
 static const QString &mesoFileIdentifier{"0x02"_L1};
 DBMesocyclesModel *DBMesocyclesModel::app_meso_model(nullptr);
 

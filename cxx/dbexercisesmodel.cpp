@@ -49,6 +49,8 @@ bool DBExercisesModel::fromDataBase(const QStringList &data, const bool bClearSo
 {
 	m_id = std::move(data.at(EXERCISES_COL_ID));
 	m_mesoId = std::move(data.at(EXERCISES_COL_MESOID));
+	m_calendarDay = data.at(EXERCISES_COL_CALENDARDAY).toUInt();
+	m_splitLetter = data.at(EXERCISES_COL_SPLITLETTER).at(0);
 
 	QStringList exercises(std::move(data.at(EXERCISES_COL_EXERCISES).split(exercises_separator, Qt::SkipEmptyParts)));
 	QStringList settypes(std::move(data.at(EXERCISES_COL_SETTYPES).split(exercises_separator, Qt::SkipEmptyParts)));
@@ -108,11 +110,13 @@ bool DBExercisesModel::fromDataBase(const QStringList &data, const bool bClearSo
 	return m_exerciseData.count() > 0;
 }
 
-const QStringList DBExercisesModel::toDatabase() const
+const QStringList DBExercisesModel::toDatabase(const bool to_export_file) const
 {
 	QStringList data{WORKOUT_TOTALCOLS};
-	data[EXERCISES_COL_ID] = m_id;
-	data[EXERCISES_COL_MESOID] = m_mesoId;
+	data[EXERCISES_COL_ID] = !to_export_file ? m_id : "-1"_L1;
+	data[EXERCISES_COL_MESOID] = !to_export_file ? m_mesoId : "-1"_L1;
+	data[EXERCISES_COL_CALENDARDAY] = std::move(QString::number(m_calendarDay));
+	data[EXERCISES_COL_SPLITLETTER] = m_splitLetter;
 
 	for (const auto exercise_entry : m_exerciseData)
 	{
@@ -175,7 +179,7 @@ int DBExercisesModel::exportToFile(const QString &filename, QFile *out_file) con
 			return APPWINDOW_MSG_OPEN_FAILED;
 	}
 
-	const QList<QStringList> &data{std::move(QList<QStringList>{} << toDatabase())};
+	const QList<QStringList> &data{std::move(QList<QStringList>{} << toDatabase(true))};
 	const bool ret{appUtils()->writeDataToFile(out_file, identifierInFile(), data)};
 	out_file->close();
 	return ret ? APPWINDOW_MSG_EXPORT_OK : APPWINDOW_MSG_EXPORT_FAILED;

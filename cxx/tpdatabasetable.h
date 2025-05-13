@@ -38,10 +38,11 @@ public:
 
 	virtual void createTable() = 0;
 	virtual void updateTable() = 0;
+	static TPDatabaseTable *createDBTable(const uint table_id, const bool auto_delete = true);
 
 	inline void setCallbackForDoneFunc( const std::function<void (TPDatabaseTable*)>& func ) { doneFunc = func; }
 
-	inline QString dbFilePath() const { return appUtils()->localAppFilesDir() + tablesNames[m_tableId]; }
+	static inline QString dbFilePath(const uint table_id) { return appUtils()->localAppFilesDir() + tablesNames[table_id]; }
 	inline short tableId() const { return m_tableId; }
 	inline uint uniqueId() const { return m_UniqueID; }
 	inline void setUniqueId(const uint uid) { m_UniqueID = uid; }

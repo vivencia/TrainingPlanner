@@ -1,13 +1,10 @@
-#ifndef DBEXERCISESLISTTABLE_H
-#define DBEXERCISESLISTTABLE_H
+#pragma once
 
 #include "tpdatabasetable.h"
 
 #include <QObject>
 
-static const QLatin1StringView &DBExercisesFileName("ExercisesList.db.sqlite"_L1);
-
-class DBExercisesListModel;
+QT_FORWARD_DECLARE_CLASS(DBExercisesListModel)
 
 class DBExercisesTable final : public TPDatabaseTable
 {
@@ -15,10 +12,11 @@ class DBExercisesTable final : public TPDatabaseTable
 Q_OBJECT
 
 public:
-	explicit DBExercisesTable(const QString &dbFilePath, DBExercisesListModel *model = nullptr);
+	explicit DBExercisesTable(DBExercisesListModel *model);
 
 	void createTable() override final;
-	void updateTable() override final;
+	virtual void updateTable() override final {}
+
 	void getAllExercises();
 	void updateExercisesList();
 	void saveExercises();
@@ -34,4 +32,3 @@ private:
 	void getExercisesList();
 };
 
-#endif // DBEXERCISESLISTTABLE_H

@@ -72,9 +72,8 @@ set( CXX_SOURCES
 	cxx/tpdatabasetable.h cxx/tpdatabasetable.cpp
 	cxx/dbexerciseslisttable.h cxx/dbexerciseslisttable.cpp
 	cxx/dbmesocyclestable.h cxx/dbmesocyclestable.cpp
-	cxx/dbmesosplittable.h cxx/dbmesosplittable.cpp
 	cxx/dbmesocalendartable.h cxx/dbmesocalendartable.cpp
-    cxx/dbworkouttable.h cxx/dbworkouttable.cpp
+	cxx/dbworkoutsorsplitstable.h cxx/dbworkoutsorsplitstable.cpp
 	cxx/dbusertable.h cxx/dbusertable.cpp
 
 	cxx/tplistmodel.h cxx/tplistmodel.cpp
@@ -83,7 +82,6 @@ set( CXX_SOURCES
 	cxx/homepagemesomodel.h cxx/homepagemesomodel.cpp
 
 	cxx/dbmesocalendarmanager.h cxx/dbmesocalendarmanager.cpp
-
     cxx/dbcalendarmodel.h cxx/dbcalendarmodel.cpp
 	cxx/dbusermodel.h cxx/dbusermodel.cpp
 	cxx/pageslistmodel.h cxx/pageslistmodel.cpp
@@ -102,7 +100,6 @@ set( CXX_SOURCES
 	cxx/weather/weatherinfo.h cxx/weather/weatherinfo.cpp
 	cxx/weather/openweathermapbackend.h
 	cxx/weather/openweathermapbackend.cpp
-
 
 	cxx/statistics/tpstatistics.h cxx/statistics/tpstatistics.cpp
 

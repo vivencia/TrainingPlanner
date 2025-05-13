@@ -4,17 +4,13 @@
 #include "dbexerciseslistmodel.h"
 #include "dbmesocyclestable.h"
 #include "dbmesocyclesmodel.h"
-#include "dbmesosplittable.h"
-#include "dbmesosplitmodel.h"
 #include "dbmesocalendartable.h"
-#include "DBMesoCalendarManager.h"
-#include "dbworkouttable.h"
-#include "dbworkoutmodel.h"
+#include "dbexercisesmodel.h"
+#include "dbworkoutsorsplitstable.h"
 #include "dbusertable.h"
 #include "dbusermodel.h"
 #include "tpglobals.h"
 #include "tpsettings.h"
-#include "tputils.h"
 
 #include <QDir>
 #include <QFileInfo>
@@ -25,57 +21,15 @@ DBInterface *DBInterface::app_db_interface(nullptr);
 
 void DBInterface::init()
 {
-	m_DBFilePath = appUtils()->localAppFilesDir() + "Database/"_L1;
-	QDir appDir{m_DBFilePath};
-	if (!appDir.mkpath(m_DBFilePath))
+	QFileInfo f_info;
+	for (uint i{0}; i < APP_TABLES_NUMBER; ++i)
 	{
-		DEFINE_SOURCE_LOCATION
-		ERROR_MESSAGE("TP directory creation failed: ", m_DBFilePath);
-	}
-
-	QFileInfo f_info{m_DBFilePath + DBExercisesFileName};
-
-	if (!f_info.isReadable())
-	{
-		DBExercisesTable *db_exercises{new DBExercisesTable{m_DBFilePath}};
-		db_exercises->createTable();
-		delete db_exercises;
-		appSettings()->setExercisesListVersion(STR_ZERO);
-	}
-	f_info.setFile(m_DBFilePath + DBMesocyclesFileName);
-	if (!f_info.isReadable())
-	{
-		DBMesocyclesTable *db_mesos{new DBMesocyclesTable{m_DBFilePath}};
-		db_mesos->createTable();
-		delete db_mesos;
-	}
-	f_info.setFile(m_DBFilePath + DBMesoSplitFileName);
-	if (!f_info.isReadable())
-	{
-		DBMesoSplitTable *db_split{new DBMesoSplitTable{m_DBFilePath}};
-		db_split->createTable();
-		delete db_split;
-	}
-	f_info.setFile(m_DBFilePath + DBMesoCalendarFileName);
-	if (!f_info.isReadable())
-	{
-		DBMesoCalendarTable *db_cal{new DBMesoCalendarTable{m_DBFilePath}};
-		db_cal->createTable();
-		delete db_cal;
-	}
-	f_info.setFile(m_DBFilePath + DBTrainingDayFileName);
-	if (!f_info.isReadable())
-	{
-		DBWorkoutsTable *db_tday{new DBWorkoutsTable{m_DBFilePath}};
-		db_tday->createTable();
-		delete db_tday;
-	}
-	f_info.setFile(m_DBFilePath + DBUserFileName);
-	if (!f_info.isReadable())
-	{
-		DBUserTable *db_user{new DBUserTable{m_DBFilePath}};
-		db_user->createTable();
-		delete db_user;
+		f_info.setFile(TPDatabaseTable::dbFilePath(i));
+		if (!f_info.isReadable())
+		{
+			TPDatabaseTable *db_table{TPDatabaseTable::createDBTable(i)};
+			db_table->createTable();
+		}
 	}
 
 	sanityCheck();
@@ -86,18 +40,18 @@ void DBInterface::init()
 	if (appSettings()->appVersion() != TP_APP_VERSION)
 	{
 		//All the code to update the database goes in here
-		//updateDB(new DBMesoCalendarTable{m_DBFilePath});
-		//updateDB(new DBMesocyclesTable{m_DBFilePath});
-		//DBUserTable user{m_DBFilePath};
+		//updateDB(new DBMesoCalendarTable{nullptr});
+		//updateDB(new DBMesocyclesTable{nullptr});
+		//DBUserTable user{nullptr};
 		//user.removeDBFile();
 		//appSettings()->saveAppVersion(TP_APP_VERSION);
 	}
 }
 
-//So far, only DBMesoSplitTable has a sanity chack to make
+//So far, only DBWorkoutsOrSplitsTable has a sanity check to make
 void DBInterface::sanityCheck()
 {
-	DBMesoSplitTable *worker{new DBMesoSplitTable{m_DBFilePath}};
+	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{nullptr}};
 	createThread(worker, [worker] () { worker->removeTemporaries(true); });
 }
 
@@ -109,9 +63,9 @@ void DBInterface::threadFinished(TPDatabaseTable *dbObj)
 		dbObj->thread()->quit();
 	LOG_MESSAGE("Database  " << dbObjName << " - " << dbObj->uniqueId() << " calling databaseReady()")
 	emit databaseReady(dbObj->uniqueId());
-	if (m_WorkerLock[dbObj->tableID()].hasNext())
+	if (m_WorkerLock[dbObj->tableId()].hasNext())
 	{
-		const TPDatabaseTable *const nextDbObj{m_WorkerLock[dbObj->tableID()].nextObj()};
+		const TPDatabaseTable *const nextDbObj{m_WorkerLock[dbObj->tableId()].nextObj()};
 		LOG_MESSAGE("Database  " << dbObjName << " - " << nextDbObj->uniqueId() <<" starting in sequence of previous thread")
 		nextDbObj->thread()->start();
 		if (nextDbObj->waitForThreadToFinish())
@@ -141,8 +95,8 @@ void DBInterface::createThread(TPDatabaseTable *worker, const std::function<void
 		m_threadCleaner.start();
 	}
 
-	m_WorkerLock[worker->tableID()].appendObj(worker);
-	if (m_WorkerLock[worker->tableID()].canStartThread())
+	m_WorkerLock[worker->tableId()].appendObj(worker);
+	if (m_WorkerLock[worker->tableId()].canStartThread())
 	{
 		LOG_MESSAGE("Database  " << worker->objectName() << " -  " << worker->uniqueId() << " starting immediatelly")
 		thread->start();
@@ -187,27 +141,27 @@ void DBInterface::cleanUpThreads()
 //-----------------------------------------------------------USER TABLE-----------------------------------------------------------
 void DBInterface::getAllUsers()
 {
-	DBUserTable worker{m_DBFilePath, appUserModel()};
+	DBUserTable worker{appUserModel()};
 	worker.getAllUsers();
 }
 
 void DBInterface::saveUser(const uint row)
 {
-	DBUserTable *worker{new DBUserTable{m_DBFilePath, appUserModel()}};
+	DBUserTable *worker{new DBUserTable{appUserModel()}};
 	worker->addExecArg(row);
 	createThread(worker, [worker] () { worker->saveUser(); });
 }
 
 void DBInterface::removeUser(const uint row)
 {
-	DBUserTable *worker{new DBUserTable{m_DBFilePath}};
+	DBUserTable *worker{new DBUserTable{nullptr}};
 	worker->addExecArg(appUserModel()->userId(row));
 	createThread(worker, [worker] () { return worker->removeUser(); });
 }
 
 void DBInterface::deleteUserTable(const bool bRemoveFile)
 {
-	DBUserTable *worker{new DBUserTable{m_DBFilePath, appUserModel()}};
+	DBUserTable *worker{new DBUserTable{appUserModel()}};
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 //-----------------------------------------------------------USER TABLE-----------------------------------------------------------
@@ -215,19 +169,19 @@ void DBInterface::deleteUserTable(const bool bRemoveFile)
 //-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 void DBInterface::getAllExercises()
 {
-	DBExercisesTable *worker{new DBExercisesTable{m_DBFilePath, appExercisesModel()}};
+	DBExercisesTable *worker{new DBExercisesTable{appExercisesModel()}};
 	createThread(worker, [worker] () { worker->getAllExercises(); });
 }
 
 void DBInterface::saveExercises()
 {
-	DBExercisesTable *worker{new DBExercisesTable{m_DBFilePath, appExercisesModel()}};
+	DBExercisesTable *worker{new DBExercisesTable{appExercisesModel()}};
 	createThread(worker, [worker] () { return worker->saveExercises(); });
 }
 
 void DBInterface::removeExercise(const uint row)
 {
-	DBExercisesTable *worker{new DBExercisesTable{m_DBFilePath}};
+	DBExercisesTable *worker{new DBExercisesTable{nullptr}};
 	worker->addExecArg(appExercisesModel()->id(row));
 	worker->addExecArg(row);
 	createThread(worker, [worker] () { return worker->removeEntry(); });
@@ -235,13 +189,13 @@ void DBInterface::removeExercise(const uint row)
 
 void DBInterface::deleteExercisesTable(const bool bRemoveFile)
 {
-	DBExercisesTable *worker{new DBExercisesTable{m_DBFilePath, appExercisesModel()}};
+	DBExercisesTable *worker{new DBExercisesTable{appExercisesModel()}};
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 
 void DBInterface::updateExercisesList()
 {
-	DBExercisesTable *worker{new DBExercisesTable{m_DBFilePath, appExercisesModel()}};
+	DBExercisesTable *worker{new DBExercisesTable{appExercisesModel()}};
 	connect(worker, &DBExercisesTable::updatedFromExercisesList, this, [this] () {
 		appSettings()->setExercisesListVersion(m_exercisesListVersion);
 	});
@@ -273,47 +227,18 @@ void DBInterface::getExercisesListVersion()
 //-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 void DBInterface::getAllMesocycles()
 {
-	DBMesocyclesTable worker{m_DBFilePath, appMesoModel()};
+	DBMesocyclesTable worker{appMesoModel()};
 	worker.getAllMesocycles();
-
-	if (appMesoModel()->count() > 0)
-	{
-		DBMesoSplitTable worker2{m_DBFilePath, appMesoModel()->mesoSplitModel()};
-		worker2.getAllMesoSplits();
-	}
 	appMesoModel()->scanTemporaryMesocycles();
 }
 
 void DBInterface::saveMesocycle(const uint meso_idx)
 {
-	DBMesocyclesTable *worker{new DBMesocyclesTable{m_DBFilePath, appMesoModel()}};
+	DBMesocyclesTable *worker{new DBMesocyclesTable{appMesoModel()}};
 
 	if (appMesoModel()->_id(meso_idx) < 0)
-	{
-		const int oldMeso_id{appMesoModel()->_id(meso_idx)};
-		if (appMesoModel()->importMode())
-			worker->setWaitForThreadToFinish(true);
-
-		auto conn = std::make_shared<QMetaObject::Connection>();
-		*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,meso_idx,worker,oldMeso_id] (const uint db_id) {
-			if (db_id == worker->uniqueId())
-			{
-				disconnect(*conn);
-				//The splits are already saved with a negative meso_id
-				if (appMesoModel()->importMode())
-				{
-					replaceMesoId(meso_idx, oldMeso_id);
-					appMesoModel()->removeMesoFile(meso_idx);
-				}
-			}
-		});
-	}
-	else
-	{
-		saveMesoSplit(meso_idx);
-		saveMesoCalendar(meso_idx);
-	}
-
+		worker->waitForThreadToFinish();
+	saveMesoCalendar(meso_idx);
 	worker->addExecArg(meso_idx);
 	createThread(worker, [worker] () { worker->saveMesocycle(); });
 }
@@ -321,154 +246,73 @@ void DBInterface::saveMesocycle(const uint meso_idx)
 void DBInterface::removeMesocycle(const uint meso_idx)
 {
 	removeMesoCalendar(meso_idx);
-	removeMesoSplit(meso_idx);
-	DBMesocyclesTable *worker{new DBMesocyclesTable{m_DBFilePath}};
+	removeAllMesoSplits(meso_idx);
+	DBMesocyclesTable *worker{new DBMesocyclesTable{nullptr}};
 	worker->addExecArg(appMesoModel()->id(meso_idx));
 	createThread(worker, [worker] () { return worker->removeEntry(); });
 }
 
 void DBInterface::deleteMesocyclesTable(const bool bRemoveFile)
 {
-	DBMesocyclesTable *worker{new DBMesocyclesTable{m_DBFilePath, appMesoModel()}};
+	DBMesocyclesTable *worker{new DBMesocyclesTable{appMesoModel()}};
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); });
 }
 //-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 
 //-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
-void DBInterface::saveMesoSplit(const uint meso_idx)
+void DBInterface::getMesoSplit(DBExercisesModel *model)
 {
-	DBMesoSplitTable *worker{new DBMesoSplitTable{m_DBFilePath, appMesoModel()->mesoSplitModel()}};
-	if (appMesoModel()->mesoSplitModel()->importMode())
+	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{model}};
+	createThread(worker, [worker] () { worker->getExercises(); });
+}
+
+void DBInterface::saveMesoSplit(DBExercisesModel *model)
+{
+	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{model}};
+	if (model->id().toInt() < 0)
 		worker->setWaitForThreadToFinish(true);
-	worker->addExecArg(meso_idx);
-	createThread(worker, [worker] () { worker->saveMesoSplit(); });
+	createThread(worker, [worker] () { worker->saveExercises(); });
 }
 
-void DBInterface::replaceMesoId(const uint meso_idx, const int old_meso_id)
+void DBInterface::removeMesoSplit(DBExercisesModel *model)
 {
-	DBMesoSplitTable *worker{new DBMesoSplitTable{m_DBFilePath, appMesoModel()->mesoSplitModel()}};
-	worker->addExecArg(QString::number(old_meso_id));
-	worker->addExecArg(appMesoModel()->id(meso_idx));
-	createThread(worker, [worker] () { worker->replaceMesoId(); });
+	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{model}};
+	createThread(worker, [worker] () { return worker->removeExercises(); });
 }
 
-void DBInterface::removeMesoSplit(const uint meso_idx)
+void DBInterface::removeAllMesoSplits(const uint meso_idx)
 {
-	DBMesoSplitTable *worker{new DBMesoSplitTable{m_DBFilePath}};
+	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{nullptr}};
 	worker->addExecArg(appMesoModel()->id(meso_idx));
-	createThread(worker, [worker] () { return worker->removeEntry(true); });
+	createThread(worker, [worker] () { return worker->removeExercises(); });
 }
 
 void DBInterface::deleteMesoSplitTable(const bool bRemoveFile)
 {
-	DBMesoSplitTable *worker{new DBMesoSplitTable{m_DBFilePath, appMesoModel()->mesoSplitModel()}};
+	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{nullptr}};
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); });
 }
 
-void DBInterface::loadCompleteMesoSplit(const uint meso_idx, const QChar& splitLetter)
+bool DBInterface::mesoHasAllSplitPlans(const uint meso_idx) const
 {
-	DBMesoSplitModel *splitModel{new DBMesoSplitModel{this, true, meso_idx}};
-	splitModel->setSplitLetter(splitLetter);
-	DBMesoSplitTable *worker{new DBMesoSplitTable{m_DBFilePath, splitModel}};
-	worker->addExecArg(appMesoModel()->id(meso_idx));
-	worker->addExecArg(splitLetter);
-	auto conn = std::make_shared<QMetaObject::Connection>();
-	*conn = connect(this, &DBInterface::databaseReady, this, [this,worker,conn] (const uint db_id) {
-		if (m_WorkerLock[MESOSPLIT_TABLE_ID].hasID(db_id))
-		{
-			disconnect(*conn);
-			emit databaseReadyWithData(MESOSPLIT_TABLE_ID, QVariant::fromValue(worker->model()));
-			worker->model()->deleteLater();
-		}
-	});
-	createThread(worker, [worker] () { return worker->getCompleteMesoSplit(); });
-}
-
-void DBInterface::loadAllSplits(const uint meso_idx)
-{
-	const QString &mesoSplit{appMesoModel()->split(meso_idx)};
-	QMap<QChar,DBMesoSplitModel*> allSplits;
-	for(char c{'A'}; c <= char{'F'}; ++c)
-	{
-		if (appMesoModel()->split(meso_idx).contains(c))
-		{
-			DBMesoSplitModel *splitModel{new DBMesoSplitModel{this, true, meso_idx}};
-			splitModel->setSplitLetter(c);
-			allSplits.insert(c, splitModel);
-		}
-	}
-
-	DBMesoSplitTable *worker{new DBMesoSplitTable{m_DBFilePath}};
-	worker->addExecArg(appMesoModel()->id(meso_idx));
-	worker->addExecArg(QVariant::fromValue(&allSplits));
-	auto conn = std::make_shared<QMetaObject::Connection>();
-	*conn = connect(this, &DBInterface::databaseReady, this, [this,worker,conn,allSplits] (const uint db_id) {
-		if (m_WorkerLock[MESOSPLIT_TABLE_ID].hasID(db_id))
-		{
-			disconnect(*conn);
-			emit databaseReadyWithData(MESOSPLIT_TABLE_ID, QVariant::fromValue(allSplits));
-		}
-	});
-	createThread(worker, [worker] () { return worker->getAllSplits(); });
-}
-
-void DBInterface::saveMesoSplitComplete(DBMesoSplitModel *model)
-{
-	DBMesoSplitTable *worker{new DBMesoSplitTable{m_DBFilePath, model}};
-	if (model->importMode())
-		worker->setWaitForThreadToFinish(true);
-	worker->addExecArg(appMesoModel()->id(model->mesoIdx()));
-	createThread(worker, [worker] () { worker->saveMesoSplitComplete(); });
-}
-
-bool DBInterface::mesoHasPlan(const uint meso_id, const QString &splitLetter) const
-{
-	if (splitLetter != "R"_L1)
-	{
-		DBMesoSplitTable *meso_split{new DBMesoSplitTable{m_DBFilePath}};
-		const bool ret(meso_split->mesoHasPlan(QString::number(meso_id), splitLetter));
-		meso_split->deleteLater();
-		return ret;
-	}
-	return false;
-}
-
-bool DBInterface::mesoHasAllPlans(const uint meso_idx) const
-{
-	DBMesoSplitTable *meso_split{new DBMesoSplitTable{m_DBFilePath}};
-	const bool ret(meso_split->mesoHasAllPlans(meso_idx));
-	meso_split->deleteLater();
+	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{nullptr}};
+	const bool ret{worker->mesoHasAllSplitPlans(appMesoModel()->id(meso_idx), appMesoModel()->split(meso_idx))};
+	worker->deleteLater();
 	return ret;
-}
-
-void DBInterface::loadSplitFromPreviousMeso(const uint prev_meso_id, DBMesoSplitModel *model)
-{
-	DBMesoSplitTable *worker{new DBMesoSplitTable{m_DBFilePath, model}};
-	worker->addExecArg(QString::number(prev_meso_id));
-	worker->addExecArg(model->splitLetter().at(0));
-	auto conn = std::make_shared<QMetaObject::Connection>();
-	*conn = connect(this, &DBInterface::databaseReady, this, [this,model,conn] (const uint db_id) {
-		if (m_WorkerLock[MESOSPLIT_TABLE_ID].hasID(db_id))
-		{
-			disconnect(*conn);
-			saveMesoSplitComplete(model);
-		}
-	});
-	createThread(worker, [worker] () { worker->getCompleteMesoSplit(); });
 }
 //-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 void DBInterface::getMesoCalendar(const uint meso_idx)
 {
-	DBMesoCalendarTable *worker{new DBMesoCalendarTable{m_DBFilePath, appMesoModel()->mesoCalendarModel()}};
+	DBMesoCalendarTable *worker{new DBMesoCalendarTable{appMesoModel()->mesoCalendarModel()}};
 	worker->addExecArg(meso_idx);
 	createThread(worker, [worker] () { worker->getMesoCalendar(); });
 }
 
 void DBInterface::saveMesoCalendar(const uint meso_idx)
 {
-	DBMesoCalendarTable *worker{new DBMesoCalendarTable{m_DBFilePath, appMesoModel()->mesoCalendarModel()}};
+	DBMesoCalendarTable *worker{new DBMesoCalendarTable{appMesoModel()->mesoCalendarModel()}};
 	worker->addExecArg(meso_idx);
 	createThread(worker, [worker] () { worker->saveMesoCalendar(); });
 }
@@ -481,146 +325,55 @@ void DBInterface::remakeMesoCalendar(const uint meso_idx)
 
 void DBInterface::removeMesoCalendar(const uint meso_idx)
 {
-	DBMesoCalendarTable *worker{new DBMesoCalendarTable{m_DBFilePath}};
+	DBMesoCalendarTable *worker{new DBMesoCalendarTable{nullptr}};
 	worker->addExecArg(appMesoModel()->id(meso_idx));
 	createThread(worker, [worker] () { return worker->removeEntry(true); });
 }
 
 void DBInterface::deleteMesoCalendarTable(const uint meso_idx, const bool bRemoveFile)
 {
-	DBMesoCalendarTable *worker{new DBMesoCalendarTable{m_DBFilePath}};
+	DBMesoCalendarTable *worker{new DBMesoCalendarTable{nullptr}};
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
-//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
-void DBInterface::getTrainingDay(DBWorkoutModel *tDayModel)
+//-----------------------------------------------------------WORKOUT TABLE-----------------------------------------------------------
+void DBInterface::getWorkout(DBExercisesModel *model)
 {
-	DBWorkoutsTable *worker{new DBWorkoutsTable{m_DBFilePath, tDayModel}};
-	worker->addExecArg(tDayModel->dateStr());
-	worker->addExecArg(appMesoModel()->id(tDayModel->mesoIdx()));
-	auto conn = std::make_shared<QMetaObject::Connection>();
-	*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,worker,tDayModel] (const uint db_id) {
-		if (db_id == worker->uniqueId())
-		{
-			disconnect(*conn);
-			if (tDayModel->exerciseCount() == 0)
-				verifyTDayOptions(tDayModel);
-			else
-				emit databaseReadyWithData(WORKOUT_TABLE_ID, QVariant());
-		}
-	});
-	createThread(worker, [worker] () { return worker->getTrainingDay(); });
+	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{model}};
+	createThread(worker, [worker] () { return worker->getExercises(); });
 }
 
-void DBInterface::getTrainingDayExercises(DBWorkoutModel *tDayModel)
+void DBInterface::saveWorkout(DBExercisesModel *model)
 {
-	DBWorkoutsTable *worker{new DBWorkoutsTable{m_DBFilePath, const_cast<DBWorkoutModel*>(tDayModel)}};
-	worker->addExecArg(tDayModel->dateStr());
-	worker->addExecArg(appMesoModel()->id(tDayModel->mesoIdx()));
-	auto conn = std::make_shared<QMetaObject::Connection>();
-	*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,worker,tDayModel] (const uint db_id) {
-		if (db_id == worker->uniqueId())
-		{
-			disconnect(*conn);
-			if (tDayModel->exerciseCount() == 0)
-				verifyTDayOptions(tDayModel);
-		}
-	});
-	createThread(worker, [worker] () { return worker->getTrainingDayExercises(); } );
+	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{model}};
+	createThread(worker, [worker] () { return worker->saveExercises(); });
 }
 
-void DBInterface::verifyTDayOptions(DBWorkoutModel *tDayModel)
+void DBInterface::removeWorkout(DBExercisesModel *model)
 {
-	if (tDayModel->splitLetter() >= "A"_L1 && tDayModel->splitLetter() <= "F"_L1)
-	{
-		DBWorkoutModel *tempModel{new DBWorkoutModel{this, static_cast<uint>(tDayModel->mesoIdx())}};
-		DBWorkoutsTable *worker{new DBWorkoutsTable{m_DBFilePath, tempModel}};
-		worker->addExecArg(appMesoModel()->id(tDayModel->mesoIdx()));
-		worker->addExecArg(tDayModel->splitLetter());
-		worker->addExecArg(tDayModel->dateStr());
-		auto conn = std::make_shared<QMetaObject::Connection>();
-		*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,worker,tDayModel] (const uint db_id) {
-			if (db_id == worker->uniqueId())
-			{
-				disconnect(*conn);
-				DBWorkoutModel *tempModel{worker->model()};
-				//setTrainingDay does not relate to training day in the temporary model. It's only a place to store a value we need this model to carry
-				const bool bHasMesoPlan(mesoHasPlan(appMesoModel()->_id(tDayModel->mesoIdx()), tDayModel->splitLetter()));
-				tempModel->setTrainingDay(bHasMesoPlan ? STR_ONE : STR_ZERO);
-				emit databaseReadyWithData(WORKOUT_TABLE_ID, QVariant::fromValue(tempModel));
-				delete tempModel;
-			}
-		});
-		createThread(worker, [worker] () { return worker->getPreviousTrainingDaysInfo(); });
-	}
+	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{model}};
+	createThread(worker, [worker] () { return worker->removeExercises(); });
 }
 
-void DBInterface::loadExercisesFromDate(const QString &strDate, DBWorkoutModel *tDayModel)
+void DBInterface::removeAllWorkouts(const uint meso_idx)
 {
-	const QDate &date{appUtils()->getDateFromDateString(strDate)};
-	DBWorkoutsTable *worker{new DBWorkoutsTable{m_DBFilePath, tDayModel}};
-	worker->addExecArg(appMesoModel()->id(tDayModel->mesoIdx()));
-	worker->addExecArg(QString::number(date.toJulianDay()));
-	createThread(worker, [worker] () { return worker->getTrainingDayExercises(true); });
-}
-
-void DBInterface::loadExercisesFromMesoPlan(DBWorkoutModel *tDayModel, DBMesoSplitModel *const splitModel)
-{
-	if (splitModel->count() == 0)
-	{
-		connect(this, &DBInterface::databaseReady, this, [this,tDayModel,splitModel] () {
-			loadExercisesFromMesoPlan(tDayModel, splitModel);
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		DBMesoSplitTable *worker{new DBMesoSplitTable{m_DBFilePath, splitModel}};
-		worker->addExecArg(appMesoModel()->id(tDayModel->mesoIdx()));
-		worker->addExecArg(tDayModel->splitLetter().at(0));
-		createThread(worker, [worker] () { return worker->getCompleteMesoSplit(); });
-	}
-	else
-		tDayModel->convertMesoSplitModelToTDayModel(splitModel);
-}
-
-void DBInterface::convertTDayToPlan(const DBWorkoutModel *const tDayModel, DBMesoSplitModel *const splitModel)
-{
-	DBMesoSplitTable *worker{new DBMesoSplitTable{m_DBFilePath, splitModel}};
-	worker->addExecArg(appMesoModel()->id(tDayModel->mesoIdx()));
-	worker->addExecArg(tDayModel->splitLetter());
-	createThread(worker, [worker,tDayModel] () { return worker->convertTDayExercisesToMesoPlan(tDayModel); });
-}
-
-void DBInterface::saveTrainingDay(DBWorkoutModel *const tDayModel)
-{
-	DBWorkoutsTable *worker{new DBWorkoutsTable{m_DBFilePath, tDayModel}};
-	createThread(worker, [worker] () { return worker->saveTrainingDay(); });
-}
-
-void DBInterface::removeWorkout(const uint meso_idx, const QDate &date)
-{
-	DBWorkoutsTable *worker{new DBWorkoutsTable{m_DBFilePath}};
+	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{nullptr}};
 	worker->addExecArg(appMesoModel()->id(meso_idx));
-	worker->addExecArg(appUtils()->formatDate(date, TPUtils::DF_DATABASE));
-	createThread(worker, [worker] () { return worker->removeWorkout(); } );
+	createThread(worker, [worker] () { return worker->removeExercises(); });
 }
 
-void DBInterface::removeWorkoutsForMeso(const uint meso_idx)
+void DBInterface::deleteWorkoutsTable(const bool bRemoveFile)
 {
-	DBWorkoutsTable *worker{new DBWorkoutsTable{m_DBFilePath}};
-	worker->addExecArg(appMesoModel()->id(meso_idx));
-	createThread(worker, [worker] () { return worker->removeEntry(true); });
-}
-
-void DBInterface::deleteTrainingDayTable(const bool bRemoveFile)
-{
-	DBWorkoutsTable *worker{new DBWorkoutsTable{m_DBFilePath}};
+	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{nullptr}};
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
-//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
+//-----------------------------------------------------------WORKOUT TABLE-----------------------------------------------------------
 
 //-----------------------------------------------------------STATISTICS-----------------------------------------------------------
-void DBInterface::getExercisesForSplitWithinMeso(const uint meso_idx, const QChar &splitLetter)
+/*void DBInterface::getExercisesForSplitWithinMeso(const uint meso_idx, const QChar &splitLetter)
 {
-	DBMesoSplitTable *worker{new DBMesoSplitTable{m_DBFilePath}};
+	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{nullptr}};
 	auto conn = std::make_shared<QMetaObject::Connection>();
 		*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,worker] (const uint db_id) {
 		if (db_id == worker->uniqueId())
@@ -637,7 +390,7 @@ void DBInterface::getExercisesForSplitWithinMeso(const uint meso_idx, const QCha
 
 void DBInterface::completedDaysForSplitWithinTimePeriod(const QChar &splitLetter, const QDate &startDate, const QDate &endDate)
 {
-	DBMesoCalendarTable *worker{new DBMesoCalendarTable{m_DBFilePath}};
+	DBMesoCalendarTable *worker{new DBMesoCalendarTable{nullptr}};
 	auto conn = std::make_shared<QMetaObject::Connection>();
 		*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,worker] (const uint db_id) {
 		if (db_id == worker->uniqueId())
@@ -654,7 +407,7 @@ void DBInterface::completedDaysForSplitWithinTimePeriod(const QChar &splitLetter
 
 void DBInterface::workoutsInfoForTimePeriod(const QStringList &exercises, const QList<QDate> &workoutDates)
 {
-	DBWorkoutsTable *worker{new DBWorkoutsTable{m_DBFilePath}};
+	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{nullptr}};
 	auto conn = std::make_shared<QMetaObject::Connection>();
 		*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,worker] (const uint db_id) {
 		if (db_id == worker->uniqueId())
@@ -666,5 +419,5 @@ void DBInterface::workoutsInfoForTimePeriod(const QStringList &exercises, const 
 	worker->addExecArg(exercises);
 	worker->addExecArg(QVariant::fromValue(workoutDates));
 	createThread(worker, [worker] () { return worker->workoutsInfoForTimePeriod(); });
-}
+}*/
 //-----------------------------------------------------------STATISTICS-----------------------------------------------------------

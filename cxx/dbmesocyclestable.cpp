@@ -8,17 +8,17 @@
 #include <QSqlQuery>
 #include <QTime>
 
-DBMesocyclesTable::DBMesocyclesTable(const QString &dbFilePath, DBMesocyclesModel *model)
-	: TPDatabaseTable{}, m_model{model}
+DBMesocyclesTable::DBMesocyclesTable(DBMesocyclesModel *model)
+	: TPDatabaseTable{MESOCYCLES_TABLE_ID}, m_model{model}
 {
 	m_tableName = std::move("mesocycles_table"_L1);
-	m_tableID = MESOCYCLES_TABLE_ID;
-	setObjectName(DBMesocyclesObjectName);
 	m_UniqueID = appUtils()->generateUniqueId();
 	const QString &cnx_name{"db_meso_connection"_L1 + QString::number(m_UniqueID)};
-	mSqlLiteDB = QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name);
-	const QString &dbname{dbFilePath + DBMesocyclesFileName};
-	mSqlLiteDB.setDatabaseName(dbname);
+	mSqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name));
+	mSqlLiteDB.setDatabaseName(dbFilePath(m_tableId));
+	#ifndef QT_NO_DEBUG
+	setObjectName("MesocyclesTable");
+	#endif
 }
 
 void DBMesocyclesTable::createTable()
@@ -46,80 +46,6 @@ void DBMesocyclesTable::createTable()
 	}
 }
 
-void DBMesocyclesTable::updateTable()
-{
-	/*m_result = false;
-	if (openDatabase())
-	{
-		QSqlQuery query{getQuery()};
-		query.exec(u"PRAGMA page_size = 4096"_s);
-		query.exec(u"PRAGMA cache_size = 16384"_s);
-		query.exec(u"PRAGMA temp_store = MEMORY"_s);
-		query.exec(u"PRAGMA journal_mode = OFF"_s);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_s);
-		query.exec(u"PRAGMA synchronous = 0"_s);
-		query.setForwardOnly(true);
-
-		QStringList oldTableInfo;
-		if (query.exec(u"SELECT * FROM mesocycles_table"_s))
-		{
-			if (query.first ())
-			{
-				do {
-					oldTableInfo << query.value(MESOCYCLES_COL_ID).toString() << query.value(MESOCYCLES_COL_NAME).toString() <<
-							query.value(MESOCYCLES_COL_STARTDATE).toString() << query.value(MESOCYCLES_COL_ENDDATE).toString() <<
-							query.value(MESOCYCLES_COL_NOTE).toString() << query.value(MESOCYCLES_COL_WEEKS).toString() <<
-							query.value(MESOCYCLES_COL_SPLIT).toString() << QString() << QString() << QString() << QString() <<
-							(query.value(MESOCYCLES_COL_ENDDATE).toUInt() != 0 ? STR_ONE : STR_ZERO);
-				} while (query.next());
-			}
-			m_result = oldTableInfo.count() > 0;
-		}
-		mSqlLiteDB.close();
-		clearTable();
-		if (m_result)
-		{
-			createTable();
-			if (m_result)
-			{
-				if (openDatabase())
-				{
-					query.exec(u"PRAGMA page_size = 4096"_s);
-					query.exec(u"PRAGMA cache_size = 16384"_s);
-					query.exec(u"PRAGMA temp_store = MEMORY"_s);
-					query.exec(u"PRAGMA journal_mode = OFF"_s);
-					query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_s);
-					query.exec(u"PRAGMA synchronous = 0"_s);
-
-					QString strQuery;
-					for (uint i(0); i <= oldTableInfo.count() - MESOCYCLES_TOTAL_COLS; i += MESOCYCLES_TOTAL_COLS)
-					{
-						strQuery = QStringLiteral(
-							"INSERT INTO mesocycles_table "
-							"(id,meso_name,meso_start_date,meso_end_date,meso_note,meso_nweeks,meso_split,"
-							"meso_coach,meso_client,meso_program_file,meso_type,real_meso)"
-							" VALUES(%1, \'%2\', %3, %4, \'%5\', %6, \'%7\', \'%8\', \'%9\', \'%10\', \'%11\', %12")
-							.arg(oldTableInfo.at(i+MESOCYCLES_COL_ID), oldTableInfo.at(i+MESOCYCLES_COL_NAME), oldTableInfo.at(i+MESOCYCLES_COL_STARTDATE),
-								oldTableInfo.at(i+MESOCYCLES_COL_ENDDATE), oldTableInfo.at(i+MESOCYCLES_COL_NOTE), oldTableInfo.at(i+MESOCYCLES_COL_WEEKS),
-								oldTableInfo.at(i+MESOCYCLES_COL_SPLIT), oldTableInfo.at(i+MESOCYCLES_COL_COACH), oldTableInfo.at(i+MESOCYCLES_COL_CLIENT),
-								oldTableInfo.at(i+MESOCYCLES_COL_FILE),	oldTableInfo.at(i+MESOCYCLES_COL_TYPE), oldTableInfo.at(i+MESOCYCLES_COL_REALMESO));
-						m_result = query.exec(strQuery);
-					}
-					if (!m_result)
-					{
-						MSG_OUT("DBMesocyclesTable updateDatabase Database error:  " << mSqlLiteDB.lastError().databaseText())
-						MSG_OUT("DBMesocyclesTable updateDatabase Driver error:  " << mSqlLiteDB.lastError().driverText())
-					}
-					else
-						MSG_OUT("DBMesoCalendarTable updateDatabase SUCCESS")
-					mSqlLiteDB.close();
-				}
-			}
-		}
-	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));*/
-}
-
 void DBMesocyclesTable::getAllMesocycles()
 {
 	if (openDatabase(true))
@@ -139,7 +65,6 @@ void DBMesocyclesTable::getAllMesocycles()
 						meso_info[i] = std::move(query.value(i).toString());
 					static_cast<void>(m_model->newMesocycle(std::move(meso_info)));
 				} while (query.next ());
-				m_model->setReady(ok = true);
 			}
 		}
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);

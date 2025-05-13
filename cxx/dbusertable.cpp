@@ -10,17 +10,17 @@
 
 #include <utility>
 
-DBUserTable::DBUserTable(const QString &dbFilePath, DBUserModel *model)
-	: TPDatabaseTable{nullptr}, m_model{model}
+DBUserTable::DBUserTable(DBUserModel *model)
+	: TPDatabaseTable{USERS_TABLE_ID}, m_model{model}
 {
 	m_tableName = std::move("users_table"_L1);
-	m_tableID = USERS_TABLE_ID;
-	setObjectName(DBUserObjectName);
 	m_UniqueID = appUtils()->generateUniqueId();
 	const QString &cnx_name("db_exercises_connection"_L1 + QString::number(m_UniqueID));
 	mSqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name));
-	const QString &dbname(dbFilePath + DBUserFileName);
-	mSqlLiteDB.setDatabaseName(dbname);
+	mSqlLiteDB.setDatabaseName(dbFilePath(m_tableId));
+	#ifndef QT_NOT_DEBUG
+	setObjectName("UsersTable");
+	#endif
 }
 
 void DBUserTable::createTable()

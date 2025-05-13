@@ -4,15 +4,13 @@
 
 #include <QObject>
 
-class DBUserModel;
-
-static const QLatin1StringView &DBUserFileName{"Users.db.sqlite"_L1};
+QT_FORWARD_DECLARE_CLASS(DBUserModel)
 
 class DBUserTable : public TPDatabaseTable
 {
 
 public:
-	explicit DBUserTable(const QString &dbFilePath, DBUserModel *model = nullptr);
+	explicit DBUserTable(DBUserModel *model);
 
 	virtual void createTable() override final;
 	virtual void updateTable() override final {}

@@ -9,17 +9,17 @@
 #include <QSqlQuery>
 #include <QTime>
 
-DBExercisesTable::DBExercisesTable(const QString &dbFilePath, DBExercisesListModel *model)
-	: TPDatabaseTable{}, m_model(model), m_exercisesTableLastId(1000)
+DBExercisesTable::DBExercisesTable(DBExercisesListModel *model)
+	: TPDatabaseTable{EXERCISES_TABLE_ID}, m_model(model), m_exercisesTableLastId(1000)
 {
 	m_tableName = std::move("exercises_table"_L1);
-	m_tableID = EXERCISES_TABLE_ID;
-	setObjectName(DBExercisesObjectName);
 	m_UniqueID = appUtils()->generateUniqueId();
 	const QString &cnx_name{"db_exercises_connection"_L1 + QString::number(m_UniqueID)};
-	mSqlLiteDB = QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name);
-	const QString &dbname(dbFilePath + DBExercisesFileName);
-	mSqlLiteDB.setDatabaseName(dbname);
+	mSqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name));
+	mSqlLiteDB.setDatabaseName(dbFilePath(m_tableId));
+	#ifndef QT_NO_DEBUG
+	setObjectName("ExercisesListTable");
+	#endif
 }
 
 void DBExercisesTable::createTable()
@@ -40,14 +40,9 @@ void DBExercisesTable::createTable()
 										"from_list INTEGER"
 									")"_L1
 		};
-		const bool ok = query.exec(strQuery);
+		const bool ok{query.exec(strQuery)};
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
-}
-
-void DBExercisesTable::updateTable()
-{
-
 }
 
 void DBExercisesTable::getAllExercises()
@@ -63,13 +58,13 @@ void DBExercisesTable::getAllExercises()
 			{
 				do
 				{
-					m_model->appendList(std::move(QStringList(EXERCISES_TOTAL_COLS)));
-					for (uint i(EXERCISES_LIST_COL_ID); i < EXERCISES_LIST_COL_ACTUALINDEX; ++i)
+					m_model->appendList(std::move(QStringList{EXERCISES_TOTAL_COLS}));
+					for (uint i{EXERCISES_LIST_COL_ID}; i < EXERCISES_LIST_COL_ACTUALINDEX; ++i)
 						m_model->lastRow()[i] = std::move(query.value(static_cast<int>(i)).toString());
 					m_model->lastRow()[EXERCISES_LIST_COL_ACTUALINDEX] = std::move(QString::number(m_model->count()));
 					m_model->lastRow()[EXERCISES_LIST_COL_SELECTED] = STR_ZERO;
 				} while (query.next ());
-				const uint highest_id (m_model->_id(m_model->count() - 1));
+				const uint highest_id{static_cast<uint>(m_model->_id(m_model->count() - 1))};
 				if (highest_id >= m_exercisesTableLastId)
 					m_exercisesTableLastId = highest_id + 1;
 				m_model->setLastID(m_exercisesTableLastId);
@@ -114,9 +109,9 @@ void DBExercisesTable::updateExercisesList()
 		}
 		query.finish();
 
-		const QString &queryStart{"INSERT INTO exercises_table "
+		const QString &queryStart{u"INSERT INTO exercises_table "
 								"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
-								" VALUES "_L1};
+								" VALUES "_s};
 
 		QStringList::const_iterator itr{m_ExercisesList.constBegin()};
 		const QStringList::const_iterator &itr_end{m_ExercisesList.constEnd()};
@@ -133,7 +128,7 @@ void DBExercisesTable::updateExercisesList()
 		{
 			static_cast<void>(mSqlLiteDB.rollback());
 			DEFINE_SOURCE_LOCATION
-			ERROR_MESSAGE(query.lastError().text(), QString())
+			ERROR_MESSAGE(query.lastError().text(), QString{})
 		}
 		else
 			static_cast<void>(mSqlLiteDB.commit());
@@ -158,13 +153,13 @@ void DBExercisesTable::saveExercises()
 							" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', 0) "_L1};
 		const QString &queryUpdate{"UPDATE exercises_table SET primary_name=\'%1\', secondary_name=\'%2\', muscular_group=\'%3\', "
 							"sets=\'%4\', reps=\'%5\', weight=\'%6\', weight_unit=\'%7\', media_path=\'%8\', from_list=0 WHERE id=%9 "_L1};
-		for (uint i(0); i < m_model->modifiedIndicesCount(); ++i)
+		for (uint i{0}; i < m_model->modifiedIndicesCount(); ++i)
 		{
 			const uint &idx{m_model->modifiedIndex(i)};
-			const QString &exerciseId = m_model->id(idx);
+			const QString &exerciseId{m_model->id(idx)};
 			if (m_model->_id(idx) > highest_id)
 				highest_id = m_model->_id(idx);
-			const bool bUpdate = !(exerciseId.isEmpty() || exerciseId.toUInt() > m_exercisesTableLastId);
+			const bool bUpdate{!(exerciseId.isEmpty() || exerciseId.toUInt() > m_exercisesTableLastId)};
 			if (bUpdate)
 			{
 				strQuery += queryUpdate.arg(m_model->mainName(idx), m_model->subName(idx), m_model->muscularGroup(idx),
