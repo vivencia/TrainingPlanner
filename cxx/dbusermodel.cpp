@@ -24,6 +24,7 @@
 
 DBUserModel* DBUserModel::_appUserModel(nullptr);
 
+static const QString &userFileIdentifier{"0x06"_L1};
 static const QLatin1StringView& userProfileFileNameName{"profile.txt"_L1};
 static const QLatin1StringView& userLocalDataFileName{"user.data"_L1};
 static const QString &tpNetworkTitle{qApp->tr("TP Network")};
@@ -42,42 +43,31 @@ static inline QString userNameWithoutConfirmationWarning(const QString &userName
 }
 
 DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
-	: TPListModel{parent}, m_tempRow{-1}, m_availableCoaches{nullptr}, m_pendingClientRequests{nullptr},
+	: QObject{parent}, m_tempRow{-1}, m_availableCoaches{nullptr}, m_pendingClientRequests{nullptr},
 		m_pendingCoachesResponses{nullptr}, mb_onlineCheckInInProgress{false}, m_mainTimer{nullptr}
 {
-	setObjectName(DBUserObjectName);
-	m_tableId = USERS_TABLE_ID;
-
 	if (bMainUserModel)
 	{
 		_appUserModel = this;
 
-		mColumnNames.reserve(USER_TOTAL_COLS);
-		for (uint i{0}; i < USER_TOTAL_COLS; ++i)
-			mColumnNames.append(std::move(QString{}));
-
-		connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
-			updateColumnNames();
-			emit labelsChanged();
-		});
-		updateColumnNames();
+		connect(appTr(), &TranslationClass::applicationLanguageChanged, this, &DBUserModel::labelsChanged);
 
 		m_onlineCoachesDir = std::move(appUtils()->localAppFilesDir() + "online_coaches/"_L1);
 		m_dirForRequestedCoaches = std::move(appUtils()->localAppFilesDir() + "requested_coaches/"_L1);
 		m_dirForClientsRequests = std::move(appUtils()->localAppFilesDir() + "clients_requests/"_L1);
 		m_dirForCurrentClients = std::move(appUtils()->localAppFilesDir() + "clients/"_L1);
 		m_dirForCurrentCoaches = std::move(appUtils()->localAppFilesDir() + "coaches/"_L1);
-		connect(this, &DBUserModel::userModified, this, [this] (const uint row, const uint field) {
-			if (row == 0 || field == 100)
+		connect(this, &DBUserModel::userModified, this, [this] (const uint user_idx, const uint field) {
+			if (user_idx == 0 || field == 100)
 			{
-				appDBInterface()->saveUser(row);
+				appDBInterface()->saveUser(user_idx);
 				sendUserInfoToServer();
 				sendProfileToServer();
 			}
 		});
-		connect(this, &DBUserModel::userRemoved, this, [this] (const uint row) {
-			if (row > 0)
-				appDBInterface()->removeUser(row);
+		connect(this, &DBUserModel::userRemoved, this, [this] (const uint user_idx) {
+			if (user_idx > 0)
+				appDBInterface()->removeUser(user_idx);
 		});
 
 		/*connect(appKeyChain(), &TPKeyChain::keyRestored, this, [&] (const QString &key, const QString &value) {
@@ -98,45 +88,16 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 	}
 }
 
-void DBUserModel::updateColumnNames()
-{
-	mColumnNames[USER_COL_NAME] = std::move(tr("Name: "));
-	mColumnNames[USER_COL_BIRTHDAY] = std::move(tr("Birthday: "));
-	mColumnNames[USER_COL_SEX] = std::move(tr("Sex: "));
-	mColumnNames[USER_COL_PHONE] = std::move(tr("Phone: "));
-	mColumnNames[USER_COL_EMAIL] = std::move("e-mail: "_L1);
-	mColumnNames[USER_COL_SOCIALMEDIA] = std::move(tr("Social Media: "));
-	mColumnNames[USER_COL_USERROLE] = std::move(tr("Your are: "));
-	mColumnNames[USER_COL_COACHROLE] = std::move(tr("Professional job: "));
-	mColumnNames[USER_COL_GOAL] = std::move(tr("Goal: "));
-	mColumnNames[USER_COL_APP_USE_MODE] = std::move(tr("App use mode: "));
-}
-
-QString DBUserModel::passwordLabel() const { return tr("Password:"); }
-QString DBUserModel::newUserLabel() const
-{
-	return !m_modeldata.isEmpty() && !_userName(0).isEmpty() ? tr("Continue Setup") : tr("Create a new user");
-}
-
-QString DBUserModel::existingUserLabel() const { return tr("User already registered"); }
-QString DBUserModel::invalidEmailLabel() const { return tr("Invalid email address"); }
-QString DBUserModel::invalidPasswordLabel() const { return tr("Password must have 6 characters or more"); }
-QString DBUserModel::checkEmailLabel() const { return tr("Check"); }
-QString DBUserModel::importUserLabel() const { return tr("Import"); }
 
 void DBUserModel::addUser(QStringList &&user_info)
 {
-	m_modeldata.append(std::move(user_info));
-	const qsizetype last_idx{m_modeldata.count()-1};
+	m_usersData.append(std::move(user_info));
+	const qsizetype last_idx{m_usersData.count()-1};
 	if (last_idx == 0)
 	{
 		//DBUserTable calls here when reading from the database. When we get the data for the main user, initialize the network connection
 		static_cast<void>(onlineCheckIn());
 		startServerPolling();
-		if (isCoach(0))
-			m_exportName = std::move(tr("Coach information"));
-		if (isClient(0))
-			m_exportName = std::move(tr("Client information"));
 	}
 	else
 	{
@@ -149,9 +110,9 @@ void DBUserModel::addUser(QStringList &&user_info)
 
 void DBUserModel::createMainUser()
 {
-	if (m_modeldata.isEmpty())
+	if (m_usersData.isEmpty())
 	{
-		m_modeldata.insert(0, std::move(QStringList{} << std::move(generateUniqueUserId()) << QString{} << std::move("2424151"_L1) <<
+		m_usersData.insert(0, std::move(QStringList{} << std::move(generateUniqueUserId()) << QString{} << std::move("2424151"_L1) <<
 			"2"_L1 << QString{} << QString{} << QString{} << QString{} << QString{} << QString{} << STR_ZERO << STR_ZERO << STR_ZERO));
 		static_cast<void>(appUtils()->mkdir(localDir(0)));
 		emit userModified(0);
@@ -160,76 +121,63 @@ void DBUserModel::createMainUser()
 
 void DBUserModel::removeMainUser()
 {
-	if (!m_modeldata.isEmpty())
-		m_modeldata.removeFirst();
+	if (!m_usersData.isEmpty())
+		m_usersData.removeFirst();
 }
 
-void DBUserModel::removeUser(const int row)
+void DBUserModel::removeUser(const int user_idx)
 {
-	if (row >= 1 && row < m_modeldata.count())
+	if (user_idx >= 1 && user_idx < m_usersData.count())
 	{
-		connect(appDBInterface(), &DBInterface::databaseReady, this, [this,row] (const uint) {
-			removeRow(row);
-			uint next_cur_row{0};
-			if (m_modeldata.count() > 1)
-				next_cur_row = row - 1;
-			setCurrentRow(next_cur_row);
+		connect(appDBInterface(), &DBInterface::databaseReady, this, [this,user_idx] (const uint) {
+			m_usersData.remove(user_idx);
+			uint next_cur_user_idx{0};
+			if (m_usersData.count() > 1)
+				next_cur_user_idx = user_idx - 1;
+			//setCurrentRow(next_cur_user_idx);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		emit userRemoved(row);
-		if (isCoach(row))
-			delCoach(row);
-		if (isClient(row))
-			delClient(row);
+		emit userRemoved(user_idx);
+		if (isCoach(user_idx))
+			delCoach(user_idx);
+		if (isClient(user_idx))
+			delClient(user_idx);
 		emit userModified(0);
 	}
 }
 
-const int DBUserModel::getRowByCoachName(const QString &coachname) const
+int DBUserModel::userIdxFromFieldValue(const uint field, const QString &value) const
 {
-	for (uint i{0}; i < m_modeldata.count(); ++i)
+	int user_idx{0};
+	for (const auto &user : m_usersData)
 	{
-		if (m_modeldata.at(i).at(USER_COL_NAME) == coachname)
-		{
-			if (isCoach(i))
-				return i;
-		}
-	}
-	return -1;
-}
-
-int DBUserModel::userRowFromFieldValue(const uint field, const QString &value) const
-{
-	int row(0);
-	for (const auto &it : m_modeldata)
-	{
-		if (it.at(field) == value)
-			return row;
-		++row;
+		if (user.at(field) == value)
+			return user_idx;
+		++user_idx;
 	}
 	return -1;
 }
 
 const QString &DBUserModel::userIdFromFieldValue(const uint field, const QString &value) const
 {
-	const auto &it = std::find_if(m_modeldata.cbegin(), m_modeldata.cend(), [field,value] (const auto user_info) {
+	const auto &user{std::find_if(m_usersData.cbegin(), m_usersData.cend(), [field,value] (const auto user_info) {
 		return user_info.at(field) == value;
-	});
-	if (it != m_modeldata.cend())
-		return it->at(USER_COL_ID);
+	})};
+	if (user != m_usersData.cend())
+		return user->at(USER_COL_ID);
 	return m_emptyString;
 }
 
-const QString DBUserModel::localDir(const int row) const
+const QString DBUserModel::localDir(const int user_idx) const
 {
-	switch (row)
+	switch (user_idx)
 	{
 		case -1: return {};
 		case 0: return appUtils()->localAppFilesDir() + userId(0) + '/';
 		default:
-			if (row != m_tempRow)
-				return (isCoach(row) ? m_dirForCurrentCoaches : m_dirForCurrentClients) + userId(row) + '/';
+			if (user_idx != m_tempRow)
+				return (isCoach(user_idx) ? m_dirForCurrentCoaches : m_dirForCurrentClients) + userId(user_idx) + '/';
 			else
-				return m_tempRowUserInfo->sourcePath();
+				return m_tempUserInfo->sourcePath();
 	}
 }
 
@@ -240,7 +188,7 @@ void DBUserModel::setPassword(const QString &password)
 
 void DBUserModel::getPassword()
 {
-	if (!m_modeldata.isEmpty())
+	if (!m_usersData.isEmpty())
 	{
 		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this] (const QString &key, const QString &value) {
 			emit userPasswordAvailable(value);
@@ -249,36 +197,36 @@ void DBUserModel::getPassword()
 	}
 }
 
-QString DBUserModel::avatar(const uint row, const bool checkServer)
+QString DBUserModel::avatar(const uint user_idx, const bool checkServer)
 {
-	if (row < m_modeldata.count() && !userId(row).isEmpty())
+	if (user_idx < m_usersData.count() && !userId(user_idx).isEmpty())
 	{
-		if (checkServer && row > 0)
-			downloadAvatarFromServer(row);
-		const QString &userid{userId(row)};
-		const QDir &localFilesDir{localDir(row)};
+		if (checkServer && user_idx > 0)
+			downloadAvatarFromServer(user_idx);
+		const QString &userid{userId(user_idx)};
+		const QDir &localFilesDir{localDir(user_idx)};
 		const QFileInfoList &images{localFilesDir.entryInfoList(QDir::Files|QDir::NoDotAndDotDot|QDir::NoSymLinks)};
 		const auto &it = std::find_if(images.cbegin(), images.cend(), [userid] (const auto image_fi) {
 			return image_fi.fileName().contains("avatar."_L1);
 		});
-		return it != images.cend() ? it->filePath() : defaultAvatar(row);
+		return it != images.cend() ? it->filePath() : defaultAvatar(user_idx);
 	}
 	return QString {};
 }
 
-void DBUserModel::setAvatar(const int row, const QString &new_avatar, const bool saveToDisk, const bool upload)
+void DBUserModel::setAvatar(const int user_idx, const QString &new_avatar, const bool saveToDisk, const bool upload)
 {
 	if (saveToDisk)
 	{
 		TPImage img{nullptr};
 		img.setSource(new_avatar);
-		const QString &localAvatarFilePath{localDir(row) + "avatar."_L1 + img.sourceExtension()};
-		static_cast<void>(QFile::remove(avatar(row, false)));
+		const QString &localAvatarFilePath{localDir(user_idx) + "avatar."_L1 + img.sourceExtension()};
+		static_cast<void>(QFile::remove(avatar(user_idx, false)));
 		img.saveToDisk(localAvatarFilePath);
 	}
-	emit userModified(row, USER_COL_AVATAR);
+	emit userModified(user_idx, USER_COL_AVATAR);
 
-	if (row == 0 && upload)
+	if (user_idx == 0 && upload)
 	{
 		if (!onlineCheckIn())
 		{
@@ -291,11 +239,11 @@ void DBUserModel::setAvatar(const int row, const QString &new_avatar, const bool
 	}
 }
 
-void DBUserModel::setAppUseMode(const int row, const int new_use_opt)
+void DBUserModel::setAppUseMode(const int user_idx, const int new_use_opt)
 {
-	if (new_use_opt != appUseMode(row))
+	if (new_use_opt != appUseMode(user_idx))
 	{
-		if (row == 0)
+		if (user_idx == 0)
 		{
 			if (isCoach(0) && m_clientsNames.count() > 0)
 			{
@@ -319,64 +267,64 @@ void DBUserModel::setAppUseMode(const int row, const int new_use_opt)
 						Q_ARG(QString, tr("All your clients will be removed and cannot be automatically retrieved")));
 				}
 			}
-			m_modeldata[row][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
+			m_usersData[user_idx][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
 			emit userModified(0, USER_COL_APP_USE_MODE);
 		}
 		else
 		{
-			m_modeldata[row][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
-			emit userModified(row);
+			m_usersData[user_idx][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
+			emit userModified(user_idx);
 		}
 	}
 }
 
-void DBUserModel::addCoach(const uint row)
+void DBUserModel::addCoach(const uint user_idx)
 {
-	m_coachesNames.append(_userName(row));
+	m_coachesNames.append(_userName(user_idx));
 	emit coachesNamesChanged();
 }
 
-void DBUserModel::delCoach(const uint row)
+void DBUserModel::delCoach(const uint user_idx)
 {
-	if (row > 0)
+	if (user_idx > 0)
 	{
 		m_coachesNames.removeOne(userId(0));
 		emit coachesNamesChanged();
-		clearUserDir(userId(row));
-		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,row] (const QString &key, const QString &value) {
-			appOnlineServices()->removeCoachFromClient(0, key, value, userId(row));
+		clearUserDir(userId(user_idx));
+		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,user_idx] (const QString &key, const QString &value) {
+			appOnlineServices()->removeCoachFromClient(0, key, value, userId(user_idx));
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		appKeyChain()->readKey(userId(0));
 	}
 }
 
-void DBUserModel::addClient(const uint row)
+void DBUserModel::addClient(const uint user_idx)
 {
-	m_clientsNames.append(_userName(row));
+	m_clientsNames.append(_userName(user_idx));
 	emit clientsNamesChanged();
 }
 
-void DBUserModel::delClient(const uint row)
+void DBUserModel::delClient(const uint user_idx)
 {
-	if (row > 0)
+	if (user_idx > 0)
 	{
-		m_clientsNames.removeOne(userId(row));
+		m_clientsNames.removeOne(userId(user_idx));
 		emit clientsNamesChanged();
-		clearUserDir(userId(row));
-		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,row] (const QString &key, const QString &value) {
-			appOnlineServices()->removeClientFromCoach(0, key, value, userId(row));
+		clearUserDir(userId(user_idx));
+		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,user_idx] (const QString &key, const QString &value) {
+			appOnlineServices()->removeClientFromCoach(0, key, value, userId(user_idx));
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		appKeyChain()->readKey(userId(0));
 	}
 }
 
 //When client changes name remotely or when changing from not yet accepted coach(main user) to accepted coach
-void DBUserModel::changeClient(const uint row, const QString &oldname)
+void DBUserModel::changeClient(const uint user_idx, const QString &oldname)
 {
 	const qsizetype idx{m_clientsNames.indexOf(oldname)};
 	if (idx >= 0)
 	{
-		m_clientsNames[idx] = _userName(row);
+		m_clientsNames[idx] = _userName(user_idx);
 		emit clientsNamesChanged();
 	}
 }
@@ -385,17 +333,17 @@ int DBUserModel::getTemporaryUserInfo(OnlineUserInfo *tempUser, const uint userI
 {
 	if (m_tempRow >= 1)
 	{
-		m_modeldata.remove(m_tempRow);
+		m_usersData.remove(m_tempRow);
 		m_tempRow = -1;
-		m_tempRowUserInfo = nullptr;
+		m_tempUserInfo = nullptr;
 	}
 
 	if (tempUser && userInfoRow < tempUser->count())
 	{
 		tempUser->setCurrentRow(userInfoRow);
-		m_tempRow = m_modeldata.count();
-		m_modeldata.append(tempUser->modeldata(userInfoRow));
-		m_tempRowUserInfo = tempUser;
+		m_tempRow = m_usersData.count();
+		m_usersData.append(tempUser->modeldata(userInfoRow));
+		m_tempUserInfo = tempUser;
 		downloadAvatarFromServer(m_tempRow);
 		return m_tempRow;
 	}
@@ -404,12 +352,12 @@ int DBUserModel::getTemporaryUserInfo(OnlineUserInfo *tempUser, const uint userI
 
 bool DBUserModel::mainUserConfigured() const
 {
-	if (m_modeldata.count() >= 1)
+	if (m_usersData.count() >= 1)
 	{
 		if (isCoach(0))
-			return (!m_modeldata.at(0).at(USER_COL_COACHROLE).isEmpty());
+			return (!m_usersData.at(0).at(USER_COL_COACHROLE).isEmpty());
 		else if (isClient(0))
-			return (!m_modeldata.at(0).at(USER_COL_GOAL).isEmpty());
+			return (!m_usersData.at(0).at(USER_COL_GOAL).isEmpty());
 	}
 	return false;
 }
@@ -426,8 +374,8 @@ void DBUserModel::acceptUser(OnlineUserInfo *userInfo, const int userInfoRow)
 		else
 			addUser(std::move(userInfo->modeldata(userInfoRow)));
 
-		m_modeldata.last()[USER_COL_APP_USE_MODE] = std::move(QString::number(new_app_use_mode));
-		const uint lastidx{count()-1};
+		m_usersData.last()[USER_COL_APP_USE_MODE] = std::move(QString::number(new_app_use_mode));
+		const uint lastidx{userCount()-1};
 		if (userIsCoach)
 		{
 			addCoach(lastidx);
@@ -436,7 +384,7 @@ void DBUserModel::acceptUser(OnlineUserInfo *userInfo, const int userInfoRow)
 		else
 		{
 			//Only when the user confirms the coach's acceptance, can they be effectively included as client of main user
-			m_modeldata.last()[USER_COL_NAME] = std::move(_userName(lastidx) + tr(" !Pending confirmation!"));
+			m_usersData.last()[USER_COL_NAME] = std::move(_userName(lastidx) + tr(" !Pending confirmation!"));
 			addClient(lastidx);
 			appOnlineServices()->acceptClientRequest(0, key, value, user_id);
 		}
@@ -527,7 +475,7 @@ void DBUserModel::importFromOnlineServer()
 					removeMainUser();
 					if (importFromString(ret_string))
 					{
-						downloadAvatarFromServer(m_modeldata.count() - 1);
+						downloadAvatarFromServer(m_usersData.count() - 1);
 						emit userOnlineImportFinished(true);
 					}
 				}
@@ -689,7 +637,7 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 						//First pass
 						for (qsizetype i{coaches.count()-1}; i >= 0; --i)
 						{
-							const int userrow{userRowFromFieldValue(USER_COL_ID, coaches.at(i))};
+							const int userrow{userIdxFromFieldValue(USER_COL_ID, coaches.at(i))};
 							if (userrow != -1 && userrow != m_tempRow)
 								coaches.remove(i); //coach is already in the database, therefore not available
 						}
@@ -831,11 +779,95 @@ void DBUserModel::removeFileFromServer(const QString &filename, const QString &s
 	appKeyChain()->readKey(userId(0));
 }
 
-bool DBUserModel::updateFromModel(TPListModel *model)
+int DBUserModel::exportToFile(const uint user_idx, const QString &filename, QFile *out_file) const
 {
-	addUser(std::move(model->m_modeldata[0]));
-	emit userModified(m_modeldata.count() - 1);
-	return true;
+	if (!out_file)
+	{
+		out_file = appUtils()->openFile(filename, QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text);
+		if (!out_file)
+			return APPWINDOW_MSG_OPEN_FAILED;
+	}
+
+	const QList<uint> &export_user_idx{QList<uint>{} << user_idx};
+	const bool ret{appUtils()->writeDataToFile(out_file, userFileIdentifier, m_usersData)};
+	out_file->close();
+	return ret ? APPWINDOW_MSG_EXPORT_OK : APPWINDOW_MSG_EXPORT_FAILED;
+}
+
+int DBUserModel::exportToFormattedFile(const uint user_idx, const QString &filename, QFile *out_file) const
+{
+	if (!out_file)
+	{
+		out_file = {appUtils()->openFile(filename, QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text)};
+		if (!out_file)
+			return APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
+	}
+	const QList<uint> &export_user_idx{QList<uint>{} << user_idx};
+	QList<std::function<QString(void)>> field_description{QList<std::function<QString(void)>>{} <<
+											nullptr <<
+											[this] () { return nameLabel(); } <<
+											[this] () { return birthdayLabel(); } <<
+											[this] () { return sexLabel(); } <<
+											[this] () { return phoneLabel(); } <<
+											[this] () { return emailLabel(); } <<
+											[this] () { return socialMediaLabel(); } <<
+											[this] () { return userRoleLabel(); } <<
+											[this] () { return coachRoleLabel(); } <<
+											[this] () { return goalLabel(); } <<
+											nullptr
+	};
+
+	int ret{APPWINDOW_MSG_EXPORT_FAILED};
+	if (appUtils()->writeDataToFormattedFile(out_file,
+					userFileIdentifier,
+					m_usersData,
+					field_description,
+					[this] (const uint field, const QString &value) { return formatFieldToExport(field, value); },
+					export_user_idx,
+					QString{isCoach(user_idx) ? tr("Coach Information") : tr("Client Information") + "\n\n"_L1})
+	)
+		ret = APPWINDOW_MSG_EXPORT_OK;
+	return ret;
+}
+
+int DBUserModel::importFromFile(const QString& filename, QFile *in_file)
+{
+	if (!in_file)
+	{
+		in_file = appUtils()->openFile(filename, QIODeviceBase::ReadOnly|QIODeviceBase::Text);
+		if (!in_file)
+			return APPWINDOW_MSG_OPEN_FAILED;
+	}
+
+	int ret{appUtils()->readDataFromFile(in_file, m_usersData, USER_TOTAL_COLS, userFileIdentifier)};
+	if (ret != APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE)
+		ret = APPWINDOW_MSG_IMPORT_OK;
+	else
+		ret = APPWINDOW_MSG_IMPORT_FAILED;
+	in_file->close();
+	return ret;
+}
+
+int DBUserModel::importFromFormattedFile(const uint user_idx, const QString &filename, QFile *in_file)
+{
+	if (!in_file)
+	{
+		in_file = appUtils()->openFile(filename, QIODeviceBase::ReadOnly|QIODeviceBase::Text);
+		if (!in_file)
+			return APPWINDOW_MSG_OPEN_FAILED;
+	}
+
+	int ret{appUtils()->readDataFromFormattedFile(in_file,
+												m_usersData[user_idx],
+												userFileIdentifier,
+												[this] (const uint field, const QString &value) { return formatFieldToImport(field, value); })
+	};
+	if (ret > 0)
+		ret = APPWINDOW_MSG_IMPORT_OK;
+	else
+		ret = APPWINDOW_MSG_IMPORT_FAILED;
+	in_file->close();
+	return ret;
 }
 
 bool DBUserModel::importFromString(const QString &user_data)
@@ -845,8 +877,8 @@ bool DBUserModel::importFromString(const QString &user_data)
 		return false;
 	if (modeldata.count() > USER_TOTAL_COLS)
 		modeldata.resize(USER_TOTAL_COLS); //remove the password field and anything else that does not belong
-	m_modeldata.append(std::move(modeldata));
-	emit userModified(m_modeldata.count() - 1);
+	m_usersData.append(std::move(modeldata));
+	emit userModified(m_usersData.count() - 1);
 	return true;
 }
 
@@ -861,20 +893,20 @@ void DBUserModel::getPasswordFromUserInput(const int resultCode, const QString &
 	}
 }
 
-void DBUserModel::slot_removeNoLongerAvailableUser(const int row, bool remove)
+void DBUserModel::slot_removeNoLongerAvailableUser(const int user_idx, bool remove)
 {
 	if (remove)
-		removeUser(row);
+		removeUser(user_idx);
 }
 
 void DBUserModel::slot_revokeCoachStatus(int new_use_opt, bool revoke)
 {
 	if (revoke)
 	{
-		for (qsizetype i{m_modeldata.count() - 1}; i >= 1; --i)
+		for (qsizetype i{m_usersData.count() - 1}; i >= 1; --i)
 			if (isClient(i))
 				delClient(i);
-		m_modeldata[0][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
+		m_usersData[0][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
 		emit userModified(0, USER_COL_APP_USE_MODE);
 	}
 }
@@ -883,62 +915,11 @@ void DBUserModel::slot_revokeClientStatus(int new_use_opt, bool revoke)
 {
 	if (revoke)
 	{
-		for (qsizetype i{m_modeldata.count() - 1}; i >= 1; --i)
+		for (qsizetype i{m_usersData.count() - 1}; i >= 1; --i)
 			if (isCoach(i))
 				delCoach(i);
-		m_modeldata[0][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
+		m_usersData[0][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
 		emit userModified(0, USER_COL_APP_USE_MODE);
-	}
-}
-
-QString DBUserModel::formatFieldToExport(const uint field, const QString &fieldValue) const
-{
-	switch (field)
-	{
-		case USER_COL_BIRTHDAY:
-			return appUtils()->formatDate(QDate::fromJulianDay(fieldValue.toInt()));
-		case USER_COL_SEX:
-			return fieldValue == STR_ZERO ? std::move(tr("Male")) : std::move(tr("Female"));
-		case USER_COL_SOCIALMEDIA:
-		{
-			QString strSocial{fieldValue};
-			return strSocial.replace(record_separator, fancy_record_separator1);
-		}
-		case USER_COL_APP_USE_MODE:
-			switch (fieldValue.at(0).toLatin1())
-			{
-				case '1': return tr("User");
-				case '2': return tr("Coach");
-				case '3': return tr("Client");
-				default: return tr("Coach and Client");
-			}
-		default: return QString{};
-	}
-}
-
-QString DBUserModel::formatFieldToImport(const uint field, const QString &fieldValue) const
-{
-	switch (field)
-	{
-		case USER_COL_BIRTHDAY:
-			return QString::number(appUtils()->getDateFromDateString(fieldValue).toJulianDay());
-		case USER_COL_SEX:
-			return fieldValue == tr("Male") ? STR_ZERO : STR_ONE;
-		case USER_COL_SOCIALMEDIA:
-		{
-			QString strSocial{fieldValue};
-			return strSocial.replace(fancy_record_separator1, record_separator);
-		}
-		case USER_COL_APP_USE_MODE:
-			if (fieldValue == tr("User"))
-				return "1"_L1;
-			else if (fieldValue == tr("Coach"))
-				return "2"_L1;
-			else if (fieldValue == tr("Client"))
-				return "3"_L1;
-			else
-				return "4"_L1;
-		default: return QString{};
 	}
 }
 
@@ -1029,12 +1010,12 @@ inline QString DBUserModel::generateUniqueUserId() const
 	return QString::number(QDateTime::currentMSecsSinceEpoch());
 }
 
-QString DBUserModel::resume(const uint row) const
+QString DBUserModel::resume(const uint user_idx) const
 {
-	if (row < m_modeldata.count() && !userId(row).isEmpty())
+	if (user_idx < m_usersData.count() && !userId(user_idx).isEmpty())
 	{
-		const QString &userid{userId(row)};
-		const QDir &localFilesDir{localDir(row)};
+		const QString &userid{userId(user_idx)};
+		const QDir &localFilesDir{localDir(user_idx)};
 		const QFileInfoList &files{localFilesDir.entryInfoList(QDir::Files|QDir::NoDotAndDotDot|QDir::NoSymLinks)};
 		for (const auto &it: files)
 		{
@@ -1074,25 +1055,23 @@ void DBUserModel::getUserOnlineProfile(const QString &netID, const QString &save
 void DBUserModel::sendProfileToServer()
 {
 	const QString &localProfile{localDir(0) + userProfileFileNameName};
-	setExportRow(0);
-	if (exportToFile(localProfile, true, true, false) == APPWINDOW_MSG_EXPORT_OK)
+	if (exportToFile(0, localProfile) == APPWINDOW_MSG_EXPORT_OK)
 		sendFileToServer(localProfile, QString{}, QString{}, userId(0));
 }
 
 void DBUserModel::sendUserInfoToServer()
 {
 	const QString &localUserData{localDir(0) + userLocalDataFileName};
-	setExportRow(0);
-	if (exportContentsOnlyToFile(localUserData, true))
+	if (exportToFile(0, localUserData) == APPWINDOW_MSG_EXPORT_OK)
 		sendFileToServer(localUserData, tr("Online user information updated"), QString{}, userId(0), true);
 }
 
-void DBUserModel::downloadAvatarFromServer(const uint row)
+void DBUserModel::downloadAvatarFromServer(const uint user_idx)
 {
-	QString avatar_file{std::move(avatar(row, false))};
+	QString avatar_file{std::move(avatar(user_idx, false))};
 	if (avatar_file.startsWith("image://"_L1))
-		avatar_file = std::move(localDir(row));
-	const int request_id{downloadFileFromServer("avatar", avatar_file, QString{}, QString{}, userId(row))};
+		avatar_file = std::move(localDir(user_idx));
+	const int request_id{downloadFileFromServer("avatar", avatar_file, QString{}, QString{}, userId(user_idx))};
 	if (request_id != -1)
 	{
 		auto conn = std::make_shared<QMetaObject::Connection>();
@@ -1101,15 +1080,15 @@ void DBUserModel::downloadAvatarFromServer(const uint row)
 			{
 				disconnect(*conn);
 				if (success)
-					setAvatar(row, localFileName, false, false);
+					setAvatar(user_idx, localFileName, false, false);
 			}
 		});
 	}
 }
 
-void DBUserModel::downloadResumeFromServer(const uint row)
+void DBUserModel::downloadResumeFromServer(const uint user_idx)
 {
-	const int request_id{downloadFileFromServer(userId(row) + "_resume", resume(row), QString{}, QString{}, userId(row))};
+	const int request_id{downloadFileFromServer(userId(user_idx) + "_resume", resume(user_idx), QString{}, QString{}, userId(user_idx))};
 	if (request_id != -1)
 	{
 		auto conn = std::make_shared<QMetaObject::Connection>();
@@ -1250,7 +1229,7 @@ void DBUserModel::pollClientsRequests()
 				//First pass
 				for (qsizetype i{requests_list.count()-1}; i >= 0; --i)
 				{
-					const int userrow{userRowFromFieldValue(USER_COL_ID, requests_list.at(i))};
+					const int userrow{userIdxFromFieldValue(USER_COL_ID, requests_list.at(i))};
 					if (userrow != -1 && userrow != m_tempRow)
 					{
 						appOnlineServices()->removeClientRequest(0, userId(0), m_password, requests_list.at(i));
@@ -1319,7 +1298,7 @@ void DBUserModel::pollCoachesAnswers()
 					if (coach_id.endsWith("AOK"_L1))
 					{
 						coach_id.chop(3);
-						const int userrow{userRowFromFieldValue(USER_COL_ID, coach_id)};
+						const int userrow{userIdxFromFieldValue(USER_COL_ID, coach_id)};
 						if (userrow != -1 && userrow != m_tempRow)
 						{
 							appOnlineServices()->removeCoachAnwers(requestid, userId(0), m_password, coach_id);
@@ -1402,7 +1381,7 @@ void DBUserModel::pollCurrentClients()
 			{
 				QStringList clients_list{std::move(ret_string.split(' ', Qt::SkipEmptyParts))};
 				bool connected{false};
-				for (qsizetype i{m_modeldata.count()-1}; i >= 1 ; --i)
+				for (qsizetype i{m_usersData.count()-1}; i >= 1 ; --i)
 				{
 					if (i == m_tempRow)
 						continue;
@@ -1454,7 +1433,7 @@ void DBUserModel::pollCurrentCoaches()
 			{
 				QStringList coaches_list{std::move(ret_string.split(' ', Qt::SkipEmptyParts))};
 				bool connected{false};
-				for (qsizetype i{m_modeldata.count()-1}; i >= 1 ; --i)
+				for (qsizetype i{m_usersData.count()-1}; i >= 1 ; --i)
 				{
 					if (i == m_tempRow)
 						continue;
@@ -1521,59 +1500,53 @@ void DBUserModel::checkNewMesos()
 	}
 }
 
-int DBUserModel::_importFromFile(const QString &filename, QList<QStringList> &targetModel)
+QString DBUserModel::formatFieldToExport(const uint field, const QString &fieldValue) const
 {
-	QFile *inFile{new QFile{filename, this}};
-	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
+	switch (field)
 	{
-		delete inFile;
-		return APPWINDOW_MSG_OPEN_FAILED;
-	}
-
-	char buf[128];
-	qint64 lineLength{0};
-	uint col{USER_COL_NAME};
-	QString value;
-	bool bFoundModelInfo{false};
-	const QString tableIdStr{"0x000"_L1 + QString::number(USERS_TABLE_ID)};
-	QStringList modeldata{USER_TOTAL_COLS};
-	modeldata[0] = STR_MINUS_ONE;
-
-	while ((lineLength = inFile->readLine(buf, sizeof(buf))) != -1)
-	{
-		if (strstr(buf, STR_END_EXPORT.toLatin1().constData()) == NULL)
+		case USER_COL_BIRTHDAY:
+			return appUtils()->formatDate(QDate::fromJulianDay(fieldValue.toInt()));
+		case USER_COL_SEX:
+			return fieldValue == STR_ZERO ? std::move(tr("Male")) : std::move(tr("Female"));
+		case USER_COL_SOCIALMEDIA:
 		{
-			if (lineLength > 10)
-			{
-				if (!bFoundModelInfo)
-					bFoundModelInfo = strstr(buf, tableIdStr.toLatin1().constData()) != NULL;
-				else
-				{
-					if (col < USER_TOTAL_COLS)
-					{
-						value = buf;
-						value = value.remove(0, value.indexOf(':') + 2).simplified();
-						if (!isFieldFormatSpecial(col))
-							modeldata[col] = std::move(value);
-						else
-							modeldata[col] = std::move(formatFieldToImport(col, value));
-						++col;
-					}
-					else
-						break;
-				}
-			}
+			QString strSocial{fieldValue};
+			return strSocial.replace(record_separator, fancy_record_separator1);
 		}
-		else
-			break;
+		case USER_COL_APP_USE_MODE:
+			switch (fieldValue.at(0).toLatin1())
+			{
+				case '1': return tr("User");
+				case '2': return tr("Coach");
+				case '3': return tr("Client");
+				default: return tr("Coach and Client");
+			}
+		default: return QString{};
 	}
-	inFile->close();
-	delete inFile;
-	if (bFoundModelInfo && col == USER_TOTAL_COLS)
+}
+
+QString DBUserModel::formatFieldToImport(const uint field, const QString &fieldValue) const
+{
+	switch (field)
 	{
-		targetModel.append(std::move(modeldata));
-		return APPWINDOW_MSG_READ_FROM_FILE_OK;
+		case USER_COL_BIRTHDAY:
+			return QString::number(appUtils()->getDateFromDateString(fieldValue).toJulianDay());
+		case USER_COL_SEX:
+			return fieldValue == tr("Male") ? STR_ZERO : STR_ONE;
+		case USER_COL_SOCIALMEDIA:
+		{
+			QString strSocial{fieldValue};
+			return strSocial.replace(fancy_record_separator1, record_separator);
+		}
+		case USER_COL_APP_USE_MODE:
+			if (fieldValue == tr("User"))
+				return "1"_L1;
+			else if (fieldValue == tr("Coach"))
+				return "2"_L1;
+			else if (fieldValue == tr("Client"))
+				return "3"_L1;
+			else
+				return "4"_L1;
+		default: return QString{};
 	}
-	else
-		return APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
 }

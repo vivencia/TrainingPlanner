@@ -38,7 +38,6 @@ enum MesoRoleNames {
 
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(DBMesoCalendarManager)
-QT_FORWARD_DECLARE_CLASS(DBSplitModel)
 QT_FORWARD_DECLARE_CLASS(QMLMesoInterface)
 
 QT_FORWARD_DECLARE_CLASS(QFile)
@@ -81,7 +80,7 @@ public:
 	inline uint fieldCount() const { return MESOCYCLES_TOTAL_COLS; }
 	inline uint count() const { return m_mesoData.count(); }
 	QMLMesoInterface *mesoManager(const uint meso_idx);
-	DBSplitModel *splitModel(const uint meso_idx, const QChar &split_letter);
+	DBExercisesModel *splitModel(const uint meso_idx, const QChar &split_letter);
 
 	Q_INVOKABLE void getMesocyclePage(const uint meso_idx);
 	Q_INVOKABLE uint startNewMesocycle(const bool bCreatePage, const std::optional<bool> bOwnMeso = std::nullopt);
@@ -392,7 +391,7 @@ signals:
 private:	
 	QList<QStringList> m_mesoData;
 	QList<QMLMesoInterface*> m_mesoManagerList;
-	QList<QMap<QChar,DBSplitModel*>> m_splitModels;
+	QList<QMap<QChar,DBExercisesModel*>> m_splitModels;
 	DBMesoCalendarManager* m_calendarModel;
 	homePageMesoModel *m_curMesos, *m_ownMesos, *m_clientMesos;
 	QList<short> m_isNewMeso;
@@ -407,7 +406,6 @@ private:
 	friend DBMesocyclesModel *appMesoModel();
 
 	inline QString newMesoTemporaryId() { return QString::number(m_lowestTempMesoId--); }
-	void loadSplitModels(const uint meso_idx, const uint id);
 	int continueExport(const uint meso_idx, const QString &filename, const bool formatted) const;
 	int exportToFile_splitData(const uint meso_idx, QFile *mesoFile, const bool formatted) const;
 

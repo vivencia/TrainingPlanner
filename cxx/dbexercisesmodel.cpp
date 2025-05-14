@@ -45,6 +45,38 @@ enum RoleNames {
 	workingSetRole = Qt::UserRole+4
 };
 
+void DBExercisesModel::operator=(DBExercisesModel *other_model)
+{
+	m_mesoId = other_model->mesoId();
+	m_mesoIdx = other_model->mesoIdx();
+	m_splitLetter = other_model->splitLetter();
+	for (const auto exercise_entry : std::as_const(other_model->m_exerciseData))
+	{
+		const uint exercise_number{addExercise(false)};
+		m_exerciseData.at(exercise_number)->number = exercise_entry->number;
+		for (const auto sub_exercise : std::as_const(exercise_entry->m_exercises))
+		{
+			const uint exercise_idx{addSubExercise(exercise_number, false)};
+			m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->name = sub_exercise->name;
+			m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->track_rest_time = sub_exercise->track_rest_time;
+			m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->auto_rest_time = sub_exercise->auto_rest_time;
+			m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->working_set = sub_exercise->working_set;
+			for (const auto set : std::as_const(sub_exercise->sets))
+			{
+				const uint set_number{addSet(exercise_number, exercise_idx, false)};
+				m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->number = set->number;
+				m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->type = set->type;
+				m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->restTime = set->restTime;
+				m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->subsets = set->subsets;
+				m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->reps = set->reps;
+				m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->weight = set->weight;
+				m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->notes = set->notes;
+				m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->completed = set->completed;
+			}
+		}
+	}
+}
+
 bool DBExercisesModel::fromDataBase(const QStringList &data, const bool bClearSomeFieldsForReUse)
 {
 	m_id = std::move(data.at(EXERCISES_COL_ID));
@@ -71,11 +103,11 @@ bool DBExercisesModel::fromDataBase(const QStringList &data, const bool bClearSo
 
 	for(uint i{0}; i < exercises.count(); ++i)
 	{
-		const uint exercise_number{addExercise()};
+		const uint exercise_number{addExercise(false)};
 		uint exercise_idx{0};
 		exerciseEntry *exercise_entry{m_exerciseData.at(i)};
 		do {
-			addSubExercise(exercise_number);
+			addSubExercise(exercise_number, false);
 			QString exercise_name{std::move(appUtils()->getCompositeValue(exercise_idx, exercises.at(i), comp_exercise_separator))};
 			if (exercise_name.isEmpty())
 				break;
@@ -92,7 +124,7 @@ bool DBExercisesModel::fromDataBase(const QStringList &data, const bool bClearSo
 
 			for (uint x{0}; x < n_sets; ++x)
 			{
-				const uint set_number{addSet(exercise_number, exercise_idx)};
+				const uint set_number{addSet(exercise_number, exercise_idx, false)};
 				stSet *set{sub_exercise->sets.at(x)};
 				set->type = 	static_cast<TPSetTypes>(appUtils()->getCompositeValue(set_number, set_types, set_separator).toUInt());
 				set->restTime = std::move(appUtils()->getTimeFromTimeString(
@@ -118,7 +150,7 @@ const QStringList DBExercisesModel::toDatabase(const bool to_export_file) const
 	data[EXERCISES_COL_CALENDARDAY] = std::move(QString::number(m_calendarDay));
 	data[EXERCISES_COL_SPLITLETTER] = m_splitLetter;
 
-	for (const auto exercise_entry : m_exerciseData)
+	for (const auto exercise_entry : std::as_const(m_exerciseData))
 	{
 		for (const auto sub_exercise : std::as_const(exercise_entry->m_exercises))
 		{
@@ -199,8 +231,8 @@ int DBExercisesModel::exportToFormattedFile(const QString &filename, QFile *out_
 
 	const QString &strHeader{
 		m_calendarDay >= 0 ?
-			"####"_L1 + *m_identifierInFile + tr("Workout") + "\n\n"_L1 :
-			"####"_L1 + *m_identifierInFile + tr("Exercises Program") + "\n\n"_L1
+			"####"_L1 + identifierInFile() + tr("Workout") + "\n\n"_L1 :
+			"####"_L1 + identifierInFile() + tr("Exercises Program") + "\n\n"_L1
 	};
 
 	out_file->write(strHeader.toUtf8().constData());
@@ -267,7 +299,7 @@ int DBExercisesModel::importFromFile(const QString& filename, QFile *in_file)
 	if (ret != APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE)
 	{
 		if (fromDataBase(exercise_data.at(0)))
-			ret = APPWINDOW_MSG_READ_FROM_FILE_OK;
+			ret = APPWINDOW_MSG_IMPORT_OK;
 		else
 			ret = APPWINDOW_MSG_IMPORT_FAILED;
 	}
@@ -286,7 +318,7 @@ int DBExercisesModel::importFromFormattedFile(const QString& filename, QFile *in
 
 	QString value;
 	uint exercise_number(0);
-	const char *identifier_in_file{QString{"####"_L1 + *m_identifierInFile}.toLatin1().constData()};
+	const char *identifier_in_file{QString{"####"_L1 + identifierInFile()}.toLatin1().constData()};
 	bool found_table_id{false}, found_extra_info{false};
 	char buf[128];
 	qint64 lineLength(0);
@@ -316,7 +348,7 @@ int DBExercisesModel::importFromFormattedFile(const QString& filename, QFile *in
 					{
 						if(strncmp(buf, exercise_delim, exercise_delim_len) == 0)
 						{
-							const uint exercise_number{addExercise()};
+							const uint exercise_number{addExercise(false)};
 							uint exercise_idx{0}, set_field{0};
 							int set_number{-1};
 							bool adding_sets{false};
@@ -328,7 +360,7 @@ int DBExercisesModel::importFromFormattedFile(const QString& filename, QFile *in
 									{
 										if(strncmp(buf, sub_exercise_delim, sub_exercise_delim_len) == 0)
 										{
-											addSubExercise(exercise_number);
+											addSubExercise(exercise_number, false);
 											value = buf;
 											value.remove(0, sub_exercise_delim_len);
 											setExerciseName(exercise_number, exercise_idx, std::move(value.trimmed()));
@@ -341,7 +373,7 @@ int DBExercisesModel::importFromFormattedFile(const QString& filename, QFile *in
 										{
 											if(strncmp(buf, set_delim, set_delim_len) == 0)
 											{
-												set_number = addSet(exercise_number, exercise_idx);
+												set_number = addSet(exercise_number, exercise_idx, false);
 												set_field = 0;
 											}
 										}
@@ -396,7 +428,7 @@ const uint DBExercisesModel::setsNumber(const uint exercise_number) const
 	return m_exerciseData.at(exercise_number)->m_exercises.at(0)->sets.count();
 }
 
-uint DBExercisesModel::addExercise()
+uint DBExercisesModel::addExercise(const bool emit_signal)
 {
 	exerciseEntry *new_exercise{new exerciseEntry};
 	new_exercise->number = m_exerciseData.count();
@@ -404,12 +436,15 @@ uint DBExercisesModel::addExercise()
 	new_exercise->m_exercises.append(new_sub_exercise);
 	m_exerciseData.append(new_exercise);
 	const uint exercise_number{static_cast<uint>(m_exerciseData.count())};
-	emit exerciseCountChanged();
-	emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << exerciseNumberRole);
+	if (emit_signal)
+	{
+		emit exerciseCountChanged();
+		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << exerciseNumberRole);
+	}
 	return exercise_number;
 }
 
-void DBExercisesModel::delExercise(const uint exercise_number)
+void DBExercisesModel::delExercise(const uint exercise_number, const bool emit_signal)
 {
 	exerciseEntry *exercise{m_exerciseData[exercise_number]};
 	for (uint i{exercise_number}; i < m_exerciseData.count(); ++i)
@@ -419,8 +454,11 @@ void DBExercisesModel::delExercise(const uint exercise_number)
 	qDeleteAll(exercise->m_exercises);
 	delete exercise;
 	m_exerciseData.remove(exercise_number);
-	emit dataChanged(index(exercise_number, 0), index(m_exerciseData.count() - 1, 0), QList<int>{} << exerciseNumberRole);
-	emit exerciseCountChanged();
+	if (emit_signal)
+	{
+		emit dataChanged(index(exercise_number, 0), index(m_exerciseData.count() - 1, 0), QList<int>{} << exerciseNumberRole);
+		emit exerciseCountChanged();
+	}
 }
 
 void DBExercisesModel::moveExercise(const uint from, const uint to)
@@ -451,38 +489,43 @@ void DBExercisesModel::moveExercise(const uint from, const uint to)
 	}
 }
 
-uint DBExercisesModel::addSubExercise(const uint exercise_number)
+uint DBExercisesModel::addSubExercise(const uint exercise_number, const bool emit_signal)
 {
 	exerciseEntry *exercise{m_exerciseData[exercise_number]};
 	stExercise* new_sub_exercise{new stExercise};
 	exercise->m_exercises.append(new_sub_exercise);
-	emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << giantSetExerciseRole);
+	if (emit_signal)
+		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << giantSetExerciseRole);
 	return exercise->m_exercises.count() - 1;
 }
 
-void DBExercisesModel::delSubExercise(const uint exercise_number, const uint exercise_idx)
+void DBExercisesModel::delSubExercise(const uint exercise_number, const uint exercise_idx, const bool emit_signal)
 {
 	exerciseEntry *exercise{m_exerciseData[exercise_number]};
 	stExercise* sub_exercise{exercise->m_exercises.at(exercise_idx)};
 	qDeleteAll(sub_exercise->sets);
 	delete sub_exercise;
 	exercise->m_exercises.remove(exercise_idx);
-	emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << giantSetExerciseRole);
+	if (emit_signal)
+		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << giantSetExerciseRole);
 }
 
-uint DBExercisesModel::addSet(const uint exercise_number, const uint exercise_idx)
+uint DBExercisesModel::addSet(const uint exercise_number, const uint exercise_idx, const bool emit_signal)
 {
 	exerciseEntry *exercise{m_exerciseData[exercise_number]};
 	stExercise* sub_exercise{exercise->m_exercises.at(exercise_idx)};
 	stSet* new_set{new stSet};
 	new_set->number = sub_exercise->sets.count();
 	sub_exercise->sets.append(new_set);
-	emit setsNumberChanged(exercise_number, exercise_idx);
-	emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << setsNumberRole);
+	if (emit_signal)
+	{
+		emit setsNumberChanged(exercise_number, exercise_idx);
+		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << setsNumberRole);
+	}
 	return sub_exercise->sets.count() - 1;
 }
 
-void DBExercisesModel::delSet(const uint exercise_number, const uint exercise_idx, const uint set_number)
+void DBExercisesModel::delSet(const uint exercise_number, const uint exercise_idx, const uint set_number, const bool emit_signal)
 {
 	exerciseEntry *exercise{m_exerciseData[exercise_number]};
 	stExercise* sub_exercise{exercise->m_exercises.at(exercise_idx)};
@@ -490,8 +533,11 @@ void DBExercisesModel::delSet(const uint exercise_number, const uint exercise_id
 		sub_exercise->sets.at(i)->number = i;
 	delete sub_exercise->sets.at(set_number);
 	sub_exercise->sets.remove(set_number);
-	emit setsNumberChanged(exercise_number, exercise_idx);
-	emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << setsNumberRole);
+	if (emit_signal)
+	{
+		emit setsNumberChanged(exercise_number, exercise_idx);
+		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << setsNumberRole);
+	}
 }
 
 void DBExercisesModel::moveSet(const uint exercise_number, const uint exercise_idx, const uint from_set, const uint to_set)

@@ -76,7 +76,7 @@ set( CXX_SOURCES
 	cxx/dbworkoutsorsplitstable.h cxx/dbworkoutsorsplitstable.cpp
 	cxx/dbusertable.h cxx/dbusertable.cpp
 
-	cxx/tplistmodel.h cxx/tplistmodel.cpp
+
 	cxx/dbexerciseslistmodel.h cxx/dbexerciseslistmodel.cpp
 	cxx/dbmesocyclesmodel.h cxx/dbmesocyclesmodel.cpp
 	cxx/homepagemesomodel.h cxx/homepagemesomodel.cpp

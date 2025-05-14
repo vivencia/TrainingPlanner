@@ -75,7 +75,6 @@ void DBExercisesTable::getAllExercises()
 				mSqlLiteDB.close();
 				updateExercisesList();
 			}
-			m_model->setReady(true);
 		}
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}

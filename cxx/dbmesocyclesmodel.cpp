@@ -70,7 +70,7 @@ QMLMesoInterface *DBMesocyclesModel::mesoManager(const uint meso_idx)
 	return m_mesoManagerList.at(meso_idx);
 }
 
-DBSplitModel *DBMesocyclesModel::splitModel(const uint meso_idx, const QChar &split_letter)
+DBExercisesModel *DBMesocyclesModel::splitModel(const uint meso_idx, const QChar &split_letter)
 {
 	if (!m_splitModels.at(meso_idx).value(split_letter))
 		m_splitModels[meso_idx][split_letter] = new DBSplitModel{mesoCalendarModel(), meso_idx, split_letter};
@@ -109,7 +109,7 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 	if (_id(meso_idx) >= 0)
 	{
 		appDBInterface()->removeMesocycle(meso_idx);
-		appDBInterface()->removeMesoSplit(meso_idx);
+		appDBInterface()->removeAllMesoSplits(meso_idx);
 	}
 	m_splitModels.remove(meso_idx);
 	m_calendarModel->removeCalendarForMeso(meso_idx);
@@ -460,7 +460,7 @@ void DBMesocyclesModel::checkIfCanExport(const uint meso_idx, const bool bEmitSi
 {
 	if (!isNewMeso(meso_idx))
 	{
-		if (appDBInterface()->mesoHasAllPlans(meso_idx))
+		if (appDBInterface()->mesoHasAllSplitPlans(meso_idx))
 		{
 			if (!m_canExport.at(meso_idx))
 			{
@@ -578,9 +578,9 @@ int DBMesocyclesModel::importFromFormattedFile(const uint meso_idx, const QStrin
 		return  APPWINDOW_MSG_OPEN_FAILED;
 
 	int ret{appUtils()->readDataFromFormattedFile(in_file,
-												  m_mesoData[meso_idx],
-												  mesoFileIdentifier,
-												  [this] (const uint field, const QString &value) { return formatFieldToImport(field, value); })
+												m_mesoData[meso_idx],
+												mesoFileIdentifier,
+												[this] (const uint field, const QString &value) { return formatFieldToImport(field, value); })
 	};
 	if (ret > 0)
 	{
@@ -711,23 +711,6 @@ void DBMesocyclesModel::scanTemporaryMesocycles()
 				static_cast<void>(newMesoFromFile(mesofile.filePath()));
 		}
 	}
-}
-
-void DBMesocyclesModel::loadSplitModels(const uint meso_idx, const uint id)
-{
-	auto conn = std::make_shared<QMetaObject::Connection>();
-	*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [this,conn,meso_idx,id]
-												(const uint table_idx, const QVariant &data) {
-		if (table_idx == id)
-		{
-			disconnect(*conn);
-			const bool ok{data.isValid()};
-			if (ok)
-				m_splitModels[meso_idx] = std::move(data.value<QMap<QChar,DBSplitModel*>>());
-			emit internalSignal(meso_idx, id, ok);
-		}
-	});
-	appDBInterface()->loadAllSplits(meso_idx);
 }
 
 int DBMesocyclesModel::continueExport(const uint meso_idx, const QString &filename, const bool formatted) const

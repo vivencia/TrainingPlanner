@@ -69,6 +69,8 @@ public:
 	}
 	~DBExercisesModel() { clearExercises(); }
 
+	void operator=(DBExercisesModel *other_model);
+
 	inline DBMesoCalendarManager *calendarManager() const { return m_calendarManager; }
 	inline const QString &id() const {return m_id; }
 	inline void setId(const QString &new_id) { m_id = new_id; }
@@ -93,13 +95,13 @@ public:
 	const uint inline exerciseCount() const { return m_exerciseData.count(); }
 	const uint setsNumber(const uint exercise_number) const;
 
-	Q_INVOKABLE uint addExercise();
-	Q_INVOKABLE void delExercise(const uint exercise_number);
+	Q_INVOKABLE uint addExercise(const bool emit_signal = true);
+	Q_INVOKABLE void delExercise(const uint exercise_number, const bool emit_signal = true);
 	void moveExercise(const uint from, const uint to);
-	Q_INVOKABLE uint addSubExercise(const uint exercise_number);
-	Q_INVOKABLE void delSubExercise(const uint exercise_number, const uint exercise_idx);
-	Q_INVOKABLE uint addSet(const uint exercise_number, const uint exercise_idx);
-	Q_INVOKABLE void delSet(const uint exercise_number, const uint exercise_idx, const uint set_number);
+	Q_INVOKABLE uint addSubExercise(const uint exercise_number, const bool emit_signal = true);
+	Q_INVOKABLE void delSubExercise(const uint exercise_number, const uint exercise_idx, const bool emit_signal = true);
+	Q_INVOKABLE uint addSet(const uint exercise_number, const uint exercise_idx, const bool emit_signal = true);
+	Q_INVOKABLE void delSet(const uint exercise_number, const uint exercise_idx, const uint set_number, const bool emit_signal = true);
 	void moveSet(const uint exercise_number, const uint exercise_idx, const uint from_set, const uint to_set);
 	Q_INVOKABLE bool exerciseIsComposite(const uint exercise_number) const;
 
