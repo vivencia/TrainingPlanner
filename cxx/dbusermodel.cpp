@@ -842,13 +842,11 @@ int DBUserModel::importFromFile(const QString& filename, QFile *in_file)
 	int ret{appUtils()->readDataFromFile(in_file, m_usersData, USER_TOTAL_COLS, userFileIdentifier)};
 	if (ret != APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE)
 		ret = APPWINDOW_MSG_IMPORT_OK;
-	else
-		ret = APPWINDOW_MSG_IMPORT_FAILED;
 	in_file->close();
 	return ret;
 }
 
-int DBUserModel::importFromFormattedFile(const uint user_idx, const QString &filename, QFile *in_file)
+int DBUserModel::importFromFormattedFile(const QString &filename, QFile *in_file)
 {
 	if (!in_file)
 	{
@@ -858,14 +856,13 @@ int DBUserModel::importFromFormattedFile(const uint user_idx, const QString &fil
 	}
 
 	int ret{appUtils()->readDataFromFormattedFile(in_file,
-												m_usersData[user_idx],
+												m_usersData,
+												USER_TOTAL_COLS,
 												userFileIdentifier,
 												[this] (const uint field, const QString &value) { return formatFieldToImport(field, value); })
 	};
 	if (ret > 0)
 		ret = APPWINDOW_MSG_IMPORT_OK;
-	else
-		ret = APPWINDOW_MSG_IMPORT_FAILED;
 	in_file->close();
 	return ret;
 }

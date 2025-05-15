@@ -294,7 +294,7 @@ int TPUtils::readDataFromFile(QFile *in_file,
 		return -1;
 
 	const qsizetype prevCount{data.count()};
-	QStringList read_data{field_count};
+	QStringList data_read{field_count};
 	bool identifier_found{false};
 	const char *identifier_in_file{QString{"##%%"_L1 + identifier}.toUtf8().constData()};
 	char buf[512];
@@ -312,18 +312,18 @@ int TPUtils::readDataFromFile(QFile *in_file,
 			}
 			else if (strstr(buf, "##!!") != NULL)
 			{
-				if (read_data.count() >= field_count)
+				if (data_read.count() >= field_count)
 				{
-					if (read_data.count() > field_count)
-						read_data.resize(field_count);
+					if (data_read.count() > field_count)
+						data_read.resize(field_count);
 					if (row == -1)
-						data.append(std::move(read_data));
+						data.append(std::move(data_read));
 					else if (row < data.count())
-						data.replace(row, std::move(read_data));
+						data.replace(row, std::move(data_read));
 				}
 			}
 			else
-				read_data.append(std::move(QString{buf}.chopped(1)));
+				data_read.append(std::move(QString{buf}.chopped(1)));
 		}
 
 	}
@@ -331,9 +331,10 @@ int TPUtils::readDataFromFile(QFile *in_file,
 }
 
 int TPUtils::readDataFromFormattedFile(QFile *in_file,
-									   QStringList &data,
-									   const QString &identifier,
-									   const std::function<QString(const uint field, const QString &value)> &formatToImport) const
+										QList<QStringList> &data,
+										const uint field_count,
+										const QString &identifier,
+										const std::function<QString(const uint field, const QString &value)> &formatToImport) const
 {
 	if (!in_file || !in_file->isOpen())
 		return -1;
@@ -344,6 +345,7 @@ int TPUtils::readDataFromFormattedFile(QFile *in_file,
 	QString value;
 	uint field{1}; //skip ID
 	int line_length{0};
+	QStringList data_read{field_count};
 
 	while ((line_length = in_file->readLine(buf, sizeof(buf))) != -1)
 	{
@@ -363,13 +365,21 @@ int TPUtils::readDataFromFormattedFile(QFile *in_file,
 				break;
 			else
 			{
-				value = buf;
-				value = std::move(value.remove(0, value.indexOf(':') + 2).simplified());
-				if (formatToImport == nullptr)
-					data[field] = std::move(value);
+				if (field < field_count)
+				{
+					value = buf;
+					value = std::move(value.remove(0, value.indexOf(':') + 2).simplified());
+					if (formatToImport == nullptr)
+						data_read[field] = std::move(value);
+					else
+						data_read[field] = std::move(formatToImport(field, value));
+					++field;
+				}
 				else
-					data[field] = std::move(formatToImport(field, value));
-				++field;
+				{
+					data.append(std::move(data_read));
+					field = 1;
+				}
 			}
 		}
 	}

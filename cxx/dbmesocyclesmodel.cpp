@@ -25,7 +25,6 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent, const bool bMainAppModel)
 	: QObject{parent}, m_mostRecentOwnMesoIdx{-1}, m_lowestTempMesoId{-1}, m_bCanHaveTodaysWorkout{false}
 {
 	app_meso_model = this;
-	setObjectName(DBMesocyclesObjectName);
 	setCurrentMesoIdx(appSettings()->lastViewedMesoIdx(), false);
 
 	m_calendarModel = new DBMesoCalendarManager{this};
@@ -578,7 +577,8 @@ int DBMesocyclesModel::importFromFormattedFile(const uint meso_idx, const QStrin
 		return  APPWINDOW_MSG_OPEN_FAILED;
 
 	int ret{appUtils()->readDataFromFormattedFile(in_file,
-												m_mesoData[meso_idx],
+												m_mesoData,
+												fieldCount(),
 												mesoFileIdentifier,
 												[this] (const uint field, const QString &value) { return formatFieldToImport(field, value); })
 	};

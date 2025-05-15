@@ -58,11 +58,12 @@ void DBExercisesTable::getAllExercises()
 			{
 				do
 				{
-					m_model->appendList(std::move(QStringList{EXERCISES_TOTAL_COLS}));
+					QStringList data{EXERCISES_TOTAL_COLS};
 					for (uint i{EXERCISES_LIST_COL_ID}; i < EXERCISES_LIST_COL_ACTUALINDEX; ++i)
-						m_model->lastRow()[i] = std::move(query.value(static_cast<int>(i)).toString());
-					m_model->lastRow()[EXERCISES_LIST_COL_ACTUALINDEX] = std::move(QString::number(m_model->count()));
-					m_model->lastRow()[EXERCISES_LIST_COL_SELECTED] = STR_ZERO;
+						data[i] = std::move(query.value(static_cast<int>(i)).toString());
+					data[EXERCISES_LIST_COL_ACTUALINDEX] = std::move(QString::number(m_model->count()));
+					data[EXERCISES_LIST_COL_SELECTED] = STR_ZERO;
+					m_model->appendList(std::move(data));
 				} while (query.next ());
 				const uint highest_id{static_cast<uint>(m_model->_id(m_model->count() - 1))};
 				if (highest_id >= m_exercisesTableLastId)
@@ -96,7 +97,6 @@ void DBExercisesTable::updateExercisesList()
 		bool ok{false};
 		QSqlQuery query{getQuery()};
 		QString queryValues;
-		uint idx{0};
 
 		//remove previous list entries from DB
 		const QString &strQuery{"DELETE FROM exercises_table WHERE from_list=1"_L1};
@@ -112,13 +112,13 @@ void DBExercisesTable::updateExercisesList()
 								"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
 								" VALUES "_s};
 
-		QStringList::const_iterator itr{m_ExercisesList.constBegin()};
-		const QStringList::const_iterator &itr_end{m_ExercisesList.constEnd()};
-		for (++itr; itr != itr_end; ++itr, ++idx) //++itr: Jump over version number
+		uint idx{0};
+		for (const auto &data : std::as_const(m_ExercisesList))
 		{
-			const QStringList &fields{(*itr).split(';')};
+			const QStringList &fields{data.split(';')};
 			m_model->newExercise(fields.at(0), fields.at(1), fields.at(2).trimmed());
 			queryValues += std::move(m_model->makeTransactionStatementForDataBase(idx));
+			++idx;
 		}
 		queryValues.chop(1);
 		static_cast<void>(mSqlLiteDB.transaction());

@@ -69,7 +69,8 @@ public:
 							const int row = -1) const;
 
 	int readDataFromFormattedFile(QFile *in_file,
-								  QStringList &data,
+								  QList<QStringList> &data,
+								  const uint field_count,
 								  const QString &identifier,
 								  const std::function<QString(const uint field, const QString &value)> &formatToImport = nullptr) const;
 

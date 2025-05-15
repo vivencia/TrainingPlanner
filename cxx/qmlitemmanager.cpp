@@ -2,11 +2,10 @@
 
 #include "dbcalendarmodel.h"
 #include "dbinterface.h"
+#include "dbexercisesmodel.h"
 #include "dbexerciseslistmodel.h"
-#include "DBMesoCalendarManager.h"
+#include "dbmesocalendarmanager.h"
 #include "dbmesocyclesmodel.h"
-#include "dbmesosplitmodel.h"
-#include "dbworkoutmodel.h"
 #include "dbusermodel.h"
 #include "homepagemesomodel.h"
 
@@ -85,10 +84,10 @@ void QmlItemManager::configureQmlEngine()
 	qmlRegisterType<DBUserModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBUserModel");
 	qmlRegisterType<DBExercisesListModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBExercisesListModel");
 	qmlRegisterType<DBMesocyclesModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBMesocyclesModel");
-	qmlRegisterType<DBMesoSplitModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBMesoSplitModel");
+	qmlRegisterType<DBExercisesModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBMesoSplitModel");
+	qmlRegisterType<DBExercisesModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBWorkoutModel");
 	qmlRegisterType<DBMesoCalendarManager>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBMesoCalendarManager");
 	qmlRegisterType<DBCalendarModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBCalendarModel");
-	qmlRegisterType<DBWorkoutModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBWorkoutModel");
 	qmlRegisterType<TPTimer>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "TPTimer");
 	qmlRegisterType<TPImage>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "TPImage");
 	qmlRegisterType<QmlUserInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "UserManager");
@@ -353,7 +352,7 @@ void QmlItemManager::selectWhichMesoToImportInto()
 	{
 		if (appMesoModel()->isDateWithinMeso(i, today))
 		{
-			mesoInfo.append(std::move(appMesoModel()->name(i) + '\n' + appMesoModel()->columnLabel(MESOCYCLES_COL_CLIENT) + appMesoModel()->client(i)));
+			mesoInfo.append(std::move(appMesoModel()->name(i) + '\n' + appMesoModel()->clientLabel() + appMesoModel()->client(i)));
 			idxsList.append(i);
 		}
 	}
@@ -579,17 +578,14 @@ void QmlItemManager::importFromFile(const QString &filename, const int wanted_co
 	int importFileMessageId{APPWINDOW_MSG_IMPORT_FAILED};
 	if (isBitSet(wanted_content, IFC_USER))
 	{
-		DBUserModel *usermodel{new DBUserModel{this, false}};
-		usermodel->deleteLater();
-		if (usermodel->importFromFile(filename) == APPWINDOW_MSG_READ_FROM_FILE_OK)
-			importFileMessageId = incorporateImportedData(usermodel);
+		importFileMessageId = appUserModel()->importFromFile(filename);
+		if (importFileMessageId == APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE)
+			importFileMessageId = appUserModel()->importFromFormattedFile(filename);
 	}
 	if (isBitSet(wanted_content, IFC_MESO))
 	{
-		DBMesocyclesModel *mesomodel{new DBMesocyclesModel{this, false}};
-		mesomodel->deleteLater();
-		if (mesomodel->importFromFile(filename) == APPWINDOW_MSG_READ_FROM_FILE_OK)
-			importFileMessageId = incorporateImportedData(mesomodel, wanted_content);
+		appMesoModel()->newMesoFromFile(filename);
+
 	}
 	if (isBitSet(wanted_content, IFC_MESOSPLIT))
 	{

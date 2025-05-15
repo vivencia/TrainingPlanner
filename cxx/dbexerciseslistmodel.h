@@ -17,6 +17,8 @@
 #define EXERCISES_LIST_COL_SELECTED 11
 #define EXERCISES_TOTAL_COLS EXERCISES_LIST_COL_SELECTED+1
 
+QT_FORWARD_DECLARE_CLASS(QFile)
+
 class DBExercisesListModel : public QAbstractListModel
 {
 
@@ -170,8 +172,10 @@ public:
 	void clear();
 	QString makeTransactionStatementForDataBase(const uint index) const;
 
-	inline void resetPrivateData() { clearSelectedEntries(); }
-	int importFromFile(const QString &filename);
+	int exportToFile(const QString &filename, QFile *out_file = nullptr) const;
+	int exportToFormattedFile(const QString &filename, QFile *out_file = nullptr) const;
+	int importFromFile(const QString &filename, QFile *in_file = nullptr);
+	int importFromFormattedFile(const QString &filename, QFile *in_file = nullptr);
 
 	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
 	QVariant data(const QModelIndex &index, int role) const override final;

@@ -8,6 +8,7 @@ enum RoleNames {
 };
 
 const auto &value = []<typename T>(const std::optional<T> &retValue) { return retValue.has_value() ? retValue.value() : T{}; };
+auto &&rvalue = []<typename T>(const std::optional<T> &retValue) mutable { return retValue.has_value() ? retValue.value() : T{}; };
 
 DBCalendarModel::DBCalendarModel(DBMesoCalendarManager *parent, const uint meso_idx)
 	: QAbstractListModel{parent}, m_calendarManager{parent}, m_mesoIdx(meso_idx), m_nmonths{0}
@@ -39,7 +40,7 @@ QDate DBCalendarModel::firstDateOfEachMonth(const uint index) const
 	QDate date{};
 	if (index < m_nmonths)
 	{
-		date = std::move(value(m_calendarManager->date(m_mesoIdx, 0)));
+		date = std::move(rvalue(m_calendarManager->date(m_mesoIdx, 0)));
 		date.setDate(date.year(), date.month(), 1);
 		uint i{0};
 		while (i++ < index)

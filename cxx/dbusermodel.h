@@ -275,7 +275,7 @@ public:
 	int exportToFile(const uint user_idx, const QString &filename, QFile *out_file = nullptr) const;
 	int exportToFormattedFile(const uint user_idx, const QString &filename, QFile *out_file = nullptr) const;
 	int importFromFile(const QString &filename, QFile *in_file = nullptr);
-	int importFromFormattedFile(const uint user_idx, const QString &filename, QFile *in_file = nullptr);
+	int importFromFormattedFile(const QString &filename, QFile *in_file = nullptr);
 	bool importFromString(const QString &user_data);
 
 public slots:

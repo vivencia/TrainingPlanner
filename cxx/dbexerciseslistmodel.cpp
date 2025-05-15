@@ -5,12 +5,15 @@
 
 #include <QFile>
 
+#include <ranges>
 #include <utility>
 
 DBExercisesListModel *DBExercisesListModel::app_exercises_model(nullptr);
+static const QString &exercisesListFileIdentifier{"0x01"_L1};
+constexpr short fieldsNumberInDatabase{EXERCISES_LIST_COL_WEIGHT+1}; //Weight is the last savable field + the Id field
 
 DBExercisesListModel::DBExercisesListModel(QObject *parent, const bool bMainExercisesModel)
-	: QAbstractListModel{parent}, m_selectedEntryToReplace(0), m_exercisesTableLastId(-1), m_bFilterApplied(false)
+	: QAbstractListModel{parent}, m_selectedEntryToReplace{0}, m_exercisesTableLastId{-1}, m_bFilterApplied{false}
 {
 	if (bMainExercisesModel)
 	{
@@ -135,11 +138,11 @@ void DBExercisesListModel::setFilter(const QString &filter)
 	if (!filter.isEmpty())
 	{
 		uint idx{0};
-		for (const auto exercise : m_exercisesData)
+		for (const auto &exercise : std::as_const(m_exercisesData))
 		{
 			const QString &subject{exercise.at(EXERCISES_LIST_COL_MUSCULARGROUP)};
 			const QStringList &words_list{filter.split(fancy_record_separator1, Qt::SkipEmptyParts, Qt::CaseInsensitive)};
-			for (const auto word : words_list)
+			for (const auto &word : words_list)
 			{
 				if (subject.contains(word, Qt::CaseInsensitive))
 				{
@@ -181,7 +184,7 @@ void DBExercisesListModel::search(const QString &search_term)
 						' ' + m_exercisesData.at(idx).at(EXERCISES_LIST_COL_SUBNAME)};
 			const QStringList &words_list{appUtils()->stripDiacriticsFromString(search_term).split(' ', Qt::SkipEmptyParts, Qt::CaseInsensitive)};
 
-			for (const auto word : word_list)
+			for (const auto &word : words_list)
 			{
 				if (subject.contains(word, Qt::CaseInsensitive))
 				{
@@ -191,7 +194,7 @@ void DBExercisesListModel::search(const QString &search_term)
 						beginRemoveRows(QModelIndex{}, 0, count()-1);
 						m_indexProxy.clear();
 						endRemoveRows();
-						resetPrivateData();
+						clearSelectedEntries();
 						setCurrentRow(-1);
 						m_bFilterApplied = true;
 					}
@@ -374,70 +377,116 @@ void DBExercisesListModel::clear()
 QString DBExercisesListModel::makeTransactionStatementForDataBase(const uint index) const
 {
 	QString statement{'(' + id(index)};
-	for (uint i(1); i <= EXERCISES_LIST_COL_MEDIAPATH; ++i)
+	for (uint i{1}; i <= EXERCISES_LIST_COL_MEDIAPATH; ++i)
 		statement += ",\'"_L1 + m_exercisesData.at(index).at(i) + '\'';
 	statement += ',' + STR_ONE + "),"_L1; //EXERCISES_LIST_COL_FROMAPPLIST
 	return statement;
 }
 
-int DBExercisesListModel::importFromFile(const QString &filename)
+int DBExercisesListModel::exportToFile(const QString &filename, QFile *out_file) const
 {
-	QFile *inFile{new QFile{filename}};
-	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
+	if (!out_file)
 	{
-		delete inFile;
-		return APPWINDOW_MSG_OPEN_FAILED;
+		out_file = appUtils()->openFile(filename, QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text);
+		if (!out_file)
+			return APPWINDOW_MSG_OPEN_FAILED;
 	}
 
-	QStringList modeldata{EXERCISES_TOTAL_COLS};
-	uint col{EXERCISES_LIST_COL_MAINNAME};
-	QString value;
-	uint n_items{0};
-	const qsizetype databaseLastIndex{appExercisesModel()->m_exercisesData.count()};
-	const QString tableIdStr{"0x000"_L1 + QString::number(EXERCISES_TABLE_ID)};
-	bool bFoundModelInfo(false);
+	const bool ret{appUtils()->writeDataToFile(out_file, exercisesListFileIdentifier, m_exercisesData, m_exportRows)};
+	out_file->close();
+	return ret ? APPWINDOW_MSG_EXPORT_OK : APPWINDOW_MSG_EXPORT_FAILED;
+}
 
-	char buf[256];
-	qint64 lineLength{0};
-	while ((lineLength = inFile->readLine(buf, sizeof(buf))) != -1)
+int DBExercisesListModel::exportToFormattedFile(const QString &filename, QFile *out_file) const
+{
+	if (!out_file)
 	{
-		if (strstr(buf, STR_END_EXPORT.toLatin1().constData()) == NULL)
+		out_file = {appUtils()->openFile(filename, QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text)};
+		if (!out_file)
+			return APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
+	}
+
+	QList<std::function<QString(void)>> field_description{QList<std::function<QString(void)>>{} <<
+											nullptr <<
+											[this] () { return exerciseNameLabel(); } <<
+											[this] () { return exerciseSpecificsLabel(); } <<
+											[this] () { return muscularGroupsLabel(); } <<
+											[this] () { return setsLabel(); } <<
+											[this] () { return repsLabel(); } <<
+											[this] () { return weightLabel(); } <<
+											nullptr <<
+											nullptr <<
+											nullptr <<
+											nullptr <<
+											nullptr
+	};
+
+	int ret{APPWINDOW_MSG_EXPORT_FAILED};
+	if (appUtils()->writeDataToFormattedFile(out_file,
+					exercisesListFileIdentifier,
+					m_exercisesData,
+					field_description,
+					nullptr,
+					m_exportRows,
+					QString{tr("Exercises List") + "\n\n"_L1})
+	)
+		ret = APPWINDOW_MSG_EXPORT_OK;
+	return ret;
+}
+
+int DBExercisesListModel::importFromFile(const QString& filename, QFile *in_file)
+{
+	if (!in_file)
+	{
+		in_file = appUtils()->openFile(filename, QIODeviceBase::ReadOnly|QIODeviceBase::Text);
+		if (!in_file)
+			return APPWINDOW_MSG_OPEN_FAILED;
+	}
+
+	int ret{appUtils()->readDataFromFile(in_file, m_exercisesData, EXERCISES_TOTAL_COLS, exercisesListFileIdentifier)};
+	if (ret != APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE)
+		ret = APPWINDOW_MSG_IMPORT_OK;
+	else
+		ret = APPWINDOW_MSG_IMPORT_FAILED;
+	in_file->close();
+	return ret;
+}
+
+int DBExercisesListModel::importFromFormattedFile(const QString &filename, QFile *in_file)
+{
+	if (!in_file)
+	{
+		in_file = appUtils()->openFile(filename, QIODeviceBase::ReadOnly|QIODeviceBase::Text);
+		if (!in_file)
+			return APPWINDOW_MSG_OPEN_FAILED;
+	}
+
+	const uint first_imported_idx{count()};
+
+	int ret{appUtils()->readDataFromFormattedFile(in_file,
+												m_exercisesData,
+												fieldsNumberInDatabase,
+												exercisesListFileIdentifier,
+												nullptr)
+	};
+
+	if (ret > 0)
+	{
+		uint actual_index{first_imported_idx};
+		for (auto &&data : m_exercisesData | std::views::drop(first_imported_idx) )
 		{
-			if (lineLength > 10)
-			{
-				if (!bFoundModelInfo)
-					bFoundModelInfo = strstr(buf, tableIdStr.toLatin1().constData()) != NULL;
-				else
-				{
-					if (col <= EXERCISES_LIST_COL_MEDIAPATH)
-					{
-						if (col != EXERCISES_LIST_COL_WEIGHTUNIT)
-						{
-							value = buf;
-							modeldata[col] = std::move(value.remove(0, value.indexOf(':') + 2).simplified());
-						}
-						++col;
-					}
-					else
-					{
-						++n_items;
-						modeldata[EXERCISES_LIST_COL_ID] = std::move(QString::number(m_exercisesTableLastId + n_items));
-						modeldata[EXERCISES_LIST_COL_WEIGHTUNIT] = std::move("(kg)"_L1);
-						modeldata[EXERCISES_LIST_COL_FROMAPPLIST] = STR_ZERO;
-						modeldata[EXERCISES_LIST_COL_ACTUALINDEX] = std::move(QString::number(databaseLastIndex + n_items));
-						modeldata[EXERCISES_LIST_COL_SELECTED] = STR_ZERO;
-						m_exercisesData.append(modeldata);
-						col = 0;
-					}
-				}
-			}
+			data[0] = std::move(QString::number(m_exercisesTableLastId++));
+			data.append(std::move("(kg)"_L1));
+			data.append(STR_ZERO);
+			data.append(std::move(QString::number(actual_index++)));
+			data.append(STR_ZERO);
 		}
-		else
-			break;
+		ret = APPWINDOW_MSG_IMPORT_OK;
 	}
-	inFile->close();
-	delete inFile;
-	return m_exercisesData.count() > 1 ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
+	else
+		ret = APPWINDOW_MSG_IMPORT_FAILED;
+	in_file->close();
+	return ret;
 }
 
 QVariant DBExercisesListModel::data(const QModelIndex &index, int role) const
