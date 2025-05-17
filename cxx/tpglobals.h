@@ -40,22 +40,21 @@ constexpr QLatin1StringView comp_exercise_fancy_separator(" + "_L1);
 static const QString &STR_MINUS_ONE("-1"_L1);
 static const QString &STR_ZERO("0"_L1);
 static const QString &STR_ONE("1"_L1);
-static const QString &STR_END_EXPORT("####\n\n"_L1);
 
 enum {
-	IFC_USER = 1,
-	IFC_MESO = 2,
-	IFC_MESOSPLIT = 3,
-		IFC_MESOSPLIT_A = 4,
-		IFC_MESOSPLIT_B = 5,
-		IFC_MESOSPLIT_C = 6,
-		IFC_MESOSPLIT_D = 7,
-		IFC_MESOSPLIT_E = 8,
-		IFC_MESOSPLIT_F = 9,
-	IFC_EXERCISES = 10,
-	IFC_TDAY = 11,
-	IFC_ANY = 12 //This value is needed for QmlItemManager but this .h file is not included in qmlitemmanager.h. Remember: change here, change there
+	IFC_USER = 0,
+	IFC_MESO = 1,
+	IFC_MESOSPLIT = 2,
+		IFC_MESOSPLIT_A = 3,
+		IFC_MESOSPLIT_B = 4,
+		IFC_MESOSPLIT_C = 5,
+		IFC_MESOSPLIT_D = 6,
+		IFC_MESOSPLIT_E = 7,
+		IFC_MESOSPLIT_F = 8,
+	IFC_EXERCISES = 9,
+	IFC_WORKOUT = 10
 } typedef importFileContents;
+constexpr short ifc_count{11};
 
 #define APPWINDOW_MSG_IMPORT_OK 3
 #define APPWINDOW_MSG_EXPORT_OK 2

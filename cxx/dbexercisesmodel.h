@@ -91,6 +91,7 @@ public:
 	int importFromFile(const QString &filename, QFile *in_file = nullptr);
 	int importFromFormattedFile(const QString &filename, QFile *in_file = nullptr);
 	inline const QString &identifierInFile() const { return *m_identifierInFile; }
+	static bool importExtraInfo(const QString &maybe_extra_info, int &calendar_day, QChar &split_letter);
 
 	const uint inline exerciseCount() const { return m_exerciseData.count(); }
 	const uint setsNumber(const uint exercise_number) const;
@@ -166,7 +167,7 @@ public:
 	inline QString setNotesLabel() const { return tr("Notes/Instructions for the set: "); }
 	inline QString setCompletedLabel() const { return tr("Completed?"); }
 	inline QString restTimeUntrackedLabel() const { return tr("As needed"); }
-	inline QString splitLabel() const { return tr("Split: "); }
+	static inline QString splitLabel() { return tr("Split: "); }
 
 	QVariant data(const QModelIndex &index, int role) const override final;
 	bool setData(const QModelIndex &index, const QVariant &value, int role) override final;
@@ -199,7 +200,7 @@ private:
 	const QString formatSetTypeToExport(stSet *set) const;
 	TPSetTypes formatSetTypeToImport(const QString &fieldValue) const;
 	const QString exportExtraInfo() const;
-	bool importExtraInfo(const QString &maybe_extra_info);
+	inline bool importExtraInfo(const QString &maybe_extra_info);
 	QString increaseStringTimeBy(const QString &strtime, const uint add_mins, const uint add_secs);
 	void setSuggestedTime(const uint set_number, const QList<stSet*> &sets);
 	void setSuggestedSubSets(const uint set_number, const QList<stSet*> &sets);

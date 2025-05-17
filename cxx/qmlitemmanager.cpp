@@ -160,52 +160,27 @@ void QmlItemManager::exitApp()
 
 void QmlItemManager::chooseFileToImport()
 {
-	QMetaObject::invokeMethod(appMainWindow(), "chooseFileToImport", Q_ARG(int, IFC_ANY));
+	QMetaObject::invokeMethod(appMainWindow(), "chooseFileToImport", Q_ARG(int, IFC_MESO));
 }
 
-void QmlItemManager::tryToImport(const QList<bool> &selectedFields)
+void QmlItemManager::importFromSelectedFile(const QList<bool> &selectedFields)
 {
-	uint wanted_content{0};
-	if (isBitSet(m_fileContents, IFC_MESO))
+	const bool formatted{m_importFilename.at(0).cell() == 'f'};
+	int importFileMessageId{APPWINDOW_MSG_IMPORT_FAILED};
+
+	m_importFilename.remove(0, 1);
+	for (uint i{0}; i < selectedFields.count(); ++i)
 	{
-		setBit(wanted_content, isBitSet(m_fileContents, IFC_USER) &&selectedFields.at(1) ? IFC_USER : 0);
-		setBit(wanted_content, selectedFields.at(0) ? IFC_MESO : 0);
-	}
-	if (isBitSet(m_fileContents, IFC_MESOSPLIT))
-	{
-		const int fieldStart{isBitSet(m_fileContents, IFC_MESO) ? 2 : 0};
-		if (isBitSet(m_fileContents, IFC_MESO) &&!isBitSet(wanted_content, IFC_MESO))
+		switch (i)
 		{
-			auto conn = std::make_shared<QMetaObject::Connection>();
-			*conn = connect(this, &QmlItemManager::mesoForImportSelected, this, [this,conn,selectedFields] () {
-				disconnect(*conn);
-				tryToImport(selectedFields);
-			});
-			selectWhichMesoToImportInto();
-			return;
+			case IFC_USER:
+				importFileMessageId = formatted ? appUserModel()->importFromFile(m_importFilename) :
+							appUserModel()->importFromFormattedFile(m_importFilename);
+			break;
 		}
-		const uint wanted_content_temp{wanted_content};
-		if (isBitSet(m_fileContents, IFC_MESOSPLIT_A))
-			setBit(wanted_content, (selectedFields.at(fieldStart) ? IFC_MESOSPLIT_A : 0));
-		if (isBitSet(m_fileContents, IFC_MESOSPLIT_B))
-			setBit(wanted_content, (selectedFields.at(fieldStart+1) ? IFC_MESOSPLIT_B : 0));
-		if (isBitSet(m_fileContents, IFC_MESOSPLIT_C))
-			setBit(wanted_content, (selectedFields.at(fieldStart+2) ? IFC_MESOSPLIT_C : 0));
-		if (isBitSet(m_fileContents, IFC_MESOSPLIT_D))
-			setBit(wanted_content, (selectedFields.at(fieldStart+3) ? IFC_MESOSPLIT_D : 0));
-		if (isBitSet(m_fileContents, IFC_MESOSPLIT_E))
-			setBit(wanted_content, (selectedFields.at(fieldStart+4) ? IFC_MESOSPLIT_E : 0));
-		if (isBitSet(m_fileContents, IFC_MESOSPLIT_F))
-			setBit(wanted_content, (selectedFields.at(fieldStart+5) ? IFC_MESOSPLIT_F : 0));
-		if (wanted_content_temp != wanted_content)
-			setBit(wanted_content, IFC_MESOSPLIT);
 	}
-	else
-	{
-		setBit(wanted_content, isBitSet(m_fileContents, IFC_TDAY) &&selectedFields.at(0) ? IFC_TDAY : 0);
-		setBit(wanted_content, isBitSet(m_fileContents, IFC_EXERCISES) &&selectedFields.at(0) ? IFC_EXERCISES : 0);
-	}
-	importFromFile(m_importFilename, wanted_content);
+
+	displayMessageOnAppWindow(importFileMessageId, m_importFilename);
 }
 
 void QmlItemManager::displayImportDialogMessageAfterMesoSelection(const int meso_idx)
@@ -343,7 +318,7 @@ void QmlItemManager::selectWhichMesoToImportInto()
 	QString message;
 	if (isBitSet(m_fileContents, IFC_MESOSPLIT))
 		message = std::move(tr("You're trying to import an exercises selection plan. Select into which program you'd wish to incorporate it."));
-	else if (isBitSet(m_fileContents, IFC_TDAY))
+	else if (isBitSet(m_fileContents, IFC_WORKOUT))
 		message = std::move(tr("You're trying to import a one day workout. Select in which program you'd wish to include it."));
 	QStringList mesoInfo;
 	QList<int> idxsList;
@@ -360,334 +335,113 @@ void QmlItemManager::selectWhichMesoToImportInto()
 	QMetaObject::invokeMethod(appMainWindow(), "selectMesoDialog", Q_ARG(QString, message), Q_ARG(QStringList, mesoInfo), Q_ARG(QList<int>, idxsList));
 }
 
-void QmlItemManager::displayImportDialogMessage(const uint fileContents, const QString &filename)
-{
-	m_fileContents = fileContents;
-	m_importFilename = filename;
-
-	QStringList importOptions;
-	if (isBitSet(m_fileContents, IFC_MESO))
-	{
-		importOptions.append(std::move(tr("Complete Training Plan")));
-		if (isBitSet(m_fileContents, IFC_USER))
-			importOptions.append(std::move(tr("Coach information")));
-	}
-	if (isBitSet(m_fileContents, IFC_MESOSPLIT))
-	{
-		const bool newMesoImport{appMesoModel()->importIdx() == -1};
-		if (newMesoImport &&!(isBitSet(m_fileContents, IFC_MESO)))
-		{
-			auto conn = std::make_shared<QMetaObject::Connection>();
-			*conn = connect(this, &QmlItemManager::mesoForImportSelected, this, [this,conn] () {
-				disconnect(*conn);
-				displayImportDialogMessage(m_fileContents, m_importFilename);
-			});
-			selectWhichMesoToImportInto();
-			return;
-		}
-		if (isBitSet(m_fileContents, IFC_MESOSPLIT_A))
-		{
-			if (!newMesoImport)
-			{
-				if (appMesoModel()->split(appMesoModel()->importIdx()).contains('A'))
-					importOptions.append(std::move(tr("Exercises Program A")));
-				else
-					unSetBit(m_fileContents, IFC_MESOSPLIT_A);
-			}
-			else
-				importOptions.append(std::move(tr("Exercises Program A")));
-		}
-		if (isBitSet(m_fileContents, IFC_MESOSPLIT_B))
-		{
-			if (!newMesoImport)
-			{
-				if (appMesoModel()->split(appMesoModel()->importIdx()).contains('B'))
-					importOptions.append(std::move(tr("Exercises Program B")));
-				else
-					unSetBit(m_fileContents, IFC_MESOSPLIT_B);
-			}
-			else
-				importOptions.append(std::move(tr("Exercises Program B")));
-		}
-		if (isBitSet(m_fileContents, IFC_MESOSPLIT_C))
-		{
-			if (!newMesoImport)
-			{
-				if (appMesoModel()->split(appMesoModel()->importIdx()).contains('C'))
-					importOptions.append(std::move(tr("Exercises Program C")));
-				else
-					unSetBit(m_fileContents, IFC_MESOSPLIT_C);
-			}
-			else
-				importOptions.append(std::move(tr("Exercises Program C")));
-		}
-		if (isBitSet(m_fileContents, IFC_MESOSPLIT_D))
-		{
-			if (!newMesoImport)
-			{
-				if (appMesoModel()->split(appMesoModel()->importIdx()).contains('D'))
-					importOptions.append(std::move(tr("Exercises Program D")));
-				else
-					unSetBit(m_fileContents, IFC_MESOSPLIT_D);
-			}
-			else
-				importOptions.append(std::move(tr("Exercises Program D")));
-		}
-		if (isBitSet(m_fileContents, IFC_MESOSPLIT_E))
-		{
-			if (!newMesoImport)
-			{
-				if (appMesoModel()->split(appMesoModel()->importIdx()).contains('E'))
-					importOptions.append(std::move(tr("Exercises Program E")));
-				else
-					unSetBit(m_fileContents, IFC_MESOSPLIT_E);
-			}
-			else
-				importOptions.append(std::move(tr("Exercises Program E")));
-		}
-		if (isBitSet(m_fileContents, IFC_MESOSPLIT_F))
-		{
-			if (!newMesoImport)
-			{
-				if (appMesoModel()->split(appMesoModel()->importIdx()).contains('F'))
-					importOptions.append(std::move(tr("Exercises Program F")));
-				else
-					unSetBit(m_fileContents, IFC_MESOSPLIT_F);
-			}
-			else
-				importOptions.append(std::move(tr("Exercises Program F")));
-		}
-	}
-	else
-	{
-		if (isBitSet(m_fileContents, IFC_TDAY))
-			importOptions.append(std::move(tr("One Workout")));
-		else if (isBitSet(m_fileContents, IFC_EXERCISES))
-			importOptions.append(std::move(tr("Exercises database update")));
-	}
-
-	const QList<bool> selectedFields(importOptions.count(), true);
-	QMetaObject::invokeMethod(appMainWindow(), "createImportConfirmDialog", Q_ARG(QStringList, importOptions), Q_ARG(QList<bool>, selectedFields));
-}
-
 void QmlItemManager::openRequestedFile(const QString &filename, const int wanted_content)
 {
+	QString corrected_filename;
 	#ifdef Q_OS_ANDROID
 	const QString &androidFilename{appOsInterface()->readFileFromAndroidFileDialog(filename)};
-	if (androidFilename.isEmpty())
-	{
-		displayMessageOnAppWindow(APPWINDOW_MSG_OPEN_FAILED, filename);
-		return;
-	}
-	QFile *inFile{new QFile{androidFilename}};
+	corrected_filename = std::move(appUtils()->getCorrectPath(filename));
 	#else
-	QFile *inFile{new QFile{filename}};
+	corrected_filename = filename;
 	#endif
-	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
+
+	std::optional<bool> formatted;
+	uint file_contents;
+	if (!appUtils()->scanFile(corrected_filename, formatted, file_contents))
 	{
-		delete inFile;
+		displayMessageOnAppWindow(APPWINDOW_MSG_OPEN_FAILED, corrected_filename);
+		return;
+	}
+	if (!formatted.has_value())
+	{
+		displayMessageOnAppWindow(APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE, corrected_filename);
+		return;
+	}
+	if (file_contents == 0)
+	{
+		displayMessageOnAppWindow(APPWINDOW_MSG_IMPORT_FAILED, corrected_filename);
+		return;
+	}
+	if (isBitSet(wanted_content, IFC_MESO) && !isBitSet(file_contents, IFC_MESO))
+	{
+		displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, tr("The TP file does not contain any information for a Training Program"));
+		return;
+	}
+	if (isBitSet(wanted_content, IFC_MESOSPLIT) && !isBitSet(file_contents, IFC_MESOSPLIT))
+	{
+		displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, tr("The TP file does not contain any information for an exercises plan"));
+		return;
+	}
+	if (isBitSet(wanted_content, IFC_WORKOUT) && !isBitSet(file_contents, IFC_WORKOUT))
+	{
+		displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, tr("The TP file does not contain any information for a workout"));
 		return;
 	}
 
-	uint fileContents{0};
-	qint64 lineLength{0};
-	char buf[128];
-	QString inData;
-
-	while ((lineLength = inFile->readLine(buf, sizeof(buf))) != -1)
+	QStringList importOptions{ifc_count};
+	if (isBitSet(file_contents, IFC_MESO))
 	{
-		if (lineLength > 10)
-		{
-			if (strstr(buf, "##") != NULL)
-			{
-				if (strstr(buf, "0x00") != NULL)
-				{
-					inData = buf;
-					if (inData.indexOf(QString::number(USERS_TABLE_ID)) != -1)
-					{
-						if (wanted_content == IFC_ANY || wanted_content == IFC_USER)
-							setBit(fileContents, IFC_USER);
-					}
-					else if (inData.indexOf(QString::number(MESOSPLIT_TABLE_ID)) != -1)
-					{
-						if (wanted_content == IFC_ANY || wanted_content == IFC_MESOSPLIT)
-							setBit(fileContents, IFC_MESOSPLIT);
-					}
-					else if (inData.indexOf(QString::number(MESOCYCLES_TABLE_ID)) != -1)
-					{
-						if (wanted_content == IFC_ANY || wanted_content == IFC_MESO)
-							setBit(fileContents, IFC_MESO);
-					}
-					else if (inData.indexOf(QString::number(WORKOUT_TABLE_ID)) != -1)
-					{
-						if (wanted_content == IFC_ANY || wanted_content == IFC_TDAY)
-							setBit(fileContents, IFC_TDAY);
-					}
-					else if (inData.indexOf(QString::number(EXERCISES_TABLE_ID)) != -1)
-					{
-						if (wanted_content == IFC_ANY || wanted_content == IFC_EXERCISES)
-							setBit(fileContents, IFC_EXERCISES);
-					}
-				}
-			}
-			else
-			{
-				if (wanted_content == IFC_ANY || wanted_content == IFC_MESOSPLIT)
-				{
-					if (isBitSet(fileContents, IFC_MESOSPLIT))
-					{
-						inData = buf;
-						int idx(inData.indexOf(tr("Split: ")));
-						if (idx != -1)
-						{
-							idx += 7;
-							switch (inData.sliced(idx+2, 1).at(0).toLatin1())
-							{
-								case 'A': setBit(fileContents, IFC_MESOSPLIT_A); break;
-								case 'B': setBit(fileContents, IFC_MESOSPLIT_B); break;
-								case 'C': setBit(fileContents, IFC_MESOSPLIT_C); break;
-								case 'D': setBit(fileContents, IFC_MESOSPLIT_D); break;
-								case 'E': setBit(fileContents, IFC_MESOSPLIT_E); break;
-								case 'F': setBit(fileContents, IFC_MESOSPLIT_F); break;
-							}
-						}
-					}
-				}
-			}
-		}
+		importOptions[IFC_MESO] = std::move(tr("Complete Training Plan"));
+		if (isBitSet(file_contents, IFC_USER))
+			importOptions[IFC_USER] = std::move(tr("Coach information"));
 	}
-	inFile->close();
-	delete inFile;
-
-	if (fileContents != 0)
+	if (isBitSet(file_contents, IFC_MESOSPLIT))
 	{
-		if (wanted_content == IFC_ANY)
-			appMesoModel()->setImportIdx(-1);
-		#ifdef Q_OS_ANDROID
-			displayImportDialogMessage(fileContents, androidFilename);
-		#else
-			displayImportDialogMessage(fileContents, filename);
-		#endif
+		const bool newMesoImport{appMesoModel()->importIdx() < 0};
+		if (isBitSet(file_contents, IFC_MESOSPLIT_A))
+		{
+			if (!newMesoImport && appMesoModel()->split(appMesoModel()->importIdx()).contains('A'))
+				importOptions[IFC_MESOSPLIT_A] = std::move(tr("Exercises Program A"));
+			else
+				unSetBit(file_contents, IFC_MESOSPLIT_A);
+		}
+		if (isBitSet(file_contents, IFC_MESOSPLIT_B))
+		{
+			if (!newMesoImport && appMesoModel()->split(appMesoModel()->importIdx()).contains('B'))
+				importOptions[IFC_MESOSPLIT_B] = std::move(tr("Exercises Program B"));
+			else
+				unSetBit(file_contents, IFC_MESOSPLIT_B);
+		}
+		if (isBitSet(file_contents, IFC_MESOSPLIT_C))
+		{
+			if (!newMesoImport && appMesoModel()->split(appMesoModel()->importIdx()).contains('C'))
+				importOptions[IFC_MESOSPLIT_C] = std::move(tr("Exercises Program C"));
+			else
+				unSetBit(file_contents, IFC_MESOSPLIT_C);
+		}
+		if (isBitSet(file_contents, IFC_MESOSPLIT_D))
+		{
+			if (!newMesoImport && appMesoModel()->split(appMesoModel()->importIdx()).contains('D'))
+				importOptions[IFC_MESOSPLIT_D] = std::move(tr("Exercises Program D"));
+			else
+				unSetBit(file_contents, IFC_MESOSPLIT_D);
+		}
+		if (isBitSet(file_contents, IFC_MESOSPLIT_E))
+		{
+			if (!newMesoImport && appMesoModel()->split(appMesoModel()->importIdx()).contains('E'))
+				importOptions[IFC_MESOSPLIT_E] = std::move(tr("Exercises Program E"));
+			else
+				unSetBit(file_contents, IFC_MESOSPLIT_E);
+		}
+		if (isBitSet(file_contents, IFC_MESOSPLIT_F))
+		{
+			if (!newMesoImport && appMesoModel()->split(appMesoModel()->importIdx()).contains('F'))
+				importOptions[IFC_MESOSPLIT_F] = std::move(tr("Exercises Program F"));
+			else
+				unSetBit(file_contents, IFC_MESOSPLIT_F);
+		}
 	}
 	else
-		displayMessageOnAppWindow(APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE);
-}
-
-void QmlItemManager::importFromFile(const QString &filename, const int wanted_content)
-{
-	int importFileMessageId{APPWINDOW_MSG_IMPORT_FAILED};
-	if (isBitSet(wanted_content, IFC_USER))
 	{
-		importFileMessageId = appUserModel()->importFromFile(filename);
-		if (importFileMessageId == APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE)
-			importFileMessageId = appUserModel()->importFromFormattedFile(filename);
-	}
-	if (isBitSet(wanted_content, IFC_MESO))
-	{
-		appMesoModel()->newMesoFromFile(filename);
-
-	}
-	if (isBitSet(wanted_content, IFC_MESOSPLIT))
-	{
-		DBMesoSplitModel *splitModels[6];
-		for (uint i{0}, ifc(IFC_MESOSPLIT_A); i < 6; ++i, ++ifc)
-		{
-			if (isBitSet(wanted_content, ifc))
-			{
-				splitModels[i] = new DBMesoSplitModel{this, true};
-				splitModels[i]->setImportMode(true);
-				splitModels[i]->setSplitLetter(static_cast<char>('A' + i));
-				splitModels[i]->setMesoIdx(appMesoModel()->importIdx());
-				if (splitModels[i]->importFromFile(filename) == APPWINDOW_MSG_READ_FROM_FILE_OK)
-					importFileMessageId = incorporateImportedData(splitModels[i], wanted_content);
-			}
-		}
-		appMesoModel()->checkIfCanExport(appMesoModel()->importIdx());
-	}
-	else if (isBitSet(wanted_content, IFC_TDAY))
-	{
-		DBWorkoutModel *tDayModel{new DBWorkoutModel{this}};
-		tDayModel->setImportMode(true);
-		if (tDayModel->importFromFile(filename) == APPWINDOW_MSG_READ_FROM_FILE_OK)
-			importFileMessageId = incorporateImportedData(tDayModel);
-	}
-	else if (isBitSet(wanted_content, IFC_EXERCISES))
-	{
-		DBExercisesListModel *exercisesModel{new DBExercisesListModel{this, false}};
-		exercisesModel->deleteLater();
-		if (exercisesModel->importFromFile(filename) == APPWINDOW_MSG_READ_FROM_FILE_OK)
-			importFileMessageId = incorporateImportedData(exercisesModel);
+		if (isBitSet(file_contents, IFC_WORKOUT))
+			importOptions[IFC_WORKOUT] = std::move(tr("One Workout"));
+		else if (isBitSet(file_contents, IFC_EXERCISES))
+			importOptions[IFC_EXERCISES] = std::move(tr("Exercises database update"));
 	}
 
-	displayMessageOnAppWindow(importFileMessageId, filename);
-}
-
-int QmlItemManager::incorporateImportedData(TPListModel *model, const int wanted_content)
-{
-	bool ok(false);
-	switch (model->tableID())
-	{
-		case EXERCISES_TABLE_ID:
-			if ((ok = appExercisesModel()->updateFromModel(model)))
-				appDBInterface()->saveExercises();
-		break;
-		case USERS_TABLE_ID:
-			if (appUserModel()->isDifferent(model))
-				ok = appUserModel()->updateFromModel(model);
-		break;
-		case MESOCYCLES_TABLE_ID:
-			if (appMesoModel()->isDifferent(model))
-			{
-				const uint meso_idx{appMesoModel()->startNewMesocycle(false, false)};
-				if ((ok = appMesoModel()->updateFromModel(meso_idx, model)))
-				{
-					//If we are importing a complete program with splits as well, let them save split code to the database. The code to save a
-					//a simple split can interfere with the multiple split threads
-					if (!isBitSet(wanted_content, IFC_MESOSPLIT))
-						appMesoModel()->setImportMode(false);
-					appDBInterface()->saveMesocycle(meso_idx);
-				}
-			}
-		break;
-		case MESOSPLIT_TABLE_ID:
-		{
-			DBMesoSplitModel *newSplitModel{static_cast<DBMesoSplitModel*>(const_cast<TPListModel*>(model))};
-			DBMesoSplitModel *splitModel{appMesoModel()->mesoManager(appMesoModel()->currentMesoIdx())->plannerSplitModel(newSplitModel->_splitLetter())};
-			if (splitModel) //exercises planner page for the current meso has been loaded in the session
-			{
-				if ((ok = splitModel->updateFromModel(newSplitModel)))
-					appDBInterface()->saveMesoSplitComplete(splitModel);
-			}
-			else //exercises planner page for the current meso has NOT -yet- been loaded during the session
-			{
-				appMesoModel()->setMuscularGroup(newSplitModel->mesoIdx(), newSplitModel->_splitLetter(), newSplitModel->muscularGroup(), false);
-				appDBInterface()->saveMesoSplitComplete(newSplitModel);
-				ok = true;
-			}
-			//If we imported a complete plan we could not change the import mode before because saving a simple split is disabled when importing
-			//Now it is safe(and necessary) to set the correct import state to the main model
-			if (isBitSet(wanted_content, IFC_MESO))
-				appMesoModel()->setImportMode(false);
-		}
-		break;
-		case WORKOUT_TABLE_ID:
-		{
-			DBWorkoutModel *newTDayModel{static_cast<DBWorkoutModel*>(const_cast<TPListModel*>(model))};
-			DBWorkoutModel *tDayModel{appMesoModel()->mesoManager(appMesoModel()->currentMesoIdx())->tDayModelForToday()};
-			if (tDayModel)
-			{
-				if ((ok = tDayModel->updateFromModel(newTDayModel)))
-					appDBInterface()->saveTrainingDay(tDayModel);
-			}
-			else
-			{
-				appDBInterface()->saveTrainingDay(newTDayModel);
-				ok = true;
-			}
-		}
-		break;
-	}
-	return ok ? APPWINDOW_MSG_IMPORT_OK : APPWINDOW_MSG_IMPORT_FAILED_SAME_DATA;
+	m_importFilename = QString{formatted ? 'f' : 'r'} + filename;
+	const QList<bool> selectedFields{static_cast<qsizetype>(ifc_count), QList<bool>::parameter_type(true)};
+	QMetaObject::invokeMethod(appMainWindow(), "createImportConfirmDialog", Q_ARG(QStringList, importOptions), Q_ARG(QList<bool>, selectedFields));
 }
 //-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 
@@ -810,7 +564,7 @@ void QmlItemManager::exportSlot(const QString &filePath)
 void QmlItemManager::importSlot_FileChosen(const QString &filePath, const int fileType)
 {
 	if (!filePath.isEmpty())
-		openRequestedFile(filePath, static_cast<importFileContents>(fileType));
+		openRequestedFile(filePath, fileType);
 	else
 		displayMessageOnAppWindow(APPWINDOW_MSG_IMPORT_CANCELED);
 }

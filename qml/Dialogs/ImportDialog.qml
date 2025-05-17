@@ -55,22 +55,24 @@ TPPopup {
 
 		Repeater {
 			id: repeater
-			model: importOptions.length
+			model: importOptions
 
 			property int itemsHeight: 0
 
 			TPCheckBox {
 				id: chkImportField
-				text: importOptions[index]
+				text: modelData
 				checked: selectedFields[index]
 				width: parent.width
+				visible: modelData.length > 0
 
 				required property int index
 				onClicked: selectedFields[index] = checked;
 
 				Component.onCompleted: {
-					if (index === 0)
-						repeater.itemsHeight = 0;
+					//if (index === 0)
+					//	repeater.itemsHeight = 0;
+					if (visible)
 					repeater.itemsHeight += height;
 				}
 			}
@@ -93,7 +95,7 @@ TPPopup {
 			Layout.alignment: Qt.AlignCenter
 
 			onClicked: {
-				itemManager.tryToImport(selectedFields);
+				itemManager.importFromSelectedFile(selectedFields);
 				importDlg.close();
 			}
 		}

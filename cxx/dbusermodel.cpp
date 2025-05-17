@@ -24,7 +24,6 @@
 
 DBUserModel* DBUserModel::_appUserModel(nullptr);
 
-static const QString &userFileIdentifier{"0x06"_L1};
 static const QLatin1StringView& userProfileFileNameName{"profile.txt"_L1};
 static const QLatin1StringView& userLocalDataFileName{"user.data"_L1};
 static const QString &tpNetworkTitle{qApp->tr("TP Network")};
@@ -789,7 +788,7 @@ int DBUserModel::exportToFile(const uint user_idx, const QString &filename, QFil
 	}
 
 	const QList<uint> &export_user_idx{QList<uint>{} << user_idx};
-	const bool ret{appUtils()->writeDataToFile(out_file, userFileIdentifier, m_usersData)};
+	const bool ret{appUtils()->writeDataToFile(out_file, appUtils()->userFileIdentifier, m_usersData)};
 	out_file->close();
 	return ret ? APPWINDOW_MSG_EXPORT_OK : APPWINDOW_MSG_EXPORT_FAILED;
 }
@@ -819,7 +818,7 @@ int DBUserModel::exportToFormattedFile(const uint user_idx, const QString &filen
 
 	int ret{APPWINDOW_MSG_EXPORT_FAILED};
 	if (appUtils()->writeDataToFormattedFile(out_file,
-					userFileIdentifier,
+					appUtils()->userFileIdentifier,
 					m_usersData,
 					field_description,
 					[this] (const uint field, const QString &value) { return formatFieldToExport(field, value); },
@@ -839,7 +838,7 @@ int DBUserModel::importFromFile(const QString& filename, QFile *in_file)
 			return APPWINDOW_MSG_OPEN_FAILED;
 	}
 
-	int ret{appUtils()->readDataFromFile(in_file, m_usersData, USER_TOTAL_COLS, userFileIdentifier)};
+	int ret{appUtils()->readDataFromFile(in_file, m_usersData, USER_TOTAL_COLS, appUtils()->userFileIdentifier)};
 	if (ret != APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE)
 		ret = APPWINDOW_MSG_IMPORT_OK;
 	in_file->close();
@@ -858,7 +857,7 @@ int DBUserModel::importFromFormattedFile(const QString &filename, QFile *in_file
 	int ret{appUtils()->readDataFromFormattedFile(in_file,
 												m_usersData,
 												USER_TOTAL_COLS,
-												userFileIdentifier,
+												appUtils()->userFileIdentifier,
 												[this] (const uint field, const QString &value) { return formatFieldToImport(field, value); })
 	};
 	if (ret > 0)

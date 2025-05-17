@@ -30,6 +30,17 @@ public:
 		TF_ONLINE
 	};
 
+	const QString exercisesListFileIdentifier{Qt::Literals::StringLiterals::operator""_L1("0x01", 4)};
+	const QString mesoFileIdentifier{Qt::Literals::StringLiterals::operator""_L1("0x02", 4)};
+	const QString splitFileIdentifier{Qt::Literals::StringLiterals::operator""_L1("0x03", 4)};
+	const QString workoutFileIdentifier{Qt::Literals::StringLiterals::operator""_L1("0x05", 4)};
+	const QString userFileIdentifier{Qt::Literals::StringLiterals::operator""_L1("0x06", 4)};
+
+	const QString STR_START_EXPORT{"##%%"_L1};
+	const QString STR_START_FORMATTED_EXPORT{"####"_L1};
+	const QString STR_END_EXPORT{"##!!\n"_L1};
+	const QString STR_END_FORMATTED_EXPORT{"\n##$$\n\n"_L1};
+
 	explicit TPUtils(QObject *parent = nullptr);
 	inline ~TPUtils() { delete m_appLocale; }
 
@@ -47,7 +58,8 @@ public:
 	bool mkdir(const QString &fileOrDir) const;
 	bool copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath = true) const;
 	QFile *openFile(const QString &filename, QIODeviceBase::OpenMode flags) const;
-	void scanDir(const QString &path, QFileInfoList &results, const QString &match = QString{}, const bool follow_tree = false);
+	void scanDir(const QString &path, QFileInfoList &results, const QString &match = QString{}, const bool follow_tree = false) const;
+	bool scanFile(const QString &filename, std::optional<bool> &formatted, uint &fileContents) const;
 	bool writeDataToFile(QFile *out_file,
 							const QString &identifier,
 							const QList<QStringList> &data,

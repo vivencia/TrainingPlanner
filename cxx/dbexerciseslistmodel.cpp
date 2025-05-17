@@ -1,4 +1,5 @@
 #include "dbexerciseslistmodel.h"
+
 #include "tputils.h"
 #include "tpglobals.h"
 #include "translationclass.h"
@@ -9,7 +10,6 @@
 #include <utility>
 
 DBExercisesListModel *DBExercisesListModel::app_exercises_model(nullptr);
-static const QString &exercisesListFileIdentifier{"0x01"_L1};
 constexpr short fieldsNumberInDatabase{EXERCISES_LIST_COL_WEIGHT+1}; //Weight is the last savable field + the Id field
 
 DBExercisesListModel::DBExercisesListModel(QObject *parent, const bool bMainExercisesModel)
@@ -392,7 +392,7 @@ int DBExercisesListModel::exportToFile(const QString &filename, QFile *out_file)
 			return APPWINDOW_MSG_OPEN_FAILED;
 	}
 
-	const bool ret{appUtils()->writeDataToFile(out_file, exercisesListFileIdentifier, m_exercisesData, m_exportRows)};
+	const bool ret{appUtils()->writeDataToFile(out_file, appUtils()->exercisesListFileIdentifier, m_exercisesData, m_exportRows)};
 	out_file->close();
 	return ret ? APPWINDOW_MSG_EXPORT_OK : APPWINDOW_MSG_EXPORT_FAILED;
 }
@@ -423,7 +423,7 @@ int DBExercisesListModel::exportToFormattedFile(const QString &filename, QFile *
 
 	int ret{APPWINDOW_MSG_EXPORT_FAILED};
 	if (appUtils()->writeDataToFormattedFile(out_file,
-					exercisesListFileIdentifier,
+					appUtils()->exercisesListFileIdentifier,
 					m_exercisesData,
 					field_description,
 					nullptr,
@@ -443,7 +443,7 @@ int DBExercisesListModel::importFromFile(const QString& filename, QFile *in_file
 			return APPWINDOW_MSG_OPEN_FAILED;
 	}
 
-	int ret{appUtils()->readDataFromFile(in_file, m_exercisesData, EXERCISES_TOTAL_COLS, exercisesListFileIdentifier)};
+	int ret{appUtils()->readDataFromFile(in_file, m_exercisesData, EXERCISES_TOTAL_COLS, appUtils()->exercisesListFileIdentifier)};
 	if (ret != APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE)
 		ret = APPWINDOW_MSG_IMPORT_OK;
 	else
@@ -466,7 +466,7 @@ int DBExercisesListModel::importFromFormattedFile(const QString &filename, QFile
 	int ret{appUtils()->readDataFromFormattedFile(in_file,
 												m_exercisesData,
 												fieldsNumberInDatabase,
-												exercisesListFileIdentifier,
+												appUtils()->exercisesListFileIdentifier,
 												nullptr)
 	};
 

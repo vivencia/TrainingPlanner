@@ -314,7 +314,7 @@ void QmlTDayInterface::importTrainingDay(const QString& filename)
 		QMetaObject::invokeMethod(appMainWindow(), "chooseFileToImport");
 	}
 	else
-		appItemManager()->openRequestedFile(filename, IFC_TDAY);
+		appItemManager()->openRequestedFile(filename, IFC_WORKOUT);
 }
 
 void QmlTDayInterface::prepareWorkOutTimer(const QString& strStartTime, const QString& strEndTime)

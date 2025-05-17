@@ -1,4 +1,6 @@
 #include "tputils.h"
+
+#include "dbexercisesmodel.h"
 #include "tpglobals.h"
 #include "tpsettings.h"
 
@@ -169,6 +171,75 @@ QFile *TPUtils::openFile(const QString &filename, QIODeviceBase::OpenMode flags)
 	return nullptr;
 }
 
+bool TPUtils::scanFile(const QString &filename, std::optional<bool> &formatted, uint &file_contents) const
+{
+	QFile *in_file{openFile(filename, QIODeviceBase::ReadOnly|QIODeviceBase::Text)};
+	if (!in_file)
+		return false;
+
+	formatted = std::nullopt;
+	file_contents = 0;
+
+	qint64 lineLength{0};
+	char buf[128];
+	QString split_info;
+	const char *raw_data_file{STR_START_EXPORT.toUtf8().constData()};
+	const char *raw_data_file_end{STR_END_EXPORT.toUtf8().constData()};
+	const char *formatted_data_file{STR_START_FORMATTED_EXPORT.toUtf8().constData()};
+	const char *formatted_data_file_end{STR_END_FORMATTED_EXPORT.toUtf8().constData()};
+	const char *split_label{DBExercisesModel::splitLabel().toUtf8().constData()};
+	const uint split_label_length{static_cast<uint>(DBExercisesModel::splitLabel().length())};
+
+	while ((lineLength = in_file->readLine(buf, sizeof(buf))) != -1)
+	{
+		if (lineLength >= 8)
+		{
+			if(strncmp(buf, "##", 2) == 0)
+			{
+				if(strncmp(buf, raw_data_file_end, 4) == 0)
+					continue;
+				else if(strncmp(buf, formatted_data_file_end, 4) == 0)
+					continue;
+				else if (strstr(buf, raw_data_file) != NULL)
+					*formatted = false;
+				else if (strstr(buf, formatted_data_file) != NULL)
+					*formatted = true;
+				else if (strstr(buf, exercisesListFileIdentifier.toLatin1().constData()) != NULL)
+					setBit(file_contents, IFC_EXERCISES);
+				else if (strstr(buf, mesoFileIdentifier.toLatin1().constData()) != NULL)
+					setBit(file_contents, IFC_MESO);
+				else if (strstr(buf, splitFileIdentifier.toLatin1().constData()) != NULL)
+					setBit(file_contents, IFC_MESOSPLIT);
+				else if (strstr(buf, workoutFileIdentifier.toLatin1().constData()) != NULL)
+					setBit(file_contents, IFC_WORKOUT);
+				else if (strstr(buf, userFileIdentifier.toLatin1().constData()) != NULL)
+					setBit(file_contents, IFC_USER);
+
+				if (isBitSet(file_contents, IFC_MESOSPLIT) || isBitSet(file_contents, IFC_WORKOUT))
+				{
+					if(strncmp(buf, split_label, split_label_length) == 0)
+					{
+						split_info = buf;
+						const int idx{static_cast<int>(split_info.indexOf(DBExercisesModel::splitLabel()) + split_label_length + 2)};
+						switch (split_info.sliced(idx, 1).at(0).toLatin1())
+						{
+							case 'A': setBit(file_contents, IFC_MESOSPLIT_A); break;
+							case 'B': setBit(file_contents, IFC_MESOSPLIT_B); break;
+							case 'C': setBit(file_contents, IFC_MESOSPLIT_C); break;
+							case 'D': setBit(file_contents, IFC_MESOSPLIT_D); break;
+							case 'E': setBit(file_contents, IFC_MESOSPLIT_E); break;
+							case 'F': setBit(file_contents, IFC_MESOSPLIT_F); break;
+						}
+					}
+				}
+			}
+		}
+	}
+	in_file->close();
+	delete in_file;
+	return true;
+}
+
 bool TPUtils::writeDataToFile(QFile *out_file,
 								const QString &identifier,
 								const QList<QStringList> &data,
@@ -178,7 +249,7 @@ bool TPUtils::writeDataToFile(QFile *out_file,
 	if (!out_file || !out_file->isOpen())
 		return false;
 
-	out_file->write(QString{"##%%"_L1 + identifier + '\n'}.toUtf8().constData());
+	out_file->write(QString{STR_START_EXPORT + identifier + '\n'}.toUtf8().constData());
 
 	if (export_rows.isEmpty())
 	{
@@ -195,7 +266,7 @@ bool TPUtils::writeDataToFile(QFile *out_file,
 				out_file->write(modeldata.at(i).toUtf8().constData());
 				out_file->write("\n", 1);
 			}
-			out_file->write("##!!\n", 5);
+			out_file->write(STR_END_EXPORT.toUtf8().constData());
 		}
 	}
 	else
@@ -216,7 +287,7 @@ bool TPUtils::writeDataToFile(QFile *out_file,
 					out_file->write("\n", 1);
 				}
 			}
-			out_file->write("##!!\n", 5);
+			out_file->write(STR_END_EXPORT.toUtf8().constData());
 		}
 	}
 	out_file->flush();
@@ -234,7 +305,7 @@ bool TPUtils::writeDataToFormattedFile(QFile *out_file,
 	if (!out_file || !out_file->isOpen())
 		return false;
 
-	QString first_line{std::move("####"_L1 + identifier)};
+	QString first_line{std::move(STR_START_FORMATTED_EXPORT + identifier)};
 	if (!header.isEmpty())
 		first_line += std::forward<QString>("  "_L1 + header);
 	first_line += std::forward<QString>(std::move("\n\n"_L1));
@@ -256,7 +327,7 @@ bool TPUtils::writeDataToFormattedFile(QFile *out_file,
 					out_file->write("\n", 1);
 				}
 			}
-			out_file->write("##!!\n", 5);
+			out_file->write(STR_END_FORMATTED_EXPORT.toUtf8().constData());
 		}
 	}
 	else
@@ -277,7 +348,7 @@ bool TPUtils::writeDataToFormattedFile(QFile *out_file,
 				}
 				++i;
 			}
-			out_file->write("##!!\n", 5);
+			out_file->write(STR_END_FORMATTED_EXPORT.toUtf8().constData());
 		}
 	}
 	out_file->flush();
@@ -296,21 +367,27 @@ int TPUtils::readDataFromFile(QFile *in_file,
 	const qsizetype prevCount{data.count()};
 	QStringList data_read{field_count};
 	bool identifier_found{false};
-	const char *identifier_in_file{QString{"##%%"_L1 + identifier}.toUtf8().constData()};
+	const char *identifier_in_file{QString{STR_START_EXPORT + identifier}.toUtf8().constData()};
 	char buf[512];
 
 	while (in_file->readLine(buf, sizeof(buf)) != -1)
 	{
-		if (!identifier_found)
-			identifier_found = strstr(buf, identifier_in_file) != NULL;
+		if (strstr(buf, STR_START_EXPORT.toUtf8().constData()) != NULL)
+		{
+			if (!identifier_found)
+				identifier_found = strstr(buf, identifier_in_file) != NULL;
+			else //Found the beginning of another data set
+			{
+				if (strstr(buf, identifier_in_file) == NULL) //Data set of a different type, rewind and return
+				{
+					in_file->seek(in_file->pos()-strlen(buf));
+					break;
+				}
+			}
+		}
 		else
 		{
-			if (strstr(buf, "##%%") != NULL) //Found the beginning of another data set, rewind and return
-			{
-				in_file->seek(in_file->pos()-strlen(buf));
-				break;
-			}
-			else if (strstr(buf, "##!!") != NULL)
+			if (strstr(buf, STR_END_EXPORT.toUtf8().constData()) != NULL)
 			{
 				if (data_read.count() >= field_count)
 				{
@@ -340,7 +417,7 @@ int TPUtils::readDataFromFormattedFile(QFile *in_file,
 		return -1;
 
 	bool identifier_found{false};
-	const char *identifier_in_file{QString{"####"_L1 + identifier}.toLatin1().constData()};
+	const char *identifier_in_file{QString{STR_START_FORMATTED_EXPORT + identifier}.toLatin1().constData()};
 	char buf[512];
 	QString value;
 	uint field{1}; //skip ID
@@ -352,17 +429,26 @@ int TPUtils::readDataFromFormattedFile(QFile *in_file,
 		if (line_length < 5)
 			continue;
 
-		if (!identifier_found)
-			identifier_found = strstr(buf, identifier_in_file) != NULL;
+		if (strstr(buf, STR_START_FORMATTED_EXPORT.toUtf8().constData()) != NULL)
+		{
+			if (!identifier_found)
+				identifier_found = strstr(buf, identifier_in_file) != NULL;
+			else //Found the beginning of another data set
+			{
+				if (strstr(buf, identifier_in_file) == NULL) //Data set of a different type, rewind and return
+				{
+					in_file->seek(in_file->pos()-strlen(buf));
+					break;
+				}
+			}
+		}
 		else
 		{
-			if (strstr(buf, "####") != NULL) //Found the beginning of another data set, rewind and return
+			if (strstr(buf, STR_END_FORMATTED_EXPORT.toUtf8().constData()) != NULL)
 			{
-				in_file->seek(in_file->pos()-strlen(buf));
-				break;
+				data.append(std::move(data_read));
+				field = 1;
 			}
-			else if (strstr(buf, "##!!") != NULL)
-				break;
 			else
 			{
 				if (field < field_count)
@@ -375,18 +461,13 @@ int TPUtils::readDataFromFormattedFile(QFile *in_file,
 						data_read[field] = std::move(formatToImport(field, value));
 					++field;
 				}
-				else
-				{
-					data.append(std::move(data_read));
-					field = 1;
-				}
 			}
 		}
 	}
 	return identifier_found ? field : APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE;
 }
 
-void TPUtils::scanDir(const QString &path, QFileInfoList &results, const QString &match, const bool follow_tree)
+void TPUtils::scanDir(const QString &path, QFileInfoList &results, const QString &match, const bool follow_tree) const
 {
 	QDir dir{path};
 	if (dir.isReadable())
@@ -394,7 +475,7 @@ void TPUtils::scanDir(const QString &path, QFileInfoList &results, const QString
 		results.append(std::move(dir.entryInfoList(QStringList{match}, QDir::Files|QDir::NoDotAndDotDot)));
 		if (follow_tree)
 		{
-			QStringList subdirs{dir.entryList(QDir::Dirs|QDir::NoDotAndDotDot)};
+			const QStringList &subdirs{dir.entryList(QDir::Dirs|QDir::NoDotAndDotDot)};
 			for (const auto &subdir: subdirs)
 				scanDir(path + subdir, results, match, true);
 		}

@@ -10,9 +10,6 @@
 #include <QtMath>
 #include <utility>
 
-static const QString &splitFileIdentifier{"0x03"_L1};
-static const QString &workoutFileIdentifier{"0x05"_L1};
-
 struct stSet {
 	uint number;
 	TPSetTypes type;
@@ -44,6 +41,8 @@ enum RoleNames {
 	exerciseCompletedRole = Qt::UserRole+3,
 	workingSetRole = Qt::UserRole+4
 };
+
+static const QString &calendarDayExtraInfo{qApp->tr(" Workout #: ")};
 
 void DBExercisesModel::operator=(DBExercisesModel *other_model)
 {
@@ -277,8 +276,8 @@ int DBExercisesModel::exportToFormattedFile(const QString &filename, QFile *out_
 			}
 		}
 	}
-	out_file->write("\n\n", 2);
-	out_file->write(STR_END_EXPORT.toUtf8().constData());
+	out_file->write("\n", 1);
+	out_file->write(appUtils()->STR_END_FORMATTED_EXPORT.toUtf8().constData());
 	out_file->close();
 	return APPWINDOW_MSG_EXPORT_OK;
 }
@@ -334,7 +333,7 @@ int DBExercisesModel::importFromFormattedFile(const QString& filename, QFile *in
 
 	while ((lineLength = in_file->readLine(buf, sizeof(buf))) != -1)
 	{
-		if (strstr(buf, STR_END_EXPORT.toLatin1().constData()) == NULL)
+		if (strstr(buf, appUtils()->STR_END_FORMATTED_EXPORT.toLatin1().constData()) == NULL)
 		{
 			if (lineLength > 10)
 			{
@@ -421,6 +420,27 @@ int DBExercisesModel::importFromFormattedFile(const QString& filename, QFile *in
 	}
 	in_file->close();
 	return exerciseCount() > 0 ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
+}
+
+bool DBExercisesModel::importExtraInfo(const QString &maybe_extra_info, int &calendar_day, QChar &split_letter)
+{
+	if (maybe_extra_info.contains(splitLabel()))
+	{
+		split_letter = maybe_extra_info.sliced(maybe_extra_info.indexOf(':') + 2, 1).at(0);
+		if (split_letter.cell() >= 'A' && split_letter.cell() <= 'F')
+		{
+			const int cal_day_idx{static_cast<int>(maybe_extra_info.indexOf(calendarDayExtraInfo) + calendarDayExtraInfo.length())};
+			if (cal_day_idx > calendarDayExtraInfo.length()) //workoutModel
+			{
+				bool ok;
+				calendar_day = maybe_extra_info.sliced(cal_day_idx, maybe_extra_info.indexOf(' ', cal_day_idx + 1)).toUInt(&ok);
+				return ok;
+			}
+			else //splitModel
+				return true;
+		}
+	}
+	return false;
 }
 
 const uint DBExercisesModel::setsNumber(const uint exercise_number) const
@@ -831,10 +851,10 @@ void DBExercisesModel::commonConstructor()
 	if (m_calendarDay >= 0)
 	{
 		m_splitLetter = m_calendarManager->splitLetter(m_mesoIdx, m_calendarDay).value().at(0);
-		m_identifierInFile = &workoutFileIdentifier;
+		m_identifierInFile = &appUtils()->workoutFileIdentifier;
 	}
 	else
-		m_identifierInFile = &splitFileIdentifier;
+		m_identifierInFile = &appUtils()->splitFileIdentifier;
 }
 
 const QString DBExercisesModel::formatSetTypeToExport(stSet* set) const
@@ -866,8 +886,6 @@ TPSetTypes DBExercisesModel::formatSetTypeToImport(const QString& fieldValue) co
 		return Regular;
 }
 
-static const QString &calendarDayExtraInfo{qApp->tr(" Workout #: ")};
-
 //Don't put any colon ':' in here. Import will fail. All value()s returned from std::optional by calendarManager() are assumed to
 //contain a valid value because export will only be an option if those values are valid. Those checks are made elsewhere in the code path.
 const QString DBExercisesModel::exportExtraInfo() const
@@ -879,25 +897,9 @@ const QString DBExercisesModel::exportExtraInfo() const
 	return extra_info;
 }
 
-bool DBExercisesModel::importExtraInfo(const QString &maybe_extra_info)
+inline bool DBExercisesModel::importExtraInfo(const QString &maybe_extra_info)
 {
-	if (maybe_extra_info.contains(splitLabel()))
-	{
-		m_splitLetter = maybe_extra_info.sliced(maybe_extra_info.indexOf(':') + 2, 1).at(0);
-		if (m_splitLetter.cell() >= 'A' && m_splitLetter.cell() <= 'F')
-		{
-			const int cal_day_idx{static_cast<int>(maybe_extra_info.indexOf(calendarDayExtraInfo) + calendarDayExtraInfo.length())};
-			if (cal_day_idx > calendarDayExtraInfo.length()) //workoutModel
-			{
-				bool ok;
-				m_calendarDay = maybe_extra_info.sliced(cal_day_idx, maybe_extra_info.indexOf(' ', cal_day_idx + 1)).toUInt(&ok);
-				return ok;
-			}
-			else //splitModel
-				return true;
-		}
-	}
-	return false;
+	return importExtraInfo(maybe_extra_info, m_calendarDay, m_splitLetter);
 }
 
 QString DBExercisesModel::increaseStringTimeBy(const QString &strtime, const uint add_mins, const uint add_secs)

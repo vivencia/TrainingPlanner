@@ -186,8 +186,8 @@ ApplicationWindow {
 			var component = Qt.createComponent("qrc:/qml/Dialogs/ImportDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				importConfirmDialog = component.createObject(contentItem, {parentPage: stackView.currentItem, importOptions: importOptions,
-							selectedFields: selectedFields});
+				importConfirmDialog = component.createObject(contentItem, {
+								parentPage: stackView.currentItem, importOptions: importOptions, selectedFields: selectedFields});
 			}
 
 			if (component.status === Component.Ready)

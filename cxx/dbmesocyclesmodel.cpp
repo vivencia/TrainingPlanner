@@ -18,7 +18,6 @@
 
 using DBSplitModel = DBExercisesModel;
 
-static const QString &mesoFileIdentifier{"0x02"_L1};
 DBMesocyclesModel *DBMesocyclesModel::app_meso_model(nullptr);
 
 DBMesocyclesModel::DBMesocyclesModel(QObject *parent, const bool bMainAppModel)
@@ -488,7 +487,7 @@ int DBMesocyclesModel::exportToFile(const uint meso_idx, const QString &filename
 
 	int ret{APPWINDOW_MSG_EXPORT_FAILED};
 	const QList<uint> &export_row{QList<uint>{} << meso_idx};
-	if (appUtils()->writeDataToFile(out_file, mesoFileIdentifier, m_mesoData, export_row, false))
+	if (appUtils()->writeDataToFile(out_file, appUtils()->mesoFileIdentifier, m_mesoData, export_row, false))
 	{
 		if (m_splitModels.at(meso_idx).count() > 0)
 			ret = exportToFile_splitData(meso_idx, out_file, false);
@@ -531,7 +530,7 @@ int DBMesocyclesModel::exportToFormattedFile(const uint meso_idx, const QString 
 
 	int ret{APPWINDOW_MSG_EXPORT_FAILED};
 	if (appUtils()->writeDataToFormattedFile(out_file,
-					mesoFileIdentifier,
+					appUtils()->mesoFileIdentifier,
 					m_mesoData,
 					field_description,
 					[this] (const uint field, const QString &value) { return formatFieldToExport(field, value); },
@@ -556,7 +555,7 @@ int DBMesocyclesModel::importFromFile(const uint meso_idx, const QString &filena
 	if (!in_file)
 		return  APPWINDOW_MSG_OPEN_FAILED;
 
-	int ret{appUtils()->readDataFromFile(in_file, m_mesoData, fieldCount(), mesoFileIdentifier, meso_idx)};
+	int ret{appUtils()->readDataFromFile(in_file, m_mesoData, fieldCount(), appUtils()->mesoFileIdentifier, meso_idx)};
 	if (ret > 0)
 	{
 		setId(meso_idx, newMesoTemporaryId());
@@ -579,7 +578,7 @@ int DBMesocyclesModel::importFromFormattedFile(const uint meso_idx, const QStrin
 	int ret{appUtils()->readDataFromFormattedFile(in_file,
 												m_mesoData,
 												fieldCount(),
-												mesoFileIdentifier,
+												appUtils()->mesoFileIdentifier,
 												[this] (const uint field, const QString &value) { return formatFieldToImport(field, value); })
 	};
 	if (ret > 0)
