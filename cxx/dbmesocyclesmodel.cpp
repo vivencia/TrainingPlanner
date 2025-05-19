@@ -658,16 +658,26 @@ void DBMesocyclesModel::sendMesoToUser(const uint meso_idx)
 										mesosDir + coach(meso_idx), client(meso_idx));
 }
 
-int DBMesocyclesModel::newMesoFromFile(const QString &filename)
+int DBMesocyclesModel::newMesoFromFile(const QString &filename, const std::optional<bool> &file_formatted)
 {
 	const uint meso_idx{startNewMesocycle(false, false)};
-	int import_result{importFromFile(meso_idx, filename)};
-	if (import_result == APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE)
+	int import_result{APPWINDOW_MSG_IMPORT_FAILED};
+	if (file_formatted.has_value())
 	{
-		import_result = importFromFormattedFile(meso_idx, filename);
-		if (import_result < 0)
-			return import_result;
+		if (file_formatted.value())
+			import_result = importFromFormattedFile(meso_idx, filename);
+		else
+			import_result = importFromFile(meso_idx, filename);
 	}
+	else
+	{
+		import_result = importFromFile(meso_idx, filename);
+		if (import_result == APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE)
+			import_result = importFromFormattedFile(meso_idx, filename);
+	}
+	if (import_result < 0)
+		return import_result;
+
 	setNewMesoFieldCounter(meso_idx, 20);
 	m_isNewMeso[meso_idx] = 0;
 	makeUsedSplits(meso_idx);

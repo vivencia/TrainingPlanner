@@ -63,6 +63,7 @@ Q_PROPERTY(bool mainUserConfigured READ mainUserConfigured NOTIFY mainUserConfig
 public:
 	explicit DBUserModel(QObject *parent = nullptr, const bool bMainUserModel = true);
 
+	inline QString idLabel() const { return "Id: "_L1; }
 	inline QString nameLabel() const { return tr("Name: "); }
 	inline QString birthdayLabel() const { return tr("Birthday: "); }
 	inline QString sexLabel() const { return tr("Sex: "); }
@@ -277,6 +278,7 @@ public:
 	int importFromFile(const QString &filename, QFile *in_file = nullptr);
 	int importFromFormattedFile(const QString &filename, QFile *in_file = nullptr);
 	bool importFromString(const QString &user_data);
+	int newUserFromFile(const QString &filename, const std::optional<bool> &file_formatted = std::nullopt);
 
 public slots:
 	void getPasswordFromUserInput(const int resultCode, const QString &password);
@@ -307,7 +309,7 @@ signals:
 	void fileDownloaded(const bool success, const uint requestid, const QString &localFileName);
 
 private:
-	QList<QStringList> m_usersData;
+	QList<QStringList> m_usersData, m_tempUserData;
 	int m_tempRow;
 	QString m_onlineUserId, m_password, m_defaultAvatar, m_emptyString;
 	std::optional<bool> mb_userRegistered, mb_coachRegistered;
@@ -342,6 +344,7 @@ private:
 	void checkNewMesos();
 	QString formatFieldToExport(const uint field, const QString &fieldValue) const;
 	QString formatFieldToImport(const uint field, const QString &fieldValue) const;
+	inline QList<QStringList> &tempUserData() { return m_tempUserData; }
 
 	QString m_onlineCoachesDir, m_dirForRequestedCoaches, m_dirForClientsRequests,
 						m_dirForCurrentClients, m_dirForCurrentCoaches;

@@ -48,7 +48,6 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 	if (bMainUserModel)
 	{
 		_appUserModel = this;
-
 		connect(appTr(), &TranslationClass::applicationLanguageChanged, this, &DBUserModel::labelsChanged);
 
 		m_onlineCoachesDir = std::move(appUtils()->localAppFilesDir() + "online_coaches/"_L1);
@@ -56,6 +55,7 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 		m_dirForClientsRequests = std::move(appUtils()->localAppFilesDir() + "clients_requests/"_L1);
 		m_dirForCurrentClients = std::move(appUtils()->localAppFilesDir() + "clients/"_L1);
 		m_dirForCurrentCoaches = std::move(appUtils()->localAppFilesDir() + "coaches/"_L1);
+
 		connect(this, &DBUserModel::userModified, this, [this] (const uint user_idx, const uint field) {
 			if (user_idx == 0 || field == 100)
 			{
@@ -803,7 +803,7 @@ int DBUserModel::exportToFormattedFile(const uint user_idx, const QString &filen
 	}
 	const QList<uint> &export_user_idx{QList<uint>{} << user_idx};
 	QList<std::function<QString(void)>> field_description{QList<std::function<QString(void)>>{} <<
-											nullptr <<
+											[this] () { return idLabel(); } <<
 											[this] () { return nameLabel(); } <<
 											[this] () { return birthdayLabel(); } <<
 											[this] () { return sexLabel(); } <<
@@ -838,7 +838,8 @@ int DBUserModel::importFromFile(const QString& filename, QFile *in_file)
 			return APPWINDOW_MSG_OPEN_FAILED;
 	}
 
-	int ret{appUtils()->readDataFromFile(in_file, m_usersData, USER_TOTAL_COLS, appUtils()->userFileIdentifier)};
+	m_tempUserData.clear();
+	int ret{appUtils()->readDataFromFile(in_file, m_tempUserData, USER_TOTAL_COLS, appUtils()->userFileIdentifier)};
 	if (ret != APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE)
 		ret = APPWINDOW_MSG_IMPORT_OK;
 	in_file->close();
@@ -854,8 +855,9 @@ int DBUserModel::importFromFormattedFile(const QString &filename, QFile *in_file
 			return APPWINDOW_MSG_OPEN_FAILED;
 	}
 
+	m_tempUserData.clear();
 	int ret{appUtils()->readDataFromFormattedFile(in_file,
-												m_usersData,
+												m_tempUserData,
 												USER_TOTAL_COLS,
 												appUtils()->userFileIdentifier,
 												[this] (const uint field, const QString &value) { return formatFieldToImport(field, value); })
@@ -876,6 +878,48 @@ bool DBUserModel::importFromString(const QString &user_data)
 	m_usersData.append(std::move(modeldata));
 	emit userModified(m_usersData.count() - 1);
 	return true;
+}
+
+int DBUserModel::newUserFromFile(const QString &filename, const std::optional<bool> &file_formatted)
+{
+	int import_result{APPWINDOW_MSG_IMPORT_FAILED};
+	if (file_formatted.has_value())
+	{
+		if (file_formatted.value())
+			import_result = importFromFormattedFile(filename);
+		else
+			import_result = importFromFile(filename);
+	}
+	else
+	{
+		import_result = importFromFile(filename);
+		if (import_result == APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE)
+			import_result = importFromFormattedFile(filename);
+	}
+	if (import_result < 0)
+		return import_result;
+
+	const QString &temp_user_data{m_tempUserData.at(0).join('\n')};
+	const uint tempUserAppUseMode{m_tempUserData.at(0).at(USER_COL_APP_USE_MODE).toUInt()};
+	const bool tempUserIsCoach{tempUserAppUseMode == APP_USE_MODE_SINGLE_COACH || tempUserAppUseMode == APP_USE_MODE_COACH_USER_WITH_COACH};
+	if (tempUserIsCoach)
+	{
+		if (m_pendingCoachesResponses->dataFromString(temp_user_data))
+		{
+			m_pendingCoachesResponses->setIsCoach(m_pendingCoachesResponses->count()-1, true);
+			emit pendingCoachesResponsesChanged();
+		}
+	}
+	else
+	{
+		if (m_pendingClientRequests->dataFromString(temp_user_data))
+		{
+			m_pendingClientRequests->setIsCoach(m_pendingClientRequests->count()-1, false);
+			emit pendingClientsRequestsChanged();
+		}
+	}
+
+	return APPWINDOW_MSG_IMPORT_OK;
 }
 
 void DBUserModel::getPasswordFromUserInput(const int resultCode, const QString &password)
@@ -1264,7 +1308,7 @@ void DBUserModel::addPendingClient(const QString &user_id)
 		const QString &client_dir{m_dirForClientsRequests + user_id + '/'};
 		static_cast<void>(appUtils()->mkdir(client_dir));
 		const QString &client_profile{client_dir + "profile.txt"_L1};
-		if (m_pendingClientRequests->dataFromFileSource(client_profile, user_id))
+		if (m_pendingClientRequests->dataFromFileSource(client_profile))
 		{
 			m_pendingClientRequests->setIsCoach(m_pendingClientRequests->count()-1, false);
 			emit pendingClientsRequestsChanged();
@@ -1341,7 +1385,7 @@ void DBUserModel::addCoachAnswer(const QString &user_id)
 		const QString &coach_dir{m_dirForRequestedCoaches + user_id + '/'};
 		static_cast<void>(appUtils()->mkdir(coach_dir));
 		const QString &coach_profile{coach_dir + "profile.txt"_L1};
-		if (m_pendingCoachesResponses->dataFromFileSource(coach_profile, user_id))
+		if (m_pendingCoachesResponses->dataFromFileSource(coach_profile))
 		{
 			m_pendingCoachesResponses->setIsCoach(m_pendingCoachesResponses->count()-1, true);
 			emit pendingCoachesResponsesChanged();
@@ -1356,7 +1400,7 @@ void DBUserModel::addAvailableCoach(const QString &user_id)
 		const QString &coach_dir{m_onlineCoachesDir + user_id + '/'};
 		static_cast<void>(appUtils()->mkdir(coach_dir));
 		const QString &coach_profile{coach_dir + "profile.txt"_L1};
-		if (m_availableCoaches->dataFromFileSource(coach_profile, user_id))
+		if (m_availableCoaches->dataFromFileSource(coach_profile))
 		{
 			m_availableCoaches->setIsCoach(m_availableCoaches->count()-1, true);
 			emit availableCoachesChanged();

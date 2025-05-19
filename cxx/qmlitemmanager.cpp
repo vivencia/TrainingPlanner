@@ -174,10 +174,23 @@ void QmlItemManager::importFromSelectedFile(const QList<bool> &selectedFields)
 		switch (i)
 		{
 			case IFC_USER:
-				importFileMessageId = formatted ? appUserModel()->importFromFile(m_importFilename) :
-							appUserModel()->importFromFormattedFile(m_importFilename);
+				importFileMessageId = appUserModel()->newUserFromFile(m_importFilename, formatted);
+			break;
+			case IFC_MESO:
+				importFileMessageId = appMesoModel()->newMesoFromFile(m_importFilename, formatted);
+			break;
+			case IFC_MESOSPLIT_A:
+			case IFC_MESOSPLIT_B:
+			case IFC_MESOSPLIT_C:
+			case IFC_MESOSPLIT_D:
+			case IFC_MESOSPLIT_E:
+			case IFC_MESOSPLIT_F:
+			case IFC_EXERCISES:
+			case IFC_WORKOUT:
 			break;
 		}
+		if (importFileMessageId != APPWINDOW_MSG_IMPORT_OK)
+			break;
 	}
 
 	displayMessageOnAppWindow(importFileMessageId, m_importFilename);
@@ -440,7 +453,7 @@ void QmlItemManager::openRequestedFile(const QString &filename, const int wanted
 	}
 
 	m_importFilename = QString{formatted ? 'f' : 'r'} + filename;
-	const QList<bool> selectedFields{static_cast<qsizetype>(ifc_count), QList<bool>::parameter_type(true)};
+	const QList<bool> selectedFields{static_cast<qsizetype>(ifc_count), QList<bool>::parameter_type(false)};
 	QMetaObject::invokeMethod(appMainWindow(), "createImportConfirmDialog", Q_ARG(QStringList, importOptions), Q_ARG(QList<bool>, selectedFields));
 }
 //-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------

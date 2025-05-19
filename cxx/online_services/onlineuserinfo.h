@@ -69,8 +69,8 @@ public:
 	}
 	void setIsCoach(const uint row, bool coach);
 
-	bool dataFromFileSource(const QString &filename, const QString &new_user_id);
-	bool dataFromString(const QString &user_data, const QString &new_user_id);
+	bool dataFromFileSource(const QString &filename);
+	bool dataFromString(const QString &user_data);
 	void removeUserInfo(const uint row, const bool remove_source);
 	//Remove all items from m_modeldata that are not in user_list. Use field to look for matches
 	bool sanitize(const QStringList &user_list, const uint field);

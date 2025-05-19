@@ -69,18 +69,18 @@ void OnlineUserInfo::setIsCoach(const uint row, bool coach)
 	emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << isCoachRole);
 }
 
-bool OnlineUserInfo::dataFromFileSource(const QString &filename, const QString &new_user_id)
+bool OnlineUserInfo::dataFromFileSource(const QString &filename)
 {
 	beginInsertRows(QModelIndex{}, count(), count());
-	bool imported{appUserModel()->_importFromFile(filename, m_modeldata) == APPWINDOW_MSG_READ_FROM_FILE_OK};
+	bool imported{appUserModel()->importFromFile(filename) == APPWINDOW_MSG_READ_FROM_FILE_OK};
 	if (imported)
 	{
-		const qsizetype row{m_modeldata.count()-1};
+		const qsizetype row{m_modeldata.count()};
+		m_modeldata.append(std::move(appUserModel()->tempUserData()));
 		m_extraInfo.append(std::move(QStringList{totalExtraFields}));
 		if (row == 0)
-			m_sourcePath = appUtils()->getFilePath(filename);
+			m_sourcePath = std::move(appUtils()->getFilePath(filename));
 		emit countChanged();
-		setData(row, USER_COL_ID, new_user_id);
 		setData(index(row, 0), m_modeldata.last().at(USER_COL_NAME), displayRole);
 		setSelected(row, false);
 		setSourceFile(row, filename);
@@ -90,7 +90,7 @@ bool OnlineUserInfo::dataFromFileSource(const QString &filename, const QString &
 	return imported;
 }
 
-bool OnlineUserInfo::dataFromString(const QString &user_data, const QString &new_user_id)
+bool OnlineUserInfo::dataFromString(const QString &user_data)
 {
 	QStringList tempmodeldata{std::move(user_data.split('\n'))};
 	if (tempmodeldata.count() < USER_TOTAL_COLS)
@@ -102,7 +102,6 @@ bool OnlineUserInfo::dataFromString(const QString &user_data, const QString &new
 	m_modeldata.append(std::move(tempmodeldata));
 	m_extraInfo.append(std::move(QStringList{totalExtraFields}));
 	emit countChanged();
-	setData(row, USER_COL_ID, new_user_id);
 	setData(index(row, 0), m_modeldata.last().at(USER_COL_NAME), displayRole);
 	setSelected(row, false);
 	setSourceFile(row, QString{});

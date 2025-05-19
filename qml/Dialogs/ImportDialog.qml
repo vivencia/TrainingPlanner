@@ -13,6 +13,26 @@ TPPopup {
 
 	property list<string> importOptions
 	property list<bool> selectedFields
+	property bool _either_array_changed: false
+
+	onSelectedFieldsChanged: {
+		if (_either_array_changed)
+			syncSelectedFieldsWithOptions();
+		else
+			_either_array_changed = true;
+	}
+
+	onImportOptionsChanged: {
+		if (_either_array_changed)
+			syncSelectedFieldsWithOptions()
+		else
+			_either_array_changed = true;
+	}
+
+	function syncSelectedFieldsWithOptions() : void {
+		for (let i = 0; i < selectedFields.length; ++i)
+			selectedFields[i] = importOptions[i].length > 0;
+	}
 
 	TPLabel {
 		id: lblTitle
@@ -57,8 +77,6 @@ TPPopup {
 			id: repeater
 			model: importOptions
 
-			property int itemsHeight: 0
-
 			TPCheckBox {
 				id: chkImportField
 				text: modelData
@@ -68,13 +86,6 @@ TPPopup {
 
 				required property int index
 				onClicked: selectedFields[index] = checked;
-
-				Component.onCompleted: {
-					//if (index === 0)
-					//	repeater.itemsHeight = 0;
-					if (visible)
-					repeater.itemsHeight += height;
-				}
 			}
 		} //Repeater
 	} //ColumnLayout
@@ -112,7 +123,7 @@ TPPopup {
 
 	function show(ypos): void {
 		importDlg.height = 0;
-		importDlg.height = Math.max(repeater.itemsHeight + importImg.height) + btnImport.height + 30;
+		importDlg.height = lblTitle.height + fieldsLayout.childrenRect.height + btnImport.height + 30;
 		show1(ypos);
 	}
 }

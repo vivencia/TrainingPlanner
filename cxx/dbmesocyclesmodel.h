@@ -368,7 +368,7 @@ public:
 	QString mesoFileName(const uint meso_idx) const;
 	void removeMesoFile(const uint meso_idx);
 	Q_INVOKABLE void sendMesoToUser(const uint meso_idx);
-	int newMesoFromFile(const QString &filename);
+	int newMesoFromFile(const QString &filename, const std::optional<bool> &file_formatted = std::nullopt);
 	void viewOnlineMeso(const QString &coach, const QString &mesoFileName);
 	void scanTemporaryMesocycles();
 
