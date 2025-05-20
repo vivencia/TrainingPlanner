@@ -139,7 +139,8 @@ public:
 	inline int currentRow() const { return m_currentRow; }
 	void setCurrentRow(const int row);
 
-	Q_INVOKABLE void newExercise(const QString &name = QString(), const QString &subname = QString(), const QString &muscular_group = QString());
+	Q_INVOKABLE void newExercise(const QString &name = QString{}, const QString &subname = QString{},
+											const QString &muscular_group = QString{});
 	Q_INVOKABLE void removeExercise(const uint index);
 	Q_INVOKABLE void setFilter(const QString &filter);
 	Q_INVOKABLE void search(const QString &search_term);
@@ -176,6 +177,7 @@ public:
 	int exportToFormattedFile(const QString &filename, QFile *out_file = nullptr) const;
 	int importFromFile(const QString &filename, QFile *in_file = nullptr);
 	int importFromFormattedFile(const QString &filename, QFile *in_file = nullptr);
+	int newExerciseFromFile(const QString &filename, const std::optional<bool> &file_formatted = std::nullopt);
 
 	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
 	QVariant data(const QModelIndex &index, int role) const override final;
@@ -192,7 +194,7 @@ private:
 		uint real_index;
 		uint view_index;
 
-		explicit inline st_SelEntry() : real_index(0), view_index(0) {}
+		explicit inline st_SelEntry() : real_index{0}, view_index{0} {}
 	} selectedEntry;
 
 	QList<QStringList> m_exercisesData;
@@ -207,8 +209,8 @@ private:
 	int m_exercisesTableLastId, m_currentRow;
 	bool m_bFilterApplied;
 
-	static DBExercisesListModel *app_exercises_model;
-	friend DBExercisesListModel *appExercisesModel();
+	static DBExercisesListModel *app_exercises_list;
+	friend DBExercisesListModel *appExercisesList();
 };
 
-inline DBExercisesListModel *appExercisesModel() { return DBExercisesListModel::app_exercises_model; }
+inline DBExercisesListModel *appExercisesList() { return DBExercisesListModel::app_exercises_list; }

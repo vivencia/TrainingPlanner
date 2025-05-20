@@ -14,7 +14,6 @@ class QmlMesoCalendarInterface : public QObject
 
 Q_OBJECT
 
-Q_PROPERTY(DBCalendarModel* calendarModel READ calendarModel NOTIFY calendarModelChanged FINAL)
 Q_PROPERTY(QDate selectedDate READ selectedDate WRITE setSelectedDate NOTIFY selectedDateChanged FINAL)
 Q_PROPERTY(QString nameLabel READ nameLabel NOTIFY nameLabelChanged FINAL)
 Q_PROPERTY(QString dateLabel READ dateLabel NOTIFY dateLabelChanged FINAL)

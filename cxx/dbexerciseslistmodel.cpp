@@ -9,7 +9,7 @@
 #include <ranges>
 #include <utility>
 
-DBExercisesListModel *DBExercisesListModel::app_exercises_model(nullptr);
+DBExercisesListModel *DBExercisesListModel::app_exercises_list(nullptr);
 constexpr short fieldsNumberInDatabase{EXERCISES_LIST_COL_WEIGHT+1}; //Weight is the last savable field + the Id field
 
 DBExercisesListModel::DBExercisesListModel(QObject *parent, const bool bMainExercisesModel)
@@ -17,7 +17,7 @@ DBExercisesListModel::DBExercisesListModel(QObject *parent, const bool bMainExer
 {
 	if (bMainExercisesModel)
 	{
-		app_exercises_model = this;
+		app_exercises_list = this;
 
 		m_roleNames[exerciseIdRole] = std::move("exerciseId");
 		m_roleNames[mainNameRole] = std::move("mainName");
@@ -336,7 +336,7 @@ bool DBExercisesListModel::manageSelectedEntries(const uint item_pos, const uint
 bool DBExercisesListModel::collectExportData()
 {
 	m_exportRows.clear();
-	for (uint i(count() - 1); i > 0; --i)
+	for (uint i{count() - 1}; i > 0; --i)
 	{
 		if (_id(i) >= 1000)
 			m_exportRows.append(i);
@@ -351,7 +351,6 @@ void DBExercisesListModel::appendList(const QStringList &list)
 	m_exercisesData.append(list);
 	emit countChanged();
 	endInsertRows();
-
 }
 
 void DBExercisesListModel::appendList(QStringList &&list)
@@ -443,11 +442,16 @@ int DBExercisesListModel::importFromFile(const QString& filename, QFile *in_file
 			return APPWINDOW_MSG_OPEN_FAILED;
 	}
 
+	beginInsertRows(QModelIndex{}, count(), count());
 	int ret{appUtils()->readDataFromFile(in_file, m_exercisesData, EXERCISES_TOTAL_COLS, appUtils()->exercisesListFileIdentifier)};
 	if (ret != APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE)
+	{
+		emit countChanged();
 		ret = APPWINDOW_MSG_IMPORT_OK;
+	}
 	else
 		ret = APPWINDOW_MSG_IMPORT_FAILED;
+	endInsertRows();
 	in_file->close();
 	return ret;
 }
@@ -463,6 +467,7 @@ int DBExercisesListModel::importFromFormattedFile(const QString &filename, QFile
 
 	const uint first_imported_idx{count()};
 
+	beginInsertRows(QModelIndex{}, count(), count());
 	int ret{appUtils()->readDataFromFormattedFile(in_file,
 												m_exercisesData,
 												fieldsNumberInDatabase,
@@ -482,11 +487,32 @@ int DBExercisesListModel::importFromFormattedFile(const QString &filename, QFile
 			data.append(STR_ZERO);
 		}
 		ret = APPWINDOW_MSG_IMPORT_OK;
+		emit countChanged();
 	}
 	else
 		ret = APPWINDOW_MSG_IMPORT_FAILED;
+	endInsertRows();
 	in_file->close();
 	return ret;
+}
+
+int DBExercisesListModel::newExerciseFromFile(const QString &filename, const std::optional<bool> &file_formatted)
+{
+	int import_result{APPWINDOW_MSG_IMPORT_FAILED};
+	if (file_formatted.has_value())
+	{
+		if (file_formatted.value())
+			import_result = importFromFormattedFile(filename);
+		else
+			import_result = importFromFile(filename);
+	}
+	else
+	{
+		import_result = importFromFile(filename);
+		if (import_result == APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE)
+			import_result = importFromFormattedFile(filename);
+	}
+	return import_result;
 }
 
 QVariant DBExercisesListModel::data(const QModelIndex &index, int role) const

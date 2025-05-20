@@ -59,6 +59,8 @@ public:
 	void remakeMesoCalendar(const uint meso_idx, const bool preserve_old_info);
 	void alterCalendarSplits(const uint meso_idx, const QDate &start_date, const QDate &end_date, const QChar &new_splitletter);
 	DBExercisesModel *workoutForDay(const uint meso_idx, const QDate &date);
+	int importWorkoutFromFile(const QString &filename, const uint meso_idx, const QDate &date,
+												const std::optional<bool> &file_formatted = std::nullopt);
 
 	[[nodiscard]] inline const QList<stDayInfo*> &dayInfo(const uint meso_idx) const { return m_dayInfoList.at(meso_idx); }
 	[[nodiscard]] const int calendarDay(const uint meso_idx, const QDate& date) const;

@@ -169,33 +169,33 @@ void DBInterface::deleteUserTable(const bool bRemoveFile)
 //-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 void DBInterface::getAllExercises()
 {
-	DBExercisesTable *worker{new DBExercisesTable{appExercisesModel()}};
+	DBExercisesTable *worker{new DBExercisesTable{appExercisesList()}};
 	createThread(worker, [worker] () { worker->getAllExercises(); });
 }
 
 void DBInterface::saveExercises()
 {
-	DBExercisesTable *worker{new DBExercisesTable{appExercisesModel()}};
+	DBExercisesTable *worker{new DBExercisesTable{appExercisesList()}};
 	createThread(worker, [worker] () { return worker->saveExercises(); });
 }
 
 void DBInterface::removeExercise(const uint row)
 {
 	DBExercisesTable *worker{new DBExercisesTable{nullptr}};
-	worker->addExecArg(appExercisesModel()->id(row));
+	worker->addExecArg(appExercisesList()->id(row));
 	worker->addExecArg(row);
 	createThread(worker, [worker] () { return worker->removeEntry(); });
 }
 
 void DBInterface::deleteExercisesTable(const bool bRemoveFile)
 {
-	DBExercisesTable *worker{new DBExercisesTable{appExercisesModel()}};
+	DBExercisesTable *worker{new DBExercisesTable{appExercisesList()}};
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 
 void DBInterface::updateExercisesList()
 {
-	DBExercisesTable *worker{new DBExercisesTable{appExercisesModel()}};
+	DBExercisesTable *worker{new DBExercisesTable{appExercisesList()}};
 	connect(worker, &DBExercisesTable::updatedFromExercisesList, this, [this] () {
 		appSettings()->setExercisesListVersion(m_exercisesListVersion);
 	});
@@ -305,14 +305,14 @@ bool DBInterface::mesoHasAllSplitPlans(const uint meso_idx) const
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 void DBInterface::getMesoCalendar(const uint meso_idx)
 {
-	DBMesoCalendarTable *worker{new DBMesoCalendarTable{appMesoModel()->mesoCalendarModel()}};
+	DBMesoCalendarTable *worker{new DBMesoCalendarTable{appMesoModel()->mesoCalendarManager()}};
 	worker->addExecArg(meso_idx);
 	createThread(worker, [worker] () { worker->getMesoCalendar(); });
 }
 
 void DBInterface::saveMesoCalendar(const uint meso_idx)
 {
-	DBMesoCalendarTable *worker{new DBMesoCalendarTable{appMesoModel()->mesoCalendarModel()}};
+	DBMesoCalendarTable *worker{new DBMesoCalendarTable{appMesoModel()->mesoCalendarManager()}};
 	worker->addExecArg(meso_idx);
 	createThread(worker, [worker] () { worker->saveMesoCalendar(); });
 }

@@ -139,7 +139,7 @@ void TPStatistics::createYData(const QList<QList<QStringList>> &workoutInfo)
 void TPStatistics::generateDataSet()
 {
 	const uint mesoIdx(m_workingDataSet->m_MesoIdx);
-	if (!appMesoModel()->mesoCalendarModel(mesoIdx)->isReady())
+	if (!appMesoModel()->mesoCalendarManager(mesoIdx)->isReady())
 	{
 		connect(appDBInterface(), &DBInterface::databaseReady, this, [this] (const uint db_id) {
 			generateDataSet();

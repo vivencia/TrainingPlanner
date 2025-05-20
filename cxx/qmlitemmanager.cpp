@@ -113,7 +113,7 @@ void QmlItemManager::configureQmlEngine()
 	properties[2] = std::move(QQmlContext::PropertyPair{ "appTr"_L1, QVariant::fromValue(appTr()) });
 	properties[3] = std::move(QQmlContext::PropertyPair{ "userModel"_L1, QVariant::fromValue(appUserModel()) });
 	properties[4] = std::move(QQmlContext::PropertyPair{ "mesocyclesModel"_L1, QVariant::fromValue(appMesoModel()) });
-	properties[5] = std::move(QQmlContext::PropertyPair{ "exercisesModel"_L1, QVariant::fromValue(appExercisesModel()) });
+	properties[5] = std::move(QQmlContext::PropertyPair{ "exercisesModel"_L1, QVariant::fromValue(appExercisesList()) });
 	properties[6] = std::move(QQmlContext::PropertyPair{ "itemManager"_L1, QVariant::fromValue(this) });
 	properties[7] = std::move(QQmlContext::PropertyPair{ "appStatistics"_L1, QVariant::fromValue(appStatistics()) });
 	properties[8] = std::move(QQmlContext::PropertyPair{ "pagesListModel"_L1, QVariant::fromValue(m_pagesManager = new PagesListModel{this}) });
@@ -185,14 +185,19 @@ void QmlItemManager::importFromSelectedFile(const QList<bool> &selectedFields)
 			case IFC_MESOSPLIT_D:
 			case IFC_MESOSPLIT_E:
 			case IFC_MESOSPLIT_F:
+				importFileMessageId = appMesoModel()->importSplitFromFile(m_importFilename, appMesoModel()->importIdx(), i, formatted);
+			break;
 			case IFC_EXERCISES:
-			case IFC_WORKOUT:
+				importFileMessageId = appExercisesList()->newExerciseFromFile(m_importFilename, formatted);
+			break;
+			case IFC_WORKOUT: //TODO Display a dialog offering all the possible dates into which to add the workout
+				importFileMessageId = appMesoModel()->mesoCalendarManager()->importWorkoutFromFile(m_importFilename, appMesoModel()->importIdx(),
+																				QDate::currentDate(), formatted);
 			break;
 		}
 		if (importFileMessageId != APPWINDOW_MSG_IMPORT_OK)
 			break;
 	}
-
 	displayMessageOnAppWindow(importFileMessageId, m_importFilename);
 }
 
@@ -326,28 +331,6 @@ void QmlItemManager::getPasswordDialog(const QString &title, const QString &mess
 	QMetaObject::invokeMethod(appMainWindow(), "showPasswordDialog", Q_ARG(QString, title), Q_ARG(QString, message));
 }
 
-void QmlItemManager::selectWhichMesoToImportInto()
-{
-	QString message;
-	if (isBitSet(m_fileContents, IFC_MESOSPLIT))
-		message = std::move(tr("You're trying to import an exercises selection plan. Select into which program you'd wish to incorporate it."));
-	else if (isBitSet(m_fileContents, IFC_WORKOUT))
-		message = std::move(tr("You're trying to import a one day workout. Select in which program you'd wish to include it."));
-	QStringList mesoInfo;
-	QList<int> idxsList;
-	const QDate &today{QDate::currentDate()};
-	for (uint i{0}; i < appMesoModel()->count(); ++i)
-	{
-		if (appMesoModel()->isDateWithinMeso(i, today))
-		{
-			mesoInfo.append(std::move(appMesoModel()->name(i) + '\n' + appMesoModel()->clientLabel() + appMesoModel()->client(i)));
-			idxsList.append(i);
-		}
-	}
-
-	QMetaObject::invokeMethod(appMainWindow(), "selectMesoDialog", Q_ARG(QString, message), Q_ARG(QStringList, mesoInfo), Q_ARG(QList<int>, idxsList));
-}
-
 void QmlItemManager::openRequestedFile(const QString &filename, const int wanted_content)
 {
 	QString corrected_filename;
@@ -453,8 +436,8 @@ void QmlItemManager::openRequestedFile(const QString &filename, const int wanted
 	}
 
 	m_importFilename = QString{formatted ? 'f' : 'r'} + filename;
-	const QList<bool> selectedFields{static_cast<qsizetype>(ifc_count), QList<bool>::parameter_type(false)};
-	QMetaObject::invokeMethod(appMainWindow(), "createImportConfirmDialog", Q_ARG(QStringList, importOptions), Q_ARG(QList<bool>, selectedFields));
+	const QList<TPBool> selectedFields{ifc_count};
+	QMetaObject::invokeMethod(appMainWindow(), "createImportConfirmDialog", Q_ARG(QStringList, importOptions), Q_ARG(QList<TPBool>, selectedFields));
 }
 //-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 

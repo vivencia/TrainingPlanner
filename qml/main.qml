@@ -204,27 +204,6 @@ ApplicationWindow {
 		importConfirmDialog.show(-1);
 	}
 
-	property SelectMesoForImport selectMesoDlg: null
-	function selectMesoDialog(msg: string, mesoInfo: list<string>, idxsList: list<int>): void {
-		if (selectMesoDlg === null) {
-			var component = Qt.createComponent("qrc:/qml/Dialogs/SelectMesoForImport.qml", Qt.Asynchronous);
-
-			function finishCreation() {
-				selectMesoDlg = component.createObject(contentItem, {parentPage: stackView.currentItem});
-			}
-
-			if (component.status === Component.Ready)
-				finishCreation();
-			else
-				component.statusChanged.connect(finishCreation);
-		}
-		selectMesoDlg.parentPage = stackView.currentItem;
-		selectMesoDlg.message = msg;
-		selectMesoDlg.mesosList = mesoInfo;
-		selectMesoDlg.idxsList = idxsList;
-		selectMesoDlg.show(-1);
-	}
-
 	property TPSaveDialog saveDialog: null
 	function chooseFolderToSave(filename: string): void {
 		if (saveDialog === null) {

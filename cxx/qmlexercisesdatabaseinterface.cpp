@@ -26,26 +26,26 @@ void QmlExercisesDatabaseInterface::saveExercise()
 
 const uint QmlExercisesDatabaseInterface::removeExercise(const uint row)
 {
-	appDBInterface()->removeExercise(appExercisesModel()->actualIndex(row));
-	appExercisesModel()->removeExercise(row);
+	appDBInterface()->removeExercise(appExercisesList()->actualIndex(row));
+	appExercisesList()->removeExercise(row);
 	return row > 0 ? row - 1 : 0;
 }
 
-QString QmlExercisesDatabaseInterface::exerciseNameLabel() const { return appExercisesModel()->columnLabel(EXERCISES_LIST_COL_MAINNAME); }
-QString QmlExercisesDatabaseInterface::exerciseSubNameLabel() const { return appExercisesModel()->columnLabel(EXERCISES_LIST_COL_SUBNAME); }
-QString QmlExercisesDatabaseInterface::muscularGroupLabel() const { return appExercisesModel()->columnLabel(EXERCISES_LIST_COL_MUSCULARGROUP); }
-QString QmlExercisesDatabaseInterface::setsNumberLabel() const { return appExercisesModel()->columnLabel(EXERCISES_LIST_COL_SETSNUMBER); }
-QString QmlExercisesDatabaseInterface::repsNumberLabel() const { return appExercisesModel()->columnLabel(EXERCISES_LIST_COL_REPSNUMBER); }
-QString QmlExercisesDatabaseInterface::weightLabel() const { return appExercisesModel()->columnLabel(EXERCISES_LIST_COL_WEIGHT); }
-QString QmlExercisesDatabaseInterface::mediaLabel() const { return appExercisesModel()->columnLabel(EXERCISES_LIST_COL_MEDIAPATH); }
+QString QmlExercisesDatabaseInterface::exerciseNameLabel() const { return appExercisesList()->columnLabel(EXERCISES_LIST_COL_MAINNAME); }
+QString QmlExercisesDatabaseInterface::exerciseSubNameLabel() const { return appExercisesList()->columnLabel(EXERCISES_LIST_COL_SUBNAME); }
+QString QmlExercisesDatabaseInterface::muscularGroupLabel() const { return appExercisesList()->columnLabel(EXERCISES_LIST_COL_MUSCULARGROUP); }
+QString QmlExercisesDatabaseInterface::setsNumberLabel() const { return appExercisesList()->columnLabel(EXERCISES_LIST_COL_SETSNUMBER); }
+QString QmlExercisesDatabaseInterface::repsNumberLabel() const { return appExercisesList()->columnLabel(EXERCISES_LIST_COL_REPSNUMBER); }
+QString QmlExercisesDatabaseInterface::weightLabel() const { return appExercisesList()->columnLabel(EXERCISES_LIST_COL_WEIGHT); }
+QString QmlExercisesDatabaseInterface::mediaLabel() const { return appExercisesList()->columnLabel(EXERCISES_LIST_COL_MEDIAPATH); }
 
 void QmlExercisesDatabaseInterface::exportExercises(const bool bShare)
 {
 	int exportFileMessageId{0};
-	if (appExercisesModel()->collectExportData())
+	if (appExercisesList()->collectExportData())
 	{
 		const QString& exportFileName{appUtils()->localAppFilesDir() + tr("TrainingPlanner Exercises List") + ".txt"_L1};
-		exportFileMessageId = appExercisesModel()->exportToFile(exportFileName);
+		exportFileMessageId = appExercisesList()->exportToFile(exportFileName);
 		if (exportFileMessageId >= 0)
 		{
 			if (bShare)
@@ -75,14 +75,14 @@ void QmlExercisesDatabaseInterface::getExercisesPage(QmlTDayInterface* connectPa
 {
 	if (!m_exercisesComponent)
 	{
-		if (appExercisesModel()->count() == 0)
+		if (appExercisesList()->count() == 0)
 			appDBInterface()->getAllExercises();
 		createExercisesPage(connectPage);
 	}
 	else
 	{
 		m_exercisesPage->setProperty("bChooseButtonEnabled", connectPage != nullptr);
-		appExercisesModel()->clearSelectedEntries();
+		appExercisesList()->clearSelectedEntries();
 		if (connectPage)
 		{
 			disconnect(m_exercisesPage, SIGNAL(exerciseChosen()), nullptr, nullptr);
@@ -124,13 +124,13 @@ void QmlExercisesDatabaseInterface::createExercisesPage_part2(QmlTDayInterface *
 		m_exercisesPage = static_cast<QQuickItem*>(m_exercisesComponent->createWithInitialProperties(m_exercisesProperties, appQmlEngine()->rootContext()));
 		appQmlEngine()->setObjectOwnership(m_exercisesPage, QQmlEngine::CppOwnership);
 		m_exercisesPage->setParentItem(appMainWindow()->contentItem());
-		appExercisesModel()->clearSelectedEntries();
+		appExercisesList()->clearSelectedEntries();
 		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_exercisesPage));
 		if (connectPage)
 			connect(m_exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(createExerciseObject()));
 
 		connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
-			appExercisesModel()->fillColumnNames();
+			appExercisesList()->fillColumnNames();
 			emit labelsChanged();
 		});
 	}

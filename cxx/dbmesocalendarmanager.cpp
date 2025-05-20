@@ -211,6 +211,14 @@ DBExercisesModel *DBMesoCalendarManager::workoutForDay(const uint meso_idx, cons
 	return w_model;
 }
 
+int DBMesoCalendarManager::importWorkoutFromFile(const QString &filename, const uint meso_idx, const QDate &date,
+														const std::optional<bool> &file_formatted)
+{
+	DBExercisesModel *workout{workoutForDay(meso_idx, date)};
+	workout->clearExercises();
+	return workout->newExercisesFromFile(filename, file_formatted);
+}
+
 const int DBMesoCalendarManager::calendarDay(const uint meso_idx, const QDate &date) const
 {
 	if (meso_idx < m_dayInfoList.count())

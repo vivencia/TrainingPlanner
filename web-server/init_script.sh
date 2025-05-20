@@ -1,28 +1,28 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 BASE_SERVER_DIR=/var/www/html
 TP_DIR=$BASE_SERVER_DIR/trainingplanner
-PHP_FPM_SERVICE=php8.2-fpm
+PHP_FPM_SERVICE=php-fpm
 SCRIPT_NAME=$(basename "$0")
 USER_NAME=$(whoami)
 PASSWORD=""
 
 print_usage() {
-	echo "Usage: $SCRIPT_NAME {setup|test|stop|restart|dbcreate}" >&2
+	echo "Usage: $SCRIPT_NAME {setup|test|start|stop|restart|dbcreate}" >&2
 }
 
 get_passwd() {
     if [ ! $PASSWORD ]; then
         read -p "Sudo's password: " -s
         PASSWORD=$REPLY
-        echo $PASSWORD | sudo -S whoami
+        echo $PASSWORD | sudo -S whoami | grep -q "root"
         if [ $? != 0 ]; then
             echo "Wrong sudo password. Exiting..."
             exit 3
         fi
         echo
     else
-        echo $PASSWORD | sudo -S whoami
+        echo $PASSWORD | sudo -S whoami | grep -q "root"
         if [ $? != 0 ]; then
             echo "Wrong sudo password. Exiting..."
             exit 3
@@ -32,7 +32,7 @@ get_passwd() {
 
 run_as_sudo() {
     get_passwd
-    echo $PASSWORD | sudo -S "$@"
+    echo $PASSWORD | sudo -S "$@" | grep -q "root"
 }
 
 for i in "$@"; do
@@ -63,10 +63,7 @@ NGINX_CONFIG_DIR=/etc/nginx
 NGINX_SERVER_CONFIG_DIR=/etc/nginx/sites-available
 NGINX_USER=www-data
 
-PHP_FPM_CONFIG_DIR=/etc/php/8.2/fpm/pool.d
-
-/usr/bin/id -nG $USER_NAME | grep -qw $NGINX_USER
-USER_BELONGS_TO_GROUP=$?
+PHP_FPM_CONFIG_DIR=/etc/php/php-fpm.d
 
 ADMIN=admin
 ADMIN_DIR=$TP_DIR/$ADMIN
@@ -78,7 +75,7 @@ create_admin_user() {
     $HTPASSWD -bv $PASS_FILE $ADMIN $ADMIN
     if [ $? != 0 ]; then
         echo "Creating the main app user"
-        run_as_sudo $HTPASSWD -bd5 $PASS_FILE $ADMIN $ADMIN
+        run_as_sudo $HTPASSWD -cb $PASS_FILE $ADMIN $ADMIN
         if [ $? == 0 ]; then
             run_as_sudo mkdir -m 774 $ADMIN_DIR
             run_as_sudo chown $NGINX_USER:$NGINX_USER $ADMIN_DIR
@@ -89,7 +86,7 @@ create_admin_user() {
 
 create_users_db() {
     run_as_sudo rm -f "${USERS_DB}"
-    if sqlite3 -line ${USERS_DB} 'CREATE TABLE IF NOT EXISTS users_table (id INTEGER PRIMARY KEY, name TEXT, birthday INTEGER, sex TEXT, phone TEXT, email TEXT, social TEXT, role TEXT, coach_role TEXT, goal TEXT,  use_mode INTEGER DEFAULT 1, password TEXT);' &>/dev/null; then
+    if sqlite3 -line ${USERS_DB} 'CREATE TABLE IF NOT EXISTS users_table (userid INTEGER PRIMARY KEY, name TEXT, birthday INTEGER, sex TEXT, phone TEXT, email TEXT, social TEXT, role TEXT, coach_role TEXT, goal TEXT, use_mode INTEGER, password TEXT);' &>/dev/null; then
         run_as_sudo chown -R $NGINX_USER:$NGINX_USER $USERS_DB
         run_as_sudo chmod 664 $USERS_DB
         echo "Users database created"
@@ -103,9 +100,10 @@ create_users_db() {
 case "$COMMAND" in
     test)
         if [ -d "$TP_DIR" ]; then
-            if /sbin/service nginx status 1&> /dev/null; then
-                if /sbin/service $PHP_FPM_SERVICE status 1&> /dev/null; then
-                    echo "Local TP Server up and running."
+            if systemctl status nginx 1&> /dev/null; then
+                echo "Local TP Server up and running."
+                if systemctl status $PHP_FPM_SERVICE 1&> /dev/null; then
+                    echo "PHP-FPM service up and running."
                     exit 0
                 else
                     echo "PHP-FPM service is not running("$?")."
@@ -121,14 +119,20 @@ case "$COMMAND" in
     setup)
         echo "Beginning TP Server configuration..."
     ;;
+    start)
+        run_as_sudo systemctl start nginx
+        run_as_sudo mkdir /run/php #an error in the fpm service might not create this needed directory
+        run_as_sudo systemctl start $PHP_FPM_SERVICE
+        exit 0
+    ;;
     stop)
-        run_as_sudo /sbin/service nginx stop
-        run_as_sudo /sbin/service $PHP_FPM_SERVICE stop
+        run_as_sudo systemctl stop nginx
+        run_as_sudo systemctl stop $PHP_FPM_SERVICE
         exit 0
     ;;
     restart)
-        run_as_sudo /sbin/service nginx restart
-        run_as_sudo /sbin/service $PHP_FPM_SERVICE restart
+        run_as_sudo systemctl restart nginx
+        run_as_sudo systemctl restart $PHP_FPM_SERVICE
         exit 0
     ;;
     dbcreate)
@@ -145,6 +149,9 @@ if [ ! -d "$TP_DIR" ]; then
 
     echo "Preparing the firesystem layout and copying configuration files to their respective locations..."
 
+    run_as_sudo groupadd $NGINX_USER
+    run_as_sudo useradd $NGINX_USER -g $NGINX_USER -G network,sys
+
     run_as_sudo mkdir -p $SCRIPTS_DIR
     run_as_sudo chmod -R 770 $TP_DIR
     run_as_sudo chmod -R 770 $SCRIPTS_DIR
@@ -152,6 +159,7 @@ if [ ! -d "$TP_DIR" ]; then
     run_as_sudo cp $SOURCES_DIR/url_parser.php $SCRIPTS_DIR
     run_as_sudo chown -R $NGINX_USER:$NGINX_USER $TP_DIR
 
+    run_as_sudo mkdir $NGINX_SERVER_CONFIG_DIR
     run_as_sudo cp -f $SOURCES_DIR/nginx.conf $NGINX_CONFIG_DIR
     run_as_sudo chown root:root $NGINX_CONFIG_DIR/nginx.conf
     run_as_sudo chmod g+w $NGINX_CONFIG_DIR/nginx.conf
@@ -161,11 +169,11 @@ if [ ! -d "$TP_DIR" ]; then
     run_as_sudo chmod g+w $NGINX_SERVER_CONFIG_DIR/default
 
     run_as_sudo cp -f $SOURCES_DIR/www.conf $PHP_FPM_CONFIG_DIR
-
     create_admin_user
     create_users_db
 
-    if ! $USER_BELONGS_TO_GROUP; then
+    /usr/bin/id -nG $USER_NAME | grep -qw $NGINX_USER
+    if [ $? != 0 ]; then
         run_as_sudo usermod -a -G $NGINX_USER $(whoami)
         echo "Filesystem directories and files setup."
     else
@@ -180,7 +188,7 @@ else
     else
         echo "Starting http server..."
         if [ -f $NGINX ]; then
-            run_as_sudo /sbin/service nginx start
+            run_as_sudo systemctl start nginx
             if [ $? != 0 ]; then
                 echo "Error starting nginx service."
                 exit 4
@@ -195,7 +203,7 @@ else
         echo "Service php-fpm is already running."
     else
         echo "Starting php-fpm..."
-        run_as_sudo /sbin/service $PHP_FPM_SERVICE start
+        run_as_sudo systemctl start $PHP_FPM_SERVICE
         if [ $? != 0 ]; then
             echo "Error starting php-fpm service."
             exit 5

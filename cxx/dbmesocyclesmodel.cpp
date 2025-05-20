@@ -71,7 +71,7 @@ QMLMesoInterface *DBMesocyclesModel::mesoManager(const uint meso_idx)
 DBExercisesModel *DBMesocyclesModel::splitModel(const uint meso_idx, const QChar &split_letter)
 {
 	if (!m_splitModels.at(meso_idx).value(split_letter))
-		m_splitModels[meso_idx][split_letter] = new DBSplitModel{mesoCalendarModel(), meso_idx, split_letter};
+		m_splitModels[meso_idx][split_letter] = new DBSplitModel{mesoCalendarManager(), meso_idx, split_letter};
 	return m_splitModels.at(meso_idx).value(split_letter);
 }
 
@@ -683,6 +683,26 @@ int DBMesocyclesModel::newMesoFromFile(const QString &filename, const std::optio
 	makeUsedSplits(meso_idx);
 	setOwnMeso(meso_idx);
 	return APPWINDOW_MSG_IMPORT_OK;
+}
+
+int DBMesocyclesModel::importSplitFromFile(const QString &filename, const uint meso_idx, uint split,
+													const std::optional<bool> &file_formatted)
+{
+	QChar split_letter;
+	switch (split)
+	{
+		case IFC_MESOSPLIT_A: split_letter = 'A'; break;
+		case IFC_MESOSPLIT_B: split_letter = 'B'; break;
+		case IFC_MESOSPLIT_C: split_letter = 'C'; break;
+		case IFC_MESOSPLIT_D: split_letter = 'D'; break;
+		case IFC_MESOSPLIT_E: split_letter = 'E'; break;
+		case IFC_MESOSPLIT_F: split_letter = 'F'; break;
+		default: return APPWINDOW_MSG_CUSTOM_ERROR;
+	}
+
+	DBExercisesModel *new_split{splitModel(meso_idx, split_letter)};
+	new_split->clearExercises();
+	return new_split->newExercisesFromFile(filename, file_formatted);
 }
 
 void DBMesocyclesModel::viewOnlineMeso(const QString &coach, const QString &mesoFileName)

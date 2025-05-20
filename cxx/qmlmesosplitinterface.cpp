@@ -122,7 +122,7 @@ void QmlMesoSplitInterface::simpleExercisesList(DBMesoSplitModel* splitModel, co
 	m_simpleExercisesListExerciseIdx = exercise_idx;
 	if (show)
 	{
-		if (appExercisesModel()->count() == 0)
+		if (appExercisesList()->count() == 0)
 			appDBInterface()->getAllExercises();
 		connect(m_plannerPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), this, SLOT(exerciseSelected()));
 		connect(m_plannerPage, SIGNAL(simpleExercisesListClosed()), this, SLOT(hideSimpleExercisesList()));
@@ -249,31 +249,31 @@ void QmlMesoSplitInterface::exerciseSelected()
 	const uint nsets{m_simpleExercisesListRequester->setsNumber(row)};
 
 	QString exerciseName, nReps, nWeight;
-	const bool b_is_composite(appExercisesModel()->selectedEntriesCount() > 1);
+	const bool b_is_composite(appExercisesList()->selectedEntriesCount() > 1);
 
-	exerciseName = std::move(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_MAINNAME) + " - "_L1 +
-					appExercisesModel()->selectedEntriesValue_fast(0, 2));
+	exerciseName = std::move(appExercisesList()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_MAINNAME) + " - "_L1 +
+					appExercisesList()->selectedEntriesValue_fast(0, 2));
 
 	if (!b_is_composite)
 	{
-		nReps = std::move(appUtils()->makeCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_REPSNUMBER),
+		nReps = std::move(appUtils()->makeCompositeValue(appExercisesList()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_REPSNUMBER),
 							nsets, set_separator));
-		nWeight = std::move(appUtils()->makeCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_WEIGHT),
+		nWeight = std::move(appUtils()->makeCompositeValue(appExercisesList()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_WEIGHT),
 							nsets, set_separator));
 	}
 	else
 	{
-		nReps = std::move(appUtils()->makeDoubleCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_REPSNUMBER),
+		nReps = std::move(appUtils()->makeDoubleCompositeValue(appExercisesList()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_REPSNUMBER),
 							nsets, 2, set_separator, comp_exercise_separator));
-		nWeight = std::move(appUtils()->makeDoubleCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_WEIGHT),
+		nWeight = std::move(appUtils()->makeDoubleCompositeValue(appExercisesList()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_WEIGHT),
 							nsets, 2, set_separator, comp_exercise_separator));
-		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_LIST_COL_MAINNAME) + " - "_L1 +
-						appExercisesModel()->selectedEntriesValue_fast(1, 2), exerciseName, comp_exercise_separator);
+		appUtils()->setCompositeValue(1, appExercisesList()->selectedEntriesValue_fast(1, EXERCISES_LIST_COL_MAINNAME) + " - "_L1 +
+						appExercisesList()->selectedEntriesValue_fast(1, 2), exerciseName, comp_exercise_separator);
 		appUtils()->setCompositeValue(1, appUtils()->makeCompositeValue(
-										appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_LIST_COL_REPSNUMBER), nsets, set_separator),
+										appExercisesList()->selectedEntriesValue_fast(1, EXERCISES_LIST_COL_REPSNUMBER), nsets, set_separator),
 										nReps, comp_exercise_separator);
 		appUtils()->setCompositeValue(1, appUtils()->makeCompositeValue(
-										appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_LIST_COL_WEIGHT), nsets, set_separator),
+										appExercisesList()->selectedEntriesValue_fast(1, EXERCISES_LIST_COL_WEIGHT), nsets, set_separator),
 										nWeight, comp_exercise_separator);
 	}
 

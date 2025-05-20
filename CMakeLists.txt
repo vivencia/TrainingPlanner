@@ -75,8 +75,6 @@ set( CXX_SOURCES
 	cxx/dbmesocalendartable.h cxx/dbmesocalendartable.cpp
 	cxx/dbworkoutsorsplitstable.h cxx/dbworkoutsorsplitstable.cpp
 	cxx/dbusertable.h cxx/dbusertable.cpp
-
-
 	cxx/dbexerciseslistmodel.h cxx/dbexerciseslistmodel.cpp
 	cxx/dbmesocyclesmodel.h cxx/dbmesocyclesmodel.cpp
 	cxx/homepagemesomodel.h cxx/homepagemesomodel.cpp
@@ -161,7 +159,6 @@ set( QML_SOURCES
     "qml/Dialogs/NavBar.qml"
     "qml/Dialogs/OnlineMessages.qml"
     "qml/Dialogs/PasswordDialog.qml"
-    "qml/Dialogs/SelectMesoForImport.qml"
     "qml/Dialogs/TimePicker.qml"
     "qml/Dialogs/TimerDialog.qml"
     "qml/ExercisesAndSets/ExerciseEntry.qml"

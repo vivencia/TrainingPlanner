@@ -188,7 +188,7 @@ void QmlTDayInterface::getTrainingDayPage()
 {
 	if (!m_tDayPage)
 	{
-		if (!appMesoModel()->mesoCalendarModel(m_mesoIdx)->isReady())
+		if (!appMesoModel()->mesoCalendarManager(m_mesoIdx)->isReady())
 		{
 			connect(appDBInterface(), &DBInterface::databaseReady, this, [this] (const uint db_id) {
 				getTrainingDayPage();
@@ -197,7 +197,7 @@ void QmlTDayInterface::getTrainingDayPage()
 			return;
 		}
 
-		const DBMesoCalendarManager* const mesoCal(appMesoModel()->mesoCalendarModel(m_mesoIdx));
+		const DBMesoCalendarManager* const mesoCal(appMesoModel()->mesoCalendarManager(m_mesoIdx));
 		const QString& tday{QString::number(mesoCal->getTrainingDay(m_Date.month(), m_Date.day()-1))};
 		const QString& strSplitLetter{mesoCal->getSplitLetter(m_Date.month(), m_Date.day()-1)};
 
@@ -292,7 +292,7 @@ void QmlTDayInterface::adjustCalendar(const QString& newSplitLetter, const bool 
 	if (bOnlyThisDay)
 		appDBInterface()->updateMesoCalendarEntry(m_mesoIdx, m_Date, m_tDayModel->trainingDay(), m_splitLetter);
 	else
-		appDBInterface()->updateMesoCalendarModel(m_mesoIdx, m_Date, m_splitLetter);
+		appDBInterface()->updatemesoCalendarManager(m_mesoIdx, m_Date, m_splitLetter);
 	if (newSplitLetter != "R"_L1)
 	{
 		appDBInterface()->verifyTDayOptions(m_tDayModel);
@@ -399,7 +399,7 @@ void QmlTDayInterface::simpleExercisesList(const uint exercise_idx, const bool s
 	m_SimpleExercisesListRequesterExerciseComp = comp_exercise;
 	if (show)
 	{
-		if (appExercisesModel()->count() == 0)
+		if (appExercisesList()->count() == 0)
 			appDBInterface()->getAllExercises();
 		connect(m_tDayPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), this, SLOT(exerciseSelected()));
 		connect(m_tDayPage, SIGNAL(simpleExercisesListClosed()), this, SLOT(hideSimpleExercisesList()));
@@ -466,29 +466,29 @@ void QmlTDayInterface::silenceTimeWarning()
 
 void QmlTDayInterface::exerciseSelected(QmlExerciseEntry* exerciseEntry)
 {
-	const bool b_is_composite(appExercisesModel()->selectedEntriesCount() > 1);
-	const QString& nSets{appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_SETSNUMBER)};
-	const QString& nReps{b_is_composite ? appUtils()->makeCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_REPSNUMBER),
-							2, comp_exercise_separator) : appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_REPSNUMBER)};
-	const QString& nWeight{b_is_composite ? appUtils()->makeCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_WEIGHT),
-							2, comp_exercise_separator) : appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_WEIGHT)};
+	const bool b_is_composite(appExercisesList()->selectedEntriesCount() > 1);
+	const QString& nSets{appExercisesList()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_SETSNUMBER)};
+	const QString& nReps{b_is_composite ? appUtils()->makeCompositeValue(appExercisesList()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_REPSNUMBER),
+							2, comp_exercise_separator) : appExercisesList()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_REPSNUMBER)};
+	const QString& nWeight{b_is_composite ? appUtils()->makeCompositeValue(appExercisesList()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_WEIGHT),
+							2, comp_exercise_separator) : appExercisesList()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_WEIGHT)};
 
 	QString exerciseName;
 	if (b_is_composite)
 	{
 		exerciseName = std::move(appUtils()->string_strings({
-					appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_MAINNAME) +
-						(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_SUBNAME).isEmpty() ? QString() :
-							" - "_L1 + appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_SUBNAME)),
-					appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_LIST_COL_MAINNAME) +
-						(appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_LIST_COL_SUBNAME).isEmpty() ? QString() :
-							" - "_L1 + appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_LIST_COL_SUBNAME))}, comp_exercise_separator));
+					appExercisesList()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_MAINNAME) +
+						(appExercisesList()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_SUBNAME).isEmpty() ? QString() :
+							" - "_L1 + appExercisesList()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_SUBNAME)),
+					appExercisesList()->selectedEntriesValue_fast(1, EXERCISES_LIST_COL_MAINNAME) +
+						(appExercisesList()->selectedEntriesValue_fast(1, EXERCISES_LIST_COL_SUBNAME).isEmpty() ? QString() :
+							" - "_L1 + appExercisesList()->selectedEntriesValue_fast(1, EXERCISES_LIST_COL_SUBNAME))}, comp_exercise_separator));
 	}
 	else
 	{
-		exerciseName = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_MAINNAME);
-		if (!appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_SUBNAME).isEmpty())
-			exerciseName += " - "_L1 + appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_SUBNAME);
+		exerciseName = appExercisesList()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_MAINNAME);
+		if (!appExercisesList()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_SUBNAME).isEmpty())
+			exerciseName += " - "_L1 + appExercisesList()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_SUBNAME);
 	}
 
 	if (!exerciseEntry)
@@ -611,7 +611,7 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 		setTimeOut("--:--"_L1, false);
 	}
 
-	connect(appMesoModel()->mesoCalendarModel(m_mesoIdx), &DBMesoCalendarManager::calendarChanged, this, [this]
+	connect(appMesoModel()->mesoCalendarManager(m_mesoIdx), &DBMesoCalendarManager::calendarChanged, this, [this]
 																				(const QDate& startDate, const QDate& endDate) {
 		if (m_tDayPage)
 			updateTDayPageWithNewCalendarInfo(startDate, endDate);
@@ -646,7 +646,7 @@ void QmlTDayInterface::updateTDayPageWithNewCalendarInfo(const QDate& startDate,
 		if (m_Date <= endDate)
 		{
 			bool tDayChanged{false};
-			const DBMesoCalendarManager* const mesoCal{appMesoModel()->mesoCalendarModel(m_mesoIdx)};
+			const DBMesoCalendarManager* const mesoCal{appMesoModel()->mesoCalendarManager(m_mesoIdx)};
 			const QString& tDay{QString::number(mesoCal->getTrainingDay(m_Date.month(), m_Date.day()))};
 			if (tDay != m_tDayModel->trainingDay())
 			{

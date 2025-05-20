@@ -49,13 +49,12 @@ class DBMesocyclesModel : public QObject
 
 Q_OBJECT
 
-Q_PROPERTY(uint count READ count NOTIFY countChanged FINAL)
 Q_PROPERTY(bool canHaveTodaysWorkout READ canHaveTodaysWorkout NOTIFY canHaveTodaysWorkoutChanged FINAL)
 Q_PROPERTY(int currentMesoIdx READ currentMesoIdx WRITE setCurrentMesoIdx NOTIFY currentMesoIdxChanged FINAL)
 Q_PROPERTY(homePageMesoModel* ownMesos READ ownMesos CONSTANT FINAL)
 Q_PROPERTY(homePageMesoModel* clientMesos READ clientMesos CONSTANT FINAL)
 
-Q_PROPERTY(QString mesoNameLabel READ mesoName NOTIFY labelChanged FINAL)
+Q_PROPERTY(QString mesoNameLabel READ mesoNameLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString startDateLabel READ startDateLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString endDateLabel READ endDateLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString notesLabel READ notesLabel NOTIFY labelChanged FINAL)
@@ -92,7 +91,7 @@ public:
 	void openSpecificWorkout(const uint meso_idx, const QDate &date);
 
 	const uint newMesocycle(QStringList &&infolist);
-	inline DBMesoCalendarManager *mesoCalendarModel() const { return m_calendarModel; }
+	inline DBMesoCalendarManager *mesoCalendarManager() const { return m_calendarModel; }
 
 	inline homePageMesoModel *currentHomePageMesoModel() { return m_curMesos; }
 	Q_INVOKABLE inline homePageMesoModel *ownMesos() const { return m_ownMesos; }
@@ -369,6 +368,8 @@ public:
 	void removeMesoFile(const uint meso_idx);
 	Q_INVOKABLE void sendMesoToUser(const uint meso_idx);
 	int newMesoFromFile(const QString &filename, const std::optional<bool> &file_formatted = std::nullopt);
+	int importSplitFromFile(const QString &filename, const uint meso_idx, uint split,
+									const std::optional<bool> &file_formatted = std::nullopt);
 	void viewOnlineMeso(const QString &coach, const QString &mesoFileName);
 	void scanTemporaryMesocycles();
 

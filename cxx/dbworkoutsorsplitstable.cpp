@@ -139,7 +139,7 @@ void DBWorkoutsOrSplitsTable::removeExercises()
 		if (meso_id.isEmpty()) //Delete one specific entry, otherwise all entries for the meso will be deleted
 		{
 			strQuery += std::forward<QString>(tableId() == WORKOUT_TABLE_ID ?
-			std::move(" AND calendar_day=%1"_L1.arg(m_model->calendarDay())) :
+			std::move(" AND calendar_day=%1"_L1.arg(QString::number(m_model->calendarDay()))) :
 			std::move(" AND split_letter=%1"_L1.arg(m_model->splitLetter())));
 		}
 

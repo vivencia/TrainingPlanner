@@ -39,7 +39,6 @@ public:
 	void continueExport(int exportMessageId, const bool bShare);
 	void displayActivityResultMessage(const int requestCode, const int resultCode) const;
 	void getPasswordDialog(const QString &title, const QString &message) const;
-	void selectWhichMesoToImportInto();
 	void openRequestedFile(const QString &filename, const int wanted_content);
 
 signals:

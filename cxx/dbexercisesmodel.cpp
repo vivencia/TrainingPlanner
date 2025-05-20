@@ -422,6 +422,27 @@ int DBExercisesModel::importFromFormattedFile(const QString& filename, QFile *in
 	return exerciseCount() > 0 ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
 }
 
+int DBExercisesModel::newExercisesFromFile(const QString &filename, const std::optional<bool> &file_formatted)
+{
+	int import_result{APPWINDOW_MSG_IMPORT_FAILED};
+	if (file_formatted.has_value())
+	{
+		if (file_formatted.value())
+			import_result = importFromFormattedFile(filename);
+		else
+			import_result = importFromFile(filename);
+	}
+	else
+	{
+		import_result = importFromFile(filename);
+		if (import_result == APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE)
+			import_result = importFromFormattedFile(filename);
+	}
+	if (import_result < 0)
+		return import_result;
+
+}
+
 bool DBExercisesModel::importExtraInfo(const QString &maybe_extra_info, int &calendar_day, QChar &split_letter)
 {
 	if (maybe_extra_info.contains(splitLabel()))

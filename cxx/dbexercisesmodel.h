@@ -39,7 +39,7 @@ Q_OBJECT
 QML_ELEMENT
 
 Q_PROPERTY(uint exerciseCount READ exerciseCount NOTIFY exerciseCountChanged)
-Q_PROPERTY(int workingExercise READ workingExercise WRITE setWorkingSExercise NOTIFY workingExerciseChanged)
+Q_PROPERTY(int workingExercise READ workingExercise WRITE setWorkingExercise NOTIFY workingExerciseChanged)
 
 Q_PROPERTY(QString totalSetsLabel READ totalSetsLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString setNumberLabel READ setNumberLabel NOTIFY labelChanged FINAL)
@@ -90,6 +90,7 @@ public:
 	int exportToFormattedFile(const QString &filename, QFile *out_file = nullptr) const;
 	int importFromFile(const QString &filename, QFile *in_file = nullptr);
 	int importFromFormattedFile(const QString &filename, QFile *in_file = nullptr);
+	int newExercisesFromFile(const QString &filename, const std::optional<bool> &file_formatted = std::nullopt);
 	inline const QString &identifierInFile() const { return *m_identifierInFile; }
 	static bool importExtraInfo(const QString &maybe_extra_info, int &calendar_day, QChar &split_letter);
 

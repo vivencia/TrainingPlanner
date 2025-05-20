@@ -29,7 +29,7 @@ void DBUserTable::createTable()
 	{
 		QSqlQuery query{getQuery()};
 		const QString &strQuery{"CREATE TABLE IF NOT EXISTS users_table ("
-										"userid INTEGER,"
+										"userid INTEGER PRIMARY KEY,"
 										"name TEXT,"
 										"birthday INTEGER,"
 										"sex TEXT,"

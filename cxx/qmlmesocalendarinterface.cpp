@@ -15,7 +15,7 @@
 
 QmlMesoCalendarInterface::QmlMesoCalendarInterface(QObject *parent, const uint meso_idx)
 	: QObject{parent}, m_calComponent{nullptr}, m_calPage{nullptr}, m_mesoIdx{meso_idx},
-	  m_calendarModel{appMesoModel()->mesoCalendarModel()->calendar(meso_idx)}, m_selectedDate{std::move(appUtils()->today())}
+	  m_calendarModel{appMesoModel()->mesoCalendarManager()->calendar(meso_idx)}, m_selectedDate{std::move(appUtils()->today())}
 {
 	connect(m_calendarModel, &DBCalendarModel::modelChanged, this, [this] () {
 		m_calPage->setProperty("calendarModel", 0);
@@ -34,7 +34,7 @@ void QmlMesoCalendarInterface::getMesoCalendarPage()
 {
 	if (!m_calComponent)
 	{
-		if (!appMesoModel()->mesoCalendarModel()->hasDBData(m_mesoIdx))
+		if (!appMesoModel()->mesoCalendarManager()->hasDBData(m_mesoIdx))
 			appDBInterface()->getMesoCalendar(m_mesoIdx);
 		createMesoCalendarPage();
 	}

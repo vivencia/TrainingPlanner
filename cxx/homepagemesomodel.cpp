@@ -50,20 +50,20 @@ QVariant homePageMesoModel::data(const QModelIndex &index, int role) const
 				return QVariant{"<b>"_L1 + (appMesoModel()->name(mesorow).isEmpty() ? tr("New Program") :
 							appMesoModel()->name(mesorow)) + (appMesoModel()->_id(mesorow) < 0 ? tr(" (Temporary)") : QString{}) + "</b>"_L1};
 			case mesoStartDateRole:
-				return QVariant{appMesoModel()->columnLabel(MESOCYCLES_COL_STARTDATE) + "<b>"_L1 +
+				return QVariant{appMesoModel()->startDateLabel() + "<b>"_L1 +
 					(!appMesoModel()->isNewMeso(mesorow) ? appUtils()->formatDate(appMesoModel()->startDate(mesorow)) : tr("Not set")) + "</b>"_L1};
 			case mesoEndDateRole:
-				return QVariant{appMesoModel()->columnLabel(MESOCYCLES_COL_ENDDATE) + "<b>"_L1 +
+				return QVariant{appMesoModel()->endDateLabel() + "<b>"_L1 +
 						(!appMesoModel()->isNewMeso(mesorow) ? appUtils()->formatDate(appMesoModel()->endDate(mesorow)) : tr("Not set")) + "</b>"_L1};
 			case mesoSplitRole:
-				return QVariant{appMesoModel()->columnLabel(MESOCYCLES_COL_SPLIT) + "<b>"_L1 + appMesoModel()->split(mesorow) + "</b>"_L1};
+				return QVariant{appMesoModel()->splitLabel() + "<b>"_L1 + appMesoModel()->split(mesorow) + "</b>"_L1};
 			case mesoCoachRole:
 				if (!appMesoModel()->coach(mesorow).isEmpty())
-					return QVariant{appMesoModel()->columnLabel(MESOCYCLES_COL_COACH) + "<b>"_L1 +
+					return QVariant{appMesoModel()->coachLabel() + "<b>"_L1 +
 											appUserModel()->userNameFromId(appMesoModel()->coach(mesorow)) + "</b>"_L1};
 			case mesoClientRole:
 				if (!appMesoModel()->client(mesorow).isEmpty())
-					return QVariant{appMesoModel()->columnLabel(MESOCYCLES_COL_CLIENT) + "<b>"_L1 +
+					return QVariant{appMesoModel()->clientLabel() + "<b>"_L1 +
 											appUserModel()->userNameFromId(appMesoModel()->client(mesorow)) + "</b>"_L1};
 		}
 	}
