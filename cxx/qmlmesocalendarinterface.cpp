@@ -1,9 +1,8 @@
 #include "qmlmesocalendarinterface.h"
 
 #include "dbinterface.h"
-#include "DBMesoCalendarManager.h"
+#include "dbmesocalendarmanager.h"
 #include "dbmesocyclesmodel.h"
-#include "dbmesosplitmodel.h"
 #include "qmlitemmanager.h"
 #include "qmlmesointerface.h"
 #include "tputils.h"
@@ -52,9 +51,9 @@ void QmlMesoCalendarInterface::changeSplitLetter(const QString &newSplitLetter, 
 	}
 }
 
-void QmlMesoCalendarInterface::getTrainingDayPage()
+void QmlMesoCalendarInterface::getWorkoutPage()
 {
-	qobject_cast<QMLMesoInterface*>(parent())->getTrainingDayPage(m_selectedDate);
+	qobject_cast<QMLMesoInterface*>(parent())->getWorkoutPage(m_selectedDate);
 }
 
 QString QmlMesoCalendarInterface::dayInfo()
@@ -71,7 +70,7 @@ QString QmlMesoCalendarInterface::dayInfo()
 	else if (m_selectedSplitLetter != "R"_L1)
 		return std::move(appUtils()->formatDate(m_selectedDate)) + std::move(tr(": Workout #")) +
 			m_selectedTrainingDay + std::move(tr(" Split: ")) + m_selectedSplitLetter + " - "_L1 +
-			std::move(appMesoModel()->mesoSplitModel()->splitX(m_mesoIdx, appUtils()->splitLetterToMesoSplitIndex(m_selectedSplitLetter)));
+				appMesoModel()->muscularGroup(m_mesoIdx, m_selectedSplitLetter.at(0));
 	else
 		return std::move(appUtils()->formatDate(m_selectedDate)) + std::move(tr(": Rest day"));
 

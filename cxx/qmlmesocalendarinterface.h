@@ -38,7 +38,7 @@ public:
 	}
 
 	Q_INVOKABLE void changeSplitLetter(const QString &newSplitLetter, const bool bUntillTheEnd);
-	Q_INVOKABLE void getTrainingDayPage();
+	Q_INVOKABLE void getWorkoutPage();
 	Q_INVOKABLE QString dayInfo();
 	QString nameLabel() const;
 	QString dateLabel() const;

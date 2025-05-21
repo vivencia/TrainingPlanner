@@ -71,6 +71,7 @@ Q_PROPERTY(QString clientLabel READ clientLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString typeLabel READ typeLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString realMesoLabel READ realMesoLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString nonMesoLabel READ nonMesoLabel NOTIFY labelChanged FINAL)
+Q_PROPERTY(QString splitR READ splitR NOTIFY labelChanged FINAL)
 
 public:
 	explicit DBMesocyclesModel(QObject *parent = nullptr, const bool bMainAppModel = true);
@@ -86,7 +87,6 @@ public:
 	Q_INVOKABLE void removeMesocycle(const uint meso_idx);
 	Q_INVOKABLE void getExercisesPlannerPage(const uint meso_idx);
 	Q_INVOKABLE void getMesoCalendarPage(const uint meso_idx);
-	Q_INVOKABLE void exportMeso(const uint meso_idx, const bool bShare, const bool bCoachInfo);
 	Q_INVOKABLE inline void todaysWorkout() { openSpecificWorkout(mostRecentOwnMesoIdx(), QDate::currentDate()); }
 	void openSpecificWorkout(const uint meso_idx, const QDate &date);
 
@@ -237,6 +237,10 @@ public:
 		m_mesoData[meso_idx][MESOCYCLES_COL_SPLITF] = new_splitF;
 		setModified(meso_idx, MESOCYCLES_COL_SPLITF);
 	}
+	inline const QString splitR() const
+	{
+		return std::move(tr("Rest day"));
+	}
 
 	Q_INVOKABLE QString muscularGroup(const uint meso_idx, const QChar &splitLetter) const;
 	void setMuscularGroup(const uint meso_idx, const QChar &splitLetter, const QString &newSplitValue);
@@ -320,7 +324,7 @@ public:
 	inline int currentMesoIdx() const { return m_currentMesoIdx; }
 	void setCurrentMesoIdx(const int meso_idx, const bool bEmitSignal = true);
 	inline int mostRecentOwnMesoIdx() const { return m_mostRecentOwnMesoIdx; }
-	Q_INVOKABLE inline QStringList usedSplits(const uint meso_idx) const { return m_usedSplits.at(meso_idx); }
+	Q_INVOKABLE inline QString usedSplits(const uint meso_idx) const { return m_usedSplits.at(meso_idx); }
 	void makeUsedSplits(const uint meso_idx);
 
 	inline bool newMesoCalendarChanged(const uint meso_idx) const { return m_newMesoCalendarChanged.at(meso_idx); }
@@ -399,7 +403,7 @@ private:
 	QList<short> m_newMesoFieldCounter;
 	QList<bool> m_newMesoCalendarChanged;
 	QList<bool> m_canExport;
-	QList<QStringList> m_usedSplits;
+	QStringList m_usedSplits;
 	int m_currentMesoIdx, m_mostRecentOwnMesoIdx, m_importMesoIdx, m_lowestTempMesoId;
 	bool m_bCanHaveTodaysWorkout;
 
@@ -407,6 +411,7 @@ private:
 	friend DBMesocyclesModel *appMesoModel();
 
 	inline QString newMesoTemporaryId() { return QString::number(m_lowestTempMesoId--); }
+	void loadSplits(const uint meso_idx, const uint thread_id);
 	int continueExport(const uint meso_idx, const QString &filename, const bool formatted) const;
 	int exportToFile_splitData(const uint meso_idx, QFile *mesoFile, const bool formatted) const;
 

@@ -310,7 +310,7 @@ TPPage {
 				bottomMargin: 5
 			}
 
-			onClicked: calendarManager.getTrainingDayPage();
+			onClicked: calendarManager.getWorkoutPage();
 		}
 	} // footer: ToolBar
 

@@ -184,14 +184,14 @@ void QmlTDayInterface::setMesoIdx(const uint new_meso_idx)
 	m_tDayModel->setMesoIdx(new_meso_idx);
 }
 
-void QmlTDayInterface::getTrainingDayPage()
+void QmlTDayInterface::getWorkoutPage()
 {
 	if (!m_tDayPage)
 	{
 		if (!appMesoModel()->mesoCalendarManager(m_mesoIdx)->isReady())
 		{
 			connect(appDBInterface(), &DBInterface::databaseReady, this, [this] (const uint db_id) {
-				getTrainingDayPage();
+				getWorkoutPage();
 			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 			appDBInterface()->getMesoCalendar(m_mesoIdx);
 			return;

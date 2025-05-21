@@ -108,7 +108,7 @@ public:
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
 	void setMesoIdx(const uint new_meso_idx);
-	void getTrainingDayPage();
+	void getWorkoutPage();
 
 	Q_INVOKABLE void loadExercisesFromDate(const QString& strDate);
 	Q_INVOKABLE void loadExercisesFromMesoPlan(DBMesoSplitModel* const splitModel = nullptr);
