@@ -36,15 +36,17 @@ void DBWorkoutsOrSplitsTable::createTable()
 										"id INTEGER PRIMARY KEY AUTOINCREMENT,"
 										"meso_id INTEGER,"
 										"calendar_day INTEGER,"
-										"split_letter TEXT, "
-										"exercises TEXT DEFAULT \"\","
-										"setstypes TEXT DEFAULT \"\","
-										"setsresttimes TEXT DEFAULT \"\","
-										"setssubsets TEXT DEFAULT \"\","
-										"setsreps TEXT DEFAULT \"\","
-										"setsweights TEXT DEFAULT \"\","
-										"setsnotes TEXT DEFAULT \"\","
-										"setscompleted TEXT DEFAULT \"\")"_L1.arg(m_tableName)
+										"split_letter TEXT,"
+										"exercises TEXT, "
+										"track_rest_time TEXT,"
+										"auto_rest_time TEXT,"
+										"setstypes TEXT,"
+										"setsresttimes TEXT,"
+										"setssubsets TEXT,"
+										"setsreps TEXT,"
+										"setsweights TEXT,"
+										"setsnotes TEXT,"
+										"setscompleted TEXT)"_L1.arg(m_tableName)
 		};
 		const bool ok{query.exec(strQuery)};
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);
@@ -170,6 +172,23 @@ bool DBWorkoutsOrSplitsTable::mesoHasAllSplitPlans(const QString &meso_id, const
 				else
 					break;
 			}
+		}
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
+	}
+	return ok;
+}
+
+bool DBWorkoutsOrSplitsTable::mesoHasSplitPlan(const QString &meso_id, const QChar &split_letter)
+{
+	bool ok{false};
+	if (openDatabase(true))
+	{
+		QSqlQuery query{getQuery()};
+		const QString &strQuery{"SELECT setstypes FROM mesosplit_table WHERE meso_id=%1 AND split_letter=\'%2\'"_L1.arg(meso_id, split_letter)};
+		if (query.exec(strQuery))
+		{
+			if (query.first())
+				query.value(0).toUInt(&ok);
 		}
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}

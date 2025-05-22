@@ -20,6 +20,7 @@ public:
 	void saveExercises();
 	void removeExercises();
 	bool mesoHasAllSplitPlans(const QString &meso_id, const QString &split);
+	bool mesoHasSplitPlan(const QString &meso_id, const QChar &split_letter);
 
 	inline DBExercisesModel *model() const { return m_model; }
 	inline void setModel(DBExercisesModel *model) { m_model = model; }

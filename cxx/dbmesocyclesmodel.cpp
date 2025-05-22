@@ -68,11 +68,16 @@ QMLMesoInterface *DBMesocyclesModel::mesoManager(const uint meso_idx)
 	return m_mesoManagerList.at(meso_idx);
 }
 
-DBExercisesModel *DBMesocyclesModel::splitModel(const uint meso_idx, const QChar &split_letter)
+DBExercisesModel *DBMesocyclesModel::splitModel(const uint meso_idx, const QChar &split_letter, const bool auto_load)
 {
-	if (!m_splitModels.at(meso_idx).value(split_letter))
-		m_splitModels[meso_idx][split_letter] = new DBSplitModel{mesoCalendarManager(), meso_idx, split_letter};
-	return m_splitModels.at(meso_idx).value(split_letter);
+	DBExercisesModel *split_model{m_splitModels.at(meso_idx).value(split_letter)};
+	if (!split_model)
+	{
+		split_model = new DBSplitModel{mesoCalendarManager(), meso_idx, split_letter};
+		if (auto_load)
+			appDBInterface()->getMesoSplit(split_model);
+	}
+	return split_model;
 }
 
 void DBMesocyclesModel::getMesocyclePage(const uint meso_idx)
@@ -695,7 +700,7 @@ int DBMesocyclesModel::importSplitFromFile(const QString &filename, const uint m
 		default: return APPWINDOW_MSG_CUSTOM_ERROR;
 	}
 
-	DBExercisesModel *new_split{splitModel(meso_idx, split_letter)};
+	DBExercisesModel *new_split{splitModel(meso_idx, split_letter, false)};
 	new_split->clearExercises();
 	return new_split->newExercisesFromFile(filename, file_formatted);
 }
@@ -781,7 +786,7 @@ void DBMesocyclesModel::loadSplits(const uint meso_idx, const uint thread_id)
 	const QString &split_letters{usedSplits(meso_idx)};
 	for (const auto &split_letter : split_letters)
 	{
-		DBExercisesModel *split_model{splitModel(meso_idx, split_letter)};
+		DBExercisesModel *split_model{splitModel(meso_idx, split_letter, false)};
 		split_model->clearExercises();
 		appDBInterface()->getMesoSplit(split_model);
 	}

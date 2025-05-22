@@ -297,7 +297,15 @@ bool DBInterface::mesoHasAllSplitPlans(const uint meso_idx) const
 {
 	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{nullptr}};
 	const bool ret{worker->mesoHasAllSplitPlans(appMesoModel()->id(meso_idx), appMesoModel()->split(meso_idx))};
-	worker->deleteLater();
+	delete worker;
+	return ret;
+}
+
+bool DBInterface::mesoHasSplitPlan(const uint meso_idx, const QChar &split_letter) const
+{
+	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{nullptr}};
+	const bool ret{worker->mesoHasSplitPlan(appMesoModel()->id(meso_idx), split_letter)};
+	delete worker;
 	return ret;
 }
 //-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------

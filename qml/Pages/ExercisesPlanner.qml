@@ -250,7 +250,7 @@ TPPage {
 		title: qsTr("Import Exercises Plan?")
 		message: qsTr("Import the exercises plan for training division <b>") + splitManager.currentSplitLetter +
 						 qsTr("</b> from <b>") + splitManager.prevMesoName() + "</b>?"
-		imageSource: "remove"
+		imageSource: "import"
 		parentPage: pagePlanner
 
 		onButton1Clicked: splitManager.loadSplitFromPreviousMeso();
@@ -284,20 +284,18 @@ TPPage {
 		keepAbove: true
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
-		onButton1Clicked: splitManager.currentSplitModel.removeExercise(removeRow);
+		onButton1Clicked: splitManager.removeExercise();
 		parentPage: pagePlanner
 
-		property int removeRow
 		property string exerciseName
 
-		function init(row: int, exercise: string): void {
-			removeRow = row;
+		function init(exercise: string): void {
 			exerciseName = exercise;
 			show(-1);
 		}
 	} //TPBalloonTip
 
-	function showDeleteDialog(row: int, exercise: string): void {
-		msgDlgRemove.init(row, exercise);
+	function showDeleteDialog(exercise: string): void {
+		msgDlgRemove.init(exercise);
 	}
 } //Page

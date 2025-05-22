@@ -7,15 +7,23 @@
 #define EXERCISES_COL_MESOID 1
 #define EXERCISES_COL_CALENDARDAY 2
 #define EXERCISES_COL_SPLITLETTER 3
+#define EXERCISES_COL_SPLITLETTER 3
 #define EXERCISES_COL_EXERCISES 4
-#define EXERCISES_COL_SETTYPES 5
-#define EXERCISES_COL_RESTTIMES 6
-#define EXERCISES_COL_SUBSETS 7
-#define EXERCISES_COL_REPS 8
-#define EXERCISES_COL_WEIGHTS 9
-#define EXERCISES_COL_NOTES 10
-#define EXERCISES_COL_COMPLETED 11
+#define EXERCISES_COL_TRACKRESTTIMES 5
+#define EXERCISES_COL_AUTORESTTIMES 6
+#define EXERCISES_COL_SETTYPES 7
+#define EXERCISES_COL_RESTTIMES 8
+#define EXERCISES_COL_SUBSETS 9
+#define EXERCISES_COL_REPS 10
+#define EXERCISES_COL_WEIGHTS 11
+#define EXERCISES_COL_NOTES 12
+#define EXERCISES_COL_COMPLETED 13
 #define WORKOUT_TOTALCOLS EXERCISES_COL_COMPLETED+1
+
+#define EXERCISE_IGNORE_NOTIFY_IDX 1000
+#define EXERCISE_DEL_NOTIFY_IDX 100
+#define EXERCISE_MOVE_NOTIFY_IDX 101
+
 
 QT_FORWARD_DECLARE_CLASS(DBMesoCalendarManager)
 QT_FORWARD_DECLARE_STRUCT(exerciseEntry)
@@ -44,6 +52,8 @@ Q_PROPERTY(int workingExercise READ workingExercise WRITE setWorkingExercise NOT
 Q_PROPERTY(QString totalSetsLabel READ totalSetsLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString setNumberLabel READ setNumberLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString exerciseNameLabel READ exerciseNameLabel NOTIFY labelChanged FINAL)
+Q_PROPERTY(QString trackRestTimeLabel READ trackRestTimeLabel NOTIFY labelChanged FINAL)
+Q_PROPERTY(QString autoRestTimeLabel READ autoRestTimeLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString setTypeLabel READ setTypeLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString setRestTimeLabel READ setRestTimeLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString setTotalSubsets READ setTotalSubsets NOTIFY labelChanged FINAL)
@@ -110,7 +120,7 @@ public:
 	inline uint workingExercise() const { return m_workingExercise; }
 	inline void setWorkingExercise(const uint new_workingexercise)
 	{
-		if (new_workingexercise != m_workingExercise)
+		if (new_workingexercise < exerciseCount() && new_workingexercise != m_workingExercise)
 		{
 			m_workingExercise = new_workingexercise;
 			emit workingExerciseChanged();
@@ -119,14 +129,14 @@ public:
 	uint workingSet(const uint exercise_number) const;
 	void setWorkingSet(const uint exercise_number, const uint new_workingset);
 
-	bool trackRestTime(const uint exercise_number, const uint exercise_idx = 0) const;
-	void setTrackRestTime(const uint exercise_number, const uint exercise_idx, const bool track_resttime);
-	bool autoRestTime(const uint exercise_number, const uint exercise_idx = 0) const;
-	void setAutoRestTime(const uint exercise_number, const uint exercise_idx, const bool auto_resttime);
-
 	Q_INVOKABLE QString exerciseName(const uint exercise_number, const uint exercise_idx = 0) const;
 	Q_INVOKABLE void setExerciseName(const uint exercise_number, const uint exercise_idx, const QString &new_name);
 	void setExerciseName(const uint exercise_number, const uint exercise_idx, QString &&new_name);
+
+	Q_INVOKABLE bool trackRestTime(const uint exercise_number) const;
+	Q_INVOKABLE void setTrackRestTime(const uint exercise_number, const bool track_resttime);
+	Q_INVOKABLE bool autoRestTime(const uint exercise_number) const;
+	Q_INVOKABLE void setAutoRestTime(const uint exercise_number, const bool auto_resttime);
 
 	Q_INVOKABLE uint setType(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	Q_INVOKABLE void setSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type);
@@ -160,6 +170,8 @@ public:
 	inline QString totalSetsLabel() const { return tr("Number of sets: "); }
 	inline QString setNumberLabel() const { return tr("Set #: "); }
 	inline QString exerciseNameLabel() const { return tr("Exercise: "); }
+	inline QString trackRestTimeLabel() const { return tr("Track rest times: "); }
+	inline QString autoRestTimeLabel() const { return tr("Auto tracking: "); }
 	inline QString setTypeLabel() const { return tr("Type: "); }
 	inline QString setRestTimeLabel() const { return tr("Rest time: "); }
 	inline QString setTotalSubsets() const { return tr("Number of subsets: "); }
@@ -185,6 +197,7 @@ signals:
 	void exerciseCountChanged();
 	void exerciseCompleted(const uint exercise_number, const bool completed);
 	void labelChanged();
+	void exerciseModified(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint field);
 
 private:
 	DBMesoCalendarManager *m_calendarManager;

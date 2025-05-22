@@ -32,28 +32,28 @@ public:
 	inline void setMesoIdx(const uint new_meso_idx) { m_mesoIdx = new_meso_idx; }
 
 	Q_INVOKABLE void getExercisesPlannerPage();
-	Q_INVOKABLE void moveRow(const uint from, const uint to, DBExercisesModel *splitModel);
-	Q_INVOKABLE void removeRow();
+	Q_INVOKABLE void addExercise();
+	Q_INVOKABLE void moveExercise(const uint from, const uint to);
+	Q_INVOKABLE void removeExercise();
 	Q_INVOKABLE void swapMesoPlans();
 	Q_INVOKABLE void loadSplitFromPreviousMeso();
-	Q_INVOKABLE void simpleExercisesList(DBExercisesModel* splitModel, const bool show, const bool multi_sel = false, const uint exercise_idx = 0);
-	Q_INVOKABLE void exportMesoSplit(const bool bShare, const QString& splitLetter);
+	Q_INVOKABLE void simpleExercisesList(const bool show, const bool multi_sel = false);
+	Q_INVOKABLE void exportMesoSplit(const bool bShare);
+	Q_INVOKABLE void exportAllMesoSplits(const bool bShare);
 	Q_INVOKABLE void importMesoSplit(const QString& filename = QString());
-	Q_INVOKABLE QString findSwappableModel() const;
 	Q_INVOKABLE QString prevMesoName() const { return m_prevMesoName; }
 	Q_INVOKABLE QQuickItem* setCurrentPage(const int index);
 
-	DBExercisesModel* currentSplitModel() const;
+	inline DBExercisesModel* currentSplitModel() const { return m_splitModels.value(m_currentSplitLetter); }
 	inline QQuickItem* getSplitPage(const QChar& splitLetter) const { return m_splitPages.value(splitLetter); }
 	inline QQuickItem* currentPage() const { return m_currentSplitPage; }
 	inline QChar currentSplitLetter() const { return m_currentSplitLetter; }
 	inline QChar currentSwappableLetter() const { return m_currentSwappableLetter; }
-	inline bool hasExercises() const { return m_bHasExercises; }
-	inline bool canSwapExercises() const { return !m_currentSwappableLetter.isEmpty(); }
+	bool hasExercises() const;
+	inline bool canSwapExercises() const { return m_currentSwappableLetter != 'N'; }
 
 signals:
 	void plannerPageCreated();
-	void displayMessageOnAppWindow(const int message_id, const QString& filename = QString());
 	void addPageToMainMenu(const QString& label, QQuickItem* page);
 	void removePageFromMainMenu(QQuickItem* page);
 	void currentPageChanged();
@@ -69,22 +69,24 @@ private:
 
 	QQmlComponent* m_splitComponent;
 	QMap<QChar,QQuickItem*> m_splitPages;
+	QMap<QChar,DBExercisesModel*> m_splitModels;
+	QMap<QChar,bool> m_hasPreviousPlan;
 	QVariantMap m_splitProperties;
 	uint m_mesoIdx;
 
-	DBExercisesModel* m_simpleExercisesListRequester;
 	uint m_simpleExercisesListExerciseIdx;
 	QString m_prevMesoName;
 	QChar m_currentSplitLetter, m_currentSwappableLetter;
-	bool m_bHasExercises;
 	int m_prevMesoId;
 
 	void createPlannerPage();
 	void createPlannerPage_part2();
-	void createMesoSplitPage(const QChar& splitletter);
-	void createMesoSplitPage_part2(const QChar& splitletter);
+	void createMesoSplitPages();
+	void createMesoSplitPages_part2();
 	void initializeSplitModels();
-	void setSplitPageProperties(QQuickItem* splitPage, const DBExercisesModel* const splitModel);
+	void setSplitPageProperties(const QChar &split_letter);
+	void updateMuscularGroup(const QChar &split_letter);
+	QChar findSwappableModel() const;
 };
 
 #endif // QMLMESOSPLITINTERFACE_H

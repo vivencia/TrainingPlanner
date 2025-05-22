@@ -258,7 +258,7 @@ Frame {
 						Keys.onReturnPressed: cboSetType.forceActiveFocus(); //Alphanumeric keyboard
 						onExerciseChanged: (new_text) => splitModel.setExerciseName(index, new_text);
 						onItemClicked: splitModel.currentRow = index;
-						onRemoveButtonClicked: splitManager.removeRow();
+						onRemoveButtonClicked: splitManager.removeExercise();
 						onEditButtonClicked: splitManager.simpleExercisesList(splitModel, !readOnly, true, 0);
 					} //ExerciseNameField
 
@@ -402,7 +402,7 @@ Frame {
 								}
 								TPComboBox {
 									id: cboSetType
-									enabled: index === splitModel.currentRow
+									enabled: index === splitModel.workingExercise
 									model: AppGlobals.setTypesModel
 									editable: mesocyclesModel.isOwnMeso(splitManager.mesoIdx())
 									currentIndex: splitModel.setType(index, splitModel.workingSet)
@@ -595,10 +595,10 @@ Frame {
 				background: Rectangle {
 					id:	backgroundColor
 					radius: 6
-					color: splitModel.currentRow === index ? appSettings.primaryColor : index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
+					color: splitModel.workingExercise === index ? appSettings.primaryColor : index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
 				}
 
-				onClicked: splitModel.currentRow = index;
+				onClicked: splitModel.workingExercise = index;
 			} //delegate: ItemDelegate
 		} //ListView
 
@@ -622,8 +622,8 @@ Frame {
 	}
 
 	function appendNewExerciseToDivision(): void {
-		splitModel.appendExercise();
-		lstSplitExercises.currentIndex = splitModel.currentRow;
+		splitManager.addExercise();
+		lstSplitExercises.currentIndex = splitModel.workingExercise;
 		lstSplitExercises.positionViewAtIndex(splitModel.currentRow, ListView.Center);
 	}
 } //Page

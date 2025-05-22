@@ -80,7 +80,7 @@ public:
 	inline uint fieldCount() const { return MESOCYCLES_TOTAL_COLS; }
 	inline uint count() const { return m_mesoData.count(); }
 	QMLMesoInterface *mesoManager(const uint meso_idx);
-	DBExercisesModel *splitModel(const uint meso_idx, const QChar &split_letter);
+	DBExercisesModel *splitModel(const uint meso_idx, const QChar &split_letter, const bool auto_load = true);
 
 	Q_INVOKABLE void getMesocyclePage(const uint meso_idx);
 	Q_INVOKABLE uint startNewMesocycle(const bool bCreatePage, const std::optional<bool> bOwnMeso = std::nullopt);
