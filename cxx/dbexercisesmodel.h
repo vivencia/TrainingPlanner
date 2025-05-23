@@ -85,6 +85,7 @@ public:
 	inline const QString &id() const {return m_id; }
 	inline void setId(const QString &new_id) { m_id = new_id; }
 	inline const QString &mesoId() const {return m_mesoId; }
+	inline void setMesoId(const QString &new_mesoid) { m_mesoId = new_mesoid; }
 	inline const uint mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; }
 	inline int calendarDay() const { return m_calendarDay; }
@@ -187,6 +188,9 @@ public:
 	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return exerciseCount(); }
 	// return the roles mapping to be used by QML
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
+
+public slots:
+	void newExerciseFromExercisesList();
 
 signals:
 	void exerciseNameChanged(const uint exercise_number, const uint exercise_idx);

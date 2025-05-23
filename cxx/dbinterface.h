@@ -64,7 +64,7 @@ public:
 	void removeAllMesoSplits(const uint meso_idx);
 	void deleteMesoSplitTable(const bool bRemoveFile);
 	bool mesoHasAllSplitPlans(const uint meso_idx) const;
-	bool mesoHasSplitPlan(const uint meso_idx, const QChar &split_letter) const;
+	bool mesoHasSplitPlan(const QString &meso_id, const QChar &split_letter) const;
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------

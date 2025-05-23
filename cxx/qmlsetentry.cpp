@@ -67,7 +67,7 @@ void QmlSetEntry::setRestTime(const QString& new_value, const bool bJustUpdateVa
 	if (bJustUpdateValue)
 		emit restTimeChanged();
 	else
-		m_tDayModel->setSetRestTime(m_exercise_idx, number(), m_restTime);
+		m_workoutModel->setSetRestTime(m_exercise_idx, number(), m_restTime);
 }
 
 QString QmlSetEntry::reps1() const
@@ -85,7 +85,7 @@ void QmlSetEntry::setReps1(const QString& new_value, const bool bSetIsManuallyMo
 		emit reps1Changed();
 		if (hasSubSets())
 			emit strTotalRepsChanged();
-		m_tDayModel->setSetReps(m_exercise_idx, number(), 0, m_reps);
+		m_workoutModel->setSetReps(m_exercise_idx, number(), 0, m_reps);
 	}
 }
 
@@ -102,7 +102,7 @@ void QmlSetEntry::setWeight1(const QString& new_value, const bool bSetIsManually
 		if (bSetIsManuallyModified && !lastSet())
 			setIsManuallyModified(true);
 		emit weight1Changed();
-		m_tDayModel->setSetWeight(m_exercise_idx, number(), 0, m_weight);
+		m_workoutModel->setSetWeight(m_exercise_idx, number(), 0, m_weight);
 	}
 }
 
@@ -120,7 +120,7 @@ void QmlSetEntry::setReps2(const QString& new_value, const bool bSetIsManuallyMo
 			setIsManuallyModified(true);
 		emit reps2Changed();
 		emit strTotalRepsChanged();
-		m_tDayModel->setSetReps(m_exercise_idx, number(), 1, m_reps);
+		m_workoutModel->setSetReps(m_exercise_idx, number(), 1, m_reps);
 	}
 }
 
@@ -137,7 +137,7 @@ void QmlSetEntry::setWeight2(const QString& new_value, const bool bSetIsManually
 		if (bSetIsManuallyModified && !lastSet())
 			setIsManuallyModified(true);
 		emit weight2Changed();
-		m_tDayModel->setSetWeight(m_exercise_idx, number(), 1, m_weight);
+		m_workoutModel->setSetWeight(m_exercise_idx, number(), 1, m_weight);
 	}
 }
 
@@ -155,7 +155,7 @@ void QmlSetEntry::setReps3(const QString& new_value, const bool bSetIsManuallyMo
 			setIsManuallyModified(true);
 		emit reps3Changed();
 		emit strTotalRepsChanged();
-		m_tDayModel->setSetReps(m_exercise_idx, number(), 2, m_reps);
+		m_workoutModel->setSetReps(m_exercise_idx, number(), 2, m_reps);
 	}
 }
 
@@ -172,7 +172,7 @@ void QmlSetEntry::setWeight3(const QString& new_value, const bool bSetIsManually
 		if (bSetIsManuallyModified && !lastSet())
 			setIsManuallyModified(true);
 		emit weight3Changed();
-		m_tDayModel->setSetWeight(m_exercise_idx, number(), 2, m_weight);
+		m_workoutModel->setSetWeight(m_exercise_idx, number(), 2, m_weight);
 	}
 }
 
@@ -190,7 +190,7 @@ void QmlSetEntry::setReps4(const QString& new_value, const bool bSetIsManuallyMo
 			setIsManuallyModified(true);
 		emit reps4Changed();
 		emit strTotalRepsChanged();
-		m_tDayModel->setSetReps(m_exercise_idx, number(), 3, m_reps);
+		m_workoutModel->setSetReps(m_exercise_idx, number(), 3, m_reps);
 	}
 }
 
@@ -207,7 +207,7 @@ void QmlSetEntry::setWeight4(const QString& new_value, const bool bSetIsManually
 		if (bSetIsManuallyModified && !lastSet())
 			setIsManuallyModified(true);
 		emit weight4Changed();
-		m_tDayModel->setSetWeight(m_exercise_idx, number(), 3, m_weight);
+		m_workoutModel->setSetWeight(m_exercise_idx, number(), 3, m_weight);
 	}
 }
 
@@ -223,7 +223,7 @@ void QmlSetEntry::setSubSets(const QString& new_value)
 			emit subSetsChanged();
 			emit nSubSetsChanged();
 			emit strTotalRepsChanged();
-			m_tDayModel->setSetSubSets(m_exercise_idx, number(), new_value);
+			m_workoutModel->setSetSubSets(m_exercise_idx, number(), new_value);
 		}
 	}
 }
@@ -232,5 +232,5 @@ void QmlSetEntry::setNotes(const QString& new_value)
 {
 	m_notes = new_value;
 	emit notesChanged();
-	m_tDayModel->setSetNotes(m_exercise_idx, number(), new_value);
+	m_workoutModel->setSetNotes(m_exercise_idx, number(), new_value);
 }

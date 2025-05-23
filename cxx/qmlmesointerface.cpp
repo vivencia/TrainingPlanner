@@ -7,7 +7,7 @@
 #include "qmlitemmanager.h"
 #include "qmlmesosplitinterface.h"
 #include "qmlmesocalendarinterface.h"
-#include "qmltdayinterface.h"
+#include "qmlworkoutinterface.h"
 #include "tputils.h"
 #include "translationclass.h"
 
@@ -29,7 +29,7 @@ QMLMesoInterface::~QMLMesoInterface()
 	if (m_calendarPage)
 		delete m_calendarPage;
 
-	for (const auto &it: std::as_const(m_tDayPages))
+	for (const auto &it: std::as_const(m_workoutPages))
 		delete it;
 }
 
@@ -333,13 +333,13 @@ void QMLMesoInterface::getExercisesPlannerPage()
 
 void QMLMesoInterface::getWorkoutPage(const QDate &date)
 {
-	QmlTDayInterface *tDayPage(m_tDayPages.value(date));
-	if (!tDayPage)
+	QmlTDayInterface *workoutPage(m_workoutPages.value(date));
+	if (!workoutPage)
 	{
-		tDayPage = new QmlTDayInterface{this, m_mesoIdx, date};
-		m_tDayPages.insert(date, tDayPage);
+		workoutPage = new QmlTDayInterface{this, m_mesoIdx, date};
+		m_workoutPages.insert(date, workoutPage);
 	}
-	tDayPage->getWorkoutPage();
+	workoutPage->getWorkoutPage();
 }
 
 void QMLMesoInterface::getMesocyclePage()
@@ -367,8 +367,8 @@ DBMesoSplitModel *QMLMesoInterface::plannerSplitModel(const QChar &splitLetter)
 
 DBWorkoutModel *QMLMesoInterface::tDayModelForToday()
 {
-	QmlTDayInterface *tDayPage(m_tDayPages.value(QDate::currentDate()));
-	return tDayPage ? tDayPage->tDayModel() : nullptr;
+	QmlTDayInterface *workoutPage(m_workoutPages.value(QDate::currentDate()));
+	return workoutPage ? workoutPage->tDayModel() : nullptr;
 }
 
 void QMLMesoInterface::createMesocyclePage()
@@ -429,8 +429,8 @@ void QMLMesoInterface::createMesocyclePage_part2()
 		if (old_meso_idx == m_mesoIdx)
 		{
 			m_mesoIdx = new_meso_idx;
-			const QMap<QDate,QmlTDayInterface*>::const_iterator itr_end(m_tDayPages.constEnd());
-			QMap<QDate,QmlTDayInterface*>::const_iterator itr(m_tDayPages.constBegin());
+			const QMap<QDate,QmlTDayInterface*>::const_iterator itr_end(m_workoutPages.constEnd());
+			QMap<QDate,QmlTDayInterface*>::const_iterator itr(m_workoutPages.constBegin());
 			while (itr != itr_end)
 			{
 				(*itr)->setMesoIdx(m_mesoIdx);

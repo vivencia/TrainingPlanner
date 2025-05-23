@@ -15,7 +15,7 @@
 #include "qmlmesointerface.h"
 #include "qmlmesosplitinterface.h"
 #include "qmlsetentry.h"
-#include "qmltdayinterface.h"
+#include "qmlworkoutinterface.h"
 #include "qmluserinterface.h"
 
 #include "pageslistmodel.h"

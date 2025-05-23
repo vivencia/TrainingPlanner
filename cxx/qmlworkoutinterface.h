@@ -1,14 +1,13 @@
-#ifndef QMLTDAYINTERFACE_H
-#define QMLTDAYINTERFACE_H
+#ifndef QMLWORKOUTINTERFACE_H
+#define QMLWORKOUTINTERFACE_H
 
 #include <QDate>
 #include <QObject>
 #include <QVariantMap>
 
-class DBWorkoutModel;
-class DBMesoSplitModel;
-class QmlExerciseInterface;
-class QmlExerciseEntry;
+QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
+QT_FORWARD_DECLARE_CLASS(QmlExerciseInterface)
+QT_FORWARD_DECLARE_CLASS(QmlExerciseEntry)
 class TPTimer;
 
 class QQmlComponent;
@@ -41,8 +40,8 @@ Q_PROPERTY(bool hasExercises READ hasExercises WRITE setHasExercises NOTIFY hasE
 Q_PROPERTY(QStringList previousTDays READ previousTDays WRITE setPreviousTDays NOTIFY previousTDaysChanged FINAL)
 
 public:
-	explicit inline QmlTDayInterface(QObject* parent, const uint meso_idx, const QDate& date)
-		: QObject{parent}, m_tDayPage(nullptr), m_mesoIdx(meso_idx), m_Date(date), m_exerciseManager(nullptr),
+	explicit inline QmlTDayInterface(QObject *parent, const uint meso_idx, const QDate &date)
+		: QObject{parent}, m_workoutPage(nullptr), m_mesoIdx(meso_idx), m_Date(date), m_exerciseManager(nullptr),
 				m_workoutTimer(nullptr), m_restTimer(nullptr), m_SimpleExercisesListRequesterExerciseComp(0) {}
 	~QmlTDayInterface();
 
@@ -58,23 +57,23 @@ public:
 
 	inline const QChar _splitLetter() const { return m_splitLetter.at(0); }
 	inline QString splitLetter() const { return m_splitLetter; }
-	void setSplitLetter(const QString& new_value, const bool bFromQml = true, const bool bDontConfirm = false);
+	void setSplitLetter(const QString &new_value, const bool bFromQml = true, const bool bDontConfirm = false);
 
 	inline QString timeIn() const { return m_timeIn; }
-	void setTimeIn(const QString& new_value, const bool bFromQml = true);
+	void setTimeIn(const QString &new_value, const bool bFromQml = true);
 
 	inline QString timeOut() const { return m_timeOut; }
-	void setTimeOut(const QString& new_value, const bool bFromQml = true);
+	void setTimeOut(const QString &new_value, const bool bFromQml = true);
 
 	inline QString headerText() const { return m_headerText; }
-	void setHeaderText(const QString& = QString());
+	void setHeaderText(const QString &new_header = QString{});
 	inline QString muscularGroup() const { return m_muscularGroup; }
 
 	inline QString lastWorkOutLocation() const { return m_lastWorkOutLocation; }
-	void setLastWorkOutLocation(const QString& new_value);
+	void setLastWorkOutLocation(const QString &new_value);
 
 	inline QString dayNotes() const { return m_dayNotes; }
-	void setDayNotes(const QString& new_value, const bool bFromQml = true);
+	void setDayNotes(const QString &new_value, const bool bFromQml = true);
 
 	inline bool editMode() const { return m_bEditMode; }
 	void setEditMode(const bool new_value, const bool bFromQml = true);
@@ -104,21 +103,21 @@ public:
 	inline void setHasExercises(const bool new_value) { if (m_bHasExercises != new_value) { m_bHasExercises = new_value; emit hasExercisesChanged(); } }
 
 	inline QStringList previousTDays() const { return m_previousTDays; }
-	inline void setPreviousTDays(const QStringList& other) { m_previousTDays = other; emit previousTDaysChanged(); }
+	inline void setPreviousTDays(const QStringList &other) { m_previousTDays = other; emit previousTDaysChanged(); }
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
 	void setMesoIdx(const uint new_meso_idx);
 	void getWorkoutPage();
 
-	Q_INVOKABLE void loadExercisesFromDate(const QString& strDate);
-	Q_INVOKABLE void loadExercisesFromMesoPlan(DBMesoSplitModel* const splitModel = nullptr);
+	Q_INVOKABLE void loadExercisesFromDate(const QString &strDate);
+	Q_INVOKABLE void loadExercisesFromMesoPlan(DBExercisesModel *splitModel = nullptr);
 	Q_INVOKABLE void convertTDayToPlan();
 	Q_INVOKABLE void resetWorkout();
-	Q_INVOKABLE void changeSplit(const QString& newSplitLetter, const bool bClearExercises = false);
-	Q_INVOKABLE void adjustCalendar(const QString& newSplitLetter, const bool bOnlyThisDay);
+	Q_INVOKABLE void changeSplit(const QString &newSplitLetter, const bool bClearExercises = false);
+	Q_INVOKABLE void adjustCalendar(const QString &newSplitLetter, const bool bOnlyThisDay);
 	Q_INVOKABLE void exportTrainingDay(const bool bShare);
-	Q_INVOKABLE void importTrainingDay(const QString& filename = QString());
-	Q_INVOKABLE void prepareWorkOutTimer(const QString& strStartTime = QString(), const QString& strEndTime = QString());
+	Q_INVOKABLE void importTrainingDay(const QString &filename = QString());
+	Q_INVOKABLE void prepareWorkOutTimer(const QString &strStartTime = QString(), const QString &strEndTime = QString());
 	Q_INVOKABLE void startWorkout();
 	Q_INVOKABLE void stopWorkout();
 	Q_INVOKABLE void clearExercises(const bool bShowIntentDialog = true);
@@ -127,17 +126,17 @@ public:
 	void removeExerciseObject(const uint exercise_idx, const bool bAsk);
 	void moveExercise(const uint exercise_idx, const uint new_idx);
 
-	inline DBWorkoutModel* tDayModel() const { return m_tDayModel; }
-	inline QQuickItem* tDayPage() const { return m_tDayPage; }
+	inline DBExercisesModel *tDayModel() const { return m_workoutModel; }
+	inline QQuickItem *workoutPage() const { return m_workoutPage; }
 
 	void simpleExercisesList(const uint exercise_idx, const bool show, const bool multi_sel, const uint comp_exercise);
-	void displayMessage(const QString& title, const QString& message, const bool error = false, const uint msecs = 0) const;
+	void displayMessage(const QString &title, const QString &message, const bool error = false, const uint msecs = 0) const;
 	void askRemoveExercise(const uint exercise_idx);
 	void askRemoveSet(const uint exercise_idx, const uint set_number);
 	void gotoNextExercise(const uint exercise_idx);
 	void rollUpExercises() const;
 
-	TPTimer* restTimer();
+	TPTimer *restTimer();
 
 signals:
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
@@ -163,26 +162,26 @@ signals:
 	void previousTDaysChanged();
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
-	void displayMessageOnAppWindow(const int message_id, const QString& filename = QString());
-	void addPageToMainMenu(const QString& label, QQuickItem* page);
-	void removePageFromMainMenu(QQuickItem* page);
-	void requestMesoSplitModel(const QChar& splitletter);
+	void displayMessageOnAppWindow(const int message_id, const QString &filename = QString());
+	void addPageToMainMenu(const QString &label, QQuickItem *page);
+	void removePageFromMainMenu(QQuickItem *page);
+	void requestMesoSplitModel(const QChar &splitletter);
 
 public slots:
 	void createExerciseObject();
 	void silenceTimeWarning();
-	void exerciseSelected(QmlExerciseEntry* exerciseEntry = nullptr);
+	void exerciseSelected(QmlExerciseEntry *exerciseEntry = nullptr);
 	void hideSimpleExercisesList();
 
 private:
-	QQmlComponent* m_tDayComponent;
-	DBWorkoutModel* m_tDayModel;
-	QQuickItem* m_tDayPage;
+	QQmlComponent *m_tDayComponent;
+	DBExercisesModel *m_workoutModel;
+	QQuickItem *m_workoutPage;
 	QVariantMap m_tDayProperties;
-	QmlExerciseInterface* m_exerciseManager;
+	QmlExerciseInterface *m_exerciseManager;
 	uint m_mesoIdx;
 	QDate m_Date;
-	TPTimer* m_workoutTimer, *m_restTimer;
+	TPTimer *m_workoutTimer, *m_restTimer;
 	int m_SimpleExercisesListRequesterExerciseIdx, m_SimpleExercisesListRequesterExerciseComp;
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
@@ -196,9 +195,9 @@ private:
 	void createTrainingDayPage();
 	void createTrainingDayPage_part2();
 	void loadExercises();
-	void updateTDayPageWithNewCalendarInfo(const QDate& startDate, const QDate& endDate);
+	void updateTDayPageWithNewCalendarInfo(const QDate &startDate, const QDate &endDate);
 	void calculateWorkoutTime();
-	void setTrainingDayPageEmptyDayOrChangedDayOptions(const DBWorkoutModel* const model);
+	void setTrainingDayPageEmptyDayOrChangedDayOptions(const DBExercisesModel *model);
 };
 
-#endif // QMLTDAYINTERFACE_H
+#endif // QMLWORKOUTINTERFACE_H

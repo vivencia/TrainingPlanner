@@ -150,7 +150,7 @@ if [ ! -d "$TP_DIR" ]; then
     echo "Preparing the firesystem layout and copying configuration files to their respective locations..."
 
     run_as_sudo groupadd $NGINX_USER
-    run_as_sudo useradd $NGINX_USER -g $NGINX_USER -G network,sys
+    run_as_sudo useradd -r $NGINX_USER -g $NGINX_USER -G network,sys
 
     run_as_sudo mkdir -p $SCRIPTS_DIR
     run_as_sudo chmod -R 770 $TP_DIR

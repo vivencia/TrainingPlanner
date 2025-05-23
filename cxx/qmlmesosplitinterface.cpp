@@ -16,7 +16,7 @@ QmlMesoSplitInterface::~QmlMesoSplitInterface()
 {
 	if (m_plannerComponent)
 	{
-		for (const auto split_page : m_splitPages)
+		for (const auto split_page : std::as_const(m_splitPages))
 		{
 			emit removePageFromMainMenu(split_page);
 			delete split_page;
@@ -67,8 +67,21 @@ void QmlMesoSplitInterface::swapMesoPlans()
 //TODO
 void QmlMesoSplitInterface::loadSplitFromPreviousMeso()
 {
-	if (m_prevMesoId >= 0)
+	if (m_hasPreviousPlan.value(m_currentSplitLetter))
+	{
+		currentSplitModel()->setMesoId(m_prevMesoId);
+		auto conn = std::make_shared<QMetaObject::Connection>();
+		*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn] (const uint db_id) mutable {
+			if (db_id == MESOSPLIT_TABLE_ID)
+			{
+				disconnect(*conn);
+				currentSplitModel()->setMesoId(appMesoModel()->id(m_mesoIdx));
+				appDBInterface()->saveMesoSplit(currentSplitModel());
+				appMesoModel()->checkIfCanExport(m_mesoIdx);
+			}
+		});
 		appDBInterface()->getMesoSplit(currentSplitModel());
+	}
 }
 
 void QmlMesoSplitInterface::simpleExercisesList(const bool show, const bool multi_sel)
@@ -77,13 +90,13 @@ void QmlMesoSplitInterface::simpleExercisesList(const bool show, const bool mult
 	{
 		if (appExercisesList()->count() == 0)
 			appDBInterface()->getAllExercises();
-		connect(m_plannerPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), this, SLOT(exerciseSelected()));
+		connect(m_plannerPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), currentSplitModel(), SLOT(newExerciseFromExercisesList()));
 		connect(m_plannerPage, SIGNAL(simpleExercisesListClosed()), this, SLOT(hideSimpleExercisesList()));
 		QMetaObject::invokeMethod(m_plannerPage, "showSimpleExercisesList", Q_ARG(bool, multi_sel));
 	}
 	else
 	{
-		disconnect(m_plannerPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), this, SLOT(exerciseSelected()));
+		disconnect(m_plannerPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), currentSplitModel(), SLOT(newExerciseFromExercisesList()));
 		disconnect(m_plannerPage, SIGNAL(simpleExercisesListClosed()), this, SLOT(hideSimpleExercisesList()));
 		QMetaObject::invokeMethod(m_plannerPage, "hideSimpleExercisesList");
 	}
@@ -105,7 +118,7 @@ void QmlMesoSplitInterface::exportAllMesoSplits(const bool bShare)
 	if (!out_file)
 		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED, exportFileName);
 
-	for (const auto split_model : m_splitModels)
+	for (const auto split_model : std::as_const(m_splitModels))
 	{
 		if (split_model->exportToFormattedFile(exportFileName, out_file) != APPWINDOW_MSG_EXPORT_OK)
 		{
@@ -131,26 +144,19 @@ static void muscularGroupSimplified(QString &muscularGroup)
 {
 	muscularGroup = muscularGroup.replace(',', ' ').simplified();
 	const QStringList &words(muscularGroup.split(' '));
-
-	if (words.count() > 0)
+	muscularGroup.clear();
+	for (const auto &word : words)
 	{
-		QStringList::const_iterator itr(words.begin());
-		const QStringList::const_iterator &itr_end(words.end());
-		muscularGroup.clear();
-
-		do
-		{
-			if((*itr).length() < 3)
-				continue;
-			if (!muscularGroup.isEmpty())
-				muscularGroup.append(' ');
-			muscularGroup.append((*itr).toLower());
-			if (muscularGroup.endsWith('s', Qt::CaseInsensitive))
-				muscularGroup.chop(1);
-			muscularGroup.remove('.');
-			muscularGroup.remove('(');
-			muscularGroup.remove(')');
-		} while (++itr != itr_end);
+		if(word.length() < 3)
+			continue;
+		if (!muscularGroup.isEmpty())
+			muscularGroup.append(' ');
+		muscularGroup.append(word.toLower());
+		if (muscularGroup.endsWith('s', Qt::CaseInsensitive))
+			muscularGroup.chop(1);
+		muscularGroup.remove('.');
+		muscularGroup.remove('(');
+		muscularGroup.remove(')');
 	}
 }
 
@@ -166,74 +172,6 @@ QQuickItem* QmlMesoSplitInterface::setCurrentPage(const int index)
 bool QmlMesoSplitInterface::hasExercises() const
 {
 	return currentSplitModel()->exerciseCount() > 0;
-}
-
-void QmlMesoSplitInterface::exerciseSelected()
-{
-	const int row{m_simpleExercisesListRequester->currentRow()};
-	const uint nsets{m_simpleExercisesListRequester->setsNumber(row)};
-
-	QString exerciseName, nReps, nWeight;
-	const bool b_is_composite(appExercisesList()->selectedEntriesCount() > 1);
-
-	exerciseName = std::move(appExercisesList()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_MAINNAME) + " - "_L1 +
-					appExercisesList()->selectedEntriesValue_fast(0, 2));
-
-	if (!b_is_composite)
-	{
-		nReps = std::move(appUtils()->makeCompositeValue(appExercisesList()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_REPSNUMBER),
-							nsets, set_separator));
-		nWeight = std::move(appUtils()->makeCompositeValue(appExercisesList()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_WEIGHT),
-							nsets, set_separator));
-	}
-	else
-	{
-		nReps = std::move(appUtils()->makeDoubleCompositeValue(appExercisesList()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_REPSNUMBER),
-							nsets, 2, set_separator, comp_exercise_separator));
-		nWeight = std::move(appUtils()->makeDoubleCompositeValue(appExercisesList()->selectedEntriesValue_fast(0, EXERCISES_LIST_COL_WEIGHT),
-							nsets, 2, set_separator, comp_exercise_separator));
-		appUtils()->setCompositeValue(1, appExercisesList()->selectedEntriesValue_fast(1, EXERCISES_LIST_COL_MAINNAME) + " - "_L1 +
-						appExercisesList()->selectedEntriesValue_fast(1, 2), exerciseName, comp_exercise_separator);
-		appUtils()->setCompositeValue(1, appUtils()->makeCompositeValue(
-										appExercisesList()->selectedEntriesValue_fast(1, EXERCISES_LIST_COL_REPSNUMBER), nsets, set_separator),
-										nReps, comp_exercise_separator);
-		appUtils()->setCompositeValue(1, appUtils()->makeCompositeValue(
-										appExercisesList()->selectedEntriesValue_fast(1, EXERCISES_LIST_COL_WEIGHT), nsets, set_separator),
-										nWeight, comp_exercise_separator);
-	}
-
-	switch (m_simpleExercisesListExerciseIdx)
-	{
-		case 0:
-		{
-			m_simpleExercisesListRequester->setExerciseName(row, exerciseName);
-			const uint set_number{m_simpleExercisesListRequester->workingSet(row)};
-			if (!m_simpleExercisesListRequester->isFieldUserModified(row, MESOSPLIT_COL_SETTYPE))
-			{
-				const int cur_set_type{m_simpleExercisesListRequester->setType(row, set_number)};
-				if (b_is_composite && cur_set_type != SET_TYPE_GIANT)
-					m_simpleExercisesListRequester->setSetType(row, set_number, SET_TYPE_GIANT, false);
-				else if (!b_is_composite && cur_set_type == SET_TYPE_GIANT)
-					m_simpleExercisesListRequester->setSetType(row, set_number, SET_TYPE_REGULAR, false);
-			}
-			if (!nReps.isEmpty())
-			{
-				if (!m_simpleExercisesListRequester->isFieldUserModified(row, MESOSPLIT_COL_REPSNUMBER))
-					m_simpleExercisesListRequester->_setSetsReps(row, nReps);
-			}
-			if (!nWeight.isEmpty())
-			{
-				if (!m_simpleExercisesListRequester->isFieldUserModified(row, MESOSPLIT_COL_WEIGHT))
-					m_simpleExercisesListRequester->_setSetsWeights(row, nWeight);
-			}
-		}
-		break;
-		case 1:
-			m_simpleExercisesListRequester->setExerciseName1(row, exerciseName);
-		break;
-		case 2:
-			m_simpleExercisesListRequester->setExerciseName2(row, exerciseName);
-	}
 }
 
 void QmlMesoSplitInterface::hideSimpleExercisesList()
@@ -274,7 +212,7 @@ void QmlMesoSplitInterface::createPlannerPage_part2()
 	if (m_plannerComponent->status() == QQmlComponent::Error)
 	{
 		qDebug() << m_plannerComponent->errorString();
-		for (const auto &error : m_plannerComponent->errors())
+		for (auto &error : m_plannerComponent->errors())
 			qDebug() << error.description();
 		return;
 	}
@@ -309,13 +247,13 @@ void QmlMesoSplitInterface::createMesoSplitPages_part2()
 	if (m_splitComponent->status() == QQmlComponent::Error)
 	{
 		qDebug() << m_splitComponent->errorString();
-		for (const auto &error : m_plannerComponent->errors())
+		for (auto &error : m_plannerComponent->errors())
 			qDebug() << error.description();
 		return;
 	}
 	#endif
 
-	m_prevMesoId = -2;
+	m_prevMesoId = "-2"_L1;
 	m_splitProperties["splitManager"_L1] = std::move(QVariant::fromValue(this));
 
 	uint idx{0};
@@ -350,14 +288,18 @@ void QmlMesoSplitInterface::createMesoSplitPages_part2()
 
 void QmlMesoSplitInterface::setSplitPageProperties(const QChar &split_letter)
 {
-	if (m_prevMesoId == -1)
+	int prev_mesoid{m_prevMesoId.toInt()};
+	if (prev_mesoid == -1)
 		m_hasPreviousPlan[split_letter] = false;
 	else
 	{
-		if (m_prevMesoId == -2)
-			m_prevMesoId = appMesoModel()->getPreviousMesoId(appMesoModel()->client(m_mesoIdx), appMesoModel()->_id(m_mesoIdx));
+		if (prev_mesoid == -2)
+		{
+			prev_mesoid = appMesoModel()->getPreviousMesoId(appMesoModel()->client(m_mesoIdx), appMesoModel()->_id(m_mesoIdx));
+			m_prevMesoId = QString::number(prev_mesoid);
+		}
 
-		if (m_prevMesoId >= 0)
+		if (prev_mesoid >= 0)
 		{
 			if (appDBInterface()->mesoHasSplitPlan(m_prevMesoId, split_letter))
 			{

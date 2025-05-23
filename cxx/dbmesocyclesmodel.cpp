@@ -209,15 +209,14 @@ void DBMesocyclesModel::setModified(const uint meso_idx, const uint field)
 	emit mesoChanged(meso_idx, field);
 }
 
-int DBMesocyclesModel::idxFromId(const uint meso_id) const
+int DBMesocyclesModel::idxFromId(const QString &meso_id) const
 {
-	const QString &mesoIdStr{QString::number(meso_id)};
-	for (uint i{0}; i < m_mesoData.count(); ++i)
-	{
-		if (m_mesoData.at(i).at(MESOCYCLES_COL_ID) == mesoIdStr)
-			return i;
-	}
-	return -1;
+	uint meso_idx{0};
+	const auto &meso = std::find_if(m_mesoData.cbegin(), m_mesoData.cend(), [meso_id,&meso_idx] (const auto &meso_info) {
+		++meso_idx;
+		return meso_info.at(MESOCYCLES_COL_ID) == meso_id;
+	});
+	return meso != m_mesoData.cend() ? meso_idx : -1;
 }
 
 void DBMesocyclesModel::setName(const uint meso_idx, const QString &new_name)

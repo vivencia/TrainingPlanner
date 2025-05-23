@@ -1,5 +1,6 @@
 #include "dbexercisesmodel.h"
 
+#include "dbexerciseslistmodel.h"
 #include "dbmesocalendarmanager.h"
 #include "dbmesocyclesmodel.h"
 #include "tpglobals.h"
@@ -553,6 +554,23 @@ void DBExercisesModel::moveExercise(const uint from, const uint to)
 	}
 }
 
+void DBExercisesModel::newExerciseFromExercisesList()
+{
+	const uint n_subexercises{appExercisesList()->selectedEntriesCount()};
+	if (n_subexercises == 0)
+		return;
+
+	const uint exercise_number{addExercise()};
+	for (uint exercise_idx{0}; exercise_idx < n_subexercises; ++exercise_idx)
+	{
+		static_cast<void>(addSubExercise(exercise_number));
+		setExerciseName(exercise_number, exercise_idx, std::move(
+			appExercisesList()->selectedEntriesValue(exercise_idx, EXERCISES_LIST_COL_MAINNAME) + " - "_L1 +
+			appExercisesList()->selectedEntriesValue(exercise_idx, EXERCISES_LIST_COL_SUBNAME)));
+		emit exerciseNameChanged(exercise_number, exercise_idx);
+	}
+}
+
 uint DBExercisesModel::addSubExercise(const uint exercise_number, const bool emit_signal)
 {
 	exerciseEntry *exercise{m_exerciseData[exercise_number]};
@@ -909,6 +927,7 @@ void DBExercisesModel::commonConstructor()
 	m_roleNames[setsNumberRole] = std::move("setsNumber");
 	m_roleNames[exerciseCompletedRole] = std::move("exerciseCompleted");
 	m_roleNames[workingSetRole] = std::move("workingSet");
+	m_mesoId = appMesoModel()->id(m_mesoIdx);
 	if (m_calendarDay >= 0)
 	{
 		m_splitLetter = m_calendarManager->splitLetter(m_mesoIdx, m_calendarDay).value().at(0);

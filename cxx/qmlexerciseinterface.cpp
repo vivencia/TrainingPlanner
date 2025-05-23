@@ -5,7 +5,7 @@
 #include "dbworkoutmodel.h"
 #include "qmlexerciseentry.h"
 #include "qmlitemmanager.h"
-#include "qmltdayinterface.h"
+#include "qmlworkoutinterface.h"
 
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -36,19 +36,19 @@ void QmlExerciseInterface::createExerciseObject()
 	QString nRestTime;
 	if (exercise_idx >= 1)
 	{
-		bTrackRestTime = m_tDayModel->trackRestTime(exercise_idx-1);
-		bAutoRestTime = m_tDayModel->autoRestTime(exercise_idx-1);
-		nRestTime = m_tDayModel->nextSetSuggestedTime(exercise_idx-1, SET_TYPE_REGULAR);
+		bTrackRestTime = m_workoutModel->trackRestTime(exercise_idx-1);
+		bAutoRestTime = m_workoutModel->autoRestTime(exercise_idx-1);
+		nRestTime = m_workoutModel->nextSetSuggestedTime(exercise_idx-1, SET_TYPE_REGULAR);
 	}
 	else
-		nRestTime = m_tDayModel->nextSetSuggestedTime(0, SET_TYPE_REGULAR, 0);
+		nRestTime = m_workoutModel->nextSetSuggestedTime(0, SET_TYPE_REGULAR, 0);
 
-	QmlExerciseEntry* newExercise{new QmlExerciseEntry{this, m_tDayPage, m_tDayModel, exercise_idx}};
+	QmlExerciseEntry* newExercise{new QmlExerciseEntry{this, m_workoutPage, m_workoutModel, exercise_idx}};
 	if (exercise_idx > 0)
 		m_exercisesList.last()->setLastExercise(false);
 	m_exercisesList.append(newExercise);
-	m_tDayModel->newExercise(exercise_idx);
-	m_tDayPage->exerciseSelected(newExercise);
+	m_workoutModel->newExercise(exercise_idx);
+	m_workoutPage->exerciseSelected(newExercise);
 
 	newExercise->setIsEditable(true);
 	newExercise->setRestTime(nRestTime);
@@ -60,7 +60,7 @@ void QmlExerciseInterface::createExerciseObject()
 	newExercise->setLastExercise(true);
 
 	createExerciseObject_part2(exercise_idx);
-	QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, -2));
+	QMetaObject::invokeMethod(m_workoutPage->workoutPage(), "placeSetIntoView", Q_ARG(int, -2));
 }
 
 void QmlExerciseInterface::createExercisesObjects()
@@ -77,30 +77,30 @@ void QmlExerciseInterface::createExercisesObjects()
 		}
 	}
 
-	const uint n_exercises(m_tDayModel->exerciseCount());
+	const uint n_exercises(m_workoutModel->exerciseCount());
 	for(uint i(0), set_type(0), last_set(0); i < n_exercises; ++i)
 	{
-		QmlExerciseEntry* newExercise{new QmlExerciseEntry{this, m_tDayPage, m_tDayModel, i}};
-		last_set = m_tDayModel->setsNumber(i) - 1;
+		QmlExerciseEntry* newExercise{new QmlExerciseEntry{this, m_workoutPage, m_workoutModel, i}};
+		last_set = m_workoutModel->setsNumber(i) - 1;
 		if (last_set > 10) last_set = 0; //setsNumber was 0
-		set_type = m_tDayModel->setType(i, last_set);
-		newExercise->setExerciseName(m_tDayModel->exerciseName(i), false);
+		set_type = m_workoutModel->setType(i, last_set);
+		newExercise->setExerciseName(m_workoutModel->exerciseName(i), false);
 		newExercise->setIsEditable(false);
 		newExercise->setNewSetType(set_type);
-		newExercise->setTrackRestTime(m_tDayModel->trackRestTime(i-(i >= 1 ? 1 : 0)));
-		newExercise->setAutoRestTime(m_tDayModel->autoRestTime(i-(i >= 1 ? 1 : 0)));
-		newExercise->setAllSetsCompleted(m_tDayModel->allSetsCompleted(i));
-		newExercise->setCanEditRestTimeTracking(!m_tDayModel->anySetCompleted(i));
+		newExercise->setTrackRestTime(m_workoutModel->trackRestTime(i-(i >= 1 ? 1 : 0)));
+		newExercise->setAutoRestTime(m_workoutModel->autoRestTime(i-(i >= 1 ? 1 : 0)));
+		newExercise->setAllSetsCompleted(m_workoutModel->allSetsCompleted(i));
+		newExercise->setCanEditRestTimeTracking(!m_workoutModel->anySetCompleted(i));
 		newExercise->setLastExercise(i == n_exercises - 1);
 		m_exercisesList.append(newExercise);
 		createExerciseObject_part2(i);
 	}
-	QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, -1));
+	QMetaObject::invokeMethod(m_workoutPage->workoutPage(), "placeSetIntoView", Q_ARG(int, -1));
 }
 
 void QmlExerciseInterface::removeExerciseObject(const uint exercise_idx)
 {
-	m_tDayModel->removeExercise(exercise_idx);
+	m_workoutModel->removeExercise(exercise_idx);
 	m_exercisesList.at(exercise_idx)->deleteLater();
 	m_exercisesList.removeAt(exercise_idx);
 
@@ -115,8 +115,8 @@ void QmlExerciseInterface::removeExerciseSet(const uint exercise_idx, const uint
 
 void QmlExerciseInterface::clearExercises()
 {
-	m_tDayModel->clearExercises();
-	m_tDayPage->setDayIsFinished(false);
+	m_workoutModel->clearExercises();
+	m_workoutPage->setDayIsFinished(false);
 	for(uint i(0); i < m_exercisesList.count(); ++i)
 		delete m_exercisesList.at(i);
 	m_exercisesList.clear();
@@ -131,7 +131,7 @@ void QmlExerciseInterface::setExercisesEditable(const bool editable)
 void QmlExerciseInterface::moveExercise(const uint exercise_idx, const uint new_idx)
 {
 	m_exercisesList.swapItemsAt(exercise_idx, new_idx);
-	m_tDayModel->moveExercise(exercise_idx, new_idx);
+	m_workoutModel->moveExercise(exercise_idx, new_idx);
 
 	for(uint i(0); i < m_exercisesList.count(); ++i)
 	{
@@ -163,11 +163,11 @@ void QmlExerciseInterface::gotoNextExercise(const uint exercise_idx) const
 			{
 				QMetaObject::invokeMethod(m_exercisesList.at(i)->exerciseEntry(), "paneExerciseShowHide", Q_ARG(bool, true));
 				QQuickItem* exercise_entry{m_exercisesList.at(i-1)->exerciseEntry()};
-				QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, exercise_entry->y() + exercise_entry->height()));
+				QMetaObject::invokeMethod(m_workoutPage->workoutPage(), "placeSetIntoView", Q_ARG(int, exercise_entry->y() + exercise_entry->height()));
 				return;
 			}
 		}
-		QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, 0));
+		QMetaObject::invokeMethod(m_workoutPage->workoutPage(), "placeSetIntoView", Q_ARG(int, 0));
 	}
 }
 
@@ -175,7 +175,7 @@ void QmlExerciseInterface::hideSets() const
 {
 	for(uint i(0); i < m_exercisesList.count(); ++i)
 		QMetaObject::invokeMethod(m_exercisesList.at(i)->exerciseEntry(), "paneExerciseShowHide", Q_ARG(bool, false));
-	QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, 0));
+	QMetaObject::invokeMethod(m_workoutPage->workoutPage(), "placeSetIntoView", Q_ARG(int, 0));
 }
 
 void QmlExerciseInterface::createExerciseObject_part2(const uint exercise_idx)

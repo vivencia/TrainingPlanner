@@ -49,7 +49,7 @@ Q_PROPERTY(bool isManuallyModified READ isManuallyModified WRITE setIsManuallyMo
 
 public:
 	inline explicit QmlSetEntry(QObject* parent, QmlExerciseEntry* parentExercise, DBWorkoutModel* tDayModel, const uint exercise_idx)
-		: QObject{parent}, m_parentExercise(parentExercise), m_tDayModel(tDayModel), m_exercise_idx(exercise_idx), m_setEntry(nullptr),
+		: QObject{parent}, m_parentExercise(parentExercise), m_workoutModel(tDayModel), m_exercise_idx(exercise_idx), m_setEntry(nullptr),
 		m_type(9999), m_number(9999), m_mode(9999), m_nsubsets(9999),
 		m_bEditable(false), m_bCompleted(false), m_bLastSet(false), m_bTrackRestTime(false), m_bAutoRestTime(false),
 		m_bCurrent(false), m_bHasSubSets(false), m_bIsManuallyModified(false) {}
@@ -203,7 +203,7 @@ signals:
 
 private:
 	QmlExerciseEntry* m_parentExercise;
-	DBWorkoutModel* m_tDayModel;
+	DBWorkoutModel* m_workoutModel;
 	uint m_exercise_idx;
 
 	QQuickItem* m_setEntry;

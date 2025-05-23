@@ -158,7 +158,7 @@ int DBUserModel::userIdxFromFieldValue(const uint field, const QString &value) c
 
 const QString &DBUserModel::userIdFromFieldValue(const uint field, const QString &value) const
 {
-	const auto &user{std::find_if(m_usersData.cbegin(), m_usersData.cend(), [field,value] (const auto user_info) {
+	const auto &user{std::find_if(m_usersData.cbegin(), m_usersData.cend(), [field,value] (const auto &user_info) {
 		return user_info.at(field) == value;
 	})};
 	if (user != m_usersData.cend())
@@ -205,7 +205,7 @@ QString DBUserModel::avatar(const uint user_idx, const bool checkServer)
 		const QString &userid{userId(user_idx)};
 		const QDir &localFilesDir{localDir(user_idx)};
 		const QFileInfoList &images{localFilesDir.entryInfoList(QDir::Files|QDir::NoDotAndDotDot|QDir::NoSymLinks)};
-		const auto &it = std::find_if(images.cbegin(), images.cend(), [userid] (const auto image_fi) {
+		const auto &it = std::find_if(images.cbegin(), images.cend(), [userid] (const auto &image_fi) {
 			return image_fi.fileName().contains("avatar."_L1);
 		});
 		return it != images.cend() ? it->filePath() : defaultAvatar(user_idx);
@@ -1354,7 +1354,7 @@ void DBUserModel::pollCoachesAnswers()
 				auto conn = std::make_shared<QMetaObject::Connection>();
 				*conn = connect(this, &DBUserModel::userProfileAcquired, this, [this,conn,answers_list,n_connections]
 																			(const QString &userid, const bool success) mutable {
-					const auto &it = std::find_if(answers_list.cbegin(), answers_list.cend(), [userid] (const auto coach) {
+					const auto &it = std::find_if(answers_list.cbegin(), answers_list.cend(), [userid] (const auto &coach) {
 						return coach.startsWith(userid);
 					});
 					if (it != answers_list.cend())

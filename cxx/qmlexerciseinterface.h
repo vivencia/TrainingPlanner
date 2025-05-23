@@ -18,8 +18,8 @@ class QmlExerciseInterface : public QObject
 Q_OBJECT
 
 public:
-	inline explicit QmlExerciseInterface(QObject* parent, QmlTDayInterface* tDayPage, DBWorkoutModel *tDayModel, QQuickItem* parentLayout)
-		: QObject{parent}, m_tDayPage(tDayPage), m_tDayModel(tDayModel), m_parentLayout(parentLayout),
+	inline explicit QmlExerciseInterface(QObject* parent, QmlTDayInterface* workoutPage, DBWorkoutModel *tDayModel, QQuickItem* parentLayout)
+		: QObject{parent}, m_workoutPage(workoutPage), m_workoutModel(tDayModel), m_parentLayout(parentLayout),
 			m_exercisesComponent(nullptr), m_simpleExercisesListRequester(-1) {}
 	~QmlExerciseInterface();
 
@@ -37,8 +37,8 @@ public:
 	inline QmlExerciseEntry* exerciseEntry(const uint exercise_idx) const { return m_exercisesList.at(exercise_idx); }
 
 private:
-	QmlTDayInterface* m_tDayPage;
-	DBWorkoutModel* m_tDayModel;
+	QmlTDayInterface* m_workoutPage;
+	DBWorkoutModel* m_workoutModel;
 	QQuickItem* m_parentLayout;
 	QVariantMap m_exercisesProperties;
 	QQmlComponent* m_exercisesComponent;

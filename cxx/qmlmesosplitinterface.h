@@ -59,7 +59,6 @@ signals:
 	void currentPageChanged();
 
 public slots:
-	void exerciseSelected();
 	void hideSimpleExercisesList();
 
 private:
@@ -75,9 +74,8 @@ private:
 	uint m_mesoIdx;
 
 	uint m_simpleExercisesListExerciseIdx;
-	QString m_prevMesoName;
+	QString m_prevMesoName, m_prevMesoId;
 	QChar m_currentSplitLetter, m_currentSwappableLetter;
-	int m_prevMesoId;
 
 	void createPlannerPage();
 	void createPlannerPage_part2();

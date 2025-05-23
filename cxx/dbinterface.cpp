@@ -301,10 +301,10 @@ bool DBInterface::mesoHasAllSplitPlans(const uint meso_idx) const
 	return ret;
 }
 
-bool DBInterface::mesoHasSplitPlan(const uint meso_idx, const QChar &split_letter) const
+bool DBInterface::mesoHasSplitPlan(const QString &meso_id, const QChar &split_letter) const
 {
 	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{nullptr}};
-	const bool ret{worker->mesoHasSplitPlan(appMesoModel()->id(meso_idx), split_letter)};
+	const bool ret{worker->mesoHasSplitPlan(meso_id, split_letter)};
 	delete worker;
 	return ret;
 }

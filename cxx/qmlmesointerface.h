@@ -202,7 +202,7 @@ private:
 	int m_newMesoFieldCounter;
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
-	QMap<QDate,QmlTDayInterface*> m_tDayPages;
+	QMap<QDate,QmlTDayInterface*> m_workoutPages;
 	QmlMesoSplitInterface *m_exercisesPage;
 	QmlMesoCalendarInterface *m_calendarPage;
 

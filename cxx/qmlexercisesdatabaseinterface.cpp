@@ -3,7 +3,7 @@
 #include "dbexerciseslistmodel.h"
 #include "dbinterface.h"
 #include "qmlitemmanager.h"
-#include "qmltdayinterface.h"
+#include "qmlworkoutinterface.h"
 #include "osinterface.h"
 #include "tputils.h"
 #include "translationclass.h"
