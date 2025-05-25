@@ -90,6 +90,7 @@ public:
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; }
 	inline int calendarDay() const { return m_calendarDay; }
 	inline const QChar &splitLetter() const { return m_splitLetter; }
+	inline void setSplitLetter(const QChar &new_splitletter) { m_splitLetter = new_splitletter; }
 	inline bool importModel() const { return m_importMode; }
 	inline void setImportMode(const bool import_mode) { m_importMode = import_mode; }
 
@@ -183,6 +184,10 @@ public:
 	inline QString restTimeUntrackedLabel() const { return tr("As needed"); }
 	static inline QString splitLabel() { return tr("Split: "); }
 
+	void clearPreviousWorkouts() { m_previousWorkouts.clear(); }
+	inline void appendPreviousWorkout(const uint calendar_day) { m_previousWorkouts.append(calendar_day); }
+	const QList<uint> &previousWorkouts() const { return m_previousWorkouts; }
+
 	QVariant data(const QModelIndex &index, int role) const override final;
 	bool setData(const QModelIndex &index, const QVariant &value, int role) override final;
 	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return exerciseCount(); }
@@ -213,6 +218,7 @@ private:
 	QChar m_splitLetter;
 	QList<exerciseEntry*> m_exerciseData;
 	QHash<int, QByteArray> m_roleNames;
+	QList<uint> m_previousWorkouts;
 
 	void commonConstructor();
 	const QString formatSetTypeToExport(stSet *set) const;

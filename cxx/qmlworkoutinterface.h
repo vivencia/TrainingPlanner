@@ -6,14 +6,14 @@
 #include <QVariantMap>
 
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
+QT_FORWARD_DECLARE_CLASS(DBCalendarModel)
 QT_FORWARD_DECLARE_CLASS(QmlExerciseInterface)
 QT_FORWARD_DECLARE_CLASS(QmlExerciseEntry)
-class TPTimer;
+QT_FORWARD_DECLARE_CLASS(TPTimer)
+QT_FORWARD_DECLARE_CLASS(QQmlComponent)
+QT_FORWARD_DECLARE_CLASS(QQuickItem)
 
-class QQmlComponent;
-class QQuickItem;
-
-class QmlTDayInterface : public QObject
+class QmlWorkoutInterface : public QObject
 {
 
 Q_OBJECT
@@ -21,29 +21,27 @@ Q_OBJECT
 Q_PROPERTY(uint timerHour READ timerHour WRITE setTimerHour NOTIFY timerHourChanged FINAL)
 Q_PROPERTY(uint timerMinute READ timerMinute WRITE setTimerMinute NOTIFY timerMinuteChanged FINAL)
 Q_PROPERTY(uint timerSecond READ timerSecond WRITE setTimerSecond NOTIFY timerSecondChanged FINAL)
-Q_PROPERTY(QString splitLetter READ splitLetter WRITE setSplitLetter NOTIFY splitLetterChanged FINAL)
+Q_PROPERTY(QChar splitLetter READ splitLetter WRITE setSplitLetter NOTIFY splitLetterChanged FINAL)
 Q_PROPERTY(QString timeIn READ timeIn WRITE setTimeIn NOTIFY timeInChanged FINAL)
 Q_PROPERTY(QString timeOut READ timeOut WRITE setTimeOut NOTIFY timeOutChanged FINAL)
+Q_PROPERTY(QString location READ location WRITE setLocation NOTIFY locationChanged FINAL)
+Q_PROPERTY(QString notes READ notes WRITE setNotes NOTIFY notesChanged FINAL)
 Q_PROPERTY(QString headerText READ headerText WRITE setHeaderText NOTIFY headerTextChanged FINAL)
 Q_PROPERTY(QString muscularGroup READ muscularGroup NOTIFY muscularGroupChanged FINAL)
-Q_PROPERTY(QString lastWorkOutLocation READ lastWorkOutLocation WRITE setLastWorkOutLocation NOTIFY lastWorkOutLocationChanged FINAL)
-Q_PROPERTY(QString dayNotes READ dayNotes WRITE setDayNotes NOTIFY dayNotesChanged FINAL)
 Q_PROPERTY(bool editMode READ editMode WRITE setEditMode NOTIFY editModeChanged FINAL)
 Q_PROPERTY(bool dayIsFinished READ dayIsFinished WRITE setDayIsFinished NOTIFY dayIsFinishedChanged FINAL)
-Q_PROPERTY(bool dayIsEditable READ dayIsEditable WRITE setDayIsEditable NOTIFY dayIsEditableChanged FINAL)
-Q_PROPERTY(bool hasPreviousTDays READ hasPreviousTDays WRITE setHasPreviousTDays NOTIFY hasPreviousTDaysChanged FINAL)
-Q_PROPERTY(bool hasMesoPlan READ hasMesoPlan WRITE setHasMesoPlan NOTIFY hasMesoPlanChanged FINAL)
+Q_PROPERTY(bool workoutIsEditable READ workoutIsEditable WRITE setWorkoutIsEditable NOTIFY workoutIsEditableChanged FINAL)
+Q_PROPERTY(bool canImportFromPreviousWorkout READ canImportFromPreviousWorkout WRITE setCanImportFromPreviousWorkout NOTIFY canImportFromPreviousWorkoutChanged FINAL)
+Q_PROPERTY(bool canImportFromSplitPlan READ canImportFromSplitPlan WRITE setCanImportFromSplitPlan NOTIFY canImportFromSplitPlanChanged FINAL)
 Q_PROPERTY(bool mainDateIsToday READ mainDateIsToday WRITE setMainDateIsToday NOTIFY mainDateIsTodayChanged FINAL)
 Q_PROPERTY(bool needActivation READ needActivation WRITE setNeedActivation NOTIFY needActivationChanged FINAL)
 Q_PROPERTY(bool timerActive READ timerActive WRITE setTimerActive NOTIFY timerActiveChanged FINAL)
-Q_PROPERTY(bool hasExercises READ hasExercises WRITE setHasExercises NOTIFY hasExercisesChanged FINAL)
-Q_PROPERTY(QStringList previousTDays READ previousTDays WRITE setPreviousTDays NOTIFY previousTDaysChanged FINAL)
+Q_PROPERTY(bool hasExercises READ hasExercises NOTIFY hasExercisesChanged FINAL)
+Q_PROPERTY(QStringList previousWorkoutsList READ previousWorkoutsList NOTIFY previousWorkoutsListChanged FINAL)
 
 public:
-	explicit inline QmlTDayInterface(QObject *parent, const uint meso_idx, const QDate &date)
-		: QObject{parent}, m_workoutPage(nullptr), m_mesoIdx(meso_idx), m_Date(date), m_exerciseManager(nullptr),
-				m_workoutTimer(nullptr), m_restTimer(nullptr), m_SimpleExercisesListRequesterExerciseComp(0) {}
-	~QmlTDayInterface();
+	explicit QmlWorkoutInterface(QObject *parent, const uint meso_idx, const QDate &date);
+	~QmlWorkoutInterface();
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	inline uint timerHour() const { return m_hour; }
@@ -55,43 +53,43 @@ public:
 	inline uint timerSecond() const { return m_sec; }
 	inline void setTimerSecond(const uint new_value) { m_sec = new_value; emit timerSecondChanged(); }
 
-	inline const QChar _splitLetter() const { return m_splitLetter.at(0); }
-	inline QString splitLetter() const { return m_splitLetter; }
-	void setSplitLetter(const QString &new_value, const bool bFromQml = true, const bool bDontConfirm = false);
+	QChar splitLetter() const;
+	void setSplitLetter(const QChar &new_splitletter, const bool clear_exercises);
 
-	inline QString timeIn() const { return m_timeIn; }
-	void setTimeIn(const QString &new_value, const bool bFromQml = true);
+	QString timeIn() const;
+	void setTimeIn(const QString &new_timein);
 
-	inline QString timeOut() const { return m_timeOut; }
-	void setTimeOut(const QString &new_value, const bool bFromQml = true);
+	QString timeOut() const;
+	void setTimeOut(const QString &new_timeout);
+
+	QString location() const;
+	void setLocation(const QString &new_location);
+	Q_INVOKABLE QString lastWorkOutLocation() const;
+
+	QString notes() const;
+	void setNotes(const QString &new_notes);
+
+	bool dayIsFinished() const;
+	void setDayIsFinished(const bool finished);
 
 	inline QString headerText() const { return m_headerText; }
 	void setHeaderText(const QString &new_header = QString{});
-	inline QString muscularGroup() const { return m_muscularGroup; }
+	Q_INVOKABLE QString muscularGroup() const;
 
-	inline QString lastWorkOutLocation() const { return m_lastWorkOutLocation; }
-	void setLastWorkOutLocation(const QString &new_value);
+	inline bool editMode() const { return m_editMode; }
+	void setEditMode(const bool edit_mode);
 
-	inline QString dayNotes() const { return m_dayNotes; }
-	void setDayNotes(const QString &new_value, const bool bFromQml = true);
+	inline bool workoutIsEditable() const { return m_workoutIsEditable; }
+	void setWorkoutIsEditable(const bool editable);
 
-	inline bool editMode() const { return m_bEditMode; }
-	void setEditMode(const bool new_value, const bool bFromQml = true);
+	inline bool canImportFromSplitPlan() const { return m_importFromSplitPlan; }
+	inline void setCanImportFromSplitPlan(const bool can_import) { m_importFromSplitPlan = can_import; emit canImportFromSplitPlanChanged(); }
 
-	inline bool dayIsFinished() const { return m_bDayIsFinished; }
-	void setDayIsFinished(const bool new_value, const bool bFromQml = true);
-
-	inline bool dayIsEditable() const { return m_bDayIsEditable; }
-	void setDayIsEditable(const bool new_value);
-
-	inline bool hasMesoPlan() const { return m_bHasMesoPlan; }
-	inline void setHasMesoPlan(const bool new_value) { if (m_bHasMesoPlan != new_value) { m_bHasMesoPlan = new_value; emit hasMesoPlanChanged(); } }
-
-	inline bool hasPreviousTDays() const { return m_bHasPreviousTDays; }
-	inline void setHasPreviousTDays(const bool new_value) { if (m_bHasPreviousTDays != new_value) { m_bHasPreviousTDays = new_value; emit hasPreviousTDaysChanged(); } }
+	inline bool canImportFromPreviousWorkout() const { return m_importFromPrevWorkout; }
+	inline void setCanImportFromPreviousWorkout(const bool can_import) { m_importFromPrevWorkout = can_import; emit canImportFromPreviousWorkoutChanged(); }
 
 	inline bool mainDateIsToday() const { return m_bMainDateIsToday; }
-	void setMainDateIsToday(const bool new_value);
+	void setMainDateIsToday(const bool is_today);
 
 	inline bool needActivation() const { return m_bNeedActivation; }
 	inline void setNeedActivation(const bool new_value) { if (m_bNeedActivation != new_value) { m_bNeedActivation = new_value; emit needActivationChanged(); } }
@@ -99,11 +97,9 @@ public:
 	inline bool timerActive() const { return m_bTimerActive; }
 	inline void setTimerActive(const bool new_value) { m_bTimerActive = new_value; emit timerActiveChanged(); }
 
-	inline bool hasExercises() const { return m_bHasExercises; }
-	inline void setHasExercises(const bool new_value) { if (m_bHasExercises != new_value) { m_bHasExercises = new_value; emit hasExercisesChanged(); } }
+	bool hasExercises() const;
 
-	inline QStringList previousTDays() const { return m_previousTDays; }
-	inline void setPreviousTDays(const QStringList &other) { m_previousTDays = other; emit previousTDaysChanged(); }
+	inline QStringList previousWorkoutsList() const { return m_prevWorkouts; }
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
 	void setMesoIdx(const uint new_meso_idx);
@@ -113,8 +109,6 @@ public:
 	Q_INVOKABLE void loadExercisesFromMesoPlan(DBExercisesModel *splitModel = nullptr);
 	Q_INVOKABLE void convertTDayToPlan();
 	Q_INVOKABLE void resetWorkout();
-	Q_INVOKABLE void changeSplit(const QString &newSplitLetter, const bool bClearExercises = false);
-	Q_INVOKABLE void adjustCalendar(const QString &newSplitLetter, const bool bOnlyThisDay);
 	Q_INVOKABLE void exportTrainingDay(const bool bShare);
 	Q_INVOKABLE void importTrainingDay(const QString &filename = QString());
 	Q_INVOKABLE void prepareWorkOutTimer(const QString &strStartTime = QString(), const QString &strEndTime = QString());
@@ -129,7 +123,7 @@ public:
 	inline DBExercisesModel *tDayModel() const { return m_workoutModel; }
 	inline QQuickItem *workoutPage() const { return m_workoutPage; }
 
-	void simpleExercisesList(const uint exercise_idx, const bool show, const bool multi_sel, const uint comp_exercise);
+	void simpleExercisesList(const bool show, const bool multi_sel = false);
 	void displayMessage(const QString &title, const QString &message, const bool error = false, const uint msecs = 0) const;
 	void askRemoveExercise(const uint exercise_idx);
 	void askRemoveSet(const uint exercise_idx, const uint set_number);
@@ -138,58 +132,57 @@ public:
 
 	TPTimer *restTimer();
 
+public slots:
+	void createExerciseObject();
+	void silenceTimeWarning();
+	void hideSimpleExercisesList();
+	void verifyWorkoutOptions();
+
 signals:
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	void timerHourChanged();
 	void timerMinuteChanged();
 	void timerSecondChanged();
-	void splitLetterChanged();
 	void timeInChanged();
 	void timeOutChanged();
+	void locationChanged();
+	void lastWorkOutLocationChanged();
+	void notesChanged();
 	void headerTextChanged();
 	void muscularGroupChanged();
-	void lastWorkOutLocationChanged();
-	void dayNotesChanged();
 	void editModeChanged();
 	void dayIsFinishedChanged();
-	void dayIsEditableChanged();
-	void hasPreviousTDaysChanged();
-	void hasMesoPlanChanged();
+	void workoutIsEditableChanged();
+	void canImportFromPreviousWorkoutChanged();
+	void canImportFromSplitPlanChanged();
 	void mainDateIsTodayChanged();
 	void needActivationChanged();
 	void timerActiveChanged();
 	void hasExercisesChanged();
-	void previousTDaysChanged();
+	void previousWorkoutsListChanged();
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
-
-	void displayMessageOnAppWindow(const int message_id, const QString &filename = QString());
-	void addPageToMainMenu(const QString &label, QQuickItem *page);
-	void removePageFromMainMenu(QQuickItem *page);
-	void requestMesoSplitModel(const QChar &splitletter);
-
-public slots:
-	void createExerciseObject();
-	void silenceTimeWarning();
-	void exerciseSelected(QmlExerciseEntry *exerciseEntry = nullptr);
-	void hideSimpleExercisesList();
+	void displayMessageOnAppWindow(const int message_id, const QString& filename = QString());
+	void addPageToMainMenu(const QString& label, QQuickItem* page);
+	void removePageFromMainMenu(QQuickItem* page);
+	void requestMesoSplitModel(const QChar& splitletter);
 
 private:
-	QQmlComponent *m_tDayComponent;
+	QQmlComponent *m_workoutComponent;
 	DBExercisesModel *m_workoutModel;
+	DBCalendarModel * m_calendarModel;
 	QQuickItem *m_workoutPage;
-	QVariantMap m_tDayProperties;
+	QVariantMap m_workoutProperties;
 	QmlExerciseInterface *m_exerciseManager;
-	uint m_mesoIdx;
-	QDate m_Date;
+	uint m_mesoIdx, m_calendarDay;
 	TPTimer *m_workoutTimer, *m_restTimer;
 	int m_SimpleExercisesListRequesterExerciseIdx, m_SimpleExercisesListRequesterExerciseComp;
+	QStringList m_prevWorkouts;
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	uint m_hour, m_min, m_sec;
-	QString m_splitLetter, m_timeIn, m_timeOut, m_headerText, m_muscularGroup, m_lastWorkOutLocation, m_dayNotes;
-	bool m_bEditMode, m_bDayIsFinished, m_bDayIsEditable, m_bHasPreviousTDays, m_bHasMesoPlan, m_bMainDateIsToday, m_bNeedActivation,
-			m_bTimerActive, m_bHasExercises;
-	QStringList m_previousTDays;
+	QString m_headerText;
+	bool m_editMode, m_workoutIsEditable, m_importFromPrevWorkout, m_importFromSplitPlan, m_bMainDateIsToday, m_bNeedActivation,
+			m_bTimerActive;
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
 	void createTrainingDayPage();
@@ -197,7 +190,6 @@ private:
 	void loadExercises();
 	void updateTDayPageWithNewCalendarInfo(const QDate &startDate, const QDate &endDate);
 	void calculateWorkoutTime();
-	void setTrainingDayPageEmptyDayOrChangedDayOptions(const DBExercisesModel *model);
 };
 
 #endif // QMLWORKOUTINTERFACE_H

@@ -17,7 +17,7 @@ TPPopup {
 	leftPadding: 0
 	rightPadding: 0
 
-	property bool isOK: false
+	property bool  modified: false
 	property int timeButtonsPaneSize: timePicker.width
 	property int innerButtonsPaneSize: timeButtonsPaneSize - 50
 
@@ -42,8 +42,7 @@ TPPopup {
 		{"c1":"10","c2":"22","d":"10","n":"22","m":"50","q":false},
 		{"c1":"11","c2":"23","d":"11","n":"23","m":"55","q":false}
 	]
-	// this model used to display selected time
-	// so you can add per ex. AM, PM or so
+	// this model used to display selected time so you can add per ex. AM, PM or so
 	readonly property var timePickerDisplayModel: [
 		{"c1":"12","c2":"00","d":"12","n":"00","m":"00","q":true},
 		{"c1":"01","c2":"13","d":"13","n":"01","m":"05","q":false},
@@ -74,11 +73,9 @@ TPPopup {
 	signal timeSet(string hour, string minutes)
 
 	// opening TimePicker with a given HH:MM value
-	// ATTENTION TimePicker is rounding DOWN to next lower 05 / 15 Minutes
-	// if you want to round UP do it before calling this function
-	function setDisplay(hhmm, q, w): void {
+	// ATTENTION TimePicker is rounding DOWN to next lower 05 / 15 Minutes. If you want to round UP do it before calling this function
+	function setDisplay(hhmm: string, q: bool): void {
 		onlyQuartersAllowed = q;
-		useWorkTimes = w;
 		const s = hhmm.split(':');
 		if (s.length === 2) {
 			const hours = s[0];
@@ -90,7 +87,7 @@ TPPopup {
 		}
 	}
 
-	function showHour(hour): void {
+	function showHour(hour: string): void {
 		for (let i = 0; i < timePickerDisplayModel.length; i++) {
 			const h = timePickerDisplayModel[i];
 			if (useWorkTimes) {
@@ -141,7 +138,7 @@ TPPopup {
 			hrsDisplay = useWorkTimes ? timePickerDisplayModel[outerButtonIndex].d : timePickerDisplayModel[outerButtonIndex].c1;
 	}
 
-	function showMinutes(minutes): void {
+	function showMinutes(minutes: string): void {
 		for (let i=0; i < timePickerDisplayModel.length; i++) {
 			const m = timePickerDisplayModel[i];
 			if (m.m === minutes) {
@@ -243,9 +240,8 @@ TPPopup {
 				background: Rectangle {
 					color: "transparent"
 				}
-				onClicked: {
-					onHoursButtonClicked();
-				}
+
+				onClicked: onHoursButtonClicked();
 			} // hrsButton
 
 			Label {
@@ -307,7 +303,10 @@ TPPopup {
 				leftMargin: 5
 			}
 
-			onClicked: timePicker.setDisplay(appUtils.getCurrentTimeString(), timePicker.onlyQuartersAllowed, timePicker.useWorkTimes)
+			onClicked: {
+				modified = true;
+				timePicker.setDisplay(appUtils.getCurrentTimeString(), timePicker.onlyQuartersAllowed)
+			}
 		}
 
 		TPButton {
@@ -377,15 +376,17 @@ TPPopup {
 					enabled: buttonsIsEnabled(text, true);
 
 					onClicked: {
-						timePicker.outerButtonIndex = -1
-						timePicker.innerButtonIndex = index
-						if(timePicker.useWorkTimes) {
-							timePicker.hrsDisplay = timePicker.timePickerDisplayModel[index].n
-						} else {
-							timePicker.hrsDisplay = timePicker.timePickerDisplayModel[index].c2
-						}
-						if(timePicker.autoSwapToMinutes) {
-							timePicker.onMinutesButtonClicked()
+						if (timePicker.innerButtonIndex !=+ index)
+						{
+							timePicker.outerButtonIndex = -1
+							timePicker.innerButtonIndex = index
+							if (timePicker.useWorkTimes)
+								timePicker.hrsDisplay = timePicker.timePickerDisplayModel[index].n
+							else
+								timePicker.hrsDisplay = timePicker.timePickerDisplayModel[index].c2
+							if (timePicker.autoSwapToMinutes)
+								timePicker.onMinutesButtonClicked()
+							modified = true;
 						}
 					}
 
@@ -441,19 +442,21 @@ TPPopup {
 							buttonsIsEnabled(text, true)
 
 				onClicked: {
-					timePicker.innerButtonIndex = -1
-					timePicker.outerButtonIndex = index
-					if(timePicker.pickMinutes) {
-						timePicker.minutesDisplay = timePicker.timePickerDisplayModel[index].m
-					} else {
-						if(timePicker.useWorkTimes) {
-							timePicker.hrsDisplay = timePicker.timePickerDisplayModel[index].d
-						} else {
-							timePicker.hrsDisplay = timePicker.timePickerDisplayModel[index].c1
+					if (timePicker.outerButtonIndex !== index)
+					{
+						timePicker.outerButtonIndex = index
+						timePicker.innerButtonIndex = -1
+						if(timePicker.pickMinutes)
+							timePicker.minutesDisplay = timePicker.timePickerDisplayModel[index].m
+						else {
+							if(timePicker.useWorkTimes)
+								timePicker.hrsDisplay = timePicker.timePickerDisplayModel[index].d
+							else
+								timePicker.hrsDisplay = timePicker.timePickerDisplayModel[index].c1
 						}
-						if(timePicker.autoSwapToMinutes) {
+						if(timePicker.autoSwapToMinutes)
 							timePicker.onMinutesButtonClicked()
-						}
+						modified = true;
 					}
 				}
 
@@ -525,7 +528,7 @@ TPPopup {
 	} // timeButtonsPane
 
 	onOpened: {
-		timePicker.isOK = false
+		timePicker.modified = false
 	}
 
 	Pane {
@@ -558,6 +561,7 @@ TPPopup {
 		TPButton {
 			text: qsTr("OK")
 			flat: false
+			enabled: modified
 
 			anchors {
 				top: parent.top
@@ -568,7 +572,6 @@ TPPopup {
 
 			onClicked: {
 				timeSet(hrsDisplay, minutesDisplay);
-				timePicker.isOK = true;
 				timePicker.closePopup();
 			}
 		}

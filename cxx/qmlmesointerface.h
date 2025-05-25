@@ -5,7 +5,7 @@
 #include <QObject>
 #include <QVariantMap>
 
-class QmlTDayInterface;
+class QmlWorkoutInterface;
 class QmlMesoSplitInterface;
 class QmlMesoCalendarInterface;
 class DBMesoSplitModel;
@@ -153,9 +153,6 @@ public:
 	Q_INVOKABLE void sendMesocycleFileToServer();
 	Q_INVOKABLE void incorporateMeso();
 
-	[[nodiscard]] DBMesoSplitModel *plannerSplitModel(const QChar &splitLetter);
-	[[nodiscard]] DBWorkoutModel *tDayModelForToday();
-
 signals:
 	void mesoNameOKChanged();
 	void realMesoChanged();
@@ -202,7 +199,7 @@ private:
 	int m_newMesoFieldCounter;
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
-	QMap<QDate,QmlTDayInterface*> m_workoutPages;
+	QHash<QDate,QmlWorkoutInterface*> m_workoutPages;
 	QmlMesoSplitInterface *m_exercisesPage;
 	QmlMesoCalendarInterface *m_calendarPage;
 

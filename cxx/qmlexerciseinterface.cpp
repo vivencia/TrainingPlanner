@@ -1,8 +1,6 @@
 #include "qmlexerciseinterface.h"
 
-#include "dbinterface.h"
-#include "dbmesosplitmodel.h"
-#include "dbworkoutmodel.h"
+#include "dbexercisesmodel.h"
 #include "qmlexerciseentry.h"
 #include "qmlitemmanager.h"
 #include "qmlworkoutinterface.h"
@@ -14,8 +12,7 @@
 
 QmlExerciseInterface::~QmlExerciseInterface()
 {
-	for(uint i(0); i < m_exercisesList.count(); ++i)
-		delete m_exercisesList.at(i);
+	qDeleteAll(m_exercisesList);
 	delete m_exercisesComponent;
 }
 
@@ -43,7 +40,7 @@ void QmlExerciseInterface::createExerciseObject()
 	else
 		nRestTime = m_workoutModel->nextSetSuggestedTime(0, SET_TYPE_REGULAR, 0);
 
-	QmlExerciseEntry* newExercise{new QmlExerciseEntry{this, m_workoutPage, m_workoutModel, exercise_idx}};
+	QmlExerciseEntry *newExercise{new QmlExerciseEntry{this, m_workoutPage, m_workoutModel, exercise_idx}};
 	if (exercise_idx > 0)
 		m_exercisesList.last()->setLastExercise(false);
 	m_exercisesList.append(newExercise);
@@ -80,7 +77,7 @@ void QmlExerciseInterface::createExercisesObjects()
 	const uint n_exercises(m_workoutModel->exerciseCount());
 	for(uint i(0), set_type(0), last_set(0); i < n_exercises; ++i)
 	{
-		QmlExerciseEntry* newExercise{new QmlExerciseEntry{this, m_workoutPage, m_workoutModel, i}};
+		QmlExerciseEntry *newExercise{new QmlExerciseEntry{this, m_workoutPage, m_workoutModel, i}};
 		last_set = m_workoutModel->setsNumber(i) - 1;
 		if (last_set > 10) last_set = 0; //setsNumber was 0
 		set_type = m_workoutModel->setType(i, last_set);
@@ -162,7 +159,7 @@ void QmlExerciseInterface::gotoNextExercise(const uint exercise_idx) const
 			if (!m_exercisesList.at(i)->allSetsCompleted())
 			{
 				QMetaObject::invokeMethod(m_exercisesList.at(i)->exerciseEntry(), "paneExerciseShowHide", Q_ARG(bool, true));
-				QQuickItem* exercise_entry{m_exercisesList.at(i-1)->exerciseEntry()};
+				QQuickItem *exercise_entry{m_exercisesList.at(i-1)->exerciseEntry()};
 				QMetaObject::invokeMethod(m_workoutPage->workoutPage(), "placeSetIntoView", Q_ARG(int, exercise_entry->y() + exercise_entry->height()));
 				return;
 			}
@@ -192,7 +189,7 @@ void QmlExerciseInterface::createExerciseObject_part2(const uint exercise_idx)
 
 	m_exercisesProperties.insert("exerciseManager"_L1, QVariant::fromValue(m_exercisesList.at(exercise_idx)));
 
-	QQuickItem* item (static_cast<QQuickItem*>(m_exercisesComponent->createWithInitialProperties(
+	QQuickItem *item (static_cast<QQuickItem*>(m_exercisesComponent->createWithInitialProperties(
 													m_exercisesProperties, appQmlEngine()->rootContext())));
 	appQmlEngine()->setObjectOwnership(item, QQmlEngine::CppOwnership);
 	item->setParentItem(m_parentLayout);

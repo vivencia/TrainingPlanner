@@ -352,6 +352,13 @@ void DBInterface::getWorkout(DBExercisesModel *model)
 	createThread(worker, [worker] () { return worker->getExercises(); });
 }
 
+int DBInterface::getPreviousWorkouts(DBExercisesModel *model)
+{
+	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{model}};
+	createThread(worker, [worker] () { return worker->getPreviousWorkouts(); });
+	return worker->uniqueId();
+}
+
 void DBInterface::saveWorkout(DBExercisesModel *model)
 {
 	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{model}};
@@ -361,13 +368,14 @@ void DBInterface::saveWorkout(DBExercisesModel *model)
 void DBInterface::removeWorkout(DBExercisesModel *model)
 {
 	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{model}};
+	worker->addExecArg(false);
 	createThread(worker, [worker] () { return worker->removeExercises(); });
 }
 
 void DBInterface::removeAllWorkouts(const uint meso_idx)
 {
 	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{nullptr}};
-	worker->addExecArg(appMesoModel()->id(meso_idx));
+	worker->addExecArg(true);
 	createThread(worker, [worker] () { return worker->removeExercises(); });
 }
 

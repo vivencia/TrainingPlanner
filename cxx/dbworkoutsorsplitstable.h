@@ -21,6 +21,7 @@ public:
 	void removeExercises();
 	bool mesoHasAllSplitPlans(const QString &meso_id, const QString &split);
 	bool mesoHasSplitPlan(const QString &meso_id, const QChar &split_letter);
+	void getPreviousWorkouts();
 
 	inline DBExercisesModel *model() const { return m_model; }
 	inline void setModel(DBExercisesModel *model) { m_model = model; }
@@ -31,7 +32,7 @@ public:
 
 private:
 	DBExercisesModel *m_model;
-	QList<QList<QStringList>> m_workoutsInfo;
+	//QList<QList<QStringList>> m_workoutsInfo;
 
 	void commonConstructor();
 };

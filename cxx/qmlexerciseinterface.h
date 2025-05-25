@@ -4,13 +4,15 @@
 #include <QObject>
 #include <QVariantMap>
 
-class QmlExerciseEntry;
-class DBWorkoutModel;
-class TPTimer;
-class QmlTDayInterface;
 
-class QQmlComponent;
-class QQuickItem;
+
+QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
+QT_FORWARD_DECLARE_CLASS(QmlExerciseEntry)
+QT_FORWARD_DECLARE_CLASS(QmlWorkoutInterface)
+QT_FORWARD_DECLARE_CLASS(TPTimer)
+
+QT_FORWARD_DECLARE_CLASS(QQmlComponent)
+QT_FORWARD_DECLARE_CLASS(QQuickItem)
 
 class QmlExerciseInterface : public QObject
 {
@@ -18,9 +20,10 @@ class QmlExerciseInterface : public QObject
 Q_OBJECT
 
 public:
-	inline explicit QmlExerciseInterface(QObject* parent, QmlTDayInterface* workoutPage, DBWorkoutModel *tDayModel, QQuickItem* parentLayout)
-		: QObject{parent}, m_workoutPage(workoutPage), m_workoutModel(tDayModel), m_parentLayout(parentLayout),
-			m_exercisesComponent(nullptr), m_simpleExercisesListRequester(-1) {}
+	inline explicit QmlExerciseInterface(QObject *parent, QmlWorkoutInterface *workout_Page,
+														DBExercisesModel *workout_Model, QQuickItem *parent_Layout)
+		: QObject{parent}, m_workout_Page{workout_Page}, m_workoutModel{workout_Model}, m_parentLayout{parent_Layout},
+			m_exercisesComponent{nullptr}, m_simpleExercisesListRequester{-1} {}
 	~QmlExerciseInterface();
 
 	void createExerciseObject();
@@ -34,14 +37,14 @@ public:
 	void hideSets() const;
 	void showSimpleExercisesList(const uint exercise_idx, const bool bMultiSel);
 	inline uint exercisesCount() const { return m_exercisesList.count(); }
-	inline QmlExerciseEntry* exerciseEntry(const uint exercise_idx) const { return m_exercisesList.at(exercise_idx); }
+	inline QmlExerciseEntry *exerciseEntry(const uint exercise_idx) const { return m_exercisesList.at(exercise_idx); }
 
 private:
-	QmlTDayInterface* m_workoutPage;
-	DBWorkoutModel* m_workoutModel;
-	QQuickItem* m_parentLayout;
+	QmlWorkoutInterface *m_workout_Page;
+	DBExercisesModel *m_workoutModel;
+	QQuickItem *m_parentLayout;
 	QVariantMap m_exercisesProperties;
-	QQmlComponent* m_exercisesComponent;
+	QQmlComponent *m_exercisesComponent;
 	QList<QmlExerciseEntry*> m_exercisesList;
 	int m_simpleExercisesListRequester;
 

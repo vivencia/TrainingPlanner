@@ -71,7 +71,7 @@ void QmlExercisesDatabaseInterface::importExercises(const QString& filename)
 		appItemManager()->openRequestedFile(filename, IFC_EXERCISES);
 }
 
-void QmlExercisesDatabaseInterface::getExercisesPage(QmlTDayInterface* connectPage)
+void QmlExercisesDatabaseInterface::getExercisesPage(QmlWorkoutInterface* connectPage)
 {
 	if (!m_exercisesComponent)
 	{
@@ -92,7 +92,7 @@ void QmlExercisesDatabaseInterface::getExercisesPage(QmlTDayInterface* connectPa
 	}
 }
 
-void QmlExercisesDatabaseInterface::createExercisesPage(QmlTDayInterface* connectPage)
+void QmlExercisesDatabaseInterface::createExercisesPage(QmlWorkoutInterface* connectPage)
 {
 	m_exercisesComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/ExercisesPage.qml"_L1}, QQmlComponent::Asynchronous};
 	m_exercisesProperties.insert("bChooseButtonEnabled"_L1, connectPage != nullptr);
@@ -108,7 +108,7 @@ void QmlExercisesDatabaseInterface::createExercisesPage(QmlTDayInterface* connec
 		createExercisesPage_part2(connectPage);
 }
 
-void QmlExercisesDatabaseInterface::createExercisesPage_part2(QmlTDayInterface *connectPage)
+void QmlExercisesDatabaseInterface::createExercisesPage_part2(QmlWorkoutInterface *connectPage)
 {
 	#ifndef QT_NO_DEBUG
 	if (m_exercisesComponent->status() == QQmlComponent::Error)

@@ -95,7 +95,7 @@ void QmlItemManager::configureQmlEngine()
 	qmlRegisterType<QMLMesoInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "MesoManager");
 	qmlRegisterType<QmlMesoCalendarInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "CalendarManager");
 	qmlRegisterType<QmlMesoSplitInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "SplitManager");
-	qmlRegisterType<QmlTDayInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "TDayManager");
+	qmlRegisterType<QmlWorkoutInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "WorkoutManager");
 	qmlRegisterType<QmlExerciseEntry>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "ExerciseEntryManager");
 	qmlRegisterType<QmlSetEntry>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "SetEntryManager");
 	qmlRegisterType<WeatherInfo>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "WeatherInfo");
@@ -228,7 +228,7 @@ void QmlItemManager::getClientsPage()
 	m_usersManager->getClientsPage();
 }
 
-void QmlItemManager::getExercisesPage(QmlTDayInterface *connectPage)
+void QmlItemManager::getExercisesPage(QmlWorkoutInterface *connectPage)
 {
 	if (!m_exercisesListManager)
 		m_exercisesListManager = new QmlExercisesDatabaseInterface{this};

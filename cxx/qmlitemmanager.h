@@ -3,7 +3,7 @@
 
 class PagesListModel;
 class QmlExercisesDatabaseInterface;
-class QmlTDayInterface;
+class QmlWorkoutInterface;
 class QmlUserInterface;
 class TPListModel;
 class TPWorkoutsCalendar;
@@ -30,7 +30,7 @@ public:
 	Q_INVOKABLE void getSettingsPage(const uint startPageIndex);
 	Q_INVOKABLE void getCoachesPage();
 	Q_INVOKABLE void getClientsPage();
-	Q_INVOKABLE void getExercisesPage(QmlTDayInterface *connectPage = nullptr);
+	Q_INVOKABLE void getExercisesPage(QmlWorkoutInterface *connectPage = nullptr);
 	Q_INVOKABLE void getWeatherPage();
 	Q_INVOKABLE void getStatisticsPage();
 	Q_INVOKABLE void getAllWorkoutsPage();

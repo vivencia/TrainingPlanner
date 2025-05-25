@@ -137,8 +137,8 @@ void DBWorkoutsOrSplitsTable::removeExercises()
 				std::move("DELETE FROM %1 WHERE meso_id=%2"_L1.arg(m_tableName, m_model->mesoId())) :
 				std::move("DELETE FROM %1 WHERE meso_id=%2"_L1.arg(m_tableName, m_model->mesoId()))
 		};
-		const QString &meso_id{m_execArgs.at(0).toString()};
-		if (meso_id.isEmpty()) //Delete one specific entry, otherwise all entries for the meso will be deleted
+		const bool remove_all{m_execArgs.at(0).toBool()};
+		if (!remove_all) //Delete one specific entry, otherwise all entries for the meso will be deleted
 		{
 			strQuery += std::forward<QString>(tableId() == WORKOUT_TABLE_ID ?
 			std::move(" AND calendar_day=%1"_L1.arg(QString::number(m_model->calendarDay()))) :
@@ -195,6 +195,29 @@ bool DBWorkoutsOrSplitsTable::mesoHasSplitPlan(const QString &meso_id, const QCh
 	return ok;
 }
 
+void DBWorkoutsOrSplitsTable::getPreviousWorkouts()
+{
+	if (openDatabase())
+	{
+		QSqlQuery query{getQuery()};
+		QString strQuery{"SELECT calendar_day FROM %1 WHERE meso_id=%2 AND split_letter=\'%3\' "
+							"AND calendar_day<%4 ORDER BY calendar_day DESC LIMIT 5"_L1.arg(
+								m_tableName, m_model->mesoId(), m_model->splitLetter(), QString::number(m_model->calendarDay()))};
+		const bool ok{query.exec(strQuery)};
+		if (ok)
+		{
+			if (query.first())
+			{
+				m_model->clearPreviousWorkouts();
+				do {
+					m_model->appendPreviousWorkout(query.value(0).toUInt());
+				} while (query.next());
+			}
+		}
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
+	}
+	doneFunc(static_cast<TPDatabaseTable*>(this));
+}
 /*void DBWorkoutsOrSplitsTable::workoutsInfoForTimePeriod()
 {
 	m_workoutsInfo.clear();

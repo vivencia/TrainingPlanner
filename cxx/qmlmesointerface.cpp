@@ -333,10 +333,10 @@ void QMLMesoInterface::getExercisesPlannerPage()
 
 void QMLMesoInterface::getWorkoutPage(const QDate &date)
 {
-	QmlTDayInterface *workoutPage(m_workoutPages.value(date));
+	QmlWorkoutInterface *workoutPage(m_workoutPages.value(date));
 	if (!workoutPage)
 	{
-		workoutPage = new QmlTDayInterface{this, m_mesoIdx, date};
+		workoutPage = new QmlWorkoutInterface{this, m_mesoIdx, date};
 		m_workoutPages.insert(date, workoutPage);
 	}
 	workoutPage->getWorkoutPage();
@@ -358,17 +358,6 @@ void QMLMesoInterface::sendMesocycleFileToServer()
 void QMLMesoInterface::incorporateMeso()
 {
 	appDBInterface()->saveMesocycle(m_mesoIdx);
-}
-
-DBMesoSplitModel *QMLMesoInterface::plannerSplitModel(const QChar &splitLetter)
-{
-	return m_exercisesPage ? m_exercisesPage->splitModel(splitLetter) : nullptr;
-}
-
-DBWorkoutModel *QMLMesoInterface::tDayModelForToday()
-{
-	QmlTDayInterface *workoutPage(m_workoutPages.value(QDate::currentDate()));
-	return workoutPage ? workoutPage->tDayModel() : nullptr;
 }
 
 void QMLMesoInterface::createMesocyclePage()
@@ -429,13 +418,8 @@ void QMLMesoInterface::createMesocyclePage_part2()
 		if (old_meso_idx == m_mesoIdx)
 		{
 			m_mesoIdx = new_meso_idx;
-			const QMap<QDate,QmlTDayInterface*>::const_iterator itr_end(m_workoutPages.constEnd());
-			QMap<QDate,QmlTDayInterface*>::const_iterator itr(m_workoutPages.constBegin());
-			while (itr != itr_end)
-			{
-				(*itr)->setMesoIdx(m_mesoIdx);
-				++itr;
-			}
+			for (const auto workout_page : std::as_const(m_workoutPages))
+				workout_page->setMesoIdx(m_mesoIdx);
 			if (m_exercisesPage)
 				m_exercisesPage->setMesoIdx(m_mesoIdx);
 			if (m_calendarPage)

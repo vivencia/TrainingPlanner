@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QVariantMap>
 
-class QmlTDayInterface;
+class QmlWorkoutInterface;
 
 class QQmlComponent;
 class QQuickItem;
@@ -39,7 +39,7 @@ public:
 	Q_INVOKABLE void exportExercises(const bool bShare);
 	Q_INVOKABLE void importExercises(const QString& filename = QString());
 
-	void getExercisesPage(QmlTDayInterface *connectPage = nullptr);
+	void getExercisesPage(QmlWorkoutInterface *connectPage = nullptr);
 
 signals:
 	void displayMessageOnAppWindow(const int message_id, const QString& filename = QString());
@@ -50,8 +50,8 @@ private:
 	QQuickItem* m_exercisesPage;
 	QVariantMap m_exercisesProperties;
 
-	void createExercisesPage(QmlTDayInterface* connectPage);
-	void createExercisesPage_part2(QmlTDayInterface* connectPage);
+	void createExercisesPage(QmlWorkoutInterface* connectPage);
+	void createExercisesPage_part2(QmlWorkoutInterface* connectPage);
 
 };
 

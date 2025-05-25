@@ -15,7 +15,7 @@ TPPage {
 	id: trainingDayPage
 	objectName: "trainingDayPage"
 
-	required property TDayManager tDayManager
+	required property WorkoutManager workoutManager
 
 	signal exerciseSelectedFromSimpleExercisesList();
 	signal simpleExercisesListClosed();
@@ -76,7 +76,7 @@ TPPage {
 				TPComboBox {
 					id: cboSplitLetter
 					model: AppGlobals.splitModel
-					enabled: tDayManager.timerActive ? false : tDayManager.dayIsEditable
+					enabled: tDayManager.timerActive ? false : tDayManager.workoutIsEditable
 					Layout.maximumWidth: 100
 
 					Component.onCompleted: currentIndex = Qt.binding(function() { return cboSplitLetter.indexOfValue(tDayManager.splitLetter); });
@@ -97,7 +97,7 @@ TPPage {
 					id: txtLocation
 					placeholderText: tDayManager.lastWorkOutLocation
 					text: tDayManager.lastWorkOutLocation
-					enabled: tDayManager.dayIsEditable
+					enabled: tDayManager.workoutIsEditable
 					Layout.row: 1
 					Layout.column: 1
 					Layout.fillWidth: true
@@ -311,7 +311,7 @@ TPPage {
 			SetNotesField {
 				info: qsTr("This training session considerations:")
 				text: tDayManager.dayNotes
-				editable: tDayManager.dayIsEditable
+				editable: tDayManager.workoutIsEditable
 				visible: tDayManager.splitLetter !== "R"
 				Layout.fillWidth: true
 
@@ -359,7 +359,7 @@ TPPage {
 					imageSource: "revert-day.png"
 					imageSize: 30
 					visible: tDayManager.hasExercises
-					enabled: tDayManager.dayIsEditable ? true : tDayManager.editMode
+					enabled: tDayManager.workoutIsEditable ? true : tDayManager.editMode
 					ToolTip.text: "Remove all exercises"
 
 					anchors {
@@ -581,7 +581,7 @@ TPPage {
 			flat: false
 			height: 55
 			visible: tDayManager.splitLetter !== "R"
-			enabled: tDayManager.dayIsEditable
+			enabled: tDayManager.workoutIsEditable
 
 			anchors {
 				right: parent.right
@@ -677,9 +677,9 @@ TPPage {
 
 			function finishCreation() {
 				intentDlg = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("What do you want to do today?"),
-					button1Text: qsTr("Proceed"), customItemSource:"TPTDayIntentGroup.qml", customBoolProperty1: tDayManager.hasMesoPlan,
-					customStringProperty2: tDayManager.splitLetter, customModel: tDayManager.previousTDays,
-					customBoolProperty2: tDayManager.hasPreviousTDays, customBoolProperty3: !tDayManager.hasExercises });
+					button1Text: qsTr("Proceed"), customItemSource:"TPTDayIntentGroup.qml", customBoolProperty1: tDayManager.canImportFromSplitPlan,
+					customStringProperty2: tDayManager.splitLetter, customModel: tDayManager.previousWorkoutsList,
+					customBoolProperty2: tDayManager.canImportFromPreviousWorkout, customBoolProperty3: !tDayManager.hasExercises });
 				intentDlg.button1Clicked.connect(intentChosen);
 			}
 

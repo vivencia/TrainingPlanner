@@ -223,12 +223,21 @@ const int DBMesoCalendarManager::calendarDay(const uint meso_idx, const QDate &d
 {
 	if (meso_idx < m_dayInfoList.count())
 	{
-		QDate calendarDate{std::move(appMesoModel()->startDate(meso_idx))};
-		const int calendar_day{static_cast<int>(calendarDate.daysTo(date))};
+		QDate calendar_date{std::move(appMesoModel()->startDate(meso_idx))};
+		const int calendar_day{static_cast<int>(calendar_date.daysTo(date))};
 		if (calendar_day >= 0 && calendar_day < m_dayInfoList.at(meso_idx).count())
 			return calendar_day;
 	}
 	return -1;
+}
+
+const std::optional<QDate> DBMesoCalendarManager::dateFromCalendarDay(const uint meso_idx, const uint calendar_day) const
+{
+	QDate calendar_date{std::move(appMesoModel()->startDate(meso_idx))};
+	calendar_date = std::move(calendar_date.addDays(calendar_day));
+	if (calendar_date < appMesoModel()->endDate(meso_idx))
+		return calendar_date;
+	return std::nullopt;
 }
 
 const std::optional<QString> DBMesoCalendarManager::mesoId(const uint meso_idx, const uint calendar_day) const

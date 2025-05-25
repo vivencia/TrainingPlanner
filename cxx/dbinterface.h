@@ -77,6 +77,7 @@ public:
 
 	//-----------------------------------------------------------WORKOUT TABLE-----------------------------------------------------------
 	void getWorkout(DBExercisesModel *model);
+	int getPreviousWorkouts(DBExercisesModel *model);
 	void saveWorkout(DBExercisesModel *model);
 	void removeWorkout(DBExercisesModel *model);
 	void removeAllWorkouts(const uint meso_idx);

@@ -44,8 +44,8 @@ public:
 
 	static inline QString dbFilePath(const uint table_id) { return appUtils()->localAppFilesDir() + tablesNames[table_id]; }
 	inline short tableId() const { return m_tableId; }
-	inline uint uniqueId() const { return m_UniqueID; }
-	inline void setUniqueId(const uint uid) { m_UniqueID = uid; }
+	inline int uniqueId() const { return m_UniqueID; }
+	inline void setUniqueId(const int uid) { m_UniqueID = uid; }
 	inline bool resolved() const { return mb_resolved; }
 	inline void setResolved(const bool resolved) { mb_resolved = resolved; }
 	inline void setWaitForThreadToFinish(const bool wait) { mb_waitForFinished = wait; }
@@ -139,7 +139,7 @@ protected:
 	QString m_tableName;
 
 	short m_tableId;
-	uint m_UniqueID;
+	int m_UniqueID;
 
 	std::function<void (TPDatabaseTable*)> doneFunc;
 
