@@ -756,6 +756,12 @@ void DBExercisesModel::setSetRestTime(const uint exercise_number, const uint exe
 	emit exerciseModified(exercise_number, exercise_idx, set_number, EXERCISES_COL_RESTTIMES);
 }
 
+void DBExercisesModel::setSetSuggestedRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number)
+{
+	setSuggestedTime(set_number, m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets);
+	emit exerciseModified(exercise_number, exercise_idx, set_number, EXERCISES_COL_RESTTIMES);
+}
+
 QString DBExercisesModel::setSubSets(const uint exercise_number, const uint exercise_idx, const uint set_number) const
 {
 	return m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->subsets;
@@ -994,7 +1000,7 @@ QString DBExercisesModel::increaseStringTimeBy(const QString &strtime, const uin
 		mins++;
 	}
 	mins += add_mins;
-	const QString& ret{(mins <= 9 ? "0"_L1 + QString::number(mins) : QString::number(mins)) + QChar(':') +
+	const QString &ret{(mins <= 9 ? "0"_L1 + QString::number(mins) : QString::number(mins)) + QChar(':') +
 		(secs <= 9 ? "0"_L1 + QString::number(secs) : QString::number(secs))};
 	return ret;
 }

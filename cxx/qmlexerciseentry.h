@@ -1,24 +1,23 @@
-#ifndef QMLEXERCISEENTRY_H
-#define QMLEXERCISEENTRY_H
+#pragma once
 
 #include <QObject>
+#include <QVariantHash>
 
-#include "qmlexerciseinterface.h"
-
-class QQuickItem;
-class DBWorkoutModel;
-class QmlWorkoutInterface;
-class QmlSetEntry;
+QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
+QT_FORWARD_DECLARE_CLASS(QmlSetEntry)
+QT_FORWARD_DECLARE_CLASS(QmlWorkoutInterface)
+QT_FORWARD_DECLARE_CLASS(TPTimer)
+QT_FORWARD_DECLARE_CLASS(QQmlComponent)
+QT_FORWARD_DECLARE_CLASS(QQuickItem)
 
 class QmlExerciseEntry : public QObject
 {
 
 Q_OBJECT
 
-Q_PROPERTY(uint exerciseIdx READ exerciseIdx WRITE setExerciseIdx NOTIFY exerciseIdxChanged FINAL)
+Q_PROPERTY(uint exerciseNumber READ exerciseNumber WRITE setExerciseNumber NOTIFY exerciseNumberChanged FINAL)
 Q_PROPERTY(uint newSetType READ newSetType WRITE setNewSetType NOTIFY newSetTypeChanged FINAL)
-Q_PROPERTY(uint nSets READ nSets WRITE setNSets NOTIFY nSetsChanged FINAL)
-Q_PROPERTY(QString exerciseNumber READ exerciseNumber NOTIFY exerciseNumberChanged FINAL)
+Q_PROPERTY(QString exerciseNumberLabel READ exerciseNumber NOTIFY exerciseNumberChanged FINAL)
 Q_PROPERTY(QString exerciseName READ exerciseName WRITE setExerciseName NOTIFY exerciseNameChanged FINAL)
 Q_PROPERTY(QString setsNumber READ setsNumber WRITE setSetsNumber NOTIFY setsNumberChanged FINAL)
 Q_PROPERTY(QString restTime READ restTime WRITE setRestTime NOTIFY restTimeChanged FINAL)
@@ -36,53 +35,31 @@ Q_PROPERTY(bool canEditRestTimeTracking READ canEditRestTimeTracking WRITE setCa
 Q_PROPERTY(bool allSetsCompleted READ allSetsCompleted WRITE setAllSetsCompleted NOTIFY allSetsCompletedChanged FINAL)
 
 public:
-	inline explicit QmlExerciseEntry(QObject* parent, QmlWorkoutInterface* workoutPage, DBWorkoutModel* tDayModel, const uint exercise_idx)
-		: QObject{parent}, m_workoutPage(workoutPage), m_workoutModel(tDayModel), m_exercise_idx(exercise_idx), m_type(0),
-				m_setTimer(nullptr), m_setComponents{nullptr} {}
+	inline explicit QmlExerciseEntry(QObject *parent, QmlWorkoutInterface *workoutPage,
+														DBExercisesModel *tDayModel, const uint exercise_number)
+		: QObject{parent}, m_workoutPage{workoutPage}, m_workoutModel{tDayModel}, m_exerciseNumber{exercise_number}, m_type{0},
+				m_setTimer{nullptr}, m_setComponents{nullptr} {}
 	~QmlExerciseEntry();
 
-	inline const QQuickItem* exerciseEntry() const { return m_exerciseEntry; }
-	inline QQuickItem* exerciseEntry() { return m_exerciseEntry; }
-	void setExerciseEntry(QQuickItem* item);
+	inline const QQuickItem *exerciseEntry() const { return m_exerciseEntry; }
+	inline QQuickItem *exerciseEntry() { return m_exerciseEntry; }
+	void setExerciseEntry(QQuickItem *item);
 
-	inline const uint exerciseIdx() const { return m_exercise_idx; }
-	void setExerciseIdx(const uint new_value);
+	inline const uint exerciseNumber() const { return m_exerciseNumber; }
+	void setExerciseNumber(const uint new_value);
+	inline const QString exerciseNumberLabel() const { return QString::number(m_exerciseNumber + 1); }
+	QString setsNumber() const;
 
-	inline const QString exerciseNumber() const { return QString::number(m_exercise_idx + 1); }
-	inline const uint newSetType() const { return m_type; }
-	void setNewSetType(const uint new_value);
+	const QString exerciseName1() const;
+	const QString exerciseName2() const;
+	void setExerciseName1(const QString &new_name);
+	void setExerciseName2(const QString &new_name);
 
-	const QString exerciseName() const;
-	void setExerciseName(const QString& new_value, const bool bFromQML = true);
+	const bool trackRestTime() const;
+	void setTrackRestTime(const bool track_resttime);
 
-	inline const uint nSets() const { return m_sets.toUInt(); }
-	inline void setNSets(const uint new_value) { m_sets = QString::number(new_value); emit setsNumberChanged(); emit nSetsChanged(); }
-
-	inline QString setsNumber() const { return m_sets; }
-	inline void setSetsNumber(const QString& new_value) { m_sets = new_value; emit setsNumberChanged(); emit nSetsChanged(); }
-
-	inline QString restTime() const { return m_restTime; }
-	inline void setRestTime(const QString& new_value) { m_restTime = new_value; emit restTimeChanged(); }
-
-	QString repsForExercise1();
-	void setRepsForExercise1(const QString& new_value);
-
-	QString repsForExercise2();
-	void setRepsForExercise2(const QString& new_value);
-
-	inline const QString& reps() const { return m_reps; }
-	inline QString& reps() { return m_reps; }
-	inline void setReps(const QString& new_value) { m_reps = new_value; emit repsForExercise1Changed(); if (m_bCompositeExercise) emit repsForExercise2Changed(); }
-
-	QString weightForExercise1();
-	void setWeightForExercise1(const QString& new_value);
-
-	QString weightForExercise2();
-	void setWeightForExercise2(const QString& new_value);
-
-	inline const QString& weight() const { return m_weight; }
-	inline QString& weight() { return m_weight; }
-	inline void setWeight(const QString& new_value) { m_weight = new_value; emit weightForExercise1Changed(); if (m_bCompositeExercise) emit weightForExercise2Changed(); }
+	const bool autoRestTime() const;
+	void setAutoRestTime(const bool auto_resttime);
 
 	const bool hasSets() const;
 	inline const bool lastExercise() const { return m_bLast; }
@@ -93,12 +70,6 @@ public:
 
 	inline const bool compositeExercise() const { return m_bCompositeExercise; }
 	inline void setCompositeExercise(const bool new_value) { m_bCompositeExercise = new_value; emit compositeExerciseChanged(); }
-
-	inline const bool trackRestTime() const { return m_bTrackRestTime; }
-	void setTrackRestTime(const bool new_value);
-
-	inline const bool autoRestTime() const { return m_bAutoRestTime; }
-	void setAutoRestTime(const bool new_value);
 
 	inline const bool canEditRestTimeTracking() const { return m_bCanEditRestTimeTracking; }
 	inline void setCanEditRestTimeTracking(const bool new_value) { m_bCanEditRestTimeTracking = new_value; emit canEditRestTimeTrackingChanged(); }
@@ -123,7 +94,6 @@ public:
 	Q_INVOKABLE void simpleExercisesList(const bool show, const bool multi_sel, uint comp_exercise = 0);
 
 signals:
-	void exerciseIdxChanged();
 	void exerciseNumberChanged();
 	void newSetTypeChanged();
 	void nSetsChanged();
@@ -145,31 +115,28 @@ signals:
 	void setObjectCreated(const uint set_number);
 
 private:
-	QmlWorkoutInterface* m_workoutPage;
-	DBWorkoutModel* m_workoutModel;
-	uint m_exercise_idx;
-	QQuickItem* m_exerciseEntry;
-	QString m_name, m_sets, m_reps, m_weight, m_restTime;
-	bool m_bLast, m_bEditable, m_bCompositeExercise, m_bTrackRestTime, m_bAutoRestTime, m_bCanEditRestTimeTracking, m_bAllSetsCompleted;
+	QmlWorkoutInterface *m_workoutPage;
+	DBExercisesModel *m_workoutModel;
+	uint m_exerciseNumber;
+	QQuickItem *m_exerciseEntry;
+	bool m_bLast, m_bEditable, m_bCompositeExercise, m_bCanEditRestTimeTracking;
 	uint m_type;
-	TPTimer* m_setTimer;
+	TPTimer *m_setTimer;
 
 	QList<QmlSetEntry*> m_setObjects;
-	QVariantMap m_setObjectProperties;
-	QQmlComponent* m_setComponents[3];
-	QQuickItem* m_setsLayout;
+	QVariantHash m_setObjectProperties;
+	QQmlComponent *m_setComponents[3];
+	QQuickItem *m_setsLayout;
 	uint m_expectedSetNumber;
 
-	void insertSetEntry(const uint set_number, QmlSetEntry* new_setobject);
+	void insertSetEntry(const uint set_number, QmlSetEntry *new_setobject);
 	void createSetObject(const uint set_number, const uint type);
 	void createSetObject_part2(const uint set_number, const uint set_type_cpp);
 	void setCreated(const uint set_number, const uint nsets, auto conn);
 	inline void changeSetCompleteStatus(const uint set_number, const bool bCompleted);
 	inline uint findSetMode(const uint set_number) const;
 	[[maybe_unused]] inline int findCurrentSet();
-	void startRestTimer(const uint set_number, const QString& startTime, const bool bStopWatch);
+	void startRestTimer(const uint set_number, const QString &startTime, const bool bStopWatch);
 	void stopRestTimer(const uint set_number);
 	inline bool noSetsCompleted() const;
 };
-
-#endif // QMLEXERCISEENTRY_H

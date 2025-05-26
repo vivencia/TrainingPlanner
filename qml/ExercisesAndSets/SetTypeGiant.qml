@@ -339,7 +339,7 @@ FocusScope {
 			enabled: !setManager.completed
 			Layout.fillWidth: true
 
-			onEditFinished: (new_text) => tDayModel.setSetNotes(setNumber, exerciseIdx, new_text);
+			onEditFinished: (new_text) => tDayModel.setSetNotes(setNumber, exerciseNumber, new_text);
 		}
 	} //ColumnLayout setLayout
 

@@ -30,7 +30,7 @@ SwipeDelegate {
 	}
 
 	background: Rectangle {
-		color: exerciseManager.exerciseIdx % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
+		color: exerciseManager.exerciseNumber % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
 		border.color: "transparent"
 		opacity: 0.8
 		radius: 10
@@ -40,7 +40,7 @@ SwipeDelegate {
 		id: btnMoveExerciseUp
 		imageSource: "up.png"
 		hasDropShadow: false
-		enabled: exerciseManager.exerciseIdx > 0
+		enabled: exerciseManager.exerciseNumber > 0
 		visible: exerciseManager.isEditable
 		height: 30
 		width: 30

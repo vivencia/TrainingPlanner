@@ -54,8 +54,8 @@ public:
 		m_bEditable(false), m_bCompleted(false), m_bLastSet(false), m_bTrackRestTime(false), m_bAutoRestTime(false),
 		m_bCurrent(false), m_bHasSubSets(false), m_bIsManuallyModified(false) {}
 
-	inline const uint exerciseIdx() const { return m_exercise_idx; }
-	inline void setExerciseIdx(const uint new_value) { m_exercise_idx = new_value; }
+	inline const uint exerciseNumber() const { return m_exercise_idx; }
+	inline void setExerciseNumber(const uint new_value) { m_exercise_idx = new_value; }
 
 	inline const QQuickItem* setEntry() const { return m_setEntry; }
 	inline QQuickItem* setEntry() { return m_setEntry; }

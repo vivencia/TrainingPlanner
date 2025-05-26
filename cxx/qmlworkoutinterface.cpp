@@ -246,45 +246,45 @@ void QmlWorkoutInterface::getWorkoutPage()
 
 void QmlWorkoutInterface::loadExercisesFromDate(const QString &strDate)
 {
-	//setModified is called with param true because the loaded exercises do not -yet- belong to the day indicated by strDate
-	connect(appDBInterface(), &DBInterface::databaseReady, this, [this] (const uint) {
-		loadExercises();
-	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-	appDBInterface()->loadExercisesFromDate(strDate, m_workoutModel);
-	emit hasExercisesChanged();
+	const int id{appDBInterface()->getWorkout(m_workoutModel)};
+	auto conn = std::make_shared<QMetaObject::Connection>();
+	*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn,id] (const uint thread_id) {
+		if (id == thread_id)
+		{
+			disconnect(*conn);
+			if (m_workoutModel->exerciseCount() > 0)
+				loadExercises();
+		}
+	});
 }
 
-void QmlWorkoutInterface::loadExercisesFromMesoPlan(DBMesoSplitModel *const splitModel)
+void QmlWorkoutInterface::getExercisesFromSplitPlan()
 {
-	if (!splitModel)
+	DBExercisesModel *split_model{appMesoModel()->splitModel(m_mesoIdx, splitLetter(), false)};
+	if (split_model->exerciseCount() > 0)
 	{
-		auto conn = std::make_shared<QMetaObject::Connection>();
-		*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [this,conn] (const uint table_idx, QVariant data) {
-			if (table_idx == MESOSPLIT_TABLE_ID)
-			{
-				disconnect(*conn);
-				loadExercisesFromMesoPlan(data.value<DBMesoSplitModel*>());
-			}
-		});
-		appDBInterface()->loadCompleteMesoSplit(m_mesoIdx, splitLetter());
+		m_workoutModel = split_model;
+		loadExercises();
 	}
 	else
 	{
-		if (splitModel->count() > 0)
-		{
-			m_workoutModel->convertMesoSplitModelToTDayModel(splitModel);
-			setHasExercises(true);
-			m_exerciseManager->createExercisesObjects();
-		}
+		auto conn = std::make_shared<QMetaObject::Connection>();
+		const int id{appDBInterface()->getMesoSplit(split_model)};
+		*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn,id] (const uint thread_id) {
+			if (id == thread_id)
+			{
+				disconnect(*conn);
+				getExercisesFromSplitPlan();
+			}
+		});
 	}
 }
 
-void QmlWorkoutInterface::convertTDayToPlan()
+void QmlWorkoutInterface::exportWorkoutToSplitPlan()
 {
-	DBMesoSplitModel *splitModel{new DBMesoSplitModel{this, true, m_mesoIdx}};
-	splitModel->setImportMode(true); //Have the database thread delete the model after procuring its contents
-	splitModel->convertFromTDayModel(m_workoutModel);
-	appDBInterface()->saveMesoSplitComplete(splitModel);
+	DBExercisesModel *split_model{appMesoModel()->splitModel(m_mesoIdx, splitLetter(), false)};
+	split_model = m_workoutModel;
+	appDBInterface()->saveMesoSplit(split_model);
 }
 
 void QmlWorkoutInterface::resetWorkout()
@@ -360,15 +360,15 @@ void QmlWorkoutInterface::stopWorkout()
 void QmlWorkoutInterface::clearExercises(const bool bShowIntentDialog)
 {
 	m_exerciseManager->clearExercises();
-	setHasExercises(false);
+	emit hasExercisesChanged();
 	if (bShowIntentDialog)
-		appDBInterface()->verifyTDayOptions(m_workoutModel);
+		verifyWorkoutOptions();
 }
 
 void QmlWorkoutInterface::removeExercise(const uint exercise_idx)
 {
 	m_exerciseManager->removeExerciseObject(exercise_idx);
-	setHasExercises(m_exerciseManager->exercisesCount() > 0);
+	emit hasExercisesChanged();
 }
 
 void QmlWorkoutInterface::removeSetFromExercise(const uint exercise_idx, const uint set_number)
@@ -450,7 +450,7 @@ TPTimer *QmlWorkoutInterface::restTimer()
 void QmlWorkoutInterface::createExerciseObject()
 {
 	m_exerciseManager->createExerciseObject();
-	setHasExercises(true);
+	emit hasExercisesChanged();
 }
 
 void QmlWorkoutInterface::silenceTimeWarning()
@@ -466,8 +466,8 @@ void QmlWorkoutInterface::hideSimpleExercisesList()
 void QmlWorkoutInterface::verifyWorkoutOptions()
 {
 	setCanImportFromSplitPlan(appDBInterface()->mesoHasSplitPlan(appMesoModel()->id(m_mesoIdx), splitLetter()));
-	const int id{appDBInterface()->getPreviousWorkouts(m_workoutModel)};
 	auto conn = std::make_shared<QMetaObject::Connection>();
+	const int id{appDBInterface()->getPreviousWorkouts(m_workoutModel)};
 	*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn,id] (const uint db_id) {
 		if (id == db_id)
 		{
@@ -518,18 +518,7 @@ void QmlWorkoutInterface::createTrainingDayPage_part2()
 	setHeaderText();
 
 	if (m_workoutModel->splitLetter() != "R"_L1)
-	{
-		appDBInterface()->getTrainingDay(m_workoutModel);
 		QMetaObject::invokeMethod(m_workoutPage, "createNavButtons");
-	}
-	if (m_workoutModel->splitLetter() != "R"_L1)
-		setTrainingDayPageEmptyDayOrChangedDayOptions(tDayModel);
-
-	connect(appMesoModel()->mesoCalendarManager(), &DBMesoCalendarManager::calendarChanged, this, [this]
-																				(const QDate &startDate, const QDate &endDate) {
-		if (m_workoutPage)
-			updateTDayPageWithNewCalendarInfo(startDate, endDate);
-	});
 
 	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [this] (const uint meso_idx, const int splitIndex, const QChar &chrSplitLetter) {
 		if (meso_idx == m_mesoIdx)
@@ -553,40 +542,10 @@ void QmlWorkoutInterface::createTrainingDayPage_part2()
 		connect(m_workoutPage, SIGNAL(silenceTimeWarning()), this, SLOT(silenceTimeWarning()));
 }
 
-void QmlWorkoutInterface::updateTDayPageWithNewCalendarInfo(const QDate &startDate, const QDate &endDate)
-{
-	if (m_Date > startDate) //the startDate page is the page that initiated the update. No need to alter it
-	{
-		if (m_Date <= endDate)
-		{
-			bool tDayChanged{false};
-			const DBMesoCalendarManager *const mesoCal{appMesoModel()->mesoCalendarManager(m_mesoIdx)};
-			const QString &tDay{QString::number(mesoCal->getTrainingDay(m_Date.month(), m_Date.day()))};
-			if (tDay != m_workoutModel->trainingDay())
-			{
-				m_workoutModel->setTrainingDay(tDay);
-				tDayChanged = true;
-			}
-			const QString &strSplitLetter{mesoCal->getSplitLetter(m_Date.month(), m_Date.day())};
-			if (strSplitLetter != splitLetter())
-			{
-				setSplitLetter(strSplitLetter, false, true);
-				tDayChanged = true;
-				if (strSplitLetter == "R"_L1)
-					clearExercises(false);
-				else
-					appDBInterface()->verifyTDayOptions(m_workoutModel);
-			}
-			if (tDayChanged)
-				setHeaderText();
-		}
-	}
-}
-
 void QmlWorkoutInterface::loadExercises()
 {
 	m_exerciseManager->createExercisesObjects();
-	setHasExercises(true);
+	emit hasExercisesChanged();
 }
 
 void QmlWorkoutInterface::calculateWorkoutTime()

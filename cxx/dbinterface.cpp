@@ -260,10 +260,11 @@ void DBInterface::deleteMesocyclesTable(const bool bRemoveFile)
 //-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 
 //-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
-void DBInterface::getMesoSplit(DBExercisesModel *model)
+int DBInterface::getMesoSplit(DBExercisesModel *model)
 {
 	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{model}};
 	createThread(worker, [worker] () { worker->getExercises(); });
+	return worker->uniqueId();
 }
 
 void DBInterface::saveMesoSplit(DBExercisesModel *model)
@@ -346,10 +347,11 @@ void DBInterface::deleteMesoCalendarTable(const uint meso_idx, const bool bRemov
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
 //-----------------------------------------------------------WORKOUT TABLE-----------------------------------------------------------
-void DBInterface::getWorkout(DBExercisesModel *model)
+int DBInterface::getWorkout(DBExercisesModel *model)
 {
 	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{model}};
 	createThread(worker, [worker] () { return worker->getExercises(); });
+	return worker->uniqueId();
 }
 
 int DBInterface::getPreviousWorkouts(DBExercisesModel *model)

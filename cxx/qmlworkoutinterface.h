@@ -1,9 +1,8 @@
-#ifndef QMLWORKOUTINTERFACE_H
-#define QMLWORKOUTINTERFACE_H
+#pragma once
 
 #include <QDate>
 #include <QObject>
-#include <QVariantMap>
+#include <QVariantHash>
 
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(DBCalendarModel)
@@ -106,8 +105,8 @@ public:
 	void getWorkoutPage();
 
 	Q_INVOKABLE void loadExercisesFromDate(const QString &strDate);
-	Q_INVOKABLE void loadExercisesFromMesoPlan(DBExercisesModel *splitModel = nullptr);
-	Q_INVOKABLE void convertTDayToPlan();
+	Q_INVOKABLE void getExercisesFromSplitPlan();
+	Q_INVOKABLE void exportWorkoutToSplitPlan();
 	Q_INVOKABLE void resetWorkout();
 	Q_INVOKABLE void exportTrainingDay(const bool bShare);
 	Q_INVOKABLE void importTrainingDay(const QString &filename = QString());
@@ -120,7 +119,7 @@ public:
 	void removeExerciseObject(const uint exercise_idx, const bool bAsk);
 	void moveExercise(const uint exercise_idx, const uint new_idx);
 
-	inline DBExercisesModel *tDayModel() const { return m_workoutModel; }
+	inline DBExercisesModel *workoutModel() const { return m_workoutModel; }
 	inline QQuickItem *workoutPage() const { return m_workoutPage; }
 
 	void simpleExercisesList(const bool show, const bool multi_sel = false);
@@ -171,7 +170,7 @@ private:
 	DBExercisesModel *m_workoutModel;
 	DBCalendarModel * m_calendarModel;
 	QQuickItem *m_workoutPage;
-	QVariantMap m_workoutProperties;
+	QVariantHash m_workoutProperties;
 	QmlExerciseInterface *m_exerciseManager;
 	uint m_mesoIdx, m_calendarDay;
 	TPTimer *m_workoutTimer, *m_restTimer;
@@ -188,8 +187,5 @@ private:
 	void createTrainingDayPage();
 	void createTrainingDayPage_part2();
 	void loadExercises();
-	void updateTDayPageWithNewCalendarInfo(const QDate &startDate, const QDate &endDate);
 	void calculateWorkoutTime();
 };
-
-#endif // QMLWORKOUTINTERFACE_H

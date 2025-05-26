@@ -58,7 +58,7 @@ public:
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
-	void getMesoSplit(DBExercisesModel *model);
+	int getMesoSplit(DBExercisesModel *model);
 	void saveMesoSplit(DBExercisesModel *model);
 	void removeMesoSplit(DBExercisesModel *model);
 	void removeAllMesoSplits(const uint meso_idx);
@@ -76,7 +76,7 @@ public:
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------WORKOUT TABLE-----------------------------------------------------------
-	void getWorkout(DBExercisesModel *model);
+	int getWorkout(DBExercisesModel *model);
 	int getPreviousWorkouts(DBExercisesModel *model);
 	void saveWorkout(DBExercisesModel *model);
 	void removeWorkout(DBExercisesModel *model);

@@ -328,7 +328,7 @@ TPPage {
 				Layout.fillWidth: true
 				Layout.bottomMargin: 10
 
-				onClicked: tDayManager.convertTDayToPlan();
+				onClicked: tDayManager.exportWorkoutToSplitPlan();
 			}
 
 			TPLabel {
@@ -694,7 +694,7 @@ TPPage {
 	function intentChosen(): void {
 		switch (intentDlg.customIntProperty1) {
 			case 1: //use meso plan
-				tDayManager.loadExercisesFromMesoPlan();
+				tDayManager.getExercisesFromSplitPlan();
 			break;
 			case 2: //use previous day
 				tDayManager.loadExercisesFromDate(intentDlg.customStringProperty1);
