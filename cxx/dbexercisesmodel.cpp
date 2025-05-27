@@ -270,7 +270,7 @@ int DBExercisesModel::exportToFormattedFile(const QString &filename, QFile *out_
 				out_file->write("\n\n", 2);
 				out_file->write(QString{setNumberLabel() + QString::number(set->number) + '\n'}.toUtf8().constData());
 				out_file->write(setTypeLabel().toUtf8().constData());
-				out_file->write(formatSetTypeToExport(set).toUtf8().constData());
+				out_file->write(formatSetTypeToExport(set->type).toUtf8().constData());
 				out_file->write("\n", 1);
 				out_file->write(setRestTimeLabel().toUtf8().constData());
 				if (!exercise_entry->track_rest_time)
@@ -462,6 +462,20 @@ int DBExercisesModel::newExercisesFromFile(const QString &filename, const std::o
 			import_result = importFromFormattedFile(filename);
 	}
 	return import_result;
+}
+
+const QString DBExercisesModel::formatSetTypeToExport(const uint type) const
+{
+	switch (type)
+	{
+		case Regular: return tr("Regular");
+		case Pyramid: return tr("Pyramid");
+		case ReversePyramid: return tr("Reverse Pyramid");
+		case Drop: return tr("Drop Set");
+		case Cluster: return tr("Cluster Set");
+		case MyoReps: return tr("Myo Reps");
+	}
+	return QString{};
 }
 
 bool DBExercisesModel::importExtraInfo(const QString &maybe_extra_info, int &calendar_day, QChar &split_letter)
@@ -744,6 +758,28 @@ void DBExercisesModel::changeSetType(const uint exercise_number, const uint exer
 	emit exerciseModified(exercise_number, exercise_idx, set_number, EXERCISES_COL_SETTYPES);
 }
 
+QTime DBExercisesModel::suggestedRestTime(const QTime &prev_resttime, const uint set_type) const
+{
+	switch (set_type)
+	{
+		case Regular:
+			return prev_resttime;
+		break;
+		case Pyramid:
+		case ReversePyramid:
+		case Drop:
+			return prev_resttime.addSecs(30);
+		break;
+		case Cluster:
+			return prev_resttime.addSecs(60);
+		break;
+		case MyoReps:
+			return prev_resttime.addSecs(90);
+		break;
+	}
+	return QTime{};
+}
+
 QString DBExercisesModel::setRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number) const
 {
 	return appUtils()->formatTime(m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->restTime);
@@ -756,10 +792,20 @@ void DBExercisesModel::setSetRestTime(const uint exercise_number, const uint exe
 	emit exerciseModified(exercise_number, exercise_idx, set_number, EXERCISES_COL_RESTTIMES);
 }
 
-void DBExercisesModel::setSetSuggestedRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number)
+QString DBExercisesModel::suggestedSubSets(const uint set_type)
 {
-	setSuggestedTime(set_number, m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets);
-	emit exerciseModified(exercise_number, exercise_idx, set_number, EXERCISES_COL_RESTTIMES);
+	switch (set_type)
+	{
+		default:
+			return "0"_L1;
+		case Drop:
+		case MyoReps:
+			return "3"_L1;
+		break;
+		case Cluster:
+			return "4"_L1;
+		break;
+	}
 }
 
 QString DBExercisesModel::setSubSets(const uint exercise_number, const uint exercise_idx, const uint set_number) const
@@ -796,6 +842,31 @@ void DBExercisesModel::delSetSubSet(const uint exercise_number, const uint exerc
 	}
 }
 
+QString DBExercisesModel::suggestedReps(const QString &prev_reps, const uint set_type, const uint subset) const
+{
+	switch (set_type)
+	{
+		case Regular:
+			return prev_reps.isEmpty() ? std::move("12"_L1) : prev_reps;
+		break;
+		case Pyramid:
+			return prev_reps.isEmpty() ? std::move("15"_L1) : std::move(appUtils()->appLocale()->toString(qCeil(prev_reps.toUInt() * 0.8)));
+		break;
+		case ReversePyramid:
+			return prev_reps.isEmpty() ? std::move("5"_L1) : std::move(appUtils()->appLocale()->toString(qCeil(prev_reps.toUInt() * 1.25)));
+		break;
+		case Drop:
+			return prev_reps.isEmpty() ? std::move(dropSetReps("15"_L1, 0)) : std::move(dropSetReps(prev_reps, subset));
+		break;
+		case Cluster:
+			return prev_reps.isEmpty() ? std::move(clusterReps("24"_L1, 4)) : std::move(clusterReps(prev_reps, subset));
+		case MyoReps:
+			return prev_reps.isEmpty() ? std::move(myorepsReps("20"_L1, 4)) : std::move(myorepsReps(prev_reps, subset));
+		break;
+	}
+	return QString{};
+}
+
 QString DBExercisesModel::setReps(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint subset) const
 {
 	if (m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->type < Drop)
@@ -819,6 +890,33 @@ void DBExercisesModel::setSetReps(const uint exercise_number, const uint exercis
 void DBExercisesModel::setSetReps(const uint exercise_number, const uint exercise_idx, const uint set_number, QString &&new_reps)
 {
 	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->reps = std::forward<QString>(new_reps);
+}
+
+QString DBExercisesModel::suggestedWeight(const QString &prev_weight, const uint set_type, const uint subset) const
+{
+	switch (set_type)
+	{
+		case Regular:
+			return prev_weight.isEmpty() ? std::move("20"_L1) : prev_weight;
+		break;
+		case Pyramid:
+			return prev_weight.isEmpty() ? std::move("20"_L1) :
+											std::move(appUtils()->appLocale()->toString(qCeil(prev_weight.toUInt() * 1.2)));
+		break;
+		case ReversePyramid:
+			return prev_weight.isEmpty() ? std::move("80"_L1) :
+											std::move(appUtils()->appLocale()->toString(qCeil(prev_weight.toUInt() * 0.6)));
+		break;
+		case Drop:
+			return prev_weight.isEmpty() ? std::move(dropSetWeight("80"_L1, 0)) : std::move(dropSetReps(prev_weight, subset));
+		break;
+		case Cluster:
+			return prev_weight.isEmpty() ? std::move(clusterWeight("100"_L1, 4)) : std::move(clusterReps(prev_weight, subset));
+		case MyoReps:
+			return prev_weight.isEmpty() ? std::move(myorepsWeight("100"_L1, 4)) : std::move(myorepsReps(prev_weight, subset));
+		break;
+	}
+	return QString {};
 }
 
 QString DBExercisesModel::setWeight(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint subset) const
@@ -943,19 +1041,6 @@ void DBExercisesModel::commonConstructor()
 		m_identifierInFile = &appUtils()->splitFileIdentifier;
 }
 
-const QString DBExercisesModel::formatSetTypeToExport(stSet* set) const
-{
-	switch (set->type)
-	{
-		case Regular: return tr("Regular");
-		case Pyramid: return tr("Pyramid");
-		case ReversePyramid: return tr("Reverse Pyramid");
-		case Drop: return tr("Drop Set");
-		case Cluster: return tr("Cluster Set");
-		case MyoReps: return tr("Myo Reps");
-	}
-}
-
 TPSetTypes DBExercisesModel::formatSetTypeToImport(const QString& fieldValue) const
 {
 	if (fieldValue == tr("Pyramid"))
@@ -1014,42 +1099,13 @@ void DBExercisesModel::setSuggestedTime(const uint set_number, const QList<stSet
 		prev_set_time = sets.at(set_number-1)->restTime;
 
 	stSet *set{sets.at(set_number)};
-	switch (set->type)
-	{
-		case Regular:
-			set->restTime = std::move(prev_set_time);
-		break;
-		case Pyramid:
-		case ReversePyramid:
-		case Drop:
-			set->restTime = std::move(prev_set_time.addSecs(30));
-		break;
-		case Cluster:
-			set->restTime = std::move(prev_set_time.addSecs(60));
-		break;
-		case MyoReps:
-			set->restTime = std::move(prev_set_time.addSecs(90));
-		break;
-	}
+	set->restTime = std::move(suggestedRestTime(prev_set_time, set->type));
 }
 
 void DBExercisesModel::setSuggestedSubSets(const uint set_number, const QList<stSet*> &sets)
 {
 	stSet *set{sets.at(set_number)};
-	switch (set->type)
-	{
-		case Regular:
-		case Pyramid:
-		case ReversePyramid:
-			set->subsets = "0"_L1;
-		case Drop:
-		case MyoReps:
-			set->subsets = "3"_L1;
-		break;
-		case Cluster:
-			set->subsets = "4"_L1;
-		break;
-	}
+	set->subsets = std::move(suggestedSubSets(set->type));
 }
 
 void DBExercisesModel::setSuggestedReps(const uint set_number, const QList<stSet*> &sets, const uint from_subset)
@@ -1062,30 +1118,7 @@ void DBExercisesModel::setSuggestedReps(const uint set_number, const QList<stSet
 		prev_set = sets.at(set_number-1);
 		prev_set_reps = std::move(appUtils()->getCompositeValue(0, prev_set->reps, record_separator));
 	}
-
-	switch (set->type)
-	{
-		case Regular:
-			set->reps = set_number == 0 ? std::move("12"_L1) : prev_set_reps;
-		break;
-		case Pyramid:
-			set->reps = set_number == 0 ? std::move("15"_L1) : std::move(appUtils()->appLocale()->toString(qCeil(prev_set_reps.toUInt() * 0.8)));
-		break;
-		case ReversePyramid:
-			set->reps = set_number == 0 ? std::move("5"_L1) : std::move(appUtils()->appLocale()->toString(qCeil(prev_set_reps.toUInt() * 1.25)));
-		break;
-		case Drop:
-			set->reps = set_number == 0 ? std::move(DBExercisesModel::dropSetReps("15"_L1, 3, 0)) :
-										std::move(DBExercisesModel::dropSetReps(prev_set_reps, prev_set->subsets.toUInt(), from_subset));
-		break;
-		case Cluster:
-			set->reps = set_number == 0 ? std::move(DBExercisesModel::clusterReps("24"_L1, 4)) :
-										std::move(DBExercisesModel::clusterReps(prev_set_reps, prev_set->subsets.toUInt(), from_subset));
-		case MyoReps:
-			set->reps = set_number == 0 ? std::move(DBExercisesModel::myorepsReps("20"_L1, 4)) :
-										std::move(DBExercisesModel::myorepsReps(prev_set_reps, prev_set->subsets.toUInt(), from_subset));
-		break;
-	}
+	set->reps = std::move(suggestedReps(prev_set_reps, set->type, from_subset));
 }
 
 void DBExercisesModel::setSuggestedWeight(const uint set_number, const QList<stSet*> &sets, const uint from_subset)
@@ -1098,39 +1131,16 @@ void DBExercisesModel::setSuggestedWeight(const uint set_number, const QList<stS
 		prev_set = sets.at(set_number-1);
 		prev_set_weight = std::move(appUtils()->getCompositeValue(0, prev_set->weight, record_separator));
 	}
-
-	switch (set->type)
-	{
-		case Regular:
-			set->weight = set_number == 0 ? std::move("20"_L1) : prev_set_weight;
-		break;
-		case Pyramid:
-			set->weight = set_number == 0 ? std::move("20"_L1) :
-											std::move(appUtils()->appLocale()->toString(qCeil(prev_set_weight.toUInt() * 1.2)));
-		break;
-		case ReversePyramid:
-			set->weight = set_number == 0 ? std::move("80"_L1) :
-											std::move(appUtils()->appLocale()->toString(qCeil(prev_set_weight.toUInt() * 0.6)));
-		break;
-		case Drop:
-			set->weight = set_number == 0 ? std::move(DBExercisesModel::dropSetWeight("80"_L1, 3, 0)) :
-										std::move(DBExercisesModel::dropSetReps(prev_set_weight, prev_set->subsets.toUInt(), from_subset));
-		break;
-		case Cluster:
-			set->weight = set_number == 0 ? std::move(DBExercisesModel::clusterWeight("100"_L1, 4)) :
-										std::move(DBExercisesModel::clusterReps(prev_set_weight, prev_set->subsets.toUInt(), from_subset));
-		case MyoReps:
-			set->weight = set_number == 0 ? std::move(DBExercisesModel::myorepsWeight("100"_L1, 4)) :
-									std::move(DBExercisesModel::myorepsReps(prev_set_weight, prev_set->subsets.toUInt(), from_subset));
-		break;
-	}
+	set->weight = std::move(suggestedWeight(prev_set_weight, set->type, from_subset));
 }
 
-QString DBExercisesModel::dropSetReps(const QString &reps, const uint n_subsets, const uint from_subset)
+QString DBExercisesModel::dropSetReps(const QString &reps, const uint from_subset) const
 {
 	QString new_drop_reps{reps};
 	float value{appUtils()->appLocale()->toFloat(appUtils()->getCompositeValue(from_subset, reps, record_separator))};
-
+	uint n_subsets{appUtils()->nFieldsInCompositeString(reps, record_separator)};
+	if (n_subsets == 0)
+			n_subsets = 3;
 	for (uint subset{from_subset}; subset < n_subsets; ++subset)
 	{
 		value *= 0.8;
@@ -1141,23 +1151,28 @@ QString DBExercisesModel::dropSetReps(const QString &reps, const uint n_subsets,
 	return new_drop_reps;
 }
 
-QString DBExercisesModel::clusterReps(const QString &total_reps, const uint n_subsets, const uint from_subset)
+QString DBExercisesModel::clusterReps(const QString &total_reps, const uint from_subset) const
 {
+	uint n_subsets{appUtils()->nFieldsInCompositeString(total_reps, record_separator)};
+	if (n_subsets == 0)
+		n_subsets = 4;
 	const int value{qFloor(total_reps.toUInt()/n_subsets)};
 	const QString &subSetValues{QString::number(value)};
 	return appUtils()->makeCompositeValue(subSetValues, n_subsets - from_subset, record_separator);
 }
 
-QString DBExercisesModel::myorepsReps(const QString &first_set_reps, const uint n_sets, const uint from_subset)
+QString DBExercisesModel::myorepsReps(const QString &first_set_reps, const uint n_sets, const uint from_set) const
 {
-	return appUtils()->makeCompositeValue(first_set_reps, n_sets - from_subset, set_separator);
+	return appUtils()->makeCompositeValue(first_set_reps, n_sets - from_set, set_separator);
 }
 
-QString DBExercisesModel::dropSetWeight(const QString& weight, const uint n_subsets, const uint from_subset)
+QString DBExercisesModel::dropSetWeight(const QString& weight, const uint from_subset) const
 {
 	QString new_drop_weight{weight};
 	float value{appUtils()->appLocale()->toFloat(appUtils()->getCompositeValue(from_subset, weight, record_separator))};
-
+	uint n_subsets{appUtils()->nFieldsInCompositeString(weight, record_separator)};
+	if (n_subsets == 0)
+		n_subsets = 3;
 	for (uint subset{from_subset}; subset < n_subsets; ++subset)
 	{
 		value *= 0.5;
@@ -1167,12 +1182,15 @@ QString DBExercisesModel::dropSetWeight(const QString& weight, const uint n_subs
 	return new_drop_weight;
 }
 
-QString DBExercisesModel::clusterWeight(const QString &constant_weight, const uint n_subsets, const uint from_subset)
+QString DBExercisesModel::clusterWeight(const QString &constant_weight, const uint from_subset) const
 {
+	uint n_subsets{appUtils()->nFieldsInCompositeString(constant_weight, record_separator)};
+	if (n_subsets == 0)
+		n_subsets = 4;
 	return appUtils()->makeCompositeValue(constant_weight, n_subsets - from_subset, record_separator);
 }
 
-QString DBExercisesModel::myorepsWeight(const QString &first_set_weight, const uint n_sets, const uint from_subset)
+QString DBExercisesModel::myorepsWeight(const QString &first_set_weight, const uint n_sets, const uint from_set) const
 {
-	return appUtils()->makeCompositeValue(first_set_weight, n_sets - from_subset, set_separator);
+	return appUtils()->makeCompositeValue(first_set_weight, n_sets - from_set, set_separator);
 }

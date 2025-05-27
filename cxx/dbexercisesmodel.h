@@ -104,6 +104,7 @@ public:
 	int importFromFormattedFile(const QString &filename, QFile *in_file = nullptr);
 	int newExercisesFromFile(const QString &filename, const std::optional<bool> &file_formatted = std::nullopt);
 	inline const QString &identifierInFile() const { return *m_identifierInFile; }
+	const QString formatSetTypeToExport(const uint type) const;
 	static bool importExtraInfo(const QString &maybe_extra_info, int &calendar_day, QChar &split_letter);
 
 	const uint inline exerciseCount() const { return m_exerciseData.count(); }
@@ -144,19 +145,22 @@ public:
 	Q_INVOKABLE void setSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type);
 	void changeSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type);
 
+	QTime suggestedRestTime(const QTime &prev_resttime, const uint set_type) const;
 	Q_INVOKABLE QString setRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	Q_INVOKABLE void setSetRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number, const QString &new_time);
-	void setSetSuggestedRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number);
 
+	QString suggestedSubSets(const uint set_type);
 	Q_INVOKABLE QString setSubSets(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	Q_INVOKABLE void setSetSubSets(const uint exercise_number, const uint exercise_idx, const uint set_number, const QString &new_subsets);
 	void addSetSubSet(const uint exercise_number, const uint exercise_idx, const uint set_number);
 	void delSetSubSet(const uint exercise_number, const uint exercise_idx, const uint set_number);
 
+	QString suggestedReps(const QString &prev_reps, const uint set_type, const uint subset = 0) const;
 	Q_INVOKABLE QString setReps(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint subset = 0) const;
 	Q_INVOKABLE void setSetReps(const uint exercise_number, const uint exercise_idx, const uint set_number, const QString &new_reps, const uint subset = 0);
 	void setSetReps(const uint exercise_number, const uint exercise_idx, const uint set_number, QString &&new_reps);
 
+	QString suggestedWeight(const QString &prev_weight, const uint set_type, const uint subset = 0) const;
 	Q_INVOKABLE QString setWeight(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint subset = 0) const;
 	Q_INVOKABLE void setSetWeight(const uint exercise_number, const uint exercise_idx, const uint set_number, const QString &new_weight, const uint subset = 0);
 	void setSetWeight(const uint exercise_number, const uint exercise_idx, const uint set_number, QString &&new_weight);
@@ -222,7 +226,6 @@ private:
 	QList<uint> m_previousWorkouts;
 
 	void commonConstructor();
-	const QString formatSetTypeToExport(stSet *set) const;
 	TPSetTypes formatSetTypeToImport(const QString &fieldValue) const;
 	const QString exportExtraInfo() const;
 	inline bool importExtraInfo(const QString &maybe_extra_info);
@@ -231,10 +234,10 @@ private:
 	void setSuggestedSubSets(const uint set_number, const QList<stSet*> &sets);
 	void setSuggestedReps(const uint set_number, const QList<stSet*> &sets, const uint from_subset = 0);
 	void setSuggestedWeight(const uint set_number, const QList<stSet *> &sets, const uint from_subset = 0);
-	QString dropSetReps(const QString &reps, const uint n_subsets, const uint from_subset = 0);
-	QString clusterReps(const QString &total_reps, const uint n_subsets, const uint from_subset = 0);
-	QString myorepsReps(const QString &first_set_reps, const uint n_sets, const uint from_subset = 0);
-	QString dropSetWeight(const QString &weight, const uint n_subsets, const uint from_subset = 0);
-	QString clusterWeight(const QString &constant_weight, const uint n_subsets, const uint from_subset = 0);
-	QString myorepsWeight(const QString &first_set_weight, const uint n_sets, const uint from_subset = 0);
+	QString dropSetReps(const QString &reps, const uint from_subset = 0) const;
+	QString clusterReps(const QString &total_reps, const uint from_subset = 0) const;
+	QString myorepsReps(const QString &first_set_reps, const uint n_sets, const uint from_set = 0) const;
+	QString dropSetWeight(const QString &weight, const uint from_subset = 0) const;
+	QString clusterWeight(const QString &constant_weight, const uint from_subset = 0) const;
+	QString myorepsWeight(const QString &first_set_weight, const uint n_sets, const uint from_set = 0)const;
 };

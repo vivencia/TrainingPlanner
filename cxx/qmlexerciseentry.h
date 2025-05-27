@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QObject>
-#include <QVariantHash>
+#include <QVariantMap>
 
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(QmlSetEntry)
@@ -20,11 +20,14 @@ Q_PROPERTY(uint newSetType READ newSetType WRITE setNewSetType NOTIFY newSetType
 Q_PROPERTY(QString exerciseNumberLabel READ exerciseNumber NOTIFY exerciseNumberChanged FINAL)
 Q_PROPERTY(QString exerciseName READ exerciseName WRITE setExerciseName NOTIFY exerciseNameChanged FINAL)
 Q_PROPERTY(QString setsNumber READ setsNumber WRITE setSetsNumber NOTIFY setsNumberChanged FINAL)
-Q_PROPERTY(QString restTime READ restTime WRITE setRestTime NOTIFY restTimeChanged FINAL)
-Q_PROPERTY(QString repsForExercise1 READ repsForExercise1 WRITE setRepsForExercise1 NOTIFY repsForExercise1Changed FINAL)
-Q_PROPERTY(QString weightForExercise1 READ weightForExercise1 WRITE setWeightForExercise1 NOTIFY weightForExercise1Changed FINAL)
-Q_PROPERTY(QString repsForExercise2 READ repsForExercise2 WRITE setRepsForExercise2 NOTIFY repsForExercise2Changed FINAL)
-Q_PROPERTY(QString weightForExercise2 READ weightForExercise2 WRITE setWeightForExercise2 NOTIFY weightForExercise2Changed FINAL)
+Q_PROPERTY(QString newSetType1 READ newSetReps1 NOTIFY newSetDataChanged FINAL)
+Q_PROPERTY(QString newSetType2 READ newSetReps2 NOTIFY newSetDataChanged FINAL)
+Q_PROPERTY(QString newSetRestTime1 READ newSetRestTime1 NOTIFY newSetDataChanged FINAL)
+Q_PROPERTY(QString newSetRestTime2 READ newSetRestTime2 NOTIFY newSetDataChanged FINAL)
+Q_PROPERTY(QString newSetReps1 READ newSetReps1 NOTIFY newSetDataChanged FINAL)
+Q_PROPERTY(QString newSetWeight1 READ newSetWeight1 NOTIFY newSetDataChanged FINAL)
+Q_PROPERTY(QString newSetReps2 READ newSetReps2 NOTIFY newSetDataChanged FINAL)
+Q_PROPERTY(QString newSetWeight2 READ newSetWeight2 NOTIFY newSetDataChanged FINAL)
 Q_PROPERTY(bool hasSets READ hasSets NOTIFY hasSetsChanged FINAL)
 Q_PROPERTY(bool lastExercise READ lastExercise WRITE setLastExercise NOTIFY lastExerciseChanged FINAL)
 Q_PROPERTY(bool isEditable READ isEditable WRITE setIsEditable NOTIFY isEditableChanged FINAL)
@@ -32,7 +35,7 @@ Q_PROPERTY(bool compositeExercise READ compositeExercise WRITE setCompositeExerc
 Q_PROPERTY(bool trackRestTime READ trackRestTime WRITE setTrackRestTime NOTIFY trackRestTimeChanged FINAL)
 Q_PROPERTY(bool autoRestTime READ autoRestTime WRITE setAutoRestTime NOTIFY autoRestTimeChanged FINAL)
 Q_PROPERTY(bool canEditRestTimeTracking READ canEditRestTimeTracking WRITE setCanEditRestTimeTracking NOTIFY canEditRestTimeTrackingChanged FINAL)
-Q_PROPERTY(bool allSetsCompleted READ allSetsCompleted WRITE setAllSetsCompleted NOTIFY allSetsCompletedChanged FINAL)
+Q_PROPERTY(bool allSetsCompleted READ allSetsCompleted NOTIFY allSetsCompletedChanged FINAL)
 
 public:
 	inline explicit QmlExerciseEntry(QObject *parent, QmlWorkoutInterface *workoutPage,
@@ -54,6 +57,14 @@ public:
 	const QString exerciseName2() const;
 	void setExerciseName1(const QString &new_name);
 	void setExerciseName2(const QString &new_name);
+	QString newSetType1() const;
+	QString newSetType2() const;
+	QString newSetRestTime1() const;
+	QString newSetRestTime2() const;
+	QString newSetReps1() const;
+	QString newSetReps2() const;
+	QString newSetWeight1() const;
+	QString newSetWeight2() const;
 
 	const bool trackRestTime() const;
 	void setTrackRestTime(const bool track_resttime);
@@ -65,8 +76,8 @@ public:
 	inline const bool lastExercise() const { return m_bLast; }
 	inline void setLastExercise(const bool new_value) { m_bLast = new_value; emit lastExerciseChanged(); }
 
-	inline const bool isEditable() const { return m_bEditable; }
-	void setIsEditable(const bool new_value);
+	const bool isEditable() const { return m_bEditable; }
+	void setIsEditable(const bool editable);
 
 	inline const bool compositeExercise() const { return m_bCompositeExercise; }
 	inline void setCompositeExercise(const bool new_value) { m_bCompositeExercise = new_value; emit compositeExerciseChanged(); }
@@ -74,8 +85,7 @@ public:
 	inline const bool canEditRestTimeTracking() const { return m_bCanEditRestTimeTracking; }
 	inline void setCanEditRestTimeTracking(const bool new_value) { m_bCanEditRestTimeTracking = new_value; emit canEditRestTimeTrackingChanged(); }
 
-	inline bool allSetsCompleted() const { return m_bAllSetsCompleted; }
-	inline void setAllSetsCompleted(const bool new_value) { m_bAllSetsCompleted = new_value; emit allSetsCompletedChanged(); }
+	const bool allSetsCompleted() const;
 
 	Q_INVOKABLE void removeExercise(const bool bAsk = true);
 	Q_INVOKABLE void exerciseCompleted();
@@ -84,9 +94,9 @@ public:
 	Q_INVOKABLE void createAvailableSets();
 	Q_INVOKABLE void appendNewSet();
 	Q_INVOKABLE void removeSetObject(const uint set_number, const bool bAsk = true);
-	Q_INVOKABLE void moveSet(const uint set_number, const uint new_set_number);
-	Q_INVOKABLE void changeSetType(const uint set_number, const uint new_type, const bool bSetIsManuallyModified = true);
-	Q_INVOKABLE void changeSetMode(const uint set_number);
+	Q_INVOKABLE void moveSet(const uint exercise_idx, const uint set_number, const uint new_set_number);
+	Q_INVOKABLE void changeSetType(const uint exercise_idx, const uint set_number, const uint new_type);
+	Q_INVOKABLE void changeSetMode(const uint exercise_idx, const uint set_number);
 	Q_INVOKABLE void copyTypeValueIntoOtherSets(const uint set_number);
 	Q_INVOKABLE void copyTimeValueIntoOtherSets(const uint set_number);
 	Q_INVOKABLE void copyRepsValueIntoOtherSets(const uint set_number, const uint sub_set = 0);
@@ -99,11 +109,7 @@ signals:
 	void nSetsChanged();
 	void exerciseNameChanged();
 	void setsNumberChanged();
-	void restTimeChanged();
-	void repsForExercise1Changed();
-	void weightForExercise1Changed();
-	void repsForExercise2Changed();
-	void weightForExercise2Changed();
+	void newSetDataChanged();
 	void hasSetsChanged();
 	void lastExerciseChanged();
 	void isEditableChanged();
@@ -111,7 +117,6 @@ signals:
 	void trackRestTimeChanged();
 	void autoRestTimeChanged();
 	void canEditRestTimeTrackingChanged();
-	void allSetsCompletedChanged();
 	void setObjectCreated(const uint set_number);
 
 private:
@@ -124,13 +129,13 @@ private:
 	TPTimer *m_setTimer;
 
 	QList<QmlSetEntry*> m_setObjects;
-	QVariantHash m_setObjectProperties;
+	QVariantMap m_setObjectProperties;
 	QQmlComponent *m_setComponents[3];
 	QQuickItem *m_setsLayout;
 	uint m_expectedSetNumber;
 
 	void insertSetEntry(const uint set_number, QmlSetEntry *new_setobject);
-	void createSetObject(const uint set_number, const uint type);
+	void createSetObject(const uint set_number);
 	void createSetObject_part2(const uint set_number, const uint set_type_cpp);
 	void setCreated(const uint set_number, const uint nsets, auto conn);
 	inline void changeSetCompleteStatus(const uint set_number, const bool bCompleted);
