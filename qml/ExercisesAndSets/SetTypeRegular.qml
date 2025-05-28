@@ -147,7 +147,7 @@ FocusScope {
 				}
 
 				onClicked: {
-					exerciseManager.copyTypeValueIntoOtherSets(setManager.number);
+					exerciseManager.updateSetTypeForNextSets(setManager.number);
 					visible = false;
 				}
 			}
@@ -198,7 +198,7 @@ FocusScope {
 				Layout.leftMargin: 10
 
 				onClicked: {
-					exerciseManager.copyTimeValueIntoOtherSets(setManager.number);
+					exerciseManager.updateRestTimeForNextSets(setManager.number);
 					visible = false;
 				}
 			}
@@ -257,7 +257,7 @@ FocusScope {
 				Layout.leftMargin: 10
 
 				onClicked: {
-					exerciseManager.copyRepsValueIntoOtherSets(setManager.number);
+					exerciseManager.updateRepsForNextSets(setManager.number);
 					visible = false;
 				}
 			}
@@ -286,7 +286,7 @@ FocusScope {
 				Layout.leftMargin: 10
 
 				onClicked: {
-					exerciseManager.copyWeightValueIntoOtherSets(setManager.number);
+					exerciseManager.updateWeightForNextSets(setManager.number);
 					visible = false;
 				}
 			}

@@ -26,7 +26,6 @@ public:
 	void createExerciseObject();
 	void createExercisesObjects();
 	void removeExerciseObject(const uint exercise_number);
-	void removeExerciseSet(const uint exercise_number, const uint set_number);
 	void clearExercises();
 	void setExercisesEditable(const bool editable);
 	void moveExercise(const uint exercise_number, const uint new_exercisenumber);

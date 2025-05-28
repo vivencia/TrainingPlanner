@@ -87,11 +87,6 @@ void QmlExerciseInterface::removeExerciseObject(const uint exercise_idx)
 		moveExercise(i-1, i);
 }
 
-void QmlExerciseInterface::removeExerciseSet(const uint exercise_idx, const uint set_number)
-{
-	m_exercisesList.at(exercise_idx)->removeSetObject(set_number, false);
-}
-
 void QmlExerciseInterface::clearExercises()
 {
 	m_workoutModel->clearExercises();

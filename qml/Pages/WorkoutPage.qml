@@ -52,7 +52,7 @@ TPPage {
 
 			TPLabel {
 				id: lblHeader
-				text: tDayManager.headerText
+				text: WorkoutManager.headerText
 				font: AppGlobals.largeFont
 				horizontalAlignment: Text.AlignHCenter
 				Layout.minimumWidth: trainingDayPage.width - 20
@@ -60,7 +60,7 @@ TPPage {
 			}
 
 			TPLabel {
-				text: tDayManager.muscularGroup
+				text: WorkoutManager.muscularGroup
 				horizontalAlignment: Text.AlignHCenter
 				Layout.minimumWidth: trainingDayPage.width - 20
 				Layout.maximumWidth: trainingDayPage.width - 20
@@ -76,16 +76,16 @@ TPPage {
 				TPComboBox {
 					id: cboSplitLetter
 					model: AppGlobals.splitModel
-					enabled: tDayManager.timerActive ? false : tDayManager.workoutIsEditable
+					enabled: WorkoutManager.timerActive ? false : WorkoutManager.workoutIsEditable
 					Layout.maximumWidth: 100
 
-					Component.onCompleted: currentIndex = Qt.binding(function() { return cboSplitLetter.indexOfValue(tDayManager.splitLetter); });
-					onActivated: (index) => tDayManager.splitLetter = valueAt(index);
+					Component.onCompleted: currentIndex = Qt.binding(function() { return cboSplitLetter.indexOfValue(WorkoutManager.splitLetter); });
+					onActivated: (index) => WorkoutManager.splitLetter = valueAt(index);
 				} //TPComboBox
 			}
 
 			RowLayout {
-				visible: tDayManager.splitLetter !== "R"
+				visible: WorkoutManager.splitLetter !== "R"
 				Layout.maximumWidth: trainingDayPage.width - 20
 
 				TPLabel {
@@ -95,21 +95,21 @@ TPPage {
 				}
 				TPTextInput {
 					id: txtLocation
-					placeholderText: tDayManager.lastWorkOutLocation
-					text: tDayManager.lastWorkOutLocation
-					enabled: tDayManager.workoutIsEditable
+					placeholderText: WorkoutManager.lastWorkOutLocation
+					text: WorkoutManager.lastWorkOutLocation
+					enabled: WorkoutManager.workoutIsEditable
 					Layout.row: 1
 					Layout.column: 1
 					Layout.fillWidth: true
 
-					onTextChanged: tDayManager.lastWorkOutLocation = text;
+					onTextChanged: WorkoutManager.lastWorkOutLocation = text;
 				}
 			}
 
 			Frame {
 				id: frmTrainingTime
-				visible: tDayManager.splitLetter !== "R"
-				enabled: tDayManager.timerActive ? false : !tDayManager.dayIsFinished
+				visible: WorkoutManager.splitLetter !== "R"
+				enabled: WorkoutManager.timerActive ? false : !WorkoutManager.dayIsFinished
 				height: appSettings.pageHeight*0.4
 				Layout.preferredWidth: trainingDayPage.width - 20
 
@@ -130,7 +130,7 @@ TPPage {
 						Layout.fillWidth: true
 
 						onClicked: {
-							tDayManager.prepareWorkOutTimer();
+							WorkoutManager.prepareWorkOutTimer();
 							optTimeConstrainedSession.checked = false;
 						}
 					}
@@ -177,10 +177,10 @@ TPPage {
 								id: dlgTimeEndSession
 								hrsDisplay: appUtils.getHourFromCurrentTime()
 								minutesDisplay: appUtils.getMinutesFromCurrentTime()
-								bOnlyFutureTime: tDayManager.mainDateIsToday ? tDayManager.editMode : false
+								bOnlyFutureTime: WorkoutManager.mainDateIsToday ? WorkoutManager.editMode : false
 								parentPage: trainingDayPage
 
-								onTimeSet: (hour, minutes) => tDayManager.prepareWorkOutTimer(appUtils.getCurrentTimeString(), hour + ":" + minutes);
+								onTimeSet: (hour, minutes) => WorkoutManager.prepareWorkOutTimer(appUtils.getCurrentTimeString(), hour + ":" + minutes);
 								onClosed: restrictedTimeLoader.active = false;
 							}
 
@@ -196,7 +196,7 @@ TPPage {
 					} //RowLayout
 
 					Row {
-						enabled: optFreeTimeSession.checked && (tDayManager.editMode || tDayManager.mainDateIsToday)
+						enabled: optFreeTimeSession.checked && (WorkoutManager.editMode || WorkoutManager.mainDateIsToday)
 						padding: 0
 						spacing: 10
 						Layout.fillWidth: true
@@ -210,7 +210,7 @@ TPPage {
 
 						TPTextInput {
 							id: txtInTime
-							text: tDayManager.timeIn
+							text: WorkoutManager.timeIn
 							horizontalAlignment: Text.AlignHCenter
 							readOnly: true
 							width: parent.width*0.25
@@ -235,7 +235,7 @@ TPPage {
 								minutesDisplay: appUtils.getMinutesFromStrTime(txtInTime.text)
 								parentPage: trainingDayPage
 
-								onTimeSet: (hour, minutes) => tDayManager.timeIn = hour + ":" + minutes;
+								onTimeSet: (hour, minutes) => WorkoutManager.timeIn = hour + ":" + minutes;
 								onClosed: timeInLoader.active = false;
 							}
 
@@ -251,7 +251,7 @@ TPPage {
 					}
 
 					Row {
-						enabled: optFreeTimeSession.checked && (tDayManager.editMode || tDayManager.mainDateIsToday)
+						enabled: optFreeTimeSession.checked && (WorkoutManager.editMode || WorkoutManager.mainDateIsToday)
 						padding: 0
 						spacing: 10
 						Layout.fillWidth: true
@@ -265,7 +265,7 @@ TPPage {
 
 						TPTextInput {
 							id: txtOutTime
-							text: tDayManager.timeOut
+							text: WorkoutManager.timeOut
 							horizontalAlignment: Text.AlignHCenter
 							readOnly: true
 							width: parent.width*0.25
@@ -289,9 +289,9 @@ TPPage {
 								hrsDisplay: appUtils.getHourFromStrTime(txtOutTime.text)
 								minutesDisplay: appUtils.getMinutesFromStrTime(txtOutTime.text)
 								parentPage: trainingDayPage
-								bOnlyFutureTime: tDayManager.mainDateIsToday ? tDayManager.editMode : false
+								bOnlyFutureTime: WorkoutManager.mainDateIsToday ? WorkoutManager.editMode : false
 
-								onTimeSet: (hour, minutes) => tDayManager.timeOut = hour + ":" + minutes;
+								onTimeSet: (hour, minutes) => WorkoutManager.timeOut = hour + ":" + minutes;
 								onClosed: timeOutLoader.active = false;
 							}
 
@@ -310,25 +310,25 @@ TPPage {
 
 			SetNotesField {
 				info: qsTr("This training session considerations:")
-				text: tDayManager.dayNotes
-				editable: tDayManager.workoutIsEditable
-				visible: tDayManager.splitLetter !== "R"
+				text: WorkoutManager.dayNotes
+				editable: WorkoutManager.workoutIsEditable
+				visible: WorkoutManager.splitLetter !== "R"
 				Layout.fillWidth: true
 
-				onEditFinished: (new_text) => tDayManager.dayNotes = new_text;
+				onEditFinished: (new_text) => WorkoutManager.dayNotes = new_text;
 			}
 
 			TPButton {
-				text: qsTr("Use this workout exercises as the default exercises plan for the division ") + tDayManager.splitLetter + qsTr( " of this mesocycle")
+				text: qsTr("Use this workout exercises as the default exercises plan for the division ") + WorkoutManager.splitLetter + qsTr( " of this mesocycle")
 				flat: false
 				rounded: false
-				visible: tDayManager.dayIsFinished && tDayManager.hasExercises
-				enabled: tDayManager.editMode;
+				visible: WorkoutManager.dayIsFinished && WorkoutManager.hasExercises
+				enabled: WorkoutManager.editMode;
 				width: parent.width - 10
 				Layout.fillWidth: true
 				Layout.bottomMargin: 10
 
-				onClicked: tDayManager.exportWorkoutToSplitPlan();
+				onClicked: WorkoutManager.exportWorkoutToSplitPlan();
 			}
 
 			TPLabel {
@@ -337,7 +337,7 @@ TPPage {
 				font: AppGlobals.extraLargeFont
 				horizontalAlignment: Text.AlignHCenter
 				verticalAlignment: Text.AlignVCenter
-				visible: tDayManager.splitLetter !== "R"
+				visible: WorkoutManager.splitLetter !== "R"
 				height: 40
 				Layout.bottomMargin: 10
 				Layout.fillWidth: true
@@ -358,8 +358,8 @@ TPPage {
 					id: btnClearExercises
 					imageSource: "revert-day.png"
 					imageSize: 30
-					visible: tDayManager.hasExercises
-					enabled: tDayManager.workoutIsEditable ? true : tDayManager.editMode
+					visible: WorkoutManager.hasExercises
+					enabled: WorkoutManager.workoutIsEditable ? true : WorkoutManager.editMode
 					ToolTip.text: "Remove all exercises"
 
 					anchors {
@@ -449,7 +449,7 @@ TPPage {
 	footer: TPToolBar {
 		id: dayInfoToolBar
 		height: appSettings.pageHeight*0.18
-		visible: tDayManager.splitLetter !== "R"
+		visible: WorkoutManager.splitLetter !== "R"
 
 		RowLayout {
 			id: workoutLengthRow
@@ -464,17 +464,17 @@ TPPage {
 			}
 
 			TPLabel {
-				text: !tDayManager.dayIsFinished ? qsTr("Workout:") : qsTr("Workout session length: ")
+				text: !WorkoutManager.dayIsFinished ? qsTr("Workout:") : qsTr("Workout session length: ")
 			}
 
 			TPButton {
 				id: btnStartWorkout
 				text: qsTr("Begin")
 				flat: false
-				visible: tDayManager.mainDateIsToday ? !tDayManager.dayIsFinished && !tDayManager.editMode : false
-				enabled: !tDayManager.timerActive
+				visible: WorkoutManager.mainDateIsToday ? !WorkoutManager.dayIsFinished && !WorkoutManager.editMode : false
+				enabled: !WorkoutManager.timerActive
 
-				onClicked: tDayManager.startWorkout();
+				onClicked: WorkoutManager.startWorkout();
 			}
 
 			Rectangle {
@@ -491,21 +491,21 @@ TPPage {
 					TPDigitalClock {
 						id: hoursClock
 						max: 24
-						value: tDayManager.timerHour
+						value: WorkoutManager.timerHour
 					}
 					Rectangle { color : appSettings.fontColor; width: 2; height: 35 }
 
 					TPDigitalClock {
 						id: minsClock
 						max: 60
-						value: tDayManager.timerMinute
+						value: WorkoutManager.timerMinute
 					}
 					Rectangle { color : appSettings.fontColor; width: 2; height: 35 }
 
 					TPDigitalClock {
 						id: secsClock
 						max: 60
-						value: tDayManager.timerSecond
+						value: WorkoutManager.timerSecond
 					}
 				}
 			}
@@ -515,9 +515,9 @@ TPPage {
 				text: qsTr("Finish")
 				flat: false
 				visible: btnStartWorkout.visible
-				enabled: tDayManager.timerActive
+				enabled: WorkoutManager.timerActive
 
-				onClicked: tDayManager.stopWorkout();
+				onClicked: WorkoutManager.stopWorkout();
 			}
 		}
 
@@ -530,7 +530,7 @@ TPPage {
 			fixedSize: true
 			width: 55
 			height: 55
-			visible: tDayManager.dayIsFinished || !tDayManager.mainDateIsToday || tDayManager.editMode
+			visible: WorkoutManager.dayIsFinished || !WorkoutManager.mainDateIsToday || WorkoutManager.editMode
 
 			anchors {
 				left: parent.left
@@ -553,7 +553,7 @@ TPPage {
 			fixedSize: true
 			width: 70
 			height: 55
-			visible: tDayManager.dayIsFinished && tDayManager.hasExercises
+			visible: WorkoutManager.dayIsFinished && WorkoutManager.hasExercises
 
 			anchors {
 				left: btnFinishedDayOptions.right
@@ -580,8 +580,8 @@ TPPage {
 			textUnderIcon: true
 			flat: false
 			height: 55
-			visible: tDayManager.splitLetter !== "R"
-			enabled: tDayManager.workoutIsEditable
+			visible: WorkoutManager.splitLetter !== "R"
+			enabled: WorkoutManager.workoutIsEditable
 
 			anchors {
 				right: parent.right
@@ -591,7 +591,7 @@ TPPage {
 				bottomMargin: 5
 			}
 
-			onClicked: itemManager.getExercisesPage(tDayManager);
+			onClicked: itemManager.getExercisesPage(WorkoutManager);
 		} // bntAddExercise
 	} //footer: ToolBar
 
@@ -602,7 +602,7 @@ TPPage {
 		cboModel.get(3).enabled = mesoSplit.indexOf('D') !== -1;
 		cboModel.get(4).enabled = mesoSplit.indexOf('E') !== -1;
 		cboModel.get(5).enabled = mesoSplit.indexOf('F') !== -1;
-		cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(tDayManager.splitLetter);
+		cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(WorkoutManager.splitLetter);
 	}
 
 	property TPComplexDialog changeSplitLetterDialog: null
@@ -615,9 +615,9 @@ TPPage {
 					customStringProperty1: qsTr("Really change split?"), customStringProperty2: qsTr("Clear exercises list?"),
 					customStringProperty3: "remove", customItemSource:"TPDialogWithMessageAndCheckBox.qml" });
 				changeSplitLetterDialog.button1Clicked.connect( function() {
-					tDayManager.changeSplit(cboSplitLetter.valueAt(cboSplitLetter.currentIndex), changeSplitLetterDialog.customBoolProperty1);
+					WorkoutManager.changeSplit(cboSplitLetter.valueAt(cboSplitLetter.currentIndex), changeSplitLetterDialog.customBoolProperty1);
 				});
-				changeSplitLetterDialog.button2Clicked.connect( function() { tDayManager.changeSplit("X"); });
+				changeSplitLetterDialog.button2Clicked.connect( function() { WorkoutManager.changeSplit("X"); });
 			}
 
 			if (component.status === Component.Ready)
@@ -637,7 +637,7 @@ TPPage {
 				function finishCreation() {
 					msgClearExercises = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Clear exercises list?"),
 						keepAbove: true, message: qsTr("All exercises changes will be removed"), imageSource: "revert-day.png" } );
-					msgClearExercises.button1Clicked.connect(function () { tDayManager.clearExercises(); } );
+					msgClearExercises.button1Clicked.connect(function () { WorkoutManager.clearExercises(); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -659,7 +659,7 @@ TPPage {
 				adjustCalendarBox = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Re-adjust meso calendar?"),
 					button1Text: qsTr("Adjust"), button2Text: qsTr("Cancel"), customItemSource:"TPDialogWithMessageAndCheckBox.qml",
 					customStringProperty1: lblHeader.text, customStringProperty2: qsTr("Only alter this day"), customStringProperty3: "calendar.png" });
-				adjustCalendarBox.button1Clicked.connect(function() { tDayManager.adjustCalendar(tDayManager.splitLetter, adjustCalendarBox.customBoolProperty1); });
+				adjustCalendarBox.button1Clicked.connect(function() { WorkoutManager.adjustCalendar(WorkoutManager.splitLetter, adjustCalendarBox.customBoolProperty1); });
 			}
 
 			if (component.status === Component.Ready)
@@ -677,9 +677,9 @@ TPPage {
 
 			function finishCreation() {
 				intentDlg = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("What do you want to do today?"),
-					button1Text: qsTr("Proceed"), customItemSource:"TPTDayIntentGroup.qml", customBoolProperty1: tDayManager.canImportFromSplitPlan,
-					customStringProperty2: tDayManager.splitLetter, customModel: tDayManager.previousWorkoutsList,
-					customBoolProperty2: tDayManager.canImportFromPreviousWorkout, customBoolProperty3: !tDayManager.hasExercises });
+					button1Text: qsTr("Proceed"), customItemSource:"TPTDayIntentGroup.qml", customBoolProperty1: WorkoutManager.canImportFromSplitPlan,
+					customStringProperty2: WorkoutManager.splitLetter, customModel: WorkoutManager.previousWorkoutsList,
+					customBoolProperty2: WorkoutManager.canImportFromPreviousWorkout, customBoolProperty3: !WorkoutManager.hasExercises });
 				intentDlg.button1Clicked.connect(intentChosen);
 			}
 
@@ -694,13 +694,13 @@ TPPage {
 	function intentChosen(): void {
 		switch (intentDlg.customIntProperty1) {
 			case 1: //use meso plan
-				tDayManager.getExercisesFromSplitPlan();
+				WorkoutManager.getExercisesFromSplitPlan();
 			break;
 			case 2: //use previous day
-				tDayManager.loadExercisesFromDate(intentDlg.customStringProperty1);
+				WorkoutManager.loadExercisesFromDate(intentDlg.customStringProperty1);
 			break;
 			case 3: //import from file
-				tDayManager.importTrainingDay();
+				WorkoutManager.importTrainingDay();
 			break;
 			case 4: //empty session
 			break;
@@ -758,7 +758,7 @@ TPPage {
 			function finishCreation() {
 				dlgSessionLength = component.createObject(trainingDayPage, { parentPage: trainingDayPage, timePickerOnly: true,
 					windowTitle: qsTr("Length of this training session") });
-				dlgSessionLength.onUseTime.connect(function(strtime) { tDayManager.prepareWorkOutTimer(strtime); } );
+				dlgSessionLength.onUseTime.connect(function(strtime) { WorkoutManager.prepareWorkOutTimer(strtime); } );
 			}
 
 			if (component.status === Component.Ready)
@@ -836,7 +836,7 @@ TPPage {
 				function finishCreation() {
 					msgRemoveExercise = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Remove Exercise?"),
 						keepAbove: true, imageSource: "remove" } );
-					msgRemoveExercise.button1Clicked.connect(function () { tDayManager.removeExercise(exerciseidx); } );
+					msgRemoveExercise.button1Clicked.connect(function () { WorkoutManager.removeExercise(exerciseidx); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -851,7 +851,7 @@ TPPage {
 	}
 
 	property TPBalloonTip msgRemoveSet: null
-	function showRemoveSetMessage(setnumber: int, exerciseidx: int): void {
+	function showRemoveSetMessage(setnumber: int): void {
 		if (msgRemoveSet === null) {
 			function createMessageBox() {
 				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
@@ -859,7 +859,7 @@ TPPage {
 				function finishCreation() {
 					msgRemoveSet = component.createObject(trainingDayPage, { parentPage: trainingDayPage, keepAbove: true, imageSource: "remove",
 						message: qsTr("This action cannot be undone.") } );
-					msgRemoveSet.button1Clicked.connect(function () { tDayManager.removeSetFromExercise(exerciseidx, setnumber); } );
+					msgRemoveSet.button1Clicked.connect(function () { WorkoutManager.currentExercise().removeSetObject(false); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -882,7 +882,7 @@ TPPage {
 				function finishCreation() {
 					resetWorkoutMsg = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Reset workout?"),
 						message: qsTr("Exercises will not be afected"), imageSource: "reset.png" } );
-					resetWorkoutMsg.button1Clicked.connect(function () { tDayManager.resetWorkout(); } );
+					resetWorkoutMsg.button1Clicked.connect(function () { WorkoutManager.resetWorkout(); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -903,7 +903,7 @@ TPPage {
 			function finishCreation() {
 				navButtons = component.createObject(trainingDayPage, { ownerPage: trainingDayPage });
 				navButtons.scrollTo.connect(scrollTraining.setScrollBarPosition);
-				navButtons.visible = Qt.binding(function() { return tDayManager.splitLetter !== "R"; });
+				navButtons.visible = Qt.binding(function() { return WorkoutManager.splitLetter !== "R"; });
 			}
 
 			if (component.status === Component.Ready)
@@ -928,8 +928,8 @@ TPPage {
 	function selectedOptionsMenuOption(menuid): void {
 		switch (menuid) {
 			case 0:
-				tDayManager.editMode = !tDayManager.editMode;
-				optionsMenu.setMenuText(0, tDayManager.editMode ? qsTr("Done") : qsTr("Edit workout"));
+				WorkoutManager.editMode = !WorkoutManager.editMode;
+				optionsMenu.setMenuText(0, WorkoutManager.editMode ? qsTr("Done") : qsTr("Edit workout"));
 			break;
 			case 1:
 				resetWorkoutMessage();
@@ -961,7 +961,7 @@ TPPage {
 			parentPage: trainingDayPage
 			closeButtonVisible: true
 
-			onButton1Clicked: tDayManager.exportTrainingDay(exportDlgLoader.bShare);
+			onButton1Clicked: WorkoutManager.exportTrainingDay(exportDlgLoader.bShare);
 			onClosed: exportDlgLoader.active = false;
 		}
 		property bool bShare

@@ -327,7 +327,7 @@ void QmlWorkoutInterface::prepareWorkOutTimer(const QString &strStartTime, const
 		m_workoutTimer->setStopWatch(true);
 		if (strStartTime.isEmpty())
 			m_workoutTimer->prepareTimer("00:00:00"_L1); //a regular workout timer. Open end time, start when begin workout is clicked
-		else //some error made the app crash. We have saved the start time on tDayModel, but it is a little later now, so adjust
+		else //some error made the app crash. We have saved the start time on workoutModel, but it is a little later now, so adjust
 			m_workoutTimer->prepareTimer(appUtils()->calculateTimeDifference_str(strStartTime, appUtils()->getCurrentTimeString()));
 	}
 }
@@ -371,9 +371,9 @@ void QmlWorkoutInterface::removeExercise(const uint exercise_idx)
 	emit hasExercisesChanged();
 }
 
-void QmlWorkoutInterface::removeSetFromExercise(const uint exercise_idx, const uint set_number)
+QmlExerciseEntry *QmlWorkoutInterface::currentExercise() const
 {
-	m_exerciseManager->removeExerciseSet(exercise_idx, set_number);
+	return m_exerciseManager->exerciseEntry(m_workoutModel->workingExercise());
 }
 
 void QmlWorkoutInterface::removeExerciseObject(const uint exercise_idx, const bool bAsk)
@@ -419,15 +419,6 @@ void QmlWorkoutInterface::askRemoveExercise(const uint exercise_idx)
 			Q_ARG(QString, m_workoutModel->exerciseName(exercise_idx)));
 	else
 		removeExercise(exercise_idx);
-}
-
-void QmlWorkoutInterface::askRemoveSet(const uint exercise_idx, const uint set_number)
-{
-	if (appSettings()->alwaysAskConfirmation())
-		QMetaObject::invokeMethod(m_workoutPage, "showRemoveSetMessage", Q_ARG(int, static_cast<int>(exercise_idx)),
-			Q_ARG(int, static_cast<int>(exercise_idx)));
-	else
-		removeSetFromExercise(exercise_idx, set_number);
 }
 
 void QmlWorkoutInterface::gotoNextExercise(const uint exercise_idx)

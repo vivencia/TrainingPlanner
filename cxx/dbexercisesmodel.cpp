@@ -32,7 +32,10 @@ struct stExercise {
 struct exerciseEntry {
 	QList<stExercise*> m_exercises;
 	TPBool track_rest_time, auto_rest_time;
+	uint working_subexercise;
 	uint number;
+
+	inline explicit exerciseEntry() : working_subexercise{0}, number{0} {}
 };
 
 enum RoleNames {
@@ -40,7 +43,11 @@ enum RoleNames {
 	giantSetExerciseRole = Qt::UserRole+1,
 	setsNumberRole = Qt::UserRole+2,
 	exerciseCompletedRole = Qt::UserRole+3,
-	workingSetRole = Qt::UserRole+4
+	workingExerciseRole = Qt::UserRole+4,
+	workingSubExerciseRole = Qt::UserRole+5,
+	workingSetRole = Qt::UserRole+6,
+	trackRestTimeRole = Qt::UserRole+7,
+	autoRestTimeRole = Qt::UserRole+8
 };
 
 static const QString &calendarDayExtraInfo{qApp->tr(" Workout #: ")};
@@ -499,9 +506,14 @@ bool DBExercisesModel::importExtraInfo(const QString &maybe_extra_info, int &cal
 	return false;
 }
 
-const uint DBExercisesModel::setsNumber(const uint exercise_number) const
+const uint DBExercisesModel::subExercisesCount(const uint exercise_number) const
 {
-	return m_exerciseData.at(exercise_number)->m_exercises.at(0)->sets.count();
+	return m_exerciseData.at(exercise_number)->m_exercises.count();
+}
+
+const uint DBExercisesModel::setsNumber(const uint exercise_number, const uint exercise_idx) const
+{
+	return m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.count();
 }
 
 uint DBExercisesModel::addExercise(const bool emit_signal)
@@ -680,17 +692,55 @@ bool DBExercisesModel::exerciseIsComposite(const uint exercise_number) const
 		return false;
 }
 
-uint DBExercisesModel::workingSet(const uint exercise_number) const
+void DBExercisesModel::setWorkingExercise(const uint new_workingexercise)
 {
-	return m_exerciseData.at(exercise_number)->m_exercises.at(0)->working_set;
+	if (new_workingexercise < exerciseCount() && new_workingexercise != m_workingExercise)
+	{
+		m_workingExercise = new_workingexercise;
+		emit workingExerciseChanged(m_workingExercise);
+		emit dataChanged(index(new_workingexercise, 0), index(new_workingexercise, 0), QList<int>{} << workingExerciseRole);
+	}
 }
 
-void DBExercisesModel::setWorkingSet(const uint exercise_number, const uint new_workingset)
+uint DBExercisesModel::workingSubExercise(int exercise_number) const
 {
-	if (new_workingset != m_exerciseData.at(exercise_number)->m_exercises.at(0)->working_set)
+	if (exercise_number < 0)
+		exercise_number = m_workingExercise;
+	return m_exerciseData.at(exercise_number)->working_subexercise;
+}
+
+void DBExercisesModel::setWorkingSubExercise(const uint new_workingsubexercise, int exercise_number)
+{
+	if (exercise_number < 0)
+		exercise_number = m_workingExercise;
+	if (new_workingsubexercise < subExercisesCount(exercise_number) && new_workingsubexercise != workingSubExercise(exercise_number))
 	{
-		m_exerciseData.at(exercise_number)->m_exercises.at(0)->working_set = new_workingset;
-		emit workingSetChanged(exercise_number);
+		m_exerciseData.at(exercise_number)->working_subexercise = new_workingsubexercise;
+		emit workingSubExerciseChanged(exercise_number, new_workingsubexercise);
+		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << workingSubExerciseRole);
+	}
+}
+
+uint DBExercisesModel::workingSet(int exercise_number, int exercise_idx) const
+{
+	if (exercise_number < 0)
+		exercise_number = m_workingExercise;
+	if (exercise_idx < 0)
+		exercise_idx = workingSubExercise(exercise_number);
+	return m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->working_set;
+}
+
+void DBExercisesModel::setWorkingSet(const uint new_workingset, int exercise_number, int exercise_idx)
+{
+	if (exercise_number < 0)
+		exercise_number = m_workingExercise;
+	if (exercise_idx < 0)
+		exercise_idx = workingSubExercise(exercise_number);
+
+	if (new_workingset < setsNumber(exercise_number, exercise_idx) && new_workingset != m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->working_set)
+	{
+		m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->working_set = new_workingset;
+		emit workingSetChanged(exercise_number, exercise_idx, new_workingset);
 		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << workingSetRole);
 	}
 }
@@ -721,6 +771,7 @@ void DBExercisesModel::setTrackRestTime(const uint exercise_number, const bool t
 {
 	m_exerciseData.at(exercise_number)->track_rest_time = track_resttime;
 	emit exerciseModified(exercise_number, EXERCISE_IGNORE_NOTIFY_IDX, EXERCISE_IGNORE_NOTIFY_IDX, EXERCISES_COL_TRACKRESTTIMES);
+	emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << trackRestTimeRole);
 }
 
 bool DBExercisesModel::autoRestTime(const uint exercise_number) const
@@ -732,6 +783,7 @@ void DBExercisesModel::setAutoRestTime(const uint exercise_number, const bool au
 {
 	m_exerciseData.at(exercise_number)->auto_rest_time = auto_resttime;
 	emit exerciseModified(exercise_number, EXERCISE_IGNORE_NOTIFY_IDX, EXERCISE_IGNORE_NOTIFY_IDX, EXERCISES_COL_AUTORESTTIMES);
+	emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << autoRestTimeRole);
 }
 
 uint DBExercisesModel::setType(const uint exercise_number, const uint exercise_idx, const uint set_number) const
@@ -780,9 +832,14 @@ QTime DBExercisesModel::suggestedRestTime(const QTime &prev_resttime, const uint
 	return QTime{};
 }
 
+const QTime &DBExercisesModel::restTime(const uint exercise_number, const uint exercise_idx, const uint set_number) const
+{
+	return m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->restTime;
+}
+
 QString DBExercisesModel::setRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number) const
 {
-	return appUtils()->formatTime(m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->restTime);
+	return appUtils()->formatTime(restTime(exercise_number, exercise_idx, set_number));
 }
 
 void DBExercisesModel::setSetRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number, const QString &new_time)
@@ -972,9 +1029,13 @@ void DBExercisesModel::setSetCompleted(const uint exercise_number, const uint ex
 	emit exerciseModified(exercise_number, exercise_idx, set_number, EXERCISES_COL_COMPLETED);
 }
 
-bool DBExercisesModel::allSetsCompleted(const uint exercise_number) const
+bool DBExercisesModel::allSetsCompleted(int exercise_number, int exercise_idx) const
 {
-	for (const auto set : std::as_const(m_exerciseData.at(exercise_number)->m_exercises.at(0)->sets))
+	if (exercise_number < 0)
+		exercise_number = m_workingExercise;
+	if (exercise_idx < 0)
+		exercise_idx = workingSubExercise(exercise_number);
+	for (const auto set : std::as_const(m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets))
 	{
 		if (!set->completed)
 			return false;
@@ -982,9 +1043,13 @@ bool DBExercisesModel::allSetsCompleted(const uint exercise_number) const
 	return true;
 }
 
-bool DBExercisesModel::anySetCompleted(const uint exercise_number) const
+bool DBExercisesModel::anySetCompleted(int exercise_number, int exercise_idx) const
 {
-	for (const auto set : std::as_const(m_exerciseData.at(exercise_number)->m_exercises.at(0)->sets))
+	if (exercise_number < 0)
+		exercise_number = m_workingExercise;
+	if (exercise_idx < 0)
+		exercise_idx = workingSubExercise(exercise_number);
+	for (const auto set : std::as_const(m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets))
 	{
 		if (set->completed)
 			return true;
@@ -1001,9 +1066,13 @@ QVariant DBExercisesModel::data(const QModelIndex &index, int role) const
 		{
 			case exerciseNumberRole: return QString::number(row+1);
 			case giantSetExerciseRole: return exerciseIsComposite(row);
-			case setsNumberRole: return setsNumber(row);
+			case setsNumberRole: return setsNumber(row, workingSubExercise(row));
 			case exerciseCompletedRole: return allSetsCompleted(row);
-			case workingSetRole: return workingSet(row);
+			case workingExerciseRole: return workingExercise();
+			case workingSubExerciseRole: return workingSubExercise(row);
+			case workingSetRole: return workingSet(row, workingSubExercise(row));
+			case trackRestTimeRole: return trackRestTime(row);
+			case autoRestTimeRole: return autoRestTime(row);
 		}
 	}
 	return QVariant{};
@@ -1014,8 +1083,12 @@ bool DBExercisesModel::setData(const QModelIndex &index, const QVariant &value, 
 	const int row{index.row()};
 	if (row >= 0 && row < m_exerciseData.count())
 	{
-		switch (role) {
-			case workingSetRole: setWorkingSet(row, value.toUInt()); //dataChanged is emitted in setWorkingSet()
+		switch (role) { //dataChanged is emitted in the setters
+			case workingExerciseRole: setWorkingExercise(value.toUInt());
+			case workingSubExerciseRole: setWorkingSubExercise(row, value.toUInt());
+			case workingSetRole: setWorkingSet(row, workingSubExercise(row), value.toUInt());
+			case trackRestTimeRole: setTrackRestTime(row, value.toBool());
+			case autoRestTimeRole: setAutoRestTime(row, value.toBool());
 			break;
 		}
 		return true;
@@ -1030,7 +1103,12 @@ void DBExercisesModel::commonConstructor()
 	m_roleNames[giantSetExerciseRole] = std::move("giantSetExercise");
 	m_roleNames[setsNumberRole] = std::move("setsNumber");
 	m_roleNames[exerciseCompletedRole] = std::move("exerciseCompleted");
+	m_roleNames[workingExerciseRole] = std::move("workingExercise");
+	m_roleNames[workingSubExerciseRole] = std::move("workingSubExercise");
 	m_roleNames[workingSetRole] = std::move("workingSet");
+	m_roleNames[trackRestTimeRole] = std::move("trackRestTime");
+	m_roleNames[autoRestTimeRole] = std::move("autoRestTime");
+
 	m_mesoId = appMesoModel()->id(m_mesoIdx);
 	if (m_calendarDay >= 0)
 	{

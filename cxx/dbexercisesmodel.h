@@ -48,6 +48,8 @@ QML_ELEMENT
 
 Q_PROPERTY(uint exerciseCount READ exerciseCount NOTIFY exerciseCountChanged)
 Q_PROPERTY(int workingExercise READ workingExercise WRITE setWorkingExercise NOTIFY workingExerciseChanged)
+Q_PROPERTY(int workingSubExercise READ workingSubExercise WRITE setWorkingSubExercise NOTIFY workingSubExerciseChanged)
+Q_PROPERTY(int workingSet READ workingSet WRITE setWorkingSet NOTIFY workingSetChanged)
 
 Q_PROPERTY(QString totalSetsLabel READ totalSetsLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString setNumberLabel READ setNumberLabel NOTIFY labelChanged FINAL)
@@ -108,7 +110,8 @@ public:
 	static bool importExtraInfo(const QString &maybe_extra_info, int &calendar_day, QChar &split_letter);
 
 	const uint inline exerciseCount() const { return m_exerciseData.count(); }
-	const uint setsNumber(const uint exercise_number) const;
+	const uint subExercisesCount(const uint exercise_number) const;
+	const uint setsNumber(const uint exercise_number, const uint exercise_idx) const;
 
 	Q_INVOKABLE uint addExercise(const bool emit_signal = true);
 	Q_INVOKABLE void delExercise(const uint exercise_number, const bool emit_signal = true);
@@ -121,16 +124,11 @@ public:
 	Q_INVOKABLE bool exerciseIsComposite(const uint exercise_number) const;
 
 	inline uint workingExercise() const { return m_workingExercise; }
-	inline void setWorkingExercise(const uint new_workingexercise)
-	{
-		if (new_workingexercise < exerciseCount() && new_workingexercise != m_workingExercise)
-		{
-			m_workingExercise = new_workingexercise;
-			emit workingExerciseChanged();
-		}
-	}
-	uint workingSet(const uint exercise_number) const;
-	void setWorkingSet(const uint exercise_number, const uint new_workingset);
+	void setWorkingExercise(const uint new_workingexercise);
+	uint workingSubExercise(int exercise_number = -1) const;
+	void setWorkingSubExercise(const uint new_workingsubexercise, int exercise_number = -1);
+	uint workingSet(int exercise_number = -1, int exercise_idx = -1) const;
+	void setWorkingSet(const uint new_workingset, int exercise_number = -1, int exercise_idx = -1);
 
 	Q_INVOKABLE QString exerciseName(const uint exercise_number, const uint exercise_idx = 0) const;
 	Q_INVOKABLE void setExerciseName(const uint exercise_number, const uint exercise_idx, const QString &new_name);
@@ -146,6 +144,7 @@ public:
 	void changeSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type);
 
 	QTime suggestedRestTime(const QTime &prev_resttime, const uint set_type) const;
+	const QTime &restTime(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	Q_INVOKABLE QString setRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	Q_INVOKABLE void setSetRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number, const QString &new_time);
 
@@ -171,8 +170,8 @@ public:
 
 	Q_INVOKABLE bool setCompleted(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	Q_INVOKABLE void setSetCompleted(const uint exercise_number, const uint exercise_idx, const uint set_number, const bool completed);
-	bool allSetsCompleted(const uint exercise_number) const;
-	bool anySetCompleted(const uint exercise_number) const;
+	bool allSetsCompleted(int exercise_number = -1, int exercise_idx = -1) const;
+	bool anySetCompleted(int exercise_number = -1, int exercise_idx = -1) const;
 
 	inline QString totalSetsLabel() const { return tr("Number of sets: "); }
 	inline QString setNumberLabel() const { return tr("Set #: "); }
@@ -206,8 +205,9 @@ signals:
 	void exerciseNameChanged(const uint exercise_number, const uint exercise_idx);
 	void setsNumberChanged(const int exercise_number, const uint exercise_idx);
 	void setTypeChanged(const int exercise_number, const uint exercise_idx, const uint set_number);
-	void workingExerciseChanged();
-	void workingSetChanged(const int exercise_number);
+	void workingExerciseChanged(const uint exercise_number);
+	void workingSubExerciseChanged(const int exercise_number, const uint exercise_idx);
+	void workingSetChanged(const int exercise_number, const uint exercise_idx, const uint set_number);
 	void exerciseCountChanged();
 	void exerciseCompleted(const uint exercise_number, const bool completed);
 	void labelChanged();

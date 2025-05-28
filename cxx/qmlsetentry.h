@@ -8,10 +8,9 @@
 #define SET_MODE_START_EXERCISE 2
 #define SET_MODE_SET_COMPLETED 3
 
-class QmlExerciseEntry;
-class DBWorkoutModel;
-
-class QQuickItem;
+QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
+QT_FORWARD_DECLARE_CLASS(QmlExerciseEntry)
+QT_FORWARD_DECLARE_CLASS(QQuickItem)
 
 class QmlSetEntry : public QObject
 {
@@ -22,8 +21,7 @@ Q_PROPERTY(uint type READ type WRITE setType NOTIFY typeChanged FINAL)
 Q_PROPERTY(uint number READ number WRITE setNumber NOTIFY numberChanged FINAL)
 Q_PROPERTY(uint mode READ mode WRITE setMode NOTIFY modeChanged FINAL)
 Q_PROPERTY(uint nSubSets READ nSubSets WRITE setNSubSets NOTIFY nSubSetsChanged FINAL)
-Q_PROPERTY(QString exerciseName1 READ exerciseName1 WRITE setExerciseName1 NOTIFY exerciseName1Changed FINAL)
-Q_PROPERTY(QString exerciseName2 READ exerciseName2 WRITE setExerciseName2 NOTIFY exerciseName2Changed FINAL)
+
 Q_PROPERTY(QString strNumber READ strNumber NOTIFY strNumberChanged FINAL)
 Q_PROPERTY(QString strTotalReps READ strTotalReps NOTIFY strTotalRepsChanged FINAL)
 Q_PROPERTY(QString modeLabel READ modeLabel NOTIFY modeLabelChanged FINAL)
@@ -38,28 +36,28 @@ Q_PROPERTY(QString reps4 READ reps4 WRITE setReps4 NOTIFY reps4Changed FINAL)
 Q_PROPERTY(QString weight4 READ weight4 WRITE setWeight4 NOTIFY weight4Changed FINAL)
 Q_PROPERTY(QString subSets READ subSets WRITE setSubSets NOTIFY subSetsChanged FINAL)
 Q_PROPERTY(QString notes READ notes WRITE setNotes NOTIFY notesChanged FINAL)
+Q_PROPERTY(bool current READ current WRITE setCurrent NOTIFY currentChanged FINAL)
 Q_PROPERTY(bool isEditable READ isEditable WRITE setIsEditable NOTIFY isEditableChanged FINAL)
 Q_PROPERTY(bool completed READ completed WRITE setCompleted NOTIFY completedChanged FINAL)
 Q_PROPERTY(bool lastSet READ lastSet WRITE setLastSet NOTIFY lastSetChanged FINAL)
 Q_PROPERTY(bool trackRestTime READ trackRestTime WRITE setTrackRestTime NOTIFY trackRestTimeChanged FINAL)
 Q_PROPERTY(bool autoRestTime READ autoRestTime WRITE setAutoRestTime NOTIFY autoRestTimeChanged FINAL)
-Q_PROPERTY(bool current READ current WRITE setCurrent NOTIFY currentChanged FINAL)
 Q_PROPERTY(bool hasSubSets READ hasSubSets NOTIFY hasSubSetsChanged FINAL)
 Q_PROPERTY(bool isManuallyModified READ isManuallyModified WRITE setIsManuallyModified NOTIFY isManuallyModifiedChanged FINAL)
 
 public:
-	inline explicit QmlSetEntry(QObject* parent, QmlExerciseEntry* parentExercise, DBWorkoutModel* tDayModel, const uint exercise_idx)
-		: QObject{parent}, m_parentExercise(parentExercise), m_workoutModel(tDayModel), m_exercise_idx(exercise_idx), m_setEntry(nullptr),
-		m_type(9999), m_number(9999), m_mode(9999), m_nsubsets(9999),
-		m_bEditable(false), m_bCompleted(false), m_bLastSet(false), m_bTrackRestTime(false), m_bAutoRestTime(false),
-		m_bCurrent(false), m_bHasSubSets(false), m_bIsManuallyModified(false) {}
+	inline explicit QmlSetEntry(QObject *parent, QmlExerciseEntry *parentExercise, DBExercisesModel *workoutModel,
+								const uint exercise_idx, const uint set_number)
+		: QObject{parent}, m_parentExercise{parentExercise}, m_workoutModel{workoutModel}, m_setEntry{nullptr},
+				m_exerciseIdx{exercise_idx}, m_setNumber{set_number}, m_bEditable{false}, m_bLastSet{false}, m_bCurrent{false} {}
 
-	inline const uint exerciseNumber() const { return m_exercise_idx; }
-	inline void setExerciseNumber(const uint new_value) { m_exercise_idx = new_value; }
+	void setExerciseIdx(const uint new_exerciseidx) { m_exerciseIdx = new_exerciseidx; }
+	inline const uint exerciseNumber() const { return m_exerciseIdx; }
+	inline void setExerciseNumber(const uint new_value) { m_exerciseIdx = new_value; }
 
-	inline const QQuickItem* setEntry() const { return m_setEntry; }
-	inline QQuickItem* setEntry() { return m_setEntry; }
-	inline void setSetEntry(QQuickItem* item) { m_setEntry = item; }
+	inline const QQuickItem *setEntry() const { return m_setEntry; }
+	inline QQuickItem *setEntry() { return m_setEntry; }
+	inline void setSetEntry(QQuickItem *item) { m_setEntry = item; }
 
 	QString exerciseName1() const;
 	void setExerciseName1(const QString& new_value);
@@ -202,11 +200,11 @@ signals:
 	void isManuallyModifiedChanged();
 
 private:
-	QmlExerciseEntry* m_parentExercise;
-	DBWorkoutModel* m_workoutModel;
-	uint m_exercise_idx;
+	QmlExerciseEntry *m_parentExercise;
+	DBExercisesModel *m_workoutModel;
+	uint m_exerciseIdx, m_setNumber;
 
-	QQuickItem* m_setEntry;
+	QQuickItem *m_setEntry;
 	QString m_exerciseName, m_restTime, m_reps, m_weight, m_subsets, m_notes;
 	uint m_type, m_number, m_mode, m_nsubsets;
 	bool m_bEditable, m_bCompleted, m_bLastSet, m_bTrackRestTime, m_bAutoRestTime, m_bCurrent, m_bHasSubSets, m_bIsManuallyModified;

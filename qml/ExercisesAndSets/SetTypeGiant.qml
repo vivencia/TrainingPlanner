@@ -152,7 +152,7 @@ FocusScope {
 				}
 
 				onClicked: {
-					exerciseManager.copyTypeValueIntoOtherSets(setManager.number);
+					exerciseManager.updateSetTypeForNextSets(setManager.number);
 					visible = false;
 				}
 			}
@@ -196,7 +196,7 @@ FocusScope {
 				width: 25
 				Layout.alignment: Qt.AlignRight
 
-				onClicked: exerciseManager.copyTimeValueIntoOtherSets(setManager.number);
+				onClicked: exerciseManager.updateRestTimeForNextSets(setManager.number);
 			}
 		}
 
@@ -250,7 +250,7 @@ FocusScope {
 				width: 25
 
 				onClicked: {
-					exerciseManager.copyRepsValueIntoOtherSets(setManager.number, 0);
+					exerciseManager.updateRepsForNextSets(setManager.number, 0);
 					visible = false;
 				}
 			}
@@ -274,7 +274,7 @@ FocusScope {
 				width: 25
 
 				onClicked: {
-					exerciseManager.copyRepsValueIntoOtherSets(setManager.number, 1);
+					exerciseManager.updateRepsForNextSets(setManager.number, 1);
 					visible = false;
 				}
 			}
@@ -304,7 +304,7 @@ FocusScope {
 				width: 25
 
 				onClicked: {
-					exerciseManager.copyWeightValueIntoOtherSets(setManager.number, 0);
+					exerciseManager.updateWeightForNextSets(setManager.number, 0);
 					visible = false;
 				}
 			}
@@ -327,7 +327,7 @@ FocusScope {
 				width: 25
 
 				onClicked: {
-					exerciseManager.copyWeightValueIntoOtherSets(setManager.number, 1);
+					exerciseManager.updateWeightForNextSets(setManager.number, 1);
 					visible = false;
 				}
 			}
@@ -339,7 +339,7 @@ FocusScope {
 			enabled: !setManager.completed
 			Layout.fillWidth: true
 
-			onEditFinished: (new_text) => tDayModel.setSetNotes(setNumber, exerciseNumber, new_text);
+			onEditFinished: (new_text) => workoutModel.setSetNotes(setNumber, exerciseNumber, new_text);
 		}
 	} //ColumnLayout setLayout
 

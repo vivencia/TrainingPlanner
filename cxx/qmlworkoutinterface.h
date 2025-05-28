@@ -115,7 +115,8 @@ public:
 	Q_INVOKABLE void stopWorkout();
 	Q_INVOKABLE void clearExercises(const bool bShowIntentDialog = true);
 	Q_INVOKABLE void removeExercise(const uint exercise_idx);
-	Q_INVOKABLE void removeSetFromExercise(const uint exercise_idx, const uint set_number);
+	Q_INVOKABLE void removeSetFromExercise();
+	Q_INVOKABLE QmlExerciseEntry *currentExercise() const;
 	void removeExerciseObject(const uint exercise_idx, const bool bAsk);
 	void moveExercise(const uint exercise_idx, const uint new_idx);
 
@@ -125,7 +126,6 @@ public:
 	void simpleExercisesList(const bool show, const bool multi_sel = false);
 	void displayMessage(const QString &title, const QString &message, const bool error = false, const uint msecs = 0) const;
 	void askRemoveExercise(const uint exercise_idx);
-	void askRemoveSet(const uint exercise_idx, const uint set_number);
 	void gotoNextExercise(const uint exercise_idx);
 	void rollUpExercises() const;
 

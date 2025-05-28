@@ -132,7 +132,7 @@ FocusScope {
 				}
 
 				onClicked: {
-					exerciseManager.copyTypeValueIntoOtherSets(setManager.number);
+					exerciseManager.updateSetTypeForNextSets(setManager.number);
 					visible = false;
 				}
 			}
@@ -176,7 +176,7 @@ FocusScope {
 				width: 25
 				Layout.alignment: Qt.AlignRight
 
-				onClicked: exerciseManager.copyTimeValueIntoOtherSets(setManager.number);
+				onClicked: exerciseManager.updateRestTimeForNextSets(setManager.number);
 			}
 		}
 
@@ -277,7 +277,7 @@ FocusScope {
 						}
 					}
 
-					onClicked: exerciseManager.copyRepsValueIntoOtherSets(setManager.number, index);
+					onClicked: exerciseManager.updateRepsForNextSets(setManager.number, index);
 				}
 
 				SetInputField {
@@ -335,7 +335,7 @@ FocusScope {
 						}
 					}
 
-					onClicked: exerciseManager.copyWeightValueIntoOtherSets(setManager.number, index);
+					onClicked: exerciseManager.updateWeightForNextSets(setManager.number, index);
 				}
 			}
 		}
@@ -346,7 +346,7 @@ FocusScope {
 			enabled: !setManager.completed
 			Layout.fillWidth: true
 
-			onEditFinished: (new_text) => tDayModel.setSetNotes(setNumber, exerciseNumber, new_text);
+			onEditFinished: (new_text) => workoutModel.setSetNotes(setNumber, exerciseNumber, new_text);
 		}
 	} // setLayout
 

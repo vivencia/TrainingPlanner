@@ -6,7 +6,7 @@
 #include "qmlsetentry.h"
 #include "qmlworkoutinterface.h"
 
-#include "tpglobals.h"
+#include "tpsettings.h"
 #include "tptimer.h"
 #include "tputils.h"
 #include "translationclass.h"
@@ -15,8 +15,12 @@
 #include <QQuickItem>
 
 #define CPP_SET_TYPE_REGULAR 0
-#define CPP_SET_TYPE_DROP 0
-#define CPP_SET_TYPE_GIANT 0
+#define CPP_SET_TYPE_DROP 1
+#define CPP_SET_TYPE_GIANT 2
+
+struct exerciseIdxEntry{
+	QList<QmlSetEntry*> m_setObjects;
+};
 
 static const QString setTypePages[3] { std::move("qrc:/qml/ExercisesAndSets/SetTypeRegular.qml"_L1),
 					std::move("qrc:/qml/ExercisesAndSets/SetTypeDrop.qml"_L1), std::move("qrc:/qml/ExercisesAndSets/SetTypeGiant.qml"_L1) };
@@ -29,8 +33,9 @@ QmlExerciseEntry::~QmlExerciseEntry()
 		delete m_setComponents[1];
 	if (m_setComponents[2])
 		delete m_setComponents[2];
-	for (uint i(0); i < m_setObjects.count(); ++i)
-		delete m_setObjects.at(i);
+	for (const auto exercise_idx : std::as_const(m_exercisesIdxs))
+		qDeleteAll(exercise_idx->m_setObjects);
+	qDeleteAll(m_exercisesIdxs);
 	delete m_exerciseEntry;
 }
 
@@ -45,8 +50,11 @@ void QmlExerciseEntry::setExerciseNumber(const uint new_value)
 	m_exerciseNumber = new_value;
 	m_exerciseEntry->setProperty("Layout.row", new_value);
 	emit exerciseNumberChanged();
-	for (const auto set : std::as_const(m_setObjects))
-		set->setExerciseNumber(m_exerciseNumber);
+	for (const auto exercise_idx : std::as_const(m_exercisesIdxs))
+	{
+		for (const auto set : std::as_const(exercise_idx->m_setObjects))
+			set->setExerciseNumber(m_exerciseNumber);
+	}
 }
 
 const QString QmlExerciseEntry::exerciseName1() const
@@ -90,66 +98,6 @@ QString QmlExerciseEntry::newSetType2() const
 						m_workoutModel->formatSetTypeToExport(Regular);
 }
 
-QString QmlExerciseEntry::newSetRestTime1() const
-{
-	const int last_set{static_cast<int>(m_workoutModel->setsNumber(m_exerciseNumber) - 1)};
-	if (last_set >= 0)
-		return appUtils()->formatTime(m_workoutModel->suggestedRestTime(appUtils()->getTimeFromTimeString(
-			m_workoutModel->setRestTime(m_exerciseNumber, 0, last_set)), m_workoutModel->setType(m_exerciseNumber, 0, last_set)));
-	else
-		return appUtils()->formatTime(m_workoutModel->suggestedRestTime(QTime{0, 1, 0}, Regular));
-}
-
-QString QmlExerciseEntry::newSetRestTime2() const
-{
-	const int last_set{static_cast<int>(m_workoutModel->setsNumber(m_exerciseNumber) - 1)};
-	if (last_set >= 0)
-		return appUtils()->formatTime(m_workoutModel->suggestedRestTime(appUtils()->getTimeFromTimeString(
-			m_workoutModel->setRestTime(m_exerciseNumber, 1, last_set)), m_workoutModel->setType(m_exerciseNumber, 1, last_set)));
-	else
-		return appUtils()->formatTime(m_workoutModel->suggestedRestTime(QTime{0, 1, 0}, Regular));
-}
-
-QString QmlExerciseEntry::newSetReps1() const
-{
-	const int last_set{static_cast<int>(m_workoutModel->setsNumber(m_exerciseNumber) - 1)};
-	if (last_set >= 0)
-		return m_workoutModel->suggestedReps(m_workoutModel->setReps(m_exerciseNumber, 0, last_set),
-											 m_workoutModel->setType(m_exerciseNumber, 0, last_set));
-	else
-		return m_workoutModel->suggestedReps(QString{}, Regular);
-}
-
-QString QmlExerciseEntry::newSetReps2() const
-{
-	const int last_set{static_cast<int>(m_workoutModel->setsNumber(m_exerciseNumber) - 1)};
-	if (last_set >= 0)
-		return m_workoutModel->suggestedReps(m_workoutModel->setReps(m_exerciseNumber, 1, last_set),
-											 m_workoutModel->setType(m_exerciseNumber, 1, last_set));
-	else
-		return m_workoutModel->suggestedReps(QString{}, Regular);
-}
-
-QString QmlExerciseEntry::newSetWeight1() const
-{
-	const int last_set{static_cast<int>(m_workoutModel->setsNumber(m_exerciseNumber) - 1)};
-	if (last_set >= 0)
-		return m_workoutModel->suggestedReps(m_workoutModel->setWeight(m_exerciseNumber, 0, last_set),
-											 m_workoutModel->setType(m_exerciseNumber, 0, last_set));
-	else
-		return m_workoutModel->suggestedWeight(QString{}, Regular);
-}
-
-QString QmlExerciseEntry::newSetWeight2() const
-{
-	const int last_set{static_cast<int>(m_workoutModel->setsNumber(m_exerciseNumber) - 1)};
-	if (last_set >= 0)
-		return m_workoutModel->suggestedReps(m_workoutModel->setWeight(m_exerciseNumber, 1, last_set),
-											 m_workoutModel->setType(m_exerciseNumber, 1, last_set));
-	else
-		return m_workoutModel->suggestedWeight(QString{}, Regular);
-}
-
 const bool QmlExerciseEntry::trackRestTime() const
 {
 	return m_workoutModel->trackRestTime(m_exerciseNumber);
@@ -183,11 +131,15 @@ void QmlExerciseEntry::setIsEditable(const bool editable)
 {
 	m_bEditable = editable;
 	emit isEditableChanged();
-	for (const auto set : std::as_const(m_setObjects))
+
+	for (const auto exercise_idx : std::as_const(m_exercisesIdxs))
 	{
-		set->setIsEditable(m_bEditable);
-		if (!m_workoutPage->mainDateIsToday())
-			set->setCurrent(m_bEditable);
+		for (const auto set : std::as_const(exercise_idx->m_setObjects))
+		{
+			set->setIsEditable(m_bEditable);
+			if (!m_workoutPage->mainDateIsToday())
+				set->setCurrent(m_bEditable);
+		}
 	}
 }
 
@@ -220,83 +172,90 @@ void QmlExerciseEntry::moveExerciseDown()
 
 void QmlExerciseEntry::createAvailableSets()
 {
-	if (m_setObjects.isEmpty() && hasSets())
+	if (m_exercisesIdxs.isEmpty() && hasSets())
 	{
-		const uint nsets(m_workoutModel->setsNumber(m_exerciseNumber));
-		auto conn = std::make_shared<QMetaObject::Connection>();
-		*conn = connect(this, &QmlExerciseEntry::setObjectCreated, this, [this,conn,nsets] (const uint set_number) {
-			setCreated(set_number, nsets, conn);
-		});
-		for (uint i{0}; i < nsets; ++i)
+		connect(this, &QmlExerciseEntry::setObjectCreated, this, &QmlExerciseEntry::setCreated,
+								static_cast<Qt::ConnectionType>(Qt::UniqueConnection|Qt::AutoConnection));
+
+		for (uint i{0}; i < m_workoutModel->subExercisesCount(m_exerciseNumber); ++i)
 		{
-			m_expectedSetNumber = i;
-			createSetObject(i);
+			const uint nsets(m_workoutModel->setsNumber(m_exerciseNumber, i));
+			m_setsToBeCreated += nsets;
+			m_exercisesIdxs.append(new exerciseIdxEntry);
+			for (uint x{0}; x < nsets; ++i)
+			{
+				m_expectedSetNumber = x;
+				createSetObject(x, i);
+			}
 		}
 	}
 }
 
 void QmlExerciseEntry::appendNewSet()
 {
-	const uint set_number{m_workoutModel->addSet(m_exerciseNumber, 0)};
-	if (!m_setObjects.isEmpty())
-		m_setObjects.last()->setLastSet(false);
-	createSetObject(set_number);
+	const uint exercise_idx{m_workoutModel->workingSubExercise()};
+	const uint set_number{m_workoutModel->addSet(m_exerciseNumber, exercise_idx)};
+	if (!m_exercisesIdxs.at(exercise_idx)->m_setObjects.isEmpty())
+		m_exercisesIdxs.at(exercise_idx)->m_setObjects.last()->setLastSet(false);
+	m_workoutModel->setWorkingSet(set_number);
+	createSetObject(exercise_idx, set_number);
 }
 
-void QmlExerciseEntry::removeSetObject(const uint set_number, const bool bAsk)
+void QmlExerciseEntry::removeSetObject(const bool show_delete_dialog)
 {
-	if (bAsk)
-		m_workoutPage->askRemoveSet(m_exerciseNumber, set_number);
+	if (show_delete_dialog && appSettings()->alwaysAskConfirmation())
+		QMetaObject::invokeMethod(m_workoutPage, "showRemoveSetMessage");
 	else
 	{
-		if (compositeExercise())
-			m_workoutModel->delSet(m_exerciseNumber, 1, set_number, false);
-		m_workoutModel->delSet(m_exerciseNumber, 0, set_number);
+		const uint exercise_idx{m_workoutModel->workingSubExercise(m_exerciseNumber)};
+		const uint set_number{m_workoutModel->workingSet(m_exerciseNumber, exercise_idx)};
+		m_workoutModel->delSet(m_exerciseNumber, exercise_idx, set_number);
+		m_exercisesIdxs.at(exercise_idx)->m_setObjects.at(set_number)->deleteLater();
+		m_exercisesIdxs.at(exercise_idx)->m_setObjects.remove(set_number);
+		for(uint i{set_number}; i < m_exercisesIdxs.at(exercise_idx)->m_setObjects.count(); ++i)
+			moveSet(i-1, i);
 
-		m_setObjects.at(set_number)->deleteLater();
-		m_setObjects.removeAt(set_number);
-		for(uint i{set_number}; i < m_setObjects.count(); ++i)
-			moveSet(0, i-1, i);
-
-		if (m_setObjects.count() == 0)
+		if (m_exercisesIdxs.at(exercise_idx)->m_setObjects.count() == 0)
 			setCanEditRestTimeTracking(true);
 		else
 		{
-			if (set_number == m_setObjects.count()) //last set was removed
-				m_setObjects.last()->setLastSet(true);
+			if (set_number == m_exercisesIdxs.at(exercise_idx)->m_setObjects.count()) //last set was removed
+				m_exercisesIdxs.at(exercise_idx)->m_setObjects.last()->setLastSet(true);
 			exerciseCompleted();
 		}
 		findCurrentSet();
 	}
 }
 
-void QmlExerciseEntry::moveSet(const uint exercise_idx, const uint set_number, const uint new_set_number)
+void QmlExerciseEntry::moveSet(const uint set_number, const uint new_set_number)
 {
+	const uint exercise_idx{m_workoutModel->workingSubExercise(m_exerciseNumber)};
 	m_workoutModel->moveSet(m_exerciseNumber, exercise_idx, set_number, new_set_number);
-	m_setObjects.swapItemsAt(set_number, new_set_number);
+	m_exercisesIdxs.at(exercise_idx)->m_setObjects.swapItemsAt(set_number, new_set_number);
 
-	for (const auto set : m_setObjects)
+	for (const auto set : std::as_const(m_exercisesIdxs.at(exercise_idx)->m_setObjects))
 		set->setEntry()->setParentItem(nullptr);
 
-	m_setObjects.at(set_number)->setNumber(set_number);
-	m_setObjects.at(new_set_number)->setNumber(new_set_number);
-	if (set_number == m_setObjects.count() - 1)
+	m_exercisesIdxs.at(exercise_idx)->m_setObjects.at(set_number)->setNumber(set_number);
+	m_exercisesIdxs.at(exercise_idx)->m_setObjects.at(new_set_number)->setNumber(new_set_number);
+	if (set_number == m_exercisesIdxs.at(exercise_idx)->m_setObjects.count() - 1)
 	{
-		m_setObjects.at(set_number)->setLastSet(true);
-		m_setObjects.at(new_set_number)->setLastSet(false);
+		m_exercisesIdxs.at(exercise_idx)->m_setObjects.at(set_number)->setLastSet(true);
+		m_exercisesIdxs.at(exercise_idx)->m_setObjects.at(new_set_number)->setLastSet(false);
 	}
-	else if (new_set_number == m_setObjects.count() - 1)
+	else if (new_set_number == m_exercisesIdxs.at(exercise_idx)->m_setObjects.count() - 1)
 	{
-		m_setObjects.at(set_number)->setLastSet(false);
-		m_setObjects.at(new_set_number)->setLastSet(true);
+		m_exercisesIdxs.at(exercise_idx)->m_setObjects.at(set_number)->setLastSet(false);
+		m_exercisesIdxs.at(exercise_idx)->m_setObjects.at(new_set_number)->setLastSet(true);
 	}
 
-	for (const auto set : m_setObjects)
+	for (const auto set : std::as_const(m_exercisesIdxs.at(exercise_idx)->m_setObjects))
 		set->setEntry()->setParentItem(m_setsLayout);
 }
 
-void QmlExerciseEntry::changeSetType(const uint exercise_idx, const uint set_number, const uint new_type)
+void QmlExerciseEntry::changeSetType(const uint set_number, const uint new_type)
 {
+	const uint exercise_idx{m_workoutModel->workingSubExercise(m_exerciseNumber)};
 	const uint old_type{m_workoutModel->setType(m_exerciseNumber, exercise_idx, set_number)};
 	m_workoutModel->changeSetType(m_exerciseNumber, exercise_idx, set_number, new_type);
 	if (old_type != new_type)
@@ -305,18 +264,17 @@ void QmlExerciseEntry::changeSetType(const uint exercise_idx, const uint set_num
 		{
 			if (new_type != Drop)
 			{
-				m_setObjects.at(set_number)->setType(new_type); //all types supported by SetTypeRegular.qml only require a simple property change
+				m_exercisesIdxs.at(exercise_idx)->m_setObjects.at(set_number)->setType(new_type); //all types supported by SetTypeRegular.qml only require a simple property change
 				return;
 			}
 		}
 		removeSetObject(set_number);
 		m_expectedSetNumber = -1; //do not add the object to the parent layout
-		connect(this, &QmlExerciseEntry::setObjectCreated, this, [this,set_number] {
-			const uint nsets(m_setObjects.count());
-			for (const auto set : m_setObjects)
+		connect(this, &QmlExerciseEntry::setObjectCreated, this, [this,set_number,exercise_idx] {
+			for (const auto set : std::as_const(m_exercisesIdxs.at(exercise_idx)->m_setObjects))
 				set->setEntry()->setParentItem(nullptr);
 			uint i{0};
-			for (const auto set : m_setObjects)
+			for (const auto set : std::as_const(m_exercisesIdxs.at(exercise_idx)->m_setObjects))
 			{
 				set->setEntry()->setParentItem(m_setsLayout);
 				if (i == set_number)
@@ -331,9 +289,11 @@ void QmlExerciseEntry::changeSetType(const uint exercise_idx, const uint set_num
 	}
 }
 
-void QmlExerciseEntry::changeSetMode(const uint exercise_idx, const uint set_number)
+void QmlExerciseEntry::changeSetMode()
 {
-	QmlSetEntry *setObj(m_setObjects.at(set_number));
+	const uint exercise_idx{m_workoutModel->workingSubExercise(m_exerciseNumber)};
+	const uint set_number{m_workoutModel->workingSet(m_exerciseNumber, exercise_idx)};
+	QmlSetEntry *setObj(m_exercisesIdxs.at(exercise_idx)->m_setObjects.at(set_number));
 	switch(setObj->mode())
 	{
 		case SET_MODE_UNDEFINED:
@@ -362,7 +322,7 @@ void QmlExerciseEntry::changeSetMode(const uint exercise_idx, const uint set_num
 			{
 				const int curSet(findCurrentSet());
 				if (curSet >= 0)
-					m_setObjects.at(curSet)->setCurrent(false);
+					m_exercisesIdxs.at(exercise_idx)->m_setObjects.at(curSet)->setCurrent(false);
 				setObj->setCurrent(true);
 				changeSetCompleteStatus(set_number, false);
 				setObj->setMode(SET_MODE_UNDEFINED);
@@ -372,91 +332,85 @@ void QmlExerciseEntry::changeSetMode(const uint exercise_idx, const uint set_num
 	}
 }
 
-void QmlExerciseEntry::copyTypeValueIntoOtherSets(const uint set_number)
+void QmlExerciseEntry::updateSetTypeForNextSets()
 {
-	const uint set_type(m_setObjects.at(set_number)->type());
-	const uint nsets(m_setObjects.count());
+	const uint exercise_idx{m_workoutModel->workingSubExercise(m_exerciseNumber)};
+	const uint set_number{m_workoutModel->workingSet(m_exerciseNumber, exercise_idx)};
+	const uint set_type{m_workoutModel->setType(m_exerciseNumber, exercise_idx, set_number)};
+	const uint nsets{m_workoutModel->setsNumber(m_exerciseNumber, exercise_idx)};
 
-	for (uint i(set_number+1); i < nsets; ++i)
+	for (uint i{set_number+1}; i < nsets; ++i)
 	{
-		if (!m_setObjects.at(i)->completed())
-			changeSetType(i, set_type, false);
+		if (!m_exercisesIdxs.at(exercise_idx)->m_setObjects.at(i)->completed())
+			changeSetType(i, set_type);
 	}
 }
 
-void QmlExerciseEntry::copyTimeValueIntoOtherSets(const uint set_number)
+void QmlExerciseEntry::updateRestTimeForNextSets()
 {
-	const uint set_type(m_setObjects.at(set_number)->type());
-	const uint nsets(m_setObjects.count());
+	const uint exercise_idx{m_workoutModel->workingSubExercise(m_exerciseNumber)};
+	const uint set_number{m_workoutModel->workingSet(m_exerciseNumber, exercise_idx)};
+	const uint set_type{m_workoutModel->setType(m_exerciseNumber, exercise_idx, set_number)};
+	const uint nsets{m_workoutModel->setsNumber(m_exerciseNumber, exercise_idx)};
 
-	QString strRestTime;
-	for (uint i(set_number+1); i < nsets; ++i)
+	for (uint i{set_number+1}; i < nsets; ++i)
 	{
-		if (!m_setObjects.at(i)->completed())
+		if (!m_exercisesIdxs.at(exercise_idx)->m_setObjects.at(i)->completed())
+			m_exercisesIdxs.at(exercise_idx)->m_setObjects.at(i)->setRestTime(appUtils()->formatTime(m_workoutModel->suggestedRestTime(
+						m_workoutModel->restTime(m_exerciseNumber, exercise_idx, i-1),
+						m_workoutModel->setType(m_exerciseNumber, exercise_idx, i))));
+	}
+}
+
+void QmlExerciseEntry::updateRepsForNextSets(const uint sub_set)
+{
+	const uint exercise_idx{m_workoutModel->workingSubExercise(m_exerciseNumber)};
+	const uint set_number{m_workoutModel->workingSet(m_exerciseNumber, exercise_idx)};
+	const uint set_type{m_workoutModel->setType(m_exerciseNumber, exercise_idx, set_number)};
+	const uint nsets{m_workoutModel->setsNumber(m_exerciseNumber, exercise_idx)};
+
+	for (uint i{set_number+1}; i < nsets; ++i)
+	{
+		if (!m_exercisesIdxs.at(exercise_idx)->m_setObjects.at(i)->completed())
 		{
-			strRestTime = m_workoutModel->nextSetSuggestedTime(m_exerciseNumber, set_type, i-1);
-			m_setObjects.at(i)->setRestTime(strRestTime, false, false);
+			m_exercisesIdxs.at(exercise_idx)->m_setObjects.at(i)->setReps(m_workoutModel->suggestedReps(
+						m_workoutModel->setReps(m_exerciseNumber, exercise_idx, i-1, sub_set),
+						m_workoutModel->setType(m_exerciseNumber, exercise_idx, i)));
 		}
 	}
 }
 
-void QmlExerciseEntry::copyRepsValueIntoOtherSets(const uint set_number, const uint sub_set)
+void QmlExerciseEntry::updateWeightForNextSets(const uint sub_set)
 {
-	const uint set_type(m_setObjects.at(set_number)->type());
-	const uint nsets(m_setObjects.count());
+	const uint exercise_idx{m_workoutModel->workingSubExercise(m_exerciseNumber)};
+	const uint set_number{m_workoutModel->workingSet(m_exerciseNumber, exercise_idx)};
+	const uint set_type{m_workoutModel->setType(m_exerciseNumber, exercise_idx, set_number)};
+	const uint nsets{m_workoutModel->setsNumber(m_exerciseNumber, exercise_idx)};
 
-	QString strReps;
-	for (uint i(set_number+1); i < nsets; ++i)
+	for (uint i{set_number+1}; i < nsets; ++i)
 	{
-		if (!m_setObjects.at(i)->completed())
+		if (!m_exercisesIdxs.at(exercise_idx)->m_setObjects.at(i)->completed())
 		{
-			strReps = m_workoutModel->nextSetSuggestedReps(m_exerciseNumber, set_type, i-1, sub_set);
-			switch (sub_set)
-			{
-				case 0: m_setObjects.at(i)->setReps1(strReps, false); break;
-				case 1: m_setObjects.at(i)->setReps2(strReps, false); break;
-				case 2: m_setObjects.at(i)->setReps3(strReps, false); break;
-				case 3: m_setObjects.at(i)->setReps4(strReps, false); break;
-			}
+			m_exercisesIdxs.at(exercise_idx)->m_setObjects.at(i)->setWeight(m_workoutModel->suggestedReps(
+						m_workoutModel->setWeight(m_exerciseNumber, exercise_idx, i-1, sub_set),
+						m_workoutModel->setType(m_exerciseNumber, exercise_idx, i)));
 		}
 	}
 }
 
-void QmlExerciseEntry::copyWeightValueIntoOtherSets(const uint set_number, const uint sub_set)
+void QmlExerciseEntry::simpleExercisesList(const bool show, const bool multi_sel)
 {
-	const uint set_type(m_setObjects.at(set_number)->type());
-	const uint nsets(m_setObjects.count());
-
-	QString strWeight;
-	for (uint i(set_number+1); i < nsets; ++i)
-	{
-		if (!m_setObjects.at(i)->completed())
-		{
-			strWeight = m_workoutModel->nextSetSuggestedWeight(m_exerciseNumber, set_type, i-1, sub_set);
-			switch (sub_set)
-			{
-				case 0: m_setObjects.at(i)->setWeight1(strWeight, false); break;
-				case 1: m_setObjects.at(i)->setWeight2(strWeight, false); break;
-				case 2: m_setObjects.at(i)->setWeight3(strWeight, false); break;
-				case 3: m_setObjects.at(i)->setWeight4(strWeight, false); break;
-			}
-		}
-	}
+	m_workoutPage->simpleExercisesList(show, multi_sel);
 }
 
-void QmlExerciseEntry::simpleExercisesList(const bool show, const bool multi_sel, uint comp_exercise)
+void QmlExerciseEntry::insertSetObject(const uint exercise_idx, const uint set_number, QmlSetEntry *new_setobject)
 {
-	m_workoutPage->simpleExercisesList(m_exerciseNumber, show, multi_sel, comp_exercise);
-}
-
-void QmlExerciseEntry::insertSetEntry(const uint set_number, QmlSetEntry *new_setobject)
-{
-	if (set_number >= m_setObjects.count())
+	if (set_number >= m_exercisesIdxs.at(exercise_idx)->m_setObjects.count())
 	{
-		for(uint i(m_setObjects.count()); i <= set_number; ++i)
-			m_setObjects.insert(i, nullptr);
+		for(uint i{static_cast<uint>(m_exercisesIdxs.at(exercise_idx)->m_setObjects.count())}; i <= set_number; ++i)
+			m_exercisesIdxs.at(exercise_idx)->m_setObjects.insert(i, nullptr);
 	}
-	m_setObjects[set_number] = new_setobject;
+	m_exercisesIdxs.at(exercise_idx)->m_setObjects[set_number] = new_setobject;
 }
 
 static inline uint cppSetType(const uint set_type)
@@ -470,9 +424,9 @@ static inline uint cppSetType(const uint set_type)
 	}
 }
 
-void QmlExerciseEntry::createSetObject(const uint set_number)
+void QmlExerciseEntry::createSetObject(const uint exercise_idx, const uint set_number)
 {
-	const uint set_type_cpp{cppSetType(m_workoutModel->setType(m_exerciseNumber, 0, set_number))};
+	const uint set_type_cpp{cppSetType(m_workoutModel->setType(m_exerciseNumber, exercise_idx, set_number))};
 	if (m_setComponents[set_type_cpp] == nullptr)
 	{
 		m_setComponents[set_type_cpp] = new QQmlComponent{appQmlEngine(), QUrl{setTypePages[set_type_cpp]}, QQmlComponent::Asynchronous};
@@ -480,56 +434,36 @@ void QmlExerciseEntry::createSetObject(const uint set_number)
 	}
 
 	if (m_setComponents[set_type_cpp]->status() != QQmlComponent::Ready)
-		connect(m_setComponents[set_type_cpp], &QQmlComponent::statusChanged, this, [this,set_number,set_type_cpp](QQmlComponent::Status status) {
+		connect(m_setComponents[set_type_cpp], &QQmlComponent::statusChanged, this, [this,exercise_idx, set_number](QQmlComponent::Status status) {
 			if (status == QQmlComponent::Ready)
-				createSetObject_part2(set_number, set_type_cpp);
+				createSetObject_part2(set_number, exercise_idx);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	else
-		createSetObject_part2(set_number, set_type_cpp);
+		createSetObject_part2(exercise_idx, set_number);
 }
 
-void QmlExerciseEntry::createSetObject_part2(const uint set_number, const uint set_type_cpp)
+void QmlExerciseEntry::createSetObject_part2(const uint exercise_idx, const uint set_number)
 {
+	const uint set_type_cpp{cppSetType(m_workoutModel->setType(m_exerciseNumber, exercise_idx, set_number))};
 	#ifndef QT_NO_DEBUG
 	if (m_setComponents[set_type_cpp]->status() == QQmlComponent::Error)
 	{
-		for (uint i(0); i < m_setComponents[set_type_cpp]->errors().count(); ++i)
-			qDebug() << m_setComponents[set_type_cpp]->errors().at(i).description();
+		for (auto error : m_setComponents[set_type_cpp]->errors())
+			qDebug() << error.description();
 		return;
 	}
 	#endif
 
-	QmlSetEntry *newSetEntry{new QmlSetEntry{this, this, m_workoutModel, m_exerciseNumber}};
-	const uint set_type(m_workoutModel->setType(m_exerciseNumber, set_number));
-
-	newSetEntry->_setExerciseName(m_workoutModel->exerciseName(m_exerciseNumber));
-	newSetEntry->_setType(set_type);
-	newSetEntry->_setNumber(set_number);
-	newSetEntry->_setRestTime(m_workoutModel->setRestTime(m_exerciseNumber, set_number));
-	newSetEntry->_setReps(m_workoutModel->setReps(m_exerciseNumber, set_number));
-	newSetEntry->_setWeight(m_workoutModel->setWeight(m_exerciseNumber, set_number));
-	newSetEntry->_setSubSets(m_workoutModel->setSubSets(m_exerciseNumber, set_number));
-	newSetEntry->_setNotes(m_workoutModel->setsNotes(m_exerciseNumber));
-	newSetEntry->_setCompleted(m_workoutModel->setCompleted(m_exerciseNumber, set_number));
-	newSetEntry->_setLastSet(m_workoutModel->setsNumber(m_exerciseNumber) == set_number + 1);
-	newSetEntry->_setTrackRestTime(m_workoutModel->trackRestTime(m_exerciseNumber));
-	newSetEntry->_setAutoRestTime(m_workoutModel->autoRestTime(m_exerciseNumber));
-	newSetEntry->_setHasSubSets(set_type == SET_TYPE_CLUSTER || set_type == SET_TYPE_DROP);
-	newSetEntry->_setMode(findSetMode(set_number));
-	newSetEntry->setIsEditable(isEditable());
-	if (!m_workoutPage->mainDateIsToday())
-		newSetEntry->setCurrent(true);
-	else
-		findCurrentSet();
-	insertSetEntry(set_number, newSetEntry);
-
-	m_setObjectProperties.insert("setManager"_L1, QVariant::fromValue(newSetEntry));
+	QmlSetEntry *newSetEntry{new QmlSetEntry{this, this, m_workoutModel, exercise_idx, set_number}};
+	insertSetObject(exercise_idx, set_number, newSetEntry);
+	m_setObjectProperties["setManager"_L1] = QVariant::fromValue(newSetEntry);
 
 	QQuickItem *item (static_cast<QQuickItem*>(m_setComponents[set_type_cpp]->
 								createWithInitialProperties(m_setObjectProperties, appQmlEngine()->rootContext())));
 	appQmlEngine()->setObjectOwnership(item, QQmlEngine::CppOwnership);
-	m_setObjects.at(set_number)->setSetEntry(item);
-
+	m_exercisesIdxs.at(exercise_idx)->m_setObjects.at(set_number)->setSetEntry(item);
+	m_setsToBeCreated--;
+	if (m_setsToBeCreated == 0)
 	//Sets may be created at any random order, specially when there are set objects of different kinds within an exercise. m_expectedSetNumber keeps
 	//track of the order in which the sets are added. When set_number is greater than m_expectedSetNumber, the set objects are not inserted into
 	//the parent layout(with setParentItem). When the expected set_number is finally created, put all sets already in the list (m_setObjects)
@@ -553,20 +487,13 @@ void QmlExerciseEntry::createSetObject_part2(const uint set_number, const uint s
 	});
 }
 
-void QmlExerciseEntry::setCreated(const uint set_number, const uint nsets, auto conn)
+void QmlExerciseEntry::setCreated(const uint exercise_idx, const uint set_number)
 {
-	static int sets_created(0);
-	if (++sets_created == nsets)
-	{
-		disconnect(*conn);
-		sets_created = 0;
-		setNewSetType(m_workoutModel->setType(m_exerciseNumber, m_setObjects.count() - 1));
-		emit hasSetsChanged();
-		m_exerciseEntry->setProperty("showSets", true);
+	m_exerciseEntry->setProperty("showSets", true);
 		const uint view_set(nsets > 1 ? 0 : m_setObjects.count() - 1);
 		QQuickItem *setObj(m_setObjects.at(view_set)->setEntry());
 		QMetaObject::invokeMethod(m_workoutPage->workoutPage(), "placeSetIntoView", Q_ARG(int, exerciseEntry()->y() + exerciseEntry()->height() + setObj->y() + setObj->height()));
-	}
+
 }
 
 inline void QmlExerciseEntry::changeSetCompleteStatus(const uint set_number, const bool bCompleted)
