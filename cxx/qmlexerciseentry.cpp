@@ -9,7 +9,6 @@
 #include "tpsettings.h"
 #include "tptimer.h"
 #include "tputils.h"
-#include "translationclass.h"
 
 #include <QQmlApplicationEngine>
 #include <QQuickItem>
@@ -24,6 +23,37 @@ struct exerciseIdxEntry{
 
 static const QString setTypePages[3] { std::move("qrc:/qml/ExercisesAndSets/SetTypeRegular.qml"_L1),
 					std::move("qrc:/qml/ExercisesAndSets/SetTypeDrop.qml"_L1), std::move("qrc:/qml/ExercisesAndSets/SetTypeGiant.qml"_L1) };
+
+QmlExerciseEntry::QmlExerciseEntry(QObject *parent, QmlWorkoutInterface *workoutPage,
+													DBExercisesModel *workoutModel, const uint exercise_number)
+	: QObject{parent}, m_workoutPage{workoutPage}, m_workoutModel{workoutModel}, m_exerciseNumber{exercise_number},
+			m_setTimer{nullptr}, m_setComponents{nullptr}, m_setsToBeCreated{0}
+{
+	connect(this, &QmlExerciseEntry::setObjectCreated, this, &QmlExerciseEntry::setCreated);
+	connect(m_workoutModel, &DBExercisesModel::exerciseModified, this,
+					[this] (const uint exercise_number, const uint exercise_idx, const uint set_number, const uint field) {
+		if (exercise_number == m_exerciseNumber)
+		{
+			switch (field)
+			{
+				case EXERCISES_COL_COMPLETED:
+				{
+					setCanEditRestTimeTracking(m_workoutModel->noSetsCompleted(m_exerciseNumber, exercise_idx));
+					if (set_number < m_workoutModel->setsNumber(m_exerciseNumber, exercise_idx) - 1)
+					{
+						const QmlSetEntry *qml_set_obj{m_exercisesIdxs.at(exercise_idx)->m_setObjects.at(set_number+1)};
+						const QQuickItem *next_set_obj{qml_set_obj->setEntry()};
+						QMetaObject::invokeMethod(m_workoutPage->workoutPage(), "placeSetIntoView",
+														  Q_ARG(int, next_set_obj->y() + next_set_obj->height()));
+					}
+					else
+						m_workoutPage->gotoNextExercise(m_exerciseNumber);
+				}
+				break;
+			}
+		}
+	});
+}
 
 QmlExerciseEntry::~QmlExerciseEntry()
 {
@@ -44,6 +74,18 @@ void QmlExerciseEntry::setExerciseEntry(QQuickItem *item)
 	m_exerciseEntry = item;
 	m_setsLayout = m_exerciseEntry->findChild<QQuickItem*>("exerciseSetsLayout"_L1);
 };
+
+void QmlExerciseEntry::setWorkingSet(QmlSetEntry *new_workingset)
+{
+	m_workoutModel->setWorkingExercise(m_exerciseNumber);
+	m_workoutModel->setWorkingSubExercise(m_exerciseNumber, new_workingset->exerciseIdx());
+	if (m_workingSet != new_workingset)
+	{
+		m_workingSet = new_workingset;
+		m_workoutModel->setWorkingSet(m_exerciseNumber, new_workingset->exerciseIdx(), new_workingset->number());
+		emit workingSetChanged();
+	}
+}
 
 void QmlExerciseEntry::setExerciseNumber(const uint new_value)
 {
@@ -124,7 +166,12 @@ void QmlExerciseEntry::setAutoRestTime(const bool auto_resttime)
 
 const bool QmlExerciseEntry::hasSets() const
 {
-	return m_workoutModel->setsNumber(m_exerciseNumber) > 0;
+	for(uint exercise_idx{0}; exercise_idx < m_workoutModel->subExercisesCount(m_exerciseNumber); ++exercise_idx)
+	{
+		if (m_workoutModel->setsNumber(m_exerciseNumber, exercise_idx) > 0)
+			return true;
+	}
+	return false;
 }
 
 void QmlExerciseEntry::setIsEditable(const bool editable)
@@ -174,14 +221,12 @@ void QmlExerciseEntry::createAvailableSets()
 {
 	if (m_exercisesIdxs.isEmpty() && hasSets())
 	{
-		connect(this, &QmlExerciseEntry::setObjectCreated, this, &QmlExerciseEntry::setCreated,
-								static_cast<Qt::ConnectionType>(Qt::UniqueConnection|Qt::AutoConnection));
-
 		for (uint i{0}; i < m_workoutModel->subExercisesCount(m_exerciseNumber); ++i)
 		{
 			const uint nsets(m_workoutModel->setsNumber(m_exerciseNumber, i));
 			m_setsToBeCreated += nsets;
 			m_exercisesIdxs.append(new exerciseIdxEntry);
+			emit subExercisesCountChanged();
 			for (uint x{0}; x < nsets; ++i)
 			{
 				m_expectedSetNumber = x;
@@ -269,23 +314,7 @@ void QmlExerciseEntry::changeSetType(const uint set_number, const uint new_type)
 			}
 		}
 		removeSetObject(set_number);
-		m_expectedSetNumber = -1; //do not add the object to the parent layout
-		connect(this, &QmlExerciseEntry::setObjectCreated, this, [this,set_number,exercise_idx] {
-			for (const auto set : std::as_const(m_exercisesIdxs.at(exercise_idx)->m_setObjects))
-				set->setEntry()->setParentItem(nullptr);
-			uint i{0};
-			for (const auto set : std::as_const(m_exercisesIdxs.at(exercise_idx)->m_setObjects))
-			{
-				set->setEntry()->setParentItem(m_setsLayout);
-				if (i == set_number)
-				{
-					set->setEntry()->setProperty("Layout.row", set_number);
-					set->setEntry()->setProperty("Layout.column", 0);
-				}
-				++i;
-			}
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		createSetObject(set_number);
+		createSetObject(exercise_idx, set_number);
 	}
 }
 
@@ -299,7 +328,7 @@ void QmlExerciseEntry::changeSetMode()
 		case SET_MODE_UNDEFINED:
 			if (set_number == 0 || !setObj->trackRestTime())
 			{
-				changeSetCompleteStatus(set_number, true);
+				setObj->setCompleted(true);
 				setObj->setMode(SET_MODE_SET_COMPLETED);
 				findCurrentSet();
 			}
@@ -315,16 +344,13 @@ void QmlExerciseEntry::changeSetMode()
 		break;
 		case SET_MODE_START_EXERCISE:
 			stopRestTimer(set_number);
-			changeSetCompleteStatus(set_number, true);
+			setObj->setCompleted(true);
 		break;
 		case SET_MODE_SET_COMPLETED:
 			if (set_number == 0 || !setObj->autoRestTime())
 			{
-				const int curSet(findCurrentSet());
-				if (curSet >= 0)
-					m_exercisesIdxs.at(exercise_idx)->m_setObjects.at(curSet)->setCurrent(false);
 				setObj->setCurrent(true);
-				changeSetCompleteStatus(set_number, false);
+				setObj->setCompleted(false);
 				setObj->setMode(SET_MODE_UNDEFINED);
 			}
 			else
@@ -462,51 +488,34 @@ void QmlExerciseEntry::createSetObject_part2(const uint exercise_idx, const uint
 								createWithInitialProperties(m_setObjectProperties, appQmlEngine()->rootContext())));
 	appQmlEngine()->setObjectOwnership(item, QQmlEngine::CppOwnership);
 	m_exercisesIdxs.at(exercise_idx)->m_setObjects.at(set_number)->setSetEntry(item);
+	emit setObjectCreated(newSetEntry);
+}
+
+void QmlExerciseEntry::setCreated(QmlSetEntry *set)
+{
 	m_setsToBeCreated--;
+	QQuickItem *qml_set_object{set->setEntry()};
+	QVariant set_layout;
+	QMetaObject::invokeMethod(qml_set_object, "getLayoutForSubExercise",
+									Q_RETURN_ARG(QVariant, set_layout),
+									Q_ARG(int, set->exerciseIdx()));
+	qml_set_object->setParentItem(set_layout.value<QQuickItem*>());
+	qml_set_object->setProperty("Layout.row", set->exerciseIdx());
+	qml_set_object->setProperty("Layout.column", 0);
+
 	if (m_setsToBeCreated == 0)
-	//Sets may be created at any random order, specially when there are set objects of different kinds within an exercise. m_expectedSetNumber keeps
-	//track of the order in which the sets are added. When set_number is greater than m_expectedSetNumber, the set objects are not inserted into
-	//the parent layout(with setParentItem). When the expected set_number is finally created, put all sets already in the list (m_setObjects)
-	//orderly into the layout
-	if (set_number <= m_expectedSetNumber)
 	{
-		for (uint i(set_number); i < m_setObjects.count(); ++i, ++m_expectedSetNumber)
-		{
-			if (m_setObjects.at(i)->number() <= i)
-			{
-				m_setObjects.at(i)->setEntry()->setParentItem(m_setsLayout);
-				m_setObjects.at(i)->setEntry()->setProperty("Layout.row", i);
-				m_setObjects.at(i)->setEntry()->setProperty("Layout.column", 0);
-			}
-		}
+		//TODO
+		setWorkingSet(m_exercisesIdxs.first()->m_setObjects.first());
+		m_exerciseEntry->setProperty("showSets", true);
+		QMetaObject::invokeMethod(m_workoutPage->workoutPage(), "placeSetIntoView",
+					Q_ARG(int, exerciseEntry()->y() + exerciseEntry()->height() + qml_set_object->y() + qml_set_object->height()));
 	}
-	emit setObjectCreated(set_number);
-
-	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this, newSetEntry] () {
-		emit newSetEntry->modeLabelChanged();
-	});
 }
 
-void QmlExerciseEntry::setCreated(const uint exercise_idx, const uint set_number)
+inline uint QmlExerciseEntry::findSetMode(const uint exercise_idx, const uint set_number) const
 {
-	m_exerciseEntry->setProperty("showSets", true);
-		const uint view_set(nsets > 1 ? 0 : m_setObjects.count() - 1);
-		QQuickItem *setObj(m_setObjects.at(view_set)->setEntry());
-		QMetaObject::invokeMethod(m_workoutPage->workoutPage(), "placeSetIntoView", Q_ARG(int, exerciseEntry()->y() + exerciseEntry()->height() + setObj->y() + setObj->height()));
-
-}
-
-inline void QmlExerciseEntry::changeSetCompleteStatus(const uint set_number, const bool bCompleted)
-{
-	m_setObjects.at(set_number)->setCompleted(bCompleted);
-	m_workoutModel->setSetCompleted(m_exerciseNumber, set_number, bCompleted);
-	setAllSetsCompleted(m_workoutModel->allSetsCompleted(m_exerciseNumber));
-	setCanEditRestTimeTracking(!noSetsCompleted());
-}
-
-inline uint QmlExerciseEntry::findSetMode(const uint set_number) const
-{
-	if (!m_workoutModel->setCompleted(m_exerciseNumber, set_number))
+	if (!m_workoutModel->setCompleted(m_exerciseNumber, exercise_idx, set_number))
 	{
 		int ret(SET_MODE_UNDEFINED);
 		if (set_number > 0)
@@ -519,38 +528,16 @@ inline uint QmlExerciseEntry::findSetMode(const uint set_number) const
 	return SET_MODE_SET_COMPLETED;
 }
 
-inline int QmlExerciseEntry::findCurrentSet()
-{
-	if (m_workoutPage->mainDateIsToday())
-	{
-		for(uint i(0); i < m_setObjects.count(); ++i)
-		{
-			QmlSetEntry *set(m_setObjects.at(i));
-			if (!m_workoutModel->setCompleted(m_exerciseNumber, i))
-			{
-				set->setCurrent(true);
-				const QQuickItem *const setObj(set->setEntry());
-				QMetaObject::invokeMethod(m_workoutPage->workoutPage(), "placeSetIntoView", Q_ARG(int, setObj->y() + setObj->height()));
-				return i;
-			}
-			else
-				set->setCurrent(false);
-		}
-	}
-	return -1;
-}
-
-void QmlExerciseEntry::startRestTimer(const uint set_number, const QString &startTime, const bool bStopWatch)
+void QmlExerciseEntry::startRestTimer(const bool bStopWatch)
 {
 	TPTimer *set_timer(m_workoutPage->restTimer());
 	if (!set_timer->isActive())
 	{
 		set_timer->setStopWatch(bStopWatch);
-		set_timer->prepareTimer(startTime);
-		QmlSetEntry *const setObj(m_setObjects.at(set_number));
-		setObj->setRestTime(startTime);
-		connect(set_timer, &TPTimer::secondsChanged, this, [this,set_timer,setObj] () {
-			setObj->setRestTime(set_timer->strMinutes() + ':' + set_timer->strSeconds());
+		set_timer->prepareTimer(m_workoutModel->setRestTime());
+		m_workingSet->setRestTime(startTime);
+		connect(set_timer, &TPTimer::secondsChanged, this, [this,set_timer] () {
+			m_workingSet->setRestTime(set_timer->strMinutes() + ':' + set_timer->strSeconds(), false);
 		});
 		set_timer->startTimer();
 	}
@@ -565,18 +552,9 @@ void QmlExerciseEntry::stopRestTimer(const uint set_number)
 	{
 		set_timer->stopTimer();
 		disconnect(set_timer, nullptr, nullptr, nullptr);
-		QmlSetEntry *const setObj(m_setObjects.at(set_number));
-		if (setObj->autoRestTime())
-			setObj->setRestTime(setObj->restTime(), false); //update the model with the current value displayed
+		if (m_workingSet->autoRestTime())
+			m_workingSet->setRestTime(m_workingSet->restTime(), true); //update the model with the current value displayed
 		else
-			setObj->setRestTime(appUtils()->formatTime(set_timer->elapsedTime(), TPUtils::TF_QML_DISPLAY_NO_SEC), false);
+			m_workingSet->setRestTime(appUtils()->formatTime(set_timer->elapsedTime(), TPUtils::TF_QML_DISPLAY_NO_SEC), false);
 	}
-}
-
-inline bool QmlExerciseEntry::noSetsCompleted() const
-{
-	for (uint i(0); i < m_setObjects.count(); ++i)
-		if (m_setObjects.at(i)->completed())
-			return false;
-	return true;
 }

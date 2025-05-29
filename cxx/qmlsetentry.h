@@ -51,6 +51,7 @@ public:
 		: QObject{parent}, m_parentExercise{parentExercise}, m_workoutModel{workoutModel}, m_setEntry{nullptr},
 				m_exerciseIdx{exercise_idx}, m_setNumber{set_number}, m_bEditable{false}, m_bLastSet{false}, m_bCurrent{false} {}
 
+	inline uint exerciseIdx() const { return m_exerciseIdx; }
 	void setExerciseIdx(const uint new_exerciseidx) { m_exerciseIdx = new_exerciseidx; }
 	inline const uint exerciseNumber() const { return m_exerciseIdx; }
 	inline void setExerciseNumber(const uint new_value) { m_exerciseIdx = new_value; }
@@ -91,7 +92,7 @@ public:
 	}
 
 	inline QString restTime() const { return m_restTime; }
-	void setRestTime(const QString& new_value, const bool bJustUpdateValue = true, const bool bSetIsManuallyModified = true);
+	void setRestTime(const QString& new_value, const bool update_model = true);
 
 	QString reps1() const;
 	void setReps1(const QString& new_value, const bool bSetIsManuallyModified = true);

@@ -1057,6 +1057,18 @@ bool DBExercisesModel::anySetCompleted(int exercise_number, int exercise_idx) co
 	return false;
 }
 
+bool DBExercisesModel::noSetsCompleted(int exercise_number, int exercise_idx) const
+{
+	if (exercise_number < 0)
+		exercise_number = m_workingExercise;
+	if (exercise_idx < 0)
+		exercise_idx = workingSubExercise(exercise_number);
+	for (const auto set : std::as_const(m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets))
+		if (set->completed)
+			return false;
+	return true;
+}
+
 QVariant DBExercisesModel::data(const QModelIndex &index, int role) const
 {
 	const int row{index.row()};

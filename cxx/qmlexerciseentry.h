@@ -10,14 +10,16 @@ QT_FORWARD_DECLARE_CLASS(QmlSetEntry)
 QT_FORWARD_DECLARE_CLASS(TPTimer)
 QT_FORWARD_DECLARE_CLASS(QQmlComponent)
 QT_FORWARD_DECLARE_CLASS(QQuickItem)
+Q_DECLARE_OPAQUE_POINTER(QmlSetEntry*)
 
 class QmlExerciseEntry : public QObject
 {
 
 Q_OBJECT
 
+Q_PROPERTY(QmlSetEntry* workingSet READ workingSet WRITE setWorkingSet NOTIFY workingSetChanged FINAL)
 Q_PROPERTY(uint exerciseNumber READ exerciseNumber WRITE setExerciseNumber NOTIFY exerciseNumberChanged FINAL)
-Q_PROPERTY(uint newSetType READ newSetType WRITE setNewSetType NOTIFY newSetTypeChanged FINAL)
+Q_PROPERTY(uint subExercisesCount READ subExercisesCount NOTIFY subExercisesCountChanged FINAL)
 Q_PROPERTY(QString exerciseNumberLabel READ exerciseNumber NOTIFY exerciseNumberChanged FINAL)
 Q_PROPERTY(QString exerciseName1 READ exerciseName1 WRITE setExerciseName1 NOTIFY exerciseName1Changed FINAL)
 Q_PROPERTY(QString exerciseName2 READ exerciseName2 WRITE setExerciseName2 NOTIFY exerciseName2Changed FINAL)
@@ -34,17 +36,18 @@ Q_PROPERTY(bool canEditRestTimeTracking READ canEditRestTimeTracking WRITE setCa
 Q_PROPERTY(bool allSetsCompleted READ allSetsCompleted NOTIFY allSetsCompletedChanged FINAL)
 
 public:
-	inline explicit QmlExerciseEntry(QObject *parent, QmlWorkoutInterface *workoutPage,
-														DBExercisesModel *workoutModel, const uint exercise_number)
-		: QObject{parent}, m_workoutPage{workoutPage}, m_workoutModel{workoutModel}, m_exerciseNumber{exercise_number},
-				m_setTimer{nullptr}, m_setComponents{nullptr}, m_setsToBeCreated{0} {}
+	explicit QmlExerciseEntry(QObject *parent, QmlWorkoutInterface *workoutPage,
+														DBExercisesModel *workoutModel, const uint exercise_number);
 	~QmlExerciseEntry();
 
 	inline const QQuickItem *exerciseEntry() const { return m_exerciseEntry; }
 	inline QQuickItem *exerciseEntry() { return m_exerciseEntry; }
 	void setExerciseEntry(QQuickItem *item);
 
+	inline QmlSetEntry *workingSet() const { return m_workingSet; }
+	void setWorkingSet(QmlSetEntry *new_workingset);
 	inline const uint exerciseNumber() const { return m_exerciseNumber; }
+	inline const uint subExercisesCount() const { return m_exercisesIdxs.count(); }
 	void setExerciseNumber(const uint new_value);
 	inline const QString exerciseNumberLabel() const { return QString::number(m_exerciseNumber + 1); }
 	QString setsNumber() const;
@@ -94,7 +97,9 @@ public:
 	Q_INVOKABLE void simpleExercisesList(const bool show, const bool multi_sel);
 
 signals:
+	void workingSetChanged();
 	void exerciseNumberChanged();
+	void subExercisesCountChanged();
 	void newSetTypeChanged();
 	void nSetsChanged();
 	void exerciseNameChanged();
@@ -107,7 +112,7 @@ signals:
 	void trackRestTimeChanged();
 	void autoRestTimeChanged();
 	void canEditRestTimeTrackingChanged();
-	void setObjectCreated(const uint exercise_idx, const uint set_number);
+	void setObjectCreated(QmlSetEntry *set);
 
 private:
 	QmlWorkoutInterface *m_workoutPage;
@@ -117,6 +122,7 @@ private:
 	bool m_bLast, m_bEditable, m_bCompositeExercise, m_bCanEditRestTimeTracking;
 	TPTimer *m_setTimer;
 	QList<exerciseIdxEntry*> m_exercisesIdxs;
+	QmlSetEntry *m_workingSet;
 	QVariantMap m_setObjectProperties;
 	QQmlComponent *m_setComponents[3];
 	QQuickItem *m_setsLayout;
@@ -125,11 +131,10 @@ private:
 	void insertSetObject(const uint exercise_idx, const uint set_number, QmlSetEntry *new_setobject);
 	void createSetObject(const uint exercise_idx, const uint set_number);
 	void createSetObject_part2(const uint exercise_idx, const uint set_number);
-	void setCreated(const uint exercise_idx, const uint set_number);
-	inline void changeSetCompleteStatus(const uint set_number, const bool bCompleted);
-	inline uint findSetMode(const uint set_number) const;
-	[[maybe_unused]] inline int findCurrentSet();
-	void startRestTimer(const uint set_number, const QString &startTime, const bool bStopWatch);
-	void stopRestTimer(const uint set_number);
-	inline bool noSetsCompleted() const;
+	uint findSetMode(const uint exercise_idx, const uint set_number) const;
+	void startRestTimer(const bool bStopWatch);
+	void stopRestTimer();
+
+private slots:
+	void setCreated(QmlSetEntry *set);
 };

@@ -172,6 +172,7 @@ public:
 	Q_INVOKABLE void setSetCompleted(const uint exercise_number, const uint exercise_idx, const uint set_number, const bool completed);
 	bool allSetsCompleted(int exercise_number = -1, int exercise_idx = -1) const;
 	bool anySetCompleted(int exercise_number = -1, int exercise_idx = -1) const;
+	bool noSetsCompleted(int exercise_number = -1, int exercise_idx = -1) const;
 
 	inline QString totalSetsLabel() const { return tr("Number of sets: "); }
 	inline QString setNumberLabel() const { return tr("Set #: "); }

@@ -1,6 +1,7 @@
 #include "qmlsetentry.h"
+
+#include "dbexercisesmodel.h"
 #include "qmlexerciseentry.h"
-#include "dbworkoutmodel.h"
 #include "tputils.h"
 
 #include <QQuickItem>
@@ -59,14 +60,11 @@ void QmlSetEntry::setNumber(const uint new_value)
 	}
 }
 
-void QmlSetEntry::setRestTime(const QString& new_value, const bool bJustUpdateValue, const bool bSetIsManuallyModified)
+void QmlSetEntry::setRestTime(const QString& new_value, const bool update_model)
 {
 	m_restTime = new_value;
-	if (bSetIsManuallyModified && !lastSet())
-		setIsManuallyModified(true);
-	if (bJustUpdateValue)
-		emit restTimeChanged();
-	else
+	emit restTimeChanged();
+	if (update_model)
 		m_workoutModel->setSetRestTime(m_exerciseIdx, number(), m_restTime);
 }
 

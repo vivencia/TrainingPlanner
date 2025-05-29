@@ -22,6 +22,7 @@ SwipeDelegate {
 	required property ExerciseEntryManager exerciseManager
 	property bool showSets: false
 
+	readonly property Item setsLayout: exerciseSetsLayout
 
 	Behavior on height {
 		NumberAnimation {
@@ -300,11 +301,9 @@ SwipeDelegate {
 		}
 	} // ColumnLayout layoutMain
 
-	GridLayout {
+	ColumnLayout {
 		id: exerciseSetsLayout
-		objectName: "exerciseSetsLayout"
 		width: parent.width
-		columns: 1
 
 		anchors {
 				top: layoutMain.bottom
@@ -314,6 +313,21 @@ SwipeDelegate {
 				right:parent.right
 				rightMargin: 5
 		}
+
+		Repeater {
+			id: subExerciseRepeater
+			model: exerciseManager.subExercisesCount
+
+			GridLayout {
+				columns: 1
+				columnSpacing: 0
+				rowSpacing: 5
+				width: parent.width
+
+				required property int index
+
+			}
+		} //Repeater
 	}
 
 	swipe.right: Rectangle {
@@ -342,5 +356,9 @@ SwipeDelegate {
 		if (show && exerciseManager.hasSets)
 			exerciseManager.createAvailableSets();
 		showSets = show;
+	}
+
+	function getLayoutForSubExercise(exercise_idx: int): GridLayout {
+		return subExerciseRepeater.itemAt(exercise_idx);
 	}
 } //Item
