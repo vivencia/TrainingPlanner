@@ -68,7 +68,7 @@ public:
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
-	void getMesoCalendar(const uint meso_idx);
+	int getMesoCalendar(const uint meso_idx);
 	void saveMesoCalendar(const uint meso_idx);
 	void remakeMesoCalendar(const uint meso_idx);
 	void removeMesoCalendar(const uint meso_idx);

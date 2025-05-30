@@ -91,7 +91,7 @@ set( CXX_SOURCES
 	cxx/qmlmesocalendarinterface.h cxx/qmlmesocalendarinterface.cpp
 	cxx/qmlmesosplitinterface.h cxx/qmlmesosplitinterface.cpp
 	cxx/qmlworkoutinterface.h cxx/qmlworkoutinterface.cpp
-	cxx/qmlexerciseinterface.h cxx/qmlexerciseinterface.cpp
+
 	cxx/qmlexerciseentry.h cxx/qmlexerciseentry.cpp
 	cxx/qmlsetentry.h cxx/qmlsetentry.cpp
 

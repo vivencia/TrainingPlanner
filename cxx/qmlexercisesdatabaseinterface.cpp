@@ -86,7 +86,7 @@ void QmlExercisesDatabaseInterface::getExercisesPage(QmlWorkoutInterface* connec
 		if (connectPage)
 		{
 			disconnect(m_exercisesPage, SIGNAL(exerciseChosen()), nullptr, nullptr);
-			connect(m_exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(createExerciseObject()));
+			connect(m_exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(newExerciseFromExercisesList()));
 		}
 		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_exercisesPage));
 	}
@@ -127,7 +127,7 @@ void QmlExercisesDatabaseInterface::createExercisesPage_part2(QmlWorkoutInterfac
 		appExercisesList()->clearSelectedEntries();
 		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_exercisesPage));
 		if (connectPage)
-			connect(m_exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(createExerciseObject()));
+			connect(m_exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(newExerciseFromExercisesList()));
 
 		connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
 			appExercisesList()->fillColumnNames();

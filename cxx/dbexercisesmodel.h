@@ -200,7 +200,7 @@ public:
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
 
 public slots:
-	void newExerciseFromExercisesList();
+	int newExerciseFromExercisesList();
 
 signals:
 	void exerciseNameChanged(const uint exercise_number, const uint exercise_idx);

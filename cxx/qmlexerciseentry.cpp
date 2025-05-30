@@ -1,7 +1,6 @@
 #include "qmlexerciseentry.h"
 
 #include "dbexercisesmodel.h"
-#include "qmlexerciseinterface.h"
 #include "qmlitemmanager.h"
 #include "qmlsetentry.h"
 #include "qmlworkoutinterface.h"
@@ -21,8 +20,8 @@ struct exerciseIdxEntry{
 	QList<QmlSetEntry*> m_setObjects;
 };
 
-static const QString setTypePages[3] { std::move("qrc:/qml/ExercisesAndSets/SetTypeRegular.qml"_L1),
-					std::move("qrc:/qml/ExercisesAndSets/SetTypeDrop.qml"_L1), std::move("qrc:/qml/ExercisesAndSets/SetTypeGiant.qml"_L1) };
+static const QString &setTypePages[3] { "qrc:/qml/ExercisesAndSets/SetTypeRegular.qml"_L1,
+					"qrc:/qml/ExercisesAndSets/SetTypeDrop.qml"_L1, "qrc:/qml/ExercisesAndSets/SetTypeGiant.qml"_L1 };
 
 QmlExerciseEntry::QmlExerciseEntry(QObject *parent, QmlWorkoutInterface *workoutPage,
 													DBExercisesModel *workoutModel, const uint exercise_number)
@@ -123,7 +122,12 @@ void QmlExerciseEntry::setExerciseName2(const QString &new_name)
 
 QString QmlExerciseEntry::setsNumber() const
 {
-	return QString::number(m_workoutModel->setsNumber(m_exerciseNumber));
+	return QString::number(m_workoutModel->setsNumber(m_exerciseNumber, m_workingSet));
+}
+
+void QmlExerciseEntry::addSubExercise(const uint exercise_idx)
+{
+
 }
 
 QString QmlExerciseEntry::newSetType1() const

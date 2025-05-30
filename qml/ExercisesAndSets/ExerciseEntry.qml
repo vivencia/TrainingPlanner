@@ -117,7 +117,7 @@ SwipeDelegate {
 			ExerciseNameField {
 				id: txtExerciseName
 				text: exerciseManager.exerciseName
-				bEditable: exerciseManager.isEditable
+				editable: exerciseManager.isEditable
 				width: layoutMain.width*0.85
 				height: appSettings.pageHeight*0.1
 				Layout.preferredWidth: width

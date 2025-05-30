@@ -10,7 +10,11 @@ QT_FORWARD_DECLARE_CLASS(QmlSetEntry)
 QT_FORWARD_DECLARE_CLASS(TPTimer)
 QT_FORWARD_DECLARE_CLASS(QQmlComponent)
 QT_FORWARD_DECLARE_CLASS(QQuickItem)
+
+#ifndef QMLSETENTRY_H
 Q_DECLARE_OPAQUE_POINTER(QmlSetEntry*)
+#endif
+//#endif
 
 class QmlExerciseEntry : public QObject
 {
@@ -52,6 +56,7 @@ public:
 	inline const QString exerciseNumberLabel() const { return QString::number(m_exerciseNumber + 1); }
 	QString setsNumber() const;
 
+	void addSubExercise(const uint exercise_idx);
 	const QString exerciseName1() const;
 	const QString exerciseName2() const;
 	void setExerciseName1(const QString &new_name);

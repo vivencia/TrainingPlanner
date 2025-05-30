@@ -312,11 +312,12 @@ bool DBInterface::mesoHasSplitPlan(const QString &meso_id, const QChar &split_le
 //-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
-void DBInterface::getMesoCalendar(const uint meso_idx)
+int DBInterface::getMesoCalendar(const uint meso_idx)
 {
 	DBMesoCalendarTable *worker{new DBMesoCalendarTable{appMesoModel()->mesoCalendarManager()}};
 	worker->addExecArg(meso_idx);
 	createThread(worker, [worker] () { worker->getMesoCalendar(); });
+	return worker->uniqueId();
 }
 
 void DBInterface::saveMesoCalendar(const uint meso_idx)

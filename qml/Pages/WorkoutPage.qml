@@ -375,7 +375,7 @@ TPPage {
 
 		GridLayout {
 			id: exercisesLayout
-			objectName: "tDayExercisesLayout"
+			objectName: "exercisesLayout"
 			width: parent.width
 			columns: 1
 
@@ -591,7 +591,7 @@ TPPage {
 				bottomMargin: 5
 			}
 
-			onClicked: itemManager.getExercisesPage(WorkoutManager);
+			onClicked: workoutManager.addExercise();
 		} // bntAddExercise
 	} //footer: ToolBar
 

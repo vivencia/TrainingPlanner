@@ -520,8 +520,6 @@ uint DBExercisesModel::addExercise(const bool emit_signal)
 {
 	exerciseEntry *new_exercise{new exerciseEntry};
 	new_exercise->number = m_exerciseData.count();
-	stExercise* new_sub_exercise{new stExercise};
-	new_exercise->m_exercises.append(new_sub_exercise);
 	m_exerciseData.append(new_exercise);
 	const uint exercise_number{static_cast<uint>(m_exerciseData.count())};
 	if (emit_signal)
@@ -580,11 +578,11 @@ void DBExercisesModel::moveExercise(const uint from, const uint to)
 	}
 }
 
-void DBExercisesModel::newExerciseFromExercisesList()
+int DBExercisesModel::newExerciseFromExercisesList()
 {
 	const uint n_subexercises{appExercisesList()->selectedEntriesCount()};
 	if (n_subexercises == 0)
-		return;
+		return -1;
 
 	const uint exercise_number{addExercise()};
 	for (uint exercise_idx{0}; exercise_idx < n_subexercises; ++exercise_idx)
@@ -595,6 +593,7 @@ void DBExercisesModel::newExerciseFromExercisesList()
 			appExercisesList()->selectedEntriesValue(exercise_idx, EXERCISES_LIST_COL_SUBNAME)));
 		emit exerciseNameChanged(exercise_number, exercise_idx);
 	}
+	return exercise_number;
 }
 
 uint DBExercisesModel::addSubExercise(const uint exercise_number, const bool emit_signal)

@@ -6,17 +6,22 @@
 
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(DBCalendarModel)
-QT_FORWARD_DECLARE_CLASS(QmlExerciseInterface)
 QT_FORWARD_DECLARE_CLASS(QmlExerciseEntry)
+QT_FORWARD_DECLARE_CLASS(QmlSetEntry)
 QT_FORWARD_DECLARE_CLASS(TPTimer)
 QT_FORWARD_DECLARE_CLASS(QQmlComponent)
 QT_FORWARD_DECLARE_CLASS(QQuickItem)
+
+Q_DECLARE_OPAQUE_POINTER(QmlExerciseEntry*)
+Q_DECLARE_OPAQUE_POINTER(QmlSetEntry*)
 
 class QmlWorkoutInterface : public QObject
 {
 
 Q_OBJECT
 
+Q_PROPERTY(QmlExerciseEntry* workingExercise READ workingExercise WRITE setWorkingExercise NOTIFY workingExerciseChanged FINAL)
+Q_PROPERTY(QmlSetEntry* workingSet READ workingSet WRITE setWorkingSet NOTIFY workingSetChanged FINAL)
 Q_PROPERTY(uint timerHour READ timerHour WRITE setTimerHour NOTIFY timerHourChanged FINAL)
 Q_PROPERTY(uint timerMinute READ timerMinute WRITE setTimerMinute NOTIFY timerMinuteChanged FINAL)
 Q_PROPERTY(uint timerSecond READ timerSecond WRITE setTimerSecond NOTIFY timerSecondChanged FINAL)
@@ -43,6 +48,12 @@ public:
 	~QmlWorkoutInterface();
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
+
+	inline QmlExerciseEntry *workingExercise() const { return m_workingExercise; }
+	void setWorkingExercise(QmlExerciseEntry *new_workingexercise);
+	inline QmlSetEntry *workingSet() const { return m_workingSet; }
+	void setWorkingSet(QmlSetEntry *new_workingset);
+
 	inline uint timerHour() const { return m_hour; }
 	inline void setTimerHour(const uint new_value) { m_hour = new_value; emit timerHourChanged(); }
 
@@ -113,12 +124,13 @@ public:
 	Q_INVOKABLE void prepareWorkOutTimer(const QString &strStartTime = QString(), const QString &strEndTime = QString());
 	Q_INVOKABLE void startWorkout();
 	Q_INVOKABLE void stopWorkout();
+	Q_INVOKABLE void addExercise();
 	Q_INVOKABLE void clearExercises(const bool bShowIntentDialog = true);
-	Q_INVOKABLE void removeExercise(const uint exercise_idx);
+	Q_INVOKABLE void removeExercise(const uint exercise_number);
 	Q_INVOKABLE void removeSetFromExercise();
-	Q_INVOKABLE QmlExerciseEntry *currentExercise() const;
+
 	void removeExerciseObject(const uint exercise_idx, const bool bAsk);
-	void moveExercise(const uint exercise_idx, const uint new_idx);
+	void moveExercise(const uint exercise_number, const uint new_exercisenumber);
 
 	inline DBExercisesModel *workoutModel() const { return m_workoutModel; }
 	inline QQuickItem *workoutPage() const { return m_workoutPage; }
@@ -126,19 +138,21 @@ public:
 	void simpleExercisesList(const bool show, const bool multi_sel = false);
 	void displayMessage(const QString &title, const QString &message, const bool error = false, const uint msecs = 0) const;
 	void askRemoveExercise(const uint exercise_idx);
-	void gotoNextExercise(const uint exercise_idx);
+	void gotoNextExercise(const uint exercise_number);
 	void rollUpExercises() const;
 
 	TPTimer *restTimer();
 
 public slots:
-	void createExerciseObject();
+	void newExerciseFromExercisesList();
 	void silenceTimeWarning();
 	void hideSimpleExercisesList();
 	void verifyWorkoutOptions();
 
 signals:
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
+	void workingExerciseChanged();
+	void workingSetChanged();
 	void timerHourChanged();
 	void timerMinuteChanged();
 	void timerSecondChanged();
@@ -166,18 +180,20 @@ signals:
 	void requestMesoSplitModel(const QChar& splitletter);
 
 private:
-	QQmlComponent *m_workoutComponent;
+	QQmlComponent *m_workoutComponent, *m_exercisesComponent;
 	DBExercisesModel *m_workoutModel;
 	DBCalendarModel * m_calendarModel;
-	QQuickItem *m_workoutPage;
-	QVariantHash m_workoutProperties;
-	QmlExerciseInterface *m_exerciseManager;
+	QQuickItem *m_workoutPage, *m_exercisesLayout;
+	QVariantMap m_workoutProperties, m_exercisesProperties;
+	QList<QmlExerciseEntry*> m_exercisesList;
 	uint m_mesoIdx, m_calendarDay;
 	TPTimer *m_workoutTimer, *m_restTimer;
-	int m_SimpleExercisesListRequesterExerciseIdx, m_SimpleExercisesListRequesterExerciseComp;
+	int m_nExercisesToCreate;
 	QStringList m_prevWorkouts;
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
+	QmlExerciseEntry *m_workingExercise;
+	QmlSetEntry *m_workingSet;
 	uint m_hour, m_min, m_sec;
 	QString m_headerText;
 	bool m_editMode, m_workoutIsEditable, m_importFromPrevWorkout, m_importFromSplitPlan, m_bMainDateIsToday, m_bNeedActivation,
@@ -186,6 +202,8 @@ private:
 
 	void createTrainingDayPage();
 	void createTrainingDayPage_part2();
+	void createExerciseObject(const uint exercise_number);
+	void createExerciseObject_part2(const uint exercise_number);
 	void loadExercises();
 	void calculateWorkoutTime();
 };
