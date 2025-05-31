@@ -14,7 +14,6 @@ QT_FORWARD_DECLARE_CLASS(QQuickItem)
 #ifndef QMLSETENTRY_H
 Q_DECLARE_OPAQUE_POINTER(QmlSetEntry*)
 #endif
-//#endif
 
 class QmlExerciseEntry : public QObject
 {
@@ -25,11 +24,7 @@ Q_PROPERTY(QmlSetEntry* workingSet READ workingSet WRITE setWorkingSet NOTIFY wo
 Q_PROPERTY(uint exerciseNumber READ exerciseNumber WRITE setExerciseNumber NOTIFY exerciseNumberChanged FINAL)
 Q_PROPERTY(uint subExercisesCount READ subExercisesCount NOTIFY subExercisesCountChanged FINAL)
 Q_PROPERTY(QString exerciseNumberLabel READ exerciseNumber NOTIFY exerciseNumberChanged FINAL)
-Q_PROPERTY(QString exerciseName1 READ exerciseName1 WRITE setExerciseName1 NOTIFY exerciseName1Changed FINAL)
-Q_PROPERTY(QString exerciseName2 READ exerciseName2 WRITE setExerciseName2 NOTIFY exerciseName2Changed FINAL)
-Q_PROPERTY(QString setsNumber READ setsNumber WRITE setSetsNumber NOTIFY setsNumberChanged FINAL)
-Q_PROPERTY(QString newSetType1 READ newSetReps1 NOTIFY newSetDataChanged FINAL)
-Q_PROPERTY(QString newSetType2 READ newSetReps2 NOTIFY newSetDataChanged FINAL)
+Q_PROPERTY(QString exerciseName READ exerciseName NOTIFY exerciseNameChanged FINAL)
 Q_PROPERTY(bool hasSets READ hasSets NOTIFY hasSetsChanged FINAL)
 Q_PROPERTY(bool lastExercise READ lastExercise WRITE setLastExercise NOTIFY lastExerciseChanged FINAL)
 Q_PROPERTY(bool isEditable READ isEditable WRITE setIsEditable NOTIFY isEditableChanged FINAL)
@@ -54,15 +49,11 @@ public:
 	inline const uint subExercisesCount() const { return m_exercisesIdxs.count(); }
 	void setExerciseNumber(const uint new_value);
 	inline const QString exerciseNumberLabel() const { return QString::number(m_exerciseNumber + 1); }
-	QString setsNumber() const;
+	Q_INVOKABLE QString setsNumber(const uint exercise_idx) const;
 
-	void addSubExercise(const uint exercise_idx);
-	const QString exerciseName1() const;
-	const QString exerciseName2() const;
-	void setExerciseName1(const QString &new_name);
-	void setExerciseName2(const QString &new_name);
-	QString newSetType1() const;
-	QString newSetType2() const;
+	void addSubExercise();
+	const QString exerciseName(const int exercise_idx = -1) const;
+	Q_INVOKABLE void setExerciseName(const uint exercise_idx, const QString &new_exercisename);
 
 	const bool trackRestTime() const;
 	void setTrackRestTime(const bool track_resttime);
@@ -105,11 +96,10 @@ signals:
 	void workingSetChanged();
 	void exerciseNumberChanged();
 	void subExercisesCountChanged();
+	void exerciseNameChanged();
 	void newSetTypeChanged();
 	void nSetsChanged();
-	void exerciseNameChanged();
 	void setsNumberChanged();
-	void newSetDataChanged();
 	void hasSetsChanged();
 	void lastExerciseChanged();
 	void isEditableChanged();
@@ -120,7 +110,7 @@ signals:
 	void setObjectCreated(QmlSetEntry *set);
 
 private:
-	QmlWorkoutInterface *m_workoutPage;
+	QmlWorkoutInterface *m_workoutManager;
 	DBExercisesModel *m_workoutModel;
 	uint m_exerciseNumber;
 	QQuickItem *m_exerciseEntry;
@@ -137,8 +127,9 @@ private:
 	void createSetObject(const uint exercise_idx, const uint set_number);
 	void createSetObject_part2(const uint exercise_idx, const uint set_number);
 	uint findSetMode(const uint exercise_idx, const uint set_number) const;
-	void startRestTimer(const bool bStopWatch);
-	void stopRestTimer();
+	void gotoNextSet(const uint exercise_idx, const uint set_number);
+	void startRestTimer(const uint exercise_idx, const uint set_number, const bool stop_watch);
+	void stopRestTimer(const uint exercise_idx, const uint set_number);
 
 private slots:
 	void setCreated(QmlSetEntry *set);

@@ -11,6 +11,7 @@ Item {
 	property alias text: txtField.text
 	property alias readOnly: txtField.readOnly
 	property bool showRemoveButton: true
+	property bool showEditButton: true
 	property bool bCanEmitTextChanged: false
 	property bool bTextChanged: false
 	property bool editable: true
@@ -135,6 +136,7 @@ Item {
 		imageSize: 25
 		height: 25
 		width: 25
+		visible: showEditButton
 		enabled: editable
 
 		anchors {
@@ -159,7 +161,7 @@ Item {
 		enabled: editable
 
 		anchors {
-			left: btnEditExercise.right
+			left: showEditButton ? btnEditExercise.right : txtField.right
 			leftMargin: 5
 			verticalCenter: control.verticalCenter
 		}

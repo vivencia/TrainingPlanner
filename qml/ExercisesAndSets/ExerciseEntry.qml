@@ -117,16 +117,14 @@ SwipeDelegate {
 			ExerciseNameField {
 				id: txtExerciseName
 				text: exerciseManager.exerciseName
-				editable: exerciseManager.isEditable
+				editable: false
+				showEditButton: false
 				width: layoutMain.width*0.85
 				height: appSettings.pageHeight*0.1
 				Layout.preferredWidth: width
 				Layout.preferredHeight: height
 
-				Keys.onReturnPressed: txtNReps.forceActiveFocus();
-				onExerciseChanged: (new_text) => exerciseManager.exerciseName = new_text;
 				onRemoveButtonClicked: exerciseManager.removeExercise();
-				onEditButtonClicked: exerciseManager.simpleExercisesList(!readOnly, true);
 				onItemClicked: paneExerciseShowHide(!showSets);
 				onItemPressed: if (enabled && !showSets) swipe.open(SwipeDelegate.Right);
 			}
@@ -162,79 +160,6 @@ SwipeDelegate {
 			}
 		}
 
-		RowLayout {
-			enabled: exerciseManager.isEditable
-			spacing: 0
-			Layout.fillWidth: true
-			Layout.topMargin: 10
-
-			SetInputField {
-				id: txtNReps
-				text: exerciseManager.repsForExercise1
-				type: SetInputField.Type.RepType
-				availableWidth: layoutMain.width*0.45
-				backColor: "transparent"
-				borderColor: "transparent"
-				Layout.preferredWidth: width
-
-				onValueChanged: (str) => exerciseManager.repsForExercise1 = str;
-				onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
-			}
-
-		SetInputField {
-				id: txtNWeight
-				text: exerciseManager.weightForExercise1
-				type: SetInputField.Type.WeightType
-				availableWidth: layoutMain.width*0.45
-				backColor: "transparent"
-				borderColor: "transparent"
-				Layout.preferredWidth: width
-				Layout.leftMargin: 5
-
-				onValueChanged: (str) => exerciseManager.weightForExercise1 = str;
-				onEnterOrReturnKeyPressed: !exerciseManager.compositeExercise ? txtNSets.forceActiveFocus() : txtNReps2.forceActiveFocus();
-			}
-		}
-
-		Loader {
-			active: exerciseManager.compositeExercise
-			asynchronous: true
-
-			sourceComponent: RowLayout {
-				id: compositeFields
-				enabled: exerciseManager.isEditable
-				spacing: 0
-				Layout.fillWidth: true
-
-				SetInputField {
-					id: txtNReps2
-					text: exerciseManager.repsForExercise2
-					type: SetInputField.Type.RepType
-					availableWidth: layoutMain.width*0.45
-					backColor: "transparent"
-					borderColor: "transparent"
-					Layout.preferredWidth: width
-
-					onValueChanged: (str) => exerciseManager.repsForExercise2 = str;
-					onEnterOrReturnKeyPressed: txtNWeight2.forceActiveFocus();
-				}
-
-				SetInputField {
-					id: txtNWeight2
-					text: exerciseManager.weightForExercise2
-					type: SetInputField.Type.WeightType
-					availableWidth: layoutMain.width*0.45
-					backColor: "transparent"
-					borderColor: "transparent"
-					Layout.preferredWidth: width
-					Layout.leftMargin: 5
-
-					onValueChanged: (str) => exerciseManager.weightForExercise2 = str;
-					onEnterOrReturnKeyPressed: txtNSets.forceActiveFocus();
-				}
-			}
-		}
-
 		SetInputField {
 			id: txtRestTime
 			type: SetInputField.Type.TimeType
@@ -247,62 +172,10 @@ SwipeDelegate {
 
 			onValueChanged: (str) => exerciseManager.restTime = str;
 		}
-
-		Row {
-			enabled: exerciseManager.isEditable
-			spacing: 10
-			Layout.fillWidth: true
-
-			TPLabel {
-				text: qsTr("Set type: ")
-				width: parent.width*0.3
-			}
-
-			TPComboBox {
-				id: cboSetType
-				currentIndex: exerciseManager.newSetType
-				model: AppGlobals.setTypesModel
-				width: parent.width*0.65
-
-				onActivated: (index) => exerciseManager.newSetType = index;
-			}
-		}
-
-		Row {
-			enabled: exerciseManager.isEditable
-			spacing: 5
-			Layout.topMargin: 5
-			Layout.fillWidth: true
-
-			TPLabel {
-				text: qsTr("Add new set(s):")
-				width: parent.width*0.5
-			}
-
-			SetInputField {
-				id: txtNSets
-				text: exerciseManager.setsNumber
-				type: SetInputField.Type.SetType
-				availableWidth: layoutMain.width*0.35
-				showLabel: false
-				backColor: "transparent"
-				borderColor: "transparent"
-
-				onValueChanged: (str)=> exerciseManager.setsNumber = str;
-			}
-
-			TPButton {
-				id: btnAddSet
-				imageSource: "add-new"
-				imageSize: 30
-
-				onClicked: exerciseManager.appendNewSet();
-			}
-		}
 	} // ColumnLayout layoutMain
 
 	ColumnLayout {
-		id: exerciseSetsLayout
+		id: subExerciseAndSetsLayout
 		width: parent.width
 
 		anchors {
@@ -317,15 +190,33 @@ SwipeDelegate {
 		Repeater {
 			id: subExerciseRepeater
 			model: exerciseManager.subExercisesCount
+			Layout.fillWidth: true
 
-			GridLayout {
-				columns: 1
-				columnSpacing: 0
-				rowSpacing: 5
-				width: parent.width
-
+			delegate: ColumnLayout {
 				required property int index
+				spacing: 5
 
+				ExerciseNameField {
+					text: exerciseManager.exerciseName(index)
+					editable: exerciseManager.isEditable
+					width: layoutMain.width*0.85
+					height: appSettings.pageHeight*0.1
+					Layout.preferredWidth: width
+					Layout.preferredHeight: height
+
+					onExerciseChanged: (new_text) => exerciseManager.setExerciseName(index, new_text);
+					onRemoveButtonClicked: exerciseManager.removeExercise();
+					onEditButtonClicked: exerciseManager.simpleExercisesList(!readOnly, true);
+					onItemClicked: paneExerciseShowHide(!showSets);
+					onItemPressed: if (enabled && !showSets) swipe.open(SwipeDelegate.Right);
+				}
+
+				GridLayout {
+					columns: 1
+					columnSpacing: 0
+					rowSpacing: 5
+					width: parent.width
+				}
 			}
 		} //Repeater
 	}
@@ -359,6 +250,6 @@ SwipeDelegate {
 	}
 
 	function getLayoutForSubExercise(exercise_idx: int): GridLayout {
-		return subExerciseRepeater.itemAt(exercise_idx);
+		return subExerciseRepeater.itemAt(exercise_idx).children[1];
 	}
 } //Item

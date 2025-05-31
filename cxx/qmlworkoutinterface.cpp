@@ -305,7 +305,7 @@ void QmlWorkoutInterface::getExercisesFromSplitPlan()
 void QmlWorkoutInterface::exportWorkoutToSplitPlan()
 {
 	DBExercisesModel *split_model{appMesoModel()->splitModel(m_mesoIdx, splitLetter(), false)};
-	split_model = m_workoutModel;
+	*split_model = m_workoutModel;
 	appDBInterface()->saveMesoSplit(split_model);
 }
 
@@ -379,12 +379,13 @@ void QmlWorkoutInterface::stopWorkout()
 	setDayIsFinished(true);
 }
 
-void QmlWorkoutInterface::addExercise()
+void QmlWorkoutInterface::addExercise(const bool show_exercises_list_page)
 {
 	const uint exercise_number{m_workoutModel->addExercise()};
 	m_nExercisesToCreate = -1;
 	createExerciseObject(exercise_number);
-	appItemManager()->getExercisesPage(this);
+	if (show_exercises_list_page)
+		appItemManager()->getExercisesPage(this);
 }
 
 void QmlWorkoutInterface::clearExercises(const bool bShowIntentDialog)
@@ -519,18 +520,26 @@ TPTimer *QmlWorkoutInterface::restTimer()
 
 void QmlWorkoutInterface::newExerciseFromExercisesList()
 {
+	addExercise(false);
+	changeExerciseFromExercisesList(m_workoutModel->exerciseCount() - 1);
+}
+
+void QmlWorkoutInterface::changeExerciseFromExercisesList(int exercise_number)
+{
 	const uint n_subexercises{appExercisesList()->selectedEntriesCount()};
 	if (n_subexercises == 0)
 		return;
 
-	const uint exercise_number{m_workoutModel->exerciseCount() - 1};
+	if (exercise_number)
+		exercise_number = m_workoutModel->workingExercise();
+
 	for (uint exercise_idx{0}; exercise_idx < n_subexercises; ++exercise_idx)
 	{
-		static_cast<void>(m_workoutModel->addSubExercise(exercise_number));
+		if (exercise_idx >= m_workoutModel->subExercisesCount(exercise_number))
+			m_exercisesList.at(exercise_idx)->addSubExercise();
 		m_workoutModel->setExerciseName(exercise_number, exercise_idx, std::move(
 			appExercisesList()->selectedEntriesValue(exercise_idx, EXERCISES_LIST_COL_MAINNAME) + " - "_L1 +
 			appExercisesList()->selectedEntriesValue(exercise_idx, EXERCISES_LIST_COL_SUBNAME)));
-		m_exercisesList.at(exercise_number)->addSubExercise(exercise_idx);
 	}
 }
 
@@ -581,7 +590,7 @@ void QmlWorkoutInterface::createTrainingDayPage_part2()
 	if (m_workoutComponent->status() == QQmlComponent::Error)
 	{
 		qDebug() << m_workoutComponent->errorString();
-		for (auto error : m_workoutComponent->errors())
+		for (auto &error : m_workoutComponent->errors())
 			qDebug() << error;
 		return;
 	}
@@ -659,7 +668,7 @@ void QmlWorkoutInterface::createExerciseObject_part2(const uint exercise_number)
 	if (m_exercisesComponent->status() == QQmlComponent::Error)
 	{
 		qDebug() << m_exercisesComponent->errorString();
-		for (auto error : m_exercisesComponent->errors())
+		for (auto &error : m_exercisesComponent->errors())
 			qDebug() << error;
 		return;
 	}

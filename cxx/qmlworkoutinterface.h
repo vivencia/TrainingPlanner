@@ -2,7 +2,7 @@
 
 #include <QDate>
 #include <QObject>
-#include <QVariantHash>
+#include <QVariantMap>
 
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(DBCalendarModel)
@@ -13,7 +13,10 @@ QT_FORWARD_DECLARE_CLASS(QQmlComponent)
 QT_FORWARD_DECLARE_CLASS(QQuickItem)
 
 Q_DECLARE_OPAQUE_POINTER(QmlExerciseEntry*)
+
+#ifndef QMLSETENTRY_H
 Q_DECLARE_OPAQUE_POINTER(QmlSetEntry*)
+#endif
 
 class QmlWorkoutInterface : public QObject
 {
@@ -124,7 +127,7 @@ public:
 	Q_INVOKABLE void prepareWorkOutTimer(const QString &strStartTime = QString(), const QString &strEndTime = QString());
 	Q_INVOKABLE void startWorkout();
 	Q_INVOKABLE void stopWorkout();
-	Q_INVOKABLE void addExercise();
+	Q_INVOKABLE void addExercise(const bool show_exercises_list_page = true);
 	Q_INVOKABLE void clearExercises(const bool bShowIntentDialog = true);
 	Q_INVOKABLE void removeExercise(const uint exercise_number);
 	Q_INVOKABLE void removeSetFromExercise();
@@ -145,6 +148,7 @@ public:
 
 public slots:
 	void newExerciseFromExercisesList();
+	void changeExerciseFromExercisesList(int exercise_number = -1);
 	void silenceTimeWarning();
 	void hideSimpleExercisesList();
 	void verifyWorkoutOptions();

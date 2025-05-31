@@ -6,6 +6,12 @@
 
 #include <QQuickItem>
 
+/*
+ * 	const int last_set{static_cast<int>(m_workoutModel->setsNumber(m_exerciseNumber) - 1)};
+	return last_set >= 0 ? m_workoutModel->formatSetTypeToExport(m_workoutModel->setType(m_exerciseNumber, 0, last_set)) :
+						m_workoutModel->formatSetTypeToExport(Regular);
+						*/
+
 QString QmlSetEntry::exerciseName1() const
 {
 	return "1: "_L1 + std::move(appUtils()->getCompositeValue(0, m_exerciseName, comp_exercise_separator));
@@ -65,7 +71,7 @@ void QmlSetEntry::setRestTime(const QString& new_value, const bool update_model)
 	m_restTime = new_value;
 	emit restTimeChanged();
 	if (update_model)
-		m_workoutModel->setSetRestTime(m_exerciseIdx, number(), m_restTime);
+		m_workoutModel->setSetRestTime(m_exerciseNumber, m_exerciseIdx, number(), m_restTime);
 }
 
 QString QmlSetEntry::reps1() const
