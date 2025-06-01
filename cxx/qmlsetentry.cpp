@@ -2,239 +2,168 @@
 
 #include "dbexercisesmodel.h"
 #include "qmlexerciseentry.h"
-#include "tputils.h"
+#include "translationclass.h"
 
 #include <QQuickItem>
 
-/*
- * 	const int last_set{static_cast<int>(m_workoutModel->setsNumber(m_exerciseNumber) - 1)};
-	return last_set >= 0 ? m_workoutModel->formatSetTypeToExport(m_workoutModel->setType(m_exerciseNumber, 0, last_set)) :
-						m_workoutModel->formatSetTypeToExport(Regular);
-						*/
-
-QString QmlSetEntry::exerciseName1() const
+QmlSetEntry::QmlSetEntry(QObject *parent, QmlExerciseEntry *parentExercise, DBExercisesModel *workoutModel,
+							const uint exercise_number, const uint exercise_idx, const uint set_number)
+	: QObject{parent}, m_parentExercise{parentExercise}, m_workoutModel{workoutModel}, m_setEntry{nullptr},
+		m_exerciseNumber{exercise_number}, m_exerciseIdx{exercise_idx}, m_setNumber{set_number},
+		m_bEditable{false}, m_bLastSet{false}, m_bCurrent{false}
 {
-	return "1: "_L1 + std::move(appUtils()->getCompositeValue(0, m_exerciseName, comp_exercise_separator));
-}
-
-void QmlSetEntry::setExerciseName1(const QString& new_value)
-{
-	if (appUtils()->getCompositeValue(0, m_exerciseName, comp_exercise_separator) != new_value)
+	uint mode{SET_MODE_UNDEFINED};
+	if (!m_workoutModel->setCompleted(m_exerciseNumber, m_exerciseIdx, m_setNumber))
 	{
-		appUtils()->setCompositeValue(0, new_value, m_exerciseName, comp_exercise_separator);
-		emit exerciseName1Changed();
-	}
-}
-
-QString QmlSetEntry::exerciseName2() const
-{
-	QString exercisename{std::move(appUtils()->getCompositeValue(1, m_exerciseName, comp_exercise_separator))};
-	return "2: "_L1 + (exercisename.isEmpty() ? std::move(tr("Add exercise ...")) : exercisename);
-}
-
-void QmlSetEntry::setExerciseName2(const QString& new_value)
-{
-	if (appUtils()->getCompositeValue(1, m_exerciseName, comp_exercise_separator) != new_value)
-	{
-		appUtils()->setCompositeValue(1, new_value, m_exerciseName, comp_exercise_separator);
-		emit exerciseName2Changed();
-	}
-}
-
-void QmlSetEntry::setType(const uint new_value, const bool bSetIsManuallyModified)
-{
-	//new_value already checked under QmlExerciseEntry::changeSetType
-	m_type = new_value;
-	emit typeChanged();
-	if (bSetIsManuallyModified && !lastSet())
-		setIsManuallyModified(true);
-	const bool bHasSubSets(m_type == SET_TYPE_CLUSTER || m_type == SET_TYPE_DROP);
-	if (m_bHasSubSets != bHasSubSets)
-	{
-		m_bHasSubSets = bHasSubSets;
-		emit hasSubSetsChanged();
-	}
-}
-
-void QmlSetEntry::setNumber(const uint new_value)
-{
-	if (m_number != new_value)
-	{
-		m_number = new_value;
-		emit numberChanged();
-		setEntry()->setProperty("Layout.row", m_number);
-	}
-}
-
-void QmlSetEntry::setRestTime(const QString& new_value, const bool update_model)
-{
-	m_restTime = new_value;
-	emit restTimeChanged();
-	if (update_model)
-		m_workoutModel->setSetRestTime(m_exerciseNumber, m_exerciseIdx, number(), m_restTime);
-}
-
-QString QmlSetEntry::reps1() const
-{
-	return appUtils()->getCompositeValue(0, m_reps, comp_exercise_separator);
-}
-
-void QmlSetEntry::setReps1(const QString& new_value, const bool bSetIsManuallyModified)
-{
-	if (appUtils()->getCompositeValue(0, m_reps, comp_exercise_separator) != new_value)
-	{
-		appUtils()->setCompositeValue(0, new_value, m_reps, comp_exercise_separator);
-		if (bSetIsManuallyModified && !lastSet())
-			setIsManuallyModified(true);
-		emit reps1Changed();
-		if (hasSubSets())
-			emit strTotalRepsChanged();
-		m_workoutModel->setSetReps(m_exerciseIdx, number(), 0, m_reps);
-	}
-}
-
-QString QmlSetEntry::weight1() const
-{
-	return appUtils()->getCompositeValue(0, m_weight, comp_exercise_separator);
-}
-
-void QmlSetEntry::setWeight1(const QString& new_value, const bool bSetIsManuallyModified)
-{
-	if (appUtils()->getCompositeValue(0, m_weight, comp_exercise_separator) != new_value)
-	{
-		appUtils()->setCompositeValue(0, new_value, m_weight, comp_exercise_separator);
-		if (bSetIsManuallyModified && !lastSet())
-			setIsManuallyModified(true);
-		emit weight1Changed();
-		m_workoutModel->setSetWeight(m_exerciseIdx, number(), 0, m_weight);
-	}
-}
-
-QString QmlSetEntry::reps2() const
-{
-	return appUtils()->getCompositeValue(1, m_reps, comp_exercise_separator);
-}
-
-void QmlSetEntry::setReps2(const QString& new_value, const bool bSetIsManuallyModified)
-{
-	if (appUtils()->getCompositeValue(1, m_reps, comp_exercise_separator) != new_value)
-	{
-		appUtils()->setCompositeValue(1, new_value, m_reps, comp_exercise_separator);
-		if (bSetIsManuallyModified && !lastSet())
-			setIsManuallyModified(true);
-		emit reps2Changed();
-		emit strTotalRepsChanged();
-		m_workoutModel->setSetReps(m_exerciseIdx, number(), 1, m_reps);
-	}
-}
-
-QString QmlSetEntry::weight2() const
-{
-	return appUtils()->getCompositeValue(1, m_weight, comp_exercise_separator);
-}
-
-void QmlSetEntry::setWeight2(const QString& new_value, const bool bSetIsManuallyModified)
-{
-	if (appUtils()->getCompositeValue(1, m_weight, comp_exercise_separator) != new_value)
-	{
-		appUtils()->setCompositeValue(1, new_value, m_weight, comp_exercise_separator);
-		if (bSetIsManuallyModified && !lastSet())
-			setIsManuallyModified(true);
-		emit weight2Changed();
-		m_workoutModel->setSetWeight(m_exerciseIdx, number(), 1, m_weight);
-	}
-}
-
-QString QmlSetEntry::reps3() const
-{
-	return appUtils()->getCompositeValue(2, m_reps, comp_exercise_separator);
-}
-
-void QmlSetEntry::setReps3(const QString& new_value, const bool bSetIsManuallyModified)
-{
-	if (appUtils()->getCompositeValue(2, m_reps, comp_exercise_separator) != new_value)
-	{
-		appUtils()->setCompositeValue(2, new_value, m_reps, comp_exercise_separator);
-		if (bSetIsManuallyModified && !lastSet())
-			setIsManuallyModified(true);
-		emit reps3Changed();
-		emit strTotalRepsChanged();
-		m_workoutModel->setSetReps(m_exerciseIdx, number(), 2, m_reps);
-	}
-}
-
-QString QmlSetEntry::weight3() const
-{
-	return appUtils()->getCompositeValue(2, m_weight, comp_exercise_separator);
-}
-
-void QmlSetEntry::setWeight3(const QString& new_value, const bool bSetIsManuallyModified)
-{
-	if (appUtils()->getCompositeValue(2, m_weight, comp_exercise_separator) != new_value)
-	{
-		appUtils()->setCompositeValue(2, new_value, m_weight, comp_exercise_separator);
-		if (bSetIsManuallyModified && !lastSet())
-			setIsManuallyModified(true);
-		emit weight3Changed();
-		m_workoutModel->setSetWeight(m_exerciseIdx, number(), 2, m_weight);
-	}
-}
-
-QString QmlSetEntry::reps4() const
-{
-	return appUtils()->getCompositeValue(3, m_reps, comp_exercise_separator);
-}
-
-void QmlSetEntry::setReps4(const QString& new_value, const bool bSetIsManuallyModified)
-{
-	if (appUtils()->getCompositeValue(3, m_reps, comp_exercise_separator) != new_value)
-	{
-		appUtils()->setCompositeValue(3, new_value, m_reps, comp_exercise_separator);
-		if (bSetIsManuallyModified && !lastSet())
-			setIsManuallyModified(true);
-		emit reps4Changed();
-		emit strTotalRepsChanged();
-		m_workoutModel->setSetReps(m_exerciseIdx, number(), 3, m_reps);
-	}
-}
-
-QString QmlSetEntry::weight4() const
-{
-	return appUtils()->getCompositeValue(3, m_weight, comp_exercise_separator);
-}
-
-void QmlSetEntry::setWeight4(const QString& new_value, const bool bSetIsManuallyModified)
-{
-	if (appUtils()->getCompositeValue(3, m_weight, comp_exercise_separator) != new_value)
-	{
-		appUtils()->setCompositeValue(3, new_value, m_weight, comp_exercise_separator);
-		if (bSetIsManuallyModified && !lastSet())
-			setIsManuallyModified(true);
-		emit weight4Changed();
-		m_workoutModel->setSetWeight(m_exerciseIdx, number(), 3, m_weight);
-	}
-}
-
-void QmlSetEntry::setSubSets(const QString& new_value)
-{
-	const uint new_value_int(new_value.toUInt());
-	if (new_value_int < 4)
-	{
-		if (m_subsets != new_value)
+		if (m_setNumber > 0)
 		{
-			m_subsets = new_value;
-			m_nsubsets = new_value_int;
-			emit subSetsChanged();
-			emit nSubSetsChanged();
-			emit strTotalRepsChanged();
-			m_workoutModel->setSetSubSets(m_exerciseIdx, number(), new_value);
+			if (m_workoutModel->trackRestTime(m_exerciseNumber) || m_workoutModel->autoRestTime(m_exerciseNumber))
+				mode = SET_MODE_START_REST;
 		}
 	}
+	else
+		mode = SET_MODE_SET_COMPLETED;
+	setMode(mode);
+
+	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
+		emit labelChanged();
+		//Update labels that need two signals: one specific to the value they hold and this, for the words to be translated
+		emit modeChanged();
+		emit setNumberChanged();
+		emit totalRepsChanged();
+	});
 }
 
-void QmlSetEntry::setNotes(const QString& new_value)
+QString QmlSetEntry::setNumberLabel() const
 {
-	m_notes = new_value;
+	return tr("Set #: ") + QString::number(m_setNumber + 1);
+}
+
+QString QmlSetEntry::totalRepsLabel() const
+{
+	return tr("Total # of reps: ") + QString::number(reps().toInt() * nSubSets());
+}
+
+QString QmlSetEntry::modeLabel() const
+{
+	switch (mode())
+	{
+		case SET_MODE_UNDEFINED: return std::move(tr("Set completed?"));
+		case SET_MODE_START_REST: return std::move(tr("Start rest"));
+		case SET_MODE_START_EXERCISE: return std::move(tr("Begin exercise"));
+		case SET_MODE_SET_COMPLETED: break;
+	}
+	return QString{};
+}
+
+void QmlSetEntry::setSetNumber(const uint new_number)
+{
+	m_setNumber = new_number;
+	emit setNumberChanged();
+}
+
+QString QmlSetEntry::exerciseName() const
+{
+	return m_workoutModel->exerciseName(m_exerciseNumber, m_exerciseIdx);
+}
+
+void QmlSetEntry::setExerciseName(const QString &new_value)
+{
+	if (new_value != exerciseName())
+	{
+		m_workoutModel->setExerciseName(m_exerciseNumber, m_exerciseIdx, new_value);
+		emit exerciseNameChanged();
+	}
+}
+
+const uint QmlSetEntry::type() const
+{
+	return m_workoutModel->setType(m_exerciseNumber, m_exerciseIdx, m_setNumber);
+}
+
+void QmlSetEntry::setType(const uint new_type)
+{
+	m_parentExercise->changeSetType(m_setNumber, new_type);
+	emit typeChanged();
+	emit hasSubSetsChanged();
+}
+
+void QmlSetEntry::setRestTime(const QString &new_value, const bool update_model)
+{
+	emit restTimeChanged();
+	if (update_model)
+		m_workoutModel->setSetRestTime(m_exerciseNumber, m_exerciseIdx, m_setNumber, new_value);
+}
+
+QString QmlSetEntry::reps() const
+{
+	return m_workoutModel->setReps(m_exerciseNumber, m_exerciseIdx, m_setNumber);
+}
+
+void QmlSetEntry::setReps(const QString &new_reps, const bool update_model)
+{
+	if (reps() != new_reps)
+	{
+		if (update_model)
+			m_workoutModel->setSetReps(m_exerciseNumber, m_exerciseIdx, m_setNumber, new_reps);
+		emit repsChanged();
+		if (hasSubSets())
+			emit totalRepsChanged();
+	}
+}
+
+QString QmlSetEntry::weight() const
+{
+	return m_workoutModel->setWeight(m_exerciseNumber, m_exerciseIdx, m_setNumber);
+}
+
+void QmlSetEntry::setWeight(const QString &new_weight, const bool update_model)
+{
+	if (weight() != new_weight)
+	{
+		if (update_model)
+			m_workoutModel->setSetWeight(m_exerciseNumber, m_exerciseIdx, m_setNumber, new_weight);
+		emit weightChanged();
+	}
+}
+
+QString QmlSetEntry::subSets() const
+{
+	return m_workoutModel->setSubSets(m_exerciseNumber, m_exerciseIdx, m_setNumber);
+}
+
+void QmlSetEntry::setSubSets(const QString &new_subsets, const bool update_model)
+{
+	if (subSets() != new_subsets)
+	{
+		if (update_model)
+			m_workoutModel->setSetSubSets(m_exerciseNumber, m_exerciseIdx, m_setNumber, new_subsets);
+		emit subSetsChanged();
+		emit totalRepsChanged();
+	}
+}
+
+void QmlSetEntry::addSubSet()
+{
+	const uint new_subsets_value(subSets().toUInt());
+	if (new_subsets_value <= 4)
+		setSubSets(QString::number(new_subsets_value+1));
+}
+
+void QmlSetEntry::removeSubSet()
+{
+	const uint new_subsets_value(subSets().toUInt());
+	if (new_subsets_value >= 1)
+		setSubSets(QString::number(new_subsets_value-1));
+}
+
+QString QmlSetEntry::notes() const
+{
+	return m_workoutModel->setNotes(m_exerciseNumber, m_exerciseIdx, m_setNumber);
+}
+
+void QmlSetEntry::setNotes(const QString &new_notes)
+{
+	m_workoutModel->setSetNotes(m_exerciseNumber, m_exerciseIdx, m_setNumber, new_notes);
 	emit notesChanged();
-	m_workoutModel->setSetNotes(m_exerciseIdx, number(), new_value);
 }

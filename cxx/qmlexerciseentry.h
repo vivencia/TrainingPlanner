@@ -23,7 +23,7 @@ Q_OBJECT
 Q_PROPERTY(QmlSetEntry* workingSet READ workingSet WRITE setWorkingSet NOTIFY workingSetChanged FINAL)
 Q_PROPERTY(uint exerciseNumber READ exerciseNumber WRITE setExerciseNumber NOTIFY exerciseNumberChanged FINAL)
 Q_PROPERTY(uint subExercisesCount READ subExercisesCount NOTIFY subExercisesCountChanged FINAL)
-Q_PROPERTY(QString exerciseNumberLabel READ exerciseNumber NOTIFY exerciseNumberChanged FINAL)
+Q_PROPERTY(QString exerciseNumberLabel READ exerciseNumberLabel NOTIFY exerciseNumberChanged FINAL)
 Q_PROPERTY(QString exerciseName READ exerciseName NOTIFY exerciseNameChanged FINAL)
 Q_PROPERTY(bool hasSets READ hasSets NOTIFY hasSetsChanged FINAL)
 Q_PROPERTY(bool lastExercise READ lastExercise WRITE setLastExercise NOTIFY lastExerciseChanged FINAL)
@@ -84,8 +84,8 @@ public:
 	Q_INVOKABLE void appendNewSet();
 	Q_INVOKABLE void removeSetObject(const bool show_delete_dialog = true);
 	Q_INVOKABLE void moveSet(const uint set_number, const uint new_set_number);
-	Q_INVOKABLE void changeSetType(const uint set_number, const uint new_type);
-	Q_INVOKABLE void changeSetMode();
+	void changeSetType(const uint set_number, const uint new_type);
+	void changeSetMode();
 	Q_INVOKABLE void updateSetTypeForNextSets();
 	Q_INVOKABLE void updateRestTimeForNextSets();
 	Q_INVOKABLE void updateRepsForNextSets(const uint sub_set = 0);
@@ -126,7 +126,6 @@ private:
 	void insertSetObject(const uint exercise_idx, const uint set_number, QmlSetEntry *new_setobject);
 	void createSetObject(const uint exercise_idx, const uint set_number);
 	void createSetObject_part2(const uint exercise_idx, const uint set_number);
-	uint findSetMode(const uint exercise_idx, const uint set_number) const;
 	void gotoNextSet(const uint exercise_idx, const uint set_number);
 	void startRestTimer(const uint exercise_idx, const uint set_number, const bool stop_watch);
 	void stopRestTimer(const uint exercise_idx, const uint set_number);

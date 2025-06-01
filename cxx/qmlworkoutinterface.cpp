@@ -77,7 +77,7 @@ void QmlWorkoutInterface::setWorkingExercise(QmlExerciseEntry *new_workingexerci
 void QmlWorkoutInterface::setWorkingSet(QmlSetEntry *new_workingset)
 {
 	m_workingSet = new_workingset;
-	m_workoutModel->setWorkingSet(new_workingset->exerciseNumber(), new_workingset->exerciseIdx(), new_workingset->number());
+	m_workoutModel->setWorkingSet(new_workingset->exerciseNumber(), new_workingset->exerciseIdx(), new_workingset->setNumber());
 	emit workingExerciseChanged();
 	emit workingSetChanged();
 }
@@ -96,6 +96,7 @@ void QmlWorkoutInterface::setSplitLetter(const QChar &new_splitletter, const boo
 			setWorkoutIsEditable(false);
 		m_calendarModel->setSplitLetter(m_calendarDay, new_splitletter);
 		m_workoutModel->setSplitLetter(new_splitletter);
+		emit splitLetterChanged();
 		if (clear_exercises)
 			clearExercises(true);
 	}

@@ -196,7 +196,7 @@ FocusScope {
 				Layout.preferredWidth: imageSize
 				Layout.preferredHeight: imageSize
 
-				onClicked: setManager.nSubSets = setManager.nSubSets + 1;
+				onClicked: setManager.addSubSet();
 			}
 
 			TPButton {
@@ -206,7 +206,7 @@ FocusScope {
 				Layout.preferredWidth: imageSize
 				Layout.preferredHeight: imageSize
 
-				onClicked: setManager.nSubSets = setManager.nSubSets - 1;
+				onClicked: setManager.removeSubSet();
 			}
 		}
 

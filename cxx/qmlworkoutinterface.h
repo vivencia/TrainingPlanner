@@ -67,7 +67,7 @@ public:
 	inline void setTimerSecond(const uint new_value) { m_sec = new_value; emit timerSecondChanged(); }
 
 	QChar splitLetter() const;
-	void setSplitLetter(const QChar &new_splitletter, const bool clear_exercises);
+	void setSplitLetter(const QChar &new_splitletter, const bool clear_exercises = false);
 
 	QString timeIn() const;
 	void setTimeIn(const QString &new_timein);
@@ -160,6 +160,7 @@ signals:
 	void timerHourChanged();
 	void timerMinuteChanged();
 	void timerSecondChanged();
+	void splitLetterChanged();
 	void timeInChanged();
 	void timeOutChanged();
 	void locationChanged();
