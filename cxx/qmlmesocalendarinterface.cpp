@@ -44,10 +44,10 @@ void QmlMesoCalendarInterface::getMesoCalendarPage()
 void QmlMesoCalendarInterface::changeSplitLetter(const QString &newSplitLetter, const bool bUntillTheEnd)
 {
 	if (!bUntillTheEnd)
-		m_calendarModel->setSplitLetter(m_selectedDate.year(), m_selectedDate.month(), m_selectedDate.day(), newSplitLetter);
+		m_calendarModel->setSplitLetter(m_selectedDate, newSplitLetter);
 	else
 	{
-
+		//TODO
 	}
 }
 

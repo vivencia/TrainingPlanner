@@ -32,7 +32,7 @@ Q_PROPERTY(bool compositeExercise READ compositeExercise WRITE setCompositeExerc
 Q_PROPERTY(bool trackRestTime READ trackRestTime WRITE setTrackRestTime NOTIFY trackRestTimeChanged FINAL)
 Q_PROPERTY(bool autoRestTime READ autoRestTime WRITE setAutoRestTime NOTIFY autoRestTimeChanged FINAL)
 Q_PROPERTY(bool canEditRestTimeTracking READ canEditRestTimeTracking WRITE setCanEditRestTimeTracking NOTIFY canEditRestTimeTrackingChanged FINAL)
-Q_PROPERTY(bool allSetsCompleted READ allSetsCompleted NOTIFY allSetsCompletedChanged FINAL)
+Q_PROPERTY(bool allSetsCompleted READ allSetsCompleted WRITE setAllSetsCompleted NOTIFY allSetsCompletedChanged FINAL)
 
 public:
 	explicit QmlExerciseEntry(QObject *parent, QmlWorkoutInterface *workoutPage,
@@ -74,6 +74,7 @@ public:
 	inline const bool canEditRestTimeTracking() const { return m_bCanEditRestTimeTracking; }
 	inline void setCanEditRestTimeTracking(const bool new_value) { m_bCanEditRestTimeTracking = new_value; emit canEditRestTimeTrackingChanged(); }
 
+	void setAllSetsCompleted(const bool completed);
 	const bool allSetsCompleted() const;
 
 	Q_INVOKABLE void removeExercise(const bool bAsk = true);
@@ -107,6 +108,7 @@ signals:
 	void trackRestTimeChanged();
 	void autoRestTimeChanged();
 	void canEditRestTimeTrackingChanged();
+	void allSetsCompletedChanged();
 	void setObjectCreated(QmlSetEntry *set);
 
 private:
@@ -114,7 +116,7 @@ private:
 	DBExercisesModel *m_workoutModel;
 	uint m_exerciseNumber;
 	QQuickItem *m_exerciseEntry;
-	bool m_bLast, m_bEditable, m_bCompositeExercise, m_bCanEditRestTimeTracking;
+	bool m_bLast, m_bEditable, m_bCompositeExercise, m_bCanEditRestTimeTracking, m_bAllSetsCompleted;
 	TPTimer *m_setTimer;
 	QList<exerciseIdxEntry*> m_exercisesIdxs;
 	QmlSetEntry *m_workingSet;

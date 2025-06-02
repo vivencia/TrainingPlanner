@@ -29,6 +29,12 @@ QmlExerciseEntry::QmlExerciseEntry(QObject *parent, QmlWorkoutInterface *workout
 			m_setTimer{nullptr}, m_setComponents{nullptr}, m_setsToBeCreated{0}
 {
 	connect(this, &QmlExerciseEntry::setObjectCreated, this, &QmlExerciseEntry::setCreated);
+	m_bAllSetsCompleted = m_workoutModel->allSetsCompleted(m_exerciseNumber, 0);
+	m_bCanEditRestTimeTracking = m_workoutModel->noSetsCompleted(m_exerciseNumber, 0);
+	m_bEditable = false;
+	m_bLast = m_exerciseNumber == m_workoutModel->exerciseCount() - 1;
+	m_bCompositeExercise = m_workoutModel->exerciseIsComposite(m_exerciseNumber);
+
 	connect(m_workoutModel, &DBExercisesModel::exerciseModified, this,
 					[this] (const uint exercise_number, const uint exercise_idx, const uint set_number, const uint field) {
 		if (exercise_number == m_exerciseNumber)
@@ -47,6 +53,8 @@ QmlExerciseEntry::QmlExerciseEntry(QObject *parent, QmlWorkoutInterface *workout
 					}
 					else
 						m_workoutManager->gotoNextExercise(m_exerciseNumber);
+					if (m_workoutModel->allSetsCompleted(m_exerciseNumber, exercise_idx) != m_bAllSetsCompleted)
+						emit allSetsCompletedChanged();
 				}
 				break;
 			}
@@ -172,21 +180,26 @@ void QmlExerciseEntry::setIsEditable(const bool editable)
 {
 	m_bEditable = editable;
 	emit isEditableChanged();
-
 	for (const auto exercise_idx : std::as_const(m_exercisesIdxs))
 	{
 		for (const auto set : std::as_const(exercise_idx->m_setObjects))
-		{
 			set->setIsEditable(m_bEditable);
-			if (!m_workoutManager->mainDateIsToday())
-				set->setCurrent(m_bEditable);
-		}
 	}
 }
 
 const bool QmlExerciseEntry::allSetsCompleted() const
 {
 	return m_workoutModel->allSetsCompleted(m_exerciseNumber);
+}
+
+void QmlExerciseEntry::setAllSetsCompleted(const bool completed)
+{
+	if (completed)
+	{
+		m_workoutManager->rollUpExercise(m_exerciseNumber);
+		m_workoutManager->gotoNextExercise(m_exerciseNumber);
+	}
+	m_bAllSetsCompleted = completed;
 }
 
 void QmlExerciseEntry::removeExercise(const bool bAsk)
@@ -322,7 +335,7 @@ void QmlExerciseEntry::changeSetMode()
 	switch (setObj->mode())
 	{
 		case SET_MODE_UNDEFINED:
-			if (set_number == 0 || !setObj->trackRestTime())
+			if (set_number == 0 || !m_workoutModel->trackRestTime(m_exerciseNumber))
 			{
 				setObj->setCompleted(true);
 				setObj->setMode(SET_MODE_SET_COMPLETED);
@@ -333,16 +346,15 @@ void QmlExerciseEntry::changeSetMode()
 			break;
 		case SET_MODE_START_REST:
 			setObj->setMode(SET_MODE_START_EXERCISE);
-			startRestTimer(exercise_idx, set_number, setObj->autoRestTime());
+			startRestTimer(exercise_idx, set_number, m_workoutModel->autoRestTime(m_exerciseNumber));
 		break;
 		case SET_MODE_START_EXERCISE:
 			stopRestTimer(exercise_idx, set_number);
 			setObj->setCompleted(true);
 		break;
 		case SET_MODE_SET_COMPLETED:
-			if (set_number == 0 || !setObj->autoRestTime())
+			if (set_number == 0 || !m_workoutModel->autoRestTime(m_exerciseNumber))
 			{
-				setObj->setCurrent(true);
 				setObj->setCompleted(false);
 				setObj->setMode(SET_MODE_UNDEFINED);
 			}
@@ -542,7 +554,7 @@ void QmlExerciseEntry::stopRestTimer(const uint exercise_idx, const uint set_num
 	{
 		set_timer->stopTimer();
 		disconnect(set_timer, nullptr, nullptr, nullptr);
-		if (m_workingSet->autoRestTime())
+		if (m_workoutModel->autoRestTime(m_exerciseNumber))
 			m_workingSet->setRestTime(m_workingSet->restTime(), true); //update the model with the current value displayed
 		else
 			m_workingSet->setRestTime(appUtils()->formatTime(set_timer->elapsedTime(), TPUtils::TF_QML_DISPLAY_NO_SEC), false);

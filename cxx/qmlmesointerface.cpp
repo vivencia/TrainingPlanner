@@ -258,6 +258,11 @@ void QMLMesoInterface::setNotes(const QString &new_value)
 	emit notesChanged();
 }
 
+QString QMLMesoInterface::muscularGroupA() const
+{
+	return appMesoModel()->splitA(m_mesoIdx);
+}
+
 void QMLMesoInterface::setMuscularGroupA(const QString &new_value)
 {
 	if (appMesoModel()->splitA(m_mesoIdx) != new_value)
@@ -265,6 +270,11 @@ void QMLMesoInterface::setMuscularGroupA(const QString &new_value)
 		appMesoModel()->setSplitA(m_mesoIdx, new_value);
 		emit muscularGroupAChanged();
 	}
+}
+
+QString QMLMesoInterface::muscularGroupB() const
+{
+	return appMesoModel()->splitB(m_mesoIdx);
 }
 
 void QMLMesoInterface::setMuscularGroupB(const QString &new_value)
@@ -276,6 +286,11 @@ void QMLMesoInterface::setMuscularGroupB(const QString &new_value)
 	}
 }
 
+QString QMLMesoInterface::muscularGroupC() const
+{
+	return appMesoModel()->splitC(m_mesoIdx);
+}
+
 void QMLMesoInterface::setMuscularGroupC(const QString &new_value)
 {
 	if (appMesoModel()->splitC(m_mesoIdx) != new_value)
@@ -283,6 +298,11 @@ void QMLMesoInterface::setMuscularGroupC(const QString &new_value)
 		appMesoModel()->setSplitC(m_mesoIdx, new_value);
 		emit muscularGroupCChanged();
 	}
+}
+
+QString QMLMesoInterface::muscularGroupD() const
+{
+	return appMesoModel()->splitD(m_mesoIdx);
 }
 
 void QMLMesoInterface::setMuscularGroupD(const QString &new_value)
@@ -294,6 +314,11 @@ void QMLMesoInterface::setMuscularGroupD(const QString &new_value)
 	}
 }
 
+QString QMLMesoInterface::muscularGroupE() const
+{
+	return appMesoModel()->splitE(m_mesoIdx);
+}
+
 void QMLMesoInterface::setMuscularGroupE(const QString &new_value)
 {
 	if (appMesoModel()->splitE(m_mesoIdx) != new_value)
@@ -303,6 +328,11 @@ void QMLMesoInterface::setMuscularGroupE(const QString &new_value)
 	}
 }
 
+QString QMLMesoInterface::muscularGroupF() const
+{
+	return appMesoModel()->splitF(m_mesoIdx);
+}
+
 void QMLMesoInterface::setMuscularGroupF(const QString &new_value)
 {
 	if (appMesoModel()->splitF(m_mesoIdx) != new_value)
@@ -310,6 +340,11 @@ void QMLMesoInterface::setMuscularGroupF(const QString &new_value)
 		appMesoModel()->setSplitF(m_mesoIdx, new_value);
 		emit muscularGroupFChanged();
 	}
+}
+
+QString QMLMesoInterface::muscularGroupR() const
+{
+	return appMesoModel()->splitR();
 }
 
 void QMLMesoInterface::changeMesoCalendar(const bool preserve_old_cal)

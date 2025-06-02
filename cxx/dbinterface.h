@@ -85,9 +85,9 @@ public:
 	//-----------------------------------------------------------WORKOUT TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------STATISTICS-----------------------------------------------------------
-	void getExercisesForSplitWithinMeso(const uint meso_idx, const QChar &splitLetter);
+	/*void getExercisesForSplitWithinMeso(const uint meso_idx, const QChar &splitLetter);
 	void completedDaysForSplitWithinTimePeriod(const QChar &splitLetter, const QDate &startDate, const QDate &endDate);
-	void workoutsInfoForTimePeriod(const QStringList &exercises, const QList<QDate> &workoutDates);
+	void workoutsInfoForTimePeriod(const QStringList &exercises, const QList<QDate> &workoutDates);*/
 	//-----------------------------------------------------------STATISTICS-----------------------------------------------------------
 
 signals:

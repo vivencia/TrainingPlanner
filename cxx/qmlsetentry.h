@@ -31,14 +31,11 @@ Q_PROPERTY(QString reps READ reps WRITE setReps NOTIFY repsChanged FINAL)
 Q_PROPERTY(QString weight READ weight WRITE setWeight NOTIFY weightChanged FINAL)
 Q_PROPERTY(QString subSets READ subSets WRITE setSubSets NOTIFY subSetsChanged FINAL)
 Q_PROPERTY(QString notes READ notes WRITE setNotes NOTIFY notesChanged FINAL)
-Q_PROPERTY(bool current READ current WRITE setCurrent NOTIFY currentChanged FINAL)
+Q_PROPERTY(bool workingSet READ workingSet WRITE setWorkingSet NOTIFY workingSetChanged FINAL)
 Q_PROPERTY(bool isEditable READ isEditable WRITE setIsEditable NOTIFY isEditableChanged FINAL)
 Q_PROPERTY(bool completed READ completed WRITE setCompleted NOTIFY completedChanged FINAL)
 Q_PROPERTY(bool lastSet READ lastSet WRITE setLastSet NOTIFY lastSetChanged FINAL)
-Q_PROPERTY(bool trackRestTime READ trackRestTime WRITE setTrackRestTime NOTIFY trackRestTimeChanged FINAL)
-Q_PROPERTY(bool autoRestTime READ autoRestTime WRITE setAutoRestTime NOTIFY autoRestTimeChanged FINAL)
 Q_PROPERTY(bool hasSubSets READ hasSubSets NOTIFY hasSubSetsChanged FINAL)
-Q_PROPERTY(bool isManuallyModified READ isManuallyModified WRITE setIsManuallyModified NOTIFY isManuallyModifiedChanged FINAL)
 
 public:
 	explicit QmlSetEntry(QObject *parent, QmlExerciseEntry *parentExercise, DBExercisesModel *workoutModel,
@@ -84,33 +81,22 @@ public:
 	QString notes() const;
 	void setNotes(const QString &new_notes);
 
+	const bool completed() const;
+	void setCompleted(const bool completed);
+
+	const bool workingSet() const;
+	void setWorkingSet(const bool working);
+
+	const bool hasSubSets() const;
+
 	inline const uint mode() const { return m_setMode; }
 	inline void setMode(const uint new_setmode) { if (m_setMode != new_setmode) { m_setMode = new_setmode; emit modeChanged(); }}
 
 	inline const bool isEditable() const { return m_bEditable; }
 	inline void setIsEditable(const bool new_value) { if (m_bEditable != new_value) { m_bEditable = new_value; emit isEditableChanged(); } }
 
-	inline const bool completed() const { return m_bCompleted; }
-	inline void setCompleted(const bool new_value) { if (m_bCompleted != new_value)
-						{ m_bCompleted = new_value; emit completedChanged(); setIsManuallyModified(false); } }
-
 	inline const bool lastSet() const { return m_bLastSet; }
 	inline void setLastSet(const bool new_value) { if (m_bLastSet != new_value) { m_bLastSet = new_value; emit lastSetChanged(); } }
-
-	inline const bool trackRestTime() const { return m_bTrackRestTime; }
-	inline void setTrackRestTime(const bool new_value) { m_bTrackRestTime = new_value; emit trackRestTimeChanged(); }
-
-	inline const bool autoRestTime() const { return m_bAutoRestTime; }
-	inline void setAutoRestTime(const bool new_value) { m_bAutoRestTime = new_value; emit autoRestTimeChanged(); }
-
-	inline const bool current() const { return m_bCurrent; }
-	inline void setCurrent(const bool new_value) { if (m_bCurrent != new_value) { m_bCurrent = new_value; emit currentChanged(); } }
-
-	inline const bool hasSubSets() const { return m_bHasSubSets; }
-
-	inline const bool isManuallyModified() const { return m_bIsManuallyModified; }
-	inline void setIsManuallyModified(const bool new_value) { if (m_bIsManuallyModified != new_value)
-										{ m_bIsManuallyModified = new_value; emit isManuallyModifiedChanged(); } }
 
 signals:
 	void setNumberChanged();
@@ -127,11 +113,8 @@ signals:
 	void isEditableChanged();
 	void completedChanged();
 	void lastSetChanged();
-	void trackRestTimeChanged();
-	void autoRestTimeChanged();
-	void currentChanged();
+	void workingSetChanged();
 	void hasSubSetsChanged();
-	void isManuallyModifiedChanged();
 
 private:
 	QmlExerciseEntry *m_parentExercise;
@@ -139,7 +122,7 @@ private:
 	uint m_exerciseNumber, m_exerciseIdx, m_setNumber, m_setMode;
 
 	QQuickItem *m_setEntry;
-	bool m_bEditable, m_bCompleted, m_bLastSet, m_bTrackRestTime, m_bAutoRestTime, m_bCurrent, m_bHasSubSets, m_bIsManuallyModified;
+	bool m_bEditable, m_bLastSet;
 };
 
 #endif // QMLSETENTRY_H

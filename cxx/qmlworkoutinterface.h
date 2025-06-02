@@ -130,7 +130,6 @@ public:
 	Q_INVOKABLE void addExercise(const bool show_exercises_list_page = true);
 	Q_INVOKABLE void clearExercises(const bool bShowIntentDialog = true);
 	Q_INVOKABLE void removeExercise(const uint exercise_number);
-	Q_INVOKABLE void removeSetFromExercise();
 
 	void removeExerciseObject(const uint exercise_idx, const bool bAsk);
 	void moveExercise(const uint exercise_number, const uint new_exercisenumber);
@@ -142,6 +141,7 @@ public:
 	void displayMessage(const QString &title, const QString &message, const bool error = false, const uint msecs = 0) const;
 	void askRemoveExercise(const uint exercise_idx);
 	void gotoNextExercise(const uint exercise_number);
+	void rollUpExercise(const uint exercise_number) const;
 	void rollUpExercises() const;
 
 	TPTimer *restTimer();

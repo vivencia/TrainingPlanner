@@ -182,7 +182,6 @@ signals:
 	void newMesoFieldCounterChanged(const int fieldCounter);
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
-	void displayMessageOnAppWindow(const int message_id, const QString &filename = QString{});
 	void addPageToMainMenu(const QString &label, QQuickItem *page);
 	void removePageFromMainMenu(QQuickItem *page);
 

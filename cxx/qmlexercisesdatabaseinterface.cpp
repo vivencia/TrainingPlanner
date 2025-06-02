@@ -31,14 +31,6 @@ const uint QmlExercisesDatabaseInterface::removeExercise(const uint row)
 	return row > 0 ? row - 1 : 0;
 }
 
-QString QmlExercisesDatabaseInterface::exerciseNameLabel() const { return appExercisesList()->columnLabel(EXERCISES_LIST_COL_MAINNAME); }
-QString QmlExercisesDatabaseInterface::exerciseSubNameLabel() const { return appExercisesList()->columnLabel(EXERCISES_LIST_COL_SUBNAME); }
-QString QmlExercisesDatabaseInterface::muscularGroupLabel() const { return appExercisesList()->columnLabel(EXERCISES_LIST_COL_MUSCULARGROUP); }
-QString QmlExercisesDatabaseInterface::setsNumberLabel() const { return appExercisesList()->columnLabel(EXERCISES_LIST_COL_SETSNUMBER); }
-QString QmlExercisesDatabaseInterface::repsNumberLabel() const { return appExercisesList()->columnLabel(EXERCISES_LIST_COL_REPSNUMBER); }
-QString QmlExercisesDatabaseInterface::weightLabel() const { return appExercisesList()->columnLabel(EXERCISES_LIST_COL_WEIGHT); }
-QString QmlExercisesDatabaseInterface::mediaLabel() const { return appExercisesList()->columnLabel(EXERCISES_LIST_COL_MEDIAPATH); }
-
 void QmlExercisesDatabaseInterface::exportExercises(const bool bShare)
 {
 	int exportFileMessageId{0};
@@ -56,11 +48,11 @@ void QmlExercisesDatabaseInterface::exportExercises(const bool bShare)
 			else
 				QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, exportFileName));
 		}
-		emit displayMessageOnAppWindow(exportFileMessageId, exportFileName);
+		appItemManager()->displayMessageOnAppWindow(exportFileMessageId, exportFileName);
 	}
 	else
 		exportFileMessageId = APPWINDOW_MSG_NOTHING_TO_EXPORT;
-	emit displayMessageOnAppWindow(exportFileMessageId);
+	appItemManager()->displayMessageOnAppWindow(exportFileMessageId);
 }
 
 void QmlExercisesDatabaseInterface::importExercises(const QString& filename)
@@ -128,10 +120,5 @@ void QmlExercisesDatabaseInterface::createExercisesPage_part2(QmlWorkoutInterfac
 		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_exercisesPage));
 		if (connectPage)
 			connect(m_exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(newExerciseFromExercisesList()));
-
-		connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
-			appExercisesList()->fillColumnNames();
-			emit labelsChanged();
-		});
 	}
 }

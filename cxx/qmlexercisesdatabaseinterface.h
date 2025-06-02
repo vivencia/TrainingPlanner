@@ -14,25 +14,9 @@ class QmlExercisesDatabaseInterface : public QObject
 
 Q_OBJECT
 
-Q_PROPERTY(QString exerciseNameLabel READ exerciseNameLabel NOTIFY labelsChanged FINAL)
-Q_PROPERTY(QString exerciseSubNameLabel READ exerciseSubNameLabel NOTIFY labelsChanged FINAL)
-Q_PROPERTY(QString muscularGroupLabel READ muscularGroupLabel NOTIFY labelsChanged FINAL)
-Q_PROPERTY(QString setsNumberLabel READ setsNumberLabel NOTIFY labelsChanged FINAL)
-Q_PROPERTY(QString repsNumberLabel READ repsNumberLabel NOTIFY labelsChanged FINAL)
-Q_PROPERTY(QString weightLabel READ weightLabel NOTIFY labelsChanged FINAL)
-Q_PROPERTY(QString mediaLabel READ mediaLabel NOTIFY labelsChanged FINAL)
-
 public:
 	inline explicit QmlExercisesDatabaseInterface(QObject* parent) : QObject{parent}, m_exercisesComponent(nullptr) {}
 	~QmlExercisesDatabaseInterface();
-
-	QString exerciseNameLabel() const;
-	QString exerciseSubNameLabel() const;
-	QString muscularGroupLabel() const;
-	QString setsNumberLabel() const;
-	QString repsNumberLabel() const;
-	QString weightLabel() const;
-	QString mediaLabel() const;
 
 	Q_INVOKABLE void saveExercise();
 	Q_INVOKABLE const uint removeExercise(const uint row);
@@ -40,10 +24,6 @@ public:
 	Q_INVOKABLE void importExercises(const QString& filename = QString());
 
 	void getExercisesPage(QmlWorkoutInterface *connectPage = nullptr);
-
-signals:
-	void displayMessageOnAppWindow(const int message_id, const QString& filename = QString());
-	void labelsChanged();
 
 private:
 	QQmlComponent* m_exercisesComponent;

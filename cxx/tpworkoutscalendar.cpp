@@ -192,7 +192,7 @@ void TPWorkoutsCalendar::getWorkoutInfo()
 				findWorkoutInList();
 			}
 		});
-		appDBInterface()->getWorkoutDayInfoForAllWorkouts(m_selectedDay->meso_id);
+		//appDBInterface()->getWorkoutDayInfoForAllWorkouts(m_selectedDay->meso_id);
 		return;
 	}
 	findWorkoutInList();

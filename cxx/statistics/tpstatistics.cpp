@@ -1,10 +1,8 @@
 #include "tpstatistics.h"
 
-#include "../DBMesoCalendarManager.h"
+#include "../dbmesocalendarmanager.h"
 #include "../dbmesocyclesmodel.h"
-#include "../dbmesosplittable.h"
 #include "../dbinterface.h"
-//#include "../DBWorkoutModel.h"
 
 #include <QtCharts/QtCharts>
 #include <QtCharts/QAreaSeries>
@@ -13,6 +11,12 @@
 #include <QPointF>
 
 TPStatistics *TPStatistics::_appStatistics(nullptr);
+
+struct statsInfo {
+	uint mesoIdx;
+	QChar splitLetter;
+	QStringList exercises;
+};
 
 struct DataSet {
 	QList<QList<QPointF>> m_DataPoints;
@@ -56,7 +60,7 @@ void TPStatistics::createDataSet(const uint meso_idx, const QChar &splitLetter)
 			}
 		}
 	});
-	appDBInterface()->getExercisesForSplitWithinMeso(meso_idx, splitLetter);
+	//appDBInterface()->getExercisesForSplitWithinMeso(meso_idx, splitLetter);
 
 	m_workingDataSet = new DataSet;
 	m_workingDataSet->m_MesoIdx = meso_idx;
@@ -139,7 +143,7 @@ void TPStatistics::createYData(const QList<QList<QStringList>> &workoutInfo)
 void TPStatistics::generateDataSet()
 {
 	const uint mesoIdx(m_workingDataSet->m_MesoIdx);
-	if (!appMesoModel()->mesoCalendarManager(mesoIdx)->isReady())
+	if (!appMesoModel()->mesoCalendarManager()->hasDBData(mesoIdx))
 	{
 		connect(appDBInterface(), &DBInterface::databaseReady, this, [this] (const uint db_id) {
 			generateDataSet();
@@ -162,10 +166,10 @@ void TPStatistics::generateDataSet()
 					createYData(data2.value<QList<QList<QStringList>>>());
 				}
 			});
-			appDBInterface()->workoutsInfoForTimePeriod(m_workingDataSet->m_ExercisesList, dates);
+			//appDBInterface()->workoutsInfoForTimePeriod(m_workingDataSet->m_ExercisesList, dates);
 		}
 	});
-	appDBInterface()->completedDaysForSplitWithinTimePeriod(m_workingDataSet->m_SplitLetter, m_startDate, m_endDate);
+	//appDBInterface()->completedDaysForSplitWithinTimePeriod(m_workingDataSet->m_SplitLetter, m_startDate, m_endDate);
 }
 
 void TPStatistics::update(const int exercise_idx, QAbstractSeries *series)

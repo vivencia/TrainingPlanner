@@ -9,21 +9,21 @@
 QmlSetEntry::QmlSetEntry(QObject *parent, QmlExerciseEntry *parentExercise, DBExercisesModel *workoutModel,
 							const uint exercise_number, const uint exercise_idx, const uint set_number)
 	: QObject{parent}, m_parentExercise{parentExercise}, m_workoutModel{workoutModel}, m_setEntry{nullptr},
-		m_exerciseNumber{exercise_number}, m_exerciseIdx{exercise_idx}, m_setNumber{set_number},
-		m_bEditable{false}, m_bLastSet{false}, m_bCurrent{false}
+		m_exerciseNumber{exercise_number}, m_exerciseIdx{exercise_idx}, m_setNumber{set_number}
 {
-	uint mode{SET_MODE_UNDEFINED};
+	m_setMode = SET_MODE_UNDEFINED;
 	if (!m_workoutModel->setCompleted(m_exerciseNumber, m_exerciseIdx, m_setNumber))
 	{
 		if (m_setNumber > 0)
 		{
 			if (m_workoutModel->trackRestTime(m_exerciseNumber) || m_workoutModel->autoRestTime(m_exerciseNumber))
-				mode = SET_MODE_START_REST;
+				m_setMode = SET_MODE_START_REST;
 		}
 	}
 	else
-		mode = SET_MODE_SET_COMPLETED;
-	setMode(mode);
+		m_setMode = SET_MODE_SET_COMPLETED;
+	m_bEditable = false;
+	m_bLastSet = m_setNumber == m_workoutModel->setsNumber(m_exerciseNumber, m_exerciseIdx) - 1;
 
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
 		emit labelChanged();
@@ -86,6 +86,11 @@ void QmlSetEntry::setType(const uint new_type)
 	m_parentExercise->changeSetType(m_setNumber, new_type);
 	emit typeChanged();
 	emit hasSubSetsChanged();
+}
+
+QString QmlSetEntry::restTime() const
+{
+	return m_workoutModel->setRestTime(m_exerciseNumber, m_exerciseIdx, m_setNumber);
 }
 
 void QmlSetEntry::setRestTime(const QString &new_value, const bool update_model)
@@ -166,4 +171,30 @@ void QmlSetEntry::setNotes(const QString &new_notes)
 {
 	m_workoutModel->setSetNotes(m_exerciseNumber, m_exerciseIdx, m_setNumber, new_notes);
 	emit notesChanged();
+}
+
+const bool QmlSetEntry::completed() const
+{
+	return m_workoutModel->setCompleted(m_exerciseNumber, m_exerciseIdx, m_setNumber);
+}
+
+void QmlSetEntry::setCompleted(const bool completed)
+{
+	m_workoutModel->setSetCompleted(m_exerciseNumber, m_exerciseIdx, m_setNumber, completed);
+}
+
+const bool QmlSetEntry::workingSet() const
+{
+	return m_workoutModel->workingSet(m_exerciseNumber, m_exerciseIdx) == m_setNumber;
+}
+
+void QmlSetEntry::setWorkingSet(const bool working)
+{
+	if (working)
+		m_workoutModel->setWorkingSet(m_setNumber, m_exerciseNumber, m_exerciseIdx);
+}
+
+const bool QmlSetEntry::hasSubSets() const
+{
+	return m_workoutModel->setSubSets(m_exerciseNumber, m_exerciseIdx, m_setNumber) != '0';
 }

@@ -217,6 +217,17 @@ SwipeDelegate {
 					rowSpacing: 5
 					width: parent.width
 				}
+
+				TPButton {
+					id: btnCompleteExercise
+					text: qsTr("Exercise completed")
+					flat: false
+					visible: exerciseManager.isEditable
+					enabled: exerciseManager.allSetsCompleted
+					height: visible ? 30 : 0
+
+					onClicked: exerciseManager.allSetsCompleted = true;
+				}
 			}
 		} //Repeater
 	}

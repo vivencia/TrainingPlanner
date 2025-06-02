@@ -505,6 +505,11 @@ void QmlWorkoutInterface::gotoNextExercise(const uint exercise_number)
 	}
 }
 
+void QmlWorkoutInterface::rollUpExercise(const uint exercise_number) const
+{
+	QMetaObject::invokeMethod(m_exercisesList.at(exercise_number)->exerciseEntry(), "paneExerciseShowHide", Q_ARG(bool, false));
+}
+
 void QmlWorkoutInterface::rollUpExercises() const
 {
 	for (const auto exercise_entry : std::as_const(m_exercisesList))

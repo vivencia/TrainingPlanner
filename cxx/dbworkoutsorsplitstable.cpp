@@ -60,8 +60,10 @@ void DBWorkoutsOrSplitsTable::getExercises()
 		bool b_ok{false};
 		QSqlQuery query{getQuery()};
 		const QString &strQuery{tableId() == WORKOUT_TABLE_ID ?
-					"SELECT * FROM %1 WHERE meso_id=%2 AND calendar_day=%3"_L1.arg(m_tableName, m_model->mesoId(), m_model->calendarDay()) :
-					"SELECT * FROM %1 WHERE meso_id=%2 AND split_letter=%3"_L1.arg(m_tableName, m_model->mesoId(), m_model->splitLetter())
+					"SELECT * FROM %1 WHERE meso_id=%2 AND calendar_day=%3"_L1.arg(
+											m_tableName, m_model->mesoId(), QString::number(m_model->calendarDay())) :
+					"SELECT * FROM %1 WHERE meso_id=%2 AND split_letter=%3"_L1.arg(
+											m_tableName, m_model->mesoId(), m_model->splitLetter())
 		};
 		if (query.exec(strQuery))
 		{
@@ -89,8 +91,10 @@ void DBWorkoutsOrSplitsTable::saveExercises()
 		QString strQuery;
 
 		if (query.exec(tableId() == WORKOUT_TABLE_ID ?
-				"SELECT id FROM %1 WHERE meso_id=%2 AND calendar_day=%3"_L1.arg(m_tableName, m_model->mesoId(), m_model->calendarDay()) :
-				"SELECT id FROM %2 WHERE meso_id=%2 AND split_letter=%3"_L1.arg(m_tableName, m_model->mesoId(), m_model->splitLetter()))
+				"SELECT id FROM %1 WHERE meso_id=%2 AND calendar_day=%3"_L1.arg(
+												m_tableName, m_model->mesoId(), QString::number(m_model->calendarDay())) :
+				"SELECT id FROM %2 WHERE meso_id=%2 AND split_letter=%3"_L1.arg(
+												m_tableName, m_model->mesoId(), m_model->splitLetter()))
 				)
 		{
 			if (query.first())
