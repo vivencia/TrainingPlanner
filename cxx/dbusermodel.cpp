@@ -43,12 +43,13 @@ static inline QString userNameWithoutConfirmationWarning(const QString &userName
 
 DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 	: QObject{parent}, m_tempRow{-1}, m_availableCoaches{nullptr}, m_pendingClientRequests{nullptr},
-		m_pendingCoachesResponses{nullptr}, mb_onlineCheckInInProgress{false}, m_mainTimer{nullptr}
+		m_pendingCoachesResponses{nullptr}, m_mainTimer{nullptr}
 {
 	if (bMainUserModel)
 	{
 		_appUserModel = this;
-		connect(appTr(), &TranslationClass::applicationLanguageChanged, this, &DBUserModel::labelsChanged);
+		mb_userRegistered = std::nullopt;
+		mb_canConnectToServer = false;
 
 		m_onlineCoachesDir = std::move(appUtils()->localAppFilesDir() + "online_coaches/"_L1);
 		m_dirForRequestedCoaches = std::move(appUtils()->localAppFilesDir() + "requested_coaches/"_L1);
@@ -57,18 +58,36 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 		m_dirForCurrentCoaches = std::move(appUtils()->localAppFilesDir() + "coaches/"_L1);
 
 		connect(this, &DBUserModel::userModified, this, [this] (const uint user_idx, const uint field) {
-			if (user_idx == 0 || field == 100)
+			if (field != USER_MODIFIED_CREATED)
 			{
+				if (user_idx == 0)
+				{
+					sendUserInfoToServer();
+					sendProfileToServer();
+				}
+				else
+				{
+					if (field == USER_MODIFIED_REMOVED)
+						appDBInterface()->removeUser(user_idx);
+				}
 				appDBInterface()->saveUser(user_idx);
-				sendUserInfoToServer();
-				sendProfileToServer();
 			}
 		});
-		connect(this, &DBUserModel::userRemoved, this, [this] (const uint user_idx) {
-			if (user_idx > 0)
-				appDBInterface()->removeUser(user_idx);
+
+		connect(appOsInterface(), &OSInterface::internetStatusChanged, this, [this] (const bool connected) {
+			if (!connected)
+				mb_canConnectToServer = false;
+		});
+		connect(appOsInterface(), &OSInterface::serverStatusChanged, this, [this] (const bool online) {
+			if (!mb_canConnectToServer && online)
+			{
+				if (mainUserConfigured())
+					setMainUserConfigurationFinished();
+			}
+			mb_canConnectToServer = online;
 		});
 
+		connect(appTr(), &TranslationClass::applicationLanguageChanged, this, &DBUserModel::labelsChanged);
 		/*connect(appKeyChain(), &TPKeyChain::keyRestored, this, [&] (const QString &key, const QString &value) {
 			qDebug() << "Read key:";
 			qDebug() << "key: " << key;
@@ -92,13 +111,7 @@ void DBUserModel::addUser(QStringList &&user_info)
 {
 	m_usersData.append(std::move(user_info));
 	const qsizetype last_idx{m_usersData.count()-1};
-	if (last_idx == 0)
-	{
-		//DBUserTable calls here when reading from the database. When we get the data for the main user, initialize the network connection
-		static_cast<void>(onlineCheckIn());
-		startServerPolling();
-	}
-	else
+	if (last_idx > 0)
 	{
 		if (isCoach(0) && isClient(last_idx))
 			m_clientsNames.append(_userName(last_idx));
@@ -114,7 +127,7 @@ void DBUserModel::createMainUser()
 		m_usersData.insert(0, std::move(QStringList{} << std::move(generateUniqueUserId()) << QString{} << std::move("2424151"_L1) <<
 			"2"_L1 << QString{} << QString{} << QString{} << QString{} << QString{} << QString{} << STR_ZERO << STR_ZERO << STR_ZERO));
 		static_cast<void>(appUtils()->mkdir(localDir(0)));
-		emit userModified(0);
+		emit userModified(0, USER_MODIFIED_CREATED);
 	}
 }
 
@@ -135,12 +148,11 @@ void DBUserModel::removeUser(const int user_idx)
 				next_cur_user_idx = user_idx - 1;
 			//setCurrentRow(next_cur_user_idx);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		emit userRemoved(user_idx);
 		if (isCoach(user_idx))
 			delCoach(user_idx);
 		if (isClient(user_idx))
 			delClient(user_idx);
-		emit userModified(0);
+		emit userModified(0, USER_MODIFIED_REMOVED);
 	}
 }
 
@@ -227,7 +239,7 @@ void DBUserModel::setAvatar(const int user_idx, const QString &new_avatar, const
 
 	if (user_idx == 0 && upload)
 	{
-		if (!onlineCheckIn())
+		if (canConnectToServer())
 		{
 			connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this] () {
 				sendAvatarToServer();
@@ -272,7 +284,7 @@ void DBUserModel::setAppUseMode(const int user_idx, const int new_use_opt)
 		else
 		{
 			m_usersData[user_idx][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
-			emit userModified(user_idx);
+			emit userModified(user_idx, USER_COL_APP_USE_MODE);
 		}
 	}
 }
@@ -389,7 +401,7 @@ void DBUserModel::acceptUser(OnlineUserInfo *userInfo, const int userInfoRow)
 		}
 		copyTempUserFilesToFinalUserDir(localDir(user_id), userInfo, userInfoRow);
 		userInfo->removeUserInfo(userInfoRow, false);
-		emit userModified(lastidx);
+		emit userModified(lastidx, USER_MODIFIED_ACCEPTED);
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appKeyChain()->readKey(userId(0));
 }
@@ -490,7 +502,7 @@ void DBUserModel::setCoachPublicStatus(const bool bPublic)
 {
 	if (isCoach(0)) //Only applicable to the main user that is a coach
 	{
-		if (!onlineCheckIn())
+		if (!canConnectToServer())
 		{
 			connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this,bPublic] () {
 				setCoachPublicStatus(bPublic);
@@ -546,28 +558,13 @@ void DBUserModel::uploadResume(const QString &resumeFileName)
 
 void DBUserModel::setMainUserConfigurationFinished()
 {
-	emit mainUserConfigurationFinished();
-
-	if (!mainUserRegistered())
+	if (canConnectToServer())
 	{
-		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this] () {
-			setMainUserConfigurationFinished();
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		registerUserOnline();
-		return;
-	}
-	if (!onlineCheckIn())
-	{
-		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this] () {
-			setMainUserConfigurationFinished();
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		return;
-	}
-	else
-	{
+		if (!mainUserRegistered())
+			onlineCheckIn();
 		sendProfileToServer();
 		sendUserInfoToServer();
-		startServerPolling();
+		emit mainUserConfigurationFinished();
 	}
 }
 
@@ -611,7 +608,7 @@ void DBUserModel::sendRequestToCoaches()
 
 void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 {
-	if (onlineCheckIn())
+	if (canConnectToServer())
 	{
 		static_cast<void>(appUtils()->mkdir(m_onlineCoachesDir));
 		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,get_list_only] (const QString &key, const QString &value) {
@@ -668,7 +665,7 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 void DBUserModel::sendFileToServer(const QString &filename, const QString &successMessage, const QString &subdir, const QString &targetUser,
 									const bool removeLocalFile)
 {
-	if (!onlineCheckIn())
+	if (!canConnectToServer())
 	{
 		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tpNetworkTitle + record_separator + tr("Online server unavailable. Tray again later"));
 		return;
@@ -709,7 +706,7 @@ void DBUserModel::sendFileToServer(const QString &filename, const QString &succe
 int DBUserModel::downloadFileFromServer(const QString &filename, const QString &localFile, const QString &successMessage,
 											const QString &subdir, const QString &targetUser)
 {
-	if (!onlineCheckIn())
+	if (!canConnectToServer())
 	{
 		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tpNetworkTitle + record_separator + tr("Online server unavailable. Tray again later"));
 		return -1;
@@ -876,7 +873,7 @@ bool DBUserModel::importFromString(const QString &user_data)
 	if (modeldata.count() > USER_TOTAL_COLS)
 		modeldata.resize(USER_TOTAL_COLS); //remove the password field and anything else that does not belong
 	m_usersData.append(std::move(modeldata));
-	emit userModified(m_usersData.count() - 1);
+	emit userModified(m_usersData.count() - 1, USER_MODIFIED_IMPORTED);
 	return true;
 }
 
@@ -963,32 +960,10 @@ void DBUserModel::slot_revokeClientStatus(int new_use_opt, bool revoke)
 	}
 }
 
-bool DBUserModel::onlineCheckIn()
+void DBUserModel::onlineCheckIn()
 {
-	if (!appOsInterface()->tpServerOK() && !appOsInterface()->internetConnectionCheckInPlace())
-	{
-		auto conn = std::make_shared<QMetaObject::Connection>();
-		*conn =  connect(appOsInterface(), &OSInterface::networkStatusChanged, this, [this,conn] () {
-			if (appOsInterface()->tpServerOK())
-			{
-				disconnect(*conn);
-				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tpNetworkTitle + record_separator + tr("Connected to server"));
-				onlineCheckIn();
-			}
-		});
-		appOsInterface()->checkInternetConnection();
-		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, tpNetworkTitle + record_separator + tr("Server unreachable"));
-		return false;
-	}
-	else
-	{
-		if (!mb_userRegistered && !mb_onlineCheckInInProgress)
-		{
-			mb_onlineCheckInInProgress = true;
-			registerUserOnline();
-		}
-		return mb_userRegistered == true;
-	}
+	registerUserOnline();
+	startServerPolling();
 }
 
 void DBUserModel::registerUserOnline()
@@ -1003,7 +978,6 @@ void DBUserModel::registerUserOnline()
 				if (request_id == requestid)
 				{
 					disconnect(*conn);
-					mb_onlineCheckInInProgress = false;
 					switch (ret_code)
 					{
 						case 0:
@@ -1180,34 +1154,23 @@ void DBUserModel::clearUserDir(const QString &dir) const
 
 void DBUserModel::startServerPolling()
 {
-	if (!onlineCheckIn())
+	m_mainTimer = new QTimer{this};
+	m_mainTimer->setInterval(POLLING_INTERVAL);
+	m_mainTimer->callOnTimeout([this] () { pollServer(); });
+	m_mainTimer->start();
+
+	if (isCoach(0))
 	{
-		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this] () {
-			startServerPolling();
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		return;
+		m_pendingClientRequests = new OnlineUserInfo{this};
+		static_cast<void>(appUtils()->mkdir(m_dirForClientsRequests));
+		static_cast<void>(appUtils()->mkdir(m_dirForCurrentClients));
 	}
-
-	if (!m_mainTimer)
+	if (isClient(0))
 	{
-		m_mainTimer = new QTimer{this};
-		m_mainTimer->setInterval(POLLING_INTERVAL);
-		m_mainTimer->callOnTimeout([this] () { pollServer(); });
-		m_mainTimer->start();
-
-		if (isCoach(0))
-		{
-			m_pendingClientRequests = new OnlineUserInfo{this};
-			static_cast<void>(appUtils()->mkdir(m_dirForClientsRequests));
-			static_cast<void>(appUtils()->mkdir(m_dirForCurrentClients));
-		}
-		if (isClient(0))
-		{
-			m_pendingCoachesResponses = new OnlineUserInfo{this};
-			m_availableCoaches = new OnlineUserInfo{this};
-			static_cast<void>(appUtils()->mkdir(m_dirForRequestedCoaches));
-			static_cast<void>(appUtils()->mkdir(m_dirForCurrentCoaches));
-		}
+		m_pendingCoachesResponses = new OnlineUserInfo{this};
+		m_availableCoaches = new OnlineUserInfo{this};
+		static_cast<void>(appUtils()->mkdir(m_dirForRequestedCoaches));
+		static_cast<void>(appUtils()->mkdir(m_dirForCurrentCoaches));
 	}
 	pollServer();
 }

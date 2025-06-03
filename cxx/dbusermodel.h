@@ -25,6 +25,11 @@
 
 #define USER_COL_AVATAR 20 //not in database, but used on model and GUI operations
 
+#define USER_MODIFIED_CREATED 100
+#define USER_MODIFIED_IMPORTED 101
+#define USER_MODIFIED_REMOVED 102
+#define USER_MODIFIED_ACCEPTED 103
+
 QT_FORWARD_DECLARE_CLASS(QTimer)
 
 class DBUserModel : public QObject
@@ -238,6 +243,7 @@ public:
 	void delClient(const uint user_idx);
 	void changeClient(const uint user_idx, const QString &oldname);
 
+	inline bool canConnectToServer() const { return mb_canConnectToServer; }
 	Q_INVOKABLE int getTemporaryUserInfo(OnlineUserInfo *tempUser, const uint userInfouser_idx);
 	bool mainUserConfigured() const;
 
@@ -287,8 +293,7 @@ public slots:
 	void slot_revokeClientStatus(int new_use_opt, bool revoke);
 
 signals:
-	void userModified(const uint user_idx, const uint field = 100); //100 all fields
-	void userRemoved(const uint user_idx);
+	void userModified(const uint user_idx, const uint field);
 	void labelsChanged();
 	void haveCoachesChanged();
 	void haveClientsChanged();
@@ -315,10 +320,10 @@ private:
 	std::optional<bool> mb_userRegistered, mb_coachRegistered;
 	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses, *m_tempUserInfo;
 	QStringList m_coachesNames, m_clientsNames;
-	bool mb_onlineCheckInInProgress;
+	bool mb_canConnectToServer;
 	QTimer *m_mainTimer;
 
-	bool onlineCheckIn();
+	void onlineCheckIn();
 	void registerUserOnline();
 	QString generateUniqueUserId() const;
 	QString resume(const uint user_idx) const;

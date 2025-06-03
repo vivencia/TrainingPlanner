@@ -121,16 +121,18 @@ void DBExercisesTable::updateExercisesList()
 			++idx;
 		}
 		queryValues.chop(1);
-		static_cast<void>(mSqlLiteDB.transaction());
-		ok = query.exec(queryStart + queryValues);
-		if (!ok)
+		if ((ok = mSqlLiteDB.transaction()))
 		{
-			static_cast<void>(mSqlLiteDB.rollback());
-			DEFINE_SOURCE_LOCATION
-			ERROR_MESSAGE(query.lastError().text(), QString{})
+			ok = query.exec(queryStart + queryValues);
+			if (!ok)
+			{
+				static_cast<void>(mSqlLiteDB.rollback());
+				DEFINE_SOURCE_LOCATION
+				ERROR_MESSAGE(query.lastError().text(), QString{})
+			}
+			else
+				ok = mSqlLiteDB.commit();
 		}
-		else
-			static_cast<void>(mSqlLiteDB.commit());
 		setQueryResult(ok, queryStart + queryValues, SOURCE_LOCATION);
 		if (ok)
 			emit updatedFromExercisesList();
@@ -161,19 +163,24 @@ void DBExercisesTable::saveExercises()
 			const bool bUpdate{!(exerciseId.isEmpty() || exerciseId.toUInt() > m_exercisesTableLastId)};
 			if (bUpdate)
 			{
-				strQuery += queryUpdate.arg(m_model->mainName(idx), m_model->subName(idx), m_model->muscularGroup(idx),
+				strQuery += std::move(queryUpdate.arg(m_model->mainName(idx), m_model->subName(idx), m_model->muscularGroup(idx),
 							m_model->setsNumber(idx), m_model->repsNumber(idx), m_model->weight(idx), m_model->weightUnit(idx),
-							m_model->mediaPath(idx), exerciseId);
+							m_model->mediaPath(idx), exerciseId));
 			}
 			else
 			{
-				strQuery += queryInsert.arg(exerciseId, m_model->mainName(idx), m_model->subName(idx), m_model->muscularGroup(idx),
+				strQuery += std::move(queryInsert.arg(exerciseId, m_model->mainName(idx), m_model->subName(idx), m_model->muscularGroup(idx),
 							m_model->setsNumber(idx), m_model->repsNumber(idx), m_model->weight(idx), m_model->weightUnit(idx),
-							m_model->mediaPath(idx));
+							m_model->mediaPath(idx)));
 			}
 		}
-		static_cast<void>(mSqlLiteDB.commit());
-		const bool ok{query.exec(strQuery)};
+		bool ok{mSqlLiteDB.transaction()};
+		if (ok)
+		{
+			ok = query.exec(strQuery);
+			if (ok)
+				ok = mSqlLiteDB.commit();
+		}
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 		if (ok)
 		{
@@ -190,6 +197,8 @@ void DBExercisesTable::getExercisesList()
 	if (exercisesListFile.open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
 		char buf[512];
+		if (exercisesListFile.readLine(buf, sizeof(buf)) < 0) //read version
+			return;
 		do
 		{
 			if (exercisesListFile.readLine(buf, sizeof(buf)) < 0)

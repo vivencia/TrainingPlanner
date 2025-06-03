@@ -35,7 +35,7 @@ Frame {
 	Connections {
 		target: userModel
 		function onUserModified(row: int, field: int): void {
-			if (row === userRow && field === 100)
+			if (row === userRow && field >= 100)
 				getUserInfo();
 		}
 	}

@@ -46,8 +46,8 @@ class OSInterface : public QObject
 
 Q_OBJECT
 
-Q_PROPERTY(bool internetOK READ internetOK NOTIFY networkStatusChanged FINAL)
-Q_PROPERTY(bool tpServerOK READ tpServerOK NOTIFY networkStatusChanged FINAL)
+Q_PROPERTY(bool internetOK READ internetOK NOTIFY internetStatusChanged FINAL)
+Q_PROPERTY(bool tpServerOK READ tpServerOK NOTIFY serverStatusChanged FINAL)
 
 public:
 	explicit OSInterface(QObject *parent = nullptr);
@@ -60,10 +60,28 @@ public:
 
 	inline bool internetConnectionCheckInPlace() const { return m_bchecking_ic; }
 	void checkInternetConnection();
-	inline bool internetOK() const { return isBitSet(m_networkStatus, HAS_INTERNET); }
-	inline bool tpServerOK() const { return isBitSet(m_networkStatus, SERVER_UP_AND_RUNNING); }
+	inline bool internetOK() const
+	{
+#ifndef QT_NO_DEBUG
+		const bool internet_ok{isBitSet(m_networkStatus, HAS_INTERNET)};
+		return internet_ok;
+#else
+		return isBitSet(m_networkStatus, HAS_INTERNET);
+#endif
+	}
+
+	inline bool tpServerOK() const
+	{
+#ifndef QT_NO_DEBUG
+		const bool server_ok{isBitSet(m_networkStatus, SERVER_UP_AND_RUNNING)};
+		return server_ok;
+#else
+		return isBitSet(m_networkStatus, SERVER_UP_AND_RUNNING);
+#endif
+	}
+
 	inline int networkStatus() const { return m_networkStatus; }
-	void setNetworkStatus(int new_status);
+	void setNetworkStatus(int new_internetstatus, int new_serverstatus);
 
 	inline void initialCheck()
 	{
@@ -117,11 +135,12 @@ signals:
 #endif
 	void appSuspended();
 	void appResumed();
-	void networkStatusChanged();
+	void internetStatusChanged(const bool connected);
+	void serverStatusChanged(const bool online);
 
 public slots:
 	void aboutToExit();
-	void checkServerResponseSlot(const bool online, int network_status);
+	void checkServerResponseSlot(const bool online);
 
 private:
 	int m_networkStatus;

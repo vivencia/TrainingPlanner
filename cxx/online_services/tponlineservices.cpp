@@ -48,10 +48,10 @@ inline QString makeCommandURL(const QString& username, const QString& passwd = Q
 	not be necessary, but functions connected to the serverOnline signal might be called several times before a response is obtained, so we use
 	Qt::UniqueConnection which cannot be used with a lambda
 */
-void TPOnlineServices::checkServer(int network_status)
+void TPOnlineServices::checkServer()
 {
 	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{QUrl{server_addr}})};
-	connect(reply, &QNetworkReply::finished, this, [this,reply,network_status]() {
+	connect(reply, &QNetworkReply::finished, this, [this,reply]() {
 		bool server_ok{false};
 		if (reply)
 		{
@@ -59,7 +59,7 @@ void TPOnlineServices::checkServer(int network_status)
 			const QString &replyString{reply->readAll()};
 			server_ok = replyString.contains("Welcome to the TrainingPlanner"_L1);
 		}
-		emit serverOnline(server_ok, network_status);
+		emit serverOnline(server_ok);
 	});
 }
 

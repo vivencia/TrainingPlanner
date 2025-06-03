@@ -11,13 +11,13 @@
 
 #include <functional>
 
-constexpr short APP_TABLES_NUMBER{6};
-constexpr short EXERCISES_TABLE_ID{0x0001};
-constexpr short MESOCYCLES_TABLE_ID{0x0002};
-constexpr short MESOSPLIT_TABLE_ID{0x0003};
-constexpr short MESOCALENDAR_TABLE_ID{0x0004};
-constexpr short WORKOUT_TABLE_ID{0x0005};
-constexpr short USERS_TABLE_ID{0x0006};
+constexpr uint APP_TABLES_NUMBER{6};
+constexpr uint EXERCISES_TABLE_ID{0x0001};
+constexpr uint MESOCYCLES_TABLE_ID{0x0002};
+constexpr uint MESOSPLIT_TABLE_ID{0x0003};
+constexpr uint MESOCALENDAR_TABLE_ID{0x0004};
+constexpr uint WORKOUT_TABLE_ID{0x0005};
+constexpr uint USERS_TABLE_ID{0x0006};
 
 constexpr QLatin1StringView tablesNames[APP_TABLES_NUMBER] = { "Database/Users.db.sqlite"_L1,
 									"Database/ExercisesList.db.sqlite"_L1,
@@ -43,7 +43,7 @@ public:
 	inline void setCallbackForDoneFunc( const std::function<void (TPDatabaseTable*)>& func ) { doneFunc = func; }
 
 	static inline QString dbFilePath(const uint table_id) { return appUtils()->localAppFilesDir() + tablesNames[table_id]; }
-	inline short tableId() const { return m_tableId; }
+	inline uint tableId() const { return m_tableId; }
 	inline int uniqueId() const { return m_UniqueID; }
 	inline void setUniqueId(const int uid) { m_UniqueID = uid; }
 	inline bool resolved() const { return mb_resolved; }
@@ -131,14 +131,14 @@ public:
 	#endif
 
 protected:
-	explicit inline TPDatabaseTable(const short table_id, QObject *parent = nullptr)
+	explicit inline TPDatabaseTable(const uint table_id, QObject *parent = nullptr)
 		: QObject{parent}, m_tableId{table_id}, doneFunc{nullptr}, mb_result{false}, mb_resolved{false}, mb_waitForFinished{false} {}
 
 	QSqlDatabase mSqlLiteDB;
 	QVariantList m_execArgs;
 	QString m_tableName;
 
-	short m_tableId;
+	uint m_tableId;
 	int m_UniqueID;
 
 	std::function<void (TPDatabaseTable*)> doneFunc;

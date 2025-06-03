@@ -73,29 +73,30 @@ TPSettings::TPSettings(QObject* parent) : QSettings{parent}
 
 void TPSettings::getScreenMeasures()
 {
-	QString screenWidth, screenHeight, heightToWidthScreenRatio, qmlPageHeight;
+	QString screenWidth, screenHeight, qmlPageHeight;
+	double heightToWidthScreenRatio{0};
 
-#ifdef Q_OS_ANDROID
 	const QScreen *screen{QGuiApplication::primaryScreen()};
 	const QRect &screenGeometry{screen->availableGeometry()};
 	const uint sWidth{static_cast<uint>(screenGeometry.width())};
 	const uint sHeight{static_cast<uint>(screenGeometry.height())};
+#ifdef Q_OS_ANDROID
+	heightToWidthScreenRatio = static_cast<double>(sHeight)/sWidth;
 	screenWidth = std::move(QString::number(sWidth));
 	screenHeight = std::move(QString::number(sHeight));
-	heightToWidthScreenRatio = std::move(QString::number(static_cast<float>(sHeight/sWidth), 'f', 2));
-	qmlPageHeight = QString::number(qCeil(0.92*sHeight));
+	qmlPageHeight = std::move(QString::number(qCeil(0.92*sHeight)));
 #else
-	screenWidth = std::move("300"_L1);
-	screenHeight = std::move("640"_L1);
-	heightToWidthScreenRatio = std::move("2"_L1);
-	qmlPageHeight = std::move("600"_L1);
+	heightToWidthScreenRatio = static_cast<double>(sWidth)/sHeight;
+	screenWidth = std::move(QString::number(sWidth/4));
+	screenHeight = std::move(QString::number(qCeil((sWidth/4) * heightToWidthScreenRatio)));
+	qmlPageHeight = screenHeight;
 #endif
 
 	m_defaultValues[WINDOW_WIDTH_INDEX] = std::move(screenWidth);
 	m_defaultValues[WINDOW_HEIGHT_INDEX] = std::move(screenHeight);
 	m_defaultValues[PAGE_WIDTH_INDEX] = m_defaultValues.at(WINDOW_WIDTH_INDEX);
 	m_defaultValues[PAGE_HEIGHT_INDEX] = std::move(qmlPageHeight);
-	m_defaultValues[HEIGHT_TO_WIDTH_RATIO_INDEX] = std::move(heightToWidthScreenRatio);
+	m_defaultValues[HEIGHT_TO_WIDTH_RATIO_INDEX] = std::move(QString::number(heightToWidthScreenRatio, 'g', 2));
 }
 
 void TPSettings::setColorScheme(const uint new_value, const bool bFromQml)

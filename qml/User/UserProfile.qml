@@ -31,12 +31,12 @@ Frame {
 		target: userModel
 		function onUserModified(row: int, field: int): void {
 			if (row === userRow) {
-				switch (field) {
-					case 100: getUserInfo(); break;
-					case 20: imgAvatar.source = userModel.avatar(userRow, false); break;
-					case 10: appUseMode = userModel.appUseMode(userRow); break;
-					default: break;
-				}
+				if (field >= 100)
+					getUserInfo();
+				else if (field === 20)
+					imgAvatar.source = userModel.avatar(userRow, false);
+				else if (field === 10)
+					appUseMode = userModel.appUseMode(userRow);
 			}
 		}
 	}

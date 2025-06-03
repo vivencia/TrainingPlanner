@@ -11,7 +11,8 @@ class DBWorkoutsOrSplitsTable final : public TPDatabaseTable
 
 public:
 	explicit DBWorkoutsOrSplitsTable(DBExercisesModel *model);
-	inline explicit DBWorkoutsOrSplitsTable(const short table_id) : TPDatabaseTable{table_id, nullptr}, m_model{nullptr} { commonConstructor(); }
+	inline explicit DBWorkoutsOrSplitsTable(const uint table_id)
+		: TPDatabaseTable{table_id, nullptr}, m_model{nullptr} { commonConstructor(); }
 
 	void createTable() override final;
 	virtual void updateTable() override final {}

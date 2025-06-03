@@ -59,6 +59,8 @@ OSInterface::OSInterface(QObject *parent)
 {
 	app_os_interface = this;
 	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(aboutToExit()));
+	connect(appOnlineServices(), &TPOnlineServices::serverOnline, this, &OSInterface::checkServerResponseSlot);
+
 	m_checkConnectionTimer = new QTimer{this};
 	m_checkConnectionTimer->setInterval(CONNECTION_CHECK_TIMEOUT);
 	m_checkConnectionTimer->callOnTimeout([this] () { checkInternetConnection(); });
@@ -132,7 +134,7 @@ void OSInterface::checkInternetConnection()
 		//When debugging, and using the local server as online server, ignore if the internet is not working
 		setBit(network_status, HAS_INTERNET);
 		unSetBit(network_status, NO_INTERNET_ACCESS);
-		appOnlineServices()->checkServer(network_status);
+		appOnlineServices()->checkServer();
 		isConnected = true;
 	}
 #else
@@ -141,30 +143,43 @@ void OSInterface::checkInternetConnection()
 #endif
 
 	if (isConnected)
-	{
-		setNetworkStatus(network_status);
-		connect(appOnlineServices(), &TPOnlineServices::serverOnline, this, &OSInterface::checkServerResponseSlot,
-			static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		appOnlineServices()->checkServer(network_status);
-	}
+		appOnlineServices()->checkServer();
 	else
 	{
 		setBit(network_status, SERVER_UNREACHABLE);
 		unSetBit(network_status, SERVER_UP_AND_RUNNING);
-		setNetworkStatus(network_status);
 	}
+	setNetworkStatus(network_status, 0);
 }
 
-void OSInterface::setNetworkStatus(int new_status)
+void OSInterface::setNetworkStatus(int new_internetstatus, int new_serverstatus)
 {
-	if (new_status != m_networkStatus)
+	if (new_internetstatus != 0)
 	{
-		if (isBitSet(new_status, SERVER_UNREACHABLE) || isBitSet(new_status, NO_INTERNET_ACCESS))
-			m_checkConnectionTimer->setInterval(CONNECTION_ERR_TIMEOUT); //When network is out, check more frequently
-		else
-			m_checkConnectionTimer->setInterval(CONNECTION_CHECK_TIMEOUT);
-		m_networkStatus = new_status;
-		emit networkStatusChanged();
+		const bool has_internet_now{isBitSet(new_internetstatus, HAS_INTERNET)};
+		if (internetOK() != has_internet_now)
+		{
+			setBit(m_networkStatus, has_internet_now ? HAS_INTERNET : NO_INTERNET_ACCESS);
+			unSetBit(m_networkStatus, has_internet_now ? NO_INTERNET_ACCESS : HAS_INTERNET);
+			if (!has_internet_now)
+			{
+				setBit(m_networkStatus, SERVER_UNREACHABLE);
+				unSetBit(m_networkStatus, SERVER_UP_AND_RUNNING);
+			}
+			m_checkConnectionTimer->setInterval(has_internet_now ? CONNECTION_CHECK_TIMEOUT : CONNECTION_ERR_TIMEOUT); //When network is out, check more frequently
+			emit internetStatusChanged(internetOK());
+		}
+	}
+	if (new_serverstatus != 0)
+	{
+		const bool server_online_now{isBitSet(new_serverstatus, SERVER_UP_AND_RUNNING)};
+		if (tpServerOK() != server_online_now)
+		{
+			setBit(m_networkStatus, server_online_now ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
+			unSetBit(m_networkStatus, server_online_now ? SERVER_UNREACHABLE : SERVER_UP_AND_RUNNING);
+			emit serverStatusChanged(server_online_now);
+		}
+		m_checkConnectionTimer->setInterval(server_online_now ? CONNECTION_CHECK_TIMEOUT : CONNECTION_ERR_TIMEOUT); //When network is out, check more frequently
 	}
 }
 
@@ -173,7 +188,7 @@ void OSInterface::aboutToExit()
 	appDBInterface()->cleanUpThreads();
 }
 
-void OSInterface::checkServerResponseSlot(const bool online, int network_status)
+void OSInterface::checkServerResponseSlot(const bool online)
 {
 #ifdef Q_OS_LINUX
 	#ifndef Q_OS_ANDROID
@@ -182,10 +197,14 @@ void OSInterface::checkServerResponseSlot(const bool online, int network_status)
 	#endif
 #endif
 	if (online)
-		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, "TrainingPlanner App"_L1 + record_separator + "Connected online!"_L1);
-	setBit(network_status, online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
-	unSetBit(network_status, !online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
-	setNetworkStatus(network_status);
+	{
+		if (!tpServerOK())
+			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, "TrainingPlanner App"_L1 + record_separator + "Connected online!"_L1);
+	}
+	int server_status{0};
+	setBit(server_status, online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
+	unSetBit(server_status, !online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
+	setNetworkStatus(0, server_status);
 	m_bchecking_ic = false;
 }
 
@@ -544,7 +563,7 @@ void OSInterface::configureLocalServer(bool second_pass)
 				int network_status = networkStatus();
 				setBit(network_status, exitCode == 0 ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
 				unSetBit(network_status, exitCode != 0 ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
-				setNetworkStatus(network_status);
+				setNetworkStatus(network_status, 0);
 				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, "Linux TP Server"_L1 + record_separator +
 						setupConfiguration->readAllStandardOutput() + "\nReturn code("_L1 + QString::number(exitCode) + ')');
 			});

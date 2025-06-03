@@ -51,7 +51,7 @@ void DBInterface::init()
 //So far, only DBWorkoutsOrSplitsTable has a sanity check to make
 void DBInterface::sanityCheck()
 {
-	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{nullptr}};
+	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{MESOSPLIT_TABLE_ID}};
 	createThread(worker, [worker] () { worker->removeTemporaries(true); });
 }
 
@@ -229,7 +229,8 @@ void DBInterface::getAllMesocycles()
 {
 	DBMesocyclesTable worker{appMesoModel()};
 	worker.getAllMesocycles();
-	appMesoModel()->scanTemporaryMesocycles();
+	if (appUserModel()->mainUserConfigured())
+		appMesoModel()->scanTemporaryMesocycles();
 }
 
 void DBInterface::saveMesocycle(const uint meso_idx)

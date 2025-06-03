@@ -21,7 +21,7 @@ public:
 
 	inline ~TPOnlineServices() { delete m_networkManager; }
 
-	void checkServer(int network_status);
+	void checkServer();
 	void checkOnlineUser(const int requestid, const QString &query, const QString &passwd);
 	void getOnlineUserData(const int requestid, const QString &user_id);
 	void checkUser(const int requestid, const QString &username, const QString &passwd);
@@ -69,7 +69,7 @@ signals:
 	void _networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string);
 	void networkListReceived(const int request_id, const int ret_code, const QStringList &ret_list);
 	void fileReceived(const int request_id, const int ret_code, const QString& filename, const QByteArray &contents);
-	void serverOnline(const bool online, int network_status);
+	void serverOnline(const bool online);
 
 private:
 	void makeNetworkRequest(const int requestid, const QUrl &url, const bool b_internal_signal_only = false);
