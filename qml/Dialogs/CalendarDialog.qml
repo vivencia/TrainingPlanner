@@ -20,6 +20,8 @@ TPPopup {
 
 	signal dateSelected(date selDate)
 
+	on_PressedKeyChanged: console.log(_pressedKey);//datePickerControl.setDateByTyping(_pressedKey);
+
 	onInitDateChanged: {
 		if (bInitialized) {
 			datePickerControl.calendarModel = 0;

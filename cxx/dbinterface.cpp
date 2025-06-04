@@ -22,7 +22,7 @@ DBInterface *DBInterface::app_db_interface(nullptr);
 void DBInterface::init()
 {
 	QFileInfo f_info;
-	for (uint i{0}; i < APP_TABLES_NUMBER; ++i)
+	for (uint i{EXERCISES_TABLE_ID}; i <= APP_TABLES_NUMBER; ++i)
 	{
 		f_info.setFile(TPDatabaseTable::dbFilePath(i));
 		if (!f_info.isReadable())
@@ -114,7 +114,7 @@ void DBInterface::cleanUpThreads()
 	TPDatabaseTable *dbObj{nullptr};
 	bool locks_empty{true};
 
-	for (uint x{1}; x <= APP_TABLES_NUMBER; ++x)
+	for (uint x{EXERCISES_TABLE_ID}; x <= APP_TABLES_NUMBER; ++x)
 	{
 		for(int i{static_cast<int>(m_WorkerLock[x].count()) - 1}; i >= 0 ; --i)
 		{

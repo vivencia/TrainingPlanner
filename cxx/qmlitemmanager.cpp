@@ -460,12 +460,20 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 		}
 		break;
 		case APPWINDOW_MSG_CUSTOM_WARNING:
-			title = std::move(tr("WARNING!"));
-			message = fileName;
+		{
+			const QString &warning_str{tr("Warning! ")};
+			const qsizetype sep_idx{fileName.lastIndexOf(record_separator)};
+			title = sep_idx >= 1 ? fileName.left(sep_idx) : warning_str.toUpper();
+			message = sep_idx >= 1 ? std::move(warning_str + fileName.right(fileName.length() - sep_idx - 1)) : fileName;
+		}
 		break;
 		case APPWINDOW_MSG_CUSTOM_ERROR:
-			title = std::move(tr("ERROR!"));
-			message = fileName;
+		{
+			const QString &error_str{tr("Error! ")};
+			const qsizetype sep_idx{fileName.lastIndexOf(record_separator)};
+			title = sep_idx >= 1 ? fileName.left(sep_idx) : error_str.toUpper();
+			message = sep_idx >= 1 ? std::move(error_str + fileName.right(fileName.length() - sep_idx - 1)) : fileName;
+		}
 		break;
 		case APPWINDOW_MSG_EXPORT_OK:
 			title = std::move(tr("Succesfully exported"));

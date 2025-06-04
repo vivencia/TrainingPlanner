@@ -105,7 +105,7 @@ Frame {
 
 		anchors {
 			top: txtName.bottom
-			topMargin: 5
+			topMargin: 10
 			horizontalCenter: parent.horizontalCenter
 		}
 
@@ -119,7 +119,7 @@ Frame {
 
 		anchors {
 			top: txtName.bottom
-			topMargin: 5
+			topMargin: 10
 			left: parent.left
 			leftMargin: 5
 			right: parent.right

@@ -193,14 +193,16 @@ void OSInterface::checkServerResponseSlot(const bool online)
 #ifdef Q_OS_LINUX
 	#ifndef Q_OS_ANDROID
 	if (!online)
-		configureLocalServer();
+		checkLocalServer();
+	else
+		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, "TrainingPlanner App"_L1 + record_separator + "Connected online!"_L1);
 	#endif
+	#else
+	if (!online)
+		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, "TrainingPlanner App"_L1 + record_separator + "Server unreachable!"_L1);
+	else
+		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, "TrainingPlanner App"_L1 + record_separator + "Connected online!"_L1);
 #endif
-	if (online)
-	{
-		if (!tpServerOK())
-			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, "TrainingPlanner App"_L1 + record_separator + "Connected online!"_L1);
-	}
 	int server_status{0};
 	setBit(server_status, online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
 	unSetBit(server_status, !online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
@@ -533,48 +535,50 @@ QString OSInterface::executeAndCaptureOutput(const QString &program, QStringList
 	return strOutput;
 }
 
-void OSInterface::configureLocalServer(bool second_pass)
+void OSInterface::checkLocalServer()
 {
-	if (!second_pass)
-	{
-		QProcess *checkConfiguration{new QProcess{this}};
-		auto conn = std::make_shared<QMetaObject::Connection>();
-		*conn = connect(checkConfiguration, &QProcess::finished, this, [this,conn] (int exitCode, QProcess::ExitStatus) {
-			disconnect(*conn);
-			switch (exitCode)
-			{
-				case 0:
-					appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, "Linux TP Server"_L1 +
-							record_separator + "Up and running!"_L1);
-				break;
-				case 2: configureLocalServer(true); break;
-			}
-		});
-		checkConfiguration->start(tp_server_config_script, {"test"_L1}, QIODeviceBase::ReadOnly);
-		return;
-	}
-	connect(appItemManager(), &QmlItemManager::qmlPasswordDialogClosed, this, [this] (int resultCode, const QString &password) {
+	QProcess *checkConfiguration{new QProcess{this}};
+	auto conn = std::make_shared<QMetaObject::Connection>();
+	*conn = connect(checkConfiguration, &QProcess::finished, this, [this,conn] (int exitCode, QProcess::ExitStatus) {
+		disconnect(*conn);
+		switch (exitCode)
+		{
+			case 0:
+				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, "Linux TP Server"_L1 +
+						record_separator + "Up and running!"_L1);
+			break;
+			case 1:
+			case 3: commandLocalServer("start"_L1); break;
+			case 2: commandLocalServer("setup"_L1); break;
+		}
+	});
+	checkConfiguration->start(tp_server_config_script, {"test"_L1}, QIODeviceBase::ReadOnly);
+}
+
+void OSInterface::commandLocalServer(const QString &command)
+{
+	connect(appItemManager(), &QmlItemManager::qmlPasswordDialogClosed, this, [this,command] (int resultCode, const QString &password) {
 		if (resultCode == 0)
 		{
-			QProcess *setupConfiguration{new QProcess{this}};
-			connect(setupConfiguration, &QProcess::finished, this, [this,setupConfiguration] (int exitCode, QProcess::ExitStatus exitStatus) {
+			QProcess *server_script_proc{new QProcess{this}};
+			connect(server_script_proc, &QProcess::finished, this, [this,server_script_proc] (int exitCode, QProcess::ExitStatus exitStatus) {
 				if (exitStatus != QProcess::NormalExit)
 					exitCode = 10;
-				int network_status = networkStatus();
-				setBit(network_status, exitCode == 0 ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
-				unSetBit(network_status, exitCode != 0 ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
-				setNetworkStatus(network_status, 0);
+				int server_status{0};
+				setBit(server_status, exitCode == 0 ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
+				unSetBit(server_status, exitCode != 0 ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
+				setNetworkStatus(0, server_status);
 				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, "Linux TP Server"_L1 + record_separator +
-						setupConfiguration->readAllStandardOutput() + "\nReturn code("_L1 + QString::number(exitCode) + ')');
+						server_script_proc->readAllStandardOutput() + "\nReturn code("_L1 + QString::number(exitCode) + ')');
 			});
-			setupConfiguration->start(tp_server_config_script , {"setup"_L1, "-p="_L1 + password}, QIODeviceBase::ReadOnly);
+			server_script_proc->start(tp_server_config_script , {command, "-p="_L1 + password}, QIODeviceBase::ReadOnly);
 		}
 		else
 			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, "Linux TP Server"_L1 + record_separator +
-				"Setup operation canceled by the user"_L1);
+				"Operation canceled by the user"_L1);
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appItemManager()->getPasswordDialog("Administrator's rights needed"_L1,
-								"In order to setup and/or start the local HTTP server, you need to provide your user's password"_L1);
+							"In order to setup and/or start the local HTTP server, you need to provide your user's password"_L1);
 }
 
 void OSInterface::processArguments() const

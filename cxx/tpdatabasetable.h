@@ -19,12 +19,13 @@ constexpr uint MESOCALENDAR_TABLE_ID{0x0004};
 constexpr uint WORKOUT_TABLE_ID{0x0005};
 constexpr uint USERS_TABLE_ID{0x0006};
 
-constexpr QLatin1StringView tablesNames[APP_TABLES_NUMBER] = { "Database/Users.db.sqlite"_L1,
+constexpr QLatin1StringView tablesNames[APP_TABLES_NUMBER+1] = { ""_L1,
 									"Database/ExercisesList.db.sqlite"_L1,
 									"Database/Mesocycles.db.sqlite"_L1,
 									"Database/MesocyclesSplits.db.sqlite"_L1,
 									"Database/MesoCalendar.db.sqlite"_L1,
-									"Database/Workouts.db.sqlite"_L1
+									"Database/Workouts.db.sqlite"_L1,
+									"Database/Users.db.sqlite"_L1
 								};
 
 class TPDatabaseTable : public QObject

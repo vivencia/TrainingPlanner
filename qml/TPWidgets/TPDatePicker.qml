@@ -88,6 +88,7 @@ Rectangle {
 						if (selectedYear.yearOK) {
 							event.accepted = true;
 							yearChosen(parseInt(text));
+							showHideMonthsList();
 						}
 					break;
 					default: return;
@@ -167,23 +168,7 @@ Rectangle {
 				}
 			}
 
-			onPressed: {
-				if (monthsList.visible) {
-					if (text.length === 0)
-						text = Qt.binding(function() {
-							return calendar.weekNames[selectedDate.getDay()].slice(0, 3) + ", " + selectedDate.getDate() +
-											" " + calendar.months[selectedDate.getMonth()].slice(0, 3); });
-					readOnly = true;
-					monthsList.hide();
-				}
-				else {
-					readOnly = false;
-					clear();
-					forceActiveFocus();
-					filterInput();
-					monthsList.show();
-				}
-			}
+			onPressed: showHideMonthsList();
 
 			function filterInput(): void {
 				monthsModel.clear();
@@ -284,6 +269,7 @@ Rectangle {
 					font.bold: true
 				}
 			}
+
 
 			MonthGrid {
 				id: monthGrid
@@ -430,6 +416,29 @@ Rectangle {
 		}
 	} // ListView monthsList
 
+	function daysInMonth(for_date: date): int{
+		return new Date(for_date.getFullYear(), for_date.getMonth(), 0).getDate();
+	 }
+
+	function showHideMonthsList(): void {
+		if (monthsList.visible) {
+			if (selectedWeekDayMonth.text.length === 0)
+				selectedWeekDayMonth.text = Qt.binding(function() {
+					return calendar.weekNames[selectedDate.getDay()].slice(0, 3) + ", " + selectedDate.getDate() +
+									" " + calendar.months[selectedDate.getMonth()].slice(0, 3); });
+			selectedWeekDayMonth.readOnly = true;
+			monthsList.hide();
+			calendar.forceActiveFocus();
+		}
+		else {
+			selectedWeekDayMonth.readOnly = false;
+			selectedWeekDayMonth.clear();
+			selectedWeekDayMonth.forceActiveFocus();
+			selectedWeekDayMonth.filterInput();
+			monthsList.show();
+		}
+	}
+
 	function yearChosen(year: int): void {
 		setDate(new Date(year, selectedDate.getMonth(), selectedDate.getDate()));
 		selectedYear.readOnly = true;
@@ -452,5 +461,55 @@ Rectangle {
 	function setDate2(newDate): void {
 		newDate.setDate(newDate.getDate()+1);
 		setDate(newDate);
+	}
+
+	function setDateByTyping(key: int): void {
+		let typed_day = -1;
+		let day = -1;
+		switch (key) {
+			case Qt.Key_0: day = 0; break;
+			case Qt.Key_1: day = 1; break;
+			case Qt.Key_2: day = 2; break;
+			case Qt.Key_3: day = 3; break;
+			case Qt.Key_4: day = 4; break;
+			case Qt.Key_5: day = 5; break;
+			case Qt.Key_6: day = 6; break;
+			case Qt.Key_7: day = 7; break;
+			case Qt.Key_8: day = 8; break;
+			case Qt.Key_9: day = 9; break;
+			default: return;
+		}
+		if (day >= 0)
+		{
+			if (typed_day == -1)
+				typed_day = day;
+			else
+			{
+				if (typed_day >= 10)
+					typed_day = day;
+				else {
+					switch (typed_day) {
+						case 0:
+						case 1:
+						case 2:
+							typed_day *= 20;
+							typed_day += day;
+						break;
+						case 3:
+							typed_day *= 20;
+							typed_day += day;
+							if (typed_day > daysInMonth(selectedDate))
+								typed_day = -1;
+						break;
+						default: typed_day = -1;
+					}
+				}
+			}
+			if (typed_day >= 1)
+			{
+				selectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), typed_day);
+				dateSelected(selectedDate);
+			}
+		}
 	}
 }

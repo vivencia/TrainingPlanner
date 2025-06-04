@@ -41,8 +41,8 @@ FocusScope {
 		focus: true
 		height: 25
 
-		property bool inputOK
-		property bool matchOK
+		property bool inputOK: false
+		property bool matchOK: true
 
 		onEnterOrReturnKeyPressed: {
 			if (inputOK && matchOK)
@@ -50,7 +50,7 @@ FocusScope {
 		}
 
 		onTextChanged: {
-			inputOK = text.length >= 6;
+			matchOK = inputOK = text.length >= 6;
 			ToolTip.visible = !inputOK;
 		}
 
@@ -139,7 +139,7 @@ FocusScope {
 
 		anchors {
 			verticalCenter: txtPassword.verticalCenter
-			right: parent.right
+			left: txtPassword.right
 		}
 
 		onClicked: passwordAccepted();

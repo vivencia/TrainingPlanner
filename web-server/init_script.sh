@@ -61,6 +61,7 @@ SCRIPTS_DIR=$TP_DIR/scripts
 NGINX="$(which nginx)"
 NGINX_CONFIG_DIR=/etc/nginx
 NGINX_SERVER_CONFIG_DIR=/etc/nginx/sites-available
+NGINX_SERVER_SITES_ENABLED=/etc/nginx/sites-enabled
 NGINX_USER=www-data
 
 PHP_FPM_CONFIG_DIR=/etc/php/php-fpm.d
@@ -107,14 +108,16 @@ case "$COMMAND" in
                     exit 0
                 else
                     echo "PHP-FPM service is not running("$?")."
+                    exit 3
                 fi
             else
                 echo "nginx service is not running("$?")."
+                exit 1
             fi
         else
             echo "Local TP Server needs to be setup. Run" $SCRIPT_NAME "with the setup option."
+            exit 2
         fi
-        exit 2
     ;;
     setup)
         echo "Beginning TP Server configuration..."
@@ -157,6 +160,7 @@ if [ ! -d "$TP_DIR" ]; then
     run_as_sudo chmod -R 770 $SCRIPTS_DIR
     run_as_sudo cp $SOURCES_DIR/$SCRIPT_NAME $SCRIPTS_DIR #copy this file to the scripts dir
     run_as_sudo cp $SOURCES_DIR/url_parser.php $SCRIPTS_DIR
+    run_as_sudo cp $SOURCES_DIR/usersdb.sh $SCRIPTS_DIR
     run_as_sudo chown -R $NGINX_USER:$NGINX_USER $TP_DIR
 
     run_as_sudo mkdir $NGINX_SERVER_CONFIG_DIR
@@ -167,6 +171,8 @@ if [ ! -d "$TP_DIR" ]; then
     run_as_sudo cp -f $SOURCES_DIR/default $NGINX_SERVER_CONFIG_DIR
     run_as_sudo chown root:root $NGINX_SERVER_CONFIG_DIR/default
     run_as_sudo chmod g+w $NGINX_SERVER_CONFIG_DIR/default
+    run_as_sudo mkdir $NGINX_SERVER_SITES_ENABLED
+    run_as_sudo ln -s $NGINX_SERVER_CONFIG_DIR/default $NGINX_SERVER_SITES_ENABLED
 
     run_as_sudo cp -f $SOURCES_DIR/www.conf $PHP_FPM_CONFIG_DIR
     create_admin_user

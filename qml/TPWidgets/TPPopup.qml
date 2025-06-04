@@ -20,6 +20,7 @@ Popup {
 	property int finalYPos: 0
 	property int startYPos: 0
 	property alias btnClose: btnCloseWindow
+	property int _pressedKey
 
 	onClosed: {
 		if (!keepAbove)
@@ -74,6 +75,11 @@ Popup {
 			if (event.key === mainwindow.backKey) {
 				event.accepted = true;
 				close();
+			}
+			else
+			{
+				if (event.key >= Qt.Key_0 && event.key <= Qt.Key_9)
+					_pressedKey = event.key;
 			}
 		}
 	}

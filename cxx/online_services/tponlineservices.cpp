@@ -44,10 +44,6 @@ inline QString makeCommandURL(const QString& username, const QString& passwd = Q
 	return ret;
 }
 
-/* The network_status param is not used, but it's carried from the caller to the signal handler. When using local, unnamed lambdas that would
-	not be necessary, but functions connected to the serverOnline signal might be called several times before a response is obtained, so we use
-	Qt::UniqueConnection which cannot be used with a lambda
-*/
 void TPOnlineServices::checkServer()
 {
 	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{QUrl{server_addr}})};
