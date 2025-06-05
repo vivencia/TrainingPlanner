@@ -13,10 +13,9 @@ Rectangle {
 	radius: 10
 
 	required property var calendarModel
-	property date displayDate
 	property date startDate
 	property date endDate
-	property date selectedDate: displayDate
+	property date selectedDate
 
 	property double sizeFactor: 7
 	readonly property date thisDay: new Date()
@@ -51,7 +50,7 @@ Rectangle {
 
 		TextField {
 			id: selectedYear
-			text: selectedDate.getFullYear()
+			text: selectedDate.getUTCFullYear()
 			leftPadding: cellSize * 0.5
 			horizontalAlignment: Text.AlignLeft
 			verticalAlignment: Text.AlignVCenter
@@ -59,7 +58,7 @@ Rectangle {
 			font.bold: true
 			readOnly: true
 			inputMethodHints: Qt.ImhDigitsOnly
-			validator: IntValidator { id: val; bottom: startDate.getFullYear(); top: endDate.getFullYear(); }
+			validator: IntValidator { id: val; bottom: startDate.getUTCFullYear(); top: endDate.getUTCFullYear(); }
 			opacity: yearsList.visible ? 1 : 0.7
 			color: appSettings.fontColor
 			z: 1
@@ -91,25 +90,15 @@ Rectangle {
 							showHideMonthsList();
 						}
 					break;
+					case Qt.Key_Escape:
+						event.accepted = true;
+						showHideYearsList();
+					break;
 					default: return;
 				}
 			}
 
-			onPressed: {
-				if (yearsList.visible) {
-					if (text.length === 0)
-						text = Qt.binding(function() { return selectedDate.getFullYear(); });
-					readOnly = true;
-					yearsList.hide();
-				}
-				else {
-					readOnly = false;
-					clear();
-					forceActiveFocus();
-					filterInput();
-					yearsList.show();
-				}
-			}
+			onPressed: showHideYearsList();
 
 			function filterInput(): void {
 				yearsModel.clear();
@@ -131,7 +120,7 @@ Rectangle {
 
 		TextField {
 			id: selectedWeekDayMonth
-			text: calendar.weekNames[selectedDate.getDay()].slice(0, 3) + ", " + selectedDate.getDate() + " " + calendar.months[selectedDate.getMonth()].slice(0, 3)
+			text: calendar.weekNames[selectedDate.getUTCDay()].slice(0, 3) + ", " + selectedDate.getUTCDate() + " " + calendar.months[selectedDate.getUTCMonth()].slice(0, 3)
 			leftPadding: cellSize * 0.5
 			horizontalAlignment: Text.AlignLeft
 			verticalAlignment: Text.AlignVCenter
@@ -164,6 +153,11 @@ Rectangle {
 						event.accepted = true;
 						monthChosen(monthsList.currentIndex);
 					break;
+					case Qt.Key_Escape:
+						event.accepted = true;
+						selectedWeekDayMonth.readOnly = true;
+						monthsList.hide();
+					break;
 					default: return;
 				}
 			}
@@ -174,12 +168,12 @@ Rectangle {
 				monthsModel.clear();
 				let monthOK = false;
 				for (let i = 0; i < 12; ++i) {
-					if (selectedDate.getFullYear() === startDate.getFullYear()) {
-						if (i < startDate.getMonth())
+					if (selectedDate.getUTCFullYear() === startDate.getUTCFullYear()) {
+						if (i < startDate.getUTCMonth())
 							continue;
 					}
-					if (selectedDate.getFullYear() === endDate.getFullYear()) {
-						if (i > startDate.getMonth())
+					if (selectedDate.getUTCFullYear() === endDate.getUTCFullYear()) {
+						if (i > startDate.getUTCMonth())
 							continue;
 					}
 					if (text.length === 0)
@@ -196,7 +190,7 @@ Rectangle {
 					}
 				}
 				if (!monthOK)
-					monthsList.currentIndex = selectedDate.getMonth();
+					monthsList.currentIndex = selectedDate.getUTCMonth();
 			}
 		}
 	} //titleOfDate
@@ -288,8 +282,8 @@ Rectangle {
 					opacity: monthGrid.month === model.month ? 1 : 0.5
 					color: appSettings.primaryColor
 
-					readonly property bool highlighted: model.day === selectedDate.getDate() && model.month === selectedDate.getMonth()
-					readonly property bool todayDate: model.year === thisDay.getFullYear() && model.month === thisDay.getMonth() && model.day === thisDay.getDate()
+					readonly property bool highlighted: model.day === selectedDate.getUTCDate() && model.month === selectedDate.getUTCMonth()
+					readonly property bool todayDate: model.year === thisDay.getUTCFullYear() && model.month === thisDay.getUTCMonth() && model.day === thisDay.getUTCDate()
 
 					Text {
 						text: model.day
@@ -319,9 +313,9 @@ Rectangle {
 		z: 1
 		anchors.fill: calendar
 
-		property int currentYear: startDate.getFullYear()
-		readonly property int startYear: startDate.getFullYear()
-		readonly property int endYear : endDate.getFullYear()
+		property int currentYear: startDate.getUTCFullYear()
+		readonly property int startYear: startDate.getUTCFullYear()
+		readonly property int endYear : endDate.getUTCFullYear()
 
 		model: ListModel {
 			id: yearsModel
@@ -355,7 +349,7 @@ Rectangle {
 		function show(): void {
 			visible = true;
 			calendar.visible = false;
-			currentYear = selectedDate.getFullYear();
+			currentYear = selectedDate.getUTCFullYear();
 			yearsList.positionViewAtIndex(currentYear - startYear, ListView.SnapToItem);
 		}
 
@@ -371,7 +365,7 @@ Rectangle {
 		z: 1
 		anchors.fill: calendar
 
-		property int currentMonth: startDate.getMonth()
+		property int currentMonth: startDate.getUTCMonth()
 
 		model: ListModel {
 			id: monthsModel
@@ -406,7 +400,7 @@ Rectangle {
 		function show(): void {
 			visible = true;
 			calendar.visible = false;
-			currentMonth = selectedDate.getMonth();
+			currentMonth = selectedDate.getUTCMonth();
 			monthsList.positionViewAtIndex(currentMonth, ListView.SnapToItem);
 		}
 
@@ -417,18 +411,32 @@ Rectangle {
 	} // ListView monthsList
 
 	function daysInMonth(for_date: date): int{
-		return new Date(for_date.getFullYear(), for_date.getMonth(), 0).getDate();
+		return new Date(for_date.getUTCFullYear(), for_date.getUTCMonth(), 0).getUTCDate();
 	 }
+
+	function showHideYearsList(): void {
+		if (yearsList.visible) {
+			selectedYear.text = Qt.binding(function() { return selectedDate.getUTCFullYear(); });
+			selectedYear.readOnly = true;
+			yearsList.hide();
+		}
+		else {
+			selectedYear.readOnly = false;
+			selectedYear.clear();
+			selectedYear.forceActiveFocus();
+			selectedYear.filterInput();
+			yearsList.show();
+		}
+	}
 
 	function showHideMonthsList(): void {
 		if (monthsList.visible) {
-			if (selectedWeekDayMonth.text.length === 0)
-				selectedWeekDayMonth.text = Qt.binding(function() {
-					return calendar.weekNames[selectedDate.getDay()].slice(0, 3) + ", " + selectedDate.getDate() +
-									" " + calendar.months[selectedDate.getMonth()].slice(0, 3); });
+			selectedWeekDayMonth.text = Qt.binding(function() {
+				return calendar.weekNames[selectedDate.getUTCDay()].slice(0, 3) + ", " + selectedDate.getUTCDate() +
+						" " + calendar.months[selectedDate.getUTCMonth()].slice(0, 3); });
 			selectedWeekDayMonth.readOnly = true;
 			monthsList.hide();
-			calendar.forceActiveFocus();
+			root.forceActiveFocus();
 		}
 		else {
 			selectedWeekDayMonth.readOnly = false;
@@ -440,15 +448,13 @@ Rectangle {
 	}
 
 	function yearChosen(year: int): void {
-		setDate(new Date(year, selectedDate.getMonth(), selectedDate.getDate()));
-		selectedYear.readOnly = true;
-		yearsList.hide();
+		setDate(new Date(year, selectedDate.getUTCMonth(), selectedDate.getUTCDate()));
+		showHideYearsList();
 	}
 
 	function monthChosen(month: int): void {
-		setDate(new Date(selectedDate.getFullYear(), month, selectedDate.getDate()));
-		selectedWeekDayMonth.readOnly = true;
-		monthsList.hide();
+		setDate(new Date(selectedDate.getUTCFullYear(), month, selectedDate.getUTCDate()));
+		showHideMonthsList();
 	}
 
 	function setDate(newDate): void {
@@ -459,14 +465,13 @@ Rectangle {
 	}
 
 	function setDate2(newDate): void {
-		newDate.setDate(newDate.getDate()+1);
+		newDate.setDate(newDate.getUTCDate()+1);
 		setDate(newDate);
 	}
 
-	function setDateByTyping(key: int): void {
-		let typed_day = -1;
+	function setDateByTyping(key1: int, key2: int): void {
 		let day = -1;
-		switch (key) {
+		switch (key1) {
 			case Qt.Key_0: day = 0; break;
 			case Qt.Key_1: day = 1; break;
 			case Qt.Key_2: day = 2; break;
@@ -479,35 +484,35 @@ Rectangle {
 			case Qt.Key_9: day = 9; break;
 			default: return;
 		}
-		if (day >= 0)
+		if (key2 === -1)
 		{
-			if (typed_day == -1)
-				typed_day = day;
-			else
+			if (day >= 1)
 			{
-				if (typed_day >= 10)
-					typed_day = day;
-				else {
-					switch (typed_day) {
-						case 0:
-						case 1:
-						case 2:
-							typed_day *= 20;
-							typed_day += day;
-						break;
-						case 3:
-							typed_day *= 20;
-							typed_day += day;
-							if (typed_day > daysInMonth(selectedDate))
-								typed_day = -1;
-						break;
-						default: typed_day = -1;
-					}
-				}
+				selectedDate = new Date(selectedDate.getUTCFullYear(), selectedDate.getUTCMonth(), day);
+				dateSelected(selectedDate);
+			}
+		}
+		else
+		{
+			let typed_day = selectedDate.getUTCDate();
+			switch (typed_day) {
+				case 0:
+				case 1:
+				case 2:
+					typed_day *= 10;
+					typed_day += day;
+				break;
+				case 3:
+					typed_day *= 10;
+					typed_day += day;
+					if (typed_day > daysInMonth(selectedDate))
+						typed_day = -1;
+				break;
+				default: typed_day = -1;
 			}
 			if (typed_day >= 1)
 			{
-				selectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), typed_day);
+				selectedDate = new Date(selectedDate.getUTCFullYear(), selectedDate.getUTCMonth(), typed_day);
 				dateSelected(selectedDate);
 			}
 		}

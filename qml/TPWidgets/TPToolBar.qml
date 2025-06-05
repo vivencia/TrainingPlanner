@@ -6,7 +6,7 @@ ToolBar {
 	spacing: 0
 	padding: 0
 	width: appSettings.windowWidth
-	implicitWidth: width
+	//implicitWidth: width
 
 	background: Shape {
 		preferredRendererType: Shape.CurveRenderer

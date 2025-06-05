@@ -101,23 +101,43 @@ create_users_db() {
 case "$COMMAND" in
     test)
         if [ -d "$TP_DIR" ]; then
-            if systemctl status nginx 1&> /dev/null; then
+            systemctl status nginx 1&> /dev/null
+            NGINX_SETUP=$?
+            PHP_FPM_SETUP=1
+            TP_SERVER=1
+            if [ $NGINX_SETUP == 0 ]; then
+                systemctl status $PHP_FPM_SERVICE 1&> /dev/null
+                PHP_FPM_SETUP=$?
+                ping -w 1 192.168.10.8 1&> /dev/null
+                TP_SERVER=$?
+            fi
+
+            if [ $TP_SERVER == 0 ]; then
+                EXIT_STATUS=0
                 echo "Local TP Server up and running."
-                if systemctl status $PHP_FPM_SERVICE 1&> /dev/null; then
-                    echo "PHP-FPM service up and running."
-                    exit 0
-                else
-                    echo "PHP-FPM service is not running("$?")."
-                    exit 3
-                fi
             else
-                echo "nginx service is not running("$?")."
-                exit 1
+                EXIT_STATUS=1
+                ERROR_MESSAGE="Local TP Server is not reachable."
+
+                if [ $NGINX_SETUP == 0 ]; then
+                    ERROR_MESSAGE="$ERROR_MESSAGE NGINX service is up and running."
+                else
+                    EXIT_STATUS=2
+                    ERROR_MESSAGE="$ERROR_MESSAGE NGINX service is not running."
+                fi
+                if [ $PHP_FPM_SETUP == 0 ]; then
+                    ERROR_MESSAGE="$ERROR_MESSAGE PHP-FPM service is up and running."
+                else
+                    EXIT_STATUS=2
+                    ERROR_MESSAGE="$ERROR_MESSAGE PHP-FPM service is not running."
+                fi
             fi
         else
-            echo "Local TP Server needs to be setup. Run" $SCRIPT_NAME "with the setup option."
-            exit 2
+            EXIT_STATUS=3
+            ERROR_MESSAGE="Local TP Server needs to be setup. Run" $SCRIPT_NAME "with the setup option."
         fi
+        echo $ERROR_MESSAGE
+        exit $EXIT_STATUS
     ;;
     setup)
         echo "Beginning TP Server configuration..."

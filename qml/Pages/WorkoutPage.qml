@@ -12,8 +12,8 @@ import "../TPWidgets"
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPage {
-	id: trainingDayPage
-	objectName: "trainingDayPage"
+	id: workoutPage
+	objectName: "workoutPage"
 
 	required property WorkoutManager workoutManager
 
@@ -55,15 +55,15 @@ TPPage {
 				text: WorkoutManager.headerText
 				font: AppGlobals.largeFont
 				horizontalAlignment: Text.AlignHCenter
-				Layout.minimumWidth: trainingDayPage.width - 20
-				Layout.maximumWidth: trainingDayPage.width - 20
+				Layout.minimumWidth: workoutPage.width - 20
+				Layout.maximumWidth: workoutPage.width - 20
 			}
 
 			TPLabel {
 				text: WorkoutManager.muscularGroup
 				horizontalAlignment: Text.AlignHCenter
-				Layout.minimumWidth: trainingDayPage.width - 20
-				Layout.maximumWidth: trainingDayPage.width - 20
+				Layout.minimumWidth: workoutPage.width - 20
+				Layout.maximumWidth: workoutPage.width - 20
 			}
 
 			RowLayout {
@@ -86,7 +86,7 @@ TPPage {
 
 			RowLayout {
 				visible: WorkoutManager.splitLetter !== "R"
-				Layout.maximumWidth: trainingDayPage.width - 20
+				Layout.maximumWidth: workoutPage.width - 20
 
 				TPLabel {
 					text: qsTr("Location:")
@@ -111,7 +111,7 @@ TPPage {
 				visible: WorkoutManager.splitLetter !== "R"
 				enabled: WorkoutManager.timerActive ? false : !WorkoutManager.dayIsFinished
 				height: appSettings.pageHeight*0.4
-				Layout.preferredWidth: trainingDayPage.width - 20
+				Layout.preferredWidth: workoutPage.width - 20
 
 				background: Rectangle {
 					border.color: appSettings.fontColor
@@ -178,7 +178,7 @@ TPPage {
 								hrsDisplay: appUtils.getHourFromCurrentTime()
 								minutesDisplay: appUtils.getMinutesFromCurrentTime()
 								bOnlyFutureTime: WorkoutManager.mainDateIsToday ? WorkoutManager.editMode : false
-								parentPage: trainingDayPage
+								parentPage: workoutPage
 
 								onTimeSet: (hour, minutes) => WorkoutManager.prepareWorkOutTimer(appUtils.getCurrentTimeString(), hour + ":" + minutes);
 								onClosed: restrictedTimeLoader.active = false;
@@ -233,7 +233,7 @@ TPPage {
 								id: dlgTimeIn
 								hrsDisplay: appUtils.getHourFromStrTime(txtInTime.text)
 								minutesDisplay: appUtils.getMinutesFromStrTime(txtInTime.text)
-								parentPage: trainingDayPage
+								parentPage: workoutPage
 
 								onTimeSet: (hour, minutes) => WorkoutManager.timeIn = hour + ":" + minutes;
 								onClosed: timeInLoader.active = false;
@@ -288,7 +288,7 @@ TPPage {
 								id: dlgTimeOut
 								hrsDisplay: appUtils.getHourFromStrTime(txtOutTime.text)
 								minutesDisplay: appUtils.getMinutesFromStrTime(txtOutTime.text)
-								parentPage: trainingDayPage
+								parentPage: workoutPage
 								bOnlyFutureTime: WorkoutManager.mainDateIsToday ? WorkoutManager.editMode : false
 
 								onTimeSet: (hour, minutes) => WorkoutManager.timeOut = hour + ":" + minutes;
@@ -611,7 +611,7 @@ TPPage {
 			let component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				changeSplitLetterDialog = component.createObject(trainingDayPage, { parentPage: trainingDayPage,
+				changeSplitLetterDialog = component.createObject(workoutPage, { parentPage: workoutPage,
 					customStringProperty1: qsTr("Really change split?"), customStringProperty2: qsTr("Clear exercises list?"),
 					customStringProperty3: "remove", customItemSource:"TPDialogWithMessageAndCheckBox.qml" });
 				changeSplitLetterDialog.button1Clicked.connect( function() {
@@ -635,7 +635,7 @@ TPPage {
 				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					msgClearExercises = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Clear exercises list?"),
+					msgClearExercises = component.createObject(workoutPage, { parentPage: workoutPage, title: qsTr("Clear exercises list?"),
 						keepAbove: true, message: qsTr("All exercises changes will be removed"), imageSource: "revert-day.png" } );
 					msgClearExercises.button1Clicked.connect(function () { WorkoutManager.clearExercises(); } );
 				}
@@ -656,7 +656,7 @@ TPPage {
 			let component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				adjustCalendarBox = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Re-adjust meso calendar?"),
+				adjustCalendarBox = component.createObject(workoutPage, { parentPage: workoutPage, title: qsTr("Re-adjust meso calendar?"),
 					button1Text: qsTr("Adjust"), button2Text: qsTr("Cancel"), customItemSource:"TPDialogWithMessageAndCheckBox.qml",
 					customStringProperty1: lblHeader.text, customStringProperty2: qsTr("Only alter this day"), customStringProperty3: "calendar.png" });
 				adjustCalendarBox.button1Clicked.connect(function() { WorkoutManager.adjustCalendar(WorkoutManager.splitLetter, adjustCalendarBox.customBoolProperty1); });
@@ -676,7 +676,7 @@ TPPage {
 			let component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				intentDlg = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("What do you want to do today?"),
+				intentDlg = component.createObject(workoutPage, { parentPage: workoutPage, title: qsTr("What do you want to do today?"),
 					button1Text: qsTr("Proceed"), customItemSource:"TPTDayIntentGroup.qml", customBoolProperty1: WorkoutManager.canImportFromSplitPlan,
 					customStringProperty2: WorkoutManager.splitLetter, customModel: WorkoutManager.previousWorkoutsList,
 					customBoolProperty2: WorkoutManager.canImportFromPreviousWorkout, customBoolProperty3: !WorkoutManager.hasExercises });
@@ -700,7 +700,7 @@ TPPage {
 				WorkoutManager.loadExercisesFromDate(intentDlg.customStringProperty1);
 			break;
 			case 3: //import from file
-				WorkoutManager.importTrainingDay();
+				WorkoutManager.importWorkout();
 			break;
 			case 4: //empty session
 			break;
@@ -724,7 +724,7 @@ TPPage {
 		asynchronous: true
 
 		sourceComponent:SimpleExercisesListPanel {
-			parentPage: trainingDayPage
+			parentPage: workoutPage
 			onExerciseSelected: exerciseSelectedFromSimpleExercisesList();
 			onListClosed: {
 				simpleExercisesListClosed();
@@ -756,7 +756,7 @@ TPPage {
 			let component = Qt.createComponent("qrc:/qml/Dialogs/TimerDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				dlgSessionLength = component.createObject(trainingDayPage, { parentPage: trainingDayPage, timePickerOnly: true,
+				dlgSessionLength = component.createObject(workoutPage, { parentPage: workoutPage, timePickerOnly: true,
 					windowTitle: qsTr("Length of this training session") });
 				dlgSessionLength.onUseTime.connect(function(strtime) { WorkoutManager.prepareWorkOutTimer(strtime); } );
 			}
@@ -776,7 +776,7 @@ TPPage {
 				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					tipTimeWarn = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Attention!"),
+					tipTimeWarn = component.createObject(workoutPage, { parentPage: workoutPage, title: qsTr("Attention!"),
 						message: qsTr("All exercises changes will be removed"), button1Text: "OK", imageSource: "sound-off" } );
 					tipTimeWarn.button1Clicked.connect(function () { silenceTimeWarning(); } );
 				}
@@ -807,7 +807,7 @@ TPPage {
 				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					generalMessage = component.createObject(trainingDayPage, { parentPage: trainingDayPage, highlightMessage: true, button1Text: "OK"});
+					generalMessage = component.createObject(workoutPage, { parentPage: workoutPage, highlightMessage: true, button1Text: "OK"});
 				}
 
 				if (component.status === Component.Ready)
@@ -834,7 +834,7 @@ TPPage {
 				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					msgRemoveExercise = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Remove Exercise?"),
+					msgRemoveExercise = component.createObject(workoutPage, { parentPage: workoutPage, title: qsTr("Remove Exercise?"),
 						keepAbove: true, imageSource: "remove" } );
 					msgRemoveExercise.button1Clicked.connect(function () { WorkoutManager.removeExercise(exerciseidx); } );
 				}
@@ -857,7 +857,7 @@ TPPage {
 				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					msgRemoveSet = component.createObject(trainingDayPage, { parentPage: trainingDayPage, keepAbove: true, imageSource: "remove",
+					msgRemoveSet = component.createObject(workoutPage, { parentPage: workoutPage, keepAbove: true, imageSource: "remove",
 						message: qsTr("This action cannot be undone.") } );
 					msgRemoveSet.button1Clicked.connect(function () { WorkoutManager.currentExercise().removeSetObject(false); } );
 				}
@@ -880,7 +880,7 @@ TPPage {
 				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					resetWorkoutMsg = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Reset workout?"),
+					resetWorkoutMsg = component.createObject(workoutPage, { parentPage: workoutPage, title: qsTr("Reset workout?"),
 						message: qsTr("Exercises will not be afected"), imageSource: "reset.png" } );
 					resetWorkoutMsg.button1Clicked.connect(function () { WorkoutManager.resetWorkout(); } );
 				}
@@ -901,7 +901,7 @@ TPPage {
 			let component = Qt.createComponent("qrc:/qml/ExercisesAndSets/PageScrollButtons.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				navButtons = component.createObject(trainingDayPage, { ownerPage: trainingDayPage });
+				navButtons = component.createObject(workoutPage, { ownerPage: workoutPage });
 				navButtons.scrollTo.connect(scrollTraining.setScrollBarPosition);
 				navButtons.visible = Qt.binding(function() { return WorkoutManager.splitLetter !== "R"; });
 			}
@@ -917,7 +917,7 @@ TPPage {
 	function showFinishedWorkoutOptions(): void {
 		if (optionsMenu === null) {
 			let optionsMenuMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
-			optionsMenu = optionsMenuMenuComponent.createObject(trainingDayPage, { parentPage: trainingDayPage });
+			optionsMenu = optionsMenuMenuComponent.createObject(workoutPage, { parentPage: workoutPage });
 			optionsMenu.addEntry(qsTr("Edit workout"), "edit.png", 0, true);
 			optionsMenu.addEntry(qsTr("Reset Workout"), "reset.png", 1, true);
 			optionsMenu.menuEntrySelected.connect(selectedOptionsMenuOption);
@@ -941,7 +941,7 @@ TPPage {
 	function showExportMenu(): void {
 		if (exportMenu === null) {
 			let exportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
-			exportMenu = exportMenuComponent.createObject(trainingDayPage, { parentPage: trainingDayPage });
+			exportMenu = exportMenuComponent.createObject(workoutPage, { parentPage: workoutPage });
 			exportMenu.addEntry(qsTr("Export"), "save-day.png", 0, true);
 			if (Qt.platform.os === "android")
 				exportMenu.addEntry(qsTr("Share"), "export.png", 1, true);
@@ -958,10 +958,10 @@ TPPage {
 			id: exportTypeTip
 			title: bShare ? qsTr("Share workout?") : qsTr("Export workout to file?")
 			imageSource: "export.png"
-			parentPage: trainingDayPage
+			parentPage: workoutPage
 			closeButtonVisible: true
 
-			onButton1Clicked: WorkoutManager.exportTrainingDay(exportDlgLoader.bShare);
+			onButton1Clicked: WorkoutManager.exportWorkout(exportDlgLoader.bShare);
 			onClosed: exportDlgLoader.active = false;
 		}
 		property bool bShare

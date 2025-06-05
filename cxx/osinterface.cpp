@@ -35,7 +35,8 @@ const QString &workoutDoneMessage{qApp->tr("Your training routine seems to go we
 
 #ifdef Q_OS_LINUX
 #include <QProcess>
-static const QString &tp_server_config_script{QString(::getenv("HOME")) + "/software/trainingplanner/web-server/init_script.sh"_L1};
+static const QString &tp_server_config_script{"/var/www/html/trainingplanner/scripts/init_script.sh"_L1};
+static bool can_display_message{true};
 
 extern "C"
 {
@@ -193,9 +194,18 @@ void OSInterface::checkServerResponseSlot(const bool online)
 #ifdef Q_OS_LINUX
 	#ifndef Q_OS_ANDROID
 	if (!online)
-		checkLocalServer();
+	{
+		if (can_display_message)
+		{
+			can_display_message = false;
+			checkLocalServer();
+		}
+	}
 	else
+	{
+		can_display_message = true;
 		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, "TrainingPlanner App"_L1 + record_separator + "Connected online!"_L1);
+	}
 	#endif
 	#else
 	if (!online)
@@ -537,10 +547,16 @@ QString OSInterface::executeAndCaptureOutput(const QString &program, QStringList
 
 void OSInterface::checkLocalServer()
 {
-	QProcess *checkConfiguration{new QProcess{this}};
-	auto conn = std::make_shared<QMetaObject::Connection>();
-	*conn = connect(checkConfiguration, &QProcess::finished, this, [this,conn] (int exitCode, QProcess::ExitStatus) {
-		disconnect(*conn);
+	QProcess *check_server_proc{new QProcess{this}};
+	connect(check_server_proc, &QProcess::finished, this, [this,check_server_proc] (int exitCode, QProcess::ExitStatus exitStatus) {
+		check_server_proc->deleteLater();
+		if (exitStatus != QProcess::NormalExit)
+		{
+			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, "Linux TP Server"_L1 +
+						record_separator + "Could not run init_script test"_L1);
+			return;
+		}
+
 		switch (exitCode)
 		{
 			case 0:
@@ -548,11 +564,14 @@ void OSInterface::checkLocalServer()
 						record_separator + "Up and running!"_L1);
 			break;
 			case 1:
-			case 3: commandLocalServer("start"_L1); break;
-			case 2: commandLocalServer("setup"_L1); break;
+			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, "Linux TP Server"_L1 +
+						record_separator + check_server_proc->readAllStandardOutput());
+			break;
+			case 2: commandLocalServer("start"_L1); break;
+			case 3: commandLocalServer("setup"_L1); break;
 		}
 	});
-	checkConfiguration->start(tp_server_config_script, {"test"_L1}, QIODeviceBase::ReadOnly);
+	check_server_proc->start(tp_server_config_script, {"test"_L1}, QIODeviceBase::ReadOnly);
 }
 
 void OSInterface::commandLocalServer(const QString &command)
@@ -570,6 +589,7 @@ void OSInterface::commandLocalServer(const QString &command)
 				setNetworkStatus(0, server_status);
 				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, "Linux TP Server"_L1 + record_separator +
 						server_script_proc->readAllStandardOutput() + "\nReturn code("_L1 + QString::number(exitCode) + ')');
+				server_script_proc->deleteLater();
 			});
 			server_script_proc->start(tp_server_config_script , {command, "-p="_L1 + password}, QIODeviceBase::ReadOnly);
 		}

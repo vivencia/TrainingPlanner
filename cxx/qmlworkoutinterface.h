@@ -122,8 +122,8 @@ public:
 	Q_INVOKABLE void getExercisesFromSplitPlan();
 	Q_INVOKABLE void exportWorkoutToSplitPlan();
 	Q_INVOKABLE void resetWorkout();
-	Q_INVOKABLE void exportTrainingDay(const bool bShare);
-	Q_INVOKABLE void importTrainingDay(const QString &filename = QString());
+	Q_INVOKABLE void exportWorkout(const bool bShare);
+	Q_INVOKABLE void importWorkout(const QString &filename = QString());
 	Q_INVOKABLE void prepareWorkOutTimer(const QString &strStartTime = QString(), const QString &strEndTime = QString());
 	Q_INVOKABLE void startWorkout();
 	Q_INVOKABLE void stopWorkout();
@@ -205,8 +205,8 @@ private:
 			m_bTimerActive;
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
-	void createTrainingDayPage();
-	void createTrainingDayPage_part2();
+	void createWorkoutPage();
+	void createWorkoutPage_part2();
 	void createExerciseObject(const uint exercise_number);
 	void createExerciseObject_part2(const uint exercise_number);
 	void loadExercises();

@@ -7,14 +7,10 @@
 #define EXERCISES_LIST_COL_MAINNAME 1
 #define EXERCISES_LIST_COL_SUBNAME 2
 #define EXERCISES_LIST_COL_MUSCULARGROUP 3
-#define EXERCISES_LIST_COL_SETSNUMBER 4
-#define EXERCISES_LIST_COL_REPSNUMBER 5
-#define EXERCISES_LIST_COL_WEIGHT 6
-#define EXERCISES_LIST_COL_WEIGHTUNIT 7
-#define EXERCISES_LIST_COL_MEDIAPATH 8
-#define EXERCISES_LIST_COL_FROMAPPLIST 9
-#define EXERCISES_LIST_COL_ACTUALINDEX 10
-#define EXERCISES_LIST_COL_SELECTED 11
+#define EXERCISES_LIST_COL_MEDIAPATH 4
+#define EXERCISES_LIST_COL_FROMAPPLIST 5
+#define EXERCISES_LIST_COL_ACTUALINDEX 6
+#define EXERCISES_LIST_COL_SELECTED 7
 #define EXERCISES_TOTAL_COLS EXERCISES_LIST_COL_SELECTED+1
 
 QT_FORWARD_DECLARE_CLASS(QFile)
@@ -31,9 +27,6 @@ Q_PROPERTY(int currentRow READ currentRow WRITE setCurrentRow NOTIFY currentRowC
 Q_PROPERTY(QString exerciseNameLabel READ exerciseNameLabel NOTIFY labelsChanged)
 Q_PROPERTY(QString exerciseSpecificsLabel READ exerciseSpecificsLabel NOTIFY labelsChanged)
 Q_PROPERTY(QString muscularGroupsLabel READ muscularGroupsLabel NOTIFY labelsChanged)
-Q_PROPERTY(QString setsLabel READ setsLabel NOTIFY labelsChanged)
-Q_PROPERTY(QString repsLabel READ repsLabel NOTIFY labelsChanged)
-Q_PROPERTY(QString weightLabel READ weightLabel NOTIFY labelsChanged)
 Q_PROPERTY(QString mediaLabel READ mediaLabel NOTIFY labelsChanged)
 
 enum RoleNames {
@@ -41,10 +34,6 @@ enum RoleNames {
 	mainNameRole = Qt::UserRole+EXERCISES_LIST_COL_MAINNAME,
 	subNameRole = Qt::UserRole+EXERCISES_LIST_COL_SUBNAME,
 	muscularGroupRole = Qt::UserRole+EXERCISES_LIST_COL_MUSCULARGROUP,
-	nSetsRole = Qt::UserRole+EXERCISES_LIST_COL_SETSNUMBER,
-	nRepsRole = Qt::UserRole+EXERCISES_LIST_COL_REPSNUMBER,
-	nWeightRole = Qt::UserRole+EXERCISES_LIST_COL_WEIGHT,
-	uWeightRole = Qt::UserRole+EXERCISES_LIST_COL_WEIGHTUNIT,
 	mediaPathRole = Qt::UserRole+EXERCISES_LIST_COL_MEDIAPATH,
 	fromListRole = Qt::UserRole+EXERCISES_LIST_COL_FROMAPPLIST,
 	actualIndexRole = Qt::UserRole+EXERCISES_LIST_COL_ACTUALINDEX,
@@ -58,9 +47,6 @@ public:
 	inline QString exerciseNameLabel() const { return tr("Exercise: "); }
 	inline QString exerciseSpecificsLabel() const { return tr("Specifics: "); }
 	inline QString muscularGroupsLabel() const { return tr("Muscular Groups: "); }
-	inline QString setsLabel() const { return tr("Sets: "); }
-	inline QString repsLabel() const { return tr("Reps: "); }
-	inline QString weightLabel() const { return tr("Weight: "); }
 	inline QString mediaLabel() const { return tr("Descriptive media: "); }
 
 	inline const QString &id(const uint index) const { return m_exercisesData.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_ID); }
@@ -85,34 +71,6 @@ public:
 	Q_INVOKABLE inline void setMuscularGroup(const uint index, const QString &new_group)
 	{
 		m_exercisesData[m_indexProxy.at(index)][EXERCISES_LIST_COL_MUSCULARGROUP] = new_group;
-		addModifiedIndex(index);
-	}
-
-	Q_INVOKABLE inline QString setsNumber(const uint index) const { return m_exercisesData.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_SETSNUMBER); }
-	Q_INVOKABLE inline void setSetsNumber(const uint index, const QString &new_nsets)
-	{
-		m_exercisesData[m_indexProxy.at(index)][EXERCISES_LIST_COL_SETSNUMBER] = new_nsets;
-		addModifiedIndex(index);
-	}
-
-	Q_INVOKABLE inline QString repsNumber(const uint index) const { return m_exercisesData.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_REPSNUMBER); }
-	Q_INVOKABLE inline void setRepsNumber(const uint index, const QString &new_nreps)
-	{
-		m_exercisesData[m_indexProxy.at(index)][EXERCISES_LIST_COL_REPSNUMBER] = new_nreps;
-		addModifiedIndex(index);
-	}
-
-	Q_INVOKABLE inline QString weight(const uint index) const { return m_exercisesData.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_WEIGHT); }
-	Q_INVOKABLE inline void setWeight(const uint index, const QString &new_weight)
-	{
-		m_exercisesData[m_indexProxy.at(index)][EXERCISES_LIST_COL_WEIGHT] = new_weight;
-		addModifiedIndex(index);
-	}
-
-	Q_INVOKABLE inline QString weightUnit(const uint index) const { return m_exercisesData.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_WEIGHTUNIT); }
-	Q_INVOKABLE inline void setWeightUnit(const uint index, const QString &new_unit)
-	{
-		m_exercisesData[m_indexProxy.at(index)][EXERCISES_LIST_COL_WEIGHTUNIT] = new_unit;
 		addModifiedIndex(index);
 	}
 

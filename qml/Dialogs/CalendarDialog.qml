@@ -20,7 +20,9 @@ TPPopup {
 
 	signal dateSelected(date selDate)
 
-	on_PressedKeyChanged: console.log(_pressedKey);//datePickerControl.setDateByTyping(_pressedKey);
+	onKeyboardNumberPressed: (key1, key2) => datePickerControl.setDateByTyping(key1, key2);
+	onOpened: datePickerControl.forceActiveFocus();
+	onKeyboardEnterPressed: selectDate();
 
 	onInitDateChanged: {
 		if (bInitialized) {
@@ -53,7 +55,7 @@ TPPopup {
 			id: datePickerControl
 			focus: true
 			startDate: initDate
-			displayDate: showDate
+			selectedDate: showDate
 			endDate: finalDate
 			calendarModel: calModel
 
@@ -105,12 +107,14 @@ TPPopup {
 			flat: false
 			Layout.alignment: Qt.AlignCenter
 
-			onClicked: {
-				dateSelected(datePickerControl.selectedDate)
-				calendarPopup.closePopup();
-			}
+			onClicked: selectDate();
 		}
 	}
 
 	Component.onCompleted: bInitialized = true;
+
+	function selectDate(): void {
+		dateSelected(datePickerControl.selectedDate)
+		calendarPopup.closePopup();
+	}
 }

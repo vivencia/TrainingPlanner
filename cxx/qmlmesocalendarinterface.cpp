@@ -62,14 +62,14 @@ QString QmlMesoCalendarInterface::dayInfo()
 		return QString{};
 
 	m_selectedSplitLetter = std::move(m_calendarModel->splitLetter(m_selectedDate));
-	m_selectedTrainingDay = std::move(m_calendarModel->workoutNumber(m_selectedDate));
+	m_selectedWorkout = std::move(m_calendarModel->workoutNumber(m_selectedDate));
 	emit selectedSplitLetterChanged();
 
 	if (m_selectedSplitLetter.isEmpty())
 		return tr("Selected day is not part of the current mesocycle");
 	else if (m_selectedSplitLetter != "R"_L1)
 		return std::move(appUtils()->formatDate(m_selectedDate)) + std::move(tr(": Workout #")) +
-			m_selectedTrainingDay + std::move(tr(" Split: ")) + m_selectedSplitLetter + " - "_L1 +
+			m_selectedWorkout + std::move(tr(" Split: ")) + m_selectedSplitLetter + " - "_L1 +
 				appMesoModel()->muscularGroup(m_mesoIdx, m_selectedSplitLetter.at(0));
 	else
 		return std::move(appUtils()->formatDate(m_selectedDate)) + std::move(tr(": Rest day"));

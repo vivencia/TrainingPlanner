@@ -24,7 +24,7 @@ TPPage {
 		TPDatePicker {
 			id: datePickerControl
 			startDate: workoutsCalendar.initialDate
-			displayDate: new Date()
+			selectedDate: new Date()
 			endDate: workoutsCalendar.finalDate
 			calendarModel: workoutsCalendar
 			sizeFactor: 6.5

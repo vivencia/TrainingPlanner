@@ -124,7 +124,7 @@ void DBUserModel::createMainUser()
 {
 	if (m_usersData.isEmpty())
 	{
-		m_usersData.insert(0, std::move(QStringList{} << std::move(generateUniqueUserId()) << QString{} << std::move("2424151"_L1) <<
+		m_usersData.insert(0, std::move(QStringList{} << std::move(generateUniqueUserId()) << QString{} << std::move("2429630"_L1) <<
 			"2"_L1 << QString{} << QString{} << QString{} << QString{} << QString{} << QString{} << STR_ZERO << STR_ZERO << STR_ZERO));
 		static_cast<void>(appUtils()->mkdir(localDir(0)));
 		emit userModified(0, USER_MODIFIED_CREATED);
@@ -564,8 +564,8 @@ void DBUserModel::setMainUserConfigurationFinished()
 			onlineCheckIn();
 		sendProfileToServer();
 		sendUserInfoToServer();
-		emit mainUserConfigurationFinished();
 	}
+	emit mainUserConfigurationFinished();
 }
 
 void DBUserModel::sendRequestToCoaches()

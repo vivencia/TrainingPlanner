@@ -20,7 +20,10 @@ Popup {
 	property int finalYPos: 0
 	property int startYPos: 0
 	property alias btnClose: btnCloseWindow
-	property int _pressedKey
+	property int _key_pressed;
+
+	signal keyboardNumberPressed(int key1, int key2);
+	signal keyboardEnterPressed();
 
 	onClosed: {
 		if (!keepAbove)
@@ -70,16 +73,39 @@ Popup {
 		onPositionChanged: (mouse) => positionChangedFunction(mouse);
 	}
 
+	Timer {
+		id: keyPressTimer
+		interval: 800
+	}
+
 	contentItem {
 		Keys.onPressed: (event) => {
-			if (event.key === mainwindow.backKey) {
-				event.accepted = true;
-				close();
-			}
-			else
-			{
-				if (event.key >= Qt.Key_0 && event.key <= Qt.Key_9)
-					_pressedKey = event.key;
+			console.log(event.key);
+			switch (event.key) {
+				case mainwindow.backKey:
+					event.accepted = true;
+					close();
+				break;
+				case Qt.Key_Enter:
+				case Qt.Key_Return:
+					keyboardEnterPressed();
+				break;
+				default:
+					if (event.key >= Qt.Key_0 && event.key <= Qt.Key_9)
+					{
+						if (keyPressTimer.running)
+						{
+							keyPressTimer.stop();
+							keyboardNumberPressed(event.key, _key_pressed);
+						}
+						else
+						{
+							_key_pressed = event.key;
+							keyboardNumberPressed(event.key, -1);
+							keyPressTimer.start();
+						}
+					}
+				break;
 			}
 		}
 	}

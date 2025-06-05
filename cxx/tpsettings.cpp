@@ -89,7 +89,7 @@ void TPSettings::getScreenMeasures()
 	heightToWidthScreenRatio = static_cast<double>(sWidth)/sHeight;
 	screenWidth = std::move(QString::number(sWidth/4));
 	screenHeight = std::move(QString::number(qCeil((sWidth/4) * heightToWidthScreenRatio)));
-	qmlPageHeight = screenHeight;
+	qmlPageHeight = std::move(QString::number(qCeil(0.95 * (qCeil((sWidth/4) * heightToWidthScreenRatio)))));
 #endif
 
 	m_defaultValues[WINDOW_WIDTH_INDEX] = std::move(screenWidth);

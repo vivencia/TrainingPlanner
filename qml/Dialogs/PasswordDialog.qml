@@ -136,6 +136,7 @@ TPPopup {
 	}
 
 	function show(ypos: int): void {
+		passwdDlg.height = 0;
 		passwdDlg.height = lblTitle.height + Math.max(imgElement.height, lblMessage.height) + txtPassword.height + btn1.height + 40;
 		show1(ypos);
 	}

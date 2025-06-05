@@ -175,7 +175,7 @@ TPPage {
 			width: appSettings.pageWidth
 
 			TPLabel {
-				text: exercisesManager.exerciseNameLabel
+				text: exercisesModel.exerciseNameLabel
 				Layout.leftMargin: 5
 				Layout.topMargin: 10
 			}
@@ -192,7 +192,7 @@ TPPage {
 			}
 
 			TPLabel {
-				text: exercisesManager.exerciseSubNameLabel
+				text: exercisesModel.exerciseSpecificsLabel
 				Layout.leftMargin: 5
 			}
 
@@ -209,7 +209,7 @@ TPPage {
 			}
 
 			TPLabel {
-				text: exercisesManager.muscularGroupLabel
+				text: exercisesModel.muscularGroupsLabel
 				Layout.leftMargin: 5
 				Layout.topMargin: 10
 			}
@@ -226,7 +226,7 @@ TPPage {
 			}
 
 			TPLabel {
-				text: exercisesManager.mediaLabel
+				text: exercisesModel.mediaLabel
 				Layout.bottomMargin: 10
 				Layout.topMargin: 10
 				Layout.leftMargin: 5
@@ -245,7 +245,7 @@ TPPage {
 	FileDialog {
 		id: fileDialog
 		title: qsTr("Please choose a media file");
-		nameFilters: [qsTr("PDF Files") + " (*.pdf)", qsTr("Documents") + " (*.doc *.docx *.odt)"]
+		nameFilters: [qsTr("Videos") + " (*.mp4 *.mkv)", qsTr("Images") + " (*.jpg *.jpeg *.png)"]
 		options: FileDialog.ReadOnly
 		currentFolder: StandardPaths.standardLocations(StandardPaths.MoviesLocation)[0]
 		fileMode: FileDialog.OpenFile

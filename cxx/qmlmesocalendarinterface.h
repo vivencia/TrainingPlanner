@@ -58,7 +58,7 @@ private:
 	QVariantMap m_calProperties;
 	DBCalendarModel *m_calendarModel;
 	uint m_mesoIdx;
-	QString m_selectedTrainingDay, m_selectedSplitLetter;
+	QString m_selectedWorkout, m_selectedSplitLetter;
 	QDate m_selectedDate;
 
 	void createMesoCalendarPage();

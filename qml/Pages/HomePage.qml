@@ -51,7 +51,7 @@ TPPage {
 	SwipeView {
 		id: mesoView
 		currentIndex: userModel.mainUserConfigured ? (userModel.isClient(0) ? 0 : 1) : -1
-		interactive: true
+		interactive: userModel.isCoach(0) && userModel.isClient(0)
 		anchors.fill: parent
 
 		onCurrentIndexChanged: {
@@ -88,7 +88,7 @@ TPPage {
 		id: indicator
 		count: mesoView.count
 		currentIndex: mesoView.currentIndex
-		visible: userModel.mainUserConfigured
+		visible: userModel.mainUserConfigured && (userModel.isCoach(0) && userModel.isClient(0))
 		height: 25
 		width: parent.width
 

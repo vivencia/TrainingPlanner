@@ -10,7 +10,7 @@
 #include <utility>
 
 DBExercisesListModel *DBExercisesListModel::app_exercises_list(nullptr);
-constexpr short fieldsNumberInDatabase{EXERCISES_LIST_COL_WEIGHT+1}; //Weight is the last savable field + the Id field
+constexpr short fieldsNumberInDatabase{EXERCISES_LIST_COL_FROMAPPLIST+1}; //FromAppList is the last savable field + the Id field
 
 DBExercisesListModel::DBExercisesListModel(QObject *parent, const bool bMainExercisesModel)
 	: QAbstractListModel{parent}, m_selectedEntryToReplace{0}, m_exercisesTableLastId{-1}, m_bFilterApplied{false}
@@ -23,10 +23,6 @@ DBExercisesListModel::DBExercisesListModel(QObject *parent, const bool bMainExer
 		m_roleNames[mainNameRole] = std::move("mainName");
 		m_roleNames[subNameRole] = std::move("subName");
 		m_roleNames[muscularGroupRole] = std::move("muscularGroup");
-		m_roleNames[nSetsRole] = std::move("nSets");
-		m_roleNames[nRepsRole] = std::move("nReps");
-		m_roleNames[nWeightRole] = std::move("nWeight");
-		m_roleNames[uWeightRole] = std::move("uWeight");
 		m_roleNames[mediaPathRole] = std::move("mediaPath");
 		m_roleNames[fromListRole] = std::move("fromList");
 		m_roleNames[actualIndexRole] = std::move("actualIndex");
@@ -410,9 +406,6 @@ int DBExercisesListModel::exportToFormattedFile(const QString &filename, QFile *
 											[this] () { return exerciseNameLabel(); } <<
 											[this] () { return exerciseSpecificsLabel(); } <<
 											[this] () { return muscularGroupsLabel(); } <<
-											[this] () { return setsLabel(); } <<
-											[this] () { return repsLabel(); } <<
-											[this] () { return weightLabel(); } <<
 											nullptr <<
 											nullptr <<
 											nullptr <<
@@ -518,17 +511,13 @@ int DBExercisesListModel::newExerciseFromFile(const QString &filename, const std
 QVariant DBExercisesListModel::data(const QModelIndex &index, int role) const
 {
 	const int row{index.row()};
-	if(row >= 0  &&row < m_exercisesData.count())
+	if(row >= 0 && row < m_exercisesData.count())
 	{
 		switch(role) {
 			case exerciseIdRole:
 			case mainNameRole:
 			case subNameRole:
 			case muscularGroupRole:
-			case nSetsRole:
-			case nRepsRole:
-			case nWeightRole:
-			case uWeightRole:
 			case mediaPathRole:
 			case actualIndexRole:
 				if (!m_bFilterApplied)
@@ -553,7 +542,7 @@ QVariant DBExercisesListModel::data(const QModelIndex &index, int role) const
 bool DBExercisesListModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
 	const int row{index.row()};
-	if (row >= 0  &&row < m_exercisesData.count())
+	if (row >= 0 && row < m_exercisesData.count())
 	{
 		const int field{role-Qt::UserRole};
 		switch (role) {
@@ -561,17 +550,13 @@ bool DBExercisesListModel::setData(const QModelIndex &index, const QVariant &val
 			case mainNameRole:
 			case subNameRole:
 			case muscularGroupRole:
-			case nSetsRole:
-			case nRepsRole:
-			case nWeightRole:
-			case uWeightRole:
 			case mediaPathRole:
 			case actualIndexRole:
 				if (!m_bFilterApplied)
 					m_exercisesData[row][field] = std::move(value.toString());
 				else
 					m_exercisesData[m_indexProxy.at(row)][field] = std::move(value.toString());
-				emit dataChanged(index, index, QList<int>() << role);
+				emit dataChanged(index, index, QList<int>{} << role);
 				return true;
 
 			case fromListRole:
@@ -580,7 +565,7 @@ bool DBExercisesListModel::setData(const QModelIndex &index, const QVariant &val
 					m_exercisesData[row][field] = value.toBool() ? STR_ONE : STR_ZERO;
 				else
 					m_exercisesData[m_indexProxy.at(row)][field] = value.toBool() ? STR_ONE : STR_ZERO;
-				emit dataChanged(index, index, QList<int>() << role);
+				emit dataChanged(index, index, QList<int>{} << role);
 				return true;
 		}
 	}

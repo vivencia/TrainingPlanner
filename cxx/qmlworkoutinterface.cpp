@@ -259,7 +259,7 @@ void QmlWorkoutInterface::setMesoIdx(const uint new_meso_idx)
 void QmlWorkoutInterface::getWorkoutPage()
 {
 	if (!m_workoutPage)
-		createTrainingDayPage();
+		createWorkoutPage();
 	else
 	{
 		setNeedActivation(true);
@@ -318,14 +318,14 @@ void QmlWorkoutInterface::resetWorkout()
 	m_workoutTimer->prepareTimer();
 }
 
-void QmlWorkoutInterface::exportTrainingDay(const bool bShare)
+void QmlWorkoutInterface::exportWorkout(const bool bShare)
 {
 	const QString &suggestedName{appMesoModel()->name(m_mesoIdx) + tr(" - Workout ") + splitLetter() + ".txt"_L1};
 	const QString &exportFileName{appItemManager()->setExportFileName(suggestedName)};
 	appItemManager()->continueExport(m_workoutModel->exportToFile(exportFileName), bShare);
 }
 
-void QmlWorkoutInterface::importTrainingDay(const QString &filename)
+void QmlWorkoutInterface::importWorkout(const QString &filename)
 {
 	if (filename.isEmpty())
 	{
@@ -580,17 +580,17 @@ void QmlWorkoutInterface::verifyWorkoutOptions()
 	});
 }
 
-void QmlWorkoutInterface::createTrainingDayPage()
+void QmlWorkoutInterface::createWorkoutPage()
 {
 	m_workoutComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/TrainingDayPage.qml"_L1}, QQmlComponent::Asynchronous};
 	if (m_workoutComponent->status() != QQmlComponent::Ready)
 		connect(m_workoutComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status)
-			{ return createTrainingDayPage_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+			{ return createWorkoutPage_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	else
-		createTrainingDayPage_part2();
+		createWorkoutPage_part2();
 }
 
-void QmlWorkoutInterface::createTrainingDayPage_part2()
+void QmlWorkoutInterface::createWorkoutPage_part2()
 {
 	#ifndef QT_NO_DEBUG
 	if (m_workoutComponent->status() == QQmlComponent::Error)
