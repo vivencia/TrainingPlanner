@@ -339,5 +339,5 @@ if (ANDROID)
     FetchContent_MakeAvailable(android_openssl)
     include(/home/guilherme/Android/Sdk/android_openssl/android_openssl.cmake)
 
-    add_android_openssl_libraries(TrainingPlanner)
+	add_android_openssl_libraries(TrainingPlanner)
 endif(ANDROID)

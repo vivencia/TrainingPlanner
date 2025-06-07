@@ -27,7 +27,7 @@ void DBUserTable::createTable()
 {
 	if (openDatabase())
 	{
-		QSqlQuery query{getQuery()};
+		QSqlQuery query{std::move(getQuery())};
 		const QString &strQuery{"CREATE TABLE IF NOT EXISTS users_table ("
 										"userid INTEGER PRIMARY KEY,"
 										"name TEXT,"
@@ -52,7 +52,7 @@ void DBUserTable::getAllUsers()
 	if (openDatabase(true))
 	{
 		bool ok{false};
-		QSqlQuery query{getQuery()};
+		QSqlQuery query{std::move(getQuery())};
 		const QString &strQuery{"SELECT * FROM users_table ORDER BY ROWID"_L1};
 		if (query.exec(strQuery))
 		{
@@ -77,7 +77,7 @@ void DBUserTable::saveUser()
 	if (openDatabase())
 	{
 		bool ok{false};
-		QSqlQuery query{getQuery()};
+		QSqlQuery query{std::move(getQuery())};
 		const uint row{m_execArgs.at(0).toUInt()};
 		bool bUpdate{false};
 		QString strQuery;
@@ -118,7 +118,7 @@ void DBUserTable::removeUser()
 	if (openDatabase())
 	{
 		bool ok{false};
-		QSqlQuery query{getQuery()};
+		QSqlQuery query{std::move(getQuery())};
 		const QString &strQuery("DELETE FROM users_table WHERE userid="_L1 + m_execArgs.at(0).toString());
 		ok = query.exec(strQuery);
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);

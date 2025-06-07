@@ -64,71 +64,18 @@ public:
 	void clearTable();
 	void removeDBFile();
 
-	inline bool openDatabase(const bool bReadOnly = false)
-	{
-		if (bReadOnly)
-			mSqlLiteDB.setConnectOptions("QSQLITE_OPEN_READONLY"_L1);
-		const bool ok{mSqlLiteDB.open()};
-		#ifndef QT_NO_DEBUG
-		if (!ok)
-		{
-			DEFINE_SOURCE_LOCATION
-			ERROR_MESSAGE("Could not open Database file: "_L1, mSqlLiteDB.databaseName())
-		}
-		#endif
-		return ok;
-	}
-
-	inline QSqlQuery getQuery()
-	{
-		QSqlQuery query{mSqlLiteDB};
-		if (!mSqlLiteDB.connectOptions().isEmpty())
-			query.setForwardOnly(true);
-		static_cast<void>(query.exec("PRAGMA page_size = 4096"_L1));
-		static_cast<void>(query.exec("PRAGMA cache_size = 16384"_L1));
-		static_cast<void>(query.exec("PRAGMA temp_store = MEMORY"_L1));
-		static_cast<void>(query.exec("PRAGMA journal_mode = OFF"_L1));
-		static_cast<void>(query.exec("PRAGMA locking_mode = EXCLUSIVE"_L1));
-		static_cast<void>(query.exec("PRAGMA synchronous = 0"_L1));
-		return query;
-	}
+	bool openDatabase(const bool bReadOnly = false);
+	QSqlQuery getQuery() const;
 
 	#ifndef QT_NO_DEBUG
 	#define setQueryResult(result, message, location) \
 		_setQueryResult(result, location, message)
 
-	inline void _setQueryResult(const bool bResultOK, const std::source_location &location, const QString &message = QString{})
-	{
-		mb_result = bResultOK;
-		if (!message.isEmpty())
-		{
-			if (bResultOK)
-				SUCCESS_MESSAGE_WITH_STATEMENT(PRINT_SOURCE_LOCATION)
-			else
-				ERROR_MESSAGE(message, "")
-		}
-		if (mSqlLiteDB.connectOptions().isEmpty()) //optimize after modifying the database
-		{
-			QSqlQuery query{mSqlLiteDB};
-			static_cast<void>(query.exec("VACUUM"_L1));
-			static_cast<void>(query.exec("PRAGMA optimize"_L1));
-		}
-		mSqlLiteDB.close();
-	}
+	void _setQueryResult(const bool bResultOK, const std::source_location &location, const QString &message = QString{});
 	#else
 	#define setQueryResult(result, message, location) \
 		_setQueryResult(result)
-	inline void _setQueryResult(const bool bResultOK)
-	{
-		mb_result = bResultOK;
-		if (mSqlLiteDB.connectOptions().isEmpty()) //optimize after modifying the database
-		{
-			QSqlQuery query{mSqlLiteDB};
-			static_cast<void>(query.exec("VACUUM"_L1));
-			static_cast<void>(query.exec("PRAGMA optimize"_L1));
-		}
-		mSqlLiteDB.close();
-	}
+	void _setQueryResult(const bool bResultOK);
 	#endif
 
 protected:

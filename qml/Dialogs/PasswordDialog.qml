@@ -48,7 +48,7 @@ TPPopup {
 		anchors {
 			left: parent.left
 			leftMargin: 5
-			verticalCenter: lblMessage.height >= 50 ? lblMessage.verticalCenter : parent.verticalCenter
+			verticalCenter: lblMessage.lineCount > 1 ? lblMessage.verticalCenter : parent.verticalCenter
 			top: lblTitle.bottom
 			topMargin: 10
 		}

@@ -31,7 +31,7 @@ void DBWorkoutsOrSplitsTable::createTable()
 {
 	if (openDatabase())
 	{
-		QSqlQuery query{getQuery()};
+		QSqlQuery query{std::move(getQuery())};
 		const QString &strQuery{"CREATE TABLE IF NOT EXISTS %1 ("
 										"id INTEGER PRIMARY KEY AUTOINCREMENT,"
 										"meso_id INTEGER,"
@@ -58,7 +58,7 @@ void DBWorkoutsOrSplitsTable::getExercises()
 	if (openDatabase(true))
 	{
 		bool b_ok{false};
-		QSqlQuery query{getQuery()};
+		QSqlQuery query{std::move(getQuery())};
 		const QString &strQuery{tableId() == WORKOUT_TABLE_ID ?
 					"SELECT * FROM %1 WHERE meso_id=%2 AND calendar_day=%3"_L1.arg(
 											m_tableName, m_model->mesoId(), QString::number(m_model->calendarDay())) :
@@ -86,7 +86,7 @@ void DBWorkoutsOrSplitsTable::saveExercises()
 	{
 		bool ok{false};
 		const QStringList &workoutData{m_model->toDatabase()};
-		QSqlQuery query{getQuery()};
+		QSqlQuery query{std::move(getQuery())};
 		bool bUpdate{false};
 		QString strQuery;
 
@@ -136,7 +136,7 @@ void DBWorkoutsOrSplitsTable::removeExercises()
 {
 	if (openDatabase())
 	{
-		QSqlQuery query{getQuery()};
+		QSqlQuery query{std::move(getQuery())};
 		QString strQuery{tableId() == WORKOUT_TABLE_ID ?
 				std::move("DELETE FROM %1 WHERE meso_id=%2"_L1.arg(m_tableName, m_model->mesoId())) :
 				std::move("DELETE FROM %1 WHERE meso_id=%2"_L1.arg(m_tableName, m_model->mesoId()))
@@ -160,7 +160,7 @@ bool DBWorkoutsOrSplitsTable::mesoHasAllSplitPlans(const QString &meso_id, const
 	bool ok{false};
 	if (openDatabase(true))
 	{
-		QSqlQuery query{getQuery()};
+		QSqlQuery query{std::move(getQuery())};
 		const QString &strQuery{"SELECT setstypes FROM mesosplit_table WHERE meso_id=%1 AND split_letter=\'%2\'"_L1.arg(meso_id)};
 		for (const auto split_letter : split)
 		{
@@ -187,7 +187,7 @@ bool DBWorkoutsOrSplitsTable::mesoHasSplitPlan(const QString &meso_id, const QCh
 	bool ok{false};
 	if (openDatabase(true))
 	{
-		QSqlQuery query{getQuery()};
+		QSqlQuery query{std::move(getQuery())};
 		const QString &strQuery{"SELECT setstypes FROM mesosplit_table WHERE meso_id=%1 AND split_letter=\'%2\'"_L1.arg(meso_id, split_letter)};
 		if (query.exec(strQuery))
 		{
@@ -203,7 +203,7 @@ void DBWorkoutsOrSplitsTable::getPreviousWorkouts()
 {
 	if (openDatabase())
 	{
-		QSqlQuery query{getQuery()};
+		QSqlQuery query{std::move(getQuery())};
 		QString strQuery{"SELECT calendar_day FROM %1 WHERE meso_id=%2 AND split_letter=\'%3\' "
 							"AND calendar_day<%4 ORDER BY calendar_day DESC LIMIT 5"_L1.arg(
 								m_tableName, m_model->mesoId(), m_model->splitLetter(), QString::number(m_model->calendarDay()))};
@@ -236,7 +236,7 @@ void DBWorkoutsOrSplitsTable::getPreviousWorkouts()
 		datesList.chop(1);
 		datesList.append(')');
 
-		QSqlQuery query{getQuery()};
+		QSqlQuery query{std::move(getQuery())};
 		const QString &strQuery{"SELECT exercises,setsreps,setsweights FROM workouts_table WHERE date IN(%1)"_L1.arg(datesList)};
 
 		bool ok(false);

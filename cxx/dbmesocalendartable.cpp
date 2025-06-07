@@ -26,7 +26,7 @@ void DBMesoCalendarTable::createTable()
 {
 	if (openDatabase())
 	{
-		QSqlQuery query{getQuery()};
+		QSqlQuery query{std::move(getQuery())};
 		const QString &strQuery{"CREATE TABLE IF NOT EXISTS mesocycles_calendar_table ("
 										"meso_id INTEGER,"
 										"date TEXT,"
@@ -43,7 +43,7 @@ void DBMesoCalendarTable::getMesoCalendar()
 		bool ok{false};
 		const uint meso_idx{m_execArgs.at(0).toUInt()};
 		QString meso_id{std::move(m_model->mesoId(meso_idx, 0).value())};
-		QSqlQuery query{getQuery()};
+		QSqlQuery query{std::move(getQuery())};
 		const QString &strQuery{"SELECT date,data FROM mesocycles_calendar_table WHERE meso_id="_L1 + meso_id};
 
 		if (query.exec(strQuery))
@@ -71,7 +71,7 @@ void DBMesoCalendarTable::saveMesoCalendar()
 {
 	if (openDatabase())
 	{
-		QSqlQuery query{getQuery()};
+		QSqlQuery query{std::move(getQuery())};
 		const uint meso_idx{m_execArgs.at(0).toUInt()};
 		QString meso_id{std::move(m_model->mesoId(meso_idx, 0).value())};
 		TPBool update;
@@ -136,7 +136,7 @@ void DBMesoCalendarTable::workoutDayInfoForEntireMeso()
 	clearWorkoutsInfoList();
 	if (openDatabase(true))
 	{
-		QSqlQuery query{getQuery()};
+		QSqlQuery query{std::move(getQuery())};
 		const QString &strQuery{"SELECT  *FROM mesocycles_calendar_table WHERE meso_id=%1"_L1.arg(m_execArgs.at(0).toString())};
 		bool ok(false);
 		if (query.exec(strQuery))
@@ -171,7 +171,7 @@ void DBMesoCalendarTable::completedDaysForSplitWithinTimePeriod()
 		const QChar &splitLetter{m_execArgs.at(0).toChar()};
 		const QDate &startDate{m_execArgs.at(1).toDate()};
 		const QDate &endDate{m_execArgs.at(2).toDate()};
-		QSqlQuery query{getQuery()};
+		QSqlQuery query{std::move(getQuery())};
 		const QString &strQuery{"SELECT training_complete,year,month,day FROM mesocycles_calendar_table WHERE training_split=%1 AND "
 			"year>=%2 AND year<=%3 AND month>=%4 AND month<=%5 AND year>=%6 AND year<=%7"_L1.arg(
 				QString(splitLetter), QString::number(startDate.year()), QString::number(endDate.year()), QString::number(startDate.month()),

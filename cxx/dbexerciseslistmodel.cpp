@@ -41,9 +41,8 @@ QString DBExercisesListModel::muscularGroup(const uint index) const
 {
 	const QStringList &groups{m_exercisesData.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_MUSCULARGROUP).split(',')};
 	QString translatedGroups;
-	for (uint i{0}; i < groups.count(); ++i)
+	for (const auto &group : groups)
 	{
-		const QString &group{groups.at(i)};
 		if (group == "quadriceps")
 			translatedGroups += std::move(tr("Quadriceps")) + ", "_L1;
 		else if (group == "hamstrings")
@@ -137,7 +136,7 @@ void DBExercisesListModel::setFilter(const QString &filter)
 		for (const auto &exercise : std::as_const(m_exercisesData))
 		{
 			const QString &subject{exercise.at(EXERCISES_LIST_COL_MUSCULARGROUP)};
-			const QStringList &words_list{filter.split(fancy_record_separator1, Qt::SkipEmptyParts, Qt::CaseInsensitive)};
+			const QStringList &words_list{filter.split(' ', Qt::SkipEmptyParts, Qt::CaseInsensitive)};
 			for (const auto &word : words_list)
 			{
 				if (subject.contains(word, Qt::CaseInsensitive))

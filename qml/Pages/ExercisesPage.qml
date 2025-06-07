@@ -221,7 +221,6 @@ TPPage {
 				Layout.rightMargin: 20
 				Layout.leftMargin: 10
 
-				onEnterOrReturnKeyPressed: txtNSets.forceActiveFocus();
 				onEditingFinished: exercisesModel.setMuscularGroup(exercisesModel.currentRow, text);
 			}
 

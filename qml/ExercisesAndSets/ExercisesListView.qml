@@ -13,7 +13,7 @@ Column {
 	spacing: 5
 
 	required property Item parentPage
-	property int seconds
+	property int miliseconds
 	property bool bMultipleSelection: false
 	property bool canDoMultipleSelection: false
 
@@ -36,13 +36,13 @@ Column {
 		property int idxToRemove
 
 		onTriggered: {
-			if ( seconds === 0 ) {
+			if (miliseconds === 0) {
 				undoTimer.stop();
 				const newrow = itemManager.removeExercise(idxToRemove)
 				simulateMouseClick(newrow, true);
 			}
 			else {
-				seconds = seconds - 1000;
+				miliseconds -= 1000;
 				start();
 			}
 		}
@@ -210,7 +210,7 @@ Column {
 				}
 
 				Label {
-					text: qsTr("Removing in ") + parseInt(seconds/1000) + "s"
+					text: qsTr("Removing in ") + parseInt(miliseconds/1000) + "s"
 					color: appSettings.fontColor
 					padding: 40
 					anchors.fill: parent
@@ -226,7 +226,7 @@ Column {
 			} //swipe.right
 
 			swipe.onCompleted: {
-				seconds = 4000;
+				miliseconds = 4000;
 				undoTimer.init(index);
 			}
 		} // SwipeDelegate
@@ -265,8 +265,15 @@ Column {
 			var component = Qt.createComponent("qrc:/qml/Dialogs/MuscularGroupPicker.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				filterDlg = component.createObject(mainwindow, { parentPage: mainItem.parentPage });
-				filterDlg.muscularGroupCreated.connect(function(filterStr) { exercisesModel.setFilter(filterStr); });
+				filterDlg = component.createObject(mainwindow, { parentPage: mainItem.parentPage, groupsSeparator: ", " });
+				filterDlg.muscularGroupCreated.connect(function(filterStr) {
+									let temp_filter = filterStr;
+									do {
+										filterStr = temp_filter;
+										temp_filter = temp_filter.replace(", ", " ");
+									} while (temp_filter !== filterStr);
+									exercisesModel.setFilter(filterStr);
+				});
 			}
 
 			if (component.status === Component.Ready)
@@ -274,6 +281,6 @@ Column {
 			else
 				component.statusChanged.connect(finishCreation);
 		}
-		filterDlg.show(btnMuscularGroups, 3);
+		filterDlg.show(exercisesModel.muscularGroup(exercisesModel.currentRealRow()), btnMuscularGroups, 3);
 	}
 }

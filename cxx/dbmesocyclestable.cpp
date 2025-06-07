@@ -25,7 +25,7 @@ void DBMesocyclesTable::createTable()
 {
 	if (openDatabase())
 	{
-		QSqlQuery query{getQuery()};
+		QSqlQuery query{std::move(getQuery())};
 		const QString &strQuery{"CREATE TABLE IF NOT EXISTS mesocycles_table ("
 										"id INTEGER PRIMARY KEY AUTOINCREMENT,"
 										"meso_name TEXT,"
@@ -51,7 +51,7 @@ void DBMesocyclesTable::getAllMesocycles()
 	if (openDatabase(true))
 	{
 		bool ok{false};
-		QSqlQuery query{getQuery()};
+		QSqlQuery query{std::move(getQuery())};
 		const QString &strQuery{"SELECT * FROM mesocycles_table ORDER BY ROWID"_L1};
 
 		if (query.exec(strQuery))
@@ -76,7 +76,7 @@ void DBMesocyclesTable::saveMesocycle()
 	if (openDatabase())
 	{
 		bool ok{false};
-		QSqlQuery query{getQuery()};
+		QSqlQuery query{std::move(getQuery())};
 		const uint row{m_execArgs.at(0).toUInt()};
 		bool bUpdate{false};
 		QString strQuery;

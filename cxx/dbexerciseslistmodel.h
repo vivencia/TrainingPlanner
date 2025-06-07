@@ -95,6 +95,7 @@ public:
 
 	inline uint count() const { return m_indexProxy.count(); }
 	inline int currentRow() const { return m_currentRow; }
+	Q_INVOKABLE inline int currentRealRow() const { return m_exercisesData[m_indexProxy.at(m_currentRow)][EXERCISES_LIST_COL_SELECTED].toUInt(); }
 	void setCurrentRow(const int row);
 
 	Q_INVOKABLE void newExercise(const QString &name = QString{}, const QString &subname = QString{},

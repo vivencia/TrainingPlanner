@@ -286,8 +286,9 @@ Pane {
 		if (filterDlg === null) {
 			let component = Qt.createComponent("qrc:/qml/Dialogs/MuscularGroupPicker.qml", Qt.Asynchronous);
 
-			function finishCreation() {
-				filterDlg = component.createObject(mainwindow, { parentPage: mesoPropertiesPage, buttonLabel: qsTr("Define"), useFancyNames: true });
+			function finishCreation() { //use fancy_record_separator1 as groupsSeparator
+				filterDlg = component.createObject(mainwindow, { parentPage: mesoPropertiesPage, groupsSeparator: '|',
+									buttonLabel: qsTr("Define"), useFancyNames: true });
 			}
 
 			if (component.status === Component.Ready)
