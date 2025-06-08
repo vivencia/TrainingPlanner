@@ -175,7 +175,7 @@ set( QML_SOURCES
     "qml/Pages/ClientsPage.qml"
 	"qml/Pages/CoachesPage.qml"
     "qml/Pages/ConfigurationPage.qml"
-	"qml/Pages/ExercisesPage.qml"
+    "qml/Pages/ExercisesListPage.qml"
     "qml/Pages/ExercisesPlanner.qml"
     "qml/Pages/HomePage.qml"
     "qml/Pages/HomePageElements/MesosList.qml"

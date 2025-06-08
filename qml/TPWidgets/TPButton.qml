@@ -11,7 +11,7 @@ Rectangle {
 	radius: rounded ? height : 6
 	opacity: checked ? 0.7 : 1
 	color: backgroundColor
-	height: 25
+	height: appSettings.itemDefaultHeight
 	width: defaultWidth()
 
 	property color textColor: appSettings.fontColor
@@ -31,7 +31,7 @@ Rectangle {
 	property bool checked: false
 	property bool autoResize: false
 	property int clickId: -1
-	property int imageSize: textUnderIcon ? fixedSize ? height/2 : 25 : height
+	property int imageSize: textUnderIcon ? fixedSize ? height/2 : height : height
 
 	//Local variables. Do not use outside this file
 	property bool _canResize: true
@@ -43,7 +43,7 @@ Rectangle {
 	signal check(int clickid);
 
 	function defaultWidth(): int {
-		return buttonText._textWidth + (textUnderIcon ? 0 : (imageSource.length > 0 ? imageSize : 0)) + 10;
+		return buttonText._textWidth + (textUnderIcon ? 0 : (imageSource.length > 0 ? imageSize : 0)) + 50;
 	}
 
 	onImageSourceChanged: {
@@ -151,7 +151,6 @@ Rectangle {
 			if (!fixedSize) {
 				_canResize = false;
 				width = _textWidth;
-				button.width = _textWidth + (textUnderIcon ? 10 : (imageSource.length > 0 ? imageSize : 0)) + 20
 			}
 			else {
 				width = defaultWidth();
@@ -226,7 +225,7 @@ Rectangle {
 
 	function anchorComponents(): void {
 		if (imageSource.length > 0) {
-			if (!buttonText.bCompleted && !_buttonImage)
+			if (!buttonText.bCompleted || !_buttonImage)
 				return;
 			if (button.text.length === 0) {
 				fixedSize = true;
@@ -237,18 +236,20 @@ Rectangle {
 			if (!textUnderIcon) {
 				buttonText.anchors.verticalCenter = button.verticalCenter;
 				_buttonImage.anchors.verticalCenter = button.verticalCenter;
-				//if (hasDropShadow)
-					//_buttonImage.anchors.verticalCenterOffset = 5;
+				if (fixedSize)
+					buttonText.anchors.horizontalCenter = button.horizontalCenter;
+				else
+					buttonText.anchors.left = button.left;
 
-				buttonText.anchors.horizontalCenter = button.horizontalCenter;
-				buttonText.anchors.verticalCenter = button.verticalCenter;
 				if (!rightAlignIcon) {
-					buttonText.anchors.horizontalCenterOffset = -imageSize/2;
-					_buttonImage.anchors.left = buttonText.right;
+					//if (fixedSize)
+					//	buttonText.anchors.horizontalCenterOffset = -imageSize/2;
+					_buttonImage.anchors.right = button.right
 				}
 				else {
-					buttonText.anchors.horizontalCenterOffset = imageSize/2;
-					_buttonImage.anchors.right = buttonText.left;
+					//if (fixedSize)
+					//	buttonText.anchors.horizontalCenterOffset = imageSize/2;
+					_buttonImage.anchors.left = buttonText.right;
 				}
 			}
 			else {

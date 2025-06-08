@@ -4,8 +4,8 @@ import QtQuick.Controls
 import "../"
 
 Rectangle {
-	width: 25
-	height: 35
+	width: appSettings.itemDefaultHeight
+	height: appSettings.itemDefaultHeight*1.2
 	color: appSettings.primaryColor
 	enabled: false
 

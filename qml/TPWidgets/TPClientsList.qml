@@ -42,7 +42,7 @@ Item {
 			spacing: 0
 			padding: 5
 			width: parent.width
-			height: 25
+			height: appSettings.itemDefaultHeight
 
 			contentItem: Text {
 				text: modelData
@@ -70,7 +70,6 @@ Item {
 
 	RowLayout {
 		uniformCellSizes: true
-		height: 25
 		visible: userModel.haveClients
 
 		anchors {

@@ -153,9 +153,10 @@ public:
 
 	Q_INVOKABLE inline uint sex(const int user_idx) const { return user_idx >= 0 && user_idx < m_usersData.count() ? _sex(user_idx).toUInt() : 2; }
 	inline const QString &_sex(const uint user_idx) const { return m_usersData.at(user_idx).at(USER_COL_SEX); }
-	Q_INVOKABLE void setSex(const int user_idx, const uint new_sex)
+	Q_INVOKABLE void setSex(const int user_idx, const bool male)
 	{
-		m_usersData[user_idx][USER_COL_SEX] = QString::number(new_sex);
+		m_usersData[user_idx][USER_COL_SEX] = male ? '0' : '1';
+		setAvatar(user_idx, (male ? "image://tpimageprovider/m0"_L1 : "image://tpimageprovider/f1"_L1));
 		emit userModified(user_idx, USER_COL_SEX);
 	}
 
@@ -215,10 +216,6 @@ public:
 	Q_INVOKABLE inline QString avatarFromId(const QString &userid) { return avatar(userIdxFromFieldValue(USER_COL_ID, userid)); }
 	Q_INVOKABLE QString avatar(const uint user_idx, const bool checkServer = true);
 	Q_INVOKABLE void setAvatar(const int user_idx, const QString &new_avatar, const bool saveToDisk = true, const bool upload = true);
-	Q_INVOKABLE inline QString defaultAvatar(const uint user_idx) const
-	{
-		return sex(user_idx) == 0 ? "image://tpimageprovider/m0"_L1 : "image://tpimageprovider/f1"_L1;
-	}
 
 	Q_INVOKABLE inline uint appUseMode(const int user_idx) const { return user_idx >= 0 && user_idx < m_usersData.count() ? _appUseMode(user_idx).toUInt() : 0; }
 	inline const QString &_appUseMode(const uint user_idx) const { return m_usersData.at(user_idx).at(USER_COL_APP_USE_MODE); }
@@ -332,6 +329,10 @@ private:
 	void sendProfileToServer();
 	void sendUserInfoToServer();
 	inline void sendAvatarToServer() { sendFileToServer(avatar(0), QString{}, QString{}, userId(0)); }
+	inline QString defaultAvatar(const uint user_idx) const
+	{
+		return sex(user_idx) == 0 ? "image://tpimageprovider/m0"_L1 : "image://tpimageprovider/f1"_L1;
+	}
 	void downloadAvatarFromServer(const uint user_idx);
 	void downloadResumeFromServer(const uint user_idx);
 	void copyTempUserFilesToFinalUserDir(const QString &destDir, OnlineUserInfo *userInfo, const int userInfouser_idx) const;

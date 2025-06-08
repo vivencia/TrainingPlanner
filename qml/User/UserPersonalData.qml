@@ -225,6 +225,7 @@ Frame {
 			id: chkMale
 			text: qsTr("Male")
 			actionable: userRow === 0
+			checked: userModel.sex() === 0
 			height: controlsHeight
 			width: frmSex.width/2
 
@@ -232,8 +233,7 @@ Frame {
 				bSexOK = true;
 				if (chkFemale.checked) {
 					chkFemale.checked = false
-					userModel.setSex(userRow, 0);
-					userModel.setAvatar(userRow, userModel.defaultAvatar());
+					userModel.setSex(userRow, true);
 				}
 			}
 
@@ -248,6 +248,7 @@ Frame {
 			id: chkFemale
 			text: qsTr("Female")
 			actionable: userRow === 0
+			checked: userModel.sex() === 1
 			height: controlsHeight
 			width: frmSex.width/2
 
@@ -255,8 +256,7 @@ Frame {
 				bSexOK = true;
 				if (chkMale.checked) {
 					chkMale.checked = false;
-					userModel.setSex(userRow, 1);
-					userModel.setAvatar(userRow, userModel.defaultAvatar());
+					userModel.setSex(userRow, false);
 				}
 			}
 

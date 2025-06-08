@@ -142,13 +142,11 @@ TPPage {
 			} //Loader
 
 			TPLabel {
-				text: mesoManager.nameLabel
+				text: mesocyclesModel.mesoNameLabel
 				Layout.topMargin: 10
 
-				TPButton {
-					imageSource: "set-completed"
-					fixedSize: true
-					checkable: true
+				TPImage {
+					source: "set-completed"
 					visible: mesoManager.isNewMeso
 					enabled: mesoManager.mesoNameOK
 					height: 25
@@ -157,14 +155,6 @@ TPPage {
 					anchors {
 						left: parent.right
 						verticalCenter: parent.verticalCenter
-					}
-
-					onCheck: {
-						txtMesoName.readOnly = checked;
-						if (checked)
-							mesoManager.acceptName();
-						else
-							txtMesoName.forceActiveFocus();
 					}
 				}
 			}
@@ -177,7 +167,7 @@ TPPage {
 				width: 0.9*parent.width
 				Layout.preferredWidth: width
 
-				onEditingFinished: mesoManager.name = text;
+				onTextEdited: mesoManager.name = text;
 				onEnterOrReturnKeyPressed: cboMesoType.forceActiveFocus();
 			}
 
@@ -186,7 +176,7 @@ TPPage {
 				Layout.fillWidth: true
 
 				TPLabel {
-					text: mesoManager.typeLabel
+					text: mesocyclesModel.typeLabel
 					width: 0.2*parent.width
 				}
 
@@ -239,7 +229,7 @@ TPPage {
 
 			TPTextInput {
 				id: txtMesoFile
-				text: mesoManager.fileName
+				text: mesoManager.displayFileName
 				readOnly: true
 				ToolTip.text: mesoManager.fileName
 				width: 0.8*parent.width
@@ -266,46 +256,37 @@ TPPage {
 						currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
 						fileMode: FileDialog.OpenFile
 
-						onAccepted: mesoManager.file = appUtils.getCorrectPath(selectedFile);
+						onAccepted: mesoManager.fileName = appUtils.getCorrectPath(selectedFile);
 					}
 				}
 
 				TPButton {
 					id: btnOpenMesoFile
 					imageSource: txtMesoFile.text.indexOf("pdf") !== -1 ? "pdf-icon" : "doc-icon"
-					visible: appUtils.canReadFile(mesoManager.file)
+					visible: appUtils.canReadFile(mesoManager.fileName)
 
 					anchors {
 						left: btnChooseMesoFile.right
 						verticalCenter: parent.verticalCenter
 					}
 
-					onClicked: osInterface.viewExternalFile(mesoManager.file);
+					onClicked: osInterface.viewExternalFile(mesoManager.fileName);
 				}
 			}
 
 			TPLabel {
-				text: mesoManager.startDateLabel
+				text: mesocyclesModel.startDateLabel
 
-				TPButton {
-					imageSource: "set-completed"
-					checkable: true
-					fixedSize: true
+				TPImage {
+					source: "set-completed"
 					visible: mesoManager.isNewMeso
+					enabled: mesoManager.startDateOK
 					height: 25
 					width: 25
 
 					anchors {
 						left: parent.right
 						verticalCenter: parent.verticalCenter
-					}
-
-					onCheck: {
-						btnStartDate.enabled = !checked;
-						if (checked)
-							mesoManager.acceptStartDate();
-						else
-							caldlg.open();
 					}
 				}
 			}
@@ -351,28 +332,17 @@ TPPage {
 			}
 
 			TPLabel {
-				text: mesoManager.endDateLabel
+				text: mesocyclesModel.endDateLabel
 				visible: mesoManager.realMeso
 
-				TPButton {
-					imageSource: "set-completed"
-					checkable: true
-					fixedSize: true
+				TPImage {
+					source: "set-completed"
 					visible: mesoManager.isNewMeso
-					height: 25
-					width: 25
+					enabled: mesoManager.endDateOK
 
 					anchors {
 						left: parent.right
 						verticalCenter: parent.verticalCenter
-					}
-
-					onCheck: {
-						btnEndDate.enabled = !checked;
-						if (checked)
-							mesoManager.acceptEndDate();
-						else
-							caldlg2.open();
 					}
 				}
 			}
@@ -410,7 +380,7 @@ TPPage {
 
 			TPLabel {
 				id: lblnWeeks
-				text: mesoManager.weeksLabel
+				text: mesocyclesModel.nWeeksLabel
 				visible: mesoManager.realMeso
 			}
 
@@ -431,7 +401,7 @@ TPPage {
 			}
 
 			TPLabel {
-				text: mesoManager.notesLabel
+				text: mesocyclesModel.notesLabel
 				Layout.topMargin: 10
 			}
 

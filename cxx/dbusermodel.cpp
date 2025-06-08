@@ -245,8 +245,8 @@ void DBUserModel::setAvatar(const int user_idx, const QString &new_avatar, const
 				sendAvatarToServer();
 			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 			return;
+			sendAvatarToServer();
 		}
-		sendAvatarToServer();
 	}
 }
 

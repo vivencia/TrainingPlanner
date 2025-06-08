@@ -24,9 +24,9 @@ Item {
 
 	Rectangle {
 		id: indicator
-		implicitWidth: 20
-		implicitHeight: 20
-		radius: 10
+		implicitWidth: appSettings.itemDefaultHeight * 0.8
+		implicitHeight: implicitWidth
+		radius: implicitWidth/2
 		color: "transparent"
 		border.color: control.enabled ? textColor : appSettings.disabledFontColor
 
@@ -37,11 +37,11 @@ Item {
 
 		Rectangle {
 			id: recChecked
-			width: 14
-			height: 14
-			x: 3
-			y: 3
-			radius: 7
+			width: appSettings.itemDefaultHeight*0.5
+			height: width
+			radius: width*0.5
+			x: (indicator.implicitWidth - width)*0.5
+			y: x
 			border.color: control.enabled ? textColor : appSettings.disabledFontColor
 			visible: control.checked
 		}
@@ -86,8 +86,11 @@ Item {
 		z: 2
 
 		onClicked: {
-			control.checked = !control.checked;
-			control.clicked();
+			if (!control.checked)
+			{
+				control.checked = true;
+				control.clicked();
+			}
 		}
 
 		onPressAndHold: control.pressAndHold();

@@ -29,7 +29,6 @@ TPPopup {
 		TPLabel {
 			id: lblChooseImage
 			text: qsTr("Choose another image...")
-			height: 25
 			topPadding: 5
 			leftPadding: 10
 			width: parent.width*0.4
@@ -43,8 +42,8 @@ TPPopup {
 		TPButton {
 			id: btnChooseImage
 			imageSource: "choose_avatar"
-			width: 25
-			height: 25
+			width: appSettings.itemDefaultHeight
+			height: appSettings.itemDefaultHeight
 
 			anchors {
 				left: lblChooseImage.right

@@ -82,8 +82,13 @@ public:
 	QMLMesoInterface *mesoManager(const uint meso_idx);
 	DBExercisesModel *splitModel(const uint meso_idx, const QChar &split_letter, const bool auto_load = true);
 
+	uint startNewMesocycle(const bool bCreatePage, const std::optional<bool> bOwnMeso = std::nullopt);
+	Q_INVOKABLE inline void startNewMesocycle_QML(const bool bCreatePage, const bool bOwnMeso)
+	{
+		static_cast<void>(startNewMesocycle(bCreatePage, bOwnMeso));
+	}
+
 	Q_INVOKABLE void getMesocyclePage(const uint meso_idx);
-	Q_INVOKABLE uint startNewMesocycle(const bool bCreatePage, const std::optional<bool> bOwnMeso = std::nullopt);
 	Q_INVOKABLE void removeMesocycle(const uint meso_idx);
 	Q_INVOKABLE void getExercisesPlannerPage(const uint meso_idx);
 	Q_INVOKABLE void getMesoCalendarPage(const uint meso_idx);

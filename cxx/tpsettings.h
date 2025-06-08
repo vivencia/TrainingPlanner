@@ -29,9 +29,10 @@
 #define LARGEFONT_SIZE_INDEX 22
 #define EXTRALARGEFONT_SIZE_INDEX 23
 #define COLOR_SCHEME_INDEX 24
+#define ITEM_DEFAULT_HEIGHT 25
 
-#define ASK_CONFIRMATION_INDEX 25
-#define WEATHER_CITIES_INDEX 26
+#define ASK_CONFIRMATION_INDEX 26
+#define WEATHER_CITIES_INDEX 27
 
 #define SETTINGS_FIELD_COUNT WEATHER_CITIES_INDEX + 1
 
@@ -51,6 +52,10 @@ Q_PROPERTY(uint smallFontSize READ smallFontSize NOTIFY fontSizeChanged)
 Q_PROPERTY(uint largeFontSize READ largeFontSize NOTIFY fontSizeChanged)
 Q_PROPERTY(uint extraLargeFontSize READ extraLargeFontSize NOTIFY fontSizeChanged)
 Q_PROPERTY(uint colorScheme READ colorScheme WRITE setColorScheme NOTIFY colorChanged)
+Q_PROPERTY(uint itemDefaultHeight READ itemDefaultHeight NOTIFY fontSizeChanged FINAL)
+Q_PROPERTY(uint itemSmallHeight READ itemSmallHeight NOTIFY fontSizeChanged FINAL)
+Q_PROPERTY(uint itemLargeHeight READ itemLargeHeight NOTIFY fontSizeChanged FINAL)
+Q_PROPERTY(uint itemExtraLargeHeight READ itemExtraLargeHeight NOTIFY fontSizeChanged FINAL)
 
 Q_PROPERTY(QString appVersion READ appVersion CONSTANT)
 Q_PROPERTY(QString appLocale READ appLocale WRITE setAppLocale NOTIFY appLocaleChanged)
@@ -117,6 +122,10 @@ public:
 	inline uint smallFontSize() const { return m_defaultValues.at(SMALLFONT_SIZE_INDEX).toUInt(); }
 	inline uint largeFontSize() const { return m_defaultValues.at(LARGEFONT_SIZE_INDEX).toUInt(); }
 	inline uint extraLargeFontSize() const { return m_defaultValues.at(EXTRALARGEFONT_SIZE_INDEX).toUInt(); }
+	inline uint itemDefaultHeight() const { return m_defaultValues.at(ITEM_DEFAULT_HEIGHT).toUInt(); }
+	inline uint itemSmallHeight() const { return static_cast<uint>(qFloor(static_cast<float>(m_defaultValues.at(ITEM_DEFAULT_HEIGHT).toUInt())*0.8)); }
+	inline uint itemLargeHeight() const { return static_cast<uint>(qFloor(static_cast<float>(m_defaultValues.at(ITEM_DEFAULT_HEIGHT).toUInt())*1.5)); }
+	inline uint itemExtraLargeHeight() const { return static_cast<uint>(qFloor(static_cast<float>(m_defaultValues.at(ITEM_DEFAULT_HEIGHT).toUInt())*2)); }
 
 	inline QString weightUnit() const { return value(m_propertyNames.value(WEIGHT_UNIT_INDEX), m_defaultValues.at(WEIGHT_UNIT_INDEX)).toString(); }
 	inline void setWeightUnit(const QString &new_value) { changeValue(WEIGHT_UNIT_INDEX, new_value); emit weightUnitChanged(); }

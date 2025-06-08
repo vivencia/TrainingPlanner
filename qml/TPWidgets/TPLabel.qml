@@ -15,10 +15,15 @@ Label {
 	width: _preferredWidth
 	height: _preferredHeight
 	verticalAlignment: Text.AlignVCenter
+	topInset: 0
+	bottomInset: 0
+	leftInset: 0
+	rightInset: 0
+	padding: 0
 
 	property string fontColor: appSettings.fontColor
 	property int widthAvailable: appSettings.pageWidth - 20
-	property int heightAvailable: 25
+	property int heightAvailable: appSettings.itemDefaultHeight
 	property bool singleLine: wrapMode === Text.NoWrap ? true : width > _textWidth
 	property int lineCount: singleLine ? 1 : Math.ceil(_textWidth/width) + 1
 	property int _textWidth
@@ -39,14 +44,15 @@ Label {
 	}
 
 	function preferredHeight(): int {
-		return heightAvailable != 25 ? Math.min(preferredLineCount() * _textHeight, heightAvailable) : preferredLineCount() * _textHeight;
+		return heightAvailable !== appSettings.itemDefaultHeight ?
+						Math.min(preferredLineCount() * _textHeight, heightAvailable) : preferredLineCount() * _textHeight;
 	}
 
-	/*Rectangle {
+	Rectangle {
 		border.color: appSettings.fontColor
 		color: "transparent"
 		anchors.fill: parent
-	}*/
+	}
 
 	onTextChanged: text => {
 		if (text.length > 0)

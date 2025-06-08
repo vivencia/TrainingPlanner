@@ -294,7 +294,6 @@ Item {
 
 	TPToolBar {
 		id: quickActionToolbar
-		width: parent.width
 		height: parent.height*0.2
 
 		anchors {
@@ -305,10 +304,11 @@ Item {
 
 		TPButton {
 			id: btnAddMeso
+			objectName: "tralala"
 			text: qsTr("New Training Program")
 			imageSource: "mesocycle-add.png"
-			backgroundColor: "transparent"
-			width: parent.width
+			flat: false
+//			backgroundColor: "transparent"
 
 			anchors {
 				horizontalCenter: parent.horizontalCenter
@@ -316,13 +316,14 @@ Item {
 				verticalCenterOffset: mainUserPrograms ? -30 : -15
 			}
 
-			onClicked: mesocyclesModel.startNewMesocycle(true, mainUserPrograms);
+			onClicked: mesocyclesModel.startNewMesocycle_QML(true, mainUserPrograms);
 		}
 
 		TPButton {
 			id: btnImportMeso
 			text: qsTr("Import program from file")
 			imageSource: "import.png"
+			fixedSize: true
 			backgroundColor: "transparent"
 			width: parent.width
 
@@ -339,6 +340,7 @@ Item {
 			id: btnWorkout
 			text: qsTr("Today's workout")
 			imageSource: "workout.png"
+			fixedSize: true
 			backgroundColor: "transparent"
 			visible: mainUserPrograms
 			enabled: mesocyclesModel.canHaveTodaysWorkout

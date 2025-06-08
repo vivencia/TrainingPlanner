@@ -9,7 +9,6 @@ TextField {
 	font.weight: Font.Bold
 	color: enabled ? textColor : appSettings.disabledFontColor
 	wrapMode: heightAdjustable ? TextInput.WordWrap : TextInput.NoWrap
-	verticalAlignment: suggestedHeight === 25 ? Text.AlignVCenter : Text.AlignTop
 	validator: RegularExpressionValidator { regularExpression: /^[^#!?&="']*$/ }
 	leftInset: 0
 	rightInset: 0
@@ -25,7 +24,7 @@ TextField {
 	property string textColor: appSettings.fontColor
 	property string backgroundColor: appSettings.primaryDarkColor
 	property bool heightAdjustable: true
-	property int suggestedHeight: 25
+	property int suggestedHeight: appSettings.itemDefaultHeight
 
 	readonly property FontMetrics currentFontMetrics: FontMetrics {
 		font.family: control.font.family
@@ -83,9 +82,9 @@ TextField {
 	onWidthChanged: adjustHeight();
 
 	function adjustHeight(): void {
-		if (heightAdjustable && width >= 100 && text.length > 20) {
+		if (heightAdjustable && text.length > 20) {
 			const textWidth = currentFontMetrics.boundingRect(text).width;
-			height = implicitHeight = textWidth > width ? (Math.ceil(textWidth/width) - 1) * suggestedHeight : suggestedHeight;
+			height = implicitHeight = textWidth > width ? (Math.ceil(textWidth/width) + 1) * suggestedHeight : suggestedHeight;
 		}
 		else
 			height = implicitHeight = suggestedHeight;

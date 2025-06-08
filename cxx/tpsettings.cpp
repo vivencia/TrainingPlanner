@@ -19,9 +19,9 @@ enum ColorSchemes {
 
 constexpr uint QML_PROPERTIES(25);
 
-TPSettings* TPSettings::app_settings(nullptr);
+TPSettings *TPSettings::app_settings(nullptr);
 
-TPSettings::TPSettings(QObject* parent) : QSettings{parent}
+TPSettings::TPSettings(QObject *parent) : QSettings{parent}
 {
 	TPSettings::app_settings = this;
 
@@ -248,14 +248,15 @@ QString TPSettings::darkColorForScheme(const uint scheme) const
 
 void TPSettings::setFontSize(const uint new_value, const bool bFromQml)
 {
-	const uint fontSizeSmall{static_cast<uint>(qFloor(static_cast<float>(new_value*0.8)))};
-	const uint fontSizeLarge{static_cast<uint>(qFloor(static_cast<float>(new_value*1.5)))};
+	const uint fontSizeSmall{static_cast<uint>(qFloor(static_cast<float>(new_value)*0.8))};
+	const uint fontSizeLarge{static_cast<uint>(qFloor(static_cast<float>(new_value)*1.5))};
 	const uint fontSizeExtraLarge{static_cast<uint>(new_value*2)};
 
 	m_defaultValues[FONT_SIZE_INDEX] = std::move(QString::number(new_value));
 	m_defaultValues[SMALLFONT_SIZE_INDEX] = std::move(QString::number(fontSizeSmall));
 	m_defaultValues[LARGEFONT_SIZE_INDEX] = std::move(QString::number(fontSizeLarge));
 	m_defaultValues[EXTRALARGEFONT_SIZE_INDEX] = std::move(QString::number(fontSizeExtraLarge));
+	m_defaultValues[ITEM_DEFAULT_HEIGHT] = std::move(QString::number(static_cast<uint>(qCeil(static_cast<float>(new_value)*1.5))));
 
 	if (bFromQml)
 	{
@@ -288,7 +289,7 @@ QGeoCoordinate TPSettings::weatherCityCoordinates(const uint idx)
 
 void TPSettings::addWeatherCity(const QString &city, const QString &latitude, const QString &longitude)
 {
-	for (const auto &location: m_weatherLocations)
+	for (const auto &location: std::as_const(m_weatherLocations))
 	{
 		if (location.contains(city, Qt::CaseInsensitive))
 			return;

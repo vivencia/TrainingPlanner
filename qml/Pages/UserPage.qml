@@ -11,6 +11,8 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 TPPage {
 	id: userPage
 	objectName: "userPage"
+	implicitWidth: appSettings.pageWidth
+	implicitHeight: appSettings.pageHeight
 
 	property UserManager userManager
 	property int useMode

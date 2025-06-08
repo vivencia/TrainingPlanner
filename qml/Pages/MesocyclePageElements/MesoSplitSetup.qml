@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 import "../../TPWidgets"
 import "../../Dialogs"
@@ -20,36 +21,54 @@ Pane {
 	readonly property int col3Width: appSettings.pageWidth*0.65
 	readonly property list<string> daysOfWeek: [qsTr("Mon"), qsTr("Tue"), qsTr("Wed"), qsTr("Thu"), qsTr("Fri"), qsTr("Sat"), qsTr("Sun")]
 
-	readonly property bool bMesoSplitTextOK: mesoSplitText.indexOf('R') !== -1
 	property bool bMesoSplitChanged: false
 
 	background: Rectangle {
 		color: "transparent"
 	}
 
-	TPLabel {
-		id: lblMesoSplit
-		text: mesoManager.splitLabel
-		widthAvailable: parent.width*0.6
+	RowLayout {
+		id: splitRow
 
 		anchors {
 			top: parent.top
 			left: parent.left
-		}
-	}
-
-	TPTextInput {
-		id: txtMesoSplit
-		text: mesoManager.split
-		ToolTip.text: qsTr("On any training program, there should be at least one rest day(R) per week")
-		ToolTip.visible: !bMesoSplitTextOK
-		readOnly: true
-		width: parent.width*0.3
-
-		anchors {
-			top: parent.top
 			right: parent.right
-			rightMargin: 20
+		}
+
+		TPLabel {
+			id: lblMesoSplit
+			text: mesocyclesModel.splitLabel
+			widthAvailable: parent.width*0.5
+			Layout.minimumWidth: widthAvailable
+			Layout.maximumWidth: widthAvailable
+		}
+
+		TPTextInput {
+			id: txtMesoSplit
+			text: mesoManager.split
+			ToolTip.text: qsTr("On any training program, there should be at least one rest day(R) per week and one training day(A-F)")
+			ToolTip.visible: mesoManager.splitOK
+			ToolTip.timeout: 5000
+			readOnly: true
+			width: parent.width*0.4
+			Layout.minimumWidth: width
+			Layout.maximumWidth: width
+
+			onTextChanged: mesoManager.split = text;
+
+			TPImage {
+				source: "set-completed"
+				visible: mesoManager.isNewMeso
+				enabled: mesoManager.splitOK
+				height: 25
+				width: 25
+
+				anchors {
+					left: parent.right
+					verticalCenter: parent.verticalCenter
+				}
+			}
 		}
 	}
 
@@ -57,7 +76,7 @@ Pane {
 		id: mainLayout
 
 		anchors {
-			top: txtMesoSplit.bottom
+			top: splitRow.bottom
 			topMargin: 15
 			left: parent.left
 			right: parent.right
@@ -130,7 +149,6 @@ Pane {
 							let mesoSplit = txtMesoSplit.text;
 							txtMesoSplit.text = mesoSplit.substring(0,delegateRow.delegateIndex) +
 													valueAt(cboindex) + mesoSplit.substring(delegateRow.delegateIndex+1);
-							bMesoSplitChanged = true;
 							let last_letter_idx = cboindex + 1;
 							if (last_letter_idx === nDelegateRows) {
 								last_letter_idx = 0;
@@ -240,35 +258,13 @@ Pane {
 	} //GridLayout
 
 	TPButton {
-		id: btnAcceptSplit
-		text: qsTr("Accept changes")
-		imageSource: "set-completed"
-		hasDropShadow: false
-		imageSize: 20
-		flat: false
-		checkable: true
-		enabled: bMesoSplitChanged && bMesoSplitTextOK
-		anchors {
-			top: mainLayout.bottom
-			topMargin: 5
-			horizontalCenter: parent.horizontalCenter
-		}
-
-		onCheck: {
-			bMesoSplitChanged = !checked;
-			if (checked)
-				mesoManager.split = txtMesoSplit.text;
-		}
-	}
-
-	TPButton {
 		id: btnCreateExercisePlan
 		text: qsTr("Exercises Planner")
-		enabled: !mesoManager.isNewMeso && bMesoSplitTextOK
+		enabled: !mesoManager.isNewMeso && mesoManager.splitOK
 		flat: false
 
 		anchors {
-			top: btnAcceptSplit.bottom
+			bottom: parent.bottom
 			topMargin: 5
 			horizontalCenter: parent.horizontalCenter
 		}
@@ -299,7 +295,6 @@ Pane {
 
 		function setWidgetText(groups) {
 			txtWidget.text = groups;
-			bMesoSplitChanged = true;
 			txtWidget.createBindings();
 		}
 

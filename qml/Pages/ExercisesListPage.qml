@@ -220,6 +220,8 @@ TPPage {
 				Layout.fillWidth: true
 				Layout.rightMargin: 20
 				Layout.leftMargin: 10
+				Layout.minimumHeight: 30
+				Layout.maximumHeight: 80
 
 				onEditingFinished: exercisesModel.setMuscularGroup(exercisesModel.currentRow, text);
 			}

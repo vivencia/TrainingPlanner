@@ -584,8 +584,9 @@ void QmlWorkoutInterface::createWorkoutPage()
 {
 	m_workoutComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/TrainingDayPage.qml"_L1}, QQmlComponent::Asynchronous};
 	if (m_workoutComponent->status() != QQmlComponent::Ready)
-		connect(m_workoutComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status)
-			{ return createWorkoutPage_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		connect(m_workoutComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status) {
+			return createWorkoutPage_part2();
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	else
 		createWorkoutPage_part2();
 }

@@ -6,7 +6,6 @@
 #include "qmlworkoutinterface.h"
 #include "osinterface.h"
 #include "tputils.h"
-#include "translationclass.h"
 
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -36,7 +35,7 @@ void QmlExercisesDatabaseInterface::exportExercises(const bool bShare)
 	int exportFileMessageId{0};
 	if (appExercisesList()->collectExportData())
 	{
-		const QString& exportFileName{appUtils()->localAppFilesDir() + tr("TrainingPlanner Exercises List") + ".txt"_L1};
+		const QString &exportFileName{appUtils()->localAppFilesDir() + tr("TrainingPlanner Exercises List") + ".txt"_L1};
 		exportFileMessageId = appExercisesList()->exportToFile(exportFileName);
 		if (exportFileMessageId >= 0)
 		{
@@ -55,7 +54,7 @@ void QmlExercisesDatabaseInterface::exportExercises(const bool bShare)
 	appItemManager()->displayMessageOnAppWindow(exportFileMessageId);
 }
 
-void QmlExercisesDatabaseInterface::importExercises(const QString& filename)
+void QmlExercisesDatabaseInterface::importExercises(const QString &filename)
 {
 	if (filename.isEmpty())
 		QMetaObject::invokeMethod(appMainWindow(), "chooseFileToImport", Q_ARG(int, IFC_EXERCISES));
@@ -86,7 +85,7 @@ void QmlExercisesDatabaseInterface::getExercisesPage(QmlWorkoutInterface* connec
 
 void QmlExercisesDatabaseInterface::createExercisesPage(QmlWorkoutInterface* connectPage)
 {
-	m_exercisesComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/ExercisesPage.qml"_L1}, QQmlComponent::Asynchronous};
+	m_exercisesComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/ExercisesListPage.qml"_L1}, QQmlComponent::Asynchronous};
 	m_exercisesProperties.insert("bChooseButtonEnabled"_L1, connectPage != nullptr);
 	m_exercisesProperties.insert("exercisesManager"_L1, QVariant::fromValue(this));
 
@@ -105,9 +104,8 @@ void QmlExercisesDatabaseInterface::createExercisesPage_part2(QmlWorkoutInterfac
 	#ifndef QT_NO_DEBUG
 	if (m_exercisesComponent->status() == QQmlComponent::Error)
 	{
-		qDebug() << m_exercisesComponent->errorString();
-		for (uint i(0); i < m_exercisesComponent->errors().count(); ++i)
-			qDebug() << m_exercisesComponent->errors().at(i).description();
+		for (auto &error : m_exercisesComponent->errors())
+			qDebug() << error.description();
 		return;
 	}
 	#endif

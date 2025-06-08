@@ -20,8 +20,11 @@ class QMLMesoInterface : public QObject
 Q_OBJECT
 
 Q_PROPERTY(bool mesoNameOK READ mesoNameOK WRITE setMesoNameOK NOTIFY mesoNameOKChanged FINAL)
+Q_PROPERTY(bool startDateOK READ startDateOK WRITE setStartDateOK NOTIFY startDateOKChanged FINAL)
+Q_PROPERTY(bool endDateOK READ endDateOK WRITE setEndDateOK NOTIFY endDateOKChanged FINAL)
 Q_PROPERTY(bool realMeso READ realMeso WRITE setRealMeso NOTIFY realMesoChanged FINAL)
 Q_PROPERTY(bool ownMeso READ ownMeso NOTIFY ownMesoChanged FINAL)
+Q_PROPERTY(bool splitOK READ splitOK NOTIFY splitOKChanged FINAL)
 Q_PROPERTY(bool isNewMeso READ isNewMeso NOTIFY isNewMesoChanged FINAL)
 Q_PROPERTY(bool isTempMeso READ isTempMeso NOTIFY isTempMesoChanged FINAL)
 Q_PROPERTY(bool canExport READ canExport NOTIFY canExportChanged FINAL)
@@ -31,8 +34,8 @@ Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged FINAL)
 Q_PROPERTY(QString coach READ coach WRITE setCoach NOTIFY coachChanged FINAL)
 Q_PROPERTY(QString client READ client WRITE setClient NOTIFY clientChanged FINAL)
 Q_PROPERTY(QString type READ type WRITE setType NOTIFY typeChanged FINAL)
-Q_PROPERTY(QString fileName READ fileName NOTIFY fileNameChanged FINAL)
-Q_PROPERTY(QString file READ file WRITE setFile NOTIFY fileChanged FINAL)
+Q_PROPERTY(QString displayFileName READ displayFileName NOTIFY displayFileNameChanged FINAL)
+Q_PROPERTY(QString fileName READ fileName WRITE setFileName NOTIFY fileNameChanged FINAL)
 Q_PROPERTY(QString strStartDate READ strStartDate NOTIFY startDateChanged FINAL)
 Q_PROPERTY(QString strEndDate READ strEndDate NOTIFY endDateChanged FINAL)
 Q_PROPERTY(QString weeks READ weeks NOTIFY weeksChanged FINAL)
@@ -59,16 +62,14 @@ public:
 	~QMLMesoInterface();
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
-	[[nodiscard]] inline bool mesoNameOK() const { return m_bMesoNameOK; }
-	inline void setMesoNameOK(const bool new_value, const bool bEmitSignal = true)
-	{
-		if (m_bMesoNameOK != new_value)
-		{
-			m_bMesoNameOK = new_value;
-			if (bEmitSignal)
-				emit mesoNameOKChanged();
-		}
-	}
+	bool isMesoNameOK(const QString &meso_name) const;
+	[[nodiscard]] inline bool mesoNameOK() const { return m_mesoNameOK; }
+	void setMesoNameOK(const bool nameok);
+
+	[[nodiscard]] inline bool startDateOK() const { return m_startDateOK; }
+	void setStartDateOK(const bool dateok);
+	[[nodiscard]] inline bool endDateOK() const { return m_endDateOK; }
+	void setEndDateOK(const bool dateok);
 
 	[[nodiscard]] inline const uint mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const uint new_value) { m_mesoIdx = new_value; }
@@ -76,19 +77,16 @@ public:
 	[[nodiscard]] bool realMeso() const;
 	void setRealMeso(const bool new_value);
 
+	[[nodiscard]] bool splitOK() const;
+
 	[[nodiscard]] bool ownMeso() const;
 	[[nodiscard]] bool isNewMeso() const;
 	[[nodiscard]] bool isTempMeso() const;
 	[[nodiscard]] inline bool canExport() const { return m_bCanExport; }
 
-	inline QString mesoNameErrorTooltip() const
-	{
-		return m_bMesoNameOK ? QString{} : name().length() < 5 ? tr("Error: name too short") : tr("Error: Name already in use.");
-	}
-
+	inline QString mesoNameErrorTooltip() const { return m_nameError; }
 	[[nodiscard]] QString name() const;
-	void setName(const QString &new_value, const bool bFromQml = true);
-	Q_INVOKABLE void acceptName();
+	void setName(const QString &new_name);
 
 	[[nodiscard]] QString coach() const;
 	void setCoach(const QString &new_value);
@@ -99,28 +97,26 @@ public:
 	[[nodiscard]] QString type() const;
 	void setType(const QString &new_value);
 
+	[[nodiscard]] QString displayFileName() const;
 	[[nodiscard]] QString fileName() const;
-	[[nodiscard]] QString file() const;
-	void setFile(const QString &new_value);
+	void setFileName(const QString &new_filename);
 
 	[[nodiscard]] inline QString strStartDate() const { return m_strStartDate; }
 	[[nodiscard]] QDate startDate() const;
 	[[nodiscard]] inline QDate minimumMesoStartDate() const { return m_minimumMesoStartDate; }
-	void setStartDate(const QDate &new_value, const bool bFromQml = true);
+	void setStartDate(const QDate &new_startdate);
 	void setMinimumMesoStartDate(const QDate &new_value);
-	Q_INVOKABLE void acceptStartDate();
 
 	[[nodiscard]] inline QString strEndDate() const { return m_strEndDate; }
 	[[nodiscard]] inline QDate endDate() const { return m_endDate; }
 	[[nodiscard]] inline QDate maximumMesoEndDate() const { return m_maximumMesoEndDate; }
-	void setEndDate(const QDate &new_value, const bool bFromQml = true);
+	void setEndDate(const QDate &new_enddate);
 	void setMaximumMesoEndDate(const QDate &new_value);
-	Q_INVOKABLE void acceptEndDate();
 
 	[[nodiscard]] QString weeks() const;
 
 	[[nodiscard]] QString split() const;
-	void setSplit(const QString &new_value);
+	void setSplit(const QString &new_split);
 
 	[[nodiscard]] QString notes() const;
 	void setNotes(const QString &new_value);
@@ -155,8 +151,11 @@ public:
 
 signals:
 	void mesoNameOKChanged();
+	void startDateOKChanged();
+	void endDateOKChanged();
 	void realMesoChanged();
 	void ownMesoChanged();
+	void splitOKChanged();
 	void isNewMesoChanged();
 	void isTempMesoChanged();
 	void canExportChanged();
@@ -165,8 +164,8 @@ signals:
 	void coachChanged();
 	void clientChanged();
 	void typeChanged();
+	void displayFileNameChanged();
 	void fileNameChanged();
-	void fileChanged();
 	void startDateChanged();
 	void endDateChanged();
 	void minimumStartDateChanged();
@@ -192,8 +191,8 @@ private:
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	uint m_mesoIdx;
-	bool m_bCanExport, m_bMesoNameOK;
-	QString m_name, m_strStartDate, m_strEndDate;
+	bool m_bCanExport, m_mesoNameOK, m_startDateOK, m_endDateOK;
+	QString m_strStartDate, m_strEndDate, m_nameError;
 	QDate m_startDate, m_endDate, m_minimumMesoStartDate, m_maximumMesoEndDate;
 	int m_newMesoFieldCounter;
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
@@ -204,6 +203,7 @@ private:
 
 	void createMesocyclePage();
 	void createMesocyclePage_part2();
+	inline bool isSplitOK(const QString &split) const;
 };
 
 #endif // QMLMESOINTERFACE_H

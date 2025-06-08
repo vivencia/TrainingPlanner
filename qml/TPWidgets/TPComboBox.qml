@@ -11,7 +11,7 @@ ComboBox {
 
 	id: control
 	implicitWidth: 120
-	implicitHeight: 25
+	implicitHeight: appSettings.itemDefaultHeight
 	textRole: "text"
 	valueRole: "value"
 	padding: 0

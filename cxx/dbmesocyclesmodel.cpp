@@ -88,10 +88,11 @@ void DBMesocyclesModel::getMesocyclePage(const uint meso_idx)
 
 uint DBMesocyclesModel::startNewMesocycle(const bool bCreatePage, const std::optional<bool> bOwnMeso)
 {
-	const uint meso_idx{newMesocycle(std::move(QStringList{} << std::move(newMesoTemporaryId()) << QString{} << QString{} << QString{} <<
-		QString{} << QString{} << std::move("RRRRRRR"_L1) << appUserModel()->userId(0) <<
-			(bOwnMeso.has_value() ? (bOwnMeso.value() ? appUserModel()->userId(0) : appUserModel()->defaultClient()) : QString{}) <<
-						QString{} << QString{} << STR_ONE))};
+	const uint meso_idx{newMesocycle(std::move(QStringList{} << std::move(newMesoTemporaryId()) << QString{} << QString{} <<
+		QString{} << QString{} << QString{} << std::move("RRRRRRR"_L1) << QString{} << QString{} << QString{} << QString{} <<
+		QString{} << QString{} << appUserModel()->userId(0) <<
+		(bOwnMeso.has_value() ? (bOwnMeso.value() ? appUserModel()->userId(0) : appUserModel()->defaultClient()) : QString{}) <<
+		QString{} << QString{} << STR_ONE))};
 
 	short newMesoRequiredFields{0};
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_NAME);
@@ -179,7 +180,7 @@ const uint DBMesocyclesModel::newMesocycle(QStringList &&infolist)
 	else
 		m_calendarModel->addNewCalendarForMeso(meso_idx);
 
-	m_usedSplits.append(QStringList{});
+	m_usedSplits.append(QString{});
 	makeUsedSplits(meso_idx);
 	m_isNewMeso.append(0);
 	m_newMesoFieldCounter.append(NEW_MESO_REQUIRED_FIELDS);

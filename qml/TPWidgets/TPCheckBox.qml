@@ -18,8 +18,8 @@ Item {
 
 	Rectangle {
 		id: indicator
-		implicitWidth: 20
-		implicitHeight: 20
+		implicitWidth: appSettings.itemDefaultHeight * 0.8
+		implicitHeight: appSettings.itemDefaultHeight * 0.8
 		radius: 4
 		color: "transparent"
 		border.color: control.enabled ? textColor : appSettings.disabledFontColor
@@ -31,10 +31,10 @@ Item {
 
 		Rectangle {
 			id: recChecked
-			width: 10
-			height: 10
-			x: 5
-			y: 5
+			width: appSettings.itemDefaultHeight * 0.5
+			height: appSettings.itemDefaultHeight * 0.5
+			x: (indicator.implicitWidth - width)*0.5
+			y: x
 			radius: 2
 			border.color: control.enabled ? textColor : appSettings.disabledFontColor
 			visible: control.checked

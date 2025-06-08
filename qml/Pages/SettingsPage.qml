@@ -10,6 +10,8 @@ import "../User"
 TPPage {
 	id: settingsPage
 	objectName: "settingsPage"
+	implicitWidth: appSettings.pageWidth
+	implicitHeight: appSettings.pageHeight
 
 	property bool bNeedRestart: false
 
@@ -65,6 +67,8 @@ TPPage {
 				height: 3
 				color: appSettings.fontColor
 				Layout.fillWidth: true
+				Layout.topMargin: 20
+				Layout.bottomMargin: 20
 			}
 
 //------------------------------------------------------APP BEHAVIOUR------------------------------------------------------
@@ -85,6 +89,8 @@ TPPage {
 				height: 3
 				color: appSettings.fontColor
 				Layout.fillWidth: true
+				Layout.topMargin: 20
+				Layout.bottomMargin: 20
 			}
 
 //------------------------------------------------------FONTS------------------------------------------------------
@@ -172,6 +178,8 @@ TPPage {
 				height: 3
 				color: appSettings.fontColor
 				Layout.fillWidth: true
+				Layout.topMargin: 20
+				Layout.bottomMargin: 20
 			}
 
 //------------------------------------------------------THEME------------------------------------------------------
@@ -245,12 +253,15 @@ TPPage {
 				height: 3
 				color: appSettings.fontColor
 				Layout.fillWidth: true
+				Layout.topMargin: 20
+				Layout.bottomMargin: 20
 			}
 
 //------------------------------------------------------COLORS------------------------------------------------------
 			TPLabel {
 				text: qsTr("Color Scheme")
 				Layout.alignment: Qt.AlignCenter
+				Layout.bottomMargin: 20
 			}
 
 			Repeater {

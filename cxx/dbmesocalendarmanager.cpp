@@ -87,6 +87,7 @@ void DBMesoCalendarManager::addCalendarForMeso(const uint meso_idx)
 	uint n_days{0};
 	if (appMesoModel()->_id(meso_idx) >= 0)
 		n_days = static_cast<uint>(appMesoModel()->startDate(meso_idx).daysTo(appMesoModel()->endDate(meso_idx)) + 1);
+	m_dbDataReady.append(TPBool{});
 	m_dayInfoList.append(QList<stDayInfo*>{n_days});
 	m_calendars.append(new DBCalendarModel{this, meso_idx});
 	m_workouts.append(QList<DBExercisesModel*>{n_days});
