@@ -27,8 +27,8 @@ TPPopup {
 		id: lblTitle
 		text: title
 		horizontalAlignment: Text.AlignHCenter
-		heightAvailable: 50
 		width: parent.width - 20
+		visible: title.length > 0
 
 		anchors {
 			top: parent.top
@@ -58,7 +58,6 @@ TPPopup {
 		id: lblMessage
 		text: message
 		wrapMode: Text.WordWrap
-		heightAvailable: 50
 		horizontalAlignment: Text.AlignJustify
 		width: passwdDlg.width - imgElement.width - 10
 		visible: message.length > 0
@@ -108,7 +107,7 @@ TPPopup {
 			id: btn1
 			text: "OK"
 			flat: false
-			autoResize: true
+			autoSize: true
 			enabled: txtPassword.text.length > 4
 			Layout.alignment: Qt.AlignCenter
 
@@ -119,9 +118,8 @@ TPPopup {
 			id: btn2
 			text: qsTr("Cancel")
 			flat: false
-			autoResize: true
+			autoSize: true
 			Layout.alignment: Qt.AlignCenter
-			Layout.maximumWidth: availableWidth - btn1.width - 10
 
 			onClicked: {
 				mainwindow.passwordDialogClosed(1, "");
@@ -135,9 +133,19 @@ TPPopup {
 		passwdDlg.closePopup();
 	}
 
+	function dlgHeight(): int {
+		let new_height = 0;
+		if (lblTitle.visible)
+			new_height = lblTitle.height + 5;
+		if (lblMessage.visible)
+			new_height += Math.max(imgElement.height, lblMessage.height) + 10;
+		else
+			new_height += imgElement.height + 10;
+		new_height += txtPassword.height + btn1.height + 10;
+		return new_height;
+	}
 	function show(ypos: int): void {
-		passwdDlg.height = 0;
-		passwdDlg.height = lblTitle.height + Math.max(imgElement.height, lblMessage.height) + txtPassword.height + btn1.height + 40;
+		passwdDlg.height = dlgHeight();
 		show1(ypos);
 	}
 }

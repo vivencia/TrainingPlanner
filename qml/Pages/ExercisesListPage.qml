@@ -71,9 +71,7 @@ TPPage {
 					id: btnNewExercise
 					text: qsTr("New")
 					enabled: !bEdit
-					fixedSize: true
 					width: toolbarExercises.buttonWidth
-					height: 25
 					rounded: false
 					flat: false
 
@@ -104,9 +102,7 @@ TPPage {
 					id: btnEditExercise
 					text: qsTr("Edit")
 					enabled: !bNew && exercisesModel.currentRow >= 0
-					fixedSize: true
 					width: toolbarExercises.buttonWidth
-					height: 25
 					rounded: false
 					flat: false
 
@@ -132,10 +128,7 @@ TPPage {
 					id: btnAddExercise
 					enabled: bChooseButtonEnabled && !bCanEdit && exercisesModel.currentRow >= 0
 					text: qsTr("Add")
-					fixedSize: true
-					autoResize: true
 					width: toolbarExercises.buttonWidth
-					height: 25
 					rounded: false
 					flat: false
 
@@ -146,10 +139,7 @@ TPPage {
 					id: btnImExport
 					text: qsTr("In/Export")
 					visible: !bChooseButtonEnabled
-					fixedSize: true
-					autoResize: true
 					width: toolbarExercises.buttonWidth
-					height: 25
 					rounded: false
 					flat: false
 

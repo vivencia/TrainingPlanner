@@ -168,14 +168,14 @@ TPPage {
 
 				TPButton {
 					text: qsTr("Accept")
-					autoResize: true
+					autoSize: true
 					Layout.alignment: Qt.AlignCenter
 
 					onClicked: userModel.acceptUser(userModel.pendingClientsRequests, pendingClientsList.currentIndex);
 				}
 				TPButton {
 					text: qsTr("Decline")
-					autoResize: true
+					autoSize: true
 					Layout.alignment: Qt.AlignCenter
 
 					onClicked: showRemoveMessage(true,

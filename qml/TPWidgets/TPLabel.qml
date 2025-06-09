@@ -20,6 +20,7 @@ Label {
 	leftInset: 0
 	rightInset: 0
 	padding: 0
+	clip: true
 
 	property string fontColor: appSettings.fontColor
 	property int widthAvailable: appSettings.pageWidth - 20
@@ -29,7 +30,7 @@ Label {
 	property int _textWidth
 	property int _textHeight
 	readonly property int _preferredWidth: widthAvailable >= 20 ? Math.min(_textWidth, widthAvailable) : _textWidth
-	readonly property int _preferredHeight: singleLine ? heightAvailable : heightAvailable != 25 ? Math.min(lineCount * _textHeight, heightAvailable) : lineCount * _textHeight;
+	readonly property int _preferredHeight: singleLine ? heightAvailable : heightAvailable != 25 ? Math.max(lineCount * _textHeight, heightAvailable) : lineCount * _textHeight;
 
 	readonly property FontMetrics currentFontMetrics: FontMetrics {
 		font.family: control.font.family
@@ -48,15 +49,15 @@ Label {
 						Math.min(preferredLineCount() * _textHeight, heightAvailable) : preferredLineCount() * _textHeight;
 	}
 
-	Rectangle {
+	/*Rectangle {
 		border.color: appSettings.fontColor
 		color: "transparent"
 		anchors.fill: parent
-	}
+	}*/
 
 	onTextChanged: text => {
 		if (text.length > 0)
-			adjustTextSize();		
+			adjustTextSize();
 	}
 
 	Component.onCompleted: {
@@ -66,8 +67,8 @@ Label {
 
 	function adjustTextSize() {
 		if (text.length === 0) return;
-		_textWidth = currentFontMetrics.boundingRect(text).width
-		_textHeight = currentFontMetrics.boundingRect("TP").height
+		_textWidth = currentFontMetrics.boundingRect(text).width;
+		_textHeight = currentFontMetrics.boundingRect("TP").height;
 		const hasNewLineEscapeChr = text.indexOf('\n') !== -1;
 		singleLine = hasNewLineEscapeChr ? false : width > _textWidth;
 		lineCount = (singleLine ? 0 : Math.ceil(_textWidth/widthAvailable)) + (hasNewLineEscapeChr ? text.split('\n').length - 1: 0);

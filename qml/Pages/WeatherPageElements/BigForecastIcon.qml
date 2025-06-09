@@ -46,8 +46,6 @@ Item {
 
 	TPButton {
 		imageSource: "reload"
-		imageSize: 50
-		fixedSize: true
 		width: 50
 		height: 50
 

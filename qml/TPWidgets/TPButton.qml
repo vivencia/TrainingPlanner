@@ -11,8 +11,8 @@ Rectangle {
 	radius: rounded ? height : 6
 	opacity: checked ? 0.7 : 1
 	color: backgroundColor
-	height: appSettings.itemDefaultHeight
-	width: defaultWidth()
+	height: buttonText.height + (textUnderIcon ? imageSize : 0) + 10
+	width: buttonText.width + (textUnderIcon ? 0 : imageSize) + 20
 
 	property color textColor: appSettings.fontColor
 	property alias font: buttonText.font
@@ -20,18 +20,17 @@ Rectangle {
 	property string backgroundColor: text.length > 0 ? appSettings.paneBackgroundColor : "transparent"
 	property string imageSource
 
+	property bool autoSize: false
 	property bool textUnderIcon: false
 	property bool highlighted: false
-	property bool fixedSize: false
 	property bool flat: true
-	property bool rightAlignIcon: false
+	property bool iconOnTheLeft: false
 	property bool rounded: true
 	property bool checkable: false
 	property bool hasDropShadow: true
 	property bool checked: false
-	property bool autoResize: false
 	property int clickId: -1
-	property int imageSize: textUnderIcon ? fixedSize ? height/2 : height : height
+	property int imageSize: imageSource.length > 0 ? (textUnderIcon ? (height*0.9)/2 : height*0.9) : 0
 
 	//Local variables. Do not use outside this file
 	property bool _canResize: true
@@ -41,15 +40,6 @@ Rectangle {
 
 	signal clicked(int clickid);
 	signal check(int clickid);
-
-	function defaultWidth(): int {
-		return buttonText._textWidth + (textUnderIcon ? 0 : (imageSource.length > 0 ? imageSize : 0)) + 50;
-	}
-
-	onImageSourceChanged: {
-		if (_buttonImage)
-			_buttonImage.imageSource = imageSource;
-	}
 
 	onHighlightedChanged:
 		if (highlighted) {
@@ -71,31 +61,15 @@ Rectangle {
 	//implicitHeight for layouts, height for other circumstances
 	//The width of the button must be specified either by the layout(or anchors) or must be explicitly set, in which case
 	//the property fixedSize must be set to true
-	onWidthChanged: {
-		if (!_canResize) {
-			_canResize = true;
-			return;
-		}
 
-		if (!fixedSize) {
-			if (width >= 20 && text.length > 0) {
-				const fwidth = buttonText._textWidth;
-				if (fwidth >= width) {
-					buttonText.wrapMode = Text.WordWrap;
-					buttonText.width = buttonText.defaultWidth();
-					buttonText.lineCount = Math.ceil(fwidth/width) + 1;
-					buttonText.height = buttonText.lineCount * buttonText._textHeight;
-					if (buttonText.height > height)
-						implicitHeight = height = textUnderIcon ? buttonText.height + imageSize : buttonText.height;
-				}
-			}
-		}
-		else {
-			buttonText.width = buttonText.defaultWidth();
-			if (buttonText.height > height)
-				buttonText.height = height;
-		}
+onWidthChanged: {
+	if (!autoSize && text.length < 0) {
+		buttonText.width = width*0.9;
+		buttonText.height = height - imageSize - 5;
+		buttonText.fontSizeMode = Text.Fit;
+		buttonText.wrapMode = Text.WordWrap;
 	}
+}
 
 	Component.onCompleted: {
 		if (imageSource.length > 0)
@@ -104,14 +78,23 @@ Rectangle {
 
 			function finishCreation() {
 				_buttonImage = component.createObject(button,
-					{imageSource: imageSource, width: imageSize, height: imageSize, dropShadow: hasDropShadow});
-				anchorComponents();
+					{ imageSource: imageSource, width: imageSize, height: imageSize, dropShadow: hasDropShadow});
+				anchorImage();
 			}
-
 			if (component.status === Component.Ready)
 				finishCreation();
 			else
 				component.statusChanged.connect(finishCreation);
+		}
+	}
+
+	onImageSourceChanged: {
+		if (imageSource.length === 0)
+		{
+			if (_buttonImage) {
+				_buttonImage.destroy();
+				_buttonImage = 0;
+			}
 		}
 	}
 
@@ -123,43 +106,25 @@ Rectangle {
 		}
 	}
 
-	TPLabel {
+	Label {
 		id: buttonText
+		visible: text.length > 0
+		color: enabled ? appSettings.fontColor : appSettings.disabledFontColor
+		wrapMode: Text.WordWrap
+		font: AppGlobals.regularFont
+		minimumPixelSize: appSettings.smallFontSize
+		maximumLineCount: 5
+		fontSizeMode: autoSize ? Text.FixedSize : Text.Fit
+		topInset: 0
+		bottomInset: 0
+		leftInset: 0
+		rightInset: 0
+		padding: 2
 		opacity: button.opacity
-		fontSizeMode: autoResize ? Text.Fit : Text.FixedSize
-		color: button.enabled ? textColor : appSettings.disabledFontColor
-		topPadding: textUnderIcon ? 10 : 5
-		bottomPadding: 5
 		verticalAlignment: Text.AlignVCenter
 		horizontalAlignment: Text.AlignHCenter
 
-		property bool bCompleted: false
-
-		onSizeChanged: resize();
-
-		Component.onCompleted: {
-			bCompleted = true;
-			resize();
-			anchorComponents();
-		}
-
-		function defaultWidth(): int {
-			return textUnderIcon ? button.width - 10 : button.width - (imageSource.length > 0 ? imageSize : 0) - 10;
-		}
-
-		function resize() {
-			if (!fixedSize) {
-				_canResize = false;
-				width = _textWidth;
-			}
-			else {
-				width = defaultWidth();
-				if (height > button.height)
-					height = button.height;
-			}
-			if (!autoResize)
-				heightAvailable = button.height - 10 - (imageSource.length > 1 ? imageSize : 0);
-		}
+		Component.onCompleted: anchorLabel();
 	}
 
 	function onMousePressed(mouse: MouseEvent): void {
@@ -223,48 +188,39 @@ Rectangle {
 		}
 	}
 
-	function anchorComponents(): void {
-		if (imageSource.length > 0) {
-			if (!buttonText.bCompleted || !_buttonImage)
-				return;
-			if (button.text.length === 0) {
-				fixedSize = true;
-				_buttonImage.anchors.centerIn = button;
-				return;
-			}
-
-			if (!textUnderIcon) {
-				buttonText.anchors.verticalCenter = button.verticalCenter;
-				_buttonImage.anchors.verticalCenter = button.verticalCenter;
-				if (fixedSize)
-					buttonText.anchors.horizontalCenter = button.horizontalCenter;
-				else
-					buttonText.anchors.left = button.left;
-
-				if (!rightAlignIcon) {
-					//if (fixedSize)
-					//	buttonText.anchors.horizontalCenterOffset = -imageSize/2;
-					_buttonImage.anchors.right = button.right
-				}
-				else {
-					//if (fixedSize)
-					//	buttonText.anchors.horizontalCenterOffset = imageSize/2;
-					_buttonImage.anchors.left = buttonText.right;
-				}
-			}
-			else {
-				buttonText.anchors.horizontalCenter = button.horizontalCenter;
-				buttonText.anchors.bottom = button.bottom;
-				buttonText.anchors.bottomMargin = 5
+	function anchorLabel(): void {
+		buttonText.anchors.horizontalCenter = button.horizontalCenter;
+		if (textUnderIcon) {
+			buttonText.anchors.bottom = button.bottom;
+			buttonText.anchors.bottomMargin = 5
+		}
+		else
+			buttonText.anchors.verticalCenter = button.verticalCenter;
+	}
+	
+	function anchorImage(): void {
+		if (button.text.length === 0)
+			_buttonImage.anchors.centerIn = button;
+		else {
+			if (textUnderIcon) {
 				_buttonImage.anchors.top = button.top;
 				_buttonImage.anchors.topMargin = 5;
 				_buttonImage.anchors.horizontalCenter = button.horizontalCenter;
 				_buttonImage.anchors.bottomMargin = 10;
 			}
-		}
-		else {
-			buttonText.anchors.horizontalCenter = button.horizontalCenter;
-			buttonText.anchors.verticalCenter = button.verticalCenter;
+			else {
+				_buttonImage.anchors.verticalCenter = button.verticalCenter;
+				if (iconOnTheLeft) {
+					if (autoSize)
+						buttonText.anchors.horizontalCenterOffset = imageSize/2;
+					_buttonImage.anchors.right = buttonText.left;
+				}
+				else {
+					if (autoSize)
+						buttonText.anchors.horizontalCenterOffset = -imageSize/2;
+					_buttonImage.anchors.left = buttonText.right;
+				}
+			}
 		}
 	}
 } //Rectangle

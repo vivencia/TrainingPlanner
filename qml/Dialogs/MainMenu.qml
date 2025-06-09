@@ -120,8 +120,6 @@ Drawer {
 		TPButton {
 			id: btnExercises
 			text: qsTr("Exercises Database")
-			fixedSize: true
-			height: 25
 			width: parent.width
 
 			enabled: { // Force the binding to re-evaluate so that the objectName check is run each time the page changes.
@@ -138,8 +136,6 @@ Drawer {
 		TPButton {
 			id: btnSettings
 			text: qsTr("Settings")
-			fixedSize: true
-			height: 25
 			width: parent.width
 
 			enabled: { // Force the binding to re-evaluate so that the check is run each time the page changes.
@@ -156,8 +152,6 @@ Drawer {
 		TPButton {
 			id: btnAllWorkouts
 			text: qsTr("All Workouts")
-			fixedSize: true
-			height: 25
 			width: parent.width
 
 			enabled: { // Force the binding to re-evaluate so that the check is run each time the page changes.
@@ -254,7 +248,7 @@ Drawer {
 		id: btnExit
 		text: qsTr("Exit")
 		imageSource: "application-exit.png"
-		rightAlignIcon: true
+		iconOnTheLeft: true
 		rounded: false
 
 		anchors {

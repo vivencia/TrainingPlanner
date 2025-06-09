@@ -80,7 +80,7 @@ FocusScope {
 			id: lblMain
 			text: labelText[type]
 			fontColor: labelColor
-			widthAvailable: availableWidth*0.5
+			//widthAvailable: availableWidth*0.5
 			visible: showLabel
 
 			anchors {

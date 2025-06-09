@@ -43,9 +43,6 @@ TPPage {
 				imageSource: "gps.png"
 				enabled: weatherInfo.canUseGps
 				width: scrollViewCities.width
-				height: 25
-				fixedSize: true
-				autoResize: true
 				Layout.alignment: Qt.AlignCenter
 				Layout.preferredWidth: width
 
@@ -93,10 +90,7 @@ TPPage {
 
 						TPButton {
 							imageSource: "remove"
-							fixedSize: true
-							imageSize: 20
-							height: 25
-							width: 25
+							width: appSettings.itemDefaultHeight
 
 							anchors {
 								right: parent.right

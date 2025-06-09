@@ -98,7 +98,7 @@ TPPopup {
 			text: qsTr("Previous")
 			imageSource: "back.png"
 			hasDropShadow: false
-			rightAlignIcon: true
+			iconOnTheLeft: true
 			enabled: stackLayout.currentIndex > 0
 
 			anchors {

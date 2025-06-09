@@ -52,8 +52,6 @@ TPPopup {
 		text: title
 		horizontalAlignment: Text.AlignHCenter
 		visible: title.length > 0
-		heightAvailable: 50
-		height: visible ? _preferredHeight : 0
 
 		anchors {
 			top: parent.top
@@ -96,7 +94,7 @@ TPPopup {
 			id: btn1
 			text: button1Text
 			flat: false
-			autoResize: true
+			autoSize: true
 			visible: button1Text.length > 0
 			Layout.alignment: Qt.AlignCenter
 
@@ -110,7 +108,7 @@ TPPopup {
 			id: btn2
 			text: button2Text
 			flat: false
-			autoResize: true
+			autoSize: true
 			visible: button2Text.length > 0
 			Layout.alignment: Qt.AlignCenter
 			Layout.maximumWidth: availableWidth - btn1.width - 10
@@ -124,7 +122,13 @@ TPPopup {
 
 	function show(ypos: int): void {
 		dialogOpened();
-		height = lblTitle.height + customItemLayoutManager.childrenRect.height + buttonsRow.height + 20;
+		height = function() {
+			let new_height = 0;
+			if (lblTitle.visible)
+				new_height = lblTitle.height;
+			new_height += customItemLayoutManager.childrenRect.height + buttonsRow.height + 20;
+			return new_height;
+		}
 		show1(ypos);
 	}
 }

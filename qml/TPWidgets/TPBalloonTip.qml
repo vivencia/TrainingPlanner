@@ -49,7 +49,6 @@ TPPopup {
 		id: lblTitle
 		text: title
 		horizontalAlignment: Text.AlignHCenter
-		heightAvailable: 30
 		visible: title.length > 0
 
 		anchors {
@@ -98,7 +97,6 @@ TPPopup {
 		id: lblMessage
 		text: message
 		wrapMode: Text.WordWrap
-		heightAvailable: 50
 		horizontalAlignment: Text.AlignJustify
 		width: (imageSource.length > 0 ? balloon.width - imgElement.width : balloon.width) - 10
 		visible: message.length > 0
@@ -130,7 +128,7 @@ TPPopup {
 			id: btn1
 			text: button1Text
 			flat: false
-			autoResize: true
+			autoSize: true
 			visible: button1Text.length > 0
 			z: 2
 			Layout.alignment: Qt.AlignCenter
@@ -145,7 +143,7 @@ TPPopup {
 			id: btn2
 			text: button2Text
 			flat: false
-			autoResize: true
+			autoSize: true
 			visible: button2Text.length > 0
 			z: 2
 			Layout.alignment: Qt.AlignCenter
@@ -236,8 +234,16 @@ TPPopup {
 	}
 
 	function show(ypos: int): void {
-		balloon.height = (title.length > 0 ? lblTitle.height + 5 : 0) + (imageSource.length > 0 ? Math.max(imgElement.height, lblMessage.height) : lblMessage.height) +
-					10 + (button1Text.length > 0 ? btn1.height + 10 : 0) + 5;
+		let new_height = 0;
+			if (lblTitle.visible)
+				new_height = lblTitle.contentHeight + 5
+			if (imgElement.visible)
+				new_height += Math.max(imgElement.height, lblMessage.contentHeight) + 10
+			else
+				new_height += lblMessage.contentHeight + 10;
+			if (btn1.visible)
+				new_height += btn1.height + 10;
+		balloon.height = new_height;
 		if (!anchored)
 			anchorElements();
 		show1(ypos);

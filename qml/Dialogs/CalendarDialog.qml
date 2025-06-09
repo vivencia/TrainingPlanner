@@ -73,8 +73,6 @@ TPPopup {
 				id: btnYesterday
 				text: qsTr("Yesterday")
 				flat: false
-				autoResize: true
-				fixedSize: true
 				width: parent.buttonWidth
 
 				onClicked: datePickerControl.setDate2(appUtils.yesterday());
@@ -83,8 +81,6 @@ TPPopup {
 				id: btnToday
 				text: qsTr("Today")
 				flat: false
-				autoResize: true
-				fixedSize: true
 				width: parent.buttonWidth
 
 				onClicked: datePickerControl.setDate2(appUtils.today());
@@ -93,8 +89,6 @@ TPPopup {
 				id: btnTomorrow
 				text: qsTr("Tomorrow")
 				flat: false
-				autoResize: true
-				fixedSize: true
 				width: parent.buttonWidth
 
 				onClicked: datePickerControl.setDate2(appUtils.tomorrow());

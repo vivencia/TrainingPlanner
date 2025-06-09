@@ -133,7 +133,6 @@ TPPage {
 
 						TPButton {
 							text: qsTr("Résumé")
-							autoResize: true
 
 							anchors {
 								verticalCenter: parent.verticalCenter
@@ -180,7 +179,6 @@ TPPage {
 
 				TPButton {
 					text: qsTr("Remove")
-					autoResize: true
 					enabled: curRow != 0
 					Layout.alignment: Qt.AlignCenter
 
@@ -240,7 +238,6 @@ TPPage {
 
 						TPButton {
 							text: qsTr("Résumé")
-							autoResize: true
 
 							anchors {
 								verticalCenter: parent.verticalCenter
@@ -282,14 +279,14 @@ TPPage {
 
 				TPButton {
 					text: qsTr("Accept")
-					autoResize: true
+					autoSize: true
 					Layout.alignment: Qt.AlignCenter
 
 					onClicked: userModel.acceptUser(userModel.pendingCoachesResponses, pendingCoachesList.currentIndex);
 				}
 				TPButton {
 					text: qsTr("Decline")
-					autoResize: true
+					autoSize: true
 					Layout.alignment: Qt.AlignCenter
 
 					onClicked: showRemoveMessage(true,
@@ -303,9 +300,7 @@ TPPage {
 	TPButton {
 		id: btnFindCoachOnline
 		text: qsTr("Look online for available coaches");
-		autoResize: true
-		fixedSize: true
-		height: 25
+		autoSize: true
 
 		onClicked: displayOnlineCoachesMenu();
 

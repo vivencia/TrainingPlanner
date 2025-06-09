@@ -83,7 +83,6 @@ Item {
 					textUnderIcon: true
 					rounded: false
 					flat: false
-					fixedSize: true
 					width: parent.width/2 - 10
 					height: parent.height/2 - 10
 					z:1
@@ -107,7 +106,6 @@ Item {
 					rounded: false
 					flat: false
 					textUnderIcon: true
-					fixedSize: true
 					width: parent.width/2 - 10
 					height: parent.height/2 - 10
 					z:1
@@ -131,7 +129,6 @@ Item {
 					rounded: false
 					flat: false
 					textUnderIcon: true
-					fixedSize: true
 					width: parent.width/2 - 10
 					height: parent.height/2 - 10
 					z:1
@@ -155,7 +152,6 @@ Item {
 					rounded: false
 					flat: false
 					textUnderIcon: true
-					fixedSize: true
 					enabled: viewedMesoIdx === mesoModel.mesoRow(index) ? viewedMesoCanBeExported : false
 					width: parent.width/2 - 10
 					height: parent.height/2 - 10
@@ -308,12 +304,12 @@ Item {
 			text: qsTr("New Training Program")
 			imageSource: "mesocycle-add.png"
 			flat: false
-//			backgroundColor: "transparent"
+			autoSize: true
 
 			anchors {
 				horizontalCenter: parent.horizontalCenter
 				verticalCenter: parent.verticalCenter
-				verticalCenterOffset: mainUserPrograms ? -30 : -15
+				verticalCenterOffset: mainUserPrograms ? -(appSettings.itemDefaultHeight+20) : -(appSettings.itemDefaultHeight+10)*0.5
 			}
 
 			onClicked: mesocyclesModel.startNewMesocycle_QML(true, mainUserPrograms);
@@ -323,14 +319,13 @@ Item {
 			id: btnImportMeso
 			text: qsTr("Import program from file")
 			imageSource: "import.png"
-			fixedSize: true
-			backgroundColor: "transparent"
-			width: parent.width
+			flat: false
+			autoSize: true
 
 			anchors {
 				horizontalCenter: parent.horizontalCenter
 				verticalCenter: parent.verticalCenter
-				verticalCenterOffset: mainUserPrograms ? 0 : 15
+				verticalCenterOffset: mainUserPrograms ? 0 : (appSettings.itemDefaultHeight+10)*0.5
 			}
 
 			onClicked: itemManager.chooseFileToImport();
@@ -340,16 +335,15 @@ Item {
 			id: btnWorkout
 			text: qsTr("Today's workout")
 			imageSource: "workout.png"
-			fixedSize: true
-			backgroundColor: "transparent"
+			flat: false
+			autoSize: true
 			visible: mainUserPrograms
 			enabled: mesocyclesModel.canHaveTodaysWorkout
-			width: parent.width
 
 			anchors {
 				horizontalCenter: parent.horizontalCenter
-				verticalCenter: parent.verticalCenter
-				verticalCenterOffset: 30
+				top: btnImportMeso.bottom
+				topMargin: 10
 			}
 
 			onClicked: mesocyclesModel.todaysWorkout();

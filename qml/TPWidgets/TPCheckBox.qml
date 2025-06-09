@@ -56,15 +56,6 @@ Item {
 			leftMargin: 5
 			right: parent.right
 		}
-
-		Component.onCompleted: {
-			if (!multiLine)
-			{
-				adjustTextSize();
-				if (_textWidth > control.width)
-					wrapMode = Text.WordWrap;
-			}
-		}
 	}
 
 	MouseArea {

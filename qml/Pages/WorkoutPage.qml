@@ -153,7 +153,7 @@ TPPage {
 						TPButton {
 							id: btnTimeLength
 							text: qsTr("By duration")
-							autoResize: true
+							autoSize: true
 							Layout.alignment: Qt.AlignCenter
 
 							onClicked: limitedTimeSessionTimer();
@@ -162,7 +162,7 @@ TPPage {
 						TPButton {
 							id: btnTimeHour
 							text: qsTr("By time of day")
-							autoResize: true
+							autoSize: true
 							Layout.alignment: Qt.AlignCenter
 
 							onClicked: restrictedTimeLoader.openDlg();
@@ -527,7 +527,6 @@ TPPage {
 			rounded: false
 			backgroundColor: appSettings.paneBackgroundColor
 			flat: false
-			fixedSize: true
 			width: 55
 			height: 55
 			visible: WorkoutManager.dayIsFinished || !WorkoutManager.mainDateIsToday || WorkoutManager.editMode
@@ -550,7 +549,6 @@ TPPage {
 			textUnderIcon: true
 			rounded: false
 			flat: false
-			fixedSize: true
 			width: 70
 			height: 55
 			visible: WorkoutManager.dayIsFinished && WorkoutManager.hasExercises
@@ -576,10 +574,8 @@ TPPage {
 			text: qsTr("Add exercise")
 			imageSource: "exercises-add.png"
 			rounded: false
-			autoResize: true
 			textUnderIcon: true
 			flat: false
-			height: 55
 			visible: WorkoutManager.splitLetter !== "R"
 			enabled: WorkoutManager.workoutIsEditable
 

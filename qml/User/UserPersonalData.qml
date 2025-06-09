@@ -99,7 +99,6 @@ Frame {
 		text: qsTr("Change password")
 		imageSource: "password"
 		flat: false
-		fixedSize: true
 		width: parent.width*0.7
 		visible: userRow === 0 && userModel.mainUserConfigured
 

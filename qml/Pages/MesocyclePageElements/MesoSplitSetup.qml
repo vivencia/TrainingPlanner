@@ -39,9 +39,9 @@ Pane {
 		TPLabel {
 			id: lblMesoSplit
 			text: mesocyclesModel.splitLabel
-			widthAvailable: parent.width*0.5
-			Layout.minimumWidth: widthAvailable
-			Layout.maximumWidth: widthAvailable
+			width: parent.width*0.5
+			Layout.minimumWidth: width
+			Layout.maximumWidth: width
 		}
 
 		TPTextInput {

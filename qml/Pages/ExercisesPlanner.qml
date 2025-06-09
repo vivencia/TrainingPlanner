@@ -92,7 +92,6 @@ TPPage {
 			text: qsTr("Clear")
 			imageSource: "clear.png"
 			textUnderIcon: true
-			fixedSize: true
 			rounded: false
 			flat: false
 			enabled: splitManager.hasExercises
@@ -114,7 +113,6 @@ TPPage {
 			imageSource: "swap.png"
 			textUnderIcon: true
 			visible: splitManager.canSwapExercises
-			fixedSize: true
 			rounded: false
 			flat: false
 			width: splitToolBar.buttonWidth
@@ -134,7 +132,6 @@ TPPage {
 			text: qsTr("In/Ex")
 			imageSource: "import-export.png"
 			textUnderIcon: true
-			fixedSize: true
 			rounded: false
 			flat: false
 			width: splitToolBar.buttonWidth
@@ -154,7 +151,6 @@ TPPage {
 			text: qsTr("+ Exercise")
 			imageSource: "exercises-add.png"
 			textUnderIcon: true
-			fixedSize: true
 			rounded: false
 			flat: false
 			width: splitToolBar.buttonWidth*1.3

@@ -209,7 +209,7 @@ FocusScope {
 				id: lblExercise1
 				text: setManager.exerciseName1
 				width: controlWidth
-				autoResize: true
+				autoSize: true
 				rounded: false
 
 				onClicked: exerciseManager.simpleExercisesList(true, false, 1);
@@ -219,7 +219,7 @@ FocusScope {
 				id: lblExercise2
 				text: setManager.exerciseName2
 				width: controlWidth
-				autoResize: true
+				autoSize: true
 				rounded: false
 
 				onClicked: exerciseManager.simpleExercisesList(true, false, 2);

@@ -51,10 +51,8 @@ TPToolBar {
 		id: btnMainMenu
 		imageSource: "mainmenu"
 		hasDropShadow: false
-		imageSize: 30
-		fixedSize: true
-		width: 35
-		height: 35
+		width: 30
+		height: 30
 
 		anchors {
 			verticalCenter: parent.verticalCenter
@@ -69,10 +67,8 @@ TPToolBar {
 		id: btnCalendar
 		imageSource: "calendar"
 		hasDropShadow: false
-		imageSize: 30
-		fixedSize: true
-		width: 35
-		height: 35
+		width: 30
+		height: 30
 
 		anchors {
 			verticalCenter: parent.verticalCenter
@@ -102,10 +98,8 @@ TPToolBar {
 		id: btnTimer
 		imageSource: "timer"
 		hasDropShadow: false
-		imageSize: 30
-		fixedSize: true
-		width: 35
-		height: 35
+		width: 30
+		height: 30
 
 		anchors {
 			verticalCenter: parent.verticalCenter
@@ -134,10 +128,8 @@ TPToolBar {
 		id: btnWeather
 		imageSource: "weather"
 		hasDropShadow: false
-		imageSize: 30
-		fixedSize: true
-		width: 35
-		height: 35
+		width: 30
+		height: 30
 
 		anchors {
 			verticalCenter: parent.verticalCenter
@@ -151,8 +143,9 @@ TPToolBar {
 	TPButton {
 		imageSource: "statistics"
 		hasDropShadow: false
-		imageSize: 30
-		fixedSize: true
+		width: 30
+		height: 30
+
 		enabled: {
 			switch (mesocyclesModel.count) {
 				case 0: return false;
@@ -160,8 +153,6 @@ TPToolBar {
 				default: return true;
 			}
 		}
-		width: 35
-		height: 35
 
 		anchors {
 			verticalCenter: parent.verticalCenter

@@ -132,7 +132,7 @@ Frame {
 		TPButton {
 			id: btnSendResume
 			text: qsTr("Send Résumé")
-			autoResize: true
+			autoSize: true
 			enabled: chkOnlineCoach.checked
 			Layout.preferredWidth: parent.width/2
 

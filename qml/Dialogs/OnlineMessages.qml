@@ -284,8 +284,7 @@ Popup {
 						delegate: TPButton {
 							text: appMessages.messageEntry(actionsRepeater.msgIndex).actions[index]
 							width: constrainSize ? actionsLayout.maxButtonWidth : defaultWidth()
-							fixedSize: constrainSize
-							autoResize: constrainSize
+							autoSize: constrainSize
 							Layout.leftMargin: 0
 							Layout.rightMargin: 0
 							onClicked: appMessages.messageEntry(actionsRepeater.msgIndex).execAction(index);

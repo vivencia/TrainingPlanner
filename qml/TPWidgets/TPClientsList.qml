@@ -82,7 +82,7 @@ Item {
 		TPButton {
 			id: button
 			text: buttonString
-			autoResize: true
+			autoSize: true
 			enabled: userModel.currentRow !== 0
 			visible: buttonString.length > 0
 			Layout.alignment: Qt.AlignCenter

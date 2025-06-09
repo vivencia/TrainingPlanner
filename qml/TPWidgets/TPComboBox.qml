@@ -78,7 +78,6 @@ ComboBox {
 
 	contentItem: TPLabel {
 		text: control.displayText
-		//widthAvailable: control.width
 		leftPadding: completeModel ? 30 : 5
 	}
 

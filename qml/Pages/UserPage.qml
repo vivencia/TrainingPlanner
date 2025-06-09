@@ -84,7 +84,7 @@ TPPage {
 			id: btnManageCoach
 			text: qsTr("Manage coach(es)/trainer(s)")
 			flat: false
-			autoResize: true
+			autoSize: true
 			visible: useMode >= 3
 
 			anchors {
@@ -100,7 +100,7 @@ TPPage {
 			id: btnManageClients
 			text: qsTr("Manage clients")
 			flat: false
-			autoResize: true
+			autoSize: true
 			visible: useMode === 2 || useMode === 4
 
 			anchors {
