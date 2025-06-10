@@ -19,7 +19,7 @@ void DBWorkoutsOrSplitsTable::commonConstructor()
 {
 	m_tableName = std::move(tableId() == WORKOUT_TABLE_ID ? "workouts_table"_L1 : "mesosplit_table"_L1);
 	m_UniqueID = appUtils()->generateUniqueId();
-	const QString &cnx_name{"db_exercises_connection"_L1 + QString::number(m_UniqueID)};
+	const QString &cnx_name{m_tableName + "_connection"_L1 + QString::number(m_UniqueID)};
 	mSqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name));
 	mSqlLiteDB.setDatabaseName(dbFilePath(m_tableId));
 	#ifndef QT_NO_DEBUG
@@ -161,7 +161,7 @@ bool DBWorkoutsOrSplitsTable::mesoHasAllSplitPlans(const QString &meso_id, const
 	if (openDatabase(true))
 	{
 		QSqlQuery query{std::move(getQuery())};
-		const QString &strQuery{"SELECT setstypes FROM mesosplit_table WHERE meso_id=%1 AND split_letter=\'%2\'"_L1.arg(meso_id)};
+		const QString &strQuery{"SELECT setstypes FROM mesosplit_table WHERE meso_id="_L1 + meso_id + " AND split_letter=\'%1\'"_L1};
 		for (const auto split_letter : split)
 		{
 			if (split_letter.cell() >= 'A' && split_letter.cell() <= 'F')

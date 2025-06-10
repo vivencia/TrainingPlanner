@@ -135,13 +135,13 @@ TPPopup {
 
 	function dlgHeight(): int {
 		let new_height = 0;
-		if (lblTitle.visible)
-			new_height = lblTitle.height + 5;
-		if (lblMessage.visible)
+		if (title.length > 0)
+			new_height = lblTitle.height + 10;
+		if (message.length > 0)
 			new_height += Math.max(imgElement.height, lblMessage.height) + 10;
 		else
 			new_height += imgElement.height + 10;
-		new_height += txtPassword.height + btn1.height + 10;
+		new_height += txtPassword.height + btn1.height + 20;
 		return new_height;
 	}
 	function show(ypos: int): void {

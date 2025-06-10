@@ -122,13 +122,11 @@ TPPopup {
 
 	function show(ypos: int): void {
 		dialogOpened();
-		height = function() {
-			let new_height = 0;
-			if (lblTitle.visible)
-				new_height = lblTitle.height;
-			new_height += customItemLayoutManager.childrenRect.height + buttonsRow.height + 20;
-			return new_height;
-		}
+		let new_height = 0;
+		if (title.length > 0)
+			new_height = lblTitle.height;
+		new_height += customItemLayoutManager.childrenRect.height + buttonsRow.height + 20;
+		dialog.height = new_height;
 		show1(ypos);
 	}
 }

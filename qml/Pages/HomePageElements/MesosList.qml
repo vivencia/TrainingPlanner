@@ -300,7 +300,6 @@ Item {
 
 		TPButton {
 			id: btnAddMeso
-			objectName: "tralala"
 			text: qsTr("New Training Program")
 			imageSource: "mesocycle-add.png"
 			flat: false

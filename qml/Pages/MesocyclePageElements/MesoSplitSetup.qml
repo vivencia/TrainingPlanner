@@ -16,9 +16,10 @@ Pane {
 	Layout.leftMargin: 0
 
 	property alias mesoSplitText: txtMesoSplit.text
-	readonly property int col1Width: width*0.10
+	readonly property int col1Width: width*0.1
 	readonly property int col2Width: width*0.15
-	readonly property int col3Width: appSettings.pageWidth*0.65
+	readonly property int col3Width: appSettings.pageWidth*0.60
+	readonly property int col4Width: appSettings.itemDefaultHeight
 	readonly property list<string> daysOfWeek: [qsTr("Mon"), qsTr("Tue"), qsTr("Wed"), qsTr("Thu"), qsTr("Fri"), qsTr("Sat"), qsTr("Sun")]
 
 	property bool bMesoSplitChanged: false
@@ -27,8 +28,8 @@ Pane {
 		color: "transparent"
 	}
 
-	RowLayout {
-		id: splitRow
+	ColumnLayout {
+		id: mainLayout
 
 		anchors {
 			top: parent.top
@@ -39,9 +40,7 @@ Pane {
 		TPLabel {
 			id: lblMesoSplit
 			text: mesocyclesModel.splitLabel
-			width: parent.width*0.5
-			Layout.minimumWidth: width
-			Layout.maximumWidth: width
+			Layout.fillWidth: true
 		}
 
 		TPTextInput {
@@ -70,17 +69,6 @@ Pane {
 				}
 			}
 		}
-	}
-
-	ColumnLayout {
-		id: mainLayout
-
-		anchors {
-			top: splitRow.bottom
-			topMargin: 15
-			left: parent.left
-			right: parent.right
-		}
 
 		Repeater {
 			id: splitRepeater
@@ -91,6 +79,7 @@ Pane {
 			delegate: RowLayout {
 				id: delegateRow
 				Layout.fillWidth: true
+				Layout.topMargin: 10
 				//objectName: "delegateRow"
 
 				required property int index
@@ -111,6 +100,7 @@ Pane {
 					width: col1Width
 					Layout.minimumWidth: col1Width
 					Layout.maximumWidth: col1Width
+					Layout.alignment: Qt.AlignTop | Qt.AlignLeft
 				}
 
 				Item {
@@ -177,7 +167,7 @@ Pane {
 
 						Component.onCompleted: {
 							currentIndex = Qt.binding(function() { return indexOfValue(txtMesoSplit.text.charAt(delegateRow.delegateIndex)); });
-							btnMuscularGroups.visible = Qt.binding(function() { return currentIndex !== 6; });
+							btnMuscularGroups.enabled = Qt.binding(function() { return currentIndex !== 6; });
 							let last_letter_idx = indexOfValue(currentValue);
 							if (last_letter_idx === nLastDelegateIdx) {
 								let prev_index = delegateRow.delegateIndex-1;
@@ -196,21 +186,6 @@ Pane {
 							for (let x = delegateRow.delegateIndex; x < nLastDelegateIdx; ++x)
 								model.get(x).enabled = x <= last_letter_idx;
 						}
-					}
-
-					TPButton {
-						//objectName: "button"
-						id: btnMuscularGroups
-						imageSource: "choose.png"
-						imageSize: 25
-
-						anchors {
-							bottom: parent.bottom
-							left: parent.left
-							right: parent.right
-						}
-
-						onClicked: showMGDialog(this, splitRepeater.itemAt(index).children[2]);
 					}
 				} //Item
 
@@ -253,6 +228,19 @@ Pane {
 						});
 					}
 				} //TPTextInput
+
+				TPButton {
+					//objectName: "button"
+					id: btnMuscularGroups
+					imageSource: "choose.png"
+					width: col4Width
+					height: col4Width
+					Layout.minimumWidth: col4Width
+					Layout.maximumWidth: col4Width
+					Layout.preferredHeight: col4Width
+
+					onClicked: showMGDialog(this, splitRepeater.itemAt(index).children[2]);
+				}
 			} //RowLayout
 		} //Repeater
 	} //GridLayout

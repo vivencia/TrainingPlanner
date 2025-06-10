@@ -284,7 +284,7 @@ void DBInterface::removeMesoSplit(DBExercisesModel *model)
 
 void DBInterface::removeAllMesoSplits(const uint meso_idx)
 {
-	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{nullptr}};
+	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{MESOSPLIT_TABLE_ID}};
 	worker->addExecArg(appMesoModel()->id(meso_idx));
 	createThread(worker, [worker] () { return worker->removeExercises(); });
 }
@@ -297,7 +297,7 @@ void DBInterface::deleteMesoSplitTable(const bool bRemoveFile)
 
 bool DBInterface::mesoHasAllSplitPlans(const uint meso_idx) const
 {
-	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{nullptr}};
+	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{MESOSPLIT_TABLE_ID}};
 	const bool ret{worker->mesoHasAllSplitPlans(appMesoModel()->id(meso_idx), appMesoModel()->split(meso_idx))};
 	delete worker;
 	return ret;
@@ -378,7 +378,7 @@ void DBInterface::removeWorkout(DBExercisesModel *model)
 
 void DBInterface::removeAllWorkouts(const uint meso_idx)
 {
-	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{nullptr}};
+	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{WORKOUT_TABLE_ID}};
 	worker->addExecArg(true);
 	createThread(worker, [worker] () { return worker->removeExercises(); });
 }

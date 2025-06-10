@@ -65,18 +65,24 @@ void DBMesoCalendarManager::setDayInfo(const uint meso_idx, const uint calendar_
 
 void DBMesoCalendarManager::removeCalendarForMeso(const uint meso_idx)
 {
-	appDBInterface()->removeMesoCalendar(meso_idx);
-	appDBInterface()->removeAllWorkouts(meso_idx);
+	if (appMesoModel()->_id(meso_idx) >= 0)
+	{
+		appDBInterface()->removeMesoCalendar(meso_idx);
+		appDBInterface()->removeAllWorkouts(meso_idx);
+	}
 	delete m_calendars.at(meso_idx);
 	m_calendars.remove(meso_idx);
 	qDeleteAll(m_workouts.at(meso_idx));
 	m_workouts.remove(meso_idx);
 	m_dbDataReady.remove(meso_idx);
-	for (uint i{meso_idx}; i < m_calendars.count(); ++i)
+
+	uint i{meso_idx};
+	for (const auto calendar : m_calendars | std::views::drop(meso_idx) )
 	{
-		m_calendars.at(i)->setMesoIdx(i);
+		calendar->setMesoIdx(i);
 		for (const auto workout: m_workouts.at(i))
 			workout->setMesoIdx(i);
+		i++;
 	}
 	qDeleteAll(m_dayInfoList.at(meso_idx));
 	m_dayInfoList.remove(meso_idx);

@@ -332,8 +332,6 @@ public:
 	Q_INVOKABLE inline QString usedSplits(const uint meso_idx) const { return m_usedSplits.at(meso_idx); }
 	void makeUsedSplits(const uint meso_idx);
 
-	inline bool newMesoCalendarChanged(const uint meso_idx) const { return m_newMesoCalendarChanged.at(meso_idx); }
-	inline void setNewMesoCalendarChanged(const uint meso_idx, const bool changed) { m_newMesoCalendarChanged[meso_idx] = changed; }
 	bool isDateWithinMeso(const int meso_idx, const QDate &date) const;
 	bool mesoPlanExists(const QString &mesoName, const QString &coach, const QString &client) const;
 	void findNextOwnMeso();
@@ -406,7 +404,6 @@ private:
 	homePageMesoModel *m_curMesos, *m_ownMesos, *m_clientMesos;
 	QList<short> m_isNewMeso;
 	QList<short> m_newMesoFieldCounter;
-	QList<bool> m_newMesoCalendarChanged;
 	QList<bool> m_canExport;
 	QStringList m_usedSplits;
 	int m_currentMesoIdx, m_mostRecentOwnMesoIdx, m_importMesoIdx, m_lowestTempMesoId;

@@ -235,9 +235,9 @@ TPPopup {
 
 	function show(ypos: int): void {
 		let new_height = 0;
-			if (lblTitle.visible)
+			if (title.length > 0)
 				new_height = lblTitle.contentHeight + 5
-			if (imgElement.visible)
+			if (imageSource.length > 0)
 				new_height += Math.max(imgElement.height, lblMessage.contentHeight) + 10
 			else
 				new_height += lblMessage.contentHeight + 10;

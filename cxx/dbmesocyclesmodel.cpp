@@ -5,7 +5,6 @@
 #include "dbmesocalendarmanager.h"
 #include "dbusermodel.h"
 #include "homepagemesomodel.h"
-#include "qmlitemmanager.h"
 #include "qmlmesointerface.h"
 #include "tpglobals.h"
 #include "tpsettings.h"
@@ -21,7 +20,7 @@ using DBSplitModel = DBExercisesModel;
 DBMesocyclesModel *DBMesocyclesModel::app_meso_model(nullptr);
 
 DBMesocyclesModel::DBMesocyclesModel(QObject *parent, const bool bMainAppModel)
-	: QObject{parent}, m_mostRecentOwnMesoIdx{-1}, m_lowestTempMesoId{-1}, m_bCanHaveTodaysWorkout{false}
+	: QObject{parent}, m_currentMesoIdx{-11111}, m_mostRecentOwnMesoIdx{-11111}, m_lowestTempMesoId{-1}, m_bCanHaveTodaysWorkout{false}
 {
 	app_meso_model = this;
 	setCurrentMesoIdx(appSettings()->lastViewedMesoIdx(), false);
@@ -119,7 +118,6 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 	m_calendarModel->removeCalendarForMeso(meso_idx);
 	m_isNewMeso.remove(meso_idx);
 	m_newMesoFieldCounter.remove(meso_idx);
-	m_newMesoCalendarChanged.remove(meso_idx);
 	m_canExport.remove(meso_idx);
 	removeMesoFile(meso_idx);
 
@@ -137,7 +135,7 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 	}
 
 	const int most_recent_ownMesoIdx{m_mostRecentOwnMesoIdx};
-	if (m_mostRecentOwnMesoIdx > meso_idx)
+	if (m_mostRecentOwnMesoIdx > static_cast<int>(meso_idx))
 		--m_mostRecentOwnMesoIdx;
 	else if (meso_idx == m_mostRecentOwnMesoIdx)
 	{
@@ -172,9 +170,8 @@ const uint DBMesocyclesModel::newMesocycle(QStringList &&infolist)
 	m_splitModels.append(std::move(QMap<QChar, DBSplitModel*>{{}}));
 	const uint meso_idx{count()-1};
 
-	m_newMesoCalendarChanged.append(false);
 	m_canExport.append(false);
-	//A temporary meso will not have enough info at this time to have it determined if it's a own meos or not
+	//A temporary meso will not have enough info at this time to have it determined if it's a own meso or not
 	if (_id(meso_idx) >= 0)
 		setOwnMeso(meso_idx);
 	else
@@ -245,8 +242,6 @@ void DBMesocyclesModel::setStartDate(const uint meso_idx, const QDate &new_date)
 	changeCanHaveTodaysWorkout(meso_idx);
 	if (!isNewMeso(meso_idx) && m_newMesoFieldCounter.at(meso_idx) == NEW_MESO_REQUIRED_FIELDS)
 		emit mesoCalendarFieldsChanged(meso_idx, MESOCYCLES_COL_STARTDATE);
-	else
-		m_newMesoCalendarChanged[meso_idx] = true;
 }
 
 void DBMesocyclesModel::setEndDate(const uint meso_idx, const QDate &new_date)
@@ -262,8 +257,6 @@ void DBMesocyclesModel::setEndDate(const uint meso_idx, const QDate &new_date)
 	changeCanHaveTodaysWorkout(meso_idx);
 	if (!isNewMeso(meso_idx) && m_newMesoFieldCounter.at(meso_idx) == NEW_MESO_REQUIRED_FIELDS)
 		emit mesoCalendarFieldsChanged(meso_idx, MESOCYCLES_COL_ENDDATE);
-	else
-		m_newMesoCalendarChanged[meso_idx] = true;
 }
 
 void DBMesocyclesModel::setSplit(const uint meso_idx, const QString &new_split)
@@ -280,8 +273,6 @@ void DBMesocyclesModel::setSplit(const uint meso_idx, const QString &new_split)
 		m_curMesos->emitDataChanged(meso_idx, mesoSplitRole);
 		if (!isNewMeso(meso_idx) && m_newMesoFieldCounter.at(meso_idx) == NEW_MESO_REQUIRED_FIELDS)
 			emit mesoCalendarFieldsChanged(meso_idx, MESOCYCLES_COL_SPLIT);
-		else
-			m_newMesoCalendarChanged[meso_idx] = true;
 		makeUsedSplits(meso_idx);
 	}
 }
@@ -485,7 +476,8 @@ int DBMesocyclesModel::exportToFile(const uint meso_idx, const QString &filename
 		return APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
 
 	int ret{APPWINDOW_MSG_EXPORT_FAILED};
-	const QList<uint> &export_row{QList<uint>{} << meso_idx};
+	QList<uint> export_row;
+	export_row.append(meso_idx);
 	if (appUtils()->writeDataToFile(out_file, appUtils()->mesoFileIdentifier, m_mesoData, export_row, false))
 	{
 		if (m_splitModels.at(meso_idx).count() > 0)
@@ -676,7 +668,10 @@ int DBMesocyclesModel::newMesoFromFile(const QString &filename, const std::optio
 			import_result = importFromFormattedFile(meso_idx, filename);
 	}
 	if (import_result < 0)
+	{
+		removeMesocycle(meso_idx);
 		return import_result;
+	}
 
 	setNewMesoFieldCounter(meso_idx, 20);
 	m_isNewMeso[meso_idx] = 0;
@@ -737,7 +732,8 @@ void DBMesocyclesModel::scanTemporaryMesocycles()
 		for(const auto &mesofile : std::as_const(mesos))
 		{
 			if (!mesoPlanExists(appUtils()->getFileName(mesofile.fileName(), true), appUtils()->getLastDirInPath(mesofile.filePath()), appUserModel()->userId(0)))
-				static_cast<void>(newMesoFromFile(mesofile.filePath()));
+				if (newMesoFromFile(mesofile.filePath()) < 0)
+					static_cast<void>(QFile::remove(mesofile.filePath()));
 		}
 	}
 }

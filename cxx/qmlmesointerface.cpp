@@ -21,6 +21,8 @@ QMLMesoInterface::~QMLMesoInterface()
 {
 	if (m_mesoComponent)
 	{
+		if (m_canSendMesoToServer)
+			sendMesocycleFileToServer();
 		emit removePageFromMainMenu(m_mesoPage);
 		delete m_mesoPage;
 		delete m_mesoComponent;
@@ -406,6 +408,7 @@ void QMLMesoInterface::getMesocyclePage()
 void QMLMesoInterface::sendMesocycleFileToServer()
 {
 	appMesoModel()->sendMesoToUser(m_mesoIdx);
+	m_canSendMesoToServer = false;
 }
 
 void QMLMesoInterface::incorporateMeso()
@@ -517,7 +520,7 @@ void QMLMesoInterface::createMesocyclePage_part2()
 				if (!ownMeso())
 					appMesoModel()->checkIfCanExport(m_mesoIdx);
 				else
-					sendMesocycleFileToServer();
+					m_canSendMesoToServer = true;
 			}
 		}
 	});
@@ -535,6 +538,5 @@ void QMLMesoInterface::createMesocyclePage_part2()
 inline bool QMLMesoInterface::isSplitOK(const QString &split) const
 {
 	static const QRegularExpression rgex{"(?=.*[ABCDEF])(?=.*[R])"_L1};
-	qDebug() << rgex.match(split).hasMatch();
 	return rgex.match(split).hasMatch();
 }

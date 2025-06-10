@@ -98,9 +98,9 @@ void DBMesocyclesTable::saveMesocycle()
 		{
 			strQuery = std::move(u"UPDATE %1 SET meso_name=\'%2\', meso_start_date=%3, meso_end_date=%4, "
 								"meso_note=\'%5\', meso_nweeks=%6, meso_split=\'%7\', "
-								"splitA=\'%8\', splitB=\'%9\', splitC=\'%10\', splitD=\'%11\', splitE=\'%11\', splitF=\'%12\', "
-								"meso_coach=%13, meso_client=%14, meso_program_file=\'%15\', meso_type=\'%16\', "
-								"real_meso=%17 WHERE id=%18"_s
+								"splitA=\'%8\', splitB=\'%9\', splitC=\'%10\', splitD=\'%11\', splitE=\'%12\', splitF=\'%13\', "
+								"meso_coach=%14, meso_client=%15, meso_program_file=\'%16\', meso_type=\'%17\', "
+								"real_meso=%18 WHERE id=%19"_s
 								.arg(m_tableName, m_model->name(meso_idx), m_model->strStartDate(meso_idx), m_model->strEndDate(meso_idx),
 									m_model->notes(meso_idx), m_model->nWeeks(meso_idx), m_model->split(meso_idx),
 									m_model->splitA(meso_idx), m_model->splitB(meso_idx), m_model->splitC(meso_idx), m_model->splitD(meso_idx),
@@ -112,8 +112,8 @@ void DBMesocyclesTable::saveMesocycle()
 			strQuery = std::move(u"INSERT INTO %1 "
 						"(meso_name,meso_start_date,meso_end_date,meso_note,meso_nweeks,meso_split,"
 						"splitA,splitB,splitC,splitD,splitE,splitF,meso_coach,meso_client,meso_program_file,meso_type,real_meso)"
-						" VALUES(\'%2\', %3, %4, \'%5\', %6, \'%7\', \'%8\', \'%9\', \'%10\', \'%11\', \'%12\',"
-							"%13, %14, \'%15\', \'%16\', %17)"_s
+						" VALUES(\'%2\', %3, %4, \'%5\', %6, \'%7\', \'%8\', \'%9\', \'%10\', \'%11\', \'%12\', \'%13\', "
+							"%14, %15, \'%16\', \'%17\', %18)"_s
 							.arg(m_tableName, m_model->name(meso_idx), m_model->strStartDate(meso_idx), m_model->strEndDate(meso_idx),
 								m_model->notes(meso_idx), m_model->nWeeks(meso_idx), m_model->split(meso_idx),
 								m_model->splitA(meso_idx), m_model->splitB(meso_idx), m_model->splitC(meso_idx), m_model->splitD(meso_idx),

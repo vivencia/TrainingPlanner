@@ -58,7 +58,8 @@ Q_PROPERTY(QDate maximumMesoEndDate READ maximumMesoEndDate CONSTANT FINAL)
 
 public:
 	explicit inline QMLMesoInterface(QObject *parent, const uint meso_idx)
-		: QObject{parent}, m_mesoComponent{nullptr}, m_mesoIdx{meso_idx}, m_exercisesPage{nullptr}, m_calendarPage{nullptr} {}
+		: QObject{parent}, m_mesoComponent{nullptr}, m_mesoIdx{meso_idx}, m_exercisesPage{nullptr}, m_calendarPage{nullptr},
+				m_canSendMesoToServer{false} {}
 	~QMLMesoInterface();
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
@@ -146,6 +147,7 @@ public:
 	Q_INVOKABLE void getWorkoutPage(const QDate &date);
 
 	void getMesocyclePage();
+	Q_INVOKABLE inline bool canSendMesoToServer() const { return m_canSendMesoToServer; }
 	Q_INVOKABLE void sendMesocycleFileToServer();
 	Q_INVOKABLE void incorporateMeso();
 
@@ -191,7 +193,7 @@ private:
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	uint m_mesoIdx;
-	bool m_bCanExport, m_mesoNameOK, m_startDateOK, m_endDateOK;
+	bool m_bCanExport, m_mesoNameOK, m_startDateOK, m_endDateOK, m_canSendMesoToServer;
 	QString m_strStartDate, m_strEndDate, m_nameError;
 	QDate m_startDate, m_endDate, m_minimumMesoStartDate, m_maximumMesoEndDate;
 	int m_newMesoFieldCounter;

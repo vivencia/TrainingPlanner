@@ -18,6 +18,11 @@ TPPage {
 
 	property TPBalloonTip newMesoTip: newMesoLoader.item
 
+	onPageDeActivated: {
+		if (mesoManager.canSendMesoToServer())
+			mesoManager.sendMesocycleFileToServer();
+	}
+
 	Connections {
 		target: mesoManager
 		function onNewMesoFieldCounterChanged(fieldCounter: int): void {
