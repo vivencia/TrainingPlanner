@@ -112,7 +112,7 @@ signals:
 	void hasActionsChanged();
 
 private:
-	TPMessagesManager* m_parent;
+	TPMessagesManager *m_parent;
 	int m_id;
 	bool m_plugged, m_autodelete, m_sticky;
 	QString m_text;

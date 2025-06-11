@@ -96,7 +96,7 @@ TPPopup {
 			flat: false
 			autoSize: true
 			visible: button1Text.length > 0
-			Layout.alignment: Qt.AlignCenter
+			Layout.alignment: Qt.AlignTop|Qt.AlignHCenter
 
 			onClicked: {
 				button1Clicked();
@@ -110,7 +110,7 @@ TPPopup {
 			flat: false
 			autoSize: true
 			visible: button2Text.length > 0
-			Layout.alignment: Qt.AlignCenter
+			Layout.alignment: Qt.AlignTop|Qt.AlignHCenter
 			Layout.maximumWidth: availableWidth - btn1.width - 10
 
 			onClicked: {

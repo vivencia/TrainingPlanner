@@ -35,6 +35,8 @@ public:
 	Q_INVOKABLE void getStatisticsPage();
 	Q_INVOKABLE void getAllWorkoutsPage();
 
+	void addMainMenuShortCut(const QString &label, QQuickItem *page, const std::function<void ()> &clean_up_func = nullptr);
+	void removeMainMenuShortCut(QQuickItem *page);
 	const QString &setExportFileName(const QString &filename);
 	void continueExport(int exportMessageId, const bool bShare);
 	void displayActivityResultMessage(const int requestCode, const int resultCode) const;
@@ -50,8 +52,6 @@ public slots:
 	void displayMessageOnAppWindow(const int message_id, const QString &fileName = QString()) const;
 	void exportSlot(const QString &filePath = QString());
 	void importSlot_FileChosen(const QString &filePath = QString(), const int fileType = -1);
-	void addMainMenuShortCut(const QString &label, QQuickItem *page);
-	void removeMainMenuShortCut(QQuickItem *page);
 	inline void qmlPasswordDialogClosed_slot(int resultCode, const QString &password) { emit qmlPasswordDialogClosed(resultCode, password); }
 
 private:

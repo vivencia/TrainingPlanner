@@ -51,7 +51,7 @@ extern "C"
 #include <QTcpSocket>
 #include <QTimer>
 
-OSInterface *OSInterface::app_os_interface(nullptr);
+OSInterface *OSInterface::app_os_interface{nullptr};
 constexpr uint CONNECTION_CHECK_TIMEOUT{10*60*1000};
 constexpr uint CONNECTION_ERR_TIMEOUT{20*1000};
 
@@ -186,6 +186,7 @@ void OSInterface::setNetworkStatus(int new_internetstatus, int new_serverstatus)
 
 void OSInterface::aboutToExit()
 {
+	emit appAboutToExit();
 	appDBInterface()->cleanUpThreads();
 }
 
@@ -576,6 +577,7 @@ void OSInterface::checkLocalServer()
 
 void OSInterface::commandLocalServer(const QString &command)
 {
+	return;
 	connect(appItemManager(), &QmlItemManager::qmlPasswordDialogClosed, this, [this,command] (int resultCode, const QString &password) {
 		if (resultCode == 0)
 		{

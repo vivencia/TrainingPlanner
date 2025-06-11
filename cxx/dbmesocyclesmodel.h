@@ -80,12 +80,13 @@ public:
 	inline uint fieldCount() const { return MESOCYCLES_TOTAL_COLS; }
 	inline uint count() const { return m_mesoData.count(); }
 	QMLMesoInterface *mesoManager(const uint meso_idx);
+	void removeMesoManager(const uint meso_idx);
 	DBExercisesModel *splitModel(const uint meso_idx, const QChar &split_letter, const bool auto_load = true);
 
 	uint startNewMesocycle(const bool bCreatePage, const std::optional<bool> bOwnMeso = std::nullopt);
-	Q_INVOKABLE inline void startNewMesocycle_QML(const bool bCreatePage, const bool bOwnMeso)
+	Q_INVOKABLE inline void startNewMesocycle_QML(const bool bOwnMeso)
 	{
-		static_cast<void>(startNewMesocycle(bCreatePage, bOwnMeso));
+		static_cast<void>(startNewMesocycle(true, bOwnMeso));
 	}
 
 	Q_INVOKABLE void getMesocyclePage(const uint meso_idx);
@@ -398,7 +399,7 @@ signals:
 
 private:	
 	QList<QStringList> m_mesoData;
-	QList<QMLMesoInterface*> m_mesoManagerList;
+	QHash<uint,QMLMesoInterface*> m_mesoManagerList;
 	QList<QMap<QChar,DBExercisesModel*>> m_splitModels;
 	DBMesoCalendarManager* m_calendarModel;
 	homePageMesoModel *m_curMesos, *m_ownMesos, *m_clientMesos;

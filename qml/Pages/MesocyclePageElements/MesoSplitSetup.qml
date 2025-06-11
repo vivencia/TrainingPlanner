@@ -47,7 +47,7 @@ Pane {
 			id: txtMesoSplit
 			text: mesoManager.split
 			ToolTip.text: qsTr("On any training program, there should be at least one rest day(R) per week and one training day(A-F)")
-			ToolTip.visible: mesoManager.splitOK
+			ToolTip.visible: !mesoManager.splitOK
 			ToolTip.timeout: 5000
 			readOnly: true
 			width: parent.width*0.4

@@ -239,7 +239,8 @@ void DBInterface::saveMesocycle(const uint meso_idx)
 
 	if (appMesoModel()->_id(meso_idx) < 0)
 		worker->waitForThreadToFinish();
-	saveMesoCalendar(meso_idx);
+	else
+		saveMesoCalendar(meso_idx);
 	worker->addExecArg(meso_idx);
 	createThread(worker, [worker] () { worker->saveMesocycle(); });
 }

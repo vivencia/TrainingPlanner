@@ -60,8 +60,9 @@ public:
 	explicit inline QMLMesoInterface(QObject *parent, const uint meso_idx)
 		: QObject{parent}, m_mesoComponent{nullptr}, m_mesoIdx{meso_idx}, m_exercisesPage{nullptr}, m_calendarPage{nullptr},
 				m_canSendMesoToServer{false} {}
-	~QMLMesoInterface();
+	inline ~QMLMesoInterface() { cleanUp(); }
 
+	void cleanUp();
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	bool isMesoNameOK(const QString &meso_name) const;
 	[[nodiscard]] inline bool mesoNameOK() const { return m_mesoNameOK; }
@@ -182,9 +183,6 @@ signals:
 	void muscularGroupFChanged();
 	void newMesoFieldCounterChanged(const int fieldCounter);
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
-
-	void addPageToMainMenu(const QString &label, QQuickItem *page);
-	void removePageFromMainMenu(QQuickItem *page);
 
 private:
 	QQmlComponent *m_mesoComponent;

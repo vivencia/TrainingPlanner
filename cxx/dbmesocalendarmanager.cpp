@@ -65,6 +65,8 @@ void DBMesoCalendarManager::setDayInfo(const uint meso_idx, const uint calendar_
 
 void DBMesoCalendarManager::removeCalendarForMeso(const uint meso_idx)
 {
+	if (meso_idx >= m_calendars.count())
+		return;
 	if (appMesoModel()->_id(meso_idx) >= 0)
 	{
 		appDBInterface()->removeMesoCalendar(meso_idx);
@@ -101,12 +103,12 @@ void DBMesoCalendarManager::addCalendarForMeso(const uint meso_idx)
 
 void DBMesoCalendarManager::addNewCalendarForMeso(const uint new_mesoidx)
 {
-	addCalendarForMeso(new_mesoidx);
 	auto conn = std::make_shared<QMetaObject::Connection>();
 	*conn = connect(appMesoModel(), &DBMesocyclesModel::isNewMesoChanged, this, [this,conn,new_mesoidx] (const uint meso_idx) {
 		if (meso_idx == new_mesoidx)
 		{
 			disconnect(*conn);
+			addCalendarForMeso(new_mesoidx);
 			createCalendar(meso_idx);
 		}
 	});

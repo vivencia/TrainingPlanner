@@ -22,9 +22,8 @@ QmlMesoCalendarInterface::QmlMesoCalendarInterface(QObject *parent, const uint m
 	});
 }
 
-QmlMesoCalendarInterface::~QmlMesoCalendarInterface()
+void QmlMesoCalendarInterface::cleanUp()
 {
-	emit removePageFromMainMenu(m_calPage);
 	delete m_calPage;
 	delete m_calComponent;
 }
@@ -38,7 +37,7 @@ void QmlMesoCalendarInterface::getMesoCalendarPage()
 		createMesoCalendarPage();
 	}
 	else
-		emit addPageToMainMenu(tr("Calendar: ") + appMesoModel()->name(m_mesoIdx), m_calPage);
+		appItemManager()->addMainMenuShortCut(tr("Calendar: ") + appMesoModel()->name(m_mesoIdx), m_calPage);
 }
 
 void QmlMesoCalendarInterface::changeSplitLetter(const QString &newSplitLetter, const bool bUntillTheEnd)
@@ -110,17 +109,16 @@ void QmlMesoCalendarInterface::createMesoCalendarPage_part2()
 	if (m_calComponent->status() == QQmlComponent::Error)
 	{
 		qDebug() << m_calComponent->errorString();
-		for (uint i{0}; i < m_calComponent->errors().count(); ++i)
-			qDebug() << m_calComponent->errors().at(i).description();
+		for (auto &error : m_calComponent->errors())
+			qDebug() << error.description();
 		return;
 	}
 	#endif
 	appQmlEngine()->setObjectOwnership(m_calPage, QQmlEngine::CppOwnership);
 	m_calPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
-
-	connect(this, &QmlMesoCalendarInterface::addPageToMainMenu, appItemManager(), &QmlItemManager::addMainMenuShortCut);
-	connect(this, &QmlMesoCalendarInterface::removePageFromMainMenu, appItemManager(), &QmlItemManager::removeMainMenuShortCut);
-	emit addPageToMainMenu(tr("Calendar: ") + appMesoModel()->name(m_mesoIdx), m_calPage);
+	appItemManager()->addMainMenuShortCut(tr("Calendar: ") + appMesoModel()->name(m_mesoIdx), m_calPage, [this] () {
+		cleanUp();
+	});
 
 	connect(appMesoModel(), &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field) {
 		switch (field)

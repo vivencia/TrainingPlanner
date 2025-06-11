@@ -449,7 +449,7 @@ int TPUtils::readDataFromFormattedFile(QFile *in_file,
 				data.append(std::move(data_read));
 				field = 1;
 			}
-			else
+			else if (identifier_found)
 			{
 				if (field < field_count)
 				{

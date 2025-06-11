@@ -41,7 +41,7 @@ public:
 	virtual void updateTable() = 0;
 	static TPDatabaseTable *createDBTable(const uint table_id, const bool auto_delete = true);
 
-	inline void setCallbackForDoneFunc( const std::function<void (TPDatabaseTable*)>& func ) { doneFunc = func; }
+	inline void setCallbackForDoneFunc( const std::function<void (TPDatabaseTable*)> &func ) { doneFunc = func; }
 
 	static inline QString dbFilePath(const uint table_id) { return appUtils()->localAppFilesDir() + tablesNames[table_id]; }
 	inline uint tableId() const { return m_tableId; }

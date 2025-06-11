@@ -26,7 +26,8 @@ Q_PROPERTY(bool canSwapExercises READ canSwapExercises NOTIFY currentPageChanged
 public:
 	explicit inline QmlMesoSplitInterface(QObject* parent, const uint meso_idx)
 		: QObject{parent}, m_plannerComponent{nullptr}, m_currentSplitPage{nullptr}, m_splitComponent{nullptr}, m_mesoIdx{meso_idx} {}
-	~QmlMesoSplitInterface();
+	inline ~QmlMesoSplitInterface() { cleanUp(); }
+	void cleanUp();
 
 	inline uint mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const uint new_meso_idx) { m_mesoIdx = new_meso_idx; }
@@ -54,8 +55,6 @@ public:
 
 signals:
 	void plannerPageCreated();
-	void addPageToMainMenu(const QString& label, QQuickItem* page);
-	void removePageFromMainMenu(QQuickItem* page);
 	void currentPageChanged();
 
 public slots:

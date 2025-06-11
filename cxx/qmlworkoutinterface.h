@@ -23,8 +23,8 @@ class QmlWorkoutInterface : public QObject
 
 Q_OBJECT
 
-Q_PROPERTY(QmlExerciseEntry* workingExercise READ workingExercise WRITE setWorkingExercise NOTIFY workingExerciseChanged FINAL)
-Q_PROPERTY(QmlSetEntry* workingSet READ workingSet WRITE setWorkingSet NOTIFY workingSetChanged FINAL)
+Q_PROPERTY(QmlExerciseEntry *workingExercise READ workingExercise WRITE setWorkingExercise NOTIFY workingExerciseChanged FINAL)
+Q_PROPERTY(QmlSetEntry *workingSet READ workingSet WRITE setWorkingSet NOTIFY workingSetChanged FINAL)
 Q_PROPERTY(uint timerHour READ timerHour WRITE setTimerHour NOTIFY timerHourChanged FINAL)
 Q_PROPERTY(uint timerMinute READ timerMinute WRITE setTimerMinute NOTIFY timerMinuteChanged FINAL)
 Q_PROPERTY(uint timerSecond READ timerSecond WRITE setTimerSecond NOTIFY timerSecondChanged FINAL)
@@ -48,7 +48,8 @@ Q_PROPERTY(QStringList previousWorkoutsList READ previousWorkoutsList NOTIFY pre
 
 public:
 	explicit QmlWorkoutInterface(QObject *parent, const uint meso_idx, const QDate &date);
-	~QmlWorkoutInterface();
+	inline ~QmlWorkoutInterface() { cleanUp(); }
+	void cleanUp();
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
@@ -179,15 +180,13 @@ signals:
 	void hasExercisesChanged();
 	void previousWorkoutsListChanged();
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
-	void displayMessageOnAppWindow(const int message_id, const QString& filename = QString());
-	void addPageToMainMenu(const QString& label, QQuickItem* page);
-	void removePageFromMainMenu(QQuickItem* page);
-	void requestMesoSplitModel(const QChar& splitletter);
+	void displayMessageOnAppWindow(const int message_id, const QString &filename = QString{});
+	void requestMesoSplitModel(const QChar &splitletter);
 
 private:
 	QQmlComponent *m_workoutComponent, *m_exercisesComponent;
 	DBExercisesModel *m_workoutModel;
-	DBCalendarModel * m_calendarModel;
+	DBCalendarModel  *m_calendarModel;
 	QQuickItem *m_workoutPage, *m_exercisesLayout;
 	QVariantMap m_workoutProperties, m_exercisesProperties;
 	QList<QmlExerciseEntry*> m_exercisesList;

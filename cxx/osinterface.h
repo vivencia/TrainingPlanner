@@ -134,6 +134,7 @@ signals:
 #ifdef Q_OS_ANDROID
 	void activityFinishedResult(const int requestCode, const int resultCode);
 #endif
+	void appAboutToExit();
 	void appSuspended();
 	void appResumed();
 	void internetStatusChanged(const bool connected);

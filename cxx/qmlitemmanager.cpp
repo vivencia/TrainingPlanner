@@ -289,6 +289,16 @@ void QmlItemManager::getAllWorkoutsPage()
 		m_pagesManager->addMainMenuShortCut(QString{}, m_allWorkoutsPage);
 }
 
+void QmlItemManager::addMainMenuShortCut(const QString &label, QQuickItem *page, const std::function<void ()> &clean_up_func)
+{
+	m_pagesManager->addMainMenuShortCut(label, page, clean_up_func);
+}
+
+void QmlItemManager::removeMainMenuShortCut(QQuickItem *page)
+{
+	m_pagesManager->removeMainMenuShortCut(page);
+}
+
 const QString &QmlItemManager::setExportFileName(const QString &filename)
 {
 	m_exportFilename = std::move(appUtils()->localAppFilesDir() + filename);
@@ -573,25 +583,14 @@ void QmlItemManager::importSlot_FileChosen(const QString &filePath, const int fi
 		displayMessageOnAppWindow(APPWINDOW_MSG_IMPORT_CANCELED);
 }
 
-void QmlItemManager::addMainMenuShortCut(const QString &label, QQuickItem *page)
-{
-	m_pagesManager->addMainMenuShortCut(label, page);
-}
-
-void QmlItemManager::removeMainMenuShortCut(QQuickItem *page)
-{
-	m_pagesManager->removeMainMenuShortCut(page);
-}
-
 void QmlItemManager::createWeatherPage_part2()
 {
 	m_weatherPage = static_cast<QQuickItem*>(m_weatherComponent->create(appQmlEngine()->rootContext()));
 	#ifndef QT_NO_DEBUG
 	if (m_weatherComponent->status() == QQmlComponent::Error)
 	{
-		qDebug() << m_weatherComponent->errorString();
-		for (uint i{0}; i < m_weatherComponent->errors().count(); ++i)
-			qDebug() << m_weatherComponent->errors().at(i).description();
+		for (auto &error : m_weatherComponent->errors())
+			qDebug() << error.description();
 		return;
 	}
 	#endif
@@ -606,9 +605,8 @@ void QmlItemManager::createStatisticsPage_part2()
 	#ifndef QT_NO_DEBUG
 	if (m_statisticsComponent->status() == QQmlComponent::Error)
 	{
-		qDebug() << m_statisticsComponent->errorString();
-		for (uint i{0}; i < m_statisticsComponent->errors().count(); ++i)
-			qDebug() << m_statisticsComponent->errors().at(i).description();
+		for (auto &error : m_statisticsComponent->errors())
+			qDebug() << error.description();
 		return;
 	}
 	#endif
@@ -627,9 +625,8 @@ void QmlItemManager::createAllWorkoutsPage_part2()
 	#ifndef QT_NO_DEBUG
 	if (m_allWorkoutsComponent->status() == QQmlComponent::Error)
 	{
-		qDebug() << m_allWorkoutsComponent->errorString();
-		for (uint i{0}; i < m_allWorkoutsComponent->errors().count(); ++i)
-			qDebug() << m_allWorkoutsComponent->errors().at(i).description();
+		for (auto &error : m_allWorkoutsComponent->errors())
+			qDebug() << error.description();
 		return;
 	}
 	#endif

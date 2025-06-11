@@ -56,15 +56,22 @@ DBMesocyclesModel::~DBMesocyclesModel()
 
 QMLMesoInterface *DBMesocyclesModel::mesoManager(const uint meso_idx)
 {
-	if (meso_idx >= m_mesoManagerList.count())
+	QMLMesoInterface *mesomanager{m_mesoManagerList.value(meso_idx)};
+	if (!mesomanager)
 	{
-		for (qsizetype i{m_mesoManagerList.count()}; i <= meso_idx ; ++i)
-		{
-			QMLMesoInterface *mesomanager{new QMLMesoInterface{this, static_cast<uint>(i)}};
-			m_mesoManagerList.append(mesomanager);
-		}
+		mesomanager = new QMLMesoInterface{this, meso_idx};
+		m_mesoManagerList[meso_idx] = mesomanager;
 	}
-	return m_mesoManagerList.at(meso_idx);
+	return mesomanager;
+}
+
+void DBMesocyclesModel::removeMesoManager(const uint meso_idx)
+{
+	if (m_mesoManagerList.value(meso_idx))
+	{
+		delete m_mesoManagerList.value(meso_idx);
+		m_mesoManagerList.remove(meso_idx);
+	}
 }
 
 DBExercisesModel *DBMesocyclesModel::splitModel(const uint meso_idx, const QChar &split_letter, const bool auto_load)
@@ -100,10 +107,11 @@ uint DBMesocyclesModel::startNewMesocycle(const bool bCreatePage, const std::opt
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_SPLIT);
 	m_isNewMeso[meso_idx] = newMesoRequiredFields;
 
-	QMLMesoInterface *mesomanager{new QMLMesoInterface{this, meso_idx}};
-	m_mesoManagerList.append(mesomanager);
 	if (bCreatePage)
+	{
+		static_cast<void>(mesoManager(meso_idx));
 		getMesocyclePage(meso_idx);
+	}
 	return meso_idx;
 }
 
@@ -126,13 +134,8 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 	else
 		m_clientMesos->removeData(m_mesoData.at(meso_idx));
 
+	removeMesoManager(meso_idx);
 	m_mesoData.remove(meso_idx);
-
-	if (meso_idx < m_mesoManagerList.count())
-	{
-		delete m_mesoManagerList.at(meso_idx);
-		m_mesoManagerList.removeAt(meso_idx);
-	}
 
 	const int most_recent_ownMesoIdx{m_mostRecentOwnMesoIdx};
 	if (m_mostRecentOwnMesoIdx > static_cast<int>(meso_idx))
@@ -478,7 +481,7 @@ int DBMesocyclesModel::exportToFile(const uint meso_idx, const QString &filename
 	int ret{APPWINDOW_MSG_EXPORT_FAILED};
 	QList<uint> export_row;
 	export_row.append(meso_idx);
-	if (appUtils()->writeDataToFile(out_file, appUtils()->mesoFileIdentifier, m_mesoData, export_row, false))
+	if (appUtils()->writeDataToFile(out_file, appUtils()->mesoFileIdentifier, m_mesoData, export_row))
 	{
 		if (m_splitModels.at(meso_idx).count() > 0)
 			ret = exportToFile_splitData(meso_idx, out_file, false);
@@ -791,15 +794,22 @@ void DBMesocyclesModel::loadSplits(const uint meso_idx, const uint thread_id)
 int DBMesocyclesModel::exportToFile_splitData(const uint meso_idx, QFile *mesoFile, const bool formatted) const
 {
 	int ret{0};
+	const QMap<QChar,DBExercisesModel*> &splitModels{m_splitModels.at(meso_idx)};
 	if (!formatted)
 	{
-		for (const auto splitModel : m_splitModels.at(meso_idx))
-			ret = splitModel->exportToFile(QString{}, mesoFile);
+		for (const auto splitModel : splitModels)
+		{
+			if (splitModel)
+				ret = splitModel->exportToFile(QString{}, mesoFile);
+		}
 	}
 	else
 	{
-		for (const auto splitModel : m_splitModels.at(meso_idx))
-			ret = splitModel->exportToFormattedFile(QString{}, mesoFile);
+		for (const auto splitModel : splitModels)
+		{
+			if (splitModel)
+				ret = splitModel->exportToFormattedFile(QString{}, mesoFile);
+		}
 	}
 	return ret;
 }

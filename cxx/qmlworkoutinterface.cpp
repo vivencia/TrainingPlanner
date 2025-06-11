@@ -53,9 +53,8 @@ QmlWorkoutInterface::QmlWorkoutInterface(QObject *parent, const uint meso_idx, c
 	setMainDateIsToday(date == QDate::currentDate());
 }
 
-QmlWorkoutInterface::~QmlWorkoutInterface()
+void QmlWorkoutInterface::cleanUp()
 {
-	emit removePageFromMainMenu(m_workoutPage);
 	qDeleteAll(m_exercisesList);
 	delete m_exercisesComponent;
 	m_workoutModel->deleteLater();
@@ -263,7 +262,7 @@ void QmlWorkoutInterface::getWorkoutPage()
 	else
 	{
 		setNeedActivation(true);
-		emit addPageToMainMenu(tr("Workout: ") + appUtils()->formatDate(m_calendarModel->date(m_calendarDay)), m_workoutPage);
+		appItemManager()->addMainMenuShortCut(tr("Workout: ") + appUtils()->formatDate(m_calendarModel->date(m_calendarDay)), m_workoutPage);
 	}
 }
 
@@ -609,9 +608,10 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 	m_workoutPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
 	m_exercisesLayout = m_workoutPage->findChild<QQuickItem*>("exercisesLayout"_L1);
 
-	connect(this, &QmlWorkoutInterface::addPageToMainMenu, appItemManager(), &QmlItemManager::addMainMenuShortCut);
-	connect(this, &QmlWorkoutInterface::removePageFromMainMenu, appItemManager(), &QmlItemManager::removeMainMenuShortCut);
-	emit addPageToMainMenu(tr("Workout: ") + appUtils()->formatDate(m_calendarModel->date(m_calendarDay)), m_workoutPage);
+	appItemManager()->addMainMenuShortCut(tr("Workout: ") + appUtils()->formatDate(m_calendarModel->date(m_calendarDay)), m_workoutPage, [this] () {
+		cleanUp();
+	});
+
 	setHeaderText();
 
 	if (m_workoutModel->splitLetter() != "R"_L1)

@@ -8,6 +8,7 @@
 #include "qmlmesosplitinterface.h"
 #include "qmlmesocalendarinterface.h"
 #include "qmlworkoutinterface.h"
+#include "osinterface.h"
 #include "tputils.h"
 #include "translationclass.h"
 
@@ -17,13 +18,13 @@
 #include <QQuickItem>
 #include <QQuickWindow>
 
-QMLMesoInterface::~QMLMesoInterface()
+void QMLMesoInterface::cleanUp()
 {
+	appMesoModel()->removeMesoManager(m_mesoIdx);
 	if (m_mesoComponent)
 	{
 		if (m_canSendMesoToServer)
 			sendMesocycleFileToServer();
-		emit removePageFromMainMenu(m_mesoPage);
 		delete m_mesoPage;
 		delete m_mesoComponent;
 	}
@@ -402,7 +403,7 @@ void QMLMesoInterface::getMesocyclePage()
 	if (!m_mesoComponent)
 		createMesocyclePage();
 	else
-		emit addPageToMainMenu(appMesoModel()->name(m_mesoIdx), m_mesoPage);
+		appItemManager()->addMainMenuShortCut(appMesoModel()->name(m_mesoIdx), m_mesoPage);
 }
 
 void QMLMesoInterface::sendMesocycleFileToServer()
@@ -428,7 +429,12 @@ void QMLMesoInterface::createMesocyclePage()
 	}
 	else
 	{
-		setName(std::move(tr("New Program")));
+		QString meso_name{std::move(tr("New Program"))};
+		uint i{1};
+		while (!isMesoNameOK(meso_name))
+			meso_name = std::move(tr("New Program") + " %1"_L1.arg(QString::number(i)));
+		appMesoModel()->setName(m_mesoIdx, meso_name);
+		setMesoNameOK(true);
 		const QDate &minimumStartDate{appUtils()->getNextMonday(appMesoModel()->getMesoMinimumStartDate(appMesoModel()->client(m_mesoIdx), 99999))};
 		const QDate &currentDate{QDate::currentDate()};
 		setStartDate(currentDate);
@@ -464,9 +470,13 @@ void QMLMesoInterface::createMesocyclePage_part2()
 	appQmlEngine()->setObjectOwnership(m_mesoPage, QQmlEngine::CppOwnership);
 	m_mesoPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"_L1));
 
-	connect(this, &QMLMesoInterface::addPageToMainMenu, appItemManager(), &QmlItemManager::addMainMenuShortCut);
-	connect(this, &QMLMesoInterface::removePageFromMainMenu, appItemManager(), &QmlItemManager::removeMainMenuShortCut);
-	emit addPageToMainMenu(appMesoModel()->name(m_mesoIdx), m_mesoPage);
+	connect(appOsInterface(), &OSInterface::appAboutToExit, this, [this] () {
+		if (m_canSendMesoToServer)
+			sendMesocycleFileToServer();
+	});
+	appItemManager()->addMainMenuShortCut(appMesoModel()->name(m_mesoIdx), m_mesoPage, [this] () {
+		cleanUp();
+	});
 
 	connect(appMesoModel(), &DBMesocyclesModel::mesoIdxChanged, this, [this] (const uint old_meso_idx, const uint new_meso_idx) {
 		if (old_meso_idx == m_mesoIdx)
@@ -514,9 +524,9 @@ void QMLMesoInterface::createMesocyclePage_part2()
 	connect(appMesoModel(), &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint meso_field) {
 		if (meso_idx == m_mesoIdx)
 		{
+			appDBInterface()->saveMesocycle(m_mesoIdx);
 			if (!appMesoModel()->isNewMeso(m_mesoIdx))
 			{
-				appDBInterface()->saveMesocycle(m_mesoIdx);
 				if (!ownMeso())
 					appMesoModel()->checkIfCanExport(m_mesoIdx);
 				else

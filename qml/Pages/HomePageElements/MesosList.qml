@@ -311,7 +311,7 @@ Item {
 				verticalCenterOffset: mainUserPrograms ? -(appSettings.itemDefaultHeight+20) : -(appSettings.itemDefaultHeight+10)*0.5
 			}
 
-			onClicked: mesocyclesModel.startNewMesocycle_QML(true, mainUserPrograms);
+			onClicked: mesocyclesModel.startNewMesocycle_QML(mainUserPrograms);
 		}
 
 		TPButton {

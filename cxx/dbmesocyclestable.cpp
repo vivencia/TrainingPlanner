@@ -87,7 +87,7 @@ void DBMesocyclesTable::saveMesocycle()
 		bool bUpdate{false};
 		QString strQuery;
 
-		if (query.exec("SELECT id FROM %1 WHERE id=%2"_L1.arg(m_model->id(meso_idx), m_tableName)))
+		if (query.exec("SELECT id FROM %1 WHERE id=%2"_L1.arg(m_tableName, m_model->id(meso_idx))))
 		{
 			if (query.first())
 				bUpdate = query.value(0).toUInt() >= 0;

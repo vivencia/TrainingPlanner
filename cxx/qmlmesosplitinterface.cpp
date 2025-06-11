@@ -12,15 +12,11 @@
 #include <QQuickItem>
 #include <QQuickWindow>
 
-QmlMesoSplitInterface::~QmlMesoSplitInterface()
+void QmlMesoSplitInterface::cleanUp()
 {
 	if (m_plannerComponent)
 	{
-		for (const auto split_page : std::as_const(m_splitPages))
-		{
-			emit removePageFromMainMenu(split_page);
-			delete split_page;
-		}
+		qDeleteAll(m_splitPages);
 		delete m_splitComponent;
 		delete m_plannerPage;
 		delete m_plannerComponent;
@@ -36,7 +32,7 @@ void QmlMesoSplitInterface::getExercisesPlannerPage()
 		createPlannerPage();
 	}
 	else
-		emit addPageToMainMenu(tr("Exercises Planner: ") + appMesoModel()->name(m_mesoIdx), m_plannerPage);
+		appItemManager()->addMainMenuShortCut(tr("Exercises Planner: ") + appMesoModel()->name(m_mesoIdx), m_plannerPage);
 }
 
 void QmlMesoSplitInterface::addExercise()
@@ -221,9 +217,9 @@ void QmlMesoSplitInterface::createPlannerPage_part2()
 	m_plannerPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
 	QMetaObject::invokeMethod(m_plannerPage, "createNavButtons");
 	emit plannerPageCreated();
-	connect(this, &QmlMesoSplitInterface::addPageToMainMenu, appItemManager(), &QmlItemManager::addMainMenuShortCut);
-	connect(this, &QmlMesoSplitInterface::removePageFromMainMenu, appItemManager(), &QmlItemManager::removeMainMenuShortCut);
-	emit addPageToMainMenu(tr("Exercises Planner: ") + appMesoModel()->name(m_mesoIdx), m_plannerPage);
+	appItemManager()->addMainMenuShortCut(tr("Exercises Planner: ") + appMesoModel()->name(m_mesoIdx), m_plannerPage, [this] () {
+		cleanUp();
+	});
 }
 
 void QmlMesoSplitInterface::createMesoSplitPages()

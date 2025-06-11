@@ -43,28 +43,27 @@ QVariant homePageMesoModel::data(const QModelIndex &index, int role) const
 	const int row{index.row()};
 	if(row >= 0 && row < m_modeldata2.count())
 	{
-		const uint mesorow{m_mesoModelRows.at(row)};
+		const uint meso_idx{m_mesoModelRows.at(row)};
 		switch(role)
 		{
 			case mesoNameRole:
-				return QVariant{"<b>"_L1 + (appMesoModel()->name(mesorow).isEmpty() ? tr("New Program") :
-							appMesoModel()->name(mesorow)) + (appMesoModel()->_id(mesorow) < 0 ? tr(" (Temporary)") : QString{}) + "</b>"_L1};
+				return QVariant{"<b>"_L1 + appMesoModel()->name(meso_idx) + (appMesoModel()->_id(meso_idx) < 0 ? tr(" (Temporary)") : QString{}) + "</b>"_L1};
 			case mesoStartDateRole:
 				return QVariant{appMesoModel()->startDateLabel() + "<b>"_L1 +
-					(!appMesoModel()->isNewMeso(mesorow) ? appUtils()->formatDate(appMesoModel()->startDate(mesorow)) : tr("Not set")) + "</b>"_L1};
+					(!appMesoModel()->isNewMeso(meso_idx) ? appUtils()->formatDate(appMesoModel()->startDate(meso_idx)) : tr("Not set")) + "</b>"_L1};
 			case mesoEndDateRole:
 				return QVariant{appMesoModel()->endDateLabel() + "<b>"_L1 +
-						(!appMesoModel()->isNewMeso(mesorow) ? appUtils()->formatDate(appMesoModel()->endDate(mesorow)) : tr("Not set")) + "</b>"_L1};
+						(!appMesoModel()->isNewMeso(meso_idx) ? appUtils()->formatDate(appMesoModel()->endDate(meso_idx)) : tr("Not set")) + "</b>"_L1};
 			case mesoSplitRole:
-				return QVariant{appMesoModel()->splitLabel() + "<b>"_L1 + appMesoModel()->split(mesorow) + "</b>"_L1};
+				return QVariant{appMesoModel()->splitLabel() + "<b>"_L1 + appMesoModel()->split(meso_idx) + "</b>"_L1};
 			case mesoCoachRole:
-				if (!appMesoModel()->coach(mesorow).isEmpty())
+				if (!appMesoModel()->coach(meso_idx).isEmpty())
 					return QVariant{appMesoModel()->coachLabel() + "<b>"_L1 +
-											appUserModel()->userNameFromId(appMesoModel()->coach(mesorow)) + "</b>"_L1};
+											appUserModel()->userNameFromId(appMesoModel()->coach(meso_idx)) + "</b>"_L1};
 			case mesoClientRole:
-				if (!appMesoModel()->client(mesorow).isEmpty())
+				if (!appMesoModel()->client(meso_idx).isEmpty())
 					return QVariant{appMesoModel()->clientLabel() + "<b>"_L1 +
-											appUserModel()->userNameFromId(appMesoModel()->client(mesorow)) + "</b>"_L1};
+											appUserModel()->userNameFromId(appMesoModel()->client(meso_idx)) + "</b>"_L1};
 		}
 	}
 	return QVariant{};

@@ -62,6 +62,10 @@ public:
 	int importWorkoutFromFile(const QString &filename, const uint meso_idx, const QDate &date,
 												const std::optional<bool> &file_formatted = std::nullopt);
 
+	[[nodiscard]] inline bool hasCalendarInfo(const uint meso_idx) const
+	{
+			return meso_idx < m_dayInfoList.count() ? m_dayInfoList.at(meso_idx).count() > 0 : false;
+	}
 	[[nodiscard]] inline const QList<stDayInfo*> &dayInfo(const uint meso_idx) const { return m_dayInfoList.at(meso_idx); }
 	[[nodiscard]] const int calendarDay(const uint meso_idx, const QDate& date) const;
 	[[nodiscard]] const std::optional<QDate> dateFromCalendarDay(const uint meso_idx, const uint calendar_day) const;

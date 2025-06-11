@@ -21,7 +21,8 @@ Q_PROPERTY(QString selectedSplitLetter READ selectedSplitLetter NOTIFY selectedS
 
 public:
 	explicit QmlMesoCalendarInterface(QObject *parent, const uint meso_idx);
-	~QmlMesoCalendarInterface();
+	inline ~QmlMesoCalendarInterface() { cleanUp(); }
+	void cleanUp();
 
 	inline void setMesoIdx(const uint new_meso_idx) { m_mesoIdx = new_meso_idx; }
 	void getMesoCalendarPage();
@@ -45,8 +46,6 @@ public:
 	inline QString selectedSplitLetter() const { return m_selectedSplitLetter; }
 
 signals:
-	void addPageToMainMenu(const QString &label, QQuickItem *page);
-	void removePageFromMainMenu(QQuickItem *page);
 	void selectedDateChanged();
 	void nameLabelChanged();
 	void dateLabelChanged();

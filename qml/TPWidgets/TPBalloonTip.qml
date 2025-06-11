@@ -235,14 +235,14 @@ TPPopup {
 
 	function show(ypos: int): void {
 		let new_height = 0;
-			if (title.length > 0)
-				new_height = lblTitle.contentHeight + 5
-			if (imageSource.length > 0)
-				new_height += Math.max(imgElement.height, lblMessage.contentHeight) + 10
-			else
-				new_height += lblMessage.contentHeight + 10;
-			if (btn1.visible)
-				new_height += btn1.height + 10;
+		if (title.length > 0)
+			new_height = lblTitle.contentHeight + 5
+		if (imageSource.length > 0)
+			new_height += Math.max(imgElement.height, lblMessage.contentHeight) + 10
+		else
+			new_height += lblMessage.contentHeight + 10;
+		if (button1Text.length > 0)
+			new_height += btn1.height + 10;
 		balloon.height = new_height;
 		if (!anchored)
 			anchorElements();
