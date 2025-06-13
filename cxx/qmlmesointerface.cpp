@@ -20,11 +20,8 @@
 
 void QMLMesoInterface::cleanUp()
 {
-	appMesoModel()->removeMesoManager(m_mesoIdx);
 	if (m_mesoComponent)
 	{
-		if (m_canSendMesoToServer)
-			sendMesocycleFileToServer();
 		delete m_mesoPage;
 		delete m_mesoComponent;
 	}
@@ -475,7 +472,9 @@ void QMLMesoInterface::createMesocyclePage_part2()
 			sendMesocycleFileToServer();
 	});
 	appItemManager()->addMainMenuShortCut(appMesoModel()->name(m_mesoIdx), m_mesoPage, [this] () {
-		cleanUp();
+		if (m_canSendMesoToServer)
+			sendMesocycleFileToServer();
+		appMesoModel()->removeMesoManager(m_mesoIdx);
 	});
 
 	connect(appMesoModel(), &DBMesocyclesModel::mesoIdxChanged, this, [this] (const uint old_meso_idx, const uint new_meso_idx) {

@@ -13,7 +13,7 @@ TPPage {
 	required property CalendarManager calendarManager
 	required property DBCalendarModel calendarModel
 
-	property alias _today: appUtils.today()
+	property date _today: appUtils.today()
 	property bool bAlreadyLoaded: false
 
 	header: TPToolBar {

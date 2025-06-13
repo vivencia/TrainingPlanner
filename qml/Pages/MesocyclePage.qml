@@ -247,7 +247,6 @@ TPPage {
 
 					anchors {
 						left: parent.right
-						leftMargin: 5
 						verticalCenter: parent.verticalCenter
 					}
 

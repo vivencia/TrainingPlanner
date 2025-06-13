@@ -79,7 +79,6 @@ Item {
 					text: qsTr("View Program")
 					imageSource: "mesocycle.png"
 					imageSize: 30
-					backgroundColor: "transparent"
 					textUnderIcon: true
 					rounded: false
 					flat: false
@@ -102,7 +101,6 @@ Item {
 					text: qsTr("Calendar")
 					imageSource: "meso-calendar.png"
 					imageSize: 30
-					backgroundColor: "transparent"
 					rounded: false
 					flat: false
 					textUnderIcon: true
@@ -125,7 +123,6 @@ Item {
 					text: qsTr("Exercises Table")
 					imageSource: "meso-splitplanner.png"
 					imageSize: 30
-					backgroundColor: "transparent"
 					rounded: false
 					flat: false
 					textUnderIcon: true
@@ -148,7 +145,6 @@ Item {
 					text: qsTr("Export")
 					imageSource: "export.png"
 					imageSize: 30
-					backgroundColor: "transparent"
 					rounded: false
 					flat: false
 					textUnderIcon: true

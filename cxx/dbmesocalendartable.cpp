@@ -42,27 +42,32 @@ void DBMesoCalendarTable::getMesoCalendar()
 	{
 		bool ok{false};
 		const uint meso_idx{m_execArgs.at(0).toUInt()};
-		QString meso_id{std::move(m_model->mesoId(meso_idx, 0).value())};
-		QSqlQuery query{std::move(getQuery())};
-		const QString &strQuery{"SELECT date,data FROM mesocycles_calendar_table WHERE meso_id="_L1 + meso_id};
-
-		if (query.exec(strQuery))
+		const auto &_meso_id = []<typename T>(const std::optional<T> &retValue) { return retValue.has_value() ? retValue.value() : T{}; };
+		QString meso_id{_meso_id(m_model->mesoId(meso_idx, 0))};
+		if (!meso_id.isEmpty())
 		{
-			if (query.first())
-			{
-				m_model->addCalendarForMeso(meso_idx);
-				QList<stDayInfo*> *meso_calendar{&m_model->mesoCalendar(meso_idx)};
-				do
-				{
-					stDayInfo *day_info{new stDayInfo{}};
-					day_info->date = std::move(query.value(0).toString());
-					day_info->data = std::move(query.value(1).toString());
-                    meso_calendar->append(std::move(day_info));
-				} while (query.next ());
+			QSqlQuery query{std::move(getQuery())};
+			const QString &strQuery{"SELECT date,data FROM mesocycles_calendar_table WHERE meso_id="_L1 + meso_id};
 
+			if (query.exec(strQuery))
+			{
+				if (query.first())
+				{
+					m_model->addCalendarForMeso(meso_idx);
+					QList<stDayInfo*> *meso_calendar{&m_model->mesoCalendar(meso_idx)};
+					do
+					{
+						stDayInfo *day_info{new stDayInfo{}};
+						day_info->date = std::move(query.value(0).toString());
+						day_info->data = std::move(query.value(1).toString());
+						meso_calendar->append(std::move(day_info));
+					} while (query.next ());
+				}
 			}
+			setQueryResult(ok, strQuery, SOURCE_LOCATION);
 		}
-		setQueryResult(ok, strQuery, SOURCE_LOCATION);
+		else
+			m_model->createCalendar(meso_idx);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

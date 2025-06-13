@@ -101,10 +101,19 @@ public:
 	[[nodiscard]] const std::optional<bool> trainingCompleted(const uint meso_idx, const uint calendar_day) const;
 	void setTrainingCompleted(const uint meso_idx, const uint calendar_day, const bool completed);
 
-	Q_INVOKABLE inline DBCalendarModel *calendar(const uint meso_idx) const { return m_calendars.at(meso_idx); }
-	Q_INVOKABLE inline DBExercisesModel *workout(const uint meso_idx, const uint calendar_day) const { return m_workouts.at(meso_idx).at(calendar_day); }
+	Q_INVOKABLE inline DBCalendarModel *calendar(const uint meso_idx) const
+	{
+		return meso_idx < m_calendars.count() ? m_calendars.at(meso_idx) : nullptr;
+	}
+	Q_INVOKABLE inline DBExercisesModel *workout(const uint meso_idx, const uint calendar_day) const
+	{
+		return meso_idx < m_workouts.count() ? m_workouts.at(meso_idx).at(calendar_day) : nullptr;
+	}
 
-	inline bool hasDBData(const uint meso_idx) const { return m_dbDataReady.at(meso_idx); }
+	inline bool hasDBData(const uint meso_idx) const
+	{
+		return meso_idx < m_dbDataReady.count() ? m_dbDataReady.at(meso_idx) : false;
+	}
 
 signals:
 	void calendarChanged(const uint meso_idx, const int calendar_day = -1, const uint field = MESOCALENDAR_TOTAL_COLS);

@@ -11,15 +11,17 @@ Rectangle {
 	radius: rounded ? height : 6
 	opacity: checked ? 0.7 : 1
 	color: backgroundColor
-	height: buttonText.height + (textUnderIcon ? imageSize : 0) + 10
-	width: buttonText.width + (textUnderIcon ? 0 : imageSize) + 20
+	height: buttonText.height + (textUnderIcon ? imageSize : 0) + (text.length > 0 ? 10 : 0);
+	width: {
+		if (autoSize)
+			buttonText.width + (textUnderIcon ? 0 : imageSize) + (text.length > 0 ? 20 : 0)
+	}
 
 	property color textColor: appSettings.fontColor
 	property alias font: buttonText.font
 	property alias text: buttonText.text
 	property string backgroundColor: text.length > 0 ? appSettings.paneBackgroundColor : "transparent"
 	property string imageSource
-
 	property bool autoSize: false
 	property bool textUnderIcon: false
 	property bool highlighted: false
@@ -33,7 +35,6 @@ Rectangle {
 	property int imageSize: imageSource.length > 0 ? (textUnderIcon ? (height*0.9)/2 : height*0.9) : 0
 
 	//Local variables. Do not use outside this file
-	property bool _canResize: true
 	property bool _bPressed: false
 	property bool _bEmitSignal: false
 	property TPButtonImage _buttonImage: null
@@ -62,14 +63,17 @@ Rectangle {
 	//The width of the button must be specified either by the layout(or anchors) or must be explicitly set, in which case
 	//the property fixedSize must be set to true
 
-onWidthChanged: {
-	if (!autoSize && text.length < 0) {
-		buttonText.width = width*0.9;
-		buttonText.height = height - imageSize - 5;
-		buttonText.fontSizeMode = Text.Fit;
-		buttonText.wrapMode = Text.WordWrap;
+	onWidthChanged: {
+		if (width < 0) return;
+		if (!autoSize && text.length > 0)
+			buttonText.width = Math.min(button.width*0.9, buttonText.width);
 	}
-}
+
+	onHeightChanged: {
+		if (height < 0) return;
+		if (!autoSize && textUnderIcon)
+			buttonText.height = button.height - imageSize - 10;
+	}
 
 	Component.onCompleted: {
 		if (imageSource.length > 0)
@@ -151,6 +155,7 @@ onWidthChanged: {
 	MouseArea {
 		hoverEnabled: true
 		anchors.fill: button
+		enabled: button.enabled
 
 		onPressed: (mouse) => onMousePressed(mouse);
 		onReleased: (mouse) => onMouseReleased(mouse);
