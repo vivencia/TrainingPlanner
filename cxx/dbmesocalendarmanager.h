@@ -69,6 +69,7 @@ public:
 	[[nodiscard]] inline const QList<stDayInfo*> &dayInfo(const uint meso_idx) const { return m_dayInfoList.at(meso_idx); }
 	[[nodiscard]] const int calendarDay(const uint meso_idx, const QDate& date) const;
 	[[nodiscard]] const std::optional<QDate> dateFromCalendarDay(const uint meso_idx, const uint calendar_day) const;
+	[[nodiscard]] const int nthMonth(const uint meso_idx, const QDate &date) const;
 
 	[[nodiscard]] const std::optional<QString> mesoId(const uint meso_idx, const uint calendar_day) const;
 	void setMesoId(const uint meso_idx, const uint calendar_day, const QString &new_meso_id);

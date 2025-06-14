@@ -49,6 +49,11 @@ QDate DBCalendarModel::firstDateOfEachMonth(const uint index) const
 	return date;
 }
 
+int DBCalendarModel::getIndexFromDate(const QDate &date) const
+{
+	return m_calendarManager->nthMonth(m_mesoIdx, date);
+}
+
 QDate DBCalendarModel::date(const uint calendar_day) const
 {
 	return value(m_calendarManager->dateFromCalendarDay(m_mesoIdx, calendar_day));

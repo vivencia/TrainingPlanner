@@ -30,7 +30,6 @@ uint DBMesoCalendarManager::populateCalendarDays(const uint meso_idx, QDate &sta
 
 void DBMesoCalendarManager::createCalendar(const uint meso_idx)
 {
-	addCalendarForMeso(meso_idx);
 	QDate startDate{std::move(appMesoModel()->startDate(meso_idx))};
 	const uint n_months{populateCalendarDays(meso_idx, startDate, appMesoModel()->endDate(meso_idx), appMesoModel()->split(meso_idx))};
 	m_calendars.at(meso_idx)->setNMonths(n_months);
@@ -41,7 +40,7 @@ std::optional<QString> DBMesoCalendarManager::dayInfo(const uint meso_idx, const
 {
 	if (meso_idx < m_dayInfoList.count())
 	{
-		if (calendar_day < m_dayInfoList.at(meso_idx).count())
+		if (calendar_day < m_dayInfoList.at(meso_idx).count() && m_dayInfoList.at(meso_idx).at(calendar_day) != nullptr)
 			return  appUtils()->getCompositeValue(field, m_dayInfoList.at(meso_idx).at(calendar_day)->data, record_separator);
 	}
 	return std::nullopt;
@@ -230,8 +229,8 @@ const int DBMesoCalendarManager::calendarDay(const uint meso_idx, const QDate &d
 {
 	if (meso_idx < m_dayInfoList.count())
 	{
-		QDate calendar_date{std::move(appMesoModel()->startDate(meso_idx))};
-		const int calendar_day{static_cast<int>(calendar_date.daysTo(date))};
+		const QDate &start_calendar_date{appMesoModel()->startDate(meso_idx)};
+		const int calendar_day{static_cast<int>(start_calendar_date.daysTo(date))};
 		if (calendar_day >= 0 && calendar_day < m_dayInfoList.at(meso_idx).count())
 			return calendar_day;
 	}
@@ -245,6 +244,16 @@ const std::optional<QDate> DBMesoCalendarManager::dateFromCalendarDay(const uint
 	if (calendar_date < appMesoModel()->endDate(meso_idx))
 		return calendar_date;
 	return std::nullopt;
+}
+
+const int DBMesoCalendarManager::nthMonth(const uint meso_idx, const QDate &date) const
+{
+	if (calendarDay(meso_idx, date) >= 0)
+	{
+		const QDate &start_calendar_date{appMesoModel()->startDate(meso_idx)};
+		return appUtils()->calculateNumberOfMonths(start_calendar_date, date);
+	}
+	return -1;
 }
 
 const std::optional<QString> DBMesoCalendarManager::mesoId(const uint meso_idx, const uint calendar_day) const

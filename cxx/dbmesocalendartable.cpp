@@ -53,7 +53,6 @@ void DBMesoCalendarTable::getMesoCalendar()
 			{
 				if (query.first())
 				{
-					m_model->addCalendarForMeso(meso_idx);
 					QList<stDayInfo*> *meso_calendar{&m_model->mesoCalendar(meso_idx)};
 					do
 					{

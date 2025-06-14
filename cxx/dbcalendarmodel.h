@@ -11,15 +11,14 @@ class DBCalendarModel : public QAbstractListModel
 Q_OBJECT
 QML_ELEMENT
 
-Q_PROPERTY(uint count READ count NOTIFY modelChanged)
-
 public:
 	explicit DBCalendarModel(DBMesoCalendarManager *parent, const uint meso_idx);
-	inline uint count() const { return m_nmonths; }
-	inline void setNMonths(const uint new_nmonths) { m_nmonths = new_nmonths; emit modelChanged(); }
+	inline void setNMonths(const uint new_nmonths) { m_nmonths = new_nmonths; }
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; }
 	QDate firstDateOfEachMonth(const uint index) const;
 
+	Q_INVOKABLE int getIndexFromDate(const QDate &date) const;
+	Q_INVOKABLE inline uint count() const { return m_nmonths; }
 	Q_INVOKABLE inline uint month(const uint index) const { return firstDateOfEachMonth(index).month(); }
 	Q_INVOKABLE inline uint year(const uint index) const { return firstDateOfEachMonth(index).year(); }
 	Q_INVOKABLE QDate date(const uint calendar_day) const;
@@ -58,7 +57,6 @@ public:
 	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
 
 signals:
-	void modelChanged();
 	void workoutNumberChanged(const QDate &date);
 	void splitLetterChanged(const QDate &date);
 	void completedChanged(const QDate &date);

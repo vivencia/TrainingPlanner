@@ -602,8 +602,6 @@ Frame {
 			} //delegate: ItemDelegate
 		} //ListView
 
-	Component.onCompleted: splitModel.modelChanged.connect(reloadModel);
-
 	function reloadModel(): void {
 		lstSplitExercises.model = 0;
 		lstSplitExercises.model = splitModel.count;

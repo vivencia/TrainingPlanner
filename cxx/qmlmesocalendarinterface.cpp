@@ -16,9 +16,17 @@ QmlMesoCalendarInterface::QmlMesoCalendarInterface(QObject *parent, const uint m
 	: QObject{parent}, m_calComponent{nullptr}, m_calPage{nullptr}, m_mesoIdx{meso_idx},
 	  m_calendarModel{appMesoModel()->mesoCalendarManager()->calendar(meso_idx)}, m_selectedDate{std::move(appUtils()->today())}
 {
-	connect(m_calendarModel, &DBCalendarModel::modelChanged, this, [this] () {
-		m_calPage->setProperty("calendarModel", 0);
-		m_calPage->setProperty("calendarModel", QVariant::fromValue(m_calendarModel));
+	connect(appMesoModel()->mesoCalendarManager(), &DBMesoCalendarManager::calendarChanged, this,
+						[this] (const uint meso_idx, const int calendar_day, const uint field) {
+		if (meso_idx == m_mesoIdx)
+		{
+			m_calendarModel = appMesoModel()->mesoCalendarManager()->calendar(meso_idx);
+			if (m_calPage)
+			{
+				m_calPage->setProperty("calendarModel", 0);
+				m_calPage->setProperty("calendarModel", QVariant::fromValue(m_calendarModel));
+			}
+		}
 	});
 }
 
@@ -33,7 +41,10 @@ void QmlMesoCalendarInterface::getMesoCalendarPage()
 	if (!m_calComponent)
 	{
 		if (!appMesoModel()->mesoCalendarManager()->hasDBData(m_mesoIdx))
+		{
+			appMesoModel()->mesoCalendarManager()->addCalendarForMeso(m_mesoIdx);
 			appDBInterface()->getMesoCalendar(m_mesoIdx);
+		}
 		createMesoCalendarPage();
 	}
 	else
@@ -57,7 +68,7 @@ void QmlMesoCalendarInterface::getWorkoutPage()
 
 QString QmlMesoCalendarInterface::dayInfo()
 {
-	if (!m_selectedDate.isValid())
+	if (!m_calendarModel || !m_selectedDate.isValid())
 		return QString{};
 
 	m_selectedSplitLetter = std::move(m_calendarModel->splitLetter(m_selectedDate));
@@ -89,9 +100,6 @@ QString QmlMesoCalendarInterface::dateLabel() const
 void QmlMesoCalendarInterface::createMesoCalendarPage()
 {
 	m_calComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/MesoCalendarPage.qml"_L1}, QQmlComponent::Asynchronous};
-	m_calProperties.insert("calendarManager"_L1, QVariant::fromValue(this));
-	m_calProperties.insert("calendarModel"_L1, QVariant::fromValue(m_calendarModel));
-
 	if (m_calComponent->status() != QQmlComponent::Ready)
 	{
 		connect(m_calComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status) {
@@ -104,6 +112,8 @@ void QmlMesoCalendarInterface::createMesoCalendarPage()
 
 void QmlMesoCalendarInterface::createMesoCalendarPage_part2()
 {
+	m_calProperties.insert("calendarManager"_L1, QVariant::fromValue(this));
+	m_calProperties.insert("calendarModel"_L1, QVariant::fromValue(m_calendarModel));
 	m_calPage = static_cast<QQuickItem*>(m_calComponent->createWithInitialProperties(m_calProperties, appQmlEngine()->rootContext()));
 	#ifndef QT_NO_DEBUG
 	if (m_calComponent->status() == QQmlComponent::Error)

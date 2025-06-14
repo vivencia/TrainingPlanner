@@ -16,6 +16,14 @@ TPPage {
 	property date _today: appUtils.today()
 	property bool bAlreadyLoaded: false
 
+	onPageActivated: {
+		if (!bAlreadyLoaded && calendarModel !== null)
+		{
+			calendar.positionViewAtIndex(calendarModel.getIndexFromDate(_today), ListView.Center);
+			bAlreadyLoaded = true;
+		}
+	}
+
 	header: TPToolBar {
 		height: appSettings.pageHeight*0.1
 
@@ -141,6 +149,7 @@ TPPage {
 					}
 
 					Connections {
+						enabled: calendarModel !== null
 						target: calendarModel
 						function onCompletedChanged(date: Date) : void {
 							if (date === getDate())
@@ -156,10 +165,11 @@ TPPage {
 						font.pixelSize: appSettings.fontSize
 
 						function setText(for_date: date): string {
-							return calendarModel.isPartOfMeso(for_date) ? model.day + "-" + calendarModel.splitLetter(this_date) : "";
+							return calendarModel.isPartOfMeso(for_date) ? model.day + "-" + calendarModel.splitLetter(for_date) : "";
 						}
 
 						Connections {
+							enabled: calendarModel !== null
 							target: calendarModel
 							function onSplitLetterChanged(date: Date) : void {
 								text = setText(date);
@@ -210,8 +220,6 @@ TPPage {
 				} //delegate: Rectangle
 			} //MonthGrid
 		} //delegate: Rectangle
-
-		Component.onCompleted: positionViewAtIndex(calendarModel.getIndex(_today), ListView.Center);
 	} //ListView
 
 	footer: TPToolBar {
@@ -315,7 +323,7 @@ TPPage {
 	//Javascript month values differ from QDate's
 	//JS 0-11 Qt:1-12
 	function selectDay(year, month, day): void {
-		calendarManager.selectedDate = Date(year, month, day);
+		calendarManager.selectedDate = new Date(year, month, day);
 		optChangeOnlyThisDay.checked = optChangeAfterThisDay.checked = false;
 		optChangeOnlyThisDay.enabled = optChangeAfterThisDay.enabled = false;
 	}
