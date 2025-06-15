@@ -89,11 +89,17 @@ public:
 	Q_INVOKABLE void copyToClipBoard(const QString &text) const;
 	inline QLocale *appLocale() const { return m_appLocale; }
 
+	Q_INVOKABLE QString monthName(const uint qml_month) const { return _months_names.at(qml_month); }
+	Q_INVOKABLE QString dayName(const uint week_day) const { return _days_names.at(week_day); }
 	Q_INVOKABLE QString formatDate(const QDate &date, const DATE_FORMAT format = DF_QML_DISPLAY) const;
 	inline QString formatTodayDate(const DATE_FORMAT format = DF_QML_DISPLAY) const { return std::move(formatDate(QDate::currentDate())); }
 	QDate getDateFromDateString(const QString &strdate, const DATE_FORMAT format = DF_QML_DISPLAY) const;
 	uint calculateNumberOfWeeks(const QDate &date1, const QDate &date2) const;
 	//The returned value contains the number of months in between the dates plus the starting month
+	inline uint calculateNumberOfMonths(const QString &date1, const QString &date2) const
+	{
+		return calculateNumberOfMonths(getDateFromDateString(date1, DF_DATABASE), getDateFromDateString(date2, DF_DATABASE));
+	}
 	uint calculateNumberOfMonths(const QDate &date1, const QDate &date2) const;
 	QDate getNextMonday(const QDate &fromDate) const;
 	QDate createDate(const QDate &fromDate, const int years, const int months, const int days) const;
@@ -161,6 +167,8 @@ private:
 	QLocale *m_appLocale;
 	QString m_strLocale, m_localAppFilesDir;
 
+	static QStringList _months_names;
+	static QStringList _days_names;
 	static TPUtils *app_utils;
 	friend TPUtils *appUtils();
 };

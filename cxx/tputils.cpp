@@ -12,6 +12,16 @@
 
 #include <ranges>
 
+QStringList TPUtils::_months_names{QStringList() <<
+		TPUtils::tr("January") << TPUtils::tr("February") << TPUtils::tr("March") << TPUtils::tr("April") << TPUtils::tr("May") <<
+		TPUtils::tr("June") << TPUtils::tr("July") << TPUtils::tr("August") << TPUtils::tr("September") << TPUtils::tr("October") <<
+		TPUtils::tr("November") << TPUtils::tr("December")
+};
+
+QStringList TPUtils::_days_names{QStringList() << TPUtils::tr("Sunday") << TPUtils::tr("Monday") << TPUtils::tr("Tuesday") <<
+		TPUtils::tr("Wednesday") << TPUtils::tr("Thursday") << TPUtils::tr("Friday") << TPUtils::tr("Saturday")
+};
+
 TPUtils* TPUtils::app_utils{nullptr};
 
 TPUtils::TPUtils(QObject *parent)

@@ -74,6 +74,11 @@ bool DBCalendarModel::isWorkoutDay(const uint calendar_day) const
 	return !workoutNumber(calendar_day).isEmpty();
 }
 
+QString DBCalendarModel::dayText(const QDate &date) const
+{
+	return isPartOfMeso(date) ? QString::number(date.day()) + '-' + splitLetter(date) : QString{};
+}
+
 QString DBCalendarModel::workoutNumber(const QDate &date) const
 {
 	return workoutNumber(m_calendarManager->calendarDay(m_mesoIdx, date));

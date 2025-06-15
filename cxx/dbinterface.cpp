@@ -318,6 +318,7 @@ int DBInterface::getMesoCalendar(const uint meso_idx)
 {
 	DBMesoCalendarTable *worker{new DBMesoCalendarTable{appMesoModel()->mesoCalendarManager()}};
 	worker->addExecArg(meso_idx);
+	worker->addExecArg(appMesoModel()->id(meso_idx));
 	createThread(worker, [worker] () { worker->getMesoCalendar(); });
 	return worker->uniqueId();
 }

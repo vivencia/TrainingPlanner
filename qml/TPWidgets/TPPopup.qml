@@ -115,7 +115,7 @@ Popup {
 		imageSource: "close.png"
 		hasDropShadow: false
 		visible: closeButtonVisible
-		imageSize: 25
+		width: 25
 		height: 25
 		z:2
 

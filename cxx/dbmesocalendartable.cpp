@@ -42,26 +42,26 @@ void DBMesoCalendarTable::getMesoCalendar()
 	{
 		bool ok{false};
 		const uint meso_idx{m_execArgs.at(0).toUInt()};
-		const auto &_meso_id = []<typename T>(const std::optional<T> &retValue) { return retValue.has_value() ? retValue.value() : T{}; };
-		QString meso_id{_meso_id(m_model->mesoId(meso_idx, 0))};
-		if (!meso_id.isEmpty())
-		{
-			QSqlQuery query{std::move(getQuery())};
-			const QString &strQuery{"SELECT date,data FROM mesocycles_calendar_table WHERE meso_id="_L1 + meso_id};
+		const QString &meso_id{m_execArgs.at(1).toString()};
 
-			if (query.exec(strQuery))
+		QSqlQuery query{std::move(getQuery())};
+		const QString &strQuery{"SELECT date,data FROM mesocycles_calendar_table WHERE meso_id="_L1 + meso_id};
+
+		if (query.exec(strQuery))
+		{
+			if (query.first())
 			{
-				if (query.first())
+				uint calendar_day{0};
+				QList<stDayInfo*> &meso_calendar{m_model->mesoCalendar(meso_idx)};
+				do
 				{
-					QList<stDayInfo*> *meso_calendar{&m_model->mesoCalendar(meso_idx)};
-					do
-					{
-						stDayInfo *day_info{new stDayInfo{}};
-						day_info->date = std::move(query.value(0).toString());
-						day_info->data = std::move(query.value(1).toString());
-						meso_calendar->append(std::move(day_info));
-					} while (query.next ());
-				}
+					stDayInfo *day_info{new stDayInfo{}};
+					day_info->date = std::move(query.value(0).toString());
+					day_info->data = std::move(query.value(1).toString());
+					meso_calendar[calendar_day++] = day_info;
+				} while (query.next ());
+				m_model->setDBDataReady(meso_idx, true,
+							appUtils()->calculateNumberOfMonths(meso_calendar.first()->date, meso_calendar.last()->date));
 			}
 			setQueryResult(ok, strQuery, SOURCE_LOCATION);
 		}
@@ -124,11 +124,7 @@ void DBMesoCalendarTable::saveMesoCalendar()
 				}
 				bool ok{false};
 				if (query.exec(strQuery))
-				{
 					ok = mSqlLiteDB.commit();
-					if (ok && !update)
-						m_model->setDBDataReady(meso_idx, true);
-				}
 				setQueryResult(ok, strQuery, SOURCE_LOCATION);
 			}
 		}

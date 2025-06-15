@@ -51,6 +51,17 @@ void QmlMesoCalendarInterface::getMesoCalendarPage()
 		appItemManager()->addMainMenuShortCut(tr("Calendar: ") + appMesoModel()->name(m_mesoIdx), m_calPage);
 }
 
+void QmlMesoCalendarInterface::setSelectedDate(const QDate &new_date)
+{
+	if (new_date != m_selectedDate)
+	{
+		m_selectedDate = new_date;
+		m_selectedSplitLetter = std::move(m_calendarModel->splitLetter(m_selectedDate));
+		m_selectedWorkout = std::move(m_calendarModel->workoutNumber(m_selectedDate));
+		emit selectedDateChanged();
+	}
+}
+
 void QmlMesoCalendarInterface::changeSplitLetter(const QString &newSplitLetter, const bool bUntillTheEnd)
 {
 	if (!bUntillTheEnd)
@@ -59,6 +70,7 @@ void QmlMesoCalendarInterface::changeSplitLetter(const QString &newSplitLetter, 
 	{
 		//TODO
 	}
+	emit selectedSplitLetterChanged();
 }
 
 void QmlMesoCalendarInterface::getWorkoutPage()
@@ -70,10 +82,6 @@ QString QmlMesoCalendarInterface::dayInfo()
 {
 	if (!m_calendarModel || !m_selectedDate.isValid())
 		return QString{};
-
-	m_selectedSplitLetter = std::move(m_calendarModel->splitLetter(m_selectedDate));
-	m_selectedWorkout = std::move(m_calendarModel->workoutNumber(m_selectedDate));
-	emit selectedSplitLetterChanged();
 
 	if (m_selectedSplitLetter.isEmpty())
 		return tr("Selected day is not part of the current mesocycle");

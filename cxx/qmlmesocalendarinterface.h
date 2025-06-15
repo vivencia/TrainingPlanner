@@ -29,14 +29,7 @@ public:
 
 	inline DBCalendarModel *calendarModel() const { return m_calendarModel; }
 	inline QDate selectedDate() const { return m_selectedDate; }
-	inline void setSelectedDate(const QDate &new_date)
-	{
-		if (new_date != m_selectedDate)
-		{
-			m_selectedDate = new_date;
-			emit selectedDateChanged();
-		}
-	}
+	void setSelectedDate(const QDate &new_date);
 
 	Q_INVOKABLE void changeSplitLetter(const QString &newSplitLetter, const bool bUntillTheEnd);
 	Q_INVOKABLE void getWorkoutPage();

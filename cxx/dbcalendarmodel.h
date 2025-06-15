@@ -19,12 +19,14 @@ public:
 
 	Q_INVOKABLE int getIndexFromDate(const QDate &date) const;
 	Q_INVOKABLE inline uint count() const { return m_nmonths; }
-	Q_INVOKABLE inline uint month(const uint index) const { return firstDateOfEachMonth(index).month(); }
+	Q_INVOKABLE inline uint month(const uint index) const { return firstDateOfEachMonth(index).month() - 1; }
 	Q_INVOKABLE inline uint year(const uint index) const { return firstDateOfEachMonth(index).year(); }
 	Q_INVOKABLE QDate date(const uint calendar_day) const;
 	Q_INVOKABLE bool isPartOfMeso(const QDate &date) const;
 	Q_INVOKABLE bool isWorkoutDay(const QDate &date) const;
 	Q_INVOKABLE bool isWorkoutDay(const uint calendar_day) const;
+
+	Q_INVOKABLE QString dayText(const QDate &date) const;
 	Q_INVOKABLE QString workoutNumber(const QDate &date) const;
 	Q_INVOKABLE QString workoutNumber(const uint calendar_day) const;
 	Q_INVOKABLE QString splitLetter(const QDate &date) const;

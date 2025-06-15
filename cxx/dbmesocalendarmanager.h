@@ -72,7 +72,6 @@ public:
 	[[nodiscard]] const int nthMonth(const uint meso_idx, const QDate &date) const;
 
 	[[nodiscard]] const std::optional<QString> mesoId(const uint meso_idx, const uint calendar_day) const;
-	void setMesoId(const uint meso_idx, const uint calendar_day, const QString &new_meso_id);
 
 	[[nodiscard]] const std::optional<QString> workoutId(const uint meso_idx, const uint calendar_day) const;
 	void setWorkoutId(const uint meso_idx, const uint calendar_day, const QString &new_workout_id);
@@ -127,14 +126,9 @@ private:
 
 	inline const QList<stDayInfo*> &mesoCalendar(const uint meso_idx) const { return m_dayInfoList.at(meso_idx); }
 	inline QList<stDayInfo*> &mesoCalendar(const uint meso_idx) { return m_dayInfoList[meso_idx]; }
-	inline void setDBDataReady(const uint meso_idx, const bool ready, const bool emit_signal = false)
-	{
-		m_dbDataReady[meso_idx] = ready;
-		if (emit_signal)
-			emit calendarChanged(meso_idx);
-	}
+	void setDBDataReady(const uint meso_idx, const bool ready, const uint n_months);
 
-	uint populateCalendarDays(const uint meso_idx, QDate &start_date, const QDate &end_date, const QString &split);
+	uint populateCalendarDays(const uint meso_idx, const QDate &start_date, const QDate &end_date, const QString &split);
 	void createCalendar(const uint meso_idx);
 	inline std::optional<QString> dayInfo(const uint meso_idx, const uint calendar_day, const uint field) const;
 	inline void setDayInfo(const uint meso_idx, const uint calendar_day, const uint field, const QString &new_value, const bool emit_signal = true);

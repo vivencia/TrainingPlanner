@@ -21,8 +21,6 @@ Rectangle {
 	readonly property date thisDay: new Date()
 	readonly property double cellSize: Screen.pixelDensity * sizeFactor
 	readonly property int fontSizePx: cellSize * (sizeFactor/21) //0.32
-	readonly property list<string> months_names: [qsTr("January"), qsTr("February"), qsTr("March"), qsTr("April"), qsTr("May"), qsTr("June"), qsTr("July"),
-		qsTr("August"), qsTr("September"), qsTr("October"), qsTr("November"), qsTr("December")]
 
 	signal dateSelected(date selDate)
 
@@ -120,7 +118,8 @@ Rectangle {
 
 		TextField {
 			id: selectedWeekDayMonth
-			text: calendar.weekNames[selectedDate.getUTCDay()].slice(0, 3) + ", " + selectedDate.getUTCDate() + " " + calendar.months[selectedDate.getUTCMonth()].slice(0, 3)
+			text: appUtils.dayName(selectedDate.getUTCDay()).slice(0, 3) + ", " + selectedDate.getUTCDate() + " " +
+											appUtils.monthName(selectedDate.getUTCMonth()).slice(0, 3)
 			leftPadding: cellSize * 0.5
 			horizontalAlignment: Text.AlignLeft
 			verticalAlignment: Text.AlignVCenter
@@ -177,11 +176,11 @@ Rectangle {
 							continue;
 					}
 					if (text.length === 0)
-						monthsModel.append({name: months_names[i]});
+						monthsModel.append({name: appUtils.monthName(i)});
 					else {
-						const found = months_names[i].toLowerCase().indexOf(text.toLowerCase()) >= 0;
+						const found = appUtils.monthName(i).toLowerCase().indexOf(text.toLowerCase()) >= 0;
 						if (found) {
-							monthsModel.append({name: months_names[i]});
+							monthsModel.append({name: appUtils.monthName(i)});
 							if (!monthOK) {
 								monthOK = true;
 								monthsList.currentIndex = i;
@@ -224,12 +223,6 @@ Rectangle {
 			rightMargin: cellSize * 0.5
 		}
 
-		readonly property list<string> months: [qsTr("January"), qsTr("February"), qsTr("March"), qsTr("April"),
-									qsTr("May"), qsTr("June"), qsTr("July"), qsTr("August"),
-									qsTr("September"), qsTr("October"), qsTr("November"), qsTr("December")]
-		readonly property list<string> weekNames: [qsTr("Sunday"), qsTr("Monday"), qsTr("Tuesday"), qsTr("Wednesday"),
-									qsTr("Thursday"), qsTr("Friday"), qsTr("Saturday")]
-
 		delegate: Rectangle {
 			height: cellSize * 7
 			width: cellSize * 7
@@ -244,7 +237,7 @@ Rectangle {
 					anchors.centerIn: parent
 					font.pixelSize: fontSizePx * 1.2
 					font.bold: true
-					text: calendar.months[model.month] + " " + model.year;
+					text: appUtils.monthName(model.month) + " " + model.year;
 				}
 			}
 
@@ -432,8 +425,8 @@ Rectangle {
 	function showHideMonthsList(): void {
 		if (monthsList.visible) {
 			selectedWeekDayMonth.text = Qt.binding(function() {
-				return calendar.weekNames[selectedDate.getUTCDay()].slice(0, 3) + ", " + selectedDate.getUTCDate() +
-						" " + calendar.months[selectedDate.getUTCMonth()].slice(0, 3); });
+				return appUtils.dayName(selectedDate.getUTCDay()).slice(0, 3) + ", " + selectedDate.getUTCDate() +
+						" " + appUtils.monthName(selectedDate.getUTCMonth()).slice(0, 3); });
 			selectedWeekDayMonth.readOnly = true;
 			monthsList.hide();
 			root.forceActiveFocus();

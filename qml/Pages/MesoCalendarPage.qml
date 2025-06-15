@@ -20,7 +20,16 @@ TPPage {
 		if (!bAlreadyLoaded && calendarModel !== null)
 		{
 			calendar.positionViewAtIndex(calendarModel.getIndexFromDate(_today), ListView.Center);
+			calendarManager.selectedDate = _today;
 			bAlreadyLoaded = true;
+		}
+	}
+
+	Connections {
+		target: calendarManager
+		function onSelectedDateChanged() : void {
+			lblInfo.text = calendarManager.dayInfo();
+			cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(calendarManager.selectedSplitLetter);
 		}
 	}
 
@@ -61,10 +70,7 @@ TPPage {
 
 		readonly property double mm: Screen.pixelDensity
 		readonly property double cellSize: mm * 7
-		readonly property int fontSizePx: calendar.cellSize * 0.32
-		readonly property var monthsNames: [qsTr("January"), qsTr("February"), qsTr("March"), qsTr("April"),
-									qsTr("May"), qsTr("June"), qsTr("July"), qsTr("August"),
-									qsTr("September"), qsTr("October"), qsTr("November"), qsTr("December")]
+		readonly property int fontSizePx: cellSize * 0.32
 
 		ScrollBar.vertical: ScrollBar {
 			policy: ScrollBar.AsNeeded
@@ -87,7 +93,7 @@ TPPage {
 
 				Text {
 					anchors.centerIn: parent
-					text: calendar.monthsNames[calendarModel.month(index)] + " " + calendarModel.year(index);
+					text: appUtils.monthName(calendarModel.month(index)) + " " + calendarModel.year(index);
 					font.pixelSize: appSettings.extraLargeFontSize
 					font.bold: true
 				}
@@ -118,7 +124,7 @@ TPPage {
 				spacing: 0
 				anchors.top: weekTitles.bottom
 				width: parent.width
-				height: calendar.cellSize * 8
+				height: calendar.cellSize * 9
 
 				property Rectangle selectedDay: null
 
@@ -128,17 +134,13 @@ TPPage {
 					width: calendar.cellSize
 					radius: height * 0.5
 					border.color: "green"
-					border.width: bDayIsFinished ? 2 : 0
+					border.width: dayIsFinished ? 2 : 0
 					opacity: !highlighted ? 1 : 0.5
-					color: dayIsPartOfMeso ? appSettings.listEntryColor2 : "transparent"
+					color: appSettings.primaryLightColor
 
-					function getDate(): date {
-						return Date(model.year, model.month, model.day);
-					}
-
-					readonly property bool todayDate: getDate() === _today
-					property bool dayIsPartOfMeso: calendarModel.isPartOfMeso(getDate())
-					property bool bDayIsFinished: calendarModel.completed(getDate())
+					readonly property date month_day: new Date(model.year, model.month, model.day);
+					readonly property bool todayDate: month_day === _today
+					property bool dayIsFinished: calendarModel.completed(month_day)
 					property bool highlighted: false
 
 					function highlightDay(highlighted: bool): void {
@@ -152,27 +154,23 @@ TPPage {
 						enabled: calendarModel !== null
 						target: calendarModel
 						function onCompletedChanged(date: Date) : void {
-							if (date === getDate())
-								bDayIsFinished = calendarModel.completed(date);
+							if (date === dayEntry.month_day)
+								dayIsFinished = calendarModel.completed(date);
 						}
 					}
 
 					Text {
 						anchors.centerIn: parent
-						text: setText(dayEntry.getDate())
-						color: todayDate ? "red" : appSettings.fontColor
+						text: calendarModel.dayText(dayEntry.month_day)
+						color: !dayEntry.todayDate ? (calendarModel.isPartOfMeso(dayEntry.month_day) ? appSettings.fontColor : appSettings.disabledFontColor) : "red"
 						font.bold: true
 						font.pixelSize: appSettings.fontSize
-
-						function setText(for_date: date): string {
-							return calendarModel.isPartOfMeso(for_date) ? model.day + "-" + calendarModel.splitLetter(for_date) : "";
-						}
 
 						Connections {
 							enabled: calendarModel !== null
 							target: calendarModel
 							function onSplitLetterChanged(date: Date) : void {
-								text = setText(date);
+								text = calendarModel.dayText(date);
 							}
 						}
 					}
@@ -230,13 +228,11 @@ TPPage {
 			text: calendarManager.dayInfo()
 			wrapMode: Text.WordWrap
 			horizontalAlignment: Text.AlignHCenter
-			verticalAlignment: Text.AlignVCenter
 			width: parent.width
 			height: parent.height*0.25
 
 			anchors {
 				top: parent.top
-				topMargin: 10
 				horizontalCenter: parent.horizontalCenter
 			}
 		}
@@ -263,8 +259,8 @@ TPPage {
 			text: qsTr("Change only this day")
 
 			anchors {
-				verticalCenter: parent.verticalCenter
-				verticalCenterOffset: -height/2
+				top: lblInfo.bottom
+				topMargin: 15
 				left: cboSplitLetter.right
 				leftMargin: 10
 				right: parent.right
@@ -274,6 +270,7 @@ TPPage {
 			id: optChangeAfterThisDay
 			text: qsTr("Adjust calendar from this day on")
 			multiLine: true
+			height: appSettings.itemDefaultHeight*1.5
 
 			anchors {
 				top: optChangeOnlyThisDay.bottom
@@ -289,9 +286,10 @@ TPPage {
 			text: qsTr("Change Calendar")
 			imageSource: "edit-calendar.png"
 			enabled: optChangeOnlyThisDay.checked || optChangeAfterThisDay.checked
+			autoSize: true
 
 			onClicked: {
-				calendarManager.changeCalendar(optChangeAfterThisDay.checked, cboSplitLetter.currentValue);
+				calendarManager.changeSplitLetter(cboSplitLetter.currentValue, optChangeAfterThisDay.checked);
 				optChangeOnlyThisDay.checked = optChangeAfterThisDay.checked = false;
 				optChangeOnlyThisDay.enabled = optChangeAfterThisDay.enabled = false;
 			}
@@ -308,6 +306,7 @@ TPPage {
 			id: btnViewWorkout
 			text: qsTr("Workout")
 			imageSource: "workout.png"
+			autoSize: true
 
 			anchors {
 				right: parent.right
