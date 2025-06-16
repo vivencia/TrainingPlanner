@@ -71,8 +71,12 @@ Rectangle {
 
 	onHeightChanged: {
 		if (height < 0) return;
-		if (!autoSize && textUnderIcon)
-			buttonText.height = button.height - imageSize - 10;
+		if (!autoSize && textUnderIcon) {
+			if (buttonText.lineCount > 1)
+				buttonText.height = button.height - imageSize - 10;
+			else
+				buttonText.height = appSettings.itemDefaultHeight;
+		}
 	}
 
 	Component.onCompleted: {

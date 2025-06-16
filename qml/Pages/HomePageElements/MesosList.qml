@@ -48,7 +48,7 @@ Item {
 
 			onClicked: mesocyclesModel.getMesocyclePage(mesoModel.mesoRow(index));
 			onPressAndHold: mesocyclesModel.currentMesoIdx = mesoModel.mesoRow(index);
-			swipe.onOpened: mesocyclesModel.setCurrentlyViewedMeso(mesoModel.mesoRow(index));
+			swipe.onCompleted: mesocyclesModel.setCurrentlyViewedMeso(mesoModel.mesoRow(index));
 
 			Rectangle {
 				id: optionsRec

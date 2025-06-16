@@ -13,13 +13,13 @@ TPPage {
 	required property CalendarManager calendarManager
 	required property DBCalendarModel calendarModel
 
-	property date _today: appUtils.today()
+	property date _today: new Date()
 	property bool bAlreadyLoaded: false
 
 	onPageActivated: {
 		if (!bAlreadyLoaded && calendarModel !== null)
 		{
-			calendar.positionViewAtIndex(calendarModel.getIndexFromDate(_today), ListView.Center);
+			calendar.positionViewAtIndex(calendarModel.getIndexFromDate(_today), ListView.Contain);
 			calendarManager.selectedDate = _today;
 			bAlreadyLoaded = true;
 		}
@@ -139,7 +139,8 @@ TPPage {
 					color: appSettings.primaryLightColor
 
 					readonly property date month_day: new Date(model.year, model.month, model.day);
-					readonly property bool todayDate: month_day === _today
+					readonly property bool todayDate: month_day.getUTCFullYear() === _today.getUTCFullYear() &&
+								month_day.getUTCMonth() === _today.getUTCMonth() && month_day.getUTCDate() === _today.getUTCDate()
 					property bool dayIsFinished: calendarModel.completed(month_day)
 					property bool highlighted: false
 

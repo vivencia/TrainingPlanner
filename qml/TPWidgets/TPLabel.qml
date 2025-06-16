@@ -29,7 +29,7 @@ Label {
 	property int lineCount: singleLine ? 1 : Math.ceil(_textWidth/width) + 1
 	property int _textWidth
 	property int _textHeight
-	readonly property int _preferredWidth: widthAvailable >= 20 ? Math.min(_textWidth, widthAvailable) : _textWidth
+	readonly property int _preferredWidth: widthAvailable >= 20 ? Math.min(_textWidth*1.5, widthAvailable) : _textWidth*1.5
 	readonly property int _preferredHeight: singleLine ? heightAvailable : heightAvailable !== appSettings.itemDefaultHeight ?
 						Math.max(lineCount * _textHeight, heightAvailable) : lineCount * _textHeight;
 
@@ -68,7 +68,7 @@ Label {
 
 	function adjustTextSize() {
 		if (text.length === 0) return;
-		_textWidth = currentFontMetrics.boundingRect(text).width;
+		_textWidth = currentFontMetrics.boundingRect(text).width*1.3;
 		_textHeight = currentFontMetrics.boundingRect("TP").height*1.3;
 		const hasNewLineEscapeChr = text.indexOf('\n') !== -1;
 		singleLine = hasNewLineEscapeChr ? false : width > _textWidth;

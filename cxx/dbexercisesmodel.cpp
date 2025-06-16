@@ -516,12 +516,17 @@ const uint DBExercisesModel::setsNumber(const uint exercise_number, const uint e
 	return m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.count();
 }
 
+QString DBExercisesModel::muscularGroup() const
+{
+	return appMesoModel()->muscularGroup(m_mesoIdx, m_splitLetter);
+}
+
 uint DBExercisesModel::addExercise(const bool emit_signal)
 {
 	exerciseEntry *new_exercise{new exerciseEntry};
-	new_exercise->number = m_exerciseData.count();
-	m_exerciseData.append(new_exercise);
 	const uint exercise_number{static_cast<uint>(m_exerciseData.count())};
+	new_exercise->number = exercise_number;
+	m_exerciseData.append(new_exercise);
 	if (emit_signal)
 	{
 		emit exerciseCountChanged();
@@ -1128,6 +1133,11 @@ void DBExercisesModel::commonConstructor()
 	}
 	else
 		m_identifierInFile = &appUtils()->splitFileIdentifier;
+
+	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [this] (const uint meso_idx, const uint splitIndex, const QChar &splitLetter) {
+		if (meso_idx == m_mesoIdx && splitLetter == m_splitLetter)
+			emit muscularGroupChanged();
+	});
 }
 
 TPSetTypes DBExercisesModel::formatSetTypeToImport(const QString& fieldValue) const

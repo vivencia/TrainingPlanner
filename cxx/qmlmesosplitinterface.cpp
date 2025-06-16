@@ -167,7 +167,7 @@ QQuickItem* QmlMesoSplitInterface::setCurrentPage(const int index)
 
 bool QmlMesoSplitInterface::hasExercises() const
 {
-	return currentSplitModel()->exerciseCount() > 0;
+	return currentSplitModel() ? currentSplitModel()->exerciseCount() > 0 : false;
 }
 
 void QmlMesoSplitInterface::hideSimpleExercisesList()
@@ -266,7 +266,7 @@ void QmlMesoSplitInterface::createMesoSplitPages_part2()
 		item->setParentItem(m_plannerPage);
 
 		m_splitPages.insert(split_letter, item);
-		QMetaObject::invokeMethod(m_plannerPage, "insertSplitPage", Q_ARG(QQuickItem*, item), Q_ARG(uint, idx));
+		QMetaObject::invokeMethod(m_plannerPage, "insertSplitPage", Q_ARG(QQuickItem*, item), Q_ARG(int, static_cast<int>(idx)));
 
 		connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [this] (const uint meso_idx, const int splitIndex, const QChar& splitLetter) {
 			if (meso_idx == m_mesoIdx)

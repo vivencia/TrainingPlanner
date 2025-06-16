@@ -246,14 +246,13 @@ Pane {
 	} //GridLayout
 
 	TPButton {
-		id: btnCreateExercisePlan
 		text: qsTr("Exercises Planner")
 		enabled: !mesoManager.isNewMeso && mesoManager.splitOK
+		autoSize: true
 		flat: false
 
 		anchors {
 			bottom: parent.bottom
-			topMargin: 5
 			horizontalCenter: parent.horizontalCenter
 		}
 

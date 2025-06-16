@@ -7,7 +7,6 @@
 #define EXERCISES_COL_MESOID 1
 #define EXERCISES_COL_CALENDARDAY 2
 #define EXERCISES_COL_SPLITLETTER 3
-#define EXERCISES_COL_SPLITLETTER 3
 #define EXERCISES_COL_EXERCISES 4
 #define EXERCISES_COL_TRACKRESTTIMES 5
 #define EXERCISES_COL_AUTORESTTIMES 6
@@ -51,6 +50,8 @@ Q_PROPERTY(int workingExercise READ workingExercise WRITE setWorkingExercise NOT
 Q_PROPERTY(int workingSubExercise READ workingSubExercise WRITE setWorkingSubExercise NOTIFY workingSubExerciseChanged)
 Q_PROPERTY(int workingSet READ workingSet WRITE setWorkingSet NOTIFY workingSetChanged)
 
+Q_PROPERTY(QChar splitLetter READ splitLetter WRITE setSplitLetter NOTIFY splitLetterChanged FINAL)
+Q_PROPERTY(QString muscularGroup READ muscularGroup NOTIFY muscularGroupChanged FINAL)
 Q_PROPERTY(QString totalSetsLabel READ totalSetsLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString setNumberLabel READ setNumberLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString exerciseNameLabel READ exerciseNameLabel NOTIFY labelChanged FINAL)
@@ -92,7 +93,14 @@ public:
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; }
 	inline int calendarDay() const { return m_calendarDay; }
 	inline const QChar &splitLetter() const { return m_splitLetter; }
-	inline void setSplitLetter(const QChar &new_splitletter) { m_splitLetter = new_splitletter; }
+	inline void setSplitLetter(const QChar &new_splitletter)
+	{
+		if (m_splitLetter != new_splitletter)
+		{
+			m_splitLetter = new_splitletter;
+			emit splitLetterChanged();
+		}
+	}
 	inline bool importModel() const { return m_importMode; }
 	inline void setImportMode(const bool import_mode) { m_importMode = import_mode; }
 
@@ -113,6 +121,7 @@ public:
 	const uint subExercisesCount(const uint exercise_number) const;
 	const uint setsNumber(const uint exercise_number, const uint exercise_idx) const;
 
+	QString muscularGroup() const;
 	Q_INVOKABLE uint addExercise(const bool emit_signal = true);
 	Q_INVOKABLE void delExercise(const uint exercise_number, const bool emit_signal = true);
 	void moveExercise(const uint from, const uint to);
@@ -203,6 +212,8 @@ public slots:
 	int newExerciseFromExercisesList();
 
 signals:
+	void splitLetterChanged();
+	void muscularGroupChanged();
 	void exerciseNameChanged(const uint exercise_number, const uint exercise_idx);
 	void setsNumberChanged(const int exercise_number, const uint exercise_idx);
 	void setTypeChanged(const int exercise_number, const uint exercise_idx, const uint set_number);

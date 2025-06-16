@@ -76,7 +76,7 @@ bool DBCalendarModel::isWorkoutDay(const uint calendar_day) const
 
 QString DBCalendarModel::dayText(const QDate &date) const
 {
-	return isPartOfMeso(date) ? QString::number(date.day()) + '-' + splitLetter(date) : QString{};
+	return isPartOfMeso(date) ? QString::number(date.day()) + '-' + splitLetter(date) : QString::number(date.day());
 }
 
 QString DBCalendarModel::workoutNumber(const QDate &date) const

@@ -256,7 +256,7 @@ const int DBMesoCalendarManager::nthMonth(const uint meso_idx, const QDate &date
 	if (calendarDay(meso_idx, date) >= 0)
 	{
 		const QDate &start_calendar_date{appMesoModel()->startDate(meso_idx)};
-		return appUtils()->calculateNumberOfMonths(start_calendar_date, date);
+		return appUtils()->calculateNumberOfMonths(start_calendar_date, date) - 1;
 	}
 	return -1;
 }

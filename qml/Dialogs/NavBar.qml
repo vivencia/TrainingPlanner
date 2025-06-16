@@ -16,6 +16,8 @@ TPToolBar {
 		id: btnBack
 		imageSource: "back.png"
 		hasDropShadow: false
+		width: appSettings.itemDefaultHeight*1.1
+		height: width
 		enabled: stackView.depth >= 2 && mainwindow.bBackButtonEnabled
 		visible: stackView.depth >= 2
 
@@ -32,6 +34,8 @@ TPToolBar {
 		id: btnHome
 		imageSource: "home.png"
 		hasDropShadow: false
+		width: appSettings.itemDefaultHeight*1.1
+		height: width
 		enabled: btnBack.enabled
 		visible: btnBack.visible
 
@@ -51,8 +55,8 @@ TPToolBar {
 		id: btnMainMenu
 		imageSource: "mainmenu"
 		hasDropShadow: false
-		width: 30
-		height: 30
+		width: appSettings.itemDefaultHeight*1.1
+		height: width
 
 		anchors {
 			verticalCenter: parent.verticalCenter
@@ -67,8 +71,8 @@ TPToolBar {
 		id: btnCalendar
 		imageSource: "calendar"
 		hasDropShadow: false
-		width: 30
-		height: 30
+		width: appSettings.itemDefaultHeight*1.1
+		height: width
 
 		anchors {
 			verticalCenter: parent.verticalCenter
@@ -98,8 +102,8 @@ TPToolBar {
 		id: btnTimer
 		imageSource: "timer"
 		hasDropShadow: false
-		width: 30
-		height: 30
+		width: appSettings.itemDefaultHeight*1.1
+		height: width
 
 		anchors {
 			verticalCenter: parent.verticalCenter
@@ -128,8 +132,8 @@ TPToolBar {
 		id: btnWeather
 		imageSource: "weather"
 		hasDropShadow: false
-		width: 30
-		height: 30
+		width: appSettings.itemDefaultHeight*1.1
+		height: width
 
 		anchors {
 			verticalCenter: parent.verticalCenter
@@ -143,8 +147,8 @@ TPToolBar {
 	TPButton {
 		imageSource: "statistics"
 		hasDropShadow: false
-		width: 30
-		height: 30
+		width: appSettings.itemDefaultHeight*1.1
+		height: width
 
 		enabled: {
 			switch (mesocyclesModel.count) {

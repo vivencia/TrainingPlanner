@@ -247,6 +247,7 @@ TPPage {
 
 					anchors {
 						left: parent.right
+						leftMargin: 15
 						verticalCenter: parent.verticalCenter
 					}
 
@@ -315,8 +316,12 @@ TPPage {
 				TPButton {
 					id: btnStartDate
 					imageSource: "calendar.png"
-					anchors.left: txtMesoStartDate.right
-					anchors.verticalCenter: txtMesoStartDate.verticalCenter
+
+					anchors {
+						left: txtMesoStartDate.right
+						leftMargin: 15
+						verticalCenter: txtMesoStartDate.verticalCenter
+					}
 
 					onClicked: caldlg.open();
 				}
@@ -375,8 +380,12 @@ TPPage {
 				TPButton {
 					id: btnEndDate
 					imageSource: "calendar.png"
-					anchors.left: txtMesoEndDate.right
-					anchors.verticalCenter: txtMesoEndDate.verticalCenter
+
+					anchors {
+						left: txtMesoEndDate.right
+						leftMargin: 15
+						verticalCenter: txtMesoEndDate.verticalCenter
+					}
 
 					onClicked: caldlg2.open();
 				}

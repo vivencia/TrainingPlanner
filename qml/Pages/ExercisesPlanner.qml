@@ -31,6 +31,49 @@ TPPage {
 		}
 	}
 
+	header: TPToolBar {
+		height: appSettings.pageHeight*0.18
+
+		TPLabel {
+			id: lblMain
+			text: currentSplitPage && currentSplitPage.splitModel && qsTr("Training Division ") + currentSplitPage.splitModel.splitLetter
+			font: AppGlobals.largeFont
+			width: parent.width
+			heightAvailable: parent.height*0.4
+			horizontalAlignment: Text.AlignHCenter
+
+			anchors {
+				top: parent.top
+				horizontalCenter: parent.horizontalCenter
+			}
+		}
+
+		TPLabel {
+			id: lblGroups
+			text: qsTr("Muscle groups trained in this division:")
+			width: parent.width*0.9
+
+			anchors {
+				top: lblMain.bottom
+				horizontalCenter: parent.horizontalCenter
+			}
+		}
+
+		TPTextInput {
+			id: txtGroups
+			text: currentSplitPage && currentSplitPage.splitModel && currentSplitPage.splitModel.muscularGroup
+			readOnly: true
+			suggestedHeight: parent.height*0.4
+			width: parent.width*0.9
+
+			anchors {
+				top: lblGroups.bottom
+				topMargin: 5
+				horizontalCenter: parent.horizontalCenter
+			}
+		}
+	}
+
 	SwipeView {
 		id: splitView
 		interactive: !exercisesPane.visible
@@ -50,7 +93,7 @@ TPPage {
 		height: 20
 
 		delegate: Label {
-			text: splitView.itemAt(index).splitModel.splitLetter()
+			text: splitView.itemAt(index).splitModel.splitLetter
 			color: appSettings.fontColor
 			font.bold: true
 			fontSizeMode: Text.Fit
@@ -148,7 +191,7 @@ TPPage {
 
 		TPButton {
 			id: btnAddExercise
-			text: qsTr("+ Exercise")
+			text: qsTr("+Exercise")
 			imageSource: "exercises-add.png"
 			textUnderIcon: true
 			rounded: false
@@ -187,7 +230,10 @@ TPPage {
 			let component = Qt.createComponent("qrc:/qml/ExercisesAndSets/PageScrollButtons.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				navButtons = component.createObject(pagePlanner, { ownerPage: pagePlanner });
+				navButtons = component.createObject(pagePlanner, { ownerPage: pagePlanner, visible:
+								pagePlanner.currentSplitPage && pagePlanner.currentSplitPage.splitModel &&
+										pagePlanner.currentSplitPage.currentItem.splitModel.exerciseCount > 0
+				});
 				navButtons.scrollTo.connect(setScrollBarPosition);
 			}
 
@@ -262,7 +308,7 @@ TPPage {
 		parentPage: pagePlanner
 
 		onButton1Clicked: splitManager.exportMesoSplit(bShare, "X");
-		onButton2Clicked: splitManager.exportMesoSplit(bShare, currentPage.splitModel.splitLetter());
+		onButton2Clicked: splitManager.exportMesoSplit(bShare, currentSplitPage.splitModel.splitLetter());
 
 		property bool bShare: false
 
