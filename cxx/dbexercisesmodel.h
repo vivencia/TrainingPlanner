@@ -118,8 +118,8 @@ public:
 	static bool importExtraInfo(const QString &maybe_extra_info, int &calendar_day, QChar &split_letter);
 
 	const uint inline exerciseCount() const { return m_exerciseData.count(); }
-	const uint subExercisesCount(const uint exercise_number) const;
-	const uint setsNumber(const uint exercise_number, const uint exercise_idx) const;
+	Q_INVOKABLE const uint subExercisesCount(const uint exercise_number) const;
+	Q_INVOKABLE const uint setsNumber(const uint exercise_number, const uint exercise_idx) const;
 
 	QString muscularGroup() const;
 	Q_INVOKABLE uint addExercise(const bool emit_signal = true);
@@ -139,7 +139,7 @@ public:
 	uint workingSet(int exercise_number = -1, int exercise_idx = -1) const;
 	void setWorkingSet(const uint new_workingset, int exercise_number = -1, int exercise_idx = -1);
 
-	Q_INVOKABLE QString exerciseName(const uint exercise_number, const uint exercise_idx = 0) const;
+	Q_INVOKABLE QString exerciseName(const uint exercise_number, const uint exercise_idx) const;
 	Q_INVOKABLE void setExerciseName(const uint exercise_number, const uint exercise_idx, const QString &new_name);
 	void setExerciseName(const uint exercise_number, const uint exercise_idx, QString &&new_name);
 

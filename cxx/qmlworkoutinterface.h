@@ -140,7 +140,7 @@ public:
 
 	void simpleExercisesList(const bool show, const bool multi_sel = false);
 	void displayMessage(const QString &title, const QString &message, const bool error = false, const uint msecs = 0) const;
-	void askRemoveExercise(const uint exercise_idx);
+	void askRemoveExercise(const uint exercise_number);
 	void gotoNextExercise(const uint exercise_number);
 	void rollUpExercise(const uint exercise_number) const;
 	void rollUpExercises() const;

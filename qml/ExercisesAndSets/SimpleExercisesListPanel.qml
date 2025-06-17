@@ -42,7 +42,7 @@ TPPopup {
 
 		Rectangle {
 			id: recTitleBar
-			height: 30
+			height: appSettings.itemDefaultHeight
 			color: appSettings.paneBackgroundColor
 			z: 0
 			Layout.fillWidth: true
@@ -60,8 +60,8 @@ TPPopup {
 				id: btnShowHideList
 				imageSource: dlgExercisesList.shown ? "fold-up.png" : "fold-down.png"
 				hasDropShadow: false
-				imageSize: 25
-				height: 25
+				height: appSettings.itemDefaultHeight*0.9
+				width: height
 
 				anchors {
 					left: parent.left

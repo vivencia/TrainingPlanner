@@ -119,7 +119,7 @@ Item {
 
 			anchors {
 				right: txtField.right
-				rightMargin: 5
+				rightMargin: 10
 				verticalCenter: txtField.verticalCenter
 			}
 

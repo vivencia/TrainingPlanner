@@ -474,13 +474,13 @@ void QmlWorkoutInterface::displayMessage(const QString &title, const QString &me
 	QMetaObject::invokeMethod(m_workoutPage, "showMessageDialog", Q_ARG(QString, title), Q_ARG(QString, message), Q_ARG(bool, error), Q_ARG(int, static_cast<int>(msecs)));
 }
 
-void QmlWorkoutInterface::askRemoveExercise(const uint exercise_idx)
+void QmlWorkoutInterface::askRemoveExercise(const uint exercise_number)
 {
 	if (appSettings()->alwaysAskConfirmation())
-		QMetaObject::invokeMethod(m_workoutPage, "showRemoveExerciseMessage", Q_ARG(int, static_cast<int>(exercise_idx)),
-			Q_ARG(QString, m_workoutModel->exerciseName(exercise_idx)));
+		QMetaObject::invokeMethod(m_workoutPage, "showRemoveExerciseMessage", Q_ARG(int, static_cast<int>(exercise_number)),
+			Q_ARG(QString, m_workoutModel->exerciseName(exercise_number, 0)));
 	else
-		removeExercise(exercise_idx);
+		removeExercise(exercise_number);
 }
 
 void QmlWorkoutInterface::gotoNextExercise(const uint exercise_number)

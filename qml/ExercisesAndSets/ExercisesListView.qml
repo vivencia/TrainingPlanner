@@ -121,7 +121,7 @@ Column {
 
 			anchors {
 				left: parent.right
-				leftMargin: 5
+				leftMargin: 15
 				verticalCenter: parent.verticalCenter
 			}
 

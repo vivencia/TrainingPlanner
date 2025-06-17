@@ -17,6 +17,7 @@ TPPage {
 	required property SplitManager splitManager
 	property PageScrollButtons navButtons: null
 	property MesoSplitPlanner currentSplitPage: null
+	readonly property int splitPageHeight: appSettings.pageHeight - topToolBar.height - bottomToolBar.height
 
 	signal exerciseSelectedFromSimpleExercisesList();
 	signal simpleExercisesListClosed();
@@ -32,6 +33,7 @@ TPPage {
 	}
 
 	header: TPToolBar {
+		id: topToolBar
 		height: appSettings.pageHeight*0.18
 
 		TPLabel {
@@ -125,7 +127,7 @@ TPPage {
 	}
 
 	footer: TPToolBar {
-		id: splitToolBar
+		id: bottomToolBar
 		height: footerHeight
 
 		readonly property int buttonWidth: width*0.22
@@ -138,7 +140,7 @@ TPPage {
 			rounded: false
 			flat: false
 			enabled: splitManager.hasExercises
-			width: splitToolBar.buttonWidth
+			width: bottomToolBar.buttonWidth
 			height: footerHeight - 4
 
 			anchors {
@@ -158,7 +160,7 @@ TPPage {
 			visible: splitManager.canSwapExercises
 			rounded: false
 			flat: false
-			width: splitToolBar.buttonWidth
+			width: bottomToolBar.buttonWidth
 			height: footerHeight - 4
 
 			anchors {
@@ -177,7 +179,7 @@ TPPage {
 			textUnderIcon: true
 			rounded: false
 			flat: false
-			width: splitToolBar.buttonWidth
+			width: bottomToolBar.buttonWidth
 			height: footerHeight - 4
 
 			anchors {
@@ -196,7 +198,7 @@ TPPage {
 			textUnderIcon: true
 			rounded: false
 			flat: false
-			width: splitToolBar.buttonWidth*1.3
+			width: bottomToolBar.buttonWidth*1.3
 			height: footerHeight - 4
 
 			anchors {
@@ -231,8 +233,8 @@ TPPage {
 
 			function finishCreation() {
 				navButtons = component.createObject(pagePlanner, { ownerPage: pagePlanner, visible:
-								pagePlanner.currentSplitPage && pagePlanner.currentSplitPage.splitModel &&
-										pagePlanner.currentSplitPage.currentItem.splitModel.exerciseCount > 0
+								"ownerPage.currentSplitPage && ownerPage.currentSplitPage.splitModel &&
+										ownerPage.currentSplitPage.currentItem.splitModel.exerciseCount" > 0
 				});
 				navButtons.scrollTo.connect(setScrollBarPosition);
 			}

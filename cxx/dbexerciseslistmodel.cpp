@@ -96,9 +96,9 @@ void DBExercisesListModel::setCurrentRow(const int row)
 void DBExercisesListModel::newExercise(const QString &name, const QString &subname, const QString &muscular_group)
 {
 	setLastID(lastID() + 1);
-	appendList(std::move(QStringList{} << std::move(QString::number(lastID())) << std::move(name) << std::move(subname) << std::move(muscular_group) <<
-		std::move("3"_L1) << std::move("12"_L1) << std::move("20"_L1) << std::move("(kg)"_L1) << std::move("qrc:/images/no_image.jpg"_L1) <<
-			STR_ZERO << std::move(QString::number(m_exercisesData.count())) << STR_ZERO));
+	appendList(std::move(QStringList{} << std::move(QString::number(lastID())) << std::move(name) <<
+				std::move(subname) << std::move(muscular_group) << std::move("qrc:/images/no_image.jpg"_L1) <<
+				STR_ZERO << std::move(QString::number(m_exercisesData.count())) << STR_ZERO));
 }
 
 void DBExercisesListModel::removeExercise(const uint index)
@@ -110,11 +110,11 @@ void DBExercisesListModel::removeExercise(const uint index)
 		m_indexProxy.remove(index);
 	else
 	{
-		const int proxy_index(m_indexProxy.indexOf(index));
+		const qsizetype proxy_index{m_indexProxy.indexOf(index)};
 		if (proxy_index >= 0)
 		{
 			m_indexProxy.remove(proxy_index);
-			for(uint i(proxy_index); i < m_indexProxy.count(); ++i)
+			for(qsizetype i{proxy_index}; i < m_indexProxy.count(); ++i)
 				m_indexProxy[i] = i-1;
 		}
 	}

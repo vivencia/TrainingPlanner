@@ -47,8 +47,9 @@ void QmlMesoSplitInterface::moveExercise(const uint from, const uint to)
 
 void QmlMesoSplitInterface::removeExercise()
 {
-	QMetaObject::invokeMethod(m_plannerPage, "showDeleteDialog",
-							  Q_ARG(QString, currentSplitModel()->exerciseName(currentSplitModel()->workingExercise())));
+	const uint exercise_number{currentSplitModel()->workingExercise()};
+	QMetaObject::invokeMethod(m_plannerPage, "showDeleteDialog", Q_ARG(QString,
+						currentSplitModel()->exerciseName(exercise_number, currentSplitModel()->workingSubExercise(exercise_number))));
 }
 
 void QmlMesoSplitInterface::swapMesoPlans()
@@ -243,7 +244,7 @@ void QmlMesoSplitInterface::createMesoSplitPages_part2()
 	if (m_splitComponent->status() == QQmlComponent::Error)
 	{
 		qDebug() << m_splitComponent->errorString();
-		for (auto &error : m_plannerComponent->errors())
+		for (auto &error : m_splitComponent->errors())
 			qDebug() << error.description();
 		return;
 	}
@@ -251,6 +252,7 @@ void QmlMesoSplitInterface::createMesoSplitPages_part2()
 
 	m_prevMesoId = "-2"_L1;
 	m_splitProperties["splitManager"_L1] = std::move(QVariant::fromValue(this));
+	m_splitProperties["height"_L1] = m_plannerPage->property("splitPageHeight").toInt();
 
 	uint idx{0};
 	const QString &split_letters{appMesoModel()->usedSplits(m_mesoIdx)};
@@ -266,7 +268,7 @@ void QmlMesoSplitInterface::createMesoSplitPages_part2()
 		item->setParentItem(m_plannerPage);
 
 		m_splitPages.insert(split_letter, item);
-		QMetaObject::invokeMethod(m_plannerPage, "insertSplitPage", Q_ARG(QQuickItem*, item), Q_ARG(int, static_cast<int>(idx)));
+		QMetaObject::invokeMethod(m_plannerPage, "insertSplitPage", Q_ARG(QQuickItem*, item), Q_ARG(int, static_cast<int>(idx++)));
 
 		connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [this] (const uint meso_idx, const int splitIndex, const QChar& splitLetter) {
 			if (meso_idx == m_mesoIdx)

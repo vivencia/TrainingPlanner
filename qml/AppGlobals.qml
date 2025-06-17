@@ -49,11 +49,10 @@ QtObject {
 	readonly property ListModel setTypesModel: ListModel {
 		ListElement { text: qsTr("Regular"); value: 0; enabled: true; }
 		ListElement { text: qsTr("Pyramid"); value: 1; enabled: true; }
-		ListElement { text: qsTr("Drop Set"); value: 2; enabled: true; }
-		ListElement	{ text: qsTr("Cluster Set"); value: 3; enabled: true; }
-		ListElement { text: qsTr("Giant Set"); value: 4; enabled: true; }
+		ListElement { text: qsTr("Inverted Pyramid"); value: 2; enabled: true; }
+		ListElement { text: qsTr("Drop Set"); value: 3; enabled: true; }
+		ListElement	{ text: qsTr("Cluster Set"); value: 4; enabled: true; }
 		ListElement { text: qsTr("Myo Reps"); value: 5; enabled: true; }
-		ListElement { text: qsTr("Inverted Pyramid"); value: 6; enabled: true; }
 	}
 
 	readonly property ListModel splitModel: ListModel {
