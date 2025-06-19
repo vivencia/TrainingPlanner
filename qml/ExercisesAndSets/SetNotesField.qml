@@ -5,9 +5,9 @@ import QtQuick.Layouts
 import "../"
 import "../TPWidgets"
 
-Item {
+Column {
 	id: control
-	implicitHeight: lblMain.height + setNotesArea.height + 10
+	padding: 5
 
 	property string info: qsTr("Notes:")
 	property string text
@@ -15,35 +15,31 @@ Item {
 
 	signal editFinished(string new_text)
 
-	TPLabel {
-		id: lblMain
-		text: control.info
-		width: control.width*0.9
+	Row {
+		padding: 5
+		spacing: 5
+		Layout.fillWidth: true
 
-		anchors {
-			top: control.top
-			left: control.left
-		}
-	}
-
-	TPButton {
-		id: button
-		imageSource: setNotesArea.visible ? "fold-up.png" : "fold-down.png"
-		hasDropShadow: false
-		width: 20
-		height: 20
-
-		anchors {
-			left: lblMain.right
-			verticalCenter: lblMain.verticalCenter
+		TPLabel {
+			id: lblMain
+			text: control.info
+			width: control.width*0.9
+			Layout.preferredWidth: width
 		}
 
-		onClicked: {
-			setNotesArea.visible = !setNotesArea.visible;
-			if (setNotesArea.visible)
-			{
-				txtNotes.forceActiveFocus();
-				txtNotes.cursorPosition = txtNotes.length;
+		TPButton {
+			imageSource: setNotesArea.visible ? "fold-up.png" : "fold-down.png"
+			hasDropShadow: false
+			width: appSettings.itemDefaultHeight*0.8
+			height: width
+
+			onClicked: {
+				setNotesArea.visible = !setNotesArea.visible;
+				if (setNotesArea.visible)
+				{
+					txtNotes.forceActiveFocus();
+					txtNotes.cursorPosition = txtNotes.length;
+				}
 			}
 		}
 	}
@@ -51,11 +47,14 @@ Item {
 	ScrollView {
 		id: setNotesArea
 		contentWidth: availableWidth
+		contentHeight: availableHeight
 		visible: false
-		height: visible ? appSettings.pageHeight*0.15 : 0
-		width: control.width - 20
 		ScrollBar.horizontal.policy: ScrollBar.AsNeeded
 		ScrollBar.vertical.policy: ScrollBar.AsNeeded
+		width: control.width*0.9
+		height: appSettings.pageHeight*0.15
+		Layout.preferredWidth: width
+		Layout.maximumHeight: height
 
 		TextArea {
 			id: txtNotes
@@ -70,19 +69,21 @@ Item {
 			bottomPadding: 5
 			height: 50
 
+			property bool modified: false
+
 			background: Rectangle {
 				color: "white"
 				radius: 6
 				border.color: appSettings.fontColor
 			}
 
-			onEditingFinished: editFinished(text);
-		}
-
-		anchors {
-			top: lblMain.bottom
-			left: control.left
-			right: control.right
+			onTextEdited: modified = true;
+			onEditingFinished: {
+				if (modified) {
+					modified = false;
+					editFinished(text);
+				}
+			}
 		}
 	}
 }

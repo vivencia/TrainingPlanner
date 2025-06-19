@@ -39,17 +39,16 @@ int TPUtils::generateUniqueId(const QLatin1StringView &seed) const
 	{
 		int n{0};
 		int shift{2};
-		auto itr{seed.constBegin()};
-		const auto itr_end{seed.constEnd()};
 		const int shifter{qFloor(QTime::currentTime().msec()/100)};
-		do {
-			n += static_cast<int>(*itr);
+		for (const auto itr : seed)
+		{
+			n += static_cast<int>(itr);
 			if (--shift == 0)
 			{
 				n <<= shifter;
 				shift = 2;
 			}
-		} while (++itr != itr_end);
+		}
 		return n;
 	}
 }

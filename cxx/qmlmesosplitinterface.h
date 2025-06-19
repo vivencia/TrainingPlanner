@@ -25,7 +25,7 @@ Q_PROPERTY(bool canSwapExercises READ canSwapExercises NOTIFY currentPageChanged
 
 public:
 	explicit inline QmlMesoSplitInterface(QObject* parent, const uint meso_idx)
-		: QObject{parent}, m_plannerComponent{nullptr}, m_currentSplitPage{nullptr}, m_splitComponent{nullptr}, m_mesoIdx{meso_idx} {}
+		: QObject{parent}, m_plannerPage{nullptr}, m_currentSplitPage{nullptr}, m_splitComponent{nullptr}, m_mesoIdx{meso_idx} {}
 	inline ~QmlMesoSplitInterface() { cleanUp(); }
 	void cleanUp();
 

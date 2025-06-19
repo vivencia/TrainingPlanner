@@ -55,8 +55,8 @@ ListView {
 		implicitWidth: lstSplitExercises.width
 		implicitHeight: contentsLayout.implicitHeight
 
-		required property int index
-		property alias exerciseNumber: index
+		readonly property int exerciseNumber: index
+		property int nSubExercises: splitModel.subExercisesCount(delegate.exerciseNumber)
 
 		contentItem: Rectangle {
 			id: listItem
@@ -75,6 +75,33 @@ ListView {
 
 		onClicked: splitModel.workingExercise = index;
 
+		Connections {
+			target: splitModel
+
+			function onWorkingSubExerciseChanged(exercise_number: int, exercise_idx: int): void {
+				delegate.changeFields(exercise_number, exercise_idx, splitModel.workingSet);
+			}
+
+			function onWorkingSetChanged(exercise_number: int, exercise_idx: int, set_number: int): void {
+				delegate.changeFields(exercise_number, exercise_idx, set_number);
+			}
+
+			function onExerciseNameChanged(exercise_number: int, exercise_idx: int): void {
+				txtExerciseName.text = splitModel.exerciseName(exercise_number, exercise_idx);
+			}
+		} //Connections
+
+		function changeFields(exercise_number: int, exercise_idx: int, set_number: int): void {
+			txtExerciseName.text = splitModel.exerciseName(exercise_number, exercise_idx);
+			cboSetType.currentIndex = splitModel.setType(exercise_number, exercise_idx, set_number);
+			txtNSubsets.text = splitModel.setSubSets(exercise_number, exercise_idx, set_number);
+			txtNReps.text = splitModel.setReps(exercise_number, exercise_idx, set_number);
+			txtNWeight.text = splitModel.setWeight(exercise_number, exercise_idx, set_number);
+			txtNotes.text = splitModel.setNotes(exercise_number, exercise_idx, set_number);
+			setsGroup.nSets = splitModel.setsNumber(exercise_number, exercise_idx);
+			setsTabBar.setCurrentIndex(splitModel.workingSet);
+		}
+
 		ColumnLayout {
 			id: contentsLayout
 			spacing: 10
@@ -87,54 +114,14 @@ ListView {
 				bottomMargin: 5
 			}
 
-			Connections {
-				target: splitModel
-
-				function onExerciseNameChanged(row: int): void {
-					if (splitModel.workingExercise === row) {
-						if (splitModel.exerciseIsComposite(row))
-							cboSetType.currentIndex = 4;
-						else {
-							if (cboSetType.currentIndex === 4)
-								cboSetType.currentIndex = -1;
-						}
-						txtExerciseName.text = splitModel.exerciseName(row, 0);
-						lblExercise1.text = splitModel.exerciseName(row, 0);
-						lblExercise2.text = splitModel.exerciseName(row, 1);
-					}
-				}
-
-				function onSetsNumberChanged(row: int): void {
-					if (splitModel.workingExercise === row) {
-						buttonsRepeater.model = splitModel.setsNumber(row);
-						lblSetsNumber.text = splitModel.setsNumberLabel + splitModel.setsNumber(index);
-					}
-				}
-
-				function onWorkingSetChanged(row: int): void {
-					if (splitModel.workingExercise === row) {
-						const workingSet = splitModel.workingSet;
-						cboSetType.currentIndex = splitModel.setType(row, workingSet);
-						txtNSubsets.text = splitModel.setSubsets(row, workingSet);
-						txtNReps.text = splitModel.setReps1(row, workingSet);
-						txtNWeight.text = splitModel.setWeight1(row, workingSet);
-						if (repsLoader.active) {
-							repsLoader.nReps1 = splitModel.setReps1(row, workingSet);
-							repsLoader.nReps2 = splitModel.setReps2(row, workingSet);
-							weightsLoader.nWeight1 = splitModel.setWeight1(row, workingSet);
-							weightsLoader.nWeight2 = splitModel.setWeight1(row, workingSet);
-						}
-					}
-				}
-			} //Connections
-
 			Item {
 				height: appSettings.itemDefaultHeight
 				Layout.fillWidth: true
 
 				TPRadioButton {
 					id: optCurrentExercise
-					text: qsTr("Exercise #") + "<b>" + (index + 1) + "</b>"
+					text: qsTr("Exercise #") + "<b>" + (index + 1) + "</b>" +
+							(splitModel.exerciseIsComposite(delegate.exerciseNumber) ? qsTr("Giant sets") : "")
 					checked: index === splitModel.workingExercise
 					width: parent.width/2
 
@@ -194,7 +181,7 @@ ListView {
 					height: width
 
 					onClicked: {
-						splitModel.addSubExercise(delegate.exerciseNumber);
+						nSubExercises = splitModel.addSubExercise(delegate.exerciseNumber) + 1;
 						subExercisesTabBar.setCurrentIndex(splitModel.workingSubExercise);
 					}
 
@@ -204,55 +191,62 @@ ListView {
 					}
 				}
 
-				TabBar {
-					id: subExercisesTabBar
-					implicitWidth: width
-					contentWidth: width
-					clip: true
+				StackLayout{
+					id: subExercisesStack
+					currentIndex: delegate.nSubExercises > 0 ? 1 : 0
+					height: appSettings.itemDefaultHeight*1.2
 
 					anchors {
 						left: btnAddSubExercise.right
-						leftMargin: 5
 						right: btnDelSubExercise.left
 						verticalCenter: parent.verticalCenter
 					}
 
-					Repeater {
-						id: subExerciseButtonsRepeater
-						model: splitModel.subExercisesCount()
-						anchors.fill: parent
+					TPLabel {
+						text: qsTr(" <<-- Add some exercise")
+						horizontalAlignment: Text.AlignHCenter
+						Layout.fillWidth: true
+					}
 
-						required property int index
-						property alias exerciseIndex: index
-						property int exerciseNumber: delegate.exerciseNumber
+					TabBar {
+						id: subExercisesTabBar
+						Layout.fillWidth: true
+						Layout.fillHeight: true
+						contentWidth: width
+						clip: true
 
-						TabButton {
-							id: subExercisesTabButton
-							text: qsTr("Exercise # ") + parseInt(subExerciseButtonsRepeater.exerciseIndex + 1)
-							height: setsTabBar.height
-							checkable: true
-							checked: subExerciseButtonsRepeater.exerciseIndex === subExercisesTabBar.currentIndex
-							width: subExercisesTabBar.width*0.22
+						Repeater {
+							id: subExerciseButtonsRepeater
+							model: delegate.nSubExercises
 
-							contentItem: Label {
-								text: subExercisesTabButton.text
-								leftPadding: 2
-								rightPadding: 2
-								horizontalAlignment: Qt.AlignHCenter
-								font.pixelSize: appSettings.smallFontSize
-								color: appSettings.fontColor
-							}
+							TabButton {
+								id: subExercisesTabButton
+								text: qsTr("Exercise # ") + parseInt(index + 1)
+								checkable: true
+								checked: index === splitModel.workingSubExercise
+								width: subExercisesTabBar.width*0.22
+								height: subExercisesTabBar.height*0.95
 
-							background: Rectangle {
-								border.color: appSettings.fontColor
-								opacity: 0.8
-								color: enabled ? checked ? appSettings.primaryDarkColor : appSettings.primaryColor : "gray"
-							}
+								contentItem: Label {
+									text: subExercisesTabButton.text
+									leftPadding: 2
+									rightPadding: 2
+									horizontalAlignment: Qt.AlignHCenter
+									font.pixelSize: appSettings.smallFontSize
+									color: appSettings.fontColor
+								}
 
-							onClicked: splitModel.workingSet = index;
-						} //subExercisesTabButton
-					} //subExerciseButtonsRepeater
-				} //subExercisesTabBar
+								background: Rectangle {
+									border.color: appSettings.fontColor
+									opacity: 0.8
+									color: enabled ? (checked ? appSettings.primaryDarkColor : appSettings.primaryColor) : appSettings.disabledFontColor
+								}
+
+								onClicked: splitModel.workingSubExercise = index;
+							} //subExercisesTabButton
+						} //subExerciseButtonsRepeater
+					} //subExercisesTabBar
+				} //StackLayout
 
 				TPButton {
 					id: btnDelSubExercise
@@ -267,7 +261,10 @@ ListView {
 						verticalCenter: parent.verticalCenter
 					}
 
-					onClicked: splitModel.delSubExercise(splitModel.workingExercise, splitModel.workingSubExercise);
+					onClicked: {
+						splitModel.delSubExercise(splitModel.workingExercise, splitModel.workingSubExercise);
+						delegate.nSubExercises--;
+					}
 				}
 			} //Item
 
@@ -275,40 +272,41 @@ ListView {
 				id: txtExerciseName
 				text: splitModel.exerciseName(index, splitModel.workingExercise)
 				showRemoveButton: false
-				width: parent.width
-				height: appSettings.pageHeight*0.1
-				Layout.preferredWidth: width
-				Layout.preferredHeight: height
+				enabled: delegate.nSubExercises > 0
+				Layout.preferredWidth: parent.width
+				Layout.preferredHeight: appSettings.pageHeight*0.1
 
-				Keys.onReturnPressed: cboSetType.forceActiveFocus(); //Alphanumeric keyboard
-				onExerciseChanged: (new_text) => splitModel.setExerciseName(index, splitModel.workingExercise, new_text);
+				onExerciseChanged: (new_text) => splitModel.setExerciseName(splitModel.workingExercise, splitModel.workingSubExercise, new_text);
 				onItemClicked: splitModel.workingExercise = index;
-				onEditButtonClicked: splitManager.simpleExercisesList(!readOnly, true);
+				onShowExercisesListButtonClicked: splitManager.simpleExercisesList(true, true);
 			} //txtExerciseName
 
 			GroupBox {
 				id: setsGroup
-
-				label: TPLabel {
-					id: lblSetsNumber
-					text: splitModel.setNumberLabel + splitModel.setsNumber(index, 0)
-					width: parent.width
-					horizontalAlignment: Text.AlignHCenter
-				}
-				Layout.fillWidth: true
+				padding: 0
+				spacing: 0
+				enabled: delegate.nSubExercises > 0
+				width: parent.width
+				Layout.preferredWidth: width
+				Layout.preferredHeight: height
 				Layout.leftMargin: 0
 				Layout.rightMargin: 0
 				Layout.bottomMargin: 10
 				Layout.topMargin: 0
-				padding: 0
-				spacing: 0
-				height: appSettings.pageHeight*0.3
-				enabled: index === splitModel.workingExercise
+
+				property int nSets: splitModel.setsNumber(delegate.exerciseNumber, splitModel.workingSubExercise)
 
 				background: Rectangle {
 					color: "transparent"
 					border.color: appSettings.fontColor
 					radius: 6
+				}
+
+				label: TPLabel {
+					id: lblSetsNumber
+					text: splitModel.setNumberLabel + String(setsGroup.nSets)
+					width: parent.width
+					horizontalAlignment: Text.AlignHCenter
 				}
 
 				ColumnLayout {
@@ -317,90 +315,102 @@ ListView {
 					spacing: 5
 
 					Item {
-						Layout.minimumWidth: listItem.width
-						Layout.maximumWidth: listItem.width
+						enabled: delegate.nSubExercises > 0
+						Layout.fillWidth: true
 						Layout.preferredHeight: appSettings.itemDefaultHeight*1.1
 
 						TPButton {
 							id: btnAddSet
 							imageSource: "plus"
 							hasDropShadow: false
-							imageSize: 30
-							z:2
+							width: appSettings.itemDefaultHeight
+							height: width
 
 							onClicked: {
-								splitModel.addSet(index)
+								setsGroup.nSets = splitModel.addSet(splitModel.workingExercise, splitModel.workingSubExercise) + 1;
 								setsTabBar.setCurrentIndex(splitModel.workingSet);
 							}
 
 							anchors {
 								left: parent.left
-								leftMargin: -5
 								verticalCenter: parent.verticalCenter
 							}
 						}
 
-						TabBar {
-							id: setsTabBar
-							implicitWidth: width
-							contentWidth: width
-							clip: true
-							z: 1
+						StackLayout{
+							id: setsStack
+							currentIndex: setsGroup.nSets > 0 ? 1 : 0
+							height: appSettings.itemDefaultHeight*1.2
 
 							anchors {
 								left: btnAddSet.right
-								leftMargin: 5
 								right: btnDelSet.left
 								verticalCenter: parent.verticalCenter
 							}
 
-							Repeater {
-								id: buttonsRepeater
-								model: splitModel.setsNumber(index, splitModel.workingSubExercise)
-								anchors.fill: parent
+							TPLabel {
+								text: qsTr(" <<-- Add some sets")
+								horizontalAlignment: Text.AlignHCenter
+								Layout.fillWidth: true
+							}
 
-								TabButton {
-									id: tabButton
-									text: qsTr("Set # ") + parseInt(index + 1)
-									height: setsTabBar.height
-									checkable: true
-									checked: index === setsTabBar.currentIndex
-									width: setsGroup.width*0.22
+							TabBar {
+								id: setsTabBar
+								Layout.fillWidth: true
+								Layout.fillHeight: true
+								contentWidth: width
+								clip: true
 
-									contentItem: Label {
-										text: tabButton.text
-										leftPadding: 2
-										rightPadding: 2
-										horizontalAlignment: Qt.AlignHCenter
-										font.pixelSize: appSettings.smallFontSize
-										color: appSettings.fontColor
-									}
+								Repeater {
+									id: buttonsRepeater
+									model: setsGroup.nSets
 
-									background: Rectangle {
-										border.color: appSettings.fontColor
-										opacity: 0.8
-										color: enabled ? checked ? appSettings.primaryDarkColor : appSettings.primaryColor : "gray"
-									}
+									TabButton {
+										id: tabButton
+										text: qsTr("Set # ") + parseInt(index + 1)
+										checkable: true
+										checked: index === setsTabBar.currentIndex
+										width: setsGroup.width*0.22
+										height: setsTabBar.height*0.95
 
-									onClicked: splitModel.workingSet = index;
-								} //tabButton
-							} //buttonsRepeater
-						} //setsTabBar
+										contentItem: Label {
+											text: tabButton.text
+											leftPadding: 2
+											rightPadding: 2
+											horizontalAlignment: Qt.AlignHCenter
+											font.pixelSize: appSettings.smallFontSize
+											color: appSettings.fontColor
+										}
+
+										background: Rectangle {
+											border.color: appSettings.fontColor
+											opacity: 0.8
+											color: enabled ? (checked ? appSettings.primaryDarkColor : appSettings.primaryColor) : appSettings.disabledFontColor
+										}
+
+										onClicked: splitModel.workingSet = index;
+									} //tabButton
+								} //buttonsRepeater
+							} //setsTabBar
+						} //stackLayout
 
 						TPButton {
 							id: btnDelSet
 							imageSource: "minus"
 							hasDropShadow: false
-							imageSize: 30
-							z:2
+							enabled: setsGroup.nSets > 0
+							width: appSettings.itemDefaultHeight
+							height: width
 
 							anchors {
 								right: parent.right
-								rightMargin: 5
 								verticalCenter: parent.verticalCenter
 							}
 
-							onClicked: splitModel.delSet(splitModel.workingExercise, splitModel.workingSubExercise, splitModel.workingSet);
+							onClicked: {
+								splitModel.delSet(splitModel.workingExercise, splitModel.workingSubExercise, splitModel.workingSet);
+								setsGroup.nSets--;
+							}
 						}
 					} //Item
 
@@ -408,6 +418,7 @@ ListView {
 						Layout.leftMargin: 5
 						Layout.rightMargin: 5
 						Layout.topMargin: 5
+						enabled: setsGroup.nSets > 0
 
 						TPLabel {
 							text: splitModel.setTypeLabel
@@ -420,8 +431,7 @@ ListView {
 							enabled: index === splitModel.workingExercise
 							model: AppGlobals.setTypesModel
 							currentIndex: splitModel.setType(index, splitModel.workingSubExercise, splitModel.workingSet)
-							width: listItem.width*0.50
-							Layout.preferredWidth: width
+							Layout.preferredWidth: listItem.width*0.50
 
 							onActivated: (cboIndex) => splitModel.setSetType(index, splitModel.workingSubExercise, splitModel.workingSet, cboIndex);
 						}
@@ -445,14 +455,9 @@ ListView {
 							availableWidth: listItem.width*0.3
 							showLabel: false
 
-							onValueChanged: (str) => splitModel.setSetsSubSets(splitModel.workingExercise,
+							onValueChanged: (str) => splitModel.setSetSubSets(splitModel.workingExercise,
 															splitModel.workingSubExercise, splitModel.workingSet, str);
-							onEnterOrReturnKeyPressed: {
-								if (txtNReps.visible)
-									txtNReps.forceActiveFocus();
-								else
-									txtNReps1.forceActiveFocus();
-							}
+							onEnterOrReturnKeyPressed: txtNReps.forceActiveFocus();
 						}
 					} //RowLayout
 
@@ -460,8 +465,8 @@ ListView {
 						id: txtNReps
 						text: splitModel.setReps(splitModel.workingExercise, splitModel.workingSubExercise, splitModel.workingSet)
 						type: SetInputField.Type.RepType
-						availableWidth: listItem.width - 40
-						visible: cboSetType.currentIndex !== 4
+						availableWidth: listItem.width*0.9
+						enabled: setsGroup.nSets > 0
 						Layout.leftMargin: 10
 						Layout.rightMargin: 10
 
@@ -474,8 +479,8 @@ ListView {
 						id: txtNWeight
 						text: splitModel.setWeight(splitModel.workingExercise, splitModel.workingSubExercise, splitModel.workingSet)
 						type: SetInputField.Type.WeightType
-						availableWidth: listItem.width - 40
-						visible: cboSetType.currentIndex !== 4
+						availableWidth: listItem.width*0.9
+						enabled: setsGroup.nSets > 0
 						Layout.leftMargin: 10
 						Layout.rightMargin: 10
 
@@ -484,6 +489,7 @@ ListView {
 					} //txtNWeight
 
 					SetNotesField {
+						id: txtNotes
 						info: splitModel.setNotesLabel
 						text: splitModel.setNotes(splitModel.workingExercise, splitModel.workingSubExercise, splitModel.workingSet)
 						Layout.fillWidth: true

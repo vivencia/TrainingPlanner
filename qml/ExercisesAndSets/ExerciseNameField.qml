@@ -12,13 +12,12 @@ Item {
 	property alias readOnly: txtField.readOnly
 	property bool showRemoveButton: true
 	property bool showEditButton: true
-	property bool bCanEmitTextChanged: false
-	property bool bTextChanged: false
+	property bool showExercisesListButton: true
 	property bool editable: true
 
 	signal exerciseChanged(string new_exercise)
+	signal showExercisesListButtonClicked()
 	signal removeButtonClicked()
-	signal editButtonClicked()
 	signal itemClicked()
 	signal itemPressed()
 
@@ -41,6 +40,8 @@ Item {
 		width: 0.75*control.width
 		height: control.height
 
+		property bool text_edited: false
+
 		anchors {
 			top: control.top
 			left: control.left
@@ -54,7 +55,7 @@ Item {
 		}
 
 		MouseArea {
-			enabled: txtField.readOnly
+			enabled: txtField.enabled && txtField.readOnly
 			anchors.fill: txtField
 			onClicked: itemClicked();
 			onPressAndHold: itemPressed();
@@ -79,33 +80,19 @@ Item {
 
 		onReadOnlyChanged: {
 			if (readOnly) {
-				if (bTextChanged) {
-					bTextChanged = false;
-					exerciseChanged(text);
-				}
+				ensureVisible(0);
+				cursorPosition = 0;
 			}
 			else
 				cursorPosition = text.length;
 		}
 
-		onEditingFinished: {
-			if (bTextChanged) {
-				bTextChanged = false;
-				exerciseChanged(text);
-			}
-		}
+		onTextEdited: text_edited = true;
 
-		onTextChanged: {
-			bTextChanged = true;
-			if (bCanEmitTextChanged) {
-				if (!readOnly) {
-					bTextChanged = false;
-					exerciseChanged(text);
-				}
-				else {
-					ensureVisible(0);
-					cursorPosition = 0;
-				}
+		onEditingFinished: {
+			if (text_edited) {
+				text_edited = false;
+				exerciseChanged(text);
 			}
 		}
 
@@ -113,7 +100,8 @@ Item {
 			id: btnClearText
 			imageSource: "edit-clear"
 			hasDropShadow: false
-			imageSize: 20
+			width: 20
+			height: 20
 			visible: !txtField.readOnly
 			focus: false
 
@@ -133,9 +121,8 @@ Item {
 	TPButton {
 		id: btnEditExercise
 		imageSource: "edit.png"
-		imageSize: 25
-		height: 25
-		width: 25
+		width: appSettings.itemDefaultHeight
+		height: width
 		visible: showEditButton
 		enabled: editable
 
@@ -147,21 +134,38 @@ Item {
 
 		onClicked: {
 			txtField.readOnly = !txtField.readOnly;
-			editButtonClicked();
+			if (!txtField.readOnly)
+				txtField.forceActiveFocus();
 		}
+	}
+
+	TPButton {
+		id: btnShowList
+		imageSource: "list.png"
+		width: appSettings.itemDefaultHeight
+		height: width
+		visible: showExercisesListButton
+		enabled: editable
+
+		anchors {
+			left: btnEditExercise.right
+			leftMargin: 5
+			verticalCenter: control.verticalCenter
+		}
+
+		onClicked: showExercisesListButtonClicked();
 	}
 
 	TPButton {
 		id: btnRemoveExercise
 		imageSource: "remove"
-		imageSize: 25
-		height: 25
-		width: 25
+		width: appSettings.itemDefaultHeight
+		height: width
 		visible: showRemoveButton
 		enabled: editable
 
 		anchors {
-			left: showEditButton ? btnEditExercise.right : txtField.right
+			left: showExercisesListButton ? btnShowList.right : (showEditButton ? btnEditExercise.right : txtField.right)
 			leftMargin: 5
 			verticalCenter: control.verticalCenter
 		}

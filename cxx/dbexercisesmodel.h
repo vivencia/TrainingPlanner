@@ -70,13 +70,13 @@ Q_PROPERTY(QString splitLabel READ splitLabel NOTIFY labelChanged FINAL)
 public:
 	inline explicit DBExercisesModel(DBMesoCalendarManager *parent, const uint meso_idx, const int calendar_day)
 		: QAbstractListModel{reinterpret_cast<QObject*>(parent)},
-			m_calendarManager{parent}, m_mesoIdx{meso_idx}, m_calendarDay{calendar_day}, m_splitLetter{'N'}
+			m_calendarManager{parent}, m_mesoIdx{meso_idx}, m_calendarDay{calendar_day}, m_splitLetter{'N'}, m_workingExercise{11111}
 	{
 		commonConstructor();
 	}
 	inline explicit DBExercisesModel(DBMesoCalendarManager *parent, const uint meso_idx, const QChar &splitletter)
 		: QAbstractListModel{reinterpret_cast<QObject*>(parent)},
-			m_calendarManager{parent}, m_mesoIdx{meso_idx}, m_calendarDay{-1}, m_splitLetter{splitletter}
+			m_calendarManager{parent}, m_mesoIdx{meso_idx}, m_calendarDay{-1}, m_splitLetter{splitletter}, m_workingExercise{11111}
 	{
 		commonConstructor();
 	}
@@ -153,7 +153,7 @@ public:
 	void changeSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type);
 
 	QTime suggestedRestTime(const QTime &prev_resttime, const uint set_type) const;
-	const QTime &restTime(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
+	QTime restTime(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	Q_INVOKABLE QString setRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	Q_INVOKABLE void setSetRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number, const QString &new_time);
 
@@ -214,16 +214,17 @@ public slots:
 signals:
 	void splitLetterChanged();
 	void muscularGroupChanged();
-	void exerciseNameChanged(const uint exercise_number, const uint exercise_idx);
-	void setsNumberChanged(const int exercise_number, const uint exercise_idx);
-	void setTypeChanged(const int exercise_number, const uint exercise_idx, const uint set_number);
-	void workingExerciseChanged(const uint exercise_number);
-	void workingSubExerciseChanged(const int exercise_number, const uint exercise_idx);
-	void workingSetChanged(const int exercise_number, const uint exercise_idx, const uint set_number);
+	void exerciseNameChanged(const int exercise_number, const int exercise_idx);
+	void setsNumberChanged(const int exercise_number, const int exercise_idx);
+	void setTypeChanged(const int exercise_number, const int exercise_idx, const int set_number);
+	void workingExerciseChanged(const int exercise_number);
+	void workingSubExerciseChanged(const int exercise_number, const int exercise_idx);
+	void workingSetChanged(const int exercise_number, const int exercise_idx, const int set_number);
 	void exerciseCountChanged();
-	void exerciseCompleted(const uint exercise_number, const bool completed);
+	void subExerciseCountChanged(const int exercise_number);
+	void exerciseCompleted(const int exercise_number, const bool completed);
 	void labelChanged();
-	void exerciseModified(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint field);
+	void exerciseModified(const int exercise_number, const int exercise_idx, const int set_number, const int field);
 
 private:
 	DBMesoCalendarManager *m_calendarManager;

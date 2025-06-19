@@ -100,11 +100,12 @@ Column {
 			id: btnClearText
 			imageSource: "edit-clear"
 			hasDropShadow: false
-			imageSize: 20
+			width: appSettings.itemDefaultHeight/2
+			height: width
 
 			anchors {
-				left: txtFilter.right
-				leftMargin: -30
+				right: txtFilter.right
+				rightMargin: 10
 				verticalCenter: txtFilter.verticalCenter
 			}
 

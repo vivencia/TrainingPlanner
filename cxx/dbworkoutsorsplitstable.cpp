@@ -62,7 +62,7 @@ void DBWorkoutsOrSplitsTable::getExercises()
 		const QString &strQuery{tableId() == WORKOUT_TABLE_ID ?
 					"SELECT * FROM %1 WHERE meso_id=%2 AND calendar_day=%3"_L1.arg(
 											m_tableName, m_model->mesoId(), QString::number(m_model->calendarDay())) :
-					"SELECT * FROM %1 WHERE meso_id=%2 AND split_letter=%3"_L1.arg(
+					"SELECT * FROM %1 WHERE meso_id=%2 AND split_letter=\'%3\'"_L1.arg(
 											m_tableName, m_model->mesoId(), m_model->splitLetter())
 		};
 		if (query.exec(strQuery))
@@ -88,15 +88,14 @@ void DBWorkoutsOrSplitsTable::saveExercises()
 		const QStringList &workoutData{m_model->toDatabase()};
 		QSqlQuery query{std::move(getQuery())};
 		bool bUpdate{false};
-		QString strQuery;
-
-		if (query.exec(tableId() == WORKOUT_TABLE_ID ?
+		QString strQuery{std::move(tableId() == WORKOUT_TABLE_ID ?
 				"SELECT id FROM %1 WHERE meso_id=%2 AND calendar_day=%3"_L1.arg(
 												m_tableName, m_model->mesoId(), QString::number(m_model->calendarDay())) :
-				"SELECT id FROM %2 WHERE meso_id=%2 AND split_letter=%3"_L1.arg(
-												m_tableName, m_model->mesoId(), m_model->splitLetter()))
-				)
-		{
+				"SELECT id FROM %1 WHERE meso_id=%2 AND split_letter=\'%3\'"_L1.arg(
+												m_tableName, m_model->mesoId(), m_model->splitLetter())
+				)};
+
+		if (query.exec(strQuery)) {
 			if (query.first())
 				bUpdate = query.value(0).toUInt() >= 0;
 			query.finish();
@@ -116,7 +115,7 @@ void DBWorkoutsOrSplitsTable::saveExercises()
 		{
 			strQuery = std::move(u"INSERT INTO %1 "
 						"(meso_id,calendar_day,split_letter,exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted)"
-						" VALUES(%2, %3, %4, \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\', \'%11\', \'%12\')"_s
+						" VALUES(%2, %3, \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\', \'%11\', \'%12\')"_s
 						.arg(m_tableName, workoutData.at(EXERCISES_COL_MESOID),
 							workoutData.at(EXERCISES_COL_CALENDARDAY), workoutData.at(EXERCISES_COL_SPLITLETTER),
 							workoutData.at(EXERCISES_COL_EXERCISES), workoutData.at(EXERCISES_COL_SETTYPES),

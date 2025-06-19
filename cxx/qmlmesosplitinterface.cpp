@@ -25,7 +25,7 @@ void QmlMesoSplitInterface::cleanUp()
 
 void QmlMesoSplitInterface::getExercisesPlannerPage()
 {
-	if (!m_plannerComponent)
+	if (!m_plannerPage)
 	{
 		connect(this, &QmlMesoSplitInterface::plannerPageCreated, this,
 								&QmlMesoSplitInterface::createMesoSplitPages, Qt::SingleShotConnection);
@@ -187,6 +187,13 @@ void QmlMesoSplitInterface::createPlannerPage()
 		connect(m_plannerComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status status) {
 			if (status == QQmlComponent::Ready)
 				QmlMesoSplitInterface::createPlannerPage_part2();
+#ifndef QT_NO_DEBUG
+			else if (status == QQmlComponent::Error)
+			{
+				qDebug() << m_plannerComponent->errorString();
+				return;
+			}
+#endif
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	else
 		createPlannerPage_part2();
@@ -204,16 +211,6 @@ void QmlMesoSplitInterface::createPlannerPage_part2()
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		return;
 	}
-
-	#ifndef QT_NO_DEBUG
-	if (m_plannerComponent->status() == QQmlComponent::Error)
-	{
-		qDebug() << m_plannerComponent->errorString();
-		for (auto &error : m_plannerComponent->errors())
-			qDebug() << error.description();
-		return;
-	}
-	#endif
 	appQmlEngine()->setObjectOwnership(m_plannerPage, QQmlEngine::CppOwnership);
 	m_plannerPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
 	QMetaObject::invokeMethod(m_plannerPage, "createNavButtons");
@@ -232,24 +229,22 @@ void QmlMesoSplitInterface::createMesoSplitPages()
 		createMesoSplitPages_part2();
 	else
 	{
-		connect(m_splitComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status) {
-			createMesoSplitPages_part2();
+		connect(m_splitComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
+			if (status == QQmlComponent::Ready)
+				createMesoSplitPages_part2();
+#ifndef QT_NO_DEBUG
+			else if (m_splitComponent->status() == QQmlComponent::Error)
+			{
+				qDebug() << m_splitComponent->errorString();
+				return;
+			}
+	#endif
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	}
 }
 
 void QmlMesoSplitInterface::createMesoSplitPages_part2()
 {
-	#ifndef QT_NO_DEBUG
-	if (m_splitComponent->status() == QQmlComponent::Error)
-	{
-		qDebug() << m_splitComponent->errorString();
-		for (auto &error : m_splitComponent->errors())
-			qDebug() << error.description();
-		return;
-	}
-	#endif
-
 	m_prevMesoId = "-2"_L1;
 	m_splitProperties["splitManager"_L1] = std::move(QVariant::fromValue(this));
 	m_splitProperties["height"_L1] = m_plannerPage->property("splitPageHeight").toInt();
@@ -278,7 +273,7 @@ void QmlMesoSplitInterface::createMesoSplitPages_part2()
 			if (field != EXERCISE_IGNORE_NOTIFY_IDX)
 			{
 				appDBInterface()->saveMesoSplit(split_model);
-				appMesoModel()->checkIfCanExport(m_mesoIdx);
+				//appMesoModel()->checkIfCanExport(m_mesoIdx);
 			}
 		});
 	}

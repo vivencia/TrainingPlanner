@@ -104,5 +104,6 @@
         <file>images/color-choose.png</file>
         <file>images/messages.png</file>
         <file>images/message-meso.png</file>
+        <file>images/flat/list.png</file>
     </qresource>
 </RCC>
