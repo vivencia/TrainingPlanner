@@ -85,7 +85,7 @@ void DBWorkoutsOrSplitsTable::saveExercises()
 	if (openDatabase())
 	{
 		bool ok{false};
-		const QStringList &workoutData{m_model->toDatabase()};
+		const QStringList &modelData{m_model->toDatabase()};
 		QSqlQuery query{std::move(getQuery())};
 		bool bUpdate{false};
 		QString strQuery{std::move(tableId() == WORKOUT_TABLE_ID ?
@@ -103,25 +103,29 @@ void DBWorkoutsOrSplitsTable::saveExercises()
 
 		if (bUpdate)
 		{
-			strQuery = std::move(u"UPDATE %1 SET calendar_day=%2, split_letter=\'%3\', exercises=\'%4\', setstypes=\'%5\', setsresttimes=\'%6\', "
-							"setssubsets=\'%7\', setsreps=\'%8\', setsweights=\'%9\', setsnotes=\'%10\', setscompleted=\'%11\' WHERE id=%12"_s
-								.arg(m_tableName, workoutData.at(EXERCISES_COL_CALENDARDAY), workoutData.at(EXERCISES_COL_SPLITLETTER),
-									workoutData.at(EXERCISES_COL_EXERCISES), workoutData.at(EXERCISES_COL_SETTYPES),
-									workoutData.at(EXERCISES_COL_RESTTIMES), workoutData.at(EXERCISES_COL_SUBSETS),
-									workoutData.at(EXERCISES_COL_REPS), workoutData.at(EXERCISES_COL_WEIGHTS),
-									workoutData.at(EXERCISES_COL_NOTES), workoutData.at(EXERCISES_COL_COMPLETED), m_model->id()));
+			strQuery = std::move(u"UPDATE %1 SET calendar_day=%2, split_letter=\'%3\', exercises=\'%4\', track_rest_time=\'%5\', "
+								 "auto_rest_time=\'%6\', setstypes=\'%7\', setsresttimes=\'%8\', setssubsets=\'%9\', "
+								 "setsreps=\'%10\', setsweights=\'%11\', setsnotes=\'%12\', setscompleted=\'%13\' WHERE id=%14"_s
+								.arg(m_tableName, modelData.at(EXERCISES_COL_CALENDARDAY), modelData.at(EXERCISES_COL_SPLITLETTER),
+									modelData.at(EXERCISES_COL_EXERCISES), modelData.at(EXERCISES_COL_TRACKRESTTIMES),
+									modelData.at(EXERCISES_COL_AUTORESTTIMES), modelData.at(EXERCISES_COL_SETTYPES),
+									modelData.at(EXERCISES_COL_RESTTIMES), modelData.at(EXERCISES_COL_SUBSETS),
+									modelData.at(EXERCISES_COL_REPS), modelData.at(EXERCISES_COL_WEIGHTS),
+									modelData.at(EXERCISES_COL_NOTES), modelData.at(EXERCISES_COL_COMPLETED), m_model->id()));
 		}
 		else
 		{
 			strQuery = std::move(u"INSERT INTO %1 "
-						"(meso_id,calendar_day,split_letter,exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted)"
-						" VALUES(%2, %3, \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\', \'%11\', \'%12\')"_s
-						.arg(m_tableName, workoutData.at(EXERCISES_COL_MESOID),
-							workoutData.at(EXERCISES_COL_CALENDARDAY), workoutData.at(EXERCISES_COL_SPLITLETTER),
-							workoutData.at(EXERCISES_COL_EXERCISES), workoutData.at(EXERCISES_COL_SETTYPES),
-							workoutData.at(EXERCISES_COL_RESTTIMES), workoutData.at(EXERCISES_COL_SUBSETS),
-							workoutData.at(EXERCISES_COL_REPS), workoutData.at(EXERCISES_COL_WEIGHTS),
-							workoutData.at(EXERCISES_COL_NOTES), workoutData.at(EXERCISES_COL_COMPLETED)));
+						"(meso_id,calendar_day,split_letter,exercises,track_rest_time,auto_rest_time,setstypes,"
+								 "setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted)"
+							" VALUES(%2, %3, \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\', \'%11\', \'%12\', \'%13\', \'%14\')"_s
+						.arg(m_tableName, modelData.at(EXERCISES_COL_MESOID),
+							modelData.at(EXERCISES_COL_CALENDARDAY), modelData.at(EXERCISES_COL_SPLITLETTER),
+							modelData.at(EXERCISES_COL_EXERCISES), modelData.at(EXERCISES_COL_TRACKRESTTIMES),
+							modelData.at(EXERCISES_COL_AUTORESTTIMES), modelData.at(EXERCISES_COL_SETTYPES),
+							modelData.at(EXERCISES_COL_RESTTIMES), modelData.at(EXERCISES_COL_SUBSETS),
+							modelData.at(EXERCISES_COL_REPS), modelData.at(EXERCISES_COL_WEIGHTS),
+							modelData.at(EXERCISES_COL_NOTES), modelData.at(EXERCISES_COL_COMPLETED)));
 		}
 		ok = query.exec(strQuery);
 		if (ok && !bUpdate)

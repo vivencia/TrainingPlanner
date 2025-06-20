@@ -74,13 +74,12 @@ FocusScope {
 		anchors.fill: parent
 		border.color: borderColor
 		radius: 6
-		color: backColor
+		color: control.enabled ? backColor : "transparent"
 
 		TPLabel {
 			id: lblMain
 			text: labelText[type]
 			fontColor: labelColor
-			//widthAvailable: availableWidth*0.5
 			visible: showLabel
 
 			anchors {
@@ -94,8 +93,8 @@ FocusScope {
 			id: btnIncreaseMinutes
 			imageSource: "plus"
 			hasDropShadow: false
-			width: 20
-			height: 20
+			width: appSettings.itemDefaultHeight*0.9
+			height: width
 			visible: showButtons && type === SetInputField.Type.TimeType
 			enabled: editable
 
@@ -116,8 +115,8 @@ FocusScope {
 			id: btnDecrease
 			imageSource: "minus"
 			hasDropShadow: false
-			width: 20
-			height: 20
+			width: appSettings.itemDefaultHeight*0.9
+			height: width
 			visible: showButtons
 			enabled: editable
 
@@ -184,16 +183,16 @@ FocusScope {
 				}
 			}
 
-			onTextEdited: valueChanged(text = sanitizeText(text));
 			onTextChanged: if (!activeFocus) clearInput = true;
+			onEditingFinished: valueChanged(text = sanitizeText(text));
 		} //TextInput
 
 		TPButton {
 			id: btnIncrease
 			imageSource: "plus"
 			hasDropShadow: false
-			width: 20
-			height: 20
+			width: appSettings.itemDefaultHeight*0.9
+			height: width
 			visible: showButtons
 			enabled: editable
 
@@ -215,8 +214,8 @@ FocusScope {
 			id: btnDecreaseSeconds
 			imageSource: "minus"
 			hasDropShadow: false
-			width: 20
-			height: 20
+			width: appSettings.itemDefaultHeight*0.9
+			height: width
 			visible: showButtons && type === SetInputField.Type.TimeType
 			enabled: editable
 

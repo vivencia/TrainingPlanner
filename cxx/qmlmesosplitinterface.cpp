@@ -40,11 +40,6 @@ void QmlMesoSplitInterface::addExercise()
 	currentSplitModel()->setWorkingExercise(currentSplitModel()->addExercise(true));
 }
 
-void QmlMesoSplitInterface::moveExercise(const uint from, const uint to)
-{
-	currentSplitModel()->moveExercise(from, to);
-}
-
 void QmlMesoSplitInterface::removeExercise()
 {
 	const uint exercise_number{currentSplitModel()->workingExercise()};

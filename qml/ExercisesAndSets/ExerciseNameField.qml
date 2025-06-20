@@ -26,7 +26,7 @@ Item {
 		font.weight: Font.Bold
 	    font.hintingPreference: Font.PreferFullHinting
 	    font.pixelSize: appSettings.fontSize
-	    color: readOnly ? "transparent" : "black"
+		color: readOnly ? appSettings.fontColor : "black"
 		readOnly: true
 		wrapMode: Text.WordWrap
 		topPadding: 5
@@ -59,18 +59,6 @@ Item {
 			anchors.fill: txtField
 			onClicked: itemClicked();
 			onPressAndHold: itemPressed();
-		}
-
-		TPLabel {
-			id: readOnlyText
-			text: parent.text
-			wrapMode: Text.WordWrap
-			visible: parent.readOnly
-			leftPadding: 10
-			width: parent.width
-			height: parent.height
-			x: 0
-			y: 0
 		}
 
 		Component.onCompleted: {

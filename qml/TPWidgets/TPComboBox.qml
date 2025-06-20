@@ -98,7 +98,7 @@ ComboBox {
 	background: Rectangle {
 		implicitWidth: control.implicitWidth
 		implicitHeight: control.implicitHeight
-		color: backgroundColor
+		color: control.enabled ? backgroundColor : "transparent"
 		opacity: 0.5
 		border.width: control.visualFocus ? 2 : 1
 		border.color: textColor

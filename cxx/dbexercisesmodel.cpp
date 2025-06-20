@@ -18,7 +18,7 @@ struct stSet {
 	QString subsets, reps, weight, notes;
 	TPBool completed;
 
-	inline explicit stSet() : type{Regular}, subsets{'0'}, notes{' '} {}
+	inline explicit stSet() : type{Unkown}, subsets{'0'}, notes{' '} {}
 };
 
 struct stExercise {
@@ -91,7 +91,7 @@ bool DBExercisesModel::fromDataBase(const QStringList &data, const bool bClearSo
 {
 	m_id = std::move(data.at(EXERCISES_COL_ID));
 	m_mesoId = std::move(data.at(EXERCISES_COL_MESOID));
-	m_calendarDay = data.at(EXERCISES_COL_CALENDARDAY).toUInt();
+	m_calendarDay = data.at(EXERCISES_COL_CALENDARDAY).toInt();
 	m_splitLetter = data.at(EXERCISES_COL_SPLITLETTER).at(0);
 
 	QStringList exercises(std::move(data.at(EXERCISES_COL_EXERCISES).split(exercises_separator, Qt::SkipEmptyParts)));
@@ -113,42 +113,77 @@ bool DBExercisesModel::fromDataBase(const QStringList &data, const bool bClearSo
 		completed = std::move(temp.replace(STR_ONE, STR_ZERO).split(exercises_separator, Qt::SkipEmptyParts));
 	}
 
-	for(uint exercise_idx{0}; exercise_idx < exercises.count(); ++exercise_idx)
+	for(uint exercise_number{0}; exercise_number < exercises.count(); ++exercise_number)
 	{
-		const uint exercise_number{addExercise(false)};
-		exerciseEntry *exercise_entry{m_exerciseData.at(exercise_idx)};
-		exercise_entry->track_rest_time = appUtils()->getCompositeValue(exercise_idx, track_resttimes.at(exercise_idx), exercises_separator) == "1"_L1;
-		exercise_entry->auto_rest_time = appUtils()->getCompositeValue(exercise_idx, auto_resttimes.at(exercise_idx), exercises_separator) == "1"_L1;
-		do {
-			addSubExercise(exercise_number, false);
-			QString exercise_name{std::move(appUtils()->getCompositeValue(exercise_idx, exercises.at(exercise_idx), comp_exercise_separator))};
-			if (exercise_name.isEmpty())
-				break;
-			stExercise *sub_exercise{exercise_entry->m_exercises.at(exercise_idx)};
-			sub_exercise->name = std::move(exercise_name);
-			const QString &set_types{appUtils()->getCompositeValue(exercise_idx, settypes.at(exercise_idx), comp_exercise_separator)};
-			const QString &rest_times{appUtils()->getCompositeValue(exercise_idx, resttimes.at(exercise_idx), comp_exercise_separator)};
-			const QString &sub_sets{appUtils()->getCompositeValue(exercise_idx, subsets.at(exercise_idx), comp_exercise_separator)};
-			const QString &set_reps{appUtils()->getCompositeValue(exercise_idx, reps.at(exercise_idx), comp_exercise_separator)};
-			const QString &set_weights{appUtils()->getCompositeValue(exercise_idx, weights.at(exercise_idx), comp_exercise_separator)};
-			const QString &set_notes{appUtils()->getCompositeValue(exercise_idx, notes.at(exercise_idx), comp_exercise_separator)};
-			const QString &set_completed{appUtils()->getCompositeValue(exercise_idx, completed.at(exercise_idx), comp_exercise_separator)};
-			const uint n_sets{appUtils()->nFieldsInCompositeString(set_types, set_separator)};
+		beginInsertRows(QModelIndex{}, exercise_number, exercise_number);
+		static_cast<void>(addExercise(false));
+		exerciseEntry *exercise_entry{m_exerciseData.at(exercise_number)};
+		if (!track_resttimes.isEmpty())
+			exercise_entry->track_rest_time = appUtils()->getCompositeValue(exercise_number, track_resttimes.at(exercise_number), exercises_separator) == "1"_L1;
+		if (!auto_resttimes.isEmpty())
+			exercise_entry->auto_rest_time = appUtils()->getCompositeValue(exercise_number, auto_resttimes.at(exercise_number), exercises_separator) == "1"_L1;
 
-			for (uint x{0}; x < n_sets; ++x)
+		const uint n_subexercises{appUtils()->nFieldsInCompositeString(exercises.at(exercise_number), comp_exercise_separator)};
+		for (uint exercise_idx{0}; exercise_idx < n_subexercises; ++exercise_idx)
+		{
+			addSubExercise(exercise_number, false);
+			stExercise *sub_exercise{exercise_entry->m_exercises.at(exercise_idx)};
+			QString exercise_name{};
+			if (exercise_idx < exercises.count())
 			{
-				const uint set_number{addSet(exercise_number, exercise_idx, false)};
-				stSet *set{sub_exercise->sets.at(x)};
-				set->type = 	static_cast<TPSetTypes>(appUtils()->getCompositeValue(set_number, set_types, set_separator).toUInt());
-				set->restTime = std::move(appUtils()->getTimeFromTimeString(
-						appUtils()->getCompositeValue(set_number, rest_times, set_separator), TPUtils::TF_QML_DISPLAY_NO_SEC));
-				set->subsets = std::move(appUtils()->getCompositeValue(set_number, sub_sets, set_separator));
-				set->reps = std::move(appUtils()->getCompositeValue(set_number, set_reps, set_separator));
-				set->weight = std::move(appUtils()->getCompositeValue(set_number, set_weights, set_separator));
-				set->notes = std::move(appUtils()->getCompositeValue(set_number, set_notes, set_separator));
-				set->completed = appUtils()->getCompositeValue(set_number, set_completed, set_separator) == "1"_L1;
+				exercise_name = std::move(appUtils()->getCompositeValue(exercise_idx, exercises.at(exercise_number), comp_exercise_separator));
+				sub_exercise->name = std::move(exercise_name);
 			}
-		} while (true);
+			uint n_sets{0};
+			QString set_types;
+			if (exercise_idx < settypes.count())
+			{
+				set_types = std::move(appUtils()->getCompositeValue(exercise_idx, settypes.at(exercise_number), comp_exercise_separator));
+				n_sets = appUtils()->nFieldsInCompositeString(set_types, set_separator);
+			}
+			if (n_sets == 0)
+				continue;
+
+			QString rest_times;
+			if (exercise_entry->track_rest_time)
+			{
+				if (exercise_idx < resttimes.count())
+					rest_times = std::move(appUtils()->getCompositeValue(exercise_idx, resttimes.at(exercise_number), comp_exercise_separator));
+			}
+			QString sub_sets;
+				sub_sets = std::move(appUtils()->getCompositeValue(exercise_idx, subsets.at(exercise_number), comp_exercise_separator));
+			QString set_reps;
+				set_reps = std::move(appUtils()->getCompositeValue(exercise_idx, reps.at(exercise_number), comp_exercise_separator));
+			QString set_weights;
+				set_weights = std::move(appUtils()->getCompositeValue(exercise_idx, weights.at(exercise_number), comp_exercise_separator));
+			QString set_notes;
+				set_notes = std::move(appUtils()->getCompositeValue(exercise_idx, notes.at(exercise_number), comp_exercise_separator));
+			QString set_completed;
+				set_completed = std::move(appUtils()->getCompositeValue(exercise_idx, completed.at(exercise_number), comp_exercise_separator));
+
+			for (uint set_number{0}; set_number < n_sets; ++set_number)
+			{
+				static_cast<void>(addSet(exercise_number, exercise_idx, false));
+				stSet *set{sub_exercise->sets.at(set_number)};
+				set->type = static_cast<TPSetTypes>(appUtils()->getCompositeValue(set_number, set_types, set_separator).toUInt());
+				if (!rest_times.isEmpty())
+				{
+					set->restTime = std::move(appUtils()->getTimeFromTimeString(
+						appUtils()->getCompositeValue(set_number, rest_times, set_separator), TPUtils::TF_QML_DISPLAY_NO_SEC));
+				}
+				if (!sub_sets.isEmpty())
+					set->subsets = std::move(appUtils()->getCompositeValue(set_number, sub_sets, set_separator));
+				if (!set_reps.isEmpty())
+					set->reps = std::move(appUtils()->getCompositeValue(set_number, set_reps, set_separator));
+				if (!set_weights.isEmpty())
+					set->weight = std::move(appUtils()->getCompositeValue(set_number, set_weights, set_separator));
+				if (!set_notes.isEmpty())
+					set->notes = std::move(appUtils()->getCompositeValue(set_number, set_notes, set_separator));
+				if (!set_completed.isEmpty())
+					set->completed = appUtils()->getCompositeValue(set_number, set_completed, set_separator) == "1"_L1;
+			}
+		}
+		endInsertRows();
 	}
 	if (m_exerciseData.count() > 0)
 	{
@@ -849,14 +884,14 @@ void DBExercisesModel::setAutoRestTime(const uint exercise_number, const bool au
 	emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << autoRestTimeRole);
 }
 
-uint DBExercisesModel::setType(const uint exercise_number, const uint exercise_idx, const uint set_number) const
+int DBExercisesModel::setType(const uint exercise_number, const uint exercise_idx, const uint set_number) const
 {
 	if (exercise_number < m_exerciseData.count() && exercise_idx < m_exerciseData.at(exercise_number)->m_exercises.count())
 	{
 		if (set_number < m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.count())
 			return m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->type;
 	}
-	return Regular;
+	return -1;
 }
 
 void DBExercisesModel::setSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type)
@@ -897,7 +932,7 @@ QTime DBExercisesModel::suggestedRestTime(const QTime &prev_resttime, const uint
 			return prev_resttime.addSecs(90);
 		break;
 	}
-	return QTime{};
+	return QTime{0, 0, 0};
 }
 
 QTime DBExercisesModel::restTime(const uint exercise_number, const uint exercise_idx, const uint set_number) const
@@ -907,7 +942,7 @@ QTime DBExercisesModel::restTime(const uint exercise_number, const uint exercise
 		if (set_number < m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.count())
 			return m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->restTime;
 	}
-	return QTime{};
+	return QTime{0, 0, 0};
 }
 
 QString DBExercisesModel::setRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number) const

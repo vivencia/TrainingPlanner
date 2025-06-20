@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 
 import "../TPWidgets"
+import "../Pages"
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 Rectangle {
@@ -16,7 +17,7 @@ Rectangle {
 
 	property bool showUpButton: true
 	property bool showDownButton: true
-	property Page ownerPage
+	property TPPage ownerPage
 
 	TPFloatingControl {
 		id: btnUp
@@ -25,10 +26,10 @@ Rectangle {
 		height: 30
 		radius: 30
 		color: "transparent"
-		visible: showUpButton
+		visible: button.visible && showUpButton
 		dragWidget: img1
 		x: appSettings.pageWidth - width;
-		y: 640 - 2*height - 10
+		y: btnDown.y - height
 		emitMoveSignal: true
 
 		onControlMoved: (xpos, ypos) => {
@@ -57,11 +58,11 @@ Rectangle {
 		width: 30
 		height: 30
 		radius: 30
-		visible: showDownButton
+		visible: button.visible && showDownButton
 		color: "transparent"
 		dragWidget: img2
 		x: appSettings.pageWidth - width;
-		y: 640 - height - 10
+		y: appSettings.pageHeight - 2*height
 		emitMoveSignal: true
 
 		onControlMoved: (xpos, ypos) => {

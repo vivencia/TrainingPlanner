@@ -56,7 +56,7 @@ TextField {
 	background: Rectangle {
 		id: itemBack
 		border.color: textColor
-		color: backgroundColor
+		color: control.enabled ? backgroundColor : "transparent"
 		radius: 6
 		opacity: 0.5
 	}

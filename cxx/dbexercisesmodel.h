@@ -31,6 +31,7 @@ QT_FORWARD_DECLARE_STRUCT(stSet)
 QT_FORWARD_DECLARE_CLASS(QFile)
 
 enum {
+	Unkown = -1,
 	Regular = 0,
 	Pyramid = 1,
 	ReversePyramid = 2,
@@ -84,15 +85,15 @@ public:
 
 	void operator=(DBExercisesModel *other_model);
 
-	inline DBMesoCalendarManager *calendarManager() const { return m_calendarManager; }
-	inline const QString &id() const {return m_id; }
+	[[nodiscard]] inline DBMesoCalendarManager *calendarManager() const { return m_calendarManager; }
+	[[nodiscard]] inline const QString &id() const {return m_id; }
 	inline void setId(const QString &new_id) { m_id = new_id; }
-	inline const QString &mesoId() const {return m_mesoId; }
+	[[nodiscard]] inline const QString &mesoId() const {return m_mesoId; }
 	inline void setMesoId(const QString &new_mesoid) { m_mesoId = new_mesoid; }
-	inline const uint mesoIdx() const { return m_mesoIdx; }
+	[[nodiscard]] inline const uint mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; }
-	inline int calendarDay() const { return m_calendarDay; }
-	inline const QChar &splitLetter() const { return m_splitLetter; }
+	[[nodiscard]] inline int calendarDay() const { return m_calendarDay; }
+	[[nodiscard]] inline const QChar &splitLetter() const { return m_splitLetter; }
 	inline void setSplitLetter(const QChar &new_splitletter)
 	{
 		if (m_splitLetter != new_splitletter)
@@ -101,87 +102,87 @@ public:
 			emit splitLetterChanged();
 		}
 	}
-	inline bool importModel() const { return m_importMode; }
+	[[nodiscard]] inline bool importModel() const { return m_importMode; }
 	inline void setImportMode(const bool import_mode) { m_importMode = import_mode; }
 
-	bool fromDataBase(const QStringList &data, const bool bClearSomeFieldsForReUse = false);
-	const QStringList toDatabase(const bool to_export_file = false) const;
+	[[nodiscard]] bool fromDataBase(const QStringList &data, const bool bClearSomeFieldsForReUse = false);
+	[[nodiscard]] const QStringList toDatabase(const bool to_export_file = false) const;
 	void clearExercises();
 
-	int exportToFile(const QString &filename, QFile *out_file = nullptr) const;
-	int exportToFormattedFile(const QString &filename, QFile *out_file = nullptr) const;
-	int importFromFile(const QString &filename, QFile *in_file = nullptr);
-	int importFromFormattedFile(const QString &filename, QFile *in_file = nullptr);
-	int newExercisesFromFile(const QString &filename, const std::optional<bool> &file_formatted = std::nullopt);
-	inline const QString &identifierInFile() const { return *m_identifierInFile; }
-	const QString formatSetTypeToExport(const uint type) const;
-	static bool importExtraInfo(const QString &maybe_extra_info, int &calendar_day, QChar &split_letter);
+	[[nodiscard]] int exportToFile(const QString &filename, QFile *out_file = nullptr) const;
+	[[nodiscard]] int exportToFormattedFile(const QString &filename, QFile *out_file = nullptr) const;
+	[[nodiscard]] int importFromFile(const QString &filename, QFile *in_file = nullptr);
+	[[nodiscard]] int importFromFormattedFile(const QString &filename, QFile *in_file = nullptr);
+	[[maybe_unused]] int newExercisesFromFile(const QString &filename, const std::optional<bool> &file_formatted = std::nullopt);
+	[[nodiscard]] inline const QString &identifierInFile() const { return *m_identifierInFile; }
+	[[nodiscard]] const QString formatSetTypeToExport(const uint type) const;
+	[[nodiscard]] static bool importExtraInfo(const QString &maybe_extra_info, int &calendar_day, QChar &split_letter);
 
 	const uint inline exerciseCount() const { return m_exerciseData.count(); }
 	Q_INVOKABLE const uint subExercisesCount(const uint exercise_number) const;
 	Q_INVOKABLE const uint setsNumber(const uint exercise_number, const uint exercise_idx) const;
 
 	QString muscularGroup() const;
-	Q_INVOKABLE uint addExercise(const bool emit_signal = true);
+	[[maybe_unused]] Q_INVOKABLE uint addExercise(const bool emit_signal = true);
 	Q_INVOKABLE void delExercise(const uint exercise_number, const bool emit_signal = true);
-	void moveExercise(const uint from, const uint to);
-	Q_INVOKABLE uint addSubExercise(const uint exercise_number, const bool emit_signal = true);
+	Q_INVOKABLE void moveExercise(const uint from, const uint to);
+	[[maybe_unused]] Q_INVOKABLE uint addSubExercise(const uint exercise_number, const bool emit_signal = true);
 	Q_INVOKABLE void delSubExercise(const uint exercise_number, const uint exercise_idx, const bool emit_signal = true);
-	Q_INVOKABLE uint addSet(const uint exercise_number, const uint exercise_idx, const bool emit_signal = true);
+	[[maybe_unused]] Q_INVOKABLE uint addSet(const uint exercise_number, const uint exercise_idx, const bool emit_signal = true);
 	Q_INVOKABLE void delSet(const uint exercise_number, const uint exercise_idx, const uint set_number, const bool emit_signal = true);
 	void moveSet(const uint exercise_number, const uint exercise_idx, const uint from_set, const uint to_set);
 	Q_INVOKABLE bool exerciseIsComposite(const uint exercise_number) const;
 
-	inline uint workingExercise() const { return m_workingExercise; }
+	[[nodiscard]] inline uint workingExercise() const { return m_workingExercise; }
 	void setWorkingExercise(const uint new_workingexercise);
-	uint workingSubExercise(int exercise_number = -1) const;
+	[[nodiscard]] uint workingSubExercise(int exercise_number = -1) const;
 	void setWorkingSubExercise(const uint new_workingsubexercise, int exercise_number = -1);
-	uint workingSet(int exercise_number = -1, int exercise_idx = -1) const;
+	[[nodiscard]] uint workingSet(int exercise_number = -1, int exercise_idx = -1) const;
 	void setWorkingSet(const uint new_workingset, int exercise_number = -1, int exercise_idx = -1);
 
-	Q_INVOKABLE QString exerciseName(const uint exercise_number, const uint exercise_idx) const;
+	[[nodiscard]] Q_INVOKABLE QString exerciseName(const uint exercise_number, const uint exercise_idx) const;
 	Q_INVOKABLE void setExerciseName(const uint exercise_number, const uint exercise_idx, const QString &new_name);
 	void setExerciseName(const uint exercise_number, const uint exercise_idx, QString &&new_name);
 
-	Q_INVOKABLE bool trackRestTime(const uint exercise_number) const;
+	[[nodiscard]] Q_INVOKABLE bool trackRestTime(const uint exercise_number) const;
 	Q_INVOKABLE void setTrackRestTime(const uint exercise_number, const bool track_resttime);
-	Q_INVOKABLE bool autoRestTime(const uint exercise_number) const;
+	[[nodiscard]] Q_INVOKABLE bool autoRestTime(const uint exercise_number) const;
 	Q_INVOKABLE void setAutoRestTime(const uint exercise_number, const bool auto_resttime);
 
-	Q_INVOKABLE uint setType(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
+	[[nodiscard]] Q_INVOKABLE int setType(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	Q_INVOKABLE void setSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type);
 	void changeSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type);
 
-	QTime suggestedRestTime(const QTime &prev_resttime, const uint set_type) const;
-	QTime restTime(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
-	Q_INVOKABLE QString setRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
+	[[nodiscard]] QTime suggestedRestTime(const QTime &prev_resttime, const uint set_type) const;
+	[[nodiscard]] QTime restTime(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
+	[[nodiscard]] Q_INVOKABLE QString setRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	Q_INVOKABLE void setSetRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number, const QString &new_time);
 
-	QString suggestedSubSets(const uint set_type);
-	Q_INVOKABLE QString setSubSets(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
+	[[nodiscard]] QString suggestedSubSets(const uint set_type);
+	[[nodiscard]] Q_INVOKABLE QString setSubSets(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	Q_INVOKABLE void setSetSubSets(const uint exercise_number, const uint exercise_idx, const uint set_number, const QString &new_subsets);
 	void addSetSubSet(const uint exercise_number, const uint exercise_idx, const uint set_number);
 	void delSetSubSet(const uint exercise_number, const uint exercise_idx, const uint set_number);
 
-	QString suggestedReps(const QString &prev_reps, const uint set_type, const uint subset = 0) const;
-	Q_INVOKABLE QString setReps(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint subset = 0) const;
+	[[nodiscard]] QString suggestedReps(const QString &prev_reps, const uint set_type, const uint subset = 0) const;
+	[[nodiscard]] Q_INVOKABLE QString setReps(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint subset = 0) const;
 	Q_INVOKABLE void setSetReps(const uint exercise_number, const uint exercise_idx, const uint set_number, const QString &new_reps, const uint subset = 0);
 	void setSetReps(const uint exercise_number, const uint exercise_idx, const uint set_number, QString &&new_reps);
 
-	QString suggestedWeight(const QString &prev_weight, const uint set_type, const uint subset = 0) const;
-	Q_INVOKABLE QString setWeight(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint subset = 0) const;
+	[[nodiscard]] QString suggestedWeight(const QString &prev_weight, const uint set_type, const uint subset = 0) const;
+	[[nodiscard]] Q_INVOKABLE QString setWeight(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint subset = 0) const;
 	Q_INVOKABLE void setSetWeight(const uint exercise_number, const uint exercise_idx, const uint set_number, const QString &new_weight, const uint subset = 0);
 	void setSetWeight(const uint exercise_number, const uint exercise_idx, const uint set_number, QString &&new_weight);
 
-	Q_INVOKABLE QString setNotes(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
+	[[nodiscard]] Q_INVOKABLE QString setNotes(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	Q_INVOKABLE void setSetNotes(const uint exercise_number, const uint exercise_idx, const uint set_number, const QString &new_notes);
 	void setSetNotes(const uint exercise_number, const uint exercise_idx, const uint set_number, QString &&new_notes);
 
-	Q_INVOKABLE bool setCompleted(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
+	[[nodiscard]] Q_INVOKABLE bool setCompleted(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	Q_INVOKABLE void setSetCompleted(const uint exercise_number, const uint exercise_idx, const uint set_number, const bool completed);
-	bool allSetsCompleted(int exercise_number = -1, int exercise_idx = -1) const;
-	bool anySetCompleted(int exercise_number = -1, int exercise_idx = -1) const;
-	bool noSetsCompleted(int exercise_number = -1, int exercise_idx = -1) const;
+	[[nodiscard]] bool allSetsCompleted(int exercise_number = -1, int exercise_idx = -1) const;
+	[[nodiscard]] bool anySetCompleted(int exercise_number = -1, int exercise_idx = -1) const;
+	[[nodiscard]] bool noSetsCompleted(int exercise_number = -1, int exercise_idx = -1) const;
 
 	inline QString totalSetsLabel() const { return tr("Number of sets: "); }
 	inline QString setNumberLabel() const { return tr("Set #: "); }

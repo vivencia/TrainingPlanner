@@ -34,7 +34,6 @@ public:
 
 	Q_INVOKABLE void getExercisesPlannerPage();
 	Q_INVOKABLE void addExercise();
-	Q_INVOKABLE void moveExercise(const uint from, const uint to);
 	Q_INVOKABLE void removeExercise();
 	Q_INVOKABLE void swapMesoPlans();
 	Q_INVOKABLE void loadSplitFromPreviousMeso();

@@ -622,69 +622,83 @@ QString TPUtils::formatTime(const QTime &time, const TIME_FORMAT format) const
 	switch (format)
 	{
 		case TF_QML_DISPLAY_COMPLETE:
-			return time.toString("hh:mm:ss"_L1);
+			return time.isValid() ? time.toString("hh:mm:ss"_L1) : "00:00:00"_L1;
 		break;
 		case TF_QML_DISPLAY_NO_SEC:
-			return time.toString("hh:mm"_L1);
+			return time.isValid() ? time.toString("hh:mm"_L1) : "00:00"_L1;
 		break;
 		case TF_QML_DISPLAY_NO_HOUR:
-			return time.toString("mm:ss"_L1);
+			return time.isValid() ? time.toString("mm:ss"_L1) : "00:00"_L1;
 		break;
 		case TF_FANCY:
 		{
-			QString strTime{std::move(time.toString("hh  mm"_L1))};
-			strTime.insert(6, std::move("min"_L1));
-			strTime.insert(3, std::move(tr("and")));
-			strTime.insert(2, std::move("hs"_L1));
+			if (time.isValid())
+			{
+				QString strTime{std::move(time.toString("hh  mm"_L1))};
+				strTime.insert(6, std::move("min"_L1));
+				strTime.insert(3, std::move(tr("and")));
+				strTime.insert(2, std::move("hs"_L1));
+				return strTime;
+			}
+			else
+				return ("00 hs and 00 min"_L1);
 		}
 		case TF_FANCY_SECS:
 		{
-			QString strTime{std::move(time.toString("hh, mm  ss"_L1))};
-			strTime.insert(10, std::move("secs"));
-			strTime.insert(7, std::move(tr("and")));
-			strTime.insert(6, std::move("min"_L1));
-			strTime.insert(2, std::move("hs"_L1));
+			if (time.isValid())
+			{
+				QString strTime{std::move(time.toString("hh, mm  ss"_L1))};
+				strTime.insert(10, std::move("secs"));
+				strTime.insert(7, std::move(tr("and")));
+				strTime.insert(6, std::move("min"_L1));
+				strTime.insert(2, std::move("hs"_L1));
+				return strTime;
+			}
+			else
+				return ("00 hs, 00 min and 00 secs"_L1);
 		}
 		break;
 		case TF_ONLINE:
-			return time.toString("hhmmss"_L1);
+			return time.isValid() ? time.toString("hhmmss"_L1) : "000000"_L1;
 		break;
 	}
-	return QString{};
 }
 
 QTime TPUtils::getTimeFromTimeString(const QString &strtime, const TIME_FORMAT format) const
 {
 	int hour{0}, min{0}, sec{0};
-	switch (format)
+	if (strtime.length() >= 4)
 	{
-		case TF_QML_DISPLAY_COMPLETE:
-			hour = strtime.first(2).toInt();
-			min = strtime.sliced(3, 2).toInt();
-			sec = strtime.last(2).toInt();
-		break;
-		case TF_QML_DISPLAY_NO_SEC:
-			hour = strtime.first(2).toInt();
-			min = strtime.last(2).toInt();
-		break;
-		case TF_QML_DISPLAY_NO_HOUR:
-			min = strtime.first(2).toInt();
-			sec = strtime.last(2).toInt();
-		break;
-		case TF_FANCY:
-			hour = strtime.first(2).toInt();
-			min = strtime.sliced(6, 2).toInt();
-		break;
-		case TF_FANCY_SECS:
-			hour = strtime.first(2).toInt();
-			min = strtime.sliced(6, 2).toInt();
-			sec = strtime.sliced(strtime.length() - 6, 2).toInt();
-		break;
-		case TF_ONLINE:
-			hour = strtime.first(2).toInt();
-			min = strtime.sliced(2, 2).toInt();
-			sec = strtime.last(2).toInt();
-		break;
+		switch (format)
+		{
+			case TF_QML_DISPLAY_COMPLETE:
+				hour = strtime.first(2).toInt();
+				min = strtime.sliced(3, 2).toInt();
+				sec = strtime.last(2).toInt();
+			break;
+			case TF_QML_DISPLAY_NO_SEC:
+				hour = strtime.first(2).toInt();
+				min = strtime.last(2).toInt();
+			break;
+			case TF_QML_DISPLAY_NO_HOUR:
+				min = strtime.first(2).toInt();
+				sec = strtime.last(2).toInt();
+			break;
+			case TF_FANCY:
+				hour = strtime.first(2).toInt();
+				min = strtime.sliced(6, 2).toInt();
+			break;
+			case TF_FANCY_SECS:
+				hour = strtime.first(2).toInt();
+				min = strtime.sliced(6, 2).toInt();
+				sec = strtime.sliced(strtime.length() - 6, 2).toInt();
+			break;
+			case TF_ONLINE:
+				hour = strtime.first(2).toInt();
+				min = strtime.sliced(2, 2).toInt();
+				sec = strtime.last(2).toInt();
+			break;
+		}
 	}
 	return QTime{hour, min, sec};
 }

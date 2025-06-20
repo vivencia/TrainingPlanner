@@ -84,6 +84,7 @@ TPPage {
 		onCurrentIndexChanged: {
 			currentSplitPage = splitManager.setCurrentPage(currentIndex);
 			currentSplitPage.navButtons = navButtons;
+			navButtons.visible = currentSplitPage && currentSplitPage.splitModel && currentSplitPage.splitModel.exerciseCount > 0;
 		}
 	} //SwipeView
 
@@ -232,10 +233,7 @@ TPPage {
 			let component = Qt.createComponent("qrc:/qml/ExercisesAndSets/PageScrollButtons.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				navButtons = component.createObject(pagePlanner, { ownerPage: pagePlanner, visible:
-								"ownerPage.currentSplitPage && ownerPage.currentSplitPage.splitModel &&
-										ownerPage.currentSplitPage.currentItem.splitModel.exerciseCount" > 0
-				});
+				navButtons = component.createObject(pagePlanner, { ownerPage: pagePlanner });
 				navButtons.scrollTo.connect(setScrollBarPosition);
 			}
 

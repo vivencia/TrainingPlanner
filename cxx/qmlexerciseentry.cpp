@@ -313,7 +313,7 @@ void QmlExerciseEntry::moveSet(const uint set_number, const uint new_set_number)
 void QmlExerciseEntry::changeSetType(const uint set_number, const uint new_type)
 {
 	const uint exercise_idx{m_workoutModel->workingSubExercise(m_exerciseNumber)};
-	const uint old_type{m_workoutModel->setType(m_exerciseNumber, exercise_idx, set_number)};
+	const int old_type{m_workoutModel->setType(m_exerciseNumber, exercise_idx, set_number)};
 	m_workoutModel->changeSetType(m_exerciseNumber, exercise_idx, set_number, new_type);
 	if (old_type != new_type)
 	{
@@ -367,7 +367,7 @@ void QmlExerciseEntry::updateSetTypeForNextSets()
 {
 	const uint exercise_idx{m_workoutModel->workingSubExercise(m_exerciseNumber)};
 	const uint set_number{m_workoutModel->workingSet(m_exerciseNumber, exercise_idx)};
-	const uint set_type{m_workoutModel->setType(m_exerciseNumber, exercise_idx, set_number)};
+	const int set_type{m_workoutModel->setType(m_exerciseNumber, exercise_idx, set_number)};
 	const uint nsets{m_workoutModel->setsNumber(m_exerciseNumber, exercise_idx)};
 
 	for (uint i{set_number+1}; i < nsets; ++i)
