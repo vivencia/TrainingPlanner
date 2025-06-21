@@ -13,7 +13,6 @@
 #define MESOCALENDAR_COL_NOTES 8
 #define MESOCALENDAR_COL_TRAINING_COMPLETED 9
 #define MESOCALENDAR_TOTAL_COLS MESOCALENDAR_COL_TRAINING_COMPLETED + 1
-#define MESOCALENDAR_RENEW_DATABASE MESOCALENDAR_TOTAL_COLS + 1
 
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(DBCalendarModel)
@@ -53,7 +52,7 @@ friend class DBMesoCalendarTable;
 
 public:
 	explicit inline DBMesoCalendarManager(QObject *parent) : QObject{parent} {}
-	void removeCalendarForMeso(const uint meso_idx);
+	void removeCalendarForMeso(const uint meso_idx, const bool remove_workouts);
 	void addCalendarForMeso(const uint meso_idx);
 	void addNewCalendarForMeso(const uint new_mesoidx);
 	void remakeMesoCalendar(const uint meso_idx, const bool preserve_old_info);

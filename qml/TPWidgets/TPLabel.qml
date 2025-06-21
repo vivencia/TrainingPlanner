@@ -30,8 +30,7 @@ Label {
 	property int _textWidth
 	property int _textHeight
 	readonly property int _preferredWidth: widthAvailable >= 20 ? Math.min(_textWidth*1.5, widthAvailable) : _textWidth*1.5
-	readonly property int _preferredHeight: singleLine ? heightAvailable : heightAvailable !== appSettings.itemDefaultHeight ?
-						Math.max(lineCount * _textHeight, heightAvailable) : lineCount * _textHeight;
+	readonly property int _preferredHeight: singleLine ? heightAvailable : Math.max(lineCount * _textHeight * 1.5, heightAvailable);
 
 	readonly property FontMetrics currentFontMetrics: FontMetrics {
 		font.family: control.font.family

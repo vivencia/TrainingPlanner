@@ -103,7 +103,7 @@ QString TPUtils::getLastDirInPath(const QString &filename) const
 	for (const auto &chr : filePath | std::views::reverse)
 	{
 		if (chr != '/')
-			ret += chr;
+			ret.insert(0, chr);
 		else
 		{
 			if (ret.length() > 0)

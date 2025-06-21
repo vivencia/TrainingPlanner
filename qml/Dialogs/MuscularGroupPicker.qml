@@ -71,8 +71,8 @@ TPPopup {
 			id: btnShowHideList
 			imageSource: dlgMuscularGroup.shown ? "fold-up.png" : "fold-down.png"
 			hasDropShadow: false
-			imageSize: 25
-			height: 25
+			width: btnClose.width
+			height: width
 
 			anchors {
 				left: parent.left
@@ -111,7 +111,6 @@ TPPopup {
 					checked: model.selected
 					width: itemsLayout.width
 					Layout.fillWidth: true
-					height: 25
 
 					onCheckedChanged: { model.selected = checked; }
 				}
@@ -123,8 +122,7 @@ TPPopup {
 		id: btnMakeFilter
 		text: buttonLabel
 		flat: false
-		width: parent.width*0.6
-		height: 25
+		autoSize: true
 		visible: dlgMuscularGroup.shown
 
 		readonly property int margin: (parent.width - width)/2
@@ -159,7 +157,7 @@ TPPopup {
 
 	function selectInitialGroups(initialGroups: string): void {
 		const groups = initialGroups.split(groupsSeparator);
-		for (let x=0; x < groupsModel.count; ++x) {
+		for (let x = 0; x < groupsModel.count; ++x) {
 			let included = false;
 			for (let i=0; i < groups.length; ++i) {
 				if (qsTr(groupsModel.get(x).display) === groups[i]) {

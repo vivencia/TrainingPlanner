@@ -34,14 +34,13 @@ TPPage {
 
 	header: TPToolBar {
 		id: topToolBar
-		height: appSettings.pageHeight*0.18
+		height: lblMain.height + lblGroups.height + txtGroups.height + 10
 
 		TPLabel {
 			id: lblMain
 			text: currentSplitPage && currentSplitPage.splitModel && qsTr("Training Division ") + currentSplitPage.splitModel.splitLetter
 			font: AppGlobals.largeFont
 			width: parent.width
-			heightAvailable: parent.height*0.4
 			horizontalAlignment: Text.AlignHCenter
 
 			anchors {
@@ -65,7 +64,6 @@ TPPage {
 			id: txtGroups
 			text: currentSplitPage && currentSplitPage.splitModel && currentSplitPage.splitModel.muscularGroup
 			readOnly: true
-			suggestedHeight: parent.height*0.4
 			width: parent.width*0.9
 
 			anchors {

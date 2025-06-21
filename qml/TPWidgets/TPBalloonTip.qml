@@ -17,7 +17,6 @@ TPPopup {
 	property string title: ""
 	property string button1Text: qsTr("Yes")
 	property string button2Text: qsTr("No")
-	property string checkBoxText: ""
 	property string imageSource: ""
 	property string backColor: appSettings.primaryColor
 	property string textColor: appSettings.fontColor

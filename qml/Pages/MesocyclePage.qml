@@ -169,8 +169,7 @@ TPPage {
 				text: mesoManager.name
 				ToolTip.text: mesoManager.mesoNameErrorTooltip
 				ToolTip.visible: !mesoManager.mesoNameOK
-				width: 0.9*parent.width
-				Layout.preferredWidth: width
+				Layout.preferredWidth: 0.9*parent.width
 
 				onTextEdited: mesoManager.name = text;
 				onEnterOrReturnKeyPressed: cboMesoType.forceActiveFocus();
@@ -219,8 +218,8 @@ TPPage {
 			TPTextInput {
 				id: txtMesoTypeOther
 				text: mesoManager.type
+				showClearTextButton: !readOnly
 				visible: cboMesoType.currentIndex === typeModel.count - 1
-				width: parent.width
 				Layout.fillWidth: true
 
 				onEditingFinished: mesoManager.type = text;
@@ -236,10 +235,12 @@ TPPage {
 				id: txtMesoFile
 				text: mesoManager.displayFileName
 				readOnly: true
+				showClearTextButton: true
 				ToolTip.text: mesoManager.fileName
-				width: 0.8*parent.width
-				Layout.maximumWidth: width
-				Layout.minimumWidth: width
+				Layout.minimumWidth: 0.8*parent.width
+				Layout.maximumWidth: 0.8*parent.width
+
+				onTextCleared: mesoManager.fileName = "";
 
 				TPButton {
 					id: btnChooseMesoFile
@@ -301,7 +302,7 @@ TPPage {
 				text: mesoManager.strStartDate
 				readOnly: true
 				Layout.fillWidth: false
-				Layout.minimumWidth: parent.width/2
+				Layout.minimumWidth: 0.5*parent.width
 
 				CalendarDialog {
 					id: caldlg
@@ -362,7 +363,7 @@ TPPage {
 				readOnly: true
 				visible: mesoManager.realMeso
 				Layout.fillWidth: false
-				Layout.minimumWidth: parent.width/2
+				Layout.minimumWidth: 0.5*parent.width
 
 				CalendarDialog {
 					id: caldlg2
@@ -402,9 +403,7 @@ TPPage {
 				text: mesoManager.weeks
 				readOnly: true
 				visible: mesoManager.realMeso
-				Layout.alignment: Qt.AlignLeft
-				Layout.maximumWidth: parent.width*0.2
-				Layout.minimumWidth: parent.width*0.2
+				Layout.preferredWidth: 0.2*parent.width
 			}
 
 			MesoSplitSetup {
@@ -464,33 +463,40 @@ TPPage {
 		} //ColumnLayout
 	} //ScrollView
 
-	property bool alreadyCalled: false
-	property TPComplexDialog calendarChangeDlg: null
-	function showCalendarChangedDialog(): void {
-		if (!calendarChangeDlg) {
-			let component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
+	property int calDialogAnswer: 0
 
-			function finishCreation() {
-				calendarChangeDlg = component.createObject(mainwindow, { parentPage: mesoPropertiesPage, title:qsTr("Adjust meso calendar?"),
-					customItemSource:"TPAdjustMesoCalendarFrame.qml" });
-				calendarChangeDlg.button1Clicked.connect(changeCalendar);
-				calendarChangeDlg.button2Clicked.connect(function() { alreadyCalled = false; }); //A "No", warrants a possible new confirmation
+	Loader {
+		id: changeCalendarLoader
+		asynchronous: true
+		active: false
+
+		sourceComponent: TPComplexDialog {
+			title: qsTr("Adjust meso calendar?")
+			parentPage: mesoPropertiesPage
+			customItemSource: "TPAdjustMesoCalendarFrame.qml"
+
+			onButton1Clicked: {
+				calDialogAnswer = customBoolProperty1 ? 1 : 2;
+				changeCalendar();
+				changeCalendarLoader.active = false;
 			}
+			onButton2Clicked: {
+				calDialogAnswer = 0; //A "No", warrants a possible new confirmation
+				changeCalendarLoader.active = false;
+			}
+		}
 
-			if (component.status === Component.Ready)
-				finishCreation();
-			else
-				component.statusChanged.connect(finishCreation);
-		}
-		if (alreadyCalled)
+		onLoaded: item.show(-1);
+	}
+
+	function showCalendarChangedDialog(): void {
+		if (calDialogAnswer > 0)
 			changeCalendar();
-		else {
-			calendarChangeDlg.show(-1);
-			alreadyCalled = true;
-		}
+		else
+			changeCalendarLoader.active = true;
 	}
 
 	function changeCalendar(): void {
-		mesoManager.changeMesoCalendar(calendarChangeDlg.customBoolProperty1, calendarChangeDlg.customBoolProperty2);
+		mesoManager.changeMesoCalendar(calDialogAnswer === 1);
 	}
 } //Page

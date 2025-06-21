@@ -89,31 +89,13 @@ Column {
 
 	TPTextInput {
 		id: txtFilter
+		showClearTextButton: true
 		readOnly: !mainItem.enabled
 		enabled: exercisesModel.count > 0
 		width: parent.width*0.9
 		Layout.topMargin: 5
 
 		onTextChanged: exercisesModel.search(text);
-
-		TPButton {
-			id: btnClearText
-			imageSource: "edit-clear"
-			hasDropShadow: false
-			width: appSettings.itemDefaultHeight/2
-			height: width
-
-			anchors {
-				right: txtFilter.right
-				rightMargin: 10
-				verticalCenter: txtFilter.verticalCenter
-			}
-
-			onClicked: {
-				txtFilter.clear();
-				txtFilter.forceActiveFocus();
-			}
-		}
 
 		TPButton {
 			id: btnMuscularGroups

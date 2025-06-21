@@ -70,7 +70,6 @@ public:
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 	int getMesoCalendar(const uint meso_idx);
 	void saveMesoCalendar(const uint meso_idx);
-	void remakeMesoCalendar(const uint meso_idx);
 	void removeMesoCalendar(const uint meso_idx);
 	void deleteMesoCalendarTable(const uint meso_idx, const bool bRemoveFile);
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------

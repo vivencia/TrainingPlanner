@@ -373,8 +373,9 @@ Item {
 	Loader {
 		id: exportTypeTip
 		asynchronous: true
+		active: false
+
 		sourceComponent: TPComplexDialog {
-			id: dialog
 			customStringProperty1: bShare ? qsTr("Share complete program?") : qsTr("Export complete program to file?")
 			customStringProperty2: qsTr("Include Coach data?")
 			customStringProperty3: "export.png"
@@ -390,6 +391,8 @@ Item {
 			}
 		}
 
+		onLoaded: item.show(-1);
+
 		property int mesoIdx
 		property bool bShare
 
@@ -397,7 +400,6 @@ Item {
 			active = true;
 			mesoIdx = meso_idx;
 			bShare = share;
-			item.show(-1);
 		}
 	}
 } //ListView

@@ -37,9 +37,6 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent, const bool bMainAppModel)
 			case MESOCALENDAR_COL_SPLITLETTER:
 				appDBInterface()->saveMesoCalendar(meso_idx);
 			break;
-			case MESOCALENDAR_RENEW_DATABASE:
-				appDBInterface()->remakeMesoCalendar(meso_idx);
-			break;
 		}
 	});
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, &DBMesocyclesModel::labelChanged);
@@ -123,7 +120,7 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 		appDBInterface()->removeAllMesoSplits(meso_idx);
 	}
 	m_splitModels.remove(meso_idx);
-	m_calendarModel->removeCalendarForMeso(meso_idx);
+	m_calendarModel->removeCalendarForMeso(meso_idx, true);
 	m_isNewMeso.remove(meso_idx);
 	m_newMesoFieldCounter.remove(meso_idx);
 	m_canExport.remove(meso_idx);
@@ -734,9 +731,13 @@ void DBMesocyclesModel::scanTemporaryMesocycles()
 	{
 		for(const auto &mesofile : std::as_const(mesos))
 		{
-			if (!mesoPlanExists(appUtils()->getFileName(mesofile.fileName(), true), appUtils()->getLastDirInPath(mesofile.filePath()), appUserModel()->userId(0)))
-				if (newMesoFromFile(mesofile.filePath()) < 0)
-					static_cast<void>(QFile::remove(mesofile.filePath()));
+			const QString &coach{appUtils()->getLastDirInPath(mesofile.filePath())};
+			if (coach != "mesocycles"_L1)
+			{
+				if (!mesoPlanExists(appUtils()->getFileName(mesofile.fileName(), true), coach, appUserModel()->userId(0)))
+					if (newMesoFromFile(mesofile.filePath()) < 0)
+						static_cast<void>(QFile::remove(mesofile.filePath()));
+			}
 		}
 	}
 }

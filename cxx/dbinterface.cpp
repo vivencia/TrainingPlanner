@@ -280,13 +280,14 @@ void DBInterface::saveMesoSplit(DBExercisesModel *model)
 void DBInterface::removeMesoSplit(DBExercisesModel *model)
 {
 	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{model}};
+	worker->addExecArg(false);
 	createThread(worker, [worker] () { return worker->removeExercises(); });
 }
 
 void DBInterface::removeAllMesoSplits(const uint meso_idx)
 {
 	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{MESOSPLIT_TABLE_ID}};
-	worker->addExecArg(appMesoModel()->id(meso_idx));
+	worker->addExecArg(true);
 	createThread(worker, [worker] () { return worker->removeExercises(); });
 }
 
@@ -328,12 +329,6 @@ void DBInterface::saveMesoCalendar(const uint meso_idx)
 	DBMesoCalendarTable *worker{new DBMesoCalendarTable{appMesoModel()->mesoCalendarManager()}};
 	worker->addExecArg(meso_idx);
 	createThread(worker, [worker] () { worker->saveMesoCalendar(); });
-}
-
-void DBInterface::remakeMesoCalendar(const uint meso_idx)
-{
-	removeMesoCalendar(meso_idx);
-	saveMesoCalendar(meso_idx);
 }
 
 void DBInterface::removeMesoCalendar(const uint meso_idx)

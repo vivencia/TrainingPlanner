@@ -65,7 +65,6 @@ TPPopup {
 
 	ColumnLayout {
 		id: customItemLayoutManager
-		spacing: 0
 
 		anchors {
 			top: lblTitle.bottom
@@ -80,7 +79,8 @@ TPPopup {
 	RowLayout {
 		id: buttonsRow
 		spacing: 0
-		height: 30
+		height: Math.max(button1Text.length > 0 ? btn1.height : appSettings.itemDefaultHeight,
+							button2Text.length > 0 ? btn2.height : appSettings.itemDefaultHeight)
 
 		anchors {
 			left: parent.left
@@ -96,7 +96,7 @@ TPPopup {
 			flat: false
 			autoSize: true
 			visible: button1Text.length > 0
-			Layout.alignment: Qt.AlignTop|Qt.AlignHCenter
+			Layout.alignment: Qt.AlignHCenter
 
 			onClicked: {
 				button1Clicked();
@@ -110,7 +110,7 @@ TPPopup {
 			flat: false
 			autoSize: true
 			visible: button2Text.length > 0
-			Layout.alignment: Qt.AlignTop|Qt.AlignHCenter
+			Layout.alignment: Qt.AlignHCenter
 			Layout.maximumWidth: availableWidth - btn1.width - 10
 
 			onClicked: {

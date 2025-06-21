@@ -21,6 +21,7 @@ TextField {
 	placeholderTextColor: "gray"
 	implicitHeight: suggestedHeight
 
+	property bool showClearTextButton: false
 	property string textColor: appSettings.fontColor
 	property string backgroundColor: appSettings.primaryDarkColor
 	property bool heightAdjustable: true
@@ -33,24 +34,12 @@ TextField {
 	}
 
 	signal enterOrReturnKeyPressed()
+	signal textCleared()
 
-	MouseArea {
-		pressAndHoldInterval: 800
-		enabled: parent.enabled ? true : !parent.readOnly
-		anchors.fill: parent
-
-		onPressAndHold: (mouse) => {
-			appUtils.copyToClipBoard(control.text);
-			mainwindow.showTextCopiedMessage();
-		}
-		onClicked: (mouse) => {
-			mouse.accepted = false;
-			control.forceActiveFocus();
-		}
-		onPressed: (mouse) => {
-			mouse.accepted = true;
-			control.forceActiveFocus();
-		}
+	onPressAndHold: (event) => {
+		event.accepted = true;
+		appUtils.copyToClipBoard(selectionStart === selectionEnd ? text : text.substr(selectionStart, selectionEnd));
+		mainwindow.showTextCopiedMessage();
 	}
 
 	background: Rectangle {
@@ -80,6 +69,28 @@ TextField {
 	onTextEdited: adjustHeight();
 	onReadOnlyChanged: positionCaret();
 	onWidthChanged: adjustHeight();
+
+	TPButton {
+		id: btnClearText
+		imageSource: "edit-clear"
+		hasDropShadow: false
+		visible: showClearTextButton && control.text.length > 0
+		width: appSettings.itemDefaultHeight*0.8
+		height: width
+
+		anchors {
+			right: control.right
+			rightMargin: 5
+			verticalCenter: control.verticalCenter
+		}
+
+		onClicked: {
+			control.clear();
+			control.forceActiveFocus();
+			if (readOnly)
+				textCleared();
+		}
+	}
 
 	function adjustHeight(): void {
 		if (heightAdjustable && text.length > 20) {

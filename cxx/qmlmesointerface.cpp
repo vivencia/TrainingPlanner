@@ -186,8 +186,11 @@ void QMLMesoInterface::setFileName(const QString &new_filename)
 	if (appMesoModel()->file(m_mesoIdx) != new_filename)
 	{
 		const QString &good_filepath{appUtils()->getCorrectPath(new_filename)};
-		if (!appUtils()->canReadFile(good_filepath))
-			return;
+		if (!good_filepath.isEmpty())
+		{
+			if (!appUtils()->canReadFile(good_filepath))
+				return;
+		}
 		appMesoModel()->setFile(m_mesoIdx, good_filepath);
 		emit fileNameChanged();
 		emit displayFileNameChanged();

@@ -67,14 +67,15 @@ void DBMesoCalendarManager::setDayInfo(const uint meso_idx, const uint calendar_
 	}
 }
 
-void DBMesoCalendarManager::removeCalendarForMeso(const uint meso_idx)
+void DBMesoCalendarManager::removeCalendarForMeso(const uint meso_idx, const bool remove_workouts)
 {
 	if (meso_idx >= m_calendars.count())
 		return;
 	if (appMesoModel()->_id(meso_idx) >= 0)
 	{
 		appDBInterface()->removeMesoCalendar(meso_idx);
-		appDBInterface()->removeAllWorkouts(meso_idx);
+		if (remove_workouts)
+			appDBInterface()->removeAllWorkouts(meso_idx);
 	}
 	delete m_calendars.at(meso_idx);
 	m_calendars.remove(meso_idx);
@@ -120,20 +121,17 @@ void DBMesoCalendarManager::addNewCalendarForMeso(const uint new_mesoidx)
 void DBMesoCalendarManager::remakeMesoCalendar(const uint meso_idx, const bool preserve_old_info)
 {
 	if (!hasDBData(meso_idx))
-	{
-		createCalendar(meso_idx);
 		return;
-	}
 
 	if (!preserve_old_info)
 	{
-		removeCalendarForMeso(meso_idx);
+		removeCalendarForMeso(meso_idx, false);
 		createCalendar(meso_idx);
+		appDBInterface()->saveMesoCalendar(meso_idx);
 		return;
 	}
 
 	appDBInterface()->removeMesoCalendar(meso_idx);
-	appDBInterface()->removeAllWorkouts(meso_idx);
 	QDate startDate{std::move(appMesoModel()->startDate(meso_idx))};
 	QDate oldStartDate{std::move(date(meso_idx, 0).value())};
 

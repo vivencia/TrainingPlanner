@@ -97,97 +97,82 @@ Pane {
 				TPLabel {
 					//objectName: "label"
 					text: daysOfWeek[delegateIndex]
-					width: col1Width
-					Layout.minimumWidth: col1Width
-					Layout.maximumWidth: col1Width
-					Layout.alignment: Qt.AlignTop | Qt.AlignLeft
+					Layout.preferredWidth: col1Width
+					Layout.alignment: Qt.AlignCenter
 				}
 
-				Item {
-					//objectName: "item"
-					height: 50
-					Layout.minimumHeight: 50
-					Layout.maximumHeight: 50
-					Layout.minimumWidth: col2Width
-					Layout.maximumWidth: col2Width
+				TPComboBox {
+					//objectName: "combo"
+					// Don't allow a day to skip a letter. Letters must be added sequentially or be repeated, never skipped
+					id: cboSplit
+					Layout.preferredWidth: col2Width
+					Layout.alignment: Qt.AlignCenter
 
-					TPComboBox {
-						//objectName: "combo"
-						// Don't allow a day to skip a letter. Letters must be added sequentially or be repeated, never skipped
-						id: cboSplit
+					readonly property int nDelegateRows: 7
+					readonly property int nLastDelegateIdx: 6
 
-						readonly property int nDelegateRows: 7
-						readonly property int nLastDelegateIdx: 6
+					model: ListModel {
+						ListElement { text: "A"; value: "A"; enabled: true; }
+						ListElement { text: "B"; value: "B"; enabled: true; }
+						ListElement { text: "C"; value: "C"; enabled: true; }
+						ListElement { text: "D"; value: "D"; enabled: true; }
+						ListElement { text: "E"; value: "E"; enabled: true; }
+						ListElement { text: "F"; value: "F"; enabled: true; }
+						ListElement { text: "R"; value: "R"; enabled: true; }
+					}
 
-						anchors {
-							top: parent.top
-							left: parent.left
-							right: parent.right
-						}
-
-						model: ListModel {
-							ListElement { text: "A"; value: "A"; enabled: true; }
-							ListElement { text: "B"; value: "B"; enabled: true; }
-							ListElement { text: "C"; value: "C"; enabled: true; }
-							ListElement { text: "D"; value: "D"; enabled: true; }
-							ListElement { text: "E"; value: "E"; enabled: true; }
-							ListElement { text: "F"; value: "F"; enabled: true; }
-							ListElement { text: "R"; value: "R"; enabled: true; }
-						}
-
-						onActivated: (cboindex) => {
-							let mesoSplit = txtMesoSplit.text;
-							txtMesoSplit.text = mesoSplit.substring(0,delegateRow.delegateIndex) +
+					onActivated: (cboindex) => {
+						let mesoSplit = txtMesoSplit.text;
+						txtMesoSplit.text = mesoSplit.substring(0,delegateRow.delegateIndex) +
 													valueAt(cboindex) + mesoSplit.substring(delegateRow.delegateIndex+1);
-							let last_letter_idx = cboindex + 1;
-							if (last_letter_idx === nDelegateRows) {
-								last_letter_idx = 0;
-								if (delegateRow.delegateIndex >= 1) {
-									let prev_index = delegateRow.delegateIndex-1;
-									let prev_item_index;
-									do {
-										prev_item_index = splitRepeater.itemAt(prev_index).children[1].children[0].currentIndex;
-										if (prev_item_index !== nLastDelegateIdx) {
-											last_letter_idx = prev_item_index + 1;
-											break;
-										}
-									} while (--prev_index >= 0);
-								}
-							}
-
-							for (let i = delegateRow.delegateIndex + 1; i < nDelegateRows; ++i) {
-								const cboBox = splitRepeater.itemAt(i).children[1].children[0];
-								const curIdx = cboBox.currentIndex;
-								if (curIdx > last_letter_idx && curIdx !== 6)
-									cboBox.currentIndex = last_letter_idx;
-								for (let x = delegateRow.delegateIndex; x < nLastDelegateIdx; ++x)
-									cboBox.model.get(x).enabled = x <= last_letter_idx;
-							}
-						}
-
-						Component.onCompleted: {
-							currentIndex = Qt.binding(function() { return indexOfValue(txtMesoSplit.text.charAt(delegateRow.delegateIndex)); });
-							btnMuscularGroups.enabled = Qt.binding(function() { return currentIndex !== 6; });
-							let last_letter_idx = indexOfValue(currentValue);
-							if (last_letter_idx === nLastDelegateIdx) {
+						let last_letter_idx = cboindex + 1;
+						if (last_letter_idx === nDelegateRows) {
+							last_letter_idx = 0;
+							if (delegateRow.delegateIndex >= 1) {
 								let prev_index = delegateRow.delegateIndex-1;
-								if (prev_index < 0)
-									return;
 								let prev_item_index;
 								do {
-									prev_item_index = splitRepeater.itemAt(prev_index).children[1].children[0].currentIndex;
+									prev_item_index = splitRepeater.itemAt(prev_index).children[1].currentIndex;
 									if (prev_item_index !== nLastDelegateIdx) {
 										last_letter_idx = prev_item_index + 1;
 										break;
 									}
 								} while (--prev_index >= 0);
 							}
+						}
 
-							for (let x = delegateRow.delegateIndex; x < nLastDelegateIdx; ++x)
-								model.get(x).enabled = x <= last_letter_idx;
+						for (let i = delegateRow.delegateIndex + 1; i < nDelegateRows; ++i) {
+							const cboBox = splitRepeater.itemAt(i).children[1];
+							const curIdx = cboBox.currentIndex;
+							if (curIdx > last_letter_idx && curIdx !== 6)
+								cboBox.currentIndex = last_letter_idx;
+							for (let x = 0; x < nLastDelegateIdx; ++x)
+								cboBox.model.get(x).enabled = x <= last_letter_idx;
 						}
 					}
-				} //Item
+
+					Component.onCompleted: {
+						currentIndex = Qt.binding(function() { return indexOfValue(txtMesoSplit.text.charAt(delegateRow.delegateIndex)); });
+						btnMuscularGroups.enabled = Qt.binding(function() { return currentIndex !== 6; });
+						let last_letter_idx = indexOfValue(currentValue);
+						if (last_letter_idx === nLastDelegateIdx) { //split is an 'R'
+							let prev_index = delegateRow.delegateIndex-1;
+							if (prev_index < 0)
+								return;
+							let prev_item_index;
+							do {
+								prev_item_index = splitRepeater.itemAt(prev_index).children[1].currentIndex;
+								if (prev_item_index !== nLastDelegateIdx) {
+									last_letter_idx = prev_item_index + 1;
+									break;
+								}
+							} while (--prev_index >= 0);
+						}
+
+						for (let x = 0; x < nLastDelegateIdx; ++x)
+							model.get(x).enabled = x <= last_letter_idx;
+					}
+				} //TPComboBox
 
 				TPTextInput {
 					//objectName: "text"
@@ -203,7 +188,7 @@ Pane {
 						createBindings();
 
 						textChanged.connect(function() {
-							switch (splitRepeater.itemAt(index).children[1].children[0].currentIndex) {
+							switch (splitRepeater.itemAt(index).children[1].currentIndex) {
 								case 0: mesoManager.muscularGroupA = text; break;
 								case 1: mesoManager.muscularGroupB = text; break;
 								case 2: mesoManager.muscularGroupC = text; break;
@@ -216,7 +201,7 @@ Pane {
 
 					function createBindings(): void {
 						text = Qt.binding(function() {
-							switch (splitRepeater.itemAt(index).children[1].children[0].currentIndex) {
+							switch (splitRepeater.itemAt(index).children[1].currentIndex) {
 								case 0: return mesoManager.muscularGroupA;
 								case 1: return mesoManager.muscularGroupB;
 								case 2: return mesoManager.muscularGroupC;
