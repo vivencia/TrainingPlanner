@@ -119,9 +119,9 @@ bool DBExercisesModel::fromDataBase(const QStringList &data, const bool bClearSo
 		static_cast<void>(addExercise(false));
 		exerciseEntry *exercise_entry{m_exerciseData.at(exercise_number)};
 		if (!track_resttimes.isEmpty())
-			exercise_entry->track_rest_time = appUtils()->getCompositeValue(exercise_number, track_resttimes.at(exercise_number), exercises_separator) == "1"_L1;
+			exercise_entry->track_rest_time = track_resttimes.at(exercise_number) == "1"_L1;
 		if (!auto_resttimes.isEmpty())
-			exercise_entry->auto_rest_time = appUtils()->getCompositeValue(exercise_number, auto_resttimes.at(exercise_number), exercises_separator) == "1"_L1;
+			exercise_entry->auto_rest_time = auto_resttimes.at(exercise_number) == "1"_L1;
 
 		const uint n_subexercises{appUtils()->nFieldsInCompositeString(exercises.at(exercise_number), comp_exercise_separator)};
 		for (uint exercise_idx{0}; exercise_idx < n_subexercises; ++exercise_idx)
@@ -451,7 +451,7 @@ int DBExercisesModel::importFromFormattedFile(const QString& filename, QFile *in
 										break;
 										case EXERCISES_COL_SETTYPES:
 											value = std::move(value.remove(0, value.indexOf(':') + 2).trimmed());
-											setSetType(exercise_number, exercise_idx, set_number, formatSetTypeToImport(value));
+											setSetType(exercise_number, exercise_idx, set_number, formatSetTypeToImport(value), false);
 											next_field = EXERCISES_COL_RESTTIMES;
 										break;
 										case EXERCISES_COL_RESTTIMES:
@@ -553,7 +553,7 @@ bool DBExercisesModel::importExtraInfo(const QString &maybe_extra_info, int &cal
 
 const uint DBExercisesModel::subExercisesCount(const uint exercise_number) const
 {
-	return m_exerciseData.at(exercise_number)->m_exercises.count();
+	return exercise_number < m_exerciseData.count() ? m_exerciseData.at(exercise_number)->m_exercises.count() : 0;
 }
 
 const uint DBExercisesModel::setsNumber(const uint exercise_number, const uint exercise_idx) const
@@ -894,11 +894,19 @@ int DBExercisesModel::setType(const uint exercise_number, const uint exercise_id
 	return -1;
 }
 
-void DBExercisesModel::setSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type)
+void DBExercisesModel::setSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type, const bool emit_signal)
 {
-	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->type = static_cast<TPSetTypes>(new_type);
-	emit setTypeChanged(exercise_number, exercise_idx, set_number);
-	emit exerciseModified(exercise_number, exercise_idx, set_number, EXERCISES_COL_SETTYPES);
+	const QList<stSet*> &sets{m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets};
+	sets.at(set_number)->type = static_cast<TPSetTypes>(new_type);
+	if (emit_signal)
+	{
+		setSuggestedTime(set_number, sets);
+		setSuggestedSubSets(set_number, sets);
+		setSuggestedReps(set_number, sets);
+		setSuggestedWeight(set_number, sets);
+		emit setTypeChanged(exercise_number, exercise_idx, set_number);
+		emit exerciseModified(exercise_number, exercise_idx, set_number, EXERCISES_COL_SETTYPES);
+	}
 }
 
 void DBExercisesModel::changeSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type)

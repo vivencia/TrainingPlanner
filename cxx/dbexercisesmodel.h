@@ -150,7 +150,7 @@ public:
 	Q_INVOKABLE void setAutoRestTime(const uint exercise_number, const bool auto_resttime);
 
 	[[nodiscard]] Q_INVOKABLE int setType(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
-	Q_INVOKABLE void setSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type);
+	Q_INVOKABLE void setSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type, const bool emit_signal = true);
 	void changeSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type);
 
 	[[nodiscard]] QTime suggestedRestTime(const QTime &prev_resttime, const uint set_type) const;
@@ -189,7 +189,7 @@ public:
 	inline QString exerciseNameLabel() const { return tr("Exercise: "); }
 	inline QString trackRestTimeLabel() const { return tr("Track rest times: "); }
 	inline QString autoRestTimeLabel() const { return tr("Auto tracking: "); }
-	inline QString setTypeLabel() const { return tr("Type: "); }
+	inline QString setTypeLabel() const { return tr("Set type: "); }
 	inline QString setRestTimeLabel() const { return tr("Rest time: "); }
 	inline QString setTotalSubsets() const { return tr("Number of subsets: "); }
 	inline QString setRepsLabel() const { return tr("Repetitions: "); }

@@ -219,7 +219,7 @@ TPPage {
 
 	function showSimpleExercisesList(multipleSel: bool): void {
 		exercisesPane.bEnableMultipleSelection = multipleSel;
-		exercisesPane.open();
+		exercisesPane.show(currentSplitPage.exerciseNameFieldYPosition() > appSettings.pageHeight/2 ? 0 : -2)
 	}
 
 	function hideSimpleExercisesList(): void {

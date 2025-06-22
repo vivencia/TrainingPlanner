@@ -21,7 +21,6 @@ ListView {
 
 	required property DBMesoSplitModel splitModel
 	required property SplitManager splitManager
-
 	property PageScrollButtons navButtons: null
 
 	ScrollBar.vertical: ScrollBar {
@@ -58,6 +57,10 @@ ListView {
 		readonly property int exerciseNumber: index
 		property int nSubExercises: splitModel.subExercisesCount(delegate.exerciseNumber)
 
+		function exerciseFieldYPos(): int {
+			return delegate.mapToItem(mainwindow.contentItem, txtExerciseName.x, txtExerciseName.y).y;
+		}
+
 		contentItem: Rectangle {
 			id: listItem
 			width: lstSplitExercises.width
@@ -89,6 +92,23 @@ ListView {
 				if (exercise_number === index)
 					txtExerciseName.text = splitModel.exerciseName(exercise_number, exercise_idx);
 			}
+
+			function onExerciseModified(exercise_number: int, exercise_idx: int, set_number: int, field: int): void {
+				if (exercise_number === index) {
+					switch (field) {
+						case 5: //EXERCISES_COL_TRACKRESTTIMES
+						case 6: //EXERCISES_COL_AUTORESTTIMES
+							txtRestTime.enabled = cboSetType.currentIndex >= 0 && splitModel.trackRestTime(index) && !splitModel.autoRestTime(index);
+						break;
+						case 7: //EXERCISES_COL_SETTYPES
+							txtRestTime.text = splitModel.setRestTime(index, exercise_idx, set_number);
+							txtNSubsets.text = splitModel.setSubSets(index, exercise_idx, set_number);
+							txtNReps.text = splitModel.setReps(index, exercise_idx, set_number);
+							txtNWeight.text = splitModel.setWeight(index, exercise_idx, set_number);
+						break;
+					}
+				}
+			}
 		} //Connections
 
 		function changeFields(exercise_number: int, exercise_idx: int, set_number: int): void {
@@ -96,6 +116,8 @@ ListView {
 			{
 				txtExerciseName.text = splitModel.exerciseName(exercise_number, exercise_idx);
 				cboSetType.currentIndex = splitModel.setType(exercise_number, exercise_idx, set_number);
+				txtRestTime.text = splitModel.setRestTime(exercise_number, exercise_idx, set_number);
+				txtRestTime.enabled = cboSetType.currentIndex >= 0 && splitModel.trackRestTime(exercise_number) && !splitModel.autoRestTime(exercise_number);
 				txtNSubsets.text = splitModel.setSubSets(exercise_number, exercise_idx, set_number);
 				txtNReps.text = splitModel.setReps(exercise_number, exercise_idx, set_number);
 				txtNWeight.text = splitModel.setWeight(exercise_number, exercise_idx, set_number);
@@ -206,7 +228,7 @@ ListView {
 					}
 
 					TPLabel {
-						text: qsTr(" <<-- Add some exercise")
+						text: qsTr(" <<-- Add some machine or free weight exercise")
 						horizontalAlignment: Text.AlignHCenter
 						Layout.fillWidth: true
 					}
@@ -224,10 +246,9 @@ ListView {
 
 							TabButton {
 								id: subExercisesTabButton
-								text: qsTr("Exercise # ") + parseInt(index + 1)
+								text: qsTr("Exercise type") + parseInt(index + 1)
 								checkable: true
 								checked: index === splitModel.workingSubExercise
-								width: subExercisesTabBar.width*0.22
 								height: subExercisesTabBar.height*0.95
 
 								contentItem: Label {
@@ -298,11 +319,7 @@ ListView {
 					checked: splitModel.trackRestTime(index)
 					width: listItem.width*0.5
 
-					onClicked: {
-						splitModel.setTrackRestTime(index, checked);
-						chkAutoRestTime.enabled = checked;
-						txtRestTime.enabled = checked;
-					}
+					onClicked: splitModel.setTrackRestTime(index, checked);
 				}
 
 				TPCheckBox {
@@ -311,10 +328,7 @@ ListView {
 					checked: splitModel.autoRestTime(index)
 					width: listItem.width*0.5
 
-					onClicked: {
-						splitModel.setAutoRestTime(index, checked);
-						txtRestTime.enabled = !checked;
-					}
+					onClicked: splitModel.setAutoRestTime(index, checked);
 				}
 			}
 
@@ -562,5 +576,12 @@ ListView {
 		splitManager.addExercise();
 		lstSplitExercises.currentIndex = splitModel.workingExercise;
 		lstSplitExercises.positionViewAtIndex(splitModel.workingExercise, ListView.Center);
+	}
+
+	function exerciseNameFieldYPosition(): int {
+		if (itemAtIndex(splitModel.workingExercise))
+			return itemAtIndex(splitModel.workingExercise).exerciseFieldYPos();
+		else
+			return 0;
 	}
 } //Page

@@ -8,25 +8,19 @@ import "../TPWidgets"
 TPPopup {
 	id: dlgExercisesList
 	keepAbove: true
-	finalYPos: 0
 	width: appSettings.pageWidth
-	height: shown ? appSettings.pageHeight * 0.5 : 30
+	height: appSettings.pageHeight * 0.5
 	x: 0
+
+	onShownChanged: {
+		dlgExercisesList.height = shown ? appSettings.pageHeight * 0.5 : recTitleBar.height;
+		exercisesList.visible = shown;
+	}
 
 	property bool shown: false
 	property bool bEnableMultipleSelection: false
 	signal exerciseSelected();
 	signal listClosed();
-
-	onVisibleChanged: {
-		shown = visible;
-		if (visible) {
-			focus = true;
-			exercisesList.canDoMultipleSelection = bEnableMultipleSelection;
-		}
-		else
-			exercisesModel.clearSelectedEntries();
-	}
 
 	onClosed: listClosed();
 
@@ -38,13 +32,11 @@ TPPopup {
 
 	ColumnLayout {
 		anchors.fill: parent
-		spacing: 0
 
 		Rectangle {
 			id: recTitleBar
 			height: appSettings.itemDefaultHeight
 			color: appSettings.paneBackgroundColor
-			z: 0
 			Layout.fillWidth: true
 
 			gradient: Gradient {
@@ -74,19 +66,24 @@ TPPopup {
 
 		ExercisesListView {
 			id: exercisesList
-			height: dlgExercisesList.height - 30
 			parentPage: dlgExercisesList.parentPage
 			Layout.fillWidth: true
-			Layout.topMargin: 0
-			Layout.alignment: Qt.AlignTop
-			Layout.rightMargin: 5
-			Layout.maximumHeight: parent.height - btnShowHideList.height
-			Layout.leftMargin: 5
 			Layout.fillHeight: true
+			Layout.topMargin: 0
+			Layout.rightMargin: 5
+			Layout.leftMargin: 5
 			canDoMultipleSelection: bEnableMultipleSelection
 
 			onExerciseEntrySelected: exerciseSelected();
 			onItemDoubleClicked: listClosed();
 		}
+	}
+
+	function show(ypos: int): void {
+		shown = true;
+		exercisesList.forceActiveFocus();
+		exercisesList.canDoMultipleSelection = bEnableMultipleSelection;
+		exercisesModel.clearSelectedEntries();
+		show1(ypos);
 	}
 }

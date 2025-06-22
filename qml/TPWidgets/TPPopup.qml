@@ -175,8 +175,8 @@ Popup {
 
 		if (ypos < 0) {
 			switch (ypos) {
-				case -1: ypos = (appSettings.pageHeight - height)/2; break;
-				case -2: ypos = parentPage.height - height; break;
+				case -1: ypos = (appSettings.windowHeight - height)/2; break;
+				case -2: ypos = appSettings.windowHeight - height; break;
 				case -3: ypos = y;
 			}
 		}

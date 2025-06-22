@@ -19,8 +19,8 @@ TPPage {
 	property bool bNew: false
 	property bool bEdit: false
 	property bool bChooseButtonEnabled: true
-	property var imageViewer: null
-	property var videoViewer: null
+	property ImageViewer imageViewer: null
+	property VideoPlayer videoViewer: null
 
 	signal exerciseChosen()
 
@@ -280,7 +280,7 @@ TPPage {
 	}
 
 	function generateObject(obj: int, strMediaPath: string): void {
-		var component = Qt.createComponent(obj === 0 ? "../ImageViewer.qml" : "../VideoPlayer.qml", Qt.Asynchronous);
+		let component = Qt.createComponent(obj === 0 ? "../ImageViewer.qml" : "../VideoPlayer.qml", Qt.Asynchronous);
 		function finishCreation(Obj) {
 			if (Obj === 0)
 				imageViewer = component.createObject(layoutMain, { mediaSource:strMediaPath });

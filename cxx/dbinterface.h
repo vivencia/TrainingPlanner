@@ -41,7 +41,7 @@ public:
 	//-----------------------------------------------------------USER TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
-	void getAllExercises();
+	int getAllExercises();
 	void saveExercises();
 	void removeExercise(const uint row);
 	void deleteExercisesTable(const bool bRemoveFile);
@@ -90,7 +90,7 @@ public:
 	//-----------------------------------------------------------STATISTICS-----------------------------------------------------------
 
 signals:
-	void databaseReady(const uint db_id);
+	void databaseReady(const int _conn_id);
 	void databaseReadyWithData(const uint table_idx, const QVariant &data);
 
 public slots:

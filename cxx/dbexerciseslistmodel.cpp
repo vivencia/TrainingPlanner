@@ -44,44 +44,85 @@ QString DBExercisesListModel::muscularGroup(const uint index) const
 	for (const auto &group : groups)
 	{
 		if (group == "quadriceps")
-			translatedGroups += std::move(tr("Quadriceps")) + ", "_L1;
+			translatedGroups += std::move(tr("Quadriceps")) + fancy_record_separator1;
 		else if (group == "hamstrings")
-			translatedGroups += std::move(tr("Hamstrings")) + ", "_L1;
+			translatedGroups += std::move(tr("Hamstrings")) + fancy_record_separator1;
 		else if (group == "glutes")
-			translatedGroups += std::move(tr("Glutes")) + ", "_L1;
+			translatedGroups += std::move(tr("Glutes")) + fancy_record_separator1;
 		else if (group == "calves")
-			translatedGroups += std::move(tr("Calves")) + ", "_L1;
+			translatedGroups += std::move(tr("Calves")) + fancy_record_separator1;
 		else if (group == "upper back")
-			translatedGroups += std::move(tr("Upper Back")) + ", "_L1;
+			translatedGroups += std::move(tr("Upper Back")) + fancy_record_separator1;
 		else if (group == "middle back")
-			translatedGroups += std::move(tr("Middle Back")) + ", "_L1;
+			translatedGroups += std::move(tr("Middle Back")) + fancy_record_separator1;
 		else if (group == "lower back")
-			translatedGroups += std::move(tr("Lower Back")) + ", "_L1;
+			translatedGroups += std::move(tr("Lower Back")) + fancy_record_separator1;
 		else if (group == "biceps")
-			translatedGroups += std::move(tr("Biceps")) + ", "_L1;
+			translatedGroups += std::move(tr("Biceps")) + fancy_record_separator1;
 		else if (group == "triceps")
-			translatedGroups += std::move(tr("Triceps")) + ", "_L1;
+			translatedGroups += std::move(tr("Triceps")) + fancy_record_separator1;
 		else if (group == "fore arms")
-			translatedGroups += std::move(tr("Forearms")) + ", "_L1;
+			translatedGroups += std::move(tr("Forearms")) + fancy_record_separator1;
 		else if (group == "upper chest")
-			translatedGroups += std::move(tr("Upper Chest")) + ", "_L1;
+			translatedGroups += std::move(tr("Upper Chest")) + fancy_record_separator1;
 		else if (group == "middle chest")
-			translatedGroups += std::move(tr("Middle Chest")) + ", "_L1;
+			translatedGroups += std::move(tr("Middle Chest")) + fancy_record_separator1;
 		else if (group == "lower chest")
-			translatedGroups += std::move(tr("Lower Chest")) + ", "_L1;
+			translatedGroups += std::move(tr("Lower Chest")) + fancy_record_separator1;
 		else if (group == "front delts")
-			translatedGroups += std::move(tr("Front Delts")) + ", "_L1;
+			translatedGroups += std::move(tr("Front Delts")) + fancy_record_separator1;
 		else if (group == "lateral delts")
-			translatedGroups += std::move(tr("Lateral Delts")) + ", "_L1;
+			translatedGroups += std::move(tr("Lateral Delts")) + fancy_record_separator1;
 		else if (group == "rear delts")
-			translatedGroups += std::move(tr("Rear Delts")) + ", "_L1;
+			translatedGroups += std::move(tr("Rear Delts")) + fancy_record_separator1;
 		else if (group == "traps")
-			translatedGroups += std::move(tr("Traps")) + ", "_L1;
+			translatedGroups += std::move(tr("Traps")) + fancy_record_separator1;
 		else if (group == "abs")
-			translatedGroups += std::move(tr("Abs")) + ", "_L1;
+			translatedGroups += std::move(tr("Abs")) + fancy_record_separator1;
 	}
 	translatedGroups.chop(2);
 	return translatedGroups;
+}
+
+QString DBExercisesListModel::untranslatedMuscularGroup(const QString &translated_group) const
+{
+	if (translated_group == tr("Quadriceps"))
+		return "quadriceps";
+	if (translated_group == tr("Hamstrings"))
+		return "hamstrings";
+	if (translated_group == tr("Glutes"))
+		return "glutes";
+	if (translated_group == tr("Calves"))
+		return "calves";
+	if (translated_group == tr("Upper Back"))
+		return "upper back";
+	if (translated_group == tr("Middle Back"))
+		return "middle back";
+	if (translated_group == tr("Lower Back"))
+		return "lower back";
+	if (translated_group == tr("Biceps"))
+		return "biceps";
+	if (translated_group == tr("Triceps"))
+		return "triceps";
+	if (translated_group == tr("Forearms"))
+		return "fore arms";
+	if (translated_group == tr("Upper Chest"))
+		return "upper chest";
+	if (translated_group == tr("Middle Chest"))
+		return "middle chest";
+	if (translated_group == tr("Lower Chest"))
+		return "lower chest";
+	if (translated_group == tr("Front Delts"))
+		return "front delts";
+	if (translated_group == tr("Lateral Delts"))
+		return "lateral delts";
+	if (translated_group == tr("Rear Delts"))
+		return "rear delts";
+	if (translated_group == tr("Traps"))
+		return "traps";
+	if (translated_group == tr("Abs"))
+		return "abs";
+	return QString {};
 }
 
 void DBExercisesListModel::setCurrentRow(const int row)
@@ -133,10 +174,13 @@ void DBExercisesListModel::setFilter(const QString &filter)
 	if (!filter.isEmpty())
 	{
 		uint idx{0};
+		QStringList words_list{std::move(filter.split('|', Qt::SkipEmptyParts, Qt::CaseInsensitive))};
+		for (QString &word : words_list)
+			word = untranslatedMuscularGroup(word);
+
 		for (const auto &exercise : std::as_const(m_exercisesData))
 		{
 			const QString &subject{exercise.at(EXERCISES_LIST_COL_MUSCULARGROUP)};
-			const QStringList &words_list{filter.split(' ', Qt::SkipEmptyParts, Qt::CaseInsensitive)};
 			for (const auto &word : words_list)
 			{
 				if (subject.contains(word, Qt::CaseInsensitive))

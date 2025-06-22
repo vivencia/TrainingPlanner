@@ -167,10 +167,11 @@ void DBInterface::deleteUserTable(const bool bRemoveFile)
 //-----------------------------------------------------------USER TABLE-----------------------------------------------------------
 
 //-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
-void DBInterface::getAllExercises()
+int DBInterface::getAllExercises()
 {
 	DBExercisesTable *worker{new DBExercisesTable{appExercisesList()}};
 	createThread(worker, [worker] () { worker->getAllExercises(); });
+	return worker->uniqueId();
 }
 
 void DBInterface::saveExercises()

@@ -81,17 +81,23 @@ void QmlMesoSplitInterface::simpleExercisesList(const bool show, const bool mult
 	if (show)
 	{
 		if (appExercisesList()->count() == 0)
-			appDBInterface()->getAllExercises();
-		connect(m_plannerPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), currentSplitModel(), SLOT(newExerciseFromExercisesList()));
-		connect(m_plannerPage, SIGNAL(simpleExercisesListClosed()), this, SLOT(hideSimpleExercisesList()));
+		{
+			auto conn{std::make_shared<QMetaObject::Connection>()};
+			const int conn_id{appDBInterface()->getAllExercises()};
+			*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn_id,conn] (const int _conn_id) {
+				if (conn_id == _conn_id)
+				{
+					disconnect(*conn);
+					appExercisesList()->setFilter(currentSplitModel()->muscularGroup());
+				}
+			});
+		}
+		else
+			appExercisesList()->setFilter(currentSplitModel()->muscularGroup());
 		QMetaObject::invokeMethod(m_plannerPage, "showSimpleExercisesList", Q_ARG(bool, multi_sel));
 	}
 	else
-	{
-		disconnect(m_plannerPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), currentSplitModel(), SLOT(newExerciseFromExercisesList()));
-		disconnect(m_plannerPage, SIGNAL(simpleExercisesListClosed()), this, SLOT(hideSimpleExercisesList()));
 		QMetaObject::invokeMethod(m_plannerPage, "hideSimpleExercisesList");
-	}
 }
 
 void QmlMesoSplitInterface::exportMesoSplit(const bool bShare)
@@ -210,6 +216,10 @@ void QmlMesoSplitInterface::createPlannerPage_part2()
 	m_plannerPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
 	QMetaObject::invokeMethod(m_plannerPage, "createNavButtons");
 	emit plannerPageCreated();
+
+	connect(m_plannerPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), currentSplitModel(), SLOT(newExerciseFromExercisesList()));
+	connect(m_plannerPage, SIGNAL(simpleExercisesListClosed()), this, SLOT(hideSimpleExercisesList()));
+
 	appItemManager()->addMainMenuShortCut(tr("Exercises Planner: ") + appMesoModel()->name(m_mesoIdx), m_plannerPage, [this] () {
 		cleanUp();
 	});

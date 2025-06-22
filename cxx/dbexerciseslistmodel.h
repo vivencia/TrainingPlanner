@@ -168,6 +168,7 @@ private:
 	int m_exercisesTableLastId, m_currentRow;
 	bool m_bFilterApplied;
 
+	QString untranslatedMuscularGroup(const QString &translated_group) const;
 	static DBExercisesListModel *app_exercises_list;
 	friend DBExercisesListModel *appExercisesList();
 };

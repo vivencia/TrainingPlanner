@@ -662,6 +662,7 @@ QString TPUtils::formatTime(const QTime &time, const TIME_FORMAT format) const
 			return time.isValid() ? time.toString("hhmmss"_L1) : "000000"_L1;
 		break;
 	}
+	return QString{};
 }
 
 QTime TPUtils::getTimeFromTimeString(const QString &strtime, const TIME_FORMAT format) const

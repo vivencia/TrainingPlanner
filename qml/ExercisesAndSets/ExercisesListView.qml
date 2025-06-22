@@ -60,7 +60,6 @@ Column {
 		TPLabel {
 			text: qsTr("Search: ")
 			width: parent.width*0.3
-			height: 25
 
 			anchors {
 				left: parent.left
@@ -76,7 +75,6 @@ Column {
 
 			anchors {
 				right: parent.right
-				rightMargin: -50
 				verticalCenter: parent.verticalCenter
 			}
 
@@ -100,11 +98,12 @@ Column {
 		TPButton {
 			id: btnMuscularGroups
 			imageSource: "filter.png"
-			imageSize: 25
+			width: appSettings.itemDefaultHeight*0.9
+			height: width
 
 			anchors {
 				left: parent.right
-				leftMargin: 15
+				leftMargin: 5
 				verticalCenter: parent.verticalCenter
 			}
 
@@ -245,17 +244,12 @@ Column {
 	property MuscularGroupPicker filterDlg: null
 	function showFilterDialog(): void {
 		if (filterDlg === null) {
-			var component = Qt.createComponent("qrc:/qml/Dialogs/MuscularGroupPicker.qml", Qt.Asynchronous);
+			let component = Qt.createComponent("qrc:/qml/Dialogs/MuscularGroupPicker.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				filterDlg = component.createObject(mainwindow, { parentPage: mainItem.parentPage, groupsSeparator: ", " });
+				filterDlg = component.createObject(mainwindow, { parentPage: mainItem.parentPage, groupsSeparator: '|' });
 				filterDlg.muscularGroupCreated.connect(function(filterStr) {
-									let temp_filter = filterStr;
-									do {
-										filterStr = temp_filter;
-										temp_filter = temp_filter.replace(", ", " ");
-									} while (temp_filter !== filterStr);
-									exercisesModel.setFilter(filterStr);
+					exercisesModel.setFilter(filterStr);
 				});
 			}
 
