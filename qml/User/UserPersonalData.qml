@@ -9,17 +9,10 @@ import "../TPWidgets"
 import "../Dialogs"
 import "../Pages"
 
-Frame {
+Column {
 	id: frmUserData
-	spacing: 15
-	padding: 0
-	height: moduleHeight
-	implicitHeight: Math.min(height, moduleHeight)
-
-	background: Rectangle {
-		border.color: "transparent"
-		color: "transparent"
-	}
+	spacing: 5
+	padding: 5
 
 	required property TPPage parentPage
 	required property int userRow
@@ -28,9 +21,6 @@ Frame {
 	property bool bPasswordOK
 	property bool bBirthDateOK
 	property bool bSexOK
-	readonly property int nControls: userRow === 0 ? 7 : 5
-	readonly property int controlsHeight: 25
-	readonly property int moduleHeight: nControls*(controlsHeight) + 15
 
 	Connections {
 		target: userModel
@@ -46,22 +36,12 @@ Frame {
 	TPLabel {
 		id: lblName
 		text: userModel.nameLabel
-		height: controlsHeight
-
-		anchors {
-			top: parent.top
-			topMargin: (availableHeight - moduleHeight)/2
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
 	}
 
 	TPTextInput {
 		id: txtName
-		height: controlsHeight
 		readOnly: userRow !== 0
+		width: parent.width*0.9
 		ToolTip.text: qsTr("The name is too short")
 
 		property bool bTextChanged: false
@@ -84,14 +64,6 @@ Frame {
 				bNameOK = false;
 			}
 		}
-
-		anchors {
-			top: lblName.bottom
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
 	}
 
 	TPButton {
@@ -100,13 +72,9 @@ Frame {
 		imageSource: "password"
 		flat: false
 		width: parent.width*0.7
+		height: appSettings.itemDefaultHeight
 		visible: userRow === 0 && userModel.mainUserConfigured
-
-		anchors {
-			top: txtName.bottom
-			topMargin: 10
-			horizontalCenter: parent.horizontalCenter
-		}
+		Layout.alignment: Qt.AlignCenter
 
 		onClicked: changePasswordLoader.active = true;
 	}
@@ -115,15 +83,6 @@ Frame {
 		id: passwordControl
 		enabled: bNameOK
 		visible: userRow === 0 && !userModel.mainUserConfigured
-
-		anchors {
-			top: txtName.bottom
-			topMargin: 10
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
 
 		onPasswordUnacceptable: bPasswordOK = false;
 		onPasswordAccepted: {
@@ -146,31 +105,13 @@ Frame {
 	TPLabel {
 		id: lblBirthdate
 		text: userModel.birthdayLabel
-		height: controlsHeight
-
-		anchors {
-			top: userRow === 0 ? userModel.mainUserConfigured ? btnChangePassword.bottom : passwordControl.bottom : txtName.bottom
-			topMargin: 10
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
 	}
 
 	TPTextInput {
 		id: txtBirthdate
 		readOnly: true
-		height: controlsHeight
 		enabled: bPasswordOK
-
-		anchors {
-			top: lblBirthdate.bottom
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5 + btnBirthDate.width
-		}
+		width: parent.width*0.6
 
 		CalendarDialog {
 			id: caldlg
@@ -191,42 +132,29 @@ Frame {
 		TPButton {
 			id: btnBirthDate
 			imageSource: "calendar.png"
-			imageSize: 30
+			width: appSettings.itemDefaultHeight
+			height: width
 			enabled: bPasswordOK && userRow === 0
-			anchors.left: txtBirthdate.right
-			anchors.verticalCenter: txtBirthdate.verticalCenter
+			anchors {
+				left: txtBirthdate.right
+				verticalCenter: txtBirthdate.verticalCenter
+			}
 
 			onClicked: caldlg.open();
 		}
 	}
 
-	Pane {
-		id: frmSex
-		enabled: bBirthDateOK
-		height: controlsHeight
-		padding: 0
-		spacing: 0
-
-		background: Rectangle {
-			color: "transparent"
-		}
-
-		anchors {
-			top: txtBirthdate.bottom
-			topMargin: 10
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
+	RowLayout {
+		spacing: 10
+		width: parent.width
 
 		TPRadioButton {
 			id: chkMale
 			text: qsTr("Male")
 			actionable: userRow === 0
 			checked: userModel.sex() === 0
-			height: controlsHeight
-			width: frmSex.width/2
+			Layout.preferredWidth: parent.width/2
+			Layout.alignment: Qt.AlignCenter
 
 			onClicked: {
 				bSexOK = true;
@@ -235,12 +163,6 @@ Frame {
 					userModel.setSex(userRow, true);
 				}
 			}
-
-			anchors {
-				verticalCenter: parent.verticalCenter
-				left: parent.left
-				leftMargin: 10
-			}
 		}
 
 		TPRadioButton {
@@ -248,8 +170,8 @@ Frame {
 			text: qsTr("Female")
 			actionable: userRow === 0
 			checked: userModel.sex() === 1
-			height: controlsHeight
-			width: frmSex.width/2
+			Layout.preferredWidth: parent.width/2
+			Layout.alignment: Qt.AlignCenter
 
 			onClicked: {
 				bSexOK = true;
@@ -257,12 +179,6 @@ Frame {
 					chkMale.checked = false;
 					userModel.setSex(userRow, false);
 				}
-			}
-
-			anchors {
-				verticalCenter: parent.verticalCenter
-				right: parent.right
-				rightMargin: 10
 			}
 		}
 	}

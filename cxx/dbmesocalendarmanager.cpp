@@ -4,7 +4,6 @@
 #include "dbexercisesmodel.h"
 #include "dbinterface.h"
 #include "dbmesocyclesmodel.h"
-#include "tpglobals.h"
 #include "tputils.h"
 
 #include <ranges>

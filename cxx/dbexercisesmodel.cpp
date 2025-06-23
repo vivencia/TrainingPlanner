@@ -11,6 +11,8 @@
 #include <QtMath>
 #include <utility>
 
+#define UNSET_VALUE 11111
+
 struct stSet {
 	uint number;
 	TPSetTypes type;
@@ -26,7 +28,7 @@ struct stExercise {
 	uint working_set;
 	QList<stSet*> sets;
 
-	inline explicit stExercise() : working_set{11111} {}
+	inline explicit stExercise() : working_set{UNSET_VALUE} {}
 };
 
 struct exerciseEntry {
@@ -35,7 +37,7 @@ struct exerciseEntry {
 	uint working_subexercise;
 	uint number;
 
-	inline explicit exerciseEntry() : working_subexercise{11111}, number{0} {}
+	inline explicit exerciseEntry() : working_subexercise{UNSET_VALUE}, number{0} {}
 };
 
 enum RoleNames {
@@ -577,9 +579,9 @@ uint DBExercisesModel::addExercise(const bool emit_signal)
 	const uint exercise_number{static_cast<uint>(m_exerciseData.count())};
 	new_exercise->number = exercise_number;
 	m_exerciseData.append(new_exercise);
-	setWorkingExercise(exercise_number);
 	if (emit_signal)
 	{
+		setWorkingExercise(exercise_number);
 		emit exerciseCountChanged();
 		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << exerciseNumberRole);
 		endInsertRows();
@@ -644,28 +646,13 @@ void DBExercisesModel::moveExercise(const uint from, const uint to)
 	}
 }
 
-int DBExercisesModel::newExerciseFromExercisesList()
+void DBExercisesModel::newExerciseFromExercisesList()
 {
-	const uint n_subexercises{appExercisesList()->selectedEntriesCount()};
-	if (n_subexercises == 0)
-		return -1;
-
-	uint exercise_number{0};
-	if (m_calendarDay >= 0) //in workouts, the selected exercise creates a new model entry
-		exercise_number = addExercise();
-	else
-		exercise_number = m_workingExercise; // in split planner, the model entry is created ahead of exercise selection
-	for (uint exercise_idx{0}; exercise_idx < n_subexercises; ++exercise_idx)
-	{
-		if (m_calendarDay >= 0) //in workouts, the selected exercise creates a new subexercise entry
-			static_cast<void>(addSubExercise(exercise_number));
-		setExerciseName(exercise_number, exercise_idx, std::move(
-			appExercisesList()->selectedEntriesValue(exercise_idx, EXERCISES_LIST_COL_MAINNAME) + " - "_L1 +
-			appExercisesList()->selectedEntriesValue(exercise_idx, EXERCISES_LIST_COL_SUBNAME)));
-		emit exerciseNameChanged(exercise_number, exercise_idx);
-	}
-	emit exerciseModified(exercise_number, EXERCISE_IGNORE_NOTIFY_IDX, EXERCISE_IGNORE_NOTIFY_IDX, EXERCISES_COL_EXERCISES);
-	return exercise_number;
+	setExerciseName(m_workingExercise, workingSubExercise(m_workingExercise), std::move(
+		appExercisesList()->selectedEntriesValue(0, EXERCISES_LIST_COL_MAINNAME) + " - "_L1 +
+		appExercisesList()->selectedEntriesValue(0, EXERCISES_LIST_COL_SUBNAME)));
+	emit exerciseNameChanged(m_workingExercise, workingSubExercise(m_workingExercise));
+	emit exerciseModified(m_workingExercise, EXERCISE_IGNORE_NOTIFY_IDX, EXERCISE_IGNORE_NOTIFY_IDX, EXERCISES_COL_EXERCISES);
 }
 
 uint DBExercisesModel::addSubExercise(const uint exercise_number, const bool emit_signal)
@@ -674,9 +661,9 @@ uint DBExercisesModel::addSubExercise(const uint exercise_number, const bool emi
 	stExercise* new_sub_exercise{new stExercise};
 	const uint exercise_idx{static_cast<uint>(exercise->m_exercises.count())};
 	exercise->m_exercises.append(new_sub_exercise);
-	setWorkingSubExercise(exercise_idx, exercise_number);
 	if (emit_signal)
 	{
+		setWorkingSubExercise(exercise_idx, exercise_number);
 		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << giantSetExerciseRole);
 		emit subExerciseCountChanged(exercise_number);
 	}
@@ -711,9 +698,9 @@ uint DBExercisesModel::addSet(const uint exercise_number, const uint exercise_id
 	const uint set_number{static_cast<uint>(sub_exercise->sets.count())};
 	new_set->number = set_number;
 	sub_exercise->sets.append(new_set);
-	setWorkingSet(set_number, exercise_number, exercise_idx);
 	if (emit_signal)
 	{
+		setWorkingSet(set_number, exercise_number, exercise_idx);
 		emit setsNumberChanged(exercise_number, exercise_idx);
 		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << setsNumberRole);
 	}
@@ -786,6 +773,8 @@ void DBExercisesModel::setWorkingExercise(const uint new_workingexercise)
 	if (new_workingexercise < exerciseCount() && new_workingexercise != m_workingExercise)
 	{
 		m_workingExercise = new_workingexercise;
+		if (workingSubExercise(m_workingExercise) == UNSET_VALUE)
+			setWorkingSubExercise(0, m_workingExercise);
 		emit workingExerciseChanged(m_workingExercise);
 		emit dataChanged(index(new_workingexercise, 0), index(new_workingexercise, 0), QList<int>{} << workingExerciseRole);
 	}
@@ -805,6 +794,8 @@ void DBExercisesModel::setWorkingSubExercise(const uint new_workingsubexercise, 
 	if (new_workingsubexercise < subExercisesCount(exercise_number) && new_workingsubexercise != workingSubExercise(exercise_number))
 	{
 		m_exerciseData.at(exercise_number)->working_subexercise = new_workingsubexercise;
+		if (workingSet(exercise_number, new_workingsubexercise) == UNSET_VALUE)
+			setWorkingSet(exercise_number, new_workingsubexercise, 0);
 		emit workingSubExerciseChanged(exercise_number, new_workingsubexercise);
 		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << workingSubExerciseRole);
 	}

@@ -11,7 +11,8 @@ ComboBox {
 
 	id: control
 	implicitWidth: 120
-	implicitHeight: appSettings.itemDefaultHeight
+	height: appSettings.itemDefaultHeight * 1.2
+	implicitHeight: height
 	textRole: "text"
 	valueRole: "value"
 	padding: 0
@@ -79,11 +80,13 @@ ComboBox {
 	contentItem: TPLabel {
 		text: control.displayText
 		leftPadding: completeModel ? 30 : 5
+		widthAvailable: completeModel ? control.width - 30 : control.width
+		elide: Text.ElideMiddle
 	}
 
 	TPImage {
 		visible: completeModel
-		source: completeModel ? control.model.get(control.currentIndex).icon : ""
+		source: completeModel ? model.get(currentIndex).icon : ""
 		dropShadow: false
 		width: 18
 		height: 18
@@ -99,7 +102,7 @@ ComboBox {
 		implicitWidth: control.implicitWidth
 		implicitHeight: control.implicitHeight
 		color: control.enabled ? backgroundColor : "transparent"
-		opacity: 0.5
+		opacity: 0.8
 		border.width: control.visualFocus ? 2 : 1
 		border.color: textColor
 		radius: 6

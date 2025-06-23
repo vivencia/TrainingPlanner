@@ -81,16 +81,18 @@ ListView {
 			target: splitModel
 
 			function onWorkingSubExerciseChanged(exercise_number: int, exercise_idx: int): void {
-				delegate.changeFields(exercise_number, exercise_idx, splitModel.workingSet);
+				delegate.changeFields(exercise_number, exercise_idx, splitModel.workingSet, false);
 			}
 
 			function onWorkingSetChanged(exercise_number: int, exercise_idx: int, set_number: int): void {
-				delegate.changeFields(exercise_number, exercise_idx, set_number);
+				delegate.changeFields(exercise_number, exercise_idx, set_number, true);
 			}
 
 			function onExerciseNameChanged(exercise_number: int, exercise_idx: int): void {
-				if (exercise_number === index)
+				if (exercise_number === index) {
 					txtExerciseName.text = splitModel.exerciseName(exercise_number, exercise_idx);
+					subExerciseButtonsRepeater.itemAt(exercise_idx).text = txtExerciseName.text;
+				}
 			}
 
 			function onExerciseModified(exercise_number: int, exercise_idx: int, set_number: int, field: int): void {
@@ -101,29 +103,28 @@ ListView {
 							txtRestTime.enabled = cboSetType.currentIndex >= 0 && splitModel.trackRestTime(index) && !splitModel.autoRestTime(index);
 						break;
 						case 7: //EXERCISES_COL_SETTYPES
-							txtRestTime.text = splitModel.setRestTime(index, exercise_idx, set_number);
-							txtNSubsets.text = splitModel.setSubSets(index, exercise_idx, set_number);
-							txtNReps.text = splitModel.setReps(index, exercise_idx, set_number);
-							txtNWeight.text = splitModel.setWeight(index, exercise_idx, set_number);
+							changeFields(index, exercise_idx, set_number, true);
 						break;
 					}
 				}
 			}
 		} //Connections
 
-		function changeFields(exercise_number: int, exercise_idx: int, set_number: int): void {
+		function changeFields(exercise_number: int, exercise_idx: int, set_number: int, only_settype_dependent_fields: bool): void {
 			if (exercise_number === index)
 			{
-				txtExerciseName.text = splitModel.exerciseName(exercise_number, exercise_idx);
-				cboSetType.currentIndex = splitModel.setType(exercise_number, exercise_idx, set_number);
+				if (!only_settype_dependent_fields) {
+					txtExerciseName.text = splitModel.exerciseName(exercise_number, exercise_idx);
+					cboSetType.currentIndex = splitModel.setType(exercise_number, exercise_idx, set_number);
+					txtNotes.text = splitModel.setNotes(exercise_number, exercise_idx, set_number);
+				}
 				txtRestTime.text = splitModel.setRestTime(exercise_number, exercise_idx, set_number);
 				txtRestTime.enabled = cboSetType.currentIndex >= 0 && splitModel.trackRestTime(exercise_number) && !splitModel.autoRestTime(exercise_number);
 				txtNSubsets.text = splitModel.setSubSets(exercise_number, exercise_idx, set_number);
 				txtNReps.text = splitModel.setReps(exercise_number, exercise_idx, set_number);
 				txtNWeight.text = splitModel.setWeight(exercise_number, exercise_idx, set_number);
-				txtNotes.text = splitModel.setNotes(exercise_number, exercise_idx, set_number);
 				setsGroup.nSets = splitModel.setsNumber(exercise_number, exercise_idx);
-				setsTabBar.setCurrentIndex(splitModel.workingSet);
+				//setsTabBar.setCurrentIndex(splitModel.workingSet);
 			}
 		}
 
@@ -246,16 +247,16 @@ ListView {
 
 							TabButton {
 								id: subExercisesTabButton
-								text: qsTr("Exercise type") + parseInt(index + 1)
+								text: splitModel.exerciseName(delegate.exerciseNumber, index)
 								checkable: true
 								checked: index === splitModel.workingSubExercise
 								height: subExercisesTabBar.height*0.95
 
 								contentItem: Label {
 									text: subExercisesTabButton.text
-									leftPadding: 2
-									rightPadding: 2
+									elide: Text.ElideRight
 									horizontalAlignment: Qt.AlignHCenter
+									verticalAlignment: Qt.AlignVCenter
 									font.pixelSize: appSettings.smallFontSize
 									color: appSettings.fontColor
 								}
@@ -419,9 +420,8 @@ ListView {
 
 										contentItem: Label {
 											text: tabButton.text
-											leftPadding: 2
-											rightPadding: 2
 											horizontalAlignment: Qt.AlignHCenter
+											verticalAlignment: Qt.AlignVCenter
 											font.pixelSize: appSettings.smallFontSize
 											color: appSettings.fontColor
 										}

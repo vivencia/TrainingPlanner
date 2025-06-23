@@ -10,7 +10,7 @@
 #include <utility>
 
 DBExercisesListModel *DBExercisesListModel::app_exercises_list(nullptr);
-constexpr short fieldsNumberInDatabase{EXERCISES_LIST_COL_FROMAPPLIST+1}; //FromAppList is the last savable field + the Id field
+constexpr uint fieldsNumberInDatabase{EXERCISES_LIST_COL_FROMAPPLIST+1}; //FromAppList is the last savable field + the Id field
 
 DBExercisesListModel::DBExercisesListModel(QObject *parent, const bool bMainExercisesModel)
 	: QAbstractListModel{parent}, m_selectedEntryToReplace{0}, m_exercisesTableLastId{-1}, m_bFilterApplied{false}
@@ -215,32 +215,27 @@ void DBExercisesListModel::search(const QString &search_term)
 	{
 		bool bFound{false};
 		const qsizetype modelCount{m_filteredIndices.isEmpty() ? m_exercisesData.count() : m_filteredIndices.count()};
+		const QStringList &words_list{appUtils()->stripDiacriticsFromString(search_term).split(' ', Qt::SkipEmptyParts)};
 
 		for (uint i{0}; i < modelCount; ++i)
 		{
 			const uint idx{m_filteredIndices.isEmpty() ? i : m_filteredIndices.at(i)};
-			const QString &subject{m_exercisesData.at(idx).at(EXERCISES_LIST_COL_MAINNAME) +
-						' ' + m_exercisesData.at(idx).at(EXERCISES_LIST_COL_SUBNAME)};
-			const QStringList &words_list{appUtils()->stripDiacriticsFromString(search_term).split(' ', Qt::SkipEmptyParts, Qt::CaseInsensitive)};
-
-			for (const auto &word : words_list)
+			const QString &subject{m_exercisesData.at(idx).at(EXERCISES_LIST_COL_MAINNAME) + ' ' + m_exercisesData.at(idx).at(EXERCISES_LIST_COL_SUBNAME)};
+			if (containsAllWords(subject, words_list))
 			{
-				if (subject.contains(word, Qt::CaseInsensitive))
+				if (!bFound)
 				{
-					if (!bFound)
-					{
-						bFound = true;
-						beginRemoveRows(QModelIndex{}, 0, count()-1);
-						m_indexProxy.clear();
-						endRemoveRows();
-						clearSelectedEntries();
-						setCurrentRow(-1);
-						m_bFilterApplied = true;
-					}
-					beginInsertRows(QModelIndex{}, count(), count());
-					m_indexProxy.append(idx);
-					endInsertRows();
+					bFound = true;
+					beginRemoveRows(QModelIndex{}, 0, count()-1);
+					m_indexProxy.clear();
+					endRemoveRows();
+					clearSelectedEntries();
+					setCurrentRow(-1);
+					m_bFilterApplied = true;
 				}
+				beginInsertRows(QModelIndex{}, count(), count());
+				m_indexProxy.append(idx);
+				endInsertRows();
 			}
 		}
 		if (!bFound)

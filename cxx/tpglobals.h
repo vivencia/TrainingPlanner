@@ -84,30 +84,3 @@ static int deferredActionId()
 	static uint da_id{APPWINDOW_MSG_DEFERRED_ACTION};
 	return da_id++;
 }
-
-template <typename T>
-inline void setBit(T &__restrict var, const unsigned char bit)
-{
-	if ((bit - 1) >= 0)
-		var |= (2 << (bit - 1));
-	else
-		var |= 1;
-}
-
-template <typename T>
-inline void unSetBit(T &__restrict var, const unsigned char bit)
-{
-	if ((bit - 1) >= 0)
-		var &= ~(2 << (bit - 1));
-	else
-		var &= ~1;
-}
-
-template <typename T>
-inline bool isBitSet(const T &__restrict var, const unsigned char bit)
-{
-	if ((bit - 1) >= 0)
-		return static_cast<bool>(var & (2 << (bit - 1)));
-	else
-		return static_cast<bool>(var & 1);
-}

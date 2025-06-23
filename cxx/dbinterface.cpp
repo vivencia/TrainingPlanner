@@ -9,7 +9,6 @@
 #include "dbworkoutsorsplitstable.h"
 #include "dbusertable.h"
 #include "dbusermodel.h"
-#include "tpglobals.h"
 #include "tpsettings.h"
 
 #include <QDir>

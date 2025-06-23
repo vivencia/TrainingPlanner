@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 16.0.2, 2025-06-22T09:09:56. -->
+<!-- Written by QtCreator 16.0.2, 2025-06-23T17:12:39. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -215,7 +215,7 @@
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes">
      <value type="QString">QT_ASSUME_STDERR_HAS_CONSOLE=1</value>
     </valuelist>
-    <value type="bool" key="PE.EnvironmentAspect.PrintOnRun">true</value>
+    <value type="bool" key="PE.EnvironmentAspect.PrintOnRun">false</value>
     <value type="QString" key="PerfRecordArgsId">-e cpu-cycles --call-graph dwarf,4096 -F 250</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">TrainingPlanner</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.</value>

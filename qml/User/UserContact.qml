@@ -1,31 +1,21 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 import ".."
 import "../TPWidgets"
 
-Frame {
-	id: frmContact
-	spacing: 10
-	padding: 0
-	height: moduleHeight
-	implicitHeight: Math.min(height, moduleHeight)
-
-	background: Rectangle {
-		border.color: "transparent"
-		color: "transparent"
-	}
+ColumnLayout {
+	id: userModule
+	spacing: 5
 
 	required property int userRow
 	property bool bReady: bPhoneOK & bEmailOK & bSocialOK
 	property bool bPhoneOK: false
 	property bool bEmailOK: false
 	property bool bSocialOK: true
-	readonly property int nControls: 7
-	readonly property int controlsHeight: 25
-	readonly property int moduleHeight: nControls*(controlsHeight) + 10
 
 	Connections {
 		target: userModel
@@ -41,16 +31,6 @@ Frame {
 	TPLabel {
 		id: lblPhone
 		text: userModel.phoneLabel
-		height: controlsHeight
-
-		anchors {
-			top: parent.top
-			topMargin: -5
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
 	}
 
 	TPTextInput {
@@ -59,8 +39,8 @@ Frame {
 		inputMask: "+55\\(99\\)99999\\-9999;_"
 		ToolTip.text: qsTr("Invalid phone number")
 		readOnly: userRow !== 0
-		height: controlsHeight
-		width: frmContact.width*0.7
+		Layout.maximumWidth: userModule.width*0.85
+		Layout.minimumWidth: userModule.width*0.85
 
 		onEditingFinished: userModel.setPhone(userRow, text);
 
@@ -89,59 +69,44 @@ Frame {
 			}
 		}
 
-		anchors {
-			top: lblPhone.bottom
-			left: parent.left
-			leftMargin: 5
-		}
-	}
+		TPButton {
+			id: btnWhatsApp
+			imageSource: "whatsapp"
+			enabled: bPhoneOK
+			visible: userRow !== 0
+			width: appSettings.itemDefaultHeight
+			height: width
 
-	TPButton {
-		id: btnWhatsApp
-		imageSource: "whatsapp"
-		enabled: bPhoneOK
-		visible: userRow !== 0
-		width: 30
-		height: 30
+			anchors {
+				left: txtPhone.right
+				leftMargin: 5
+				verticalCenter: txtPhone.verticalCenter
+			}
 
-		anchors {
-			left: txtPhone.right
-			leftMargin: 5
-			verticalCenter: txtPhone.verticalCenter
+			onClicked: osInterface.startChatApp(userModel.phone(userRow), "WhatsApp");
 		}
 
-		onClicked: osInterface.startChatApp(userModel.phone(userRow), "WhatsApp");
-	}
+		TPButton {
+			id: btnTelegram
+			imageSource: "telegram"
+			enabled: bPhoneOK
+			visible: userRow !== 0
+			width: appSettings.itemDefaultHeight
+			height: width
 
-	TPButton {
-		id: btnTelegram
-		imageSource: "telegram"
-		enabled: bPhoneOK
-		visible: userRow !== 0
-		width: 30
-		height: 30
+			anchors {
+				left: btnWhatsApp.right
+				leftMargin: 5
+				verticalCenter: txtPhone.verticalCenter
+			}
 
-		anchors {
-			left: btnWhatsApp.right
-			leftMargin: 5
-			verticalCenter: txtPhone.verticalCenter
+			onClicked: osInterface.startChatApp(userModel.phone(userRow), "Telegram");
 		}
-
-		onClicked: osInterface.startChatApp(userModel.phone(userRow), "Telegram");
-	}
+	} //txtPhone
 
 	TPLabel {
 		id: lblEmail
 		text: userModel.emailLabel
-		height: controlsHeight
-
-		anchors {
-			top: txtPhone.bottom
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
 	}
 
 	TPTextInput {
@@ -150,8 +115,8 @@ Frame {
 		enabled: bPhoneOK
 		readOnly: userRow !== 0
 		ToolTip.text: userModel.invalidEmailLabel
-		height: controlsHeight
-		width: parent.width*0.9
+		Layout.maximumWidth: userModule.width*0.85
+		Layout.minimumWidth: userModule.width*0.85
 
 		onEditingFinished: userModel.setEmail(userRow, text);
 
@@ -171,50 +136,27 @@ Frame {
 				txtSocial.forceActiveFocus();
 		}
 
-		anchors {
-			top: lblEmail.bottom
-			left: parent.left
-			leftMargin: 5
+		TPButton {
+			imageSource: "email"
+			enabled: bEmailOK
+			visible: userRow !== 0
+			width: appSettings.itemDefaultHeight
+			height: width
+
+			onClicked: osInterface.sendMail(txtEmail.text, "", "");
 		}
-	}
-
-	TPButton {
-		id: btnSendEMail
-		imageSource: "email"
-		enabled: bEmailOK
-		visible: userRow !== 0
-		width: 30
-		height: 30
-
-		anchors {
-			left: txtEmail.right
-			leftMargin: 5
-			verticalCenter: txtEmail.verticalCenter
-		}
-
-		onClicked: osInterface.sendMail(txtEmail.text, "", "");
 	}
 
 	TPLabel {
 		id: lblSocial
 		text: userModel.socialMediaLabel
-		height: controlsHeight
-
-		anchors {
-			top: txtEmail.bottom
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
 	}
 
 	TPComboBox {
 		id: cboSocial
-		height: controlsHeight
 		model: socialModel
 		completeModel: true
-		width: parent.width*0.50
+		Layout.preferredWidth: userModule.width*0.6
 
 		ListModel {
 			id: socialModel
@@ -229,54 +171,40 @@ Frame {
 			txtSocial.text = userModel.socialMedia(userRow, index);
 			txtSocial.forceActiveFocus();
 		}
-
-		anchors {
-			top: lblSocial.bottom
-			left: parent.left
-			leftMargin: 5
-		}
 	}
 
 	TPTextInput {
 		id: txtSocial
-		height: controlsHeight
 		enabled: bEmailOK
 		readOnly: userRow !== 0
-		width: parent.width*0.90
+		Layout.maximumWidth: userModule.width*0.6
+		Layout.minimumWidth: userModule.width*0.6
 		ToolTip.text: qsTr("Social media address is invalid")
 
 		onEditingFinished: userModel.setSocialMedia(userRow, cboSocial.currentIndex, text);
-
 		onTextEdited: checkSocial()
 		onTextChanged: checkSocial();
-
-		anchors {
-			top: cboSocial.bottom
-			topMargin: 10
-			left: parent.left
-			leftMargin: 5
-		}
 
 		function checkSocial(): void {
 			bSocialOK = text.length === 0 || text.length > 10;
 			ToolTip.visible = !bSocialOK;
 		}
-	}
 
-	TPButton {
-		id: btnOpenSocialMedia
-		imageSource: "openurl"
-		enabled: bSocialOK
-		width: 30
-		height: 30
+		TPButton {
+			id: btnOpenSocialMedia
+			imageSource: "openurl"
+			enabled: bSocialOK
+			width: appSettings.itemDefaultHeight
+			height: width
 
-		anchors {
-			left: txtSocial.right
-			verticalCenter: txtSocial.verticalCenter
+			anchors {
+				left: txtSocial.right
+				verticalCenter: txtSocial.verticalCenter
+			}
+
+			onClicked: osInterface.openURL(txtSocial.text);
 		}
-
-		onClicked: osInterface.openURL(txtSocial.text);
-	}
+	} //txtSocial
 
 	function getUserInfo(): void {
 		if (userRow === -1)

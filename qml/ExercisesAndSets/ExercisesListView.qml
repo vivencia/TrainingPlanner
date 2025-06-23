@@ -86,7 +86,7 @@ Column {
 	}
 
 	TPTextInput {
-		id: txtFilter
+		id: txtSearch
 		showClearTextButton: true
 		readOnly: !mainItem.enabled
 		enabled: exercisesModel.count > 0
@@ -96,7 +96,7 @@ Column {
 		onTextChanged: exercisesModel.search(text);
 
 		TPButton {
-			id: btnMuscularGroups
+			id: btnChooseFilters
 			imageSource: "filter.png"
 			width: appSettings.itemDefaultHeight*0.9
 			height: width
@@ -109,7 +109,7 @@ Column {
 
 			onClicked: showFilterDialog();
 		}
-	} // txtFilter
+	} // txtSearch
 
 	ListView {
 		id: lstExercises
@@ -146,21 +146,17 @@ Column {
 
 		delegate: SwipeDelegate {
 			id: delegate
-			spacing: 0
-			padding: 0
+			padding: 5
 			width: lstExercises.width
-			height: 40
+			height: appSettings.itemDefaultHeight*2
 
 			contentItem: Text {
 				id: listItem
 				text: index+1 + ":  " + mainName + "\n"+ subName
-				color: appSettings.fontColor
 				font.pixelSize: appSettings.fontSize
 				fontSizeMode: Text.Fit
-				leftPadding: 5
-				rightPadding: 5
+				leftPadding: 10
 				topPadding: 0
-				bottomPadding: 2
 			}
 
 			background: Rectangle {
@@ -200,7 +196,6 @@ Column {
 					verticalAlignment: Qt.AlignVCenter
 					opacity: delegate.swipe.complete ? 1 : 0
 					Behavior on opacity { NumberAnimation {} }
-					z:0
 				}
 
 				SwipeDelegate.onClicked: delegate.swipe.close();
@@ -233,7 +228,7 @@ Column {
 					exerciseEntrySelected(idx);
 			}
 		}
-		lstExercises.forceActiveFocus();
+		txtSearch.forceActiveFocus();
 	}
 
 	function simulateMouseClick(new_index: int, emit_signal: bool): void {
@@ -258,6 +253,6 @@ Column {
 			else
 				component.statusChanged.connect(finishCreation);
 		}
-		filterDlg.show(exercisesModel.muscularGroup(exercisesModel.currentRealRow()), btnMuscularGroups, 3);
+		filterDlg.show(exercisesModel.muscularGroup(exercisesModel.currentRealRow()), btnChooseFilters, 3);
 	}
 }

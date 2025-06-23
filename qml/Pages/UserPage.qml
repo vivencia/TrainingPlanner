@@ -53,12 +53,14 @@ TPPage {
 				userRow: 0
 				parentPage: userPage
 				Layout.fillWidth: true
+				Layout.margins: 10
 			}
 
 			UserContact {
 				id: usrContact
 				userRow: 0
 				Layout.fillWidth: true
+				Layout.margins: 10
 			}
 
 			UserCoach {
@@ -66,6 +68,7 @@ TPPage {
 				userRow: 0
 				parentPage: userPage
 				Layout.fillWidth: true
+				Layout.margins: 10
 			}
 
 			UserProfile {
@@ -73,6 +76,7 @@ TPPage {
 				userRow: 0
 				parentPage: userPage
 				Layout.fillWidth: true
+				Layout.margins: 10
 			}
 		}
 	}

@@ -11,6 +11,10 @@
 #include <QStandardPaths>
 
 #include <ranges>
+#include <random>
+
+static std::minstd_rand gen(std::random_device{}());
+static std::uniform_int_distribution<int> dist(0, 5000);
 
 QStringList TPUtils::_months_names{QStringList() <<
 		TPUtils::tr("January") << TPUtils::tr("February") << TPUtils::tr("March") << TPUtils::tr("April") << TPUtils::tr("May") <<
@@ -33,8 +37,9 @@ TPUtils::TPUtils(QObject *parent)
 
 int TPUtils::generateUniqueId(const QLatin1StringView &seed) const
 {
+
 	if (seed.isEmpty())
-		return QTime::currentTime().msecsSinceStartOfDay();
+		return dist(gen);
 	else
 	{
 		int n{0};

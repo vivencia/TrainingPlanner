@@ -20,8 +20,9 @@
 #define WORKOUT_TOTALCOLS EXERCISES_COL_COMPLETED+1
 
 #define EXERCISE_IGNORE_NOTIFY_IDX 1000
-#define EXERCISE_DEL_NOTIFY_IDX 100
-#define EXERCISE_MOVE_NOTIFY_IDX 101
+#define EXERCISE_ADD_NOTIFY_IDX 100
+#define EXERCISE_DEL_NOTIFY_IDX 101
+#define EXERCISE_MOVE_NOTIFY_IDX 102
 
 
 QT_FORWARD_DECLARE_CLASS(DBMesoCalendarManager)
@@ -210,7 +211,7 @@ public:
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
 
 public slots:
-	int newExerciseFromExercisesList();
+	void newExerciseFromExercisesList();
 
 signals:
 	void splitLetterChanged();

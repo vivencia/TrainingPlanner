@@ -1,6 +1,8 @@
 #pragma once
 
-#include "tpglobals.h"
+#ifndef QT_NO_DEBUG
+#include "tputils.h"
+#endif
 
 #include <QObject>
 #include <QFile>

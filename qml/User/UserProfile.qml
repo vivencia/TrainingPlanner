@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
@@ -7,13 +8,9 @@ import ".."
 import "../TPWidgets"
 import "../Pages"
 
-Frame {
-	id: frmUserProfile
-	padding: 0
-	spacing: 0
-	height: moduleHeight
-	implicitHeight: Math.min(height, moduleHeight)
-	implicitWidth: width
+ColumnLayout {
+	id: userModule
+	spacing: 5
 
 	required property int userRow
 	required property TPPage parentPage
@@ -22,10 +19,6 @@ Frame {
 	property bool bGoalOK: appUseMode !== 2
 	property bool bCoachRoleOK: appUseMode === 2 || appUseMode === 4
 	property int appUseMode
-	readonly property int nVisibleControls: lblCoachRole.visible ? 9 : 7
-	readonly property int controlsHeight: 25
-	readonly property int controlsSpacing: 10
-	readonly property int moduleHeight: nVisibleControls*(controlsHeight+controlsSpacing) + imgAvatar.height
 
 	Connections {
 		target: userModel
@@ -74,42 +67,17 @@ Frame {
 		ListElement { text: qsTr("Other"); value: 7; enabled: true; }
 	}
 
-	background: Rectangle {
-		border.color: "transparent"
-		color: "transparent"
-	}
-
 	TPLabel {
 		id: lblUserRole
 		text: userModel.userRoleLabel
 		visible: appUseMode !== 2
-		height: controlsHeight
-		width: parent.width*0.20
-
-		anchors {
-			top: parent.top
-			topMargin: -10
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
 	}
 
 	TPComboBox {
 		id: cboUserRole
 		model: userRoleModel
 		visible: appUseMode !== 2
-		height: controlsHeight
-		width: parent.width*0.80
-
-		anchors {
-			top: lblUserRole.bottom
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
+		Layout.fillWidth: true
 
 		onActivated: (index) => {
 			if (index < userRoleModel.count - 1) {
@@ -127,19 +95,9 @@ Frame {
 		id: txtUserRole
 		visible: cboUserRole.currentIndex === userRoleModel.count - 1
 		readOnly: userRow !== 0
-		height: controlsHeight
-
-		anchors {
-			top: cboUserRole.bottom
-			topMargin: 5
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
+		Layout.fillWidth: true
 
 		onTextEdited: bClientRoleOK = text.length > 1
-
 		onEditingFinished: {
 			if (bClientRoleOK)
 				userModel.setUserRole(userRow, text);
@@ -150,17 +108,6 @@ Frame {
 		id: lblGoal
 		text: userModel.goalLabel
 		visible: appUseMode !== 2
-		height: controlsHeight
-		width: parent.width*0.20
-
-		anchors {
-			top: txtUserRole.visible ? txtUserRole.bottom : cboUserRole.bottom
-			topMargin: 5
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
 	}
 
 	TPComboBox {
@@ -168,16 +115,7 @@ Frame {
 		model: userGoalModel
 		visible: appUseMode !== 2
 		enabled: bClientRoleOK
-		height: controlsHeight
-		width: parent.width*0.80
-
-		anchors {
-			top: lblGoal.bottom
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
+		Layout.fillWidth: true
 
 		onActivated: (index) => {
 			if (index < userGoalModel.count - 1) {
@@ -195,19 +133,9 @@ Frame {
 		id: txtUserGoal
 		visible: cboGoal.visible && cboGoal.currentIndex === userGoalModel.count - 1
 		readOnly: userRow !== 0
-		height: controlsHeight
-
-		anchors {
-			top: cboGoal.bottom
-			topMargin: 5
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
+		Layout.fillWidth: true
 
 		onTextEdited: bGoalOK = text.length > 1
-
 		onEditingFinished: {
 			if (bGoalOK)
 				userModel.setGoal(userRow, text);
@@ -218,17 +146,6 @@ Frame {
 		id: lblCoachRole
 		text: userModel.coachRoleLabel
 		visible: appUseMode === 2 || appUseMode === 4
-		height: controlsHeight
-		width: parent.width*0.15
-
-		anchors {
-			top: cboGoal.visible ? txtUserGoal.visible ? txtUserGoal.bottom : cboGoal.bottom : cboUserRole.bottom
-			topMargin: controlsSpacing
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
 	}
 
 	TPComboBox {
@@ -236,16 +153,7 @@ Frame {
 		model: coachRoleModel
 		visible: appUseMode === 2 || appUseMode === 4
 		enabled: bClientRoleOK && bGoalOK
-		height: controlsHeight
-		width: parent.width*0.80
-
-		anchors {
-			top: lblCoachRole.bottom
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
+		Layout.fillWidth: true
 
 		onActivated: (index) => {
 			if (index < coachRoleModel.count - 1) {
@@ -263,19 +171,9 @@ Frame {
 		id: txtCoachRole
 		visible: cboCoachRole.visible && cboCoachRole.currentIndex === coachRoleModel.count - 1
 		readOnly: userRow !== 0
-		height: controlsHeight
-
-		anchors {
-			top: cboCoachRole.bottom
-			topMargin: 5
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
+		Layout.fillWidth: true
 
 		onTextEdited: bCoachRoleOK = text.length > 1
-
 		onEditingFinished: {
 			if (bCoachRoleOK)
 				userModel.setCoachRole(userRow, text);
@@ -286,29 +184,18 @@ Frame {
 		id: lblAvatar
 		text: userModel.avatarLabel
 		color: appSettings.fontColor
-		height: controlsHeight
-		width: parent.width*0.2
-
-		anchors {
-			top: cboCoachRole.visible ? txtCoachRole.visible ? txtCoachRole.bottom : cboCoachRole.bottom : cboGoal.bottom
-			topMargin: controlsSpacing
-			left: parent.left
-			leftMargin: 5
-		}
 	}
 
 	TPImage {
 		id: imgAvatar
 		enabled: bReady
-		height: 100
-		width: 100
+		Layout.minimumWidth: side_size
+		Layout.maximumWidth: side_size
+		Layout.minimumHeight: side_size
+		Layout.maximumHeight: side_size
+		Layout.alignment: Qt.AlignCenter
 
-		anchors {
-			top: lblAvatar.top
-			topMargin: 0
-			left: lblAvatar.right
-			leftMargin: 30
-		}
+		readonly property int side_size: appSettings.itemDefaultHeight*4
 
 		MouseArea {
 			enabled: userRow === 0

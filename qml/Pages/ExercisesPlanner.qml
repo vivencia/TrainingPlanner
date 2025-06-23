@@ -34,42 +34,108 @@ TPPage {
 
 	header: TPToolBar {
 		id: topToolBar
-		height: lblMain.height + lblGroups.height + txtGroups.height + 10
+		height: toolbarLayout.childrenRect.height
 
-		TPLabel {
-			id: lblMain
-			text: currentSplitPage && currentSplitPage.splitModel && qsTr("Training Division ") + currentSplitPage.splitModel.splitLetter
-			font: AppGlobals.largeFont
-			width: parent.width
-			horizontalAlignment: Text.AlignHCenter
-
+		ColumnLayout {
+			id: toolbarLayout
+			spacing: 5
 			anchors {
-				top: parent.top
-				horizontalCenter: parent.horizontalCenter
+				fill: parent
+				margins: 5
 			}
-		}
 
-		TPLabel {
-			id: lblGroups
-			text: qsTr("Muscle groups trained in this division:")
-			width: parent.width*0.9
-
-			anchors {
-				top: lblMain.bottom
-				horizontalCenter: parent.horizontalCenter
+			TPLabel {
+				id: lblMain
+				text: currentSplitPage && currentSplitPage.splitModel && qsTr("Training Division ") + currentSplitPage.splitModel.splitLetter
+				font: AppGlobals.largeFont
+				width: parent.width
+				horizontalAlignment: Text.AlignHCenter
+				Layout.fillWidth: true
 			}
-		}
 
-		TPTextInput {
-			id: txtGroups
-			text: currentSplitPage && currentSplitPage.splitModel && currentSplitPage.splitModel.muscularGroup
-			readOnly: true
-			width: parent.width*0.9
+			TPLabel {
+				id: lblGroups
+				text: qsTr("Muscle groups trained in this division:")
+				Layout.fillWidth: true
+			}
 
-			anchors {
-				top: lblGroups.bottom
-				topMargin: 5
-				horizontalCenter: parent.horizontalCenter
+			TPTextInput {
+				id: txtGroups
+				text: currentSplitPage && currentSplitPage.splitModel && currentSplitPage.splitModel.muscularGroup
+				readOnly: true
+				Layout.fillWidth: true
+			}
+
+			Row {
+				enabled: currentSplitPage && currentSplitPage.splitModel && currentSplitPage.splitModel.exerciseCount > 1
+				height: appSettings.itemDefaultHeight
+				Layout.fillWidth: true
+				spacing: 0
+
+				TPLabel {
+					text: qsTr("Go to exercise #: ")
+					width: parent.width* 0.3
+				}
+
+				TPComboBox {
+					id: cboGoToExercise
+					width: parent.width* 0.65
+
+					property int current_exercise
+
+					model: ListModel {
+						id: cboModel
+					}
+
+					onActivated: (cboIndex) => currentSplitPage.positionViewAtIndex(cboIndex, ListView.Contain);
+
+					function addExerciseToCombo(exercise_number: int): void {
+						cboModel.append({ text: String(exercise_number+1) + ": " + currentSplitPage.splitModel.exerciseName(exercise_number, 0),
+									value: exercise_number, enabled: exercise_number !== currentSplitPage.splitModel.workingExercise});;
+					}
+
+					function delExerciseFromCombo(exercise_number: int): void {
+						cboModel.remove(exercise_number);
+					}
+
+					function populateComboModel(): void {
+						for (let i = 0; i < currentSplitPage.splitModel.exerciseCount; ++i)
+							addExerciseToCombo(i);
+						current_exercise = currentSplitPage.splitModel.workingExercise;
+					}
+
+					Connections {
+						target: cboGoToExercise.enabled ? currentSplitPage.splitModel : null
+
+						function onExerciseCountChanged() : void {
+							cboGoToExercise.cboModel.clear();
+							cboGoToExercise.populateComboModel();
+						}
+
+						function onWorkingExerciseChanged(exercise_number: int): void {
+							if (cboModel.count === 0) {
+								if (currentSplitPage.splitModel.exerciseCount > 1)
+									cboGoToExercise.populateComboModel();
+							}
+							else {
+								cboModel.get(exercise_number).enabled = false;
+								cboModel.get(cboGoToExercise.current_exercise).enabled = true;
+							}
+							cboGoToExercise.current_exercise = exercise_number;
+						}
+
+						function onExerciseModified(exercise_number: int, exercise_idx: int, set_number: int, field: int): void {
+							switch (field) {
+								case 100: //EXERCISE_ADD_NOTIFY_IDX
+									cboGoToExercise.addExerciseToCombo(exercise_number);
+								break;
+								case 101: //EXERCISE_DEL_NOTIFY_IDX
+									cboGoToExercise.delExerciseFromCombo(exercise_number);
+								break;
+							}
+						}
+					}
+				}
 			}
 		}
 	}

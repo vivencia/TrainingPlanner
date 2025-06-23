@@ -173,4 +173,39 @@ private:
 	friend TPUtils *appUtils();
 };
 
+template <typename T>
+inline void setBit(T &__restrict var, const unsigned char bit)
+{
+	if ((bit - 1) >= 0)
+		var |= (2 << (bit - 1));
+	else
+		var |= 1;
+}
+
+template <typename T>
+inline void unSetBit(T &__restrict var, const unsigned char bit)
+{
+	if ((bit - 1) >= 0)
+		var &= ~(2 << (bit - 1));
+	else
+		var &= ~1;
+}
+
+template <typename T>
+inline bool isBitSet(const T &__restrict var, const unsigned char bit)
+{
+	if ((bit - 1) >= 0)
+		return static_cast<bool>(var & (2 << (bit - 1)));
+	else
+		return static_cast<bool>(var & 1);
+}
+
+inline bool containsAllWords(const QString &mainString, const QStringList &wordSet) {
+	for (const auto &word : wordSet) {
+		if (!mainString.contains(word, Qt::CaseInsensitive))
+			return false; // Word not found in the main string
+	}
+	return true; // All words found in the main string
+}
+
 inline TPUtils *appUtils() { return TPUtils::app_utils; }

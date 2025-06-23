@@ -10,17 +10,9 @@ import ".."
 import "../TPWidgets"
 import "../Pages"
 
-Frame {
-	id: topFrame
-	spacing: 0
-	padding: 0
-	height: moduleHeight
-	implicitHeight: Math.min(height, moduleHeight)
-
-	background: Rectangle {
-		border.color: "transparent"
-		color: "transparent"
-	}
+ColumnLayout {
+	id: userModule
+	spacing: 5
 
 	required property int userRow
 	required property TPPage parentPage
@@ -29,8 +21,6 @@ Frame {
 	property bool bChooseResume: false
 	property bool bRescindCoaching: false
 	property bool bResumeSent: false
-	readonly property int moduleHeight: 0.35*appSettings.pageHeight
-	readonly property int itemHeight: implicitHeight/4
 
 	onBCoachOKChanged: bReady = bCoachOK;
 
@@ -50,20 +40,14 @@ Frame {
 		text: qsTr("I will use this application to track my own workouts only")
 		multiLine: true
 		actionable: userRow === 0
-		height: itemHeight
+		Layout.maximumWidth: userModule.width
+		Layout.minimumWidth: userModule.width
 
 		onClicked: {
 			bReady = checked;
 			if (checked)
 				userModel.setAppUseMode(userRow, 1 + (chkHaveCoach.checked ? 2 : 0));
 			optCoachUse.checked = false;
-		}
-
-		anchors {
-			top: parent.top
-			topMargin: -10
-			left: parent.left
-			right: parent.right
 		}
 	}
 
@@ -72,7 +56,8 @@ Frame {
 		text: qsTr("I will use this application to track my own workouts and/or coach or train other people")
 		multiLine: true
 		actionable: userRow === 0
-		height: itemHeight
+		Layout.maximumWidth: userModule.width
+		Layout.minimumWidth: userModule.width
 
 		onClicked: {
 			bCoachOK = checked;
@@ -80,27 +65,13 @@ Frame {
 				userModel.setAppUseMode(userRow, 2 + (chkHaveCoach.checked ? 2 : 0));
 			optPersonalUse.checked = false;
 		}
-
-		anchors {
-			top: optPersonalUse.bottom
-			topMargin: -5
-			left: parent.left
-			right: parent.right
-		}
 	}
 
 	RowLayout {
 		id: onlineCoachRow
 		visible: userModel.mainUserConfigured && optCoachUse.checked && userRow === 0
-		spacing: 0
-		height: itemHeight
-
-		anchors {
-			top: optCoachUse.bottom
-			topMargin: 10
-			left: parent.left
-			right: parent.right
-		}
+		Layout.maximumWidth: userModule.width
+		Layout.minimumWidth: userModule.width
 
 		TPCheckBox {
 			id: chkOnlineCoach
@@ -108,7 +79,6 @@ Frame {
 			checked: userModel.isCoachRegistered();
 			multiLine: true
 			actionable: userRow === 0
-			height: itemHeight
 			Layout.preferredWidth: parent.width/2
 
 			Connections {
@@ -194,20 +164,14 @@ Frame {
 		text: qsTr("I have a coach or a personal trainer")
 		multiLine: true
 		actionable: userRow === 0
-		height: 25
+		Layout.maximumWidth: userModule.width
+		Layout.minimumWidth: userModule.width
 
 		onClicked: {
 			if (checked)
 				userModel.setAppUseMode(userRow, 2 + (optPersonalUse.checked ? 1 : (optCoachUse.checked ? 2 : 0)));
 			else
 				userModel.setAppUseMode(userRow, optPersonalUse.checked ? 1 : (optCoachUse.checked ? 2 : 0));
-		}
-
-		anchors {
-			bottom: parent.bottom
-			bottomMargin: -10
-			left: parent.left
-			right: parent.right
 		}
 	}
 
