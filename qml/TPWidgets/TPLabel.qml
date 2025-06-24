@@ -23,7 +23,7 @@ Label {
 	clip: true
 
 	property string fontColor: appSettings.fontColor
-	property int widthAvailable: appSettings.pageWidth - 20
+	property int widthAvailable: width
 	property int heightAvailable: appSettings.itemDefaultHeight
 	property bool singleLine: wrapMode === Text.NoWrap ? true : width > _textWidth
 	property int lineCount: singleLine ? 1 : Math.ceil(_textWidth/width) + 1
@@ -70,8 +70,9 @@ Label {
 		_textWidth = currentFontMetrics.boundingRect(text).width*1.3;
 		_textHeight = currentFontMetrics.boundingRect("TP").height*1.3;
 		const hasNewLineEscapeChr = text.indexOf('\n') !== -1;
-		singleLine = hasNewLineEscapeChr ? false : width > _textWidth;
-		lineCount = (singleLine ? 0 : Math.ceil(_textWidth/widthAvailable)) + (hasNewLineEscapeChr ? text.split('\n').length - 1: 0);
+		if (hasNewLineEscapeChr)
+			singleLine = false;
+		lineCount = (singleLine ? 1 : Math.ceil(_textWidth/widthAvailable)) + (hasNewLineEscapeChr ? text.split('\n').length - 1: 0);
 		if (_textWidth > control.width)
 		{
 			fontSizeMode = Text.Fit;
@@ -81,6 +82,8 @@ Label {
 				if (control.height >= 15 && lineCount * font.pixelSize*1.35 > control.height)
 					wrapMode = Text.WordWrap;
 			}
+			else
+				elide = Text.ElideMiddle;
 		}
 		sizeChanged();
 	}

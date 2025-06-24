@@ -56,6 +56,7 @@ ListView {
 
 		readonly property int exerciseNumber: index
 		property int nSubExercises: splitModel.subExercisesCount(delegate.exerciseNumber)
+		property bool enabledRestTime: splitModel.trackRestTime(exerciseNumber) && !splitModel.autoRestTime(exerciseNumber)
 
 		function exerciseFieldYPos(): int {
 			return delegate.mapToItem(mainwindow.contentItem, txtExerciseName.x, txtExerciseName.y).y;
@@ -80,8 +81,18 @@ ListView {
 		Connections {
 			target: splitModel
 
+			function onWorkingExerciseChanged(exercise_number: int): void {
+				if (exercise_number === index) {
+					const exercise_idx = splitModel.workingSubExercise;
+					subExercisesTabBar.currentIndex = exercise_idx;
+					onWorkingSubExerciseChanged(exercise_number, exercise_idx);
+				}
+			}
+
 			function onWorkingSubExerciseChanged(exercise_number: int, exercise_idx: int): void {
-				delegate.changeFields(exercise_number, exercise_idx, splitModel.workingSet, false);
+				const set_number = splitModel.workingSet;
+				setsTabBar.currentIndex = set_number;
+				delegate.changeFields(exercise_number, exercise_idx, set_number, false);
 			}
 
 			function onWorkingSetChanged(exercise_number: int, exercise_idx: int, set_number: int): void {
@@ -98,10 +109,6 @@ ListView {
 			function onExerciseModified(exercise_number: int, exercise_idx: int, set_number: int, field: int): void {
 				if (exercise_number === index) {
 					switch (field) {
-						case 5: //EXERCISES_COL_TRACKRESTTIMES
-						case 6: //EXERCISES_COL_AUTORESTTIMES
-							txtRestTime.enabled = cboSetType.currentIndex >= 0 && splitModel.trackRestTime(index) && !splitModel.autoRestTime(index);
-						break;
 						case 7: //EXERCISES_COL_SETTYPES
 							changeFields(index, exercise_idx, set_number, true);
 						break;
@@ -115,16 +122,13 @@ ListView {
 			{
 				if (!only_settype_dependent_fields) {
 					txtExerciseName.text = splitModel.exerciseName(exercise_number, exercise_idx);
-					cboSetType.currentIndex = splitModel.setType(exercise_number, exercise_idx, set_number);
 					txtNotes.text = splitModel.setNotes(exercise_number, exercise_idx, set_number);
 				}
+				cboSetType.currentIndex = splitModel.setType(exercise_number, exercise_idx, set_number);
 				txtRestTime.text = splitModel.setRestTime(exercise_number, exercise_idx, set_number);
-				txtRestTime.enabled = cboSetType.currentIndex >= 0 && splitModel.trackRestTime(exercise_number) && !splitModel.autoRestTime(exercise_number);
 				txtNSubsets.text = splitModel.setSubSets(exercise_number, exercise_idx, set_number);
 				txtNReps.text = splitModel.setReps(exercise_number, exercise_idx, set_number);
 				txtNWeight.text = splitModel.setWeight(exercise_number, exercise_idx, set_number);
-				setsGroup.nSets = splitModel.setsNumber(exercise_number, exercise_idx);
-				//setsTabBar.setCurrentIndex(splitModel.workingSet);
 			}
 		}
 
@@ -148,7 +152,7 @@ ListView {
 					id: optCurrentExercise
 					text: qsTr("Exercise #") + "<b>" + (index + 1) + "</b>" + (delegate.nSubExercises > 1 ? qsTr(" - Giant sets") : "")
 					checked: index === splitModel.workingExercise
-					width: parent.width*0.7
+					width: parent.width * 0.7
 
 					anchors {
 						left: parent.left
@@ -162,7 +166,7 @@ ListView {
 					id: btnMoveExerciseUp
 					imageSource: "up.png"
 					hasDropShadow: false
-					width: appSettings.itemDefaultHeight*0.9
+					width: appSettings.itemDefaultHeight * 0.9
 					height: width
 					enabled: index === splitModel.workingExercise ? (delegate.exerciseNumber >= 1) : false
 
@@ -179,7 +183,7 @@ ListView {
 					id: btnMoveExerciseDown
 					imageSource: "down.png"
 					hasDropShadow: false
-					width: appSettings.itemDefaultHeight*0.9
+					width: appSettings.itemDefaultHeight * 0.9
 					height: width
 					enabled: index === splitModel.workingExercise ? (delegate.exerciseNumber < (splitModel.count-1)) : false
 
@@ -250,7 +254,7 @@ ListView {
 								text: splitModel.exerciseName(delegate.exerciseNumber, index)
 								checkable: true
 								checked: index === splitModel.workingSubExercise
-								height: subExercisesTabBar.height*0.95
+								height: subExercisesTabBar.height * 0.95
 
 								contentItem: Label {
 									text: subExercisesTabButton.text
@@ -299,7 +303,7 @@ ListView {
 				showRemoveButton: false
 				editable: delegate.nSubExercises > 0 && index === splitModel.workingExercise
 				Layout.preferredWidth: parent.width
-				Layout.preferredHeight: appSettings.pageHeight*0.1
+				Layout.preferredHeight: appSettings.pageHeight * 0.1
 
 				onExerciseChanged: (new_text) => splitModel.setExerciseName(splitModel.workingExercise, splitModel.workingSubExercise, new_text);
 				onItemClicked: splitModel.workingExercise = index;
@@ -318,18 +322,24 @@ ListView {
 					id: chkTrackRestTime
 					text: splitModel.trackRestTimeLabel
 					checked: splitModel.trackRestTime(index)
-					width: listItem.width*0.5
+					width: listItem.width * 0.5
 
-					onClicked: splitModel.setTrackRestTime(index, checked);
+					onClicked: {
+						splitModel.setTrackRestTime(index, checked);
+						delegate.enabledRestTime = checked;
+					}
 				}
 
 				TPCheckBox {
 					id: chkAutoRestTime
 					text: splitModel.autoRestTimeLabel
 					checked: splitModel.autoRestTime(index)
-					width: listItem.width*0.5
+					width: listItem.width * 0.5
 
-					onClicked: splitModel.setAutoRestTime(index, checked);
+					onClicked: {
+						splitModel.setAutoRestTime(index, checked);
+						delegate.enabledRestTime = !checked;
+					}
 				}
 			}
 
@@ -415,8 +425,8 @@ ListView {
 										text: qsTr("Set # ") + parseInt(index + 1)
 										checkable: true
 										checked: index === setsTabBar.currentIndex
-										width: setsGroup.width*0.22
-										height: setsTabBar.height*0.95
+										width: setsGroup.width * 0.22
+										height: setsTabBar.height * 0.95
 
 										contentItem: Label {
 											text: tabButton.text
@@ -460,13 +470,13 @@ ListView {
 
 					Row {
 						Layout.alignment: Qt.AlignCenter
-						Layout.preferredWidth: listItem.width*0.9
+						Layout.preferredWidth: listItem.width * 0.9
 						padding: 10
 						enabled: setsGroup.nSets > 0
 
 						TPLabel {
 							text: splitModel.setTypeLabel
-							width: listItem.width*0.36
+							width: listItem.width * 0.36
 						}
 
 						TPComboBox {
@@ -474,27 +484,27 @@ ListView {
 							enabled: index === splitModel.workingExercise
 							model: AppGlobals.setTypesModel
 							currentIndex: splitModel.setType(index, splitModel.workingSubExercise, splitModel.workingSet)
-							width: listItem.width*0.45
+							width: listItem.width * 0.45
 
 							onActivated: (cboIndex) => splitModel.setSetType(index, splitModel.workingSubExercise, splitModel.workingSet, cboIndex);
 						}
 					} //RowLayout
 
 					RowLayout {
-						visible: cboSetType.currentIndex >= 3
+						visible: setsGroup.nSets > 0 && cboSetType.currentIndex >= 3
 						Layout.alignment: Qt.AlignCenter
-						Layout.preferredWidth: listItem.width*0.9
+						Layout.preferredWidth: listItem.width * 0.9
 
 						TPLabel {
 							text: splitModel.setTotalSubsets
-							Layout.preferredWidth: listItem.width*0.63
+							Layout.preferredWidth: listItem.width * 0.63
 						}
 
 						SetInputField {
 							id: txtNSubsets
 							text: splitModel.setSubSets(index, splitModel.workingSubExercise, splitModel.workingSet)
 							type: SetInputField.Type.SetType
-							availableWidth: listItem.width*0.25
+							availableWidth: listItem.width * 0.25
 							showLabel: false
 
 							onValueChanged: (str) => splitModel.setSetSubSets(splitModel.workingExercise,
@@ -507,8 +517,8 @@ ListView {
 						id: txtRestTime
 						type: SetInputField.Type.TimeType
 						text: splitModel.setRestTime(index, splitModel.workingSubExercise, splitModel.workingSet)
-						availableWidth: listItem.width*0.9
-						enabled: cboSetType.currentIndex >= 0 && splitModel.trackRestTime(index) && !splitModel.autoRestTime(index)
+						availableWidth: listItem.width * 0.9
+						enabled: setsGroup.nSets > 0 && cboSetType.currentIndex >= 0 && delegate.enabledRestTime
 						Layout.alignment: Qt.AlignCenter
 
 						onValueChanged: (str) => splitModel.setSetRestTime(splitModel.workingExercise,
@@ -519,8 +529,8 @@ ListView {
 						id: txtNReps
 						text: splitModel.setReps(index, splitModel.workingSubExercise, splitModel.workingSet)
 						type: SetInputField.Type.RepType
-						availableWidth: listItem.width*0.9
-						enabled: cboSetType.currentIndex >= 0
+						availableWidth: listItem.width * 0.9
+						enabled: setsGroup.nSets > 0 && cboSetType.currentIndex >= 0
 						Layout.alignment: Qt.AlignCenter
 
 						onValueChanged: (str) => splitModel.setSetReps(splitModel.workingExercise,
@@ -532,8 +542,8 @@ ListView {
 						id: txtNWeight
 						text: splitModel.setWeight(index, splitModel.workingSubExercise, splitModel.workingSet)
 						type: SetInputField.Type.WeightType
-						availableWidth: listItem.width*0.9
-						enabled: cboSetType.currentIndex >= 0
+						availableWidth: listItem.width * 0.9
+						enabled: setsGroup.nSets > 0 && cboSetType.currentIndex >= 0
 						Layout.alignment: Qt.AlignCenter
 
 						onValueChanged: (str) => splitModel.setSetWeight(splitModel.workingExercise,

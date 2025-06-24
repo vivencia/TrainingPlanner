@@ -32,14 +32,16 @@ ComboBox {
 			text: model.text
 			enabled: model.enabled
 			leftPadding: completeModel ? 30 : 5
+			widthAvailable: completeModel ? control.width - 30 : control.width
+			singleLine: true
 
 			TPImage {
 				id: lblImg
 				source: completeModel ? model.icon : ""
 				dropShadow: false
 				visible: completeModel
-				width: 20
-				height: 20
+				width: appSettings.itemDefaultHeight * 0.9
+				height: width
 
 				anchors {
 					left: parent.left
@@ -55,7 +57,7 @@ ComboBox {
 		id: canvas
 		x: control.width - width - control.rightPadding
 		y: control.topPadding + (control.availableHeight - height) / 2
-		width: 12
+		width: appSettings.itemDefaultHeight / 2
 		height: 8
 		contextType: "2d"
 
@@ -81,15 +83,15 @@ ComboBox {
 		text: control.displayText
 		leftPadding: completeModel ? 30 : 5
 		widthAvailable: completeModel ? control.width - 30 : control.width
-		elide: Text.ElideMiddle
+		singleLine: true
 	}
 
 	TPImage {
 		visible: completeModel
 		source: completeModel ? model.get(currentIndex).icon : ""
 		dropShadow: false
-		width: 18
-		height: 18
+		width: appSettings.itemDefaultHeight * 0.9
+		height: width
 
 		anchors {
 			left: parent.left

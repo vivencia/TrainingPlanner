@@ -34,7 +34,7 @@ TPPage {
 
 	header: TPToolBar {
 		id: topToolBar
-		height: toolbarLayout.childrenRect.height
+		height: toolbarLayout.childrenRect.height * 1.1
 
 		ColumnLayout {
 			id: toolbarLayout
@@ -74,12 +74,12 @@ TPPage {
 
 				TPLabel {
 					text: qsTr("Go to exercise #: ")
-					width: parent.width* 0.3
+					width: parent.width * 0.4
 				}
 
 				TPComboBox {
 					id: cboGoToExercise
-					width: parent.width* 0.65
+					width: parent.width * 0.6
 
 					property int current_exercise
 
@@ -87,7 +87,10 @@ TPPage {
 						id: cboModel
 					}
 
-					onActivated: (cboIndex) => currentSplitPage.positionViewAtIndex(cboIndex, ListView.Contain);
+					onActivated: (cboIndex) => {
+						currentSplitPage.positionViewAtIndex(cboIndex, ListView.Contain);
+						currentSplitPage.splitModel.workingExercise = cboIndex;
+					}
 
 					function addExerciseToCombo(exercise_number: int): void {
 						cboModel.append({ text: String(exercise_number+1) + ": " + currentSplitPage.splitModel.exerciseName(exercise_number, 0),
@@ -195,7 +198,7 @@ TPPage {
 		id: bottomToolBar
 		height: footerHeight
 
-		readonly property int buttonWidth: width*0.22
+		readonly property int buttonWidth: width * 0.22
 
 		TPButton {
 			id: btnClearPlan
