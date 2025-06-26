@@ -11,9 +11,8 @@ import "../Pages"
 
 Frame {
 	id: frmImport
-	spacing: 15
-	padding: 0
 	height: moduleHeight
+	padding: 0
 	implicitHeight: Math.min(height, moduleHeight)
 
 	background: Rectangle {
@@ -24,8 +23,7 @@ Frame {
 	property bool bReady: false
 	property bool bImport: false
 	readonly property int nControls: 7
-	readonly property int controlsHeight: 25
-	readonly property int moduleHeight: nControls*(controlsHeight) + 15
+	readonly property int moduleHeight: (nControls*appSettings.itemDefaultHeight) + 15
 
 	Connections {
 		target: userModel
@@ -60,7 +58,6 @@ Frame {
 
 		anchors {
 			top: parent.top
-			topMargin: 5
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -81,7 +78,6 @@ Frame {
 
 		anchors {
 			top: optNewUser.bottom
-			topMargin: 10
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -96,7 +92,7 @@ Frame {
 
 		anchors {
 			top: optImportUser.bottom
-			topMargin: 10
+			topMargin: 5
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -138,7 +134,7 @@ Frame {
 
 		anchors {
 			top: txtEmail.bottom
-			topMargin: 5
+			topMargin: 15
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -151,7 +147,6 @@ Frame {
 
 	RowLayout {
 		spacing: 10
-		height: controlsHeight
 
 		anchors {
 			top: passwordControl.bottom
@@ -166,6 +161,7 @@ Frame {
 			id: btnCheckEMail
 			text: userModel.checkEmailLabel
 			enabled: false
+			autoSize: true
 			Layout.alignment: Qt.AlignCenter
 
 			onClicked: {
@@ -178,6 +174,7 @@ Frame {
 			id: btnImport
 			text: userModel.importUserLabel
 			enabled: bImport
+			autoSize: true
 			Layout.alignment: Qt.AlignCenter
 
 			onClicked: {

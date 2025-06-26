@@ -32,7 +32,6 @@ ComboBox {
 			text: model.text
 			enabled: model.enabled
 			leftPadding: completeModel ? 30 : 5
-			widthAvailable: completeModel ? control.width - 30 : control.width
 			singleLine: true
 
 			TPImage {
@@ -82,7 +81,6 @@ ComboBox {
 	contentItem: TPLabel {
 		text: control.displayText
 		leftPadding: completeModel ? 30 : 5
-		widthAvailable: completeModel ? control.width - 30 : control.width
 		singleLine: true
 	}
 

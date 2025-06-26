@@ -150,6 +150,7 @@ set( QML_SOURCES
     "qml/AppGlobals.qml"
     "qml/ImageViewer.qml"
     "qml/main.qml"
+	"qml/tests.qml"
     "qml/VideoPlayer.qml"
     "qml/Dialogs/CalendarDialog.qml"
     "qml/Dialogs/FirstTimeDialog.qml"

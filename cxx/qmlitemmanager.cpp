@@ -119,6 +119,22 @@ void QmlItemManager::configureQmlEngine()
 	properties[8] = std::move(QQmlContext::PropertyPair{ "pagesListModel"_L1, QVariant::fromValue(m_pagesManager = new PagesListModel{this}) });
 	properties[9] = std::move(QQmlContext::PropertyPair{ "appMessages"_L1, QVariant::fromValue(new TPMessagesManager{this}) });
 	appQmlEngine()->rootContext()->setContextProperties(properties);
+	appQmlEngine()->addImportPath(":/"_L1);
+	appQmlEngine()->addImageProvider("tpimageprovider"_L1, new TPImageProvider{});
+
+#ifndef Q_OS_ANDROID
+	#ifndef QT_NO_DEBUG
+	const QStringList &args{qApp->arguments()};
+	if (args.count() > 1)
+	{
+		if (args.at(1) == "-test"_L1)
+		{
+			appQmlEngine()->load(QUrl::fromLocalFile("/home/guilhermef/software/trainingplanner/qml/tests.qml"));
+			return;
+		}
+	}
+	#endif
+#endif
 
 	const QUrl &url{"qrc:/qml/main.qml"_L1};
 	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(), [url] (const QObject *const obj, const QUrl &objUrl) {
@@ -128,8 +144,6 @@ void QmlItemManager::configureQmlEngine()
 			QCoreApplication::exit(-1);
 		}
 	});
-	appQmlEngine()->addImportPath(":/"_L1);
-	appQmlEngine()->addImageProvider("tpimageprovider"_L1, new TPImageProvider{});
 	appQmlEngine()->load(url);
 
 	_appMainWindow = qobject_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));

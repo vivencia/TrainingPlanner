@@ -81,19 +81,7 @@ Rectangle {
 
 	Component.onCompleted: {
 		if (imageSource.length > 0)
-		{
-			let component = Qt.createComponent("TPButtonImage.qml", Qt.Asynchronous);
-
-			function finishCreation() {
-				_buttonImage = component.createObject(button,
-					{ imageSource: imageSource, width: imageSize, height: imageSize, dropShadow: hasDropShadow});
-				anchorImage();
-			}
-			if (component.status === Component.Ready)
-				finishCreation();
-			else
-				component.statusChanged.connect(finishCreation);
-		}
+			createImageComponent();
 	}
 
 	onImageSourceChanged: {
@@ -103,6 +91,12 @@ Rectangle {
 				_buttonImage.destroy();
 				_buttonImage = 0;
 			}
+		}
+		else {
+			if (!_buttonImage)
+				createImageComponent();
+			else
+				_buttonImage.imageSource = button.imageSource;
 		}
 	}
 
@@ -231,5 +225,19 @@ Rectangle {
 				}
 			}
 		}
+	}
+
+	function createImageComponent(): void {
+		let component = Qt.createComponent("TPButtonImage.qml", Qt.Asynchronous);
+
+		function finishCreation() {
+			_buttonImage = component.createObject(button,
+				{ imageSource: imageSource, width: imageSize, height: imageSize, dropShadow: hasDropShadow});
+			anchorImage();
+		}
+		if (component.status === Component.Ready)
+			finishCreation();
+		else
+			component.statusChanged.connect(finishCreation);
 	}
 } //Rectangle

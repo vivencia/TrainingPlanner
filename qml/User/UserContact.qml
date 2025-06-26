@@ -8,8 +8,8 @@ import ".."
 import "../TPWidgets"
 
 ColumnLayout {
-	id: userModule
-	spacing: 5
+	id: userContactModule
+	spacing: 10
 
 	required property int userRow
 	property bool bReady: bPhoneOK & bEmailOK & bSocialOK
@@ -31,25 +31,29 @@ ColumnLayout {
 	TPLabel {
 		id: lblPhone
 		text: userModel.phoneLabel
+		Layout.fillWidth: true
+		Layout.topMargin: 10
 	}
 
 	TPTextInput {
 		id: txtPhone
 		inputMethodHints: Qt.ImhDigitsOnly
-		inputMask: "+55\\(99\\)99999\\-9999;_"
+		validator: RegularExpressionValidator { regularExpression: /\+?[0-9]{0,2} ?(\([0-9]{0,2}\))? ?[0-9]{0,5}-?[0-9]{0,4}/ }
+		placeholderText: "+55 (XX) XXXXX-XXXX"
+		maximumLength: 19
 		ToolTip.text: qsTr("Invalid phone number")
 		readOnly: userRow !== 0
-		Layout.maximumWidth: userModule.width*0.85
-		Layout.minimumWidth: userModule.width*0.85
+		Layout.maximumWidth: userContactModule.width * 0.85
+		Layout.minimumWidth: userContactModule.width * 0.85
 
 		onEditingFinished: userModel.setPhone(userRow, text);
 
 		onActiveFocusChanged: {
 			if (activeFocus) {
-				if (text.length < 17)
+				if (text.length < 19)
 					cursorPosition = 4;
 				else
-					cursorPosition = 17;
+					cursorPosition = 19;
 			}
 		}
 
@@ -59,7 +63,12 @@ ColumnLayout {
 		}
 
 		onTextEdited: {
-			if (text.length === 17) {
+			let oldText = text;
+			let oldCursor = cursorPosition;
+			let digits = oldText.replace(/\D/g, '');
+			text = formatPhoneNumber(digits);
+			cursorPosition = adjustCursorPosition(oldText, text, oldCursor);
+			if (text.length === 19) {
 				ToolTip.visible = false;
 				bPhoneOK = true;
 			}
@@ -72,14 +81,12 @@ ColumnLayout {
 		TPButton {
 			id: btnWhatsApp
 			imageSource: "whatsapp"
-			enabled: bPhoneOK
-			visible: userRow !== 0
+			enabled: userRow !== 0 && bPhoneOK
 			width: appSettings.itemDefaultHeight
 			height: width
 
 			anchors {
 				left: txtPhone.right
-				leftMargin: 5
 				verticalCenter: txtPhone.verticalCenter
 			}
 
@@ -89,14 +96,12 @@ ColumnLayout {
 		TPButton {
 			id: btnTelegram
 			imageSource: "telegram"
-			enabled: bPhoneOK
-			visible: userRow !== 0
+			enabled: userRow !== 0 && bPhoneOK
 			width: appSettings.itemDefaultHeight
 			height: width
 
 			anchors {
 				left: btnWhatsApp.right
-				leftMargin: 5
 				verticalCenter: txtPhone.verticalCenter
 			}
 
@@ -107,6 +112,7 @@ ColumnLayout {
 	TPLabel {
 		id: lblEmail
 		text: userModel.emailLabel
+		Layout.fillWidth: true
 	}
 
 	TPTextInput {
@@ -115,8 +121,8 @@ ColumnLayout {
 		enabled: bPhoneOK
 		readOnly: userRow !== 0
 		ToolTip.text: userModel.invalidEmailLabel
-		Layout.maximumWidth: userModule.width*0.85
-		Layout.minimumWidth: userModule.width*0.85
+		Layout.maximumWidth: userContactModule.width*0.85
+		Layout.minimumWidth: userContactModule.width*0.85
 
 		onEditingFinished: userModel.setEmail(userRow, text);
 
@@ -138,25 +144,30 @@ ColumnLayout {
 
 		TPButton {
 			imageSource: "email"
-			enabled: bEmailOK
-			visible: userRow !== 0
+			enabled: userRow !== 0 && bEmailOK
 			width: appSettings.itemDefaultHeight
 			height: width
 
 			onClicked: osInterface.sendMail(txtEmail.text, "", "");
+
+			anchors {
+				left: parent.right
+				verticalCenter: parent.verticalCenter
+			}
 		}
 	}
 
 	TPLabel {
 		id: lblSocial
 		text: userModel.socialMediaLabel
+		Layout.fillWidth: true
 	}
 
 	TPComboBox {
 		id: cboSocial
 		model: socialModel
 		completeModel: true
-		Layout.preferredWidth: userModule.width*0.6
+		Layout.minimumWidth: userContactModule.width*0.6
 
 		ListModel {
 			id: socialModel
@@ -177,9 +188,9 @@ ColumnLayout {
 		id: txtSocial
 		enabled: bEmailOK
 		readOnly: userRow !== 0
-		Layout.maximumWidth: userModule.width*0.6
-		Layout.minimumWidth: userModule.width*0.6
 		ToolTip.text: qsTr("Social media address is invalid")
+		Layout.maximumWidth: userContactModule.width*0.85
+		Layout.minimumWidth: userContactModule.width*0.85
 
 		onEditingFinished: userModel.setSocialMedia(userRow, cboSocial.currentIndex, text);
 		onTextEdited: checkSocial()
@@ -205,6 +216,48 @@ ColumnLayout {
 			onClicked: osInterface.openURL(txtSocial.text);
 		}
 	} //txtSocial
+
+	function formatPhoneNumber(digits: string) : string {
+		// Remove all non-digits
+		digits = digits.replace(/\D/g, '');
+
+		// Format based on length
+		let formatted = "";
+		if (digits.length === 0)
+			return ""; // Empty input shows nothing
+		else if (digits.length <= 2)
+			formatted = "+" + digits;
+		else if (digits.length <= 4)
+			formatted = "+" + digits.substring(0, 2) + " (" + digits.substring(2) + ")";
+		else if (digits.length <= 9)
+			formatted = "+" + digits.substring(0, 2) + " (" + digits.substring(2, 4) + ") " + digits.substring(4);
+		else
+			formatted = "+" + digits.substring(0, 2) + " (" + digits.substring(2, 4) + ") " + digits.substring(4, 9) + "-" + digits.substring(9);
+		return formatted;
+	}
+
+	// Function to calculate cursor position after formatting
+	function adjustCursorPosition(oldText: string, newText: string, oldCursor: int) : void {
+		// Count non-digit characters (formatting chars) up to old cursor position
+		let nonDigitsBeforeCursor = oldText.substring(0, oldCursor).replace(/[0-9]/g, '').length;
+		// Count digits up to old cursor position
+		let digitsBeforeCursor = oldText.substring(0, oldCursor).replace(/\D/g, '').length;
+		// Calculate new cursor position in formatted text
+		let newFormatted = formatPhoneNumber(newText.replace(/\D/g, ''));
+		let digitCount = 0;
+		let nonDigitCount = 0;
+		for (let i = 0; i < newFormatted.length; i++) {
+			if (/\d/.test(newFormatted[i])) {
+				digitCount++;
+				if (digitCount === digitsBeforeCursor) {
+					return i + 1; // Place cursor after the current digit
+				}
+			} else {
+				nonDigitCount++;
+			}
+		}
+		return newFormatted.length; // Fallback to end of text
+	}
 
 	function getUserInfo(): void {
 		if (userRow === -1)

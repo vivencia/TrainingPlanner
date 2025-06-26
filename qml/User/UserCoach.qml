@@ -11,8 +11,8 @@ import "../TPWidgets"
 import "../Pages"
 
 ColumnLayout {
-	id: userModule
-	spacing: 5
+	id: userCoachModule
+	spacing: 30
 
 	required property int userRow
 	required property TPPage parentPage
@@ -40,8 +40,8 @@ ColumnLayout {
 		text: qsTr("I will use this application to track my own workouts only")
 		multiLine: true
 		actionable: userRow === 0
-		Layout.maximumWidth: userModule.width
-		Layout.minimumWidth: userModule.width
+		Layout.fillWidth: true
+		Layout.topMargin: 30
 
 		onClicked: {
 			bReady = checked;
@@ -56,8 +56,7 @@ ColumnLayout {
 		text: qsTr("I will use this application to track my own workouts and/or coach or train other people")
 		multiLine: true
 		actionable: userRow === 0
-		Layout.maximumWidth: userModule.width
-		Layout.minimumWidth: userModule.width
+		Layout.fillWidth: true
 
 		onClicked: {
 			bCoachOK = checked;
@@ -67,11 +66,10 @@ ColumnLayout {
 		}
 	}
 
-	RowLayout {
+	Row {
 		id: onlineCoachRow
 		visible: userModel.mainUserConfigured && optCoachUse.checked && userRow === 0
-		Layout.maximumWidth: userModule.width
-		Layout.minimumWidth: userModule.width
+		Layout.fillWidth: true
 
 		TPCheckBox {
 			id: chkOnlineCoach
@@ -79,7 +77,7 @@ ColumnLayout {
 			checked: userModel.isCoachRegistered();
 			multiLine: true
 			actionable: userRow === 0
-			Layout.preferredWidth: parent.width/2
+			Layout.maximumWidth: parent.width/2
 
 			Connections {
 				target: userModel
@@ -104,7 +102,7 @@ ColumnLayout {
 			text: qsTr("Send Résumé")
 			autoSize: true
 			enabled: chkOnlineCoach.checked
-			Layout.preferredWidth: parent.width/2
+			Layout.maximumWidth: parent.width/2
 
 			onClicked: bChooseResume = true;
 		}
@@ -164,8 +162,7 @@ ColumnLayout {
 		text: qsTr("I have a coach or a personal trainer")
 		multiLine: true
 		actionable: userRow === 0
-		Layout.maximumWidth: userModule.width
-		Layout.minimumWidth: userModule.width
+		Layout.fillWidth: true
 
 		onClicked: {
 			if (checked)

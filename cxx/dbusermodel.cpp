@@ -297,16 +297,13 @@ void DBUserModel::addCoach(const uint user_idx)
 
 void DBUserModel::delCoach(const uint user_idx)
 {
-	if (user_idx > 0)
-	{
-		m_coachesNames.removeOne(userId(0));
-		emit coachesNamesChanged();
-		clearUserDir(userId(user_idx));
-		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,user_idx] (const QString &key, const QString &value) {
-			appOnlineServices()->removeCoachFromClient(0, key, value, userId(user_idx));
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		appKeyChain()->readKey(userId(0));
-	}
+	m_coachesNames.removeOne(userId(0));
+	emit coachesNamesChanged();
+	clearUserDir(userId(user_idx));
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,user_idx] (const QString &key, const QString &value) {
+		appOnlineServices()->removeCoachFromClient(0, key, value, userId(user_idx));
+	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	appKeyChain()->readKey(userId(0));
 }
 
 void DBUserModel::addClient(const uint user_idx)

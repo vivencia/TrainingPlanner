@@ -7,10 +7,9 @@ import ".."
 TPLabel {
 	id: lblMain
 	text: qsTr("Welcome to the Training Planner app!\nLet's first setup the application by creating your profile.")
-	wrapMode: Text.WordWrap
 	horizontalAlignment: Text.AlignJustify
-	verticalAlignment: Text.AlignVCenter
 	font: AppGlobals.extraLargeFont
+	wrapMode: Text.WordWrap
 
 	readonly property bool bReady: true
 

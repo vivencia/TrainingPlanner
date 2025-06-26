@@ -9,10 +9,9 @@ import "../TPWidgets"
 import "../Dialogs"
 import "../Pages"
 
-Column {
-	id: frmUserData
-	spacing: 5
-	padding: 5
+ColumnLayout {
+	id: userPersonalModule
+	spacing: 10
 
 	required property TPPage parentPage
 	required property int userRow
@@ -36,13 +35,16 @@ Column {
 	TPLabel {
 		id: lblName
 		text: userModel.nameLabel
+		Layout.fillWidth: true
+		Layout.topMargin: 10
 	}
 
 	TPTextInput {
 		id: txtName
 		readOnly: userRow !== 0
-		width: parent.width*0.9
 		ToolTip.text: qsTr("The name is too short")
+		Layout.minimumWidth: parent.width*0.9
+		Layout.maximumWidth: parent.width*0.9
 
 		property bool bTextChanged: false
 
@@ -71,9 +73,8 @@ Column {
 		text: qsTr("Change password")
 		imageSource: "password"
 		flat: false
-		width: parent.width*0.7
-		height: appSettings.itemDefaultHeight
 		visible: userRow === 0 && userModel.mainUserConfigured
+		Layout.preferredWidth: parent.width*0.7
 		Layout.alignment: Qt.AlignCenter
 
 		onClicked: changePasswordLoader.active = true;
@@ -83,6 +84,8 @@ Column {
 		id: passwordControl
 		enabled: bNameOK
 		visible: userRow === 0 && !userModel.mainUserConfigured
+		Layout.fillWidth: true
+		Layout.topMargin: 10
 
 		onPasswordUnacceptable: bPasswordOK = false;
 		onPasswordAccepted: {
@@ -96,7 +99,7 @@ Column {
 		active: false
 		asynchronous: true
 		sourceComponent: UserChangePassword {
-			parentPage: frmUserData.parentPage
+			parentPage: userPersonalModule.parentPage
 		}
 
 		onLoaded: item.show(-1);
@@ -105,20 +108,22 @@ Column {
 	TPLabel {
 		id: lblBirthdate
 		text: userModel.birthdayLabel
+		Layout.fillWidth: true
 	}
 
 	TPTextInput {
 		id: txtBirthdate
 		readOnly: true
 		enabled: bPasswordOK
-		width: parent.width*0.6
+		Layout.minimumWidth: parent.width*0.6
+		Layout.maximumWidth: parent.width*0.6
 
 		CalendarDialog {
 			id: caldlg
 			showDate: userModel.birthDate(userRow)
 			initDate: new Date(1940, 0, 1)
 			finalDate: new Date()
-			parentPage: frmUserData.parentPage
+			parentPage: userPersonalModule.parentPage
 
 			onDateSelected: (date) => {
 				userModel.setBirthDate(userRow, date);
@@ -144,17 +149,22 @@ Column {
 		}
 	}
 
-	RowLayout {
-		spacing: 10
-		width: parent.width
+	Item {
+		height: appSettings.itemDefaultHeight
+		Layout.fillWidth: true
+		Layout.topMargin: 10
 
 		TPRadioButton {
 			id: chkMale
 			text: qsTr("Male")
 			actionable: userRow === 0
 			checked: userModel.sex() === 0
-			Layout.preferredWidth: parent.width/2
-			Layout.alignment: Qt.AlignCenter
+			width: parent.width/2
+
+			anchors {
+				left: parent.left
+				verticalCenter: parent.verticalCenter
+			}
 
 			onClicked: {
 				bSexOK = true;
@@ -170,8 +180,7 @@ Column {
 			text: qsTr("Female")
 			actionable: userRow === 0
 			checked: userModel.sex() === 1
-			Layout.preferredWidth: parent.width/2
-			Layout.alignment: Qt.AlignCenter
+			width: parent.width/2
 
 			onClicked: {
 				bSexOK = true;
@@ -179,6 +188,11 @@ Column {
 					chkMale.checked = false;
 					userModel.setSex(userRow, false);
 				}
+			}
+
+			anchors {
+				right: parent.right
+				verticalCenter: parent.verticalCenter
 			}
 		}
 	}

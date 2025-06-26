@@ -609,8 +609,8 @@ void OSInterface::processArguments() const
 	if (args.count() > 1)
 	{
 		QString filename;
-		for (uint i{1}; i < args.count(); ++i)
-			filename += args.at(i) + ' ';
+		for (const auto &arg : args)
+			filename += arg + ' ';
 		filename.chop(1);
 		const QFileInfo file{filename};
 		if (file.isFile())

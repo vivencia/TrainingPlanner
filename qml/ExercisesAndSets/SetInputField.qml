@@ -58,10 +58,9 @@ FocusScope {
 		locale: appSettings.appLocale
 	}
 
-	IntValidator {
+	RegularExpressionValidator {
 		id: val_time
-		bottom: 0
-		top: 59
+		regularExpression: /\^[0-5][0-9][:][0-5][0-9]$/
 	}
 
 	IntValidator {
@@ -140,9 +139,9 @@ FocusScope {
 			validator: validatorType[type]
 			inputMethodHints: type <= SetInputField.Type.RepType ? Qt.ImhFormattedNumbersOnly : Qt.ImhDigitsOnly
 			maximumLength: maxLen[type]
-			readOnly: !editable || type === SetInputField.Type.TimeType
+			readOnly: !editable
 			padding: 0
-			focus: type !== SetInputField.Type.TimeType
+			focus: true
 
 			width: {
 				switch (type) {
@@ -183,6 +182,15 @@ FocusScope {
 				}
 			}
 
+			onTextEdited: {
+				if (type === SetInputField.Type.TimeType) {
+					let oldText = text;
+					let oldCursor = cursorPosition;
+					let digits = oldText.replace(/\D/g, '');
+					text = formatTime(digits);
+					cursorPosition = adjustCursorPosition(oldText, text, oldCursor);
+				}
+			}
 			onTextChanged: if (!activeFocus) clearInput = true;
 			onEditingFinished: valueChanged(text = sanitizeText(text));
 		} //TextInput
@@ -235,10 +243,48 @@ FocusScope {
 		}
 	} //Rectangle
 
-	function sanitizeText(text): void {
+	function sanitizeText(text) : void {
 		text = text.replace('.', ',');
 		text = text.replace('-', '');
 		text = text.replace('E', '');
 		return text.trim();
+	}
+
+	function formatTime(digits: string) : string {
+		// Remove all non-digits
+		digits = digits.replace(/\D/g, '');
+
+		// Format based on length
+		let formatted = "";
+		if (digits.length === 0)
+			return ""; // Empty input shows nothing
+		else if (digits.length <= 2)
+			formatted = digits + ":";
+		else
+			formatted = digits.substring(0, 2) + ":" + digits.substring(2)
+		return formatted;
+	}
+
+	// Function to calculate cursor position after formatting
+	function adjustCursorPosition(oldText: string, newText: string, oldCursor: int) : void {
+		// Count non-digit characters (formatting chars) up to old cursor position
+		let nonDigitsBeforeCursor = oldText.substring(0, oldCursor).replace(/[0-9]/g, '').length;
+		// Count digits up to old cursor position
+		let digitsBeforeCursor = oldText.substring(0, oldCursor).replace(/\D/g, '').length;
+		// Calculate new cursor position in formatted text
+		let newFormatted = formatTime(newText.replace(/\D/g, ''));
+		let digitCount = 0;
+		let nonDigitCount = 0;
+		for (let i = 0; i < newFormatted.length; i++) {
+			if (/\d/.test(newFormatted[i])) {
+				digitCount++;
+				if (digitCount === digitsBeforeCursor) {
+					return i + 1; // Place cursor after the current digit
+				}
+			} else {
+				nonDigitCount++;
+			}
+		}
+		return newFormatted.length; // Fallback to end of text
 	}
 } //FocusScope

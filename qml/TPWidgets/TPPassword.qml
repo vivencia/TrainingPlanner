@@ -35,11 +35,12 @@ FocusScope {
 	TPTextInput {
 		id: txtPassword
 		heightAdjustable: false
+		showClearTextButton: true
 		echoMode: btnShowHidePassword.show ? TextInput.Normal : TextInput.Password
 		inputMethodHints: Qt.ImhSensitiveData|Qt.ImhNoPredictiveText
 		validator: RegularExpressionValidator { regularExpression: /^[^# &?="']*$/ }
+		rightPadding:  defaultPadding + btnShowHidePassword.width + 5
 		focus: true
-		height: 25
 
 		property bool inputOK: false
 		property bool matchOK: true
@@ -86,21 +87,22 @@ FocusScope {
 			topMargin: 5
 			left: parent.left
 			right: parent.right
-			rightMargin: showAcceptButton ? 20 : 0
+			rightMargin: showAcceptButton ? appSettings.itemDefaultHeight + 5 : 5
 		}
 
 		TPButton {
 			id: btnShowHidePassword
 			imageSource: show ? "hide-password.png" : "show-password.png"
 			hasDropShadow: false
-			imageSize: 20
+			width: appSettings.itemDefaultHeight
+			height: width
 			focus: false
 
 			property bool show: false
 
 			anchors {
-				right: btnClearText.left
-				rightMargin: 5
+				right: parent.right
+				rightMargin: txtPassword.defaultPadding + 5
 				verticalCenter: txtPassword.verticalCenter
 			}
 
@@ -109,31 +111,13 @@ FocusScope {
 				txtPassword.forceActiveFocus();
 			}
 		}
-
-		TPButton {
-			id: btnClearText
-			imageSource: "edit-clear"
-			hasDropShadow: false
-			imageSize: 20
-			focus: false
-
-			anchors {
-				right: txtPassword.right
-				rightMargin: 5
-				verticalCenter: txtPassword.verticalCenter
-			}
-
-			onClicked: {
-				txtPassword.clear();
-				txtPassword.forceActiveFocus();
-			}
-		}
 	}
 
 	TPButton {
 		id: btnAccept
 		imageSource: "set-completed"
-		height: 25
+		width: appSettings.itemDefaultHeight
+		height: width
 		enabled: txtPassword.inputOK && txtPassword.matchOK
 		visible: showAcceptButton
 

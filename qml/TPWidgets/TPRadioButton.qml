@@ -7,7 +7,8 @@ import "../"
 
 Item {
 	id: control
-	implicitHeight: lblText.height
+	height: lblText.height
+	implicitHeight: height
 
 	property alias text: lblText.text
 	property alias textColor: lblText.color
@@ -37,10 +38,10 @@ Item {
 
 		Rectangle {
 			id: recChecked
-			width: appSettings.itemDefaultHeight*0.5
+			width: appSettings.itemDefaultHeight * 0.5
 			height: width
-			radius: width*0.5
-			x: (indicator.implicitWidth - width)*0.5
+			radius: width * 0.5
+			x: (indicator.implicitWidth - width) * 0.5
 			y: x
 			border.color: control.enabled ? textColor : appSettings.disabledFontColor
 			visible: control.checked
@@ -50,9 +51,8 @@ Item {
 	TPLabel {
 		id: lblText
 		wrapMode: multiLine ? Text.WordWrap : Text.NoWrap
-		//width: Math.max(control.implicitWidth, control.width)
-		topPadding: 5
-		bottomPadding: 5
+		topPadding: 10
+		bottomPadding: 10
 		leftPadding: 0
 		rightPadding: 0
 		visible: text.length > 0
@@ -83,11 +83,9 @@ Item {
 	MouseArea {
 		enabled: actionable
 		anchors.fill: parent
-		z: 2
 
 		onClicked: {
-			if (!control.checked)
-			{
+			if (!control.checked) {
 				control.checked = true;
 				control.clicked();
 			}

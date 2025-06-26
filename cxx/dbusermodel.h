@@ -115,7 +115,8 @@ public:
 	inline const QString localDir(const QString &userid) const { return localDir(userIdxFromFieldValue(USER_COL_ID, userid)); }
 	const QString localDir(const int user_idx) const;
 
-	inline const QString &userId(const int user_idx) const { return m_usersData.at(user_idx).at(USER_COL_ID); }
+	// m_onlineCoachesDir: just a referenceable QString that will not have any meaningful impact elsehwere
+	inline const QString &userId(const int user_idx) const { return user_idx < m_usersData.count() ? m_usersData.at(user_idx).at(USER_COL_ID) : m_onlineCoachesDir; }
 	inline void setUserId(const uint user_idx, const QString &new_id) { m_usersData[user_idx][USER_COL_ID] = new_id; }
 
 	Q_INVOKABLE inline QString userName(const int user_idx) const { return user_idx >= 0 && user_idx < m_usersData.count() ? _userName(user_idx) : QString{}; }

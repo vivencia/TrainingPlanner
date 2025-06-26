@@ -17,15 +17,16 @@ TextField {
 	leftPadding: 5
 	topPadding: 0
 	bottomPadding: 0
-	rightPadding: 5
+	rightPadding: defaultPadding
 	placeholderTextColor: "gray"
 	implicitHeight: suggestedHeight
 
 	property bool showClearTextButton: false
-	property string textColor: appSettings.fontColor
-	property string backgroundColor: appSettings.primaryDarkColor
 	property bool heightAdjustable: true
 	property int suggestedHeight: appSettings.itemDefaultHeight
+	property string textColor: appSettings.fontColor
+	property string backgroundColor: appSettings.primaryDarkColor
+	readonly property int defaultPadding: showClearTextButton ? (text.length > 0 ? btnClearText.width : 0) : 5
 
 	readonly property FontMetrics currentFontMetrics: FontMetrics {
 		font.family: control.font.family
@@ -75,7 +76,7 @@ TextField {
 		imageSource: "edit-clear"
 		hasDropShadow: false
 		visible: showClearTextButton && control.text.length > 0
-		width: appSettings.itemDefaultHeight*0.8
+		width: appSettings.itemDefaultHeight
 		height: width
 
 		anchors {

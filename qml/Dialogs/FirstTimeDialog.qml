@@ -13,11 +13,9 @@ TPPopup {
 	keepAbove: true
 	closeButtonVisible: false
 	width: appSettings.pageWidth - 50
-	height: moduleHeight + frmFooter.height
+	height: appSettings.pageHeight * 0.45
 	x: (appSettings.pageWidth - width)/2 // horizontally centered
 	finalYPos: (appSettings.pageHeight - height)/2 // vertically centered
-
-	readonly property int moduleHeight: usrProfile.height
 
 	StackLayout {
 		id: stackLayout
@@ -81,7 +79,7 @@ TPPopup {
 
 	Frame {
 		id: frmFooter
-		height: 30
+		height: btnPrev.height + 10
 		background: Rectangle {
 			border.width: 0
 			radius: 8
@@ -99,6 +97,7 @@ TPPopup {
 			imageSource: "back.png"
 			hasDropShadow: false
 			iconOnTheLeft: true
+			autoSize: true
 			enabled: stackLayout.currentIndex > 0
 
 			anchors {
@@ -115,6 +114,7 @@ TPPopup {
 			text: stackLayout.currentIndex < stackLayout.count - 1 ? qsTr("Next") : qsTr("Conclude")
 			imageSource: "next.png"
 			hasDropShadow: false
+			autoSize: true
 			enabled: stackLayout.currentIndex < stackLayout.count ? stackLayout.itemAt(stackLayout.currentIndex).bReady : false
 
 			anchors {
