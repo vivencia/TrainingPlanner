@@ -711,6 +711,8 @@ QTime TPUtils::getTimeFromTimeString(const QString &strtime, const TIME_FORMAT f
 
 QString TPUtils::addTimeToStrTime(const QString &strTime, const int addmins, const int addsecs) const
 {
+	if (strTime.isEmpty())
+		return QString{};
 	int secs{QStringView{strTime}.sliced(3, 2).toInt()};
 	int mins{QStringView{strTime}.first(2).toInt()};
 
@@ -969,8 +971,10 @@ QString TPUtils::stripDiacriticsFromString(const QString &src) const
 	return filtered;
 }
 
-QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QString strValue) const
+QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QString strValue, const bool seconds) const
 {
+	if (strValue.isEmpty())
+		return QString{};
 	strValue.replace('.', ',');
 	strValue.replace('-', ""_L1);
 	strValue.replace('E', ""_L1);
@@ -1061,32 +1065,46 @@ QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QStr
 
 		case 2: //SetInputField.Type.TimeType
 		{
+			result = seconds ? strValue.last(2).toUInt() : strValue.first(2).toUInt();
 			if (bIncrease)
 			{
-				result = strValue.last(2).toUInt();
-				if (result >= 55)
+				if (seconds)
 				{
-					++result;
-					if (result >= 60)
-						result = 0;
+					if (result >= 55)
+					{
+						++result;
+						if (result >= 60)
+							result = 0;
+					}
+					else
+						result += 5;
 				}
-				else
-					result += 5;
-				strValue = std::move(strValue.first(3) + (result < 10 ? "0"_L1 : ""_L1) + QString::number(static_cast<uint>(result)));
+				else {
+					if (result < 59)
+						++result;
+				}
 			}
 			else
 			{
-				result = strValue.first(2).toUInt();
-				if (result > 55)
-					--result;
-				else if (result <= 5)
-					--result;
+				if (seconds)
+				{
+					if (result > 55)
+						--result;
+					else if (result <= 5)
+						--result;
+					else
+						result -= 5;
+					if (result < 0)
+						result = 0;
+				}
 				else
-					result -= 5;
-				if (result < 0)
-					result = 0;
-				strValue = std::move((result < 10 ? "0"_L1 : ""_L1) + QString::number(static_cast<uint>(result)) + strValue.last(3));
+				{
+					if (result >= 1)
+						--result;
+				}
 			}
+			const QString &str_result{(result < 10 ? "0"_L1 : ""_L1) + QString::number(result)};
+			strValue = seconds ? strValue.replace(3, 2, str_result) : strValue.replace(0, 2, str_result);
 			return strValue;
 		}
 		break;

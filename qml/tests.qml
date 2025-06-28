@@ -16,20 +16,35 @@ Window {
     height: 300
     title: "TraininPlanner Tests"
 
-    ColumnLayout {
+    Rectangle {
         anchors.fill: parent
+        color: appSettings.paneBackgroundColor
 
-        SetInputField {
-            type: SetInputField.TimeType
-            availableWidth: testWindow.width * 0.9
-            Layout.alignment: Qt.AlignCenter
+        ColumnLayout {
+            anchors.fill: parent
 
-            onValueChanged: (str) => result.text = str;
-        }
+            SetInputField {
+                type: SetInputField.TimeType
+                availableWidth: testWindow.width * 0.9
+                Layout.alignment: Qt.AlignCenter
 
-        TPLabel {
-            id: result
-            Layout.alignment: Qt.AlignCenter
+                onValueChanged: (str) => result.text = str;
+            }
+
+            TPPhoneNumberInput {
+                id: txtPhone
+                Layout.alignment: Qt.AlignCenter
+                Layout.maximumWidth: parent.width * 0.85
+                Layout.minimumWidth: parent.width * 0.85
+
+                onPhoneNumberOKChanged: result.text = phoneNumberOK ? "Phone OK" : "Phone Not OK"
+            }
+
+            TPLabel {
+                id: result
+                Layout.alignment: Qt.AlignCenter
+                Layout.minimumWidth: parent.width * 0.5
+            }
         }
     }
 }

@@ -60,7 +60,7 @@ FocusScope {
 
 	RegularExpressionValidator {
 		id: val_time
-		regularExpression: /\^[0-5][0-9][:][0-5][0-9]$/
+		regularExpression: /^[0-5][0-9]:[0-5][0-9]$/
 	}
 
 	IntValidator {
@@ -105,13 +105,13 @@ FocusScope {
 			}
 
 			onClicked: {
-				txtMain.text = appUtils.addTimeToStrTime(txtMain.text, 1, 0)
+				txtMain.text = appUtils.setTypeOperation(type, true, txtMain.text, false);
 				valueChanged(txtMain.text);
 			}
 		}
 
 		TPButton {
-			id: btnDecrease
+			id: btnDecreaseMinutes
 			imageSource: "minus"
 			hasDropShadow: false
 			width: appSettings.itemDefaultHeight*0.9
@@ -128,7 +128,7 @@ FocusScope {
 
 			onClicked: {
 				clearInput = false;
-				txtMain.text = appUtils.setTypeOperation(type, false, txtMain.text !== "" ? txtMain.text : origText)
+				txtMain.text = appUtils.setTypeOperation(type, false, txtMain.text, false);
 				valueChanged(txtMain.text);
 			}
 		}
@@ -157,7 +157,7 @@ FocusScope {
 			}
 
 			anchors {
-				left: showButtons ? btnDecrease.right : showLabel ? lblMain.right : parent.left
+				left: showButtons ? btnDecreaseMinutes.right : showLabel ? lblMain.right : parent.left
 				leftMargin: 1
 				rightMargin: 1
 				verticalCenter: parent.verticalCenter
@@ -186,8 +186,7 @@ FocusScope {
 				if (type === SetInputField.Type.TimeType) {
 					let oldText = text;
 					let oldCursor = cursorPosition;
-					let digits = oldText.replace(/\D/g, '');
-					text = formatTime(digits);
+					text = formatTime(text);
 					cursorPosition = adjustCursorPosition(oldText, text, oldCursor);
 				}
 			}
@@ -196,7 +195,7 @@ FocusScope {
 		} //TextInput
 
 		TPButton {
-			id: btnIncrease
+			id: btnIncreaseSeconds
 			imageSource: "plus"
 			hasDropShadow: false
 			width: appSettings.itemDefaultHeight*0.9
@@ -213,7 +212,7 @@ FocusScope {
 
 			onClicked: {
 				clearInput = false;
-				txtMain.text = appUtils.setTypeOperation(type, true, txtMain.text !== "" ? txtMain.text : origText)
+				txtMain.text = appUtils.setTypeOperation(type, true, txtMain.text, true);
 				valueChanged(txtMain.text);
 			}
 		}
@@ -228,16 +227,14 @@ FocusScope {
 			enabled: editable
 
 			anchors {
-				left: btnIncrease.right
+				left: btnIncreaseSeconds.right
 				leftMargin: 1
 				rightMargin: 1
 				verticalCenter: parent.verticalCenter
 			}
 
 			onClicked: {
-				const secs = parseInt(txtMain.text.substring(3, 5));
-				const nbr = secs > 5 ? -5 : -1;
-				txtMain.text = appUtils.addTimeToStrTime(txtMain.text, 0, nbr);
+				txtMain.text = appUtils.setTypeOperation(type, false, txtMain.text, true);
 				valueChanged(txtMain.text);
 			}
 		}
@@ -266,13 +263,13 @@ FocusScope {
 	}
 
 	// Function to calculate cursor position after formatting
-	function adjustCursorPosition(oldText: string, newText: string, oldCursor: int) : void {
+	function adjustCursorPosition(oldText: string, newText: string, oldCursor: int) : int {
 		// Count non-digit characters (formatting chars) up to old cursor position
 		let nonDigitsBeforeCursor = oldText.substring(0, oldCursor).replace(/[0-9]/g, '').length;
 		// Count digits up to old cursor position
 		let digitsBeforeCursor = oldText.substring(0, oldCursor).replace(/\D/g, '').length;
 		// Calculate new cursor position in formatted text
-		let newFormatted = formatTime(newText.replace(/\D/g, ''));
+		let newFormatted = formatTime(newText);
 		let digitCount = 0;
 		let nonDigitCount = 0;
 		for (let i = 0; i < newFormatted.length; i++) {
