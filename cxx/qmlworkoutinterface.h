@@ -86,7 +86,7 @@ public:
 	bool dayIsFinished() const;
 	void setDayIsFinished(const bool finished);
 
-	inline QString headerText() const { return m_headerText; }
+	QString headerText() const { return m_headerText; }
 	void setHeaderText(const QString &new_header = QString{});
 	Q_INVOKABLE QString muscularGroup() const;
 

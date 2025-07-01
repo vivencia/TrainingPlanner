@@ -4,23 +4,19 @@ import QtQuick.Controls
 import "../"
 
 Rectangle {
-	width: appSettings.itemDefaultHeight
-	height: appSettings.itemDefaultHeight*1.2
-	color: appSettings.primaryColor
+	width: appSettings.itemDefaultHeight * 1.2
+	height: appSettings.itemDefaultHeight * 1.3
 	enabled: false
 
 	property alias value: list.currentIndex
 	property int max
 
-	Rectangle {
-		anchors.fill: parent
-		gradient: Gradient {
-			orientation: Gradient.Vertical
-			GradientStop { position: 0.0; color: appSettings.primaryLightColor }
-			GradientStop { position: 0.2; color: appSettings.primaryDarkColor }
-			GradientStop { position: 0.8; color: appSettings.primaryDarkColor }
-			GradientStop { position: 1.0; color: appSettings.primaryLightColor }
-		}
+	gradient: Gradient {
+		orientation: Gradient.Vertical
+		GradientStop { position: 0.0; color: appSettings.primaryLightColor }
+		GradientStop { position: 0.2; color: appSettings.primaryDarkColor }
+		GradientStop { position: 0.8; color: appSettings.primaryDarkColor }
+		GradientStop { position: 1.0; color: appSettings.primaryLightColor }
 	}
 
 	ListView {
@@ -35,11 +31,12 @@ Rectangle {
 			minimumPixelSize: 8
 			fontSizeMode: Text.Fit
 			horizontalAlignment: Text.AlignHCenter
+			verticalAlignment: Text.AlignVCenter
 			leftPadding: 5
 			font.bold: true
 			color: appSettings.fontColor
 			text: String(index).length == 1 ? "0" + index : index
-			//anchors.horizontalCenter: parent.horizontalCenter
+			anchors.horizontalCenter: parent.horizontalCenter
 		}
 	}
 }

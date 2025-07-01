@@ -93,9 +93,7 @@ Rectangle {
 			}
 		}
 		else {
-			if (!_buttonImage)
-				createImageComponent();
-			else
+			if (_buttonImage)
 				_buttonImage.imageSource = button.imageSource;
 		}
 	}
@@ -199,30 +197,28 @@ Rectangle {
 		}
 		else
 			buttonText.anchors.verticalCenter = button.verticalCenter;
+		if (_buttonImage)
+			anchorImage();
 	}
 	
 	function anchorImage(): void {
-		if (button.text.length === 0)
-			_buttonImage.anchors.centerIn = button;
+		if (textUnderIcon) {
+			_buttonImage.anchors.top = button.top;
+			_buttonImage.anchors.topMargin = 5;
+			_buttonImage.anchors.horizontalCenter = button.horizontalCenter;
+			_buttonImage.anchors.bottomMargin = 10;
+		}
 		else {
-			if (textUnderIcon) {
-				_buttonImage.anchors.top = button.top;
-				_buttonImage.anchors.topMargin = 5;
-				_buttonImage.anchors.horizontalCenter = button.horizontalCenter;
-				_buttonImage.anchors.bottomMargin = 10;
+			_buttonImage.anchors.verticalCenter = button.verticalCenter;
+			if (iconOnTheLeft) {
+				if (autoSize)
+					buttonText.anchors.horizontalCenterOffset = imageSize/2;
+				_buttonImage.anchors.right = buttonText.left;
 			}
 			else {
-				_buttonImage.anchors.verticalCenter = button.verticalCenter;
-				if (iconOnTheLeft) {
-					if (autoSize)
-						buttonText.anchors.horizontalCenterOffset = imageSize/2;
-					_buttonImage.anchors.right = buttonText.left;
-				}
-				else {
-					if (autoSize)
-						buttonText.anchors.horizontalCenterOffset = -imageSize/2;
-					_buttonImage.anchors.left = buttonText.right;
-				}
+				if (autoSize)
+					buttonText.anchors.horizontalCenterOffset = -imageSize/2;
+				_buttonImage.anchors.left = buttonText.right;
 			}
 		}
 	}
@@ -233,7 +229,8 @@ Rectangle {
 		function finishCreation() {
 			_buttonImage = component.createObject(button,
 				{ imageSource: imageSource, width: imageSize, height: imageSize, dropShadow: hasDropShadow});
-			anchorImage();
+			if (button.text.length === 0)
+				_buttonImage.anchors.centerIn = button;
 		}
 		if (component.status === Component.Ready)
 			finishCreation();

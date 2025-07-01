@@ -96,13 +96,16 @@ void DBMesoCalendarManager::removeCalendarForMeso(const uint meso_idx, const boo
 
 void DBMesoCalendarManager::addCalendarForMeso(const uint meso_idx)
 {
-	uint n_days{0};
-	if (appMesoModel()->_id(meso_idx) >= 0)
-		n_days = static_cast<uint>(appMesoModel()->startDate(meso_idx).daysTo(appMesoModel()->endDate(meso_idx)) + 1);
-	m_dbDataReady.append(TPBool{});
-	m_dayInfoList.append(QList<stDayInfo*>{n_days});
-	m_calendars.append(new DBCalendarModel{this, meso_idx});
-	m_workouts.append(QList<DBExercisesModel*>{n_days});
+	if (meso_idx >= m_dayInfoList.count())
+	{
+		uint n_days{0};
+		if (appMesoModel()->_id(meso_idx) >= 0)
+			n_days = static_cast<uint>(appMesoModel()->startDate(meso_idx).daysTo(appMesoModel()->endDate(meso_idx)) + 1);
+		m_dbDataReady.append(TPBool{});
+		m_dayInfoList.append(QList<stDayInfo*>{n_days});
+		m_calendars.append(new DBCalendarModel{this, meso_idx});
+		m_workouts.append(QList<DBExercisesModel*>{n_days});
+	}
 }
 
 void DBMesoCalendarManager::addNewCalendarForMeso(const uint new_mesoidx)
@@ -198,22 +201,17 @@ void DBMesoCalendarManager::alterCalendarSplits(const uint meso_idx, const QDate
 	}
 }
 
-DBExercisesModel *DBMesoCalendarManager::workoutForDay(const uint meso_idx, const QDate &date)
+DBExercisesModel *DBMesoCalendarManager::workoutForDay(const uint meso_idx, const int calendar_day)
 {
 	DBExercisesModel *w_model{nullptr};
 	if (meso_idx < m_dayInfoList.count())
 	{
-		const int cal_day{calendarDay(meso_idx, date)};
-		if (cal_day >= 0)
+		if (calendar_day >= 0)
 		{
-			QList<DBExercisesModel*> *workouts{&(m_workouts[meso_idx])};
-			if (cal_day >= workouts->count())
-			{
-				for (uint i{static_cast<uint>(workouts->count())}; i < cal_day; ++i)
-					workouts->append(new DBExercisesModel{this, meso_idx, static_cast<int>(i)});
-			}
-			else
-				w_model = workouts->at(cal_day);
+			QList<DBExercisesModel*> &workouts{m_workouts[meso_idx]};
+			if (!workouts.at(calendar_day))
+				workouts[calendar_day] = new DBExercisesModel{this, meso_idx, calendar_day};
+			w_model = workouts.at(calendar_day);
 		}
 	}
 	return w_model;

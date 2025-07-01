@@ -60,7 +60,7 @@ FocusScope {
 
 	RegularExpressionValidator {
 		id: val_time
-		regularExpression: /^[0-5][0-9]:[0-5][0-9]$/
+		regularExpression: /^[0-5][0-9]?:[0-5][0-9]$/
 	}
 
 	IntValidator {
@@ -183,12 +183,8 @@ FocusScope {
 			}
 
 			onTextEdited: {
-				if (type === SetInputField.Type.TimeType) {
-					let oldText = text;
-					let oldCursor = cursorPosition;
+				if (type === SetInputField.Type.TimeType)
 					text = formatTime(text);
-					cursorPosition = adjustCursorPosition(oldText, text, oldCursor);
-				}
 			}
 			onTextChanged: if (!activeFocus) clearInput = true;
 			onEditingFinished: valueChanged(text = sanitizeText(text));
@@ -252,36 +248,15 @@ FocusScope {
 		digits = digits.replace(/\D/g, '');
 
 		// Format based on length
-		let formatted = "";
-		if (digits.length === 0)
-			return ""; // Empty input shows nothing
-		else if (digits.length <= 2)
-			formatted = digits + ":";
-		else
-			formatted = digits.substring(0, 2) + ":" + digits.substring(2)
-		return formatted;
-	}
-
-	// Function to calculate cursor position after formatting
-	function adjustCursorPosition(oldText: string, newText: string, oldCursor: int) : int {
-		// Count non-digit characters (formatting chars) up to old cursor position
-		let nonDigitsBeforeCursor = oldText.substring(0, oldCursor).replace(/[0-9]/g, '').length;
-		// Count digits up to old cursor position
-		let digitsBeforeCursor = oldText.substring(0, oldCursor).replace(/\D/g, '').length;
-		// Calculate new cursor position in formatted text
-		let newFormatted = formatTime(newText);
-		let digitCount = 0;
-		let nonDigitCount = 0;
-		for (let i = 0; i < newFormatted.length; i++) {
-			if (/\d/.test(newFormatted[i])) {
-				digitCount++;
-				if (digitCount === digitsBeforeCursor) {
-					return i + 1; // Place cursor after the current digit
-				}
-			} else {
-				nonDigitCount++;
-			}
+		switch (digits.length) {
+			case 0: return ""; // Empty input shows nothing
+			case 1: return digits;
+			case 2:
+				if (digits === txtMain.text)
+					return digits + ":";
+				else
+					return digits;
+			default: return digits.substring(0, 2) + ":" + digits.substring(2);
 		}
-		return newFormatted.length; // Fallback to end of text
 	}
 } //FocusScope

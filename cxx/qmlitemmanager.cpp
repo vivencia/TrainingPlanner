@@ -122,47 +122,51 @@ void QmlItemManager::configureQmlEngine()
 	appQmlEngine()->addImportPath(":/"_L1);
 	appQmlEngine()->addImageProvider("tpimageprovider"_L1, new TPImageProvider{});
 
+	QUrl url{};
+	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(), [this] (const QObject *const obj, const QUrl &objUrl) {
+		if (!obj)
+		{
+			LOG_MESSAGE("*******************Mainwindow not loaded*******************")
+			QCoreApplication::exit(-1);
+		}
+		else
+		{
+			_appMainWindow = qobject_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));
+			appQmlEngine()->rootContext()->setContextProperty("mainwindow"_L1, QVariant::fromValue(appMainWindow()));
+			if (obj->objectName() == "mainWindow"_L1)
+			{
+				if (!appUserModel()->mainUserConfigured())
+				{
+					QMetaObject::invokeMethod(appMainWindow(), "showFirstUseTimeDialog");
+					connect(appUserModel(), &DBUserModel::mainUserConfigurationFinished, this, [this] () {
+						appOsInterface()->initialCheck();
+					}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+				}
+				else
+					appOsInterface()->initialCheck();
+
+				connect(appMainWindow(), SIGNAL(openFileChosen(QString,int)), this, SLOT(importSlot_FileChosen(QString,int)));
+				connect(appMainWindow(), SIGNAL(openFileRejected(QString)), this, SLOT(importSlot_FileChosen(QString)));
+				connect(appMainWindow(), SIGNAL(saveFileChosen(QString)), this, SLOT(exportSlot(QString)));
+				connect(appMainWindow(), SIGNAL(saveFileRejected(QString)), this, SLOT(exportSlot(QString)));
+			}
+		}
+	});
+
 #ifndef Q_OS_ANDROID
 	#ifndef QT_NO_DEBUG
 	const QStringList &args{qApp->arguments()};
 	if (args.count() > 1)
 	{
 		if (args.at(1) == "-test"_L1)
-		{
-			appQmlEngine()->load(QUrl::fromLocalFile("/home/guilhermef/software/trainingplanner/qml/tests.qml"));
-			return;
-		}
+			url = std::move("qrc:/qml/tests.qml"_L1);
 	}
+	if (url.isEmpty())
+		url = std::move("qrc:/qml/main.qml"_L1);
 	#endif
 #endif
 
-	const QUrl &url{"qrc:/qml/main.qml"_L1};
-	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(), [url] (const QObject *const obj, const QUrl &objUrl) {
-		if (!obj &&url == objUrl)
-		{
-			LOG_MESSAGE("*******************Mainwindow not loaded*******************")
-			QCoreApplication::exit(-1);
-		}
-	});
 	appQmlEngine()->load(url);
-
-	_appMainWindow = qobject_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));
-	connect(appMainWindow(), SIGNAL(openFileChosen(QString,int)), this, SLOT(importSlot_FileChosen(QString,int)));
-	connect(appMainWindow(), SIGNAL(openFileRejected(QString)), this, SLOT(importSlot_FileChosen(QString)));
-	appQmlEngine()->rootContext()->setContextProperty("mainwindow"_L1, QVariant::fromValue(appMainWindow()));
-
-	if (!appUserModel()->mainUserConfigured())
-	{
-		QMetaObject::invokeMethod(appMainWindow(), "showFirstUseTimeDialog");
-		connect(appUserModel(), &DBUserModel::mainUserConfigurationFinished, this, [this] () {
-			appOsInterface()->initialCheck();
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-	}
-	else
-		appOsInterface()->initialCheck();
-
-	connect(appMainWindow(), SIGNAL(saveFileChosen(QString)), this, SLOT(exportSlot(QString)));
-	connect(appMainWindow(), SIGNAL(saveFileRejected(QString)), this, SLOT(exportSlot(QString)));
 }
 
 void QmlItemManager::exitApp()

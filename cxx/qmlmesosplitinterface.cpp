@@ -238,12 +238,12 @@ void QmlMesoSplitInterface::createMesoSplitPages()
 			if (status == QQmlComponent::Ready)
 				createMesoSplitPages_part2();
 #ifndef QT_NO_DEBUG
-			else if (m_splitComponent->status() == QQmlComponent::Error)
+			else if (status == QQmlComponent::Error)
 			{
 				qDebug() << m_splitComponent->errorString();
 				return;
 			}
-	#endif
+#endif
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	}
 }
@@ -251,7 +251,7 @@ void QmlMesoSplitInterface::createMesoSplitPages()
 void QmlMesoSplitInterface::createMesoSplitPages_part2()
 {
 	m_prevMesoId = "-2"_L1;
-	m_splitProperties["splitManager"_L1] = std::move(QVariant::fromValue(this));
+	m_splitProperties["splitManager"_L1] = QVariant::fromValue(this);
 	m_splitProperties["height"_L1] = m_plannerPage->property("splitPageHeight").toInt();
 
 	uint idx{0};

@@ -152,8 +152,7 @@ Pane {
 					}
 
 					Component.onCompleted: {
-						currentIndex = Qt.binding(function() { return indexOfValue(txtMesoSplit.text.charAt(delegateRow.delegateIndex)); });
-						btnMuscularGroups.enabled = Qt.binding(function() { return currentIndex !== 6; });
+						currentIndex = indexOfValue(txtMesoSplit.text.charAt(delegateRow.delegateIndex));
 						let last_letter_idx = indexOfValue(currentValue);
 						if (last_letter_idx === nLastDelegateIdx) { //split is an 'R'
 							let prev_index = delegateRow.delegateIndex-1;
@@ -188,7 +187,7 @@ Pane {
 						createBindings();
 
 						textChanged.connect(function() {
-							switch (splitRepeater.itemAt(index).children[1].currentIndex) {
+							switch (cboSplit.currentIndex) {
 								case 0: mesoManager.muscularGroupA = text; break;
 								case 1: mesoManager.muscularGroupB = text; break;
 								case 2: mesoManager.muscularGroupC = text; break;
@@ -201,7 +200,7 @@ Pane {
 
 					function createBindings(): void {
 						text = Qt.binding(function() {
-							switch (splitRepeater.itemAt(index).children[1].currentIndex) {
+							switch (cboSplit.currentIndex) {
 								case 0: return mesoManager.muscularGroupA;
 								case 1: return mesoManager.muscularGroupB;
 								case 2: return mesoManager.muscularGroupC;
@@ -218,6 +217,7 @@ Pane {
 					//objectName: "button"
 					id: btnMuscularGroups
 					imageSource: "choose.png"
+					enabled: cboSplit.currentIndex !== 6
 					width: col4Width
 					height: col4Width
 					Layout.minimumWidth: col4Width

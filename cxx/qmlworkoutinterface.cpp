@@ -21,23 +21,33 @@
 #include <ranges>
 
 QmlWorkoutInterface::QmlWorkoutInterface(QObject *parent, const uint meso_idx, const QDate &date)
-	: QObject{parent}, m_workoutPage{nullptr}, m_mesoIdx{meso_idx}, m_workoutTimer{nullptr}, m_restTimer{nullptr}
+	: QObject{parent}, m_workoutPage{nullptr}, m_mesoIdx{meso_idx}, m_workoutTimer{nullptr}, m_restTimer{nullptr},
+		m_hour{0}, m_min{0}, m_sec{0}, m_editMode{false}, m_workoutIsEditable{false}, m_importFromPrevWorkout{false},
+		m_importFromSplitPlan{false}, m_bMainDateIsToday{false}, m_bNeedActivation{false}, m_bTimerActive{false}
 {
-	m_calendarModel = appMesoModel()->mesoCalendarManager()->calendar(m_mesoIdx);
-	m_calendarDay = appMesoModel()->mesoCalendarManager()->calendarDay(m_mesoIdx, date);
-	m_workoutModel = appMesoModel()->mesoCalendarManager()->workout(m_mesoIdx, m_calendarDay);
 	if (!appMesoModel()->mesoCalendarManager()->hasDBData(m_mesoIdx))
 	{
 		const int id{appDBInterface()->getMesoCalendar(m_mesoIdx)};
 		auto conn = std::make_shared<QMetaObject::Connection>();
-		*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn,id] (const uint thread_id) {
+		*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn,id,date] (const uint thread_id) {
 			if (id == thread_id)
 			{
 				disconnect(*conn);
+				m_calendarModel = appMesoModel()->mesoCalendarManager()->calendar(m_mesoIdx);
+				m_calendarDay = appMesoModel()->mesoCalendarManager()->calendarDay(m_mesoIdx, date);
+				m_workoutModel = appMesoModel()->mesoCalendarManager()->workoutForDay(m_mesoIdx, m_calendarDay);
 				if (m_workoutModel->exerciseCount() == 0)
 				{
-					connect(appDBInterface(), &DBInterface::databaseReady, this, &QmlWorkoutInterface::verifyWorkoutOptions);
-					appDBInterface()->getWorkout(m_workoutModel);
+					const int id{appDBInterface()->getWorkout(m_workoutModel)};
+					auto conn = std::make_shared<QMetaObject::Connection>();
+					*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn,id] (const uint thread_id) {
+						if (id == thread_id)
+						{
+							disconnect(*conn);
+							verifyWorkoutOptions();
+						}
+					});
+
 				}
 				emit timeInChanged();
 				emit timeOutChanged();
@@ -47,6 +57,12 @@ QmlWorkoutInterface::QmlWorkoutInterface(QObject *parent, const uint meso_idx, c
 				emit headerTextChanged();
 			}
 		});
+	}
+	else
+	{
+		m_calendarModel = appMesoModel()->mesoCalendarManager()->calendar(m_mesoIdx);
+		m_calendarDay = appMesoModel()->mesoCalendarManager()->calendarDay(m_mesoIdx, date);
+		m_workoutModel = appMesoModel()->mesoCalendarManager()->workout(m_mesoIdx, m_calendarDay);
 	}
 	m_editMode = false;
 	m_workoutIsEditable = false;
@@ -581,28 +597,29 @@ void QmlWorkoutInterface::verifyWorkoutOptions()
 
 void QmlWorkoutInterface::createWorkoutPage()
 {
-	m_workoutComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/TrainingDayPage.qml"_L1}, QQmlComponent::Asynchronous};
-	if (m_workoutComponent->status() != QQmlComponent::Ready)
-		connect(m_workoutComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status) {
-			return createWorkoutPage_part2();
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-	else
+	m_workoutComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/WorkoutPage.qml"_L1}, QQmlComponent::Asynchronous};
+	if (m_workoutComponent->status() == QQmlComponent::Ready)
 		createWorkoutPage_part2();
+	else
+	{
+		connect(m_workoutComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status status) {
+			if (status == QQmlComponent::Ready)
+				return createWorkoutPage_part2();
+#ifndef QT_NO_DEBUG
+			else if (status == QQmlComponent::Error)
+			{
+				qDebug() << m_workoutComponent->errorString();
+				return;
+			}
+#endif
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	}
 }
 
 void QmlWorkoutInterface::createWorkoutPage_part2()
 {
-	#ifndef QT_NO_DEBUG
-	if (m_workoutComponent->status() == QQmlComponent::Error)
-	{
-		qDebug() << m_workoutComponent->errorString();
-		for (auto &error : m_workoutComponent->errors())
-			qDebug() << error;
-		return;
-	}
-	#endif
-
-	m_workoutProperties.insert("workoutManager"_L1, QVariant::fromValue(this));
+	m_workoutProperties["workoutManager"_L1] = QVariant::fromValue(this);
+	m_workoutProperties["workoutModel"_L1] = QVariant::fromValue(m_workoutModel);
 	m_workoutPage = static_cast<QQuickItem*>(m_workoutComponent->createWithInitialProperties(m_workoutProperties, appQmlEngine()->rootContext()));
 	appQmlEngine()->setObjectOwnership(m_workoutPage, QQmlEngine::CppOwnership);
 	m_workoutPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));

@@ -4,6 +4,7 @@
 #include "dbexerciseslistmodel.h"
 #include "dbmesocyclestable.h"
 #include "dbmesocyclesmodel.h"
+#include "dbmesocalendarmanager.h"
 #include "dbmesocalendartable.h"
 #include "dbexercisesmodel.h"
 #include "dbworkoutsorsplitstable.h"
@@ -307,7 +308,7 @@ bool DBInterface::mesoHasAllSplitPlans(const uint meso_idx) const
 
 bool DBInterface::mesoHasSplitPlan(const QString &meso_id, const QChar &split_letter) const
 {
-	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{nullptr}};
+	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{MESOSPLIT_TABLE_ID}};
 	const bool ret{worker->mesoHasSplitPlan(meso_id, split_letter)};
 	delete worker;
 	return ret;
@@ -317,6 +318,7 @@ bool DBInterface::mesoHasSplitPlan(const QString &meso_id, const QChar &split_le
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 int DBInterface::getMesoCalendar(const uint meso_idx)
 {
+	appMesoModel()->mesoCalendarManager()->addCalendarForMeso(meso_idx);
 	DBMesoCalendarTable *worker{new DBMesoCalendarTable{appMesoModel()->mesoCalendarManager()}};
 	worker->addExecArg(meso_idx);
 	worker->addExecArg(appMesoModel()->id(meso_idx));

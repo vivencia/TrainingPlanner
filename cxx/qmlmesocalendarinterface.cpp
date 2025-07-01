@@ -40,11 +40,8 @@ void QmlMesoCalendarInterface::getMesoCalendarPage()
 {
 	if (!m_calComponent)
 	{
-		if (!appMesoModel()->mesoCalendarManager()->hasDBData(m_mesoIdx))
-		{
-			appMesoModel()->mesoCalendarManager()->addCalendarForMeso(m_mesoIdx);
+		if (!appMesoModel()->mesoCalendarManager()->hasDBData(m_mesoIdx))	
 			appDBInterface()->getMesoCalendar(m_mesoIdx);
-		}
 		createMesoCalendarPage();
 	}
 	else

@@ -16,6 +16,7 @@ TPPage {
 	objectName: "workoutPage"
 
 	required property WorkoutManager workoutManager
+	required property DBWorkoutModel workoutModel
 
 	signal exerciseSelectedFromSimpleExercisesList();
 	signal simpleExercisesListClosed();
@@ -219,7 +220,8 @@ TPPage {
 						TPButton {
 							id: btnInTime
 							imageSource: "time.png"
-							imageSize: 30
+							width: appSettings.itemDefaultHeight
+							height: width
 
 							onClicked: timeInLoader.openDlg();
 						}
@@ -274,7 +276,8 @@ TPPage {
 						TPButton {
 							id: btnOutTime
 							imageSource: "time.png"
-							imageSize: 30
+							width: appSettings.itemDefaultHeight
+							height: width
 
 							onClicked: timeOutLoader.openDlg();
 						}
@@ -324,7 +327,6 @@ TPPage {
 				rounded: false
 				visible: WorkoutManager.dayIsFinished && WorkoutManager.hasExercises
 				enabled: WorkoutManager.editMode;
-				width: parent.width - 10
 				Layout.fillWidth: true
 				Layout.bottomMargin: 10
 
@@ -357,7 +359,8 @@ TPPage {
 				TPButton {
 					id: btnClearExercises
 					imageSource: "revert-day.png"
-					imageSize: 30
+					width: appSettings.itemDefaultHeight
+					height: width
 					visible: WorkoutManager.hasExercises
 					enabled: WorkoutManager.workoutIsEditable ? true : WorkoutManager.editMode
 					ToolTip.text: "Remove all exercises"
@@ -451,9 +454,11 @@ TPPage {
 		height: appSettings.pageHeight*0.18
 		visible: WorkoutManager.splitLetter !== "R"
 
-		RowLayout {
+		readonly property int buttonHeight: width * 0.3
+
+		Row {
 			id: workoutLengthRow
-			height: 50
+			height: parent.height*0.4
 			spacing: 5
 			anchors {
 				left: parent.left
@@ -465,55 +470,46 @@ TPPage {
 
 			TPLabel {
 				text: !WorkoutManager.dayIsFinished ? qsTr("Workout:") : qsTr("Workout session length: ")
+				width: parent.width * 0.3
 			}
 
 			TPButton {
 				id: btnStartWorkout
 				text: qsTr("Begin")
 				flat: false
+				width: parent.width * 0.2
 				visible: WorkoutManager.mainDateIsToday ? !WorkoutManager.dayIsFinished && !WorkoutManager.editMode : false
 				enabled: !WorkoutManager.timerActive
 
 				onClicked: WorkoutManager.startWorkout();
 			}
 
-			Rectangle {
-				id: workoutLengthClock
-				antialiasing: true
-				width: spinnerLayout.width
-				height: 35
-				color: appSettings.primaryColor
+			TPDigitalClock {
+				id: hoursClock
+				max: 24
+				value: WorkoutManager.timerHour
 
-				RowLayout {
-					id: spinnerLayout
-					spacing: 2
+			}
+			Rectangle { color : appSettings.fontColor; width: 2; height: 35 }
 
-					TPDigitalClock {
-						id: hoursClock
-						max: 24
-						value: WorkoutManager.timerHour
-					}
-					Rectangle { color : appSettings.fontColor; width: 2; height: 35 }
+			TPDigitalClock {
+				id: minsClock
+				max: 60
+				value: WorkoutManager.timerMinute
+			}
+			Rectangle { color : appSettings.fontColor; width: 2; height: 35 }
 
-					TPDigitalClock {
-						id: minsClock
-						max: 60
-						value: WorkoutManager.timerMinute
-					}
-					Rectangle { color : appSettings.fontColor; width: 2; height: 35 }
-
-					TPDigitalClock {
-						id: secsClock
-						max: 60
-						value: WorkoutManager.timerSecond
-					}
-				}
+			TPDigitalClock {
+				id: secsClock
+				max: 60
+				value: WorkoutManager.timerSecond
 			}
 
 			TPButton {
 				id: btnEndWorkout
 				text: qsTr("Finish")
 				flat: false
+				width: parent.width * 0.2
 				visible: btnStartWorkout.visible
 				enabled: WorkoutManager.timerActive
 
@@ -527,8 +523,8 @@ TPPage {
 			rounded: false
 			backgroundColor: appSettings.paneBackgroundColor
 			flat: false
-			width: 55
-			height: 55
+			width: height / 2
+			height: dayInfoToolBar.buttonHeight
 			visible: WorkoutManager.dayIsFinished || !WorkoutManager.mainDateIsToday || WorkoutManager.editMode
 
 			anchors {
@@ -549,8 +545,8 @@ TPPage {
 			textUnderIcon: true
 			rounded: false
 			flat: false
-			width: 70
-			height: 55
+			width: width * 1.2
+			height: dayInfoToolBar.buttonHeight
 			visible: WorkoutManager.dayIsFinished && WorkoutManager.hasExercises
 
 			anchors {
@@ -578,6 +574,8 @@ TPPage {
 			flat: false
 			visible: WorkoutManager.splitLetter !== "R"
 			enabled: WorkoutManager.workoutIsEditable
+			width: height * 1.2
+			height: dayInfoToolBar.buttonHeight
 
 			anchors {
 				right: parent.right
