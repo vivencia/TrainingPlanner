@@ -784,7 +784,7 @@ uint DBExercisesModel::workingSubExercise(int exercise_number) const
 {
 	if (exercise_number < 0)
 		exercise_number = m_workingExercise;
-	return m_exerciseData.at(exercise_number)->working_subexercise;
+	return exercise_number < m_exerciseData.count() ? m_exerciseData.at(exercise_number)->working_subexercise : 0;
 }
 
 void DBExercisesModel::setWorkingSubExercise(const uint new_workingsubexercise, int exercise_number)
@@ -807,8 +807,9 @@ uint DBExercisesModel::workingSet(int exercise_number, int exercise_idx) const
 		exercise_number = m_workingExercise;
 	if (exercise_idx < 0)
 		exercise_idx = workingSubExercise(exercise_number);
-	return exercise_idx < m_exerciseData.at(exercise_number)->m_exercises.count() ?
-			 m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->working_set : 0;
+
+	return exercise_number < m_exerciseData.count() ? (exercise_idx < m_exerciseData.at(exercise_number)->m_exercises.count() ?
+			 m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->working_set : 0) : 0;
 }
 
 void DBExercisesModel::setWorkingSet(const uint new_workingset, int exercise_number, int exercise_idx)

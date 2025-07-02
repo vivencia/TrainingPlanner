@@ -163,6 +163,22 @@ ListView {
 				} //optCurrentExercise
 
 				TPButton {
+					id: btnDelExercise
+					imageSource: "remove"
+					width: appSettings.itemDefaultHeight
+					height: width
+					enabled: index === splitModel.workingExercise
+
+					anchors {
+						right: btnMoveExerciseUp.left
+						rightMargin: 10
+						verticalCenter: parent.verticalCenter
+					}
+
+					onClicked: splitManager.removeExercise(index);
+				} //btnDelExercise
+
+				TPButton {
 					id: btnMoveExerciseUp
 					imageSource: "up.png"
 					hasDropShadow: false
@@ -234,8 +250,11 @@ ListView {
 
 					TPLabel {
 						text: qsTr(" <<-- Add some machine or free weight exercise")
+						wrapMode: Text.WordWrap
 						horizontalAlignment: Text.AlignHCenter
-						Layout.fillWidth: true
+						Layout.maximumWidth: parent.width * 0.8
+						Layout.minimumWidth: parent.width * 0.8
+						Layout.minimumHeight: appSettings.itemDefaultHeight * 2
 					}
 
 					TabBar {
@@ -271,7 +290,11 @@ ListView {
 									color: enabled ? (checked ? appSettings.primaryDarkColor : appSettings.primaryColor) : appSettings.disabledFontColor
 								}
 
-								onClicked: splitModel.workingSubExercise = index;
+								onClicked: {
+									splitModel.workingSubExercise = index;
+									if (text.startsWith(qsTr("Choose")))
+										splitManager.simpleExercisesList(true);
+								}
 							} //subExercisesTabButton
 						} //subExerciseButtonsRepeater
 					} //subExercisesTabBar
@@ -307,7 +330,7 @@ ListView {
 
 				onExerciseChanged: (new_text) => splitModel.setExerciseName(splitModel.workingExercise, splitModel.workingSubExercise, new_text);
 				onItemClicked: splitModel.workingExercise = index;
-				onShowExercisesListButtonClicked: splitManager.simpleExercisesList(true, true);
+				onShowExercisesListButtonClicked: splitManager.simpleExercisesList(true);
 			} //txtExerciseName
 
 			Row {
@@ -571,7 +594,7 @@ ListView {
 		txtGroups.text = splitModel.muscularGroup();
 	}
 
-	function setScrollBarPosition(pos): void {
+	function setScrollBarPosition(pos: int): void {
 		if (pos === 0)
 			vBar.setPosition(0);
 		else

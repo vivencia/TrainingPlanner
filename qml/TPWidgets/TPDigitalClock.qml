@@ -4,6 +4,7 @@ import QtQuick.Controls
 import "../"
 
 Rectangle {
+	id: control
 	width: appSettings.itemDefaultHeight * 1.2
 	height: appSettings.itemDefaultHeight * 1.3
 	enabled: false
@@ -27,16 +28,13 @@ Rectangle {
 		preferredHighlightEnd: height / 3
 		clip: true
 		model: max
-		delegate: Text {
-			minimumPixelSize: 8
-			fontSizeMode: Text.Fit
-			horizontalAlignment: Text.AlignHCenter
-			verticalAlignment: Text.AlignVCenter
-			leftPadding: 5
-			font.bold: true
-			color: appSettings.fontColor
+		delegate: Label {
 			text: String(index).length == 1 ? "0" + index : index
-			anchors.horizontalCenter: parent.horizontalCenter
+			verticalAlignment: Text.AlignVCenter
+			color: enabled ? appSettings.fontColor : appSettings.disabledFontColor
+			leftPadding: (control.width - AppGlobals.fontMetricsRegular.boundingRect(text).width) / 2
+			font.bold: true
+			font.pixelSize: appSettings.fontSize
 		}
 	}
 }

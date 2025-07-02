@@ -20,7 +20,6 @@ TPPage {
 	readonly property int splitPageHeight: appSettings.pageHeight - topToolBar.height - bottomToolBar.height
 
 	signal exerciseSelectedFromSimpleExercisesList();
-	signal simpleExercisesListClosed();
 
 	Keys.onPressed: (event) => {
 		if (event.key === mainwindow.backKey) {
@@ -111,7 +110,7 @@ TPPage {
 						target: cboGoToExercise.enabled ? currentSplitPage.splitModel : null
 
 						function onExerciseCountChanged() : void {
-							cboGoToExercise.cboModel.clear();
+							cboModel.clear();
 							cboGoToExercise.populateComboModel();
 						}
 
@@ -283,11 +282,9 @@ TPPage {
 		id: exercisesPane
 		parentPage: pagePlanner
 		onExerciseSelected: exerciseSelectedFromSimpleExercisesList();
-		onListClosed: simpleExercisesListClosed();
 	}
 
-	function showSimpleExercisesList(multipleSel: bool): void {
-		exercisesPane.bEnableMultipleSelection = multipleSel;
+	function showSimpleExercisesList(): void {
 		exercisesPane.show(currentSplitPage.exerciseNameFieldYPosition() > appSettings.pageHeight/2 ? 0 : -2)
 	}
 

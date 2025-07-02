@@ -16,19 +16,51 @@ TPPage {
 	objectName: "workoutPage"
 
 	required property WorkoutManager workoutManager
-	required property DBWorkoutModel workoutModel
+	property DBWorkoutModel workoutModel
 
 	signal exerciseSelectedFromSimpleExercisesList();
-	signal simpleExercisesListClosed();
 	signal silenceTimeWarning();
 
 	ScrollView {
 		id: scrollTraining
-		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-		ScrollBar.vertical.policy: ScrollBar.AsNeeded
-		ScrollBar.vertical.active: true
 		contentWidth: availableWidth //stops bouncing to the sides
-		contentHeight: layoutMain.height + exercisesLayout.implicitHeight
+		contentHeight: layoutMain.height + lstWorkoutExercises.height
+		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+
+		ScrollBar.vertical: ScrollBar {
+			id: vBar
+			policy: ScrollBar.AsNeeded
+			active: ScrollBar.AsNeeded
+			visible: lstWorkoutExercises.contentHeight > lstWorkoutExercises.height
+
+			onPositionChanged: {
+				if (navButtons.visible) {
+					if (lstWorkoutExercises.contentY <= 50) {
+						navButtons.showUpButton = false;
+						navButtons.showDownButton = true;
+					}
+					else if (lstWorkoutExercises.contentHeight - lstWorkoutExercises.contentY - vBar.height <= 50) {
+						navButtons.showUpButton = true;
+						navButtons.showDownButton = false;
+					}
+					else {
+						navButtons.showUpButton = true;
+						navButtons.showDownButton = true;
+					}
+				}
+			}
+		}
+
+		function scrollToPos(y_pos): void {
+			contentItem.contentY = y_pos;
+		}
+
+		function setScrollBarPosition(pos: int): void {
+			if (pos === 0)
+				vBar.setPosition(0);
+			else
+				vBar.setPosition(pos - vBar.size/2);
+		}
 
 		anchors {
 			fill: parent
@@ -53,18 +85,16 @@ TPPage {
 
 			TPLabel {
 				id: lblHeader
-				text: WorkoutManager.headerText
+				text: workoutManager.headerText
 				font: AppGlobals.largeFont
 				horizontalAlignment: Text.AlignHCenter
-				Layout.minimumWidth: workoutPage.width - 20
-				Layout.maximumWidth: workoutPage.width - 20
+				Layout.fillWidth: true
 			}
 
 			TPLabel {
-				text: WorkoutManager.muscularGroup
+				text: workoutManager.muscularGroup
 				horizontalAlignment: Text.AlignHCenter
-				Layout.minimumWidth: workoutPage.width - 20
-				Layout.maximumWidth: workoutPage.width - 20
+				Layout.fillWidth: true
 			}
 
 			RowLayout {
@@ -77,42 +107,40 @@ TPPage {
 				TPComboBox {
 					id: cboSplitLetter
 					model: AppGlobals.splitModel
-					enabled: WorkoutManager.timerActive ? false : WorkoutManager.workoutIsEditable
-					Layout.maximumWidth: 100
+					enabled: workoutManager.timerActive ? false : !workoutManager.dayIsFinished
 
-					Component.onCompleted: currentIndex = Qt.binding(function() { return cboSplitLetter.indexOfValue(WorkoutManager.splitLetter); });
-					onActivated: (index) => WorkoutManager.splitLetter = valueAt(index);
+					Component.onCompleted: currentIndex = Qt.binding(function() { return cboSplitLetter.indexOfValue(workoutManager.splitLetter); });
+					onActivated: (index) => workoutManager.splitLetter = valueAt(index);
 				} //TPComboBox
 			}
 
-			RowLayout {
-				visible: WorkoutManager.splitLetter !== "R"
-				Layout.maximumWidth: workoutPage.width - 20
+			Row {
+				visible: workoutManager.splitLetter !== "R"
+				Layout.fillWidth: true
+				spacing: 0
+				padding: 0
 
 				TPLabel {
 					text: qsTr("Location:")
-					Layout.row: 1
-					Layout.column: 0
+					width: parent.width * 0.25
 				}
 				TPTextInput {
 					id: txtLocation
-					placeholderText: WorkoutManager.lastWorkOutLocation
-					text: WorkoutManager.lastWorkOutLocation
-					enabled: WorkoutManager.workoutIsEditable
-					Layout.row: 1
-					Layout.column: 1
-					Layout.fillWidth: true
+					placeholderText: workoutManager.lastWorkOutLocation()
+					text: workoutManager.lastWorkOutLocation()
+					enabled: workoutManager.timerActive ? false : !workoutManager.dayIsFinished
+					width: parent.width * 0.75
 
-					onTextChanged: WorkoutManager.lastWorkOutLocation = text;
+					onTextChanged: workoutManager.lastWorkOutLocation = text;
 				}
 			}
 
 			Frame {
 				id: frmTrainingTime
-				visible: WorkoutManager.splitLetter !== "R"
-				enabled: WorkoutManager.timerActive ? false : !WorkoutManager.dayIsFinished
+				visible: workoutManager.splitLetter !== "R"
+				enabled: workoutManager.timerActive ? false : !workoutManager.dayIsFinished
 				height: appSettings.pageHeight*0.4
-				Layout.preferredWidth: workoutPage.width - 20
+				Layout.fillWidth: true
 
 				background: Rectangle {
 					border.color: appSettings.fontColor
@@ -131,7 +159,7 @@ TPPage {
 						Layout.fillWidth: true
 
 						onClicked: {
-							WorkoutManager.prepareWorkOutTimer();
+							workoutManager.prepareWorkOutTimer();
 							optTimeConstrainedSession.checked = false;
 						}
 					}
@@ -178,10 +206,10 @@ TPPage {
 								id: dlgTimeEndSession
 								hrsDisplay: appUtils.getHourFromCurrentTime()
 								minutesDisplay: appUtils.getMinutesFromCurrentTime()
-								bOnlyFutureTime: WorkoutManager.mainDateIsToday ? WorkoutManager.editMode : false
+								bOnlyFutureTime: workoutManager.mainDateIsToday ? workoutManager.editMode : false
 								parentPage: workoutPage
 
-								onTimeSet: (hour, minutes) => WorkoutManager.prepareWorkOutTimer(appUtils.getCurrentTimeString(), hour + ":" + minutes);
+								onTimeSet: (hour, minutes) => workoutManager.prepareWorkOutTimer(appUtils.getCurrentTimeString(), hour + ":" + minutes);
 								onClosed: restrictedTimeLoader.active = false;
 							}
 
@@ -197,7 +225,7 @@ TPPage {
 					} //RowLayout
 
 					Row {
-						enabled: optFreeTimeSession.checked && (WorkoutManager.editMode || WorkoutManager.mainDateIsToday)
+						enabled: optFreeTimeSession.checked && (workoutManager.editMode || workoutManager.mainDateIsToday)
 						padding: 0
 						spacing: 10
 						Layout.fillWidth: true
@@ -206,15 +234,15 @@ TPPage {
 						TPLabel {
 							id: lblInTime
 							text: qsTr("In time:")
-							width: parent.width*0.35
+							width: parent.width * 0.35
 						}
 
 						TPTextInput {
 							id: txtInTime
-							text: WorkoutManager.timeIn
+							text: workoutManager.timeIn
 							horizontalAlignment: Text.AlignHCenter
 							readOnly: true
-							width: parent.width*0.25
+							width: parent.width * 0.25
 						}
 
 						TPButton {
@@ -237,7 +265,7 @@ TPPage {
 								minutesDisplay: appUtils.getMinutesFromStrTime(txtInTime.text)
 								parentPage: workoutPage
 
-								onTimeSet: (hour, minutes) => WorkoutManager.timeIn = hour + ":" + minutes;
+								onTimeSet: (hour, minutes) => workoutManager.timeIn = hour + ":" + minutes;
 								onClosed: timeInLoader.active = false;
 							}
 
@@ -253,7 +281,7 @@ TPPage {
 					}
 
 					Row {
-						enabled: optFreeTimeSession.checked && (WorkoutManager.editMode || WorkoutManager.mainDateIsToday)
+						enabled: optFreeTimeSession.checked && (workoutManager.editMode || workoutManager.mainDateIsToday)
 						padding: 0
 						spacing: 10
 						Layout.fillWidth: true
@@ -262,15 +290,15 @@ TPPage {
 						TPLabel {
 							id: lblOutTime
 							text: qsTr("Out time:")
-							width: parent.width*0.35
+							width: parent.width * 0.35
 						}
 
 						TPTextInput {
 							id: txtOutTime
-							text: WorkoutManager.timeOut
+							text: workoutManager.timeOut
 							horizontalAlignment: Text.AlignHCenter
 							readOnly: true
-							width: parent.width*0.25
+							width: parent.width * 0.25
 						}
 
 						TPButton {
@@ -292,9 +320,9 @@ TPPage {
 								hrsDisplay: appUtils.getHourFromStrTime(txtOutTime.text)
 								minutesDisplay: appUtils.getMinutesFromStrTime(txtOutTime.text)
 								parentPage: workoutPage
-								bOnlyFutureTime: WorkoutManager.mainDateIsToday ? WorkoutManager.editMode : false
+								bOnlyFutureTime: workoutManager.mainDateIsToday ? workoutManager.editMode : false
 
-								onTimeSet: (hour, minutes) => WorkoutManager.timeOut = hour + ":" + minutes;
+								onTimeSet: (hour, minutes) => workoutManager.timeOut = hour + ":" + minutes;
 								onClosed: timeOutLoader.active = false;
 							}
 
@@ -313,24 +341,25 @@ TPPage {
 
 			SetNotesField {
 				info: qsTr("This training session considerations:")
-				text: WorkoutManager.dayNotes
-				editable: WorkoutManager.workoutIsEditable
-				visible: WorkoutManager.splitLetter !== "R"
+				//text: workoutManager.dayNotes
+				editable: workoutManager.workoutIsEditable
+				visible: workoutManager.splitLetter !== "R"
 				Layout.fillWidth: true
 
-				onEditFinished: (new_text) => WorkoutManager.dayNotes = new_text;
+				onEditFinished: (new_text) => workoutManager.dayNotes = new_text;
 			}
 
 			TPButton {
-				text: qsTr("Use this workout exercises as the default exercises plan for the division ") + WorkoutManager.splitLetter + qsTr( " of this mesocycle")
+				text: qsTr("Use this workout exercises as the default exercises plan for the division ") + workoutManager.splitLetter + qsTr( " of this mesocycle")
 				flat: false
 				rounded: false
-				visible: WorkoutManager.dayIsFinished && WorkoutManager.hasExercises
-				enabled: WorkoutManager.editMode;
+				visible: workoutManager.dayIsFinished && workoutManager.hasExercises
+				enabled: workoutManager.editMode;
 				Layout.fillWidth: true
+				Layout.minimumHeight: 3 * appSettings.itemDefaultHeight
 				Layout.bottomMargin: 10
 
-				onClicked: WorkoutManager.exportWorkoutToSplitPlan();
+				onClicked: workoutManager.exportWorkoutToSplitPlan();
 			}
 
 			TPLabel {
@@ -339,8 +368,8 @@ TPPage {
 				font: AppGlobals.extraLargeFont
 				horizontalAlignment: Text.AlignHCenter
 				verticalAlignment: Text.AlignVCenter
-				visible: WorkoutManager.splitLetter !== "R"
-				height: 40
+				visible: workoutManager.splitLetter !== "R"
+				height: appSettings.largeFontSize * 1.2
 				Layout.bottomMargin: 10
 				Layout.fillWidth: true
 				Layout.preferredHeight: height
@@ -361,8 +390,8 @@ TPPage {
 					imageSource: "revert-day.png"
 					width: appSettings.itemDefaultHeight
 					height: width
-					visible: WorkoutManager.hasExercises
-					enabled: WorkoutManager.workoutIsEditable ? true : WorkoutManager.editMode
+					visible: workoutManager.hasExercises
+					enabled: workoutManager.workoutIsEditable ? true : workoutManager.editMode
 					ToolTip.text: "Remove all exercises"
 
 					anchors {
@@ -376,57 +405,16 @@ TPPage {
 			}
 		}// layoutMain
 
-		GridLayout {
-			id: exercisesLayout
-			objectName: "exercisesLayout"
-			width: parent.width
-			columns: 1
+		WorkoutExercisesList {
+			id: lstWorkoutExercises
+			currentIndex: workoutModel.workingExercise
+			height: contentHeight
 
 			anchors {
-				left: parent.left
-				right:parent.right
 				top: layoutMain.bottom
-			}
-		}
-
-		Item {
-			id: phantomItem
-			width: parent.width
-			height: 10
-
-			anchors {
 				left: parent.left
-				right:parent.right
-				bottom: parent.bottom
+				right: parent.right
 			}
-		}
-
-		ScrollBar.vertical.onPositionChanged: {
-			if (navButtons) {
-				if (contentItem.contentY <= 50) {
-					navButtons.showUpButton = false;
-					navButtons.showDownButton = true;
-				}
-				else if (Math.abs(contentItem.contentY - (phantomItem.y - exercisesLayout.y)) < 50) {
-					navButtons.showUpButton = true;
-					navButtons.showDownButton = false;
-				}
-				else {
-					navButtons.showUpButton = true;
-					navButtons.showDownButton = true;
-				}
-			}
-		}
-
-		function scrollToPos(y_pos): void {
-			contentItem.contentY = y_pos;
-		}
-
-		function setScrollBarPosition(pos): void {
-			if (pos === 0)
-				ScrollBar.vertical.setPosition(0);
-			else
-				ScrollBar.vertical.setPosition(pos - ScrollBar.vertical.size/2);
 		}
 	} // ScrollView scrollTraining
 
@@ -436,11 +424,11 @@ TPPage {
 		running: false
 		repeat: false
 
-		property int ypos:0
+		property int ypos: 0
 
 		onTriggered: scrollTraining.scrollToPos(ypos);
 
-		function init(pos): void {
+		function init(pos: int): void {
 			if (pos >= 0)
 				ypos = pos;
 			else
@@ -452,14 +440,19 @@ TPPage {
 	footer: TPToolBar {
 		id: dayInfoToolBar
 		height: appSettings.pageHeight*0.18
-		visible: WorkoutManager.splitLetter !== "R"
+		visible: workoutManager.splitLetter !== "R"
 
 		readonly property int buttonHeight: width * 0.3
 
 		Row {
 			id: workoutLengthRow
 			height: parent.height*0.4
-			spacing: 5
+			topPadding: 5
+			bottomPadding: 5
+			leftPadding: 0
+			rightPadding: 0
+			spacing: 10
+
 			anchors {
 				left: parent.left
 				leftMargin: 5
@@ -469,8 +462,8 @@ TPPage {
 			}
 
 			TPLabel {
-				text: !WorkoutManager.dayIsFinished ? qsTr("Workout:") : qsTr("Workout session length: ")
-				width: parent.width * 0.3
+				text: !workoutManager.dayIsFinished ? qsTr("Workout:") : qsTr("Workout session length: ")
+				width: parent.width * 0.2
 			}
 
 			TPButton {
@@ -478,16 +471,16 @@ TPPage {
 				text: qsTr("Begin")
 				flat: false
 				width: parent.width * 0.2
-				visible: WorkoutManager.mainDateIsToday ? !WorkoutManager.dayIsFinished && !WorkoutManager.editMode : false
-				enabled: !WorkoutManager.timerActive
+				visible: workoutManager.mainDateIsToday ? !workoutManager.dayIsFinished && !workoutManager.editMode : false
+				enabled: !workoutManager.timerActive
 
-				onClicked: WorkoutManager.startWorkout();
+				onClicked: workoutManager.startWorkout();
 			}
 
 			TPDigitalClock {
 				id: hoursClock
 				max: 24
-				value: WorkoutManager.timerHour
+				value: workoutManager.timerHour
 
 			}
 			Rectangle { color : appSettings.fontColor; width: 2; height: 35 }
@@ -495,14 +488,14 @@ TPPage {
 			TPDigitalClock {
 				id: minsClock
 				max: 60
-				value: WorkoutManager.timerMinute
+				value: workoutManager.timerMinute
 			}
 			Rectangle { color : appSettings.fontColor; width: 2; height: 35 }
 
 			TPDigitalClock {
 				id: secsClock
 				max: 60
-				value: WorkoutManager.timerSecond
+				value: workoutManager.timerSecond
 			}
 
 			TPButton {
@@ -511,9 +504,9 @@ TPPage {
 				flat: false
 				width: parent.width * 0.2
 				visible: btnStartWorkout.visible
-				enabled: WorkoutManager.timerActive
+				enabled: workoutManager.timerActive
 
-				onClicked: WorkoutManager.stopWorkout();
+				onClicked: workoutManager.stopWorkout();
 			}
 		}
 
@@ -523,9 +516,9 @@ TPPage {
 			rounded: false
 			backgroundColor: appSettings.paneBackgroundColor
 			flat: false
-			width: height / 2
+			width: height * 0.6
 			height: dayInfoToolBar.buttonHeight
-			visible: WorkoutManager.dayIsFinished || !WorkoutManager.mainDateIsToday || WorkoutManager.editMode
+			visible: workoutManager.dayIsFinished || !workoutManager.mainDateIsToday || workoutManager.editMode
 
 			anchors {
 				left: parent.left
@@ -545,9 +538,9 @@ TPPage {
 			textUnderIcon: true
 			rounded: false
 			flat: false
-			width: width * 1.2
-			height: dayInfoToolBar.buttonHeight
-			visible: WorkoutManager.dayIsFinished && WorkoutManager.hasExercises
+			width: parent.width * 0.3
+			height: parent.height * 0.5
+			visible: workoutManager.dayIsFinished && workoutManager.hasExercises
 
 			anchors {
 				left: btnFinishedDayOptions.right
@@ -572,10 +565,10 @@ TPPage {
 			rounded: false
 			textUnderIcon: true
 			flat: false
-			visible: WorkoutManager.splitLetter !== "R"
-			enabled: WorkoutManager.workoutIsEditable
-			width: height * 1.2
-			height: dayInfoToolBar.buttonHeight
+			visible: workoutManager.splitLetter !== "R"
+			//enabled: workoutManager.workoutIsEditable
+			width: parent.width * 0.35
+			height: parent.height * 0.5
 
 			anchors {
 				right: parent.right
@@ -589,6 +582,10 @@ TPPage {
 		} // bntAddExercise
 	} //footer: ToolBar
 
+	function setViewingExercise(exercise_number: int) : void {
+		lstWorkoutExercises.positionViewAtIndex(exercise_number, ListView.Contain);
+	}
+
 	function changeComboModel(mesoSplit: string): void {
 		cboModel.get(0).enabled = mesoSplit.indexOf('A') !== -1;
 		cboModel.get(1).enabled = mesoSplit.indexOf('B') !== -1;
@@ -596,7 +593,7 @@ TPPage {
 		cboModel.get(3).enabled = mesoSplit.indexOf('D') !== -1;
 		cboModel.get(4).enabled = mesoSplit.indexOf('E') !== -1;
 		cboModel.get(5).enabled = mesoSplit.indexOf('F') !== -1;
-		cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(WorkoutManager.splitLetter);
+		cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(workoutManager.splitLetter);
 	}
 
 	property TPComplexDialog changeSplitLetterDialog: null
@@ -609,9 +606,9 @@ TPPage {
 					customStringProperty1: qsTr("Really change split?"), customStringProperty2: qsTr("Clear exercises list?"),
 					customStringProperty3: "remove", customItemSource:"TPDialogWithMessageAndCheckBox.qml" });
 				changeSplitLetterDialog.button1Clicked.connect( function() {
-					WorkoutManager.changeSplit(cboSplitLetter.valueAt(cboSplitLetter.currentIndex), changeSplitLetterDialog.customBoolProperty1);
+					workoutManager.changeSplit(cboSplitLetter.valueAt(cboSplitLetter.currentIndex), changeSplitLetterDialog.customBoolProperty1);
 				});
-				changeSplitLetterDialog.button2Clicked.connect( function() { WorkoutManager.changeSplit("X"); });
+				changeSplitLetterDialog.button2Clicked.connect( function() { workoutManager.changeSplit("X"); });
 			}
 
 			if (component.status === Component.Ready)
@@ -631,7 +628,7 @@ TPPage {
 				function finishCreation() {
 					msgClearExercises = component.createObject(workoutPage, { parentPage: workoutPage, title: qsTr("Clear exercises list?"),
 						keepAbove: true, message: qsTr("All exercises changes will be removed"), imageSource: "revert-day.png" } );
-					msgClearExercises.button1Clicked.connect(function () { WorkoutManager.clearExercises(); } );
+					msgClearExercises.button1Clicked.connect(function () { workoutManager.clearExercises(); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -653,7 +650,7 @@ TPPage {
 				adjustCalendarBox = component.createObject(workoutPage, { parentPage: workoutPage, title: qsTr("Re-adjust meso calendar?"),
 					button1Text: qsTr("Adjust"), button2Text: qsTr("Cancel"), customItemSource:"TPDialogWithMessageAndCheckBox.qml",
 					customStringProperty1: lblHeader.text, customStringProperty2: qsTr("Only alter this day"), customStringProperty3: "calendar.png" });
-				adjustCalendarBox.button1Clicked.connect(function() { WorkoutManager.adjustCalendar(WorkoutManager.splitLetter, adjustCalendarBox.customBoolProperty1); });
+				adjustCalendarBox.button1Clicked.connect(function() { workoutManager.adjustCalendar(workoutManager.splitLetter, adjustCalendarBox.customBoolProperty1); });
 			}
 
 			if (component.status === Component.Ready)
@@ -671,9 +668,9 @@ TPPage {
 
 			function finishCreation() {
 				intentDlg = component.createObject(workoutPage, { parentPage: workoutPage, title: qsTr("What do you want to do today?"),
-					button1Text: qsTr("Proceed"), customItemSource:"TPTDayIntentGroup.qml", customBoolProperty1: WorkoutManager.canImportFromSplitPlan,
-					customStringProperty2: WorkoutManager.splitLetter, customModel: WorkoutManager.previousWorkoutsList,
-					customBoolProperty2: WorkoutManager.canImportFromPreviousWorkout, customBoolProperty3: !WorkoutManager.hasExercises });
+					button1Text: qsTr("Proceed"), customItemSource:"TPTDayIntentGroup.qml", customBoolProperty1: workoutManager.canImportFromSplitPlan,
+					customStringProperty2: workoutManager.splitLetter, customModel: workoutManager.previousWorkoutsList,
+					customBoolProperty2: workoutManager.canImportFromPreviousWorkout, customBoolProperty3: !workoutManager.hasExercises });
 				intentDlg.button1Clicked.connect(intentChosen);
 			}
 
@@ -688,13 +685,13 @@ TPPage {
 	function intentChosen(): void {
 		switch (intentDlg.customIntProperty1) {
 			case 1: //use meso plan
-				WorkoutManager.getExercisesFromSplitPlan();
+				workoutManager.getExercisesFromSplitPlan();
 			break;
 			case 2: //use previous day
-				WorkoutManager.loadExercisesFromDate(intentDlg.customStringProperty1);
+				workoutManager.loadExercisesFromDate(intentDlg.customStringProperty1);
 			break;
 			case 3: //import from file
-				WorkoutManager.importWorkout();
+				workoutManager.importWorkout();
 			break;
 			case 4: //empty session
 			break;
@@ -717,31 +714,21 @@ TPPage {
 		active: false
 		asynchronous: true
 
-		sourceComponent:SimpleExercisesListPanel {
+		sourceComponent: SimpleExercisesListPanel {
 			parentPage: workoutPage
 			onExerciseSelected: exerciseSelectedFromSimpleExercisesList();
-			onListClosed: {
-				simpleExercisesListClosed();
-				simpleExercisesListLoader.active = false;
-			}
+			onListClosed: simpleExercisesListLoader.active = false;
 		}
 		property bool enableMultipleSelection
-		onLoaded: showSimpleExercisesList(enableMultipleSelection);
+		onLoaded: exercisesPane.show(lstWorkoutExercises.exerciseNameFieldYPosition() > appSettings.pageHeight/2 ? 0 : -2)
 	}
 
-	function showSimpleExercisesList(multipleSel: bool): void {
-		if (simpleExercisesListLoader.status === Loader.Ready) {
-			exercisesPane.bEnableMultipleSelection = multipleSel;
-			exercisesPane.open();
-		}
-		else {
-			simpleExercisesListLoader.enableMultipleSelection = multipleSel;
-			simpleExercisesListLoader.active = true;
-		}
+	function showSimpleExercisesList(): void {
+		simpleExercisesListLoader.active = true;
 	}
 
 	function hideSimpleExercisesList(): void {
-		exercisesPane.close();
+		exercisesPane.visible = false;
 	}
 
 	property TimerDialog dlgSessionLength: null
@@ -752,7 +739,7 @@ TPPage {
 			function finishCreation() {
 				dlgSessionLength = component.createObject(workoutPage, { parentPage: workoutPage, timePickerOnly: true,
 					windowTitle: qsTr("Length of this training session") });
-				dlgSessionLength.onUseTime.connect(function(strtime) { WorkoutManager.prepareWorkOutTimer(strtime); } );
+				dlgSessionLength.onUseTime.connect(function(strtime) { workoutManager.prepareWorkOutTimer(strtime); } );
 			}
 
 			if (component.status === Component.Ready)
@@ -821,27 +808,27 @@ TPPage {
 
 	}
 
-	property TPBalloonTip msgRemoveExercise: null
-	function showRemoveExerciseMessage(exerciseidx: int, exercisename: string): void {
-		if (msgRemoveExercise === null) {
-			function createMessageBox() {
-				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+	TPBalloonTip {
+		id: msgDlgRemove
+		title: qsTr("Remove Exercise?")
+		message: exerciseName + qsTr("\nThis action cannot be undone.")
+		imageSource: "remove"
+		keepAbove: true
+		button1Text: qsTr("Yes")
+		button2Text: qsTr("No")
+		onButton1Clicked: workoutManager.removeExercise();
+		parentPage: workoutPage
 
-				function finishCreation() {
-					msgRemoveExercise = component.createObject(workoutPage, { parentPage: workoutPage, title: qsTr("Remove Exercise?"),
-						keepAbove: true, imageSource: "remove" } );
-					msgRemoveExercise.button1Clicked.connect(function () { WorkoutManager.removeExercise(exerciseidx); } );
-				}
+		property string exerciseName
 
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			createMessageBox();
+		function init(exercise: string): void {
+			exerciseName = exercise;
+			show(-1);
 		}
-		msgRemoveExercise.message = exercisename + qsTr("\nThis action cannot be undone.");
-		msgRemoveExercise.show(-1);
+	} //TPBalloonTip
+
+	function showDeleteDialog(exercise: string): void {
+		msgDlgRemove.init(exercise);
 	}
 
 	property TPBalloonTip msgRemoveSet: null
@@ -853,7 +840,7 @@ TPPage {
 				function finishCreation() {
 					msgRemoveSet = component.createObject(workoutPage, { parentPage: workoutPage, keepAbove: true, imageSource: "remove",
 						message: qsTr("This action cannot be undone.") } );
-					msgRemoveSet.button1Clicked.connect(function () { WorkoutManager.currentExercise().removeSetObject(false); } );
+					msgRemoveSet.button1Clicked.connect(function () { workoutManager.currentExercise().removeSetObject(false); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -876,7 +863,7 @@ TPPage {
 				function finishCreation() {
 					resetWorkoutMsg = component.createObject(workoutPage, { parentPage: workoutPage, title: qsTr("Reset workout?"),
 						message: qsTr("Exercises will not be afected"), imageSource: "reset.png" } );
-					resetWorkoutMsg.button1Clicked.connect(function () { WorkoutManager.resetWorkout(); } );
+					resetWorkoutMsg.button1Clicked.connect(function () { workoutManager.resetWorkout(); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -897,7 +884,7 @@ TPPage {
 			function finishCreation() {
 				navButtons = component.createObject(workoutPage, { ownerPage: workoutPage });
 				navButtons.scrollTo.connect(scrollTraining.setScrollBarPosition);
-				navButtons.visible = Qt.binding(function() { return WorkoutManager.splitLetter !== "R"; });
+				navButtons.visible = Qt.binding(function() { return workoutManager.splitLetter !== "R"; });
 			}
 
 			if (component.status === Component.Ready)
@@ -922,8 +909,8 @@ TPPage {
 	function selectedOptionsMenuOption(menuid): void {
 		switch (menuid) {
 			case 0:
-				WorkoutManager.editMode = !WorkoutManager.editMode;
-				optionsMenu.setMenuText(0, WorkoutManager.editMode ? qsTr("Done") : qsTr("Edit workout"));
+				workoutManager.editMode = !workoutManager.editMode;
+				optionsMenu.setMenuText(0, workoutManager.editMode ? qsTr("Done") : qsTr("Edit workout"));
 			break;
 			case 1:
 				resetWorkoutMessage();
@@ -955,7 +942,7 @@ TPPage {
 			parentPage: workoutPage
 			closeButtonVisible: true
 
-			onButton1Clicked: WorkoutManager.exportWorkout(exportDlgLoader.bShare);
+			onButton1Clicked: workoutManager.exportWorkout(exportDlgLoader.bShare);
 			onClosed: exportDlgLoader.active = false;
 		}
 		property bool bShare

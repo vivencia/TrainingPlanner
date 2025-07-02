@@ -32,7 +32,7 @@ Rectangle {
 	property bool hasDropShadow: true
 	property bool checked: false
 	property int clickId: -1
-	property int imageSize: imageSource.length > 0 ? (textUnderIcon ? (height*0.9)/2 : height*0.9) : 0
+	property int imageSize: 0
 
 	//Local variables. Do not use outside this file
 	property bool _bPressed: false
@@ -190,13 +190,16 @@ Rectangle {
 	}
 
 	function anchorLabel(): void {
-		buttonText.anchors.horizontalCenter = button.horizontalCenter;
 		if (textUnderIcon) {
 			buttonText.anchors.bottom = button.bottom;
-			buttonText.anchors.bottomMargin = 5
+			buttonText.anchors.bottomMargin = 5;
+			buttonText.anchors.left = button.left;
+			buttonText.anchors.right = button.right;
 		}
-		else
+		else {
+			buttonText.anchors.horizontalCenter = button.horizontalCenter;
 			buttonText.anchors.verticalCenter = button.verticalCenter;
+		}
 		if (_buttonImage)
 			anchorImage();
 	}
@@ -227,6 +230,17 @@ Rectangle {
 		let component = Qt.createComponent("TPButtonImage.qml", Qt.Asynchronous);
 
 		function finishCreation() {
+			if (text.length > 0) {
+				imageSize = Math.min(buttonText.height, buttonText.width);
+				if (imageSize === 0)
+					imageSize = Math.ceil(appSettings.itemDefaultHeight * 0.9);
+			}
+			else {
+				if (autoSize)
+					imageSize = appSettings.appDefaultHeight * 0.9;
+				else
+					imageSize = Math.min(height, width) * 0.9;
+			}
 			_buttonImage = component.createObject(button,
 				{ imageSource: imageSource, width: imageSize, height: imageSize, dropShadow: hasDropShadow});
 			if (button.text.length === 0)

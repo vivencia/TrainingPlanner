@@ -8,259 +8,616 @@ import "../TPWidgets"
 
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
-SwipeDelegate {
-	id: paneExercise
-	visible: height > 0
-	implicitHeight: showSets ? layoutMain.implicitHeight + exerciseSetsLayout.height + 20 :
-		(exerciseManager.hasSets ? txtExerciseName.height + 10 : layoutMain.implicitHeight + 20)
-	swipe.enabled: enabled && !showSets
-	clip: true
-	padding: 5
+ListView {
+	id: control
+	model: workoutModel
+	boundsBehavior: Flickable.StopAtBounds
+	flickableDirection: Flickable.VerticalFlick
 	spacing: 5
-	Layout.fillWidth: true
 
-	required property ExerciseEntryManager exerciseManager
-	property bool showSets: false
+	delegate: ItemDelegate {
+		id: delegate
+		spacing: 10
+		padding: 0
+		implicitWidth: control.width
+		implicitHeight: contentsLayout.implicitHeight
 
-	readonly property Item setsLayout: exerciseSetsLayout
+		readonly property int exerciseNumber: index
+		property int nSubExercises: workoutModel.subExercisesCount(delegate.exerciseNumber)
+		property bool enabledRestTime: workoutModel.trackRestTime(exerciseNumber) && !workoutModel.autoRestTime(exerciseNumber)
 
-	Behavior on height {
-		NumberAnimation {
-			easing.type: Easing.InOutBack
-		}
-	}
-
-	background: Rectangle {
-		color: exerciseManager.exerciseNumber % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
-		border.color: "transparent"
-		opacity: 0.8
-		radius: 10
-	}
-
-	TPButton {
-		id: btnMoveExerciseUp
-		imageSource: "up.png"
-		hasDropShadow: false
-		enabled: exerciseManager.exerciseNumber > 0
-		visible: exerciseManager.isEditable
-		height: 30
-		width: 30
-		opacity: 1 + swipe.position
-
-		anchors {
-			left: parent.left
-			leftMargin: 0
-			top: parent.top
-			topMargin: 5
+		function exerciseFieldYPos(): int {
+			return delegate.mapToItem(mainwindow.contentItem, txtExerciseName.x, txtExerciseName.y).y;
 		}
 
-		onClicked: exerciseManager.moveExerciseUp();
-	}
-
-	TPButton {
-		id: btnMoveExerciseDown
-		imageSource: "down.png"
-		hasDropShadow: false
-		enabled: !exerciseManager.lastExercise
-		visible: exerciseManager.isEditable
-		height: 30
-		width: 30
-		opacity: 1 + swipe.position
-
-		anchors {
-			left: parent.left
-			leftMargin: 20
-			top: parent.top
-			topMargin: 5
+		contentItem: Rectangle {
+			id: listItem
+			border.color: "transparent"
+			color: "transparent"
+			radius: 5
 		}
 
-		onClicked: exerciseManager.moveExerciseDown();
-	}
-
-	ColumnLayout {
-		id: layoutMain
-		spacing: 0
-		opacity: 1 + swipe.position
-
-		anchors {
-			top: parent.top
-			topMargin: 5
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
+		background: Rectangle {
+			id:	backgroundColor
+			color: workoutModel.workingExercise === index ? appSettings.primaryColor :
+							(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
 		}
 
-		RowLayout {
-			spacing: 0
-			Layout.fillWidth: true
-			Layout.leftMargin: 5
+		onClicked: workoutModel.workingExercise = index;
 
-			TPButton {
-				id: btnFoldIcon
-				imageSource: showSets ? "fold-up.png" : "fold-down.png"
-				hasDropShadow: false
-				imageSize: 18
-				Layout.preferredWidth: 18
-				Layout.preferredHeight: 18
-				onClicked: paneExerciseShowHide(!showSets);
+		Connections {
+			target: workoutModel
+
+			function onWorkingExerciseChanged(exercise_number: int): void {
+				if (exercise_number === index) {
+					const exercise_idx = workoutModel.workingSubExercise;
+					subExercisesTabBar.currentIndex = exercise_idx;
+					onWorkingSubExerciseChanged(exercise_number, exercise_idx);
+				}
 			}
 
-			TPLabel {
-				id: lblExerciseNumber
-				text: exerciseManager.exerciseNumber + ":"
-				font.bold: true
-				font.pixelSize: appSettings.fontSize
-				Layout.leftMargin: 5
+			function onWorkingSubExerciseChanged(exercise_number: int, exercise_idx: int): void {
+				const set_number = workoutModel.workingSet;
+				setsTabBar.currentIndex = set_number;
+				delegate.changeFields(exercise_number, exercise_idx, set_number, false);
 			}
+
+			function onWorkingSetChanged(exercise_number: int, exercise_idx: int, set_number: int): void {
+				delegate.changeFields(exercise_number, exercise_idx, set_number, true);
+			}
+
+			function onExerciseNameChanged(exercise_number: int, exercise_idx: int): void {
+				if (exercise_number === index) {
+					txtExerciseName.text = workoutModel.exerciseName(exercise_number, exercise_idx);
+					subExerciseButtonsRepeater.itemAt(exercise_idx).text = txtExerciseName.text;
+				}
+			}
+
+			function onExerciseModified(exercise_number: int, exercise_idx: int, set_number: int, field: int): void {
+				if (exercise_number === index) {
+					switch (field) {
+						case 7: //EXERCISES_COL_SETTYPES
+							changeFields(index, exercise_idx, set_number, true);
+						break;
+					}
+				}
+			}
+		} //Connections
+
+		function changeFields(exercise_number: int, exercise_idx: int, set_number: int, only_settype_dependent_fields: bool): void {
+			if (exercise_number === index) {
+				if (!only_settype_dependent_fields) {
+					txtExerciseName.text = workoutModel.exerciseName(exercise_number, exercise_idx);
+					txtNotes.text = workoutModel.setNotes(exercise_number, exercise_idx, set_number);
+				}
+				cboSetType.currentIndex = workoutModel.setType(exercise_number, exercise_idx, set_number);
+				txtRestTime.text = workoutModel.setRestTime(exercise_number, exercise_idx, set_number);
+				txtNSubsets.text = workoutModel.setSubSets(exercise_number, exercise_idx, set_number);
+				txtNReps.text = workoutModel.setReps(exercise_number, exercise_idx, set_number);
+				txtNWeight.text = workoutModel.setWeight(exercise_number, exercise_idx, set_number);
+			}
+		}
+
+		ColumnLayout {
+			id: contentsLayout
+			spacing: 10
+
+			anchors {
+				fill: parent
+				topMargin: 5
+				leftMargin: 5
+				rightMargin: 5
+				bottomMargin: 5
+			}
+
+			Item {
+				height: appSettings.itemDefaultHeight
+				Layout.fillWidth: true
+
+				TPRadioButton {
+					id: optCurrentExercise
+					text: qsTr("Exercise #") + "<b>" + (index + 1) + "</b>" + (delegate.nSubExercises > 1 ? qsTr(" - Giant sets") : "")
+					checked: index === workoutModel.workingExercise
+					width: parent.width * 0.7
+
+					anchors {
+						left: parent.left
+						verticalCenter: parent.verticalCenter
+					}
+
+					onClicked: workoutModel.workingExercise = index;
+				} //optCurrentExercise
+
+				TPButton {
+					id: btnDelExercise
+					imageSource: "remove"
+					width: appSettings.itemDefaultHeight
+					height: width
+					enabled: index === workoutModel.workingExercise
+
+					anchors {
+						right: btnMoveExerciseUp.left
+						rightMargin: 10
+						verticalCenter: parent.verticalCenter
+					}
+
+					onClicked: workoutManager.removeExercise(index);
+				} //btnDelExercise
+
+				TPButton {
+					id: btnMoveExerciseUp
+					imageSource: "up.png"
+					hasDropShadow: false
+					width: appSettings.itemDefaultHeight * 0.9
+					height: width
+					enabled: index === workoutModel.workingExercise ? (delegate.exerciseNumber >= 1) : false
+
+					anchors {
+						right: btnMoveExerciseDown.left
+						rightMargin: 10
+						verticalCenter: parent.verticalCenter
+					}
+
+					onClicked: workoutModel.moveExercise(index, index-1);
+				} //btnMoveExerciseUp
+
+				TPButton {
+					id: btnMoveExerciseDown
+					imageSource: "down.png"
+					hasDropShadow: false
+					width: appSettings.itemDefaultHeight * 0.9
+					height: width
+					enabled: index === workoutModel.workingExercise ? (delegate.exerciseNumber < (workoutModel.count-1)) : false
+
+					anchors {
+						right: parent.right
+						rightMargin: 20
+						verticalCenter: parent.verticalCenter
+					}
+
+					onClicked: sworkoutModel.moveExercise(index, index+1);
+				} //btnMoveExerciseDown
+			} //Item
+
+			Item {
+				enabled: index === workoutModel.workingExercise
+				Layout.minimumWidth: listItem.width
+				Layout.maximumWidth: listItem.width
+				Layout.preferredHeight: appSettings.itemDefaultHeight*1.1
+
+				TPButton {
+					id: btnAddSubExercise
+					imageSource: "plus"
+					hasDropShadow: false
+					width: appSettings.itemDefaultHeight
+					height: width
+
+					onClicked: {
+						nSubExercises = workoutModel.addSubExercise(delegate.exerciseNumber) + 1;
+						subExercisesTabBar.setCurrentIndex(workoutModel.workingSubExercise);
+					}
+
+					anchors {
+						left: parent.left
+						verticalCenter: parent.verticalCenter
+					}
+				}
+
+				StackLayout{
+					id: subExercisesStack
+					currentIndex: delegate.nSubExercises > 0 ? 1 : 0
+					height: appSettings.itemDefaultHeight*1.2
+
+					anchors {
+						left: btnAddSubExercise.right
+						right: btnDelSubExercise.left
+						verticalCenter: parent.verticalCenter
+					}
+
+					TPLabel {
+						text: qsTr(" <<-- Add some machine or free weight exercise")
+						wrapMode: Text.WordWrap
+						horizontalAlignment: Text.AlignHCenter
+						Layout.maximumWidth: parent.width * 0.8
+						Layout.minimumWidth: parent.width * 0.8
+						Layout.minimumHeight: appSettings.itemDefaultHeight * 2
+					}
+
+					TabBar {
+						id: subExercisesTabBar
+						Layout.fillWidth: true
+						Layout.fillHeight: true
+						contentWidth: width
+						clip: true
+
+						Repeater {
+							id: subExerciseButtonsRepeater
+							model: delegate.nSubExercises
+
+							TabButton {
+								id: subExercisesTabButton
+								text: workoutModel.exerciseName(delegate.exerciseNumber, index)
+								checkable: true
+								checked: index === workoutModel.workingSubExercise
+								height: subExercisesTabBar.height * 0.95
+
+								contentItem: Label {
+									text: subExercisesTabButton.text
+									elide: Text.ElideRight
+									horizontalAlignment: Qt.AlignHCenter
+									verticalAlignment: Qt.AlignVCenter
+									font.pixelSize: appSettings.smallFontSize
+									color: appSettings.fontColor
+								}
+
+								background: Rectangle {
+									border.color: appSettings.fontColor
+									opacity: 0.8
+									color: enabled ? (checked ? appSettings.primaryDarkColor : appSettings.primaryColor) : appSettings.disabledFontColor
+								}
+
+								onClicked: {
+									workoutModel.workingSubExercise = index;
+									if (text.startsWith(qsTr("Choose")))
+										workoutManager.simpleExercisesList(true);
+								}
+							} //subExercisesTabButton
+						} //subExerciseButtonsRepeater
+					} //subExercisesTabBar
+				} //StackLayout
+
+				TPButton {
+					id: btnDelSubExercise
+					imageSource: "minus"
+					hasDropShadow: false
+					width: appSettings.itemDefaultHeight
+					height: width
+
+					anchors {
+						right: parent.right
+						rightMargin: 5
+						verticalCenter: parent.verticalCenter
+					}
+
+					onClicked: {
+						workoutModel.delSubExercise(workoutModel.workingExercise, workoutModel.workingSubExercise);
+						delegate.nSubExercises--;
+					}
+				}
+			} //Item
 
 			ExerciseNameField {
 				id: txtExerciseName
-				text: exerciseManager.exerciseName
-				editable: false
-				showEditButton: false
-				width: layoutMain.width*0.85
-				height: appSettings.pageHeight*0.1
+				text: workoutModel.exerciseName(index, workoutModel.workingSubExercise)
+				showRemoveButton: false
+				editable: delegate.nSubExercises > 0 && index === workoutModel.workingExercise
+				Layout.preferredWidth: parent.width
+				Layout.preferredHeight: appSettings.pageHeight * 0.1
+
+				onExerciseChanged: (new_text) => workoutModel.setExerciseName(workoutModel.workingExercise, workoutModel.workingSubExercise, new_text);
+				onItemClicked: workoutModel.workingExercise = index;
+				onShowExercisesListButtonClicked: workoutManager.simpleExercisesList(true);
+			} //txtExerciseName
+
+			Row {
+				id: trackRestTimeRow
+				enabled: index === workoutModel.workingExercise
+				spacing: 0
+				Layout.fillWidth: true
+				Layout.leftMargin: 10
+				Layout.rightMargin: 10
+
+				TPCheckBox {
+					id: chkTrackRestTime
+					text: workoutModel.trackRestTimeLabel
+					checked: workoutModel.trackRestTime(index)
+					width: listItem.width * 0.5
+
+					onClicked: {
+						workoutModel.setTrackRestTime(index, checked);
+						delegate.enabledRestTime = checked;
+					}
+				}
+
+				TPCheckBox {
+					id: chkAutoRestTime
+					text: workoutModel.autoRestTimeLabel
+					checked: workoutModel.autoRestTime(index)
+					width: listItem.width * 0.5
+
+					onClicked: {
+						workoutModel.setAutoRestTime(index, checked);
+						delegate.enabledRestTime = !checked;
+					}
+				}
+			}
+
+			GroupBox {
+				id: setsGroup
+				padding: 0
+				spacing: 0
+				enabled: delegate.nSubExercises > 0 && index === workoutModel.workingExercise
+				width: parent.width
 				Layout.preferredWidth: width
 				Layout.preferredHeight: height
+				Layout.leftMargin: 0
+				Layout.rightMargin: 0
+				Layout.bottomMargin: 10
+				Layout.topMargin: 0
 
-				onRemoveButtonClicked: exerciseManager.removeExercise();
-				onItemClicked: paneExerciseShowHide(!showSets);
-				onItemPressed: if (enabled && !showSets) swipe.open(SwipeDelegate.Right);
-			}
-		} //Row txtExerciseName
+				property int nSets: workoutModel.setsNumber(delegate.exerciseNumber, workoutModel.workingSubExercise)
 
-		RowLayout {
-			id: trackRestTimeRow
-			enabled: exerciseManager.isEditable && exerciseManager.canEditRestTimeTracking
-			spacing: 0
-			Layout.fillWidth: true
-			Layout.topMargin: 15
-
-			TPCheckBox {
-				id: chkTrackRestTime
-				text: qsTr("Track rest times?")
-				checked: exerciseManager.trackRestTime
-				width: layoutMain.width*0.45
-				Layout.preferredWidth: width
-
-				onClicked: exerciseManager.trackRestTime = checked;
-			}
-
-			TPCheckBox {
-				id: chkAutoRestTime
-				text: qsTr("Auto tracking")
-				enabled: exerciseManager.trackRestTime
-				checked: exerciseManager.autoRestTime
-				width: layoutMain.width*0.45
-				Layout.preferredWidth: width
-
-				onPressAndHold: ToolTip.show(qsTr("Tap on Start Rest/Stop Rest to have the rest time automatically recorded"), 5000);
-				onClicked: exerciseManager.autoRestTime = checked;
-			}
-		}
-
-		SetInputField {
-			id: txtRestTime
-			type: SetInputField.Type.TimeType
-			text: exerciseManager.restTime
-			availableWidth: layoutMain.width*0.45
-			backColor: "transparent"
-			borderColor: "transparent"
-			enabled: exerciseManager.trackRestTime && !exerciseManager.autoRestTime
-			Layout.preferredWidth: width
-
-			onValueChanged: (str) => exerciseManager.restTime = str;
-		}
-	} // ColumnLayout layoutMain
-
-	ColumnLayout {
-		id: subExerciseAndSetsLayout
-		width: parent.width
-
-		anchors {
-				top: layoutMain.bottom
-				topMargin: 10
-				left: parent.left
-				leftMargin: 5
-				right:parent.right
-				rightMargin: 5
-		}
-
-		Repeater {
-			id: subExerciseRepeater
-			model: exerciseManager.subExercisesCount
-			Layout.fillWidth: true
-
-			delegate: ColumnLayout {
-				required property int index
-				spacing: 5
-
-				ExerciseNameField {
-					text: exerciseManager.exerciseName(index)
-					editable: exerciseManager.isEditable
-					width: layoutMain.width*0.85
-					height: appSettings.pageHeight*0.1
-					Layout.preferredWidth: width
-					Layout.preferredHeight: height
-
-					onExerciseChanged: (new_text) => exerciseManager.setExerciseName(index, new_text);
-					onRemoveButtonClicked: exerciseManager.removeExercise();
-					onEditButtonClicked: exerciseManager.simpleExercisesList(!readOnly, true);
-					onItemClicked: paneExerciseShowHide(!showSets);
-					onItemPressed: if (enabled && !showSets) swipe.open(SwipeDelegate.Right);
+				background: Rectangle {
+					color: "transparent"
+					border.color: appSettings.fontColor
+					radius: 6
 				}
 
-				GridLayout {
-					columns: 1
-					columnSpacing: 0
-					rowSpacing: 5
-					width: parent.width
-				}
+				ColumnLayout {
+					id: setsItemsLayout
+					anchors.fill: parent
+					spacing: 5
 
-				TPButton {
-					id: btnCompleteExercise
-					text: qsTr("Exercise completed")
-					flat: false
-					visible: exerciseManager.isEditable
-					enabled: exerciseManager.allSetsCompleted
-					height: visible ? 30 : 0
+					Item {
+						enabled: delegate.nSubExercises > 0
+						Layout.fillWidth: true
+						Layout.preferredHeight: appSettings.itemDefaultHeight*1.1
 
-					onClicked: exerciseManager.allSetsCompleted = true;
-				}
-			}
-		} //Repeater
+						TPButton {
+							id: btnAddSet
+							imageSource: "plus"
+							hasDropShadow: false
+							width: appSettings.itemDefaultHeight
+							height: width
+
+							onClicked: {
+								setsGroup.nSets = workoutModel.addSet(workoutModel.workingExercise, workoutModel.workingSubExercise) + 1;
+								setsTabBar.setCurrentIndex(workoutModel.workingSet);
+							}
+
+							anchors {
+								left: parent.left
+								verticalCenter: parent.verticalCenter
+							}
+						}
+
+						StackLayout{
+							id: setsStack
+							currentIndex: setsGroup.nSets > 0 ? 1 : 0
+							height: appSettings.itemDefaultHeight*1.2
+
+							anchors {
+								left: btnAddSet.right
+								right: btnDelSet.left
+								verticalCenter: parent.verticalCenter
+							}
+
+							TPLabel {
+								text: qsTr(" <<-- Add some sets")
+								horizontalAlignment: Text.AlignHCenter
+								Layout.fillWidth: true
+							}
+
+							TabBar {
+								id: setsTabBar
+								Layout.fillWidth: true
+								Layout.fillHeight: true
+								contentWidth: width
+								clip: true
+
+								Repeater {
+									id: buttonsRepeater
+									model: setsGroup.nSets
+
+									TabButton {
+										id: tabButton
+										text: qsTr("Set # ") + parseInt(index + 1)
+										checkable: true
+										checked: index === setsTabBar.currentIndex
+										width: setsGroup.width * 0.22
+										height: setsTabBar.height * 0.95
+
+										contentItem: Label {
+											text: tabButton.text
+											horizontalAlignment: Qt.AlignHCenter
+											verticalAlignment: Qt.AlignVCenter
+											font.pixelSize: appSettings.smallFontSize
+											color: appSettings.fontColor
+										}
+
+										background: Rectangle {
+											border.color: appSettings.fontColor
+											opacity: 0.8
+											color: enabled ? (checked ? appSettings.primaryDarkColor : appSettings.primaryColor) : appSettings.disabledFontColor
+										}
+
+										onClicked: workoutModel.workingSet = index;
+									} //tabButton
+								} //buttonsRepeater
+							} //setsTabBar
+						} //stackLayout
+
+						TPButton {
+							id: btnDelSet
+							imageSource: "minus"
+							hasDropShadow: false
+							enabled: setsGroup.nSets > 0
+							width: appSettings.itemDefaultHeight
+							height: width
+
+							anchors {
+								right: parent.right
+								verticalCenter: parent.verticalCenter
+							}
+
+							onClicked: {
+								workoutModel.delSet(workoutModel.workingExercise, workoutModel.workingSubExercise, workoutModel.workingSet);
+								setsGroup.nSets--;
+							}
+						}
+					} //Item
+
+					Row {
+						Layout.alignment: Qt.AlignCenter
+						Layout.preferredWidth: listItem.width * 0.9
+						padding: 10
+						enabled: setsGroup.nSets > 0
+
+						TPLabel {
+							text: workoutModel.setTypeLabel
+							width: listItem.width * 0.36
+						}
+
+						TPComboBox {
+							id: cboSetType
+							enabled: index === workoutModel.workingExercise
+							model: AppGlobals.setTypesModel
+							currentIndex: workoutModel.setType(index, workoutModel.workingSubExercise, workoutModel.workingSet)
+							width: listItem.width * 0.45
+
+							onActivated: (cboIndex) => workoutModel.setSetType(index, workoutModel.workingSubExercise, workoutModel.workingSet, cboIndex);
+						}
+					} //RowLayout
+
+					RowLayout {
+						visible: setsGroup.nSets > 0 && cboSetType.currentIndex >= 3
+						Layout.alignment: Qt.AlignCenter
+						Layout.preferredWidth: listItem.width * 0.9
+
+						TPLabel {
+							text: workoutModel.setTotalSubsets
+							Layout.preferredWidth: listItem.width * 0.63
+						}
+
+						SetInputField {
+							id: txtNSubsets
+							text: workoutModel.setSubSets(index, workoutModel.workingSubExercise, workoutModel.workingSet)
+							type: SetInputField.Type.SetType
+							availableWidth: listItem.width * 0.25
+							showLabel: false
+
+							onValueChanged: (str) => workoutModel.setSetSubSets(workoutModel.workingExercise,
+															workoutModel.workingSubExercise, workoutModel.workingSet, str);
+							onEnterOrReturnKeyPressed: txtNReps.forceActiveFocus();
+						}
+					} //RowLayout
+
+					SetInputField {
+						id: txtRestTime
+						type: SetInputField.Type.TimeType
+						text: workoutModel.setRestTime(index, workoutModel.workingSubExercise, workoutModel.workingSet)
+						availableWidth: listItem.width * 0.9
+						enabled: setsGroup.nSets > 0 && cboSetType.currentIndex >= 0 && delegate.enabledRestTime
+						Layout.alignment: Qt.AlignCenter
+
+						onValueChanged: (str) => workoutModel.setSetRestTime(workoutModel.workingExercise,
+															workoutModel.workingSubExercise, workoutModel.workingSet, str);
+					}
+
+					SetInputField {
+						id: txtNReps
+						text: workoutModel.setReps(index, workoutModel.workingSubExercise, workoutModel.workingSet)
+						type: SetInputField.Type.RepType
+						availableWidth: listItem.width * 0.9
+						enabled: setsGroup.nSets > 0 && cboSetType.currentIndex >= 0
+						Layout.alignment: Qt.AlignCenter
+
+						onValueChanged: (str) => workoutModel.setSetReps(workoutModel.workingExercise,
+															workoutModel.workingSubExercise, workoutModel.workingSet, str);
+						onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
+					} //txtNReps
+
+					SetInputField {
+						id: txtNWeight
+						text: workoutModel.setWeight(index, workoutModel.workingSubExercise, workoutModel.workingSet)
+						type: SetInputField.Type.WeightType
+						availableWidth: listItem.width * 0.9
+						enabled: setsGroup.nSets > 0 && cboSetType.currentIndex >= 0
+						Layout.alignment: Qt.AlignCenter
+
+						onValueChanged: (str) => workoutModel.setSetWeight(workoutModel.workingExercise,
+															workoutModel.workingSubExercise, workoutModel.workingSet, str);
+					} //txtNWeight
+
+					SetNotesField {
+						id: txtNotes
+						info: workoutModel.setNotesLabel
+						text: workoutModel.setNotes(index, workoutModel.workingSubExercise, workoutModel.workingSet)
+						enabled: cboSetType.currentIndex >= 0
+						Layout.fillWidth: true
+
+						onEditFinished: (new_text) => workoutModel.setSetNotes(workoutModel.workingExercise,
+														workoutModel.workingSubExercise, workoutModel.workingSet, new_text);
+					}
+
+					StackLayout {
+						id: setModeLayout
+						Layout.alignment: Qt.AlignCenter
+						Layout.maximumWidth: parent.width / 2
+						Layout.preferredHeight: appSettings.itemDefaultHeight * 1.5
+						currentIndex: setCompleted ? 1 : 0
+
+						property bool setCompleted: workoutModel.setCompleted(index,
+														workoutModel.workingSubExercise, workoutModel.workingSet)
+
+						TPButton {
+							id: btnSetMode
+							text: "Start rest"
+							Layout.alignment: Qt.AlignCenter
+
+							onClicked: {
+								setModeLayout.setCompleted = !setModeLayout.setCompleted;
+								workoutModel.setSetCompleted(workoutModel.workingExercise,
+														workoutModel.workingSubExercise, workoutModel.workingSet, true);
+							}
+						}
+
+						TPButton {
+							id: imgCompleted
+							imageSource: "set-completed"
+							height: appSettings.itemDefaultHeight * 1.5
+							width: height
+							Layout.alignment: Qt.AlignCenter
+
+							onClicked: {
+								setModeLayout.setCompleted = !setModeLayout.setCompleted;
+								workoutModel.setSetCompleted(workoutModel.workingExercise,
+														workoutModel.workingSubExercise, workoutModel.workingSet, false);
+							}
+						}
+					}
+				} //setsItemsLayout
+			} //paneSets
+		} //contentsLayout
+	} //delegate: ItemDelegate
+
+	function reloadModel(): void {
+		lstSplitExercises.model = 0;
+		lstSplitExercises.model = workoutModel.count;
+		txtGroups.text = workoutModel.muscularGroup();
 	}
 
-	swipe.right: Rectangle {
-		width: parent.width
-		height: parent.height - 30
-		clip: false
-		color: SwipeDelegate.pressed ? "#555" : "#666"
-		radius: 10
-
-		TPImage {
-			source: "remove"
-			width: 30
-			height: 30
-			opacity: 2 * -swipe.position
-
-			anchors {
-				horizontalCenter: parent.horizontalCenter
-				verticalCenter: parent.verticalCenter
-			}
-		}
-	} //swipe.right
-
-	swipe.onCompleted: exerciseManager.removeExercise();
-
-	function paneExerciseShowHide(show: bool): void {
-		if (show && exerciseManager.hasSets)
-			exerciseManager.createAvailableSets();
-		showSets = show;
+	function setScrollBarPosition(pos: int): void {
+		if (pos === 0)
+			vBar.setPosition(0);
+		else
+			vBar.setPosition(pos - vBar.size/2);
 	}
 
-	function getLayoutForSubExercise(exercise_idx: int): GridLayout {
-		return subExerciseRepeater.itemAt(exercise_idx).children[1];
+	function updateTxtGroups(musculargroup: string): void {
+		txtGroups.text = musculargroup;
 	}
-} //Item
+
+	function appendNewExerciseToDivision(): void {
+		workoutManager.addExercise();
+		lstSplitExercises.currentIndex = workoutModel.workingExercise;
+		lstSplitExercises.positionViewAtIndex(workoutModel.workingExercise, ListView.Center);
+	}
+
+	function exerciseNameFieldYPosition(): int {
+		if (itemAtIndex(workoutModel.workingExercise))
+			return itemAtIndex(workoutModel.workingExercise).exerciseFieldYPos();
+		else
+			return 0;
+	}
+} //ListView

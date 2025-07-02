@@ -1,13 +1,10 @@
 #include "qmlworkoutinterface.h"
 
 #include "dbcalendarmodel.h"
-#include "dbexerciseslistmodel.h"
 #include "dbexercisesmodel.h"
 #include "dbinterface.h"
 #include "dbmesocalendarmanager.h"
 #include "dbmesocyclesmodel.h"
-#include "qmlsetentry.h"
-#include "qmlexerciseentry.h"
 #include "qmlitemmanager.h"
 #include "tpsettings.h"
 #include "tptimer.h"
@@ -17,8 +14,6 @@
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickWindow>
-
-#include <ranges>
 
 QmlWorkoutInterface::QmlWorkoutInterface(QObject *parent, const uint meso_idx, const QDate &date)
 	: QObject{parent}, m_workoutPage{nullptr}, m_mesoIdx{meso_idx}, m_workoutTimer{nullptr}, m_restTimer{nullptr},
@@ -44,10 +39,11 @@ QmlWorkoutInterface::QmlWorkoutInterface(QObject *parent, const uint meso_idx, c
 						if (id == thread_id)
 						{
 							disconnect(*conn);
+							if (m_workoutPage)
+								m_workoutPage->setProperty("workoutModel", QVariant::fromValue(m_workoutModel));
 							verifyWorkoutOptions();
 						}
 					});
-
 				}
 				emit timeInChanged();
 				emit timeOutChanged();
@@ -62,7 +58,7 @@ QmlWorkoutInterface::QmlWorkoutInterface(QObject *parent, const uint meso_idx, c
 	{
 		m_calendarModel = appMesoModel()->mesoCalendarManager()->calendar(m_mesoIdx);
 		m_calendarDay = appMesoModel()->mesoCalendarManager()->calendarDay(m_mesoIdx, date);
-		m_workoutModel = appMesoModel()->mesoCalendarManager()->workout(m_mesoIdx, m_calendarDay);
+		m_workoutModel = appMesoModel()->mesoCalendarManager()->workoutForDay(m_mesoIdx, m_calendarDay);
 	}
 	m_editMode = false;
 	m_workoutIsEditable = false;
@@ -71,8 +67,6 @@ QmlWorkoutInterface::QmlWorkoutInterface(QObject *parent, const uint meso_idx, c
 
 void QmlWorkoutInterface::cleanUp()
 {
-	qDeleteAll(m_exercisesList);
-	delete m_exercisesComponent;
 	m_workoutModel->deleteLater();
 	delete m_workoutPage;
 	delete m_workoutComponent;
@@ -80,21 +74,6 @@ void QmlWorkoutInterface::cleanUp()
 		delete m_workoutTimer;
 	if (m_restTimer)
 		delete m_restTimer;
-}
-
-void QmlWorkoutInterface::setWorkingExercise(QmlExerciseEntry *new_workingexercise)
-{
-	m_workingExercise = new_workingexercise;
-	m_workoutModel->setWorkingExercise(new_workingexercise->exerciseNumber());
-	emit workingExerciseChanged();
-}
-
-void QmlWorkoutInterface::setWorkingSet(QmlSetEntry *new_workingset)
-{
-	m_workingSet = new_workingset;
-	m_workoutModel->setWorkingSet(new_workingset->exerciseNumber(), new_workingset->exerciseIdx(), new_workingset->setNumber());
-	emit workingExerciseChanged();
-	emit workingSetChanged();
 }
 
 //----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
@@ -235,8 +214,6 @@ void QmlWorkoutInterface::setWorkoutIsEditable(const bool editable)
 	{
 		m_workoutIsEditable = editable;
 		emit workoutIsEditableChanged();
-		for (const auto exercise_entry : std::as_const(m_exercisesList))
-			exercise_entry->setIsEditable(editable);
 	}
 }
 
@@ -282,16 +259,17 @@ void QmlWorkoutInterface::getWorkoutPage()
 	}
 }
 
-void QmlWorkoutInterface::loadExercisesFromDate(const QString &strDate)
+void QmlWorkoutInterface::loadExercisesFromDate(const QDate &date)
 {
+	const int correct_calendar_day{m_workoutModel->calendarDay()};
+	m_workoutModel->setCalendarDay(appMesoModel()->mesoCalendarManager()->calendarDay(m_mesoIdx, date));
 	const int id{appDBInterface()->getWorkout(m_workoutModel)};
 	auto conn = std::make_shared<QMetaObject::Connection>();
-	*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn,id] (const uint thread_id) {
+	*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn,id,correct_calendar_day] (const uint thread_id) {
 		if (id == thread_id)
 		{
 			disconnect(*conn);
-			if (m_workoutModel->exerciseCount() > 0)
-				loadExercises();
+			m_workoutModel->setCalendarDay(correct_calendar_day);
 		}
 	});
 }
@@ -300,10 +278,7 @@ void QmlWorkoutInterface::getExercisesFromSplitPlan()
 {
 	DBExercisesModel *split_model{appMesoModel()->splitModel(m_mesoIdx, splitLetter(), false)};
 	if (split_model->exerciseCount() > 0)
-	{
 		m_workoutModel = split_model;
-		loadExercises();
-	}
 	else
 	{
 		auto conn = std::make_shared<QMetaObject::Connection>();
@@ -395,94 +370,40 @@ void QmlWorkoutInterface::stopWorkout()
 	setDayIsFinished(true);
 }
 
-void QmlWorkoutInterface::addExercise(const bool show_exercises_list_page)
+void QmlWorkoutInterface::addExercise()
 {
-	const uint exercise_number{m_workoutModel->addExercise()};
-	m_nExercisesToCreate = -1;
-	createExerciseObject(exercise_number);
-	if (show_exercises_list_page)
-		appItemManager()->getExercisesPage(this);
+	m_workoutModel->setWorkingExercise(m_workoutModel->addExercise());
+}
+
+void QmlWorkoutInterface::simpleExercisesList(const bool show)
+{
+	if (show)
+		appItemManager()->showSimpleExercisesList(m_workoutPage, m_workoutModel->muscularGroup());
+	else
+		appItemManager()->hideSimpleExercisesList(m_workoutPage);
 }
 
 void QmlWorkoutInterface::clearExercises(const bool bShowIntentDialog)
 {
 	m_workoutModel->clearExercises();
 	setDayIsFinished(false);
-	qDeleteAll(m_exercisesList);
-	m_exercisesList.clear();
 	emit hasExercisesChanged();
 	if (bShowIntentDialog)
 		verifyWorkoutOptions();
 }
 
-void QmlWorkoutInterface::removeExercise(const uint exercise_number)
+void QmlWorkoutInterface::removeExercise(const int exercise_number)
 {
-	m_workoutModel->delExercise(exercise_number);
-	m_exercisesList.at(exercise_number)->deleteLater();
-	m_exercisesList.removeAt(exercise_number);
-
-	if (m_exercisesList.count() == 0)
-		emit hasExercisesChanged();
-	else
+	if (exercise_number >= 0)
 	{
-		for(uint i{exercise_number}; i < m_exercisesList.count(); ++i)
-			moveExercise(i-1, i);
-		setWorkingExercise(m_exercisesList.at(exercise_number));
-	}
-}
-
-void QmlWorkoutInterface::removeExerciseObject(const uint exercise_idx, const bool bAsk)
-{
-	if (bAsk)
-		askRemoveExercise(exercise_idx);
-	else
-		removeExercise(exercise_idx);
-}
-
-void QmlWorkoutInterface::moveExercise(const uint exercise_number, const uint new_exercisenumber)
-{
-	for (const auto exercise : std::as_const(m_exercisesList))
-		exercise->exerciseEntry()->setParentItem(nullptr);
-
-	m_exercisesList.swapItemsAt(exercise_number, new_exercisenumber);
-	m_workoutModel->moveExercise(exercise_number, new_exercisenumber);
-	m_exercisesList.at(exercise_number)->setExerciseNumber(exercise_number);
-	m_exercisesList.at(new_exercisenumber)->setExerciseNumber(new_exercisenumber);
-	if (exercise_number == m_exercisesList.count() - 1)
-	{
-		m_exercisesList.at(exercise_number)->setLastExercise(true);
-		m_exercisesList.at(new_exercisenumber)->setLastExercise(false);
-	}
-	else if (new_exercisenumber == m_exercisesList.count() - 1)
-	{
-		m_exercisesList.at(exercise_number)->setLastExercise(false);
-		m_exercisesList.at(new_exercisenumber)->setLastExercise(true);
-	}
-
-	for (const auto exercise : std::as_const(m_exercisesList))
-	{
-		if (workingExercise() == exercise)
-			setWorkingExercise(exercise); //fix the workingExercise value in m_workoutModel after the move
-		exercise->exerciseEntry()->setParentItem(m_exercisesLayout);
-	}
-}
-
-void QmlWorkoutInterface::simpleExercisesList(const bool show, const bool multi_sel)
-{
-	if (show)
-	{
-		if (appExercisesList()->count() == 0)
-			appDBInterface()->getAllExercises();
-		connect(m_workoutPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), this, SLOT(newExerciseFromExercisesList()));
-		connect(m_workoutPage, SIGNAL(simpleExercisesListClosed()), this, SLOT(hideSimpleExercisesList()));
-		QMetaObject::invokeMethod(m_workoutPage, "showSimpleExercisesList", Q_ARG(bool, multi_sel));
+		if (appSettings()->alwaysAskConfirmation())
+			QMetaObject::invokeMethod(m_workoutPage, "showDeleteDialog", Q_ARG(QString,
+						m_workoutModel->exerciseName(exercise_number, m_workoutModel->workingSubExercise(exercise_number))));
+		else
+			m_workoutModel->delExercise(exercise_number);
 	}
 	else
-	{
-		disconnect(m_workoutPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), this, SLOT(newExerciseFromExercisesList()));
-		disconnect(m_workoutPage, SIGNAL(simpleExercisesListClosed()), this, SLOT(hideSimpleExercisesList()));
-		QMetaObject::invokeMethod(m_workoutPage, "hideSimpleExercisesList");
-	}
+		m_workoutModel->delExercise(m_workoutModel->workingExercise());
 }
 
 void QmlWorkoutInterface::displayMessage(const QString &title, const QString &message, const bool error, const uint msecs) const
@@ -499,37 +420,24 @@ void QmlWorkoutInterface::askRemoveExercise(const uint exercise_number)
 		removeExercise(exercise_number);
 }
 
-void QmlWorkoutInterface::gotoNextExercise(const uint exercise_number)
+void QmlWorkoutInterface::gotoNextExercise()
 {
-	if (exercise_number < m_exercisesList.count())
+	if (m_workoutModel->workingExercise() < (m_workoutModel->exerciseCount() - 1) )
 	{
-		QmlExerciseEntry *anterior_exercise_entry{m_exercisesList.at(exercise_number)};
-		QMetaObject::invokeMethod(anterior_exercise_entry->exerciseEntry(), "paneExerciseShowHide", Q_ARG(bool, false));
-		for (const auto exercise_entry : m_exercisesList | std::views::drop(exercise_number+1) )
-		{
-			if (!exercise_entry->allSetsCompleted())
-			{
-				QMetaObject::invokeMethod(exercise_entry->exerciseEntry(), "paneExerciseShowHide", Q_ARG(bool, true));
-				QMetaObject::invokeMethod(m_workoutPage, "placeSetIntoView",
-							Q_ARG(int, anterior_exercise_entry->exerciseEntry()->y() + exercise_entry->exerciseEntry()->height()));
-				return;
-			}
-			anterior_exercise_entry = exercise_entry;
-		}
-		QMetaObject::invokeMethod(m_workoutPage, "placeSetIntoView", Q_ARG(int, 0));
+		rollUpExercise(m_workoutModel->workingExercise());
+		m_workoutModel->setWorkingExercise(m_workoutModel->workingExercise() + 1);
+		QMetaObject::invokeMethod(m_workoutPage, "setViewingExercise", Q_ARG(int, m_workoutModel->workingExercise()));
 	}
 }
 
 void QmlWorkoutInterface::rollUpExercise(const uint exercise_number) const
 {
-	QMetaObject::invokeMethod(m_exercisesList.at(exercise_number)->exerciseEntry(), "paneExerciseShowHide", Q_ARG(bool, false));
+	QMetaObject::invokeMethod(m_workoutPage, "rollUpExercise", Q_ARG(int, exercise_number));
 }
 
 void QmlWorkoutInterface::rollUpExercises() const
 {
-	for (const auto exercise_entry : std::as_const(m_exercisesList))
-		QMetaObject::invokeMethod(exercise_entry->exerciseEntry(), "paneExerciseShowHide", Q_ARG(bool, false));
-	QMetaObject::invokeMethod(m_workoutPage, "placeSetIntoView", Q_ARG(int, 0));
+	QMetaObject::invokeMethod(m_workoutPage, "rollUpExercises");
 }
 
 TPTimer *QmlWorkoutInterface::restTimer()
@@ -539,39 +447,9 @@ TPTimer *QmlWorkoutInterface::restTimer()
 	return m_restTimer;
 }
 
-void QmlWorkoutInterface::newExerciseFromExercisesList()
-{
-	addExercise(false);
-	changeExerciseFromExercisesList(m_workoutModel->exerciseCount() - 1);
-}
-
-void QmlWorkoutInterface::changeExerciseFromExercisesList(int exercise_number)
-{
-	const uint n_subexercises{appExercisesList()->selectedEntriesCount()};
-	if (n_subexercises == 0)
-		return;
-
-	if (exercise_number)
-		exercise_number = m_workoutModel->workingExercise();
-
-	for (uint exercise_idx{0}; exercise_idx < n_subexercises; ++exercise_idx)
-	{
-		if (exercise_idx >= m_workoutModel->subExercisesCount(exercise_number))
-			m_exercisesList.at(exercise_idx)->addSubExercise();
-		m_workoutModel->setExerciseName(exercise_number, exercise_idx, std::move(
-			appExercisesList()->selectedEntriesValue(exercise_idx, EXERCISES_LIST_COL_MAINNAME) + " - "_L1 +
-			appExercisesList()->selectedEntriesValue(exercise_idx, EXERCISES_LIST_COL_SUBNAME)));
-	}
-}
-
 void QmlWorkoutInterface::silenceTimeWarning()
 {
 	m_workoutTimer->stopAlarmSound();
-}
-
-void QmlWorkoutInterface::hideSimpleExercisesList()
-{
-	simpleExercisesList(false);
 }
 
 void QmlWorkoutInterface::verifyWorkoutOptions()
@@ -619,19 +497,20 @@ void QmlWorkoutInterface::createWorkoutPage()
 void QmlWorkoutInterface::createWorkoutPage_part2()
 {
 	m_workoutProperties["workoutManager"_L1] = QVariant::fromValue(this);
-	m_workoutProperties["workoutModel"_L1] = QVariant::fromValue(m_workoutModel);
+	if (m_workoutModel)
+		m_workoutProperties["workoutModel"_L1] = QVariant::fromValue(m_workoutModel);
 	m_workoutPage = static_cast<QQuickItem*>(m_workoutComponent->createWithInitialProperties(m_workoutProperties, appQmlEngine()->rootContext()));
 	appQmlEngine()->setObjectOwnership(m_workoutPage, QQmlEngine::CppOwnership);
 	m_workoutPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
-	m_exercisesLayout = m_workoutPage->findChild<QQuickItem*>("exercisesLayout"_L1);
 
 	appItemManager()->addMainMenuShortCut(tr("Workout: ") + appUtils()->formatDate(m_calendarModel->date(m_calendarDay)), m_workoutPage, [this] () {
 		cleanUp();
 	});
+	connect(m_workoutPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), m_workoutModel, SLOT(newExerciseFromExercisesList()));
 
 	setHeaderText();
 
-	if (m_workoutModel->splitLetter() != "R"_L1)
+	if (m_workoutModel->splitLetter() != 'R')
 		QMetaObject::invokeMethod(m_workoutPage, "createNavButtons");
 
 	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [this] (const uint meso_idx, const int splitIndex, const QChar &chrSplitLetter) {
@@ -654,81 +533,6 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 
 	if (mainDateIsToday())
 		connect(m_workoutPage, SIGNAL(silenceTimeWarning()), this, SLOT(silenceTimeWarning()));
-}
-
-void QmlWorkoutInterface::createExerciseObject(const uint exercise_number)
-{
-	if (!m_exercisesComponent)
-	{
-		m_exercisesComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/ExercisesAndSets/ExerciseEntry.qml"_L1}, QQmlComponent::Asynchronous};
-		if (m_exercisesComponent->status() != QQmlComponent::Ready)
-		{
-			connect(m_exercisesComponent, &QQmlComponent::statusChanged, this, [this,exercise_number] (QQmlComponent::Status status) {
-				if (status == QQmlComponent::Ready)
-				{
-					disconnect(m_exercisesComponent, &QQmlComponent::statusChanged, this, nullptr);
-					createExerciseObject(exercise_number);
-				}
-			});
-			return;
-		}
-	}
-
-	QmlExerciseEntry *newExercise{new QmlExerciseEntry{this, this, m_workoutModel, exercise_number}};
-	if (exercise_number > 0)
-		m_exercisesList.last()->setLastExercise(false);
-
-	newExercise->setIsEditable(true);
-	newExercise->setLastExercise(true);
-	newExercise->setCanEditRestTimeTracking(true);
-	newExercise->setLastExercise(true);
-	m_exercisesList.append(newExercise);
-	createExerciseObject_part2(exercise_number);
-}
-
-void QmlWorkoutInterface::createExerciseObject_part2(const uint exercise_number)
-{
-	#ifndef QT_NO_DEBUG
-	if (m_exercisesComponent->status() == QQmlComponent::Error)
-	{
-		qDebug() << m_exercisesComponent->errorString();
-		for (auto &error : m_exercisesComponent->errors())
-			qDebug() << error;
-		return;
-	}
-	#endif
-
-	m_exercisesProperties.insert("exerciseManager"_L1, QVariant::fromValue(m_exercisesList.at(exercise_number)));
-
-	QQuickItem *item{static_cast<QQuickItem*>(m_exercisesComponent->createWithInitialProperties(
-													m_exercisesProperties, appQmlEngine()->rootContext()))};
-	appQmlEngine()->setObjectOwnership(item, QQmlEngine::CppOwnership);
-	item->setParentItem(m_exercisesLayout);
-	item->setProperty("Layout.row", exercise_number);
-	item->setProperty("Layout.column", 0);
-	m_exercisesList.at(exercise_number)->setExerciseEntry(item);
-	if (m_nExercisesToCreate == -1)
-	{
-		setWorkingExercise(m_exercisesList.at(exercise_number));
-		QMetaObject::invokeMethod(m_workoutPage, "placeSetIntoView", Q_ARG(int, -2));
-	}
-	else
-	{
-		if (--m_nExercisesToCreate == 0)
-		{
-			setWorkingExercise(m_exercisesList.at(0));
-			QMetaObject::invokeMethod(m_workoutPage, "placeSetIntoView", Q_ARG(int, -1));
-		}
-	}
-	if (m_exercisesList.count() == 1)
-		emit hasExercisesChanged();
-}
-
-void QmlWorkoutInterface::loadExercises()
-{
-	m_nExercisesToCreate = m_workoutModel->exerciseCount();
-	for (uint i{0}; i < m_workoutModel->exerciseCount(); ++i)
-		createExerciseObject(i);
 }
 
 void QmlWorkoutInterface::calculateWorkoutTime()

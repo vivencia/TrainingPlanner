@@ -42,7 +42,6 @@ enum RoleNames {
 
 public:
 	explicit DBExercisesListModel(QObject *parent = nullptr, const bool bMainExercisesModel = true);
-	void fillColumnNames();
 
 	inline QString exerciseNameLabel() const { return tr("Exercise: "); }
 	inline QString exerciseSpecificsLabel() const { return tr("Specifics: "); }

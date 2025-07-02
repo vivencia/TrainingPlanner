@@ -94,6 +94,7 @@ public:
 	[[nodiscard]] inline const uint mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; }
 	[[nodiscard]] inline int calendarDay() const { return m_calendarDay; }
+	inline void setCalendarDay(const uint new_calendarday) { m_calendarDay = new_calendarday; }
 	[[nodiscard]] inline const QChar &splitLetter() const { return m_splitLetter; }
 	inline void setSplitLetter(const QChar &new_splitletter)
 	{

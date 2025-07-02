@@ -9,12 +9,10 @@
 #include "dbusermodel.h"
 #include "homepagemesomodel.h"
 
-#include "qmlexerciseentry.h"
 #include "qmlexercisesdatabaseinterface.h"
 #include "qmlmesocalendarinterface.h"
 #include "qmlmesointerface.h"
 #include "qmlmesosplitinterface.h"
-#include "qmlsetentry.h"
 #include "qmlworkoutinterface.h"
 #include "qmluserinterface.h"
 
@@ -96,8 +94,6 @@ void QmlItemManager::configureQmlEngine()
 	qmlRegisterType<QmlMesoCalendarInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "CalendarManager");
 	qmlRegisterType<QmlMesoSplitInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "SplitManager");
 	qmlRegisterType<QmlWorkoutInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "WorkoutManager");
-	qmlRegisterType<QmlExerciseEntry>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "ExerciseEntryManager");
-	qmlRegisterType<QmlSetEntry>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "SetEntryManager");
 	qmlRegisterType<WeatherInfo>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "WeatherInfo");
 	qmlRegisterType<TPStatistics>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "Statistics");
 	qmlRegisterType<PagesListModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "PagesListModel");
@@ -305,6 +301,30 @@ void QmlItemManager::getAllWorkoutsPage()
 	}
 	else
 		m_pagesManager->addMainMenuShortCut(QString{}, m_allWorkoutsPage);
+}
+
+void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QString &filter) const
+{
+	if (appExercisesList()->count() == 0)
+	{
+		auto conn{std::make_shared<QMetaObject::Connection>()};
+		const int conn_id{appDBInterface()->getAllExercises()};
+		*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn_id,conn,filter] (const int _conn_id) {
+			if (conn_id == _conn_id)
+			{
+				disconnect(*conn);
+				appExercisesList()->setFilter(filter);
+			}
+		});
+	}
+	else
+		appExercisesList()->setFilter(filter);
+	QMetaObject::invokeMethod(parentPage, "showSimpleExercisesList");
+}
+
+void QmlItemManager::hideSimpleExercisesList(QQuickItem *parentPage) const
+{
+	QMetaObject::invokeMethod(parentPage, "hideSimpleExercisesList");
 }
 
 void QmlItemManager::addMainMenuShortCut(const QString &label, QQuickItem *page, const std::function<void ()> &clean_up_func)

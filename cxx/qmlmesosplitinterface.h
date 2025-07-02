@@ -34,19 +34,18 @@ public:
 
 	Q_INVOKABLE void getExercisesPlannerPage();
 	Q_INVOKABLE void addExercise();
-	Q_INVOKABLE void removeExercise();
+	Q_INVOKABLE void removeExercise(const int exercise_number = -1);
 	Q_INVOKABLE void swapMesoPlans();
 	Q_INVOKABLE void loadSplitFromPreviousMeso();
-	Q_INVOKABLE void simpleExercisesList(const bool show, const bool multi_sel = false);
+	Q_INVOKABLE void simpleExercisesList(const bool show);
 	Q_INVOKABLE void exportMesoSplit(const bool bShare);
 	Q_INVOKABLE void exportAllMesoSplits(const bool bShare);
 	Q_INVOKABLE void importMesoSplit(const QString& filename = QString());
 	Q_INVOKABLE QString prevMesoName() const { return m_prevMesoName; }
-	Q_INVOKABLE QQuickItem* setCurrentPage(const int index);
+	Q_INVOKABLE QQuickItem *setCurrentPage(const int index);
 
-	inline DBExercisesModel* currentSplitModel() const { return m_splitModels.value(m_currentSplitLetter); }
-	inline QQuickItem* getSplitPage(const QChar& splitLetter) const { return m_splitPages.value(splitLetter); }
-	inline QQuickItem* currentPage() const { return m_currentSplitPage; }
+	inline DBExercisesModel *currentSplitModel() const { return m_splitModels.value(m_currentSplitLetter); }
+	inline QQuickItem *currentPage() const { return m_currentSplitPage; }
 	inline QChar currentSplitLetter() const { return m_currentSplitLetter; }
 	inline QChar currentSwappableLetter() const { return m_currentSwappableLetter; }
 	bool hasExercises() const;
@@ -55,9 +54,6 @@ public:
 signals:
 	void plannerPageCreated();
 	void currentPageChanged();
-
-public slots:
-	void hideSimpleExercisesList();
 
 private:
 	QQmlComponent* m_plannerComponent;

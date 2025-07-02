@@ -108,10 +108,6 @@ public:
 	{
 		return meso_idx < m_calendars.count() ? m_calendars.at(meso_idx) : nullptr;
 	}
-	Q_INVOKABLE inline DBExercisesModel *workout(const uint meso_idx, const uint calendar_day) const
-	{
-		return meso_idx < m_workouts.count() ? m_workouts.at(meso_idx).at(calendar_day) : nullptr;
-	}
 
 	inline bool hasDBData(const uint meso_idx) const
 	{

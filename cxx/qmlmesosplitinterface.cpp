@@ -5,6 +5,7 @@
 #include "dbinterface.h"
 #include "dbmesocyclesmodel.h"
 #include "qmlitemmanager.h"
+#include "tpsettings.h"
 #include "tputils.h"
 
 #include <QQmlApplicationEngine>
@@ -40,11 +41,18 @@ void QmlMesoSplitInterface::addExercise()
 	currentSplitModel()->setWorkingExercise(currentSplitModel()->addExercise(true));
 }
 
-void QmlMesoSplitInterface::removeExercise()
+void QmlMesoSplitInterface::removeExercise(const int exercise_number)
 {
-	const uint exercise_number{currentSplitModel()->workingExercise()};
-	QMetaObject::invokeMethod(m_plannerPage, "showDeleteDialog", Q_ARG(QString,
+	if (exercise_number >= 0)
+	{
+		if (appSettings()->alwaysAskConfirmation())
+			QMetaObject::invokeMethod(m_plannerPage, "showDeleteDialog", Q_ARG(QString,
 						currentSplitModel()->exerciseName(exercise_number, currentSplitModel()->workingSubExercise(exercise_number))));
+		else
+			currentSplitModel()->delExercise(exercise_number);
+	}
+	else
+		currentSplitModel()->delExercise(currentSplitModel()->workingExercise());
 }
 
 void QmlMesoSplitInterface::swapMesoPlans()
@@ -76,28 +84,12 @@ void QmlMesoSplitInterface::loadSplitFromPreviousMeso()
 	}
 }
 
-void QmlMesoSplitInterface::simpleExercisesList(const bool show, const bool multi_sel)
+void QmlMesoSplitInterface::simpleExercisesList(const bool show)
 {
 	if (show)
-	{
-		if (appExercisesList()->count() == 0)
-		{
-			auto conn{std::make_shared<QMetaObject::Connection>()};
-			const int conn_id{appDBInterface()->getAllExercises()};
-			*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn_id,conn] (const int _conn_id) {
-				if (conn_id == _conn_id)
-				{
-					disconnect(*conn);
-					appExercisesList()->setFilter(currentSplitModel()->muscularGroup());
-				}
-			});
-		}
-		else
-			appExercisesList()->setFilter(currentSplitModel()->muscularGroup());
-		QMetaObject::invokeMethod(m_plannerPage, "showSimpleExercisesList", Q_ARG(bool, multi_sel));
-	}
+		appItemManager()->showSimpleExercisesList(m_plannerPage, currentSplitModel()->muscularGroup());
 	else
-		QMetaObject::invokeMethod(m_plannerPage, "hideSimpleExercisesList");
+		appItemManager()->hideSimpleExercisesList(m_plannerPage);
 }
 
 void QmlMesoSplitInterface::exportMesoSplit(const bool bShare)
@@ -172,11 +164,6 @@ bool QmlMesoSplitInterface::hasExercises() const
 	return currentSplitModel() ? currentSplitModel()->exerciseCount() > 0 : false;
 }
 
-void QmlMesoSplitInterface::hideSimpleExercisesList()
-{
-	simpleExercisesList(false);
-}
-
 void QmlMesoSplitInterface::createPlannerPage()
 {
 	m_plannerComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/ExercisesPlanner.qml"_L1}, QQmlComponent::Asynchronous};
@@ -217,12 +204,10 @@ void QmlMesoSplitInterface::createPlannerPage_part2()
 	QMetaObject::invokeMethod(m_plannerPage, "createNavButtons");
 	emit plannerPageCreated();
 
-	connect(m_plannerPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), currentSplitModel(), SLOT(newExerciseFromExercisesList()));
-	connect(m_plannerPage, SIGNAL(simpleExercisesListClosed()), this, SLOT(hideSimpleExercisesList()));
-
 	appItemManager()->addMainMenuShortCut(tr("Exercises Planner: ") + appMesoModel()->name(m_mesoIdx), m_plannerPage, [this] () {
 		cleanUp();
 	});
+	connect(m_plannerPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), currentSplitModel(), SLOT(newExerciseFromExercisesList()));
 }
 
 void QmlMesoSplitInterface::createMesoSplitPages()

@@ -92,9 +92,6 @@ set( CXX_SOURCES
 	cxx/qmlmesosplitinterface.h cxx/qmlmesosplitinterface.cpp
 	cxx/qmlworkoutinterface.h cxx/qmlworkoutinterface.cpp
 
-	cxx/qmlexerciseentry.h cxx/qmlexerciseentry.cpp
-	cxx/qmlsetentry.h cxx/qmlsetentry.cpp
-
 	cxx/weather/weatherinfo.h cxx/weather/weatherinfo.cpp
 	cxx/weather/openweathermapbackend.h
 	cxx/weather/openweathermapbackend.cpp
@@ -162,7 +159,6 @@ set( QML_SOURCES
     "qml/Dialogs/PasswordDialog.qml"
     "qml/Dialogs/TimePicker.qml"
     "qml/Dialogs/TimerDialog.qml"
-    "qml/ExercisesAndSets/ExerciseEntry.qml"
     "qml/ExercisesAndSets/ExerciseNameField.qml"
     "qml/ExercisesAndSets/ExercisesListView.qml"
     "qml/ExercisesAndSets/PageScrollButtons.qml"
@@ -172,6 +168,7 @@ set( QML_SOURCES
     "qml/ExercisesAndSets/SetTypeRegular.qml"
     "qml/ExercisesAndSets/SetTypeGiant.qml"
     "qml/ExercisesAndSets/SimpleExercisesListPanel.qml"
+	"qml/ExercisesAndSets/WorkoutExercisesList.qml"
     "qml/Pages/AllWorkouts.qml"
     "qml/Pages/ClientsPage.qml"
 	"qml/Pages/CoachesPage.qml"
