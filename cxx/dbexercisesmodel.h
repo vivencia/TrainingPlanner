@@ -51,6 +51,7 @@ Q_PROPERTY(uint exerciseCount READ exerciseCount NOTIFY exerciseCountChanged)
 Q_PROPERTY(int workingExercise READ workingExercise WRITE setWorkingExercise NOTIFY workingExerciseChanged)
 Q_PROPERTY(int workingSubExercise READ workingSubExercise WRITE setWorkingSubExercise NOTIFY workingSubExerciseChanged)
 Q_PROPERTY(int workingSet READ workingSet WRITE setWorkingSet NOTIFY workingSetChanged)
+Q_PROPERTY(bool isWorkout READ isWorkout CONSTANT FINAL)
 
 Q_PROPERTY(QChar splitLetter READ splitLetter WRITE setSplitLetter NOTIFY splitLetterChanged FINAL)
 Q_PROPERTY(QString muscularGroup READ muscularGroup NOTIFY muscularGroupChanged FINAL)
@@ -120,6 +121,7 @@ public:
 	[[nodiscard]] const QString formatSetTypeToExport(const uint type) const;
 	[[nodiscard]] static bool importExtraInfo(const QString &maybe_extra_info, int &calendar_day, QChar &split_letter);
 
+	inline const bool isWorkout() const { return m_calendarDay != -1; }
 	const uint inline exerciseCount() const { return m_exerciseData.count(); }
 	Q_INVOKABLE const uint subExercisesCount(const uint exercise_number) const;
 	Q_INVOKABLE const uint setsNumber(const uint exercise_number, const uint exercise_idx) const;
@@ -186,6 +188,11 @@ public:
 	[[nodiscard]] bool anySetCompleted(int exercise_number = -1, int exercise_idx = -1) const;
 	[[nodiscard]] bool noSetsCompleted(int exercise_number = -1, int exercise_idx = -1) const;
 
+	[[nodiscard]] Q_INVOKABLE uint setMode(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
+	void setSetMode(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint mode);
+	void setSetNextMode(const uint exercise_number, const uint exercise_idx, const uint set_number);
+	[[nodiscard]] Q_INVOKABLE QString setModeLabel(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
+
 	inline QString totalSetsLabel() const { return tr("Number of sets: "); }
 	inline QString setNumberLabel() const { return tr("Set #: "); }
 	inline QString exerciseNameLabel() const { return tr("Exercise: "); }
@@ -215,6 +222,7 @@ public slots:
 	void newExerciseFromExercisesList();
 
 signals:
+	void setModeChanged(const int exercise_number, const int exercise_idx, const int set_number, const int mode);
 	void splitLetterChanged();
 	void muscularGroupChanged();
 	void exerciseNameChanged(const int exercise_number, const int exercise_idx);
@@ -245,6 +253,7 @@ private:
 	TPSetTypes formatSetTypeToImport(const QString &fieldValue) const;
 	const QString exportExtraInfo() const;
 	inline bool importExtraInfo(const QString &maybe_extra_info);
+	void setModeForSet(const uint exercise_number, const uint exercise_idx, const uint set_number);
 	QString increaseStringTimeBy(const QString &strtime, const uint add_mins, const uint add_secs);
 	void setSuggestedTime(const uint set_number, const QList<stSet*> &sets);
 	void setSuggestedSubSets(const uint set_number, const QList<stSet*> &sets);

@@ -70,7 +70,6 @@ TPPage {
 
 		readonly property double mm: Screen.pixelDensity
 		readonly property double cellSize: mm * 7
-		readonly property int fontSizePx: cellSize * 0.32
 
 		ScrollBar.vertical: ScrollBar {
 			policy: ScrollBar.AsNeeded
@@ -88,7 +87,7 @@ TPPage {
 				anchors {
 					top: parent.top
 				}
-				height: calendar.cellSize * 1.3
+				height: calendar.cellSize * 1.5
 				width: parent.width
 
 				Text {
@@ -121,18 +120,18 @@ TPPage {
 				locale: Qt.locale(appSettings.appLocale)
 				month: calendarModel.month(index)
 				year: calendarModel.year(index)
-				spacing: 0
+				spacing: 2
 				anchors.top: weekTitles.bottom
 				width: parent.width
-				height: calendar.cellSize * 9
+				height: calendar.cellSize * 8
 
 				property Rectangle selectedDay: null
 
 				delegate: Rectangle {
 					id: dayEntry
-					height: calendar.cellSize
-					width: calendar.cellSize
-					radius: height * 0.5
+					width: calendar.cellSize * 0.8
+					height: width
+					radius: width * 0.5
 					border.color: "green"
 					border.width: dayIsFinished ? 2 : 0
 					opacity: !highlighted ? 1 : 0.5
@@ -222,7 +221,7 @@ TPPage {
 	} //ListView
 
 	footer: TPToolBar {
-		height: footerHeight*2.3
+		height: appSettings.pageHeight / 4
 
 		TPLabel {
 			id: lblInfo
@@ -230,10 +229,11 @@ TPPage {
 			wrapMode: Text.WordWrap
 			horizontalAlignment: Text.AlignHCenter
 			width: parent.width
-			height: parent.height*0.25
+			height: parent.height / 4
 
 			anchors {
 				top: parent.top
+				topMargin: 5
 				horizontalCenter: parent.horizontalCenter
 			}
 		}
@@ -242,14 +242,14 @@ TPPage {
 			id: cboSplitLetter
 			model: AppGlobals.splitModel
 			currentIndex: indexOfValue(calendarManager.selectedSplitLetter);
-			width: parent.width*0.2
+			width: parent.width * 0.2
 
 			onActivated: (index) => optChangeOnlyThisDay.enabled = optChangeAfterThisDay.enabled =
 															calendarManager.selectedSplitLetter !== valueAt(index);
 
 			anchors {
 				top: optChangeOnlyThisDay.bottom
-				topMargin: -height/2
+				topMargin: -height / 2
 				left: parent.left
 				leftMargin: 5
 			}
@@ -261,7 +261,7 @@ TPPage {
 
 			anchors {
 				top: lblInfo.bottom
-				topMargin: 15
+				topMargin: 5
 				left: cboSplitLetter.right
 				leftMargin: 10
 				right: parent.right
@@ -271,7 +271,7 @@ TPPage {
 			id: optChangeAfterThisDay
 			text: qsTr("Adjust calendar from this day on")
 			multiLine: true
-			height: appSettings.itemDefaultHeight*1.5
+			height: appSettings.itemDefaultHeight * 1.5
 
 			anchors {
 				top: optChangeOnlyThisDay.bottom

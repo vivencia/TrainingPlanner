@@ -25,6 +25,7 @@ ListView {
 		readonly property int exerciseNumber: index
 		property int nSubExercises: workoutModel.subExercisesCount(delegate.exerciseNumber)
 		property bool enabledRestTime: workoutModel.trackRestTime(exerciseNumber) && !workoutModel.autoRestTime(exerciseNumber)
+		property bool setCompleted: workoutModel.setCompleted(exerciseNumber, workoutModel.workingSubExercise, workoutModel.workingSet)
 
 		function exerciseFieldYPos(): int {
 			return delegate.mapToItem(mainwindow.contentItem, txtExerciseName.x, txtExerciseName.y).y;
@@ -39,11 +40,11 @@ ListView {
 
 		background: Rectangle {
 			id:	backgroundColor
-			color: workoutModel.workingExercise === index ? appSettings.primaryColor :
+			color: workingExercise === index ? appSettings.primaryColor :
 							(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
 		}
 
-		onClicked: workoutModel.workingExercise = index;
+		onClicked: workingExercise = index;
 
 		Connections {
 			target: workoutModel
@@ -79,7 +80,16 @@ ListView {
 						case 7: //EXERCISES_COL_SETTYPES
 							changeFields(index, exercise_idx, set_number, true);
 						break;
+						case 13: //EXERCISES_COL_COMPLETED
+							delegate.setCompleted = workoutModel.setCompleted(exercise_number, exercise_idx, set_number);
+						break;
 					}
+				}
+			}
+
+			function onSetModeChanged(exercise_number: int, exercise_idx: int, set_number: int, mode: int): void {
+				if (exercise_number === index) {
+					btnSetMode.text = workoutModel.setModeLabel(exercise_number, exercise_idx, set_number);
 				}
 			}
 		} //Connections
@@ -550,42 +560,26 @@ ListView {
 														workoutModel.workingSubExercise, workoutModel.workingSet, new_text);
 					}
 
-					StackLayout {
+					RowLayout {
 						id: setModeLayout
+						spacing: 5
+						visible: workoutModel ? (workoutModel.isWorkout && cboSetType.currentIndex >= 0) : false
 						Layout.alignment: Qt.AlignCenter
 						Layout.maximumWidth: parent.width / 2
-						Layout.preferredHeight: appSettings.itemDefaultHeight * 1.5
-						currentIndex: setCompleted ? 1 : 0
 
-						property bool setCompleted: workoutModel.setCompleted(index,
-														workoutModel.workingSubExercise, workoutModel.workingSet)
+						TPImage {
+							source: "set-completed"
+							width: appSettings.itemDefaultHeight
+							height: width
+							enabled: delegate.setCompleted
+						}
 
 						TPButton {
 							id: btnSetMode
-							text: "Start rest"
-							Layout.alignment: Qt.AlignCenter
-
-							onClicked: {
-								setModeLayout.setCompleted = !setModeLayout.setCompleted;
-								workoutModel.setSetCompleted(workoutModel.workingExercise,
-														workoutModel.workingSubExercise, workoutModel.workingSet, true);
-							}
+							text: workoutModel.setModeLabel(index, workoutModel.workingSubExercise, workoutModel.workingSet)
+							onClicked: workoutManager.setWorkingSetMode();
 						}
-
-						TPButton {
-							id: imgCompleted
-							imageSource: "set-completed"
-							height: appSettings.itemDefaultHeight * 1.5
-							width: height
-							Layout.alignment: Qt.AlignCenter
-
-							onClicked: {
-								setModeLayout.setCompleted = !setModeLayout.setCompleted;
-								workoutModel.setSetCompleted(workoutModel.workingExercise,
-														workoutModel.workingSubExercise, workoutModel.workingSet, false);
-							}
-						}
-					}
+					} //setModeLayout
 				} //setsItemsLayout
 			} //paneSets
 		} //contentsLayout

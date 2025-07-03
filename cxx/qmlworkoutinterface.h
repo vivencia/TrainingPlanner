@@ -72,7 +72,7 @@ public:
 
 	QString headerText() const { return m_headerText; }
 	void setHeaderText(const QString &new_header = QString{});
-	Q_INVOKABLE QString muscularGroup() const;
+	QString muscularGroup() const;
 
 	inline bool editMode() const { return m_editMode; }
 	void setEditMode(const bool edit_mode);
@@ -95,6 +95,7 @@ public:
 	inline bool timerActive() const { return m_bTimerActive; }
 	inline void setTimerActive(const bool new_value) { m_bTimerActive = new_value; emit timerActiveChanged(); }
 
+	Q_INVOKABLE void setWorkingSetMode();
 	bool hasExercises() const;
 
 	inline QStringList previousWorkoutsList() const { return m_prevWorkouts; }

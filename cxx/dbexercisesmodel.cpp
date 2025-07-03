@@ -14,13 +14,13 @@
 #define UNSET_VALUE 11111
 
 struct stSet {
-	uint number;
+	uint number, mode;
 	TPSetTypes type;
 	QTime restTime;
 	QString subsets, reps, weight, notes;
 	TPBool completed;
 
-	inline explicit stSet() : type{Unkown}, subsets{'0'}, notes{' '} {}
+	inline explicit stSet() : mode{0}, type{Unkown}, subsets{'0'}, notes{' '} {}
 };
 
 struct stExercise {
@@ -50,6 +50,13 @@ enum RoleNames {
 	workingSetRole = Qt::UserRole+6,
 	trackRestTimeRole = Qt::UserRole+7,
 	autoRestTimeRole = Qt::UserRole+8
+};
+
+enum SetMode {
+	SM_NOT_COMPLETED = 1,
+	SM_START_REST = 2,
+	SM_START_EXERCISE = 3,
+	SM_COMPLETED = 4
 };
 
 static const QString &calendarDayExtraInfo{qApp->tr(" Workout #: ")};
@@ -183,6 +190,8 @@ bool DBExercisesModel::fromDataBase(const QStringList &data, const bool bClearSo
 					set->notes = std::move(appUtils()->getCompositeValue(set_number, set_notes, set_separator));
 				if (!set_completed.isEmpty())
 					set->completed = appUtils()->getCompositeValue(set_number, set_completed, set_separator) == "1"_L1;
+				if (isWorkout())
+					setModeForSet(exercise_number, exercise_idx, set_number);
 			}
 		}
 		endInsertRows();
@@ -490,7 +499,6 @@ int DBExercisesModel::importFromFormattedFile(const QString& filename, QFile *in
 					}
 				}
 			}
-
 		}
 		else
 			break;
@@ -698,6 +706,8 @@ uint DBExercisesModel::addSet(const uint exercise_number, const uint exercise_id
 	const uint set_number{static_cast<uint>(sub_exercise->sets.count())};
 	new_set->number = set_number;
 	sub_exercise->sets.append(new_set);
+	if (isWorkout())
+		setModeForSet(exercise_number, exercise_idx, set_number);
 	if (emit_signal)
 	{
 		setWorkingSet(set_number, exercise_number, exercise_idx);
@@ -1152,9 +1162,11 @@ void DBExercisesModel::setSetNotes(const uint exercise_number, const uint exerci
 bool DBExercisesModel::setCompleted(const uint exercise_number, const uint exercise_idx, const uint set_number) const
 {
 	if (exercise_number < m_exerciseData.count() && exercise_idx < m_exerciseData.at(exercise_number)->m_exercises.count())
-		return m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->completed;
-	else
-		return false;
+	{
+		if (set_number < m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.count())
+			return m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->completed;
+	}
+	return false;
 }
 
 void DBExercisesModel::setSetCompleted(const uint exercise_number, const uint exercise_idx, const uint set_number, const bool completed)
@@ -1206,6 +1218,36 @@ bool DBExercisesModel::noSetsCompleted(int exercise_number, int exercise_idx) co
 		if (set->completed)
 			return false;
 	return true;
+}
+
+uint DBExercisesModel::setMode(const uint exercise_number, const uint exercise_idx, const uint set_number) const
+{
+	if (exercise_number < m_exerciseData.count() && exercise_idx < m_exerciseData.at(exercise_number)->m_exercises.count())
+	{
+		if (set_number < m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.count())
+			return m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->mode;
+	}
+	return 0;
+}
+
+void DBExercisesModel::setSetMode(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint mode)
+{
+	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->completed = mode;
+	emit setModeChanged(exercise_number, exercise_idx, set_number, mode);
+	if (mode == SM_COMPLETED || mode == SM_NOT_COMPLETED)
+		setSetCompleted(exercise_number, exercise_idx, set_number, mode == SM_COMPLETED);
+}
+
+QString DBExercisesModel::setModeLabel(const uint exercise_number, const uint exercise_idx, const uint set_number) const
+{
+	switch (setMode(exercise_number, exercise_idx, set_number))
+	{
+		case SM_NOT_COMPLETED: tr("Set as completed"); break;
+		case SM_START_REST: return tr("Start rest time");
+		case SM_START_EXERCISE: return tr("Start exercise");
+		case SM_COMPLETED: return tr("Completed!");
+	}
+	return QString{};
 }
 
 QVariant DBExercisesModel::data(const QModelIndex &index, int role) const
@@ -1305,6 +1347,50 @@ const QString DBExercisesModel::exportExtraInfo() const
 inline bool DBExercisesModel::importExtraInfo(const QString &maybe_extra_info)
 {
 	return importExtraInfo(maybe_extra_info, m_calendarDay, m_splitLetter);
+}
+
+void DBExercisesModel::setModeForSet(const uint exercise_number, const uint exercise_idx, const uint set_number)
+{
+	uint mode{SM_COMPLETED};
+	if (!setCompleted(exercise_number, exercise_idx, set_number))
+	{
+		if (trackRestTime(exercise_number))
+		{
+			if (autoRestTime(exercise_number))
+				mode = SM_START_REST;
+			else
+				mode = SM_START_EXERCISE;
+		}
+		else
+			mode = SM_NOT_COMPLETED;
+	}
+	setSetMode(exercise_number, exercise_idx, set_number, mode);
+}
+
+void DBExercisesModel::setSetNextMode(const uint exercise_number, const uint exercise_idx, const uint set_number)
+{
+	uint mode{setMode(exercise_number, exercise_idx, set_number)};
+	if (trackRestTime(exercise_number))
+	{
+		const bool auto_time{autoRestTime(exercise_number)};
+		switch (mode)
+		{
+			case SM_COMPLETED:
+			case SM_NOT_COMPLETED : mode = auto_time ? SM_START_REST : SM_START_EXERCISE; break;
+			case SM_START_REST: mode = SM_START_EXERCISE; break;
+			case SM_START_EXERCISE: mode = SM_COMPLETED;
+		}
+	}
+	else
+	{
+		switch (mode)
+		{
+			case SM_COMPLETED: mode = SM_NOT_COMPLETED; break;
+			case SM_NOT_COMPLETED : mode = SM_COMPLETED; break;
+			default: mode = SM_NOT_COMPLETED;
+		}
+	}
+	setSetMode(exercise_number, exercise_idx, set_number, mode);
 }
 
 QString DBExercisesModel::increaseStringTimeBy(const QString &strtime, const uint add_mins, const uint add_secs)

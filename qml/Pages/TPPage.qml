@@ -10,8 +10,8 @@ Page {
 	width: appSettings.pageWidth
 	height: appSettings.pageHeight
 
-	readonly property int headerHeight: 0.08*appSettings.pageHeight
-	readonly property int footerHeight: 0.10*appSettings.pageHeight
+	readonly property int headerHeight: 0.08 * appSettings.pageHeight
+	readonly property int footerHeight: 0.10 * appSettings.pageHeight
 
 	property color colorLight: appSettings.primaryLightColor
 	property color colorDark: appSettings.primaryDarkColor

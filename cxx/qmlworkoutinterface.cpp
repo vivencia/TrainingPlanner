@@ -240,6 +240,11 @@ bool QmlWorkoutInterface::hasExercises() const
 {
 	return m_workoutModel->exerciseCount() > 0;
 }
+
+void QmlWorkoutInterface::setWorkingSetMode()
+{
+	m_workoutModel->setSetNextMode(m_workoutModel->workingExercise(), m_workoutModel->workingSubExercise(), m_workoutModel->workingSet());
+}
 //----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
 void QmlWorkoutInterface::setMesoIdx(const uint new_meso_idx)

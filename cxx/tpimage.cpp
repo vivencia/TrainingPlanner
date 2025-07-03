@@ -15,7 +15,7 @@ using namespace Qt::Literals::StringLiterals;
 #define DROP_SHADOW_EXTENT 5
 
 TPImage::TPImage(QQuickItem *parent)
-	: QQuickPaintedItem{parent}, m_imageToPaint(nullptr), mDropShadow(true), mbCanUpdate(true), mbCanColorize(false)
+	: QQuickPaintedItem{parent}, m_imageToPaint{nullptr}, mDropShadow{true}, mbCanUpdate{true}, mbCanColorize{false}
 {
 	connect(this, &QQuickItem::enabledChanged, this, [&] () { checkEnabled(); });
 	connect(this, &QQuickItem::heightChanged, this, [&] () { maybeResize(); });
@@ -158,12 +158,12 @@ void TPImage::scaleImage(const bool bCallUpdate)
 	{
 		mbCanUpdate = false;
 		if (mDropShadow)
-			mSize = mNominalSize-QSize(DROP_SHADOW_EXTENT, DROP_SHADOW_EXTENT);
+			mSize = mNominalSize - QSize{DROP_SHADOW_EXTENT, DROP_SHADOW_EXTENT};
 		else
-			mSize = mNominalSize-QSize(qCeil(mNominalSize.width()*0.05), qCeil(mNominalSize.height()*0.05));
+			mSize = mNominalSize - QSize{qCeil(mNominalSize.width()*0.05), qCeil(mNominalSize.height()*0.05)};
 		mImage = mImage.scaled(mSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-		mImageDisabled = QImage();
-		mImageShadow = QImage();
+		mImageDisabled = QImage{};
+		mImageShadow = QImage{};
 		mbCanUpdate = true;
 		checkEnabled(bCallUpdate);
 	}
@@ -213,17 +213,17 @@ void TPImage::applyEffectToImage(QImage &dstImg, const QImage &srcImg, QGraphics
 	item.setPixmap(QPixmap::fromImage(srcImg));
 	item.setGraphicsEffect(effect);
 	scene.addItem(&item);
-	dstImg = srcImg.scaled(mSize+QSize(extent*2, extent*2), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+	dstImg = std::move(srcImg.scaled(mSize+QSize(extent*2, extent*2), Qt::KeepAspectRatio, Qt::SmoothTransformation));
 	dstImg.reinterpretAsFormat(QImage::Format_ARGB32);
 	dstImg.fill(Qt::transparent);
-	QPainter ptr(&dstImg);
+	QPainter ptr{&dstImg};
 	scene.render(&ptr, QRectF(-extent, -extent, dstImg.width(), dstImg.height()),
 							QRectF(-extent, -extent, dstImg.width(), dstImg.height()));
 }
 
 void TPImage::grayScale(QImage &dstImg, const QImage &srcImg)
 {		
-	dstImg = srcImg.convertToFormat(srcImg.hasAlphaChannel() ? QImage::Format_ARGB32 : QImage::Format_RGB32);
+	dstImg = std::move(srcImg.convertToFormat(srcImg.hasAlphaChannel() ? QImage::Format_ARGB32 : QImage::Format_RGB32));
 	const int imgHeight{dstImg.height()};
 	const int imgWidth{dstImg.width()};
 	QRgb pixel;
