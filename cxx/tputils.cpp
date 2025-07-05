@@ -775,6 +775,26 @@ QString TPUtils::getMinutesFromStrTime(const QString &strTime, const TIME_FORMAT
 	return QString{};
 }
 
+QTime TPUtils::calculateTimeDifference(const QTime &start_time, const QTime &end_time) const
+{
+	int hour{end_time.hour() - start_time.hour()};
+	int min{end_time.minute() - start_time.minute()};
+	int sec{end_time.second() - start_time.second()};
+	if (hour < 0)
+		hour *= -1;
+	if (min < 0)
+	{
+		hour--;
+		min = 60 - start_time.minute() + end_time.minute();
+	}
+	if (sec < 0)
+	{
+		--min;
+		sec = 60 - start_time.second() + end_time.second();
+	}
+	return QTime{hour ,min, sec};
+}
+
 QTime TPUtils::calculateTimeDifference(const QString &strTimeInit, const QString &strTimeFinal) const
 {
 	int hour{strTimeFinal.first(2).toInt() - strTimeInit.first(2).toInt()};

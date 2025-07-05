@@ -14,6 +14,8 @@ Rectangle {
 	height: {
 		if (autoSize)
 			return buttonText.height + (textUnderIcon ? imageSize : 0) + (text.length > 0 ? 10 : 0);
+		else
+			return appSettings.itemDefaultHeight;
 	}
 	width: {
 		if (autoSize)

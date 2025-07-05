@@ -47,6 +47,16 @@ ListView {
 		onClicked: workingExercise = index;
 
 		Connections {
+			target: workoutManager
+
+			function onUpdateRestTime(exercise_number: int, rest_time: string) : void {
+				if (exercise_number === index) {
+					txtRestTime.text = rest_time;
+				}
+			}
+		}
+
+		Connections {
 			target: workoutModel
 
 			function onWorkingExerciseChanged(exercise_number: int) : void {
@@ -105,6 +115,7 @@ ListView {
 				txtNSubsets.text = workoutModel.setSubSets(exercise_number, exercise_idx, set_number);
 				txtNReps.text = workoutModel.setReps(exercise_number, exercise_idx, set_number);
 				txtNWeight.text = workoutModel.setWeight(exercise_number, exercise_idx, set_number);
+				btnSetMode.enabled = workoutManager.canChangeSetMode(exercise_number, exercise_idx, set_number);
 			}
 		}
 
@@ -587,7 +598,7 @@ ListView {
 							text: workoutModel.setModeLabel(index, workoutModel.workingSubExercise, workoutModel.workingSet)
 							width: parent.width - imgSetCompleted.width
 							height: parent.height
-							enabled: txtNReps.text.length > 0 && txtNWeight.text.length > 0
+							enabled: workoutManager.canChangeSetMode(index)
 							onClicked: workoutManager.setWorkingSetMode();
 
 							anchors {

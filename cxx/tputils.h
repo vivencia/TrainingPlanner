@@ -129,6 +129,7 @@ public:
 		return formatTime(calculateTimeDifference(strTimeInit, strTimeFinal), TF_QML_DISPLAY_COMPLETE);
 	}
 
+	QTime calculateTimeDifference(const QTime &start_time, const QTime &end_time) const;
 	QTime calculateTimeDifference(const QString &strTimeInit, const QString &strTimeFinal) const;
 	QDateTime getDateTimeFromOnlineString(const QString &datetime) const;
 

@@ -189,7 +189,6 @@ public:
 	[[nodiscard]] bool noSetsCompleted(int exercise_number = -1, int exercise_idx = -1) const;
 
 	[[nodiscard]] Q_INVOKABLE uint setMode(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
-	void setSetMode(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint mode);
 	void setSetNextMode(const uint exercise_number, const uint exercise_idx, const uint set_number);
 	[[nodiscard]] Q_INVOKABLE QString setModeLabel(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 
@@ -208,6 +207,7 @@ public:
 	inline QString restTimeUntrackedLabel() const { return tr("As needed"); }
 	static inline QString splitLabel() { return tr("Split: "); }
 
+	inline void setElapsedRestTime(const QTime &elapsed_time) { m_elapsedRestTime = elapsed_time; }
 	void clearPreviousWorkouts() { m_previousWorkouts.clear(); }
 	inline void appendPreviousWorkout(const uint calendar_day) { m_previousWorkouts.append(calendar_day); }
 	const QList<uint> &previousWorkouts() const { return m_previousWorkouts; }
@@ -236,6 +236,8 @@ signals:
 	void exerciseCompleted(const int exercise_number, const bool completed);
 	void labelChanged();
 	void exerciseModified(const int exercise_number, const int exercise_idx, const int set_number, const int field);
+	void startRestTimer(const uint exercise_number, const uint exercise_idx, const uint set_number);
+	void stopRestTimer();
 
 private:
 	DBMesoCalendarManager *m_calendarManager;
@@ -248,12 +250,15 @@ private:
 	QList<exerciseEntry*> m_exerciseData;
 	QHash<int, QByteArray> m_roleNames;
 	QList<uint> m_previousWorkouts;
+	QTime m_lastSetCompleted, m_elapsedRestTime;
 
 	void commonConstructor();
 	TPSetTypes formatSetTypeToImport(const QString &fieldValue) const;
 	const QString exportExtraInfo() const;
 	inline bool importExtraInfo(const QString &maybe_extra_info);
-	void setModeForSet(const uint exercise_number, const uint exercise_idx, const uint set_number);
+	void setSetMode(stSet *set, const uint mode);
+	void setModeForSet(stSet *set);
+	void changeAllSetsMode(const uint exercise_number);
 	QString increaseStringTimeBy(const QString &strtime, const uint add_mins, const uint add_secs);
 	void setSuggestedTime(const uint set_number, const QList<stSet*> &sets);
 	void setSuggestedSubSets(const uint set_number, const QList<stSet*> &sets);

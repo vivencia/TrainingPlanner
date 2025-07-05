@@ -18,7 +18,7 @@
 QmlWorkoutInterface::QmlWorkoutInterface(QObject *parent, const uint meso_idx, const QDate &date)
 	: QObject{parent}, m_workoutPage{nullptr}, m_mesoIdx{meso_idx}, m_workoutTimer{nullptr}, m_restTimer{nullptr},
 		m_hour{0}, m_min{0}, m_sec{0}, m_editMode{false}, m_workoutIsEditable{false}, m_importFromPrevWorkout{false},
-		m_importFromSplitPlan{false}, m_bMainDateIsToday{false}, m_bNeedActivation{false}, m_bTimerActive{false}
+		m_importFromSplitPlan{false}, m_bMainDateIsToday{false}, m_bTimerActive{false}
 {
 	if (!appMesoModel()->mesoCalendarManager()->hasDBData(m_mesoIdx))
 	{
@@ -48,7 +48,6 @@ QmlWorkoutInterface::QmlWorkoutInterface(QObject *parent, const uint meso_idx, c
 				emit timeInChanged();
 				emit timeOutChanged();
 				emit locationChanged();
-				emit lastWorkOutLocationChanged();
 				emit notesChanged();
 				emit headerTextChanged();
 			}
@@ -258,10 +257,7 @@ void QmlWorkoutInterface::getWorkoutPage()
 	if (!m_workoutPage)
 		createWorkoutPage();
 	else
-	{
-		setNeedActivation(true);
 		appItemManager()->addMainMenuShortCut(tr("Workout: ") + appUtils()->formatDate(m_calendarModel->date(m_calendarDay)), m_workoutPage);
-	}
 }
 
 void QmlWorkoutInterface::loadExercisesFromDate(const QDate &date)
@@ -411,6 +407,13 @@ void QmlWorkoutInterface::removeExercise(const int exercise_number)
 		m_workoutModel->delExercise(m_workoutModel->workingExercise());
 }
 
+bool QmlWorkoutInterface::canChangeSetMode(const uint exercise_number, const uint exercise_idx, const uint set_number) const
+{
+	const bool set_has_data{!m_workoutModel->setReps(exercise_number, exercise_idx, set_number).isEmpty() &&
+		!m_workoutModel->setWeight(exercise_number, exercise_idx, set_number).isEmpty()};
+	return set_has_data && (set_number == 0 ? : m_workoutModel->setCompleted(exercise_number, exercise_idx, set_number - 1));
+}
+
 void QmlWorkoutInterface::displayMessage(const QString &title, const QString &message, const bool error, const uint msecs) const
 {
 	QMetaObject::invokeMethod(m_workoutPage, "showMessageDialog", Q_ARG(QString, title), Q_ARG(QString, message), Q_ARG(bool, error), Q_ARG(int, static_cast<int>(msecs)));
@@ -443,13 +446,6 @@ void QmlWorkoutInterface::rollUpExercise(const uint exercise_number) const
 void QmlWorkoutInterface::rollUpExercises() const
 {
 	QMetaObject::invokeMethod(m_workoutPage, "rollUpExercises");
-}
-
-TPTimer *QmlWorkoutInterface::restTimer()
-{
-	if (!m_restTimer)
-		m_restTimer = new TPTimer(this);
-	return m_restTimer;
 }
 
 void QmlWorkoutInterface::silenceTimeWarning()
@@ -535,6 +531,9 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 		if (field != EXERCISE_IGNORE_NOTIFY_IDX)
 			appDBInterface()->saveWorkout(m_workoutModel);
 	});
+	connect(m_workoutModel, &DBExercisesModel::startRestTimer, this, [this] (const uint exercise_number, const uint exercise_idx, const uint set_number) {
+		startRestTimer(exercise_number, exercise_idx, set_number);
+	});
 
 	if (mainDateIsToday())
 		connect(m_workoutPage, SIGNAL(silenceTimeWarning()), this, SLOT(silenceTimeWarning()));
@@ -568,4 +567,25 @@ void QmlWorkoutInterface::calculateWorkoutTime()
 			}
 		}
 	}
+}
+
+void QmlWorkoutInterface::startRestTimer(const uint exercise_number, const uint exercise_idx, const uint set_number)
+{
+	if (!m_restTimer)
+	{
+		m_restTimer = new TPTimer{this};
+		m_restTimer->setInterval(1000);
+		connect(m_workoutModel, &DBExercisesModel::stopRestTimer, this, [this] {
+			m_restTimer->stopTimer();
+			m_workoutModel->setElapsedRestTime(m_restTimer->elapsedTime());
+		}, Qt::DirectConnection);
+	}
+	const QString &rest_time{m_workoutModel->setRestTime(exercise_number, exercise_idx, set_number)};
+	m_restTimer->prepareTimer(rest_time);
+	m_restTimer->setStopWatch(rest_time.isEmpty() || rest_time == "00:00"_L1);
+	m_restTimer->callOnTimeout([this, exercise_number] () {
+		const QString &rest_time{m_restTimer->strMinutes() + ':' + m_restTimer->strSeconds()};
+		emit updateRestTime(exercise_number, rest_time);
+	});
+	m_restTimer->startTimer();
 }

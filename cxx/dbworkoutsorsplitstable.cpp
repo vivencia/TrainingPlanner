@@ -103,22 +103,23 @@ void DBWorkoutsOrSplitsTable::saveExercises()
 
 		if (bUpdate)
 		{
-			strQuery = std::move(u"UPDATE %1 SET calendar_day=%2, split_letter=\'%3\', exercises=\'%4\', track_rest_time=\'%5\', "
-								 "auto_rest_time=\'%6\', setstypes=\'%7\', setsresttimes=\'%8\', setssubsets=\'%9\', "
-								 "setsreps=\'%10\', setsweights=\'%11\', setsnotes=\'%12\', setscompleted=\'%13\' WHERE id=%14"_s
-								.arg(m_tableName, modelData.at(EXERCISES_COL_CALENDARDAY), modelData.at(EXERCISES_COL_SPLITLETTER),
-									modelData.at(EXERCISES_COL_EXERCISES), modelData.at(EXERCISES_COL_TRACKRESTTIMES),
-									modelData.at(EXERCISES_COL_AUTORESTTIMES), modelData.at(EXERCISES_COL_SETTYPES),
-									modelData.at(EXERCISES_COL_RESTTIMES), modelData.at(EXERCISES_COL_SUBSETS),
-									modelData.at(EXERCISES_COL_REPS), modelData.at(EXERCISES_COL_WEIGHTS),
-									modelData.at(EXERCISES_COL_NOTES), modelData.at(EXERCISES_COL_COMPLETED), m_model->id()));
+			strQuery = std::move(
+					u"UPDATE %1 SET split_letter=\'%2\', exercises=\'%3\', track_rest_time=\'%4\', "
+					"auto_rest_time=\'%5\', setstypes=\'%6\', setsresttimes=\'%7\', setssubsets=\'%8\', "
+					"setsreps=\'%9\', setsweights=\'%10\', setsnotes=\'%11\', setscompleted=\'%12\' WHERE id=%13"_s
+						.arg(m_tableName, modelData.at(EXERCISES_COL_SPLITLETTER),
+							modelData.at(EXERCISES_COL_EXERCISES), modelData.at(EXERCISES_COL_TRACKRESTTIMES),
+							modelData.at(EXERCISES_COL_AUTORESTTIMES), modelData.at(EXERCISES_COL_SETTYPES),
+							modelData.at(EXERCISES_COL_RESTTIMES), modelData.at(EXERCISES_COL_SUBSETS),
+							modelData.at(EXERCISES_COL_REPS), modelData.at(EXERCISES_COL_WEIGHTS),
+							modelData.at(EXERCISES_COL_NOTES), modelData.at(EXERCISES_COL_COMPLETED), m_model->id()));
 		}
 		else
 		{
 			strQuery = std::move(u"INSERT INTO %1 "
-						"(meso_id,calendar_day,split_letter,exercises,track_rest_time,auto_rest_time,setstypes,"
-								 "setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted)"
-							" VALUES(%2, %3, \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\', \'%11\', \'%12\', \'%13\', \'%14\')"_s
+					"(meso_id,calendar_day,split_letter,exercises,track_rest_time,auto_rest_time,setstypes,"
+					"setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted)"
+					" VALUES(%2, %3, \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\', \'%11\', \'%12\', \'%13\', \'%14\')"_s
 						.arg(m_tableName, modelData.at(EXERCISES_COL_MESOID),
 							modelData.at(EXERCISES_COL_CALENDARDAY), modelData.at(EXERCISES_COL_SPLITLETTER),
 							modelData.at(EXERCISES_COL_EXERCISES), modelData.at(EXERCISES_COL_TRACKRESTTIMES),

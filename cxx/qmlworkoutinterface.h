@@ -31,7 +31,6 @@ Q_PROPERTY(bool workoutIsEditable READ workoutIsEditable WRITE setWorkoutIsEdita
 Q_PROPERTY(bool canImportFromPreviousWorkout READ canImportFromPreviousWorkout WRITE setCanImportFromPreviousWorkout NOTIFY canImportFromPreviousWorkoutChanged FINAL)
 Q_PROPERTY(bool canImportFromSplitPlan READ canImportFromSplitPlan WRITE setCanImportFromSplitPlan NOTIFY canImportFromSplitPlanChanged FINAL)
 Q_PROPERTY(bool mainDateIsToday READ mainDateIsToday WRITE setMainDateIsToday NOTIFY mainDateIsTodayChanged FINAL)
-Q_PROPERTY(bool needActivation READ needActivation WRITE setNeedActivation NOTIFY needActivationChanged FINAL)
 Q_PROPERTY(bool timerActive READ timerActive WRITE setTimerActive NOTIFY timerActiveChanged FINAL)
 Q_PROPERTY(bool hasExercises READ hasExercises NOTIFY hasExercisesChanged FINAL)
 Q_PROPERTY(QStringList previousWorkoutsList READ previousWorkoutsList NOTIFY previousWorkoutsListChanged FINAL)
@@ -89,9 +88,6 @@ public:
 	inline bool mainDateIsToday() const { return m_bMainDateIsToday; }
 	void setMainDateIsToday(const bool is_today);
 
-	inline bool needActivation() const { return m_bNeedActivation; }
-	inline void setNeedActivation(const bool new_value) { if (m_bNeedActivation != new_value) { m_bNeedActivation = new_value; emit needActivationChanged(); } }
-
 	inline bool timerActive() const { return m_bTimerActive; }
 	inline void setTimerActive(const bool new_value) { m_bTimerActive = new_value; emit timerActiveChanged(); }
 
@@ -117,6 +113,7 @@ public:
 	Q_INVOKABLE void simpleExercisesList(const bool show);
 	Q_INVOKABLE void clearExercises(const bool bShowIntentDialog = true);
 	Q_INVOKABLE void removeExercise(const int exercise_number = -1);
+	Q_INVOKABLE bool canChangeSetMode(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 
 	inline DBExercisesModel *workoutModel() const { return m_workoutModel; }
 	inline QQuickItem *workoutPage() const { return m_workoutPage; }
@@ -126,8 +123,6 @@ public:
 	void gotoNextExercise();
 	void rollUpExercise(const uint exercise_number) const;
 	void rollUpExercises() const;
-
-	TPTimer *restTimer();
 
 public slots:
 	void silenceTimeWarning();
@@ -142,7 +137,6 @@ signals:
 	void timeInChanged();
 	void timeOutChanged();
 	void locationChanged();
-	void lastWorkOutLocationChanged();
 	void notesChanged();
 	void headerTextChanged();
 	void muscularGroupChanged();
@@ -152,10 +146,11 @@ signals:
 	void canImportFromPreviousWorkoutChanged();
 	void canImportFromSplitPlanChanged();
 	void mainDateIsTodayChanged();
-	void needActivationChanged();
 	void timerActiveChanged();
 	void hasExercisesChanged();
 	void previousWorkoutsListChanged();
+	void updateRestTime(const int exercise_number, const QString &rest_time);
+
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	void displayMessageOnAppWindow(const int message_id, const QString &filename = QString{});
 	void requestMesoSplitModel(const QChar &splitletter);
@@ -174,11 +169,11 @@ private:
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	uint m_hour, m_min, m_sec;
 	QString m_headerText;
-	bool m_editMode, m_workoutIsEditable, m_importFromPrevWorkout, m_importFromSplitPlan, m_bMainDateIsToday, m_bNeedActivation,
-			m_bTimerActive;
+	bool m_editMode, m_workoutIsEditable, m_importFromPrevWorkout, m_importFromSplitPlan, m_bMainDateIsToday, m_bTimerActive;
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
 	void createWorkoutPage();
 	void createWorkoutPage_part2();
 	void calculateWorkoutTime();
+	void startRestTimer(const uint exercise_number, const uint exercise_idx, const uint set_number);
 };

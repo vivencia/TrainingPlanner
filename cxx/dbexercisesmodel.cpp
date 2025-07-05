@@ -9,24 +9,30 @@
 
 #include <QApplication>
 #include <QtMath>
+
 #include <utility>
+#include <ranges>
 
 #define UNSET_VALUE 11111
 
+QT_FORWARD_DECLARE_STRUCT(stExercise)
+
 struct stSet {
-	uint number, mode;
+	uint set_number, mode;
 	TPSetTypes type;
 	QTime restTime;
 	QString subsets, reps, weight, notes;
 	TPBool completed;
+	stExercise *parent;
 
 	inline explicit stSet() : mode{0}, type{Unkown}, subsets{'0'}, notes{' '} {}
 };
 
 struct stExercise {
 	QString name;
-	uint working_set;
+	uint exercise_idx, working_set;
 	QList<stSet*> sets;
+	exerciseEntry *parent;
 
 	inline explicit stExercise() : working_set{UNSET_VALUE} {}
 };
@@ -34,10 +40,9 @@ struct stExercise {
 struct exerciseEntry {
 	QList<stExercise*> m_exercises;
 	TPBool track_rest_time, auto_rest_time;
-	uint working_subexercise;
-	uint number;
+	uint exercise_number, working_subexercise;
 
-	inline explicit exerciseEntry() : working_subexercise{UNSET_VALUE}, number{0} {}
+	inline explicit exerciseEntry() : working_subexercise{UNSET_VALUE} {}
 };
 
 enum RoleNames {
@@ -69,18 +74,19 @@ void DBExercisesModel::operator=(DBExercisesModel *other_model)
 	for (const auto exercise_entry : std::as_const(other_model->m_exerciseData))
 	{
 		const uint exercise_number{addExercise(false)};
-		m_exerciseData.at(exercise_number)->number = exercise_entry->number;
+		m_exerciseData.at(exercise_number)->exercise_number = exercise_entry->exercise_number;
 		m_exerciseData.at(exercise_number)->track_rest_time = exercise_entry->track_rest_time;
 		m_exerciseData.at(exercise_number)->auto_rest_time = exercise_entry->auto_rest_time;
 		for (const auto sub_exercise : std::as_const(exercise_entry->m_exercises))
 		{
 			const uint exercise_idx{addSubExercise(exercise_number, false)};
 			m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->name = sub_exercise->name;
+			m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->exercise_idx = sub_exercise->exercise_idx;
 			m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->working_set = sub_exercise->working_set;
 			for (const auto set : std::as_const(sub_exercise->sets))
 			{
 				const uint set_number{addSet(exercise_number, exercise_idx, false)};
-				m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->number = set->number;
+				m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->set_number = set->set_number;
 				m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->type = set->type;
 				m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->restTime = set->restTime;
 				m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->subsets = set->subsets;
@@ -186,7 +192,7 @@ bool DBExercisesModel::fromDataBase(const QStringList &data, const bool bClearSo
 				if (!set_completed.isEmpty())
 					set->completed = appUtils()->getCompositeValue(set_number, set_completed, set_separator) == "1"_L1;
 				if (isWorkout())
-					setModeForSet(exercise_number, exercise_idx, set_number);
+					setModeForSet(set);
 			}
 		}
 		endInsertRows();
@@ -304,7 +310,7 @@ int DBExercisesModel::exportToFormattedFile(const QString &filename, QFile *out_
 	for (const auto exercise_entry : std::as_const(m_exerciseData))
 	{
 		out_file->write("\n\n\n", 3);
-		out_file->write(QString{exerciseNameLabel() + QString::number(exercise_entry->number+1)}.toUtf8().constData());
+		out_file->write(QString{exerciseNameLabel() + QString::number(exercise_entry->exercise_number + 1)}.toUtf8().constData());
 		const uint giant_set{static_cast<uint>(exercise_entry->m_exercises.count())};
 		if (giant_set > 1)
 			out_file->write(QString{tr("Giant set with ") + QString::number(giant_set) + tr(" exercises")}.toUtf8().constData());
@@ -326,7 +332,7 @@ int DBExercisesModel::exportToFormattedFile(const QString &filename, QFile *out_
 			for (const auto set : std::as_const(sub_exercise->sets))
 			{
 				out_file->write("\n\n", 2);
-				out_file->write(QString{setNumberLabel() + QString::number(set->number) + '\n'}.toUtf8().constData());
+				out_file->write(QString{setNumberLabel() + QString::number(set->set_number) + '\n'}.toUtf8().constData());
 				out_file->write(setTypeLabel().toUtf8().constData());
 				out_file->write(formatSetTypeToExport(set->type).toUtf8().constData());
 				out_file->write("\n", 1);
@@ -580,7 +586,7 @@ uint DBExercisesModel::addExercise(const bool emit_signal)
 		beginInsertRows(QModelIndex{}, exerciseCount(), exerciseCount());
 	exerciseEntry *new_exercise{new exerciseEntry};
 	const uint exercise_number{static_cast<uint>(m_exerciseData.count())};
-	new_exercise->number = exercise_number;
+	new_exercise->exercise_number = exercise_number;
 	m_exerciseData.append(new_exercise);
 	if (emit_signal)
 	{
@@ -596,9 +602,10 @@ void DBExercisesModel::delExercise(const uint exercise_number, const bool emit_s
 {
 	if (emit_signal)
 		beginRemoveRows(QModelIndex{}, exercise_number, exercise_number);
+
+	for (const auto exercise : m_exerciseData | std::views::drop(exercise_number + 1))
+		exercise->exercise_number--;
 	exerciseEntry *exercise{m_exerciseData[exercise_number]};
-	for (uint i{exercise_number+1}; i < m_exerciseData.count(); ++i)
-		m_exerciseData.at(i)->number--;
 	for (const auto sub_exercise : std::as_const(exercise->m_exercises))
 		qDeleteAll(sub_exercise->sets);
 	qDeleteAll(exercise->m_exercises);
@@ -629,20 +636,20 @@ void DBExercisesModel::moveExercise(const uint from, const uint to)
 		{
 			for(uint i{from}; i < to; ++i)
 			{
-				m_exerciseData[i] = std::move(m_exerciseData[i+1]);
-				m_exerciseData.at(i)->number--;
+				m_exerciseData[i] = std::move(m_exerciseData[i + 1]);
+				m_exerciseData.at(i)->exercise_number--;
 			}
 		}
 		else
 		{
 			for(uint i{from}; i > to; --i)
 			{
-				m_exerciseData[i] = std::move(m_exerciseData[i-1]);
-				m_exerciseData.at(i)->number++;
+				m_exerciseData[i] = std::move(m_exerciseData[i - 1]);
+				m_exerciseData.at(i)->exercise_number++;
 			}
 		}
 		m_exerciseData[to] = std::move(tempExerciseData);
-		m_exerciseData.at(to)->number = to;
+		m_exerciseData.at(to)->exercise_number = to;
 		emit dataChanged(index(to > from ? from : to, 0), index(to > from ? to : from, 0), QList<int>{} << exerciseNumberRole);
 		emit exerciseModified(from, EXERCISE_IGNORE_NOTIFY_IDX, EXERCISE_IGNORE_NOTIFY_IDX, EXERCISE_MOVE_NOTIFY_IDX);
 		endMoveRows();
@@ -663,6 +670,8 @@ uint DBExercisesModel::addSubExercise(const uint exercise_number, const bool emi
 	exerciseEntry *exercise{m_exerciseData[exercise_number]};
 	stExercise* new_sub_exercise{new stExercise};
 	const uint exercise_idx{static_cast<uint>(exercise->m_exercises.count())};
+	new_sub_exercise->parent = exercise;
+	new_sub_exercise->exercise_idx = exercise_idx;
 	exercise->m_exercises.append(new_sub_exercise);
 	if (emit_signal)
 	{
@@ -676,6 +685,9 @@ uint DBExercisesModel::addSubExercise(const uint exercise_number, const bool emi
 void DBExercisesModel::delSubExercise(const uint exercise_number, const uint exercise_idx, const bool emit_signal)
 {
 	exerciseEntry *exercise{m_exerciseData[exercise_number]};
+	for (const auto sub_exercise : exercise->m_exercises | std::views::drop(exercise_idx + 1))
+		sub_exercise->exercise_idx--;
+
 	stExercise* sub_exercise{exercise->m_exercises.at(exercise_idx)};
 	qDeleteAll(sub_exercise->sets);
 	delete sub_exercise;
@@ -683,7 +695,7 @@ void DBExercisesModel::delSubExercise(const uint exercise_number, const uint exe
 	if (workingSubExercise(exercise_number) >= exercise_idx)
 	{
 		if (workingSubExercise(exercise_number) > 0)
-			setWorkingSubExercise(exercise_idx-1, exercise_number);
+			setWorkingSubExercise(exercise_idx - 1, exercise_number);
 	}
 	if (emit_signal)
 	{
@@ -699,10 +711,11 @@ uint DBExercisesModel::addSet(const uint exercise_number, const uint exercise_id
 	stExercise* sub_exercise{exercise->m_exercises.at(exercise_idx)};
 	stSet* new_set{new stSet};
 	const uint set_number{static_cast<uint>(sub_exercise->sets.count())};
-	new_set->number = set_number;
+	new_set->set_number = set_number;
+	new_set->parent = sub_exercise;
 	sub_exercise->sets.append(new_set);
 	if (isWorkout())
-		setModeForSet(exercise_number, exercise_idx, set_number);
+		setModeForSet(new_set);
 	if (emit_signal)
 	{
 		setWorkingSet(set_number, exercise_number, exercise_idx);
@@ -716,8 +729,8 @@ void DBExercisesModel::delSet(const uint exercise_number, const uint exercise_id
 {
 	exerciseEntry *exercise{m_exerciseData[exercise_number]};
 	stExercise* sub_exercise{exercise->m_exercises.at(exercise_idx)};
-	for (uint i{set_number+1}; i < sub_exercise->sets.count(); ++i)
-		sub_exercise->sets.at(i)->number--;
+	for (const auto set : sub_exercise->sets | std::views::drop(set_number + 1))
+		set->set_number--;
 	delete sub_exercise->sets.at(set_number);
 	sub_exercise->sets.remove(set_number);
 	if (set_number >= workingSet(exercise_number, exercise_idx))
@@ -745,20 +758,20 @@ void DBExercisesModel::moveSet(const uint exercise_number, const uint exercise_i
 		{
 			for(uint i{from_set}; i < to_set; ++i)
 			{
-				sub_exercise->sets[i] = std::move(sub_exercise->sets[i+1]);
-				sub_exercise->sets.at(i)->number--;
+				sub_exercise->sets[i] = std::move(sub_exercise->sets[i + 1]);
+				sub_exercise->sets.at(i)->set_number--;
 			}
 		}
 		else
 		{
 			for(uint i{from_set}; i > to_set; --i)
 			{
-				sub_exercise->sets[i] = std::move(sub_exercise->sets[i-1]);
-				sub_exercise->sets.at(i)->number++;
+				sub_exercise->sets[i] = std::move(sub_exercise->sets[i - 1]);
+				sub_exercise->sets.at(i)->set_number++;
 			}
 		}
 		sub_exercise->sets[to_set] = std::move(tempSet);
-		sub_exercise->sets.at(to_set)->number = to_set;
+		sub_exercise->sets.at(to_set)->set_number = to_set;
 		emit setsNumberChanged(exercise_number, exercise_idx);
 		emit exerciseModified(exercise_number, exercise_idx, from_set, EXERCISE_DEL_NOTIFY_IDX);
 		emit exerciseModified(exercise_number, exercise_idx, to_set, EXERCISE_IGNORE_NOTIFY_IDX);
@@ -865,7 +878,7 @@ bool DBExercisesModel::trackRestTime(const uint exercise_number) const
 void DBExercisesModel::setTrackRestTime(const uint exercise_number, const bool track_resttime)
 {
 	m_exerciseData.at(exercise_number)->track_rest_time = track_resttime;
-	setModeForSet(exercise_number, exercise_idx, set_number);
+	changeAllSetsMode(exercise_number);
 	emit exerciseModified(exercise_number, EXERCISE_IGNORE_NOTIFY_IDX, EXERCISE_IGNORE_NOTIFY_IDX, EXERCISES_COL_TRACKRESTTIMES);
 	emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << trackRestTimeRole);
 }
@@ -878,6 +891,7 @@ bool DBExercisesModel::autoRestTime(const uint exercise_number) const
 void DBExercisesModel::setAutoRestTime(const uint exercise_number, const bool auto_resttime)
 {
 	m_exerciseData.at(exercise_number)->auto_rest_time = auto_resttime;
+	changeAllSetsMode(exercise_number);
 	emit exerciseModified(exercise_number, EXERCISE_IGNORE_NOTIFY_IDX, EXERCISE_IGNORE_NOTIFY_IDX, EXERCISES_COL_AUTORESTTIMES);
 	emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << autoRestTimeRole);
 }
@@ -1226,12 +1240,63 @@ uint DBExercisesModel::setMode(const uint exercise_number, const uint exercise_i
 	return 0;
 }
 
-void DBExercisesModel::setSetMode(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint mode)
+void DBExercisesModel::setSetNextMode(const uint exercise_number, const uint exercise_idx, const uint set_number)
 {
-	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->mode = mode;
-	emit setModeChanged(exercise_number, exercise_idx, set_number, mode);
-	if (mode == SM_COMPLETED || mode == SM_NOT_COMPLETED)
-		setSetCompleted(exercise_number, exercise_idx, set_number, mode == SM_COMPLETED);
+	uint mode{setMode(exercise_number, exercise_idx, set_number)};
+	stSet *set{m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)};
+	if (trackRestTime(exercise_number))
+	{
+		const bool auto_time{autoRestTime(exercise_number)};
+		switch (mode)
+		{
+			case SM_COMPLETED:
+				m_lastSetCompleted = std::move(QTime::currentTime());
+			case SM_NOT_COMPLETED:
+				mode = auto_time ? SM_START_EXERCISE : SM_START_REST;
+			break;
+			case SM_START_REST:
+				emit startRestTimer(exercise_number, exercise_idx, set_number);
+				mode = SM_START_EXERCISE;
+			break;
+			case SM_START_EXERCISE:
+			{
+				QTime rest_time{0, 0, 0};
+				if (auto_time)
+				{
+					if (set->set_number == 0)
+					{
+						const std::optional<QTime> &time_in{m_calendarManager->timeIn(m_mesoIdx, m_calendarDay)};
+						if (time_in.has_value())
+							rest_time = std::move(appUtils()->calculateTimeDifference(time_in.value(), QTime::currentTime()));
+					}
+					else
+						rest_time = std::move(appUtils()->calculateTimeDifference(m_lastSetCompleted, QTime::currentTime()));
+				}
+				else
+				{
+					emit stopRestTimer();
+					rest_time = std::move(m_elapsedRestTime);
+				}
+				setSetRestTime(exercise_number, exercise_idx, set_number, appUtils()->formatTime(rest_time, appUtils()->TF_QML_DISPLAY_NO_HOUR));
+				mode = SM_COMPLETED;
+			}
+			break;
+		}
+	}
+	else
+	{
+		switch (mode)
+		{
+			case SM_COMPLETED:
+				mode = SM_NOT_COMPLETED;
+				m_lastSetCompleted = std::move(QTime::currentTime());
+			break;
+			case SM_NOT_COMPLETED : mode = SM_COMPLETED; break;
+			default:
+				mode = SM_NOT_COMPLETED;
+		}
+	}
+	setSetMode(set, mode);
 }
 
 QString DBExercisesModel::setModeLabel(const uint exercise_number, const uint exercise_idx, const uint set_number) const
@@ -1345,10 +1410,19 @@ inline bool DBExercisesModel::importExtraInfo(const QString &maybe_extra_info)
 	return importExtraInfo(maybe_extra_info, m_calendarDay, m_splitLetter);
 }
 
-void DBExercisesModel::setModeForSet(const uint exercise_number, const uint exercise_idx, const uint set_number)
+void DBExercisesModel::setSetMode(stSet *set, const uint mode)
+{
+	set->mode = mode;
+	emit setModeChanged(set->parent->parent->exercise_number, set->parent->exercise_idx, set->set_number, mode);
+	if (mode == SM_COMPLETED || mode == SM_NOT_COMPLETED)
+		setSetCompleted(set->parent->parent->exercise_number, set->parent->exercise_idx, set->set_number, mode == SM_COMPLETED);
+}
+
+void DBExercisesModel::setModeForSet(stSet *set)
 {
 	uint mode{SM_COMPLETED};
-	if (!setCompleted(exercise_number, exercise_idx, set_number))
+	const uint exercise_number{set->parent->parent->exercise_number};
+	if (!setCompleted(exercise_number, set->parent->exercise_idx, set->set_number))
 	{
 		if (trackRestTime(exercise_number))
 		{
@@ -1360,33 +1434,17 @@ void DBExercisesModel::setModeForSet(const uint exercise_number, const uint exer
 		else
 			mode = SM_NOT_COMPLETED;
 	}
-	setSetMode(exercise_number, exercise_idx, set_number, mode);
+	setSetMode(set, mode);
 }
 
-void DBExercisesModel::setSetNextMode(const uint exercise_number, const uint exercise_idx, const uint set_number)
+void DBExercisesModel::changeAllSetsMode(const uint exercise_number)
 {
-	uint mode{setMode(exercise_number, exercise_idx, set_number)};
-	if (trackRestTime(exercise_number))
+	exerciseEntry *exercise{m_exerciseData.at(exercise_number)};
+	for (const auto sub_exercise : std::as_const(exercise->m_exercises))
 	{
-		const bool auto_time{autoRestTime(exercise_number)};
-		switch (mode)
-		{
-			case SM_COMPLETED:
-			case SM_NOT_COMPLETED : mode = auto_time ? SM_START_REST : SM_START_EXERCISE; break;
-			case SM_START_REST: mode = SM_START_EXERCISE; break;
-			case SM_START_EXERCISE: mode = SM_COMPLETED;
-		}
+		for (const auto set : std::as_const(sub_exercise->sets))
+			setModeForSet(set);
 	}
-	else
-	{
-		switch (mode)
-		{
-			case SM_COMPLETED: mode = SM_NOT_COMPLETED; break;
-			case SM_NOT_COMPLETED : mode = SM_COMPLETED; break;
-			default: mode = SM_NOT_COMPLETED;
-		}
-	}
-	setSetMode(exercise_number, exercise_idx, set_number, mode);
 }
 
 QString DBExercisesModel::increaseStringTimeBy(const QString &strtime, const uint add_mins, const uint add_secs)
