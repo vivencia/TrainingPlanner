@@ -14,8 +14,7 @@ Q_OBJECT
 QML_ELEMENT
 
 Q_PROPERTY(QString source READ source WRITE setSource NOTIFY sourceChanged)
-Q_PROPERTY(bool dropShadow READ dropShadow WRITE setDropShadow FINAL)
-Q_PROPERTY(int imgSize READ imgSize WRITE setImgSize NOTIFY imgSizeChanged)
+Q_PROPERTY(bool dropShadow READ dropShadow WRITE setDropShadow CONSTANT FINAL)
 
 public:
 	explicit TPImage(QQuickItem *parent = nullptr);
@@ -25,10 +24,8 @@ public:
 	inline const QString &sourceExtension() const { return mSourceExtension; }
 	inline bool dropShadow() const { return mDropShadow; }
 	void setDropShadow(const bool drop_shadow);
-	inline int imgSize() const { return mSize.width(); }
-	void setImgSize(const int size);
 
-	Q_INVOKABLE void saveToDisk(const QString &filename);
+	void saveToDisk(const QString &filename);
 	void paint(QPainter *painter);
 
 public slots:

@@ -178,6 +178,7 @@ Drawer {
 		id: pagesList
 		model: pagesListModel
 		clip: true
+		spacing: 2
 		boundsBehavior: Flickable.StopAtBounds
 		height: drawer.height*0.35
 		contentHeight: availableHeight
@@ -198,10 +199,8 @@ Drawer {
 
 		delegate: SwipeDelegate {
 			id: delegate
-			spacing: 10
-			padding: 5
 			width: pagesList.width
-			height: 35
+			height: appSettings.itemDefaultHeight * 1.3
 
 			contentItem: TPLabel {
 				id: listItem
@@ -226,9 +225,9 @@ Drawer {
 				radius: 5
 
 				TPImage {
-					source: "remove"
-					width: 30
-					height: 30
+					source: "close.png"
+					width: appSettings.itemDefaultHeight
+					height: width
 					opacity: 2 * -delegate.swipe.position
 					z:2
 

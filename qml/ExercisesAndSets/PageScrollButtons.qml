@@ -18,31 +18,31 @@ Rectangle {
 	property bool showUpButton: true
 	property bool showDownButton: true
 	property TPPage ownerPage
+	readonly property int buttonSize: Math.ceil(appSettings.itemDefaultHeight * 1.2)
 
 	TPFloatingControl {
 		id: btnUp
 		parentPage: ownerPage
-		width: 30
-		height: 30
-		radius: 30
+		width: buttonSize
+		height: buttonSize
+		radius: buttonSize
 		color: "transparent"
 		visible: button.visible && showUpButton
 		dragWidget: img1
-		x: appSettings.pageWidth - width;
-		y: btnDown.y - height
+		x: appSettings.pageWidth - buttonSize - 10;
+		y: btnDown.y - buttonSize
 		emitMoveSignal: true
 
 		onControlMoved: (xpos, ypos) => {
 			btnDown.x = xpos;
-			btnDown.y = y + 30;
+			btnDown.y = y + buttonSize;
 		}
 
 		TPImage {
 			id: img1
 			source: "upward"
 			dropShadow: false
-			width: 30
-			height: 30
+			anchors.fill: parent
 		}
 
 		onClicked: {
@@ -55,27 +55,26 @@ Rectangle {
 	TPFloatingControl {
 		id: btnDown
 		parentPage: ownerPage
-		width: 30
-		height: 30
-		radius: 30
+		width: buttonSize
+		height: buttonSize
+		radius: buttonSize
 		visible: button.visible && showDownButton
 		color: "transparent"
 		dragWidget: img2
-		x: appSettings.pageWidth - width;
-		y: appSettings.pageHeight - 2*height
+		x: appSettings.pageWidth - buttonSize - 10;
+		y: appSettings.pageHeight - buttonSize
 		emitMoveSignal: true
 
 		onControlMoved: (xpos, ypos) => {
 			btnUp.x = xpos;
-			btnUp.y = y - 30;
+			btnUp.y = y - buttonSize;
 		}
 
 		TPImage {
 			id: img2
 			source: "downward"
 			dropShadow: false
-			width: 30
-			height: 30
+			anchors.fill: parent
 		}
 
 		onClicked: {

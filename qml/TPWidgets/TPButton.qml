@@ -11,10 +11,13 @@ Rectangle {
 	radius: rounded ? height : 6
 	opacity: checked ? 0.7 : 1
 	color: backgroundColor
-	height: buttonText.height + (textUnderIcon ? imageSize : 0) + (text.length > 0 ? 10 : 0);
+	height: {
+		if (autoSize)
+			return buttonText.height + (textUnderIcon ? imageSize : 0) + (text.length > 0 ? 10 : 0);
+	}
 	width: {
 		if (autoSize)
-			buttonText.width + (textUnderIcon ? 0 : imageSize) + (text.length > 0 ? 20 : 0)
+			return buttonText.width + (textUnderIcon ? 0 : imageSize) + (text.length > 0 ? 20 : 0)
 	}
 
 	property color textColor: appSettings.fontColor
@@ -197,7 +200,10 @@ Rectangle {
 			buttonText.anchors.right = button.right;
 		}
 		else {
-			buttonText.anchors.horizontalCenter = button.horizontalCenter;
+			if (imageSource.length > 0)
+				buttonText.anchors.horizontalCenter = button.horizontalCenter;
+			else
+				buttonText.anchors.fill = button;
 			buttonText.anchors.verticalCenter = button.verticalCenter;
 		}
 		if (_buttonImage)

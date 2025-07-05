@@ -143,6 +143,7 @@ public:
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
 	Q_INVOKABLE void changeMesoCalendar(const bool preserve_old_cal);
+	Q_INVOKABLE void doNotChangeMesoCalendar();
 	Q_INVOKABLE void getCalendarPage();
 	Q_INVOKABLE void getExercisesPlannerPage();
 	Q_INVOKABLE void getWorkoutPage(const QDate &date);
@@ -203,6 +204,7 @@ private:
 
 	void createMesocyclePage();
 	void createMesocyclePage_part2();
+	void mesoChanged(const uint meso_idx, const uint meso_field);
 	inline bool isSplitOK(const QString &split) const;
 };
 

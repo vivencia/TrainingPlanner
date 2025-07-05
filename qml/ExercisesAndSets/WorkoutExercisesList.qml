@@ -49,7 +49,7 @@ ListView {
 		Connections {
 			target: workoutModel
 
-			function onWorkingExerciseChanged(exercise_number: int): void {
+			function onWorkingExerciseChanged(exercise_number: int) : void {
 				if (exercise_number === index) {
 					const exercise_idx = workoutModel.workingSubExercise;
 					subExercisesTabBar.currentIndex = exercise_idx;
@@ -57,17 +57,17 @@ ListView {
 				}
 			}
 
-			function onWorkingSubExerciseChanged(exercise_number: int, exercise_idx: int): void {
+			function onWorkingSubExerciseChanged(exercise_number: int, exercise_idx: int) : void {
 				const set_number = workoutModel.workingSet;
 				setsTabBar.currentIndex = set_number;
 				delegate.changeFields(exercise_number, exercise_idx, set_number, false);
 			}
 
-			function onWorkingSetChanged(exercise_number: int, exercise_idx: int, set_number: int): void {
+			function onWorkingSetChanged(exercise_number: int, exercise_idx: int, set_number: int) : void {
 				delegate.changeFields(exercise_number, exercise_idx, set_number, true);
 			}
 
-			function onExerciseNameChanged(exercise_number: int, exercise_idx: int): void {
+			function onExerciseNameChanged(exercise_number: int, exercise_idx: int) : void {
 				if (exercise_number === index) {
 					txtExerciseName.text = workoutModel.exerciseName(exercise_number, exercise_idx);
 					subExerciseButtonsRepeater.itemAt(exercise_idx).text = txtExerciseName.text;
@@ -177,7 +177,7 @@ ListView {
 					hasDropShadow: false
 					width: appSettings.itemDefaultHeight * 0.9
 					height: width
-					enabled: index === workoutModel.workingExercise ? (delegate.exerciseNumber < (workoutModel.count-1)) : false
+					enabled: index === workoutModel.workingExercise ? (delegate.exerciseNumber < workoutModel.count) : false
 
 					anchors {
 						right: parent.right
@@ -560,24 +560,40 @@ ListView {
 														workoutModel.workingSubExercise, workoutModel.workingSet, new_text);
 					}
 
-					RowLayout {
+					Item {
 						id: setModeLayout
-						spacing: 5
 						visible: workoutModel ? (workoutModel.isWorkout && cboSetType.currentIndex >= 0) : false
+						height: appSettings.itemDefaultHeight
+						width: parent.width * 0.55
 						Layout.alignment: Qt.AlignCenter
-						Layout.maximumWidth: parent.width / 2
+						Layout.maximumWidth: width
+						Layout.minimumWidth: width
 
 						TPImage {
+							id: imgSetCompleted
 							source: "set-completed"
 							width: appSettings.itemDefaultHeight
 							height: width
 							enabled: delegate.setCompleted
+
+							anchors {
+								left: parent.left
+								verticalCenter: parent.verticalCenter
+							}
 						}
 
 						TPButton {
 							id: btnSetMode
 							text: workoutModel.setModeLabel(index, workoutModel.workingSubExercise, workoutModel.workingSet)
+							width: parent.width - imgSetCompleted.width
+							height: parent.height
+							enabled: txtNReps.text.length > 0 && txtNWeight.text.length > 0
 							onClicked: workoutManager.setWorkingSetMode();
+
+							anchors {
+								left: imgSetCompleted.right
+								verticalCenter: parent.verticalCenter
+							}
 						}
 					} //setModeLayout
 				} //setsItemsLayout
@@ -586,8 +602,8 @@ ListView {
 	} //delegate: ItemDelegate
 
 	function reloadModel(): void {
-		lstSplitExercises.model = 0;
-		lstSplitExercises.model = workoutModel.count;
+		control.model = 0;
+		control.model = workoutModel.count;
 		txtGroups.text = workoutModel.muscularGroup();
 	}
 
@@ -604,8 +620,8 @@ ListView {
 
 	function appendNewExerciseToDivision(): void {
 		workoutManager.addExercise();
-		lstSplitExercises.currentIndex = workoutModel.workingExercise;
-		lstSplitExercises.positionViewAtIndex(workoutModel.workingExercise, ListView.Center);
+		control.currentIndex = workoutModel.workingExercise;
+		control.positionViewAtIndex(workoutModel.workingExercise, ListView.Contain);
 	}
 
 	function exerciseNameFieldYPosition(): int {

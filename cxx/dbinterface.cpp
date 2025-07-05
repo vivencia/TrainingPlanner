@@ -345,6 +345,14 @@ void DBInterface::deleteMesoCalendarTable(const uint meso_idx, const bool bRemov
 	DBMesoCalendarTable *worker{new DBMesoCalendarTable{nullptr}};
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
+
+bool DBInterface::mesoCalendarSavedInDB(const uint meso_idx) const
+{
+	DBMesoCalendarTable *worker{new DBMesoCalendarTable{nullptr}};
+	const bool ret{worker->mesoCalendarSavedInDB(appMesoModel()->id(meso_idx))};
+	delete worker;
+	return ret;
+}
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
 //-----------------------------------------------------------WORKOUT TABLE-----------------------------------------------------------

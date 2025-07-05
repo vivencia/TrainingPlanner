@@ -36,7 +36,8 @@ uint DBMesoCalendarManager::populateCalendarDays(const uint meso_idx, const QDat
 
 void DBMesoCalendarManager::createCalendar(const uint meso_idx)
 {
-	QDate startDate{std::move(appMesoModel()->startDate(meso_idx))};
+	addCalendarForMeso(meso_idx);
+	const QDate &startDate{appMesoModel()->startDate(meso_idx)};
 	const uint n_months{populateCalendarDays(meso_idx, startDate, appMesoModel()->endDate(meso_idx), appMesoModel()->split(meso_idx))};
 	setDBDataReady(meso_idx, n_months, true);
 }
@@ -68,30 +69,31 @@ void DBMesoCalendarManager::setDayInfo(const uint meso_idx, const uint calendar_
 
 void DBMesoCalendarManager::removeCalendarForMeso(const uint meso_idx, const bool remove_workouts)
 {
-	if (meso_idx >= m_calendars.count())
-		return;
 	if (appMesoModel()->_id(meso_idx) >= 0)
 	{
 		appDBInterface()->removeMesoCalendar(meso_idx);
 		if (remove_workouts)
 			appDBInterface()->removeAllWorkouts(meso_idx);
 	}
-	delete m_calendars.at(meso_idx);
-	m_calendars.remove(meso_idx);
-	qDeleteAll(m_workouts.at(meso_idx));
-	m_workouts.remove(meso_idx);
-	m_dbDataReady.remove(meso_idx);
-
-	uint i{meso_idx};
-	for (const auto calendar : m_calendars | std::views::drop(meso_idx) )
+	if (meso_idx < m_calendars.count())
 	{
-		calendar->setMesoIdx(i);
-		for (const auto workout: m_workouts.at(i))
-			workout->setMesoIdx(i);
-		i++;
+		delete m_calendars.at(meso_idx);
+		m_calendars.remove(meso_idx);
+		qDeleteAll(m_workouts.at(meso_idx));
+		m_workouts.remove(meso_idx);
+		m_dbDataReady.remove(meso_idx);
+
+		uint i{meso_idx};
+		for (const auto calendar : m_calendars | std::views::drop(meso_idx) )
+		{
+			calendar->setMesoIdx(i);
+			for (const auto workout: m_workouts.at(i))
+				workout->setMesoIdx(i);
+			i++;
+		}
+		qDeleteAll(m_dayInfoList.at(meso_idx));
+		m_dayInfoList.remove(meso_idx);
 	}
-	qDeleteAll(m_dayInfoList.at(meso_idx));
-	m_dayInfoList.remove(meso_idx);
 }
 
 void DBMesoCalendarManager::addCalendarForMeso(const uint meso_idx)
@@ -122,7 +124,7 @@ void DBMesoCalendarManager::addNewCalendarForMeso(const uint new_mesoidx)
 
 void DBMesoCalendarManager::remakeMesoCalendar(const uint meso_idx, const bool preserve_old_info)
 {
-	if (!hasDBData(meso_idx))
+	if (!appDBInterface()->mesoCalendarSavedInDB(meso_idx))
 		return;
 
 	if (!preserve_old_info)

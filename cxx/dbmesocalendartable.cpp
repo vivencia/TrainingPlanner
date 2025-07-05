@@ -132,6 +132,24 @@ void DBMesoCalendarTable::saveMesoCalendar()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
+
+bool DBMesoCalendarTable::mesoCalendarSavedInDB(const QString &meso_id)
+{
+	bool ok{false};
+	if (openDatabase(true))
+	{
+		QSqlQuery query{std::move(getQuery())};
+		const QString &strQuery{"SELECT meso_id FROM mesocycles_calendar_table WHERE meso_id=%1"_L1.arg(meso_id)};
+		if (query.exec(strQuery))
+		{
+			if (query.first())
+				ok = query.value(0).toString() == meso_id;
+		}
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
+	}
+	return ok;
+}
+
 void DBMesoCalendarTable::workoutDayInfoForEntireMeso()
 {
 	clearWorkoutsInfoList();

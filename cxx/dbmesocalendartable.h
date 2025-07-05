@@ -14,7 +14,7 @@ struct st_workoutDayInfo {
 	bool completed;
 	QDate date;
 
-	explicit inline st_workoutDayInfo(): meso_id{-1}, trainingDay{" - "_L1}, splitLetter{'-'}, completed(false) {}
+	explicit inline st_workoutDayInfo(): meso_id{-1}, trainingDay{" - "_L1}, splitLetter{'-'}, completed{false} {}
 };
 
 class DBMesoCalendarTable final : public TPDatabaseTable
@@ -28,6 +28,7 @@ public:
 	virtual void updateTable() override final {}
 	void getMesoCalendar();
 	void saveMesoCalendar();
+	bool mesoCalendarSavedInDB(const QString &meso_id);
 
 	void workoutDayInfoForEntireMeso();
 	inline const QList<st_workoutDayInfo*> &workoutsInfo() const { return m_workoutsInfoList; }

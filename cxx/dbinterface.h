@@ -15,18 +15,15 @@ QT_FORWARD_DECLARE_CLASS(DBMesoCalendarManager)
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(DBUserModel)
 
-//****THIS CLASS MUST NOT ALTER THE MODELS IT USES, UNLESS WHEN LOADING DATA FROM THE DATABASE*****
-
 class DBInterface : public QObject
 {
 
 Q_OBJECT
 
 public:
-	explicit inline DBInterface()
-		: QObject{nullptr} { app_db_interface = this; }
-	inline DBInterface(const DBInterface& other) = delete;
-	inline DBInterface &operator()(const DBInterface& other) = delete;
+	explicit inline DBInterface() : QObject{nullptr} { app_db_interface = this; }
+	inline DBInterface(const DBInterface &other) = delete;
+	inline DBInterface &operator()(const DBInterface &other) = delete;
 	inline ~DBInterface() {}
 
 	void init();
@@ -72,6 +69,7 @@ public:
 	void saveMesoCalendar(const uint meso_idx);
 	void removeMesoCalendar(const uint meso_idx);
 	void deleteMesoCalendarTable(const uint meso_idx, const bool bRemoveFile);
+	bool mesoCalendarSavedInDB(const uint meso_idx) const;
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------WORKOUT TABLE-----------------------------------------------------------

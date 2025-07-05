@@ -88,17 +88,6 @@ void TPImage::setDropShadow(const bool drop_shadow)
 	checkEnabled(false);
 }
 
-void TPImage::setImgSize(const int size)
-{
-	if (size != mNominalSize.width())
-	{
-		mNominalSize.setWidth(size);
-		mNominalSize.setHeight(size);
-		scaleImage(false);
-		emit imgSizeChanged();
-	}
-}
-
 void TPImage::saveToDisk(const QString &filename)
 {
 	if (mImage.isNull())
@@ -161,9 +150,9 @@ void TPImage::scaleImage(const bool bCallUpdate)
 			mSize = mNominalSize - QSize{DROP_SHADOW_EXTENT, DROP_SHADOW_EXTENT};
 		else
 			mSize = mNominalSize - QSize{qCeil(mNominalSize.width()*0.05), qCeil(mNominalSize.height()*0.05)};
-		mImage = mImage.scaled(mSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-		mImageDisabled = QImage{};
-		mImageShadow = QImage{};
+		mImage = std::move(mImage.scaled(mSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+		mImageDisabled = std::move(QImage{});
+		mImageShadow = std::move(QImage{});
 		mbCanUpdate = true;
 		checkEnabled(bCallUpdate);
 	}

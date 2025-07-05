@@ -103,15 +103,15 @@ bool DBExercisesModel::fromDataBase(const QStringList &data, const bool bClearSo
 	m_calendarDay = data.at(EXERCISES_COL_CALENDARDAY).toInt();
 	m_splitLetter = data.at(EXERCISES_COL_SPLITLETTER).at(0);
 
-	QStringList exercises(std::move(data.at(EXERCISES_COL_EXERCISES).split(exercises_separator, Qt::SkipEmptyParts)));
-	QStringList track_resttimes(std::move(data.at(EXERCISES_COL_TRACKRESTTIMES).split(exercises_separator, Qt::SkipEmptyParts)));
-	QStringList auto_resttimes(std::move(data.at(EXERCISES_COL_AUTORESTTIMES).split(exercises_separator, Qt::SkipEmptyParts)));
-	QStringList settypes(std::move(data.at(EXERCISES_COL_SETTYPES).split(exercises_separator, Qt::SkipEmptyParts)));
-	QStringList resttimes(std::move(data.at(EXERCISES_COL_RESTTIMES).split(exercises_separator, Qt::SkipEmptyParts)));
-	QStringList subsets(std::move(data.at(EXERCISES_COL_SUBSETS).split(exercises_separator, Qt::SkipEmptyParts)));
-	QStringList reps(std::move(data.at(EXERCISES_COL_REPS).split(exercises_separator, Qt::SkipEmptyParts)));
-	QStringList weights(std::move(data.at(EXERCISES_COL_WEIGHTS).split(exercises_separator, Qt::SkipEmptyParts)));
-	QStringList notes(std::move(data.at(EXERCISES_COL_NOTES).split(exercises_separator, Qt::SkipEmptyParts)));
+	const QStringList &exercises(data.at(EXERCISES_COL_EXERCISES).split(exercises_separator, Qt::SkipEmptyParts));
+	const QStringList &track_resttimes(data.at(EXERCISES_COL_TRACKRESTTIMES).split(exercises_separator, Qt::SkipEmptyParts));
+	const QStringList &auto_resttimes(data.at(EXERCISES_COL_AUTORESTTIMES).split(exercises_separator, Qt::SkipEmptyParts));
+	const QStringList &settypes(data.at(EXERCISES_COL_SETTYPES).split(exercises_separator, Qt::SkipEmptyParts));
+	const QStringList &resttimes(data.at(EXERCISES_COL_RESTTIMES).split(exercises_separator, Qt::SkipEmptyParts));
+	const QStringList &subsets(data.at(EXERCISES_COL_SUBSETS).split(exercises_separator, Qt::SkipEmptyParts));
+	const QStringList &reps(data.at(EXERCISES_COL_REPS).split(exercises_separator, Qt::SkipEmptyParts));
+	const QStringList &weights(data.at(EXERCISES_COL_WEIGHTS).split(exercises_separator, Qt::SkipEmptyParts));
+	const QStringList &notes(data.at(EXERCISES_COL_NOTES).split(exercises_separator, Qt::SkipEmptyParts));
 
 	QStringList completed;
 	if (!bClearSomeFieldsForReUse)
@@ -159,16 +159,11 @@ bool DBExercisesModel::fromDataBase(const QStringList &data, const bool bClearSo
 				if (exercise_idx < resttimes.count())
 					rest_times = std::move(appUtils()->getCompositeValue(exercise_idx, resttimes.at(exercise_number), comp_exercise_separator));
 			}
-			QString sub_sets;
-				sub_sets = std::move(appUtils()->getCompositeValue(exercise_idx, subsets.at(exercise_number), comp_exercise_separator));
-			QString set_reps;
-				set_reps = std::move(appUtils()->getCompositeValue(exercise_idx, reps.at(exercise_number), comp_exercise_separator));
-			QString set_weights;
-				set_weights = std::move(appUtils()->getCompositeValue(exercise_idx, weights.at(exercise_number), comp_exercise_separator));
-			QString set_notes;
-				set_notes = std::move(appUtils()->getCompositeValue(exercise_idx, notes.at(exercise_number), comp_exercise_separator));
-			QString set_completed;
-				set_completed = std::move(appUtils()->getCompositeValue(exercise_idx, completed.at(exercise_number), comp_exercise_separator));
+			const QString &sub_sets{appUtils()->getCompositeValue(exercise_idx, subsets.at(exercise_number), comp_exercise_separator)};
+			const QString &set_reps{appUtils()->getCompositeValue(exercise_idx, reps.at(exercise_number), comp_exercise_separator)};
+			const QString &set_weights{appUtils()->getCompositeValue(exercise_idx, weights.at(exercise_number), comp_exercise_separator)};
+			const QString &set_notes{appUtils()->getCompositeValue(exercise_idx, notes.at(exercise_number), comp_exercise_separator)};
+			const QString &set_completed{appUtils()->getCompositeValue(exercise_idx, completed.at(exercise_number), comp_exercise_separator)};
 
 			for (uint set_number{0}; set_number < n_sets; ++set_number)
 			{
@@ -870,6 +865,7 @@ bool DBExercisesModel::trackRestTime(const uint exercise_number) const
 void DBExercisesModel::setTrackRestTime(const uint exercise_number, const bool track_resttime)
 {
 	m_exerciseData.at(exercise_number)->track_rest_time = track_resttime;
+	setModeForSet(exercise_number, exercise_idx, set_number);
 	emit exerciseModified(exercise_number, EXERCISE_IGNORE_NOTIFY_IDX, EXERCISE_IGNORE_NOTIFY_IDX, EXERCISES_COL_TRACKRESTTIMES);
 	emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << trackRestTimeRole);
 }
@@ -1232,7 +1228,7 @@ uint DBExercisesModel::setMode(const uint exercise_number, const uint exercise_i
 
 void DBExercisesModel::setSetMode(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint mode)
 {
-	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->completed = mode;
+	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->mode = mode;
 	emit setModeChanged(exercise_number, exercise_idx, set_number, mode);
 	if (mode == SM_COMPLETED || mode == SM_NOT_COMPLETED)
 		setSetCompleted(exercise_number, exercise_idx, set_number, mode == SM_COMPLETED);
@@ -1242,7 +1238,7 @@ QString DBExercisesModel::setModeLabel(const uint exercise_number, const uint ex
 {
 	switch (setMode(exercise_number, exercise_idx, set_number))
 	{
-		case SM_NOT_COMPLETED: tr("Set as completed"); break;
+		case SM_NOT_COMPLETED: return tr("Mark as completed"); break;
 		case SM_START_REST: return tr("Start rest time");
 		case SM_START_EXERCISE: return tr("Start exercise");
 		case SM_COMPLETED: return tr("Completed!");

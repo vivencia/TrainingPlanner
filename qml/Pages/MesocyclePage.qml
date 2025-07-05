@@ -481,6 +481,7 @@ TPPage {
 				changeCalendarLoader.active = false;
 			}
 			onButton2Clicked: {
+				mesoManager.doNotChangeMesoCalendar();
 				calDialogAnswer = 0; //A "No", warrants a possible new confirmation
 				changeCalendarLoader.active = false;
 			}

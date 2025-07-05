@@ -21,6 +21,14 @@ TPPage {
 	signal exerciseSelectedFromSimpleExercisesList();
 	signal silenceTimeWarning();
 
+	Connections {
+		target: workoutModel
+		function onExerciseCountChanged() : void {
+			scrollTraining.setScrollBarPosition(1);
+			lstWorkoutExercises.positionViewAtIndex(workoutModel.workingExercise, ListView.Contain);
+		}
+	}
+
 	ScrollView {
 		id: scrollTraining
 		contentWidth: availableWidth //stops bouncing to the sides
@@ -34,12 +42,14 @@ TPPage {
 			visible: lstWorkoutExercises.contentHeight > lstWorkoutExercises.height
 
 			onPositionChanged: {
-				if (navButtons.visible) {
-					if (lstWorkoutExercises.contentY <= 50) {
+				//if (navButtons) {
+					//const absoluteScrollY =  vBar.position * (scrollTraining.contentHeight - scrollTraining.height);
+					//if (absoluteScrollY <= 50) {
+					if ((vBar.position - (1 - vBar.size)) < -0.279) {
 						navButtons.showUpButton = false;
 						navButtons.showDownButton = true;
 					}
-					else if (lstWorkoutExercises.contentHeight - lstWorkoutExercises.contentY - vBar.height <= 50) {
+					else if (vBar.position - (1 - vBar.size) > -0.029) {
 						navButtons.showUpButton = true;
 						navButtons.showDownButton = false;
 					}
@@ -47,12 +57,8 @@ TPPage {
 						navButtons.showUpButton = true;
 						navButtons.showDownButton = true;
 					}
-				}
+				//}
 			}
-		}
-
-		function scrollToPos(y_pos): void {
-			contentItem.contentY = y_pos;
 		}
 
 		function setScrollBarPosition(pos: int): void {

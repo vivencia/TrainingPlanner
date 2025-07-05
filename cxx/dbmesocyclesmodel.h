@@ -26,6 +26,7 @@
 #define MESOCYCLES_TOTAL_COLS MESOCYCLES_COL_REALMESO + 1
 
 #define MESOCYCLES_COL_MUSCULARGROUP 20
+#define NEW_MESO_REQUIRED_FIELDS 4
 
 enum MesoRoleNames {
 	mesoNameRole = Qt::UserRole+MESOCYCLES_COL_NAME,
@@ -389,7 +390,6 @@ signals:
 	void canExportChanged(const uint meso_idx, const bool can_export);
 	void newMesoFieldCounterChanged(const uint meso_idx, const uint field);
 	void mesoChanged(const uint meso_idx, const uint field);
-	void mesoCalendarFieldsChanged(const uint meso_idx, const uint field);
 	void muscularGroupChanged(const uint meso_idx, const uint splitIndex, const QChar &splitLetter);
 	void mostRecentOwnMesoChanged(const int meso_idx);
 	void currentMesoIdxChanged();

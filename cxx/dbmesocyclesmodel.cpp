@@ -13,8 +13,6 @@
 #include <QSettings>
 #include <utility>
 
-#define NEW_MESO_REQUIRED_FIELDS 4
-
 using DBSplitModel = DBExercisesModel;
 
 DBMesocyclesModel *DBMesocyclesModel::app_meso_model(nullptr);
@@ -240,8 +238,6 @@ void DBMesocyclesModel::setStartDate(const uint meso_idx, const QDate &new_date)
 	setModified(meso_idx, MESOCYCLES_COL_STARTDATE);
 	m_curMesos->emitDataChanged(meso_idx, mesoStartDateRole);
 	changeCanHaveTodaysWorkout(meso_idx);
-	if (!isNewMeso(meso_idx) && m_newMesoFieldCounter.at(meso_idx) == NEW_MESO_REQUIRED_FIELDS)
-		emit mesoCalendarFieldsChanged(meso_idx, MESOCYCLES_COL_STARTDATE);
 }
 
 void DBMesocyclesModel::setEndDate(const uint meso_idx, const QDate &new_date)
@@ -255,8 +251,6 @@ void DBMesocyclesModel::setEndDate(const uint meso_idx, const QDate &new_date)
 	setModified(meso_idx, MESOCYCLES_COL_ENDDATE);
 	m_curMesos->emitDataChanged(meso_idx, mesoEndDateRole);
 	changeCanHaveTodaysWorkout(meso_idx);
-	if (!isNewMeso(meso_idx) && m_newMesoFieldCounter.at(meso_idx) == NEW_MESO_REQUIRED_FIELDS)
-		emit mesoCalendarFieldsChanged(meso_idx, MESOCYCLES_COL_ENDDATE);
 }
 
 void DBMesocyclesModel::setSplit(const uint meso_idx, const QString &new_split)
@@ -271,8 +265,6 @@ void DBMesocyclesModel::setSplit(const uint meso_idx, const QString &new_split)
 		}
 		setModified(meso_idx, MESOCYCLES_COL_SPLIT);
 		m_curMesos->emitDataChanged(meso_idx, mesoSplitRole);
-		if (!isNewMeso(meso_idx) && m_newMesoFieldCounter.at(meso_idx) == NEW_MESO_REQUIRED_FIELDS)
-			emit mesoCalendarFieldsChanged(meso_idx, MESOCYCLES_COL_SPLIT);
 		makeUsedSplits(meso_idx);
 	}
 }

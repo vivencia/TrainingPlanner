@@ -373,6 +373,11 @@ void QMLMesoInterface::changeMesoCalendar(const bool preserve_old_cal)
 	appMesoModel()->mesoCalendarManager()->remakeMesoCalendar(m_mesoIdx, preserve_old_cal);
 }
 
+void QMLMesoInterface::doNotChangeMesoCalendar()
+{
+	mesoChanged(m_mesoIdx, 0);
+}
+
 void QMLMesoInterface::getCalendarPage()
 {
 	if (!m_calendarPage)
@@ -448,8 +453,16 @@ void QMLMesoInterface::createMesocyclePage()
 	m_mesoComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/MesocyclePage.qml"_L1}, QQmlComponent::Asynchronous};
 	if (m_mesoComponent->status() != QQmlComponent::Ready)
 	{
-		connect(m_mesoComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status) {
-					createMesocyclePage_part2();
+		connect(m_mesoComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
+			if (status == QQmlComponent::Ready)
+				createMesocyclePage_part2();
+#ifndef QT_NO_DEBUG
+			else if (status == QQmlComponent::Error)
+			{
+				qDebug() << m_mesoComponent->errorString();
+				return;
+			}
+#endif
 		}, Qt::SingleShotConnection);
 	}
 	else
@@ -458,14 +471,6 @@ void QMLMesoInterface::createMesocyclePage()
 
 void QMLMesoInterface::createMesocyclePage_part2()
 {
-	#ifndef QT_NO_DEBUG
-	if (m_mesoComponent->status() == QQmlComponent::Error)
-	{
-		for (auto &error : m_mesoComponent->errors())
-			qDebug() << error.description();
-		return;
-	}
-	#endif
 	m_mesoPage = static_cast<QQuickItem*>(m_mesoComponent->createWithInitialProperties(m_mesoProperties, appQmlEngine()->rootContext()));
 	appQmlEngine()->setObjectOwnership(m_mesoPage, QQmlEngine::CppOwnership);
 	m_mesoPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"_L1));
@@ -492,10 +497,7 @@ void QMLMesoInterface::createMesocyclePage_part2()
 				m_calendarPage->setMesoIdx(m_mesoIdx);
 		}
 	});
-	connect(appMesoModel(), &DBMesocyclesModel::mesoCalendarFieldsChanged, this, [this] (const uint meso_idx, const uint field) {
-		if (meso_idx == m_mesoIdx)
-			QMetaObject::invokeMethod(m_mesoPage, "showCalendarChangedDialog");
-	});
+
 	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [this] (const uint meso_idx, const int splitIndex, const QChar &splitLetter) {
 		if (meso_idx == m_mesoIdx)
 		{
@@ -525,16 +527,7 @@ void QMLMesoInterface::createMesocyclePage_part2()
 
 	connect(appMesoModel(), &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint meso_field) {
 		if (meso_idx == m_mesoIdx)
-		{
-			appDBInterface()->saveMesocycle(m_mesoIdx);
-			if (!appMesoModel()->isNewMeso(m_mesoIdx))
-			{
-				if (!ownMeso())
-					appMesoModel()->checkIfCanExport(m_mesoIdx);
-				else
-					m_canSendMesoToServer = true;
-			}
-		}
+			mesoChanged(meso_idx, meso_field);
 	});
 	connect(appMesoModel(), &DBMesocyclesModel::canExportChanged, this, [this] (const uint meso_idx, const bool can_export) {
 		if (meso_idx == m_mesoIdx)
@@ -545,6 +538,30 @@ void QMLMesoInterface::createMesocyclePage_part2()
 	});
 
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, &QMLMesoInterface::labelsChanged);
+}
+
+void QMLMesoInterface::mesoChanged(const uint meso_idx, const uint meso_field)
+{
+	switch (meso_field)
+	{
+		case MESOCYCLES_COL_STARTDATE:
+		case MESOCYCLES_COL_ENDDATE:
+		case MESOCYCLES_COL_SPLIT:
+			if (!appMesoModel()->isNewMeso(meso_idx) && appMesoModel()->newMesoFieldCounter(meso_idx) == NEW_MESO_REQUIRED_FIELDS)
+			{
+				QMetaObject::invokeMethod(m_mesoPage, "showCalendarChangedDialog");
+				return;
+			}
+		break;
+	}
+	appDBInterface()->saveMesocycle(m_mesoIdx);
+	if (!appMesoModel()->isNewMeso(m_mesoIdx))
+	{
+		if (!ownMeso())
+			appMesoModel()->checkIfCanExport(m_mesoIdx);
+		else
+			m_canSendMesoToServer = true;
+	}
 }
 
 inline bool QMLMesoInterface::isSplitOK(const QString &split) const

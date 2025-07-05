@@ -117,11 +117,12 @@ Popup {
 		visible: closeButtonVisible
 		width: 25
 		height: 25
-		z:2
 
 		anchors {
 			top: parent.top
+			topMargin: 2
 			right: parent.right
+			rightMargin: 2
 		}
 
 		onClicked: closePopup();
