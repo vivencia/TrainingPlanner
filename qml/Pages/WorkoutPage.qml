@@ -29,6 +29,8 @@ TPPage {
 		}
 	}
 
+	onPageActivated: cboSplitLetter.currentIndex = Qt.binding(function() { return cboSplitLetter.indexOfValue(workoutModel.splitLetter); })
+
 	ScrollView {
 		id: scrollTraining
 		contentWidth: availableWidth //stops bouncing to the sides
@@ -98,7 +100,7 @@ TPPage {
 			}
 
 			TPLabel {
-				text: workoutManager.muscularGroup
+				text: workoutManager.headerText_2
 				horizontalAlignment: Text.AlignHCenter
 				Layout.fillWidth: true
 			}
@@ -114,14 +116,12 @@ TPPage {
 					id: cboSplitLetter
 					model: AppGlobals.splitModel
 					enabled: workoutManager.timerActive ? false : !workoutManager.dayIsFinished
-
-					Component.onCompleted: currentIndex = Qt.binding(function() { return cboSplitLetter.indexOfValue(workoutManager.splitLetter); });
-					onActivated: (index) => workoutManager.splitLetter = valueAt(index);
+					onActivated: (index) => workoutManager.changeSplitLetter(valueAt(index));
 				} //TPComboBox
 			}
 
 			Row {
-				visible: workoutManager.splitLetter !== "R"
+				visible: workoutModel.splitLetter !== "R"
 				Layout.fillWidth: true
 				spacing: 0
 				padding: 0
@@ -143,7 +143,7 @@ TPPage {
 
 			Frame {
 				id: frmTrainingTime
-				visible: workoutManager.splitLetter !== "R"
+				visible: workoutModel.splitLetter !== "R"
 				enabled: workoutManager.timerActive ? false : !workoutManager.dayIsFinished
 				height: appSettings.pageHeight*0.4
 				Layout.fillWidth: true
@@ -349,14 +349,14 @@ TPPage {
 				info: qsTr("This training session considerations:")
 				//text: workoutManager.dayNotes
 				editable: workoutManager.workoutIsEditable
-				visible: workoutManager.splitLetter !== "R"
+				visible: workoutModel.splitLetter !== "R"
 				Layout.fillWidth: true
 
 				onEditFinished: (new_text) => workoutManager.dayNotes = new_text;
 			}
 
 			TPButton {
-				text: qsTr("Use this workout exercises as the default exercises plan for the division ") + workoutManager.splitLetter + qsTr( " of this mesocycle")
+				text: qsTr("Use this workout exercises as the default exercises plan for the division ") + workoutModel.splitLetter + qsTr( " of this mesocycle")
 				flat: false
 				rounded: false
 				visible: workoutManager.dayIsFinished && workoutManager.hasExercises
@@ -374,7 +374,7 @@ TPPage {
 				font: AppGlobals.extraLargeFont
 				horizontalAlignment: Text.AlignHCenter
 				verticalAlignment: Text.AlignVCenter
-				visible: workoutManager.splitLetter !== "R"
+				visible: workoutModel.splitLetter !== "R"
 				height: appSettings.largeFontSize * 1.2
 				Layout.bottomMargin: 10
 				Layout.fillWidth: true
@@ -446,7 +446,7 @@ TPPage {
 	footer: TPToolBar {
 		id: dayInfoToolBar
 		height: appSettings.pageHeight*0.18
-		visible: workoutManager.splitLetter !== "R"
+		visible: workoutModel.splitLetter !== "R"
 
 		readonly property int buttonHeight: width * 0.3
 
@@ -477,6 +477,7 @@ TPPage {
 				text: qsTr("Begin")
 				flat: false
 				width: parent.width * 0.2
+				height: appSettings.itemDefaultHeight
 				visible: workoutManager.mainDateIsToday ? !workoutManager.dayIsFinished && !workoutManager.editMode : false
 				enabled: !workoutManager.timerActive
 
@@ -509,6 +510,7 @@ TPPage {
 				text: qsTr("Finish")
 				flat: false
 				width: parent.width * 0.2
+				height: appSettings.itemDefaultHeight
 				visible: btnStartWorkout.visible
 				enabled: workoutManager.timerActive
 
@@ -571,7 +573,7 @@ TPPage {
 			rounded: false
 			textUnderIcon: true
 			flat: false
-			visible: workoutManager.splitLetter !== "R"
+			visible: workoutModel.splitLetter !== "R"
 			//enabled: workoutManager.workoutIsEditable
 			width: parent.width * 0.35
 			height: parent.height * 0.5
@@ -599,7 +601,7 @@ TPPage {
 		cboModel.get(3).enabled = mesoSplit.indexOf('D') !== -1;
 		cboModel.get(4).enabled = mesoSplit.indexOf('E') !== -1;
 		cboModel.get(5).enabled = mesoSplit.indexOf('F') !== -1;
-		cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(workoutManager.splitLetter);
+		cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(workoutModel.splitLetter);
 	}
 
 	property TPComplexDialog changeSplitLetterDialog: null
@@ -656,7 +658,7 @@ TPPage {
 				adjustCalendarBox = component.createObject(workoutPage, { parentPage: workoutPage, title: qsTr("Re-adjust meso calendar?"),
 					button1Text: qsTr("Adjust"), button2Text: qsTr("Cancel"), customItemSource:"TPDialogWithMessageAndCheckBox.qml",
 					customStringProperty1: lblHeader.text, customStringProperty2: qsTr("Only alter this day"), customStringProperty3: "calendar.png" });
-				adjustCalendarBox.button1Clicked.connect(function() { workoutManager.adjustCalendar(workoutManager.splitLetter, adjustCalendarBox.customBoolProperty1); });
+				adjustCalendarBox.button1Clicked.connect(function() { workoutManager.adjustCalendar(workoutModel.splitLetter, adjustCalendarBox.customBoolProperty1); });
 			}
 
 			if (component.status === Component.Ready)
@@ -675,7 +677,7 @@ TPPage {
 			function finishCreation() {
 				intentDlg = component.createObject(workoutPage, { parentPage: workoutPage, title: qsTr("What do you want to do today?"),
 					button1Text: qsTr("Proceed"), customItemSource:"TPTDayIntentGroup.qml", customBoolProperty1: workoutManager.canImportFromSplitPlan,
-					customStringProperty2: workoutManager.splitLetter, customModel: workoutManager.previousWorkoutsList,
+					customStringProperty2: workoutModel.splitLetter, customModel: workoutManager.previousWorkoutsList,
 					customBoolProperty2: workoutManager.canImportFromPreviousWorkout, customBoolProperty3: !workoutManager.hasExercises });
 				intentDlg.button1Clicked.connect(intentChosen);
 			}
@@ -890,7 +892,7 @@ TPPage {
 			function finishCreation() {
 				navButtons = component.createObject(workoutPage, { ownerPage: workoutPage });
 				navButtons.scrollTo.connect(scrollTraining.setScrollBarPosition);
-				navButtons.visible = Qt.binding(function() { return workoutManager.splitLetter !== "R"; });
+				navButtons.visible = Qt.binding(function() { return workoutModel.splitLetter !== "R"; });
 			}
 
 			if (component.status === Component.Ready)

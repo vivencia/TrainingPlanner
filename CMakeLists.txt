@@ -164,9 +164,9 @@ set( QML_SOURCES
     "qml/ExercisesAndSets/PageScrollButtons.qml"
     "qml/ExercisesAndSets/SetInputField.qml"
     "qml/ExercisesAndSets/SetNotesField.qml"
-    "qml/ExercisesAndSets/SetTypeDrop.qml"
-    "qml/ExercisesAndSets/SetTypeRegular.qml"
-    "qml/ExercisesAndSets/SetTypeGiant.qml"
+
+
+
     "qml/ExercisesAndSets/SimpleExercisesListPanel.qml"
 	"qml/ExercisesAndSets/WorkoutExercisesList.qml"
     "qml/Pages/AllWorkouts.qml"

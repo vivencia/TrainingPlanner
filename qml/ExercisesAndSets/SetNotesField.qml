@@ -16,15 +16,13 @@ Column {
 	signal editFinished(string new_text)
 
 	Row {
-		padding: 5
-		spacing: 5
 		Layout.fillWidth: true
+		height: appSettings.itemDefaultHeight
 
 		TPLabel {
 			id: lblMain
 			text: control.info
-			width: control.width*0.9
-			Layout.preferredWidth: width
+			width: control.width * 0.9
 		}
 
 		TPButton {
@@ -51,9 +49,9 @@ Column {
 		visible: false
 		ScrollBar.horizontal.policy: ScrollBar.AsNeeded
 		ScrollBar.vertical.policy: ScrollBar.AsNeeded
-		width: control.width*0.9
+		width: control.width
 		height: appSettings.pageHeight*0.15
-		Layout.preferredWidth: width
+		Layout.maximumWidth: width
 		Layout.maximumHeight: height
 
 		TextArea {

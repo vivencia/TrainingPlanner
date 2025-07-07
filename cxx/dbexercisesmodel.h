@@ -89,7 +89,7 @@ public:
 
 	[[nodiscard]] inline DBMesoCalendarManager *calendarManager() const { return m_calendarManager; }
 	[[nodiscard]] inline const QString &id() const {return m_id; }
-	inline void setId(const QString &new_id) { m_id = new_id; }
+	inline void setId(const QString &new_id) { m_id = new_id; changeCalendarDayId(); }
 	[[nodiscard]] inline const QString &mesoId() const {return m_mesoId; }
 	inline void setMesoId(const QString &new_mesoid) { m_mesoId = new_mesoid; }
 	[[nodiscard]] inline const uint mesoIdx() const { return m_mesoIdx; }
@@ -253,6 +253,7 @@ private:
 	QTime m_lastSetCompleted, m_elapsedRestTime;
 
 	void commonConstructor();
+	void changeCalendarDayId();
 	TPSetTypes formatSetTypeToImport(const QString &fieldValue) const;
 	const QString exportExtraInfo() const;
 	inline bool importExtraInfo(const QString &maybe_extra_info);

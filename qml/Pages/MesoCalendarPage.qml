@@ -11,7 +11,7 @@ TPPage {
 	objectName: "mesoCalendarPage"
 
 	required property CalendarManager calendarManager
-	required property DBCalendarModel calendarModel
+	property DBCalendarModel calendarModel
 
 	property date _today: new Date()
 	property bool bAlreadyLoaded: false
@@ -160,6 +160,7 @@ TPPage {
 					}
 
 					Text {
+						id: txtDay
 						anchors.centerIn: parent
 						text: calendarModel.dayText(dayEntry.month_day)
 						color: !dayEntry.todayDate ? (calendarModel.isPartOfMeso(dayEntry.month_day) ? appSettings.fontColor : appSettings.disabledFontColor) : "red"
@@ -170,7 +171,7 @@ TPPage {
 							enabled: calendarModel !== null
 							target: calendarModel
 							function onSplitLetterChanged(date: Date) : void {
-								text = calendarModel.dayText(date);
+								txtDay.text = calendarModel.dayText(date);
 							}
 						}
 					}

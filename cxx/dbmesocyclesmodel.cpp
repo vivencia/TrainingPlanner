@@ -27,15 +27,9 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent, const bool bMainAppModel)
 	m_ownMesos = new homePageMesoModel{this};
 	m_clientMesos = new homePageMesoModel{this};
 
-	connect(m_calendarModel, &DBMesoCalendarManager::calendarChanged, this, [this] (const uint meso_idx, const int calendar_day, const uint field) {
-		switch (field)
-		{
-			case MESOCALENDAR_TOTAL_COLS:
-			case MESOCALENDAR_COL_TRAINING_COMPLETED:
-			case MESOCALENDAR_COL_SPLITLETTER:
-				appDBInterface()->saveMesoCalendar(meso_idx);
-			break;
-		}
+	connect(m_calendarModel, &DBMesoCalendarManager::calendarChanged, this, [this] (const uint meso_idx, const uint field, const int calendar_day) {
+		if (field != MESOCALENDAR_TOTAL_COLS)
+			appDBInterface()->saveMesoCalendar(meso_idx);
 	});
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, &DBMesocyclesModel::labelChanged);
 }

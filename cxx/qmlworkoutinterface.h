@@ -18,13 +18,12 @@ Q_OBJECT
 Q_PROPERTY(uint timerHour READ timerHour WRITE setTimerHour NOTIFY timerHourChanged FINAL)
 Q_PROPERTY(uint timerMinute READ timerMinute WRITE setTimerMinute NOTIFY timerMinuteChanged FINAL)
 Q_PROPERTY(uint timerSecond READ timerSecond WRITE setTimerSecond NOTIFY timerSecondChanged FINAL)
-Q_PROPERTY(QChar splitLetter READ splitLetter WRITE setSplitLetter NOTIFY splitLetterChanged FINAL)
 Q_PROPERTY(QString timeIn READ timeIn WRITE setTimeIn NOTIFY timeInChanged FINAL)
 Q_PROPERTY(QString timeOut READ timeOut WRITE setTimeOut NOTIFY timeOutChanged FINAL)
 Q_PROPERTY(QString location READ location WRITE setLocation NOTIFY locationChanged FINAL)
 Q_PROPERTY(QString notes READ notes WRITE setNotes NOTIFY notesChanged FINAL)
-Q_PROPERTY(QString headerText READ headerText WRITE setHeaderText NOTIFY headerTextChanged FINAL)
-Q_PROPERTY(QString muscularGroup READ muscularGroup NOTIFY muscularGroupChanged FINAL)
+Q_PROPERTY(QString headerText READ headerText NOTIFY headerTextChanged FINAL)
+Q_PROPERTY(QString headerText_2 READ headerText_2 NOTIFY headerTextChanged FINAL)
 Q_PROPERTY(bool editMode READ editMode WRITE setEditMode NOTIFY editModeChanged FINAL)
 Q_PROPERTY(bool dayIsFinished READ dayIsFinished WRITE setDayIsFinished NOTIFY dayIsFinishedChanged FINAL)
 Q_PROPERTY(bool workoutIsEditable READ workoutIsEditable WRITE setWorkoutIsEditable NOTIFY workoutIsEditableChanged FINAL)
@@ -50,8 +49,7 @@ public:
 	inline uint timerSecond() const { return m_sec; }
 	inline void setTimerSecond(const uint new_value) { m_sec = new_value; emit timerSecondChanged(); }
 
-	QChar splitLetter() const;
-	void setSplitLetter(const QChar &new_splitletter, const bool clear_exercises = false);
+	Q_INVOKABLE void changeSplitLetter(const QString &new_splitletter);
 
 	QString timeIn() const;
 	void setTimeIn(const QString &new_timein);
@@ -70,8 +68,8 @@ public:
 	void setDayIsFinished(const bool finished);
 
 	QString headerText() const { return m_headerText; }
-	void setHeaderText(const QString &new_header = QString{});
-	QString muscularGroup() const;
+	QString headerText_2() const { return m_headerText_2; }
+	void setHeaderText();
 
 	inline bool editMode() const { return m_editMode; }
 	void setEditMode(const bool edit_mode);
@@ -133,7 +131,6 @@ signals:
 	void timerHourChanged();
 	void timerMinuteChanged();
 	void timerSecondChanged();
-	void splitLetterChanged();
 	void timeInChanged();
 	void timeOutChanged();
 	void locationChanged();
@@ -165,10 +162,11 @@ private:
 	TPTimer *m_workoutTimer, *m_restTimer;
 	int m_nExercisesToCreate;
 	QStringList m_prevWorkouts;
+	QDate m_date;
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	uint m_hour, m_min, m_sec;
-	QString m_headerText;
+	QString m_headerText, m_headerText_2;
 	bool m_editMode, m_workoutIsEditable, m_importFromPrevWorkout, m_importFromSplitPlan, m_bMainDateIsToday, m_bTimerActive;
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 

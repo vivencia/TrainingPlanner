@@ -13,13 +13,13 @@ Rectangle {
 	color: backgroundColor
 	height: {
 		if (autoSize)
-			return buttonText.height + (textUnderIcon ? imageSize : 0) + (text.length > 0 ? 10 : 0);
+			return buttonText.contentHeight + (textUnderIcon ? imageSize : 0) + (text.length > 0 ? 10 : 0);
 		else
 			return appSettings.itemDefaultHeight;
 	}
 	width: {
 		if (autoSize)
-			return buttonText.width + (textUnderIcon ? 0 : imageSize) + (text.length > 0 ? 20 : 0)
+			return buttonText.contentWidth + (textUnderIcon ? 0 : imageSize) + (text.length > 0 ? 20 : 0)
 	}
 
 	property color textColor: appSettings.fontColor

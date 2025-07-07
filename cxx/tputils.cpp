@@ -838,7 +838,7 @@ QString TPUtils::getCompositeValue(const uint idx, const QString &compositeStrin
 
 	for (const auto &chr : compositeString)
 	{
-		if (chr.toLatin1() == chr_sep)
+		if (chr == chr_sep)
 		{
 			if (++n_seps == idx)
 				return compositeString.sliced(last_sep_pos, chr_pos);

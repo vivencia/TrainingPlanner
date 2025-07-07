@@ -14,12 +14,14 @@
 
 QmlMesoCalendarInterface::QmlMesoCalendarInterface(QObject *parent, const uint meso_idx)
 	: QObject{parent}, m_calComponent{nullptr}, m_calPage{nullptr}, m_mesoIdx{meso_idx},
-	  m_calendarModel{appMesoModel()->mesoCalendarManager()->calendar(meso_idx)}, m_selectedDate{std::move(appUtils()->today())}
+	  m_calendarModel{appMesoModel()->mesoCalendarManager()->calendar(meso_idx)}
 {
-	connect(appMesoModel()->mesoCalendarManager(), &DBMesoCalendarManager::calendarChanged, this,
-						[this] (const uint meso_idx, const int calendar_day, const uint field) {
-		if (meso_idx == m_mesoIdx)
+	auto conn{std::make_shared<QMetaObject::Connection>()};
+	*conn = connect(appMesoModel()->mesoCalendarManager(), &DBMesoCalendarManager::calendarChanged, this,
+						[this,conn] (const uint meso_idx, const uint field, const int calendar_day) {
+		if (meso_idx == m_mesoIdx && field == MESOCALENDAR_TOTAL_COLS)
 		{
+			disconnect(*conn);
 			m_calendarModel = appMesoModel()->mesoCalendarManager()->calendar(meso_idx);
 			if (m_calPage)
 			{
@@ -118,7 +120,8 @@ void QmlMesoCalendarInterface::createMesoCalendarPage()
 void QmlMesoCalendarInterface::createMesoCalendarPage_part2()
 {
 	m_calProperties.insert("calendarManager"_L1, QVariant::fromValue(this));
-	m_calProperties.insert("calendarModel"_L1, QVariant::fromValue(m_calendarModel));
+	if (m_calendarModel)
+		m_calProperties.insert("calendarModel"_L1, QVariant::fromValue(m_calendarModel));
 	m_calPage = static_cast<QQuickItem*>(m_calComponent->createWithInitialProperties(m_calProperties, appQmlEngine()->rootContext()));
 	#ifndef QT_NO_DEBUG
 	if (m_calComponent->status() == QQmlComponent::Error)

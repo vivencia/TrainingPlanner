@@ -20,7 +20,7 @@ ListView {
 		spacing: 10
 		padding: 0
 		implicitWidth: control.width
-		implicitHeight: contentsLayout.implicitHeight
+		implicitHeight: contentsLayout.implicitHeight * 1.1
 
 		readonly property int exerciseNumber: index
 		property int nSubExercises: workoutModel.subExercisesCount(delegate.exerciseNumber)
@@ -34,14 +34,9 @@ ListView {
 		contentItem: Rectangle {
 			id: listItem
 			border.color: "transparent"
-			color: "transparent"
-			radius: 5
-		}
-
-		background: Rectangle {
-			id:	backgroundColor
 			color: workingExercise === index ? appSettings.primaryColor :
 							(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
+			radius: 5
 		}
 
 		onClicked: workingExercise = index;
@@ -125,10 +120,10 @@ ListView {
 
 			anchors {
 				fill: parent
-				topMargin: 5
+				topMargin: 10
 				leftMargin: 5
 				rightMargin: 5
-				bottomMargin: 5
+				bottomMargin: 10
 			}
 
 			Item {
@@ -358,13 +353,8 @@ ListView {
 				padding: 0
 				spacing: 0
 				enabled: delegate.nSubExercises > 0 && index === workoutModel.workingExercise
-				width: parent.width
-				Layout.preferredWidth: width
-				Layout.preferredHeight: height
-				Layout.leftMargin: 0
-				Layout.rightMargin: 0
-				Layout.bottomMargin: 10
-				Layout.topMargin: 0
+				Layout.maximumWidth: parent.width
+				Layout.minimumWidth: parent.width
 
 				property int nSets: workoutModel.setsNumber(delegate.exerciseNumber, workoutModel.workingSubExercise)
 
@@ -481,6 +471,7 @@ ListView {
 					Row {
 						Layout.alignment: Qt.AlignCenter
 						Layout.preferredWidth: listItem.width * 0.9
+						Layout.minimumHeight: appSettings.itemDefaultHeight
 						padding: 10
 						enabled: setsGroup.nSets > 0
 
@@ -574,11 +565,12 @@ ListView {
 					Item {
 						id: setModeLayout
 						visible: workoutModel ? (workoutModel.isWorkout && cboSetType.currentIndex >= 0) : false
-						height: appSettings.itemDefaultHeight
 						width: parent.width * 0.55
 						Layout.alignment: Qt.AlignCenter
 						Layout.maximumWidth: width
 						Layout.minimumWidth: width
+						Layout.minimumHeight: appSettings.itemDefaultHeight
+						Layout.maximumHeight: appSettings.itemDefaultHeight
 
 						TPImage {
 							id: imgSetCompleted
@@ -598,7 +590,7 @@ ListView {
 							text: workoutModel.setModeLabel(index, workoutModel.workingSubExercise, workoutModel.workingSet)
 							width: parent.width - imgSetCompleted.width
 							height: parent.height
-							enabled: workoutManager.canChangeSetMode(index)
+							enabled: workoutManager.canChangeSetMode(index, workoutModel.workingSubExercise, workoutModel.workingSet)
 							onClicked: workoutManager.setWorkingSetMode();
 
 							anchors {

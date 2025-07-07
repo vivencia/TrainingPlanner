@@ -7,8 +7,8 @@ enum RoleNames {
 	monthRole = Qt::UserRole+1
 };
 
-const auto &value = []<typename T>(const std::optional<T> &retValue) { return retValue.has_value() ? retValue.value() : T{}; };
-auto &&rvalue = []<typename T>(const std::optional<T> &retValue) mutable { return retValue.has_value() ? retValue.value() : T{}; };
+//const auto &value = []<typename T>(const std::optional<T> &retValue) { return retValue.has_) ? retValue.) : T{}; };
+//auto &&rvalue = []<typename T>(const std::optional<T> &retValue) mutable { return retValue.has_) ? retValue.) : T{}; };
 
 DBCalendarModel::DBCalendarModel(DBMesoCalendarManager *parent, const uint meso_idx)
 	: QAbstractListModel{parent}, m_calendarManager{parent}, m_mesoIdx(meso_idx), m_nmonths{0}
@@ -21,13 +21,13 @@ DBCalendarModel::DBCalendarModel(DBMesoCalendarManager *parent, const uint meso_
 			switch (field)
 			{
 				case MESOCALENDAR_COL_WORKOUTNUMBER:
-					emit workoutNumberChanged(value(m_calendarManager->date(m_mesoIdx, calendar_day)));
+					emit workoutNumberChanged(m_calendarManager->date(m_mesoIdx, calendar_day));
 				break;
 				case MESOCALENDAR_COL_SPLITLETTER:
-					emit splitLetterChanged(value(m_calendarManager->date(m_mesoIdx, calendar_day)));
+					emit splitLetterChanged(m_calendarManager->date(m_mesoIdx, calendar_day));
 				break;
-				case MESOCALENDAR_COL_TRAINING_COMPLETED:
-					emit completedChanged(value(m_calendarManager->date(m_mesoIdx, calendar_day)));
+				case MESOCALENDAR_COL_WORKOUT_COMPLETED:
+					emit completedChanged(m_calendarManager->date(m_mesoIdx, calendar_day));
 				break;
 				default: break;
 			}
@@ -40,7 +40,7 @@ QDate DBCalendarModel::firstDateOfEachMonth(const uint index) const
 	QDate date{};
 	if (index < m_nmonths)
 	{
-		date = std::move(rvalue(m_calendarManager->date(m_mesoIdx, 0)));
+		date = std::move(m_calendarManager->date(m_mesoIdx, 0));
 		date.setDate(date.year(), date.month(), 1);
 		uint i{0};
 		while (i++ < index)
@@ -56,7 +56,7 @@ int DBCalendarModel::getIndexFromDate(const QDate &date) const
 
 QDate DBCalendarModel::date(const uint calendar_day) const
 {
-	return value(m_calendarManager->dateFromCalendarDay(m_mesoIdx, calendar_day));
+	return m_calendarManager->dateFromCalendarDay(m_mesoIdx, calendar_day);
 }
 
 bool DBCalendarModel::isPartOfMeso(const QDate &date) const
@@ -86,7 +86,7 @@ QString DBCalendarModel::workoutNumber(const QDate &date) const
 
 QString DBCalendarModel::workoutNumber(const uint calendar_day) const
 {
-	return value(m_calendarManager->workoutNumber(m_mesoIdx, calendar_day));
+	return m_calendarManager->workoutNumber(m_mesoIdx, calendar_day);
 }
 
 QString DBCalendarModel::splitLetter(const QDate &date) const
@@ -96,7 +96,7 @@ QString DBCalendarModel::splitLetter(const QDate &date) const
 
 QString DBCalendarModel::splitLetter(const uint calendar_day) const
 {
-	return value(m_calendarManager->splitLetter(m_mesoIdx, calendar_day));
+	return m_calendarManager->splitLetter(m_mesoIdx, calendar_day);
 }
 
 void DBCalendarModel::setSplitLetter(const QDate &date, const QString &new_splitletter)
@@ -116,7 +116,7 @@ QTime DBCalendarModel::timeIn(const QDate &date) const
 
 QTime DBCalendarModel::timeIn(const uint calendar_day) const
 {
-	return value(m_calendarManager->timeIn(m_mesoIdx, calendar_day));
+	return m_calendarManager->timeIn(m_mesoIdx, calendar_day);
 }
 
 void DBCalendarModel::setTimeIn(const QDate &date, const QTime &new_timein)
@@ -136,7 +136,7 @@ QTime DBCalendarModel::timeOut(const QDate &date) const
 
 QTime DBCalendarModel::timeOut(const uint calendar_day) const
 {
-	return value(m_calendarManager->timeOut(m_mesoIdx, calendar_day));
+	return m_calendarManager->timeOut(m_mesoIdx, calendar_day);
 }
 
 void DBCalendarModel::setTimeOut(const QDate &date, const QTime &new_timeout)
@@ -156,7 +156,7 @@ QString DBCalendarModel::location(const QDate &date) const
 
 QString DBCalendarModel::location(const uint calendar_day) const
 {
-	return value(m_calendarManager->location(m_mesoIdx, calendar_day));
+	return m_calendarManager->location(m_mesoIdx, calendar_day);
 }
 
 void DBCalendarModel::setLocation(const QDate &date, const QString &new_location)
@@ -176,7 +176,7 @@ QString DBCalendarModel::notes(const QDate &date) const
 
 QString DBCalendarModel::notes(const uint calendar_day) const
 {
-	return value(m_calendarManager->notes(m_mesoIdx, calendar_day));
+	return m_calendarManager->notes(m_mesoIdx, calendar_day);
 }
 
 void DBCalendarModel::setNotes(const QDate &date, const QString &new_notes)
@@ -196,7 +196,7 @@ bool DBCalendarModel::completed(const QDate &date) const
 
 bool DBCalendarModel::completed(const uint calendar_day) const
 {
-	return value(m_calendarManager->trainingCompleted(m_mesoIdx, calendar_day));
+	return m_calendarManager->trainingCompleted(m_mesoIdx, calendar_day);
 }
 
 void DBCalendarModel::setCompleted(const QDate &date, const bool completed)
@@ -217,10 +217,10 @@ QVariant DBCalendarModel::data(const QModelIndex &index, int role) const
 		switch (role)
 		{
 			case yearRole:
-				return value(m_calendarManager->nThDate(m_mesoIdx, row)).year();
+				return m_calendarManager->nThDate(m_mesoIdx, row).year();
 			break;
 			case monthRole:
-				return value(m_calendarManager->nThDate(m_mesoIdx, row)).month() - 1;
+				return m_calendarManager->nThDate(m_mesoIdx, row).month() - 1;
 			break;
 		}
 	}

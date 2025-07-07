@@ -1366,7 +1366,7 @@ void DBExercisesModel::commonConstructor()
 	m_mesoId = appMesoModel()->id(m_mesoIdx);
 	if (m_calendarDay >= 0)
 	{
-		m_splitLetter = m_calendarManager->splitLetter(m_mesoIdx, m_calendarDay).value().at(0);
+		m_splitLetter = std::move(m_calendarManager->splitLetter(m_mesoIdx, m_calendarDay));
 		m_identifierInFile = &appUtils()->workoutFileIdentifier;
 	}
 	else
@@ -1376,6 +1376,12 @@ void DBExercisesModel::commonConstructor()
 		if (meso_idx == m_mesoIdx && splitLetter == m_splitLetter)
 			emit muscularGroupChanged();
 	});
+}
+
+void DBExercisesModel::changeCalendarDayId()
+{
+	if (m_calendarManager->workoutId(m_mesoIdx, m_calendarDay) == "-1"_L1)
+		m_calendarManager->setWorkoutId(m_mesoIdx, m_calendarDay, id());
 }
 
 TPSetTypes DBExercisesModel::formatSetTypeToImport(const QString& fieldValue) const
@@ -1401,7 +1407,7 @@ const QString DBExercisesModel::exportExtraInfo() const
 	QString extra_info{std::move(splitLabel() + splitLetter() + " ("_L1 + appMesoModel()->muscularGroup(mesoIdx(), splitLetter()) + ')')};
 	if (m_calendarDay >= 0)
 		extra_info += std::forward<QString>(calendarDayExtraInfo + std::move(QString::number(m_calendarDay)) +
-						std::move(tr(" at ")) + std::move(appUtils()->formatDate(calendarManager()->date(mesoIdx(), m_calendarDay).value())));
+				std::move(tr(" at ")) + std::move(appUtils()->formatDate(calendarManager()->date(mesoIdx(), m_calendarDay))));
 	return extra_info;
 }
 

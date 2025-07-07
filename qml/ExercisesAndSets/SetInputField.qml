@@ -9,7 +9,7 @@ FocusScope {
 	id: control
 	implicitWidth: availableWidth
 	width: availableWidth
-	implicitHeight: 30
+	implicitHeight: appSettings.itemDefaultHeight
 	height: visible ? implicitHeight : 0
 
 	required property int type

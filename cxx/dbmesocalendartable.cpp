@@ -38,10 +38,10 @@ void DBMesoCalendarTable::createTable()
 
 void DBMesoCalendarTable::getMesoCalendar()
 {
+	bool ok{false};
+	const uint meso_idx{m_execArgs.at(0).toUInt()};
 	if (openDatabase(true))
 	{
-		bool ok{false};
-		const uint meso_idx{m_execArgs.at(0).toUInt()};
 		const QString &meso_id{m_execArgs.at(1).toString()};
 
 		QSqlQuery query{std::move(getQuery())};
@@ -59,15 +59,17 @@ void DBMesoCalendarTable::getMesoCalendar()
 					day_info->date = std::move(query.value(0).toString());
 					day_info->data = std::move(query.value(1).toString());
 					meso_calendar[calendar_day++] = day_info;
-				} while (query.next ());
-				m_model->setDBDataReady(meso_idx, true,
+				} while (query.next());
+				ok = !m_model->mesoCalendar(meso_idx).isEmpty();
+				if (ok)
+					m_model->setDBDataReady(meso_idx, true,
 							appUtils()->calculateNumberOfMonths(meso_calendar.first()->date, meso_calendar.last()->date));
 			}
 			setQueryResult(ok, strQuery, SOURCE_LOCATION);
 		}
-		else
-			m_model->createCalendar(meso_idx);
 	}
+	if (!ok)
+		m_model->createCalendar(meso_idx);
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -79,7 +81,7 @@ void DBMesoCalendarTable::saveMesoCalendar()
 		if (openDatabase())
 		{
 			QSqlQuery query{std::move(getQuery())};
-			QString meso_id{std::move(m_model->mesoId(meso_idx, 0).value())};
+			const QString &meso_id{m_model->mesoId(meso_idx, 0)};
 			TPBool update;
 
 			if (query.exec("SELECT meso_id FROM mesocycles_calendar_table WHERE meso_id=%1"_L1.arg(meso_id)))
@@ -108,19 +110,18 @@ void DBMesoCalendarTable::saveMesoCalendar()
 				else
 				{
 					const QString &queryCommand{u"UPDATE mesocycles_calendar_table SET data=\'%1\' WHERE meso_id="_s + meso_id + " AND date=\'%2\'; "_L1};
-					QString dbdata{std::move(std::accumulate(m_model->mesoCalendar(meso_idx).cbegin(),
+					strQuery = std::move(std::accumulate(m_model->mesoCalendar(meso_idx).cbegin(),
 												 m_model->mesoCalendar(meso_idx).cend(),
 												 QString{},
 												 [this,meso_id,queryCommand] (const QString &data, stDayInfo *day_info) {
 						if (day_info->modified)
 						{
 							day_info->modified = false;
-							return data + queryCommand.arg(day_info->data, meso_id, day_info->date);
+							return data + queryCommand.arg(day_info->data, day_info->date);
 						}
 						else
 							return data + QString{};
-					}))};
-					strQuery = std::move(queryCommand + dbdata);
+					}));
 				}
 				bool ok{false};
 				if (query.exec(strQuery))
