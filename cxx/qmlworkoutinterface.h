@@ -160,6 +160,7 @@ private:
 	QVariantMap m_workoutProperties;
 	uint m_mesoIdx, m_calendarDay;
 	TPTimer *m_workoutTimer, *m_restTimer;
+	QTime m_lastSetCompleted;
 	int m_nExercisesToCreate;
 	QStringList m_prevWorkouts;
 	QDate m_date;
@@ -173,5 +174,5 @@ private:
 	void createWorkoutPage();
 	void createWorkoutPage_part2();
 	void calculateWorkoutTime();
-	void startRestTimer(const uint exercise_number, const uint exercise_idx, const uint set_number);
+	void startRestTimer(const uint exercise_number, const QString &rest_time);
 };

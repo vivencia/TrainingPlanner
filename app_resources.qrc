@@ -105,5 +105,6 @@
         <file>images/messages.png</file>
         <file>images/message-meso.png</file>
         <file>images/flat/list.png</file>
+        <file>images/goto-next.png</file>
     </qresource>
 </RCC>

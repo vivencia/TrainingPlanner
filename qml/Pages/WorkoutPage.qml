@@ -16,7 +16,7 @@ TPPage {
 	objectName: "workoutPage"
 
 	required property WorkoutManager workoutManager
-	property DBWorkoutModel workoutModel
+	property DBExercisesModel workoutModel
 
 	signal exerciseSelectedFromSimpleExercisesList();
 	signal silenceTimeWarning();
@@ -414,6 +414,9 @@ TPPage {
 		WorkoutExercisesList {
 			id: lstWorkoutExercises
 			currentIndex: workoutModel.workingExercise
+			pageManager: workoutPage.workoutManager
+			exercisesModel: workoutPage.workoutModel
+			parentPage: workoutPage
 			height: contentHeight
 
 			anchors {
@@ -423,25 +426,6 @@ TPPage {
 			}
 		}
 	} // ScrollView scrollTraining
-
-	Timer {
-		id: scrollTimer
-		interval: 200
-		running: false
-		repeat: false
-
-		property int ypos: 0
-
-		onTriggered: scrollTraining.scrollToPos(ypos);
-
-		function init(pos: int): void {
-			if (pos >= 0)
-				ypos = pos;
-			else
-				ypos = 0;
-			start();
-		}
-	}
 
 	footer: TPToolBar {
 		id: dayInfoToolBar
@@ -706,14 +690,15 @@ TPPage {
 		}
 	}
 
-	function placeSetIntoView(ypos: int): void {
+	function placeExerciseIntoView(ypos: int): void {
 		if (ypos === -1)
-			ypos = phantomItem.y - lblExercisesStart.y;
+			ypos = 0;
 		else if (ypos === -2)
-			ypos = phantomItem.y;
+			ypos = lstWorkoutExercises.y + scrollTraining.contentHeight;
 		else
-			ypos += exercisesLayout.y;
-		scrollTimer.init(ypos);
+			ypos += lstWorkoutExercises.y;
+
+		scrollTraining.contentItem.contentY = ypos;
 	}
 
 	property alias exercisesPane: simpleExercisesListLoader.item

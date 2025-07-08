@@ -233,7 +233,47 @@ bool QmlWorkoutInterface::hasExercises() const
 
 void QmlWorkoutInterface::setWorkingSetMode()
 {
-	m_workoutModel->setSetNextMode(m_workoutModel->workingExercise(), m_workoutModel->workingSubExercise(), m_workoutModel->workingSet());
+	const uint exercise_number{m_workoutModel->workingExercise()};
+	const uint exercise_idx{m_workoutModel->workingSubExercise()};
+	const uint set_number{m_workoutModel->workingSet()};
+	if (m_workoutModel->trackRestTime(exercise_number))
+	{
+		const bool auto_time{m_workoutModel->autoRestTime(exercise_number)};
+		QTime rest_time{0, 0, 0};
+		switch (m_workoutModel->setMode(exercise_number, exercise_idx, set_number))
+		{
+			case SM_START_REST:
+				startRestTimer(exercise_number, m_workoutModel->setRestTime(exercise_number, m_workoutModel->workingSubExercise(), m_workoutModel->workingSet()));
+			break;
+			case SM_START_EXERCISE:
+			{
+				if (auto_time)
+				{
+					if (set_number == 0)
+					{
+						const std::optional<QTime> &time_in{m_calendarModel->timeIn(m_calendarDay)};
+						if (time_in.has_value())
+							rest_time = std::move(appUtils()->calculateTimeDifference(time_in.value(), QTime::currentTime()));
+					}
+					else
+						rest_time = std::move(appUtils()->calculateTimeDifference(m_lastSetCompleted, QTime::currentTime()));
+				}
+				else
+				{
+					m_restTimer->stopTimer();
+					rest_time = std::move(m_restTimer->elapsedTime());
+				}
+				const QString &new_resttime{appUtils()->formatTime(rest_time, appUtils()->TF_QML_DISPLAY_NO_HOUR)};
+				m_workoutModel->setSetRestTime(exercise_number, exercise_idx, set_number, new_resttime);
+				emit updateRestTime(exercise_number, new_resttime);
+			}
+			break;
+		}
+	}
+	const uint next_mode{m_workoutModel->getSetNextMode(exercise_number, exercise_idx, set_number)};
+	if (next_mode == SM_COMPLETED)
+		m_lastSetCompleted = std::move(QTime::currentTime());
+	m_workoutModel->setSetMode(exercise_number, exercise_idx, set_number, next_mode);
 }
 //----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
@@ -521,9 +561,6 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 		if (field != EXERCISE_IGNORE_NOTIFY_IDX)
 			appDBInterface()->saveWorkout(m_workoutModel);
 	});
-	connect(m_workoutModel, &DBExercisesModel::startRestTimer, this, [this] (const uint exercise_number, const uint exercise_idx, const uint set_number) {
-		startRestTimer(exercise_number, exercise_idx, set_number);
-	});
 
 	if (mainDateIsToday())
 		connect(m_workoutPage, SIGNAL(silenceTimeWarning()), this, SLOT(silenceTimeWarning()));
@@ -559,20 +596,14 @@ void QmlWorkoutInterface::calculateWorkoutTime()
 	}
 }
 
-void QmlWorkoutInterface::startRestTimer(const uint exercise_number, const uint exercise_idx, const uint set_number)
+void QmlWorkoutInterface::startRestTimer(const uint exercise_number, const QString &rest_time)
 {
 	if (!m_restTimer)
 	{
 		m_restTimer = new TPTimer{this};
 		m_restTimer->setInterval(1000);
-		connect(m_workoutModel, &DBExercisesModel::stopRestTimer, this, [this] {
-			m_restTimer->stopTimer();
-			m_workoutModel->setElapsedRestTime(m_restTimer->elapsedTime());
-		}, Qt::DirectConnection);
 	}
-	const QString &rest_time{m_workoutModel->setRestTime(exercise_number, exercise_idx, set_number)};
-	m_restTimer->prepareTimer(rest_time);
-	m_restTimer->setStopWatch(rest_time.isEmpty() || rest_time == "00:00"_L1);
+	m_restTimer->prepareTimer("00:"_L1 + rest_time, rest_time.isEmpty() || rest_time == "00:00"_L1);
 	m_restTimer->callOnTimeout([this, exercise_number] () {
 		const QString &rest_time{m_restTimer->strMinutes() + ':' + m_restTimer->strSeconds()};
 		emit updateRestTime(exercise_number, rest_time);

@@ -41,6 +41,13 @@ enum {
 	MyoReps = 5
 } typedef TPSetTypes;
 
+enum SetMode {
+	SM_NOT_COMPLETED = 1,
+	SM_START_REST = 2,
+	SM_START_EXERCISE = 3,
+	SM_COMPLETED = 4
+};
+
 class DBExercisesModel : public QAbstractListModel
 {
 
@@ -184,12 +191,13 @@ public:
 
 	[[nodiscard]] Q_INVOKABLE bool setCompleted(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	Q_INVOKABLE void setSetCompleted(const uint exercise_number, const uint exercise_idx, const uint set_number, const bool completed);
-	[[nodiscard]] bool allSetsCompleted(int exercise_number = -1, int exercise_idx = -1) const;
+	[[nodiscard]] Q_INVOKABLE bool allSetsCompleted(int exercise_number = -1, int exercise_idx = -1) const;
 	[[nodiscard]] bool anySetCompleted(int exercise_number = -1, int exercise_idx = -1) const;
 	[[nodiscard]] bool noSetsCompleted(int exercise_number = -1, int exercise_idx = -1) const;
 
 	[[nodiscard]] Q_INVOKABLE uint setMode(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
-	void setSetNextMode(const uint exercise_number, const uint exercise_idx, const uint set_number);
+	void setSetMode(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint mode);
+	uint getSetNextMode(const uint exercise_number, const uint exercise_idx, const uint set_number);
 	[[nodiscard]] Q_INVOKABLE QString setModeLabel(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 
 	inline QString totalSetsLabel() const { return tr("Number of sets: "); }
@@ -207,7 +215,6 @@ public:
 	inline QString restTimeUntrackedLabel() const { return tr("As needed"); }
 	static inline QString splitLabel() { return tr("Split: "); }
 
-	inline void setElapsedRestTime(const QTime &elapsed_time) { m_elapsedRestTime = elapsed_time; }
 	void clearPreviousWorkouts() { m_previousWorkouts.clear(); }
 	inline void appendPreviousWorkout(const uint calendar_day) { m_previousWorkouts.append(calendar_day); }
 	const QList<uint> &previousWorkouts() const { return m_previousWorkouts; }
@@ -250,7 +257,6 @@ private:
 	QList<exerciseEntry*> m_exerciseData;
 	QHash<int, QByteArray> m_roleNames;
 	QList<uint> m_previousWorkouts;
-	QTime m_lastSetCompleted, m_elapsedRestTime;
 
 	void commonConstructor();
 	void changeCalendarDayId();

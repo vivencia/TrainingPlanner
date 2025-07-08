@@ -1,11 +1,10 @@
-#ifndef TPTIMER_H
-#define TPTIMER_H
+#pragma once
 
 #include <QObject>
 #include <QQmlEngine>
 #include <QTimer>
 
-class QSoundEffect;
+QT_FORWARD_DECLARE_CLASS(QSoundEffect)
 
 class TPTimer : public QTimer
 {
@@ -21,16 +20,16 @@ Q_PROPERTY(QString strMinutes READ strMinutes WRITE setStrMinutes NOTIFY minutes
 Q_PROPERTY(QString strSeconds READ strSeconds WRITE setStrSeconds NOTIFY secondsChanged FINAL)
 Q_PROPERTY(bool stopWatch READ stopWatch WRITE setStopWatch NOTIFY stopWatchChanged FINAL)
 Q_PROPERTY(bool timerForward READ timerForward NOTIFY timerForwardChanged FINAL)
-Q_PROPERTY(QString alarmSoundFile READ alarmSoundFile WRITE setAlarmSoundFile FINAL)
+Q_PROPERTY(QString alarmSoundFile READ alarmSoundFile WRITE setAlarmSoundFile NOTIFY alarmSoundFileChanged FINAL)
 Q_PROPERTY(uint totalSeconds READ totalSeconds NOTIFY totalSecondsChanged FINAL)
 Q_PROPERTY(bool paused READ paused NOTIFY pausedChanged FINAL)
 Q_PROPERTY(uint progressValue READ progressValue NOTIFY progressValueChanged FINAL)
 
 public:
-	explicit TPTimer(QObject* parent = nullptr);
+	explicit TPTimer(QObject *parent = nullptr);
 	virtual ~TPTimer();
 
-	Q_INVOKABLE void prepareTimer(const QString &strStartTime = QString{});
+	Q_INVOKABLE void prepareTimer(const QString &strStartTime = QString{}, const bool stop_watch = true);
 	Q_INVOKABLE void startTimer(const QString &initialTimeOfDay = QString{});
 	Q_INVOKABLE void stopTimer();
 	Q_INVOKABLE void pauseTimer();
@@ -69,9 +68,9 @@ public:
 	inline uint totalSeconds() const { return m_totalSeconds; }
 	inline bool paused() const { return mb_paused; }
 	inline uint progressValue() const { return m_progressValue; }
-	inline const QTime& elapsedTime() const { return m_elapsedTime; }
+	inline const QTime &elapsedTime() const { return m_elapsedTime; }
 	Q_INVOKABLE QTime currentElapsedTime() { calculateElapsedTime(); return m_elapsedTime; }
-	inline const QTime& initialTime() const { return m_initialTime; }
+	inline const QTime &initialTime() const { return m_initialTime; }
 
 signals:
 	void hoursChanged();
@@ -79,13 +78,14 @@ signals:
 	void secondsChanged();
 	void stopWatchChanged();
 	void timerForwardChanged();
-	void timeWarning(QString remaingTime, bool bminutes);
+	void alarmSoundFileChanged();
+	void timeWarning(const QString &remaingTime, bool bminutes);
 	void totalSecondsChanged();
 	void pausedChanged();
 	void progressValueChanged();
 
 private:
-	uint m_hours, m_minutes, m_seconds;
+	int m_hours, m_minutes, m_seconds;
 	uint m_totalSeconds, m_progressValue;
 	int mWarningIdx;
 	bool mb_stopWatch, mb_timerForward, mb_paused, mb_pausedTimePositive;
@@ -99,13 +99,13 @@ private:
 	QList<int> mSecondsWarnings;
 	QSoundEffect* m_alarmSound;
 
-	inline uint totalSecs(const QTime& time) const { return time.second() + time.minute()*60 + time.hour()*3600; }
-	inline void calcTotalSecs() { m_totalSeconds = m_seconds + m_minutes*60 + m_hours*3600; emit totalSecondsChanged(); }
+	inline uint totalSecs(const QTime &time) const { return time.second() + time.minute() * 60 + time.hour() * 3600; }
+	inline void calcTotalSecs() { m_totalSeconds = m_seconds + m_minutes * 60 + m_hours * 3600; emit totalSecondsChanged(); }
 	void prepareFromString();
-	const QTime& calculateTimeBetweenTimes(const QTime& time1, const QTime& time2);
+	const QTime &calculateTimeBetweenTimes(const QTime &time1, const QTime &time2);
 	void calculateElapsedTime();
 	void calcTime();
+#ifdef Q_OS_ANDROID
 	void correctTimer();
+#endif
 };
-
-#endif // TPTIMER_H

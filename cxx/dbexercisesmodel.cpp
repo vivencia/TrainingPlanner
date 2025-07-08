@@ -57,13 +57,6 @@ enum RoleNames {
 	autoRestTimeRole = Qt::UserRole+8
 };
 
-enum SetMode {
-	SM_NOT_COMPLETED = 1,
-	SM_START_REST = 2,
-	SM_START_EXERCISE = 3,
-	SM_COMPLETED = 4
-};
-
 static const QString &calendarDayExtraInfo{qApp->tr(" Workout #: ")};
 
 void DBExercisesModel::operator=(DBExercisesModel *other_model)
@@ -714,10 +707,10 @@ uint DBExercisesModel::addSet(const uint exercise_number, const uint exercise_id
 	new_set->set_number = set_number;
 	new_set->parent = sub_exercise;
 	sub_exercise->sets.append(new_set);
-	if (isWorkout())
-		setModeForSet(new_set);
 	if (emit_signal)
 	{
+		if (isWorkout())
+			setModeForSet(new_set);
 		setWorkingSet(set_number, exercise_number, exercise_idx);
 		emit setsNumberChanged(exercise_number, exercise_idx);
 		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << setsNumberRole);
@@ -1171,6 +1164,8 @@ void DBExercisesModel::setSetNotes(const uint exercise_number, const uint exerci
 
 bool DBExercisesModel::setCompleted(const uint exercise_number, const uint exercise_idx, const uint set_number) const
 {
+	if (!isWorkout())
+		return true;
 	if (exercise_number < m_exerciseData.count() && exercise_idx < m_exerciseData.at(exercise_number)->m_exercises.count())
 	{
 		if (set_number < m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.count())
@@ -1240,46 +1235,29 @@ uint DBExercisesModel::setMode(const uint exercise_number, const uint exercise_i
 	return 0;
 }
 
-void DBExercisesModel::setSetNextMode(const uint exercise_number, const uint exercise_idx, const uint set_number)
+void DBExercisesModel::setSetMode(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint mode)
+{
+	stSet *set{m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)};
+	setSetMode(set, mode);
+}
+
+uint DBExercisesModel::getSetNextMode(const uint exercise_number, const uint exercise_idx, const uint set_number)
 {
 	uint mode{setMode(exercise_number, exercise_idx, set_number)};
-	stSet *set{m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)};
 	if (trackRestTime(exercise_number))
 	{
 		const bool auto_time{autoRestTime(exercise_number)};
 		switch (mode)
 		{
 			case SM_COMPLETED:
-				m_lastSetCompleted = std::move(QTime::currentTime());
 			case SM_NOT_COMPLETED:
 				mode = auto_time ? SM_START_EXERCISE : SM_START_REST;
 			break;
 			case SM_START_REST:
-				emit startRestTimer(exercise_number, exercise_idx, set_number);
 				mode = SM_START_EXERCISE;
 			break;
 			case SM_START_EXERCISE:
-			{
-				QTime rest_time{0, 0, 0};
-				if (auto_time)
-				{
-					if (set->set_number == 0)
-					{
-						const std::optional<QTime> &time_in{m_calendarManager->timeIn(m_mesoIdx, m_calendarDay)};
-						if (time_in.has_value())
-							rest_time = std::move(appUtils()->calculateTimeDifference(time_in.value(), QTime::currentTime()));
-					}
-					else
-						rest_time = std::move(appUtils()->calculateTimeDifference(m_lastSetCompleted, QTime::currentTime()));
-				}
-				else
-				{
-					emit stopRestTimer();
-					rest_time = std::move(m_elapsedRestTime);
-				}
-				setSetRestTime(exercise_number, exercise_idx, set_number, appUtils()->formatTime(rest_time, appUtils()->TF_QML_DISPLAY_NO_HOUR));
 				mode = SM_COMPLETED;
-			}
 			break;
 		}
 	}
@@ -1289,14 +1267,13 @@ void DBExercisesModel::setSetNextMode(const uint exercise_number, const uint exe
 		{
 			case SM_COMPLETED:
 				mode = SM_NOT_COMPLETED;
-				m_lastSetCompleted = std::move(QTime::currentTime());
 			break;
 			case SM_NOT_COMPLETED : mode = SM_COMPLETED; break;
 			default:
 				mode = SM_NOT_COMPLETED;
 		}
 	}
-	setSetMode(set, mode);
+	return mode;
 }
 
 QString DBExercisesModel::setModeLabel(const uint exercise_number, const uint exercise_idx, const uint set_number) const
@@ -1431,12 +1408,7 @@ void DBExercisesModel::setModeForSet(stSet *set)
 	if (!setCompleted(exercise_number, set->parent->exercise_idx, set->set_number))
 	{
 		if (trackRestTime(exercise_number))
-		{
-			if (autoRestTime(exercise_number))
-				mode = SM_START_REST;
-			else
-				mode = SM_START_EXERCISE;
-		}
+			mode = autoRestTime(exercise_number) ? SM_START_EXERCISE : SM_START_REST;
 		else
 			mode = SM_NOT_COMPLETED;
 	}

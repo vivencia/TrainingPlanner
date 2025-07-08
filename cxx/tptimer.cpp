@@ -1,19 +1,21 @@
 #include "tptimer.h"
 
-#include "tputils.h"
 #include "osinterface.h"
+#include "tputils.h"
 
 #include <QSoundEffect>
 
-TPTimer::TPTimer(QObject* parent)
-	: QTimer{parent}, m_hours(0), m_minutes(0), m_seconds(0), m_totalSeconds(0), mb_stopWatch(true),
-		mb_timerForward(true), mb_paused(false), m_alarmSound(nullptr)
+TPTimer::TPTimer(QObject *parent)
+	: QTimer{parent}, m_hours{0}, m_minutes{0}, m_seconds{0}, m_totalSeconds{0}, mb_stopWatch{true},
+		mb_timerForward{true}, mb_paused{false}, m_alarmSound{nullptr}
 {
 	connect(this, &QTimer::timeout, this, &TPTimer::calcTime);
+#ifdef Q_OS_ANDROID
 	connect(appOsInterface(), &OSInterface::appResumed, this, &TPTimer::correctTimer);
+#endif
 	m_pausedTime.setHMS(0, 0, 0);
 	m_timeOfPause.setHMS(0, 0 ,0);
-	m_displayStartingTime = "00:00:00"_L1;
+	m_displayStartingTime = std::move("00:00:00"_L1);
 	setInterval(1000);
 }
 
@@ -23,9 +25,10 @@ TPTimer::~TPTimer()
 		delete m_alarmSound;
 }
 
-void TPTimer::prepareTimer(const QString &strStartTime)
+void TPTimer::prepareTimer(const QString &strStartTime, const bool stop_watch)
 {
 	m_displayStartingTime = strStartTime;
+	mb_stopWatch = stop_watch;
 	prepareFromString();
 	emit hoursChanged();
 	emit minutesChanged();
@@ -63,6 +66,7 @@ void TPTimer::stopTimer()
 	{
 		stop();
 		stopAlarmSound();
+		calculateElapsedTime();
 	}
 	if (mb_paused)
 	{
@@ -91,7 +95,7 @@ void TPTimer::resetTimer(const bool start)
 	stopAlarmSound();
 	prepareFromString();
 	if (start)
-		startTimer(QString());
+		startTimer(QString{});
 	else
 	{
 		emit hoursChanged();
@@ -103,7 +107,7 @@ void TPTimer::resetTimer(const bool start)
 
 QString TPTimer::strHours() const
 {
-	QString ret(QString::number(m_hours));
+	QString ret{std::move(QString::number(m_hours))};
 	if (m_hours < 10)
 		ret.prepend('0');
 	return ret;
@@ -118,7 +122,7 @@ void TPTimer::setStrHours(QString &str_hours)
 
 QString TPTimer::strMinutes() const
 {
-	QString ret(QString::number(m_minutes));
+	QString ret{std::move(QString::number(m_minutes))};
 	if (m_minutes < 10)
 		ret.prepend('0');
 	return ret;
@@ -133,7 +137,7 @@ void TPTimer::setStrMinutes(QString &str_minutes)
 
 QString TPTimer::strSeconds() const
 {
-	QString ret(QString::number(m_seconds));
+	QString ret{std::move(QString::number(m_seconds))};
 	if (m_seconds < 10)
 		ret.prepend('0');
 	return ret;
@@ -150,11 +154,12 @@ void TPTimer::setAlarmSoundFile(const QString &soundFileName)
 {
 	if (!m_alarmSound)
 	{
-		m_alarmSound = new QSoundEffect(this);
-		m_alarmSound->setSource(soundFileName);
+		m_alarmSound = new QSoundEffect{this};
 		m_alarmSound->setLoopCount(1);
 		m_alarmSound->setVolume(0.25f);
 	}
+	m_alarmSound->setSource(soundFileName);
+	emit alarmSoundFileChanged();
 }
 
 void TPTimer::stopAlarmSound()
@@ -173,14 +178,8 @@ void TPTimer::prepareFromString()
 {
 	if (!m_displayStartingTime.isEmpty())
 	{
-		if (m_displayStartingTime.length() < 2)
-			m_displayStartingTime.append("0:00:00"_L1);
 		m_hours = m_displayStartingTime.first(2).toUInt();
-		if (m_displayStartingTime.length() < 5)
-			m_displayStartingTime.append(":00:00"_L1);
 		m_minutes = m_displayStartingTime.sliced(3, 2).toUInt();
-		if (m_displayStartingTime.length() < 8)
-			m_displayStartingTime.append(":00"_L1);
 		m_seconds = m_displayStartingTime.last(2).toUInt();
 		mb_timerForward = mb_stopWatch;
 	}
@@ -198,11 +197,11 @@ void TPTimer::prepareFromString()
 	m_timeOfPause.setHMS(0, 0 ,0);
 }
 
-const QTime& TPTimer::calculateTimeBetweenTimes(const QTime& time1, const QTime& time2)
+const QTime &TPTimer::calculateTimeBetweenTimes(const QTime &time1, const QTime &time2)
 {
-	int hour(time2.hour() - time1.hour());
-	int min (time2.minute() - time1.minute());
-	int sec(time2.second() - time1.second());
+	int hour{time2.hour() - time1.hour()};
+	int min{time2.minute() - time1.minute()};
+	int sec{time2.second() - time1.second()};
 
 	if (sec < 0)
 	{
@@ -230,7 +229,7 @@ void TPTimer::calculateElapsedTime()
 	else
 	{
 		if (!mb_timerForward)
-			calculateTimeBetweenTimes(QTime(m_hours, m_minutes, m_seconds), m_initialTime);
+			calculateTimeBetweenTimes(QTime{m_hours, m_minutes, m_seconds}, m_initialTime);
 		else
 			m_elapsedTime = m_initialTime.addSecs(m_totalSeconds);
 		m_totalSeconds = totalSecs(m_elapsedTime);
@@ -314,6 +313,7 @@ void TPTimer::calcTime()
 	}
 }
 
+#ifdef Q_OS_ANDROID
 void TPTimer::correctTimer()
 {
 	if (isActive() && !paused())
@@ -331,3 +331,4 @@ void TPTimer::correctTimer()
 		emit secondsChanged();
 	}
 }
+#endif
