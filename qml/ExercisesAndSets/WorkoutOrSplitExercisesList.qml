@@ -19,6 +19,21 @@ ListView {
 	required property QtObject pageManager
 	required property DBExercisesModel exercisesModel
 	property TPPage parentPage
+	property bool viewPositionAtBeginning: true
+	property bool viewPositionAtEnd: false
+
+	ScrollBar.vertical: ScrollBar {
+		id: vBar
+		policy: ScrollBar.AsNeeded
+		active: ScrollBar.AsNeeded
+
+		onPositionChanged: {
+			if (exercisesModel.isWorkout) return;
+			viewPositionAtBeginning = contentY <= 100;
+			if (itemAt(0, contentY))
+				viewPositionAtEnd = contentY + itemAt(0, contentY).height >= contentHeight - 100;
+		}
+	}
 
 	delegate: ItemDelegate {
 		id: delegate
@@ -37,6 +52,8 @@ ListView {
 			return delegate.mapToItem(mainwindow.contentItem, txtExerciseName.x, txtExerciseName.y).y;
 		}
 
+		onClicked: workingExercise = index;
+
 		contentItem: Rectangle {
 			id: listItem
 			border.color: "transparent"
@@ -45,10 +62,9 @@ ListView {
 			radius: 5
 		}
 
-		onClicked: workingExercise = index;
-
 		Connections {
 			target: pageManager
+			ignoreUnknownSignals: true
 
 			function onUpdateRestTime(exercise_number: int, rest_time: string) : void {
 				if (exercise_number === index) {
@@ -117,7 +133,8 @@ ListView {
 				txtNSubsets.text = exercisesModel.setSubSets(exercise_number, exercise_idx, set_number);
 				txtNReps.text = exercisesModel.setReps(exercise_number, exercise_idx, set_number);
 				txtNWeight.text = exercisesModel.setWeight(exercise_number, exercise_idx, set_number);
-				btnSetMode.enabled = pageManager.canChangeSetMode(exercise_number, exercise_idx, set_number);
+				if (exercisesModel.isWorkout)
+					btnSetMode.enabled = pageManager.canChangeSetMode(exercise_number, exercise_idx, set_number);
 			}
 		}
 
@@ -165,10 +182,12 @@ ListView {
 					}
 
 					onClicked: {
+						const next_exercise_number = index + 1;
+						exercisesModel.workingExercise = next_exercise_number;
 						if (exercisesModel.isWorkout)
 							parentPage.placeExerciseIntoView(control.itemAtIndex(index+1).y)
 						else
-							control.positionViewAtIndex(index + 1, ListView.Contain);
+							control.positionViewAtIndex(next_exercise_number, ListView.Contain);
 					}
 				} //btnNextExercise
 
@@ -194,7 +213,7 @@ ListView {
 					hasDropShadow: false
 					width: appSettings.itemDefaultHeight * 0.9
 					height: width
-					enabled: index === exercisesModel.workingExercise ? (delegate.exerciseNumber >= 1) : false
+					enabled: index === exercisesModel.workingExercise ? (index >= 1) : false
 
 					anchors {
 						right: btnMoveExerciseDown.left
@@ -211,11 +230,11 @@ ListView {
 					hasDropShadow: false
 					width: appSettings.itemDefaultHeight * 0.9
 					height: width
-					enabled: index === exercisesModel.workingExercise ? (delegate.exerciseNumber < exercisesModel.count) : false
+					enabled: index === exercisesModel.workingExercise ? (index < exercisesModel.exerciseCount - 1) : false
 
 					anchors {
 						right: parent.right
-						rightMargin: 20
+						rightMargin: 5
 						verticalCenter: parent.verticalCenter
 					}
 
@@ -620,7 +639,7 @@ ListView {
 							text: exercisesModel.setModeLabel(index, exercisesModel.workingSubExercise, exercisesModel.workingSet)
 							width: parent.width - imgSetCompleted.width
 							height: parent.height
-							enabled: pageManager.canChangeSetMode(index, exercisesModel.workingSubExercise, exercisesModel.workingSet)
+							enabled: exercisesModel.isWorkout ? pageManager.canChangeSetMode(index, exercisesModel.workingSubExercise, exercisesModel.workingSet) : false
 							onClicked: pageManager.setWorkingSetMode();
 
 							anchors {
@@ -637,18 +656,6 @@ ListView {
 	function reloadModel(): void {
 		control.model = 0;
 		control.model = exercisesModel.count;
-		txtGroups.text = exercisesModel.muscularGroup();
-	}
-
-	function setScrollBarPosition(pos: int): void {
-		if (pos === 0)
-			vBar.setPosition(0);
-		else
-			vBar.setPosition(pos - vBar.size/2);
-	}
-
-	function updateTxtGroups(musculargroup: string): void {
-		txtGroups.text = musculargroup;
 	}
 
 	function appendNewExerciseToDivision(): void {

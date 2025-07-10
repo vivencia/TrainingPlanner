@@ -535,7 +535,6 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 	m_workoutPage = static_cast<QQuickItem*>(m_workoutComponent->createWithInitialProperties(m_workoutProperties, appQmlEngine()->rootContext()));
 	appQmlEngine()->setObjectOwnership(m_workoutPage, QQmlEngine::CppOwnership);
 	m_workoutPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
-	QMetaObject::invokeMethod(m_workoutPage, "createNavButtons");
 
 	appItemManager()->addMainMenuShortCut(tr("Workout: ") + appUtils()->formatDate(m_date), m_workoutPage, [this] () {
 		cleanUp();
@@ -544,12 +543,8 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 
 	setHeaderText();
 
-	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [this] (const uint meso_idx, const int splitIndex, const QChar &chrSplitLetter) {
-		if (meso_idx == m_mesoIdx)
-		{
-			if (m_workoutModel->splitLetter() == chrSplitLetter)
-				setHeaderText();
-		}
+	connect(m_workoutModel, &DBExercisesModel::muscularGroupChanged, this, [this] () {
+		setHeaderText();
 	});
 
 	connect(appMesoModel(), &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field) {

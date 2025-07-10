@@ -24,7 +24,7 @@ Q_PROPERTY(bool hasExercises READ hasExercises NOTIFY currentPageChanged FINAL)
 Q_PROPERTY(bool canSwapExercises READ canSwapExercises NOTIFY currentPageChanged FINAL)
 
 public:
-	explicit inline QmlMesoSplitInterface(QObject* parent, const uint meso_idx)
+	explicit inline QmlMesoSplitInterface(QObject *parent, const uint meso_idx)
 		: QObject{parent}, m_plannerPage{nullptr}, m_currentSplitPage{nullptr}, m_splitComponent{nullptr}, m_mesoIdx{meso_idx} {}
 	inline ~QmlMesoSplitInterface() { cleanUp(); }
 	void cleanUp();
@@ -40,7 +40,7 @@ public:
 	Q_INVOKABLE void simpleExercisesList(const bool show);
 	Q_INVOKABLE void exportMesoSplit(const bool bShare);
 	Q_INVOKABLE void exportAllMesoSplits(const bool bShare);
-	Q_INVOKABLE void importMesoSplit(const QString& filename = QString());
+	Q_INVOKABLE void importMesoSplit(const QString &filename = QString{});
 	Q_INVOKABLE QString prevMesoName() const { return m_prevMesoName; }
 	Q_INVOKABLE QQuickItem *setCurrentPage(const int index);
 
@@ -50,6 +50,9 @@ public:
 	inline QChar currentSwappableLetter() const { return m_currentSwappableLetter; }
 	bool hasExercises() const;
 	inline bool canSwapExercises() const { return m_currentSwappableLetter != 'N'; }
+
+public slots:
+	void changeExerciseName();
 
 signals:
 	void plannerPageCreated();
@@ -75,9 +78,10 @@ private:
 	void createPlannerPage_part2();
 	void createMesoSplitPages();
 	void createMesoSplitPages_part2();
-	void initializeSplitModels();
 	void setSplitPageProperties(const QChar &split_letter);
-	void updateMuscularGroup(const QChar &split_letter);
+	void syncSplitPagesWithMesoSplit();
+	void addPage(const QChar &split_letter, const uint index);
+	void removePage(const QChar &split_letter);
 	QChar findSwappableModel() const;
 };
 

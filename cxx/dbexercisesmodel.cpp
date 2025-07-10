@@ -1183,6 +1183,8 @@ void DBExercisesModel::setSetCompleted(const uint exercise_number, const uint ex
 
 bool DBExercisesModel::allSetsCompleted(int exercise_number, int exercise_idx) const
 {
+	if (!isWorkout())
+		return true;
 	if (exercise_number < 0)
 		exercise_number = m_workingExercise;
 	if (exercise_idx < 0)
@@ -1349,9 +1351,15 @@ void DBExercisesModel::commonConstructor()
 	else
 		m_identifierInFile = &appUtils()->splitFileIdentifier;
 
-	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [this] (const uint meso_idx, const uint splitIndex, const QChar &splitLetter) {
-		if (meso_idx == m_mesoIdx && splitLetter == m_splitLetter)
-			emit muscularGroupChanged();
+	connect(appMesoModel(), &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field) {
+		if (meso_idx == m_mesoIdx)
+		{
+			if (field >= MESOCYCLES_COL_SPLITA && field <= MESOCYCLES_COL_SPLITF)
+			{
+				if (static_cast<int>(m_splitLetter.cell()) - static_cast<int>('A') == field - MESOCYCLES_COL_SPLITA)
+					emit muscularGroupChanged();
+			}
+		}
 	});
 }
 

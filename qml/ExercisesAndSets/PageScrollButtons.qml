@@ -45,11 +45,7 @@ Rectangle {
 			anchors.fill: parent
 		}
 
-		onClicked: {
-			scrollTo(0);
-			showUpButton = false;
-			showDownButton = true;
-		}
+		onClicked: scrollTo(0);
 	}
 
 	TPFloatingControl {
@@ -77,10 +73,6 @@ Rectangle {
 			anchors.fill: parent
 		}
 
-		onClicked: {
-			scrollTo(1);
-			showUpButton = true;
-			showDownButton = false;
-		}
+		onClicked: scrollTo(1);
 	}
 }

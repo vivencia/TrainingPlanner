@@ -390,7 +390,6 @@ signals:
 	void canExportChanged(const uint meso_idx, const bool can_export);
 	void newMesoFieldCounterChanged(const uint meso_idx, const uint field);
 	void mesoChanged(const uint meso_idx, const uint field);
-	void muscularGroupChanged(const uint meso_idx, const uint splitIndex, const QChar &splitLetter);
 	void mostRecentOwnMesoChanged(const int meso_idx);
 	void currentMesoIdxChanged();
 	void canHaveTodaysWorkoutChanged();

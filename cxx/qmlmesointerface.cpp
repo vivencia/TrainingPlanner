@@ -287,10 +287,7 @@ QString QMLMesoInterface::muscularGroupA() const
 void QMLMesoInterface::setMuscularGroupA(const QString &new_value)
 {
 	if (appMesoModel()->splitA(m_mesoIdx) != new_value)
-	{
 		appMesoModel()->setSplitA(m_mesoIdx, new_value);
-		emit muscularGroupAChanged();
-	}
 }
 
 QString QMLMesoInterface::muscularGroupB() const
@@ -301,10 +298,7 @@ QString QMLMesoInterface::muscularGroupB() const
 void QMLMesoInterface::setMuscularGroupB(const QString &new_value)
 {
 	if (appMesoModel()->splitB(m_mesoIdx) != new_value)
-	{
 		appMesoModel()->setSplitB(m_mesoIdx, new_value);
-		emit muscularGroupBChanged();
-	}
 }
 
 QString QMLMesoInterface::muscularGroupC() const
@@ -315,10 +309,7 @@ QString QMLMesoInterface::muscularGroupC() const
 void QMLMesoInterface::setMuscularGroupC(const QString &new_value)
 {
 	if (appMesoModel()->splitC(m_mesoIdx) != new_value)
-	{
 		appMesoModel()->setSplitC(m_mesoIdx, new_value);
-		emit muscularGroupCChanged();
-	}
 }
 
 QString QMLMesoInterface::muscularGroupD() const
@@ -329,10 +320,7 @@ QString QMLMesoInterface::muscularGroupD() const
 void QMLMesoInterface::setMuscularGroupD(const QString &new_value)
 {
 	if (appMesoModel()->splitD(m_mesoIdx) != new_value)
-	{
 		appMesoModel()->setSplitD(m_mesoIdx, new_value);
-		emit muscularGroupDChanged();
-	}
 }
 
 QString QMLMesoInterface::muscularGroupE() const
@@ -343,10 +331,7 @@ QString QMLMesoInterface::muscularGroupE() const
 void QMLMesoInterface::setMuscularGroupE(const QString &new_value)
 {
 	if (appMesoModel()->splitE(m_mesoIdx) != new_value)
-	{
 		appMesoModel()->setSplitE(m_mesoIdx, new_value);
-		emit muscularGroupEChanged();
-	}
 }
 
 QString QMLMesoInterface::muscularGroupF() const
@@ -357,10 +342,7 @@ QString QMLMesoInterface::muscularGroupF() const
 void QMLMesoInterface::setMuscularGroupF(const QString &new_value)
 {
 	if (appMesoModel()->splitF(m_mesoIdx) != new_value)
-	{
 		appMesoModel()->setSplitF(m_mesoIdx, new_value);
-		emit muscularGroupFChanged();
-	}
 }
 
 QString QMLMesoInterface::muscularGroupR() const
@@ -498,21 +480,6 @@ void QMLMesoInterface::createMesocyclePage_part2()
 		}
 	});
 
-	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [this] (const uint meso_idx, const int splitIndex, const QChar &splitLetter) {
-		if (meso_idx == m_mesoIdx)
-		{
-			switch (splitLetter.cell())
-			{
-				case 'A': emit muscularGroupAChanged(); break;
-				case 'B': emit muscularGroupBChanged(); break;
-				case 'C': emit muscularGroupCChanged(); break;
-				case 'D': emit muscularGroupDChanged(); break;
-				case 'E': emit muscularGroupEChanged(); break;
-				case 'F': emit muscularGroupFChanged(); break;
-			}
-		}
-	});
-
 	if (appMesoModel()->isNewMeso(m_mesoIdx))
 	{
 		connect(appMesoModel(), &DBMesocyclesModel::isNewMesoChanged, this, [this] (const uint meso_idx) {
@@ -560,7 +527,7 @@ void QMLMesoInterface::mesoChanged(const uint meso_idx, const uint meso_field)
 		if (!ownMeso())
 			appMesoModel()->checkIfCanExport(m_mesoIdx);
 		else
-			m_canSendMesoToServer = true;
+			m_canSendMesoToServer = appOsInterface()->tpServerOK();
 	}
 }
 

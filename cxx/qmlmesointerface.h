@@ -41,12 +41,12 @@ Q_PROPERTY(QString strEndDate READ strEndDate NOTIFY endDateChanged FINAL)
 Q_PROPERTY(QString weeks READ weeks NOTIFY weeksChanged FINAL)
 Q_PROPERTY(QString split READ split WRITE setSplit NOTIFY splitChanged FINAL)
 Q_PROPERTY(QString notes READ notes WRITE setNotes NOTIFY notesChanged FINAL)
-Q_PROPERTY(QString muscularGroupA READ muscularGroupA WRITE setMuscularGroupA NOTIFY muscularGroupAChanged FINAL)
-Q_PROPERTY(QString muscularGroupB READ muscularGroupB WRITE setMuscularGroupB NOTIFY muscularGroupBChanged FINAL)
-Q_PROPERTY(QString muscularGroupC READ muscularGroupC WRITE setMuscularGroupC NOTIFY muscularGroupCChanged FINAL)
-Q_PROPERTY(QString muscularGroupD READ muscularGroupD WRITE setMuscularGroupD NOTIFY muscularGroupDChanged FINAL)
-Q_PROPERTY(QString muscularGroupE READ muscularGroupE WRITE setMuscularGroupE NOTIFY muscularGroupEChanged FINAL)
-Q_PROPERTY(QString muscularGroupF READ muscularGroupF WRITE setMuscularGroupF NOTIFY muscularGroupFChanged FINAL)
+Q_PROPERTY(QString muscularGroupA READ muscularGroupA WRITE setMuscularGroupA NOTIFY splitChanged FINAL)
+Q_PROPERTY(QString muscularGroupB READ muscularGroupB WRITE setMuscularGroupB NOTIFY splitChanged FINAL)
+Q_PROPERTY(QString muscularGroupC READ muscularGroupC WRITE setMuscularGroupC NOTIFY splitChanged FINAL)
+Q_PROPERTY(QString muscularGroupD READ muscularGroupD WRITE setMuscularGroupD NOTIFY splitChanged FINAL)
+Q_PROPERTY(QString muscularGroupE READ muscularGroupE WRITE setMuscularGroupE NOTIFY splitChanged FINAL)
+Q_PROPERTY(QString muscularGroupF READ muscularGroupF WRITE setMuscularGroupF NOTIFY splitChanged FINAL)
 Q_PROPERTY(QString muscularGroupR READ muscularGroupR CONSTANT FINAL)
 
 Q_PROPERTY(int newMesoFieldCounter READ newMesoFieldCounter WRITE setNewMesoFieldCounter NOTIFY newMesoFieldCounterChanged FINAL)
@@ -176,12 +176,6 @@ signals:
 	void weeksChanged();
 	void splitChanged();
 	void notesChanged();
-	void muscularGroupAChanged();
-	void muscularGroupBChanged();
-	void muscularGroupCChanged();
-	void muscularGroupDChanged();
-	void muscularGroupEChanged();
-	void muscularGroupFChanged();
 	void newMesoFieldCounterChanged(const int fieldCounter);
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 

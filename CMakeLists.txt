@@ -164,11 +164,8 @@ set( QML_SOURCES
     "qml/ExercisesAndSets/PageScrollButtons.qml"
     "qml/ExercisesAndSets/SetInputField.qml"
     "qml/ExercisesAndSets/SetNotesField.qml"
-
-
-
     "qml/ExercisesAndSets/SimpleExercisesListPanel.qml"
-	"qml/ExercisesAndSets/WorkoutExercisesList.qml"
+	"qml/ExercisesAndSets/WorkoutOrSplitExercisesList.qml"
     "qml/Pages/AllWorkouts.qml"
     "qml/Pages/ClientsPage.qml"
 	"qml/Pages/CoachesPage.qml"
@@ -180,7 +177,6 @@ set( QML_SOURCES
 	"qml/Pages/MesoCalendarPage.qml"
 	"qml/Pages/MesocyclePage.qml"
 	"qml/Pages/MesocyclePageElements/MesoSplitSetup.qml"
-    "qml/Pages/MesoSplitPlanner.qml"
     "qml/Pages/SettingsPage.qml"
     "qml/Pages/StatisticsPage.qml"
     "qml/Pages/TPPage.qml"
@@ -240,11 +236,11 @@ qt_add_executable(TrainingPlanner
 )
 
 if(NOT ANDROID)
-pkg_check_modules(LIBSECRET REQUIRED libsecret-1)
-        add_definitions(-DHAVE_LIBSECRET=1)
-        INCLUDE_DIRECTORIES(${LIBSECRET_INCLUDE_DIRS})
-        LINK_DIRECTORIES(${LIBSECRET_LIBRARY_DIRS})
-        list(APPEND keychain_LIBRARIES_PRIVATE ${LIBSECRET_LIBRARIES})
+	pkg_check_modules(LIBSECRET REQUIRED libsecret-1)
+	add_definitions(-DHAVE_LIBSECRET=1)
+	INCLUDE_DIRECTORIES(${LIBSECRET_INCLUDE_DIRS})
+	LINK_DIRECTORIES(${LIBSECRET_LIBRARY_DIRS})
+	list(APPEND keychain_LIBRARIES_PRIVATE ${LIBSECRET_LIBRARIES})
 else()
 	set (keychain_LIBRARIES_PRIVATE "")
 endif(NOT ANDROID)
@@ -326,17 +322,22 @@ if (ANDROID)
 	set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
 
 	set_property(TARGET TrainingPlanner APPEND PROPERTY
-	    QT_ANDROID_PACKAGE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/android
+		QT_ANDROID_PACKAGE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/android
 	)
 
-    include(FetchContent)
-    FetchContent_Declare(
-        android_openssl
-        DOWNLOAD_EXTRACT_TIMESTAMP true
-        URL https://github.com/KDAB/android_openssl/archive/refs/heads/master.zip
-    )
-    FetchContent_MakeAvailable(android_openssl)
-    include(/home/guilherme/Android/Sdk/android_openssl/android_openssl.cmake)
+	FetchContent_Declare(
+		android_openssl
+		DOWNLOAD_EXTRACT_TIMESTAMP true
+		URL https://github.com/KDAB/android_openssl/archive/refs/heads/master.zip
+		#URL_HASH MD5=c97d6ad774fab16be63b0ab40f78d945 #optional
+	)
+	FetchContent_MakeAvailable(android_openssl)
+	include(${android_openssl_SOURCE_DIR}/android_openssl.cmake)
 
 	add_android_openssl_libraries(TrainingPlanner)
+	# Android for TLS backend
+	#set_target_properties(TrainingPlanner PROPERTIES
+	#	QT_ANDROID_EXTRA_LIBS
+	#	"${ANDROID_SDK_ROOT}/android_openssl/ssl_3/${CMAKE_ANDROID_ARCH_ABI}/libcrypto_3.so;${ANDROID_SDK_ROOT}/android_openssl/ssl_3/${CMAKE_ANDROID_ARCH_ABI}/libssl_3.so"
+	#)
 endif(ANDROID)
