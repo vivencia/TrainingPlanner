@@ -325,6 +325,7 @@ if (ANDROID)
 		QT_ANDROID_PACKAGE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/android
 	)
 
+	include(FetchContent)
 	FetchContent_Declare(
 		android_openssl
 		DOWNLOAD_EXTRACT_TIMESTAMP true

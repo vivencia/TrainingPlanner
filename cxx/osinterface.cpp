@@ -13,11 +13,7 @@
 
 #include <QJniObject>
 #include <qnativeinterface.h>
-#if QT_VERSION == QT_VERSION_CHECK(6, 8, 2)
-	#include <QtCore/6.8.2/QtCore/private/qandroidextras_p.h>
-#else
-	#include <QtCore/6.8.0/QtCore/private/qandroidextras_p.h>
-#endif
+#include <QtCore/6.9.1/QtCore/private/qandroidextras_p.h>
 
 //"(Landroid/content/Context;Landroid/net/Uri;)Ljava/lang/String;"
 // String f(Context, Uri)
@@ -188,6 +184,7 @@ void OSInterface::aboutToExit()
 {
 	emit appAboutToExit();
 	appDBInterface()->cleanUpThreads();
+	::exit(0);
 }
 
 void OSInterface::checkServerResponseSlot(const bool online)
@@ -357,7 +354,8 @@ void OSInterface::checkNotificationsStatus()
 
 void OSInterface::checkWorkouts()
 {
-	if (appMesoModel()->count() > 0)
+
+	/*if (appMesoModel()->count() > 0)
 	{
 		DBMesoCalendarTable *calTable{new DBMesoCalendarTable{appDBInterface()->dbFilesPath()}};
 		QStringList dayInfoList;
@@ -399,7 +397,7 @@ void OSInterface::checkWorkouts()
 			m_AndroidNotification->sendNotification(data);
 		}
 		delete calTable;
-	}
+	}*/
 }
 
 void OSInterface::setFileUrlReceived(const QString &url) const

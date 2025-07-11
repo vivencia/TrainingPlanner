@@ -24,6 +24,7 @@ Q_PROPERTY(QString location READ location WRITE setLocation NOTIFY locationChang
 Q_PROPERTY(QString notes READ notes WRITE setNotes NOTIFY notesChanged FINAL)
 Q_PROPERTY(QString headerText READ headerText NOTIFY headerTextChanged FINAL)
 Q_PROPERTY(QString headerText_2 READ headerText_2 NOTIFY headerTextChanged FINAL)
+Q_PROPERTY(bool haveNewWorkoutOptions READ haveNewWorkoutOptions WRITE setHaveNewWorkoutOptions NOTIFY haveNewWorkoutOptionsChanged FINAL)
 Q_PROPERTY(bool editMode READ editMode WRITE setEditMode NOTIFY editModeChanged FINAL)
 Q_PROPERTY(bool dayIsFinished READ dayIsFinished WRITE setDayIsFinished NOTIFY dayIsFinishedChanged FINAL)
 Q_PROPERTY(bool workoutIsEditable READ workoutIsEditable WRITE setWorkoutIsEditable NOTIFY workoutIsEditableChanged FINAL)
@@ -32,7 +33,6 @@ Q_PROPERTY(bool canImportFromSplitPlan READ canImportFromSplitPlan WRITE setCanI
 Q_PROPERTY(bool mainDateIsToday READ mainDateIsToday WRITE setMainDateIsToday NOTIFY mainDateIsTodayChanged FINAL)
 Q_PROPERTY(bool timerActive READ timerActive WRITE setTimerActive NOTIFY timerActiveChanged FINAL)
 Q_PROPERTY(bool hasExercises READ hasExercises NOTIFY hasExercisesChanged FINAL)
-Q_PROPERTY(QStringList previousWorkoutsList READ previousWorkoutsList NOTIFY previousWorkoutsListChanged FINAL)
 
 public:
 	explicit QmlWorkoutInterface(QObject *parent, const uint meso_idx, const QDate &date);
@@ -49,7 +49,7 @@ public:
 	inline uint timerSecond() const { return m_sec; }
 	inline void setTimerSecond(const uint new_value) { m_sec = new_value; emit timerSecondChanged(); }
 
-	Q_INVOKABLE void changeSplitLetter(const QString &new_splitletter);
+	Q_INVOKABLE void changeSplitLetter(const QString &new_splitletter);	
 
 	QString timeIn() const;
 	void setTimeIn(const QString &new_timein);
@@ -70,6 +70,9 @@ public:
 	QString headerText() const { return m_headerText; }
 	QString headerText_2() const { return m_headerText_2; }
 	void setHeaderText();
+
+	inline bool haveNewWorkoutOptions() const { return m_haveNewWorkoutOptions; }
+	inline void setHaveNewWorkoutOptions(const bool nave_new_workout_options) { m_haveNewWorkoutOptions = nave_new_workout_options; emit haveNewWorkoutOptionsChanged(); }
 
 	inline bool editMode() const { return m_editMode; }
 	void setEditMode(const bool edit_mode);
@@ -92,13 +95,14 @@ public:
 	Q_INVOKABLE void setWorkingSetMode();
 	bool hasExercises() const;
 
-	inline QStringList previousWorkoutsList() const { return m_prevWorkouts; }
+	Q_INVOKABLE QStringList previousWorkoutsList_text() const;
+	Q_INVOKABLE QList<uint> previousWorkoutsList_value() const;
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
 	void setMesoIdx(const uint new_meso_idx);
 	void getWorkoutPage();
 
-	Q_INVOKABLE void loadExercisesFromDate(const QDate &date);
+	Q_INVOKABLE void loadExercisesFromCalendarDay(const uint calendar_day);
 	Q_INVOKABLE void getExercisesFromSplitPlan();
 	Q_INVOKABLE void exportWorkoutToSplitPlan();
 	Q_INVOKABLE void resetWorkout();
@@ -124,10 +128,10 @@ public:
 
 public slots:
 	void silenceTimeWarning();
-	void verifyWorkoutOptions();
 
 signals:
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
+	void haveNewWorkoutOptionsChanged();
 	void timerHourChanged();
 	void timerMinuteChanged();
 	void timerSecondChanged();
@@ -162,10 +166,11 @@ private:
 	TPTimer *m_workoutTimer, *m_restTimer;
 	QTime m_lastSetCompleted;
 	int m_nExercisesToCreate;
-	QStringList m_prevWorkouts;
+	QHash<QString,uint> m_prevWorkouts;
 	QDate m_date;
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
+	bool m_haveNewWorkoutOptions;
 	uint m_hour, m_min, m_sec;
 	QString m_headerText, m_headerText_2;
 	bool m_editMode, m_workoutIsEditable, m_importFromPrevWorkout, m_importFromSplitPlan, m_bMainDateIsToday, m_bTimerActive;
@@ -175,4 +180,6 @@ private:
 	void createWorkoutPage_part2();
 	void calculateWorkoutTime();
 	void startRestTimer(const uint exercise_number, const QString &rest_time);
+	void continueInit();
+	void verifyWorkoutOptions();
 };

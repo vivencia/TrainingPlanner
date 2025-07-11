@@ -1,5 +1,4 @@
-#ifndef TPANDROIDNOTIFICATION_H
-#define TPANDROIDNOTIFICATION_H
+#pragma once
 
 #include <QtGlobal>
 
@@ -15,11 +14,9 @@ class TPAndroidNotification : public QObject
 Q_OBJECT
 
 public:
-	explicit TPAndroidNotification(QObject* parent = nullptr);
-	void sendNotification(notificationData* data);
+	explicit TPAndroidNotification(QObject *parent = nullptr);
+	void sendNotification(notificationData *data);
 	void cancelNotification(const short id);
 };
 
 #endif
-
-#endif // TPANDROIDNOTIFICATION_H

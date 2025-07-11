@@ -21,21 +21,25 @@ TPPopup {
 	property bool customBoolProperty2
 	property bool customBoolProperty3
 	property int customIntProperty1
+	property int customIntProperty2
 	readonly property int customItemTopPos: lblTitle.height + 10
 	property string customItemSource: ""
 	property string customStringProperty1
 	property string customStringProperty2
 	property string customStringProperty3
-	property list<string> customModel: []
+	property ListModel cboModel: _cboModel
 
 	signal button1Clicked();
 	signal button2Clicked();
 	signal dialogOpened();
 
+	ListModel {
+		id: _cboModel
+	}
+
 	onCustomItemSourceChanged: {
 		if (customItemSource.length > 0) {
 			let component = Qt.createComponent("qrc:/qml/TPWidgets/ComplexDialogModules/"+customItemSource, Qt.Asynchronous);
-
 			function finishCreation() {
 				customItem = component.createObject(customItemLayoutManager, { parentDlg: dialog, "Layout.fillWidth": true });
 			}
@@ -88,6 +92,7 @@ TPPopup {
 			right: parent.right
 			rightMargin: 5
 			bottom: parent.bottom
+			bottomMargin: 5
 		}
 
 		TPButton {

@@ -9,7 +9,7 @@
 
 using namespace Qt::Literals::StringLiterals;
 
-TPAndroidNotification::TPAndroidNotification(QObject* parent)
+TPAndroidNotification::TPAndroidNotification(QObject *parent)
 	: QObject{parent}
 {
 	if (QNativeInterface::QAndroidApplication::sdkVersion() >= __ANDROID_API_T__)
@@ -20,7 +20,7 @@ TPAndroidNotification::TPAndroidNotification(QObject* parent)
 	}
 }
 
-void TPAndroidNotification::sendNotification(notificationData* data)
+void TPAndroidNotification::sendNotification(notificationData *data)
 {
 	const QJniObject& jtitle{QJniObject::fromString(data->title)};
 	const QJniObject& jmessage{QJniObject::fromString(data->message)};

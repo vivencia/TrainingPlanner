@@ -4,9 +4,8 @@ import QtQuick.Layouts
 
 import "../"
 
-ColumnLayout {
-	id: grpIntent
-	spacing: 5
+Item {
+	height: optMesoPlan.height + optPreviousDay.height + cboPreviousTDaysDates.height + optLoadFromFile.height + optEmptySession.height
 
 	required property TPComplexDialog parentDlg
 
@@ -27,8 +26,13 @@ ColumnLayout {
 		text: qsTr("Use the standard exercises plan for the division ") + parentDlg.customStringProperty2 + qsTr(" of the Mesocycle")
 		checked: parentDlg.customIntProperty1 === 1
 		multiLine: true
-		visible: parentDlg.customBoolProperty1	//bHasMesoPlan
-		Layout.maximumWidth: grpIntent.width
+		enabled: parentDlg.customBoolProperty1	//bHasMesoPlan
+
+		anchors {
+			left: parent.left
+			right: parent.right
+			top: parent.top
+		}
 
 		onClicked: parentDlg.customIntProperty1 = 1;
 	}
@@ -38,23 +42,33 @@ ColumnLayout {
 		text: qsTr("Base this session off the one from the one the days in the list below")
 		checked: parentDlg.customIntProperty1 === 2
 		multiLine: true
-		visible: parentDlg.customBoolProperty2	//bHasPreviousTDays
-		Layout.maximumWidth: grpIntent.width
+		enabled: parentDlg.customBoolProperty2	//bHasPreviousTDays
+
+		anchors {
+			left: parent.left
+			right: parent.right
+			top: optMesoPlan.bottom
+		}
 
 		onClicked: parentDlg.customIntProperty1 = 2;
 	}
 
 	TPComboBox {
 		id: cboPreviousTDaysDates
-		model: parentDlg.customModel
-		visible: parentDlg.customBoolProperty2	//bHasPreviousTDays
+		model: parentDlg.cboModel
+		currentIndex: parentDlg.cboModel.count > 0 ? 0 : -1
 		enabled: optPreviousDay.checked
-		Layout.alignment: Qt.AlignCenter
+		width: parent.width * 0.7
+
+		anchors {
+			horizontalCenter: parent.horizontalCenter
+			top: optPreviousDay.bottom
+		}
 
 		onActivated: (index) => parentDlg.customStringProperty1 = currentText;
 		onEnabledChanged: {
 			if (enabled)
-				parentDlg.customStringProperty1 = currentText;
+				parentDlg.customIntProperty2 = currentValue;
 		}
 	}
 
@@ -62,8 +76,13 @@ ColumnLayout {
 		id: optLoadFromFile
 		text: qsTr("Import workout from file")
 		checked: parentDlg.customIntProperty1 === 3
-		visible: parentDlg.customBoolProperty3	//noExercises
-		Layout.maximumWidth: grpIntent.width
+		enabled: parentDlg.customBoolProperty3	//noExercises
+
+		anchors {
+			left: parent.left
+			right: parent.right
+			top: cboPreviousTDaysDates.bottom
+		}
 
 		onClicked: parentDlg.customIntProperty1 = 3;
 	}
@@ -72,7 +91,12 @@ ColumnLayout {
 		id: optEmptySession
 		text: qsTr("Start a new session")
 		checked: parentDlg.customIntProperty1 === 4
-		Layout.maximumWidth: grpIntent.width
+
+		anchors {
+			left: parent.left
+			right: parent.right
+			top: optLoadFromFile.bottom
+		}
 
 		onClicked: parentDlg.customIntProperty1 = 4;
 	}

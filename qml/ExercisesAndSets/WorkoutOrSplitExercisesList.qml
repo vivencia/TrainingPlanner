@@ -133,8 +133,10 @@ ListView {
 				txtNSubsets.text = exercisesModel.setSubSets(exercise_number, exercise_idx, set_number);
 				txtNReps.text = exercisesModel.setReps(exercise_number, exercise_idx, set_number);
 				txtNWeight.text = exercisesModel.setWeight(exercise_number, exercise_idx, set_number);
-				if (exercisesModel.isWorkout)
+				if (exercisesModel.isWorkout) {
+					setCompleted = exercisesModel.setCompleted(exercise_number, exercise_idx, set_number);
 					btnSetMode.enabled = pageManager.canChangeSetMode(exercise_number, exercise_idx, set_number);
+				}
 			}
 		}
 

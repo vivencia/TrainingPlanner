@@ -23,16 +23,26 @@ TPPage {
 
 	Connections {
 		target: workoutModel
-		function onExerciseCountChanged() : void {
-			scrollTraining.setScrollBarPosition(1);
+		function onExerciseCountChanged(): void {
+			scrollTraining.setScrollBarPosition(workoutModel.exerciseCount === 1 ? 0 : 1);
 			lstWorkoutExercises.positionViewAtIndex(workoutModel.workingExercise, ListView.Contain);
 		}
 	}
 
+	Connections {
+		target: workoutManager
+		function onHaveNewWorkoutOptionsChanged(): void {
+			showIntentionDialog();
+		}
+	}
+
 	onPageActivated: {
-		cboSplitLetter.currentIndex = Qt.binding(function() { return cboSplitLetter.indexOfValue(workoutModel.splitLetter); })
-		if (!navButtons)
+		if (!navButtons) {
+			cboSplitLetter.currentIndex = Qt.binding(function() { return cboSplitLetter.indexOfValue(workoutModel.splitLetter); })
 			createNavButtons();
+			if (workoutManager.haveNewWorkoutOptions)
+				showIntentionDialog();
+		}
 	}
 
 	ScrollView {
@@ -398,7 +408,6 @@ TPPage {
 					width: appSettings.itemDefaultHeight
 					height: width
 					visible: workoutManager.hasExercises
-					enabled: workoutManager.workoutIsEditable ? true : workoutManager.editMode
 					ToolTip.text: "Remove all exercises"
 
 					anchors {
@@ -621,7 +630,10 @@ TPPage {
 				function finishCreation() {
 					msgClearExercises = component.createObject(workoutPage, { parentPage: workoutPage, title: qsTr("Clear exercises list?"),
 						keepAbove: true, message: qsTr("All exercises changes will be removed"), imageSource: "revert-day.png" } );
-					msgClearExercises.button1Clicked.connect(function () { workoutManager.clearExercises(); } );
+					msgClearExercises.button1Clicked.connect(function () {
+						workoutManager.clearExercises();
+						showIntentionDialog();
+					} );
 				}
 
 				if (component.status === Component.Ready)
@@ -655,24 +667,42 @@ TPPage {
 	}
 
 	property TPComplexDialog intentDlg: null
-	function showIntentionDialog(): void {
-		if (!intentDlg) {
-			let component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
 
-			function finishCreation() {
+	function showIntentionDialog(): void {
+		if (!intentDlg)
+			createIntentionDialog();
+		else {
+			intentDlg.cboModel.clear();
+			intentDlg.customStringProperty2 = workoutModel.splitLetter;
+			intentDlg.customBoolProperty1 = workoutManager.canImportFromSplitPlan;
+			intentDlg.customBoolProperty2 = workoutManager.canImportFromPreviousWorkout;
+			intentDlg.customBoolProperty3 = !workoutManager.hasExercises;
+			if (workoutManager.canImportFromPreviousWorkout) {
+				const texts = workoutManager.previousWorkoutsList_text();
+				const values = workoutManager.previousWorkoutsList_value();
+				for (let i = 0; i < texts.length; ++i)
+					intentDlg.cboModel.append({ text: texts[i], value: values[i], enabled: true });
+			}
+			intentDlg.show(-1);
+		}
+	}
+
+	function createIntentionDialog(): void {
+		let component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
+
+		function finishCreation() {
+			if (!intentDlg) {
 				intentDlg = component.createObject(workoutPage, { parentPage: workoutPage, title: qsTr("What do you want to do today?"),
-					button1Text: qsTr("Proceed"), customItemSource:"TPTDayIntentGroup.qml", customBoolProperty1: workoutManager.canImportFromSplitPlan,
-					customStringProperty2: workoutModel.splitLetter, customModel: workoutManager.previousWorkoutsList,
-					customBoolProperty2: workoutManager.canImportFromPreviousWorkout, customBoolProperty3: !workoutManager.hasExercises });
+					button1Text: qsTr("Proceed"), customItemSource:"TPTDayIntentGroup.qml" });
 				intentDlg.button1Clicked.connect(intentChosen);
 			}
-
-			if (component.status === Component.Ready)
-				finishCreation();
-			else
-				component.statusChanged.connect(finishCreation);
+			showIntentionDialog();
 		}
-		intentDlg.show(-1);
+
+		if (component.status === Component.Ready)
+			finishCreation();
+		else
+			component.statusChanged.connect(finishCreation);
 	}
 
 	function intentChosen(): void {
@@ -681,7 +711,7 @@ TPPage {
 				workoutManager.getExercisesFromSplitPlan();
 			break;
 			case 2: //use previous day
-				workoutManager.loadExercisesFromDate(intentDlg.customStringProperty1);
+				workoutManager.loadExercisesFromCalendarDay(intentDlg.customIntProperty2);
 			break;
 			case 3: //import from file
 				workoutManager.importWorkout();

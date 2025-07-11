@@ -14,7 +14,7 @@ Q_OBJECT
 QML_ELEMENT
 
 Q_PROPERTY(QString source READ source WRITE setSource NOTIFY sourceChanged)
-Q_PROPERTY(bool dropShadow READ dropShadow WRITE setDropShadow CONSTANT FINAL)
+Q_PROPERTY(bool dropShadow READ dropShadow WRITE setDropShadow NOTIFY dropShadowChanged FINAL)
 
 public:
 	explicit TPImage(QQuickItem *parent = nullptr);
@@ -34,7 +34,7 @@ public slots:
 
 signals:
 	void sourceChanged();
-	void imgSizeChanged();
+	void dropShadowChanged();
 
 private:
 	QString mSource, mSourceExtension;

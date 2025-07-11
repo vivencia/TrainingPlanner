@@ -85,6 +85,7 @@ void TPImage::setSource(const QString &source)
 void TPImage::setDropShadow(const bool drop_shadow)
 {
 	mDropShadow = drop_shadow;
+	emit dropShadowChanged();
 	checkEnabled(false);
 }
 
