@@ -256,7 +256,7 @@ Popup {
 					wrapMode: delegateItem.showActions ? Text.WordWrap : Text.NoWrap
 					singleLine: !delegateItem.showActions
 					width: onlineMsgsDlg.dlgMaxWidth - 10
-					height: delegateItem.showActions ? preferredHeight() : heightAvailable
+					height: delegateItem.showActions ? preferredHeight() : appSettings.itemDefaultHeight
 					Layout.leftMargin: 20
 
 					MouseArea {

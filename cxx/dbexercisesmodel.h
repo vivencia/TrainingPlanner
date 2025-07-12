@@ -194,6 +194,7 @@ public:
 	[[nodiscard]] Q_INVOKABLE bool allSetsCompleted(int exercise_number = -1, int exercise_idx = -1) const;
 	[[nodiscard]] bool anySetCompleted(int exercise_number = -1, int exercise_idx = -1) const;
 	[[nodiscard]] bool noSetsCompleted(int exercise_number = -1, int exercise_idx = -1) const;
+	void setAllSetsCompleted(const bool completed, int exercise_number = -1, int exercise_idx = -1);
 
 	[[nodiscard]] Q_INVOKABLE uint setMode(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	void setSetMode(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint mode);

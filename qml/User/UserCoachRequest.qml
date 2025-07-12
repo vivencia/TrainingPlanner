@@ -21,7 +21,7 @@ TPPopup {
 		id: lblTitle
 		text: qsTr("Available coaches online")
 		horizontalAlignment: Text.AlignHCenter
-		heightAvailable: 50
+		height: appSettings.itemDefaultHeight * 1.5
 
 		anchors {
 			top: parent.top

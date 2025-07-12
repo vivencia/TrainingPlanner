@@ -463,7 +463,7 @@ TPPage {
 
 			TPLabel {
 				text: !workoutManager.dayIsFinished ? qsTr("Workout:") : qsTr("Workout session length: ")
-				width: parent.width * 0.2
+				width: parent.width * (!workoutManager.dayIsFinished ? 0.2 : 0.5)
 			}
 
 			TPButton {
@@ -510,7 +510,7 @@ TPPage {
 
 				onClicked: workoutManager.stopWorkout();
 			}
-		}
+		} //workoutLengthRow
 
 		TPButton {
 			id: btnFinishedDayOptions
@@ -598,29 +598,6 @@ TPPage {
 		cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(workoutModel.splitLetter);
 	}
 
-	property TPComplexDialog changeSplitLetterDialog: null
-	function showSplitLetterChangedDialog(): void {
-		if (!changeSplitLetterDialog) {
-			let component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
-
-			function finishCreation() {
-				changeSplitLetterDialog = component.createObject(workoutPage, { parentPage: workoutPage,
-					customStringProperty1: qsTr("Really change split?"), customStringProperty2: qsTr("Clear exercises list?"),
-					customStringProperty3: "remove", customItemSource:"TPDialogWithMessageAndCheckBox.qml" });
-				changeSplitLetterDialog.button1Clicked.connect( function() {
-					workoutManager.changeSplit(cboSplitLetter.valueAt(cboSplitLetter.currentIndex), changeSplitLetterDialog.customBoolProperty1);
-				});
-				changeSplitLetterDialog.button2Clicked.connect( function() { workoutManager.changeSplit("X"); });
-			}
-
-			if (component.status === Component.Ready)
-				finishCreation();
-			else
-				component.statusChanged.connect(finishCreation);
-		}
-		changeSplitLetterDialog.show(-1);
-	}
-
 	property TPBalloonTip msgClearExercises: null
 	function showClearExercisesMessage(): void {
 		if (msgClearExercises === null) {
@@ -646,28 +623,7 @@ TPPage {
 		msgClearExercises.show(-1);
 	}
 
-	property TPComplexDialog adjustCalendarBox: null
-	function showAdjustCalendarDialog(): void {
-		if (!adjustCalendarBox) {
-			let component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
-
-			function finishCreation() {
-				adjustCalendarBox = component.createObject(workoutPage, { parentPage: workoutPage, title: qsTr("Re-adjust meso calendar?"),
-					button1Text: qsTr("Adjust"), button2Text: qsTr("Cancel"), customItemSource:"TPDialogWithMessageAndCheckBox.qml",
-					customStringProperty1: lblHeader.text, customStringProperty2: qsTr("Only alter this day"), customStringProperty3: "calendar.png" });
-				adjustCalendarBox.button1Clicked.connect(function() { workoutManager.adjustCalendar(workoutModel.splitLetter, adjustCalendarBox.customBoolProperty1); });
-			}
-
-			if (component.status === Component.Ready)
-				finishCreation();
-			else
-				component.statusChanged.connect(finishCreation);
-		}
-		adjustCalendarBox.show(-1);
-	}
-
 	property TPComplexDialog intentDlg: null
-
 	function showIntentionDialog(): void {
 		if (!intentDlg)
 			createIntentionDialog();
@@ -803,33 +759,6 @@ TPPage {
 			timeout = 18000;
 		tipTimeWarn.message = "<b>" + timeleft + (bmin ? qsTr(" minutes") : qsTr(" seconds")) + qsTr("</b> until end of training session!");
 		tipTimeWarn.showTimed(timeout, 0);
-	}
-
-	property TPBalloonTip generalMessage: null
-	function showMessageDialog(title: string, message: string, error: bool, msecs: int): void {
-		if (generalMessage === null) {
-			function createMessageBox() {
-				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
-
-				function finishCreation() {
-					generalMessage = component.createObject(workoutPage, { parentPage: workoutPage, highlightMessage: true, button1Text: "OK"});
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			createMessageBox();
-		}
-		generalMessage.title = title;
-		generalMessage.message = message;
-		generalMessage.imageSource = error ? "error" : "warning";
-		if (msecs > 0)
-			generalMessage.showTimed(msecs, 0);
-		else
-			generalMessage.show(0);
-
 	}
 
 	TPBalloonTip {

@@ -1185,16 +1185,16 @@ bool DBExercisesModel::allSetsCompleted(int exercise_number, int exercise_idx) c
 {
 	if (!isWorkout())
 		return true;
-	if (exercise_number < 0)
-		exercise_number = m_workingExercise;
-	if (exercise_idx < 0)
-		exercise_idx = workingSubExercise(exercise_number);
-	if (exercise_number < m_exerciseData.count() && exercise_idx < m_exerciseData.at(exercise_number)->m_exercises.count())
+
+	const uint last_exercise_number{exercise_number == -1 ? exerciseCount() : exercise_number + 1};
+	for (int i{exercise_number == -1 ? 0 : exercise_number}; i < last_exercise_number; ++i)
 	{
-		for (const auto set : std::as_const(m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets))
+		const uint last_exercise_idx{exercise_idx == -1 ? static_cast<uint>(m_exerciseData.at(i)->m_exercises.count()) : exercise_idx + 1};
+		for (int x{exercise_idx == -1 ? 0 : exercise_idx}; x < last_exercise_idx; ++x)
 		{
-			if (!set->completed)
-				return false;
+			for (const auto set : std::as_const(m_exerciseData.at(i)->m_exercises.at(x)->sets))
+				if (!set->completed)
+					return false;
 		}
 		return true;
 	}
@@ -1203,28 +1203,48 @@ bool DBExercisesModel::allSetsCompleted(int exercise_number, int exercise_idx) c
 
 bool DBExercisesModel::anySetCompleted(int exercise_number, int exercise_idx) const
 {
-	if (exercise_number < 0)
-		exercise_number = m_workingExercise;
-	if (exercise_idx < 0)
-		exercise_idx = workingSubExercise(exercise_number);
-	for (const auto set : std::as_const(m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets))
+	const uint last_exercise_number{exercise_number == -1 ? exerciseCount() : exercise_number + 1};
+	for (int i{exercise_number == -1 ? 0 : exercise_number}; i < last_exercise_number; ++i)
 	{
-		if (set->completed)
-			return true;
+		const uint last_exercise_idx{exercise_idx == -1 ? static_cast<uint>(m_exerciseData.at(i)->m_exercises.count()) : exercise_idx + 1};
+		for (int x{exercise_idx == -1 ? 0 : exercise_idx}; x < last_exercise_idx; ++x)
+		{
+			for (const auto set : std::as_const(m_exerciseData.at(i)->m_exercises.at(x)->sets))
+				if (set->completed)
+					return true;
+		}
 	}
 	return false;
 }
 
 bool DBExercisesModel::noSetsCompleted(int exercise_number, int exercise_idx) const
 {
-	if (exercise_number < 0)
-		exercise_number = m_workingExercise;
-	if (exercise_idx < 0)
-		exercise_idx = workingSubExercise(exercise_number);
-	for (const auto set : std::as_const(m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets))
-		if (set->completed)
-			return false;
+	const uint last_exercise_number{exercise_number == -1 ? exerciseCount() : exercise_number + 1};
+	for (int i{exercise_number == -1 ? 0 : exercise_number}; i < last_exercise_number; ++i)
+	{
+		const uint last_exercise_idx{exercise_idx == -1 ? static_cast<uint>(m_exerciseData.at(i)->m_exercises.count()) : exercise_idx + 1};
+		for (int x{exercise_idx == -1 ? 0 : exercise_idx}; x < last_exercise_idx; ++x)
+		{
+			for (const auto set : std::as_const(m_exerciseData.at(i)->m_exercises.at(x)->sets))
+				if (set->completed)
+					return false;
+		}
+	}
 	return true;
+}
+
+void DBExercisesModel::setAllSetsCompleted(const bool completed, int exercise_number, int exercise_idx)
+{
+	const uint last_exercise_number{exercise_number == -1 ? exerciseCount() : exercise_number + 1};
+	for (int i{exercise_number == -1 ? 0 : exercise_number}; i < last_exercise_number; ++i)
+	{
+		const uint last_exercise_idx{exercise_idx == -1 ? static_cast<uint>(m_exerciseData.at(i)->m_exercises.count()) : exercise_idx + 1};
+		for (int x{exercise_idx == -1 ? 0 : exercise_idx}; x < last_exercise_idx; ++x)
+		{
+			for (const auto set : std::as_const(m_exerciseData.at(i)->m_exercises.at(x)->sets))
+				set->completed = completed;
+		}
+	}
 }
 
 uint DBExercisesModel::setMode(const uint exercise_number, const uint exercise_idx, const uint set_number) const

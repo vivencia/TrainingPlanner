@@ -58,7 +58,9 @@ void DBMesoCalendarTable::getMesoCalendar()
 					stDayInfo *day_info{new stDayInfo{}};
 					day_info->date = std::move(query.value(0).toString());
 					day_info->data = std::move(query.value(1).toString());
-					meso_calendar[calendar_day++] = day_info;
+					meso_calendar[calendar_day] = day_info;
+					if (++calendar_day >= meso_calendar.count()) //error in database
+						break;
 				} while (query.next());
 				ok = !m_model->mesoCalendar(meso_idx).isEmpty();
 				if (ok)

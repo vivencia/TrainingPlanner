@@ -101,8 +101,8 @@ public:
 	[[nodiscard]] QString notes(const uint meso_idx, const uint calendar_day) const;
 	void setNotes(const uint meso_idx, const uint calendar_day, const QString &new_notes);
 
-	[[nodiscard]] bool trainingCompleted(const uint meso_idx, const uint calendar_day) const;
-	void setTrainingCompleted(const uint meso_idx, const uint calendar_day, const bool completed);
+	[[nodiscard]] bool workoutCompleted(const uint meso_idx, const uint calendar_day) const;
+	void setWorkoutCompleted(const uint meso_idx, const uint calendar_day, const bool completed);
 
 	Q_INVOKABLE inline DBCalendarModel *calendar(const uint meso_idx) const
 	{

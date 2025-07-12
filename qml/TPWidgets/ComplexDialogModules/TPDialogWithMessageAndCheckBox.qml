@@ -40,8 +40,7 @@ Item {
 			id: lblMessage
 			text: parentDlg.customStringProperty1
 			color: textColor
-			heightAvailable: 50
-			wrapMode: Text.WordWrap
+			singleLine: false
 			horizontalAlignment: Text.AlignJustify
 			width: mainLayout.width - imgElement.width - 10
 			Layout.preferredWidth: width

@@ -31,7 +31,7 @@ Q_PROPERTY(bool workoutIsEditable READ workoutIsEditable WRITE setWorkoutIsEdita
 Q_PROPERTY(bool canImportFromPreviousWorkout READ canImportFromPreviousWorkout WRITE setCanImportFromPreviousWorkout NOTIFY canImportFromPreviousWorkoutChanged FINAL)
 Q_PROPERTY(bool canImportFromSplitPlan READ canImportFromSplitPlan WRITE setCanImportFromSplitPlan NOTIFY canImportFromSplitPlanChanged FINAL)
 Q_PROPERTY(bool mainDateIsToday READ mainDateIsToday WRITE setMainDateIsToday NOTIFY mainDateIsTodayChanged FINAL)
-Q_PROPERTY(bool timerActive READ timerActive WRITE setTimerActive NOTIFY timerActiveChanged FINAL)
+Q_PROPERTY(bool timerActive READ timerActive NOTIFY timerActiveChanged FINAL)
 Q_PROPERTY(bool hasExercises READ hasExercises NOTIFY hasExercisesChanged FINAL)
 
 public:
@@ -89,8 +89,7 @@ public:
 	inline bool mainDateIsToday() const { return m_bMainDateIsToday; }
 	void setMainDateIsToday(const bool is_today);
 
-	inline bool timerActive() const { return m_bTimerActive; }
-	inline void setTimerActive(const bool new_value) { m_bTimerActive = new_value; emit timerActiveChanged(); }
+	bool timerActive() const;
 
 	Q_INVOKABLE void setWorkingSetMode();
 	bool hasExercises() const;
@@ -120,7 +119,6 @@ public:
 	inline DBExercisesModel *workoutModel() const { return m_workoutModel; }
 	inline QQuickItem *workoutPage() const { return m_workoutPage; }
 
-	void displayMessage(const QString &title, const QString &message, const bool error = false, const uint msecs = 0) const;
 	void askRemoveExercise(const uint exercise_number);
 	void gotoNextExercise();
 	void rollUpExercise(const uint exercise_number) const;
@@ -182,4 +180,5 @@ private:
 	void startRestTimer(const uint exercise_number, const QString &rest_time);
 	void continueInit();
 	void verifyWorkoutOptions();
+	QString workoutCompletedMessage(const bool completed) const;
 };

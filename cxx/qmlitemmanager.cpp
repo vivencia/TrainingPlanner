@@ -494,32 +494,28 @@ void QmlItemManager::mainWindowStarted() const
 	appOsInterface()->initialCheck();
 }
 
-void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QString &fileName) const
+void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QString &fileName,
+		const QString &image_source, const uint msecs) const
 {
 	QString title, message;
 	switch (message_id)
 	{
 		case APPWINDOW_MSG_CUSTOM_MESSAGE:
 		{
-			const qsizetype sep_idx{fileName.lastIndexOf(record_separator)};
-			title = sep_idx >= 1 ? fileName.left(sep_idx) : std::move(tr("Message"));
-			message = sep_idx >= 1 ? fileName.right(fileName.length() - sep_idx - 1) : fileName;
+			title = std::move(appUtils()->getCompositeValue(0, fileName, record_separator));
+			message = std::move(appUtils()->getCompositeValue(1, fileName, record_separator));
 		}
 		break;
 		case APPWINDOW_MSG_CUSTOM_WARNING:
 		{
-			const QString &warning_str{tr("Warning! ")};
-			const qsizetype sep_idx{fileName.lastIndexOf(record_separator)};
-			title = sep_idx >= 1 ? fileName.left(sep_idx) : warning_str.toUpper();
-			message = sep_idx >= 1 ? std::move(warning_str + fileName.right(fileName.length() - sep_idx - 1)) : fileName;
+			title = std::move(tr("Warning! ") + appUtils()->getCompositeValue(0, fileName, record_separator));
+			message = std::move(appUtils()->getCompositeValue(1, fileName, record_separator));
 		}
 		break;
 		case APPWINDOW_MSG_CUSTOM_ERROR:
 		{
-			const QString &error_str{tr("Error! ")};
-			const qsizetype sep_idx{fileName.lastIndexOf(record_separator)};
-			title = sep_idx >= 1 ? fileName.left(sep_idx) : error_str.toUpper();
-			message = sep_idx >= 1 ? std::move(error_str + fileName.right(fileName.length() - sep_idx - 1)) : fileName;
+			title = std::move(tr("Error! ") + appUtils()->getCompositeValue(0, fileName, record_separator));
+			message = std::move(appUtils()->getCompositeValue(1, fileName, record_separator));
 		}
 		break;
 		case APPWINDOW_MSG_EXPORT_OK:
@@ -591,7 +587,8 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 			message = std::move(tr("Something went wrong"));
 		break;
 	}
-	QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(QString, title), Q_ARG(QString, message));
+	QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(QString, title), Q_ARG(QString, message),
+					Q_ARG(QString, image_source), Q_ARG(int, static_cast<int>(msecs)));
 }
 
 void QmlItemManager::exportSlot(const QString &filePath)

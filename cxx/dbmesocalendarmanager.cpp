@@ -356,13 +356,13 @@ void DBMesoCalendarManager::setNotes(const uint meso_idx, const uint calendar_da
 	setDayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_NOTES, new_notes);
 }
 
-bool DBMesoCalendarManager::trainingCompleted(const uint meso_idx, const uint calendar_day) const
+bool DBMesoCalendarManager::workoutCompleted(const uint meso_idx, const uint calendar_day) const
 {
 	const QString &value{dayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_WORKOUT_COMPLETED)};
 	return value == '1';
 }
 
-void DBMesoCalendarManager::setTrainingCompleted(const uint meso_idx, const uint calendar_day, const bool completed)
+void DBMesoCalendarManager::setWorkoutCompleted(const uint meso_idx, const uint calendar_day, const bool completed)
 {
-	setDayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_TIMEIN, completed ? STR_ONE : STR_ZERO);
+	setDayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_WORKOUT_COMPLETED, completed ? STR_ONE : STR_ZERO);
 }

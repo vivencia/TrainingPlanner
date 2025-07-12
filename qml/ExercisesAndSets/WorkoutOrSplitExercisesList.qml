@@ -108,8 +108,15 @@ ListView {
 							changeFields(index, exercise_idx, set_number, true);
 						break;
 						case 13: //EXERCISES_COL_COMPLETED
-							delegate.setCompleted = exercisesModel.setCompleted(exercise_number, exercise_idx, set_number);
-							delegate.allSetsCompleted = exercisesModel.allSetsCompleted(exercise_number, exercise_idx);
+							let completed = exercisesModel.setCompleted(exercise_number, exercise_idx, set_number);
+							delegate.setCompleted = completed;
+							if (completed) {
+								delegate.allSetsCompleted = exercisesModel.allSetsCompleted(exercise_number, exercise_idx);
+								if (++set_number < exercisesModel.setsNumber(exercise_number, exercise_idx))
+									exercisesModel.workingSet = set_number;
+							}
+							else
+								delegate.allSetsCompleted = false;
 						break;
 					}
 				}
@@ -473,7 +480,8 @@ ListView {
 										id: tabButton
 										text: qsTr("Set # ") + parseInt(index + 1)
 										checkable: true
-										checked: index === setsTabBar.currentIndex
+										checked: delegate.exerciseNumber === exercisesModel.workingExercise &&
+											subExercisesTabBar.currentIndex === exercisesModel.workingSubExercise && index === exercisesModel.workingSet
 										width: setsGroup.width * 0.22
 										height: setsTabBar.height * 0.95
 
@@ -651,7 +659,25 @@ ListView {
 						}
 					} //setModeLayout
 				} //setsItemsLayout
-			} //paneSets
+			} //setsGroup
+
+			RowLayout {
+				visible: exercisesModel.isWorkout
+				enabled: delegate.allSetsCompleted
+				Layout.alignment: Qt.AlignCenter
+				Layout.preferredWidth: listItem.width * 0.9
+
+				TPLabel {
+					text: qsTr("Exercise completed")
+					Layout.preferredWidth: listItem.width * 0.63
+				}
+
+				TPImage {
+					source: "set-completed"
+					width: appSettings.itemDefaultHeight
+					height: width
+				}
+			} //RowLayout
 		} //contentsLayout
 	} //delegate: ItemDelegate
 

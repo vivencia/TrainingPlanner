@@ -196,7 +196,7 @@ bool DBCalendarModel::completed(const QDate &date) const
 
 bool DBCalendarModel::completed(const uint calendar_day) const
 {
-	return m_calendarManager->trainingCompleted(m_mesoIdx, calendar_day);
+	return m_calendarManager->workoutCompleted(m_mesoIdx, calendar_day);
 }
 
 void DBCalendarModel::setCompleted(const QDate &date, const bool completed)
@@ -206,7 +206,7 @@ void DBCalendarModel::setCompleted(const QDate &date, const bool completed)
 
 void DBCalendarModel::setCompleted(const uint calendar_day, const bool completed)
 {
-	m_calendarManager->setTrainingCompleted(m_mesoIdx, calendar_day, completed);
+	m_calendarManager->setWorkoutCompleted(m_mesoIdx, calendar_day, completed);
 }
 
 QVariant DBCalendarModel::data(const QModelIndex &index, int role) const

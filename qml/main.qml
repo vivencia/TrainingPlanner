@@ -329,9 +329,13 @@ ApplicationWindow {
 		button2Text: ""
 	}
 
-	function displayResultMessage(title: string, message: string): void {
+	function displayResultMessage(title: string, message: string, img_src: string, msecs: int): void {
 		activityFinishedTip.title = title;
 		activityFinishedTip.message = message;
-		activityFinishedTip.showTimed(5000, 0);
+		activityFinishedTip.imageSource = img_src;
+		if (msecs > 0)
+			activityFinishedTip.showTimed(msecs, 0);
+		else
+			activityFinishedTip.show(0);
 	}
 } //ApplicationWindow

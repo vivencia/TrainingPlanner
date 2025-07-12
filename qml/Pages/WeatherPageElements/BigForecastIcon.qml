@@ -23,7 +23,7 @@ Item {
 		wrapMode: Text.WordWrap
 		font: AppGlobals.extraLargeFont
 		horizontalAlignment: Text.AlignHCenter
-		heightAvailable: 0.1*appSettings.pageHeight
+		height: 0.1*appSettings.pageHeight
 
 		anchors {
 			top: parent.top

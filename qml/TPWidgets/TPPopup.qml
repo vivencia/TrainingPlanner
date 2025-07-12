@@ -192,6 +192,10 @@ Popup {
 	}
 
 	function show2(targetItem: Item, pos: int): void {
+		if (visible) {
+			close();
+			return;
+		}
 		const point = targetItem.parent.mapToItem(parent, targetItem.x, targetItem.y);;
 
 		var xpos, ypos;

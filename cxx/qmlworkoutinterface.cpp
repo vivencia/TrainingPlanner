@@ -19,7 +19,7 @@ QmlWorkoutInterface::QmlWorkoutInterface(QObject *parent, const uint meso_idx, c
 	: QObject{parent}, m_workoutPage{nullptr}, m_workoutModel{nullptr}, m_calendarModel{nullptr},
 		m_mesoIdx{meso_idx}, m_workoutTimer{nullptr}, m_restTimer{nullptr}, m_date{date}, m_haveNewWorkoutOptions{false},
 		m_hour{0}, m_min{0}, m_sec{0}, m_editMode{false}, m_workoutIsEditable{false}, m_importFromPrevWorkout{false},
-		m_importFromSplitPlan{false}, m_bMainDateIsToday{false}, m_bTimerActive{false}
+		m_importFromSplitPlan{false}, m_bMainDateIsToday{false}
 {
 	setMainDateIsToday(date == QDate::currentDate());
 	if (!appMesoModel()->mesoCalendarManager()->hasDBData(m_mesoIdx))
@@ -235,6 +235,11 @@ QList<uint> QmlWorkoutInterface::previousWorkoutsList_value() const
 	return values;
 }
 
+bool QmlWorkoutInterface::timerActive() const
+{
+	return m_workoutTimer->isActive();
+}
+
 void QmlWorkoutInterface::setWorkingSetMode()
 {
 	const uint exercise_number{m_workoutModel->workingExercise()};
@@ -306,6 +311,7 @@ void QmlWorkoutInterface::loadExercisesFromCalendarDay(const uint calendar_day)
 		{
 			disconnect(*conn);
 			m_workoutModel->setCalendarDay(correct_calendar_day);
+			m_workoutModel->setAllSetsCompleted(false);
 		}
 	});
 }
@@ -387,13 +393,12 @@ void QmlWorkoutInterface::startWorkout()
 		setTimeIn(appUtils()->getCurrentTimeString());
 	setWorkoutIsEditable(true);
 	m_workoutTimer->startTimer();
-	setTimerActive(true);
+	emit timerActiveChanged();
 }
 
 void QmlWorkoutInterface::stopWorkout()
 {
 	m_workoutTimer->stopTimer();
-	setTimerActive(false);
 	if (!m_workoutTimer->stopWatch())
 	{
 		const QTime &elapsedTime{m_workoutTimer->elapsedTime()};
@@ -447,11 +452,6 @@ bool QmlWorkoutInterface::canChangeSetMode(const uint exercise_number, const uin
 	const bool set_has_data{!m_workoutModel->setReps(exercise_number, exercise_idx, set_number).isEmpty() &&
 		!m_workoutModel->setWeight(exercise_number, exercise_idx, set_number).isEmpty()};
 	return set_has_data && (set_number == 0 ? true : m_workoutModel->setCompleted(exercise_number, exercise_idx, set_number - 1));
-}
-
-void QmlWorkoutInterface::displayMessage(const QString &title, const QString &message, const bool error, const uint msecs) const
-{
-	QMetaObject::invokeMethod(m_workoutPage, "showMessageDialog", Q_ARG(QString, title), Q_ARG(QString, message), Q_ARG(bool, error), Q_ARG(int, static_cast<int>(msecs)));
 }
 
 void QmlWorkoutInterface::askRemoveExercise(const uint exercise_number)
@@ -536,7 +536,21 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 
 	connect(m_workoutModel, &DBExercisesModel::exerciseModified, this, [this] (const uint exercise_number, const uint exercise_idx, const uint set_number, const uint field) {
 		if (field != EXERCISE_IGNORE_NOTIFY_IDX)
+		{
 			appDBInterface()->saveWorkout(m_workoutModel);
+			if (field == EXERCISES_COL_COMPLETED)
+			{
+				const bool all_exercises_completed{m_workoutModel->allSetsCompleted()};
+				if (all_exercises_completed != dayIsFinished())
+				{
+					if (!all_exercises_completed || !m_workoutTimer->isActive())
+						setDayIsFinished(all_exercises_completed);
+					appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE,
+						appUtils()->string_strings({ tr("Workout"), workoutCompletedMessage(all_exercises_completed)}, record_separator),
+								"app_logo"_L1, m_workoutTimer->isActive() ? 0 : 5000);
+				}
+			}
+		}
 	});
 
 	if (mainDateIsToday())
@@ -593,6 +607,8 @@ void QmlWorkoutInterface::continueInit()
 	m_calendarModel = appMesoModel()->mesoCalendarManager()->calendar(m_mesoIdx);
 	m_calendarDay = appMesoModel()->mesoCalendarManager()->calendarDay(m_mesoIdx, m_date);
 	m_workoutModel = appMesoModel()->mesoCalendarManager()->workoutForDay(m_mesoIdx, m_calendarDay);
+	if (appMesoModel()->mesoCalendarManager()->workoutId(m_mesoIdx, m_calendarDay) == "-1"_L1)
+		appMesoModel()->mesoCalendarManager()->setWorkoutId(m_mesoIdx, m_calendarDay, m_workoutModel->id());
 	if (m_workoutPage)
 	{
 		m_workoutPage->setProperty("workoutModel", QVariant::fromValue(m_workoutModel));
@@ -603,7 +619,7 @@ void QmlWorkoutInterface::continueInit()
 		emit headerTextChanged();
 	}
 	const int id{appDBInterface()->getWorkout(m_workoutModel)};
-		auto conn = std::make_shared<QMetaObject::Connection>();
+		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn,id] (const uint thread_id) {
 		if (id == thread_id)
 		{
@@ -637,4 +653,12 @@ void QmlWorkoutInterface::verifyWorkoutOptions()
 			setHaveNewWorkoutOptions(true);
 		}
 	});
+}
+
+QString QmlWorkoutInterface::workoutCompletedMessage(const bool completed) const
+{
+	QString message{completed ? std::move(tr("All exercises finished")) : std::move(tr("Workout not yet finished"))};
+	if (!completed && m_workoutTimer->isActive())
+		message += std::move("<br>"_L1 + tr("You should press Finish to save your workout"));
+	return message;
 }

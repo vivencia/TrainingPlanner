@@ -34,7 +34,7 @@ TPPopup {
 
 		function finishCreation() {
 			let button = entryComponent.createObject(mainLayout, { text: label, imageSource: img, clickId: id, rounded: false,
-									color: "transparent", "Layout.fillWidth": true });
+									autoSize: true, color: "transparent", "Layout.fillWidth": true });
 			if (bvisible) {
 				entriesTotalHeight += button.height + 7;
 				if (button.width > largestEntryWidth)
