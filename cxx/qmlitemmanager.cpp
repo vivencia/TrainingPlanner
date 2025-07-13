@@ -159,6 +159,8 @@ void QmlItemManager::configureQmlEngine()
 	if (url.isEmpty())
 		url = std::move("qrc:/qml/main.qml"_L1);
 	#endif
+#else
+	url = std::move("qrc:/qml/main.qml"_L1);
 #endif
 
 	appQmlEngine()->load(url);

@@ -9,6 +9,7 @@
 #include "dbworkoutsorsplitstable.h"
 
 #include <QFile>
+#include <QSqlError>
 
 using namespace Qt::Literals::StringLiterals;
 
@@ -88,7 +89,7 @@ bool TPDatabaseTable::openDatabase(const bool bReadOnly)
 	if (!ok)
 	{
 		DEFINE_SOURCE_LOCATION
-		ERROR_MESSAGE("Could not open Database file: "_L1, mSqlLiteDB.databaseName())
+		ERROR_MESSAGE(mSqlLiteDB.lastError().text(), mSqlLiteDB.databaseName())
 	}
 	#endif
 	return ok;

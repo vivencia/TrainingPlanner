@@ -4,9 +4,10 @@ buildscript {
         mavenCentral()
     }
 
-    /*dependencies {
-        classpath 'com.android.tools.build:gradle:8.10'
-    }*/
+    dependencies {
+        //noinspection AndroidGradlePluginVersion
+        classpath 'com.android.tools.build:gradle:8.8.0'
+    }
 }
 
 repositories {
@@ -41,9 +42,6 @@ android {
     compileSdkVersion androidCompileSdkVersion
     buildToolsVersion androidBuildToolsVersion
     ndkVersion androidNdkVersion
-
-    // Extract native libraries from the APK
-    packagingOptions.jniLibs.useLegacyPackaging true
 
     sourceSets {
         main {

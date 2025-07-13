@@ -8,7 +8,6 @@
 
 #ifdef Q_OS_ANDROID
 #include "dbmesocyclesmodel.h"
-#include "dbmesocalendartable.h"
 #include "tpandroidnotification.h"
 
 #include <QJniObject>

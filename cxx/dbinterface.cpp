@@ -21,7 +21,10 @@ DBInterface *DBInterface::app_db_interface(nullptr);
 
 void DBInterface::init()
 {
-	QFileInfo f_info;
+	QFileInfo f_info{appUtils()->getFilePath(TPDatabaseTable::dbFilePath(1))};
+	if (!f_info.isDir())
+		appUtils()->mkdir(f_info.filePath());
+
 	for (uint i{EXERCISES_TABLE_ID}; i <= APP_TABLES_NUMBER; ++i)
 	{
 		f_info.setFile(TPDatabaseTable::dbFilePath(i));
