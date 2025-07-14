@@ -127,7 +127,8 @@ TPPage {
 					function manageComboItems(exercise_number: int): void {
 						if (cboModel.count > 0) {
 							cboModel.get(exercise_number).enabled = false;
-							cboModel.get(cboGoToExercise.current_exercise).enabled = true;
+							if (cboGoToExercise.current_exercise !== exercise_number)
+								cboModel.get(cboGoToExercise.current_exercise).enabled = true;
 							cboGoToExercise.current_exercise = exercise_number;
 							if (exercise_number === currentSplitPage.exercisesModel.exerciseCount - 1)
 								exercise_number = -1;

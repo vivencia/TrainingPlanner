@@ -5,7 +5,8 @@ import "../"
 
 Item {
 	id: control
-	implicitHeight: lblText.height
+	height: lblText.contentHeight
+	implicitHeight: height
 
 	property alias text: lblText.text
 	property alias textColor: lblText.color
@@ -19,7 +20,7 @@ Item {
 	Rectangle {
 		id: indicator
 		implicitWidth: appSettings.itemDefaultHeight * 0.8
-		implicitHeight: appSettings.itemDefaultHeight * 0.8
+		implicitHeight: implicitWidth
 		radius: 4
 		color: "transparent"
 		border.color: control.enabled ? textColor : appSettings.disabledFontColor
@@ -32,8 +33,8 @@ Item {
 		Rectangle {
 			id: recChecked
 			width: appSettings.itemDefaultHeight * 0.5
-			height: appSettings.itemDefaultHeight * 0.5
-			x: (indicator.implicitWidth - width)*0.5
+			height: width
+			x: (indicator.implicitWidth - width) * 0.5
 			y: x
 			radius: 2
 			border.color: control.enabled ? textColor : appSettings.disabledFontColor

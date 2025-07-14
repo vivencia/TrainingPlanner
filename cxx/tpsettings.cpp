@@ -17,9 +17,9 @@ enum ColorSchemes {
 	Gray
 };
 
-constexpr uint QML_PROPERTIES(25);
+const auto applyFontRatio = [] (const uint value, const qreal ratio) { return value * ratio; };
 
-TPSettings *TPSettings::app_settings(nullptr);
+TPSettings *TPSettings::app_settings{nullptr};
 
 TPSettings::TPSettings(QObject *parent) : QSettings{parent}
 {
@@ -43,7 +43,7 @@ TPSettings::TPSettings(QObject *parent) : QSettings{parent}
 	m_propertyNames.insert(ASK_CONFIRMATION_INDEX, std::move("alwaysAskConfirmation"_L1));
 	m_propertyNames.insert(WEATHER_CITIES_INDEX, std::move("weatherLocations"_L1));
 
-	m_defaultValues.reserve(QML_PROPERTIES);
+	m_defaultValues.reserve(SETTINGS_FIELD_COUNT);
 	for(uint i{APP_VERSION_INDEX}; i < SETTINGS_FIELD_COUNT; ++i)
 		m_defaultValues.append(QString{});
 
@@ -54,12 +54,13 @@ TPSettings::TPSettings(QObject *parent) : QSettings{parent}
 	m_defaultValues[ASK_CONFIRMATION_INDEX] = STR_ONE;
 
 	m_colorSchemes.reserve(7);
-	m_colorSchemes << std::move(tr("Custom(click on the regions of the rectangle on the right to change colors)")) << std::move(tr("Dark")) << std::move(tr("Light")) << std::move(tr("Blue")) <<
+	m_colorSchemes << std::move(tr("Custom(click on the regions of the rectangle on the right to change colors)")) <<
+					std::move(tr("Dark")) << std::move(tr("Light")) << std::move(tr("Blue")) <<
 					std::move(tr("Green")) << std::move(tr("Red")) << std::move(tr("Gray"));
 
 	getScreenMeasures();
 	const QFontInfo fi{QGuiApplication::font()};
-	setFontSize(value(m_propertyNames.value(FONT_SIZE_INDEX), fi.pixelSize()).toUInt(), false);
+	setFontSize(value(m_propertyNames.value(FONT_SIZE_INDEX), applyFontRatio(fi.pixelSize(), m_ratioFont)).toUInt(), false);
 	setColorScheme(value(m_propertyNames.value(COLOR_SCHEME_INDEX), 3).toUInt(), false);
 
 	//Update of config sections
@@ -78,20 +79,33 @@ void TPSettings::getScreenMeasures()
 
 	const QScreen *screen{QGuiApplication::primaryScreen()};
 	const QRect &screenGeometry{screen->availableGeometry()};
-	const uint sWidth{static_cast<uint>(screenGeometry.width())};
-	const uint sHeight{static_cast<uint>(screenGeometry.height())};
+	const uint s_width{static_cast<uint>(screenGeometry.width())};
+	const uint s_height{static_cast<uint>(screenGeometry.height())};
 #ifdef Q_OS_ANDROID
-	heightToWidthScreenRatio = static_cast<double>(sHeight)/sWidth;
-	screenWidth = std::move(QString::number(sWidth));
-	screenHeight = std::move(QString::number(sHeight));
-	qmlPageHeight = std::move(QString::number(qCeil(0.92*sHeight)));
+	heightToWidthScreenRatio = static_cast<double>(s_height)/s_width;
+	screenWidth = std::move(QString::number(s_width));
+	screenHeight = std::move(QString::number(s_height));
+	qmlPageHeight = std::move(QString::number(qCeil(0.92*s_height)));
 #else
-	heightToWidthScreenRatio = static_cast<double>(sWidth)/sHeight;
-	screenWidth = std::move(QString::number(sWidth/4));
-	screenHeight = std::move(QString::number(qCeil((sWidth/4) * heightToWidthScreenRatio)));
-	qmlPageHeight = std::move(QString::number(qCeil(0.95 * (qCeil((sWidth/4) * heightToWidthScreenRatio)))));
+	heightToWidthScreenRatio = static_cast<double>(s_width)/s_height;
+	screenWidth = std::move(QString::number(s_width/4));
+	screenHeight = std::move(QString::number(qCeil((s_width/4) * heightToWidthScreenRatio)));
+	qmlPageHeight = std::move(QString::number(qCeil(0.95 * (qCeil((s_width/4) * heightToWidthScreenRatio)))));
 #endif
 
+	constexpr qreal refDpi{100.};
+	constexpr qreal refHeight{1920.};
+	constexpr qreal refWidth{1080.};
+	const qreal dpi{screen->logicalDotsPerInch()};
+
+
+	const uint height{qMax(s_width, s_height)};
+	const uint width{qMin(s_width, s_height)};
+	m_ratioFont = qMin(static_cast<qreal>(height*refDpi)/(dpi*refHeight), static_cast<qreal>(width*refDpi)/(dpi*refWidth));
+
+	//m_ratioFont = qMin(s_height*refDpi/(dpi*refHeight), s_width*refDpi/(dpi*refWidth));
+	if (m_ratioFont < 1.5)
+		m_ratioFont = 1.5;
 	m_defaultValues[WINDOW_WIDTH_INDEX] = std::move(screenWidth);
 	m_defaultValues[WINDOW_HEIGHT_INDEX] = std::move(screenHeight);
 	m_defaultValues[PAGE_WIDTH_INDEX] = m_defaultValues.at(WINDOW_WIDTH_INDEX);
@@ -108,45 +122,23 @@ void TPSettings::setColorScheme(const uint new_value, const bool bFromQml)
 	color = std::move(colorForScheme(new_value));
 	colorLight = std::move(lightColorForScheme(new_value));
 	colorDark = std::move(darkColorForScheme(new_value));
+	paneBackColor = std::move(paneColorForScheme(new_value));
+	entrySelColor = std::move(selectedColorForScheme(new_value));
 	m_defaultValues[LISTS_COLOR_1_INDEX] = std::move("#b4ccd8"_L1);
 	m_defaultValues[LISTS_COLOR_2_INDEX] = std::move("#a0b7c1"_L1);
 
 	switch (new_value)
 	{
-		case Custom:
-		{
-			paneBackColor = std::move(m_defaultValues[PANE_COLOR_INDEX]);
-			entrySelColor = std::move(m_defaultValues[SELECTED_COLOR_INDEX]);
-		}
-		break;
 		case Dark:
-			paneBackColor = std::move("#3e3d48"_L1);
-			entrySelColor = std::move("#6c6f73"_L1);
 			disabledfntColor = std::move("e8e8e8"_L1);
 			m_defaultValues[LISTS_COLOR_1_INDEX] = std::move("#c8e3f0"_L1);
 			m_defaultValues[LISTS_COLOR_2_INDEX] = std::move("#d4f1ff"_L1);
 		break;
 		case Light:
-			paneBackColor = std::move("#ffffff"_L1);
-			entrySelColor = std::move("#e6f5ff"_L1);
 			fntColor = std::move("#1a28e7"_L1);
 			disabledfntColor = std::move("#bdcae6"_L1);
 		break;
-		case Blue:
-			paneBackColor = std::move("#1976d2"_L1);
-			entrySelColor = std::move("#6caaed"_L1);
-		break;
-		case Green:
-			paneBackColor = std::move("#60d219"_L1);
-			entrySelColor = std::move("#228b22"_L1);
-		break;
-		case Red:
-			paneBackColor = std::move("#d21a45"_L1);
-			entrySelColor = std::move("#a82844"_L1);
-		break;
 		case Gray:
-			paneBackColor = std::move("#929299"_L1);
-			entrySelColor = std::move("#65696c"_L1);
 			fntColor = std::move("000000"_L1);
 			disabledfntColor = std::move("a8a8a8"_L1);
 		break;
@@ -165,16 +157,34 @@ void TPSettings::setColorScheme(const uint new_value, const bool bFromQml)
 	emit colorChanged();
 }
 
+QString TPSettings::primaryColor() const
+{
+	return value(colorScheme() == Custom ? m_propertyNames.value(COLOR_INDEX) :
+		colorForScheme(colorScheme()), m_defaultValues.at(COLOR_INDEX)).toString();
+}
+
 void TPSettings::setPrimaryColor(const QColor &color)
 {
 	changeValue(COLOR_INDEX, color.name());
 	emit colorChanged();
 }
 
+QString TPSettings::primaryLightColor() const
+{
+	return value(colorScheme() == Custom ? m_propertyNames.value(LIGHT_COLOR_INDEX) :
+		lightColorForScheme(colorScheme()), m_defaultValues.at(LIGHT_COLOR_INDEX)).toString();
+}
+
 void TPSettings::setPrimaryLightColor(const QColor &color)
 {
 	changeValue(LIGHT_COLOR_INDEX, color.name());
 	emit colorChanged();
+}
+
+QString TPSettings::primaryDarkColor() const
+{
+	return value(colorScheme() == Custom ? m_propertyNames.value(DARK_COLOR_INDEX) :
+		darkColorForScheme(colorScheme()), m_defaultValues.at(DARK_COLOR_INDEX)).toString();
 }
 
 void TPSettings::setPrimaryDarkColor(const QColor &color)
@@ -187,6 +197,18 @@ void TPSettings::setPrimaryDarkColor(const QColor &color)
 	changeValue(FONT_COLOR_INDEX, color.lightness() <= 127 ? white.name() : black.name());
 	changeValue(DISABLED_FONT_COLOR_INDEX, color.lightness() <= 127 ? white.darker(150).name() : black.lighter(115).name());
 	emit colorChanged();
+}
+
+QString TPSettings::paneBackgroundColor() const
+{
+	return value(colorScheme() == Custom ? m_propertyNames.value(PANE_COLOR_INDEX) :
+		paneColorForScheme(colorScheme()), m_defaultValues.at(PANE_COLOR_INDEX)).toString();
+}
+
+QString TPSettings::entrySelectedColor() const
+{
+	return value(colorScheme() == Custom ? m_propertyNames.value(SELECTED_COLOR_INDEX) :
+		selectedColorForScheme(colorScheme()), m_defaultValues.at(SELECTED_COLOR_INDEX)).toString();
 }
 
 void TPSettings::setFontColor(const QColor &color)
@@ -206,12 +228,12 @@ QString TPSettings::colorForScheme(const uint scheme) const
 	switch (scheme)
 	{
 		case Custom: return value(m_propertyNames.value(COLOR_INDEX), m_defaultValues[COLOR_INDEX]).toString(); break;
-		case Dark: return std::move("#9ea6a3"_L1); break;
-		case Light: return std::move("#e6e5d6"_L1); break;
-		case Blue: return std::move("#47a0f3"_L1); break;
-		case Green: return std::move("#97dd81"_L1); break;
-		case Red: return std::move("#fd9ab1"_L1); break;
-		case Gray: return std::move("#cccccc"_L1); break;
+		case Dark: return "#9ea6a3"_L1; break;
+		case Light: return "#e6e5d6"_L1; break;
+		case Blue: return "#5c83a6"_L1; break;
+		case Green: return "#97dd81"_L1; break;
+		case Red: return "#fd9ab1"_L1; break;
+		case Gray: return "#cccccc"_L1; break;
 	}
 	return QString {};
 }
@@ -221,12 +243,12 @@ QString TPSettings::lightColorForScheme(const uint scheme) const
 	switch (scheme)
 	{
 		case Custom: return value(m_propertyNames.value(LIGHT_COLOR_INDEX), m_defaultValues[LIGHT_COLOR_INDEX]).toString(); break;
-		case Dark: return std::move("#d7e2de"_L1); break;
-		case Light: return std::move("#ffffff"_L1); break;
-		case Blue: return std::move("#bbdefb"_L1); break;
-		case Green: return std::move("#d4fdc0"_L1); break;
-		case Red: return std::move("#ebafc7"_L1); break;
-		case Gray: return std::move("#f3f3f3"_L1); break;
+		case Dark: return "#d7e2de"_L1; break;
+		case Light: return "#ffffff"_L1; break;
+		case Blue: return "#76b0e1"_L1; break;
+		case Green: return "#d4fdc0"_L1; break;
+		case Red: return "#ebafc7"_L1; break;
+		case Gray: return "#f3f3f3"_L1; break;
 	}
 	return QString {};
 }
@@ -236,12 +258,42 @@ QString TPSettings::darkColorForScheme(const uint scheme) const
 	switch (scheme)
 	{
 		case Custom: return value(m_propertyNames.value(DARK_COLOR_INDEX), m_defaultValues[DARK_COLOR_INDEX]).toString(); break;
-		case Dark: return std::move("#000000"_L1); break;
-		case Light: return std::move("#d7d7da"_L1); break;
-		case Blue: return std::move("#1976d2"_L1); break;
-		case Green: return std::move("#12a35a"_L1); break;
-		case Red: return std::move("#fd1c20"_L1); break;
-		case Gray: return std::move("#c1c1c1"_L1); break;
+		case Dark: return "#000000"_L1; break;
+		case Light: return "#d7d7da"_L1; break;
+		case Blue: return "#1e344a"_L1; break;
+		case Green: return "#12a35a"_L1; break;
+		case Red: return "#fd1c20"_L1; break;
+		case Gray: return "#c1c1c1"_L1; break;
+	}
+	return QString{};
+}
+
+QString TPSettings::paneColorForScheme(const uint scheme) const
+{
+	switch (scheme)
+	{
+		case Custom: return value(m_propertyNames.value(PANE_COLOR_INDEX), m_defaultValues[PANE_COLOR_INDEX]).toString(); break;
+		case Dark: return "#3e3d48"_L1; break;
+		case Light: return "#ffffff"_L1; break;
+		case Blue: return "#25415c"_L1; break;
+		case Green: return "#60d219"_L1; break;
+		case Red: return "#d21a45"_L1; break;
+		case Gray: return "#929299"_L1; break;
+	}
+	return QString{};
+}
+
+QString TPSettings::selectedColorForScheme(const uint scheme) const
+{
+	switch (scheme)
+	{
+		case Custom: return value(m_propertyNames.value(SELECTED_COLOR_INDEX), m_defaultValues[SELECTED_COLOR_INDEX]).toString(); break;
+		case Dark: return "#6c6f73"_L1; break;
+		case Light: return "#e6f5ff"_L1; break;
+		case Blue: return "#223c55"_L1; break;
+		case Green: return "#228b22"_L1; break;
+		case Red: return "#a82844"_L1; break;
+		case Gray: return "#65696c"_L1; break;
 	}
 	return QString{};
 }

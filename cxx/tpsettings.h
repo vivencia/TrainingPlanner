@@ -98,14 +98,14 @@ public:
 
 	void setColorScheme(const uint new_value, const bool bFromQml = true);
 	inline uint colorScheme() const { return m_defaultValues.at(COLOR_SCHEME_INDEX).toUInt(); }
-	inline QString primaryColor() const { return value(m_propertyNames.value(COLOR_INDEX), m_defaultValues.at(COLOR_INDEX)).toString(); }
+	QString primaryColor() const;
 	void setPrimaryColor(const QColor &color);
-	inline QString primaryLightColor() const { return value(m_propertyNames.value(LIGHT_COLOR_INDEX), m_defaultValues.at(LIGHT_COLOR_INDEX)).toString(); }
+	QString primaryLightColor() const;
 	void setPrimaryLightColor(const QColor &color);
-	inline QString primaryDarkColor() const { return value(m_propertyNames.value(DARK_COLOR_INDEX), m_defaultValues.at(DARK_COLOR_INDEX)).toString(); }
+	QString primaryDarkColor() const;
 	void setPrimaryDarkColor(const QColor &color);
-	inline QString paneBackgroundColor() const { return value(m_propertyNames.value(PANE_COLOR_INDEX), m_defaultValues.at(PANE_COLOR_INDEX)).toString(); }
-	inline QString entrySelectedColor() const { return value(m_propertyNames.value(SELECTED_COLOR_INDEX), m_defaultValues.at(SELECTED_COLOR_INDEX)).toString(); }
+	QString paneBackgroundColor() const;
+	QString entrySelectedColor() const;
 	inline QString listEntryColor1() const { return m_defaultValues.at(LISTS_COLOR_1_INDEX); }
 	inline QString listEntryColor2() const { return m_defaultValues.at(LISTS_COLOR_2_INDEX); }
 	inline QString fontColor() const { return value(m_propertyNames.value(FONT_COLOR_INDEX), m_defaultValues.at(FONT_COLOR_INDEX)).toString(); }
@@ -116,6 +116,8 @@ public:
 	Q_INVOKABLE QString colorForScheme(const uint scheme) const;
 	Q_INVOKABLE QString lightColorForScheme(const uint scheme) const;
 	Q_INVOKABLE QString darkColorForScheme(const uint scheme) const;
+	QString paneColorForScheme(const uint scheme) const;
+	QString selectedColorForScheme(const uint scheme) const;
 
 	void setFontSize(const uint new_value, const bool bFromQml = true);
 	inline uint fontSize() const { return m_defaultValues.at(FONT_SIZE_INDEX).toUInt(); }
@@ -158,6 +160,7 @@ private:
 	QStringList m_defaultValues;
 	QStringList m_weatherLocations;
 	QStringList m_colorSchemes;
+	qreal m_ratioFont;
 
 	inline void changeValue(const uint index, const QVariant &new_value)
 	{

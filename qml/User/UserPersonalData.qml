@@ -48,6 +48,8 @@ ColumnLayout {
 
 		property bool bTextChanged: false
 
+		onEnterOrReturnKeyPressed: passwordControl.forceActiveFocus();
+
 		onEditingFinished: {
 			if (bTextChanged && bNameOK) {
 				userModel.setUserName(userRow, text);
@@ -158,7 +160,7 @@ ColumnLayout {
 			id: chkMale
 			text: qsTr("Male")
 			actionable: userRow === 0
-			checked: userModel.sex() === 0
+			checked: userModel.sex(userRow) === 0
 			width: parent.width/2
 
 			anchors {
@@ -167,11 +169,11 @@ ColumnLayout {
 			}
 
 			onClicked: {
-				bSexOK = true;
-				if (chkFemale.checked) {
-					chkFemale.checked = false
+				if (userModel.sex(userRow) !== 0)
 					userModel.setSex(userRow, true);
-				}
+				bSexOK = true;
+				if (chkFemale.checked)
+					chkFemale.checked = false;
 			}
 		}
 
@@ -179,15 +181,15 @@ ColumnLayout {
 			id: chkFemale
 			text: qsTr("Female")
 			actionable: userRow === 0
-			checked: userModel.sex() === 1
+			checked: userModel.sex(userRow) === 1
 			width: parent.width/2
 
 			onClicked: {
-				bSexOK = true;
-				if (chkMale.checked) {
-					chkMale.checked = false;
+				if (userModel.sex(userRow) !== 1)
 					userModel.setSex(userRow, false);
-				}
+				bSexOK = true;
+				if (chkMale.checked)
+					chkMale.checked = false;
 			}
 
 			anchors {

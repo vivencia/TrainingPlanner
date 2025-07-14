@@ -13,7 +13,7 @@ TPPopup {
 	keepAbove: true
 	closeButtonVisible: false
 	width: appSettings.pageWidth - 50
-	height: appSettings.pageHeight * 0.45
+	height: appSettings.pageHeight / 2
 	x: (appSettings.pageWidth - width)/2 // horizontally centered
 	finalYPos: (appSettings.pageHeight - height)/2 // vertically centered
 
@@ -31,7 +31,6 @@ TPPopup {
 
 		UserLanguage {
 			Layout.fillWidth: true
-			Layout.fillHeight: true
 		}
 
 		UserWelcome {
@@ -41,34 +40,30 @@ TPPopup {
 
 		UserExistingFromNet {
 			Layout.fillWidth: true
-			Layout.fillHeight: true
 		}
 
 		UserPersonalData {
 			userRow: 0
 			parentPage: firstTimeDlg.parentPage
 			Layout.fillWidth: true
-			Layout.fillHeight: true
 		}
 
 		UserContact {
 			userRow: 0
 			Layout.fillWidth: true
-			Layout.fillHeight: true
 		}
 
 		UserCoach {
 			userRow: 0
 			parentPage: firstTimeDlg.parentPage
 			Layout.fillWidth: true
-			Layout.fillHeight: true
 		}
 
 		UserProfile {
 			id: usrProfile
 			userRow: 0
 			parentPage: firstTimeDlg.parentPage
-			width: firstTimeDlg.width - 20
+			Layout.fillWidth: true
 		}
 
 		UserReady {

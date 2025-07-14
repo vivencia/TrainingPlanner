@@ -9,21 +9,12 @@ import "../TPWidgets"
 import "../Dialogs"
 import "../Pages"
 
-Frame {
-	id: frmImport
-	height: moduleHeight
-	padding: 0
-	implicitHeight: Math.min(height, moduleHeight)
-
-	background: Rectangle {
-		border.color: "transparent"
-		color: "transparent"
-	}
+ColumnLayout {
+	id: importModule
+	spacing: 10
 
 	property bool bReady: false
 	property bool bImport: false
-	readonly property int nControls: 7
-	readonly property int moduleHeight: (nControls*appSettings.itemDefaultHeight) + 15
 
 	Connections {
 		target: userModel
@@ -48,6 +39,8 @@ Frame {
 		id: optNewUser
 		text: userModel.newUserLabel
 		multiLine: true
+		Layout.fillWidth: true
+		Layout.topMargin: 10
 
 		onClicked: {
 			bReady = checked;
@@ -55,33 +48,19 @@ Frame {
 			if (checked)
 				userModel.createMainUser();
 		}
-
-		anchors {
-			top: parent.top
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
 	}
 
 	TPRadioButton {
 		id: optImportUser
 		text: userModel.existingUserLabel
 		multiLine: true
+		Layout.fillWidth: true
+		Layout.topMargin: 10
 
 		onClicked: {
 			optNewUser.checked = !checked;
 			if (checked)
 				txtEmail.forceActiveFocus();
-		}
-
-		anchors {
-			top: optNewUser.bottom
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
 		}
 	}
 
@@ -89,15 +68,8 @@ Frame {
 		id: lblEmail
 		text: userModel.emailLabel
 		enabled: optImportUser.checked
-
-		anchors {
-			top: optImportUser.bottom
-			topMargin: 5
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
+		Layout.fillWidth: true
+		Layout.topMargin: 10
 	}
 
 	TPTextInput {
@@ -105,7 +77,7 @@ Frame {
 		enabled: optImportUser.checked
 		inputMethodHints: Qt.ImhLowercaseOnly|Qt.ImhEmailCharactersOnly|Qt.ImhNoAutoUppercase
 		ToolTip.text: userModel.invalidEmailLabel
-		height: controlsHeight
+		Layout.fillWidth: true
 
 		property bool inputOK: false
 
@@ -118,51 +90,26 @@ Frame {
 			inputOK = (text.length === 0 || (text.indexOf("@") !== -1 && text.indexOf(".") !== -1));
 			ToolTip.visible = !inputOK;
 		}
-
-		anchors {
-			top: lblEmail.bottom
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
 	}
 
 	TPPassword {
 		id: passwordControl
 		enabled: txtEmail.inputOK
-
-		anchors {
-			top: txtEmail.bottom
-			topMargin: 15
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
-
+		Layout.fillWidth: true
+		Layout.topMargin: 10
 		onPasswordUnacceptable: btnCheckEMail.enabled = false;
 		onPasswordAccepted: btnCheckEMail.enabled = true;
 	}
 
 	RowLayout {
-		spacing: 10
-
-		anchors {
-			top: passwordControl.bottom
-			topMargin: 10
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
+		Layout.alignment: Qt.AlignCenter
+		Layout.topMargin: 10
 
 		TPButton {
 			id: btnCheckEMail
 			text: userModel.checkEmailLabel
 			enabled: false
 			autoSize: true
-			Layout.alignment: Qt.AlignCenter
 
 			onClicked: {
 				userModel.checkUserOnline(txtEmail.text.trim(), passwordControl.getPassword());
@@ -175,7 +122,6 @@ Frame {
 			text: userModel.importUserLabel
 			enabled: bImport
 			autoSize: true
-			Layout.alignment: Qt.AlignCenter
 
 			onClicked: {
 				userModel.importFromOnlineServer();

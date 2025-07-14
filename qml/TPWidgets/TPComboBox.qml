@@ -10,9 +10,9 @@ ComboBox {
 	property bool completeModel: false
 
 	id: control
-	implicitWidth: 120
 	height: appSettings.itemDefaultHeight * 1.2
 	implicitHeight: height
+	implicitWidth: width
 	textRole: "text"
 	valueRole: "value"
 	padding: 0
@@ -31,7 +31,7 @@ ComboBox {
 		contentItem: TPLabel {
 			text: model.text
 			enabled: model.enabled
-			leftPadding: completeModel ? 30 : 5
+			leftPadding: completeModel ? appSettings.itemDefaultHeight + 5 : 5
 			singleLine: true
 
 			TPImage {
@@ -80,7 +80,7 @@ ComboBox {
 
 	contentItem: TPLabel {
 		text: control.displayText
-		leftPadding: completeModel ? 30 : 5
+		leftPadding: completeModel ? appSettings.itemDefaultHeight + 5 : 5
 		singleLine: true
 	}
 

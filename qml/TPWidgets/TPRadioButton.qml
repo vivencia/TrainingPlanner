@@ -7,15 +7,15 @@ import "../"
 
 Item {
 	id: control
-	height: lblText.height
+	height: lblText.contentHeight
 	implicitHeight: height
 
 	property alias text: lblText.text
 	property alias textColor: lblText.color
 	property alias image: img.source
 
-	property int imageHeight: 20
-	property int imageWidth: 20
+	property int imageHeight: appSettings.itemDefaultHeight
+	property int imageWidth: imageHeight
 	property bool checked
 	property bool multiLine: false
 	property bool actionable: true
@@ -62,7 +62,6 @@ Item {
 			left: img.visible ? img.right : indicator.right
 			leftMargin: 5
 			right: parent.right
-			bottom: parent.bottom
 		}
 	}
 

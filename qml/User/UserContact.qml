@@ -9,7 +9,6 @@ import "../TPWidgets"
 
 ColumnLayout {
 	id: userContactModule
-	spacing: 10
 
 	required property int userRow
 	property bool bReady: bPhoneOK & bEmailOK & bSocialOK
@@ -38,8 +37,9 @@ ColumnLayout {
 	TPPhoneNumberInput {
 		id: txtPhone
 		readOnly: userRow !== 0
-		Layout.maximumWidth: userContactModule.width * 0.85
-		Layout.minimumWidth: userContactModule.width * 0.85
+		width: userContactModule.width - 2*appSettings.itemDefaultHeight
+		Layout.maximumWidth: width
+		Layout.minimumWidth: width
 
 		onPhoneNumberOKChanged: bPhoneOK = phoneNumberOK;
 		onEditingFinished: userModel.setPhone(userRow, text);
@@ -84,6 +84,7 @@ ColumnLayout {
 		id: lblEmail
 		text: userModel.emailLabel
 		Layout.fillWidth: true
+		Layout.topMargin: 10
 	}
 
 	TPTextInput {
@@ -92,8 +93,9 @@ ColumnLayout {
 		enabled: bPhoneOK
 		readOnly: userRow !== 0
 		ToolTip.text: userModel.invalidEmailLabel
-		Layout.maximumWidth: userContactModule.width*0.85
-		Layout.minimumWidth: userContactModule.width*0.85
+		width: userContactModule.width - appSettings.itemDefaultHeight
+		Layout.maximumWidth: width
+		Layout.minimumWidth: width
 
 		onEditingFinished: userModel.setEmail(userRow, text);
 
@@ -132,6 +134,7 @@ ColumnLayout {
 		id: lblSocial
 		text: userModel.socialMediaLabel
 		Layout.fillWidth: true
+		Layout.topMargin: 10
 	}
 
 	TPComboBox {
@@ -160,8 +163,9 @@ ColumnLayout {
 		enabled: bEmailOK
 		readOnly: userRow !== 0
 		ToolTip.text: qsTr("Social media address is invalid")
-		Layout.maximumWidth: userContactModule.width*0.85
-		Layout.minimumWidth: userContactModule.width*0.85
+		width: userContactModule.width - appSettings.itemDefaultHeight
+		Layout.maximumWidth: width
+		Layout.minimumWidth: width
 
 		onEditingFinished: userModel.setSocialMedia(userRow, cboSocial.currentIndex, text);
 		onTextEdited: checkSocial()
