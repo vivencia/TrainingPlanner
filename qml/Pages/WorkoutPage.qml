@@ -169,7 +169,7 @@ TPPage {
 					id: timeLayout
 					anchors.fill: parent
 
-					TPRadioButton {
+					TPRadioButtonOrCheckBox {
 						id: optFreeTimeSession
 						text: qsTr("Open time training session")
 						checked: true
@@ -181,7 +181,7 @@ TPPage {
 						}
 					}
 
-					TPRadioButton {
+					TPRadioButtonOrCheckBox {
 						id: optTimeConstrainedSession
 						text: qsTr("Time constrained session")
 						checked: false

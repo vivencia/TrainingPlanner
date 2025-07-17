@@ -1149,13 +1149,13 @@ QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QStr
 	}
 }
 
-void TPUtils::setAppLocale(const QString &localeStr, const bool bWriteConfig)
+	void TPUtils::setAppLocale(const QString &locale_str)
 {
 	if (m_appLocale)
 		delete m_appLocale;
 
-	const QString &strLanguage{localeStr.first(2)};
-	const QString &strTerritory{localeStr.last(2)};
+	const QString &strLanguage{locale_str.first(2)};
+	const QString &strTerritory{locale_str.last(2)};
 	QLocale::Language language;
 	QLocale::Territory territory;
 
@@ -1173,10 +1173,7 @@ void TPUtils::setAppLocale(const QString &localeStr, const bool bWriteConfig)
 	else
 		territory = QLocale::UnitedStates;
 
-	m_strLocale = localeStr;
+	m_strLocale = locale_str;
 	m_appLocale = new QLocale{language, territory};
 	m_appLocale->setNumberOptions(QLocale::IncludeTrailingZeroesAfterDot);
-	if (bWriteConfig)
-		appSettings()->setAppLocale(localeStr);
 }
-

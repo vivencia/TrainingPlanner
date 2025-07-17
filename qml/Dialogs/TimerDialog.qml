@@ -46,14 +46,15 @@ TPPopup {
 		anchors.fill: parent
 		spacing: 0
 
-		TPCheckBox {
+		TPRadioButtonOrCheckBox {
 			id: chkStopWatch
 			text: qsTr("Stopwatch")
+			radio: false
 			checked: false
 			visible: !timePickerOnly
 			Layout.leftMargin: 10
 			Layout.bottomMargin: 10
-		} //TPCheckBox
+		}
 
 		GridLayout {
 			id: recStrings

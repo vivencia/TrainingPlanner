@@ -304,7 +304,12 @@ Item {
 			anchors {
 				horizontalCenter: parent.horizontalCenter
 				verticalCenter: parent.verticalCenter
-				verticalCenterOffset: mainUserPrograms ? -(appSettings.itemDefaultHeight+20) : -(appSettings.itemDefaultHeight+10)*0.5
+				verticalCenterOffset: {
+					if (Qt.platform.os !== "android")
+						return mainUserPrograms ? -(1.66 * appSettings.itemDefaultHeight) : -(2.33 * appSettings.itemDefaultHeight)
+					else
+						return 0;
+				}
 			}
 
 			onClicked: mesocyclesModel.startNewMesocycle_QML(mainUserPrograms);
@@ -320,7 +325,7 @@ Item {
 			anchors {
 				horizontalCenter: parent.horizontalCenter
 				verticalCenter: parent.verticalCenter
-				verticalCenterOffset: mainUserPrograms ? 0 : (appSettings.itemDefaultHeight+10)*0.5
+				verticalCenterOffset: mainUserPrograms ? 0 : 1.33 * appSettings.itemDefaultHeight
 			}
 
 			onClicked: itemManager.chooseFileToImport();
@@ -337,8 +342,8 @@ Item {
 
 			anchors {
 				horizontalCenter: parent.horizontalCenter
-				top: btnImportMeso.bottom
-				topMargin: 10
+				bottom: parent.bottom
+				bottomMargin: 5
 			}
 
 			onClicked: mesocyclesModel.todaysWorkout();

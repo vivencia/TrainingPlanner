@@ -21,7 +21,7 @@ Item {
         }
     }
 
-	TPRadioButton {
+	TPRadioButtonOrCheckBox {
 		id: optMesoPlan
 		text: qsTr("Use the standard exercises plan for the division ") + parentDlg.customStringProperty2 + qsTr(" of the Mesocycle")
 		checked: parentDlg.customIntProperty1 === 1
@@ -37,7 +37,7 @@ Item {
 		onClicked: parentDlg.customIntProperty1 = 1;
 	}
 
-	TPRadioButton {
+	TPRadioButtonOrCheckBox {
 		id: optPreviousDay
 		text: qsTr("Base this session off the one from the one the days in the list below")
 		checked: parentDlg.customIntProperty1 === 2
@@ -72,7 +72,7 @@ Item {
 		}
 	}
 
-	TPRadioButton {
+	TPRadioButtonOrCheckBox {
 		id: optLoadFromFile
 		text: qsTr("Import workout from file")
 		checked: parentDlg.customIntProperty1 === 3
@@ -87,7 +87,7 @@ Item {
 		onClicked: parentDlg.customIntProperty1 = 3;
 	}
 
-	TPRadioButton {
+	TPRadioButtonOrCheckBox {
 		id: optEmptySession
 		text: qsTr("Start a new session")
 		checked: parentDlg.customIntProperty1 === 4

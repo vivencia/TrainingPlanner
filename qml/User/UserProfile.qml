@@ -9,8 +9,7 @@ import "../TPWidgets"
 import "../Pages"
 
 ColumnLayout {
-	id: userModule
-	spacing: 5
+	id: profileModule
 
 	required property int userRow
 	required property TPPage parentPage
@@ -71,6 +70,7 @@ ColumnLayout {
 		id: lblUserRole
 		text: userModel.userRoleLabel
 		visible: appUseMode !== 2
+		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 0 : -5
 	}
 
 	TPComboBox {
@@ -94,6 +94,7 @@ ColumnLayout {
 	TPTextInput {
 		id: txtUserRole
 		visible: cboUserRole.currentIndex === userRoleModel.count - 1
+		heightAdjustable: false
 		readOnly: userRow !== 0
 		Layout.fillWidth: true
 
@@ -132,6 +133,7 @@ ColumnLayout {
 	TPTextInput {
 		id: txtUserGoal
 		visible: cboGoal.visible && cboGoal.currentIndex === userGoalModel.count - 1
+		heightAdjustable: false
 		readOnly: userRow !== 0
 		Layout.fillWidth: true
 
@@ -170,6 +172,7 @@ ColumnLayout {
 	TPTextInput {
 		id: txtCoachRole
 		visible: cboCoachRole.visible && cboCoachRole.currentIndex === coachRoleModel.count - 1
+		heightAdjustable: false
 		readOnly: userRow !== 0
 		Layout.fillWidth: true
 
@@ -194,6 +197,7 @@ ColumnLayout {
 		Layout.minimumHeight: side_size
 		Layout.maximumHeight: side_size
 		Layout.alignment: Qt.AlignCenter
+		Layout.topMargin: -lblAvatar.height
 
 		readonly property int side_size: appSettings.itemDefaultHeight*4
 
@@ -211,7 +215,8 @@ ColumnLayout {
 				var component = Qt.createComponent("qrc:/qml/User/AvatarsPopup.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					chooseAvatarDlg = component.createObject(parentPage, { userRow: frmUserProfile.userRow, parentPage: parentPage, callerWidget: frmUserProfile });
+					chooseAvatarDlg = component.createObject(parentPage, { userRow: profileModule.userRow,
+										parentPage: parentPage, callerWidget: profileModule });
 					chooseAvatarDlg.open();
 				}
 

@@ -31,7 +31,7 @@ ColumnLayout {
 		id: lblPhone
 		text: userModel.phoneLabel
 		Layout.fillWidth: true
-		Layout.topMargin: 10
+		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : 07
 	}
 
 	TPPhoneNumberInput {
@@ -84,12 +84,13 @@ ColumnLayout {
 		id: lblEmail
 		text: userModel.emailLabel
 		Layout.fillWidth: true
-		Layout.topMargin: 10
+		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : -5
 	}
 
 	TPTextInput {
 		id: txtEmail
 		inputMethodHints: Qt.ImhLowercaseOnly|Qt.ImhEmailCharactersOnly|Qt.ImhNoAutoUppercase
+		heightAdjustable: false
 		enabled: bPhoneOK
 		readOnly: userRow !== 0
 		ToolTip.text: userModel.invalidEmailLabel
@@ -134,7 +135,7 @@ ColumnLayout {
 		id: lblSocial
 		text: userModel.socialMediaLabel
 		Layout.fillWidth: true
-		Layout.topMargin: 10
+		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : -5
 	}
 
 	TPComboBox {
@@ -162,6 +163,7 @@ ColumnLayout {
 		id: txtSocial
 		enabled: bEmailOK
 		readOnly: userRow !== 0
+		heightAdjustable: false
 		ToolTip.text: qsTr("Social media address is invalid")
 		width: userContactModule.width - appSettings.itemDefaultHeight
 		Layout.maximumWidth: width

@@ -11,7 +11,6 @@ import "../Pages"
 
 ColumnLayout {
 	id: importModule
-	spacing: 10
 
 	property bool bReady: false
 	property bool bImport: false
@@ -35,12 +34,14 @@ ColumnLayout {
 		}
 	}
 
-	TPRadioButton {
+	Component.onCompleted: spacing = (Qt.platform.os !== "android") ? 10 : 0
+
+	TPRadioButtonOrCheckBox {
 		id: optNewUser
 		text: userModel.newUserLabel
 		multiLine: true
 		Layout.fillWidth: true
-		Layout.topMargin: 10
+		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : 0
 
 		onClicked: {
 			bReady = checked;
@@ -50,18 +51,19 @@ ColumnLayout {
 		}
 	}
 
-	TPRadioButton {
+	TPRadioButtonOrCheckBox {
 		id: optImportUser
 		text: userModel.existingUserLabel
 		multiLine: true
 		Layout.fillWidth: true
-		Layout.topMargin: 10
 
 		onClicked: {
 			optNewUser.checked = !checked;
 			if (checked)
 				txtEmail.forceActiveFocus();
 		}
+
+		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : -5
 	}
 
 	TPLabel {
@@ -69,12 +71,14 @@ ColumnLayout {
 		text: userModel.emailLabel
 		enabled: optImportUser.checked
 		Layout.fillWidth: true
-		Layout.topMargin: 10
+
+		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : 0
 	}
 
 	TPTextInput {
 		id: txtEmail
 		enabled: optImportUser.checked
+		heightAdjustable: false
 		inputMethodHints: Qt.ImhLowercaseOnly|Qt.ImhEmailCharactersOnly|Qt.ImhNoAutoUppercase
 		ToolTip.text: userModel.invalidEmailLabel
 		Layout.fillWidth: true
@@ -96,14 +100,14 @@ ColumnLayout {
 		id: passwordControl
 		enabled: txtEmail.inputOK
 		Layout.fillWidth: true
-		Layout.topMargin: 10
 		onPasswordUnacceptable: btnCheckEMail.enabled = false;
 		onPasswordAccepted: btnCheckEMail.enabled = true;
+		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : 0
 	}
 
 	RowLayout {
 		Layout.alignment: Qt.AlignCenter
-		Layout.topMargin: 10
+		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : -5
 
 		TPButton {
 			id: btnCheckEMail

@@ -7,7 +7,7 @@ import "../"
 
 Item {
 	id: control
-	height: lblText.contentHeight
+	height: lblText.contentHeight + 10
 	implicitHeight: height
 
 	property alias text: lblText.text
@@ -19,6 +19,7 @@ Item {
 	property bool checked
 	property bool multiLine: false
 	property bool actionable: true
+	property bool radio: true
 
 	signal clicked();
 	signal pressAndHold();
@@ -27,7 +28,7 @@ Item {
 		id: indicator
 		implicitWidth: appSettings.itemDefaultHeight * 0.8
 		implicitHeight: implicitWidth
-		radius: implicitWidth/2
+		radius: radio ? implicitWidth / 2 : 4
 		color: "transparent"
 		border.color: control.enabled ? textColor : appSettings.disabledFontColor
 
@@ -40,7 +41,7 @@ Item {
 			id: recChecked
 			width: appSettings.itemDefaultHeight * 0.5
 			height: width
-			radius: width * 0.5
+			radius: radio ? width * 0.5 : indicator.radius / 2
 			x: (indicator.implicitWidth - width) * 0.5
 			y: x
 			border.color: control.enabled ? textColor : appSettings.disabledFontColor
@@ -51,14 +52,11 @@ Item {
 	TPLabel {
 		id: lblText
 		wrapMode: multiLine ? Text.WordWrap : Text.NoWrap
-		topPadding: 10
-		bottomPadding: 10
-		leftPadding: 0
-		rightPadding: 0
+		padding: 0
 		visible: text.length > 0
 
 		anchors {
-			top: parent.top
+			verticalCenter: parent.verticalCenter
 			left: img.visible ? img.right : indicator.right
 			leftMargin: 5
 			right: parent.right

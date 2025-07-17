@@ -163,7 +163,7 @@ ListView {
 				height: appSettings.itemDefaultHeight
 				Layout.fillWidth: true
 
-				TPRadioButton {
+				TPRadioButtonOrCheckBox {
 					id: optCurrentExercise
 					text: qsTr("Exercise #") + "<b>" + (index + 1) + "</b>" + (delegate.nSubExercises > 1 ? qsTr(" - Giant sets") : "")
 					checked: index === exercisesModel.workingExercise
@@ -379,9 +379,10 @@ ListView {
 				Layout.leftMargin: 10
 				Layout.rightMargin: 10
 
-				TPCheckBox {
+				TPRadioButtonOrCheckBox {
 					id: chkTrackRestTime
 					text: exercisesModel.trackRestTimeLabel
+					radio: false
 					checked: exercisesModel.trackRestTime(index)
 					width: listItem.width * 0.5
 
@@ -391,9 +392,10 @@ ListView {
 					}
 				}
 
-				TPCheckBox {
+				TPRadioButtonOrCheckBox {
 					id: chkAutoRestTime
 					text: exercisesModel.autoRestTimeLabel
+					radio: false
 					checked: exercisesModel.autoRestTime(index)
 					width: listItem.width * 0.5
 

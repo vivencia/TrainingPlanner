@@ -156,7 +156,7 @@ public:
 
 	Q_INVOKABLE QString setTypeOperation(const uint settype, const bool bIncrease, QString strValue, const bool seconds = false) const;
 
-	void setAppLocale(const QString &localeStr, const bool bWriteConfig);
+	void setAppLocale(const QString &locale_str);
 	inline const QString &strLocale() const { return m_strLocale; }
 
 	inline uint splitLetterToIndex(const QString &strletter) const { return splitLetterToIndex(strletter.at(0)); }

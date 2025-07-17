@@ -13,13 +13,12 @@ TPPopup {
 	keepAbove: true
 	closeButtonVisible: false
 	width: appSettings.pageWidth - 50
-	height: appSettings.pageHeight / 2
+	height: stackLayout.currentIndex !== 6 ? appSettings.windowHeight / 2 : appSettings.windowHeight * 0.6
 	x: (appSettings.pageWidth - width)/2 // horizontally centered
 	finalYPos: (appSettings.pageHeight - height)/2 // vertically centered
 
 	StackLayout {
 		id: stackLayout
-		currentIndex: appTr.translatorOK() ? 1 : 0
 
 		anchors {
 			left: parent.left
@@ -31,6 +30,7 @@ TPPopup {
 
 		UserLanguage {
 			Layout.fillWidth: true
+			Layout.fillHeight: true
 		}
 
 		UserWelcome {
@@ -40,12 +40,14 @@ TPPopup {
 
 		UserExistingFromNet {
 			Layout.fillWidth: true
+			Layout.maximumHeight: firstTimeDlg.height
 		}
 
 		UserPersonalData {
 			userRow: 0
 			parentPage: firstTimeDlg.parentPage
 			Layout.fillWidth: true
+			Layout.maximumHeight: firstTimeDlg.height
 		}
 
 		UserContact {
@@ -70,6 +72,8 @@ TPPopup {
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 		}
+
+		Component.onCompleted: currentIndex = appSettings.appLocale.length > 0 ? 1 : 0;
 	}
 
 	Frame {

@@ -7,12 +7,14 @@ import "../TPWidgets"
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 ColumnLayout {
-	Layout.rightMargin: 10
-	Layout.leftMargin: 10
 	spacing: 20
 
 	property bool bReady: false
-	readonly property int minimumHeight: optEn.height + optBr.height + optDe.height + 2*spacing
+
+	onBReadyChanged: {
+		if (bReady)
+			appSettings.appLocale = appTr.language();
+	}
 
 	Connections {
         target: appSettings
@@ -23,16 +25,14 @@ ColumnLayout {
         }
     }
 
-	TPRadioButton {
+	TPRadioButtonOrCheckBox {
 		id: optEn
 		text: "Application Language: English"
 		image: "us"
 		multiLine: true
-		imageWidth: 60
-		imageHeight: 32
+		imageWidth: imageHeight * 2
 		checked: appSettings.appLocale === "en_US"
 		Layout.fillWidth: true
-		Layout.topMargin: availableHeight === appSettings.pageHeight ? 10 : (availableHeight - minimumHeight)/2 //When placed on a page or when placed on a dialog
 
 		onClicked: {
 			appTr.switchToLanguage("en_US");
@@ -40,13 +40,12 @@ ColumnLayout {
 		}
 	}
 
-	TPRadioButton {
+	TPRadioButtonOrCheckBox {
 		id: optBr
 		text: "Linguagem do aplicativo: Português do Brasil"
 		image: "brazil"
 		multiLine: true
-		imageWidth: 60
-		imageHeight: 32
+		imageWidth: imageHeight * 2
 		checked: appSettings.appLocale === "pt_BR"
 		Layout.fillWidth: true
 
@@ -56,13 +55,12 @@ ColumnLayout {
 		}
 	}
 
-	TPRadioButton {
+	TPRadioButtonOrCheckBox {
 		id: optDe
 		text: "Sprache des Apps: Deutsch von Deutschland"
 		image: "deutschland"
 		multiLine: true
-		imageWidth: 60
-		imageHeight: 32
+		imageWidth: imageHeight * 2
 		checked: appSettings.appLocale === "de_DE"
 		Layout.fillWidth: true
 

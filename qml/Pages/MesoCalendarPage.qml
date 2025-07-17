@@ -256,7 +256,7 @@ TPPage {
 			}
 		} //TPComboBox
 
-		TPRadioButton {
+		TPRadioButtonOrCheckBox {
 			id: optChangeOnlyThisDay
 			text: qsTr("Change only this day")
 
@@ -268,7 +268,7 @@ TPPage {
 				right: parent.right
 			}
 		}
-		TPRadioButton {
+		TPRadioButtonOrCheckBox {
 			id: optChangeAfterThisDay
 			text: qsTr("Adjust calendar from this day on")
 			multiLine: true

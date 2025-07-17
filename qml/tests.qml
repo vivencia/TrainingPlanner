@@ -12,8 +12,6 @@ import "Dialogs"
 ApplicationWindow {
 	id: testWindow
 	visible: true
-	width: 400
-	height: 300
 	title: "TraininPlanner Tests"
 
 	Rectangle {
@@ -23,7 +21,7 @@ ApplicationWindow {
 		ColumnLayout {
 			anchors.fill: parent
 
-			SetInputField {
+			/*SetInputField {
 				type: SetInputField.TimeType
 				availableWidth: testWindow.width * 0.9
 				Layout.alignment: Qt.AlignCenter
@@ -44,6 +42,21 @@ ApplicationWindow {
 				id: result
 				Layout.alignment: Qt.AlignCenter
 				Layout.minimumWidth: parent.width * 0.5
+			}*/
+
+			CalendarModel {
+				id: calModel
+				from: new Date(2000, 0, 1)
+				to: new Date(2030, 11, 31)
+
+				readonly property bool ready: true //the c++ and qml models must have the same API to avoid warnings and errors
+			}
+
+			TPDatePicker {
+				calendarModel: calModel
+				startDate: calModel.from
+				endDate: calModel.to
+				selectedDate: new Date()
 			}
 		}
 	}

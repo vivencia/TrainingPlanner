@@ -67,9 +67,10 @@ Column {
 			}
 		}
 
-		TPCheckBox {
+		TPRadioButtonOrCheckBox {
 			id: chkMultipleSelection
 			text: qsTr("Multiple selection")
+			radio: false
 			enabled: canDoMultipleSelection
 			width: parent.width*0.6
 

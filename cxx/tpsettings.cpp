@@ -97,15 +97,12 @@ void TPSettings::getScreenMeasures()
 	constexpr qreal refHeight{1920.};
 	constexpr qreal refWidth{1080.};
 	const qreal dpi{screen->logicalDotsPerInch()};
-
-
 	const uint height{qMax(s_width, s_height)};
 	const uint width{qMin(s_width, s_height)};
 	m_ratioFont = qMin(static_cast<qreal>(height*refDpi)/(dpi*refHeight), static_cast<qreal>(width*refDpi)/(dpi*refWidth));
-
-	//m_ratioFont = qMin(s_height*refDpi/(dpi*refHeight), s_width*refDpi/(dpi*refWidth));
 	if (m_ratioFont < 1.5)
 		m_ratioFont = 1.5;
+
 	m_defaultValues[WINDOW_WIDTH_INDEX] = std::move(screenWidth);
 	m_defaultValues[WINDOW_HEIGHT_INDEX] = std::move(screenHeight);
 	m_defaultValues[PAGE_WIDTH_INDEX] = m_defaultValues.at(WINDOW_WIDTH_INDEX);
@@ -116,32 +113,35 @@ void TPSettings::getScreenMeasures()
 void TPSettings::setColorScheme(const uint new_value, const bool bFromQml)
 {
 	QString colorLight, color, colorDark, paneBackColor, entrySelColor;
-	QString fntColor{std::move("#ffffff"_L1)};
-	QString disabledfntColor{std::move("#dcdcdc"_L1)};
 
+	m_defaultValues[LISTS_COLOR_1_INDEX] = std::move("#b4ccd8"_L1);
+	m_defaultValues[LISTS_COLOR_2_INDEX] = std::move("#a0b7c1"_L1);
 	color = std::move(colorForScheme(new_value));
 	colorLight = std::move(lightColorForScheme(new_value));
 	colorDark = std::move(darkColorForScheme(new_value));
 	paneBackColor = std::move(paneColorForScheme(new_value));
 	entrySelColor = std::move(selectedColorForScheme(new_value));
-	m_defaultValues[LISTS_COLOR_1_INDEX] = std::move("#b4ccd8"_L1);
-	m_defaultValues[LISTS_COLOR_2_INDEX] = std::move("#a0b7c1"_L1);
 
 	switch (new_value)
 	{
+		case Custom:
+		break;
 		case Dark:
-			disabledfntColor = std::move("e8e8e8"_L1);
+			setDisabledFontColor("e8e8e8"_L1);
 			m_defaultValues[LISTS_COLOR_1_INDEX] = std::move("#c8e3f0"_L1);
 			m_defaultValues[LISTS_COLOR_2_INDEX] = std::move("#d4f1ff"_L1);
 		break;
 		case Light:
-			fntColor = std::move("#1a28e7"_L1);
-			disabledfntColor = std::move("#bdcae6"_L1);
+			setFontColor("#1a28e7"_L1);
+			setDisabledFontColor("#bdcae6"_L1);
 		break;
 		case Gray:
-			fntColor = std::move("000000"_L1);
-			disabledfntColor = std::move("a8a8a8"_L1);
+			setFontColor("000000"_L1);
+			setDisabledFontColor("a8a8a8"_L1);
 		break;
+		default:
+			setFontColor("#ffffff"_L1);
+			setDisabledFontColor("#dcdcdc"_L1);
 	}
 
 	m_defaultValues[COLOR_SCHEME_INDEX] = std::move(QString::number(new_value));
@@ -150,8 +150,6 @@ void TPSettings::setColorScheme(const uint new_value, const bool bFromQml)
 	m_defaultValues[DARK_COLOR_INDEX] = std::move(colorDark);
 	m_defaultValues[PANE_COLOR_INDEX] = std::move(paneBackColor);
 	m_defaultValues[SELECTED_COLOR_INDEX] = std::move(entrySelColor);
-	m_defaultValues[FONT_COLOR_INDEX] = std::move(fntColor);
-	m_defaultValues[DISABLED_FONT_COLOR_INDEX] = std::move(disabledfntColor);
 
 	changeValue(COLOR_SCHEME_INDEX, new_value);
 	emit colorChanged();
@@ -159,8 +157,7 @@ void TPSettings::setColorScheme(const uint new_value, const bool bFromQml)
 
 QString TPSettings::primaryColor() const
 {
-	return value(colorScheme() == Custom ? m_propertyNames.value(COLOR_INDEX) :
-		colorForScheme(colorScheme()), m_defaultValues.at(COLOR_INDEX)).toString();
+	return colorScheme() == Custom ? value(m_propertyNames.value(COLOR_INDEX)).toString() : colorForScheme(colorScheme());
 }
 
 void TPSettings::setPrimaryColor(const QColor &color)
@@ -171,8 +168,7 @@ void TPSettings::setPrimaryColor(const QColor &color)
 
 QString TPSettings::primaryLightColor() const
 {
-	return value(colorScheme() == Custom ? m_propertyNames.value(LIGHT_COLOR_INDEX) :
-		lightColorForScheme(colorScheme()), m_defaultValues.at(LIGHT_COLOR_INDEX)).toString();
+	return colorScheme() == Custom ? value(m_propertyNames.value(LIGHT_COLOR_INDEX)).toString() : lightColorForScheme(colorScheme());
 }
 
 void TPSettings::setPrimaryLightColor(const QColor &color)
@@ -183,8 +179,7 @@ void TPSettings::setPrimaryLightColor(const QColor &color)
 
 QString TPSettings::primaryDarkColor() const
 {
-	return value(colorScheme() == Custom ? m_propertyNames.value(DARK_COLOR_INDEX) :
-		darkColorForScheme(colorScheme()), m_defaultValues.at(DARK_COLOR_INDEX)).toString();
+	return colorScheme() == Custom ? value(m_propertyNames.value(DARK_COLOR_INDEX)).toString() : darkColorForScheme(colorScheme());
 }
 
 void TPSettings::setPrimaryDarkColor(const QColor &color)
@@ -201,14 +196,12 @@ void TPSettings::setPrimaryDarkColor(const QColor &color)
 
 QString TPSettings::paneBackgroundColor() const
 {
-	return value(colorScheme() == Custom ? m_propertyNames.value(PANE_COLOR_INDEX) :
-		paneColorForScheme(colorScheme()), m_defaultValues.at(PANE_COLOR_INDEX)).toString();
+	return colorScheme() == Custom ? value(m_propertyNames.value(PANE_COLOR_INDEX)).toString() : paneColorForScheme(colorScheme());
 }
 
 QString TPSettings::entrySelectedColor() const
 {
-	return value(colorScheme() == Custom ? m_propertyNames.value(SELECTED_COLOR_INDEX) :
-		selectedColorForScheme(colorScheme()), m_defaultValues.at(SELECTED_COLOR_INDEX)).toString();
+	return colorScheme() == Custom ? value(m_propertyNames.value(SELECTED_COLOR_INDEX)).toString() : selectedColorForScheme(colorScheme());
 }
 
 void TPSettings::setFontColor(const QColor &color)
@@ -228,11 +221,11 @@ QString TPSettings::colorForScheme(const uint scheme) const
 	switch (scheme)
 	{
 		case Custom: return value(m_propertyNames.value(COLOR_INDEX), m_defaultValues[COLOR_INDEX]).toString(); break;
-		case Dark: return "#9ea6a3"_L1; break;
-		case Light: return "#e6e5d6"_L1; break;
+		case Dark: return "#5d615f"_L1; break;
+		case Light: return "#b8bec1"_L1; break;
 		case Blue: return "#5c83a6"_L1; break;
-		case Green: return "#97dd81"_L1; break;
-		case Red: return "#fd9ab1"_L1; break;
+		case Green: return "#698c5e"_L1; break;
+		case Red: return "#cc695f"_L1; break;
 		case Gray: return "#cccccc"_L1; break;
 	}
 	return QString {};
@@ -243,11 +236,11 @@ QString TPSettings::lightColorForScheme(const uint scheme) const
 	switch (scheme)
 	{
 		case Custom: return value(m_propertyNames.value(LIGHT_COLOR_INDEX), m_defaultValues[LIGHT_COLOR_INDEX]).toString(); break;
-		case Dark: return "#d7e2de"_L1; break;
-		case Light: return "#ffffff"_L1; break;
+		case Dark: return "#959595"_L1; break;
+		case Light: return "#b1acac"_L1; break;
 		case Blue: return "#76b0e1"_L1; break;
-		case Green: return "#d4fdc0"_L1; break;
-		case Red: return "#ebafc7"_L1; break;
+		case Green: return "#82a572"_L1; break;
+		case Red: return "#df7460"_L1; break;
 		case Gray: return "#f3f3f3"_L1; break;
 	}
 	return QString {};
@@ -259,10 +252,10 @@ QString TPSettings::darkColorForScheme(const uint scheme) const
 	{
 		case Custom: return value(m_propertyNames.value(DARK_COLOR_INDEX), m_defaultValues[DARK_COLOR_INDEX]).toString(); break;
 		case Dark: return "#000000"_L1; break;
-		case Light: return "#d7d7da"_L1; break;
+		case Light: return "#e9e9ea"_L1; break;
 		case Blue: return "#1e344a"_L1; break;
-		case Green: return "#12a35a"_L1; break;
-		case Red: return "#fd1c20"_L1; break;
+		case Green: return "#2a6949"_L1; break;
+		case Red: return "#e34c3f"_L1; break;
 		case Gray: return "#c1c1c1"_L1; break;
 	}
 	return QString{};
@@ -273,11 +266,11 @@ QString TPSettings::paneColorForScheme(const uint scheme) const
 	switch (scheme)
 	{
 		case Custom: return value(m_propertyNames.value(PANE_COLOR_INDEX), m_defaultValues[PANE_COLOR_INDEX]).toString(); break;
-		case Dark: return "#3e3d48"_L1; break;
-		case Light: return "#ffffff"_L1; break;
+		case Dark: return "#000000"_L1; break;
+		case Light: return "#535354"_L1; break;
 		case Blue: return "#25415c"_L1; break;
-		case Green: return "#60d219"_L1; break;
-		case Red: return "#d21a45"_L1; break;
+		case Green: return "#34835b"_L1; break;
+		case Red: return "#ff7064"_L1; break;
 		case Gray: return "#929299"_L1; break;
 	}
 	return QString{};
@@ -289,10 +282,10 @@ QString TPSettings::selectedColorForScheme(const uint scheme) const
 	{
 		case Custom: return value(m_propertyNames.value(SELECTED_COLOR_INDEX), m_defaultValues[SELECTED_COLOR_INDEX]).toString(); break;
 		case Dark: return "#6c6f73"_L1; break;
-		case Light: return "#e6f5ff"_L1; break;
+		case Light: return "#5d5d5e"_L1; break;
 		case Blue: return "#223c55"_L1; break;
-		case Green: return "#228b22"_L1; break;
-		case Red: return "#a82844"_L1; break;
+		case Green: return "#307954"_L1; break;
+		case Red: return "#ff5b4d"_L1; break;
 		case Gray: return "#65696c"_L1; break;
 	}
 	return QString{};

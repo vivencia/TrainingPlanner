@@ -47,9 +47,10 @@ Item {
 		}
 	}
 
-	TPCheckBox {
+	TPRadioButtonOrCheckBox {
 		id: checkbox
 		text: parentDlg.customStringProperty2
+		radio: false
 		checked: false
 
 		anchors {
@@ -61,5 +62,5 @@ Item {
 		}
 
 		onCheckedChanged: parentDlg.customBoolProperty1 = checked;
-	} //TPCheckBox
+	}
 } // ColumnLayout

@@ -106,8 +106,9 @@ TPPopup {
 				id: groupsRepeater
 				model: groupsModel
 
-				delegate: TPCheckBox {
+				delegate: TPRadioButtonOrCheckBox {
 					text: qsTr(model.display)
+					radio: false
 					checked: model.selected
 					width: itemsLayout.width
 					Layout.fillWidth: true

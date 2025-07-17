@@ -4,9 +4,10 @@ import QtQuick.Layouts
 
 import "../"
 
-TPCheckBox {
+TPRadioButtonOrCheckBox {
 	id: chkPreserveOldCalendar
 	text: qsTr("Preserve previous calendar information?")
+	radio: false
 	multiLine: true
 	checked: false
 

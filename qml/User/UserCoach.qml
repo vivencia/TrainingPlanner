@@ -12,7 +12,6 @@ import "../Pages"
 
 ColumnLayout {
 	id: userCoachModule
-	spacing: 30
 
 	required property int userRow
 	required property TPPage parentPage
@@ -33,15 +32,18 @@ ColumnLayout {
 	}
 
 	onUserRowChanged: getUserInfo();
-	Component.onCompleted: getUserInfo();
+	Component.onCompleted: {
+		Layout.spacing = (Qt.platform.os !== "android") ? 30 : 10
+		getUserInfo();
+	}
 
-	TPRadioButton {
+	TPRadioButtonOrCheckBox {
 		id: optPersonalUse
 		text: qsTr("I will use this application to track my own workouts only")
 		multiLine: true
 		actionable: userRow === 0
 		Layout.fillWidth: true
-		Layout.topMargin: 30
+		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 30 : 10
 
 		onClicked: {
 			bReady = checked;
@@ -51,7 +53,7 @@ ColumnLayout {
 		}
 	}
 
-	TPRadioButton {
+	TPRadioButtonOrCheckBox {
 		id: optCoachUse
 		text: qsTr("I will use this application to track my own workouts and/or coach or train other people")
 		multiLine: true
@@ -71,9 +73,10 @@ ColumnLayout {
 		visible: userModel.mainUserConfigured && optCoachUse.checked && userRow === 0
 		Layout.fillWidth: true
 
-		TPCheckBox {
+		TPRadioButtonOrCheckBox {
 			id: chkOnlineCoach
 			text: qsTr("Make myself available online for TP users to contact me")
+			radio: false
 			checked: userModel.isCoachRegistered();
 			multiLine: true
 			actionable: userRow === 0
@@ -157,9 +160,10 @@ ColumnLayout {
 		onLoaded: item.open();
 	}
 
-	TPCheckBox {
+	TPRadioButtonOrCheckBox {
 		id: chkHaveCoach
 		text: qsTr("I have a coach or a personal trainer")
+		radio: false
 		multiLine: true
 		actionable: userRow === 0
 		Layout.fillWidth: true

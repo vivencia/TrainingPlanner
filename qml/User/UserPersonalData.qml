@@ -36,15 +36,15 @@ ColumnLayout {
 		id: lblName
 		text: userModel.nameLabel
 		Layout.fillWidth: true
-		Layout.topMargin: 10
+		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : 0
 	}
 
 	TPTextInput {
 		id: txtName
 		readOnly: userRow !== 0
+		heightAdjustable: false
 		ToolTip.text: qsTr("The name is too short")
-		Layout.minimumWidth: parent.width*0.9
-		Layout.maximumWidth: parent.width*0.9
+		Layout.preferredWidth: parent.width*0.9
 
 		property bool bTextChanged: false
 
@@ -87,7 +87,7 @@ ColumnLayout {
 		enabled: bNameOK
 		visible: userRow === 0 && !userModel.mainUserConfigured
 		Layout.fillWidth: true
-		Layout.topMargin: 10
+		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : -5
 
 		onPasswordUnacceptable: bPasswordOK = false;
 		onPasswordAccepted: {
@@ -111,6 +111,7 @@ ColumnLayout {
 		id: lblBirthdate
 		text: userModel.birthdayLabel
 		Layout.fillWidth: true
+		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : -5
 	}
 
 	TPTextInput {
@@ -154,9 +155,9 @@ ColumnLayout {
 	Item {
 		height: appSettings.itemDefaultHeight
 		Layout.fillWidth: true
-		Layout.topMargin: 10
+		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : -5
 
-		TPRadioButton {
+		TPRadioButtonOrCheckBox {
 			id: chkMale
 			text: qsTr("Male")
 			actionable: userRow === 0
@@ -177,7 +178,7 @@ ColumnLayout {
 			}
 		}
 
-		TPRadioButton {
+		TPRadioButtonOrCheckBox {
 			id: chkFemale
 			text: qsTr("Female")
 			actionable: userRow === 0

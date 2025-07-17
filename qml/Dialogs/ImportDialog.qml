@@ -77,9 +77,10 @@ TPPopup {
 			id: repeater
 			model: importOptions
 
-			TPCheckBox {
+			TPRadioButtonOrCheckBox {
 				id: chkImportField
 				text: modelData
+				radio: false
 				checked: selectedFields[index]
 				width: parent.width
 				visible: modelData.length > 0

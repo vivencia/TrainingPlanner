@@ -68,11 +68,12 @@ TPPopup {
 					padding: 0
 					enabled: !userModel.availableCoaches.isUserDefault(index)
 
-					TPCheckBox {
+					TPRadioButtonOrCheckBox {
 						text: display
-						width: itemsLayout.width*0.65
+						radio: false
 						multiLine: true
 						checked: selected
+						width: itemsLayout.width * 0.65
 
 						onClicked: {
 							selected = checked;

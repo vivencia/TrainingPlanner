@@ -73,9 +73,10 @@ TPPage {
 
 //------------------------------------------------------APP BEHAVIOUR------------------------------------------------------
 
-			TPCheckBox {
+			TPRadioButtonOrCheckBox {
 				id: chkAskConfirmation
 				text: qsTr("Always ask the user confirmation before starting any - potencially destructive - action")
+				radio: false
 				checked: appSettings.alwaysAskConfirmation
 				Layout.fillWidth: true
 				Layout.leftMargin: 10
@@ -188,7 +189,7 @@ TPPage {
 				Layout.alignment: Qt.AlignCenter
 			}
 
-			TPRadioButton {
+			TPRadioButtonOrCheckBox {
 				text: "Material"
 				checked: appSettings.themeStyle === text;
 				Layout.fillWidth: true
@@ -200,7 +201,7 @@ TPPage {
 				}
 			}
 
-			TPRadioButton {
+			TPRadioButtonOrCheckBox {
 				text: "Basic"
 				checked: appSettings.themeStyle === text;
 				Layout.fillWidth: true
@@ -212,7 +213,7 @@ TPPage {
 				}
 			}
 
-			TPRadioButton {
+			TPRadioButtonOrCheckBox {
 				text: "Fusion"
 				checked: appSettings.themeStyle === text;
 				Layout.fillWidth: true
@@ -224,7 +225,7 @@ TPPage {
 				}
 			}
 
-			TPRadioButton {
+			TPRadioButtonOrCheckBox {
 				text: "Imagine"
 				checked: appSettings.themeStyle === text;
 				Layout.fillWidth: true
@@ -236,7 +237,7 @@ TPPage {
 				}
 			}
 
-			TPRadioButton {
+			TPRadioButtonOrCheckBox {
 				text: "Universal"
 				checked: appSettings.themeStyle === text;
 				Layout.fillWidth: true
@@ -277,7 +278,7 @@ TPPage {
 
 					required property int index
 
-					TPRadioButton {
+					TPRadioButtonOrCheckBox {
 						text: appSettings.colorSchemes[index]
 						checked: appSettings.colorScheme === index
 						multiLine: index === 0
