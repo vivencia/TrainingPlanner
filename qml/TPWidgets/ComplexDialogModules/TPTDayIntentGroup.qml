@@ -4,9 +4,8 @@ import QtQuick.Layouts
 
 import "../"
 
-Item {
-	height: optMesoPlan.height + optPreviousDay.height + cboPreviousTDaysDates.height + optLoadFromFile.height + optEmptySession.height
-
+ColumnLayout {
+	Layout.fillWidth: true
 	required property TPComplexDialog parentDlg
 
 	Component.onCompleted: parentDlg.customIntProperty1 = 4;
@@ -27,12 +26,7 @@ Item {
 		checked: parentDlg.customIntProperty1 === 1
 		multiLine: true
 		enabled: parentDlg.customBoolProperty1	//bHasMesoPlan
-
-		anchors {
-			left: parent.left
-			right: parent.right
-			top: parent.top
-		}
+		Layout.fillWidth: true
 
 		onClicked: parentDlg.customIntProperty1 = 1;
 	}
@@ -43,12 +37,7 @@ Item {
 		checked: parentDlg.customIntProperty1 === 2
 		multiLine: true
 		enabled: parentDlg.customBoolProperty2	//bHasPreviousTDays
-
-		anchors {
-			left: parent.left
-			right: parent.right
-			top: optMesoPlan.bottom
-		}
+		Layout.fillWidth: true
 
 		onClicked: parentDlg.customIntProperty1 = 2;
 	}
@@ -59,11 +48,7 @@ Item {
 		currentIndex: parentDlg.cboModel.count > 0 ? 0 : -1
 		enabled: optPreviousDay.checked
 		width: parent.width * 0.7
-
-		anchors {
-			horizontalCenter: parent.horizontalCenter
-			top: optPreviousDay.bottom
-		}
+		Layout.alignment: Qt.AlignCenter
 
 		onActivated: (index) => parentDlg.customStringProperty1 = currentText;
 		onEnabledChanged: {
@@ -77,12 +62,7 @@ Item {
 		text: qsTr("Import workout from file")
 		checked: parentDlg.customIntProperty1 === 3
 		enabled: parentDlg.customBoolProperty3	//noExercises
-
-		anchors {
-			left: parent.left
-			right: parent.right
-			top: cboPreviousTDaysDates.bottom
-		}
+		Layout.fillWidth: true
 
 		onClicked: parentDlg.customIntProperty1 = 3;
 	}
@@ -91,12 +71,7 @@ Item {
 		id: optEmptySession
 		text: qsTr("Start a new session")
 		checked: parentDlg.customIntProperty1 === 4
-
-		anchors {
-			left: parent.left
-			right: parent.right
-			top: optLoadFromFile.bottom
-		}
+		Layout.fillWidth: true
 
 		onClicked: parentDlg.customIntProperty1 = 4;
 	}

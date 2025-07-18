@@ -611,10 +611,10 @@ void QmlItemManager::exportSlot(const QString &filePath)
 	m_exportFilename.clear();
 }
 
-void QmlItemManager::importSlot_FileChosen(const QString &filePath, const int fileType)
+void QmlItemManager::importSlot_FileChosen(const QString &filePath, const int content_type)
 {
 	if (!filePath.isEmpty())
-		openRequestedFile(filePath, fileType);
+		openRequestedFile(filePath, content_type);
 	else
 		displayMessageOnAppWindow(APPWINDOW_MSG_IMPORT_CANCELED);
 }

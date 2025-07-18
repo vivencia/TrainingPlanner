@@ -81,7 +81,8 @@ int TPUtils::getFileType(const QString &filename) const
 	#else
 		if (filename.endsWith(".mp4"_L1) || filename.endsWith(".mkv"_L1) || filename.endsWith(".mov"_L1))
 			return 1;
-		else return (filename.endsWith(".png"_L1) || filename.endsWith(".jpg"_L1)) ? 0 : -1;
+		else
+			return (filename.endsWith(".png"_L1) || filename.endsWith(".jpg"_L1)) ? 0 : -1;
 	#endif
 }
 

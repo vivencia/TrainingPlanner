@@ -286,7 +286,7 @@ Item {
 
 	TPToolBar {
 		id: quickActionToolbar
-		height: parent.height*0.2
+		height: parent.height * (Qt.platform.os !== "android" ? 0.2 : 0.25)
 
 		anchors {
 			left: parent.left
@@ -304,12 +304,7 @@ Item {
 			anchors {
 				horizontalCenter: parent.horizontalCenter
 				verticalCenter: parent.verticalCenter
-				verticalCenterOffset: {
-					if (Qt.platform.os !== "android")
-						return mainUserPrograms ? -(1.66 * appSettings.itemDefaultHeight) : -(2.33 * appSettings.itemDefaultHeight)
-					else
-						return 0;
-				}
+				verticalCenterOffset: mainUserPrograms ? -(1.66 * appSettings.itemDefaultHeight) : -(1.33 * appSettings.itemDefaultHeight)
 			}
 
 			onClicked: mesocyclesModel.startNewMesocycle_QML(mainUserPrograms);

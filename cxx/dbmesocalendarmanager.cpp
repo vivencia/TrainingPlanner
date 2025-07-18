@@ -333,7 +333,7 @@ QTime DBMesoCalendarManager::timeOut(const uint meso_idx, const uint calendar_da
 
 void DBMesoCalendarManager::setTimeOut(const uint meso_idx, const uint calendar_day, const QTime &new_timeout)
 {
-	setDayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_TIMEIN, appUtils()->formatTime(new_timeout, TPUtils::TF_QML_DISPLAY_NO_SEC));
+	setDayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_TIMEOUT, appUtils()->formatTime(new_timeout, TPUtils::TF_QML_DISPLAY_NO_SEC));
 }
 
 QString DBMesoCalendarManager::location(const uint meso_idx, const uint calendar_day) const

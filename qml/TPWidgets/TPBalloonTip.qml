@@ -66,8 +66,8 @@ TPPopup {
 		source: imageSource
 		visible: imageSource.length > 0
 		enabled: imageEnabled
-		width: 50
-		height: 50
+		width: appSettings.itemDefaultHeight * 2
+		height: width
 
 		anchors {
 			topMargin: 10
@@ -112,7 +112,6 @@ TPPopup {
 
 	RowLayout {
 		spacing: 0
-		z: 2
 
 		anchors {
 			left: parent.left
@@ -129,7 +128,6 @@ TPPopup {
 			flat: false
 			autoSize: true
 			visible: button1Text.length > 0
-			z: 2
 			Layout.alignment: Qt.AlignCenter
 
 			onClicked: {
@@ -144,7 +142,6 @@ TPPopup {
 			flat: false
 			autoSize: true
 			visible: button2Text.length > 0
-			z: 2
 			Layout.alignment: Qt.AlignCenter
 			Layout.maximumWidth: availableWidth - btn1.width - 10
 
@@ -154,7 +151,6 @@ TPPopup {
 			}
 		}
 	}
-
 
 	SequentialAnimation {
 		loops: Animation.Infinite
@@ -235,11 +231,11 @@ TPPopup {
 	function show(ypos: int): void {
 		let new_height = 0;
 		if (title.length > 0)
-			new_height = lblTitle.contentHeight + 5
+			new_height = lblTitle.height + 5
 		if (imageSource.length > 0)
-			new_height += Math.max(imgElement.height, lblMessage.contentHeight) + 10
+			new_height += Math.max(imgElement.height, lblMessage.height) + 10
 		else
-			new_height += lblMessage.contentHeight + 10;
+			new_height += lblMessage.height + 10;
 		if (button1Text.length > 0)
 			new_height += btn1.height + 10;
 		balloon.height = new_height;

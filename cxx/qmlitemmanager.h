@@ -54,7 +54,7 @@ public slots:
 	void displayMessageOnAppWindow(const int message_id, const QString &fileName = QString{},
 						const QString &image_source = QString{}, const uint msecs = 5000) const;
 	void exportSlot(const QString &filePath = QString{});
-	void importSlot_FileChosen(const QString &filePath = QString{}, const int fileType = -1);
+	void importSlot_FileChosen(const QString &filePath = QString{}, const int content_type = -1);
 	inline void qmlPasswordDialogClosed_slot(int resultCode, const QString &password) { emit qmlPasswordDialogClosed(resultCode, password); }
 
 private:

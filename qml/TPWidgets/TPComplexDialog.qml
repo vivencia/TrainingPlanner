@@ -7,7 +7,7 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPopup {
 	id: dialog
-	modal: true
+	keepAbove: true
 	width: appSettings.pageWidth * 0.9
 
 	property string title: ""

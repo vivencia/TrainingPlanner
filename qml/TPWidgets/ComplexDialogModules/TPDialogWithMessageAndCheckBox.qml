@@ -6,26 +6,14 @@ import "../"
 import "../.."
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
-Item {
-	id: mainLayout
-	height: row.height + checkbox.implicitHeight + 10
-
+ColumnLayout {
+	Layout.fillWidth: true
 	required property TPComplexDialog parentDlg
 
-	Component.onCompleted: parentDlg.dialogOpened.connect(function() {
-		mainLayout.height = row.height + checkbox.implicitHeight + 30
-	});
-
 	RowLayout {
-		id: row
 		spacing: 5
+		Layout.fillWidth: true
 		height: Math.max(lblMessage.height, imgElement.height)
-
-		anchors {
-			top: parent.top
-			left: parent.left
-			right: parent.right
-		}
 
 		TPImage {
 			id: imgElement
@@ -52,14 +40,7 @@ Item {
 		text: parentDlg.customStringProperty2
 		radio: false
 		checked: false
-
-		anchors {
-			top: row.bottom
-			topMargin: 5
-			left: parent.left
-			leftMargin: 10
-			right: parent.right
-		}
+		Layout.fillWidth: true
 
 		onCheckedChanged: parentDlg.customBoolProperty1 = checked;
 	}

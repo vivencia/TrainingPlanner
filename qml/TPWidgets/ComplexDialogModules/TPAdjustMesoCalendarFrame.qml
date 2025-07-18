@@ -9,7 +9,7 @@ TPRadioButtonOrCheckBox {
 	text: qsTr("Preserve previous calendar information?")
 	radio: false
 	multiLine: true
-	checked: false
+	Layout.fillWidth: true
 
 	required property TPComplexDialog parentDlg
 

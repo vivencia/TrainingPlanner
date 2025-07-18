@@ -362,7 +362,7 @@ void QmlWorkoutInterface::importWorkout(const QString &filename)
 	if (filename.isEmpty())
 	{
 		appMesoModel()->setImportIdx(m_mesoIdx);
-		QMetaObject::invokeMethod(appMainWindow(), "chooseFileToImport");
+		QMetaObject::invokeMethod(appMainWindow(), "chooseFileToImport", Q_ARG(int, IFC_WORKOUT));
 	}
 	else
 		appItemManager()->openRequestedFile(filename, IFC_WORKOUT);

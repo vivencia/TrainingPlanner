@@ -10,7 +10,7 @@ FileDialog {
 	currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
 	fileMode: FileDialog.OpenFile
 
-	property int fileType
-	onAccepted: mainwindow.openFileChosen(appUtils.getCorrectPath(currentFile), fileType);
+	property int contentType
+	onAccepted: mainwindow.openFileChosen(appUtils.getCorrectPath(currentFile), contentType);
 	onRejected: mainwindow.openFileRejected("");
 }

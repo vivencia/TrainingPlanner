@@ -23,7 +23,7 @@ ApplicationWindow {
 
 	signal saveFileChosen(filepath: string);
 	signal saveFileRejected(filepath: string);
-	signal openFileChosen(filepath: string, filetype: int);
+	signal openFileChosen(filepath: string, content_type: int);
 	signal openFileRejected(filepath: string);
 	signal passwordDialogClosed(resultCode: int, password: string);
 	signal removeNoLongerAvailableUser(row: int, remove: bool);
@@ -161,13 +161,13 @@ ApplicationWindow {
 	}
 
 	property TPImportDialog importOpenDialog: null
-	function chooseFileToImport(filetype: int): void {
+	function chooseFileToImport(content_type: int): void {
 		if (importOpenDialog === null) {
 			function createImportDialog() {
 				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPImportDialog.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					importOpenDialog = component.createObject(contentItem, {fileType: filetype});
+					importOpenDialog = component.createObject(contentItem, {contentType: content_type});
 				}
 
 				if (component.status === Component.Ready)

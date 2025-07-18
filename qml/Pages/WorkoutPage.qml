@@ -127,6 +127,7 @@ TPPage {
 					id: cboSplitLetter
 					model: AppGlobals.splitModel
 					enabled: workoutManager.timerActive ? false : !workoutManager.dayIsFinished
+					width: appSettings.pageWidth * 0.2
 					onActivated: (index) => workoutManager.changeSplitLetter(valueAt(index));
 				} //TPComboBox
 			}
@@ -649,7 +650,7 @@ TPPage {
 		function finishCreation() {
 			if (!intentDlg) {
 				intentDlg = component.createObject(workoutPage, { parentPage: workoutPage, title: qsTr("What do you want to do today?"),
-					button1Text: qsTr("Proceed"), customItemSource:"TPTDayIntentGroup.qml" });
+					button1Text: qsTr("Proceed"), button2Text: "", customItemSource:"TPTDayIntentGroup.qml" });
 				intentDlg.button1Clicked.connect(intentChosen);
 			}
 			showIntentionDialog();

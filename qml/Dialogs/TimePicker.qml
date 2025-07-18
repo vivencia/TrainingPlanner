@@ -9,14 +9,22 @@ import "../TPWidgets"
 TPPopup {
 	id: timePicker
 	keepAbove: true
-	width: appSettings.pageWidth * 0.78
-	height: appSettings.pageHeight * 0.60
+	width: appSettings.pageWidth * 0.6
+	height: appSettings.pageHeight * 0.5
 	x: (appSettings.pageWidth - width) / 2
 	finalYPos: (appSettings.pageHeight - height) / 2
-	topPadding: 0
-	leftPadding: 0
-	rightPadding: 0
+	padding: 0
 
+	property int outerButtonIndex: 0
+	property int innerButtonIndex: -1
+	property bool bOnlyFutureTime: false
+	property bool pickMinutes: false
+	property bool useWorkTimes: true
+	property bool onlyQuartersAllowed: false
+	property bool autoSwapToMinutes: true
+
+	property string hrsDisplay: "24"
+	property string minutesDisplay: "00"
 	property bool  modified: false
 	property int timeButtonsPaneSize: timePicker.width
 	property int innerButtonsPaneSize: timeButtonsPaneSize - 50
@@ -58,18 +66,6 @@ TPPopup {
 		{"c1":"11","c2":"23","d":"11","n":"23","m":"55","q":false}
 	]
 
-	// set these properties before start
-	property int outerButtonIndex: 0
-	property int innerButtonIndex: -1
-	property bool bOnlyFutureTime: false
-	property bool pickMinutes: false
-	property bool useWorkTimes: true
-	property bool onlyQuartersAllowed: false
-	property bool autoSwapToMinutes: true
-
-	property string hrsDisplay: "24"
-	property string minutesDisplay: "00"
-
 	signal timeSet(string hour, string minutes)
 
 	// opening TimePicker with a given HH:MM value
@@ -80,7 +76,18 @@ TPPopup {
 		if (s.length === 2) {
 			const hours = s[0];
 			let minutes = s[1];
-			minutes = minutes - onlyQuartersAllowed ? minutes%15 : minutes%5;
+			if (findMinutes(minutes) === 0) {
+				const add_min = onlyQuartersAllowed ? 15 : 5;
+				const wrong_mins = parseInt(minutes);
+				for (let minute = 0; minute < 59; minute += add_min) {
+					if (wrong_mins - minute < 5) {
+						if (wrong_mins - minute <= onlyQuartersAllowed ? 7 : 2)
+							minute += add_min;
+						minutes = minute > 9 ? String(minute) : "0" + String(minute);
+						break;
+					}
+				}
+			}
 			showMinutes(minutes.toString());
 			showHour(hours.toString());
 			checkDisplay();
@@ -124,7 +131,6 @@ TPPopup {
 			}
 		}
 		// not found
-		console.log("Hour not found: "+hour)
 		pickMinutes = false;
 		innerButtonIndex = -1;
 		outerButtonIndex = 0;
@@ -138,21 +144,18 @@ TPPopup {
 			hrsDisplay = useWorkTimes ? timePickerDisplayModel[outerButtonIndex].d : timePickerDisplayModel[outerButtonIndex].c1;
 	}
 
-	function showMinutes(minutes: string): void {
-		for (let i=0; i < timePickerDisplayModel.length; i++) {
+	function findMinutes(minutes: string): int {
+		for (let i = 0; i < timePickerDisplayModel.length; i++) {
 			const m = timePickerDisplayModel[i];
-			if (m.m === minutes) {
-				innerButtonIndex = -1;
-				outerButtonIndex = i;
-				pickMinutes = true;
-				updateDisplayMinutes();
-				return;
-			}
+			if (m.m === minutes)
+				return i;
 		}
-		// not found
-		console.log("Minutes not found: "+minutes)
+		return 0;
+	}
+
+	function showMinutes(minutes: string): void {
 		innerButtonIndex = -1;
-		outerButtonIndex = 0;
+		outerButtonIndex = findMinutes(minutes);
 		pickMinutes = true;
 		updateDisplayMinutes();
 	} // showMinutes
@@ -202,105 +205,65 @@ TPPopup {
 		return true;
 	}
 
-	Pane {
+	RowLayout {
 		id: headerPane
-		padding: 0
-		focus: true
+		spacing: 5
 
-		width: parent.width
-		height: parent.height * 0.20
-		background: Rectangle {
-			color: appSettings.primaryColor
+		anchors {
+			top: parent.top
+			topMargin: 5
+			left: parent.left
+			right: parent.right
 		}
 
-		GridLayout {
-			id: headerGrid
-			Layout.fillWidth: true
-			property int myPointSize: 24
-			anchors.centerIn: parent
-			rows: 2
-			columns: 3
-			rowSpacing: 0
+		TPButton {
+			id: hrsButton
+			text: timePicker.hrsDisplay
+			autoSize: true
+			checked: !minutesButton.checked
+			checkable: true
+			Layout.alignment: Qt.AlignRight
 
-			Button {
-				id: hrsButton
-				focusPolicy: Qt.NoFocus
-				Layout.alignment: Text.AlignRight
-				checked: true
-				checkable: true
-				contentItem: Label {
-					text: timePicker.hrsDisplay
-					font.pixelSize: headerGrid.myPointSize
-					font.bold: true
-					fontSizeMode: Text.Fit
-					opacity: hrsButton.checked ? 1.0 : 0.6
-					color: appSettings.fontColor
-					elide: Text.ElideRight
-				}
-				background: Rectangle {
-					color: "transparent"
-				}
+			onCheck: onHoursButtonClicked();
+		} // hrsButton
 
-				onClicked: onHoursButtonClicked();
-			} // hrsButton
+		TPLabel {
+			text: ":"
+			Layout.alignment: Qt.AlignHCenter
+		}
 
-			Label {
-				text: ":"
-				Layout.alignment: Text.AlignHCenter
-				font.pixelSize: headerGrid.myPointSize
-				font.bold: true
-				fontSizeMode: Text.Fit
-				opacity: 0.6
-				color: appSettings.fontColor
-			}
-
-			Button {
-				id: minutesButton
-				focusPolicy: Qt.NoFocus
-				Layout.alignment: Text.AlignLeft
-				checked: false
-				checkable: true
-				contentItem: Label {
-					text: timePicker.minutesDisplay
-					font.pixelSize: headerGrid.myPointSize
-					font.bold: true
-					fontSizeMode: Text.Fit
-					opacity: minutesButton.checked ? 1.0 : 0.6
-					color: appSettings.fontColor
-					elide: Text.ElideRight
-				}
-				background: Rectangle {
-					color: "transparent"
-				}
-				onClicked: {
-					onMinutesButtonClicked();
-				}
-			} // hrsButton
-		} // header grid
+		TPButton {
+			id: minutesButton
+			text: timePicker.minutesDisplay
+			autoSize: true
+			checked: !hrsButton.checked
+			checkable: true
+			Layout.alignment: Qt.AlignLeft
+			onCheck: onMinutesButtonClicked();
+		} // minutesButton
 	} // headerPane
 
-	Pane {
+	Rectangle {
 		id: timeButtonsPane
-		width: parent.width
+		color: "transparent"
 		height: parent.height * 0.70
-		padding: 0
-		spacing: 1
 
-		anchors.right: parent.right
-		anchors.left: parent.left
-		anchors.top: headerPane.bottom
-		anchors.topMargin: 10
-		background: Rectangle {color: "transparent"}
+		anchors {
+			top: headerPane.bottom
+			topMargin: 10
+			left: parent.left
+			right: parent.right
+		}
 
 		TPButton {
 			text: qsTr("Now")
-			flat: false
+			width: appSettings.itemDefaultHeight * 2
+			z: 2
 
 			anchors {
-				top: parent.top
-				topMargin: -5
-				left: parent.left
-				leftMargin: 5
+				verticalCenter: parent.verticalCenter
+				verticalCenterOffset: -(height + 10)
+				horizontalCenter: parent.horizontalCenter
 			}
 
 			onClicked: {
@@ -310,36 +273,39 @@ TPPopup {
 		}
 
 		TPButton {
-			visible: !timePicker.pickMinutes
-			imageSource: timePicker.useWorkTimes? "work.png" : "time.png"
-			hasDropShadow: false
-
-			anchors {
-				right: parent.right
-				top: parent.top
-				topMargin: -5
-				rightMargin: 5
-			}
-
-			onClicked: {
-				timePicker.useWorkTimes = !timePicker.useWorkTimes
-				timePicker.showHour(timePicker.hrsDisplay)
-			}
-		}
-		TPButton {
-			visible: timePicker.pickMinutes
 			text: timePicker.onlyQuartersAllowed? "15min" : "5min"
+			width: appSettings.itemDefaultHeight * 2
+			visible: timePicker.pickMinutes
+			z: 2
 
 			anchors {
-				right: parent.right
-				top: parent.top
-				topMargin: -5
-				rightMargin: 5
+				verticalCenter: parent.verticalCenter
+				verticalCenterOffset: height + 10
+				horizontalCenter: parent.horizontalCenter
 			}
 
 			onClicked: {
 				timePicker.onlyQuartersAllowed = !timePicker.onlyQuartersAllowed
 				timePicker.showMinutes(timePicker.minutesDisplay)
+			}
+		}
+
+		TPButton {
+			imageSource: timePicker.useWorkTimes? "work.png" : "time.png"
+			width: appSettings.itemDefaultHeight
+			height: width
+			visible: !timePicker.pickMinutes
+			z: 2
+
+			anchors {
+				verticalCenter: parent.verticalCenter
+				verticalCenterOffset: height + 10
+				horizontalCenter: parent.horizontalCenter
+			}
+
+			onClicked: {
+				timePicker.useWorkTimes = !timePicker.useWorkTimes
+				timePicker.showHour(timePicker.hrsDisplay)
 			}
 		}
 
@@ -362,37 +328,50 @@ TPPopup {
 			Repeater {
 				id: innerRepeater
 				model: timePicker.timePickerModel
+
 				delegate: Button {
 					id: innerButton
 					focusPolicy: Qt.NoFocus
 					text: timePicker.useWorkTimes? modelData.n : modelData.c2
 					font.bold: checked
-					x: timePicker.innerButtonsPaneSize / 2 - width / 2 //- 20
-					y: timePicker.innerButtonsPaneSize / 2 - height / 2 //- 20
-					width: 40
-					height: 40
+					x: (timePicker.innerButtonsPaneSize - width) / 2
+					y: (timePicker.innerButtonsPaneSize - height) / 2
+					ButtonGroup.group: innerButtonGroup
+					width: timePicker.width * 0.12
+					height: timePicker.height * 0.12
 					checked: index === timePicker.innerButtonIndex
 					checkable: true
 					enabled: buttonsIsEnabled(text, true);
 
+					readonly property real angle: 360 * (index / innerRepeater.count)
+
+					contentItem: TPLabel {
+						text: innerButton.text
+						rotation: -innerButton.angle
+						opacity: innerButton.checked ? 1.0 : enabled || innerButton.highlighted ? 1.0 : 0.6
+						leftPadding: -10
+						horizontalAlignment: Text.AlignHCenter
+					} // content Label
+
+					background: Rectangle {
+						color: innerButton.checked ? appSettings.primaryColor : "transparent"
+						radius: width / 2
+					}
+
 					onClicked: {
 						if (timePicker.innerButtonIndex !=+ index)
 						{
-							timePicker.outerButtonIndex = -1
-							timePicker.innerButtonIndex = index
+							timePicker.outerButtonIndex = -1;
+							timePicker.innerButtonIndex = index;
 							if (timePicker.useWorkTimes)
-								timePicker.hrsDisplay = timePicker.timePickerDisplayModel[index].n
+								timePicker.hrsDisplay = timePicker.timePickerDisplayModel[index].n;
 							else
-								timePicker.hrsDisplay = timePicker.timePickerDisplayModel[index].c2
+								timePicker.hrsDisplay = timePicker.timePickerDisplayModel[index].c2;
 							if (timePicker.autoSwapToMinutes)
-								timePicker.onMinutesButtonClicked()
+								timePicker.onMinutesButtonClicked();
 							modified = true;
 						}
 					}
-
-					ButtonGroup.group: innerButtonGroup
-
-					property real angle: 360 * (index / innerRepeater.count)
 
 					transform: [
 						Translate {
@@ -404,25 +383,9 @@ TPPopup {
 							origin.y: innerButton.height / 2
 						}
 					]
-
-					contentItem: Label {
-						text: innerButton.text
-						font: innerButton.font
-						minimumPointSize: 8
-						fontSizeMode: Text.Fit
-						opacity: innerButton.checked ? 1.0 : enabled || innerButton.highlighted ? 1.0 : 0.6
-						color: appSettings.fontColor
-						horizontalAlignment: Text.AlignHCenter
-						verticalAlignment: Text.AlignVCenter
-						rotation: -innerButton.angle
-					} // content Label
-
-					background: Rectangle {
-						color: innerButton.checked ? appSettings.primaryColor : "transparent"
-						radius: width / 2
-					}
 				} // inner button
 			} // innerRepeater
+
 		} // innerButtonsPane
 
 		Repeater {
@@ -433,6 +396,7 @@ TPPopup {
 				focusPolicy: Qt.NoFocus
 				text: timePicker.pickMinutes? modelData.m : timePicker.useWorkTimes? modelData.d : modelData.c1
 				font.bold: true
+				ButtonGroup.group: outerButtonGroup
 				anchors.centerIn: parent
 				width: 40
 				height: 40
@@ -441,28 +405,25 @@ TPPopup {
 				enabled: timePicker.pickMinutes ? (buttonsIsEnabled(text, false) ? timePicker.onlyQuartersAllowed ? modelData.q : true : false) :
 							buttonsIsEnabled(text, true)
 
+				readonly property real angle: 360 * (index / outerRepeater.count)
+
 				onClicked: {
-					if (timePicker.outerButtonIndex !== index)
-					{
-						timePicker.outerButtonIndex = index
-						timePicker.innerButtonIndex = -1
+					if (timePicker.outerButtonIndex !== index) {
+						timePicker.outerButtonIndex = index;
+						timePicker.innerButtonIndex = -1;
 						if(timePicker.pickMinutes)
-							timePicker.minutesDisplay = timePicker.timePickerDisplayModel[index].m
+							timePicker.minutesDisplay = timePicker.timePickerDisplayModel[index].m;
 						else {
 							if(timePicker.useWorkTimes)
-								timePicker.hrsDisplay = timePicker.timePickerDisplayModel[index].d
+								timePicker.hrsDisplay = timePicker.timePickerDisplayModel[index].d;
 							else
-								timePicker.hrsDisplay = timePicker.timePickerDisplayModel[index].c1
+								timePicker.hrsDisplay = timePicker.timePickerDisplayModel[index].c1;
 						}
 						if(timePicker.autoSwapToMinutes)
 							timePicker.onMinutesButtonClicked()
 						modified = true;
 					}
 				}
-
-				ButtonGroup.group: outerButtonGroup
-
-				property real angle: 360 * (index / outerRepeater.count)
 
 				transform: [
 					Translate {
@@ -475,16 +436,12 @@ TPPopup {
 					}
 				]
 
-				contentItem: Label {
+				contentItem: TPLabel {
 					text: outerButton.text
-					font: outerButton.font
-					minimumPointSize: 10
-					fontSizeMode: Text.Fit
-					opacity: enabled || outerButton.highlighted || outerButton.checked ? 1 : 0.3
-					color: appSettings.fontColor
-					horizontalAlignment: Text.AlignHCenter
-					verticalAlignment: Text.AlignVCenter
 					rotation: -outerButton.angle
+					opacity: enabled || outerButton.highlighted || outerButton.checked ? 1 : 0.3
+					verticalAlignment: Text.AlignVCenter
+					leftPadding: -10
 				} // outer content label
 
 				background: Rectangle {
@@ -493,7 +450,6 @@ TPPopup {
 				}
 			} // outer button
 		} // outerRepeater
-
 
 		Rectangle { // line to outer buttons
 			visible: timePicker.outerButtonIndex >= 0
@@ -531,43 +487,43 @@ TPPopup {
 		timePicker.modified = false
 	}
 
-	Pane {
+	Item {
 		id: footerPane
-		padding: 0
-		width: parent.width
 		height: parent.height * 0.10
-		anchors.right: parent.right
-		anchors.top: timeButtonsPane.bottom
-		anchors.left: parent.left
 
-		background: Rectangle {
-			color: "transparent"
+		anchors {
+			bottom: parent.bottom
+			bottomMargin: 10
+			left: parent.left
+			right: parent.right
 		}
 
 		TPButton {
+			id: btnCancel
 			text: qsTr("Cancel")
 			flat: false
+			autoSize: true
 
 			anchors {
-				top: parent.top
 				left: parent.left
-				leftMargin: 5
-				topMargin: -10
+				leftMargin: 10
+				verticalCenter: parent.verticalCenter
 			}
 
 			onClicked: timePicker.closePopup();
 		}
 
 		TPButton {
+			id: btnOK
 			text: qsTr("OK")
 			flat: false
+			autoSize: true
 			enabled: modified
 
 			anchors {
-				top: parent.top
 				right: parent.right
-				rightMargin: 5
-				topMargin: -10
+				rightMargin: 10
+				verticalCenter: parent.verticalCenter
 			}
 
 			onClicked: {
@@ -577,4 +533,3 @@ TPPopup {
 		}
 	} // footer pane
 } // timePicker
-

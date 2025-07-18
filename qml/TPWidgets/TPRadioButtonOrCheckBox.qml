@@ -16,7 +16,7 @@ Item {
 
 	property int imageHeight: appSettings.itemDefaultHeight
 	property int imageWidth: imageHeight
-	property bool checked
+	property bool checked: false
 	property bool multiLine: false
 	property bool actionable: true
 	property bool radio: true
