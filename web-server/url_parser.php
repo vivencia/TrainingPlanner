@@ -61,7 +61,6 @@ function verify_credentials($username, $password, $htpasswd_file) {
     if (!file_exists($htpasswd_file)) {
         die("htpasswd file not found\r\n");
     }
-
     #print_r2("Authenticating " . $username . " with password " . $password);
     // Read the .htpasswd file line by line
     $lines = file($htpasswd_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);

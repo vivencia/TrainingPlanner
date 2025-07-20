@@ -15,7 +15,7 @@ TPOnlineServices* TPOnlineServices::_appOnlineServices{nullptr};
 
 static const QLatin1StringView root_user{"admin"};
 static const QLatin1StringView root_passwd{"admin"};
-static const QLatin1StringView server_addr{"http://192.168.10.8/trainingplanner/"};
+static const QLatin1StringView server_addr{"http://192.168.10.21/trainingplanner/"};
 
 inline QString makeCommandURL(const QString& username, const QString& passwd = QString{}, const QString &option1 = QString{},
 								const QString &value1 = QString{}, const QString &option2 = QString{}, const QString &value2 = QString{},
@@ -346,7 +346,8 @@ void TPOnlineServices::uploadFile(const int requestid, const QUrl &url, QFile *f
 		// Add the file as a part
 		QHttpPart filePart;
 		filePart.setHeader(QNetworkRequest::ContentDispositionHeader,
-                           QVariant("multipart/form-data; name=\"file\"; filename=\""_L1 + file->fileName() + "\"_L1"));
+							QVariant("multipart/form-data; name=\"file\"; filename=\""_L1 + file->fileName() + "\""_L1));
+							//QVariant("multipart/form-data; name=\"file\"; filename=\""_L1 + file->fileName() + "\"_L1"));
         filePart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/octet-stream"_L1));
         filePart.setHeader(QNetworkRequest::ContentLengthHeader, file->size());
         filePart.setBodyDevice(file);

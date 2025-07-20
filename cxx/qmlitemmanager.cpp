@@ -132,7 +132,7 @@ void QmlItemManager::configureQmlEngine()
 			{
 				if (!appUserModel()->mainUserConfigured())
 				{
-					QMetaObject::invokeMethod(appMainWindow(), "showFirstUseTimeDialog");
+					QMetaObject::invokeMethod(appMainWindow(), "showFirstTimeUseDialog");
 					connect(appUserModel(), &DBUserModel::mainUserConfigurationFinished, this, [this] () {
 						appOsInterface()->initialCheck();
 					}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
@@ -409,17 +409,17 @@ void QmlItemManager::openRequestedFile(const QString &filename, const int wanted
 	}
 	if (isBitSet(wanted_content, IFC_MESO) && !isBitSet(file_contents, IFC_MESO))
 	{
-		displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, tr("The TP file does not contain any information for a Training Program"));
+		displayMessageOnAppWindow(APPWINDOW_MSG_UNKNOWN_ERROR, tr("The TP file does not contain any information for a Training Program"));
 		return;
 	}
 	if (isBitSet(wanted_content, IFC_MESOSPLIT) && !isBitSet(file_contents, IFC_MESOSPLIT))
 	{
-		displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, tr("The TP file does not contain any information for an exercises plan"));
+		displayMessageOnAppWindow(APPWINDOW_MSG_UNKNOWN_ERROR, tr("The TP file does not contain any information for an exercises plan"));
 		return;
 	}
 	if (isBitSet(wanted_content, IFC_WORKOUT) && !isBitSet(file_contents, IFC_WORKOUT))
 	{
-		displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, tr("The TP file does not contain any information for a workout"));
+		displayMessageOnAppWindow(APPWINDOW_MSG_UNKNOWN_ERROR, tr("The TP file does not contain any information for a workout"));
 		return;
 	}
 
@@ -586,7 +586,7 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 		break;
 		case APPWINDOW_MSG_UNKNOWN_ERROR:
 			title = std::move(tr("Error"));
-			message = std::move(tr("Something went wrong"));
+			message = std::move(appUtils()->getFileName(fileName));
 		break;
 	}
 	QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(QString, title), Q_ARG(QString, message),

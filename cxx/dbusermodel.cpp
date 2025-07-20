@@ -459,7 +459,7 @@ void DBUserModel::changePassword(const QString &old_password, const QString &new
 					setPassword(new_password);
 				}
 				else
-					appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, ret_string);
+					appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_UNKNOWN_ERROR, ret_string);
 			}
 		});
 		appOnlineServices()->changePassword(requestid, key, old_password, new_password);
@@ -515,7 +515,8 @@ void DBUserModel::setCoachPublicStatus(const bool bPublic)
 				if (request_id == requestid)
 				{
 					disconnect(*conn);
-					appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Coach registration") + record_separator + ret_string);
+					appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
+									{tr("Coach registration"), ret_string}, record_separator));
 					mb_coachRegistered = ret_code == 0 && bPublic;
 					emit coachOnlineStatus(mb_coachRegistered == true);
 					if (!mb_coachRegistered && haveClients())
@@ -587,12 +588,12 @@ void DBUserModel::sendRequestToCoaches()
 								const QString &coach_id{m_availableCoaches->data(i, USER_COL_ID)};
 								if (appUtils()->copyFile(profileFileName(m_onlineCoachesDir, coach_id), profileFileName(m_dirForRequestedCoaches, coach_id)))
 								{
-									appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Coach contacting") +
-										record_separator + tr("Online coach contacted ") + m_availableCoaches->data(i, USER_COL_NAME));
+									appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
+										{tr("Coach contacting"), tr("Online coach contacted ") + m_availableCoaches->data(i, USER_COL_NAME)}, record_separator));
 								}
 							}
 							else
-								appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, ret_string);
+								appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_UNKNOWN_ERROR, ret_string);
 						}
 					});
 					appOnlineServices()->sendRequestToCoach(requestid, key, value, m_availableCoaches->data(i, USER_COL_ID));
@@ -664,7 +665,8 @@ void DBUserModel::sendFileToServer(const QString &filename, const QString &succe
 {
 	if (!canConnectToServer())
 	{
-		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tpNetworkTitle + record_separator + tr("Online server unavailable. Tray again later"));
+		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
+				{tpNetworkTitle, tr("Online server unavailable. Tray again later")}, record_separator));
 		return;
 	}
 
@@ -686,9 +688,10 @@ void DBUserModel::sendFileToServer(const QString &filename, const QString &succe
 						upload_file->close();
 
 					if (ret_code == 0 && !successMessage.isEmpty())
-						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tpNetworkTitle + record_separator + successMessage);
+						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
+								{tpNetworkTitle, successMessage}, record_separator));
 					else
-						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, ret_string);
+						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_UNKNOWN_ERROR, ret_string);
 					delete upload_file;
 				}
 			});
@@ -697,7 +700,7 @@ void DBUserModel::sendFileToServer(const QString &filename, const QString &succe
 		appKeyChain()->readKey(userId(0));
 	}
 	else
-		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, tr("Failed to open ") + filename);
+		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_OPEN_FAILED, filename);
 }
 
 int DBUserModel::downloadFileFromServer(const QString &filename, const QString &localFile, const QString &successMessage,
@@ -705,7 +708,8 @@ int DBUserModel::downloadFileFromServer(const QString &filename, const QString &
 {
 	if (!canConnectToServer())
 	{
-		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tpNetworkTitle + record_separator + tr("Online server unavailable. Tray again later"));
+		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
+					{tpNetworkTitle, tr("Online server unavailable. Tray again later")}, record_separator));
 		return -1;
 	}
 
@@ -744,14 +748,16 @@ int DBUserModel::downloadFileFromServer(const QString &filename, const QString &
 						delete localFile;
 						emit fileDownloaded(true, requestid, localFileName);
 						if (!successMessage.isEmpty())
-							appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tpNetworkTitle + record_separator + successMessage);
+							appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
+									{tpNetworkTitle, successMessage}, record_separator));
 					}
 					break;
 					case 1: //online file and local file are the same
 						emit fileDownloaded(true, requestid, localFile);
 					break;
 					default: //some error
-						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, filename + contents);
+						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, appUtils()->string_strings(
+									{filename + contents}, record_separator));
 						emit fileDownloaded(false, requestid, localFile);
 				}
 			}
@@ -997,14 +1003,15 @@ void DBUserModel::registerUserOnline()
 										mb_userRegistered = true;
 										emit mainUserOnlineCheckInChanged();
 									}
-									appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tpNetworkTitle + record_separator + tr("User information updated"));
+									appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
+												{tpNetworkTitle, tr("User information updated")}, record_separator));
 								}
 							});
 							appOnlineServices()->registerUser(requestid, key, value);
 						}
 						break;
 						default:
-							appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, ret_string);
+							appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_UNKNOWN_ERROR, ret_string);
 							mb_userRegistered = false;
 						break;
 					}

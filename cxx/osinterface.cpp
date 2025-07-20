@@ -201,14 +201,14 @@ void OSInterface::checkServerResponseSlot(const bool online)
 	else
 	{
 		can_display_message = true;
-		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, "TrainingPlanner App"_L1 + record_separator + "Connected online!"_L1);
+		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings({"TrainingPlanner App"_L1, "Connected online!"_L1}, record_separator));
 	}
 	#endif
 	#else
 	if (!online)
-		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, "TrainingPlanner App"_L1 + record_separator + "Server unreachable!"_L1);
+		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, appUtils()->string_strings({"TrainingPlanner App"_L1, "Server unreachable!"_L1}, record_separator));
 	else
-		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, "TrainingPlanner App"_L1 + record_separator + "Connected online!"_L1);
+		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings({"TrainingPlanner App"_L1, "Connected online!"_L1}, record_separator));
 #endif
 	int server_status{0};
 	setBit(server_status, online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
@@ -550,20 +550,20 @@ void OSInterface::checkLocalServer()
 		check_server_proc->deleteLater();
 		if (exitStatus != QProcess::NormalExit)
 		{
-			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, "Linux TP Server"_L1 +
-						record_separator + "Could not run init_script test"_L1);
+			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, appUtils()->string_strings(
+									{"Linux TP Server"_L1, "Could not run init_script test"_L1}, record_separator));
 			return;
 		}
 
 		switch (exitCode)
 		{
 			case 0:
-				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, "Linux TP Server"_L1 +
-						record_separator + "Up and running!"_L1);
+				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
+						{"Linux TP Server"_L1, "Up and running!"_L1}, record_separator));
 			break;
 			case 1:
-			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, "Linux TP Server"_L1 +
-						record_separator + check_server_proc->readAllStandardOutput());
+			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, appUtils()->string_strings(
+						{"Linux TP Server"_L1, check_server_proc->readAllStandardOutput()}, record_separator));
 			break;
 			case 2: commandLocalServer("start"_L1); break;
 			case 3: commandLocalServer("setup"_L1); break;
@@ -586,15 +586,15 @@ void OSInterface::commandLocalServer(const QString &command)
 				setBit(server_status, exitCode == 0 ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
 				unSetBit(server_status, exitCode != 0 ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
 				setNetworkStatus(0, server_status);
-				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, "Linux TP Server"_L1 + record_separator +
-						server_script_proc->readAllStandardOutput() + "\nReturn code("_L1 + QString::number(exitCode) + ')');
+				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
+						{"Linux TP Server"_L1, server_script_proc->readAllStandardOutput() + "\nReturn code("_L1 + QString::number(exitCode) + ')'}, record_separator));
 				server_script_proc->deleteLater();
 			});
 			server_script_proc->start(tp_server_config_script , {command, "-p="_L1 + password}, QIODeviceBase::ReadOnly);
 		}
 		else
-			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, "Linux TP Server"_L1 + record_separator +
-				"Operation canceled by the user"_L1);
+			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
+						{"Linux TP Server"_L1, "Operation canceled by the user"_L1}, record_separator));
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appItemManager()->getPasswordDialog("Administrator's rights needed"_L1,
 							"In order to setup and/or start the local HTTP server, you need to provide your user's password"_L1);

@@ -76,7 +76,8 @@ create_admin_user() {
     $HTPASSWD -bv $PASS_FILE $ADMIN $ADMIN
     if [ $? != 0 ]; then
         echo "Creating the main app user"
-        run_as_sudo $HTPASSWD -cb $PASS_FILE $ADMIN $ADMIN
+        #always use the -B option for htpasswd to create bcrypt hashes compatible with PHP's password_verify()
+        run_as_sudo $HTPASSWD -cbB $PASS_FILE $ADMIN $ADMIN
         if [ $? == 0 ]; then
             run_as_sudo mkdir -m 774 $ADMIN_DIR
             run_as_sudo chown $NGINX_USER:$NGINX_USER $ADMIN_DIR
@@ -95,6 +96,77 @@ create_users_db() {
     else
         echo "Failed to create users database: " $USERS_DB
         return 1
+    fi
+}
+
+setup_tpserver() {
+    echo "Beginning TP Server configuration..."
+    if [ ! -d "$TP_DIR" ]; then
+        echo "Preparing the firesystem layout and copying configuration files to their respective locations..."
+
+        run_as_sudo groupadd $NGINX_USER
+        run_as_sudo useradd -r $NGINX_USER -g $NGINX_USER -G network,sys
+
+        run_as_sudo mkdir -p $SCRIPTS_DIR
+        run_as_sudo chmod -R 770 $TP_DIR
+        run_as_sudo chmod -R 770 $SCRIPTS_DIR
+        run_as_sudo cp $SOURCES_DIR/$SCRIPT_NAME $SCRIPTS_DIR #copy this file to the scripts dir
+        run_as_sudo cp $SOURCES_DIR/url_parser.php $SCRIPTS_DIR
+        run_as_sudo cp $SOURCES_DIR/usersdb.sh $SCRIPTS_DIR
+        run_as_sudo chown -R $NGINX_USER:$NGINX_USER $TP_DIR
+
+        run_as_sudo mkdir $NGINX_SERVER_CONFIG_DIR
+        run_as_sudo cp -f $SOURCES_DIR/nginx.conf $NGINX_CONFIG_DIR
+        run_as_sudo chown root:root $NGINX_CONFIG_DIR/nginx.conf
+
+        run_as_sudo mkdir $NGINX_SERVER_CONFIG_DIR/conf.d
+        run_as_sudo cp -f $SOURCES_DIR/tpserver.conf $NGINX_SERVER_CONFIG_DIR/conf.d
+        run_as_sudo chown root:root $NGINX_SERVER_CONFIG_DIR/conf.d/tpserver.conf
+
+        run_as_sudo cp -f $SOURCES_DIR/www.conf $PHP_FPM_CONFIG_DIR
+        create_admin_user
+        create_users_db
+
+        /usr/bin/id -nG $USER_NAME | grep -qw $NGINX_USER
+        if [ $? != 0 ]; then
+            run_as_sudo usermod -a -G $NGINX_USER $(whoami)
+            echo "Filesystem directories and files setup."
+        else
+            echo "Filesystem directories and files setup. Log out and in again in order for the changes to work."
+            return 0
+        fi
+
+    else
+
+        if pgrep -fl nginx &>/dev/null; then
+            echo "Service nginx is already running."
+        else
+            echo "Starting http server..."
+            if [ -f $NGINX ]; then
+                run_as_sudo systemctl start nginx
+                if [ $? != 0 ]; then
+                    echo "Error starting nginx service."
+                    return 4
+                fi
+            else
+                echo "Please install nginx."
+                return 4
+            fi
+        fi
+
+        if pgrep -fl php-fpm &>/dev/null; then
+            echo "Service php-fpm is already running."
+        else
+            echo "Starting php-fpm..."
+            run_as_sudo systemctl start $PHP_FPM_SERVICE
+            if [ $? != 0 ]; then
+                echo "Error starting php-fpm service."
+                return 5
+            fi
+        fi
+
+        echo "Local TP server configured and running!"
+        return 0
     fi
 }
 
@@ -140,7 +212,8 @@ case "$COMMAND" in
         exit $EXIT_STATUS
     ;;
     setup)
-        echo "Beginning TP Server configuration..."
+        setup_tpserver
+        exit $?
     ;;
     start)
         run_as_sudo systemctl start nginx
@@ -159,6 +232,7 @@ case "$COMMAND" in
         exit 0
     ;;
     dbcreate)
+        create_admin_user
         create_users_db
         exit $?
     ;;
@@ -167,75 +241,3 @@ case "$COMMAND" in
         exit 0
     ;;
 esac
-
-if [ ! -d "$TP_DIR" ]; then
-
-    echo "Preparing the firesystem layout and copying configuration files to their respective locations..."
-
-    run_as_sudo groupadd $NGINX_USER
-    run_as_sudo useradd -r $NGINX_USER -g $NGINX_USER -G network,sys
-
-    run_as_sudo mkdir -p $SCRIPTS_DIR
-    run_as_sudo chmod -R 770 $TP_DIR
-    run_as_sudo chmod -R 770 $SCRIPTS_DIR
-    run_as_sudo cp $SOURCES_DIR/$SCRIPT_NAME $SCRIPTS_DIR #copy this file to the scripts dir
-    run_as_sudo cp $SOURCES_DIR/url_parser.php $SCRIPTS_DIR
-    run_as_sudo cp $SOURCES_DIR/usersdb.sh $SCRIPTS_DIR
-    run_as_sudo chown -R $NGINX_USER:$NGINX_USER $TP_DIR
-
-    run_as_sudo mkdir $NGINX_SERVER_CONFIG_DIR
-    run_as_sudo cp -f $SOURCES_DIR/nginx.conf $NGINX_CONFIG_DIR
-    run_as_sudo chown root:root $NGINX_CONFIG_DIR/nginx.conf
-    run_as_sudo chmod g+w $NGINX_CONFIG_DIR/nginx.conf
-
-    run_as_sudo cp -f $SOURCES_DIR/default $NGINX_SERVER_CONFIG_DIR
-    run_as_sudo chown root:root $NGINX_SERVER_CONFIG_DIR/default
-    run_as_sudo chmod g+w $NGINX_SERVER_CONFIG_DIR/default
-    run_as_sudo mkdir $NGINX_SERVER_SITES_ENABLED
-    run_as_sudo ln -s $NGINX_SERVER_CONFIG_DIR/default $NGINX_SERVER_SITES_ENABLED
-
-    run_as_sudo cp -f $SOURCES_DIR/www.conf $PHP_FPM_CONFIG_DIR
-    create_admin_user
-    create_users_db
-
-    /usr/bin/id -nG $USER_NAME | grep -qw $NGINX_USER
-    if [ $? != 0 ]; then
-        run_as_sudo usermod -a -G $NGINX_USER $(whoami)
-        echo "Filesystem directories and files setup."
-    else
-        echo "Filesystem directories and files setup. Log out and in again in order for the changes to work."
-        exit 0
-    fi
-
-else
-
-    if pgrep -fl nginx &>/dev/null; then
-        echo "Service nginx is already running."
-    else
-        echo "Starting http server..."
-        if [ -f $NGINX ]; then
-            run_as_sudo systemctl start nginx
-            if [ $? != 0 ]; then
-                echo "Error starting nginx service."
-                exit 4
-            fi
-        else
-            echo "Please install nginx."
-            exit 4
-        fi
-    fi
-
-    if pgrep -fl php-fpm &>/dev/null; then
-        echo "Service php-fpm is already running."
-    else
-        echo "Starting php-fpm..."
-        run_as_sudo systemctl start $PHP_FPM_SERVICE
-        if [ $? != 0 ]; then
-            echo "Error starting php-fpm service."
-            exit 5
-        fi
-    fi
-
-    echo "Local TP server configured and running!"
-    exit 0
-fi

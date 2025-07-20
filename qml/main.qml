@@ -142,7 +142,7 @@ ApplicationWindow {
 	}*/
 
 	property FirstTimeDialog firstTimeDlg: null
-	function showFirstUseTimeDialog(): void {
+	function showFirstTimeUseDialog(): void {
 		function createFirstTimeDialog() {
 			let component = Qt.createComponent("qrc:/qml/Dialogs/FirstTimeDialog.qml", Qt.Asynchronous);
 

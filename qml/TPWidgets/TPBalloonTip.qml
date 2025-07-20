@@ -96,12 +96,14 @@ TPPopup {
 		id: lblMessage
 		text: message
 		wrapMode: Text.WordWrap
-		horizontalAlignment: Text.AlignJustify
+		horizontalAlignment: Text.AlignHCenter
 		width: (imageSource.length > 0 ? balloon.width - imgElement.width : balloon.width) - 10
 		visible: message.length > 0
 
 		anchors {
-			topMargin: 0
+			top: lblTitle.bottom
+			topMargin: 10
+			left: imageSource.length > 0 ?  imgElement.right : parent.left
 			leftMargin: 5
 			right: parent.right
 			rightMargin: 5
@@ -231,7 +233,7 @@ TPPopup {
 	function show(ypos: int): void {
 		let new_height = 0;
 		if (title.length > 0)
-			new_height = lblTitle.height + 5
+			new_height = lblTitle.height + 10
 		if (imageSource.length > 0)
 			new_height += Math.max(imgElement.height, lblMessage.height) + 10
 		else
