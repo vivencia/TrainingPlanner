@@ -115,7 +115,7 @@ TPPage {
 
 		anchors {
 			bottom: parent.bottom
-			bottomMargin: ownMesosListLoader.height * (Qt.platform.os !== "android" ? 0.21 : 0.27)
+			bottomMargin: ownMesosListLoader.height * (Qt.platform.os !== "android" ? 0.22 : 0.28)
 			horizontalCenter: parent.horizontalCenter
 		}
 	}

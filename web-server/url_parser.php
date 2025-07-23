@@ -3,7 +3,7 @@
 $rootdir="/var/www/html/trainingplanner/";
 $scriptsdir=$rootdir . "scripts/";
 $htpasswd_file=$scriptsdir . ".passwds";
-$coaches_file=$rootdir . "admin/coaches";
+$coaches_file=$rootdir . "admin/coaches.data";
 $htpasswd="/usr/bin/htpasswd"; //use fullpath
 $developmentMode=true;
 
@@ -177,7 +177,7 @@ function add_coach($coach) {
     global $coaches_file;
     if (!file_exists($coaches_file)) {
         $fh = fopen($coaches_file, "w") or die("Return code: 10 Unable to create coaches file!" .$coaches_file . "\r\n");
-        chmod($coaches_file, $fileMode);
+		chper($coaches_file);
     }
     else {
         $coaches = file($coaches_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);

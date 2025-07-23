@@ -13,10 +13,10 @@ ColumnLayout {
 
 	required property int userRow
 	required property TPPage parentPage
-	property bool bReady: (bClientRoleOK || bCoachRoleOK) & bGoalOK
-	property bool bClientRoleOK: appUseMode !== 2
-	property bool bGoalOK: appUseMode !== 2
-	property bool bCoachRoleOK: appUseMode === 2 || appUseMode === 4
+	property bool bReady: bClientRoleOK && bCoachRoleOK && bGoalOK
+	property bool bClientRoleOK
+	property bool bGoalOK
+	property bool bCoachRoleOK
 	property int appUseMode
 
 	Connections {
@@ -212,7 +212,7 @@ ColumnLayout {
 	function showAvatarsPopup(): void {
 		if (chooseAvatarDlg === null) {
 			function createAvatarsDialog() {
-				var component = Qt.createComponent("qrc:/qml/User/AvatarsPopup.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/qml/User/AvatarsPopup.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					chooseAvatarDlg = component.createObject(parentPage, { userRow: profileModule.userRow,
@@ -245,63 +245,68 @@ ColumnLayout {
 			imgAvatar.source = userModel.avatar(userRow);
 	}
 
-	function makeModelsSelectable(): void {
-		const enabled = userRow === 0;
-		for (let i = 0; i < userRoleModel.count; ++i)
-			userRoleModel.get(i).enabled = enabled;
-		for (let x = 0; x < coachRoleModel.count; ++x)
-			coachRoleModel.get(x).enabled = enabled;
-		for (let y = 0; y < userGoalModel.count; ++y)
-			userGoalModel.get(y).enabled = enabled;
-	}
-
 	function getUserInfo(): void {
 		if (userRow === -1)
 			return;
 		let idx;
+		const enabled = userRow === 0;
 		appUseMode = userModel.appUseMode(userRow);
 
-		const client_role = userModel.userRole(userRow);
-		bClientRoleOK = client_role.length > 1;
-		if (!bClientRoleOK)
-			cboUserRole.currentIndex = -1;
-		else {
-			idx = cboUserRole.find(client_role);
-			if (idx < 0) {
-				idx = userRoleModel.count - 1;
-				txtUserRole.text = client_role;
+		if (appUseMode !== 2) {
+			const client_role = userModel.userRole(userRow);
+			bClientRoleOK = client_role.length > 1;
+			if (!bClientRoleOK)
+				cboUserRole.currentIndex = -1;
+			else {
+				idx = cboUserRole.find(client_role);
+				if (idx < 0) {
+					idx = userRoleModel.count - 1;
+					txtUserRole.text = client_role;
+				}
+				cboUserRole.currentIndex = idx;
 			}
-			cboUserRole.currentIndex = idx;
-		}
 
-		const user_goal = userModel.goal(userRow);
-		bGoalOK = user_goal.length > 1;
-		if (!bGoalOK)
-			cboGoal.currentIndex = -1;
-		else {
-			idx = cboGoal.find(user_goal);
-			if (idx < 0) {
-				idx = userGoalModel.count - 1;
-				txtUserGoal.text = user_goal;
+			const user_goal = userModel.goal(userRow);
+			bGoalOK = user_goal.length > 1;
+			if (!bGoalOK)
+				cboGoal.currentIndex = -1;
+			else {
+				idx = cboGoal.find(user_goal);
+				if (idx < 0) {
+					idx = userGoalModel.count - 1;
+					txtUserGoal.text = user_goal;
+				}
+				cboGoal.currentIndex = idx;
 			}
-			cboGoal.currentIndex = idx;
-		}
 
-		const coach_role = userModel.coachRole(userRow);
-		bCoachRoleOK = coach_role.length > 1;
-		if (!bCoachRoleOK)
-			cboCoachRole.currentIndex = 1;
-		else {
-			idx = cboCoachRole.find(coach_role);
-			if (idx < 0) {
-				idx = coachRoleModel.count - 1;
-				txtCoachRole.text = coach_role;
-			}
-			cboCoachRole.currentIndex = idx;
+			for (let i = 0; i < userRoleModel.count; ++i)
+				userRoleModel.get(i).enabled = enabled;
+			for (let y = 0; y < userGoalModel.count; ++y)
+				userGoalModel.get(y).enabled = enabled;
 		}
+		else
+			bClientRoleOK = true;
+
+		if (appUseMode === 2 || appUseMode === 4) {
+			const coach_role = userModel.coachRole(userRow);
+			bCoachRoleOK = coach_role.length > 1;
+			if (!bCoachRoleOK)
+				cboCoachRole.currentIndex = -1;
+			else {
+				idx = cboCoachRole.find(coach_role);
+				if (idx < 0) {
+					idx = coachRoleModel.count - 1;
+					txtCoachRole.text = coach_role;
+				}
+				cboCoachRole.currentIndex = idx;
+			}
+			for (let x = 0; x < coachRoleModel.count; ++x)
+				coachRoleModel.get(x).enabled = enabled;
+		}
+		else
+			bCoachRoleOK = true;
 
 		imgAvatar.source = userModel.avatar(userRow);
-		makeModelsSelectable();
 	}
 
 	function focusOnFirstField(): void {

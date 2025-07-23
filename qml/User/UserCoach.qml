@@ -68,47 +68,44 @@ ColumnLayout {
 		}
 	}
 
-	Row {
-		id: onlineCoachRow
+	TPRadioButtonOrCheckBox {
+		id: chkOnlineCoach
+		text: qsTr("Make myself available online for TP users to contact me")
+		radio: false
+		checked: userModel.isCoachRegistered();
+		multiLine: true
+		actionable: userRow === 0
 		visible: userModel.mainUserConfigured && optCoachUse.checked && userRow === 0
 		Layout.fillWidth: true
+		Layout.leftMargin: 10
+		Layout.rightMargin: 10
 
-		TPRadioButtonOrCheckBox {
-			id: chkOnlineCoach
-			text: qsTr("Make myself available online for TP users to contact me")
-			radio: false
-			checked: userModel.isCoachRegistered();
-			multiLine: true
-			actionable: userRow === 0
-			Layout.maximumWidth: parent.width/2
-
-			Connections {
-				target: userModel
-				function onCoachOnlineStatus(registered: bool): void { chkOnlineCoach.checked = registered; }
-			}
-
-			onClicked: {
-				if (!checked && userModel.isCoachRegistered()) {
-					if (userModel.haveClients)
-						bRescindCoaching = true;
-				}
-				else {
-					userModel.setCoachPublicStatus(checked);
-					if (checked)
-						bCoachOK = bResumeSent;
-				}
-			}
+		Connections {
+			target: userModel
+			function onCoachOnlineStatus(registered: bool): void { chkOnlineCoach.checked = registered; }
 		}
 
-		TPButton {
-			id: btnSendResume
-			text: qsTr("Send Résumé")
-			autoSize: true
-			enabled: chkOnlineCoach.checked
-			Layout.maximumWidth: parent.width/2
-
-			onClicked: bChooseResume = true;
+		onClicked: {
+			if (!checked && userModel.isCoachRegistered()) {
+				if (userModel.haveClients)
+					bRescindCoaching = true;
+			}
+			else {
+				userModel.setCoachPublicStatus(checked);
+				if (checked)
+					bCoachOK = bResumeSent;
+			}
 		}
+	}
+
+	TPButton {
+		id: btnSendResume
+		text: qsTr("Send Résumé")
+		enabled: chkOnlineCoach.checked
+		Layout.preferredWidth: parent.width/2
+		Layout.alignment: Qt.AlignCenter
+
+		onClicked: bChooseResume = true;
 	}
 
 	Loader {
@@ -144,7 +141,7 @@ ColumnLayout {
 			id: chooseFileDlg
 			title: qsTr("Choose the file to import from")
 			defaultSuffix: "txt"
-			nameFilters: [qsTr("Supported file types") + " (*.pdf *.odt *.docx)"]
+			nameFilters: [qsTr("Any file type") + " (*.*)"]
 			currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
 			fileMode: FileDialog.OpenFile
 

@@ -177,10 +177,7 @@ QFile *TPUtils::openFile(const QString &filename, QIODeviceBase::OpenMode flags)
 	{
 		QFile *file{new QFile{filename}};
 		if (file->open(flags))
-		{
-			file->deleteLater();
 			return file;
-		}
 		delete file;
 	}
 	return nullptr;

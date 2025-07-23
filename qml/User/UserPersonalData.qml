@@ -70,16 +70,20 @@ ColumnLayout {
 		}
 	}
 
-	TPButton {
-		id: btnChangePassword
-		text: qsTr("Change password")
-		imageSource: "password"
-		flat: false
-		visible: userRow === 0 && userModel.mainUserConfigured
-		Layout.preferredWidth: parent.width*0.7
-		Layout.alignment: Qt.AlignCenter
+	Item {
+		Layout.fillWidth: true
 
-		onClicked: changePasswordLoader.active = true;
+		TPButton {
+			id: btnChangePassword
+			text: qsTr("Change password")
+			imageSource: "password"
+			flat: false
+			visible: userRow === 0 && userModel.mainUserConfigured
+			autoSize: true
+			anchors.horizontalCenter: parent.horizontalCenter
+
+			onClicked: changePasswordLoader.active = true;
+		}
 	}
 
 	TPPassword {
@@ -111,7 +115,7 @@ ColumnLayout {
 		id: lblBirthdate
 		text: userModel.birthdayLabel
 		Layout.fillWidth: true
-		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : -5
+		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 15 : -5
 	}
 
 	TPTextInput {

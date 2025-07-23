@@ -202,8 +202,27 @@ void TPOnlineServices::removeCoachFromClient(const int requestid, const QString 
 void TPOnlineServices::sendFile(const int requestid, const QString &username, const QString &passwd, QFile *file, const QString &subdir,
 	const QString &targetUser, const bool b_internal_signal_only)
 {
-	const QUrl &url{makeCommandURL(username, passwd, "upload"_L1, subdir, "targetuser", targetUser.isEmpty() ? username : targetUser)};
-	uploadFile(requestid, url, file, b_internal_signal_only);
+	auto conn = std::make_shared<QMetaObject::Connection>();
+	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid,username,passwd,targetUser,file,b_internal_signal_only,subdir]
+							(const int request_id, const int ret_code, const QString &ret_string) {
+		if (request_id == requestid)
+		{
+			disconnect(*conn);
+			if (ret_code == 0)
+			{
+				if (remoteFileUpToDate(ret_string, file->fileName())) //remote file is up to date. Don't send anything
+				{
+					emit networkRequestProcessed(requestid, 0, tr("File on the online server already up to date"));
+					return;
+				}
+			}
+			const QUrl &url{makeCommandURL(username, passwd, "upload"_L1, subdir, "targetuser", targetUser.isEmpty() ? username : targetUser)};
+			uploadFile(requestid, url, file, b_internal_signal_only);
+		}
+	});
+	const QUrl &url{makeCommandURL(username, passwd, "checkfilectime"_L1, appUtils()->getFileName(file->fileName()),
+						"subdir"_L1, subdir, "fromuser"_L1, targetUser)};
+	makeNetworkRequest(requestid, url, true);
 }
 
 void TPOnlineServices::listFiles(const int requestid, const QString &username, const QString &passwd, const QString &subdir, const QString &targetUser)
@@ -366,6 +385,18 @@ void TPOnlineServices::uploadFile(const int requestid, const QUrl &url, QFile *f
 		});
 		multiPart->setParent(reply); // Let the reply manage the multipart's lifecycle
 	}
+}
+
+bool TPOnlineServices::remoteFileUpToDate(const QString &onlineDate, const QString &localFile) const
+{
+	QFileInfo fi{localFile};
+	if (fi.exists())
+	{
+		const QDateTime &c_time{fi.birthTime()};
+		const QDateTime &online_ctime{appUtils()->getDateTimeFromOnlineString(onlineDate)};
+		return online_ctime >= c_time;
+	}
+	return false;
 }
 
 bool TPOnlineServices::localFileUpToDate(const QString &onlineDate, const QString &localFile) const

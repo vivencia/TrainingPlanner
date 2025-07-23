@@ -11,16 +11,8 @@ Rectangle {
 	radius: rounded ? height : 6
 	opacity: checked ? 0.7 : 1
 	color: backgroundColor
-	height: {
-		if (autoSize)
-			return buttonText.contentHeight + (textUnderIcon ? imageSize : 0) + (text.length > 0 ? 10 : 0);
-		else
-			return appSettings.itemDefaultHeight;
-	}
-	width: {
-		if (autoSize)
-			return buttonText.contentWidth + (textUnderIcon ? 0 : imageSize) + (text.length > 0 ? 20 : 0)
-	}
+	height: autoSize ? (buttonText.contentHeight + (textUnderIcon ? imageSize : 0) + (text.length > 0 ? 10 : 0)) : appSettings.itemDefaultHeight
+	width: autoSize ? (buttonText.contentWidth + (textUnderIcon ? 0 : imageSize) + (text.length > 0 ? 20 : 0)) : undefined
 
 	property color textColor: appSettings.fontColor
 	property alias font: buttonText.font
@@ -211,7 +203,7 @@ Rectangle {
 		if (_buttonImage)
 			anchorImage();
 	}
-	
+
 	function anchorImage(): void {
 		if (textUnderIcon) {
 			_buttonImage.anchors.top = button.top;
@@ -222,13 +214,11 @@ Rectangle {
 		else {
 			_buttonImage.anchors.verticalCenter = button.verticalCenter;
 			if (iconOnTheLeft) {
-				if (autoSize)
-					buttonText.anchors.horizontalCenterOffset = imageSize/2;
+				buttonText.anchors.horizontalCenterOffset = imageSize/2;
 				_buttonImage.anchors.right = buttonText.left;
 			}
 			else {
-				if (autoSize)
-					buttonText.anchors.horizontalCenterOffset = -imageSize/2;
+				buttonText.anchors.horizontalCenterOffset = -imageSize/2;
 				_buttonImage.anchors.left = buttonText.right;
 			}
 		}

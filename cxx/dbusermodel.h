@@ -267,7 +267,12 @@ public:
 	}
 	Q_INVOKABLE void uploadResume(const QString &resumeFileName);
 	Q_INVOKABLE void setMainUserConfigurationFinished();
-	Q_INVOKABLE inline bool isCoachRegistered() { return mb_coachRegistered ? mb_coachRegistered == true : false; }
+	Q_INVOKABLE inline bool isCoachRegistered()
+	{
+		if (mb_coachRegistered.has_value() && mb_coachRegistered.value())
+			return (mb_coachPublic = true);
+		return false;
+	}
 	Q_INVOKABLE void sendRequestToCoaches();
 	Q_INVOKABLE void getOnlineCoachesList(const bool get_list_only = false);
 
@@ -318,7 +323,7 @@ private:
 	std::optional<bool> mb_userRegistered, mb_coachRegistered;
 	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses, *m_tempUserInfo;
 	QStringList m_coachesNames, m_clientsNames;
-	bool mb_canConnectToServer;
+	bool mb_canConnectToServer, mb_coachPublic;
 	QTimer *m_mainTimer;
 
 	void onlineCheckIn();
