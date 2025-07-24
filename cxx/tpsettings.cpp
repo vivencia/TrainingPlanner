@@ -339,7 +339,7 @@ void TPSettings::addWeatherCity(const QString &city, const QString &latitude, co
 		if (location.contains(city, Qt::CaseInsensitive))
 			return;
 	}
-	m_weatherLocations.append(city + record_separator + latitude + record_separator + longitude + record_separator);
+	m_weatherLocations.append(appUtils()->string_strings({city, latitude, longitude}, record_separator));
 	changeValue(WEATHER_CITIES_INDEX, QVariant::fromValue(m_weatherLocations));
 	emit weatherCitiesCountChanged();
 }

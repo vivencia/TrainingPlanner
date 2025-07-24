@@ -19,4 +19,9 @@ Label {
 	padding: 0
 	property string fontColor: appSettings.fontColor
 	property bool singleLine: true
+
+	/*background: Rectangle {
+		color: "transparent"
+		border.color: "black"
+	}*/
 }

@@ -20,6 +20,7 @@ TPPage {
 		TPImage {
 			id: imgAppIcon
 			source: "app_icon"
+			//source: "https://doc.qt.io/style/qt-logo-documentation.svg"
 			dropShadow: false
 			width: 50
 			height: 50

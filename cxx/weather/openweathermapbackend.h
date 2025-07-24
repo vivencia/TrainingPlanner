@@ -53,30 +53,30 @@ class OpenWeatherMapBackend : public QObject
 Q_OBJECT
 
 public:
-	explicit OpenWeatherMapBackend(QObject* parent = nullptr);
+	explicit OpenWeatherMapBackend(QObject *parent = nullptr);
 	~OpenWeatherMapBackend() = default;
 
-	void getCityFromCoordinates(const QGeoCoordinate& coordinate);
-	void searchForCities(const QString& search_term);
-	void requestWeatherInfoFromNet(const QGeoCoordinate& coordinate);
-	void requestWeatherInfo(const QString& city, const QGeoCoordinate& coordinate);
+	void getCityFromCoordinates(const QGeoCoordinate &coordinate);
+	void searchForCities(const QString &search_term);
+	void requestWeatherInfoFromNet(const QGeoCoordinate &coordinate);
+	void requestWeatherInfo(const QString &city, const QGeoCoordinate &coordinate);
 
 signals:
-	void receivedCityFromCoordinates(const QString& city, const QGeoCoordinate& coordinate);
-	void receivedCitiesFromSearch(QList<st_LocationInfo>* foundLocations);
-	void weatherInformation(const st_LocationInfo& location, const QList<st_WeatherInfo>& weatherDetails);
+	void receivedCityFromCoordinates(const QString &city, const QGeoCoordinate &coordinate);
+	void receivedCitiesFromSearch(const QList<st_LocationInfo> *foundLocations);
+	void weatherInformation(const st_LocationInfo &location, const QList<st_WeatherInfo> &weatherDetails);
 
 private slots:
-	void handleWeatherInfoRequestReply(QNetworkReply* reply, const QGeoCoordinate& coordinate);
+	void handleWeatherInfoRequestReply(QNetworkReply *reply, const QGeoCoordinate &coordinate);
 
 private:
-	QNetworkAccessManager* m_networkManager;
+	QNetworkAccessManager *m_networkManager;
 	QString m_locationName;
 	QList<st_LocationInfo> m_foundLocations;
 	QStringList m_citiesFromCoords;
 
-	void parseOpenWeatherGeocodingReply(const QByteArray& replyData);
-	void parseOpenWeatherReverseGeocodingReply(const QByteArray& replyData);
+	void parseOpenWeatherGeocodingReply(const QByteArray &replyData);
+	void parseOpenWeatherReverseGeocodingReply(const QByteArray &replyData);
 };
 
 #endif // OPENWEATHERMAPBACKEND_H

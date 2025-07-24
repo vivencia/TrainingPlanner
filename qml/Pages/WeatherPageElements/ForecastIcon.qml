@@ -2,54 +2,41 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 import QtQuick
+import QtQuick.Layouts
+
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+
 import "../../TPWidgets"
 import "../.."
 
-Item {
-    id: top
+ColumnLayout {
+	spacing: 5
 
-    property string topText: "Mon"
-    property string middleIcon: "sunny"
-    property string bottomText: "22*/23*"
+	property string topText: "Mon"
+	property string middleIcon: "sunny"
+	property string bottomText: "22*/23*"
 
-    implicitHeight: dayText.implicitHeight + icon.height + tempText.implicitHeight + 20
+	TPLabel {
+		text: topText
+		horizontalAlignment: Text.AlignHCenter
+		font.pixelSize: 16
+		Layout.fillWidth: true
+	}
 
-    TPLabel {
-        id: dayText
-        text: top.topText
-        horizontalAlignment: Text.AlignHCenter
-        font.pixelSize: 16
-        width: parent.width
+	TPImage {
+		source: "weather/weather-" + middleIcon + ".svg"
+		smooth: true
+		width: 50
+		height: 50
+		Layout.preferredHeight: 50
+		Layout.preferredWidth: 50
+		Layout.alignment: Qt.AlignCenter
+	}
 
-        anchors {
-			top: parent.top
-			horizontalCenter: parent.horizontalCenter
-		}
-    }
-
-    WeatherIcon {
-        id: icon
-        weatherIcon: top.middleIcon
-        height: 50
-        width: height
-
-        anchors {
-			top: dayText.bottom
-			margins: 10
-			horizontalCenter: parent.horizontalCenter
-		}
-    }
-
-    TPLabel {
-        id: tempText
-        text: top.bottomText
-        horizontalAlignment: Text.AlignHCenter
-        font.pixelSize: 18
-        width: top.width
-
-        anchors {
-			top: icon.bottom
-			horizontalCenter: parent.horizontalCenter
-		}
-    }
+	TPLabel {
+		text: bottomText
+		horizontalAlignment: Text.AlignHCenter
+		font.pixelSize: 18
+		Layout.fillWidth: true
+	}
 }

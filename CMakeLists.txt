@@ -134,9 +134,10 @@ set( QM_FILES
 )
 
 set( SERVER_FILES
-	web-server/default
+	web-server/tpserver.conf
 	web-server/nginx.conf
 	web-server/www.conf
+	web-server/php.ini
 	web-server/url_parser.php
 	web-server/init_script.sh
 	web-server/usersdb.sh
@@ -184,7 +185,6 @@ set( QML_SOURCES
 	"qml/Pages/WeatherPage.qml"
 	"qml/Pages/WeatherPageElements/BigForecastIcon.qml"
 	"qml/Pages/WeatherPageElements/ForecastIcon.qml"
-	"qml/Pages/WeatherPageElements/WeatherIcon.qml"
 	"qml/Pages/WorkoutPage.qml"
     "qml/TPWidgets/TPBalloonTip.qml"
     "qml/TPWidgets/TPButton.qml"
@@ -341,4 +341,8 @@ if (ANDROID)
 	#	QT_ANDROID_EXTRA_LIBS
 	#	"${ANDROID_SDK_ROOT}/android_openssl/ssl_3/${CMAKE_ANDROID_ARCH_ABI}/libcrypto_3.so;${ANDROID_SDK_ROOT}/android_openssl/ssl_3/${CMAKE_ANDROID_ARCH_ABI}/libssl_3.so"
 	#)
+
+	set_target_properties(TrainingPlanner PROPERTIES
+		QT_ANDROID_TARGET_SDK_VERSION 32
+	)
 endif(ANDROID)

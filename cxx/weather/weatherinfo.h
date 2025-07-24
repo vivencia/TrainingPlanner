@@ -27,7 +27,7 @@ Q_PROPERTY(QString minMaxTemperatures READ minMaxTemperatures NOTIFY dataChanged
 QML_ANONYMOUS
 
 public:
-	explicit inline WeatherData(QObject* parent = nullptr) : QObject{parent} {}
+	explicit inline WeatherData(QObject *parent = nullptr) : QObject{parent} {}
 
 	inline QString coordinates() const { return m_coordinates; }
 	inline QString dayOfWeek() const { return m_dayOfWeek; }
@@ -38,7 +38,7 @@ public:
 	inline QString provider() const { return m_provider; }
 	inline QString minMaxTemperatures() const { return m_minmax; }
 
-	void setWeatherInfo(const st_WeatherInfo& w_info, const st_WeatherInfo* w_currentdayforecast = nullptr);
+	void setWeatherInfo(const st_WeatherInfo &w_info, const st_WeatherInfo *w_currentdayforecast = nullptr);
 
 signals:
 	void dataChanged();
@@ -61,24 +61,25 @@ class WeatherInfo : public QObject
 
 Q_OBJECT
 
-Q_PROPERTY(bool canUseGps READ canUseGps CONSTANT)
+Q_PROPERTY(bool canUseGps READ canUseGps WRITE setCanUseGps NOTIFY canUseGpsChanged FINAL)
 Q_PROPERTY(QString city READ city WRITE setCity NOTIFY cityChanged)
-Q_PROPERTY(QString gpsCity READ gpsCity WRITE setGpsCity NOTIFY gpsCityChanged)
+Q_PROPERTY(QString gpsMessage READ gpsMessage WRITE setGpsMessage NOTIFY gpsMessageChanged)
 Q_PROPERTY(QStringList locationList READ locationList NOTIFY locationListChanged)
-Q_PROPERTY(WeatherData* weather READ weather NOTIFY weatherChanged)
+Q_PROPERTY(WeatherData *weather READ weather NOTIFY weatherChanged)
 Q_PROPERTY(QQmlListProperty<WeatherData> forecast READ forecast NOTIFY weatherChanged)
 
 public:
-	explicit WeatherInfo(QObject* parent = nullptr);
+	explicit WeatherInfo(QObject *parent = nullptr);
 	~WeatherInfo();
 
 	bool canUseGps() const;
+	void setCanUseGps(const bool can_usegps);
 	QString city() const;
-	void setCity(const QString& value);
-	QString gpsCity() const;
-	void setGpsCity(const QString& value);
+	void setCity(const QString &value);
+	QString gpsMessage() const;
+	void setGpsMessage(const QString &message);
 	QStringList locationList() const { return m_locationList; }
-	WeatherData* weather() const;
+	WeatherData *weather() const;
 	QQmlListProperty<WeatherData> forecast() const;
 
 #ifdef Q_OS_ANDROID
@@ -86,30 +87,31 @@ public:
 #endif
 	Q_INVOKABLE void requestWeatherForSavedCity(const uint index);
 	Q_INVOKABLE void refreshWeather();
-	Q_INVOKABLE void searchForCities(const QString& place);
+	Q_INVOKABLE void searchForCities(const QString &place);
 	Q_INVOKABLE void locationSelected(const uint index);
 
 private slots:
 #ifdef Q_OS_ANDROID
-	void positionUpdated(const QGeoPositionInfo& gpsPos);
+	void positionUpdated(const QGeoPositionInfo &gpsPos);
 	void positionError(QGeoPositionInfoSource::Error e);
-	void gotGPSLocation(const QString& city, const QGeoCoordinate& coord);
+	void gotGPSLocation(const QString &city, const QGeoCoordinate &coord);
 #endif
-	void handleWeatherData(const st_LocationInfo& location, const QList<st_WeatherInfo>& weatherDetails);
-	void buildLocationsList(QList<st_LocationInfo>* foundLocations);
+	void handleWeatherData(const st_LocationInfo &location, const QList<st_WeatherInfo> &weatherDetails);
+	void buildLocationsList(const QList<st_LocationInfo> *foundLocations);
 
 signals:
+	void canUseGpsChanged();
 	void cityChanged();
-	void gpsCityChanged();
+	void gpsMessageChanged();
 	void weatherChanged();
 	void locationListChanged();
 
 private:
-	bool applyWeatherData(const QString& city, const QList<st_WeatherInfo>& weatherDetails);
+	void addLocationToConfig(const QString &location, const QGeoCoordinate &coord);
 
-	WeatherInfoPrivate* d;
+	WeatherInfoPrivate *d;
 	QMap<QString, st_LocationInfo> m_usedLocations;
-	QList<st_LocationInfo>* m_foundLocations;
+	QList<st_LocationInfo> *m_foundLocations;
 	st_LocationInfo m_gpsLocation;
 	QStringList m_locationList;
 };
