@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Effects
 import QtQuick.Layouts
 
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
@@ -28,27 +29,16 @@ TPPage {
 			bottomMargin: 5
 		}
 
-		TPLabel {
-			text: weatherInfo.gpsMessage
-			wrapMode: Text.WordWrap
-			font: AppGlobals.smallFont
-			leftPadding: appSettings.itemDefaultHeight + 5
-			horizontalAlignment: Text.AlignJustify
-			Layout.maximumWidth: main.width - leftPadding
-			Layout.maximumHeight: 0.1 * main.height
+		TPButton {
+			id: btnGPS
+			text: weatherInfo.gpsCity
+			imageSource: "gps.png"
+			enabled: weatherInfo.canUseGps
+			width: scrollViewCities.width
+			Layout.fillWidth: true
 
-			TPImage {
-				source: "gps.png"
-				enabled: weatherInfo.canUseGps
-				width: appSettings.itemDefaultHeight
-				height: width
-
-				anchors {
-					left: parent.left
-					verticalCenter: parent.verticalCenter
-				}
-			}
-		}
+			onClicked: weatherInfo.requestWeatherForGpsCity();
+		} //TPLabel gpsCity
 
 		Rectangle {
 			id: savedCities
@@ -143,9 +133,12 @@ TPPage {
 
 		BigForecastIcon {
 			id: current
-			Layout.fillWidth: true
-			//Layout.fillHeight: true
-			Layout.maximumHeight: 0.45 * main.height
+			height: 0.55*main.height
+			width: parent.width
+			Layout.alignment: Qt.AlignHCenter
+			Layout.preferredHeight: height
+			Layout.preferredWidth: width
+			Layout.topMargin: 10
 
 			topText: weatherInfo.city + "  " + weatherInfo.weather.coordinates + "\n" + weatherInfo.weather.temperature
 			weatherIcon: weatherInfo.weather.weatherIcon
@@ -153,36 +146,28 @@ TPPage {
 			bottomBottomText: weatherInfo.weather.extraInfo
 		}
 
-		TPButton {
-			text: qsTr("Update")
-			imageSource: "reload"
-			autoSize: true
-			flat: false
-			Layout.preferredWidth: width
-			Layout.alignment: Qt.AlignCenter
-			Layout.topMargin: 10
-
-			onClicked: weatherInfo.refreshWeather();
-		}
-
+		Item {
 		Rectangle {
 			id: forecastFrame
 			color: "#3F000000"
 			radius: 40
-			opacity: 0.9
-			height: 0.2 * main.height
+			opacity: 0.15
+			visible: false
+			height: 0.25 * main.height
 			Layout.alignment: Qt.AlignHCenter
-			Layout.minimumHeight: height
+			Layout.preferredHeight: height
+			Layout.topMargin: -15
+			Layout.bottomMargin: 20
 			Layout.fillWidth: true
 
 			Row {
 				id: iconRow
-				padding: 0
-				spacing: 0
 				anchors.centerIn: parent
+				anchors.leftMargin: 20
+				padding: 0
 
-				readonly property int daysCount: weatherInfo.forecast.length
-				readonly property real iconWidth: (daysCount > 0) ? ((forecastFrame.width - 20) / daysCount) : forecastFrame.width
+				property int daysCount: weatherInfo.forecast.length
+				property real iconWidth: (daysCount > 0) ? ((forecastFrame.width - 20) / daysCount) : forecastFrame.width
 
 				Repeater {
 					model: weatherInfo.forecast
@@ -212,7 +197,19 @@ TPPage {
 				}
 			}
 		} //Rectangle forecastFrame
+
+		MultiEffect {
+			source: forecastFrame
+			anchors.fill: forecastFrame
+			shadowEnabled: true
+			shadowBlur: 0.5
+			shadowHorizontalOffset: 0
+			shadowVerticalOffset: 4
+			shadowOpacity: 0.6
+		}
+		}
 	}
+
 
 	property TPFloatingMenuBar locationsMenu: null
 	function showLocationsList() {

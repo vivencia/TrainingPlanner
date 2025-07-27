@@ -344,5 +344,6 @@ if (ANDROID)
 
 	set_target_properties(TrainingPlanner PROPERTIES
 		QT_ANDROID_TARGET_SDK_VERSION 32
+		QT_ANDROID_COMPILE_SDK_VERSION 32
 	)
 endif(ANDROID)

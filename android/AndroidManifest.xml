@@ -12,7 +12,6 @@
 	<uses-permission android:name="android.permission.READ_ASSISTANT_APP_SEARCH_DATA"/>
 	<uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
 	<uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
-
 	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
 	<supports-screens android:anyDensity="true" android:largeScreens="true" android:normalScreens="true" android:smallScreens="true"/>
@@ -79,16 +78,12 @@
 				<data android:host="*"/>
 			</intent-filter>
 			-->
-			<meta-data android:name="android.app.lib_name" android:value="-- %%INSERT_APP_LIB_NAME%% --"/>
-			<!-- <meta-data android:name="android.app.lib_name" android:value="trainingplanner"/>
+			<!--<meta-data android:name="android.app.lib_name" android:value="-- %%INSERT_APP_LIB_NAME%% --"/>
 			<meta-data android:name="android.app.arguments" android:value=""/>-->
+			<meta-data android:name="android.app.lib_name" android:value="TrainingPlanner"/>
 			<meta-data android:name="android.app.extract_android_style" android:value="default"/>
 			<meta-data android:name="android.app.background_running" android:value="true"/>
-			<meta-data android:name="android.app.use_local_qt_libs" android:value="-- %%USE_LOCAL_QT_LIBS%% --"/>
-			<meta-data android:name="android.app.libs_prefix" android:value="/data/local/tmp/qt/"/>
 			<meta-data android:name="android.app.load_local_libs" android:value="-- %%INSERT_LOCAL_LIBS%% --"/>
-			<meta-data android:name="android.app.load_local_jars" android:value="-- %%INSERT_LOCAL_JARS%% --"/>
-			<meta-data android:name="android.app.static_init_classes" android:value="-- %%INSERT_INIT_CLASSES%% --"/>
 		</activity>
 
 		<!-- If this receiver listens for broadcasts sent from the system or from other apps, even other apps that you own, set android:exported to "true". -->

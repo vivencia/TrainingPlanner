@@ -27,7 +27,7 @@ TPPopup {
 	property string minutesDisplay: "00"
 	property bool  modified: false
 	property int timeButtonsPaneSize: timePicker.width
-	property int innerButtonsPaneSize: timeButtonsPaneSize - 50
+	property int innerButtonsPaneSize: timeButtonsPaneSize - 60
 
 	// c1: circle 1 (outside) 1-12
 	// c2: circle 2 (inside) 13-00
@@ -67,6 +67,8 @@ TPPopup {
 	]
 
 	signal timeSet(string hour, string minutes)
+
+	onOpened: modified = false;
 
 	// opening TimePicker with a given HH:MM value
 	// ATTENTION TimePicker is rounding DOWN to next lower 05 / 15 Minutes. If you want to round UP do it before calling this function
@@ -245,8 +247,9 @@ TPPopup {
 
 	Rectangle {
 		id: timeButtonsPane
-		color: "transparent"
+		color: appSettings.primaryDarkColor
 		height: parent.height * 0.70
+		radius: width / 2
 
 		anchors {
 			top: headerPane.bottom
@@ -323,7 +326,7 @@ TPPopup {
 			padding: 0
 			visible: !timePicker.pickMinutes
 			anchors.centerIn: parent
-			background: Rectangle {color: "transparent"}
+			background: Rectangle {color: appSettings.primaryLightColor; radius: width / 2; }
 
 			Repeater {
 				id: innerRepeater
@@ -337,20 +340,21 @@ TPPopup {
 					x: (timePicker.innerButtonsPaneSize - width) / 2
 					y: (timePicker.innerButtonsPaneSize - height) / 2
 					ButtonGroup.group: innerButtonGroup
-					width: timePicker.width * 0.12
-					height: timePicker.height * 0.12
+					width: timePicker.width * 0.11
+					height: timePicker.height * 0.11
 					checked: index === timePicker.innerButtonIndex
 					checkable: true
 					enabled: buttonsIsEnabled(text, true);
 
 					readonly property real angle: 360 * (index / innerRepeater.count)
 
-					contentItem: TPLabel {
+					contentItem: Item {}
+					TPLabel {
 						text: innerButton.text
 						rotation: -innerButton.angle
 						opacity: innerButton.checked ? 1.0 : enabled || innerButton.highlighted ? 1.0 : 0.6
-						leftPadding: -10
 						horizontalAlignment: Text.AlignHCenter
+						anchors.centerIn: parent
 					} // content Label
 
 					background: Rectangle {
@@ -359,7 +363,7 @@ TPPopup {
 					}
 
 					onClicked: {
-						if (timePicker.innerButtonIndex !=+ index)
+						if (timePicker.innerButtonIndex !== index)
 						{
 							timePicker.outerButtonIndex = -1;
 							timePicker.innerButtonIndex = index;
@@ -394,12 +398,12 @@ TPPopup {
 			delegate: Button {
 				id: outerButton
 				focusPolicy: Qt.NoFocus
-				text: timePicker.pickMinutes? modelData.m : timePicker.useWorkTimes? modelData.d : modelData.c1
+				text: timePicker.pickMinutes ? modelData.m : timePicker.useWorkTimes ? modelData.d : modelData.c1
 				font.bold: true
 				ButtonGroup.group: outerButtonGroup
 				anchors.centerIn: parent
-				width: 40
-				height: 40
+				width: timePicker.width * 0.11
+				height: timePicker.height * 0.11
 				checked: index === timePicker.outerButtonIndex
 				checkable: true
 				enabled: timePicker.pickMinutes ? (buttonsIsEnabled(text, false) ? timePicker.onlyQuartersAllowed ? modelData.q : true : false) :
@@ -427,7 +431,7 @@ TPPopup {
 
 				transform: [
 					Translate {
-						y: -timePicker.timeButtonsPaneSize * 0.5 + outerButton.height / 2
+						y: -timePicker.timeButtonsPaneSize * 0.5 + outerButton.height / 2 - 5
 					},
 					Rotation {
 						angle: outerButton.angle
@@ -436,12 +440,13 @@ TPPopup {
 					}
 				]
 
-				contentItem: TPLabel {
+				contentItem: Item {}
+				TPLabel {
 					text: outerButton.text
 					rotation: -outerButton.angle
 					opacity: enabled || outerButton.highlighted || outerButton.checked ? 1 : 0.3
 					verticalAlignment: Text.AlignVCenter
-					leftPadding: -10
+					anchors.centerIn: parent
 				} // outer content label
 
 				background: Rectangle {
@@ -456,10 +461,22 @@ TPPopup {
 			y: centerpoint.y + centerpoint.height / 2 - height //timePicker.timeButtonsPaneSize / 2 - 40
 			anchors.horizontalCenter: parent.horizontalCenter
 			width: 1
-			height: timePicker.timeButtonsPaneSize / 2 - 40
+			height: timePicker.timeButtonsPaneSize / 2 - appSettings.itemDefaultHeight
 			transformOrigin: Item.Bottom
 			rotation: outerButtonGroup.checkedButton ? outerButtonGroup.checkedButton.angle : 0
 			color: appSettings.fontColor
+
+			Rectangle { //tip point of line
+				width: 8
+				height: 8
+				color: appSettings.fontColor
+				radius: 4
+				anchors {
+					left: parent.left
+					leftMargin: -4
+					top: parent.top
+				}
+			}
 		}
 
 		Rectangle { // line to inner buttons
@@ -467,25 +484,33 @@ TPPopup {
 			y: centerpoint.y + centerpoint.height / 2 - height
 			anchors.horizontalCenter: parent.horizontalCenter
 			width: 1
-			height: timePicker.innerButtonsPaneSize / 2 - 40
+			height: timePicker.innerButtonsPaneSize / 2 - appSettings.itemDefaultHeight
 			transformOrigin: Item.Bottom
 			rotation: innerButtonGroup.checkedButton ? innerButtonGroup.checkedButton.angle : 0
 			color: appSettings.fontColor
+
+			Rectangle { //tip point of line
+				width: 6
+				height: 6
+				color: appSettings.fontColor
+				radius: 3
+				anchors {
+					left: parent.left
+					leftMargin: -3
+					top: parent.top
+				}
+			}
 		}
 
 		Rectangle {
 			id: centerpoint
 			anchors.centerIn: parent
-			width: 10
-			height: 10
-			color: appSettings.primaryColor
-			radius: width / 2
+			width: 15
+			height: 15
+			color: appSettings.fontColor
+			radius: 7.5
 		}
 	} // timeButtonsPane
-
-	onOpened: {
-		timePicker.modified = false
-	}
 
 	Item {
 		id: footerPane

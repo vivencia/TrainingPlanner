@@ -12,6 +12,7 @@
 
 #include <QApplication>
 #include <QQmlApplicationEngine>
+#include <QSurfaceFormat>
 
 #ifdef Q_OS_ANDROID
 #include <QtCore/private/qandroidextras_p.h>
@@ -24,6 +25,11 @@ int main(int argc, char *argv[])
 	{
 #endif
 		QCoreApplication::setAttribute(Qt::AA_UseOpenGLES);
+		// Set the default surface format before creating the application
+		QSurfaceFormat format;
+		format.setVersion(3, 2); // Request OpenGL ES 3.3
+		format.setProfile(QSurfaceFormat::CoreProfile); // Use Core Profile
+		QSurfaceFormat::setDefaultFormat(format);
 		QApplication app{argc, argv};
 
 		app.setOrganizationName("Vivencia Software"_L1);
