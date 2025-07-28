@@ -9,23 +9,21 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPopup {
 	id: dlgTimer
-	keepAbove: !simpleTimer
-	width: timePickerOnly ? 150 : appSettings.pageWidth * 0.75
-	height: timePickerOnly ? 100 : appSettings.pageHeight * 0.30
+	keepAbove: true
+	width: appSettings.pageWidth * 0.75
+	height: appSettings.pageHeight * 0.3
 	x: (appSettings.pageWidth - width) / 2
-	finalYPos: simpleTimer ? (appSettings.pageHeight - height) / 2 : 0 // align vertically centered
+	finalYPos: (appSettings.pageHeight - height) / 2
 
-	property bool bJustMinsAndSecs: false
-	property bool simpleTimer: false
 	property bool timePickerOnly: false
 	property bool bNegCountDown: false
 	property bool bTextChanged: false //The user changed the input values and clicked USE before starting the timer(if ever). So we use the values provided by he user
 	property string windowTitle
 	property string initialTime
 
-	readonly property int rowWidth: dlgTimer.width * 0.8
-	readonly property int txtWidth: !timePickerOnly ? rowWidth/3 - 20 : 40
-	readonly property int leftMarginValue: dlgTimer.width * 0.1
+	readonly property int rowWidth: width * 0.8
+	readonly property int txtWidth: rowWidth/3 - 20
+	readonly property int leftMarginValue: width * 0.05
 
 	signal useTime(string time)
 
@@ -37,7 +35,7 @@ TPPopup {
 		id: mainTimer
 		interval: 1000
 		alarmSoundFile: "qrc:/sounds/timer-end.wav"
-		stopWatch: chkStopWatch.checked
+		stopWatch: false
 
 		Component.onCompleted: addWarningAtSecond(15);
 	}
@@ -51,69 +49,30 @@ TPPopup {
 			text: qsTr("Stopwatch")
 			radio: false
 			checked: false
-			visible: !timePickerOnly
+			enabled: !timePickerOnly
 			Layout.leftMargin: 10
-			Layout.bottomMargin: 10
+			Layout.fillWidth: true
+
+			onClicked: mainTimer.stopWatch = checked;
 		}
 
-		GridLayout {
-			id: recStrings
-			height: 30
-			columnSpacing: 30
-			rowSpacing: 10
-			columns: !bJustMinsAndSecs ? 3 : 2
-			rows: 2
-			Layout.minimumWidth: !bJustMinsAndSecs ? rowWidth : rowWidth * 0.6
-			Layout.maximumWidth: !bJustMinsAndSecs ? rowWidth : rowWidth * 0.6
-			Layout.leftMargin: !timePickerOnly ? (bJustMinsAndSecs ? txtWidth + leftMarginValue : leftMarginValue) : 25
-
-			Label {
-				color: appSettings.fontColor
-				font.pixelSize: appSettings.smallFontSize
-				text: qsTr("Hours")
-				visible: !bJustMinsAndSecs
-				Layout.maximumWidth: txtWidth
-				Layout.minimumWidth: txtWidth
-				Layout.row: 0
-				Layout.column: 0
-				Layout.leftMargin: 5
-			}
-			Label {
-				color: appSettings.fontColor
-				font.pixelSize: appSettings.smallFontSize
-				text: qsTr("Minutes")
-				Layout.maximumWidth: txtWidth
-				Layout.minimumWidth: txtWidth
-				Layout.row: 0
-				Layout.column: !bJustMinsAndSecs ? 1 : 0
-				Layout.leftMargin: -5
-			}
-			Label {
-				color: appSettings.fontColor
-				font.pixelSize: appSettings.smallFontSize
-				text: qsTr("Seconds")
-				visible: !timePickerOnly
-				Layout.maximumWidth: txtWidth
-				Layout.minimumWidth: txtWidth
-				Layout.row: 0
-				Layout.column: !bJustMinsAndSecs ? 2 : 1
-				Layout.leftMargin: -10
-			}
+		RowLayout {
+			spacing: 20
+			Layout.fillWidth: true
+			Layout.leftMargin: leftMarginValue
 
 			TPTextInput {
 				id: txtHours
 				text: mainTimer.strHours
-				visible: !bJustMinsAndSecs
 				focus: true
 				validator: IntValidator { bottom: 0; top: 99; }
 				inputMethodHints: Qt.ImhDigitsOnly
 				maximumLength: 2
-				width: txtWidth
 				horizontalAlignment: Text.AlignHCenter
-				Layout.maximumWidth: txtWidth
+				width: txtWidth
 				Layout.minimumWidth: txtWidth
-				Layout.row: 1
-				Layout.column: 0
+				Layout.maximumWidth: txtWidth
+				Layout.alignment: Qt.AlignCenter
 
 				Keys.onPressed: (event) => processKeyEvents(event);
 
@@ -127,6 +86,7 @@ TPPopup {
 							mainTimer.hours = mainTimer.orignalHours();
 					}
 				}
+
 				onTextEdited: {
 					if (acceptableInput) {
 						if ( text.length === 2 ) {
@@ -153,22 +113,27 @@ TPPopup {
 					}
 				}
 
-				Label {
-					text: ":"
-					font.pixelSize: appSettings.largeFontSize
-					font.bold: true
-					horizontalAlignment: Text.AlignHCenter
-					color: "black"
-					width: 10
-					visible: txtHours.visible
+				TPLabel {
+					font.pixelSize: appSettings.smallFontSize
+					text: qsTr("Hours")
 
 					anchors {
-						left: parent.right
-						leftMargin: 10
-						verticalCenter: parent.verticalCenter
+						horizontalCenter: parent.horizontalCenter
+						bottom: parent.top
+						bottomMargin: 10
 					}
 				}
 			} // txtHours
+
+			TPLabel {
+				text: ":"
+				font.pixelSize: appSettings.largeFontSize
+				font.bold: true
+				horizontalAlignment: Text.AlignHCenter
+				visible: txtHours.visible
+				Layout.maximumWidth: contentWidth
+				Layout.alignment: Qt.AlignCenter
+			}
 
 			TPTextInput {
 				id: txtMinutes
@@ -177,12 +142,11 @@ TPPopup {
 				validator: IntValidator { bottom: 0; top: 59; }
 				inputMethodHints: Qt.ImhDigitsOnly
 				maximumLength: 2
-				width: txtWidth
 				horizontalAlignment: Text.AlignHCenter
-				Layout.maximumWidth: txtWidth
+				width: txtWidth
 				Layout.minimumWidth: txtWidth
-				Layout.row: 1
-				Layout.column: !bJustMinsAndSecs ? 1 : 0
+				Layout.maximumWidth: txtWidth
+				Layout.alignment: Qt.AlignCenter
 
 				Keys.onPressed: (event) => processKeyEvents(event);
 
@@ -206,42 +170,46 @@ TPPopup {
 								txtSecs.forceActiveFocus();
 							}
 							else
-								btnUseTime.forceActiveFocus();
+								btnClose.forceActiveFocus();
 						}
 					}
 				}
 
-				Label {
-					text: ":"
-					font.pixelSize: appSettings.largeFontSize
-					font.bold: true
-					horizontalAlignment: Text.AlignHCenter
-					color: "black"
-					width: 10
-					visible: txtSecs.visible
+				TPLabel {
+					font.pixelSize: appSettings.smallFontSize
+					text: qsTr("Minutes")
 
 					anchors {
-						left: parent.right
-						leftMargin: 10
-						verticalCenter: parent.verticalCenter
+						horizontalCenter: parent.horizontalCenter
+						bottom: parent.top
+						bottomMargin: 10
 					}
 				}
 			} // txtMinutes
+
+			TPLabel {
+				text: ":"
+				font.pixelSize: appSettings.largeFontSize
+				font.bold: true
+				horizontalAlignment: Text.AlignHCenter
+				visible: txtSecs.visible
+				Layout.maximumWidth: contentWidth
+				Layout.alignment: Qt.AlignCenter
+			}
 
 			TPTextInput {
 				id: txtSecs
 				text: mainTimer.strSeconds
 				focus: true
-				visible: !timePickerOnly
+				enabled: !timePickerOnly
 				validator: IntValidator { bottom: 0; top: 59; }
 				inputMethodHints: Qt.ImhDigitsOnly
 				maximumLength: 2
-				width: txtWidth
 				horizontalAlignment: Text.AlignHCenter
-				Layout.maximumWidth: txtWidth
+				width: txtWidth
 				Layout.minimumWidth: txtWidth
-				Layout.row: 1
-				Layout.column: !bJustMinsAndSecs ? 2 : 1
+				Layout.maximumWidth: txtWidth
+				Layout.alignment: Qt.AlignCenter
 
 				Keys.onPressed: (event) => processKeyEvents(event);
 
@@ -263,22 +231,31 @@ TPPopup {
 						}
 					}
 				}
+
+				TPLabel {
+					font.pixelSize: appSettings.smallFontSize
+					text: qsTr("Seconds")
+					enabled: parent.enabled
+
+					anchors {
+						horizontalCenter: parent.horizontalCenter
+						bottom: parent.top
+						bottomMargin: 10
+					}
+				}
 			} // txtSecs
 		} // GridLayout
 
 		ProgressBar {
 			id: progressBar
-			visible: !timePickerOnly
+			enabled: !timePickerOnly
 			height: 6
-			width: rowWidth
 			from: mainTimer.totalSeconds
 			to: 0
 			value: mainTimer.progressValue
-			indeterminate: mainTimer.stopWatch
-			Layout.topMargin: 5
-			Layout.bottomMargin: 5
-			Layout.minimumWidth: width
-			Layout.maximumWidth: width
+			indeterminate: chkStopWatch.checked
+			Layout.fillWidth: true
+			Layout.rightMargin: leftMarginValue
 			Layout.leftMargin: leftMarginValue
 
 			background: Rectangle {
@@ -303,16 +280,16 @@ TPPopup {
 		RowLayout {
 			id: btnsRow
 			spacing: 5
-			Layout.topMargin: 3
 			Layout.preferredWidth: rowWidth
-			Layout.leftMargin: !timePickerOnly ? 10 : 50
+			Layout.leftMargin: 10
 
 			TPButton {
 				id: btnStartPause
 				text: mainTimer.active ? qsTr("Pause") : mainTimer.paused ? qsTr("Continue") : qsTr("Start")
+				autoSize: true
 				flat: false
-				enabled: mainTimer.stopWatch ? true : mainTimer.totalSeconds > 0
-				visible: !timePickerOnly
+				enabled: !timePickerOnly ? mainTimer.stopWatch ? true : mainTimer.totalSeconds > 0 : false
+				Layout.maximumWidth: dlgTimer.width / 3
 
 				onClicked: {
 					if (!mainTimer.active)
@@ -325,24 +302,26 @@ TPPopup {
 			TPButton {
 				id: btnReset
 				text: qsTr("Reset")
+				autoSize: true
 				flat: false
-				visible: !timePickerOnly
+				enabled: !timePickerOnly
+				Layout.maximumWidth: dlgTimer.width / 3
 
 				onClicked: mainTimer.resetTimer(mainTimer.active);
 			}
 
 			TPButton {
-				id: btnUseTime
-				text: simpleTimer ? qsTr("Close") : timePickerOnly ? qsTr("Done") : qsTr("Use")
+				id: btnClose
+				text: timePickerOnly ? qsTr("Done") : qsTr("Close")
+				autoSize: true
 				flat: false
+				Layout.maximumWidth: dlgTimer.width / 3
 
 				onClicked: {
 					if (timePickerOnly)
 						useTime(mainTimer.strHours + ":" + mainTimer.strMinutes);
-					else
-						useTime(appUtils.formatTime(mainTimer.currentElapsedTime(), false, true));
 					dlgTimer.closePopup();
-				} //btnUseTime
+				} //btnClose
 			}
 		} //Row
 	} //ColumnLayout
@@ -359,8 +338,8 @@ TPPopup {
 				}
 				else {
 					bTextChanged = true;
-					btnUseTime.forceActiveFocus();
-					btnUseTime.clicked();
+					btnClose.forceActiveFocus();
+					btnClose.clicked();
 				}
 			break;
 		}

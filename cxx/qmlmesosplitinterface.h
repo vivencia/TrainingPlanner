@@ -20,7 +20,7 @@ Q_PROPERTY(QQuickItem* currentPage READ currentPage NOTIFY currentPageChanged FI
 Q_PROPERTY(DBExercisesModel* currentSplitModel READ currentSplitModel NOTIFY currentPageChanged FINAL)
 Q_PROPERTY(QChar currentSplitLetter READ currentSplitLetter NOTIFY currentPageChanged FINAL)
 Q_PROPERTY(QChar currentSwappableLetter READ currentSwappableLetter NOTIFY currentPageChanged FINAL)
-Q_PROPERTY(bool hasExercises READ hasExercises NOTIFY currentPageChanged FINAL)
+Q_PROPERTY(bool haveExercises READ haveExercises NOTIFY currentPageChanged FINAL)
 Q_PROPERTY(bool canSwapExercises READ canSwapExercises NOTIFY currentPageChanged FINAL)
 
 public:
@@ -48,7 +48,7 @@ public:
 	inline QQuickItem *currentPage() const { return m_currentSplitPage; }
 	inline QChar currentSplitLetter() const { return m_currentSplitLetter; }
 	inline QChar currentSwappableLetter() const { return m_currentSwappableLetter; }
-	bool hasExercises() const;
+	bool haveExercises() const;
 	inline bool canSwapExercises() const { return m_currentSwappableLetter != 'N'; }
 
 public slots:

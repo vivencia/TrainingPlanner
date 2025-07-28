@@ -46,8 +46,8 @@ QQmlApplicationEngine *QmlItemManager::_appQmlEngine{nullptr};
 QQuickWindow *QmlItemManager::_appMainWindow{nullptr};
 
 QmlItemManager::QmlItemManager(QQmlApplicationEngine *qml_engine)
-		: QObject{nullptr}, m_usersManager{nullptr}, m_exercisesListManager{nullptr},
-			m_weatherPage{nullptr}, m_statisticsPage{nullptr}, m_allWorkoutsPage{nullptr}
+		: QObject{nullptr}, m_usersManager{nullptr}, m_exercisesListManager{nullptr}, m_weatherPage{nullptr},
+				m_statisticsPage{nullptr}, m_allWorkoutsPage{nullptr}
 {
 	_appItemManager = this;
 	appDBInterface()->init();
@@ -128,6 +128,7 @@ void QmlItemManager::configureQmlEngine()
 		{
 			_appMainWindow = qobject_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));
 			appQmlEngine()->rootContext()->setContextProperty("mainwindow"_L1, QVariant::fromValue(appMainWindow()));
+			_appMainWindow->setIcon(QIcon{"qrc:/images/app_icon.png"_L1});
 			if (obj->objectName() == "mainWindow"_L1)
 			{
 				if (!appUserModel()->mainUserConfigured())

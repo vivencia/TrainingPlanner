@@ -7,7 +7,7 @@ import "../"
 Rectangle {
 	id: button
 	focus: true
-	border.color: flat ? "transparent" : appSettings.fontColor
+	border.color: flat ? "transparent" : buttonText.color
 	radius: rounded ? height : 6
 	opacity: checked ? 0.7 : 1
 	color: backgroundColor

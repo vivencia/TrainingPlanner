@@ -236,7 +236,7 @@ TPPage {
 			textUnderIcon: true
 			rounded: false
 			flat: false
-			enabled: splitManager.hasExercises
+			enabled: splitManager.haveExercises
 			width: bottomToolBar.buttonWidth
 			height: footerHeight - 4
 
@@ -351,7 +351,7 @@ TPPage {
 		splitView.insertItem(idx, page);
 	}
 
-	readonly property bool bExportEnabled: splitManager.hasExercises
+	readonly property bool bExportEnabled: splitManager.haveExercises
 	onBExportEnabledChanged: {
 		if (imExportMenu) {
 			imExportMenu.enableMenuEntry(1, bExportEnabled);

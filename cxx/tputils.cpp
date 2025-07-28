@@ -2,7 +2,6 @@
 
 #include "dbexercisesmodel.h"
 #include "tpglobals.h"
-#include "tpsettings.h"
 
 #include <QClipboard>
 #include <QDir>
@@ -12,9 +11,6 @@
 
 #include <ranges>
 #include <random>
-
-static std::minstd_rand gen(std::random_device{}());
-static std::uniform_int_distribution<int> dist(0, 5000);
 
 QStringList TPUtils::_months_names{QStringList() <<
 		TPUtils::tr("January") << TPUtils::tr("February") << TPUtils::tr("March") << TPUtils::tr("April") << TPUtils::tr("May") <<
@@ -39,7 +35,7 @@ int TPUtils::generateUniqueId(const QLatin1StringView &seed) const
 {
 
 	if (seed.isEmpty())
-		return dist(gen);
+		return generateRandomNumber(0, 5000);
 	else
 	{
 		int n{0};
@@ -64,6 +60,13 @@ int TPUtils::idFromString(const QString &string_id) const
 		return sum + static_cast<int>(chr.toLatin1());
 	})};
 	return id;
+}
+
+int TPUtils::generateRandomNumber(const int min, const int max) const
+{
+	std::minstd_rand generator(std::random_device{}());
+	std::uniform_int_distribution<int> distribution(min, max);
+	return distribution(generator);
 }
 
 QString TPUtils::getCorrectPath(const QUrl &url) const

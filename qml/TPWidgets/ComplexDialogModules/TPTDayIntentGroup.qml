@@ -69,7 +69,7 @@ ColumnLayout {
 
 	TPRadioButtonOrCheckBox {
 		id: optEmptySession
-		text: qsTr("Start a new session")
+		text: parentDlg.customStringProperty3
 		checked: parentDlg.customIntProperty1 === 4
 		Layout.fillWidth: true
 

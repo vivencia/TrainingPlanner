@@ -159,7 +159,7 @@ QQuickItem* QmlMesoSplitInterface::setCurrentPage(const int index)
 	return m_currentSplitPage;
 }
 
-bool QmlMesoSplitInterface::hasExercises() const
+bool QmlMesoSplitInterface::haveExercises() const
 {
 	return currentSplitModel() ? currentSplitModel()->exerciseCount() > 0 : false;
 }

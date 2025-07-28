@@ -24,6 +24,7 @@ Q_PROPERTY(QString location READ location WRITE setLocation NOTIFY locationChang
 Q_PROPERTY(QString notes READ notes WRITE setNotes NOTIFY notesChanged FINAL)
 Q_PROPERTY(QString headerText READ headerText NOTIFY headerTextChanged FINAL)
 Q_PROPERTY(QString headerText_2 READ headerText_2 NOTIFY headerTextChanged FINAL)
+Q_PROPERTY(QString sessionLabel READ sessionLabel NOTIFY haveNewWorkoutOptionsChanged FINAL)
 Q_PROPERTY(bool haveNewWorkoutOptions READ haveNewWorkoutOptions WRITE setHaveNewWorkoutOptions NOTIFY haveNewWorkoutOptionsChanged FINAL)
 Q_PROPERTY(bool editMode READ editMode WRITE setEditMode NOTIFY editModeChanged FINAL)
 Q_PROPERTY(bool dayIsFinished READ dayIsFinished WRITE setDayIsFinished NOTIFY dayIsFinishedChanged FINAL)
@@ -32,7 +33,7 @@ Q_PROPERTY(bool canImportFromPreviousWorkout READ canImportFromPreviousWorkout W
 Q_PROPERTY(bool canImportFromSplitPlan READ canImportFromSplitPlan WRITE setCanImportFromSplitPlan NOTIFY canImportFromSplitPlanChanged FINAL)
 Q_PROPERTY(bool mainDateIsToday READ mainDateIsToday WRITE setMainDateIsToday NOTIFY mainDateIsTodayChanged FINAL)
 Q_PROPERTY(bool timerActive READ timerActive NOTIFY timerActiveChanged FINAL)
-Q_PROPERTY(bool hasExercises READ hasExercises NOTIFY hasExercisesChanged FINAL)
+Q_PROPERTY(bool haveExercises READ haveExercises NOTIFY haveExercisesChanged FINAL)
 
 public:
 	explicit QmlWorkoutInterface(QObject *parent, const uint meso_idx, const QDate &date);
@@ -70,6 +71,7 @@ public:
 	QString headerText() const { return m_headerText; }
 	QString headerText_2() const { return m_headerText_2; }
 	void setHeaderText();
+	QString sessionLabel() const;
 
 	inline bool haveNewWorkoutOptions() const { return m_haveNewWorkoutOptions; }
 	inline void setHaveNewWorkoutOptions(const bool nave_new_workout_options) { m_haveNewWorkoutOptions = nave_new_workout_options; emit haveNewWorkoutOptionsChanged(); }
@@ -92,7 +94,7 @@ public:
 	bool timerActive() const;
 
 	Q_INVOKABLE void setWorkingSetMode();
-	bool hasExercises() const;
+	bool haveExercises() const;
 
 	Q_INVOKABLE QStringList previousWorkoutsList_text() const;
 	Q_INVOKABLE QList<uint> previousWorkoutsList_value() const;
@@ -146,7 +148,7 @@ signals:
 	void canImportFromSplitPlanChanged();
 	void mainDateIsTodayChanged();
 	void timerActiveChanged();
-	void hasExercisesChanged();
+	void haveExercisesChanged();
 	void previousWorkoutsListChanged();
 	void updateRestTime(const int exercise_number, const QString &rest_time);
 

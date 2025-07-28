@@ -18,7 +18,8 @@ ApplicationWindow {
 	signal pageActivated_main(Item page);
 	signal pageDeActivated_main(Item page);
 
-	Component.onCompleted: timePicker.show1();
+	//Component.onCompleted: timePicker.show1();
+
 	TPPage {
 		id: mainPage
 		anchors.fill: parent
@@ -28,12 +29,65 @@ ApplicationWindow {
 			color: appSettings.paneBackgroundColor
 
 			ColumnLayout {
-				anchors.fill: parent
+				anchors {
+					fill: parent
+					leftMargin: 10
+					rightMargin: 10
+					topMargin: 10
+					bottomMargin: 10
+				}
 
-				TimePicker {
+				Row {
+					Layout.fillWidth: true
+					spacing: 10
+
+					TPLabel {
+						text: "Min:"
+						width: parent.width * 0.15
+					}
+					TPTextInput {
+						id: randomMin
+						width: parent.width * 0.25
+						inputMethodHints: Qt.ImhDigitsOnly
+						validator: IntValidator { bottom: 0; top: 9999; }
+						maximumLength: 4
+					}
+					TPLabel {
+						text: "Max:"
+						width: parent.width * 0.1
+					}
+					TPTextInput {
+						id: randomMax
+						width: parent.width * 0.2
+						inputMethodHints: Qt.ImhDigitsOnly
+						validator: IntValidator { bottom: 0; top: 9999; }
+						maximumLength: 4
+					}
+				}
+
+				Row {
+					Layout.fillWidth: true
+					spacing: 10
+
+					TPButton {
+						text: "Generate random number"
+						autoSize: true
+						flat: false
+						enabled: randomMin.text.length > 0 && randomMax.text.length > 0
+
+						onClicked: randomResult.text = String(appUtils.generateRandomNumber(randomMin.text, randomMax.text));
+					}
+					TPTextInput {
+						id: randomResult
+						readOnly: true
+						width: parent.width * 0.2
+					}
+				}
+
+				/*TimePicker {
 					id: timePicker
 					parentPage: mainPage
-				}
+				}*/
 
 				/*SetInputField {
 					type: SetInputField.TimeType

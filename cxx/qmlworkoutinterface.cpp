@@ -58,6 +58,7 @@ void QmlWorkoutInterface::changeSplitLetter(const QString &new_splitletter)
 		m_workoutModel->setSplitLetter(new_splitletter.at(0));
 		m_calendarModel->setSplitLetter(m_calendarDay, new_splitletter);
 		setHeaderText();
+		verifyWorkoutOptions();
 	}
 }
 
@@ -165,6 +166,18 @@ void QmlWorkoutInterface::setHeaderText()
 	emit headerTextChanged();
 }
 
+QString QmlWorkoutInterface::sessionLabel() const
+{
+	if (haveNewWorkoutOptions())
+	{
+		if (haveExercises())
+			return tr("Use or edit this already saved workout session");
+		else
+			return tr("Start a new workout session");
+	}
+	return QString{};
+}
+
 void QmlWorkoutInterface::setEditMode(const bool edit_mode)
 {
 	if (m_editMode != edit_mode)
@@ -204,7 +217,7 @@ void QmlWorkoutInterface::setMainDateIsToday(const bool is_today)
 	}
 }
 
-bool QmlWorkoutInterface::hasExercises() const
+bool QmlWorkoutInterface::haveExercises() const
 {
 	return m_workoutModel ? m_workoutModel->exerciseCount() > 0 : false;
 }
@@ -428,7 +441,7 @@ void QmlWorkoutInterface::clearExercises(const bool bShowIntentDialog)
 {
 	m_workoutModel->clearExercises();
 	setDayIsFinished(false);
-	emit hasExercisesChanged();
+	emit haveExercisesChanged();
 	if (bShowIntentDialog)
 		verifyWorkoutOptions();
 }
@@ -632,27 +645,35 @@ void QmlWorkoutInterface::continueInit()
 
 void QmlWorkoutInterface::verifyWorkoutOptions()
 {
-	setCanImportFromSplitPlan(appDBInterface()->mesoHasSplitPlan(appMesoModel()->id(m_mesoIdx), m_workoutModel->splitLetter()));
-	auto conn{std::make_shared<QMetaObject::Connection>()};
-	const int id{appDBInterface()->getPreviousWorkouts(m_workoutModel)};
-	*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn,id] (const uint db_id) {
-		if (id == db_id)
-		{
-			disconnect(*conn);
-			setCanImportFromPreviousWorkout(m_workoutModel->previousWorkouts().count() > 0);
-			m_prevWorkouts.clear();
-			if (canImportFromPreviousWorkout())
+	if (m_workoutModel->splitLetter() != 'R')
+	{
+		bool have_workoutoptions{true};
+		setCanImportFromSplitPlan(have_workoutoptions |= appDBInterface()->mesoHasSplitPlan(appMesoModel()->id(m_mesoIdx), m_workoutModel->splitLetter()));
+		have_workoutoptions |= canImportFromSplitPlan();
+		auto conn{std::make_shared<QMetaObject::Connection>()};
+		const int id{appDBInterface()->getPreviousWorkouts(m_workoutModel)};
+		*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn,id,have_workoutoptions] (const uint db_id) mutable {
+			if (id == db_id)
 			{
-				for (const auto prev_calday : m_workoutModel->previousWorkouts())
+				disconnect(*conn);
+				have_workoutoptions |= m_workoutModel->previousWorkouts().count() > 0;
+				setCanImportFromPreviousWorkout(m_workoutModel->previousWorkouts().count() > 0);
+				m_prevWorkouts.clear();
+				if (canImportFromPreviousWorkout())
 				{
-					m_prevWorkouts.emplace(std::move(appUtils()->formatDate(
-								appMesoModel()->mesoCalendarManager()->dateFromCalendarDay(m_mesoIdx, prev_calday))), prev_calday);
+					for (const auto prev_calday : m_workoutModel->previousWorkouts())
+					{
+						m_prevWorkouts.emplace(std::move(appUtils()->formatDate(
+									appMesoModel()->mesoCalendarManager()->dateFromCalendarDay(m_mesoIdx, prev_calday))), prev_calday);
+					}
+					emit previousWorkoutsListChanged();
 				}
-				emit previousWorkoutsListChanged();
+				setHaveNewWorkoutOptions(have_workoutoptions);
 			}
-			setHaveNewWorkoutOptions(true);
-		}
-	});
+		});
+	}
+	else
+		setHaveNewWorkoutOptions(false);
 }
 
 QString QmlWorkoutInterface::workoutCompletedMessage(const bool completed) const

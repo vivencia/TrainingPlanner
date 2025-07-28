@@ -32,7 +32,8 @@ TPPage {
 	Connections {
 		target: workoutManager
 		function onHaveNewWorkoutOptionsChanged(): void {
-			showIntentionDialog();
+			if (workoutManager.haveNewWorkoutOptions)
+				showIntentionDialog();
 		}
 	}
 
@@ -203,7 +204,7 @@ TPPage {
 							autoSize: true
 							Layout.alignment: Qt.AlignCenter
 
-							onClicked: limitedTimeSessionTimer();
+							onClicked: showLimitedSessionTimerDialog();
 						}
 
 						TPButton {
@@ -371,7 +372,7 @@ TPPage {
 				text: qsTr("Use this workout exercises as the default exercises plan for the division ") + workoutModel.splitLetter + qsTr( " of this mesocycle")
 				flat: false
 				rounded: false
-				visible: workoutManager.dayIsFinished && workoutManager.hasExercises
+				visible: workoutManager.dayIsFinished && workoutManager.haveExercises
 				enabled: workoutManager.editMode;
 				Layout.fillWidth: true
 				Layout.minimumHeight: 3 * appSettings.itemDefaultHeight
@@ -408,7 +409,7 @@ TPPage {
 					imageSource: "revert-day.png"
 					width: appSettings.itemDefaultHeight
 					height: width
-					visible: workoutManager.hasExercises
+					visible: workoutManager.haveExercises
 					ToolTip.text: "Remove all exercises"
 
 					anchors {
@@ -543,7 +544,7 @@ TPPage {
 			flat: false
 			width: parent.width * 0.3
 			height: parent.height * 0.5
-			visible: workoutManager.dayIsFinished && workoutManager.hasExercises
+			visible: workoutManager.dayIsFinished && workoutManager.haveExercises
 
 			anchors {
 				left: btnFinishedDayOptions.right
@@ -608,10 +609,7 @@ TPPage {
 				function finishCreation() {
 					msgClearExercises = component.createObject(workoutPage, { parentPage: workoutPage, title: qsTr("Clear exercises list?"),
 						keepAbove: true, message: qsTr("All exercises changes will be removed"), imageSource: "revert-day.png" } );
-					msgClearExercises.button1Clicked.connect(function () {
-						workoutManager.clearExercises();
-						showIntentionDialog();
-					} );
+					msgClearExercises.button1Clicked.connect(function () { workoutManager.clearExercises(true);});
 				}
 
 				if (component.status === Component.Ready)
@@ -631,9 +629,10 @@ TPPage {
 		else {
 			intentDlg.cboModel.clear();
 			intentDlg.customStringProperty2 = workoutModel.splitLetter;
+			intentDlg.customStringProperty3 = workoutManager.sessionLabel;
 			intentDlg.customBoolProperty1 = workoutManager.canImportFromSplitPlan;
 			intentDlg.customBoolProperty2 = workoutManager.canImportFromPreviousWorkout;
-			intentDlg.customBoolProperty3 = !workoutManager.hasExercises;
+			intentDlg.customBoolProperty3 = !workoutManager.haveExercises;
 			if (workoutManager.canImportFromPreviousWorkout) {
 				const texts = workoutManager.previousWorkoutsList_text();
 				const values = workoutManager.previousWorkoutsList_value();
@@ -713,7 +712,7 @@ TPPage {
 	}
 
 	property TimerDialog dlgSessionLength: null
-	function limitedTimeSessionTimer(): void {
+	function showLimitedSessionTimerDialog(): void {
 		if (dlgSessionLength === null) {
 			let component = Qt.createComponent("qrc:/qml/Dialogs/TimerDialog.qml", Qt.Asynchronous);
 
