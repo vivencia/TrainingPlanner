@@ -1,7 +1,7 @@
 #include "dbexerciseslistmodel.h"
 
+#include "qmlitemmanager.h"
 #include "tputils.h"
-#include "tpglobals.h"
 #include "translationclass.h"
 
 #include <QFile>
@@ -139,7 +139,7 @@ void DBExercisesListModel::newExercise(const QString &name, const QString &subna
 	setLastID(lastID() + 1);
 	appendList(std::move(QStringList{} << std::move(QString::number(lastID())) << std::move(name) <<
 				std::move(subname) << std::move(muscular_group) << std::move("qrc:/images/no_image.jpg"_L1) <<
-				STR_ZERO << std::move(QString::number(m_exercisesData.count())) << STR_ZERO));
+				std::move("0"_L1) << std::move(QString::number(m_exercisesData.count())) << std::move("0"_L1)));
 }
 
 void DBExercisesListModel::removeExercise(const uint index)
@@ -287,9 +287,9 @@ void DBExercisesListModel::clearSelectedEntries()
 {
 	for (uint i{0}; i < m_selectedEntries.count(); ++i)
 	{
-		m_exercisesData[m_selectedEntries.at(i).real_index][EXERCISES_LIST_COL_SELECTED] = STR_ZERO;
+		m_exercisesData[m_selectedEntries.at(i).real_index][EXERCISES_LIST_COL_SELECTED] = '0';
 		emit dataChanged(index(m_selectedEntries.at(i).view_index, 0),
-				index(m_selectedEntries.at(i).view_index, 0), QList<int>() << selectedRole);
+				index(m_selectedEntries.at(i).view_index, 0), QList<int>{} << selectedRole);
 	}
 	setCurrentRow(-1);
 	m_selectedEntries.clear();
@@ -327,7 +327,7 @@ bool DBExercisesListModel::manageSelectedEntries(const uint item_pos, const uint
 		{
 			if (m_selectedEntryToReplace > max_selected - 1)
 				m_selectedEntryToReplace = 0;
-			m_exercisesData[m_selectedEntries.at(m_selectedEntryToReplace).real_index][EXERCISES_LIST_COL_SELECTED] = STR_ZERO;
+			m_exercisesData[m_selectedEntries.at(m_selectedEntryToReplace).real_index][EXERCISES_LIST_COL_SELECTED] = '0';
 			emit dataChanged(index(m_selectedEntries.at(m_selectedEntryToReplace).view_index, 0),
 					index(m_selectedEntries.at(m_selectedEntryToReplace).view_index, 0), QList<int>{} << selectedRole);
 			m_selectedEntries[m_selectedEntryToReplace].real_index = real_item_pos;
@@ -338,7 +338,7 @@ bool DBExercisesListModel::manageSelectedEntries(const uint item_pos, const uint
 		{
 			for (uint i(0); i <= max_selected; ++i)
 			{
-				m_exercisesData[m_selectedEntries.at(0).real_index][EXERCISES_LIST_COL_SELECTED] = STR_ZERO;
+				m_exercisesData[m_selectedEntries.at(0).real_index][EXERCISES_LIST_COL_SELECTED] = '0';
 				emit dataChanged(index(m_selectedEntries.at(0).view_index, 0),
 					index(m_selectedEntries.at(0).view_index, 0), QList<int>{} << selectedRole);
 				if (m_selectedEntries.count() > 1)
@@ -356,14 +356,14 @@ bool DBExercisesListModel::manageSelectedEntries(const uint item_pos, const uint
 			if (m_selectedEntryToReplace > max_selected - 1)
 				m_selectedEntryToReplace = 0;
 		}
-		m_exercisesData[m_selectedEntries.at(idx).real_index][EXERCISES_LIST_COL_SELECTED] = STR_ZERO;
+		m_exercisesData[m_selectedEntries.at(idx).real_index][EXERCISES_LIST_COL_SELECTED] = '0';
 		emit dataChanged(index(m_selectedEntries.at(idx).view_index, 0),
-					index(m_selectedEntries.at(idx).view_index, 0), QList<int>() << selectedRole);
+					index(m_selectedEntries.at(idx).view_index, 0), QList<int>{} << selectedRole);
 		m_selectedEntries.remove(idx, 1);
 		return false;
 	}
-	m_exercisesData[real_item_pos][EXERCISES_LIST_COL_SELECTED] = STR_ONE;
-	emit dataChanged(index(item_pos, 0), index(item_pos, 0), QList<int>() << selectedRole);
+	m_exercisesData[real_item_pos][EXERCISES_LIST_COL_SELECTED] = '1';
+	emit dataChanged(index(item_pos, 0), index(item_pos, 0), QList<int>{} << selectedRole);
 	return true;
 }
 
@@ -412,7 +412,7 @@ QString DBExercisesListModel::makeTransactionStatementForDataBase(const uint ind
 	QString statement{'(' + id(index)};
 	for (uint i{1}; i <= EXERCISES_LIST_COL_MEDIAPATH; ++i)
 		statement += ",\'"_L1 + m_exercisesData.at(index).at(i) + '\'';
-	statement += ',' + STR_ONE + "),"_L1; //EXERCISES_LIST_COL_FROMAPPLIST
+	statement += ",1),"_L1; //EXERCISES_LIST_COL_FROMAPPLIST
 	return statement;
 }
 
@@ -513,9 +513,9 @@ int DBExercisesListModel::importFromFormattedFile(const QString &filename, QFile
 		{
 			data[0] = std::move(QString::number(m_exercisesTableLastId++));
 			data.append(std::move("(kg)"_L1));
-			data.append(STR_ZERO);
+			data.append(std::move("0"_L1));
 			data.append(std::move(QString::number(actual_index++)));
-			data.append(STR_ZERO);
+			data.append(std::move("0"_L1));
 		}
 		ret = APPWINDOW_MSG_IMPORT_OK;
 		emit countChanged();
@@ -570,8 +570,8 @@ QVariant DBExercisesListModel::data(const QModelIndex &index, int role) const
 				}
 			case fromListRole:
 			case selectedRole:
-				return !m_bFilterApplied ? bool(m_exercisesData.at(row).at(role-Qt::UserRole) == STR_ONE) :
-					bool(m_exercisesData.at(m_indexProxy.at(row)).at(role-Qt::UserRole) == STR_ONE);
+				return !m_bFilterApplied ? bool(m_exercisesData.at(row).at(role-Qt::UserRole) == '1') :
+					bool(m_exercisesData.at(m_indexProxy.at(row)).at(role-Qt::UserRole) == '1');
 		}
 	}
 	return QVariant();
@@ -600,9 +600,9 @@ bool DBExercisesListModel::setData(const QModelIndex &index, const QVariant &val
 			case fromListRole:
 			case selectedRole:
 				if (!m_bFilterApplied)
-					m_exercisesData[row][field] = value.toBool() ? STR_ONE : STR_ZERO;
+					m_exercisesData[row][field] = value.toBool() ? '1' : '0';
 				else
-					m_exercisesData[m_indexProxy.at(row)][field] = value.toBool() ? STR_ONE : STR_ZERO;
+					m_exercisesData[m_indexProxy.at(row)][field] = value.toBool() ? '1' : '0';
 				emit dataChanged(index, index, QList<int>{} << role);
 				return true;
 		}

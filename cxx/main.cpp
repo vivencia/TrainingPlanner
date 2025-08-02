@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 		QCoreApplication::setAttribute(Qt::AA_UseOpenGLES);
 		// Set the default surface format before creating the application
 		QSurfaceFormat format;
-		format.setVersion(3, 2); // Request OpenGL ES 3.3
+		format.setVersion(3, 1); // Request OpenGL ES 3.1
 		format.setProfile(QSurfaceFormat::CoreProfile); // Use Core Profile
 		QSurfaceFormat::setDefaultFormat(format);
 		QApplication app{argc, argv};

@@ -84,9 +84,18 @@ OSInterface::OSInterface(QObject *parent)
 		"(Landroid/content/Context;)V",
 		context.object());
 
+	context.callStaticObjectMethod(
+		"org/vivenciasoftware/TrainingPlanner/NotificationClient",
+		"testNetworkConnection",
+		"(Ljava/lang/String;)Ljava/lang/String;",
+		QJniObject::fromString("https://www.google.com").object<jstring>()
+	);
+	qDebug() << "%%%% Testing Network %%%%%%%  " << context.toString();
+	//qDebug() << "SSL supported:" << QSslSocket::supportsSsl();
+	//qDebug() << "SSL version:" << QSslSocket::sslLibraryVersionString();
 	mb_appSuspended = false;
 	// if App was launched from VIEW or SEND Intent there's a race collision: the event will be lost,
-	// because App and UI wasn't completely initialized. Workaround: QShareActivity remembers that an Intent is pending
+	// because App and UI weren't completely initialized. Workaround: QShareActivity remembers that an Intent is pending
 	connect(this, &OSInterface::appResumed, this, &OSInterface::checkPendingIntents);
 	connect(this, &OSInterface::activityFinishedResult, this, [&] (const int requestCode, const int resultCode) {
 		appItemManager()->displayActivityResultMessage(requestCode, resultCode);
@@ -367,7 +376,7 @@ void OSInterface::checkWorkouts()
 			if (splitLetter != "R"_L1) //day is training day
 			{
 
-				if (dayInfoList.at(3) == STR_ONE) //day is completed
+				if (dayInfoList.at(3) == '1') //day is completed
 				{
 					data->message = workoutDoneMessage;
 					data->action = NOTIFY_DO_NOTHING;

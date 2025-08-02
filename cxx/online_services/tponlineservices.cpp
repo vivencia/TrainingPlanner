@@ -17,7 +17,7 @@ static const QLatin1StringView root_user{"admin"};
 static const QLatin1StringView root_passwd{"admin"};
 static const QLatin1StringView server_addr{"http://192.168.10.21/trainingplanner/"};
 
-inline QString makeCommandURL(const QString& username, const QString& passwd = QString{}, const QString &option1 = QString{},
+inline QString makeCommandURL(const QString &username, const QString &passwd = QString{}, const QString &option1 = QString{},
 								const QString &value1 = QString{}, const QString &option2 = QString{}, const QString &value2 = QString{},
 								const QString &option3 = QString{}, const QString &value3 = QString{}
 								)
@@ -46,6 +46,20 @@ inline QString makeCommandURL(const QString& username, const QString& passwd = Q
 
 void TPOnlineServices::checkServer()
 {
+	/*qputenv("QT_LOGGING_RULES", "qt.network.*.debug=true");
+	QTcpSocket socket;
+	connect(&socket, &QTcpSocket::connected, [] () {
+		qDebug() << "*****Connected*****";
+	});
+	connect(&socket, &QTcpSocket::errorOccurred, [] (QAbstractSocket::SocketError error) {
+		qDebug() << "*****Socket error:" << error << "*****";
+	});
+	connect(&socket, &QTcpSocket::stateChanged, [] (QAbstractSocket::SocketState state) {
+		qDebug() << "*****Socket state:" << state << "*****";
+	});
+	socket.connectToHost("google.com", 443);
+	qDebug() << "*****  " << socket.state();
+	qDebug() << "*****  " << socket.error();*/
 	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{QUrl{server_addr}})};
 	connect(reply, &QNetworkReply::finished, this, [this,reply]() {
 		bool server_ok{false};

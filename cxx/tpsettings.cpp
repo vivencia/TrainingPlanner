@@ -50,8 +50,8 @@ TPSettings::TPSettings(QObject *parent) : QSettings{parent}
 	m_defaultValues[APP_VERSION_INDEX] = std::move(TP_APP_VERSION);
 	m_defaultValues[THEME_STYLE_INDEX] = std::move("Material"_L1);
 	m_defaultValues[WEIGHT_UNIT_INDEX] = std::move("(kg)"_L1);
-	m_defaultValues[MESO_IDX_INDEX] = STR_MINUS_ONE;
-	m_defaultValues[ASK_CONFIRMATION_INDEX] = STR_ONE;
+	m_defaultValues[MESO_IDX_INDEX] = "-1"_L1;
+	m_defaultValues[ASK_CONFIRMATION_INDEX] = "1"_L1;
 
 	m_colorSchemes.reserve(7);
 	m_colorSchemes << std::move(tr("Custom(click on the regions of the rectangle on the right to change colors)")) <<

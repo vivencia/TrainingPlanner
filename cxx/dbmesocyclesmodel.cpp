@@ -5,8 +5,8 @@
 #include "dbmesocalendarmanager.h"
 #include "dbusermodel.h"
 #include "homepagemesomodel.h"
+#include "qmlitemmanager.h"
 #include "qmlmesointerface.h"
-#include "tpglobals.h"
 #include "tpsettings.h"
 #include "translationclass.h"
 
@@ -87,7 +87,7 @@ uint DBMesocyclesModel::startNewMesocycle(const bool bCreatePage, const std::opt
 		QString{} << QString{} << QString{} << std::move("RRRRRRR"_L1) << QString{} << QString{} << QString{} << QString{} <<
 		QString{} << QString{} << appUserModel()->userId(0) <<
 		(bOwnMeso.has_value() ? (bOwnMeso.value() ? appUserModel()->userId(0) : appUserModel()->defaultClient()) : QString{}) <<
-		QString{} << QString{} << STR_ONE))};
+		QString{} << QString{} << "1"_L1))};
 
 	short newMesoRequiredFields{0};
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_NAME);
@@ -411,7 +411,7 @@ QDate DBMesocyclesModel::getMesoMinimumStartDate(const QString &userid, const ui
 		if (meso_idx != exclude_idx)
 		{
 			if (client(meso_idx) == userid)
-				if (id(meso_idx) != STR_MINUS_ONE && isRealMeso(meso_idx))
+				if (id(meso_idx) != "-1"_L1 && isRealMeso(meso_idx))
 					break;
 		}
 	}
@@ -424,7 +424,7 @@ QDate DBMesocyclesModel::getMesoMaximumEndDate(const QString &userid, const uint
 	for (; meso_idx < count(); ++meso_idx)
 	{
 		if (client(meso_idx) == userid)
-			if (id(meso_idx) != STR_MINUS_ONE && isRealMeso(meso_idx))
+			if (id(meso_idx) != "-1"_L1 && isRealMeso(meso_idx))
 				break;
 	}
 	return meso_idx < count() ? endDate(meso_idx) : appUtils()->createDate(QDate::currentDate(), 0, 6, 0);
@@ -583,7 +583,7 @@ QString DBMesocyclesModel::formatFieldToExport(const uint field, const QString &
 		case MESOCYCLES_COL_CLIENT:
 			return fieldValue;
 		case MESOCYCLES_COL_REALMESO:
-			return fieldValue == STR_ONE ? tr("Yes") : tr("No");
+			return fieldValue == '1' ? tr("Yes") : tr("No");
 	}
 	return fieldValue;
 }
@@ -596,7 +596,7 @@ QString DBMesocyclesModel::formatFieldToImport(const uint field, const QString &
 		case MESOCYCLES_COL_ENDDATE:
 			return QString::number(appUtils()->getDateFromDateString(fieldValue).toJulianDay());
 		case MESOCYCLES_COL_REALMESO:
-			return fieldValue == tr("Yes") ? STR_ONE : STR_ZERO;
+			return fieldValue == tr("Yes") ? "1"_L1 : "0"_L1;
 	}
 	return fieldValue;
 }
@@ -690,7 +690,7 @@ void DBMesocyclesModel::viewOnlineMeso(const QString &coach, const QString &meso
 {
 	const int request_id{appUserModel()->downloadFileFromServer(mesoFileName, appUserModel()->localDir(appUserModel()->userId(0)) + mesosDir + coach + '/',
 		QString{}, mesosDir + coach, appUserModel()->userId(0))};
-	if (request_id != -1)
+	if (request_id >= 0)
 	{
 		auto conn = std::make_shared<QMetaObject::Connection>();
 		*conn = connect(appUserModel(), &DBUserModel::fileDownloaded, this, [this,conn,request_id]

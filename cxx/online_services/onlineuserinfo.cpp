@@ -1,7 +1,8 @@
 #include "onlineuserinfo.h"
 
-#include "../tputils.h"
+#include "../qmlitemmanager.h"
 #include "../dbusermodel.h"
+#include "../tputils.h"
 
 constexpr uint totalExtraFields{4};
 

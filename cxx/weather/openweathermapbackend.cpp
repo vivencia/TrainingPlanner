@@ -229,7 +229,7 @@ void OpenWeatherMapBackend::getCityFromCoordinates(const QGeoCoordinate &coordin
 	QUrl url{"http://api.openweathermap.org/geo/1.0/reverse"_L1};
 	query.addQueryItem("lat"_L1, QString::number(coordinate.latitude()));
 	query.addQueryItem("lon"_L1, QString::number(coordinate.longitude()));
-	query.addQueryItem("limit"_L1, STR_ONE);
+	query.addQueryItem("limit"_L1, "1"_L1);
 	query.addQueryItem("appid"_L1, "31d07fed3c1e19a6465c04a40c71e9a0"_L1);
 	url.setQuery(query);
 

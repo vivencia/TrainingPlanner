@@ -25,8 +25,8 @@ uint DBMesoCalendarManager::populateCalendarDays(const uint meso_idx, const QDat
 		day_date = std::move(start_date.addDays(i));
 		stDayInfo *dayinfo{new stDayInfo{}};
 		dayinfo->date = std::move(appUtils()->formatDate(day_date, TPUtils::DF_DATABASE));
-		dayinfo->data = std::move(appUtils()->string_strings({appMesoModel()->id(meso_idx), STR_MINUS_ONE, dayinfo->date,
-			QString::number(i+1), *splitletter, QString{}, QString{}, QString{}, QString{}, STR_ZERO}, record_separator));
+		dayinfo->data = std::move(appUtils()->string_strings({appMesoModel()->id(meso_idx), "-1"_L1, dayinfo->date,
+			QString::number(i+1), *splitletter, QString{}, QString{}, QString{}, QString{}, "0"_L1}, record_separator));
 		m_dayInfoList[meso_idx][i] = dayinfo;
 		if (++splitletter == split.constEnd())
 			splitletter = split.constBegin();
@@ -364,5 +364,5 @@ bool DBMesoCalendarManager::workoutCompleted(const uint meso_idx, const uint cal
 
 void DBMesoCalendarManager::setWorkoutCompleted(const uint meso_idx, const uint calendar_day, const bool completed)
 {
-	setDayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_WORKOUT_COMPLETED, completed ? STR_ONE : STR_ZERO);
+	setDayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_WORKOUT_COMPLETED, completed ? "1"_L1 : "0"_L1);
 }

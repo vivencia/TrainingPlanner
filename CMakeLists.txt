@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(trainingplanner LANGUAGES CXX)
+project(TrainingPlanner LANGUAGES CXX)
 
 #set(QT_COMPILER_FLAGS "-I${TARGET_SYSROOT}/usr/include -pipe -mcpu=cortex-a72 -fno-asynchronous-unwind-tables -fno-unwind-tables -fomit-frame-pointer -fno-exceptions -no-pie")
 #set(QT_COMPILER_FLAGS_RELEASE "-O2")
@@ -46,7 +46,7 @@ set(CMAKE_VERBOSE_MAKEFILE on)
 set(CMAKE_AUTOGEN_VERBOSE on)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 LinguistTools Widgets Sql Network Positioning Charts)
+find_package(Qt6 REQUIRED COMPONENTS Core CorePrivate Gui Multimedia Qml Quick QuickControls2 LinguistTools Widgets Sql Network Positioning Charts)
 add_compile_definitions(REQUEST_PERMISSIONS_ON_ANDROID)
 add_compile_options(-std=c++20 ${CMAKE_CXX_FLAGS_INIT})
 
@@ -80,6 +80,7 @@ set( CXX_SOURCES
 	cxx/homepagemesomodel.h cxx/homepagemesomodel.cpp
 
 	cxx/dbmesocalendarmanager.h cxx/dbmesocalendarmanager.cpp
+	cxx/dbexercisesmodel.h cxx/dbexercisesmodel.cpp
     cxx/dbcalendarmodel.h cxx/dbcalendarmodel.cpp
 	cxx/dbusermodel.h cxx/dbusermodel.cpp
 	cxx/pageslistmodel.h cxx/pageslistmodel.cpp
@@ -144,6 +145,19 @@ set( SERVER_FILES
 	web-server/user.fields
 )
 
+set ( ANDROID_FILES
+	android/AndroidManifest.xml
+	#android/build.gradle
+	#android/res/values/libs.xml
+	android/res/xml/qtprovider_paths.xml
+	#android/gradle/wrapper/gradle-wrapper.jar
+	android/gradle/wrapper/gradle-wrapper.properties
+	android/gradle.properties
+	android/local.properties
+	#android/gradlew
+	#android/gradlew.bat
+)
+
 set( QML_SOURCES
     "qml/AppGlobals.qml"
     "qml/ImageViewer.qml"
@@ -204,26 +218,25 @@ set( QML_SOURCES
     "qml/TPWidgets/TPPopup.qml"
     "qml/TPWidgets/TPPhoneNumberInput.qml"
 	"qml/TPWidgets/TPRadioButtonOrCheckBox.qml"
-    "qml/TPWidgets/TPSaveDialog.qml"
-    "qml/TPWidgets/TPTextInput.qml"
-    "qml/TPWidgets/TPToolBar.qml"
-    "qml/TPWidgets/ComplexDialogModules/TPAdjustMesoCalendarFrame.qml"
-    "qml/TPWidgets/ComplexDialogModules/TPTDayIntentGroup.qml"
-    "qml/TPWidgets/ComplexDialogModules/TPDialogWithMessageAndCheckBox.qml"
-    "qml/User/AvatarsPopup.qml"
-    "qml/User/UserChangePassword.qml"
-    "qml/User/UserCoachRequest.qml"
-    "qml/User/UserCoach.qml"
-    "qml/User/UserContact.qml"
-    "qml/User/UserExistingFromNet.qml"
-    "qml/User/UserLanguage.qml"
-    "qml/User/UserPersonalData.qml"
-    "qml/User/UserProfile.qml"
-    "qml/User/UserReady.qml"
-    "qml/User/UserWelcome.qml"
+	"qml/TPWidgets/TPSaveDialog.qml"
+	"qml/TPWidgets/TPTextInput.qml"
+	"qml/TPWidgets/TPToolBar.qml"
+	"qml/TPWidgets/ComplexDialogModules/TPAdjustMesoCalendarFrame.qml"
+	"qml/TPWidgets/ComplexDialogModules/TPTDayIntentGroup.qml"
+	"qml/TPWidgets/ComplexDialogModules/TPDialogWithMessageAndCheckBox.qml"
+	"qml/User/AvatarsPopup.qml"
+	"qml/User/UserChangePassword.qml"
+	"qml/User/UserCoachRequest.qml"
+	"qml/User/UserCoach.qml"
+	"qml/User/UserContact.qml"
+	"qml/User/UserExistingFromNet.qml"
+	"qml/User/UserLanguage.qml"
+	"qml/User/UserPersonalData.qml"
+	"qml/User/UserProfile.qml"
+	"qml/User/UserReady.qml"
+	"qml/User/UserWelcome.qml"
 )
 
-qt_add_resources(${RESOURCE_FILES})
 qt_add_executable(TrainingPlanner
 	${CXX_SOURCES}
 	${JAVA_SOURCES}
@@ -231,8 +244,7 @@ qt_add_executable(TrainingPlanner
 	${RESOURCE_FILES}
 	${QM_FILES}
 	${SERVER_FILES}
-	cxx/dbexercisesmodel.h cxx/dbexercisesmodel.cpp
-	android/AndroidManifest.xml android/build.gradle android/res/values/libs.xml android/res/xml/qtprovider_paths.xml android/gradle/wrapper/gradle-wrapper.jar android/gradle/wrapper/gradle-wrapper.properties android/gradle.properties android/gradlew android/gradlew.bat
+	${ANDROID_FIES}
 )
 
 if(NOT ANDROID)
@@ -257,7 +269,7 @@ target_link_libraries(TrainingPlanner PUBLIC
 	Qt6::Widgets
 	Qt6::Network
     Qt6::Positioning
-    Qt6::Charts
+	Qt6::Charts
     ${keychain_LIBRARIES_PRIVATE}
 )
 
@@ -272,9 +284,9 @@ set(trainingplanner_resource_files
 
 qt_add_resources(TrainingPlanner "TrainingPlanner"
 	PREFIX
-	    "/"
+		"/"
 	FILES
-	    ${trainingplanner_resource_files}
+		${trainingplanner_resource_files}
 )
 
 #qt_add_qml_module(trainingplanner
@@ -318,6 +330,7 @@ install(TARGETS TrainingPlanner
 #    PROPERTIES
 #        QT_QMLCACHEGEN_ARGUMENTS "--only-bytecode"
 #)
+
 if (ANDROID)
 	set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
 
@@ -342,8 +355,8 @@ if (ANDROID)
 	#	"${ANDROID_SDK_ROOT}/android_openssl/ssl_3/${CMAKE_ANDROID_ARCH_ABI}/libcrypto_3.so;${ANDROID_SDK_ROOT}/android_openssl/ssl_3/${CMAKE_ANDROID_ARCH_ABI}/libssl_3.so"
 	#)
 
-	set_target_properties(TrainingPlanner PROPERTIES
-		QT_ANDROID_TARGET_SDK_VERSION 32
-		QT_ANDROID_COMPILE_SDK_VERSION 32
-	)
+	#set_target_properties(TrainingPlanner PROPERTIES
+	#	QT_ANDROID_TARGET_SDK_VERSION 32
+	#	QT_ANDROID_COMPILE_SDK_VERSION 32
+	#)
 endif(ANDROID)

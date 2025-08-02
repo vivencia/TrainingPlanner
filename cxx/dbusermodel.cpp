@@ -124,7 +124,7 @@ void DBUserModel::createMainUser()
 	if (m_usersData.isEmpty())
 	{
 		m_usersData.insert(0, std::move(QStringList{} << std::move(generateUniqueUserId()) << QString{} << std::move("2429630"_L1) <<
-			"2"_L1 << QString{} << QString{} << QString{} << QString{} << QString{} << QString{} << STR_ZERO << STR_ZERO << STR_ZERO));
+			"2"_L1 << QString{} << QString{} << QString{} << QString{} << QString{} << QString{} << "0"_L1 << "0"_L1 << "0"_L1));
 		static_cast<void>(appUtils()->mkdir(localDir(0)));
 		emit userModified(0, USER_MODIFIED_CREATED);
 	}
@@ -250,7 +250,8 @@ void DBUserModel::setAppUseMode(const int user_idx, const int new_use_opt)
 			{
 				if (new_use_opt != APP_USE_MODE_SINGLE_COACH && new_use_opt != APP_USE_MODE_COACH_USER_WITH_COACH)
 				{
-					connect(appMainWindow(), SIGNAL(revokeCoachStatus(int,bool)), this, SLOT(slot_revokeCoachStatus(int,bool)), Qt::SingleShotConnection);
+					connect(appMainWindow(), SIGNAL(revokeCoachStatus(int,bool)), this,
+										SLOT(slot_revokeCoachStatus(int,bool)), Qt::SingleShotConnection);
 					QMetaObject::invokeMethod(appMainWindow(), "showRevokeCoachStatus",
 						Q_ARG(int, new_use_opt),
 						Q_ARG(QString, tr("Revoke coach status")),
@@ -261,19 +262,20 @@ void DBUserModel::setAppUseMode(const int user_idx, const int new_use_opt)
 			{
 				if (new_use_opt == APP_USE_MODE_SINGLE_COACH)
 				{
-					connect(appMainWindow(), SIGNAL(revokeClientStatus(int,bool)), this, SLOT(slot_revokeClientStatus(int,bool)), Qt::SingleShotConnection);
+					connect(appMainWindow(), SIGNAL(revokeClientStatus(int,bool)), this,
+							SLOT(slot_revokeClientStatus(int,bool)), Qt::SingleShotConnection);
 					QMetaObject::invokeMethod(appMainWindow(), "showRevokeClientStatus",
 						Q_ARG(int, new_use_opt),
 						Q_ARG(QString, tr("Revoke client status")),
 						Q_ARG(QString, tr("All your clients will be removed and cannot be automatically retrieved")));
 				}
 			}
-			m_usersData[user_idx][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
+			m_usersData[user_idx][USER_COL_APP_USE_MODE] = std::move(QString::number(new_use_opt));
 			emit userModified(0, USER_COL_APP_USE_MODE);
 		}
 		else
 		{
-			m_usersData[user_idx][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
+			m_usersData[user_idx][USER_COL_APP_USE_MODE] = std::move(QString::number(new_use_opt));
 			emit userModified(user_idx, USER_COL_APP_USE_MODE);
 		}
 	}
@@ -662,6 +664,10 @@ void DBUserModel::sendFileToServer(const QString &filename, const QString &succe
 				{tpNetworkTitle, tr("Online server unavailable. Tray again later")}, record_separator));
 		return;
 	}
+	else {
+		if (!mainUserRegistered())
+			return;
+	}
 
 	QFile *upload_file{appUtils()->openFile(filename, QIODeviceBase::ReadOnly)};
 	if (upload_file)
@@ -704,6 +710,10 @@ int DBUserModel::downloadFileFromServer(const QString &filename, const QString &
 		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
 					{tpNetworkTitle, tr("Online server unavailable. Tray again later")}, record_separator));
 		return -1;
+	}
+	else {
+		if (!mainUserRegistered())
+			return -2;
 	}
 
 	QLatin1StringView v{filename.toLatin1().constData()};
@@ -763,6 +773,10 @@ int DBUserModel::downloadFileFromServer(const QString &filename, const QString &
 
 void DBUserModel::removeFileFromServer(const QString &filename, const QString &subdir, const QString &targetUser)
 {
+
+	if (!mainUserRegistered())
+		return;
+
 	QLatin1StringView v{filename.toLatin1().constData()};
 	const int requestid{appUtils()->generateUniqueId(v)};
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [=,this] (const QString &key, const QString &value) {
@@ -1056,7 +1070,7 @@ void DBUserModel::checkIfCoachRegisteredOnline()
 void DBUserModel::getUserOnlineProfile(const QString &netID, const QString &save_as_filename)
 {
 	const int request_id{downloadFileFromServer(userProfileFileNameName, save_as_filename, QString{}, QString{}, netID)};
-	if (request_id != -1)
+	if (request_id >= 0)
 	{
 		auto conn = std::make_shared<QMetaObject::Connection>();
 		*conn = connect(this, &DBUserModel::fileDownloaded, this, [=,this] (const bool success, const uint requestid, const QString &localFileName) {
@@ -1089,7 +1103,7 @@ void DBUserModel::downloadAvatarFromServer(const uint user_idx)
 	if (avatar_file.startsWith("image://"_L1))
 		avatar_file = std::move(localDir(user_idx));
 	const int request_id{downloadFileFromServer("avatar", avatar_file, QString{}, QString{}, userId(user_idx))};
-	if (request_id != -1)
+	if (request_id >= 0)
 	{
 		auto conn = std::make_shared<QMetaObject::Connection>();
 		*conn = connect(this, &DBUserModel::fileDownloaded, this, [=,this] (const bool success, const uint requestid, const QString &localFileName) {
@@ -1106,7 +1120,7 @@ void DBUserModel::downloadAvatarFromServer(const uint user_idx)
 void DBUserModel::downloadResumeFromServer(const uint user_idx)
 {
 	const int request_id{downloadFileFromServer(userId(user_idx) + "_resume", resume(user_idx), QString{}, QString{}, userId(user_idx))};
-	if (request_id != -1)
+	if (request_id >= 0)
 	{
 		auto conn = std::make_shared<QMetaObject::Connection>();
 		*conn = connect(this, &DBUserModel::fileDownloaded, this, [=,this] (const bool success, const uint requestid, const QString &localFileName) {
@@ -1513,7 +1527,7 @@ QString DBUserModel::formatFieldToExport(const uint field, const QString &fieldV
 		case USER_COL_BIRTHDAY:
 			return appUtils()->formatDate(QDate::fromJulianDay(fieldValue.toInt()));
 		case USER_COL_SEX:
-			return fieldValue == STR_ZERO ? std::move(tr("Male")) : std::move(tr("Female"));
+			return fieldValue == '0' ? std::move(tr("Male")) : std::move(tr("Female"));
 		case USER_COL_SOCIALMEDIA:
 		{
 			QString strSocial{fieldValue};
@@ -1538,7 +1552,7 @@ QString DBUserModel::formatFieldToImport(const uint field, const QString &fieldV
 		case USER_COL_BIRTHDAY:
 			return QString::number(appUtils()->getDateFromDateString(fieldValue).toJulianDay());
 		case USER_COL_SEX:
-			return fieldValue == tr("Male") ? STR_ZERO : STR_ONE;
+			return fieldValue == tr("Male") ? "0"_L1 : "1"_L1;
 		case USER_COL_SOCIALMEDIA:
 		{
 			QString strSocial{fieldValue};

@@ -1,7 +1,7 @@
 #include "tputils.h"
 
 #include "dbexercisesmodel.h"
-#include "tpglobals.h"
+#include "qmlitemmanager.h"
 
 #include <QClipboard>
 #include <QDir>
@@ -12,17 +12,17 @@
 #include <ranges>
 #include <random>
 
-QStringList TPUtils::_months_names{QStringList() <<
-		TPUtils::tr("January") << TPUtils::tr("February") << TPUtils::tr("March") << TPUtils::tr("April") << TPUtils::tr("May") <<
-		TPUtils::tr("June") << TPUtils::tr("July") << TPUtils::tr("August") << TPUtils::tr("September") << TPUtils::tr("October") <<
-		TPUtils::tr("November") << TPUtils::tr("December")
+QStringList TPUtils::_months_names{QStringList{} <<
+		tr("January") << tr("February") << tr("March") << tr("April") << tr("May") <<
+		tr("June") << tr("July") << tr("August") << tr("September") << tr("October") <<
+		tr("November") << tr("December")
 };
 
-QStringList TPUtils::_days_names{QStringList() << TPUtils::tr("Sunday") << TPUtils::tr("Monday") << TPUtils::tr("Tuesday") <<
-		TPUtils::tr("Wednesday") << TPUtils::tr("Thursday") << TPUtils::tr("Friday") << TPUtils::tr("Saturday")
+QStringList TPUtils::_days_names{QStringList() << tr("Sunday") << tr("Monday") << tr("Tuesday") <<
+		tr("Wednesday") << tr("Thursday") << tr("Friday") << tr("Saturday")
 };
 
-TPUtils* TPUtils::app_utils{nullptr};
+TPUtils *TPUtils::app_utils{nullptr};
 
 TPUtils::TPUtils(QObject *parent)
 	: QObject{parent}, m_appLocale{nullptr},
@@ -734,8 +734,8 @@ QString TPUtils::addTimeToStrTime(const QString &strTime, const int addmins, con
 		mins = 0;
 		secs = 0;
 	}
-	const QString &ret{(mins <= 9 ? STR_ZERO + QString::number(mins) : QString::number(mins)) + QChar(':') +
-		(secs <= 9 ? STR_ZERO + QString::number(secs) : QString::number(secs))};
+	const QString &ret{(mins <= 9 ? '0' + QString::number(mins) : QString::number(mins)) + QChar(':') +
+		(secs <= 9 ? '0' + QString::number(secs) : QString::number(secs))};
 	return ret;
 }
 

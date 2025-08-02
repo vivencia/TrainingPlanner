@@ -18,7 +18,7 @@ TPPage {
 	}
 
 	ColumnLayout {
-		id: main
+		id: mainLayout
 		spacing: 5
 
 		anchors {
@@ -29,30 +29,39 @@ TPPage {
 			bottomMargin: 5
 		}
 
-		TPButton {
-			id: btnGPS
-			text: weatherInfo.gpsCity
-			imageSource: "gps.png"
-			enabled: weatherInfo.canUseGps
-			width: scrollViewCities.width
-			Layout.fillWidth: true
+		TPLabel {
+			text: weatherInfo.gpsMessage
+			singleLine: false
+			Layout.minimumWidth: parent.width - 30
+			Layout.maximumWidth: parent.width - 30
 
-			onClicked: weatherInfo.requestWeatherForGpsCity();
-		} //TPLabel gpsCity
+			TPButton {
+				imageSource: "gps.png"
+				enabled: weatherInfo.canUseGps
+				width: 30
+				height: 30
+				onClicked: weatherInfo.requestWeatherForGpsCity();
+
+				anchors {
+					verticalCenter: parent.verticalCenter
+					left: parent.right
+				}
+			}
+		}
 
 		Rectangle {
 			id: savedCities
 			radius: 8
 			color: "#3F000000"
 			Layout.alignment: Qt.AlignCenter
-			Layout.preferredHeight: 0.2 * main.height
+			Layout.preferredHeight: 0.2 * mainLayout.height
 			Layout.fillWidth: true
 			Layout.topMargin: 10
 
 			ListView {
 				id: scrollViewCities
 				model: appSettings.weatherCitiesCount
-				width: main.width
+				width: mainLayout.width
 				height: parent.height - appSettings.itemDefaultHeight - 10
 				contentHeight: model.count * appSettings.itemDefaultHeight * 1.1
 				contentWidth: availableWidth
@@ -133,7 +142,7 @@ TPPage {
 
 		BigForecastIcon {
 			id: current
-			height: 0.55*main.height
+			height: 0.55 * mainLayout.height
 			width: parent.width
 			Layout.alignment: Qt.AlignHCenter
 			Layout.preferredHeight: height
@@ -147,68 +156,69 @@ TPPage {
 		}
 
 		Item {
-		Rectangle {
-			id: forecastFrame
-			color: "#3F000000"
-			radius: 40
-			opacity: 0.15
-			visible: false
-			height: 0.25 * main.height
+			height: 0.22 * mainLayout.height
 			Layout.alignment: Qt.AlignHCenter
 			Layout.preferredHeight: height
-			Layout.topMargin: -15
-			Layout.bottomMargin: 20
+			Layout.bottomMargin: 10
 			Layout.fillWidth: true
 
-			Row {
-				id: iconRow
-				anchors.centerIn: parent
-				anchors.leftMargin: 20
-				padding: 0
+			Rectangle {
+				id: forecastFrame
+				color: "#3F000000"
+				radius: 40
+				opacity: 0.15
+				visible: false
+				anchors.fill: parent
 
-				property int daysCount: weatherInfo.forecast.length
-				property real iconWidth: (daysCount > 0) ? ((forecastFrame.width - 20) / daysCount) : forecastFrame.width
+				Row {
+					id: iconRow
+					anchors.centerIn: parent
+					anchors.leftMargin: 20
+					padding: 0
 
-				Repeater {
-					model: weatherInfo.forecast
+					property int daysCount: weatherInfo.forecast.length
+					property real iconWidth: (daysCount > 0) ? ((forecastFrame.width - 20) / daysCount) : forecastFrame.width
 
-					ForecastIcon {
-						required property string dayOfWeek
-						required property string minMaxTemperatures
-						required property string weatherIcon
+					Repeater {
+						model: weatherInfo.forecast
 
-						width: iconRow.iconWidth
-						topText: dayOfWeek
-						middleIcon: weatherIcon
-						bottomText: minMaxTemperatures
-						Layout.alignment: Qt.AlignCenter
+						ForecastIcon {
+							required property string dayOfWeek
+							required property string minMaxTemperatures
+							required property string weatherIcon
+
+							width: iconRow.iconWidth
+							topText: dayOfWeek
+							middleIcon: weatherIcon
+							bottomText: minMaxTemperatures
+							Layout.alignment: Qt.AlignCenter
+						}
 					}
 				}
-			}
 
-			Label {
-				text: weatherInfo.weather.provider
-				color: "#ffffff"
-				font: AppGlobals.smallFont
+				Label {
+					text: weatherInfo.weather.provider
+					color: "#ffffff"
+					font: AppGlobals.smallFont
 
-				anchors {
-					bottom: parent.bottom
-					horizontalCenter: parent.horizontalCenter
+					anchors {
+						bottom: parent.bottom
+						horizontalCenter: parent.horizontalCenter
+					}
 				}
-			}
-		} //Rectangle forecastFrame
+			} //Rectangle forecastFrame
 
-		MultiEffect {
-			source: forecastFrame
-			anchors.fill: forecastFrame
-			shadowEnabled: true
-			shadowBlur: 0.5
-			shadowHorizontalOffset: 0
-			shadowVerticalOffset: 4
-			shadowOpacity: 0.6
-		}
-		}
-	}
+			MultiEffect {
+				source: forecastFrame
+				anchors.fill: forecastFrame
+				shadowEnabled: true
+				shadowBlur: 0.5
+				shadowHorizontalOffset: 0
+				shadowVerticalOffset: 4
+				shadowOpacity: 0.6
+			}
+		} //Item
+	} //ColumnLayout mainLayout
 
 
 	property TPFloatingMenuBar locationsMenu: null

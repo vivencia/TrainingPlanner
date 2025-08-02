@@ -14,6 +14,8 @@ import android.graphics.Color;
 import android.graphics.BitmapFactory;
 import android.app.NotificationChannel;
 import android.util.Log;
+import java.net.HttpURLConnection;
+import java.net.URL;
 //import androidx.core.app.ShareCompat;
 
 import org.qtproject.qt.android.bindings.QtActivity;
@@ -81,5 +83,22 @@ public class NotificationClient
 		    e.printStackTrace();
 		}
     }
+
+	public static String testNetworkConnection(String urlString) {
+		try {
+			 URL url = new URL(urlString);
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setConnectTimeout(5000);
+			conn.setReadTimeout(5000);
+			conn.setRequestMethod("GET");
+			conn.connect();
+			int responseCode = conn.getResponseCode();
+			Log.d("******** NetworkTest", "Response Code: " + responseCode);
+			return "******** Response: " + responseCode;
+		} catch (Exception e) {
+			Log.e("******** NetworkTest", "Error: " + e.getMessage(), e);
+			return "******** Error: " + e.getMessage();
+		}
+	}
 }
 

@@ -58,7 +58,7 @@ void DBExercisesTable::getAllExercises()
 					for (uint i{EXERCISES_LIST_COL_ID}; i < EXERCISES_LIST_COL_ACTUALINDEX; ++i)
 						data[i] = std::move(query.value(static_cast<int>(i)).toString());
 					data[EXERCISES_LIST_COL_ACTUALINDEX] = std::move(QString::number(m_model->count()));
-					data[EXERCISES_LIST_COL_SELECTED] = STR_ZERO;
+					data[EXERCISES_LIST_COL_SELECTED] = '0';
 					m_model->appendList(std::move(data));
 				} while (query.next ());
 				const uint highest_id{static_cast<uint>(m_model->_id(m_model->count() - 1))};

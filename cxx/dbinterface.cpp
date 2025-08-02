@@ -208,7 +208,7 @@ void DBInterface::updateExercisesList()
 
 void DBInterface::getExercisesListVersion()
 {
-	m_exercisesListVersion = STR_ZERO;
+	m_exercisesListVersion = '0';
 	QFile exercisesListFile{":/extras/exerciseslist.lst"_L1};
 	if (exercisesListFile.open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{

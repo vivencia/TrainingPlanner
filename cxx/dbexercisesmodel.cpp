@@ -3,7 +3,7 @@
 #include "dbexerciseslistmodel.h"
 #include "dbmesocalendarmanager.h"
 #include "dbmesocyclesmodel.h"
-#include "tpglobals.h"
+#include "qmlitemmanager.h"
 #include "tputils.h"
 #include "translationclass.h"
 
@@ -118,7 +118,7 @@ bool DBExercisesModel::fromDataBase(const QStringList &data, const bool bClearSo
 	else //reset for new use
 	{
 		QString temp{data.at(EXERCISES_COL_COMPLETED)};
-		completed = std::move(temp.replace(STR_ONE, STR_ZERO).split(exercises_separator, Qt::SkipEmptyParts));
+		completed = std::move(temp.replace('1', '0').split(exercises_separator, Qt::SkipEmptyParts));
 	}
 
 	for(uint exercise_number{0}; exercise_number < exercises.count(); ++exercise_number)
