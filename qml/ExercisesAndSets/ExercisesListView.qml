@@ -116,11 +116,12 @@ Column {
 		id: lstExercises
 		model: exercisesModel
 		boundsBehavior: Flickable.StopAtBounds
+		clip: true
+		reuseItems: true
 		width: parent.width
 		height: parent.height * 0.75
 		contentHeight: exercisesModel.count*40*1.1//contentHeight: Essencial for the ScrollBars to work.
 		contentWidth: width
-		clip: true
 
 		ScrollBar.vertical: ScrollBar {
 			policy: ScrollBar.AsNeeded

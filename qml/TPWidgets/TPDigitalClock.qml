@@ -27,6 +27,7 @@ Rectangle {
 		preferredHighlightBegin: height / 4
 		preferredHighlightEnd: height / 3
 		clip: true
+		reuseItems: true
 		model: max
 		delegate: Label {
 			text: String(index).length == 1 ? "0" + index : index

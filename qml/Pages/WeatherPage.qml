@@ -31,9 +31,10 @@ TPPage {
 
 		TPLabel {
 			text: weatherInfo.gpsMessage
-			singleLine: false
+			wrapMode: Text.WordWrap
 			Layout.minimumWidth: parent.width - 30
 			Layout.maximumWidth: parent.width - 30
+			Layout.maximumHeight: appSettings.itemDefaultHeight * 2
 
 			TPButton {
 				imageSource: "gps.png"
@@ -65,7 +66,7 @@ TPPage {
 				height: parent.height - appSettings.itemDefaultHeight - 10
 				contentHeight: model.count * appSettings.itemDefaultHeight * 1.1
 				contentWidth: availableWidth
-				spacing: 10
+				spacing: 0
 				clip: true
 
 				anchors {

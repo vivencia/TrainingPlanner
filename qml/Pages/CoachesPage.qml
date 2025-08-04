@@ -93,6 +93,7 @@ TPPage {
 				contentWidth: availableWidth
 				spacing: 0
 				clip: true
+				reuseItems: true
 				model: userModel.coachesNames
 				height: 0.8*parent.height
 				enabled: userModel.haveCoaches
@@ -198,6 +199,7 @@ TPPage {
 				contentHeight: availableHeight
 				contentWidth: availableWidth
 				spacing: 0
+				reuseItems: true
 				clip: true
 				model: userModel.pendingCoachesResponses
 				height: 0.8*parent.height

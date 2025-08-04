@@ -161,11 +161,16 @@ ColumnLayout {
 		Layout.fillWidth: true
 		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : -5
 
+		TPButtonGroup {
+			id: sexGroup
+		}
+
 		TPRadioButtonOrCheckBox {
 			id: chkMale
 			text: qsTr("Male")
 			actionable: userRow === 0
 			checked: userModel.sex(userRow) === 0
+			buttonGroup: sexGroup
 			width: parent.width/2
 
 			anchors {
@@ -177,8 +182,6 @@ ColumnLayout {
 				if (userModel.sex(userRow) !== 0)
 					userModel.setSex(userRow, true);
 				bSexOK = true;
-				if (chkFemale.checked)
-					chkFemale.checked = false;
 			}
 		}
 
@@ -187,14 +190,13 @@ ColumnLayout {
 			text: qsTr("Female")
 			actionable: userRow === 0
 			checked: userModel.sex(userRow) === 1
+			buttonGroup: sexGroup
 			width: parent.width/2
 
 			onClicked: {
 				if (userModel.sex(userRow) !== 1)
 					userModel.setSex(userRow, false);
 				bSexOK = true;
-				if (chkMale.checked)
-					chkMale.checked = false;
 			}
 
 			anchors {

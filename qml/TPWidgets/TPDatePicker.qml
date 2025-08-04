@@ -199,6 +199,7 @@ Rectangle {
 		visible: true
 		z: 1
 		snapMode: ListView.SnapToItem
+		reuseItems: true
 		orientation: ListView.Horizontal
 		spacing: cellSize
 		model: calendarModel

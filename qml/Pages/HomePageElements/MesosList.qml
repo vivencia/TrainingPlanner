@@ -18,9 +18,10 @@ Item {
 		id: mesosListView
 		model: mesoModel
 		boundsBehavior: Flickable.StopAtBounds
+		reuseItems: true
 		spacing: 10
 		width: parent.width
-		height: parent.height*0.8
+		height: parent.height * 0.8
 
 		anchors {
 			top: parent.top
@@ -192,7 +193,8 @@ Item {
 					text: qsTr("Remove Program")
 					imageSource: "remove"
 					hasDropShadow: false
-					z: 2
+					autoSize: true
+					z: 1
 
 					anchors {
 						horizontalCenter: parent.horizontalCenter

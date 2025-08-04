@@ -32,7 +32,7 @@ ComboBox {
 			text: model.text
 			enabled: model.enabled
 			leftPadding: completeModel ? appSettings.itemDefaultHeight + 5 : 5
-			singleLine: true
+			elide: Text.ElideRight
 
 			TPImage {
 				id: lblImg
@@ -57,7 +57,7 @@ ComboBox {
 		x: control.width - width - control.rightPadding
 		y: control.topPadding + (control.availableHeight - height) / 2
 		width: appSettings.itemDefaultHeight / 2
-		height: 8
+		height: width
 		contextType: "2d"
 
 		Connections {
@@ -81,7 +81,7 @@ ComboBox {
 	contentItem: TPLabel {
 		text: control.displayText
 		leftPadding: completeModel ? appSettings.itemDefaultHeight + 5 : 5
-		singleLine: true
+		elide: Text.ElideRight
 	}
 
 	TPImage {

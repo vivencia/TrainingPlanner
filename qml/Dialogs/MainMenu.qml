@@ -12,7 +12,7 @@ Drawer {
 	implicitWidth: mainwindow.width * 0.7
 	spacing: 0
 	padding: 0
-	edge: Qt.LeftEdge
+	edge: Qt.RightEdge
 
 	Connections {
 		target: userModel
@@ -32,9 +32,9 @@ Drawer {
 		gradient: Gradient {
 			orientation: Gradient.Horizontal
 			GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
-			GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
-			GradientStop { position: 0.50; color: appSettings.primaryColor; }
-			GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
+			GradientStop { position: 0.25; color: appSettings.primaryDarkColor; }
+			GradientStop { position: 0.50; color: appSettings.primaryLightColor; }
+			GradientStop { position: 0.75; color: appSettings.primaryColor; }
 		}
 		opacity: 0.8
 	}
@@ -48,9 +48,8 @@ Drawer {
 		}
 	}
 
-	Column {
+	ColumnLayout {
 		id: drawerLayout
-		objectName: "drawerLayout"
 		spacing: 5
 		opacity: parent.opacity
 		height: drawer.height*0.65
@@ -69,9 +68,11 @@ Drawer {
 			id: imgLogo
 			source: "app_icon"
 			dropShadow: false
-			width: parent.height*0.25
+			width: parent.height * 0.25
 			height: width
-			x: (parent.width-width)/2
+			Layout.alignment: Qt.AlignCenter
+			Layout.preferredWidth: width
+			Layout.preferredHeight: height
 		}
 
 		TPLabel {
@@ -79,16 +80,20 @@ Drawer {
 			wrapMode: Text.WordWrap
 			font: AppGlobals.smallFont
 			horizontalAlignment: Text.AlignHCenter
-			width: drawer.width - 10
+			Layout.maximumWidth: parent.width - 20
+			Layout.leftMargin: 10
+			Layout.rightMargin: 10
 		}
 
 		TPImage {
 			id: imgAvatar
 			dropShadow: true
 			source: userModel.avatar(0)
-			width: parent.height*0.25
+			width: parent.height * 0.25
 			height: width
-			x: (parent.width-width)/2
+			Layout.alignment: Qt.AlignCenter
+			Layout.preferredWidth: width
+			Layout.preferredHeight: height
 
 			MouseArea {
 				anchors.fill: parent
@@ -106,21 +111,25 @@ Drawer {
 
 		TPLabel {
 			id: lblAvatar
+			elide: Text.ElideMiddle
 			text: userModel.userName(0);
 			horizontalAlignment: Text.AlignHCenter
 			width: parent.width
+			Layout.fillWidth: true
+			Layout.leftMargin: 10
+			Layout.rightMargin: 5
 		}
 
 		Rectangle {
 			color: appSettings.fontColor
 			height: 3
-			width: parent.width
+			Layout.fillWidth: true
 		}
 
 		TPButton {
 			id: btnExercises
 			text: qsTr("Exercises Database")
-			width: parent.width
+			Layout.fillWidth: true
 
 			enabled: { // Force the binding to re-evaluate so that the objectName check is run each time the page changes.
 				stackView.currentItem
@@ -136,7 +145,7 @@ Drawer {
 		TPButton {
 			id: btnSettings
 			text: qsTr("Settings")
-			width: parent.width
+			Layout.fillWidth: true
 
 			enabled: { // Force the binding to re-evaluate so that the check is run each time the page changes.
 				stackView.currentItem
@@ -152,7 +161,7 @@ Drawer {
 		TPButton {
 			id: btnAllWorkouts
 			text: qsTr("All Workouts")
-			width: parent.width
+			Layout.fillWidth: true
 
 			enabled: { // Force the binding to re-evaluate so that the check is run each time the page changes.
 				stackView.currentItem
@@ -168,80 +177,72 @@ Drawer {
 		Rectangle {
 			color: appSettings.fontColor
 			height: 3
-			width: parent.width
-			Layout.topMargin: 10
-			Layout.bottomMargin: 10
-		}
-	} //ColumnLayout
-
-	ListView {
-		id: pagesList
-		model: pagesListModel
-		clip: true
-		spacing: 2
-		boundsBehavior: Flickable.StopAtBounds
-		height: drawer.height*0.35
-		contentHeight: availableHeight
-		contentWidth: availableWidth
-
-		ScrollBar.vertical: ScrollBar {
-			policy: ScrollBar.AsNeeded
-			active: true
+			Layout.fillWidth: true
 		}
 
-		anchors {
-			top: drawerLayout.bottom
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
+		ListView {
+			id: pagesList
+			model: pagesListModel
+			clip: true
+			spacing: 2
+			boundsBehavior: Flickable.StopAtBounds
+			contentHeight: availableHeight
+			contentWidth: availableWidth
+			Layout.fillWidth: true
+			Layout.minimumHeight: drawer.height * 0.35
 
-		delegate: SwipeDelegate {
-			id: delegate
-			width: pagesList.width
-			height: appSettings.itemDefaultHeight * 1.3
-
-			contentItem: TPLabel {
-				id: listItem
-				text: displayText
-				horizontalAlignment: Text.AlignHCenter
+			ScrollBar.vertical: ScrollBar {
+				policy: ScrollBar.AsNeeded
+				active: true
 			}
 
-			background: Rectangle {
-				id:	backgroundColor
-				color: appSettings.primaryDarkColor
-				radius: 6
-				opacity: 1
-			}
+			delegate: SwipeDelegate {
+				id: delegate
+				width: pagesList.width
+				height: appSettings.itemDefaultHeight * 1.2
 
-			onClicked: pagesListModel.openMainMenuShortCut(index);
-
-			swipe.right: Rectangle {
-				width: parent.width
-				height: parent.height
-				clip: false
-				color: SwipeDelegate.pressed ? "#555" : "#666"
-				radius: 5
-
-				TPImage {
-					source: "close.png"
-					width: appSettings.itemDefaultHeight
-					height: width
-					opacity: 2 * -delegate.swipe.position
-					z:2
-
-					anchors {
-						right: parent.right
-						rightMargin: 20
-						verticalCenter: parent.verticalCenter
-					}
+				contentItem: TPLabel {
+					id: listItem
+					text: displayText
+					elide: Text.ElideMiddle
+					wrapMode: Text.NoWrap
+					horizontalAlignment: Text.AlignHCenter
 				}
-			} //swipe.right
 
-			swipe.onCompleted: pagesListModel.removeMainMenuShortCut(index);
-		} //delegate: SwipeDelegate
-	} //ListView
+				background: Rectangle {
+					id:	backgroundColor
+					color: appSettings.primaryDarkColor
+					radius: 6
+					opacity: 1
+				}
+
+				onClicked: pagesListModel.openMainMenuShortCut(index);
+
+				swipe.right: Rectangle {
+					width: parent.width
+					height: parent.height
+					clip: false
+					color: SwipeDelegate.pressed ? "#555" : "#666"
+					radius: 5
+
+					TPImage {
+						source: "close.png"
+						width: appSettings.itemDefaultHeight
+						height: width
+						opacity: 2 * -delegate.swipe.position
+
+						anchors {
+							right: parent.right
+							rightMargin: 20
+							verticalCenter: parent.verticalCenter
+						}
+					}
+				} //swipe.right
+
+				swipe.onCompleted: pagesListModel.removeMainMenuShortCut(index);
+			} //delegate: SwipeDelegate
+		} //ListView
+	} //ColumnLayout
 
 	TPButton {
 		id: btnExit

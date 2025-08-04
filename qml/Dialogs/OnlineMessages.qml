@@ -162,6 +162,7 @@ Popup {
 		contentHeight: availableHeight
 		contentWidth: availableWidth
 		spacing: 5
+		reuseItems: true
 		clip: true
 		model: appMessages
 		height: maxHeight

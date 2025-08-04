@@ -64,6 +64,7 @@ TPPage {
 	ListView {
 		id: calendar
 		model: calendarModel
+		reuseItems: true
 		snapMode: ListView.SnapToItem
 		spacing: 2
 		anchors.fill: parent

@@ -419,7 +419,7 @@ void QMLMesoInterface::createMesocyclePage()
 		QString meso_name{std::move(tr("New Program"))};
 		uint i{1};
 		while (!isMesoNameOK(meso_name))
-			meso_name = std::move(tr("New Program") + " %1"_L1.arg(QString::number(i)));
+			meso_name = std::move(tr("New Program") + " %1"_L1.arg(QString::number(i++)));
 		appMesoModel()->setName(m_mesoIdx, meso_name);
 		setMesoNameOK(true);
 		const QDate &minimumStartDate{appUtils()->getNextMonday(appMesoModel()->getMesoMinimumStartDate(appMesoModel()->client(m_mesoIdx), 99999))};

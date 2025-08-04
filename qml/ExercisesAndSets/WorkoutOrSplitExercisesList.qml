@@ -12,6 +12,8 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 ListView {
 	id: control
 	model: exercisesModel
+	reuseItems: true
+	snapMode: ListView.SnapOneItem
 	boundsBehavior: Flickable.StopAtBounds
 	flickableDirection: Flickable.VerticalFlick
 	spacing: 5
@@ -383,6 +385,7 @@ ListView {
 					id: chkTrackRestTime
 					text: exercisesModel.trackRestTimeLabel
 					radio: false
+					multiLine: true
 					checked: exercisesModel.trackRestTime(index)
 					width: listItem.width * 0.5
 
@@ -396,6 +399,7 @@ ListView {
 					id: chkAutoRestTime
 					text: exercisesModel.autoRestTimeLabel
 					radio: false
+					multiLine: true
 					checked: exercisesModel.autoRestTime(index)
 					width: listItem.width * 0.5
 
@@ -430,7 +434,7 @@ ListView {
 					Item {
 						enabled: delegate.nSubExercises > 0
 						Layout.fillWidth: true
-						Layout.preferredHeight: appSettings.itemDefaultHeight*1.1
+						Layout.preferredHeight: appSettings.itemDefaultHeight * 1.1
 
 						TPButton {
 							id: btnAddSet
@@ -453,7 +457,7 @@ ListView {
 						StackLayout{
 							id: setsStack
 							currentIndex: setsGroup.nSets > 0 ? 1 : 0
-							height: appSettings.itemDefaultHeight*1.2
+							height: appSettings.itemDefaultHeight * 1.2
 
 							anchors {
 								left: btnAddSet.right

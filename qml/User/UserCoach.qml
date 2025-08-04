@@ -159,7 +159,7 @@ ColumnLayout {
 
 	TPRadioButtonOrCheckBox {
 		id: chkHaveCoach
-		text: qsTr("I have a coach or a personal trainer")
+		text: qsTr("I intend to or do use a coach or a personal trainer")
 		radio: false
 		multiLine: true
 		actionable: userRow === 0

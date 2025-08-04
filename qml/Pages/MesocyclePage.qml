@@ -65,13 +65,6 @@ TPPage {
 
 	function newMesoMessageHandler(fieldCounter: int): void {
 		switch (fieldCounter) {
-			case 4:
-				newMesoTip.title = qsTr("New program setup incomplete");
-				newMesoTip.message = qsTr("Change and/or accept the program's name");
-				break;
-			case 3: newMesoTip.message = qsTr("Change and/or accept the start date"); break;
-			case 2: newMesoTip.message = qsTr("Change and/or accept the end date"); break;
-			case 1: newMesoTip.message = qsTr("Change and/or accept the split division"); break;
 			case 0:
 				newMesoTip.title = qsTr("New program setup complete!");
 				newMesoTip.message = qsTr("Required fields setup");
@@ -84,6 +77,14 @@ TPPage {
 				newMesoTip.button2Text = qsTr("No");
 				newMesoTip.button1Clicked.connect(function() { mesoManager.incorporateMeso();} )
 			break;
+			default:
+				newMesoTip.title = qsTr("New program setup incomplete");
+				switch (fieldCounter) {
+					case 4: newMesoTip.message = qsTr("Change and/or accept the program's name"); break;
+					case 3: newMesoTip.message = qsTr("Change and/or accept the start date"); break;
+					case 2: newMesoTip.message = qsTr("Change and/or accept the end date"); break;
+					case 1: newMesoTip.message = qsTr("Change and/or accept the split division"); break;
+				}
 		}
 	}
 
@@ -175,43 +176,37 @@ TPPage {
 				onEnterOrReturnKeyPressed: cboMesoType.forceActiveFocus();
 			}
 
-			Row {
-				spacing: 5
-				Layout.fillWidth: true
+			TPLabel {
+				text: mesocyclesModel.typeLabel
+			}
 
-				TPLabel {
-					text: mesocyclesModel.typeLabel
-					width: 0.2*parent.width
+			TPComboBox {
+				id: cboMesoType
+				width: 0.75*parent.width
+				Layout.fillWidth: true
+				currentIndex: {
+					let cboidx = find(mesoManager.type);
+					if (cboidx === -1)
+						cboidx = typeModel.count - 1;
+					return cboidx;
+				}
+				model: ListModel {
+					id: typeModel
+					ListElement { text: qsTr("Weigth Loss"); value: 0; enabled: true; }
+					ListElement { text: qsTr("Muscle Gain"); value: 1; enabled: true; }
+					ListElement { text: qsTr("Bulking"); value: 2; enabled: true; }
+					ListElement { text: qsTr("Pre-contest"); value: 3; enabled: true; }
+					ListElement { text: qsTr("Strength Build-up"); value: 4; enabled: true; }
+					ListElement { text: qsTr("Physical Recovery"); value: 5; enabled: true; }
+					ListElement { text: qsTr("Physical Maintenance"); value: 6; enabled: true; }
+					ListElement { text: qsTr("Other"); value: 7; enabled: true; }
 				}
 
-				TPComboBox {
-					id: cboMesoType
-					width: 0.75*parent.width
-					Layout.minimumWidth: width
-					currentIndex: {
-						let cboidx = find(mesoManager.type);
-						if (cboidx === -1)
-							cboidx = typeModel.count - 1;
-						return cboidx;
-					}
-					model: ListModel {
-						id: typeModel
-						ListElement { text: qsTr("Weigth Loss"); value: 0; enabled: true; }
-						ListElement { text: qsTr("Muscle Gain"); value: 1; enabled: true; }
-						ListElement { text: qsTr("Bulking"); value: 2; enabled: true; }
-						ListElement { text: qsTr("Pre-contest"); value: 3; enabled: true; }
-						ListElement { text: qsTr("Strength Build-up"); value: 4; enabled: true; }
-						ListElement { text: qsTr("Physical Recovery"); value: 5; enabled: true; }
-						ListElement { text: qsTr("Physical Maintenance"); value: 6; enabled: true; }
-						ListElement { text: qsTr("Other"); value: 7; enabled: true; }
-					}
-
-					onActivated: (index) => {
-						if (index < (typeModel.count - 1))
-							mesoManager.type = textAt(index);
-						else
-							txtMesoTypeOther.forceActiveFocus();
-					}
+				onActivated: (index) => {
+					if (index < (typeModel.count - 1))
+						mesoManager.type = textAt(index);
+					else
+						txtMesoTypeOther.forceActiveFocus();
 				}
 			}
 
@@ -317,10 +312,12 @@ TPPage {
 				TPButton {
 					id: btnStartDate
 					imageSource: "calendar.png"
+					width: appSettings.itemDefaultHeight
+					height: width
 
 					anchors {
 						left: txtMesoStartDate.right
-						leftMargin: 15
+						leftMargin: 10
 						verticalCenter: txtMesoStartDate.verticalCenter
 					}
 
@@ -382,10 +379,12 @@ TPPage {
 				TPButton {
 					id: btnEndDate
 					imageSource: "calendar.png"
+					width: appSettings.itemDefaultHeight
+					height: width
 
 					anchors {
 						left: txtMesoEndDate.right
-						leftMargin: 15
+						leftMargin: 10
 						verticalCenter: txtMesoEndDate.verticalCenter
 					}
 

@@ -33,27 +33,69 @@ Rectangle {
 
 	//Local variables. Do not use outside this file
 	property bool _bPressed: false
-	property bool _bEmitSignal: false
 	property TPButtonImage _buttonImage: null
 
 	signal clicked(int clickid);
 	signal check(int clickid);
 
+	property color color1: appSettings.paneBackgroundColor
+	property color color2: appSettings.primaryLightColor
+	property color color3: appSettings.primaryColor
+	property color color4: appSettings.primaryDarkColor
+
+	gradient: Gradient {
+		orientation: Gradient.Horizontal
+		GradientStop { position: 0.0; color: color1; }
+		GradientStop { position: 0.25; color: color2; }
+		GradientStop { position: 0.50; color: color3; }
+		GradientStop { position: 0.75; color: color4; }
+	}
+
 	onHighlightedChanged:
-		if (highlighted) {
-			fillPosition = 0;
-			highlighTimer.start();
-		}
+		if (highlighted)
+			highlightTimer.start();
 		else
-			fillPosition = 1;
+			highlightTimer.stop();
 
 	Timer {
-		id: highlighTimer
+		id: highlightTimer
 		running: false
-		repeat: false
-		interval: 200
+		repeat: true
+		interval: 50
 
-		onTriggered: fillPosition = 1;
+		property int iteration: 4
+
+		onRunningChanged: {
+			if (!running) {
+				iteration = 4;
+				color1 = appSettings.paneBackgroundColor;
+				color2 = appSettings.primaryLightColor;
+				color3 = appSettings.primaryColor;
+				color4 = appSettings.primaryDarkColor;
+			}
+		}
+
+		onTriggered: {
+			switch (iteration) {
+				case 4:
+					color1 = appSettings.primaryLightColor;
+				break;
+				case 3:
+					color1 = appSettings.paneBackgroundColor;
+				break;
+				case 2:
+					color3 = appSettings.primaryLightColor;
+				break;
+				case 1:
+					color3 = appSettings.primaryColor;
+					color4 = appSettings.primaryLightColor;
+				break;
+				case 0:
+					highlightTimer.stop();
+				return;
+			}
+			--iteration;
+		}
 	}
 
 	//implicitHeight for layouts, height for other circumstances
@@ -95,14 +137,6 @@ Rectangle {
 		}
 	}
 
-	property double fillPosition: 1
-	Behavior on fillPosition {
-		NumberAnimation {
-			id: flash
-			duration: 200
-		}
-	}
-
 	Label {
 		id: buttonText
 		visible: text.length > 0
@@ -127,33 +161,30 @@ Rectangle {
 	function onMousePressed(mouse: MouseEvent): void {
 		mouse.accepted = true;
 		_bPressed = true;
-		forceActiveFocus();
-		fillPosition = 0;
-		if (!checkable)
-			anim.start();
-		else {
-			checked = !checked;
-			check(clickId);
-		}
 	}
 
 	function onMouseReleased(mouse: MouseEvent): void {
 		mouse.accepted = true;
 		if (_bPressed) {
-			_bEmitSignal = true;
+			if (checkable){
+				checked = !checked;
+				check(clickId);
+			}
+			else
+				anim.start();
 			_bPressed = false;
 		}
 	}
 
 	MouseArea {
-		hoverEnabled: true
+		hoverEnabled: button.text.length > 0
 		anchors.fill: button
 		enabled: button.enabled
 
 		onPressed: (mouse) => onMousePressed(mouse);
 		onReleased: (mouse) => onMouseReleased(mouse);
-		onEntered: button.highlighted = true;
-		onExited: button.highlighted = false;
+		onEntered: if (button.text.length > 0) button.highlighted = true;
+		onExited: if (button.text.length > 0) button.highlighted = false;
 	}
 
 	SequentialAnimation {
@@ -178,12 +209,7 @@ Rectangle {
 			easing.type: Easing.InOutCubic
 		}
 
-		onFinished: {
-			if (_bEmitSignal) {
-				_bEmitSignal = false;
-				button.clicked(button.clickId);
-			}
-		}
+		onFinished: button.clicked(button.clickId);
 	}
 
 	function anchorLabel(): void {

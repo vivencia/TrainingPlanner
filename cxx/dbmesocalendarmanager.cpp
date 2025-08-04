@@ -102,18 +102,21 @@ void DBMesoCalendarManager::addCalendarForMeso(const uint meso_idx)
 	if (meso_idx >= m_dayInfoList.count())
 	{
 		uint n_days{0};
-		if (appMesoModel()->_id(meso_idx) >= 0)
-			n_days = static_cast<uint>(appMesoModel()->startDate(meso_idx).daysTo(appMesoModel()->endDate(meso_idx)) + 1);
-		m_dbDataReady.append(TPBool{});
-		m_dayInfoList.append(QList<stDayInfo*>{n_days});
-		m_calendars.append(new DBCalendarModel{this, meso_idx});
-		m_workouts.append(QList<DBExercisesModel*>{n_days});
+		for (qsizetype i{m_dayInfoList.count()}; i <= meso_idx; ++i )
+		{
+			if (appMesoModel()->_id(i) >= 0)
+				n_days = static_cast<uint>(appMesoModel()->startDate(i).daysTo(appMesoModel()->endDate(i)) + 1);
+			m_dbDataReady.append(TPBool{});
+			m_dayInfoList.append(QList<stDayInfo*>{n_days});
+			m_calendars.append(new DBCalendarModel{this, meso_idx});
+			m_workouts.append(QList<DBExercisesModel*>{n_days});
+		}
 	}
 }
 
 void DBMesoCalendarManager::addNewCalendarForMeso(const uint new_mesoidx)
 {
-	auto conn = std::make_shared<QMetaObject::Connection>();
+	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(appMesoModel(), &DBMesocyclesModel::isNewMesoChanged, this, [this,conn,new_mesoidx] (const uint meso_idx) {
 		if (meso_idx == new_mesoidx)
 		{

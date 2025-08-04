@@ -36,7 +36,9 @@ ColumnLayout {
 		smooth: true
 		width: smallSide * 0.3
 		height: width
+		Layout.minimumWidth: width / 2
 		Layout.maximumWidth: width
+		Layout.minimumHeight: height / 2
 		Layout.maximumHeight: height
 		Layout.alignment: Qt.AlignCenter
 	}

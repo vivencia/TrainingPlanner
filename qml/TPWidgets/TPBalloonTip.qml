@@ -114,6 +114,7 @@ TPPopup {
 
 	RowLayout {
 		spacing: 0
+		z: 1
 
 		anchors {
 			left: parent.left

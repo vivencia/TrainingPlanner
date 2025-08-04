@@ -51,6 +51,7 @@ TPPopup {
 			checked: false
 			enabled: !timePickerOnly
 			Layout.leftMargin: 10
+			Layout.rightMargin: btnClose.width
 			Layout.fillWidth: true
 
 			onClicked: mainTimer.stopWatch = checked;

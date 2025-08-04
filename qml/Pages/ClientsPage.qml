@@ -105,8 +105,9 @@ TPPage {
 				contentWidth: availableWidth
 				spacing: 0
 				clip: true
+				reuseItems: true
 				model: userModel.pendingClientsRequests
-				height: 0.8*parent.height
+				height: 0.8 * parent.height
 				enabled: userModel.pendingClientsRequests.count > 0
 
 				ScrollBar.vertical: ScrollBar {

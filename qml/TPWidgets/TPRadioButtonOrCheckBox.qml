@@ -20,6 +20,7 @@ Item {
 	property bool multiLine: false
 	property bool actionable: true
 	property bool radio: true
+	property TPButtonGroup buttonGroup: null
 
 	signal clicked();
 	signal pressAndHold();
@@ -82,12 +83,29 @@ Item {
 		anchors.fill: parent
 
 		onClicked: {
-			if (!control.checked) {
-				control.checked = true;
-				control.clicked();
+			if (!radio)
+				control.checked = !control.checked;
+			else {
+				if (control.checked)
+					return;
+				if (!buttonGroup)
+					control.checked = true;
+				else
+					buttonGroup.setChecked(control, true)
 			}
+			control.clicked();
 		}
 
 		onPressAndHold: control.pressAndHold();
+	}
+
+	Component.onCompleted: {
+		if (radio && buttonGroup)
+			buttonGroup.addButton(this);
+	}
+
+	Component.onDestruction: {
+		if (radio && buttonGroup)
+			buttonGroup.removeButton(this);
 	}
 }
