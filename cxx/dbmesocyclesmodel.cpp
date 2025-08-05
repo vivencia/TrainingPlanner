@@ -83,10 +83,11 @@ void DBMesocyclesModel::getMesocyclePage(const uint meso_idx)
 
 uint DBMesocyclesModel::startNewMesocycle(const bool bCreatePage, const std::optional<bool> bOwnMeso)
 {
+	const bool own_meso{bOwnMeso.has_value() ? bOwnMeso.value() : true};
 	const uint meso_idx{newMesocycle(std::move(QStringList{} << std::move(newMesoTemporaryId()) << QString{} << QString{} <<
 		QString{} << QString{} << QString{} << std::move("RRRRRRR"_L1) << QString{} << QString{} << QString{} << QString{} <<
 		QString{} << QString{} << appUserModel()->userId(0) <<
-		(bOwnMeso.has_value() ? (bOwnMeso.value() ? appUserModel()->userId(0) : appUserModel()->defaultClient()) : QString{}) <<
+		(own_meso ? appUserModel()->userId(0) : appUserModel()->defaultClient()) <<
 		QString{} << QString{} << "1"_L1))};
 
 	short newMesoRequiredFields{0};
@@ -95,6 +96,7 @@ uint DBMesocyclesModel::startNewMesocycle(const bool bCreatePage, const std::opt
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_ENDDATE);
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_SPLIT);
 	m_isNewMeso[meso_idx] = newMesoRequiredFields;
+	setOwnMeso(meso_idx);
 
 	if (bCreatePage)
 	{

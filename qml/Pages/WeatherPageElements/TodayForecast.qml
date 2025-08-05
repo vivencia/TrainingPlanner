@@ -22,12 +22,10 @@ ColumnLayout {
 	TPLabel {
 		id: lblTopText
 		text: topText
-		font: AppGlobals.extraLargeFont
+		font: AppGlobals.largeFont
 		singleLine: false
 		horizontalAlignment: Text.AlignHCenter
 		Layout.fillWidth: true
-		Layout.leftMargin: 10
-		Layout.rightMargin: 10
 		Layout.maximumHeight: height
 	}
 
@@ -36,10 +34,8 @@ ColumnLayout {
 		smooth: true
 		width: smallSide * 0.3
 		height: width
-		Layout.minimumWidth: width / 2
-		Layout.maximumWidth: width
-		Layout.minimumHeight: height / 2
-		Layout.maximumHeight: height
+		Layout.preferredWidth: width
+		Layout.preferredHeight: height
 		Layout.alignment: Qt.AlignCenter
 	}
 

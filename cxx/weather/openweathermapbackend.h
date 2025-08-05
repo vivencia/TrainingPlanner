@@ -1,8 +1,7 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
-#ifndef OPENWEATHERMAPBACKEND_H
-#define OPENWEATHERMAPBACKEND_H
+#pragma once
 
 #include <QApplication>
 #include <QGeoCoordinate>
@@ -78,5 +77,3 @@ private:
 	void parseOpenWeatherGeocodingReply(const QByteArray &replyData);
 	void parseOpenWeatherReverseGeocodingReply(const QByteArray &replyData);
 };
-
-#endif // OPENWEATHERMAPBACKEND_H

@@ -1,5 +1,4 @@
-#ifndef TPIMAGE_H
-#define TPIMAGE_H
+#pragma once
 
 #include <QQmlEngine>
 #include <QQuickPaintedItem>
@@ -54,5 +53,3 @@ private:
 	void colorize(QImage &dstImg, const QImage &srcImg);
 	void applyEffectToImage(QImage &dstImg, const QImage &srcImg, QGraphicsEffect *effect, const int extent = 0);
 };
-
-#endif // TPIMAGE_H

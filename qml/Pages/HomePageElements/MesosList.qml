@@ -302,6 +302,7 @@ Item {
 			imageSource: "mesocycle-add.png"
 			flat: false
 			autoSize: true
+			enabled: !mainUserPrograms ? userModel.haveClients : true
 
 			anchors {
 				horizontalCenter: parent.horizontalCenter

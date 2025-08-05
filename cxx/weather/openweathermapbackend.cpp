@@ -18,7 +18,7 @@
 
 using namespace Qt::Literals::StringLiterals;
 
-static constexpr auto kZeroKelvin = 273.15;
+static constexpr auto kZeroKelvin{273.15};
 
 static const QString &key_today{"current"_L1};
 static const QString &key_forecast{"daily"_L1};
@@ -118,7 +118,7 @@ private:
 
 	inline QString formatSpeed(const QString &strSpeed) const
 	{
-		return QString::number(qRound(strSpeed.toDouble()  *3.6)) + "km/h"_L1;
+		return QString::number(qRound(strSpeed.toDouble() * 3.6)) + "km/h"_L1;
 	}
 
 	QString weatherIconCodeToString(const QString &iconcode) const;
@@ -130,15 +130,14 @@ parseOpenWeatherMapReply::parseOpenWeatherMapReply(const QString &net_response)
 	if (!net_response.isEmpty())
 	{
 		QString word, key;
-		bool have_key(false), inside_field(false);
-		QString::const_iterator itr(net_response.constBegin());
-		const QString::const_iterator itr_end(net_response.constEnd());
-		do {
-			if ((*itr).isLetterOrNumber())
-				word.append(*itr);
+		bool have_key{false}, inside_field{false};
+		for (const auto &chr : std::as_const(net_response))
+		{
+			if (chr.isLetterOrNumber())
+				word.append(chr);
 			else
 			{
-				switch ((*itr).toLatin1())
+				switch (chr.toLatin1())
 				{
 					case '{':
 						inside_field = isCurrentKey(word) || isDailyKey(word) || isWeatherSubField(word);
@@ -170,12 +169,12 @@ parseOpenWeatherMapReply::parseOpenWeatherMapReply(const QString &net_response)
 					case '.':
 					case ' ':
 					case '_':
-						word.append(*itr);
+						word.append(chr);
 					break;
 					case ',':
 						if (have_key)
 						{
-							QMap<QString,QString> &parsedData = m_weatherData.last();
+							QMap<QString,QString> &parsedData{m_weatherData.last()};
 							parsedData.insert(std::move(key), std::move(word));
 							have_key = false;
 						}
@@ -185,7 +184,7 @@ parseOpenWeatherMapReply::parseOpenWeatherMapReply(const QString &net_response)
 					default: continue;
 				}
 			}
-		} while (++itr != itr_end);
+		}
 	}
 	m_bParsedOK = m_weatherData.count() > 0;
 }
@@ -220,7 +219,7 @@ QString parseOpenWeatherMapReply::weatherIconCodeToString(const QString &code) c
 
 OpenWeatherMapBackend::OpenWeatherMapBackend(QObject *parent)
 	: QObject{parent},
-	  m_networkManager{new QNetworkAccessManager(this)}
+	  m_networkManager{new QNetworkAccessManager{this}}
 {}
 
 void OpenWeatherMapBackend::getCityFromCoordinates(const QGeoCoordinate &coordinate)
@@ -251,11 +250,11 @@ void OpenWeatherMapBackend::getCityFromCoordinates(const QGeoCoordinate &coordin
 		else
 			ERROR_MESSAGE("Network reply:  ", reply->errorString())
 	});
-	connect(reply, &QNetworkReply::errorOccurred, this, [=](QNetworkReply::NetworkError code) {
+	connect(reply, &QNetworkReply::errorOccurred, this, [=] (QNetworkReply::NetworkError code) {
 		qDebug() << "Error occurred:" << reply->errorString() << "(Code:" << code << ")";
 	});
 
-	connect(reply, &QNetworkReply::sslErrors, this, [=](const QList<QSslError> &errors) {
+	connect(reply, &QNetworkReply::sslErrors, this, [=] (const QList<QSslError> &errors) {
 		qDebug() << "SSL Errors:" << errors;
 	});
 }
@@ -288,7 +287,9 @@ void OpenWeatherMapBackend::requestWeatherInfoFromNet(const QGeoCoordinate &coor
 	url.setQuery(query);
 
 	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{url})};
-	connect(reply, &QNetworkReply::finished, this, [this, reply, coordinate]() { handleWeatherInfoRequestReply(reply, coordinate); });
+	connect(reply, &QNetworkReply::finished, this, [this, reply, coordinate]() {
+		handleWeatherInfoRequestReply(reply, coordinate);
+	});
 }
 
 void OpenWeatherMapBackend::requestWeatherInfo(const QString &city, const QGeoCoordinate &coordinate)
@@ -405,13 +406,13 @@ void OpenWeatherMapBackend::parseOpenWeatherGeocodingReply(const QByteArray &rep
 	st_LocationInfo tempData;
 	QString word, *strInfo{nullptr};
 	uint pos{0}, word_start{0}, word_end{0};
-	bool ignore_untill_lext_bracket{false};
+	bool ignore_until_next_bracket{false};
 
 	const QString data{replyData};
 	QString::const_iterator itr{data.constBegin()};
 	const QString::const_iterator itr_end{data.constEnd()};
 	do {
-		if (ignore_untill_lext_bracket)
+		if (ignore_until_next_bracket)
 		{
 			if (*itr != '}')
 				continue;
@@ -433,7 +434,7 @@ void OpenWeatherMapBackend::parseOpenWeatherGeocodingReply(const QByteArray &rep
 				case ':':
 					word = data.sliced(word_start, word_end-word_start+1);
 					if (word.contains("local_"_L1))
-						ignore_untill_lext_bracket = true;
+						ignore_until_next_bracket = true;
 					else
 					{
 						if (word.contains("name"_L1))
@@ -470,8 +471,8 @@ void OpenWeatherMapBackend::parseOpenWeatherGeocodingReply(const QByteArray &rep
 					}
 				break;
 				case '}':
-					if (ignore_untill_lext_bracket)
-						ignore_untill_lext_bracket = false;
+					if (ignore_until_next_bracket)
+						ignore_until_next_bracket = false;
 					else
 					{
 						*strInfo = std::move(data.sliced(word_start, word_end-word_start+1));

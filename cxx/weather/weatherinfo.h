@@ -1,5 +1,4 @@
-#ifndef WEATHERINFO_H
-#define WEATHERINFO_H
+#pragma once
 
 #include "openweathermapbackend.h"
 
@@ -115,5 +114,3 @@ private:
 	st_LocationInfo m_gpsLocation;
 	QStringList m_locationList;
 };
-
-#endif // WEATHERINFO_H

@@ -1,5 +1,4 @@
-#ifndef QMLMESOSPLITINTERFACE_H
-#define QMLMESOSPLITINTERFACE_H
+#pragma once
 
 #include <QObject>
 #include <QVariantMap>
@@ -84,5 +83,3 @@ private:
 	void removePage(const QChar &split_letter);
 	QChar findSwappableModel() const;
 };
-
-#endif // QMLMESOSPLITINTERFACE_H

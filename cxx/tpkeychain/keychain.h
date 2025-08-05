@@ -6,8 +6,7 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. For licensing and distribution        *
  * details, check the accompanying file 'COPYING'.                            *
  *****************************************************************************/
-#ifndef KEYCHAIN_H
-#define KEYCHAIN_H
+#pragma once
 
 #define QKEYCHAIN_EXPORT
 
@@ -283,5 +282,3 @@ private:
 QKEYCHAIN_EXPORT bool isAvailable();
 
 } // namespace QKeychain
-
-#endif

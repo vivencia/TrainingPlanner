@@ -1,5 +1,4 @@
-#ifndef QMLUSERINTERFACE_H
-#define QMLUSERINTERFACE_H
+#pragma once
 
 #include <QObject>
 #include <QVariantMap>
@@ -35,5 +34,3 @@ private:
 	void createCoachesPage();
 	void createClientsPage();
 };
-
-#endif // QMLUSERINTERFACE_H

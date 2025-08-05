@@ -1,5 +1,4 @@
-#ifndef TPSTATISTICS_H
-#define TPSTATISTICS_H
+#pragma once
 
 #include "../qmlitemmanager.h"
 
@@ -69,5 +68,3 @@ inline TPStatistics* appStatistics()
 		TPStatistics::_appStatistics = new TPStatistics{appItemManager()};
 	return TPStatistics::_appStatistics;
 }
-
-#endif // TPSTATISTICS_H

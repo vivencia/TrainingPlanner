@@ -40,7 +40,7 @@ public:
 
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
 	QVariant data(const QModelIndex &index, int role) const override final;
-	inline virtual int rowCount(const QModelIndex& parent) const override final { Q_UNUSED(parent); return count(); }
+	inline virtual int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
 
 signals:
 	void countChanged();

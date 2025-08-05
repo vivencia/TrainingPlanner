@@ -1,5 +1,4 @@
-#ifndef TPWORKOUTSCALENDAR_H
-#define TPWORKOUTSCALENDAR_H
+#pragma once
 
 #include <QAbstractListModel>
 #include <QQmlEngine>
@@ -100,5 +99,3 @@ private:
 	void getWorkoutInfo();
 	void findWorkoutInList();
 };
-
-#endif // TPWORKOUTSCALENDAR_H

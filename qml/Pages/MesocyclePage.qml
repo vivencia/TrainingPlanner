@@ -44,7 +44,7 @@ TPPage {
 		sourceComponent: TPBalloonTip {
 			parentPage: mesoPropertiesPage
 			imageSource: "set-completed"
-			button1Text: "OK"
+			button1Text: ""
 			button2Text: ""
 			keepAbove: true
 			movable: true
@@ -85,6 +85,7 @@ TPPage {
 					case 2: newMesoTip.message = qsTr("Change and/or accept the end date"); break;
 					case 1: newMesoTip.message = qsTr("Change and/or accept the split division"); break;
 				}
+			break;
 		}
 	}
 
@@ -108,7 +109,7 @@ TPPage {
 			anchors.fill: parent
 
 			Loader {
-				active: !mesoManager.ownMeso
+				active: !mesoManager.ownMeso && userModel.haveClients
 				asynchronous: true
 				Layout.fillWidth: true
 
@@ -117,14 +118,14 @@ TPPage {
 
 					TPLabel {
 						id: lblClient
-						text: mesoManager.clientLabel
+						text: mesocyclesModel.clientLabel
 					}
 
 					TPClientsList {
 						id: clientsList
-						clientRow: userModel.clientRow(mesoManager.client)
+						clientRow: userModel.findUserByName(mesoManager.client)
 						buttonString: qsTr("Go to client's page")
-						height: 0.2*mesoPropertiesPage.height
+						height: 0.2 * mesoPropertiesPage.height
 						allowNotConfirmedClients: false
 						Layout.fillWidth: true
 						Layout.preferredHeight: height
@@ -135,7 +136,7 @@ TPPage {
 
 					TPLabel {
 						id: lblCoachName
-						text: mesoManager.coachLabel
+						text: mesocyclesModel.coachLabel
 					}
 
 					TPTextInput {

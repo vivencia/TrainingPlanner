@@ -1,5 +1,4 @@
-#ifndef PAGESLISTMODEL_H
-#define PAGESLISTMODEL_H
+#pragma once
 
 #include <QAbstractListModel>
 #include <QQmlEngine>
@@ -53,5 +52,3 @@ private:
 	QList<pageInfo*> m_pagesData;
 	QHash<int, QByteArray> m_roleNames;
 };
-
-#endif // PAGESLISTMODEL_H

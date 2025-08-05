@@ -21,7 +21,7 @@ Item {
 		model: userModel.clientsNames
 		enabled: userModel.haveClients
 		currentIndex: clientRow
-		height: button.visible ? 0.8*parent.height : parent.height
+		height: button.visible ? 0.8 * parent.height : parent.height
 
 		anchors {
 			top: parent.top

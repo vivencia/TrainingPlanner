@@ -141,14 +141,13 @@ TPPage {
 			} //Row txtNewCity
 		} // Rectangle savedCities
 
-		BigForecastIcon {
+		TodayForecast {
 			id: current
 			height: 0.55 * mainLayout.height
 			width: parent.width
 			Layout.alignment: Qt.AlignHCenter
 			Layout.preferredHeight: height
 			Layout.preferredWidth: width
-			Layout.topMargin: 10
 
 			topText: weatherInfo.city + "  " + weatherInfo.weather.coordinates + "\n" + weatherInfo.weather.temperature
 			weatherIcon: weatherInfo.weather.weatherIcon
@@ -183,7 +182,7 @@ TPPage {
 					Repeater {
 						model: weatherInfo.forecast
 
-						ForecastIcon {
+						NextDaysForecast {
 							required property string dayOfWeek
 							required property string minMaxTemperatures
 							required property string weatherIcon

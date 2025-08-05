@@ -28,7 +28,7 @@ void PagesListModel::addMainMenuShortCut(const QString &label, QQuickItem *page,
 }
 
 void PagesListModel::removeMainMenuShortCut(QQuickItem *page)
-{	
+{
 	for (uint i{0}; i < m_pagesData.count(); ++i)
 	{
 		if (m_pagesData.at(i)->page == page)

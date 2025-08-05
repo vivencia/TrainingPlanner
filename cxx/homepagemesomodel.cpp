@@ -17,7 +17,7 @@ homePageMesoModel::homePageMesoModel(QObject *parent)
 	m_roleNames[mesoClientRole] = std::move("mesoClient");
 }
 
-void homePageMesoModel::appendData(const QStringList& modeldata, const uint mesoModelRow)
+void homePageMesoModel::appendData(const QStringList &modeldata, const uint mesoModelRow)
 {
 	beginInsertRows(QModelIndex{}, count(), count());
 	m_modeldata2.append(&modeldata);

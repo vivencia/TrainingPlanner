@@ -1,5 +1,4 @@
-#ifndef QMLMESOINTERFACE_H
-#define QMLMESOINTERFACE_H
+#pragma once
 
 #include <QDate>
 #include <QObject>
@@ -201,5 +200,3 @@ private:
 	void mesoChanged(const uint meso_idx, const uint meso_field);
 	inline bool isSplitOK(const QString &split) const;
 };
-
-#endif // QMLMESOINTERFACE_H

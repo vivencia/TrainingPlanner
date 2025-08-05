@@ -43,13 +43,16 @@ Rectangle {
 	property color color3: appSettings.primaryColor
 	property color color4: appSettings.primaryDarkColor
 
-	gradient: Gradient {
+	Gradient {
+		id: enabledGradient
 		orientation: Gradient.Horizontal
 		GradientStop { position: 0.0; color: color1; }
 		GradientStop { position: 0.25; color: color2; }
 		GradientStop { position: 0.50; color: color3; }
 		GradientStop { position: 0.75; color: color4; }
 	}
+
+	gradient: enabled ? enabledGradient : null
 
 	onHighlightedChanged:
 		if (highlighted)
