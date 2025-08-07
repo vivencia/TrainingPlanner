@@ -422,12 +422,12 @@ void QMLMesoInterface::createMesocyclePage()
 			meso_name = std::move(tr("New Program") + " %1"_L1.arg(QString::number(i++)));
 		appMesoModel()->setName(m_mesoIdx, meso_name);
 		setMesoNameOK(true);
-		const QDate &minimumStartDate{appUtils()->getNextMonday(appMesoModel()->getMesoMinimumStartDate(appMesoModel()->client(m_mesoIdx), 99999))};
-		const QDate &currentDate{QDate::currentDate()};
-		setStartDate(currentDate);
-		setEndDate(appUtils()->createDate(currentDate, 0, 2, 0));
+		const QDate &minimumStartDate{appMesoModel()->getMesoMinimumStartDate(appMesoModel()->client(m_mesoIdx), 99999)};
 		setMinimumMesoStartDate(minimumStartDate);
-		setMaximumMesoEndDate(appUtils()->createDate(currentDate, 0, 6, 0));
+		setStartDate(appUtils()->getNextMonday(minimumStartDate));
+		const QDate &minimumEndDate{appUtils()->createDate(minimumStartDate, 0, 2, 0)};
+		setEndDate(appUtils()->getNextSunday(minimumEndDate));
+		setMaximumMesoEndDate(appUtils()->createDate(minimumEndDate, 0, 6, 0));
 	}
 	setNewMesoFieldCounter(appMesoModel()->newMesoFieldCounter(m_mesoIdx));
 	m_mesoProperties.insert("mesoManager"_L1, QVariant::fromValue(this));

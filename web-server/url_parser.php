@@ -44,7 +44,7 @@ function erasedir($path) {
 function create_dir($directory) {
     global $dirMode;
     if (!is_dir($directory)) {
-        if (!mkdir($directory))
+        if (!mkdir($directory, $dirMode, true))
             return false;
         chmod($directory, $dirMode);
     }

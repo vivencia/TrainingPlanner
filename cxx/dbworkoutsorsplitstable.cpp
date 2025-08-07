@@ -140,12 +140,13 @@ void DBWorkoutsOrSplitsTable::removeExercises()
 {
 	if (openDatabase())
 	{
+		const QString meso_id{m_execArgs.at(0).toString()};
 		QSqlQuery query{std::move(getQuery())};
 		QString strQuery{tableId() == WORKOUT_TABLE_ID ?
-				std::move("DELETE FROM %1 WHERE meso_id=%2"_L1.arg(m_tableName, m_model->mesoId())) :
-				std::move("DELETE FROM %1 WHERE meso_id=%2"_L1.arg(m_tableName, m_model->mesoId()))
+				std::move("DELETE FROM %1 WHERE meso_id=%2"_L1.arg(m_tableName, meso_id)) :
+				std::move("DELETE FROM %1 WHERE meso_id=%2"_L1.arg(m_tableName, meso_id))
 		};
-		const bool remove_all{m_execArgs.at(0).toBool()};
+		const bool remove_all{m_execArgs.at(1).toBool()};
 		if (!remove_all) //Delete one specific entry, otherwise all entries for the meso will be deleted
 		{
 			strQuery += std::forward<QString>(tableId() == WORKOUT_TABLE_ID ?

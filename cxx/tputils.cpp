@@ -598,6 +598,12 @@ uint TPUtils::calculateNumberOfMonths(const QDate &date1, const QDate &date2) co
 	return n_months;
 }
 
+QDate TPUtils::getNextSunday(const QDate &fromDate) const
+{
+	constexpr uint daysToNextSunday[7]{ 6, 5, 4, 3, 2, 1, 7 };
+	return fromDate.addDays(daysToNextSunday[fromDate.dayOfWeek()-1]);
+}
+
 QDate TPUtils::getNextMonday(const QDate &fromDate) const
 {
 	constexpr uint daysToNextMonday[7]{ 7, 6, 5, 4, 3, 2, 1 };

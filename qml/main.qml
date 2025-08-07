@@ -112,7 +112,8 @@ ApplicationWindow {
 		}
 		else
 			stackView.pop();
-		pageActivated_main(stackView.currentItem);
+		//pageActivated_main(stackView.currentItem);
+		pageActivated_main(pagesListModel.prevPage());
 	}
 
 	signal pageActivated_main(Item page);

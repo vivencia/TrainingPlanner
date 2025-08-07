@@ -583,7 +583,6 @@ void OSInterface::checkLocalServer()
 
 void OSInterface::commandLocalServer(const QString &command)
 {
-	return;
 	connect(appItemManager(), &QmlItemManager::qmlPasswordDialogClosed, this, [this,command] (int resultCode, const QString &password) {
 		if (resultCode == 0)
 		{

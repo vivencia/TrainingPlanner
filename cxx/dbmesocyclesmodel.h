@@ -112,8 +112,11 @@ public:
 
 	Q_INVOKABLE inline void setCurrentlyViewedMeso(const uint meso_idx, const bool bEmitSignal = true)
 	{
-		m_curMesos = isOwnMeso(meso_idx) ? m_ownMesos : m_clientMesos;
-		checkIfCanExport(meso_idx, bEmitSignal);
+		if (meso_idx < m_mesoData.count())
+		{
+			m_curMesos = isOwnMeso(meso_idx) ? m_ownMesos : m_clientMesos;
+			checkIfCanExport(meso_idx, bEmitSignal);
+		}
 	}
 
 	void setModified(const uint meso_idx, const uint field);
@@ -125,16 +128,21 @@ public:
 	}
 	inline const int _id(const uint meso_idx) const
 	{
-		return m_mesoData.at(meso_idx).at(MESOCYCLES_COL_ID).toInt();
+		return meso_idx < m_mesoData.count() ? m_mesoData.at(meso_idx).at(MESOCYCLES_COL_ID).toInt() : m_lowestTempMesoId;
 	}
 	inline void setId(const uint meso_idx, const QString &new_id)
 	{
 		m_mesoData[meso_idx][MESOCYCLES_COL_ID] = new_id;
+		m_curMesos->emitDataChanged(meso_idx, -1);
 	}
 
 	inline const QString &name(const uint meso_idx) const
 	{
 		return m_mesoData.at(meso_idx).at(MESOCYCLES_COL_NAME);
+	}
+	Q_INVOKABLE inline QString name_QML(const uint meso_idx) const
+	{
+		return name(meso_idx);
 	}
 	void setName(const uint meso_idx, const QString &new_name);
 
@@ -265,7 +273,7 @@ public:
 	void setClient(const uint meso_idx, const QString &new_client);
 	Q_INVOKABLE QString mesoClient(const uint meso_idx) const { return meso_idx < m_mesoData.count() ? client(meso_idx) : QString {}; }
 
-	Q_INVOKABLE std::optional<bool> isOwnMeso(const int meso_idx) const;
+	Q_INVOKABLE bool isOwnMeso(const uint meso_idx) const;
 	void setOwnMeso(const uint meso_idx);
 
 	inline const QString &file(const uint meso_idx) const
@@ -413,6 +421,7 @@ private:
 	friend DBMesocyclesModel *appMesoModel();
 
 	inline QString newMesoTemporaryId() { return QString::number(m_lowestTempMesoId--); }
+	inline bool isMesoTemporary(const uint meso_idx) const { return _id(meso_idx) < 0; }
 	void loadSplits(const uint meso_idx, const uint thread_id);
 	int continueExport(const uint meso_idx, const QString &filename, const bool formatted) const;
 	int exportToFile_splitData(const uint meso_idx, QFile *mesoFile, const bool formatted) const;

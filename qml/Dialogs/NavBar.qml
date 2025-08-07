@@ -18,7 +18,7 @@ TPToolBar {
 		hasDropShadow: false
 		width: appSettings.itemDefaultHeight*1.1
 		height: width
-		enabled: stackView.depth >= 2 && mainwindow.bBackButtonEnabled
+		enabled: mainwindow.bBackButtonEnabled
 		visible: stackView.depth >= 2
 
 		anchors {
@@ -31,6 +31,23 @@ TPToolBar {
 	}
 
 	TPButton {
+		id: btnNext
+		imageSource: "next.png"
+		hasDropShadow: false
+		width: appSettings.itemDefaultHeight*1.1
+		height: width
+		enabled: mainwindow.bBackButtonEnabled
+		visible: stackView.index < stackView.depth
+
+		anchors {
+			left: btnBack.right
+			verticalCenter: parent.verticalCenter
+		}
+
+		onClicked: pushOntoStack(pagesListModel.nextPage());
+	}
+
+	TPButton {
 		id: btnHome
 		imageSource: "home.png"
 		hasDropShadow: false
@@ -40,13 +57,14 @@ TPToolBar {
 		visible: btnBack.visible
 
 		anchors {
-			left: btnBack.right
+			left: btnNext.right
 			verticalCenter: parent.verticalCenter
 		}
 
 		onClicked: {
 			pageDeActivated_main(stackView.currentItem);
 			stackView.pop(stackView.get(0));
+			pagesListModel.setCurrentPage(stackView.get(0));
 			pageActivated_main(stackView.currentItem);
 		}
 	}

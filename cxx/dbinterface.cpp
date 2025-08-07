@@ -291,6 +291,7 @@ void DBInterface::removeMesoSplit(DBExercisesModel *model)
 void DBInterface::removeAllMesoSplits(const uint meso_idx)
 {
 	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{MESOSPLIT_TABLE_ID}};
+	worker->addExecArg(appMesoModel()->id(meso_idx));
 	worker->addExecArg(true);
 	createThread(worker, [worker] () { return worker->removeExercises(); });
 }
@@ -389,6 +390,7 @@ void DBInterface::removeWorkout(DBExercisesModel *model)
 void DBInterface::removeAllWorkouts(const uint meso_idx)
 {
 	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{WORKOUT_TABLE_ID}};
+	worker->addExecArg(appMesoModel()->id(meso_idx));
 	worker->addExecArg(true);
 	createThread(worker, [worker] () { return worker->removeExercises(); });
 }

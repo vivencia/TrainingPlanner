@@ -17,10 +17,9 @@ homePageMesoModel::homePageMesoModel(QObject *parent)
 	m_roleNames[mesoClientRole] = std::move("mesoClient");
 }
 
-void homePageMesoModel::appendData(const QStringList &modeldata, const uint mesoModelRow)
+void homePageMesoModel::appendData(const uint mesoModelRow)
 {
 	beginInsertRows(QModelIndex{}, count(), count());
-	m_modeldata2.append(&modeldata);
 	m_mesoModelRows.append(mesoModelRow);
 	emit countChanged();
 	endInsertRows();
@@ -28,10 +27,9 @@ void homePageMesoModel::appendData(const QStringList &modeldata, const uint meso
 
 void homePageMesoModel::removeRow(const uint row)
 {
-	if (row < m_modeldata2.count())
+	if (row < m_mesoModelRows.count())
 	{
 		beginRemoveRows(QModelIndex{}, row, row);
-		m_modeldata2.remove(row);
 		m_mesoModelRows.remove(row);
 		emit countChanged();
 		endRemoveRows();
@@ -41,10 +39,10 @@ void homePageMesoModel::removeRow(const uint row)
 QVariant homePageMesoModel::data(const QModelIndex &index, int role) const
 {
 	const int row{index.row()};
-	if(row >= 0 && row < m_modeldata2.count())
+	if (row >= 0 && row < m_mesoModelRows.count())
 	{
 		const uint meso_idx{m_mesoModelRows.at(row)};
-		switch(role)
+		switch (role)
 		{
 			case mesoNameRole:
 				return QVariant{"<b>"_L1 + appMesoModel()->name(meso_idx) + (appMesoModel()->_id(meso_idx) < 0 ? tr(" (Temporary)") : QString{}) + "</b>"_L1};

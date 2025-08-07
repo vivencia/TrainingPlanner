@@ -206,8 +206,7 @@ Item {
 
 				TPBalloonTip {
 					id: msgDlg
-					title: qsTr("Remove Program?")
-					message: qsTr("This action cannot be undone. Note: removing a Program does not remove the workout records.")
+					message: qsTr("This action cannot be undone.")
 					imageSource: "remove"
 					keepAbove: true
 					parentPage: homePage
@@ -216,6 +215,7 @@ Item {
 					onButton1Clicked: mesocyclesModel.removeMesocycle(mesoidx);
 
 					function init(meso_idx: int): void {
+						title = qsTr("Remove ") + mesocyclesModel.name_QML(meso_idx) + "?";
 						mesoidx = meso_idx;
 						show(-1);
 					}
@@ -302,7 +302,6 @@ Item {
 			imageSource: "mesocycle-add.png"
 			flat: false
 			autoSize: true
-			enabled: !mainUserPrograms ? userModel.haveClients : true
 
 			anchors {
 				horizontalCenter: parent.horizontalCenter

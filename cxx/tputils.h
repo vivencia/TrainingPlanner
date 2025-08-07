@@ -110,6 +110,7 @@ public:
 		return calculateNumberOfMonths(getDateFromDateString(date1, DF_DATABASE), getDateFromDateString(date2, DF_DATABASE));
 	}
 	uint calculateNumberOfMonths(const QDate &date1, const QDate &date2) const;
+	QDate getNextSunday(const QDate &fromDate) const;
 	QDate getNextMonday(const QDate &fromDate) const;
 	QDate createDate(const QDate &fromDate, const int years, const int months, const int days) const;
 	Q_INVOKABLE inline QDate getDayBefore(const QDate &date) const { return date.addDays(-1); }

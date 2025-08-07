@@ -38,6 +38,13 @@ public:
 	// return the roles mapping to be used by QML
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
 
+	Q_INVOKABLE void addPage(QQuickItem *page);
+	void removePage(QQuickItem *page);
+	Q_INVOKABLE void setCurrentPage(QQuickItem *page);
+	Q_INVOKABLE inline QQuickItem *prevPage() const { return m_allPagesIndex > 0 ? m_allStackPages.at(--m_allPagesIndex) : nullptr; }
+	Q_INVOKABLE inline QQuickItem *nextPage() const { return m_allPagesIndex < m_allStackPages.count() - 1 ? m_allStackPages.at(m_allPagesIndex++) : nullptr; }
+	Q_INVOKABLE inline QQuickItem *currentPage() const { return m_allStackPages.at(m_allPagesIndex); }
+
 signals:
 	void countChanged();
 
@@ -50,5 +57,7 @@ private:
 	};
 
 	QList<pageInfo*> m_pagesData;
+	QList<QQuickItem*> m_allStackPages;
 	QHash<int, QByteArray> m_roleNames;
+	mutable int m_allPagesIndex;
 };

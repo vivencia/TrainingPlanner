@@ -25,6 +25,7 @@ void PagesListModel::addMainMenuShortCut(const QString &label, QQuickItem *page,
 	m_pagesData.append(pageinfo);
 	emit countChanged();
 	endInsertRows();
+	addPage(page);
 }
 
 void PagesListModel::removeMainMenuShortCut(QQuickItem *page)
@@ -44,6 +45,7 @@ void PagesListModel::removeMainMenuShortCut(const uint index)
 	if (index < m_pagesData.count())
 	{
 		QMetaObject::invokeMethod(appMainWindow(), "popFromStack", Q_ARG(QQuickItem*, m_pagesData.at(index)->page));
+		removePage(m_pagesData.at(index)->page);
 		beginRemoveRows(QModelIndex{}, index, index);
 		if (m_pagesData.at(index)->cleanUpFunc)
 			m_pagesData.at(index)->cleanUpFunc();
@@ -73,4 +75,36 @@ QVariant PagesListModel::data(const QModelIndex &index, int role) const
 		}
 	}
 	return QVariant{};
+}
+
+void PagesListModel::addPage(QQuickItem *page)
+{
+	const qsizetype page_idx{m_allStackPages.indexOf(page)};
+	if (page_idx == -1)
+	{
+		m_allPagesIndex = m_allStackPages.count();
+		m_allStackPages.append(page);
+	}
+	else
+		m_allPagesIndex = page_idx;
+}
+
+void PagesListModel::removePage(QQuickItem *page)
+{
+	const qsizetype page_idx{m_allStackPages.indexOf(page)};
+	if (page_idx == -1)
+	{
+		m_allStackPages.remove(page_idx);
+		if (m_allPagesIndex >= page_idx)
+			--m_allPagesIndex;
+	}
+}
+
+void PagesListModel::setCurrentPage(QQuickItem *page)
+{
+	const qsizetype page_idx{m_allStackPages.indexOf(page)};
+	if (page_idx == -1)
+		addPage(page);
+	else
+		m_allPagesIndex = page_idx;
 }

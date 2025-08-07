@@ -514,110 +514,110 @@
 <context>
     <name>DBMesocyclesModel</name>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="249"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="257"/>
         <source>Rest day</source>
         <translation>Recesso</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="306"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="314"/>
         <source>Start date: </source>
         <translation>Início: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="307"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="315"/>
         <source>End date: </source>
         <translation>Término: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="309"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="317"/>
         <source>Number of weeks: </source>
         <translation>Número de semanas: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="305"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="313"/>
         <source>Program&apos;s name: </source>
         <translation>Nome do programa: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="308"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="316"/>
         <source>Program&apos;s considerations: </source>
         <translation>Considerações sobre o programa: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="310"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="318"/>
         <source>Weekly training division: </source>
         <translation>Divisão semanal de treinos: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="311"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="319"/>
         <source>Muscular groups for division A: </source>
         <translation>Grupos musculares para divisão A: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="312"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="320"/>
         <source>Muscular groups for division B: </source>
         <translation>Grupos musculares para divisão B: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="313"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="321"/>
         <source>Muscular groups for division C: </source>
         <translation>Grupos musculares para divisão C: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="314"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="322"/>
         <source>Muscular groups for division D: </source>
         <translation>Grupos musculares para divisão D: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="315"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="323"/>
         <source>Muscular groups for division E: </source>
         <translation>Grupos musculares para divisão E: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="316"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="324"/>
         <source>Muscular groups for division F: </source>
         <translation>Grupos musculares para divisão F: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="320"/>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="321"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="328"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="329"/>
         <source>Mesocycle-style program: </source>
         <translation>Programa do tipo Mesociclo: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="318"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="326"/>
         <source>Client: </source>
         <translation>Cliente: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="317"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="325"/>
         <source>Coach/Trainer: </source>
         <translation>Coach/Treinador: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="515"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="524"/>
         <source>Exercises Program</source>
         <translation>Programa de Exercícios</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="586"/>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="599"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="595"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="608"/>
         <source>Yes</source>
         <translation>Sim</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="586"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="595"/>
         <source>No</source>
         <translation>Não</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="629"/>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="635"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="638"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="644"/>
         <source>Exercises Program sent to client</source>
         <translation>Programa de Exercícios enviado ao cliente</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="319"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="327"/>
         <source>Type: </source>
         <translation>Tipo: </translation>
     </message>
@@ -1199,12 +1199,12 @@ Esta ação não pode ser desfeita.</translation>
         <translation>Um programa de treino tem que incluir, pelo menos, um dia de (R)ecesso e um dia de treino(A-F)</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePageElements/MesoSplitSetup.qml" line="234"/>
+        <location filename="../qml/Pages/MesocyclePageElements/MesoSplitSetup.qml" line="235"/>
         <source>Exercises Planner</source>
         <translation>Programa de Exercícios</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePageElements/MesoSplitSetup.qml" line="259"/>
+        <location filename="../qml/Pages/MesocyclePageElements/MesoSplitSetup.qml" line="260"/>
         <source>Define</source>
         <translation>Definir</translation>
     </message>
@@ -1247,7 +1247,7 @@ Esta ação não pode ser desfeita.</translation>
         <translation>Novo programa incompleto</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="126"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="127"/>
         <source>Go to client&apos;s page</source>
         <translation>Ir para a página do cliente</translation>
     </message>
@@ -1272,82 +1272,82 @@ Esta ação não pode ser desfeita.</translation>
         <translation>Não</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="195"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="196"/>
         <source>Weigth Loss</source>
         <translation>Perder Peso</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="196"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="197"/>
         <source>Muscle Gain</source>
         <translation>Ganho muscular</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="197"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="198"/>
         <source>Bulking</source>
         <translation>Bulking</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="198"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="199"/>
         <source>Pre-contest</source>
         <translation>Pre-contest</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="199"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="200"/>
         <source>Strength Build-up</source>
         <translation>Ganhar força</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="200"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="201"/>
         <source>Physical Recovery</source>
         <translation>Recuperação física</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="201"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="202"/>
         <source>Physical Maintenance</source>
         <translation>Manutenção física</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="202"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="203"/>
         <source>Other</source>
         <translation>Outro</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="226"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="227"/>
         <source>Instructions file</source>
         <translation>Arquivo de instruções</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="254"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="255"/>
         <source>Choose the instruction&apos;s file for this mesocycles</source>
         <translation>Escolha o arquivo de instruções para este mesociclo</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="255"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="256"/>
         <source>PDF Files</source>
         <translation>Arquivos PDF</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="255"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="256"/>
         <source>Documents</source>
         <translation>Documentos</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="329"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="330"/>
         <source>Mesocycle-style program</source>
         <translation>Programa tipo Mesociclo</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="334"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="335"/>
         <source>A Mesocycle is a short-term program, with defined starting and ending points and a specific goal in sight</source>
         <translation>Um Mesociclo é um programa de curto prazo, com início e término bem definidos, e um objectivo específico em vista</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="455"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="456"/>
         <source>Send to client</source>
         <translation>Enviar ao cliente</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="474"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="475"/>
         <source>Adjust meso calendar?</source>
         <translation>Ajustar calendário do programa?</translation>
     </message>
@@ -1379,16 +1379,6 @@ Esta ação não pode ser desfeita.</translation>
         <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="193"/>
         <source>Remove Program</source>
         <translation>Remover Programa</translation>
-    </message>
-    <message>
-        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="209"/>
-        <source>Remove Program?</source>
-        <translation>Remover Programa?</translation>
-    </message>
-    <message>
-        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="210"/>
-        <source>This action cannot be undone. Note: removing a Program does not remove the workout records.</source>
-        <translation>Esta ação não pode ser desfeita: Nota: informações sobre os treinos não serão removidas.</translation>
     </message>
     <message>
         <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="301"/>
@@ -1424,6 +1414,16 @@ Esta ação não pode ser desfeita.</translation>
         <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="363"/>
         <source>Share</source>
         <translation>Compartilhar</translation>
+    </message>
+    <message>
+        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="209"/>
+        <source>This action cannot be undone.</source>
+        <translation>Esta ação não pode ser desfeita.</translation>
+    </message>
+    <message>
+        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="218"/>
+        <source>Remove </source>
+        <translation>Remover </translation>
     </message>
     <message>
         <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="381"/>
@@ -1542,12 +1542,12 @@ Esta ação não pode ser desfeita.</translation>
 <context>
     <name>OSInterface</name>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="656"/>
+        <location filename="../cxx/osinterface.cpp" line="655"/>
         <source>Send file</source>
         <translation>Enviar arquivo</translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="739"/>
+        <location filename="../cxx/osinterface.cpp" line="738"/>
         <source>View file with...</source>
         <translation>Visualizar arquivo com...</translation>
     </message>
@@ -2387,8 +2387,8 @@ Esta ação não pode ser desfeita.</translation>
         <translation>Sábado</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.cpp" line="645"/>
-        <location filename="../cxx/tputils.cpp" line="658"/>
+        <location filename="../cxx/tputils.cpp" line="651"/>
+        <location filename="../cxx/tputils.cpp" line="664"/>
         <source>and</source>
         <translation>e</translation>
     </message>
@@ -3116,13 +3116,13 @@ Esta ação não pode ser desfeita.</translation>
 <context>
     <name>homePageMesoModel</name>
     <message>
-        <location filename="../cxx/homepagemesomodel.cpp" line="50"/>
+        <location filename="../cxx/homepagemesomodel.cpp" line="48"/>
         <source> (Temporary)</source>
         <translation> (Temporário)</translation>
     </message>
     <message>
-        <location filename="../cxx/homepagemesomodel.cpp" line="53"/>
-        <location filename="../cxx/homepagemesomodel.cpp" line="56"/>
+        <location filename="../cxx/homepagemesomodel.cpp" line="51"/>
+        <location filename="../cxx/homepagemesomodel.cpp" line="54"/>
         <source>Not set</source>
         <translation>Não escolhida</translation>
     </message>
@@ -3143,7 +3143,7 @@ Esta ação não pode ser desfeita.</translation>
 <context>
     <name>st_WeatherInfo</name>
     <message>
-        <location filename="../cxx/weather/openweathermapbackend.h" line="37"/>
+        <location filename="../cxx/weather/openweathermapbackend.h" line="36"/>
         <source>No weather data</source>
         <translation>Sem informações sobre o tempo</translation>
     </message>

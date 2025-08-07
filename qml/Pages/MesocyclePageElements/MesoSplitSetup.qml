@@ -156,16 +156,17 @@ Pane {
 						let last_letter_idx = indexOfValue(currentValue);
 						if (last_letter_idx === nLastDelegateIdx) { //split is an 'R'
 							let prev_index = delegateRow.delegateIndex-1;
-							if (prev_index < 0)
-								return;
-							let prev_item_index;
-							do {
-								prev_item_index = splitRepeater.itemAt(prev_index).children[1].currentIndex;
-								if (prev_item_index !== nLastDelegateIdx) {
-									last_letter_idx = prev_item_index + 1;
-									break;
-								}
-							} while (--prev_index >= 0);
+							last_letter_idx = 0;
+							if (prev_index > 0) {
+								let prev_item_index;
+								do {
+									prev_item_index = splitRepeater.itemAt(prev_index).children[1].currentIndex;
+									if (prev_item_index !== nLastDelegateIdx) {
+										last_letter_idx = prev_item_index + 1;
+										break;
+									}
+								} while (--prev_index >= 0);
+							}
 						}
 
 						for (let x = 0; x < nLastDelegateIdx; ++x)
