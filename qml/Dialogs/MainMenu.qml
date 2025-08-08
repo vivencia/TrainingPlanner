@@ -239,7 +239,7 @@ Drawer {
 					}
 				} //swipe.right
 
-				swipe.onCompleted: pagesListModel.removeMainMenuShortCut(index);
+				swipe.onCompleted: pagesListModel.closePage(index);
 			} //delegate: SwipeDelegate
 		} //ListView
 	} //ColumnLayout

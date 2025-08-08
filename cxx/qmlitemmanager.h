@@ -81,8 +81,8 @@ public:
 
 	void showSimpleExercisesList(QQuickItem *parentPage, const QString &filter) const;
 	void hideSimpleExercisesList(QQuickItem *parentPage) const;
-	void addMainMenuShortCut(const QString &label, QQuickItem *page, const std::function<void ()> &clean_up_func = nullptr);
-	void removeMainMenuShortCut(QQuickItem *page);
+	void openPage(const QString &label, QQuickItem *page, const std::function<void ()> &clean_up_func = nullptr);
+	void closePage(QQuickItem *page);
 	const QString &setExportFileName(const QString &filename);
 	void continueExport(int exportMessageId, const bool bShare);
 	void displayActivityResultMessage(const int requestCode, const int resultCode) const;

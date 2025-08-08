@@ -20,10 +20,12 @@ Popup {
 	property int finalYPos: 0
 	property int startYPos: 0
 	property alias btnClose: btnCloseWindow
-	property int _key_pressed;
+	property int _key_pressed
 
 	signal keyboardNumberPressed(int key1, int key2);
 	signal keyboardEnterPressed();
+
+	onOpened: mainwindow.n_dialogs_open++;
 
 	onClosed: {
 		if (!keepAbove)
@@ -35,6 +37,7 @@ Popup {
 			parentPage.pageDeActivated.connect(function() { bVisible = tpPopup.visible; tpPopup.visible = false; });
 			parentPage.pageActivated.connect(function() { if (bVisible) tpPopup.visible = true; });
 		}
+		mainwindow.closeDialog.connect(function () { if (tpPopup.visible) closePopup(); } );
 	}
 
 	Rectangle {
@@ -80,12 +83,7 @@ Popup {
 
 	contentItem {
 		Keys.onPressed: (event) => {
-			console.log(event.key);
 			switch (event.key) {
-				case mainwindow.backKey:
-					event.accepted = true;
-					close();
-				break;
 				case Qt.Key_Enter:
 				case Qt.Key_Return:
 					keyboardEnterPressed();
@@ -165,6 +163,7 @@ Popup {
 
 	function closePopup(): void {
 		bVisible = false;
+		mainwindow.n_dialogs_open--;
 		close();
 	}
 

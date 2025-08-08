@@ -250,7 +250,7 @@ TPPage {
 
 	function chooseExercise(): void {
 		exerciseChosen();
-		mainwindow.popFromStack();
+		pagesListModel.prevPage();
 	}
 
 	function displaySelectedMedia(strMediaPath: string): void {

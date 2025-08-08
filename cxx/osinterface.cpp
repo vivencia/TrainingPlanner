@@ -583,6 +583,7 @@ void OSInterface::checkLocalServer()
 
 void OSInterface::commandLocalServer(const QString &command)
 {
+	return;
 	connect(appItemManager(), &QmlItemManager::qmlPasswordDialogClosed, this, [this,command] (int resultCode, const QString &password) {
 		if (resultCode == 0)
 		{
@@ -674,7 +675,7 @@ void OSInterface::startChatApp(const QString &phone, const QString &appname) con
 	if (phone.length() < 17)
 		return;
 	QString phoneNumbers;
-	for (const auto it: phone)
+	for (const auto &it: phone)
 	{
 		if (it.isDigit())
 			phoneNumbers += it;

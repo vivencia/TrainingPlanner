@@ -2,13 +2,12 @@
 
 #include <QObject>
 #include <QVariantMap>
+#include <QQuickItem>
 
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel);
 QT_FORWARD_DECLARE_CLASS(QQmlComponent);
-QT_FORWARD_DECLARE_CLASS(QQuickItem);
 
 Q_DECLARE_OPAQUE_POINTER(DBExercisesModel*)
-Q_DECLARE_OPAQUE_POINTER(QQuickItem*)
 
 class QmlMesoSplitInterface : public QObject
 {

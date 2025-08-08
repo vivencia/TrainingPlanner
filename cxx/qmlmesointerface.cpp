@@ -390,7 +390,7 @@ void QMLMesoInterface::getMesocyclePage()
 	if (!m_mesoComponent)
 		createMesocyclePage();
 	else
-		appItemManager()->addMainMenuShortCut(appMesoModel()->name(m_mesoIdx), m_mesoPage);
+		appItemManager()->openPage(appMesoModel()->name(m_mesoIdx), m_mesoPage);
 }
 
 void QMLMesoInterface::sendMesocycleFileToServer()
@@ -461,7 +461,7 @@ void QMLMesoInterface::createMesocyclePage_part2()
 		if (m_canSendMesoToServer)
 			sendMesocycleFileToServer();
 	});
-	appItemManager()->addMainMenuShortCut(appMesoModel()->name(m_mesoIdx), m_mesoPage, [this] () {
+	appItemManager()->openPage(appMesoModel()->name(m_mesoIdx), m_mesoPage, [this] () {
 		if (m_canSendMesoToServer)
 			sendMesocycleFileToServer();
 		appMesoModel()->removeMesoManager(m_mesoIdx);

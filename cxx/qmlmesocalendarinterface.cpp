@@ -47,7 +47,7 @@ void QmlMesoCalendarInterface::getMesoCalendarPage()
 		createMesoCalendarPage();
 	}
 	else
-		appItemManager()->addMainMenuShortCut(tr("Calendar: ") + appMesoModel()->name(m_mesoIdx), m_calPage);
+		appItemManager()->openPage(tr("Calendar: ") + appMesoModel()->name(m_mesoIdx), m_calPage);
 }
 
 void QmlMesoCalendarInterface::setSelectedDate(const QDate &new_date)
@@ -109,8 +109,16 @@ void QmlMesoCalendarInterface::createMesoCalendarPage()
 	m_calComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/MesoCalendarPage.qml"_L1}, QQmlComponent::Asynchronous};
 	if (m_calComponent->status() != QQmlComponent::Ready)
 	{
-		connect(m_calComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status) {
-			createMesoCalendarPage_part2();
+		connect(m_calComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
+			if (status == QQmlComponent::Ready)
+				createMesoCalendarPage_part2();
+#ifndef QT_NO_DEBUG
+			else if (status == QQmlComponent::Error)
+			{
+				qDebug() << m_calComponent->errorString();
+				return;
+			}
+#endif
 		}, Qt::SingleShotConnection);
 	}
 	else
@@ -123,18 +131,9 @@ void QmlMesoCalendarInterface::createMesoCalendarPage_part2()
 	if (m_calendarModel)
 		m_calProperties.insert("calendarModel"_L1, QVariant::fromValue(m_calendarModel));
 	m_calPage = static_cast<QQuickItem*>(m_calComponent->createWithInitialProperties(m_calProperties, appQmlEngine()->rootContext()));
-	#ifndef QT_NO_DEBUG
-	if (m_calComponent->status() == QQmlComponent::Error)
-	{
-		qDebug() << m_calComponent->errorString();
-		for (auto &error : m_calComponent->errors())
-			qDebug() << error.description();
-		return;
-	}
-	#endif
 	appQmlEngine()->setObjectOwnership(m_calPage, QQmlEngine::CppOwnership);
 	m_calPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
-	appItemManager()->addMainMenuShortCut(tr("Calendar: ") + appMesoModel()->name(m_mesoIdx), m_calPage, [this] () {
+	appItemManager()->openPage(tr("Calendar: ") + appMesoModel()->name(m_mesoIdx), m_calPage, [this] () {
 		cleanUp();
 	});
 

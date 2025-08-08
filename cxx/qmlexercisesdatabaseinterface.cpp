@@ -79,21 +79,28 @@ void QmlExercisesDatabaseInterface::getExercisesPage(QmlWorkoutInterface* connec
 			disconnect(m_exercisesPage, SIGNAL(exerciseChosen()), nullptr, nullptr);
 			connect(m_exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(newExerciseFromExercisesList()));
 		}
-		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_exercisesPage));
+		appItemManager()->openPage(tr("Exercises Database"), m_exercisesPage);
 	}
 }
 
 void QmlExercisesDatabaseInterface::createExercisesPage(QmlWorkoutInterface* connectPage)
 {
-	m_exercisesComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/ExercisesListPage.qml"_L1}, QQmlComponent::Asynchronous};
 	m_exercisesProperties.insert("bChooseButtonEnabled"_L1, connectPage != nullptr);
 	m_exercisesProperties.insert("exercisesManager"_L1, QVariant::fromValue(this));
-
+	m_exercisesComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/ExercisesListPage.qml"_L1}, QQmlComponent::Asynchronous};
 	if (m_exercisesComponent->status() != QQmlComponent::Ready)
 	{
-		connect(m_exercisesComponent, &QQmlComponent::statusChanged, this, [this,connectPage] (QQmlComponent::Status) {
-			return createExercisesPage_part2(connectPage);
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		connect(m_exercisesComponent, &QQmlComponent::statusChanged, this, [this,connectPage] (QQmlComponent::Status status) {
+			if (status == QQmlComponent::Ready)
+				createExercisesPage_part2(connectPage);
+#ifndef QT_NO_DEBUG
+			else if (status == QQmlComponent::Error)
+			{
+				qDebug() << m_exercisesComponent->errorString();
+				return;
+			}
+#endif
+		}, Qt::SingleShotConnection);
 	}
 	else
 		createExercisesPage_part2(connectPage);
@@ -101,22 +108,11 @@ void QmlExercisesDatabaseInterface::createExercisesPage(QmlWorkoutInterface* con
 
 void QmlExercisesDatabaseInterface::createExercisesPage_part2(QmlWorkoutInterface *connectPage)
 {
-	#ifndef QT_NO_DEBUG
-	if (m_exercisesComponent->status() == QQmlComponent::Error)
-	{
-		for (auto &error : m_exercisesComponent->errors())
-			qDebug() << error.description();
-		return;
-	}
-	#endif
-	if (m_exercisesComponent->status() == QQmlComponent::Ready)
-	{
-		m_exercisesPage = static_cast<QQuickItem*>(m_exercisesComponent->createWithInitialProperties(m_exercisesProperties, appQmlEngine()->rootContext()));
-		appQmlEngine()->setObjectOwnership(m_exercisesPage, QQmlEngine::CppOwnership);
-		m_exercisesPage->setParentItem(appMainWindow()->contentItem());
-		appExercisesList()->clearSelectedEntries();
-		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_exercisesPage));
-		if (connectPage)
-			connect(m_exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(newExerciseFromExercisesList()));
-	}
+	m_exercisesPage = static_cast<QQuickItem*>(m_exercisesComponent->createWithInitialProperties(m_exercisesProperties, appQmlEngine()->rootContext()));
+	appQmlEngine()->setObjectOwnership(m_exercisesPage, QQmlEngine::CppOwnership);
+	m_exercisesPage->setParentItem(appMainWindow()->contentItem());
+	appExercisesList()->clearSelectedEntries();
+	appItemManager()->openPage(tr("Exercises Database"), m_exercisesPage);
+	if (connectPage)
+		connect(m_exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(newExerciseFromExercisesList()));
 }

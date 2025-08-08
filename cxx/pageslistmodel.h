@@ -1,9 +1,9 @@
 #pragma once
 
 #include <QAbstractListModel>
+#include <QKeyEvent>
 #include <QQmlEngine>
-
-class QQuickItem;
+#include <QQuickItem>
 
 class PagesListModel : public QAbstractListModel
 {
@@ -12,6 +12,7 @@ Q_OBJECT
 QML_ELEMENT
 
 Q_PROPERTY(uint count READ count NOTIFY countChanged)
+Q_PROPERTY(uint currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentIndexChanged FINAL)
 
 enum RoleNames {
 	displayTextRole = Qt::UserRole,
@@ -19,18 +20,26 @@ enum RoleNames {
 };
 
 public:
-	explicit inline PagesListModel(QObject *parent = nullptr) : QAbstractListModel{parent}
+	explicit inline PagesListModel(QObject *parent = nullptr) : QAbstractListModel{parent}, m_pagesIndex{0}
 	{
 		m_roleNames[displayTextRole] = std::move("displayText");
 		m_roleNames[pageRole] = std::move("page");
+#ifdef Q_OS_ANDROID
+		m_backKey = Qt::Key_Back;
+#else
+		m_backKey = Qt::Key_Left;
+#endif
 	}
 
 	inline uint count() const { return m_pagesData.count(); }
+	inline uint currentIndex() const { return m_pagesIndex; }
+	inline void setCurrentIndex(const uint new_index) { if (m_pagesIndex != new_index) { m_pagesIndex = new_index; emit currentIndexChanged(); } }
 
-	void addMainMenuShortCut(const QString &label, QQuickItem *page, const std::function<void(void)> &clean_up_func = nullptr);
-	void removeMainMenuShortCut(QQuickItem *page);
-	Q_INVOKABLE void removeMainMenuShortCut(const uint index);
-	Q_INVOKABLE void openMainMenuShortCut(const uint index) const;
+	Q_INVOKABLE void insertHomePage(QQuickItem *page);
+	Q_INVOKABLE void openPage(const QString &label, QQuickItem *page, const std::function<void(void)> &clean_up_func = nullptr);
+	Q_INVOKABLE void closePage(QQuickItem *page);
+	Q_INVOKABLE void closePage(const uint index);
+	Q_INVOKABLE void openMainMenuShortCut(const uint index, const bool change_order = true);
 
 	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
 	QVariant data(const QModelIndex&, int) const override final;
@@ -38,15 +47,15 @@ public:
 	// return the roles mapping to be used by QML
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
 
-	Q_INVOKABLE void addPage(QQuickItem *page);
-	void removePage(QQuickItem *page);
-	Q_INVOKABLE void setCurrentPage(QQuickItem *page);
-	Q_INVOKABLE inline QQuickItem *prevPage() const { return m_allPagesIndex > 0 ? m_allStackPages.at(--m_allPagesIndex) : nullptr; }
-	Q_INVOKABLE inline QQuickItem *nextPage() const { return m_allPagesIndex < m_allStackPages.count() - 1 ? m_allStackPages.at(m_allPagesIndex++) : nullptr; }
-	Q_INVOKABLE inline QQuickItem *currentPage() const { return m_allStackPages.at(m_allPagesIndex); }
+	Q_INVOKABLE void prevPage() { if (m_pagesIndex > 0) openMainMenuShortCut(m_pagesIndex - 1, false); }
+	Q_INVOKABLE void nextPage() { if (m_pagesIndex < m_pagesData.count() - 1) openMainMenuShortCut(m_pagesIndex + 1, false); }
 
 signals:
 	void countChanged();
+	void currentIndexChanged();
+
+protected:
+	bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
 	struct pageInfo {
@@ -57,7 +66,7 @@ private:
 	};
 
 	QList<pageInfo*> m_pagesData;
-	QList<QQuickItem*> m_allStackPages;
 	QHash<int, QByteArray> m_roleNames;
-	mutable int m_allPagesIndex;
+	uint m_pagesIndex;
+	int m_backKey;
 };

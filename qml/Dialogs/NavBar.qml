@@ -18,8 +18,7 @@ TPToolBar {
 		hasDropShadow: false
 		width: appSettings.itemDefaultHeight*1.1
 		height: width
-		enabled: mainwindow.bBackButtonEnabled
-		visible: stackView.depth >= 2
+		enabled: stackView.depth >= 2
 
 		anchors {
 			left: parent.left
@@ -27,24 +26,23 @@ TPToolBar {
 			verticalCenter: parent.verticalCenter
 		}
 
-		onClicked: popFromStack();
+		onClicked: pagesListModel.prevPage();
 	}
 
 	TPButton {
-		id: btnNext
+		id: btnForward
 		imageSource: "next.png"
 		hasDropShadow: false
 		width: appSettings.itemDefaultHeight*1.1
 		height: width
-		enabled: mainwindow.bBackButtonEnabled
-		visible: stackView.index < stackView.depth
+		enabled: pagesListModel.currentIndex < pagesListModel.count - 1
 
 		anchors {
 			left: btnBack.right
 			verticalCenter: parent.verticalCenter
 		}
 
-		onClicked: pushOntoStack(pagesListModel.nextPage());
+		onClicked: pagesListModel.nextPage();
 	}
 
 	TPButton {
@@ -54,19 +52,13 @@ TPToolBar {
 		width: appSettings.itemDefaultHeight*1.1
 		height: width
 		enabled: btnBack.enabled
-		visible: btnBack.visible
 
 		anchors {
-			left: btnNext.right
+			left: btnForward.right
 			verticalCenter: parent.verticalCenter
 		}
 
-		onClicked: {
-			pageDeActivated_main(stackView.currentItem);
-			stackView.pop(stackView.get(0));
-			pagesListModel.setCurrentPage(stackView.get(0));
-			pageActivated_main(stackView.currentItem);
-		}
+		onClicked: goHome();
 	}
 
 	TPButton {

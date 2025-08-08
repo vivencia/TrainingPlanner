@@ -127,8 +127,12 @@ void QmlItemManager::configureQmlEngine()
 		else
 		{
 			_appMainWindow = qobject_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));
+			appMainWindow()->setIcon(QIcon{"qrc:/images/app_icon.png"_L1});
 			appQmlEngine()->rootContext()->setContextProperty("mainwindow"_L1, QVariant::fromValue(appMainWindow()));
-			_appMainWindow->setIcon(QIcon{"qrc:/images/app_icon.png"_L1});
+
+			QQuickItem *homePage{appMainWindow()->findChild<QQuickItem*>("homePage")};
+			if (homePage)
+				m_pagesManager->insertHomePage(homePage);
 			if (obj->objectName() == "mainWindow"_L1)
 			{
 				if (!appUserModel()->mainUserConfigured())
@@ -136,7 +140,7 @@ void QmlItemManager::configureQmlEngine()
 					QMetaObject::invokeMethod(appMainWindow(), "showFirstTimeUseDialog");
 					connect(appUserModel(), &DBUserModel::mainUserConfigurationFinished, this, [this] () {
 						appOsInterface()->initialCheck();
-					}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+					}, Qt::SingleShotConnection);
 				}
 				else
 					appOsInterface()->initialCheck();
@@ -226,21 +230,21 @@ void QmlItemManager::displayImportDialogMessageAfterMesoSelection(const int meso
 void QmlItemManager::getSettingsPage(const uint startPageIndex)
 {
 	if (!m_usersManager)
-		m_usersManager = new QmlUserInterface{this, appQmlEngine(), appMainWindow()};
+		m_usersManager = new QmlUserInterface{this};
 	m_usersManager->getSettingsPage(startPageIndex);
 }
 
 void QmlItemManager::getCoachesPage()
 {
 	if (!m_usersManager)
-		m_usersManager = new QmlUserInterface{this, appQmlEngine(), appMainWindow()};
+		m_usersManager = new QmlUserInterface{this};
 	m_usersManager->getCoachesPage();
 }
 
 void QmlItemManager::getClientsPage()
 {
 	if (!m_usersManager)
-		m_usersManager = new QmlUserInterface{this, appQmlEngine(), appMainWindow()};
+		m_usersManager = new QmlUserInterface{this};
 	m_usersManager->getClientsPage();
 }
 
@@ -258,15 +262,23 @@ void QmlItemManager::getWeatherPage()
 		m_weatherComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/WeatherPage.qml"_L1}, QQmlComponent::Asynchronous};
 		if (m_weatherComponent->status() != QQmlComponent::Ready)
 		{
-			connect(m_weatherComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status) {
-				createWeatherPage_part2();
-			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+			connect(m_weatherComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
+				if (status == QQmlComponent::Ready)
+					createWeatherPage_part2();
+#ifndef QT_NO_DEBUG
+				else if (status == QQmlComponent::Error)
+				{
+					qDebug() << m_weatherComponent->errorString();
+					return;
+				}
+#endif
+			}, Qt::SingleShotConnection);
 		}
 		else
 			createWeatherPage_part2();
 	}
 	else
-		m_pagesManager->addMainMenuShortCut(QString{}, m_weatherPage);
+		m_pagesManager->openPage(tr("Weather Forecast"), m_weatherPage);
 }
 
 void QmlItemManager::getStatisticsPage()
@@ -276,15 +288,23 @@ void QmlItemManager::getStatisticsPage()
 		m_statisticsComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/StatisticsPage.qml"_L1}, QQmlComponent::Asynchronous};
 		if (m_statisticsComponent->status() != QQmlComponent::Ready)
 		{
-			connect(m_statisticsComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status) {
-				createStatisticsPage_part2();
-			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+			connect(m_statisticsComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
+				if (status == QQmlComponent::Ready)
+					createStatisticsPage_part2();
+#ifndef QT_NO_DEBUG
+				else if (status == QQmlComponent::Error)
+				{
+					qDebug() << m_statisticsComponent->errorString();
+					return;
+				}
+#endif
+			}, Qt::SingleShotConnection);
 		}
 		else
 			createStatisticsPage_part2();
 	}
 	else
-		m_pagesManager->addMainMenuShortCut(QString{}, m_statisticsPage);
+		m_pagesManager->openPage(tr("Statistics"), m_statisticsPage);
 }
 
 void QmlItemManager::getAllWorkoutsPage()
@@ -294,15 +314,23 @@ void QmlItemManager::getAllWorkoutsPage()
 		m_allWorkoutsComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/AllWorkouts.qml"_L1}, QQmlComponent::Asynchronous};
 		if (m_allWorkoutsComponent->status() != QQmlComponent::Ready)
 		{
-			connect(m_allWorkoutsComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status) {
-				createAllWorkoutsPage_part2();
-			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+			connect(m_allWorkoutsComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
+				if (status == QQmlComponent::Ready)
+					createAllWorkoutsPage_part2();
+#ifndef QT_NO_DEBUG
+				else if (status == QQmlComponent::Error)
+				{
+					qDebug() << m_allWorkoutsComponent->errorString();
+					return;
+				}
+#endif
+			}, Qt::SingleShotConnection);
 		}
 		else
 			createAllWorkoutsPage_part2();
 	}
 	else
-		m_pagesManager->addMainMenuShortCut(QString{}, m_allWorkoutsPage);
+		m_pagesManager->openPage(tr("All Workouts"), m_allWorkoutsPage);
 }
 
 void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QString &filter) const
@@ -329,14 +357,14 @@ void QmlItemManager::hideSimpleExercisesList(QQuickItem *parentPage) const
 	QMetaObject::invokeMethod(parentPage, "hideSimpleExercisesList");
 }
 
-void QmlItemManager::addMainMenuShortCut(const QString &label, QQuickItem *page, const std::function<void ()> &clean_up_func)
+void QmlItemManager::openPage(const QString &label, QQuickItem *page, const std::function<void ()> &clean_up_func)
 {
-	m_pagesManager->addMainMenuShortCut(label, page, clean_up_func);
+	m_pagesManager->openPage(label, page, clean_up_func);
 }
 
-void QmlItemManager::removeMainMenuShortCut(QQuickItem *page)
+void QmlItemManager::closePage(QQuickItem *page)
 {
-	m_pagesManager->removeMainMenuShortCut(page);
+	m_pagesManager->closePage(page);
 }
 
 const QString &QmlItemManager::setExportFileName(const QString &filename)
@@ -623,33 +651,17 @@ void QmlItemManager::importSlot_FileChosen(const QString &filePath, const int co
 void QmlItemManager::createWeatherPage_part2()
 {
 	m_weatherPage = static_cast<QQuickItem*>(m_weatherComponent->create(appQmlEngine()->rootContext()));
-	#ifndef QT_NO_DEBUG
-	if (m_weatherComponent->status() == QQmlComponent::Error)
-	{
-		for (auto &error : m_weatherComponent->errors())
-			qDebug() << error.description();
-		return;
-	}
-	#endif
 	appQmlEngine()->setObjectOwnership(m_weatherPage, QQmlEngine::CppOwnership);
 	m_weatherPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
-	m_pagesManager->addMainMenuShortCut(QString{}, m_weatherPage);
+	m_pagesManager->openPage(tr("Weather Forecast"), m_weatherPage);
 }
 
 void QmlItemManager::createStatisticsPage_part2()
 {
 	m_statisticsPage = static_cast<QQuickItem*>(m_statisticsComponent->create(appQmlEngine()->rootContext()));
-	#ifndef QT_NO_DEBUG
-	if (m_statisticsComponent->status() == QQmlComponent::Error)
-	{
-		for (auto &error : m_statisticsComponent->errors())
-			qDebug() << error.description();
-		return;
-	}
-	#endif
 	appQmlEngine()->setObjectOwnership(m_statisticsPage, QQmlEngine::CppOwnership);
 	m_statisticsPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
-	m_pagesManager->addMainMenuShortCut(QString{}, m_statisticsPage);
+	m_pagesManager->openPage(tr("Statistics"), m_statisticsPage);
 }
 
 void QmlItemManager::createAllWorkoutsPage_part2()
@@ -658,18 +670,9 @@ void QmlItemManager::createAllWorkoutsPage_part2()
 	QVariantMap allWorkoutsProperties;
 	allWorkoutsProperties.insert("workoutsCalendar", QVariant::fromValue(m_wokoutsCalendar));
 	m_allWorkoutsPage = static_cast<QQuickItem*>(m_allWorkoutsComponent->createWithInitialProperties(allWorkoutsProperties, appQmlEngine()->rootContext()));
-
-	#ifndef QT_NO_DEBUG
-	if (m_allWorkoutsComponent->status() == QQmlComponent::Error)
-	{
-		for (auto &error : m_allWorkoutsComponent->errors())
-			qDebug() << error.description();
-		return;
-	}
-	#endif
 	appQmlEngine()->setObjectOwnership(m_allWorkoutsPage, QQmlEngine::CppOwnership);
 	m_allWorkoutsPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
-	m_pagesManager->addMainMenuShortCut(QString{}, m_allWorkoutsPage);
+	m_pagesManager->openPage(tr("All Workouts"), m_allWorkoutsPage);
 
 	//connect(appMesoModel(), &DBMesocyclesModel::mesoCalendarFieldsChanged, m_wokoutsCalendar, &TPWorkoutsCalendar::reScanMesocycles);
 	connect(appMesoModel(), &DBMesocyclesModel::isNewMesoChanged, m_wokoutsCalendar, &TPWorkoutsCalendar::reScanMesocycles);

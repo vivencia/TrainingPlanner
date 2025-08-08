@@ -18,8 +18,12 @@ ApplicationWindow {
 	title: "Training Planner"
 	flags: Qt.platform.os === "android" ? Qt.Window | Qt.FramelessWindowHint | Qt.WA_KeepScreenOn : Qt.Window
 
-	property bool bBackButtonEnabled: userModel.mainUserConfigured
-	property int backKey
+	property int n_dialogs_open: 0
+
+	onN_dialogs_openChanged: {
+		if (n_dialogs_open < 0)
+			n_dialogs_open = 0;
+	}
 
 	signal saveFileChosen(filepath: string);
 	signal saveFileRejected(filepath: string);
@@ -29,23 +33,7 @@ ApplicationWindow {
 	signal removeNoLongerAvailableUser(row: int, remove: bool);
 	signal revokeCoachStatus(new_use_opt: int, revoke: bool);
 	signal revokeClientStatus(new_use_opt: int, revoke: bool);
-
-	Component.onCompleted: {
-		if (Qt.platform.os === "android")
-			backKey = Qt.Key_Back;
-		else
-			backKey = Qt.Key_Left;
-
-		contentItem.Keys.pressed.connect(function(event) {
-			if (event.key === backKey) {
-				event.accepted = true;
-				if (stackView.depth >= 2)
-					popFromStack();
-				else
-					close();
-			}
-		});
-	}
+	signal closeDialog();
 
 	header: Loader {
 		id: navBar
@@ -112,8 +100,7 @@ ApplicationWindow {
 		}
 		else
 			stackView.pop();
-		//pageActivated_main(stackView.currentItem);
-		pageActivated_main(pagesListModel.prevPage());
+		pageActivated_main(stackView.currentItem);
 	}
 
 	signal pageActivated_main(Item page);
@@ -126,6 +113,12 @@ ApplicationWindow {
 		else
 			stackView.push(page);
 		pageActivated_main(page);
+	}
+
+	function goHome(): void {
+		pageDeActivated_main(stackView.currentItem);
+		stackView.pop(stackView.get(0));
+		pageActivated_main(stackView.currentItem);
 	}
 
 	function confirmImport(message: string): void {
@@ -265,6 +258,27 @@ ApplicationWindow {
 			createDialog();
 		}
 		userNoLongerAvailableDlg.show(-1);
+	}
+
+	property TPBalloonTip exitPopUp: null
+	function showExitPopUp(): void {
+		if (exitPopUp === null) {
+			function createDialog() {
+				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+
+				function finishCreation() {
+					exitPopUp = component.createObject(contentItem, { parentPage: homePage, title: qsTr("Sair do app?"), keepAbove: true });
+					exitPopUp.button1Clicked.connect(function () { close(); });
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			createDialog();
+		}
+		exitPopUp.show(-2);
 	}
 
 	property TPBalloonTip revokeCoachStatusDlg: null
