@@ -37,7 +37,7 @@ FocusScope {
 		heightAdjustable: false
 		showClearTextButton: true
 		echoMode: btnShowHidePassword.show ? TextInput.Normal : TextInput.Password
-		inputMethodHints: Qt.ImhSensitiveData|Qt.ImhNoPredictiveText
+		inputMethodHints: Qt.ImhSensitiveData|Qt.ImhNoPredictiveText|Qt.ImhNoAutoUppercase
 		validator: RegularExpressionValidator { regularExpression: /^[^# &?="']*$/ }
 		rightPadding:  defaultPadding + btnShowHidePassword.width + 5
 		focus: true

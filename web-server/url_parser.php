@@ -523,6 +523,20 @@ function run_htpasswd($cmd_args, $username, $password) {
     return $return_var;
 }
 
+function user_exists($username, $user_password) {
+    return run_htpasswd("-bv", $username, $user_password);
+}
+
+function user_exists_return_message($return_var) {
+    switch ($return_var) {
+        case 0: $error_string = "User exists and password is correct"; break;
+        case 3: $error_string = "User exists and password is wrong"; break;
+        case 6: $error_string = "User does not exist"; break;
+        default: $error_string = "User does not exist"; break;
+    }
+    return $error_string;
+}
+
 function update_datafile_with_password($userid) {
     global $rootdir;
     global $htpasswd_file;
@@ -747,13 +761,8 @@ if ($username) {
                 $username = isset($_GET['checkuser']) ? $_GET['checkuser'] : '';
                 if ($username) { //check if user exists
                     $user_password = isset($_GET['userpassword']) ? $_GET['userpassword'] : '';
-                    $return_var = run_htpasswd("-bv", $username, $user_password);
-                    switch ($return_var) {
-                        case 0: $error_string = "User exists and password is correct"; break;
-                        case 3: $error_string = "User exists and password is wrong"; break;
-                        case 6: $error_string = "User does not exist"; break;
-                        default: $error_string = "User does not exist"; break;
-                    }
+                    $return_var = user_exists($username, $user_password);
+                    $error_string = user_exists_return_message($return_var);
                     echo "Return code: $return_var $error_string\r\n";
                     exit;
                 }
@@ -761,41 +770,70 @@ if ($username) {
                 $username = isset($_GET['adduser']) ? $_GET['adduser'] : '';
                 if ($username) { //new user creation. Encrypt password onto file and create the user's dir
                     $new_user_password = isset($_GET['userpassword']) ? $_GET['userpassword'] : '';
-                    $ok = run_htpasswd("-bB", $username, $new_user_password);
-                    if ($ok == 0) {
-                        $userdir = $rootdir . $username;
-                        if (!create_dir($userdir))
-                            $ok = 1;
+                    $return_var = user_exists($username, $new_user_password);
+                    if ($return_var == 6) {
+                        $ok = run_htpasswd("-bB", $username, $new_user_password);
+                        if ($ok == 0) {
+                            $userdir = $rootdir . $username;
+                            if (!create_dir($userdir))
+                                $ok = 1;
+                        }
+                        if ($ok == 0)
+                            echo "Return code: 0 ".$username." successfully created.\r\n";
+                        else
+                            echo "Return code: 30 Error creating user ".$username."\r\n";
                     }
-                    if ($ok == 0)
-                        echo "Return code: 0 ".$username." successfully created\r\n";
                     else
-                        echo "Return code: 30 Error creating user ".$username."\r\n";
+                        echo "Return code: 30 User not created. ".user_exists_return_message($return_var);
                     exit;
                 }
 
                 $userid = isset($_GET['alteronlineuser']) ? $_GET['alteronlineuser'] : '';
                 if ($userid) { //dbscript expects the file user.data to have been previously uploaded to $userid dir
-                    if (update_datafile_with_password($userid))
-                        run_dbscript("add", "", $userid, true);
+                    if (!isset($_GET['userpassword'])) {
+                        echo "Return code: 33 Cannot update user information. No user password provided.\r\n";
+                        exit;
+                    }
+                    $user_password = $_GET['userpassword'];
+                    $return_var = user_exists($userid, $user_password);
+                    if ($return_var == 0) {
+                        if (update_datafile_with_password($userid)) {
+                            run_dbscript("add", "", $userid, false);
+                            echo "Return code: 0 ".$userid." information sucessfully updated.\r\n";
+                        }
+                        else
+                            echo "Return code: 33 Cannot update ".$userid." information. User not found on database.\r\n";
+                    }
+                    else
+                        echo "Return code: 33 Cannot update user information. ".user_exists_return_message($return_var);
                     exit;
                 }
 
                 $username = isset($_GET['deluser']) ? $_GET['deluser'] : '';
                 if ($username) { //remove user and their dir
-                    $ok = run_htpasswd("-D", $username, "");
-                    if ($ok == 0) {
-                        run_dbscript("del", "", $username, false);
-                        $userdir = $rootdir . $username;
-                        if (is_dir($userdir)) {
-                            if (!erasedir($userdir))
-                                $ok = 1;
-                        }
+                    if (!isset($_GET['userpassword'])) {
+                        echo "Return code: 31 User not removed. No user password provided.\r\n";
+                        exit;
                     }
-                    if ($ok == 0)
-                        echo "Return code: 0 ".$username." successfully removed\r\n";
+                    $user_password = $_GET['userpassword'];
+                    $return_var = user_exists($username, $user_password);
+                    if ($return_var == 0) {
+                        $ok = run_htpasswd("-D", $username, "");
+                        if ($ok == 0) {
+                            run_dbscript("del", "", $username, false);
+                            $userdir = $rootdir . $username;
+                            if (is_dir($userdir)) {
+                                if (!erasedir($userdir))
+                                    $ok = 1;
+                            }
+                        }
+                        if ($ok == 0)
+                            echo "Return code: 0 ".$username." successfully removed.\r\n";
+                        else
+                            echo "Return code: 31 ".$username." not removed.\r\n";
+                    }
                     else
-                        echo "Return code: 31 ".$username." removal failed\r\n";
+                        echo "Return code: 31 User not removed. ".user_exists_return_message($return_var);
                     exit;
                 }
 

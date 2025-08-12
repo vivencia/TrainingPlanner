@@ -185,7 +185,7 @@ Rectangle {
 		enabled: button.enabled
 
 		onPressed: (mouse) => onMousePressed(mouse);
-		onReleased: (mouse) => onMouseReleased(mouse);
+		onReleased: (mouse) => { if (containsMouse) onMouseReleased(mouse); }
 		onEntered: if (button.text.length > 0) button.highlighted = true;
 		onExited: if (button.text.length > 0) button.highlighted = false;
 	}

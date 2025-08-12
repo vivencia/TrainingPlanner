@@ -1113,24 +1113,9 @@ Esta ação não pode ser desfeita.</translation>
 <context>
     <name>MainMenu</name>
     <message>
-        <location filename="../qml/Dialogs/MainMenu.qml" line="249"/>
+        <location filename="../qml/Dialogs/MainMenu.qml" line="216"/>
         <source>Exit</source>
         <translation>Sair</translation>
-    </message>
-    <message>
-        <location filename="../qml/Dialogs/MainMenu.qml" line="131"/>
-        <source>Exercises Database</source>
-        <translation>Lista de Exercícios</translation>
-    </message>
-    <message>
-        <location filename="../qml/Dialogs/MainMenu.qml" line="147"/>
-        <source>Settings</source>
-        <translation>Configurações</translation>
-    </message>
-    <message>
-        <location filename="../qml/Dialogs/MainMenu.qml" line="163"/>
-        <source>All Workouts</source>
-        <translation>Todos os Treinos</translation>
     </message>
 </context>
 <context>
@@ -1542,12 +1527,12 @@ Esta ação não pode ser desfeita.</translation>
 <context>
     <name>OSInterface</name>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="655"/>
+        <location filename="../cxx/osinterface.cpp" line="656"/>
         <source>Send file</source>
         <translation>Enviar arquivo</translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="738"/>
+        <location filename="../cxx/osinterface.cpp" line="739"/>
         <source>View file with...</source>
         <translation>Visualizar arquivo com...</translation>
     </message>
@@ -1558,6 +1543,14 @@ Esta ação não pode ser desfeita.</translation>
         <location filename="../qml/Dialogs/OnlineMessages.qml" line="128"/>
         <source>Messages</source>
         <translation>Mensagens</translation>
+    </message>
+</context>
+<context>
+    <name>PagesListModel</name>
+    <message>
+        <location filename="../cxx/pageslistmodel.cpp" line="11"/>
+        <source>Home</source>
+        <translation>Página Inicial</translation>
     </message>
 </context>
 <context>
@@ -1699,195 +1692,219 @@ Esta ação não pode ser desfeita.</translation>
         <source>TrainingPlanner Exercises List</source>
         <translation>List de exercícios do app TrainingPlanner</translation>
     </message>
+    <message>
+        <location filename="../cxx/qmlexercisesdatabaseinterface.cpp" line="82"/>
+        <location filename="../cxx/qmlexercisesdatabaseinterface.cpp" line="115"/>
+        <source>Exercises Database</source>
+        <translation>Lista de Exercícios</translation>
+    </message>
 </context>
 <context>
     <name>QmlItemManager</name>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="440"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="468"/>
         <source>Exercises Program A</source>
         <translation>Programa de exercícios A</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="447"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="475"/>
         <source>Exercises Program B</source>
         <translation>Programa de exercícios B</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="454"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="482"/>
         <source>Exercises Program C</source>
         <translation>Programa de exercícios C</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="461"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="489"/>
         <source>Exercises Program D</source>
         <translation>Programa de exercícios D</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="468"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="496"/>
         <source>Exercises Program E</source>
         <translation>Programa de exercícios E</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="475"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="503"/>
         <source>Exercises Program F</source>
         <translation>Programa de exercícios F</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="483"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="511"/>
         <source>One Workout</source>
         <translation>Um treino</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="413"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="441"/>
         <source>The TP file does not contain any information for a Training Program</source>
         <translation>O arquivo não contém nenhuma informação referente a um Programa de Treino</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="418"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="281"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="656"/>
+        <source>Weather Forecast</source>
+        <translation>Previsão do Tempo</translation>
+    </message>
+    <message>
+        <location filename="../cxx/qmlitemmanager.cpp" line="307"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="664"/>
+        <source>Statistics</source>
+        <translation>Estatísticas</translation>
+    </message>
+    <message>
+        <location filename="../cxx/qmlitemmanager.cpp" line="333"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="675"/>
+        <source>All Workouts</source>
+        <translation>Todos os Treinos</translation>
+    </message>
+    <message>
+        <location filename="../cxx/qmlitemmanager.cpp" line="446"/>
         <source>The TP file does not contain any information for an exercises plan</source>
         <translation>O arquivo não contém nenhuma informação referente a um plano de exercícios</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="423"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="451"/>
         <source>The TP file does not contain any information for a workout</source>
         <translation>O arquivo não contém nenhuma informação referente a um dia de treino</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="514"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="542"/>
         <source>Warning! </source>
         <translation>Atenção! </translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="520"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="548"/>
         <source>Error! </source>
         <translation>Erro! </translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="525"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="553"/>
         <source>Succesfully exported</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="529"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="557"/>
         <source>Succesfully shared</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="533"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="561"/>
         <source>Successfully imported</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="537"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="565"/>
         <source>Failed to open file</source>
         <translation>Falha ao abrir o arquivo</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="541"/>
-        <location filename="../cxx/qmlitemmanager.cpp" line="545"/>
-        <location filename="../cxx/qmlitemmanager.cpp" line="589"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="569"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="573"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="617"/>
         <source>Error</source>
         <translation>Error</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="542"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="570"/>
         <source>File type not recognized</source>
         <translation>Tipo de arquivo não reconhecido</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="546"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="574"/>
         <source>File is formatted wrongly or is corrupted</source>
         <translation>Formato desconhecido ou arquivo corrompido</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="549"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="577"/>
         <source>Nothing to be done</source>
         <translation>Nada a ser feito</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="550"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="578"/>
         <source>File had already been imported</source>
         <translation>Arquivo já havia sido importado antes</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="553"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="581"/>
         <source>No program to import into</source>
         <translation>Nenhum programa de treinos para importar os dados</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="554"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="582"/>
         <source>Either create a new training plan or import from a complete program file</source>
         <translation>Crie um novo programa ou importe um programa completo de um arquivo</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="557"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="585"/>
         <source>Nothing to export</source>
         <translation>Nada para exportar</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="558"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="586"/>
         <source>Only exercises that do not come by default with the app can be exported</source>
         <translation>Somente exercícios adicionados - que não vieram pré incluídos no programa - podem ser exportados ou compartilhados</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="561"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="589"/>
         <source>Sharing failed</source>
         <translation>Falha ao compartilhar</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="565"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="593"/>
         <source>Export failed</source>
         <translation>Falha ao exportar</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="566"/>
-        <location filename="../cxx/qmlitemmanager.cpp" line="574"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="594"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="602"/>
         <source>Operation canceled</source>
         <translation>Operação cancelada</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="569"/>
-        <location filename="../cxx/qmlitemmanager.cpp" line="573"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="597"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="601"/>
         <source>Import failed</source>
         <translation>Falha ao importar</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="570"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="598"/>
         <source>The file does not contain any new data that is not already in use</source>
         <translation>O arquivo não contém nenhuma informação nova relevante</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="577"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="605"/>
         <source>Import from file failed</source>
         <translation>Importar do arquivo falhour</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="581"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="609"/>
         <source>Could not open file for exporting</source>
         <translation>Não foi possível abrir arquivo para exportar</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="585"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="613"/>
         <source>Cannot import</source>
         <translation>Não pode importar</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="586"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="614"/>
         <source>Contents of the file are incompatible with the requested operation</source>
         <translation>Conteúdo do arquivo é imcompativel com a operação requisitada</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="430"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="458"/>
         <source>Complete Training Plan</source>
         <translation>Programa de Treinamento Completo</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="432"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="460"/>
         <source>Coach information</source>
         <translation>Informações sobre o treinador</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="485"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="513"/>
         <source>Exercises database update</source>
         <translation>Atualização para a lista de exercícios</translation>
     </message>
@@ -1896,7 +1913,7 @@ Esta ação não pode ser desfeita.</translation>
     <name>QmlMesoCalendarInterface</name>
     <message>
         <location filename="../cxx/qmlmesocalendarinterface.cpp" line="50"/>
-        <location filename="../cxx/qmlmesocalendarinterface.cpp" line="137"/>
+        <location filename="../cxx/qmlmesocalendarinterface.cpp" line="136"/>
         <source>Calendar: </source>
         <translation>Calendário: </translation>
     </message>
@@ -1948,6 +1965,27 @@ Esta ação não pode ser desfeita.</translation>
         <location filename="../cxx/qmlmesosplitinterface.cpp" line="98"/>
         <source> - Exercises Plan - Split </source>
         <translation> - Plano de exercícios - Divisão </translation>
+    </message>
+</context>
+<context>
+    <name>QmlUserInterface</name>
+    <message>
+        <location filename="../cxx/qmluserinterface.cpp" line="36"/>
+        <location filename="../cxx/qmluserinterface.cpp" line="120"/>
+        <source>Settings</source>
+        <translation>Configurações</translation>
+    </message>
+    <message>
+        <location filename="../cxx/qmluserinterface.cpp" line="64"/>
+        <location filename="../cxx/qmluserinterface.cpp" line="131"/>
+        <source>Coaches</source>
+        <translation>Treinadores</translation>
+    </message>
+    <message>
+        <location filename="../cxx/qmluserinterface.cpp" line="91"/>
+        <location filename="../cxx/qmluserinterface.cpp" line="140"/>
+        <source>Clients</source>
+        <translation>Clientes</translation>
     </message>
 </context>
 <context>
@@ -3130,12 +3168,17 @@ Esta ação não pode ser desfeita.</translation>
 <context>
     <name>main</name>
     <message>
-        <location filename="../qml/main.qml" line="131"/>
+        <location filename="../qml/main.qml" line="125"/>
         <source>Proceed with action?</source>
         <translation>Proceder com a acção?</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="316"/>
+        <location filename="../qml/main.qml" line="270"/>
+        <source>Exit app?</source>
+        <translation>Sair do app?</translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="331"/>
         <source>Text copied to the clipboard</source>
         <translation>Texto copiado para a área de transferência</translation>
     </message>

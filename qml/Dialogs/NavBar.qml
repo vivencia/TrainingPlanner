@@ -155,6 +155,22 @@ TPToolBar {
 	}
 
 	TPButton {
+		id: btnExercisesList
+		imageSource: "exercisesdb"
+		hasDropShadow: false
+		width: appSettings.itemDefaultHeight*1.1
+		height: width
+
+		anchors {
+			verticalCenter: parent.verticalCenter
+			right: btnWeather.left
+			rightMargin: 10
+		}
+
+		onClicked: itemManager.getExercisesPage();
+	}
+
+	TPButton {
 		imageSource: "statistics"
 		hasDropShadow: false
 		width: appSettings.itemDefaultHeight*1.1
@@ -170,7 +186,7 @@ TPToolBar {
 
 		anchors {
 			verticalCenter: parent.verticalCenter
-			right: btnWeather.left
+			right: btnExercisesList.left
 			rightMargin: 10
 		}
 

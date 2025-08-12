@@ -13,7 +13,7 @@ TPPage {
 	objectName: "ClientsPage"
 
 	required property UserManager userManager
-	property int curRow: userModel.currentRow
+	property int curRow
 
 	onPageActivated: {
 		if (listsLayout.currentIndex === 0)
@@ -42,15 +42,17 @@ TPPage {
 		contentWidth: width
 		height: 30
 
-		TabButton {
+		TPTabButton {
 			text: qsTr("Clients")
 			enabled: userModel.haveClients
+			checked: tabbar.currentIndex === 0
 
-			onClicked: curRow = Qt.binding(function() { return userModel.currentRow; });
+			onClicked: curRow = userModel.findUserByName(userModel.clientsNames(clientsList.currentIndex));
 		}
-		TabButton {
+		TPTabButton {
 			text: qsTr("Pending requests")
 			enabled: userModel.pendingClientsRequests.count > 0
+			checked: tabbar.currentIndex === 1
 
 			onClicked: {
 				curRow = userModel.getTemporaryUserInfo(userModel.pendingClientsRequests, userModel.pendingClientsRequests.currentRow);
@@ -107,7 +109,7 @@ TPPage {
 				clip: true
 				reuseItems: true
 				model: userModel.pendingClientsRequests
-				height: 0.8 * parent.height
+				height: parent.height * 0.8
 				enabled: userModel.pendingClientsRequests.count > 0
 
 				ScrollBar.vertical: ScrollBar {
@@ -125,7 +127,7 @@ TPPage {
 					spacing: 0
 					padding: 5
 					width: pendingClientsList.width
-					height: 25
+					height: appSettings.itemDefaultHeight
 
 					contentItem: Text {
 						text: name
@@ -157,7 +159,7 @@ TPPage {
 
 			RowLayout {
 				uniformCellSizes: true
-				height: 25
+				height: appSettings.itemDefaultHeight
 				visible: userModel.pendingClientsRequests.count > 0
 
 				anchors {

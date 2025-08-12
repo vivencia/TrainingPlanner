@@ -49,6 +49,14 @@ TPPopup {
 			bottomMargin: 5
 		}
 
+		TPLabel {
+			text: qsTr("No coaches available")
+			font: AppGlobals.largeFont
+			horizontalAlignment: Text.AlignHCenter
+			visible: userModel.availableCoaches.count === 0
+			anchors.fill: parent
+		}
+
 		ColumnLayout {
 			id: itemsLayout
 			anchors.fill: parent

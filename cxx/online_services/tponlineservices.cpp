@@ -100,14 +100,14 @@ void TPOnlineServices::registerUser(const int requestid, const QString& username
 void TPOnlineServices::updateOnlineUserInfo(const int requestid, const QString &username, const QString &passwd, QFile *file)
 {
 	auto conn = std::make_shared<QMetaObject::Connection>();
-	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid,username]
+	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid,username,passwd]
 					(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid)
 		{
 			disconnect(*conn);
 			if (ret_code == 0)
 			{
-				const QUrl &url{makeCommandURL(root_user, root_passwd, "alteronlineuser"_L1, username)};
+				const QUrl &url{makeCommandURL(root_user, root_passwd, "alteronlineuser"_L1, username, "userpassword"_L1, passwd)};
 				makeNetworkRequest(requestid, url, false);
 			}
 			else

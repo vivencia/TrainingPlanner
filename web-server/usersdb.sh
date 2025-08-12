@@ -10,7 +10,6 @@ ADMIN="admin"
 ADMIN_DIR="$TP_DIR/$ADMIN/"
 USERS_DB=$ADMIN_DIR"users.db"
 FIELDS_FILE=$ADMIN_DIR"user.fields"
-#SQLITE=$(which sqlite3)
 SQLITE="/usr/bin/sqlite3"
 
 SOURCES_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd ) #the directory of this script

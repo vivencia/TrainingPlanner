@@ -42,13 +42,13 @@ TPPage {
 		contentWidth: width
 		height: 30
 
-		TabButton {
+		TPTabButton {
 			text: qsTr("Coaches or Trainers")
 			enabled: userModel.haveCoaches
 
-			onClicked: curRow = Qt.binding(function() { return userModel.currentRow; });
+			onClicked: curRow = userModel.findUserByName(userModel.coachesNames(coachesList.currentIndex));
 		}
-		TabButton {
+		TPTabButton {
 			text: qsTr("Pending answers")
 			enabled: userModel.pendingCoachesResponses.count > 0
 
@@ -72,7 +72,7 @@ TPPage {
 	StackLayout {
 		id: listsLayout
 		currentIndex: tabbar.currentIndex
-		height: 0.2*coachesPage.height
+		height: coachesPage.height * 0.2
 
 		anchors {
 			top: tabbar.bottom
@@ -95,7 +95,7 @@ TPPage {
 				clip: true
 				reuseItems: true
 				model: userModel.coachesNames
-				height: 0.8*parent.height
+				height: parent.height * 0.8
 				enabled: userModel.haveCoaches
 
 				ScrollBar.vertical: ScrollBar {
@@ -113,7 +113,7 @@ TPPage {
 					spacing: 0
 					padding: 5
 					width: parent.width
-					height: 25
+					height: appSettings.itemDefaultHeight
 
 					contentItem: Item {
 						Text {
@@ -124,7 +124,7 @@ TPPage {
 							fontSizeMode: Text.Fit
 							leftPadding: 5
 							bottomPadding: 2
-							width: parent.width*0.7
+							width: parent.width * 0.7
 
 							anchors {
 								verticalCenter: parent.verticalCenter
@@ -220,7 +220,7 @@ TPPage {
 					spacing: 0
 					padding: 5
 					width: pendingCoachesList.width
-					height: 25
+					height: appSettings.itemDefaultHeight
 
 					contentItem: Item {
 						Text {
@@ -230,7 +230,7 @@ TPPage {
 							fontSizeMode: Text.Fit
 							leftPadding: 5
 							bottomPadding: 2
-							width: parent.width*0.7
+							width: parent.width * 0.7
 
 							anchors {
 								verticalCenter: parent.verticalCenter
@@ -302,14 +302,16 @@ TPPage {
 	TPButton {
 		id: btnFindCoachOnline
 		text: qsTr("Look online for available coaches");
-		autoSize: true
 
 		onClicked: displayOnlineCoachesMenu();
 
 		anchors {
 			top: listsLayout.bottom
 			topMargin: 10
-			horizontalCenter: parent.horizontalCenter
+			left: parent.left
+			leftMargin: 10
+			right: parent.right
+			rightMargin: 10
 		}
 	}
 

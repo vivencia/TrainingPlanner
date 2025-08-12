@@ -622,7 +622,7 @@ void DBExercisesModel::moveExercise(const uint from, const uint to)
 {
 	if (from < m_exerciseData.count() && to < m_exerciseData.count())
 	{
-		beginMoveRows(QModelIndex{}, from, from, QModelIndex{}, to);
+		beginMoveRows(QModelIndex{}, from, from, QModelIndex{}, to + 1);
 		exerciseEntry *tempExerciseData(std::move(m_exerciseData[from]));
 
 		if (to > from)

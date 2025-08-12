@@ -267,7 +267,7 @@ ApplicationWindow {
 				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					exitPopUp = component.createObject(contentItem, { parentPage: homePage, title: qsTr("Sair do app?"), keepAbove: true });
+					exitPopUp = component.createObject(contentItem, { parentPage: homePage, title: qsTr("Exit app?"), keepAbove: true });
 					exitPopUp.button1Clicked.connect(function () { close(); });
 				}
 

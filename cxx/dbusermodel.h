@@ -5,16 +5,17 @@
 #include "online_services/onlineuserinfo.h"
 
 #define USER_COL_ID 0
-#define USER_COL_NAME 1
-#define USER_COL_BIRTHDAY 2
-#define USER_COL_SEX 3
-#define USER_COL_PHONE 4
-#define USER_COL_EMAIL 5
-#define USER_COL_SOCIALMEDIA 6
-#define USER_COL_USERROLE 7
-#define USER_COL_COACHROLE 8
-#define USER_COL_GOAL 9
-#define USER_COL_APP_USE_MODE 10
+#define USER_COL_NETUSER 1
+#define USER_COL_NAME 2
+#define USER_COL_BIRTHDAY 3
+#define USER_COL_SEX 4
+#define USER_COL_PHONE 5
+#define USER_COL_EMAIL 6
+#define USER_COL_SOCIALMEDIA 7
+#define USER_COL_USERROLE 8
+#define USER_COL_COACHROLE 9
+#define USER_COL_GOAL 10
+#define USER_COL_APP_USE_MODE 11
 #define USER_TOTAL_COLS USER_COL_APP_USE_MODE + 1
 
 #define APP_USE_MODE_SINGLE_USER 1
@@ -37,6 +38,7 @@ class DBUserModel : public QObject
 
 Q_OBJECT
 
+Q_PROPERTY(QString netUserLabel READ netUserLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString nameLabel READ nameLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString passwordLabel READ passwordLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString birthdayLabel READ birthdayLabel NOTIFY labelsChanged FINAL)
@@ -61,6 +63,7 @@ Q_PROPERTY(OnlineUserInfo* pendingCoachesResponses READ pendingCoachesResponses 
 Q_PROPERTY(OnlineUserInfo* pendingClientsRequests READ pendingClientsRequests NOTIFY pendingClientsRequestsChanged FINAL)
 Q_PROPERTY(QStringList coachesNames READ coachesNames NOTIFY coachesNamesChanged FINAL)
 Q_PROPERTY(QStringList clientsNames READ clientsNames NOTIFY clientsNamesChanged FINAL)
+Q_PROPERTY(bool onlineUser READ onlineUser WRITE setOnlineUser NOTIFY onlineUserChanged FINAL)
 Q_PROPERTY(bool haveCoaches READ haveCoaches NOTIFY haveCoachesChanged FINAL)
 Q_PROPERTY(bool haveClients READ haveClients NOTIFY haveClientsChanged FINAL)
 Q_PROPERTY(bool mainUserConfigured READ mainUserConfigured NOTIFY mainUserConfigurationFinished FINAL)
@@ -69,6 +72,7 @@ public:
 	explicit DBUserModel(QObject *parent = nullptr, const bool bMainUserModel = true);
 
 	inline QString idLabel() const { return "Id: "_L1; }
+	inline QString netUserLabel() const { return tr("Register online: "); }
 	inline QString nameLabel() const { return tr("Name: "); }
 	inline QString birthdayLabel() const { return tr("Birthday: "); }
 	inline QString sexLabel() const { return tr("Sex: "); }
@@ -92,6 +96,17 @@ public:
 	inline QString importUserLabel() const { return tr("Import"); }
 
 	inline uint userCount() const { return m_usersData.count(); }
+
+	inline const QString &_onlineUser() const { return m_usersData.at(0).at(USER_COL_NETUSER); }
+	inline bool onlineUser() const { return mb_onlineUser; }
+	inline void setOnlineUser(const bool online_user)
+	{
+		mb_onlineUser = online_user;
+		emit onlineUserChanged();
+		m_usersData[0][USER_COL_BIRTHDAY] = online_user ? '1' : '0';
+		emit userModified(0, USER_COL_BIRTHDAY);
+	}
+
 	void addUser(QStringList &&user_info);
 	Q_INVOKABLE void createMainUser();
 	Q_INVOKABLE void removeMainUser();
@@ -147,7 +162,7 @@ public:
 	{
 		if (new_date != birthDate(user_idx))
 		{
-			m_usersData[user_idx][USER_COL_BIRTHDAY] = QString::number(new_date.toJulianDay());
+			m_usersData[user_idx][USER_COL_BIRTHDAY] = std::move(QString::number(new_date.toJulianDay()));
 			emit userModified(user_idx, USER_COL_BIRTHDAY);
 		}
 	}
@@ -276,7 +291,7 @@ public:
 	Q_INVOKABLE void sendRequestToCoaches();
 	Q_INVOKABLE void getOnlineCoachesList(const bool get_list_only = false);
 
-	void sendFileToServer(const QString &filename, const QString &successMessage = QString{}, const QString &subdir = QString{},
+	int sendFileToServer(const QString &filename, const QString &successMessage = QString{}, const QString &subdir = QString{},
 							const QString &targetUser = QString{}, const bool removeLocalFile = false);
 	int downloadFileFromServer(const QString &filename, const QString &localFile = QString{}, const QString &successMessage = QString{},
 							   const QString &subdir = QString{}, const QString &targetUser = QString{});
@@ -298,6 +313,7 @@ public slots:
 signals:
 	void userModified(const uint user_idx, const uint field);
 	void labelsChanged();
+	void onlineUserChanged();
 	void haveCoachesChanged();
 	void haveClientsChanged();
 	void coachesNamesChanged();
@@ -315,15 +331,17 @@ signals:
 	void userProfileAcquired(const QString &userid, const bool success);
 	void userPasswordAvailable(const QString &password);
 	void fileDownloaded(const bool success, const uint requestid, const QString &localFileName);
+	void fileUploaded(const bool success, const uint requestid);
 
 private:
 	QList<QStringList> m_usersData, m_tempUserData;
 	int m_tempRow;
-	QString m_onlineUserId, m_password, m_defaultAvatar, m_emptyString;
+	QString m_onlineUserId, m_password, m_defaultAvatar, m_emptyString, m_onlineCoachesDir,
+		m_dirForRequestedCoaches, m_dirForClientsRequests, m_dirForCurrentClients, m_dirForCurrentCoaches;
 	std::optional<bool> mb_userRegistered, mb_coachRegistered;
 	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses, *m_tempUserInfo;
 	QStringList m_coachesNames, m_clientsNames;
-	bool mb_canConnectToServer, mb_coachPublic;
+	bool mb_onlineUser, mb_canConnectToServer, mb_coachPublic, mb_MainUserInfoChanged;
 	QTimer *m_mainTimer;
 
 	void onlineCheckIn();
@@ -358,8 +376,6 @@ private:
 	QString formatFieldToImport(const uint field, const QString &fieldValue) const;
 	inline QList<QStringList> &tempUserData() { return m_tempUserData; }
 
-	QString m_onlineCoachesDir, m_dirForRequestedCoaches, m_dirForClientsRequests,
-						m_dirForCurrentClients, m_dirForCurrentCoaches;
 	static DBUserModel *_appUserModel;
 	friend DBUserModel *appUserModel();
 	friend class OnlineUserInfo;

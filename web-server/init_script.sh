@@ -80,7 +80,8 @@ create_admin_user() {
         run_as_sudo $HTPASSWD -cbB $PASS_FILE $ADMIN $ADMIN
         if [ $? == 0 ]; then
             run_as_sudo mkdir -m 774 $ADMIN_DIR
-            run_as_sudo chown $NGINX_USER:$NGINX_USER $ADMIN_DIR
+            run_as_sudo cp -f $SOURCES_DIR/user.fields $ADMIN_DIR
+            run_as_sudo chown -R $NGINX_USER:$NGINX_USER $ADMIN_DIR
             echo "Main app user created successfully"
         fi
     fi
@@ -88,7 +89,7 @@ create_admin_user() {
 
 create_users_db() {
     run_as_sudo rm -f "${USERS_DB}"
-    if sqlite3 -line ${USERS_DB} 'CREATE TABLE IF NOT EXISTS users_table (userid INTEGER PRIMARY KEY, name TEXT, birthday INTEGER, sex TEXT, phone TEXT, email TEXT, social TEXT, role TEXT, coach_role TEXT, goal TEXT, use_mode INTEGER, password TEXT);' &>/dev/null; then
+    if sqlite3 -line ${USERS_DB} 'CREATE TABLE IF NOT EXISTS users_table (userid INTEGER PRIMARY KEY, onlineuser INTEGER, name TEXT, birthday INTEGER, sex INTEGER, phone TEXT, email TEXT, social TEXT, role TEXT, coach_role TEXT, goal TEXT, use_mode INTEGER, password TEXT);' &>/dev/null; then
         run_as_sudo chown -R $NGINX_USER:$NGINX_USER $USERS_DB
         run_as_sudo chmod 664 $USERS_DB
         echo "Users database created"
@@ -180,35 +181,35 @@ case "$COMMAND" in
             if [ $NGINX_SETUP == 0 ]; then
                 systemctl status $PHP_FPM_SERVICE 1&> /dev/null
                 PHP_FPM_SETUP=$?
-                ping -w 1 192.168.10.8 1&> /dev/null
+                ping -w 1 192.168.10.21
                 TP_SERVER=$?
             fi
 
             if [ $TP_SERVER == 0 ]; then
                 EXIT_STATUS=0
-                echo "Local TP Server up and running."
+                MESSAGE="Local TP Server up and running."
             else
                 EXIT_STATUS=1
-                ERROR_MESSAGE="Local TP Server is not reachable."
+                MESSAGE="Local TP Server is not reachable."
 
                 if [ $NGINX_SETUP == 0 ]; then
-                    ERROR_MESSAGE="$ERROR_MESSAGE NGINX service is up and running."
+                    MESSAGE="$MESSAGE NGINX service is up and running."
                 else
                     EXIT_STATUS=2
-                    ERROR_MESSAGE="$ERROR_MESSAGE NGINX service is not running."
+                    MESSAGE="$MESSAGE NGINX service is not running."
                 fi
                 if [ $PHP_FPM_SETUP == 0 ]; then
-                    ERROR_MESSAGE="$ERROR_MESSAGE PHP-FPM service is up and running."
+                    MESSAGE="$MESSAGE PHP-FPM service is up and running."
                 else
                     EXIT_STATUS=2
-                    ERROR_MESSAGE="$ERROR_MESSAGE PHP-FPM service is not running."
+                    MESSAGE="$MESSAGE PHP-FPM service is not running."
                 fi
             fi
         else
             EXIT_STATUS=3
-            ERROR_MESSAGE="Local TP Server needs to be setup. Run" $SCRIPT_NAME "with the setup option."
+            MESSAGE="Local TP Server needs to be setup. Run" $SCRIPT_NAME "with the setup option."
         fi
-        echo $ERROR_MESSAGE
+        echo $MESSAGE
         exit $EXIT_STATUS
     ;;
     setup)

@@ -11,6 +11,7 @@ Item {
 	property string buttonString: ""
 	property int clientRow: -1
 	property bool allowNotConfirmedClients: true
+	property alias currentIndex: listview.currentIndex
 
 	ListView {
 		id: listview

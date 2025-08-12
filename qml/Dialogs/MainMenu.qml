@@ -52,7 +52,7 @@ Drawer {
 		id: drawerLayout
 		spacing: 5
 		opacity: parent.opacity
-		height: drawer.height*0.65
+		height: drawer.height * 0.65
 
 		anchors {
 			left: parent.left
@@ -73,6 +73,27 @@ Drawer {
 			Layout.alignment: Qt.AlignCenter
 			Layout.preferredWidth: width
 			Layout.preferredHeight: height
+
+			TPButton {
+				imageSource: "settings"
+				width: appSettings.itemDefaultHeight * 1.5
+				height: width
+				enabled: { // Force the binding to re-evaluate so that the check is run each time the page changes.
+					stackView.currentItem
+					!stackView.find((item, index) => { return item.objectName === "configurationPage"; })
+				}
+
+				onClicked: {
+					itemManager.getSettingsPage(0);
+					close();
+				}
+
+				anchors {
+					top: parent.top
+					left: parent.left
+					leftMargin: - (drawer.width - parent.width) / 2
+				}
+			}
 		}
 
 		TPLabel {
@@ -81,8 +102,8 @@ Drawer {
 			font: AppGlobals.smallFont
 			horizontalAlignment: Text.AlignHCenter
 			Layout.maximumWidth: parent.width - 20
-			Layout.leftMargin: 10
-			Layout.rightMargin: 10
+			Layout.leftMargin: 5
+			Layout.rightMargin: 30
 		}
 
 		TPImage {
@@ -118,60 +139,6 @@ Drawer {
 			Layout.fillWidth: true
 			Layout.leftMargin: 10
 			Layout.rightMargin: 5
-		}
-
-		Rectangle {
-			color: appSettings.fontColor
-			height: 3
-			Layout.fillWidth: true
-		}
-
-		TPButton {
-			id: btnExercises
-			text: qsTr("Exercises Database")
-			Layout.fillWidth: true
-
-			enabled: { // Force the binding to re-evaluate so that the objectName check is run each time the page changes.
-				stackView.currentItem
-				!stackView.find((item, index) => { return item.objectName === "exercisesPage"; })
-			}
-
-			onClicked: {
-				itemManager.getExercisesPage();
-				close();
-			}
-		}
-
-		TPButton {
-			id: btnSettings
-			text: qsTr("Settings")
-			Layout.fillWidth: true
-
-			enabled: { // Force the binding to re-evaluate so that the check is run each time the page changes.
-				stackView.currentItem
-				!stackView.find((item, index) => { return item.objectName === "configurationPage"; })
-			}
-
-			onClicked: {
-				itemManager.getSettingsPage(0);
-				close();
-			}
-		}
-
-		TPButton {
-			id: btnAllWorkouts
-			text: qsTr("All Workouts")
-			Layout.fillWidth: true
-
-			enabled: { // Force the binding to re-evaluate so that the check is run each time the page changes.
-				stackView.currentItem
-				!stackView.find((item, index) => { return item.objectName === "allWorkoutsPage"; })
-			}
-
-			onClicked: {
-				itemManager.getAllWorkoutsPage();
-				close();
-			}
 		}
 
 		Rectangle {

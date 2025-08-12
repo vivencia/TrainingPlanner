@@ -308,27 +308,11 @@ ListView {
 							id: subExerciseButtonsRepeater
 							model: delegate.nSubExercises
 
-							TabButton {
+							TPTabButton {
 								id: subExercisesTabButton
 								text: exercisesModel.exerciseName(delegate.exerciseNumber, index)
-								checkable: true
 								checked: index === exercisesModel.workingSubExercise
-								height: subExercisesTabBar.height * 0.95
-
-								contentItem: Label {
-									text: subExercisesTabButton.text
-									elide: Text.ElideRight
-									horizontalAlignment: Qt.AlignHCenter
-									verticalAlignment: Qt.AlignVCenter
-									font.pixelSize: appSettings.smallFontSize
-									color: appSettings.fontColor
-								}
-
-								background: Rectangle {
-									border.color: appSettings.fontColor
-									opacity: 0.8
-									color: enabled ? (checked ? appSettings.primaryDarkColor : appSettings.primaryColor) : appSettings.disabledFontColor
-								}
+								parentTab: subExercisesTabBar
 
 								onClicked: {
 									exercisesModel.workingSubExercise = index;
@@ -482,28 +466,13 @@ ListView {
 									id: buttonsRepeater
 									model: setsGroup.nSets
 
-									TabButton {
+									TPTabButton {
 										id: tabButton
 										text: qsTr("Set # ") + parseInt(index + 1)
-										checkable: true
 										checked: delegate.exerciseNumber === exercisesModel.workingExercise &&
 											subExercisesTabBar.currentIndex === exercisesModel.workingSubExercise && index === exercisesModel.workingSet
+										parentTab: setsTabBar
 										width: setsGroup.width * 0.22
-										height: setsTabBar.height * 0.95
-
-										contentItem: Label {
-											text: tabButton.text
-											horizontalAlignment: Qt.AlignHCenter
-											verticalAlignment: Qt.AlignVCenter
-											font.pixelSize: appSettings.smallFontSize
-											color: appSettings.fontColor
-										}
-
-										background: Rectangle {
-											border.color: appSettings.fontColor
-											opacity: 0.8
-											color: enabled ? (checked ? appSettings.primaryDarkColor : appSettings.primaryColor) : appSettings.disabledFontColor
-										}
 
 										onClicked: exercisesModel.workingSet = index;
 									} //tabButton

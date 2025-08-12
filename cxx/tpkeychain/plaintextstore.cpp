@@ -11,24 +11,25 @@
 #include "plaintextstore_p.h"
 
 using namespace QKeychain;
+using namespace Qt::Literals::StringLiterals;
 
 namespace {
 
 inline QString dataKey(const QString &key)
 {
-    return key + QLatin1String("/data");
+	return key + "/data"_L1;
 }
 inline QString typeKey(const QString &key)
 {
-    return key + QLatin1String("/type");
+	return key + "/type"_L1;
 }
 
 } // namespace
 
 PlainTextStore::PlainTextStore(const QString &service, QSettings *settings)
-    : m_localSettings(settings ? nullptr : new QSettings(service)),
-      m_actualSettings(settings ? settings : m_localSettings.data()),
-      m_error(NoError)
+	: m_localSettings{settings ? nullptr : new QSettings{service}},
+	  m_actualSettings{settings ? settings : m_localSettings.data()},
+	  m_error{NoError}
 {
 }
 
@@ -60,13 +61,12 @@ void PlainTextStore::write(const QString &key, const QByteArray &data, JobPrivat
     m_actualSettings->setValue(dataKey(key), data);
     m_actualSettings->sync();
 
-    if (m_actualSettings->status() == QSettings::AccessError) {
+	if (m_actualSettings->status() == QSettings::AccessError)
         setError(AccessDenied, tr("Could not store data in settings: access error"));
-    } else if (m_actualSettings->status() != QSettings::NoError) {
+	else if (m_actualSettings->status() != QSettings::NoError)
         setError(OtherError, tr("Could not store data in settings: format error"));
-    } else {
-        setError(NoError, QString());
-    }
+	else
+		setError(NoError, QString{});
 }
 
 void PlainTextStore::remove(const QString &key)
@@ -78,13 +78,12 @@ void PlainTextStore::remove(const QString &key)
     m_actualSettings->remove(dataKey(key));
     m_actualSettings->sync();
 
-    if (m_actualSettings->status() == QSettings::AccessError) {
+	if (m_actualSettings->status() == QSettings::AccessError)
         setError(AccessDenied, tr("Could not delete data from settings: access error"));
-    } else if (m_actualSettings->status() != QSettings::NoError) {
+	else if (m_actualSettings->status() != QSettings::NoError)
         setError(OtherError, tr("Could not delete data from settings: format error"));
-    } else {
-        setError(NoError, QString());
-    }
+	else
+		setError(NoError, QString{});
 }
 
 void PlainTextStore::setError(Error error, const QString &errorString)
@@ -95,13 +94,12 @@ void PlainTextStore::setError(Error error, const QString &errorString)
 
 QVariant PlainTextStore::read(const QString &key)
 {
-    const QVariant value = m_actualSettings->value(key);
+	const QVariant &value{m_actualSettings->value(key)};
 
-    if (value.isNull()) {
+	if (value.isNull())
         setError(EntryNotFound, tr("Entry not found"));
-    } else {
-        setError(NoError, QString());
-    }
+	else
+		setError(NoError, QString{});
 
     return value;
 }

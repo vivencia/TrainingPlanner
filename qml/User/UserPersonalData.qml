@@ -206,6 +206,16 @@ ColumnLayout {
 		}
 	}
 
+	TPRadioButtonOrCheckBox {
+		text: userModel.netUserLabel
+		actionable: userRow === 0
+		radio: false
+		checked: userModel.onlineUser
+		Layout.fillWidth: true
+
+		onClicked: userModel.onlineUser = checked;
+	}
+
 	function getUserInfo(): void {
 		if (userRow === -1)
 			return;

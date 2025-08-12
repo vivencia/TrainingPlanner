@@ -78,8 +78,7 @@ public:
 
 	Q_INVOKABLE inline bool isUserDefault(const uint row) const
 	{
-		Q_ASSERT_X(row < count(), "OnlineUserInfo::data", "row out of range");
-		return row == 0 ? m_extraInfo.at(0).at(USER_EXTRA_NAME).at(0) == '*' : false;
+		return row == 0 ? m_extraInfo.isEmpty() ? false : m_extraInfo.at(0).at(USER_EXTRA_NAME).at(0) == '*' : false;
 	}
 	void makeUserDefault(const uint row);
 

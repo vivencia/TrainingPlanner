@@ -30,9 +30,10 @@ void DBUserTable::createTable()
 		QSqlQuery query{std::move(getQuery())};
 		const QString &strQuery{"CREATE TABLE IF NOT EXISTS users_table ("
 										"userid INTEGER PRIMARY KEY,"
+										"onlineuser INTEGER,"
 										"name TEXT,"
 										"birthday INTEGER,"
-										"sex TEXT,"
+										"sex INTEGER,"
 										"phone TEXT,"
 										"email TEXT,"
 										"social TEXT,"
@@ -91,20 +92,21 @@ void DBUserTable::saveUser()
 		if (bUpdate)
 		{
 			//from_list is set to 0 because an edited exercise, regardless of its id, is considered different from the default list provided exercise
-			strQuery = std::move(u"UPDATE users_table SET name=\'%1\', birthday=%2, sex=\'%3\', phone=\'%4\', email=\'%5\', social=\'%6\', "
-						"role=\'%7\', coach_role=\'%8\', goal=\'%9\', use_mode=%10 WHERE userid=%11"_s
-				.arg(m_model->_userName(row), m_model->_birthDate(row), m_model->_sex(row), m_model->_phone(row), m_model->_email(row),
-					m_model->_socialMedia(row), m_model->_userRole(row), m_model->_coachRole(row), m_model->_goal(row), m_model->_appUseMode(row),
-					m_model->userId(row)));
+			strQuery = std::move(u"UPDATE users_table SET onlineuser=%1, name=\'%2\', birthday=%3, sex=%4, "
+								 "phone=\'%5\', email=\'%6\', social=\'%7\', role=\'%8\', coach_role=\'%9\', "
+								 "goal=\'%10\', use_mode=%11 WHERE userid=%12"_s
+				.arg(m_model->_onlineUser(), m_model->_userName(row), m_model->_birthDate(row), m_model->_sex(row),
+					m_model->_phone(row), m_model->_email(row), m_model->_socialMedia(row), m_model->_userRole(row),
+					m_model->_coachRole(row), m_model->_goal(row), m_model->_appUseMode(row), m_model->userId(row)));
 		}
 		else
 		{
 			strQuery = std::move(u"INSERT INTO users_table "
-				"(userid,name,birthday,sex,phone,email,social,role,coach_role,goal,use_mode)"
-				" VALUES(%1, \'%2\', %3, \'%4\', \'%5\', \'%6\', \'%7\', \'%8\',\'%9\', \'%10\', %11)"_s
-					.arg(m_model->userId(row), m_model->_userName(row), m_model->_birthDate(row), m_model->_sex(row),
-					m_model->_phone(row), m_model->_email(row), m_model->_socialMedia(row), m_model->_userRole(row), m_model->_coachRole(row),
-					m_model->_goal(row), m_model->_appUseMode(row)));
+				"(userid,onlineuser,name,birthday,sex,phone,email,social,role,coach_role,goal,use_mode)"
+				" VALUES(%1, %2, \'%3\', %4, %5, \'%6\', \'%7\', \'%8\', \'%9\',\'%10\', \'%11\', %12)"_s
+					.arg(m_model->userId(row), m_model->_onlineUser(), m_model->_userName(row), m_model->_birthDate(row),
+					m_model->_sex(row), m_model->_phone(row), m_model->_email(row), m_model->_socialMedia(row),
+					m_model->_userRole(row), m_model->_coachRole(row), m_model->_goal(row), m_model->_appUseMode(row)));
 		}
 		ok = query.exec(strQuery);
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);

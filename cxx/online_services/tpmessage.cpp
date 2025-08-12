@@ -1,10 +1,7 @@
 #include "tpmessage.h"
 
 #include "tpmessagesmanager.h"
-#include "../tpglobals.h"
 #include "../tputils.h"
-
-static const QVariant emptyData{};
 
 QString TPMessage::date() const
 {

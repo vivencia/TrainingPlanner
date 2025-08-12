@@ -21,9 +21,9 @@ Q_PROPERTY(bool sticky READ sticky WRITE setSticky NOTIFY stickyChanged FINAL)
 Q_PROPERTY(bool hasActions READ hasActions NOTIFY hasActionsChanged FINAL)
 
 public:
-	inline explicit TPMessage(TPMessagesManager* parent) : QObject{nullptr}, m_parent{parent}, m_id{-1},
+	inline explicit TPMessage(TPMessagesManager *parent) : QObject{nullptr}, m_parent{parent}, m_id{-1},
 									m_plugged{false}, m_autodelete{true}, m_sticky{false} {}
-	inline TPMessage(const QString &displayText, const QString &iconSource, TPMessagesManager* parent)
+	inline TPMessage(const QString &displayText, const QString &iconSource, TPMessagesManager *parent)
 			: QObject{nullptr}, m_parent{parent}, m_id{-1}, m_plugged{false}, m_autodelete{true}, m_sticky{false}
 	{
 		setDisplayText(displayText, false);
@@ -57,10 +57,10 @@ public:
 	inline const bool hasActions() const { return !m_actions.isEmpty(); }
 
 	/**
-	 * @param message_id
-	 * @param action_name
-	 * @param remove if Specified, overrides sticky
-	 * @return action_id
+	  *@param message_id
+	  *@param action_name
+	  *@param remove if Specified, overrides sticky
+	  *@return action_id
 	 */
 	int insertAction(const QString& actionLabel, const std::function<void(const QVariant &var)> &actionFunc = nullptr,
 					 std::optional<bool> remove = std::nullopt);
@@ -83,10 +83,10 @@ public:
 	Q_INVOKABLE void execAction(const int action_id);
 
 	/**
-	 * @brief Used to store information across classes
-	 * @param data Anything that QVariant can handle
-	 * @param action_id Associate data with an action or not
-	 * @return The index of the inserted data(which will be equal to action_id if it's not -1)
+	  *@brief Used to store information across classes
+	  *@param data Anything that QVariant can handle
+	  *@param action_id Associate data with an action or not
+	  *@return The index of the inserted data(which will be equal to action_id if it's not -1)
 	 */
 	uint insertData(const QVariant &data, const int action_id = -1);
 	inline const QVariant &_data(const uint data_id) const
