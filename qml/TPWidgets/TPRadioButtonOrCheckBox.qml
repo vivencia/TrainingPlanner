@@ -5,15 +5,11 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 import "../"
 
-Item {
+TPLabel {
 	id: control
-	height: lblText.contentHeight + 10
-	implicitHeight: height
+	height: appSettings.itemDefaultHeight + 10
 
-	property alias text: lblText.text
-	property alias textColor: lblText.color
 	property alias image: img.source
-
 	property int imageHeight: appSettings.itemDefaultHeight
 	property int imageWidth: imageHeight
 	property bool checked: false
@@ -25,17 +21,23 @@ Item {
 	signal clicked();
 	signal pressAndHold();
 
+	wrapMode: multiLine ? Text.WordWrap : Text.NoWrap
+	topPadding: 0
+	rightPadding: 0
+	bottomPadding: 5
+	leftPadding: indicator.width + image.length > 0 ? imageWidth + 5 : 5
+
 	Rectangle {
 		id: indicator
 		implicitWidth: appSettings.itemDefaultHeight * 0.8
 		implicitHeight: implicitWidth
 		radius: radio ? implicitWidth / 2 : 4
 		color: "transparent"
-		border.color: control.enabled ? textColor : appSettings.disabledFontColor
+		border.color: control.enabled ? control.color : appSettings.disabledFontColor
 
 		anchors {
-			left: parent.left
-			verticalCenter: lblText.verticalCenter
+			left: control.left
+			verticalCenter: control.verticalCenter
 		}
 
 		Rectangle {
@@ -45,22 +47,8 @@ Item {
 			radius: radio ? width * 0.5 : indicator.radius / 2
 			x: (indicator.implicitWidth - width) * 0.5
 			y: x
-			border.color: control.enabled ? textColor : appSettings.disabledFontColor
+			border.color: control.enabled ? control.color : appSettings.disabledFontColor
 			visible: control.checked
-		}
-	}
-
-	TPLabel {
-		id: lblText
-		wrapMode: multiLine ? Text.WordWrap : Text.NoWrap
-		padding: 0
-		visible: text.length > 0
-
-		anchors {
-			verticalCenter: parent.verticalCenter
-			left: img.visible ? img.right : indicator.right
-			leftMargin: 5
-			right: parent.right
 		}
 	}
 
@@ -74,13 +62,13 @@ Item {
 		anchors {
 			left: indicator.right
 			leftMargin: 5
-			verticalCenter: lblText.verticalCenter
+			verticalCenter: control.verticalCenter
 		}
 	}
 
 	MouseArea {
 		enabled: actionable
-		anchors.fill: parent
+		anchors.fill: control
 
 		onClicked: {
 			if (!radio)

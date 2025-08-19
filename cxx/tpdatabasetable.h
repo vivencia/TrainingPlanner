@@ -19,31 +19,34 @@ constexpr uint MESOCALENDAR_TABLE_ID{0x0004};
 constexpr uint WORKOUT_TABLE_ID{0x0005};
 constexpr uint USERS_TABLE_ID{0x0006};
 
-constexpr QLatin1StringView tablesNames[APP_TABLES_NUMBER+1] = { ""_L1,
-									"Database/ExercisesList.db.sqlite"_L1,
-									"Database/Mesocycles.db.sqlite"_L1,
-									"Database/MesocyclesSplits.db.sqlite"_L1,
-									"Database/MesoCalendar.db.sqlite"_L1,
-									"Database/Workouts.db.sqlite"_L1,
-									"Database/Users.db.sqlite"_L1
-								};
-
 class TPDatabaseTable : public QObject
 {
 
 public:
+
+	static constexpr QLatin1StringView databaseFilesSubDir{"Database/"};
+
+	static constexpr QLatin1StringView databaseFileNames[APP_TABLES_NUMBER+1] = { ""_L1,
+									"ExercisesList.db.sqlite"_L1,
+									"Mesocycles.db.sqlite"_L1,
+									"MesocyclesSplits.db.sqlite"_L1,
+									"MesoCalendar.db.sqlite"_L1,
+									"Workouts.db.sqlite"_L1,
+									"Users.db.sqlite"_L1
+	};
+
 	TPDatabaseTable(const TPDatabaseTable &other) = delete;
 	TPDatabaseTable& operator() (const TPDatabaseTable &other) = delete;
 	TPDatabaseTable (TPDatabaseTable &&other) = delete;
 	TPDatabaseTable& operator() (TPDatabaseTable &&other) = delete;
 
-	virtual void createTable() = 0;
-	virtual void updateTable() = 0;
 	static TPDatabaseTable *createDBTable(const uint table_id, const bool auto_delete = true);
+	static QString createTableQuery(const uint table_id);
+	void createTable();
+	virtual void updateTable() = 0;
 
 	inline void setCallbackForDoneFunc( const std::function<void (TPDatabaseTable*)> &func ) { doneFunc = func; }
-
-	static inline QString dbFilePath(const uint table_id) { return appUtils()->localAppFilesDir() + tablesNames[table_id]; }
+	static inline QString dbFilePath(const uint table_id) { return appUtils()->localAppFilesDir() + databaseFilesSubDir + databaseFileNames[table_id]; }
 	inline uint tableId() const { return m_tableId; }
 	inline int uniqueId() const { return m_UniqueID; }
 	inline void setUniqueId(const int uid) { m_UniqueID = uid; }
@@ -82,9 +85,9 @@ protected:
 	explicit inline TPDatabaseTable(const uint table_id, QObject *parent = nullptr)
 		: QObject{parent}, m_tableId{table_id}, doneFunc{nullptr}, mb_result{false}, mb_resolved{false}, mb_waitForFinished{false} {}
 
+	inline void setTableName(const QLatin1StringView &table_name) { m_tableName = std::move(QString{table_name}); }
 	QSqlDatabase mSqlLiteDB;
 	QVariantList m_execArgs;
-	QString m_tableName;
 
 	uint m_tableId;
 	int m_UniqueID;
@@ -92,6 +95,7 @@ protected:
 	std::function<void (TPDatabaseTable*)> doneFunc;
 
 private:
+	QString m_tableName;
 	bool mb_result;
 	bool mb_resolved;
 	bool mb_waitForFinished;

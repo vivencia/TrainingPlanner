@@ -13,9 +13,11 @@ TPPopup {
 	keepAbove: true
 	closeButtonVisible: false
 	width: appSettings.pageWidth - 50
-	height: stackLayout.currentIndex !== 6 ? appSettings.windowHeight / 2 : appSettings.windowHeight * 0.6
+	height: stackLayout.childrenRect.height
 	x: (appSettings.pageWidth - width)/2 // horizontally centered
 	finalYPos: (appSettings.pageHeight - height)/2 // vertically centered
+
+	readonly property int minimumHeight: appSettings.windowHeight * 0.5
 
 	StackLayout {
 		id: stackLayout
@@ -24,41 +26,43 @@ TPPopup {
 			left: parent.left
 			right: parent.right
 			top: parent.top
-			bottom: frmFooter.top
+			//bottom: frmFooter.top
 			margins: 5
 		}
 
 		UserLanguage {
 			Layout.fillWidth: true
-			Layout.fillHeight: true
+			Layout.preferredHeight: minimumHeight
 		}
 
 		UserWelcome {
 			Layout.fillWidth: true
-			Layout.fillHeight: true
+			Layout.preferredHeight: minimumHeight
 		}
 
 		UserExistingFromNet {
 			Layout.fillWidth: true
-			Layout.maximumHeight: firstTimeDlg.height
+			Layout.minimumHeight: minimumHeight
 		}
 
 		UserPersonalData {
 			userRow: 0
 			parentPage: firstTimeDlg.parentPage
 			Layout.fillWidth: true
-			Layout.maximumHeight: firstTimeDlg.height
+			Layout.minimumHeight: minimumHeight
 		}
 
 		UserContact {
 			userRow: 0
 			Layout.fillWidth: true
+			Layout.minimumHeight: minimumHeight
 		}
 
 		UserCoach {
 			userRow: 0
 			parentPage: firstTimeDlg.parentPage
 			Layout.fillWidth: true
+			Layout.minimumHeight: minimumHeight
 		}
 
 		UserProfile {
@@ -66,11 +70,13 @@ TPPopup {
 			userRow: 0
 			parentPage: firstTimeDlg.parentPage
 			Layout.fillWidth: true
+			Layout.minimumHeight: minimumHeight
 		}
 
 		UserReady {
 			Layout.fillWidth: true
 			Layout.fillHeight: true
+			Layout.preferredHeight: minimumHeight
 		}
 
 		Component.onCompleted: currentIndex = appSettings.appLocale.length > 0 ? 1 : 0;
@@ -87,7 +93,7 @@ TPPopup {
 		anchors {
 			left: parent.left
 			right: parent.right
-			bottom: parent.bottom
+			top: stackLayout.bottom
 		}
 
 		TPButton {

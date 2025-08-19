@@ -635,13 +635,13 @@ void DBMesocyclesModel::sendMesoToUser(const uint meso_idx)
 			{
 				disconnect(*conn);
 				if (action_result)
-					appUserModel()->sendFileToServer(filename, !isOwnMeso(meso_idx) ? tr("Exercises Program sent to client") : QString{},
+					appUserModel()->sendFileToServer(filename, nullptr, !isOwnMeso(meso_idx) ? tr("Exercises Program sent to client") : QString{},
 													mesosDir + coach(meso_idx), client(meso_idx));
 			}
 		});
 	}
 	else
-		appUserModel()->sendFileToServer(filename, !isOwnMeso(meso_idx) ? tr("Exercises Program sent to client") : QString{},
+		appUserModel()->sendFileToServer(filename, nullptr, !isOwnMeso(meso_idx) ? tr("Exercises Program sent to client") : QString{},
 										mesosDir + coach(meso_idx), client(meso_idx));
 }
 

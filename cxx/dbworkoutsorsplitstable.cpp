@@ -15,24 +15,14 @@ DBWorkoutsOrSplitsTable::DBWorkoutsOrSplitsTable(DBExercisesModel *model)
 	commonConstructor();
 }
 
-void DBWorkoutsOrSplitsTable::commonConstructor()
+QLatin1StringView DBWorkoutsOrSplitsTable::tableName(const uint table_id)
 {
-	m_tableName = std::move(tableId() == WORKOUT_TABLE_ID ? "workouts_table"_L1 : "mesosplit_table"_L1);
-	m_UniqueID = appUtils()->generateUniqueId();
-	const QString &cnx_name{m_tableName + "_connection"_L1 + QString::number(m_UniqueID)};
-	mSqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name));
-	mSqlLiteDB.setDatabaseName(dbFilePath(m_tableId));
-	#ifndef QT_NO_DEBUG
-	setObjectName(tableId() == WORKOUT_TABLE_ID ? "WorkoutsTable"_L1 : "SplitTable"_L1);
-	#endif
+	return table_id == WORKOUT_TABLE_ID ? "workouts_table"_L1 : "mesosplit_table"_L1;
 }
 
-void DBWorkoutsOrSplitsTable::createTable()
+QLatin1StringView DBWorkoutsOrSplitsTable::createTableQuery()
 {
-	if (openDatabase())
-	{
-		QSqlQuery query{std::move(getQuery())};
-		const QString &strQuery{"CREATE TABLE IF NOT EXISTS %1 ("
+	return "CREATE TABLE IF NOT EXISTS %1 ("
 										"id INTEGER PRIMARY KEY AUTOINCREMENT,"
 										"meso_id INTEGER,"
 										"calendar_day INTEGER,"
@@ -46,11 +36,19 @@ void DBWorkoutsOrSplitsTable::createTable()
 										"setsreps TEXT,"
 										"setsweights TEXT,"
 										"setsnotes TEXT,"
-										"setscompleted TEXT)"_L1.arg(m_tableName)
-		};
-		const bool ok{query.exec(strQuery)};
-		setQueryResult(ok, strQuery, SOURCE_LOCATION);
-	}
+										"setscompleted TEXT)"_L1;
+}
+
+void DBWorkoutsOrSplitsTable::commonConstructor()
+{
+	setTableName(tableName(tableId()));
+	m_UniqueID = appUtils()->generateUniqueId();
+	const QString &cnx_name{tableName(tableId()) + "_connection"_L1 + QString::number(m_UniqueID)};
+	mSqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name));
+	mSqlLiteDB.setDatabaseName(dbFilePath(m_tableId));
+	#ifndef QT_NO_DEBUG
+	setObjectName(tableId() == WORKOUT_TABLE_ID ? "WorkoutsTable"_L1 : "SplitTable"_L1);
+	#endif
 }
 
 void DBWorkoutsOrSplitsTable::getExercises()
@@ -61,9 +59,9 @@ void DBWorkoutsOrSplitsTable::getExercises()
 		QSqlQuery query{std::move(getQuery())};
 		const QString &strQuery{tableId() == WORKOUT_TABLE_ID ?
 					"SELECT * FROM %1 WHERE meso_id=%2 AND calendar_day=%3"_L1.arg(
-											m_tableName, m_model->mesoId(), QString::number(m_model->calendarDay())) :
+											tableName(tableId()), m_model->mesoId(), QString::number(m_model->calendarDay())) :
 					"SELECT * FROM %1 WHERE meso_id=%2 AND split_letter=\'%3\'"_L1.arg(
-											m_tableName, m_model->mesoId(), m_model->splitLetter())
+											tableName(tableId()), m_model->mesoId(), m_model->splitLetter())
 		};
 		if (query.exec(strQuery))
 		{
@@ -90,9 +88,9 @@ void DBWorkoutsOrSplitsTable::saveExercises()
 		bool bUpdate{false};
 		QString strQuery{std::move(tableId() == WORKOUT_TABLE_ID ?
 				"SELECT id FROM %1 WHERE meso_id=%2 AND calendar_day=%3"_L1.arg(
-												m_tableName, m_model->mesoId(), QString::number(m_model->calendarDay())) :
+												tableName(tableId()), m_model->mesoId(), QString::number(m_model->calendarDay())) :
 				"SELECT id FROM %1 WHERE meso_id=%2 AND split_letter=\'%3\'"_L1.arg(
-												m_tableName, m_model->mesoId(), m_model->splitLetter())
+												tableName(tableId()), m_model->mesoId(), m_model->splitLetter())
 				)};
 
 		if (query.exec(strQuery)) {
@@ -107,7 +105,7 @@ void DBWorkoutsOrSplitsTable::saveExercises()
 					u"UPDATE %1 SET split_letter=\'%2\', exercises=\'%3\', track_rest_time=\'%4\', "
 					"auto_rest_time=\'%5\', setstypes=\'%6\', setsresttimes=\'%7\', setssubsets=\'%8\', "
 					"setsreps=\'%9\', setsweights=\'%10\', setsnotes=\'%11\', setscompleted=\'%12\' WHERE id=%13"_s
-						.arg(m_tableName, modelData.at(EXERCISES_COL_SPLITLETTER),
+						.arg(tableName(tableId()), modelData.at(EXERCISES_COL_SPLITLETTER),
 							modelData.at(EXERCISES_COL_EXERCISES), modelData.at(EXERCISES_COL_TRACKRESTTIMES),
 							modelData.at(EXERCISES_COL_AUTORESTTIMES), modelData.at(EXERCISES_COL_SETTYPES),
 							modelData.at(EXERCISES_COL_RESTTIMES), modelData.at(EXERCISES_COL_SUBSETS),
@@ -120,7 +118,7 @@ void DBWorkoutsOrSplitsTable::saveExercises()
 					"(meso_id,calendar_day,split_letter,exercises,track_rest_time,auto_rest_time,setstypes,"
 					"setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted)"
 					" VALUES(%2, %3, \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\', \'%11\', \'%12\', \'%13\', \'%14\')"_s
-						.arg(m_tableName, modelData.at(EXERCISES_COL_MESOID),
+						.arg(tableName(tableId()), modelData.at(EXERCISES_COL_MESOID),
 							modelData.at(EXERCISES_COL_CALENDARDAY), modelData.at(EXERCISES_COL_SPLITLETTER),
 							modelData.at(EXERCISES_COL_EXERCISES), modelData.at(EXERCISES_COL_TRACKRESTTIMES),
 							modelData.at(EXERCISES_COL_AUTORESTTIMES), modelData.at(EXERCISES_COL_SETTYPES),
@@ -143,8 +141,8 @@ void DBWorkoutsOrSplitsTable::removeExercises()
 		const QString meso_id{m_execArgs.at(0).toString()};
 		QSqlQuery query{std::move(getQuery())};
 		QString strQuery{tableId() == WORKOUT_TABLE_ID ?
-				std::move("DELETE FROM %1 WHERE meso_id=%2"_L1.arg(m_tableName, meso_id)) :
-				std::move("DELETE FROM %1 WHERE meso_id=%2"_L1.arg(m_tableName, meso_id))
+				std::move("DELETE FROM %1 WHERE meso_id=%2"_L1.arg(tableName(tableId()), meso_id)) :
+				std::move("DELETE FROM %1 WHERE meso_id=%2"_L1.arg(tableName(tableId()), meso_id))
 		};
 		const bool remove_all{m_execArgs.at(1).toBool()};
 		if (!remove_all) //Delete one specific entry, otherwise all entries for the meso will be deleted
@@ -211,7 +209,7 @@ void DBWorkoutsOrSplitsTable::getPreviousWorkouts()
 		QSqlQuery query{std::move(getQuery())};
 		QString strQuery{"SELECT calendar_day FROM %1 WHERE meso_id=%2 AND split_letter=\'%3\' "
 							"AND calendar_day<%4 ORDER BY calendar_day DESC LIMIT 5"_L1.arg(
-								m_tableName, m_model->mesoId(), m_model->splitLetter(), QString::number(m_model->calendarDay()))};
+								tableName(tableId()), m_model->mesoId(), m_model->splitLetter(), QString::number(m_model->calendarDay()))};
 		const bool ok{query.exec(strQuery)};
 		if (ok)
 		{

@@ -14,9 +14,10 @@ public:
 	inline explicit DBWorkoutsOrSplitsTable(const uint table_id)
 		: TPDatabaseTable{table_id, nullptr}, m_model{nullptr} { commonConstructor(); }
 
-	void createTable() override final;
-	virtual void updateTable() override final {}
+	static QLatin1StringView tableName(const uint table_id);
+	static QLatin1StringView createTableQuery();
 
+	void updateTable() override final {}
 	void getExercises();
 	void saveExercises();
 	void removeExercises();

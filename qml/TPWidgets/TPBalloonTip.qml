@@ -97,13 +97,12 @@ TPPopup {
 		text: message
 		wrapMode: Text.WordWrap
 		horizontalAlignment: Text.AlignHCenter
+		verticalAlignment: Text.AlignTop
 		width: (imageSource.length > 0 ? balloon.width - imgElement.width : balloon.width) - 10
 		visible: message.length > 0
 
 		anchors {
-			top: lblTitle.bottom
 			topMargin: 10
-			left: imageSource.length > 0 ?  imgElement.right : parent.left
 			leftMargin: 5
 			right: parent.right
 			rightMargin: 5
@@ -236,9 +235,9 @@ TPPopup {
 		if (title.length > 0)
 			new_height = lblTitle.height + 10
 		if (imageSource.length > 0)
-			new_height += Math.max(imgElement.height, lblMessage.height) + 10
+			new_height += Math.max(imgElement.height, lblMessage.contentHeight) + 10
 		else
-			new_height += lblMessage.height + 10;
+			new_height += lblMessage.contentHeight + 10;
 		if (button1Text.length > 0)
 			new_height += btn1.height + 10;
 		balloon.height = new_height;
@@ -256,20 +255,10 @@ TPPopup {
 	}
 
 	function anchorElements() {
-		if (lblMessage.height < 50) {
-			if (imageSource.length > 0) {
-				imgElement.anchors.top = title.length > 0 ? lblTitle.bottom : balloon.top;
-				lblMessage.anchors.verticalCenter = imgElement.verticalCenter;
-			}
-			else
-				lblMessage.anchors.verticalCenter = balloon.verticalCenter;
-		}
-		else {
-			lblMessage.anchors.top = title.length > 0 ? lblTitle.bottom : balloon.top;
-			if (imageSource.length > 0)
-				imgElement.anchors.verticalCenter = lblMessage.verticalCenter;
-		}
+		lblMessage.anchors.top = title.length > 0 ? lblTitle.bottom : balloon.top;
 		lblMessage.anchors.left = imageSource.length > 0 ? imgElement.right : balloon.left;
+		if (imageSource.length > 0)
+			imgElement.anchors.verticalCenter = lblMessage.verticalCenter;
 		anchored = true;
 	}
 }

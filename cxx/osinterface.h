@@ -125,6 +125,7 @@ public:
 	#endif
 #endif
 
+	QString deviceID() const;
 	void checkOnlineResources();
 	void shareFile(const QString &fileName) const;
 	Q_INVOKABLE void openURL(const QString &address) const;

@@ -268,7 +268,7 @@ TPPage {
 
 	function removeOrDecline(decline: bool) {
 		if (!decline)
-			userManager.removeUser(curRow);
+			userModel.removeUser(curRow);
 		else
 			userModel.rejectUser(userModel.pendingClientsRequests, pendingClientsList.currentIndex);
 	}

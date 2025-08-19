@@ -2,7 +2,7 @@
 
 $rootdir="/var/www/html/trainingplanner/";
 $scriptsdir=$rootdir . "scripts/";
-$htpasswd_file=$scriptsdir . ".passwds";
+$htpasswd_file=$rootdir . "admin/.passwds";
 $coaches_file=$rootdir . "admin/coaches.data";
 $htpasswd="/usr/bin/htpasswd"; //use fullpath
 $developmentMode=true;
@@ -160,17 +160,109 @@ function check_file_ctime($filename) {
         echo "Return code: 1 File not found:  ", $filename, "**check_file_ctime**";
 }
 
-function scan_dir($path) {
+function scan_dir($path, $pattern) {
     if (is_dir($path)) {
         $files = array_values(array_diff(scandir($path), array('.', '..')));
         if (count($files) > 0) {
             echo "Return code: 0 ";
-            foreach ($files as &$file)
+            foreach ($files as &$file) {
+                if (strlen($pattern) > 0) {
+                    if (!str_contains($file, $pattern))
+                        continue;
+                }
                 echo $file . "|" . date('Hisymd', filectime($path.$file)) . "|";
+            }
             return true;
         }
     }
-    echo "Return code: 1 Dir is empty of does not exist ", $path, "**scan_dir**";
+    echo "Return code: 1 Dir is empty or does not exist ", $path, "  **scan_dir**";
+}
+
+function run_commands($userid, $subdir, $delete_cmdfile) {
+    global $rootdir;
+    $path = $rootdir.$userid.'/'.$subdir;
+    if (is_dir($path)) {
+        $files = array_values(array_diff(scandir($path), array('.', '..')));
+        if (count($files) > 0) {
+            global $scriptsdir;
+            $script=$scriptsdir . "runcmds.sh";
+            $exec_returnvars = "";
+            $return_code = 0;
+            ob_start();
+            foreach ($files as &$file) {
+                if (!str_ends_with($file, ".cmd"))
+                    continue;
+                passthru("$script $userid $subdir $file", $return_var);
+                if ($return_var == 0) {
+                    if ($delete_cmdfile == 1)
+                        unlink($file);
+                }
+                else
+                    $return_code = 1;
+                $exec_returnvars = $exec_returnvars . $return_var . ' ';
+            }
+            $output = ob_get_clean();
+            echo "Return code: " . $return_code == 0 ? "0 " : $exec_returnvars;
+            return true;
+        }
+    }
+    echo "Return code: 1 Dir is empty or does not exist ", $path, "  **run_commands**";
+    return false;
+}
+
+function add_device($userid, $device_id) {
+    global $fileMode;
+    global $rootdir;
+    $devices_file = $rootdir . $userid . "/devices.txt";
+    if (!file_exists($devices_file)) {
+        $fh = fopen($devices_file, "w") or die("Return code: 10 Unable to create user's devices file!" .$devices_file . "\r\n");
+        chper($devices_file);
+    }
+    else {
+        $devices = file($devices_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($devices as $line) {
+            if ($line == $device_id) {
+                echo "Return code 11: Device already in the user's devices list.\r\n";
+                return;
+            }
+        }
+        $fh = fopen($devices_file, "a+") or die("Return code: 10 Unable to open user's devices file!" .$devices_file . "\r\n");
+    }
+    fwrite($fh, $device_id . "\n");
+    fclose($fh);
+    echo "Return code: 0 Device added to the user's devices file.\r\n";
+}
+
+function del_device($userid, $device_id) {
+    global $rootdir;
+    $devices_file = $rootdir . $userid . "/devices.txt";
+    if (file_exists($devices_file)) {
+        $devices = file($devices_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($devices as $line) {
+            if ($line != $device_id)
+                $new_devices = $new_devices . $line . "\r\n";
+        }
+        $fh = fopen($devices_file, "w") or die("Return code: 10 Unable to open user's devices file!" .$devices_file . "\r\n");
+        fwrite($fh, $new_devices);
+        fclose($fh);
+        echo "Return code: 0 Device removed from the user's devices file.\r\n";
+    }
+    else
+        echo "Return code: 12 User's devices file does not exist";
+}
+
+function get_devices_list($userid) {
+    global $rootdir;
+    $devices_file = $rootdir . $userid . "/devices.txt"; //Creates the user devices file
+    if (file_exists($devices_file)) {
+        echo "Return code: 0 ";
+        $devices = file($devices_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($devices as $device) {
+            echo $device . " ";
+        }
+    }
+    else
+        echo "Return code: 12 User's device file does not exist";
 }
 
 function add_coach($coach) {
@@ -598,7 +690,38 @@ if ($username) {
             #echo "Authentication Successful! Welcome ", $username;
             #echo "\r\n";
 
+            if (isset($_GET['listfiles'])) {
+                $subdir = isset($_GET['listfiles']) ? $_GET['listfiles'] . "/" : '';
+                $targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $username;
+                $filedir = $rootdir . $targetuser . $subdir;
+                $pattern = isset($_GET['pattern']) ? $_GET['pattern'] : '';
+                scan_dir($filedir, $pattern);
+                exit;
+            }
+
+            if (isset($_GET['runcmds'])) {
+                $subdir = $_GET['runcmds'];
+                $delete_cmdfile = isset($_GET['delete']) ? $_GET['delete'] : 0;
+                run_commands($username, $subdir, $delete_cmdfile);
+                exit;
+            }
+
             if ($username != "admin") {
+
+                if (isset($_GET['adddevice'])) {
+                    $device_id = $_GET['adddevice'];
+                    add_device($username, $device_id);
+                    exit;
+                }
+                if (isset($_GET['deldevice'])) {
+                    $device_id = $_GET['deldevice'];
+                    del_device($username, $device_id);
+                    exit;
+                }
+                if (isset($_GET['getdeviceslist'])) {
+                    get_devices_list($username);
+                    exit;
+                }
 
                 if (isset($_GET['addcoach'])) {
                     add_coach($username);
@@ -713,13 +836,6 @@ if ($username) {
                         exit;
                     }
                 }
-                if (isset($_GET['listfiles'])) {
-                    $subdir = isset($_GET['listfiles']) ? $_GET['listfiles'] . "/" : '';
-                    $targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $username;
-                    $filedir=$rootdir . $targetuser . $subdir;
-                    scan_dir($filedir);
-                    exit;
-                }
                 if (isset($_GET['delfile'])) {
                     $subdir = isset($_GET['subdir']) ? $_GET['subdir'] . "/" : '';
                     $targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : '';
@@ -775,7 +891,7 @@ if ($username) {
                         $ok = run_htpasswd("-bB", $username, $new_user_password);
                         if ($ok == 0) {
                             $userdir = $rootdir . $username;
-                            if (!create_dir($userdir))
+                            if (!create_dir($userdir . "/Database")) //Creates the user dir and its database subdir
                                 $ok = 1;
                         }
                         if ($ok == 0)

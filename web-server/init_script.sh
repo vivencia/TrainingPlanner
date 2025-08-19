@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+#go to
+#https://www.shellcheck.net/
+#to spell check shell scripts and make them more robust
+
 BASE_SERVER_DIR=/var/www/html
 TP_DIR=$BASE_SERVER_DIR/trainingplanner
 PHP_FPM_SERVICE=php-fpm
@@ -8,31 +12,33 @@ USER_NAME=$(whoami)
 PASSWORD=""
 
 print_usage() {
-	echo "Usage: $SCRIPT_NAME {setup|test|start|stop|restart|dbcreate}" >&2
+	echo "Usage: $SCRIPT_NAME {setup|status|start|stop|restart|dbcreate}" >&2
 }
 
 get_passwd() {
-    if [ ! $PASSWORD ]; then
-        read -p "Sudo's password: " -s
+    if [ ! "$PASSWORD" ]; then
+        read -p "Sudo's password: " -sr
         PASSWORD=$REPLY
-        echo $PASSWORD | sudo -S whoami | grep -q "root"
-        if [ $? != 0 ]; then
+        if ! echo "$PASSWORD" | sudo -S whoami | grep -q "root"; then
             echo "Wrong sudo password. Exiting..."
-            exit 3
+            return 1
         fi
         echo
     else
-        echo $PASSWORD | sudo -S whoami | grep -q "root"
-        if [ $? != 0 ]; then
+        if ! echo "$PASSWORD" | sudo -S whoami | grep -q "root"; then
             echo "Wrong sudo password. Exiting..."
-            exit 3
+            return 1
         fi
     fi
+    return 0
 }
 
 run_as_sudo() {
-    get_passwd
-    echo $PASSWORD | sudo -S "$@" | grep -q "root"
+    if get_passwd; then
+        echo "$PASSWORD" | sudo -S "$@" | grep -q "root"
+        return 0
+    fi
+    exit 3
 }
 
 for i in "$@"; do
@@ -45,7 +51,7 @@ for i in "$@"; do
             print_usage
             exit 0
         ;;
-        -*|--*)
+        --*|-*)
             echo "Unknown option $i"
             exit 1
         ;;
@@ -59,32 +65,31 @@ SOURCES_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 SCRIPTS_DIR=$TP_DIR/scripts
 
 NGINX="$(which nginx)"
-NGINX_CONFIG_DIR=/etc/nginx
-NGINX_SERVER_CONFIG_DIR=/etc/nginx/sites-available
-NGINX_SERVER_SITES_ENABLED=/etc/nginx/sites-enabled
+NGINX_CONFIG_DIR="/etc/nginx"
+NGINX_SERVER_CONFIG_DIR="/etc/nginx/conf.d"
 NGINX_USER=www-data
 
 PHP_FPM_CONFIG_DIR=/etc/php/php-fpm.d
 
-ADMIN=admin
+ADMIN="admin"
 ADMIN_DIR=$TP_DIR/$ADMIN
-USERS_DB=$TP_DIR/$ADMIN/users.db
+USERS_DB="$TP_DIR/$ADMIN/users.db"
 
 create_admin_user() {
-    PASS_FILE=$SCRIPTS_DIR/.passwds
+    PASS_FILE=$ADMIN_DIR/.passwds
     HTPASSWD=$(which htpasswd)
-    $HTPASSWD -bv $PASS_FILE $ADMIN $ADMIN
-    if [ $? != 0 ]; then
+    if "$HTPASSWD" -bv $PASS_FILE $ADMIN $ADMIN; then
         echo "Creating the main app user"
         #always use the -B option for htpasswd to create bcrypt hashes compatible with PHP's password_verify()
-        run_as_sudo $HTPASSWD -cbB $PASS_FILE $ADMIN $ADMIN
-        if [ $? == 0 ]; then
+        if run_as_sudo "$HTPASSWD" -cbB $PASS_FILE $ADMIN $ADMIN; then
             run_as_sudo mkdir -m 774 $ADMIN_DIR
-            run_as_sudo cp -f $SOURCES_DIR/user.fields $ADMIN_DIR
+            run_as_sudo cp -f "$SOURCES_DIR/user.fields" $ADMIN_DIR
             run_as_sudo chown -R $NGINX_USER:$NGINX_USER $ADMIN_DIR
             echo "Main app user created successfully"
+            return 0
         fi
     fi
+    return 1
 }
 
 create_users_db() {
@@ -111,26 +116,24 @@ setup_tpserver() {
         run_as_sudo mkdir -p $SCRIPTS_DIR
         run_as_sudo chmod -R 770 $TP_DIR
         run_as_sudo chmod -R 770 $SCRIPTS_DIR
-        run_as_sudo cp $SOURCES_DIR/$SCRIPT_NAME $SCRIPTS_DIR #copy this file to the scripts dir
-        run_as_sudo cp $SOURCES_DIR/url_parser.php $SCRIPTS_DIR
-        run_as_sudo cp $SOURCES_DIR/usersdb.sh $SCRIPTS_DIR
+        run_as_sudo cp "$SOURCES_DIR/$SCRIPT_NAME" $SCRIPTS_DIR #copy this file to the scripts dir
+        run_as_sudo cp "$SOURCES_DIR/url_parser.php" $SCRIPTS_DIR
+        run_as_sudo cp "$SOURCES_DIR/usersdb.sh" $SCRIPTS_DIR
         run_as_sudo chown -R $NGINX_USER:$NGINX_USER $TP_DIR
 
+        run_as_sudo cp -f "$SOURCES_DIR/nginx.conf" $NGINX_CONFIG_DIR
+        run_as_sudo chown root:root "$NGINX_CONFIG_DIR/nginx.conf"
+
         run_as_sudo mkdir $NGINX_SERVER_CONFIG_DIR
-        run_as_sudo cp -f $SOURCES_DIR/nginx.conf $NGINX_CONFIG_DIR
-        run_as_sudo chown root:root $NGINX_CONFIG_DIR/nginx.conf
+        run_as_sudo cp -f "$SOURCES_DIR/tpserver.conf" $NGINX_SERVER_CONFIG_DIR
+        run_as_sudo chown root:root "$NGINX_SERVER_CONFIG_DIR/tpserver.conf"
 
-        run_as_sudo mkdir $NGINX_SERVER_CONFIG_DIR/conf.d
-        run_as_sudo cp -f $SOURCES_DIR/tpserver.conf $NGINX_SERVER_CONFIG_DIR/conf.d
-        run_as_sudo chown root:root $NGINX_SERVER_CONFIG_DIR/conf.d/tpserver.conf
-
-        run_as_sudo cp -f $SOURCES_DIR/www.conf $PHP_FPM_CONFIG_DIR
+        run_as_sudo cp -f "$SOURCES_DIR/www.conf" $PHP_FPM_CONFIG_DIR
         create_admin_user
         create_users_db
 
-        /usr/bin/id -nG $USER_NAME | grep -qw $NGINX_USER
-        if [ $? != 0 ]; then
-            run_as_sudo usermod -a -G $NGINX_USER $(whoami)
+        if ! /usr/bin/id -nG "$USER_NAME" | grep -qw $NGINX_USER; then
+            run_as_sudo usermod -a -G $NGINX_USER "$(whoami)"
             echo "Filesystem directories and files setup."
         else
             echo "Filesystem directories and files setup. Log out and in again in order for the changes to work."
@@ -143,9 +146,8 @@ setup_tpserver() {
             echo "Service nginx is already running."
         else
             echo "Starting http server..."
-            if [ -f $NGINX ]; then
-                run_as_sudo systemctl start nginx
-                if [ $? != 0 ]; then
+            if [ -f "$NGINX" ]; then
+                if ! run_as_sudo systemctl start nginx; then
                     echo "Error starting nginx service."
                     return 4
                 fi
@@ -159,8 +161,7 @@ setup_tpserver() {
             echo "Service php-fpm is already running."
         else
             echo "Starting php-fpm..."
-            run_as_sudo systemctl start $PHP_FPM_SERVICE
-            if [ $? != 0 ]; then
+            if ! run_as_sudo systemctl start $PHP_FPM_SERVICE; then
                 echo "Error starting php-fpm service."
                 return 5
             fi
@@ -172,20 +173,20 @@ setup_tpserver() {
 }
 
 case "$COMMAND" in
-    test)
+    status)
         if [ -d "$TP_DIR" ]; then
             systemctl status nginx 1&> /dev/null
             NGINX_SETUP=$?
             PHP_FPM_SETUP=1
-            TP_SERVER=1
             if [ $NGINX_SETUP == 0 ]; then
                 systemctl status $PHP_FPM_SERVICE 1&> /dev/null
                 PHP_FPM_SETUP=$?
-                ping -w 1 192.168.10.21
-                TP_SERVER=$?
+                curl -s http://192.168.10.21/trainingplanner/ | grep -q "Bad Gateway" && TP_SERVER=1 || TP_SERVER=0
+                if [ "$TP_SERVER" == 0 ]; then
+                    curl -s http://192.168.10.21/trainingplanner/ | grep -q "Welcome" && TP_SERVER=0 || TP_SERVER=1
+                fi
             fi
-
-            if [ $TP_SERVER == 0 ]; then
+            if [ "$TP_SERVER" == 0 ]; then
                 EXIT_STATUS=0
                 MESSAGE="Local TP Server up and running."
             else
@@ -209,7 +210,7 @@ case "$COMMAND" in
             EXIT_STATUS=3
             MESSAGE="Local TP Server needs to be setup. Run" $SCRIPT_NAME "with the setup option."
         fi
-        echo $MESSAGE
+        echo "$MESSAGE"
         exit $EXIT_STATUS
     ;;
     setup)
@@ -217,27 +218,60 @@ case "$COMMAND" in
         exit $?
     ;;
     start)
-        run_as_sudo systemctl start nginx
-        run_as_sudo mkdir /run/php #an error in the fpm service might not create this needed directory
-        run_as_sudo systemctl start $PHP_FPM_SERVICE
-        exit 0
+        if run_as_sudo systemctl start nginx; then
+            run_as_sudo mkdir /run/php #an error in the fpm service might not create this needed directory
+            echo "Local network server nginx started successfully"
+            if run_as_sudo systemctl start $PHP_FPM_SERVICE; then
+                echo "PHP FPM service started successfully";
+                exit 0
+            else
+                echo "PHP FPM service failed to start";
+                exit 1
+            fi
+        else
+            echo "Local network server nginx failed to start"
+            exit 2
+        fi
+
     ;;
     stop)
-        run_as_sudo systemctl stop nginx
-        run_as_sudo systemctl stop $PHP_FPM_SERVICE
-        exit 0
+        if run_as_sudo systemctl stop nginx; then
+            echo "Local network server nginx stopped successfully"
+            if run_as_sudo systemctl stop $PHP_FPM_SERVICE; then
+                echo "PHP FPM service stopped successfully";
+                exit 0
+            else
+                echo "PHP FPM service failed to stop";
+                exit 1
+            fi
+        else
+            echo "Local network server nginx failed to stop"
+            exit 2
+        fi
     ;;
     restart)
-        run_as_sudo systemctl restart nginx
-        run_as_sudo systemctl restart $PHP_FPM_SERVICE
-        exit 0
+        if run_as_sudo systemctl restart nginx; then
+            echo "Local network server nginx restarted successfully"
+            if run_as_sudo systemctl restart $PHP_FPM_SERVICE; then
+                echo "PHP FPM service restarted successfully";
+                exit 0
+            else
+                echo "PHP FPM service failed to restart";
+                exit 1
+            fi
+        else
+            echo "Local network server nginx failed to restart"
+            exit 2
+        fi
     ;;
     dbcreate)
-        create_admin_user
-        create_users_db
+        if create_admin_user; then
+            create_users_db
+        fi
         exit $?
     ;;
     *)
+        echo "Unknown option"
         print_usage
         exit 0
     ;;

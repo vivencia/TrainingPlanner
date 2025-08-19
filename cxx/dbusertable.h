@@ -12,8 +12,10 @@ class DBUserTable : public TPDatabaseTable
 public:
 	explicit DBUserTable(DBUserModel *model);
 
-	virtual void createTable() override final;
-	virtual void updateTable() override final {}
+	static QLatin1StringView tableName();
+	static QLatin1StringView createTableQuery();
+
+	void updateTable() override final {}
 	void getAllUsers();
 	void saveUser();
 	void removeUser();

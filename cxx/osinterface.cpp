@@ -43,6 +43,7 @@ extern "C"
 #include <QFileInfo>
 #include <QGuiApplication>
 #include <QProcess>
+#include <QSysInfo>
 #include <QTcpSocket>
 #include <QTimer>
 
@@ -560,7 +561,7 @@ void OSInterface::checkLocalServer()
 		if (exitStatus != QProcess::NormalExit)
 		{
 			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, appUtils()->string_strings(
-									{"Linux TP Server"_L1, "Could not run init_script test"_L1}, record_separator));
+									{"Linux TP Server"_L1, "Could not run init_script status"_L1}, record_separator));
 			return;
 		}
 
@@ -578,12 +579,11 @@ void OSInterface::checkLocalServer()
 			case 3: commandLocalServer("setup"_L1); break;
 		}
 	});
-	check_server_proc->start(tp_server_config_script, {"test"_L1}, QIODeviceBase::ReadOnly);
+	check_server_proc->start(tp_server_config_script, {"status"_L1}, QIODeviceBase::ReadOnly);
 }
 
 void OSInterface::commandLocalServer(const QString &command)
 {
-	return;
 	connect(appItemManager(), &QmlItemManager::qmlPasswordDialogClosed, this, [this,command] (int resultCode, const QString &password) {
 		if (resultCode == 0)
 		{
@@ -626,9 +626,9 @@ void OSInterface::processArguments() const
 
 void OSInterface::restartApp()
 {
-	char *args[2] = { nullptr, nullptr };
+	char *args[2] = {nullptr, nullptr};
 	const QString &argv0{qApp->arguments().at(0)};
-	args[0] = static_cast<char*>(::malloc(static_cast<size_t>(argv0.toLocal8Bit().size())  *sizeof(char)));
+	args[0] = static_cast<char*>(::malloc(static_cast<size_t>(argv0.toLocal8Bit().size()) * sizeof(char)));
 	::strncpy(args[0], argv0.toLocal8Bit().constData(), argv0.length());
 	::execv(args[0], args);
 	::free(args[0]);
@@ -637,6 +637,11 @@ void OSInterface::restartApp()
 	::exit(0);
 }
 #endif //Q_OS_ANDROID
+
+QString OSInterface::deviceID() const
+{
+	return QSysInfo::machineUniqueId();
+}
 
 void OSInterface::checkOnlineResources()
 {

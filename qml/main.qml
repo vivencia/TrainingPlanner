@@ -31,6 +31,7 @@ ApplicationWindow {
 	signal openFileRejected(filepath: string);
 	signal passwordDialogClosed(resultCode: int, password: string);
 	signal removeNoLongerAvailableUser(row: int, remove: bool);
+	signal unregisterUser(unregister: bool);
 	signal revokeCoachStatus(new_use_opt: int, revoke: bool);
 	signal revokeClientStatus(new_use_opt: int, revoke: bool);
 	signal closeDialog();
@@ -279,6 +280,28 @@ ApplicationWindow {
 			createDialog();
 		}
 		exitPopUp.show(-2);
+	}
+
+	property TPBalloonTip unregisterUserDlg: null
+	function showUnregisterUserDialog(title: string, message: string): void {
+		if (unregisterUserDlg === null) {
+			function createDialog() {
+				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+
+				function finishCreation() {
+					unregisterUserDlg = component.createObject(contentItem, { parentPage: homePage, title: title, message: message });
+					unregisterUserDlg.button1Clicked.connect(function () { unregisterUser(true); });
+					unregisterUserDlg.button2Clicked.connect(function () { unregisterUser(false); });
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			createDialog();
+		}
+		unregisterUserDlg.show(-1);
 	}
 
 	property TPBalloonTip revokeCoachStatusDlg: null

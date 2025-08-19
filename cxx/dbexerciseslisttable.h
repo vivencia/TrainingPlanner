@@ -6,17 +6,18 @@
 
 QT_FORWARD_DECLARE_CLASS(DBExercisesListModel)
 
-class DBExercisesTable final : public TPDatabaseTable
+class DBExercisesListTable final : public TPDatabaseTable
 {
 
 Q_OBJECT
 
 public:
-	explicit DBExercisesTable(DBExercisesListModel *model);
+	explicit DBExercisesListTable(DBExercisesListModel *model);
 
-	void createTable() override final;
-	virtual void updateTable() override final {}
+	static QLatin1StringView tableName();
+	static QLatin1StringView createTableQuery();
 
+	void updateTable() override final {}
 	void getAllExercises();
 	void updateExercisesList();
 	void saveExercises();

@@ -95,6 +95,8 @@ public:
 								  const QString &identifier,
 								  const std::function<QString(const uint field, const QString &value)> &formatToImport = nullptr) const;
 
+	QFile *createServerCmdFile(const QString &subdir, const uint cmd_order, const QString &command) const;
+
 	Q_INVOKABLE void copyToClipBoard(const QString &text) const;
 	inline QLocale *appLocale() const { return m_appLocale; }
 

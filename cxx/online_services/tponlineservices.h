@@ -6,6 +6,10 @@
 QT_FORWARD_DECLARE_CLASS(QNetworkReply)
 QT_FORWARD_DECLARE_CLASS(QFile)
 
+/**
+ * @brief The TPOnlineServices class is a front-end to the file url_parser.php.
+ */
+
 class TPOnlineServices : public QObject
 {
 
@@ -30,7 +34,11 @@ public:
 	void removeUser(const int requestid, const QString &username);
 	void changePassword(const int requestid, const QString &username, const QString &old_passwd, const QString &new_passwd);
 
+	void addDevice(const int requestid, const QString &username, const QString &passwd, const QString &device_id);
+	void delDevice(const int requestid, const QString &username, const QString &passwd, const QString &device_id);
+	void getDevicesList(const int requestid, const QString &username, const QString &passwd);
 	void addOrRemoveCoach(const int requestid, const QString &username, const QString &passwd, const bool bAdd);
+	void getOnlineCoachesList(const int requestid, const QString &username, const QString &passwd);
 	void sendRequestToCoach(const int requestid, const QString &username, const QString &passwd, const QString& coach_net_name);
 	void checkClientsRequests(const int requestid, const QString &username, const QString &passwd);
 	void removeClientRequest(const int requestid, const QString &username, const QString &passwd, const QString &client);
@@ -44,11 +52,12 @@ public:
 	void removeClientFromCoach(const int requestid, const QString &username, const QString &passwd, const QString &client);
 	void checkCurrentCoaches(const int requestid, const QString &username, const QString &passwd);
 	void removeCoachFromClient(const int requestid, const QString &username, const QString &passwd, const QString &coach);
+	void executeCommands(const int requestid, const QString &username, const QString &passwd, const QString &subdir, const bool delete_cmdfile = true);
 
 	void sendFile(const int requestid, const QString &username, const QString &passwd, QFile *file, const QString &subdir = QString{},
 					const QString &targetUser = QString{}, const bool b_internal_signal_only = false);
-	void listFiles(const int requestid, const QString &username, const QString &passwd, const QString &subdir = QString{},
-					const QString &targetUser = QString{});
+	void listFiles(const int requestid, const QString &username, const QString &passwd, const QString &pattern = QString{},
+					const QString &subdir = QString{}, const QString &targetUser = QString{});
 	void removeFile(const int requestid, const QString &username, const QString &passwd, const QString &filename, const QString &subdir = QString{},
 					const QString &targetUser = QString{});
 
@@ -62,7 +71,7 @@ public:
 	 */
 	void getFile(const int requestid, const QString &username, const QString &passwd, const QString &filename, const QString &subdir = {},
 					const QString &targetUser = QString{}, const QString &localFilePath = QString{});
-	void getOnlineCoachesList(const int requestid, const QString &username, const QString &passwd);
+
 
 signals:
 	void networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string);

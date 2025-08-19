@@ -211,9 +211,48 @@ ColumnLayout {
 		actionable: userRow === 0
 		radio: false
 		checked: userModel.onlineUser
-		Layout.fillWidth: true
+		Layout.maximumWidth: parent.width * 0.7
 
 		onClicked: userModel.onlineUser = checked;
+
+		TPButton {
+			imageSource: "question.png"
+			width: appSettings.itemDefaultHeight
+			height: width
+
+			anchors {
+				verticalCenter: parent.verticalCenter
+				left: parent.right
+				leftMargin: -15
+			}
+
+			onClicked: showUserRegistrationDialog();
+		}
+	}
+
+	property TPBalloonTip userRegistrationDlg: null
+	function showUserRegistrationDialog(): void {
+		if (userRegistrationDlg === null) {
+			function createDialog() {
+				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+
+				function finishCreation() {
+					userRegistrationDlg = component.createObject(mainwindow.contentItem, { parentPage: homePage,
+					title: qsTr("Online Registration"), button1Text: "OK", button2Text: "",
+					message: qsTr("When you register online, you create a unique user account that will enable to sync your workouts and training programs from accross devices.
+					You'll be able to do that for your clients as well if you decide to be a trainer or coach.
+					You'll get programs and advices from coaches and more.
+					But it's not required for the app to work.") });
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			createDialog();
+		}
+		userRegistrationDlg.show(-1);
 	}
 
 	function getUserInfo(): void {

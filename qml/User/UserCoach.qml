@@ -75,7 +75,7 @@ ColumnLayout {
 		checked: userModel.isCoachRegistered();
 		multiLine: true
 		actionable: userRow === 0
-		visible: userModel.mainUserConfigured && optCoachUse.checked && userRow === 0
+		enabled: userModel.mainUserConfigured && userModel.onlineUser && optCoachUse.checked && userRow === 0
 		Layout.fillWidth: true
 		Layout.leftMargin: 10
 		Layout.rightMargin: 10
@@ -114,7 +114,6 @@ ColumnLayout {
 		asynchronous: true
 
 		sourceComponent: TPBalloonTip {
-			id: rescindDlg
 			title: qsTr("Rescind from coaching?")
 			message: qsTr("You currently have clients that will no longer be your clients if you continue")
 			imageSource: "warning"

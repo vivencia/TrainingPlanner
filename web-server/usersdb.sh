@@ -31,14 +31,14 @@ declare -a VALUES
 #VALUES+=("" "" "" "" "" "" "" "" "" "" "" "" "" "")
 get_values() {
     i=0;
-    if [ -f $DATA_FILE ]; then
+    if [ -f "$DATA_FILE" ]; then
         while IFS= read -r line || [[ -n "$line" ]]; do
             VALUES+=("${line}")
             (( i++ ))
-        done < $DATA_FILE
+        done < "$DATA_FILE"
     fi
-    rm -f $DATA_FILE #do not leave file behind. Might lead to problems if, for example, a file upload fails and this script uses an already used file
-    if [ $i == $N_FIELDS ]; then
+    rm -f "$DATA_FILE" #do not leave file behind. Might lead to problems if, for example, a file upload fails and this script uses an already used file
+    if [ $i == "$N_FIELDS" ]; then
         return 0
     else
         return 1
@@ -48,13 +48,13 @@ get_values() {
 declare -a FIELDS
 get_fields() {
     x=0;
-    if [ -f $FIELDS_FILE ]; then
+    if [ -f "$FIELDS_FILE" ]; then
         while IFS= read -r line || [[ -n "$line" ]]; do
             FIELDS+=("${line}")
             (( x++ ))
-        done < $FIELDS_FILE
+        done < "$FIELDS_FILE"
     fi
-    if [[ $x == $N_FIELDS ]]; then
+    if [[ $x == "$N_FIELDS" ]]; then
         return 0
     else
         return 1
@@ -66,7 +66,7 @@ get_update_command() {
     if get_fields; then
         if get_values; then
             i=1
-            while [ $i -lt $N_FIELDS ]; do
+            while [ $i -lt "$N_FIELDS" ]; do
                 if [ $i != $LAST_FIELD ]; then
                     UPDATE_CMD="$UPDATE_CMD ${FIELDS[$i]}='${VALUES[$i]}',"
                 else
@@ -94,7 +94,7 @@ get_insert_command() {
         done
         if get_values; then
             (( z=0 ))
-            while [ $z -lt $N_FIELDS  ]; do
+            while [ $z -lt "$N_FIELDS"  ]; do
                 if [ $z != $LAST_FIELD ]; then
                     INSERT_CMD="$INSERT_CMD'${VALUES[$z]}',"
                 else
@@ -152,27 +152,27 @@ get_id() {
         REQUESTED_PASSWD=$($SQLITE -line $USERS_DB "SELECT password FROM users_table WHERE id=$REQUESTED_ID;")
         REQUESTED_PASSWD=$(echo "${REQUESTED_PASSWD}" | cut -d '=' -f 2)
         TEMP_HT_FILE=$ADMIN_DIR$REQUESTED_ID".htpasswd"
-        echo $REQUESTED_ID:$REQUESTED_PASSWD > $TEMP_HT_FILE
-        /usr/bin/htpasswd -bv $TEMP_HT_FILE $REQUESTED_ID $REQUESTED_PASSWD > /dev/null 2>&1
-        rm -f $TEMP_HT_FILE
-        return_var = "$?";
+        echo "$REQUESTED_ID:$REQUESTED_PASSWD" > "$TEMP_HT_FILE"
+        /usr/bin/htpasswd -bv "$TEMP_HT_FILE" "$REQUESTED_ID" "$REQUESTED_PASSWD" > /dev/null 2>&1
+        rm -f "$TEMP_HT_FILE"
+        return_var="$?";
         case "$return_var" in
-            0) error_string = "User exists and password is correct";;
-            3) error_string = "User exists and password is wrong";;
-            6) error_string = "User does not exist";;
-            *) error_string = "User does not exist";;
+            0) error_string="User exists and password is correct";;
+            3) error_string="User exists and password is wrong";;
+            6) error_string="User does not exist";;
+            *) error_string="User does not exist";;
         esac
     else
-        error_string = "User does not exist"
-        return_var = 6
+        error_string="User does not exist"
+        return_var=6
     fi
-    echo $error_string
+    echo "$error_string"
     return $return_var
 }
 
 check_user_dir()
 {
-    if [ ! -d $USER_DIR ]; then
+    if [ ! -d "$USER_DIR" ]; then
         echo "User dir does not exist: $USER_DIR"
         return 1
     else

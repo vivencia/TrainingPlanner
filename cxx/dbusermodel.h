@@ -97,20 +97,14 @@ public:
 
 	inline uint userCount() const { return m_usersData.count(); }
 
-	inline const QString &_onlineUser() const { return m_usersData.at(0).at(USER_COL_NETUSER); }
-	inline bool onlineUser() const { return mb_onlineUser; }
-	inline void setOnlineUser(const bool online_user)
-	{
-		mb_onlineUser = online_user;
-		emit onlineUserChanged();
-		m_usersData[0][USER_COL_BIRTHDAY] = online_user ? '1' : '0';
-		emit userModified(0, USER_COL_BIRTHDAY);
-	}
+	inline const QString &_onlineUser(const uint user_idx) const { return user_idx < m_usersData.count() ? m_usersData.at(user_idx).at(USER_COL_NETUSER) : m_onlineUserId; }
+	inline bool onlineUser(const uint user_idx = 0) const { return _onlineUser(user_idx) == '1'; }
+	void setOnlineUser(const bool online_user, const uint user_idx = 0);
 
 	void addUser(QStringList &&user_info);
 	Q_INVOKABLE void createMainUser();
-	Q_INVOKABLE void removeMainUser();
-	Q_INVOKABLE void removeUser(const int user_idx);
+	void removeMainUser();
+	Q_INVOKABLE void removeUser(const int user_idx, const bool remove_local = true, const bool remove_online = true);
 
 	const int getuser_idxByCoachName(const QString &coachname) const;
 	Q_INVOKABLE inline bool isCoach(const uint user_idx) const
@@ -291,8 +285,8 @@ public:
 	Q_INVOKABLE void sendRequestToCoaches();
 	Q_INVOKABLE void getOnlineCoachesList(const bool get_list_only = false);
 
-	int sendFileToServer(const QString &filename, const QString &successMessage = QString{}, const QString &subdir = QString{},
-							const QString &targetUser = QString{}, const bool removeLocalFile = false);
+	int sendFileToServer(const QString &filename, QFile *upload_file = nullptr, const QString &successMessage = QString{},
+			const QString &subdir = QString{}, const QString &targetUser = QString{}, const bool removeLocalFile = false);
 	int downloadFileFromServer(const QString &filename, const QString &localFile = QString{}, const QString &successMessage = QString{},
 							   const QString &subdir = QString{}, const QString &targetUser = QString{});
 	void removeFileFromServer(const QString &filename, const QString &subdir = QString{}, const QString &targetUser = QString{});
@@ -306,6 +300,7 @@ public:
 
 public slots:
 	void getPasswordFromUserInput(const int resultCode, const QString &password);
+	void slot_unregisterUser(const bool unregister);
 	void slot_removeNoLongerAvailableUser(const int user_idx, bool remove);
 	void slot_revokeCoachStatus(int new_use_opt, bool revoke);
 	void slot_revokeClientStatus(int new_use_opt, bool revoke);
@@ -332,27 +327,33 @@ signals:
 	void userPasswordAvailable(const QString &password);
 	void fileDownloaded(const bool success, const uint requestid, const QString &localFileName);
 	void fileUploaded(const bool success, const uint requestid);
+	void onlineDevicesListReceived(const bool success);
+	void lastOnlineCmdRetrieved(const uint requestid, const QString &last_cmd);
 
 private:
 	QList<QStringList> m_usersData, m_tempUserData;
 	int m_tempRow;
 	QString m_onlineUserId, m_password, m_defaultAvatar, m_emptyString, m_onlineCoachesDir,
 		m_dirForRequestedCoaches, m_dirForClientsRequests, m_dirForCurrentClients, m_dirForCurrentCoaches;
-	std::optional<bool> mb_userRegistered, mb_coachRegistered;
+	std::optional<bool> mb_singleDevice, mb_userRegistered, mb_coachRegistered;
 	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses, *m_tempUserInfo;
 	QStringList m_coachesNames, m_clientsNames;
-	bool mb_onlineUser, mb_canConnectToServer, mb_coachPublic, mb_MainUserInfoChanged;
+	bool mb_canConnectToServer, mb_coachPublic, mb_MainUserInfoChanged;
 	QTimer *m_mainTimer;
 
+	QString generateUniqueUserId() const;
 	void onlineCheckIn();
 	void registerUserOnline();
-	QString generateUniqueUserId() const;
+	void firstTimeOnlineRegistrationActions();
+	void getOnlineDevicesList();
+	void createOnlineDatabases();
+	void lastOnlineCmd(const uint requestid, const QString &subdir = QString{});
 	QString resume(const uint user_idx) const;
 	void checkIfCoachRegisteredOnline();
 	void getUserOnlineProfile(const QString &netName, const QString &save_as_filename);
 	void sendProfileToServer();
 	void sendUserInfoToServer();
-	inline void sendAvatarToServer() { sendFileToServer(avatar(0), QString{}, QString{}, userId(0)); }
+	inline void sendAvatarToServer() { sendFileToServer(avatar(0), nullptr, QString{}, QString{}, userId(0)); }
 	inline QString defaultAvatar(const uint user_idx) const
 	{
 		return sex(user_idx) == 0 ? "image://tpimageprovider/m0"_L1 : "image://tpimageprovider/f1"_L1;

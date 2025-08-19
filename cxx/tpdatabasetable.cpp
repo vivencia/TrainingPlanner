@@ -18,7 +18,7 @@ TPDatabaseTable *TPDatabaseTable::createDBTable(const uint table_id, const bool 
 	TPDatabaseTable *db_table{nullptr};
 	switch (table_id)
 	{
-		case EXERCISES_TABLE_ID: db_table = new DBExercisesTable{nullptr}; break;
+		case EXERCISES_TABLE_ID: db_table = new DBExercisesListTable{nullptr}; break;
 		case MESOCYCLES_TABLE_ID: db_table = new DBMesocyclesTable{nullptr}; break;
 		case MESOSPLIT_TABLE_ID: db_table = new DBWorkoutsOrSplitsTable{MESOSPLIT_TABLE_ID}; break;
 		case MESOCALENDAR_TABLE_ID: db_table = new DBMesoCalendarTable{nullptr}; break;
@@ -28,6 +28,30 @@ TPDatabaseTable *TPDatabaseTable::createDBTable(const uint table_id, const bool 
 	if (db_table && auto_delete)
 		db_table->deleteLater();
 	return db_table;
+}
+
+QString TPDatabaseTable::createTableQuery(const uint table_id)
+{
+	switch (table_id)
+	{
+		case EXERCISES_TABLE_ID: return QString{DBExercisesListTable::createTableQuery()}.arg(DBExercisesListTable::tableName());
+		case MESOCYCLES_TABLE_ID: return QString{DBUserTable::createTableQuery()}.arg(DBUserTable::tableName());
+		case MESOSPLIT_TABLE_ID: return QString{DBWorkoutsOrSplitsTable::createTableQuery()}.arg(DBWorkoutsOrSplitsTable::tableName(MESOSPLIT_TABLE_ID));
+		case MESOCALENDAR_TABLE_ID: return QString{DBMesoCalendarTable::createTableQuery()}.arg(DBMesoCalendarTable::tableName());
+		case WORKOUT_TABLE_ID: return QString{DBWorkoutsOrSplitsTable::createTableQuery()}.arg(DBWorkoutsOrSplitsTable::tableName(WORKOUT_TABLE_ID));
+		case USERS_TABLE_ID: return QString{DBUserTable::createTableQuery()}.arg(DBUserTable::tableName());
+	}
+	return QString{};
+}
+
+void TPDatabaseTable::createTable()
+{
+	if (openDatabase())
+	{
+		QSqlQuery query{std::move(getQuery())};
+		const bool ok{query.exec(createTableQuery(m_tableId))};
+		setQueryResult(ok, QString{}, SOURCE_LOCATION);
+	}
 }
 
 void TPDatabaseTable::removeEntry(const bool bUseMesoId)

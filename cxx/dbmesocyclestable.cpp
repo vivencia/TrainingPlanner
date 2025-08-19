@@ -11,7 +11,7 @@
 DBMesocyclesTable::DBMesocyclesTable(DBMesocyclesModel *model)
 	: TPDatabaseTable{MESOCYCLES_TABLE_ID}, m_model{model}
 {
-	m_tableName = std::move("mesocycles_table"_L1);
+	setTableName(tableName());
 	m_UniqueID = appUtils()->generateUniqueId();
 	const QString &cnx_name{"db_meso_connection"_L1 + QString::number(m_UniqueID)};
 	mSqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name));
@@ -21,12 +21,14 @@ DBMesocyclesTable::DBMesocyclesTable(DBMesocyclesModel *model)
 	#endif
 }
 
-void DBMesocyclesTable::createTable()
+QLatin1StringView DBMesocyclesTable::tableName()
 {
-	if (openDatabase())
-	{
-		QSqlQuery query{std::move(getQuery())};
-		const QString &strQuery{"CREATE TABLE IF NOT EXISTS %1 ("
+	return "mesocycles_table"_L1;
+}
+
+QLatin1StringView DBMesocyclesTable::createTableQuery()
+{
+	return "CREATE TABLE IF NOT EXISTS %1 ("
 										"id INTEGER PRIMARY KEY AUTOINCREMENT,"
 										"meso_name TEXT,"
 										"meso_start_date INTEGER,"
@@ -45,11 +47,7 @@ void DBMesocyclesTable::createTable()
 										"meso_program_file TEXT,"
 										"meso_type TEXT,"
 										"real_meso INTEGER"
-									")"_L1.arg(m_tableName)
-		};
-		const bool ok{query.exec(strQuery)};
-		setQueryResult(ok, strQuery, SOURCE_LOCATION);
-	}
+									")"_L1;
 }
 
 void DBMesocyclesTable::getAllMesocycles()
@@ -58,7 +56,7 @@ void DBMesocyclesTable::getAllMesocycles()
 	{
 		bool ok{false};
 		QSqlQuery query{std::move(getQuery())};
-		const QString &strQuery{"SELECT * FROM %1 ORDER BY ROWID"_L1.arg(m_tableName)};
+		const QString &strQuery{"SELECT * FROM %1 ORDER BY ROWID"_L1.arg(tableName())};
 
 		if (query.exec(strQuery))
 		{
@@ -87,7 +85,7 @@ void DBMesocyclesTable::saveMesocycle()
 		bool bUpdate{false};
 		QString strQuery;
 
-		if (query.exec("SELECT id FROM %1 WHERE id=%2"_L1.arg(m_tableName, m_model->id(meso_idx))))
+		if (query.exec("SELECT id FROM %1 WHERE id=%2"_L1.arg(tableName(), m_model->id(meso_idx))))
 		{
 			if (query.first())
 				bUpdate = query.value(0).toUInt() >= 0;
@@ -101,7 +99,7 @@ void DBMesocyclesTable::saveMesocycle()
 								"splitA=\'%8\', splitB=\'%9\', splitC=\'%10\', splitD=\'%11\', splitE=\'%12\', splitF=\'%13\', "
 								"meso_coach=%14, meso_client=%15, meso_program_file=\'%16\', meso_type=\'%17\', "
 								"real_meso=%18 WHERE id=%19"_s
-								.arg(m_tableName, m_model->name(meso_idx), m_model->strStartDate(meso_idx), m_model->strEndDate(meso_idx),
+								.arg(tableName(), m_model->name(meso_idx), m_model->strStartDate(meso_idx), m_model->strEndDate(meso_idx),
 									m_model->notes(meso_idx), m_model->nWeeks(meso_idx), m_model->split(meso_idx),
 									m_model->splitA(meso_idx), m_model->splitB(meso_idx), m_model->splitC(meso_idx), m_model->splitD(meso_idx),
 									m_model->splitE(meso_idx), m_model->splitF(meso_idx), m_model->coach(meso_idx), m_model->client(meso_idx),
@@ -114,7 +112,7 @@ void DBMesocyclesTable::saveMesocycle()
 						"splitA,splitB,splitC,splitD,splitE,splitF,meso_coach,meso_client,meso_program_file,meso_type,real_meso)"
 						" VALUES(\'%2\', %3, %4, \'%5\', %6, \'%7\', \'%8\', \'%9\', \'%10\', \'%11\', \'%12\', \'%13\', "
 							"%14, %15, \'%16\', \'%17\', %18)"_s
-							.arg(m_tableName, m_model->name(meso_idx), m_model->strStartDate(meso_idx), m_model->strEndDate(meso_idx),
+							.arg(tableName(), m_model->name(meso_idx), m_model->strStartDate(meso_idx), m_model->strEndDate(meso_idx),
 								m_model->notes(meso_idx), m_model->nWeeks(meso_idx), m_model->split(meso_idx),
 								m_model->splitA(meso_idx), m_model->splitB(meso_idx), m_model->splitC(meso_idx), m_model->splitD(meso_idx),
 								m_model->splitE(meso_idx), m_model->splitF(meso_idx), m_model->coach(meso_idx), m_model->client(meso_idx),

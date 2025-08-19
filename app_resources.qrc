@@ -110,5 +110,6 @@
         <file>images/settings.png</file>
         <file>images/exercisesdb.png</file>
         <file>qml/TPWidgets/TPTabButton.qml</file>
+        <file>images/flat/question.png</file>
     </qresource>
 </RCC>

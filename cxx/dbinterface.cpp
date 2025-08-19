@@ -172,20 +172,20 @@ void DBInterface::deleteUserTable(const bool bRemoveFile)
 //-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 int DBInterface::getAllExercises()
 {
-	DBExercisesTable *worker{new DBExercisesTable{appExercisesList()}};
+	DBExercisesListTable *worker{new DBExercisesListTable{appExercisesList()}};
 	createThread(worker, [worker] () { worker->getAllExercises(); });
 	return worker->uniqueId();
 }
 
 void DBInterface::saveExercises()
 {
-	DBExercisesTable *worker{new DBExercisesTable{appExercisesList()}};
+	DBExercisesListTable *worker{new DBExercisesListTable{appExercisesList()}};
 	createThread(worker, [worker] () { return worker->saveExercises(); });
 }
 
 void DBInterface::removeExercise(const uint row)
 {
-	DBExercisesTable *worker{new DBExercisesTable{nullptr}};
+	DBExercisesListTable *worker{new DBExercisesListTable{nullptr}};
 	worker->addExecArg(appExercisesList()->id(row));
 	worker->addExecArg(row);
 	createThread(worker, [worker] () { return worker->removeEntry(); });
@@ -193,14 +193,14 @@ void DBInterface::removeExercise(const uint row)
 
 void DBInterface::deleteExercisesTable(const bool bRemoveFile)
 {
-	DBExercisesTable *worker{new DBExercisesTable{appExercisesList()}};
+	DBExercisesListTable *worker{new DBExercisesListTable{appExercisesList()}};
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 
 void DBInterface::updateExercisesList()
 {
-	DBExercisesTable *worker{new DBExercisesTable{appExercisesList()}};
-	connect(worker, &DBExercisesTable::updatedFromExercisesList, this, [this] () {
+	DBExercisesListTable *worker{new DBExercisesListTable{appExercisesList()}};
+	connect(worker, &DBExercisesListTable::updatedFromExercisesList, this, [this] () {
 		appSettings()->setExercisesListVersion(m_exercisesListVersion);
 	});
 	createThread(worker, [worker] () { return worker->updateExercisesList(); });

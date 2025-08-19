@@ -1,6 +1,7 @@
 #include "tputils.h"
 
 #include "dbexercisesmodel.h"
+#include "osinterface.h"
 #include "qmlitemmanager.h"
 
 #include <QClipboard>
@@ -480,6 +481,20 @@ int TPUtils::readDataFromFormattedFile(QFile *in_file,
 		}
 	}
 	return identifier_found ? field : APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE;
+}
+
+QFile *TPUtils::createServerCmdFile(const QString &subdir, const uint cmd_order, const QString &command) const
+{
+	QFile *cmd_file{openFile(localAppFilesDir() + subdir + QString::number(cmd_order) + ".cmd"_L1,
+								QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text)};
+	if (cmd_file)
+	{
+		const QString &cmd_string{"#Device_ID "_L1 + appOsInterface()->deviceID() + '\n' + command +
+									'\n' + appOsInterface()->deviceID()};
+		cmd_file->write(cmd_string.toUtf8().constData());
+		cmd_file->flush();
+	}
+	return cmd_file;
 }
 
 void TPUtils::scanDir(const QString &path, QFileInfoList &results, const QString &match, const bool follow_tree) const
