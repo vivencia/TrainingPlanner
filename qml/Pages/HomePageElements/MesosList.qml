@@ -296,54 +296,52 @@ Item {
 			bottom: parent.bottom
 		}
 
-		TPButton {
-			id: btnAddMeso
-			text: qsTr("New Training Program")
-			imageSource: "mesocycle-add.png"
-			flat: false
-			autoSize: true
+		ColumnLayout {
+			anchors.fill: parent
+			spacing: 5
 
-			anchors {
-				horizontalCenter: parent.horizontalCenter
-				verticalCenter: parent.verticalCenter
-				verticalCenterOffset: mainUserPrograms ? -(1.66 * appSettings.itemDefaultHeight) : -(1.33 * appSettings.itemDefaultHeight)
+			TPButton {
+				id: btnAddMeso
+				text: qsTr("New Training Program")
+				imageSource: "mesocycle-add.png"
+				flat: false
+				multiline: false
+				Layout.preferredWidth: preferredWidth
+				Layout.maximumWidth: parent.width - 20
+				Layout.maximumHeight: appSettings.itemDefaultHeight
+				Layout.alignment: Qt.AlignCenter
+
+				onClicked: mesocyclesModel.startNewMesocycle_QML(mainUserPrograms);
 			}
 
-			onClicked: mesocyclesModel.startNewMesocycle_QML(mainUserPrograms);
-		}
+			TPButton {
+				id: btnImportMeso
+				text: qsTr("Import program from file")
+				imageSource: "import.png"
+				flat: false
+				multiline: false
+				Layout.preferredWidth: preferredWidth
+				Layout.maximumWidth: parent.width - 20
+				Layout.maximumHeight: appSettings.itemDefaultHeight
+				Layout.alignment: Qt.AlignCenter
 
-		TPButton {
-			id: btnImportMeso
-			text: qsTr("Import program from file")
-			imageSource: "import.png"
-			flat: false
-			autoSize: true
-
-			anchors {
-				horizontalCenter: parent.horizontalCenter
-				verticalCenter: parent.verticalCenter
-				verticalCenterOffset: mainUserPrograms ? 0 : 1.33 * appSettings.itemDefaultHeight
+				onClicked: itemManager.chooseFileToImport();
 			}
 
-			onClicked: itemManager.chooseFileToImport();
-		}
+			TPButton {
+				id: btnWorkout
+				text: qsTr("Today's workout")
+				imageSource: "workout.png"
+				flat: false
+				multiline: false
+				visible: mainUserPrograms
+				enabled: mesocyclesModel.canHaveTodaysWorkout
+				Layout.preferredWidth: preferredWidth
+				Layout.maximumHeight: appSettings.itemDefaultHeight
+				Layout.alignment: Qt.AlignCenter
 
-		TPButton {
-			id: btnWorkout
-			text: qsTr("Today's workout")
-			imageSource: "workout.png"
-			flat: false
-			autoSize: true
-			visible: mainUserPrograms
-			enabled: mesocyclesModel.canHaveTodaysWorkout
-
-			anchors {
-				horizontalCenter: parent.horizontalCenter
-				bottom: parent.bottom
-				bottomMargin: 5
+				onClicked: mesocyclesModel.todaysWorkout();
 			}
-
-			onClicked: mesocyclesModel.todaysWorkout();
 		}
 	}
 

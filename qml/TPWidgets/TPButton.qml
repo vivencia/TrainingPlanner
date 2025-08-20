@@ -12,8 +12,9 @@ Rectangle {
 	opacity: checked ? 0.7 : 1
 	color: backgroundColor
 	height: buttonText.contentHeight + (textUnderIcon ? imageSize : 0) + (text.length > 0 ? buttonText.lineCount * 10 : 0)
-	width: autoSize ? (buttonText.contentWidth + (textUnderIcon ? 0 : imageSize) + (text.length > 0 ? 20 : 0)) : undefined
+	width: autoSize ? preferredWidth : undefined
 
+	readonly property int preferredWidth: buttonText.contentWidth + (textUnderIcon ? 0 : imageSize) + (text.length > 0 ? 20 : 0)
 	property color textColor: appSettings.fontColor
 	property alias font: buttonText.font
 	property alias text: buttonText.text
@@ -22,12 +23,13 @@ Rectangle {
 	property bool autoSize: false
 	property bool textUnderIcon: false
 	property bool highlighted: false
-	property bool flat: true
+	property bool flat: false
 	property bool iconOnTheLeft: false
 	property bool rounded: true
 	property bool checkable: false
 	property bool hasDropShadow: true
 	property bool checked: false
+	property bool multiline: true
 	property int clickId: -1
 	property int imageSize: 0
 
@@ -144,7 +146,7 @@ Rectangle {
 		id: buttonText
 		visible: text.length > 0
 		color: enabled ? appSettings.fontColor : appSettings.disabledFontColor
-		wrapMode: Text.WordWrap
+		wrapMode: multiline ? Text.WordWrap : Text.NoWrap
 		font: AppGlobals.regularFont
 		minimumPixelSize: appSettings.smallFontSize
 		maximumLineCount: 5

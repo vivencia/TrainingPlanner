@@ -64,6 +64,7 @@ public:
 	QString getFilePath(const QString &filename) const;
 	QString getLastDirInPath(const QString &filename) const;
 	QString getFileName(const QString &filename, const bool without_extension = false) const;
+	QString getFileExtension(const QString &filename, const bool include_dot = false) const;
 	bool mkdir(const QString &fileOrDir) const;
 	bool copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath = true) const;
 	QFile *openFile(const QString &filename, QIODeviceBase::OpenMode flags) const;
@@ -100,8 +101,8 @@ public:
 	Q_INVOKABLE void copyToClipBoard(const QString &text) const;
 	inline QLocale *appLocale() const { return m_appLocale; }
 
-	Q_INVOKABLE QString monthName(const uint qml_month) const { return _months_names.at(qml_month); }
-	Q_INVOKABLE QString dayName(const uint week_day) const { return _days_names.at(week_day); }
+	Q_INVOKABLE inline QString monthName(const uint qml_month) const { return _months_names.at(qml_month); }
+	Q_INVOKABLE inline QString dayName(const uint week_day) const { return _days_names.at(week_day); }
 	Q_INVOKABLE QString formatDate(const QDate &date, const DATE_FORMAT format = DF_QML_DISPLAY) const;
 	inline QString formatTodayDate(const DATE_FORMAT format = DF_QML_DISPLAY) const { return std::move(formatDate(QDate::currentDate())); }
 	QDate getDateFromDateString(const QString &strdate, const DATE_FORMAT format = DF_QML_DISPLAY) const;

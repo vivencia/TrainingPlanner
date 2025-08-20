@@ -272,8 +272,8 @@ void TPOnlineServices::sendFile(const int requestid, const QString &username, co
 	makeNetworkRequest(requestid, url, true);
 }
 
-void TPOnlineServices::listFiles(const int requestid, const QString &username, const QString &passwd,
-		const QString &pattern, const QString &subdir, const QString &targetUser)
+void TPOnlineServices::listFiles(const int requestid, const QString &username, const QString &passwd, const bool only_new,
+						const bool include_ctime, const QString &pattern, const QString &subdir, const QString &targetUser)
 {
 	auto conn = std::make_shared<QMetaObject::Connection>();
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
@@ -289,9 +289,15 @@ void TPOnlineServices::listFiles(const int requestid, const QString &username, c
 				for (uint i{0}; i < remote_files_list.count(); i=+2)
 				{
 					QString filename{std::move(remote_files_list.at(i))};
-					const QString &online_date{remote_files_list.at(i+1)};
-					if (!localFileUpToDate(online_date, localDir + filename))
-						new_files.append(std::move(filename));
+					QString online_date{std::move(remote_files_list.at(i+1))};
+					if (only_new)
+					{
+						if (localFileUpToDate(online_date, localDir + filename))
+							continue;
+					}
+					new_files.append(std::move(filename));
+					if (include_ctime)
+						new_files.append(std::move(online_date));
 				}
 			}
 			emit networkListReceived(request_id, ret_code, new_files);
@@ -306,6 +312,30 @@ void TPOnlineServices::removeFile(const int requestid, const QString &username, 
 {
 	const QUrl &url{makeCommandURL(username, passwd, "delfile"_L1, filename, "subdir"_L1, subdir, "fromuser"_L1, targetUser)};
 	makeNetworkRequest(requestid, url, true);
+}
+
+bool TPOnlineServices::remoteFileUpToDate(const QString &onlineDate, const QString &localFile) const
+{
+	QFileInfo fi{localFile};
+	if (fi.exists())
+	{
+		const QDateTime &c_time{fi.lastModified()};
+		const QDateTime &online_ctime{appUtils()->getDateTimeFromOnlineString(onlineDate)};
+		return online_ctime >= c_time;
+	}
+	return true;
+}
+
+bool TPOnlineServices::localFileUpToDate(const QString &onlineDate, const QString &localFile) const
+{
+	QFileInfo fi{localFile};
+	if (fi.exists())
+	{
+		const QDateTime &c_time{fi.lastModified()};
+		const QDateTime &online_ctime{appUtils()->getDateTimeFromOnlineString(onlineDate)};
+		return c_time >= online_ctime;
+	}
+	return false;
 }
 
 void TPOnlineServices::getFile(const int requestid, const QString &username, const QString &passwd, const QString &filename, const QString &subdir,
@@ -427,28 +457,4 @@ void TPOnlineServices::uploadFile(const int requestid, const QUrl &url, QFile *f
 		});
 		multiPart->setParent(reply); // Let the reply manage the multipart's lifecycle
 	}
-}
-
-bool TPOnlineServices::remoteFileUpToDate(const QString &onlineDate, const QString &localFile) const
-{
-	QFileInfo fi{localFile};
-	if (fi.exists())
-	{
-		const QDateTime &c_time{fi.birthTime()};
-		const QDateTime &online_ctime{appUtils()->getDateTimeFromOnlineString(onlineDate)};
-		return online_ctime >= c_time;
-	}
-	return false;
-}
-
-bool TPOnlineServices::localFileUpToDate(const QString &onlineDate, const QString &localFile) const
-{
-	QFileInfo fi{localFile};
-	if (fi.exists())
-	{
-		const QDateTime &c_time{fi.birthTime()};
-		const QDateTime &online_ctime{appUtils()->getDateTimeFromOnlineString(onlineDate)};
-		return c_time >= online_ctime;
-	}
-	return false;
 }

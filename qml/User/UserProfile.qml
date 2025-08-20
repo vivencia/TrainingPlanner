@@ -27,7 +27,7 @@ ColumnLayout {
 					getUserInfo();
 				else if (field === 20)
 					imgAvatar.source = userModel.avatar(userRow, false);
-				else if (field === 10)
+				else if (field === 11)
 					appUseMode = userModel.appUseMode(userRow);
 			}
 		}
@@ -51,6 +51,7 @@ ColumnLayout {
 		ListElement { text: qsTr("Personal Trainer"); value: 0; enabled: true; }
 		ListElement { text: qsTr("Athletes coach"); value: 1; enabled: true; }
 		ListElement { text: qsTr("Physical Therapist"); value: 2; enabled: true; }
+		ListElement { text: qsTr("Physical Educator"); value: 3; enabled: true; }
 		ListElement { text: qsTr("Other"); value: 5; enabled: true; }
 	}
 

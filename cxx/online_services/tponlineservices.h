@@ -56,22 +56,27 @@ public:
 
 	void sendFile(const int requestid, const QString &username, const QString &passwd, QFile *file, const QString &subdir = QString{},
 					const QString &targetUser = QString{}, const bool b_internal_signal_only = false);
-	void listFiles(const int requestid, const QString &username, const QString &passwd, const QString &pattern = QString{},
-					const QString &subdir = QString{}, const QString &targetUser = QString{});
+	/**
+	 * @brief listFiles
+	 * @param requestid An unique integer value that will be emitted with the signal networkListReceived to stabilish a chain of calls
+	 * @param username
+	 * @param passwd
+	 * @param only_new If true, will compare the modification time stamps of both the local and the remote file that matches pattern and only include the file if the remote file is newer than the local file
+	 * @param pattern If not set, matches all files within username/subdir or targetUser/subdir
+	 * @param subdir
+	 * @param targetUser
+	 */
+	void listFiles(const int requestid, const QString &username, const QString &passwd, const bool only_new = true,
+					const bool include_ctime = false, const QString &pattern = QString{}, const QString &subdir = QString{}, const QString &targetUser = QString{});
 	void removeFile(const int requestid, const QString &username, const QString &passwd, const QString &filename, const QString &subdir = QString{},
 					const QString &targetUser = QString{});
 
-	/**
-	 * @brief getFile
-	 * @param username
-	 * @param passwd
-	 * @param filename Must contain an extension when c_time is not null. And, conversely, must not contain an extension when c_time is valid
-	 * @param targetUser
-	 * @param c_time
-	 */
-	void getFile(const int requestid, const QString &username, const QString &passwd, const QString &filename, const QString &subdir = {},
-					const QString &targetUser = QString{}, const QString &localFilePath = QString{});
+	void getFile(const int requestid, const QString &username, const QString &passwd, const QString &filename,
+				const QString &subdir = {}, const QString &targetUser = QString{}, const QString &localFilePath = QString{});
 
+
+	bool remoteFileUpToDate(const QString &onlineDate, const QString &localFile) const;
+	bool localFileUpToDate(const QString &onlineDate, const QString &localFile) const;
 
 signals:
 	void networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string);
@@ -84,8 +89,6 @@ private:
 	void makeNetworkRequest(const int requestid, const QUrl &url, const bool b_internal_signal_only = false);
 	void handleServerRequestReply(const int requestid, QNetworkReply *reply, const bool b_internal_signal_only = false);
 	void uploadFile(const int requestid, const QUrl &url, QFile *file, const bool b_internal_signal_only = false);
-	bool remoteFileUpToDate(const QString &onlineDate, const QString &localFile) const;
-	bool localFileUpToDate(const QString &onlineDate, const QString &localFile) const;
 
 	QNetworkAccessManager *m_networkManager;
 

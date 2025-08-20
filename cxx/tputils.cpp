@@ -140,9 +140,10 @@ QString TPUtils::getFileName(const QString &filename, const bool without_extensi
 	return slash_idx > 0 ? f_name : filename;
 }
 
-void TPUtils::copyToClipBoard(const QString &text) const
+QString TPUtils::getFileExtension(const QString &filename, const bool include_dot) const
 {
-	qApp->clipboard()->setText(text);
+	const qsizetype dot_idx{filename.lastIndexOf('.')};
+	return dot_idx > 0 ? filename.last(filename.length() - dot_idx + (include_dot ? 0 : 1)) : QString{};
 }
 
 bool TPUtils::mkdir(const QString &fileOrDir) const
@@ -185,6 +186,21 @@ QFile *TPUtils::openFile(const QString &filename, QIODeviceBase::OpenMode flags)
 		delete file;
 	}
 	return nullptr;
+}
+
+void TPUtils::scanDir(const QString &path, QFileInfoList &results, const QString &match, const bool follow_tree) const
+{
+	QDir dir{path};
+	if (dir.isReadable())
+	{
+		results.append(std::move(dir.entryInfoList(QStringList{match}, QDir::Files|QDir::NoDotAndDotDot)));
+		if (follow_tree)
+		{
+			const QStringList &subdirs{dir.entryList(QDir::Dirs|QDir::NoDotAndDotDot)};
+			for (const auto &subdir: subdirs)
+				scanDir(path + subdir, results, match, true);
+		}
+	}
 }
 
 bool TPUtils::scanFile(const QString &filename, std::optional<bool> &formatted, uint &file_contents) const
@@ -489,27 +505,16 @@ QFile *TPUtils::createServerCmdFile(const QString &subdir, const uint cmd_order,
 								QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text)};
 	if (cmd_file)
 	{
-		const QString &cmd_string{"#Device_ID "_L1 + appOsInterface()->deviceID() + '\n' + command +
-									'\n' + appOsInterface()->deviceID()};
+		const QString &cmd_string{"#Device_ID "_L1 + appOsInterface()->deviceID() + '\n' + command + "\n#Downloads 1"};
 		cmd_file->write(cmd_string.toUtf8().constData());
 		cmd_file->flush();
 	}
 	return cmd_file;
 }
 
-void TPUtils::scanDir(const QString &path, QFileInfoList &results, const QString &match, const bool follow_tree) const
+void TPUtils::copyToClipBoard(const QString &text) const
 {
-	QDir dir{path};
-	if (dir.isReadable())
-	{
-		results.append(std::move(dir.entryInfoList(QStringList{match}, QDir::Files|QDir::NoDotAndDotDot)));
-		if (follow_tree)
-		{
-			const QStringList &subdirs{dir.entryList(QDir::Dirs|QDir::NoDotAndDotDot)};
-			for (const auto &subdir: subdirs)
-				scanDir(path + subdir, results, match, true);
-		}
-	}
+	qApp->clipboard()->setText(text);
 }
 
 QString TPUtils::formatDate(const QDate &date, const DATE_FORMAT format) const

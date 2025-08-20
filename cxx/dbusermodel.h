@@ -80,7 +80,7 @@ public:
 	inline QString emailLabel() const { return "e-mail: "_L1; }
 	inline QString socialMediaLabel() const { return tr("Social Media: "); }
 	inline QString userRoleLabel() const { return tr("Your are: "); }
-	inline QString coachRoleLabel() const { return tr("Professional job: "); }
+	inline QString coachRoleLabel() const { return tr("Training Job: "); }
 	inline QString goalLabel() const { return tr("Goal: "); }
 	inline QString avatarLabel() const { return "Avatar: "_L1; }
 	inline QString appUseModelLabel() const { return tr("App use mode: "); }
@@ -332,7 +332,7 @@ signals:
 
 private:
 	QList<QStringList> m_usersData, m_tempUserData;
-	int m_tempRow;
+	int m_tempRow, n_devices;
 	QString m_onlineUserId, m_password, m_defaultAvatar, m_emptyString, m_onlineCoachesDir,
 		m_dirForRequestedCoaches, m_dirForClientsRequests, m_dirForCurrentClients, m_dirForCurrentCoaches;
 	std::optional<bool> mb_singleDevice, mb_userRegistered, mb_coachRegistered;
@@ -344,9 +344,10 @@ private:
 	QString generateUniqueUserId() const;
 	void onlineCheckIn();
 	void registerUserOnline();
-	void firstTimeOnlineRegistrationActions();
+	void onlineCheckinActions();
 	void getOnlineDevicesList();
 	void createOnlineDatabases();
+	void syncDatabases(const QStringList &online_db_files);
 	void lastOnlineCmd(const uint requestid, const QString &subdir = QString{});
 	QString resume(const uint user_idx) const;
 	void checkIfCoachRegisteredOnline();

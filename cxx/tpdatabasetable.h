@@ -46,7 +46,10 @@ public:
 	virtual void updateTable() = 0;
 
 	inline void setCallbackForDoneFunc( const std::function<void (TPDatabaseTable*)> &func ) { doneFunc = func; }
-	static inline QString dbFilePath(const uint table_id) { return appUtils()->localAppFilesDir() + databaseFilesSubDir + databaseFileNames[table_id]; }
+	static inline QString dbFilePath(const uint table_id, const bool path_only = false)
+	{
+		return appUtils()->localAppFilesDir() + databaseFilesSubDir + (path_only ? QString{} : databaseFileNames[table_id]);
+	}
 	inline uint tableId() const { return m_tableId; }
 	inline int uniqueId() const { return m_UniqueID; }
 	inline void setUniqueId(const int uid) { m_UniqueID = uid; }
