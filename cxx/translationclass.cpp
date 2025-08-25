@@ -1,6 +1,5 @@
 #include "translationclass.h"
 #include "tpsettings.h"
-#include "tputils.h"
 #include "qmlitemmanager.h"
 
 #include <QGuiApplication>
@@ -27,14 +26,11 @@ void TranslationClass::selectLanguage()
 	if (strLocale != "en_US"_L1)
 		switchToLanguage(strLocale);
 	else
-		appUtils()->setAppLocale("en_US"_L1);
+		appSettings()->setAppLocale("en_US"_L1);
 }
 
 void TranslationClass::switchToLanguage(const QString &language)
 {
-	if (language == appUtils()->strLocale())
-		return;
-
 	if (mTranslator)
 	{
 		QCoreApplication::removeTranslator(mTranslator);
@@ -53,7 +49,7 @@ void TranslationClass::switchToLanguage(const QString &language)
 	if (appQmlEngine())
 		appQmlEngine()->retranslate();
 	emit applicationLanguageChanged();
-	appUtils()->setAppLocale(language);
+	appSettings()->setAppLocale(language);
 }
 
 QString TranslationClass::language() const

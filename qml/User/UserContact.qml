@@ -34,20 +34,32 @@ ColumnLayout {
 		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : 07
 	}
 
-	TPPhoneNumberInput {
-		id: txtPhone
-		readOnly: userRow !== 0
-		width: userContactModule.width - 2*appSettings.itemDefaultHeight
-		Layout.maximumWidth: width
-		Layout.minimumWidth: width
+	Row {
+		spacing: 10
+		Layout.fillWidth: true
 
-		onPhoneNumberOKChanged: bPhoneOK = phoneNumberOK;
-		onEditingFinished: userModel.setPhone(userRow, text);
+		TPPhoneNumberInput {
+			id: txtPhoneCountryPrefix
+			countryPrefix: true
+			readOnly: userRow !== 0
+			width: parent.width * 0.2
 
-		onEnterOrReturnKeyPressed: {
-			if (bPhoneOK)
-				txtEmail.forceActiveFocus();
+			onPhoneNumberOKChanged: bPhoneOK = phoneNumberOK;
+			onEnterOrReturnKeyPressed: txtPhone.forceActiveFocus();
 		}
+
+		TPPhoneNumberInput {
+			id: txtPhone
+			readOnly: userRow !== 0
+			width: parent.width * 0.5
+
+			onPhoneNumberOKChanged: bPhoneOK = phoneNumberOK;
+			onEditingFinished: userModel.setPhone(userRow, txtPhoneCountryPrefix.text, text);
+			onEnterOrReturnKeyPressed: {
+				if (bPhoneOK)
+					txtEmail.forceActiveFocus();
+			}
+		} //txtPhone
 
 		TPButton {
 			id: btnWhatsApp
@@ -55,11 +67,6 @@ ColumnLayout {
 			enabled: userRow !== 0 && bPhoneOK
 			width: appSettings.itemDefaultHeight
 			height: width
-
-			anchors {
-				left: txtPhone.right
-				verticalCenter: txtPhone.verticalCenter
-			}
 
 			onClicked: osInterface.startChatApp(userModel.phone(userRow), "WhatsApp");
 		}
@@ -71,14 +78,9 @@ ColumnLayout {
 			width: appSettings.itemDefaultHeight
 			height: width
 
-			anchors {
-				left: btnWhatsApp.right
-				verticalCenter: txtPhone.verticalCenter
-			}
-
 			onClicked: osInterface.startChatApp(userModel.phone(userRow), "Telegram");
 		}
-	} //txtPhone
+	}
 
 	TPLabel {
 		id: lblEmail
@@ -98,7 +100,10 @@ ColumnLayout {
 		Layout.maximumWidth: width
 		Layout.minimumWidth: width
 
-		onEditingFinished: userModel.setEmail(userRow, text);
+		onEditingFinished: {
+			if (bEmailOK)
+				userModel.setEmail(userRow, text);
+		}
 
 		onTextEdited: {
 			const dot_idx = text.indexOf(".");
@@ -108,7 +113,8 @@ ColumnLayout {
 					emailok = text.indexOf("@") !== -1;
 			}
 			ToolTip.visible = !emailok;
-			bEmailOK = emailok;
+			if (userModel.onlineUser)
+				bEmailOK = emailok;
 		}
 
 		onEnterOrReturnKeyPressed: {
@@ -197,11 +203,12 @@ ColumnLayout {
 	function getUserInfo(): void {
 		if (userRow === -1)
 			return;
-		txtPhone.text = userModel.phone(userRow);
-		bPhoneOK = txtPhone.text.length >= 17
+		txtPhoneCountryPrefix.text = userModel.phoneCountryPrefix(userRow);
+		txtPhone.text = userModel.phoneNumber(userRow);
+		bPhoneOK = userModel.phoneCountryPrefix(userRow).length >= 3 && userModel.phoneNumber(userRow).length === 15
 		const email = userModel.email(userRow);
 		txtEmail.text = email;
-		bEmailOK = email.indexOf("@") !== -1 && email.indexOf(".") !== -1;
+		bEmailOK = !userModel.onlineUser || email.indexOf("@") !== -1 && email.indexOf(".") !== -1;
 		cboSocial.currentIndex = 0;
 		txtSocial.text = userModel.socialMedia(userRow, 0);
 	}

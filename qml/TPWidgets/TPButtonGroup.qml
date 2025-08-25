@@ -30,4 +30,12 @@ QtObject {
 		for (let i = 0; i < buttons.length; ++i)
 			buttons[i].checked = buttons[i] === button ? checked : !checked;
 	}
+
+	function anyButtonChecked(): bool {
+		for (let i = 0; i < buttons.length; ++i) {
+			if (buttons[i].checked)
+				return true;
+		}
+		return false;
+	}
 }

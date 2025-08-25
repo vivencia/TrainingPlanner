@@ -11,7 +11,7 @@ TPLabel {
 
 	property alias image: img.source
 	property int imageHeight: appSettings.itemDefaultHeight
-	property int imageWidth: imageHeight
+	property int imageWidth: image.length > 0 ? imageHeight : 0
 	property bool checked: false
 	property bool multiLine: false
 	property bool actionable: true
@@ -25,7 +25,7 @@ TPLabel {
 	topPadding: 0
 	rightPadding: 0
 	bottomPadding: 5
-	leftPadding: indicator.width + image.length > 0 ? imageWidth + 5 : 5
+	leftPadding: indicator.width + imageWidth + 5
 
 	Rectangle {
 		id: indicator
@@ -38,6 +38,7 @@ TPLabel {
 		anchors {
 			left: control.left
 			verticalCenter: control.verticalCenter
+			verticalCenterOffset: -5
 		}
 
 		Rectangle {
@@ -61,8 +62,8 @@ TPLabel {
 
 		anchors {
 			left: indicator.right
-			leftMargin: 5
 			verticalCenter: control.verticalCenter
+			verticalCenterOffset: -5
 		}
 	}
 

@@ -37,6 +37,32 @@ ApplicationWindow {
 					bottomMargin: 10
 				}
 
+				/*Row {
+					Layout.fillWidth: true
+					spacing: 20
+
+					TPPhoneNumberInput {
+						id: txtPhonePrefix
+						countryPrefix: true
+						width: parent.width * 0.2
+
+
+						onPhoneNumberOKChanged: result.text = phoneNumberOK ? "Phone Prefix OK" : "Phone Prefix Not OK"
+					}
+
+					TPPhoneNumberInput {
+						id: txtPhone
+						width: parent.width * 0.6
+						onPhoneNumberOKChanged: result.text = phoneNumberOK ? "Phone OK" : "Phone Not OK"
+					}
+				}
+
+				TPLabel {
+					id: result
+					Layout.alignment: Qt.AlignCenter
+					Layout.minimumWidth: parent.width * 0.5
+				}
+
 				Row {
 					Layout.fillWidth: true
 					spacing: 10
@@ -82,7 +108,7 @@ ApplicationWindow {
 						readOnly: true
 						width: parent.width * 0.2
 					}
-				}
+				}*/
 
 				/*TimePicker {
 					id: timePicker
@@ -96,21 +122,6 @@ ApplicationWindow {
 
 					onValueChanged: (str) => result.text = str;
 				}
-
-				TPPhoneNumberInput {
-					id: txtPhone
-					Layout.alignment: Qt.AlignCenter
-					Layout.maximumWidth: parent.width * 0.85
-					Layout.minimumWidth: parent.width * 0.85
-
-					onPhoneNumberOKChanged: result.text = phoneNumberOK ? "Phone OK" : "Phone Not OK"
-				}
-
-				TPLabel {
-					id: result
-					Layout.alignment: Qt.AlignCenter
-					Layout.minimumWidth: parent.width * 0.5
-				}*/
 
 				/*CalendarModel {
 					id: calModel

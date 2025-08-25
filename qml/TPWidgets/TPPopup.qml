@@ -24,20 +24,22 @@ Popup {
 
 	signal keyboardNumberPressed(int key1, int key2);
 	signal keyboardEnterPressed();
+	signal backKeyPressed();
 
-	onOpened: mainwindow.n_dialogs_open++;
-
-	onClosed: {
-		if (!keepAbove)
-			bVisible = false;
-	}
+	onOpened: ++mainwindow.n_dialogs_open;
+	onClosed: --mainwindow.n_dialogs_open;
 
 	Component.onCompleted: {
 		if (!modal && keepAbove) {
 			parentPage.pageDeActivated.connect(function() { bVisible = tpPopup.visible; tpPopup.visible = false; });
 			parentPage.pageActivated.connect(function() { if (bVisible) tpPopup.visible = true; });
 		}
-		mainwindow.closeDialog.connect(function () { if (tpPopup.visible) closePopup(); } );
+		mainwindow.closeDialog.connect(function () {
+			if (!modal && keepAbove)
+				closePopup();
+			else
+				backKeyPressed();
+		});
 	}
 
 	Rectangle {
@@ -163,7 +165,6 @@ Popup {
 
 	function closePopup(): void {
 		bVisible = false;
-		mainwindow.n_dialogs_open--;
 		close();
 	}
 

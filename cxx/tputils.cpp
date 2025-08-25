@@ -499,17 +499,49 @@ int TPUtils::readDataFromFormattedFile(QFile *in_file,
 	return identifier_found ? field : APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE;
 }
 
-QFile *TPUtils::createServerCmdFile(const QString &subdir, const uint cmd_order, const QString &command) const
+QFile *TPUtils::createServerCmdFile(const QString &subdir, const uint cmd_order, const std::initializer_list<QString> &command_parts) const
 {
 	QFile *cmd_file{openFile(localAppFilesDir() + subdir + QString::number(cmd_order) + ".cmd"_L1,
 								QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text)};
 	if (cmd_file)
 	{
-		const QString &cmd_string{"#Device_ID "_L1 + appOsInterface()->deviceID() + '\n' + command + "\n#Downloads 1"};
+		QString cmd_string{"#Device_ID "_L1 + appOsInterface()->deviceID() + '\n'};
+		int n_part{0};
+		QStringList var_list;
+		for (const QString &cmd_part : command_parts)
+		{
+			var_list += std::move(("VAR_"_L1) + QString::number(n_part));
+			cmd_string += std::move(var_list.at(n_part) + '=' + cmd_part);
+			++n_part;
+		}
+		cmd_string += '\n';
+		for (const QString &var : std::as_const(var_list))
+			cmd_string += std::move('$' + var + ' ');
+
+		cmd_string += "\n#Downloads 1";
 		cmd_file->write(cmd_string.toUtf8().constData());
 		cmd_file->flush();
 	}
 	return cmd_file;
+}
+
+bool TPUtils::executeCmdFile(const QString &cmd_file, const QString &success_message, const bool remove_file) const
+{
+	QFile *cmdfile{openFile(cmd_file, QIODeviceBase::ReadOnly|QIODeviceBase::Text)};
+	if (cmdfile)
+	{
+		QString command{1024, QChar{0}};
+		QTextStream stream{cmdfile};
+
+		while (stream.readLineInto(&command))
+		{
+			if (command.isEmpty() || command.startsWith('#'))
+				continue;
+			break;
+		}
+
+	}
+	return false;
 }
 
 void TPUtils::copyToClipBoard(const QString &text) const
@@ -1176,7 +1208,7 @@ QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QStr
 	}
 }
 
-	void TPUtils::setAppLocale(const QString &locale_str)
+void TPUtils::setAppLocale(const QString &locale_str)
 {
 	if (m_appLocale)
 		delete m_appLocale;
@@ -1200,7 +1232,6 @@ QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QStr
 	else
 		territory = QLocale::UnitedStates;
 
-	m_strLocale = locale_str;
 	m_appLocale = new QLocale{language, territory};
 	m_appLocale->setNumberOptions(QLocale::IncludeTrailingZeroesAfterDot);
 }

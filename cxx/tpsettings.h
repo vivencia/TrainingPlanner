@@ -58,7 +58,7 @@ Q_PROPERTY(uint itemLargeHeight READ itemLargeHeight NOTIFY fontSizeChanged FINA
 Q_PROPERTY(uint itemExtraLargeHeight READ itemExtraLargeHeight NOTIFY fontSizeChanged FINAL)
 
 Q_PROPERTY(QString appVersion READ appVersion CONSTANT)
-Q_PROPERTY(QString appLocale READ appLocale WRITE setAppLocale NOTIFY appLocaleChanged)
+Q_PROPERTY(QString appLocale READ appLocale NOTIFY appLocaleChanged)
 Q_PROPERTY(QString themeStyle READ themeStyle WRITE setThemeStyle NOTIFY themeStyleChanged)
 Q_PROPERTY(QString primaryColor READ primaryColor WRITE setPrimaryColor NOTIFY colorChanged)
 Q_PROPERTY(QString primaryLightColor READ primaryLightColor WRITE setPrimaryLightColor NOTIFY colorChanged)
@@ -71,7 +71,9 @@ Q_PROPERTY(QString fontColor READ fontColor WRITE setFontColor NOTIFY colorChang
 Q_PROPERTY(QString disabledFontColor READ disabledFontColor WRITE setDisabledFontColor NOTIFY colorChanged)
 Q_PROPERTY(QString weightUnit READ weightUnit WRITE setWeightUnit NOTIFY weightUnitChanged)
 
+Q_PROPERTY(QStringList availableLanguages READ availableLanguages CONSTANT FINAL)
 Q_PROPERTY(int lastViewedMesoIdx READ lastViewedMesoIdx WRITE setLastViewedMesoIdx NOTIFY lastViewedMesoIdxChanged)
+Q_PROPERTY(uint appLocaleIdx READ appLocaleIdx NOTIFY appLocaleChanged FINAL)
 Q_PROPERTY(uint weatherCitiesCount READ weatherCitiesCount NOTIFY weatherCitiesCountChanged)
 Q_PROPERTY(bool alwaysAskConfirmation READ alwaysAskConfirmation WRITE setAlwaysAskConfirmation NOTIFY alwaysAskConfirmationChanged)
 
@@ -83,7 +85,13 @@ public:
 	inline QString appVersion() const { return value(m_propertyNames.value(APP_VERSION_INDEX), m_defaultValues.at(APP_VERSION_INDEX)).toString(); }
 
 	inline QString appLocale() const { return value(m_propertyNames.value(APP_LOCALE_INDEX), m_defaultValues.at(APP_LOCALE_INDEX)).toString(); }
-	inline void setAppLocale(const QString &new_value) { changeValue(APP_LOCALE_INDEX, new_value); emit appLocaleChanged(); }
+	void setAppLocale(const QString &locale);
+	Q_INVOKABLE inline void setAppLocale(const uint language_idx)
+	{
+		m_languageIdx = language_idx;
+		changeValue(APP_LOCALE_INDEX, availableLanguages().at(language_idx));
+		emit appLocaleChanged();
+	}
 
 	inline QString themeStyle() const { return value(m_propertyNames.value(THEME_STYLE_INDEX), m_defaultValues.at(THEME_STYLE_INDEX)).toString(); }
 	inline void setThemeStyle(const QString &new_value) { changeValue(THEME_STYLE_INDEX, new_value); emit themeStyleChanged(); }
@@ -133,9 +141,14 @@ public:
 	inline void setWeightUnit(const QString &new_value) { changeValue(WEIGHT_UNIT_INDEX, new_value); emit weightUnitChanged(); }
 	inline QString exercisesListVersion() const { return value(m_propertyNames.value(EXERCISES_VERSION_INDEX), m_defaultValues.at(EXERCISES_VERSION_INDEX)).toString(); }
 	inline void setExercisesListVersion(const QString &new_value) { changeValue(EXERCISES_VERSION_INDEX, new_value); }
+
+	Q_INVOKABLE QString availableLanguagesLabel(const uint language_idx) const;
+	QStringList availableLanguages() const;
+
 	inline int lastViewedMesoIdx() const { return value(m_propertyNames.value(MESO_IDX_INDEX), m_defaultValues.at(MESO_IDX_INDEX)).toInt(); }
 	inline void setLastViewedMesoIdx(const int new_value) { changeValue(MESO_IDX_INDEX, QString::number(new_value)); emit lastViewedMesoIdxChanged(); }
 
+	inline uint appLocaleIdx() const { return m_languageIdx; }
 	inline uint weatherCitiesCount() const { return m_weatherLocations.count(); }
 	void addWeatherCity(const QString &city, const QString &latitude, const QString &longitude);
 	Q_INVOKABLE void removeWeatherCity(const uint idx);
@@ -161,6 +174,7 @@ private:
 	QStringList m_weatherLocations;
 	QStringList m_colorSchemes;
 	qreal m_ratioFont;
+	int m_languageIdx;
 
 	inline void changeValue(const uint index, const QVariant &new_value)
 	{

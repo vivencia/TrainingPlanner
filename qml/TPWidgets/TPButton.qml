@@ -11,7 +11,8 @@ Rectangle {
 	radius: rounded ? height : 6
 	opacity: checked ? 0.7 : 1
 	color: backgroundColor
-	height: buttonText.contentHeight + (textUnderIcon ? imageSize : 0) + (text.length > 0 ? buttonText.lineCount * 10 : 0)
+	height: (autoSize ? buttonText.contentHeight : appSettings.itemDefaultHeight) +
+							(textUnderIcon ? imageSize : 0) + (text.length > 0 ? buttonText.lineCount * 10 : 0)
 	width: autoSize ? preferredWidth : undefined
 
 	readonly property int preferredWidth: buttonText.contentWidth + (textUnderIcon ? 0 : imageSize) + (text.length > 0 ? 20 : 0)

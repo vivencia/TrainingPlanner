@@ -72,6 +72,16 @@ TPSettings::TPSettings(QObject *parent) : QSettings{parent}
 	}*/
 }
 
+void TPSettings::setAppLocale(const QString &locale)
+{
+	const qsizetype language_idx{availableLanguages().indexOf(locale)};
+	if (language_idx >= 0)
+	{
+		setAppLocale(language_idx);
+		appUtils()->setAppLocale(locale);
+	}
+}
+
 void TPSettings::getScreenMeasures()
 {
 	QString screenWidth, screenHeight, qmlPageHeight;
@@ -330,6 +340,22 @@ QGeoCoordinate TPSettings::weatherCityCoordinates(const uint idx)
 		coord.setLongitude(appUtils()->getCompositeValue(2, m_weatherLocations.at(idx), record_separator).toDouble());
 	}
 	return coord;
+}
+
+QString TPSettings::availableLanguagesLabel(const uint language_idx) const
+{
+	switch (language_idx)
+	{
+		case 0: return tr("Application Language: English");
+		case 1: return tr("Linguagem do aplicativo: Português do Brasil");
+		case 2: return tr("Sprache des Apps: Deutsch von Deutschland");
+	}
+	return QString{};
+}
+
+QStringList TPSettings::availableLanguages() const
+{
+	return QStringList{} << "en_US"_L1 << "pt_BR"_L1 << "de_DE"_L1;
 }
 
 void TPSettings::addWeatherCity(const QString &city, const QString &latitude, const QString &longitude)

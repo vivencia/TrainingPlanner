@@ -96,10 +96,10 @@ public:
 								  const QString &identifier,
 								  const std::function<QString(const uint field, const QString &value)> &formatToImport = nullptr) const;
 
-	QFile *createServerCmdFile(const QString &subdir, const uint cmd_order, const QString &command) const;
+	QFile *createServerCmdFile(const QString &subdir, const uint cmd_order, const std::initializer_list<QString> &command_parts) const;
+	bool executeCmdFile(const QString &cmd_file, const QString &success_message, const bool remove_file = true) const;
 
 	Q_INVOKABLE void copyToClipBoard(const QString &text) const;
-	inline QLocale *appLocale() const { return m_appLocale; }
 
 	Q_INVOKABLE inline QString monthName(const uint qml_month) const { return _months_names.at(qml_month); }
 	Q_INVOKABLE inline QString dayName(const uint week_day) const { return _days_names.at(week_day); }
@@ -155,7 +155,7 @@ public:
 	void removeFieldFromCompositeValue(const uint idx, QString &compositeString, const QLatin1Char &chr_sep) const;
 	int fieldOfValue(const QString &value, const QString &compositeString, const QLatin1Char &chr_sep) const;
 	QString subSetOfCompositeValue(const QString &value, const uint from, const uint n, const QLatin1Char &chr_sep) const;
-	inline QString string_strings( const std::initializer_list<QString> &strings, const QLatin1Char &chr_sep) const
+	inline QString string_strings(const std::initializer_list<QString> &strings, const QLatin1Char &chr_sep) const
 	{
 		QString ret;
 		for (QString i : strings)
@@ -169,8 +169,8 @@ public:
 
 	Q_INVOKABLE QString setTypeOperation(const uint settype, const bool bIncrease, QString strValue, const bool seconds = false) const;
 
+	inline QLocale *appLocale() const { return m_appLocale; }
 	void setAppLocale(const QString &locale_str);
-	inline const QString &strLocale() const { return m_strLocale; }
 
 	inline uint splitLetterToIndex(const QString &strletter) const { return splitLetterToIndex(strletter.at(0)); }
 	inline uint splitLetterToIndex(const QChar &letter) const { return static_cast<int>(letter.cell()) - static_cast<int>('A'); }
@@ -178,8 +178,8 @@ public:
 	inline uint splitLetterToMesoSplitIndex(const QChar &letter) const { return splitLetterToIndex(letter) + 2; }
 
 private:
+	QString m_localAppFilesDir;
 	QLocale *m_appLocale;
-	QString m_strLocale, m_localAppFilesDir;
 
 	static QStringList _months_names;
 	static QStringList _days_names;

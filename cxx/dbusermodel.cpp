@@ -7,6 +7,7 @@
 #include "tpdatabasetable.h"
 #include "tpglobals.h"
 #include "tpimage.h"
+#include "tpsettings.h"
 #include "tputils.h"
 #include "translationclass.h"
 #include "online_services/onlineuserinfo.h"
@@ -85,7 +86,10 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 			mb_canConnectToServer = online;
 		});
 
-		connect(appTr(), &TranslationClass::applicationLanguageChanged, this, &DBUserModel::labelsChanged);
+		connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
+			setPhoneBasedOnLocale();
+			emit labelsChanged();
+		});
 		/*connect(appKeyChain(), &TPKeyChain::keyRestored, this, [&] (const QString &key, const QString &value) {
 			qDebug() << "Read key:";
 			qDebug() << "key: " << key;
@@ -139,6 +143,8 @@ void DBUserModel::addUser(QStringList &&user_info)
 		else if (isCoach(last_idx))
 			m_coachesNames.append(_userName(last_idx));
 	}
+	else
+		setPhoneBasedOnLocale();
 }
 
 void DBUserModel::createMainUser()
@@ -149,6 +155,7 @@ void DBUserModel::createMainUser()
 			std::move("2429630"_L1) << "2"_L1 << QString{} << QString{} << QString{} << QString{} << QString{} <<
 			QString{} << "0"_L1 << "0"_L1 << "0"_L1));
 		static_cast<void>(appUtils()->mkdir(localDir(0)));
+		setPhoneBasedOnLocale();
 		emit userModified(0, USER_MODIFIED_CREATED);
 	}
 }
@@ -239,6 +246,25 @@ void DBUserModel::getPassword()
 		}, Qt::SingleShotConnection);
 		appKeyChain()->readKey(userId(0));
 	}
+}
+
+void DBUserModel::setPhone(const int user_idx, QString new_phone_prefix, const QString &new_phone)
+{
+	switch (new_phone_prefix.length())
+	{
+		case 0: setPhoneBasedOnLocale(); break;
+		case 1:
+			if (new_phone_prefix.at(0) == '+')
+				setPhoneBasedOnLocale();
+		break;
+		case 2: break;
+		case 3: break;
+		default: new_phone_prefix.truncate(4);
+	}
+	if (new_phone_prefix.at(0) != '+')
+		new_phone_prefix.prepend('+');
+	m_usersData[user_idx][USER_COL_PHONE] = std::move(new_phone_prefix + new_phone);
+	emit userModified(user_idx, USER_COL_PHONE);
 }
 
 QString DBUserModel::avatar(const uint user_idx, const bool checkServer)
@@ -386,14 +412,14 @@ int DBUserModel::getTemporaryUserInfo(OnlineUserInfo *tempUser, const uint userI
 
 bool DBUserModel::mainUserConfigured() const
 {
+	bool ret{false};
 	if (m_usersData.count() >= 1)
 	{
-		if (isCoach(0))
-			return (!m_usersData.at(0).at(USER_COL_COACHROLE).isEmpty());
-		else if (isClient(0))
-			return (!m_usersData.at(0).at(USER_COL_GOAL).isEmpty());
+		ret = onlineUser(0) && !email(0).isEmpty();
+		ret &= isCoach(0) && !m_usersData.at(0).at(USER_COL_COACHROLE).isEmpty();
+		ret &= isClient(0) && !m_usersData.at(0).at(USER_COL_GOAL).isEmpty();
 	}
-	return false;
+	return ret;
 }
 
 void DBUserModel::acceptUser(OnlineUserInfo *userInfo, const int userInfoRow)
@@ -825,7 +851,6 @@ int DBUserModel::downloadFileFromServer(const QString &filename, const QString &
 
 void DBUserModel::removeFileFromServer(const QString &filename, const QString &subdir, const QString &targetUser)
 {
-
 	if (!mainUserRegistered())
 		return;
 
@@ -1061,6 +1086,37 @@ void DBUserModel::slot_revokeClientStatus(int new_use_opt, bool revoke)
 	}
 }
 
+QString DBUserModel::getPhonePart(const QString &str_phone, const bool prefix) const
+{
+	if (str_phone.length() > 0)
+	{
+		const qsizetype idx{str_phone.indexOf('(')};
+		if (prefix)
+			return idx >= 0 ? str_phone.left(idx) : str_phone;
+		else {
+			if (idx >= 0)
+				return str_phone.sliced(idx, str_phone.length() - idx);
+		}
+	}
+	return QString{};
+}
+
+void DBUserModel::setPhoneBasedOnLocale()
+{
+	if (phoneCountryPrefix(0).length() <= 3)
+	{
+		QString phone_country_prefix;
+		switch (appSettings()->appLocaleIdx())
+		{
+			case 0: phone_country_prefix = std::move("+1"_L1); break;
+			case 1: phone_country_prefix = std::move("+55"_L1); break;
+			case 2: phone_country_prefix = std::move("+49"_L1); break;
+			default: return;
+		}
+		setPhone(0, phone_country_prefix, QString{});
+	}
+}
+
 inline QString DBUserModel::generateUniqueUserId() const
 {
 	return QString::number(QDateTime::currentMSecsSinceEpoch());
@@ -1221,10 +1277,8 @@ void DBUserModel::createOnlineDatabases()
 					uint cmd_start{last_cmd.toUInt()};
 					for (uint i{1}; i <= APP_TABLES_NUMBER; ++i)
 					{
-						const QString &command{"sqlite3 \""_L1 + TPDatabaseTable::databaseFileNames[i] + '"' +
-								TPDatabaseTable::createTableQuery(i) + ';'};
-						QFile *cmd_file{appUtils()->createServerCmdFile(TPDatabaseTable::databaseFilesSubDir,
-													++cmd_start, command)};
+						QFile *cmd_file{appUtils()->createServerCmdFile(TPDatabaseTable::databaseFilesSubDir, ++cmd_start,
+								{"sqlite3"_L1, TPDatabaseTable::databaseFileNames[i], TPDatabaseTable::createTableQuery(i) + ';'})};
 						if (cmd_file)
 						{
 							const int requestid2{sendFileToServer(appUtils()->getFileName(cmd_file->fileName()), cmd_file,
@@ -1253,50 +1307,84 @@ void DBUserModel::createOnlineDatabases()
 
 void DBUserModel::syncDatabases(const QStringList &online_db_files)
 {
-	for (uint i{0}; i < online_db_files.count(); i=+2)
-	{
-		const QString &local_db_file{TPDatabaseTable::dbFilePath(0, true) + appUtils()->getFileName(online_db_files.at(i))};
-		if (!appOnlineServices()->remoteFileUpToDate(online_db_files.at(i+1), local_db_file))
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,online_db_files] (const QString &key, const QString &value) {
+		for (uint i{0}; i < online_db_files.count(); i=+2)
 		{
-			if (mb_singleDevice)
-				static_cast<void>(sendFileToServer(local_db_file, nullptr, QString{}, TPDatabaseTable::databaseFilesSubDir));
-			else
+			const QString &local_db_file{TPDatabaseTable::dbFilePath(1, true) + appUtils()->getFileName(online_db_files.at(i))};
+			if (!appOnlineServices()->remoteFileUpToDate(online_db_files.at(i+1), local_db_file))
 			{
-				//The server database file is older than the local one and there is more than one device sharing the account
-				//In this scenario, there are probably local .cmd files that have not been uploaded to the server in a previous
-				//session. If so, we upload them now and execute them. Because we will excecute all the .cmd files in a batch(there may be more
-				//than one, and, in this case, they will probably affect more than one database file), the rest of the for-loop
-				//will do nothing because all remote and local files will have become synchronized.
-				QFileInfoList cmd_file_list;
-				appUtils()->scanDir(TPDatabaseTable::dbFilePath(0, true), cmd_file_list, "*.cmd"_L1);
-				if (!cmd_file_list.isEmpty())
+				if (mb_singleDevice)
+					static_cast<void>(sendFileToServer(local_db_file, nullptr, QString{}, TPDatabaseTable::databaseFilesSubDir));
+				else
 				{
-					qsizetype n_cmds{cmd_file_list.count()};
-					auto conn = std::make_shared<QMetaObject::Connection>();
-					*conn = connect(this, &DBUserModel::fileUploaded, this, [this,conn,cmd_file_list,n_cmds]
-							(const bool success, const uint requestid) mutable {
-						if (--n_cmds == 0 && success)
-						{
-							disconnect(*conn);
-							connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,requestid] (const QString &key, const QString &value) {
+					//The server database file is older than the local one and there is more than one device sharing the account
+					//In this scenario, there are probably local .cmd files that have not been uploaded to the server in a previous
+					//session. If so, we upload them now and execute them. Because we will excecute all the .cmd files in a batch(there may be more
+					//than one, and, in this case, they will probably affect more than one database file), the rest of the for-loop
+					//will do nothing because all remote and local files will have become synchronized.
+					QFileInfoList cmd_file_list;
+					appUtils()->scanDir(TPDatabaseTable::dbFilePath(1, true), cmd_file_list, "*.cmd"_L1);
+					if (!cmd_file_list.isEmpty())
+					{
+						qsizetype n_cmds{cmd_file_list.count()};
+						auto conn = std::make_shared<QMetaObject::Connection>();
+						*conn = connect(this, &DBUserModel::fileUploaded, this, [this,value,conn,cmd_file_list,n_cmds]
+								(const bool success, const uint requestid) mutable {
+							if (--n_cmds == 0 && success)
+							{
+								disconnect(*conn);
 								appOnlineServices()->executeCommands(requestid, userId(0), value, TPDatabaseTable::databaseFilesSubDir, false);
-							}, Qt::SingleShotConnection);
-							appKeyChain()->readKey(userId(0));
+							}
+						});
+						for (const auto &cmd : std::as_const(cmd_file_list))
+						{
+							if (sendFileToServer(cmd.absoluteFilePath(), nullptr, QString{},
+											TPDatabaseTable::databaseFilesSubDir, QString{}, true) < 0)
+								--n_cmds;
 						}
-					});
-					for (const auto &cmd : std::as_const(cmd_file_list))
-						const int request_id{sendFileToServer(cmd.absoluteFilePath(), nullptr, QString{}, TPDatabaseTable::databaseFilesSubDir, QString{}, true)};
+					}
 				}
 			}
+			else if (!appOnlineServices()->localFileUpToDate(online_db_files.at(i+1), local_db_file))
+			{
+				//Local database file is behind the server's because the file was altered by another device. Download the
+				//.cmd file(s) from server, execute them and, if there are only two devices connected to the same account,
+				//ask the server to remove the cmd file(s). Otherwise, update the download count of the file
+				const QLatin1StringView v{online_db_files.at(i).toLatin1().constData()};
+				const int requestid{appUtils()->generateUniqueId(v)};
+				auto conn = std::make_shared<QMetaObject::Connection>();
+				*conn = connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [this,value,conn,requestid]
+							(const int request_id, const int ret_code, const QString &filename, const QByteArray &contents) {
+					if (request_id == requestid)
+					{
+						disconnect(*conn);
+						if (ret_code == 0)
+						{
+							const QString &localFileName{TPDatabaseTable::dbFilePath(1, true) + filename};
+							QFile *localFile{new QFile{localFileName, this}};
+							if (!localFile->exists() || localFile->remove())
+							{
+								if (localFile->open(QIODeviceBase::WriteOnly))
+								{
+									localFile->write(contents);
+									localFile->close();
+								}
+							}
+							delete localFile;
+							appUtils()->executeCmdFile(localFileName, appUtils()->string_strings(
+									{tpNetworkTitle, tr("Local database updated with new information from the online account")}, record_separator), true);
+						}
+						else
+							appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, appUtils()->string_strings(
+								{filename + contents}, record_separator));
+					}
+				});
+				appOnlineServices()->getCmdFile(requestid, key, value, online_db_files.at(i),
+						TPDatabaseTable::databaseFilesSubDir, n_devices == 2);
+			}
 		}
-		else if (!appOnlineServices()->localFileUpToDate(online_db_files.at(i+1), local_db_file))
-		{
-			//Local database file is behind the server's because the file was altered by another device. Download the
-			//.cmd file(s) from server, execute them and, if there are only two devices connected to the same account,
-			//ask the server to remove the cmd file(s). Otherwise, update the download count of the file
-			downloadFileFromServer();
-		}
-	}
+	}, Qt::SingleShotConnection);
+	appKeyChain()->readKey(userId(0));
 }
 
 void DBUserModel::lastOnlineCmd(const uint requestid, const QString &subdir)

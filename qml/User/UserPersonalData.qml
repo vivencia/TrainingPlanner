@@ -217,6 +217,7 @@ ColumnLayout {
 
 		TPButton {
 			imageSource: "question.png"
+			flat: true
 			width: appSettings.itemDefaultHeight
 			height: width
 

@@ -19,6 +19,11 @@ TPPopup {
 
 	readonly property int minimumHeight: appSettings.windowHeight * 0.5
 
+	onBackKeyPressed: {
+		if (stackLayout.currentIndex > 0)
+			stackLayout.currentIndex--;
+	}
+
 	StackLayout {
 		id: stackLayout
 
@@ -26,7 +31,6 @@ TPPopup {
 			left: parent.left
 			right: parent.right
 			top: parent.top
-			//bottom: frmFooter.top
 			margins: 5
 		}
 

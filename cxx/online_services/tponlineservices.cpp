@@ -372,6 +372,13 @@ void TPOnlineServices::getFile(const int requestid, const QString &username, con
 	makeNetworkRequest(requestid, url);
 }
 
+void TPOnlineServices::getCmdFile(const int requestid, const QString &username, const QString &passwd,
+										const QString &filename, const QString &subdir, const bool delete_cmd)
+{
+	const QUrl &url{makeCommandURL(username, passwd, "downloadcmd"_L1, filename, "subdir"_L1, subdir, "delete"_L1, delete_cmd ? "1"_L1 : "0"_L1)};
+	makeNetworkRequest(requestid, url);
+}
+
 void TPOnlineServices::makeNetworkRequest(const int requestid, const QUrl &url, const bool b_internal_signal_only)
 {
 	LOG_MESSAGE(url.toDisplayString() + " * "_L1 + QString::number(requestid))

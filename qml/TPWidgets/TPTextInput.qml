@@ -23,6 +23,7 @@ TextField {
 
 	property bool showClearTextButton: false
 	property bool heightAdjustable: true
+	property bool textRemovedKeyPressed: false
 	property int suggestedHeight: appSettings.itemDefaultHeight
 	property string textColor: appSettings.fontColor
 	property string backgroundColor: appSettings.primaryDarkColor
@@ -52,11 +53,16 @@ TextField {
 	}
 
 	Keys.onPressed: (event) => {
+		textRemovedKeyPressed = false;
 		switch (event.key) {
 			case Qt.Key_Enter:
 			case Qt.Key_Return:
 				event.accepted = true;
 				enterOrReturnKeyPressed();
+			break;
+			case Qt.Key_Backspace:
+			case Qt.Key_Delete:
+				textRemovedKeyPressed = true;
 			break;
 			default: return;
 		}
@@ -75,6 +81,7 @@ TextField {
 		id: btnClearText
 		imageSource: "edit-clear"
 		hasDropShadow: false
+		flat: true
 		visible: showClearTextButton && control.text.length > 0
 		width: appSettings.itemDefaultHeight
 		height: width

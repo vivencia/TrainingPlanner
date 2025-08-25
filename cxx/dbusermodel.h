@@ -170,13 +170,17 @@ public:
 		emit userModified(user_idx, USER_COL_SEX);
 	}
 
-	Q_INVOKABLE inline QString phone(const int user_idx) const { return user_idx >= 0 && user_idx < m_usersData.count() ? _phone(user_idx) : m_emptyString; }
-	inline const QString &_phone(const uint user_idx) const { return m_usersData.at(user_idx).at(USER_COL_PHONE); }
-	Q_INVOKABLE inline void setPhone(const int user_idx, const QString &new_phone)
+	Q_INVOKABLE inline QString phoneCountryPrefix(const uint user_idx) const
 	{
-		m_usersData[user_idx][USER_COL_PHONE] = new_phone;
-		emit userModified(user_idx, USER_COL_PHONE);
+		return user_idx < m_usersData.count() ? getPhonePart(_phone(user_idx), true) : QString{};
 	}
+	Q_INVOKABLE inline QString phoneNumber(uint user_idx) const
+	{
+		return user_idx < m_usersData.count() ? getPhonePart(_phone(user_idx), false) : QString{};
+	}
+
+	inline const QString &_phone(const uint user_idx) const { return m_usersData.at(user_idx).at(USER_COL_PHONE); }
+	Q_INVOKABLE void setPhone(const int user_idx, QString new_phone_prefix, const QString &new_phone);
 
 	Q_INVOKABLE inline QString email(const int user_idx) const { return user_idx >= 0 && user_idx < m_usersData.count() ? _email(user_idx) : m_emptyString; }
 	inline const QString &_email(const uint user_idx) const { return m_usersData.at(user_idx).at(USER_COL_EMAIL); }
@@ -341,6 +345,8 @@ private:
 	bool mb_canConnectToServer, mb_coachPublic, mb_MainUserInfoChanged;
 	QTimer *m_mainTimer;
 
+	QString getPhonePart(const QString &str_phone, const bool prefix) const;
+	void setPhoneBasedOnLocale();
 	QString generateUniqueUserId() const;
 	void onlineCheckIn();
 	void registerUserOnline();

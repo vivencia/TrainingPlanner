@@ -94,6 +94,7 @@ FocusScope {
 			id: btnShowHidePassword
 			imageSource: show ? "hide-password.png" : "show-password.png"
 			hasDropShadow: false
+			flat: true
 			width: appSettings.itemDefaultHeight
 			height: width
 			focus: false
@@ -116,6 +117,7 @@ FocusScope {
 	TPButton {
 		id: btnAccept
 		imageSource: "set-completed"
+		flat: true
 		width: appSettings.itemDefaultHeight
 		height: width
 		enabled: txtPassword.inputOK && txtPassword.matchOK
