@@ -114,6 +114,7 @@ Popup {
 		id: btnCloseWindow
 		imageSource: "close.png"
 		hasDropShadow: false
+		flat: true
 		visible: closeButtonVisible
 		width: 25
 		height: 25

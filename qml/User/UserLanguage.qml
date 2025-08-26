@@ -9,11 +9,12 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 ColumnLayout {
 	spacing: 20
 
-	property bool bReady: languages_group.anyButtonChecked()
+	property bool bReady: false
 	readonly property list<string> country_flags: ["us", "brazil", "deutschland"]
 
 	TPButtonGroup {
 		id: languages_group
+		onButtonChecked: bReady = languages_group.anyButtonChecked();
 	}
 
 	Repeater {
@@ -33,8 +34,7 @@ ColumnLayout {
 
 			onClicked: {
 				appTr.switchToLanguage(appSettings.availableLanguages[index]);
-				bReady = appTr.translatorOK();
-				if (bReady)
+				if (appTr.translatorOK())
 					appSettings.setAppLocale(index);
 			}
 		}

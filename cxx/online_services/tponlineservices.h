@@ -24,13 +24,14 @@ public:
 	}
 
 	inline ~TPOnlineServices() { delete m_networkManager; }
+	inline void setUseLocalHost(const bool use_localhost) { m_useLocalHost = use_localhost; }
 
 	void checkServer();
 	void checkOnlineUser(const int requestid, const QString &query, const QString &passwd);
 	void getOnlineUserData(const int requestid, const QString &user_id);
 	void checkUser(const int requestid, const QString &username, const QString &passwd);
 	void registerUser(const int requestid, const QString &username, const QString &passwd);
-	void updateOnlineUserInfo(const int requestid, const QString &username, const QString &passwd, QFile *file);
+	void updateOnlineUserInfo(const int requestid, const QString &username, const QString &passwd);
 	void removeUser(const int requestid, const QString &username);
 	void changePassword(const int requestid, const QString &username, const QString &old_passwd, const QString &new_passwd);
 
@@ -86,11 +87,16 @@ signals:
 	void serverOnline(const bool online);
 
 private:
+	QString makeCommandURL(const QString &username, const QString &passwd = QString{}, const QString &option1 = QString{},
+								const QString &value1 = QString{}, const QString &option2 = QString{}, const QString &value2 = QString{},
+								const QString &option3 = QString{}, const QString &value3 = QString{}
+								);
 	void makeNetworkRequest(const int requestid, const QUrl &url, const bool b_internal_signal_only = false);
 	void handleServerRequestReply(const int requestid, QNetworkReply *reply, const bool b_internal_signal_only = false);
 	void uploadFile(const int requestid, const QUrl &url, QFile *file, const bool b_internal_signal_only = false);
 
 	QNetworkAccessManager *m_networkManager;
+	bool m_useLocalHost;
 
 	static TPOnlineServices* _appOnlineServices;
 	friend TPOnlineServices* appOnlineServices();

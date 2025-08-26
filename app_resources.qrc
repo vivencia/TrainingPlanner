@@ -106,10 +106,8 @@
         <file>images/message-meso.png</file>
         <file>images/flat/list.png</file>
         <file>images/goto-next.png</file>
-        <file>qml/TPWidgets/TPButtonGroup.qml</file>
         <file>images/settings.png</file>
         <file>images/exercisesdb.png</file>
-        <file>qml/TPWidgets/TPTabButton.qml</file>
         <file>images/flat/question.png</file>
     </qresource>
 </RCC>

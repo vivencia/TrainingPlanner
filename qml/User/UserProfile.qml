@@ -17,7 +17,8 @@ ColumnLayout {
 	property bool bClientRoleOK
 	property bool bGoalOK
 	property bool bCoachRoleOK
-	property int appUseMode
+	property bool isClient
+	property bool isCoach
 
 	Connections {
 		target: userModel
@@ -27,8 +28,10 @@ ColumnLayout {
 					getUserInfo();
 				else if (field === 20)
 					imgAvatar.source = userModel.avatar(userRow, false);
-				else if (field === 11)
-					appUseMode = userModel.appUseMode(userRow);
+				else if (field === 11) {
+					isClient = userModel.isClient(userRow);
+					isCoach = userModel.isCoach(userRow);
+				}
 			}
 		}
 	}
@@ -70,14 +73,14 @@ ColumnLayout {
 	TPLabel {
 		id: lblUserRole
 		text: userModel.userRoleLabel
-		visible: appUseMode !== 2
+		visible: isClient
 		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 0 : -5
 	}
 
 	TPComboBox {
 		id: cboUserRole
 		model: userRoleModel
-		visible: appUseMode !== 2
+		visible: isClient
 		Layout.fillWidth: true
 
 		onActivated: (index) => {
@@ -94,7 +97,7 @@ ColumnLayout {
 
 	TPTextInput {
 		id: txtUserRole
-		visible: cboUserRole.currentIndex === userRoleModel.count - 1
+		visible: isClient && cboUserRole.currentIndex === userRoleModel.count - 1
 		heightAdjustable: false
 		readOnly: userRow !== 0
 		Layout.fillWidth: true
@@ -109,13 +112,13 @@ ColumnLayout {
 	TPLabel {
 		id: lblGoal
 		text: userModel.goalLabel
-		visible: appUseMode !== 2
+		visible: isClient
 	}
 
 	TPComboBox {
 		id: cboGoal
 		model: userGoalModel
-		visible: appUseMode !== 2
+		visible: isClient
 		enabled: bClientRoleOK
 		Layout.fillWidth: true
 
@@ -133,7 +136,7 @@ ColumnLayout {
 
 	TPTextInput {
 		id: txtUserGoal
-		visible: cboGoal.visible && cboGoal.currentIndex === userGoalModel.count - 1
+		visible: isClient && cboGoal.currentIndex === userGoalModel.count - 1
 		heightAdjustable: false
 		readOnly: userRow !== 0
 		Layout.fillWidth: true
@@ -148,13 +151,13 @@ ColumnLayout {
 	TPLabel {
 		id: lblCoachRole
 		text: userModel.coachRoleLabel
-		visible: appUseMode === 2 || appUseMode === 4
+		visible: isCoach
 	}
 
 	TPComboBox {
 		id: cboCoachRole
 		model: coachRoleModel
-		visible: appUseMode === 2 || appUseMode === 4
+		visible: isCoach
 		enabled: bClientRoleOK && bGoalOK
 		Layout.fillWidth: true
 
@@ -172,7 +175,7 @@ ColumnLayout {
 
 	TPTextInput {
 		id: txtCoachRole
-		visible: cboCoachRole.visible && cboCoachRole.currentIndex === coachRoleModel.count - 1
+		visible: isCoach && cboCoachRole.currentIndex === coachRoleModel.count - 1
 		heightAdjustable: false
 		readOnly: userRow !== 0
 		Layout.fillWidth: true
@@ -251,9 +254,10 @@ ColumnLayout {
 			return;
 		let idx;
 		const enabled = userRow === 0;
-		appUseMode = userModel.appUseMode(userRow);
+		isClient = userModel.isClient(userRow);
+		isCoach = userModel.isCoach(userRow);
 
-		if (appUseMode !== 2) {
+		if (isClient) {
 			const client_role = userModel.userRole(userRow);
 			bClientRoleOK = client_role.length > 1;
 			if (!bClientRoleOK)
@@ -288,7 +292,7 @@ ColumnLayout {
 		else
 			bClientRoleOK = true;
 
-		if (appUseMode === 2 || appUseMode === 4) {
+		if (isCoach) {
 			const coach_role = userModel.coachRole(userRow);
 			bCoachRoleOK = coach_role.length > 1;
 			if (!bCoachRoleOK)

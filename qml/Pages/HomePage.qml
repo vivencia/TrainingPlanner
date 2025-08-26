@@ -26,25 +26,24 @@ TPPage {
 			height: 50
 
 			anchors {
-				top: parent.top
-				left: parent.left
-				leftMargin: 5
+				verticalCenter: lblMain.verticalCenter
+				right: lblMain.left
 			}
 		}
 
 		TPLabel {
+			id: lblMain
 			text: qsTr("Training Organizer")
+			singleLine: true
 			font: AppGlobals.extraLargeFont
 			width: parent.width - imgAppIcon.width - 15
 			height: parent.height
 
 			anchors {
-				top: parent.top
-				topMargin: 5
-				left: imgAppIcon.right
-				leftMargin: 5
-				right: parent.right
-				rightMargin: 10
+				verticalCenter: parent.verticalCenter
+				verticalCenterOffset: (headerHeight - height)/2
+				horizontalCenter: parent.horizontalCenter
+				horizontalCenterOffset: imgAppIcon.width/2
 			}
 		}
 	}

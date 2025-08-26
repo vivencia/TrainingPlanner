@@ -16,6 +16,7 @@ TPToolBar {
 		id: btnBack
 		imageSource: "back.png"
 		hasDropShadow: false
+		flat: true
 		width: appSettings.itemDefaultHeight*1.1
 		height: width
 		enabled: stackView.depth >= 2
@@ -33,6 +34,7 @@ TPToolBar {
 		id: btnForward
 		imageSource: "next.png"
 		hasDropShadow: false
+		flat: true
 		width: appSettings.itemDefaultHeight*1.1
 		height: width
 		enabled: pagesListModel.currentIndex < pagesListModel.count - 1
@@ -49,6 +51,7 @@ TPToolBar {
 		id: btnHome
 		imageSource: "home.png"
 		hasDropShadow: false
+		flat: true
 		width: appSettings.itemDefaultHeight*1.1
 		height: width
 		enabled: btnBack.enabled

@@ -23,8 +23,6 @@ TPTextInput {
 		phoneNumberOK = ok;
     }
 
-	onEditingFinished: text += ' ';
-
     function formatPhoneNumber(digits: string) : string {
         // Remove all non-digits
         digits = digits.replace(/\D/g, '');

@@ -567,7 +567,11 @@ void OSInterface::checkLocalServer()
 
 		switch (exitCode)
 		{
+			case 5:
+				setBit(m_networkStatus, SERVER_UP_AND_RUNNING);
+				unSetBit(m_networkStatus, SERVER_UNREACHABLE);
 			case 0:
+				appOnlineServices()->setUseLocalHost(exitCode == 5);
 				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
 						{"Linux TP Server"_L1, "Up and running!"_L1}, record_separator));
 			break;

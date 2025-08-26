@@ -325,7 +325,7 @@ signals:
 	void userOnlineCheckResult(const bool registered);
 	void userOnlineImportFinished(const bool result);
 	void mainUserConfigurationFinished();
-	void mainUserOnlineCheckInChanged();
+	void mainUserOnlineCheckInChanged(const bool first_checkin = false);
 	void coachOnlineStatus(bool registered);
 	void userProfileAcquired(const QString &userid, const bool success);
 	void userPasswordAvailable(const QString &password);

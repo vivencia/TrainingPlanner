@@ -202,6 +202,7 @@ set( QML_SOURCES
 	"qml/Pages/WorkoutPage.qml"
     "qml/TPWidgets/TPBalloonTip.qml"
     "qml/TPWidgets/TPButton.qml"
+	"qml/TPWidgets/TPButtonGroup.qml"
     "qml/TPWidgets/TPButtonImage.qml"
     "qml/TPWidgets/TPFloatingControl.qml"
     "qml/TPWidgets/TPClientsList.qml"
@@ -219,6 +220,7 @@ set( QML_SOURCES
     "qml/TPWidgets/TPPhoneNumberInput.qml"
 	"qml/TPWidgets/TPRadioButtonOrCheckBox.qml"
 	"qml/TPWidgets/TPSaveDialog.qml"
+	"qml/TPWidgets/TPTabButton.qml"
 	"qml/TPWidgets/TPTextInput.qml"
 	"qml/TPWidgets/TPToolBar.qml"
 	"qml/TPWidgets/ComplexDialogModules/TPAdjustMesoCalendarFrame.qml"
@@ -245,7 +247,6 @@ qt_add_executable(TrainingPlanner
 	${QM_FILES}
 	${SERVER_FILES}
 	${ANDROID_FIES}
-	cxx/TPEventFilter.h
 )
 
 if(NOT ANDROID)

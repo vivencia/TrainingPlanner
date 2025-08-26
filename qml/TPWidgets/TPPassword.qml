@@ -5,8 +5,8 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 FocusScope {
 	id: control
-	height: 60
-	implicitHeight: 60
+	height: 2 * appSettings.itemDefaultHeight
+	implicitHeight: height
 
 	property string customLabel: ""
 	property string matchAgainst: ""
@@ -22,7 +22,8 @@ FocusScope {
 		id: lblPassword
 		text: (customLabel.length === 0 ? userModel.passwordLabel : customLabel) +
 					(includeNotAllowableChars ? "(" + notAllowableChars + qsTr(" not allowed)") : "")
-		height: 25
+		singleLine: true
+		height: appSettings.itemDefaultHeight
 
 		anchors {
 			top: parent.top

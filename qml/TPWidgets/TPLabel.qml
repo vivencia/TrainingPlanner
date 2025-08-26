@@ -6,10 +6,10 @@ import "../"
 Label {
 	id: control
 	color: enabled ? fontColor : appSettings.disabledFontColor
-	wrapMode: singleLine ? Text.NoWrap : Text.NoWrap
+	wrapMode: singleLine ? Text.NoWrap : Text.WordWrap
 	elide: Text.ElideNone
 	font: AppGlobals.regularFont
-	minimumPixelSize: appSettings.smallFontSize
+	minimumPixelSize: appSettings.smallFontSize * 0.7
 	fontSizeMode: Text.Fit
 	verticalAlignment: Text.AlignVCenter
 	topInset: 0

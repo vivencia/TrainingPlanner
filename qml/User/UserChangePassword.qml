@@ -11,10 +11,6 @@ TPPopup {
 	keepAbove: true
 	dim: true
 	width: appSettings.pageWidth * 0.8
-	height: nControls*controlsHeight
-
-	readonly property int nControls: 10
-	readonly property int controlsHeight: 25
 
 	onOpened: {
 		txtCurPassword.setPasswordText("");
@@ -141,6 +137,8 @@ TPPopup {
 	}
 
 	function show(ypos: int): void {
+		const totalHeight = lblTitle.height + txtCurPassword.height + txtNewPassword.height + txtConfirmPassword.height;
+		passwdDlg.height = btn1.height + totalHeight + 30;
 		show1(ypos);
 	}
 }

@@ -269,15 +269,15 @@ ColumnLayout {
 		bSexOK = sex <= 1;
 		userModel.userPasswordAvailable.connect(getUserPassword);
 		userModel.getPassword();
-		bPasswordOK = userModel.mainUserConfigured
 	}
 
-	function getUserPassword(password): void {
+	function getUserPassword(password: string): void {
 		passwordControl.setPasswordText(password);
+		bPasswordOK = password.length >= 6;
 		userModel.userPasswordAvailable.disconnect(getUserPassword);
 	}
 
-	function focusOnFirstField() {
+	function focusOnFirstField(): void {
 		if (!bNameOK)
 			txtName.forceActiveFocus();
 		else if (!bPasswordOK)

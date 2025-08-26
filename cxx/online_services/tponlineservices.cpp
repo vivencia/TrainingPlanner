@@ -16,33 +16,7 @@ TPOnlineServices* TPOnlineServices::_appOnlineServices{nullptr};
 static const QLatin1StringView root_user{"admin"};
 static const QLatin1StringView root_passwd{"admin"};
 static const QLatin1StringView server_addr{"http://192.168.10.21/trainingplanner/"};
-
-inline QString makeCommandURL(const QString &username, const QString &passwd = QString{}, const QString &option1 = QString{},
-								const QString &value1 = QString{}, const QString &option2 = QString{}, const QString &value2 = QString{},
-								const QString &option3 = QString{}, const QString &value3 = QString{}
-								)
-{
-	QString ret{server_addr + "?user="_L1 + username + "&password="_L1 + passwd};
-	if (!option1.isEmpty())
-	{
-		ret += '&' + option1 + '=';
-		if (!value1.isEmpty())
-			ret += value1;
-	}
-	if (!option2.isEmpty())
-	{
-		ret += '&' + option2 + '=';
-		if (!value2.isEmpty())
-			ret += value2;
-	}
-	if (!option3.isEmpty())
-	{
-		ret += '&' + option3 + '=';
-		if (!value3.isEmpty())
-			ret += value3;
-	}
-	return ret;
-}
+static const QLatin1StringView localhost_addr{"localhost/trainingplanner/"};
 
 void TPOnlineServices::checkServer()
 {
@@ -97,24 +71,11 @@ void TPOnlineServices::registerUser(const int requestid, const QString& username
 	makeNetworkRequest(requestid, url);
 }
 
-void TPOnlineServices::updateOnlineUserInfo(const int requestid, const QString &username, const QString &passwd, QFile *file)
+void TPOnlineServices::updateOnlineUserInfo(const int requestid, const QString &username, const QString &passwd)
 {
-	auto conn = std::make_shared<QMetaObject::Connection>();
-	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid,username,passwd]
-					(const int request_id, const int ret_code, const QString &ret_string) {
-		if (request_id == requestid)
-		{
-			disconnect(*conn);
-			if (ret_code == 0)
-			{
-				const QUrl &url{makeCommandURL(root_user, root_passwd, "alteronlineuser"_L1, username, "userpassword"_L1, passwd)};
-				makeNetworkRequest(requestid, url, false);
-			}
-			else
-				emit networkRequestProcessed(request_id, ret_code, ret_string);
-		}
-	});
-	sendFile(requestid, username, passwd, file, QString{}, QString{}, true);
+	//user.data must be sent to the server prior to calling this function
+	const QUrl &url{makeCommandURL(root_user, root_passwd, "alteronlineuser"_L1, username, "userpassword"_L1, passwd)};
+	makeNetworkRequest(requestid, url, false);
 }
 
 void TPOnlineServices::removeUser(const int requestid, const QString &username)
@@ -377,6 +338,33 @@ void TPOnlineServices::getCmdFile(const int requestid, const QString &username, 
 {
 	const QUrl &url{makeCommandURL(username, passwd, "downloadcmd"_L1, filename, "subdir"_L1, subdir, "delete"_L1, delete_cmd ? "1"_L1 : "0"_L1)};
 	makeNetworkRequest(requestid, url);
+}
+
+QString TPOnlineServices::makeCommandURL(const QString &username, const QString &passwd, const QString &option1,
+								const QString &value1, const QString &option2, const QString &value2,
+								const QString &option3, const QString &value3
+							)
+{
+	QString ret{(m_useLocalHost ? localhost_addr : server_addr) + "?user="_L1 + username + "&password="_L1 + passwd};
+	if (!option1.isEmpty())
+	{
+		ret += '&' + option1 + '=';
+		if (!value1.isEmpty())
+			ret += value1;
+	}
+	if (!option2.isEmpty())
+	{
+		ret += '&' + option2 + '=';
+		if (!value2.isEmpty())
+			ret += value2;
+	}
+	if (!option3.isEmpty())
+	{
+		ret += '&' + option3 + '=';
+		if (!value3.isEmpty())
+			ret += value3;
+	}
+	return ret;
 }
 
 void TPOnlineServices::makeNetworkRequest(const int requestid, const QUrl &url, const bool b_internal_signal_only)

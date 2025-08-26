@@ -257,9 +257,10 @@ void DBUserModel::setPhone(const int user_idx, QString new_phone_prefix, const Q
 			if (new_phone_prefix.at(0) == '+')
 				setPhoneBasedOnLocale();
 		break;
-		case 2: break;
-		case 3: break;
-		default: new_phone_prefix.truncate(4);
+		default:
+			new_phone_prefix.truncate(4);
+			if (new_phone_prefix.last(1) != ' ')
+				new_phone_prefix.append(' ');
 	}
 	if (new_phone_prefix.at(0) != '+')
 		new_phone_prefix.prepend('+');
@@ -487,6 +488,14 @@ void DBUserModel::checkUserOnline(const QString &email, const QString &password)
 				{
 					m_onlineUserId = ret_string;
 					setPassword(password);
+				}
+				else
+				{
+					//If the main user is configured and registed but checkOnlineUser() returned an error that means that,
+					//for some reason, the online users database was not updated with the user information upon first time
+					//setup. Do it now, then.
+					if (mainUserConfigured() && mainUserRegistered())
+						sendUserInfoToServer();
 				}
 				emit userOnlineCheckResult(ret_code == 0);
 			}
@@ -1103,7 +1112,7 @@ QString DBUserModel::getPhonePart(const QString &str_phone, const bool prefix) c
 
 void DBUserModel::setPhoneBasedOnLocale()
 {
-	if (phoneCountryPrefix(0).length() <= 3)
+	if (phoneCountryPrefix(0).length() <= 0)
 	{
 		QString phone_country_prefix;
 		switch (appSettings()->appLocaleIdx())
@@ -1126,10 +1135,14 @@ void DBUserModel::onlineCheckIn()
 {
 	if (mainUserConfigured() && onlineUser())
 	{
-		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this] () {
+		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this] (const bool first_checkin) {
+			if (first_checkin)
+			{
+				sendUserInfoToServer();
+				sendProfileToServer();
+				sendAvatarToServer();
+			}
 			onlineCheckinActions();
-			sendProfileToServer();
-			sendAvatarToServer();
 			if (!isCoachRegistered() && mb_coachPublic)
 				setCoachPublicStatus(mb_coachPublic);
 		}, Qt::SingleShotConnection);
@@ -1168,7 +1181,7 @@ void DBUserModel::registerUserOnline()
 								if (ret_code == 0)
 								{
 									mb_userRegistered = true;
-									emit mainUserOnlineCheckInChanged();
+									emit mainUserOnlineCheckInChanged(true);
 								}
 								appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
 											{tpNetworkTitle, tr("User information updated")}, record_separator));
@@ -1192,6 +1205,7 @@ void DBUserModel::registerUserOnline()
 void DBUserModel::onlineCheckinActions()
 {
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this] (const QString &key, const QString &value) {
+		checkUserOnline(email(0), value);
 		if (!mb_singleDevice.has_value())
 		{
 			connect(this, &DBUserModel::onlineDevicesListReceived, this, [this,value] (const bool success) {
@@ -1457,28 +1471,21 @@ void DBUserModel::sendProfileToServer()
 void DBUserModel::sendUserInfoToServer()
 {
 	const QString &main_user_data_filename{localDir(0) + userLocalDataFileName};
-	QFile *out_file{appUtils()->openFile(main_user_data_filename, QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text)};
-	if (!out_file)
+	if (exportToFile(0, main_user_data_filename) == APPWINDOW_MSG_EXPORT_OK)
 	{
-		DEFINE_SOURCE_LOCATION
-		ERROR_MESSAGE("Could not create/open file: ", main_user_data_filename);
-		return;
-	}
-	if (exportToFile(0, main_user_data_filename, out_file) == APPWINDOW_MSG_EXPORT_OK)
-	{
-		const int request_id{sendFileToServer(main_user_data_filename, out_file, tr("Online user information updated"),
+		const int request_id{sendFileToServer(main_user_data_filename, nullptr, tr("Online user information updated"),
 							QString{}, userId(0), true)};
 		if (request_id != -1)
 		{
 			auto conn{std::make_shared<QMetaObject::Connection>()};
-			*conn = connect(this, &DBUserModel::fileUploaded, this, [this,conn,request_id,out_file] (const bool success, const int requestid) {
+			*conn = connect(this, &DBUserModel::fileUploaded, this, [this,conn,request_id] (const bool success, const int requestid) {
 				if (request_id == requestid)
 				{
 					disconnect(*conn);
 					if (success)
 					{
-						connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,request_id,out_file] (const QString &key, const QString &value) {
-							appOnlineServices()->updateOnlineUserInfo(request_id, key, value, out_file);
+						connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,request_id] (const QString &key, const QString &value) {
+							appOnlineServices()->updateOnlineUserInfo(request_id, key, value);
 						});
 						appKeyChain()->readKey(userId(0));
 					}
