@@ -180,7 +180,7 @@ function scan_dir($path, $pattern) {
 
 function run_commands($userid, $subdir, $delete_cmdfile) {
     global $rootdir;
-    $path = $rootdir.$userid.'/'.$subdir;
+    $path = $rootdir.$userid.'/'.$subdir.'/';
     if (is_dir($path)) {
         $files = array_values(array_diff(scandir($path), array('.', '..')));
         if (count($files) > 0) {
@@ -195,7 +195,7 @@ function run_commands($userid, $subdir, $delete_cmdfile) {
                 passthru("$script $userid $subdir $file", $return_var);
                 if ($return_var == 0) {
                     if ($delete_cmdfile == 1)
-                        unlink($file);
+                        unlink($path.$file);
                 }
                 else
                     $return_code = 1;
@@ -208,6 +208,10 @@ function run_commands($userid, $subdir, $delete_cmdfile) {
     }
     echo "Return code: 1 Dir is empty or does not exist ", $path, "  **run_commands**";
     return false;
+}
+
+function cmd_downloaded($userid, $cmd_file, $delete_cmdfile) {
+//TODO
 }
 
 function add_device($userid, $device_id) {
@@ -258,7 +262,7 @@ function get_devices_list($userid) {
         echo "Return code: 0 ";
         $devices = file($devices_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($devices as $device) {
-            echo $device . " ";
+            echo $device . "|";
         }
     }
     else
@@ -706,6 +710,15 @@ if ($username) {
                 exit;
             }
 
+            if (isset($_GET['downloadcmd'])) {
+                $subdir = isset($_GET['subdir']) ? $_GET['subdir'] . "/" : '';
+                $filedir = $rootdir . $username . $subdir;
+                $delete_cmdfile = isset($_GET['delete']) ? $_GET['delete'] : 0;
+                download_file($_GET['downloadcmd'], $filedir);
+                cmd_downloaded($username, $filedir . $_GET['downloadcmd'], $delete_cmdfile);
+                exit;
+            }
+
             if ($username != "admin") {
 
                 if (isset($_GET['adddevice'])) {
@@ -862,7 +875,7 @@ if ($username) {
             else { //username == admin
                 //user management
                 $query = isset($_GET['onlineuser']) ? $_GET['onlineuser'] : '';
-                if ($query) { //Check if there is an already existing user in the online database. The  unique key used to identify an user is decided on the TrainingPlanner app source code. This script is agnostic to it
+                if ($query) { //Check if there is an already existing user in the online database. The unique key used to identify an user is decided on the TrainingPlanner app source code. This script is agnostic to it
                     $userpassword = isset($_GET['userpassword']) ? $_GET['userpassword'] : '';
                     run_dbscript("getid", $query . ' ' . $userpassword , "", true);
                     exit;
@@ -913,10 +926,8 @@ if ($username) {
                     $user_password = $_GET['userpassword'];
                     $return_var = user_exists($userid, $user_password);
                     if ($return_var == 0) {
-                        if (update_datafile_with_password($userid)) {
-                            run_dbscript("add", "", $userid, false);
-                            echo "Return code: 0 ".$userid." information sucessfully updated.\r\n";
-                        }
+                        if (update_datafile_with_password($userid))
+                            run_dbscript("add", "", $userid, true);
                         else
                             echo "Return code: 33 Cannot update ".$userid." information. User not found on database.\r\n";
                     }

@@ -380,7 +380,7 @@ bool DBMesocyclesModel::mesoPlanExists(const QString &mesoName, const QString &c
 
 void DBMesocyclesModel::findNextOwnMeso()
 {
-	for (qsizetype i{count() -1}; i >= 0; --i)
+	for (int i{static_cast<int>(count()) - 1}; i >= 0; --i)
 	{
 		if (isOwnMeso(i))
 		{

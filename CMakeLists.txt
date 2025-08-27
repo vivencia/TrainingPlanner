@@ -216,6 +216,7 @@ set( QML_SOURCES
     "qml/TPWidgets/TPLabel.qml"
     "qml/TPWidgets/TPMouseArea.qml"
     "qml/TPWidgets/TPPassword.qml"
+	"qml/TPWidgets/TPPasswordInput.qml"
     "qml/TPWidgets/TPPopup.qml"
     "qml/TPWidgets/TPPhoneNumberInput.qml"
 	"qml/TPWidgets/TPRadioButtonOrCheckBox.qml"

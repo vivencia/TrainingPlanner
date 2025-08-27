@@ -33,15 +33,9 @@ FocusScope {
 		}
 	}
 
-	TPTextInput {
+	TPPasswordInput {
 		id: txtPassword
-		heightAdjustable: false
-		showClearTextButton: true
-		echoMode: btnShowHidePassword.show ? TextInput.Normal : TextInput.Password
-		inputMethodHints: Qt.ImhSensitiveData|Qt.ImhNoPredictiveText|Qt.ImhNoAutoUppercase
 		validator: RegularExpressionValidator { regularExpression: /^[^# &?="']*$/ }
-		rightPadding:  defaultPadding + btnShowHidePassword.width + 5
-		focus: true
 
 		property bool inputOK: false
 		property bool matchOK: true
@@ -89,29 +83,6 @@ FocusScope {
 			left: parent.left
 			right: parent.right
 			rightMargin: showAcceptButton ? appSettings.itemDefaultHeight + 5 : 5
-		}
-
-		TPButton {
-			id: btnShowHidePassword
-			imageSource: show ? "hide-password.png" : "show-password.png"
-			hasDropShadow: false
-			flat: true
-			width: appSettings.itemDefaultHeight
-			height: width
-			focus: false
-
-			property bool show: false
-
-			anchors {
-				right: parent.right
-				rightMargin: txtPassword.defaultPadding + 5
-				verticalCenter: txtPassword.verticalCenter
-			}
-
-			onClicked: {
-				show = !show;
-				txtPassword.forceActiveFocus();
-			}
 		}
 	}
 

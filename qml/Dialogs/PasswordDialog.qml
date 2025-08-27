@@ -10,6 +10,7 @@ TPPopup {
 	id: passwdDlg
 	keepAbove: true
 	width: appSettings.pageWidth * 0.8
+	height: appSettings.pageHeight * 0.4
 
 	required property string title
 	required property string message
@@ -42,8 +43,8 @@ TPPopup {
 	TPImage {
 		id: imgElement
 		source: "password"
-		width: 50
-		height: 50
+		width: appSettings.itemDefaultHeight * 2
+		height: width
 
 		anchors {
 			left: parent.left
@@ -57,42 +58,39 @@ TPPopup {
 	TPLabel {
 		id: lblMessage
 		text: message
-		wrapMode: Text.WordWrap
+		singleLine: false
 		horizontalAlignment: Text.AlignJustify
 		width: passwdDlg.width - imgElement.width - 10
 		visible: message.length > 0
 
 		anchors {
 			top: lblTitle.bottom
-			topMargin: 10
 			left: imgElement.right
 			leftMargin: 5
 			right: parent.right
 			rightMargin: 5
+			bottom: txtPassword.top
 		}
 	}
 
-	TPTextInput {
+	TPPasswordInput {
 		id: txtPassword
-		echoMode: TextInput.Password
-		inputMethodHints: Qt.ImhSensitiveData|Qt.ImhNoPredictiveText
-		heightAdjustable: false
 
 		anchors {
-			top: lblMessage.bottom
-			topMargin: 10
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
 			rightMargin: 5
+			bottom: buttonsRow.top
+			bottomMargin: 10
 		}
 
 		onEnterOrReturnKeyPressed: acceptInput();
 	}
 
 	RowLayout {
+		id: buttonsRow
 		spacing: 0
-		z: 2
 
 		anchors {
 			left: parent.left
@@ -133,19 +131,7 @@ TPPopup {
 		passwdDlg.closePopup();
 	}
 
-	function dlgHeight(): int {
-		let new_height = 0;
-		if (title.length > 0)
-			new_height = lblTitle.height + 10;
-		if (message.length > 0)
-			new_height += Math.max(imgElement.height, lblMessage.height) + 10;
-		else
-			new_height += imgElement.height + 10;
-		new_height += txtPassword.height + btn1.height + 20;
-		return new_height;
-	}
 	function show(ypos: int): void {
-		passwdDlg.height = dlgHeight();
 		show1(ypos);
 	}
 }

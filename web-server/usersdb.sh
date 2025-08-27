@@ -19,7 +19,7 @@ LAST_FIELD=$N_FIELDS
 (( LAST_FIELD-- ))
 
 user_exists() {
-    RETURN_ID=$($SQLITE -line $USERS_DB "SELECT id FROM users_table WHERE id=$USER_ID;")
+    RETURN_ID=$($SQLITE -line $USERS_DB "SELECT id FROM users_table WHERE userid=$USER_ID;")
     if [[ $RETURN_ID != "" ]]; then
         return 0
     else
@@ -37,7 +37,7 @@ get_values() {
             (( i++ ))
         done < "$DATA_FILE"
     fi
-    rm -f "$DATA_FILE" #do not leave file behind. Might lead to problems if, for example, a file upload fails and this script uses an already used file
+    #rm -f "$DATA_FILE" #do not leave file behind. Might lead to problems if, for example, a file upload fails and this script uses an already used file
     if [ $i == "$N_FIELDS" ]; then
         return 0
     else
@@ -146,7 +146,7 @@ get_id() {
     FIELD=$(echo "${1}" | cut -d '=' -f 1)
     VALUE=$(echo "${1}" | cut -d '=' -f 2)
     VALUE="'$VALUE'" #sqlite3 needs single quotes for string values
-    REQUESTED_ID=$($SQLITE -line $USERS_DB "SELECT id FROM users_table WHERE $FIELD=$VALUE;")
+    REQUESTED_ID=$($SQLITE -line $USERS_DB "SELECT userid FROM users_table WHERE $FIELD=$VALUE;")
     if [[ $REQUESTED_ID != "" ]]; then
         REQUESTED_ID=$(echo "${REQUESTED_ID}" | cut -d '=' -f 2)
         REQUESTED_PASSWD=$($SQLITE -line $USERS_DB "SELECT password FROM users_table WHERE id=$REQUESTED_ID;")

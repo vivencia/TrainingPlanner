@@ -190,20 +190,29 @@ case "$COMMAND" in
                 EXIT_STATUS=0
                 MESSAGE="Local TP Server up and running."
             else
-                EXIT_STATUS=1
-                MESSAGE="Local TP Server is not reachable."
-
-                if [ $NGINX_SETUP == 0 ]; then
-                    MESSAGE="$MESSAGE NGINX service is up and running."
-                else
-                    EXIT_STATUS=2
-                    MESSAGE="$MESSAGE NGINX service is not running."
+                curl -s localhost/trainingplanner/ | grep -q "Bad Gateway" && TP_SERVER=1 || TP_SERVER=0
+                if [ "$TP_SERVER" == 0 ]; then
+                    curl -s localhost/trainingplanner/ | grep -q "Welcome" && TP_SERVER=0 || TP_SERVER=1
                 fi
-                if [ $PHP_FPM_SETUP == 0 ]; then
-                    MESSAGE="$MESSAGE PHP-FPM service is up and running."
+                if [ "$TP_SERVER" == 0 ]; then
+                    EXIT_STATUS=5
+                    MESSAGE="Local TP Server up and running on localhost only."
                 else
-                    EXIT_STATUS=2
-                    MESSAGE="$MESSAGE PHP-FPM service is not running."
+                    EXIT_STATUS=1
+                    MESSAGE="Local TP Server is not reachable."
+
+                    if [ $NGINX_SETUP == 0 ]; then
+                        MESSAGE="$MESSAGE NGINX service is up and running."
+                    else
+                        EXIT_STATUS=2
+                        MESSAGE="$MESSAGE NGINX service is not running."
+                    fi
+                    if [ $PHP_FPM_SETUP == 0 ]; then
+                        MESSAGE="$MESSAGE PHP-FPM service is up and running."
+                    else
+                        EXIT_STATUS=2
+                        MESSAGE="$MESSAGE PHP-FPM service is not running."
+                    fi
                 fi
             fi
         else

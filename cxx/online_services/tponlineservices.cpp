@@ -16,7 +16,7 @@ TPOnlineServices* TPOnlineServices::_appOnlineServices{nullptr};
 static const QLatin1StringView root_user{"admin"};
 static const QLatin1StringView root_passwd{"admin"};
 static const QLatin1StringView server_addr{"http://192.168.10.21/trainingplanner/"};
-static const QLatin1StringView localhost_addr{"localhost/trainingplanner/"};
+static const QLatin1StringView localhost_addr{"http://localhost/trainingplanner/"};
 
 void TPOnlineServices::checkServer()
 {
@@ -98,8 +98,24 @@ void TPOnlineServices::addDevice(const int requestid, const QString &username, c
 
 void TPOnlineServices::getDevicesList(const int requestid, const QString &username, const QString &passwd)
 {
+	auto conn = std::make_shared<QMetaObject::Connection>();
+	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
+									(const int request_id, const int ret_code, const QString &ret_string) {
+		if (request_id == requestid)
+		{
+			disconnect(*conn);
+			QStringList devices_list;
+			if (ret_code == 0)
+			{
+				const QStringList &remote_devices_list{ret_string.split(fancy_record_separator1, Qt::SkipEmptyParts)};
+				for (const auto &device : remote_devices_list)
+					devices_list.append(std::move(device));
+			}
+			emit networkListReceived(request_id, ret_code, devices_list);
+		}
+	});
 	const QUrl &url{makeCommandURL(username, passwd, "getdeviceslist"_L1)};
-	makeNetworkRequest(requestid, url);
+	makeNetworkRequest(requestid, url, true);
 }
 
 void TPOnlineServices::delDevice(const int requestid, const QString &username, const QString &passwd, const QString &device_id)
@@ -247,7 +263,7 @@ void TPOnlineServices::listFiles(const int requestid, const QString &username, c
 			{
 				const QString &localDir{appUtils()->localAppFilesDir() + targetUser + '/' + subdir + '/'};
 				const QStringList &remote_files_list{ret_string.split(fancy_record_separator1, Qt::SkipEmptyParts)};
-				for (uint i{0}; i < remote_files_list.count(); i=+2)
+				for (uint i{0}; i < remote_files_list.count(); i += 2)
 				{
 					QString filename{std::move(remote_files_list.at(i))};
 					QString online_date{std::move(remote_files_list.at(i+1))};

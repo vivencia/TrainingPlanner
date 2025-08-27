@@ -295,7 +295,7 @@ public:
 							   const QString &subdir = QString{}, const QString &targetUser = QString{});
 	void removeFileFromServer(const QString &filename, const QString &subdir = QString{}, const QString &targetUser = QString{});
 
-	int exportToFile(const uint user_idx, const QString &filename, QFile *out_file = nullptr) const;
+	int exportToFile(const uint user_idx, const QString &filename, const bool write_header, QFile *out_file = nullptr) const;
 	int exportToFormattedFile(const uint user_idx, const QString &filename, QFile *out_file = nullptr) const;
 	int importFromFile(const QString &filename, QFile *in_file = nullptr);
 	int importFromFormattedFile(const QString &filename, QFile *in_file = nullptr);
@@ -331,7 +331,7 @@ signals:
 	void userPasswordAvailable(const QString &password);
 	void fileDownloaded(const bool success, const uint requestid, const QString &localFileName);
 	void fileUploaded(const bool success, const uint requestid);
-	void onlineDevicesListReceived(const bool success);
+	void onlineDevicesListReceived();
 	void lastOnlineCmdRetrieved(const uint requestid, const QString &last_cmd);
 
 private:
@@ -352,14 +352,14 @@ private:
 	void registerUserOnline();
 	void onlineCheckinActions();
 	void getOnlineDevicesList();
-	void createOnlineDatabases();
-	void syncDatabases(const QStringList &online_db_files);
+	void createOnlineDatabases(QString last_online_cmd);
+	void syncDatabases(const QStringList &online_db_files, const QString &last_online_cmd);
 	void lastOnlineCmd(const uint requestid, const QString &subdir = QString{});
 	QString resume(const uint user_idx) const;
 	void checkIfCoachRegisteredOnline();
 	void getUserOnlineProfile(const QString &netName, const QString &save_as_filename);
 	void sendProfileToServer();
-	void sendUserInfoToServer();
+	void sendUserDataToServerDatabase();
 	inline void sendAvatarToServer() { sendFileToServer(avatar(0), nullptr, QString{}, QString{}, userId(0)); }
 	inline QString defaultAvatar(const uint user_idx) const
 	{

@@ -495,7 +495,7 @@ void DBUserModel::checkUserOnline(const QString &email, const QString &password)
 					//for some reason, the online users database was not updated with the user information upon first time
 					//setup. Do it now, then.
 					if (mainUserConfigured() && mainUserRegistered())
-						sendUserInfoToServer();
+						sendUserDataToServerDatabase();
 				}
 				emit userOnlineCheckResult(ret_code == 0);
 			}
@@ -626,7 +626,7 @@ void DBUserModel::setMainUserConfigurationFinished()
 			if (mb_MainUserInfoChanged)
 			{
 				sendProfileToServer();
-				sendUserInfoToServer();
+				sendUserDataToServerDatabase();
 				mb_MainUserInfoChanged = false;
 			}
 		}
@@ -751,8 +751,9 @@ int DBUserModel::sendFileToServer(const QString &filename, QFile *upload_file, c
 		upload_file = appUtils()->openFile(filename, QIODeviceBase::ReadOnly);
 	else
 	{
-		if (!upload_file->isOpen())
+		if (upload_file->isOpen())
 		{
+			upload_file->close();
 			if (!upload_file->open(QIODeviceBase::ReadOnly))
 				return -1;
 		}
@@ -871,7 +872,7 @@ void DBUserModel::removeFileFromServer(const QString &filename, const QString &s
 	appKeyChain()->readKey(userId(0));
 }
 
-int DBUserModel::exportToFile(const uint user_idx, const QString &filename, QFile *out_file) const
+int DBUserModel::exportToFile(const uint user_idx, const QString &filename, const bool write_header, QFile *out_file) const
 {
 	if (!out_file)
 	{
@@ -881,7 +882,7 @@ int DBUserModel::exportToFile(const uint user_idx, const QString &filename, QFil
 	}
 
 	const QList<uint> &export_user_idx{QList<uint>{} << user_idx};
-	const bool ret{appUtils()->writeDataToFile(out_file, appUtils()->userFileIdentifier, m_usersData)};
+	const bool ret{appUtils()->writeDataToFile(out_file, write_header ? appUtils()->userFileIdentifier : QString{}, m_usersData)};
 	out_file->close();
 	return ret ? APPWINDOW_MSG_EXPORT_OK : APPWINDOW_MSG_EXPORT_FAILED;
 }
@@ -1138,7 +1139,7 @@ void DBUserModel::onlineCheckIn()
 		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this] (const bool first_checkin) {
 			if (first_checkin)
 			{
-				sendUserInfoToServer();
+				sendUserDataToServerDatabase();
 				sendProfileToServer();
 				sendAvatarToServer();
 			}
@@ -1208,9 +1209,8 @@ void DBUserModel::onlineCheckinActions()
 		checkUserOnline(email(0), value);
 		if (!mb_singleDevice.has_value())
 		{
-			connect(this, &DBUserModel::onlineDevicesListReceived, this, [this,value] (const bool success) {
-				if (success)
-					onlineCheckinActions();
+			connect(this, &DBUserModel::onlineDevicesListReceived, this, [this,value] () {
+				onlineCheckinActions();
 			}, Qt::SingleShotConnection);
 			getOnlineDevicesList();
 		}
@@ -1218,24 +1218,28 @@ void DBUserModel::onlineCheckinActions()
 		{
 			const int requestid{appUtils()->generateUniqueId("onlineCheckinActions"_L1)};
 			auto conn = std::make_shared<QMetaObject::Connection>();
-			*conn = connect(appOnlineServices(), &TPOnlineServices::networkListReceived, this, [this,conn,requestid]
+			*conn = connect(appOnlineServices(), &TPOnlineServices::networkListReceived, this, [this,value,conn,requestid]
 							(const int request_id, const int ret_code, const QStringList &ret_list) {
 				if (request_id == requestid)
 				{
 					disconnect(*conn);
-					if (ret_code == 0)
-					{
-						if (ret_list.isEmpty())
-							createOnlineDatabases();
-						else
-							syncDatabases(ret_list);
-					}
-					emit lastOnlineCmdRetrieved(requestid, ret_code == 0 ?
-										ret_list.last().first(ret_list.last().length() - 4) : QString{});
+					auto conn2{std::make_shared<QMetaObject::Connection>()};
+					*conn2 = connect(this, &DBUserModel::lastOnlineCmdRetrieved, this, [this,ret_list,ret_code,request_id,conn2]
+											(const uint requestid, const QString &last_cmd) {
+						if (request_id == requestid)
+						{
+							disconnect(*conn2);
+							if (ret_code == 0)
+								syncDatabases(ret_list, last_cmd);
+							else
+								createOnlineDatabases(last_cmd);
+						}
+					});
+					lastOnlineCmd(requestid, TPDatabaseTable::databaseFilesSubDir);
 				}
 			});
 			appOnlineServices()->listFiles(requestid, userId(0), value, false, true, appUtils()->getFileExtension(
-					TPDatabaseTable::databaseFileNames[1], true), TPDatabaseTable::databaseFilesSubDir);
+					TPDatabaseTable::databaseFileNames[1], true), TPDatabaseTable::databaseFilesSubDir, userId(0));
 		}
 	}, Qt::SingleShotConnection);
 	appKeyChain()->readKey(userId(0));
@@ -1248,14 +1252,14 @@ void DBUserModel::getOnlineDevicesList()
 		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(appOnlineServices(), &TPOnlineServices::networkListReceived, this, [this,conn,requestid,value]
 					(const int request_id, const int ret_code, const QStringList &ret_list) {
+			bool device_registered{false};
+			n_devices = 0;
+			mb_singleDevice = true;
 			if (ret_code == 0)
 			{
-				const bool device_registered{ret_list.contains(appOsInterface()->deviceID())};
+				device_registered = ret_list.contains(appOsInterface()->deviceID());
 				if (ret_list.count() == 0)
-				{
 					mb_singleDevice = true;
-					n_devices = 0;
-				}
 				else if (ret_list.count() == 1)
 					mb_singleDevice = device_registered;
 				else
@@ -1263,65 +1267,55 @@ void DBUserModel::getOnlineDevicesList()
 					mb_singleDevice = false;
 					n_devices = ret_list.count();
 				}
-				if (!device_registered) {
-					appOnlineServices()->addDevice(requestid, userId(0), value, appOsInterface()->deviceID());
-					++n_devices;
-				}
+			}	
+			if (!device_registered) {
+				appOnlineServices()->addDevice(requestid, userId(0), value, appOsInterface()->deviceID());
+				++n_devices;
 			}
-			else
-				n_devices = -1;
-			emit onlineDevicesListReceived(ret_code == 0);
+			emit onlineDevicesListReceived();
 		});
 		appOnlineServices()->getDevicesList(requestid, userId(0), value);
 	}, Qt::SingleShotConnection);
 	appKeyChain()->readKey(userId(0));
 }
 
-void DBUserModel::createOnlineDatabases()
+void DBUserModel::createOnlineDatabases(QString last_online_cmd)
 {
-	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this] (const QString &key, const QString &value) {
-		const int requestid1{appUtils()->generateUniqueId("createOnlineDatabasesGetCmds"_L1)};
-		auto conn{std::make_shared<QMetaObject::Connection>()};
-		*conn = connect(this, &DBUserModel::lastOnlineCmdRetrieved, this, [this,requestid1,conn,value] (const uint requestid, const QString &last_cmd) {
-			if (requestid == requestid1)
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,last_online_cmd]
+									(const QString &key, const QString &value) mutable {
+		if (last_online_cmd.isEmpty())
+			last_online_cmd = '0';
+		uint cmd_start{last_online_cmd.toUInt()};
+		for (uint i{1}; i <= APP_TABLES_NUMBER; ++i)
+		{
+			QFile *cmd_file{appUtils()->createServerCmdFile(TPDatabaseTable::databaseFilesSubDir, ++cmd_start,
+				{"sqlite3"_L1, TPDatabaseTable::databaseFileNames[i], TPDatabaseTable::createTableQuery(i) + ';'})};
+			if (cmd_file)
 			{
-				disconnect(*conn);
-				if (!last_cmd.isEmpty())
-				{
-					uint cmd_start{last_cmd.toUInt()};
-					for (uint i{1}; i <= APP_TABLES_NUMBER; ++i)
+				const int requestid2{sendFileToServer(appUtils()->getFileName(cmd_file->fileName()), cmd_file,
+													QString{}, TPDatabaseTable::databaseFilesSubDir , QString{}, true)};
+				auto conn{std::make_shared<QMetaObject::Connection>()};
+				*conn = connect(this, &DBUserModel::fileUploaded, this, [this,conn,requestid2,cmd_file,value]
+													(const bool success, const int requestid) {
+					if (requestid2 == requestid)
 					{
-						QFile *cmd_file{appUtils()->createServerCmdFile(TPDatabaseTable::databaseFilesSubDir, ++cmd_start,
-								{"sqlite3"_L1, TPDatabaseTable::databaseFileNames[i], TPDatabaseTable::createTableQuery(i) + ';'})};
-						if (cmd_file)
+						disconnect(*conn);
+						if (success)
 						{
-							const int requestid2{sendFileToServer(appUtils()->getFileName(cmd_file->fileName()), cmd_file,
-								QString{}, TPDatabaseTable::databaseFilesSubDir , QString{}, true)};
-							auto conn2{std::make_shared<QMetaObject::Connection>()};
-							*conn2 = connect(this, &DBUserModel::fileUploaded, this, [this,conn2,requestid2,cmd_file,value]
-												(const bool success, const int requestid) {
-								if (requestid2 == requestid)
-								{
-									disconnect(*conn2);
-									if (success)
-									{
-										appOnlineServices()->executeCommands(requestid2, userId(0), value,
-												TPDatabaseTable::databaseFilesSubDir, mb_singleDevice.has_value() && mb_singleDevice.value());
-									}
-								}
-							});
+							appOnlineServices()->executeCommands(requestid2, userId(0), value,
+								TPDatabaseTable::databaseFilesSubDir, mb_singleDevice.has_value() && mb_singleDevice.value());
 						}
 					}
-				}
+				});
 			}
-		});
+		}
 	}, Qt::SingleShotConnection);
 	appKeyChain()->readKey(userId(0));
 }
 
-void DBUserModel::syncDatabases(const QStringList &online_db_files)
+void DBUserModel::syncDatabases(const QStringList &online_db_files, const QString &last_online_cmd)
 {
-	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,online_db_files] (const QString &key, const QString &value) {
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,online_db_files,last_online_cmd] (const QString &key, const QString &value) {
 		for (uint i{0}; i < online_db_files.count(); i=+2)
 		{
 			const QString &local_db_file{TPDatabaseTable::dbFilePath(1, true) + appUtils()->getFileName(online_db_files.at(i))};
@@ -1333,7 +1327,7 @@ void DBUserModel::syncDatabases(const QStringList &online_db_files)
 				{
 					//The server database file is older than the local one and there is more than one device sharing the account
 					//In this scenario, there are probably local .cmd files that have not been uploaded to the server in a previous
-					//session. If so, we upload them now and execute them. Because we will excecute all the .cmd files in a batch(there may be more
+					//session. If so, we upload and execute them now. Because we will excecute all the .cmd files in a batch(there may be more
 					//than one, and, in this case, they will probably affect more than one database file), the rest of the for-loop
 					//will do nothing because all remote and local files will have become synchronized.
 					QFileInfoList cmd_file_list;
@@ -1350,10 +1344,11 @@ void DBUserModel::syncDatabases(const QStringList &online_db_files)
 								appOnlineServices()->executeCommands(requestid, userId(0), value, TPDatabaseTable::databaseFilesSubDir, false);
 							}
 						});
+						uint cmd_number{last_online_cmd.toUInt() + 1};
 						for (const auto &cmd : std::as_const(cmd_file_list))
 						{
-							if (sendFileToServer(cmd.absoluteFilePath(), nullptr, QString{},
-											TPDatabaseTable::databaseFilesSubDir, QString{}, true) < 0)
+							if (sendFileToServer(cmd.absolutePath() + QString::number(cmd_number++) + ".cmd"_L1, nullptr,
+									QString{}, TPDatabaseTable::databaseFilesSubDir, userId(0), true) < 0)
 								--n_cmds;
 						}
 					}
@@ -1361,6 +1356,8 @@ void DBUserModel::syncDatabases(const QStringList &online_db_files)
 			}
 			else if (!appOnlineServices()->localFileUpToDate(online_db_files.at(i+1), local_db_file))
 			{
+				if (mb_singleDevice)
+					return;
 				//Local database file is behind the server's because the file was altered by another device. Download the
 				//.cmd file(s) from server, execute them and, if there are only two devices connected to the same account,
 				//ask the server to remove the cmd file(s). Otherwise, update the download count of the file
@@ -1464,14 +1461,14 @@ void DBUserModel::getUserOnlineProfile(const QString &netID, const QString &save
 void DBUserModel::sendProfileToServer()
 {
 	const QString &localProfile{localDir(0) + userProfileFileNameName};
-	if (exportToFile(0, localProfile) == APPWINDOW_MSG_EXPORT_OK)
+	if (exportToFile(0, localProfile, true) == APPWINDOW_MSG_EXPORT_OK)
 		static_cast<void>(sendFileToServer(localProfile, nullptr, QString{}, QString{}, userId(0)));
 }
 
-void DBUserModel::sendUserInfoToServer()
+void DBUserModel::sendUserDataToServerDatabase()
 {
 	const QString &main_user_data_filename{localDir(0) + userLocalDataFileName};
-	if (exportToFile(0, main_user_data_filename) == APPWINDOW_MSG_EXPORT_OK)
+	if (exportToFile(0, main_user_data_filename, false) == APPWINDOW_MSG_EXPORT_OK)
 	{
 		const int request_id{sendFileToServer(main_user_data_filename, nullptr, tr("Online user information updated"),
 							QString{}, userId(0), true)};
@@ -1486,7 +1483,7 @@ void DBUserModel::sendUserInfoToServer()
 					{
 						connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,request_id] (const QString &key, const QString &value) {
 							appOnlineServices()->updateOnlineUserInfo(request_id, key, value);
-						});
+						}, Qt::SingleShotConnection);
 						appKeyChain()->readKey(userId(0));
 					}
 				}

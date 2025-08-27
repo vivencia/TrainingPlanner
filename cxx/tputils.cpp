@@ -281,7 +281,8 @@ bool TPUtils::writeDataToFile(QFile *out_file,
 	if (!out_file || !out_file->isOpen())
 		return false;
 
-	out_file->write(QString{STR_START_EXPORT + identifier + '\n'}.toUtf8().constData());
+	if (!identifier.isEmpty())
+		out_file->write(QString{STR_START_EXPORT + identifier + '\n'}.toUtf8().constData());
 
 	if (export_rows.isEmpty())
 	{
@@ -298,7 +299,8 @@ bool TPUtils::writeDataToFile(QFile *out_file,
 				out_file->write(modeldata.at(i).toUtf8().constData());
 				out_file->write("\n", 1);
 			}
-			out_file->write(STR_END_EXPORT.toUtf8().constData());
+			if (!identifier.isEmpty())
+				out_file->write(STR_END_EXPORT.toUtf8().constData());
 		}
 	}
 	else
@@ -319,7 +321,8 @@ bool TPUtils::writeDataToFile(QFile *out_file,
 					out_file->write("\n", 1);
 				}
 			}
-			out_file->write(STR_END_EXPORT.toUtf8().constData());
+			if (!identifier.isEmpty())
+				out_file->write(STR_END_EXPORT.toUtf8().constData());
 		}
 	}
 	out_file->flush();
@@ -510,13 +513,16 @@ QFile *TPUtils::createServerCmdFile(const QString &subdir, const uint cmd_order,
 		QStringList var_list;
 		for (const QString &cmd_part : command_parts)
 		{
-			var_list += std::move(("VAR_"_L1) + QString::number(n_part));
-			cmd_string += std::move(var_list.at(n_part) + '=' + cmd_part);
+			const QString &var{"VAR_"_L1 + QString::number(n_part)};
+			cmd_string += std::move(var + "=\""_L1 + cmd_part + "\"\n"_L1);
+			if (cmd_part.count(' ') > 0)
+				var_list.append(std::move("\"${"_L1 + var + "}\""_L1));
+			else
+				var_list.append(std::move('$' + var + ' '));
 			++n_part;
 		}
-		cmd_string += '\n';
 		for (const QString &var : std::as_const(var_list))
-			cmd_string += std::move('$' + var + ' ');
+			cmd_string += var;
 
 		cmd_string += "\n#Downloads 1";
 		cmd_file->write(cmd_string.toUtf8().constData());
