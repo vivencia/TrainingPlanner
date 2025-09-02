@@ -31,7 +31,6 @@ const QString &workoutDoneMessage{qApp->tr("Your training routine seems to go we
 #ifdef Q_OS_LINUX
 #include <QProcess>
 static const QString &tp_server_config_script{"/var/www/html/trainingplanner/scripts/init_script.sh"_L1};
-static bool can_display_message{true};
 
 extern "C"
 {
@@ -56,7 +55,6 @@ OSInterface::OSInterface(QObject *parent)
 {
 	app_os_interface = this;
 	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(aboutToExit()));
-	connect(appOnlineServices(), &TPOnlineServices::serverOnline, this, &OSInterface::checkServerResponseSlot);
 
 	m_checkConnectionTimer = new QTimer{this};
 	m_checkConnectionTimer->setInterval(CONNECTION_CHECK_TIMEOUT);
@@ -65,6 +63,8 @@ OSInterface::OSInterface(QObject *parent)
 	checkInternetConnection();
 
 #ifdef Q_OS_ANDROID
+	connect(appOnlineServices(), &TPOnlineServices::serverOnline, this, &OSInterface::checkServerResponseSlot);
+
 	const QJniObject &context(QNativeInterface::QAndroidApplication::context());
 
 	context.callStaticMethod<void>(
@@ -134,59 +134,26 @@ void OSInterface::checkInternetConnection()
 
     bool isConnected{checkConnectionSocket.state() == QTcpSocket::ConnectedState};
     checkConnectionSocket.close();
-#ifndef QT_NO_DEBUG
-	if (!isConnected)
-	{
-		//When debugging, and using the local server as online server, ignore if the internet is not working
-		setBit(network_status, HAS_INTERNET);
-		unSetBit(network_status, NO_INTERNET_ACCESS);
-		appOnlineServices()->checkServer();
-		isConnected = true;
-	}
-#else
-    setBit(network_status, isConnected ? HAS_INTERNET : NO_INTERNET_ACCESS);
+	setBit(network_status, isConnected ? HAS_INTERNET : NO_INTERNET_ACCESS);
 	unSetBit(network_status, !isConnected ? HAS_INTERNET : NO_INTERNET_ACCESS);
-#endif
+	m_checkConnectionTimer->setInterval(isConnected ? CONNECTION_CHECK_TIMEOUT : CONNECTION_ERR_TIMEOUT); //When network is out, check more frequently
+	emit internetStatusChanged(isConnected);
 
+#ifndef Q_OS_ANDROID
+	checkLocalServer();
+#else
 	if (isConnected)
 		appOnlineServices()->checkServer();
 	else
 	{
+#ifndef QT_NO_DEBUG
+		appOnlineServices()->checkServer(); //See if the server is working in the local network
+#else
 		setBit(network_status, SERVER_UNREACHABLE);
 		unSetBit(network_status, SERVER_UP_AND_RUNNING);
+#endif
 	}
-	setNetworkStatus(network_status, 0);
-}
-
-void OSInterface::setNetworkStatus(int new_internetstatus, int new_serverstatus)
-{
-	if (new_internetstatus != 0)
-	{
-		const bool has_internet_now{isBitSet(new_internetstatus, HAS_INTERNET)};
-		if (internetOK() != has_internet_now)
-		{
-			setBit(m_networkStatus, has_internet_now ? HAS_INTERNET : NO_INTERNET_ACCESS);
-			unSetBit(m_networkStatus, has_internet_now ? NO_INTERNET_ACCESS : HAS_INTERNET);
-			if (!has_internet_now)
-			{
-				setBit(m_networkStatus, SERVER_UNREACHABLE);
-				unSetBit(m_networkStatus, SERVER_UP_AND_RUNNING);
-			}
-			m_checkConnectionTimer->setInterval(has_internet_now ? CONNECTION_CHECK_TIMEOUT : CONNECTION_ERR_TIMEOUT); //When network is out, check more frequently
-			emit internetStatusChanged(internetOK());
-		}
-	}
-	if (new_serverstatus != 0)
-	{
-		const bool server_online_now{isBitSet(new_serverstatus, SERVER_UP_AND_RUNNING)};
-		if (tpServerOK() != server_online_now)
-		{
-			setBit(m_networkStatus, server_online_now ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
-			unSetBit(m_networkStatus, server_online_now ? SERVER_UNREACHABLE : SERVER_UP_AND_RUNNING);
-			emit serverStatusChanged(server_online_now);
-		}
-		m_checkConnectionTimer->setInterval(server_online_now ? CONNECTION_CHECK_TIMEOUT : CONNECTION_ERR_TIMEOUT); //When network is out, check more frequently
-	}
+#endif
 }
 
 void OSInterface::aboutToExit()
@@ -196,38 +163,26 @@ void OSInterface::aboutToExit()
 	::exit(0);
 }
 
+#ifdef Q_OS_ANDROID
 void OSInterface::checkServerResponseSlot(const bool online)
 {
-#ifdef Q_OS_LINUX
-	#ifndef Q_OS_ANDROID
-	if (!online)
-	{
-		if (can_display_message)
-		{
-			can_display_message = false;
-			checkLocalServer();
-		}
-	}
-	else
-	{
-		can_display_message = true;
-		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings({"TrainingPlanner App"_L1, "Connected online!"_L1}, record_separator));
-	}
-	#endif
-	#else
-	if (!online)
-		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, appUtils()->string_strings({"TrainingPlanner App"_L1, "Server unreachable!"_L1}, record_separator));
-	else
-		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings({"TrainingPlanner App"_L1, "Connected online!"_L1}, record_separator));
-#endif
+	const bool notify{tpServerOK() != online};
 	int server_status{0};
 	setBit(server_status, online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
 	unSetBit(server_status, !online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
-	setNetworkStatus(0, server_status);
+	m_checkConnectionTimer->setInterval(online ? CONNECTION_CHECK_TIMEOUT : CONNECTION_ERR_TIMEOUT); //When server is out, check more frequently
 	m_bchecking_ic = false;
+	if (notify)
+	{
+		if (!online)
+			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, appUtils()->string_strings({"TrainingPlanner App"_L1, "Server unreachable!"_L1}, record_separator));
+		else
+			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings({"TrainingPlanner App"_L1, "Connected online!"_L1}, record_separator));
+
+		emit serverStatusChanged(online);
+	}
 }
 
-#ifdef Q_OS_ANDROID
 void OSInterface::checkPendingIntents() const
 {
 	const QJniObject &activity = QNativeInterface::QAndroidApplication::context();
@@ -553,35 +508,46 @@ QString OSInterface::executeAndCaptureOutput(const QString &program, QStringList
 	return strOutput;
 }
 
+void OSInterface::serverProcessFinished(QProcess *proc, const int exitCode, QProcess::ExitStatus exitStatus)
+{
+	if (exitStatus != QProcess::NormalExit)
+	{
+		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, appUtils()->string_strings(
+				{"Linux TP Server"_L1, "Error executing init_script"_L1}, record_separator));
+		return;
+	}
+
+	switch (exitCode)
+	{
+		case 5:
+		case 0:
+			setBit(m_networkStatus, SERVER_UP_AND_RUNNING);
+			unSetBit(m_networkStatus, SERVER_UNREACHABLE);
+			appOnlineServices()->setUseLocalHost(exitCode == 5);
+			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
+				{"Linux TP Server"_L1, "Up and running!"_L1 + "\nReturn code("_L1 + QString::number(exitCode) + ')'}, record_separator));
+			emit serverStatusChanged(true);
+			m_checkConnectionTimer->setInterval(CONNECTION_CHECK_TIMEOUT);
+		break;
+		case 1:
+			setBit(m_networkStatus, SERVER_UNREACHABLE);
+			unSetBit(m_networkStatus, SERVER_UP_AND_RUNNING);
+			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, appUtils()->string_strings(
+				{"Linux TP Server"_L1, proc->readAllStandardOutput() + "\nReturn code("_L1 + QString::number(exitCode) + ')'}, record_separator));
+			emit serverStatusChanged(false);
+			m_checkConnectionTimer->setInterval(CONNECTION_ERR_TIMEOUT);
+		break;
+		case 2: commandLocalServer("start"_L1); break;
+		case 3: commandLocalServer("setup"_L1); break;
+	}
+	delete proc;
+}
+
 void OSInterface::checkLocalServer()
 {
 	QProcess *check_server_proc{new QProcess{this}};
 	connect(check_server_proc, &QProcess::finished, this, [this,check_server_proc] (int exitCode, QProcess::ExitStatus exitStatus) {
-		check_server_proc->deleteLater();
-		if (exitStatus != QProcess::NormalExit)
-		{
-			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, appUtils()->string_strings(
-									{"Linux TP Server"_L1, "Could not run init_script status"_L1}, record_separator));
-			return;
-		}
-
-		switch (exitCode)
-		{
-			case 5:
-				setBit(m_networkStatus, SERVER_UP_AND_RUNNING);
-				unSetBit(m_networkStatus, SERVER_UNREACHABLE);
-			case 0:
-				appOnlineServices()->setUseLocalHost(exitCode == 5);
-				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
-						{"Linux TP Server"_L1, "Up and running!"_L1}, record_separator));
-			break;
-			case 1:
-			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, appUtils()->string_strings(
-						{"Linux TP Server"_L1, check_server_proc->readAllStandardOutput()}, record_separator));
-			break;
-			case 2: commandLocalServer("start"_L1); break;
-			case 3: commandLocalServer("setup"_L1); break;
-		}
+		serverProcessFinished(check_server_proc, exitCode, exitStatus);
 	});
 	check_server_proc->start(tp_server_config_script, {"status"_L1}, QIODeviceBase::ReadOnly);
 }
@@ -593,15 +559,7 @@ void OSInterface::commandLocalServer(const QString &command)
 		{
 			QProcess *server_script_proc{new QProcess{this}};
 			connect(server_script_proc, &QProcess::finished, this, [this,server_script_proc] (int exitCode, QProcess::ExitStatus exitStatus) {
-				if (exitStatus != QProcess::NormalExit)
-					exitCode = 10;
-				int server_status{0};
-				setBit(server_status, exitCode == 0 ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
-				unSetBit(server_status, exitCode != 0 ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
-				setNetworkStatus(0, server_status);
-				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
-						{"Linux TP Server"_L1, server_script_proc->readAllStandardOutput() + "\nReturn code("_L1 + QString::number(exitCode) + ')'}, record_separator));
-				server_script_proc->deleteLater();
+				serverProcessFinished(server_script_proc, exitCode, exitStatus);
 			});
 			server_script_proc->start(tp_server_config_script , {command, "-p="_L1 + password}, QIODeviceBase::ReadOnly);
 		}
@@ -610,7 +568,7 @@ void OSInterface::commandLocalServer(const QString &command)
 						{"Linux TP Server"_L1, "Operation canceled by the user"_L1}, record_separator));
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appItemManager()->getPasswordDialog("Administrator's rights needed"_L1,
-							"In order to setup and/or start the local HTTP server, you need to provide your user's password"_L1);
+					"In order to setup and/or start the local HTTP server, you need to provide your user's password"_L1);
 }
 
 void OSInterface::processArguments() const

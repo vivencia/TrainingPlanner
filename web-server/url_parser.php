@@ -1,6 +1,7 @@
 <?php
 
 $rootdir="/var/www/html/trainingplanner/";
+$pause_file=$rootdir . "pause";
 $scriptsdir=$rootdir . "scripts/";
 $htpasswd_file=$rootdir . "admin/.passwds";
 $coaches_file=$rootdir . "admin/coaches.data";
@@ -680,6 +681,14 @@ function run_dbscript($cmd, $cmd_opt, $userid, $print_output) {
     if ($print_output)
         echo "Return code: " . $return_var . "  " . $output;
     return $return_var;
+}
+
+if (file_exists($pause_file)) {
+    $paused = file($pause_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    if ($paused[0] == "1") {
+        print_r2("TrainingPlanner app server paused!");
+        exit;
+    }
 }
 
 $username = isset($_GET['user']) ? $_GET['user'] : '';

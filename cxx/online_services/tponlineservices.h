@@ -17,16 +17,21 @@ Q_OBJECT
 
 public:
 	inline explicit TPOnlineServices(QObject *parent = nullptr) : QObject{parent}
+#ifndef Q_OS_ANDROID
+	, m_useLocalHost{false}
+#endif
 	{
 		if (!_appOnlineServices)
 			_appOnlineServices = this;
 		m_networkManager = new QNetworkAccessManager{this};
 	}
-
 	inline ~TPOnlineServices() { delete m_networkManager; }
-	inline void setUseLocalHost(const bool use_localhost) { m_useLocalHost = use_localhost; }
 
+#ifndef Q_OS_ANDROID
+	inline void setUseLocalHost(const bool use_localhost) { m_useLocalHost = use_localhost; }
+#else
 	void checkServer();
+#endif
 	void checkOnlineUser(const int requestid, const QString &query, const QString &passwd);
 	void getOnlineUserData(const int requestid, const QString &user_id);
 	void checkUser(const int requestid, const QString &username, const QString &passwd);
@@ -96,7 +101,9 @@ private:
 	void uploadFile(const int requestid, const QUrl &url, QFile *file, const bool b_internal_signal_only = false);
 
 	QNetworkAccessManager *m_networkManager;
+#ifndef Q_OS_ANDROID
 	bool m_useLocalHost;
+#endif
 
 	static TPOnlineServices* _appOnlineServices;
 	friend TPOnlineServices* appOnlineServices();

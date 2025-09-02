@@ -15,25 +15,12 @@ TPOnlineServices* TPOnlineServices::_appOnlineServices{nullptr};
 
 static const QLatin1StringView root_user{"admin"};
 static const QLatin1StringView root_passwd{"admin"};
-static const QLatin1StringView server_addr{"http://192.168.10.21/trainingplanner/"};
-static const QLatin1StringView localhost_addr{"http://localhost/trainingplanner/"};
+static const QLatin1StringView server_addr{"http://192.168.10.21:8080/trainingplanner/"};
+static const QLatin1StringView localhost_addr{"http://localhost:8080/trainingplanner/"};
 
+#ifdef Q_OS_ANDROID
 void TPOnlineServices::checkServer()
 {
-	/*qputenv("QT_LOGGING_RULES", "qt.network.*.debug=true");
-	QTcpSocket socket;
-	connect(&socket, &QTcpSocket::connected, [] () {
-		qDebug() << "*****Connected*****";
-	});
-	connect(&socket, &QTcpSocket::errorOccurred, [] (QAbstractSocket::SocketError error) {
-		qDebug() << "*****Socket error:" << error << "*****";
-	});
-	connect(&socket, &QTcpSocket::stateChanged, [] (QAbstractSocket::SocketState state) {
-		qDebug() << "*****Socket state:" << state << "*****";
-	});
-	socket.connectToHost("google.com", 443);
-	qDebug() << "*****  " << socket.state();
-	qDebug() << "*****  " << socket.error();*/
 	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{QUrl{server_addr}})};
 	connect(reply, &QNetworkReply::finished, this, [this,reply]() {
 		bool server_ok{false};
@@ -46,6 +33,7 @@ void TPOnlineServices::checkServer()
 		emit serverOnline(server_ok);
 	});
 }
+#endif
 
 void TPOnlineServices::checkOnlineUser(const int requestid, const QString &query, const QString &passwd)
 {
@@ -361,7 +349,11 @@ QString TPOnlineServices::makeCommandURL(const QString &username, const QString 
 								const QString &option3, const QString &value3
 							)
 {
+#ifndef Q_OS_ANDROID
 	QString ret{(m_useLocalHost ? localhost_addr : server_addr) + "?user="_L1 + username + "&password="_L1 + passwd};
+#else
+	QString ret{server_addr + "?user="_L1 + username + "&password="_L1 + passwd};
+#endif
 	if (!option1.isEmpty())
 	{
 		ret += '&' + option1 + '=';

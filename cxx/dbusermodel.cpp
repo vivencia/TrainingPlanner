@@ -417,8 +417,8 @@ bool DBUserModel::mainUserConfigured() const
 	if (m_usersData.count() >= 1)
 	{
 		ret = onlineUser(0) && !email(0).isEmpty();
-		ret &= isCoach(0) && !m_usersData.at(0).at(USER_COL_COACHROLE).isEmpty();
-		ret &= isClient(0) && !m_usersData.at(0).at(USER_COL_GOAL).isEmpty();
+		ret &= isCoach(0) == !m_usersData.at(0).at(USER_COL_COACHROLE).isEmpty();
+		ret &= isClient(0) == !m_usersData.at(0).at(USER_COL_GOAL).isEmpty();
 	}
 	return ret;
 }
@@ -736,7 +736,7 @@ int DBUserModel::sendFileToServer(const QString &filename, QFile *upload_file, c
 	else if (!canConnectToServer())
 	{
 		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
-				{tpNetworkTitle, tr("Online server unavailable. Tray again later")}, record_separator));
+				{tpNetworkTitle, tr("Online server unavailable. Try it again once the app is connected to the server.")}, record_separator));
 		return -1;
 	}
 	else {
@@ -767,11 +767,9 @@ int DBUserModel::sendFileToServer(const QString &filename, QFile *upload_file, c
 				if (request_id == requestid)
 				{
 					disconnect(*conn);
+					upload_file->close();
 					if (removeLocalFile)
-						QFile::remove(filename);
-					else
-						upload_file->close();
-
+						QFile::remove(upload_file->fileName());
 					if (ret_code == 0)
 						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
 								{tpNetworkTitle, successMessage.isEmpty() ? ret_string : successMessage}, record_separator));
@@ -796,7 +794,7 @@ int DBUserModel::downloadFileFromServer(const QString &filename, const QString &
 	if (!canConnectToServer())
 	{
 		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
-					{tpNetworkTitle, tr("Online server unavailable. Tray again later")}, record_separator));
+					{tpNetworkTitle, tr("Online server unavailable. Try it again once the app is connected to the server.")}, record_separator));
 		return -1;
 	}
 	else {
@@ -1146,9 +1144,9 @@ void DBUserModel::onlineCheckIn()
 			onlineCheckinActions();
 			if (!isCoachRegistered() && mb_coachPublic)
 				setCoachPublicStatus(mb_coachPublic);
+			startServerPolling();
 		}, Qt::SingleShotConnection);
 		registerUserOnline();
-		startServerPolling();
 	}
 }
 

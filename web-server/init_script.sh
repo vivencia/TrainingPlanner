@@ -12,7 +12,7 @@ USER_NAME=$(whoami)
 PASSWORD=""
 
 print_usage() {
-	echo "Usage: $SCRIPT_NAME {setup|status|start|stop|restart|dbcreate}" >&2
+	echo "Usage: $SCRIPT_NAME {setup|status|start|stop|restart|pause|dbcreate}" >&2
 }
 
 get_passwd() {
@@ -74,6 +74,7 @@ PHP_FPM_CONFIG_DIR=/etc/php/php-fpm.d
 ADMIN="admin"
 ADMIN_DIR=$TP_DIR/$ADMIN
 USERS_DB="$TP_DIR/$ADMIN/users.db"
+PAUSE_FILE="$TP_DIR/pause"
 
 create_admin_user() {
     PASS_FILE=$ADMIN_DIR/.passwds
@@ -103,6 +104,120 @@ create_users_db() {
         echo "Failed to create users database: " $USERS_DB
         return 1
     fi
+}
+
+start_nginx() {
+    if [ -f "$NGINX" ]; then
+        if pgrep -fl "$NGINX" &>/dev/null; then
+            echo "The NGINX service is already running."
+        else
+            echo "Starting NGINX..."
+            if ! run_as_sudo systemctl start "$NGINX"; then
+                echo "Error starting nginx service."
+                return 4
+            else
+                echo "The NGINX service started successfully."
+            fi
+        fi
+        return 0;
+    else
+        echo "Please install NGINX."
+        return 4
+    fi
+    return 0
+}
+
+stop_nginx() {
+    if [ -f "$NGINX" ]; then
+        if pgrep -fl "$NGINX" &>/dev/null; then
+            echo "Stopping the NGINX service..."
+            if ! run_as_sudo systemctl stop "$NGINX"; then
+                echo "Error starting the NGINX service."
+                return 4
+            else
+                echo "The NGINX service started successfully."
+            fi
+        else
+            echo "The NGINX service is not running."
+        fi
+        return 0
+    else
+        echo "Please install NGINX."
+        return 4
+    fi
+}
+
+start_phpfpm() {
+    if pgrep -fl $PHP_FPM_SERVICE &>/dev/null; then
+        echo "The PHP-FPM service is already running."
+    else
+        echo "Starting PHP-FPM..."
+        if [ ! -f "/run/php" ]; then
+            run_as_sudo mkdir "/run/php"
+        fi
+        if ! run_as_sudo systemctl start $PHP_FPM_SERVICE; then
+            echo "Error starting the PHP-FPM service."
+            return 5
+        else
+            echo "The PHP-FPM service started successfully."
+        fi
+    fi
+    return 0
+}
+
+stop_phpfpm() {
+    if pgrep -fl $PHP_FPM_SERVICE &>/dev/null; then
+        echo "Stopping PHP-FPM..."
+        if ! run_as_sudo systemctl stop $PHP_FPM_SERVICE; then
+            echo "PHP FPM service failed to stop"
+            return 5
+        else
+            echo "PHP FPM service stopped successfully."
+        fi
+    else
+        echo "Service php-fpm is not running."
+    fi
+    return 0
+}
+
+start_server() {
+    start_nginx
+    EXIT_STATUS=$?
+    if [ "$EXIT_STATUS" == 0 ]; then
+        start_phpfpm
+        EXIT_STATUS=$?
+    fi
+    if [ "$EXIT_STATUS" == 0 ]; then
+        echo "Local TP server configured and running!"
+    else
+        echo "Local TP server not running"
+    fi
+    return $EXIT_STATUS
+}
+
+stop_server() {
+    stop_nginx
+    EXIT_STATUS=$?
+    if [ "$EXIT_STATUS" == 0 ]; then
+        stop_phpfpm
+        EXIT_STATUS=$?
+    fi
+    if [ "$EXIT_STATUS" == 0 ]; then
+        echo "Local TP server stopped!"
+    else
+        echo "Local TP server failed to stop"
+    fi
+    return $EXIT_STATUS
+}
+
+pause_server() {
+    echo "1" > $PAUSE_FILE
+    echo "TPSERVER paused"
+}
+
+unpause_server() {
+    echo "0" > $PAUSE_FILE
+    echo "TPSERVER running"
 }
 
 setup_tpserver() {
@@ -139,138 +254,109 @@ setup_tpserver() {
             echo "Filesystem directories and files setup. Log out and in again in order for the changes to work."
             return 0
         fi
-
     else
-
-        if pgrep -fl nginx &>/dev/null; then
-            echo "Service nginx is already running."
-        else
-            echo "Starting http server..."
-            if [ -f "$NGINX" ]; then
-                if ! run_as_sudo systemctl start nginx; then
-                    echo "Error starting nginx service."
-                    return 4
-                fi
-            else
-                echo "Please install nginx."
-                return 4
-            fi
-        fi
-
-        if pgrep -fl php-fpm &>/dev/null; then
-            echo "Service php-fpm is already running."
-        else
-            echo "Starting php-fpm..."
-            if ! run_as_sudo systemctl start $PHP_FPM_SERVICE; then
-                echo "Error starting php-fpm service."
-                return 5
-            fi
-        fi
-
-        echo "Local TP server configured and running!"
-        return 0
+        start_server
+        return $?
     fi
+}
+
+test_tp_server() {
+    curl -s http://192.168.10.21:8080/trainingplanner/ | grep -q "Bad Gateway" && TP_SERVER=1 || TP_SERVER=0
+    if [ "$TP_SERVER" == 0 ]; then
+        curl -s http://192.168.10.21:8080/trainingplanner/ | grep -q "Welcome" && TP_SERVER=0 || TP_SERVER=1
+    fi
+    if [ "$TP_SERVER" == 0 ]; then
+        MESSAGE="TPSERVER up and running."
+        return 0
+    else
+        curl -s localhost:8080/trainingplanner/ | grep -q "Bad Gateway" && TP_SERVER=1 || TP_SERVER=0
+        if [ "$TP_SERVER" == 0 ]; then
+            curl -s localhost:8080/trainingplanner/ | grep -q "Welcome" && TP_SERVER=0 || TP_SERVER=1
+        fi
+
+    fi
+    if [ "$TP_SERVER" == 0 ]; then
+        MESSAGE="TPSERVER up and running on localhost only."
+        return 5
+    else
+        MESSAGE="TPSERVER is not reachable."
+        return 1
+    fi
+}
+
+get_tpserver_status() {
+    if [ -d "$TP_DIR" ]; then
+        systemctl status nginx 1&> /dev/null
+        NGINX_SETUP=$?
+        PHP_FPM_SETUP=1
+        if [ $NGINX_SETUP == 0 ]; then
+            systemctl status $PHP_FPM_SERVICE 1&> /dev/null
+            PHP_FPM_SETUP=$?
+        fi
+        test_tp_server
+        EXIT_STATUS=$?
+        if [ "$EXIT_STATUS" == 1 ]; then
+            if [ $NGINX_SETUP == 0 ]; then
+                MESSAGE="$MESSAGE NGINX service is up and running."
+            else
+                EXIT_STATUS=2
+                MESSAGE="$MESSAGE NGINX service is not running."
+            fi
+            if [ $PHP_FPM_SETUP == 0 ]; then
+                MESSAGE="$MESSAGE PHP-FPM service is up and running."
+            else
+                EXIT_STATUS=2
+                MESSAGE="$MESSAGE PHP-FPM service is not running."
+            fi
+        fi
+    else
+        EXIT_STATUS=3
+        MESSAGE="TPSERVER needs to be setup. Run" $SCRIPT_NAME "with the setup option."
+    fi
+    echo "$MESSAGE"
+    return $EXIT_STATUS
 }
 
 case "$COMMAND" in
     status)
-        if [ -d "$TP_DIR" ]; then
-            systemctl status nginx 1&> /dev/null
-            NGINX_SETUP=$?
-            PHP_FPM_SETUP=1
-            if [ $NGINX_SETUP == 0 ]; then
-                systemctl status $PHP_FPM_SERVICE 1&> /dev/null
-                PHP_FPM_SETUP=$?
-                curl -s http://192.168.10.21/trainingplanner/ | grep -q "Bad Gateway" && TP_SERVER=1 || TP_SERVER=0
-                if [ "$TP_SERVER" == 0 ]; then
-                    curl -s http://192.168.10.21/trainingplanner/ | grep -q "Welcome" && TP_SERVER=0 || TP_SERVER=1
-                fi
-            fi
-            if [ "$TP_SERVER" == 0 ]; then
-                EXIT_STATUS=0
-                MESSAGE="Local TP Server up and running."
-            else
-                curl -s localhost/trainingplanner/ | grep -q "Bad Gateway" && TP_SERVER=1 || TP_SERVER=0
-                if [ "$TP_SERVER" == 0 ]; then
-                    curl -s localhost/trainingplanner/ | grep -q "Welcome" && TP_SERVER=0 || TP_SERVER=1
-                fi
-                if [ "$TP_SERVER" == 0 ]; then
-                    EXIT_STATUS=5
-                    MESSAGE="Local TP Server up and running on localhost only."
-                else
-                    EXIT_STATUS=1
-                    MESSAGE="Local TP Server is not reachable."
-
-                    if [ $NGINX_SETUP == 0 ]; then
-                        MESSAGE="$MESSAGE NGINX service is up and running."
-                    else
-                        EXIT_STATUS=2
-                        MESSAGE="$MESSAGE NGINX service is not running."
-                    fi
-                    if [ $PHP_FPM_SETUP == 0 ]; then
-                        MESSAGE="$MESSAGE PHP-FPM service is up and running."
-                    else
-                        EXIT_STATUS=2
-                        MESSAGE="$MESSAGE PHP-FPM service is not running."
-                    fi
-                fi
-            fi
-        else
-            EXIT_STATUS=3
-            MESSAGE="Local TP Server needs to be setup. Run" $SCRIPT_NAME "with the setup option."
-        fi
-        echo "$MESSAGE"
-        exit $EXIT_STATUS
+        get_tpserver_status
+        exit $?
     ;;
     setup)
         setup_tpserver
         exit $?
     ;;
     start)
-        if run_as_sudo systemctl start nginx; then
-            run_as_sudo mkdir /run/php #an error in the fpm service might not create this needed directory
-            echo "Local network server nginx started successfully"
-            if run_as_sudo systemctl start $PHP_FPM_SERVICE; then
-                echo "PHP FPM service started successfully";
-                exit 0
-            else
-                echo "PHP FPM service failed to start";
-                exit 1
-            fi
-        else
-            echo "Local network server nginx failed to start"
-            exit 2
-        fi
-
+        start_server
+        exit $?
     ;;
     stop)
-        if run_as_sudo systemctl stop nginx; then
-            echo "Local network server nginx stopped successfully"
-            if run_as_sudo systemctl stop $PHP_FPM_SERVICE; then
-                echo "PHP FPM service stopped successfully";
-                exit 0
-            else
-                echo "PHP FPM service failed to stop";
-                exit 1
-            fi
-        else
-            echo "Local network server nginx failed to stop"
-            exit 2
-        fi
+        stop_server
+        exit $?
     ;;
     restart)
-        if run_as_sudo systemctl restart nginx; then
-            echo "Local network server nginx restarted successfully"
-            if run_as_sudo systemctl restart $PHP_FPM_SERVICE; then
-                echo "PHP FPM service restarted successfully";
-                exit 0
+        stop_server
+        if [ $? == 0 ]; then
+            start_server
+        fi
+    ;;
+    pause)
+        get_tpserver_status
+        if [ $? == 0 ]; then
+            if [ ! -f $PAUSE_FILE ]; then
+                pause_server
             else
-                echo "PHP FPM service failed to restart";
-                exit 1
+                PAUSE=$(head -n 1 "$PAUSE_FILE")
+                if [ "$PAUSE" == 1 ]; then
+                    unpause_server
+                else
+                    pause_server
+                fi
             fi
+            exit $?
         else
-            echo "Local network server nginx failed to restart"
-            exit 2
+            echo "Cannot pause TPSERVER because it's not running."
+            exit 7
         fi
     ;;
     dbcreate)

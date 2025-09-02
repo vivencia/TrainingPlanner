@@ -28,6 +28,8 @@ struct notificationData {
 
 	explicit inline notificationData(): id{0}, action{0}, resolved{false}, start_time{QDate::currentDate(), QTime::currentTime()} {}
 };
+#else
+#include <QProcess>
 #endif
 
 QT_FORWARD_DECLARE_CLASS(TPListModel)
@@ -83,7 +85,6 @@ public:
 	}
 
 	inline int networkStatus() const { return m_networkStatus; }
-	void setNetworkStatus(int new_internetstatus, int new_serverstatus);
 
 	inline void initialCheck()
 	{
@@ -118,6 +119,7 @@ public:
 #else
 	#ifdef Q_OS_LINUX
 		QString executeAndCaptureOutput(const QString &program, QStringList &arguments, const bool b_asRoot = false, int *exitCode = nullptr);
+		void serverProcessFinished(QProcess *proc, const int exitCode, QProcess::ExitStatus exitStatus);
 		void checkLocalServer();
 		void commandLocalServer(const QString &command);
 		void processArguments() const;
@@ -145,7 +147,9 @@ signals:
 
 public slots:
 	void aboutToExit();
+#ifdef Q_OS_ANDROID
 	void checkServerResponseSlot(const bool online);
+#endif
 
 private:
 	int m_networkStatus;

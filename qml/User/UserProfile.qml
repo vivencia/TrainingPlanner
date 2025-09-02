@@ -290,7 +290,7 @@ ColumnLayout {
 				userGoalModel.get(y).enabled = enabled;
 		}
 		else
-			bClientRoleOK = true;
+			bGoalOK = bClientRoleOK = true;
 
 		if (isCoach) {
 			const coach_role = userModel.coachRole(userRow);

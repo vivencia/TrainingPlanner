@@ -346,9 +346,9 @@ QString TPSettings::availableLanguagesLabel(const uint language_idx) const
 {
 	switch (language_idx)
 	{
-		case 0: return tr("Application Language: English");
-		case 1: return tr("Linguagem do aplicativo: Português do Brasil");
-		case 2: return tr("Sprache des Apps: Deutsch von Deutschland");
+		case 0: return "Application Language: English"_L1;
+		case 1: return "Linguagem do aplicativo: Português do Brasil"_L1;
+		case 2: return "Sprache des Apps: Deutsch von Deutschland"_L1;
 	}
 	return QString{};
 }
