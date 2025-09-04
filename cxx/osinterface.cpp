@@ -36,8 +36,18 @@ extern "C"
 {
 	#include <unistd.h>
 }
-#endif
-#endif
+
+#define TPSERVER_OK 0
+#define TPSERVER_ERROR 1
+#define TPSERVER_NGINX_ERROR 2
+#define TPSERVER_PHPFPM_ERROR 3
+#define TPSERVER_CONFIG_ERROR 4
+#define TPSERVER_OK_LOCALHOST 5
+#define TPSERVER_PAUSED 6
+#define TPSERVER_PAUSED_LOCALHOST 7
+#define TPSERVER_PAUSED_FAILED 8
+#endif //Q_OS_LINUX
+#endif //Q_OS_ANDROID
 
 #include <QFileInfo>
 #include <QGuiApplication>
@@ -47,8 +57,14 @@ extern "C"
 #include <QTimer>
 
 OSInterface *OSInterface::app_os_interface{nullptr};
+#ifndef QT_NO_DEBUG
+//When testing, poll more frequently
+constexpr uint CONNECTION_CHECK_TIMEOUT{60*1000};
+constexpr uint CONNECTION_ERR_TIMEOUT{10*1000};
+#else
 constexpr uint CONNECTION_CHECK_TIMEOUT{10*60*1000};
 constexpr uint CONNECTION_ERR_TIMEOUT{20*1000};
+#endif
 
 OSInterface::OSInterface(QObject *parent)
 	: QObject{parent}, m_networkStatus{0}, m_bchecking_ic{false}
@@ -519,26 +535,40 @@ void OSInterface::serverProcessFinished(QProcess *proc, const int exitCode, QPro
 
 	switch (exitCode)
 	{
-		case 5:
-		case 0:
+		case TPSERVER_OK:
+		case TPSERVER_OK_LOCALHOST:
 			setBit(m_networkStatus, SERVER_UP_AND_RUNNING);
 			unSetBit(m_networkStatus, SERVER_UNREACHABLE);
-			appOnlineServices()->setUseLocalHost(exitCode == 5);
+			appOnlineServices()->setUseLocalHost(exitCode == TPSERVER_OK_LOCALHOST);
 			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
 				{"Linux TP Server"_L1, "Up and running!"_L1 + "\nReturn code("_L1 + QString::number(exitCode) + ')'}, record_separator));
 			emit serverStatusChanged(true);
 			m_checkConnectionTimer->setInterval(CONNECTION_CHECK_TIMEOUT);
 		break;
-		case 1:
+
+		case TPSERVER_ERROR:
+		case TPSERVER_NGINX_ERROR:
+		case TPSERVER_PAUSED_FAILED:
 			setBit(m_networkStatus, SERVER_UNREACHABLE);
 			unSetBit(m_networkStatus, SERVER_UP_AND_RUNNING);
 			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, appUtils()->string_strings(
 				{"Linux TP Server"_L1, proc->readAllStandardOutput() + "\nReturn code("_L1 + QString::number(exitCode) + ')'}, record_separator));
 			emit serverStatusChanged(false);
 			m_checkConnectionTimer->setInterval(CONNECTION_ERR_TIMEOUT);
+
+		case TPSERVER_PHPFPM_ERROR:
+			commandLocalServer("Start server service?"_L1, "start"_L1);
 		break;
-		case 2: commandLocalServer("start"_L1); break;
-		case 3: commandLocalServer("setup"_L1); break;
+
+		case TPSERVER_CONFIG_ERROR:
+			commandLocalServer("Setup server?"_L1, "setup"_L1);
+		break;
+
+		case TPSERVER_PAUSED:
+		case TPSERVER_PAUSED_LOCALHOST:
+			commandLocalServer("Unpause server?"_L1, "pause"_L1);
+			appOnlineServices()->setUseLocalHost(exitCode == TPSERVER_PAUSED_LOCALHOST);
+		break;
 	}
 	delete proc;
 }
@@ -552,9 +582,9 @@ void OSInterface::checkLocalServer()
 	check_server_proc->start(tp_server_config_script, {"status"_L1}, QIODeviceBase::ReadOnly);
 }
 
-void OSInterface::commandLocalServer(const QString &command)
+void OSInterface::commandLocalServer(const QString &message, const QString &command)
 {
-	connect(appItemManager(), &QmlItemManager::qmlPasswordDialogClosed, this, [this,command] (int resultCode, const QString &password) {
+	connect(appItemManager(), &QmlItemManager::qmlPasswordDialogClosed, this, [this,message,command] (int resultCode, const QString &password) {
 		if (resultCode == 0)
 		{
 			QProcess *server_script_proc{new QProcess{this}};
@@ -565,10 +595,10 @@ void OSInterface::commandLocalServer(const QString &command)
 		}
 		else
 			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
-						{"Linux TP Server"_L1, "Operation canceled by the user"_L1}, record_separator));
+						{message, "Operation canceled by the user"_L1}, record_separator));
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-	appItemManager()->getPasswordDialog("Administrator's rights needed"_L1,
-					"In order to setup and/or start the local HTTP server, you need to provide your user's password"_L1);
+	appItemManager()->getPasswordDialog(message,
+					"In order to setup/start/stop/pause the local HTTP server, your user password is required"_L1);
 }
 
 void OSInterface::processArguments() const

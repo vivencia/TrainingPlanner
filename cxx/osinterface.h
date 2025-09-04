@@ -121,7 +121,7 @@ public:
 		QString executeAndCaptureOutput(const QString &program, QStringList &arguments, const bool b_asRoot = false, int *exitCode = nullptr);
 		void serverProcessFinished(QProcess *proc, const int exitCode, QProcess::ExitStatus exitStatus);
 		void checkLocalServer();
-		void commandLocalServer(const QString &command);
+		void commandLocalServer(const QString &message, const QString &command);
 		void processArguments() const;
 		Q_INVOKABLE void restartApp();
 	#endif

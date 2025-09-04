@@ -4,9 +4,10 @@
 #https://www.shellcheck.net/
 #to spell check shell scripts and make them more robust
 
-BASE_SERVER_DIR=/var/www/html
-TP_DIR=$BASE_SERVER_DIR/trainingplanner
-PHP_FPM_SERVICE=php-fpm
+BASE_SERVER_DIR="/var/www/html"
+TP_DIR=$BASE_SERVER_DIR"/trainingplanner"
+DEFAULT_SERVER_ADDRESS="http://192.168.10.21:8080"
+PHP_FPM_SERVICE="php-fpm"
 SCRIPT_NAME=$(basename "$0")
 USER_NAME=$(whoami)
 PASSWORD=""
@@ -106,6 +107,52 @@ create_users_db() {
     fi
 }
 
+query_address() {
+    SERVER_RESPONSE=$(curl -s "$1/trainingplanner/")
+    echo "$SERVER_RESPONSE" | grep -q "Bad Gateway" && RESULT=1 || RESULT=0
+    if [ "$RESULT" == 0 ]; then
+        echo "$SERVER_RESPONSE" | grep -q "Welcome" && RESULT=0 || RESULT=1
+        if [ "$RESULT" == 1 ]; then
+                echo "$SERVER_RESPONSE" | grep -q "paused" && RESULT=2 || RESULT=0
+        fi
+    fi
+    return $RESULT
+}
+
+test_tp_server() {
+    query_address "$1"
+    case "$?" in
+        0)
+            if [ "$2" == "lan" ]; then
+                echo "TPSERVER up and running."
+                return 0
+            else
+                echo "TPSERVER is running on localhost only."
+                return 5
+            fi
+        ;;
+        1)
+            if [ $2 != "lan" ]; then
+                echo "TPSERVER not running in the local network. Trying localhost only"
+                test_tp_server "http://localhost:8080"
+                return $?
+            else
+                echo "TPSERVER is not reachable."
+                return 1
+            fi
+        ;;
+        2)
+            if [ $2 == "lan" ]; then
+                echo "TPSERVER paused."
+                return 6
+            else
+                echo "TPSERVER paused on localhost only."
+                return 7
+            fi
+        ;;
+    esac
+}
+
 start_nginx() {
     if [ -f "$NGINX" ]; then
         if pgrep -fl "$NGINX" &>/dev/null; then
@@ -114,7 +161,7 @@ start_nginx() {
             echo "Starting NGINX..."
             if ! run_as_sudo systemctl start "$NGINX"; then
                 echo "Error starting nginx service."
-                return 4
+                return 2
             else
                 echo "The NGINX service started successfully."
             fi
@@ -122,7 +169,7 @@ start_nginx() {
         return 0;
     else
         echo "Please install NGINX."
-        return 4
+        return 2
     fi
     return 0
 }
@@ -133,7 +180,7 @@ stop_nginx() {
             echo "Stopping the NGINX service..."
             if ! run_as_sudo systemctl stop "$NGINX"; then
                 echo "Error starting the NGINX service."
-                return 4
+                return 2
             else
                 echo "The NGINX service started successfully."
             fi
@@ -143,7 +190,7 @@ stop_nginx() {
         return 0
     else
         echo "Please install NGINX."
-        return 4
+        return 2
     fi
 }
 
@@ -157,7 +204,7 @@ start_phpfpm() {
         fi
         if ! run_as_sudo systemctl start $PHP_FPM_SERVICE; then
             echo "Error starting the PHP-FPM service."
-            return 5
+            return 3
         else
             echo "The PHP-FPM service started successfully."
         fi
@@ -170,7 +217,7 @@ stop_phpfpm() {
         echo "Stopping PHP-FPM..."
         if ! run_as_sudo systemctl stop $PHP_FPM_SERVICE; then
             echo "PHP FPM service failed to stop"
-            return 5
+            return 3
         else
             echo "PHP FPM service stopped successfully."
         fi
@@ -188,9 +235,10 @@ start_server() {
         EXIT_STATUS=$?
     fi
     if [ "$EXIT_STATUS" == 0 ]; then
-        echo "Local TP server configured and running!"
+        test_tp_server $DEFAULT_SERVER_ADDRESS "lan"
+        EXIT_STATUS=$?
     else
-        echo "Local TP server not running"
+        echo "TPSERVER not running because PHP-FPM failed to start"
     fi
     return $EXIT_STATUS
 }
@@ -260,61 +308,40 @@ setup_tpserver() {
     fi
 }
 
-test_tp_server() {
-    curl -s http://192.168.10.21:8080/trainingplanner/ | grep -q "Bad Gateway" && TP_SERVER=1 || TP_SERVER=0
-    if [ "$TP_SERVER" == 0 ]; then
-        curl -s http://192.168.10.21:8080/trainingplanner/ | grep -q "Welcome" && TP_SERVER=0 || TP_SERVER=1
-    fi
-    if [ "$TP_SERVER" == 0 ]; then
-        MESSAGE="TPSERVER up and running."
-        return 0
-    else
-        curl -s localhost:8080/trainingplanner/ | grep -q "Bad Gateway" && TP_SERVER=1 || TP_SERVER=0
-        if [ "$TP_SERVER" == 0 ]; then
-            curl -s localhost:8080/trainingplanner/ | grep -q "Welcome" && TP_SERVER=0 || TP_SERVER=1
-        fi
-
-    fi
-    if [ "$TP_SERVER" == 0 ]; then
-        MESSAGE="TPSERVER up and running on localhost only."
-        return 5
-    else
-        MESSAGE="TPSERVER is not reachable."
-        return 1
-    fi
-}
-
 get_tpserver_status() {
     if [ -d "$TP_DIR" ]; then
         systemctl status nginx 1&> /dev/null
         NGINX_SETUP=$?
         PHP_FPM_SETUP=1
+        TEST_RESULT=1
         if [ $NGINX_SETUP == 0 ]; then
             systemctl status $PHP_FPM_SERVICE 1&> /dev/null
             PHP_FPM_SETUP=$?
+            test_tp_server "$DEFAULT_SERVER_ADDRESS" "lan"
+            TEST_RESULT=$?
         fi
-        test_tp_server
-        EXIT_STATUS=$?
-        if [ "$EXIT_STATUS" == 1 ]; then
+
+        if [ "$TEST_RESULT" == 1 ]; then
             if [ $NGINX_SETUP == 0 ]; then
                 MESSAGE="$MESSAGE NGINX service is up and running."
             else
-                EXIT_STATUS=2
+                TEST_RESULT=2
                 MESSAGE="$MESSAGE NGINX service is not running."
             fi
             if [ $PHP_FPM_SETUP == 0 ]; then
                 MESSAGE="$MESSAGE PHP-FPM service is up and running."
             else
-                EXIT_STATUS=2
+                TEST_RESULT=3
                 MESSAGE="$MESSAGE PHP-FPM service is not running."
             fi
+            echo $MESSAGE
         fi
     else
-        EXIT_STATUS=3
-        MESSAGE="TPSERVER needs to be setup. Run" $SCRIPT_NAME "with the setup option."
+        TEST_RESULT=4
+        echo "TPSERVER needs to be setup. Run" $SCRIPT_NAME "with the setup option."
     fi
-    echo "$MESSAGE"
-    return $EXIT_STATUS
+
+    return $TEST_RESULT
 }
 
 case "$COMMAND" in
@@ -342,7 +369,7 @@ case "$COMMAND" in
     ;;
     pause)
         get_tpserver_status
-        if [ $? == 0 ]; then
+        if [[ $? == 0 || $? == 6 ]]; then
             if [ ! -f $PAUSE_FILE ]; then
                 pause_server
             else
@@ -356,7 +383,7 @@ case "$COMMAND" in
             exit $?
         else
             echo "Cannot pause TPSERVER because it's not running."
-            exit 7
+            exit 8
         fi
     ;;
     dbcreate)
@@ -368,6 +395,6 @@ case "$COMMAND" in
     *)
         echo "Unknown option"
         print_usage
-        exit 0
+        exit 11
     ;;
 esac

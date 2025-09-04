@@ -32,8 +32,11 @@ static const QString &tpNetworkTitle{qApp->tr("TP Network")};
 
 static inline QString profileFileName(const QString &dir, const QString &userid) { return dir + userid + ".txt"_L1; }
 
-#define POLLING_INTERVAL 1000*60
-//#define POLLING_INTERVAL 1000*60*20
+#ifndef QT_NO_DEBUG
+#define POLLING_INTERVAL 60*1000 //When testing, poll more frequently
+#else
+#define POLLING_INTERVAL 20*60*1000
+#endif
 
 //A non-confirmed user both has appUseMode set to APP_USE_MODE_PENDING_CLIENT and
 //appended to their name an additional string containing the not allowed char '!'
