@@ -401,28 +401,25 @@ int TPUtils::readDataFromFile(QFile *in_file,
 
 	const qsizetype prevCount{data.count()};
 	QStringList data_read{field_count};
+	QStringList::iterator itr{data_read.begin()};
 	bool identifier_found{false};
-	const char *identifier_in_file{QString{STR_START_EXPORT + identifier}.toUtf8().constData()};
-	char buf[512];
-
-	while (in_file->readLine(buf, sizeof(buf)) != -1)
+	QString line{512, QChar{0}};
+	QTextStream stream{in_file};
+	while (stream.readLineInto(&line))
 	{
-		if (strstr(buf, STR_START_EXPORT.toUtf8().constData()) != NULL)
+		if (!identifier_found)
 		{
-			if (!identifier_found)
-				identifier_found = strstr(buf, identifier_in_file) != NULL;
-			else //Found the beginning of another data set
+			if (line.contains(STR_START_EXPORT))
+				identifier_found = line.contains(identifier);
+			if (!identifier_found) //Found the beginning of another data set of a different type, rewind and return
 			{
-				if (strstr(buf, identifier_in_file) == NULL) //Data set of a different type, rewind and return
-				{
-					in_file->seek(in_file->pos()-strlen(buf));
-					break;
-				}
+				in_file->seek(in_file->pos()-line.length());
+				break;
 			}
 		}
 		else
 		{
-			if (strstr(buf, STR_END_EXPORT.toUtf8().constData()) != NULL)
+			if (line.contains(STR_END_EXPORT))
 			{
 				if (data_read.count() >= field_count)
 				{
@@ -434,10 +431,11 @@ int TPUtils::readDataFromFile(QFile *in_file,
 						data.replace(row, std::move(data_read));
 				}
 			}
-			else
-				data_read.append(std::move(QString{buf}.chopped(1)));
+			else {
+				if (itr != data_read.end())
+					*itr++ = std::move(line);
+			}
 		}
-
 	}
 	return identifier_found ? data.count() - prevCount : APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE;
 }

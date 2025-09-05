@@ -50,7 +50,7 @@ Pane {
 			ToolTip.visible: !mesoManager.splitOK
 			ToolTip.timeout: 5000
 			readOnly: true
-			width: parent.width*0.4
+			width: parent.width * 0.4
 			Layout.minimumWidth: width
 			Layout.maximumWidth: width
 
@@ -60,8 +60,8 @@ Pane {
 				source: "set-completed"
 				visible: mesoManager.isNewMeso
 				enabled: mesoManager.splitOK
-				height: 25
-				width: 25
+				width: appSettings.itemDefaultHeight
+				height: width
 
 				anchors {
 					left: parent.right
@@ -218,6 +218,7 @@ Pane {
 					//objectName: "button"
 					id: btnMuscularGroups
 					imageSource: "choose.png"
+					flat: true
 					enabled: cboSplit.currentIndex !== 6
 					width: col4Width
 					height: col4Width

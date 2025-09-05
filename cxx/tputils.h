@@ -46,7 +46,7 @@ public:
 
 	const QString STR_START_EXPORT{"##%%"_L1};
 	const QString STR_START_FORMATTED_EXPORT{"####"_L1};
-	const QString STR_END_EXPORT{"##!!\n"_L1};
+	const QString STR_END_EXPORT{"##!!"_L1};
 	const QString STR_END_FORMATTED_EXPORT{"\n##$$\n\n"_L1};
 
 	explicit TPUtils(QObject *parent = nullptr);

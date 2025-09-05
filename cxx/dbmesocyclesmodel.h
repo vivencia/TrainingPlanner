@@ -26,7 +26,7 @@
 #define MESOCYCLES_TOTAL_COLS MESOCYCLES_COL_REALMESO + 1
 
 #define MESOCYCLES_COL_MUSCULARGROUP 20
-#define NEW_MESO_REQUIRED_FIELDS 4
+#define MESOCYCLES_COL_IMPORTED_AND_UNACCEPTED 21
 
 enum MesoRoleNames {
 	mesoNameRole = Qt::UserRole+MESOCYCLES_COL_NAME,
@@ -105,6 +105,7 @@ public:
 	Q_INVOKABLE inline homePageMesoModel *clientMesos() const { return m_clientMesos; }
 
 	inline bool isNewMeso(const uint meso_idx) const { return m_isNewMeso.at(meso_idx) != 0; }
+	bool isNewMesoFieldSet(const uint meso_idx, const uint field) const;
 	Q_INVOKABLE inline bool isNewMeso() const { return currentMesoIdx() >= 0 ? isNewMeso(currentMesoIdx()) : true; }
 
 	[[nodiscard]] inline bool canHaveTodaysWorkout() const { return m_bCanHaveTodaysWorkout; }
@@ -328,9 +329,6 @@ public:
 	inline const QString realMesoLabel() const { return tr("Mesocycle-style program: "); }
 	inline const QString nonMesoLabel() const { return tr("Mesocycle-style program: "); }
 
-	inline uint newMesoFieldCounter(const uint meso_idx) const { return m_newMesoFieldCounter.at(meso_idx); }
-	inline void setNewMesoFieldCounter(const uint meso_idx, const uint field_counter) { m_newMesoFieldCounter[meso_idx] = field_counter; }
-
 	inline QString splitLetter(const uint meso_idx, const uint day_of_week) const
 	{
 		return day_of_week <= 6 ? split(meso_idx).at(day_of_week) : QString{};
@@ -383,8 +381,8 @@ public:
 
 	QString mesoFileName(const uint meso_idx) const;
 	void removeMesoFile(const uint meso_idx);
-	Q_INVOKABLE void sendMesoToUser(const uint meso_idx);
-	int newMesoFromFile(const QString &filename, const std::optional<bool> &file_formatted = std::nullopt);
+	Q_INVOKABLE void sendMesoToUser(const uint meso_idx, const bool just_save_local_file = false);
+	int newMesoFromFile(const QString &filename, const bool from_coach, const std::optional<bool> &file_formatted = std::nullopt);
 	int importSplitFromFile(const QString &filename, const uint meso_idx, uint split,
 									const std::optional<bool> &file_formatted = std::nullopt);
 	void viewOnlineMeso(const QString &coach, const QString &mesoFileName);
@@ -396,7 +394,6 @@ signals:
 	void labelChanged();
 	void isNewMesoChanged(const uint meso_idx, const uint = 9999); //2nd parameter only need by TPWorkoutsCalendar
 	void canExportChanged(const uint meso_idx, const bool can_export);
-	void newMesoFieldCounterChanged(const uint meso_idx, const uint field);
 	void mesoChanged(const uint meso_idx, const uint field);
 	void mostRecentOwnMesoChanged(const int meso_idx);
 	void currentMesoIdxChanged();
@@ -410,8 +407,7 @@ private:
 	QList<QMap<QChar,DBExercisesModel*>> m_splitModels;
 	DBMesoCalendarManager* m_calendarModel;
 	homePageMesoModel *m_curMesos, *m_ownMesos, *m_clientMesos;
-	QList<short> m_isNewMeso;
-	QList<short> m_newMesoFieldCounter;
+	QList<int32_t> m_isNewMeso;
 	QList<bool> m_canExport;
 	QStringList m_usedSplits;
 	int m_currentMesoIdx, m_mostRecentOwnMesoIdx, m_importMesoIdx, m_lowestTempMesoId;

@@ -25,9 +25,13 @@ TPPage {
 
 	Connections {
 		target: mesoManager
-		function onNewMesoFieldCounterChanged(fieldCounter: int): void {
-			if (newMesoTip)
-				newMesoMessageHandler(fieldCounter);
+		function onNewMesoFieldCounterChanged(next_field: int): void {
+			if (!newMesoLoader.active) {
+				newMesoLoader.start_field = next_field;
+				newMesoLoader.active = true;
+			}
+			else
+				newMesoMessageHandler(next_field);
 		}
 	}
 	Connections {
@@ -37,9 +41,10 @@ TPPage {
 
 	Loader {
 		id: newMesoLoader
-		active: mesoManager.isTempMeso ? (mesoManager.isNewMeso ?
-			mesoManager.newMesoFieldCounter >= 0 : mesoManager.newMesoFieldCounter === 0 || mesoManager.newMesoFieldCounter === 20) : false
+		active: false
 		asynchronous: true
+
+		property int start_field: -1
 
 		sourceComponent: TPBalloonTip {
 			parentPage: mesoPropertiesPage
@@ -50,27 +55,30 @@ TPPage {
 			movable: true
 
 			onClosed: {
-				if (mesoManager.newMesoFieldCounter === 0)
+				if (mesoManager.newMesoFieldCounter === 0) {
 					mesoManager.newMesoFieldCounter = -1;
+					newMesoLoader.active = false;
+				}
 			}
 		}
 
 		onLoaded: {
-			if (mesoManager.newMesoFieldCounter !== 20)
-				newMesoTip.subImageLabel = String(mesoManager.newMesoFieldCounter);
-			newMesoMessageHandler(mesoManager.newMesoFieldCounter);
+			newMesoMessageHandler(start_field);
+			start_field = -1;
 			item.show(-2);
 		}
 	}
 
-	function newMesoMessageHandler(fieldCounter: int): void {
-		switch (fieldCounter) {
+	function newMesoMessageHandler(next_field: int): void {
+		switch (next_field) {
 			case 0:
+				newMesoTip.subImageLabel = "OK";
 				newMesoTip.title = qsTr("New program setup complete!");
 				newMesoTip.message = qsTr("Required fields setup");
 				newMesoTip.showTimed(5000, -3);
 			break;
-			case 20:
+			case 21:
+				newMesoTip.subImageLabel = "?";
 				newMesoTip.title = qsTr("Accept program from coach?");
 				newMesoTip.message = qsTr("Until you accept this program you can only view it");
 				newMesoTip.button1Text = qsTr("Yes");
@@ -79,11 +87,12 @@ TPPage {
 			break;
 			default:
 				newMesoTip.title = qsTr("New program setup incomplete");
-				switch (fieldCounter) {
-					case 4: newMesoTip.message = qsTr("Change and/or accept the program's name"); break;
-					case 3: newMesoTip.message = qsTr("Change and/or accept the start date"); break;
-					case 2: newMesoTip.message = qsTr("Change and/or accept the end date"); break;
-					case 1: newMesoTip.message = qsTr("Change and/or accept the split division"); break;
+				newMesoTip.subImageLabel = String(mesoManager.newMesoFieldCounter);
+				switch (next_field) {
+					case 1: newMesoTip.message = qsTr("Change and/or accept the program's name"); break; //MESOCYCLES_COL_NAME
+					case 2: newMesoTip.message = qsTr("Change and/or accept the start date"); break; //MESOCYCLES_COL_STARTDATE
+					case 3: newMesoTip.message = qsTr("Change and/or accept the end date"); break; //MESOCYCLES_COL_ENDDATE
+					case 6: newMesoTip.message = qsTr("Change and/or accept the split division"); break; //MESOCYCLES_COL_SPLIT
 				}
 			break;
 		}
@@ -152,16 +161,22 @@ TPPage {
 				text: mesocyclesModel.mesoNameLabel
 				Layout.topMargin: 10
 
-				TPImage {
-					source: "set-completed"
+				TPButton {
+					imageSource: "set-completed"
+					flat: true
 					visible: mesoManager.isNewMeso
 					enabled: mesoManager.mesoNameOK
-					height: 25
-					width: 25
+					width: appSettings.itemDefaultHeight
+					height: width
 
 					anchors {
 						left: parent.right
 						verticalCenter: parent.verticalCenter
+					}
+
+					onClicked: {
+						if (mesoManager.isNewMeso)
+							mesoManager.name = txtMesoName.text;
 					}
 				}
 			}
@@ -171,9 +186,9 @@ TPPage {
 				text: mesoManager.name
 				ToolTip.text: mesoManager.mesoNameErrorTooltip
 				ToolTip.visible: !mesoManager.mesoNameOK
-				Layout.preferredWidth: 0.9*parent.width
+				Layout.preferredWidth: 0.9 * parent.width
 
-				onTextEdited: mesoManager.name = text;
+				onEditingFinished: mesoManager.name = text;
 				onEnterOrReturnKeyPressed: cboMesoType.forceActiveFocus();
 			}
 
@@ -233,18 +248,20 @@ TPPage {
 				readOnly: true
 				showClearTextButton: true
 				ToolTip.text: mesoManager.fileName
-				Layout.minimumWidth: 0.8*parent.width
-				Layout.maximumWidth: 0.8*parent.width
+				Layout.minimumWidth: 0.8 * parent.width
+				Layout.maximumWidth: 0.8 * parent.width
 
 				onTextCleared: mesoManager.fileName = "";
 
 				TPButton {
 					id: btnChooseMesoFile
 					imageSource: "choose-file"
+					width: appSettings.itemDefaultHeight
+					height: width
 
 					anchors {
 						left: parent.right
-						leftMargin: 15
+						leftMargin: 5
 						verticalCenter: parent.verticalCenter
 					}
 
@@ -279,17 +296,20 @@ TPPage {
 			TPLabel {
 				text: mesocyclesModel.startDateLabel
 
-				TPImage {
-					source: "set-completed"
+				TPButton {
+					imageSource: "set-completed"
+					flat: true
 					visible: mesoManager.isNewMeso
-					enabled: mesoManager.startDateOK
-					height: 25
-					width: 25
+					enabled: mesoManager.mesoNameOK
+					width: appSettings.itemDefaultHeight
+					height: width
 
 					anchors {
 						left: parent.right
 						verticalCenter: parent.verticalCenter
 					}
+
+					onClicked: mesoManager.startDate = mesoManager.startDate;
 				}
 			}
 
@@ -313,6 +333,7 @@ TPPage {
 				TPButton {
 					id: btnStartDate
 					imageSource: "calendar.png"
+					flat: true
 					width: appSettings.itemDefaultHeight
 					height: width
 
@@ -330,13 +351,29 @@ TPPage {
 				text: qsTr("Mesocycle-style program")
 				radio: false
 				checked: mesoManager.realMeso
-				Layout.fillWidth: true
+				Layout.preferredWidth: 0.9 * parent.width
+				Layout.topMargin: 15
+				Layout.bottomMargin: 15
 
-				onPressAndHold: ToolTip.show(qsTr("A Mesocycle is a short-term program, with defined starting and ending points and a specific goal in sight"), 5000);
 				onClicked: {
 					mesoManager.realMeso = checked;
 					if (checked)
 						mesoManager.acceptEndDate();
+				}
+
+				TPButton {
+					imageSource: "question.png"
+					flat: true
+					width: appSettings.itemDefaultHeight
+					height: width
+
+					anchors {
+						verticalCenter: parent.verticalCenter
+						left: parent.right
+						leftMargin: -15
+					}
+
+					onClicked: ToolTip.show(qsTr("A Mesocycle is a short-term program, with defined starting and ending points and a specific goal in sight"), 5000);
 				}
 			}
 
@@ -344,15 +381,20 @@ TPPage {
 				text: mesocyclesModel.endDateLabel
 				visible: mesoManager.realMeso
 
-				TPImage {
-					source: "set-completed"
+				TPButton {
+					imageSource: "set-completed"
+					flat: true
 					visible: mesoManager.isNewMeso
-					enabled: mesoManager.endDateOK
+					enabled: mesoManager.mesoNameOK
+					width: appSettings.itemDefaultHeight
+					height: width
 
 					anchors {
 						left: parent.right
 						verticalCenter: parent.verticalCenter
 					}
+
+					onClicked: mesoManager.endDate = mesoManager.endDate;
 				}
 			}
 
@@ -380,6 +422,7 @@ TPPage {
 				TPButton {
 					id: btnEndDate
 					imageSource: "calendar.png"
+					flat: true
 					width: appSettings.itemDefaultHeight
 					height: width
 

@@ -86,8 +86,8 @@ public:
 	[[nodiscard]] inline bool canExport() const { return m_bCanExport; }
 
 	inline QString mesoNameErrorTooltip() const { return m_nameError; }
-	[[nodiscard]] QString name() const;
-	void setName(const QString &new_name);
+	[[nodiscard]] inline QString name() const { return m_name; }
+	void setName(const QString &new_name, const bool modify_new_meso_counter = true);
 
 	[[nodiscard]] QString coach() const;
 	void setCoach(const QString &new_value);
@@ -103,15 +103,15 @@ public:
 	void setFileName(const QString &new_filename);
 
 	[[nodiscard]] inline QString strStartDate() const { return m_strStartDate; }
-	[[nodiscard]] QDate startDate() const;
+	[[nodiscard]] inline QDate startDate() const { return m_startDate; }
 	[[nodiscard]] inline QDate minimumMesoStartDate() const { return m_minimumMesoStartDate; }
-	void setStartDate(const QDate &new_startdate);
+	void setStartDate(const QDate &new_startdate, const bool modify_new_meso_counter = true);
 	void setMinimumMesoStartDate(const QDate &new_value);
 
 	[[nodiscard]] inline QString strEndDate() const { return m_strEndDate; }
 	[[nodiscard]] inline QDate endDate() const { return m_endDate; }
 	[[nodiscard]] inline QDate maximumMesoEndDate() const { return m_maximumMesoEndDate; }
-	void setEndDate(const QDate &new_enddate);
+	void setEndDate(const QDate &new_enddate, const bool modify_new_meso_counter = true);
 	void setMaximumMesoEndDate(const QDate &new_value);
 
 	[[nodiscard]] QString weeks() const;
@@ -175,7 +175,7 @@ signals:
 	void weeksChanged();
 	void splitChanged();
 	void notesChanged();
-	void newMesoFieldCounterChanged(const int fieldCounter);
+	void newMesoFieldCounterChanged(const int next_field);
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
 private:
@@ -186,7 +186,7 @@ private:
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	uint m_mesoIdx;
 	bool m_bCanExport, m_mesoNameOK, m_startDateOK, m_endDateOK, m_canSendMesoToServer;
-	QString m_strStartDate, m_strEndDate, m_nameError;
+	QString m_name, m_strStartDate, m_strEndDate, m_nameError;
 	QDate m_startDate, m_endDate, m_minimumMesoStartDate, m_maximumMesoEndDate;
 	int m_newMesoFieldCounter;
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
@@ -199,4 +199,5 @@ private:
 	void createMesocyclePage_part2();
 	void mesoChanged(const uint meso_idx, const uint meso_field);
 	inline bool isSplitOK(const QString &split) const;
+	void maybeChangeNewMesoFieldCounter();
 };

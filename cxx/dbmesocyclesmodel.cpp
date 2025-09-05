@@ -91,7 +91,7 @@ uint DBMesocyclesModel::startNewMesocycle(const bool bCreatePage, const std::opt
 		(own_meso ? appUserModel()->userId(0) : appUserModel()->defaultClient()) <<
 		QString{} << QString{} << "1"_L1))};
 
-	short newMesoRequiredFields{0};
+	int32_t newMesoRequiredFields{0};
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_NAME);
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_STARTDATE);
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_ENDDATE);
@@ -121,7 +121,6 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 	m_splitModels.remove(meso_idx);
 	m_calendarModel->removeCalendarForMeso(meso_idx, true);
 	m_isNewMeso.remove(meso_idx);
-	m_newMesoFieldCounter.remove(meso_idx);
 	m_canExport.remove(meso_idx);
 	removeMesoFile(meso_idx);
 
@@ -180,8 +179,12 @@ const uint DBMesocyclesModel::newMesocycle(QStringList &&infolist)
 	m_usedSplits.append(QString{});
 	makeUsedSplits(meso_idx);
 	m_isNewMeso.append(0);
-	m_newMesoFieldCounter.append(NEW_MESO_REQUIRED_FIELDS);
 	return meso_idx;
+}
+
+bool DBMesocyclesModel::isNewMesoFieldSet(const uint meso_idx, const uint field) const
+{
+	return isBitSet(m_isNewMeso.at(meso_idx), field);
 }
 
 void DBMesocyclesModel::changeCanHaveTodaysWorkout(const uint meso_idx)
@@ -220,11 +223,6 @@ int DBMesocyclesModel::idxFromId(const QString &meso_id) const
 void DBMesocyclesModel::setName(const uint meso_idx, const QString &new_name)
 {
 	m_mesoData[meso_idx][MESOCYCLES_COL_NAME] = new_name;
-	if (isBitSet(m_isNewMeso.at(meso_idx), MESOCYCLES_COL_NAME))
-	{
-		m_newMesoFieldCounter[meso_idx]--;
-		emit newMesoFieldCounterChanged(meso_idx, MESOCYCLES_COL_NAME);
-	}
 	setModified(meso_idx, MESOCYCLES_COL_NAME);
 	m_curMesos->emitDataChanged(meso_idx, mesoNameRole);
 }
@@ -232,11 +230,6 @@ void DBMesocyclesModel::setName(const uint meso_idx, const QString &new_name)
 void DBMesocyclesModel::setStartDate(const uint meso_idx, const QDate &new_date)
 {
 	m_mesoData[meso_idx][MESOCYCLES_COL_STARTDATE] = std::move(QString::number(new_date.toJulianDay()));
-	if (isBitSet(m_isNewMeso.at(meso_idx), MESOCYCLES_COL_STARTDATE))
-	{
-		m_newMesoFieldCounter[meso_idx]--;
-		emit newMesoFieldCounterChanged(meso_idx, MESOCYCLES_COL_STARTDATE);
-	}
 	setModified(meso_idx, MESOCYCLES_COL_STARTDATE);
 	m_curMesos->emitDataChanged(meso_idx, mesoStartDateRole);
 	changeCanHaveTodaysWorkout(meso_idx);
@@ -245,11 +238,6 @@ void DBMesocyclesModel::setStartDate(const uint meso_idx, const QDate &new_date)
 void DBMesocyclesModel::setEndDate(const uint meso_idx, const QDate &new_date)
 {
 	m_mesoData[meso_idx][MESOCYCLES_COL_ENDDATE] = std::move(QString::number(new_date.toJulianDay()));
-	if (isBitSet(m_isNewMeso.at(meso_idx), MESOCYCLES_COL_ENDDATE))
-	{
-		m_newMesoFieldCounter[meso_idx]--;
-		emit newMesoFieldCounterChanged(meso_idx, MESOCYCLES_COL_ENDDATE);
-	}
 	setModified(meso_idx, MESOCYCLES_COL_ENDDATE);
 	m_curMesos->emitDataChanged(meso_idx, mesoEndDateRole);
 	changeCanHaveTodaysWorkout(meso_idx);
@@ -260,11 +248,6 @@ void DBMesocyclesModel::setSplit(const uint meso_idx, const QString &new_split)
 	if (new_split != split(meso_idx))
 	{
 		m_mesoData[meso_idx][MESOCYCLES_COL_SPLIT] = new_split;
-		if (isBitSet(m_isNewMeso.at(meso_idx), MESOCYCLES_COL_SPLIT))
-		{
-			m_newMesoFieldCounter[meso_idx]--;
-			emit newMesoFieldCounterChanged(meso_idx, MESOCYCLES_COL_SPLIT);
-		}
 		setModified(meso_idx, MESOCYCLES_COL_SPLIT);
 		m_curMesos->emitDataChanged(meso_idx, mesoSplitRole);
 		makeUsedSplits(meso_idx);
@@ -623,10 +606,13 @@ void DBMesocyclesModel::removeMesoFile(const uint meso_idx)
 	static_cast<void>(QFile::remove(mesofilename));
 }
 
-void DBMesocyclesModel::sendMesoToUser(const uint meso_idx)
+void DBMesocyclesModel::sendMesoToUser(const uint meso_idx, const bool just_save_local_file)
 {
 	const QString &filename{mesoFileName(meso_idx)};
 	const int ret{exportToFile(meso_idx, filename)};
+	if (just_save_local_file)
+		return;
+
 	if (ret >= APPWINDOW_MSG_DEFERRED_ACTION)
 	{
 		auto conn = std::make_shared<QMetaObject::Connection>();
@@ -645,7 +631,7 @@ void DBMesocyclesModel::sendMesoToUser(const uint meso_idx)
 										mesosDir + coach(meso_idx), client(meso_idx));
 }
 
-int DBMesocyclesModel::newMesoFromFile(const QString &filename, const std::optional<bool> &file_formatted)
+int DBMesocyclesModel::newMesoFromFile(const QString &filename, const bool from_coach, const std::optional<bool> &file_formatted)
 {
 	const uint meso_idx{startNewMesocycle(false, false)};
 	int import_result{APPWINDOW_MSG_IMPORT_FAILED};
@@ -667,9 +653,14 @@ int DBMesocyclesModel::newMesoFromFile(const QString &filename, const std::optio
 		removeMesocycle(meso_idx);
 		return import_result;
 	}
-
-	setNewMesoFieldCounter(meso_idx, 20);
-	m_isNewMeso[meso_idx] = 0;
+	if (from_coach)
+	{
+		int32_t newMesoRequiredFields{0};
+		setBit(newMesoRequiredFields, MESOCYCLES_COL_IMPORTED_AND_UNACCEPTED);
+		m_isNewMeso[meso_idx] = newMesoRequiredFields;
+	}
+	else
+		m_isNewMeso[meso_idx] = 0;
 	makeUsedSplits(meso_idx);
 	setOwnMeso(meso_idx);
 	return APPWINDOW_MSG_IMPORT_OK;
@@ -709,7 +700,7 @@ void DBMesocyclesModel::viewOnlineMeso(const QString &coach, const QString &meso
 				disconnect(*conn);
 				if (success)
 				{
-					const int meso_idx{newMesoFromFile(localFileName)};
+					const int meso_idx{newMesoFromFile(localFileName, true)};
 					if (meso_idx >= 0)
 						getMesocyclePage(meso_idx);
 				}
@@ -727,11 +718,10 @@ void DBMesocyclesModel::scanTemporaryMesocycles()
 		for(const auto &mesofile : std::as_const(mesos))
 		{
 			const QString &coach{appUtils()->getLastDirInPath(mesofile.filePath())};
-			if (coach != "mesocycles"_L1)
+			if (!mesoPlanExists(appUtils()->getFileName(mesofile.fileName(), true), coach, appUserModel()->userId(0)))
 			{
-				if (!mesoPlanExists(appUtils()->getFileName(mesofile.fileName(), true), coach, appUserModel()->userId(0)))
-					if (newMesoFromFile(mesofile.filePath()) < 0)
-						static_cast<void>(QFile::remove(mesofile.filePath()));
+				if (newMesoFromFile(mesofile.filePath(), coach != "mesocycles"_L1) < 0)
+					static_cast<void>(QFile::remove(mesofile.filePath()));
 			}
 		}
 	}
