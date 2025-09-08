@@ -127,6 +127,7 @@ public:
 	#endif
 #endif
 
+	QString macAddress() const;
 	QString deviceID() const;
 	void checkOnlineResources();
 	void shareFile(const QString &fileName) const;
@@ -163,6 +164,7 @@ private:
 	QTimer *m_notificationsTimer;
 #endif
 
+	void onlineServicesResponse(const bool server_ok);
 	static OSInterface *app_os_interface;
 	friend OSInterface *appOsInterface();
 };

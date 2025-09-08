@@ -77,6 +77,7 @@ Drawer {
 			TPButton {
 				imageSource: "settings"
 				width: appSettings.itemDefaultHeight * 1.5
+				flat: true
 				height: width
 				enabled: { // Force the binding to re-evaluate so that the check is run each time the page changes.
 					stackView.currentItem

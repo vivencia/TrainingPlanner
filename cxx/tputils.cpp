@@ -450,48 +450,41 @@ int TPUtils::readDataFromFormattedFile(QFile *in_file,
 		return -1;
 
 	bool identifier_found{false};
-	const char *identifier_in_file{QString{STR_START_FORMATTED_EXPORT + identifier}.toLatin1().constData()};
-	char buf[512];
-	QString value;
 	uint field{1}; //skip ID
-	int line_length{0};
 	QStringList data_read{field_count};
+	QString line{512, QChar{0}};
+	QTextStream stream{in_file};
 
-	while ((line_length = in_file->readLine(buf, sizeof(buf))) != -1)
+	while (stream.readLineInto(&line))
 	{
-		if (line_length < 5)
+		if (line.length() < 5)
 			continue;
-
-		if (strstr(buf, STR_START_FORMATTED_EXPORT.toUtf8().constData()) != NULL)
+		if (!identifier_found)
 		{
-			if (!identifier_found)
-				identifier_found = strstr(buf, identifier_in_file) != NULL;
-			else //Found the beginning of another data set
+			if (line.contains(STR_START_FORMATTED_EXPORT))
+				identifier_found = line.contains(identifier);
+			if (!identifier_found) //Found the beginning of another data set of a different type, rewind and return
 			{
-				if (strstr(buf, identifier_in_file) == NULL) //Data set of a different type, rewind and return
-				{
-					in_file->seek(in_file->pos()-strlen(buf));
-					break;
-				}
+				in_file->seek(in_file->pos()-line.length());
+				break;
 			}
 		}
 		else
 		{
-			if (strstr(buf, STR_END_FORMATTED_EXPORT.toUtf8().constData()) != NULL)
+			if (line.contains(STR_END_FORMATTED_EXPORT))
 			{
 				data.append(std::move(data_read));
 				field = 1;
 			}
-			else if (identifier_found)
+			else
 			{
 				if (field < field_count)
 				{
-					value = buf;
-					value = std::move(value.remove(0, value.indexOf(':') + 2).simplified());
+					line = std::move(line.remove(0, line.indexOf(':') + 2).simplified());
 					if (formatToImport == nullptr)
-						data_read[field] = std::move(value);
+						data_read[field] = std::move(line);
 					else
-						data_read[field] = std::move(formatToImport(field, value));
+						data_read[field] = std::move(formatToImport(field, line));
 					++field;
 				}
 			}

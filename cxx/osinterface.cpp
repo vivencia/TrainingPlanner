@@ -30,12 +30,17 @@ const QString &workoutDoneMessage{qApp->tr("Your training routine seems to go we
 
 #ifdef Q_OS_LINUX
 #include <QProcess>
-static const QString &tp_server_config_script{"/var/www/html/trainingplanner/scripts/init_script.sh"_L1};
 
 extern "C"
 {
 	#include <unistd.h>
+	#include <sys/ioctl.h>
+	#include <linux/if.h>
+	#include <netinet/ether.h>
+	#include <netdb.h>
 }
+
+static const QString &tp_server_config_script{"/var/www/html/trainingplanner/scripts/init_script.sh"_L1};
 
 #define TPSERVER_OK 0
 #define TPSERVER_ERROR 1
@@ -79,8 +84,6 @@ OSInterface::OSInterface(QObject *parent)
 	checkInternetConnection();
 
 #ifdef Q_OS_ANDROID
-	connect(appOnlineServices(), &TPOnlineServices::serverOnline, this, &OSInterface::checkServerResponseSlot);
-
 	const QJniObject &context(QNativeInterface::QAndroidApplication::context());
 
 	context.callStaticMethod<void>(
@@ -155,20 +158,15 @@ void OSInterface::checkInternetConnection()
 	m_checkConnectionTimer->setInterval(isConnected ? CONNECTION_CHECK_TIMEOUT : CONNECTION_ERR_TIMEOUT); //When network is out, check more frequently
 	emit internetStatusChanged(isConnected);
 
+	connect(appOnlineServices(), &TPOnlineServices::serverOnline, this, [this] (const bool server_ok)
+	{
+		onlineServicesResponse(server_ok);
+	});
+
 #ifndef Q_OS_ANDROID
 	checkLocalServer();
 #else
-	if (isConnected)
-		appOnlineServices()->checkServer();
-	else
-	{
-#ifndef QT_NO_DEBUG
-		appOnlineServices()->checkServer(); //See if the server is working in the local network
-#else
-		setBit(network_status, SERVER_UNREACHABLE);
-		unSetBit(network_status, SERVER_UP_AND_RUNNING);
-#endif
-	}
+	appOnlineServices()->scanNetwork();
 #endif
 }
 
@@ -537,15 +535,9 @@ void OSInterface::serverProcessFinished(QProcess *proc, const int exitCode, QPro
 	{
 		case TPSERVER_OK:
 		case TPSERVER_OK_LOCALHOST:
-			setBit(m_networkStatus, SERVER_UP_AND_RUNNING);
-			unSetBit(m_networkStatus, SERVER_UNREACHABLE);
 			appOnlineServices()->setUseLocalHost(exitCode == TPSERVER_OK_LOCALHOST);
-			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
-				{"Linux TP Server"_L1, "Up and running!"_L1 + "\nReturn code("_L1 + QString::number(exitCode) + ')'}, record_separator));
-			emit serverStatusChanged(true);
-			m_checkConnectionTimer->setInterval(CONNECTION_CHECK_TIMEOUT);
+			appOnlineServices()->scanNetwork();
 		break;
-
 		case TPSERVER_ERROR:
 		case TPSERVER_NGINX_ERROR:
 		case TPSERVER_PAUSED_FAILED:
@@ -629,6 +621,16 @@ void OSInterface::restartApp()
 	::exit(0);
 }
 #endif //Q_OS_ANDROID
+
+QString OSInterface::macAddress() const
+{
+	const int fd{socket(PF_INET, SOCK_DGRAM, IPPROTO_IP)};
+	struct ifreq ifr{};
+	strcpy(ifr.ifr_name, "wlan0");
+	ioctl(fd, SIOCGIFHWADDR, &ifr);
+	close(fd);
+	return ether_ntoa((ether_addr *) ifr.ifr_hwaddr.sa_data);
+}
 
 QString OSInterface::deviceID() const
 {
@@ -739,4 +741,14 @@ void OSInterface::viewExternalFile(const QString &filename) const
 	#else
 	openURL(filename);
 	#endif
+}
+
+void OSInterface::onlineServicesResponse(const bool server_ok)
+{
+	setBit(m_networkStatus, SERVER_UP_AND_RUNNING);
+	unSetBit(m_networkStatus, SERVER_UNREACHABLE);
+	appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
+							{"Linux TP Server"_L1, "Up and running!"_L1}, record_separator));
+		emit serverStatusChanged(true);
+	m_checkConnectionTimer->setInterval(CONNECTION_CHECK_TIMEOUT);
 }

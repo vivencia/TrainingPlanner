@@ -17,7 +17,6 @@
 #define DISABLED_FONT_COLOR_INDEX 11
 #define WEIGHT_UNIT_INDEX 12
 #define EXERCISES_VERSION_INDEX 13
-
 #define MESO_IDX_INDEX 14
 #define WINDOW_WIDTH_INDEX 15
 #define WINDOW_HEIGHT_INDEX 16
@@ -30,9 +29,9 @@
 #define EXTRALARGEFONT_SIZE_INDEX 23
 #define COLOR_SCHEME_INDEX 24
 #define ITEM_DEFAULT_HEIGHT 25
-
-#define ASK_CONFIRMATION_INDEX 26
-#define WEATHER_CITIES_INDEX 27
+#define SERVER_ADDRESS 26
+#define ASK_CONFIRMATION_INDEX 27
+#define WEATHER_CITIES_INDEX 28
 
 #define SETTINGS_FIELD_COUNT WEATHER_CITIES_INDEX + 1
 
@@ -70,6 +69,7 @@ Q_PROPERTY(QString listEntryColor2 READ listEntryColor2 NOTIFY colorChanged)
 Q_PROPERTY(QString fontColor READ fontColor WRITE setFontColor NOTIFY colorChanged)
 Q_PROPERTY(QString disabledFontColor READ disabledFontColor WRITE setDisabledFontColor NOTIFY colorChanged)
 Q_PROPERTY(QString weightUnit READ weightUnit WRITE setWeightUnit NOTIFY weightUnitChanged)
+Q_PROPERTY(QString serverAddress READ serverAddress WRITE setServerAddress NOTIFY serverAddressChanged FINAL)
 
 Q_PROPERTY(QStringList availableLanguages READ availableLanguages CONSTANT FINAL)
 Q_PROPERTY(int lastViewedMesoIdx READ lastViewedMesoIdx WRITE setLastViewedMesoIdx NOTIFY lastViewedMesoIdxChanged)
@@ -158,6 +158,9 @@ public:
 	inline bool alwaysAskConfirmation() const { return value(m_propertyNames.value(ASK_CONFIRMATION_INDEX), m_defaultValues.at(ASK_CONFIRMATION_INDEX)).toBool(); }
 	inline void setAlwaysAskConfirmation(const bool new_value) { changeValue(ASK_CONFIRMATION_INDEX, QString::number(new_value)); emit alwaysAskConfirmationChanged(); }
 
+	inline QString serverAddress() const { return value(m_propertyNames.value(SERVER_ADDRESS)).toString(); }
+	inline void setServerAddress(const QString &new_value) { changeValue(SERVER_ADDRESS, new_value); emit serverAddressChanged(); }
+
 signals:
 	void appLocaleChanged();
 	void themeStyleChanged();
@@ -167,6 +170,7 @@ signals:
 	void lastViewedMesoIdxChanged();
 	void weatherCitiesCountChanged();
 	void alwaysAskConfirmationChanged();
+	void serverAddressChanged();
 
 private:
 	QMap<uint,QString> m_propertyNames;

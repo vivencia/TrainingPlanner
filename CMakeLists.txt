@@ -248,6 +248,7 @@ qt_add_executable(TrainingPlanner
 	${QM_FILES}
 	${SERVER_FILES}
 	${ANDROID_FIES}
+	cxx/online_services/scan_network.h
 )
 
 if(NOT ANDROID)

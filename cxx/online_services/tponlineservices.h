@@ -27,10 +27,9 @@ public:
 	}
 	inline ~TPOnlineServices() { delete m_networkManager; }
 
+	void scanNetwork();
 #ifndef Q_OS_ANDROID
 	inline void setUseLocalHost(const bool use_localhost) { m_useLocalHost = use_localhost; }
-#else
-	void checkServer();
 #endif
 	void checkOnlineUser(const int requestid, const QString &query, const QString &passwd);
 	void getOnlineUserData(const int requestid, const QString &user_id);
@@ -89,7 +88,8 @@ signals:
 	void _networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string);
 	void networkListReceived(const int request_id, const int ret_code, const QStringList &ret_list);
 	void fileReceived(const int request_id, const int ret_code, const QString& filename, const QByteArray &contents);
-	void serverOnline(const bool online);
+	void serverOnline(const uint online_status);
+	void _serverOnline(const uint online_status, const QString &address);
 
 private:
 	QString makeCommandURL(const QString &username, const QString &passwd = QString{}, const QString &option1 = QString{},
@@ -99,6 +99,7 @@ private:
 	void makeNetworkRequest(const int requestid, const QUrl &url, const bool b_internal_signal_only = false);
 	void handleServerRequestReply(const int requestid, QNetworkReply *reply, const bool b_internal_signal_only = false);
 	void uploadFile(const int requestid, const QUrl &url, QFile *file, const bool b_internal_signal_only = false);
+	void checkServerResponse(const int ret_code, const QString &ret_string, const QString &address);
 
 	QNetworkAccessManager *m_networkManager;
 #ifndef Q_OS_ANDROID

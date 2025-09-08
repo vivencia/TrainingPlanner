@@ -1,6 +1,8 @@
 #include "tponlineservices.h"
 
+#include "scan_network.h"
 #include "../tpglobals.h"
+#include "../tpsettings.h"
 #include "../tputils.h"
 
 #include <QFile>
@@ -8,32 +10,107 @@
 #include <QHttpPart>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QThread>
 
 using namespace Qt::Literals::StringLiterals;
 
 TPOnlineServices* TPOnlineServices::_appOnlineServices{nullptr};
 
-static const QLatin1StringView root_user{"admin"};
-static const QLatin1StringView root_passwd{"admin"};
-static const QLatin1StringView server_addr{"http://192.168.10.21:8080/trainingplanner/"};
-static const QLatin1StringView localhost_addr{"http://localhost:8080/trainingplanner/"};
+constexpr QLatin1StringView server_address{"http://%1:8080/trainingplanner/"_L1};
+const QLatin1StringView root_user{"admin"};
+const QLatin1StringView root_passwd{"admin"};
+const QLatin1StringView base_ip{"192.168.10."_L1};
 
-#ifdef Q_OS_ANDROID
-void TPOnlineServices::checkServer()
+void TPOnlineServices::scanNetwork()
 {
-	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{QUrl{server_addr}})};
-	connect(reply, &QNetworkReply::finished, this, [this,reply]() {
-		bool server_ok{false};
-		if (reply)
+	const int requestid{appUtils()->generateUniqueId("scanNetwork"_L1)};
+	auto conn{std::make_shared<QMetaObject::Connection>()};
+	if (!appSettings()->serverAddress().isEmpty())
+	{
+		*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid]
+									(const int request_id, const int ret_code, const QString &ret_string)
 		{
-			reply->deleteLater();
-			const QString &replyString{reply->readAll()};
-			server_ok = replyString.contains("Welcome to the TrainingPlanner"_L1);
-		}
-		emit serverOnline(server_ok);
-	});
+			if (request_id == requestid)
+			{
+				disconnect(*conn);
+				if (request_id == requestid)
+				{
+					disconnect(*conn);
+					connect(this, &TPOnlineServices::_serverOnline, this, [this] (const uint online_status, const QString &address)
+					{
+						switch (online_status)
+						{
+							case 0: break; //online
+							case 1: //"Bad Gateway" received. Scan local network for a new server address
+								appSettings()->setServerAddress(QString{});
+								scanNetwork();
+							break;
+							case 2: break; //server paused
+						}
+						emit serverOnline(online_status);
+					}, Qt::SingleShotConnection);
+					checkServerResponse(ret_code, ret_string, appSettings()->serverAddress());
+				}
+				checkServerResponse(ret_code, ret_string, appSettings()->serverAddress());
+			}
+		});
+		makeNetworkRequest(requestid, server_address.arg(appSettings()->serverAddress()), true);
+	}
+	else
+	{
+		tpScanNetwork *tsn{new tpScanNetwork{base_ip}};
+		QThread *thread{new QThread{}};
+		tsn->moveToThread(thread);
+
+		connect(tsn, &tpScanNetwork::addressReachable, this, [this,conn,requestid] (const QString &ip)
+		{
+			*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid,ip]
+									(const int request_id, const int ret_code, const QString &ret_string)
+			{
+				if (request_id == requestid)
+				{
+					disconnect(*conn);
+					checkServerResponse(ret_code, ret_string, ip);
+				}
+			});
+			makeNetworkRequest(requestid, server_address.arg(ip), true);
+		}, Qt::QueuedConnection);
+
+		auto conn2{std::make_shared<QMetaObject::Connection>()};
+		*conn2 = connect(this, &TPOnlineServices::_serverOnline, this, [this,conn2,thread,tsn] (const uint online_status, const QString &address)
+		{
+			if (online_status == 0)
+			{
+				disconnect(*conn2);
+				appSettings()->setServerAddress(address);
+				thread->disconnect();
+				thread->requestInterruption();
+				thread->deleteLater();
+				tsn->deleteLater();
+				#ifndef Q_OS_ANDROID
+				m_useLocalHost = false;
+				#endif
+			}
+			emit serverOnline(online_status);
+		});
+
+		connect(thread, &QThread::finished, thread, [this,conn2,tsn,thread] ()
+		{
+			disconnect(*conn2);
+			tsn->deleteLater();
+			thread->deleteLater();
+
+			//If thread is finished it means no server ip was found, on linux test machine, try localhost
+			#ifndef Q_OS_ANDROID
+			m_useLocalHost = true;
+			appSettings()->setServerAddress("localhost"_L1);
+			scanNetwork();
+			#endif
+		});
+		connect(thread, &QThread::started, tsn, [tsn] () { tsn->scan(base_ip); });
+		thread->start();
+	}
 }
-#endif
 
 void TPOnlineServices::checkOnlineUser(const int requestid, const QString &query, const QString &passwd)
 {
@@ -88,7 +165,8 @@ void TPOnlineServices::getDevicesList(const int requestid, const QString &userna
 {
 	auto conn = std::make_shared<QMetaObject::Connection>();
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
-									(const int request_id, const int ret_code, const QString &ret_string) {
+									(const int request_id, const int ret_code, const QString &ret_string)
+	{
 		if (request_id == requestid)
 		{
 			disconnect(*conn);
@@ -216,7 +294,8 @@ void TPOnlineServices::sendFile(const int requestid, const QString &username, co
 {
 	auto conn = std::make_shared<QMetaObject::Connection>();
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
-							(const int request_id, const int ret_code, const QString &ret_string) {
+							(const int request_id, const int ret_code, const QString &ret_string)
+	{
 		if (request_id == requestid)
 		{
 			disconnect(*conn);
@@ -242,7 +321,8 @@ void TPOnlineServices::listFiles(const int requestid, const QString &username, c
 {
 	auto conn = std::make_shared<QMetaObject::Connection>();
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
-									(const int request_id, const int ret_code, const QString &ret_string) {
+									(const int request_id, const int ret_code, const QString &ret_string)
+	{
 		if (request_id == requestid)
 		{
 			disconnect(*conn);
@@ -313,7 +393,8 @@ void TPOnlineServices::getFile(const int requestid, const QString &username, con
 		{
 			auto conn = std::make_shared<QMetaObject::Connection>();
 			*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid,username,passwd,filename,targetUser,localFilePath]
-							(const int request_id, const int ret_code, const QString &ret_string) {
+							(const int request_id, const int ret_code, const QString &ret_string)
+			{
 				if (request_id == requestid)
 				{
 					disconnect(*conn);
@@ -350,7 +431,7 @@ QString TPOnlineServices::makeCommandURL(const QString &username, const QString 
 							)
 {
 #ifndef Q_OS_ANDROID
-	QString ret{(m_useLocalHost ? localhost_addr : server_addr) + "?user="_L1 + username + "&password="_L1 + passwd};
+	QString ret{server_address.arg(appSettings()->serverAddress()) + "?user="_L1 + username + "&password="_L1 + passwd};
 #else
 	QString ret{server_addr + "?user="_L1 + username + "&password="_L1 + passwd};
 #endif
@@ -460,4 +541,17 @@ void TPOnlineServices::uploadFile(const int requestid, const QUrl &url, QFile *f
 		});
 		multiPart->setParent(reply); // Let the reply manage the multipart's lifecycle
 	}
+}
+
+void TPOnlineServices::checkServerResponse(const int ret_code, const QString &ret_string, const QString &address)
+{
+	uint online_status{0};
+	if (!ret_string.contains("Welcome to the TrainingPlanner"_L1))
+	{
+		if (ret_string.contains("Bad Gateway"_L1, Qt::CaseInsensitive))
+			online_status = 1;
+		else if (ret_string.contains("server paused"_L1))
+			online_status = 2;
+	}
+	emit _serverOnline(online_status, address);
 }

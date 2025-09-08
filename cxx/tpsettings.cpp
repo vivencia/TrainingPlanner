@@ -40,6 +40,7 @@ TPSettings::TPSettings(QObject *parent) : QSettings{parent}
 	m_propertyNames.insert(WEIGHT_UNIT_INDEX, std::move("weightUnit"_L1));
 	m_propertyNames.insert(EXERCISES_VERSION_INDEX, std::move("exercisesListVersion"_L1));
 	m_propertyNames.insert(MESO_IDX_INDEX, std::move("lastViewedMesoIdx"_L1));
+	m_propertyNames.insert(SERVER_ADDRESS, std::move("serverAddress"_L1));
 	m_propertyNames.insert(ASK_CONFIRMATION_INDEX, std::move("alwaysAskConfirmation"_L1));
 	m_propertyNames.insert(WEATHER_CITIES_INDEX, std::move("weatherLocations"_L1));
 
@@ -50,8 +51,8 @@ TPSettings::TPSettings(QObject *parent) : QSettings{parent}
 	m_defaultValues[APP_VERSION_INDEX] = std::move(TP_APP_VERSION);
 	m_defaultValues[THEME_STYLE_INDEX] = std::move("Material"_L1);
 	m_defaultValues[WEIGHT_UNIT_INDEX] = std::move("(kg)"_L1);
-	m_defaultValues[MESO_IDX_INDEX] = "-1"_L1;
-	m_defaultValues[ASK_CONFIRMATION_INDEX] = "1"_L1;
+	m_defaultValues[MESO_IDX_INDEX] = std::move("-1"_L1);
+	m_defaultValues[ASK_CONFIRMATION_INDEX] = std::move("1"_L1);
 
 	m_colorSchemes.reserve(7);
 	m_colorSchemes << std::move(tr("Custom(click on the regions of the rectangle on the right to change colors)")) <<
