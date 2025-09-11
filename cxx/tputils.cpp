@@ -305,16 +305,12 @@ bool TPUtils::writeDataToFile(QFile *out_file,
 	}
 	else
 	{
-		for (uint x{0}; x < export_rows.count(); ++x)
+		for (const auto row : export_rows)
 		{
-			uint i{0};
-			for (const auto &modeldata : data.at(export_rows.at(x)))
+			for (const auto &modeldata : data.at(row))
 			{
-				if (i == 0 && !use_real_id)
-				{
+				if (!use_real_id && row == export_rows.constFirst())
 					out_file->write("-1\n", 3);
-					i = 1;
-				}
 				else
 				{
 					out_file->write(modeldata.toUtf8().constData());

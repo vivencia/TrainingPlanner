@@ -198,14 +198,8 @@ TPPage {
 
 			TPComboBox {
 				id: cboMesoType
-				width: 0.75*parent.width
+				width: 0.75 * parent.width
 				Layout.fillWidth: true
-				currentIndex: {
-					let cboidx = find(mesoManager.type);
-					if (cboidx === -1)
-						cboidx = typeModel.count - 1;
-					return cboidx;
-				}
 				model: ListModel {
 					id: typeModel
 					ListElement { text: qsTr("Weigth Loss"); value: 0; enabled: true; }
@@ -223,6 +217,13 @@ TPPage {
 						mesoManager.type = textAt(index);
 					else
 						txtMesoTypeOther.forceActiveFocus();
+				}
+
+				Component.onCompleted: {
+					let cboidx = find(mesoManager.type);
+					if (cboidx === -1)
+						cboidx = typeModel.count - 1;
+					currentIndex = cboidx;
 				}
 			}
 
@@ -355,11 +356,7 @@ TPPage {
 				Layout.topMargin: 15
 				Layout.bottomMargin: 15
 
-				onClicked: {
-					mesoManager.realMeso = checked;
-					if (checked)
-						mesoManager.acceptEndDate();
-				}
+				onClicked: mesoManager.realMeso = checked;
 
 				TPButton {
 					imageSource: "question.png"

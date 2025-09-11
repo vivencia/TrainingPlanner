@@ -35,7 +35,7 @@ QString TPDatabaseTable::createTableQuery(const uint table_id)
 	switch (table_id)
 	{
 		case EXERCISES_TABLE_ID: return QString{DBExercisesListTable::createTableQuery()}.arg(DBExercisesListTable::tableName());
-		case MESOCYCLES_TABLE_ID: return QString{DBUserTable::createTableQuery()}.arg(DBUserTable::tableName());
+		case MESOCYCLES_TABLE_ID: return QString{DBMesocyclesTable::createTableQuery()}.arg(DBMesocyclesTable::tableName());
 		case MESOSPLIT_TABLE_ID: return QString{DBWorkoutsOrSplitsTable::createTableQuery()}.arg(DBWorkoutsOrSplitsTable::tableName(MESOSPLIT_TABLE_ID));
 		case MESOCALENDAR_TABLE_ID: return QString{DBMesoCalendarTable::createTableQuery()}.arg(DBMesoCalendarTable::tableName());
 		case WORKOUT_TABLE_ID: return QString{DBWorkoutsOrSplitsTable::createTableQuery()}.arg(DBWorkoutsOrSplitsTable::tableName(WORKOUT_TABLE_ID));

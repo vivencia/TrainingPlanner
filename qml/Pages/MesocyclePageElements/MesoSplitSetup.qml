@@ -54,11 +54,8 @@ Pane {
 			Layout.minimumWidth: width
 			Layout.maximumWidth: width
 
-			onTextChanged: mesoManager.split = text;
-
 			TPImage {
 				source: "set-completed"
-				visible: mesoManager.isNewMeso
 				enabled: mesoManager.splitOK
 				width: appSettings.itemDefaultHeight
 				height: width
@@ -123,7 +120,7 @@ Pane {
 
 					onActivated: (cboindex) => {
 						let mesoSplit = txtMesoSplit.text;
-						txtMesoSplit.text = mesoSplit.substring(0,delegateRow.delegateIndex) +
+						mesoManager.split = mesoSplit.substring(0,delegateRow.delegateIndex) +
 													valueAt(cboindex) + mesoSplit.substring(delegateRow.delegateIndex+1);
 						let last_letter_idx = cboindex + 1;
 						if (last_letter_idx === nDelegateRows) {
@@ -157,7 +154,7 @@ Pane {
 						if (last_letter_idx === nLastDelegateIdx) { //split is an 'R'
 							let prev_index = delegateRow.delegateIndex-1;
 							last_letter_idx = 0;
-							if (prev_index > 0) {
+							if (prev_index >= 0) {
 								let prev_item_index;
 								do {
 									prev_item_index = splitRepeater.itemAt(prev_index).children[1].currentIndex;

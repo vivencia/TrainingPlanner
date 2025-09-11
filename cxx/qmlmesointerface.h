@@ -87,7 +87,7 @@ public:
 
 	inline QString mesoNameErrorTooltip() const { return m_nameError; }
 	[[nodiscard]] inline QString name() const { return m_name; }
-	void setName(const QString &new_name, const bool modify_new_meso_counter = true);
+	void setName(const QString &new_name, const bool modify_new_meso_counter = true, const bool from_qml = true);
 
 	[[nodiscard]] QString coach() const;
 	void setCoach(const QString &new_value);

@@ -182,10 +182,11 @@ public:
 	{
 		return m_mesoData.at(meso_idx).at(MESOCYCLES_COL_WEEKS);
 	}
+	//Don't call setModified(). After a call to setWeeks() invariably will follow a call to setStartDate() or setEndDate()
+	//which will call setModified() themselves
 	inline void setWeeks(const uint meso_idx, const QString &new_weeks)
 	{
 		m_mesoData[meso_idx][MESOCYCLES_COL_WEEKS] = new_weeks;
-		setModified(meso_idx, MESOCYCLES_COL_WEEKS);
 	}
 
 	inline const QString &split(const uint meso_idx) const
@@ -260,6 +261,8 @@ public:
 
 	Q_INVOKABLE QString muscularGroup(const uint meso_idx, const QChar &splitLetter) const;
 	void setMuscularGroup(const uint meso_idx, const QChar &splitLetter, const QString &newSplitValue);
+	inline bool isSplitOK(const uint meso_idx) const { return isSplitOK(split(meso_idx), meso_idx); }
+	bool isSplitOK(const QString &strsplit, const uint meso_idx) const;
 
 	inline const QString &coach(const uint meso_idx) const
 	{

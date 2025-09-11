@@ -50,7 +50,7 @@ TPPopup {
 		color: appSettings.paneBackgroundColor
 		opacity: 0.8
 		width: parent.width
-		height: 25
+		height: btnClose.height
 		z:0
 
 		gradient: Gradient {
@@ -71,6 +71,7 @@ TPPopup {
 			id: btnShowHideList
 			imageSource: dlgMuscularGroup.shown ? "fold-up.png" : "fold-down.png"
 			hasDropShadow: false
+			flat: true
 			width: btnClose.width
 			height: width
 

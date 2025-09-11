@@ -45,15 +45,19 @@ QVariant homePageMesoModel::data(const QModelIndex &index, int role) const
 		switch (role)
 		{
 			case mesoNameRole:
-				return QVariant{"<b>"_L1 + appMesoModel()->name(meso_idx) + (appMesoModel()->_id(meso_idx) < 0 ? tr(" (Temporary)") : QString{}) + "</b>"_L1};
+				return QVariant{"<b>"_L1 + (appMesoModel()->name(meso_idx).length() >= 5 ?
+					appMesoModel()->name(meso_idx) : tr("Not set")) + (appMesoModel()->_id(meso_idx) < 0 ? tr(" (Temporary)") : QString{}) + "</b>"_L1};
 			case mesoStartDateRole:
 				return QVariant{appMesoModel()->startDateLabel() + "<b>"_L1 +
-					(!appMesoModel()->isNewMeso(meso_idx) ? appUtils()->formatDate(appMesoModel()->startDate(meso_idx)) : tr("Not set")) + "</b>"_L1};
+					(!appMesoModel()->strStartDate(meso_idx).isEmpty() ?
+						appUtils()->formatDate(appMesoModel()->startDate(meso_idx)) : tr("Not set")) + "</b>"_L1};
 			case mesoEndDateRole:
 				return QVariant{appMesoModel()->endDateLabel() + "<b>"_L1 +
-						(!appMesoModel()->isNewMeso(meso_idx) ? appUtils()->formatDate(appMesoModel()->endDate(meso_idx)) : tr("Not set")) + "</b>"_L1};
+					(!appMesoModel()->strEndDate(meso_idx).isEmpty() ?
+						appUtils()->formatDate(appMesoModel()->endDate(meso_idx)) : tr("Not set")) + "</b>"_L1};
 			case mesoSplitRole:
-				return QVariant{appMesoModel()->splitLabel() + "<b>"_L1 + appMesoModel()->split(meso_idx) + "</b>"_L1};
+				return QVariant{appMesoModel()->splitLabel() + "<b>"_L1 +
+					(appMesoModel()->isSplitOK(meso_idx) ? appMesoModel()->split(meso_idx) : tr("Not set")) + "</b>"_L1};
 			case mesoCoachRole:
 				if (!appMesoModel()->coach(meso_idx).isEmpty())
 					return QVariant{appMesoModel()->coachLabel() + "<b>"_L1 +
