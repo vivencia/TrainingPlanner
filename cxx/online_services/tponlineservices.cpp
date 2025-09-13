@@ -33,24 +33,19 @@ void TPOnlineServices::scanNetwork()
 			if (request_id == requestid)
 			{
 				disconnect(*conn);
-				if (request_id == requestid)
+				connect(this, &TPOnlineServices::_serverOnline, this, [this] (const uint online_status, const QString &address)
 				{
-					disconnect(*conn);
-					connect(this, &TPOnlineServices::_serverOnline, this, [this] (const uint online_status, const QString &address)
+					switch (online_status)
 					{
-						switch (online_status)
-						{
-							case 0: break; //online
-							case 1: //"Bad Gateway" received. Scan local network for a new server address
-								appSettings()->setServerAddress(QString{});
-								scanNetwork();
-							break;
-							case 2: break; //server paused
-						}
-						emit serverOnline(online_status);
-					}, Qt::SingleShotConnection);
-					checkServerResponse(ret_code, ret_string, appSettings()->serverAddress());
-				}
+						case 0: break; //online
+						case 1: //Bad Gateway or connection refused or some other error received. Scan local network for a new server address
+							appSettings()->setServerAddress(QString{});
+							scanNetwork();
+						break;
+						case 2: break; //server paused
+					}
+					emit serverOnline(online_status);
+				}, Qt::SingleShotConnection);
 				checkServerResponse(ret_code, ret_string, appSettings()->serverAddress());
 			}
 		});
@@ -64,6 +59,11 @@ void TPOnlineServices::scanNetwork()
 
 		connect(tsn, &tpScanNetwork::addressReachable, this, [this,conn,requestid] (const QString &ip)
 		{
+			if (ip == "None"_L1)
+			{
+				emit serverOnline(1);
+				return;
+			}
 			*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid,ip]
 									(const int request_id, const int ret_code, const QString &ret_string)
 			{
@@ -85,8 +85,6 @@ void TPOnlineServices::scanNetwork()
 				appSettings()->setServerAddress(address);
 				thread->disconnect();
 				thread->requestInterruption();
-				thread->deleteLater();
-				tsn->deleteLater();
 				#ifndef Q_OS_ANDROID
 				m_useLocalHost = false;
 				#endif
@@ -430,11 +428,7 @@ QString TPOnlineServices::makeCommandURL(const QString &username, const QString 
 								const QString &option3, const QString &value3
 							)
 {
-#ifndef Q_OS_ANDROID
 	QString ret{server_address.arg(appSettings()->serverAddress()) + "?user="_L1 + username + "&password="_L1 + passwd};
-#else
-	QString ret{server_addr + "?user="_L1 + username + "&password="_L1 + passwd};
-#endif
 	if (!option1.isEmpty())
 	{
 		ret += '&' + option1 + '=';
@@ -545,13 +539,11 @@ void TPOnlineServices::uploadFile(const int requestid, const QUrl &url, QFile *f
 
 void TPOnlineServices::checkServerResponse(const int ret_code, const QString &ret_string, const QString &address)
 {
-	uint online_status{0};
-	if (!ret_string.contains("Welcome to the TrainingPlanner"_L1))
-	{
-		if (ret_string.contains("Bad Gateway"_L1, Qt::CaseInsensitive))
-			online_status = 1;
-		else if (ret_string.contains("server paused"_L1))
-			online_status = 2;
-	}
+	qDebug() << "server response: " << ret_string << "  " << address;
+	uint online_status{1};
+	if (ret_string.contains("Welcome to the TrainingPlanner"_L1))
+		online_status = 0;
+	else if (ret_string.contains("server paused"_L1))
+		online_status = 2;
 	emit _serverOnline(online_status, address);
 }

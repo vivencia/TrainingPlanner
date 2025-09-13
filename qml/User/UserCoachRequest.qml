@@ -53,7 +53,7 @@ TPPopup {
 			text: qsTr("No coaches available")
 			font: AppGlobals.largeFont
 			horizontalAlignment: Text.AlignHCenter
-			visible: userModel.availableCoaches.count === 0
+			visible: userModel.availableCoaches? userModel.availableCoaches.count === 0 : false
 			anchors.fill: parent
 		}
 

@@ -430,8 +430,11 @@ void QMLMesoInterface::getMesocyclePage()
 
 void QMLMesoInterface::sendMesocycleFileToServer()
 {
-	appMesoModel()->sendMesoToUser(m_mesoIdx);
-	m_canSendMesoToServer = false;
+	if (m_canSendMesoToServer)
+	{
+		appMesoModel()->sendMesoToUser(m_mesoIdx);
+		m_canSendMesoToServer = false;
+	}
 }
 
 void QMLMesoInterface::incorporateMeso()
@@ -508,13 +511,9 @@ void QMLMesoInterface::createMesocyclePage_part2()
 	appQmlEngine()->setObjectOwnership(m_mesoPage, QQmlEngine::CppOwnership);
 	m_mesoPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"_L1));
 
-	connect(appOsInterface(), &OSInterface::appAboutToExit, this, [this] () {
-		if (m_canSendMesoToServer)
-			sendMesocycleFileToServer();
-	});
+	connect(appOsInterface(), &OSInterface::appAboutToExit, this, [this] () { sendMesocycleFileToServer(); });
 	appItemManager()->openPage(appMesoModel()->name(m_mesoIdx), m_mesoPage, [this] () {
-		if (m_canSendMesoToServer)
-			sendMesocycleFileToServer();
+		sendMesocycleFileToServer();
 		appMesoModel()->removeMesoManager(m_mesoIdx);
 	});
 

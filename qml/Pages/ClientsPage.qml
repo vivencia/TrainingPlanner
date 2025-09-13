@@ -51,7 +51,7 @@ TPPage {
 		}
 		TPTabButton {
 			text: qsTr("Pending requests")
-			enabled: userModel.pendingClientsRequests.count > 0
+			enabled: userModel.pendingClientsRequests ? userModel.pendingClientsRequests.count > 0 : false
 			checked: tabbar.currentIndex === 1
 
 			onClicked: {
@@ -110,7 +110,7 @@ TPPage {
 				reuseItems: true
 				model: userModel.pendingClientsRequests
 				height: parent.height * 0.8
-				enabled: userModel.pendingClientsRequests.count > 0
+				enabled: userModel.pendingClientsRequests ? userModel.pendingClientsRequests.count > 0 : false
 
 				ScrollBar.vertical: ScrollBar {
 					policy: ScrollBar.AsNeeded
@@ -160,7 +160,7 @@ TPPage {
 			RowLayout {
 				uniformCellSizes: true
 				height: appSettings.itemDefaultHeight
-				visible: userModel.pendingClientsRequests.count > 0
+				visible: userModel.pendingClientsRequests ? userModel.pendingClientsRequests.count > 0 : false
 
 				anchors {
 					top: pendingClientsList.bottom

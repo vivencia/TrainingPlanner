@@ -20,7 +20,7 @@ TabButton {
 	background: Rectangle {
 		border.color: appSettings.fontColor
 		opacity: enabled ? 0.9 : 0.4
-		color: enabled ? (checked ? appSettings.primaryDarkColor : appSettings.primaryColor) : appSettings.disabledFontColor
+		color: checked ? appSettings.primaryDarkColor : appSettings.primaryColor
 		radius: 5
 	}
 }

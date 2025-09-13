@@ -18,10 +18,7 @@ TPPage {
 
 	property TPBalloonTip newMesoTip: newMesoLoader.item
 
-	onPageDeActivated: {
-		if (mesoManager.canSendMesoToServer())
-			mesoManager.sendMesocycleFileToServer();
-	}
+	onPageDeActivated: mesoManager.sendMesocycleFileToServer();
 
 	Connections {
 		target: mesoManager

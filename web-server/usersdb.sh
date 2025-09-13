@@ -94,7 +94,7 @@ get_insert_command() {
         done
         if get_values; then
             (( z=0 ))
-            while [ $z -lt "$N_FIELDS"  ]; do
+            while [ $z -lt "$N_FIELDS" ]; do
                 if [ $z != $LAST_FIELD ]; then
                     INSERT_CMD="$INSERT_CMD'${VALUES[$z]}',"
                 else

@@ -50,7 +50,7 @@ TPPage {
 		}
 		TPTabButton {
 			text: qsTr("Pending answers")
-			enabled: userModel.pendingCoachesResponses.count > 0
+			enabled: userModel.pendingCoachesResponses ? userModel.pendingCoachesResponses.count > 0 : false
 
 			onClicked: {
 				curRow = userModel.getTemporaryUserInfo(userModel.pendingCoachesResponses, userModel.pendingCoachesResponses.currentRow);
@@ -202,8 +202,8 @@ TPPage {
 				reuseItems: true
 				clip: true
 				model: userModel.pendingCoachesResponses
-				height: 0.8*parent.height
-				enabled: userModel.pendingCoachesResponses.count > 0
+				height: 0.8 * parent.height
+				enabled: userModel.pendingCoachesResponses ? userModel.pendingCoachesResponses.count > 0 : false
 
 				ScrollBar.vertical: ScrollBar {
 					policy: ScrollBar.AsNeeded
@@ -269,8 +269,8 @@ TPPage {
 
 			RowLayout {
 				uniformCellSizes: true
-				height: 25
-				visible: userModel.pendingCoachesResponses.count > 0
+				height: appSettings.itemDefaultHeight
+				visible: userModel.pendingCoachesResponses ? userModel.pendingCoachesResponses.count > 0 : false
 
 				anchors {
 					top: pendingCoachesList.bottom
@@ -302,6 +302,7 @@ TPPage {
 	TPButton {
 		id: btnFindCoachOnline
 		text: qsTr("Look online for available coaches");
+		enabled: userModel.canConnectToServer
 
 		onClicked: displayOnlineCoachesMenu();
 

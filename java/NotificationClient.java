@@ -84,7 +84,7 @@ public class NotificationClient
 		}
     }
 
-	public static String testNetworkConnection(String urlString) {
+	/*public static String testNetworkConnection(String urlString) {
 		try {
 			 URL url = new URL(urlString);
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -99,6 +99,6 @@ public class NotificationClient
 			Log.e("******** NetworkTest", "Error: " + e.getMessage(), e);
 			return "******** Error: " + e.getMessage();
 		}
-	}
+	}*/
 }
 

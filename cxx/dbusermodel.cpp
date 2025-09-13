@@ -81,12 +81,16 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 			onlineCheckIn();
 		connect(appOsInterface(), &OSInterface::internetStatusChanged, this, [this] (const bool connected) {
 			if (!connected)
+			{
 				mb_canConnectToServer = false;
+				emit canConnectToServerChanged();
+			}
 		});
 		connect(appOsInterface(), &OSInterface::serverStatusChanged, this, [this] (const bool online) {
 			if (!mb_canConnectToServer && online)
 					onlineCheckIn();
 			mb_canConnectToServer = online;
+			emit canConnectToServerChanged();
 		});
 
 		connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {

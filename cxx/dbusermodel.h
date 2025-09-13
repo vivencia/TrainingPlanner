@@ -67,6 +67,7 @@ Q_PROPERTY(bool onlineUser READ onlineUser WRITE setOnlineUser NOTIFY onlineUser
 Q_PROPERTY(bool haveCoaches READ haveCoaches NOTIFY haveCoachesChanged FINAL)
 Q_PROPERTY(bool haveClients READ haveClients NOTIFY haveClientsChanged FINAL)
 Q_PROPERTY(bool mainUserConfigured READ mainUserConfigured NOTIFY mainUserConfigurationFinished FINAL)
+Q_PROPERTY(bool canConnectToServer READ canConnectToServer NOTIFY canConnectToServerChanged FINAL)
 
 public:
 	explicit DBUserModel(QObject *parent = nullptr, const bool bMainUserModel = true);
@@ -254,9 +255,9 @@ public:
 	void delClient(const uint user_idx);
 	void changeClient(const uint user_idx, const QString &oldname);
 
-	inline bool canConnectToServer() const { return mb_canConnectToServer; }
 	Q_INVOKABLE int getTemporaryUserInfo(OnlineUserInfo *tempUser, const uint userInfouser_idx);
 	bool mainUserConfigured() const;
+	inline bool canConnectToServer() const { return mb_canConnectToServer; }
 
 	Q_INVOKABLE void acceptUser(OnlineUserInfo *userInfo, const int userInfouser_idx);
 	Q_INVOKABLE void rejectUser(OnlineUserInfo *userInfo, const int userInfouser_idx);
@@ -325,6 +326,7 @@ signals:
 	void userOnlineCheckResult(const bool registered);
 	void userOnlineImportFinished(const bool result);
 	void mainUserConfigurationFinished();
+	void canConnectToServerChanged();
 	void mainUserOnlineCheckInChanged(const bool first_checkin = false);
 	void coachOnlineStatus(bool registered);
 	void userProfileAcquired(const QString &userid, const bool success);

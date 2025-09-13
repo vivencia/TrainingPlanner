@@ -17,7 +17,7 @@
 //"(Landroid/content/Context;Landroid/net/Uri;)Ljava/lang/String;"
 // String f(Context, Uri)
 
-const QString &workoutDoneMessage{qApp->tr("Your training routine seems to go well. Workout for the day is concluded")};
+static const QString &workoutDoneMessage{qApp->tr("Your training routine seems to go well. Workout for the day is concluded")};
 
 #define NOTIFY_DO_NOTHING 0xA
 #define MESOCYCLE_NOTIFICATION 0x14
@@ -84,7 +84,7 @@ OSInterface::OSInterface(QObject *parent)
 	checkInternetConnection();
 
 #ifdef Q_OS_ANDROID
-	const QJniObject &context(QNativeInterface::QAndroidApplication::context());
+	const QJniObject &context{QNativeInterface::QAndroidApplication::context()};
 
 	context.callStaticMethod<void>(
 		"org/vivenciasoftware/TrainingPlanner/QShareUtils",
@@ -104,13 +104,12 @@ OSInterface::OSInterface(QObject *parent)
 		"(Landroid/content/Context;)V",
 		context.object());
 
-	context.callStaticObjectMethod(
+	/*context.callStaticObjectMethod(
 		"org/vivenciasoftware/TrainingPlanner/NotificationClient",
 		"testNetworkConnection",
 		"(Ljava/lang/String;)Ljava/lang/String;",
 		QJniObject::fromString("https://www.google.com").object<jstring>()
-	);
-	qDebug() << "%%%% Testing Network %%%%%%%  " << context.toString();
+	);*/
 	//qDebug() << "SSL supported:" << QSslSocket::supportsSsl();
 	//qDebug() << "SSL version:" << QSslSocket::sslLibraryVersionString();
 	mb_appSuspended = false;
@@ -158,9 +157,9 @@ void OSInterface::checkInternetConnection()
 	m_checkConnectionTimer->setInterval(isConnected ? CONNECTION_CHECK_TIMEOUT : CONNECTION_ERR_TIMEOUT); //When network is out, check more frequently
 	emit internetStatusChanged(isConnected);
 
-	connect(appOnlineServices(), &TPOnlineServices::serverOnline, this, [this] (const bool server_ok)
+	connect(appOnlineServices(), &TPOnlineServices::serverOnline, this, [this] (const uint online_status)
 	{
-		onlineServicesResponse(server_ok);
+		onlineServicesResponse(online_status);
 	});
 
 #ifndef Q_OS_ANDROID
@@ -199,10 +198,15 @@ void OSInterface::checkServerResponseSlot(const bool online)
 
 void OSInterface::checkPendingIntents() const
 {
-	const QJniObject &activity = QNativeInterface::QAndroidApplication::context();
+	const QJniObject &activity{QNativeInterface::QAndroidApplication::context()};
 	if(activity.isValid())
 	{
-		activity.callMethod<void>("checkPendingIntents","()V");
+
+		activity.callStaticMethod<void>(
+			"org/vivenciasoftware/TrainingPlanner/TPActivity",
+			"checkPendingIntents",
+			"()V",
+			activity.object());
 		return;
 	}
 	DEFINE_SOURCE_LOCATION
@@ -622,16 +626,6 @@ void OSInterface::restartApp()
 }
 #endif //Q_OS_ANDROID
 
-QString OSInterface::macAddress() const
-{
-	const int fd{socket(PF_INET, SOCK_DGRAM, IPPROTO_IP)};
-	struct ifreq ifr{};
-	strcpy(ifr.ifr_name, "wlan0");
-	ioctl(fd, SIOCGIFHWADDR, &ifr);
-	close(fd);
-	return ether_ntoa((ether_addr *) ifr.ifr_hwaddr.sa_data);
-}
-
 QString OSInterface::deviceID() const
 {
 	return QSysInfo::machineUniqueId();
@@ -743,12 +737,12 @@ void OSInterface::viewExternalFile(const QString &filename) const
 	#endif
 }
 
-void OSInterface::onlineServicesResponse(const bool server_ok)
+void OSInterface::onlineServicesResponse(const uint online_status)
 {
-	setBit(m_networkStatus, SERVER_UP_AND_RUNNING);
-	unSetBit(m_networkStatus, SERVER_UNREACHABLE);
+	setBit(m_networkStatus, online_status == 0 ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
+	unSetBit(m_networkStatus, online_status == 0 ? SERVER_UNREACHABLE : SERVER_UP_AND_RUNNING);
 	appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
-							{"Linux TP Server"_L1, "Up and running!"_L1}, record_separator));
-		emit serverStatusChanged(true);
-	m_checkConnectionTimer->setInterval(CONNECTION_CHECK_TIMEOUT);
+					{"Linux TP Server"_L1, online_status == 0 ? "Up and running!"_L1 : "Server unreachable"_L1}, record_separator));
+	emit serverStatusChanged(online_status == 0);
+	m_checkConnectionTimer->setInterval(online_status == 0 ? CONNECTION_CHECK_TIMEOUT : CONNECTION_ERR_TIMEOUT);
 }

@@ -39,6 +39,8 @@ public class TPActivity extends QtActivity
 
 	public final static String TAG = "************** TPActivity ***************	  ";
 
+	private static TPActivity m_instance;
+
 	// Use a custom Chooser without providing own App as share target !
 	// see QShareUtils.java createCustomChooserAndStartActivity()
 	// Selecting your own App as target could cause AndroidOS to call
@@ -50,6 +52,7 @@ public class TPActivity extends QtActivity
 		super.onCreate(savedInstanceState);
 		Log.d(TAG, "onCreate TPActivity");
 		workingDirPath = getFilesDir().getPath();
+		m_instance = this;
 
 		/*
 		Use, in the future, for system broadcasts, or some possible internal broadcast
@@ -85,34 +88,34 @@ public class TPActivity extends QtActivity
 		System.exit(0);
 	}
 
-// we start Activity with result code
-// to test JNI with QAndroidActivityResultReceiver you must comment or rename
-// this method here - otherwise you'll get wrong request or result codes
+	// we start Activity with result code
+	// to test JNI with QAndroidActivityResultReceiver you must comment or rename
+	// this method here - otherwise you'll get wrong request or result codes
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-	super.onActivityResult(requestCode, resultCode, data);
-	// Check which request we're responding to
-	Log.d("************** TPActivity ***************   onActivityResult", "requestCode: "+requestCode);
-	if (resultCode == RESULT_OK) {
-		Log.d("************** TPActivity ***************   onActivityResult - resultCode: ", "SUCCESS");
-	} else {
-	Log.d("************** TPActivity ***************   onActivityResult - resultCode: ", "CANCEL");
-	}
+		super.onActivityResult(requestCode, resultCode, data);
+		// Check which request we're responding to
+		Log.d("************** TPActivity ***************   onActivityResult", "requestCode: "+requestCode);
+		if (resultCode == RESULT_OK) {
+			Log.d("************** TPActivity ***************   onActivityResult - resultCode: ", "SUCCESS");
+		} else {
+			Log.d("************** TPActivity ***************   onActivityResult - resultCode: ", "CANCEL");
+		}
 
-	// Attention using FileDialog can trigger onActivityResult
-	// with requestCode 1305
-	// see https://code.qt.io/cgit/qt/qtbase.git/tree/src/plugins/platforms/android/qandroidplatformfiledialoghelper.cpp#n22
-	if (requestCode == 1305) {
-		Log.d("************** TPActivity ***************   onActivityResult - requestCode 1305 (Qt FileDialog): ", "IGNORE");
-		return;
-	}
+		// Attention using FileDialog can trigger onActivityResult
+		// with requestCode 1305
+		// see https://code.qt.io/cgit/qt/qtbase.git/tree/src/plugins/platforms/android/qandroidplatformfiledialoghelper.cpp#n22
+		if (requestCode == 1305) {
+			Log.d("************** TPActivity ***************   onActivityResult - requestCode 1305 (Qt FileDialog): ", "IGNORE");
+			return;
+		}
 
-	// hint: result comes back too fast for Action SEND
-	// if you want to delete/move the File add a Timer w 500ms delay
-	// see Example App main.qml - delayDeleteTimer
-	// if you want to revoke permissions for older OS
-	// it makes sense also do this after the delay
-	fireActivityResult(requestCode, resultCode);
+		// hint: result comes back too fast for Action SEND
+		// if you want to delete/move the File add a Timer w 500ms delay
+		// see Example App main.qml - delayDeleteTimer
+		// if you want to revoke permissions for older OS
+		// it makes sense also do this after the delay
+		fireActivityResult(requestCode, resultCode);
 	}
 
 	// if we are opened from other apps:
@@ -128,12 +131,12 @@ public class TPActivity extends QtActivity
 			isIntentPending = true;
 	} // onNewIntent
 
-	public void checkPendingIntents() {
-		isInitialized = true;
-		if (isIntentPending) {
-			isIntentPending = false;
+	public static void checkPendingIntents() {
+		m_instance.isInitialized = true;
+		if (m_instance.isIntentPending) {
+			m_instance.isIntentPending = false;
 			Log.d(TAG, "checkPendingIntents: true");
-			processIntent();
+			m_instance.processIntent();
 		}
 		else
 			Log.d(TAG, "nothingPending");

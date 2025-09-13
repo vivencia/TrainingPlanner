@@ -158,7 +158,9 @@ public:
 	inline bool alwaysAskConfirmation() const { return value(m_propertyNames.value(ASK_CONFIRMATION_INDEX), m_defaultValues.at(ASK_CONFIRMATION_INDEX)).toBool(); }
 	inline void setAlwaysAskConfirmation(const bool new_value) { changeValue(ASK_CONFIRMATION_INDEX, QString::number(new_value)); emit alwaysAskConfirmationChanged(); }
 
-	inline QString serverAddress() const { return value(m_propertyNames.value(SERVER_ADDRESS)).toString(); }
+	inline QString serverAddress() const { return "192.168.10.144";
+	//value(m_propertyNames.value(SERVER_ADDRESS)).toString();
+	}
 	inline void setServerAddress(const QString &new_value) { changeValue(SERVER_ADDRESS, new_value); emit serverAddressChanged(); }
 
 signals:

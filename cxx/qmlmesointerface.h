@@ -148,7 +148,6 @@ public:
 	Q_INVOKABLE void getWorkoutPage(const QDate &date);
 
 	void getMesocyclePage();
-	Q_INVOKABLE inline bool canSendMesoToServer() const { return m_canSendMesoToServer; }
 	Q_INVOKABLE void sendMesocycleFileToServer();
 	Q_INVOKABLE void incorporateMeso();
 

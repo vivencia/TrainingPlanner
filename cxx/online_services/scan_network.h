@@ -13,12 +13,13 @@ extern "C" {
 	#include <unistd.h>
 }
 
+using namespace Qt::Literals::StringLiterals;
+
 class tpScanNetwork : public QObject
 {
 
 Q_OBJECT
 
-static constexpr size_t PACKET_SIZE{64};
 static constexpr std::chrono::seconds MAX_WAIT_TIME{1};
 
 public:
@@ -28,13 +29,19 @@ public:
 	{
 		for (uint i{1}; i <= 254; i++) {
 			const QString &ip{base_ip + QString::number(i)};
-			if ( QThread::currentThread()->isInterruptionRequested() )
+			if (QThread::currentThread()->isInterruptionRequested())
+			{
+				QThread::currentThread()->quit();
 				return;
+			}
+			qDebug() << "Pinging " << ip;
 			if (ping(ip))
 				emit addressReachable(ip);
 			// Add a small delay between pings to avoid overwhelming the network
 			QThread::currentThread()->sleep(std::chrono::milliseconds(10));
 		}
+		emit addressReachable("None"_L1);
+		QThread::currentThread()->quit();
 	}
 
 signals:
@@ -68,7 +75,7 @@ private:
 			::memcpy(packetdata, &icmp_hdr, sizeof(icmp_hdr));
 			::memcpy(packetdata + sizeof(icmp_hdr), "12345", 5);
 
-			if (::sendto(sockfd, packetdata, PACKET_SIZE, 0, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) > 0)
+			if (::sendto(sockfd, packetdata, sizeof(packetdata), 0, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) > 0)
 			{
 				if (::recvfrom(sockfd, packetdata, sizeof(packetdata), 0, nullptr, nullptr) > 0)
 					ping_success = true;

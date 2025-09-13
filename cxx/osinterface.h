@@ -13,8 +13,6 @@
 #include <QTime>
 #include <jni.h>
 
-//QT_FORWARD_DECLARE_CLASS(TPAndroidNotification)
-
 using namespace Qt::Literals::StringLiterals;
 
 struct notificationData {
@@ -127,7 +125,6 @@ public:
 	#endif
 #endif
 
-	QString macAddress() const;
 	QString deviceID() const;
 	void checkOnlineResources();
 	void shareFile(const QString &fileName) const;
@@ -164,7 +161,7 @@ private:
 	QTimer *m_notificationsTimer;
 #endif
 
-	void onlineServicesResponse(const bool server_ok);
+	void onlineServicesResponse(const uint online_status);
 	static OSInterface *app_os_interface;
 	friend OSInterface *appOsInterface();
 };

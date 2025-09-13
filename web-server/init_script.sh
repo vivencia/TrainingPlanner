@@ -6,7 +6,6 @@
 
 BASE_SERVER_DIR="/var/www/html"
 TP_DIR=$BASE_SERVER_DIR"/trainingplanner"
-DEFAULT_SERVER_ADDRESS="http://192.168.10.21:8080"
 PHP_FPM_SERVICE="php-fpm"
 SCRIPT_NAME=$(basename "$0")
 USER_NAME=$(whoami)
@@ -107,13 +106,37 @@ create_users_db() {
     fi
 }
 
+find_local_ip() {
+    SERVER_IP=""
+    INTERFACE_DATA=$(ip addr show | grep 'inet.*wlan0')
+    N_WORDS=$(echo "${INTERFACE_DATA}" | awk -F ' ' '{ print NF }')
+    (( N_WORDS++ ))
+    (( z=1 ))
+    while [ $z -ne "$N_WORDS" ]; do
+        WORD=$(echo "${INTERFACE_DATA}" | cut -d ' ' -s -f $z)
+        if [ $WORD ]; then
+            SERVER_IP=$(echo "${WORD}" | cut -d '/' -s -f 1)
+            if [ $SERVER_IP ]; then
+                return 0
+            fi
+        else
+            (( N_WORDS++ ))
+        fi
+        (( z++))
+    done
+    return 1
+}
+
 query_address() {
     SERVER_RESPONSE=$(curl -s "$1/trainingplanner/")
-    echo "$SERVER_RESPONSE" | grep -q "Bad Gateway" && RESULT=1 || RESULT=0
+    echo "$SERVER_RESPONSE" | grep -q "Forbidden" && RESULT=1 || RESULT=0
     if [ "$RESULT" == 0 ]; then
-        echo "$SERVER_RESPONSE" | grep -q "Welcome" && RESULT=0 || RESULT=1
-        if [ "$RESULT" == 1 ]; then
+        echo "$SERVER_RESPONSE" | grep -q "Bad Gateway" && RESULT=1 || RESULT=0
+        if [ "$RESULT" == 0 ]; then
+            echo "$SERVER_RESPONSE" | grep -q "Welcome" && RESULT=0 || RESULT=1
+            if [ "$RESULT" == 1 ]; then
                 echo "$SERVER_RESPONSE" | grep -q "paused" && RESULT=2 || RESULT=0
+            fi
         fi
     fi
     return $RESULT
@@ -159,7 +182,7 @@ start_nginx() {
             echo "The NGINX service is already running."
         else
             echo "Starting NGINX..."
-            if ! run_as_sudo systemctl start "$NGINX"; then
+            if ! run_as_sudo systemctl start nginx; then
                 echo "Error starting nginx service."
                 return 2
             else
@@ -178,7 +201,7 @@ stop_nginx() {
     if [ -f "$NGINX" ]; then
         if pgrep -fl "$NGINX" &>/dev/null; then
             echo "Stopping the NGINX service..."
-            if ! run_as_sudo systemctl stop "$NGINX"; then
+            if ! run_as_sudo systemctl stop nginx; then
                 echo "Error starting the NGINX service."
                 return 2
             else
@@ -235,8 +258,12 @@ start_server() {
         EXIT_STATUS=$?
     fi
     if [ "$EXIT_STATUS" == 0 ]; then
-        test_tp_server $DEFAULT_SERVER_ADDRESS "lan"
-        EXIT_STATUS=$?
+        if find_local_ip; then
+            test_tp_server "$SERVER_IP:8080" "lan"
+            EXIT_STATUS=$?
+        else
+            EXIT_STATUS=1
+        fi
     else
         echo "TPSERVER not running because PHP-FPM failed to start"
     fi
@@ -317,8 +344,12 @@ get_tpserver_status() {
         if [ $NGINX_SETUP == 0 ]; then
             systemctl status $PHP_FPM_SERVICE 1&> /dev/null
             PHP_FPM_SETUP=$?
-            test_tp_server "$DEFAULT_SERVER_ADDRESS" "lan"
-            TEST_RESULT=$?
+            if find_local_ip; then
+                test_tp_server "$SERVER_IP:8080" "lan"
+                TEST_RESULT=$?
+            else
+                TEST_RESULT=1
+            fi
         fi
 
         if [ "$TEST_RESULT" == 1 ]; then
