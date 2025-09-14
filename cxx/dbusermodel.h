@@ -63,6 +63,8 @@ Q_PROPERTY(OnlineUserInfo* pendingCoachesResponses READ pendingCoachesResponses 
 Q_PROPERTY(OnlineUserInfo* pendingClientsRequests READ pendingClientsRequests NOTIFY pendingClientsRequestsChanged FINAL)
 Q_PROPERTY(QStringList coachesNames READ coachesNames NOTIFY coachesNamesChanged FINAL)
 Q_PROPERTY(QStringList clientsNames READ clientsNames NOTIFY clientsNamesChanged FINAL)
+Q_PROPERTY(bool mainUserIsClient READ mainUserIsClient NOTIFY appUseModeChanged FINAL)
+Q_PROPERTY(bool mainUserIsCoach READ mainUserIsCoach NOTIFY appUseModeChanged FINAL)
 Q_PROPERTY(bool onlineUser READ onlineUser WRITE setOnlineUser NOTIFY onlineUserChanged FINAL)
 Q_PROPERTY(bool haveCoaches READ haveCoaches NOTIFY haveCoachesChanged FINAL)
 Q_PROPERTY(bool haveClients READ haveClients NOTIFY haveClientsChanged FINAL)
@@ -113,10 +115,12 @@ public:
 		const uint app_use_mode{appUseMode(user_idx)};
 		return app_use_mode == APP_USE_MODE_SINGLE_COACH || app_use_mode == APP_USE_MODE_COACH_USER_WITH_COACH;
 	}
+	inline bool mainUserIsCoach() const { return isCoach(0); }
 	Q_INVOKABLE inline bool isClient(const uint user_idx) const
 	{
 		return appUseMode(user_idx) != APP_USE_MODE_SINGLE_COACH;
 	}
+	inline bool mainUserIsClient() const { return isClient(0); }
 
 	Q_INVOKABLE inline int findUserByName(const QString &username) const { return userIdxFromFieldValue(USER_COL_NAME, username); }
 	Q_INVOKABLE inline QString userNameFromId(const QString &userid) const { return userName(userIdxFromFieldValue(USER_COL_ID, userid)); }
@@ -313,6 +317,7 @@ public slots:
 signals:
 	void userModified(const uint user_idx, const uint field);
 	void labelsChanged();
+	void appUseModeChanged();
 	void onlineUserChanged();
 	void haveCoachesChanged();
 	void haveClientsChanged();

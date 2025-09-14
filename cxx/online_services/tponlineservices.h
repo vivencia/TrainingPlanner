@@ -16,7 +16,7 @@ class TPOnlineServices : public QObject
 Q_OBJECT
 
 public:
-	inline explicit TPOnlineServices(QObject *parent = nullptr) : QObject{parent}
+	inline explicit TPOnlineServices(QObject *parent = nullptr) : QObject{parent}, m_scanning{false}
 #ifndef Q_OS_ANDROID
 	, m_useLocalHost{false}
 #endif
@@ -89,13 +89,12 @@ signals:
 	void networkListReceived(const int request_id, const int ret_code, const QStringList &ret_list);
 	void fileReceived(const int request_id, const int ret_code, const QString& filename, const QByteArray &contents);
 	void serverOnline(const uint online_status);
-	void _serverOnline(const uint online_status, const QString &address);
+	void _serverResponse(const uint online_status, const QString &address);
 
 private:
 	QString makeCommandURL(const QString &username, const QString &passwd = QString{}, const QString &option1 = QString{},
 								const QString &value1 = QString{}, const QString &option2 = QString{}, const QString &value2 = QString{},
-								const QString &option3 = QString{}, const QString &value3 = QString{}
-								);
+								const QString &option3 = QString{}, const QString &value3 = QString{});
 	void makeNetworkRequest(const int requestid, const QUrl &url, const bool b_internal_signal_only = false);
 	void handleServerRequestReply(const int requestid, QNetworkReply *reply, const bool b_internal_signal_only = false);
 	void uploadFile(const int requestid, const QUrl &url, QFile *file, const bool b_internal_signal_only = false);
@@ -105,7 +104,7 @@ private:
 #ifndef Q_OS_ANDROID
 	bool m_useLocalHost;
 #endif
-
+	bool m_scanning;
 	static TPOnlineServices* _appOnlineServices;
 	friend TPOnlineServices* appOnlineServices();
 };

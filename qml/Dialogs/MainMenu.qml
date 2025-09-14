@@ -74,7 +74,32 @@ Drawer {
 			Layout.preferredWidth: width
 			Layout.preferredHeight: height
 
+			TPImage {
+				id: imgOnline
+				source: osInfo.tpServerOK ? "online" : "offline"
+				width: appSettings.itemDefaultHeight * 1.2
+				height: width
+				visible: userModel.onlineUser
+
+				anchors {
+					top: parent.top
+					horizontalCenter: btnSettings.horizontalCenter
+				}
+
+				ToolTip {
+					id: onlineInfo
+				}
+
+				MouseArea {
+					hoverEnabled: true
+					anchors.fill: parent
+					onEntered: onlineInfo.show(osInfo.connectionMessage, -1);
+					onExited: onlineInfo.hide();
+				}
+			}
+
 			TPButton {
+				id: btnSettings
 				imageSource: "settings"
 				width: appSettings.itemDefaultHeight * 1.5
 				flat: true
@@ -90,7 +115,7 @@ Drawer {
 				}
 
 				anchors {
-					top: parent.top
+					top: userModel.onlineUser ? imgOnline.bottom : parent.top
 					left: parent.left
 					leftMargin: - (drawer.width - parent.width) / 2
 				}

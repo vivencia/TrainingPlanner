@@ -15,7 +15,6 @@ TPPage {
 	implicitHeight: appSettings.pageHeight
 
 	property UserManager userManager
-	property int useMode
 	property bool mainUserModified: false
 
 	Connections {
@@ -89,7 +88,7 @@ TPPage {
 			text: qsTr("Manage coach(es)/trainer(s)")
 			flat: false
 			autoSize: true
-			visible: useMode >= 3
+			visible: userModel.mainUserIsClient
 
 			anchors {
 				horizontalCenter: parent.horizontalCenter
@@ -105,7 +104,7 @@ TPPage {
 			text: qsTr("Manage clients")
 			flat: false
 			autoSize: true
-			visible: useMode === 2 || useMode === 4
+			visible: userModel.mainUserIsCoach
 
 			anchors {
 				horizontalCenter: parent.horizontalCenter

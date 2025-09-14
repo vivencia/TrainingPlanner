@@ -109,5 +109,7 @@
         <file>images/settings.png</file>
         <file>images/exercisesdb.png</file>
         <file>images/flat/question.png</file>
+        <file>images/online.png</file>
+        <file>images/offline.png</file>
     </qresource>
 </RCC>

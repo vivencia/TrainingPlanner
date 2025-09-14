@@ -50,8 +50,8 @@ TPPage {
 
 	SwipeView {
 		id: mesoView
-		currentIndex: userModel.mainUserConfigured ? (userModel.isClient(0) ? 0 : 1) : -1
-		interactive: userModel.isCoach(0) && userModel.isClient(0)
+		currentIndex: userModel.mainUserConfigured ? (userModel.mainUserIsClient ? 0 : 1) : -1
+		interactive: userModel.mainUserIsCoach && userModel.mainUserIsClient
 		anchors.fill: parent
 
 		onCurrentIndexChanged: {
@@ -63,7 +63,7 @@ TPPage {
 
 		Loader {
 			id: ownMesosListLoader
-			active: userModel.mainUserConfigured && userModel.isClient(0)
+			active: userModel.mainUserConfigured && userModel.mainUserIsClient
 			asynchronous: true
 
 			sourceComponent: MesosList {
@@ -74,7 +74,7 @@ TPPage {
 
 		Loader {
 			id: clientsMesosListLoader
-			active: userModel.mainUserConfigured && userModel.isCoach(0)
+			active: userModel.mainUserConfigured && userModel.mainUserIsCoach
 			asynchronous: true
 
 			sourceComponent: MesosList {
@@ -88,7 +88,7 @@ TPPage {
 		id: indicator
 		count: mesoView.count
 		currentIndex: mesoView.currentIndex
-		visible: userModel.mainUserConfigured && (userModel.isCoach(0) && userModel.isClient(0))
+		visible: userModel.mainUserConfigured && (userModel.mainUserIsCoach && userModel.mainUserIsClient)
 		height: 25
 		width: parent.width
 

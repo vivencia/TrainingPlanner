@@ -3,6 +3,7 @@
 #include "dbusermodel.h"
 #include "dbinterface.h"
 #include "qmlitemmanager.h"
+#include "tpsettings.h"
 #include "tputils.h"
 #include "online_services/tponlineservices.h"
 
@@ -72,15 +73,17 @@ constexpr uint CONNECTION_ERR_TIMEOUT{20*1000};
 #endif
 
 OSInterface::OSInterface(QObject *parent)
-	: QObject{parent}, m_networkStatus{0}, m_bchecking_ic{false}
+	: QObject{parent}, m_networkStatus{0}
 {
 	app_os_interface = this;
 	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(aboutToExit()));
 
 	m_checkConnectionTimer = new QTimer{this};
-	m_checkConnectionTimer->setInterval(CONNECTION_CHECK_TIMEOUT);
 	m_checkConnectionTimer->callOnTimeout([this] () { checkInternetConnection(); });
-	m_checkConnectionTimer->start();
+	connect(appOnlineServices(), &TPOnlineServices::serverOnline, this, [this] (const uint online_status)
+	{
+		onlineServicesResponse(online_status);
+	});
 	checkInternetConnection();
 
 #ifdef Q_OS_ANDROID
@@ -142,31 +145,33 @@ OSInterface::OSInterface(QObject *parent)
 
 void OSInterface::checkInternetConnection()
 {
-	if (m_bchecking_ic)
-		return;
-	m_bchecking_ic = true;
 	int network_status{0};
     QTcpSocket checkConnectionSocket;
     checkConnectionSocket.connectToHost("google.com"_L1, 443); // 443 for HTTPS or use Port 80 for HTTP
     checkConnectionSocket.waitForConnected(2000);
 
-    bool isConnected{checkConnectionSocket.state() == QTcpSocket::ConnectedState};
+	const bool is_connected{checkConnectionSocket.state() == QTcpSocket::ConnectedState};
     checkConnectionSocket.close();
-	setBit(network_status, isConnected ? HAS_INTERNET : NO_INTERNET_ACCESS);
-	unSetBit(network_status, !isConnected ? HAS_INTERNET : NO_INTERNET_ACCESS);
-	m_checkConnectionTimer->setInterval(isConnected ? CONNECTION_CHECK_TIMEOUT : CONNECTION_ERR_TIMEOUT); //When network is out, check more frequently
-	emit internetStatusChanged(isConnected);
-
-	connect(appOnlineServices(), &TPOnlineServices::serverOnline, this, [this] (const uint online_status)
+	if (internetOK() != is_connected)
 	{
-		onlineServicesResponse(online_status);
-	});
-
-#ifndef Q_OS_ANDROID
+		setBit(network_status, is_connected ? HAS_INTERNET : NO_INTERNET_ACCESS);
+		unSetBit(network_status, !is_connected ? HAS_INTERNET : NO_INTERNET_ACCESS);
+		emit internetStatusChanged(is_connected);
+	}
+	#ifndef Q_OS_ANDROID
 	checkLocalServer();
-#else
-	appOnlineServices()->scanNetwork();
-#endif
+	#else
+	if (is_connected)
+		appOnlineServices()->scanNetwork();
+	else
+		m_checkConnectionTimer->start(CONNECTION_ERR_TIMEOUT); //When network is out, check more frequently)
+	#endif
+}
+
+void OSInterface::setConnectionMessage(QString &&message)
+{
+	m_connectionMessage = std::move(message);
+	emit connectionMessageChanged();
 }
 
 void OSInterface::aboutToExit()
@@ -184,7 +189,6 @@ void OSInterface::checkServerResponseSlot(const bool online)
 	setBit(server_status, online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
 	unSetBit(server_status, !online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
 	m_checkConnectionTimer->setInterval(online ? CONNECTION_CHECK_TIMEOUT : CONNECTION_ERR_TIMEOUT); //When server is out, check more frequently
-	m_bchecking_ic = false;
 	if (notify)
 	{
 		if (!online)
@@ -739,10 +743,16 @@ void OSInterface::viewExternalFile(const QString &filename) const
 
 void OSInterface::onlineServicesResponse(const uint online_status)
 {
-	setBit(m_networkStatus, online_status == 0 ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
-	unSetBit(m_networkStatus, online_status == 0 ? SERVER_UNREACHABLE : SERVER_UP_AND_RUNNING);
-	appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
-					{"Linux TP Server"_L1, online_status == 0 ? "Up and running!"_L1 : "Server unreachable"_L1}, record_separator));
-	emit serverStatusChanged(online_status == 0);
-	m_checkConnectionTimer->setInterval(online_status == 0 ? CONNECTION_CHECK_TIMEOUT : CONNECTION_ERR_TIMEOUT);
+	if (tpServerOK() != online_status)
+	{
+		setBit(m_networkStatus, online_status == 0 ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
+		unSetBit(m_networkStatus, online_status == 0 ? SERVER_UNREACHABLE : SERVER_UP_AND_RUNNING);
+		setConnectionMessage(online_status == 0 ?
+					std::move(tr("Connected to server ") + '(' + appSettings()->serverAddress() + ')') :
+					std::move(tr("Server unreachable")));
+		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
+					{"Linux TP Server"_L1, connectionMessage()}, record_separator));
+		emit serverStatusChanged(online_status == 0);
+	}
+	m_checkConnectionTimer->start(online_status == 0 ? CONNECTION_CHECK_TIMEOUT : CONNECTION_ERR_TIMEOUT); //When network is out, check more frequently)
 }

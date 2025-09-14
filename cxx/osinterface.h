@@ -50,6 +50,7 @@ Q_OBJECT
 
 Q_PROPERTY(bool internetOK READ internetOK NOTIFY internetStatusChanged FINAL)
 Q_PROPERTY(bool tpServerOK READ tpServerOK NOTIFY serverStatusChanged FINAL)
+Q_PROPERTY(QString connectionMessage READ connectionMessage NOTIFY connectionMessageChanged FINAL)
 
 public:
 	explicit OSInterface(QObject *parent = nullptr);
@@ -60,7 +61,6 @@ public:
 	#endif
 	}
 
-	inline bool internetConnectionCheckInPlace() const { return m_bchecking_ic; }
 	void checkInternetConnection();
 	inline bool internetOK() const
 	{
@@ -81,6 +81,8 @@ public:
 		return isBitSet(m_networkStatus, SERVER_UP_AND_RUNNING);
 #endif
 	}
+	QString connectionMessage() const { return m_connectionMessage; }
+	void setConnectionMessage(QString &&message);
 
 	inline int networkStatus() const { return m_networkStatus; }
 
@@ -142,6 +144,7 @@ signals:
 	void appResumed();
 	void internetStatusChanged(const bool connected);
 	void serverStatusChanged(const bool online);
+	void connectionMessageChanged();
 
 public slots:
 	void aboutToExit();
@@ -152,7 +155,7 @@ public slots:
 private:
 	int m_networkStatus;
 	QTimer *m_checkConnectionTimer;
-	bool m_bchecking_ic;
+	QString m_connectionMessage;
 
 #ifdef Q_OS_ANDROID
 	TPAndroidNotification *m_AndroidNotification;

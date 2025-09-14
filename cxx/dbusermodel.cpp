@@ -65,7 +65,11 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 			if (field != USER_MODIFIED_CREATED)
 			{
 				if (user_idx == 0)
+				{
 					mb_MainUserInfoChanged = true;
+					if (field == USER_COL_APP_USE_MODE)
+						emit appUseModeChanged();
+				}
 				else
 				{
 					if (field == USER_MODIFIED_REMOVED)
@@ -79,6 +83,7 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 		mb_canConnectToServer = appOsInterface()->tpServerOK();
 		if (mb_canConnectToServer)
 			onlineCheckIn();
+#ifdef Q_OS_ANDROID
 		connect(appOsInterface(), &OSInterface::internetStatusChanged, this, [this] (const bool connected) {
 			if (!connected)
 			{
@@ -86,6 +91,7 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 				emit canConnectToServerChanged();
 			}
 		});
+#endif
 		connect(appOsInterface(), &OSInterface::serverStatusChanged, this, [this] (const bool online) {
 			if (!mb_canConnectToServer && online)
 					onlineCheckIn();
@@ -229,7 +235,7 @@ const QString DBUserModel::localDir(const int user_idx) const
 {
 	switch (user_idx)
 	{
-		case -1: return {};
+		case -1: return QString{};
 		case 0: return appUtils()->localAppFilesDir() + userId(0) + '/';
 		default:
 			if (user_idx != m_tempRow)
@@ -281,10 +287,9 @@ QString DBUserModel::avatar(const uint user_idx, const bool checkServer)
 	{
 		if (onlineUser() && checkServer && user_idx > 0)
 			downloadAvatarFromServer(user_idx);
-		const QString &userid{userId(user_idx)};
 		const QDir &localFilesDir{localDir(user_idx)};
 		const QFileInfoList &images{localFilesDir.entryInfoList(QDir::Files|QDir::NoDotAndDotDot|QDir::NoSymLinks)};
-		const auto &it = std::find_if(images.cbegin(), images.cend(), [userid] (const auto &image_fi) {
+		const auto &it = std::find_if(images.cbegin(), images.cend(), [] (const auto &image_fi) {
 			return image_fi.fileName().contains("avatar."_L1);
 		});
 		return it != images.cend() ? it->filePath() : defaultAvatar(user_idx);
@@ -611,7 +616,7 @@ void DBUserModel::uploadResume(const QString &resumeFileName)
 		}
 		const qsizetype idx{resumeFileName_ok.lastIndexOf('.')};
 		const QString &extension{idx > 0 ? resumeFileName_ok.last(resumeFileName_ok.length() - idx) : QString{}};
-		const QString &localResumeFilePath{appUtils()->localAppFilesDir() + "resume"_L1 + extension};
+		const QString &localResumeFilePath{localDir(0) + "resume"_L1 + extension};
 		const QString &previousResumeFilePath{resume(0)};
 		if (appUtils()->copyFile(resumeFileName_ok, localResumeFilePath))
 		{
@@ -1425,7 +1430,6 @@ QString DBUserModel::resume(const uint user_idx) const
 {
 	if (user_idx < m_usersData.count() && !userId(user_idx).isEmpty())
 	{
-		const QString &userid{userId(user_idx)};
 		const QDir &localFilesDir{localDir(user_idx)};
 		const QFileInfoList &files{localFilesDir.entryInfoList(QDir::Files|QDir::NoDotAndDotDot|QDir::NoSymLinks)};
 		for (const auto &it: files)

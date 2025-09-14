@@ -147,7 +147,7 @@ test_tp_server() {
     case "$?" in
         0)
             if [ "$2" == "lan" ]; then
-                echo "TPSERVER up and running."
+                echo "TPSERVER up and running($1)."
                 return 0
             else
                 echo "TPSERVER is running on localhost only."
