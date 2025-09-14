@@ -34,7 +34,9 @@ public:
 				QThread::currentThread()->quit();
 				return;
 			}
+			#ifndef QT_NO_DEBUG
 			qDebug() << "Pinging " << ip;
+			#endif
 			if (ping(ip))
 				emit addressReachable(ip);
 			// Add a small delay between pings to avoid overwhelming the network
