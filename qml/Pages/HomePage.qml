@@ -55,8 +55,8 @@ TPPage {
 		anchors.fill: parent
 
 		onCurrentIndexChanged: {
-			homePage.colorLight = currentIndex === 0 ? appSettings.primaryDarkColor : appSettings.primaryColor
-			homePage.colorDark = currentIndex === 0 ? appSettings.primaryColor : appSettings.primaryLightColor
+			homePage.colorLight = currentIndex === 0 ? userSettings.primaryDarkColor : userSettings.primaryColor
+			homePage.colorDark = currentIndex === 0 ? userSettings.primaryColor : userSettings.primaryLightColor
 		}
 
 		readonly property list<string> pageTitle: [qsTr("My Programs"), qsTr("Clients' Programs")]
@@ -103,7 +103,7 @@ TPPage {
 			background: Rectangle {
 				radius: width/2
 				opacity: index === indicator.currentIndex ? 0.95 : pressed ? 0.7 : 0.45
-				color: index === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
+				color: index === 0 ? userSettings.listEntryColor1 : userSettings.listEntryColor2
 			}
 
 			Behavior on opacity {

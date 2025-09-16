@@ -5,8 +5,8 @@ import "../"
 
 Rectangle {
 	id: control
-	width: appSettings.itemDefaultHeight * 1.2
-	height: appSettings.itemDefaultHeight * 1.3
+	width: userSettings.itemLargeHeight
+	height: width * 1.1
 	enabled: false
 
 	property alias value: list.currentIndex
@@ -14,10 +14,10 @@ Rectangle {
 
 	gradient: Gradient {
 		orientation: Gradient.Vertical
-		GradientStop { position: 0.0; color: appSettings.primaryLightColor }
-		GradientStop { position: 0.2; color: appSettings.primaryDarkColor }
-		GradientStop { position: 0.8; color: appSettings.primaryDarkColor }
-		GradientStop { position: 1.0; color: appSettings.primaryLightColor }
+		GradientStop { position: 0.0; color: userSettings.primaryLightColor }
+		GradientStop { position: 0.2; color: userSettings.primaryDarkColor }
+		GradientStop { position: 0.8; color: userSettings.primaryDarkColor }
+		GradientStop { position: 1.0; color: userSettings.primaryLightColor }
 	}
 
 	ListView {
@@ -32,10 +32,10 @@ Rectangle {
 		delegate: Label {
 			text: String(index).length == 1 ? "0" + index : index
 			verticalAlignment: Text.AlignVCenter
-			color: enabled ? appSettings.fontColor : appSettings.disabledFontColor
+			color: enabled ? userSettings.fontColor : userSettings.disabledFontColor
 			leftPadding: (control.width - AppGlobals.fontMetricsRegular.boundingRect(text).width) / 2
 			font.bold: true
-			font.pixelSize: appSettings.fontSize
+			font.pixelSize: userSettings.fontSize
 		}
 	}
 }

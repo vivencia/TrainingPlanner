@@ -36,8 +36,8 @@ int main(int argc, char *argv[])
 		app.setOrganizationDomain("org.vivenciasoftware"_L1);
 		app.setApplicationName("TrainingPlanner"_L1);
 
-		TPSettings tpSettings{};
 		TPUtils tpUtils{};
+		TPSettings tpSettings{};
 		TPKeyChain tpKeyChain{};
 		TranslationClass appTranslations{};
 		TPOnlineServices appTOS{};

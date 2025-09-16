@@ -66,6 +66,7 @@ public:
 	QString getFileName(const QString &filename, const bool without_extension = false) const;
 	QString getFileExtension(const QString &filename, const bool include_dot = false) const;
 	bool mkdir(const QString &fileOrDir) const;
+	bool rename(const QString &source_file_or_dir, const QString &dest_file_or_dir, const bool overwrite) const;
 	bool copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath = true) const;
 	QFile *openFile(const QString &filename, QIODeviceBase::OpenMode flags) const;
 	void scanDir(const QString &path, QFileInfoList &results, const QString &match = QString{}, const bool follow_tree = false) const;

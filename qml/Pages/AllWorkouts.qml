@@ -96,7 +96,6 @@ TPPage {
 			text: qsTr("Workout")
 			imageSource: "workout.png"
 			enabled: workoutsCalendar.canViewWorkout
-			flat: false
 			Layout.alignment: Qt.AlignCenter
 
 			onClicked: workoutsCalendar.viewSelectedWorkout();

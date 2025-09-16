@@ -26,7 +26,7 @@ Rectangle {
 
 	Rectangle {
 		id: titleOfDate
-		color: appSettings.paneBackgroundColor
+		color: userSettings.paneBackgroundColor
 		radius: 10
 		opacity: 0.8
 		z: 1
@@ -35,10 +35,10 @@ Rectangle {
 
 		gradient: Gradient {
 			orientation: Gradient.Horizontal
-			GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
-			GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
-			GradientStop { position: 0.50; color: appSettings.primaryColor; }
-			GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
+			GradientStop { position: 0.0; color: userSettings.paneBackgroundColor; }
+			GradientStop { position: 0.25; color: userSettings.primaryLightColor; }
+			GradientStop { position: 0.50; color: userSettings.primaryColor; }
+			GradientStop { position: 0.75; color: userSettings.primaryDarkColor; }
 		}
 
 		anchors {
@@ -58,7 +58,7 @@ Rectangle {
 			inputMethodHints: Qt.ImhDigitsOnly
 			validator: IntValidator { id: val; bottom: startDate.getUTCFullYear(); top: endDate.getUTCFullYear(); }
 			opacity: yearsList.visible ? 1 : 0.7
-			color: appSettings.fontColor
+			color: userSettings.fontColor
 			z: 1
 
 			property bool yearOK
@@ -126,7 +126,7 @@ Rectangle {
 			font.pixelSize: height * 0.5
 			font.bold: true
 			readOnly: true
-			color: appSettings.fontColor
+			color: userSettings.fontColor
 			opacity: monthsList.visible ? 0.7 : 1
 			height: cellSize * 2
 			z: 1
@@ -264,7 +264,7 @@ Rectangle {
 				month: model.month
 				year: model.year
 				spacing: 0
-				locale: Qt.locale(appSettings.appLocale)
+				locale: Qt.locale(userSettings.userLocale)
 				width: cellSize * 7
 				height: cellSize * 6
 				anchors.top: weekTitles.bottom
@@ -274,7 +274,7 @@ Rectangle {
 					width: cellSize
 					radius: cellSize * 0.5
 					opacity: monthGrid.month === model.month ? 1 : 0.5
-					color: appSettings.primaryColor
+					color: userSettings.primaryColor
 
 					readonly property bool highlighted: model.day === selectedDate.getUTCDate() && model.month === selectedDate.getUTCMonth()
 					readonly property bool todayDate: model.year === thisDay.getUTCFullYear() && model.month === thisDay.getUTCMonth() && model.day === thisDay.getUTCDate()
@@ -285,7 +285,7 @@ Rectangle {
 						font.bold: true
 						scale: highlighted ? 1.25 : 1
 						Behavior on scale { NumberAnimation { duration: 150 } }
-						color: todayDate ? "red" : parent.highlighted ? "green" : monthGrid.month === model.month ? appSettings.fontColor : appSettings.disabledFontColor
+						color: todayDate ? "red" : parent.highlighted ? "green" : monthGrid.month === model.month ? userSettings.fontColor : userSettings.disabledFontColor
 						anchors.centerIn: parent
 					}
 
@@ -320,10 +320,10 @@ Rectangle {
 			height: cellSize * 1.5
 			gradient: Gradient {
 				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: appSettings.primaryColor; }
-				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
+				GradientStop { position: 0.0; color: userSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: userSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: userSettings.primaryColor; }
+				GradientStop { position: 0.75; color: userSettings.primaryDarkColor; }
 			}
 			opacity: 0.8
 
@@ -332,7 +332,7 @@ Rectangle {
 				font.pixelSize: fontSizePx * 1.5
 				text: name
 				scale: index === yearsList.currentYear - yearsList.startYear ? 1.5 : 1
-				color: appSettings.fontColor
+				color: userSettings.fontColor
 			}
 			MouseArea {
 				anchors.fill: parent
@@ -370,10 +370,10 @@ Rectangle {
 			height: cellSize * 1.5
 			gradient: Gradient {
 				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: appSettings.primaryColor; }
-				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
+				GradientStop { position: 0.0; color: userSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: userSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: userSettings.primaryColor; }
+				GradientStop { position: 0.75; color: userSettings.primaryDarkColor; }
 			}
 			opacity: 0.8
 
@@ -382,7 +382,7 @@ Rectangle {
 				font.pixelSize: fontSizePx * 1.5
 				text: name
 				scale: index === monthsList.currentMonth ? 1.5 : 1
-				color: appSettings.fontColor
+				color: userSettings.fontColor
 
 				MouseArea {
 					anchors.fill: parent

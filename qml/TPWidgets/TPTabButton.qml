@@ -4,7 +4,7 @@ import QtQuick.Controls
 TabButton {
 	id: control
 	checkable: true
-	height: parentTab ? parentTab.height * 0.95 : appSettings.itemDefaultHeight
+	height: parentTab ? parentTab.height * 0.95 : userSettings.itemDefaultHeight
 
 	property TabBar parentTab: null
 
@@ -13,14 +13,14 @@ TabButton {
 		elide: Text.ElideRight
 		horizontalAlignment: Qt.AlignHCenter
 		verticalAlignment: Qt.AlignVCenter
-		font.pixelSize: appSettings.smallFontSize
-		color: control.enabled ? appSettings.fontColor : appSettings.disabledFontColor
+		font.pixelSize: userSettings.smallFontSize
+		color: control.enabled ? userSettings.fontColor : userSettings.disabledFontColor
 	}
 
 	background: Rectangle {
-		border.color: appSettings.fontColor
+		border.color: userSettings.fontColor
 		opacity: enabled ? 0.9 : 0.4
-		color: checked ? appSettings.primaryDarkColor : appSettings.primaryColor
+		color: checked ? userSettings.primaryDarkColor : userSettings.primaryColor
 		radius: 5
 	}
 }

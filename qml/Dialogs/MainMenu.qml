@@ -31,10 +31,10 @@ Drawer {
 		id: backgrundRec
 		gradient: Gradient {
 			orientation: Gradient.Horizontal
-			GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
-			GradientStop { position: 0.25; color: appSettings.primaryDarkColor; }
-			GradientStop { position: 0.50; color: appSettings.primaryLightColor; }
-			GradientStop { position: 0.75; color: appSettings.primaryColor; }
+			GradientStop { position: 0.0; color: userSettings.paneBackgroundColor; }
+			GradientStop { position: 0.25; color: userSettings.primaryDarkColor; }
+			GradientStop { position: 0.50; color: userSettings.primaryLightColor; }
+			GradientStop { position: 0.75; color: userSettings.primaryColor; }
 		}
 		opacity: 0.8
 	}
@@ -77,7 +77,7 @@ Drawer {
 			TPImage {
 				id: imgOnline
 				source: osInfo.tpServerOK ? "online" : "offline"
-				width: appSettings.itemDefaultHeight * 1.2
+				width: userSettings.itemLargeHeight
 				height: width
 				visible: userModel.onlineUser
 
@@ -101,8 +101,7 @@ Drawer {
 			TPButton {
 				id: btnSettings
 				imageSource: "settings"
-				width: appSettings.itemDefaultHeight * 1.5
-				flat: true
+				width: userSettings.itemExtraLargeItem
 				height: width
 				enabled: { // Force the binding to re-evaluate so that the check is run each time the page changes.
 					stackView.currentItem
@@ -168,7 +167,7 @@ Drawer {
 		}
 
 		Rectangle {
-			color: appSettings.fontColor
+			color: userSettings.fontColor
 			height: 3
 			Layout.fillWidth: true
 		}
@@ -192,7 +191,7 @@ Drawer {
 			delegate: SwipeDelegate {
 				id: delegate
 				width: pagesList.width
-				height: appSettings.itemDefaultHeight * 1.2
+				height: userSettings.itemLargeHeight
 
 				contentItem: TPLabel {
 					id: listItem
@@ -204,7 +203,7 @@ Drawer {
 
 				background: Rectangle {
 					id:	backgroundColor
-					color: appSettings.primaryDarkColor
+					color: userSettings.primaryDarkColor
 					radius: 6
 					opacity: 1
 				}
@@ -220,7 +219,7 @@ Drawer {
 
 					TPImage {
 						source: "close.png"
-						width: appSettings.itemDefaultHeight
+						width: userSettings.itemDefaultHeight
 						height: width
 						opacity: 2 * -delegate.swipe.position
 

@@ -25,11 +25,17 @@ void TPOnlineServices::scanNetwork()
 {
 	if (m_scanning)
 		return;
+	#ifndef QT_NO_DEBUG
+	qDebug() << "scanNetwork() -> starting";
+	#endif
 	m_scanning = true;
 	const int requestid{appUtils()->generateUniqueId("scanNetwork"_L1)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	if (!appSettings()->serverAddress().isEmpty())
 	{
+		#ifndef QT_NO_DEBUG
+		qDebug() << "scanNetwork() -> appSettings()->serverAddress() " << appSettings()->serverAddress();
+		#endif
 		*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid]
 									(const int request_id, const int ret_code, const QString &ret_string)
 		{
@@ -39,6 +45,9 @@ void TPOnlineServices::scanNetwork()
 				connect(this, &TPOnlineServices::_serverResponse, this, [this] (const uint online_status, const QString &address)
 				{
 					m_scanning = false;
+					#ifndef QT_NO_DEBUG
+					qDebug() << "scanNetwork() -> _serverResponse online_status = " << online_status << " , address = " << address;
+					#endif
 					switch (online_status)
 					{
 						case 0: break; //online
@@ -57,12 +66,18 @@ void TPOnlineServices::scanNetwork()
 	}
 	else
 	{
+		#ifndef QT_NO_DEBUG
+		qDebug() << "scanNetwork() -> starting scan on separate thread";
+		#endif
 		tpScanNetwork *tsn{new tpScanNetwork{base_ip}};
 		QThread *thread{new QThread{}};
 		tsn->moveToThread(thread);
 
 		connect(tsn, &tpScanNetwork::addressReachable, this, [this,conn,requestid] (const QString &ip)
 		{
+			#ifndef QT_NO_DEBUG
+			qDebug() << "scanNetwork() -> addressReachable = " << ip;
+			#endif
 			if (ip == "None"_L1)
 			{
 				emit serverOnline(1);
@@ -84,6 +99,9 @@ void TPOnlineServices::scanNetwork()
 		*conn2 = connect(this, &TPOnlineServices::_serverResponse, this, [this,conn2,thread]
 							(const uint online_status, const QString &address)
 		{
+			#ifndef QT_NO_DEBUG
+			qDebug() << "scanNetwork() -> _serverResponse online_status = " << online_status << " , address = " << address;
+			#endif
 			if (online_status == 0)
 			{
 				disconnect(*conn2);
@@ -102,6 +120,9 @@ void TPOnlineServices::scanNetwork()
 
 		connect(thread, &QThread::finished, thread, [this,conn2,tsn,thread] ()
 		{
+			#ifndef QT_NO_DEBUG
+			qDebug() << "scanNetwork() -> thread finished";
+			#endif
 			m_scanning = false;
 			thread->disconnect();
 			tsn->deleteLater();
@@ -543,7 +564,7 @@ void TPOnlineServices::uploadFile(const int requestid, const QUrl &url, QFile *f
 void TPOnlineServices::checkServerResponse(const int ret_code, const QString &ret_string, const QString &address)
 {
 #ifndef QT_NO_DEBUG
-	qDebug() << "*************** Server response: " << ret_string << "  " << address;
+	qDebug() << "checkServerResponse() ret_code = " << ret_code << " , ret_string = " << ret_string << " , address = " << address;
 #endif
 	uint online_status{1};
 	if (ret_string.contains("Welcome to the TrainingPlanner"_L1))

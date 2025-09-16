@@ -5,7 +5,7 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 FocusScope {
 	id: control
-	height: 2 * appSettings.itemDefaultHeight
+	height: 2 * userSettings.itemDefaultHeight
 	implicitHeight: height
 
 	property string customLabel: ""
@@ -23,7 +23,7 @@ FocusScope {
 		text: (customLabel.length === 0 ? userModel.passwordLabel : customLabel) +
 					(includeNotAllowableChars ? "(" + notAllowableChars + qsTr(" not allowed)") : "")
 		singleLine: true
-		height: appSettings.itemDefaultHeight
+		height: userSettings.itemDefaultHeight
 
 		anchors {
 			top: parent.top
@@ -82,15 +82,14 @@ FocusScope {
 			topMargin: 5
 			left: parent.left
 			right: parent.right
-			rightMargin: showAcceptButton ? appSettings.itemDefaultHeight + 5 : 5
+			rightMargin: showAcceptButton ? userSettings.itemDefaultHeight + 5 : 5
 		}
 	}
 
 	TPButton {
 		id: btnAccept
 		imageSource: "set-completed"
-		flat: true
-		width: appSettings.itemDefaultHeight
+		width: userSettings.itemDefaultHeight
 		height: width
 		enabled: txtPassword.inputOK && txtPassword.matchOK
 		visible: showAcceptButton

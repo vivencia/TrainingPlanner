@@ -16,8 +16,7 @@ TPToolBar {
 		id: btnBack
 		imageSource: "back.png"
 		hasDropShadow: false
-		flat: true
-		width: appSettings.itemDefaultHeight*1.1
+		width: userSettings.itemLargeHeight
 		height: width
 		enabled: stackView.depth >= 2
 
@@ -34,8 +33,7 @@ TPToolBar {
 		id: btnForward
 		imageSource: "next.png"
 		hasDropShadow: false
-		flat: true
-		width: appSettings.itemDefaultHeight*1.1
+		width: userSettings.itemLargeHeight
 		height: width
 		enabled: pagesListModel.currentIndex < pagesListModel.count - 1
 
@@ -51,8 +49,7 @@ TPToolBar {
 		id: btnHome
 		imageSource: "home.png"
 		hasDropShadow: false
-		flat: true
-		width: appSettings.itemDefaultHeight*1.1
+		width: userSettings.itemLargeHeight
 		height: width
 		enabled: btnBack.enabled
 
@@ -68,7 +65,7 @@ TPToolBar {
 		id: btnMainMenu
 		imageSource: "mainmenu"
 		hasDropShadow: false
-		width: appSettings.itemDefaultHeight*1.1
+		width: userSettings.itemLargeHeight
 		height: width
 
 		anchors {
@@ -84,7 +81,7 @@ TPToolBar {
 		id: btnCalendar
 		imageSource: "calendar"
 		hasDropShadow: false
-		width: appSettings.itemDefaultHeight*1.1
+		width: userSettings.itemLargeHeight
 		height: width
 
 		anchors {
@@ -115,7 +112,7 @@ TPToolBar {
 		id: btnTimer
 		imageSource: "timer"
 		hasDropShadow: false
-		width: appSettings.itemDefaultHeight*1.1
+		width: userSettings.itemLargeHeight
 		height: width
 
 		anchors {
@@ -145,7 +142,7 @@ TPToolBar {
 		id: btnWeather
 		imageSource: "weather"
 		hasDropShadow: false
-		width: appSettings.itemDefaultHeight*1.1
+		width: userSettings.itemLargeHeight
 		height: width
 
 		anchors {
@@ -161,7 +158,7 @@ TPToolBar {
 		id: btnExercisesList
 		imageSource: "exercisesdb"
 		hasDropShadow: false
-		width: appSettings.itemDefaultHeight*1.1
+		width: userSettings.itemLargeHeight
 		height: width
 
 		anchors {
@@ -176,7 +173,7 @@ TPToolBar {
 	TPButton {
 		imageSource: "statistics"
 		hasDropShadow: false
-		width: appSettings.itemDefaultHeight*1.1
+		width: userSettings.itemLargeHeight
 		height: width
 
 		enabled: {

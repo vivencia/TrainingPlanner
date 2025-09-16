@@ -1,4 +1,5 @@
 #include "tpimage.h"
+
 #include "tpimageprovider.h"
 #include "tpsettings.h"
 
@@ -19,7 +20,7 @@ TPImage::TPImage(QQuickItem *parent)
 {
 	connect(this, &QQuickItem::enabledChanged, this, [&] () { checkEnabled(); });
 	connect(this, &QQuickItem::heightChanged, this, [&] () { maybeResize(); });
-	connect(appSettings(), &TPSettings::colorChanged, this, [&] () {
+	connect(userSettings(), &UserSettings::colorChanged, this, [&] () {
 		if (mbCanColorize)
 		{
 			colorize(mImage, mImage);
@@ -236,7 +237,7 @@ void TPImage::colorize(QImage &dstImg, const QImage &srcImg)
 	{
 		mSize.setHeight(srcImg.height());
 		mSize.setWidth(srcImg.width());
-		const QColor color{appSettings()->fontColor()};
+		const QColor color{userSettings()->fontColor()};
 		QGraphicsColorizeEffect *colorEffect{new QGraphicsColorizeEffect()};
 		colorEffect->setColor(color);
 		applyEffectToImage(dstImg, srcImg, colorEffect);

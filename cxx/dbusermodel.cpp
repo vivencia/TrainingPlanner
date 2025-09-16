@@ -7,9 +7,9 @@
 #include "tpdatabasetable.h"
 #include "tpglobals.h"
 #include "tpimage.h"
-#include "tpsettings.h"
 #include "tputils.h"
 #include "translationclass.h"
+#include "tpsettings.h"
 #include "online_services/onlineuserinfo.h"
 #include "online_services/tpmessage.h"
 #include "online_services/tpmessagesmanager.h"
@@ -26,7 +26,7 @@
 
 DBUserModel *DBUserModel::_appUserModel(nullptr);
 
-static const QLatin1StringView& userProfileFileNameName{"profile.txt"_L1};
+static const QLatin1StringView& userProfileFileName{"profile.txt"_L1};
 static const QLatin1StringView& userLocalDataFileName{"user.data"_L1};
 static const QString &tpNetworkTitle{qApp->tr("TP Network")};
 
@@ -800,7 +800,7 @@ int DBUserModel::sendFileToServer(const QString &filename, QFile *upload_file, c
 	return requestid;
 }
 
-int DBUserModel::downloadFileFromServer(const QString &filename, const QString &localFile, const QString &successMessage,
+int DBUserModel::downloadFileFromServer(const QString &filename, const QString &local_filename, const QString &successMessage,
 											const QString &subdir, const QString &targetUser)
 {
 	if (!canConnectToServer())
@@ -823,47 +823,45 @@ int DBUserModel::downloadFileFromServer(const QString &filename, const QString &
 			if (request_id == requestid)
 			{
 				disconnect(*conn);
+				bool success{true};
+				QString dest_file;
+				if (local_filename.isEmpty())
+					dest_file = std::move(appUtils()->localAppFilesDir() + filename);
+				else
+				{
+					static_cast<void>(appUtils()->mkdir(appUtils()->getFilePath(local_filename)));
+					dest_file = local_filename;
+				}
 				switch (ret_code)
 				{
 					case 0: //file downloaded
 					{
-						QString destDir;
-						if (localFile.isEmpty())
-							destDir = std::move(appUtils()->localAppFilesDir());
-						else
+						QFile *local_file{new QFile{dest_file, this}};
+						if (!local_file->exists() || local_file->remove())
 						{
-							destDir = std::move(appUtils()->getFilePath(localFile));
-							static_cast<void>(appUtils()->mkdir(destDir));
-						}
-
-						const QString &localFileName{destDir + filename};
-						QFile *localFile{new QFile{localFileName, this}};
-						if (!localFile->exists() || localFile->remove())
-						{
-							if (localFile->open(QIODeviceBase::WriteOnly))
+							if (local_file->open(QIODeviceBase::WriteOnly))
 							{
-								localFile->write(contents);
-								localFile->close();
+								local_file->write(contents);
+								local_file->close();
 							}
 						}
-						delete localFile;
-						emit fileDownloaded(true, requestid, localFileName);
+						delete local_file;
 						if (!successMessage.isEmpty())
 							appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
 									{tpNetworkTitle, successMessage}, record_separator));
 					}
 					break;
 					case 1: //online file and local file are the same
-						emit fileDownloaded(true, requestid, localFile);
 					break;
 					default: //some error
+						success = false;
 						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, appUtils()->string_strings(
 									{filename + contents}, record_separator));
-						emit fileDownloaded(false, requestid, localFile);
 				}
+				emit fileDownloaded(success, requestid, dest_file);
 			}
 		});
-		appOnlineServices()->getFile(requestid, key, value, filename, subdir, targetUser, localFile);
+		appOnlineServices()->getFile(requestid, key, value, filename, subdir, targetUser, local_filename);
 	}, Qt::SingleShotConnection);
 	appKeyChain()->readKey(userId(0));
 	return requestid;
@@ -1126,7 +1124,7 @@ void DBUserModel::setPhoneBasedOnLocale()
 	if (phoneCountryPrefix(0).length() <= 0)
 	{
 		QString phone_country_prefix;
-		switch (appSettings()->appLocaleIdx())
+		switch (userSettings()->userLocaleIdx())
 		{
 			case 0: phone_country_prefix = std::move("+1"_L1); break;
 			case 1: phone_country_prefix = std::move("+55"_L1); break;
@@ -1453,7 +1451,7 @@ void DBUserModel::checkIfCoachRegisteredOnline()
 
 void DBUserModel::getUserOnlineProfile(const QString &netID, const QString &save_as_filename)
 {
-	const int request_id{downloadFileFromServer(userProfileFileNameName, save_as_filename, QString{}, QString{}, netID)};
+	const int request_id{downloadFileFromServer(userProfileFileName, save_as_filename, QString{}, QString{}, netID)};
 	if (request_id >= 0)
 	{
 		auto conn = std::make_shared<QMetaObject::Connection>();
@@ -1469,7 +1467,7 @@ void DBUserModel::getUserOnlineProfile(const QString &netID, const QString &save
 
 void DBUserModel::sendProfileToServer()
 {
-	const QString &localProfile{localDir(0) + userProfileFileNameName};
+	const QString &localProfile{localDir(0) + userProfileFileName};
 	if (exportToFile(0, localProfile, true) == APPWINDOW_MSG_EXPORT_OK)
 		static_cast<void>(sendFileToServer(localProfile, nullptr, QString{}, QString{}, userId(0)));
 }
@@ -1766,9 +1764,7 @@ void DBUserModel::addCoachAnswer(const QString &user_id)
 {
 	if (!m_pendingCoachesResponses->containsUser(user_id))
 	{
-		const QString &coach_dir{m_dirForRequestedCoaches + user_id + '/'};
-		static_cast<void>(appUtils()->mkdir(coach_dir));
-		const QString &coach_profile{coach_dir + "profile.txt"_L1};
+		const QString &coach_profile{profileFileName(m_dirForRequestedCoaches, user_id)};
 		if (m_pendingCoachesResponses->dataFromFileSource(coach_profile))
 		{
 			m_pendingCoachesResponses->setIsCoach(m_pendingCoachesResponses->count()-1, true);
@@ -1781,12 +1777,10 @@ void DBUserModel::addAvailableCoach(const QString &user_id)
 {
 	if (!m_availableCoaches->containsUser(user_id))
 	{
-		const QString &coach_dir{m_onlineCoachesDir + user_id + '/'};
-		static_cast<void>(appUtils()->mkdir(coach_dir));
-		const QString &coach_profile{coach_dir + "profile.txt"_L1};
+		const QString &coach_profile{profileFileName(m_onlineCoachesDir, user_id)};
 		if (m_availableCoaches->dataFromFileSource(coach_profile))
 		{
-			m_availableCoaches->setIsCoach(m_availableCoaches->count()-1, true);
+			m_availableCoaches->setIsCoach(m_availableCoaches->count() - 1, true);
 			emit availableCoachesChanged();
 		}
 	}

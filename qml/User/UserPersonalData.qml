@@ -77,7 +77,6 @@ ColumnLayout {
 			id: btnChangePassword
 			text: qsTr("Change password")
 			imageSource: "password"
-			flat: false
 			visible: userRow === 0 && userModel.mainUserConfigured
 			autoSize: true
 			anchors.horizontalCenter: parent.horizontalCenter
@@ -144,7 +143,7 @@ ColumnLayout {
 		TPButton {
 			id: btnBirthDate
 			imageSource: "calendar.png"
-			width: appSettings.itemDefaultHeight
+			width: userSettings.itemDefaultHeight
 			height: width
 			enabled: bPasswordOK && userRow === 0
 			anchors {
@@ -157,7 +156,7 @@ ColumnLayout {
 	}
 
 	Item {
-		height: appSettings.itemDefaultHeight
+		height: userSettings.itemDefaultHeight
 		Layout.fillWidth: true
 		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : -5
 
@@ -217,8 +216,7 @@ ColumnLayout {
 
 		TPButton {
 			imageSource: "question.png"
-			flat: true
-			width: appSettings.itemDefaultHeight
+			width: userSettings.itemDefaultHeight
 			height: width
 
 			anchors {

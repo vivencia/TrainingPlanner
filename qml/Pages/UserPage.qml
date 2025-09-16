@@ -81,12 +81,11 @@ TPPage {
 	}
 
 	footer: TPToolBar {
-		height: appSettings.itemDefaultHeight * 4
+		height: userSettings.itemDefaultHeight * 4
 
 		TPButton {
 			id: btnManageCoach
 			text: qsTr("Manage coach(es)/trainer(s)")
-			flat: false
 			autoSize: true
 			visible: userModel.mainUserIsClient
 
@@ -102,7 +101,6 @@ TPPage {
 		TPButton {
 			id: btnManageClients
 			text: qsTr("Manage clients")
-			flat: false
 			autoSize: true
 			visible: userModel.mainUserIsCoach
 

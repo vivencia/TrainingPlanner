@@ -5,11 +5,11 @@ import "../"
 
 Label {
 	id: control
-	color: enabled ? fontColor : appSettings.disabledFontColor
+	color: enabled ? fontColor : userSettings.disabledFontColor
 	wrapMode: singleLine ? Text.NoWrap : Text.WordWrap
 	elide: Text.ElideNone
 	font: AppGlobals.regularFont
-	minimumPixelSize: appSettings.smallFontSize * 0.7
+	minimumPixelSize: userSettings.smallFontSize * 0.7
 	fontSizeMode: Text.Fit
 	verticalAlignment: Text.AlignVCenter
 	topInset: 0
@@ -17,7 +17,7 @@ Label {
 	leftInset: 0
 	rightInset: 0
 	padding: 0
-	property string fontColor: appSettings.fontColor
+	property string fontColor: userSettings.fontColor
 	property bool singleLine: true
 
 	/*background: Rectangle {

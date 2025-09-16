@@ -21,7 +21,7 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent, const bool bMainAppModel)
 	: QObject{parent}, m_currentMesoIdx{-11111}, m_mostRecentOwnMesoIdx{-11111}, m_lowestTempMesoId{-1}, m_bCanHaveTodaysWorkout{false}
 {
 	app_meso_model = this;
-	setCurrentMesoIdx(appSettings()->lastViewedMesoIdx(), false);
+	setCurrentMesoIdx(userSettings()->lastViewedMesoIdx(), false);
 
 	m_calendarModel = new DBMesoCalendarManager{this};
 	m_ownMesos = new homePageMesoModel{this};
@@ -88,10 +88,10 @@ uint DBMesocyclesModel::startNewMesocycle(const bool bCreatePage, const std::opt
 {
 	const bool own_meso{bOwnMeso.has_value() ? bOwnMeso.value() : true};
 	const uint meso_idx{newMesocycle(std::move(QStringList{} << std::move(newMesoTemporaryId()) <<
-		QString::number(appUtils()->generateUniqueId()) << QString{} << QString{} << QString{} << QString{} <<
+		std::move(QString::number(appUtils()->generateUniqueId())) << QString{} << QString{} << QString{} << QString{} <<
 		std::move("RRRRRRR"_L1) << QString{} << QString{} << QString{} << QString{} << QString{} << QString{} <<
 		appUserModel()->userId(0) << (own_meso ? appUserModel()->userId(0) : appUserModel()->defaultClient()) <<
-		QString{} << QString{} << "1"_L1))};
+		QString{} << QString{} << std::move("1"_L1)))};
 
 	int32_t newMesoRequiredFields{0};
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_NAME);
@@ -348,7 +348,7 @@ void DBMesocyclesModel::setCurrentMesoIdx(const int meso_idx, const bool bEmitSi
 		}
 		if (bEmitSignal)
 		{
-			appSettings()->setLastViewedMesoIdx(m_currentMesoIdx);
+			userSettings()->setLastViewedMesoIdx(m_currentMesoIdx);
 			emit currentMesoIdxChanged();
 			changeCanHaveTodaysWorkout(m_currentMesoIdx);
 		}
@@ -562,7 +562,7 @@ int DBMesocyclesModel::importFromFile(const uint meso_idx, const QString &filena
 		setId(meso_idx, newMesoTemporaryId());
 		for (const auto split_model : std::as_const(m_splitModels.at(meso_idx)))
 		{
-			if ((ret = split_model->importFromFile(filename, in_file)) != APPWINDOW_MSG_READ_FROM_FILE_OK)
+			if ((ret = split_model->importFromFile(filename, in_file)) != APPWINDOW_MSG_IMPORT_OK)
 				break;
 		}
 	}
@@ -587,7 +587,7 @@ int DBMesocyclesModel::importFromFormattedFile(const uint meso_idx, const QStrin
 		setId(meso_idx, newMesoTemporaryId());
 		for (auto split_model : m_splitModels.at(meso_idx))
 		{
-			if ((ret = split_model->importFromFormattedFile(filename, in_file)) != APPWINDOW_MSG_READ_FROM_FILE_OK)
+			if ((ret = split_model->importFromFormattedFile(filename, in_file)) != APPWINDOW_MSG_IMPORT_OK)
 				break;
 		}
 	}

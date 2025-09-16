@@ -47,6 +47,7 @@ set(CMAKE_AUTOGEN_VERBOSE on)
 set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core CorePrivate Gui Multimedia Qml Quick QuickControls2 LinguistTools Widgets Sql Network Positioning Charts)
+find_package(Qt6 REQUIRED COMPONENTS Core)
 add_compile_definitions(REQUEST_PERMISSIONS_ON_ANDROID)
 add_compile_options(-std=c++20 ${CMAKE_CXX_FLAGS_INIT})
 
@@ -249,6 +250,7 @@ qt_add_executable(TrainingPlanner
 	${SERVER_FILES}
 	${ANDROID_FIES}
 	cxx/online_services/scan_network.h
+	cxx/usersettings.h cxx/usersettings.cpp
 )
 
 if(NOT ANDROID)
@@ -276,6 +278,7 @@ target_link_libraries(TrainingPlanner PUBLIC
 	Qt6::Charts
     ${keychain_LIBRARIES_PRIVATE}
 )
+target_link_libraries(TrainingPlanner PRIVATE Qt6::Core)
 
 set(trainingplanner_resource_files
 	"images/app_logo.png"

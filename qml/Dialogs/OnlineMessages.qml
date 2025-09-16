@@ -203,7 +203,7 @@ Popup {
 			background: Rectangle {
 				id: backRec
 				opacity: 0.8
-				color: index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
+				color: index % 2 === 0 ? userSettings.listEntryColor1 : userSettings.listEntryColor2
 			}
 
 			contentItem: Column {
@@ -257,7 +257,7 @@ Popup {
 					wrapMode: delegateItem.showActions ? Text.WordWrap : Text.NoWrap
 					singleLine: !delegateItem.showActions
 					width: onlineMsgsDlg.dlgMaxWidth - 10
-					height: delegateItem.showActions ? preferredHeight() : appSettings.itemDefaultHeight
+					height: delegateItem.showActions ? preferredHeight() : userSettings.itemDefaultHeight
 					Layout.leftMargin: 20
 
 					MouseArea {

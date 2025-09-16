@@ -99,7 +99,7 @@ Column {
 		TPButton {
 			id: btnChooseFilters
 			imageSource: "filter.png"
-			width: appSettings.itemDefaultHeight*0.9
+			width: userSettings.itemSmallHeight
 			height: width
 
 			anchors {
@@ -150,12 +150,12 @@ Column {
 			id: delegate
 			padding: 5
 			width: lstExercises.width
-			height: appSettings.itemDefaultHeight*2
+			height: userSettings.itemDefaultHeight * 2
 
 			contentItem: Text {
 				id: listItem
 				text: index+1 + ":  " + mainName + "\n"+ subName
-				font.pixelSize: appSettings.fontSize
+				font.pixelSize: userSettings.fontSize
 				fontSizeMode: Text.Fit
 				leftPadding: 10
 				topPadding: 0
@@ -163,7 +163,7 @@ Column {
 
 			background: Rectangle {
 				id:	backgroundColor
-				color: selected ? appSettings.entrySelectedColor : index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
+				color: selected ? userSettings.entrySelectedColor : index % 2 === 0 ? userSettings.listEntryColor1 : userSettings.listEntryColor2
 			}
 
 			onClicked: itemClicked(index, true);
@@ -191,7 +191,7 @@ Column {
 
 				Label {
 					text: qsTr("Removing in ") + parseInt(miliseconds/1000) + "s"
-					color: appSettings.fontColor
+					color: userSettings.fontColor
 					padding: 40
 					anchors.fill: parent
 					horizontalAlignment: Qt.AlignLeft

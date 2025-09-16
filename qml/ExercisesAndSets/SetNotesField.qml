@@ -17,7 +17,7 @@ Column {
 
 	Row {
 		Layout.fillWidth: true
-		height: appSettings.itemDefaultHeight
+		height: userSettings.itemDefaultHeight
 
 		TPLabel {
 			id: lblMain
@@ -28,7 +28,7 @@ Column {
 		TPButton {
 			imageSource: setNotesArea.visible ? "fold-up.png" : "fold-down.png"
 			hasDropShadow: false
-			width: appSettings.itemDefaultHeight*0.8
+			width: userSettings.itemSmallHeight
 			height: width
 
 			onClicked: {
@@ -50,7 +50,7 @@ Column {
 		ScrollBar.horizontal.policy: ScrollBar.AsNeeded
 		ScrollBar.vertical.policy: ScrollBar.AsNeeded
 		width: control.width
-		height: appSettings.pageHeight*0.15
+		height: userSettings.pageHeight*0.15
 		Layout.maximumWidth: width
 		Layout.maximumHeight: height
 
@@ -58,10 +58,10 @@ Column {
 			id: txtNotes
 			text: control.text
 			readOnly: !editable
-			color: appSettings.fontColor
-			font.pixelSize: appSettings.fontSize
+			color: userSettings.fontColor
+			font.pixelSize: userSettings.fontSize
 			font.bold: true
-			topPadding: appSettings.fontSize
+			topPadding: userSettings.fontSize
 			leftPadding: 5
 			rightPadding: 5
 			bottomPadding: 5
@@ -72,7 +72,7 @@ Column {
 			background: Rectangle {
 				color: "white"
 				radius: 6
-				border.color: appSettings.fontColor
+				border.color: userSettings.fontColor
 			}
 
 			onTextEdited: modified = true;

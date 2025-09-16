@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 #include "openweathermapbackend.h"
+#include "../qmlitemmanager.h"
 #include "../tpglobals.h"
 #include "../tpsettings.h"
 #include "../tputils.h"
@@ -251,12 +252,15 @@ void OpenWeatherMapBackend::getCityFromCoordinates(const QGeoCoordinate &coordin
 			ERROR_MESSAGE("Network reply:  ", reply->errorString())
 	});
 	connect(reply, &QNetworkReply::errorOccurred, this, [=] (QNetworkReply::NetworkError code) {
-		qDebug() << "Error occurred:" << reply->errorString() << "(Code:" << code << ")";
+		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_UNKNOWN_ERROR,
+									reply->errorString() + '(' + QString::number(code) + ')');
 	});
 
+	#ifndef QT_NO_DEBUG
 	connect(reply, &QNetworkReply::sslErrors, this, [=] (const QList<QSslError> &errors) {
 		qDebug() << "SSL Errors:" << errors;
 	});
+	#endif
 }
 
 void OpenWeatherMapBackend::searchForCities(const QString &search_term)
@@ -283,7 +287,7 @@ void OpenWeatherMapBackend::requestWeatherInfoFromNet(const QGeoCoordinate &coor
 	query.addQueryItem("lon"_L1, QString::number(coordinate.longitude()));
 	query.addQueryItem("appid"_L1, "31d07fed3c1e19a6465c04a40c71e9a0"_L1);
 	query.addQueryItem("exclude"_L1, "minutely,hourly,alerts"_L1);
-	query.addQueryItem("lang"_L1, appSettings()->appLocale().left(2));
+	query.addQueryItem("lang"_L1, userSettings()->userLocale().left(2));
 	url.setQuery(query);
 
 	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{url})};
@@ -378,7 +382,7 @@ void OpenWeatherMapBackend::parseOpenWeatherReverseGeocodingReply(const QByteArr
 						word.append(chr);
 					break;
 					case ':':
-						bCanInsert = (word == appSettings()->appLocale().left(2));
+						bCanInsert = (word == userSettings()->userLocale().left(2));
 						word.clear();
 					break;
 					case ',':

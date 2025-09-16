@@ -64,7 +64,7 @@ TPPage {
 					background: Rectangle {
 						id: backRec
 						radius: 6
-						color: index === mesocyclesModel.currentMesoIdx ? appSettings.primaryLightColor : appSettings.listEntryColor2
+						color: index === mesocyclesModel.currentMesoIdx ? userSettings.primaryLightColor : userSettings.listEntryColor2
 						opacity: 0.8
 						anchors.fill: parent
 					}
@@ -78,7 +78,7 @@ TPPage {
 						id: mesoNameLabel
 						text: mesoName
 						elide: Text.ElideRight
-						color: index === mesocyclesModel.currentMesoIdx ? "black" : appSettings.fontColor
+						color: index === mesocyclesModel.currentMesoIdx ? "black" : userSettings.fontColor
 						topPadding: -3
 					}
 				}
@@ -283,7 +283,7 @@ TPPage {
 				Layout.topMargin: 30
 
 				theme: {
-					switch (appSettings.colorScheme) {
+					switch (userSettings.colorScheme) {
 						case 0: //blue
 							return ChartView.ChartThemeBlueIcy;
 						case 3: //dark

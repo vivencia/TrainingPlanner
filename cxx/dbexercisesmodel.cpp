@@ -498,7 +498,7 @@ int DBExercisesModel::importFromFormattedFile(const QString& filename, QFile *in
 			break;
 	}
 	in_file->close();
-	return exerciseCount() > 0 ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
+	return exerciseCount() > 0 ? APPWINDOW_MSG_IMPORT_OK : APPWINDOW_MSG_IMPORT_FAILED;
 }
 
 int DBExercisesModel::newExercisesFromFile(const QString &filename, const std::optional<bool> &file_formatted)
@@ -514,7 +514,7 @@ int DBExercisesModel::newExercisesFromFile(const QString &filename, const std::o
 	else
 	{
 		import_result = importFromFile(filename);
-		if (import_result == APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE)
+		if (import_result == APPWINDOW_MSG_IMPORT_FAILED)
 			import_result = importFromFormattedFile(filename);
 	}
 	return import_result;

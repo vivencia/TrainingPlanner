@@ -65,15 +65,15 @@ Rectangle {
 			switch (_colorIdx) {
 				case 0:
 					midColor = selectedColor;
-					appSettings.primaryColor = selectedColor;
+					userSettings.primaryColor = selectedColor;
 				break;
 				case 1:
 					lightColor = selectedColor;
-					appSettings.primaryLightColor = selectedColor;
+					userSettings.primaryLightColor = selectedColor;
 				break;
 				case 2:
 					darkColor = selectedColor;
-					appSettings.primaryDarkColor = selectedColor;
+					userSettings.primaryDarkColor = selectedColor;
 				break;
 			}
 		}

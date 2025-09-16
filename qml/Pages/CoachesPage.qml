@@ -106,21 +106,23 @@ TPPage {
 				anchors {
 					top: parent.top
 					left: parent.left
+					leftMargin: 5
 					right: parent.right
+					rightMargin: 5
 				}
 
 				delegate: ItemDelegate {
 					spacing: 0
 					padding: 5
 					width: parent.width
-					height: appSettings.itemDefaultHeight
+					height: userSettings.itemDefaultHeight
 
 					contentItem: Item {
 						Text {
 							id: txtCoachName
 							text: userModel.coachesNames[index]
-							color: appSettings.fontColor
-							font.pixelSize: appSettings.fontSize
+							color: userSettings.fontColor
+							font.pixelSize: userSettings.fontSize
 							fontSizeMode: Text.Fit
 							leftPadding: 5
 							bottomPadding: 2
@@ -134,6 +136,7 @@ TPPage {
 
 						TPButton {
 							text: qsTr("Résumé")
+							height: userSettings.itemDefaultHeight
 
 							anchors {
 								verticalCenter: parent.verticalCenter
@@ -146,8 +149,8 @@ TPPage {
 					}
 
 					background: Rectangle {
-						color: index === coachesList.currentIndex ? appSettings.entrySelectedColor :
-								(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
+						color: index === coachesList.currentIndex ? userSettings.entrySelectedColor :
+								(index % 2 === 0 ? userSettings.listEntryColor1 : userSettings.listEntryColor2)
 					}
 
 					onClicked: {
@@ -168,7 +171,7 @@ TPPage {
 
 			RowLayout {
 				uniformCellSizes: true
-				height: 25
+				height: userSettings.itemDefaultHeight
 				visible: userModel.haveCoaches
 
 				anchors {
@@ -220,13 +223,13 @@ TPPage {
 					spacing: 0
 					padding: 5
 					width: pendingCoachesList.width
-					height: appSettings.itemDefaultHeight
+					height: userSettings.itemDefaultHeight
 
 					contentItem: Item {
 						Text {
 							id: txtPendingCoachName
 							text: name
-							font.pixelSize: appSettings.fontSize
+							font.pixelSize: userSettings.fontSize
 							fontSizeMode: Text.Fit
 							leftPadding: 5
 							bottomPadding: 2
@@ -252,8 +255,8 @@ TPPage {
 					}
 
 					background: Rectangle {
-						color: index === pendingCoachesList.currentIndex ? appSettings.entrySelectedColor :
-								(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
+						color: index === pendingCoachesList.currentIndex ? userSettings.entrySelectedColor :
+								(index % 2 === 0 ? userSettings.listEntryColor1 : userSettings.listEntryColor2)
 					}
 
 					onClicked: {
@@ -269,7 +272,7 @@ TPPage {
 
 			RowLayout {
 				uniformCellSizes: true
-				height: appSettings.itemDefaultHeight
+				height: userSettings.itemDefaultHeight
 				visible: userModel.pendingCoachesResponses ? userModel.pendingCoachesResponses.count > 0 : false
 
 				anchors {
@@ -363,7 +366,7 @@ TPPage {
 
 	property TPBalloonTip msgRemoveUser: null
 	function showRemoveMessage(decline: bool, Title: string, Message: string): void {
-		if (!appSettings.alwaysAskConfirmation) {
+		if (!userSettings.alwaysAskConfirmation) {
 			removeOrDecline(decline);
 			return;
 		}

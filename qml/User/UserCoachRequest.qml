@@ -10,10 +10,8 @@ import "../TPWidgets"
 TPPopup {
 	id: dlgCoachRequest
 	keepAbove: true
-	width: appSettings.pageWidth*0.8
+	width: appSettings.pageWidth
 	height: appSettings.pageHeight * 0.4
-
-	//property list<string> coachesList;
 
 	onOpened: userModel.getOnlineCoachesList();
 
@@ -21,7 +19,7 @@ TPPopup {
 		id: lblTitle
 		text: qsTr("Available coaches online")
 		horizontalAlignment: Text.AlignHCenter
-		height: appSettings.itemDefaultHeight * 1.5
+		height: userSettings.itemExtraLargeHeight
 
 		anchors {
 			top: parent.top
@@ -53,9 +51,12 @@ TPPopup {
 			text: qsTr("No coaches available")
 			font: AppGlobals.largeFont
 			horizontalAlignment: Text.AlignHCenter
-			visible: userModel.availableCoaches? userModel.availableCoaches.count === 0 : false
+			visible: userModel.availableCoaches ? userModel.availableCoaches.count === 0 : false
 			anchors.fill: parent
 		}
+
+		Frame {
+			anchors.fill: parent
 
 		ColumnLayout {
 			id: itemsLayout
@@ -71,7 +72,7 @@ TPPopup {
 					required property int index
 
 					Layout.fillWidth: true
-					height: 25
+					height: userSettings.itemDefaultHeight
 					spacing: 0
 					padding: 0
 					enabled: !userModel.availableCoaches.isUserDefault(index)
@@ -91,13 +92,14 @@ TPPopup {
 
 					TPButton {
 						text: qsTr("Résumé")
-						width: itemsLayout.width*0.3
+						width: itemsLayout.width * 0.3
 
 						onClicked: userModel.viewResume(userModel.availableCoaches, index);
 					}
 				} //Row
 			} //Repeater
 		} //ColumnLayout
+		}
 	} //ScrollView
 
 	TPButton {

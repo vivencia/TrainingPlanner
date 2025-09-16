@@ -17,7 +17,7 @@
 #include <QSettings>
 #include <QThread>
 
-DBInterface *DBInterface::app_db_interface(nullptr);
+DBInterface *DBInterface::app_db_interface{nullptr};
 
 void DBInterface::init()
 {
@@ -201,7 +201,7 @@ void DBInterface::updateExercisesList()
 {
 	DBExercisesListTable *worker{new DBExercisesListTable{appExercisesList()}};
 	connect(worker, &DBExercisesListTable::updatedFromExercisesList, this, [this] () {
-		appSettings()->setExercisesListVersion(m_exercisesListVersion);
+		userSettings()->setExercisesListVersion(m_exercisesListVersion);
 	});
 	createThread(worker, [worker] () { return worker->updateExercisesList(); });
 }
@@ -222,7 +222,7 @@ void DBInterface::getExercisesListVersion()
 				m_exercisesListVersion = std::move(line.split(';').at(1).trimmed());
 		}
 		exercisesListFile.close();
-		if (m_exercisesListVersion != appSettings()->exercisesListVersion())
+		if (m_exercisesListVersion != userSettings()->exercisesListVersion())
 			updateExercisesList();
 	}
 }

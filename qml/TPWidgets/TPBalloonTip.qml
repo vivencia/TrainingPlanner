@@ -18,8 +18,8 @@ TPPopup {
 	property string button1Text: qsTr("Yes")
 	property string button2Text: qsTr("No")
 	property string imageSource: ""
-	property string backColor: appSettings.primaryColor
-	property string textColor: appSettings.fontColor
+	property string backColor: userSettings.primaryColor
+	property string textColor: userSettings.fontColor
 	property string subImageLabel: ""
 	property bool highlightMessage: false
 	property bool imageEnabled: true
@@ -66,7 +66,7 @@ TPPopup {
 		source: imageSource
 		visible: imageSource.length > 0
 		enabled: imageEnabled
-		width: appSettings.itemDefaultHeight * 2
+		width: userSettings.itemDefaultHeight * 2
 		height: width
 
 		anchors {
@@ -127,7 +127,6 @@ TPPopup {
 		TPButton {
 			id: btn1
 			text: button1Text
-			flat: false
 			autoSize: true
 			visible: button1Text.length > 0
 			Layout.alignment: Qt.AlignCenter
@@ -141,7 +140,6 @@ TPPopup {
 		TPButton {
 			id: btn2
 			text: button2Text
-			flat: false
 			autoSize: true
 			visible: button2Text.length > 0
 			Layout.alignment: Qt.AlignCenter
@@ -161,7 +159,7 @@ TPPopup {
 		ColorAnimation {
 			target: lblMessage
 			property: "color"
-			from: appSettings.fontColor
+			from: userSettings.fontColor
 			to: "darkred"
 			duration: 700
 			easing.type: Easing.InOutCubic
@@ -170,7 +168,7 @@ TPPopup {
 			target: lblMessage
 			property: "color"
 			from: "darkred"
-			to: appSettings.fontColor
+			to: userSettings.fontColor
 			duration: 500
 			easing.type: Easing.InOutCubic
 		}

@@ -46,34 +46,40 @@ OnlineUserInfo::OnlineUserInfo(QObject *parent)
 
 void OnlineUserInfo::setSelected(const uint row, bool selected)
 {
-	Q_ASSERT_X(row < count(), "OnlineUserInfo::setSelected", "row out of range");
-	if (m_extraInfo.at(row).at(USER_EXTRA_SELECTED) == "1"_L1 && !selected)
-		--m_nselected;
-	else if (m_extraInfo.at(row).at(USER_EXTRA_SELECTED) == "0"_L1 && selected)
-		++m_nselected;
-	m_extraInfo[row][USER_EXTRA_SELECTED] = selected ? "1"_L1 : "0"_L1;
-	emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << selectedRole);
-	emit selectedChanged();
+	if (row < count())
+	{
+		if (m_extraInfo.at(row).at(USER_EXTRA_SELECTED) == "1"_L1 && !selected)
+			--m_nselected;
+		else if (m_extraInfo.at(row).at(USER_EXTRA_SELECTED) == "0"_L1 && selected)
+			++m_nselected;
+		m_extraInfo[row][USER_EXTRA_SELECTED] = selected ? '1' : '0';
+		emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << selectedRole);
+		emit selectedChanged();
+	}
 }
 
 void OnlineUserInfo::setSourceFile(const uint row, const QString &source_file)
 {
-	Q_ASSERT_X(row < count(), "OnlineUserInfo::setSourceFile", "row out of range");
-	m_extraInfo[row][USER_EXTRA_SOURCE] = source_file;
-	emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << sourceFileRole);
+	if (row < count())
+	{
+		m_extraInfo[row][USER_EXTRA_SOURCE] = source_file;
+		emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << sourceFileRole);
+	}
 }
 
 void OnlineUserInfo::setIsCoach(const uint row, bool coach)
 {
-	Q_ASSERT_X(row < count(), "OnlineUserInfo::setIsCoach", "row out of range");
-	m_extraInfo[row][USER_EXTRA_ISCOACH] = coach ? "1"_L1 : "0"_L1;
-	emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << isCoachRole);
+	if (row < count())
+	{
+		m_extraInfo[row][USER_EXTRA_ISCOACH] = coach ? '1' : '0';
+		emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << isCoachRole);
+	}
 }
 
 bool OnlineUserInfo::dataFromFileSource(const QString &filename)
 {
 	beginInsertRows(QModelIndex{}, count(), count());
-	bool imported{appUserModel()->importFromFile(filename) == APPWINDOW_MSG_READ_FROM_FILE_OK};
+	bool imported{appUserModel()->importFromFile(filename) == APPWINDOW_MSG_IMPORT_OK};
 	if (imported)
 	{
 		const qsizetype row{m_modeldata.count()};
@@ -114,22 +120,24 @@ bool OnlineUserInfo::dataFromString(const QString &user_data)
 
 void OnlineUserInfo::removeUserInfo(const uint row, const bool remove_source)
 {
-	Q_ASSERT_X(row < count(), "OnlineUserInfo::data", "row out of range");
-	if (remove_source)
-		static_cast<void>(QFile::remove(data(row, USER_EXTRA_SOURCE)));
-	beginRemoveRows(QModelIndex{}, row, row);
-	m_modeldata.remove(row);
-	m_extraInfo.remove(row);
-	if (count() == 0)
-		m_sourcePath.clear();
-	if (m_currentRow >= row)
+	if (row < count())
 	{
-		m_currentRow--;
-		if (m_currentRow < 0 && count() > 0)
-			m_currentRow = 0;
+		if (remove_source)
+			static_cast<void>(QFile::remove(data(row, USER_EXTRA_SOURCE)));
+		beginRemoveRows(QModelIndex{}, row, row);
+		m_modeldata.remove(row);
+		m_extraInfo.remove(row);
+		if (count() == 0)
+			m_sourcePath.clear();
+		if (m_currentRow >= row)
+		{
+			m_currentRow--;
+			if (m_currentRow < 0 && count() > 0)
+				m_currentRow = 0;
+		}
+		emit countChanged();
+		endRemoveRows();
 	}
-	emit countChanged();
-	endRemoveRows();
 }
 
 bool OnlineUserInfo::sanitize(const QStringList &user_list, const uint field)
@@ -166,8 +174,7 @@ void OnlineUserInfo::clear()
 
 void OnlineUserInfo::makeUserDefault(const uint row)
 {
-	Q_ASSERT_X(row < count(), "makeUserDefault::data", "row out of range");
-	if (row > 0)
+	if (row < count() && row > 0)
 	{
 		if (isUserDefault(row))
 			m_extraInfo[row][USER_EXTRA_NAME].removeFirst();

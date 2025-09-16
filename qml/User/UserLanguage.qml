@@ -24,8 +24,8 @@ ColumnLayout {
 
 			required property int index
 
-			text: appSettings.availableLanguagesLabel(index)
-			checked: appSettings.appLocaleIdx === index
+			text: userSettings.availableLanguagesLabel(index)
+			checked: userSettings.userLocaleIdx === index
 			image: country_flags[index]
 			multiLine: true
 			buttonGroup: languages_group
@@ -33,9 +33,9 @@ ColumnLayout {
 			Layout.fillWidth: true
 
 			onClicked: {
-				appTr.switchToLanguage(appSettings.availableLanguages[index]);
+				appTr.switchToLanguage(userSettings.availableLanguages[index]);
 				if (appTr.translatorOK())
-					appSettings.setAppLocale(index);
+					userSettings.setUserLocale(index);
 			}
 		}
 	}

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tpglobals.h"
-#include "tputils.h"
+#include "tpsettings.h"
 
 #include <QObject>
 #include <QVariant>
@@ -23,7 +23,6 @@ class TPDatabaseTable : public QObject
 {
 
 public:
-
 	static constexpr QLatin1StringView databaseFilesSubDir{"Database/"};
 
 	static constexpr QLatin1StringView databaseFileNames[APP_TABLES_NUMBER+1] = { ""_L1,
@@ -48,7 +47,7 @@ public:
 	inline void setCallbackForDoneFunc( const std::function<void (TPDatabaseTable*)> &func ) { doneFunc = func; }
 	static inline QString dbFilePath(const uint table_id, const bool path_only = false)
 	{
-		return appUtils()->localAppFilesDir() + databaseFilesSubDir + (path_only ? QString{} : databaseFileNames[table_id]);
+		return appSettings()->currentUserDir() + databaseFilesSubDir + (path_only ? QString{} : databaseFileNames[table_id]);
 	}
 	inline uint tableId() const { return m_tableId; }
 	inline int uniqueId() const { return m_UniqueID; }

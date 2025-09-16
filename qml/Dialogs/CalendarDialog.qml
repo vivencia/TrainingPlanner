@@ -72,7 +72,6 @@ TPPopup {
 			TPButton {
 				id: btnYesterday
 				text: qsTr("Yesterday")
-				flat: false
 				width: parent.buttonWidth
 
 				onClicked: datePickerControl.setDate2(appUtils.yesterday());
@@ -80,7 +79,6 @@ TPPopup {
 			TPButton {
 				id: btnToday
 				text: qsTr("Today")
-				flat: false
 				width: parent.buttonWidth
 
 				onClicked: datePickerControl.setDate2(appUtils.today());
@@ -88,7 +86,6 @@ TPPopup {
 			TPButton {
 				id: btnTomorrow
 				text: qsTr("Tomorrow")
-				flat: false
 				width: parent.buttonWidth
 
 				onClicked: datePickerControl.setDate2(appUtils.tomorrow());
@@ -98,7 +95,6 @@ TPPopup {
 		TPButton {
 			id: btnOK
 			text: "OK"
-			flat: false
 			autoSize: true
 			Layout.alignment: Qt.AlignCenter
 

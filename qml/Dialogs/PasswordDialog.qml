@@ -43,7 +43,7 @@ TPPopup {
 	TPImage {
 		id: imgElement
 		source: "password"
-		width: appSettings.itemDefaultHeight * 2
+		width: userSettings.itemDefaultHeight * 2
 		height: width
 
 		anchors {
@@ -104,7 +104,6 @@ TPPopup {
 		TPButton {
 			id: btn1
 			text: "OK"
-			flat: false
 			autoSize: true
 			enabled: txtPassword.text.length > 4
 			Layout.alignment: Qt.AlignCenter
@@ -115,7 +114,6 @@ TPPopup {
 		TPButton {
 			id: btn2
 			text: qsTr("Cancel")
-			flat: false
 			autoSize: true
 			Layout.alignment: Qt.AlignCenter
 

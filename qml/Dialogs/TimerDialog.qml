@@ -115,7 +115,7 @@ TPPopup {
 				}
 
 				TPLabel {
-					font.pixelSize: appSettings.smallFontSize
+					font.pixelSize: userSettings.smallFontSize
 					text: qsTr("Hours")
 
 					anchors {
@@ -128,7 +128,7 @@ TPPopup {
 
 			TPLabel {
 				text: ":"
-				font.pixelSize: appSettings.largeFontSize
+				font.pixelSize: userSettings.largeFontSize
 				font.bold: true
 				horizontalAlignment: Text.AlignHCenter
 				visible: txtHours.visible
@@ -177,7 +177,7 @@ TPPopup {
 				}
 
 				TPLabel {
-					font.pixelSize: appSettings.smallFontSize
+					font.pixelSize: userSettings.smallFontSize
 					text: qsTr("Minutes")
 
 					anchors {
@@ -190,7 +190,7 @@ TPPopup {
 
 			TPLabel {
 				text: ":"
-				font.pixelSize: appSettings.largeFontSize
+				font.pixelSize: userSettings.largeFontSize
 				font.bold: true
 				horizontalAlignment: Text.AlignHCenter
 				visible: txtSecs.visible
@@ -234,7 +234,7 @@ TPPopup {
 				}
 
 				TPLabel {
-					font.pixelSize: appSettings.smallFontSize
+					font.pixelSize: userSettings.smallFontSize
 					text: qsTr("Seconds")
 					enabled: parent.enabled
 
@@ -262,7 +262,7 @@ TPPopup {
 			background: Rectangle {
 				implicitWidth: parent.width
 				implicitHeight: 6
-				color: appSettings.fontColor
+				color: userSettings.fontColor
 				opacity: 0.5
 				radius: 3
 			}
@@ -288,7 +288,6 @@ TPPopup {
 				id: btnStartPause
 				text: mainTimer.active ? qsTr("Pause") : mainTimer.paused ? qsTr("Continue") : qsTr("Start")
 				autoSize: true
-				flat: false
 				enabled: !timePickerOnly ? mainTimer.stopWatch ? true : mainTimer.totalSeconds > 0 : false
 				Layout.maximumWidth: dlgTimer.width / 3
 
@@ -304,7 +303,6 @@ TPPopup {
 				id: btnReset
 				text: qsTr("Reset")
 				autoSize: true
-				flat: false
 				enabled: !timePickerOnly
 				Layout.maximumWidth: dlgTimer.width / 3
 
@@ -315,7 +313,6 @@ TPPopup {
 				id: btnClose
 				text: timePickerOnly ? qsTr("Done") : qsTr("Close")
 				autoSize: true
-				flat: false
 				Layout.maximumWidth: dlgTimer.width / 3
 
 				onClicked: {

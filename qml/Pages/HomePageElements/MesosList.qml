@@ -53,7 +53,7 @@ Item {
 
 			Rectangle {
 				id: optionsRec
-				color: appSettings.primaryDarkColor
+				color: userSettings.primaryDarkColor
 				radius: 6
 				layer.enabled: true
 				visible: false
@@ -82,7 +82,6 @@ Item {
 					imageSize: 30
 					textUnderIcon: true
 					rounded: false
-					flat: false
 					width: parent.width/2 - 10
 					height: parent.height/2 - 10
 					z:1
@@ -103,7 +102,6 @@ Item {
 					imageSource: "meso-calendar.png"
 					imageSize: 30
 					rounded: false
-					flat: false
 					textUnderIcon: true
 					width: parent.width/2 - 10
 					height: parent.height/2 - 10
@@ -125,7 +123,6 @@ Item {
 					imageSource: "meso-splitplanner.png"
 					imageSize: 30
 					rounded: false
-					flat: false
 					textUnderIcon: true
 					width: parent.width/2 - 10
 					height: parent.height/2 - 10
@@ -147,7 +144,6 @@ Item {
 					imageSource: "export.png"
 					imageSize: 30
 					rounded: false
-					flat: false
 					textUnderIcon: true
 					enabled: viewedMesoIdx === mesoModel.mesoRow(index) ? viewedMesoCanBeExported : false
 					width: parent.width/2 - 10
@@ -227,7 +223,7 @@ Item {
 				anchors.fill: parent
 				radius: 6
 				layer.enabled: true
-				color: mesoModel.mesoRow(index) === mesocyclesModel.currentMesoIdx ? appSettings.primaryColor : appSettings.listEntryColor2
+				color: mesoModel.mesoRow(index) === mesocyclesModel.currentMesoIdx ? userSettings.primaryColor : userSettings.listEntryColor2
 				visible: false
 			}
 
@@ -252,34 +248,34 @@ Item {
 
 				TPLabel {
 					text: mesoName
-					fontColor: appSettings.fontColor
+					fontColor: userSettings.fontColor
 					horizontalAlignment: Text.AlignHCenter
 					Layout.bottomMargin: 10
 					Layout.maximumWidth: parent.width
 				}
 				TPLabel {
 					text: mesoCoach
-					fontColor: appSettings.fontColor
+					fontColor: userSettings.fontColor
 					Layout.maximumWidth: parent.width
 					visible: mainUserPrograms
 				}
 				TPLabel {
 					text: mesoClient
-					fontColor: appSettings.fontColor
+					fontColor: userSettings.fontColor
 					Layout.maximumWidth: parent.width
 					visible: !mainUserPrograms
 				}
 				TPLabel {
 					text: mesoStartDate
-					fontColor: appSettings.fontColor
+					fontColor: userSettings.fontColor
 				}
 				TPLabel {
 					text: mesoEndDate
-					fontColor: appSettings.fontColor
+					fontColor: userSettings.fontColor
 				}
 				TPLabel {
 					text: mesoSplit
-					fontColor: appSettings.fontColor
+					fontColor: userSettings.fontColor
 					Layout.maximumWidth: parent.width
 				}
 			}
@@ -304,11 +300,10 @@ Item {
 				id: btnAddMeso
 				text: qsTr("New Training Program")
 				imageSource: "mesocycle-add.png"
-				flat: false
 				multiline: false
 				Layout.preferredWidth: preferredWidth
 				Layout.maximumWidth: parent.width - 20
-				Layout.maximumHeight: appSettings.itemDefaultHeight
+				Layout.maximumHeight: userSettings.itemDefaultHeight
 				Layout.alignment: Qt.AlignCenter
 
 				onClicked: mesocyclesModel.startNewMesocycle_QML(mainUserPrograms);
@@ -318,11 +313,10 @@ Item {
 				id: btnImportMeso
 				text: qsTr("Import program from file")
 				imageSource: "import.png"
-				flat: false
 				multiline: false
 				Layout.preferredWidth: preferredWidth
 				Layout.maximumWidth: parent.width - 20
-				Layout.maximumHeight: appSettings.itemDefaultHeight
+				Layout.maximumHeight: userSettings.itemDefaultHeight
 				Layout.alignment: Qt.AlignCenter
 
 				onClicked: itemManager.chooseFileToImport();
@@ -332,12 +326,11 @@ Item {
 				id: btnWorkout
 				text: qsTr("Today's workout")
 				imageSource: "workout.png"
-				flat: false
 				multiline: false
 				visible: mainUserPrograms
 				enabled: mesocyclesModel.canHaveTodaysWorkout
 				Layout.preferredWidth: preferredWidth
-				Layout.maximumHeight: appSettings.itemDefaultHeight
+				Layout.maximumHeight: userSettings.itemDefaultHeight
 				Layout.alignment: Qt.AlignCenter
 
 				onClicked: mesocyclesModel.todaysWorkout();

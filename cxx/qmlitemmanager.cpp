@@ -77,7 +77,7 @@ QmlItemManager::~QmlItemManager()
 
 void QmlItemManager::configureQmlEngine()
 {
-	QQuickStyle::setStyle(appSettings()->themeStyle());
+	QQuickStyle::setStyle(userSettings() ? userSettings()->themeStyle() : "Material"_L1);
 
 	qmlRegisterType<DBUserModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBUserModel");
 	qmlRegisterType<DBExercisesListModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBExercisesListModel");
@@ -102,7 +102,7 @@ void QmlItemManager::configureQmlEngine()
 	qmlRegisterType<homePageMesoModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "HomePageMesoModel");
 
 	//Root context properties. MainWindow app properties
-	QList<QQmlContext::PropertyPair> properties{11};
+	QList<QQmlContext::PropertyPair> properties{12};
 	properties[0] = std::move(QQmlContext::PropertyPair{ "appSettings"_L1, QVariant::fromValue(appSettings()) });
 	properties[1] = std::move(QQmlContext::PropertyPair{ "appUtils"_L1, QVariant::fromValue(appUtils()) });
 	properties[2] = std::move(QQmlContext::PropertyPair{ "appTr"_L1, QVariant::fromValue(appTr()) });
@@ -114,6 +114,7 @@ void QmlItemManager::configureQmlEngine()
 	properties[8] = std::move(QQmlContext::PropertyPair{ "pagesListModel"_L1, QVariant::fromValue(m_pagesManager = new PagesListModel{this}) });
 	properties[9] = std::move(QQmlContext::PropertyPair{ "appMessages"_L1, QVariant::fromValue(new TPMessagesManager{this}) });
 	properties[10] = std::move(QQmlContext::PropertyPair{ "osInfo"_L1, QVariant::fromValue(appOsInterface()) });
+	properties[11] = std::move(QQmlContext::PropertyPair{ "userSettings"_L1, QVariant::fromValue(userSettings()) });
 	appQmlEngine()->rootContext()->setContextProperties(properties);
 	appQmlEngine()->addImportPath(":/"_L1);
 	appQmlEngine()->addImageProvider("tpimageprovider"_L1, new TPImageProvider{});

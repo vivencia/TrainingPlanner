@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 #include "weatherinfo.h"
+
 #include "openweathermapbackend.h"
 #include "../tpsettings.h"
 #include "../tputils.h"
@@ -63,7 +64,7 @@ static void forecastAppend(QQmlListProperty<WeatherData> *prop, WeatherData *val
 
 static WeatherData *forecastAt(QQmlListProperty<WeatherData> *prop, qsizetype index)
 {
-	WeatherInfoPrivate *d = static_cast<WeatherInfoPrivate*>(prop->data);
+	WeatherInfoPrivate *d{static_cast<WeatherInfoPrivate*>(prop->data)};
 	return &d->nextThreeDays[index];
 }
 
@@ -213,7 +214,7 @@ void WeatherInfo::handleWeatherData(const st_LocationInfo &location, const QList
 
 inline void WeatherInfo::addLocationToConfig(const QString &location, const QGeoCoordinate &coord)
 {
-	appSettings()->addWeatherCity(location, QString::number(coord.latitude()), QString::number(coord.longitude()));
+	userSettings()->addWeatherCity(location, QString::number(coord.latitude()), QString::number(coord.longitude()));
 }
 
 void WeatherInfo::buildLocationsList(const QList<st_LocationInfo> *foundLocations)
@@ -286,7 +287,7 @@ void WeatherInfo::requestWeatherForGpsCity()
 
 void WeatherInfo::requestWeatherForSavedCity(const uint index)
 {
-	d->m_currentBackend->requestWeatherInfo(appSettings()->weatherCity(index), appSettings()->weatherCityCoordinates(index));
+	d->m_currentBackend->requestWeatherInfo(userSettings()->weatherCity(index), userSettings()->weatherCityCoordinates(index));
 }
 
 void WeatherInfo::refreshWeather()

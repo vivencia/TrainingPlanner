@@ -4,8 +4,6 @@
 
 using namespace Qt::Literals::StringLiterals;
 
-static const QString &TP_APP_VERSION("v20250802 Build 4"_L1);
-
 #ifndef QT_NO_DEBUG
 #include <QDebug>
 #include <source_location>

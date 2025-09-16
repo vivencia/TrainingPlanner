@@ -45,7 +45,7 @@ void QmlMesoSplitInterface::removeExercise(const int exercise_number)
 {
 	if (exercise_number >= 0)
 	{
-		if (appSettings()->alwaysAskConfirmation())
+		if (userSettings()->alwaysAskConfirmation())
 			QMetaObject::invokeMethod(m_plannerPage, "showDeleteDialog", Q_ARG(QString,
 						currentSplitModel()->exerciseName(exercise_number, currentSplitModel()->workingSubExercise(exercise_number))));
 		else

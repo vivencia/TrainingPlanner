@@ -53,7 +53,7 @@ TPPage {
 				TPButton {
 					imageSource: "next"
 					enabled: splitView.count > 0 && splitView.currentIndex < splitView.count - 1
-					width: appSettings.itemDefaultHeight
+					width: userSettings.itemDefaultHeight
 					height: width
 					anchors {
 						right: parent.right
@@ -65,7 +65,7 @@ TPPage {
 				TPButton {
 					imageSource: "prev"
 					enabled: splitView.currentIndex > 0
-					width: appSettings.itemDefaultHeight
+					width: userSettings.itemDefaultHeight
 					height: width
 					anchors {
 						left: parent.left
@@ -91,7 +91,7 @@ TPPage {
 
 			Row {
 				enabled: currentSplitPage && currentSplitPage.exercisesModel && currentSplitPage.exercisesModel.exerciseCount > 1
-				height: appSettings.itemDefaultHeight
+				height: userSettings.itemDefaultHeight
 				Layout.fillWidth: true
 				spacing: 0
 
@@ -188,7 +188,7 @@ TPPage {
 
 		delegate: Label {
 			text: splitView.itemAt(index).exercisesModel.splitLetter
-			color: appSettings.fontColor
+			color: userSettings.fontColor
 			font.bold: true
 			fontSizeMode: Text.Fit
 			width: 25
@@ -201,7 +201,7 @@ TPPage {
 			background: Rectangle {
 				radius: width/2
 				opacity: index === indicator.currentIndex ? 0.95 : pressed ? 0.7 : 0.45
-				color: appSettings.paneBackgroundColor
+				color: userSettings.paneBackgroundColor
 			}
 
 			MouseArea {
@@ -235,7 +235,6 @@ TPPage {
 			imageSource: "clear.png"
 			textUnderIcon: true
 			rounded: false
-			flat: false
 			enabled: splitManager.haveExercises
 			width: bottomToolBar.buttonWidth
 			height: footerHeight - 4
@@ -256,7 +255,6 @@ TPPage {
 			textUnderIcon: true
 			visible: splitManager.canSwapExercises
 			rounded: false
-			flat: false
 			width: bottomToolBar.buttonWidth
 			height: footerHeight - 4
 
@@ -275,7 +273,6 @@ TPPage {
 			imageSource: "import-export.png"
 			textUnderIcon: true
 			rounded: false
-			flat: false
 			width: bottomToolBar.buttonWidth
 			height: footerHeight - 4
 
@@ -294,7 +291,6 @@ TPPage {
 			imageSource: "exercises-add.png"
 			textUnderIcon: true
 			rounded: false
-			flat: false
 			width: bottomToolBar.buttonWidth*1.3
 			height: footerHeight - 4
 

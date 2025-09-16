@@ -47,7 +47,7 @@ TPPopup {
 
 	Rectangle {
 		id: recTitleBar
-		color: appSettings.paneBackgroundColor
+		color: userSettings.paneBackgroundColor
 		opacity: 0.8
 		width: parent.width
 		height: btnClose.height
@@ -55,10 +55,10 @@ TPPopup {
 
 		gradient: Gradient {
 			orientation: Gradient.Horizontal
-			GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
-			GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
-			GradientStop { position: 0.50; color: appSettings.primaryColor; }
-			GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
+			GradientStop { position: 0.0; color: userSettings.paneBackgroundColor; }
+			GradientStop { position: 0.25; color: userSettings.primaryLightColor; }
+			GradientStop { position: 0.50; color: userSettings.primaryColor; }
+			GradientStop { position: 0.75; color: userSettings.primaryDarkColor; }
 		}
 
 		anchors {
@@ -71,7 +71,6 @@ TPPopup {
 			id: btnShowHideList
 			imageSource: dlgMuscularGroup.shown ? "fold-up.png" : "fold-down.png"
 			hasDropShadow: false
-			flat: true
 			width: btnClose.width
 			height: width
 
@@ -123,7 +122,6 @@ TPPopup {
 	TPButton {
 		id: btnMakeFilter
 		text: buttonLabel
-		flat: false
 		autoSize: true
 		visible: dlgMuscularGroup.shown
 

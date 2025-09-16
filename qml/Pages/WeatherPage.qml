@@ -34,7 +34,7 @@ TPPage {
 			wrapMode: Text.WordWrap
 			Layout.minimumWidth: parent.width - 30
 			Layout.maximumWidth: parent.width - 30
-			Layout.maximumHeight: appSettings.itemDefaultHeight * 2
+			Layout.maximumHeight: userSettings.itemDefaultHeight * 2
 
 			TPButton {
 				imageSource: "gps.png"
@@ -61,10 +61,10 @@ TPPage {
 
 			ListView {
 				id: scrollViewCities
-				model: appSettings.weatherCitiesCount
+				model: userSettings.weatherCitiesCount
 				width: mainLayout.width
-				height: parent.height - appSettings.itemDefaultHeight - 10
-				contentHeight: model.count * appSettings.itemDefaultHeight * 1.1
+				height: parent.height - userSettings.itemDefaultHeight - 10
+				contentHeight: model.count * userSettings.itemLargeHeight
 				contentWidth: availableWidth
 				spacing: 0
 				clip: true
@@ -85,16 +85,16 @@ TPPage {
 					spacing: 0
 					padding: 0
 					width: parent.width
-					height: appSettings.itemDefaultHeight
+					height: userSettings.itemDefaultHeight
 
 					contentItem: TPLabel {
 						id: txtCity
-						text: appSettings.weatherCity(index)
+						text: userSettings.weatherCity(index)
 						leftPadding: 10
 
 						TPButton {
 							imageSource: "remove"
-							width: appSettings.itemDefaultHeight
+							width: userSettings.itemDefaultHeight
 
 							anchors {
 								right: parent.right
@@ -102,12 +102,12 @@ TPPage {
 								verticalCenter: parent.verticalCenter
 							}
 
-							onClicked: appSettings.removeWeatherCity(index);
+							onClicked: userSettings.removeWeatherCity(index);
 						}
 					} //contentItem
 
 					background: Rectangle {
-						color: index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
+						color: index % 2 === 0 ? userSettings.listEntryColor1 : userSettings.listEntryColor2
 					}
 					onClicked: weatherInfo.requestWeatherForSavedCity(index);
 				} //ItemDelegate

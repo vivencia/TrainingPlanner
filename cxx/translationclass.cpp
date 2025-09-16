@@ -1,10 +1,10 @@
 #include "translationclass.h"
-#include "tpsettings.h"
+
 #include "qmlitemmanager.h"
+#include "tpsettings.h"
 
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include <QSettings>
 #include <QTranslator>
 
 using namespace Qt::Literals::StringLiterals;
@@ -13,20 +13,20 @@ TranslationClass *TranslationClass::app_tr{nullptr};
 
 void TranslationClass::selectLanguage()
 {
-	QString strLocale{appSettings()->appLocale()};
+	QString strLocale{userSettings()->userLocale()};
 	if (strLocale.isEmpty())
 	{
 		#ifndef Q_OS_ANDROID
 		const QString &sysLocale{std::setlocale(LC_NAME, "")};
 		strLocale = std::move(sysLocale.first(sysLocale.indexOf('.')));
 		#else
-		strLocale = QLocale::system().name();
+		strLocale = std::move(QLocale::system().name());
 		#endif
 	}
 	if (strLocale != "en_US"_L1)
 		switchToLanguage(strLocale);
 	else
-		appSettings()->setAppLocale("en_US"_L1);
+		userSettings()->setUserLocale("en_US"_L1);
 }
 
 void TranslationClass::switchToLanguage(const QString &language)
@@ -49,7 +49,7 @@ void TranslationClass::switchToLanguage(const QString &language)
 	if (appQmlEngine())
 		appQmlEngine()->retranslate();
 	emit applicationLanguageChanged();
-	appSettings()->setAppLocale(language);
+	userSettings()->setUserLocale(language);
 }
 
 QString TranslationClass::language() const

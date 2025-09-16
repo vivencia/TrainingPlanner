@@ -49,7 +49,7 @@ Popup {
 		radius: 8
 		layer.enabled: true
 		visible: false
-		color: appSettings.primaryColor
+		color: userSettings.primaryColor
 	}
 
 	background: backRec
@@ -114,10 +114,9 @@ Popup {
 		id: btnCloseWindow
 		imageSource: "close.png"
 		hasDropShadow: false
-		flat: true
 		visible: closeButtonVisible
-		width: 25
-		height: 25
+		width: userSettings.itemDefaultHeight
+		height: width
 
 		anchors {
 			top: parent.top

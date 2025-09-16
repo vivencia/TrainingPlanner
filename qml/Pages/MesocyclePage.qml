@@ -160,10 +160,9 @@ TPPage {
 
 				TPButton {
 					imageSource: "set-completed"
-					flat: true
 					visible: mesoManager.isNewMeso
 					enabled: mesoManager.mesoNameOK
-					width: appSettings.itemDefaultHeight
+					width: userSettings.itemDefaultHeight
 					height: width
 
 					anchors {
@@ -254,7 +253,7 @@ TPPage {
 				TPButton {
 					id: btnChooseMesoFile
 					imageSource: "choose-file"
-					width: appSettings.itemDefaultHeight
+					width: userSettings.itemDefaultHeight
 					height: width
 
 					anchors {
@@ -296,10 +295,9 @@ TPPage {
 
 				TPButton {
 					imageSource: "set-completed"
-					flat: true
 					visible: mesoManager.isNewMeso
 					enabled: mesoManager.mesoNameOK
-					width: appSettings.itemDefaultHeight
+					width: userSettings.itemDefaultHeight
 					height: width
 
 					anchors {
@@ -331,8 +329,7 @@ TPPage {
 				TPButton {
 					id: btnStartDate
 					imageSource: "calendar.png"
-					flat: true
-					width: appSettings.itemDefaultHeight
+					width: userSettings.itemDefaultHeight
 					height: width
 
 					anchors {
@@ -357,8 +354,7 @@ TPPage {
 
 				TPButton {
 					imageSource: "question.png"
-					flat: true
-					width: appSettings.itemDefaultHeight
+					width: userSettings.itemDefaultHeight
 					height: width
 
 					anchors {
@@ -377,10 +373,9 @@ TPPage {
 
 				TPButton {
 					imageSource: "set-completed"
-					flat: true
 					visible: mesoManager.isNewMeso
 					enabled: mesoManager.mesoNameOK
-					width: appSettings.itemDefaultHeight
+					width: userSettings.itemDefaultHeight
 					height: width
 
 					anchors {
@@ -416,8 +411,7 @@ TPPage {
 				TPButton {
 					id: btnEndDate
 					imageSource: "calendar.png"
-					flat: true
-					width: appSettings.itemDefaultHeight
+					width: userSettings.itemDefaultHeight
 					height: width
 
 					anchors {
@@ -457,7 +451,7 @@ TPPage {
 
 			ScrollView {
 				contentWidth: availableWidth
-				height: appSettings.pageHeight*0.15
+				height: appSettings.pageHeight * 0.15
 				Layout.fillWidth: true
 				Layout.preferredHeight: height
 				ScrollBar.horizontal.interactive: true
@@ -469,9 +463,9 @@ TPPage {
 					id: txtMesoNotes
 					text: mesoManager.notes
 					color: "black"
-					font.pixelSize: appSettings.fontSize
+					font.pixelSize: userSettings.fontSize
 					font.bold: true
-					topPadding: appSettings.fontSize
+					topPadding: userSettings.fontSize
 					leftPadding: 5
 					rightPadding: 5
 					bottomPadding: 5
@@ -480,7 +474,7 @@ TPPage {
 					background: Rectangle {
 						color: "white"
 						radius: 6
-						border.color: appSettings.fontColor
+						border.color: userSettings.fontColor
 					}
 
 					onEditingFinished: mesoManager.notes = text;
@@ -491,7 +485,6 @@ TPPage {
 
 			TPButton {
 				text: qsTr("Send to client")
-				flat: false
 				visible: !mesoManager.ownMeso
 				enabled: mesoManager.canExport
 				Layout.alignment: Qt.AlignCenter

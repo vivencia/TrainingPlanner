@@ -100,6 +100,8 @@ public:
 
 	inline uint userCount() const { return m_usersData.count(); }
 
+	const QString &runningUser() const { return m_runningUser; }
+	void setRunningUser(const QString &running_user) { m_runningUser = running_user; }
 	inline const QString &_onlineUser(const uint user_idx) const { return user_idx < m_usersData.count() ? m_usersData.at(user_idx).at(USER_COL_NETUSER) : m_onlineUserId; }
 	inline bool onlineUser(const uint user_idx = 0) const { return _onlineUser(user_idx) == '1'; }
 	void setOnlineUser(const bool online_user, const uint user_idx = 0);
@@ -296,7 +298,7 @@ public:
 
 	int sendFileToServer(const QString &filename, QFile *upload_file = nullptr, const QString &successMessage = QString{},
 			const QString &subdir = QString{}, const QString &targetUser = QString{}, const bool removeLocalFile = false);
-	int downloadFileFromServer(const QString &filename, const QString &localFile = QString{}, const QString &successMessage = QString{},
+	int downloadFileFromServer(const QString &filename, const QString &local_filename = QString{}, const QString &successMessage = QString{},
 							   const QString &subdir = QString{}, const QString &targetUser = QString{});
 	void removeFileFromServer(const QString &filename, const QString &subdir = QString{}, const QString &targetUser = QString{});
 
@@ -344,7 +346,7 @@ signals:
 private:
 	QList<QStringList> m_usersData, m_tempUserData;
 	int m_tempRow, n_devices;
-	QString m_onlineUserId, m_password, m_defaultAvatar, m_emptyString, m_onlineCoachesDir,
+	QString m_runningUser, m_onlineUserId, m_password, m_defaultAvatar, m_emptyString, m_onlineCoachesDir,
 		m_dirForRequestedCoaches, m_dirForClientsRequests, m_dirForCurrentClients, m_dirForCurrentCoaches;
 	std::optional<bool> mb_singleDevice, mb_userRegistered, mb_coachRegistered;
 	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses, *m_tempUserInfo;

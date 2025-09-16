@@ -112,7 +112,6 @@ TPPopup {
 		TPButton {
 			id: btn1
 			text: qsTr("Change")
-			flat: false
 			autoSize: true
 			enabled: false
 			Layout.alignment: Qt.AlignCenter
@@ -127,7 +126,6 @@ TPPopup {
 		TPButton {
 			id: btn2
 			text: qsTr("Cancel")
-			flat: false
 			autoSize: true
 			Layout.alignment: Qt.AlignCenter
 			Layout.maximumWidth: availableWidth - btn1.width - 10

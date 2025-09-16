@@ -26,7 +26,7 @@ ApplicationWindow {
 
 		Rectangle {
 			anchors.fill: parent
-			color: appSettings.paneBackgroundColor
+			color: userSettings.paneBackgroundColor
 
 			ColumnLayout {
 				anchors {
@@ -98,7 +98,6 @@ ApplicationWindow {
 					TPButton {
 						text: "Generate random number"
 						autoSize: true
-						flat: false
 						enabled: randomMin.text.length > 0 && randomMax.text.length > 0
 
 						onClicked: randomResult.text = String(appUtils.generateRandomNumber(randomMin.text, randomMax.text));

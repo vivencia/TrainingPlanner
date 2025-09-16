@@ -158,6 +158,9 @@ void OSInterface::checkInternetConnection()
 		unSetBit(network_status, !is_connected ? HAS_INTERNET : NO_INTERNET_ACCESS);
 		emit internetStatusChanged(is_connected);
 	}
+	#ifndef QT_NO_DEBUG
+	qDebug() << "checkInternetConnection() -> not connected to the internet";
+	#endif
 	#ifndef Q_OS_ANDROID
 	checkLocalServer();
 	#else
@@ -743,7 +746,7 @@ void OSInterface::viewExternalFile(const QString &filename) const
 
 void OSInterface::onlineServicesResponse(const uint online_status)
 {
-	if (tpServerOK() != online_status)
+	if (tpServerOK() != (online_status == 0))
 	{
 		setBit(m_networkStatus, online_status == 0 ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
 		unSetBit(m_networkStatus, online_status == 0 ? SERVER_UNREACHABLE : SERVER_UP_AND_RUNNING);

@@ -103,7 +103,6 @@ TPPopup {
 		TPButton {
 			id: btnImport
 			text: qsTr("Import")
-			flat: false
 			Layout.alignment: Qt.AlignCenter
 
 			onClicked: {
@@ -115,7 +114,6 @@ TPPopup {
 		TPButton {
 			id: btnCancel
 			text: qsTr("Cancel")
-			flat: false
 			Layout.alignment: Qt.AlignCenter
 
 			onClicked: importDlg.close();

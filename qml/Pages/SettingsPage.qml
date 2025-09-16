@@ -65,7 +65,7 @@ TPPage {
 
 			Rectangle {
 				height: 3
-				color: appSettings.fontColor
+				color: userSettings.fontColor
 				Layout.fillWidth: true
 				Layout.topMargin: 20
 				Layout.bottomMargin: 20
@@ -76,19 +76,20 @@ TPPage {
 			TPRadioButtonOrCheckBox {
 				id: chkAskConfirmation
 				text: qsTr("Always ask the user confirmation before starting any - potencially destructive - action")
+				multiLine: true
 				radio: false
-				checked: appSettings.alwaysAskConfirmation
+				checked: userSettings.alwaysAskConfirmation
 				Layout.fillWidth: true
 				Layout.leftMargin: 10
 				Layout.rightMargin: 20
 
-				onClicked: appSettings.alwaysAskConfirmation = checked;
+				onClicked: userSettings.alwaysAskConfirmation = checked;
 			}
 //------------------------------------------------------APP BEHAVIOUR------------------------------------------------------
 
 			Rectangle {
 				height: 3
-				color: appSettings.fontColor
+				color: userSettings.fontColor
 				Layout.fillWidth: true
 				Layout.topMargin: 20
 				Layout.bottomMargin: 20
@@ -114,7 +115,7 @@ TPPage {
 					text: "A"
 					font.pixelSize: 8
 					font.weight: 400
-					color: appSettings.fontColor
+					color: userSettings.fontColor
 				}
 
 				Slider {
@@ -122,10 +123,10 @@ TPPage {
 					snapMode: Slider.SnapAlways
 					stepSize: 1
 					from: 8
-					value: appSettings.fontSize
+					value: userSettings.fontSize
 					to: 40
 					width: settingsPage.width - lblMin.width - lblMax.width - 20
-					onMoved: appSettings.fontSize = value;
+					onMoved: userSettings.fontSize = value;
 				}
 
 				Label {
@@ -133,14 +134,14 @@ TPPage {
 					text: "A"
 					font.pixelSize: 30
 					font.weight: 400
-					color: appSettings.fontColor
+					color: userSettings.fontColor
 				}
 			} //RowLayout
 
 			Label {
 				text: qsTr("Extra large font")
-				font.pixelSize: appSettings.extraLargeFontSize
-				color: appSettings.fontColor
+				font.pixelSize: userSettings.extraLargeFontSize
+				color: userSettings.fontColor
 				elide: Text.ElideRight
 				Layout.leftMargin: 10
 				Layout.rightMargin: 10
@@ -148,8 +149,8 @@ TPPage {
 			}
 			Label {
 				text: qsTr("Large font")
-				font.pixelSize: appSettings.largeFontSize
-				color: appSettings.fontColor
+				font.pixelSize: userSettings.largeFontSize
+				color: userSettings.fontColor
 				elide: Text.ElideRight
 				Layout.leftMargin: 10
 				Layout.rightMargin: 10
@@ -157,8 +158,8 @@ TPPage {
 			}
 			Label {
 				text: qsTr("Normal font")
-				font.pixelSize: appSettings.fontSize
-				color: appSettings.fontColor
+				font.pixelSize: userSettings.fontSize
+				color: userSettings.fontColor
 				elide: Text.ElideRight
 				Layout.leftMargin: 10
 				Layout.rightMargin: 10
@@ -166,8 +167,8 @@ TPPage {
 			}
 			Label {
 				text: qsTr("Small font")
-				font.pixelSize: appSettings.smallFontSize
-				color: appSettings.fontColor
+				font.pixelSize: userSettings.smallFontSize
+				color: userSettings.fontColor
 				elide: Text.ElideRight
 				Layout.leftMargin: 10
 				Layout.rightMargin: 10
@@ -177,7 +178,7 @@ TPPage {
 
 			Rectangle {
 				height: 3
-				color: appSettings.fontColor
+				color: userSettings.fontColor
 				Layout.fillWidth: true
 				Layout.topMargin: 20
 				Layout.bottomMargin: 20
@@ -191,68 +192,68 @@ TPPage {
 
 			TPRadioButtonOrCheckBox {
 				text: "Material"
-				checked: appSettings.themeStyle === text;
+				checked: userSettings.themeStyle === text;
 				Layout.fillWidth: true
 				Layout.leftMargin: 10
 
 				onClicked: {
 					bNeedRestart = true;
-					appSettings.themeStyle = text;
+					userSettings.themeStyle = text;
 				}
 			}
 
 			TPRadioButtonOrCheckBox {
 				text: "Basic"
-				checked: appSettings.themeStyle === text;
+				checked: userSettings.themeStyle === text;
 				Layout.fillWidth: true
 				Layout.leftMargin: 10
 
 				onClicked: {
 					bNeedRestart = true;
-					appSettings.themeStyle = text;
+					userSettings.themeStyle = text;
 				}
 			}
 
 			TPRadioButtonOrCheckBox {
 				text: "Fusion"
-				checked: appSettings.themeStyle === text;
+				checked: userSettings.themeStyle === text;
 				Layout.fillWidth: true
 				Layout.leftMargin: 10
 
 				onClicked: {
 					bNeedRestart = true;
-					appSettings.themeStyle = text;
+					userSettings.themeStyle = text;
 				}
 			}
 
 			TPRadioButtonOrCheckBox {
 				text: "Imagine"
-				checked: appSettings.themeStyle === text;
+				checked: userSettings.themeStyle === text;
 				Layout.fillWidth: true
 				Layout.leftMargin: 10
 
 				onClicked: {
 					bNeedRestart = true;
-					appSettings.themeStyle = text;
+					userSettings.themeStyle = text;
 				}
 			}
 
 			TPRadioButtonOrCheckBox {
 				text: "Universal"
-				checked: appSettings.themeStyle === text;
+				checked: userSettings.themeStyle === text;
 				Layout.fillWidth: true
 				Layout.leftMargin: 10
 
 				onClicked: {
 					bNeedRestart = true;
-					appSettings.themeStyle = text;
+					userSettings.themeStyle = text;
 				}
 			}
 //------------------------------------------------------THEME------------------------------------------------------
 
 			Rectangle {
 				height: 3
-				color: appSettings.fontColor
+				color: userSettings.fontColor
 				Layout.fillWidth: true
 				Layout.topMargin: 20
 				Layout.bottomMargin: 20
@@ -267,7 +268,7 @@ TPPage {
 
 			Repeater {
 				id: colorSchemeRepeater
-				model: appSettings.colorSchemes
+				model: userSettings.colorSchemes
 
 				Row {
 					spacing: 20
@@ -279,19 +280,19 @@ TPPage {
 					required property int index
 
 					TPRadioButtonOrCheckBox {
-						text: appSettings.colorSchemes[index]
-						checked: appSettings.colorScheme === index
+						text: userSettings.colorSchemes[index]
+						checked: userSettings.colorScheme === index
 						multiLine: index === 0
 						width: parent.width*0.6
 
-						onClicked: appSettings.colorScheme = index;
-						Component.onCompleted: appSettings.colorChanged.connect(function() { checked = appSettings.colorScheme === index; });
+						onClicked: userSettings.colorScheme = index;
+						Component.onCompleted: userSettings.colorChanged.connect(function() { checked = userSettings.colorScheme === index; });
 					}
 
 					TPColorRectangle {
-						midColor: appSettings.colorForScheme(index)
-						lightColor: appSettings.lightColorForScheme(index)
-						darkColor: appSettings.darkColorForScheme(index)
+						midColor: userSettings.colorForScheme(index)
+						lightColor: userSettings.lightColorForScheme(index)
+						darkColor: userSettings.darkColorForScheme(index)
 						clickable: index === 0
 						width: parent.width*0.3
 					}
@@ -301,7 +302,7 @@ TPPage {
 
 			Rectangle {
 				height: 3
-				color: appSettings.fontColor
+				color: userSettings.fontColor
 				Layout.fillWidth: true
 			}
 
@@ -357,8 +358,8 @@ TPPage {
 				Layout.alignment: Qt.AlignCenter
 
 				onClicked: {
-					appSettings.fontColor = lblEnabled.color;
-					appSettings.disabledFontColor = lblDisabled.color;
+					userSettings.fontColor = lblEnabled.color;
+					userSettings.disabledFontColor = lblDisabled.color;
 					enabled = false;
 				}
 			}

@@ -14,13 +14,14 @@
 #include <random>
 
 QStringList TPUtils::_months_names{QStringList{} <<
-		tr("January") << tr("February") << tr("March") << tr("April") << tr("May") <<
-		tr("June") << tr("July") << tr("August") << tr("September") << tr("October") <<
-		tr("November") << tr("December")
+		std::move(tr("January")) << std::move(tr("February")) << std::move(tr("March")) << std::move(tr("April")) <<
+		std::move(tr("May")) << std::move(tr("June")) << std::move(tr("July")) << std::move(tr("August")) <<
+		std::move(tr("September")) << std::move(tr("October")) << std::move(tr("November")) << std::move(tr("December"))
 };
 
-QStringList TPUtils::_days_names{QStringList() << tr("Sunday") << tr("Monday") << tr("Tuesday") <<
-		tr("Wednesday") << tr("Thursday") << tr("Friday") << tr("Saturday")
+QStringList TPUtils::_days_names{QStringList{} << std::move(tr("Sunday")) << std::move(tr("Monday")) <<
+	std::move(tr("Tuesday")) << std::move(tr("Wednesday")) << std::move(tr("Thursday")) << std::move(tr("Friday")) <<
+	std::move(tr("Saturday"))
 };
 
 TPUtils *TPUtils::app_utils{nullptr};
@@ -154,6 +155,72 @@ bool TPUtils::mkdir(const QString &fileOrDir) const
 	if (!fs_dir.exists())
 		return fs_dir.mkpath(path);
 	return true;
+}
+
+bool TPUtils::rename(const QString &source_file_or_dir, const QString &dest_file_or_dir, const bool overwrite) const
+{
+	const QFileInfo fi_src{source_file_or_dir};
+	const QFileInfo fi_dest{dest_file_or_dir};
+
+	if (fi_src.exists())
+	{
+		if (fi_src.isDir())
+		{
+			QDir dest_dir;
+			if (fi_dest.exists())
+			{
+				if (!fi_dest.isDir()) //dest_file_or_dir is a file
+				{
+					if (overwrite)
+						QFile::remove(dest_file_or_dir);
+					else
+						return false;
+				}
+				else
+				{
+					if (overwrite)
+					{
+						dest_dir.setPath(dest_file_or_dir);
+						if (!dest_dir.removeRecursively())
+							return false;
+					}
+					else
+						return false;
+				}
+			}
+			dest_dir.rename(source_file_or_dir, dest_file_or_dir);
+			return true;
+		}
+		else
+		{
+			QFile dest_file;
+			if (fi_dest.exists())
+			{
+				if (!fi_dest.isFile()) //dest_file_or_dir is a dir
+				{
+					if (overwrite)
+					{
+						QDir dest_dir{dest_file_or_dir};
+						if (!dest_dir.removeRecursively())
+							return false;
+					}
+					else
+						return false;
+				}
+				else
+				{
+					if (overwrite)
+						QFile::remove(dest_file_or_dir);
+					else
+						return false;
+				}
+			}
+			QFile::rename(source_file_or_dir, dest_file_or_dir);
+			return true;
+		}
+	}
+	else
+		return fi_dest.exists();
 }
 
 bool TPUtils::copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath) const

@@ -73,7 +73,6 @@ TPPage {
 					enabled: !bEdit
 					width: toolbarExercises.buttonWidth
 					rounded: false
-					flat: false
 
 					onClicked: {
 						if (!bNew) {
@@ -104,7 +103,6 @@ TPPage {
 					enabled: !bNew && exercisesModel.currentRow >= 0
 					width: toolbarExercises.buttonWidth
 					rounded: false
-					flat: false
 
 					onClicked: {
 						if (!bEdit) {
@@ -130,7 +128,6 @@ TPPage {
 					text: qsTr("Add")
 					width: toolbarExercises.buttonWidth
 					rounded: false
-					flat: false
 
 					onClicked: chooseExercise();
 				} //btnAddExercise
@@ -141,7 +138,6 @@ TPPage {
 					visible: !bChooseButtonEnabled
 					width: toolbarExercises.buttonWidth
 					rounded: false
-					flat: false
 
 					onClicked: showInExMenu();
 				} // btnImExport

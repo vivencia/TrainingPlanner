@@ -83,7 +83,7 @@ TPPopup {
 			Layout.preferredHeight: minimumHeight
 		}
 
-		Component.onCompleted: currentIndex = appSettings.appLocale.length > 0 ? 1 : 0;
+		Component.onCompleted: currentIndex = userSettings.userLocale.length > 0 ? 1 : 0;
 	}
 
 	Frame {

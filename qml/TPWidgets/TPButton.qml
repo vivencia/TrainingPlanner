@@ -11,15 +11,15 @@ Rectangle {
 	radius: rounded ? height : 6
 	opacity: checked ? 0.7 : 1
 	color: backgroundColor
-	height: (autoSize ? buttonText.contentHeight : appSettings.itemDefaultHeight) +
+	height: (autoSize ? buttonText.contentHeight : userSettings.itemDefaultHeight) +
 							(textUnderIcon ? imageSize : 0) + (text.length > 0 ? buttonText.lineCount * 10 : 0)
 	width: autoSize ? preferredWidth : undefined
 
 	readonly property int preferredWidth: buttonText.contentWidth + (textUnderIcon ? 0 : imageSize) + (text.length > 0 ? 20 : 0)
-	property color textColor: appSettings.fontColor
+	property color textColor: userSettings.fontColor
 	property alias font: buttonText.font
 	property alias text: buttonText.text
-	property string backgroundColor: text.length > 0 ? appSettings.paneBackgroundColor : "transparent"
+	property string backgroundColor: text.length > 0 ? userSettings.paneBackgroundColor : "transparent"
 	property string imageSource
 	property bool autoSize: false
 	property bool textUnderIcon: false
@@ -41,10 +41,10 @@ Rectangle {
 	signal clicked(int clickid);
 	signal check(int clickid);
 
-	property color color1: appSettings.paneBackgroundColor
-	property color color2: appSettings.primaryLightColor
-	property color color3: appSettings.primaryColor
-	property color color4: appSettings.primaryDarkColor
+	property color color1: userSettings.paneBackgroundColor
+	property color color2: userSettings.primaryLightColor
+	property color color3: userSettings.primaryColor
+	property color color4: userSettings.primaryDarkColor
 
 	Gradient {
 		id: enabledGradient
@@ -74,27 +74,27 @@ Rectangle {
 		onRunningChanged: {
 			if (!running) {
 				iteration = 4;
-				color1 = appSettings.paneBackgroundColor;
-				color2 = appSettings.primaryLightColor;
-				color3 = appSettings.primaryColor;
-				color4 = appSettings.primaryDarkColor;
+				color1 = userSettings.paneBackgroundColor;
+				color2 = userSettings.primaryLightColor;
+				color3 = userSettings.primaryColor;
+				color4 = userSettings.primaryDarkColor;
 			}
 		}
 
 		onTriggered: {
 			switch (iteration) {
 				case 4:
-					color1 = appSettings.primaryLightColor;
+					color1 = userSettings.primaryLightColor;
 				break;
 				case 3:
-					color1 = appSettings.paneBackgroundColor;
+					color1 = userSettings.paneBackgroundColor;
 				break;
 				case 2:
-					color3 = appSettings.primaryLightColor;
+					color3 = userSettings.primaryLightColor;
 				break;
 				case 1:
-					color3 = appSettings.primaryColor;
-					color4 = appSettings.primaryLightColor;
+					color3 = userSettings.primaryColor;
+					color4 = userSettings.primaryLightColor;
 				break;
 				case 0:
 					highlightTimer.stop();
@@ -120,7 +120,7 @@ Rectangle {
 			if (buttonText.lineCount > 1)
 				buttonText.height = button.height - imageSize - 10;
 			else
-				buttonText.height = appSettings.itemDefaultHeight;
+				buttonText.height = userSettings.itemDefaultHeight;
 		}
 	}
 
@@ -146,10 +146,10 @@ Rectangle {
 	Label {
 		id: buttonText
 		visible: text.length > 0
-		color: enabled ? appSettings.fontColor : appSettings.disabledFontColor
+		color: enabled ? userSettings.fontColor : userSettings.disabledFontColor
 		wrapMode: multiline ? Text.WordWrap : Text.NoWrap
 		font: AppGlobals.regularFont
-		minimumPixelSize: appSettings.smallFontSize
+		minimumPixelSize: userSettings.smallFontSize
 		maximumLineCount: 5
 		fontSizeMode: autoSize ? Text.FixedSize : Text.Fit
 		topInset: 0
@@ -263,18 +263,20 @@ Rectangle {
 			if (text.length > 0) {
 				imageSize = Math.min(buttonText.height, buttonText.width);
 				if (imageSize === 0)
-					imageSize = Math.ceil(appSettings.itemDefaultHeight * 0.9);
+					imageSize = Math.ceil(userSettings.itemSmallHeight);
 			}
 			else {
 				if (autoSize)
-					imageSize = appSettings.appDefaultHeight * 0.9;
+					imageSize = userSettings.appDefaultHeight * 0.9;
 				else
 					imageSize = Math.min(height, width) * 0.9;
 			}
 			_buttonImage = component.createObject(button,
 				{ imageSource: imageSource, width: imageSize, height: imageSize, dropShadow: hasDropShadow});
-			if (button.text.length === 0)
+			if (button.text.length === 0) {
 				_buttonImage.anchors.centerIn = button;
+				flat = true;
+			}
 		}
 		if (component.status === Component.Ready)
 			finishCreation();
