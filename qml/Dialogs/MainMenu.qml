@@ -4,15 +4,19 @@ import QtQuick.Layouts
 
 import "../"
 import "../TPWidgets"
+import "../User"
+
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 Drawer {
-	id: drawer
+	id: mainMenu
 	height: mainwindow.height
 	implicitWidth: mainwindow.width * 0.7
 	spacing: 0
 	padding: 0
 	edge: Qt.RightEdge
+
+	required property Page rootPage
 
 	Connections {
 		target: userModel
@@ -52,7 +56,7 @@ Drawer {
 		id: drawerLayout
 		spacing: 5
 		opacity: parent.opacity
-		height: drawer.height * 0.65
+		height: mainMenu.height * 0.65
 
 		anchors {
 			left: parent.left
@@ -101,7 +105,7 @@ Drawer {
 			TPButton {
 				id: btnSettings
 				imageSource: "settings"
-				width: userSettings.itemExtraLargeItem
+				width: userSettings.itemExtraLargeHeight
 				height: width
 				enabled: { // Force the binding to re-evaluate so that the check is run each time the page changes.
 					stackView.currentItem
@@ -116,7 +120,7 @@ Drawer {
 				anchors {
 					top: userModel.onlineUser ? imgOnline.bottom : parent.top
 					left: parent.left
-					leftMargin: - (drawer.width - parent.width) / 2
+					leftMargin: - (mainMenu.width - parent.width) / 2
 				}
 			}
 		}
@@ -153,6 +157,20 @@ Drawer {
 					close();
 				}
 			}
+
+			TPButton {
+				imageSource: "switch_user.png"
+				width: userSettings.itemDefaultHeight
+				height: width
+				visible: { return Qt.platform.os !== "android"}
+
+				onClicked: showSwitchUserDialog();
+
+				anchors {
+					left: parent.right
+					bottom: parent.bottom
+				}
+			}
 		}
 
 		TPLabel {
@@ -181,7 +199,7 @@ Drawer {
 			contentHeight: availableHeight
 			contentWidth: availableWidth
 			Layout.fillWidth: true
-			Layout.minimumHeight: drawer.height * 0.35
+			Layout.minimumHeight: mainMenu.height * 0.35
 
 			ScrollBar.vertical: ScrollBar {
 				policy: ScrollBar.AsNeeded
@@ -250,5 +268,27 @@ Drawer {
 		}
 
 		onClicked: itemManager.exitApp();
+	}
+
+	property AllUsers allUsersDialog: null
+	function showSwitchUserDialog(): void {
+		userModel.getAllOnlineUsers();
+
+		if (allUsersDialog === null) {
+			function createDialog() {
+				let component = Qt.createComponent("qrc:/qml/User/AllUsers.qml", Qt.Asynchronous);
+
+				function finishCreation() {
+					allUsersDialog = component.createObject(contentItem, { parentPage: mainMenu.rootPage });
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			createDialog();
+		}
+		allUsersDialog.show1(-1);
 	}
 } //Drawer

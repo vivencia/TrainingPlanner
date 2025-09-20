@@ -49,10 +49,11 @@ public:
 	const QString STR_END_EXPORT{"##!!"_L1};
 	const QString STR_END_FORMATTED_EXPORT{"##$$"_L1};
 
-	explicit TPUtils(QObject *parent = nullptr);
+	explicit inline TPUtils(QObject *parent = nullptr): QObject{parent}, m_appLocale{nullptr}
+	{
+		app_utils = this;
+	}
 	inline ~TPUtils() { delete m_appLocale; }
-
-	inline const QString &localAppFilesDir() const { return m_localAppFilesDir; }
 
 	int generateUniqueId(const QLatin1StringView &seed = QLatin1StringView{}) const;
 	int idFromString(const QString &string_id) const; //not unique
@@ -63,6 +64,7 @@ public:
 	Q_INVOKABLE bool canReadFile(const QString &filename) const;
 	QString getFilePath(const QString &filename) const;
 	QString getLastDirInPath(const QString &filename) const;
+	//Returns the filename or the last directory in path if path does not include a file
 	QString getFileName(const QString &filename, const bool without_extension = false) const;
 	QString getFileExtension(const QString &filename, const bool include_dot = false) const;
 	bool mkdir(const QString &fileOrDir) const;
@@ -179,7 +181,6 @@ public:
 	inline uint splitLetterToMesoSplitIndex(const QChar &letter) const { return splitLetterToIndex(letter) + 2; }
 
 private:
-	QString m_localAppFilesDir;
 	QLocale *m_appLocale;
 
 	static QStringList _months_names;

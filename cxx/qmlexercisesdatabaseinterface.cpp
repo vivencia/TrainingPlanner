@@ -35,7 +35,7 @@ void QmlExercisesDatabaseInterface::exportExercises(const bool bShare)
 	int exportFileMessageId{0};
 	if (appExercisesList()->collectExportData())
 	{
-		const QString &exportFileName{appUtils()->localAppFilesDir() + tr("TrainingPlanner Exercises List") + ".txt"_L1};
+		const QString &exportFileName{appSettings()->localAppFilesDir() + tr("TrainingPlanner Exercises List") + ".txt"_L1};
 		exportFileMessageId = appExercisesList()->exportToFile(exportFileName);
 		if (exportFileMessageId >= 0)
 		{

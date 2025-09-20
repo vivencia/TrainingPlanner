@@ -47,7 +47,9 @@ ApplicationWindow {
 		id: mainMenu
 		active: userModel.mainUserConfigured
 		asynchronous: true
-		source: "qrc:/qml/Dialogs/MainMenu.qml"
+		sourceComponent: MainMenu {
+			rootPage: homePage
+		}
 	}
 
 	Loader {

@@ -300,7 +300,7 @@ QString OSInterface::readFileFromAndroidFileDialog(const QString &android_uri) c
 	if (android_uri.startsWith("//com"_L1))
 	{
 		const QString &properFilename{"content:"_L1 + android_uri};
-		const QString &localFile{appUtils()->localAppFilesDir() + "tempfile"_L1};
+		const QString &localFile{appSettings()->localAppFilesDir() + "tempfile"_L1};
 		static_cast<void>(QFile::remove(localFile));
 		return appUtils()->copyFile(properFilename, localFile) ? properFilename : QString();
 	}
@@ -733,7 +733,7 @@ void OSInterface::viewExternalFile(const QString &filename) const
 	if (!appUtils()->canReadFile(appUtils()->getCorrectPath(filename)))
 		return;
 	#ifdef Q_OS_ANDROID
-	const QString &localFile{appUtils()->localAppFilesDir() + "tempfile"_L1 + filename.last(4)};
+	const QString &localFile{appSettings()->localAppFilesDir() + "tempfile"_L1 + filename.last(4)};
 	static_cast<void>(QFile::remove(localFile));
 	if (appUtils()->copyFile(filename, localFile))
 		viewFile(localFile, tr("View file with..."));

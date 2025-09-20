@@ -6,7 +6,7 @@ import "../"
 
 Popup {
 	id: tpPopup
-	objectName: "TPPopup"
+	//objectName: "TPPopup"
 	closePolicy: keepAbove ? Popup.NoAutoClose : Popup.CloseOnPressOutside
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	spacing: 0

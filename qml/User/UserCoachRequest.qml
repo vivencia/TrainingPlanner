@@ -78,7 +78,7 @@ TPPopup {
 					enabled: !userModel.availableCoaches.isUserDefault(index)
 
 					TPRadioButtonOrCheckBox {
-						text: display
+						text: extraName
 						radio: false
 						multiLine: true
 						checked: selected

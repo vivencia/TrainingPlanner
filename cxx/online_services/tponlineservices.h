@@ -30,6 +30,7 @@ public:
 	void scanNetwork();
 #ifndef Q_OS_ANDROID
 	inline void setUseLocalHost(const bool use_localhost) { m_useLocalHost = use_localhost; }
+	void getAllUsers(const int requestid);
 #endif
 	void checkOnlineUser(const int requestid, const QString &query, const QString &passwd);
 	void getOnlineUserData(const int requestid, const QString &user_id);
@@ -73,6 +74,8 @@ public:
 	 */
 	void listFiles(const int requestid, const QString &username, const QString &passwd, const bool only_new = true,
 					const bool include_ctime = false, const QString &pattern = QString{}, const QString &subdir = QString{}, const QString &targetUser = QString{});
+	void listDirs(const int requestid, const QString &username, const QString &passwd, const QString &pattern = QString{},
+					const QString &subdir = QString{}, const QString &targetUser = QString{}, const bool include_dot_dir = false);
 	void removeFile(const int requestid, const QString &username, const QString &passwd, const QString &filename, const QString &subdir = QString{},
 					const QString &targetUser = QString{});
 	void getFile(const int requestid, const QString &username, const QString &passwd, const QString &filename,

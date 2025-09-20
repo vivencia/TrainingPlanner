@@ -22,8 +22,20 @@ Q_PROPERTY(bool anySelected READ anySelected NOTIFY selectedChanged FINAL)
 Q_PROPERTY(bool allSelected READ allSelected NOTIFY selectedChanged FINAL)
 Q_PROPERTY(bool noneSelected READ noneSelected NOTIFY selectedChanged FINAL)
 
+#ifndef Q_OS_ANDROID
+Q_PROPERTY(QString userId READ userId CONSTANT FINAL)
+#endif
+
 public:
-	explicit OnlineUserInfo(QObject *parent = nullptr);
+	explicit OnlineUserInfo(QObject *parent, const uint total_cols);
+
+#ifndef Q_OS_ANDROID
+	inline QString userId() const
+	{
+		Q_ASSERT_X(m_currentRow >= 0 && m_currentRow < m_modeldata.count(), "OnlineUserInfo::userId", "row out of range");
+		return m_modeldata.at(m_currentRow).at(0);
+	}
+#endif
 
 	inline uint count() const { return m_modeldata.count(); }
 	inline const QString &sourcePath()const { return m_sourcePath; }
@@ -99,9 +111,14 @@ public:
 
 	bool containsUser(const QString &userid) const;
 
-	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
+	inline int rowCount(const QModelIndex & = QModelIndex{}) const override final { return count(); }
+	inline int columnCount(const QModelIndex & = QModelIndex{}) const override final { return m_totalCols; }
+
+	QString fieldValueFromAnotherFieldValue(const uint target_field, const uint source_field, const QString &needle) const;
+
 	QVariant data(const QModelIndex &index, int role) const override final;
 	bool setData(const QModelIndex &index, const QVariant &value, int role) override final;
+	QVariant headerData(int section, Qt::Orientation orientation, int header_role) const override final;
 	// return the roles mapping to be used by QML
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
 
@@ -115,6 +132,6 @@ private:
 	QList<QStringList> m_modeldata;
 	QList<QStringList> m_extraInfo;
 	QString m_sourcePath;
-	uint m_nselected;
+	uint m_nselected, m_totalCols;
 	int m_currentRow;
 };

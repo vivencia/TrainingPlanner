@@ -51,6 +51,8 @@ public:
 
 	Q_INVOKABLE QString availableLanguagesLabel(const uint language_idx) const;
 	Q_INVOKABLE QStringList availableLanguages() const;
+
+	inline const QString &localAppFilesDir() const { return m_localAppFilesDir; }
 	QString userDir(const QString &userid) const;
 	inline QString currentUserDir() const { return userDir(currentUser()); }
 	void changeUserSettings(const QString &userid);
@@ -64,6 +66,7 @@ private:
 	qreal m_ratioFont;
 	uint m_windowWidth, m_windowHeight, m_qmlPageHeight;
 	double m_HeightToWidth;
+	QString m_localAppFilesDir;
 
 	inline void changeValue(const uint index, const QVariant &new_value)
 	{

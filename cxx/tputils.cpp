@@ -8,7 +8,6 @@
 #include <QDir>
 #include <QGuiApplication>
 #include <QLocale>
-#include <QStandardPaths>
 
 #include <ranges>
 #include <random>
@@ -25,13 +24,6 @@ QStringList TPUtils::_days_names{QStringList{} << std::move(tr("Sunday")) << std
 };
 
 TPUtils *TPUtils::app_utils{nullptr};
-
-TPUtils::TPUtils(QObject *parent)
-	: QObject{parent}, m_appLocale{nullptr},
-		m_localAppFilesDir{std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)) + QLatin1Char('/')}
-{
-	app_utils = this;
-}
 
 int TPUtils::generateUniqueId(const QLatin1StringView &seed) const
 {
@@ -129,7 +121,7 @@ QString TPUtils::getFileName(const QString &filename, const bool without_extensi
 	QString f_name;
 	const qsizetype slash_idx{filename.lastIndexOf('/')};
 	if (slash_idx > 0)
-		f_name = std::move(filename.right(filename.length() - slash_idx -1));
+		f_name = std::move(filename.right(filename.length() - slash_idx - 1));
 
 	if (without_extension)
 	{

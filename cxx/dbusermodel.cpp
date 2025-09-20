@@ -54,11 +54,11 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 	{
 		_appUserModel = this;
 
-		m_onlineCoachesDir = std::move(appUtils()->localAppFilesDir() + "online_coaches/"_L1);
-		m_dirForRequestedCoaches = std::move(appUtils()->localAppFilesDir() + "requested_coaches/"_L1);
-		m_dirForClientsRequests = std::move(appUtils()->localAppFilesDir() + "clients_requests/"_L1);
-		m_dirForCurrentClients = std::move(appUtils()->localAppFilesDir() + "clients/"_L1);
-		m_dirForCurrentCoaches = std::move(appUtils()->localAppFilesDir() + "coaches/"_L1);
+		m_onlineCoachesDir = std::move(appSettings()->userDir(userId(0)) + "online_coaches/"_L1);
+		m_dirForRequestedCoaches = std::move(appSettings()->userDir(userId(0)) + "requested_coaches/"_L1);
+		m_dirForClientsRequests = std::move(appSettings()->userDir(userId(0)) + "clients_requests/"_L1);
+		m_dirForCurrentClients = std::move(appSettings()->userDir(userId(0)) + "clients/"_L1);
+		m_dirForCurrentCoaches = std::move(appSettings()->userDir(userId(0)) + "coaches/"_L1);
 
 		mb_MainUserInfoChanged = false;
 		connect(this, &DBUserModel::userModified, this, [this] (const uint user_idx, const uint field) {
@@ -221,7 +221,7 @@ int DBUserModel::userIdxFromFieldValue(const uint field, const QString &value) c
 	return -1;
 }
 
-const QString &DBUserModel::userIdFromFieldValue(const uint field, const QString &value) const
+QString DBUserModel::userIdFromFieldValue(const uint field, const QString &value) const
 {
 	const auto &user{std::find_if(m_usersData.cbegin(), m_usersData.cend(), [field,value] (const auto &user_info) {
 		return user_info.at(field) == value;
@@ -236,7 +236,7 @@ const QString DBUserModel::localDir(const int user_idx) const
 	switch (user_idx)
 	{
 		case -1: return QString{};
-		case 0: return appUtils()->localAppFilesDir() + userId(0) + '/';
+		case 0: return appSettings()->userDir(userId(0));
 		default:
 			if (user_idx != m_tempRow)
 				return (isCoach(user_idx) ? m_dirForCurrentCoaches : m_dirForCurrentClients) + userId(user_idx) + '/';
@@ -402,6 +402,78 @@ void DBUserModel::changeClient(const uint user_idx, const QString &oldname)
 	}
 }
 
+#ifndef Q_OS_ANDROID
+#include <QThread>
+void DBUserModel::getAllOnlineUsers()
+{
+	if (canConnectToServer())
+	{
+		const int requestid{appUtils()->generateUniqueId("getAllOnlineUsers"_L1)};
+		auto conn{std::make_shared<QMetaObject::Connection>()};
+		*conn = connect(appOnlineServices(), &TPOnlineServices::networkListReceived, this, [this,conn,requestid]
+						(const int request_id, const int ret_code, const QStringList &ret_list)
+		{
+			if (request_id == requestid)
+			{
+				disconnect(*conn);
+				if (!m_allUsers)
+					m_allUsers = new OnlineUserInfo{this, USER_TOTAL_COLS};
+				else
+					m_allUsers->clear();
+				for (const auto &userid : std::as_const(ret_list))
+				{
+					const int requestid2{static_cast<int>(userid.toLong())};
+					auto conn2{std::make_shared<QMetaObject::Connection>()};
+					*conn2 = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn2,requestid2]
+								(const int request_id, const int ret_code, const QString &ret_string) mutable
+					{
+						if (request_id == requestid2)
+						{
+							disconnect(*conn2);
+							if (ret_code == 0)
+							{
+								if (m_allUsers->dataFromString(ret_string))
+									emit allUsersChanged();
+							}
+						}
+					});
+					appOnlineServices()->getOnlineUserData(requestid2, userid);
+				}
+			}
+		});
+		appOnlineServices()->getAllUsers(requestid);
+	}
+}
+
+void DBUserModel::switchUser()
+{
+	if (m_allUsers->currentRow() >= 0)
+	{
+		const QString &new_userid{m_allUsers->data(m_allUsers->currentRow(), USER_COL_ID)};
+		QTimer *downloadTimeOut{new QTimer{this}};
+
+		connect(this, &DBUserModel::allUserFilesDownloaded, this, [this,new_userid,downloadTimeOut] (const bool success)
+		{
+			delete downloadTimeOut;
+			if (!success)
+			{
+				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR,
+					appUtils()->string_strings({ tr("User switching error"),
+						tr("Could not download files for user ") +
+							m_allUsers->fieldValueFromAnotherFieldValue(USER_COL_NAME, USER_COL_ID, new_userid)},
+								record_separator), "error");
+				return;
+			}
+			//TODO
+
+		}, Qt::SingleShotConnection);
+		downloadAllUserFiles(new_userid);
+		downloadTimeOut->callOnTimeout([this] () { emit allUserFilesDownloaded(false); });
+		downloadTimeOut->start(60*1000);
+	}
+}
+#endif
+
 int DBUserModel::getTemporaryUserInfo(OnlineUserInfo *tempUser, const uint userInfoRow)
 {
 	if (m_tempRow >= 1)
@@ -542,7 +614,7 @@ void DBUserModel::changePassword(const QString &old_password, const QString &new
 
 void DBUserModel::importFromOnlineServer()
 {
-	if (appOsInterface()->tpServerOK())
+	if (canConnectToServer())
 	{
 		const int requestid{appUtils()->generateUniqueId("importFromOnlineServer"_L1)};
 		auto conn = std::make_shared<QMetaObject::Connection>();
@@ -826,7 +898,7 @@ int DBUserModel::downloadFileFromServer(const QString &filename, const QString &
 				bool success{true};
 				QString dest_file;
 				if (local_filename.isEmpty())
-					dest_file = std::move(appUtils()->localAppFilesDir() + filename);
+					dest_file = std::move(appSettings()->userDir(userId(0)) + filename);
 				else
 				{
 					static_cast<void>(appUtils()->mkdir(appUtils()->getFilePath(local_filename)));
@@ -1103,6 +1175,71 @@ void DBUserModel::slot_revokeClientStatus(int new_use_opt, bool revoke)
 		emit userModified(0, USER_COL_APP_USE_MODE);
 	}
 }
+
+#ifndef Q_OS_ANDROID
+void DBUserModel::downloadAllUserFiles(const QString &userid)
+{
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,userid] (const QString &key, const QString &value) {
+		appUtils()->mkdir(appSettings()->userDir(userid));
+		const int requestid{static_cast<int>(userid.toLong())};
+		auto conn{std::make_shared<QMetaObject::Connection>()};
+		*conn = connect(appOnlineServices(), &TPOnlineServices::networkListReceived, this, [this,conn,userid,requestid,key,value]
+						(const int request_id, const int ret_code, const QStringList &ret_list)
+		{
+			if (request_id == requestid)
+			{
+				disconnect(*conn);
+				int total_files{0};
+				for (const auto &dir : std::as_const(ret_list))
+				{
+					QString dest_dir{appSettings()->userDir(userid)};
+					if (dir != '.')
+					{
+						dest_dir += dir;
+						appUtils()->mkdir(dest_dir);
+					}
+					const int requestid2{static_cast<int>(dir.toLong())};
+					auto conn2{std::make_shared<QMetaObject::Connection>()};
+					*conn2 = connect(appOnlineServices(), &TPOnlineServices::networkListReceived, this, [this,conn2,requestid2,userid,dest_dir,total_files]
+						(const int request_id, const int ret_code, const QStringList &ret_list) mutable
+					{
+						if (request_id == requestid2)
+						{
+							disconnect(*conn2);
+							total_files += ret_list.count();
+							if (ret_code == 0)
+							{
+								for (const auto &file : std::as_const(ret_list))
+								{
+									const QLatin1String &seed{file.toLatin1()};
+									const int requestid3{appUtils()->generateUniqueId(seed)};
+									auto conn3{std::make_shared<QMetaObject::Connection>()};
+									*conn3 = connect(this, &DBUserModel::fileDownloaded, this, [this,conn3,requestid3,total_files]
+										(const bool success, const uint requestid, const QString &localFileName) mutable
+									{
+										if (requestid == requestid3)
+										{
+											disconnect(*conn3);
+											total_files--;
+											if (total_files <= 0)
+												emit allUserFilesDownloaded(true);
+										}
+									});
+									downloadFileFromServer(file, dest_dir + file, QString{}, appUtils()->getFileName(dest_dir), userid);
+									}
+							}
+						}
+					});
+					appOnlineServices()->listFiles(requestid2, key, value, false, false, QString{}, dir, userid);
+				}
+			}
+		});
+		appOnlineServices()->listDirs(requestid, key, value, QString{}, QString{}, userid);
+		emit userIdChanged();
+	}, Qt::SingleShotConnection);
+	appKeyChain()->readKey(userId(0));
+}
+#endif
 
 QString DBUserModel::getPhonePart(const QString &str_phone, const bool prefix) const
 {
@@ -1580,14 +1717,14 @@ void DBUserModel::startServerPolling()
 
 	if (isCoach(0))
 	{
-		m_pendingClientRequests = new OnlineUserInfo{this};
+		m_pendingClientRequests = new OnlineUserInfo{this, USER_TOTAL_COLS};
 		static_cast<void>(appUtils()->mkdir(m_dirForClientsRequests));
 		static_cast<void>(appUtils()->mkdir(m_dirForCurrentClients));
 	}
 	if (isClient(0))
 	{
-		m_pendingCoachesResponses = new OnlineUserInfo{this};
-		m_availableCoaches = new OnlineUserInfo{this};
+		m_pendingCoachesResponses = new OnlineUserInfo{this, USER_TOTAL_COLS};
+		m_availableCoaches = new OnlineUserInfo{this, USER_TOTAL_COLS};
 		static_cast<void>(appUtils()->mkdir(m_dirForRequestedCoaches));
 		static_cast<void>(appUtils()->mkdir(m_dirForCurrentCoaches));
 	}

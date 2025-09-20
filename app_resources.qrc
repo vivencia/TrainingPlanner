@@ -111,5 +111,6 @@
         <file>images/flat/question.png</file>
         <file>images/online.png</file>
         <file>images/offline.png</file>
+        <file>images/flat/switch_user.png</file>
     </qresource>
 </RCC>

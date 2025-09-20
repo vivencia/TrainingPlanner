@@ -71,6 +71,11 @@ Q_PROPERTY(bool haveClients READ haveClients NOTIFY haveClientsChanged FINAL)
 Q_PROPERTY(bool mainUserConfigured READ mainUserConfigured NOTIFY mainUserConfigurationFinished FINAL)
 Q_PROPERTY(bool canConnectToServer READ canConnectToServer NOTIFY canConnectToServerChanged FINAL)
 
+#ifndef Q_OS_ANDROID
+Q_PROPERTY(OnlineUserInfo* allUsers READ allUsers NOTIFY allUsersChanged FINAL)
+Q_PROPERTY(QString userId READ userId NOTIFY userIdChanged FINAL)
+#endif
+
 public:
 	explicit DBUserModel(QObject *parent = nullptr, const bool bMainUserModel = true);
 
@@ -127,12 +132,14 @@ public:
 	Q_INVOKABLE inline int findUserByName(const QString &username) const { return userIdxFromFieldValue(USER_COL_NAME, username); }
 	Q_INVOKABLE inline QString userNameFromId(const QString &userid) const { return userName(userIdxFromFieldValue(USER_COL_ID, userid)); }
 	int userIdxFromFieldValue(const uint field, const QString &value) const;
-	const QString &userIdFromFieldValue(const uint field, const QString &value) const;
+	QString userIdFromFieldValue(const uint field, const QString &value) const;
 	inline const QString localDir(const QString &userid) const { return localDir(userIdxFromFieldValue(USER_COL_ID, userid)); }
 	const QString localDir(const int user_idx) const;
 
+	#ifdef Q_OS_ANDROID
 	// m_onlineCoachesDir: just a referenceable QString that will not have any meaningful impact elsehwere
 	inline const QString &userId(const int user_idx) const { return user_idx < m_usersData.count() ? m_usersData.at(user_idx).at(USER_COL_ID) : m_onlineCoachesDir; }
+	#endif
 	inline void setUserId(const uint user_idx, const QString &new_id) { m_usersData[user_idx][USER_COL_ID] = new_id; }
 
 	Q_INVOKABLE inline QString userName(const int user_idx) const { return user_idx >= 0 && user_idx < m_usersData.count() ? _userName(user_idx) : QString{}; }
@@ -261,6 +268,13 @@ public:
 	void delClient(const uint user_idx);
 	void changeClient(const uint user_idx, const QString &oldname);
 
+#ifndef Q_OS_ANDROID
+	Q_INVOKABLE void getAllOnlineUsers();
+	Q_INVOKABLE void switchUser();
+	inline QString userId(const int user_idx = 0) const { return user_idx < m_usersData.count() ? m_usersData.at(user_idx).at(USER_COL_ID) : QString{}; }
+	inline OnlineUserInfo *allUsers() const { return m_allUsers; }
+#endif
+
 	Q_INVOKABLE int getTemporaryUserInfo(OnlineUserInfo *tempUser, const uint userInfouser_idx);
 	bool mainUserConfigured() const;
 	inline bool canConnectToServer() const { return mb_canConnectToServer; }
@@ -343,6 +357,12 @@ signals:
 	void onlineDevicesListReceived();
 	void lastOnlineCmdRetrieved(const uint requestid, const QString &last_cmd);
 
+#ifndef Q_OS_ANDROID
+	void allUsersChanged();
+	void userIdChanged();
+	void allUserFilesDownloaded(const bool success);
+#endif
+
 private:
 	QList<QStringList> m_usersData, m_tempUserData;
 	int m_tempRow, n_devices;
@@ -353,6 +373,11 @@ private:
 	QStringList m_coachesNames, m_clientsNames;
 	bool mb_canConnectToServer, mb_coachPublic, mb_MainUserInfoChanged;
 	QTimer *m_mainTimer;
+
+#ifndef Q_OS_ANDROID
+	OnlineUserInfo *m_allUsers;
+	void downloadAllUserFiles(const QString &userid);
+#endif
 
 	QString getPhonePart(const QString &str_phone, const bool prefix) const;
 	void setPhoneBasedOnLocale();

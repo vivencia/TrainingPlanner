@@ -371,7 +371,7 @@ void QmlItemManager::closePage(QQuickItem *page)
 
 const QString &QmlItemManager::setExportFileName(const QString &filename)
 {
-	m_exportFilename = std::move(appUtils()->localAppFilesDir() + filename);
+	m_exportFilename = std::move(appSettings()->localAppFilesDir() + filename);
 	return m_exportFilename;
 }
 

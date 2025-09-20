@@ -108,7 +108,7 @@ get_insert_command() {
     return 1
 }
 
-DEL_CMD="DELETE FROM users_table WHERE id="
+DEL_CMD="DELETE FROM users_table WHERE userid="
 get_del_command() {
     DEL_CMD="$DEL_CMD$USER_ID;"
 }
@@ -120,7 +120,7 @@ get_all_values() {
             value_len=${#VALUE}
             VALUE=${VALUE:1:$value_len-1} #the first 1: start at the second char, skipping the space that sqlite3 puts before the value
             ALL_USER_VALUES=${ALL_USER_VALUES}${VALUE}$'\n'
-    done < <($SQLITE -line $USERS_DB "SELECT * FROM users_table WHERE id=$USER_ID;")
+    done < <($SQLITE -line $USERS_DB "SELECT * FROM users_table WHERE userid=$USER_ID;")
     if [[ $ALL_USER_VALUES != "" ]]; then
         return 0
     else
@@ -130,7 +130,7 @@ get_all_values() {
 
 REQUESTED_FIELD_VALUE=""
 get_field_value() {
-    REQUESTED_FIELD_VALUE=$($SQLITE -line $USERS_DB "SELECT $1 FROM users_table WHERE id=$USER_ID;")
+    REQUESTED_FIELD_VALUE=$($SQLITE -line $USERS_DB "SELECT $1 FROM users_table WHERE userid=$USER_ID;")
     if [[ $REQUESTED_FIELD_VALUE != "" ]]; then
         field_name_len=${#1}
         value_len=${#REQUESTED_FIELD_VALUE}
@@ -149,7 +149,7 @@ get_id() {
     REQUESTED_ID=$($SQLITE -line $USERS_DB "SELECT userid FROM users_table WHERE $FIELD=$VALUE;")
     if [[ $REQUESTED_ID != "" ]]; then
         REQUESTED_ID=$(echo "${REQUESTED_ID}" | cut -d '=' -f 2)
-        REQUESTED_PASSWD=$($SQLITE -line $USERS_DB "SELECT password FROM users_table WHERE id=$REQUESTED_ID;")
+        REQUESTED_PASSWD=$($SQLITE -line $USERS_DB "SELECT password FROM users_table WHERE userid=$REQUESTED_ID;")
         REQUESTED_PASSWD=$(echo "${REQUESTED_PASSWD}" | cut -d '=' -f 2)
         TEMP_HT_FILE=$ADMIN_DIR$REQUESTED_ID".htpasswd"
         echo "$REQUESTED_ID:$REQUESTED_PASSWD" > "$TEMP_HT_FILE"

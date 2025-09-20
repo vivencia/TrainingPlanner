@@ -134,6 +134,25 @@ void TPOnlineServices::scanNetwork()
 	}
 }
 
+void TPOnlineServices::getAllUsers(const int requestid)
+{
+	auto conn{std::make_shared<QMetaObject::Connection>()};
+	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid]
+									(const int request_id, const int ret_code, const QString &ret_string)
+	{
+		if (request_id == requestid)
+		{
+			disconnect(*conn);
+			QStringList users;
+			if (ret_code == 0)
+				users = std::move(ret_string.split(fancy_record_separator1, Qt::SkipEmptyParts));
+			emit networkListReceived(request_id, ret_code, users);
+		}
+	});
+	const QUrl &url{makeCommandURL(root_user, root_passwd, "allusers"_L1)};
+	makeNetworkRequest(requestid, url, true);
+}
+
 void TPOnlineServices::checkOnlineUser(const int requestid, const QString &query, const QString &passwd)
 {
 	const QUrl &url{makeCommandURL(root_user, root_passwd, "onlineuser"_L1, query, "userpassword"_L1, passwd)};
@@ -341,7 +360,7 @@ void TPOnlineServices::sendFile(const int requestid, const QString &username, co
 void TPOnlineServices::listFiles(const int requestid, const QString &username, const QString &passwd, const bool only_new,
 						const bool include_ctime, const QString &pattern, const QString &subdir, const QString &targetUser)
 {
-	auto conn = std::make_shared<QMetaObject::Connection>();
+	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
 									(const int request_id, const int ret_code, const QString &ret_string)
 	{
@@ -351,7 +370,7 @@ void TPOnlineServices::listFiles(const int requestid, const QString &username, c
 			QStringList new_files;
 			if (ret_code == 0)
 			{
-				const QString &localDir{appUtils()->localAppFilesDir() + targetUser + '/' + subdir + '/'};
+				const QString &localDir{appSettings()->localAppFilesDir() + targetUser + '/' + subdir + '/'};
 				const QStringList &remote_files_list{ret_string.split(fancy_record_separator1, Qt::SkipEmptyParts)};
 				for (uint i{0}; i < remote_files_list.count(); i += 2)
 				{
@@ -371,6 +390,28 @@ void TPOnlineServices::listFiles(const int requestid, const QString &username, c
 		}
 	});
 	const QUrl &url{makeCommandURL(username, passwd, "listfiles"_L1, subdir, "fromuser"_L1, targetUser, "pattern"_L1, pattern)};
+	makeNetworkRequest(requestid, url, true);
+}
+
+void TPOnlineServices::listDirs(const int requestid, const QString &username, const QString &passwd, const QString &pattern,
+								const QString &subdir, const QString &targetUser, const bool include_dot_dir)
+{
+	auto conn{std::make_shared<QMetaObject::Connection>()};
+	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
+									(const int request_id, const int ret_code, const QString &ret_string)
+	{
+		if (request_id == requestid)
+		{
+			disconnect(*conn);
+			QStringList directories;
+			if (ret_code == 0)
+				directories = std::move(ret_string.split(fancy_record_separator1, Qt::SkipEmptyParts));
+			if (include_dot_dir)
+				directories.prepend(std::move(QString{'.'}));
+			emit networkListReceived(request_id, ret_code, directories);
+		}
+	});
+	const QUrl &url{makeCommandURL(username, passwd, "listdirs"_L1, subdir, "fromuser"_L1, targetUser, "pattern"_L1, pattern)};
 	makeNetworkRequest(requestid, url, true);
 }
 

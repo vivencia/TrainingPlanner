@@ -161,7 +161,8 @@ function check_file_ctime($filename) {
         echo "Return code: 1 File not found:  ", $filename, "**check_file_ctime**";
 }
 
-function scan_dir($path, $pattern) {
+function scan_dir($path, $pattern, $only_dirs, $only_files, $get_c_time) {
+    $output = "";
     if (is_dir($path)) {
         $files = array_values(array_diff(scandir($path), array('.', '..')));
         if (count($files) > 0) {
@@ -171,12 +172,33 @@ function scan_dir($path, $pattern) {
                     if (!str_contains($file, $pattern))
                         continue;
                 }
-                echo $file . "|" . date('Hisymd', filectime($path.$file)) . "|";
+                if ($only_dirs && !is_dir($path . $file))
+                    continue;
+                if ($only_files && !is_file($path . $file))
+                    continue;
+                if ($get_c_time)
+                    $output .= $file . "|" . date('Hisymd', filectime($path.$file)) . "|";
+                else
+                    $output .= $file . "|";
             }
-            return true;
         }
+        else
+            $output = "Return code: 1 Directory " . $path . " is empty **scan_dir**";
     }
-    echo "Return code: 1 Dir is empty or does not exist ", $path, "  **scan_dir**";
+    else
+        $output = "Return code: 1 Directory " . $path . " does not exist **scan_dir**";
+    return $output;
+}
+
+function remove_from_string($bigstr, $smallstr) {
+    $start_pos = strpos($bigstr, $smallstr, 0);
+    if ($start_pos >= 0) {
+        $ret_str = substr($bigstr, 0, $start_pos);
+        $ret_str .= substr($bigstr, $start_pos + strlen($smallstr), strlen($bigstr) - $start_pos - strlen($smallstr));
+        return $ret_str;
+    }
+    else
+        return $bigstr;
 }
 
 function run_commands($userid, $subdir, $delete_cmdfile) {
@@ -708,7 +730,17 @@ if ($username) {
                 $targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $username;
                 $filedir = $rootdir . $targetuser . $subdir;
                 $pattern = isset($_GET['pattern']) ? $_GET['pattern'] : '';
-                scan_dir($filedir, $pattern);
+                $files = scan_dir($filedir, $pattern, false, true, true);
+                echo $files;
+                exit;
+            }
+            if (isset($_GET['listdirs'])) {
+                $subdir = isset($_GET['listdirs']) ? $_GET['listdirs'] . "/" : '';
+                $targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $username;
+                $filedir = $rootdir . $targetuser . $subdir;
+                $pattern = isset($_GET['pattern']) ? $_GET['pattern'] : '';
+                $files = scan_dir($filedir, $pattern, true, false, false);
+                echo $files;
                 exit;
             }
 
@@ -887,6 +919,14 @@ if ($username) {
                 if ($query) { //Check if there is an already existing user in the online database. The unique key used to identify an user is decided on the TrainingPlanner app source code. This script is agnostic to it
                     $userpassword = isset($_GET['userpassword']) ? $_GET['userpassword'] : '';
                     run_dbscript("getid", $query . ' ' . $userpassword , "", true);
+                    exit;
+                }
+
+                if (isset($_GET['allusers'])) {
+                    $users = scan_dir($rootdir, "", true, false, false);
+                    $new_users = remove_from_string($users, "admin|");
+                    $new_users = remove_from_string($new_users, "scripts|");
+                    echo $new_users;
                     exit;
                 }
 

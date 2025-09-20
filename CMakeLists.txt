@@ -228,6 +228,7 @@ set( QML_SOURCES
 	"qml/TPWidgets/ComplexDialogModules/TPAdjustMesoCalendarFrame.qml"
 	"qml/TPWidgets/ComplexDialogModules/TPTDayIntentGroup.qml"
 	"qml/TPWidgets/ComplexDialogModules/TPDialogWithMessageAndCheckBox.qml"
+	"qml/User/AllUsers.qml"
 	"qml/User/AvatarsPopup.qml"
 	"qml/User/UserChangePassword.qml"
 	"qml/User/UserCoachRequest.qml"

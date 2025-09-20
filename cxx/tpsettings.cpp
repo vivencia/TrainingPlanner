@@ -5,13 +5,16 @@
 #include <QColor>
 #include <QFontInfo>
 #include <QScreen>
+#include <QStandardPaths>
 
 using namespace Qt::Literals::StringLiterals;
 
 TPSettings *TPSettings::app_settings{nullptr};
 UserSettings *TPSettings::user_settings{nullptr};
 
-TPSettings::TPSettings(QObject *parent) : QSettings{parent}
+TPSettings::TPSettings(QObject *parent)
+	: QSettings{parent},
+	  m_localAppFilesDir{std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)) + QLatin1Char('/')}
 {
 	TPSettings::app_settings = this;
 	m_propertyNames.insert(APP_VERSION_INDEX, std::move("appVersion"_L1));
@@ -23,10 +26,10 @@ TPSettings::TPSettings(QObject *parent) : QSettings{parent}
 
 void TPSettings::changeUserSettings(const QString &userid)
 {
-	const QString &settings_dir{appUtils()->localAppFilesDir() + userid};
+	const QString &settings_dir{userDir(userid)};
 	bool ok{false};
 	if (currentUser() == "default"_L1)
-		ok = appUtils()->rename(appUtils()->localAppFilesDir() + "default"_L1, settings_dir, false);
+		ok = appUtils()->rename(m_localAppFilesDir + "default"_L1, settings_dir, false);
 	else
 		ok = appUtils()->mkdir(settings_dir);
 	if (ok)
@@ -86,5 +89,5 @@ QStringList TPSettings::availableLanguages() const
 
 QString TPSettings::userDir(const QString &userid) const
 {
-	return appUtils()->localAppFilesDir() + userid + '/';
+	return m_localAppFilesDir + userid + '/';
 }

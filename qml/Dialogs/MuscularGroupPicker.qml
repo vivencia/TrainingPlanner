@@ -9,7 +9,7 @@ TPPopup {
 	id: dlgMuscularGroup
 	keepAbove: true
 	width: appSettings.pageWidth/2
-	height: shown ? dlgHeight : 25
+	height: shown ? dlgHeight : userSettings.itemDefaultHeight
 
 	property string buttonLabel: qsTr("Filter")
 	property bool useFancyNames: false
