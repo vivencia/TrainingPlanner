@@ -107,15 +107,21 @@ ApplicationWindow {
 	}
 
 	signal pageActivated_main(Item page);
-	function pushOntoStack(page: Item): void {
+	function pushOntoStack(page: Item, emit_signals: bool): void {
 		if (stackView.currentItem === page)
 			return;
-		pageDeActivated_main(stackView.currentItem);
+		if (emit_signals)
+			pageDeActivated_main(stackView.currentItem);
 		if (stackView.find((item, index) => { return item === page; }))
 			stackView.popToItem(page);
 		else
 			stackView.push(page);
-		pageActivated_main(page);
+		if (emit_signals)
+			pageActivated_main(page);
+	}
+
+	function clearWindowsStack(): void {
+		stackView.clear();
 	}
 
 	function goHome(): void {

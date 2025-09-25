@@ -865,11 +865,14 @@ if ($username) {
                 }
 
                 if (isset($_GET['upload'])) {
-                    $subdir = $_GET['upload'];
                     $targetuser = $_GET['targetuser'];
                     if ($targetuser)
                         $fileDir = $rootdir . $targetuser;
-                    $fileDir = $fileDir . "/" . $subdir;
+                    else
+                        $fileDir = $rootdir . $username;
+                    $subdir = $_GET['upload'];
+                    if ($subdir)
+                        $fileDir = $fileDir . "/" . $subdir;
                     upload_file($fileDir);
                     exit;
                 }

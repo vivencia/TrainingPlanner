@@ -162,7 +162,7 @@ TPPage {
 				Layout.fillWidth: true
 
 				background: Rectangle {
-					border.color: userSettings.fontColor
+					border.color: appSettings.fontColor
 					color: "transparent"
 					radius: 6
 				}
@@ -267,7 +267,7 @@ TPPage {
 						TPButton {
 							id: btnInTime
 							imageSource: "time.png"
-							width: userSettings.itemDefaultHeight
+							width: appSettings.itemDefaultHeight
 							height: width
 
 							onClicked: timeInLoader.openDlg();
@@ -323,7 +323,7 @@ TPPage {
 						TPButton {
 							id: btnOutTime
 							imageSource: "time.png"
-							width: userSettings.itemDefaultHeight
+							width: appSettings.itemDefaultHeight
 							height: width
 
 							onClicked: timeOutLoader.openDlg();
@@ -374,7 +374,7 @@ TPPage {
 				visible: workoutManager.dayIsFinished && workoutManager.haveExercises
 				enabled: workoutManager.editMode;
 				Layout.fillWidth: true
-				Layout.minimumHeight: 3 * userSettings.itemDefaultHeight
+				Layout.minimumHeight: 3 * appSettings.itemDefaultHeight
 				Layout.bottomMargin: 10
 
 				onClicked: workoutManager.exportWorkoutToSplitPlan();
@@ -387,7 +387,7 @@ TPPage {
 				horizontalAlignment: Text.AlignHCenter
 				verticalAlignment: Text.AlignVCenter
 				visible: workoutModel.splitLetter !== "R"
-				height: userSettings.largeFontSize * 1.2
+				height: appSettings.largeFontSize * 1.2
 				Layout.bottomMargin: 10
 				Layout.fillWidth: true
 				Layout.preferredHeight: height
@@ -395,10 +395,10 @@ TPPage {
 				background: Rectangle {
 					gradient: Gradient {
 						orientation: Gradient.Horizontal
-						GradientStop { position: 0.0; color: userSettings.paneBackgroundColor; }
-						GradientStop { position: 0.25; color: userSettings.primaryLightColor; }
-						GradientStop { position: 0.50; color: userSettings.primaryColor; }
-						GradientStop { position: 0.75; color: userSettings.primaryDarkColor; }
+						GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
+						GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
+						GradientStop { position: 0.50; color: appSettings.primaryColor; }
+						GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
 					}
 					opacity: 0.8
 				}
@@ -406,7 +406,7 @@ TPPage {
 				TPButton {
 					id: btnClearExercises
 					imageSource: "revert-day.png"
-					width: userSettings.itemDefaultHeight
+					width: appSettings.itemDefaultHeight
 					height: width
 					visible: workoutManager.haveExercises
 					ToolTip.text: "Remove all exercises"
@@ -471,7 +471,7 @@ TPPage {
 				id: btnStartWorkout
 				text: qsTr("Begin")
 				width: parent.width * 0.2
-				height: userSettings.itemDefaultHeight
+				height: appSettings.itemDefaultHeight
 				visible: workoutManager.mainDateIsToday ? !workoutManager.dayIsFinished && !workoutManager.editMode : false
 				enabled: !workoutManager.timerActive
 
@@ -484,14 +484,14 @@ TPPage {
 				value: workoutManager.timerHour
 
 			}
-			Rectangle { color : userSettings.fontColor; width: 2; height: 35 }
+			Rectangle { color : appSettings.fontColor; width: 2; height: 35 }
 
 			TPDigitalClock {
 				id: minsClock
 				max: 60
 				value: workoutManager.timerMinute
 			}
-			Rectangle { color : userSettings.fontColor; width: 2; height: 35 }
+			Rectangle { color : appSettings.fontColor; width: 2; height: 35 }
 
 			TPDigitalClock {
 				id: secsClock
@@ -503,7 +503,7 @@ TPPage {
 				id: btnEndWorkout
 				text: qsTr("Finish")
 				width: parent.width * 0.2
-				height: userSettings.itemDefaultHeight
+				height: appSettings.itemDefaultHeight
 				visible: btnStartWorkout.visible
 				enabled: workoutManager.timerActive
 
@@ -515,7 +515,7 @@ TPPage {
 			id: btnFinishedDayOptions
 			imageSource: "menu.png"
 			rounded: false
-			backgroundColor: userSettings.paneBackgroundColor
+			backgroundColor: appSettings.paneBackgroundColor
 			width: height * 0.6
 			height: dayInfoToolBar.buttonHeight
 			visible: workoutManager.dayIsFinished || !workoutManager.mainDateIsToday || workoutManager.editMode

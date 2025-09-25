@@ -65,7 +65,7 @@ ColumnLayout {
 			id: btnWhatsApp
 			imageSource: "whatsapp"
 			enabled: userRow !== 0 && bPhoneOK
-			width: userSettings.itemDefaultHeight
+			width: appSettings.itemDefaultHeight
 			height: width
 
 			onClicked: osInterface.startChatApp(userModel.phone(userRow), "WhatsApp");
@@ -75,7 +75,7 @@ ColumnLayout {
 			id: btnTelegram
 			imageSource: "telegram"
 			enabled: userRow !== 0 && bPhoneOK
-			width: userSettings.itemDefaultHeight
+			width: appSettings.itemDefaultHeight
 			height: width
 
 			onClicked: osInterface.startChatApp(userModel.phone(userRow), "Telegram");
@@ -96,7 +96,7 @@ ColumnLayout {
 		enabled: bPhoneOK
 		readOnly: userRow !== 0
 		ToolTip.text: userModel.invalidEmailLabel
-		width: userContactModule.width - userSettings.itemDefaultHeight
+		width: userContactModule.width - appSettings.itemDefaultHeight
 		Layout.maximumWidth: width
 		Layout.minimumWidth: width
 
@@ -125,7 +125,7 @@ ColumnLayout {
 		TPButton {
 			imageSource: "email"
 			enabled: userRow !== 0 && bEmailOK
-			width: userSettings.itemDefaultHeight
+			width: appSettings.itemDefaultHeight
 			height: width
 
 			onClicked: osInterface.sendMail(txtEmail.text, "", "");
@@ -171,7 +171,7 @@ ColumnLayout {
 		readOnly: userRow !== 0
 		heightAdjustable: false
 		ToolTip.text: qsTr("Social media address is invalid")
-		width: userContactModule.width - userSettings.itemDefaultHeight
+		width: userContactModule.width - appSettings.itemDefaultHeight
 		Layout.maximumWidth: width
 		Layout.minimumWidth: width
 
@@ -188,7 +188,7 @@ ColumnLayout {
 			id: btnOpenSocialMedia
 			imageSource: "openurl"
 			enabled: bSocialOK
-			width: userSettings.itemDefaultHeight
+			width: appSettings.itemDefaultHeight
 			height: width
 
 			anchors {

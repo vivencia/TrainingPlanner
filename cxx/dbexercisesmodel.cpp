@@ -196,7 +196,7 @@ bool DBExercisesModel::fromDataBase(const QStringList &data, const bool bClearSo
 		setWorkingSubExercise(0, 0);
 		setWorkingSet(0, 0, 0);
 		emit exerciseCountChanged();
-		emit dataChanged(index(0, 0), index(m_exerciseData.count()-1, 0));
+		emit dataChanged(index(0, 0), index(m_exerciseData.count() - 1, 0));
 		return true;
 	}
 	return false;

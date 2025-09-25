@@ -5,6 +5,10 @@
 #include <QQmlEngine>
 #include <QQuickItem>
 
+#ifndef Q_OS_ANDROID
+#include "tpsettings.h"
+#endif
+
 class PagesListModel : public QAbstractListModel
 {
 
@@ -20,16 +24,10 @@ enum RoleNames {
 };
 
 public:
-	explicit inline PagesListModel(QObject *parent = nullptr) : QAbstractListModel{parent}, m_pagesIndex{0}
-	{
-		m_roleNames[displayTextRole] = std::move("displayText");
-		m_roleNames[pageRole] = std::move("page");
-#ifdef Q_OS_ANDROID
-		m_backKey = Qt::Key_Back;
-#else
-		m_backKey = Qt::Key_Left;
-#endif
-	}
+	explicit PagesListModel(QObject *parent = nullptr);
+	#ifndef Q_OS_ANDROID
+	void userSwitchingActions();
+	#endif
 
 	inline uint count() const { return m_pagesData.count(); }
 	inline uint currentIndex() const { return m_pagesIndex; }
@@ -69,4 +67,17 @@ private:
 	QHash<int, QByteArray> m_roleNames;
 	uint m_pagesIndex;
 	int m_backKey;
+
+	#ifndef Q_OS_ANDROID
+	static QHash<QString,PagesListModel*> app_Pages_list_models;
+	#else
+	static PagesListModel *app_Pages_list_model;
+	#endif
+	friend PagesListModel *appPagesListModel();
 };
+
+#ifndef Q_OS_ANDROID
+inline PagesListModel *appPagesListModel() { return PagesListModel::app_Pages_list_models.value(appSettings()->currentUser()); }
+#else
+inline PagesListModel* appPagesListModel() { return PagesListModel::app_Pages_list_model; }
+#endif

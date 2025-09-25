@@ -52,6 +52,7 @@ TPPopup {
 			enabled: !timePickerOnly
 			Layout.leftMargin: 10
 			Layout.rightMargin: btnClose.width
+			Layout.topMargin: -5
 			Layout.fillWidth: true
 
 			onClicked: mainTimer.stopWatch = checked;
@@ -115,7 +116,7 @@ TPPopup {
 				}
 
 				TPLabel {
-					font.pixelSize: userSettings.smallFontSize
+					font.pixelSize: appSettings.smallFontSize
 					text: qsTr("Hours")
 
 					anchors {
@@ -128,7 +129,7 @@ TPPopup {
 
 			TPLabel {
 				text: ":"
-				font.pixelSize: userSettings.largeFontSize
+				font.pixelSize: appSettings.largeFontSize
 				font.bold: true
 				horizontalAlignment: Text.AlignHCenter
 				visible: txtHours.visible
@@ -177,7 +178,7 @@ TPPopup {
 				}
 
 				TPLabel {
-					font.pixelSize: userSettings.smallFontSize
+					font.pixelSize: appSettings.smallFontSize
 					text: qsTr("Minutes")
 
 					anchors {
@@ -190,7 +191,7 @@ TPPopup {
 
 			TPLabel {
 				text: ":"
-				font.pixelSize: userSettings.largeFontSize
+				font.pixelSize: appSettings.largeFontSize
 				font.bold: true
 				horizontalAlignment: Text.AlignHCenter
 				visible: txtSecs.visible
@@ -234,7 +235,7 @@ TPPopup {
 				}
 
 				TPLabel {
-					font.pixelSize: userSettings.smallFontSize
+					font.pixelSize: appSettings.smallFontSize
 					text: qsTr("Seconds")
 					enabled: parent.enabled
 
@@ -262,7 +263,7 @@ TPPopup {
 			background: Rectangle {
 				implicitWidth: parent.width
 				implicitHeight: 6
-				color: userSettings.fontColor
+				color: appSettings.fontColor
 				opacity: 0.5
 				radius: 3
 			}

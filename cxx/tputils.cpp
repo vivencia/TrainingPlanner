@@ -119,7 +119,9 @@ QString TPUtils::getLastDirInPath(const QString &filename) const
 QString TPUtils::getFileName(const QString &filename, const bool without_extension) const
 {
 	QString f_name;
-	const qsizetype slash_idx{filename.lastIndexOf('/')};
+	qsizetype slash_idx{filename.lastIndexOf('/')};
+	if (slash_idx == filename.length() - 1)
+		slash_idx = filename.lastIndexOf('/', -2);
 	if (slash_idx > 0)
 		f_name = std::move(filename.right(filename.length() - slash_idx - 1));
 
@@ -548,10 +550,9 @@ int TPUtils::readDataFromFormattedFile(QFile *in_file,
 	return identifier_found ? field : APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE;
 }
 
-QFile *TPUtils::createServerCmdFile(const QString &subdir, const uint cmd_order, const std::initializer_list<QString> &command_parts) const
+QFile *TPUtils::createServerCmdFile(const QString &dir, const uint cmd_order, const std::initializer_list<QString> &command_parts) const
 {
-	QFile *cmd_file{openFile(localAppFilesDir() + subdir + QString::number(cmd_order) + ".cmd"_L1,
-								QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text)};
+	QFile *cmd_file{openFile(dir + QString::number(cmd_order) + ".cmd"_L1, QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text)};
 	if (cmd_file)
 	{
 		QString cmd_string{"#Device_ID "_L1 + appOsInterface()->deviceID() + '\n'};

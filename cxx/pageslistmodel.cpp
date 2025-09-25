@@ -5,19 +5,53 @@
 #include <QQuickItem>
 #include <QQuickWindow>
 
+#ifndef Q_OS_ANDROID
+QHash<QString,PagesListModel*> PagesListModel::app_Pages_list_models{};
+#else
+PagesListModel *PagesListModel::app_Pages_list_model(nullptr);
+#endif
+
+PagesListModel::PagesListModel(QObject *parent)
+	: QAbstractListModel{parent}, m_pagesIndex{0}
+{
+	#ifndef Q_OS_ANDROID
+	app_Pages_list_models.insert(appSettings()->currentUser(), this);
+	if (app_Pages_list_models.count() > 1)
+		insertHomePage(app_Pages_list_models.constBegin().value()->m_pagesData.first()->page);
+	m_backKey = Qt::Key_Left;
+	#else
+	app_Pages_list_model = this;
+	m_backKey = Qt::Key_Back;
+	#endif
+	m_roleNames[displayTextRole] = std::move("displayText");
+	m_roleNames[pageRole] = std::move("page");
+}
+
+void PagesListModel::userSwitchingActions()
+{
+	QMetaObject::invokeMethod(appMainWindow(), "clearWindowsStack");
+	for (const auto page_st : std::as_const(m_pagesData))
+		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, page_st->page), Q_ARG(bool, false));
+	emit countChanged();
+	emit currentIndexChanged();
+	emit dataChanged(index(0, 0), index(count() - 1, 0));
+}
+
 void PagesListModel::insertHomePage(QQuickItem *page)
 {
 	pageInfo *pageinfo{new pageInfo};
 	pageinfo->displayText = std::move(tr("Home"));
 	pageinfo->page = page;
 	m_pagesData.append(pageinfo);
+	#ifndef Q_OS_ANDROID
+	if (app_Pages_list_models.count() > 1)
+		qApp->removeEventFilter(app_Pages_list_models.constBegin().value());
+	#endif
 	qApp->installEventFilter(this);
 }
 
 void PagesListModel::openPage(const QString &label, QQuickItem *page, const std::function<void ()> &clean_up_func)
 {
-	QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, page));
-
 	int index{0};
 	for (const auto page_st : std::as_const(m_pagesData))
 	{
@@ -28,6 +62,7 @@ void PagesListModel::openPage(const QString &label, QQuickItem *page, const std:
 		}
 		++index;
 	}
+	QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, page), Q_ARG(bool, true));
 
 	beginInsertRows(QModelIndex{}, count(), count());
 	pageInfo *pageinfo{new pageInfo};
@@ -73,7 +108,8 @@ void PagesListModel::openMainMenuShortCut(const uint index, const bool change_or
 {
 	if (index > 0)
 	{
-		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_pagesData.at(index)->page));
+		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_pagesData.at(index)->page),
+					Q_ARG(bool, true));
 		if (change_order)
 		{
 			setCurrentIndex(m_pagesData.count() - 1);

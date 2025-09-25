@@ -287,7 +287,7 @@ void OpenWeatherMapBackend::requestWeatherInfoFromNet(const QGeoCoordinate &coor
 	query.addQueryItem("lon"_L1, QString::number(coordinate.longitude()));
 	query.addQueryItem("appid"_L1, "31d07fed3c1e19a6465c04a40c71e9a0"_L1);
 	query.addQueryItem("exclude"_L1, "minutely,hourly,alerts"_L1);
-	query.addQueryItem("lang"_L1, userSettings()->userLocale().left(2));
+	query.addQueryItem("lang"_L1, appSettings()->userLocale().left(2));
 	url.setQuery(query);
 
 	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{url})};
@@ -382,7 +382,7 @@ void OpenWeatherMapBackend::parseOpenWeatherReverseGeocodingReply(const QByteArr
 						word.append(chr);
 					break;
 					case ':':
-						bCanInsert = (word == userSettings()->userLocale().left(2));
+						bCanInsert = (word == appSettings()->userLocale().left(2));
 						word.clear();
 					break;
 					case ',':

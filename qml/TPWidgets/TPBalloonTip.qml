@@ -9,6 +9,7 @@ TPPopup {
 	id: balloon
 	keepAbove: false
 	closeButtonVisible: false
+	showTitleBar: title.length > 0
 	focus: false
 	width: appSettings.pageWidth * 0.8
 	disableMouseHandling: true
@@ -18,8 +19,8 @@ TPPopup {
 	property string button1Text: qsTr("Yes")
 	property string button2Text: qsTr("No")
 	property string imageSource: ""
-	property string backColor: userSettings.primaryColor
-	property string textColor: userSettings.fontColor
+	property string backColor: appSettings.primaryColor
+	property string textColor: appSettings.fontColor
 	property string subImageLabel: ""
 	property bool highlightMessage: false
 	property bool imageEnabled: true
@@ -66,7 +67,7 @@ TPPopup {
 		source: imageSource
 		visible: imageSource.length > 0
 		enabled: imageEnabled
-		width: userSettings.itemDefaultHeight * 2
+		width: appSettings.itemDefaultHeight * 2
 		height: width
 
 		anchors {
@@ -95,11 +96,10 @@ TPPopup {
 	TPLabel {
 		id: lblMessage
 		text: message
-		wrapMode: Text.WordWrap
+		singleLine: false
 		horizontalAlignment: Text.AlignHCenter
-		verticalAlignment: Text.AlignTop
-		width: (imageSource.length > 0 ? balloon.width - imgElement.width : balloon.width) - 10
 		visible: message.length > 0
+		width: (imageSource.length > 0 ? parent.width - imgElement.width : parent.width) - 10
 
 		anchors {
 			topMargin: 10
@@ -159,7 +159,7 @@ TPPopup {
 		ColorAnimation {
 			target: lblMessage
 			property: "color"
-			from: userSettings.fontColor
+			from: appSettings.fontColor
 			to: "darkred"
 			duration: 700
 			easing.type: Easing.InOutCubic
@@ -168,7 +168,7 @@ TPPopup {
 			target: lblMessage
 			property: "color"
 			from: "darkred"
-			to: userSettings.fontColor
+			to: appSettings.fontColor
 			duration: 500
 			easing.type: Easing.InOutCubic
 		}
@@ -233,9 +233,9 @@ TPPopup {
 		if (title.length > 0)
 			new_height = lblTitle.height + 10
 		if (imageSource.length > 0)
-			new_height += Math.max(imgElement.height, lblMessage.contentHeight) + 10
+			new_height += Math.max(imgElement.height, lblMessage.height) + 10
 		else
-			new_height += lblMessage.contentHeight + 10;
+			new_height += lblMessage.height + 10;
 		if (button1Text.length > 0)
 			new_height += btn1.height + 10;
 		balloon.height = new_height;

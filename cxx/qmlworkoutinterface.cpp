@@ -450,7 +450,7 @@ void QmlWorkoutInterface::removeExercise(const int exercise_number)
 {
 	if (exercise_number >= 0)
 	{
-		if (userSettings()->alwaysAskConfirmation())
+		if (appSettings()->alwaysAskConfirmation())
 			QMetaObject::invokeMethod(m_workoutPage, "showDeleteDialog", Q_ARG(QString,
 						m_workoutModel->exerciseName(exercise_number, m_workoutModel->workingSubExercise(exercise_number))));
 		else
@@ -469,7 +469,7 @@ bool QmlWorkoutInterface::canChangeSetMode(const uint exercise_number, const uin
 
 void QmlWorkoutInterface::askRemoveExercise(const uint exercise_number)
 {
-	if (userSettings()->alwaysAskConfirmation())
+	if (appSettings()->alwaysAskConfirmation())
 		QMetaObject::invokeMethod(m_workoutPage, "showRemoveExerciseMessage", Q_ARG(int, static_cast<int>(exercise_number)),
 			Q_ARG(QString, m_workoutModel->exerciseName(exercise_number, 0)));
 	else

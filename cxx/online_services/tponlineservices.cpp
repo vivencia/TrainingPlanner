@@ -17,9 +17,9 @@ using namespace Qt::Literals::StringLiterals;
 TPOnlineServices* TPOnlineServices::_appOnlineServices{nullptr};
 
 constexpr QLatin1StringView server_address{"http://%1:8080/trainingplanner/"_L1};
-const QLatin1StringView root_user{"admin"};
-const QLatin1StringView root_passwd{"admin"};
-const QLatin1StringView base_ip{"192.168.10."_L1};
+constexpr QLatin1StringView root_user{"admin"};
+constexpr QLatin1StringView root_passwd{"admin"};
+constexpr QLatin1StringView base_ip{"192.168.10."_L1};
 
 void TPOnlineServices::scanNetwork()
 {
@@ -46,7 +46,7 @@ void TPOnlineServices::scanNetwork()
 				{
 					m_scanning = false;
 					#ifndef QT_NO_DEBUG
-					qDebug() << "scanNetwork() -> _serverResponse online_status = " << online_status << " , address = " << address;
+					qDebug() << "scanNetwork() 1-> _serverResponse online_status = " << online_status << " , address = " << address;
 					#endif
 					switch (online_status)
 					{
@@ -100,7 +100,7 @@ void TPOnlineServices::scanNetwork()
 							(const uint online_status, const QString &address)
 		{
 			#ifndef QT_NO_DEBUG
-			qDebug() << "scanNetwork() -> _serverResponse online_status = " << online_status << " , address = " << address;
+			qDebug() << "scanNetwork() 2-> _serverResponse online_status = " << online_status << " , address = " << address;
 			#endif
 			if (online_status == 0)
 			{
@@ -134,6 +134,7 @@ void TPOnlineServices::scanNetwork()
 	}
 }
 
+#ifndef Q_OS_ANDROID
 void TPOnlineServices::getAllUsers(const int requestid)
 {
 	auto conn{std::make_shared<QMetaObject::Connection>()};
@@ -152,6 +153,7 @@ void TPOnlineServices::getAllUsers(const int requestid)
 	const QUrl &url{makeCommandURL(root_user, root_passwd, "allusers"_L1)};
 	makeNetworkRequest(requestid, url, true);
 }
+#endif
 
 void TPOnlineServices::checkOnlineUser(const int requestid, const QString &query, const QString &passwd)
 {
@@ -477,7 +479,8 @@ void TPOnlineServices::getFile(const int requestid, const QString &username, con
 		}
 	}
 	const QUrl &url{makeCommandURL(username, passwd, filename.lastIndexOf('.') > 0 ?
-				(filename.endsWith(".txt"_L1) ? "file"_L1 : "getbinfile"_L1) : "getbinfile"_L1, filename, "subdir"_L1, subdir, "fromuser"_L1, targetUser)};
+				(filename.endsWith(".txt"_L1) || filename.endsWith(".ini"_L1) ? "file"_L1 :
+				"getbinfile"_L1) : "getbinfile"_L1, filename, "subdir"_L1, subdir, "fromuser"_L1, targetUser)};
 	makeNetworkRequest(requestid, url);
 }
 

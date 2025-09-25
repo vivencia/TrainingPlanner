@@ -19,7 +19,7 @@ TPPopup {
 		id: lblTitle
 		text: qsTr("Available coaches online")
 		horizontalAlignment: Text.AlignHCenter
-		height: userSettings.itemExtraLargeHeight
+		height: appSettings.itemExtraLargeHeight
 
 		anchors {
 			top: parent.top
@@ -72,7 +72,7 @@ TPPopup {
 					required property int index
 
 					Layout.fillWidth: true
-					height: userSettings.itemDefaultHeight
+					height: appSettings.itemDefaultHeight
 					spacing: 0
 					padding: 0
 					enabled: !userModel.availableCoaches.isUserDefault(index)

@@ -81,7 +81,7 @@ static void on_password_lookup(GObject *source, GAsyncResult *result, gpointer i
 	{
 		if (error)
 		{
-			QKeychain::Error code = gerrorToCode(error);
+			QKeychain::Error code{gerrorToCode(error)};
 			arg->self->q->emitFinishedWithError(code, QString::fromUtf8(error->message));
 		}
 		else {

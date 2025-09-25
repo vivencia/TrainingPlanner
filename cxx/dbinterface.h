@@ -21,7 +21,7 @@ class DBInterface : public QObject
 Q_OBJECT
 
 public:
-	explicit inline DBInterface() : QObject{nullptr} { app_db_interface = this; }
+	explicit inline DBInterface() : QObject{nullptr} { app_db_interface = this; init(); }
 	inline DBInterface(const DBInterface &other) = delete;
 	inline DBInterface &operator()(const DBInterface &other) = delete;
 	inline ~DBInterface() {}

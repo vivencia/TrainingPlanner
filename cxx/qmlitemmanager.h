@@ -44,7 +44,6 @@ static inline int deferredActionId()
 	return da_id++;
 }
 
-class PagesListModel;
 class QmlExercisesDatabaseInterface;
 class QmlWorkoutInterface;
 class QmlUserInterface;
@@ -62,7 +61,14 @@ class QmlItemManager : public QObject
 Q_OBJECT
 
 public:
-	explicit QmlItemManager(QQmlApplicationEngine *qml_engine);
+	explicit inline QmlItemManager(QQmlApplicationEngine *qml_engine)
+		: QObject{nullptr}, m_usersManager{nullptr}, m_exercisesListManager{nullptr}, m_weatherPage{nullptr},
+				m_statisticsPage{nullptr}, m_allWorkoutsPage{nullptr}
+	{
+		_appItemManager = this;
+		_appQmlEngine = qml_engine;
+		configureQmlEngine();
+	}
 	~QmlItemManager();
 	void configureQmlEngine();
 
@@ -106,7 +112,6 @@ private:
 	QmlExercisesDatabaseInterface *m_exercisesListManager;
 	QQmlComponent *m_weatherComponent, *m_statisticsComponent, *m_allWorkoutsComponent;
 	QQuickItem *m_weatherPage, *m_statisticsPage, *m_allWorkoutsPage;
-	PagesListModel *m_pagesManager;
 	TPWorkoutsCalendar *m_wokoutsCalendar;
 
 	static QmlItemManager *_appItemManager;

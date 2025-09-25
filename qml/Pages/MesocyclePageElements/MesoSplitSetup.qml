@@ -19,7 +19,7 @@ Pane {
 	readonly property int col1Width: width * 0.1
 	readonly property int col2Width: width * 0.15
 	readonly property int col3Width: appSettings.pageWidth * 0.6
-	readonly property int col4Width: userSettings.itemDefaultHeight
+	readonly property int col4Width: appSettings.itemDefaultHeight
 	readonly property list<string> daysOfWeek: [qsTr("Mon"), qsTr("Tue"), qsTr("Wed"), qsTr("Thu"), qsTr("Fri"), qsTr("Sat"), qsTr("Sun")]
 
 	property bool bMesoSplitChanged: false
@@ -57,7 +57,7 @@ Pane {
 			TPImage {
 				source: "set-completed"
 				enabled: mesoManager.splitOK
-				width: userSettings.itemDefaultHeight
+				width: appSettings.itemDefaultHeight
 				height: width
 
 				anchors {

@@ -3,7 +3,7 @@
 #include <QAbstractListModel>
 #include <QQmlEngine>
 
-class homePageMesoModel : public QAbstractListModel
+class HomePageMesoModel : public QAbstractListModel
 {
 
 Q_OBJECT
@@ -12,7 +12,10 @@ QML_ELEMENT
 Q_PROPERTY(uint count READ count NOTIFY countChanged)
 
 public:
-	explicit homePageMesoModel(QObject *parent = nullptr);
+	explicit HomePageMesoModel(QObject *parent = nullptr);
+	#ifndef Q_OS_ANDROID
+	void userSwitchingActions();
+	#endif
 	Q_INVOKABLE inline uint count() const { return m_mesoModelRows.count(); }
 	Q_INVOKABLE inline uint mesoRow(const uint row) const { return row < m_mesoModelRows.count() ? m_mesoModelRows.at(row) : row; }
 	Q_INVOKABLE inline int findMesoIdx(const uint meso_idx) const { return m_mesoModelRows.indexOf(meso_idx); }

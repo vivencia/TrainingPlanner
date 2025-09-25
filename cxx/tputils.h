@@ -99,7 +99,7 @@ public:
 								  const QString &identifier,
 								  const std::function<QString(const uint field, const QString &value)> &formatToImport = nullptr) const;
 
-	QFile *createServerCmdFile(const QString &subdir, const uint cmd_order, const std::initializer_list<QString> &command_parts) const;
+	QFile *createServerCmdFile(const QString &dir, const uint cmd_order, const std::initializer_list<QString> &command_parts) const;
 	bool executeCmdFile(const QString &cmd_file, const QString &success_message, const bool remove_file = true) const;
 
 	Q_INVOKABLE void copyToClipBoard(const QString &text) const;

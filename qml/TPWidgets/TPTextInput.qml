@@ -5,9 +5,9 @@ import "../"
 
 TextField {
 	id: control
-	font.pixelSize: userSettings.fontSize
+	font.pixelSize: appSettings.fontSize
 	font.weight: Font.Bold
-	color: enabled ? textColor : userSettings.disabledFontColor
+	color: enabled ? textColor : appSettings.disabledFontColor
 	wrapMode: heightAdjustable ? TextInput.WordWrap : TextInput.NoWrap
 	validator: RegularExpressionValidator { regularExpression: /^[^#!?&="']*$/ }
 	leftInset: 0
@@ -24,9 +24,9 @@ TextField {
 	property bool showClearTextButton: false
 	property bool heightAdjustable: true
 	property bool textRemovedKeyPressed: false
-	property int suggestedHeight: userSettings.itemDefaultHeight
-	property string textColor: userSettings.fontColor
-	property string backgroundColor: userSettings.primaryDarkColor
+	property int suggestedHeight: appSettings.itemDefaultHeight
+	property string textColor: appSettings.fontColor
+	property string backgroundColor: appSettings.primaryDarkColor
 	readonly property int defaultPadding: showClearTextButton ? (text.length > 0 ? btnClearText.width : 0) : 5
 
 	readonly property FontMetrics currentFontMetrics: FontMetrics {
@@ -82,7 +82,7 @@ TextField {
 		imageSource: "edit-clear"
 		hasDropShadow: false
 		visible: showClearTextButton && control.text.length > 0
-		width: userSettings.itemDefaultHeight
+		width: appSettings.itemDefaultHeight
 		height: width
 
 		anchors {

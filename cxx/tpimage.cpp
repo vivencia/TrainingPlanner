@@ -20,7 +20,7 @@ TPImage::TPImage(QQuickItem *parent)
 {
 	connect(this, &QQuickItem::enabledChanged, this, [&] () { checkEnabled(); });
 	connect(this, &QQuickItem::heightChanged, this, [&] () { maybeResize(); });
-	connect(userSettings(), &UserSettings::colorChanged, this, [&] () {
+	connect(appSettings(), &TPSettings::colorChanged, this, [&] () {
 		if (mbCanColorize)
 		{
 			colorize(mImage, mImage);
@@ -237,7 +237,7 @@ void TPImage::colorize(QImage &dstImg, const QImage &srcImg)
 	{
 		mSize.setHeight(srcImg.height());
 		mSize.setWidth(srcImg.width());
-		const QColor color{userSettings()->fontColor()};
+		const QColor color{appSettings()->fontColor()};
 		QGraphicsColorizeEffect *colorEffect{new QGraphicsColorizeEffect()};
 		colorEffect->setColor(color);
 		applyEffectToImage(dstImg, srcImg, colorEffect);

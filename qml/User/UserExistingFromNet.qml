@@ -20,17 +20,25 @@ ColumnLayout {
 		function onUserOnlineCheckResult(registered: bool): void {
 			bImport = registered;
 			if (registered)
-				mainwindow.displayResultMessage(qsTr("User already registered"), qsTr("Click on Import button to use to import the registered profile"));
+				mainwindow.displayResultMessage(qsTr("Existing user account found"), Qt.platform.os !== "android" ?
+					qsTr("You can click on the Import button to download all the data for the user") :
+					qsTr("You can tap on the Import button to download all the data for the user"), "", 8000);
 			else
-				mainwindow.displayResultMessage(qsTr("User not registered"), qsTr("EMail has not been registered before or the password is wrong"));
+				mainwindow.displayResultMessage(qsTr("User account not found"),
+					qsTr("E-mail has not been registered before or the password is wrong"), "", 5000);
 		}
 
 		function onUserOnlineImportFinished(result: bool): void {
 			bReady = result;
-			if (result)
-				mainwindow.displayResultMessage(qsTr("User info imported"), qsTr("Click on Next to continue"));
+			if (result) {
+				mainwindow.displayResultMessage(qsTr("User configuration imported"), Qt.platform.os !== "android" ?
+					qsTr("Click on Next to start using the app") :
+					qsTr("Tap on Next to start using the app"), "", 10000);
+				mainwindow.firstTimeDlg.nextStartsTheApp = true;
+			}
 			else
-				mainwindow.displayResultMessage(qsTr("User info not imported"), qsTr("Could not retrieve the data from the internet"));
+				mainwindow.displayResultMessage(qsTr("User data not imported"),
+					qsTr("Could not retrieve the data from the server"), "", 5000);
 		}
 	}
 
@@ -55,6 +63,7 @@ ColumnLayout {
 		id: optImportUser
 		text: userModel.existingUserLabel
 		multiLine: true
+		enabled: userModel.canConnectToServer
 		Layout.fillWidth: true
 
 		onClicked: {
@@ -93,6 +102,7 @@ ColumnLayout {
 		onTextEdited: {
 			inputOK = (text.length === 0 || (text.indexOf("@") !== -1 && text.indexOf(".") !== -1));
 			ToolTip.visible = !inputOK;
+			btnCheckEMail.enabled = passwordControl.passwordOK && inputOK;
 		}
 	}
 
@@ -101,7 +111,7 @@ ColumnLayout {
 		enabled: txtEmail.inputOK
 		Layout.fillWidth: true
 		onPasswordUnacceptable: btnCheckEMail.enabled = false;
-		onPasswordAccepted: btnCheckEMail.enabled = true;
+		onPasswordAccepted: btnCheckEMail.enabled = txtEmail.inputOK;
 		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : 0
 	}
 

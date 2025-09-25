@@ -26,7 +26,7 @@ ApplicationWindow {
 
 		Rectangle {
 			anchors.fill: parent
-			color: userSettings.paneBackgroundColor
+			color: appSettings.paneBackgroundColor
 
 			ColumnLayout {
 				anchors {

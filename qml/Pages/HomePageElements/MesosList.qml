@@ -53,7 +53,7 @@ Item {
 
 			Rectangle {
 				id: optionsRec
-				color: userSettings.primaryDarkColor
+				color: appSettings.primaryDarkColor
 				radius: 6
 				layer.enabled: true
 				visible: false
@@ -223,7 +223,7 @@ Item {
 				anchors.fill: parent
 				radius: 6
 				layer.enabled: true
-				color: mesoModel.mesoRow(index) === mesocyclesModel.currentMesoIdx ? userSettings.primaryColor : userSettings.listEntryColor2
+				color: mesoModel.mesoRow(index) === mesocyclesModel.currentMesoIdx ? appSettings.primaryColor : appSettings.listEntryColor2
 				visible: false
 			}
 
@@ -248,34 +248,34 @@ Item {
 
 				TPLabel {
 					text: mesoName
-					fontColor: userSettings.fontColor
+					fontColor: appSettings.fontColor
 					horizontalAlignment: Text.AlignHCenter
 					Layout.bottomMargin: 10
 					Layout.maximumWidth: parent.width
 				}
 				TPLabel {
 					text: mesoCoach
-					fontColor: userSettings.fontColor
+					fontColor: appSettings.fontColor
 					Layout.maximumWidth: parent.width
 					visible: mainUserPrograms
 				}
 				TPLabel {
 					text: mesoClient
-					fontColor: userSettings.fontColor
+					fontColor: appSettings.fontColor
 					Layout.maximumWidth: parent.width
 					visible: !mainUserPrograms
 				}
 				TPLabel {
 					text: mesoStartDate
-					fontColor: userSettings.fontColor
+					fontColor: appSettings.fontColor
 				}
 				TPLabel {
 					text: mesoEndDate
-					fontColor: userSettings.fontColor
+					fontColor: appSettings.fontColor
 				}
 				TPLabel {
 					text: mesoSplit
-					fontColor: userSettings.fontColor
+					fontColor: appSettings.fontColor
 					Layout.maximumWidth: parent.width
 				}
 			}
@@ -303,7 +303,7 @@ Item {
 				multiline: false
 				Layout.preferredWidth: preferredWidth
 				Layout.maximumWidth: parent.width - 20
-				Layout.maximumHeight: userSettings.itemDefaultHeight
+				Layout.maximumHeight: appSettings.itemDefaultHeight
 				Layout.alignment: Qt.AlignCenter
 
 				onClicked: mesocyclesModel.startNewMesocycle_QML(mainUserPrograms);
@@ -316,7 +316,7 @@ Item {
 				multiline: false
 				Layout.preferredWidth: preferredWidth
 				Layout.maximumWidth: parent.width - 20
-				Layout.maximumHeight: userSettings.itemDefaultHeight
+				Layout.maximumHeight: appSettings.itemDefaultHeight
 				Layout.alignment: Qt.AlignCenter
 
 				onClicked: itemManager.chooseFileToImport();
@@ -330,7 +330,7 @@ Item {
 				visible: mainUserPrograms
 				enabled: mesocyclesModel.canHaveTodaysWorkout
 				Layout.preferredWidth: preferredWidth
-				Layout.maximumHeight: userSettings.itemDefaultHeight
+				Layout.maximumHeight: appSettings.itemDefaultHeight
 				Layout.alignment: Qt.AlignCenter
 
 				onClicked: mesocyclesModel.todaysWorkout();

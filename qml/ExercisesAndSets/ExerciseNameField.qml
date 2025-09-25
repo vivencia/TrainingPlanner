@@ -25,8 +25,8 @@ Item {
 		id: txtField
 		font.weight: Font.Bold
 	    font.hintingPreference: Font.PreferFullHinting
-	    font.pixelSize: userSettings.fontSize
-		color: readOnly ? userSettings.fontColor : "black"
+	    font.pixelSize: appSettings.fontSize
+		color: readOnly ? appSettings.fontColor : "black"
 		readOnly: true
 		wrapMode: Text.WordWrap
 		topPadding: 5
@@ -50,7 +50,7 @@ Item {
 
 		background: Rectangle {
 			color: control.readOnly ? "transparent" : "white"
-			border.color: control.readOnly ? "transparent" : userSettings.fontColor
+			border.color: control.readOnly ? "transparent" : appSettings.fontColor
 			radius: 5
 		}
 
@@ -109,7 +109,7 @@ Item {
 	TPButton {
 		id: btnEditExercise
 		imageSource: "edit.png"
-		width: userSettings.itemDefaultHeight
+		width: appSettings.itemDefaultHeight
 		height: width
 		visible: showEditButton
 		enabled: editable
@@ -130,7 +130,7 @@ Item {
 	TPButton {
 		id: btnShowList
 		imageSource: "list.png"
-		width: userSettings.itemDefaultHeight
+		width: appSettings.itemDefaultHeight
 		height: width
 		visible: showExercisesListButton
 		enabled: editable
@@ -147,7 +147,7 @@ Item {
 	TPButton {
 		id: btnRemoveExercise
 		imageSource: "remove"
-		width: userSettings.itemDefaultHeight
+		width: appSettings.itemDefaultHeight
 		height: width
 		visible: showRemoveButton
 		enabled: editable

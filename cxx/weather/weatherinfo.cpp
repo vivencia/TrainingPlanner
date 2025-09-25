@@ -214,7 +214,7 @@ void WeatherInfo::handleWeatherData(const st_LocationInfo &location, const QList
 
 inline void WeatherInfo::addLocationToConfig(const QString &location, const QGeoCoordinate &coord)
 {
-	userSettings()->addWeatherCity(location, QString::number(coord.latitude()), QString::number(coord.longitude()));
+	appSettings()->addWeatherCity(location, QString::number(coord.latitude()), QString::number(coord.longitude()));
 }
 
 void WeatherInfo::buildLocationsList(const QList<st_LocationInfo> *foundLocations)
@@ -287,7 +287,7 @@ void WeatherInfo::requestWeatherForGpsCity()
 
 void WeatherInfo::requestWeatherForSavedCity(const uint index)
 {
-	d->m_currentBackend->requestWeatherInfo(userSettings()->weatherCity(index), userSettings()->weatherCityCoordinates(index));
+	d->m_currentBackend->requestWeatherInfo(appSettings()->weatherCity(index), appSettings()->weatherCityCoordinates(index));
 }
 
 void WeatherInfo::refreshWeather()

@@ -43,7 +43,7 @@ TPPopup {
 	TPImage {
 		id: imgElement
 		source: "password"
-		width: userSettings.itemDefaultHeight * 2
+		width: appSettings.itemDefaultHeight * 2
 		height: width
 
 		anchors {

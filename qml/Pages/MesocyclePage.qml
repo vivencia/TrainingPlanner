@@ -162,7 +162,7 @@ TPPage {
 					imageSource: "set-completed"
 					visible: mesoManager.isNewMeso
 					enabled: mesoManager.mesoNameOK
-					width: userSettings.itemDefaultHeight
+					width: appSettings.itemDefaultHeight
 					height: width
 
 					anchors {
@@ -253,7 +253,7 @@ TPPage {
 				TPButton {
 					id: btnChooseMesoFile
 					imageSource: "choose-file"
-					width: userSettings.itemDefaultHeight
+					width: appSettings.itemDefaultHeight
 					height: width
 
 					anchors {
@@ -297,7 +297,7 @@ TPPage {
 					imageSource: "set-completed"
 					visible: mesoManager.isNewMeso
 					enabled: mesoManager.mesoNameOK
-					width: userSettings.itemDefaultHeight
+					width: appSettings.itemDefaultHeight
 					height: width
 
 					anchors {
@@ -329,7 +329,7 @@ TPPage {
 				TPButton {
 					id: btnStartDate
 					imageSource: "calendar.png"
-					width: userSettings.itemDefaultHeight
+					width: appSettings.itemDefaultHeight
 					height: width
 
 					anchors {
@@ -354,7 +354,7 @@ TPPage {
 
 				TPButton {
 					imageSource: "question.png"
-					width: userSettings.itemDefaultHeight
+					width: appSettings.itemDefaultHeight
 					height: width
 
 					anchors {
@@ -375,7 +375,7 @@ TPPage {
 					imageSource: "set-completed"
 					visible: mesoManager.isNewMeso
 					enabled: mesoManager.mesoNameOK
-					width: userSettings.itemDefaultHeight
+					width: appSettings.itemDefaultHeight
 					height: width
 
 					anchors {
@@ -411,7 +411,7 @@ TPPage {
 				TPButton {
 					id: btnEndDate
 					imageSource: "calendar.png"
-					width: userSettings.itemDefaultHeight
+					width: appSettings.itemDefaultHeight
 					height: width
 
 					anchors {
@@ -463,9 +463,9 @@ TPPage {
 					id: txtMesoNotes
 					text: mesoManager.notes
 					color: "black"
-					font.pixelSize: userSettings.fontSize
+					font.pixelSize: appSettings.fontSize
 					font.bold: true
-					topPadding: userSettings.fontSize
+					topPadding: appSettings.fontSize
 					leftPadding: 5
 					rightPadding: 5
 					bottomPadding: 5
@@ -474,7 +474,7 @@ TPPage {
 					background: Rectangle {
 						color: "white"
 						radius: 6
-						border.color: userSettings.fontColor
+						border.color: appSettings.fontColor
 					}
 
 					onEditingFinished: mesoManager.notes = text;

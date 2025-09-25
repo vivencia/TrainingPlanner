@@ -43,20 +43,20 @@ Item {
 			spacing: 0
 			padding: 5
 			width: parent.width
-			height: userSettings.itemDefaultHeight
+			height: appSettings.itemDefaultHeight
 
 			contentItem: Text {
 				text: modelData
-				color: userSettings.fontColor
-				font.pixelSize: userSettings.fontSize
+				color: appSettings.fontColor
+				font.pixelSize: appSettings.fontSize
 				fontSizeMode: Text.Fit
 				leftPadding: 5
 				bottomPadding: 2
 			}
 
 			background: Rectangle {
-				color: index === listview.currentIndex ? userSettings.entrySelectedColor :
-					(index % 2 === 0 ? userSettings.listEntryColor1 : userSettings.listEntryColor2)
+				color: index === listview.currentIndex ? appSettings.entrySelectedColor :
+					(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
 			}
 
 			onClicked: {

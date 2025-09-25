@@ -46,8 +46,12 @@ set(CMAKE_VERBOSE_MAKEFILE on)
 set(CMAKE_AUTOGEN_VERBOSE on)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core CorePrivate Gui Multimedia Qml Quick QuickControls2 LinguistTools Widgets Sql Network Positioning Charts)
-find_package(Qt6 REQUIRED COMPONENTS Core)
+if (ANDROID)
+	find_package(Qt6 REQUIRED COMPONENTS Core CorePrivate Gui Multimedia Qml Quick QuickControls2 LinguistTools Widgets Sql Network Positioning Charts)
+else()
+	find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 LinguistTools Widgets Sql Network Positioning Charts)
+endif(ANDROID)
+
 add_compile_definitions(REQUEST_PERMISSIONS_ON_ANDROID)
 add_compile_options(-std=c++20 ${CMAKE_CXX_FLAGS_INIT})
 
@@ -104,6 +108,7 @@ set( CXX_SOURCES
 	cxx/online_services/onlineuserinfo.h cxx/online_services/onlineuserinfo.cpp
     cxx/online_services/tpmessagesmanager.h cxx/online_services/tpmessagesmanager.cpp
     cxx/online_services/tpmessage.h cxx/online_services/tpmessage.cpp
+	cxx/online_services/scan_network.h
 
 	cxx/tpkeychain/tpkeychain.h cxx/tpkeychain/tpkeychain.cpp
 	cxx/tpkeychain/keychain.h cxx/tpkeychain/keychain_p.h cxx/tpkeychain/keychain.cpp
@@ -250,8 +255,6 @@ qt_add_executable(TrainingPlanner
 	${QM_FILES}
 	${SERVER_FILES}
 	${ANDROID_FIES}
-	cxx/online_services/scan_network.h
-	cxx/usersettings.h cxx/usersettings.cpp
 )
 
 if(NOT ANDROID)
@@ -260,26 +263,41 @@ if(NOT ANDROID)
 	INCLUDE_DIRECTORIES(${LIBSECRET_INCLUDE_DIRS})
 	LINK_DIRECTORIES(${LIBSECRET_LIBRARY_DIRS})
 	list(APPEND keychain_LIBRARIES_PRIVATE ${LIBSECRET_LIBRARIES})
+
+	target_link_libraries(TrainingPlanner PUBLIC
+		Qt6::Core
+		Qt6::Gui
+		Qt6::Multimedia
+		Qt6::Qml
+		Qt6::Quick
+		Qt6::QuickControls2
+		Qt6::Sql
+		Qt6::Widgets
+		Qt6::Network
+		Qt6::Positioning
+		Qt6::Charts
+		${keychain_LIBRARIES_PRIVATE}
+	)
 else()
 	set (keychain_LIBRARIES_PRIVATE "")
+
+	target_link_libraries(TrainingPlanner PUBLIC
+		Qt6::Core
+		Qt6::CorePrivate
+		Qt6::Gui
+		Qt6::Multimedia
+		Qt6::Qml
+		Qt6::Quick
+		Qt6::QuickControls2
+		Qt6::Sql
+		Qt6::Widgets
+		Qt6::Network
+		Qt6::Positioning
+		Qt6::Charts
+	)
 endif(NOT ANDROID)
 
-target_link_libraries(TrainingPlanner PUBLIC
-	Qt6::Core
-	Qt6::CorePrivate
-	Qt6::Gui
-	Qt6::Multimedia
-	Qt6::Qml
-	Qt6::Quick
-	Qt6::QuickControls2
-	Qt6::Sql
-	Qt6::Widgets
-	Qt6::Network
-    Qt6::Positioning
-	Qt6::Charts
-    ${keychain_LIBRARIES_PRIVATE}
-)
-target_link_libraries(TrainingPlanner PRIVATE Qt6::Core)
+
 
 set(trainingplanner_resource_files
 	"images/app_logo.png"

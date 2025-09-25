@@ -5,12 +5,12 @@ import "../"
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 ComboBox {
-	property string textColor: userSettings.fontColor
-	property string backgroundColor: userSettings.primaryDarkColor
+	property string textColor: appSettings.fontColor
+	property string backgroundColor: appSettings.primaryDarkColor
 	property bool completeModel: false
 
 	id: control
-	height: userSettings.itemLargeHeight
+	height: appSettings.itemLargeHeight
 	implicitHeight: height
 	implicitWidth: width
 	textRole: "text"
@@ -31,7 +31,7 @@ ComboBox {
 		contentItem: TPLabel {
 			text: model.text
 			enabled: model.enabled
-			leftPadding: completeModel ? userSettings.itemDefaultHeight + 5 : 5
+			leftPadding: completeModel ? appSettings.itemDefaultHeight + 5 : 5
 			elide: Text.ElideRight
 
 			TPImage {
@@ -39,7 +39,7 @@ ComboBox {
 				source: completeModel ? model.icon : ""
 				dropShadow: false
 				visible: completeModel
-				width: userSettings.itemSmallHeight
+				width: appSettings.itemSmallHeight
 				height: width
 
 				anchors {
@@ -56,7 +56,7 @@ ComboBox {
 		id: canvas
 		x: control.width - width - control.rightPadding
 		y: control.topPadding + (control.availableHeight - height) / 2
-		width: userSettings.itemDefaultHeight / 2
+		width: appSettings.itemDefaultHeight / 2
 		height: width
 		contextType: "2d"
 
@@ -72,7 +72,7 @@ ComboBox {
 				context.lineTo(width, 0);
 				context.lineTo(width / 2, height);
 				context.closePath();
-				context.fillStyle = control.enabled ? textColor : userSettings.disabledFontColor
+				context.fillStyle = control.enabled ? textColor : appSettings.disabledFontColor
 				context.fill();
 			}
 		}
@@ -80,7 +80,7 @@ ComboBox {
 
 	contentItem: TPLabel {
 		text: control.displayText
-		leftPadding: completeModel ? userSettings.itemDefaultHeight + 5 : 5
+		leftPadding: completeModel ? appSettings.itemDefaultHeight + 5 : 5
 		elide: Text.ElideRight
 	}
 
@@ -88,7 +88,7 @@ ComboBox {
 		visible: completeModel
 		source: completeModel ? model.get(currentIndex).icon : ""
 		dropShadow: false
-		width: userSettings.itemSmallHeight
+		width: appSettings.itemSmallHeight
 		height: width
 
 		anchors {

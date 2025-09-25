@@ -17,6 +17,7 @@ Popup {
 	property bool bVisible: false
 	property bool closeButtonVisible: true
 	property bool disableMouseHandling: false
+	property bool showTitleBar: true
 	property int finalYPos: 0
 	property int startYPos: 0
 	property alias btnClose: btnCloseWindow
@@ -49,7 +50,7 @@ Popup {
 		radius: 8
 		layer.enabled: true
 		visible: false
-		color: userSettings.primaryColor
+		color: appSettings.primaryColor
 	}
 
 	background: backRec
@@ -110,12 +111,32 @@ Popup {
 		}
 	}
 
+	Rectangle {
+		radius: 8
+		height: appSettings.itemDefaultHeight + 5
+		visible: showTitleBar
+
+		gradient: Gradient {
+			orientation: Gradient.Horizontal
+			GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
+			GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
+			GradientStop { position: 0.50; color: appSettings.primaryColor; }
+			GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
+		}
+
+		anchors {
+			left: parent.left
+			right: parent.right
+			top: parent.top
+		}
+	}
+
 	TPButton {
 		id: btnCloseWindow
 		imageSource: "close.png"
 		hasDropShadow: false
 		visible: closeButtonVisible
-		width: userSettings.itemDefaultHeight
+		width: appSettings.itemDefaultHeight
 		height: width
 
 		anchors {

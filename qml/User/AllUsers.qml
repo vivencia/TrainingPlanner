@@ -75,10 +75,10 @@ TPPopup {
 				delegate: Rectangle {
 					id: delegate
 					border.width: current ? 2 : 1
-					color: selected ? userSettings.entrySelectedColor :
-						(row % 2 === 0 ? userSettings.listEntryColor1 : userSettings.listEntryColor2)
+					color: selected ? appSettings.entrySelectedColor :
+						(row % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
 					implicitWidth: lblData.contentWidth > 0 ? lblData.contentWidth * 1.2 : 25
-					implicitHeight: userSettings.itemDefaultHeight
+					implicitHeight: appSettings.itemDefaultHeight
 
 					required property bool current
 					property bool selected: false

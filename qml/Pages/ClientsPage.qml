@@ -127,19 +127,19 @@ TPPage {
 					spacing: 0
 					padding: 5
 					width: pendingClientsList.width
-					height: userSettings.itemDefaultHeight
+					height: appSettings.itemDefaultHeight
 
 					contentItem: Text {
 						text: name
-						font.pixelSize: userSettings.fontSize
+						font.pixelSize: appSettings.fontSize
 						fontSizeMode: Text.Fit
 						leftPadding: 5
 						bottomPadding: 2
 					}
 
 					background: Rectangle {
-						color: index === pendingClientsList.currentIndex ? userSettings.entrySelectedColor :
-							(index % 2 === 0 ? userSettings.listEntryColor1 : userSettings.listEntryColor2)
+						color: index === pendingClientsList.currentIndex ? appSettings.entrySelectedColor :
+							(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
 					}
 
 					onClicked: selectItem(index);
@@ -159,7 +159,7 @@ TPPage {
 
 			RowLayout {
 				uniformCellSizes: true
-				height: userSettings.itemDefaultHeight
+				height: appSettings.itemDefaultHeight
 				visible: userModel.pendingClientsRequests ? userModel.pendingClientsRequests.count > 0 : false
 
 				anchors {
@@ -214,14 +214,14 @@ TPPage {
 				userRow: curRow
 				parentPage: clientsPage
 				enabled: curRow > 0
-				width: userSettings.pageWidth - 20
+				width: appSettings.pageWidth - 20
 			}
 
 			UserContact {
 				id: usrContact
 				userRow: curRow
 				enabled: curRow > 0
-				width: userSettings.pageWidth - 20
+				width: appSettings.pageWidth - 20
 			}
 
 			UserProfile {
@@ -229,14 +229,14 @@ TPPage {
 				userRow: curRow
 				parentPage: clientsPage
 				enabled: curRow > 0
-				width: userSettings.pageWidth - 20
+				width: appSettings.pageWidth - 20
 			}
 		}
 	}
 
 	property TPBalloonTip msgRemoveUser: null
 	function showRemoveMessage(decline: bool, Title: string, Message: string): void {
-		if (!userSettings.alwaysAskConfirmation) {
+		if (!appSettings.alwaysAskConfirmation) {
 			removeOrDecline(decline);
 			return;
 		}

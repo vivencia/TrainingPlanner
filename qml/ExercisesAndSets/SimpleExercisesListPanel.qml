@@ -35,16 +35,16 @@ TPPopup {
 
 		Rectangle {
 			id: recTitleBar
-			height: userSettings.itemDefaultHeight
-			color: userSettings.paneBackgroundColor
+			height: appSettings.itemDefaultHeight
+			color: appSettings.paneBackgroundColor
 			Layout.fillWidth: true
 
 			gradient: Gradient {
 				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: userSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: userSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: userSettings.primaryColor; }
-				GradientStop { position: 0.75; color: userSettings.primaryDarkColor; }
+				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: appSettings.primaryColor; }
+				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
 			}
 			opacity: 0.8
 
@@ -52,7 +52,7 @@ TPPopup {
 				id: btnShowHideList
 				imageSource: dlgExercisesList.shown ? "fold-up.png" : "fold-down.png"
 				hasDropShadow: false
-				height: userSettings.itemSmallHeight
+				height: appSettings.itemSmallHeight
 				width: height
 
 				anchors {

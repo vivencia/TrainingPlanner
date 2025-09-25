@@ -13,8 +13,8 @@ TPPopup {
 	property string title: ""
 	property string button1Text: qsTr("Yes")
 	property string button2Text: qsTr("No")
-	property string backColor: userSettings.primaryColor
-	property string textColor: userSettings.fontColor
+	property string backColor: appSettings.primaryColor
+	property string textColor: appSettings.fontColor
 
 	property Item customItem: null
 	property bool customBoolProperty1
@@ -83,8 +83,8 @@ TPPopup {
 	RowLayout {
 		id: buttonsRow
 		spacing: 0
-		height: Math.max(button1Text.length > 0 ? btn1.height : userSettings.itemDefaultHeight,
-							button2Text.length > 0 ? btn2.height : userSettings.itemDefaultHeight)
+		height: Math.max(button1Text.length > 0 ? btn1.height : appSettings.itemDefaultHeight,
+							button2Text.length > 0 ? btn2.height : appSettings.itemDefaultHeight)
 
 		anchors {
 			left: parent.left

@@ -8,9 +8,9 @@ import ".."
 
 TPPopup {
 	id: firstTimeDlg
-	objectName: "firstTimerDlg"
 	modal: true
 	keepAbove: true
+	showTitleBar: false
 	closeButtonVisible: false
 	width: appSettings.pageWidth - 50
 	height: stackLayout.childrenRect.height
@@ -18,6 +18,7 @@ TPPopup {
 	finalYPos: (appSettings.pageHeight - height)/2 // vertically centered
 
 	readonly property int minimumHeight: appSettings.windowHeight * 0.5
+	property bool nextStartsTheApp: false
 
 	onBackKeyPressed: {
 		if (stackLayout.currentIndex > 0)
@@ -83,7 +84,7 @@ TPPopup {
 			Layout.preferredHeight: minimumHeight
 		}
 
-		Component.onCompleted: currentIndex = userSettings.userLocale.length > 0 ? 1 : 0;
+		Component.onCompleted: currentIndex = appSettings.userLocale.length > 0 ? 1 : 0;
 	}
 
 	Frame {
@@ -132,20 +133,28 @@ TPPopup {
 			}
 
 			onClicked: {
-				if (stackLayout.currentIndex === stackLayout.count - 1) {
-					userModel.setMainUserConfigurationFinished();
-					closePopup();
-				}
+				if (stackLayout.currentIndex === stackLayout.count - 1)
+					finish();
 				else {
-					if (stackLayout.currentIndex === 2)
+					if (stackLayout.currentIndex === 2) {
 						//Might be trying to connect online to retrieve existing user info. But, if Next was clicked, it means that a local
 						//new user will be created, so we must cancel pending requests to try to retrieve info from the net
 						userModel.cancelPendingOnlineRequests();
+					}
 				}
-				stackLayout.currentIndex++;
-				if (stackLayout.currentIndex >= 3 && stackLayout.currentIndex < stackLayout.count - 2)
-					stackLayout.itemAt(stackLayout.currentIndex).focusOnFirstField();
+				if (nextStartsTheApp)
+					finish();
+				else {
+					stackLayout.currentIndex++;
+					if (stackLayout.currentIndex >= 3 && stackLayout.currentIndex < stackLayout.count - 2)
+						stackLayout.itemAt(stackLayout.currentIndex).focusOnFirstField();
+				}
 			}
 		}
+	}
+
+	function finish(): void {
+		userModel.setMainUserConfigurationFinished();
+		closePopup();
 	}
 }

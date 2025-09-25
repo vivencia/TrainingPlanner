@@ -143,7 +143,7 @@ ColumnLayout {
 		TPButton {
 			id: btnBirthDate
 			imageSource: "calendar.png"
-			width: userSettings.itemDefaultHeight
+			width: appSettings.itemDefaultHeight
 			height: width
 			enabled: bPasswordOK && userRow === 0
 			anchors {
@@ -156,7 +156,7 @@ ColumnLayout {
 	}
 
 	Item {
-		height: userSettings.itemDefaultHeight
+		height: appSettings.itemDefaultHeight
 		Layout.fillWidth: true
 		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : -5
 
@@ -206,6 +206,7 @@ ColumnLayout {
 	}
 
 	TPRadioButtonOrCheckBox {
+		id: chkOnlineUser
 		text: userModel.netUserLabel
 		actionable: userRow === 0
 		radio: false
@@ -216,7 +217,7 @@ ColumnLayout {
 
 		TPButton {
 			imageSource: "question.png"
-			width: userSettings.itemDefaultHeight
+			width: appSettings.itemDefaultHeight
 			height: width
 
 			anchors {
@@ -265,6 +266,7 @@ ColumnLayout {
 		chkMale.checked = sex === 0;
 		chkFemale.checked = sex === 1;
 		bSexOK = sex <= 1;
+		chkOnlineUser.checked = userModel.onlineUser
 		userModel.userPasswordAvailable.connect(getUserPassword);
 		userModel.getPassword();
 	}

@@ -9,7 +9,7 @@ TPPopup {
 	id: dlgMuscularGroup
 	keepAbove: true
 	width: appSettings.pageWidth/2
-	height: shown ? dlgHeight : userSettings.itemDefaultHeight
+	height: shown ? dlgHeight : appSettings.itemDefaultHeight
 
 	property string buttonLabel: qsTr("Filter")
 	property bool useFancyNames: false
@@ -47,7 +47,7 @@ TPPopup {
 
 	Rectangle {
 		id: recTitleBar
-		color: userSettings.paneBackgroundColor
+		color: appSettings.paneBackgroundColor
 		opacity: 0.8
 		width: parent.width
 		height: btnClose.height
@@ -55,10 +55,10 @@ TPPopup {
 
 		gradient: Gradient {
 			orientation: Gradient.Horizontal
-			GradientStop { position: 0.0; color: userSettings.paneBackgroundColor; }
-			GradientStop { position: 0.25; color: userSettings.primaryLightColor; }
-			GradientStop { position: 0.50; color: userSettings.primaryColor; }
-			GradientStop { position: 0.75; color: userSettings.primaryDarkColor; }
+			GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
+			GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
+			GradientStop { position: 0.50; color: appSettings.primaryColor; }
+			GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
 		}
 
 		anchors {

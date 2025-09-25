@@ -13,8 +13,8 @@ Page {
 	readonly property int headerHeight: 0.08 * appSettings.pageHeight
 	readonly property int footerHeight: 0.10 * appSettings.pageHeight
 
-	property color colorLight: userSettings.primaryLightColor
-	property color colorDark: userSettings.primaryDarkColor
+	property color colorLight: appSettings.primaryLightColor
+	property color colorDark: appSettings.primaryDarkColor
 
 	signal pageActivated();
 	signal pageDeActivated();

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "tpglobals.h"
 #include "tputils.h"
 #include "online_services/onlineuserinfo.h"
 
@@ -103,10 +102,9 @@ public:
 	inline QString checkEmailLabel() const { return tr("Check"); }
 	inline QString importUserLabel() const { return tr("Import"); }
 
-	inline uint userCount() const { return m_usersData.count(); }
+	void showFirstTimeUseDialog();
 
-	const QString &runningUser() const { return m_runningUser; }
-	void setRunningUser(const QString &running_user) { m_runningUser = running_user; }
+	inline uint userCount() const { return m_usersData.count(); }
 	inline const QString &_onlineUser(const uint user_idx) const { return user_idx < m_usersData.count() ? m_usersData.at(user_idx).at(USER_COL_NETUSER) : m_onlineUserId; }
 	inline bool onlineUser(const uint user_idx = 0) const { return _onlineUser(user_idx) == '1'; }
 	void setOnlineUser(const bool online_user, const uint user_idx = 0);
@@ -132,7 +130,7 @@ public:
 	Q_INVOKABLE inline int findUserByName(const QString &username) const { return userIdxFromFieldValue(USER_COL_NAME, username); }
 	Q_INVOKABLE inline QString userNameFromId(const QString &userid) const { return userName(userIdxFromFieldValue(USER_COL_ID, userid)); }
 	int userIdxFromFieldValue(const uint field, const QString &value) const;
-	QString userIdFromFieldValue(const uint field, const QString &value) const;
+	const QString &userIdFromFieldValue(const uint field, const QString &value) const;
 	inline const QString localDir(const QString &userid) const { return localDir(userIdxFromFieldValue(USER_COL_ID, userid)); }
 	const QString localDir(const int user_idx) const;
 
@@ -271,6 +269,7 @@ public:
 #ifndef Q_OS_ANDROID
 	Q_INVOKABLE void getAllOnlineUsers();
 	Q_INVOKABLE void switchUser();
+	void userSwitchingActions();
 	inline QString userId(const int user_idx = 0) const { return user_idx < m_usersData.count() ? m_usersData.at(user_idx).at(USER_COL_ID) : QString{}; }
 	inline OnlineUserInfo *allUsers() const { return m_allUsers; }
 #endif
@@ -346,6 +345,7 @@ signals:
 	void pendingClientsRequestsChanged();
 	void userOnlineCheckResult(const bool registered);
 	void userOnlineImportFinished(const bool result);
+	void allUserFilesDownloaded(const bool success);
 	void mainUserConfigurationFinished();
 	void canConnectToServerChanged();
 	void mainUserOnlineCheckInChanged(const bool first_checkin = false);
@@ -360,13 +360,13 @@ signals:
 #ifndef Q_OS_ANDROID
 	void allUsersChanged();
 	void userIdChanged();
-	void allUserFilesDownloaded(const bool success);
+	void userSwitchPhase1Finished(const bool success);
 #endif
 
 private:
 	QList<QStringList> m_usersData, m_tempUserData;
 	int m_tempRow, n_devices;
-	QString m_runningUser, m_onlineUserId, m_password, m_defaultAvatar, m_emptyString, m_onlineCoachesDir,
+	QString m_onlineUserId, m_password, m_defaultAvatar, m_emptyString, m_onlineCoachesDir,
 		m_dirForRequestedCoaches, m_dirForClientsRequests, m_dirForCurrentClients, m_dirForCurrentCoaches;
 	std::optional<bool> mb_singleDevice, mb_userRegistered, mb_coachRegistered;
 	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses, *m_tempUserInfo;
@@ -376,9 +376,9 @@ private:
 
 #ifndef Q_OS_ANDROID
 	OnlineUserInfo *m_allUsers;
-	void downloadAllUserFiles(const QString &userid);
 #endif
 
+	void setupOnlineUserLocalDirs();
 	QString getPhonePart(const QString &str_phone, const bool prefix) const;
 	void setPhoneBasedOnLocale();
 	QString generateUniqueUserId() const;
@@ -386,6 +386,8 @@ private:
 	void registerUserOnline();
 	void onlineCheckinActions();
 	void getOnlineDevicesList();
+	void switchToUser(const QString &new_userid, const bool user_switching_for_testing = false);
+	void downloadAllUserFiles(const QString &userid);
 	void createOnlineDatabases(QString last_online_cmd);
 	void syncDatabases(const QStringList &online_db_files, const QString &last_online_cmd);
 	void lastOnlineCmd(const uint requestid, const QString &subdir = QString{});

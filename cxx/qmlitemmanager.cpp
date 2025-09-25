@@ -45,16 +45,6 @@ QmlItemManager *QmlItemManager::_appItemManager{nullptr};
 QQmlApplicationEngine *QmlItemManager::_appQmlEngine{nullptr};
 QQuickWindow *QmlItemManager::_appMainWindow{nullptr};
 
-QmlItemManager::QmlItemManager(QQmlApplicationEngine *qml_engine)
-		: QObject{nullptr}, m_usersManager{nullptr}, m_exercisesListManager{nullptr}, m_weatherPage{nullptr},
-				m_statisticsPage{nullptr}, m_allWorkoutsPage{nullptr}
-{
-	_appItemManager = this;
-	appDBInterface()->init();
-	_appQmlEngine = qml_engine;
-	configureQmlEngine();
-}
-
 QmlItemManager::~QmlItemManager()
 {
 	if (m_weatherPage)
@@ -77,7 +67,8 @@ QmlItemManager::~QmlItemManager()
 
 void QmlItemManager::configureQmlEngine()
 {
-	QQuickStyle::setStyle(userSettings() ? userSettings()->themeStyle() : "Material"_L1);
+	QQuickStyle::setStyle(appSettings()->themeStyle());
+	new PagesListModel{this};
 
 	qmlRegisterType<DBUserModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBUserModel");
 	qmlRegisterType<DBExercisesListModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBExercisesListModel");
@@ -99,10 +90,10 @@ void QmlItemManager::configureQmlEngine()
 	qmlRegisterType<TPWorkoutsCalendar>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "WorkoutsCalendar");
 	qmlRegisterType<OnlineUserInfo>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "OnlineUserInfo");
 	qmlRegisterType<TPMessagesManager>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "MessagesManager");
-	qmlRegisterType<homePageMesoModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "HomePageMesoModel");
+	qmlRegisterType<HomePageMesoModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "HomePageMesoModel");
 
 	//Root context properties. MainWindow app properties
-	QList<QQmlContext::PropertyPair> properties{12};
+	QList<QQmlContext::PropertyPair> properties{11};
 	properties[0] = std::move(QQmlContext::PropertyPair{ "appSettings"_L1, QVariant::fromValue(appSettings()) });
 	properties[1] = std::move(QQmlContext::PropertyPair{ "appUtils"_L1, QVariant::fromValue(appUtils()) });
 	properties[2] = std::move(QQmlContext::PropertyPair{ "appTr"_L1, QVariant::fromValue(appTr()) });
@@ -111,10 +102,9 @@ void QmlItemManager::configureQmlEngine()
 	properties[5] = std::move(QQmlContext::PropertyPair{ "exercisesModel"_L1, QVariant::fromValue(appExercisesList()) });
 	properties[6] = std::move(QQmlContext::PropertyPair{ "itemManager"_L1, QVariant::fromValue(this) });
 	properties[7] = std::move(QQmlContext::PropertyPair{ "appStatistics"_L1, QVariant::fromValue(appStatistics()) });
-	properties[8] = std::move(QQmlContext::PropertyPair{ "pagesListModel"_L1, QVariant::fromValue(m_pagesManager = new PagesListModel{this}) });
+	properties[8] = std::move(QQmlContext::PropertyPair{ "pagesListModel"_L1, QVariant::fromValue(appPagesListModel()) });
 	properties[9] = std::move(QQmlContext::PropertyPair{ "appMessages"_L1, QVariant::fromValue(new TPMessagesManager{this}) });
 	properties[10] = std::move(QQmlContext::PropertyPair{ "osInfo"_L1, QVariant::fromValue(appOsInterface()) });
-	properties[11] = std::move(QQmlContext::PropertyPair{ "userSettings"_L1, QVariant::fromValue(userSettings()) });
 	appQmlEngine()->rootContext()->setContextProperties(properties);
 	appQmlEngine()->addImportPath(":/"_L1);
 	appQmlEngine()->addImageProvider("tpimageprovider"_L1, new TPImageProvider{});
@@ -134,16 +124,11 @@ void QmlItemManager::configureQmlEngine()
 
 			QQuickItem *homePage{appMainWindow()->findChild<QQuickItem*>("homePage")};
 			if (homePage)
-				m_pagesManager->insertHomePage(homePage);
+				appPagesListModel()->insertHomePage(homePage);
 			if (obj->objectName() == "mainWindow"_L1)
 			{
 				if (!appUserModel()->mainUserConfigured())
-				{
-					QMetaObject::invokeMethod(appMainWindow(), "showFirstTimeUseDialog");
-					connect(appUserModel(), &DBUserModel::mainUserConfigurationFinished, this, [this] () {
-						appOsInterface()->initialCheck();
-					}, Qt::SingleShotConnection);
-				}
+					appUserModel()->showFirstTimeUseDialog();
 				else
 					appOsInterface()->initialCheck();
 
@@ -280,7 +265,7 @@ void QmlItemManager::getWeatherPage()
 			createWeatherPage_part2();
 	}
 	else
-		m_pagesManager->openPage(tr("Weather Forecast"), m_weatherPage);
+		appPagesListModel()->openPage(tr("Weather Forecast"), m_weatherPage);
 }
 
 void QmlItemManager::getStatisticsPage()
@@ -306,7 +291,7 @@ void QmlItemManager::getStatisticsPage()
 			createStatisticsPage_part2();
 	}
 	else
-		m_pagesManager->openPage(tr("Statistics"), m_statisticsPage);
+		appPagesListModel()->openPage(tr("Statistics"), m_statisticsPage);
 }
 
 void QmlItemManager::getAllWorkoutsPage()
@@ -332,7 +317,7 @@ void QmlItemManager::getAllWorkoutsPage()
 			createAllWorkoutsPage_part2();
 	}
 	else
-		m_pagesManager->openPage(tr("All Workouts"), m_allWorkoutsPage);
+		appPagesListModel()->openPage(tr("All Workouts"), m_allWorkoutsPage);
 }
 
 void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QString &filter) const
@@ -361,12 +346,12 @@ void QmlItemManager::hideSimpleExercisesList(QQuickItem *parentPage) const
 
 void QmlItemManager::openPage(const QString &label, QQuickItem *page, const std::function<void ()> &clean_up_func)
 {
-	m_pagesManager->openPage(label, page, clean_up_func);
+	appPagesListModel()->openPage(label, page, clean_up_func);
 }
 
 void QmlItemManager::closePage(QQuickItem *page)
 {
-	m_pagesManager->closePage(page);
+	appPagesListModel()->closePage(page);
 }
 
 const QString &QmlItemManager::setExportFileName(const QString &filename)
@@ -655,7 +640,7 @@ void QmlItemManager::createWeatherPage_part2()
 	m_weatherPage = static_cast<QQuickItem*>(m_weatherComponent->create(appQmlEngine()->rootContext()));
 	appQmlEngine()->setObjectOwnership(m_weatherPage, QQmlEngine::CppOwnership);
 	m_weatherPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
-	m_pagesManager->openPage(tr("Weather Forecast"), m_weatherPage);
+	appPagesListModel()->openPage(tr("Weather Forecast"), m_weatherPage);
 }
 
 void QmlItemManager::createStatisticsPage_part2()
@@ -663,7 +648,7 @@ void QmlItemManager::createStatisticsPage_part2()
 	m_statisticsPage = static_cast<QQuickItem*>(m_statisticsComponent->create(appQmlEngine()->rootContext()));
 	appQmlEngine()->setObjectOwnership(m_statisticsPage, QQmlEngine::CppOwnership);
 	m_statisticsPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
-	m_pagesManager->openPage(tr("Statistics"), m_statisticsPage);
+	appPagesListModel()->openPage(tr("Statistics"), m_statisticsPage);
 }
 
 void QmlItemManager::createAllWorkoutsPage_part2()
@@ -674,7 +659,7 @@ void QmlItemManager::createAllWorkoutsPage_part2()
 	m_allWorkoutsPage = static_cast<QQuickItem*>(m_allWorkoutsComponent->createWithInitialProperties(allWorkoutsProperties, appQmlEngine()->rootContext()));
 	appQmlEngine()->setObjectOwnership(m_allWorkoutsPage, QQmlEngine::CppOwnership);
 	m_allWorkoutsPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
-	m_pagesManager->openPage(tr("All Workouts"), m_allWorkoutsPage);
+	appPagesListModel()->openPage(tr("All Workouts"), m_allWorkoutsPage);
 
 	//connect(appMesoModel(), &DBMesocyclesModel::mesoCalendarFieldsChanged, m_wokoutsCalendar, &TPWorkoutsCalendar::reScanMesocycles);
 	connect(appMesoModel(), &DBMesocyclesModel::isNewMesoChanged, m_wokoutsCalendar, &TPWorkoutsCalendar::reScanMesocycles);

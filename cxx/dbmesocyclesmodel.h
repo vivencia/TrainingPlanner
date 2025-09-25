@@ -52,8 +52,8 @@ Q_OBJECT
 
 Q_PROPERTY(bool canHaveTodaysWorkout READ canHaveTodaysWorkout NOTIFY canHaveTodaysWorkoutChanged FINAL)
 Q_PROPERTY(int currentMesoIdx READ currentMesoIdx WRITE setCurrentMesoIdx NOTIFY currentMesoIdxChanged FINAL)
-Q_PROPERTY(homePageMesoModel* ownMesos READ ownMesos CONSTANT FINAL)
-Q_PROPERTY(homePageMesoModel* clientMesos READ clientMesos CONSTANT FINAL)
+Q_PROPERTY(HomePageMesoModel* ownMesos READ ownMesos CONSTANT FINAL)
+Q_PROPERTY(HomePageMesoModel* clientMesos READ clientMesos CONSTANT FINAL)
 
 Q_PROPERTY(QString mesoNameLabel READ mesoNameLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString startDateLabel READ startDateLabel NOTIFY labelChanged FINAL)
@@ -75,8 +75,11 @@ Q_PROPERTY(QString nonMesoLabel READ nonMesoLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString splitR READ splitR NOTIFY labelChanged FINAL)
 
 public:
-	explicit DBMesocyclesModel(QObject *parent = nullptr, const bool bMainAppModel = true);
-	~DBMesocyclesModel();
+	explicit DBMesocyclesModel(QObject *parent = nullptr);
+	inline ~DBMesocyclesModel() { clear(); }
+	#ifndef Q_OS_ANDROID
+	void userSwitchingActions();
+	#endif
 
 	inline uint fieldCount() const { return MESOCYCLES_TOTAL_COLS; }
 	inline uint count() const { return m_mesoData.count(); }
@@ -100,9 +103,9 @@ public:
 	const uint newMesocycle(QStringList &&infolist);
 	inline DBMesoCalendarManager *mesoCalendarManager() const { return m_calendarModel; }
 
-	inline homePageMesoModel *currentHomePageMesoModel() { return m_curMesos; }
-	Q_INVOKABLE inline homePageMesoModel *ownMesos() const { return m_ownMesos; }
-	Q_INVOKABLE inline homePageMesoModel *clientMesos() const { return m_clientMesos; }
+	inline HomePageMesoModel *currentHomePageMesoModel() { return m_curMesos; }
+	Q_INVOKABLE inline HomePageMesoModel *ownMesos() const { return m_ownMesos; }
+	Q_INVOKABLE inline HomePageMesoModel *clientMesos() const { return m_clientMesos; }
 
 	inline bool isNewMeso(const uint meso_idx) const { return m_isNewMeso.at(meso_idx) != 0; }
 	bool isNewMesoFieldSet(const uint meso_idx, const uint field) const;
@@ -409,18 +412,23 @@ private:
 	QHash<uint,QMLMesoInterface*> m_mesoManagerList;
 	QList<QMap<QChar,DBExercisesModel*>> m_splitModels;
 	DBMesoCalendarManager* m_calendarModel;
-	homePageMesoModel *m_curMesos, *m_ownMesos, *m_clientMesos;
+	HomePageMesoModel *m_curMesos, *m_ownMesos, *m_clientMesos;
 	QList<int32_t> m_isNewMeso;
 	QList<bool> m_canExport;
 	QStringList m_usedSplits;
 	int m_currentMesoIdx, m_mostRecentOwnMesoIdx, m_importMesoIdx, m_lowestTempMesoId;
 	bool m_bCanHaveTodaysWorkout;
 
+	#ifndef Q_OS_ANDROID
+	static QHash<QString,DBMesocyclesModel*> app_meso_models;
+	#else
 	static DBMesocyclesModel *app_meso_model;
+	#endif
 	friend DBMesocyclesModel *appMesoModel();
 
 	inline QString newMesoTemporaryId() { return QString::number(m_lowestTempMesoId--); }
 	inline bool isMesoTemporary(const uint meso_idx) const { return _id(meso_idx) < 0; }
+	void clear();
 	void loadSplits(const uint meso_idx, const uint thread_id);
 	int continueExport(const uint meso_idx, const QString &filename, const bool formatted) const;
 	int exportToFile_splitData(const uint meso_idx, QFile *mesoFile, const bool formatted) const;
@@ -429,4 +437,9 @@ signals:
 	void internalSignal(const uint _meso_idx, const uint _id, const bool _result);
 };
 
+#ifndef Q_OS_ANDROID
+#include "tpsettings.h"
+inline DBMesocyclesModel *appMesoModel() { return DBMesocyclesModel::app_meso_models.value(appSettings()->currentUser()); }
+#else
 inline DBMesocyclesModel *appMesoModel() { return DBMesocyclesModel::app_meso_model; }
+#endif

@@ -10,7 +10,7 @@ QtObject {
 	    italic: false,
 	    styleStrategy: Font.PreferAntialias,
 	    hintingPreference: Font.PreferFullHinting,
-	    pixelSize: userSettings.fontSize
+	    pixelSize: appSettings.fontSize
 	})
 
 	readonly property FontMetrics fontMetricsRegular: FontMetrics {
@@ -25,7 +25,7 @@ QtObject {
 	    italic: false,
 	    styleStrategy: Font.PreferAntialias,
 	    hintingPreference: Font.PreferFullHinting,
-	    pixelSize: userSettings.smallFontSize
+	    pixelSize: appSettings.smallFontSize
 	})
 
 	readonly property font largeFont: Qt.font({
@@ -34,7 +34,7 @@ QtObject {
 	    italic: false,
 	    styleStrategy: Font.PreferAntialias,
 	    hintingPreference: Font.PreferFullHinting,
-	    pixelSize: userSettings.largeFontSize
+	    pixelSize: appSettings.largeFontSize
 	})
 
 	readonly property font extraLargeFont: Qt.font({
@@ -43,7 +43,7 @@ QtObject {
 	    italic: false,
 	    styleStrategy: Font.PreferAntialias,
 	    hintingPreference: Font.PreferFullHinting,
-	    pixelSize: userSettings.extraLargeFontSize
+	    pixelSize: appSettings.extraLargeFontSize
 	})
 
 	readonly property ListModel setTypesModel: ListModel {

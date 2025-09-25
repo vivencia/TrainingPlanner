@@ -12,6 +12,7 @@ TPPopup {
 	id: avatarsDlg
 	keepAbove: false
 	closeButtonVisible: false
+	showTitleBar: false
 	width: appSettings.pageWidth
 	height: (repeater.bMale ? 2 * appSettings.pageWidth/5 : 3 * appSettings.pageWidth/5) + 30
 	x: 0
@@ -23,7 +24,7 @@ TPPopup {
 	Rectangle {
 		id: footerBar
 		width: appSettings.pageWidth
-		height: userSettings.itemDefaultHeight
+		height: appSettings.itemDefaultHeight
 		color: "transparent"
 
 		TPLabel {
@@ -42,8 +43,8 @@ TPPopup {
 		TPButton {
 			id: btnChooseImage
 			imageSource: "choose_avatar"
-			width: userSettings.itemDefaultHeight
-			height: userSettings.itemDefaultHeight
+			width: appSettings.itemDefaultHeight
+			height: appSettings.itemDefaultHeight
 
 			anchors {
 				left: lblChooseImage.right

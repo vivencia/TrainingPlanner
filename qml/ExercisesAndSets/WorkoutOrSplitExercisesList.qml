@@ -59,8 +59,8 @@ ListView {
 		contentItem: Rectangle {
 			id: listItem
 			border.color: "transparent"
-			color: workingExercise === index ? userSettings.primaryColor :
-							(index % 2 === 0 ? userSettings.listEntryColor1 : userSettings.listEntryColor2)
+			color: workingExercise === index ? appSettings.primaryColor :
+							(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
 			radius: 5
 		}
 
@@ -162,7 +162,7 @@ ListView {
 			}
 
 			Item {
-				height: userSettings.itemDefaultHeight
+				height: appSettings.itemDefaultHeight
 				Layout.fillWidth: true
 
 				TPRadioButtonOrCheckBox {
@@ -182,7 +182,7 @@ ListView {
 				TPButton {
 					id: btnNextExercise
 					imageSource: "goto-next"
-					width: userSettings.itemDefaultHeight
+					width: appSettings.itemDefaultHeight
 					height: width
 					enabled: index === exercisesModel.workingExercise && index < exercisesModel.exerciseCount - 1 && delegate.allSetsCompleted
 
@@ -205,7 +205,7 @@ ListView {
 				TPButton {
 					id: btnDelExercise
 					imageSource: "remove"
-					width: userSettings.itemDefaultHeight
+					width: appSettings.itemDefaultHeight
 					height: width
 					enabled: index === exercisesModel.workingExercise
 
@@ -222,7 +222,7 @@ ListView {
 					id: btnMoveExerciseUp
 					imageSource: "up.png"
 					hasDropShadow: false
-					width: userSettings.itemSmallHeight
+					width: appSettings.itemSmallHeight
 					height: width
 					enabled: index === exercisesModel.workingExercise ? (index >= 1) : false
 
@@ -239,7 +239,7 @@ ListView {
 					id: btnMoveExerciseDown
 					imageSource: "down.png"
 					hasDropShadow: false
-					width: userSettings.itemSmallHeight
+					width: appSettings.itemSmallHeight
 					height: width
 					enabled: index === exercisesModel.workingExercise ? (index < exercisesModel.exerciseCount - 1) : false
 
@@ -257,13 +257,13 @@ ListView {
 				enabled: index === exercisesModel.workingExercise
 				Layout.minimumWidth: listItem.width
 				Layout.maximumWidth: listItem.width
-				Layout.preferredHeight: userSettings.itemLargeHeight
+				Layout.preferredHeight: appSettings.itemLargeHeight
 
 				TPButton {
 					id: btnAddSubExercise
 					imageSource: "plus"
 					hasDropShadow: false
-					width: userSettings.itemDefaultHeight
+					width: appSettings.itemDefaultHeight
 					height: width
 
 					onClicked: {
@@ -280,7 +280,7 @@ ListView {
 				StackLayout{
 					id: subExercisesStack
 					currentIndex: delegate.nSubExercises > 0 ? 1 : 0
-					height: userSettings.itemLargeHeight
+					height: appSettings.itemLargeHeight
 
 					anchors {
 						left: btnAddSubExercise.right
@@ -294,7 +294,7 @@ ListView {
 						horizontalAlignment: Text.AlignHCenter
 						Layout.maximumWidth: parent.width * 0.8
 						Layout.minimumWidth: parent.width * 0.8
-						Layout.minimumHeight: userSettings.itemDefaultHeight * 2
+						Layout.minimumHeight: appSettings.itemDefaultHeight * 2
 					}
 
 					TabBar {
@@ -328,7 +328,7 @@ ListView {
 					id: btnDelSubExercise
 					imageSource: "minus"
 					hasDropShadow: false
-					width: userSettings.itemDefaultHeight
+					width: appSettings.itemDefaultHeight
 					height: width
 
 					anchors {
@@ -350,7 +350,7 @@ ListView {
 				showRemoveButton: false
 				editable: delegate.nSubExercises > 0 && index === exercisesModel.workingExercise
 				Layout.preferredWidth: parent.width
-				Layout.preferredHeight: userSettings.pageHeight * 0.1
+				Layout.preferredHeight: appSettings.pageHeight * 0.1
 
 				onExerciseChanged: (new_text) => exercisesModel.setExerciseName(exercisesModel.workingExercise, exercisesModel.workingSubExercise, new_text);
 				onItemClicked: exercisesModel.workingExercise = index;
@@ -406,7 +406,7 @@ ListView {
 
 				background: Rectangle {
 					color: "transparent"
-					border.color: userSettings.fontColor
+					border.color: appSettings.fontColor
 					radius: 6
 				}
 
@@ -418,13 +418,13 @@ ListView {
 					Item {
 						enabled: delegate.nSubExercises > 0
 						Layout.fillWidth: true
-						Layout.preferredHeight: userSettings.itemLargeHeight
+						Layout.preferredHeight: appSettings.itemLargeHeight
 
 						TPButton {
 							id: btnAddSet
 							imageSource: "plus"
 							hasDropShadow: false
-							width: userSettings.itemDefaultHeight
+							width: appSettings.itemDefaultHeight
 							height: width
 
 							onClicked: {
@@ -441,7 +441,7 @@ ListView {
 						StackLayout{
 							id: setsStack
 							currentIndex: setsGroup.nSets > 0 ? 1 : 0
-							height: userSettings.itemLargeHeight
+							height: appSettings.itemLargeHeight
 
 							anchors {
 								left: btnAddSet.right
@@ -485,7 +485,7 @@ ListView {
 							imageSource: "minus"
 							hasDropShadow: false
 							enabled: setsGroup.nSets > 0
-							width: userSettings.itemDefaultHeight
+							width: appSettings.itemDefaultHeight
 							height: width
 
 							anchors {
@@ -503,7 +503,7 @@ ListView {
 					Row {
 						Layout.alignment: Qt.AlignCenter
 						Layout.preferredWidth: listItem.width * 0.9
-						Layout.minimumHeight: userSettings.itemDefaultHeight
+						Layout.minimumHeight: appSettings.itemDefaultHeight
 						padding: 10
 						enabled: setsGroup.nSets > 0 && !delegate.setCompleted
 
@@ -603,13 +603,13 @@ ListView {
 						Layout.alignment: Qt.AlignCenter
 						Layout.maximumWidth: width
 						Layout.minimumWidth: width
-						Layout.minimumHeight: userSettings.itemDefaultHeight
-						Layout.maximumHeight: userSettings.itemDefaultHeight
+						Layout.minimumHeight: appSettings.itemDefaultHeight
+						Layout.maximumHeight: appSettings.itemDefaultHeight
 
 						TPImage {
 							id: imgSetCompleted
 							source: "set-completed"
-							width: userSettings.itemDefaultHeight
+							width: appSettings.itemDefaultHeight
 							height: width
 							enabled: delegate.setCompleted
 
@@ -649,7 +649,7 @@ ListView {
 
 				TPImage {
 					source: "set-completed"
-					width: userSettings.itemDefaultHeight
+					width: appSettings.itemDefaultHeight
 					height: width
 				}
 			} //RowLayout

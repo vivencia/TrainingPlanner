@@ -6,7 +6,7 @@
 
 using namespace Qt::Literals::StringLiterals;
 
-homePageMesoModel::homePageMesoModel(QObject *parent)
+HomePageMesoModel::HomePageMesoModel(QObject *parent)
 	: QAbstractListModel{parent}
 {
 	m_roleNames[mesoNameRole] = std::move("mesoName");
@@ -17,7 +17,13 @@ homePageMesoModel::homePageMesoModel(QObject *parent)
 	m_roleNames[mesoClientRole] = std::move("mesoClient");
 }
 
-void homePageMesoModel::appendData(const uint mesoModelRow)
+void HomePageMesoModel::userSwitchingActions()
+{
+	emit countChanged();
+	emit dataChanged(index(0, 0), index(count() - 1, 0));
+}
+
+void HomePageMesoModel::appendData(const uint mesoModelRow)
 {
 	beginInsertRows(QModelIndex{}, count(), count());
 	m_mesoModelRows.append(mesoModelRow);
@@ -25,7 +31,7 @@ void homePageMesoModel::appendData(const uint mesoModelRow)
 	endInsertRows();
 }
 
-void homePageMesoModel::removeRow(const uint row)
+void HomePageMesoModel::removeRow(const uint row)
 {
 	if (row < m_mesoModelRows.count())
 	{
@@ -36,7 +42,7 @@ void homePageMesoModel::removeRow(const uint row)
 	}
 }
 
-QVariant homePageMesoModel::data(const QModelIndex &index, int role) const
+QVariant HomePageMesoModel::data(const QModelIndex &index, int role) const
 {
 	const int row{index.row()};
 	if (row >= 0 && row < m_mesoModelRows.count())

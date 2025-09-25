@@ -18,7 +18,7 @@ public:
 	}
 
 	Q_INVOKABLE inline bool translatorOK() const { return mbOK; }
-	Q_INVOKABLE void switchToLanguage(const QString &language);
+	Q_INVOKABLE void switchToLanguage(const QString &language, const bool write_config);
 	Q_INVOKABLE QString language() const;
 
 signals:

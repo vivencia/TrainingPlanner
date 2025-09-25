@@ -15,17 +15,26 @@
 
 using DBSplitModel = DBExercisesModel;
 
+#ifndef Q_OS_ANDROID
+QHash<QString,DBMesocyclesModel*> DBMesocyclesModel::app_meso_models{};
+#else
 DBMesocyclesModel *DBMesocyclesModel::app_meso_model(nullptr);
+#endif
 
-DBMesocyclesModel::DBMesocyclesModel(QObject *parent, const bool bMainAppModel)
+DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
 	: QObject{parent}, m_currentMesoIdx{-11111}, m_mostRecentOwnMesoIdx{-11111}, m_lowestTempMesoId{-1}, m_bCanHaveTodaysWorkout{false}
 {
+	#ifndef Q_OS_ANDROID
+	app_meso_models.insert(appSettings()->currentUser(), this);
+	#else
 	app_meso_model = this;
-	setCurrentMesoIdx(userSettings()->lastViewedMesoIdx(), false);
+	#endif
+
+	setCurrentMesoIdx(appSettings()->lastViewedMesoIdx(), false);
 
 	m_calendarModel = new DBMesoCalendarManager{this};
-	m_ownMesos = new homePageMesoModel{this};
-	m_clientMesos = new homePageMesoModel{this};
+	m_ownMesos = new HomePageMesoModel{this};
+	m_clientMesos = new HomePageMesoModel{this};
 
 	connect(m_calendarModel, &DBMesoCalendarManager::calendarChanged, this, [this] (const uint meso_idx, const uint field, const int calendar_day) {
 		if (field != MESOCALENDAR_TOTAL_COLS)
@@ -34,13 +43,15 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent, const bool bMainAppModel)
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, &DBMesocyclesModel::labelChanged);
 }
 
-DBMesocyclesModel::~DBMesocyclesModel()
+void DBMesocyclesModel::userSwitchingActions()
 {
-	delete m_ownMesos;
-	delete m_clientMesos;
-	delete m_calendarModel;
-	for (auto mesoManagerList : std::as_const(m_mesoManagerList))
-		delete mesoManagerList;
+	if (app_meso_models.count() > 1)
+	{
+		emit currentMesoIdxChanged();
+		emit canHaveTodaysWorkoutChanged();
+		m_ownMesos->userSwitchingActions();
+		m_clientMesos->userSwitchingActions();
+	}
 }
 
 QMLMesoInterface *DBMesocyclesModel::mesoManager(const uint meso_idx)
@@ -348,7 +359,7 @@ void DBMesocyclesModel::setCurrentMesoIdx(const int meso_idx, const bool bEmitSi
 		}
 		if (bEmitSignal)
 		{
-			userSettings()->setLastViewedMesoIdx(m_currentMesoIdx);
+			appSettings()->setLastViewedMesoIdx(m_currentMesoIdx);
 			emit currentMesoIdxChanged();
 			changeCanHaveTodaysWorkout(m_currentMesoIdx);
 		}
@@ -790,6 +801,18 @@ int DBMesocyclesModel::continueExport(const uint meso_idx, const QString &filena
 	});
 	const_cast<DBMesocyclesModel*>(this)->loadSplits(meso_idx, id);
 	return id;
+}
+
+void DBMesocyclesModel::clear()
+{
+	delete m_ownMesos;
+	delete m_clientMesos;
+	delete m_calendarModel;
+	for (auto mesoManagerList : std::as_const(m_mesoManagerList))
+		delete mesoManagerList;
+	#ifndef Q_OS_ANDROID
+	app_meso_models.remove(app_meso_models.key(this));
+	#endif
 }
 
 void DBMesocyclesModel::loadSplits(const uint meso_idx, const uint thread_id)

@@ -24,19 +24,17 @@ ColumnLayout {
 
 			required property int index
 
-			text: userSettings.availableLanguagesLabel(index)
-			checked: userSettings.userLocaleIdx === index
+			text: appSettings.availableLanguagesLabel(index)
+			checked: appSettings.userLocaleIdx === index
 			image: country_flags[index]
 			multiLine: true
 			buttonGroup: languages_group
 			imageWidth: imageHeight * 2
 			Layout.fillWidth: true
 
-			onClicked: {
-				appTr.switchToLanguage(userSettings.availableLanguages[index]);
-				if (appTr.translatorOK())
-					userSettings.setUserLocale(index);
-			}
+			onClicked: appTr.switchToLanguage(appSettings.availableLanguages[index], true);
 		}
+
+		Component.onCompleted: bReady = languages_group.anyButtonChecked();
 	}
 }

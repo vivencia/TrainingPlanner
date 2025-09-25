@@ -81,7 +81,7 @@ TPPage {
 	}
 
 	footer: TPToolBar {
-		height: userSettings.itemDefaultHeight * 4
+		height: appSettings.itemDefaultHeight * 4
 
 		TPButton {
 			id: btnManageCoach

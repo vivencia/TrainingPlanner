@@ -13,7 +13,7 @@ TranslationClass *TranslationClass::app_tr{nullptr};
 
 void TranslationClass::selectLanguage()
 {
-	QString strLocale{userSettings()->userLocale()};
+	QString strLocale{appSettings()->userLocale()};
 	if (strLocale.isEmpty())
 	{
 		#ifndef Q_OS_ANDROID
@@ -24,12 +24,12 @@ void TranslationClass::selectLanguage()
 		#endif
 	}
 	if (strLocale != "en_US"_L1)
-		switchToLanguage(strLocale);
+		switchToLanguage(strLocale, false);
 	else
-		userSettings()->setUserLocale("en_US"_L1);
+		appSettings()->setUserLocale("en_US"_L1, false);
 }
 
-void TranslationClass::switchToLanguage(const QString &language)
+void TranslationClass::switchToLanguage(const QString &language, const bool write_config)
 {
 	if (mTranslator)
 	{
@@ -49,7 +49,7 @@ void TranslationClass::switchToLanguage(const QString &language)
 	if (appQmlEngine())
 		appQmlEngine()->retranslate();
 	emit applicationLanguageChanged();
-	userSettings()->setUserLocale(language);
+	appSettings()->setUserLocale(language, write_config);
 }
 
 QString TranslationClass::language() const

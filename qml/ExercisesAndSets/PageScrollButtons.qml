@@ -18,7 +18,7 @@ Rectangle {
 	property bool showUpButton: true
 	property bool showDownButton: true
 	property TPPage ownerPage
-	readonly property int buttonSize: Math.ceil(userSettings.itemLargeHeight)
+	readonly property int buttonSize: Math.ceil(appSettings.itemLargeHeight)
 
 	TPFloatingControl {
 		id: btnUp

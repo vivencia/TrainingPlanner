@@ -21,33 +21,33 @@ DBInterface *DBInterface::app_db_interface{nullptr};
 
 void DBInterface::init()
 {
-	QFileInfo f_info{appUtils()->getFilePath(TPDatabaseTable::dbFilePath(1))};
-	if (!f_info.isDir())
-		appUtils()->mkdir(f_info.filePath());
-
-	for (uint i{EXERCISES_TABLE_ID}; i <= APP_TABLES_NUMBER; ++i)
+	if (appSettings()->currentUser() != DEFAULT_USER)
 	{
-		f_info.setFile(TPDatabaseTable::dbFilePath(i));
-		if (!f_info.isReadable())
+		QFileInfo f_info{appUtils()->getFilePath(TPDatabaseTable::dbFilePath(1))};
+		if (!f_info.isDir())
+			appUtils()->mkdir(f_info.filePath());
+
+		for (uint i{EXERCISES_TABLE_ID}; i <= APP_TABLES_NUMBER; ++i)
 		{
-			TPDatabaseTable *db_table{TPDatabaseTable::createDBTable(i)};
-			db_table->createTable();
+			f_info.setFile(TPDatabaseTable::dbFilePath(i));
+			if (!f_info.isReadable())
+			{
+				TPDatabaseTable *db_table{TPDatabaseTable::createDBTable(i)};
+				db_table->createTable();
+			}
 		}
-	}
 
-	sanityCheck();
-	getExercisesListVersion();
-	getAllUsers();
-	getAllMesocycles();
+		sanityCheck();
+		getExercisesListVersion();
+		getAllUsers();
+		getAllMesocycles();
 
-	if (appSettings()->appVersion() != TP_APP_VERSION)
-	{
-		//All the code to update the database goes in here
-		//updateDB(new DBMesoCalendarTable{nullptr});
-		//updateDB(new DBMesocyclesTable{nullptr});
-		//DBUserTable user{nullptr};
-		//user.removeDBFile();
-		//appSettings()->saveAppVersion(TP_APP_VERSION);
+		if (appSettings()->appVersion() != TP_APP_VERSION)
+		{
+			//All the code to update the database goes in here
+			//updateDB(new DBMesocyclesTable{nullptr});
+			//appSettings()->saveAppVersion(TP_APP_VERSION);
+		}
 	}
 }
 
@@ -201,7 +201,7 @@ void DBInterface::updateExercisesList()
 {
 	DBExercisesListTable *worker{new DBExercisesListTable{appExercisesList()}};
 	connect(worker, &DBExercisesListTable::updatedFromExercisesList, this, [this] () {
-		userSettings()->setExercisesListVersion(m_exercisesListVersion);
+		appSettings()->setExercisesListVersion(m_exercisesListVersion);
 	});
 	createThread(worker, [worker] () { return worker->updateExercisesList(); });
 }
@@ -222,7 +222,7 @@ void DBInterface::getExercisesListVersion()
 				m_exercisesListVersion = std::move(line.split(';').at(1).trimmed());
 		}
 		exercisesListFile.close();
-		if (m_exercisesListVersion != userSettings()->exercisesListVersion())
+		if (m_exercisesListVersion != appSettings()->exercisesListVersion())
 			updateExercisesList();
 	}
 }

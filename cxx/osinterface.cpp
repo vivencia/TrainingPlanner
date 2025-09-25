@@ -157,17 +157,15 @@ void OSInterface::checkInternetConnection()
 		setBit(network_status, is_connected ? HAS_INTERNET : NO_INTERNET_ACCESS);
 		unSetBit(network_status, !is_connected ? HAS_INTERNET : NO_INTERNET_ACCESS);
 		emit internetStatusChanged(is_connected);
+		#ifndef QT_NO_DEBUG
+		qDebug() << "checkInternetConnection() -> not connected to the internet";
+		#endif
 	}
-	#ifndef QT_NO_DEBUG
-	qDebug() << "checkInternetConnection() -> not connected to the internet";
-	#endif
+
 	#ifndef Q_OS_ANDROID
 	checkLocalServer();
 	#else
-	if (is_connected)
-		appOnlineServices()->scanNetwork();
-	else
-		m_checkConnectionTimer->start(CONNECTION_ERR_TIMEOUT); //When network is out, check more frequently)
+	appOnlineServices()->scanNetwork();
 	#endif
 }
 
@@ -680,13 +678,6 @@ void OSInterface::startChatApp(const QString &phone, const QString &appname) con
 		if (it.isDigit())
 			phoneNumbers += it;
 	}
-	/*QString::const_iterator itr{phone.constBegin()};
-	const QString::const_iterator &itr_end{phone.constEnd()};
-	do {
-		if ((*itr).isDigit())
-			phoneNumbers += *itr;
-	} while (++itr != itr_end);*/
-
 	QString address;
 	if (appname.contains("Whats"_L1))
 		address = std::move("https://wa.me/"_L1 + phoneNumbers);

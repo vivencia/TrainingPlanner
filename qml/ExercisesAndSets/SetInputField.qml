@@ -9,7 +9,7 @@ FocusScope {
 	id: control
 	implicitWidth: availableWidth
 	width: availableWidth
-	implicitHeight: userSettings.itemDefaultHeight
+	implicitHeight: appSettings.itemDefaultHeight
 	height: visible ? implicitHeight : 0
 
 	required property int type
@@ -20,11 +20,11 @@ FocusScope {
 	property bool showButtons: true
 	property bool clearInput: true
 	property bool editable: true
-	property list<string> labelText: [ qsTr("Weight") + userSettings.weightUnit + ':', qsTr("Reps:"), qsTr("Rest time:"), qsTr("SubSets:") ]
-	property color borderColor: userSettings.fontColor
-	property color labelColor: userSettings.fontColor
-	property color inputColor: userSettings.fontColor
-	property color backColor: userSettings.paneBackgroundColor
+	property list<string> labelText: [ qsTr("Weight") + appSettings.weightUnit + ':', qsTr("Reps:"), qsTr("Rest time:"), qsTr("SubSets:") ]
+	property color borderColor: appSettings.fontColor
+	property color labelColor: appSettings.fontColor
+	property color inputColor: appSettings.fontColor
+	property color backColor: appSettings.paneBackgroundColor
 
 	readonly property list<QtObject> validatorType: [val_weigth, val_rep, val_time, val_set]
 	readonly property list<int> maxLen: [5,4,5,1]
@@ -46,7 +46,7 @@ FocusScope {
 		top: 999.99;
 		decimals: 2
 		notation: DoubleValidator.StandardNotation
-		locale: userSettings.userLocale
+		locale: appSettings.userLocale
 	}
 
 	DoubleValidator {
@@ -55,7 +55,7 @@ FocusScope {
 		top: 99.99;
 		decimals: 2
 		notation: DoubleValidator.StandardNotation
-		locale: userSettings.userLocale
+		locale: appSettings.userLocale
 	}
 
 	RegularExpressionValidator {
@@ -92,7 +92,7 @@ FocusScope {
 			id: btnIncreaseMinutes
 			imageSource: "plus"
 			hasDropShadow: false
-			width: userSettings.itemSmallHeight
+			width: appSettings.itemSmallHeight
 			height: width
 			visible: showButtons && type === SetInputField.Type.TimeType
 			enabled: editable
@@ -114,7 +114,7 @@ FocusScope {
 			id: btnDecreaseMinutes
 			imageSource: "minus"
 			hasDropShadow: false
-			width: userSettings.itemSmallHeight
+			width: appSettings.itemSmallHeight
 			height: width
 			visible: showButtons
 			enabled: editable
@@ -194,7 +194,7 @@ FocusScope {
 			id: btnIncreaseSeconds
 			imageSource: "plus"
 			hasDropShadow: false
-			width: userSettings.itemSmallHeight
+			width: appSettings.itemSmallHeight
 			height: width
 			visible: showButtons
 			enabled: editable
@@ -217,7 +217,7 @@ FocusScope {
 			id: btnDecreaseSeconds
 			imageSource: "minus"
 			hasDropShadow: false
-			width: userSettings.itemSmallHeight
+			width: appSettings.itemSmallHeight
 			height: width
 			visible: showButtons && type === SetInputField.Type.TimeType
 			enabled: editable

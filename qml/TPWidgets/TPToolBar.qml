@@ -23,8 +23,8 @@ ToolBar {
 				y1: height / 2
 				x2: width
 				y2: height / 2 * 3
-				GradientStop { position: 0.0; color: userSettings.primaryDarkColor }
-				GradientStop { position: 1.0; color: userSettings.primaryLightColor }
+				GradientStop { position: 0.0; color: appSettings.primaryDarkColor }
+				GradientStop { position: 1.0; color: appSettings.primaryLightColor }
 			}
 		}
 	}

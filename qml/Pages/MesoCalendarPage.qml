@@ -80,7 +80,7 @@ TPPage {
 		delegate: Rectangle {
 			height: calendar.cellSize * 10.5
 			width: calendar.width - 10
-			color: userSettings.primaryDarkColor
+			color: appSettings.primaryDarkColor
 			opacity: 0.7
 
 			Rectangle {
@@ -94,7 +94,7 @@ TPPage {
 				Text {
 					anchors.centerIn: parent
 					text: appUtils.monthName(calendarModel.month(index)) + " " + calendarModel.year(index);
-					font.pixelSize: userSettings.extraLargeFontSize
+					font.pixelSize: appSettings.extraLargeFontSize
 					font.bold: true
 				}
 			}
@@ -110,15 +110,15 @@ TPPage {
 					text: model.shortName
 					horizontalAlignment: Text.AlignHCenter
 					verticalAlignment: Text.AlignVCenter
-					color: userSettings.fontColor
+					color: appSettings.fontColor
 					font.bold: true
-					font.pixelSize: userSettings.fontSize
+					font.pixelSize: appSettings.fontSize
 				}
 			}
 
 			MonthGrid {
 				id: monthGrid
-				locale: Qt.locale(userSettings.userLocale)
+				locale: Qt.locale(appSettings.userLocale)
 				month: calendarModel.month(index)
 				year: calendarModel.year(index)
 				spacing: 2
@@ -136,7 +136,7 @@ TPPage {
 					border.color: "green"
 					border.width: dayIsFinished ? 2 : 0
 					opacity: !highlighted ? 1 : 0.5
-					color: userSettings.primaryLightColor
+					color: appSettings.primaryLightColor
 
 					readonly property date month_day: new Date(model.year, model.month, model.day);
 					readonly property bool todayDate: month_day.getUTCFullYear() === _today.getUTCFullYear() &&
@@ -164,9 +164,9 @@ TPPage {
 						id: txtDay
 						anchors.centerIn: parent
 						text: calendarModel.dayText(dayEntry.month_day)
-						color: !dayEntry.todayDate ? (calendarModel.isPartOfMeso(dayEntry.month_day) ? userSettings.fontColor : userSettings.disabledFontColor) : "red"
+						color: !dayEntry.todayDate ? (calendarModel.isPartOfMeso(dayEntry.month_day) ? appSettings.fontColor : appSettings.disabledFontColor) : "red"
 						font.bold: true
-						font.pixelSize: userSettings.fontSize
+						font.pixelSize: appSettings.fontSize
 
 						Connections {
 							enabled: calendarModel !== null
@@ -273,7 +273,7 @@ TPPage {
 			id: optChangeAfterThisDay
 			text: qsTr("Adjust calendar from this day on")
 			multiLine: true
-			height: userSettings.itemExtraLargeHeight
+			height: appSettings.itemExtraLargeHeight
 
 			anchors {
 				top: optChangeOnlyThisDay.bottom

@@ -6,7 +6,6 @@ TPTextInput {
 	validator: RegularExpressionValidator {
 					regularExpression: countryPrefix ? /\+?[0-9]{0,3}/ : /\+?(\([0-9]{0,2}\))? ?[0-9]{0,5}-?[0-9]{0,4}/
 				}
-	placeholderText: "(XX) XXXXX-XXXX"
 	maximumLength: countryPrefix ? 5 : 15
     ToolTip.text: qsTr("Invalid phone number")
 

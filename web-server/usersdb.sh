@@ -149,18 +149,16 @@ get_id() {
     REQUESTED_ID=$($SQLITE -line $USERS_DB "SELECT userid FROM users_table WHERE $FIELD=$VALUE;")
     if [[ $REQUESTED_ID != "" ]]; then
         REQUESTED_ID=$(echo "${REQUESTED_ID}" | cut -d '=' -f 2)
-        REQUESTED_PASSWD=$($SQLITE -line $USERS_DB "SELECT password FROM users_table WHERE userid=$REQUESTED_ID;")
-        REQUESTED_PASSWD=$(echo "${REQUESTED_PASSWD}" | cut -d '=' -f 2)
-        TEMP_HT_FILE=$ADMIN_DIR$REQUESTED_ID".htpasswd"
-        echo "$REQUESTED_ID:$REQUESTED_PASSWD" > "$TEMP_HT_FILE"
-        /usr/bin/htpasswd -bv "$TEMP_HT_FILE" "$REQUESTED_ID" "$REQUESTED_PASSWD" > /dev/null 2>&1
-        rm -f "$TEMP_HT_FILE"
-        return_var="$?";
+        REQUESTED_ID=$(echo "${REQUESTED_ID}" | cut -d ' ' -f 2)
+        PASSWORD="$2"
+        /usr/bin/htpasswd -vb "$ADMIN_DIR/.passwds" "${REQUESTED_ID}" "${PASSWORD}" > /dev/null 2>&1
+        return_var="$?"
         case "$return_var" in
-            0) error_string="User exists and password is correct";;
-            3) error_string="User exists and password is wrong";;
-            6) error_string="User does not exist";;
-            *) error_string="User does not exist";;
+            0) error_string="${REQUESTED_ID}";;
+            3) error_string="Verification entry didn't match";;
+            6) error_string="Username  contains illegal characters";;
+            2) error_string="Syntax problem with the command line";;
+            *) error_string="Other error";;
         esac
     else
         error_string="User does not exist"

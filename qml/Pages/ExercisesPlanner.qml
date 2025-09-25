@@ -53,7 +53,7 @@ TPPage {
 				TPButton {
 					imageSource: "next"
 					enabled: splitView.count > 0 && splitView.currentIndex < splitView.count - 1
-					width: userSettings.itemDefaultHeight
+					width: appSettings.itemDefaultHeight
 					height: width
 					anchors {
 						right: parent.right
@@ -65,7 +65,7 @@ TPPage {
 				TPButton {
 					imageSource: "prev"
 					enabled: splitView.currentIndex > 0
-					width: userSettings.itemDefaultHeight
+					width: appSettings.itemDefaultHeight
 					height: width
 					anchors {
 						left: parent.left
@@ -91,7 +91,7 @@ TPPage {
 
 			Row {
 				enabled: currentSplitPage && currentSplitPage.exercisesModel && currentSplitPage.exercisesModel.exerciseCount > 1
-				height: userSettings.itemDefaultHeight
+				height: appSettings.itemDefaultHeight
 				Layout.fillWidth: true
 				spacing: 0
 
@@ -188,7 +188,7 @@ TPPage {
 
 		delegate: Label {
 			text: splitView.itemAt(index).exercisesModel.splitLetter
-			color: userSettings.fontColor
+			color: appSettings.fontColor
 			font.bold: true
 			fontSizeMode: Text.Fit
 			width: 25
@@ -201,7 +201,7 @@ TPPage {
 			background: Rectangle {
 				radius: width/2
 				opacity: index === indicator.currentIndex ? 0.95 : pressed ? 0.7 : 0.45
-				color: userSettings.paneBackgroundColor
+				color: appSettings.paneBackgroundColor
 			}
 
 			MouseArea {

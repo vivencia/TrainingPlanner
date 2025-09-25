@@ -247,7 +247,7 @@ TPPopup {
 
 	Rectangle {
 		id: timeButtonsPane
-		color: userSettings.primaryDarkColor
+		color: appSettings.primaryDarkColor
 		height: parent.height * 0.70
 		radius: width / 2
 
@@ -260,7 +260,7 @@ TPPopup {
 
 		TPButton {
 			text: qsTr("Now")
-			width: userSettings.itemLargeHeight
+			width: appSettings.itemLargeHeight
 			z: 2
 
 			anchors {
@@ -277,7 +277,7 @@ TPPopup {
 
 		TPButton {
 			text: timePicker.onlyQuartersAllowed? "15min" : "5min"
-			width: userSettings.itemLargeHeight
+			width: appSettings.itemLargeHeight
 			visible: timePicker.pickMinutes
 			z: 2
 
@@ -295,7 +295,7 @@ TPPopup {
 
 		TPButton {
 			imageSource: timePicker.useWorkTimes? "work.png" : "time.png"
-			width: userSettings.itemDefaultHeight
+			width: appSettings.itemDefaultHeight
 			height: width
 			visible: !timePicker.pickMinutes
 			z: 2
@@ -326,7 +326,7 @@ TPPopup {
 			padding: 0
 			visible: !timePicker.pickMinutes
 			anchors.centerIn: parent
-			background: Rectangle {color: userSettings.primaryLightColor; radius: width / 2; }
+			background: Rectangle {color: appSettings.primaryLightColor; radius: width / 2; }
 
 			Repeater {
 				id: innerRepeater
@@ -358,7 +358,7 @@ TPPopup {
 					} // content Label
 
 					background: Rectangle {
-						color: innerButton.checked ? userSettings.primaryColor : "transparent"
+						color: innerButton.checked ? appSettings.primaryColor : "transparent"
 						radius: width / 2
 					}
 
@@ -450,7 +450,7 @@ TPPopup {
 				} // outer content label
 
 				background: Rectangle {
-					color: outerButton.checked ? userSettings.primaryColor : "transparent"
+					color: outerButton.checked ? appSettings.primaryColor : "transparent"
 					radius: width / 2
 				}
 			} // outer button
@@ -461,15 +461,15 @@ TPPopup {
 			y: centerpoint.y + centerpoint.height / 2 - height //timePicker.timeButtonsPaneSize / 2 - 40
 			anchors.horizontalCenter: parent.horizontalCenter
 			width: 1
-			height: timePicker.timeButtonsPaneSize / 2 - userSettings.itemDefaultHeight
+			height: timePicker.timeButtonsPaneSize / 2 - appSettings.itemDefaultHeight
 			transformOrigin: Item.Bottom
 			rotation: outerButtonGroup.checkedButton ? outerButtonGroup.checkedButton.angle : 0
-			color: userSettings.fontColor
+			color: appSettings.fontColor
 
 			Rectangle { //tip point of line
 				width: 8
 				height: 8
-				color: userSettings.fontColor
+				color: appSettings.fontColor
 				radius: 4
 				anchors {
 					left: parent.left
@@ -484,15 +484,15 @@ TPPopup {
 			y: centerpoint.y + centerpoint.height / 2 - height
 			anchors.horizontalCenter: parent.horizontalCenter
 			width: 1
-			height: timePicker.innerButtonsPaneSize / 2 - userSettings.itemDefaultHeight
+			height: timePicker.innerButtonsPaneSize / 2 - appSettings.itemDefaultHeight
 			transformOrigin: Item.Bottom
 			rotation: innerButtonGroup.checkedButton ? innerButtonGroup.checkedButton.angle : 0
-			color: userSettings.fontColor
+			color: appSettings.fontColor
 
 			Rectangle { //tip point of line
 				width: 6
 				height: 6
-				color: userSettings.fontColor
+				color: appSettings.fontColor
 				radius: 3
 				anchors {
 					left: parent.left
@@ -507,7 +507,7 @@ TPPopup {
 			anchors.centerIn: parent
 			width: 15
 			height: 15
-			color: userSettings.fontColor
+			color: appSettings.fontColor
 			radius: 7.5
 		}
 	} // timeButtonsPane
