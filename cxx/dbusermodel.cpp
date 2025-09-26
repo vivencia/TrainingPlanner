@@ -52,7 +52,10 @@ static inline QString userNameWithoutConfirmationWarning(const QString &userName
 
 DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 	: QObject{parent}, m_tempRow{-1}, m_availableCoaches{nullptr}, m_pendingClientRequests{nullptr},
-		m_pendingCoachesResponses{nullptr}, m_mainTimer{nullptr}
+		m_pendingCoachesResponses{nullptr}, m_tempUserInfo{nullptr}, m_mainTimer{nullptr}
+#ifndef Q_OS_ANDROID
+	,m_allUsers{nullptr}
+#endif
 {
 	if (bMainUserModel)
 	{
@@ -461,9 +464,9 @@ void DBUserModel::switchUser()
 					new DBMesocyclesModel{this};
 					new PagesListModel{this};
 				}
+				userSwitchingActions();
 				appMesoModel()->userSwitchingActions();
 				appPagesListModel()->userSwitchingActions();
-				userSwitchingActions();
 			}
 		}, Qt::SingleShotConnection);
 		switchToUser(m_allUsers->data(m_allUsers->currentRow(), USER_COL_ID), true);
@@ -472,12 +475,25 @@ void DBUserModel::switchUser()
 
 void DBUserModel::userSwitchingActions()
 {
+	m_usersData.clear();
+	m_coachesNames.clear();
+	m_clientsNames.clear();
+	if (m_availableCoaches)
+		m_availableCoaches->clear();
+	if (m_pendingClientRequests)
+		m_pendingClientRequests->clear();
+	if (m_pendingCoachesResponses)
+		m_pendingCoachesResponses->clear();
+	if (m_tempUserInfo)
+		m_tempUserInfo->clear();
+	appDBInterface()->init();
 	emit appUseModeChanged();
 	emit onlineUserChanged();
 	emit haveCoachesChanged();
 	emit haveClientsChanged();
-	if (!mainUserConfigured())
-		showFirstTimeUseDialog();
+	if (mb_canConnectToServer)
+		onlineCheckIn();
+	emit userIdChanged();
 }
 #endif
 
@@ -1441,7 +1457,7 @@ void DBUserModel::downloadAllUserFiles(const QString &userid)
 				total_dirs = ret_list.count();
 				for (const auto &dir : std::as_const(ret_list))
 				{
-					QString dest_dir{appSettings()->userDir(userid)};
+					QString dest_dir{std::move(appSettings()->userDir(userid))};
 					if (dir != '.')
 					{
 						dest_dir += dir + '/';
@@ -1496,9 +1512,6 @@ void DBUserModel::downloadAllUserFiles(const QString &userid)
 			}
 		});
 		appOnlineServices()->listDirs(requestid, key, value, QString{}, QString{}, userid, true);
-		#ifndef Q_OS_ANDROID
-		emit userIdChanged();
-		#endif
 	}, Qt::SingleShotConnection);
 	appKeyChain()->readKey(userId(0));
 }

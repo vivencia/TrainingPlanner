@@ -17,7 +17,16 @@ PagesListModel::PagesListModel(QObject *parent)
 	#ifndef Q_OS_ANDROID
 	app_Pages_list_models.insert(appSettings()->currentUser(), this);
 	if (app_Pages_list_models.count() > 1)
-		insertHomePage(app_Pages_list_models.constBegin().value()->m_pagesData.first()->page);
+	{
+		for (const auto page_info : std::as_const(app_Pages_list_models))
+		{
+			if (page_info->m_pagesData.count() > 0 && page_info->m_pagesData.first()->page)
+			{
+				insertHomePage(page_info->m_pagesData.first()->page);
+				break;
+			}
+		}
+	}
 	m_backKey = Qt::Key_Left;
 	#else
 	app_Pages_list_model = this;

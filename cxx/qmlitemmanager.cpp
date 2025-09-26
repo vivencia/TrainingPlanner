@@ -93,18 +93,18 @@ void QmlItemManager::configureQmlEngine()
 	qmlRegisterType<HomePageMesoModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "HomePageMesoModel");
 
 	//Root context properties. MainWindow app properties
-	QList<QQmlContext::PropertyPair> properties{11};
+	QList<QQmlContext::PropertyPair> properties{9};
 	properties[0] = std::move(QQmlContext::PropertyPair{ "appSettings"_L1, QVariant::fromValue(appSettings()) });
 	properties[1] = std::move(QQmlContext::PropertyPair{ "appUtils"_L1, QVariant::fromValue(appUtils()) });
 	properties[2] = std::move(QQmlContext::PropertyPair{ "appTr"_L1, QVariant::fromValue(appTr()) });
 	properties[3] = std::move(QQmlContext::PropertyPair{ "userModel"_L1, QVariant::fromValue(appUserModel()) });
-	properties[4] = std::move(QQmlContext::PropertyPair{ "mesocyclesModel"_L1, QVariant::fromValue(appMesoModel()) });
-	properties[5] = std::move(QQmlContext::PropertyPair{ "exercisesModel"_L1, QVariant::fromValue(appExercisesList()) });
-	properties[6] = std::move(QQmlContext::PropertyPair{ "itemManager"_L1, QVariant::fromValue(this) });
-	properties[7] = std::move(QQmlContext::PropertyPair{ "appStatistics"_L1, QVariant::fromValue(appStatistics()) });
-	properties[8] = std::move(QQmlContext::PropertyPair{ "pagesListModel"_L1, QVariant::fromValue(appPagesListModel()) });
-	properties[9] = std::move(QQmlContext::PropertyPair{ "appMessages"_L1, QVariant::fromValue(new TPMessagesManager{this}) });
-	properties[10] = std::move(QQmlContext::PropertyPair{ "osInfo"_L1, QVariant::fromValue(appOsInterface()) });
+	//properties[4] = std::move(QQmlContext::PropertyPair{ "mesocyclesModel"_L1, QVariant::fromValue(appMesoModel()) });
+	properties[4] = std::move(QQmlContext::PropertyPair{ "exercisesModel"_L1, QVariant::fromValue(appExercisesList()) });
+	properties[5] = std::move(QQmlContext::PropertyPair{ "itemManager"_L1, QVariant::fromValue(this) });
+	properties[6] = std::move(QQmlContext::PropertyPair{ "appStatistics"_L1, QVariant::fromValue(appStatistics()) });
+	//properties[8] = std::move(QQmlContext::PropertyPair{ "pagesListModel"_L1, QVariant::fromValue(appPagesListModel()) });
+	properties[7] = std::move(QQmlContext::PropertyPair{ "appMessages"_L1, QVariant::fromValue(new TPMessagesManager{this}) });
+	properties[8] = std::move(QQmlContext::PropertyPair{ "osInfo"_L1, QVariant::fromValue(appOsInterface()) });
 	appQmlEngine()->rootContext()->setContextProperties(properties);
 	appQmlEngine()->addImportPath(":/"_L1);
 	appQmlEngine()->addImageProvider("tpimageprovider"_L1, new TPImageProvider{});

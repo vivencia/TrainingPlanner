@@ -124,7 +124,7 @@ TPPage {
 
 					TPLabel {
 						id: lblClient
-						text: mesocyclesModel.clientLabel
+						text: appMesoModel().clientLabel
 					}
 
 					TPClientsList {
@@ -142,7 +142,7 @@ TPPage {
 
 					TPLabel {
 						id: lblCoachName
-						text: mesocyclesModel.coachLabel
+						text: appMesoModel().coachLabel
 					}
 
 					TPTextInput {
@@ -155,7 +155,7 @@ TPPage {
 			} //Loader
 
 			TPLabel {
-				text: mesocyclesModel.mesoNameLabel
+				text: appMesoModel().mesoNameLabel
 				Layout.topMargin: 10
 
 				TPButton {
@@ -189,7 +189,7 @@ TPPage {
 			}
 
 			TPLabel {
-				text: mesocyclesModel.typeLabel
+				text: appMesoModel().typeLabel
 			}
 
 			TPComboBox {
@@ -291,7 +291,7 @@ TPPage {
 			}
 
 			TPLabel {
-				text: mesocyclesModel.startDateLabel
+				text: appMesoModel().startDateLabel
 
 				TPButton {
 					imageSource: "set-completed"
@@ -368,7 +368,7 @@ TPPage {
 			}
 
 			TPLabel {
-				text: mesocyclesModel.endDateLabel
+				text: appMesoModel().endDateLabel
 				visible: mesoManager.realMeso
 
 				TPButton {
@@ -426,7 +426,7 @@ TPPage {
 
 			TPLabel {
 				id: lblnWeeks
-				text: mesocyclesModel.nWeeksLabel
+				text: appMesoModel().nWeeksLabel
 				visible: mesoManager.realMeso
 			}
 
@@ -445,7 +445,7 @@ TPPage {
 			}
 
 			TPLabel {
-				text: mesocyclesModel.notesLabel
+				text: appMesoModel().notesLabel
 				Layout.topMargin: 10
 			}
 

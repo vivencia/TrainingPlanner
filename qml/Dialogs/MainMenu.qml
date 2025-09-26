@@ -29,6 +29,10 @@ Drawer {
 				}
 			}
 		}
+		function onUserIdChanged(): void {
+			imgAvatar.source = userModel.avatar(0);
+			lblAvatar.text = userModel.userName(0);
+		}
 	}
 
 	background: Rectangle {

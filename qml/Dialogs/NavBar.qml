@@ -177,9 +177,9 @@ TPToolBar {
 		height: width
 
 		enabled: {
-			switch (mesocyclesModel.count) {
+			switch (appMesoModel().count) {
 				case 0: return false;
-				case 1: return !mesocyclesModel.isNewMeso();
+				case 1: return !appMesoModel().isNewMeso();
 				default: return true;
 			}
 		}

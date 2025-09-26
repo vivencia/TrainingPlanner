@@ -25,7 +25,7 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
 	: QObject{parent}, m_currentMesoIdx{-11111}, m_mostRecentOwnMesoIdx{-11111}, m_lowestTempMesoId{-1}, m_bCanHaveTodaysWorkout{false}
 {
 	#ifndef Q_OS_ANDROID
-	app_meso_models.insert(appSettings()->currentUser(), this);
+	static_cast<void>(app_meso_models.insert(appSettings()->currentUser(), this));
 	#else
 	app_meso_model = this;
 	#endif

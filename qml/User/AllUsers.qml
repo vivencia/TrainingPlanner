@@ -106,6 +106,7 @@ TPPopup {
 			enabled: allUsersList.currentRow >= 0 ? userModel.allUsers.userId !== userModel.userId : false
 			Layout.alignment: Qt.AlignCenter
 			Layout.minimumWidth: preferredWidth
+			Layout.topMargin: -5
 
 			onClicked: userModel.switchUser();
 		}

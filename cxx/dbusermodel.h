@@ -356,10 +356,12 @@ signals:
 	void fileUploaded(const bool success, const uint requestid);
 	void onlineDevicesListReceived();
 	void lastOnlineCmdRetrieved(const uint requestid, const QString &last_cmd);
+	//Only used in desktop for development purposes, but must be here so that the QML parser does not complain
+	//when it finds onUserIdChanged() in a Connections{} block
+	void userIdChanged();
 
 #ifndef Q_OS_ANDROID
 	void allUsersChanged();
-	void userIdChanged();
 	void userSwitchPhase1Finished(const bool success);
 #endif
 

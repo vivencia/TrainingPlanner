@@ -16,7 +16,8 @@ ApplicationWindow {
 	height: appSettings.windowHeight
 	visible: true
 	title: "Training Planner"
-	flags: Qt.platform.os === "android" ? Qt.Window | Qt.FramelessWindowHint | Qt.WA_KeepScreenOn : Qt.Window
+	flags: Qt.platform.os === "android" ? Qt.Window | Qt.FramelessWindowHint | Qt.WA_KeepScreenOn :
+				Qt.Window | Qt.CustomizeWindowHint & ~Qt.WindowMaximizeButtonHint
 
 	property int n_dialogs_open: 0
 

@@ -66,7 +66,7 @@ TPPage {
 			asynchronous: true
 
 			sourceComponent: MesosList {
-				mesoModel: mesocyclesModel.ownMesos;
+				mesoModel: appMesoModel().ownMesos;
 				mainUserPrograms: true;
 			}
 		}
@@ -77,7 +77,7 @@ TPPage {
 			asynchronous: true
 
 			sourceComponent: MesosList {
-				mesoModel: mesocyclesModel.clientMesos;
+				mesoModel: appMesoModel().clientMesos;
 				mainUserPrograms: false
 			}
 		}

@@ -77,7 +77,7 @@ private:
 };
 
 #ifndef Q_OS_ANDROID
-inline PagesListModel *appPagesListModel() { return PagesListModel::app_Pages_list_models.value(appSettings()->currentUser()); }
+Q_INVOKABLE inline PagesListModel *appPagesListModel() { return PagesListModel::app_Pages_list_models.value(appSettings()->currentUser()); }
 #else
-inline PagesListModel* appPagesListModel() { return PagesListModel::app_Pages_list_model; }
+Q_INVOKABLE inline PagesListModel* appPagesListModel() { return PagesListModel::app_Pages_list_model; }
 #endif

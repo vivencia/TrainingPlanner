@@ -439,7 +439,7 @@ signals:
 
 #ifndef Q_OS_ANDROID
 #include "tpsettings.h"
-inline DBMesocyclesModel *appMesoModel() { return DBMesocyclesModel::app_meso_models.value(appSettings()->currentUser()); }
+Q_INVOKABLE inline DBMesocyclesModel *appMesoModel() { return DBMesocyclesModel::app_meso_models.value(appSettings()->currentUser()); }
 #else
-inline DBMesocyclesModel *appMesoModel() { return DBMesocyclesModel::app_meso_model; }
+Q_INVOKABLE inline DBMesocyclesModel *appMesoModel() { return DBMesocyclesModel::app_meso_model; }
 #endif

@@ -457,7 +457,7 @@ void TPOnlineServices::getFile(const int requestid, const QString &username, con
 		if (fi.isFile() && fi.isWritable())
 		{
 			auto conn = std::make_shared<QMetaObject::Connection>();
-			*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid,username,passwd,filename,targetUser,localFilePath]
+			*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
 							(const int request_id, const int ret_code, const QString &ret_string)
 			{
 				if (request_id == requestid)
@@ -468,7 +468,7 @@ void TPOnlineServices::getFile(const int requestid, const QString &username, con
 						if (localFileUpToDate(ret_string, localFilePath)) //local file is up to date. Use it
 							emit fileReceived(request_id, 1, ret_string, QByteArray{});
 						else
-							getFile(requestid, username, passwd, filename, targetUser);
+							getFile(requestid, username, passwd, filename, subdir, targetUser);
 					}
 				}
 			});

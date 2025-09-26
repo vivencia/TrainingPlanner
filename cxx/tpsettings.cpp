@@ -235,12 +235,10 @@ void TPSettings::setColorScheme(const uint new_value, const bool bFromQml)
 		case Dark:
 			m_defaultValues[FONT_COLOR_INDEX] = std::move("#ffffff"_L1);
 			m_defaultValues[DISABLED_FONT_COLOR_INDEX] = std::move("#b9b9b9"_L1);
-			m_defaultValues[LISTS_COLOR_1_INDEX] = std::move("#c8e3f0"_L1);
-			m_defaultValues[LISTS_COLOR_2_INDEX] = std::move("#d4f1ff"_L1);
 		break;
 		case Light:
 			m_defaultValues[FONT_COLOR_INDEX] = std::move("#1a28e7"_L1);
-			m_defaultValues[DISABLED_FONT_COLOR_INDEX] = std::move("#5f6573"_L1);
+			m_defaultValues[DISABLED_FONT_COLOR_INDEX] = std::move("#cccaff"_L1);
 		break;
 		case Gray:
 			m_defaultValues[FONT_COLOR_INDEX] = std::move("#000000"_L1);
@@ -472,6 +470,8 @@ void TPSettings::removeWeatherCity(const uint idx)
 
 void TPSettings::userSwitchingActions()
 {
+	setFontSize(getValue(currentUser(), FONT_SIZE_INDEX).toUInt(), false);
+	setColorScheme(getValue(currentUser(), COLOR_SCHEME_INDEX, m_defaultValues.at(COLOR_SCHEME_INDEX)).toUInt(), false);
 	emit fontSizeChanged();
 	emit userLocaleChanged();
 	emit themeStyleChanged();
