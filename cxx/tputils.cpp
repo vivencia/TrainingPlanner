@@ -347,7 +347,7 @@ bool TPUtils::writeDataToFile(QFile *out_file,
 
 	if (export_rows.isEmpty())
 	{
-		for (const auto &modeldata : data)
+		for (const auto &modeldata : std::as_const(data))
 		{
 			uint i{0};
 			if (!use_real_id)
@@ -368,7 +368,7 @@ bool TPUtils::writeDataToFile(QFile *out_file,
 	{
 		for (const auto row : export_rows)
 		{
-			for (const auto &modeldata : data.at(row))
+			for (const auto &modeldata : std::as_const(data.at(row)))
 			{
 				if (!use_real_id && row == export_rows.constFirst())
 					out_file->write("-1\n", 3);

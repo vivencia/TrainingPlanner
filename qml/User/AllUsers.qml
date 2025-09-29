@@ -98,17 +98,44 @@ TPPopup {
 			} //allUsersList
 		} //Row
 
-		TPButton {
-			id: btnSwitchToUser
-			imageSource: "switch_user.png"
-			text: qsTr("Switch")
-			autoSize: true
-			enabled: allUsersList.currentRow >= 0 ? userModel.allUsers.userId !== userModel.userId : false
-			Layout.alignment: Qt.AlignCenter
-			Layout.minimumWidth: preferredWidth
+		Row {
+			id: buttonsRow
+			spacing: 10
+			Layout.fillWidth: true
+			Layout.fillHeight: true
 			Layout.topMargin: -5
+			Layout.leftMargin: 15
 
-			onClicked: userModel.switchUser();
+			readonly property int buttonSize: parent.width * 0.3 - 5
+
+			TPButton {
+				imageSource: "switch_user.png"
+				text: qsTr("Switch")
+				enabled: allUsersList.currentRow >= 0 ? userModel.allUsers.userId !== userModel.userId : false
+				width: buttonsRow.buttonSize
+				height: appSettings.itemDefaultHeight
+
+				onClicked: userModel.switchUser();
+			}
+
+			TPButton {
+				imageSource: "remove"
+				text: qsTr("Remove")
+				enabled: allUsersList.currentRow >= 0 ? userModel.allUsers.userId !== userModel.userId : false
+				width: buttonsRow.buttonSize
+				height: appSettings.itemDefaultHeight
+
+				onClicked: userModel.removeOtherUser();
+			}
+
+			TPButton {
+				imageSource: "add-new"
+				text: qsTr("Create user")
+				width: buttonsRow.buttonSize
+				height: appSettings.itemDefaultHeight
+
+				onClicked: userModel.createNewUser();
+			}
 		}
 	}//Layout
 } //TPPopup

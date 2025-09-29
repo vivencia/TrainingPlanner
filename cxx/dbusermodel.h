@@ -4,17 +4,18 @@
 #include "online_services/onlineuserinfo.h"
 
 #define USER_COL_ID 0
-#define USER_COL_NETUSER 1
-#define USER_COL_NAME 2
-#define USER_COL_BIRTHDAY 3
-#define USER_COL_SEX 4
-#define USER_COL_PHONE 5
-#define USER_COL_EMAIL 6
-#define USER_COL_SOCIALMEDIA 7
-#define USER_COL_USERROLE 8
-#define USER_COL_COACHROLE 9
-#define USER_COL_GOAL 10
-#define USER_COL_APP_USE_MODE 11
+#define USER_COL_INSERTTIME 1
+#define USER_COL_ONLINEACCOUNT 2
+#define USER_COL_NAME 3
+#define USER_COL_BIRTHDAY 4
+#define USER_COL_SEX 5
+#define USER_COL_PHONE 6
+#define USER_COL_EMAIL 7
+#define USER_COL_SOCIALMEDIA 8
+#define USER_COL_USERROLE 9
+#define USER_COL_COACHROLE 10
+#define USER_COL_GOAL 11
+#define USER_COL_APP_USE_MODE 12
 #define USER_TOTAL_COLS USER_COL_APP_USE_MODE + 1
 
 #define APP_USE_MODE_SINGLE_USER 1
@@ -37,7 +38,7 @@ class DBUserModel : public QObject
 
 Q_OBJECT
 
-Q_PROPERTY(QString netUserLabel READ netUserLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString onlineAccountUserLabel READ onlineAccountUserLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString nameLabel READ nameLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString passwordLabel READ passwordLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString birthdayLabel READ birthdayLabel NOTIFY labelsChanged FINAL)
@@ -57,21 +58,21 @@ Q_PROPERTY(QString invalidPasswordLabel READ invalidPasswordLabel NOTIFY labelsC
 Q_PROPERTY(QString checkEmailLabel READ checkEmailLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString importUserLabel READ importUserLabel NOTIFY labelsChanged FINAL)
 
-Q_PROPERTY(OnlineUserInfo* availableCoaches READ availableCoaches NOTIFY availableCoachesChanged FINAL)
-Q_PROPERTY(OnlineUserInfo* pendingCoachesResponses READ pendingCoachesResponses NOTIFY pendingCoachesResponsesChanged FINAL)
-Q_PROPERTY(OnlineUserInfo* pendingClientsRequests READ pendingClientsRequests NOTIFY pendingClientsRequestsChanged FINAL)
+Q_PROPERTY(OnlineUserInfo *availableCoaches READ availableCoaches NOTIFY availableCoachesChanged FINAL)
+Q_PROPERTY(OnlineUserInfo *pendingCoachesResponses READ pendingCoachesResponses NOTIFY pendingCoachesResponsesChanged FINAL)
+Q_PROPERTY(OnlineUserInfo *pendingClientsRequests READ pendingClientsRequests NOTIFY pendingClientsRequestsChanged FINAL)
 Q_PROPERTY(QStringList coachesNames READ coachesNames NOTIFY coachesNamesChanged FINAL)
 Q_PROPERTY(QStringList clientsNames READ clientsNames NOTIFY clientsNamesChanged FINAL)
 Q_PROPERTY(bool mainUserIsClient READ mainUserIsClient NOTIFY appUseModeChanged FINAL)
 Q_PROPERTY(bool mainUserIsCoach READ mainUserIsCoach NOTIFY appUseModeChanged FINAL)
-Q_PROPERTY(bool onlineUser READ onlineUser WRITE setOnlineUser NOTIFY onlineUserChanged FINAL)
+Q_PROPERTY(bool onlineAccount READ onlineAccount WRITE setOnlineAccount NOTIFY onlineUserChanged FINAL)
 Q_PROPERTY(bool haveCoaches READ haveCoaches NOTIFY haveCoachesChanged FINAL)
 Q_PROPERTY(bool haveClients READ haveClients NOTIFY haveClientsChanged FINAL)
 Q_PROPERTY(bool mainUserConfigured READ mainUserConfigured NOTIFY mainUserConfigurationFinished FINAL)
 Q_PROPERTY(bool canConnectToServer READ canConnectToServer NOTIFY canConnectToServerChanged FINAL)
 
 #ifndef Q_OS_ANDROID
-Q_PROPERTY(OnlineUserInfo* allUsers READ allUsers NOTIFY allUsersChanged FINAL)
+Q_PROPERTY(OnlineUserInfo *allUsers READ allUsers NOTIFY allUsersChanged FINAL)
 Q_PROPERTY(QString userId READ userId NOTIFY userIdChanged FINAL)
 #endif
 
@@ -79,7 +80,7 @@ public:
 	explicit DBUserModel(QObject *parent = nullptr, const bool bMainUserModel = true);
 
 	inline QString idLabel() const { return "Id: "_L1; }
-	inline QString netUserLabel() const { return tr("Register online: "); }
+	inline QString onlineAccountUserLabel() const { return tr("Create online account: "); }
 	inline QString nameLabel() const { return tr("Name: "); }
 	inline QString birthdayLabel() const { return tr("Birthday: "); }
 	inline QString sexLabel() const { return tr("Sex: "); }
@@ -105,12 +106,15 @@ public:
 	void showFirstTimeUseDialog();
 
 	inline uint userCount() const { return m_usersData.count(); }
-	inline const QString &_onlineUser(const uint user_idx) const { return user_idx < m_usersData.count() ? m_usersData.at(user_idx).at(USER_COL_NETUSER) : m_onlineUserId; }
-	inline bool onlineUser(const uint user_idx = 0) const { return _onlineUser(user_idx) == '1'; }
-	void setOnlineUser(const bool online_user, const uint user_idx = 0);
+	inline const QString &_onlineAccount(const uint user_idx) const
+	{
+		return user_idx < m_usersData.count() ? m_usersData.at(user_idx).at(USER_COL_ONLINEACCOUNT) : STR_ZERO;
+	}
+	inline bool onlineAccount(const uint user_idx = 0) const { return _onlineAccount(user_idx).at(0) == '1'; }
+	void setOnlineAccount(const bool online_user, const uint user_idx = 0);
 
 	void addUser(QStringList &&user_info);
-	Q_INVOKABLE void createMainUser();
+	Q_INVOKABLE void createMainUser(const QString &userid = QString{}, const QString &name = QString{});
 	void removeMainUser();
 	Q_INVOKABLE void removeUser(const int user_idx, const bool remove_local = true, const bool remove_online = true);
 
@@ -269,7 +273,9 @@ public:
 #ifndef Q_OS_ANDROID
 	Q_INVOKABLE void getAllOnlineUsers();
 	Q_INVOKABLE void switchUser();
-	void userSwitchingActions();
+	Q_INVOKABLE void createNewUser();
+	Q_INVOKABLE void removeOtherUser();
+	void userSwitchingActions(const bool create);
 	inline QString userId(const int user_idx = 0) const { return user_idx < m_usersData.count() ? m_usersData.at(user_idx).at(USER_COL_ID) : QString{}; }
 	inline OnlineUserInfo *allUsers() const { return m_allUsers; }
 #endif
@@ -368,7 +374,7 @@ signals:
 private:
 	QList<QStringList> m_usersData, m_tempUserData;
 	int m_tempRow, n_devices;
-	QString m_onlineUserId, m_password, m_defaultAvatar, m_emptyString, m_onlineCoachesDir,
+	QString m_onlineAccountId, m_password, m_defaultAvatar, m_emptyString, m_onlineCoachesDir,
 		m_dirForRequestedCoaches, m_dirForClientsRequests, m_dirForCurrentClients, m_dirForCurrentCoaches;
 	std::optional<bool> mb_singleDevice, mb_userRegistered, mb_coachRegistered;
 	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses, *m_tempUserInfo;

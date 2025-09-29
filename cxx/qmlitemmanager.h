@@ -1,4 +1,8 @@
 #pragma once
+
+#include "dbmesocyclesmodel.h"
+#include "pageslistmodel.h"
+
 #include <QObject>
 
 #define APPWINDOW_MSG_IMPORT_OK 0
@@ -60,6 +64,9 @@ class QmlItemManager : public QObject
 
 Q_OBJECT
 
+Q_PROPERTY(DBMesocyclesModel* appMesocyclesModel READ appMesocyclesModel NOTIFY userChangedSignal FINAL)
+Q_PROPERTY(PagesListModel* appPagesModel READ appPagesModel NOTIFY userChangedSignal FINAL)
+
 public:
 	explicit inline QmlItemManager(QQmlApplicationEngine *qml_engine)
 		: QObject{nullptr}, m_usersManager{nullptr}, m_exercisesListManager{nullptr}, m_weatherPage{nullptr},
@@ -71,6 +78,9 @@ public:
 	}
 	~QmlItemManager();
 	void configureQmlEngine();
+
+	inline DBMesocyclesModel *appMesocyclesModel() const { return appMesoModel(); }
+	inline PagesListModel *appPagesModel() const { return appPagesListModel(); }
 
 	Q_INVOKABLE void exitApp();
 	Q_INVOKABLE void chooseFileToImport();
@@ -86,8 +96,6 @@ public:
 
 	void showSimpleExercisesList(QQuickItem *parentPage, const QString &filter) const;
 	void hideSimpleExercisesList(QQuickItem *parentPage) const;
-	void openPage(const QString &label, QQuickItem *page, const std::function<void ()> &clean_up_func = nullptr);
-	void closePage(QQuickItem *page);
 	const QString &setExportFileName(const QString &filename);
 	void continueExport(int exportMessageId, const bool bShare);
 	void displayActivityResultMessage(const int requestCode, const int resultCode) const;
@@ -95,6 +103,7 @@ public:
 	void openRequestedFile(const QString &filename, const int wanted_content = 0x3FF);
 
 signals:
+	void userChangedSignal();
 	void mesoForImportSelected();
 	void qmlPasswordDialogClosed(int resultCode, QString password);
 

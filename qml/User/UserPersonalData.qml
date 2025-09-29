@@ -207,13 +207,13 @@ ColumnLayout {
 
 	TPRadioButtonOrCheckBox {
 		id: chkOnlineUser
-		text: userModel.netUserLabel
+		text: userModel.onlineAccountUserLabel
 		actionable: userRow === 0
 		radio: false
-		checked: userModel.onlineUser
+		checked: userModel.onlineAccount
 		Layout.maximumWidth: parent.width * 0.7
 
-		onClicked: userModel.onlineUser = checked;
+		onClicked: userModel.onlineAccount = checked;
 
 		TPButton {
 			imageSource: "question.png"
@@ -266,7 +266,7 @@ ColumnLayout {
 		chkMale.checked = sex === 0;
 		chkFemale.checked = sex === 1;
 		bSexOK = sex <= 1;
-		chkOnlineUser.checked = userModel.onlineUser
+		chkOnlineUser.checked = userModel.onlineAccount
 		userModel.userPasswordAvailable.connect(getUserPassword);
 		userModel.getPassword();
 	}

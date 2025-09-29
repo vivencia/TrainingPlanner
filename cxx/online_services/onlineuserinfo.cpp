@@ -286,7 +286,8 @@ QVariant OnlineUserInfo::headerData(int section, Qt::Orientation orientation, in
 			switch (section)
 			{
 				case USER_COL_ID: return appUserModel()->idLabel().section(':', 0, 0);
-				case USER_COL_NETUSER: return appUserModel()->netUserLabel().section(':', 0, 0);
+				case USER_COL_INSERTTIME: return QString{};
+				case USER_COL_ONLINEACCOUNT: return appUserModel()->onlineAccountUserLabel().section(':', 0, 0);
 				case USER_COL_NAME: return appUserModel()->nameLabel().section(':', 0, 0);
 				case USER_COL_BIRTHDAY: return appUserModel()->birthdayLabel().section(':', 0, 0);
 				case USER_COL_SEX: return appUserModel()->sexLabel().section(':', 0, 0);

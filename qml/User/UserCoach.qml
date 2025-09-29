@@ -75,7 +75,7 @@ ColumnLayout {
 		checked: userModel.isCoachRegistered();
 		multiLine: true
 		actionable: userRow === 0
-		enabled: userModel.mainUserConfigured && userModel.onlineUser && optCoachUse.checked && userRow === 0
+		enabled: userModel.mainUserConfigured && userModel.onlineAccount && optCoachUse.checked && userRow === 0
 		Layout.fillWidth: true
 		Layout.leftMargin: 10
 		Layout.rightMargin: 10

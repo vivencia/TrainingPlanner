@@ -26,7 +26,7 @@ TPToolBar {
 			verticalCenter: parent.verticalCenter
 		}
 
-		onClicked: pagesListModel.prevPage();
+		onClicked: itemManager.appPagesModel.prevPage();
 	}
 
 	TPButton {
@@ -35,14 +35,14 @@ TPToolBar {
 		hasDropShadow: false
 		width: appSettings.itemLargeHeight
 		height: width
-		enabled: pagesListModel.currentIndex < pagesListModel.count - 1
+		enabled: itemManager.appPagesModel.currentIndex < itemManager.appPagesModel.count - 1
 
 		anchors {
 			left: btnBack.right
 			verticalCenter: parent.verticalCenter
 		}
 
-		onClicked: pagesListModel.nextPage();
+		onClicked: itemManager.appPagesModel.nextPage();
 	}
 
 	TPButton {
@@ -177,9 +177,9 @@ TPToolBar {
 		height: width
 
 		enabled: {
-			switch (appMesoModel().count) {
+			switch (itemManager.appMesocyclesModel.count) {
 				case 0: return false;
-				case 1: return !appMesoModel().isNewMeso();
+				case 1: return !itemManager.appMesocyclesModel.isNewMeso();
 				default: return true;
 			}
 		}

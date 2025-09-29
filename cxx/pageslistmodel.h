@@ -33,11 +33,12 @@ public:
 	inline uint currentIndex() const { return m_pagesIndex; }
 	inline void setCurrentIndex(const uint new_index) { if (m_pagesIndex != new_index) { m_pagesIndex = new_index; emit currentIndexChanged(); } }
 
-	Q_INVOKABLE void insertHomePage(QQuickItem *page);
-	Q_INVOKABLE void openPage(const QString &label, QQuickItem *page, const std::function<void(void)> &clean_up_func = nullptr);
-	Q_INVOKABLE void closePage(QQuickItem *page);
+	void insertHomePage(QQuickItem *page);
+	void openPage(QQuickItem *page, QString &&label = QString{}, const std::function<void(void)> &clean_up_func = nullptr);
+	void closePage(QQuickItem *page);
 	Q_INVOKABLE void closePage(const uint index);
 	Q_INVOKABLE void openMainMenuShortCut(const uint index, const bool change_order = true);
+	void changeLabel(QQuickItem *page, QString &&new_label);
 
 	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
 	QVariant data(const QModelIndex&, int) const override final;
@@ -77,7 +78,7 @@ private:
 };
 
 #ifndef Q_OS_ANDROID
-Q_INVOKABLE inline PagesListModel *appPagesListModel() { return PagesListModel::app_Pages_list_models.value(appSettings()->currentUser()); }
+inline PagesListModel *appPagesListModel() { return PagesListModel::app_Pages_list_models.value(appSettings()->currentUser()); }
 #else
-Q_INVOKABLE inline PagesListModel* appPagesListModel() { return PagesListModel::app_Pages_list_model; }
+inline PagesListModel* appPagesListModel() { return PagesListModel::app_Pages_list_model; }
 #endif

@@ -12,7 +12,7 @@ USER_NAME=$(whoami)
 PASSWORD=""
 
 print_usage() {
-	echo "Usage: $SCRIPT_NAME {setup|status|start|stop|restart|pause|dbcreate}" >&2
+	echo "Usage: $SCRIPT_NAME {setup|status|start|stop|restart|pause|createdb}" >&2
 }
 
 get_passwd() {
@@ -95,7 +95,7 @@ create_admin_user() {
 
 create_users_db() {
     run_as_sudo rm -f "${USERS_DB}"
-    if sqlite3 -line ${USERS_DB} 'CREATE TABLE IF NOT EXISTS users_table (userid INTEGER PRIMARY KEY, onlineuser INTEGER, name TEXT, birthday INTEGER, sex INTEGER, phone TEXT, email TEXT, social TEXT, role TEXT, coach_role TEXT, goal TEXT, use_mode INTEGER, password TEXT);' &>/dev/null; then
+    if sqlite3 -line ${USERS_DB} 'CREATE TABLE IF NOT EXISTS users_table (userid INTEGER PRIMARY KEY, inserttime INTEGER, onlineaccount INTEGER, name TEXT, birthday INTEGER, sex INTEGER, phone TEXT, email TEXT, social TEXT, role TEXT, coach_role TEXT, goal TEXT, use_mode INTEGER, password TEXT);' &>/dev/null; then
         run_as_sudo chown -R $NGINX_USER:$NGINX_USER $USERS_DB
         run_as_sudo chmod 664 $USERS_DB
         echo "Users database created"
@@ -417,7 +417,7 @@ case "$COMMAND" in
             exit 8
         fi
     ;;
-    dbcreate)
+    createdb)
         if create_admin_user; then
             create_users_db
         fi

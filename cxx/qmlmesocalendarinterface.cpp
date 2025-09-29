@@ -47,7 +47,7 @@ void QmlMesoCalendarInterface::getMesoCalendarPage()
 		createMesoCalendarPage();
 	}
 	else
-		appItemManager()->openPage(tr("Calendar: ") + appMesoModel()->name(m_mesoIdx), m_calPage);
+		appPagesListModel()->openPage(m_calPage);
 }
 
 void QmlMesoCalendarInterface::setSelectedDate(const QDate &new_date)
@@ -133,7 +133,7 @@ void QmlMesoCalendarInterface::createMesoCalendarPage_part2()
 	m_calPage = static_cast<QQuickItem*>(m_calComponent->createWithInitialProperties(m_calProperties, appQmlEngine()->rootContext()));
 	appQmlEngine()->setObjectOwnership(m_calPage, QQmlEngine::CppOwnership);
 	m_calPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
-	appItemManager()->openPage(tr("Calendar: ") + appMesoModel()->name(m_mesoIdx), m_calPage, [this] () {
+	appPagesListModel()->openPage(m_calPage, std::move(tr("Calendar: ") + appMesoModel()->name(m_mesoIdx)), [this] () {
 		cleanUp();
 	});
 

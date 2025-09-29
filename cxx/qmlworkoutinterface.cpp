@@ -310,7 +310,7 @@ void QmlWorkoutInterface::getWorkoutPage()
 	if (!m_workoutPage)
 		createWorkoutPage();
 	else
-		appItemManager()->openPage(tr("Workout: ") + appUtils()->formatDate(m_date), m_workoutPage);
+		appPagesListModel()->openPage(m_workoutPage);
 }
 
 void QmlWorkoutInterface::loadExercisesFromCalendarDay(const uint calendar_day)
@@ -531,7 +531,7 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 	appQmlEngine()->setObjectOwnership(m_workoutPage, QQmlEngine::CppOwnership);
 	m_workoutPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
 
-	appItemManager()->openPage(tr("Workout: ") + appUtils()->formatDate(m_date), m_workoutPage, [this] () {
+	appPagesListModel()->openPage(m_workoutPage, std::move(tr("Workout: ") + appUtils()->formatDate(m_date)), [this] () {
 		cleanUp();
 	});
 	connect(m_workoutPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), m_workoutModel, SLOT(newExerciseFromExercisesList()));

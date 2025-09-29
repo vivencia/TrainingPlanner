@@ -113,7 +113,7 @@ ColumnLayout {
 					emailok = text.indexOf("@") !== -1;
 			}
 			ToolTip.visible = !emailok;
-			if (userModel.onlineUser)
+			if (userModel.onlineAccount)
 				bEmailOK = emailok;
 		}
 
@@ -208,7 +208,7 @@ ColumnLayout {
 		bPhoneOK = userModel.phoneCountryPrefix(userRow).length >= 3 && userModel.phoneNumber(userRow).length === 15
 		const email = userModel.email(userRow);
 		txtEmail.text = email;
-		bEmailOK = !userModel.onlineUser || email.indexOf("@") !== -1 && email.indexOf(".") !== -1;
+		bEmailOK = !userModel.onlineAccount || email.indexOf("@") !== -1 && email.indexOf(".") !== -1;
 		cboSocial.currentIndex = 0;
 		txtSocial.text = userModel.socialMedia(userRow, 0);
 	}

@@ -40,7 +40,7 @@ QString TPSettings::userConfigFileName(const bool fullpath, const QString &useri
 		return userDir(userid) + configfile;
 }
 
-bool TPSettings::importFromUserConfig(const QString &userid)
+void TPSettings::importFromUserConfig(const QString &userid)
 {
 	QFile *cfg_file{appUtils()->openFile(userConfigFileName(true, userid), QIODeviceBase::ReadOnly|QIODeviceBase::Text)};
 	if (cfg_file)
@@ -56,11 +56,9 @@ bool TPSettings::importFromUserConfig(const QString &userid)
 		sync();
 		cfg_file->close();
 		delete cfg_file;
-		setCurrentUser(userid);
-		userSwitchingActions();
-		return true;
 	}
-	return false;
+	setCurrentUser(userid);
+	userSwitchingActions();
 }
 
 bool TPSettings::exportToUserConfig(const QString &userid)
@@ -470,7 +468,7 @@ void TPSettings::removeWeatherCity(const uint idx)
 
 void TPSettings::userSwitchingActions()
 {
-	setFontSize(getValue(currentUser(), FONT_SIZE_INDEX).toUInt(), false);
+	setFontSize(getValue(currentUser(), FONT_SIZE_INDEX, m_defaultValues.at(FONT_SIZE_INDEX)).toUInt(), false);
 	setColorScheme(getValue(currentUser(), COLOR_SCHEME_INDEX, m_defaultValues.at(COLOR_SCHEME_INDEX)).toUInt(), false);
 	emit fontSizeChanged();
 	emit userLocaleChanged();

@@ -103,7 +103,7 @@ public:
 //--------------------------------------------GLOBAL SETTINGS---------------------------------------------//
 	void globalSettingsInit();
 	QString userConfigFileName(const bool fullpath, const QString &userid = QString{}) const;
-	bool importFromUserConfig(const QString &userid);
+	void importFromUserConfig(const QString &userid);
 	bool exportToUserConfig(const QString &userid);
 
 	inline QString appVersion() const { return getValue(GLOBAL_GROUP, APP_VERSION_INDEX, TP_APP_VERSION).toString(); }
@@ -126,7 +126,6 @@ public:
 	inline const QString &localAppFilesDir() const { return m_localAppFilesDir; }
 	QString userDir(const QString &userid) const;
 	inline QString currentUserDir() const { return userDir(currentUser()); }
-	void changeUserSettings(const QString &userid);
 
 signals:
 	void currentUserChanged();

@@ -425,7 +425,7 @@ void QMLMesoInterface::getMesocyclePage()
 	if (!m_mesoComponent)
 		createMesocyclePage();
 	else
-		appItemManager()->openPage(appMesoModel()->name(m_mesoIdx), m_mesoPage);
+		appPagesListModel()->openPage(m_mesoPage);
 }
 
 void QMLMesoInterface::sendMesocycleFileToServer()
@@ -512,7 +512,7 @@ void QMLMesoInterface::createMesocyclePage_part2()
 	m_mesoPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"_L1));
 
 	connect(appOsInterface(), &OSInterface::appAboutToExit, this, [this] () { sendMesocycleFileToServer(); });
-	appItemManager()->openPage(appMesoModel()->name(m_mesoIdx), m_mesoPage, [this] () {
+	appPagesListModel()->openPage(m_mesoPage, std::move(tr("Program: ") + name()), [this] () {
 		sendMesocycleFileToServer();
 		appMesoModel()->removeMesoManager(m_mesoIdx);
 	});
@@ -553,6 +553,10 @@ void QMLMesoInterface::createMesocyclePage_part2()
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, &QMLMesoInterface::labelsChanged);
 	if (appMesoModel()->isNewMeso(m_mesoIdx))
 		maybeChangeNewMesoFieldCounter();
+
+	connect(this, &QMLMesoInterface::nameChanged, this, [this] () {
+		appPagesListModel()->changeLabel(m_mesoPage, name());
+	});
 }
 
 void QMLMesoInterface::mesoChanged(const uint meso_idx, const uint meso_field)

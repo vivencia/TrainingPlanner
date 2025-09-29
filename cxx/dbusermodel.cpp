@@ -94,7 +94,7 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 #endif
 		connect(appOsInterface(), &OSInterface::serverStatusChanged, this, [this] (const bool online) {
 			if (!mb_canConnectToServer && online)
-					onlineCheckIn();
+				onlineCheckIn();
 			mb_canConnectToServer = online;
 			emit canConnectToServerChanged();
 		});
@@ -125,17 +125,16 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 void DBUserModel::showFirstTimeUseDialog()
 {
 	QMetaObject::invokeMethod(appMainWindow(), "showFirstTimeUseDialog");
-	connect(appUserModel(), &DBUserModel::mainUserConfigurationFinished, this, [this] () {
-		appDBInterface()->init();
+	connect(this, &DBUserModel::mainUserConfigurationFinished, this, [this] () {
 		appOsInterface()->initialCheck();
 	}, Qt::SingleShotConnection);
 }
 
-void DBUserModel::setOnlineUser(const bool online_user, const uint user_idx)
+void DBUserModel::setOnlineAccount(const bool online_user, const uint user_idx)
 {
 	if (user_idx == 0 && mainUserConfigured())
 	{
-		if (onlineUser(user_idx) && !online_user)
+		if (onlineAccount(user_idx) && !online_user)
 		{
 			connect(appMainWindow(), SIGNAL(unregisterUser(bool)), this, SLOT(slot_unregisterUser(bool)), Qt::SingleShotConnection);
 			QString message{tr("If you remove your online account you'll not be able to log onto it anymore from any device.")};
@@ -147,12 +146,12 @@ void DBUserModel::setOnlineUser(const bool online_user, const uint user_idx)
 				Q_ARG(QString, tr("Remove online account?")), Q_ARG(QString, message));
 			setCoachPublicStatus(false);
 		}
-		else if (!onlineUser(user_idx) && online_user)
+		else if (!onlineAccount(user_idx) && online_user)
 			onlineCheckIn();
 	}
 	emit onlineUserChanged();
-	m_usersData[0][USER_COL_NETUSER] = online_user ? '1' : '0';
-	emit userModified(0, USER_COL_NETUSER);
+	m_usersData[0][USER_COL_ONLINEACCOUNT] = online_user ? '1' : '0';
+	emit userModified(0, USER_COL_ONLINEACCOUNT);
 }
 
 void DBUserModel::addUser(QStringList &&user_info)
@@ -168,14 +167,15 @@ void DBUserModel::addUser(QStringList &&user_info)
 	}
 }
 
-void DBUserModel::createMainUser()
+void DBUserModel::createMainUser(const QString &userid, const QString &name)
 {
-	if (m_usersData.isEmpty())
+	if (m_usersData.count() == 0)
 	{
-		m_usersData.insert(0, std::move(QStringList{} << std::move(generateUniqueUserId()) << std::move("0"_L1) <<
-			QString{} << std::move("2429630"_L1) << std::move("2"_L1) << QString{} << QString{} << QString{} <<
-			QString{} << QString{} << QString{} << std::move("0"_L1) << std::move("0"_L1) << std::move("0"_L1)));
+		m_usersData.insert(0, std::move(QStringList{} << (userid.isEmpty() ? std::move(generateUniqueUserId()) : userid) <<
+			QString{} << std::move("0"_L1) << name << std::move("2429630"_L1) << std::move("2"_L1) << QString{} <<
+			QString{} << QString{} << QString{} << QString{} << QString{} << std::move("0"_L1)));
 		static_cast<void>(appUtils()->mkdir(localDir(0)));
+		appDBInterface()->init();
 		setPhoneBasedOnLocale();
 		emit userModified(0, USER_MODIFIED_CREATED);
 	}
@@ -191,7 +191,7 @@ void DBUserModel::removeUser(const int user_idx, const bool remove_local, const 
 {
 	if (user_idx >= 1 && user_idx < m_usersData.count())
 	{
-		if (onlineUser(user_idx))
+		if (onlineAccount(user_idx))
 		{
 			if (!remove_online)
 				return;
@@ -293,7 +293,7 @@ QString DBUserModel::avatar(const uint user_idx, const bool checkServer)
 {
 	if (user_idx < m_usersData.count() && !userId(user_idx).isEmpty())
 	{
-		if (onlineUser() && checkServer && user_idx > 0)
+		if (onlineAccount() && checkServer && user_idx > 0)
 			downloadAvatarFromServer(user_idx);
 		const QDir &localFilesDir{localDir(user_idx)};
 		const QFileInfoList &images{localFilesDir.entryInfoList(QDir::Files|QDir::NoDotAndDotDot|QDir::NoSymLinks)};
@@ -317,7 +317,7 @@ void DBUserModel::setAvatar(const int user_idx, const QString &new_avatar, const
 	}
 	emit userModified(user_idx, USER_COL_AVATAR);
 
-	if (onlineUser() && user_idx == 0 && upload)
+	if (onlineAccount() && user_idx == 0 && upload)
 		sendAvatarToServer();
 }
 
@@ -458,23 +458,44 @@ void DBUserModel::switchUser()
 	{
 		connect(this, &DBUserModel::userSwitchPhase1Finished, this, [this] (const bool success) {
 			if (success)
-			{
-				if (!appMesoModel())
-				{
-					new DBMesocyclesModel{this};
-					new PagesListModel{this};
-				}
-				userSwitchingActions();
-				appMesoModel()->userSwitchingActions();
-				appPagesListModel()->userSwitchingActions();
-			}
+				userSwitchingActions(false);
 		}, Qt::SingleShotConnection);
 		switchToUser(m_allUsers->data(m_allUsers->currentRow(), USER_COL_ID), true);
 	}
 }
 
-void DBUserModel::userSwitchingActions()
+void DBUserModel::createNewUser()
 {
+	userSwitchingActions(true);
+	showFirstTimeUseDialog();
+}
+
+void DBUserModel::removeOtherUser()
+{
+	const QString &userid{m_allUsers->data(m_allUsers->currentRow(), USER_COL_ID)};
+	const QLatin1StringView seed{"remove" + userid.toLatin1()};
+	const int requestid{appUtils()->generateUniqueId(seed)};
+	auto conn{std::make_shared<QMetaObject::Connection>()};
+	*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,userid,conn,requestid]
+		(const int request_id, const int ret_code, const QString &ret_string)
+	{
+		if (request_id == requestid)
+		{
+			disconnect(*conn);
+			clearUserDir(userid);
+			m_allUsers->removeUserInfo(m_allUsers->currentRow(), false);
+			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE,
+				appUtils()->string_strings({tr("User removed"), m_allUsers->data(m_allUsers->currentRow(), USER_COL_NAME)
+				+ tr(" removed locally and remotely")}, record_separator));
+		}
+	});
+
+	appOnlineServices()->removeUser(requestid, userid);
+}
+
+void DBUserModel::userSwitchingActions(const bool create)
+{
+	mb_userRegistered = false;
 	m_usersData.clear();
 	m_coachesNames.clear();
 	m_clientsNames.clear();
@@ -486,13 +507,25 @@ void DBUserModel::userSwitchingActions()
 		m_pendingCoachesResponses->clear();
 	if (m_tempUserInfo)
 		m_tempUserInfo->clear();
-	appDBInterface()->init();
+	appSettings()->importFromUserConfig(generateUniqueUserId());
+	if (!appMesoModel())
+	{
+		new DBMesocyclesModel{this};
+		new PagesListModel{this};
+	}
+	if (create)
+		createMainUser(appSettings()->currentUser(), tr("New user"));
+	else
+		appDBInterface()->init();
 	emit appUseModeChanged();
 	emit onlineUserChanged();
 	emit haveCoachesChanged();
 	emit haveClientsChanged();
 	if (mb_canConnectToServer)
 		onlineCheckIn();
+
+	appMesoModel()->userSwitchingActions();
+	appPagesListModel()->userSwitchingActions();
 	emit userIdChanged();
 }
 #endif
@@ -523,7 +556,7 @@ bool DBUserModel::mainUserConfigured() const
 	bool ret{false};
 	if (m_usersData.count() >= 1)
 	{
-		ret = onlineUser(0) && !email(0).isEmpty();
+		ret = onlineAccount(0) && !email(0).isEmpty();
 		ret &= isCoach(0) == !m_usersData.at(0).at(USER_COL_COACHROLE).isEmpty();
 		ret &= isClient(0) == !m_usersData.at(0).at(USER_COL_GOAL).isEmpty();
 	}
@@ -593,7 +626,7 @@ void DBUserModel::checkUserOnline(const QString &email, const QString &password)
 				disconnect(*conn);
 				if (ret_code == 0) //Password matches server's. Store it for the session
 				{
-					m_onlineUserId = ret_string;
+					m_onlineAccountId = ret_string;
 					m_password = password;
 				}
 				else
@@ -653,14 +686,14 @@ void DBUserModel::importFromOnlineServer()
 					{
 						mb_userRegistered = true;
 						setPassword(m_password);
-						switchToUser(m_onlineUserId);
+						switchToUser(m_onlineAccountId);
 					}
 				}
 				else
 					emit userOnlineImportFinished(false);
 			}
 		});
-		appOnlineServices()->getOnlineUserData(requestid, m_onlineUserId);
+		appOnlineServices()->getOnlineUserData(requestid, m_onlineAccountId);
 	}
 }
 
@@ -782,7 +815,7 @@ void DBUserModel::sendRequestToCoaches()
 
 void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 {
-	if (canConnectToServer() && onlineUser())
+	if (canConnectToServer() && onlineAccount())
 	{
 		static_cast<void>(appUtils()->mkdir(m_onlineCoachesDir));
 		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,get_list_only] (const QString &key, const QString &value) {
@@ -839,7 +872,7 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 int DBUserModel::sendFileToServer(const QString &filename, QFile *upload_file, const QString &successMessage,
 									const QString &subdir, const QString &targetUser, const bool removeLocalFile)
 {
-	if (!onlineUser())
+	if (!onlineAccount())
 		return -1;
 	else if (!canConnectToServer())
 	{
@@ -1129,7 +1162,7 @@ void DBUserModel::getPasswordFromUserInput(const int resultCode, const QString &
 {
 	if (resultCode == 0)
 	{
-		if (onlineUser())
+		if (onlineAccount())
 		{
 			connect(appKeyChain(), &TPKeyChain::keyStored, this, [this] (const QString &key) {
 				registerUserOnline();
@@ -1151,7 +1184,7 @@ void DBUserModel::slot_unregisterUser(const bool unregister)
 				if (request_id == requestid)
 				{
 					disconnect(*conn);
-					auto conn2 = std::make_shared<QMetaObject::Connection>();
+					auto conn2{std::make_shared<QMetaObject::Connection>()};
 					*conn2 = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn2,requestid]
 													(const int request_id, const int ret_code, const QString &ret_string) {
 						if (request_id == requestid)
@@ -1252,7 +1285,7 @@ inline QString DBUserModel::generateUniqueUserId() const
 
 void DBUserModel::onlineCheckIn()
 {
-	if (mainUserConfigured() && onlineUser())
+	if (mainUserConfigured() && onlineAccount())
 	{
 		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this] (const bool first_checkin) {
 			if (first_checkin)
@@ -1261,7 +1294,7 @@ void DBUserModel::onlineCheckIn()
 				sendProfileToServer();
 				sendAvatarToServer();
 			}
-			if (m_onlineUserId.isEmpty()) //When importing an user from the server there is no need to perform any action online
+			if (m_onlineAccountId.isEmpty()) //When importing an user from the server there is no need to perform any action online
 				onlineCheckinActions();
 			setupOnlineUserLocalDirs();
 			if (!isCoachRegistered() && mb_coachPublic)
@@ -1276,9 +1309,10 @@ void DBUserModel::registerUserOnline()
 {
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this] (const QString &key, const QString &value) {
 		const int requestid{appUtils()->generateUniqueId("registerUserOnline"_L1)};
-		auto conn = std::make_shared<QMetaObject::Connection>();
-		*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid,key,value]
-							(const int request_id, const int ret_code, const QString &ret_string) {
+		auto conn{std::make_shared<QMetaObject::Connection>()};
+		*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this,
+				[this,conn,requestid,key,value] (const int request_id, const int ret_code, const QString &ret_string)
+		{
 			if (request_id == requestid)
 			{
 				disconnect(*conn);
@@ -1293,9 +1327,10 @@ void DBUserModel::registerUserOnline()
 					break;
 					case 6: //User does not exist in the online database
 					{
-						auto conn2 = std::make_shared<QMetaObject::Connection>();
-						*conn2 = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn2,requestid,value]
-													(const int request_id, const int ret_code, const QString &ret_string) {
+						auto conn2{std::make_shared<QMetaObject::Connection>()};
+						*conn2 = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this,
+							[this,conn2,requestid,value] (const int request_id, const int ret_code, const QString &ret_string)
+						{
 							if (request_id == requestid)
 							{
 								disconnect(*conn2);
@@ -1421,12 +1456,15 @@ void DBUserModel::switchToUser(const QString &new_userid, const bool user_switch
 			#endif
 			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR,
 				appUtils()->string_strings({ tr("User switching error"),
-					tr("Could not download files for user ") +  m_onlineUserId}, record_separator), "error");
+					tr("Could not download files for user ") +  m_onlineAccountId}, record_separator), "error");
 		}
 		else
 		{
-			if (appSettings()->importFromUserConfig(new_userid) && !user_switching_for_testing)
+			if (!user_switching_for_testing)
+			{
+				appSettings()->importFromUserConfig(new_userid);
 				appDBInterface()->init();
+			}
 		}
 		if (!user_switching_for_testing)
 			emit userOnlineImportFinished(success);
@@ -1923,12 +1961,10 @@ void DBUserModel::addPendingClient(const QString &user_id)
 {
 	if (!m_pendingClientRequests->containsUser(user_id))
 	{
-		const QString &client_dir{m_dirForClientsRequests + user_id + '/'};
-		static_cast<void>(appUtils()->mkdir(client_dir));
-		const QString &client_profile{client_dir + "profile.txt"_L1};
+		const QString &client_profile{profileFileName(m_dirForClientsRequests, user_id)};
 		if (m_pendingClientRequests->dataFromFileSource(client_profile))
 		{
-			m_pendingClientRequests->setIsCoach(m_pendingClientRequests->count()-1, false);
+			m_pendingClientRequests->setIsCoach(m_pendingClientRequests->count()- 1, false);
 			emit pendingClientsRequestsChanged();
 		}
 	}

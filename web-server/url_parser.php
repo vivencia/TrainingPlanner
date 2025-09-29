@@ -143,15 +143,24 @@ function download_file($file, $downloadDir) {
 function get_binfile($binfile, $downloadDir) {
     if (is_dir($downloadDir)) {
         $files = array_values(array_diff(scandir($downloadDir), array('.', '..')));
+        $ignore_extension = !str_contains($binfile, '.');
         foreach ($files as &$file) {
             $filename = basename($file);
-            if ($binfile == substr($filename, 0, strlen($filename) - 4)) {
-                download_file($filename, $downloadDir);
-                return true;
+            if ($ignore_extension) {
+                if ($binfile != substr($filename, 0, strlen($filename) - 4))
+                    continue;
             }
+            else {
+                if ($binfile != $filename)
+                    continue;
+            }
+            download_file($filename, $downloadDir);
+            return true;
         }
+        echo "Return code: 1 File not found: ", $binfile . " in " . $downloadDir, "**get_binfile**";
     }
-    echo "Return code: 1 File not found: ", $binfile . " in " . $downloadDir, "**get_binfile**";
+    else
+        echo "Return code: 1 Not a directory: ",  $downloadDir, "**get_binfile**";
 }
 
 function check_file_ctime($filename) {
@@ -728,6 +737,8 @@ if ($username) {
             if (isset($_GET['listfiles'])) {
                 $subdir = isset($_GET['listfiles']) ? $_GET['listfiles'] . "/" : '';
                 $targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $username;
+                if ($targetuser == "")
+                    $targetuser = $username;
                 $filedir = $rootdir . $targetuser . $subdir;
                 $pattern = isset($_GET['pattern']) ? $_GET['pattern'] : '';
                 $files = scan_dir($filedir, $pattern, false, true, true);
@@ -737,6 +748,8 @@ if ($username) {
             if (isset($_GET['listdirs'])) {
                 $subdir = isset($_GET['listdirs']) ? $_GET['listdirs'] . "/" : '';
                 $targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $username;
+                if ($targetuser == "")
+                    $targetuser = $username;
                 $filedir = $rootdir . $targetuser . $subdir;
                 $pattern = isset($_GET['pattern']) ? $_GET['pattern'] : '';
                 $files = scan_dir($filedir, $pattern, true, false, false);
@@ -879,6 +892,8 @@ if ($username) {
                 if (isset($_GET['file'])) {
                     $subdir = isset($_GET['subdir']) ? $_GET['subdir'] . "/" : '';
                     $targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $username;
+                    if ($targetuser == "")
+                        $targetuser = $username;
                     $filedir=$rootdir . $targetuser . $subdir;
                     download_file($_GET['file'], $filedir);
                     exit;
@@ -888,6 +903,8 @@ if ($username) {
                     if ($binfile) {
                         $subdir = isset($_GET['subdir']) ? $_GET['subdir'] . "/" : '';
                         $targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $username;
+                        if ($targetuser == "")
+                            $targetuser = $username;
                         $filedir = $rootdir . $targetuser . $subdir;
                         get_binfile($binfile, $filedir);
                         exit;
@@ -895,8 +912,10 @@ if ($username) {
                 }
                 if (isset($_GET['delfile'])) {
                     $subdir = isset($_GET['subdir']) ? $_GET['subdir'] . "/" : '';
-                    $targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : '';
-                    $file=$rootdir . $username  . "/" . $subdir . $targetuser . $_GET['delfile'];
+                    $targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $username;
+                    if ($targetuser == "")
+                        $targetuser = $username;
+                    $file = $rootdir . $username  . "/" . $subdir . $targetuser . $_GET['delfile'];
                     if (is_file($file))
                         unlink($file);
                     exit;
@@ -907,6 +926,8 @@ if ($username) {
                     $file = $_GET['checkfilectime'];
                     if ($file) {
                         $targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] : $username;
+                        if ($targetuser == "")
+                            $targetuser = $username;
                         $subdir = isset($_GET['subdir']) ? $_GET['subdir'] . "/" : '';
                         $filename=$rootdir . $targetuser . "/" . $subdir . $file;
                         check_file_ctime($filename);

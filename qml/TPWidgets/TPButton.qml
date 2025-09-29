@@ -149,7 +149,7 @@ Rectangle {
 		color: enabled ? appSettings.fontColor : appSettings.disabledFontColor
 		wrapMode: multiline ? Text.WordWrap : Text.NoWrap
 		font: AppGlobals.regularFont
-		minimumPixelSize: appSettings.smallFontSize
+		minimumPixelSize: appSettings.smallFontSize * 0.8
 		maximumLineCount: 5
 		fontSizeMode: autoSize ? Text.FixedSize : Text.Fit
 		topInset: 0

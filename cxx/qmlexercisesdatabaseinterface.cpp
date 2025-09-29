@@ -79,7 +79,7 @@ void QmlExercisesDatabaseInterface::getExercisesPage(QmlWorkoutInterface* connec
 			disconnect(m_exercisesPage, SIGNAL(exerciseChosen()), nullptr, nullptr);
 			connect(m_exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(newExerciseFromExercisesList()));
 		}
-		appItemManager()->openPage(tr("Exercises Database"), m_exercisesPage);
+		appPagesListModel()->openPage(m_exercisesPage);
 	}
 }
 
@@ -112,7 +112,7 @@ void QmlExercisesDatabaseInterface::createExercisesPage_part2(QmlWorkoutInterfac
 	appQmlEngine()->setObjectOwnership(m_exercisesPage, QQmlEngine::CppOwnership);
 	m_exercisesPage->setParentItem(appMainWindow()->contentItem());
 	appExercisesList()->clearSelectedEntries();
-	appItemManager()->openPage(tr("Exercises Database"), m_exercisesPage);
+	appPagesListModel()->openPage(m_exercisesPage, std::move(tr("Exercises Database")));
 	if (connectPage)
 		connect(m_exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(newExerciseFromExercisesList()));
 }

@@ -59,7 +59,7 @@ void PagesListModel::insertHomePage(QQuickItem *page)
 	qApp->installEventFilter(this);
 }
 
-void PagesListModel::openPage(const QString &label, QQuickItem *page, const std::function<void ()> &clean_up_func)
+void PagesListModel::openPage(QQuickItem *page, QString &&label, const std::function<void ()> &clean_up_func)
 {
 	int index{0};
 	for (const auto page_st : std::as_const(m_pagesData))
@@ -75,7 +75,7 @@ void PagesListModel::openPage(const QString &label, QQuickItem *page, const std:
 
 	beginInsertRows(QModelIndex{}, count(), count());
 	pageInfo *pageinfo{new pageInfo};
-	pageinfo->displayText = label;
+	pageinfo->displayText = std::move(label);
 	pageinfo->cleanUpFunc = clean_up_func;
 	pageinfo->page = page;
 	m_pagesData.append(pageinfo);
@@ -134,6 +134,18 @@ void PagesListModel::openMainMenuShortCut(const uint index, const bool change_or
 	else
 		QMetaObject::invokeMethod(appMainWindow(), "goHome");
 	setCurrentIndex(index);
+}
+
+void PagesListModel::changeLabel(QQuickItem *page, QString &&new_label)
+{
+	for (uint i{0}; i < m_pagesData.count(); ++i)
+	{
+		if (m_pagesData.at(i)->page == page)
+		{
+			m_pagesData.at(i)->displayText = std::move(new_label);
+			return;
+		}
+	}
 }
 
 QVariant PagesListModel::data(const QModelIndex &index, int role) const

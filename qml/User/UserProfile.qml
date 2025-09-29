@@ -24,14 +24,10 @@ ColumnLayout {
 		target: userModel
 		function onUserModified(row: int, field: int): void {
 			if (row === userRow) {
-				if (field >= 100)
-					getUserInfo();
-				else if (field === 20)
+				if (field === 20)
 					imgAvatar.source = userModel.avatar(userRow, false);
-				else if (field === 11) {
-					isClient = userModel.isClient(userRow);
-					isCoach = userModel.isCoach(userRow);
-				}
+				else
+					getUserInfo();
 			}
 		}
 	}

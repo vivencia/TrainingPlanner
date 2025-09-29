@@ -12,12 +12,13 @@ void TPKeyChain::readKey(const QString &key)
 	readCredentialJob->setService(key);
 
 	connect(readCredentialJob, &QKeychain::ReadPasswordJob::finished, this, [this,key] (QKeychain::Job *readCredentialJob) {
-		if (readCredentialJob->error()) {
+		if (readCredentialJob->error())
+		{
 			emit error(tr("Read key failed: %1").arg(qPrintable(readCredentialJob->errorString())));
 			return;
 		}
 		emit keyRestored(key, static_cast<QKeychain::ReadPasswordJob*>(readCredentialJob)->binaryData());
-	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	}, Qt::SingleShotConnection);
 
 	readCredentialJob->start();
 }
@@ -29,12 +30,13 @@ void TPKeyChain::writeKey(const QString &key, const QString &value)
 	writeCredentialJob->setAutoDelete(true);
 
 	connect(writeCredentialJob, &QKeychain::WritePasswordJob::finished, this, [this,key] (QKeychain::Job *writeCredentialJob) {
-		if (writeCredentialJob->error()) {
+		if (writeCredentialJob->error())
+		{
 			emit error(tr("Write key failed: %1").arg(qPrintable(writeCredentialJob->errorString())));
 			return;
 		}
 		emit keyStored(key);
-	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	}, Qt::SingleShotConnection);
 
 	writeCredentialJob->setBinaryData(value.toLatin1());
 	writeCredentialJob->start();
@@ -47,12 +49,13 @@ void TPKeyChain::deleteKey(const QString &key)
 	deleteCredentialJob->setAutoDelete(true);
 
 	connect(deleteCredentialJob, &QKeychain::DeletePasswordJob::finished, this, [this,key] (QKeychain::Job *deleteCredentialJob) {
-		if (deleteCredentialJob->error()) {
+		if (deleteCredentialJob->error())
+		{
 			emit error(tr("Delete key failed: %1").arg(qPrintable(deleteCredentialJob->errorString())));
 			return;
 		}
 		emit keyDeleted(key);
-	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	}, Qt::SingleShotConnection);
 
 	deleteCredentialJob->start();
 }

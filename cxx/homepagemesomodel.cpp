@@ -65,13 +65,11 @@ QVariant HomePageMesoModel::data(const QModelIndex &index, int role) const
 				return QVariant{appMesoModel()->splitLabel() + "<b>"_L1 +
 					(appMesoModel()->isSplitOK(meso_idx) ? appMesoModel()->split(meso_idx) : tr("Not set")) + "</b>"_L1};
 			case mesoCoachRole:
-				if (!appMesoModel()->coach(meso_idx).isEmpty())
-					return QVariant{appMesoModel()->coachLabel() + "<b>"_L1 +
-											appUserModel()->userNameFromId(appMesoModel()->coach(meso_idx)) + "</b>"_L1};
+				return QVariant{appMesoModel()->coachLabel() + "<b>"_L1 + (!appMesoModel()->coach(meso_idx).isEmpty() ?
+					appUserModel()->userNameFromId(appMesoModel()->coach(meso_idx)) : tr("Not set")) + "</b>"_L1};
 			case mesoClientRole:
-				if (!appMesoModel()->client(meso_idx).isEmpty())
-					return QVariant{appMesoModel()->clientLabel() + "<b>"_L1 +
-											appUserModel()->userNameFromId(appMesoModel()->client(meso_idx)) + "</b>"_L1};
+				return QVariant{appMesoModel()->clientLabel() + "<b>"_L1 + (!appMesoModel()->coach(meso_idx).isEmpty() ?
+					appUserModel()->userNameFromId(appMesoModel()->client(meso_idx)) : tr("Not set")) + "</b>"_L1};
 		}
 	}
 	return QVariant{};

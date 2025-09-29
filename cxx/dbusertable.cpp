@@ -32,7 +32,8 @@ QLatin1StringView DBUserTable::createTableQuery()
 {
 	return "CREATE TABLE IF NOT EXISTS %1 ("
 										"userid INTEGER PRIMARY KEY,"
-										"onlineuser INTEGER,"
+										"inserttime INTEGER,"
+										"onlineaccount INTEGER,"
 										"name TEXT,"
 										"birthday INTEGER,"
 										"sex INTEGER,"
@@ -52,7 +53,7 @@ void DBUserTable::getAllUsers()
 	{
 		bool ok{false};
 		QSqlQuery query{std::move(getQuery())};
-		const QString &strQuery{"SELECT * FROM users_table ORDER BY ROWID"_L1};
+		const QString &strQuery{"SELECT * FROM users_table ORDER BY inserttime ASC"_L1};
 		if (query.exec(strQuery))
 		{
 			if (query.first ())
@@ -90,10 +91,10 @@ void DBUserTable::saveUser()
 		if (bUpdate)
 		{
 			//from_list is set to 0 because an edited exercise, regardless of its id, is considered different from the default list provided exercise
-			strQuery = std::move(u"UPDATE %1 SET onlineuser=%2, name=\'%3\', birthday=%4, sex=%5, "
+			strQuery = std::move(u"UPDATE %1 SET onlineaccount=%2, name=\'%3\', birthday=%4, sex=%5, "
 								 "phone=\'%6\', email=\'%7\', social=\'%8\', role=\'%9\', coach_role=\'%10\', "
 								 "goal=\'%11\', use_mode=%12 WHERE userid=%13"_s
-				.arg(tableName(), m_model->_onlineUser(row), m_model->_userName(row), m_model->_birthDate(row),
+				.arg(tableName(), m_model->_onlineAccount(row), m_model->_userName(row), m_model->_birthDate(row),
 					m_model->_sex(row), m_model->_phone(row), m_model->_email(row), m_model->_socialMedia(row),
 					m_model->_userRole(row), m_model->_coachRole(row), m_model->_goal(row), m_model->_appUseMode(row),
 					m_model->userId(row)));
@@ -101,12 +102,12 @@ void DBUserTable::saveUser()
 		else
 		{
 			strQuery = std::move(u"INSERT INTO %1 "
-				"(userid,onlineuser,name,birthday,sex,phone,email,social,role,coach_role,goal,use_mode)"
-				" VALUES(%2, %3, \'%4\', %5, %6, \'%7\', \'%8\', \'%9\', \'%10\',\'%11\', \'%12\', %13)"_s
-					.arg(tableName(), m_model->userId(row), m_model->_onlineUser(row), m_model->_userName(row),
-					m_model->_birthDate(row), m_model->_sex(row), m_model->_phone(row), m_model->_email(row),
-					m_model->_socialMedia(row), m_model->_userRole(row), m_model->_coachRole(row), m_model->_goal(row),
-					m_model->_appUseMode(row)));
+				"(userid,inserttime,onlineaccount,name,birthday,sex,phone,email,social,role,coach_role,goal,use_mode) "
+				"VALUES(%2, %3, %4, \'%5\', %6, %7, \'%8\', \'%9\', \'%10\', \'%11\',\'%12\', \'%13\', %14)"_s
+					.arg(tableName(), m_model->userId(row), QString::number(QDateTime::currentMSecsSinceEpoch()),
+					m_model->_onlineAccount(row), m_model->_userName(row), m_model->_birthDate(row), m_model->_sex(row),
+					m_model->_phone(row), m_model->_email(row), m_model->_socialMedia(row), m_model->_userRole(row),
+					m_model->_coachRole(row), m_model->_goal(row), m_model->_appUseMode(row)));
 		}
 		ok = query.exec(strQuery);
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);

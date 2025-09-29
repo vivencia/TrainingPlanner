@@ -33,7 +33,7 @@ void QmlUserInterface::getSettingsPage(const uint startPageIndex)
 	if (m_settingsComponent)
 	{
 		m_settingsPage->setProperty("startPageIndex", startPageIndex);
-		appItemManager()->openPage(tr("Settings"), m_settingsPage);
+		appPagesListModel()->openPage(m_settingsPage);
 	}
 	else
 	{
@@ -61,7 +61,7 @@ void QmlUserInterface::getSettingsPage(const uint startPageIndex)
 void QmlUserInterface::getCoachesPage()
 {
 	if (m_coachesPage)
-		appItemManager()->openPage(tr("Coaches"), m_coachesPage);
+		appPagesListModel()->openPage(m_coachesPage);
 	else
 	{
 		m_coachesProperties.insert("userManager"_L1, QVariant::fromValue(this));
@@ -88,7 +88,7 @@ void QmlUserInterface::getCoachesPage()
 void QmlUserInterface::getClientsPage()
 {
 	if (m_clientsPage)
-		appItemManager()->openPage(tr("Clients"), m_clientsPage);
+		appPagesListModel()->openPage(m_clientsPage);
 	else
 	{
 		m_clientsProperties.insert("userManager"_L1, QVariant::fromValue(this));
@@ -117,7 +117,7 @@ void QmlUserInterface::createSettingsPage()
 	m_settingsPage = static_cast<QQuickItem*>(m_settingsComponent->createWithInitialProperties(m_settingsProperties, appQmlEngine()->rootContext()));
 	appQmlEngine()->setObjectOwnership(m_settingsPage, QQmlEngine::CppOwnership);
 	m_settingsPage->setParentItem(appMainWindow()->contentItem());
-	appItemManager()->openPage(tr("Settings"), m_settingsPage);
+	appPagesListModel()->openPage(m_settingsPage, std::move(tr("Settings")));
 	m_userPage = m_settingsPage->findChild<QQuickItem*>("userPage"_L1);
 	m_userPage->setProperty("useMode", appUserModel()->appUseMode(0));
 	m_userPage->setProperty("userManager", QVariant::fromValue(this));
@@ -128,7 +128,7 @@ void QmlUserInterface::createCoachesPage()
 	m_coachesPage = static_cast<QQuickItem*>(m_coachesComponent->createWithInitialProperties(m_coachesProperties, appQmlEngine()->rootContext()));
 	appQmlEngine()->setObjectOwnership(m_coachesPage, QQmlEngine::CppOwnership);
 	m_coachesPage->setParentItem(appMainWindow()->contentItem());
-	appItemManager()->openPage(tr("Coaches"), m_coachesPage);
+	appPagesListModel()->openPage(m_coachesPage, std::move(tr("Coaches")));
 }
 
 void QmlUserInterface::createClientsPage()
@@ -137,5 +137,5 @@ void QmlUserInterface::createClientsPage()
 			m_clientsProperties, appQmlEngine()->rootContext()));
 	appQmlEngine()->setObjectOwnership(m_clientsPage, QQmlEngine::CppOwnership);
 	m_clientsPage->setParentItem(appMainWindow()->contentItem());
-	appItemManager()->openPage(tr("Clients"), m_clientsPage);
+	appPagesListModel()->openPage(m_clientsPage, std::move(tr("Clients")));
 }

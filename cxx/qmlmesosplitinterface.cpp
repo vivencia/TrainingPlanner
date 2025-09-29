@@ -33,7 +33,7 @@ void QmlMesoSplitInterface::getExercisesPlannerPage()
 		createPlannerPage();
 	}
 	else
-		appItemManager()->openPage(tr("Exercises Planner: ") + appMesoModel()->name(m_mesoIdx), m_plannerPage);
+		appPagesListModel()->openPage(m_plannerPage);
 }
 
 void QmlMesoSplitInterface::addExercise()
@@ -208,7 +208,7 @@ void QmlMesoSplitInterface::createPlannerPage_part2()
 	m_plannerPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
 	emit plannerPageCreated();
 
-	appItemManager()->openPage(tr("Exercises Planner: ") + appMesoModel()->name(m_mesoIdx), m_plannerPage, [this] () {
+	appPagesListModel()->openPage(m_plannerPage, std::move(tr("Exercises Planner: ") + appMesoModel()->name(m_mesoIdx)), [this] () {
 		cleanUp();
 	});
 	connect(m_plannerPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), this, SLOT(changeExerciseName()));

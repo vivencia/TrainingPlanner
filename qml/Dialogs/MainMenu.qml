@@ -87,7 +87,7 @@ Drawer {
 				source: osInfo.tpServerOK ? "online" : "offline"
 				width: appSettings.itemLargeHeight
 				height: width
-				visible: userModel.onlineUser
+				visible: userModel.onlineAccount
 
 				anchors {
 					top: parent.top
@@ -122,7 +122,7 @@ Drawer {
 				}
 
 				anchors {
-					top: userModel.onlineUser ? imgOnline.bottom : parent.top
+					top: userModel.onlineAccount ? imgOnline.bottom : parent.top
 					left: parent.left
 					leftMargin: - (mainMenu.width - parent.width) / 2
 				}
@@ -197,7 +197,7 @@ Drawer {
 
 		ListView {
 			id: pagesList
-			model: pagesListModel
+			model: itemManager.appPagesModel
 			clip: true
 			spacing: 2
 			boundsBehavior: Flickable.StopAtBounds
@@ -231,7 +231,7 @@ Drawer {
 					opacity: 1
 				}
 
-				onClicked: pagesListModel.openMainMenuShortCut(index);
+				onClicked: itemManager.appPagesModel.openMainMenuShortCut(index);
 
 				swipe.right: Rectangle {
 					width: parent.width
@@ -254,7 +254,7 @@ Drawer {
 					}
 				} //swipe.right
 
-				swipe.onCompleted: pagesListModel.closePage(index);
+				swipe.onCompleted: itemManager.appPagesModel.closePage(index);
 			} //delegate: SwipeDelegate
 		} //ListView
 	} //ColumnLayout

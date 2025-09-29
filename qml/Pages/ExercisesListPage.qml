@@ -246,7 +246,7 @@ TPPage {
 
 	function chooseExercise(): void {
 		exerciseChosen();
-		pagesListModel.prevPage();
+		itemManager.appPagesModel.prevPage();
 	}
 
 	function displaySelectedMedia(strMediaPath: string): void {

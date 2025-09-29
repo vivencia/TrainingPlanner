@@ -15,6 +15,9 @@ constexpr QLatin1Char fancy_record_separator1('|');
 constexpr QLatin1Char fancy_record_separator2(';');
 constexpr QLatin1StringView comp_exercise_fancy_separator(" + "_L1);
 
+static const QString STR_ONE{'1'};
+static const QString STR_ZERO{'0'};
+
 class TPUtils : public QObject
 {
 
