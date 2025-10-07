@@ -24,7 +24,7 @@ public:
 	explicit DBMesoCalendarTable(DBMesoCalendarManager *model);
 	inline ~DBMesoCalendarTable() { clearWorkoutsInfoList(); }
 
-	static QLatin1StringView tableName();
+	inline static QLatin1StringView tableName() { return "mesocycles_calendar_table"_L1; }
 	static QLatin1StringView createTableQuery();
 
 	void updateTable() override final {}

@@ -15,8 +15,6 @@
 #include "libsecret_p.h"
 #include "plaintextstore_p.h"
 
-#include "../tpglobals.h"
-
 #include <QScopedPointer>
 
 using namespace QKeychain;
@@ -28,17 +26,18 @@ void ReadPasswordJobPrivate::scheduledStart()
 {
 	if (!LibSecretKeyring::findPassword(key, q->service(), this))
 	{
-		DEFINE_SOURCE_LOCATION
-		ERROR_MESSAGE("LibSecret", "Read password failed. Using fallback()")
+		#ifndef QT_NO_DEBUG
+		qDebug() << "keychain_unix::ReadPasswordJobPrivate::scheduledStart" << "Read password failed. Using fallback()";
+		#endif
 		fallbackOnError();
 	}
 }
 
 void ReadPasswordJobPrivate::fallbackOnError()
 {
-    PlainTextStore plainTextStore(q->service(), q->settings());
-
-    if (q->insecureFallback() && plainTextStore.contains(key)) {
+	PlainTextStore plainTextStore{q->service(), q->settings()};
+	if (q->insecureFallback() && plainTextStore.contains(key))
+	{
         mode = plainTextStore.readMode(key);
         data = plainTextStore.readData(key);
 
@@ -53,15 +52,16 @@ void WritePasswordJobPrivate::scheduledStart()
 {
 	if (!LibSecretKeyring::writePassword(service, key, service, mode, data, this))
 	{
-		DEFINE_SOURCE_LOCATION
-		ERROR_MESSAGE("LibSecret", "Write password failed. Using fallback()")
+		#ifndef QT_NO_DEBUG
+		qDebug() << "keychain_unix::WritePasswordJobPrivate::scheduledStart() " << "Write password failed. Using fallback()";
+		#endif
 		fallbackOnError();
 	}
 }
 
 void WritePasswordJobPrivate::fallbackOnError()
 {
-    PlainTextStore plainTextStore(q->service(), q->settings());
+	PlainTextStore plainTextStore{q->service(), q->settings()};
     plainTextStore.write(key, data, mode);
 
     if (plainTextStore.error() != NoError)
@@ -74,17 +74,17 @@ void DeletePasswordJobPrivate::scheduledStart()
 {
 	if (!LibSecretKeyring::deletePassword(key, q->service(), this))
 	{
-		DEFINE_SOURCE_LOCATION
-		ERROR_MESSAGE("LibSecret", "Delete password failed. Using fallback()")
+		#ifndef QT_NO_DEBUG
+		qDebug() << "keychain_unix::DeletePasswordJobPrivate::scheduledStart()" << "Delete password failed. Using fallback()";
+		#endif
 		fallbackOnError();
 	}
 }
 
 void DeletePasswordJobPrivate::fallbackOnError()
 {
-    QScopedPointer<QSettings> local(!q->settings() ? new QSettings(q->service()) : nullptr);
-    QSettings *actual = q->settings() ? q->settings() : local.data();
-
+	QScopedPointer<QSettings> local{!q->settings() ? new QSettings{q->service()} : nullptr};
+	QSettings *actual{q->settings() ? q->settings() : local.data()};
     actual->remove(key);
     actual->sync();
     q->emitFinished();

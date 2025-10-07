@@ -10,7 +10,7 @@ import "../TPWidgets"
 TPPopup {
 	id: dlgCoachRequest
 	keepAbove: true
-	width: appSettings.pageWidth
+	width: appSettings.pageWidth - 20
 	height: appSettings.pageHeight * 0.4
 
 	onOpened: userModel.getOnlineCoachesList();
@@ -18,8 +18,7 @@ TPPopup {
 	TPLabel {
 		id: lblTitle
 		text: qsTr("Available coaches online")
-		horizontalAlignment: Text.AlignHCenter
-		height: appSettings.itemExtraLargeHeight
+		height: appSettings.itemDefaultHeight
 
 		anchors {
 			top: parent.top
@@ -27,14 +26,12 @@ TPPopup {
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
-			rightMargin: 20
+			rightMargin: btnClose.width
 		}
 	}
 
-	ScrollView {
-		ScrollBar.horizontal.policy: ScrollBar.AsNeeded
-		ScrollBar.vertical.policy: ScrollBar.AsNeeded
-		contentWidth: availableWidth
+	ColumnLayout {
+		spacing: 5
 
 		anchors {
 			top: lblTitle.bottom
@@ -52,59 +49,71 @@ TPPopup {
 			font: AppGlobals.largeFont
 			horizontalAlignment: Text.AlignHCenter
 			visible: userModel.availableCoaches ? userModel.availableCoaches.count === 0 : false
-			anchors.fill: parent
+			Layout.maximumWidth: parent.width - 10
 		}
 
-		Frame {
-			anchors.fill: parent
+		ListView {
+			id: availableCoachesList
+			contentHeight: availableHeight;	contentWidth: availableWidth; clip: true
+			spacing: 0
+			model: userModel.availableCoaches
+			visible: userModel.availableCoaches.count > 0
+			Layout.fillWidth: true
+			Layout.fillHeight: true
 
-		ColumnLayout {
-			id: itemsLayout
-			anchors.fill: parent
+			ScrollBar.vertical: ScrollBar {
+				policy: ScrollBar.AsNeeded
+				active: true; visible: availableCoachesList.contentHeight > availableCoachesList.height
+			}
+			ScrollBar.horizontal: ScrollBar {
+				policy: ScrollBar.AlwaysOff
+				active: false; visible: false
+			}
 
-			Repeater {
-				id: coachesRepeater
-				model: userModel.availableCoaches
+			delegate: Rectangle {
+				required property int index
+				required property string extraName
+				required property bool selected
 
-				delegate: Row {
-					required property string display
-					required property bool selected
-					required property int index
+				height: appSettings.itemDefaultHeight
+				width: parent.width
+				enabled: !userModel.availableCoaches.isUserDefault(index)
+				color: index === availableCoachesList.currentIndex ? appSettings.entrySelectedColor :
+					(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
 
-					Layout.fillWidth: true
-					height: appSettings.itemDefaultHeight
-					spacing: 0
-					padding: 0
-					enabled: !userModel.availableCoaches.isUserDefault(index)
+				TPRadioButtonOrCheckBox {
+					id: chkCoachName
+					text: extraName
+					radio: false
+					multiLine: true
+					checked: selected
+					width: parent.width * 0.65
+					x: 5
+					y: 0
 
-					TPRadioButtonOrCheckBox {
-						text: extraName
-						radio: false
-						multiLine: true
-						checked: selected
-						width: itemsLayout.width * 0.65
-
-						onClicked: {
-							selected = checked;
-							userModel.availableCoaches.setSelected(index, selected);
-						}
-					} //CheckBox
-
-					TPButton {
-						text: qsTr("Résumé")
-						width: itemsLayout.width * 0.3
-
-						onClicked: userModel.viewResume(userModel.availableCoaches, index);
+					onClicked: {
+						selected = checked;
+						userModel.availableCoaches.setSelected(index, selected);
 					}
-				} //Row
-			} //Repeater
-		} //ColumnLayout
-		}
-	} //ScrollView
+				} //CheckBox
+
+				TPButton {
+					text: qsTr("Résumé")
+					rounded: false
+					width: parent.width * 0.3
+					height: parent.height
+					x: parent.width - width - 5
+					y: 0
+					onClicked: userModel.viewResume(userModel.availableCoaches, index);
+				}
+			} //delegate
+		} //ListView
+	} //ColumnLayout
 
 	TPButton {
 		id: btnSendRequest
 		text: qsTr("Send request to the selected coaches")
+		multiline: true
 		visible: userModel.availableCoaches ? userModel.availableCoaches.count > 0 : false
 		enabled: userModel.availableCoaches ? userModel.availableCoaches.anySelected : false
 

@@ -53,19 +53,17 @@ public:
 	{
 		Q_ASSERT_X(row < count(), "OnlineUserInfo::setData", "row out of range");
 		m_modeldata[row][user_field] = std::move(value);
-		emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << Qt::UserRole+user_field);
+		emit dataChanged(QModelIndex{index(row)}, QModelIndex{index(row)}, QList<int>{} << Qt::UserRole+user_field);
 	}
 
-	inline bool isSelected(const uint row) const
-	{
-		Q_ASSERT_X(row < count(), "OnlineUserInfo::setSelected", "row out of range");
-		return m_extraInfo.at(row).at(USER_EXTRA_SELECTED) == "1"_L1;
-	}
-	Q_INVOKABLE void setSelected(const uint row, bool selected);
+	bool isSelected(const uint row, const int column = 0) const;
+	Q_INVOKABLE void setSelected(const uint row, const bool selected, const int column = 0);
 	inline uint nSelected() const { return m_nselected; }
 	inline bool allSelected() const { return m_nselected == count(); }
 	inline bool anySelected() const { return m_nselected > 0; }
 	inline bool noneSelected() const { return m_nselected == 0; }
+	inline bool selectEntireRow() const { return m_selectEntireRow; }
+	inline void setSelectEntireRow(const bool full_sel) { m_selectEntireRow = full_sel; }
 
 	inline const QString &sourceFile(const uint row) const
 	{
@@ -134,4 +132,5 @@ private:
 	QString m_sourcePath;
 	uint m_nselected, m_totalCols;
 	int m_currentRow;
+	bool m_selectEntireRow;
 };

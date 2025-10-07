@@ -26,7 +26,7 @@ enum RoleNames {
 };
 
 OnlineUserInfo::OnlineUserInfo(QObject *parent, const uint total_cols)
-	: QAbstractListModel{parent}, m_nselected{0}, m_totalCols{total_cols}, m_currentRow{-1}
+	: QAbstractListModel{parent}, m_nselected{0}, m_totalCols{total_cols}, m_currentRow{-1}, m_selectEntireRow{false}
 {
 	m_roleNames[idRole] = std::move(QByteArray{"id"});
 	m_roleNames[nameRole] = std::move(QByteArray{"name"});
@@ -47,16 +47,36 @@ OnlineUserInfo::OnlineUserInfo(QObject *parent, const uint total_cols)
 	m_roleNames[Qt::DisplayRole] = std::move(QByteArray{"display"});
 }
 
-void OnlineUserInfo::setSelected(const uint row, bool selected)
+bool OnlineUserInfo::isSelected(const uint row, const int column) const
+{
+	Q_ASSERT_X(row < count(), "OnlineUserInfo::setSelected", "row out of range");
+	return appUtils()->getCompositeValue(column, m_extraInfo.at(row).at(USER_EXTRA_SELECTED),
+																				fancy_record_separator1) == '1';
+}
+
+void OnlineUserInfo::setSelected(const uint row, const bool selected, const int column)
 {
 	if (row < count())
 	{
-		if (m_extraInfo.at(row).at(USER_EXTRA_SELECTED) == "1"_L1 && !selected)
+		const bool item_already_selected{isSelected(row, column)};
+
+		if (m_selectEntireRow)
+		{
+			for (uint i {0}; i < m_totalCols; ++i)
+				appUtils()->setCompositeValue(i, selected ? "1"_L1 : "0"_L1, m_extraInfo[row][USER_EXTRA_SELECTED],
+																				fancy_record_separator1);
+			emit dataChanged(QModelIndex{index(row, 0)}, QModelIndex{index(row, m_totalCols)}, QList<int>{} << selectedRole);
+		}
+		else
+		{
+			appUtils()->setCompositeValue(column, selected ? "1"_L1 : "0"_L1, m_extraInfo[row][USER_EXTRA_SELECTED],
+																				fancy_record_separator1);
+			emit dataChanged(QModelIndex{index(row, column)}, QModelIndex{index(row, column)}, QList<int>{} << selectedRole);
+		}
+		if (item_already_selected && !selected)
 			--m_nselected;
-		else if (m_extraInfo.at(row).at(USER_EXTRA_SELECTED) == "0"_L1 && selected)
+		else if (!item_already_selected && selected)
 			++m_nselected;
-		m_extraInfo[row][USER_EXTRA_SELECTED] = selected ? '1' : '0';
-		emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << selectedRole);
 		emit selectedChanged();
 	}
 }
@@ -66,7 +86,7 @@ void OnlineUserInfo::setSourceFile(const uint row, const QString &source_file)
 	if (row < count())
 	{
 		m_extraInfo[row][USER_EXTRA_SOURCE] = source_file;
-		emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << sourceFileRole);
+		emit dataChanged(QModelIndex{index(row)}, QModelIndex{index(row)}, QList<int>{} << sourceFileRole);
 	}
 }
 
@@ -75,7 +95,7 @@ void OnlineUserInfo::setIsCoach(const uint row, bool coach)
 	if (row < count())
 	{
 		m_extraInfo[row][USER_EXTRA_ISCOACH] = coach ? '1' : '0';
-		emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << isCoachRole);
+		emit dataChanged(QModelIndex{index(row)}, QModelIndex{index(row)}, QList<int>{} << isCoachRole);
 	}
 }
 
@@ -150,9 +170,10 @@ bool OnlineUserInfo::sanitize(const QStringList &user_list, const uint field)
 	while (--i >= 0)
 	{
 		const QString fieldValue{m_modeldata.at(i).at(field)};
-		const auto &it = std::find_if(user_list.cbegin(), user_list.cend(), [fieldValue] (const auto user) {
+		const auto &it{std::find_if(user_list.cbegin(), user_list.cend(), [fieldValue] (const auto user)
+		{
 			return user.startsWith(fieldValue);
-		});
+		})};
 		if (it == user_list.cend())
 			removeUserInfo(i, true);
 	}
@@ -184,7 +205,7 @@ void OnlineUserInfo::makeUserDefault(const uint row)
 		m_extraInfo.swapItemsAt(0, row);
 		m_modeldata.swapItemsAt(0, row);
 		m_extraInfo[0][USER_EXTRA_NAME].prepend('*');
-		emit dataChanged(QModelIndex{}, QModelIndex{}, QList<int>{} << extraNameRole);
+		emit dataChanged(QModelIndex{index(row)}, QModelIndex{index(row)}, QList<int>{} << extraNameRole);
 	}
 }
 
@@ -228,7 +249,7 @@ QVariant OnlineUserInfo::data(const QModelIndex &index, int role) const
 			case goalRole: return m_modeldata.at(row).at(USER_COL_GOAL);
 			case useModeRole: return m_modeldata.at(row).at(USER_COL_APP_USE_MODE);
 			case extraNameRole: return m_extraInfo.at(row).at(USER_EXTRA_NAME);
-			case selectedRole: return isSelected(row);
+			case selectedRole: return isSelected(row, index.column());
 			case sourceFileRole: return sourceFile(row);
 			case isCoachRole: return isCoach(row);
 			case allDataRole: return m_modeldata.at(row).at(index.column());
@@ -262,7 +283,7 @@ bool OnlineUserInfo::setData(const QModelIndex &index, const QVariant &value, in
 				emit dataChanged(index, index, QList<int>{} << extraNameRole);
 				return true;
 			case selectedRole:
-				setSelected(row, value.toBool());
+				setSelected(row, value.toBool(), index.column());
 				return true;
 			case sourceFileRole:
 				setSourceFile(row, value.toString());

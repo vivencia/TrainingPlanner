@@ -83,34 +83,30 @@ TPPage {
 	footer: TPToolBar {
 		height: appSettings.itemDefaultHeight * 4
 
-		TPButton {
-			id: btnManageCoach
-			text: qsTr("Manage coach(es)/trainer(s)")
-			autoSize: true
-			visible: userModel.mainUserIsClient
+		ColumnLayout {
+			anchors.fill: parent
+			spacing: appSettings.itemDefaultHeight
 
-			anchors {
-				horizontalCenter: parent.horizontalCenter
-				top: parent.top
-				topMargin: 5
+			TPButton {
+				id: btnManageCoach
+				text: qsTr("Manage coach(es)/trainer(s)")
+				visible: userModel.mainUserIsClient
+				Layout.alignment: Qt.AlignCenter
+				Layout.preferredWidth: parent.width - 20
+
+				onClicked: userManager.getCoachesPage();
 			}
 
-			onClicked: userManager.getCoachesPage();
-		}
+			TPButton {
+				id: btnManageClients
+				text: qsTr("Manage clients")
+				autoSize: true
+				visible: userModel.mainUserIsCoach
+				Layout.alignment: Qt.AlignCenter
+				Layout.preferredWidth: parent.width - 20
 
-		TPButton {
-			id: btnManageClients
-			text: qsTr("Manage clients")
-			autoSize: true
-			visible: userModel.mainUserIsCoach
-
-			anchors {
-				horizontalCenter: parent.horizontalCenter
-				bottom: parent.bottom
-				bottomMargin: 15
+				onClicked: userManager.getClientsPage();
 			}
-
-			onClicked: userManager.getClientsPage();
 		}
 	}
 

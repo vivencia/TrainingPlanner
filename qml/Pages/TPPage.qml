@@ -10,11 +10,10 @@ Page {
 	width: appSettings.pageWidth
 	height: appSettings.pageHeight
 
-	readonly property int headerHeight: 0.08 * appSettings.pageHeight
-	readonly property int footerHeight: 0.10 * appSettings.pageHeight
-
 	property color colorLight: appSettings.primaryLightColor
 	property color colorDark: appSettings.primaryDarkColor
+	readonly property int headerHeight: 0.08 * height
+	readonly property int footerHeight: 0.10 * height
 
 	signal pageActivated();
 	signal pageDeActivated();
@@ -41,8 +40,8 @@ Page {
 				y1: appSettings.pageHeight / 4
 				x2: appSettings.pageWidth
 				y2:  appSettings.pageHeight / 4 * 3
-				GradientStop { position: 0.0; color: colorLight }
-				GradientStop { position: 1.0; color: colorDark }
+				GradientStop { position: 0.0; color: appSettings.primaryLightColor }
+				GradientStop { position: 1.0; color: appSettings.primaryDarkColor }
 			}
 		}
 	}

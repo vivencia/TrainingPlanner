@@ -29,6 +29,7 @@ public:
 	void init();
 	void sanityCheck();
 	void threadFinished(TPDatabaseTable *dbObj);
+	void executeExternalQuery(const QString &dbfilename, const QString &query);
 
 	//-----------------------------------------------------------USER TABLE-----------------------------------------------------------
 	void getAllUsers();

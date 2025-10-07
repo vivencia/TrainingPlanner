@@ -3,7 +3,6 @@
 
 #include "openweathermapbackend.h"
 #include "../qmlitemmanager.h"
-#include "../tpglobals.h"
 #include "../tpsettings.h"
 #include "../tputils.h"
 
@@ -235,8 +234,8 @@ void OpenWeatherMapBackend::getCityFromCoordinates(const QGeoCoordinate &coordin
 
 	QNetworkRequest net_request{url};
 	QNetworkReply *reply{m_networkManager->get(net_request)};
-	connect(reply, &QNetworkReply::finished, this, [this,reply,coordinate] () {
-		DEFINE_SOURCE_LOCATION
+	connect(reply, &QNetworkReply::finished, this, [this,reply,coordinate] ()
+	{
 		if (!reply->error())
 		{
 			parseOpenWeatherReverseGeocodingReply(reply->readAll());
@@ -245,15 +244,18 @@ void OpenWeatherMapBackend::getCityFromCoordinates(const QGeoCoordinate &coordin
 				m_locationName = m_citiesFromCoords.count() == 2 ? m_citiesFromCoords.at(1) : m_citiesFromCoords.at(0);
 				emit receivedCityFromCoordinates(m_locationName, coordinate);
 			}
+			#ifndef QT_NO_DEBUG
 			else
-				ERROR_MESSAGE("Could not parse network reply:  ", reply->readAll())
+				qDebug() << "OpenWeatherMapBackend::getCityFromCoordinates Could not parse network reply:  ", reply->readAll();
+			#endif
 		}
+		#ifndef QT_NO_DEBUG
 		else
-			ERROR_MESSAGE("Network reply:  ", reply->errorString())
+			qDebug() << "OpenWeatherMapBackend::getCityFromCoordinates Network reply:  ", reply->errorString();
+		#endif
 	});
 	connect(reply, &QNetworkReply::errorOccurred, this, [=] (QNetworkReply::NetworkError code) {
-		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_UNKNOWN_ERROR,
-									reply->errorString() + '(' + QString::number(code) + ')');
+		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_UNKNOWN_ERROR, reply->errorString() + '(' + QString::number(code) + ')');
 	});
 
 	#ifndef QT_NO_DEBUG
@@ -272,7 +274,8 @@ void OpenWeatherMapBackend::searchForCities(const QString &search_term)
 	url.setQuery(query);
 	QNetworkRequest net_request{url};
 	QNetworkReply *reply{m_networkManager->get(net_request)};
-	connect(reply, &QNetworkReply::finished, this, [this,reply] () {
+	connect(reply, &QNetworkReply::finished, this, [this,reply] ()
+	{
 		parseOpenWeatherGeocodingReply(reply->readAll());
 		if (!m_foundLocations.isEmpty())
 			emit receivedCitiesFromSearch(&m_foundLocations);
@@ -353,14 +356,15 @@ void OpenWeatherMapBackend::handleWeatherInfoRequestReply(QNetworkReply *reply, 
 			emit weatherInformation(currentLocation, weatherDetails);
 		}
 	}
+	#ifndef QT_NO_DEBUG
 	if (!parsed)
 	{
-		DEFINE_SOURCE_LOCATION
 		if (reply->error())
-			ERROR_MESSAGE("Reply error.", reply->errorString())
+			qDebug() << "OpenWeatherMapBackend::handleWeatherInfoRequestReply Error: ", reply->errorString();
 		else
-			ERROR_MESSAGE("Failed to parse current weather JSON.", reply->readAll());
+			qDebug() << "OpenWeatherMapBackend::handleWeatherInfoRequestReply Failed to parse current weather JSON.", reply->readAll();
 	}
+	#endif
 	reply->deleteLater();
 }
 

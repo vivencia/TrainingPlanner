@@ -11,6 +11,8 @@
 using namespace Qt::Literals::StringLiterals;
 
 TPSettings *TPSettings::app_settings{nullptr};
+static const QColor white {"#ffffff"_L1};
+static const QColor black {"#000000"_L1};
 
 TPSettings::TPSettings(QObject *parent)
 	: QSettings{parent},
@@ -42,7 +44,7 @@ QString TPSettings::userConfigFileName(const bool fullpath, const QString &useri
 
 void TPSettings::importFromUserConfig(const QString &userid)
 {
-	QFile *cfg_file{appUtils()->openFile(userConfigFileName(true, userid), QIODeviceBase::ReadOnly|QIODeviceBase::Text)};
+	QFile *cfg_file{appUtils()->openFile(userConfigFileName(true, userid))};
 	if (cfg_file)
 	{
 		QString line{512, QChar{0}};
@@ -63,7 +65,7 @@ void TPSettings::importFromUserConfig(const QString &userid)
 
 bool TPSettings::exportToUserConfig(const QString &userid)
 {
-	QFile *cfg_file{appUtils()->openFile(userConfigFileName(true, userid), QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text)};
+	QFile *cfg_file{appUtils()->openFile(userConfigFileName(true, userid), false, true, true)};
 	if (cfg_file)
 	{
 		QTextStream stream{cfg_file};
@@ -226,6 +228,7 @@ void TPSettings::setUserLocale(const uint language_idx, const bool write_to_file
 
 void TPSettings::setColorScheme(const uint new_value, const bool bFromQml)
 {
+	m_prevColorScheme = colorScheme();
 	switch (new_value)
 	{
 		case Custom:
@@ -246,15 +249,6 @@ void TPSettings::setColorScheme(const uint new_value, const bool bFromQml)
 			m_defaultValues[FONT_COLOR_INDEX] = std::move("#ffffff"_L1);
 			m_defaultValues[DISABLED_FONT_COLOR_INDEX] = std::move("#dcdcdc"_L1);
 	}
-
-	m_defaultValues[COLOR_SCHEME_INDEX] = std::move(QString::number(new_value));
-	m_defaultValues[COLOR_INDEX] = std::move(colorForScheme(new_value));
-	m_defaultValues[LIGHT_COLOR_INDEX] = std::move(lightColorForScheme(new_value));
-	m_defaultValues[DARK_COLOR_INDEX] = std::move(darkColorForScheme(new_value));
-	m_defaultValues[LISTS_COLOR_1_INDEX] = std::move(listColor1ForScheme(new_value));
-	m_defaultValues[LISTS_COLOR_2_INDEX] = std::move(listColor2ForScheme(new_value));
-	m_defaultValues[PANE_COLOR_INDEX] = std::move(paneColorForScheme(new_value));
-	m_defaultValues[SELECTED_COLOR_INDEX] = std::move(selectedColorForScheme(new_value));
 
 	if (bFromQml)
 	{
@@ -278,12 +272,6 @@ void TPSettings::setPrimaryLightColor(const QColor &color)
 void TPSettings::setPrimaryDarkColor(const QColor &color)
 {
 	changeValue(currentUser(), DARK_COLOR_INDEX, color.name());
-	changeValue(currentUser(), PANE_COLOR_INDEX, color.lightness() <= 180 ? color.lighter(125).name() : color.darker(280).name());
-	changeValue(currentUser(), SELECTED_COLOR_INDEX, color.lightness() <= 180 ? color.lighter(115).name() : color.darker(250).name());
-	const QColor white {"#ffffff"_L1};
-	const QColor black {"#000000"_L1};
-	changeValue(currentUser(), FONT_COLOR_INDEX, color.lightness() <= 127 ? white.name() : black.name());
-	changeValue(currentUser(), DISABLED_FONT_COLOR_INDEX, color.lightness() <= 127 ? white.darker(150).name() : black.lighter(115).name());
 	emit colorChanged();
 }
 
@@ -303,7 +291,7 @@ QString TPSettings::colorForScheme(const uint scheme) const
 {
 	switch (scheme)
 	{
-		case Custom: return getValue(currentUser(), COLOR_INDEX, m_defaultValues[COLOR_INDEX]).toString(); break;
+		case Custom: return getValue(currentUser(), COLOR_INDEX, m_prevColorScheme != Custom ? colorForScheme(m_prevColorScheme) : QString{}).toString(); break;
 		case Dark: return "#5d615f"_L1; break;
 		case Light: return "#b8bec1"_L1; break;
 		case Blue: return "#5c83a6"_L1; break;
@@ -318,7 +306,7 @@ QString TPSettings::lightColorForScheme(const uint scheme) const
 {
 	switch (scheme)
 	{
-		case Custom: return getValue(currentUser(), LIGHT_COLOR_INDEX, m_defaultValues[LIGHT_COLOR_INDEX]).toString(); break;
+		case Custom: return getValue(currentUser(), LIGHT_COLOR_INDEX, m_prevColorScheme != Custom ? lightColorForScheme(m_prevColorScheme) : QString{}).toString(); break;
 		case Dark: return "#959595"_L1; break;
 		case Light: return "#b1acac"_L1; break;
 		case Blue: return "#76b0e1"_L1; break;
@@ -333,7 +321,7 @@ QString TPSettings::darkColorForScheme(const uint scheme) const
 {
 	switch (scheme)
 	{
-		case Custom: return getValue(currentUser(), DARK_COLOR_INDEX, m_defaultValues[DARK_COLOR_INDEX]).toString(); break;
+		case Custom: return getValue(currentUser(), DARK_COLOR_INDEX, m_prevColorScheme != Custom ? darkColorForScheme(m_prevColorScheme) : QString{}).toString(); break;
 		case Dark: return "#000000"_L1; break;
 		case Light: return "#e9e9ea"_L1; break;
 		case Blue: return "#1e344a"_L1; break;
@@ -348,7 +336,11 @@ QString TPSettings::listColor1ForScheme(const uint scheme) const
 {
 	switch (scheme)
 	{
-		case Custom: return getValue(currentUser(), LISTS_COLOR_1_INDEX, m_defaultValues[LISTS_COLOR_1_INDEX]).toString(); break;
+		case Custom:
+		{
+			QColor pane_color{paneColorForScheme(Custom)};
+			return pane_color.lighter(125).name();
+		}
 		case Dark: return "#65756e"_L1; break;
 		case Light: return "#95aaa6"_L1; break;
 		case Blue: return "#25415c"_L1; break;
@@ -363,7 +355,11 @@ QString TPSettings::listColor2ForScheme(const uint scheme) const
 {
 	switch (scheme)
 	{
-		case Custom: return getValue(currentUser(), LISTS_COLOR_2_INDEX, m_defaultValues[LISTS_COLOR_2_INDEX]).toString(); break;
+		case Custom:
+		{
+			QColor listcolor1_color{listColor1ForScheme(Custom)};
+			return listcolor1_color.lighter(125).name();
+		}
 		case Dark: return "#7a8d84"_L1; break;
 		case Light: return "#bfdad5"_L1; break;
 		case Blue: return "#4d6e98"_L1; break;
@@ -378,7 +374,11 @@ QString TPSettings::paneColorForScheme(const uint scheme) const
 {
 	switch (scheme)
 	{
-		case Custom: return getValue(currentUser(), PANE_COLOR_INDEX, m_defaultValues[PANE_COLOR_INDEX]).toString(); break;
+		case Custom:
+		{
+			QColor dark_color{primaryDarkColor()};
+			return dark_color.lighter(125).name();
+		}
 		case Dark: return "#000000"_L1; break;
 		case Light: return "#535354"_L1; break;
 		case Blue: return "#638dc3"_L1; break;
@@ -393,13 +393,55 @@ QString TPSettings::selectedColorForScheme(const uint scheme) const
 {
 	switch (scheme)
 	{
-		case Custom: return getValue(currentUser(), SELECTED_COLOR_INDEX, m_defaultValues[SELECTED_COLOR_INDEX]).toString(); break;
+		case Custom:
+		{
+			QColor pane_color{paneColorForScheme(Custom)};
+			return pane_color.lighter(115).name();
+		}
 		case Dark: return "#6c6f73"_L1; break;
 		case Light: return "#5d5d5e"_L1; break;
 		case Blue: return "#223c55"_L1; break;
 		case Green: return "#307954"_L1; break;
 		case Red: return "#ff5b4d"_L1; break;
 		case Gray: return "#65696c"_L1; break;
+	}
+	return QString{};
+}
+
+QString TPSettings::fontColorForScheme(const uint scheme) const
+{
+	switch (scheme)
+	{
+		case Custom:
+		{
+			QColor pane_color{paneColorForScheme(Custom)};
+			return pane_color.lightness() <= 127 ? white.name() : black.name();
+		}
+		case Dark: return "#ffffff"_L1; break;
+		case Light: return "#1a28e7"_L1; break;
+		case Blue: return "#ffffff"_L1; break;
+		case Green: return "#ffffff"_L1; break;
+		case Red: return "#ffffff"_L1; break;
+		case Gray: return "#000000"_L1; break;
+	}
+	return QString{};
+}
+
+QString TPSettings::disabledFontColorForScheme(const uint scheme) const
+{
+	switch (scheme)
+	{
+		case Custom:
+		{
+			QColor pane_color{paneColorForScheme(Custom)};
+			return pane_color.lightness() <= 127 ? white.darker(150).name() : black.lighter(115).name();
+		}
+		case Dark: return "#b9b9b9"_L1; break;
+		case Light: return "#cccaff"_L1; break;
+		case Blue: return "#dcdcdc"_L1; break;
+		case Green: return "#dcdcdc"_L1; break;
+		case Red: return "#dcdcdc"_L1; break;
+		case Gray: return "#a8a8a8"_L1; break;
 	}
 	return QString{};
 }
@@ -422,7 +464,10 @@ void TPSettings::setFontSize(const uint new_value, const bool bFromQml)
 		emit fontSizeChanged();
 	}
 	else
-		m_defaultValues[FONT_SIZE_INDEX] = std::move(QString::number(new_value));
+	{
+		if (m_defaultValues.at(FONT_SIZE_INDEX).isEmpty())
+			m_defaultValues[FONT_SIZE_INDEX] = std::move(QString::number(new_value));
+	}
 }
 
 QString TPSettings::weatherCity(const uint idx)

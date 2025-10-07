@@ -488,7 +488,7 @@ void DBMesocyclesModel::checkIfCanExport(const uint meso_idx, const bool bEmitSi
 
 int DBMesocyclesModel::exportToFile(const uint meso_idx, const QString &filename) const
 {
-	QFile *out_file{appUtils()->openFile(filename, QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text)};
+	QFile *out_file{appUtils()->openFile(filename, false, true, true)};
 	if (!out_file)
 		return APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
 
@@ -514,7 +514,7 @@ int DBMesocyclesModel::exportToFile(const uint meso_idx, const QString &filename
 
 int DBMesocyclesModel::exportToFormattedFile(const uint meso_idx, const QString &filename) const
 {
-	QFile *out_file{appUtils()->openFile(filename, QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text)};
+	QFile *out_file{appUtils()->openFile(filename, false, true, true)};
 	if (!out_file)
 		return APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
 
@@ -563,7 +563,7 @@ int DBMesocyclesModel::exportToFormattedFile(const uint meso_idx, const QString 
 
 int DBMesocyclesModel::importFromFile(const uint meso_idx, const QString &filename)
 {
-	QFile *in_file{appUtils()->openFile(filename, QIODeviceBase::ReadOnly|QIODeviceBase::Text)};
+	QFile *in_file{appUtils()->openFile(filename)};
 	if (!in_file)
 		return  APPWINDOW_MSG_OPEN_FAILED;
 
@@ -583,7 +583,7 @@ int DBMesocyclesModel::importFromFile(const uint meso_idx, const QString &filena
 
 int DBMesocyclesModel::importFromFormattedFile(const uint meso_idx, const QString &filename)
 {
-	QFile *in_file{appUtils()->openFile(filename, QIODeviceBase::ReadOnly|QIODeviceBase::Text)};
+	QFile *in_file{appUtils()->openFile(filename)};
 	if (!in_file)
 		return  APPWINDOW_MSG_OPEN_FAILED;
 
@@ -788,7 +788,7 @@ int DBMesocyclesModel::continueExport(const uint meso_idx, const QString &filena
 			disconnect(*conn);
 			if (_result)
 			{
-				QFile *out_file{appUtils()->openFile(filename, QIODeviceBase::WriteOnly|QIODeviceBase::Append|QIODeviceBase::Text)};
+				QFile *out_file{appUtils()->openFile(filename, false, true, true)};
 				int ret{APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED};
 				if (out_file)
 				{

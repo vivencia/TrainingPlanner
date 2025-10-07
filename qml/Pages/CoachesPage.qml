@@ -16,10 +16,10 @@ TPPage {
 	property int curRow
 
 	onPageActivated: {
-		//Online data might change. Keep up with it
-		usrData.getUserInfo();
-		usrContact.getUserInfo();
-		usrProfile.getUserInfo();
+		if (listsLayout.currentIndex === 0)
+			coachesList.selectItem(coachesList.clientRow !== -1 ? coachesList.clientRow : 0);
+		else
+			pendingCoachesList.selectItem(userModel.pendingCoachesResponses.count > 0 ? userModel.pendingCoachesResponses.currentRow : 0);
 	}
 
 	TPLabel {
@@ -40,7 +40,7 @@ TPPage {
 	TabBar {
 		id: tabbar
 		contentWidth: width
-		height: 30
+		height: appSettings.itemDefaultHeight
 
 		TPTabButton {
 			text: qsTr("Coaches or Trainers")
@@ -167,6 +167,17 @@ TPPage {
 						coachesList.currentIndex = 0;
 					}
 				}
+
+				function selectItem(index: int): void {
+					if (coachesList.currentIndex !== index) {
+						const userrow = userModel.findUserByName(userModel.coachesNames[index]);
+						if (userrow > 0) {
+							curRow = -1;
+							curRow = index;
+							coachesList.currentIndex = index;
+						}
+					}
+				}
 			} //ListView: coachesList
 
 			RowLayout {
@@ -268,6 +279,17 @@ TPPage {
 						}
 					}
 				} //ItemDelegate
+
+				function selectItem(index: int): void {
+					if (index !== currentIndex) {
+						const newrow = userModel.getTemporaryUserInfo(userModel.pendingCoachesResponses, index);
+						if (newrow > 0) {
+							curRow = -1;
+							curRow = newrow;
+							currentIndex = index;
+						}
+					}
+				}
 			} //ListView: pendingCoachesList
 
 			RowLayout {
@@ -305,9 +327,10 @@ TPPage {
 	TPButton {
 		id: btnFindCoachOnline
 		text: qsTr("Look online for available coaches");
+		multiline: true
 		enabled: userModel.canConnectToServer
 
-		onClicked: displayOnlineCoachesMenu();
+		onClicked: displayOnlineCoachesDialog();
 
 		anchors {
 			top: listsLayout.bottom
@@ -404,7 +427,7 @@ TPPage {
 	}
 
 	property UserCoachRequest requestDlg: null
-	function displayOnlineCoachesMenu(): void {
+	function displayOnlineCoachesDialog(): void {
 		if (requestDlg === null) {
 			function createRequestDialog() {
 				let component = Qt.createComponent("qrc:/qml/User/UserCoachRequest.qml", Qt.Asynchronous);

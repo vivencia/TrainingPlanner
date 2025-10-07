@@ -64,15 +64,35 @@ void DBInterface::threadFinished(TPDatabaseTable *dbObj)
 	dbObj->setResolved(true);
 	if (dbObj->waitForThreadToFinish())
 		dbObj->thread()->quit();
-	LOG_MESSAGE("Database  " << dbObjName << " - " << dbObj->uniqueId() << " calling databaseReady()")
+	#ifndef QT_NO_DEBUG
+	qDebug() << "Database  " << dbObjName << " - " << dbObj->uniqueId() << " calling databaseReady()";
+	#endif
 	emit databaseReady(dbObj->uniqueId());
 	if (m_WorkerLock[dbObj->tableId()].hasNext())
 	{
 		const TPDatabaseTable *const nextDbObj{m_WorkerLock[dbObj->tableId()].nextObj()};
-		LOG_MESSAGE("Database  " << dbObjName << " - " << nextDbObj->uniqueId() <<" starting in sequence of previous thread")
+		#ifndef QT_NO_DEBUG
+		qDebug() << "Database  " << dbObjName << " - " << nextDbObj->uniqueId() << " starting in sequence of previous thread";
+		#endif
 		nextDbObj->thread()->start();
 		if (nextDbObj->waitForThreadToFinish())
 			nextDbObj->thread()->wait();
+	}
+}
+
+void DBInterface::executeExternalQuery(const QString &dbfilename, const QString &query)
+{
+	uint tableid{0};
+	for (const auto &dbname : TPDatabaseTable::databaseFileNames)
+	{
+		if (dbname == dbfilename)
+			break;
+		++tableid;
+	}
+	if (tableid >= 1)
+	{
+		TPDatabaseTable *worker{TPDatabaseTable::createDBTable(tableid)};
+		createThread(worker, [worker,query] () { worker->execQuery(query, false, true, false); });
 	}
 }
 
@@ -92,7 +112,6 @@ void DBInterface::createThread(TPDatabaseTable *worker, const std::function<void
 
 	if (!m_threadCleaner.isActive())
 	{
-		LOG_MESSAGE("Connecting timer")
 		m_threadCleaner.setInterval(60000);
 		connect(&m_threadCleaner, &QTimer::timeout, this, [this] { cleanUpThreads(); });
 		m_threadCleaner.start();
@@ -101,15 +120,17 @@ void DBInterface::createThread(TPDatabaseTable *worker, const std::function<void
 	m_WorkerLock[worker->tableId()].appendObj(worker);
 	if (m_WorkerLock[worker->tableId()].canStartThread())
 	{
-		LOG_MESSAGE("Database  " << worker->objectName() << " -  " << worker->uniqueId() << " starting immediatelly")
+		#ifndef QT_NO_DEBUG
+		qDebug() << "Database  " << worker->objectName() << " -  " << worker->uniqueId() << " starting immediatelly";
+		#endif
 		thread->start();
 		if (worker->waitForThreadToFinish())
 			thread->wait();
 	}
+	#ifndef QT_NO_DEBUG
 	else
-	{
-		LOG_MESSAGE("Database  " << worker->objectName() << "  Waiting for it to be free: " << worker->uniqueId())
-	}
+		qDebug() << "Database  " << worker->objectName() << "  Waiting for it to be free: " << worker->uniqueId();
+	#endif
 }
 
 void DBInterface::cleanUpThreads()
@@ -124,7 +145,9 @@ void DBInterface::cleanUpThreads()
 			dbObj = m_WorkerLock[x].at(i);
 			if (dbObj->resolved())
 			{
-				LOG_MESSAGE("cleanUpThreads: " << dbObj->objectName() << "uniqueId: " << dbObj->uniqueId());
+				#ifndef QT_NO_DEBUG
+				qDebug() << "cleanUpThreads: " << dbObj->objectName() << "uniqueId: " << dbObj->uniqueId();
+				#endif
 				dbObj->disconnect();
 				dbObj->deleteLater();
 				m_WorkerLock[x].removeAt(i);
@@ -134,7 +157,6 @@ void DBInterface::cleanUpThreads()
 	}
 	if (locks_empty)
 	{
-		LOG_MESSAGE("Disconnecting timer")
 		m_threadCleaner.stop();
 		m_threadCleaner.disconnect();
 		disconnect(this, &DBInterface::databaseReady, this, nullptr);

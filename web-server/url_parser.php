@@ -1018,6 +1018,7 @@ if ($username) {
                     $user_password = $_GET['userpassword'];
                     $return_var = user_exists($username, $user_password);
                     if ($return_var == 0) {
+                        del_coach($username);
                         $ok = run_htpasswd("-D", $username, "");
                         if ($ok == 0) {
                             run_dbscript("del", "", $username, false);

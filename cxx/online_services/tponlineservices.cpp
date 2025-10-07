@@ -1,7 +1,7 @@
 #include "tponlineservices.h"
 
 #include "scan_network.h"
-#include "../tpglobals.h"
+#include "../osinterface.h"
 #include "../tpsettings.h"
 #include "../tputils.h"
 
@@ -456,7 +456,7 @@ void TPOnlineServices::getFile(const int requestid, const QString &username, con
 		QFileInfo fi{localFilePath};
 		if (fi.isFile() && fi.isWritable())
 		{
-			auto conn = std::make_shared<QMetaObject::Connection>();
+			auto conn{std::make_shared<QMetaObject::Connection>()};
 			*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
 							(const int request_id, const int ret_code, const QString &ret_string)
 			{
@@ -485,10 +485,10 @@ void TPOnlineServices::getFile(const int requestid, const QString &username, con
 }
 
 void TPOnlineServices::getCmdFile(const int requestid, const QString &username, const QString &passwd,
-										const QString &filename, const QString &subdir, const bool delete_cmd)
+										const QString &filename, const QString &subdir)
 {
-	const QUrl &url{makeCommandURL(username, passwd, "downloadcmd"_L1, filename, "subdir"_L1, subdir, "delete"_L1, delete_cmd ? "1"_L1 : "0"_L1)};
-	makeNetworkRequest(requestid, url);
+	const QUrl &url{makeCommandURL(username, passwd, "downloadcmd"_L1, filename, "subdir"_L1, subdir, "deviceid"_L1, appOsInterface()->deviceID())};
+	makeNetworkRequest(requestid, url, true);
 }
 
 QString TPOnlineServices::makeCommandURL(const QString &username, const QString &passwd, const QString &option1,
@@ -520,7 +520,9 @@ QString TPOnlineServices::makeCommandURL(const QString &username, const QString 
 
 void TPOnlineServices::makeNetworkRequest(const int requestid, const QUrl &url, const bool b_internal_signal_only)
 {
-	LOG_MESSAGE(url.toDisplayString() + " * "_L1 + QString::number(requestid))
+	#ifndef QT_NO_DEBUG
+	qDebug() << url.toDisplayString() << " * "_L1  << QString::number(requestid);
+	#endif
 	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{url})};
 	connect(reply, &QNetworkReply::finished, this, [this,requestid,reply,b_internal_signal_only]() {
 		handleServerRequestReply(requestid, reply, b_internal_signal_only);
@@ -550,7 +552,9 @@ void TPOnlineServices::handleServerRequestReply(const int requestid, QNetworkRep
 					return;
 				}
 				emit fileReceived(requestid, 2, "Error downloading file: "_L1, data);
-				LOG_MESSAGE("Error downloading file: "_L1 + QString::fromUtf8(data));
+				#ifndef QT_NO_DEBUG
+				qDebug() << "Error downloading file: "_L1 << QString::fromUtf8(data);
+				#endif
 				return;
 			}
 		}
@@ -558,7 +562,9 @@ void TPOnlineServices::handleServerRequestReply(const int requestid, QNetworkRep
 		replyString = std::move(QString::fromUtf8(reply->readAll()));
 		if (reply->error())
 			replyString += " ***** "_L1 + std::move(reply->errorString());
-		LOG_MESSAGE(replyString + " * "_L1 + QString::number(requestid))
+		#ifndef QT_NO_DEBUG
+		qDebug() << replyString << " * "_L1 << QString::number(requestid);
+		#endif
 		//Slice off "Return code: "
 		const qsizetype ret_code_idx{replyString.indexOf("Return code: "_L1) + 13};
 		if (ret_code_idx >= 13)
@@ -593,9 +599,9 @@ void TPOnlineServices::uploadFile(const int requestid, const QUrl &url, QFile *f
 		QHttpMultiPart *multiPart{new QHttpMultiPart{QHttpMultiPart::FormDataType, this}};
 		multiPart->append(filePart);
 		//file->setParent(multiPart); // MultiPart will manage file deletion
-
-		LOG_MESSAGE(url.toDisplayString() + " * "_L1 + QString::number(requestid))
-
+		#ifndef QT_NO_QDEBUG
+		qDebug() << url.toDisplayString() << " * "_L1 << QString::number(requestid);
+		#endif
 		// Send the request
 		QNetworkReply *reply{m_networkManager->post(request, multiPart)};
 		connect(reply, &QNetworkReply::finished, this, [this,requestid,reply,b_internal_signal_only]() {
@@ -607,9 +613,9 @@ void TPOnlineServices::uploadFile(const int requestid, const QUrl &url, QFile *f
 
 void TPOnlineServices::checkServerResponse(const int ret_code, const QString &ret_string, const QString &address)
 {
-#ifndef QT_NO_DEBUG
+	#ifndef QT_NO_DEBUG
 	qDebug() << "checkServerResponse() ret_code = " << ret_code << " , ret_string = " << ret_string << " , address = " << address;
-#endif
+	#endif
 	uint online_status{1};
 	if (ret_string.contains("Welcome to the TrainingPlanner"_L1))
 		online_status = 0;

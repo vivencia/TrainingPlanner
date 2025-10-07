@@ -1,12 +1,7 @@
 #include "dbmesocyclestable.h"
 
 #include "dbmesocyclesmodel.h"
-#include "tpglobals.h"
 #include "tputils.h"
-
-#include <QFile>
-#include <QSqlQuery>
-#include <QTime>
 
 DBMesocyclesTable::DBMesocyclesTable(DBMesocyclesModel *model)
 	: TPDatabaseTable{MESOCYCLES_TABLE_ID}, m_model{model}
@@ -19,11 +14,6 @@ DBMesocyclesTable::DBMesocyclesTable(DBMesocyclesModel *model)
 	#ifndef QT_NO_DEBUG
 	setObjectName("MesocyclesTable");
 	#endif
-}
-
-QLatin1StringView DBMesocyclesTable::tableName()
-{
-	return "mesocycles_table"_L1;
 }
 
 QLatin1StringView DBMesocyclesTable::createTableQuery()
@@ -52,79 +42,62 @@ QLatin1StringView DBMesocyclesTable::createTableQuery()
 
 void DBMesocyclesTable::getAllMesocycles()
 {
-	if (openDatabase(true))
+	if (execQuery("SELECT * FROM %1 ORDER BY ROWID"_L1.arg(tableName()), true, false))
 	{
-		bool ok{false};
-		QSqlQuery query{std::move(getQuery())};
-		const QString &strQuery{"SELECT * FROM %1 ORDER BY ROWID"_L1.arg(tableName())};
-
-		if (query.exec(strQuery))
+		if (m_workingQuery.first ())
 		{
-			if (query.first ())
+			do
 			{
-				do
-				{
-					QStringList meso_info{MESOCYCLES_TOTAL_COLS};
-					for (uint i{MESOCYCLES_COL_ID}; i < MESOCYCLES_TOTAL_COLS; ++i)
-						meso_info[i] = std::move(query.value(i).toString());
-					static_cast<void>(m_model->newMesocycle(std::move(meso_info)));
-				} while (query.next ());
-			}
+				QStringList meso_info{MESOCYCLES_TOTAL_COLS};
+				for (uint i{MESOCYCLES_COL_ID}; i < MESOCYCLES_TOTAL_COLS; ++i)
+					meso_info[i] = std::move(m_workingQuery.value(i).toString());
+				static_cast<void>(m_model->newMesocycle(std::move(meso_info)));
+			} while (m_workingQuery.next ());
 		}
-		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 }
 
 void DBMesocyclesTable::saveMesocycle()
 {
-	if (openDatabase())
+	const uint meso_idx{m_execArgs.at(0).toUInt()};
+	if (execQuery("SELECT id FROM %1 WHERE id=%2"_L1.arg(tableName(), m_model->id(meso_idx)), true, false))
 	{
-		bool ok{false};
-		QSqlQuery query{std::move(getQuery())};
-		const uint meso_idx{m_execArgs.at(0).toUInt()};
-		bool bUpdate{false};
-		QString strQuery;
+		bool update{false};
+		if (m_workingQuery.first())
+				update = m_workingQuery.value(0).toUInt() >= 0;
 
-		if (query.exec("SELECT id FROM %1 WHERE id=%2"_L1.arg(tableName(), m_model->id(meso_idx))))
+		QString str_query;
+		if (update)
 		{
-			if (query.first())
-				bUpdate = query.value(0).toUInt() >= 0;
-			query.finish();
-		}
-
-		if (bUpdate)
-		{
-			strQuery = std::move(u"UPDATE %1 SET meso_name=\'%2\', meso_start_date=%3, meso_end_date=%4, "
-								"meso_note=\'%5\', meso_nweeks=%6, meso_split=\'%7\', "
-								"splitA=\'%8\', splitB=\'%9\', splitC=\'%10\', splitD=\'%11\', splitE=\'%12\', splitF=\'%13\', "
-								"meso_coach=%14, meso_client=%15, meso_program_file=\'%16\', meso_type=\'%17\', "
-								"real_meso=%18 WHERE id=%19"_s
-								.arg(tableName(), m_model->name(meso_idx), m_model->strStartDate(meso_idx), m_model->strEndDate(meso_idx),
-									m_model->notes(meso_idx), m_model->nWeeks(meso_idx), m_model->split(meso_idx),
-									m_model->splitA(meso_idx), m_model->splitB(meso_idx), m_model->splitC(meso_idx), m_model->splitD(meso_idx),
-									m_model->splitE(meso_idx), m_model->splitF(meso_idx), m_model->coach(meso_idx), m_model->client(meso_idx),
-									m_model->file(meso_idx), m_model->type(meso_idx), m_model->realMeso(meso_idx), m_model->id(meso_idx)));
+			str_query = std::move(u"UPDATE %1 SET meso_name=\'%2\', meso_start_date=%3, meso_end_date=%4, "
+				"meso_note=\'%5\', meso_nweeks=%6, meso_split=\'%7\', "
+				"splitA=\'%8\', splitB=\'%9\', splitC=\'%10\', splitD=\'%11\', splitE=\'%12\', splitF=\'%13\', "
+				"meso_coach=%14, meso_client=%15, meso_program_file=\'%16\', meso_type=\'%17\', "
+				"real_meso=%18 WHERE id=%19"_s
+				.arg(tableName(), m_model->name(meso_idx), m_model->strStartDate(meso_idx), m_model->strEndDate(meso_idx),
+					m_model->notes(meso_idx), m_model->nWeeks(meso_idx), m_model->split(meso_idx),
+					m_model->splitA(meso_idx), m_model->splitB(meso_idx), m_model->splitC(meso_idx), m_model->splitD(meso_idx),
+					m_model->splitE(meso_idx), m_model->splitF(meso_idx), m_model->coach(meso_idx), m_model->client(meso_idx),
+					m_model->file(meso_idx), m_model->type(meso_idx), m_model->realMeso(meso_idx), m_model->id(meso_idx)));
 		}
 		else
 		{
-			strQuery = std::move(u"INSERT INTO %1 "
-						"(meso_name,meso_start_date,meso_end_date,meso_note,meso_nweeks,meso_split,"
-						"splitA,splitB,splitC,splitD,splitE,splitF,meso_coach,meso_client,meso_program_file,meso_type,real_meso)"
-						" VALUES(\'%2\', %3, %4, \'%5\', %6, \'%7\', \'%8\', \'%9\', \'%10\', \'%11\', \'%12\', \'%13\', "
-							"%14, %15, \'%16\', \'%17\', %18)"_s
-							.arg(tableName(), m_model->name(meso_idx), m_model->strStartDate(meso_idx), m_model->strEndDate(meso_idx),
-								m_model->notes(meso_idx), m_model->nWeeks(meso_idx), m_model->split(meso_idx),
-								m_model->splitA(meso_idx), m_model->splitB(meso_idx), m_model->splitC(meso_idx), m_model->splitD(meso_idx),
-								m_model->splitE(meso_idx), m_model->splitF(meso_idx), m_model->coach(meso_idx), m_model->client(meso_idx),
-								m_model->file(meso_idx), m_model->type(meso_idx), m_model->realMeso(meso_idx)));
+			str_query = std::move(u"INSERT INTO %1 "
+				"(meso_name,meso_start_date,meso_end_date,meso_note,meso_nweeks,meso_split,"
+				"splitA,splitB,splitC,splitD,splitE,splitF,meso_coach,meso_client,meso_program_file,meso_type,real_meso)"
+				" VALUES(\'%2\', %3, %4, \'%5\', %6, \'%7\', \'%8\', \'%9\', \'%10\', \'%11\', \'%12\', \'%13\', "
+				"%14, %15, \'%16\', \'%17\', %18)"_s
+				.arg(tableName(), m_model->name(meso_idx), m_model->strStartDate(meso_idx), m_model->strEndDate(meso_idx),
+					m_model->notes(meso_idx), m_model->nWeeks(meso_idx), m_model->split(meso_idx),
+					m_model->splitA(meso_idx), m_model->splitB(meso_idx), m_model->splitC(meso_idx), m_model->splitD(meso_idx),
+					m_model->splitE(meso_idx), m_model->splitF(meso_idx), m_model->coach(meso_idx), m_model->client(meso_idx),
+					m_model->file(meso_idx), m_model->type(meso_idx), m_model->realMeso(meso_idx)));
 		}
-		ok = query.exec(strQuery);
-		if (ok)
+		if (execQuery(str_query, false, false))
 		{
-			if (!bUpdate)
-				m_model->setId(meso_idx, query.lastInsertId().toString());
+			if (!update)
+				m_model->setId(meso_idx, m_workingQuery.lastInsertId().toString());
 		}
-		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

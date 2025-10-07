@@ -38,14 +38,14 @@ enum {
 	ReversePyramid = 2,
 	Drop =  3,
 	Cluster = 4,
-	MyoReps = 5
+	MyoReps = 5,
 } typedef TPSetTypes;
 
 enum SetMode {
 	SM_NOT_COMPLETED = 1,
 	SM_START_REST = 2,
 	SM_START_EXERCISE = 3,
-	SM_COMPLETED = 4
+	SM_COMPLETED = 4,
 };
 
 class DBExercisesModel : public QAbstractListModel
@@ -115,7 +115,7 @@ public:
 	[[nodiscard]] inline bool importModel() const { return m_importMode; }
 	inline void setImportMode(const bool import_mode) { m_importMode = import_mode; }
 
-	[[nodiscard]] bool fromDataBase(const QStringList &data, const bool bClearSomeFieldsForReUse = false);
+	bool fromDataBase(const QStringList &data, const bool bClearSomeFieldsForReUse = false);
 	[[nodiscard]] const QStringList toDatabase(const bool to_export_file = false) const;
 	void clearExercises();
 

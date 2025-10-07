@@ -1,7 +1,7 @@
 #include "tputils.h"
 
+#include "dbinterface.h"
 #include "dbexercisesmodel.h"
-#include "osinterface.h"
 #include "qmlitemmanager.h"
 
 #include <QClipboard>
@@ -208,8 +208,17 @@ bool TPUtils::rename(const QString &source_file_or_dir, const QString &dest_file
 					else
 						return false;
 				}
+				QFile::rename(source_file_or_dir, dest_file_or_dir);
 			}
-			QFile::rename(source_file_or_dir, dest_file_or_dir);
+			else
+			{
+				QString dest_filename{dest_file_or_dir};
+				if (dest_filename.contains('/'))
+					dest_filename = std::move(getFileName(dest_filename));
+				dest_filename = std::move(getFilePath(source_file_or_dir) + dest_filename);
+				QFile::rename(source_file_or_dir, dest_filename);
+			}
+
 			return true;
 		}
 	}
@@ -234,11 +243,24 @@ bool TPUtils::copyFile(const QString &srcFile, const QString &dstFileOrDir, cons
 	return false;
 }
 
-QFile *TPUtils::openFile(const QString &filename, QIODeviceBase::OpenMode flags) const
+QFile *TPUtils::openFile(const QString &filename, const bool read, const bool write,
+			const bool overwrite, const bool text) const
 {
-	const bool exists{QFile::exists(filename)};
-	if (!exists && (flags & QIODeviceBase::ReadOnly))
-		return nullptr;
+	QIODeviceBase::OpenMode flags{QIODeviceBase::NotOpen};
+	if (write)
+	{
+		if (overwrite)
+			flags |= QIODeviceBase::Truncate;
+		else
+			flags |= QIODeviceBase::NewOnly;
+		if (!read)
+			flags |= QIODeviceBase::WriteOnly;
+	}
+	if (read)
+		flags |= write ? QIODeviceBase::ReadWrite : QIODeviceBase::ReadOnly;
+	if (text)
+		flags |= QIODeviceBase::Text;
+
 	if (mkdir(filename))
 	{
 		QFile *file{new QFile{filename}};
@@ -266,7 +288,7 @@ void TPUtils::scanDir(const QString &path, QFileInfoList &results, const QString
 
 bool TPUtils::scanFile(const QString &filename, std::optional<bool> &formatted, uint &file_contents) const
 {
-	QFile *in_file{openFile(filename, QIODeviceBase::ReadOnly|QIODeviceBase::Text)};
+	QFile *in_file{openFile(filename)};
 	if (!in_file)
 		return false;
 
@@ -331,6 +353,63 @@ bool TPUtils::scanFile(const QString &filename, std::optional<bool> &formatted, 
 	in_file->close();
 	delete in_file;
 	return true;
+}
+
+void TPUtils::parseCmdFile(const QString &filename)
+{
+	QFile *cmd_file{openFile(filename, true)};
+	if (cmd_file)
+	{
+		QString line{1024, QChar{0}};
+		QString affected_file, command;
+		QTextStream stream{cmd_file};
+		int execution_module_found{-1};
+		static const QStringList execution_modules{QStringList{} << std::move("sqlite3"_L1) };
+		while (stream.readLineInto(&line))
+		{
+			if (line.startsWith('#'))
+				continue;
+			if (line.contains('='))
+			{
+				QString value{std::move(line.section('=', 1, 1 , QString::SectionSkipEmpty))};
+				if (execution_module_found == -1)
+				{
+					const int module{static_cast<int>(execution_modules.indexOf(value))};
+					if (module >= 0)
+						execution_module_found = module;
+				}
+				else
+				{
+					switch (execution_module_found)
+					{
+						case 0: //sqlite statement
+							if (affected_file.isEmpty())
+							{
+								for (const auto &dbname : TPDatabaseTable::databaseFileNames)
+								{
+									if (value == dbname)
+									{
+										affected_file = std::move(value);
+										break;
+									}
+								}
+								if (!affected_file.isEmpty())
+									break;
+							}
+							if (!affected_file.isEmpty())
+							{
+								if (!command.isEmpty())
+									break;
+								command = std::move(value);
+								appDBInterface()->executeExternalQuery(affected_file, command);
+							}
+						break;
+						default: return;
+					}
+				}
+			}
+		}
+	}
 }
 
 bool TPUtils::writeDataToFile(QFile *out_file,
@@ -548,53 +627,6 @@ int TPUtils::readDataFromFormattedFile(QFile *in_file,
 		}
 	}
 	return identifier_found ? field : APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE;
-}
-
-QFile *TPUtils::createServerCmdFile(const QString &dir, const uint cmd_order, const std::initializer_list<QString> &command_parts) const
-{
-	QFile *cmd_file{openFile(dir + QString::number(cmd_order) + ".cmd"_L1, QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text)};
-	if (cmd_file)
-	{
-		QString cmd_string{"#Device_ID "_L1 + appOsInterface()->deviceID() + '\n'};
-		int n_part{0};
-		QStringList var_list;
-		for (const QString &cmd_part : command_parts)
-		{
-			const QString &var{"VAR_"_L1 + QString::number(n_part)};
-			cmd_string += std::move(var + "=\""_L1 + cmd_part + "\"\n"_L1);
-			if (cmd_part.count(' ') > 0)
-				var_list.append(std::move("\"${"_L1 + var + "}\""_L1));
-			else
-				var_list.append(std::move('$' + var + ' '));
-			++n_part;
-		}
-		for (const QString &var : std::as_const(var_list))
-			cmd_string += var;
-
-		cmd_string += "\n#Downloads 1";
-		cmd_file->write(cmd_string.toUtf8().constData());
-		cmd_file->flush();
-	}
-	return cmd_file;
-}
-
-bool TPUtils::executeCmdFile(const QString &cmd_file, const QString &success_message, const bool remove_file) const
-{
-	QFile *cmdfile{openFile(cmd_file, QIODeviceBase::ReadOnly|QIODeviceBase::Text)};
-	if (cmdfile)
-	{
-		QString command{1024, QChar{0}};
-		QTextStream stream{cmdfile};
-
-		while (stream.readLineInto(&command))
-		{
-			if (command.isEmpty() || command.startsWith('#'))
-				continue;
-			break;
-		}
-
-	}
-	return false;
 }
 
 void TPUtils::copyToClipBoard(const QString &text) const

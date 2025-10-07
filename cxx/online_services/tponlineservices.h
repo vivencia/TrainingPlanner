@@ -79,9 +79,9 @@ public:
 	void removeFile(const int requestid, const QString &username, const QString &passwd, const QString &filename, const QString &subdir = QString{},
 					const QString &targetUser = QString{});
 	void getFile(const int requestid, const QString &username, const QString &passwd, const QString &filename,
-				const QString &subdir = {}, const QString &targetUser = QString{}, const QString &localFilePath = QString{});
+					const QString &subdir = {}, const QString &targetUser = QString{}, const QString &localFilePath = QString{});
 	void getCmdFile(const int requestid, const QString &username, const QString &passwd, const QString &filename,
-				const QString &subdir = QString{}, const bool delete_cmd = false);
+						const QString &subdir = QString{});
 
 	bool remoteFileUpToDate(const QString &onlineDate, const QString &localFile) const;
 	bool localFileUpToDate(const QString &onlineDate, const QString &localFile) const;

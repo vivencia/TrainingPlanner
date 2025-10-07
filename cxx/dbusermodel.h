@@ -3,6 +3,8 @@
 #include "tputils.h"
 #include "online_services/onlineuserinfo.h"
 
+//Everytime these indexes change, look in the QML files for Connections to onUserModified to see if the hardcoded field
+//numbers in those functions are affected by the changes here
 #define USER_COL_ID 0
 #define USER_COL_INSERTTIME 1
 #define USER_COL_ONLINEACCOUNT 2
@@ -275,7 +277,7 @@ public:
 	Q_INVOKABLE void switchUser();
 	Q_INVOKABLE void createNewUser();
 	Q_INVOKABLE void removeOtherUser();
-	void userSwitchingActions(const bool create);
+	void userSwitchingActions(const bool create, QString &&userid);
 	inline QString userId(const int user_idx = 0) const { return user_idx < m_usersData.count() ? m_usersData.at(user_idx).at(USER_COL_ID) : QString{}; }
 	inline OnlineUserInfo *allUsers() const { return m_allUsers; }
 #endif
@@ -320,6 +322,8 @@ public:
 	int downloadFileFromServer(const QString &filename, const QString &local_filename = QString{}, const QString &successMessage = QString{},
 							   const QString &subdir = QString{}, const QString &targetUser = QString{});
 	void removeFileFromServer(const QString &filename, const QString &subdir = QString{}, const QString &targetUser = QString{});
+	void sendCmdFileToServer(const QString &cmd_filename);
+	void downloadCmdFilesFromServer(const QString &subdir);
 
 	int exportToFile(const uint user_idx, const QString &filename, const bool write_header, QFile *out_file = nullptr) const;
 	int exportToFormattedFile(const uint user_idx, const QString &filename, QFile *out_file = nullptr) const;
@@ -373,7 +377,7 @@ signals:
 
 private:
 	QList<QStringList> m_usersData, m_tempUserData;
-	int m_tempRow, n_devices;
+	int m_tempRow, n_devices, n_cmdOrderValue;
 	QString m_onlineAccountId, m_password, m_defaultAvatar, m_emptyString, m_onlineCoachesDir,
 		m_dirForRequestedCoaches, m_dirForClientsRequests, m_dirForCurrentClients, m_dirForCurrentCoaches;
 	std::optional<bool> mb_singleDevice, mb_userRegistered, mb_coachRegistered;
@@ -396,8 +400,6 @@ private:
 	void getOnlineDevicesList();
 	void switchToUser(const QString &new_userid, const bool user_switching_for_testing = false);
 	void downloadAllUserFiles(const QString &userid);
-	void createOnlineDatabases(QString last_online_cmd);
-	void syncDatabases(const QStringList &online_db_files, const QString &last_online_cmd);
 	void lastOnlineCmd(const uint requestid, const QString &subdir = QString{});
 	QString resume(const uint user_idx) const;
 	void checkIfCoachRegisteredOnline();

@@ -300,7 +300,6 @@ Item {
 				id: btnAddMeso
 				text: qsTr("New Training Program")
 				imageSource: "mesocycle-add.png"
-				multiline: false
 				Layout.preferredWidth: preferredWidth
 				Layout.maximumWidth: parent.width - 20
 				Layout.maximumHeight: appSettings.itemDefaultHeight
@@ -313,7 +312,6 @@ Item {
 				id: btnImportMeso
 				text: qsTr("Import program from file")
 				imageSource: "import.png"
-				multiline: false
 				Layout.preferredWidth: preferredWidth
 				Layout.maximumWidth: parent.width - 20
 				Layout.maximumHeight: appSettings.itemDefaultHeight
@@ -326,7 +324,6 @@ Item {
 				id: btnWorkout
 				text: qsTr("Today's workout")
 				imageSource: "workout.png"
-				multiline: false
 				visible: mainUserPrograms
 				enabled: itemManager.appMesocyclesModel.canHaveTodaysWorkout
 				Layout.preferredWidth: preferredWidth

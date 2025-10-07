@@ -61,7 +61,7 @@ set( RESOURCE_FILES app_resources.qrc )
 
 set( CXX_SOURCES
 	cxx/main.cpp
-	cxx/tpglobals.h
+
 
 	cxx/translationclass.cpp cxx/translationclass.h
 	cxx/tputils.cpp cxx/tputils.h

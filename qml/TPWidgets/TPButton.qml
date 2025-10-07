@@ -30,7 +30,7 @@ Rectangle {
 	property bool checkable: false
 	property bool hasDropShadow: true
 	property bool checked: false
-	property bool multiline: true
+	property bool multiline: false
 	property int clickId: -1
 	property int imageSize: 0
 

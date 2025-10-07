@@ -14,7 +14,10 @@ public:
 	inline explicit DBWorkoutsOrSplitsTable(const uint table_id)
 		: TPDatabaseTable{table_id, nullptr}, m_model{nullptr} { commonConstructor(); }
 
-	static QLatin1StringView tableName(const uint table_id);
+	inline static QLatin1StringView tableName(const uint table_id)
+	{
+		return table_id == WORKOUT_TABLE_ID ? "workouts_table"_L1 : "mesosplit_table"_L1;
+	}
 	static QLatin1StringView createTableQuery();
 
 	void updateTable() override final {}

@@ -322,12 +322,12 @@ TPPage {
 				TPLabel {
 					id: lblEnabled
 					text: qsTr("Enabled text")
-					width: parent.width*0.4
+					width: parent.width * 0.4
 				}
 				TPButton {
 					imageSource: "color-choose"
-					width: 30
-					height: 30
+					width: appSettings.itemDefaultHeight
+					height: width
 					Layout.leftMargin: -5
 
 					onClicked: colorDlg.show(lblEnabled);
@@ -337,14 +337,14 @@ TPPage {
 					id: lblDisabled
 					text: qsTr("Disabled text")
 					enabled: false
-					width: parent.width*0.4
+					width: parent.width * 0.4
 
 					Layout.leftMargin: 20
 				}
 				TPButton {
 					imageSource: "color-choose"
-					width: 30
-					height: 30
+					width: appSettings.itemDefaultHeight
+					height: width
 					Layout.leftMargin: 5
 
 					onClicked: colorDlg.show(lblDisabled);
@@ -355,6 +355,7 @@ TPPage {
 			TPButton {
 				id: btnCustomFontColor
 				text: qsTr("Use selected colors")
+				autoSize: true
 				Layout.alignment: Qt.AlignCenter
 
 				onClicked: {

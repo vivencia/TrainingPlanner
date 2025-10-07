@@ -12,7 +12,7 @@ class DBMesocyclesTable final : public TPDatabaseTable
 public:
 	explicit DBMesocyclesTable(DBMesocyclesModel *model);
 
-	static QLatin1StringView tableName();
+	inline static QLatin1StringView tableName() { return "mesocycles_table"_L1; }
 	static QLatin1StringView createTableQuery();
 
 	void updateTable() override final {}

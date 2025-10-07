@@ -64,25 +64,16 @@ ApplicationWindow {
 		mainMenu.item.open();
 	}
 
-	Flickable {
-		width: parent.width
-		height: parent.height
-		flickableDirection: Flickable.VerticalFlick
-		boundsBehavior: Flickable.StopAtBounds
+	HomePage {
+		id: homePage
+		objectName: "homePage"
+	}
 
-		ScrollIndicator.vertical: ScrollIndicator {}
-
-		HomePage {
-			id: homePage
-			objectName: "homePage"
-		}
-
-		StackView {
-			id: stackView
-			objectName: "appStackView"
-			anchors.fill: parent
-			initialItem: homePage
-		}
+	StackView {
+		id: stackView
+		objectName: "appStackView"
+		initialItem: homePage
+		anchors.fill: parent
 	}
 
 	signal pageDeActivated_main(Item page);

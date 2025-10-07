@@ -420,7 +420,7 @@ int DBExercisesListModel::exportToFile(const QString &filename, QFile *out_file)
 {
 	if (!out_file)
 	{
-		out_file = appUtils()->openFile(filename, QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text);
+		out_file = appUtils()->openFile(filename, false, true, true);
 		if (!out_file)
 			return APPWINDOW_MSG_OPEN_FAILED;
 	}
@@ -434,7 +434,7 @@ int DBExercisesListModel::exportToFormattedFile(const QString &filename, QFile *
 {
 	if (!out_file)
 	{
-		out_file = {appUtils()->openFile(filename, QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text)};
+		out_file = appUtils()->openFile(filename, false, true, true);
 		if (!out_file)
 			return APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
 	}
@@ -468,7 +468,7 @@ int DBExercisesListModel::importFromFile(const QString& filename, QFile *in_file
 {
 	if (!in_file)
 	{
-		in_file = appUtils()->openFile(filename, QIODeviceBase::ReadOnly|QIODeviceBase::Text);
+		in_file = appUtils()->openFile(filename);
 		if (!in_file)
 			return APPWINDOW_MSG_OPEN_FAILED;
 	}
@@ -491,7 +491,7 @@ int DBExercisesListModel::importFromFormattedFile(const QString &filename, QFile
 {
 	if (!in_file)
 	{
-		in_file = appUtils()->openFile(filename, QIODeviceBase::ReadOnly|QIODeviceBase::Text);
+		in_file = appUtils()->openFile(filename);
 		if (!in_file)
 			return APPWINDOW_MSG_OPEN_FAILED;
 	}

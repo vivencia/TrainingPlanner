@@ -1,6 +1,5 @@
 #pragma once
 
-#include "tpglobals.h"
 #include "tpsettings.h"
 
 #include <QObject>
@@ -18,6 +17,8 @@ constexpr uint MESOSPLIT_TABLE_ID{0x0003};
 constexpr uint MESOCALENDAR_TABLE_ID{0x0004};
 constexpr uint WORKOUT_TABLE_ID{0x0005};
 constexpr uint USERS_TABLE_ID{0x0006};
+
+QT_FORWARD_DECLARE_CLASS(QFile)
 
 class TPDatabaseTable : public QObject
 {
@@ -38,10 +39,11 @@ public:
 	TPDatabaseTable& operator() (const TPDatabaseTable &other) = delete;
 	TPDatabaseTable (TPDatabaseTable &&other) = delete;
 	TPDatabaseTable& operator() (TPDatabaseTable &&other) = delete;
+	inline ~TPDatabaseTable() { mSqlLiteDB.close(); }
 
 	static TPDatabaseTable *createDBTable(const uint table_id, const bool auto_delete = true);
 	static QString createTableQuery(const uint table_id);
-	void createTable();
+	inline void createTable() { execQuery(createTableQuery(m_tableId)); }
 	virtual void updateTable() = 0;
 
 	inline void setCallbackForDoneFunc( const std::function<void (TPDatabaseTable*)> &func ) { doneFunc = func; }
@@ -69,19 +71,9 @@ public:
 	void clearTable();
 	void removeDBFile();
 
-	bool openDatabase(const bool bReadOnly = false);
+	bool openDatabase(const bool read_only = false);
 	QSqlQuery getQuery() const;
-
-	#ifndef QT_NO_DEBUG
-	#define setQueryResult(result, message, location) \
-		_setQueryResult(result, location, message)
-
-	void _setQueryResult(const bool bResultOK, const std::source_location &location, const QString &message = QString{});
-	#else
-	#define setQueryResult(result, message, location) \
-		_setQueryResult(result)
-	void _setQueryResult(const bool bResultOK);
-	#endif
+	bool execQuery(const QString &str_query, const bool read_only = true, const bool close_db = true, const bool send_to_server = true);
 
 protected:
 	explicit inline TPDatabaseTable(const uint table_id, QObject *parent = nullptr)
@@ -89,6 +81,7 @@ protected:
 
 	inline void setTableName(const QLatin1StringView &table_name) { m_tableName = std::move(QString{table_name}); }
 	QSqlDatabase mSqlLiteDB;
+	QSqlQuery m_workingQuery;
 	QVariantList m_execArgs;
 
 	uint m_tableId;
@@ -101,5 +94,9 @@ private:
 	bool mb_result;
 	bool mb_resolved;
 	bool mb_waitForFinished;
+
+	QString createServerCmdFile(const QString &dir, const std::initializer_list<QString> &command_parts,
+									const bool overwrite = false) const;
+	bool executeCmdFile(const QString &cmd_file, const QString &success_message, const bool remove_file = true) const;
 };
 

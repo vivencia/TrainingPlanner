@@ -7,6 +7,7 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 import "../TPWidgets"
 
 TPPopup {
+	id: dlgSwitchUser
 	width: appSettings.pageWidth - 20
 	height: appSettings.pageHeight / 2
 
@@ -38,8 +39,8 @@ TPPopup {
 				id: allUsersList
 				contentHeight: availableHeight
 				contentWidth: rowWidth
-				//reuseItems: true
 				clip: true
+				reuseItems: true
 				boundsBehavior: Flickable.StopAtBounds
 				selectionBehavior: TableView.SelectRows
 				selectionMode: TableView.SingleSelection
@@ -63,10 +64,13 @@ TPPopup {
 				}
 
 				onCurrentRowChanged: {
-					for (let i = 0; i < model.count; ++i) {
-						itemAtIndex(index(currentRow, i)).selected = true;
-						if (cur_row >= 0)
-							itemAtIndex(index(cur_row, i)).selected = false;
+					let _item = itemAtIndex(index(currentRow, 0));
+					if (_item)
+						_item.setSelected(currentRow, true);
+					if (cur_row >= 0) {
+						_item = itemAtIndex(index(cur_row, 0));
+						if (_item)
+							_item.setSelected(cur_row, false);
 					}
 					cur_row = currentRow;
 					model.currentRow = currentRow;
@@ -81,7 +85,10 @@ TPPopup {
 					implicitHeight: appSettings.itemDefaultHeight
 
 					required property bool current
-					property bool selected: false
+
+					function setSelected(_row: int, _selected: bool): void {
+						userModel.allUsers.setSelected(_row, _selected);
+					}
 
 					TPLabel {
 						id: lblData
@@ -115,7 +122,10 @@ TPPopup {
 				width: buttonsRow.buttonSize
 				height: appSettings.itemDefaultHeight
 
-				onClicked: userModel.switchUser();
+				onClicked: {
+					userModel.switchUser();
+					dlgSwitchUser.close();
+				}
 			}
 
 			TPButton {
@@ -125,16 +135,22 @@ TPPopup {
 				width: buttonsRow.buttonSize
 				height: appSettings.itemDefaultHeight
 
-				onClicked: userModel.removeOtherUser();
+				onClicked: {
+					userModel.removeOtherUser();
+					dlgSwitchUser.close();
+				}
 			}
 
 			TPButton {
 				imageSource: "add-new"
-				text: qsTr("Create user")
+				text: qsTr("New user")
 				width: buttonsRow.buttonSize
 				height: appSettings.itemDefaultHeight
 
-				onClicked: userModel.createNewUser();
+				onClicked: {
+					userModel.createNewUser();
+					dlgSwitchUser.close();
+				}
 			}
 		}
 	}//Layout

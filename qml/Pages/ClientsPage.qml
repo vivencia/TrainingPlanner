@@ -40,7 +40,7 @@ TPPage {
 	TabBar {
 		id: tabbar
 		contentWidth: width
-		height: 30
+		height: appSettings.itemDefaultHeight
 
 		TPTabButton {
 			text: qsTr("Clients")
@@ -142,7 +142,7 @@ TPPage {
 							(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
 					}
 
-					onClicked: selectItem(index);
+					onClicked: pendingClientsList.selectItem(index);
 				} //ItemDelegate
 
 				function selectItem(index: int): void {

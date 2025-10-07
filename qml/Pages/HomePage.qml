@@ -17,12 +17,16 @@ TPPage {
 		bottomPadding: 20
 		height: headerHeight
 
+		Component.onCompleted: {
+			console.log(appSettings.entrySelectedColor, appSettings.listEntryColor1, appSettings.listEntryColor);
+		}
+
 		TPImage {
 			id: imgAppIcon
 			source: "app_icon"
 			dropShadow: false
-			width: 50
-			height: 50
+			width: appSettings.itemExtraLargeHeight
+			height: width
 
 			anchors {
 				verticalCenter: lblMain.verticalCenter

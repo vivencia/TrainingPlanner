@@ -75,6 +75,8 @@ Q_PROPERTY(uint itemDefaultHeight READ itemDefaultHeight NOTIFY fontSizeChanged 
 Q_PROPERTY(uint itemSmallHeight READ itemSmallHeight NOTIFY fontSizeChanged FINAL)
 Q_PROPERTY(uint itemLargeHeight READ itemLargeHeight NOTIFY fontSizeChanged FINAL)
 Q_PROPERTY(uint itemExtraLargeHeight READ itemExtraLargeHeight NOTIFY fontSizeChanged FINAL)
+Q_PROPERTY(uint userLocaleIdx READ userLocaleIdx NOTIFY userLocaleChanged FINAL)
+Q_PROPERTY(uint weatherCitiesCount READ weatherCitiesCount NOTIFY weatherCitiesCountChanged)
 
 Q_PROPERTY(QString userLocale READ userLocale NOTIFY userLocaleChanged)
 Q_PROPERTY(QString themeStyle READ themeStyle WRITE setThemeStyle NOTIFY themeStyleChanged)
@@ -90,10 +92,7 @@ Q_PROPERTY(QString disabledFontColor READ disabledFontColor WRITE setDisabledFon
 Q_PROPERTY(QString weightUnit READ weightUnit WRITE setWeightUnit NOTIFY weightUnitChanged)
 
 Q_PROPERTY(int lastViewedMesoIdx READ lastViewedMesoIdx WRITE setLastViewedMesoIdx NOTIFY lastViewedMesoIdxChanged)
-Q_PROPERTY(uint userLocaleIdx READ userLocaleIdx NOTIFY userLocaleChanged FINAL)
-Q_PROPERTY(uint weatherCitiesCount READ weatherCitiesCount NOTIFY weatherCitiesCountChanged)
 Q_PROPERTY(bool alwaysAskConfirmation READ alwaysAskConfirmation WRITE setAlwaysAskConfirmation NOTIFY alwaysAskConfirmationChanged)
-
 Q_PROPERTY(QStringList colorSchemes READ colorSchemes FINAL CONSTANT)
 //--------------------------------------------USER   SETTINGS---------------------------------------------//
 
@@ -157,7 +156,7 @@ public:
 
 	inline QString userLocale() const { return getValue(currentUser(), USER_LOCALE_INDEX, m_defaultValues.at(USER_LOCALE_INDEX)).toString(); }
 	void setUserLocale(const QString &locale, const bool write_to_file);
-	Q_INVOKABLE void setUserLocale(const uint language_idx, const bool write_to_file);
+	void setUserLocale(const uint language_idx, const bool write_to_file);
 
 	inline QString themeStyle() const { return getValue(currentUser(), THEME_STYLE_INDEX, m_defaultValues.at(THEME_STYLE_INDEX)).toString(); }
 	inline void setThemeStyle(const QString &new_value) { changeValue(currentUser(), THEME_STYLE_INDEX, new_value); emit themeStyleChanged(); }
@@ -175,9 +174,9 @@ public:
 	inline QString entrySelectedColor() const { return getValue(currentUser(), SELECTED_COLOR_INDEX, selectedColorForScheme(colorScheme())).toString(); };
 	inline QString listEntryColor1() const { { return getValue(currentUser(), LISTS_COLOR_1_INDEX, listColor1ForScheme(colorScheme())).toString(); } }
 	inline QString listEntryColor2() const { { return getValue(currentUser(), LISTS_COLOR_2_INDEX, listColor2ForScheme(colorScheme())).toString(); } }
-	inline QString fontColor() const { return getValue(currentUser(), FONT_COLOR_INDEX, m_defaultValues.at(FONT_COLOR_INDEX)).toString(); }
+	inline QString fontColor() const { return getValue(currentUser(), FONT_COLOR_INDEX, fontColorForScheme(colorScheme())).toString(); }
 	void setFontColor(const QColor &color);
-	inline QString disabledFontColor() const { return getValue(currentUser(), DISABLED_FONT_COLOR_INDEX, m_defaultValues.at(DISABLED_FONT_COLOR_INDEX)).toString(); }
+	inline QString disabledFontColor() const { return getValue(currentUser(), DISABLED_FONT_COLOR_INDEX, disabledFontColorForScheme(colorScheme())).toString(); }
 	void setDisabledFontColor(const QColor &color);
 
 	Q_INVOKABLE QString colorForScheme(const uint scheme) const;
@@ -187,6 +186,8 @@ public:
 	QString listColor2ForScheme(const uint scheme) const;
 	QString paneColorForScheme(const uint scheme) const;
 	QString selectedColorForScheme(const uint scheme) const;
+	QString fontColorForScheme(const uint scheme) const;
+	QString disabledFontColorForScheme(const uint scheme) const;
 
 	void setFontSize(const uint new_value, const bool bFromQml = true);
 	inline uint fontSize() const { return getValue(currentUser(), FONT_SIZE_INDEX, m_defaultValues.at(FONT_SIZE_INDEX)).toUInt(); }
@@ -232,7 +233,7 @@ private:
 	QStringList m_weatherLocations;
 	QStringList m_colorSchemes;
 	QString m_userId;
-	int m_languageIdx;
+	int m_languageIdx, m_prevColorScheme;
 //--------------------------------------------USER   SETTINGS---------------------------------------------//
 };
 

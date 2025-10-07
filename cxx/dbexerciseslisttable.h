@@ -14,7 +14,7 @@ Q_OBJECT
 public:
 	explicit DBExercisesListTable(DBExercisesListModel *model);
 
-	static QLatin1StringView tableName();
+	inline static QLatin1StringView tableName() { return "exercises_table"_L1; }
 	static QLatin1StringView createTableQuery();
 
 	void updateTable() override final {}

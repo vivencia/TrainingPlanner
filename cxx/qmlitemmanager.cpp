@@ -19,7 +19,6 @@
 #include "pageslistmodel.h"
 #include "osinterface.h"
 #include "statistics/tpstatistics.h"
-#include "tpglobals.h"
 #include "tpimage.h"
 #include "tpimageprovider.h"
 #include "tpsettings.h"
@@ -108,10 +107,13 @@ void QmlItemManager::configureQmlEngine()
 	appQmlEngine()->addImageProvider("tpimageprovider"_L1, new TPImageProvider{});
 
 	QUrl url{};
-	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(), [this] (const QObject *const obj, const QUrl &objUrl) {
+	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(), [this] (const QObject *const obj, const QUrl &objUrl)
+	{
 		if (!obj)
 		{
-			LOG_MESSAGE("*******************Mainwindow not loaded*******************")
+			#ifndef QT_NO_DEBUG
+			qDebug () << "*******************Mainwindow not loaded*******************";
+			#endif
 			QCoreApplication::exit(-1);
 		}
 		else
