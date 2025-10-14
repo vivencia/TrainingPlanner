@@ -35,6 +35,7 @@ TPPage {
 		ColumnLayout {
 			id: colMain
 			anchors.fill: parent
+			anchors.margins: 10
 			spacing: 10
 
 			TPLabel {

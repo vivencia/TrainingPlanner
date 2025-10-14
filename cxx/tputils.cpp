@@ -158,6 +158,7 @@ bool TPUtils::rename(const QString &source_file_or_dir, const QString &dest_file
 
 	if (fi_src.exists())
 	{
+		bool ok{false};
 		if (fi_src.isDir())
 		{
 			QDir dest_dir;
@@ -182,8 +183,7 @@ bool TPUtils::rename(const QString &source_file_or_dir, const QString &dest_file
 						return false;
 				}
 			}
-			dest_dir.rename(source_file_or_dir, dest_file_or_dir);
-			return true;
+			ok = dest_dir.rename(source_file_or_dir, dest_file_or_dir);
 		}
 		else
 		{
@@ -208,19 +208,12 @@ bool TPUtils::rename(const QString &source_file_or_dir, const QString &dest_file
 					else
 						return false;
 				}
-				QFile::rename(source_file_or_dir, dest_file_or_dir);
+				ok = QFile::rename(source_file_or_dir, dest_file_or_dir);
 			}
 			else
-			{
-				QString dest_filename{dest_file_or_dir};
-				if (dest_filename.contains('/'))
-					dest_filename = std::move(getFileName(dest_filename));
-				dest_filename = std::move(getFilePath(source_file_or_dir) + dest_filename);
-				QFile::rename(source_file_or_dir, dest_filename);
-			}
-
-			return true;
+				ok = QFile::rename(source_file_or_dir, getFilePath(source_file_or_dir) + getFileName(dest_file_or_dir));
 		}
+		return ok;
 	}
 	else
 		return fi_dest.exists();
@@ -573,7 +566,7 @@ int TPUtils::readDataFromFile(QFile *in_file,
 			}
 		}
 	}
-	return identifier_found ? data.count() - prevCount : APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE;
+	return identifier_found ? data.count() - prevCount : TP_RET_CODE_WRONG_IMPORT_FILE_TYPE;
 }
 
 int TPUtils::readDataFromFormattedFile(QFile *in_file,
@@ -626,7 +619,7 @@ int TPUtils::readDataFromFormattedFile(QFile *in_file,
 			}
 		}
 	}
-	return identifier_found ? field : APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE;
+	return identifier_found ? field : TP_RET_CODE_WRONG_IMPORT_FILE_TYPE;
 }
 
 void TPUtils::copyToClipBoard(const QString &text) const

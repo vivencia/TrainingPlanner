@@ -193,9 +193,9 @@ void OSInterface::checkServerResponseSlot(const bool online)
 	if (notify)
 	{
 		if (!online)
-			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, appUtils()->string_strings({"TrainingPlanner App"_L1, "Server unreachable!"_L1}, record_separator));
+			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERRORS, appUtils()->string_strings({"TrainingPlanner App"_L1, "Server unreachable!"_L1}, record_separator));
 		else
-			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings({"TrainingPlanner App"_L1, "Connected online!"_L1}, record_separator));
+			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES, appUtils()->string_strings({"TrainingPlanner App"_L1, "Connected online!"_L1}, record_separator));
 
 		emit serverStatusChanged(online);
 	}
@@ -535,7 +535,7 @@ void OSInterface::serverProcessFinished(QProcess *proc, const int exitCode, QPro
 {
 	if (exitStatus != QProcess::NormalExit)
 	{
-		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, appUtils()->string_strings(
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERRORS, appUtils()->string_strings(
 				{"Linux TP Server"_L1, "Error executing init_script"_L1}, record_separator));
 		return;
 	}
@@ -552,7 +552,7 @@ void OSInterface::serverProcessFinished(QProcess *proc, const int exitCode, QPro
 		case TPSERVER_PAUSED_FAILED:
 			setBit(m_networkStatus, SERVER_UNREACHABLE);
 			unSetBit(m_networkStatus, SERVER_UP_AND_RUNNING);
-			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, appUtils()->string_strings(
+			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERRORS, appUtils()->string_strings(
 				{"Linux TP Server"_L1, proc->readAllStandardOutput() + "\nReturn code("_L1 + QString::number(exitCode) + ')'}, record_separator));
 			emit serverStatusChanged(false);
 			m_checkConnectionTimer->setInterval(CONNECTION_ERR_TIMEOUT);
@@ -595,7 +595,7 @@ void OSInterface::commandLocalServer(const QString &message, const QString &comm
 			server_script_proc->start(tp_server_config_script , {command, "-p="_L1 + password}, QIODeviceBase::ReadOnly);
 		}
 		else
-			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
+			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES, appUtils()->string_strings(
 						{message, "Operation canceled by the user"_L1}, record_separator));
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appItemManager()->getPasswordDialog(message,
@@ -744,7 +744,7 @@ void OSInterface::onlineServicesResponse(const uint online_status)
 		setConnectionMessage(online_status == 0 ?
 					std::move(tr("Connected to server ") + '(' + appSettings()->serverAddress() + ')') :
 					std::move(tr("Server unreachable")));
-		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES, appUtils()->string_strings(
 					{"Linux TP Server"_L1, connectionMessage()}, record_separator));
 		emit serverStatusChanged(online_status == 0);
 	}

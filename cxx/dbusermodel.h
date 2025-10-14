@@ -68,8 +68,8 @@ Q_PROPERTY(QStringList clientsNames READ clientsNames NOTIFY clientsNamesChanged
 Q_PROPERTY(bool mainUserIsClient READ mainUserIsClient NOTIFY appUseModeChanged FINAL)
 Q_PROPERTY(bool mainUserIsCoach READ mainUserIsCoach NOTIFY appUseModeChanged FINAL)
 Q_PROPERTY(bool onlineAccount READ onlineAccount WRITE setOnlineAccount NOTIFY onlineUserChanged FINAL)
-Q_PROPERTY(bool haveCoaches READ haveCoaches NOTIFY haveCoachesChanged FINAL)
-Q_PROPERTY(bool haveClients READ haveClients NOTIFY haveClientsChanged FINAL)
+Q_PROPERTY(bool haveCoaches READ haveCoaches NOTIFY coachesNamesChanged FINAL)
+Q_PROPERTY(bool haveClients READ haveClients NOTIFY clientsNamesChanged FINAL)
 Q_PROPERTY(bool mainUserConfigured READ mainUserConfigured NOTIFY mainUserConfigurationFinished FINAL)
 Q_PROPERTY(bool canConnectToServer READ canConnectToServer NOTIFY canConnectToServerChanged FINAL)
 
@@ -344,8 +344,6 @@ signals:
 	void labelsChanged();
 	void appUseModeChanged();
 	void onlineUserChanged();
-	void haveCoachesChanged();
-	void haveClientsChanged();
 	void coachesNamesChanged();
 	void clientsNamesChanged();
 	void coachesListReceived(const QStringList &coaches_list);

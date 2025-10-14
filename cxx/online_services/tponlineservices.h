@@ -88,7 +88,8 @@ public:
 
 signals:
 	void networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string);
-	void _networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string);
+	void _networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string,
+									const QByteArray &contents = QByteArray{});
 	void networkListReceived(const int request_id, const int ret_code, const QStringList &ret_list);
 	void fileReceived(const int request_id, const int ret_code, const QString& filename, const QByteArray &contents);
 	void serverOnline(const uint online_status);

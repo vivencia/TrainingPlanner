@@ -255,7 +255,7 @@ void OpenWeatherMapBackend::getCityFromCoordinates(const QGeoCoordinate &coordin
 		#endif
 	});
 	connect(reply, &QNetworkReply::errorOccurred, this, [=] (QNetworkReply::NetworkError code) {
-		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_UNKNOWN_ERROR, reply->errorString() + '(' + QString::number(code) + ')');
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_UNKNOWN_ERROR, reply->errorString() + '(' + QString::number(code) + ')');
 	});
 
 	#ifndef QT_NO_DEBUG

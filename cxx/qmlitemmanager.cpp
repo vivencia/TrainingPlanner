@@ -176,7 +176,7 @@ void QmlItemManager::chooseFileToImport()
 void QmlItemManager::importFromSelectedFile(const QList<bool> &selectedFields)
 {
 	const bool formatted{m_importFilename.at(0).cell() == 'f'};
-	int importFileMessageId{APPWINDOW_MSG_IMPORT_FAILED};
+	int importFileMessageId{TP_RET_CODE_IMPORT_FAILED};
 
 	m_importFilename.remove(0, 1);
 	for (uint i{0}; i < selectedFields.count(); ++i)
@@ -205,7 +205,7 @@ void QmlItemManager::importFromSelectedFile(const QList<bool> &selectedFields)
 																				QDate::currentDate(), formatted);
 			break;
 		}
-		if (importFileMessageId != APPWINDOW_MSG_IMPORT_OK)
+		if (importFileMessageId != TP_RET_CODE_SUCCESS)
 			break;
 	}
 	displayMessageOnAppWindow(importFileMessageId, m_importFilename);
@@ -356,12 +356,12 @@ const QString &QmlItemManager::setExportFileName(const QString &filename)
 void QmlItemManager::continueExport(int exportMessageId, const bool bShare)
 {
 	const QString &filename{appUtils()->getFileName(m_exportFilename)};
-	if (exportMessageId == APPWINDOW_MSG_EXPORT_OK)
+	if (exportMessageId == TP_RET_CODE_SUCCESS)
 	{
 		if (bShare)
 		{
 			appOsInterface()->shareFile(m_exportFilename);
-			exportMessageId = APPWINDOW_MSG_SHARE_OK;
+			exportMessageId = TP_RET_CODE_SUCCESS;
 		}
 		else
 			QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, filename));
@@ -374,9 +374,9 @@ void QmlItemManager::displayActivityResultMessage(const int requestCode, const i
 	int message_id(0);
 	switch (resultCode)
 	{
-		case -1: message_id = APPWINDOW_MSG_SHARE_OK; break;
-		case 0: message_id = APPWINDOW_MSG_SHARE_FAILED; break;
-		default: message_id = APPWINDOW_MSG_UNKNOWN_ERROR; break;
+		case -1: message_id = TP_RET_CODE_SUCCESS; break;
+		case 0: message_id = TP_RET_CODE_SHARE_FAILED; break;
+		default: message_id = TP_RET_CODE_UNKNOWN_ERROR; break;
 	}
 	displayMessageOnAppWindow(message_id);
 	QFile::remove(m_exportFilename);
@@ -403,32 +403,32 @@ void QmlItemManager::openRequestedFile(const QString &filename, const int wanted
 	uint file_contents;
 	if (!appUtils()->scanFile(corrected_filename, formatted, file_contents))
 	{
-		displayMessageOnAppWindow(APPWINDOW_MSG_OPEN_FAILED, corrected_filename);
+		displayMessageOnAppWindow(TP_RET_CODE_OPEN_READ_FAILED, corrected_filename);
 		return;
 	}
 	if (!formatted.has_value())
 	{
-		displayMessageOnAppWindow(APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE, corrected_filename);
+		displayMessageOnAppWindow(TP_RET_CODE_WRONG_IMPORT_FILE_TYPE, corrected_filename);
 		return;
 	}
 	if (file_contents == 0)
 	{
-		displayMessageOnAppWindow(APPWINDOW_MSG_IMPORT_FAILED, corrected_filename);
+		displayMessageOnAppWindow(TP_RET_CODE_IMPORT_FAILED, corrected_filename);
 		return;
 	}
 	if (isBitSet(wanted_content, IFC_MESO) && !isBitSet(file_contents, IFC_MESO))
 	{
-		displayMessageOnAppWindow(APPWINDOW_MSG_UNKNOWN_ERROR, tr("The TP file does not contain any information for a Training Program"));
+		displayMessageOnAppWindow(TP_RET_CODE_WRONG_IMPORT_FILE_TYPE, tr("The TP file does not contain any information for a Training Program"));
 		return;
 	}
 	if (isBitSet(wanted_content, IFC_MESOSPLIT) && !isBitSet(file_contents, IFC_MESOSPLIT))
 	{
-		displayMessageOnAppWindow(APPWINDOW_MSG_UNKNOWN_ERROR, tr("The TP file does not contain any information for an exercises plan"));
+		displayMessageOnAppWindow(TP_RET_CODE_WRONG_IMPORT_FILE_TYPE, tr("The TP file does not contain any information for an exercises plan"));
 		return;
 	}
 	if (isBitSet(wanted_content, IFC_WORKOUT) && !isBitSet(file_contents, IFC_WORKOUT))
 	{
-		displayMessageOnAppWindow(APPWINDOW_MSG_UNKNOWN_ERROR, tr("The TP file does not contain any information for a workout"));
+		displayMessageOnAppWindow(TP_RET_CODE_WRONG_IMPORT_FILE_TYPE, tr("The TP file does not contain any information for a workout"));
 		return;
 	}
 
@@ -505,115 +505,133 @@ void QmlItemManager::mainWindowStarted() const
 	appOsInterface()->initialCheck();
 }
 
+enum MESSAGE_ICON {
+	MI_None = -1, MI_OK = 0, MI_Error = 1, MI_Warning = 2,
+};
+
 void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QString &fileName,
 		const QString &image_source, const uint msecs) const
 {
 	QString title, message;
+	int icon_to_use{MI_Error}; //Only applicable when image_source is an empty string
 	switch (message_id)
 	{
-		case APPWINDOW_MSG_CUSTOM_MESSAGE:
+		case TP_RET_CODE_CUSTOM_MESSAGES:
 		{
 			title = std::move(appUtils()->getCompositeValue(0, fileName, record_separator));
 			message = std::move(appUtils()->getCompositeValue(1, fileName, record_separator));
+			icon_to_use = MI_None;
 		}
 		break;
-		case APPWINDOW_MSG_CUSTOM_WARNING:
+		case TP_RET_CODE_CUSTOM_WARNINGS:
 		{
 			title = std::move(tr("Warning! ") + appUtils()->getCompositeValue(0, fileName, record_separator));
 			message = std::move(appUtils()->getCompositeValue(1, fileName, record_separator));
+			icon_to_use = MI_Warning;
 		}
 		break;
-		case APPWINDOW_MSG_CUSTOM_ERROR:
-		{
+		case TP_RET_CODE_CUSTOM_ERRORS:
 			title = std::move(tr("Error! ") + appUtils()->getCompositeValue(0, fileName, record_separator));
 			message = std::move(appUtils()->getCompositeValue(1, fileName, record_separator));
-		}
 		break;
-		case APPWINDOW_MSG_EXPORT_OK:
+		case TP_RET_CODE_EXPORT_OK:
 			title = std::move(tr("Succesfully exported"));
 			message = std::move(appUtils()->getFileName(fileName));
+			icon_to_use = MI_OK;
 		break;
-		case APPWINDOW_MSG_SHARE_OK:
+		case TP_RET_CODE_SHARE_OK:
 			title = std::move(tr("Succesfully shared"));
 			message = std::move(appUtils()->getFileName(fileName));
+			icon_to_use = MI_OK;
 		break;
-		case APPWINDOW_MSG_IMPORT_OK:
+		case TP_RET_CODE_IMPORT_OK:
 			title = std::move(tr("Successfully imported"));
 			message = std::move(appUtils()->getFileName(fileName));
+			icon_to_use = MI_OK;
 		break;
-		case APPWINDOW_MSG_OPEN_FAILED:
+		case TP_RET_CODE_OPEN_READ_FAILED:
 			title = std::move(tr("Failed to open file"));
 			message = std::move(appUtils()->getFileName(fileName));
 		break;
-		case APPWINDOW_MSG_UNKNOWN_FILE_FORMAT:
+		case TP_RET_CODE_WRONG_IMPORT_FILE_TYPE:
 			title = std::move(tr("Error"));
 			message = std::move(tr("File type not recognized"));
 		break;
-		case APPWINDOW_MSG_CORRUPT_FILE:
+		case TP_RET_CODE_CORRUPT_FILE:
 			title = std::move(tr("Error"));
 			message = std::move(tr("File is formatted wrongly or is corrupted"));
 		break;
-		case APPWINDOW_MSG_NOTHING_TODO:
+		case TP_RET_CODE_NOTHING_TODO:
 			title = std::move(tr("Nothing to be done"));
 			message = std::move(tr("File had already been imported"));
+			icon_to_use = MI_Warning;
 		break;
-		case APPWINDOW_MSG_NO_MESO:
+		case TP_RET_CODE_NO_MESO:
 			title = std::move(tr("No program to import into"));
 			message = std::move(tr("Either create a new training plan or import from a complete program file"));
+			icon_to_use = MI_Warning;
 		break;
-		case APPWINDOW_MSG_NOTHING_TO_EXPORT:
+		case TP_RET_CODE_NOTHING_TO_EXPORT:
 			title = std::move(tr("Nothing to export"));
 			message = std::move(tr("Only exercises that do not come by default with the app can be exported"));
+			icon_to_use = MI_Warning;
 		break;
-		case APPWINDOW_MSG_SHARE_FAILED:
+		case TP_RET_CODE_SHARE_FAILED:
 			title = std::move(tr("Sharing failed"));
 			message = std::move(appUtils()->getFileName(fileName));
 		break;
-		case APPWINDOW_MSG_EXPORT_FAILED:
+		case TP_RET_CODE_EXPORT_FAILED:
 			title = std::move(tr("Export failed"));
 			message = std::move(tr("Operation canceled"));
 		break;
-		case APPWINDOW_MSG_IMPORT_FAILED_SAME_DATA:
-			title = std::move(tr("Import failed"));
-			message = std::move(tr("The file does not contain any new data that is not already in use"));
-		break;
-		case APPWINDOW_MSG_IMPORT_CANCELED:
-			title = std::move(tr("Import failed"));
+		case TP_RET_CODE_OPERATION_CANCELED:
+			title = std::move(tr("Warning"));
 			message = std::move(tr("Operation canceled"));
+			icon_to_use = MI_Warning;
 		break;
-		case APPWINDOW_MSG_IMPORT_FAILED:
+		case TP_RET_CODE_IMPORT_FAILED:
 			title = std::move(tr("Import from file failed"));
 			message = std::move(appUtils()->getFileName(fileName));
 		break;
-		case APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED:
+		case TP_RET_CODE_OPEN_CREATE_FAILED:
 			title = std::move(tr("Could not open file for exporting"));
 			message = std::move(appUtils()->getFileName(fileName));
 		break;
-		case APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE:
-			title = std::move(tr("Cannot import"));
-			message = std::move(tr("Contents of the file are incompatible with the requested operation"));
-		break;
-		case APPWINDOW_MSG_UNKNOWN_ERROR:
+		case TP_RET_CODE_UNKNOWN_ERROR:
 			title = std::move(tr("Error"));
 			message = std::move(appUtils()->getFileName(fileName));
 		break;
 	}
+
+	QString img_src;
+	if (image_source.isEmpty())
+	{
+		switch (icon_to_use)
+		{
+			case MI_Error: img_src = std::move("error"); break;
+			case MI_Warning: img_src = std::move("warning"); break;
+			case MI_OK: img_src = std::move("set-completed"); break;
+			case MI_None: break;
+		}
+	}
+	else
+		img_src = image_source;
 	QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(QString, title), Q_ARG(QString, message),
-					Q_ARG(QString, image_source), Q_ARG(int, static_cast<int>(msecs)));
+					Q_ARG(QString, img_src), Q_ARG(int, static_cast<int>(msecs)));
 }
 
 void QmlItemManager::exportSlot(const QString &filePath)
 {
-	int messageId(APPWINDOW_MSG_EXPORT_FAILED);
+	int messageId(TP_RET_CODE_EXPORT_FAILED);
 	if (!filePath.isEmpty())
 	{
-		messageId = APPWINDOW_MSG_EXPORT_OK;
+		messageId = TP_RET_CODE_EXPORT_OK;
 		QFile file{filePath};
 		if (file.exists())
-			messageId = file.remove() ? APPWINDOW_MSG_EXPORT_OK : APPWINDOW_MSG_EXPORT_FAILED;
-		if (messageId == APPWINDOW_MSG_EXPORT_OK)
+			messageId = file.remove() ? TP_RET_CODE_EXPORT_OK : TP_RET_CODE_EXPORT_FAILED;
+		if (messageId == TP_RET_CODE_EXPORT_OK)
 			if (!appUtils()->copyFile(m_exportFilename, filePath))
-				messageId = APPWINDOW_MSG_EXPORT_FAILED;
+				messageId = TP_RET_CODE_EXPORT_FAILED;
 	}
 	displayMessageOnAppWindow(messageId);
 	QFile::remove(m_exportFilename);
@@ -625,7 +643,7 @@ void QmlItemManager::importSlot_FileChosen(const QString &filePath, const int co
 	if (!filePath.isEmpty())
 		openRequestedFile(filePath, content_type);
 	else
-		displayMessageOnAppWindow(APPWINDOW_MSG_IMPORT_CANCELED);
+		displayMessageOnAppWindow(TP_RET_CODE_OPERATION_CANCELED);
 }
 
 void QmlItemManager::createWeatherPage_part2()

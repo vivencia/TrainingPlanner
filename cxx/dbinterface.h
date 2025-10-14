@@ -28,7 +28,6 @@ public:
 
 	void init();
 	void sanityCheck();
-	void threadFinished(TPDatabaseTable *dbObj);
 	void executeExternalQuery(const QString &dbfilename, const QString &query);
 
 	//-----------------------------------------------------------USER TABLE-----------------------------------------------------------
@@ -123,7 +122,7 @@ private:
 	QString m_exercisesListVersion;
 
 	void updateDB(TPDatabaseTable *worker);
-	void createThread(TPDatabaseTable *worker, const std::function<void(void)> &execFunc);
+	void createThread(TPDatabaseTable *worker, const std::function<void(void)> &execFunc, const bool connect_to_worker = true);
 
 	static DBInterface *app_db_interface;
 	friend DBInterface *appDBInterface();

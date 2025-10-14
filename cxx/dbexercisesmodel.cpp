@@ -264,31 +264,31 @@ void DBExercisesModel::clearExercises()
 int DBExercisesModel::exportToFile(const QString &filename, QFile *out_file) const
 {
 	if (exerciseCount() == 0)
-		return APPWINDOW_MSG_NOTHING_TO_EXPORT;
+		return TP_RET_CODE_NOTHING_TO_EXPORT;
 
 	if (!out_file)
 	{
 		out_file = appUtils()->openFile(filename, false, true, true);
 		if (!out_file)
-			return APPWINDOW_MSG_OPEN_FAILED;
+			return TP_RET_CODE_OPEN_WRITE_FAILED;
 	}
 
 	const QList<QStringList> &data{std::move(QList<QStringList>{} << toDatabase(true))};
 	const bool ret{appUtils()->writeDataToFile(out_file, identifierInFile(), data)};
 	out_file->close();
-	return ret ? APPWINDOW_MSG_EXPORT_OK : APPWINDOW_MSG_EXPORT_FAILED;
+	return ret ? TP_RET_CODE_EXPORT_OK : TP_RET_CODE_EXPORT_FAILED;
 }
 
 int DBExercisesModel::exportToFormattedFile(const QString &filename, QFile *out_file) const
 {
 	if (exerciseCount() == 0)
-		return APPWINDOW_MSG_NOTHING_TO_EXPORT;
+		return TP_RET_CODE_NOTHING_TO_EXPORT;
 
 	if (!out_file)
 	{
 		out_file = appUtils()->openFile(filename, false, true, true);
 		if (!out_file)
-			return APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
+			return TP_RET_CODE_OPEN_CREATE_FAILED;
 	}
 
 	const QString &strHeader{
@@ -348,7 +348,7 @@ int DBExercisesModel::exportToFormattedFile(const QString &filename, QFile *out_
 	out_file->write("\n", 1);
 	out_file->write(appUtils()->STR_END_FORMATTED_EXPORT.toUtf8().constData());
 	out_file->close();
-	return APPWINDOW_MSG_EXPORT_OK;
+	return TP_RET_CODE_EXPORT_OK;
 }
 
 int DBExercisesModel::importFromFile(const QString& filename, QFile *in_file)
@@ -357,19 +357,19 @@ int DBExercisesModel::importFromFile(const QString& filename, QFile *in_file)
 	{
 		in_file = appUtils()->openFile(filename);
 		if (!in_file)
-			return APPWINDOW_MSG_OPEN_FAILED;
+			return TP_RET_CODE_OPEN_READ_FAILED;
 	}
 
 	QStringList data{WORKOUT_TOTALCOLS};
 	QList<QStringList> exercise_data{1};
 	exercise_data[0] = std::move(data);
 	int ret{appUtils()->readDataFromFile(in_file, exercise_data, WORKOUT_TOTALCOLS, identifierInFile())};
-	if (ret != APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE)
+	if (ret != TP_RET_CODE_WRONG_IMPORT_FILE_TYPE)
 	{
 		if (fromDataBase(exercise_data.at(0)))
-			ret = APPWINDOW_MSG_IMPORT_OK;
+			ret = TP_RET_CODE_IMPORT_OK;
 		else
-			ret = APPWINDOW_MSG_IMPORT_FAILED;
+			ret = TP_RET_CODE_IMPORT_FAILED;
 	}
 	in_file->close();
 	return ret;
@@ -381,7 +381,7 @@ int DBExercisesModel::importFromFormattedFile(const QString& filename, QFile *in
 	{
 		in_file = appUtils()->openFile(filename);
 		if (!in_file)
-			return APPWINDOW_MSG_OPEN_FAILED;
+			return TP_RET_CODE_OPEN_READ_FAILED;
 	}
 
 	QString value;
@@ -498,12 +498,12 @@ int DBExercisesModel::importFromFormattedFile(const QString& filename, QFile *in
 			break;
 	}
 	in_file->close();
-	return exerciseCount() > 0 ? APPWINDOW_MSG_IMPORT_OK : APPWINDOW_MSG_IMPORT_FAILED;
+	return exerciseCount() > 0 ? TP_RET_CODE_IMPORT_OK : TP_RET_CODE_IMPORT_FAILED;
 }
 
 int DBExercisesModel::newExercisesFromFile(const QString &filename, const std::optional<bool> &file_formatted)
 {
-	int import_result{APPWINDOW_MSG_IMPORT_FAILED};
+	int import_result{TP_RET_CODE_IMPORT_FAILED};
 	if (file_formatted.has_value())
 	{
 		if (file_formatted.value())
@@ -514,7 +514,7 @@ int DBExercisesModel::newExercisesFromFile(const QString &filename, const std::o
 	else
 	{
 		import_result = importFromFile(filename);
-		if (import_result == APPWINDOW_MSG_IMPORT_FAILED)
+		if (import_result == TP_RET_CODE_IMPORT_FAILED)
 			import_result = importFromFormattedFile(filename);
 	}
 	return import_result;

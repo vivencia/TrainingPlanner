@@ -162,10 +162,9 @@ public:
 	QString subSetOfCompositeValue(const QString &value, const uint from, const uint n, const QLatin1Char &chr_sep) const;
 	inline QString string_strings(const std::initializer_list<QString> &strings, const QLatin1Char &chr_sep) const
 	{
-		QString ret;
-		for (QString i : strings)
-			ret += i + chr_sep;
-		return ret;
+		return std::accumulate(strings.begin(), strings.end(), QString{}, [chr_sep] (QString &&final_str, QString str){
+			return final_str += std::move(str + chr_sep);
+		});
 	}
 	inline uint nFieldsInCompositeString(const QString &compositeString, const QLatin1Char &chr_sep) const { return compositeString.count(chr_sep); }
 

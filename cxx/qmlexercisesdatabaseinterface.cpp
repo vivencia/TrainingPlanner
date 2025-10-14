@@ -42,7 +42,7 @@ void QmlExercisesDatabaseInterface::exportExercises(const bool bShare)
 			if (bShare)
 			{
 				appOsInterface()->shareFile(exportFileName);
-				exportFileMessageId = APPWINDOW_MSG_SHARE_OK;
+				exportFileMessageId = TP_RET_CODE_SHARE_OK;
 			}
 			else
 				QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, exportFileName));
@@ -50,7 +50,7 @@ void QmlExercisesDatabaseInterface::exportExercises(const bool bShare)
 		appItemManager()->displayMessageOnAppWindow(exportFileMessageId, exportFileName);
 	}
 	else
-		exportFileMessageId = APPWINDOW_MSG_NOTHING_TO_EXPORT;
+		exportFileMessageId = TP_RET_CODE_NOTHING_TO_EXPORT;
 	appItemManager()->displayMessageOnAppWindow(exportFileMessageId);
 }
 

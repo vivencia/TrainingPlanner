@@ -3,7 +3,6 @@
 #include "dbexerciseslisttable.h"
 #include "dbmesocalendartable.h"
 #include "dbmesocyclestable.h"
-#include "dbusermodel.h"
 #include "dbusertable.h"
 #include "dbworkoutsorsplitstable.h"
 #include "osinterface.h"
@@ -13,8 +12,6 @@
 #include <QSqlError>
 
 using namespace Qt::Literals::StringLiterals;
-
-static const QString &sqlite{"sqlite3"_L1};
 
 TPDatabaseTable *TPDatabaseTable::createDBTable(const uint table_id, const bool auto_delete)
 {
@@ -49,34 +46,30 @@ QString TPDatabaseTable::createTableQuery(const uint table_id)
 
 void TPDatabaseTable::removeEntry(const bool bUseMesoId)
 {
-	static_cast<void>(execQuery("DELETE FROM "_L1 + m_tableName + (bUseMesoId ? " WHERE meso_id="_L1 : " WHERE id="_L1) +
-					m_execArgs.at(0).toString(), false));
-	if (doneFunc)
-		doneFunc(static_cast<TPDatabaseTable*>(this));
+	const bool success{execQuery("DELETE FROM "_L1 + m_tableName + (bUseMesoId ? " WHERE meso_id="_L1 : " WHERE id="_L1) +
+					m_execArgs.at(0).toString(), false)};
+	emit queryExecuted(success, true);
 }
 
 void TPDatabaseTable::removeTemporaries(const bool bUseMesoId)
 {
-	static_cast<void>(execQuery("DELETE FROM "_L1 + m_tableName + (bUseMesoId ? " WHERE meso_id<0"_L1 :
-						" WHERE id<0"_L1), false, true, false));
-	if (doneFunc)
-		doneFunc(static_cast<TPDatabaseTable*>(this));
+	const bool success{execQuery("DELETE FROM "_L1 + m_tableName + (bUseMesoId ? " WHERE meso_id<0"_L1 :
+						" WHERE id<0"_L1), false, true)};
+	emit queryExecuted(success, true);
 }
 
 void TPDatabaseTable::clearTable()
 {
-	static_cast<void>(execQuery("DELETE FROM "_L1 + m_tableName, false));
-	if (doneFunc)
-		doneFunc(static_cast<TPDatabaseTable*>(this));
+	const bool success{execQuery("DELETE FROM "_L1 + m_tableName, false)};
+	emit queryExecuted(success, true);
 }
 
 void TPDatabaseTable::removeDBFile()
 {
-	const bool ok{QFile::remove(mSqlLiteDB.databaseName())};
-	if (ok)
-		createTable();
-	if (doneFunc)
-		doneFunc(static_cast<TPDatabaseTable*>(this));
+	bool success{QFile::remove(mSqlLiteDB.databaseName())};
+	if (success)
+		success = createTable();
+	emit queryExecuted(success, true);
 }
 
 bool TPDatabaseTable::openDatabase(const bool read_only)
@@ -97,7 +90,6 @@ bool TPDatabaseTable::openDatabase(const bool read_only)
 QSqlQuery TPDatabaseTable::getQuery() const
 {
 	QSqlQuery query{mSqlLiteDB};
-	//if (!mSqlLiteDB.connectOptions().isEmpty())
 	query.setForwardOnly(true);
 	static_cast<void>(query.exec("PRAGMA page_size = 4096"_L1));
 	static_cast<void>(query.exec("PRAGMA cache_size = 16384"_L1));
@@ -108,8 +100,22 @@ QSqlQuery TPDatabaseTable::getQuery() const
 	return query;
 }
 
-bool TPDatabaseTable::execQuery(const QString &str_query, const bool read_only, const bool close_db, const bool send_to_server)
+bool TPDatabaseTable::execQuery(const QString &str_query, const bool read_only, const bool close_db)
 {
+	if (mSqlLiteDB.isOpen())
+	{
+		if (mSqlLiteDB.connectOptions().contains("READONLY"_L1))
+		{
+			if (!read_only)
+				mSqlLiteDB.close();
+		}
+		else
+		{
+			if (read_only)
+				mSqlLiteDB.close();
+		}
+	}
+
 	if (!mSqlLiteDB.isOpen())
 	{
 		if (!openDatabase(read_only))
@@ -137,12 +143,6 @@ bool TPDatabaseTable::execQuery(const QString &str_query, const bool read_only, 
 	}
 	if (close_db)
 		mSqlLiteDB.close();
-	if (send_to_server && !read_only && ok && appUserModel()->onlineAccount())
-	{
-		const QString &cmd_filename{createServerCmdFile(dbFilePath(true), {sqlite, databaseFileNames[m_tableId], str_query})};
-		if (!cmd_filename.isEmpty())
-			appUserModel()->sendCmdFileToServer(cmd_filename);
-	}
 	return ok;
 }
 
@@ -150,21 +150,30 @@ QString TPDatabaseTable::createServerCmdFile(const QString &dir, const std::init
 												const bool overwrite) const
 {
 	QString cmd_string{"#Device_ID "_L1 + appOsInterface()->deviceID() + '\n'};
-	int n_part{0};
+	int n_part{1};
 	QStringList var_list;
+	QString vars_cmd;
 	for (const QString &cmd_part : command_parts)
 	{
-		QString var{std::move("VAR_"_L1 + QString::number(n_part) + "=\""_L1 + cmd_part + "\"\n"_L1)};
-		if (cmd_part.count(' ') > 0)
-			var_list.append(std::move("\"${"_L1 + var + "}\""_L1));
+		if (n_part == 1)
+		{
+			var_list.append(std::move("VAR_1="_L1 + cmd_part + '\n'));
+			vars_cmd = "$VAR_1"_L1;
+		}
 		else
-			var_list.append(std::move('$' + var + ' '));
+		{
+			var_list.append(std::move("VAR_"_L1 + QString::number(n_part) + "=\""_L1 + cmd_part + "\"\n"_L1));
+			if (cmd_part.count(' ') > 0)
+				vars_cmd += " \"${VAR_"_L1 + QString::number(n_part) + "}\""_L1;
+			else
+				vars_cmd += " $VAR_"_L1 + QString::number(n_part);
+		}
 		++n_part;
 	}
 	for (const QString &var : std::as_const(var_list))
 		cmd_string += var;
+	cmd_string += vars_cmd + "\n#Downloads 1"_L1;
 
-	cmd_string += "\n#Downloads 1";
 	std::hash<std::string> str_hash;
 	const QString &cmd_filename{dir + QString::number(str_hash(cmd_string.toStdString())) + ".cmd"_L1};
 	if (!QFile::exists(cmd_filename) || overwrite)

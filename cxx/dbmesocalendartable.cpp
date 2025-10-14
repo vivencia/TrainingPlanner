@@ -56,7 +56,6 @@ void DBMesoCalendarTable::getMesoCalendar()
 	}
 	if (!ok)
 		m_model->createCalendar(meso_idx);
-	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void DBMesoCalendarTable::saveMesoCalendar()
@@ -73,7 +72,6 @@ void DBMesoCalendarTable::saveMesoCalendar()
 
 			if (mSqlLiteDB.transaction())
 			{
-				QString strQuery;
 				if (!update)
 				{
 					const QString &queryCommand{"INSERT INTO "_L1 + tableName() + u"(meso_id, date, data) VALUES "_s};
@@ -85,13 +83,13 @@ void DBMesoCalendarTable::saveMesoCalendar()
 						return data + queryValuesTemplate.arg(meso_id, day_info->date, day_info->data);
 					}))};
 					dbdata[dbdata.length()-1] = ';';
-					strQuery = std::move(queryCommand + dbdata);
+					m_strQuery = std::move(queryCommand + dbdata);
 				}
 				else
 				{
 					const QString &queryCommand{"UPDATE "_L1 + tableName() + "SET data=\'%1\' WHERE meso_id="_L1 +
-															meso_id + " AND date=\'%2\'; "_L1};
-					strQuery = std::move(std::accumulate(m_model->mesoCalendar(meso_idx).cbegin(),
+															meso_id + " AND date=\'%2\';"_L1};
+					m_strQuery = std::move(std::accumulate(m_model->mesoCalendar(meso_idx).cbegin(),
 												 m_model->mesoCalendar(meso_idx).cend(),
 												 QString{},
 												 [this,meso_id,queryCommand] (const QString &data, stDayInfo *day_info) {
@@ -104,10 +102,12 @@ void DBMesoCalendarTable::saveMesoCalendar()
 							return data + QString{};
 					}));
 				}
-				if (execQuery(strQuery, false, false))
+				if (execQuery(m_strQuery, false, false))
 				{
+					if (mSqlLiteDB.commit())
+						emit queryExecuted(true, true);
 					#ifndef QT_NO_DEBUG
-					if (!mSqlLiteDB.commit())
+					else
 					{
 						qDebug() << "****** ERROR ******";
 						qDebug() << "DBMesoCalendarTable::saveMesoCalendar() -> transaction not commited"_L1;
@@ -119,7 +119,6 @@ void DBMesoCalendarTable::saveMesoCalendar()
 			}
 		}
 	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 bool DBMesoCalendarTable::mesoCalendarSavedInDB(const QString &meso_id)
@@ -139,8 +138,7 @@ void DBMesoCalendarTable::workoutDayInfoForEntireMeso()
 	if (openDatabase(true))
 	{
 		QSqlQuery query{std::move(getQuery())};
-		const QString &strQuery{"SELECT * FROM %1 WHERE meso_id=%2;"_L1.arg(tableName(), m_execArgs.at(0).toString())};
-		bool ok{false};
+		const QString &strQuery{"SELECT * FROM %1 WHERE meso_id=%2"_L1.arg(tableName(), m_execArgs.at(0).toString())};
 		if (query.exec(strQuery))
 		{
 			if (query.first())
@@ -157,11 +155,9 @@ void DBMesoCalendarTable::workoutDayInfoForEntireMeso()
 					m_workoutsInfoList.append(workout_info);
 				} while (query.next());
 				m_workoutsInfoList.at(0)->meso_id = m_execArgs.at(0).toUInt();
-				ok = true;
 			}
 		}
 	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 //TODO
@@ -175,11 +171,10 @@ void DBMesoCalendarTable::completedDaysForSplitWithinTimePeriod()
 		const QDate &endDate{m_execArgs.at(2).toDate()};
 		QSqlQuery query{std::move(getQuery())};
 		const QString &strQuery{"SELECT training_complete,year,month,day FROM mesocycles_calendar_table WHERE training_split=%1 AND "
-			"year>=%2 AND year<=%3 AND month>=%4 AND month<=%5 AND year>=%6 AND year<=%7;"_L1.arg(
+			"year>=%2 AND year<=%3 AND month>=%4 AND month<=%5 AND year>=%6 AND year<=%7"_L1.arg(
 				QString(splitLetter), QString::number(startDate.year()), QString::number(endDate.year()), QString::number(startDate.month()),
 				QString::number(endDate.month()), QString::number(startDate.day()), QString::number(endDate.day()))};
 
-		bool ok(false);
 		if (query.exec(strQuery))
 		{
 			if (query.first())
@@ -192,9 +187,7 @@ void DBMesoCalendarTable::completedDaysForSplitWithinTimePeriod()
 						m_completedWorkoutDates.append(std::move(date));
 					}
 				} while (query.next());
-				ok = true;
 			}
 		}
 	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

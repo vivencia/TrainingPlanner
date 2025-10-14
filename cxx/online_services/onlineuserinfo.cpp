@@ -102,7 +102,7 @@ void OnlineUserInfo::setIsCoach(const uint row, bool coach)
 bool OnlineUserInfo::dataFromFileSource(const QString &filename)
 {
 	beginInsertRows(QModelIndex{}, count(), count());
-	bool imported{appUserModel()->importFromFile(filename) == APPWINDOW_MSG_IMPORT_OK};
+	bool imported{appUserModel()->importFromFile(filename) == TP_RET_CODE_IMPORT_OK};
 	if (imported)
 	{
 		const qsizetype row{m_modeldata.count()};

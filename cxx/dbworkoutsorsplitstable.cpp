@@ -48,9 +48,9 @@ void DBWorkoutsOrSplitsTable::commonConstructor()
 void DBWorkoutsOrSplitsTable::getExercises()
 {
 	const QString &str_query{tableId() == WORKOUT_TABLE_ID ?
-					"SELECT * FROM %1 WHERE meso_id=%2 AND calendar_day=%3;"_L1.arg(
+					"SELECT * FROM %1 WHERE meso_id=%2 AND calendar_day=%3"_L1.arg(
 											tableName(tableId()), m_model->mesoId(), QString::number(m_model->calendarDay())) :
-					"SELECT * FROM %1 WHERE meso_id=%2 AND split_letter=\'%3\';"_L1.arg(
+					"SELECT * FROM %1 WHERE meso_id=%2 AND split_letter=\'%3\'"_L1.arg(
 											tableName(tableId()), m_model->mesoId(), m_model->splitLetter())
 	};
 	if (execQuery(str_query, true, false))
@@ -63,19 +63,18 @@ void DBWorkoutsOrSplitsTable::getExercises()
 			static_cast<void>(m_model->fromDataBase(workout_info));
 		}
 	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void DBWorkoutsOrSplitsTable::saveExercises()
 {
 	const QStringList &modelData{m_model->toDatabase()};
 	bool update{false};
-	QString str_query{std::move(tableId() == WORKOUT_TABLE_ID ?
-			"SELECT id FROM %1 WHERE meso_id=%2 AND calendar_day=%3;"_L1.arg(
+	const QString &str_query{tableId() == WORKOUT_TABLE_ID ?
+			"SELECT id FROM %1 WHERE meso_id=%2 AND calendar_day=%3"_L1.arg(
 											tableName(tableId()), m_model->mesoId(), QString::number(m_model->calendarDay())) :
-			"SELECT id FROM %1 WHERE meso_id=%2 AND split_letter=\'%3\';"_L1.arg(
+			"SELECT id FROM %1 WHERE meso_id=%2 AND split_letter=\'%3\'"_L1.arg(
 											tableName(tableId()), m_model->mesoId(), m_model->splitLetter())
-	)};
+	};
 
 	if (execQuery(str_query, true, false))
 	{
@@ -84,10 +83,10 @@ void DBWorkoutsOrSplitsTable::saveExercises()
 
 		if (update)
 		{
-			str_query = std::move(
+			m_strQuery = std::move(
 					u"UPDATE %1 SET split_letter=\'%2\', exercises=\'%3\', track_rest_time=\'%4\', "
 					"auto_rest_time=\'%5\', setstypes=\'%6\', setsresttimes=\'%7\', setssubsets=\'%8\', "
-					"setsreps=\'%9\', setsweights=\'%10\', setsnotes=\'%11\', setscompleted=\'%12\' WHERE id=%13;"_s
+					"setsreps=\'%9\', setsweights=\'%10\', setsnotes=\'%11\', setscompleted=\'%12\' WHERE id=%13"_s
 						.arg(tableName(tableId()), modelData.at(EXERCISES_COL_SPLITLETTER),
 							modelData.at(EXERCISES_COL_EXERCISES), modelData.at(EXERCISES_COL_TRACKRESTTIMES),
 							modelData.at(EXERCISES_COL_AUTORESTTIMES), modelData.at(EXERCISES_COL_SETTYPES),
@@ -97,10 +96,10 @@ void DBWorkoutsOrSplitsTable::saveExercises()
 		}
 		else
 		{
-			str_query = std::move(u"INSERT INTO %1 "
+			m_strQuery = std::move(u"INSERT INTO %1 "
 					"(meso_id,calendar_day,split_letter,exercises,track_rest_time,auto_rest_time,setstypes,"
 					"setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted)"
-					" VALUES(%2, %3, \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\', \'%11\', \'%12\', \'%13\', \'%14\');"_s
+					" VALUES(%2, %3, \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\', \'%11\', \'%12\', \'%13\', \'%14\')"_s
 						.arg(tableName(tableId()), modelData.at(EXERCISES_COL_MESOID),
 							modelData.at(EXERCISES_COL_CALENDARDAY), modelData.at(EXERCISES_COL_SPLITLETTER),
 							modelData.at(EXERCISES_COL_EXERCISES), modelData.at(EXERCISES_COL_TRACKRESTTIMES),
@@ -109,31 +108,33 @@ void DBWorkoutsOrSplitsTable::saveExercises()
 							modelData.at(EXERCISES_COL_REPS), modelData.at(EXERCISES_COL_WEIGHTS),
 							modelData.at(EXERCISES_COL_NOTES), modelData.at(EXERCISES_COL_COMPLETED)));
 		}
-		if (execQuery(str_query, false, false))
+		if (execQuery(m_strQuery, false, false))
 		{
 			if (!update)
 				m_model->setId(m_workingQuery.lastInsertId().toString());
+			emit queryExecuted(true, true);
 		}
 	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void DBWorkoutsOrSplitsTable::removeExercises()
 {
 	const QString meso_id{m_execArgs.at(0).toString()};
-	QString str_query{tableId() == WORKOUT_TABLE_ID ?
-			std::move("DELETE FROM %1 WHERE meso_id=%2;"_L1.arg(tableName(tableId()), meso_id)) :
-			std::move("DELETE FROM %1 WHERE meso_id=%2;"_L1.arg(tableName(tableId()), meso_id))
-	};
+	m_strQuery = std::move(tableId() == WORKOUT_TABLE_ID ?
+			std::move("DELETE FROM %1 WHERE meso_id=%2"_L1.arg(tableName(tableId()), meso_id)) :
+			std::move("DELETE FROM %1 WHERE meso_id=%2"_L1.arg(tableName(tableId()), meso_id)));
+
 	const bool remove_all{m_execArgs.at(1).toBool()};
 	if (!remove_all) //Delete one specific entry, otherwise all entries for the meso will be deleted
 	{
-		str_query += std::forward<QString>(tableId() == WORKOUT_TABLE_ID ?
-		std::move(" AND calendar_day=%1"_L1.arg(QString::number(m_model->calendarDay()))) :
-		std::move(" AND split_letter=%1"_L1.arg(m_model->splitLetter())));
+		m_strQuery += std::forward<QString>(tableId() == WORKOUT_TABLE_ID ?
+		std::move(" AND calendar_day=%1;"_L1.arg(QString::number(m_model->calendarDay()))) :
+		std::move(" AND split_letter=%1;"_L1.arg(m_model->splitLetter())));
 	}
-	static_cast<void>(execQuery(str_query, false));
-	doneFunc(static_cast<TPDatabaseTable*>(this));
+	else
+		m_strQuery.append(';');
+	const bool success{execQuery(m_strQuery, false)};
+	emit queryExecuted(success, true);
 }
 
 bool DBWorkoutsOrSplitsTable::mesoHasAllSplitPlans(const QString &meso_id, const QString &split)
@@ -174,10 +175,10 @@ bool DBWorkoutsOrSplitsTable::mesoHasSplitPlan(const QString &meso_id, const QCh
 
 void DBWorkoutsOrSplitsTable::getPreviousWorkouts()
 {
-	QString str_query{"SELECT calendar_day FROM %1 WHERE meso_id=%2 AND split_letter=\'%3\' "
+	QString m_strQuery{"SELECT calendar_day FROM %1 WHERE meso_id=%2 AND split_letter=\'%3\' "
 							"AND calendar_day<%4 ORDER BY calendar_day DESC LIMIT 5;"_L1.arg(
 								tableName(tableId()), m_model->mesoId(), m_model->splitLetter(), QString::number(m_model->calendarDay()))};
-	if (execQuery(str_query, true, false))
+	if (execQuery(m_strQuery, true, false))
 	{
 		if (m_workingQuery.first())
 		{
@@ -187,7 +188,6 @@ void DBWorkoutsOrSplitsTable::getPreviousWorkouts()
 			} while (m_workingQuery.next());
 		}
 	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 /*void DBWorkoutsOrSplitsTable::workoutsInfoForTimePeriod()
 {
@@ -204,10 +204,10 @@ void DBWorkoutsOrSplitsTable::getPreviousWorkouts()
 		datesList.append(')');
 
 		QSqlQuery query{std::move(getQuery())};
-		const QString &str_query{"SELECT exercises,setsreps,setsweights FROM workouts_table WHERE date IN(%1)"_L1.arg(datesList)};
+		const QString &m_strQuery{"SELECT exercises,setsreps,setsweights FROM workouts_table WHERE date IN(%1)"_L1.arg(datesList)};
 
 		bool ok(false);
-		if (m_workingQuery.exec(str_query))
+		if (m_workingQuery.exec(m_strQuery))
 		{
 			if (m_workingQuery.first())
 			{
@@ -230,7 +230,7 @@ void DBWorkoutsOrSplitsTable::getPreviousWorkouts()
 				ok = true;
 			}
 		}
-		setQueryResult(ok, str_query, SOURCE_LOCATION);
+		setQueryResult(ok, m_strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }*/

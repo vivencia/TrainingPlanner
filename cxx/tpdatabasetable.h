@@ -8,8 +8,6 @@
 #include <QSqlDatabase>
 #include <QSqlQuery>
 
-#include <functional>
-
 constexpr uint APP_TABLES_NUMBER{6};
 constexpr uint EXERCISES_TABLE_ID{0x0001};
 constexpr uint MESOCYCLES_TABLE_ID{0x0002};
@@ -23,6 +21,8 @@ QT_FORWARD_DECLARE_CLASS(QFile)
 class TPDatabaseTable : public QObject
 {
 
+Q_OBJECT
+
 public:
 	static constexpr QLatin1StringView databaseFilesSubDir{"Database/"};
 
@@ -35,6 +35,8 @@ public:
 									"Users.db.sqlite"_L1
 	};
 
+	static constexpr QLatin1StringView sqliteApp{"sqlite3"_L1};
+
 	TPDatabaseTable(const TPDatabaseTable &other) = delete;
 	TPDatabaseTable& operator() (const TPDatabaseTable &other) = delete;
 	TPDatabaseTable (TPDatabaseTable &&other) = delete;
@@ -43,10 +45,10 @@ public:
 
 	static TPDatabaseTable *createDBTable(const uint table_id, const bool auto_delete = true);
 	static QString createTableQuery(const uint table_id);
-	inline void createTable() { execQuery(createTableQuery(m_tableId)); }
+	inline bool createTable() { return execQuery(createTableQuery(m_tableId)); }
 	virtual void updateTable() = 0;
 
-	inline void setCallbackForDoneFunc( const std::function<void (TPDatabaseTable*)> &func ) { doneFunc = func; }
+	//inline void setCallbackForDoneFunc( const std::function<void (TPDatabaseTable*)> &func ) { doneFunc = func; }
 	static inline QString dbFilePath(const uint table_id, const bool path_only = false)
 	{
 		return appSettings()->currentUserDir() + databaseFilesSubDir + (path_only ? QString{} : databaseFileNames[table_id]);
@@ -73,30 +75,35 @@ public:
 
 	bool openDatabase(const bool read_only = false);
 	QSqlQuery getQuery() const;
-	bool execQuery(const QString &str_query, const bool read_only = true, const bool close_db = true, const bool send_to_server = true);
+	bool execQuery(const QString &str_query, const bool read_only = true, const bool close_db = true);
+	inline const QString &strQuery() const { return m_strQuery; }
+
+	QString createServerCmdFile(const QString &dir, const std::initializer_list<QString> &command_parts,
+									const bool overwrite = false) const;
+	bool executeCmdFile(const QString &cmd_file, const QString &success_message, const bool remove_file = true) const;
+
+signals:
+	void queryExecuted(const bool success, const bool send_to_server);
 
 protected:
 	explicit inline TPDatabaseTable(const uint table_id, QObject *parent = nullptr)
-		: QObject{parent}, m_tableId{table_id}, doneFunc{nullptr}, mb_result{false}, mb_resolved{false}, mb_waitForFinished{false} {}
+		: QObject{parent}, m_tableId{table_id}, mb_result{false}, mb_resolved{false}, mb_waitForFinished{false} {}
 
 	inline void setTableName(const QLatin1StringView &table_name) { m_tableName = std::move(QString{table_name}); }
 	QSqlDatabase mSqlLiteDB;
 	QSqlQuery m_workingQuery;
+	QString m_strQuery;
 	QVariantList m_execArgs;
 
 	uint m_tableId;
 	int m_UniqueID;
 
-	std::function<void (TPDatabaseTable*)> doneFunc;
+	//std::function<void (TPDatabaseTable*)> doneFunc;
 
 private:
 	QString m_tableName;
 	bool mb_result;
 	bool mb_resolved;
 	bool mb_waitForFinished;
-
-	QString createServerCmdFile(const QString &dir, const std::initializer_list<QString> &command_parts,
-									const bool overwrite = false) const;
-	bool executeCmdFile(const QString &cmd_file, const QString &success_message, const bool remove_file = true) const;
 };
 

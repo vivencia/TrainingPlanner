@@ -387,7 +387,7 @@ void DBUserModel::addClient(const uint user_idx)
 
 void DBUserModel::delClient(const uint user_idx)
 {
-	if (user_idx > 0)
+	if (user_idx >= 1)
 	{
 		m_clientsNames.removeOne(userId(user_idx));
 		emit clientsNamesChanged();
@@ -488,7 +488,7 @@ void DBUserModel::removeOtherUser()
 			disconnect(*conn);
 			clearUserDir(userid);
 			m_allUsers->removeUserInfo(m_allUsers->currentRow(), false);
-			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE,
+			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES,
 				appUtils()->string_strings({tr("User removed"), m_allUsers->data(m_allUsers->currentRow(), USER_COL_NAME)
 				+ tr(" removed locally and remotely")}, record_separator));
 		}
@@ -526,8 +526,8 @@ void DBUserModel::userSwitchingActions(const bool create, QString &&userid)
 
 	emit appUseModeChanged();
 	emit onlineUserChanged();
-	emit haveCoachesChanged();
-	emit haveClientsChanged();
+	emit coachesNamesChanged();
+	emit clientsNamesChanged();
 	if (mb_canConnectToServer)
 		onlineCheckIn();
 
@@ -667,7 +667,7 @@ void DBUserModel::changePassword(const QString &old_password, const QString &new
 					setPassword(new_password);
 				}
 				else
-					appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_UNKNOWN_ERROR, ret_string);
+					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_UNKNOWN_ERROR, ret_string);
 			}
 		});
 		appOnlineServices()->changePassword(requestid, key, old_password, new_password);
@@ -717,9 +717,10 @@ void DBUserModel::setCoachPublicStatus(const bool bPublic)
 				if (request_id == requestid)
 				{
 					disconnect(*conn);
-					appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
+					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES, appUtils()->string_strings(
 									{tr("Coach registration"), ret_string}, record_separator));
-					mb_coachRegistered = ret_code == 0 && mb_coachPublic;
+					mb_coachRegistered = (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS) &&
+											mb_coachPublic;
 					emit coachOnlineStatus(mb_coachRegistered == true);
 					if (!mb_coachRegistered && haveClients())
 					{
@@ -746,7 +747,7 @@ void DBUserModel::uploadResume(const QString &resumeFileName)
 	{
 		if (fi.size() > file_upload_max_size)
 		{
-			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR,
+			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERRORS,
 					appUtils()->string_strings({ tr("Cannot upload file"), tr("Maximum file size allowed: 8MB")}, record_separator), "error");
 			return;
 		}
@@ -793,23 +794,24 @@ void DBUserModel::sendRequestToCoaches()
 				{
 					const int requestid{appUtils()->generateUniqueId(QLatin1StringView{
 						QString{"sendRequestToCoaches"_L1 + m_availableCoaches->data(i, USER_COL_ID)}.toLatin1()})};
-					auto conn = std::make_shared<QMetaObject::Connection>();
+					auto conn{std::make_shared<QMetaObject::Connection>()};
 					*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid,i]
-										(const int request_id, const int ret_code, const QString &ret_string) {
+										(const int request_id, const int ret_code, const QString &ret_string)
+					{
 						if (request_id == requestid)
 						{
 							disconnect(*conn);
-							if (ret_code == 0)
+							if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS)
 							{
 								const QString &coach_id{m_availableCoaches->data(i, USER_COL_ID)};
 								if (appUtils()->copyFile(profileFileName(m_onlineCoachesDir, coach_id), profileFileName(m_dirForRequestedCoaches, coach_id)))
 								{
-									appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
+									appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES, appUtils()->string_strings(
 										{tr("Coach contacting"), tr("Online coach contacted ") + m_availableCoaches->data(i, USER_COL_NAME)}, record_separator));
 								}
 							}
 							else
-								appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_UNKNOWN_ERROR, ret_string);
+								appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_UNKNOWN_ERROR, ret_string);
 						}
 					});
 					appOnlineServices()->sendRequestToCoach(requestid, key, value, m_availableCoaches->data(i, USER_COL_ID));
@@ -885,7 +887,7 @@ int DBUserModel::sendFileToServer(const QString &filename, QFile *upload_file, c
 	else if (!canConnectToServer())
 	{
 		if (!successMessage.isEmpty())
-			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
+			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES, appUtils()->string_strings(
 				{tpNetworkTitle, tr("Online server unavailable. Try it again once the app is connected to the server.")}, record_separator));
 		return -1;
 	}
@@ -920,16 +922,16 @@ int DBUserModel::sendFileToServer(const QString &filename, QFile *upload_file, c
 					upload_file->close();
 					if (removeLocalFile)
 						QFile::remove(upload_file->fileName());
-					if (ret_code == 0)
+					if (ret_code == TP_RET_CODE_SUCCESS)
 					{
 						if (!successMessage.isEmpty())
-							appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE,
+							appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES,
 								appUtils()->string_strings({tpNetworkTitle, successMessage}, record_separator));
 					}
 					else
-						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_UNKNOWN_ERROR, ret_string);
+						appItemManager()->displayMessageOnAppWindow(ret_code, ret_string);
 					delete upload_file;
-					emit fileUploaded(ret_code == 0, requestid);
+					emit fileUploaded(ret_code == TP_RET_CODE_SUCCESS, requestid);
 				}
 			});
 			appOnlineServices()->sendFile(requestid, key, value, upload_file, subdir, targetUser);
@@ -937,7 +939,7 @@ int DBUserModel::sendFileToServer(const QString &filename, QFile *upload_file, c
 		appKeyChain()->readKey(userId(0));
 	}
 	else
-		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_OPEN_FAILED, filename);
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_OPEN_READ_FAILED, filename);
 	return requestid;
 }
 
@@ -946,7 +948,7 @@ int DBUserModel::downloadFileFromServer(const QString &filename, const QString &
 {
 	if (!canConnectToServer())
 	{
-		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES, appUtils()->string_strings(
 					{tpNetworkTitle, tr("Online server unavailable. Try it again once the app is connected to the server.")}, record_separator));
 		return -1;
 	}
@@ -966,7 +968,7 @@ int DBUserModel::downloadFileFromServer(const QString &filename, const QString &
 			if (request_id == requestid)
 			{
 				disconnect(*conn);
-				bool success{true};
+				bool success{!contents.isEmpty()};
 				QString dest_file;
 				if (local_filename.isEmpty())
 					dest_file = std::move(appSettings()->userDir(userId(0)) + filename);
@@ -977,7 +979,9 @@ int DBUserModel::downloadFileFromServer(const QString &filename, const QString &
 				}
 				switch (ret_code)
 				{
-					case 0: //file downloaded
+					if (!success)
+						break;
+					case TP_RET_CODE_SUCCESS: //file downloaded
 					{
 						QFile *local_file{new QFile{dest_file, this}};
 						if (!local_file->exists() || local_file->remove())
@@ -990,16 +994,20 @@ int DBUserModel::downloadFileFromServer(const QString &filename, const QString &
 						}
 						delete local_file;
 						if (!successMessage.isEmpty())
-							appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
+							appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES, appUtils()->string_strings(
 									{tpNetworkTitle, successMessage}, record_separator));
 					}
 					break;
-					case 1: //online file and local file are the same
+					case TP_RET_CODE_NO_CHANGES_SUCCESS: //online file and local file are the same
+						success = true;
 					break;
 					default: //some error
 						success = false;
-						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, appUtils()->string_strings(
-									{filename + contents}, record_separator));
+				}
+				if (!success && !successMessage.isEmpty())
+				{
+					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERRORS, appUtils()->string_strings(
+																		{filename + contents}, record_separator));
 				}
 				emit fileDownloaded(success, requestid, dest_file);
 			}
@@ -1029,7 +1037,7 @@ void DBUserModel::sendCmdFileToServer(const QString &cmd_filename)
 	{
 		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,cmd_filename] (const QString &key, const QString &value)
 		{
-			const QString &filename_to_upload{appUtils()->getFilePath(cmd_filename) + QString::number(n_cmdOrderValue++)};
+			const QString &filename_to_upload{appUtils()->getFilePath(cmd_filename) + QString::number(n_cmdOrderValue++) + ".cmd"_L1};
 			if (!appUtils()->rename(cmd_filename, filename_to_upload, true))
 				return;
 			QFile *cmd_file{appUtils()->openFile(filename_to_upload, true, false, false, false)};
@@ -1048,8 +1056,9 @@ void DBUserModel::sendCmdFileToServer(const QString &cmd_filename)
 					cmd_file->close();
 					QFile::remove(cmd_file->fileName());
 					delete cmd_file;
-					if (ret_code == 0)
-						appOnlineServices()->executeCommands(requestid, key, value, subdir, mb_singleDevice.has_value() ? mb_singleDevice.value() : false);
+					if (ret_code == TP_RET_CODE_SUCCESS)
+						appOnlineServices()->executeCommands(requestid, key, value, subdir,
+												mb_singleDevice.has_value() ? mb_singleDevice.value() : false);
 				}
 			});
 			appOnlineServices()->sendFile(requestid, key, value, cmd_file, subdir, userId(0));
@@ -1083,7 +1092,7 @@ void DBUserModel::downloadCmdFilesFromServer(const QString &subdir)
 							disconnect(*conn2);
 							switch (ret_code)
 							{
-								case 0: //file downloaded
+								case TP_RET_CODE_SUCCESS: //file downloaded
 								{
 									QFile *local_cmdfile{new QFile{subdir + filename, this}};
 									if (!local_cmdfile->exists() || local_cmdfile->remove())
@@ -1098,7 +1107,7 @@ void DBUserModel::downloadCmdFilesFromServer(const QString &subdir)
 									delete local_cmdfile;
 								}
 								break;
-								case 1: //online file and local file are the same
+								case TP_RET_CODE_NO_CHANGES_SUCCESS: //online file and local file are the same
 								break;
 								default: //some error
 									return;
@@ -1119,13 +1128,13 @@ int DBUserModel::exportToFile(const uint user_idx, const QString &filename, cons
 	{
 		out_file = appUtils()->openFile(filename, false, true, true);
 		if (!out_file)
-			return APPWINDOW_MSG_OPEN_FAILED;
+			return TP_RET_CODE_OPEN_WRITE_FAILED;
 	}
 
 	const QList<uint> &export_user_idx{QList<uint>{} << user_idx};
 	const bool ret{appUtils()->writeDataToFile(out_file, write_header ? appUtils()->userFileIdentifier : QString{}, m_usersData)};
 	out_file->close();
-	return ret ? APPWINDOW_MSG_EXPORT_OK : APPWINDOW_MSG_EXPORT_FAILED;
+	return ret ? TP_RET_CODE_EXPORT_OK : TP_RET_CODE_EXPORT_FAILED;
 }
 
 int DBUserModel::exportToFormattedFile(const uint user_idx, const QString &filename, QFile *out_file) const
@@ -1134,7 +1143,7 @@ int DBUserModel::exportToFormattedFile(const uint user_idx, const QString &filen
 	{
 		out_file = {appUtils()->openFile(filename, false, true, true)};
 		if (!out_file)
-			return APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
+			return TP_RET_CODE_OPEN_CREATE_FAILED;
 	}
 	const QList<uint> &export_user_idx{QList<uint>{} << user_idx};
 	QList<std::function<QString(void)>> field_description{QList<std::function<QString(void)>>{} <<
@@ -1151,7 +1160,7 @@ int DBUserModel::exportToFormattedFile(const uint user_idx, const QString &filen
 											nullptr
 	};
 
-	int ret{APPWINDOW_MSG_EXPORT_FAILED};
+	int ret{TP_RET_CODE_EXPORT_FAILED};
 	if (appUtils()->writeDataToFormattedFile(out_file,
 					appUtils()->userFileIdentifier,
 					m_usersData,
@@ -1160,7 +1169,7 @@ int DBUserModel::exportToFormattedFile(const uint user_idx, const QString &filen
 					export_user_idx,
 					QString{isCoach(user_idx) ? tr("Coach Information") : tr("Client Information") + "\n\n"_L1})
 	)
-		ret = APPWINDOW_MSG_EXPORT_OK;
+		ret = TP_RET_CODE_EXPORT_OK;
 	return ret;
 }
 
@@ -1170,13 +1179,13 @@ int DBUserModel::importFromFile(const QString& filename, QFile *in_file)
 	{
 		in_file = appUtils()->openFile(filename);
 		if (!in_file)
-			return APPWINDOW_MSG_OPEN_FAILED;
+			return TP_RET_CODE_OPEN_READ_FAILED;
 	}
 
 	m_tempUserData.clear();
 	int ret{appUtils()->readDataFromFile(in_file, m_tempUserData, USER_TOTAL_COLS, appUtils()->userFileIdentifier)};
-	if (ret != APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE)
-		ret = APPWINDOW_MSG_IMPORT_OK;
+	if (ret != TP_RET_CODE_WRONG_IMPORT_FILE_TYPE)
+		ret = TP_RET_CODE_IMPORT_OK;
 	in_file->close();
 	return ret;
 }
@@ -1187,7 +1196,7 @@ int DBUserModel::importFromFormattedFile(const QString &filename, QFile *in_file
 	{
 		in_file = appUtils()->openFile(filename);
 		if (!in_file)
-			return APPWINDOW_MSG_OPEN_FAILED;
+			return TP_RET_CODE_OPEN_READ_FAILED;
 	}
 
 	m_tempUserData.clear();
@@ -1198,7 +1207,7 @@ int DBUserModel::importFromFormattedFile(const QString &filename, QFile *in_file
 												[this] (const uint field, const QString &value) { return formatFieldToImport(field, value); })
 	};
 	if (ret > 0)
-		ret = APPWINDOW_MSG_IMPORT_OK;
+		ret = TP_RET_CODE_IMPORT_OK;
 	in_file->close();
 	return ret;
 }
@@ -1217,7 +1226,7 @@ bool DBUserModel::importFromString(const QString &user_data)
 
 int DBUserModel::newUserFromFile(const QString &filename, const std::optional<bool> &file_formatted)
 {
-	int import_result{APPWINDOW_MSG_IMPORT_FAILED};
+	int import_result{TP_RET_CODE_IMPORT_FAILED};
 	if (file_formatted.has_value())
 	{
 		if (file_formatted.value())
@@ -1228,7 +1237,7 @@ int DBUserModel::newUserFromFile(const QString &filename, const std::optional<bo
 	else
 	{
 		import_result = importFromFile(filename);
-		if (import_result == APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE)
+		if (import_result == TP_RET_CODE_WRONG_IMPORT_FILE_TYPE)
 			import_result = importFromFormattedFile(filename);
 	}
 	if (import_result < 0)
@@ -1254,7 +1263,7 @@ int DBUserModel::newUserFromFile(const QString &filename, const std::optional<bo
 		}
 	}
 
-	return APPWINDOW_MSG_IMPORT_OK;
+	return TP_RET_CODE_IMPORT_OK;
 }
 
 void DBUserModel::getPasswordFromUserInput(const int resultCode, const QString &password)
@@ -1289,13 +1298,13 @@ void DBUserModel::slot_unregisterUser(const bool unregister)
 						if (request_id == requestid)
 						{
 							disconnect(*conn2);
-							if (ret_code == 0)
+							if (ret_code == TP_RET_CODE_SUCCESS)
 							{
 								mb_userRegistered = false;
 								emit mainUserOnlineCheckInChanged();
 							}
-							appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE,
-								appUtils()->string_strings({tpNetworkTitle, ret_code == 0 ?
+							appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES,
+								appUtils()->string_strings({tpNetworkTitle, ret_code == TP_RET_CODE_SUCCESS ?
 								tr("Online account removed") : tr("Failed to remove online account")}, record_separator));
 						}
 					});
@@ -1438,7 +1447,7 @@ void DBUserModel::registerUserOnline()
 									mb_userRegistered = true;
 									emit mainUserOnlineCheckInChanged(true);
 								}
-								appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, appUtils()->string_strings(
+								appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES, appUtils()->string_strings(
 											{tpNetworkTitle, tr("User information updated")}, record_separator));
 							}
 						});
@@ -1446,7 +1455,7 @@ void DBUserModel::registerUserOnline()
 					}
 					break;
 					default:
-						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_UNKNOWN_ERROR, ret_string);
+						appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_UNKNOWN_ERROR, ret_string);
 						mb_userRegistered = false;
 					break;
 				}
@@ -1461,6 +1470,7 @@ void DBUserModel::onlineCheckinActions()
 {
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this] (const QString &key, const QString &value) {
 		checkUserOnline(email(0), value);
+		appOnlineServices()->executeCommands(12324, key, value, "Database/", false);
 		if (!mb_singleDevice.has_value())
 		{
 			connect(this, &DBUserModel::onlineDevicesListReceived, this, [this,value] () {
@@ -1482,7 +1492,7 @@ void DBUserModel::getOnlineDevicesList()
 			bool device_registered{false};
 			n_devices = 0;
 			mb_singleDevice = true;
-			if (ret_code == 0)
+			if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS)
 			{
 				device_registered = ret_list.contains(appOsInterface()->deviceID());
 				if (ret_list.count() == 0)
@@ -1518,7 +1528,7 @@ void DBUserModel::switchToUser(const QString &new_userid, const bool user_switch
 			#ifndef Q_OS_ANDROID
 			if (user_switching_for_testing)
 			{
-				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR,
+				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERRORS,
 				appUtils()->string_strings({ tr("User switching error"),
 					tr("Could not download files for user ") +
 						m_allUsers->fieldValueFromAnotherFieldValue(USER_COL_NAME, USER_COL_ID, new_userid)},
@@ -1526,7 +1536,7 @@ void DBUserModel::switchToUser(const QString &new_userid, const bool user_switch
 			}
 			else
 			#endif
-			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR,
+			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERRORS,
 				appUtils()->string_strings({ tr("User switching error"),
 					tr("Could not download files for user ") +  m_onlineAccountId}, record_separator), "error");
 		}
@@ -1691,14 +1701,14 @@ void DBUserModel::getUserOnlineProfile(const QString &netID, const QString &save
 void DBUserModel::sendProfileToServer()
 {
 	const QString &localProfile{localDir(0) + userProfileFileName};
-	if (exportToFile(0, localProfile, true) == APPWINDOW_MSG_EXPORT_OK)
+	if (exportToFile(0, localProfile, true) == TP_RET_CODE_EXPORT_OK)
 		static_cast<void>(sendFileToServer(localProfile, nullptr, QString{}, QString{}, userId(0)));
 }
 
 void DBUserModel::sendUserDataToServerDatabase()
 {
 	const QString &main_user_data_filename{localDir(0) + userLocalDataFileName};
-	if (exportToFile(0, main_user_data_filename, false) == APPWINDOW_MSG_EXPORT_OK)
+	if (exportToFile(0, main_user_data_filename, false) == TP_RET_CODE_EXPORT_OK)
 	{
 		const int request_id{sendFileToServer(main_user_data_filename, nullptr, tr("Online user information updated"),
 							QString{}, userId(0), true)};
@@ -1738,7 +1748,7 @@ void DBUserModel::downloadAvatarFromServer(const uint user_idx)
 			if (request_id == requestid)
 			{
 				disconnect(*conn);
-				if (success)
+				if (success && user_idx != m_tempRow)
 					setAvatar(user_idx, localFileName, false, false);
 			}
 		});
@@ -1747,7 +1757,7 @@ void DBUserModel::downloadAvatarFromServer(const uint user_idx)
 
 void DBUserModel::downloadResumeFromServer(const uint user_idx)
 {
-	const int request_id{downloadFileFromServer(userId(user_idx) + "_resume", resume(user_idx), QString{}, QString{}, userId(user_idx))};
+	const int request_id{downloadFileFromServer("resume"_L1, resume(user_idx), QString{}, QString{}, userId(user_idx))};
 	if (request_id >= 0)
 	{
 		auto conn{std::make_shared<QMetaObject::Connection>()};
@@ -1758,6 +1768,9 @@ void DBUserModel::downloadResumeFromServer(const uint user_idx)
 				disconnect(*conn);
 				if (success)
 					appOsInterface()->openURL(localFileName);
+				else
+					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERRORS,
+						appUtils()->string_strings({tr("Error"), tr("No resumé file provided by the coach")}, record_separator));
 			}
 		});
 	}
@@ -1944,7 +1957,7 @@ void DBUserModel::pollCoachesAnswers()
 		if (request_id == requestid)
 		{
 			disconnect(*conn);
-			if (ret_code == 0)
+			if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS)
 			{
 				QStringList answers_list{std::move(ret_string.split(' ', Qt::SkipEmptyParts))};
 				if (m_pendingCoachesResponses->sanitize(answers_list, USER_COL_ID))

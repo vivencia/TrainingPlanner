@@ -255,6 +255,7 @@ qt_add_executable(TrainingPlanner
 	${QM_FILES}
 	${SERVER_FILES}
 	${ANDROID_FIES}
+	cxx/return_codes.h
 )
 
 if(NOT ANDROID)

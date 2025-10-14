@@ -422,12 +422,12 @@ int DBExercisesListModel::exportToFile(const QString &filename, QFile *out_file)
 	{
 		out_file = appUtils()->openFile(filename, false, true, true);
 		if (!out_file)
-			return APPWINDOW_MSG_OPEN_FAILED;
+			return TP_RET_CODE_OPEN_WRITE_FAILED;
 	}
 
 	const bool ret{appUtils()->writeDataToFile(out_file, appUtils()->exercisesListFileIdentifier, m_exercisesData, m_exportRows)};
 	out_file->close();
-	return ret ? APPWINDOW_MSG_EXPORT_OK : APPWINDOW_MSG_EXPORT_FAILED;
+	return ret ? TP_RET_CODE_EXPORT_OK : TP_RET_CODE_EXPORT_FAILED;
 }
 
 int DBExercisesListModel::exportToFormattedFile(const QString &filename, QFile *out_file) const
@@ -436,7 +436,7 @@ int DBExercisesListModel::exportToFormattedFile(const QString &filename, QFile *
 	{
 		out_file = appUtils()->openFile(filename, false, true, true);
 		if (!out_file)
-			return APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
+			return TP_RET_CODE_OPEN_CREATE_FAILED;
 	}
 
 	QList<std::function<QString(void)>> field_description{QList<std::function<QString(void)>>{} <<
@@ -451,7 +451,7 @@ int DBExercisesListModel::exportToFormattedFile(const QString &filename, QFile *
 											nullptr
 	};
 
-	int ret{APPWINDOW_MSG_EXPORT_FAILED};
+	int ret{TP_RET_CODE_EXPORT_FAILED};
 	if (appUtils()->writeDataToFormattedFile(out_file,
 					appUtils()->exercisesListFileIdentifier,
 					m_exercisesData,
@@ -460,7 +460,7 @@ int DBExercisesListModel::exportToFormattedFile(const QString &filename, QFile *
 					m_exportRows,
 					QString{tr("Exercises List") + "\n\n"_L1})
 	)
-		ret = APPWINDOW_MSG_EXPORT_OK;
+		ret = TP_RET_CODE_EXPORT_OK;
 	return ret;
 }
 
@@ -470,18 +470,18 @@ int DBExercisesListModel::importFromFile(const QString& filename, QFile *in_file
 	{
 		in_file = appUtils()->openFile(filename);
 		if (!in_file)
-			return APPWINDOW_MSG_OPEN_FAILED;
+			return TP_RET_CODE_OPEN_READ_FAILED;
 	}
 
 	beginInsertRows(QModelIndex{}, count(), count());
 	int ret{appUtils()->readDataFromFile(in_file, m_exercisesData, EXERCISES_TOTAL_COLS, appUtils()->exercisesListFileIdentifier)};
-	if (ret != APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE)
+	if (ret != TP_RET_CODE_WRONG_IMPORT_FILE_TYPE)
 	{
 		emit countChanged();
-		ret = APPWINDOW_MSG_IMPORT_OK;
+		ret = TP_RET_CODE_IMPORT_OK;
 	}
 	else
-		ret = APPWINDOW_MSG_IMPORT_FAILED;
+		ret = TP_RET_CODE_IMPORT_FAILED;
 	endInsertRows();
 	in_file->close();
 	return ret;
@@ -493,7 +493,7 @@ int DBExercisesListModel::importFromFormattedFile(const QString &filename, QFile
 	{
 		in_file = appUtils()->openFile(filename);
 		if (!in_file)
-			return APPWINDOW_MSG_OPEN_FAILED;
+			return TP_RET_CODE_OPEN_READ_FAILED;
 	}
 
 	const uint first_imported_idx{count()};
@@ -517,11 +517,11 @@ int DBExercisesListModel::importFromFormattedFile(const QString &filename, QFile
 			data.append(std::move(QString::number(actual_index++)));
 			data.append(std::move("0"_L1));
 		}
-		ret = APPWINDOW_MSG_IMPORT_OK;
+		ret = TP_RET_CODE_IMPORT_OK;
 		emit countChanged();
 	}
 	else
-		ret = APPWINDOW_MSG_IMPORT_FAILED;
+		ret = TP_RET_CODE_IMPORT_FAILED;
 	endInsertRows();
 	in_file->close();
 	return ret;
@@ -529,7 +529,7 @@ int DBExercisesListModel::importFromFormattedFile(const QString &filename, QFile
 
 int DBExercisesListModel::newExerciseFromFile(const QString &filename, const std::optional<bool> &file_formatted)
 {
-	int import_result{APPWINDOW_MSG_IMPORT_FAILED};
+	int import_result{TP_RET_CODE_IMPORT_FAILED};
 	if (file_formatted.has_value())
 	{
 		if (file_formatted.value())
@@ -540,7 +540,7 @@ int DBExercisesListModel::newExerciseFromFile(const QString &filename, const std
 	else
 	{
 		import_result = importFromFile(filename);
-		if (import_result == APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE)
+		if (import_result == TP_RET_CODE_WRONG_IMPORT_FILE_TYPE)
 			import_result = importFromFormattedFile(filename);
 	}
 	return import_result;

@@ -4,6 +4,7 @@
 #include "../osinterface.h"
 #include "../tpsettings.h"
 #include "../tputils.h"
+#include "../return_codes.h"
 
 #include <QFile>
 #include <QHttpMultiPart>
@@ -145,7 +146,7 @@ void TPOnlineServices::getAllUsers(const int requestid)
 		{
 			disconnect(*conn);
 			QStringList users;
-			if (ret_code == 0)
+			if (ret_code == TP_RET_CODE_SUCCESS)
 				users = std::move(ret_string.split(fancy_record_separator1, Qt::SkipEmptyParts));
 			emit networkListReceived(request_id, ret_code, users);
 		}
@@ -214,7 +215,7 @@ void TPOnlineServices::getDevicesList(const int requestid, const QString &userna
 		{
 			disconnect(*conn);
 			QStringList devices_list;
-			if (ret_code == 0)
+			if (ret_code == TP_RET_CODE_SUCCESS)
 			{
 				const QStringList &remote_devices_list{ret_string.split(fancy_record_separator1, Qt::SkipEmptyParts)};
 				for (const auto &device : remote_devices_list)
@@ -342,11 +343,11 @@ void TPOnlineServices::sendFile(const int requestid, const QString &username, co
 		if (request_id == requestid)
 		{
 			disconnect(*conn);
-			if (ret_code == 0)
+			if (ret_code == TP_RET_CODE_SUCCESS)
 			{
 				if (remoteFileUpToDate(ret_string, file->fileName())) //remote file is up to date. Don't send anything
 				{
-					emit networkRequestProcessed(requestid, 0, tr("File on the online server already up to date"));
+					emit networkRequestProcessed(requestid, TP_RET_CODE_NO_CHANGES_SUCCESS, tr("File on the online server already up to date"));
 					return;
 				}
 			}
@@ -451,37 +452,49 @@ bool TPOnlineServices::localFileUpToDate(const QString &onlineDate, const QStrin
 void TPOnlineServices::getFile(const int requestid, const QString &username, const QString &passwd, const QString &filename, const QString &subdir,
 									const QString &targetUser, const QString &localFilePath)
 {
+	bool check_ctime_first{false};
 	if (!localFilePath.isEmpty())
 	{
 		QFileInfo fi{localFilePath};
-		if (fi.isFile() && fi.isWritable())
+		check_ctime_first = (fi.isFile() && fi.isWritable());
+	}
+	auto conn{std::make_shared<QMetaObject::Connection>()};
+	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
+							(const int request_id, const int ret_code, const QString &ret_string, const QByteArray &contents)
+	{
+		if (request_id == requestid)
 		{
-			auto conn{std::make_shared<QMetaObject::Connection>()};
-			*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
-							(const int request_id, const int ret_code, const QString &ret_string)
+			disconnect(*conn);
+			if (ret_code == TP_RET_CODE_SUCCESS)
 			{
-				if (request_id == requestid)
+				if (check_ctime_first)
 				{
-					disconnect(*conn);
-					if (ret_code == 0)
+					if (!localFileUpToDate(ret_string, localFilePath)) //if local file is up to date, we 'll use it
+						getFile(requestid, username, passwd, filename, subdir, targetUser);
+					else
 					{
-						if (localFileUpToDate(ret_string, localFilePath)) //local file is up to date. Use it
-							emit fileReceived(request_id, 1, ret_string, QByteArray{});
-						else
-							getFile(requestid, username, passwd, filename, subdir, targetUser);
+						emit fileReceived(request_id, TP_RET_CODE_NO_CHANGES_SUCCESS, ret_string, contents);
+						return;
 					}
 				}
-			});
-			const QUrl &url{makeCommandURL(username, passwd, "checkfilectime"_L1, filename.lastIndexOf('.') > 0 ?
-							filename : appUtils()->getFileName(localFilePath), "subdir"_L1, subdir, "fromuser"_L1, targetUser)};
-			makeNetworkRequest(requestid, url, true);
-			return;
+			}
+			emit fileReceived(request_id, ret_code, ret_string, contents);
 		}
+	});
+
+	QUrl url{};
+	if (check_ctime_first)
+	{
+		url = std::move(makeCommandURL(username, passwd, "checkfilectime"_L1, filename.lastIndexOf('.') > 0 ?
+						filename : appUtils()->getFileName(localFilePath), "subdir"_L1, subdir, "fromuser"_L1, targetUser));
 	}
-	const QUrl &url{makeCommandURL(username, passwd, filename.lastIndexOf('.') > 0 ?
+	else
+	{
+		url = std::move(makeCommandURL(username, passwd, filename.lastIndexOf('.') > 0 ?
 				(filename.endsWith(".txt"_L1) || filename.endsWith(".ini"_L1) ? "file"_L1 :
-				"getbinfile"_L1) : "getbinfile"_L1, filename, "subdir"_L1, subdir, "fromuser"_L1, targetUser)};
-	makeNetworkRequest(requestid, url);
+				"getbinfile"_L1) : "getbinfile"_L1, filename, "subdir"_L1, subdir, "fromuser"_L1, targetUser));
+	}
+	makeNetworkRequest(requestid, url, true);
 }
 
 void TPOnlineServices::getCmdFile(const int requestid, const QString &username, const QString &passwd,
@@ -531,52 +544,65 @@ void TPOnlineServices::makeNetworkRequest(const int requestid, const QUrl &url, 
 
 void TPOnlineServices::handleServerRequestReply(const int requestid, QNetworkReply *reply, const bool b_internal_signal_only)
 {
-	int ret_code = -100;
-	QString replyString;
+	int ret_code{-100};
+	QString reply_string;
+	QByteArray file_contents;
+
 	if (reply)
 	{
 		reply->deleteLater();
-
 		const QHttpHeaders &headers{reply->headers()};
 		if (headers.contains("Content-Type"_L1))
 		{
 			const QString &fileType{headers.value("Content-Type"_L1).toByteArray()};
 			if (fileType.contains("application/octet-stream"_L1) || fileType.contains("text/plain"_L1))
 			{
-				QByteArray data{std::move(reply->readAll())};
-				const qsizetype filename_sep_idx{data.indexOf("%%")};
+				file_contents = std::move(reply->readAll());
+				const qsizetype filename_sep_idx{file_contents.indexOf("%%")};
 				if (filename_sep_idx >= 2)
 				{
-					const QString filename{std::move(data.sliced(0, filename_sep_idx))};
-					emit fileReceived(requestid, 0, filename, data.sliced(filename_sep_idx + 2, data.size() - filename_sep_idx - 2));
-					return;
+					ret_code = 0;
+					reply_string = std::move(file_contents.sliced(0, filename_sep_idx));
+					static_cast<void>(file_contents.slice(filename_sep_idx + 2, file_contents.size() - filename_sep_idx - 2));
 				}
-				emit fileReceived(requestid, 2, "Error downloading file: "_L1, data);
+				else
+				{
+					reply_string = std::move(tr("Error downloading file"));
+					ret_code = 2;
+				}
+			}
+			else //Only text replies, including text files
+			{
+				reply_string = std::move(QString::fromUtf8(reply->readAll()));
+				if (reply->error())
+					reply_string += " ***** "_L1 + std::move(reply->errorString());
 				#ifndef QT_NO_DEBUG
-				qDebug() << "Error downloading file: "_L1 << QString::fromUtf8(data);
+				qDebug() << reply_string << " * "_L1 << QString::number(requestid);
 				#endif
-				return;
+				//Slice off "Return code: "
+				const qsizetype ret_code_idx{reply_string.indexOf(':')};
+				if (ret_code_idx >= 1)
+				{
+					ret_code = reply_string.sliced(0, ret_code_idx).toInt();
+					static_cast<void>(reply_string.remove(0, ret_code_idx + 1));
+				}
+				reply_string = std::move(reply_string.trimmed());
 			}
 		}
-		//Only text replies, including text files
-		replyString = std::move(QString::fromUtf8(reply->readAll()));
-		if (reply->error())
-			replyString += " ***** "_L1 + std::move(reply->errorString());
-		#ifndef QT_NO_DEBUG
-		qDebug() << replyString << " * "_L1 << QString::number(requestid);
-		#endif
-		//Slice off "Return code: "
-		const qsizetype ret_code_idx{replyString.indexOf("Return code: "_L1) + 13};
-		if (ret_code_idx >= 13)
-		{
-			ret_code = replyString.sliced(ret_code_idx, replyString.indexOf(' ', ret_code_idx) - ret_code_idx).toInt();
-			static_cast<void>(replyString.remove(0, replyString.indexOf(' ', ret_code_idx) + 1));
-		}
+		else
+			reply_string = std::move(tr("Http headers missing \"Content-Type\""));
 	}
-	if (!b_internal_signal_only)
-		emit networkRequestProcessed(requestid, ret_code, replyString.trimmed());
 	else
-		emit _networkRequestProcessed(requestid, ret_code, replyString.trimmed());
+		reply_string = std::move(tr("No network reply"));
+	if (!b_internal_signal_only)
+	{
+		if (file_contents.isEmpty())
+			emit networkRequestProcessed(requestid, ret_code, reply_string);
+		else
+			emit fileReceived(requestid, ret_code, reply_string, file_contents);
+	}
+	else
+		emit _networkRequestProcessed(requestid, ret_code, reply_string, file_contents);
 }
 
 //curl -X POST -F file=@/home/guilherme/Documents/Fase_de_transição_-_Completo.txt "http://127.0.0.1/trainingplanner/?user=uc_guilherme_fortunato&upload&password=Guilherme_Fortunato"

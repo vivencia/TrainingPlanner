@@ -57,7 +57,6 @@ void DBUserTable::saveUser()
 	const uint row{m_execArgs.at(0).toUInt()};
 	if (execQuery("SELECT userid FROM %1 WHERE userid=%2;"_L1.arg(tableName(), m_model->userId(row)), true, false))
 	{
-		QString str_query;
 		bool update{false};
 		if (m_workingQuery.first())
 			update = m_workingQuery.value(0).toUInt() >= 0;
@@ -65,7 +64,7 @@ void DBUserTable::saveUser()
 		if (update)
 		{
 			//from_list is set to 0 because an edited exercise, regardless of its id, is considered different from the default list provided exercise
-			str_query = std::move(u"UPDATE %1 SET onlineaccount=%2, name=\'%3\', birthday=%4, sex=%5, "
+			m_strQuery = std::move(u"UPDATE %1 SET onlineaccount=%2, name=\'%3\', birthday=%4, sex=%5, "
 								 "phone=\'%6\', email=\'%7\', social=\'%8\', role=\'%9\', coach_role=\'%10\', "
 								 "goal=\'%11\', use_mode=%12 WHERE userid=%13;"_s
 				.arg(tableName(), m_model->_onlineAccount(row), m_model->_userName(row), m_model->_birthDate(row),
@@ -75,7 +74,7 @@ void DBUserTable::saveUser()
 		}
 		else
 		{
-			str_query = std::move(u"INSERT INTO %1 "
+			m_strQuery = std::move(u"INSERT INTO %1 "
 				"(userid,inserttime,onlineaccount,name,birthday,sex,phone,email,social,role,coach_role,goal,use_mode) "
 				"VALUES(%2, %3, %4, \'%5\', %6, %7, \'%8\', \'%9\', \'%10\', \'%11\',\'%12\', \'%13\', %14);"_s
 					.arg(tableName(), m_model->userId(row), QString::number(QDateTime::currentMSecsSinceEpoch()),
@@ -83,15 +82,15 @@ void DBUserTable::saveUser()
 					m_model->_phone(row), m_model->_email(row), m_model->_socialMedia(row), m_model->_userRole(row),
 					m_model->_coachRole(row), m_model->_goal(row), m_model->_appUseMode(row)));
 		}
-		static_cast<void>(execQuery(str_query, false));
+		const bool success{execQuery(m_strQuery, false)};
+		emit queryExecuted(success, true);
 	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 
 void DBUserTable::removeUser()
 {
-	static_cast<void>(execQuery("DELETE FROM %1 WHERE userid=%2;"_L1.arg(tableName(), m_execArgs.at(0).toString())));
-	if (doneFunc)
-		doneFunc(static_cast<TPDatabaseTable*>(this));
+	m_strQuery = std::move("DELETE FROM %1 WHERE userid=%2;"_L1.arg(tableName(), m_execArgs.at(0).toString()));
+	const bool success{execQuery(m_strQuery, false)};
+	emit queryExecuted(success, true);
 }

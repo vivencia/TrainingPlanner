@@ -57,7 +57,6 @@ void DBExercisesListTable::getAllExercises()
 			updateExercisesList();
 		}
 	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void DBExercisesListTable::updateExercisesList()
@@ -70,7 +69,6 @@ void DBExercisesListTable::updateExercisesList()
 		qDebug() << "DBExercisesListTable::updateExercisesList -> m_ExercisesList is empty"_L1;
 		qDebug();
 		#endif
-		doneFunc(static_cast<TPDatabaseTable*>(this));
 		return;
 	}
 
@@ -94,12 +92,16 @@ void DBExercisesListTable::updateExercisesList()
 		queryValues[queryValues.length()-1] = ';';
 		if (mSqlLiteDB.transaction())
 		{
-			if (!execQuery(queryStart + queryValues, false, false))
+			m_strQuery = std::move(queryStart + queryValues);
+			if (!execQuery(m_strQuery, false, false))
 				static_cast<void>(mSqlLiteDB.rollback());
 			else
 			{
 				if (mSqlLiteDB.commit())
+				{
 					emit updatedFromExercisesList();
+					emit queryExecuted(true, true);
+				}
 				#ifndef QT_NO_DEBUG
 				else
 				{
@@ -113,39 +115,39 @@ void DBExercisesListTable::updateExercisesList()
 		}	
 	}
 	m_ExercisesList.clear();
-	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void DBExercisesListTable::saveExercises()
 {
 	uint highest_id{0};
-	QString str_query;
-
 	const QString &queryInsert{u"INSERT INTO %1 (id,primary_name,secondary_name,muscular_group,media_path,from_list)"
-									" VALUES(%2, \'%3\', \'%4\', \'%5\', \'%6\', 0); "_s};
+									" VALUES(%2, \'%3\', \'%4\', \'%5\', \'%6\', 0),"_s};
 	const QString &queryUpdate{u"UPDATE %1 SET primary_name=\'%2\', secondary_name=\'%3\', muscular_group=\'%4\', "
-									"media_path=\'%5\', from_list=0 WHERE id=%6; "_s};
+									"media_path=\'%5\', from_list=0 WHERE id=%6 "_s};
+
 	for (uint i{0}; i < m_model->modifiedIndicesCount(); ++i)
 	{
 		const uint &idx{m_model->modifiedIndex(i)};
 		const QString &exerciseId{m_model->id(idx)};
+		const bool update{!(exerciseId.isEmpty() || exerciseId.toUInt() > m_exercisesTableLastId)};
+
 		if (m_model->_id(idx) > highest_id)
-			highest_id = m_model->_id(idx);
-		const bool bUpdate{!(exerciseId.isEmpty() || exerciseId.toUInt() > m_exercisesTableLastId)};
-		if (bUpdate)
+			highest_id = m_model->_id(idx);		
+		if (update)
 		{
-			str_query += std::move(queryUpdate.arg(tableName(), m_model->mainName(idx), m_model->subName(idx),
+			m_strQuery += std::move(queryUpdate.arg(tableName(), m_model->mainName(idx), m_model->subName(idx),
 						m_model->muscularGroup(idx), m_model->mediaPath(idx), exerciseId));
 		}
 		else
 		{
-			str_query += std::move(queryInsert.arg(tableName(), exerciseId, m_model->mainName(idx),
+			m_strQuery += std::move(queryInsert.arg(tableName(), exerciseId, m_model->mainName(idx),
 						m_model->subName(idx), m_model->muscularGroup(idx), m_model->mediaPath(idx)));
 		}
 	}
 	if (mSqlLiteDB.transaction())
 	{
-		if (execQuery(str_query, false, false))
+		m_strQuery[m_strQuery.length()-1] = ';';
+		if (execQuery(m_strQuery, false, false))
 		{
 			if (mSqlLiteDB.commit())
 			{
@@ -162,8 +164,7 @@ void DBExercisesListTable::saveExercises()
 			}
 			#endif
 		}
-	}	
-	doneFunc(static_cast<TPDatabaseTable*>(this));
+	}
 }
 
 void DBExercisesListTable::getExercisesList()

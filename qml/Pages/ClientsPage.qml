@@ -194,7 +194,7 @@ TPPage {
 		ScrollBar.vertical.policy: ScrollBar.AlwaysOn
 		contentWidth: availableWidth //stops bouncing to the sides
 		contentHeight: colMain.implicitHeight
-		enabled: userModel.haveClients
+		enabled: tabbar.currentItem.enabled
 
 		anchors {
 			top: listsLayout.bottom
@@ -207,6 +207,7 @@ TPPage {
 		ColumnLayout {
 			id: colMain
 			anchors.fill: parent
+			anchors.margins: 10
 			spacing: 10
 
 			UserPersonalData {

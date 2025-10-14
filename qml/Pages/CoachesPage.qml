@@ -136,11 +136,12 @@ TPPage {
 
 						TPButton {
 							text: qsTr("Résumé")
-							height: appSettings.itemDefaultHeight
+							rounded: false
+							height: parent.height
+							width: parent.width * 0.3
 
 							anchors {
 								verticalCenter: parent.verticalCenter
-								left: txtCoachName.right
 								right: parent.right
 							}
 
@@ -254,6 +255,9 @@ TPPage {
 
 						TPButton {
 							text: qsTr("Résumé")
+							rounded: false
+							height: parent.height
+							width: parent.width * 0.3
 
 							anchors {
 								verticalCenter: parent.verticalCenter
@@ -360,6 +364,7 @@ TPPage {
 		ColumnLayout {
 			id: colMain
 			anchors.fill: parent
+			anchors.margins: 10
 			spacing: 10
 
 			UserPersonalData {

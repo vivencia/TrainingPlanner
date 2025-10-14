@@ -106,17 +106,17 @@ void QmlMesoSplitInterface::exportAllMesoSplits(const bool bShare)
 	const QString &exportFileName{appItemManager()->setExportFileName(suggestedName)};
 	QFile *out_file{appUtils()->openFile(exportFileName, false, true, true)};
 	if (!out_file)
-		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED, exportFileName);
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_OPEN_CREATE_FAILED, exportFileName);
 
 	for (const auto split_model : std::as_const(m_splitModels))
 	{
-		if (split_model->exportToFormattedFile(exportFileName, out_file) != APPWINDOW_MSG_EXPORT_OK)
+		if (split_model->exportToFormattedFile(exportFileName, out_file) != TP_RET_CODE_EXPORT_OK)
 		{
-			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_EXPORT_FAILED, exportFileName);
+			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_EXPORT_FAILED, exportFileName);
 			return;
 		}
 	}
-	appItemManager()->continueExport(APPWINDOW_MSG_EXPORT_OK, bShare);
+	appItemManager()->continueExport(TP_RET_CODE_EXPORT_OK, bShare);
 }
 
 void QmlMesoSplitInterface::importMesoSplit(const QString &filename)

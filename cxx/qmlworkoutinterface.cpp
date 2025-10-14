@@ -558,7 +558,7 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 				{
 					if (!all_exercises_completed || !m_workoutTimer->isActive())
 						setDayIsFinished(all_exercises_completed);
-					appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE,
+					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES,
 						appUtils()->string_strings({ tr("Workout"), workoutCompletedMessage(all_exercises_completed)}, record_separator),
 								"app_logo"_L1, m_workoutTimer->isActive() ? 0 : 5000);
 				}

@@ -490,9 +490,9 @@ int DBMesocyclesModel::exportToFile(const uint meso_idx, const QString &filename
 {
 	QFile *out_file{appUtils()->openFile(filename, false, true, true)};
 	if (!out_file)
-		return APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
+		return TP_RET_CODE_OPEN_CREATE_FAILED;
 
-	int ret{APPWINDOW_MSG_EXPORT_FAILED};
+	int ret{TP_RET_CODE_EXPORT_FAILED};
 	QList<uint> export_row;
 	export_row.append(meso_idx);
 	if (appUtils()->writeDataToFile(out_file, appUtils()->mesoFileIdentifier, m_mesoData, export_row))
@@ -516,7 +516,7 @@ int DBMesocyclesModel::exportToFormattedFile(const uint meso_idx, const QString 
 {
 	QFile *out_file{appUtils()->openFile(filename, false, true, true)};
 	if (!out_file)
-		return APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
+		return TP_RET_CODE_OPEN_CREATE_FAILED;
 
 	const QList<uint> &export_row{QList<uint>{} << meso_idx};
 	QList<std::function<QString(void)>> field_description{QList<std::function<QString(void)>>{} << nullptr <<
@@ -539,7 +539,7 @@ int DBMesocyclesModel::exportToFormattedFile(const uint meso_idx, const QString 
 										[this] () { return realMesoLabel(); }
 	};
 
-	int ret{APPWINDOW_MSG_EXPORT_FAILED};
+	int ret{TP_RET_CODE_EXPORT_FAILED};
 	if (appUtils()->writeDataToFormattedFile(out_file,
 					appUtils()->mesoFileIdentifier,
 					m_mesoData,
@@ -565,7 +565,7 @@ int DBMesocyclesModel::importFromFile(const uint meso_idx, const QString &filena
 {
 	QFile *in_file{appUtils()->openFile(filename)};
 	if (!in_file)
-		return  APPWINDOW_MSG_OPEN_FAILED;
+		return  TP_RET_CODE_OPEN_READ_FAILED;
 
 	int ret{appUtils()->readDataFromFile(in_file, m_mesoData, fieldCount(), appUtils()->mesoFileIdentifier, meso_idx)};
 	if (ret > 0)
@@ -573,7 +573,7 @@ int DBMesocyclesModel::importFromFile(const uint meso_idx, const QString &filena
 		setId(meso_idx, newMesoTemporaryId());
 		for (const auto split_model : std::as_const(m_splitModels.at(meso_idx)))
 		{
-			if ((ret = split_model->importFromFile(filename, in_file)) != APPWINDOW_MSG_IMPORT_OK)
+			if ((ret = split_model->importFromFile(filename, in_file)) != TP_RET_CODE_IMPORT_OK)
 				break;
 		}
 	}
@@ -585,7 +585,7 @@ int DBMesocyclesModel::importFromFormattedFile(const uint meso_idx, const QStrin
 {
 	QFile *in_file{appUtils()->openFile(filename)};
 	if (!in_file)
-		return  APPWINDOW_MSG_OPEN_FAILED;
+		return  TP_RET_CODE_OPEN_READ_FAILED;
 
 	int ret{appUtils()->readDataFromFormattedFile(in_file,
 												m_mesoData,
@@ -598,7 +598,7 @@ int DBMesocyclesModel::importFromFormattedFile(const uint meso_idx, const QStrin
 		setId(meso_idx, newMesoTemporaryId());
 		for (auto split_model : m_splitModels.at(meso_idx))
 		{
-			if ((ret = split_model->importFromFormattedFile(filename, in_file)) != APPWINDOW_MSG_IMPORT_OK)
+			if ((ret = split_model->importFromFormattedFile(filename, in_file)) != TP_RET_CODE_IMPORT_OK)
 				break;
 		}
 	}
@@ -655,7 +655,7 @@ void DBMesocyclesModel::sendMesoToUser(const uint meso_idx, const bool just_save
 	if (just_save_local_file)
 		return;
 
-	if (ret >= APPWINDOW_MSG_DEFERRED_ACTION)
+	if (ret >= TP_RET_CODE_DEFERRED_ACTION)
 	{
 		auto conn = std::make_shared<QMetaObject::Connection>();
 		*conn = connect(this, &DBMesocyclesModel::deferredActionFinished, this, [this,conn,ret,meso_idx,filename] (const uint action_id, const int action_result) {
@@ -676,7 +676,7 @@ void DBMesocyclesModel::sendMesoToUser(const uint meso_idx, const bool just_save
 int DBMesocyclesModel::newMesoFromFile(const QString &filename, const bool from_coach, const std::optional<bool> &file_formatted)
 {
 	const uint meso_idx{startNewMesocycle(false, false)};
-	int import_result{APPWINDOW_MSG_IMPORT_FAILED};
+	int import_result{TP_RET_CODE_IMPORT_FAILED};
 	if (file_formatted.has_value())
 	{
 		if (file_formatted.value())
@@ -687,7 +687,7 @@ int DBMesocyclesModel::newMesoFromFile(const QString &filename, const bool from_
 	else
 	{
 		import_result = importFromFile(meso_idx, filename);
-		if (import_result == APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE)
+		if (import_result == TP_RET_CODE_WRONG_IMPORT_FILE_TYPE)
 			import_result = importFromFormattedFile(meso_idx, filename);
 	}
 	if (import_result < 0)
@@ -713,7 +713,7 @@ int DBMesocyclesModel::newMesoFromFile(const QString &filename, const bool from_
 	m_isNewMeso[meso_idx] = newMesoRequiredFields;
 	makeUsedSplits(meso_idx);
 	setOwnMeso(meso_idx);
-	return APPWINDOW_MSG_IMPORT_OK;
+	return TP_RET_CODE_IMPORT_OK;
 }
 
 int DBMesocyclesModel::importSplitFromFile(const QString &filename, const uint meso_idx, uint split,
@@ -728,7 +728,7 @@ int DBMesocyclesModel::importSplitFromFile(const QString &filename, const uint m
 		case IFC_MESOSPLIT_D: split_letter = 'D'; break;
 		case IFC_MESOSPLIT_E: split_letter = 'E'; break;
 		case IFC_MESOSPLIT_F: split_letter = 'F'; break;
-		default: return APPWINDOW_MSG_CUSTOM_ERROR;
+		default: return TP_RET_CODE_CUSTOM_ERRORS;
 	}
 
 	DBExercisesModel *new_split{splitModel(meso_idx, split_letter, false)};
@@ -789,7 +789,7 @@ int DBMesocyclesModel::continueExport(const uint meso_idx, const QString &filena
 			if (_result)
 			{
 				QFile *out_file{appUtils()->openFile(filename, false, true, true)};
-				int ret{APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED};
+				int ret{TP_RET_CODE_OPEN_CREATE_FAILED};
 				if (out_file)
 				{
 					ret = exportToFile_splitData(meso_idx, out_file, formatted);

@@ -17,10 +17,6 @@ TPPage {
 		bottomPadding: 20
 		height: headerHeight
 
-		Component.onCompleted: {
-			console.log(appSettings.entrySelectedColor, appSettings.listEntryColor1, appSettings.listEntryColor);
-		}
-
 		TPImage {
 			id: imgAppIcon
 			source: "app_icon"
