@@ -32,8 +32,9 @@ function get_return_code($desc) {
 	$ret_codes = file($codes_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 	foreach ($ret_codes as $ret_code) {
 		if (str_contains($ret_code, str_replace(' ', '_', strtoupper($desc)))) {
-			$last_field_pos = stripos($ret_code, ' ', -2);
-			return substr($ret_code, $last_field_pos);
+			$last_field_pos = stripos($ret_code, ' ');
+			$last_field_pos = stripos($ret_code, ' ', $last_field_pos + 1);
+			return substr($ret_code, $last_field_pos + 1);
 		}
 	}
 	return 100; //Unknown error code
@@ -295,6 +296,12 @@ function cmd_downloaded($userid, $deviceid, $cmd_file) {
 			fclose($fh);
 		}
 	}
+}
+
+function run_test_function($username, $password) {
+	echo get_return_code("no changes success") . ": Some message";
+	echo get_return_code("custom error") . ": Some message";
+	echo get_return_code("create dir failed") . ": Some message";
 }
 
 function add_device($userid, $device_id) {
@@ -594,7 +601,7 @@ function list_coaches_answers($client) {
 	if ($answer != "")
 		echo "0: ".$answer;
 	else
-		echo get_return_code("custom error") . ": No coaches's answers";
+		echo get_return_code("custom errors") . ": No coaches's answers";
 }
 
 function accept_coach_answer($client, $coach)
@@ -658,7 +665,7 @@ function get_clients_list($coach) {
 		}
 	}
 	else
-		echo get_return_code("file not found]") . ": Coach's clients file does not exist" . $clients_file;
+		echo get_return_code("file not found") . ": Coach's clients file does not exist" . $clients_file;
 }
 
 function remove_client_from_clients($coach, $client) {
@@ -768,7 +775,6 @@ function update_datafile_with_password($userid) {
 function run_dbscript($cmd, $cmd_opt, $userid, $print_output) {
 	global $scriptsdir;
 	$dbscript=$scriptsdir . "usersdb.sh";
-
 	ob_start();
 	if ($userid) {
 		if ($cmd_opt)
@@ -784,7 +790,7 @@ function run_dbscript($cmd, $cmd_opt, $userid, $print_output) {
 	}
 	$output = ob_get_clean();
 	if ($print_output)
-		echo $return_var . ": " . $output;
+		echo $output;
 	return $return_var;
 }
 
@@ -805,6 +811,11 @@ if ($username) {
 	else {
 		if (verify_credentials($username, $password, $htpasswd_file)) {
 			// Authentication successful
+
+			if (isset($_GET['test'])) {
+				run_test_function($username, $password);
+				exit;
+			}
 
 			if (isset($_GET['listfiles'])) {
 				$subdir = isset($_GET['listfiles']) ? $_GET['listfiles'] . "/" : '';
@@ -1018,7 +1029,7 @@ if ($username) {
 				$query = isset($_GET['onlineuser']) ? $_GET['onlineuser'] : '';
 				if ($query) { //Check if there is an already existing user in the online database. The unique key used to identify an user is decided on the TrainingPlanner app source code. This script is agnostic to it
 					$userpassword = isset($_GET['userpassword']) ? $_GET['userpassword'] : '';
-					run_dbscript("getid", $query . ' ' . $userpassword , "", true);
+					run_dbscript("getid", $query . " '" . $userpassword . "'", "", true);
 					exit;
 				}
 

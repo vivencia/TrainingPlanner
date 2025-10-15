@@ -72,10 +72,12 @@ ColumnLayout {
 
 	Item {
 		Layout.fillWidth: true
+		Layout.minimumHeight: btnChangePassword.height
 
 		TPButton {
 			id: btnChangePassword
 			text: qsTr("Change password")
+			rounded: false
 			imageSource: "password"
 			visible: userRow === 0 && userModel.mainUserConfigured
 			autoSize: true

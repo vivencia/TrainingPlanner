@@ -101,7 +101,7 @@ void QmlItemManager::configureQmlEngine()
 	properties[5] = std::move(QQmlContext::PropertyPair{ "itemManager"_L1, QVariant::fromValue(this) });
 	properties[6] = std::move(QQmlContext::PropertyPair{ "appStatistics"_L1, QVariant::fromValue(appStatistics()) });
 	properties[7] = std::move(QQmlContext::PropertyPair{ "appMessages"_L1, QVariant::fromValue(new TPMessagesManager{this}) });
-	properties[8] = std::move(QQmlContext::PropertyPair{ "osInfo"_L1, QVariant::fromValue(appOsInterface()) });
+	properties[8] = std::move(QQmlContext::PropertyPair{ "osInterface"_L1, QVariant::fromValue(appOsInterface()) });
 	appQmlEngine()->rootContext()->setContextProperties(properties);
 	appQmlEngine()->addImportPath(":/"_L1);
 	appQmlEngine()->addImageProvider("tpimageprovider"_L1, new TPImageProvider{});

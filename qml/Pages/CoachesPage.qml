@@ -46,7 +46,7 @@ TPPage {
 			text: qsTr("Coaches or Trainers")
 			enabled: userModel.haveCoaches
 
-			onClicked: curRow = userModel.findUserByName(userModel.coachesNames(coachesList.currentIndex));
+			onClicked: curRow = userModel.findUserByName(userModel.coachesNames[coachesList.currentIndex]);
 		}
 		TPTabButton {
 			text: qsTr("Pending answers")
@@ -114,7 +114,7 @@ TPPage {
 				delegate: ItemDelegate {
 					spacing: 0
 					padding: 5
-					width: parent.width
+					width: coachesList.width
 					height: appSettings.itemDefaultHeight
 
 					contentItem: Item {
@@ -196,6 +196,8 @@ TPPage {
 				TPButton {
 					text: qsTr("Remove")
 					enabled: curRow != 0
+					rounded: false
+					autoSize: true
 					Layout.alignment: Qt.AlignCenter
 
 					onClicked: showRemoveMessage(false,
@@ -228,7 +230,9 @@ TPPage {
 				anchors {
 					top: parent.top
 					left: parent.left
+					leftMargin: 5
 					right: parent.right
+					rightMargin: 5
 				}
 
 				delegate: ItemDelegate {
@@ -302,8 +306,7 @@ TPPage {
 				visible: userModel.pendingCoachesResponses ? userModel.pendingCoachesResponses.count > 0 : false
 
 				anchors {
-					top: pendingCoachesList.bottom
-					topMargin: 5
+					bottom: parent.bottom
 					left: parent.left
 					right: parent.right
 				}
@@ -311,6 +314,7 @@ TPPage {
 				TPButton {
 					text: qsTr("Accept")
 					autoSize: true
+					rounded: false
 					Layout.alignment: Qt.AlignCenter
 
 					onClicked: userModel.acceptUser(userModel.pendingCoachesResponses, pendingCoachesList.currentIndex);
@@ -318,6 +322,7 @@ TPPage {
 				TPButton {
 					text: qsTr("Decline")
 					autoSize: true
+					rounded: false
 					Layout.alignment: Qt.AlignCenter
 
 					onClicked: showRemoveMessage(true,
@@ -332,13 +337,14 @@ TPPage {
 		id: btnFindCoachOnline
 		text: qsTr("Look online for available coaches");
 		multiline: true
+		rounded: false
 		enabled: userModel.canConnectToServer
 
 		onClicked: displayOnlineCoachesDialog();
 
 		anchors {
 			top: listsLayout.bottom
-			topMargin: 10
+			topMargin: 20
 			left: parent.left
 			leftMargin: 10
 			right: parent.right

@@ -168,7 +168,7 @@ get_id() {
 		REQUESTED_ID=$(echo "${REQUESTED_ID}" | cut -d '=' -f 2)
 		REQUESTED_ID=$(echo "${REQUESTED_ID}" | cut -d ' ' -f 2)
 		PASSWORD="$2"
-		/usr/bin/htpasswd -vb "$ADMIN_DIR/.passwds" "${REQUESTED_ID}" "${PASSWORD}" > /dev/null 2>&1
+		/usr/bin/htpasswd -vb "$ADMIN_DIR/.passwds" "${REQUESTED_ID}" "$PASSWORD" > /dev/null 2>&1
 		return_var="$?"
 		if [ "$return_var" -eq 0 ]; then
 			error_string="${REQUESTED_ID}"
@@ -204,7 +204,8 @@ do
 	case "$var" in
 		add)
 			if ! check_user_dir; then
-				RETURN_VALUE=get_return_code "directory not found"
+				get_return_code "directory not found"
+				RETURN_VALUE=$?
 				echo $RETURN_VALUE": User dir does not exist: $USER_DIR"
 			fi
 			if user_exists; then
@@ -212,11 +213,13 @@ do
 					if echo "${UPDATE_CMD}" | $SQLITE $USERS_DB; then
 						echo "0: $USER_ID updated"
 					else
-						RETURN_VALUE=get_return_code "update failed"
+						get_return_code "update failed"
+						RETURN_VALUE=$?
 						echo $RETURN_VALUE": Update command failed $USER_ID"
 					fi
 				else
-					RETURN_VALUE=get_return_code "file not found"
+					get_return_code "file not found"
+					RETURN_VALUE=$?
 					echo $RETURN_VALUE": User update failed: No user.data file found or file corrupt $USER_ID"
 				fi
 			else
@@ -224,18 +227,21 @@ do
 					if echo "${INSERT_CMD}" | $SQLITE $USERS_DB; then
 						echo "0: $USER_ID inserted"
 					else
-						RETURN_VALUE=get_return_code "insert failed"
+						get_return_code "insert failed"
+						RETURN_VALUE=$?
 						echo $RETURN_VALUE": Insert command failed $USER_ID"
 					fi
 				else
-					RETURN_VALUE=get_return_code "file not found"
+					get_return_code "file not found"
+					RETURN_VALUE=$?
 					echo $RETURN_VALUE": User insertion failed: No user.data file found or file corrupt $USER_ID"
 				fi
 			fi
 		;;
 		del)
 			if [ "$USER_ID" == "" ]; then
-				RETURN_VALUE=get_return_code "argument missing"
+				get_return_code "argument missing"
+				RETURN_VALUE=$?
 				echo $RETURN_VALUE": Missing user ID argument"
 			fi
 			if user_exists; then
@@ -243,40 +249,47 @@ do
 				if echo "${DEL_CMD}" | $SQLITE $USERS_DB; then
 					echo "0: $USER_ID removed"
 				else
-					RETURN_VALUE=get_return_code "delete failed"
+					get_return_code "delete failed"
+					RETURN_VALUE=$?
 					echo $RETURN_VALUE": Delete command failed $USER_ID"
 				fi
 			else
-				RETURN_VALUE=get_return_code "file not found"
+				get_return_code "file not found"
+				RETURN_VALUE=$?
 				echo $RETURN_VALUE": User removal failed: No user.data file found or file corrupt $USER_ID"
 			fi
 		;;
 		getall)
 			if [ "$USER_ID" == "" ]; then
-				RETURN_VALUE=get_return_code "argument missing"
+				get_return_code "argument missing"
+				RETURN_VALUE=$?
 				echo $RETURN_VALUE": Missing user ID argument"
 			fi
 			if get_all_values; then
 				echo "0: $ALL_USER_VALUES"
 			else
-				RETURN_VALUE=get_return_code "custom error"
+				get_return_code "custom error"
+				RETURN_VALUE=$?
 				echo $RETURN_VALUE": Failed to run query to get all user information $USER_ID"
 			fi
 		;;
 		get)
 			if [ "$USER_ID" == "" ]; then
-				RETURN_VALUE=get_return_code "argument missing"
+				get_return_code "argument missing"
+				RETURN_VALUE=$?
 				echo $RETURN_VALUE": Missing user ID argument"
 			fi
 			if get_field_value "${3}"; then
 				echo "0: $REQUESTED_FIELD_VALUE"
 			else
-				RETURN_VALUE=get_return_code "custom error"
+				get_return_code "custom error"
+				RETURN_VALUE=$?
 				echo $RETURN_VALUE": Failed to run query to get ${3} from $USER_ID"
 			fi
 		;;
 		getid)
-			RETURN_VALUE=get_id "${2}" "${3}"
+			get_id "${2}" "${3}"
+			RETURN_VALUE=$?
 		;;
 		*)
 			USER_ID="$var"

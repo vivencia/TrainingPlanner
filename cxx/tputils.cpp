@@ -35,7 +35,7 @@ int TPUtils::generateUniqueId(const QLatin1StringView &seed) const
 		int n{0};
 		int shift{2};
 		const int shifter{qFloor(QTime::currentTime().msec()/100)};
-		for (const auto itr : seed)
+		for (const auto &itr : seed)
 		{
 			n += static_cast<int>(itr);
 			if (--shift == 0)

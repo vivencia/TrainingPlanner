@@ -440,7 +440,7 @@ void DBUserModel::getAllOnlineUsers()
 						if (request_id == requestid2)
 						{
 							disconnect(*conn2);
-							if (ret_code == 0)
+							if (ret_code == TP_RET_CODE_SUCCESS)
 							{
 								if (m_allUsers->dataFromString(ret_string))
 									emit allUsersChanged();
@@ -460,7 +460,8 @@ void DBUserModel::switchUser()
 	if (m_allUsers->currentRow() >= 0)
 	{
 		QString userid{m_allUsers->data(m_allUsers->currentRow(), USER_COL_ID)};
-		connect(this, &DBUserModel::userSwitchPhase1Finished, this, [this,userid] (const bool success) mutable {
+		connect(this, &DBUserModel::userSwitchPhase1Finished, this, [this,&userid] (const bool success) mutable
+		{
 			if (success)
 				userSwitchingActions(false, std::move(userid));
 		}, Qt::SingleShotConnection);
@@ -489,8 +490,8 @@ void DBUserModel::removeOtherUser()
 			clearUserDir(userid);
 			m_allUsers->removeUserInfo(m_allUsers->currentRow(), false);
 			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES,
-				appUtils()->string_strings({tr("User removed"), m_allUsers->data(m_allUsers->currentRow(), USER_COL_NAME)
-				+ tr(" removed locally and remotely")}, record_separator));
+				appUtils()->string_strings({tr("User removed"), m_allUsers->data(m_allUsers->currentRow(), USER_COL_NAME) +
+				tr(" removed locally and remotely")}, record_separator));
 		}
 	});
 
@@ -625,13 +626,13 @@ void DBUserModel::checkUserOnline(const QString &email, const QString &password)
 	if (appOsInterface()->tpServerOK())
 	{
 		const int requestid{appUtils()->generateUniqueId("checkUserOnline"_L1)};
-		auto conn = std::make_shared<QMetaObject::Connection>();
+		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid,password]
 								(const int request_id, const int ret_code, const QString &ret_string) {
 			if (request_id == requestid)
 			{
 				disconnect(*conn);
-				if (ret_code == 0) //Password matches server's. Store it for the session
+				if (ret_code == TP_RET_CODE_SUCCESS) //Password matches server's. Store it for the session
 				{
 					m_onlineAccountId = ret_string;
 					m_password = password;
@@ -644,7 +645,7 @@ void DBUserModel::checkUserOnline(const QString &email, const QString &password)
 					if (mainUserConfigured() && mainUserRegistered())
 						sendUserDataToServerDatabase();
 				}
-				emit userOnlineCheckResult(ret_code == 0);
+				emit userOnlineCheckResult(ret_code == TP_RET_CODE_SUCCESS);
 			}
 		});
 		appOnlineServices()->checkOnlineUser(requestid, "email="_L1 + email, password);
@@ -655,13 +656,14 @@ void DBUserModel::changePassword(const QString &old_password, const QString &new
 {
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,old_password,new_password] (const QString &key, const QString &value) {
 		const int requestid{appUtils()->generateUniqueId("changePassword"_L1)};
-		auto conn {std::make_shared<QMetaObject::Connection>()};
+		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid,key,new_password]
-							(const int request_id, const int ret_code, const QString &ret_string) {
+							(const int request_id, const int ret_code, const QString &ret_string)
+		{
 			if (request_id == requestid)
 			{
 				disconnect(*conn);
-				if (ret_code == 0)
+				if (ret_code == TP_RET_CODE_SUCCESS)
 				{
 					appKeyChain()->deleteKey(key);
 					setPassword(new_password);
@@ -680,13 +682,14 @@ void DBUserModel::importFromOnlineServer()
 	if (canConnectToServer())
 	{
 		const int requestid{appUtils()->generateUniqueId("importFromOnlineServer"_L1)};
-		auto conn = std::make_shared<QMetaObject::Connection>();
+		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid]
-								(const int request_id, const int ret_code, const QString &ret_string) {
+								(const int request_id, const int ret_code, const QString &ret_string)
+		{
 			if (request_id == requestid)
 			{
 				disconnect(*conn);
-				if (ret_code == 0)
+				if (ret_code == TP_RET_CODE_SUCCESS)
 				{
 					removeMainUser();
 					if (importFromString(ret_string))
@@ -829,13 +832,14 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 		static_cast<void>(appUtils()->mkdir(m_onlineCoachesDir));
 		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,get_list_only] (const QString &key, const QString &value) {
 			const int requestid{appUtils()->generateUniqueId("getOnlineCoachesList"_L1)};
-			auto conn = std::make_shared<QMetaObject::Connection>();
+			auto conn {std::make_shared<QMetaObject::Connection>()};
 			*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid,get_list_only]
-								(const int request_id, const int ret_code, const QString &ret_string) {
+								(const int request_id, const int ret_code, const QString &ret_string)
+			{
 				if (request_id == requestid)
 				{
 					disconnect(*conn);
-					if (ret_code == 0)
+					if (ret_code == TP_RET_CODE_SUCCESS)
 					{
 						QStringList coaches{std::move(ret_string.split(' ', Qt::SkipEmptyParts))};
 						if (get_list_only)
@@ -979,10 +983,10 @@ int DBUserModel::downloadFileFromServer(const QString &filename, const QString &
 				}
 				switch (ret_code)
 				{
-					if (!success)
-						break;
 					case TP_RET_CODE_SUCCESS: //file downloaded
 					{
+						if (!success)
+							break;
 						QFile *local_file{new QFile{dest_file, this}};
 						if (!local_file->exists() || local_file->remove())
 						{
@@ -1268,7 +1272,7 @@ int DBUserModel::newUserFromFile(const QString &filename, const std::optional<bo
 
 void DBUserModel::getPasswordFromUserInput(const int resultCode, const QString &password)
 {
-	if (resultCode == 0)
+	if (resultCode == TP_RET_CODE_SUCCESS)
 	{
 		if (onlineAccount())
 		{
@@ -1426,14 +1430,14 @@ void DBUserModel::registerUserOnline()
 				disconnect(*conn);
 				switch (ret_code)
 				{
-					case 0:
+					case TP_RET_CODE_SUCCESS:
 						mb_userRegistered = true;
 						emit mainUserOnlineCheckInChanged();
 					break;
-					case 3:
+					case TP_RET_CODE_WRONG_PASSWORD:
 						connect(appMainWindow(), SIGNAL(passwordDialogClosed(int,QString)), this, SLOT(getPasswordFromUserInput(int,QString)));
 					break;
-					case 6: //User does not exist in the online database
+					case TP_RET_CODE_USER_DOES_NOT_EXIST: //User does not exist in the online database
 					{
 						auto conn2{std::make_shared<QMetaObject::Connection>()};
 						*conn2 = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this,
@@ -1442,7 +1446,7 @@ void DBUserModel::registerUserOnline()
 							if (request_id == requestid)
 							{
 								disconnect(*conn2);
-								if (ret_code == 0)
+								if (ret_code == TP_RET_CODE_SUCCESS)
 								{
 									mb_userRegistered = true;
 									emit mainUserOnlineCheckInChanged(true);
@@ -1469,8 +1473,8 @@ void DBUserModel::registerUserOnline()
 void DBUserModel::onlineCheckinActions()
 {
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this] (const QString &key, const QString &value) {
-		checkUserOnline(email(0), value);
-		appOnlineServices()->executeCommands(12324, key, value, "Database/", false);
+		//checkUserOnline(email(0), value); Why did I put this here??
+		appOnlineServices()->executeCommands(appUtils()->idFromString("execcmds"_L1), key, value, TPDatabaseTable::databaseFilesSubDir);
 		if (!mb_singleDevice.has_value())
 		{
 			connect(this, &DBUserModel::onlineDevicesListReceived, this, [this,value] () {
@@ -1488,28 +1492,34 @@ void DBUserModel::getOnlineDevicesList()
 		const int requestid{appUtils()->generateUniqueId("getOnlineDevicesList"_L1)};
 		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(appOnlineServices(), &TPOnlineServices::networkListReceived, this, [this,conn,requestid,value]
-					(const int request_id, const int ret_code, const QStringList &ret_list) {
-			bool device_registered{false};
-			n_devices = 0;
-			mb_singleDevice = true;
-			if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS)
+					(const int request_id, const int ret_code, const QStringList &ret_list)
+		{
+			if (request_id == requestid)
 			{
-				device_registered = ret_list.contains(appOsInterface()->deviceID());
-				if (ret_list.count() == 0)
-					mb_singleDevice = true;
-				else if (ret_list.count() == 1)
-					mb_singleDevice = device_registered;
-				else
+				disconnect(*conn);
+				bool device_registered{false};
+				n_devices = 0;
+				mb_singleDevice = true;
+				if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS)
 				{
-					mb_singleDevice = false;
-					n_devices = ret_list.count();
+					device_registered = ret_list.contains(appOsInterface()->deviceID());
+					if (ret_list.count() == 0)
+						mb_singleDevice = true;
+					else if (ret_list.count() == 1)
+						mb_singleDevice = device_registered;
+					else
+					{
+						mb_singleDevice = false;
+						n_devices = ret_list.count();
+					}
 				}
-			}	
-			if (!device_registered) {
-				appOnlineServices()->addDevice(requestid, userId(0), value, appOsInterface()->deviceID());
-				++n_devices;
+				if (!device_registered)
+				{
+					appOnlineServices()->addDevice(requestid, userId(0), value, appOsInterface()->deviceID());
+					++n_devices;
+				}
+				emit onlineDevicesListReceived();
 			}
-			emit onlineDevicesListReceived();
 		});
 		appOnlineServices()->getDevicesList(requestid, userId(0), value);
 	}, Qt::SingleShotConnection);
@@ -1577,6 +1587,8 @@ void DBUserModel::downloadAllUserFiles(const QString &userid)
 				total_dirs = ret_list.count();
 				for (const auto &dir : std::as_const(ret_list))
 				{
+					if (ret_code != TP_RET_CODE_SUCCESS)
+						return;
 					QString dest_dir{std::move(appSettings()->userDir(userid))};
 					if (dir != '.')
 					{
@@ -1594,7 +1606,7 @@ void DBUserModel::downloadAllUserFiles(const QString &userid)
 							disconnect(*conn2);
 							--total_dirs;
 							total_files += ret_list.count() / 2;
-							if (ret_code == 0)
+							if (ret_code == TP_RET_CODE_SUCCESS)
 							{
 								if (ret_list.count() == 0) //All files up to date, no need to download them
 								{
@@ -1653,7 +1665,7 @@ void DBUserModel::lastOnlineCmd(const uint requestid, const QString &subdir)
 					n_cmdOrderValue = ret_list.last().first(ret_list.last().length() - 4).toInt() + 1;
 			}
 		});
-		appOnlineServices()->listFiles(requestid, userId(0), value, true, false, ".cmd"_L1, subdir);
+		appOnlineServices()->listFiles(requestid, userId(0), value, true, false, ".cmd"_L1, subdir, userId(0));
 	}, Qt::SingleShotConnection);
 	appKeyChain()->readKey(userId(0));
 }
@@ -1892,7 +1904,7 @@ void DBUserModel::pollClientsRequests()
 		if (request_id == requestid)
 		{
 			disconnect(*conn);
-			if (ret_code == 0)
+			if (ret_code == TP_RET_CODE_SUCCESS)
 			{
 				QStringList requests_list{std::move(ret_string.split(' ', Qt::SkipEmptyParts))};
 				if (m_pendingClientRequests->sanitize(requests_list, USER_COL_ID))
@@ -1917,7 +1929,7 @@ void DBUserModel::pollClientsRequests()
 				{
 					if (requests_list.contains(userid))
 					{
-						if (--n_connections == 0)
+						if (--n_connections == TP_RET_CODE_SUCCESS)
 							disconnect(*conn2);
 						if (success)
 							addPendingClient(userid);
@@ -2046,7 +2058,7 @@ void DBUserModel::pollCurrentClients()
 		if (request_id == requestid)
 		{
 			disconnect(*conn);
-			if (ret_code == 0)
+			if (ret_code == TP_RET_CODE_SUCCESS)
 			{
 				QStringList clients_list{std::move(ret_string.split(' ', Qt::SkipEmptyParts))};
 				bool connected{false};
@@ -2099,7 +2111,7 @@ void DBUserModel::pollCurrentCoaches()
 		if (request_id == requestid)
 		{
 			disconnect(*conn);
-			if (ret_code == 0)
+			if (ret_code == TP_RET_CODE_SUCCESS)
 			{
 				QStringList coaches_list{std::move(ret_string.split(' ', Qt::SkipEmptyParts))};
 				bool connected{false};
@@ -2144,7 +2156,7 @@ void DBUserModel::checkNewMesos()
 			if (request_id == requestid)
 			{
 				disconnect(*conn);
-				if (ret_code == 0)
+				if (ret_code == TP_RET_CODE_SUCCESS)
 				{
 					for (const auto &mesoFileName : ret_list)
 					{

@@ -216,11 +216,7 @@ void TPOnlineServices::getDevicesList(const int requestid, const QString &userna
 			disconnect(*conn);
 			QStringList devices_list;
 			if (ret_code == TP_RET_CODE_SUCCESS)
-			{
-				const QStringList &remote_devices_list{ret_string.split(fancy_record_separator1, Qt::SkipEmptyParts)};
-				for (const auto &device : remote_devices_list)
-					devices_list.append(std::move(device));
-			}
+				devices_list = std::move(ret_string.split(fancy_record_separator1, Qt::SkipEmptyParts));
 			emit networkListReceived(request_id, ret_code, devices_list);
 		}
 	});
@@ -407,7 +403,7 @@ void TPOnlineServices::listDirs(const int requestid, const QString &username, co
 		{
 			disconnect(*conn);
 			QStringList directories;
-			if (ret_code == 0)
+			if (ret_code == TP_RET_CODE_SUCCESS)
 				directories = std::move(ret_string.split(fancy_record_separator1, Qt::SkipEmptyParts));
 			if (include_dot_dir)
 				directories.prepend(std::move(QString{'.'}));

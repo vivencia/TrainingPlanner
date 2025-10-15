@@ -86,7 +86,7 @@ void DBInterface::createThread(TPDatabaseTable *worker, const std::function<void
 		connect(worker, &TPDatabaseTable::queryExecuted, this, [this,worker] (const bool success, const bool send_to_server) {
 			if (success && send_to_server && appUserModel()->onlineAccount())
 			{
-				const QString &cmd_filename{worker->createServerCmdFile(TPDatabaseTable::dbFilePath(true),
+				const QString &cmd_filename{worker->createServerCmdFile(TPDatabaseTable::dbFilePath(0, true),
 					{TPDatabaseTable::sqliteApp, TPDatabaseTable::databaseFileNames[worker->tableId()], worker->strQuery()})};
 				if (!cmd_filename.isEmpty())
 					appUserModel()->sendCmdFileToServer(cmd_filename);

@@ -101,6 +101,7 @@ ColumnLayout {
 	TPButton {
 		id: btnSendResume
 		text: qsTr("Send Résumé")
+		rounded: false
 		enabled: chkOnlineCoach.checked
 		Layout.preferredWidth: parent.width/2
 		Layout.alignment: Qt.AlignCenter
