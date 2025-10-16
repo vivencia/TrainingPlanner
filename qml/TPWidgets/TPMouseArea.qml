@@ -29,15 +29,9 @@ MouseArea {
 	function positionChangedFunction(mouse: MouseEvent): void {
 		if (bPressed) {
 			bMoved = true;
-			const deltaX = mouse.x - prevPos.x;
-			if (Math.abs(deltaX) < 10) {
-				const deltaY = mouse.y - prevPos.y;
-				if (Math.abs(deltaY) < 10) {
-					movableWidget.x += deltaX;
-					movableWidget.y += deltaY;
-					moved(movableWidget.x, movableWidget.y);
-				}
-			}
+			movableWidget.x += mouse.x;
+			movableWidget.y += mouse.y;
+			moved(movableWidget.x, movableWidget.y);
 			prevPos = { x: mouse.x, y: mouse.y };
 		}
 	}

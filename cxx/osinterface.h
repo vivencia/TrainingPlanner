@@ -148,9 +148,6 @@ signals:
 
 public slots:
 	void aboutToExit();
-#ifdef Q_OS_ANDROID
-	void checkServerResponseSlot(const bool online);
-#endif
 
 private:
 	int m_networkStatus;

@@ -510,97 +510,112 @@ enum MESSAGE_ICON {
 };
 
 void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QString &fileName,
-		const QString &image_source, const uint msecs) const
+															const QString &image_source, const uint msecs) const
 {
 	QString title, message;
 	int icon_to_use{MI_Error}; //Only applicable when image_source is an empty string
-	switch (message_id)
+	if (message_id < TP_RET_CODE_CUSTOM_ERROR)
 	{
-		case TP_RET_CODE_CUSTOM_MESSAGES:
+		icon_to_use = MI_OK;
+		switch (message_id)
 		{
-			title = std::move(appUtils()->getCompositeValue(0, fileName, record_separator));
-			message = std::move(appUtils()->getCompositeValue(1, fileName, record_separator));
-			icon_to_use = MI_None;
+			case TP_RET_CODE_CUSTOM_SUCCESS:
+				title = std::move(appUtils()->getCompositeValue(0, fileName, record_separator));
+				message = std::move(appUtils()->getCompositeValue(1, fileName, record_separator));
+			break;
+			case TP_RET_CODE_EXPORT_OK:
+				title = std::move(tr("Succesfully exported"));
+				message = std::move(appUtils()->getFileName(fileName));
+			break;
+			case TP_RET_CODE_SHARE_OK:
+				title = std::move(tr("Succesfully shared"));
+				message = std::move(appUtils()->getFileName(fileName));
+			break;
+			case TP_RET_CODE_IMPORT_OK:
+				title = std::move(tr("Successfully imported"));
+				message = std::move(appUtils()->getFileName(fileName));
+			break;
 		}
-		break;
-		case TP_RET_CODE_CUSTOM_WARNINGS:
+	}
+	else if (message_id < TP_RET_CODE_CUSTOM_WARNING)
+	{
+		icon_to_use = MI_Error;
+		switch (message_id)
 		{
-			title = std::move(tr("Warning! ") + appUtils()->getCompositeValue(0, fileName, record_separator));
-			message = std::move(appUtils()->getCompositeValue(1, fileName, record_separator));
-			icon_to_use = MI_Warning;
+			case TP_RET_CODE_CUSTOM_ERROR:
+				title = std::move(appUtils()->getCompositeValue(0, fileName, record_separator));
+				message = std::move(appUtils()->getCompositeValue(1, fileName, record_separator));
+			break;
+			case TP_RET_CODE_UNKNOWN_ERROR:
+				title = std::move(tr("Unknown Error"));
+				message = fileName;
+			break;
+			case TP_RET_CODE_FILE_NOT_FOUND:
+				title = std::move(tr("File not found!"));
+				message = fileName;
+			break;
+			case TP_RET_CODE_OPEN_READ_FAILED:
+				title = std::move(tr("Failed to open file"));
+				message = std::move(appUtils()->getFileName(fileName));
+			break;
+			case TP_RET_CODE_WRONG_IMPORT_FILE_TYPE:
+				title = std::move(tr("Error"));
+				message = std::move(tr("File type not recognized"));
+			break;
+			case TP_RET_CODE_CORRUPT_FILE:
+				title = std::move(tr("Error"));
+				message = std::move(appUtils()->getFileName(fileName) +  tr("\n is formatted wrongly or corrupted"));
+			break;
+			case TP_RET_CODE_SHARE_FAILED:
+				title = std::move(tr("Sharing failed"));
+				message = std::move(appUtils()->getFileName(fileName));
+			break;
+			case TP_RET_CODE_EXPORT_FAILED:
+				title = std::move(tr("Export failed"));
+				message = std::move(tr("Operation canceled"));
+			break;
+			case TP_RET_CODE_IMPORT_FAILED:
+				title = std::move(tr("Import from file failed"));
+				message = std::move(appUtils()->getFileName(fileName));
+			break;
+			case TP_RET_CODE_OPEN_CREATE_FAILED:
+				title = std::move(tr("Could not open file for exporting"));
+				message = std::move(appUtils()->getFileName(fileName));
+			break;
 		}
-		break;
-		case TP_RET_CODE_CUSTOM_ERRORS:
-			title = std::move(tr("Error! ") + appUtils()->getCompositeValue(0, fileName, record_separator));
-			message = std::move(appUtils()->getCompositeValue(1, fileName, record_separator));
-		break;
-		case TP_RET_CODE_EXPORT_OK:
-			title = std::move(tr("Succesfully exported"));
-			message = std::move(appUtils()->getFileName(fileName));
-			icon_to_use = MI_OK;
-		break;
-		case TP_RET_CODE_SHARE_OK:
-			title = std::move(tr("Succesfully shared"));
-			message = std::move(appUtils()->getFileName(fileName));
-			icon_to_use = MI_OK;
-		break;
-		case TP_RET_CODE_IMPORT_OK:
-			title = std::move(tr("Successfully imported"));
-			message = std::move(appUtils()->getFileName(fileName));
-			icon_to_use = MI_OK;
-		break;
-		case TP_RET_CODE_OPEN_READ_FAILED:
-			title = std::move(tr("Failed to open file"));
-			message = std::move(appUtils()->getFileName(fileName));
-		break;
-		case TP_RET_CODE_WRONG_IMPORT_FILE_TYPE:
-			title = std::move(tr("Error"));
-			message = std::move(tr("File type not recognized"));
-		break;
-		case TP_RET_CODE_CORRUPT_FILE:
-			title = std::move(tr("Error"));
-			message = std::move(tr("File is formatted wrongly or is corrupted"));
-		break;
-		case TP_RET_CODE_NOTHING_TODO:
-			title = std::move(tr("Nothing to be done"));
-			message = std::move(tr("File had already been imported"));
-			icon_to_use = MI_Warning;
-		break;
-		case TP_RET_CODE_NO_MESO:
-			title = std::move(tr("No program to import into"));
-			message = std::move(tr("Either create a new training plan or import from a complete program file"));
-			icon_to_use = MI_Warning;
-		break;
-		case TP_RET_CODE_NOTHING_TO_EXPORT:
-			title = std::move(tr("Nothing to export"));
-			message = std::move(tr("Only exercises that do not come by default with the app can be exported"));
-			icon_to_use = MI_Warning;
-		break;
-		case TP_RET_CODE_SHARE_FAILED:
-			title = std::move(tr("Sharing failed"));
-			message = std::move(appUtils()->getFileName(fileName));
-		break;
-		case TP_RET_CODE_EXPORT_FAILED:
-			title = std::move(tr("Export failed"));
-			message = std::move(tr("Operation canceled"));
-		break;
-		case TP_RET_CODE_OPERATION_CANCELED:
-			title = std::move(tr("Warning"));
-			message = std::move(tr("Operation canceled"));
-			icon_to_use = MI_Warning;
-		break;
-		case TP_RET_CODE_IMPORT_FAILED:
-			title = std::move(tr("Import from file failed"));
-			message = std::move(appUtils()->getFileName(fileName));
-		break;
-		case TP_RET_CODE_OPEN_CREATE_FAILED:
-			title = std::move(tr("Could not open file for exporting"));
-			message = std::move(appUtils()->getFileName(fileName));
-		break;
-		case TP_RET_CODE_UNKNOWN_ERROR:
-			title = std::move(tr("Error"));
-			message = std::move(appUtils()->getFileName(fileName));
-		break;
+	}
+	else if (message_id < TP_RET_CODE_CUSTOM_MESSAGE)
+	{
+		icon_to_use = MI_Warning;
+		switch (message_id)
+		{
+			case TP_RET_CODE_CUSTOM_WARNING:
+				title = std::move(tr("Warning! ") + appUtils()->getCompositeValue(0, fileName, record_separator));
+				message = std::move(appUtils()->getCompositeValue(1, fileName, record_separator));
+			break;
+			case TP_RET_CODE_NOTHING_TODO:
+				title = std::move(tr("Nothing to be done"));
+				message = std::move(tr("File had already been imported"));
+			break;
+			case TP_RET_CODE_NO_MESO:
+				title = std::move(tr("No program to import into"));
+				message = std::move(tr("Either create a new training plan or import from a complete program file"));
+			break;
+			case TP_RET_CODE_NOTHING_TO_EXPORT:
+				title = std::move(tr("Nothing to export"));
+				message = std::move(tr("Only exercises that do not come by default with the app can be exported"));
+			break;
+			case TP_RET_CODE_OPERATION_CANCELED:
+				title = std::move(tr("Warning"));
+				message = std::move(tr("Operation canceled"));
+			break;
+		}
+	}
+	else
+	{
+		icon_to_use = MI_None;
+		title = std::move(appUtils()->getCompositeValue(0, fileName, record_separator));
+		message = std::move(appUtils()->getCompositeValue(1, fileName, record_separator));
 	}
 
 	QString img_src;
@@ -616,6 +631,7 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 	}
 	else
 		img_src = image_source;
+
 	QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(QString, title), Q_ARG(QString, message),
 					Q_ARG(QString, img_src), Q_ARG(int, static_cast<int>(msecs)));
 }

@@ -366,6 +366,9 @@ void DBUserModel::addCoach(const uint user_idx)
 {
 	m_coachesNames.append(_userName(user_idx));
 	emit coachesNamesChanged();
+	appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings({tr("New coach!"),
+		tr("Now that ") + userName(user_idx) + tr(" is your coach, you can send them messages using the Star Button on the Home screen") }, record_separator),
+		avatar(user_idx, false), 10000);
 }
 
 void DBUserModel::delCoach(const uint user_idx)
@@ -489,7 +492,7 @@ void DBUserModel::removeOtherUser()
 			disconnect(*conn);
 			clearUserDir(userid);
 			m_allUsers->removeUserInfo(m_allUsers->currentRow(), false);
-			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES,
+			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
 				appUtils()->string_strings({tr("User removed"), m_allUsers->data(m_allUsers->currentRow(), USER_COL_NAME) +
 				tr(" removed locally and remotely")}, record_separator));
 		}
@@ -529,7 +532,7 @@ void DBUserModel::userSwitchingActions(const bool create, QString &&userid)
 	emit onlineUserChanged();
 	emit coachesNamesChanged();
 	emit clientsNamesChanged();
-	if (mb_canConnectToServer)
+	if (canConnectToServer())
 		onlineCheckIn();
 
 	appMesoModel()->userSwitchingActions();
@@ -588,14 +591,16 @@ void DBUserModel::acceptUser(OnlineUserInfo *userInfo, const int userInfoRow)
 		if (userIsCoach)
 		{
 			addCoach(lastidx);
-			appOnlineServices()->acceptCoachAnswer(0, key, value, user_id);
+			if (canConnectToServer())
+				appOnlineServices()->acceptCoachAnswer(0, key, value, user_id);
 		}
 		else
 		{
 			//Only when the user confirms the coach's acceptance, can they be effectively included as client of main user
 			m_usersData.last()[USER_COL_NAME] = std::move(_userName(lastidx) + tr(" !Pending confirmation!"));
 			addClient(lastidx);
-			appOnlineServices()->acceptClientRequest(0, key, value, user_id);
+			if (canConnectToServer())
+				appOnlineServices()->acceptClientRequest(0, key, value, user_id);
 		}
 		copyTempUserFilesToFinalUserDir(localDir(user_id), userInfo, userInfoRow);
 		userInfo->removeUserInfo(userInfoRow, false);
@@ -720,7 +725,7 @@ void DBUserModel::setCoachPublicStatus(const bool bPublic)
 				if (request_id == requestid)
 				{
 					disconnect(*conn);
-					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES, appUtils()->string_strings(
+					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
 									{tr("Coach registration"), ret_string}, record_separator));
 					mb_coachRegistered = (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS) &&
 											mb_coachPublic;
@@ -750,7 +755,7 @@ void DBUserModel::uploadResume(const QString &resumeFileName)
 	{
 		if (fi.size() > file_upload_max_size)
 		{
-			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERRORS,
+			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR,
 					appUtils()->string_strings({ tr("Cannot upload file"), tr("Maximum file size allowed: 8MB")}, record_separator), "error");
 			return;
 		}
@@ -809,7 +814,7 @@ void DBUserModel::sendRequestToCoaches()
 								const QString &coach_id{m_availableCoaches->data(i, USER_COL_ID)};
 								if (appUtils()->copyFile(profileFileName(m_onlineCoachesDir, coach_id), profileFileName(m_dirForRequestedCoaches, coach_id)))
 								{
-									appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES, appUtils()->string_strings(
+									appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
 										{tr("Coach contacting"), tr("Online coach contacted ") + m_availableCoaches->data(i, USER_COL_NAME)}, record_separator));
 								}
 							}
@@ -891,7 +896,7 @@ int DBUserModel::sendFileToServer(const QString &filename, QFile *upload_file, c
 	else if (!canConnectToServer())
 	{
 		if (!successMessage.isEmpty())
-			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES, appUtils()->string_strings(
+			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
 				{tpNetworkTitle, tr("Online server unavailable. Try it again once the app is connected to the server.")}, record_separator));
 		return -1;
 	}
@@ -929,7 +934,7 @@ int DBUserModel::sendFileToServer(const QString &filename, QFile *upload_file, c
 					if (ret_code == TP_RET_CODE_SUCCESS)
 					{
 						if (!successMessage.isEmpty())
-							appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES,
+							appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
 								appUtils()->string_strings({tpNetworkTitle, successMessage}, record_separator));
 					}
 					else
@@ -952,7 +957,7 @@ int DBUserModel::downloadFileFromServer(const QString &filename, const QString &
 {
 	if (!canConnectToServer())
 	{
-		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES, appUtils()->string_strings(
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
 					{tpNetworkTitle, tr("Online server unavailable. Try it again once the app is connected to the server.")}, record_separator));
 		return -1;
 	}
@@ -998,7 +1003,7 @@ int DBUserModel::downloadFileFromServer(const QString &filename, const QString &
 						}
 						delete local_file;
 						if (!successMessage.isEmpty())
-							appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES, appUtils()->string_strings(
+							appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
 									{tpNetworkTitle, successMessage}, record_separator));
 					}
 					break;
@@ -1010,7 +1015,7 @@ int DBUserModel::downloadFileFromServer(const QString &filename, const QString &
 				}
 				if (!success && !successMessage.isEmpty())
 				{
-					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERRORS, appUtils()->string_strings(
+					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR, appUtils()->string_strings(
 																		{filename + contents}, record_separator));
 				}
 				emit fileDownloaded(success, requestid, dest_file);
@@ -1307,7 +1312,7 @@ void DBUserModel::slot_unregisterUser(const bool unregister)
 								mb_userRegistered = false;
 								emit mainUserOnlineCheckInChanged();
 							}
-							appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES,
+							appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
 								appUtils()->string_strings({tpNetworkTitle, ret_code == TP_RET_CODE_SUCCESS ?
 								tr("Online account removed") : tr("Failed to remove online account")}, record_separator));
 						}
@@ -1451,7 +1456,7 @@ void DBUserModel::registerUserOnline()
 									mb_userRegistered = true;
 									emit mainUserOnlineCheckInChanged(true);
 								}
-								appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES, appUtils()->string_strings(
+								appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
 											{tpNetworkTitle, tr("User information updated")}, record_separator));
 							}
 						});
@@ -1538,7 +1543,7 @@ void DBUserModel::switchToUser(const QString &new_userid, const bool user_switch
 			#ifndef Q_OS_ANDROID
 			if (user_switching_for_testing)
 			{
-				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERRORS,
+				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR,
 				appUtils()->string_strings({ tr("User switching error"),
 					tr("Could not download files for user ") +
 						m_allUsers->fieldValueFromAnotherFieldValue(USER_COL_NAME, USER_COL_ID, new_userid)},
@@ -1546,7 +1551,7 @@ void DBUserModel::switchToUser(const QString &new_userid, const bool user_switch
 			}
 			else
 			#endif
-			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERRORS,
+			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR,
 				appUtils()->string_strings({ tr("User switching error"),
 					tr("Could not download files for user ") +  m_onlineAccountId}, record_separator), "error");
 		}
@@ -1560,8 +1565,10 @@ void DBUserModel::switchToUser(const QString &new_userid, const bool user_switch
 		}
 		if (!user_switching_for_testing)
 			emit userOnlineImportFinished(success);
+		#ifndef Q_OS_ANDROID
 		else
 			emit userSwitchPhase1Finished(success);
+		#endif
 
 	}, Qt::SingleShotConnection);
 	downloadAllUserFiles(new_userid);
@@ -1781,7 +1788,7 @@ void DBUserModel::downloadResumeFromServer(const uint user_idx)
 				if (success)
 					appOsInterface()->openURL(localFileName);
 				else
-					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERRORS,
+					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR,
 						appUtils()->string_strings({tr("Error"), tr("No resumé file provided by the coach")}, record_separator));
 			}
 		});
@@ -1985,7 +1992,8 @@ void DBUserModel::pollCoachesAnswers()
 						const int userrow{userIdxFromFieldValue(USER_COL_ID, coach_id)};
 						if (userrow != -1 && userrow != m_tempRow)
 						{
-							appOnlineServices()->removeCoachAnwers(requestid, userId(0), m_password, coach_id);
+							appOnlineServices()->acceptCoachAnswer(requestid, userId(0), m_password, coach_id);
+							//appOnlineServices()->removeCoachAnwers(requestid, userId(0), m_password, coach_id);
 							answers_list.remove(i);
 						}
 					}

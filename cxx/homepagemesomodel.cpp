@@ -17,11 +17,13 @@ HomePageMesoModel::HomePageMesoModel(QObject *parent)
 	m_roleNames[mesoClientRole] = std::move("mesoClient");
 }
 
+#ifndef Q_OS_ANDROID
 void HomePageMesoModel::userSwitchingActions()
 {
 	emit countChanged();
 	emit dataChanged(index(0, 0), index(count() - 1, 0));
 }
+#endif
 
 void HomePageMesoModel::appendData(const uint mesoModelRow)
 {

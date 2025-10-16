@@ -43,6 +43,7 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, &DBMesocyclesModel::labelChanged);
 }
 
+#ifndef Q_OS_ANDROID
 void DBMesocyclesModel::userSwitchingActions()
 {
 	if (app_meso_models.count() > 1)
@@ -53,6 +54,7 @@ void DBMesocyclesModel::userSwitchingActions()
 		m_clientMesos->userSwitchingActions();
 	}
 }
+#endif
 
 QMLMesoInterface *DBMesocyclesModel::mesoManager(const uint meso_idx)
 {
@@ -728,7 +730,7 @@ int DBMesocyclesModel::importSplitFromFile(const QString &filename, const uint m
 		case IFC_MESOSPLIT_D: split_letter = 'D'; break;
 		case IFC_MESOSPLIT_E: split_letter = 'E'; break;
 		case IFC_MESOSPLIT_F: split_letter = 'F'; break;
-		default: return TP_RET_CODE_CUSTOM_ERRORS;
+		default: return TP_RET_CODE_CUSTOM_ERROR;
 	}
 
 	DBExercisesModel *new_split{splitModel(meso_idx, split_letter, false)};

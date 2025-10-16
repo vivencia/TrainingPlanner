@@ -32,9 +32,11 @@ function get_return_code($desc) {
 	$ret_codes = file($codes_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 	foreach ($ret_codes as $ret_code) {
 		if (str_contains($ret_code, str_replace(' ', '_', strtoupper($desc)))) {
-			$last_field_pos = stripos($ret_code, ' ');
-			$last_field_pos = stripos($ret_code, ' ', $last_field_pos + 1);
-			return substr($ret_code, $last_field_pos + 1);
+			$last_field_pos = strrpos($ret_code, '	');
+			if ($last_field_pos)
+				return substr($ret_code, $last_field_pos + 1);
+			else
+				break;
 		}
 	}
 	return 100; //Unknown error code
@@ -301,7 +303,7 @@ function cmd_downloaded($userid, $deviceid, $cmd_file) {
 function run_test_function($username, $password) {
 	echo get_return_code("no changes success") . ": Some message";
 	echo get_return_code("custom error") . ": Some message";
-	echo get_return_code("create dir failed") . ": Some message";
+	echo get_return_code("directory not found") . ": Some message";
 }
 
 function add_device($userid, $device_id) {

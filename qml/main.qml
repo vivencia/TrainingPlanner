@@ -55,7 +55,7 @@ ApplicationWindow {
 
 	Loader {
 		id: appMessagesWidget
-		active: appMessages ? appMessages.count > 0 : false
+		active: userModel.mainUserConfigured && userModel.onlineAccount
 		asynchronous: true
 		source: "qrc:/qml/Dialogs/OnlineMessages.qml"
 	}

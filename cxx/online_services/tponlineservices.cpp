@@ -367,7 +367,7 @@ void TPOnlineServices::listFiles(const int requestid, const QString &username, c
 		{
 			disconnect(*conn);
 			QStringList new_files;
-			if (ret_code == 0)
+			if (ret_code == TP_RET_CODE_SUCCESS)
 			{
 				const QString &localDir{appSettings()->localAppFilesDir() + targetUser + '/' + subdir + '/'};
 				const QStringList &remote_files_list{ret_string.split(fancy_record_separator1, Qt::SkipEmptyParts)};

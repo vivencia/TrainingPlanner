@@ -17,9 +17,11 @@ Popup {
 	y: 180
 	width: mainIcon.width
 	height: mainIcon.height
-	visible: appMessages.count > 0
+	visible: userModel.onlineAccount
 
 	property bool fullDialogVisible: false
+	property int mainIconUserDefinedX: x
+	property int mainIconUserDefinedY: y
 	readonly property int dlgMaxWidth: appSettings.pageWidth * 0.8
 
 	property int msgCount: appMessages.count
@@ -53,9 +55,8 @@ Popup {
 		}
 
 		onFinished: {
-			onlineMsgsDlg.x = onlineMsgsDlg.width;
-			if (onlineMsgsDlg.x + mainIcon.width > appSettings.pageWidth)
-				onlineMsgsDlg.x -= appSettings.pageWidth - 80;
+			onlineMsgsDlg.x = mainIconUserDefinedX;
+			onlineMsgsDlg.y = mainIconUserDefinedY;
 			fullDialogVisible = false;
 		}
 	}
@@ -81,17 +82,20 @@ Popup {
 		}
 
 		onFinished: {
-			onlineMsgsDlg.x = appSettings.pageWidth - onlineMsgsDlg.width - 10;
-			if (onlineMsgsDlg.y + onlineMsgsDlg.height > appSettings.pageHeight)
-				onlineMsgsDlg.y = appSettings.pageHeight - onlineMsgsDlg.height;
+			if ((onlineMsgsDlg.x + onlineMsgsDlg.width) > appSettings.pageWidth)
+				onlineMsgsDlg.x = appSettings.pageWidth - onlineMsgsDlg.width - 10;
+			/*if ((onlineMsgsDlg.y + onlineMsgsDlg.height) > appSettings.pageHeight) {
+				console.log(onlineMsgsDlg.y, onlineMsgsDlg.height, appSettings.pageHeight);
+				onlineMsgsDlg.y = appSettings.pageHeight - onlineMsgsDlg.height - 10;
+			}*/
 		}
 	}
 
 	TPImage {
 		id: mainIcon
 		source: "messages"
-		width: 50
-		height: 50
+		width: appSettings.itemExtraLargeHeight
+		height: width
 		visible: !fullDialogVisible
 		anchors {
 			verticalCenter: parent.verticalCenter
@@ -106,6 +110,8 @@ Popup {
 			onPressed: (mouse) => pressedFunction(mouse);
 			onPositionChanged: (mouse) => positionChangedFunction(mouse);
 			onMouseClicked: {
+				mainIconUserDefinedX = onlineMsgsDlg.x;
+				mainIconUserDefinedY = onlineMsgsDlg.y;
 				fullDialogVisible = true;
 				expand.start();
 			}
@@ -115,7 +121,7 @@ Popup {
 	TPToolBar {
 		id: topBar
 		visible: fullDialogVisible
-		height: 30
+		height: appSettings.itemLargeHeight
 
 		anchors {
 			top: parent.top
@@ -138,8 +144,8 @@ Popup {
 			id: smallIcon
 			source: "messages"
 			dropShadow: false
-			width: 25
-			height: 25
+			width: appSettings.itemDefaultHeight
+			height: width
 
 			anchors {
 				left: topBarText.right
@@ -153,7 +159,10 @@ Popup {
 
 			onPressed: (mouse) => pressedFunction(mouse);
 			onPositionChanged: (mouse) => positionChangedFunction(mouse);
-			onMouseClicked: shrink.start();
+			onMouseClicked: {
+				mainIconUserDefinedY = onlineMsgsDlg.y;
+				shrink.start();
+			}
 		}
 	}
 

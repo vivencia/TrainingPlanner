@@ -183,28 +183,10 @@ void OSInterface::aboutToExit()
 }
 
 #ifdef Q_OS_ANDROID
-void OSInterface::checkServerResponseSlot(const bool online)
-{
-	const bool notify{tpServerOK() != online};
-	int server_status{0};
-	setBit(server_status, online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
-	unSetBit(server_status, !online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
-	m_checkConnectionTimer->setInterval(online ? CONNECTION_CHECK_TIMEOUT : CONNECTION_ERR_TIMEOUT); //When server is out, check more frequently
-	if (notify)
-	{
-		if (!online)
-			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERRORS, appUtils()->string_strings({"TrainingPlanner App"_L1, "Server unreachable!"_L1}, record_separator));
-		else
-			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES, appUtils()->string_strings({"TrainingPlanner App"_L1, "Connected online!"_L1}, record_separator));
-
-		emit serverStatusChanged(online);
-	}
-}
-
 void OSInterface::checkPendingIntents() const
 {
 	const QJniObject &activity{QNativeInterface::QAndroidApplication::context()};
-	if(activity.isValid())
+	if (activity.isValid())
 	{
 
 		activity.callStaticMethod<void>(
@@ -214,8 +196,9 @@ void OSInterface::checkPendingIntents() const
 			activity.object());
 		return;
 	}
-	DEFINE_SOURCE_LOCATION
-	ERROR_MESSAGE("Activity not valid", QString())
+	#ifndef QT_NO_DEBUG
+	qDebug() << "OSInterface::checkPendingIntents() -> Activity not valid"_L1;
+	#endif
 }
 
 /*
@@ -228,20 +211,20 @@ void OSInterface::checkPendingIntents() const
 */
 bool OSInterface::sendFile(const QString &filePath, const QString &title, const QString &mimeType, const int &requestId) const
 {
-	const QJniObject &jsPath = QJniObject::fromString(filePath);
-	const QJniObject &jsTitle = QJniObject::fromString(title);
-	const QJniObject &jsMimeType = QJniObject::fromString(mimeType);
-	const jboolean ok = QJniObject::callStaticMethod<jboolean>("org/vivenciasoftware/TrainingPlanner/QShareUtils",
-													"sendFile",
-													"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)Z",
-													jsPath.object<jstring>(), jsTitle.object<jstring>(), jsMimeType.object<jstring>(), requestId);
-	if(!ok)
-	{
-		DEFINE_SOURCE_LOCATION
-		ERROR_MESSAGE("Unable to resolve activity from Java", QString())
-		return false;
-	}
-	return true;
+	const QJniObject &jsPath{QJniObject::fromString(filePath)};
+	const QJniObject &jsTitle{QJniObject::fromString(title)};
+	const QJniObject &jsMimeType{QJniObject::fromString(mimeType)};
+	const jboolean ok{QJniObject::callStaticMethod<jboolean>(
+								"org/vivenciasoftware/TrainingPlanner/QShareUtils",
+								"sendFile",
+								"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)Z",
+								jsPath.object<jstring>(), jsTitle.object<jstring>(), jsMimeType.object<jstring>(), requestId)};
+
+	#ifndef QT_NO_DEBUG
+	if (!ok)
+		qDebug() << "OSInterface::OSInterface::sendFile() -> Unable to resolve activity from Java"_L1;
+	#endif
+	return ok;
 }
 
 void OSInterface::androidOpenURL(const QString &address) const
@@ -252,44 +235,44 @@ void OSInterface::androidOpenURL(const QString &address) const
 	else
 		url = address;
 
-	const QJniObject &jsPath = QJniObject::fromString(url);
-	const jboolean ok = QJniObject::callStaticMethod<jboolean>("org/vivenciasoftware/TrainingPlanner/QShareUtils",
+	const QJniObject &jsPath{QJniObject::fromString(url)};
+	const jboolean ok{QJniObject::callStaticMethod<jboolean>(
+													"org/vivenciasoftware/TrainingPlanner/QShareUtils",
 													"openURL",
 													"(Ljava/lang/String;)Z",
-													jsPath.object<jstring>());
-	if(!ok)
-	{
-		DEFINE_SOURCE_LOCATION
-		ERROR_MESSAGE("Unable to open the address: ", address)
-	}
+													jsPath.object<jstring>())};
+	#ifndef QT_NO_DEBUG
+	if (!ok)
+		qDebug() << "OSInterface::OSInterface::androidOpenURL() -> Unable to open the address: "_L1 << address;
+	#endif
 }
 
 bool OSInterface::androidSendMail(const QString &address, const QString &subject, const QString &attachment) const
 {
 	const QString &attachment_file{attachment.isEmpty() ? QString() : "file://"_L1 + attachment};
-	const QJniObject &jsAddress = QJniObject::fromString(address);
-	const QJniObject &jsSubject = QJniObject::fromString(subject);
-	const QJniObject &jsAttach = QJniObject::fromString(attachment_file);
-	const jboolean ok = QJniObject::callStaticMethod<jboolean>("org/vivenciasoftware/TrainingPlanner/QShareUtils",
-													"sendEmail",
-													"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z",
-													jsAddress.object<jstring>(), jsSubject.object<jstring>(), jsAttach.object<jstring>());
+	const QJniObject &jsAddress{QJniObject::fromString(address)};
+	const QJniObject &jsSubject{QJniObject::fromString(subject)};
+	const QJniObject &jsAttach{QJniObject::fromString(attachment_file)};
+	const jboolean ok{QJniObject::callStaticMethod<jboolean>(
+										"org/vivenciasoftware/TrainingPlanner/QShareUtils",
+										"sendEmail",
+										"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z",
+										jsAddress.object<jstring>(), jsSubject.object<jstring>(), jsAttach.object<jstring>())};
 	return ok;
 }
 
 bool OSInterface::viewFile(const QString &filePath, const QString &title) const
 {
-	const QJniObject &jsPath = QJniObject::fromString(filePath);
-	const QJniObject &jsTitle = QJniObject::fromString(title);
-	const jboolean ok = QJniObject::callStaticMethod<jboolean>("org/vivenciasoftware/TrainingPlanner/QShareUtils",
+	const QJniObject &jsPath{QJniObject::fromString(filePath)};
+	const QJniObject &jsTitle{QJniObject::fromString(title)};
+	const jboolean ok{QJniObject::callStaticMethod<jboolean>("org/vivenciasoftware/TrainingPlanner/QShareUtils",
 													"viewFile",
 													"(Ljava/lang/String;Ljava/lang/String;)Z",
-													jsPath.object<jstring>(), jsTitle.object<jstring>());
-	if(!ok)
-	{
-		DEFINE_SOURCE_LOCATION
-		ERROR_MESSAGE("Unable to resolve view activity from Java", QString())
-	}
+													jsPath.object<jstring>(), jsTitle.object<jstring>())};
+	#ifndef QT_NO_DEBUG
+	if (!ok)
+		qDebug() << "OSInterface::OSInterface::androidOpenURL() -> Unable to resolve view activity from Java"_L1;
+	#endif
 	return ok;
 }
 
@@ -393,10 +376,7 @@ void OSInterface::setFileUrlReceived(const QString &url) const
 	if (QFileInfo::exists(androidUrl))
 		appItemManager()->openRequestedFile(androidUrl);
 	else
-	{
-		DEFINE_SOURCE_LOCATION
-		ERROR_MESSAGE("FILE does NOT exist ", url)
-	}
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_FILE_NOT_FOUND, url);
 }
 
 void OSInterface::setFileReceivedAndSaved(const QString &url) const
@@ -405,21 +385,21 @@ void OSInterface::setFileReceivedAndSaved(const QString &url) const
 	if (QFileInfo::exists(androidUrl))
 		appItemManager()->openRequestedFile(androidUrl);
 	else
-	{
-		DEFINE_SOURCE_LOCATION
-		ERROR_MESSAGE("FILE does NOT exist ", url)
-	}
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_FILE_NOT_FOUND, url);
 }
 
 void OSInterface::onActivityResult(int requestCode, int resultCode)
 {
+	#ifndef QT_NO_DEBUG
 	// we're getting RESULT_OK only if edit is done
 	if (resultCode == -1)
-		LOG_MESSAGE("Send Activity Result OK")
+		qDebug() << "OSInterface::onActivityResult() -> Send Activity Result OK"_L1;
 	else if (resultCode == 0)
-		LOG_MESSAGE("Send Activity Result Canceled")
+		qDebug() << "OSInterface::onActivityResult() -> Send Activity Result Canceled"_L1;
 	else
-		LOG_MESSAGE("Send Activity wrong result code: " << resultCode << " from request: " << requestCode)
+		qDebug() << "OSInterface::onActivityResult() -> Send Activity wrong result code: "_L1 <<
+															resultCode << " from request: "_L1 << requestCode;
+	#endif
 	emit activityFinishedResult(requestCode, resultCode);
 }
 
@@ -535,7 +515,7 @@ void OSInterface::serverProcessFinished(QProcess *proc, const int exitCode, QPro
 {
 	if (exitStatus != QProcess::NormalExit)
 	{
-		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERRORS, appUtils()->string_strings(
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR, appUtils()->string_strings(
 				{"Linux TP Server"_L1, "Error executing init_script"_L1}, record_separator));
 		return;
 	}
@@ -552,7 +532,7 @@ void OSInterface::serverProcessFinished(QProcess *proc, const int exitCode, QPro
 		case TPSERVER_PAUSED_FAILED:
 			setBit(m_networkStatus, SERVER_UNREACHABLE);
 			unSetBit(m_networkStatus, SERVER_UP_AND_RUNNING);
-			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERRORS, appUtils()->string_strings(
+			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR, appUtils()->string_strings(
 				{"Linux TP Server"_L1, proc->readAllStandardOutput() + "\nReturn code("_L1 + QString::number(exitCode) + ')'}, record_separator));
 			emit serverStatusChanged(false);
 			m_checkConnectionTimer->setInterval(CONNECTION_ERR_TIMEOUT);
@@ -595,7 +575,7 @@ void OSInterface::commandLocalServer(const QString &message, const QString &comm
 			server_script_proc->start(tp_server_config_script , {command, "-p="_L1 + password}, QIODeviceBase::ReadOnly);
 		}
 		else
-			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES, appUtils()->string_strings(
+			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
 						{message, "Operation canceled by the user"_L1}, record_separator));
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appItemManager()->getPasswordDialog(message,
@@ -744,7 +724,7 @@ void OSInterface::onlineServicesResponse(const uint online_status)
 		setConnectionMessage(online_status == 0 ?
 					std::move(tr("Connected to server ") + '(' + appSettings()->serverAddress() + ')') :
 					std::move(tr("Server unreachable")));
-		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGES, appUtils()->string_strings(
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
 					{"Linux TP Server"_L1, connectionMessage()}, record_separator));
 		emit serverStatusChanged(online_status == 0);
 	}

@@ -55,11 +55,11 @@ Column {
 
 	Item {
 		width: parent.width
-		height: 25
+		height: appSettings.itemDefaultHeight
 
 		TPLabel {
 			text: qsTr("Search: ")
-			width: parent.width*0.3
+			width: parent.width * 0.3
 
 			anchors {
 				left: parent.left
@@ -72,11 +72,12 @@ Column {
 			text: qsTr("Multiple selection")
 			radio: false
 			enabled: canDoMultipleSelection
-			width: parent.width*0.6
+			width: parent.width * 0.6
 
 			anchors {
 				right: parent.right
 				verticalCenter: parent.verticalCenter
+				verticalCenterOffset: 5
 			}
 
 			onCheckedChanged: {
@@ -91,7 +92,7 @@ Column {
 		showClearTextButton: true
 		readOnly: !mainItem.enabled
 		enabled: exercisesModel.count > 0
-		width: parent.width*0.9
+		width: parent.width * 0.9
 		Layout.topMargin: 5
 
 		onTextChanged: exercisesModel.search(text);
@@ -120,7 +121,7 @@ Column {
 		reuseItems: true
 		width: parent.width
 		height: parent.height * 0.75
-		contentHeight: exercisesModel.count*40*1.1//contentHeight: Essencial for the ScrollBars to work.
+		contentHeight: exercisesModel.count * 40 * 1.1 //contentHeight: Essencial for the ScrollBars to work.
 		contentWidth: width
 
 		ScrollBar.vertical: ScrollBar {
@@ -163,7 +164,8 @@ Column {
 
 			background: Rectangle {
 				id:	backgroundColor
-				color: selected ? appSettings.entrySelectedColor : index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
+				color: selected ? appSettings.entrySelectedColor : index % 2 === 0 ?
+													appSettings.listEntryColor1 : appSettings.listEntryColor2
 			}
 
 			onClicked: itemClicked(index, true);
@@ -176,11 +178,12 @@ Column {
 				radius: 5
 
 				TPImage {
+					id: delImage
 					source: "remove"
-					width: 20
-					height: 20
+					width: appSettings.itemDefaultHeight
+					height: width
 					opacity: 2 * -delegate.swipe.position
-					z:2
+					z: 2
 
 					anchors {
 						left: parent.left
@@ -189,13 +192,10 @@ Column {
 					}
 				}
 
-				Label {
+				TPLabel {
 					text: qsTr("Removing in ") + parseInt(miliseconds/1000) + "s"
-					color: appSettings.fontColor
-					padding: 40
+					padding: delImage.width + 20
 					anchors.fill: parent
-					horizontalAlignment: Qt.AlignLeft
-					verticalAlignment: Qt.AlignVCenter
 					opacity: delegate.swipe.complete ? 1 : 0
 					Behavior on opacity { NumberAnimation {} }
 				}

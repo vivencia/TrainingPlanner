@@ -36,6 +36,7 @@ PagesListModel::PagesListModel(QObject *parent)
 	m_roleNames[pageRole] = std::move("page");
 }
 
+#ifndef Q_OS_ANDROID
 void PagesListModel::userSwitchingActions()
 {
 	QMetaObject::invokeMethod(appMainWindow(), "clearWindowsStack");
@@ -45,6 +46,7 @@ void PagesListModel::userSwitchingActions()
 	emit currentIndexChanged();
 	emit dataChanged(index(0, 0), index(count() - 1, 0));
 }
+#endif
 
 void PagesListModel::insertHomePage(QQuickItem *page)
 {
