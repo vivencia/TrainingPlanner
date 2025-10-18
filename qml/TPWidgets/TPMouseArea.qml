@@ -1,13 +1,11 @@
 import QtQuick
 
 MouseArea {
-	id: mousearea
-	z: 0
 	anchors.fill: movingWidget
 
 	required property var movingWidget
 	required property var movableWidget
-	property point prevPos
+	property point mousePosWithinWidget
 	property bool bPressed: false
 	property bool bMoved: false
 
@@ -21,18 +19,18 @@ MouseArea {
 		bPressed = false;
 	}
 
+	onPressed: (mouse) => mousePosWithinWidget = movingWidget.mapToItem(movingWidget, mouse.x, mouse.y);
+
 	function pressedFunction(mouse: MouseEvent): void {
-		prevPos = { x: mouse.x, y: mouse.y };
 		bPressed = true;
 	}
 
 	function positionChangedFunction(mouse: MouseEvent): void {
 		if (bPressed) {
 			bMoved = true;
-			movableWidget.x += mouse.x;
-			movableWidget.y += mouse.y;
+			movableWidget.x += mouse.x - mousePosWithinWidget.x;
+			movableWidget.y += mouse.y - mousePosWithinWidget.y;
 			moved(movableWidget.x, movableWidget.y);
-			prevPos = { x: mouse.x, y: mouse.y };
 		}
 	}
 }

@@ -29,12 +29,12 @@
 #define MESOCYCLES_COL_IMPORTED_AND_UNACCEPTED 21
 
 enum MesoRoleNames {
-	mesoNameRole = Qt::UserRole+MESOCYCLES_COL_NAME,
-	mesoStartDateRole = Qt::UserRole+MESOCYCLES_COL_STARTDATE,
-	mesoEndDateRole = Qt::UserRole+MESOCYCLES_COL_ENDDATE,
-	mesoSplitRole = Qt::UserRole+MESOCYCLES_COL_SPLIT,
-	mesoCoachRole = Qt::UserRole+MESOCYCLES_COL_COACH,
-	mesoClientRole = Qt::UserRole+MESOCYCLES_COL_CLIENT
+	mesoNameRole = Qt::UserRole + MESOCYCLES_COL_NAME,
+	mesoStartDateRole = Qt::UserRole + MESOCYCLES_COL_STARTDATE,
+	mesoEndDateRole = Qt::UserRole + MESOCYCLES_COL_ENDDATE,
+	mesoSplitRole = Qt::UserRole + MESOCYCLES_COL_SPLIT,
+	mesoCoachRole = Qt::UserRole + MESOCYCLES_COL_COACH,
+	mesoClientRole = Qt::UserRole + MESOCYCLES_COL_CLIENT
 };
 
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)

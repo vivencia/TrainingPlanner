@@ -36,10 +36,10 @@ QLatin1StringView DBWorkoutsOrSplitsTable::createTableQuery()
 void DBWorkoutsOrSplitsTable::commonConstructor()
 {
 	setTableName(tableName(tableId()));
-	m_UniqueID = appUtils()->generateUniqueId();
-	const QString &cnx_name{tableName(tableId()) + "_connection"_L1 + QString::number(m_UniqueID)};
-	mSqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name));
-	mSqlLiteDB.setDatabaseName(dbFilePath(m_tableId));
+	m_uniqueID = appUtils()->generateUniqueId();
+	const QString &cnx_name{tableName(tableId()) + "_connection"_L1 + QString::number(m_uniqueID)};
+	m_sqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name));
+	m_sqlLiteDB.setDatabaseName(dbFilePath(m_tableId));
 	#ifndef QT_NO_DEBUG
 	setObjectName(tableId() == WORKOUT_TABLE_ID ? "WorkoutsTable"_L1 : "SplitTable"_L1);
 	#endif

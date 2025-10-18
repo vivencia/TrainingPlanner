@@ -65,11 +65,13 @@ Q_PROPERTY(OnlineUserInfo *pendingCoachesResponses READ pendingCoachesResponses 
 Q_PROPERTY(OnlineUserInfo *pendingClientsRequests READ pendingClientsRequests NOTIFY pendingClientsRequestsChanged FINAL)
 Q_PROPERTY(QStringList coachesNames READ coachesNames NOTIFY coachesNamesChanged FINAL)
 Q_PROPERTY(QStringList clientsNames READ clientsNames NOTIFY clientsNamesChanged FINAL)
+Q_PROPERTY(QStringList coachesAndClientsNames READ coachesAndClientsNames NOTIFY coachesAndClientsNamesChanged FINAL)
 Q_PROPERTY(bool mainUserIsClient READ mainUserIsClient NOTIFY appUseModeChanged FINAL)
 Q_PROPERTY(bool mainUserIsCoach READ mainUserIsCoach NOTIFY appUseModeChanged FINAL)
 Q_PROPERTY(bool onlineAccount READ onlineAccount WRITE setOnlineAccount NOTIFY onlineUserChanged FINAL)
 Q_PROPERTY(bool haveCoaches READ haveCoaches NOTIFY coachesNamesChanged FINAL)
 Q_PROPERTY(bool haveClients READ haveClients NOTIFY clientsNamesChanged FINAL)
+Q_PROPERTY(bool haveCoachesAndClients READ haveCoachesAndClients NOTIFY coachesAndClientsNamesChanged FINAL)
 Q_PROPERTY(bool mainUserConfigured READ mainUserConfigured NOTIFY mainUserConfigurationFinished FINAL)
 Q_PROPERTY(bool canConnectToServer READ canConnectToServer NOTIFY canConnectToServerChanged FINAL)
 
@@ -256,7 +258,7 @@ public:
 	inline OnlineUserInfo *availableCoaches() const { return m_availableCoaches; }
 	inline OnlineUserInfo *pendingCoachesResponses() const { return m_pendingCoachesResponses; }
 	inline QStringList coachesNames() const { return m_coachesNames; }
-	Q_INVOKABLE inline int coachuser_idx(const QString &coach_name) const { return m_coachesNames.indexOf(coach_name); }
+	//Q_INVOKABLE inline int coachuser_idx(const QString &coach_name) const { return m_coachesNames.indexOf(coach_name); }
 	inline bool haveCoaches() const { return m_coachesNames.count() > 0; }
 	void addCoach(const uint user_idx);
 	void delCoach(const uint user_idx);
@@ -265,12 +267,15 @@ public:
 
 	inline OnlineUserInfo *pendingClientsRequests() const { return m_pendingClientRequests; }
 	inline QStringList clientsNames() const { return m_clientsNames; }
-	Q_INVOKABLE inline int clientuser_idx(const QString &userid) const { return m_clientsNames.indexOf(userName(userIdxFromFieldValue(USER_COL_ID, userid))); }
+	//Q_INVOKABLE inline int clientuser_idx(const QString &userid) const { return m_clientsNames.indexOf(userName(userIdxFromFieldValue(USER_COL_ID, userid))); }
 	inline const QString &defaultClient() const { return m_clientsNames.count() > 0 ? userIdFromFieldValue(USER_COL_NAME, m_clientsNames.last()) : m_emptyString; }
 	inline bool haveClients() const { return m_clientsNames.count() > 0; }
 	void addClient(const uint user_idx);
 	void delClient(const uint user_idx);
 	void changeClient(const uint user_idx, const QString &oldname);
+
+	QStringList coachesAndClientsNames() const;
+	inline bool haveCoachesAndClients() const { return haveCoaches() || haveClients(); }
 
 #ifndef Q_OS_ANDROID
 	Q_INVOKABLE void getAllOnlineUsers();
@@ -346,6 +351,7 @@ signals:
 	void onlineUserChanged();
 	void coachesNamesChanged();
 	void clientsNamesChanged();
+	void coachesAndClientsNamesChanged();
 	void coachesListReceived(const QStringList &coaches_list);
 	void clientsListReceived(const QStringList &clients_list);
 	void availableCoachesChanged();

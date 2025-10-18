@@ -17,7 +17,7 @@ TPPage {
 
 	onPageActivated: {
 		if (listsLayout.currentIndex === 0)
-			coachesList.selectItem(coachesList.clientRow !== -1 ? coachesList.clientRow : 0);
+			coachesList.selectItem(coachesList.currentRow !== -1 ? coachesList.currentRow : 0);
 		else
 			pendingCoachesList.selectItem(userModel.pendingCoachesResponses.count > 0 ? userModel.pendingCoachesResponses.currentRow : 0);
 	}

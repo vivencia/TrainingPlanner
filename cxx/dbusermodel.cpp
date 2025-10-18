@@ -79,6 +79,13 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 			}
 		});
 
+		connect(this, &DBUserModel::coachesNamesChanged, this, [this] () {
+			emit coachesAndClientsNamesChanged();
+		});
+		connect(this, &DBUserModel::clientsNamesChanged, this, [this] () {
+			emit coachesAndClientsNamesChanged();
+		});
+
 		mb_userRegistered = std::nullopt;
 		mb_canConnectToServer = appOsInterface()->tpServerOK();
 		if (mb_canConnectToServer)
@@ -413,6 +420,16 @@ void DBUserModel::changeClient(const uint user_idx, const QString &oldname)
 	}
 }
 
+QStringList DBUserModel::coachesAndClientsNames() const
+{
+	QStringList coaches_and_clients{m_coachesNames.count() + m_clientsNames.count()};
+	for (const auto &coach : m_coachesNames)
+		coaches_and_clients.append(std::move(QString{tr("Coach: ") + coach}));
+	for (const auto &client : m_clientsNames)
+		coaches_and_clients.append(std::move(QString{tr("Client: ") + client}));
+	return coaches_and_clients;
+}
+
 #ifndef Q_OS_ANDROID
 void DBUserModel::getAllOnlineUsers()
 {
@@ -463,7 +480,7 @@ void DBUserModel::switchUser()
 	if (m_allUsers->currentRow() >= 0)
 	{
 		QString userid{m_allUsers->data(m_allUsers->currentRow(), USER_COL_ID)};
-		connect(this, &DBUserModel::userSwitchPhase1Finished, this, [this,&userid] (const bool success) mutable
+		connect(this, &DBUserModel::userSwitchPhase1Finished, this, [this,userid] (const bool success) mutable
 		{
 			if (success)
 				userSwitchingActions(false, std::move(userid));
@@ -1573,7 +1590,7 @@ void DBUserModel::switchToUser(const QString &new_userid, const bool user_switch
 	}, Qt::SingleShotConnection);
 	downloadAllUserFiles(new_userid);
 	download_timeout->callOnTimeout([this] () { emit allUserFilesDownloaded(false); });
-	download_timeout->start(60*1000);
+	//download_timeout->start(60*1000);
 }
 
 void DBUserModel::downloadAllUserFiles(const QString &userid)
@@ -1610,10 +1627,10 @@ void DBUserModel::downloadAllUserFiles(const QString &userid)
 					{
 						if (request_id == requestid2)
 						{
-							disconnect(*conn2);
-							--total_dirs;
-							total_files += ret_list.count() / 2;
-							if (ret_code == TP_RET_CODE_SUCCESS)
+							if (--total_dirs <= 0)
+								disconnect(*conn2);
+							total_files += ret_list.count();
+							if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS)
 							{
 								if (ret_list.count() == 0) //All files up to date, no need to download them
 								{
@@ -1621,32 +1638,28 @@ void DBUserModel::downloadAllUserFiles(const QString &userid)
 										emit allUserFilesDownloaded(true);
 									return;
 								}
-								for (uint i{0}; i < ret_list.count(); i += 2)
+								for (const auto &file : std::as_const(ret_list))
 								{
-									const QString &file{ret_list.at(i)};
-									const QLatin1StringView seed2{file.toLatin1().constData()};
-									const int requestid3{appUtils()->generateUniqueId(seed2)};
 									auto conn3{std::make_shared<QMetaObject::Connection>()};
+									QString subdir{std::move(appUtils()->getFileName(dest_dir))};
+									if (subdir == userid + '/')
+										subdir.clear();
+									const int requestid3{downloadFileFromServer(file, QString{}, QString{}, subdir, userid)};
 									*conn3 = connect(this, &DBUserModel::fileDownloaded, this, [this,conn3,requestid3]
 										(const bool success, const uint requestid, const QString &localFileName) mutable
 									{
 										if (requestid == requestid3)
 										{
 											disconnect(*conn3);
-											--total_files;
-											if (total_files <= 0)
+											if (--total_files <= 0)
 												emit allUserFilesDownloaded(true);
 										}
 									});
-									QString subdir{std::move(appUtils()->getFileName(dest_dir))};
-									if (subdir == userid + '/')
-										subdir.clear();
-									downloadFileFromServer(file, dest_dir + file, QString{}, subdir, userid);
 								}
 							}
 						}
 					});
-					appOnlineServices()->listFiles(requestid2, key, value, true, true, QString{}, dir, userid);
+					appOnlineServices()->listFiles(requestid2, key, value, true, false, QString{}, dir, userid);
 				}
 			}
 		});

@@ -39,9 +39,9 @@ Page {
 				x1: 0
 				y1: appSettings.pageHeight / 4
 				x2: appSettings.pageWidth
-				y2:  appSettings.pageHeight / 4 * 3
-				GradientStop { position: 0.0; color: appSettings.primaryLightColor }
-				GradientStop { position: 1.0; color: appSettings.primaryDarkColor }
+				y2: appSettings.pageHeight / 4 * 3
+				GradientStop { position: 0.0; color: colorLight }
+				GradientStop { position: 1.0; color: colorDark }
 			}
 		}
 	}

@@ -10,10 +10,10 @@ DBExercisesListTable::DBExercisesListTable(DBExercisesListModel *model)
 	: TPDatabaseTable{EXERCISES_TABLE_ID}, m_model{model}, m_exercisesTableLastId{1000}
 {
 	setTableName(tableName());
-	m_UniqueID = appUtils()->generateUniqueId();
-	const QString &cnx_name{"db_exercises_connection"_L1 + QString::number(m_UniqueID)};
-	mSqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name));
-	mSqlLiteDB.setDatabaseName(dbFilePath(m_tableId));
+	m_uniqueID = appUtils()->generateUniqueId();
+	const QString &cnx_name{"db_exercises_connection"_L1 + QString::number(m_uniqueID)};
+	m_sqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name));
+	m_sqlLiteDB.setDatabaseName(dbFilePath(m_tableId));
 	#ifndef QT_NO_DEBUG
 	setObjectName("ExercisesListTable");
 	#endif
@@ -53,7 +53,7 @@ void DBExercisesListTable::getAllExercises()
 		}
 		else //for whatever reason the database table is empty. Populate it with the app provided exercises list
 		{
-			mSqlLiteDB.close();
+			m_sqlLiteDB.close();
 			updateExercisesList();
 		}
 	}
@@ -90,14 +90,14 @@ void DBExercisesListTable::updateExercisesList()
 		}
 
 		queryValues[queryValues.length()-1] = ';';
-		if (mSqlLiteDB.transaction())
+		if (m_sqlLiteDB.transaction())
 		{
 			m_strQuery = std::move(queryStart + queryValues);
 			if (!execQuery(m_strQuery, false, false))
-				static_cast<void>(mSqlLiteDB.rollback());
+				static_cast<void>(m_sqlLiteDB.rollback());
 			else
 			{
-				if (mSqlLiteDB.commit())
+				if (m_sqlLiteDB.commit())
 				{
 					emit updatedFromExercisesList();
 					emit queryExecuted(true, true);
@@ -107,7 +107,7 @@ void DBExercisesListTable::updateExercisesList()
 				{
 					qDebug() << "****** ERROR ******";
 					qDebug() << "DBExercisesListTable::updateExercisesList -> transaction not commited"_L1;
-					qDebug() << mSqlLiteDB.lastError();
+					qDebug() << m_sqlLiteDB.lastError();
 					qDebug();
 				}
 				#endif
@@ -144,12 +144,12 @@ void DBExercisesListTable::saveExercises()
 						m_model->subName(idx), m_model->muscularGroup(idx), m_model->mediaPath(idx)));
 		}
 	}
-	if (mSqlLiteDB.transaction())
+	if (m_sqlLiteDB.transaction())
 	{
 		m_strQuery[m_strQuery.length()-1] = ';';
 		if (execQuery(m_strQuery, false, false))
 		{
-			if (mSqlLiteDB.commit())
+			if (m_sqlLiteDB.commit())
 			{
 				m_exercisesTableLastId = highest_id;
 				m_model->clearModifiedIndices();
@@ -159,7 +159,7 @@ void DBExercisesListTable::saveExercises()
 			{
 				qDebug() << "****** ERROR ******";
 				qDebug() << "DBExercisesListTable::saveExercises -> transaction not commited"_L1;
-				qDebug() << mSqlLiteDB.lastError();
+				qDebug() << m_sqlLiteDB.lastError();
 				qDebug();
 			}
 			#endif

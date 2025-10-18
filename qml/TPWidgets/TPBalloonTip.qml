@@ -178,7 +178,13 @@ TPPopup {
 		movingWidget: parent
 		movableWidget: parent
 
-		onPressed: (mouse) => pressedFunction(mouse);
+		property point prevPos
+
+		onPressed: (mouse) => {
+			prevPos = { x: mouse.x, y: mouse.y };
+			pressedFunction(mouse);
+		}
+
 		onPositionChanged: (mouse) => {
 			if (!balloon.movable) {
 				const deltaX = mouse.x - prevPos.x;

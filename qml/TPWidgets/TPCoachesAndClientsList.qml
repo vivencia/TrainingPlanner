@@ -5,12 +5,14 @@ import QtQuick.Layouts
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 Item {
-	signal clientSelected(userRow: int)
+	signal itemSelected(userRow: int)
 	signal buttonClicked
 
 	property string buttonString: ""
-	property int clientRow: -1
-	property bool allowNotConfirmedClients: true
+	property int currentRow: -1
+	property bool allowNotConfirmed: true
+	property bool listClients: true
+	property bool listCoaches: false
 	property alias currentIndex: listview.currentIndex
 
 	ListView {
@@ -19,10 +21,23 @@ Item {
 		contentWidth: availableWidth
 		spacing: 0
 		clip: true
-		model: userModel.clientsNames
-		enabled: userModel.haveClients
-		currentIndex: clientRow
+		currentIndex: currentRow
 		height: button.visible ? 0.8 * parent.height : parent.height
+
+		Component.onCompleted: {
+			if (listClients && listCoaches) {
+				model = Qt.binding(function() { return userModel.coachesAndClientsNames; });
+				enabled = Qt.binding(function() { return userModel.haveCoachesAndClients; });
+			}
+			else if (listClients) {
+				model = Qt.binding(function() { return userModel.clientsNames; });
+				enabled = Qt.binding(function() { return userModel.haveClients; });
+			}
+			else {
+				model = Qt.binding(function() { return userModel.coachesNames; });
+				enabled = Qt.binding(function() { return userModel.haveCoaches; });
+			}
+		}
 
 		anchors {
 			top: parent.top
@@ -60,8 +75,8 @@ Item {
 			}
 
 			onClicked: {
-				if (!allowNotConfirmedClients) {
-					if (userModel.clientsNames[index].indexOf('!') >= 0)
+				if (!allowNotConfirmed) {
+					if (model[index].indexOf('!') >= 0)
 						return;
 				}
 				selectItem(index);
@@ -71,7 +86,7 @@ Item {
 
 	RowLayout {
 		uniformCellSizes: true
-		visible: userModel.haveClients
+		visible: listview.enabled
 
 		anchors {
 			top: listview.bottom
@@ -94,10 +109,10 @@ Item {
 
 	function selectItem(index: int): void {
 		if (listview.currentIndex !== index) {
-			const userrow = userModel.findUserByName(userModel.clientsNames[index]);
+			const userrow = userModel.findUserByName(listview.model[index]);
 			if (userrow > 0) {
-				clientRow = index;
-				clientSelected(userrow);
+				currentRow = index;
+				itemSelected(userrow);
 				listview.currentIndex = index;
 			}
 		}

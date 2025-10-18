@@ -7,10 +7,10 @@ DBMesocyclesTable::DBMesocyclesTable(DBMesocyclesModel *model)
 	: TPDatabaseTable{MESOCYCLES_TABLE_ID}, m_model{model}
 {
 	setTableName(tableName());
-	m_UniqueID = appUtils()->generateUniqueId();
-	const QString &cnx_name{"db_meso_connection"_L1 + QString::number(m_UniqueID)};
-	mSqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name));
-	mSqlLiteDB.setDatabaseName(dbFilePath(m_tableId));
+	m_uniqueID = appUtils()->generateUniqueId();
+	const QString &cnx_name{"db_meso_connection"_L1 + QString::number(m_uniqueID)};
+	m_sqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name));
+	m_sqlLiteDB.setDatabaseName(dbFilePath(m_tableId));
 	#ifndef QT_NO_DEBUG
 	setObjectName("MesocyclesTable");
 	#endif

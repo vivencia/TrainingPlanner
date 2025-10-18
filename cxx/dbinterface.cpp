@@ -74,11 +74,6 @@ void DBInterface::executeExternalQuery(const QString &dbfilename, const QString 
 	}
 }
 
-void DBInterface::updateDB(TPDatabaseTable *worker)
-{
-	createThread(worker, [worker] () { worker->updateTable(); });
-}
-
 void DBInterface::createThread(TPDatabaseTable *worker, const std::function<void(void)> &execFunc , const bool connect_to_worker)
 {
 	if (connect_to_worker)
@@ -142,6 +137,11 @@ void DBInterface::createThread(TPDatabaseTable *worker, const std::function<void
 	else
 		qDebug() << "Database  " << worker->objectName() << "  Waiting for it to be free: " << worker->uniqueId();
 	#endif
+}
+
+void DBInterface::updateDB(TPDatabaseTable *worker)
+{
+	createThread(worker, [worker] () { worker->updateTable(); });
 }
 
 void DBInterface::cleanUpThreads()

@@ -66,7 +66,7 @@ void TPDatabaseTable::clearTable()
 
 void TPDatabaseTable::removeDBFile()
 {
-	bool success{QFile::remove(mSqlLiteDB.databaseName())};
+	bool success{QFile::remove(m_sqlLiteDB.databaseName())};
 	if (success)
 		success = createTable();
 	emit queryExecuted(success, true);
@@ -74,13 +74,13 @@ void TPDatabaseTable::removeDBFile()
 
 bool TPDatabaseTable::openDatabase(const bool read_only)
 {
-	mSqlLiteDB.setConnectOptions(read_only ? "QSQLITE_OPEN_READONLY"_L1 : "QSQLITE_BUSY_TIMEOUT=0"_L1);
-	const bool ok{mSqlLiteDB.open()};
+	m_sqlLiteDB.setConnectOptions(read_only ? "QSQLITE_OPEN_READONLY"_L1 : "QSQLITE_BUSY_TIMEOUT=0"_L1);
+	const bool ok{m_sqlLiteDB.open()};
 	#ifndef QT_NO_DEBUG
 	if (!ok)
 	{
-		qDebug() << "****** ERROR ******   " << mSqlLiteDB.databaseName();
-		qDebug() << mSqlLiteDB.lastError().text();
+		qDebug() << "****** ERROR ******   " << m_sqlLiteDB.databaseName();
+		qDebug() << m_sqlLiteDB.lastError().text();
 		qDebug();
 	}
 	#endif
@@ -89,7 +89,7 @@ bool TPDatabaseTable::openDatabase(const bool read_only)
 
 QSqlQuery TPDatabaseTable::getQuery() const
 {
-	QSqlQuery query{mSqlLiteDB};
+	QSqlQuery query{m_sqlLiteDB};
 	query.setForwardOnly(true);
 	static_cast<void>(query.exec("PRAGMA page_size = 4096"_L1));
 	static_cast<void>(query.exec("PRAGMA cache_size = 16384"_L1));
@@ -102,21 +102,21 @@ QSqlQuery TPDatabaseTable::getQuery() const
 
 bool TPDatabaseTable::execQuery(const QString &str_query, const bool read_only, const bool close_db)
 {
-	if (mSqlLiteDB.isOpen())
+	if (m_sqlLiteDB.isOpen())
 	{
-		if (mSqlLiteDB.connectOptions().contains("READONLY"_L1))
+		if (m_sqlLiteDB.connectOptions().contains("READONLY"_L1))
 		{
 			if (!read_only)
-				mSqlLiteDB.close();
+				m_sqlLiteDB.close();
 		}
 		else
 		{
 			if (read_only)
-				mSqlLiteDB.close();
+				m_sqlLiteDB.close();
 		}
 	}
 
-	if (!mSqlLiteDB.isOpen())
+	if (!m_sqlLiteDB.isOpen())
 	{
 		if (!openDatabase(read_only))
 			return false;
@@ -130,19 +130,19 @@ bool TPDatabaseTable::execQuery(const QString &str_query, const bool read_only, 
 	{
 		qDebug() << "****** ERROR ******";
 		qDebug() << str_query;
-		qDebug() << mSqlLiteDB.lastError().text();
+		qDebug() << m_sqlLiteDB.lastError().text();
 		qDebug();
 	}
 	#endif
 
 	if (!read_only) //optimize after modifying the database
 	{
-		QSqlQuery query{mSqlLiteDB};
+		QSqlQuery query{m_sqlLiteDB};
 		static_cast<void>(query.exec("VACUUM"_L1));
 		static_cast<void>(query.exec("PRAGMA optimize"_L1));
 	}
 	if (close_db)
-		mSqlLiteDB.close();
+		m_sqlLiteDB.close();
 	return ok;
 }
 

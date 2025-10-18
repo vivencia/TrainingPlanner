@@ -86,6 +86,9 @@ public:
 	bool remoteFileUpToDate(const QString &onlineDate, const QString &localFile) const;
 	bool localFileUpToDate(const QString &onlineDate, const QString &localFile) const;
 
+	void chatMessageReceived(const QString &receiver, const QString &sender, const QString &msgid) const;
+	void sendMessage(const QString &receiver, const QString &sender, const QString &encoded_message) const;
+
 signals:
 	void networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string);
 	void _networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string,

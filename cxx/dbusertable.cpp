@@ -7,10 +7,10 @@ DBUserTable::DBUserTable(DBUserModel *model)
 	: TPDatabaseTable{USERS_TABLE_ID}, m_model{model}
 {
 	setTableName(tableName());
-	m_UniqueID = appUtils()->generateUniqueId();
-	const QString &cnx_name("db_exercises_connection"_L1 + QString::number(m_UniqueID));
-	mSqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name));
-	mSqlLiteDB.setDatabaseName(dbFilePath(m_tableId));
+	m_uniqueID = appUtils()->generateUniqueId();
+	const QString &cnx_name("db_users_connection"_L1 + QString::number(m_uniqueID));
+	m_sqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name));
+	m_sqlLiteDB.setDatabaseName(dbFilePath(m_tableId));
 	#ifndef QT_NOT_DEBUG
 	setObjectName("UsersTable");
 	#endif
@@ -63,7 +63,6 @@ void DBUserTable::saveUser()
 
 		if (update)
 		{
-			//from_list is set to 0 because an edited exercise, regardless of its id, is considered different from the default list provided exercise
 			m_strQuery = std::move(u"UPDATE %1 SET onlineaccount=%2, name=\'%3\', birthday=%4, sex=%5, "
 								 "phone=\'%6\', email=\'%7\', social=\'%8\', role=\'%9\', coach_role=\'%10\', "
 								 "goal=\'%11\', use_mode=%12 WHERE userid=%13;"_s

@@ -50,6 +50,8 @@ if (ANDROID)
 	find_package(Qt6 REQUIRED COMPONENTS Core CorePrivate Gui Multimedia Qml Quick QuickControls2 LinguistTools Widgets Sql Network Positioning Charts)
 else()
 	find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 LinguistTools Widgets Sql Network Positioning Charts)
+find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(Qt6 REQUIRED COMPONENTS Core)
 endif(ANDROID)
 
 add_compile_definitions(REQUEST_PERMISSIONS_ON_ANDROID)
@@ -211,7 +213,7 @@ set( QML_SOURCES
 	"qml/TPWidgets/TPButtonGroup.qml"
     "qml/TPWidgets/TPButtonImage.qml"
     "qml/TPWidgets/TPFloatingControl.qml"
-    "qml/TPWidgets/TPClientsList.qml"
+	"qml/TPWidgets/TPCoachesAndClientsList.qml"
     "qml/TPWidgets/TPColorRectangle.qml"
     "qml/TPWidgets/TPComboBox.qml"
     "qml/TPWidgets/TPComplexDialog.qml"
@@ -256,6 +258,8 @@ qt_add_executable(TrainingPlanner
 	${SERVER_FILES}
 	${ANDROID_FIES}
 	cxx/return_codes.h
+	cxx/online_services/tpchat.h cxx/online_services/tpchat.cpp
+	cxx/online_services/tpchatdb.h cxx/online_services/tpchatdb.cpp
 )
 
 if(NOT ANDROID)
@@ -296,6 +300,8 @@ else()
 		Qt6::Positioning
 		Qt6::Charts
 	)
+target_link_libraries(TrainingPlanner PRIVATE Qt6::Core)
+target_link_libraries(TrainingPlanner PRIVATE Qt6::Core)
 endif(NOT ANDROID)
 
 

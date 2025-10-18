@@ -9,10 +9,10 @@ DBMesoCalendarTable::DBMesoCalendarTable(DBMesoCalendarManager *model)
 	: TPDatabaseTable{MESOCALENDAR_TABLE_ID}, m_model{model}
 {
 	setTableName(tableName());
-	m_UniqueID = appUtils()->generateUniqueId();
-	const QString &cnx_name{"db_mesocal_connection-"_L1 + QString::number(m_UniqueID)};
-	mSqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name));
-	mSqlLiteDB.setDatabaseName(dbFilePath(m_tableId));
+	m_uniqueID = appUtils()->generateUniqueId();
+	const QString &cnx_name{"db_mesocal_connection-"_L1 + QString::number(m_uniqueID)};
+	m_sqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name));
+	m_sqlLiteDB.setDatabaseName(dbFilePath(m_tableId));
 	#ifndef QT_NO_QDEBUG
 	setObjectName("MesoCalendarTable");
 	#endif
@@ -70,7 +70,7 @@ void DBMesoCalendarTable::saveMesoCalendar()
 			if (m_workingQuery.first())
 				update = m_workingQuery.value(0).toString() == meso_id;
 
-			if (mSqlLiteDB.transaction())
+			if (m_sqlLiteDB.transaction())
 			{
 				if (!update)
 				{
@@ -104,14 +104,14 @@ void DBMesoCalendarTable::saveMesoCalendar()
 				}
 				if (execQuery(m_strQuery, false, false))
 				{
-					if (mSqlLiteDB.commit())
+					if (m_sqlLiteDB.commit())
 						emit queryExecuted(true, true);
 					#ifndef QT_NO_DEBUG
 					else
 					{
 						qDebug() << "****** ERROR ******";
 						qDebug() << "DBMesoCalendarTable::saveMesoCalendar() -> transaction not commited"_L1;
-						qDebug() << mSqlLiteDB.lastError();
+						qDebug() << m_sqlLiteDB.lastError();
 						qDebug();
 					}
 					#endif

@@ -130,18 +130,18 @@ TPPage {
 						text: itemManager.appMesocyclesModel.clientLabel
 					}
 
-					TPClientsList {
+					TPCoachesAndClientsList {
 						id: clientsList
-						clientRow: userModel.findUserByName(mesoManager.client)
+						currentRow: userModel.findUserByName(mesoManager.client)
 						buttonString: qsTr("Go to client's page")
 						height: 0.2 * mesoPropertiesPage.height
-						allowNotConfirmedClients: false
+						allowNotConfirmed: false
 						Layout.fillWidth: true
 						Layout.preferredHeight: height
 
-						onClientSelected: (userRow) => mesoManager.client = userModel.userId(userRow);
+						onItemSelected: (userRow) => mesoManager.client = userModel.userId(userRow);
 						onButtonClicked: itemManager.getClientsPage();
-					} //TPClientsList
+					} //TPCoachesAndClientsList
 
 					TPLabel {
 						id: lblCoachName

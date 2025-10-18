@@ -112,5 +112,6 @@
         <file>images/online.png</file>
         <file>images/offline.png</file>
         <file>images/flat/switch_user.png</file>
+        <file>images/flat/chat.png</file>
     </qresource>
 </RCC>

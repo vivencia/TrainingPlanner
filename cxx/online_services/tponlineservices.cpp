@@ -445,6 +445,16 @@ bool TPOnlineServices::localFileUpToDate(const QString &onlineDate, const QStrin
 	return false;
 }
 
+void TPOnlineServices::chatMessageReceived(const QString &receiver, const QString &sender, const QString &msgid) const
+{
+
+}
+
+void TPOnlineServices::sendMessage(const QString &receiver, const QString &sender, const QString &encoded_message) const
+{
+
+}
+
 void TPOnlineServices::getFile(const int requestid, const QString &username, const QString &passwd, const QString &filename, const QString &subdir,
 									const QString &targetUser, const QString &localFilePath)
 {

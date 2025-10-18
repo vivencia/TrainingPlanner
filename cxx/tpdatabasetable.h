@@ -32,7 +32,7 @@ public:
 									"MesocyclesSplits.db.sqlite"_L1,
 									"MesoCalendar.db.sqlite"_L1,
 									"Workouts.db.sqlite"_L1,
-									"Users.db.sqlite"_L1
+									"Users.db.sqlite"_L1,
 	};
 
 	static constexpr QLatin1StringView sqliteApp{"sqlite3"_L1};
@@ -41,7 +41,7 @@ public:
 	TPDatabaseTable& operator() (const TPDatabaseTable &other) = delete;
 	TPDatabaseTable (TPDatabaseTable &&other) = delete;
 	TPDatabaseTable& operator() (TPDatabaseTable &&other) = delete;
-	inline ~TPDatabaseTable() { mSqlLiteDB.close(); }
+	inline ~TPDatabaseTable() { m_sqlLiteDB.close(); }
 
 	static TPDatabaseTable *createDBTable(const uint table_id, const bool auto_delete = true);
 	static QString createTableQuery(const uint table_id);
@@ -54,8 +54,8 @@ public:
 		return appSettings()->currentUserDir() + databaseFilesSubDir + (path_only ? QString{} : databaseFileNames[table_id]);
 	}
 	inline uint tableId() const { return m_tableId; }
-	inline int uniqueId() const { return m_UniqueID; }
-	inline void setUniqueId(const int uid) { m_UniqueID = uid; }
+	inline int uniqueId() const { return m_uniqueID; }
+	inline void setUniqueId(const int uid) { m_uniqueID = uid; }
 	inline bool resolved() const { return mb_resolved; }
 	inline void setResolved(const bool resolved) { mb_resolved = resolved; }
 	inline void setWaitForThreadToFinish(const bool wait) { mb_waitForFinished = wait; }
@@ -90,13 +90,13 @@ protected:
 		: QObject{parent}, m_tableId{table_id}, mb_result{false}, mb_resolved{false}, mb_waitForFinished{false} {}
 
 	inline void setTableName(const QLatin1StringView &table_name) { m_tableName = std::move(QString{table_name}); }
-	QSqlDatabase mSqlLiteDB;
+	QSqlDatabase m_sqlLiteDB;
 	QSqlQuery m_workingQuery;
 	QString m_strQuery;
 	QVariantList m_execArgs;
 
 	uint m_tableId;
-	int m_UniqueID;
+	int m_uniqueID;
 
 	//std::function<void (TPDatabaseTable*)> doneFunc;
 

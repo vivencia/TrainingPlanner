@@ -74,7 +74,7 @@ public:
 		if (action_id >= 0 && action_id < m_actions.count())
 		{
 			const QString &actionText{m_actions.at(action_id)};
-			return actionText.last(1).toLatin1() > 31 ? actionText : actionText.chopped(1);
+			return static_cast<int>(actionText.at(actionText.length()-1).toLatin1()) > 31 ? actionText : actionText.chopped(1);
 		}
 		return QString{};
 	}

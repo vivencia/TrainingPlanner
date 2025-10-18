@@ -15,11 +15,17 @@ TPPage {
 	required property UserManager userManager
 	property int curRow
 
-	onPageActivated: {
-		if (listsLayout.currentIndex === 0)
-			clientsList.selectItem(clientsList.clientRow !== -1 ? clientsList.clientRow : 0);
-		else
+	onPageActivated: {//TEST//TEST
+		let clientName = "";
+		if (listsLayout.currentIndex === 0) {
+			clientsList.selectItem(clientsList.currentRow !== -1 ? clientsList.currentRow : 0);
+			clientName = userModel.clientsNames[clientsList.currentIndex];
+		}
+		else {
 			pendingClientsList.selectItem(userModel.pendingClientsRequests.count > 0 ? userModel.pendingClientsRequests.currentRow : 0);
+			clientName = userModel.pendingClientsRequests.name; //TEST
+		}
+		curRow = userModel.findUserByName();
 	}
 
 	TPLabel {
@@ -47,8 +53,9 @@ TPPage {
 			enabled: userModel.haveClients
 			checked: tabbar.currentIndex === 0
 
-			onClicked: curRow = userModel.findUserByName(userModel.clientsNames(clientsList.currentIndex));
+			onClicked: curRow = userModel.findUserByName(userModel.clientsNames[clientsList.currentIndex]);
 		}
+
 		TPTabButton {
 			text: qsTr("Pending requests")
 			enabled: userModel.pendingClientsRequests ? userModel.pendingClientsRequests.count > 0 : false
@@ -85,17 +92,17 @@ TPPage {
 			rightMargin: 5
 		}
 
-		TPClientsList {
+		TPCoachesAndClientsList {
 			id: clientsList
 			buttonString: qsTr("Remove")
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 
-			onClientSelected: (userRow) => curRow = userRow;
+			onItemSelected: (userRow) => curRow = userRow;
 			onButtonClicked: showRemoveMessage(false,
 						qsTr("Remove ") + userModel.userName(curRow) + "?",
 						qsTr("The client will be notified of your decision, but might still contact you unless you block them"));
-		} //TPClientsList
+		} //TPCoachesAndClientsList
 
 		Item {
 			Layout.fillWidth: true
