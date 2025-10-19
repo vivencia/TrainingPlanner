@@ -16,11 +16,13 @@ using namespace Qt::Literals::StringLiterals;
 #define DROP_SHADOW_EXTENT 5
 
 TPImage::TPImage(QQuickItem *parent)
-	: QQuickPaintedItem{parent}, m_imageToPaint{nullptr}, mDropShadow{true}, mbCanUpdate{true}, mbCanColorize{false}
+	: QQuickPaintedItem{parent}, m_imageToPaint{nullptr}, mDropShadow{true}, m_arm{Qt::KeepAspectRatio},
+										m_wscale{1.0}, m_hscale{1.0}, mbCanUpdate{true}, mbCanColorize{false}
 {
 	connect(this, &QQuickItem::enabledChanged, this, [&] () { checkEnabled(); });
 	connect(this, &QQuickItem::heightChanged, this, [&] () { maybeResize(); });
-	connect(appSettings(), &TPSettings::colorChanged, this, [&] () {
+	connect(appSettings(), &TPSettings::colorChanged, this, [&] ()
+	{
 		if (mbCanColorize)
 		{
 			colorize(mImage, mImage);
@@ -90,6 +92,26 @@ void TPImage::setDropShadow(const bool drop_shadow)
 	checkEnabled(false);
 }
 
+void TPImage::setWScale(const double new_wscale)
+{
+	if (new_wscale != m_wscale)
+	{
+		m_arm = Qt::IgnoreAspectRatio;
+		m_wscale = new_wscale;
+		emit scaleChanged();
+	}
+}
+
+void TPImage::setHScale(const double new_hscale)
+{
+	if (new_hscale != m_hscale)
+	{
+		m_arm = Qt::IgnoreAspectRatio;
+		m_hscale = new_hscale;
+		emit scaleChanged();
+	}
+}
+
 void TPImage::saveToDisk(const QString &filename)
 {
 	if (mImage.isNull())
@@ -152,7 +174,13 @@ void TPImage::scaleImage(const bool bCallUpdate)
 			mSize = mNominalSize - QSize{DROP_SHADOW_EXTENT, DROP_SHADOW_EXTENT};
 		else
 			mSize = mNominalSize - QSize{qCeil(mNominalSize.width()*0.05), qCeil(mNominalSize.height()*0.05)};
-		mImage = std::move(mImage.scaled(mSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+
+		if (m_wscale != 1.0)
+			mSize.rwidth() *= m_wscale;
+		if (m_hscale != 1.0)
+			m_arm = Qt::IgnoreAspectRatio;
+		mImage = std::move(mImage.scaled(mSize, m_arm, Qt::SmoothTransformation));
+
 		mImageDisabled = std::move(QImage{});
 		mImageShadow = std::move(QImage{});
 		mbCanUpdate = true;
@@ -204,12 +232,12 @@ void TPImage::applyEffectToImage(QImage &dstImg, const QImage &srcImg, QGraphics
 	item.setPixmap(QPixmap::fromImage(srcImg));
 	item.setGraphicsEffect(effect);
 	scene.addItem(&item);
-	dstImg = std::move(srcImg.scaled(mSize+QSize(extent*2, extent*2), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+	dstImg = std::move(srcImg.scaled(mSize+QSize(extent * 2, extent * 2), m_arm, Qt::SmoothTransformation));
 	dstImg.reinterpretAsFormat(QImage::Format_ARGB32);
 	dstImg.fill(Qt::transparent);
 	QPainter ptr{&dstImg};
 	scene.render(&ptr, QRectF(-extent, -extent, dstImg.width(), dstImg.height()),
-							QRectF(-extent, -extent, dstImg.width(), dstImg.height()));
+								QRectF(-extent, -extent, dstImg.width(), dstImg.height()));
 }
 
 void TPImage::grayScale(QImage &dstImg, const QImage &srcImg)

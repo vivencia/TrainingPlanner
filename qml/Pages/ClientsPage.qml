@@ -15,7 +15,7 @@ TPPage {
 	required property UserManager userManager
 	property int curRow
 
-	onPageActivated: {//TEST//TEST
+	onPageActivated: {
 		let clientName = "";
 		if (listsLayout.currentIndex === 0) {
 			clientsList.selectItem(clientsList.currentRow !== -1 ? clientsList.currentRow : 0);
@@ -25,7 +25,7 @@ TPPage {
 			pendingClientsList.selectItem(userModel.pendingClientsRequests.count > 0 ? userModel.pendingClientsRequests.currentRow : 0);
 			clientName = userModel.pendingClientsRequests.name; //TEST
 		}
-		curRow = userModel.findUserByName();
+		curRow = userModel.findUserByName(clientName);
 	}
 
 	TPLabel {

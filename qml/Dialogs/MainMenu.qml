@@ -35,15 +35,8 @@ Drawer {
 		}
 	}
 
-	background: Rectangle {
-		id: backgrundRec
-		gradient: Gradient {
-			orientation: Gradient.Horizontal
-			GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
-			GradientStop { position: 0.25; color: appSettings.primaryDarkColor; }
-			GradientStop { position: 0.50; color: appSettings.primaryLightColor; }
-			GradientStop { position: 0.75; color: appSettings.primaryColor; }
-		}
+	background: TPBackRec {
+		useGradient: true
 		opacity: 0.8
 	}
 

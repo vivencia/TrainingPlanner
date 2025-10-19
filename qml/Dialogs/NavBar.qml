@@ -126,7 +126,7 @@ TPToolBar {
 				let component = Qt.createComponent("qrc:/qml/Dialogs/TimerDialog.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					mainTimer = component.createObject(mainwindow, { parentPage: homePage, simpleTimer:true });
+					mainTimer = component.createObject(mainwindow, { parentPage: homePage });
 				}
 
 				if (component.status === Component.Ready)

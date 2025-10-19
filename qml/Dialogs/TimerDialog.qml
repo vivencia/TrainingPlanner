@@ -14,6 +14,7 @@ TPPopup {
 	height: appSettings.pageHeight * 0.3
 	x: (appSettings.pageWidth - width) / 2
 	finalYPos: (appSettings.pageHeight - height) / 2
+	backgroundRec: timerBackground
 
 	property bool timePickerOnly: false
 	property bool bNegCountDown: false
@@ -30,6 +31,22 @@ TPPopup {
 	onClosed: mainTimer.stopTimer();
 
 	onInitialTimeChanged: mainTimer.prepareTimer(initialTime);
+
+	TPBackRec {
+		id: timerBackground
+		useImage: true
+		widthScale: 1.2
+		heightScale: 1.8
+		rotate_angle: 325
+		x_translation: 40
+		y_translation: 30
+		border.color: "white"
+		sourceImage: ":/images/backgrounds/backtimer.png"
+		radius: 8
+		layer.enabled: true
+		anchors.fill: parent
+		visible: false
+	}
 
 	TPTimer {
 		id: mainTimer
@@ -282,15 +299,17 @@ TPPopup {
 		RowLayout {
 			id: btnsRow
 			spacing: 5
+			Layout.leftMargin: 5
 			Layout.preferredWidth: rowWidth
-			Layout.leftMargin: 10
+
+			readonly property int btnWidth: dlgTimer.width / 3 - 5
 
 			TPButton {
 				id: btnStartPause
 				text: mainTimer.active ? qsTr("Pause") : mainTimer.paused ? qsTr("Continue") : qsTr("Start")
-				autoSize: true
 				enabled: !timePickerOnly ? mainTimer.stopWatch ? true : mainTimer.totalSeconds > 0 : false
-				Layout.maximumWidth: dlgTimer.width / 3
+				Layout.minimumWidth: btnsRow.btnWidth
+				Layout.maximumWidth: btnsRow.btnWidth
 
 				onClicked: {
 					if (!mainTimer.active)
@@ -303,9 +322,9 @@ TPPopup {
 			TPButton {
 				id: btnReset
 				text: qsTr("Reset")
-				autoSize: true
 				enabled: !timePickerOnly
-				Layout.maximumWidth: dlgTimer.width / 3
+				Layout.minimumWidth: btnsRow.btnWidth
+				Layout.maximumWidth: btnsRow.btnWidth
 
 				onClicked: mainTimer.resetTimer(mainTimer.active);
 			}
@@ -313,8 +332,8 @@ TPPopup {
 			TPButton {
 				id: btnClose
 				text: timePickerOnly ? qsTr("Done") : qsTr("Close")
-				autoSize: true
-				Layout.maximumWidth: dlgTimer.width / 3
+				Layout.minimumWidth: btnsRow.btnWidth
+				Layout.maximumWidth: btnsRow.btnWidth
 
 				onClicked: {
 					if (timePickerOnly)

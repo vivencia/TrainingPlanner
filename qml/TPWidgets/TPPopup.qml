@@ -11,6 +11,7 @@ Popup {
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	spacing: 0
 	padding: 0
+	clip: true
 
 	required property Page parentPage
 	property bool keepAbove: false
@@ -22,6 +23,7 @@ Popup {
 	property int startYPos: 0
 	property alias btnClose: btnCloseWindow
 	property int _key_pressed
+	property Rectangle backgroundRec: backRec
 
 	signal keyboardNumberPressed(int key1, int key2);
 	signal keyboardEnterPressed();
@@ -53,13 +55,13 @@ Popup {
 		color: appSettings.primaryColor
 	}
 
-	background: backRec
+	background: backgroundRec
 
 	MultiEffect {
 		id: backgroundEffect
 		visible: true
-		source: backRec
-		anchors.fill: backRec
+		source: backgroundRec
+		anchors.fill: backgroundRec
 		shadowEnabled: true
 		shadowOpacity: 0.5
 		blurMax: 16
@@ -111,18 +113,11 @@ Popup {
 		}
 	}
 
-	Rectangle {
+	TPBackRec {
+		useGradient: true
 		radius: 8
 		height: appSettings.itemDefaultHeight + 5
 		visible: showTitleBar
-
-		gradient: Gradient {
-			orientation: Gradient.Horizontal
-			GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
-			GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
-			GradientStop { position: 0.50; color: appSettings.primaryColor; }
-			GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
-		}
 
 		anchors {
 			left: parent.left

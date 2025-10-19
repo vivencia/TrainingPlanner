@@ -45,21 +45,13 @@ TPPopup {
 		}
 	}
 
-	Rectangle {
+	TPBackRec {
 		id: recTitleBar
-		color: appSettings.paneBackgroundColor
+		useGradient: true
 		opacity: 0.8
 		width: parent.width
 		height: btnClose.height
-		z:0
-
-		gradient: Gradient {
-			orientation: Gradient.Horizontal
-			GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
-			GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
-			GradientStop { position: 0.50; color: appSettings.primaryColor; }
-			GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
-		}
+		z: 0
 
 		anchors {
 			top: parent.top

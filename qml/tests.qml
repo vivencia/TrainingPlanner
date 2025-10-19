@@ -20,22 +20,36 @@ ApplicationWindow {
 
 	//Component.onCompleted: timePicker.show1();
 
-	TPPage {
-		id: mainPage
+	TPBackRec {
+		id: timerBackground
+		useImage: true
+		scaleIndex: 1.8
+		rotate_angle: 325
+		x_translation: 50
+		y_translation: 40
+		clip: false
+		border.color: "white"
+		sourceImage: ":/images/backgrounds/backtimer.png"
+		radius: 8
 		anchors.fill: parent
+	}
 
-		Rectangle {
-			anchors.fill: parent
-			color: appSettings.paneBackgroundColor
+	//TPPage {
+	//	id: mainPage
+	//	anchors.fill: parent
 
-			ColumnLayout {
-				anchors {
-					fill: parent
-					leftMargin: 10
-					rightMargin: 10
-					topMargin: 10
-					bottomMargin: 10
-				}
+	//	Rectangle {
+	//		anchors.fill: parent
+	//		color: appSettings.paneBackgroundColor
+
+	//		ColumnLayout {
+	//			anchors {
+	//				fill: parent
+	//				leftMargin: 10
+	//				rightMargin: 10
+	//				topMargin: 10
+	//				bottomMargin: 10
+	//			}
 
 				/*Row {
 					Layout.fillWidth: true
@@ -136,7 +150,7 @@ ApplicationWindow {
 					endDate: calModel.to
 					selectedDate: new Date()
 				}*/
-			}
-		}
-	}
+		//	}
+	//	}
+	//}
 }

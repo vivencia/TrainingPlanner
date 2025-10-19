@@ -24,22 +24,14 @@ Rectangle {
 
 	signal dateSelected(date selDate)
 
-	Rectangle {
+	TPBackRec {
 		id: titleOfDate
-		color: appSettings.paneBackgroundColor
+		useGradient: true
 		radius: 10
 		opacity: 0.8
 		z: 1
 		height: 2.5 * cellSize
 		width: parent.width
-
-		gradient: Gradient {
-			orientation: Gradient.Horizontal
-			GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
-			GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
-			GradientStop { position: 0.50; color: appSettings.primaryColor; }
-			GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
-		}
 
 		anchors {
 			top: parent.top
@@ -315,17 +307,11 @@ Rectangle {
 			id: yearsModel
 		}
 
-		delegate: Rectangle {
+		delegate: TPBackRec {
+			useGradient: true
+			opacity: 0.8
 			width: yearsList.width
 			height: cellSize * 1.5
-			gradient: Gradient {
-				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: appSettings.primaryColor; }
-				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
-			}
-			opacity: 0.8
 
 			Text {
 				anchors.centerIn: parent
@@ -365,16 +351,10 @@ Rectangle {
 			id: monthsModel
 		}
 
-		delegate: Rectangle {
+		delegate: TPBackRec {
+			useGradient: true
 			width: monthsList.width
 			height: cellSize * 1.5
-			gradient: Gradient {
-				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: appSettings.primaryColor; }
-				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
-			}
 			opacity: 0.8
 
 			Text {

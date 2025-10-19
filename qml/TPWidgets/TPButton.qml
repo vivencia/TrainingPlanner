@@ -4,7 +4,7 @@ import QtQuick.Effects
 
 import "../"
 
-Rectangle {
+TPBackRec {
 	id: button
 	focus: true
 	border.color: flat ? "transparent" : buttonText.color
@@ -14,6 +14,7 @@ Rectangle {
 	height: (autoSize ? buttonText.contentHeight : appSettings.itemDefaultHeight) +
 							(textUnderIcon ? imageSize : 0) + (text.length > 0 ? buttonText.lineCount * 10 : 0)
 	width: autoSize ? preferredWidth : undefined
+	useGradient: enabled && button.text.length !== 0
 
 	readonly property int preferredWidth: buttonText.contentWidth + (textUnderIcon ? 0 : imageSize) + (text.length > 0 ? 20 : 0)
 	property color textColor: appSettings.fontColor
@@ -41,22 +42,6 @@ Rectangle {
 	signal clicked(int clickid);
 	signal check(int clickid);
 
-	property color color1: appSettings.paneBackgroundColor
-	property color color2: appSettings.primaryLightColor
-	property color color3: appSettings.primaryColor
-	property color color4: appSettings.primaryDarkColor
-
-	Gradient {
-		id: enabledGradient
-		orientation: Gradient.Horizontal
-		GradientStop { position: 0.0; color: color1; }
-		GradientStop { position: 0.25; color: color2; }
-		GradientStop { position: 0.50; color: color3; }
-		GradientStop { position: 0.75; color: color4; }
-	}
-
-	gradient: enabled ? (button.text.length !== 0 ? enabledGradient : null) : null
-
 	onHighlightedChanged:
 		if (highlighted)
 			highlightTimer.start();
@@ -74,27 +59,27 @@ Rectangle {
 		onRunningChanged: {
 			if (!running) {
 				iteration = 4;
-				color1 = appSettings.paneBackgroundColor;
-				color2 = appSettings.primaryLightColor;
-				color3 = appSettings.primaryColor;
-				color4 = appSettings.primaryDarkColor;
+				paneColor = appSettings.paneBackgroundColor;
+				lightColor = appSettings.primaryLightColor;
+				midColor = appSettings.primaryColor;
+				darkColor = appSettings.primaryDarkColor;
 			}
 		}
 
 		onTriggered: {
 			switch (iteration) {
 				case 4:
-					color1 = appSettings.primaryLightColor;
+					paneColor = appSettings.primaryLightColor;
 				break;
 				case 3:
-					color1 = appSettings.paneBackgroundColor;
+					paneColor = appSettings.paneBackgroundColor;
 				break;
 				case 2:
-					color3 = appSettings.primaryLightColor;
+					midColor = appSettings.primaryLightColor;
 				break;
 				case 1:
-					color3 = appSettings.primaryColor;
-					color4 = appSettings.primaryLightColor;
+					midColor = appSettings.primaryColor;
+					darkColor = appSettings.primaryLightColor;
 				break;
 				case 0:
 					highlightTimer.stop();

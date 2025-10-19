@@ -3,6 +3,8 @@ import QtQuick.Controls
 import QtQuick.Shapes
 
 import "../"
+import "../TPWidgets"
+
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 Page {
@@ -23,27 +25,11 @@ Page {
 		mainwindow.pageDeActivated_main.connect(pageDeActivation);
 	}
 
-	background: Shape {
-		preferredRendererType: Shape.CurveRenderer
-		anchors.fill: parent
-
-		ShapePath {
-			strokeWidth: 0
-			startX: 0
-			startY: 0
-
-			PathLine { x: appSettings.pageWidth; y: 0 }
-			PathLine { x: appSettings.pageWidth; y: appSettings.pageHeight }
-			PathLine { x: 0; y: appSettings.pageHeight }
-			fillGradient: LinearGradient {
-				x1: 0
-				y1: appSettings.pageHeight / 4
-				x2: appSettings.pageWidth
-				y2: appSettings.pageHeight / 4 * 3
-				GradientStop { position: 0.0; color: colorLight }
-				GradientStop { position: 1.0; color: colorDark }
-			}
-		}
+	background: TPBackRec {
+		useImage: true
+		widthScale: 1.05
+		heightScale: 1.3
+		sourceImage: ":/images/backgrounds/backimage4.jpg"
 	}
 
 	function pageDeActivation(page: Item): void {

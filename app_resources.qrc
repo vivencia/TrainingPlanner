@@ -113,5 +113,11 @@
         <file>images/offline.png</file>
         <file>images/flat/switch_user.png</file>
         <file>images/flat/chat.png</file>
+        <file>qml/TPWidgets/TPBackRec.qml</file>
+        <file>images/backgrounds/backimage1.jpg</file>
+        <file>images/backgrounds/backimage2.jpg</file>
+        <file>images/backgrounds/backimage3.jpg</file>
+        <file>images/backgrounds/backimage4.jpg</file>
+        <file>images/backgrounds/backtimer.png</file>
     </qresource>
 </RCC>

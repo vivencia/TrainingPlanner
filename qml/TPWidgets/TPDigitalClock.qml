@@ -3,22 +3,15 @@ import QtQuick.Controls
 
 import "../"
 
-Rectangle {
+TPBackRec {
 	id: control
+	useGradient: true
 	width: appSettings.itemLargeHeight
 	height: width * 1.1
 	enabled: false
 
 	property alias value: list.currentIndex
 	property int max
-
-	gradient: Gradient {
-		orientation: Gradient.Vertical
-		GradientStop { position: 0.0; color: appSettings.primaryLightColor }
-		GradientStop { position: 0.2; color: appSettings.primaryDarkColor }
-		GradientStop { position: 0.8; color: appSettings.primaryDarkColor }
-		GradientStop { position: 1.0; color: appSettings.primaryLightColor }
-	}
 
 	ListView {
 		id: list
