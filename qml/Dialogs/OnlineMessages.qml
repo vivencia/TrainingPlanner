@@ -8,7 +8,6 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 Popup {
 	id: onlineMsgsDlg
-	objectName: "TPPopup"
 	closePolicy: Popup.NoAutoClose
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	spacing: 0
@@ -108,7 +107,6 @@ Popup {
 			movableWidget: onlineMsgsDlg
 			enabled: !fullDialogVisible
 
-			onPressed: (mouse) => pressedFunction(mouse);
 			onPositionChanged: (mouse) => positionChangedFunction(mouse);
 			onMouseClicked: {
 				mainIconUserDefinedX = onlineMsgsDlg.x;
@@ -133,6 +131,7 @@ Popup {
 		TPLabel {
 			id: topBarText
 			text: qsTr("Messages")
+			useBackground: false
 
 			anchors {
 				horizontalCenter: parent.horizontalCenter;
@@ -158,7 +157,6 @@ Popup {
 			movingWidget: parent
 			movableWidget: onlineMsgsDlg
 
-			onPressed: (mouse) => pressedFunction(mouse);
 			onPositionChanged: (mouse) => positionChangedFunction(mouse);
 			onMouseClicked: {
 				mainIconUserDefinedY = onlineMsgsDlg.y;
@@ -180,50 +178,11 @@ Popup {
 		}
 
 		TPLabel {
-			background: Rectangle {
-				opacity: 0.8
-				color: appSettings.paneBackgroundColor
-			}
 			horizontalAlignment: Qt.AlignHCenter
 			font: AppGlobals.largeFont
 			text: qsTr("No messages")
 			Layout.fillWidth: true
 			Layout.fillHeight: true
-		}
-
-		ColumnLayout {
-			spacing: 10
-			Layout.fillWidth: true
-			Layout.fillHeight: true
-
-			TPLabel {
-				text: qsTr("Start a chat with ...")
-				Layout.fillWidth: true
-			}
-
-			TPTextInput {
-				id: txtSearch
-				showClearTextButton: true
-				Layout.fillWidth: true
-				onTextChanged: appMessages.filterChatOptions(text);
-			}
-
-			TPCoachesAndClientsList {
-				id: chatList
-				listClients: true
-				listCoaches: true
-				buttonString: qsTr("Chat with")
-				allowNotConfirmed: false
-				height: parent.height - 2 * (appSettings.itemDefaultHeight + 10)
-				width: parent.width
-				Layout.fillWidth: true
-				Layout.fillHeight: true
-
-				onButtonClicked: {
-					openChat(userModel.findUserByName(model[currentRow]));
-					mainLayout.currentIndex = appMessages.count > 0 ? 1 : 0;
-				}
-			} //TPCoachesAndClientsList
 		}
 
 		ListView {
@@ -429,6 +388,38 @@ Popup {
 				swipe.onCompleted: appMessages.removeMessage(appMessages.messageEntry(index));
 			} //delegate
 		} // messagesList
+
+		ColumnLayout {
+			spacing: 10
+			Layout.fillWidth: true
+			Layout.fillHeight: true
+
+			TPLabel {
+				text: qsTr("Start a chat with ...")
+				Layout.fillWidth: true
+			}
+
+			TPTextInput {
+				id: txtSearch
+				showClearTextButton: true
+				Layout.fillWidth: true
+				onTextChanged: appMessages.filterChatOptions(text);
+			}
+
+			TPCoachesAndClientsList {
+				id: chatList
+				listClients: true
+				listCoaches: true
+				buttonString: qsTr("Chat with")
+				allowNotConfirmed: false
+				height: parent.height - 2 * (appSettings.itemDefaultHeight + 10)
+				width: parent.width
+				Layout.fillWidth: true
+				Layout.fillHeight: true
+
+				onButtonClicked: openChat(model[currentRow]);
+			} //TPCoachesAndClientsList
+		}
 	} //StackLayout
 
 	TPButton {
@@ -445,5 +436,10 @@ Popup {
 		}
 
 		onClicked: mainLayout.currentIndex = 2;
+	}
+
+	function openChat(user_name: string): void {
+		userModel.openChat(user_name);
+		mainLayout.currentIndex = appMessages.count > 0 ? 1 : 0;
 	}
 }

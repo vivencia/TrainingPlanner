@@ -14,6 +14,7 @@ Page {
 
 	property color colorLight: appSettings.primaryLightColor
 	property color colorDark: appSettings.primaryDarkColor
+	property string imageSource
 	readonly property int headerHeight: 0.08 * height
 	readonly property int footerHeight: 0.10 * height
 
@@ -26,10 +27,11 @@ Page {
 	}
 
 	background: TPBackRec {
-		useImage: true
-		widthScale: 1.05
-		heightScale: 1.3
-		sourceImage: ":/images/backgrounds/backimage4.jpg"
+		useImage: imageSource.length > 0
+		image_size: Qt.size(appSettings.pageWidth, appSettings.pageHeight * 1.1)
+		//widthScale: 1.05
+		//heightScale: 1.3
+		sourceImage: imageSource
 	}
 
 	function pageDeActivation(page: Item): void {

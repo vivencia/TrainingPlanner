@@ -35,11 +35,12 @@ TPPopup {
 	TPBackRec {
 		id: timerBackground
 		useImage: true
-		widthScale: 1.2
-		heightScale: 1.8
+		//widthScale: 1.2
+		//heightScale: 1.8
 		rotate_angle: 325
-		x_translation: 40
-		y_translation: 30
+		//x_translation: 40
+		//y_translation: 30
+		image_size: Qt.size(width, height)
 		border.color: "white"
 		sourceImage: ":/images/backgrounds/backtimer.png"
 		radius: 8

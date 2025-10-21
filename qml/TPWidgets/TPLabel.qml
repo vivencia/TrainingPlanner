@@ -17,8 +17,19 @@ Label {
 	leftInset: 0
 	rightInset: 0
 	padding: 0
+
 	property string fontColor: appSettings.fontColor
 	property bool singleLine: true
+	property bool useBackground: true
+
+	background: useBackground ? itemBack : null
+
+	Rectangle {
+		id: itemBack
+		color: control.enabled ? appSettings.primaryDarkColor : "transparent"
+		radius: 6
+		opacity: 0.5
+	}
 
 	/*background: Rectangle {
 		color: "transparent"

@@ -15,6 +15,7 @@ Rectangle {
 	property int rotate_angle: 0
 	property int x_translation: 0
 	property int y_translation: 0
+	property size image_size: Qt.size(0, 0)
 
 	property color lightColor: appSettings.primaryLightColor
 	property color darkColor: appSettings.primaryDarkColor
@@ -52,6 +53,13 @@ Rectangle {
 				origin.y: _image.height / 2
 			}
 			transform: [ rtt_view, trlt_view ]
+
+			Component.onCompleted: {
+				if (image_size !== 0) {
+					width = image_size.width;
+					height = image_size.height;
+				}
+			}
 		}
 	}
 

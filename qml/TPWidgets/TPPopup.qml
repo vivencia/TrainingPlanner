@@ -6,7 +6,6 @@ import "../"
 
 Popup {
 	id: tpPopup
-	//objectName: "TPPopup"
 	closePolicy: keepAbove ? Popup.NoAutoClose : Popup.CloseOnPressOutside
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	spacing: 0
@@ -19,12 +18,14 @@ Popup {
 	property bool closeButtonVisible: true
 	property bool disableMouseHandling: false
 	property bool showTitleBar: true
+	property bool enableEffects: true
 	property int finalYPos: 0
 	property int startYPos: 0
 	property alias btnClose: btnCloseWindow
 	property int _key_pressed
-	property Rectangle backgroundRec: backRec
+	property TPBackRec backgroundRec: backRec
 
+	readonly property int toolBarHeight: appSettings.itemDefaultHeight + 5
 	signal keyboardNumberPressed(int key1, int key2);
 	signal keyboardEnterPressed();
 	signal backKeyPressed();
@@ -45,22 +46,22 @@ Popup {
 		});
 	}
 
-	Rectangle {
+	TPBackRec {
 		id: backRec
 		implicitHeight: height
 		implicitWidth: width
 		radius: 8
 		layer.enabled: true
 		visible: false
-		color: appSettings.primaryColor
 	}
 
 	background: backgroundRec
 
 	MultiEffect {
+		enabled: enableEffects
 		id: backgroundEffect
-		visible: true
-		source: backgroundRec
+		visible: enableEffects
+		source: enableEffects ? backgroundRec : null
 		anchors.fill: backgroundRec
 		shadowEnabled: true
 		shadowOpacity: 0.5
@@ -71,14 +72,6 @@ Popup {
 		shadowColor: "black"
 		shadowScale: 1
 		opacity: 0.9
-	}
-
-	TPMouseArea {
-		enabled: !disableMouseHandling
-		movableWidget: tpPopup
-		movingWidget: backgroundEffect
-		onPressed: (mouse) => pressedFunction(mouse);
-		onPositionChanged: (mouse) => positionChangedFunction(mouse);
 	}
 
 	Timer {
@@ -114,9 +107,10 @@ Popup {
 	}
 
 	TPBackRec {
+		id: toolbar
 		useGradient: true
 		radius: 8
-		height: appSettings.itemDefaultHeight + 5
+		height: toolBarHeight
 		visible: showTitleBar
 
 		anchors {
@@ -133,6 +127,7 @@ Popup {
 		visible: closeButtonVisible
 		width: appSettings.itemDefaultHeight
 		height: width
+		z: 2
 
 		anchors {
 			top: parent.top
@@ -142,6 +137,13 @@ Popup {
 		}
 
 		onClicked: closePopup();
+	}
+
+	TPMouseArea {
+		enabled: !disableMouseHandling
+		movableWidget: tpPopup
+		movingWidget: toolbar
+		onPositionChanged: (mouse) => positionChangedFunction(mouse);
 	}
 
 	enter: Transition {

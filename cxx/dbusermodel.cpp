@@ -9,6 +9,7 @@
 #include "tputils.h"
 #include "translationclass.h"
 #include "tpsettings.h"
+#include "online_services/tpchat.h"
 #include "online_services/onlineuserinfo.h"
 #include "online_services/tpmessage.h"
 #include "online_services/tpmessagesmanager.h"
@@ -2202,6 +2203,32 @@ void DBUserModel::checkNewMesos()
 		});
 		appOnlineServices()->listFiles(requestid, userId(0), m_password, true, false, QString{}, mesosDir + userIdFromFieldValue(USER_COL_NAME, coach), userId(0));
 	}
+}
+
+void DBUserModel::openChatWith(const QString &user_name)
+{
+	const int colon_idx{static_cast<int>(user_name.indexOf(':'))};
+	const QString &username{user_name.first(colon_idx)};
+	const QString &other_userid{userIdFromFieldValue(USER_COL_NAME, username)};
+	const int i_userid{other_userid.toInt()};
+
+	if (!appMessagesManager()->message(i_userid))
+	{
+		TPMessage *chat_message{new TPMessage(user_name, avatar(i_userid), appMessagesManager())};
+		chat_message->setId(i_userid);
+		chat_message->insertAction(tr("Chat"), [this,other_userid] (const QVariant &) {
+			appItemManager()->openChatWindow(m_chatsList.value(other_userid));
+		});
+		chat_message->insertAction(tr("Delete"), [this,other_userid] (const QVariant &) {
+			m_chatsList.value(other_userid)->clearChat();
+			m_chatsList.remove(other_userid);
+			appItemManager()->removeChatWindow(other_userid);
+		});
+		chat_message->plug();
+		TPChat *new_chat{new TPChat{other_userid, this}};
+		m_chatsList.insert(other_userid, new_chat);
+	}
+	appItemManager()->openChatWindow(m_chatsList.value(other_userid));
 }
 
 QString DBUserModel::formatFieldToExport(const uint field, const QString &fieldValue) const

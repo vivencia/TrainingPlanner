@@ -44,13 +44,13 @@ void QmlUserInterface::getSettingsPage(const uint startPageIndex)
 			connect(m_settingsComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
 				if (status == QQmlComponent::Ready)
 					createSettingsPage();
-#ifndef QT_NO_DEBUG
+				#ifndef QT_NO_DEBUG
 				else if (status == QQmlComponent::Error)
 				{
 					qDebug() << m_settingsComponent->errorString();
 					return;
 				}
-#endif
+				#endif
 			}, Qt::SingleShotConnection);
 		}
 		else
@@ -71,13 +71,13 @@ void QmlUserInterface::getCoachesPage()
 			connect(m_coachesComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
 				if (status == QQmlComponent::Ready)
 					createCoachesPage();
-#ifndef QT_NO_DEBUG
+				#ifndef QT_NO_DEBUG
 				else if (status == QQmlComponent::Error)
 				{
 					qDebug() << m_coachesComponent->errorString();
 					return;
 				}
-#endif
+				#endif
 			}, Qt::SingleShotConnection);
 		}
 		else
@@ -98,13 +98,13 @@ void QmlUserInterface::getClientsPage()
 			connect(m_clientsComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
 				if (status == QQmlComponent::Ready)
 					createClientsPage();
-#ifndef QT_NO_DEBUG
+				#ifndef QT_NO_DEBUG
 				else if (status == QQmlComponent::Error)
 				{
 					qDebug() << m_clientsComponent->errorString();
 					return;
 				}
-#endif
+				#endif
 			}, Qt::SingleShotConnection);
 		}
 		else

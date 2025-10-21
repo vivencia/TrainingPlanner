@@ -76,7 +76,7 @@ Item {
 
 			onClicked: {
 				if (!allowNotConfirmed) {
-					if (model[index].indexOf('!') >= 0)
+					if (listview.model[index].indexOf('!') >= 0)
 						return;
 				}
 				selectItem(index);

@@ -27,6 +27,7 @@
 #include "translationclass.h"
 
 #include "online_services/onlineuserinfo.h"
+#include "online_services/tpchat.h"
 #include "online_services/tpmessagesmanager.h"
 #include "online_services/tponlineservices.h"
 
@@ -72,7 +73,7 @@ void QmlItemManager::configureQmlEngine()
 	qmlRegisterType<DBUserModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBUserModel");
 	qmlRegisterType<DBExercisesListModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBExercisesListModel");
 	qmlRegisterType<DBMesocyclesModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBMesocyclesModel");
-	qmlRegisterType<DBExercisesModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBExercisesModel");
+	qmlRegisterType<DBExercisesModel>("org.vivenciasofopacity: 0.8tware.TrainingPlanner.qmlcomponents", 1, 0, "DBExercisesModel");
 	qmlRegisterType<DBMesoCalendarManager>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBMesoCalendarManager");
 	qmlRegisterType<DBCalendarModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBCalendarModel");
 	qmlRegisterType<TPTimer>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "TPTimer");
@@ -90,6 +91,7 @@ void QmlItemManager::configureQmlEngine()
 	qmlRegisterType<OnlineUserInfo>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "OnlineUserInfo");
 	qmlRegisterType<TPMessagesManager>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "MessagesManager");
 	qmlRegisterType<HomePageMesoModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "HomePageMesoModel");
+	qmlRegisterType<TPChat>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "ChatModel");
 
 	//Root context properties. MainWindow app properties
 	QList<QQmlContext::PropertyPair> properties{9};
@@ -122,9 +124,9 @@ void QmlItemManager::configureQmlEngine()
 			appMainWindow()->setIcon(QIcon{"qrc:/images/app_icon.png"_L1});
 			appQmlEngine()->rootContext()->setContextProperty("mainwindow"_L1, QVariant::fromValue(appMainWindow()));
 
-			QQuickItem *homePage{appMainWindow()->findChild<QQuickItem*>("homePage")};
-			if (homePage)
-				appPagesListModel()->insertHomePage(homePage);
+			m_homePage = appMainWindow()->findChild<QQuickItem*>("homePage");
+			if (m_homePage)
+				appPagesListModel()->insertHomePage(m_homePage);
 			if (obj->objectName() == "mainWindow"_L1)
 			{
 				if (!appUserModel()->mainUserConfigured())
@@ -307,13 +309,13 @@ void QmlItemManager::getAllWorkoutsPage()
 			connect(m_allWorkoutsComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
 				if (status == QQmlComponent::Ready)
 					createAllWorkoutsPage_part2();
-#ifndef QT_NO_DEBUG
+				#ifndef QT_NO_DEBUG
 				else if (status == QQmlComponent::Error)
 				{
 					qDebug() << m_allWorkoutsComponent->errorString();
 					return;
 				}
-#endif
+				#endif
 			}, Qt::SingleShotConnection);
 		}
 		else
@@ -321,6 +323,45 @@ void QmlItemManager::getAllWorkoutsPage()
 	}
 	else
 		appPagesListModel()->openPage(m_allWorkoutsPage);
+}
+
+void QmlItemManager::openChatWindow(TPChat *chat_manager)
+{
+	if (!m_chatWindowList.value(chat_manager->otherUserId()))
+	{
+		if (!m_chatWindowComponent)
+		{
+			m_chatWindowProperties.insert("parentPage"_L1, QVariant::fromValue(m_homePage));
+			m_chatWindowComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/User/ChatWindow.qml"_L1}, QQmlComponent::Asynchronous};
+			if (m_chatWindowComponent->status() != QQmlComponent::Ready)
+			{
+				connect(m_chatWindowComponent, &QQmlComponent::statusChanged, this, [this,chat_manager] (QQmlComponent::Status status) {
+					if (status == QQmlComponent::Ready)
+						createChatWindow_part2(chat_manager);
+					#ifndef QT_NO_DEBUG
+					else if (status == QQmlComponent::Error)
+					{
+						qDebug() << m_chatWindowComponent->errorString();
+						return;
+					}
+					#endif
+				}, Qt::SingleShotConnection);
+			}
+		}
+		createChatWindow_part2(chat_manager);
+	}
+	else
+		QMetaObject::invokeMethod(m_chatWindowList.value(chat_manager->otherUserId()), "open");
+}
+
+void QmlItemManager::removeChatWindow(const QString &other_userid)
+{
+	QQuickItem *chat_window{m_chatWindowList.value(other_userid)};
+	if (chat_window)
+	{
+		delete chat_window;
+		m_chatWindowList.remove(other_userid);
+	}
 }
 
 void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QString &filter) const
@@ -693,4 +734,15 @@ void QmlItemManager::createAllWorkoutsPage_part2()
 	connect(appMesoModel(), &DBMesocyclesModel::mesoIdxChanged, m_wokoutsCalendar, &TPWorkoutsCalendar::reScanMesocycles);
 
 	m_wokoutsCalendar->scanMesocycles();
+}
+
+void QmlItemManager::createChatWindow_part2(TPChat *chat_manager)
+{
+	m_chatWindowProperties.insert("chatManager"_L1, QVariant::fromValue(chat_manager));
+	QQuickItem *chat_window{static_cast<QQuickItem*>(m_chatWindowComponent->createWithInitialProperties(
+															m_chatWindowProperties, appQmlEngine()->rootContext()))};
+	appQmlEngine()->setObjectOwnership(chat_window, QQmlEngine::CppOwnership);
+	chat_window->setParentItem(appMainWindow()->contentItem());
+	QMetaObject::invokeMethod(chat_window, "open");
+	m_chatWindowList.insert(chat_manager->otherUserId(), chat_window);
 }

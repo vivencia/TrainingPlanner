@@ -13,8 +13,9 @@ constexpr uint MESSAGE_RTIME			{6};
 constexpr uint MESSAGE_DELETED			{7};
 constexpr uint MESSAGE_SENT				{8};
 constexpr uint MESSAGE_RECEIVED			{9};
-constexpr uint MESSAGE_TEXT				{10};
-constexpr uint MESSAGE_MEDIA			{11};
+constexpr uint MESSAGE_READ				{10};
+constexpr uint MESSAGE_TEXT				{11};
+constexpr uint MESSAGE_MEDIA			{12};
 constexpr uint TP_CHAT_MESSAGE_FIELDS	{MESSAGE_MEDIA+1};
 
 QT_FORWARD_DECLARE_CLASS(TPChatDB)
@@ -30,12 +31,14 @@ public:
 	explicit TPChat(const QString &otheruser_id, QObject *parent = nullptr);
 
 	Q_INVOKABLE inline uint count() const { return m_messages.count(); }
+	inline const QString &otherUserId() const { return m_otherUserId; }
 
 	void incomingMessage(ChatMessage *incoming);
 	Q_INVOKABLE void newMessage(const QString &text, const QString &media = QString{});
 	void updateMessage(ChatMessage *incoming);
 	Q_INVOKABLE void updateMessage(const uint msgid, const QString &text, const QString &media = QString{});
 	Q_INVOKABLE void removeMessage(const uint msgid);
+	void clearChat();
 
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
 	QVariant data(const QModelIndex &index, int role) const override final;

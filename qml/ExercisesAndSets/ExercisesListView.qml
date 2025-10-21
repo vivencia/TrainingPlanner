@@ -131,7 +131,7 @@ Column {
 			interactive: true
 		}
 
-		function ensureVisible(item): void {
+		/*function ensureVisible(item): void {
 			if (item) {
 				const ypos = item.mapToItem(contentItem, 0, 0).y;
 				const ext = item.height + ypos
@@ -145,7 +145,7 @@ Column {
 			}
 			else
 				contentY = 0;
-		}
+		}*/
 
 		delegate: SwipeDelegate {
 			id: delegate

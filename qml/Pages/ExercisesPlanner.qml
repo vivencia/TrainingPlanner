@@ -12,6 +12,7 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPage {
 	id: pagePlanner
+	imageSource: ":/images/backgrounds/splits_backimage.jpg"
 	objectName: "exercisesPlanner"
 
 	required property SplitManager splitManager

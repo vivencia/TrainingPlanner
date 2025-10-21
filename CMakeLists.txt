@@ -63,7 +63,7 @@ set( RESOURCE_FILES app_resources.qrc )
 
 set( CXX_SOURCES
 	cxx/main.cpp
-
+	cxx/return_codes.h
 
 	cxx/translationclass.cpp cxx/translationclass.h
 	cxx/tputils.cpp cxx/tputils.h
@@ -111,6 +111,8 @@ set( CXX_SOURCES
     cxx/online_services/tpmessagesmanager.h cxx/online_services/tpmessagesmanager.cpp
     cxx/online_services/tpmessage.h cxx/online_services/tpmessage.cpp
 	cxx/online_services/scan_network.h
+	cxx/online_services/tpchat.h cxx/online_services/tpchat.cpp
+	cxx/online_services/tpchatdb.h cxx/online_services/tpchatdb.cpp
 
 	cxx/tpkeychain/tpkeychain.h cxx/tpkeychain/tpkeychain.cpp
 	cxx/tpkeychain/keychain.h cxx/tpkeychain/keychain_p.h cxx/tpkeychain/keychain.cpp
@@ -208,6 +210,7 @@ set( QML_SOURCES
 	"qml/Pages/WeatherPageElements/NextDaysForecast.qml"
 	"qml/Pages/WeatherPageElements/TodayForecast.qml"
 	"qml/Pages/WorkoutPage.qml"
+	"qml/TPWidgets/TPBackRec.qml"
     "qml/TPWidgets/TPBalloonTip.qml"
     "qml/TPWidgets/TPButton.qml"
 	"qml/TPWidgets/TPButtonGroup.qml"
@@ -237,6 +240,7 @@ set( QML_SOURCES
 	"qml/TPWidgets/ComplexDialogModules/TPDialogWithMessageAndCheckBox.qml"
 	"qml/User/AllUsers.qml"
 	"qml/User/AvatarsPopup.qml"
+	"qml/User/ChatWindow.qml"
 	"qml/User/UserChangePassword.qml"
 	"qml/User/UserCoachRequest.qml"
 	"qml/User/UserCoach.qml"
@@ -257,9 +261,6 @@ qt_add_executable(TrainingPlanner
 	${QM_FILES}
 	${SERVER_FILES}
 	${ANDROID_FIES}
-	cxx/return_codes.h
-	cxx/online_services/tpchat.h cxx/online_services/tpchat.cpp
-	cxx/online_services/tpchatdb.h cxx/online_services/tpchatdb.cpp
 )
 
 if(NOT ANDROID)

@@ -50,7 +50,6 @@ private:
 	QImage mImageShadow;
 	QImage *m_imageToPaint;
 	QSize mSize, mNominalSize;
-	Qt::AspectRatioMode m_arm;
 	bool mDropShadow;
 	bool mbCanUpdate;
 	bool mbCanColorize;

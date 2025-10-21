@@ -33,6 +33,7 @@
 #define USER_MODIFIED_REMOVED 102
 #define USER_MODIFIED_ACCEPTED 103
 
+QT_FORWARD_DECLARE_CLASS(TPChat)
 QT_FORWARD_DECLARE_CLASS(QTimer)
 
 class DBUserModel : public QObject
@@ -40,6 +41,7 @@ class DBUserModel : public QObject
 
 Q_OBJECT
 
+Q_PROPERTY(QString userId READ userId NOTIFY userIdChanged FINAL)
 Q_PROPERTY(QString onlineAccountUserLabel READ onlineAccountUserLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString nameLabel READ nameLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString passwordLabel READ passwordLabel NOTIFY labelsChanged FINAL)
@@ -77,7 +79,6 @@ Q_PROPERTY(bool canConnectToServer READ canConnectToServer NOTIFY canConnectToSe
 
 #ifndef Q_OS_ANDROID
 Q_PROPERTY(OnlineUserInfo *allUsers READ allUsers NOTIFY allUsersChanged FINAL)
-Q_PROPERTY(QString userId READ userId NOTIFY userIdChanged FINAL)
 #endif
 
 public:
@@ -142,10 +143,7 @@ public:
 	inline const QString localDir(const QString &userid) const { return localDir(userIdxFromFieldValue(USER_COL_ID, userid)); }
 	const QString localDir(const int user_idx) const;
 
-	#ifdef Q_OS_ANDROID
-	// m_onlineCoachesDir: just a referenceable QString that will not have any meaningful impact elsehwere
-	inline const QString &userId(const int user_idx) const { return user_idx < m_usersData.count() ? m_usersData.at(user_idx).at(USER_COL_ID) : m_onlineCoachesDir; }
-	#endif
+	inline QString userId(const int user_idx = 0) const { return user_idx < m_usersData.count() ? m_usersData.at(user_idx).at(USER_COL_ID) : QString{}; }
 	inline void setUserId(const uint user_idx, const QString &new_id) { m_usersData[user_idx][USER_COL_ID] = new_id; }
 
 	Q_INVOKABLE inline QString userName(const int user_idx) const { return user_idx >= 0 && user_idx < m_usersData.count() ? _userName(user_idx) : QString{}; }
@@ -283,7 +281,6 @@ public:
 	Q_INVOKABLE void createNewUser();
 	Q_INVOKABLE void removeOtherUser();
 	void userSwitchingActions(const bool create, QString &&userid);
-	inline QString userId(const int user_idx = 0) const { return user_idx < m_usersData.count() ? m_usersData.at(user_idx).at(USER_COL_ID) : QString{}; }
 	inline OnlineUserInfo *allUsers() const { return m_allUsers; }
 #endif
 
@@ -337,6 +334,8 @@ public:
 	bool importFromString(const QString &user_data);
 	int newUserFromFile(const QString &filename, const std::optional<bool> &file_formatted = std::nullopt);
 
+	Q_INVOKABLE void openChatWith(const QString &user_name);
+
 public slots:
 	void getPasswordFromUserInput(const int resultCode, const QString &password);
 	void slot_unregisterUser(const bool unregister);
@@ -389,6 +388,7 @@ private:
 	QStringList m_coachesNames, m_clientsNames;
 	bool mb_canConnectToServer, mb_coachPublic, mb_MainUserInfoChanged;
 	QTimer *m_mainTimer;
+	QHash<QString,TPChat*> m_chatsList;
 
 #ifndef Q_OS_ANDROID
 	OnlineUserInfo *m_allUsers;

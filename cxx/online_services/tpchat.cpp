@@ -19,6 +19,7 @@ enum ChatRoleNames {
 	deletedRole		=		Qt::UserRole + MESSAGE_DELETED,
 	sentRole		=		Qt::UserRole + MESSAGE_SENT,
 	receivedRole	=		Qt::UserRole + MESSAGE_RECEIVED,
+	readRole		=		Qt::UserRole + MESSAGE_READ,
 	textRole		=		Qt::UserRole + MESSAGE_TEXT,
 	mediaRole		=		Qt::UserRole + MESSAGE_MEDIA,
 };
@@ -32,6 +33,7 @@ struct ChatMessage {
 	TPBool deleted;
 	TPBool sent;
 	TPBool received;
+	TPBool read;
 	QString text;
 	QString media;
 };
@@ -49,6 +51,7 @@ TPChat::TPChat(const QString &otheruser_id, QObject *parent)
 	m_roleNames[deletedRole]	=	std::move("msgDeleted");
 	m_roleNames[sentRole]		=	std::move("msgSent");
 	m_roleNames[receivedRole]	=	std::move("msgReceived");
+	m_roleNames[readRole]		=	std::move("msgRead");
 	m_roleNames[textRole]		=	std::move("msgText");
 	m_roleNames[mediaRole]		=	std::move("msgMedia");
 
@@ -73,6 +76,7 @@ TPChat::TPChat(const QString &otheruser_id, QObject *parent)
 				message->deleted = str_message.at(MESSAGE_DELETED).toUInt() == 1;
 				message->sent = str_message.at(MESSAGE_SENT).toUInt() == 1;
 				message->received = str_message.at(MESSAGE_RECEIVED).toUInt() == 1;
+				message->read = str_message.at(MESSAGE_READ).toUInt() == 1;
 				message->text = std::move(str_message[MESSAGE_TEXT]);
 				message->media = std::move(str_message[MESSAGE_MEDIA]);
 				str_message.clear();
@@ -157,6 +161,7 @@ QString TPChat::encodeMessageToUpload(ChatMessage* message)
 					"0"_L1,
 					"1"_L1,
 					"0"_L1,
+					"0"_L1,
 					message->text,
 					message->media
 	}, record_separator);
@@ -166,7 +171,6 @@ void TPChat::saveChat(ChatMessage *message)
 {
 	const bool update{message->deleted ? true : message->id <= m_chatDB->mostRecentMessageId()};
 	appDBInterface()->createThread(m_chatDB, [this,message,update] () {
-
 		m_chatDB->saveChat(update, {
 					QString::number(message->id),
 					message->sender,
@@ -178,6 +182,7 @@ void TPChat::saveChat(ChatMessage *message)
 					message->deleted ? "1"_L1 : "0"_L1,
 					message->sent ? "1"_L1 : "0"_L1,
 					message->received ? "1"_L1 : "0"_L1,
+					message->read ? "1"_L1 : "0"_L1,
 					message->text,
 					message->media
 		});
@@ -201,6 +206,7 @@ QVariant TPChat::data(const QModelIndex &index, int role) const
 			case deletedRole: return static_cast<bool>(m_messages.at(row)->deleted);
 			case sentRole: return static_cast<bool>(m_messages.at(row)->sent);
 			case receivedRole: return static_cast<bool>(m_messages.at(row)->received);
+			case readRole: return static_cast<bool>(m_messages.at(row)->read);
 			case textRole: return m_messages.at(row)->text;
 			case mediaRole: return m_messages.at(row)->media;
 		}
@@ -225,6 +231,7 @@ bool TPChat::setData(const QModelIndex &index, const QVariant &value, int role)
 			case deletedRole: m_messages.at(row)->deleted = value.toBool(); break;
 			case sentRole: m_messages.at(row)->sent = value.toBool(); break;
 			case receivedRole: m_messages.at(row)->received = value.toBool(); break;
+			case readRole: m_messages.at(row)->read = value.toBool(); break;
 			case textRole: m_messages.at(row)->text = std::move(value.toString()); break;
 			case mediaRole: m_messages.at(row)->media = std::move(value.toString()); break;
 		}

@@ -37,6 +37,7 @@ QLatin1StringView TPChatDB::createTableQuery()
 										"deleted INTEGER,"
 										"sent INTEGER,"
 										"received INTEGER,"
+										"read INTEGER,"
 										"text TEXT,"
 										"media TEXT"
 									");"_L1;
@@ -63,23 +64,24 @@ void TPChatDB::saveChat(bool update, const QStringList &message_info)
 {
 	if (update)
 	{
-		m_strQuery = std::move(u"UPDATE %1 SET sender=%2, receiver=%3, sdate=%4, stime=%5, rdate=%6, rtime=%7,"
-								 "deleted=%8, sent=%9, received=%10, text=\'%11\', media=\'%12\', WHERE msgid=%13;"_s
+		m_strQuery = std::move(u"UPDATE %1 SET sender=%2, receiver=%3, sdate=%4, stime=%5, rdate=%6, rtime=%7, deleted=%8, "
+							   "sent=%9, received=%10, read=%11, text=\'%12\', media=\'%13\', WHERE msgid=%14;"_s
 				.arg(tableName(), message_info.at(MESSAGE_SENDER), message_info.at(MESSAGE_RECEIVER),
 					message_info.at(MESSAGE_SDATE), message_info.at(MESSAGE_STIME), message_info.at(MESSAGE_RDATE),
 					message_info.at(MESSAGE_RTIME), message_info.at(MESSAGE_DELETED), message_info.at(MESSAGE_SENT),
-					message_info.at(MESSAGE_RECEIVED), message_info.at(MESSAGE_TEXT), message_info.at(MESSAGE_MEDIA),
-					message_info.at(MESSAGE_ID)));
+					message_info.at(MESSAGE_RECEIVED), message_info.at(MESSAGE_READ), message_info.at(MESSAGE_TEXT),
+					message_info.at(MESSAGE_MEDIA), message_info.at(MESSAGE_ID)));
 	}
 	else
 	{
 		m_strQuery = std::move(u"INSERT INTO %1 "
-				"(msgid,sender,receiver,sdate,stime,rdate,rtime,deleted,sent,received,text,media) "
-				"VALUES(%2, %3, %4, %5, %6, %7, %8, %9, %10, %11,\'%12\', \'%13\');"_s
+				"(msgid,sender,receiver,sdate,stime,rdate,rtime,deleted,sent,received,read,text,media) "
+				"VALUES(%2, %3, %4, %5, %6, %7, %8, %9, %10, %11, %12, \'%13\', \'%14\');"_s
 			.arg(tableName(), message_info.at(MESSAGE_ID), message_info.at(MESSAGE_SENDER), message_info.at(MESSAGE_RECEIVER),
 				message_info.at(MESSAGE_SDATE), message_info.at(MESSAGE_STIME), message_info.at(MESSAGE_RDATE),
 				message_info.at(MESSAGE_RTIME), message_info.at(MESSAGE_DELETED), message_info.at(MESSAGE_SENT),
-				message_info.at(MESSAGE_RECEIVED), message_info.at(MESSAGE_TEXT), message_info.at(MESSAGE_MEDIA)));
+				message_info.at(MESSAGE_RECEIVED), message_info.at(MESSAGE_READ), message_info.at(MESSAGE_TEXT),
+				message_info.at(MESSAGE_MEDIA)));
 	}
 	const bool success{execQuery(m_strQuery, false)};
 	emit queryExecuted(success, false);

@@ -12,6 +12,7 @@ import "./MesocyclePageElements"
 
 TPPage {
 	id: mesoPropertiesPage
+	imageSource: ":/images/backgrounds/meso_backimage.jpg"
 	objectName: "mesoPage"
 
 	required property MesoManager mesoManager

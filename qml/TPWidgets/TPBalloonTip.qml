@@ -180,11 +180,7 @@ TPPopup {
 
 		property point prevPos
 
-		onPressed: (mouse) => {
-			prevPos = { x: mouse.x, y: mouse.y };
-			pressedFunction(mouse);
-		}
-
+		onPressed: (mouse) => prevPos = { x: mouse.x, y: mouse.y };
 		onPositionChanged: (mouse) => {
 			if (!balloon.movable) {
 				const deltaX = mouse.x - prevPos.x;

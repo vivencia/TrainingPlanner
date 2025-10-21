@@ -12,6 +12,7 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPage {
 	id: exercisesPage
+	imageSource: ":/images/backgrounds/exercises_backimage.jpg"
 	objectName: "exercisesPage"
 
 	required property ExercisesListManager exercisesManager

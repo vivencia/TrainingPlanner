@@ -10,6 +10,7 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPage {
 	id: homePage
+	imageSource: ":/images/backgrounds/backimage4.jpg"
 
 	property date minimumStartDate;
 
