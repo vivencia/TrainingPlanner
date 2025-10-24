@@ -7,10 +7,11 @@
 
 using namespace Qt::Literals::StringLiterals;
 
-constexpr QLatin1Char record_separator(28);
-constexpr QLatin1Char exercises_separator(29);
-constexpr QLatin1Char comp_exercise_separator(30);
+constexpr QLatin1Char exercises_separator(28);
+constexpr QLatin1Char comp_exercise_separator(29);
+constexpr QLatin1Char record_separator(30);
 constexpr QLatin1Char set_separator(31);
+
 constexpr QLatin1Char fancy_record_separator1('|');
 constexpr QLatin1Char fancy_record_separator2(';');
 constexpr QLatin1StringView comp_exercise_fancy_separator(" + "_L1);

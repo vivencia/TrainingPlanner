@@ -7,38 +7,12 @@
 BASE_SERVER_DIR="/var/www/html"
 TP_DIR=$BASE_SERVER_DIR"/trainingplanner"
 PHP_FPM_SERVICE="php-fpm"
-SCRIPT_NAME=$(basename "$0")
-USER_NAME=$(whoami)
-PASSWORD=""
+SCRIPTS_DIR="$TP_DIR/scripts"
+
+source "$SCRIPTS_DIR/function_library.sh"
 
 print_usage() {
 	echo "Usage: $SCRIPT_NAME {setup|status|start|stop|restart|pause|createdb}" >&2
-}
-
-get_passwd() {
-	if [ ! "$PASSWORD" ]; then
-		read -p "Sudo's password: " -sr
-		PASSWORD=$REPLY
-		if ! echo "$PASSWORD" | sudo -S whoami | grep -q "root"; then
-			echo "Wrong sudo password. Exiting..."
-			return 1
-		fi
-		echo
-	else
-		if ! echo "$PASSWORD" | sudo -S whoami | grep -q "root"; then
-			echo "Wrong sudo password. Exiting..."
-			return 1
-		fi
-	fi
-	return 0
-}
-
-run_as_sudo() {
-	if get_passwd; then
-		echo "$PASSWORD" | sudo -S "$@" | grep -q "root"
-		return 0
-	fi
-	exit 3
 }
 
 for i in "$@"; do
@@ -62,9 +36,6 @@ for i in "$@"; do
 done
 
 SOURCES_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd ) #the directory of this script
-SCRIPTS_DIR="$TP_DIR/scripts"
-
-NGINX="$(which nginx)"
 NGINX_CONFIG_DIR="/etc/nginx"
 NGINX_SERVER_CONFIG_DIR="/etc/nginx/conf.d"
 NGINX_USER="www-data"
@@ -104,27 +75,6 @@ create_users_db() {
 		echo "Failed to create users database: " $USERS_DB
 		return 1
 	fi
-}
-
-find_local_ip() {
-	SERVER_IP=""
-	INTERFACE_DATA=$(ip addr show | grep 'inet.*wlan0')
-	N_WORDS=$(echo "${INTERFACE_DATA}" | awk -F ' ' '{ print NF }')
-	(( N_WORDS++ ))
-	(( z=1 ))
-	while [ $z -ne "$N_WORDS" ]; do
-		WORD=$(echo "${INTERFACE_DATA}" | cut -d ' ' -s -f $z)
-		if [ $WORD ]; then
-			SERVER_IP=$(echo "${WORD}" | cut -d '/' -s -f 1)
-			if [ $SERVER_IP ]; then
-				return 0
-			fi
-		else
-			(( N_WORDS++ ))
-		fi
-		(( z++))
-	done
-	return 1
 }
 
 query_address() {
@@ -174,47 +124,6 @@ test_tp_server() {
 			fi
 		;;
 	esac
-}
-
-start_nginx() {
-	if [ -f "$NGINX" ]; then
-		if pgrep -fl "$NGINX" &>/dev/null; then
-			echo "The NGINX service is already running."
-		else
-			echo "Starting NGINX..."
-			if ! run_as_sudo systemctl start nginx; then
-				echo "Error starting nginx service."
-				return 2
-			else
-				echo "The NGINX service started successfully."
-			fi
-		fi
-		return 0;
-	else
-		echo "Please install NGINX."
-		return 2
-	fi
-	return 0
-}
-
-stop_nginx() {
-	if [ -f "$NGINX" ]; then
-		if pgrep -fl "$NGINX" &>/dev/null; then
-			echo "Stopping the NGINX service..."
-			if ! run_as_sudo systemctl stop nginx; then
-				echo "Error starting the NGINX service."
-				return 2
-			else
-				echo "The NGINX service started successfully."
-			fi
-		else
-			echo "The NGINX service is not running."
-		fi
-		return 0
-	else
-		echo "Please install NGINX."
-		return 2
-	fi
 }
 
 start_phpfpm() {

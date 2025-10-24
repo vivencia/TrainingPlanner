@@ -722,6 +722,66 @@ function remove_coach_from_coaches($client, $coach) {
 	}
 }
 
+/*
+	record_separator(oct 036, dec 30) separates the message fields
+	set_separator (oct 037, dec 31) separates messages of the same sender
+	exercises_separator (oct 034 dec 28) separates the senders (the even number are the messages content and the odd numbers are the sender ids)
+*/
+
+function get_newmessages($username) {
+	global $rootdir;
+	$messages_dir = $rootdir . $username . "/chats";
+	if (!create_dir($messages_dir))
+		die(get_return_code("directory not writable") . ": Unable to create messages dir " .$messages_dir);
+
+	$files = array_values(array_diff(scandir($messages_dir), array('.', '..')));
+	if (count($files) > 0) {
+		$content = "";
+		echo "0: ";
+		foreach ($files as &$file) {
+			$content = $content . file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+			$content = $content . "\034" . $file . "\034";
+		}
+	}
+	else
+		echo get_return_code("directory empty") . ": No new messages";
+}
+
+function new_message($username, $receiver, $message) {
+	global $rootdir;
+	$messages_dir = $rootdir . $username . "/chats/";
+	if (!create_dir($messages_dir))
+		die(get_return_code("directory not writable") . ": Unable to create messages dir " .$messages_dir);
+	$messages_file = $messages_dir . $receiver;
+
+	if (!file_exists($messages_file)) {
+		$fh = fopen($messages_file, "w") or die(get_return_code("open write failed") . ": Unable to create messages file " . $messages_file);
+		chper($messages_file);
+	}
+	else
+		$fh = fopen($messages_file, "a+") or die(get_return_code("open write failed") . ": Unable to append to to messages file " . $messages_file);
+	fwrite($fh, $message . "\037");
+	fclose($fh);
+	echo "0: Message Sent!";
+}
+
+function message_worker($username, $other_user, $messageid, $argument) {
+	global $rootdir;
+	$messages_dir = $rootdir . $username . "/chats/";
+	if (!create_dir($messages_dir))
+		die(get_return_code("directory not writable") . ": Unable to create messages dir " .$messages_dir);
+	$messages_file = $messages_dir . $other_user . $argument;
+	if (!file_exists($messages_file)) {
+		$fh = fopen($messages_file, "w") or die(get_return_code("open write failed") . ": Unable to create " . $messages_file);
+		chper($messages_file);
+	}
+	else
+		$fh = fopen($messages_file, "a+") or die(get_return_code("open write failed") . ": Unable to append to " . $messages_file);
+	fwrite($fh, $messageid . "\037");
+	fclose($fh);
+	echo "0: Message " . $argument . "!";
+}
+
 function run_htpasswd($cmd_args, $username, $password) {
 	global $htpasswd;
 	global $htpasswd_file;
@@ -966,6 +1026,43 @@ if ($username) {
 					exit;
 				}
 
+				if (isset($_GET['getnewmessages'])) {
+					get_newmessages($username);
+					exit;
+				}
+				if (isset($_GET['sendmessage'])) {
+					$receiver=$_GET['sendmessage'];
+					$receiver != "" or die(get_return_code("argument missing") . ": No receiver argument **sendmessage**");
+					$message = $_GET['message'];
+					$message != "" or die(get_return_code("argument missing") . ": No message argument **sendmessage**");
+					new_message($username, $receiver, $message);
+					exit;
+				}
+				if (isset($_GET['messagereceived'])) {
+					$sender=$_GET['messagereceived'];
+					$sender != "" or die(get_return_code("argument missing") . ": No sender argument **messagereceived**");
+					$messageid = $_GET['messageid'];
+					$messageid != "" or die(get_return_code("argument missing") . ": No message id argument **messagereceived**");
+					message_worker($username, $sender, $messageid, "received");
+					exit;
+				}
+				if (isset($_GET['messageread'])) {
+					$sender=$_GET['messageread'];
+					$sender != "" or die(get_return_code("argument missing") . ": No sender argument **messageread**");
+					$messageid = $_GET['messageid'];
+					$messageid != "" or die(get_return_code("argument missing") . ": No message id argument **messageread**");
+					message_worker($username, $sender, $messageid, "read");
+					exit;
+				}
+				if (isset($_GET['removemessage'])) {
+					$receiver=$_GET['removemessage'];
+					$receiver != "" or die(get_return_code("argument missing") . ": No receiver argument **removemessage**");
+					$messageid = $_GET['messageid'];
+					$messageid != "" or die(get_return_code("argument missing") . ": No message id argument **removemessage**");
+					message_worker($username, $sender, $messageid, "removed");
+					exit;
+				}
+
 				if (isset($_GET['upload'])) {
 					$targetuser = $_GET['targetuser'];
 					if ($targetuser)
@@ -1066,6 +1163,8 @@ if ($username) {
 						if ($ok == 0) {
 							$userdir = $rootdir . $username;
 							if (!create_dir($userdir . "/Database")) //Creates the user dir and its database subdir
+								$ok = 1;
+							if (!create_dir($userdir . "/chats")) //Creates the user dir and its database subdir
 								$ok = 1;
 						}
 						if ($ok == 0)

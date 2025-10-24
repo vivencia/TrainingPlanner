@@ -4,7 +4,8 @@
 #include "tponlineservices.h"
 #include "../dbinterface.h"
 #include "../dbusermodel.h"
-#include "../dbmesocalendarmanager.h"
+#include "../dbmesocalendarmanager.h" //for TPBool
+#include "../tpkeychain/tpkeychain.h"
 
 using namespace Qt::Literals::StringLiterals;
 
@@ -64,8 +65,7 @@ TPChat::TPChat(const QString &otheruser_id, QObject *parent)
 			disconnect(*conn);
 			QList<QStringList> whole_chat{std::move(m_chatDB->wholeChat())};
 			for (auto &&str_message : whole_chat)
-			{
-				ChatMessage *message = new ChatMessage;
+			{				ChatMessage *message = new ChatMessage;
 				message->id = str_message.at(MESSAGE_ID).toUInt();
 				message->sender = std::move(str_message[MESSAGE_SENDER]);
 				message->receiver = std::move(str_message[MESSAGE_RECEIVER]);
@@ -90,19 +90,6 @@ TPChat::TPChat(const QString &otheruser_id, QObject *parent)
 	m_chatDB->loadChat();
 }
 
-void TPChat::incomingMessage(ChatMessage *incoming)
-{
-	incoming->received = true;
-	incoming->rdate = std::move(QDate::currentDate());
-	incoming->rtime = std::move(QTime::currentTime());
-	beginInsertRows(QModelIndex{}, count(), count());
-	m_messages.append(incoming);
-	emit countChanged();
-	endInsertRows();
-	saveChat(incoming);
-	appOnlineServices()->chatMessageReceived(appUserModel()->userId(0), m_otherUserId, QString::number(incoming->id));
-}
-
 void TPChat::newMessage(const QString &text, const QString &media)
 {
 	ChatMessage *message = new ChatMessage;
@@ -118,24 +105,44 @@ void TPChat::newMessage(const QString &text, const QString &media)
 	emit countChanged();
 	endInsertRows();
 	saveChat(message);
-	appOnlineServices()->sendMessage(appUserModel()->userId(0), m_otherUserId, std::move(encodeMessageToUpload(message)));
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,message] (const QString &key, const QString &value)
+	{
+		const int requestid{appUtils()->generateRandomNumber(0, 5000)};
+		appOnlineServices()->sendMessage(requestid, key, value, m_otherUserId, std::move(encodeMessageToUpload(message)));
+	}, Qt::SingleShotConnection);
+	appKeyChain()->readKey(appUserModel()->userId(0));
 }
 
-void TPChat::updateMessage(ChatMessage *incoming)
+void TPChat::incomingMessage(const QString &encoded_message)
 {
-	delete m_messages.at(incoming->id);
-	m_messages[incoming->id] = incoming;
-	saveChat(incoming);
+	ChatMessage *message{decodeDownloadedMessage(encoded_message)};
+	message->received = true;
+	message->rdate = std::move(QDate::currentDate());
+	message->rtime = std::move(QTime::currentTime());
+	beginInsertRows(QModelIndex{}, count(), count());
+	m_messages.append(message);
+	emit countChanged();
+	endInsertRows();
+	saveChat(message);
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,message] (const QString &key, const QString &value)
+	{
+		const int requestid{appUtils()->generateRandomNumber(0, 5000)};
+		appOnlineServices()->chatMessageReceived(requestid, key, value, m_otherUserId, QString::number(message->id));
+	}, Qt::SingleShotConnection);
+	appKeyChain()->readKey(appUserModel()->userId(0));
 }
 
-void TPChat::updateMessage(const uint msgid, const QString &text, const QString &media)
+void TPChat::messageRead(const uint msgid)
 {
 	ChatMessage *message{m_messages.at(msgid)};
-	message->text = text;
-	message->media = media;
-	emit dataChanged(index(msgid, 0), index(msgid, 0));
+	message->read = true;
 	saveChat(message);
-	appOnlineServices()->sendMessage(appUserModel()->userId(0), m_otherUserId, std::move(encodeMessageToUpload(message)));
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,message] (const QString &key, const QString &value)
+	{
+		const int requestid{appUtils()->generateRandomNumber(0, 5000)};
+		appOnlineServices()->chatMessageRead(requestid, key, value, m_otherUserId, QString::number(message->id));
+	}, Qt::SingleShotConnection);
+	appKeyChain()->readKey(appUserModel()->userId(0));
 }
 
 void TPChat::removeMessage(const uint msgid)
@@ -146,6 +153,20 @@ void TPChat::removeMessage(const uint msgid)
 	message->deleted = true;
 	emit dataChanged(index(msgid, 0), index(msgid, 0));
 	saveChat(message);
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,message] (const QString &key, const QString &value)
+	{
+		const int requestid{appUtils()->generateRandomNumber(0, 5000)};
+		appOnlineServices()->removeMessage(requestid, key, value, m_otherUserId, QString::number(message->id));
+	}, Qt::SingleShotConnection);
+	appKeyChain()->readKey(appUserModel()->userId(0));
+}
+
+void TPChat::clearChat()
+{
+	void beginResetModel();
+	m_chatDB->clearTable();
+	qDeleteAll(m_messages);
+	void endResetModel();
 }
 
 QString TPChat::encodeMessageToUpload(ChatMessage* message)
@@ -158,13 +179,36 @@ QString TPChat::encodeMessageToUpload(ChatMessage* message)
 					appUtils()->formatTime(message->stime, TPUtils::TF_ONLINE),
 					QString{},
 					QString{},
-					"0"_L1,
-					"1"_L1,
-					"0"_L1,
-					"0"_L1,
+					STR_ZERO,
+					STR_ONE,
+					STR_ZERO,
+					STR_ZERO,
 					message->text,
 					message->media
 	}, record_separator);
+}
+
+ChatMessage* TPChat::decodeDownloadedMessage(const QString &encoded_message)
+{
+	ChatMessage *new_message{new ChatMessage};
+	new_message->id = appUtils()->getCompositeValue(MESSAGE_ID, encoded_message, record_separator).toUInt();
+	new_message->sender = std::move(appUtils()->getCompositeValue(MESSAGE_SENDER, encoded_message, record_separator));
+	new_message->receiver = std::move(appUtils()->getCompositeValue(MESSAGE_RECEIVER, encoded_message, record_separator));
+	new_message->sdate = std::move(appUtils()->getDateFromDateString(
+							appUtils()->getCompositeValue(MESSAGE_SDATE, encoded_message, record_separator), TPUtils::DF_ONLINE));
+	new_message->rdate = std::move(appUtils()->getDateFromDateString(
+							appUtils()->getCompositeValue(MESSAGE_RDATE, encoded_message, record_separator), TPUtils::DF_ONLINE));
+	new_message->stime = std::move(appUtils()->getTimeFromTimeString(
+							appUtils()->getCompositeValue(MESSAGE_STIME, encoded_message, record_separator), TPUtils::TF_ONLINE));
+	new_message->rtime = std::move(appUtils()->getTimeFromTimeString(
+							appUtils()->getCompositeValue(MESSAGE_RTIME, encoded_message, record_separator), TPUtils::TF_ONLINE));
+	new_message->deleted = appUtils()->getCompositeValue(MESSAGE_DELETED, encoded_message, record_separator) == STR_ONE;
+	new_message->sent = appUtils()->getCompositeValue(MESSAGE_SENT, encoded_message, record_separator) == STR_ONE;
+	new_message->received = appUtils()->getCompositeValue(MESSAGE_RECEIVED, encoded_message, record_separator) == STR_ONE;
+	new_message->read = appUtils()->getCompositeValue(MESSAGE_READ, encoded_message, record_separator) == STR_ONE;
+	new_message->text = std::move(appUtils()->getCompositeValue(MESSAGE_TEXT, encoded_message, record_separator));
+	new_message->media = std::move(appUtils()->getCompositeValue(MESSAGE_MEDIA, encoded_message, record_separator));
+	return new_message;
 }
 
 void TPChat::saveChat(ChatMessage *message)
@@ -187,6 +231,27 @@ void TPChat::saveChat(ChatMessage *message)
 					message->media
 		});
 	});
+}
+
+QVariant TPChat::data(ChatMessage *message, const uint field) const
+{
+	switch (field)
+	{
+		case MESSAGE_ID: return message->id;
+		case MESSAGE_SENDER: return message->sender;
+		case MESSAGE_RECEIVER: return message->receiver;
+		case MESSAGE_SDATE: return message->sdate;
+		case MESSAGE_STIME: return message->stime;
+		case MESSAGE_RDATE: return message->rdate;
+		case MESSAGE_RTIME: return message->rtime;
+		case MESSAGE_DELETED: return static_cast<bool>(message->deleted);
+		case MESSAGE_SENT: return static_cast<bool>(message->sent);
+		case MESSAGE_RECEIVED: return static_cast<bool>(message->received);
+		case MESSAGE_READ: return static_cast<bool>(message->read);
+		case MESSAGE_TEXT: return message->text;
+		case MESSAGE_MEDIA: return message->media;
+	}
+	return QVariant{};
 }
 
 QVariant TPChat::data(const QModelIndex &index, int role) const

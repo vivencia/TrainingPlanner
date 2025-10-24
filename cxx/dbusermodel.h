@@ -33,7 +33,6 @@
 #define USER_MODIFIED_REMOVED 102
 #define USER_MODIFIED_ACCEPTED 103
 
-QT_FORWARD_DECLARE_CLASS(TPChat)
 QT_FORWARD_DECLARE_CLASS(QTimer)
 
 class DBUserModel : public QObject
@@ -334,8 +333,6 @@ public:
 	bool importFromString(const QString &user_data);
 	int newUserFromFile(const QString &filename, const std::optional<bool> &file_formatted = std::nullopt);
 
-	Q_INVOKABLE void openChatWith(const QString &user_name);
-
 public slots:
 	void getPasswordFromUserInput(const int resultCode, const QString &password);
 	void slot_unregisterUser(const bool unregister);
@@ -388,7 +385,6 @@ private:
 	QStringList m_coachesNames, m_clientsNames;
 	bool mb_canConnectToServer, mb_coachPublic, mb_MainUserInfoChanged;
 	QTimer *m_mainTimer;
-	QHash<QString,TPChat*> m_chatsList;
 
 #ifndef Q_OS_ANDROID
 	OnlineUserInfo *m_allUsers;

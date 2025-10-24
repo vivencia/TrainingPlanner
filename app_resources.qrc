@@ -129,5 +129,7 @@
         <file>images/flat/message-read.png</file>
         <file>images/flat/message-sent.png</file>
         <file>images/flat/resize-window.png</file>
+        <file>images/unknown-user.png</file>
+        <file>images/new-messages.png</file>
     </qresource>
 </RCC>

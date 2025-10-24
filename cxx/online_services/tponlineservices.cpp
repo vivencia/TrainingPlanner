@@ -421,40 +421,6 @@ void TPOnlineServices::removeFile(const int requestid, const QString &username, 
 	makeNetworkRequest(requestid, url, true);
 }
 
-bool TPOnlineServices::remoteFileUpToDate(const QString &onlineDate, const QString &localFile) const
-{
-	QFileInfo fi{localFile};
-	if (fi.exists())
-	{
-		const QDateTime &c_time{fi.lastModified()};
-		const QDateTime &online_ctime{appUtils()->getDateTimeFromOnlineString(onlineDate)};
-		return online_ctime >= c_time;
-	}
-	return true;
-}
-
-bool TPOnlineServices::localFileUpToDate(const QString &onlineDate, const QString &localFile) const
-{
-	QFileInfo fi{localFile};
-	if (fi.exists())
-	{
-		const QDateTime &c_time{fi.lastModified()};
-		const QDateTime &online_ctime{appUtils()->getDateTimeFromOnlineString(onlineDate)};
-		return c_time >= online_ctime;
-	}
-	return false;
-}
-
-void TPOnlineServices::chatMessageReceived(const QString &receiver, const QString &sender, const QString &msgid) const
-{
-
-}
-
-void TPOnlineServices::sendMessage(const QString &receiver, const QString &sender, const QString &encoded_message) const
-{
-
-}
-
 void TPOnlineServices::getFile(const int requestid, const QString &username, const QString &passwd, const QString &filename, const QString &subdir,
 									const QString &targetUser, const QString &localFilePath)
 {
@@ -510,10 +476,39 @@ void TPOnlineServices::getCmdFile(const int requestid, const QString &username, 
 	makeNetworkRequest(requestid, url, true);
 }
 
+void TPOnlineServices::checkMessages(const int requestid, const QString &username, const QString &passwd)
+{
+	const QUrl &url{makeCommandURL(username, passwd, "getnewmessages"_L1)};
+	makeNetworkRequest(requestid, url, true);
+}
+
+void TPOnlineServices::sendMessage(const int requestid, const QString &username, const QString &passwd, const QString &receiver, const QString &encoded_message)
+{
+	const QUrl &url{makeCommandURL(username, passwd, "sendmessage"_L1, receiver, "message"_L1, encoded_message)};
+	makeNetworkRequest(requestid, url, true);
+}
+
+void TPOnlineServices::chatMessageReceived(const int requestid, const QString &username, const QString &passwd, const QString &sender, const QString &msgid)
+{
+	const QUrl &url{makeCommandURL(username, passwd, "messagereceived"_L1, sender, "messageid"_L1, msgid)};
+	makeNetworkRequest(requestid, url, true);
+}
+
+void TPOnlineServices::chatMessageRead(const int requestid, const QString &username, const QString &passwd, const QString &sender, const QString &msgid)
+{
+	const QUrl &url{makeCommandURL(username, passwd, "messageread"_L1, sender, "messageid"_L1, msgid)};
+	makeNetworkRequest(requestid, url, true);
+}
+
+void TPOnlineServices::removeMessage(const int requestid, const QString &username, const QString &passwd, const QString &receiver, const QString &msgid)
+{
+	const QUrl &url{makeCommandURL(username, passwd, "removemessage"_L1, receiver, "messageid"_L1, msgid)};
+	makeNetworkRequest(requestid, url, true);
+}
+
 QString TPOnlineServices::makeCommandURL(const QString &username, const QString &passwd, const QString &option1,
 								const QString &value1, const QString &option2, const QString &value2,
-								const QString &option3, const QString &value3
-							)
+								const QString &option3, const QString &value3)
 {
 	QString ret{server_address.arg(appSettings()->serverAddress()) + "?user="_L1 + username + "&password="_L1 + passwd};
 	if (!option1.isEmpty())
@@ -654,4 +649,28 @@ void TPOnlineServices::checkServerResponse(const int ret_code, const QString &re
 	else if (ret_string.contains("server paused"_L1))
 		online_status = 2;
 	emit _serverResponse(online_status, address);
+}
+
+bool TPOnlineServices::remoteFileUpToDate(const QString &onlineDate, const QString &localFile) const
+{
+	QFileInfo fi{localFile};
+	if (fi.exists())
+	{
+		const QDateTime &c_time{fi.lastModified()};
+		const QDateTime &online_ctime{appUtils()->getDateTimeFromOnlineString(onlineDate)};
+		return online_ctime >= c_time;
+	}
+	return true;
+}
+
+bool TPOnlineServices::localFileUpToDate(const QString &onlineDate, const QString &localFile) const
+{
+	QFileInfo fi{localFile};
+	if (fi.exists())
+	{
+		const QDateTime &c_time{fi.lastModified()};
+		const QDateTime &online_ctime{appUtils()->getDateTimeFromOnlineString(onlineDate)};
+		return c_time >= online_ctime;
+	}
+	return false;
 }

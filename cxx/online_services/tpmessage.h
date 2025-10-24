@@ -11,23 +11,26 @@ class TPMessage : public QObject
 Q_OBJECT
 QML_ELEMENT
 
-Q_PROPERTY(int id READ id WRITE setId NOTIFY idChanged FINAL)
+/*Q_PROPERTY(int id READ id WRITE setId NOTIFY idChanged FINAL)
 Q_PROPERTY(QString displayText READ displayText WRITE setDisplayText NOTIFY displayTextChanged FINAL)
 Q_PROPERTY(QString iconSource READ iconSource WRITE setIconSource NOTIFY iconSourceChanged FINAL)
 Q_PROPERTY(QString date READ date CONSTANT)
 Q_PROPERTY(QString time READ time CONSTANT)
+Q_PROPERTY(QString extraInfoLabel READ extraInfoLabel WRITE setExtraInfoLabel NOTIFY extraInfoChanged FINAL)
+Q_PROPERTY(QString extraInfoImage READ extraInfoImage WRITE setExtraInfoImage NOTIFY extraInfoChanged FINAL)
 Q_PROPERTY(QStringList actions READ actions NOTIFY actionsChanged FINAL)
 Q_PROPERTY(bool sticky READ sticky WRITE setSticky NOTIFY stickyChanged FINAL)
-Q_PROPERTY(bool hasActions READ hasActions NOTIFY hasActionsChanged FINAL)
+Q_PROPERTY(bool hasActions READ hasActions NOTIFY hasActionsChanged FINAL)*/
+//TODO: remove the signals
 
 public:
 	inline explicit TPMessage(TPMessagesManager *parent) : QObject{nullptr}, m_parent{parent}, m_id{-1},
 									m_plugged{false}, m_autodelete{true}, m_sticky{false} {}
-	inline TPMessage(const QString &displayText, const QString &iconSource, TPMessagesManager *parent)
+	inline TPMessage(QString &&displayText, QString &&iconSource, TPMessagesManager *parent)
 			: QObject{nullptr}, m_parent{parent}, m_id{-1}, m_plugged{false}, m_autodelete{true}, m_sticky{false}
 	{
-		setDisplayText(displayText, false);
-		setIconSource(iconSource, false);
+		setDisplayText(std::move(displayText), false);
+		setIconSource(std::move(iconSource), false);
 	}
 
 	inline int id() const { return m_id; }
@@ -36,14 +39,29 @@ public:
 	inline const QString &_displayText() const { return m_text; }
 	//32 is the space character. All the separators are 31 or less. Good output is 33 or greater
 	inline QString displayText() const { return static_cast<int>(m_text.last(1).at(0).toLatin1()) > 32 ? m_text : m_text.chopped(1); }
-	void setDisplayText(const QString &new_text, const bool emitSignal = true) { m_text = new_text; if (emitSignal) emit displayTextChanged(); }
+	void setDisplayText(QString &&new_text, const bool emitSignal = true)
+	{
+		m_text = std::move(new_text);
+		if (emitSignal)
+			emit displayTextChanged();
+	}
 
 	inline const QString &_iconSource() const { return m_icon; }
 	inline QString iconSource() const { return m_icon; }
-	void setIconSource(const QString &new_icon, const bool emitSignal = true) { m_icon = new_icon; if (emitSignal) emit iconSourceChanged(); }
+	void setIconSource(QString &&new_icon, const bool emitSignal = true)
+	{
+		m_icon = std::move(new_icon);
+		if (emitSignal)
+			emit iconSourceChanged();
+	}
 
 	QString date() const;
 	QString time() const;
+
+	inline const QString &extraInfoLabel() const { return m_extraInfoLabel; }
+	inline void setExtraInfoLabel(const QString &new_label) { m_extraInfoLabel = new_label; emit extraInfoChanged(); }
+	inline const QString &extraInfoImage() const { return m_extraInfoImage; }
+	inline void setExtraInfoImage(const QString &new_image) { m_extraInfoImage = new_image; emit extraInfoChanged(); }
 
 	inline const bool plugged() const { return m_plugged; }
 	void plug();
@@ -107,6 +125,7 @@ signals:
 	void idChanged();
 	void displayTextChanged();
 	void iconSourceChanged();
+	void extraInfoChanged();
 	void actionsChanged();
 	void stickyChanged();
 	void hasActionsChanged();
@@ -117,6 +136,7 @@ private:
 	bool m_plugged, m_autodelete, m_sticky;
 	QString m_text;
 	QString m_icon;
+	QString m_extraInfoImage, m_extraInfoLabel;
 	QStringList m_actions;
 	QVariantList m_data;
 	QDateTime m_ctime;

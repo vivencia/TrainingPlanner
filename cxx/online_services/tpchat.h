@@ -33,12 +33,13 @@ public:
 	Q_INVOKABLE inline uint count() const { return m_messages.count(); }
 	inline const QString &otherUserId() const { return m_otherUserId; }
 
-	void incomingMessage(ChatMessage *incoming);
 	Q_INVOKABLE void newMessage(const QString &text, const QString &media = QString{});
-	void updateMessage(ChatMessage *incoming);
-	Q_INVOKABLE void updateMessage(const uint msgid, const QString &text, const QString &media = QString{});
+	void incomingMessage(const QString &encoded_message);
+	Q_INVOKABLE void messageRead(const uint msgid);
 	Q_INVOKABLE void removeMessage(const uint msgid);
 	void clearChat();
+
+	QVariant data(ChatMessage* message, const uint field) const;
 
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
 	QVariant data(const QModelIndex &index, int role) const override final;
@@ -55,6 +56,9 @@ private:
 	TPChatDB *m_chatDB;
 
 	QString encodeMessageToUpload(ChatMessage* message);
+	ChatMessage* decodeDownloadedMessage(const QString &encoded_message);
 	void saveChat(ChatMessage *message);
+
+	friend class TPMessagesManager;
 };
 

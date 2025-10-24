@@ -50,7 +50,7 @@ Q_PROPERTY(PagesListModel* appPagesModel READ appPagesModel NOTIFY userChangedSi
 public:
 	explicit inline QmlItemManager(QQmlApplicationEngine *qml_engine)
 		: QObject{nullptr}, m_usersManager{nullptr}, m_exercisesListManager{nullptr}, m_weatherPage{nullptr},
-				m_statisticsPage{nullptr}, m_allWorkoutsPage{nullptr}, m_chatWindowComponent{nullptr}
+				m_statisticsPage{nullptr}, m_allWorkoutsPage{nullptr}
 	{
 		_appItemManager = this;
 		_appQmlEngine = qml_engine;
@@ -61,6 +61,7 @@ public:
 
 	inline DBMesocyclesModel *appMesocyclesModel() const { return appMesoModel(); }
 	inline PagesListModel *appPagesModel() const { return appPagesListModel(); }
+	inline QQuickItem* appHomePage() const { return m_homePage; }
 
 	Q_INVOKABLE void exitApp();
 	Q_INVOKABLE void chooseFileToImport();
@@ -73,8 +74,6 @@ public:
 	Q_INVOKABLE void getWeatherPage();
 	Q_INVOKABLE void getStatisticsPage();
 	Q_INVOKABLE void getAllWorkoutsPage();
-	void openChatWindow(TPChat *chat_manager);
-	void removeChatWindow(const QString &other_userid);
 
 	void showSimpleExercisesList(QQuickItem *parentPage, const QString &filter) const;
 	void hideSimpleExercisesList(QQuickItem *parentPage) const;
@@ -101,11 +100,9 @@ private:
 	QString m_exportFilename, m_importFilename;
 	QmlUserInterface *m_usersManager;
 	QmlExercisesDatabaseInterface *m_exercisesListManager;
-	QQmlComponent *m_weatherComponent, *m_statisticsComponent, *m_allWorkoutsComponent, *m_chatWindowComponent;
+	QQmlComponent *m_weatherComponent, *m_statisticsComponent, *m_allWorkoutsComponent;
 	QQuickItem *m_homePage, *m_weatherPage, *m_statisticsPage, *m_allWorkoutsPage;
 	TPWorkoutsCalendar *m_wokoutsCalendar;
-	QVariantMap m_chatWindowProperties;
-	QHash<QString,QQuickItem*> m_chatWindowList;
 
 	static QmlItemManager *_appItemManager;
 	friend QmlItemManager *appItemManager();
@@ -119,7 +116,6 @@ private:
 	void createWeatherPage_part2();
 	void createStatisticsPage_part2();
 	void createAllWorkoutsPage_part2();
-	void createChatWindow_part2(TPChat *chat_manager);
 };
 
 inline QmlItemManager *appItemManager() { return QmlItemManager::_appItemManager; }

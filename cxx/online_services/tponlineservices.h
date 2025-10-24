@@ -83,11 +83,11 @@ public:
 	void getCmdFile(const int requestid, const QString &username, const QString &passwd, const QString &filename,
 						const QString &subdir = QString{});
 
-	bool remoteFileUpToDate(const QString &onlineDate, const QString &localFile) const;
-	bool localFileUpToDate(const QString &onlineDate, const QString &localFile) const;
-
-	void chatMessageReceived(const QString &receiver, const QString &sender, const QString &msgid) const;
-	void sendMessage(const QString &receiver, const QString &sender, const QString &encoded_message) const;
+	void checkMessages(const int requestid, const QString &username, const QString &passwd);
+	void sendMessage(const int requestid, const QString &username, const QString &passwd, const QString &receiver, const QString &encoded_message);
+	void chatMessageReceived(const int requestid, const QString &username, const QString &passwd, const QString &sender, const QString &msgid);
+	void chatMessageRead(const int requestid, const QString &username, const QString &passwd, const QString &sender, const QString &msgid);
+	void removeMessage(const int requestid, const QString &username, const QString &passwd, const QString &receiver, const QString &msgid);
 
 signals:
 	void networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string);
@@ -106,6 +106,8 @@ private:
 	void handleServerRequestReply(const int requestid, QNetworkReply *reply, const bool b_internal_signal_only = false);
 	void uploadFile(const int requestid, const QUrl &url, QFile *file, const bool b_internal_signal_only = false);
 	void checkServerResponse(const int ret_code, const QString &ret_string, const QString &address);
+	bool remoteFileUpToDate(const QString &onlineDate, const QString &localFile) const;
+	bool localFileUpToDate(const QString &onlineDate, const QString &localFile) const;
 
 	QNetworkAccessManager *m_networkManager;
 #ifndef Q_OS_ANDROID

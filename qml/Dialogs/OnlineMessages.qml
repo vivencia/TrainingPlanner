@@ -205,7 +205,7 @@ Popup {
 
 			delegate: SwipeDelegate {
 				id: delegateItem
-				swipe.enabled: !appMessages.messageEntry(index).sticky
+				swipe.enabled: sticky
 				clip: true
 				padding: 0
 				spacing: 5
@@ -246,17 +246,38 @@ Popup {
 							Layout.rightMargin: 10
 
 							TPImage {
-								source: appMessages.messageEntry(index).iconSource
+								source: iconSource
 								dropShadow: false
 								width: 20
 								height: 20
 							}
 
 							TPLabel {
-								text: appMessages.messageEntry(index).date + "  " + appMessages.messageEntry(index).time
+								text: date + "  " + time
 								font: AppGlobals.smallFont
 								height: 15
 								Layout.leftMargin: 20
+							}
+
+							Item {
+								width: appSettings.itemSmallHeight
+								height: width
+								visible: extraInfoLabel.length > 0
+
+								TPImage {
+									id: extraInfoImg
+									source: extraInfoIcon
+									anchors.fill: parent
+								}
+								TPLabel {
+									text: extraInfoLabel
+									horizontalAlignment: Text.AlignHCenter
+									minimumPixelSize: appSettings.smallFontSize * 0.8
+									z: 1
+									width: parent.width * 0.5
+									height: parent.height * 0.8
+									anchors.centerIn: extraInfoImg
+								}
 							}
 
 							TPImage {
@@ -272,7 +293,7 @@ Popup {
 
 					TPLabel {
 						id: lblMessage
-						text: appMessages.messageEntry(index).displayText
+						text: displayText
 						color: "black"
 						elide: delegateItem.showActions ? Text.ElideNone : Text.ElideRight
 						wrapMode: delegateItem.showActions ? Text.WordWrap : Text.NoWrap
@@ -283,7 +304,12 @@ Popup {
 
 						MouseArea {
 							anchors.fill: parent
-							onClicked: delegateItem.setShowActions(!delegateItem.showActions);
+							onClicked: {
+								if (hasActions)
+									delegateItem.setShowActions(!delegateItem.showActions);
+								else
+									appMessages.itemClicked(index);
+							}
 						}
 					}
 
@@ -297,19 +323,19 @@ Popup {
 						Layout.minimumWidth: dlgMaxWidth
 
 						readonly property int maxButtonWidth: (dlgMaxWidth - 25)/3
+						readonly property int msgIndex: index
 
 						Repeater {
 							id: actionsRepeater
-							model: appMessages.messageEntry(index).actions
+							model: actions
 
-							readonly property int msgIndex: index
 							delegate: TPButton {
-								text: appMessages.messageEntry(actionsRepeater.msgIndex).actions[index]
+								text: actions[index]
 								width: constrainSize ? actionsLayout.maxButtonWidth : defaultWidth()
 								autoSize: constrainSize
 								Layout.leftMargin: 0
 								Layout.rightMargin: 0
-								onClicked: appMessages.messageEntry(actionsRepeater.msgIndex).execAction(index);
+								onClicked: appMessages.execAction(msgIndex, index);
 
 								required property int index
 								property bool constrainSize: false
@@ -385,7 +411,7 @@ Popup {
 						}
 					}
 				} //swipe.right
-				swipe.onCompleted: appMessages.removeMessage(appMessages.messageEntry(index));
+				swipe.onCompleted: appMessages.removeMessage(index);
 			} //delegate
 		} // messagesList
 
@@ -439,7 +465,7 @@ Popup {
 	}
 
 	function openChat(user_name: string): void {
-		userModel.openChat(user_name);
+		appMessages.openChat(user_name);
 		mainLayout.currentIndex = appMessages.count > 0 ? 1 : 0;
 	}
 }
