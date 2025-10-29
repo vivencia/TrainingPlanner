@@ -1097,7 +1097,7 @@ QString TPUtils::subSetOfCompositeValue(const QString &value, const uint from, c
 	return ret.isEmpty() ? value + chr_sep : ret;
 }
 
-bool TPUtils::stringsAreSimiliar(const QString &string1, const QString &string2) const
+double TPUtils::similarityBetweenString(const QString &string1, const QString &string2) const
 {
 	const QStringList& words2{string2.split(' ')};
 	QStringList::const_iterator itr{words2.begin()};
@@ -1111,8 +1111,8 @@ bool TPUtils::stringsAreSimiliar(const QString &string1, const QString &string2)
 			matches++;
 	} while (++itr != itr_end);
 	if (matches > 0)
-		return (nwords/matches >= 0.8);
-	return false;
+	return static_cast<double>(nwords)/static_cast<double>(matches);
+	return 0.0;
 }
 
 QString TPUtils::stripDiacriticsFromString(const QString &src) const

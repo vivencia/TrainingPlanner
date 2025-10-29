@@ -43,7 +43,7 @@ public:
 	TPMessage *createChatMessage(const QString &userid, QString &&display_text, QString &&icon_source);
 	void openChatWindow(TPChat *chat_manager);
 	inline TPChat *chatManager(const QString &userid) const { return m_chatsList.value(userid); }
-	Q_INVOKABLE void openChat(const QString &user_name);
+	Q_INVOKABLE void openChat(const QString &username);
 
 	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
 	QVariant data(const QModelIndex &index, int role) const override final;

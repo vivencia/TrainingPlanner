@@ -10,7 +10,7 @@ Popup {
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	spacing: 0
 	padding: 0
-	clip: true
+	//clip: true
 
 	required property Page parentPage
 	property bool keepAbove: false
@@ -21,11 +21,13 @@ Popup {
 	property bool enableEffects: true
 	property int finalYPos: 0
 	property int startYPos: 0
+	property double titleBarOpacity: 1
 	property alias btnClose: btnCloseWindow
+	property alias titleBar: titlebar
 	property int _key_pressed
-	property TPBackRec backgroundRec: backRec
+	property TPBackRec backgroundRec: _backRec
 
-	readonly property int toolBarHeight: appSettings.itemDefaultHeight + 5
+	readonly property int titleBarHeight: appSettings.itemDefaultHeight + 5
 	signal keyboardNumberPressed(int key1, int key2);
 	signal keyboardEnterPressed();
 	signal backKeyPressed();
@@ -47,19 +49,18 @@ Popup {
 	}
 
 	TPBackRec {
-		id: backRec
+		id: _backRec
 		implicitHeight: height
 		implicitWidth: width
 		radius: 8
-		layer.enabled: true
-		visible: false
+		layer.enabled: enableEffects
+		visible: backgroundRec === this && !enableEffects
 	}
 
 	background: backgroundRec
 
 	MultiEffect {
 		enabled: enableEffects
-		id: backgroundEffect
 		visible: enableEffects
 		source: enableEffects ? backgroundRec : null
 		anchors.fill: backgroundRec
@@ -107,10 +108,11 @@ Popup {
 	}
 
 	TPBackRec {
-		id: toolbar
+		id: titlebar
 		useGradient: true
 		radius: 8
-		height: toolBarHeight
+		opacity: titleBarOpacity
+		height: titleBarHeight
 		visible: showTitleBar
 
 		anchors {
@@ -142,7 +144,7 @@ Popup {
 	TPMouseArea {
 		enabled: !disableMouseHandling
 		movableWidget: tpPopup
-		movingWidget: toolbar
+		movingWidget: titlebar
 		onPositionChanged: (mouse) => positionChangedFunction(mouse);
 	}
 

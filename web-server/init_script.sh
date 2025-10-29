@@ -39,9 +39,7 @@ SOURCES_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 NGINX_CONFIG_DIR="/etc/nginx"
 NGINX_SERVER_CONFIG_DIR="/etc/nginx/conf.d"
 NGINX_USER="www-data"
-
 PHP_FPM_CONFIG_DIR="/etc/php/php-fpm.d"
-
 ADMIN="admin"
 ADMIN_DIR="$TP_DIR/$ADMIN"
 USERS_DB="$TP_DIR/$ADMIN/users.db"

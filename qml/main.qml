@@ -57,7 +57,10 @@ ApplicationWindow {
 		id: appMessagesWidget
 		active: userModel.mainUserConfigured && userModel.onlineAccount
 		asynchronous: true
-		source: "qrc:/qml/Dialogs/OnlineMessages.qml"
+		sourceComponent: OnlineMessages{
+			parentPage: homePage
+		}
+		onLoaded: item.open();
 	}
 
 	function openMainMenu(): void {

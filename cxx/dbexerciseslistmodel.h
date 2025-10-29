@@ -23,6 +23,7 @@ QML_ELEMENT
 
 Q_PROPERTY(uint count READ count NOTIFY countChanged)
 Q_PROPERTY(int currentRow READ currentRow WRITE setCurrentRow NOTIFY currentRowChanged)
+Q_PROPERTY(bool hasExercises READ hasExercises NOTIFY hasExercisesChanged FINAL)
 
 Q_PROPERTY(QString exerciseNameLabel READ exerciseNameLabel NOTIFY labelsChanged)
 Q_PROPERTY(QString exerciseSpecificsLabel READ exerciseSpecificsLabel NOTIFY labelsChanged)
@@ -48,54 +49,98 @@ public:
 	inline QString muscularGroupsLabel() const { return tr("Muscular Groups: "); }
 	inline QString mediaLabel() const { return tr("Descriptive media: "); }
 
-	inline const QString &id(const uint index) const { return m_exercisesData.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_ID); }
-	inline const int _id(const uint index) const { return m_exercisesData.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_ID).toInt(); }
-	inline void setId(const uint index, const QString &new_id) { m_exercisesData[m_indexProxy.at(index)][EXERCISES_LIST_COL_ID] = new_id; }
-
-	Q_INVOKABLE inline QString mainName(const uint index) const { return m_exercisesData.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_MAINNAME); }
-	Q_INVOKABLE inline void setMainName(const uint index, const QString &new_name)
+	inline QString id(const uint index) const
 	{
-		m_exercisesData[m_indexProxy.at(index)][EXERCISES_LIST_COL_MAINNAME] = new_name;
-		addModifiedIndex(index);
+		return data(QAbstractListModel::index(index, 0), exerciseIdRole).toString();
+	}
+	inline const int _id(const uint index) const
+	{
+		return id(index).toUInt();
+	}
+	inline void setId(const uint index, const QString &new_id)
+	{
+		setData(QAbstractListModel::index(index, 0), new_id, exerciseIdRole);
 	}
 
-	Q_INVOKABLE inline QString subName(const uint index) const { return m_exercisesData.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_SUBNAME); }
-	Q_INVOKABLE inline void setSubName(const uint index, const QString &new_name)
+	Q_INVOKABLE inline QString mainName(const uint index) const
 	{
-		m_exercisesData[m_indexProxy.at(index)][EXERCISES_LIST_COL_SUBNAME] = new_name;
-		addModifiedIndex(index);
+		return data(QAbstractListModel::index(index, 0), mainNameRole).toString();
+	}
+	Q_INVOKABLE inline void setMainName(const uint index, const QString &new_name)
+	{
+		setData(QAbstractListModel::index(index, 0), new_name, mainNameRole);
+	}
+
+	Q_INVOKABLE inline QString subName(const uint index) const
+	{
+		return data(QAbstractListModel::index(index, 0), subNameRole).toString();
+	}
+	Q_INVOKABLE inline void setSubName(const uint index, const QString &new_subname)
+	{
+		setData(QAbstractListModel::index(index, 0), new_subname, subNameRole);
 	}
 
 	Q_INVOKABLE QString muscularGroup(const uint index) const;
 	Q_INVOKABLE inline void setMuscularGroup(const uint index, const QString &new_group)
 	{
-		m_exercisesData[m_indexProxy.at(index)][EXERCISES_LIST_COL_MUSCULARGROUP] = new_group;
-		addModifiedIndex(index);
+		setData(QAbstractListModel::index(index, 0), new_group, muscularGroupRole);
 	}
 
-	Q_INVOKABLE inline QString mediaPath(const uint index) const { return m_exercisesData.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_MEDIAPATH); }
+	Q_INVOKABLE inline QString mediaPath(const uint index) const
+	{
+		return data(QAbstractListModel::index(index, 0), mediaPathRole).toString();
+	}
 	Q_INVOKABLE inline void setMediaPath(const uint index, const QString &new_path)
 	{
-		m_exercisesData[m_indexProxy.at(index)][EXERCISES_LIST_COL_MEDIAPATH] = new_path;
-		addModifiedIndex(index);
+		setData(QAbstractListModel::index(index, 0), new_path, mediaPathRole);
 	}
 
-	Q_INVOKABLE inline uint actualIndex(const uint index) const { return m_exercisesData.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_ACTUALINDEX).toUInt(); }
+	Q_INVOKABLE inline uint actualIndex(const uint index) const
+	{
+		return data(QAbstractListModel::index(index, 0), actualIndexRole).toUInt();
+	}
 	Q_INVOKABLE inline void setActualIndex(const uint index, const uint new_index)
 	{
-		m_exercisesData[m_indexProxy.at(index)][EXERCISES_LIST_COL_ACTUALINDEX] = QString::number(new_index);
+		setData(QAbstractListModel::index(index, 0), QString::number(new_index), actualIndexRole);
 	}
 
-	Q_INVOKABLE inline bool isSelected(const uint index) const { return m_exercisesData.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_SELECTED) == Qt::StringLiterals::operator""_L1("1", 1); }
+	Q_INVOKABLE inline bool isSelected(const uint index) const
+	{
+		return data(QAbstractListModel::index(index, 0), selectedRole).toUInt() == 1;
+	}
 	Q_INVOKABLE inline void setSelected(const uint index, const bool selected)
 	{
-		m_exercisesData[m_indexProxy.at(index)][EXERCISES_LIST_COL_SELECTED] = selected ? Qt::StringLiterals::operator""_L1("1", 1) : Qt::StringLiterals::operator""_L1("0", 1);
+		setData(QAbstractListModel::index(index, 0), selected,  selectedRole);
 	}
 
-	inline uint count() const { return m_indexProxy.count(); }
+	inline uint count() const
+	{
+		if (m_searchFilterApplied)
+			return m_searchFilteredIndices.count();
+		else
+		{
+			if (m_muscularFilterApplied)
+				return m_muscularFilteredIndices.count();
+			else
+				return m_exercisesData.count();
+		}
+	}
 	inline int currentRow() const { return m_currentRow; }
-	Q_INVOKABLE inline int currentRealRow() const { return m_exercisesData[m_indexProxy.at(m_currentRow)][EXERCISES_LIST_COL_SELECTED].toUInt(); }
+	Q_INVOKABLE inline int currentRealRow() const
+	{
+		if (m_searchFilterApplied)
+			return m_exercisesData.at(m_searchFilteredIndices.at(m_currentRow)).at(EXERCISES_LIST_COL_SELECTED).toUInt();
+		else
+		{
+			if (m_muscularFilterApplied)
+				return m_exercisesData.at(m_muscularFilteredIndices.at(m_currentRow)).at(EXERCISES_LIST_COL_SELECTED).toUInt();
+			else
+				return m_currentRow;
+		}
+	}
 	void setCurrentRow(const int row);
+
+	bool hasExercises() const { return !m_exercisesData.isEmpty(); };
 
 	Q_INVOKABLE void newExercise(const QString &name = QString{}, const QString &subname = QString{},
 											const QString &muscular_group = QString{});
@@ -146,6 +191,7 @@ signals:
 	void countChanged();
 	void labelsChanged();
 	void currentRowChanged();
+	void hasExercisesChanged();
 
 private:
 	typedef struct st_SelEntry{
@@ -156,18 +202,19 @@ private:
 	} selectedEntry;
 
 	QList<QStringList> m_exercisesData;
-	QList<uint> m_filteredIndices;
-	QList<uint> m_indexProxy;
+	QList<uint> m_muscularFilteredIndices;
+	QList<uint> m_searchFilteredIndices;
 	QList<uint> m_modifiedIndices;
 	QList<uint> m_exportRows;
 	QHash<int, QByteArray> m_roleNames;
 	QList<selectedEntry> m_selectedEntries;
-	QString m_filterString;
+	QString m_filterString, m_searchString;
 	uint m_selectedEntryToReplace;
 	int m_exercisesTableLastId, m_currentRow;
-	bool m_bFilterApplied;
+	bool m_muscularFilterApplied, m_searchFilterApplied;
 
 	QString untranslatedMuscularGroup(const QString &translated_group) const;
+	void resetSearchModel();
 	static DBExercisesListModel *app_exercises_list;
 	friend DBExercisesListModel *appExercisesList();
 };

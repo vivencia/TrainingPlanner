@@ -1,6 +1,6 @@
 #include "dbexerciseslistmodel.h"
 
-#include "qmlitemmanager.h"
+#include "return_codes.h"
 #include "tputils.h"
 #include "translationclass.h"
 
@@ -13,7 +13,8 @@ DBExercisesListModel *DBExercisesListModel::app_exercises_list(nullptr);
 constexpr uint fieldsNumberInDatabase{EXERCISES_LIST_COL_FROMAPPLIST+1}; //FromAppList is the last savable field + the Id field
 
 DBExercisesListModel::DBExercisesListModel(QObject *parent, const bool bMainExercisesModel)
-	: QAbstractListModel{parent}, m_selectedEntryToReplace{0}, m_exercisesTableLastId{-1}, m_bFilterApplied{false}
+	: QAbstractListModel{parent}, m_selectedEntryToReplace{0}, m_exercisesTableLastId{-1},
+							m_muscularFilterApplied{false}, m_searchFilterApplied{false}
 {
 	if (bMainExercisesModel)
 	{
@@ -32,14 +33,16 @@ DBExercisesListModel::DBExercisesListModel(QObject *parent, const bool bMainExer
 
 		//Value is hardcoded based on the most current exercises list
 		m_exercisesData.reserve(305);
-		m_indexProxy.reserve(305);
-		m_filteredIndices.reserve(305);
+		m_searchFilteredIndices.reserve(305);
+		m_muscularFilteredIndices.reserve(305);
 	}
 }
 
 QString DBExercisesListModel::muscularGroup(const uint index) const
 {
-	const QStringList &groups{m_exercisesData.at(m_indexProxy.at(index)).at(EXERCISES_LIST_COL_MUSCULARGROUP).split(',')};
+	const QStringList &groups{m_exercisesData.at(m_searchFilterApplied ? m_searchFilteredIndices.at(index) :
+											(m_muscularFilterApplied ? m_muscularFilteredIndices.at(index) : index)).
+																		at(EXERCISES_LIST_COL_MUSCULARGROUP).split(',')};
 	QString translatedGroups;
 	for (const auto &group : groups)
 	{
@@ -84,47 +87,6 @@ QString DBExercisesListModel::muscularGroup(const uint index) const
 	return translatedGroups;
 }
 
-QString DBExercisesListModel::untranslatedMuscularGroup(const QString &translated_group) const
-{
-	if (translated_group == tr("Quadriceps"))
-		return "quadriceps";
-	if (translated_group == tr("Hamstrings"))
-		return "hamstrings";
-	if (translated_group == tr("Glutes"))
-		return "glutes";
-	if (translated_group == tr("Calves"))
-		return "calves";
-	if (translated_group == tr("Upper Back"))
-		return "upper back";
-	if (translated_group == tr("Middle Back"))
-		return "middle back";
-	if (translated_group == tr("Lower Back"))
-		return "lower back";
-	if (translated_group == tr("Biceps"))
-		return "biceps";
-	if (translated_group == tr("Triceps"))
-		return "triceps";
-	if (translated_group == tr("Forearms"))
-		return "fore arms";
-	if (translated_group == tr("Upper Chest"))
-		return "upper chest";
-	if (translated_group == tr("Middle Chest"))
-		return "middle chest";
-	if (translated_group == tr("Lower Chest"))
-		return "lower chest";
-	if (translated_group == tr("Front Delts"))
-		return "front delts";
-	if (translated_group == tr("Lateral Delts"))
-		return "lateral delts";
-	if (translated_group == tr("Rear Delts"))
-		return "rear delts";
-	if (translated_group == tr("Traps"))
-		return "traps";
-	if (translated_group == tr("Abs"))
-		return "abs";
-	return QString {};
-}
-
 void DBExercisesListModel::setCurrentRow(const int row)
 {
 	if (m_currentRow != row)
@@ -145,20 +107,12 @@ void DBExercisesListModel::newExercise(const QString &name, const QString &subna
 void DBExercisesListModel::removeExercise(const uint index)
 {
 	beginRemoveRows(QModelIndex{}, index, index);
-	m_exercisesData.remove(index);
-	m_indexProxy.remove(index);
-	if (!m_bFilterApplied)
-		m_indexProxy.remove(index);
+	const uint actual_index{actualIndex(index)};
+	m_exercisesData.remove(actual_index);
+	if (m_searchFilterApplied)
+		m_searchFilteredIndices.remove(index);
 	else
-	{
-		const qsizetype proxy_index{m_indexProxy.indexOf(index)};
-		if (proxy_index >= 0)
-		{
-			m_indexProxy.remove(proxy_index);
-			for(qsizetype i{proxy_index}; i < m_indexProxy.count(); ++i)
-				m_indexProxy[i] = i-1;
-		}
-	}
+		m_muscularFilteredIndices.remove(index);
 	if (m_currentRow >= index)
 		setCurrentRow(m_currentRow > 0 ? m_currentRow - 1 : 0);
 	emit countChanged();
@@ -167,117 +121,123 @@ void DBExercisesListModel::removeExercise(const uint index)
 
 void DBExercisesListModel::setFilter(const QString &filter)
 {
-	beginRemoveRows(QModelIndex{}, 0, count()-1);
-	m_indexProxy.clear();
-	endRemoveRows();
-
 	if (!filter.isEmpty())
 	{
-		uint idx{0};
-		QStringList words_list{std::move(filter.split('|', Qt::SkipEmptyParts, Qt::CaseInsensitive))};
-		for (QString &word : words_list)
-			word = untranslatedMuscularGroup(word);
-
-		for (const auto &exercise : std::as_const(m_exercisesData))
+		QStringList words_list{std::move(filter.split(fancy_record_separator1, Qt::SkipEmptyParts, Qt::CaseInsensitive))};
+		const qsizetype modelCount{m_searchFilterApplied ? m_searchFilteredIndices.count() : m_exercisesData.count()};
+		for (uint i{0}; i < modelCount; ++i)
 		{
-			const QString &subject{exercise.at(EXERCISES_LIST_COL_MUSCULARGROUP)};
-			for (const auto &word : words_list)
+			const QString &subject{m_exercisesData.at(m_searchFilterApplied ? m_searchFilteredIndices.at(i) : i).at(
+				EXERCISES_LIST_COL_MUSCULARGROUP)};
+			for (const auto &word : std::as_const(words_list))
 			{
 				if (subject.contains(word, Qt::CaseInsensitive))
 				{
-					beginInsertRows(QModelIndex{}, count(), count());
-					m_indexProxy.append(idx);
+					if (!m_muscularFilterApplied)
+					{
+						beginResetModel();
+						m_filterString = filter;
+						m_muscularFilterApplied = true;
+						emit countChanged();
+						endResetModel();
+					}
+					beginInsertRows(QModelIndex{}, m_muscularFilteredIndices.count(), m_muscularFilteredIndices.count());
+					m_muscularFilteredIndices.append(!m_searchFilterApplied ? i :
+							m_exercisesData.at(m_searchFilteredIndices.at(i)).at(EXERCISES_LIST_COL_ACTUALINDEX).toUInt());
 					endInsertRows();
-					m_filteredIndices.append(idx);
-					break;
+					emit countChanged();
 				}
 			}
-			++idx;
 		}
-		m_bFilterApplied = m_filteredIndices.count() != m_exercisesData.count();
 	}
 	else
 	{
-		if (m_bFilterApplied)
+		if (m_muscularFilterApplied)
 		{
-			m_bFilterApplied = false;
-			beginInsertRows(QModelIndex{}, 0, m_exercisesData.count());
-			for (uint i {0}; i < m_exercisesData.count(); ++i)
-				m_indexProxy.append(i);
-			endInsertRows();
+			if (!m_searchFilterApplied)
+			{
+				beginResetModel();
+				m_muscularFilterApplied = false;
+				m_muscularFilteredIndices.clear();
+				endResetModel();
+				emit countChanged();
+			}
+			else
+			{
+				m_muscularFilterApplied = false;
+				m_muscularFilteredIndices.clear();
+				search(m_searchString);
+			}
 		}
 	}
 }
 
 void DBExercisesListModel::search(const QString &search_term)
 {
+	bool found{false};
 	if (search_term.length() >= 3)
 	{
-		bool bFound{false};
-		const qsizetype modelCount{m_filteredIndices.isEmpty() ? m_exercisesData.count() : m_filteredIndices.count()};
+		qsizetype modelCount{count()};
 		const QStringList &words_list{appUtils()->stripDiacriticsFromString(search_term).split(' ', Qt::SkipEmptyParts)};
+		const bool look_in_searched_indices{m_searchFilterApplied};
 
-		for (uint i{0}; i < modelCount; ++i)
+		for (uint i{0}; i < static_cast<uint>(modelCount); ++i)
 		{
-			const uint idx{m_filteredIndices.isEmpty() ? i : m_filteredIndices.at(i)};
-			const QString &subject{m_exercisesData.at(idx).at(EXERCISES_LIST_COL_MAINNAME) + ' ' + m_exercisesData.at(idx).at(EXERCISES_LIST_COL_SUBNAME)};
+			const QString &subject{!look_in_searched_indices ?
+				QString{m_exercisesData.at(m_muscularFilterApplied ? m_muscularFilteredIndices.at(i) : i).at(
+					EXERCISES_LIST_COL_MAINNAME) + ' ' + m_exercisesData.at(m_muscularFilterApplied ? m_muscularFilteredIndices.at(i) : i).at(EXERCISES_LIST_COL_SUBNAME)} :
+				(mainName(i) + ' ' + subName(i))
+			};
 			if (containsAllWords(subject, words_list))
 			{
-				if (!bFound)
+				if (search_term.length() < m_searchString.length())
 				{
-					bFound = true;
-					beginRemoveRows(QModelIndex{}, 0, count()-1);
-					m_indexProxy.clear();
-					endRemoveRows();
-					clearSelectedEntries();
-					setCurrentRow(-1);
-					m_bFilterApplied = true;
+					resetSearchModel();
+					search(search_term);
+					return;
 				}
-				beginInsertRows(QModelIndex{}, count(), count());
-				m_indexProxy.append(idx);
-				endInsertRows();
-			}
-		}
-		if (!bFound)
-		{
-			beginRemoveRows(QModelIndex{}, 0, count()-1);
-			m_indexProxy.clear();
-			endRemoveRows();
-			if (m_filteredIndices.isEmpty())
-				m_bFilterApplied = false;
-		}
-	}
-	else
-	{
-		if (m_bFilterApplied)
-		{
-			bool indexProxyModified{false};
-			if (m_filteredIndices.isEmpty())
-			{
-				m_bFilterApplied = false;
-				indexProxyModified = m_indexProxy.count() < m_exercisesData.count();
-			}
-			else
-				indexProxyModified = m_indexProxy.count() != m_filteredIndices.count();
-
-			if (indexProxyModified)
-			{
-				beginRemoveRows(QModelIndex{}, 0, count()-1);
-				m_indexProxy.clear();
-				endRemoveRows();
-				if (!m_bFilterApplied)
+				found = true;
+				m_searchString = search_term;
+				if (!look_in_searched_indices)
 				{
-					beginInsertRows(QModelIndex{}, 0, m_exercisesData.count());
-					for (uint i {0}; i < m_exercisesData.count(); ++i)
-						m_indexProxy.append(i);
+					beginResetModel();
+					m_searchFilterApplied = true;
+					emit countChanged();
+					endResetModel();
+					beginInsertRows(QModelIndex{}, m_searchFilteredIndices.count(), m_searchFilteredIndices.count());
+					m_searchFilteredIndices.append(!m_muscularFilterApplied ? i : actualIndex(i));
+					endInsertRows();
+					emit countChanged();
 				}
 				else
 				{
-					beginInsertRows(QModelIndex{}, 0, m_filteredIndices.count());
-					for (uint i {0}; i < m_filteredIndices.count(); ++i)
-						m_indexProxy.append(m_filteredIndices.at(i));
+					if (m_searchFilteredIndices.indexOf(actualIndex(i)) != -1)
+						continue;
 				}
-				endInsertRows();
+			}
+			else
+			{
+				if (look_in_searched_indices)
+				{
+					beginRemoveRows(QModelIndex{}, i, i);
+					m_searchFilteredIndices.remove(i);
+					--modelCount;
+					--i;
+					endRemoveRows();
+					emit countChanged();
+				}
+			}
+		}
+	}
+	if (!found)
+	{
+		if (m_searchFilterApplied)
+		{
+			resetSearchModel();
+			if (m_muscularFilterApplied)
+			{
+				m_muscularFilteredIndices.clear();
+				setFilter(m_filterString);
 			}
 		}
 	}
@@ -301,14 +261,12 @@ void DBExercisesListModel::clearSelectedEntries()
 bool DBExercisesListModel::manageSelectedEntries(const uint item_pos, const uint max_selected)
 {
 	selectedEntry entry;
-	uint real_item_pos(item_pos);
-	if (m_bFilterApplied)
-		real_item_pos = m_indexProxy.at(item_pos);
+	const uint real_item_pos{actualIndex(item_pos)};
 	entry.real_index = real_item_pos;
 	entry.view_index = item_pos;
 
-	int idx(-1);
-	for (uint i(0); i < m_selectedEntries.count(); ++i)
+	int idx{-1};
+	for (uint i{0}; i < m_selectedEntries.count(); ++i)
 	{
 		if (m_selectedEntries.at(i).real_index == real_item_pos)
 		{
@@ -336,7 +294,7 @@ bool DBExercisesListModel::manageSelectedEntries(const uint item_pos, const uint
 		}
 		else
 		{
-			for (uint i(0); i <= max_selected; ++i)
+			for (uint i{0}; i <= max_selected; ++i)
 			{
 				m_exercisesData[m_selectedEntries.at(0).real_index][EXERCISES_LIST_COL_SELECTED] = '0';
 				emit dataChanged(index(m_selectedEntries.at(0).view_index, 0),
@@ -380,30 +338,32 @@ bool DBExercisesListModel::collectExportData()
 
 void DBExercisesListModel::appendList(const QStringList &list)
 {
-	beginInsertRows(QModelIndex{}, count(), count());
-	m_indexProxy.append(m_exercisesData.count());
+	beginInsertRows(QModelIndex{}, m_exercisesData.count(), m_exercisesData.count() + list.count() - 1);
 	m_exercisesData.append(list);
 	emit countChanged();
+	emit hasExercisesChanged();
 	endInsertRows();
 }
 
 void DBExercisesListModel::appendList(QStringList &&list)
 {
-	beginInsertRows(QModelIndex{}, count(), count());
-	m_indexProxy.append(m_exercisesData.count());
+	beginInsertRows(QModelIndex{}, m_exercisesData.count(), m_exercisesData.count() + list.count() - 1);
 	m_exercisesData.append(std::move(list));
 	emit countChanged();
+	emit hasExercisesChanged();
 	endInsertRows();
 }
 
 void DBExercisesListModel::clear()
 {
-	m_indexProxy.clear();
-	clearSelectedEntries();
 	beginResetModel();
+	m_muscularFilteredIndices.clear();
+	m_searchFilteredIndices.clear();
+	clearSelectedEntries();
 	m_exercisesData.clear();
 	m_exportRows.clear();
 	emit countChanged();
+	emit hasExercisesChanged();
 	endResetModel();
 }
 
@@ -549,36 +509,45 @@ int DBExercisesListModel::newExerciseFromFile(const QString &filename, const std
 QVariant DBExercisesListModel::data(const QModelIndex &index, int role) const
 {
 	const int row{index.row()};
-	if(row >= 0 && row < m_exercisesData.count())
+	if (row >= 0 && row < m_exercisesData.count())
 	{
-		switch(role) {
+		switch (role) {
 			case exerciseIdRole:
 			case mainNameRole:
 			case subNameRole:
 			case muscularGroupRole:
 			case mediaPathRole:
 			case actualIndexRole:
-				if (!m_bFilterApplied)
-				{
-					//MSG_OUT("NO filter: DBExercisesListModel::data(" << index.row() << "," << index.column() << ") role: " << role << " = " << m_exercisesData.at(row).at(role-Qt::UserRole))
-					return m_exercisesData.at(row).at(role-Qt::UserRole);
-				}
+				if (m_searchFilterApplied)
+					return m_exercisesData.at(m_searchFilteredIndices.at(row)).at(role-Qt::UserRole);
 				else
 				{
-					//MSG_OUT("Filter: DBExercisesListModel::data(" << index.row() << "," << index.column() << ") role: " << role << " = " << m_exercisesData.at(m_indexProxy.at(row)).at(role-Qt::UserRole))
-					return m_exercisesData.at(m_indexProxy.at(row)).at(role-Qt::UserRole);
+					if (m_muscularFilterApplied)
+						return m_exercisesData.at(m_muscularFilteredIndices.at(row)).at(role-Qt::UserRole);
+					else
+						return m_exercisesData.at(row).at(role-Qt::UserRole);
 				}
+			break;
 			case fromListRole:
 			case selectedRole:
-				return !m_bFilterApplied ? bool(m_exercisesData.at(row).at(role-Qt::UserRole) == '1') :
-					bool(m_exercisesData.at(m_indexProxy.at(row)).at(role-Qt::UserRole) == '1');
+				if (m_searchFilterApplied)
+					return m_exercisesData.at(m_searchFilteredIndices.at(row)).at(role-Qt::UserRole) == '1';
+				else
+				{
+					if (m_muscularFilterApplied)
+						return m_exercisesData.at(m_muscularFilteredIndices.at(row)).at(role-Qt::UserRole) == '1';
+					else
+						return m_exercisesData.at(row).at(role-Qt::UserRole) == '1';
+				}
+			break;
 		}
 	}
-	return QVariant();
+	return QVariant{};
 }
 
 bool DBExercisesListModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
+	bool data_set{false};
 	const int row{index.row()};
 	if (row >= 0 && row < m_exercisesData.count())
 	{
@@ -590,22 +559,87 @@ bool DBExercisesListModel::setData(const QModelIndex &index, const QVariant &val
 			case muscularGroupRole:
 			case mediaPathRole:
 			case actualIndexRole:
-				if (!m_bFilterApplied)
-					m_exercisesData[row][field] = std::move(value.toString());
+				if (m_searchFilterApplied)
+					m_exercisesData[m_searchFilteredIndices.at(row)][field] = std::move(value.toString());
 				else
-					m_exercisesData[m_indexProxy.at(row)][field] = std::move(value.toString());
-				emit dataChanged(index, index, QList<int>{} << role);
-				return true;
-
+				{
+					if (m_muscularFilterApplied)
+						m_exercisesData[m_muscularFilteredIndices.at(row)][field] = std::move(value.toString());
+					else
+						m_exercisesData[row][field] = std::move(value.toString());
+				}
+				data_set = true;
+			break;
 			case fromListRole:
 			case selectedRole:
-				if (!m_bFilterApplied)
-					m_exercisesData[row][field] = value.toBool() ? '1' : '0';
+				if (m_searchFilterApplied)
+					m_exercisesData[m_searchFilteredIndices.at(row)][field] = value.toBool() ? '1' : '0';
 				else
-					m_exercisesData[m_indexProxy.at(row)][field] = value.toBool() ? '1' : '0';
-				emit dataChanged(index, index, QList<int>{} << role);
-				return true;
+				{
+					if (m_muscularFilterApplied)
+						m_exercisesData[m_muscularFilteredIndices.at(row)][field] = value.toBool() ? '1' : '0';
+					else
+						m_exercisesData[m_searchFilteredIndices.at(row)][field] = value.toBool() ? '1' : '0';
+				}
+				data_set = true;
+			break;
 		}
 	}
-	return false;
+	if (data_set)
+	{
+		emit dataChanged(index, index, QList<int>{} << role);
+		addModifiedIndex(row);
+	}
+	return data_set;
+}
+
+QString DBExercisesListModel::untranslatedMuscularGroup(const QString &translated_group) const
+{
+	if (translated_group == tr("Quadriceps"))
+		return "quadriceps"_L1;
+	if (translated_group == tr("Hamstrings"))
+		return "hamstrings"_L1;
+	if (translated_group == tr("Glutes"))
+		return "glutes"_L1;
+	if (translated_group == tr("Calves"))
+		return "calves"_L1;
+	if (translated_group == tr("Upper Back"))
+		return "upper back"_L1;
+	if (translated_group == tr("Middle Back"))
+		return "middle back"_L1;
+	if (translated_group == tr("Lower Back"))
+		return "lower back"_L1;
+	if (translated_group == tr("Biceps"))
+		return "biceps"_L1;
+	if (translated_group == tr("Triceps"))
+		return "triceps"_L1;
+	if (translated_group == tr("Forearms"))
+		return "fore arms"_L1;
+	if (translated_group == tr("Upper Chest"))
+		return "upper chest"_L1;
+	if (translated_group == tr("Middle Chest"))
+		return "middle chest"_L1;
+	if (translated_group == tr("Lower Chest"))
+		return "lower chest"_L1;
+	if (translated_group == tr("Front Delts"))
+		return "front delts"_L1;
+	if (translated_group == tr("Lateral Delts"))
+		return "lateral delts"_L1;
+	if (translated_group == tr("Rear Delts"))
+		return "rear delts"_L1;
+	if (translated_group == tr("Traps"))
+		return "traps"_L1;
+	if (translated_group == tr("Abs"))
+		return "abs"_L1;
+	return QString {};
+}
+
+void DBExercisesListModel::resetSearchModel()
+{
+	beginResetModel();
+	clearSelectedEntries();
+	m_searchFilterApplied = false;
+	m_searchFilteredIndices.clear();
+	m_searchString.clear();
+	endResetModel();
 }

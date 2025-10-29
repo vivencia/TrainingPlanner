@@ -169,7 +169,7 @@ public:
 	}
 	inline uint nFieldsInCompositeString(const QString &compositeString, const QLatin1Char &chr_sep) const { return compositeString.count(chr_sep); }
 
-	bool stringsAreSimiliar(const QString &string1, const QString &string2) const;
+	double similarityBetweenString(const QString &string1, const QString &string2) const;
 	QString stripDiacriticsFromString(const QString &src) const;
 
 	Q_INVOKABLE QString setTypeOperation(const uint settype, const bool bIncrease, QString strValue, const bool seconds = false) const;
@@ -218,10 +218,22 @@ inline bool isBitSet(const T &__restrict var, const unsigned char bit)
 		return static_cast<bool>(var & 1);
 }
 
-inline bool containsAllWords(const QString &mainString, const QStringList &wordSet) {
-	for (const auto &word : wordSet) {
-		if (!mainString.contains(word, Qt::CaseInsensitive))
-			return false; // Word not found in the main string
+inline bool containsAllWords(const QString &mainString, const QStringList &wordSet)
+{
+	const QStringList &searched_words{mainString.split(' ', Qt::SkipEmptyParts)};
+	for (const auto &needle : std::as_const(wordSet))
+	{
+		bool found{false};
+		for (const auto &haystack : std::as_const(searched_words))
+		{
+			if (haystack.startsWith(needle, Qt::CaseInsensitive))
+			{
+				found = true;
+				break;
+			}
+		}
+		if (!found)
+			return false;
 	}
 	return true; // All words found in the main string
 }

@@ -37,11 +37,15 @@ void TPImage::setSource(const QString &source)
 	if (!source.isEmpty())
 	{
 		mbCanColorize = false;
+		m_aspectRatioMode = Qt::KeepAspectRatio;
 		QFileInfo img_file{source};
 		if (img_file.isFile())
 		{
 			if (img_file.isReadable())
+			{
 				mSource = source;
+				m_aspectRatioMode = Qt::IgnoreAspectRatio;
+			}
 		}
 		else if (source.startsWith("image://tpimageprovider"_L1))
 		{
@@ -177,7 +181,7 @@ void TPImage::scaleImage(const bool bCallUpdate)
 			mSize.rwidth() *= m_wscale;
 		if (m_hscale != 1.0)
 			mSize.rheight() *= m_hscale;
-		mImage = std::move(mImage.scaled(mSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+		mImage = std::move(mImage.scaled(mSize, m_aspectRatioMode, Qt::SmoothTransformation));
 
 		mImageDisabled = std::move(QImage{});
 		mImageShadow = std::move(QImage{});
@@ -230,7 +234,7 @@ void TPImage::applyEffectToImage(QImage &dstImg, const QImage &srcImg, QGraphics
 	item.setPixmap(QPixmap::fromImage(srcImg));
 	item.setGraphicsEffect(effect);
 	scene.addItem(&item);
-	dstImg = std::move(srcImg.scaled(mSize+QSize(extent * 2, extent * 2), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+	dstImg = std::move(srcImg.scaled(mSize+QSize(extent * 2, extent * 2), m_aspectRatioMode, Qt::SmoothTransformation));
 	dstImg.reinterpretAsFormat(QImage::Format_ARGB32);
 	dstImg.fill(Qt::transparent);
 	QPainter ptr{&dstImg};

@@ -33,8 +33,8 @@ public:
 		setIconSource(std::move(iconSource), false);
 	}
 
-	inline int id() const { return m_id; }
-	inline void setId(const int id) { m_id = id; emit idChanged(); }
+	inline qlonglong id() const { return m_id; }
+	inline void setId(const qlonglong id) { m_id = id; emit idChanged(); }
 
 	inline const QString &_displayText() const { return m_text; }
 	//32 is the space character. All the separators are 31 or less. Good output is 33 or greater
@@ -132,7 +132,7 @@ signals:
 
 private:
 	TPMessagesManager *m_parent;
-	int m_id;
+	qlonglong m_id;
 	bool m_plugged, m_autodelete, m_sticky;
 	QString m_text;
 	QString m_icon;

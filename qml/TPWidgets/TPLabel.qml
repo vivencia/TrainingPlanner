@@ -20,7 +20,7 @@ Label {
 
 	property string fontColor: appSettings.fontColor
 	property bool singleLine: true
-	property bool useBackground: true
+	property bool useBackground: false
 
 	background: useBackground ? itemBack : null
 

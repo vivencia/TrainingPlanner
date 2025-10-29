@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SCRIPT_NAME=$(basename "$0")
+USER_NAME=$(whoami)
 NGINX="$(which nginx)"
 
 get_passwd() {
@@ -68,4 +70,24 @@ start_nginx() {
         return 4
     fi
     return 0
+}
+
+stop_nginx() {
+	if [ -f "$NGINX" ]; then
+		if pgrep -fl "$NGINX" &>/dev/null; then
+			echo "Stopping the NGINX service..."
+			if ! run_as_sudo systemctl stop nginx; then
+				echo "Error starting the NGINX service."
+				return 2
+			else
+				echo "The NGINX service started successfully."
+			fi
+		else
+			echo "The NGINX service is not running."
+		fi
+		return 0
+	else
+		echo "Please install NGINX."
+		return 2
+	fi
 }

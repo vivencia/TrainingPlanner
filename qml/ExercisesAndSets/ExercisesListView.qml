@@ -91,7 +91,7 @@ Column {
 		id: txtSearch
 		showClearTextButton: true
 		readOnly: !mainItem.enabled
-		enabled: exercisesModel.count > 0
+		enabled: exercisesModel.hasExercises
 		width: parent.width * 0.9
 		Layout.topMargin: 5
 
@@ -151,21 +151,20 @@ Column {
 			id: delegate
 			padding: 5
 			width: lstExercises.width
-			height: appSettings.itemDefaultHeight * 2
+			height: appSettings.itemExtraLargeHeight
 
-			contentItem: Text {
+			contentItem: TPLabel {
 				id: listItem
 				text: index+1 + ":  " + mainName + "\n"+ subName
-				font.pixelSize: appSettings.fontSize
-				fontSizeMode: Text.Fit
-				leftPadding: 10
-				topPadding: 0
+				leftPadding: 5
+				topPadding: 5
 			}
 
 			background: Rectangle {
 				id:	backgroundColor
 				color: selected ? appSettings.entrySelectedColor : index % 2 === 0 ?
 													appSettings.listEntryColor1 : appSettings.listEntryColor2
+				opacity: 0.9
 			}
 
 			onClicked: itemClicked(index, true);

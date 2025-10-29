@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
 	DBInterface appDB{};
 	QQmlApplicationEngine qmlEngine;
 	QmlItemManager rootQmlManager{&qmlEngine};
+
 	return app.exec();
 }
 

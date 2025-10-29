@@ -14,6 +14,7 @@ QML_ELEMENT
 
 Q_PROPERTY(QString source READ source WRITE setSource NOTIFY sourceChanged)
 Q_PROPERTY(bool dropShadow READ dropShadow WRITE setDropShadow NOTIFY dropShadowChanged FINAL)
+Q_PROPERTY(bool keepAspectRatio READ keepAspectRatio WRITE setKeepAspectRatio NOTIFY keepAspectRatioChanged FINAL)
 Q_PROPERTY(double wScale READ wScale WRITE setWScale NOTIFY scaleChanged FINAL)
 Q_PROPERTY(double hScale READ hScale WRITE setHScale NOTIFY scaleChanged FINAL)
 
@@ -26,6 +27,12 @@ public:
 
 	inline bool dropShadow() const { return mDropShadow; }
 	void setDropShadow(const bool drop_shadow);
+	inline bool keepAspectRatio() const { return m_aspectRatioMode == Qt::KeepAspectRatio; }
+	inline void setKeepAspectRatio(const bool keep_ar)
+	{
+		m_aspectRatioMode = (keep_ar ? Qt::KeepAspectRatio : Qt::IgnoreAspectRatio);
+		emit keepAspectRatioChanged();
+	}
 	inline double wScale() const { return m_wscale; }
 	void setWScale(const double new_wscale);
 	inline double hScale() const { return m_hscale; }
@@ -41,6 +48,7 @@ public slots:
 signals:
 	void sourceChanged();
 	void dropShadowChanged();
+	void keepAspectRatioChanged();
 	void scaleChanged();
 
 private:
@@ -54,6 +62,7 @@ private:
 	bool mbCanUpdate;
 	bool mbCanColorize;
 	double m_wscale, m_hscale;
+	Qt::AspectRatioMode m_aspectRatioMode;
 
 	void scaleImage(const bool bCallUpdate);
 	void convertToGrayScale();

@@ -43,7 +43,7 @@ TPLabel {
 
 		Rectangle {
 			id: recChecked
-			width: appSettings.itemDefaultHeight * 0.5
+			width: indicator.height * 0.5
 			height: width
 			radius: radio ? width * 0.5 : indicator.radius / 2
 			x: (indicator.implicitWidth - width) * 0.5

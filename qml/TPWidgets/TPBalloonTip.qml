@@ -97,6 +97,7 @@ TPPopup {
 		id: lblMessage
 		text: message
 		singleLine: false
+		useBackground: true
 		horizontalAlignment: Text.AlignHCenter
 		visible: message.length > 0
 		width: (imageSource.length > 0 ? parent.width - imgElement.width : parent.width) - 10

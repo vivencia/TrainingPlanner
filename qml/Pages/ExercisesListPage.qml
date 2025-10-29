@@ -13,6 +13,7 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 TPPage {
 	id: exercisesPage
 	imageSource: ":/images/backgrounds/exercises_backimage.jpg"
+	backgroundOpacity: 0.8
 	objectName: "exercisesPage"
 
 	required property ExercisesListManager exercisesManager
@@ -27,129 +28,128 @@ TPPage {
 
 	onPageActivated: if (exercisesModel.count > 0) exercisesList.simulateMouseClick(0, true);
 
-	header: TPToolBar {
-		id: bottomPane
+	ExercisesListView {
+		id: exercisesList
+		parentPage: exercisesPage
+		canDoMultipleSelection: bChooseButtonEnabled
 		height: parent.height * 0.5
 
-		ColumnLayout {
-			anchors.fill: parent
-			anchors.leftMargin: 5
-			anchors.rightMargin: 5
-			anchors.topMargin: 5
-			spacing: 0
+		anchors {
+			top: parent.top
+			topMargin: 5
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+		}
 
-			ExercisesListView {
-				id: exercisesList
-				parentPage: exercisesPage
-				canDoMultipleSelection: bChooseButtonEnabled
-				Layout.alignment: Qt.AlignTop
-				Layout.fillWidth: true
-				Layout.fillHeight: true
-				Layout.bottomMargin: 5
+		onExerciseEntrySelected: (index, multipleSelection) => {
+			txtExerciseName.text = exercisesModel.mainName(index);
+			txtExerciseSubName.text = exercisesModel.subName(index);
+			txtMuscularGroup.text = exercisesModel.muscularGroup(index);
+			displaySelectedMedia();
+		}
 
-				onExerciseEntrySelected: (index, multipleSelection) => {
-					txtExerciseName.text = exercisesModel.mainName(index);
-					txtExerciseSubName.text = exercisesModel.subName(index);
-					txtMuscularGroup.text = exercisesModel.muscularGroup(index);
-					displaySelectedMedia();
+		onItemDoubleClicked: {
+			if (btnAddExercise.enabled)
+				chooseExercise();
+		}
+	}
+
+	Row {
+		id: toolbarExercises
+		spacing: 0
+		height: appSettings.itemDefaultHeight
+
+		anchors {
+			top: exercisesList.bottom
+			topMargin: 5
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+		}
+		readonly property int buttonWidth: (parent.width - 10) * 0.25
+
+		TPButton {
+			id: btnNewExercise
+			text: qsTr("New")
+			enabled: !bEdit
+			width: toolbarExercises.buttonWidth
+			rounded: false
+
+			onClicked: {
+				if (!bNew) {
+					bNew = true;
+					bCanEdit = true;
+					scrollExercises.ScrollBar.vertical.setPosition(0);
+					txtExerciseName.forceActiveFocus();
+					txtExerciseName.clear();
+					txtExerciseSubName.clear();
+					txtMuscularGroup.clear();
+					exercisesList.enabled = false;
+					text = qsTr("Cancel");
+					exercisesModel.newExercise();
 				}
-
-				onItemDoubleClicked: {
-					if (btnAddExercise.enabled)
-						chooseExercise();
+				else {
+					exercisesModel.removeRow(exercisesModel.currentRow);
+					bNew = false;
+					bCanEdit = false;
+					exercisesList.enabled = true;
+					text = qsTr("New");
 				}
 			}
+		} //btnNewExercise
 
-			Row {
-				id: toolbarExercises
-				Layout.fillWidth: true
-				Layout.maximumHeight: 30
-				spacing: 0
+		TPButton {
+			id: btnEditExercise
+			text: qsTr("Edit")
+			enabled: !bNew && exercisesModel.currentRow >= 0
+			width: toolbarExercises.buttonWidth
+			rounded: false
 
-				readonly property int buttonWidth: parent.width*0.25
+			onClicked: {
+				if (!bEdit) {
+					bCanEdit = true;
+					bEdit = true;
+					scrollExercises.ScrollBar.vertical.setPosition(0);
+					txtExerciseName.forceActiveFocus();
+					exercisesList.enabled = false;
+					text = qsTr("Cancel");
+				}
+				else {
+					bCanEdit = false;
+					bEdit = false;
+					exercisesList.enabled = true;
+					text = qsTr("Edit");
+				}
+			}
+		} //btnEditExercise
 
-				TPButton {
-					id: btnNewExercise
-					text: qsTr("New")
-					enabled: !bEdit
-					width: toolbarExercises.buttonWidth
-					rounded: false
+		TPButton {
+			id: btnAddExercise
+			enabled: bChooseButtonEnabled && !bCanEdit && exercisesModel.currentRow >= 0
+			text: qsTr("Add")
+			width: toolbarExercises.buttonWidth
+			rounded: false
 
-					onClicked: {
-						if (!bNew) {
-							bNew = true;
-							bCanEdit = true;
-							scrollExercises.ScrollBar.vertical.setPosition(0);
-							txtExerciseName.forceActiveFocus();
-							txtExerciseName.clear();
-							txtExerciseSubName.clear();
-							txtMuscularGroup.clear();
-							exercisesList.enabled = false;
-							text = qsTr("Cancel");
-							exercisesModel.newExercise();
-						}
-						else {
-							exercisesModel.removeRow(exercisesModel.currentRow);
-							bNew = false;
-							bCanEdit = false;
-							exercisesList.enabled = true;
-							text = qsTr("New");
-						}
-					}
-				} //btnNewExercise
+			onClicked: chooseExercise();
+		} //btnAddExercise
 
-				TPButton {
-					id: btnEditExercise
-					text: qsTr("Edit")
-					enabled: !bNew && exercisesModel.currentRow >= 0
-					width: toolbarExercises.buttonWidth
-					rounded: false
+		TPButton {
+			id: btnImExport
+			text: qsTr("In/Export")
+			visible: !bChooseButtonEnabled
+			width: toolbarExercises.buttonWidth
+			rounded: false
 
-					onClicked: {
-						if (!bEdit) {
-							bCanEdit = true;
-							bEdit = true;
-							scrollExercises.ScrollBar.vertical.setPosition(0);
-							txtExerciseName.forceActiveFocus();
-							exercisesList.enabled = false;
-							text = qsTr("Cancel");
-						}
-						else {
-							bCanEdit = false;
-							bEdit = false;
-							exercisesList.enabled = true;
-							text = qsTr("Edit");
-						}
-					}
-				} //btnEditExercise
+			onClicked: showInExMenu();
+		} // btnImExport
 
-				TPButton {
-					id: btnAddExercise
-					enabled: bChooseButtonEnabled && !bCanEdit && exercisesModel.currentRow >= 0
-					text: qsTr("Add")
-					width: toolbarExercises.buttonWidth
-					rounded: false
-
-					onClicked: chooseExercise();
-				} //btnAddExercise
-
-				TPButton {
-					id: btnImExport
-					text: qsTr("In/Export")
-					visible: !bChooseButtonEnabled
-					width: toolbarExercises.buttonWidth
-					rounded: false
-
-					onClicked: showInExMenu();
-				} // btnImExport
-
-			} // Row
-		} //ColumnLayout
-	} // header
+	} // Row
 
 	ScrollView {
 		id: scrollExercises
-		anchors.fill: parent
 		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 		ScrollBar.vertical.policy: ScrollBar.AsNeeded
 		ScrollBar.vertical.active: true
@@ -157,22 +157,31 @@ TPPage {
 		contentHeight: layoutMain.implicitHeight
 		padding: 2
 
+		anchors {
+			top: toolbarExercises.bottom
+			topMargin: 15
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+			bottom: parent.bottom
+			bottomMargin: 5
+		}
+
 		ColumnLayout {
 			id: layoutMain
-			width: appSettings.pageWidth
+			spacing: 10
+			anchors.fill: parent
 
 			TPLabel {
 				text: exercisesModel.exerciseNameLabel
-				Layout.leftMargin: 5
-				Layout.topMargin: 10
 			}
 			TPTextInput {
 				id: txtExerciseName
 				readOnly: !bCanEdit
 				font.italic: bCanEdit
 				Layout.fillWidth: true
-				Layout.leftMargin: 10
-				Layout.rightMargin: 20
+				Layout.rightMargin: 10
 
 				onEnterOrReturnKeyPressed: txtMuscularGroup.forceActiveFocus();
 				onEditingFinished: exercisesModel.setMainName(exercisesModel.currentRow, text);
@@ -180,7 +189,6 @@ TPPage {
 
 			TPLabel {
 				text: exercisesModel.exerciseSpecificsLabel
-				Layout.leftMargin: 5
 			}
 
 			TPTextInput {
@@ -188,8 +196,7 @@ TPPage {
 				readOnly: !bCanEdit
 				font.italic: bCanEdit
 				Layout.fillWidth: true
-				Layout.leftMargin: 10
-				Layout.rightMargin: 20
+				Layout.rightMargin: 10
 
 				onEnterOrReturnKeyPressed: txtExerciseSubName.forceActiveFocus();
 				onEditingFinished: exercisesModel.setSubName(exercisesModel.currentRow, text);
@@ -197,16 +204,13 @@ TPPage {
 
 			TPLabel {
 				text: exercisesModel.muscularGroupsLabel
-				Layout.leftMargin: 5
-				Layout.topMargin: 10
 			}
 			TPTextInput {
 				id: txtMuscularGroup
 				readOnly: !bCanEdit
 				font.italic: bCanEdit
 				Layout.fillWidth: true
-				Layout.rightMargin: 20
-				Layout.leftMargin: 10
+				Layout.rightMargin: 10
 				Layout.minimumHeight: 30
 				Layout.maximumHeight: 80
 
@@ -215,14 +219,13 @@ TPPage {
 
 			TPLabel {
 				text: exercisesModel.mediaLabel
-				Layout.bottomMargin: 10
-				Layout.topMargin: 10
-				Layout.leftMargin: 5
 			}
 
 			TPButton {
 				id: btnChooseMediaFromDevice
 				text: qsTr("Choose media")
+				autoSize: true
+				rounded: false
 				onClicked: fileDialog.open();
 				Layout.alignment: Qt.AlignCenter
 				enabled: bNew || bEdit

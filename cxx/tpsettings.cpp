@@ -400,7 +400,7 @@ QString TPSettings::selectedColorForScheme(const uint scheme) const
 		}
 		case Dark: return "#6c6f73"_L1; break;
 		case Light: return "#5d5d5e"_L1; break;
-		case Blue: return "#223c55"_L1; break;
+		case Blue: return "#142734"_L1; break;
 		case Green: return "#307954"_L1; break;
 		case Red: return "#ff5b4d"_L1; break;
 		case Gray: return "#65696c"_L1; break;

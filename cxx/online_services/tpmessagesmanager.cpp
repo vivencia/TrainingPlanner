@@ -124,7 +124,7 @@ void TPMessagesManager::itemClicked(const int message_id)
 TPMessage *TPMessagesManager::createChatMessage(const QString &userid, QString &&display_text, QString &&icon_source)
 {
 	TPMessage *chat_message{new TPMessage{std::move(display_text), std::move(icon_source), this}};
-	chat_message->setId(userid.toUInt());
+	chat_message->setId(userid.toLong());
 	chat_message->setExtraInfoImage("new-messages");
 	chat_message->insertAction(tr("Chat"), [this,userid] (const QVariant &) {
 		openChatWindow(m_chatsList.value(userid));
@@ -148,36 +148,36 @@ void TPMessagesManager::openChatWindow(TPChat *chat_manager)
 		{
 			m_chatWindowProperties.insert("parentPage"_L1, QVariant::fromValue(appItemManager()->appHomePage()));
 			m_chatWindowComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/User/ChatWindow.qml"_L1}, QQmlComponent::Asynchronous};
-			if (m_chatWindowComponent->status() != QQmlComponent::Ready)
-			{
-				connect(m_chatWindowComponent, &QQmlComponent::statusChanged, this, [this,chat_manager] (QQmlComponent::Status status) {
-					if (status == QQmlComponent::Ready)
-						createChatWindow_part2(chat_manager);
-					#ifndef QT_NO_DEBUG
-					else if (status == QQmlComponent::Error)
-					{
-						qDebug() << m_chatWindowComponent->errorString();
-						return;
-					}
-					#endif
-				}, Qt::SingleShotConnection);
-			}
 		}
-		createChatWindow_part2(chat_manager);
+		switch (m_chatWindowComponent->status())
+		{
+			case QQmlComponent::Ready:
+				createChatWindow_part2(chat_manager);
+			break;
+			case QQmlComponent::Loading:
+				connect(m_chatWindowComponent, &QQmlComponent::statusChanged, this, [this,chat_manager] (QQmlComponent::Status status) {
+					openChatWindow(chat_manager);
+				}, Qt::SingleShotConnection);
+			break;
+			case QQmlComponent::Null:
+			case QQmlComponent::Error:
+				#ifndef QT_NO_DEBUG
+				qDebug() << m_chatWindowComponent->errorString();
+				#endif
+			break;
+		}
 	}
 	else
 		QMetaObject::invokeMethod(m_chatWindowList.value(chat_manager->otherUserId()), "open");
 }
 
-void TPMessagesManager::openChat(const QString &user_name)
+void TPMessagesManager::openChat(const QString &username)
 {
-	const int colon_idx{static_cast<int>(user_name.indexOf(':'))};
-	QString username{std::move(user_name.last(user_name.length() - colon_idx - 1))};
 	const QString &userid{appUserModel()->userIdFromFieldValue(USER_COL_NAME, username)};
 	const int i_userid{userid.toInt()};
 
 	if (!message(i_userid))
-		createChatMessage(userid, std::move(username), std::move(appUserModel()->avatar(i_userid)));
+		createChatMessage(userid, std::move(QString{username}), std::move(appUserModel()->avatar(i_userid)));
 	openChatWindow(m_chatsList.value(userid));
 }
 

@@ -45,35 +45,23 @@ TPPopup {
 		}
 	}
 
-	TPBackRec {
-		id: recTitleBar
-		useGradient: true
-		opacity: 0.8
-		width: parent.width
-		height: btnClose.height
-		z: 0
+	TPButton {
+		id: btnShowHideList
+		imageSource: dlgMuscularGroup.shown ? "fold-up.png" : "fold-down.png"
+		hasDropShadow: false
+		width: btnClose.width
+		height: width
+		z: 1
 
 		anchors {
 			top: parent.top
+			topMargin: 2
 			left: parent.left
-			right: parent.right
+			leftMargin: 2
 		}
 
-		TPButton {
-			id: btnShowHideList
-			imageSource: dlgMuscularGroup.shown ? "fold-up.png" : "fold-down.png"
-			hasDropShadow: false
-			width: btnClose.width
-			height: width
-
-			anchors {
-				left: parent.left
-				verticalCenter: parent.verticalCenter
-			}
-
-			onClicked: dlgMuscularGroup.shown = !dlgMuscularGroup.shown;
-		}
-	} //Rectangle title bar
+		onClicked: dlgMuscularGroup.shown = !dlgMuscularGroup.shown;
+	}
 
 	ScrollView {
 		ScrollBar.horizontal.policy: ScrollBar.AsNeeded
@@ -81,7 +69,7 @@ TPPopup {
 		contentWidth: availableWidth
 
 		anchors {
-			top: recTitleBar.bottom
+			top: titleBar.bottom
 			left: parent.left
 			right: parent.right
 			bottom: btnMakeFilter.top
@@ -91,8 +79,11 @@ TPPopup {
 		ColumnLayout {
 			id: itemsLayout
 			spacing: 0
-			anchors.fill: parent
-			anchors.leftMargin: 5
+			anchors {
+				fill: parent
+				leftMargin: 5
+				topMargin: 5
+			}
 
 			Repeater {
 				id: groupsRepeater
@@ -151,7 +142,7 @@ TPPopup {
 		const groups = initialGroups.split(groupsSeparator);
 		for (let x = 0; x < groupsModel.count; ++x) {
 			let included = false;
-			for (let i=0; i < groups.length; ++i) {
+			for (let i = 0; i < groups.length; ++i) {
 				if (qsTr(groupsModel.get(x).display) === groups[i]) {
 					included = true;
 					break;

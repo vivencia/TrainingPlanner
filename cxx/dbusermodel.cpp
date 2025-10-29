@@ -224,16 +224,34 @@ void DBUserModel::removeUser(const int user_idx, const bool remove_local, const 
 	}
 }
 
-int DBUserModel::userIdxFromFieldValue(const uint field, const QString &value) const
+int DBUserModel::userIdxFromFieldValue(const uint field, const QString &value, const bool exact_match) const
 {
 	int user_idx{0};
-	for (const auto &user : m_usersData)
+	if (exact_match)
 	{
-		if (user.at(field) == value)
-			return user_idx;
-		++user_idx;
+		for (const auto &user : m_usersData)
+		{
+			if (user.at(field) == value)
+				return user_idx;
+			++user_idx;
+		}
+		return -1;
 	}
-	return -1;
+	else
+	{
+		std::pair<double,int> greatest_similarity{0.0,-1};
+		for (const auto &user : m_usersData)
+		{
+			const double similarity{appUtils()->similarityBetweenString(user.at(field), value)};
+			if (greatest_similarity.first < similarity)
+			{
+				greatest_similarity.first = similarity;
+				greatest_similarity.second = user_idx;
+			}
+			++user_idx;
+		}
+		return greatest_similarity.second;
+	}
 }
 
 const QString &DBUserModel::userIdFromFieldValue(const uint field, const QString &value) const
@@ -422,7 +440,7 @@ void DBUserModel::changeClient(const uint user_idx, const QString &oldname)
 
 QStringList DBUserModel::coachesAndClientsNames() const
 {
-	QStringList coaches_and_clients{m_coachesNames.count() + m_clientsNames.count()};
+	QStringList coaches_and_clients;
 	for (const auto &coach : m_coachesNames)
 		coaches_and_clients.append(std::move(QString{tr("Coach: ") + coach}));
 	for (const auto &client : m_clientsNames)

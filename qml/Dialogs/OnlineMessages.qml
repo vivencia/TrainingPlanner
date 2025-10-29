@@ -6,17 +6,18 @@ import "../"
 import "../TPWidgets"
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
-Popup {
+TPPopup {
 	id: onlineMsgsDlg
-	closePolicy: Popup.NoAutoClose
-	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
-	spacing: 0
-	padding: 0
+	keepAbove: true
+	showTitleBar: false
+	closeButtonVisible: false
+	disableMouseHandling: true
+	enableEffects: false
 	x: appSettings.pageWidth - 80
-	y: 180
+	finalYPos: 180
 	width: mainIcon.width
 	height: mainIcon.height
-	visible: userModel.onlineAccount
+	backgroundRec: backRec
 
 	property bool fullDialogVisible: false
 	property int mainIconUserDefinedX: x
@@ -29,8 +30,13 @@ Popup {
 		console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$  ", msgCount);
 	}
 
-	background: Rectangle {
-		color: "transparent"
+	TPBackRec {
+		id: backRec
+		useImage: fullDialogVisible
+		visible: fullDialogVisible
+		sourceImage: ":/images/backgrounds/backimage1.jpg"
+		image_size: Qt.size(dlgMaxWidth, maxHeight)
+		radius: 8
 	}
 
 	ParallelAnimation
@@ -76,7 +82,7 @@ Popup {
 		PropertyAnimation {
 			target: onlineMsgsDlg
 			property: "height"
-			to: messagesList.height + topBar.height
+			to: topBar.height + mainLayout.height
 			duration: 200
 			easing.type: Easing.OutQuad
 		}
@@ -88,6 +94,7 @@ Popup {
 				console.log(onlineMsgsDlg.y, onlineMsgsDlg.height, appSettings.pageHeight);
 				onlineMsgsDlg.y = appSettings.pageHeight - onlineMsgsDlg.height - 10;
 			}*/
+			fullDialogVisible = true;
 		}
 	}
 
@@ -111,33 +118,22 @@ Popup {
 			onMouseClicked: {
 				mainIconUserDefinedX = onlineMsgsDlg.x;
 				mainIconUserDefinedY = onlineMsgsDlg.y;
-				fullDialogVisible = true;
 				expand.start();
 			}
 		}
 	}
 
-	TPToolBar {
+	TPLabel {
 		id: topBar
+		text: qsTr("Messages")
 		visible: fullDialogVisible
 		height: appSettings.itemLargeHeight
+		horizontalAlignment: Text.AlignHCenter
 
 		anchors {
 			top: parent.top
-			left: parent.left
-			right: parent.right
-		}
-
-		TPLabel {
-			id: topBarText
-			text: qsTr("Messages")
-			useBackground: false
-
-			anchors {
-				horizontalCenter: parent.horizontalCenter;
-				horizontalCenterOffset: 0 - smallIcon.width/2
-				verticalCenter: parent.verticalCenter;
-			}
+			horizontalCenter: parent.horizontalCenter;
+			horizontalCenterOffset: 0 - smallIcon.width/2
 		}
 
 		TPImage {
@@ -148,8 +144,8 @@ Popup {
 			height: width
 
 			anchors {
-				left: topBarText.right
-				verticalCenter: parent.verticalCenter;
+				left: topBar.right
+				verticalCenter: topBar.verticalCenter;
 			}
 		}
 
@@ -169,7 +165,7 @@ Popup {
 		id: mainLayout
 		visible: fullDialogVisible
 		currentIndex: appMessages.count > 0 ? 1 : 0
-		height: maxHeight
+		height: childrenRect.height
 
 		anchors {
 			top: topBar.bottom
@@ -178,11 +174,12 @@ Popup {
 		}
 
 		TPLabel {
+			text: qsTr("No messages")
+			useBackground: true
 			horizontalAlignment: Qt.AlignHCenter
 			font: AppGlobals.largeFont
-			text: qsTr("No messages")
+			height: maxHeight / 2
 			Layout.fillWidth: true
-			Layout.fillHeight: true
 		}
 
 		ListView {
@@ -222,10 +219,11 @@ Popup {
 				}
 
 				background: Rectangle {
-					id: backRec
 					opacity: 0.8
 					color: index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
 				}
+
+				onClicked: appMessages.setCurrentMessage(index);
 
 				contentItem: Column {
 					id: messageLayout
@@ -246,7 +244,7 @@ Popup {
 							Layout.rightMargin: 10
 
 							TPImage {
-								source: iconSource
+								source: messagesList.model.iconSource
 								dropShadow: false
 								width: 20
 								height: 20
@@ -262,7 +260,7 @@ Popup {
 							Item {
 								width: appSettings.itemSmallHeight
 								height: width
-								visible: extraInfoLabel.length > 0
+								visible: messagesList.model.extraInfoLabel.length > 0
 
 								TPImage {
 									id: extraInfoImg
@@ -270,7 +268,7 @@ Popup {
 									anchors.fill: parent
 								}
 								TPLabel {
-									text: extraInfoLabel
+									text: messagesList.model.extraInfoLabel
 									horizontalAlignment: Text.AlignHCenter
 									minimumPixelSize: appSettings.smallFontSize * 0.8
 									z: 1
@@ -299,7 +297,7 @@ Popup {
 						wrapMode: delegateItem.showActions ? Text.WordWrap : Text.NoWrap
 						singleLine: !delegateItem.showActions
 						width: onlineMsgsDlg.dlgMaxWidth - 10
-						height: delegateItem.showActions ? preferredHeight() : appSettings.itemDefaultHeight
+						height: delegateItem.showActions ? contentHeight : appSettings.itemDefaultHeight
 						Layout.leftMargin: 20
 
 						MouseArea {
@@ -331,7 +329,7 @@ Popup {
 
 							delegate: TPButton {
 								text: actions[index]
-								width: constrainSize ? actionsLayout.maxButtonWidth : defaultWidth()
+								width: constrainSize ? actionsLayout.maxButtonWidth : preferredWidth
 								autoSize: constrainSize
 								Layout.leftMargin: 0
 								Layout.rightMargin: 0
@@ -417,11 +415,12 @@ Popup {
 
 		ColumnLayout {
 			spacing: 10
+			height: childrenRect.height
 			Layout.fillWidth: true
-			Layout.fillHeight: true
 
 			TPLabel {
-				text: qsTr("Start a chat with ...")
+				text: qsTr("Chat with ...")
+				font: AppGlobals.smallFont
 				Layout.fillWidth: true
 			}
 
@@ -436,14 +435,19 @@ Popup {
 				id: chatList
 				listClients: true
 				listCoaches: true
-				buttonString: qsTr("Chat with")
+				buttonString: qsTr("Chat")
 				allowNotConfirmed: false
-				height: parent.height - 2 * (appSettings.itemDefaultHeight + 10)
+				height: maxHeight - 2 * (appSettings.itemDefaultHeight + 10)
 				width: parent.width
 				Layout.fillWidth: true
-				Layout.fillHeight: true
 
-				onButtonClicked: openChat(model[currentRow]);
+				property string selectedChat
+
+				onItemSelected: (userRow) => {
+					selectedChat = userModel.userName(userRow);
+					txtSearch.text = selectedChat;
+				}
+				onButtonClicked: openChat(selectedChat);
 			} //TPCoachesAndClientsList
 		}
 	} //StackLayout

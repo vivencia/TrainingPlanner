@@ -35,6 +35,7 @@ TPPage {
 			id: lblMain
 			text: qsTr("Training Organizer")
 			singleLine: true
+			useBackground: true
 			font: AppGlobals.extraLargeFont
 			width: parent.width - imgAppIcon.width - 15
 			height: parent.height

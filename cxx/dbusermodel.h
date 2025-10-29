@@ -135,9 +135,12 @@ public:
 	}
 	inline bool mainUserIsClient() const { return isClient(0); }
 
-	Q_INVOKABLE inline int findUserByName(const QString &username) const { return userIdxFromFieldValue(USER_COL_NAME, username); }
+	Q_INVOKABLE inline int findUserByName(const QString &username, const bool exact_match = true) const
+	{
+		return userIdxFromFieldValue(USER_COL_NAME, username, exact_match);
+	}
 	Q_INVOKABLE inline QString userNameFromId(const QString &userid) const { return userName(userIdxFromFieldValue(USER_COL_ID, userid)); }
-	int userIdxFromFieldValue(const uint field, const QString &value) const;
+	int userIdxFromFieldValue(const uint field, const QString &value, const bool exact_match = true) const;
 	const QString &userIdFromFieldValue(const uint field, const QString &value) const;
 	inline const QString localDir(const QString &userid) const { return localDir(userIdxFromFieldValue(USER_COL_ID, userid)); }
 	const QString localDir(const int user_idx) const;

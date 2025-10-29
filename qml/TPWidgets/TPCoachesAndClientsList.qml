@@ -99,7 +99,8 @@ Item {
 			id: button
 			text: buttonString
 			autoSize: true
-			enabled: userModel.currentRow !== 0
+			rounded: false
+			enabled: currentRow >= 0
 			visible: buttonString.length > 0
 			Layout.alignment: Qt.AlignCenter
 
@@ -108,8 +109,8 @@ Item {
 	}
 
 	function selectItem(index: int): void {
-		if (listview.currentIndex !== index) {
-			const userrow = userModel.findUserByName(listview.model[index]);
+		if (currentRow !== index) {
+			const userrow = userModel.findUserByName(listview.model[index], !(listClients && listCoaches));
 			if (userrow > 0) {
 				currentRow = index;
 				itemSelected(userrow);
