@@ -137,7 +137,6 @@ TPPage {
 						currentRow: userModel.findUserByName(mesoManager.client)
 						buttonString: qsTr("Go to client's page")
 						height: 0.2 * mesoPropertiesPage.height
-						allowNotConfirmed: false
 						Layout.fillWidth: true
 						Layout.preferredHeight: height
 

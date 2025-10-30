@@ -18,33 +18,34 @@
 
 TPMessagesManager *TPMessagesManager::_appMessagesManager{nullptr};
 
-enum RoleNames {
-	idRole = Qt::UserRole,
-	labelTextRole = Qt::UserRole + 1,
-	iconRole = Qt::UserRole + 2,
-	dateRole = Qt::UserRole + 3,
-	timeRole = Qt::UserRole + 4,
-	extraInfoLabelRole = Qt::UserRole + 5,
-	extraInfoIconRole = Qt::UserRole + 6,
-	actionsRole = Qt::UserRole + 7,
-	stickyRole = Qt::UserRole + 8,
-	hasActionsRole = Qt::UserRole + 9,
+enum RoleNames
+{
+	idRole				= Qt::UserRole,
+	labelTextRole		= Qt::UserRole + 1,
+	iconRole			= Qt::UserRole + 2,
+	dateRole			= Qt::UserRole + 3,
+	timeRole			= Qt::UserRole + 4,
+	extraInfoLabelRole	= Qt::UserRole + 5,
+	extraInfoIconRole	= Qt::UserRole + 6,
+	actionsRole			= Qt::UserRole + 7,
+	stickyRole			= Qt::UserRole + 8,
+	hasActionsRole		= Qt::UserRole + 9,
 };
 
 TPMessagesManager::TPMessagesManager(QObject *parent)
 	: QAbstractListModel{parent}, m_chatWindowComponent{nullptr}
 {
 	_appMessagesManager = this;
-	m_roleNames[idRole] = std::move("id");
-	m_roleNames[labelTextRole] = std::move("labelText");
-	m_roleNames[iconRole] = std::move("icon");
-	m_roleNames[dateRole] = std::move("date");
-	m_roleNames[timeRole] = std::move("time");
-	m_roleNames[extraInfoLabelRole] = std::move("extraInfo");
-	m_roleNames[extraInfoIconRole] = std::move("extraInfoIcon");
-	m_roleNames[actionsRole] = std::move("actions");
-	m_roleNames[stickyRole] = std::move("sticky");
-	m_roleNames[hasActionsRole] = std::move("hasActions");
+	m_roleNames[idRole]				= std::move("id");
+	m_roleNames[labelTextRole]		= std::move("labelText");
+	m_roleNames[iconRole]			= std::move("icon");
+	m_roleNames[dateRole]			= std::move("date");
+	m_roleNames[timeRole]			= std::move("time");
+	m_roleNames[extraInfoLabelRole]	= std::move("extraInfo");
+	m_roleNames[extraInfoIconRole]	= std::move("extraInfoIcon");
+	m_roleNames[actionsRole]		= std::move("actions");
+	m_roleNames[stickyRole]			= std::move("sticky");
+	m_roleNames[hasActionsRole]		= std::move("hasActions");
 }
 
 TPMessage *TPMessagesManager::message(const int message_id) const
@@ -119,6 +120,11 @@ void TPMessagesManager::itemClicked(const int message_id)
 			msg->setExtraInfoLabel(QString{});
 		}
 	}
+}
+
+void TPMessagesManager::filterChatOptions(const QString &filter)
+{
+
 }
 
 TPMessage *TPMessagesManager::createChatMessage(const QString &userid, QString &&display_text, QString &&icon_source)

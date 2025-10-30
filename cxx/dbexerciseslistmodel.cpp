@@ -38,8 +38,11 @@ DBExercisesListModel::DBExercisesListModel(QObject *parent, const bool bMainExer
 	}
 }
 
-QString DBExercisesListModel::muscularGroup(const uint index) const
+QString DBExercisesListModel::muscularGroup(const int index) const
 {
+	if (index < 0)
+		return QString{};
+
 	const QStringList &groups{m_exercisesData.at(m_searchFilterApplied ? m_searchFilteredIndices.at(index) :
 											(m_muscularFilterApplied ? m_muscularFilteredIndices.at(index) : index)).
 																		at(EXERCISES_LIST_COL_MUSCULARGROUP).split(',')};
@@ -119,16 +122,18 @@ void DBExercisesListModel::removeExercise(const uint index)
 	endRemoveRows();
 }
 
+//Do not use the helper functions in .h file to get values. Look directly into the data set
 void DBExercisesListModel::setFilter(const QString &filter)
 {
 	if (!filter.isEmpty())
-	{
+	{									
 		QStringList words_list{std::move(filter.split(fancy_record_separator1, Qt::SkipEmptyParts, Qt::CaseInsensitive))};
 		const qsizetype modelCount{m_searchFilterApplied ? m_searchFilteredIndices.count() : m_exercisesData.count()};
 		for (uint i{0}; i < modelCount; ++i)
 		{
-			const QString &subject{m_exercisesData.at(m_searchFilterApplied ? m_searchFilteredIndices.at(i) : i).at(
-				EXERCISES_LIST_COL_MUSCULARGROUP)};
+			const uint index{m_searchFilterApplied ? m_searchFilteredIndices.at(i) :
+										(m_muscularFilterApplied ? m_muscularFilteredIndices.at(i) : i)};
+			const QString &subject{m_exercisesData.at(index).at(EXERCISES_LIST_COL_MUSCULARGROUP)};
 			for (const auto &word : std::as_const(words_list))
 			{
 				if (subject.contains(word, Qt::CaseInsensitive))
@@ -136,42 +141,55 @@ void DBExercisesListModel::setFilter(const QString &filter)
 					if (!m_muscularFilterApplied)
 					{
 						beginResetModel();
+						clearSelectedEntries();
 						m_filterString = filter;
 						m_muscularFilterApplied = true;
 						emit countChanged();
 						endResetModel();
 					}
-					beginInsertRows(QModelIndex{}, m_muscularFilteredIndices.count(), m_muscularFilteredIndices.count());
-					m_muscularFilteredIndices.append(!m_searchFilterApplied ? i :
-							m_exercisesData.at(m_searchFilteredIndices.at(i)).at(EXERCISES_LIST_COL_ACTUALINDEX).toUInt());
-					endInsertRows();
-					emit countChanged();
+					m_muscularFilteredIndices.append(m_exercisesData.at(index).at(EXERCISES_LIST_COL_ACTUALINDEX).toUInt());
+					if (!m_searchFilterApplied)
+					{
+						beginInsertRows(QModelIndex{}, m_muscularFilteredIndices.count() - 1, m_muscularFilteredIndices.count() - 1);
+						emit countChanged();
+						endInsertRows();
+					}
 				}
 			}
+		}
+		if (m_muscularFilterApplied && m_searchFilterApplied)
+		{
+			beginResetModel();
+			clearSelectedEntries();
+			m_searchFilteredIndices.clear();
+			m_searchFilteredIndices = m_muscularFilteredIndices;
+			emit countChanged();
+			endResetModel();
 		}
 	}
 	else
 	{
 		if (m_muscularFilterApplied)
 		{
+			m_muscularFilterApplied = false;
+			m_muscularFilteredIndices.clear();
 			if (!m_searchFilterApplied)
 			{
 				beginResetModel();
-				m_muscularFilterApplied = false;
-				m_muscularFilteredIndices.clear();
 				endResetModel();
 				emit countChanged();
 			}
 			else
 			{
-				m_muscularFilterApplied = false;
-				m_muscularFilteredIndices.clear();
-				search(m_searchString);
+				const QString search_term{m_searchString};
+				resetSearchModel();
+				search(search_term);
 			}
 		}
 	}
 }
 
+//Do not use the helper functions in .h file to get values. Look directly into the data set
 void DBExercisesListModel::search(const QString &search_term)
 {
 	bool found{false};
@@ -183,11 +201,10 @@ void DBExercisesListModel::search(const QString &search_term)
 
 		for (uint i{0}; i < static_cast<uint>(modelCount); ++i)
 		{
-			const QString &subject{!look_in_searched_indices ?
-				QString{m_exercisesData.at(m_muscularFilterApplied ? m_muscularFilteredIndices.at(i) : i).at(
-					EXERCISES_LIST_COL_MAINNAME) + ' ' + m_exercisesData.at(m_muscularFilterApplied ? m_muscularFilteredIndices.at(i) : i).at(EXERCISES_LIST_COL_SUBNAME)} :
-				(mainName(i) + ' ' + subName(i))
-			};
+			const uint index{look_in_searched_indices ? m_searchFilteredIndices.at(i) :
+										(m_muscularFilterApplied ? m_muscularFilteredIndices.at(i) : i)};
+			const QString &subject{m_exercisesData.at(index).at(EXERCISES_LIST_COL_MAINNAME) + ' ' +
+								m_exercisesData.at(index).at(EXERCISES_LIST_COL_SUBNAME)};
 			if (containsAllWords(subject, words_list))
 			{
 				if (search_term.length() < m_searchString.length())
@@ -205,7 +222,7 @@ void DBExercisesListModel::search(const QString &search_term)
 					emit countChanged();
 					endResetModel();
 					beginInsertRows(QModelIndex{}, m_searchFilteredIndices.count(), m_searchFilteredIndices.count());
-					m_searchFilteredIndices.append(!m_muscularFilterApplied ? i : actualIndex(i));
+					m_searchFilteredIndices.append(m_exercisesData.at(index).at(EXERCISES_LIST_COL_ACTUALINDEX).toUInt());
 					endInsertRows();
 					emit countChanged();
 				}

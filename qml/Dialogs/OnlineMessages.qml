@@ -436,7 +436,6 @@ TPPopup {
 				listClients: true
 				listCoaches: true
 				buttonString: qsTr("Chat")
-				allowNotConfirmed: false
 				height: maxHeight - 2 * (appSettings.itemDefaultHeight + 10)
 				width: parent.width
 				Layout.fillWidth: true

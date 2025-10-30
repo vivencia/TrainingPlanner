@@ -81,7 +81,7 @@ TPPage {
 	StackLayout {
 		id: listsLayout
 		currentIndex: tabbar.currentIndex
-		height: 0.2*clientsPage.height
+		height: 0.2 * clientsPage.height
 
 		anchors {
 			top: tabbar.bottom

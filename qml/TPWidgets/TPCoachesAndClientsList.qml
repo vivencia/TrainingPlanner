@@ -9,8 +9,7 @@ Item {
 	signal buttonClicked
 
 	property string buttonString: ""
-	property int currentRow: -1
-	property bool allowNotConfirmed: true
+	property bool allowNotConfirmed: false
 	property bool listClients: true
 	property bool listCoaches: false
 	property alias currentIndex: listview.currentIndex
@@ -21,22 +20,25 @@ Item {
 		contentWidth: availableWidth
 		spacing: 0
 		clip: true
-		currentIndex: currentRow
+		currentIndex: model ? model.currentRow : -1
 		height: button.visible ? 0.8 * parent.height : parent.height
 
 		Component.onCompleted: {
-			if (listClients && listCoaches) {
-				model = Qt.binding(function() { return userModel.coachesAndClientsNames; });
-				enabled = Qt.binding(function() { return userModel.haveCoachesAndClients; });
-			}
+			if (listClients && listCoaches)
+				model = Qt.binding(function() { return userModel.currentCoachesAndClients; });
 			else if (listClients) {
-				model = Qt.binding(function() { return userModel.clientsNames; });
-				enabled = Qt.binding(function() { return userModel.haveClients; });
+				if (!allowNotConfirmed)
+					model = Qt.binding(function() { return userModel.currentClients; });
+				else
+					model = Qt.binding(function() { return userModel.pendingClientsRequests; });
 			}
 			else {
-				model = Qt.binding(function() { return userModel.coachesNames; });
-				enabled = Qt.binding(function() { return userModel.haveCoaches; });
+				if (!allowNotConfirmed)
+					model = Qt.binding(function() { return userModel.currentCoaches; });
+				else
+					model = Qt.binding(function() { return userModel.pendingCoachesResponses; });
 			}
+			enabled = Qt.binding(function() { return model ? model.count > 0 : false });
 		}
 
 		anchors {
@@ -60,11 +62,8 @@ Item {
 			width: parent.width
 			height: appSettings.itemDefaultHeight
 
-			contentItem: Text {
-				text: modelData
-				color: appSettings.fontColor
-				font.pixelSize: appSettings.fontSize
-				fontSizeMode: Text.Fit
+			contentItem: TPLabel {
+				text: name
 				leftPadding: 5
 				bottomPadding: 2
 			}
@@ -72,15 +71,10 @@ Item {
 			background: Rectangle {
 				color: index === listview.currentIndex ? appSettings.entrySelectedColor :
 					(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
+				opacity: 0.8
 			}
 
-			onClicked: {
-				if (!allowNotConfirmed) {
-					if (listview.model[index].indexOf('!') >= 0)
-						return;
-				}
-				selectItem(index);
-			}
+			onClicked: selectItem(index);
 		} //ItemDelegate
 	}
 
@@ -100,7 +94,7 @@ Item {
 			text: buttonString
 			autoSize: true
 			rounded: false
-			enabled: currentRow >= 0
+			enabled: listview.currentIndex >= 0
 			visible: buttonString.length > 0
 			Layout.alignment: Qt.AlignCenter
 
@@ -110,11 +104,11 @@ Item {
 
 	function selectItem(index: int): void {
 		if (currentRow !== index) {
-			const userrow = userModel.findUserByName(listview.model[index], !(listClients && listCoaches));
+			const userrow = listview.model.getUserIdx(index, !(listClients && listCoaches));
 			if (userrow > 0) {
-				currentRow = index;
-				itemSelected(userrow);
+				listview.model.currentRow = index;
 				listview.currentIndex = index;
+				itemSelected(userrow);
 			}
 		}
 	}

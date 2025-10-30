@@ -7,8 +7,7 @@
 #define USER_EXTRA_SELECTED 1
 #define USER_EXTRA_SOURCE 2
 #define USER_EXTRA_ISCOACH 3
-
-using namespace Qt::Literals::StringLiterals;
+#define USER_EXTRA_VISIBLE 4
 
 class OnlineUserInfo : public QAbstractListModel
 {
@@ -27,7 +26,7 @@ Q_PROPERTY(QString userId READ userId CONSTANT FINAL)
 #endif
 
 public:
-	explicit OnlineUserInfo(QObject *parent, const uint total_cols);
+	explicit OnlineUserInfo(QObject *parent);
 
 #ifndef Q_OS_ANDROID
 	inline QString userId() const
@@ -53,7 +52,7 @@ public:
 	{
 		Q_ASSERT_X(row < count(), "OnlineUserInfo::setData", "row out of range");
 		m_modeldata[row][user_field] = std::move(value);
-		emit dataChanged(QModelIndex{index(row)}, QModelIndex{index(row)}, QList<int>{} << Qt::UserRole+user_field);
+		emit dataChanged(index(row), index(row), QList<int>{} << Qt::UserRole + user_field);
 	}
 
 	bool isSelected(const uint row, const int column = 0) const;
@@ -65,6 +64,13 @@ public:
 	inline bool selectEntireRow() const { return m_selectEntireRow; }
 	inline void setSelectEntireRow(const bool full_sel) { m_selectEntireRow = full_sel; }
 
+	inline const QString &extraName(const uint row) const
+	{
+		Q_ASSERT_X(row < count(), "OnlineUserInfo::extraName", "row out of range");
+		return m_extraInfo.at(row).at(USER_EXTRA_NAME);
+	}
+	void setExtraName(const uint row, const QString &extra_name);
+
 	inline const QString &sourceFile(const uint row) const
 	{
 		Q_ASSERT_X(row < count(), "OnlineUserInfo::sourceFile", "row out of range");
@@ -75,12 +81,22 @@ public:
 	inline const bool isCoach(const uint row) const
 	{
 		Q_ASSERT_X(row < count(), "OnlineUserInfo::isCoach", "row out of range");
-		return m_extraInfo.at(row).at(USER_EXTRA_ISCOACH) == "1"_L1;
+		return m_extraInfo.at(row).at(USER_EXTRA_ISCOACH).at(0) == '1';
 	}
 	void setIsCoach(const uint row, bool coach);
 
+	inline const bool visible(const uint row) const
+	{
+		Q_ASSERT_X(row < count(), "OnlineUserInfo::visible", "row out of range");
+		return m_extraInfo.at(row).at(USER_EXTRA_VISIBLE).at(0) == '1';
+	}
+	void setVisible(const uint row, bool visible, const int column = 0);
+
 	bool dataFromFileSource(const QString &filename);
 	bool dataFromString(const QString &user_data);
+	void dataFromUserModel(const uint user_idx);
+	void dataFromOnlineUserInfo(const OnlineUserInfo *other_userinfo, const int other_row = -1);
+
 	void removeUserInfo(const uint row, const bool remove_source);
 	//Remove all items from m_modeldata that are not in user_list. Use field to look for matches
 	bool sanitize(const QStringList &user_list, const uint field);
@@ -91,6 +107,9 @@ public:
 		return row == 0 ? m_extraInfo.isEmpty() ? false : m_extraInfo.at(0).at(USER_EXTRA_NAME).at(0) == '*' : false;
 	}
 	void makeUserDefault(const uint row);
+
+	int getRowFromUserIdx(const uint user_idx) const;
+	Q_INVOKABLE int getUserIdx(int row = -1) const;
 
 	inline QStringList &modeldata(const uint row) { return m_modeldata[row]; } //used to move data into appUserModel()::m_modeldata
 	inline const QStringList &modeldata(const uint row) const { return m_modeldata.at(row); } //used to copy data into appUserModel()::m_modeldata
@@ -112,7 +131,8 @@ public:
 	inline int rowCount(const QModelIndex & = QModelIndex{}) const override final { return count(); }
 	inline int columnCount(const QModelIndex & = QModelIndex{}) const override final { return m_totalCols; }
 
-	QString fieldValueFromAnotherFieldValue(const uint target_field, const uint source_field, const QString &needle) const;
+	QString fieldValueFromAnotherFieldValue(const uint target_field, const uint needle_field, const QString &needle) const;
+	inline const QList<QStringList> &userInfo() const { return m_modeldata; }
 
 	QVariant data(const QModelIndex &index, int role) const override final;
 	bool setData(const QModelIndex &index, const QVariant &value, int role) override final;
@@ -121,9 +141,10 @@ public:
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
 
 signals:
+	void currentRowChanged();
 	void countChanged();
 	void selectedChanged();
-	void currentRowChanged();
+	void visibleChanged();
 
 private:
 	QHash<int, QByteArray> m_roleNames;
@@ -133,4 +154,6 @@ private:
 	uint m_nselected, m_totalCols;
 	int m_currentRow;
 	bool m_selectEntireRow;
+
+	void setupExtraInfo(const uint row, const QString &source_file = QString{});
 };

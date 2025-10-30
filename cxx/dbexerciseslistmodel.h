@@ -80,7 +80,7 @@ public:
 		setData(QAbstractListModel::index(index, 0), new_subname, subNameRole);
 	}
 
-	Q_INVOKABLE QString muscularGroup(const uint index) const;
+	Q_INVOKABLE QString muscularGroup(const int index) const;
 	Q_INVOKABLE inline void setMuscularGroup(const uint index, const QString &new_group)
 	{
 		setData(QAbstractListModel::index(index, 0), new_group, muscularGroupRole);
@@ -128,6 +128,8 @@ public:
 	inline int currentRow() const { return m_currentRow; }
 	Q_INVOKABLE inline int currentRealRow() const
 	{
+		if (m_currentRow == -1)
+			return -1;
 		if (m_searchFilterApplied)
 			return m_exercisesData.at(m_searchFilteredIndices.at(m_currentRow)).at(EXERCISES_LIST_COL_SELECTED).toUInt();
 		else
@@ -194,7 +196,8 @@ signals:
 	void hasExercisesChanged();
 
 private:
-	typedef struct st_SelEntry{
+	typedef struct st_SelEntry
+	{
 		uint real_index;
 		uint view_index;
 

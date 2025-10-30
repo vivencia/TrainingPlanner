@@ -13,13 +13,13 @@ TPPage {
 	objectName: "CoachesPage"
 
 	required property UserManager userManager
-	property int curRow
+	property int userRow: -1
 
 	onPageActivated: {
 		if (listsLayout.currentIndex === 0)
 			coachesList.selectItem(coachesList.currentRow !== -1 ? coachesList.currentRow : 0);
 		else
-			pendingCoachesList.selectItem(userModel.pendingCoachesResponses.count > 0 ? userModel.pendingCoachesResponses.currentRow : 0);
+			pendingCoachesList.selectItem(pendingCoachesList.currentRow !== -1 ? coachesList.currentRow : 0);
 	}
 
 	TPLabel {
@@ -44,19 +44,15 @@ TPPage {
 
 		TPTabButton {
 			text: qsTr("Coaches or Trainers")
-			enabled: userModel.haveCoaches
+			enabled: coachesList.enabled
 
-			onClicked: curRow = userModel.findUserByName(userModel.coachesNames[coachesList.currentIndex]);
+			onClicked: userRow = userModel.currentCoaches.getUserIdx();
 		}
 		TPTabButton {
 			text: qsTr("Pending answers")
-			enabled: userModel.pendingCoachesResponses ? userModel.pendingCoachesResponses.count > 0 : false
+			enabled: pendingCoachesList.enabled
 
-			onClicked: {
-				curRow = userModel.getTemporaryUserInfo(userModel.pendingCoachesResponses, userModel.pendingCoachesResponses.currentRow);
-				if (curRow > 0)
-					pendingCoachesList.currentIndex = userModel.pendingCoachesResponses.currentRow;
-			}
+			onClicked: userRow = userModel.pendingCoachesResponses.getUserIdx();
 		}
 
 		anchors {
@@ -87,21 +83,11 @@ TPPage {
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 
-			ListView {
+			TPCoachesAndClientsList {
 				id: coachesList
-				contentHeight: availableHeight
-				contentWidth: availableWidth
-				spacing: 0
-				clip: true
-				reuseItems: true
-				model: userModel.coachesNames
-				height: parent.height * 0.8
-				enabled: userModel.haveCoaches
-
-				ScrollBar.vertical: ScrollBar {
-					policy: ScrollBar.AsNeeded
-					active: true; visible: pendingCoachesList.contentHeight > pendingCoachesList.height
-				}
+				listClients: false
+				listCoaches: true
+				buttonString: qsTr("Résumé")
 
 				anchors {
 					top: parent.top
@@ -111,80 +97,14 @@ TPPage {
 					rightMargin: 5
 				}
 
-				delegate: ItemDelegate {
-					spacing: 0
-					padding: 5
-					width: coachesList.width
-					height: appSettings.itemDefaultHeight
-
-					contentItem: Item {
-						Text {
-							id: txtCoachName
-							text: userModel.coachesNames[index]
-							color: appSettings.fontColor
-							font.pixelSize: appSettings.fontSize
-							fontSizeMode: Text.Fit
-							leftPadding: 5
-							bottomPadding: 2
-							width: parent.width * 0.7
-
-							anchors {
-								verticalCenter: parent.verticalCenter
-								left: parent.left
-							}
-						}
-
-						TPButton {
-							text: qsTr("Résumé")
-							rounded: false
-							height: parent.height
-							width: parent.width * 0.3
-
-							anchors {
-								verticalCenter: parent.verticalCenter
-								right: parent.right
-							}
-
-							onClicked: userModel.viewResume(curRow);
-						}
-					}
-
-					background: Rectangle {
-						color: index === coachesList.currentIndex ? appSettings.entrySelectedColor :
-								(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
-					}
-
-					onClicked: {
-						curRow = userModel.findUserByName(userModel.coachesNames[index]);
-						userModel.currentRow = curRow;
-						coachesList.currentIndex = index;
-					}
-				} //ItemDelegate
-
-				Component.onCompleted: {
-					if (userModel.haveCoaches) {
-						curRow = userModel.findUserByName(userModel.coachesNames[0]);
-						userModel.currentRow = curRow;
-						coachesList.currentIndex = 0;
-					}
-				}
-
-				function selectItem(index: int): void {
-					if (coachesList.currentIndex !== index) {
-						const userrow = userModel.findUserByName(userModel.coachesNames[index]);
-						if (userrow > 0) {
-							curRow = -1;
-							curRow = index;
-							coachesList.currentIndex = index;
-						}
-					}
-				}
+				onItemSelected: (userRow) => coachesPage.userRow = userRow;
+				onButtonClicked: userModel.viewResume(userRow);
 			} //ListView: coachesList
 
 			RowLayout {
 				uniformCellSizes: true
 				height: appSettings.itemDefaultHeight
-				visible: userModel.haveCoaches
+				visible: haveCoaches
 
 				anchors {
 					top: coachesList.bottom
@@ -195,13 +115,13 @@ TPPage {
 
 				TPButton {
 					text: qsTr("Remove")
-					enabled: curRow != 0
+					enabled: userRow != 0
 					rounded: false
 					autoSize: true
 					Layout.alignment: Qt.AlignCenter
 
 					onClicked: showRemoveMessage(false,
-								qsTr("Remove ") + userModel.userName(curRow) + "?",
+								qsTr("Remove ") + userModel.userName(userRow) + "?",
 								qsTr("The coach will be notified of your decision, but might still contact you unless you block them"));
 				}
 			}
@@ -211,21 +131,12 @@ TPPage {
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 
-			ListView {
+			TPCoachesAndClientsList {
 				id: pendingCoachesList
-				contentHeight: availableHeight
-				contentWidth: availableWidth
-				spacing: 0
-				reuseItems: true
-				clip: true
-				model: userModel.pendingCoachesResponses
-				height: 0.8 * parent.height
-				enabled: userModel.pendingCoachesResponses ? userModel.pendingCoachesResponses.count > 0 : false
-
-				ScrollBar.vertical: ScrollBar {
-					policy: ScrollBar.AsNeeded
-					active: true; visible: pendingCoachesList.contentHeight > pendingCoachesList.height
-				}
+				allowNotConfirmed: true
+				listClients: false
+				listCoaches: true
+				buttonString: qsTr("Résumé")
 
 				anchors {
 					top: parent.top
@@ -235,69 +146,8 @@ TPPage {
 					rightMargin: 5
 				}
 
-				delegate: ItemDelegate {
-					spacing: 0
-					padding: 5
-					width: pendingCoachesList.width
-					height: appSettings.itemDefaultHeight
-
-					contentItem: Item {
-						Text {
-							id: txtPendingCoachName
-							text: name
-							font.pixelSize: appSettings.fontSize
-							fontSizeMode: Text.Fit
-							leftPadding: 5
-							bottomPadding: 2
-							width: parent.width * 0.7
-
-							anchors {
-								verticalCenter: parent.verticalCenter
-								left: parent.left
-							}
-						}
-
-						TPButton {
-							text: qsTr("Résumé")
-							rounded: false
-							height: parent.height
-							width: parent.width * 0.3
-
-							anchors {
-								verticalCenter: parent.verticalCenter
-								left: txtPendingCoachName.right
-								right: parent.right
-							}
-
-							onClicked: userModel.viewResume(curRow);
-						}
-					}
-
-					background: Rectangle {
-						color: index === pendingCoachesList.currentIndex ? appSettings.entrySelectedColor :
-								(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
-					}
-
-					onClicked: {
-						const newrow = userModel.getTemporaryUserInfo(userModel.pendingCoachesResponses, index);
-						if (newrow > 0) {
-							curRow = -1;
-							curRow = newrow;
-							pendingCoachesList.currentIndex = index;
-						}
-					}
-				} //ItemDelegate
-
-				function selectItem(index: int): void {
-					if (index !== currentIndex) {
-						const newrow = userModel.getTemporaryUserInfo(userModel.pendingCoachesResponses, index);
-						if (newrow > 0) {
-							curRow = -1;
-							curRow = newrow;
-							currentIndex = index;
-						}
-					}
-				}
+				onItemSelected: (userRow) => coachesPage.userRow = userRow;
+				onButtonClicked: userModel.viewResume(userRow);
 			} //ListView: pendingCoachesList
 
 			RowLayout {
@@ -375,24 +225,24 @@ TPPage {
 
 			UserPersonalData {
 				id: usrData
-				userRow: curRow
+				userRow: userRow
 				parentPage: coachesPage
-				enabled: curRow > 0
+				enabled: userRow > 0
 				width: appSettings.pageWidth - 20
 			}
 
 			UserContact {
 				id: usrContact
-				userRow: curRow
-				enabled: curRow > 0
+				userRow: userRow
+				enabled: userRow > 0
 				width: appSettings.pageWidth - 20
 			}
 
 			UserProfile {
 				id: usrProfile
-				userRow: curRow
+				userRow: userRow
 				parentPage: coachesPage
-				enabled: curRow > 0
+				enabled: userRow > 0
 				width: appSettings.pageWidth - 20
 			}
 		}
@@ -432,7 +282,7 @@ TPPage {
 
 	function removeOrDecline(decline: bool) {
 		if (!decline)
-			userModel.removeUser(curRow);
+			userModel.removeUser(userRow);
 		else
 			userModel.rejectUser(userModel.pendingCoachesResponses, pendingCoachesList.currentIndex);
 	}

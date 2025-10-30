@@ -52,7 +52,9 @@ static inline QString userNameWithoutConfirmationWarning(const QString &userName
 
 DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 	: QObject{parent}, m_tempRow{-1}, n_cmdOrderValue{-1}, m_availableCoaches{nullptr}, m_pendingClientRequests{nullptr},
-		m_pendingCoachesResponses{nullptr}, m_tempUserInfo{nullptr}, m_mainTimer{nullptr}
+		m_pendingCoachesResponses{nullptr}, m_tempUserInfo{nullptr}, m_mainTimer{nullptr}, m_currentCoaches{nullptr},
+			m_currentClients{nullptr}, m_currentCoachesAndClients{nullptr}
+
 #ifndef Q_OS_ANDROID
 	,m_allUsers{nullptr}
 #endif
@@ -77,13 +79,6 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 				}
 				appDBInterface()->saveUser(user_idx);
 			}
-		});
-
-		connect(this, &DBUserModel::coachesNamesChanged, this, [this] () {
-			emit coachesAndClientsNamesChanged();
-		});
-		connect(this, &DBUserModel::clientsNamesChanged, this, [this] () {
-			emit coachesAndClientsNamesChanged();
 		});
 
 		mb_userRegistered = std::nullopt;
@@ -168,9 +163,9 @@ void DBUserModel::addUser(QStringList &&user_info)
 	if (last_idx > 0)
 	{
 		if (isCoach(0) && isClient(last_idx))
-			m_clientsNames.append(_userName(last_idx));
-		else if (isCoach(last_idx))
-			m_coachesNames.append(_userName(last_idx));
+			addClient(last_idx);
+		if (isCoach(last_idx))
+			addCoach(last_idx);
 	}
 }
 
@@ -352,7 +347,7 @@ void DBUserModel::setAppUseMode(const int user_idx, const int new_use_opt)
 	{
 		if (user_idx == 0)
 		{
-			if (isCoach(0) && m_clientsNames.count() > 0)
+			if (isCoach(0) && m_currentClients->count() > 0)
 			{
 				if (new_use_opt != APP_USE_MODE_SINGLE_COACH && new_use_opt != APP_USE_MODE_COACH_USER_WITH_COACH)
 				{
@@ -364,7 +359,7 @@ void DBUserModel::setAppUseMode(const int user_idx, const int new_use_opt)
 						Q_ARG(QString, tr("All your clients will be removed and cannot be automatically retrieved")));
 				}
 			}
-			if (isClient(0) && m_coachesNames.count() > 0)
+			if (isClient(0) && m_currentCoaches->count() > 0)
 			{
 				if (new_use_opt == APP_USE_MODE_SINGLE_COACH)
 				{
@@ -387,19 +382,27 @@ void DBUserModel::setAppUseMode(const int user_idx, const int new_use_opt)
 	}
 }
 
-void DBUserModel::addCoach(const uint user_idx)
+void DBUserModel::addCoach(const uint user_idx, const bool emit_signal)
 {
-	m_coachesNames.append(_userName(user_idx));
-	emit coachesNamesChanged();
-	appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings({tr("New coach!"),
-		tr("Now that ") + userName(user_idx) + tr(" is your coach, you can send them messages using the Star Button on the Home screen") }, record_separator),
-		avatar(user_idx, false), 10000);
+	if (!m_currentCoaches)
+		m_currentCoaches = new OnlineUserInfo{this};
+	m_currentCoaches->dataFromUserModel(user_idx);
+	addIntoCoachesAndClients(m_currentCoaches, m_currentCoaches->count() - 1);
+	if (emit_signal)
+	{
+		emit currentCoachesChanged();
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings({tr("New coach!"),
+			tr("Now that ") + userName(user_idx) + tr(" is your coach, you can send them messages using the Star Button on the Home screen") }, record_separator),
+			avatar(user_idx, false), 10000);
+	}
 }
 
 void DBUserModel::delCoach(const uint user_idx)
 {
-	m_coachesNames.removeOne(userId(0));
-	emit coachesNamesChanged();
+	m_currentCoaches->removeUserInfo(m_currentCoaches->getRowFromUserIdx(user_idx), false);
+	emit currentCoachesChanged();
+	m_currentCoachesAndClients->removeUserInfo(m_currentCoachesAndClients->getRowFromUserIdx(user_idx), false);
+	emit currentCoachesAndClientsChanged();
 	clearUserDir(userId(user_idx));
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,user_idx] (const QString &key, const QString &value) {
 		appOnlineServices()->removeCoachFromClient(0, key, value, userId(user_idx));
@@ -407,45 +410,39 @@ void DBUserModel::delCoach(const uint user_idx)
 	appKeyChain()->readKey(userId(0));
 }
 
-void DBUserModel::addClient(const uint user_idx)
+void DBUserModel::addClient(const uint user_idx, const bool emit_signal)
 {
-	m_clientsNames.append(_userName(user_idx));
-	emit clientsNamesChanged();
+	if (!m_currentClients)
+		m_currentClients = new OnlineUserInfo{this};
+	m_currentClients->dataFromUserModel(user_idx);
+	addIntoCoachesAndClients(m_currentClients, m_currentClients->count() - 1);
+	if (emit_signal)
+		emit currentClientsChanged();
 }
 
 void DBUserModel::delClient(const uint user_idx)
 {
-	if (user_idx >= 1)
-	{
-		m_clientsNames.removeOne(userId(user_idx));
-		emit clientsNamesChanged();
-		clearUserDir(userId(user_idx));
-		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,user_idx] (const QString &key, const QString &value) {
-			appOnlineServices()->removeClientFromCoach(0, key, value, userId(user_idx));
-		}, Qt::SingleShotConnection);
-		appKeyChain()->readKey(userId(0));
-	}
+	m_currentClients->removeUserInfo(m_currentClients->getRowFromUserIdx(user_idx), false);
+	emit currentClientsChanged();
+	m_currentCoachesAndClients->removeUserInfo(m_currentCoachesAndClients->getRowFromUserIdx(user_idx), false);
+	emit currentCoachesAndClientsChanged();
+	clearUserDir(userId(user_idx));
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,user_idx] (const QString &key, const QString &value) {
+		appOnlineServices()->removeClientFromCoach(0, key, value, userId(user_idx));
+	}, Qt::SingleShotConnection);
+	appKeyChain()->readKey(userId(0));
 }
 
 //When client changes name remotely or when changing from not yet accepted coach(main user) to accepted coach
 void DBUserModel::changeClient(const uint user_idx, const QString &oldname)
 {
-	const qsizetype idx{m_clientsNames.indexOf(oldname)};
+	//TODO
+	/*const qsizetype idx{m_clientsNames.indexOf(oldname)};
 	if (idx >= 0)
 	{
 		m_clientsNames[idx] = _userName(user_idx);
 		emit clientsNamesChanged();
-	}
-}
-
-QStringList DBUserModel::coachesAndClientsNames() const
-{
-	QStringList coaches_and_clients;
-	for (const auto &coach : m_coachesNames)
-		coaches_and_clients.append(std::move(QString{tr("Coach: ") + coach}));
-	for (const auto &client : m_clientsNames)
-		coaches_and_clients.append(std::move(QString{tr("Client: ") + client}));
-	return coaches_and_clients;
+	}*/
 }
 
 #ifndef Q_OS_ANDROID
@@ -463,7 +460,7 @@ void DBUserModel::getAllOnlineUsers()
 				disconnect(*conn);
 				if (!m_allUsers)
 				{
-					m_allUsers = new OnlineUserInfo{this, USER_TOTAL_COLS};
+					m_allUsers = new OnlineUserInfo{this};
 					m_allUsers->setSelectEntireRow(true);
 				}
 				else
@@ -540,8 +537,10 @@ void DBUserModel::userSwitchingActions(const bool create, QString &&userid)
 {
 	mb_userRegistered = false;
 	m_usersData.clear();
-	m_coachesNames.clear();
-	m_clientsNames.clear();
+	if (m_currentCoaches)
+		m_currentCoaches->clear();
+	if (m_currentClients)
+		m_currentClients->clear();
 	if (m_availableCoaches)
 		m_availableCoaches->clear();
 	if (m_pendingClientRequests)
@@ -565,8 +564,8 @@ void DBUserModel::userSwitchingActions(const bool create, QString &&userid)
 
 	emit appUseModeChanged();
 	emit onlineUserChanged();
-	emit coachesNamesChanged();
-	emit clientsNamesChanged();
+	emit currentCoachesChanged();
+	emit currentClientsChanged();
 	if (canConnectToServer())
 		onlineCheckIn();
 
@@ -765,13 +764,10 @@ void DBUserModel::setCoachPublicStatus(const bool bPublic)
 					mb_coachRegistered = (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS) &&
 											mb_coachPublic;
 					emit coachOnlineStatus(mb_coachRegistered == true);
-					if (!mb_coachRegistered && haveClients())
+					if (!mb_coachRegistered && m_currentClients && m_currentClients->count() > 0)
 					{
-						for (qsizetype i{m_clientsNames.count() - 1}; i >= 1; --i)
-						{
-							if (isClient(i))
-								removeUser(i, false, true);
-						}
+						for (qsizetype i{m_currentClients->count() - 1}; i >= 1; --i)
+							removeUser(i, false, true);
 					}
 				}
 			});
@@ -1872,14 +1868,14 @@ void DBUserModel::startServerPolling()
 
 	if (isCoach(0))
 	{
-		m_pendingClientRequests = new OnlineUserInfo{this, USER_TOTAL_COLS};
+		m_pendingClientRequests = new OnlineUserInfo{this};
 		static_cast<void>(appUtils()->mkdir(m_dirForClientsRequests));
 		static_cast<void>(appUtils()->mkdir(m_dirForCurrentClients));
 	}
 	if (isClient(0))
 	{
-		m_pendingCoachesResponses = new OnlineUserInfo{this, USER_TOTAL_COLS};
-		m_availableCoaches = new OnlineUserInfo{this, USER_TOTAL_COLS};
+		m_pendingCoachesResponses = new OnlineUserInfo{this};
+		m_availableCoaches = new OnlineUserInfo{this};
 		static_cast<void>(appUtils()->mkdir(m_dirForRequestedCoaches));
 		static_cast<void>(appUtils()->mkdir(m_dirForCurrentCoaches));
 	}
@@ -2184,9 +2180,12 @@ void DBUserModel::pollCurrentCoaches()
 
 void DBUserModel::checkNewMesos()
 {
-	for (const auto &coach : static_cast<const QStringList>(m_coachesNames))
+	if (!m_currentCoaches || m_currentCoaches->count() == 0)
+		return;
+
+	for (const auto &coach : m_currentCoaches->userInfo())
 	{
-		const QString &coach_id{appUserModel()->userIdFromFieldValue(USER_COL_NAME, coach)};
+		const QString &coach_id{coach.at(USER_COL_ID)};
 		QLatin1StringView v{QString{"checkNewMesos"_L1 + coach_id.toLatin1()}.toLatin1()};
 		const int requestid{appUtils()->generateUniqueId(v)};
 		auto conn{std::make_shared<QMetaObject::Connection>()};
@@ -2205,13 +2204,15 @@ void DBUserModel::checkNewMesos()
 							const int id{appUtils()->idFromString(mesoFileName)};
 							if (appMessagesManager()->message(id) == nullptr)
 							{
-								TPMessage *new_message{new TPMessage(coach + tr(" has sent you a new Exercises Program"), "message-meso"_L1, appMessagesManager())};
+								TPMessage *new_message{new TPMessage(coach.at(USER_COL_NAME) +
+										tr(" has sent you a new Exercises Program"), "message-meso"_L1, appMessagesManager())};
 								new_message->setId(id);
 								new_message->insertData(mesoFileName);
 								new_message->insertAction(tr("View"), [=] (const QVariant &mesofile) {
 												appMesoModel()->viewOnlineMeso(coach_id, mesofile.toString()); }, true);
 								new_message->insertAction(tr("Delete"), [=,this] (const QVariant &mesofile) {
-												appOnlineServices()->removeFile(request_id, userId(0), m_password, mesofile.toString(), mesosDir, coach_id); }, true);
+												appOnlineServices()->removeFile(request_id, userId(0), m_password,
+														mesofile.toString(), mesosDir, coach_id); }, true);
 								new_message->plug();
 							}
 						}
@@ -2219,8 +2220,17 @@ void DBUserModel::checkNewMesos()
 				}
 			}
 		});
-		appOnlineServices()->listFiles(requestid, userId(0), m_password, true, false, QString{}, mesosDir + userIdFromFieldValue(USER_COL_NAME, coach), userId(0));
+		appOnlineServices()->listFiles(requestid, userId(0), m_password, true, false, QString{},
+							mesosDir + userIdFromFieldValue(USER_COL_NAME, coach.at(USER_COL_NAME)), userId(0));
 	}
+}
+
+void DBUserModel::addIntoCoachesAndClients(OnlineUserInfo* other_userinfo, const uint row)
+{
+	if (!m_currentCoachesAndClients)
+		m_currentCoachesAndClients = new OnlineUserInfo{this};
+	m_currentCoachesAndClients->dataFromOnlineUserInfo(other_userinfo, row);
+	emit currentCoachesAndClientsChanged();
 }
 
 QString DBUserModel::formatFieldToExport(const uint field, const QString &fieldValue) const
