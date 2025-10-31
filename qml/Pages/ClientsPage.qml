@@ -11,21 +11,17 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 TPPage {
 	id: clientsPage
 	objectName: "ClientsPage"
+	imageSource: appSettings.clientsBackground
+	backgroundOpacity: 0.8
 
 	required property UserManager userManager
-	property int curRow
+	property int userRow
 
 	onPageActivated: {
-		let clientName = "";
-		if (listsLayout.currentIndex === 0) {
+		if (listsLayout.currentIndex === 0)
 			clientsList.selectItem(clientsList.currentRow !== -1 ? clientsList.currentRow : 0);
-			clientName = userModel.clientsNames[clientsList.currentIndex];
-		}
-		else {
-			pendingClientsList.selectItem(userModel.pendingClientsRequests.count > 0 ? userModel.pendingClientsRequests.currentRow : 0);
-			clientName = userModel.pendingClientsRequests.name; //TEST
-		}
-		curRow = userModel.findUserByName(clientName);
+		else
+			pendingClientsList.selectItem(pendingClientsList.currentRow !== -1 ? pendingClientsList.currentRow : 0);
 	}
 
 	TPLabel {
@@ -50,22 +46,16 @@ TPPage {
 
 		TPTabButton {
 			text: qsTr("Clients")
-			enabled: userModel.haveClients
-			checked: tabbar.currentIndex === 0
+			enabled: clientsList.enabled
 
-			onClicked: curRow = userModel.findUserByName(userModel.clientsNames[clientsList.currentIndex]);
+			onClicked: userRow = userModel.currentClients.getUserIdx();
 		}
 
 		TPTabButton {
 			text: qsTr("Pending requests")
-			enabled: userModel.pendingClientsRequests ? userModel.pendingClientsRequests.count > 0 : false
-			checked: tabbar.currentIndex === 1
+			enabled: pendingClientsList.enabled
 
-			onClicked: {
-				curRow = userModel.getTemporaryUserInfo(userModel.pendingClientsRequests, userModel.pendingClientsRequests.currentRow);
-				if (curRow > 0)
-					pendingClientsList.currentIndex = userModel.pendingClientsRequests.currentRow;
-			}
+			onClicked: userRow = userModel.pendingClientsRequests.getUserIdx();
 		}
 
 		anchors {
@@ -81,7 +71,7 @@ TPPage {
 	StackLayout {
 		id: listsLayout
 		currentIndex: tabbar.currentIndex
-		height: 0.2 * clientsPage.height
+		height: clientsPage.height * 0.2
 
 		anchors {
 			top: tabbar.bottom
@@ -94,80 +84,43 @@ TPPage {
 
 		TPCoachesAndClientsList {
 			id: clientsList
+			listClients: true
+			listCoaches: false
 			buttonString: qsTr("Remove")
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 
-			onItemSelected: (userRow) => curRow = userRow;
+			onItemSelected: (userRow) => clientsPage.userRow = userRow;
 			onButtonClicked: showRemoveMessage(false,
-						qsTr("Remove ") + userModel.userName(curRow) + "?",
+						qsTr("Remove ") + userModel.userName(clientsPage.userRow) + "?",
 						qsTr("The client will be notified of your decision, but might still contact you unless you block them"));
-		} //TPCoachesAndClientsList
+		} //TPCoachesAndClientsList: clientsList
 
 		Item {
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 
-			ListView {
+			TPCoachesAndClientsList {
 				id: pendingClientsList
-				contentHeight: availableHeight
-				contentWidth: availableWidth
-				spacing: 0
-				clip: true
-				reuseItems: true
-				model: userModel.pendingClientsRequests
-				height: parent.height * 0.8
-				enabled: userModel.pendingClientsRequests ? userModel.pendingClientsRequests.count > 0 : false
-
-				ScrollBar.vertical: ScrollBar {
-					policy: ScrollBar.AsNeeded
-					active: true; visible: pendingClientsList.contentHeight > pendingClientsList.height
-				}
+				allowNotConfirmed: true
+				listClients: true
+				listCoaches: false
 
 				anchors {
 					top: parent.top
 					left: parent.left
+					leftMargin: 5
 					right: parent.right
+					rightMargin: 5
 				}
 
-				delegate: ItemDelegate {
-					spacing: 0
-					padding: 5
-					width: pendingClientsList.width
-					height: appSettings.itemDefaultHeight
-
-					contentItem: Text {
-						text: name
-						font.pixelSize: appSettings.fontSize
-						fontSizeMode: Text.Fit
-						leftPadding: 5
-						bottomPadding: 2
-					}
-
-					background: Rectangle {
-						color: index === pendingClientsList.currentIndex ? appSettings.entrySelectedColor :
-							(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
-					}
-
-					onClicked: pendingClientsList.selectItem(index);
-				} //ItemDelegate
-
-				function selectItem(index: int): void {
-					if (index !== currentIndex) {
-						const newrow = userModel.getTemporaryUserInfo(userModel.pendingClientsRequests, index);
-						if (newrow > 0) {
-							curRow = -1;
-							curRow = newrow;
-							currentIndex = index;
-						}
-					}
-				}
-			} //ListView: pendingClientsList
+				onItemSelected: (userRow) => clientsPage.userRow = userRow;
+			} //TPCoachesAndClientsList: pendingClientsList
 
 			RowLayout {
 				uniformCellSizes: true
 				height: appSettings.itemDefaultHeight
-				visible: userModel.pendingClientsRequests ? userModel.pendingClientsRequests.count > 0 : false
+				enabled: userRow != 0 && pendingClientsList.enabled  && pendingClientsList.currentIndex !== -1
 
 				anchors {
 					top: pendingClientsList.bottom
@@ -179,6 +132,7 @@ TPPage {
 				TPButton {
 					text: qsTr("Accept")
 					autoSize: true
+					rounded: false
 					Layout.alignment: Qt.AlignCenter
 
 					onClicked: userModel.acceptUser(userModel.pendingClientsRequests, pendingClientsList.currentIndex);
@@ -186,6 +140,7 @@ TPPage {
 				TPButton {
 					text: qsTr("Decline")
 					autoSize: true
+					rounded: false
 					Layout.alignment: Qt.AlignCenter
 
 					onClicked: showRemoveMessage(true,
@@ -219,24 +174,24 @@ TPPage {
 
 			UserPersonalData {
 				id: usrData
-				userRow: curRow
+				userRow: clientsPage.userRow
 				parentPage: clientsPage
-				enabled: curRow > 0
+				enabled: clientsPage.userRow > 0
 				width: appSettings.pageWidth - 20
 			}
 
 			UserContact {
 				id: usrContact
-				userRow: curRow
-				enabled: curRow > 0
+				userRow: clientsPage.userRow
+				enabled: clientsPage.userRow > 0
 				width: appSettings.pageWidth - 20
 			}
 
 			UserProfile {
 				id: usrProfile
-				userRow: curRow
+				userRow: clientsPage.userRow
 				parentPage: clientsPage
-				enabled: curRow > 0
+				enabled: clientsPage.userRow > 0
 				width: appSettings.pageWidth - 20
 			}
 		}
@@ -276,7 +231,7 @@ TPPage {
 
 	function removeOrDecline(decline: bool) {
 		if (!decline)
-			userModel.removeUser(curRow);
+			userModel.removeUser(userRow);
 		else
 			userModel.rejectUser(userModel.pendingClientsRequests, pendingClientsList.currentIndex);
 	}

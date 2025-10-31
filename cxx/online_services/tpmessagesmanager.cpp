@@ -38,9 +38,9 @@ TPMessagesManager::TPMessagesManager(QObject *parent)
 	_appMessagesManager = this;
 	m_roleNames[idRole]				= std::move("id");
 	m_roleNames[labelTextRole]		= std::move("labelText");
-	m_roleNames[iconRole]			= std::move("icon");
-	m_roleNames[dateRole]			= std::move("date");
-	m_roleNames[timeRole]			= std::move("time");
+	m_roleNames[iconRole]			= std::move("msgicon");
+	m_roleNames[dateRole]			= std::move("msgdate");
+	m_roleNames[timeRole]			= std::move("msgtime");
 	m_roleNames[extraInfoLabelRole]	= std::move("extraInfo");
 	m_roleNames[extraInfoIconRole]	= std::move("extraInfoIcon");
 	m_roleNames[actionsRole]		= std::move("actions");

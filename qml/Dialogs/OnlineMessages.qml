@@ -37,6 +37,8 @@ TPPopup {
 		sourceImage: ":/images/backgrounds/backimage1.jpg"
 		image_size: Qt.size(dlgMaxWidth, maxHeight)
 		radius: 8
+		layer.enabled: true
+		anchors.fill: parent
 	}
 
 	ParallelAnimation
@@ -244,14 +246,14 @@ TPPopup {
 							Layout.rightMargin: 10
 
 							TPImage {
-								source: messagesList.model.iconSource
+								source: msgicon
 								dropShadow: false
 								width: 20
 								height: 20
 							}
 
 							TPLabel {
-								text: date + "  " + time
+								text: msgdate + "  " + msgtime
 								font: AppGlobals.smallFont
 								height: 15
 								Layout.leftMargin: 20
@@ -260,7 +262,7 @@ TPPopup {
 							Item {
 								width: appSettings.itemSmallHeight
 								height: width
-								visible: messagesList.model.extraInfoLabel.length > 0
+								visible: extraInfo.length > 0
 
 								TPImage {
 									id: extraInfoImg
@@ -268,7 +270,7 @@ TPPopup {
 									anchors.fill: parent
 								}
 								TPLabel {
-									text: messagesList.model.extraInfoLabel
+									text: extraInfo
 									horizontalAlignment: Text.AlignHCenter
 									minimumPixelSize: appSettings.smallFontSize * 0.8
 									z: 1
@@ -291,7 +293,7 @@ TPPopup {
 
 					TPLabel {
 						id: lblMessage
-						text: displayText
+						text: labelText
 						color: "black"
 						elide: delegateItem.showActions ? Text.ElideNone : Text.ElideRight
 						wrapMode: delegateItem.showActions ? Text.WordWrap : Text.NoWrap

@@ -20,6 +20,7 @@ public:
 	QString databaseDir() const;
 	inline static QLatin1StringView tableName() { return "chat_table"_L1; }
 	static QLatin1StringView createTableQuery();
+	[[maybe_unused]] bool createTable() override final;
 
 	void updateTable() override final {}
 	void loadChat();

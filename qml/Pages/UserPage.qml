@@ -11,6 +11,8 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 TPPage {
 	id: userPage
 	objectName: "userPage"
+	imageSource: appSettings.userBackground
+	backgroundOpacity: 0.8
 	implicitWidth: appSettings.pageWidth
 	implicitHeight: appSettings.pageHeight
 

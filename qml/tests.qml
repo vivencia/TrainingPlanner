@@ -9,6 +9,7 @@ import "ExercisesAndSets"
 import "TPWidgets"
 import "Dialogs"
 import "Pages"
+import "User"
 
 ApplicationWindow {
 	id: mainwindow
@@ -19,20 +20,6 @@ ApplicationWindow {
 	signal pageDeActivated_main(Item page);
 
 	//Component.onCompleted: timePicker.show1();
-
-	TPBackRec {
-		id: timerBackground
-		useImage: true
-		scaleIndex: 1.8
-		rotate_angle: 325
-		x_translation: 50
-		y_translation: 40
-		clip: false
-		border.color: "white"
-		sourceImage: ":/images/backgrounds/backtimer.png"
-		radius: 8
-		anchors.fill: parent
-	}
 
 	//TPPage {
 	//	id: mainPage

@@ -109,7 +109,7 @@ public:
 	void makeUserDefault(const uint row);
 
 	int getRowFromUserIdx(const uint user_idx) const;
-	Q_INVOKABLE int getUserIdx(int row = -1) const;
+	Q_INVOKABLE int getUserIdx(int row = -1, const bool exact_match = true) const;
 
 	inline QStringList &modeldata(const uint row) { return m_modeldata[row]; } //used to move data into appUserModel()::m_modeldata
 	inline const QStringList &modeldata(const uint row) const { return m_modeldata.at(row); } //used to copy data into appUserModel()::m_modeldata

@@ -149,6 +149,7 @@ QString TPSettings::userDir(const QString &userid) const
 {
 	return m_localAppFilesDir + userid + '/';
 }
+
 //--------------------------------------------GLOBAL SETTINGS---------------------------------------------//
 
 //--------------------------------------------USER   SETTINGS---------------------------------------------//
@@ -470,6 +471,25 @@ void TPSettings::setFontSize(const uint new_value, const bool bFromQml)
 	}
 }
 
+void TPSettings::addWeatherCity(const QString &city, const QString &latitude, const QString &longitude)
+{
+	for (const auto &location: std::as_const(m_weatherLocations))
+	{
+		if (location.contains(city, Qt::CaseInsensitive))
+			return;
+	}
+	m_weatherLocations.append(appUtils()->string_strings({city, latitude, longitude}, record_separator));
+	changeValue(currentUser(), WEATHER_CITIES_INDEX, QVariant::fromValue(m_weatherLocations));
+	emit weatherCitiesCountChanged();
+}
+
+void TPSettings::removeWeatherCity(const uint idx)
+{
+	m_weatherLocations.removeAt(idx);
+	changeValue(currentUser(), WEATHER_CITIES_INDEX, QVariant::fromValue(m_weatherLocations));
+	emit weatherCitiesCountChanged();
+}
+
 QString TPSettings::weatherCity(const uint idx)
 {
 	if (m_weatherLocations.isEmpty())
@@ -492,23 +512,17 @@ QGeoCoordinate TPSettings::weatherCityCoordinates(const uint idx)
 	return coord;
 }
 
-void TPSettings::addWeatherCity(const QString &city, const QString &latitude, const QString &longitude)
+QString TPSettings::indexColorSchemeToColorSchemeName() const
 {
-	for (const auto &location: std::as_const(m_weatherLocations))
+	switch (colorScheme())
 	{
-		if (location.contains(city, Qt::CaseInsensitive))
-			return;
+		case Dark: return "_dark"_L1; break;
+		case Light: return "_light"_L1; break;
+		case Green: return "_green"_L1; break;
+		case Red: return "_red"_L1; break;
+		case Gray: return "_gray"_L1; break;
+		default: return "_blue"_L1; break;
 	}
-	m_weatherLocations.append(appUtils()->string_strings({city, latitude, longitude}, record_separator));
-	changeValue(currentUser(), WEATHER_CITIES_INDEX, QVariant::fromValue(m_weatherLocations));
-	emit weatherCitiesCountChanged();
-}
-
-void TPSettings::removeWeatherCity(const uint idx)
-{
-	m_weatherLocations.removeAt(idx);
-	changeValue(currentUser(), WEATHER_CITIES_INDEX, QVariant::fromValue(m_weatherLocations));
-	emit weatherCitiesCountChanged();
 }
 
 void TPSettings::userSwitchingActions()

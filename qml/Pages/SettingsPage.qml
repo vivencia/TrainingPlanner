@@ -10,6 +10,8 @@ import "../User"
 TPPage {
 	id: settingsPage
 	objectName: "settingsPage"
+	imageSource: appSettings.settingsBackground
+	backgroundOpacity: 0.8
 	implicitWidth: appSettings.pageWidth
 	implicitHeight: appSettings.pageHeight
 

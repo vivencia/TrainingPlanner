@@ -13,6 +13,7 @@ Item {
 	property bool listClients: true
 	property bool listCoaches: false
 	property alias currentIndex: listview.currentIndex
+	property OnlineUserInfo workingModel: null
 
 	ListView {
 		id: listview
@@ -22,24 +23,8 @@ Item {
 		clip: true
 		currentIndex: model ? model.currentRow : -1
 		height: button.visible ? 0.8 * parent.height : parent.height
-
-		Component.onCompleted: {
-			if (listClients && listCoaches)
-				model = Qt.binding(function() { return userModel.currentCoachesAndClients; });
-			else if (listClients) {
-				if (!allowNotConfirmed)
-					model = Qt.binding(function() { return userModel.currentClients; });
-				else
-					model = Qt.binding(function() { return userModel.pendingClientsRequests; });
-			}
-			else {
-				if (!allowNotConfirmed)
-					model = Qt.binding(function() { return userModel.currentCoaches; });
-				else
-					model = Qt.binding(function() { return userModel.pendingCoachesResponses; });
-			}
-			enabled = Qt.binding(function() { return model ? model.count > 0 : false });
-		}
+		model: workingModel
+		enabled: parent.enabled
 
 		anchors {
 			top: parent.top
@@ -102,14 +87,32 @@ Item {
 		}
 	}
 
+	Component.onCompleted: {
+		if (listClients && listCoaches)
+			workingModel = Qt.binding(function() { return userModel.currentCoachesAndClients; });
+		else if (listClients) {
+			if (!allowNotConfirmed)
+				workingModel = Qt.binding(function() { return userModel.currentClients; });
+			else
+				workingModel = Qt.binding(function() { return userModel.pendingClientsRequests; });
+		}
+		else {
+			if (!allowNotConfirmed)
+				workingModel = Qt.binding(function() { return userModel.currentCoaches; });
+			else
+				workingModel = Qt.binding(function() { return userModel.pendingCoachesResponses; });
+		}
+		enabled = Qt.binding(function() { return workingModel ? workingModel.count > 0 : false });
+	}
+
 	function selectItem(index: int): void {
-		if (currentRow !== index) {
-			const userrow = listview.model.getUserIdx(index, !(listClients && listCoaches));
-			if (userrow > 0) {
-				listview.model.currentRow = index;
-				listview.currentIndex = index;
-				itemSelected(userrow);
-			}
+		if (!workingModel)
+			return;
+		const userrow = workingModel.getUserIdx(index, !(listClients && listCoaches));
+		if (userrow > 0) {
+			workingModel.currentRow = index;
+			listview.currentIndex = index;
+			itemSelected(userrow);
 		}
 	}
 }

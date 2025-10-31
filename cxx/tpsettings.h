@@ -90,6 +90,10 @@ Q_PROPERTY(QString listEntryColor2 READ listEntryColor2 NOTIFY colorChanged)
 Q_PROPERTY(QString fontColor READ fontColor WRITE setFontColor NOTIFY colorChanged)
 Q_PROPERTY(QString disabledFontColor READ disabledFontColor WRITE setDisabledFontColor NOTIFY colorChanged)
 Q_PROPERTY(QString weightUnit READ weightUnit WRITE setWeightUnit NOTIFY weightUnitChanged)
+Q_PROPERTY(QString settingsBackground READ settingsBackground NOTIFY colorChanged FINAL)
+Q_PROPERTY(QString userBackground READ userBackground NOTIFY colorChanged FINAL)
+Q_PROPERTY(QString coachesBackground READ coachesBackground NOTIFY colorChanged FINAL)
+Q_PROPERTY(QString clientsBackground READ clientsBackground NOTIFY colorChanged FINAL)
 
 Q_PROPERTY(int lastViewedMesoIdx READ lastViewedMesoIdx WRITE setLastViewedMesoIdx NOTIFY lastViewedMesoIdxChanged)
 Q_PROPERTY(bool alwaysAskConfirmation READ alwaysAskConfirmation WRITE setAlwaysAskConfirmation NOTIFY alwaysAskConfirmationChanged)
@@ -211,6 +215,24 @@ public:
 	Q_INVOKABLE void removeWeatherCity(const uint idx);
 	Q_INVOKABLE QString weatherCity(const uint idx);
 	Q_INVOKABLE QGeoCoordinate weatherCityCoordinates(const uint idx);
+
+	QString indexColorSchemeToColorSchemeName() const;
+	inline QString settingsBackground() const
+	{
+		return ":/images/backgrounds/settings"_L1 + indexColorSchemeToColorSchemeName() + ".jpg"_L1;
+	}
+	inline QString userBackground() const
+	{
+		return ":/images/backgrounds/user"_L1 + indexColorSchemeToColorSchemeName() + ".jpg"_L1;
+	}
+	inline QString coachesBackground() const
+	{
+		return ":/images/backgrounds/coaches"_L1 + indexColorSchemeToColorSchemeName() + ".jpg"_L1;
+	}
+	inline QString clientsBackground() const
+	{
+		return ":/images/backgrounds/clients"_L1 + indexColorSchemeToColorSchemeName() + ".jpg"_L1;
+	}
 
 	inline bool alwaysAskConfirmation() const { return getValue(currentUser(), ASK_CONFIRMATION_INDEX, m_defaultValues.at(ASK_CONFIRMATION_INDEX)).toBool(); }
 	inline void setAlwaysAskConfirmation(const bool new_value) { changeValue(currentUser(), ASK_CONFIRMATION_INDEX, QString::number(new_value)); emit alwaysAskConfirmationChanged(); }

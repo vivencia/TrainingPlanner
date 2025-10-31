@@ -43,6 +43,16 @@ QLatin1StringView TPChatDB::createTableQuery()
 									");"_L1;
 }
 
+bool TPChatDB::createTable()
+{
+	if (!QFile::exists(databaseFileName()))
+	{
+		if (appUtils()->mkdir(databaseDir()))
+			return execQuery(createTableQuery().arg(tableName()), false);
+	}
+	return true;
+}
+
 void TPChatDB::loadChat()
 {
 	if (execQuery("SELECT * FROM "_L1 + tableName(), true, false))

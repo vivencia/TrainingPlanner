@@ -4,7 +4,7 @@
 #include "../dbusermodel.h"
 #include "../tputils.h"
 
-constexpr uint totalExtraFields{4};
+constexpr uint totalExtraFields{5};
 
 enum RoleNames {
 	idRole			= Qt::UserRole		+ USER_COL_ID,
@@ -263,12 +263,12 @@ int OnlineUserInfo::getRowFromUserIdx(const uint user_idx) const
 	return -1;
 }
 
-int OnlineUserInfo::getUserIdx(int row) const
+int OnlineUserInfo::getUserIdx(int row, const bool exact_match) const
 {
 	if (row == -1)
 		row = currentRow();
 	if (row >= 0 && row < count())
-		return appUserModel()->userIdxFromFieldValue(USER_COL_ID, m_modeldata.at(row).at(USER_COL_ID));
+		return appUserModel()->userIdxFromFieldValue(USER_COL_ID, m_modeldata.at(row).at(USER_COL_ID), exact_match);
 	return -1;
 }
 

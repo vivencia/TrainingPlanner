@@ -9,14 +9,13 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 TPPopup {
 	id: chatWindow
 	closePolicy: Popup.NoAutoClose
-	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	spacing: 0
 	padding: 0
 	x: normalX
 	y: normalY
 	width: normalWidth
 	height: normalHeight
-	enableEffects: !maximized
+	enableEffects: false
 
 	required property ChatModel chatManager
 
@@ -35,7 +34,6 @@ TPPopup {
 		opacity: 0.5
 		radius: maximized ? 0 : 8
 		layer.enabled: true
-		visible: false
 		anchors.fill: parent
 	}
 
@@ -157,7 +155,7 @@ TPPopup {
 					height: txtMessageContent.contentHeight + extraInfo.height
 					anchors.top: parent.top
 
-					Component.completed: {
+					Component.onCompleted: {
 						if (messageItem.senderMessage) {
 							anchors.right = parent.right;
 							anchors.rightMargin = 10;

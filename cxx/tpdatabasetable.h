@@ -45,7 +45,7 @@ public:
 
 	static TPDatabaseTable *createDBTable(const uint table_id, const bool auto_delete = true);
 	static QString createTableQuery(const uint table_id);
-	inline bool createTable() { return execQuery(createTableQuery(m_tableId)); }
+	virtual inline bool createTable() { return execQuery(createTableQuery(m_tableId), false); }
 	virtual void updateTable() = 0;
 
 	//inline void setCallbackForDoneFunc( const std::function<void (TPDatabaseTable*)> &func ) { doneFunc = func; }

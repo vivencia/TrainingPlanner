@@ -131,5 +131,29 @@
         <file>images/flat/resize-window.png</file>
         <file>images/unknown-user.png</file>
         <file>images/new-messages.png</file>
+        <file>images/backgrounds/settings_light.jpg</file>
+        <file>images/backgrounds/settings_red.jpg</file>
+        <file>images/backgrounds/settings_dark.jpg</file>
+        <file>images/backgrounds/settings_gray.jpg</file>
+        <file>images/backgrounds/settings_green.jpg</file>
+        <file>images/backgrounds/settings_blue.jpg</file>
+        <file>images/backgrounds/clients_gray.jpg</file>
+        <file>images/backgrounds/clients_dark.jpg</file>
+        <file>images/backgrounds/clients_light.jpg</file>
+        <file>images/backgrounds/clients_red.jpg</file>
+        <file>images/backgrounds/clients_green.jpg</file>
+        <file>images/backgrounds/clients_blue.jpg</file>
+        <file>images/backgrounds/coaches_light.jpg</file>
+        <file>images/backgrounds/coaches_dark.jpg</file>
+        <file>images/backgrounds/coaches_gray.jpg</file>
+        <file>images/backgrounds/coaches_red.jpg</file>
+        <file>images/backgrounds/coaches_green.jpg</file>
+        <file>images/backgrounds/coaches_blue.jpg</file>
+        <file>images/backgrounds/user_light.jpg</file>
+        <file>images/backgrounds/user_dark.jpg</file>
+        <file>images/backgrounds/user_gray.jpg</file>
+        <file>images/backgrounds/user_green.jpg</file>
+        <file>images/backgrounds/user_blue.jpg</file>
+        <file>images/backgrounds/user_red.jpg</file>
     </qresource>
 </RCC>

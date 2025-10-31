@@ -197,7 +197,7 @@ void DBExercisesListModel::search(const QString &search_term)
 	{
 		qsizetype modelCount{count()};
 		const QStringList &words_list{appUtils()->stripDiacriticsFromString(search_term).split(' ', Qt::SkipEmptyParts)};
-		const bool look_in_searched_indices{m_searchFilterApplied};
+		const bool look_in_searched_indices{(search_term.length() >= m_searchString.length()) && m_searchFilterApplied};
 
 		for (uint i{0}; i < static_cast<uint>(modelCount); ++i)
 		{
@@ -207,13 +207,25 @@ void DBExercisesListModel::search(const QString &search_term)
 								m_exercisesData.at(index).at(EXERCISES_LIST_COL_SUBNAME)};
 			if (containsAllWords(subject, words_list))
 			{
+				found = true;
 				if (search_term.length() < m_searchString.length())
 				{
-					resetSearchModel();
-					search(search_term);
-					return;
+					const uint insert_idx{m_exercisesData.at(index).at(EXERCISES_LIST_COL_ACTUALINDEX).toUInt()};
+					if (m_searchFilteredIndices.indexOf(insert_idx) == -1)
+					{
+						uint i{0};
+						for (; i < count(); ++i)
+						{
+							if (actualIndex(i) > insert_idx)
+								break;
+						}
+						beginInsertRows(QModelIndex{}, i, i);
+						m_searchFilteredIndices.insert(i, insert_idx);
+						endInsertRows();
+					}
+					else
+						break;
 				}
-				found = true;
 				m_searchString = search_term;
 				if (!look_in_searched_indices)
 				{
@@ -228,7 +240,7 @@ void DBExercisesListModel::search(const QString &search_term)
 				}
 				else
 				{
-					if (m_searchFilteredIndices.indexOf(actualIndex(i)) != -1)
+					if (m_searchFilteredIndices.indexOf(m_exercisesData.at(index).at(EXERCISES_LIST_COL_ACTUALINDEX).toUInt()) != -1)
 						continue;
 				}
 			}

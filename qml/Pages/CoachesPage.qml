@@ -11,6 +11,8 @@ import "../User"
 TPPage {
 	id: coachesPage
 	objectName: "CoachesPage"
+	imageSource: appSettings.coachesBackground
+	backgroundOpacity: 0.8
 
 	required property UserManager userManager
 	property int userRow: -1
@@ -19,7 +21,7 @@ TPPage {
 		if (listsLayout.currentIndex === 0)
 			coachesList.selectItem(coachesList.currentRow !== -1 ? coachesList.currentRow : 0);
 		else
-			pendingCoachesList.selectItem(pendingCoachesList.currentRow !== -1 ? coachesList.currentRow : 0);
+			pendingCoachesList.selectItem(pendingCoachesList.currentRow !== -1 ? pendingCoachesList.currentRow : 0);
 	}
 
 	TPLabel {
@@ -99,12 +101,11 @@ TPPage {
 
 				onItemSelected: (userRow) => coachesPage.userRow = userRow;
 				onButtonClicked: userModel.viewResume(userRow);
-			} //ListView: coachesList
+			} //TPCoachesAndClientsList: coachesList
 
 			RowLayout {
 				uniformCellSizes: true
 				height: appSettings.itemDefaultHeight
-				visible: haveCoaches
 
 				anchors {
 					top: coachesList.bottom
@@ -115,7 +116,7 @@ TPPage {
 
 				TPButton {
 					text: qsTr("Remove")
-					enabled: userRow != 0
+					enabled: userRow != 0 && coachesList.enabled  && coachesList.currentIndex !== -1
 					rounded: false
 					autoSize: true
 					Layout.alignment: Qt.AlignCenter
@@ -148,12 +149,12 @@ TPPage {
 
 				onItemSelected: (userRow) => coachesPage.userRow = userRow;
 				onButtonClicked: userModel.viewResume(userRow);
-			} //ListView: pendingCoachesList
+			} //TPCoachesAndClientsList: pendingCoachesList
 
 			RowLayout {
 				uniformCellSizes: true
 				height: appSettings.itemDefaultHeight
-				visible: userModel.pendingCoachesResponses ? userModel.pendingCoachesResponses.count > 0 : false
+				enabled: pendingCoachesList.enabled && pendingCoachesList.currentIndex !== -1
 
 				anchors {
 					bottom: parent.bottom
@@ -207,7 +208,7 @@ TPPage {
 		ScrollBar.vertical.policy: ScrollBar.AlwaysOn
 		contentWidth: availableWidth //stops bouncing to the sides
 		contentHeight: colMain.implicitHeight
-		enabled: userModel.haveCoaches
+		enabled: userRow !== -1
 
 		anchors {
 			top: btnFindCoachOnline.bottom
