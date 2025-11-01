@@ -4,7 +4,7 @@
 
 #include <QObject>
 
-constexpr uint CHAT_TABLE_ID{0XF0};
+constexpr uint CHAT_TABLE_ID{0x0007};
 
 class TPChatDB : public TPDatabaseTable
 {
@@ -12,7 +12,7 @@ class TPChatDB : public TPDatabaseTable
 Q_OBJECT
 
 public:
-	explicit TPChatDB(const QString &user_id, const QString &otheruser_id, QObject *parent);
+	explicit TPChatDB(const QString &user_id, const QString &otheruser_id, QObject *parent = nullptr);
 
 	inline uint mostRecentMessageId() const { return m_mostRecentMsgId; }
 	QList<QStringList> &wholeChat() & { return m_wholeChat; }

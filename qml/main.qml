@@ -8,6 +8,7 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 import "Dialogs"
 import "Pages"
 import "TPWidgets"
+import "User"
 
 ApplicationWindow {
 	id: mainwindow
@@ -378,5 +379,25 @@ ApplicationWindow {
 			activityFinishedTip.showTimed(msecs, 0);
 		else
 			activityFinishedTip.show(0);
+	}
+
+	property ChatWindow chatDlg: null
+	function showChatWindow(chat_manager: ChatModel): void {
+		if (chatDlg === null) {
+			function createChatWindow() {
+				let component = Qt.createComponent("qrc:/qml/User/ChatWindow.qml", Qt.Asynchronous);
+
+				function finishCreation() {
+					chatDlg = component.createObject(contentItem, { parentPage: homePage, chatManager: chat_manager });
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			createChatWindow();
+		}
+		chatDlg.show1(-1);
 	}
 } //ApplicationWindow

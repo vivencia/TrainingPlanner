@@ -15,7 +15,7 @@ Page {
 	property color colorLight: appSettings.primaryLightColor
 	property color colorDark: appSettings.primaryDarkColor
 	property string imageSource
-	property double backgroundOpacity: 1.0
+	property double backgroundOpacity: 0
 	readonly property int headerHeight: 0.08 * height
 	readonly property int footerHeight: 0.10 * height
 
@@ -33,13 +33,7 @@ Page {
 		//widthScale: 1.05
 		//heightScale: 1.3
 		sourceImage: imageSource
-
-		Rectangle {
-			visible: backgroundOpacity < 1.0
-			color: appSettings.primaryColor
-			opacity: backgroundOpacity
-			anchors.fill: parent
-		}
+		overlayOpacity: backgroundOpacity
 	}
 
 	function pageDeActivation(page: Item): void {

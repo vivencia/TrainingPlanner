@@ -10,7 +10,6 @@ Popup {
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	spacing: 0
 	padding: 0
-	//clip: true
 
 	required property Page parentPage
 	property bool keepAbove: false
@@ -19,6 +18,7 @@ Popup {
 	property bool disableMouseHandling: false
 	property bool showTitleBar: true
 	property bool enableEffects: true
+	property bool useBackgroundGradient: false
 	property int finalYPos: 0
 	property int startYPos: 0
 	property double titleBarOpacity: 1
@@ -50,6 +50,7 @@ Popup {
 
 	TPBackRec {
 		id: _backRec
+		useGradient: useBackgroundGradient
 		implicitHeight: height
 		implicitWidth: width
 		radius: 8

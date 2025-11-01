@@ -7,7 +7,6 @@ Label {
 	id: control
 	color: enabled ? fontColor : appSettings.disabledFontColor
 	wrapMode: singleLine ? Text.NoWrap : Text.WordWrap
-	elide: Text.ElideNone
 	font: AppGlobals.regularFont
 	minimumPixelSize: appSettings.smallFontSize * 0.9
 	fontSizeMode: Text.Fit

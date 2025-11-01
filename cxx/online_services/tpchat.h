@@ -29,10 +29,12 @@ QML_ELEMENT
 
 public:
 	explicit TPChat(const QString &otheruser_id, QObject *parent = nullptr);
+	~TPChat();
 
 	Q_INVOKABLE inline uint count() const { return m_messages.count(); }
 	inline const QString &otherUserId() const { return m_otherUserId; }
 
+	Q_INVOKABLE QString interlocutorName() const;
 	Q_INVOKABLE void newMessage(const QString &text, const QString &media = QString{});
 	void incomingMessage(const QString &encoded_message);
 	Q_INVOKABLE void messageRead(const uint msgid);

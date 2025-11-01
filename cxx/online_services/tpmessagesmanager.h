@@ -5,7 +5,6 @@
 
 QT_FORWARD_DECLARE_CLASS(TPChat)
 QT_FORWARD_DECLARE_CLASS(TPMessage)
-QT_FORWARD_DECLARE_CLASS(QQuickItem)
 QT_FORWARD_DECLARE_CLASS(QTimer)
 
 class TPMessagesManager : public QAbstractListModel
@@ -59,7 +58,7 @@ private:
 	QList<TPMessage*> m_data;
 	QHash<int, QByteArray> m_roleNames;
 	QHash<QString,TPChat*> m_chatsList;
-	QHash<QString,QQuickItem*> m_chatWindowList;
+	QHash<QString,QObject*> m_chatWindowList;
 	QTimer *m_newChatMessagesTimer;
 	QQmlComponent *m_chatWindowComponent;
 	QVariantMap m_chatWindowProperties;

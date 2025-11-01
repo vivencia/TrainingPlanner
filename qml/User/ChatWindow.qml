@@ -12,10 +12,10 @@ TPPopup {
 	spacing: 0
 	padding: 0
 	x: normalX
-	y: normalY
+	finalYPos: normalY
 	width: normalWidth
 	height: normalHeight
-	enableEffects: false
+	useBackgroundGradient: true
 
 	required property ChatModel chatManager
 
@@ -27,14 +27,30 @@ TPPopup {
 	property int normalX: (appSettings.pageWidth - width) / 2
 	property int normalY: (appSettings.pageHeight - height) / 2
 
-	backgroundRec: TPBackRec {
-		useImage: true
-		sourceImage: ":/images/backgrounds/backimage1.jpg"
-		image_size: Qt.size(width, height)
-		opacity: 0.5
-		radius: maximized ? 0 : 8
-		layer.enabled: true
-		anchors.fill: parent
+	TPImage {
+		id: avatarImg
+		source: //TODO dynamic property instead of fixed value
+		dropShadow: false
+		width: appSettings.itemDefaultHeight
+		height: width
+
+		anchors {
+			verticalCenter: titleBar.verticalCenter
+			left: titleBar.left
+			leftMargin: 2
+		}
+	}
+
+	TPLabel {
+		text: chatManager.interlocutorName() //TODO dynamic property instead of fixed value
+		elide: Text.ElideRight
+
+		anchors {
+			verticalCenter: titleBar.verticalCenter
+			left: avatarImg.right
+			leftMargin: 5
+			right: btnMinimizeWindow.left
+		}
 	}
 
 	TPButton {
@@ -56,33 +72,31 @@ TPPopup {
 	}
 
 	function  maximizeOrRestoresWindow(): void {
-		if (!maximized) {
-			if (!minimized) {
-				normalX = chatWindow.x;
-				normalY = chatWindow.y;
-				normalWidth = chatWindow.width;
-				normalHeight = chatWindow.height;
-			}
+		if (minimized || maximized) {
+			chatWindow.x = normalX;
+			chatWindow.y = normalY;
+			chatWindow.width = normalWidth;
+			chatWindow.height = normalHeight;
+			minimized = maximized = false;
+		}
+		else {
+			normalX = chatWindow.x;
+			normalY = chatWindow.y;
+			normalWidth = chatWindow.width;
+			normalHeight = chatWindow.height;
 			chatWindow.x = 0;
 			chatWindow.y = 0;
 			chatWindow.width = appSettings.pageWidth;
 			chatWindow.height = appSettings.pageHeight;
 			maximized = true;
 		}
-		else {
-			chatWindow.x = normalX;
-			chatWindow.y = normalY;
-			chatWindow.width = normalWidth;
-			chatWindow.height = normalHeight;
-			maximized = false;
-		}
-		minimized = false;
 	}
 
 	TPButton {
 		id: btnMinimizeWindow
 		imageSource: "minimize.png"
 		hasDropShadow: false
+		enabled: !minimized
 		width: appSettings.itemDefaultHeight
 		height: width
 		z: 2
@@ -98,12 +112,10 @@ TPPopup {
 	}
 
 	function minimizeWindow(): void {
-		if (!maximized) {
-			normalWidth = chatWindow.width;
-			normalHeight = chatWindow.height;
-		}
+		normalWidth = maximized ? chatWindow.width - 10 : chatWindow.width;
+		normalHeight = maximized ? chatWindow.height - 10 : chatWindow.height;
 		chatWindow.width = defaultWidth;
-		chatWindow.height = toolBarHeight;
+		chatWindow.height = titleBar.height;
 		minimized = true;
 		maximized = false;
 	}
@@ -263,9 +275,11 @@ TPPopup {
 	Frame {
 		id: frmFooter
 		height: txtMessage.height + 12
+		visible: !minimized
 		padding: 5
 
 		background: Rectangle {
+			color: appSettings.primaryColor
 			border.width: 1
 			border.color: appSettings.fontColor
 			radius: 8
@@ -274,12 +288,12 @@ TPPopup {
 		anchors {
 			left: parent.left
 			right: parent.right
-			rightMargin: maximized ? 0 : 10
 			bottom: parent.bottom
 		}
 
 		TPTextInput {
 			id: txtMessage
+			enableRegex: false
 			width: parent.width * 0.85
 
 			anchors {
@@ -290,7 +304,9 @@ TPPopup {
 
 		TPButton {
 			id: btnSend
-			imageSource: "send-message.png"
+			imageSource: "send-message"
+			width: appSettings.itemDefaultHeight
+			height: width
 			enabled: txtMessage.text.length > 0
 
 			anchors {
@@ -305,44 +321,47 @@ TPPopup {
 				//Qt.inputMethod.reset();
 				txtMessage.clear();
 			}
-		}
-	} //Frame frmFooter
+		} //TPButton
 
-	TPImage {
-		source: "resize-window.png"
-		dropShadow: false
-		width: appSettings.itemSmalHeight * 0.6
-		height: width
-		visible: !maximized && !minimized
+		TPImage {
+			id: imgResize
+			source: "resize-window.png"
+			dropShadow: false
+			width: appSettings.itemSmallHeight * 0.6
+			height: width
+			visible: !maximized && !minimized
+			z: 1
 
-		anchors {
-			right: parent.right
-			bottom: parent.bottom
-		}
-
-		MouseArea {
-			enabled: parent.visible
-			pressAndHoldInterval: 500
-			onPressAndHold: (mouse) => {
-				canDrag = true;
-				startX = mouse.x;
-				startY = mouse.y;
+			anchors {
+				right: parent.right
+				rightMargin: -5
+				bottom: parent.bottom
+				bottomMargin: -10
 			}
-			onReleased: canDrag = false;
-			onPositionChanged: (mouse) => {
-				if (canDrag) {
-					const deltaX = mouse.x - startX
-					normalWidth += deltaX;
-					const deltaY = mouse.y - startY
-					normalHeight += deltaY;
+
+			MouseArea {
+				enabled: parent.visible
+				anchors.fill: parent
+
+				property bool canDrag: false
+				property int startX
+				property int startY
+
+				onPressed: (mouse) => {
+					canDrag = true;
+					startX = mouse.x;
+					startY = mouse.y;
+				}
+				onReleased: canDrag = false;
+				onPositionChanged: (mouse) => {
+					if (canDrag) {
+						const deltaX = mouse.x - startX
+						normalWidth += deltaX;
+						const deltaY = mouse.y - startY
+						normalHeight += deltaY;
+					}
 				}
 			}
-
-			anchors.fill: parent
-
-			property bool canDrag: false
-			property int startX
-			property int startY
-		}
-	}
+		} //MouseArea
+	} //Frame frmFooter
 }

@@ -56,7 +56,7 @@ TPChat::TPChat(const QString &otheruser_id, QObject *parent)
 	m_roleNames[textRole]		=	std::move("msgText");
 	m_roleNames[mediaRole]		=	std::move("msgMedia");
 
-	m_chatDB = new TPChatDB{appUserModel()->userId(0), m_otherUserId, this};
+	m_chatDB = new TPChatDB{appUserModel()->userId(0), m_otherUserId};
 	m_chatDB->createTable();
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn] (const int _conn_id)
@@ -89,6 +89,16 @@ TPChat::TPChat(const QString &otheruser_id, QObject *parent)
 		}
 	});
 	m_chatDB->loadChat();
+}
+
+TPChat::~TPChat()
+{
+	delete m_chatDB;
+}
+
+QString TPChat::interlocutorName() const
+{
+	return appUserModel()->userNameFromId(m_otherUserId);
 }
 
 void TPChat::newMessage(const QString &text, const QString &media)

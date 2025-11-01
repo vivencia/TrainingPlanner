@@ -317,6 +317,7 @@ public:
 	int downloadFileFromServer(const QString &filename, const QString &local_filename = QString{}, const QString &successMessage = QString{},
 							   const QString &subdir = QString{}, const QString &targetUser = QString{});
 	void removeFileFromServer(const QString &filename, const QString &subdir = QString{}, const QString &targetUser = QString{});
+	int listFilesFromServer(const QString &subdir, const QString &targetUser, const QString &filter = QString{});
 	void sendCmdFileToServer(const QString &cmd_filename);
 	void downloadCmdFilesFromServer(const QString &subdir);
 
@@ -356,8 +357,9 @@ signals:
 	void coachOnlineStatus(bool registered);
 	void userProfileAcquired(const QString &userid, const bool success);
 	void userPasswordAvailable(const QString &password);
-	void fileDownloaded(const bool success, const uint requestid, const QString &localFileName);
+	void fileDownloaded(const bool success, const uint requestid, const QString &local_file_name);
 	void fileUploaded(const bool success, const uint requestid);
+	void filesListReceived(const bool success, const uint requestid, const QStringList& files_list);
 	void onlineDevicesListReceived();
 	void lastOnlineCmdRetrieved(const uint requestid, const QString &last_cmd);
 	//Only used in desktop for development purposes, but must be here so that the QML parser does not complain

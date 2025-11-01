@@ -148,6 +148,8 @@ TPMessage *TPMessagesManager::createChatMessage(const QString &userid, QString &
 
 void TPMessagesManager::openChatWindow(TPChat *chat_manager)
 {
+	//QMetaObject::invokeMethod(appMainWindow(), "showChatWindow", Q_ARG(TPChat*, chat_manager));
+	//return;
 	if (!m_chatWindowList.value(chat_manager->otherUserId()))
 	{
 		if (!m_chatWindowComponent)
@@ -341,17 +343,16 @@ void TPMessagesManager::parseNewChatMessages(const QString &encoded_messages)
 void TPMessagesManager::createChatWindow_part2(TPChat *chat_manager)
 {
 	m_chatWindowProperties.insert("chatManager"_L1, QVariant::fromValue(chat_manager));
-	QQuickItem *chat_window{static_cast<QQuickItem*>(m_chatWindowComponent->createWithInitialProperties(
-															m_chatWindowProperties, appQmlEngine()->rootContext()))};
+	QObject *chat_window{m_chatWindowComponent->createWithInitialProperties(m_chatWindowProperties, appQmlEngine()->rootContext())};
 	appQmlEngine()->setObjectOwnership(chat_window, QQmlEngine::CppOwnership);
-	chat_window->setParentItem(appMainWindow()->contentItem());
+	chat_window->setProperty("parent", QVariant::fromValue(appItemManager()->appHomePage()));
 	QMetaObject::invokeMethod(chat_window, "open");
 	m_chatWindowList.insert(chat_manager->otherUserId(), chat_window);
 }
 
 void TPMessagesManager::removeChatWindow(const QString &other_userid)
 {
-	QQuickItem *chat_window{m_chatWindowList.value(other_userid)};
+	QObject *chat_window{m_chatWindowList.value(other_userid)};
 	if (chat_window)
 	{
 		delete chat_window;

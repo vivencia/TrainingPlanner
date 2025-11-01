@@ -294,7 +294,6 @@ TPPopup {
 					TPLabel {
 						id: lblMessage
 						text: labelText
-						color: "black"
 						elide: delegateItem.showActions ? Text.ElideNone : Text.ElideRight
 						wrapMode: delegateItem.showActions ? Text.WordWrap : Text.NoWrap
 						singleLine: !delegateItem.showActions
@@ -335,7 +334,7 @@ TPPopup {
 								autoSize: constrainSize
 								Layout.leftMargin: 0
 								Layout.rightMargin: 0
-								onClicked: appMessages.execAction(msgIndex, index);
+								onClicked: appMessages.execAction(actionsLayout.msgIndex, index);
 
 								required property int index
 								property bool constrainSize: false

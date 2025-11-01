@@ -1000,7 +1000,8 @@ int DBUserModel::downloadFileFromServer(const QString &filename, const QString &
 
 	QLatin1StringView v{QString{targetUser + filename}.toLatin1().constData()};
 	const int requestid{appUtils()->generateUniqueId(v)};
-	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [=,this] (const QString &key, const QString &value) {
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [=,this] (const QString &key, const QString &value)
+	{
 		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [=,this]
 							(const int request_id, const int ret_code, const QString &filename, const QByteArray &contents)
@@ -1071,6 +1072,33 @@ void DBUserModel::removeFileFromServer(const QString &filename, const QString &s
 	appKeyChain()->readKey(userId(0));
 }
 
+int DBUserModel::listFilesFromServer(const QString &subdir, const QString &targetUser, const QString &filter)
+{
+	if (!canConnectToServer())
+		return -1;
+	if (!mainUserRegistered())
+		return -2;
+
+	QLatin1StringView v{QString{targetUser + subdir}.toLatin1().constData()};
+	const int requestid{appUtils()->generateUniqueId(v)};
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [=,this] (const QString &key, const QString &value)
+	{
+		auto conn{std::make_shared<QMetaObject::Connection>()};
+		*conn = connect(appOnlineServices(), &TPOnlineServices::networkListReceived, this, [this,conn,requestid]
+				(const int request_id, const int ret_code, const QStringList &ret_list)
+		{
+			if (request_id == requestid)
+			{
+				disconnect(*conn);
+				emit filesListReceived(ret_code == TP_RET_CODE_SUCCESS, requestid, ret_list);
+			}
+		});
+		appOnlineServices()->listFiles(requestid, key, value, true, false, filter, subdir, targetUser);
+	}, Qt::SingleShotConnection);
+	appKeyChain()->readKey(userId(0));
+	return requestid;
+}
+
 void DBUserModel::sendCmdFileToServer(const QString &cmd_filename)
 {
 	if (canConnectToServer())
@@ -1113,50 +1141,37 @@ void DBUserModel::downloadCmdFilesFromServer(const QString &subdir)
 	{
 		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,subdir] (const QString &key, const QString &value)
 		{
-			const int requestid{appUtils()->generateUniqueId("downloadCmdFilesFromServer"_L1)};
+			const int request_id{listFilesFromServer(subdir, userId(0), ".cmd"_L1)};
 			auto conn{std::make_shared<QMetaObject::Connection>()};
-			*conn = connect(appOnlineServices(), &TPOnlineServices::networkListReceived, this, [this,conn,requestid,key,value,subdir]
-				(const int request_id, const int ret_code, const QStringList &ret_list)
+			*conn = connect(this, &DBUserModel::filesListReceived, this, [this,conn,request_id,key,value,subdir]
+				(const bool success, const int requestid, const QStringList &files_list)
 			{
-				if (request_id == requestid)
+				if (requestid == request_id)
 				{
 					disconnect(*conn);
-					if (ret_list.isEmpty())
+					if (!success || files_list.isEmpty())
 						return;
-					auto conn2{std::make_shared<QMetaObject::Connection>()};
-					*conn2 = connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [=,this]
-							(const int request_id, const int ret_code, const QString &filename, const QByteArray &contents)
+
+					for (const auto &file : std::as_const(files_list))
 					{
-						if (request_id == requestid)
+						auto conn2{std::make_shared<QMetaObject::Connection>()};
+						const int requestid2{downloadFileFromServer(file, localDir(0) + subdir + file, QString{}, subdir, userId(0))};
+						*conn2 = connect(this, &DBUserModel::fileDownloaded, this, [this,conn2,requestid2]
+										(const bool success, const uint requestid, const QString &local_file_name)
 						{
-							disconnect(*conn2);
-							switch (ret_code)
+							if (requestid == requestid2)
 							{
-								case TP_RET_CODE_SUCCESS: //file downloaded
+								disconnect(*conn2);
+								if (success)
 								{
-									QFile *local_cmdfile{new QFile{subdir + filename, this}};
-									if (!local_cmdfile->exists() || local_cmdfile->remove())
-									{
-										if (local_cmdfile->open(QIODeviceBase::WriteOnly))
-										{
-											local_cmdfile->write(contents);
-											local_cmdfile->close();
-										}
-									}
-									appUtils()->parseCmdFile(local_cmdfile->fileName());
-									delete local_cmdfile;
+									appUtils()->parseCmdFile(local_file_name);
+									QFile::remove(local_file_name);
 								}
-								break;
-								case TP_RET_CODE_NO_CHANGES_SUCCESS: //online file and local file are the same
-								break;
-								default: //some error
-									return;
 							}
-						}
-					});
+						});
+					}
 				}
 			});
-			appOnlineServices()->listFiles(requestid, key, value, true, false, ".cmd"_L1, subdir, userId(0));
 		}, Qt::SingleShotConnection);
 		appKeyChain()->readKey(userId(0));
 	}
@@ -1628,53 +1643,51 @@ void DBUserModel::downloadAllUserFiles(const QString &userid)
 				{
 					if (ret_code != TP_RET_CODE_SUCCESS)
 						return;
-					QString dest_dir{std::move(appSettings()->userDir(userid))};
+					QString dest_dir{std::move(localDir(userid))};
 					if (dir != '.')
 					{
 						dest_dir += dir + '/';
 						appUtils()->mkdir(dest_dir);
 					}
 					const QLatin1StringView seed{dir.toLatin1().constData()};
-					const int requestid2{appUtils()->generateUniqueId(seed)};
+					const int requestid2{listFilesFromServer(dir, userid)};
 					auto conn2{std::make_shared<QMetaObject::Connection>()};
-					*conn2 = connect(appOnlineServices(), &TPOnlineServices::networkListReceived, this, [this,conn2,requestid2,userid,dest_dir]
-						(const int request_id, const int ret_code, const QStringList &ret_list) mutable
+					*conn2 = connect(this, &DBUserModel::filesListReceived, this, [this,conn2,requestid2,userid,dest_dir]
+								(const bool success, const int requestid, const QStringList &files_list)
 					{
-						if (request_id == requestid2)
+						if (requestid == requestid2)
 						{
 							if (--total_dirs <= 0)
 								disconnect(*conn2);
-							total_files += ret_list.count();
-							if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS)
+							if (!success)
+								return;
+							if (files_list.isEmpty()) //All files up to date, no need to download them
 							{
-								if (ret_list.count() == 0) //All files up to date, no need to download them
+								if (total_files == 0 && total_dirs == 0)
+									emit allUserFilesDownloaded(true);
+								return;
+							}
+							total_files += files_list.count();
+							for (const auto &file : std::as_const(files_list))
+							{
+								auto conn3{std::make_shared<QMetaObject::Connection>()};
+								QString subdir{std::move(appUtils()->getFileName(dest_dir))};
+								if (subdir == userid + '/')
+									subdir.clear();
+								const int requestid3{downloadFileFromServer(file, QString{}, QString{}, subdir, userid)};
+								*conn3 = connect(this, &DBUserModel::fileDownloaded, this, [this,conn3,requestid3]
+									(const bool success, const uint requestid, const QString &local_file_name) mutable
 								{
-									if (total_files == 0 && total_dirs == 0)
-										emit allUserFilesDownloaded(true);
-									return;
-								}
-								for (const auto &file : std::as_const(ret_list))
-								{
-									auto conn3{std::make_shared<QMetaObject::Connection>()};
-									QString subdir{std::move(appUtils()->getFileName(dest_dir))};
-									if (subdir == userid + '/')
-										subdir.clear();
-									const int requestid3{downloadFileFromServer(file, QString{}, QString{}, subdir, userid)};
-									*conn3 = connect(this, &DBUserModel::fileDownloaded, this, [this,conn3,requestid3]
-										(const bool success, const uint requestid, const QString &localFileName) mutable
+									if (requestid == requestid3)
 									{
-										if (requestid == requestid3)
-										{
-											disconnect(*conn3);
-											if (--total_files <= 0)
-												emit allUserFilesDownloaded(true);
-										}
-									});
-								}
+										disconnect(*conn3);
+										if (--total_files <= 0)
+											emit allUserFilesDownloaded(true);
+									}
+								});
 							}
 						}
 					});
-					appOnlineServices()->listFiles(requestid2, key, value, true, false, QString{}, dir, userid);
 				}
 			}
 		});
@@ -1735,7 +1748,8 @@ void DBUserModel::getUserOnlineProfile(const QString &netID, const QString &save
 {
 	const int request_id{downloadFileFromServer(userProfileFileName, save_as_filename, QString{}, QString{}, netID)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
-	*conn = connect(this, &DBUserModel::fileDownloaded, this, [=,this] (const bool success, const uint requestid, const QString &localFileName)
+	*conn = connect(this, &DBUserModel::fileDownloaded, this, [=,this]
+								(const bool success, const uint requestid, const QString &local_file_name)
 	{
 		if (request_id == requestid)
 		{
@@ -1790,13 +1804,14 @@ void DBUserModel::downloadAvatarFromServer(const uint user_idx)
 	if (request_id >= 0)
 	{
 		auto conn{std::make_shared<QMetaObject::Connection>()};
-		*conn = connect(this, &DBUserModel::fileDownloaded, this, [=,this] (const bool success, const uint requestid, const QString &localFileName)
+		*conn = connect(this, &DBUserModel::fileDownloaded, this, [=,this]
+											(const bool success, const uint requestid, const QString &local_file_name)
 		{
 			if (request_id == requestid)
 			{
 				disconnect(*conn);
 				if (success && user_idx != m_tempRow)
-					setAvatar(user_idx, localFileName, false, false);
+					setAvatar(user_idx, local_file_name, false, false);
 			}
 		});
 	}
@@ -1808,13 +1823,14 @@ void DBUserModel::downloadResumeFromServer(const uint user_idx)
 	if (request_id >= 0)
 	{
 		auto conn{std::make_shared<QMetaObject::Connection>()};
-		*conn = connect(this, &DBUserModel::fileDownloaded, this, [=,this] (const bool success, const uint requestid, const QString &localFileName)
+		*conn = connect(this, &DBUserModel::fileDownloaded, this, [=,this]
+								(const bool success, const uint requestid, const QString &local_file_name)
 		{
 			if (request_id == requestid)
 			{
 				disconnect(*conn);
 				if (success)
-					appOsInterface()->openURL(localFileName);
+					appOsInterface()->openURL(local_file_name);
 				else
 					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR,
 						appUtils()->string_strings({tr("Error"), tr("No resumé file provided by the coach")}, record_separator));

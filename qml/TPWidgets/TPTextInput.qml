@@ -9,7 +9,7 @@ TextField {
 	font.weight: Font.Bold
 	color: enabled ? textColor : appSettings.disabledFontColor
 	wrapMode: heightAdjustable ? TextInput.WordWrap : TextInput.NoWrap
-	validator: RegularExpressionValidator { regularExpression: /^[^#!?&="']*$/ }
+	validator: enableRegex ? defaultRegEx : null
 	leftInset: 0
 	rightInset: 0
 	topInset: 0
@@ -24,6 +24,7 @@ TextField {
 	property bool showClearTextButton: false
 	property bool heightAdjustable: true
 	property bool textRemovedKeyPressed: false
+	property bool enableRegex: true
 	property int suggestedHeight: appSettings.itemDefaultHeight
 	property string textColor: appSettings.fontColor
 	property string backgroundColor: appSettings.primaryDarkColor
@@ -76,6 +77,11 @@ TextField {
 	onTextEdited: adjustHeight();
 	onReadOnlyChanged: positionCaret();
 	onWidthChanged: adjustHeight();
+
+	RegularExpressionValidator {
+		id: defaultRegEx
+		regularExpression: /^[^#!?&="']*$/
+	}
 
 	TPButton {
 		id: btnClearText

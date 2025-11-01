@@ -5,6 +5,7 @@ import QtQuick.Shapes
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 Rectangle {
+	id: control
 	property bool useShape: false
 	property bool useGradient: false
 	property bool useImage: false
@@ -12,6 +13,7 @@ Rectangle {
 	property string sourceImage
 	property double widthScale: 1.0
 	property double heightScale: 1.0
+	property double overlayOpacity: 0
 	property int rotate_angle: 0
 	property int x_translation: 0
 	property int y_translation: 0
@@ -59,6 +61,13 @@ Rectangle {
 					width = image_size.width;
 					height = image_size.height;
 				}
+			}
+
+			Rectangle {
+				color: appSettings.primaryColor
+				opacity: overlayOpacity
+				anchors.fill: parent
+				radius: control.radius
 			}
 		}
 	}

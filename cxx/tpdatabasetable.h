@@ -8,7 +8,7 @@
 #include <QSqlDatabase>
 #include <QSqlQuery>
 
-constexpr uint APP_TABLES_NUMBER{6};
+constexpr uint APP_TABLES_NUMBER{7};
 constexpr uint EXERCISES_TABLE_ID{0x0001};
 constexpr uint MESOCYCLES_TABLE_ID{0x0002};
 constexpr uint MESOSPLIT_TABLE_ID{0x0003};
