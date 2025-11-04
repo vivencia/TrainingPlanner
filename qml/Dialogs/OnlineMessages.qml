@@ -4,6 +4,8 @@ import QtQuick.Layouts
 
 import "../"
 import "../TPWidgets"
+import "../User"
+
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPopup {
@@ -429,14 +431,13 @@ TPPopup {
 				id: txtSearch
 				showClearTextButton: true
 				Layout.fillWidth: true
-				onTextChanged: appMessages.filterChatOptions(text);
+				onTextChanged: chatList.applyFilter(text);
 			}
 
 			TPCoachesAndClientsList {
 				id: chatList
 				listClients: true
 				listCoaches: true
-				buttonString: qsTr("Chat")
 				height: maxHeight - 2 * (appSettings.itemDefaultHeight + 10)
 				width: parent.width
 				Layout.fillWidth: true
@@ -446,8 +447,8 @@ TPPopup {
 				onItemSelected: (userRow) => {
 					selectedChat = userModel.userName(userRow);
 					txtSearch.text = selectedChat;
+					openChat(selectedChat);
 				}
-				onButtonClicked: openChat(selectedChat);
 			} //TPCoachesAndClientsList
 		}
 	} //StackLayout

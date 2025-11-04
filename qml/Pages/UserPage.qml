@@ -12,7 +12,7 @@ TPPage {
 	id: userPage
 	objectName: "userPage"
 	imageSource: appSettings.userBackground
-	backgroundOpacity: 0.8
+	backgroundOpacity: 0.6
 	implicitWidth: appSettings.pageWidth
 	implicitHeight: appSettings.pageHeight
 

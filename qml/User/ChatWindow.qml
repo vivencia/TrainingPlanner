@@ -29,7 +29,7 @@ TPPopup {
 
 	TPImage {
 		id: avatarImg
-		source: //TODO dynamic property instead of fixed value
+		source: chatManager.avatarIcon
 		dropShadow: false
 		width: appSettings.itemDefaultHeight
 		height: width
@@ -42,7 +42,7 @@ TPPopup {
 	}
 
 	TPLabel {
-		text: chatManager.interlocutorName() //TODO dynamic property instead of fixed value
+		text: chatManager.interlocutorName
 		elide: Text.ElideRight
 
 		anchors {
@@ -152,103 +152,117 @@ TPPopup {
 			padding: 10
 			spacing: 5
 			width: messagesList.width
-			height: messageRec.height
+			height: !msgDeleted ? msgHeight : 0
 
 			readonly property bool senderMessage: msgSender === userModel.userId
-			contentItem: Item {
+			property int msgHeight: 10
 
-				Rectangle {
-					id: messageRec
-					color: messageItem.senderMessage ? appSettings.listEntryColor1 : appSettings.listEntryColor2
-					border.color: appSettings.fontColor
-					radius: 8
-					opacity: 1 + swipe.position
-					width: txtMessageContent.contentWidth
-					height: txtMessageContent.contentHeight + extraInfo.height
-					anchors.top: parent.top
+			contentItem: Rectangle {
+				id: messageRec
+				color: messageItem.senderMessage ? appSettings.listEntryColor1 : appSettings.listEntryColor2
+				border.color: appSettings.fontColor
+				radius: 8
+				opacity: 1 + swipe.position
+				width: txtMessageContent.contentWidth * 1.2
+				visible: !msgDeleted
+				anchors.top: parent.top
 
-					Component.onCompleted: {
-						if (messageItem.senderMessage) {
-							anchors.right = parent.right;
-							anchors.rightMargin = 10;
-						}
-						else {
-							anchors.left = parent.left;
-							anchors.leftMargin = 10;
-						}
+				Component.onCompleted: {
+					if (messageItem.senderMessage) {
+						anchors.right = parent.right;
+						anchors.rightMargin = 10;
+					}
+					else {
+						anchors.left = parent.left;
+						anchors.leftMargin = 10;
+					}
+				}
+
+				TPLabel {
+					id: txtMessageContent
+					text: msgText
+					wrapMode: Text.WordWrap
+
+					anchors {
+						top: parent.top
+						topMargin: 5
+						left: parent.left
+						leftMargin: 5
 					}
 
-					Text {
-						id: txtMessageContent
-						font: AppGlobals.regularFont
-						color: appSettings.fontColor
-						text: msgText
-						wrapMode: Text.WordWrap
+					Component.onCompleted: messageItem.msgHeight += height;
+				}
 
-						anchors {
-							top: parent.top
-							left: parent.left
-						}
+				TPLabel {
+					id: extraInfo
+					font: Qt.font({
+						family: Qt.fontFamilies()[0],
+						weight: Font.DemiBold,
+						styleStrategy: Font.PreferAntialias,
+						hintingPreference: Font.PreferFullHinting,
+						pixelSize: appSettings.smallFontSize * 0.8
+					})
+					text: messageItem.senderMessage ? msgSentDate + "  " + msgSentTime : msgReceivedDate + "  " + msgReceivedTime
+					width: parent.width * 0.8
+
+					anchors {
+						left: parent.left
+						leftMargin: 5
+						bottom: parent.bottom
+						bottomMargin: 5
 					}
 
-					Text {
-						id: extraInfo
-						font: AppGlobals.smallFont
-						color: appSettings.fontColor
-						text: messageItem.senderMessage ? msgSentDate + "  " + msgSentTime : msgReceivedDate + "  " + msgReceivedTime;
-						width: parent.width * 0.8
+					Component.onCompleted: messageItem.msgHeight += height;
+				}
 
-						anchors {
-							left: parent.left
-							bottom: parent.bottom
-						}
+				Loader {
+					id: sentIconLoader
+					active: messageItem.senderMessage
+					asynchronous: true
+					width: appSettings.itemSmallHeight
+					height: width
+					x: 0
+					y: 0
+
+					anchors {
+						right: receivedIconLoader.left
+						verticalCenter: extraInfo.verticalCenter
 					}
 
-					Loader {
-						id: sentIconLoader
-						active: messageItem.senderMessage
-						asynchronous: true
+					sourceComponent: TPImage {
+						id: sentIcon
+						source: msgRead ? "message-read.png" : "message-sent.png"
+						visible: msgSent
+						dropShadow: false
+					}
+				}
 
-						anchors {
-							right: receivedIconLoader.left
-							verticalCenter: extraInfo.verticalCenter
-						}
+				Loader {
+					id: receivedIconLoader
+					active: messageItem.senderMessage
+					asynchronous: true
+					width: appSettings.itemSmallHeight
+					height: width
+					x: 0
+					y: 0
 
-						sourceComponent: TPImage {
-							id: sentIcon
-							source: msgRead ? "message-read.png" : "message-sent.png"
-							visible: msgSent
-							dropShadow: false
-							width: appSettings.itemSmallHeight
-							height: width
-							x: 0
-							y: 0
-						}
+					anchors {
+						right: parent.right
+						verticalCenter: extraInfo.verticalCenter
 					}
 
-					Loader {
-						id: receivedIconLoader
-						active: messageItem.senderMessage
-						asynchronous: true
-
-						anchors {
-							right: parent.right
-							verticalCenter: extraInfo.verticalCenter
-						}
-
-						sourceComponent: TPImage {
-							id: receivedIcon
-							source: msgRead ? "message-read.png" : "message-sent.png"
-							visible: msgReceived
-							dropShadow: false
-							width: appSettings.itemSmallHeight
-							height: width
-							x: 0
-							y: 0
-						}
+					sourceComponent: TPImage {
+						id: receivedIcon
+						source: msgRead ? "message-read.png" : "message-sent.png"
+						visible: msgReceived
+						dropShadow: false
 					}
 				}
 			} //contentItem
+
+			background: Rectangle {
+				color: "transparent"
+			}
 
 			swipe.right: Rectangle {
 				id: removeBackground
@@ -294,7 +308,7 @@ TPPopup {
 		TPTextInput {
 			id: txtMessage
 			enableRegex: false
-			width: parent.width * 0.85
+			width: parent.width * 0.9
 
 			anchors {
 				left: parent.left
@@ -311,7 +325,7 @@ TPPopup {
 
 			anchors {
 				left: txtMessage.right
-				rightMargin: 5
+				leftMargin: 5
 				verticalCenter: parent.verticalCenter
 			}
 

@@ -18,7 +18,8 @@ QmlMesoCalendarInterface::QmlMesoCalendarInterface(QObject *parent, const uint m
 {
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(appMesoModel()->mesoCalendarManager(), &DBMesoCalendarManager::calendarChanged, this,
-						[this,conn] (const uint meso_idx, const uint field, const int calendar_day) {
+						[this,conn] (const uint meso_idx, const uint field, const int calendar_day)
+	{
 		if (meso_idx == m_mesoIdx && field == MESOCALENDAR_TOTAL_COLS)
 		{
 			disconnect(*conn);

@@ -88,7 +88,6 @@ void DBInterface::createThread(TPDatabaseTable *worker, const std::function<void
 			}
 		});
 	}
-	//worker->setCallbackForDoneFunc([this] (TPDatabaseTable *obj) { return threadFinished(obj); });
 
 	QThread *thread{new QThread{}};
 	connect(thread, &QThread::started, worker, execFunc);

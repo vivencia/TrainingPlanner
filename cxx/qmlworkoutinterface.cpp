@@ -25,8 +25,9 @@ QmlWorkoutInterface::QmlWorkoutInterface(QObject *parent, const uint meso_idx, c
 	if (!appMesoModel()->mesoCalendarManager()->hasDBData(m_mesoIdx))
 	{
 		const int id{appDBInterface()->getMesoCalendar(m_mesoIdx)};
-		auto conn = std::make_shared<QMetaObject::Connection>();
-		*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn,id] (const uint thread_id) {
+		auto conn{std::make_shared<QMetaObject::Connection>()};
+		*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn,id] (const uint thread_id)
+		{
 			if (id == thread_id)
 			{
 				disconnect(*conn);

@@ -46,15 +46,15 @@ struct exerciseEntry {
 };
 
 enum RoleNames {
-	exerciseNumberRole = Qt::UserRole,
-	giantSetExerciseRole = Qt::UserRole+1,
-	setsNumberRole = Qt::UserRole+2,
-	exerciseCompletedRole = Qt::UserRole+3,
-	workingExerciseRole = Qt::UserRole+4,
-	workingSubExerciseRole = Qt::UserRole+5,
-	workingSetRole = Qt::UserRole+6,
-	trackRestTimeRole = Qt::UserRole+7,
-	autoRestTimeRole = Qt::UserRole+8
+	exerciseNumberRole		= Qt::UserRole,
+	giantSetExerciseRole	= Qt::UserRole+1,
+	setsNumberRole			= Qt::UserRole+2,
+	exerciseCompletedRole	= Qt::UserRole+3,
+	workingExerciseRole		= Qt::UserRole+4,
+	workingSubExerciseRole	= Qt::UserRole+5,
+	workingSetRole			= Qt::UserRole+6,
+	trackRestTimeRole		= Qt::UserRole+7,
+	autoRestTimeRole		= Qt::UserRole+8
 };
 
 static const QString &calendarDayExtraInfo{qApp->tr(" Workout #: ")};

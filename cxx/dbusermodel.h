@@ -138,8 +138,6 @@ public:
 	Q_INVOKABLE inline QString userNameFromId(const QString &userid) const { return userName(userIdxFromFieldValue(USER_COL_ID, userid)); }
 	int userIdxFromFieldValue(const uint field, const QString &value, const bool exact_match = true) const;
 	const QString &userIdFromFieldValue(const uint field, const QString &value) const;
-	inline const QString localDir(const QString &userid) const { return localDir(userIdxFromFieldValue(USER_COL_ID, userid)); }
-	const QString localDir(const int user_idx) const;
 
 	inline QString userId(const int user_idx = 0) const { return user_idx < m_usersData.count() ? m_usersData.at(user_idx).at(USER_COL_ID) : QString{}; }
 	inline void setUserId(const uint user_idx, const QString &new_id) { m_usersData[user_idx][USER_COL_ID] = new_id; }
@@ -297,9 +295,9 @@ public:
 	{
 		downloadResumeFromServer(user_idx);
 	}
-	Q_INVOKABLE inline void viewResume(OnlineUserInfo *tempUser, const uint userInfouser_idx)
+	Q_INVOKABLE inline void viewResume(OnlineUserInfo *tempUser, const uint userinfo_user_idx)
 	{
-		viewResume(getTemporaryUserInfo(tempUser, userInfouser_idx));
+		viewResume(getTemporaryUserInfo(tempUser, userinfo_user_idx));
 	}
 	Q_INVOKABLE void uploadResume(const QString &resumeFileName);
 	Q_INVOKABLE void setMainUserConfigurationFinished();
@@ -374,8 +372,7 @@ signals:
 private:
 	QList<QStringList> m_usersData, m_tempUserData;
 	int m_tempRow, n_devices, n_cmdOrderValue;
-	QString m_onlineAccountId, m_password, m_defaultAvatar, m_emptyString, m_onlineCoachesDir,
-		m_dirForRequestedCoaches, m_dirForClientsRequests, m_dirForCurrentClients, m_dirForCurrentCoaches;
+	QString m_onlineAccountId, m_password, m_defaultAvatar, m_emptyString;
 	std::optional<bool> mb_singleDevice, mb_userRegistered, mb_coachRegistered;
 	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses,
 						*m_tempUserInfo, *m_currentCoaches, *m_currentClients, *m_currentCoachesAndClients;
@@ -386,7 +383,11 @@ private:
 	OnlineUserInfo *m_allUsers;
 #endif
 
-	void setupOnlineUserLocalDirs();
+	QString userDir(const int user_idx) const;
+	QString userDir(const QString &userid) const;
+	QString profileFileName(const QString &userid) const;
+	QString profileFilePath(const QString &userid) const;
+
 	QString getPhonePart(const QString &str_phone, const bool prefix) const;
 	void setPhoneBasedOnLocale();
 	QString generateUniqueUserId() const;
@@ -407,11 +408,11 @@ private:
 	{
 		return sex(user_idx) == 0 ? "image://tpimageprovider/m0"_L1 : "image://tpimageprovider/f1"_L1;
 	}
+	QString findAvatar(const QString &base_dir) const;
+	QString findResume(const QString &base_dir) const;
 	void downloadAvatarFromServer(const uint user_idx);
 	void downloadResumeFromServer(const uint user_idx);
-	void copyTempUserFilesToFinalUserDir(const QString &destDir, OnlineUserInfo *userInfo, const int userInfouser_idx) const;
-	void clearTempUserFiles(OnlineUserInfo *userInfo, const int userInfouser_idx) const;
-	void clearUserDir(const QString &dir) const;
+	void openResume(const QString &filename) const;
 	void startServerPolling();
 	void pollServer();
 	void pollClientsRequests();

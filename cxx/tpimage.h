@@ -23,7 +23,6 @@ public:
 
 	inline QString source() const { return mSource; }
 	void setSource(const QString &source);
-	inline const QString &sourceExtension() const { return mSourceExtension; }
 
 	inline bool dropShadow() const { return mDropShadow; }
 	void setDropShadow(const bool drop_shadow);
@@ -52,7 +51,7 @@ signals:
 	void scaleChanged();
 
 private:
-	QString mSource, mSourceExtension;
+	QString mSource;
 	QImage mImage;
 	QImage mImageDisabled;
 	QImage mImageShadow;

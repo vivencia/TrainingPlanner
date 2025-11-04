@@ -10,7 +10,6 @@ import ".."
 
 TPPopup {
 	id: avatarsDlg
-	keepAbove: false
 	closeButtonVisible: false
 	showTitleBar: false
 	width: appSettings.pageWidth
@@ -42,7 +41,7 @@ TPPopup {
 
 		TPButton {
 			id: btnChooseImage
-			imageSource: "choose_avatar"
+			imageSource: "choose-avatar"
 			width: appSettings.itemDefaultHeight
 			height: appSettings.itemDefaultHeight
 

@@ -103,7 +103,7 @@ void DBExercisesListModel::newExercise(const QString &name, const QString &subna
 {
 	setLastID(lastID() + 1);
 	appendList(std::move(QStringList{} << std::move(QString::number(lastID())) << std::move(name) <<
-				std::move(subname) << std::move(muscular_group) << std::move("qrc:/images/no_image.jpg"_L1) <<
+				std::move(subname) << std::move(muscular_group) << std::move("qrc:/images/no-image.jpg"_L1) <<
 				std::move("0"_L1) << std::move(QString::number(m_exercisesData.count())) << std::move("0"_L1)));
 }
 

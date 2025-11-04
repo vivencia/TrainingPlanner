@@ -20,7 +20,7 @@ TPPage {
 
 		TPImage {
 			id: imgAppIcon
-			source: "app_icon"
+			source: "app-icon"
 			dropShadow: false
 			width: appSettings.itemExtraLargeHeight
 			height: width

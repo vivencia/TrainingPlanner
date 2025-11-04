@@ -4,6 +4,8 @@ import QtQuick.Layouts
 
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
+import "../TPWidgets"
+
 Item {
 	signal itemSelected(userRow: int)
 	signal buttonClicked
@@ -44,19 +46,22 @@ Item {
 		delegate: ItemDelegate {
 			spacing: 0
 			padding: 5
-			width: parent.width
-			height: appSettings.itemDefaultHeight
+			width: listview.width
+			height: itemVisible ? appSettings.itemDefaultHeight : 0
 
 			contentItem: TPLabel {
 				text: name
+				visible: itemVisible
 				leftPadding: 5
 				bottomPadding: 2
 			}
 
 			background: Rectangle {
-				color: index === listview.currentIndex ? appSettings.entrySelectedColor :
-					(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
-				opacity: 0.8
+				readonly property bool selected: index === listview.currentIndex
+				color: selected ? appSettings.entrySelectedColor :
+								(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
+				//opacity: selected ? 1 : 0.8
+				border.color: selected ? appSettings.fontColor : "transparent"
 			}
 
 			onClicked: selectItem(index);
@@ -106,13 +111,14 @@ Item {
 	}
 
 	function selectItem(index: int): void {
-		if (!workingModel)
-			return;
 		const userrow = workingModel.getUserIdx(index, !(listClients && listCoaches));
 		if (userrow > 0) {
-			workingModel.currentRow = index;
 			listview.currentIndex = index;
 			itemSelected(userrow);
 		}
+	}
+
+	function applyFilter(filter: string): void {
+		workingModel.applyFilter(filter);
 	}
 }

@@ -12,16 +12,20 @@ TPPage {
 	id: coachesPage
 	objectName: "CoachesPage"
 	imageSource: appSettings.coachesBackground
-	backgroundOpacity: 0.8
+	backgroundOpacity: 0.6
 
 	required property UserManager userManager
 	property int userRow: -1
 
 	onPageActivated: {
-		if (listsLayout.currentIndex === 0)
+		if (coachesList.enabled) {
+			tabbar.setCurrentIndex(0);
 			coachesList.selectItem(coachesList.currentRow !== -1 ? coachesList.currentRow : 0);
-		else
+		}
+		else if (pendingCoachesList.enabled) {
+			tabbar.setCurrentIndex(1);
 			pendingCoachesList.selectItem(pendingCoachesList.currentRow !== -1 ? pendingCoachesList.currentRow : 0);
+		}
 	}
 
 	TPLabel {
@@ -90,6 +94,7 @@ TPPage {
 				listClients: false
 				listCoaches: true
 				buttonString: qsTr("Résumé")
+				height: parent.height - appSettings.itemDefaultHeight - 5
 
 				anchors {
 					top: parent.top
@@ -138,6 +143,7 @@ TPPage {
 				listClients: false
 				listCoaches: true
 				buttonString: qsTr("Résumé")
+				height: parent.height - appSettings.itemDefaultHeight - 5
 
 				anchors {
 					top: parent.top
@@ -147,7 +153,12 @@ TPPage {
 					rightMargin: 5
 				}
 
-				onItemSelected: (userRow) => coachesPage.userRow = userRow;
+				//Temporary users(not confirmed) will always have the same index: userModel.count() - 1, so we need
+				//to reset the userRow property in order for it to get a onChanged signal
+				onItemSelected: (userRow) => {
+					coachesPage.userRow = -1;
+					coachesPage.userRow = userRow;
+				}
 				onButtonClicked: userModel.viewResume(userRow);
 			} //TPCoachesAndClientsList: pendingCoachesList
 
@@ -168,7 +179,13 @@ TPPage {
 					rounded: false
 					Layout.alignment: Qt.AlignCenter
 
-					onClicked: userModel.acceptUser(userModel.pendingCoachesResponses, pendingCoachesList.currentIndex);
+					onClicked: {
+						userModel.acceptUser(userModel.pendingCoachesResponses, pendingCoachesList.currentIndex);
+						if (!pendingCoachesList.enabled) {
+							if (coachesList.enabled)
+								tabbar.setCurrentIndex(0);
+						}
+					}
 				}
 				TPButton {
 					text: qsTr("Decline")
@@ -282,10 +299,20 @@ TPPage {
 	}
 
 	function removeOrDecline(decline: bool) {
-		if (!decline)
+		if (!decline) {
 			userModel.removeUser(userRow);
-		else
+			if (!coachesList.enabled)
+				if (pendingCoachesList.enabled) {
+					tabbar.setCurrentIndex(1);
+			}
+		}
+		else {
 			userModel.rejectUser(userModel.pendingCoachesResponses, pendingCoachesList.currentIndex);
+			if (!pendingCoachesList.enabled) {
+				if (coachesList.enabled)
+					tabbar.setCurrentIndex(0);
+			}
+		}
 	}
 
 	property UserCoachRequest requestDlg: null

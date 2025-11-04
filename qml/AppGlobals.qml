@@ -4,13 +4,13 @@ import QtCore
 import QtQuick
 
 QtObject {
+
 	readonly property font regularFont: Qt.font({
 	    family: Qt.fontFamilies()[0],
 	    weight: Font.Medium,
-	    italic: false,
 	    styleStrategy: Font.PreferAntialias,
 	    hintingPreference: Font.PreferFullHinting,
-	    pixelSize: appSettings.fontSize
+		pixelSize: appSettings.fontSize
 	})
 
 	readonly property FontMetrics fontMetricsRegular: FontMetrics {
@@ -22,28 +22,25 @@ QtObject {
 	readonly property font smallFont: Qt.font({
 	    family: Qt.fontFamilies()[0],
 	    weight: Font.DemiBold,
-	    italic: false,
 	    styleStrategy: Font.PreferAntialias,
 	    hintingPreference: Font.PreferFullHinting,
-	    pixelSize: appSettings.smallFontSize
+		pixelSize: appSettings.smallFontSize
 	})
 
 	readonly property font largeFont: Qt.font({
 	    family: Qt.fontFamilies()[0],
 	    weight: Font.DemiBold,
-	    italic: false,
 	    styleStrategy: Font.PreferAntialias,
 	    hintingPreference: Font.PreferFullHinting,
-	    pixelSize: appSettings.largeFontSize
+		pixelSize: appSettings.largeFontSize
 	})
 
 	readonly property font extraLargeFont: Qt.font({
 	    family: Qt.fontFamilies()[0],
 	    weight: Font.Bold,
-	    italic: false,
 	    styleStrategy: Font.PreferAntialias,
 	    hintingPreference: Font.PreferFullHinting,
-	    pixelSize: appSettings.extraLargeFontSize
+		pixelSize: appSettings.extraLargeFontSize
 	})
 
 	readonly property ListModel setTypesModel: ListModel {

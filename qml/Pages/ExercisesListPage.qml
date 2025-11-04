@@ -13,7 +13,7 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 TPPage {
 	id: exercisesPage
 	imageSource: ":/images/backgrounds/exercises_backimage.jpg"
-	backgroundOpacity: 0.8
+	backgroundOpacity: 0.6
 	objectName: "exercisesPage"
 
 	required property ExercisesListManager exercisesManager
@@ -267,7 +267,7 @@ TPPage {
 		}
 		else {
 			if (mediaType === -1) //unknown
-				strMediaPath = "qrc:/images/no_image.jpg";
+				strMediaPath = "qrc:/images/no-image.jpg";
 			if (videoViewer !== null) {
 				videoViewer.destroy();
 				videoViewer = null;

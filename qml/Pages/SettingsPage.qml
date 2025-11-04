@@ -11,7 +11,7 @@ TPPage {
 	id: settingsPage
 	objectName: "settingsPage"
 	imageSource: appSettings.settingsBackground
-	backgroundOpacity: 0.8
+	backgroundOpacity: 0.6
 	implicitWidth: appSettings.pageWidth
 	implicitHeight: appSettings.pageHeight
 

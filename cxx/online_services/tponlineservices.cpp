@@ -20,9 +20,8 @@ TPOnlineServices* TPOnlineServices::_appOnlineServices{nullptr};
 constexpr QLatin1StringView server_address{"http://%1:8080/trainingplanner/"_L1};
 constexpr QLatin1StringView root_user{"admin"};
 constexpr QLatin1StringView root_passwd{"admin"};
-constexpr QLatin1StringView base_ip{"192.168.10."_L1};
 
-void TPOnlineServices::scanNetwork()
+void TPOnlineServices::scanNetwork(const QString &last_working_address, const bool assume_working)
 {
 	if (m_scanning)
 		return;
@@ -32,18 +31,19 @@ void TPOnlineServices::scanNetwork()
 	m_scanning = true;
 	const int requestid{appUtils()->generateUniqueId("scanNetwork"_L1)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
-	if (!appSettings()->serverAddress().isEmpty())
+
+	if (assume_working && !last_working_address.isEmpty())
 	{
 		#ifndef QT_NO_DEBUG
-		qDebug() << "scanNetwork() -> appSettings()->serverAddress() " << appSettings()->serverAddress();
+		qDebug() << "scanNetwork() -> appSettings()->serverAddress() " << last_working_address;
 		#endif
-		*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid]
+		*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid,last_working_address]
 									(const int request_id, const int ret_code, const QString &ret_string)
 		{
 			if (request_id == requestid)
 			{
 				disconnect(*conn);
-				connect(this, &TPOnlineServices::_serverResponse, this, [this] (const uint online_status, const QString &address)
+				connect(this, &TPOnlineServices::_serverResponse, this, [this,last_working_address] (const uint online_status, const QString &address)
 				{
 					m_scanning = false;
 					#ifndef QT_NO_DEBUG
@@ -51,26 +51,26 @@ void TPOnlineServices::scanNetwork()
 					#endif
 					switch (online_status)
 					{
-						case 0: break; //online
-						case 1: //Bad Gateway, socket operation timed out, connection refused or some other error received. Scan local network for a new server address
+						case TP_RET_CODE_SUCCESS: break; //online
+						case TP_RET_CODE_SERVER_UNREACHABLE: //Bad Gateway, socket operation timed out, connection refused or some other error received. Scan local network for a new server address
 							appSettings()->setServerAddress(QString{});
-							scanNetwork();
+							scanNetwork(last_working_address, false);
 						break;
-						case 2: break; //server paused
+						case TP_RET_CODE_SERVER_PAUSED: break;
 					}
 					emit serverOnline(online_status);
 				}, Qt::SingleShotConnection);
-				checkServerResponse(ret_code, ret_string, appSettings()->serverAddress());
+				checkServerResponse(ret_code, ret_string, last_working_address);
 			}
 		});
-		makeNetworkRequest(requestid, server_address.arg(appSettings()->serverAddress()), true);
+		makeNetworkRequest(requestid, server_address.arg(last_working_address), true);
 	}
 	else
 	{
 		#ifndef QT_NO_DEBUG
 		qDebug() << "scanNetwork() -> starting scan on separate thread";
 		#endif
-		tpScanNetwork *tsn{new tpScanNetwork{base_ip}};
+		tpScanNetwork *tsn{new tpScanNetwork{}};
 		QThread *thread{new QThread{}};
 		tsn->moveToThread(thread);
 
@@ -81,7 +81,7 @@ void TPOnlineServices::scanNetwork()
 			#endif
 			if (ip == "None"_L1)
 			{
-				emit serverOnline(1);
+				emit serverOnline(TP_RET_CODE_SERVER_UNREACHABLE);
 				return;
 			}
 			*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid,ip]
@@ -103,7 +103,7 @@ void TPOnlineServices::scanNetwork()
 			#ifndef QT_NO_DEBUG
 			qDebug() << "scanNetwork() 2-> _serverResponse online_status = " << online_status << " , address = " << address;
 			#endif
-			if (online_status == 0)
+			if (online_status == TP_RET_CODE_SUCCESS)
 			{
 				disconnect(*conn2);
 				if (m_scanning)
@@ -129,7 +129,7 @@ void TPOnlineServices::scanNetwork()
 			tsn->deleteLater();
 			thread->deleteLater();
 		});
-		connect(thread, &QThread::started, tsn, [tsn] () { tsn->scan(base_ip); });
+		connect(thread, &QThread::started, tsn, [tsn,last_working_address] () { tsn->scan(last_working_address); });
 		m_scanning = true;
 		thread->start();
 	}
@@ -332,7 +332,7 @@ void TPOnlineServices::executeCommands(const int requestid, const QString &usern
 void TPOnlineServices::sendFile(const int requestid, const QString &username, const QString &passwd, QFile *file,
 									const QString &subdir, const QString &targetUser, const bool b_internal_signal_only)
 {
-	auto conn = std::make_shared<QMetaObject::Connection>();
+	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
 							(const int request_id, const int ret_code, const QString &ret_string)
 	{
@@ -643,11 +643,11 @@ void TPOnlineServices::checkServerResponse(const int ret_code, const QString &re
 	#ifndef QT_NO_DEBUG
 	qDebug() << "checkServerResponse() ret_code = " << ret_code << " , ret_string = " << ret_string << " , address = " << address;
 	#endif
-	uint online_status{1};
+	uint online_status{TP_RET_CODE_SERVER_UNREACHABLE};
 	if (ret_string.contains("Welcome to the TrainingPlanner"_L1))
-		online_status = 0;
+		online_status = TP_RET_CODE_SUCCESS;
 	else if (ret_string.contains("server paused"_L1))
-		online_status = 2;
+		online_status = TP_RET_CODE_SERVER_PAUSED;
 	emit _serverResponse(online_status, address);
 }
 

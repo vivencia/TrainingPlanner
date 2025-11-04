@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 4.1.2)
 project(TrainingPlanner LANGUAGES CXX)
 
 #set(QT_COMPILER_FLAGS "-I${TARGET_SYSROOT}/usr/include -pipe -mcpu=cortex-a72 -fno-asynchronous-unwind-tables -fno-unwind-tables -fomit-frame-pointer -fno-exceptions -no-pie")
@@ -42,16 +42,17 @@ set(CMAKE_CXX_FLAGS_RELEASE_INIT "-DQT_NO_DEBUG -DNDEBUG -O3 -march=native -fomi
 set(CMAKE_CXX_FLAGS_INIT "-DQT_USE_QSTRINGBUILDER -DQT_USE_FAST_CONCATENATION -DQT_USE_FAST_OPERATOR_PLUS -Werror -Wall -Wextra -pedantic finput-charset=UTF-8 -fexec-charset=UTF-8")
 
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_VERBOSE_MAKEFILE on)
-set(CMAKE_AUTOGEN_VERBOSE on)
+set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_AUTOGEN_VERBOSE ON)
 set(CMAKE_AUTORCC ON)
+set(QT_CREATOR_SKIP_MAINTENANCE_TOOL_PROVIDER ON)
+set(QT_FORCE_CMP0156_TO_VALUE NEW)
 
 if (ANDROID)
 	find_package(Qt6 REQUIRED COMPONENTS Core CorePrivate Gui Multimedia Qml Quick QuickControls2 LinguistTools Widgets Sql Network Positioning Charts)
 else()
 	find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 LinguistTools Widgets Sql Network Positioning Charts)
-find_package(Qt6 REQUIRED COMPONENTS Core)
-find_package(Qt6 REQUIRED COMPONENTS Core)
+	find_package(PkgConfig REQUIRED)
 endif(ANDROID)
 
 add_compile_definitions(REQUEST_PERMISSIONS_ON_ANDROID)
@@ -145,14 +146,16 @@ set( QM_FILES
 )
 
 set( SERVER_FILES
-	web-server/tpserver.conf
-	web-server/nginx.conf
-	web-server/www.conf
-	web-server/php.ini
-	web-server/url_parser.php
+	web-server/function_library.sh
 	web-server/init_script.sh
-	web-server/usersdb.sh
+	web-server/nginx.conf
+	web-server/php.ini
+	web-server/runcmds.sh
+	web-server/tpserver.conf
+	web-server/url_parser.php
 	web-server/user.fields
+	web-server/usersdb.sh
+	web-server/www.conf
 )
 
 set ( ANDROID_FILES
@@ -216,7 +219,6 @@ set( QML_SOURCES
 	"qml/TPWidgets/TPButtonGroup.qml"
     "qml/TPWidgets/TPButtonImage.qml"
     "qml/TPWidgets/TPFloatingControl.qml"
-	"qml/TPWidgets/TPCoachesAndClientsList.qml"
     "qml/TPWidgets/TPColorRectangle.qml"
     "qml/TPWidgets/TPComboBox.qml"
     "qml/TPWidgets/TPComplexDialog.qml"
@@ -242,6 +244,7 @@ set( QML_SOURCES
 	"qml/User/AvatarsPopup.qml"
 	"qml/User/ChatWindow.qml"
 	"qml/User/UserChangePassword.qml"
+	"qml/User/TPCoachesAndClientsList.qml"
 	"qml/User/UserCoachRequest.qml"
 	"qml/User/UserCoach.qml"
 	"qml/User/UserContact.qml"
@@ -305,12 +308,7 @@ target_link_libraries(TrainingPlanner PRIVATE Qt6::Core)
 target_link_libraries(TrainingPlanner PRIVATE Qt6::Core)
 endif(NOT ANDROID)
 
-
-
 set(trainingplanner_resource_files
-	"images/app_logo.png"
-	"images/app_icon.png"
-	"images/no_image.jpg"
 	"app_resources.qrc"
 	"qml/qmldir"
 	${QML_SOURCES}
@@ -322,15 +320,6 @@ qt_add_resources(TrainingPlanner "TrainingPlanner"
 	FILES
 		${trainingplanner_resource_files}
 )
-
-#qt_add_qml_module(trainingplanner
-#    URI "tp_qml"
-#    VERSION 1.0
-#    QML_FILES
-#	${QML_FILES}
-#    SOURCES
-#	${SOURCES}
-#)
 
 list(APPEND QML_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/cxx")
 list(APPEND QML_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/qml")

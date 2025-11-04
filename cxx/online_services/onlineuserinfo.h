@@ -5,9 +5,8 @@
 
 #define USER_EXTRA_NAME 0
 #define USER_EXTRA_SELECTED 1
-#define USER_EXTRA_SOURCE 2
-#define USER_EXTRA_ISCOACH 3
-#define USER_EXTRA_VISIBLE 4
+#define USER_EXTRA_ISCOACH 2
+#define USER_EXTRA_VISIBLE 3
 
 class OnlineUserInfo : public QAbstractListModel
 {
@@ -37,7 +36,6 @@ public:
 #endif
 
 	inline uint count() const { return m_modeldata.count(); }
-	inline const QString &sourcePath()const { return m_sourcePath; }
 	inline const QString &data(const uint row, const uint user_field) const
 	{
 		Q_ASSERT_X(row < count(), "OnlineUserInfo::data", "row out of range");
@@ -71,13 +69,6 @@ public:
 	}
 	void setExtraName(const uint row, const QString &extra_name);
 
-	inline const QString &sourceFile(const uint row) const
-	{
-		Q_ASSERT_X(row < count(), "OnlineUserInfo::sourceFile", "row out of range");
-		return m_extraInfo.at(row).at(USER_EXTRA_SOURCE);
-	}
-	void setSourceFile(const uint row, const QString &source_file);
-
 	inline const bool isCoach(const uint row) const
 	{
 		Q_ASSERT_X(row < count(), "OnlineUserInfo::isCoach", "row out of range");
@@ -97,7 +88,7 @@ public:
 	void dataFromUserModel(const uint user_idx);
 	void dataFromOnlineUserInfo(const OnlineUserInfo *other_userinfo, const int other_row = -1);
 
-	void removeUserInfo(const uint row, const bool remove_source);
+	void removeUserInfo(const uint row);
 	//Remove all items from m_modeldata that are not in user_list. Use field to look for matches
 	bool sanitize(const QStringList &user_list, const uint field);
 	void clear();
@@ -127,6 +118,7 @@ public:
 	}
 
 	bool containsUser(const QString &userid) const;
+	Q_INVOKABLE void applyFilter(const QString &filter, int field = -1);
 
 	inline int rowCount(const QModelIndex & = QModelIndex{}) const override final { return count(); }
 	inline int columnCount(const QModelIndex & = QModelIndex{}) const override final { return m_totalCols; }
@@ -150,10 +142,9 @@ private:
 	QHash<int, QByteArray> m_roleNames;
 	QList<QStringList> m_modeldata;
 	QList<QStringList> m_extraInfo;
-	QString m_sourcePath;
 	uint m_nselected, m_totalCols;
 	int m_currentRow;
 	bool m_selectEntireRow;
 
-	void setupExtraInfo(const uint row, const QString &source_file = QString{});
+	void setupExtraInfo(const uint row);
 };

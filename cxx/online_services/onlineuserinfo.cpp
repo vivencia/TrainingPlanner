@@ -4,7 +4,7 @@
 #include "../dbusermodel.h"
 #include "../tputils.h"
 
-constexpr uint totalExtraFields{5};
+constexpr uint totalExtraFields{4};
 
 enum RoleNames {
 	idRole			= Qt::UserRole		+ USER_COL_ID,
@@ -20,8 +20,7 @@ enum RoleNames {
 	useModeRole		= Qt::UserRole		+ USER_COL_APP_USE_MODE,
 	extraNameRole	= useModeRole		+ 1,
 	selectedRole	= extraNameRole		+ 1,
-	sourceFileRole	= selectedRole		+ 1,
-	isCoachRole		= sourceFileRole	+ 1,
+	isCoachRole		= selectedRole		+ 1,
 	allDataRole		= isCoachRole		+ 1,
 	visibleRole		= allDataRole		+ 1,
 };
@@ -42,11 +41,10 @@ OnlineUserInfo::OnlineUserInfo(QObject *parent)
 	m_roleNames[useModeRole]		= std::move(QByteArray{"useMode"});
 	m_roleNames[extraNameRole]		= std::move(QByteArray{"extraName"});
 	m_roleNames[selectedRole]		= std::move(QByteArray{"selected"});
-	m_roleNames[sourceFileRole]		= std::move(QByteArray{"source"});
 	m_roleNames[isCoachRole]		= std::move(QByteArray{"iscoach"});
 	m_roleNames[allDataRole]		= std::move(QByteArray{"allData"});
 	m_roleNames[Qt::DisplayRole]	= std::move(QByteArray{"display"});
-	m_roleNames[visibleRole]		= std::move(QByteArray{"visible"});
+	m_roleNames[visibleRole]		= std::move(QByteArray{"itemVisible"});
 }
 
 bool OnlineUserInfo::isSelected(const uint row, const int column) const
@@ -92,15 +90,6 @@ void OnlineUserInfo::setExtraName(const uint row, const QString &extra_name)
 	}
 }
 
-void OnlineUserInfo::setSourceFile(const uint row, const QString &source_file)
-{
-	if (row < count())
-	{
-		m_extraInfo[row][USER_EXTRA_SOURCE] = source_file;
-		emit dataChanged(index(row), index(row), QList<int>{} << sourceFileRole);
-	}
-}
-
 void OnlineUserInfo::setIsCoach(const uint row, bool coach)
 {
 	if (row < count())
@@ -127,9 +116,7 @@ bool OnlineUserInfo::dataFromFileSource(const QString &filename)
 		beginInsertRows(QModelIndex{}, count(), count());
 		const qsizetype row{m_modeldata.count()};
 		m_modeldata.append(std::move(appUserModel()->tempUserData()));
-		if (row == 0)
-			m_sourcePath = std::move(appUtils()->getFilePath(filename));
-		setupExtraInfo(row, filename);
+		setupExtraInfo(row);
 		emit countChanged();
 		setCurrentRow(row);
 		endInsertRows();
@@ -180,17 +167,14 @@ void OnlineUserInfo::dataFromOnlineUserInfo(const OnlineUserInfo *other_userinfo
 	endInsertRows();
 }
 
-void OnlineUserInfo::removeUserInfo(const uint row, const bool remove_source)
+void OnlineUserInfo::removeUserInfo(const uint row)
 {
 	if (row < count())
 	{
-		if (remove_source)
-			static_cast<void>(QFile::remove(data(row, USER_EXTRA_SOURCE)));
 		beginRemoveRows(QModelIndex{}, row, row);
 		m_modeldata.remove(row);
 		m_extraInfo.remove(row);
-		if (count() == 0)
-			m_sourcePath.clear();
+
 		if (m_currentRow >= row)
 		{
 			m_currentRow--;
@@ -214,7 +198,7 @@ bool OnlineUserInfo::sanitize(const QStringList &user_list, const uint field)
 			return user.startsWith(fieldValue);
 		})};
 		if (it == user_list.cend())
-			removeUserInfo(i, true);
+			removeUserInfo(i);
 	}
 	return n != count();
 }
@@ -227,7 +211,6 @@ void OnlineUserInfo::clear()
 		beginRemoveRows(QModelIndex{}, 0, count() - 1);
 		m_modeldata.clear();
 		m_extraInfo.clear();
-		m_sourcePath.clear();
 		m_currentRow = -1;
 		emit countChanged();
 		endRemoveRows();
@@ -265,11 +248,16 @@ int OnlineUserInfo::getRowFromUserIdx(const uint user_idx) const
 
 int OnlineUserInfo::getUserIdx(int row, const bool exact_match) const
 {
+	int user_idx{-1};
 	if (row == -1)
 		row = currentRow();
 	if (row >= 0 && row < count())
-		return appUserModel()->userIdxFromFieldValue(USER_COL_ID, m_modeldata.at(row).at(USER_COL_ID), exact_match);
-	return -1;
+	{
+		user_idx = appUserModel()->userIdxFromFieldValue(USER_COL_ID, m_modeldata.at(row).at(USER_COL_ID), exact_match);
+		if (user_idx == -1) //temporary online user
+			user_idx = appUserModel()->getTemporaryUserInfo(const_cast<OnlineUserInfo*>(this), row);
+	}
+	return user_idx;
 }
 
 bool OnlineUserInfo::containsUser(const QString &userid) const
@@ -280,6 +268,17 @@ bool OnlineUserInfo::containsUser(const QString &userid) const
 			return true;
 	}
 	return false;
+}
+
+void OnlineUserInfo::applyFilter(const QString &filter, int field)
+{
+	if (field == -1)
+		field = USER_COL_NAME;
+	for (uint i {0}; i < m_modeldata.count(); ++i)
+	{
+		const bool visible{m_modeldata.at(i).at(field).contains(filter, Qt::CaseInsensitive)};
+		setVisible(i, visible);
+	}
 }
 
 QString OnlineUserInfo::fieldValueFromAnotherFieldValue(const uint target_field, const uint needle_field,
@@ -313,7 +312,6 @@ QVariant OnlineUserInfo::data(const QModelIndex &index, int role) const
 			case useModeRole: return m_modeldata.at(row).at(USER_COL_APP_USE_MODE);
 			case extraNameRole: return extraName(row);
 			case selectedRole: return isSelected(row, index.column());
-			case sourceFileRole: return sourceFile(row);
 			case isCoachRole: return isCoach(row);
 			case allDataRole: return m_modeldata.at(row).at(index.column());
 			case visibleRole: return visible(row);
@@ -348,8 +346,6 @@ bool OnlineUserInfo::setData(const QModelIndex &index, const QVariant &value, in
 			case selectedRole:
 				setSelected(row, value.toBool(), index.column());
 			break;
-			case sourceFileRole:
-				setSourceFile(row, value.toString());
 			break;
 			case isCoachRole:
 				setIsCoach(row, value.toBool());
@@ -394,11 +390,10 @@ QVariant OnlineUserInfo::headerData(int section, Qt::Orientation orientation, in
 	return QVariant{};
 }
 
-void OnlineUserInfo::setupExtraInfo(const uint row, const QString &source_file)
+void OnlineUserInfo::setupExtraInfo(const uint row)
 {
 	m_extraInfo.append(std::move(QStringList{totalExtraFields}));
 	setExtraName(row, m_modeldata.last().at(USER_COL_NAME));
 	setSelected(row, false);
-	setSourceFile(row, source_file);
 	setVisible(row, true);
 }

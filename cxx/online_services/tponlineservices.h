@@ -27,7 +27,7 @@ public:
 	}
 	inline ~TPOnlineServices() { delete m_networkManager; }
 
-	void scanNetwork();
+	void scanNetwork(const QString &last_working_address, const bool assume_working = true);
 #ifndef Q_OS_ANDROID
 	inline void setUseLocalHost(const bool use_localhost) { m_useLocalHost = use_localhost; }
 	void getAllUsers(const int requestid);

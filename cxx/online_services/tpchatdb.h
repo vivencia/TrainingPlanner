@@ -14,7 +14,6 @@ Q_OBJECT
 public:
 	explicit TPChatDB(const QString &user_id, const QString &otheruser_id, QObject *parent = nullptr);
 
-	inline uint mostRecentMessageId() const { return m_mostRecentMsgId; }
 	QList<QStringList> &wholeChat() & { return m_wholeChat; }
 	QString databaseFileName() { return m_otherUserId + ".db.sqlite"_L1; }
 	QString databaseDir() const;
@@ -27,7 +26,6 @@ public:
 	void saveChat(bool update, const QStringList &message_info);
 
 private:
-	uint m_mostRecentMsgId;
 	QString m_userId, m_otherUserId;
 	QList<QStringList> m_wholeChat;
 };

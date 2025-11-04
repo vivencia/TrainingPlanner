@@ -288,12 +288,24 @@ void TPSettings::setDisabledFontColor(const QColor &color)
 	emit colorChanged();
 }
 
+static QColor lighterShade(const QColor &original, const int percent)
+{
+	const int increase{qFloor(255 * (1.0 * static_cast<double>(percent) / 100.0))};
+	int r{original.red() + increase};
+	if (r > 255 ) r = 255;
+	int g{original.green() + increase};
+	if (g > 255 ) g = 255;
+	int b{original.blue() + increase};
+	if (b > 255 ) b = 255;
+	return QColor{r, g, b};
+}
+
 QString TPSettings::colorForScheme(const uint scheme) const
 {
 	switch (scheme)
 	{
 		case Custom: return getValue(currentUser(), COLOR_INDEX, m_prevColorScheme != Custom ? colorForScheme(m_prevColorScheme) : QString{}).toString(); break;
-		case Dark: return "#5d615f"_L1; break;
+		case Dark: return "#959595"_L1; break;
 		case Light: return "#b8bec1"_L1; break;
 		case Blue: return "#5c83a6"_L1; break;
 		case Green: return "#698c5e"_L1; break;
@@ -308,7 +320,7 @@ QString TPSettings::lightColorForScheme(const uint scheme) const
 	switch (scheme)
 	{
 		case Custom: return getValue(currentUser(), LIGHT_COLOR_INDEX, m_prevColorScheme != Custom ? lightColorForScheme(m_prevColorScheme) : QString{}).toString(); break;
-		case Dark: return "#959595"_L1; break;
+		case Dark: return "#adadad"_L1; break;
 		case Light: return "#b1acac"_L1; break;
 		case Blue: return "#76b0e1"_L1; break;
 		case Green: return "#82a572"_L1; break;
@@ -323,7 +335,7 @@ QString TPSettings::darkColorForScheme(const uint scheme) const
 	switch (scheme)
 	{
 		case Custom: return getValue(currentUser(), DARK_COLOR_INDEX, m_prevColorScheme != Custom ? darkColorForScheme(m_prevColorScheme) : QString{}).toString(); break;
-		case Dark: return "#000000"_L1; break;
+		case Dark: return "#4f4f4f"_L1; break;
 		case Light: return "#e9e9ea"_L1; break;
 		case Blue: return "#1e344a"_L1; break;
 		case Green: return "#2a6949"_L1; break;
@@ -337,12 +349,8 @@ QString TPSettings::listColor1ForScheme(const uint scheme) const
 {
 	switch (scheme)
 	{
-		case Custom:
-		{
-			QColor pane_color{paneColorForScheme(Custom)};
-			return pane_color.lighter(125).name();
-		}
-		case Dark: return "#65756e"_L1; break;
+		case Custom: return lighterShade(paneColorForScheme(Custom), 25).name();
+		case Dark: return "#8a9f9d"_L1; break;
 		case Light: return "#95aaa6"_L1; break;
 		case Blue: return "#25415c"_L1; break;
 		case Green: return "#319355"_L1; break;
@@ -356,12 +364,8 @@ QString TPSettings::listColor2ForScheme(const uint scheme) const
 {
 	switch (scheme)
 	{
-		case Custom:
-		{
-			QColor listcolor1_color{listColor1ForScheme(Custom)};
-			return listcolor1_color.lighter(125).name();
-		}
-		case Dark: return "#7a8d84"_L1; break;
+		case Custom: return lighterShade(listColor1ForScheme(Custom), 25).name();
+		case Dark: return "#b8d4d2"_L1; break;
 		case Light: return "#bfdad5"_L1; break;
 		case Blue: return "#4d6e98"_L1; break;
 		case Green: return "#3cb367"_L1; break;
@@ -375,12 +379,8 @@ QString TPSettings::paneColorForScheme(const uint scheme) const
 {
 	switch (scheme)
 	{
-		case Custom:
-		{
-			QColor dark_color{primaryDarkColor()};
-			return dark_color.lighter(125).name();
-		}
-		case Dark: return "#000000"_L1; break;
+		case Custom: return lighterShade(primaryDarkColor(), 15).name();
+		case Dark: return "#636363"_L1; break;
 		case Light: return "#535354"_L1; break;
 		case Blue: return "#638dc3"_L1; break;
 		case Green: return "#34835b"_L1; break;
@@ -394,12 +394,8 @@ QString TPSettings::selectedColorForScheme(const uint scheme) const
 {
 	switch (scheme)
 	{
-		case Custom:
-		{
-			QColor pane_color{paneColorForScheme(Custom)};
-			return pane_color.lighter(115).name();
-		}
-		case Dark: return "#6c6f73"_L1; break;
+		case Custom: return lighterShade(paneColorForScheme(Custom), 15).name();
+		case Dark: return "#b3bfb4"_L1; break;
 		case Light: return "#5d5d5e"_L1; break;
 		case Blue: return "#142734"_L1; break;
 		case Green: return "#307954"_L1; break;

@@ -244,23 +244,28 @@ function run_commands($userid, $subdir, $delete_cmdfile) {
 		if (count($files) > 0) {
 			global $scriptsdir;
 			$script=$scriptsdir . "runcmds.sh";
-			$exec_returnvars = "";
-			$return_code = 0;
-			ob_start();
+			//ob_start();
 			foreach ($files as &$file) {
 				if (!str_ends_with($file, ".cmd"))
 					continue;
-				passthru("$script $userid $subdir $file", $return_var);
-				if ($return_var == 0) {
-					if ($delete_cmdfile == 1)
-						unlink($path.$file);
+				//passthru("$script $userid $subdir $file", $return_var);
+				//echo "$script $userid $subdir $file";
+				$return_var = shell_exec("$script $userid $subdir $file");
+				if (is_null($return_var))
+					echo "an error occured or the command produced no output";
+				elseif (!$return_var)
+					echo "the pipe could not be established";
+				else {
+					if ($return_var == 0) {
+						echo "0: " . $file . " executed correctly";
+						if ($delete_cmdfile == "1")
+							unlink($path.$file);
+					}
+					else
+						echo get_return_code("exec failed") . ": " . $file;
 				}
-				else
-					$return_code = 1;
-				$exec_returnvars = $exec_returnvars . $return_var . ' ';
 			}
-			$output = ob_get_clean();
-			echo $exec_returnvars;
+			//$output = ob_get_clean();
 			return true;
 		}
 	}

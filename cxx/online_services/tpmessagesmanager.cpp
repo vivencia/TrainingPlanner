@@ -122,11 +122,6 @@ void TPMessagesManager::itemClicked(const int message_id)
 	}
 }
 
-void TPMessagesManager::filterChatOptions(const QString &filter)
-{
-
-}
-
 TPMessage *TPMessagesManager::createChatMessage(const QString &userid, QString &&display_text, QString &&icon_source)
 {
 	TPMessage *chat_message{new TPMessage{std::move(display_text), std::move(icon_source), this}};
@@ -148,8 +143,6 @@ TPMessage *TPMessagesManager::createChatMessage(const QString &userid, QString &
 
 void TPMessagesManager::openChatWindow(TPChat *chat_manager)
 {
-	//QMetaObject::invokeMethod(appMainWindow(), "showChatWindow", Q_ARG(TPChat*, chat_manager));
-	//return;
 	if (!m_chatWindowList.value(chat_manager->otherUserId()))
 	{
 		if (!m_chatWindowComponent)

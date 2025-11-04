@@ -56,6 +56,19 @@ TPChat::TPChat(const QString &otheruser_id, QObject *parent)
 	m_roleNames[textRole]		=	std::move("msgText");
 	m_roleNames[mediaRole]		=	std::move("msgMedia");
 
+	m_userIdx = appUserModel()->userIdxFromFieldValue(USER_COL_ID, m_otherUserId);
+	connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_idx, const uint field) {
+		if (user_idx == m_userIdx)
+		{
+			switch (field)
+			{
+				case USER_COL_NAME: emit interlocutorNameChanged(); break;
+				case USER_COL_AVATAR: emit avatarIconChanged(); break;
+			}
+		}
+		else if (user_idx == 0 && field == USER_MODIFIED_REMOVED)
+			m_userIdx = appUserModel()->userIdxFromFieldValue(USER_COL_ID, m_otherUserId);
+	});
 	m_chatDB = new TPChatDB{appUserModel()->userId(0), m_otherUserId};
 	m_chatDB->createTable();
 	auto conn{std::make_shared<QMetaObject::Connection>()};
@@ -98,7 +111,12 @@ TPChat::~TPChat()
 
 QString TPChat::interlocutorName() const
 {
-	return appUserModel()->userNameFromId(m_otherUserId);
+	return appUserModel()->userName(m_userIdx);
+}
+
+QString TPChat::avatarIcon() const
+{
+	return appUserModel()->avatar(m_userIdx, false);
 }
 
 void TPChat::newMessage(const QString &text, const QString &media)
@@ -147,7 +165,7 @@ void TPChat::messageRead(const uint msgid)
 {
 	ChatMessage *message{m_messages.at(msgid)};
 	message->read = true;
-	saveChat(message);
+	saveChat(message, false);
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,message] (const QString &key, const QString &value)
 	{
 		const int requestid{appUtils()->generateRandomNumber(0, 5000)};
@@ -163,7 +181,7 @@ void TPChat::removeMessage(const uint msgid)
 	message->media.clear();
 	message->deleted = true;
 	emit dataChanged(index(msgid, 0), index(msgid, 0));
-	saveChat(message);
+	saveChat(message, false);
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,message] (const QString &key, const QString &value)
 	{
 		const int requestid{appUtils()->generateRandomNumber(0, 5000)};
@@ -222,11 +240,10 @@ ChatMessage* TPChat::decodeDownloadedMessage(const QString &encoded_message)
 	return new_message;
 }
 
-void TPChat::saveChat(ChatMessage *message)
+void TPChat::saveChat(ChatMessage *message, const bool insert)
 {
-	const bool update{message->deleted ? true : message->id <= m_chatDB->mostRecentMessageId()};
-	appDBInterface()->createThread(m_chatDB, [this,message,update] () {
-		m_chatDB->saveChat(update, {
+	appDBInterface()->createThread(m_chatDB, [this,message,insert] () {
+		m_chatDB->saveChat(!insert, {
 					QString::number(message->id),
 					message->sender,
 					message->receiver,

@@ -13,7 +13,7 @@ import "./MesocyclePageElements"
 TPPage {
 	id: mesoPropertiesPage
 	imageSource: ":/images/backgrounds/meso_backimage.jpg"
-	backgroundOpacity: 0.8
+	backgroundOpacity: 0.6
 	objectName: "mesoPage"
 
 	required property MesoManager mesoManager

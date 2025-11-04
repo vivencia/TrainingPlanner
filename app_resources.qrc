@@ -1,11 +1,8 @@
 <RCC>
     <qresource prefix="/">
-        <file>images/no_image.jpg</file>
         <file>extras/exerciseslist.lst</file>
         <file>sounds/timer-end.wav</file>
         <file>translations/tplanner.pt_BR.qm</file>
-        <file>images/app_logo.png</file>
-        <file>images/app_icon.png</file>
         <file>images/avatars.png</file>
         <file>images/youtube.png</file>
         <file>images/instagram.png</file>
@@ -19,7 +16,6 @@
         <file>images/telegram.png</file>
         <file>images/whatsapp.png</file>
         <file>images/email.png</file>
-        <file>images/choose_avatar.png</file>
         <file>images/warning.png</file>
         <file>images/set-completed.png</file>
         <file>images/remove.png</file>
@@ -155,5 +151,14 @@
         <file>images/backgrounds/user_green.jpg</file>
         <file>images/backgrounds/user_blue.jpg</file>
         <file>images/backgrounds/user_red.jpg</file>
+        <file>images/choose-avatar.png</file>
+        <file>images/chat_light.png</file>
+        <file>images/chat_gray.png</file>
+        <file>images/chat_dark.png</file>
+        <file>images/chat_red.png</file>
+        <file>images/chat_green.png</file>
+        <file>images/chat_blue.png</file>
+        <file>images/no-image.jpg</file>
+        <file>images/app-icon.png</file>
     </qresource>
 </RCC>

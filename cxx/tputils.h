@@ -70,14 +70,25 @@ public:
 	QString getLastDirInPath(const QString &filename) const;
 	//Returns the filename or the last directory in path if path does not include a file
 	QString getFileName(const QString &filename, const bool without_extension = false) const;
-	QString getFileExtension(const QString &filename, const bool include_dot = false) const;
+	QString getFileExtension(const QString &filename, const bool include_dot = false, const QString &default_ext = QString{}) const;
+
+	/**
+	 * @brief fileRecentlyModified
+	 * @param filename Local filename(including path)
+	 * @param threshold: Number of minutes past from now since filename was last modified to be considered borderline for recentness.
+	 * @return false if the file was modified more than threshold minutes; less or equal to threshold, true
+	 */
+	bool fileRecentlyModified(const QString &filename, const int threshold = 30) const;
+
 	bool mkdir(const QString &fileOrDir) const;
 	bool rename(const QString &source_file_or_dir, const QString &dest_file_or_dir, const bool overwrite) const;
-	bool copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath = true) const;
+	bool copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath = true, const bool remove_source = false) const;
 	QFile *openFile(const QString &filename, const bool read = true, const bool write = false,
 							const bool overwrite = false, const bool text = true) const;
-	void scanDir(const QString &path, QFileInfoList &results, const QString &match = QString{}, const bool follow_tree = false) const;
 	bool scanFile(const QString &filename, std::optional<bool> &formatted, uint &fileContents) const;
+	void scanDir(const QString &path, QFileInfoList &results, const QString &match = QString{}, const bool follow_tree = false) const;
+	void rmDir(const QString &path) const;
+
 	void parseCmdFile(const QString &filename);
 	bool writeDataToFile(QFile *out_file,
 							const QString &identifier,

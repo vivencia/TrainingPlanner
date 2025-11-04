@@ -27,6 +27,10 @@ class TPChat : public QAbstractListModel
 Q_OBJECT
 QML_ELEMENT
 
+Q_PROPERTY(uint count READ count NOTIFY countChanged FINAL)
+Q_PROPERTY(QString interlocutorName READ interlocutorName NOTIFY interlocutorNameChanged FINAL)
+Q_PROPERTY(QString avatarIcon READ avatarIcon NOTIFY avatarIconChanged FINAL)
+
 public:
 	explicit TPChat(const QString &otheruser_id, QObject *parent = nullptr);
 	~TPChat();
@@ -34,7 +38,10 @@ public:
 	Q_INVOKABLE inline uint count() const { return m_messages.count(); }
 	inline const QString &otherUserId() const { return m_otherUserId; }
 
-	Q_INVOKABLE QString interlocutorName() const;
+	QString interlocutorName() const;
+	QString avatarIcon() const;
+	inline uint userIdx() const { return m_userIdx; }
+
 	Q_INVOKABLE void newMessage(const QString &text, const QString &media = QString{});
 	void incomingMessage(const QString &encoded_message);
 	Q_INVOKABLE void messageRead(const uint msgid);
@@ -50,16 +57,19 @@ public:
 
 signals:
 	void countChanged();
+	void interlocutorNameChanged();
+	void avatarIconChanged();
 
 private:
 	QString m_otherUserId;
+	uint m_userIdx;
 	QList<ChatMessage*> m_messages;
 	QHash<int, QByteArray> m_roleNames;
 	TPChatDB *m_chatDB;
 
 	QString encodeMessageToUpload(ChatMessage* message);
 	ChatMessage* decodeDownloadedMessage(const QString &encoded_message);
-	void saveChat(ChatMessage *message);
+	void saveChat(ChatMessage *message, const bool insert = true);
 
 	friend class TPMessagesManager;
 };

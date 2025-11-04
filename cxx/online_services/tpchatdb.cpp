@@ -2,8 +2,6 @@
 
 #include "tpchat.h"
 #include "../tputils.h"
-#include "../dbusermodel.h"
-
 
 TPChatDB::TPChatDB(const QString &user_id, const QString &otheruser_id, QObject *parent)
 	: TPDatabaseTable{CHAT_TABLE_ID, parent}, m_userId{user_id}, m_otherUserId{otheruser_id}
@@ -21,7 +19,7 @@ TPChatDB::TPChatDB(const QString &user_id, const QString &otheruser_id, QObject 
 
 QString TPChatDB::databaseDir() const
 {
-	return appUserModel()->localDir(m_userId) + "chats/"_L1;
+	return appSettings()->userDir(m_userId) + "chats/"_L1;
 }
 
 QLatin1StringView TPChatDB::createTableQuery()

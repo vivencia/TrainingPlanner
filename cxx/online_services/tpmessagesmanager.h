@@ -32,7 +32,6 @@ public:
 	void removeMessage(TPMessage *msg);
 	Q_INVOKABLE void execAction(const int message_id, const uint action_id);
 	Q_INVOKABLE void itemClicked(const int message_id);
-	Q_INVOKABLE void filterChatOptions(const QString &filter);
 
 	/**
 	 * @brief Creates a chat entry in the messages window. Therefore, the message created will be added to the messages list

@@ -9,6 +9,7 @@ import "../TPWidgets"
 TPPage {
 	id: mesoCalendarPage
 	imageSource: ":/images/backgrounds/calendar_backimage.jpg"
+	backgroundOpacity: 0.6
 	objectName: "mesoCalendarPage"
 
 	required property CalendarManager calendarManager

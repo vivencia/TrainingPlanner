@@ -67,7 +67,7 @@ Drawer {
 
 		TPImage {
 			id: imgLogo
-			source: "app_icon"
+			source: "app-icon"
 			dropShadow: false
 			width: parent.height * 0.25
 			height: width

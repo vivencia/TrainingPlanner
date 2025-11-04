@@ -14,6 +14,7 @@ extern "C" {
 }
 
 using namespace Qt::Literals::StringLiterals;
+constexpr QLatin1StringView base_ip{"192.168.10."_L1};
 
 class tpScanNetwork : public QObject
 {
@@ -23,12 +24,20 @@ Q_OBJECT
 static constexpr std::chrono::seconds MAX_WAIT_TIME{1};
 
 public:
-	explicit inline tpScanNetwork(const QString &base_ip) : QObject{nullptr} {}
+	explicit inline tpScanNetwork() : QObject{nullptr} {}
 
-	void scan(const QString &base_ip)
+	void scan(const QString &last_working_address)
 	{
-		for (uint i{1}; i <= 254; i++) {
-			const QString &ip{base_ip + QString::number(i)};
+		for (int n{0}, server_id{0}; n <= 255; ++n)
+		{
+			if (!last_working_address.isEmpty())
+			{
+				server_id = last_working_address.section('.', 4, 4).toInt();
+				if (server_id == 256)
+					server_id = 0;
+			}
+			const QString &ip{base_ip + QString::number(server_id++)};
+
 			if (QThread::currentThread()->isInterruptionRequested())
 			{
 				QThread::currentThread()->quit();

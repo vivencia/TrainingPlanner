@@ -165,7 +165,7 @@ void OSInterface::checkInternetConnection()
 	#ifndef Q_OS_ANDROID
 	checkLocalServer();
 	#else
-	appOnlineServices()->scanNetwork();
+	appOnlineServices()->scanNetwork(appSettings()->serverAddress());
 	#endif
 }
 
@@ -525,7 +525,7 @@ void OSInterface::serverProcessFinished(QProcess *proc, const int exitCode, QPro
 		case TPSERVER_OK:
 		case TPSERVER_OK_LOCALHOST:
 			appOnlineServices()->setUseLocalHost(exitCode == TPSERVER_OK_LOCALHOST);
-			appOnlineServices()->scanNetwork();
+			appOnlineServices()->scanNetwork(appSettings()->serverAddress());
 		break;
 		case TPSERVER_ERROR:
 		case TPSERVER_NGINX_ERROR:
@@ -717,16 +717,17 @@ void OSInterface::viewExternalFile(const QString &filename) const
 
 void OSInterface::onlineServicesResponse(const uint online_status)
 {
-	if (tpServerOK() != (online_status == 0))
+	const bool online{online_status == TP_RET_CODE_SUCCESS};
+	if (tpServerOK() != online)
 	{
-		setBit(m_networkStatus, online_status == 0 ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
-		unSetBit(m_networkStatus, online_status == 0 ? SERVER_UNREACHABLE : SERVER_UP_AND_RUNNING);
-		setConnectionMessage(online_status == 0 ?
+		setBit(m_networkStatus, online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
+		unSetBit(m_networkStatus, online ? SERVER_UNREACHABLE : SERVER_UP_AND_RUNNING);
+		setConnectionMessage(online_status == TP_RET_CODE_SUCCESS ?
 					std::move(tr("Connected to server ") + '(' + appSettings()->serverAddress() + ')') :
 					std::move(tr("Server unreachable")));
 		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
 					{"Linux TP Server"_L1, connectionMessage()}, record_separator));
-		emit serverStatusChanged(online_status == 0);
+		emit serverStatusChanged(online);
 	}
-	m_checkConnectionTimer->start(online_status == 0 ? CONNECTION_CHECK_TIMEOUT : CONNECTION_ERR_TIMEOUT); //When network is out, check more frequently)
+	m_checkConnectionTimer->start(online ? CONNECTION_CHECK_TIMEOUT : CONNECTION_ERR_TIMEOUT); //When network is out, check more frequently)
 }

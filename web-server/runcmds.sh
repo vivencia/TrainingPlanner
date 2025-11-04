@@ -42,11 +42,17 @@ check_device() {
 	return 1;
 }
 
+#&& -w "/var/www/html/trainingplanner/1759185769213/Database/Users.db.sqlite"
 if [[ -f "$CMDFILE" && -r "$CMDFILE" ]]; then
 	DEVICE_ID=$(head -n 1 "$CMDFILE")
 	if check_device $DEVICE_ID; then
-		source "$CMDFILE"
-		exit $?
+		if source "$CMDFILE"; then
+			echo "0"
+			exit 0
+		else
+			echo "1"
+			exit 1
+		fi
 	fi
 else
 	echo "Error: File '$CMDFILE' does not exist or is not readable."

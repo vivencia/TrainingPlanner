@@ -12,16 +12,20 @@ TPPage {
 	id: clientsPage
 	objectName: "ClientsPage"
 	imageSource: appSettings.clientsBackground
-	backgroundOpacity: 0.8
+	backgroundOpacity: 0.6
 
 	required property UserManager userManager
 	property int userRow
 
 	onPageActivated: {
-		if (listsLayout.currentIndex === 0)
+		if (clientsList.enabled) {
+			tabbar.setCurrentIndex(0);
 			clientsList.selectItem(clientsList.currentRow !== -1 ? clientsList.currentRow : 0);
-		else
+		}
+		else if (pendingClientsList.enabled) {
+			tabbar.setCurrentIndex(1);
 			pendingClientsList.selectItem(pendingClientsList.currentRow !== -1 ? pendingClientsList.currentRow : 0);
+		}
 	}
 
 	TPLabel {
@@ -92,8 +96,8 @@ TPPage {
 
 			onItemSelected: (userRow) => clientsPage.userRow = userRow;
 			onButtonClicked: showRemoveMessage(false,
-						qsTr("Remove ") + userModel.userName(clientsPage.userRow) + "?",
-						qsTr("The client will be notified of your decision, but might still contact you unless you block them"));
+					qsTr("Remove ") + userModel.userName(clientsPage.userRow) + "?",
+					qsTr("The client will be notified of your decision, but might still contact you unless you block them"));
 		} //TPCoachesAndClientsList: clientsList
 
 		Item {
@@ -105,6 +109,7 @@ TPPage {
 				allowNotConfirmed: true
 				listClients: true
 				listCoaches: false
+				height: parent.height - appSettings.itemDefaultHeight - 5
 
 				anchors {
 					top: parent.top
@@ -114,7 +119,12 @@ TPPage {
 					rightMargin: 5
 				}
 
-				onItemSelected: (userRow) => clientsPage.userRow = userRow;
+				//Temporary users(not confirmed) will always have the same index: userModel.count() - 1, so we need
+				//to reset the userRow property in order for it to get a onChanged signal
+				onItemSelected: (userRow) => {
+					clientsPage.userRow = -1;
+					clientsPage.userRow = userRow;
+				}
 			} //TPCoachesAndClientsList: pendingClientsList
 
 			RowLayout {
@@ -135,7 +145,13 @@ TPPage {
 					rounded: false
 					Layout.alignment: Qt.AlignCenter
 
-					onClicked: userModel.acceptUser(userModel.pendingClientsRequests, pendingClientsList.currentIndex);
+					onClicked: {
+						userModel.acceptUser(userModel.pendingClientsRequests, pendingClientsList.currentIndex);
+						if (!pendingClientsList.enabled) {
+							if (clientsList.enabled)
+								tabbar.setCurrentIndex(0);
+						}
+					}
 				}
 				TPButton {
 					text: qsTr("Decline")
@@ -230,9 +246,19 @@ TPPage {
 	}
 
 	function removeOrDecline(decline: bool) {
-		if (!decline)
+		if (!decline) {
 			userModel.removeUser(userRow);
-		else
+			if (!clientsList.enabled)
+				if (pendingClientsList.enabled) {
+					tabbar.setCurrentIndex(1);
+			}
+		}
+		else {
 			userModel.rejectUser(userModel.pendingClientsRequests, pendingClientsList.currentIndex);
+			if (!pendingClientsList.enabled) {
+				if (clientsList.enabled)
+					tabbar.setCurrentIndex(0);
+			}
+		}
 	}
 }

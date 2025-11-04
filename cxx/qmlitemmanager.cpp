@@ -121,7 +121,6 @@ void QmlItemManager::configureQmlEngine()
 		else
 		{
 			_appMainWindow = qobject_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));
-			appMainWindow()->setIcon(QIcon{"qrc:/images/app_icon.png"_L1});
 			appQmlEngine()->rootContext()->setContextProperty("mainwindow"_L1, QVariant::fromValue(appMainWindow()));
 
 			m_homePage = appMainWindow()->findChild<QQuickItem*>("homePage");

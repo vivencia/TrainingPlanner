@@ -68,6 +68,22 @@ ColumnLayout {
 				bNameOK = false;
 			}
 		}
+
+		TPButton {
+			imageSource: "chat_"
+			width: appSettings.itemDefaultHeight
+			height: width
+			visible: userRow != 0 && userModel.onlineAccount
+			enabled: bNameOK
+
+			anchors {
+				left: txtName.right
+				leftMargin: 5
+				verticalCenter: txtName.verticalCenter
+			}
+
+			onClicked: appMessages.openChat(userModel.userName(userRow));
+		}
 	}
 
 	Item {

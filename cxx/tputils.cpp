@@ -44,7 +44,11 @@ int TPUtils::generateUniqueId(const QLatin1StringView &seed) const
 				shift = 2;
 			}
 		}
-		return n;
+		//Avoid collision with the values defined in return_codes.h
+		if (n < 0 || n >= (TP_RET_CODE_DEFERRED_ACTION + 100))
+			return n;
+		else
+			return n + 1000;
 	}
 }
 
@@ -135,10 +139,26 @@ QString TPUtils::getFileName(const QString &filename, const bool without_extensi
 	return slash_idx > 0 ? f_name : filename;
 }
 
-QString TPUtils::getFileExtension(const QString &filename, const bool include_dot) const
+QString TPUtils::getFileExtension(const QString &filename, const bool include_dot, const QString &default_ext) const
 {
 	const qsizetype dot_idx{filename.lastIndexOf('.')};
-	return dot_idx > 0 ? filename.last(filename.length() - dot_idx + (include_dot ? 0 : 1)) : QString{};
+	return dot_idx > 0 ? filename.last(filename.length() - dot_idx + (include_dot ? 0 : 1)) : default_ext;
+}
+
+bool TPUtils::fileRecentlyModified(const QString &filename, const int threshold) const
+{
+	QFileInfo fi{filename};
+	if (fi.exists())
+	{
+		const QDateTime &changed_datetime{fi.lastModified()};
+		if (changed_datetime.date() == QDate::currentDate())
+		{
+			const qsizetype secs_diff{changed_datetime.secsTo(QDateTime::currentDateTime())};
+			const qsizetype min_diff{secs_diff / 60};
+			return min_diff <= threshold;
+		}
+	}
+	return false;
 }
 
 bool TPUtils::mkdir(const QString &fileOrDir) const
@@ -219,7 +239,7 @@ bool TPUtils::rename(const QString &source_file_or_dir, const QString &dest_file
 		return fi_dest.exists();
 }
 
-bool TPUtils::copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath) const
+bool TPUtils::copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath, const bool remove_source) const
 {
 	if (QFile::exists(srcFile))
 	{
@@ -231,7 +251,12 @@ bool TPUtils::copyFile(const QString &srcFile, const QString &dstFileOrDir, cons
 		}
 		const QFileInfo fi{dstFileOrDir};
 		const QString &dstFile{fi.isDir() ? dstFileOrDir + getFileName(srcFile) : dstFileOrDir};
-		return QFile::copy(srcFile, dstFile);
+		if (QFile::copy(srcFile, dstFile))
+		{
+			if (remove_source)
+				QFile::remove(srcFile);
+			return true;
+		}
 	}
 	return false;
 }
@@ -262,21 +287,6 @@ QFile *TPUtils::openFile(const QString &filename, const bool read, const bool wr
 		delete file;
 	}
 	return nullptr;
-}
-
-void TPUtils::scanDir(const QString &path, QFileInfoList &results, const QString &match, const bool follow_tree) const
-{
-	QDir dir{path};
-	if (dir.isReadable())
-	{
-		results.append(std::move(dir.entryInfoList(QStringList{match}, QDir::Files|QDir::NoDotAndDotDot)));
-		if (follow_tree)
-		{
-			const QStringList &subdirs{dir.entryList(QDir::Dirs|QDir::NoDotAndDotDot)};
-			for (const auto &subdir: subdirs)
-				scanDir(path + subdir, results, match, true);
-		}
-	}
 }
 
 bool TPUtils::scanFile(const QString &filename, std::optional<bool> &formatted, uint &file_contents) const
@@ -348,6 +358,36 @@ bool TPUtils::scanFile(const QString &filename, std::optional<bool> &formatted, 
 	return true;
 }
 
+void TPUtils::scanDir(const QString &path, QFileInfoList &results, const QString &match, const bool follow_tree) const
+{
+	QDir dir{path};
+	if (dir.isReadable())
+	{
+		results.append(std::move(dir.entryInfoList(QStringList{match}, QDir::Files|QDir::NoDotAndDotDot)));
+		if (follow_tree)
+		{
+			const QStringList &subdirs{dir.entryList(QDir::Dirs|QDir::NoDotAndDotDot)};
+			for (const auto &subdir: subdirs)
+				scanDir(path + subdir, results, match, true);
+		}
+	}
+}
+
+void TPUtils::rmDir(const QString &path) const
+{
+	QDir directory{path};
+	const QFileInfoList &user_files{directory.entryInfoList(QStringList{} << std::move("*.*"_L1),
+															QDir::AllEntries|QDir::System|QDir::NoDotAndDotDot)};
+	for (const auto &it : user_files)
+	{
+		if (it.isDir())
+			rmDir(it.filePath());
+		else if (it.isFile())
+			static_cast<void>(QFile::remove(it.filePath()));
+	}
+	static_cast<void>(directory.rmdir(path));
+}
+
 void TPUtils::parseCmdFile(const QString &filename)
 {
 	QFile *cmd_file{openFile(filename, true)};
@@ -382,7 +422,7 @@ void TPUtils::parseCmdFile(const QString &filename)
 								{
 									if (value == dbname)
 									{
-										affected_file = std::move(value);
+										affected_file = dbname;
 										break;
 									}
 								}
