@@ -42,7 +42,7 @@ TPPopup {
 		//y_translation: 30
 		image_size: Qt.size(width, height)
 		border.color: "white"
-		sourceImage: ":/images/backgrounds/backtimer.png"
+		sourceImage: ":/images/backgrounds/backimage-timer.png"
 		radius: 8
 		layer.enabled: true
 		anchors.fill: parent

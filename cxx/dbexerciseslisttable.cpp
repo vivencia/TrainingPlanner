@@ -5,6 +5,7 @@
 #include "tputils.h"
 
 #include <QSqlError>
+#include <QThread>
 
 DBExercisesListTable::DBExercisesListTable(DBExercisesListModel *model)
 	: TPDatabaseTable{EXERCISES_TABLE_ID}, m_model{model}, m_exercisesTableLastId{1000}
@@ -57,6 +58,7 @@ void DBExercisesListTable::getAllExercises()
 			updateExercisesList();
 		}
 	}
+	emit threadFinished();
 }
 
 void DBExercisesListTable::updateExercisesList()
@@ -69,6 +71,7 @@ void DBExercisesListTable::updateExercisesList()
 		qDebug() << "DBExercisesListTable::updateExercisesList -> m_ExercisesList is empty"_L1;
 		qDebug();
 		#endif
+		this->thread()->exit();
 		return;
 	}
 
@@ -98,10 +101,7 @@ void DBExercisesListTable::updateExercisesList()
 			else
 			{
 				if (m_sqlLiteDB.commit())
-				{
 					emit updatedFromExercisesList();
-					emit queryExecuted(true, true);
-				}
 				#ifndef QT_NO_DEBUG
 				else
 				{
@@ -114,7 +114,7 @@ void DBExercisesListTable::updateExercisesList()
 			}
 		}	
 	}
-	m_ExercisesList.clear();
+	emit threadFinished();
 }
 
 void DBExercisesListTable::saveExercises()
@@ -144,6 +144,7 @@ void DBExercisesListTable::saveExercises()
 						m_model->subName(idx), m_model->muscularGroup(idx), m_model->mediaPath(idx)));
 		}
 	}
+	bool ok{false};
 	if (m_sqlLiteDB.transaction())
 	{
 		m_strQuery[m_strQuery.length()-1] = ';';
@@ -153,6 +154,7 @@ void DBExercisesListTable::saveExercises()
 			{
 				m_exercisesTableLastId = highest_id;
 				m_model->clearModifiedIndices();
+				ok = true;
 			}
 			#ifndef QT_NO_DEBUG
 			else
@@ -165,6 +167,7 @@ void DBExercisesListTable::saveExercises()
 			#endif
 		}
 	}
+	emit threadFinished(ok);
 }
 
 void DBExercisesListTable::getExercisesList()

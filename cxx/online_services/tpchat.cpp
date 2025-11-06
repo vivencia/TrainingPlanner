@@ -37,6 +37,8 @@ struct ChatMessage {
 	TPBool read;
 	QString text;
 	QString media;
+
+	TPBool queued;
 };
 
 TPChat::TPChat(const QString &otheruser_id, QObject *parent)
@@ -57,7 +59,11 @@ TPChat::TPChat(const QString &otheruser_id, QObject *parent)
 	m_roleNames[mediaRole]		=	std::move("msgMedia");
 
 	m_userIdx = appUserModel()->userIdxFromFieldValue(USER_COL_ID, m_otherUserId);
-	connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_idx, const uint field) {
+	m_chatDB = new TPChatDB{appUserModel()->userId(0), m_otherUserId};
+	static_cast<void>(m_chatDB->createTable());
+
+	connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_idx, const uint field)
+	{
 		if (user_idx == m_userIdx)
 		{
 			switch (field)
@@ -69,8 +75,23 @@ TPChat::TPChat(const QString &otheruser_id, QObject *parent)
 		else if (user_idx == 0 && field == USER_MODIFIED_REMOVED)
 			m_userIdx = appUserModel()->userIdxFromFieldValue(USER_COL_ID, m_otherUserId);
 	});
-	m_chatDB = new TPChatDB{appUserModel()->userId(0), m_otherUserId};
-	m_chatDB->createTable();
+
+	connect(appUserModel(), &DBUserModel::canConnectToServerChanged, this, [this] ()
+	{
+		if (appUserModel()->canConnectToServer() && QFile::exists(tempMessagesFile()))
+		{
+			appUserModel()->sendFileToServer(tempMessagesFile(), nullptr, QString{}, "chats/", appUserModel()->userId(0), true);
+			for (const auto msg : std::as_const(m_messages))
+			{
+				if (msg->queued)
+				{
+					msg->queued = false;
+					changeSentProperty(msg, true);
+				}
+			}
+		}
+	});
+
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn] (const int _conn_id)
 	{
@@ -78,8 +99,10 @@ TPChat::TPChat(const QString &otheruser_id, QObject *parent)
 		{
 			disconnect(*conn);
 			QList<QStringList> whole_chat{std::move(m_chatDB->wholeChat())};
+			beginInsertRows(QModelIndex{}, 0, whole_chat.count() - 1);
 			for (auto &&str_message : whole_chat)
-			{				ChatMessage *message = new ChatMessage;
+			{
+				ChatMessage *message = new ChatMessage;
 				message->id = str_message.at(MESSAGE_ID).toUInt();
 				message->sender = std::move(str_message[MESSAGE_SENDER]);
 				message->receiver = std::move(str_message[MESSAGE_RECEIVER]);
@@ -93,15 +116,14 @@ TPChat::TPChat(const QString &otheruser_id, QObject *parent)
 				message->read = str_message.at(MESSAGE_READ).toUInt() == 1;
 				message->text = std::move(str_message[MESSAGE_TEXT]);
 				message->media = std::move(str_message[MESSAGE_MEDIA]);
-				str_message.clear();
+				m_messages.append(message);
 			};
-			whole_chat.clear();
-			beginInsertRows(QModelIndex{}, 0, count() - 1);
+			emit dataChanged(index(0, 0), index(count() - 1));
 			emit countChanged();
 			endInsertRows();
 		}
 	});
-	m_chatDB->loadChat();
+	appDBInterface()->createThread(m_chatDB, [this] () { return m_chatDB->loadChat(); });
 }
 
 TPChat::~TPChat()
@@ -133,11 +155,21 @@ void TPChat::newMessage(const QString &text, const QString &media)
 	m_messages.append(message);
 	emit countChanged();
 	endInsertRows();
-	saveChat(message);
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,message] (const QString &key, const QString &value)
 	{
 		const int requestid{appUtils()->generateRandomNumber(0, 5000)};
-		appOnlineServices()->sendMessage(requestid, key, value, m_otherUserId, std::move(encodeMessageToUpload(message)));
+		if (appUserModel()->canConnectToServer())
+		{
+			message->sent = true;
+
+			appOnlineServices()->sendMessage(requestid, key, value, m_otherUserId, std::move(encodeMessageToUpload(message)));
+		}
+		else
+		{
+			message->queued = true;
+			saveMessageToFile(message);
+		}
+		saveChat(message);
 	}, Qt::SingleShotConnection);
 	appKeyChain()->readKey(appUserModel()->userId(0));
 }
@@ -198,7 +230,23 @@ void TPChat::clearChat()
 	void endResetModel();
 }
 
-QString TPChat::encodeMessageToUpload(ChatMessage* message)
+inline void TPChat::changeSentProperty(ChatMessage *message, const bool sent)
+{
+	message->sent = sent;
+	emit dataChanged(index(message->id), index(message->id), QList<int>{} << sentRole);
+}
+
+inline QString TPChat::tempMessagesFile() const
+{
+	return m_chatDB->databaseDir() + m_otherUserId + ".msg"_L1;
+}
+
+/*
+	record_separator(oct 036, dec 30) separates the message fields
+	set_separator (oct 037, dec 31) separates messages of the same sender
+	exercises_separator (oct 034 dec 28) separates the senders (the even number are the messages content and the odd numbers are the sender ids)
+*/
+QString TPChat::encodeMessageToUpload(ChatMessage* message) const
 {
 	return appUtils()->string_strings({
 					QString::number(message->id),
@@ -259,6 +307,18 @@ void TPChat::saveChat(ChatMessage *message, const bool insert)
 					message->media
 		});
 	});
+}
+
+void TPChat::saveMessageToFile(ChatMessage *message) const
+{
+	QFile* msg_file{appUtils()->openFile(tempMessagesFile(), false, true, true)};
+	if (msg_file)
+	{
+		msg_file->write(encodeMessageToUpload(message).toUtf8().constData());
+		msg_file->write(QByteArray{1, set_separator.toLatin1()});
+		msg_file->close();
+		delete msg_file;
+	}
 }
 
 QVariant TPChat::data(ChatMessage *message, const uint field) const

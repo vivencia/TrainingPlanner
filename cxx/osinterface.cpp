@@ -178,7 +178,6 @@ void OSInterface::setConnectionMessage(QString &&message)
 void OSInterface::aboutToExit()
 {
 	emit appAboutToExit();
-	appDBInterface()->cleanUpThreads();
 	::exit(0);
 }
 

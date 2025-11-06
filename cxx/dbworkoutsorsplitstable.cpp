@@ -5,6 +5,7 @@
 
 #include <QFile>
 #include <QSqlQuery>
+#include <QThread>
 
 using namespace Qt::Literals::StringLiterals;
 
@@ -63,12 +64,13 @@ void DBWorkoutsOrSplitsTable::getExercises()
 			static_cast<void>(m_model->fromDataBase(workout_info));
 		}
 	}
+	emit threadFinished();
 }
 
 void DBWorkoutsOrSplitsTable::saveExercises()
 {
+	bool ok{false};
 	const QStringList &modelData{m_model->toDatabase()};
-	bool update{false};
 	const QString &str_query{tableId() == WORKOUT_TABLE_ID ?
 			"SELECT id FROM %1 WHERE meso_id=%2 AND calendar_day=%3"_L1.arg(
 											tableName(tableId()), m_model->mesoId(), QString::number(m_model->calendarDay())) :
@@ -78,6 +80,8 @@ void DBWorkoutsOrSplitsTable::saveExercises()
 
 	if (execQuery(str_query, true, false))
 	{
+		bool update{false};
+
 		if (m_workingQuery.first())
 			update = m_workingQuery.value(0).toUInt() >= 0;
 
@@ -112,9 +116,10 @@ void DBWorkoutsOrSplitsTable::saveExercises()
 		{
 			if (!update)
 				m_model->setId(m_workingQuery.lastInsertId().toString());
-			emit queryExecuted(true, true);
+			ok = true;
 		}
 	}
+	emit threadFinished(ok);
 }
 
 void DBWorkoutsOrSplitsTable::removeExercises()
@@ -133,8 +138,8 @@ void DBWorkoutsOrSplitsTable::removeExercises()
 	}
 	else
 		m_strQuery.append(';');
-	const bool success{execQuery(m_strQuery, false)};
-	emit queryExecuted(success, true);
+	const bool ok{execQuery(m_strQuery, false)};
+	emit threadFinished(ok);
 }
 
 bool DBWorkoutsOrSplitsTable::mesoHasAllSplitPlans(const QString &meso_id, const QString &split)

@@ -910,7 +910,7 @@ int DBUserModel::sendFileToServer(const QString &filename, QFile *upload_file, c
 					"sendFileToServer"_L1 + std::move(appUtils()->getFileName(filename).toLatin1())}.toLatin1()})};
 
 	if (!upload_file)
-		upload_file = appUtils()->openFile(filename, true, false, false, false);
+		upload_file = appUtils()->openFile(filename, true, false, false, false, false);
 	else
 	{
 		if (upload_file->isOpen())
@@ -1084,7 +1084,7 @@ void DBUserModel::sendCmdFileToServer(const QString &cmd_filename)
 			const QString &filename_to_upload{appUtils()->getFilePath(cmd_filename) + QString::number(n_cmdOrderValue++) + ".cmd"_L1};
 			if (!appUtils()->rename(cmd_filename, filename_to_upload, true))
 				return;
-			QFile *cmd_file{appUtils()->openFile(filename_to_upload, true, false, false, false)};
+			QFile *cmd_file{appUtils()->openFile(filename_to_upload, true, false, false, false, false)};
 			if (!cmd_file)
 				return;
 			const QString &subdir{appUtils()->getFileName(appUtils()->getFilePath(cmd_filename))};
@@ -1166,7 +1166,7 @@ int DBUserModel::exportToFile(const uint user_idx, const QString &filename, cons
 {
 	if (!out_file)
 	{
-		out_file = appUtils()->openFile(filename, false, true, true);
+		out_file = appUtils()->openFile(filename, false, true, false, true);
 		if (!out_file)
 			return TP_RET_CODE_OPEN_WRITE_FAILED;
 	}
@@ -1181,7 +1181,7 @@ int DBUserModel::exportToFormattedFile(const uint user_idx, const QString &filen
 {
 	if (!out_file)
 	{
-		out_file = {appUtils()->openFile(filename, false, true, true)};
+		out_file = {appUtils()->openFile(filename, false, true, false, true)};
 		if (!out_file)
 			return TP_RET_CODE_OPEN_CREATE_FAILED;
 	}

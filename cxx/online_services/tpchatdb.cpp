@@ -3,10 +3,13 @@
 #include "tpchat.h"
 #include "../tputils.h"
 
+#include <QThread>
+
 TPChatDB::TPChatDB(const QString &user_id, const QString &otheruser_id, QObject *parent)
 	: TPDatabaseTable{CHAT_TABLE_ID, parent}, m_userId{user_id}, m_otherUserId{otheruser_id}
 {
 	setTableName(tableName());
+	m_deleteAfterFinished = false;
 	const QLatin1StringView seed{otheruser_id.toLatin1()};
 	m_uniqueID = appUtils()->generateUniqueId(seed);
 	const QString &cnx_name(QString::number(m_uniqueID));
@@ -66,9 +69,11 @@ void TPChatDB::loadChat()
 			} while (m_workingQuery.next());
 		}
 	}
+	moveToThread(originalThread());
+	emit threadFinished();
 }
 
-void TPChatDB::saveChat(bool update, const QStringList &message_info)
+void TPChatDB::saveChat(const bool update, const QStringList &message_info)
 {
 	if (update)
 	{
@@ -91,6 +96,7 @@ void TPChatDB::saveChat(bool update, const QStringList &message_info)
 				message_info.at(MESSAGE_RECEIVED), message_info.at(MESSAGE_READ), message_info.at(MESSAGE_TEXT),
 				message_info.at(MESSAGE_MEDIA)));
 	}
-	const bool success{execQuery(m_strQuery, false)};
-	emit queryExecuted(success, false);
+	static_cast<void>(execQuery(m_strQuery, false));
+	moveToThread(originalThread());
+	emit threadFinished();
 }

@@ -3,7 +3,11 @@
 #include "dbmesocalendarmanager.h"
 #include "tputils.h"
 
+#ifndef QT_NO_DEBUG
 #include <QSqlError>
+#endif
+
+#include <QThread>
 
 DBMesoCalendarTable::DBMesoCalendarTable(DBMesoCalendarManager *model)
 	: TPDatabaseTable{MESOCALENDAR_TABLE_ID}, m_model{model}
@@ -56,11 +60,14 @@ void DBMesoCalendarTable::getMesoCalendar()
 	}
 	if (!ok)
 		m_model->createCalendar(meso_idx);
+	emit threadFinished();
 }
 
 void DBMesoCalendarTable::saveMesoCalendar()
 {
+	bool ok{false};
 	const uint meso_idx{m_execArgs.at(0).toUInt()};
+
 	if (m_model && m_model->hasCalendarInfo(meso_idx))
 	{
 		const QString &meso_id{m_model->mesoId(meso_idx, 0)};
@@ -82,7 +89,7 @@ void DBMesoCalendarTable::saveMesoCalendar()
 												 [this,meso_id,queryValuesTemplate] (const QString &data, stDayInfo *day_info) {
 						return data + queryValuesTemplate.arg(meso_id, day_info->date, day_info->data);
 					}))};
-					dbdata[dbdata.length()-1] = ';';
+					dbdata[dbdata.length() - 1] = ';';
 					m_strQuery = std::move(queryCommand + dbdata);
 				}
 				else
@@ -92,7 +99,8 @@ void DBMesoCalendarTable::saveMesoCalendar()
 					m_strQuery = std::move(std::accumulate(m_model->mesoCalendar(meso_idx).cbegin(),
 												 m_model->mesoCalendar(meso_idx).cend(),
 												 QString{},
-												 [this,meso_id,queryCommand] (const QString &data, stDayInfo *day_info) {
+												 [this,meso_id,queryCommand] (const QString &data, stDayInfo *day_info)
+					{
 						if (day_info->modified)
 						{
 							day_info->modified = false;
@@ -105,7 +113,7 @@ void DBMesoCalendarTable::saveMesoCalendar()
 				if (execQuery(m_strQuery, false, false))
 				{
 					if (m_sqlLiteDB.commit())
-						emit queryExecuted(true, true);
+						ok = true;
 					#ifndef QT_NO_DEBUG
 					else
 					{
@@ -119,6 +127,7 @@ void DBMesoCalendarTable::saveMesoCalendar()
 			}
 		}
 	}
+	emit threadFinished(ok);
 }
 
 bool DBMesoCalendarTable::mesoCalendarSavedInDB(const QString &meso_id)

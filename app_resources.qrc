@@ -107,17 +107,7 @@
         <file>images/flat/question.png</file>
         <file>images/online.png</file>
         <file>images/offline.png</file>
-        <file>images/flat/switch_user.png</file>
         <file>images/flat/chat.png</file>
-        <file>images/backgrounds/backimage1.jpg</file>
-        <file>images/backgrounds/backimage2.jpg</file>
-        <file>images/backgrounds/backimage3.jpg</file>
-        <file>images/backgrounds/backimage4.jpg</file>
-        <file>images/backgrounds/backtimer.png</file>
-        <file>images/backgrounds/splits_backimage.jpg</file>
-        <file>images/backgrounds/exercises_backimage.jpg</file>
-        <file>images/backgrounds/meso_backimage.jpg</file>
-        <file>images/backgrounds/calendar_backimage.jpg</file>
         <file>images/flat/minimize.png</file>
         <file>images/flat/restore.png</file>
         <file>images/flat/maximize.png</file>
@@ -160,5 +150,14 @@
         <file>images/chat_blue.png</file>
         <file>images/no-image.jpg</file>
         <file>images/app-icon.png</file>
+        <file>images/flat/switch-user.png</file>
+        <file>images/backgrounds/backimage-timer.png</file>
+        <file>images/backgrounds/backimage-splits.jpg</file>
+        <file>images/backgrounds/backimage-meso.jpg</file>
+        <file>images/backgrounds/backimage-exercises.jpg</file>
+        <file>images/backgrounds/backimage-calendar.jpg</file>
+        <file>images/backgrounds/backimage-home.jpg</file>
+        <file>images/backgrounds/backimage-messages.jpg</file>
+        <file>images/backgrounds/backimage-chat.jpg</file>
     </qresource>
 </RCC>

@@ -116,7 +116,7 @@ TPPopup {
 			readonly property int buttonSize: parent.width * 0.3 - 5
 
 			TPButton {
-				imageSource: "switch_user.png"
+				imageSource: "switch-user.png"
 				text: qsTr("Switch")
 				enabled: allUsersList.currentRow >= 0 ? userModel.allUsers.userId !== userModel.userId : false
 				width: buttonsRow.buttonSize

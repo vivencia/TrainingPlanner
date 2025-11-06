@@ -23,7 +23,7 @@ public:
 
 	void updateTable() override final {}
 	void loadChat();
-	void saveChat(bool update, const QStringList &message_info);
+	void saveChat(const bool update, const QStringList &message_info);
 
 private:
 	QString m_userId, m_otherUserId;

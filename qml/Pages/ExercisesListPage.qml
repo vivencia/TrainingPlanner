@@ -12,7 +12,7 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPage {
 	id: exercisesPage
-	imageSource: ":/images/backgrounds/exercises_backimage.jpg"
+	imageSource: ":/images/backgrounds/backimage-exercises.jpg"
 	backgroundOpacity: 0.6
 	objectName: "exercisesPage"
 

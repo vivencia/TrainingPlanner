@@ -27,16 +27,11 @@ TPPopup {
 	readonly property int dlgMaxWidth: appSettings.pageWidth * 0.8
 	readonly property int maxHeight: appSettings.pageHeight * 0.5
 
-	property int msgCount: appMessages.count
-	onMsgCountChanged: {
-		console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$  ", msgCount);
-	}
-
 	TPBackRec {
 		id: backRec
 		useImage: fullDialogVisible
 		visible: fullDialogVisible
-		sourceImage: ":/images/backgrounds/backimage1.jpg"
+		sourceImage: ":/images/backgrounds/backimage-messages.jpg"
 		image_size: Qt.size(dlgMaxWidth, maxHeight)
 		radius: 8
 		layer.enabled: true
@@ -226,8 +221,6 @@ TPPopup {
 					opacity: 0.8
 					color: index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
 				}
-
-				onClicked: appMessages.setCurrentMessage(index);
 
 				contentItem: Column {
 					id: messageLayout

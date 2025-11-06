@@ -98,7 +98,7 @@ void TPOnlineServices::scanNetwork(const QString &last_working_address, const bo
 
 		auto conn2{std::make_shared<QMetaObject::Connection>()};
 		*conn2 = connect(this, &TPOnlineServices::_serverResponse, this, [this,conn2,thread]
-							(const uint online_status, const QString &address)
+													(const uint online_status, const QString &address)
 		{
 			#ifndef QT_NO_DEBUG
 			qDebug() << "scanNetwork() 2-> _serverResponse online_status = " << online_status << " , address = " << address;

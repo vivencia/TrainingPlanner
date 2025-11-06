@@ -268,7 +268,7 @@ int DBExercisesModel::exportToFile(const QString &filename, QFile *out_file) con
 
 	if (!out_file)
 	{
-		out_file = appUtils()->openFile(filename, false, true, true);
+		out_file = appUtils()->openFile(filename, false, true, false, true);
 		if (!out_file)
 			return TP_RET_CODE_OPEN_WRITE_FAILED;
 	}
@@ -286,7 +286,7 @@ int DBExercisesModel::exportToFormattedFile(const QString &filename, QFile *out_
 
 	if (!out_file)
 	{
-		out_file = appUtils()->openFile(filename, false, true, true);
+		out_file = appUtils()->openFile(filename, false, true, false, true);
 		if (!out_file)
 			return TP_RET_CODE_OPEN_CREATE_FAILED;
 	}

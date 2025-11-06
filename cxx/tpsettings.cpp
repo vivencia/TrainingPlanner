@@ -65,7 +65,7 @@ void TPSettings::importFromUserConfig(const QString &userid)
 
 bool TPSettings::exportToUserConfig(const QString &userid)
 {
-	QFile *cfg_file{appUtils()->openFile(userConfigFileName(true, userid), false, true, true)};
+	QFile *cfg_file{appUtils()->openFile(userConfigFileName(true, userid), false, true, false, true)};
 	if (cfg_file)
 	{
 		QTextStream stream{cfg_file};

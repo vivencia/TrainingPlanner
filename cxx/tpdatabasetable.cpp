@@ -48,20 +48,19 @@ void TPDatabaseTable::removeEntry(const bool bUseMesoId)
 {
 	const bool success{execQuery("DELETE FROM "_L1 + m_tableName + (bUseMesoId ? " WHERE meso_id="_L1 : " WHERE id="_L1) +
 					m_execArgs.at(0).toString(), false)};
-	emit queryExecuted(success, true);
+	emit threadFinished(success);
 }
 
 void TPDatabaseTable::removeTemporaries(const bool bUseMesoId)
 {
-	const bool success{execQuery("DELETE FROM "_L1 + m_tableName + (bUseMesoId ? " WHERE meso_id<0"_L1 :
-						" WHERE id<0"_L1), false, true)};
-	emit queryExecuted(success, true);
+	execQuery("DELETE FROM "_L1 + m_tableName + (bUseMesoId ? " WHERE meso_id<0"_L1 : " WHERE id<0"_L1), false, true);
+	emit threadFinished();
 }
 
 void TPDatabaseTable::clearTable()
 {
 	const bool success{execQuery("DELETE FROM "_L1 + m_tableName, false)};
-	emit queryExecuted(success, true);
+	emit threadFinished(success);
 }
 
 void TPDatabaseTable::removeDBFile()
@@ -69,7 +68,7 @@ void TPDatabaseTable::removeDBFile()
 	bool success{QFile::remove(m_sqlLiteDB.databaseName())};
 	if (success)
 		success = createTable();
-	emit queryExecuted(success, true);
+	emit threadFinished(success);
 }
 
 bool TPDatabaseTable::openDatabase(const bool read_only)
@@ -178,7 +177,7 @@ QString TPDatabaseTable::createServerCmdFile(const QString &dir, const std::init
 	const QString &cmd_filename{dir + QString::number(str_hash(cmd_string.toStdString())) + ".cmd"_L1};
 	if (!QFile::exists(cmd_filename) || overwrite)
 	{
-		QFile *cmd_file{appUtils()->openFile(cmd_filename, false, true, true)};
+		QFile *cmd_file{appUtils()->openFile(cmd_filename, false, true, false, true)};
 		if (cmd_file)
 		{
 			cmd_file->write(cmd_string.toUtf8().constData());

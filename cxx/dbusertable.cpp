@@ -3,6 +3,8 @@
 #include "dbusermodel.h"
 #include "tputils.h"
 
+#include <QThread>
+
 DBUserTable::DBUserTable(DBUserModel *model)
 	: TPDatabaseTable{USERS_TABLE_ID}, m_model{model}
 {
@@ -54,7 +56,9 @@ void DBUserTable::getAllUsers()
 
 void DBUserTable::saveUser()
 {
+	bool ok{false};
 	const uint row{m_execArgs.at(0).toUInt()};
+
 	if (execQuery("SELECT userid FROM %1 WHERE userid=%2;"_L1.arg(tableName(), m_model->userId(row)), true, false))
 	{
 		bool update{false};
@@ -81,15 +85,16 @@ void DBUserTable::saveUser()
 					m_model->_phone(row), m_model->_email(row), m_model->_socialMedia(row), m_model->_userRole(row),
 					m_model->_coachRole(row), m_model->_goal(row), m_model->_appUseMode(row)));
 		}
-		const bool success{execQuery(m_strQuery, false)};
-		emit queryExecuted(success, true);
+		ok = execQuery(m_strQuery, false);
+		return;
 	}
+	emit threadFinished(ok);
 }
 
 
 void DBUserTable::removeUser()
 {
 	m_strQuery = std::move("DELETE FROM %1 WHERE userid=%2;"_L1.arg(tableName(), m_execArgs.at(0).toString()));
-	const bool success{execQuery(m_strQuery, false)};
-	emit queryExecuted(success, true);
+	const bool ok{execQuery(m_strQuery, false)};
+	emit threadFinished(ok);
 }

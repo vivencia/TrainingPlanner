@@ -30,7 +30,7 @@ public:
 	std::optional<int> addMessage(TPMessage *msg);
 	Q_INVOKABLE inline void removeMessage(const int message_id) { removeMessage(message(message_id)); }
 	void removeMessage(TPMessage *msg);
-	Q_INVOKABLE void execAction(const int message_id, const uint action_id);
+	Q_INVOKABLE void execAction(const int message_index, const uint action_id);
 	Q_INVOKABLE void itemClicked(const int message_id);
 
 	/**

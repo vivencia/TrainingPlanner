@@ -102,9 +102,11 @@ void TPMessagesManager::removeMessage(TPMessage *msg)
 	}
 }
 
-void TPMessagesManager::execAction(const int message_id, const uint action_id)
+void TPMessagesManager::execAction(const int message_index, const uint action_id)
 {
-	message(message_id)->execAction(action_id);
+	TPMessage *msg{m_data.at(message_index)};
+	if (msg)
+		msg->execAction(action_id);
 }
 
 void TPMessagesManager::itemClicked(const int message_id)
@@ -125,11 +127,11 @@ void TPMessagesManager::itemClicked(const int message_id)
 TPMessage *TPMessagesManager::createChatMessage(const QString &userid, QString &&display_text, QString &&icon_source)
 {
 	TPMessage *chat_message{new TPMessage{std::move(display_text), std::move(icon_source), this}};
+	chat_message->setAutoDelete(false);
+	chat_message->setSticky(true);
 	chat_message->setId(userid.toLong());
 	chat_message->setExtraInfoImage("new-messages");
-	chat_message->insertAction(tr("Chat"), [this,userid] (const QVariant &) {
-		openChatWindow(m_chatsList.value(userid));
-	});
+	chat_message->insertAction(tr("Chat"), [this,userid] (const QVariant &) { openChatWindow(m_chatsList.value(userid)); });
 	chat_message->insertAction(tr("Delete"), [this,userid] (const QVariant &) {
 		m_chatsList.value(userid)->clearChat();
 		m_chatsList.remove(userid);

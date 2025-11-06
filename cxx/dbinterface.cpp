@@ -55,7 +55,7 @@ void DBInterface::init()
 void DBInterface::sanityCheck()
 {
 	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{MESOSPLIT_TABLE_ID}};
-	createThread(worker, [worker] () { worker->removeTemporaries(true); }, false);
+	createThread(worker, [worker] () { worker->removeTemporaries(true); });
 }
 
 void DBInterface::executeExternalQuery(const QString &dbfilename, const QString &query)
@@ -70,107 +70,59 @@ void DBInterface::executeExternalQuery(const QString &dbfilename, const QString 
 	if (tableid >= 1)
 	{
 		TPDatabaseTable *worker{TPDatabaseTable::createDBTable(tableid)};
-		createThread(worker, [worker,query] () { worker->execQuery(query, false, true); }, false);
+		createThread(worker, [worker,query] () { worker->execQuery(query, false, true); });
 	}
 }
 
-void DBInterface::createThread(TPDatabaseTable *worker, const std::function<void(void)> &execFunc , const bool connect_to_worker)
+void DBInterface::createThread(TPDatabaseTable *worker, const std::function<void(void)> &execFunc )
 {
-	if (connect_to_worker)
-	{
-		connect(worker, &TPDatabaseTable::queryExecuted, this, [this,worker] (const bool success, const bool send_to_server) {
-			if (success && send_to_server && appUserModel()->onlineAccount())
-			{
-				const QString &cmd_filename{worker->createServerCmdFile(TPDatabaseTable::dbFilePath(0, true),
-					{TPDatabaseTable::sqliteApp, TPDatabaseTable::databaseFileNames[worker->tableId()], worker->strQuery()})};
-				if (!cmd_filename.isEmpty())
-					appUserModel()->sendCmdFileToServer(cmd_filename);
-			}
-		});
-	}
-
 	QThread *thread{new QThread{}};
+	worker->moveToThread(thread);
+
 	connect(thread, &QThread::started, worker, execFunc);
-	connect(thread, &QThread::finished, thread, [this,worker,thread] () {
-		thread->deleteLater();
-		worker->setResolved(true);
-		//if (worker->waitForThreadToFinish())
-		//	worker->thread()->quit();
+	connect(thread, &QThread::finished, this, [thread] () { thread->deleteLater(); });
+	connect(worker, &TPDatabaseTable::threadFinished, this, [this,worker,thread] (const bool send_to_server)
+	{
+		if (send_to_server && appUserModel()->onlineAccount())
+		{
+			const QString &cmd_filename{worker->createServerCmdFile(TPDatabaseTable::dbFilePath(0, true),
+				{TPDatabaseTable::sqliteApp, TPDatabaseTable::databaseFileNames[worker->tableId()], worker->strQuery()})};
+			if (!cmd_filename.isEmpty())
+				appUserModel()->sendCmdFileToServer(cmd_filename);
+		}
+		emit databaseReady(worker->uniqueId());
+
 		#ifndef QT_NO_DEBUG
 		const QString &dbObjName{worker->objectName()};
 		qDebug() << "Database  " << dbObjName << " - " << worker->uniqueId() << " calling databaseReady()";
 		#endif
-		emit databaseReady(worker->uniqueId());
-		if (m_WorkerLock[worker->tableId()].hasNext())
+
+		workerLocks &wl{m_WorkerLock[worker->tableId()]};
+		const int index_to_remove{wl.hasID(worker->tableId())};
+		if (index_to_remove >= 0)
+			wl.removeAt(index_to_remove);
+		if (wl.hasNext())
 		{
-			const TPDatabaseTable *const nextDbObj{m_WorkerLock[worker->tableId()].nextObj()};
+			const TPDatabaseTable *const nextDbObj{wl.nextObj()};
 			#ifndef QT_NO_DEBUG
 			qDebug() << "Database  " << dbObjName << " - " << nextDbObj->uniqueId() << " starting in sequence of previous thread";
 			#endif
 			nextDbObj->thread()->start();
-			if (nextDbObj->waitForThreadToFinish())
-				nextDbObj->thread()->wait();
 		}
-	});
-
-	worker->moveToThread(thread);
-
-	if (!m_threadCleaner.isActive())
-	{
-		m_threadCleaner.setInterval(60000);
-		connect(&m_threadCleaner, &QTimer::timeout, this, [this] { cleanUpThreads(); });
-		m_threadCleaner.start();
-	}
+		if (worker->deleteAfterThreadFinished())
+			worker->deleteLater();
+	}, Qt::QueuedConnection);
 
 	m_WorkerLock[worker->tableId()].appendObj(worker);
-	if (m_WorkerLock[worker->tableId()].canStartThread())
-	{
-		#ifndef QT_NO_DEBUG
-		qDebug() << "Database  " << worker->objectName() << " -  " << worker->uniqueId() << " starting immediatelly";
-		#endif
-		thread->start();
-		if (worker->waitForThreadToFinish())
-			thread->wait();
-	}
 	#ifndef QT_NO_DEBUG
-	else
-		qDebug() << "Database  " << worker->objectName() << "  Waiting for it to be free: " << worker->uniqueId();
+	qDebug() << "Database  " << worker->objectName() << " -  " << worker->uniqueId() << " starting immediatelly";
 	#endif
+	thread->start();
 }
 
 void DBInterface::updateDB(TPDatabaseTable *worker)
 {
 	createThread(worker, [worker] () { worker->updateTable(); });
-}
-
-void DBInterface::cleanUpThreads()
-{
-	TPDatabaseTable *dbObj{nullptr};
-	bool locks_empty{true};
-
-	for (uint x{EXERCISES_TABLE_ID}; x <= APP_TABLES_NUMBER; ++x)
-	{
-		for(int i{static_cast<int>(m_WorkerLock[x].count()) - 1}; i >= 0 ; --i)
-		{
-			dbObj = m_WorkerLock[x].at(i);
-			if (dbObj->resolved())
-			{
-				#ifndef QT_NO_DEBUG
-				qDebug() << "cleanUpThreads: " << dbObj->objectName() << "uniqueId: " << dbObj->uniqueId();
-				#endif
-				dbObj->disconnect();
-				dbObj->deleteLater();
-				m_WorkerLock[x].removeAt(i);
-			}
-		}
-		locks_empty &= m_WorkerLock[x].count() == 0;
-	}
-	if (locks_empty)
-	{
-		m_threadCleaner.stop();
-		m_threadCleaner.disconnect();
-		disconnect(this, &DBInterface::databaseReady, this, nullptr);
-	}
 }
 
 //-----------------------------------------------------------USER TABLE-----------------------------------------------------------
@@ -205,7 +157,7 @@ void DBInterface::deleteUserTable(const bool bRemoveFile)
 int DBInterface::getAllExercises()
 {
 	DBExercisesListTable *worker{new DBExercisesListTable{appExercisesList()}};
-	createThread(worker, [worker] () { worker->getAllExercises(); }, false);
+	createThread(worker, [worker] () { worker->getAllExercises(); });
 	return worker->uniqueId();
 }
 
@@ -272,11 +224,6 @@ void DBInterface::getAllMesocycles()
 void DBInterface::saveMesocycle(const uint meso_idx)
 {
 	DBMesocyclesTable *worker{new DBMesocyclesTable{appMesoModel()}};
-
-	if (appMesoModel()->_id(meso_idx) < 0)
-		worker->waitForThreadToFinish();
-	else
-		saveMesoCalendar(meso_idx);
 	worker->addExecArg(meso_idx);
 	createThread(worker, [worker] () { worker->saveMesocycle(); });
 }
@@ -301,15 +248,13 @@ void DBInterface::deleteMesocyclesTable(const bool bRemoveFile)
 int DBInterface::getMesoSplit(DBExercisesModel *model)
 {
 	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{model}};
-	createThread(worker, [worker] () { worker->getExercises(); }, false);
+	createThread(worker, [worker] () { worker->getExercises(); });
 	return worker->uniqueId();
 }
 
 void DBInterface::saveMesoSplit(DBExercisesModel *model)
 {
 	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{model}};
-	if (model->id().toInt() < 0)
-		worker->setWaitForThreadToFinish(true);
 	createThread(worker, [worker] () { worker->saveExercises(); });
 }
 
@@ -358,7 +303,7 @@ int DBInterface::getMesoCalendar(const uint meso_idx)
 	DBMesoCalendarTable *worker{new DBMesoCalendarTable{appMesoModel()->mesoCalendarManager()}};
 	worker->addExecArg(meso_idx);
 	worker->addExecArg(appMesoModel()->id(meso_idx));
-	createThread(worker, [worker] () { worker->getMesoCalendar(); }, false);
+	createThread(worker, [worker] () { worker->getMesoCalendar(); });
 	return worker->uniqueId();
 }
 
@@ -395,14 +340,14 @@ bool DBInterface::mesoCalendarSavedInDB(const uint meso_idx) const
 int DBInterface::getWorkout(DBExercisesModel *model)
 {
 	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{model}};
-	createThread(worker, [worker] () { return worker->getExercises(); }, false);
+	createThread(worker, [worker] () { return worker->getExercises(); });
 	return worker->uniqueId();
 }
 
 int DBInterface::getPreviousWorkouts(DBExercisesModel *model)
 {
 	DBWorkoutsOrSplitsTable *worker{new DBWorkoutsOrSplitsTable{model}};
-	createThread(worker, [worker] () { return worker->getPreviousWorkouts(); }, false);
+	createThread(worker, [worker] () { return worker->getPreviousWorkouts(); });
 	return worker->uniqueId();
 }
 

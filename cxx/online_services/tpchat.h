@@ -67,9 +67,12 @@ private:
 	QHash<int, QByteArray> m_roleNames;
 	TPChatDB *m_chatDB;
 
-	QString encodeMessageToUpload(ChatMessage* message);
+	void changeSentProperty(ChatMessage *message, const bool sent);
+	QString tempMessagesFile() const;
+	QString encodeMessageToUpload(ChatMessage* message) const;
 	ChatMessage* decodeDownloadedMessage(const QString &encoded_message);
 	void saveChat(ChatMessage *message, const bool insert = true);
+	void saveMessageToFile(ChatMessage *message) const;
 
 	friend class TPMessagesManager;
 };

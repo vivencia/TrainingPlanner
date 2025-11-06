@@ -3,6 +3,8 @@
 #include "dbmesocyclesmodel.h"
 #include "tputils.h"
 
+#include <QThread>
+
 DBMesocyclesTable::DBMesocyclesTable(DBMesocyclesModel *model)
 	: TPDatabaseTable{MESOCYCLES_TABLE_ID}, m_model{model}
 {
@@ -96,7 +98,9 @@ void DBMesocyclesTable::saveMesocycle()
 		{
 			if (!update)
 				m_model->setId(meso_idx, m_workingQuery.lastInsertId().toString());
-			emit queryExecuted(true, true);
+			emit threadFinished(true);
+			return;
 		}
 	}
+	this->thread()->exit();
 }

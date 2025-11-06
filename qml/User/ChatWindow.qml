@@ -15,7 +15,8 @@ TPPopup {
 	finalYPos: normalY
 	width: normalWidth
 	height: normalHeight
-	useBackgroundGradient: true
+	backgroundRec: backRec
+	enableEffects: false
 
 	required property ChatModel chatManager
 
@@ -26,6 +27,17 @@ TPPopup {
 	property int normalHeight: appSettings.pageHeight * 0.5
 	property int normalX: (appSettings.pageWidth - width) / 2
 	property int normalY: (appSettings.pageHeight - height) / 2
+
+	onOpened: txtMessage.forceActiveFocus();
+
+	TPBackRec {
+		id: backRec
+		useImage: true
+		sourceImage: ":/images/backgrounds/backimage-chat.jpg"
+		radius: 8
+		opacity: 0.8
+		anchors.fill: parent
+	}
 
 	TPImage {
 		id: avatarImg
@@ -124,7 +136,8 @@ TPPopup {
 		id: messagesList
 		contentHeight: availableHeight
 		contentWidth: availableWidth
-		spacing: 5
+		spacing: 15
+		clip: true
 		model: chatManager
 
 		anchors {
@@ -149,21 +162,22 @@ TPPopup {
 			id: messageItem
 			swipe.enabled: true
 			clip: true
-			padding: 10
-			spacing: 5
+			padding: 0
+			spacing: 0
 			width: messagesList.width
 			height: !msgDeleted ? msgHeight : 0
 
 			readonly property bool senderMessage: msgSender === userModel.userId
 			property int msgHeight: 10
 
-			contentItem: Rectangle {
+			Rectangle {
 				id: messageRec
 				color: messageItem.senderMessage ? appSettings.listEntryColor1 : appSettings.listEntryColor2
 				border.color: appSettings.fontColor
 				radius: 8
 				opacity: 1 + swipe.position
-				width: txtMessageContent.contentWidth * 1.2
+				width: (Math.max(lblMessageContent.width, lblExtraInfo.width) + (2 * receivedIcon.width)) * 1.2
+				height: messageItem.msgHeight
 				visible: !msgDeleted
 				anchors.top: parent.top
 
@@ -179,7 +193,7 @@ TPPopup {
 				}
 
 				TPLabel {
-					id: txtMessageContent
+					id: lblMessageContent
 					text: msgText
 					wrapMode: Text.WordWrap
 
@@ -190,24 +204,24 @@ TPPopup {
 						leftMargin: 5
 					}
 
-					Component.onCompleted: messageItem.msgHeight += height;
+					Component.onCompleted: messageItem.msgHeight += height + 10;
 				}
 
 				TPLabel {
-					id: extraInfo
+					id: lblExtraInfo
+					text: messageItem.senderMessage ? msgSentDate + "  " + msgSentTime : msgReceivedDate + "  " + msgReceivedTime
 					font: Qt.font({
 						family: Qt.fontFamilies()[0],
-						weight: Font.DemiBold,
+						weight: Font.ExtraLight,
+						italic: true,
 						styleStrategy: Font.PreferAntialias,
 						hintingPreference: Font.PreferFullHinting,
-						pixelSize: appSettings.smallFontSize * 0.8
+						pixelSize: appSettings.smallFontSize * 0.7
 					})
-					text: messageItem.senderMessage ? msgSentDate + "  " + msgSentTime : msgReceivedDate + "  " + msgReceivedTime
-					width: parent.width * 0.8
 
 					anchors {
-						left: parent.left
-						leftMargin: 5
+						right: parent.right
+						rightMargin: 5
 						bottom: parent.bottom
 						bottomMargin: 5
 					}
@@ -215,50 +229,34 @@ TPPopup {
 					Component.onCompleted: messageItem.msgHeight += height;
 				}
 
-				Loader {
-					id: sentIconLoader
-					active: messageItem.senderMessage
-					asynchronous: true
-					width: appSettings.itemSmallHeight
+				TPImage {
+					id: sentIcon
+					source:  msgSent ? "message-read.png" : "message-sent.png"
+					dropShadow: false
+					width: appSettings.itemSmallHeight * 0.5
 					height: width
-					x: 0
-					y: 0
 
 					anchors {
-						right: receivedIconLoader.left
-						verticalCenter: extraInfo.verticalCenter
-					}
-
-					sourceComponent: TPImage {
-						id: sentIcon
-						source: msgRead ? "message-read.png" : "message-sent.png"
-						visible: msgSent
-						dropShadow: false
+						left: parent.left
+						leftMargin: 5
+						verticalCenter: lblExtraInfo.verticalCenter
 					}
 				}
 
-				Loader {
-					id: receivedIconLoader
-					active: messageItem.senderMessage
-					asynchronous: true
-					width: appSettings.itemSmallHeight
+				TPImage {
+					id: receivedIcon
+					source: msgRead ? "message-read.png" : "message-sent.png"
+					visible: msgReceived
+					dropShadow: false
+					width: appSettings.itemSmallHeight * 0.5
 					height: width
-					x: 0
-					y: 0
 
 					anchors {
-						right: parent.right
-						verticalCenter: extraInfo.verticalCenter
-					}
-
-					sourceComponent: TPImage {
-						id: receivedIcon
-						source: msgRead ? "message-read.png" : "message-sent.png"
-						visible: msgReceived
-						dropShadow: false
+						left: sentIcon.right
+						verticalCenter: lblExtraInfo.verticalCenter
 					}
 				}
-			} //contentItem
+			} //Rectangle messageRec
 
 			background: Rectangle {
 				color: "transparent"
@@ -266,14 +264,15 @@ TPPopup {
 
 			swipe.right: Rectangle {
 				id: removeBackground
-				anchors.fill: parent
+				anchors.fill: messageRec
 				color: SwipeDelegate.pressed ? Qt.darker("tomato", 1.1) : "tomato"
-				opacity: delegateItem.swipe.complete ? 0.8 : 0 - delegateItem.swipe.position
+				opacity: messageItem.swipe.complete ? 0.8 : 0 - messageItem.swipe.position
+				radius: 8
 
 				TPImage {
 					source: "remove"
-					width: 50
-					height: 50
+					width: appSettings.itemDefaultHeight
+					height: width
 
 					anchors {
 						horizontalCenter: parent.horizontalCenter
@@ -314,6 +313,11 @@ TPPopup {
 				left: parent.left
 				verticalCenter: parent.verticalCenter
 			}
+
+			onEnterOrReturnKeyPressed: (mod_key) => {
+				if (mod_key === Qt.Key_Control)
+					sendMessage();
+			}
 		}
 
 		TPButton {
@@ -329,12 +333,7 @@ TPPopup {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: {
-				chatManager.newMessage(txtMessage.text);
-				messagesList.positionViewAtEnd();
-				//Qt.inputMethod.reset();
-				txtMessage.clear();
-			}
+			onClicked: sendMessage();
 		} //TPButton
 
 		TPImage {
@@ -378,4 +377,11 @@ TPPopup {
 			}
 		} //MouseArea
 	} //Frame frmFooter
+
+	function sendMessage() {
+		chatManager.newMessage(txtMessage.text);
+		messagesList.positionViewAtEnd();
+		//Qt.inputMethod.reset();
+		txtMessage.clear();
+	}
 }

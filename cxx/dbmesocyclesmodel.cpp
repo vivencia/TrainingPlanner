@@ -490,7 +490,7 @@ void DBMesocyclesModel::checkIfCanExport(const uint meso_idx, const bool bEmitSi
 
 int DBMesocyclesModel::exportToFile(const uint meso_idx, const QString &filename) const
 {
-	QFile *out_file{appUtils()->openFile(filename, false, true, true)};
+	QFile *out_file{appUtils()->openFile(filename, false, true, false, true)};
 	if (!out_file)
 		return TP_RET_CODE_OPEN_CREATE_FAILED;
 
@@ -516,7 +516,7 @@ int DBMesocyclesModel::exportToFile(const uint meso_idx, const QString &filename
 
 int DBMesocyclesModel::exportToFormattedFile(const uint meso_idx, const QString &filename) const
 {
-	QFile *out_file{appUtils()->openFile(filename, false, true, true)};
+	QFile *out_file{appUtils()->openFile(filename, false, true, false, true)};
 	if (!out_file)
 		return TP_RET_CODE_OPEN_CREATE_FAILED;
 
@@ -659,14 +659,16 @@ void DBMesocyclesModel::sendMesoToUser(const uint meso_idx, const bool just_save
 
 	if (ret >= TP_RET_CODE_DEFERRED_ACTION)
 	{
-		auto conn = std::make_shared<QMetaObject::Connection>();
-		*conn = connect(this, &DBMesocyclesModel::deferredActionFinished, this, [this,conn,ret,meso_idx,filename] (const uint action_id, const int action_result) {
+		auto conn{std::make_shared<QMetaObject::Connection>()};
+		*conn = connect(this, &DBMesocyclesModel::deferredActionFinished, this, [this,conn,ret,meso_idx,filename]
+											(const uint action_id, const int action_result)
+		{
 			if (ret == action_id)
 			{
 				disconnect(*conn);
 				if (action_result)
-					appUserModel()->sendFileToServer(filename, nullptr, !isOwnMeso(meso_idx) ? tr("Exercises Program sent to client") : QString{},
-													mesosDir + coach(meso_idx), client(meso_idx));
+					appUserModel()->sendFileToServer(filename, nullptr, !isOwnMeso(meso_idx) ?
+						tr("Exercises Program sent to client") : QString{}, mesosDir + coach(meso_idx), client(meso_idx));
 			}
 		});
 	}
@@ -792,7 +794,7 @@ int DBMesocyclesModel::continueExport(const uint meso_idx, const QString &filena
 			disconnect(*conn);
 			if (_result)
 			{
-				QFile *out_file{appUtils()->openFile(filename, false, true, true)};
+				QFile *out_file{appUtils()->openFile(filename, false, true, false, true)};
 				int ret{TP_RET_CODE_OPEN_CREATE_FAILED};
 				if (out_file)
 				{

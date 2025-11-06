@@ -83,7 +83,7 @@ public:
 	bool mkdir(const QString &fileOrDir) const;
 	bool rename(const QString &source_file_or_dir, const QString &dest_file_or_dir, const bool overwrite) const;
 	bool copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath = true, const bool remove_source = false) const;
-	QFile *openFile(const QString &filename, const bool read = true, const bool write = false,
+	QFile *openFile(const QString &filename, const bool read = true, const bool write = false, const bool append = false,
 							const bool overwrite = false, const bool text = true) const;
 	bool scanFile(const QString &filename, std::optional<bool> &formatted, uint &fileContents) const;
 	void scanDir(const QString &path, QFileInfoList &results, const QString &match = QString{}, const bool follow_tree = false) const;

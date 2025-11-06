@@ -261,14 +261,16 @@ bool TPUtils::copyFile(const QString &srcFile, const QString &dstFileOrDir, cons
 	return false;
 }
 
-QFile *TPUtils::openFile(const QString &filename, const bool read, const bool write,
-			const bool overwrite, const bool text) const
+QFile *TPUtils::openFile(const QString &filename, const bool read, const bool write, const bool append, const bool overwrite,
+							const bool text) const
 {
 	QIODeviceBase::OpenMode flags{QIODeviceBase::NotOpen};
 	if (write)
 	{
 		if (overwrite)
 			flags |= QIODeviceBase::Truncate;
+		else if (append)
+			flags |= QIODeviceBase::Append;
 		else
 			flags |= QIODeviceBase::NewOnly;
 		if (!read)
@@ -390,7 +392,7 @@ void TPUtils::rmDir(const QString &path) const
 
 void TPUtils::parseCmdFile(const QString &filename)
 {
-	QFile *cmd_file{openFile(filename, true)};
+	QFile *cmd_file{openFile(filename)};
 	if (cmd_file)
 	{
 		QString line{1024, QChar{0}};
@@ -677,13 +679,17 @@ QString TPUtils::formatDate(const QDate &date, const DATE_FORMAT format) const
 		case DF_LOCALE:
 			return m_appLocale->toString(date, QLocale::ShortFormat);
 		case DF_CATALOG:
-			return QString::number(date.year()) + QString::number(date.month()) + QString::number(date.day());
+			return QString::number(date.year()) +
+				QString{std::move(date.month() <= 9 ? QString{'0' + QString::number(date.month())} : QString::number(date.month()))} +
+				QString{std::move(date.day() <= 9 ? QString{'0' + QString::number(date.day())} : QString::number(date.day()))};
 		break;
 		case DF_DATABASE:
 			return QString::number(date.toJulianDay());
 		break;
 		case DF_ONLINE:
-			return QString::number(date.year()).right(2) + QString::number(date.month()) + QString::number(date.day());
+			return QString::number(date.year()).right(2) +
+				QString{std::move(date.month() <= 9 ? QString{'0' + QString::number(date.month())} : QString::number(date.month()))} +
+				QString{std::move(date.day() <= 9 ? QString{'0' + QString::number(date.day())} : QString::number(date.day()))};
 		break;
 	}
 	return QString{};
@@ -691,7 +697,7 @@ QString TPUtils::formatDate(const QDate &date, const DATE_FORMAT format) const
 
 QDate TPUtils::getDateFromDateString(const QString &strdate, const DATE_FORMAT format) const
 {
-	if (strdate.isEmpty())
+	if (strdate.length() < 6)
 		return QDate{};
 
 	int day{0}, month{0}, year{0};
@@ -701,9 +707,9 @@ QDate TPUtils::getDateFromDateString(const QString &strdate, const DATE_FORMAT f
 			{
 				const qsizetype spaceIdx{strdate.indexOf(' ')};
 				const qsizetype fSlashIdx{strdate.indexOf('/')};
-				const qsizetype fSlashIdx2{strdate.indexOf('/', fSlashIdx+1)};
-				day = strdate.sliced(spaceIdx+1, fSlashIdx-spaceIdx-1).toInt();
-				month = strdate.sliced(fSlashIdx+1, fSlashIdx2-fSlashIdx-1).toInt();
+				const qsizetype fSlashIdx2{strdate.indexOf('/', fSlashIdx + 1)};
+				day = strdate.sliced(spaceIdx + 1, fSlashIdx-spaceIdx - 1).toInt();
+				month = strdate.sliced(fSlashIdx + 1, fSlashIdx2-fSlashIdx - 1).toInt();
 				year = strdate.last(4).toInt();
 			}
 		break;

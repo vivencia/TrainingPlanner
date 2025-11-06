@@ -104,7 +104,7 @@ void QmlMesoSplitInterface::exportAllMesoSplits(const bool bShare)
 {
 	const QString &suggestedName{appMesoModel()->name(m_mesoIdx) + std::move(tr(" - Exercises Plan.txt"))};
 	const QString &exportFileName{appItemManager()->setExportFileName(suggestedName)};
-	QFile *out_file{appUtils()->openFile(exportFileName, false, true, true)};
+	QFile *out_file{appUtils()->openFile(exportFileName, false, true, false, true)};
 	if (!out_file)
 		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_OPEN_CREATE_FAILED, exportFileName);
 

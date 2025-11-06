@@ -55,7 +55,7 @@ void TPMessage::execAction(const int action_id)
 		if (lastChar.toLatin1() < set_separator)
 			remove = lastChar == record_separator;
 		if (m_actionFuncs.at(action_id) != nullptr)
-			m_actionFuncs.at(action_id)(m_data.at(action_id));
+			m_actionFuncs.at(action_id)(action_id < m_data.count() ? m_data.at(action_id) : m_data);
 		emit actionTriggered(action_id, remove);
 	}
 }

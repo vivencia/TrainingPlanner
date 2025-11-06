@@ -13,6 +13,8 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPage {
 	id: workoutPage
+	imageSource: ":/images/backgrounds/backimage-workout.jpg"
+	backgroundOpacity: 0.6
 	objectName: "workoutPage"
 
 	required property WorkoutManager workoutManager

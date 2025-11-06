@@ -156,7 +156,7 @@ Drawer {
 			}
 
 			TPButton {
-				imageSource: "switch_user.png"
+				imageSource: "switch-user.png"
 				width: appSettings.itemDefaultHeight
 				height: width
 				visible: { return Qt.platform.os !== "android"}

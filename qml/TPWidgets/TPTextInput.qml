@@ -36,7 +36,7 @@ TextField {
 		font.weight: control.font.weight
 	}
 
-	signal enterOrReturnKeyPressed()
+	signal enterOrReturnKeyPressed(mod_key: int)
 	signal textCleared()
 
 	onPressAndHold: (event) => {
@@ -58,8 +58,20 @@ TextField {
 		switch (event.key) {
 			case Qt.Key_Enter:
 			case Qt.Key_Return:
+			{
 				event.accepted = true;
-				enterOrReturnKeyPressed();
+				let mod_key = 0;
+				if (event.modifiers)
+				{
+					if (event.modifiers & Qt.ControlModifier)
+						mod_key = Qt.Key_Control;
+					else if (event.modifiers & Qt.AltModifier)
+						mod_key = Qt.Key_Alt;
+					else if (event.modifiers & Qt.ShiftModifier)
+						mod_key = Qt.Key_Shift;
+				}
+				enterOrReturnKeyPressed(mod_key);
+			}
 			break;
 			case Qt.Key_Backspace:
 			case Qt.Key_Delete:
