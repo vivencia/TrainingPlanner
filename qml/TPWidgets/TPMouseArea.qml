@@ -4,6 +4,7 @@ MouseArea {
 	anchors.fill: movingWidget
 	z: 1
 	propagateComposedEvents: true
+	pressAndHoldInterval: 300
 
 	required property var movingWidget
 	required property var movableWidget

@@ -24,6 +24,7 @@ public:
 	void updateTable() override final {}
 	void loadChat();
 	void saveChat(const bool update, const QStringList &message_info);
+	void updateFields(const QStringList &msg_ids, QList<uint> fields, const QStringList &new_values);
 
 private:
 	QString m_userId, m_otherUserId;

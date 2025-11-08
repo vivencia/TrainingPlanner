@@ -41,11 +41,13 @@ public:
 	QString interlocutorName() const;
 	QString avatarIcon() const;
 	inline uint userIdx() const { return m_userIdx; }
+	inline uint unreadMessages() const { return m_unreadMessages; }
+	void setUnreadMessages(const int n_unread);
 
 	Q_INVOKABLE void newMessage(const QString &text, const QString &media = QString{});
 	void incomingMessage(const QString &encoded_message);
-	Q_INVOKABLE void messageRead(const uint msgid);
 	Q_INVOKABLE void removeMessage(const uint msgid);
+	void markAllMessagesRead();
 	void clearChat();
 
 	QVariant data(ChatMessage* message, const uint field) const;
@@ -59,10 +61,11 @@ signals:
 	void countChanged();
 	void interlocutorNameChanged();
 	void avatarIconChanged();
+	void unreadMessagesChanged(const uint n_unread_messages);
 
 private:
 	QString m_otherUserId;
-	uint m_userIdx;
+	uint m_userIdx, m_unreadMessages;
 	QList<ChatMessage*> m_messages;
 	QHash<int, QByteArray> m_roleNames;
 	TPChatDB *m_chatDB;

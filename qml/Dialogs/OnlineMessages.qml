@@ -267,7 +267,7 @@ TPPopup {
 								TPLabel {
 									text: extraInfo
 									horizontalAlignment: Text.AlignHCenter
-									minimumPixelSize: appSettings.smallFontSize * 0.8
+									minimumPixelSize: appSettings.smallFontSize * 0.7
 									z: 1
 									width: parent.width * 0.5
 									height: parent.height * 0.8
@@ -327,6 +327,7 @@ TPPopup {
 								text: actions[index]
 								width: constrainSize ? actionsLayout.maxButtonWidth : preferredWidth
 								autoSize: constrainSize
+								rounded: false
 								Layout.leftMargin: 0
 								Layout.rightMargin: 0
 								onClicked: appMessages.execAction(actionsLayout.msgIndex, index);

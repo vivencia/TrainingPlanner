@@ -5,6 +5,22 @@
 
 #include <QThread>
 
+constexpr QLatin1StringView fieldNames[13][2] {
+	{"msgid"_L1, "INTEGER PRIMARY KEY"_L1},
+	{"sender"_L1, "INTEGER"_L1},
+	{"receiver"_L1, "INTEGER"_L1},
+	{"sdate"_L1, "INTEGER"_L1},
+	{"stime"_L1, "INTEGER"_L1},
+	{"rdate"_L1, "INTEGER"_L1},
+	{"rtime"_L1, "INTEGER"_L1},
+	{"deleted"_L1, "INTEGER"_L1},
+	{"sent"_L1, "INTEGER"_L1},
+	{"received"_L1, "INTEGER"_L1},
+	{"read"_L1, "INTEGER"_L1},
+	{"text"_L1, "TEXT"_L1},
+	{"media"_L1, "TEXT"_L1},
+};
+
 TPChatDB::TPChatDB(const QString &user_id, const QString &otheruser_id, QObject *parent)
 	: TPDatabaseTable{CHAT_TABLE_ID, parent}, m_userId{user_id}, m_otherUserId{otheruser_id}
 {
@@ -27,21 +43,12 @@ QString TPChatDB::databaseDir() const
 
 QLatin1StringView TPChatDB::createTableQuery()
 {
-	return "CREATE TABLE IF NOT EXISTS %1 ("
-										"msgid INTEGER PRIMARY KEY,"
-										"sender INTEGER,"
-										"receiver INTEGER,"
-										"sdate INTEGER,"
-										"stime INTEGER,"
-										"rdate INTEGER,"
-										"rtime INTEGER,"
-										"deleted INTEGER,"
-										"sent INTEGER,"
-										"received INTEGER,"
-										"read INTEGER,"
-										"text TEXT,"
-										"media TEXT"
-									");"_L1;
+	QString str{std::move("CREATE TABLE IF NOT EXISTS %1 ("_L1)};
+	for (uint i{0}; i < TP_CHAT_MESSAGE_FIELDS; ++i)
+		str += std::move(fieldNames[i][0] + fieldNames[i][1]) + ',';
+	str.chop(1);
+	str += std::move(");");
+	return QLatin1StringView{str.toLatin1().constData(), str.length()};
 }
 
 bool TPChatDB::createTable()
@@ -97,6 +104,24 @@ void TPChatDB::saveChat(const bool update, const QStringList &message_info)
 				message_info.at(MESSAGE_MEDIA)));
 	}
 	static_cast<void>(execQuery(m_strQuery, false));
+	moveToThread(originalThread());
+	emit threadFinished();
+}
+
+void TPChatDB::updateFields(const QStringList &msg_ids, QList<uint> fields, const QStringList &new_values)
+{
+	if (m_sqlLiteDB.transaction())
+	{
+		const QString &query_cmd{"UPDATE "_L1 + tableName() + u"SET %1=%2 WHERE msgid=%3;"_s};
+		for (uint i{0}; i < msg_ids.count(); ++i)
+		{
+			m_strQuery = std::move(query_cmd.arg(fieldNames[fields.at(i)][0],
+					fields.at(i) < MESSAGE_TEXT ? new_values.at(i) : '\'' + new_values.at(i) + '\'',
+					msg_ids.at(i)));
+		}
+		if (execQuery(m_strQuery, false, false))
+			static_cast<void>(m_sqlLiteDB.commit());
+	}
 	moveToThread(originalThread());
 	emit threadFinished();
 }

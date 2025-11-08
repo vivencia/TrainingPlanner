@@ -20,7 +20,7 @@ public:
 
 	inline uint count() const { return m_data.count(); }
 
-	TPMessage *message(const int message_id) const;
+	TPMessage *message(const qsizetype message_id) const;
 
 	/**
 	 * @brief Add a message to be displayed to the user based on online data received
@@ -28,10 +28,10 @@ public:
 	 * @see removeMessage
 	 */
 	std::optional<int> addMessage(TPMessage *msg);
-	Q_INVOKABLE inline void removeMessage(const int message_id) { removeMessage(message(message_id)); }
+	Q_INVOKABLE inline void removeMessage(const qsizetype message_id) { removeMessage(message(message_id)); }
 	void removeMessage(TPMessage *msg);
 	Q_INVOKABLE void execAction(const int message_index, const uint action_id);
-	Q_INVOKABLE void itemClicked(const int message_id);
+	Q_INVOKABLE void itemClicked(const qsizetype message_id);
 
 	/**
 	 * @brief Creates a chat entry in the messages window. Therefore, the message created will be added to the messages list
@@ -50,6 +50,9 @@ public:
 	// return the roles mapping to be used by QML
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
 
+public slots:
+	void chatWindowIsActiveWindow(TPChat *chat_manager);
+
 signals:
 	void countChanged();
 
@@ -62,6 +65,7 @@ private:
 	QQmlComponent *m_chatWindowComponent;
 	QVariantMap m_chatWindowProperties;
 
+	void readAllChats();
 	void startChatMessagesPolling();
 	int newMessagesCheckingInterval() const;
 	void parseNewChatMessages(const QString &encoded_messages);

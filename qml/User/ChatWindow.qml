@@ -28,6 +28,13 @@ TPPopup {
 	property int normalX: (appSettings.pageWidth - width) / 2
 	property int normalY: (appSettings.pageHeight - height) / 2
 
+	signal chatWindowIsActiveWindow(ChatModel chat_manager);
+
+	onActiveFocusChanged: {
+		if (activeFocus)
+			chatWindowIsActiveWindow();
+	}
+
 	onOpened: txtMessage.forceActiveFocus();
 
 	TPBackRec {

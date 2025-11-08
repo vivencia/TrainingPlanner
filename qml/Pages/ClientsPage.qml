@@ -172,7 +172,7 @@ TPPage {
 		ScrollBar.vertical.policy: ScrollBar.AlwaysOn
 		contentWidth: availableWidth //stops bouncing to the sides
 		contentHeight: colMain.implicitHeight
-		enabled: tabbar.currentItem.enabled
+		enabled: clientsPage.userRow > 0
 
 		anchors {
 			top: listsLayout.bottom
@@ -192,14 +192,12 @@ TPPage {
 				id: usrData
 				userRow: clientsPage.userRow
 				parentPage: clientsPage
-				enabled: clientsPage.userRow > 0
 				width: appSettings.pageWidth - 20
 			}
 
 			UserContact {
 				id: usrContact
 				userRow: clientsPage.userRow
-				enabled: clientsPage.userRow > 0
 				width: appSettings.pageWidth - 20
 			}
 
@@ -207,7 +205,6 @@ TPPage {
 				id: usrProfile
 				userRow: clientsPage.userRow
 				parentPage: clientsPage
-				enabled: clientsPage.userRow > 0
 				width: appSettings.pageWidth - 20
 			}
 		}

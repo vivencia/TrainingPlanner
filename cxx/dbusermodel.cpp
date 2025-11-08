@@ -2034,7 +2034,7 @@ void DBUserModel::pollCoachesAnswers()
 					emit pendingCoachesResponsesChanged();
 
 				//First pass
-				for (qsizetype i{answers_list.count()-1}; i >= 0; --i)
+				for (qsizetype i{answers_list.count() - 1}; i >= 0; --i)
 				{
 					QString coach_id{answers_list.at(i)};
 					if (coach_id.endsWith("AOK"_L1))

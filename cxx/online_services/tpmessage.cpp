@@ -27,10 +27,7 @@ int TPMessage::insertAction(const QString& actionLabel, const std::function<void
 		m_actions.last().append(remove.value() ? record_separator : set_separator);
 		setSticky(remove.value());
 	}
-	emit actionsChanged();
 	const qsizetype n_action{m_actions.count() - 1};
-	if (n_action == 0)
-		emit hasActionsChanged();
 	return n_action;
 }
 
@@ -40,9 +37,6 @@ void TPMessage::removeAction(const int action_id)
 	{
 		m_actions.remove(action_id);
 		m_actionFuncs.remove(action_id);
-		emit actionsChanged();
-		if (m_actions.isEmpty())
-			emit hasActionsChanged();
 	}
 }
 

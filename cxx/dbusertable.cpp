@@ -86,7 +86,6 @@ void DBUserTable::saveUser()
 					m_model->_coachRole(row), m_model->_goal(row), m_model->_appUseMode(row)));
 		}
 		ok = execQuery(m_strQuery, false);
-		return;
 	}
 	emit threadFinished(ok);
 }

@@ -24,7 +24,7 @@ Item {
 		spacing: 0
 		clip: true
 		currentIndex: model ? model.currentRow : -1
-		height: button.visible ? 0.8 * parent.height : parent.height
+		height: button.visible ? parent.height - button.height - 5 : parent.height
 		model: workingModel
 		enabled: parent.enabled
 
@@ -68,29 +68,23 @@ Item {
 		} //ItemDelegate
 	}
 
-	RowLayout {
-		uniformCellSizes: true
-		visible: listview.enabled
+
+	TPButton {
+		id: button
+		text: buttonString
+		autoSize: true
+		rounded: false
+		enabled: listview.currentIndex >= 0
+		visible: listview.enabled && buttonString.length > 0
+
+		onClicked: buttonClicked();
 
 		anchors {
-			top: listview.bottom
-			topMargin: 5
-			left: parent.left
-			right: parent.right
-		}
-
-		TPButton {
-			id: button
-			text: buttonString
-			autoSize: true
-			rounded: false
-			enabled: listview.currentIndex >= 0
-			visible: buttonString.length > 0
-			Layout.alignment: Qt.AlignCenter
-
-			onClicked: buttonClicked();
+			bottom: parent.bottom
+			horizontalCenter: parent.horizontalCenter
 		}
 	}
+
 
 	Component.onCompleted: {
 		if (listClients && listCoaches)

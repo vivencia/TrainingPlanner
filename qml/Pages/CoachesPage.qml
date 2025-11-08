@@ -74,7 +74,7 @@ TPPage {
 	StackLayout {
 		id: listsLayout
 		currentIndex: tabbar.currentIndex
-		height: coachesPage.height * 0.2
+		height: coachesPage.height * 0.25
 
 		anchors {
 			top: tabbar.bottom
@@ -143,7 +143,7 @@ TPPage {
 				listClients: false
 				listCoaches: true
 				buttonString: qsTr("Résumé")
-				height: parent.height - appSettings.itemDefaultHeight - 5
+				height: parent.height - btnAccept.height - 10
 
 				anchors {
 					top: parent.top
@@ -164,7 +164,7 @@ TPPage {
 
 			RowLayout {
 				uniformCellSizes: true
-				height: appSettings.itemDefaultHeight
+				height: btnAccept.height
 				enabled: pendingCoachesList.enabled && pendingCoachesList.currentIndex !== -1
 
 				anchors {
@@ -174,6 +174,7 @@ TPPage {
 				}
 
 				TPButton {
+					id: btnAccept
 					text: qsTr("Accept")
 					autoSize: true
 					rounded: false
@@ -225,7 +226,7 @@ TPPage {
 		ScrollBar.vertical.policy: ScrollBar.AlwaysOn
 		contentWidth: availableWidth //stops bouncing to the sides
 		contentHeight: colMain.implicitHeight
-		enabled: userRow !== -1
+		enabled: coachesPage.userRow > 0
 
 		anchors {
 			top: btnFindCoachOnline.bottom
@@ -243,24 +244,21 @@ TPPage {
 
 			UserPersonalData {
 				id: usrData
-				userRow: userRow
+				userRow: coachesPage.userRow
 				parentPage: coachesPage
-				enabled: userRow > 0
 				width: appSettings.pageWidth - 20
 			}
 
 			UserContact {
 				id: usrContact
-				userRow: userRow
-				enabled: userRow > 0
+				userRow: coachesPage.userRow
 				width: appSettings.pageWidth - 20
 			}
 
 			UserProfile {
 				id: usrProfile
-				userRow: userRow
+				userRow: coachesPage.userRow
 				parentPage: coachesPage
-				enabled: userRow > 0
 				width: appSettings.pageWidth - 20
 			}
 		}

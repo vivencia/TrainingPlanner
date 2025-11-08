@@ -479,31 +479,31 @@ void TPOnlineServices::getCmdFile(const int requestid, const QString &username, 
 void TPOnlineServices::checkMessages(const int requestid, const QString &username, const QString &passwd)
 {
 	const QUrl &url{makeCommandURL(username, passwd, "getnewmessages"_L1)};
-	makeNetworkRequest(requestid, url, true);
+	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::sendMessage(const int requestid, const QString &username, const QString &passwd, const QString &receiver, const QString &encoded_message)
 {
 	const QUrl &url{makeCommandURL(username, passwd, "sendmessage"_L1, receiver, "message"_L1, encoded_message)};
-	makeNetworkRequest(requestid, url, true);
+	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::chatMessageReceived(const int requestid, const QString &username, const QString &passwd, const QString &sender, const QString &msgid)
 {
 	const QUrl &url{makeCommandURL(username, passwd, "messagereceived"_L1, sender, "messageid"_L1, msgid)};
-	makeNetworkRequest(requestid, url, true);
+	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::chatMessageRead(const int requestid, const QString &username, const QString &passwd, const QString &sender, const QString &msgid)
 {
 	const QUrl &url{makeCommandURL(username, passwd, "messageread"_L1, sender, "messageid"_L1, msgid)};
-	makeNetworkRequest(requestid, url, true);
+	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::removeMessage(const int requestid, const QString &username, const QString &passwd, const QString &receiver, const QString &msgid)
 {
 	const QUrl &url{makeCommandURL(username, passwd, "removemessage"_L1, receiver, "messageid"_L1, msgid)};
-	makeNetworkRequest(requestid, url, true);
+	makeNetworkRequest(requestid, url);
 }
 
 QString TPOnlineServices::makeCommandURL(const QString &username, const QString &passwd, const QString &option1,

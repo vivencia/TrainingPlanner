@@ -275,7 +275,7 @@ public:
 	inline OnlineUserInfo *allUsers() const { return m_allUsers; }
 #endif
 
-	Q_INVOKABLE int getTemporaryUserInfo(OnlineUserInfo *tempUser, const uint userInfouser_idx);
+	int getTemporaryUserInfo(OnlineUserInfo *tempUser, const uint userInfouser_idx);
 	bool mainUserConfigured() const;
 	inline bool canConnectToServer() const { return mb_canConnectToServer; }
 
