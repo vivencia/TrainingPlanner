@@ -5,8 +5,8 @@
 
 #include <QThread>
 
-DBMesocyclesTable::DBMesocyclesTable(DBMesocyclesModel *model)
-	: TPDatabaseTable{MESOCYCLES_TABLE_ID}, m_model{model}
+DBMesocyclesTable::DBMesocyclesTable()
+	: TPDatabaseTable{MESOCYCLES_TABLE_ID}
 {
 	setTableName(tableName());
 	m_uniqueID = appUtils()->generateUniqueId();
@@ -53,7 +53,7 @@ void DBMesocyclesTable::getAllMesocycles()
 				QStringList meso_info{MESOCYCLES_TOTAL_COLS};
 				for (uint i{MESOCYCLES_COL_ID}; i < MESOCYCLES_TOTAL_COLS; ++i)
 					meso_info[i] = std::move(m_workingQuery.value(i).toString());
-				static_cast<void>(m_model->newMesocycle(std::move(meso_info)));
+				static_cast<void>(appMesoModel()->newMesocycle(std::move(meso_info)));
 			} while (m_workingQuery.next ());
 		}
 	}
@@ -62,7 +62,7 @@ void DBMesocyclesTable::getAllMesocycles()
 void DBMesocyclesTable::saveMesocycle()
 {
 	const uint meso_idx{m_execArgs.at(0).toUInt()};
-	if (execQuery("SELECT id FROM %1 WHERE id=%2;"_L1.arg(tableName(), m_model->id(meso_idx)), true, false))
+	if (execQuery("SELECT id FROM %1 WHERE id=%2;"_L1.arg(tableName(), appMesoModel()->id(meso_idx)), true, false))
 	{
 		bool update{false};
 		if (m_workingQuery.first())
@@ -75,11 +75,11 @@ void DBMesocyclesTable::saveMesocycle()
 				"splitA=\'%8\', splitB=\'%9\', splitC=\'%10\', splitD=\'%11\', splitE=\'%12\', splitF=\'%13\', "
 				"meso_coach=%14, meso_client=%15, meso_program_file=\'%16\', meso_type=\'%17\', "
 				"real_meso=%18 WHERE id=%19"_s
-				.arg(tableName(), m_model->name(meso_idx), m_model->strStartDate(meso_idx), m_model->strEndDate(meso_idx),
-					m_model->notes(meso_idx), m_model->nWeeks(meso_idx), m_model->split(meso_idx),
-					m_model->splitA(meso_idx), m_model->splitB(meso_idx), m_model->splitC(meso_idx), m_model->splitD(meso_idx),
-					m_model->splitE(meso_idx), m_model->splitF(meso_idx), m_model->coach(meso_idx), m_model->client(meso_idx),
-					m_model->file(meso_idx), m_model->type(meso_idx), m_model->realMeso(meso_idx), m_model->id(meso_idx)));
+				.arg(tableName(), appMesoModel()->name(meso_idx), appMesoModel()->strStartDate(meso_idx), appMesoModel()->strEndDate(meso_idx),
+					appMesoModel()->notes(meso_idx), appMesoModel()->nWeeks(meso_idx), appMesoModel()->split(meso_idx),
+					appMesoModel()->splitA(meso_idx), appMesoModel()->splitB(meso_idx), appMesoModel()->splitC(meso_idx), appMesoModel()->splitD(meso_idx),
+					appMesoModel()->splitE(meso_idx), appMesoModel()->splitF(meso_idx), appMesoModel()->coach(meso_idx), appMesoModel()->client(meso_idx),
+					appMesoModel()->file(meso_idx), appMesoModel()->type(meso_idx), appMesoModel()->realMeso(meso_idx), appMesoModel()->id(meso_idx)));
 		}
 		else
 		{
@@ -88,16 +88,16 @@ void DBMesocyclesTable::saveMesocycle()
 				"splitA,splitB,splitC,splitD,splitE,splitF,meso_coach,meso_client,meso_program_file,meso_type,real_meso)"
 				" VALUES(\'%2\', %3, %4, \'%5\', %6, \'%7\', \'%8\', \'%9\', \'%10\', \'%11\', \'%12\', \'%13\', "
 				"%14, %15, \'%16\', \'%17\', %18)"_s
-				.arg(tableName(), m_model->name(meso_idx), m_model->strStartDate(meso_idx), m_model->strEndDate(meso_idx),
-					m_model->notes(meso_idx), m_model->nWeeks(meso_idx), m_model->split(meso_idx),
-					m_model->splitA(meso_idx), m_model->splitB(meso_idx), m_model->splitC(meso_idx), m_model->splitD(meso_idx),
-					m_model->splitE(meso_idx), m_model->splitF(meso_idx), m_model->coach(meso_idx), m_model->client(meso_idx),
-					m_model->file(meso_idx), m_model->type(meso_idx), m_model->realMeso(meso_idx)));
+				.arg(tableName(), appMesoModel()->name(meso_idx), appMesoModel()->strStartDate(meso_idx), appMesoModel()->strEndDate(meso_idx),
+					appMesoModel()->notes(meso_idx), appMesoModel()->nWeeks(meso_idx), appMesoModel()->split(meso_idx),
+					appMesoModel()->splitA(meso_idx), appMesoModel()->splitB(meso_idx), appMesoModel()->splitC(meso_idx), appMesoModel()->splitD(meso_idx),
+					appMesoModel()->splitE(meso_idx), appMesoModel()->splitF(meso_idx), appMesoModel()->coach(meso_idx), appMesoModel()->client(meso_idx),
+					appMesoModel()->file(meso_idx), appMesoModel()->type(meso_idx), appMesoModel()->realMeso(meso_idx)));
 		}
 		if (execQuery(m_strQuery, false, false))
 		{
 			if (!update)
-				m_model->setId(meso_idx, m_workingQuery.lastInsertId().toString());
+				appMesoModel()->setId(meso_idx, m_workingQuery.lastInsertId().toString());
 			emit threadFinished(true);
 			return;
 		}

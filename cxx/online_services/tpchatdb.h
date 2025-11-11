@@ -15,15 +15,17 @@ public:
 	explicit TPChatDB(const QString &user_id, const QString &otheruser_id, QObject *parent = nullptr);
 
 	QList<QStringList> &wholeChat() & { return m_wholeChat; }
-	QString databaseFileName() { return m_otherUserId + ".db.sqlite"_L1; }
+	inline QString databaseFileName() { return m_otherUserId + ".db.sqlite"_L1; }
 	QString databaseDir() const;
 	inline static QLatin1StringView tableName() { return "chat_table"_L1; }
 	static QLatin1StringView createTableQuery();
 	[[maybe_unused]] bool createTable() override final;
 
+	QString dbFilePath(const uint, const bool path_only = false) override final;
 	void updateTable() override final {}
 	void loadChat();
-	void saveChat(const bool update, const QStringList &message_info);
+	void insertMessage(const QStringList &message_info);
+	void updateField(const QString &msg_id, const uint field, const QString &new_value);
 	void updateFields(const QStringList &msg_ids, QList<uint> fields, const QStringList &new_values);
 
 private:

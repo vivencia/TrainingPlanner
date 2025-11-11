@@ -32,22 +32,29 @@ Q_PROPERTY(QString interlocutorName READ interlocutorName NOTIFY interlocutorNam
 Q_PROPERTY(QString avatarIcon READ avatarIcon NOTIFY avatarIconChanged FINAL)
 
 public:
+	static constexpr QLatin1StringView chatsSubDir{"chats/"};
+
 	explicit TPChat(const QString &otheruser_id, QObject *parent = nullptr);
 	~TPChat();
 
+	void loadChat();
+	inline void setChatWindow(QObject *chat_window) { m_chatWindow = chat_window; }
+	inline QObject *chatWindow() const { return m_chatWindow; }
 	Q_INVOKABLE inline uint count() const { return m_messages.count(); }
 	inline const QString &otherUserId() const { return m_otherUserId; }
 
 	QString interlocutorName() const;
 	QString avatarIcon() const;
 	inline uint userIdx() const { return m_userIdx; }
+
+	void setSentMessageReceived(const uint msgid);
+	void setSentMessageRead(const uint msgid);
+	Q_INVOKABLE void removeMessage(const uint msgid);
 	inline uint unreadMessages() const { return m_unreadMessages; }
 	void setUnreadMessages(const int n_unread);
-
+	void markAllIncomingMessagesRead();
 	Q_INVOKABLE void newMessage(const QString &text, const QString &media = QString{});
 	void incomingMessage(const QString &encoded_message);
-	Q_INVOKABLE void removeMessage(const uint msgid);
-	void markAllMessagesRead();
 	void clearChat();
 
 	QVariant data(ChatMessage* message, const uint field) const;
@@ -69,12 +76,12 @@ private:
 	QList<ChatMessage*> m_messages;
 	QHash<int, QByteArray> m_roleNames;
 	TPChatDB *m_chatDB;
+	QObject *m_chatWindow;
 
-	void changeSentProperty(ChatMessage *message, const bool sent);
 	QString tempMessagesFile() const;
 	QString encodeMessageToUpload(ChatMessage* message) const;
 	ChatMessage* decodeDownloadedMessage(const QString &encoded_message);
-	void saveChat(ChatMessage *message, const bool insert = true);
+	void saveNewMessageIntoDB(ChatMessage *message);
 	void saveMessageToFile(ChatMessage *message) const;
 
 	friend class TPMessagesManager;

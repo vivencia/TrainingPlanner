@@ -6,7 +6,6 @@
 #include "../dbusermodel.h"
 #include "../qmlitemmanager.h"
 #include "../tputils.h"
-#include "../tpkeychain/tpkeychain.h"
 
 #include <QQmlApplicationEngine>
 #include <QQmlComponent>
@@ -48,7 +47,6 @@ TPMessagesManager::TPMessagesManager(QObject *parent)
 	m_roleNames[hasActionsRole]		= std::move("hasActions");
 
 	readAllChats();
-	startChatMessagesPolling();
 }
 
 TPMessage *TPMessagesManager::message(const qsizetype message_id) const
@@ -129,6 +127,14 @@ void TPMessagesManager::itemClicked(const qsizetype message_id)
 	}
 }
 
+TPMessage *TPMessagesManager::createChatMessage(const QString &userid)
+{
+	const int user_idx{appUserModel()->userIdxFromFieldValue(USER_COL_ID, userid)};
+	QString user_name{std::move(user_idx != -1 ? appUserModel()->userName(user_idx) : tr("Unknown contact"))};
+	QString user_icon{std::move(user_idx != -1 ? appUserModel()->avatar(user_idx, false) : "unknown-user")};
+	return createChatMessage(userid, std::move(user_name), std::move(user_icon));
+}
+
 TPMessage *TPMessagesManager::createChatMessage(const QString &userid, QString &&display_text, QString &&icon_source)
 {
 	TPMessage *chat_message{new TPMessage{std::move(display_text), std::move(icon_source), this}};
@@ -171,6 +177,7 @@ void TPMessagesManager::openChatWindow(TPChat *chat_manager)
 		switch (m_chatWindowComponent->status())
 		{
 			case QQmlComponent::Ready:
+				chat_manager->loadChat();
 				createChatWindow_part2(chat_manager);
 			break;
 			case QQmlComponent::Loading:
@@ -200,6 +207,40 @@ void TPMessagesManager::openChat(const QString &username)
 	openChatWindow(m_chatsList.value(userid));
 }
 
+void TPMessagesManager::startChatMessagesPolling(const QString &userid, const QString &password)
+{
+	connect(appUserModel(), &DBUserModel::canConnectToServerChanged, this, [this] ()
+	{
+		if (!appUserModel()->canConnectToServer())
+			m_newChatMessagesTimer->stop();
+		else
+			m_newChatMessagesTimer->start();
+	});
+
+	m_newChatMessagesTimer = new QTimer{this};
+	const QLatin1StringView seed{QString{userid + "check_messages"_L1}.toLatin1()};
+	const int requestid{appUtils()->generateUniqueId(seed)};
+	connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,requestid]
+										(const int request_id, const int ret_code, const QString &ret_string)
+	{
+		if (request_id == requestid)
+		{
+			if (ret_code == TP_RET_CODE_SUCCESS)
+				parseNewChatMessages(ret_string);
+			#ifndef QT_NO_DEBUG
+			else
+				qDebug() << ret_string;
+			#endif
+		}
+	});
+	m_newChatMessagesTimer->callOnTimeout( [this,requestid,userid,password] ()
+	{
+		appOnlineServices()->checkMessages(requestid, userid, password);
+		m_newChatMessagesTimer->setInterval(newMessagesCheckingInterval());
+	});
+	m_newChatMessagesTimer->start();
+}
+
 QVariant TPMessagesManager::data(const QModelIndex &index, int role) const
 {
 	const int row{index.row()};
@@ -224,36 +265,13 @@ QVariant TPMessagesManager::data(const QModelIndex &index, int role) const
 
 void TPMessagesManager::readAllChats()
 {
-//TODO read all sqlite database in Chat/ and create the TPChats.
-}
-
-void TPMessagesManager::startChatMessagesPolling()
-{
-	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this] (const QString &key, const QString &value)
+	QFileInfoList chat_dbs;
+	appUtils()->scanDir(appUserModel()->userDir() + TPChat::chatsSubDir, chat_dbs, "*.db.sqlite"_L1);
+	for (const auto &db_file : std::as_const(chat_dbs))
 	{
-		m_newChatMessagesTimer = new QTimer{this};
-		const QLatin1StringView seed{QString{key + "check_messages"_L1}.toLatin1()};
-		const int requestid{appUtils()->generateUniqueId(seed)};
-		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,requestid]
-								(const int request_id, const int ret_code, const QString &ret_string)
-		{
-			if (request_id == requestid)
-			{
-				if (ret_code == TP_RET_CODE_SUCCESS)
-					parseNewChatMessages(ret_string);
-				#ifndef QT_NO_DEBUG
-				else
-					qDebug() << ret_string;
-				#endif
-			}
-		});
-		m_newChatMessagesTimer->callOnTimeout( [this,requestid,key,value] () {
-			appOnlineServices()->checkMessages(requestid, key, value);
-			m_newChatMessagesTimer->setInterval(newMessagesCheckingInterval());
-		});
-		m_newChatMessagesTimer->start();
-	}, Qt::SingleShotConnection);
-	appKeyChain()->readKey(appUserModel()->userId(0));
+		if (!message(db_file.baseName().toLong()))
+			static_cast<void>(createChatMessage(db_file.baseName()));
+	}
 }
 
 int TPMessagesManager::newMessagesCheckingInterval() const
@@ -332,29 +350,95 @@ void TPMessagesManager::parseNewChatMessages(const QString &encoded_messages)
 		QString sender_id{std::move(appUtils()->getCompositeValue(sender_idx + 1, encoded_messages, exercises_separator))};
 		if (sender_id.isEmpty())
 			break;
-		sender_id.chop(4);
 		QString sender_messages{std::move(appUtils()->getCompositeValue(sender_idx, encoded_messages, exercises_separator))};
 		if (sender_messages.isEmpty())
-			break;
-		const qsizetype i_sender_id{sender_id.toLong()};
-		TPMessage *chat_message{message(i_sender_id)};
-		if (!chat_message)
+			continue;
+		if (sender_id.endsWith(".msg"_L1))
 		{
-			const int user_idx{appUserModel()->userIdxFromFieldValue(USER_COL_ID, sender_id)};
-			QString user_name{user_idx != -1 ? appUserModel()->userName(user_idx) : std::move(tr("Unknown contact"))};
-			QString user_icon{user_idx != -1 ? appUserModel()->avatar(user_idx, false) : std::move("unknown-user")};
-			chat_message = createChatMessage(sender_id, std::move(user_name), std::move(user_icon));
+			sender_id.chop(4);
+			parseNewMessage(sender_id, sender_messages);
 		}
+		else if (sender_id.endsWith(".received"_L1))
+		{
+			sender_id.chop(9);
+			parseReceivedActionMessage(sender_id, sender_messages);
+		}
+		else if (sender_id.endsWith(".read"_L1))
+		{
+			sender_id.chop(5);
+			parseReadActionMessage(sender_id, sender_messages);
+		}
+		else if (sender_id.endsWith(".removed"_L1))
+		{
+			sender_id.chop(5);
+			parseRemovedActionMessage(sender_id, sender_messages);
+		}
+	} while (sender_idx += 2);
+}
+
+void TPMessagesManager::parseNewMessage(const QString &sender_id, const QString &sender_messages)
+{
+	const qsizetype i_sender_id{sender_id.toLong()};
+	TPMessage *chat_message{message(i_sender_id)};
+	if (!chat_message)
+		chat_message = createChatMessage(sender_id);
+	TPChat *chat_mngr{chatManager(sender_id)};
+	uint msg_idx{0};
+	do {
+		const QString &encoded_message{appUtils()->getCompositeValue(msg_idx, sender_messages, set_separator)};
+		if (encoded_message.isEmpty())
+			break;
+		chat_mngr->incomingMessage(encoded_message);
+	} while (++msg_idx);
+	chat_message->setExtraInfoLabel(QString::number(msg_idx + chat_mngr->unreadMessages()));
+}
+
+void TPMessagesManager::parseReceivedActionMessage(const QString &sender_id, const QString &action_message)
+{
+	const qsizetype i_sender_id{sender_id.toLong()};
+	if (message(i_sender_id))
+	{
 		TPChat *chat_mngr{chatManager(sender_id)};
 		uint msg_idx{0};
 		do {
-			const QString &encoded_message{appUtils()->getCompositeValue(msg_idx, sender_messages, set_separator)};
-			if (encoded_message.isEmpty())
+			const QString &message_received{appUtils()->getCompositeValue(msg_idx, action_message, set_separator)};
+			if (message_received.isEmpty())
 				break;
-			chat_mngr->incomingMessage(encoded_message);
+			chat_mngr->setSentMessageReceived(message_received.toUInt());
 		} while (++msg_idx);
-		chat_message->setExtraInfoLabel(QString::number(msg_idx + chat_mngr->unreadMessages()));
-	} while (sender_idx += 2);
+	}
+}
+
+void TPMessagesManager::parseReadActionMessage(const QString &sender_id, const QString &action_message)
+{
+	const qsizetype i_sender_id{sender_id.toLong()};
+	if (message(i_sender_id))
+	{
+		TPChat *chat_mngr{chatManager(sender_id)};
+		uint msg_idx{0};
+		do {
+			const QString &message_read{appUtils()->getCompositeValue(msg_idx, action_message, set_separator)};
+			if (message_read.isEmpty())
+				break;
+			chat_mngr->setSentMessageRead(message_read.toUInt());
+		} while (++msg_idx);
+	}
+}
+
+void TPMessagesManager::parseRemovedActionMessage(const QString &sender_id, const QString &action_message)
+{
+	const qsizetype i_sender_id{sender_id.toLong()};
+	if (message(i_sender_id))
+	{
+		TPChat *chat_mngr{chatManager(sender_id)};
+		uint msg_idx{0};
+		do {
+			const QString &message_removed{appUtils()->getCompositeValue(msg_idx, action_message, set_separator)};
+			if (message_removed.isEmpty())
+				break;
+			chat_mngr->removeMessage(message_removed.toUInt());
+		} while (++msg_idx);
+	}
 }
 
 void TPMessagesManager::createChatWindow_part2(TPChat *chat_manager)
@@ -365,12 +449,13 @@ void TPMessagesManager::createChatWindow_part2(TPChat *chat_manager)
 	chat_window->setProperty("parent", QVariant::fromValue(appItemManager()->appHomePage()));
 	connect(chat_window, SIGNAL(chatWindowIsActiveWindow(TPChat*)), this, SLOT(chatWindowIsActiveWindow(TPChat*)));
 	QMetaObject::invokeMethod(chat_window, "open");
+	chat_manager->setChatWindow(chat_window);
 	m_chatWindowList.insert(chat_manager->otherUserId(), chat_window);
 }
 
 void TPMessagesManager::chatWindowIsActiveWindow(TPChat *chat_manager)
 {
-	chat_manager->markAllMessagesRead();
+	chat_manager->markAllIncomingMessagesRead();
 }
 
 void TPMessagesManager::removeChatWindow(const QString &other_userid)

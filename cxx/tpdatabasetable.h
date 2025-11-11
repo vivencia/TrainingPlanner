@@ -1,7 +1,5 @@
 #pragma once
 
-#include "tpsettings.h"
-
 #include <QObject>
 #include <QVariant>
 #include <QStringList>
@@ -18,13 +16,15 @@ constexpr uint USERS_TABLE_ID{0x0006};
 
 QT_FORWARD_DECLARE_CLASS(QFile)
 
+using namespace Qt::Literals::StringLiterals;
+
 class TPDatabaseTable : public QObject
 {
 
 Q_OBJECT
 
 public:
-	static constexpr QLatin1StringView databaseFilesSubDir{"Database/"};
+	static constexpr QLatin1StringView databaseSubDir{"Database/"};
 
 	static constexpr QLatin1StringView databaseFileNames[APP_TABLES_NUMBER+1] = { ""_L1,
 									"ExercisesList.db.sqlite"_L1,
@@ -44,15 +44,18 @@ public:
 	inline ~TPDatabaseTable() { m_sqlLiteDB.close(); }
 
 	static TPDatabaseTable *createDBTable(const uint table_id, const bool auto_delete = true);
-	static QString createTableQuery(const uint table_id);
-	virtual inline bool createTable() { return execQuery(createTableQuery(m_tableId), false); }
+	void createTableQuery(const uint table_id);
+	virtual inline bool createTable()
+	{
+		createTableQuery(m_tableId);
+		if (execQuery(m_strQuery, false))
+			return createCmdFile();
+		return false;
+	}
 	virtual void updateTable() = 0;
 
-	//inline void setCallbackForDoneFunc( const std::function<void (TPDatabaseTable*)> &func ) { doneFunc = func; }
-	static inline QString dbFilePath(const uint table_id, const bool path_only = false)
-	{
-		return appSettings()->currentUserDir() + databaseFilesSubDir + (path_only ? QString{} : databaseFileNames[table_id]);
-	}
+	bool createCmdFile();
+	virtual QString dbFilePath(const uint table_id, const bool path_only = false);
 	inline uint tableId() const { return m_tableId; }
 	inline int uniqueId() const { return m_uniqueID; }
 	inline void setUniqueId(const int uid) { m_uniqueID = uid; }
@@ -76,8 +79,6 @@ public:
 	bool execQuery(const QString &str_query, const bool read_only = true, const bool close_db = true);
 	inline const QString &strQuery() const { return m_strQuery; }
 
-	QString createServerCmdFile(const QString &dir, const std::initializer_list<QString> &command_parts,
-									const bool overwrite = false) const;
 	bool executeCmdFile(const QString &cmd_file, const QString &success_message, const bool remove_file = true) const;
 
 signals:
@@ -100,5 +101,8 @@ protected:
 private:
 	QString m_tableName;
 	QThread *m_originalThread;
+
+	QString createServerCmdFile(const QString &dir, const std::initializer_list<QString> &command_parts,
+									const bool overwrite = false) const;
 };
 

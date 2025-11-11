@@ -11,6 +11,7 @@
 #include "dbusertable.h"
 #include "dbusermodel.h"
 #include "tpsettings.h"
+#include "tputils.h"
 
 #include <QDir>
 #include <QFileInfo>
@@ -84,12 +85,8 @@ void DBInterface::createThread(TPDatabaseTable *worker, const std::function<void
 	connect(worker, &TPDatabaseTable::threadFinished, this, [this,worker,thread] (const bool send_to_server)
 	{
 		if (send_to_server && appUserModel()->onlineAccount())
-		{
-			const QString &cmd_filename{worker->createServerCmdFile(TPDatabaseTable::dbFilePath(0, true),
-				{TPDatabaseTable::sqliteApp, TPDatabaseTable::databaseFileNames[worker->tableId()], worker->strQuery()})};
-			if (!cmd_filename.isEmpty())
-				appUserModel()->sendCmdFileToServer(cmd_filename);
-		}
+			worker->createCmdFile();
+
 		emit databaseReady(worker->uniqueId());
 
 		#ifndef QT_NO_DEBUG
@@ -128,27 +125,27 @@ void DBInterface::updateDB(TPDatabaseTable *worker)
 //-----------------------------------------------------------USER TABLE-----------------------------------------------------------
 void DBInterface::getAllUsers()
 {
-	DBUserTable worker{appUserModel()};
+	DBUserTable worker;
 	worker.getAllUsers();
 }
 
 void DBInterface::saveUser(const uint row)
 {
-	DBUserTable *worker{new DBUserTable{appUserModel()}};
+	DBUserTable *worker{new DBUserTable};
 	worker->addExecArg(row);
 	createThread(worker, [worker] () { worker->saveUser(); });
 }
 
 void DBInterface::removeUser(const uint row)
 {
-	DBUserTable *worker{new DBUserTable{nullptr}};
-	worker->addExecArg(appUserModel()->userId(row));
+	DBUserTable *worker{new DBUserTable};
+	worker->addExecArg(row);
 	createThread(worker, [worker] () { return worker->removeUser(); });
 }
 
 void DBInterface::deleteUserTable(const bool bRemoveFile)
 {
-	DBUserTable *worker{new DBUserTable{appUserModel()}};
+	DBUserTable *worker{new DBUserTable};
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 //-----------------------------------------------------------USER TABLE-----------------------------------------------------------
@@ -156,20 +153,20 @@ void DBInterface::deleteUserTable(const bool bRemoveFile)
 //-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 int DBInterface::getAllExercises()
 {
-	DBExercisesListTable *worker{new DBExercisesListTable{appExercisesList()}};
+	DBExercisesListTable *worker{new DBExercisesListTable};
 	createThread(worker, [worker] () { worker->getAllExercises(); });
 	return worker->uniqueId();
 }
 
 void DBInterface::saveExercises()
 {
-	DBExercisesListTable *worker{new DBExercisesListTable{appExercisesList()}};
+	DBExercisesListTable *worker{new DBExercisesListTable};
 	createThread(worker, [worker] () { return worker->saveExercises(); });
 }
 
 void DBInterface::removeExercise(const uint row)
 {
-	DBExercisesListTable *worker{new DBExercisesListTable{nullptr}};
+	DBExercisesListTable *worker{new DBExercisesListTable};
 	worker->addExecArg(appExercisesList()->id(row));
 	worker->addExecArg(row);
 	createThread(worker, [worker] () { return worker->removeEntry(); });
@@ -177,13 +174,13 @@ void DBInterface::removeExercise(const uint row)
 
 void DBInterface::deleteExercisesTable(const bool bRemoveFile)
 {
-	DBExercisesListTable *worker{new DBExercisesListTable{appExercisesList()}};
+	DBExercisesListTable *worker{new DBExercisesListTable};
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 
 void DBInterface::updateExercisesList()
 {
-	DBExercisesListTable *worker{new DBExercisesListTable{appExercisesList()}};
+	DBExercisesListTable *worker{new DBExercisesListTable};
 	connect(worker, &DBExercisesListTable::updatedFromExercisesList, this, [this] () {
 		appSettings()->setExercisesListVersion(m_exercisesListVersion);
 	});
@@ -215,7 +212,7 @@ void DBInterface::getExercisesListVersion()
 //-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 void DBInterface::getAllMesocycles()
 {
-	DBMesocyclesTable worker{appMesoModel()};
+	DBMesocyclesTable worker;
 	worker.getAllMesocycles();
 	if (appUserModel()->mainUserConfigured())
 		appMesoModel()->scanTemporaryMesocycles();
@@ -223,7 +220,7 @@ void DBInterface::getAllMesocycles()
 
 void DBInterface::saveMesocycle(const uint meso_idx)
 {
-	DBMesocyclesTable *worker{new DBMesocyclesTable{appMesoModel()}};
+	DBMesocyclesTable *worker{new DBMesocyclesTable};
 	worker->addExecArg(meso_idx);
 	createThread(worker, [worker] () { worker->saveMesocycle(); });
 }
@@ -232,14 +229,14 @@ void DBInterface::removeMesocycle(const uint meso_idx)
 {
 	removeMesoCalendar(meso_idx);
 	removeAllMesoSplits(meso_idx);
-	DBMesocyclesTable *worker{new DBMesocyclesTable{nullptr}};
+	DBMesocyclesTable *worker{new DBMesocyclesTable};
 	worker->addExecArg(appMesoModel()->id(meso_idx));
 	createThread(worker, [worker] () { return worker->removeEntry(); });
 }
 
 void DBInterface::deleteMesocyclesTable(const bool bRemoveFile)
 {
-	DBMesocyclesTable *worker{new DBMesocyclesTable{appMesoModel()}};
+	DBMesocyclesTable *worker{new DBMesocyclesTable};
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); });
 }
 //-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------

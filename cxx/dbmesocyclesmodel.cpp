@@ -639,14 +639,14 @@ QString DBMesocyclesModel::formatFieldToImport(const uint field, const QString &
 
 QString DBMesocyclesModel::mesoFileName(const uint meso_idx) const
 {
-	return appSettings()->userDir(client(meso_idx)) + mesosDir +
+	return appUserModel()->userDir(client(meso_idx)) + mesosSubDir +
 			(coach(meso_idx) != appUserModel()->userId(0) ? coach(meso_idx) + '/': QString{}) + name(meso_idx) + ".txt"_L1;
 }
 
 void DBMesocyclesModel::removeMesoFile(const uint meso_idx)
 {
 	const QString &mesofilename{mesoFileName(meso_idx)};
-	appUserModel()->removeFileFromServer(appUtils()->getFileName(mesofilename), mesosDir, coach(meso_idx));
+	appUserModel()->removeFileFromServer(appUtils()->getFileName(mesofilename), mesosSubDir, coach(meso_idx));
 	static_cast<void>(QFile::remove(mesofilename));
 }
 
@@ -668,13 +668,13 @@ void DBMesocyclesModel::sendMesoToUser(const uint meso_idx, const bool just_save
 				disconnect(*conn);
 				if (action_result)
 					appUserModel()->sendFileToServer(filename, nullptr, !isOwnMeso(meso_idx) ?
-						tr("Exercises Program sent to client") : QString{}, mesosDir + coach(meso_idx), client(meso_idx));
+						tr("Exercises Program sent to client") : QString{}, mesosSubDir + coach(meso_idx), client(meso_idx));
 			}
 		});
 	}
 	else
 		appUserModel()->sendFileToServer(filename, nullptr, !isOwnMeso(meso_idx) ? tr("Exercises Program sent to client") : QString{},
-										mesosDir + coach(meso_idx), client(meso_idx));
+										mesosSubDir + coach(meso_idx), client(meso_idx));
 }
 
 int DBMesocyclesModel::newMesoFromFile(const QString &filename, const bool from_coach, const std::optional<bool> &file_formatted)
@@ -742,33 +742,40 @@ int DBMesocyclesModel::importSplitFromFile(const QString &filename, const uint m
 
 void DBMesocyclesModel::viewOnlineMeso(const QString &coach, const QString &mesoFileName)
 {
-	const int request_id{appUserModel()->downloadFileFromServer(mesoFileName,
-										appSettings()->userDir(appUserModel()->userId(0)) + mesosDir + coach + '/',
-		QString{}, mesosDir + coach, appUserModel()->userId(0))};
-	if (request_id >= 0)
+	const int request_id{appUserModel()->downloadFileFromServer(mesoFileName, appUserModel()->userDir() + mesosSubDir + coach + '/',
+								QString{}, mesosSubDir + coach, appUserModel()->userId(0))};
+
+	auto getPage = [this] (const QString &meso_file_name) {
+		const int meso_idx{newMesoFromFile(meso_file_name, true)};
+		if (meso_idx >= 0)
+			getMesocyclePage(meso_idx);
+	};
+
+	if (request_id == TP_RET_CODE_DOWNLOAD_FAILED)
+		return;
+	else if (request_id == TP_RET_CODE_NO_CHANGES_SUCCESS)
 	{
-		auto conn{std::make_shared<QMetaObject::Connection>()};
-		*conn = connect(appUserModel(), &DBUserModel::fileDownloaded, this, [this,conn,request_id]
-									(const bool success, const uint requestid, const QString &localFileName)
-		{
-			if (request_id == requestid)
-			{
-				disconnect(*conn);
-				if (success)
-				{
-					const int meso_idx{newMesoFromFile(localFileName, true)};
-					if (meso_idx >= 0)
-						getMesocyclePage(meso_idx);
-				}
-			}
-		});
+		getPage(mesoFileName);
+		return;
 	}
+
+	auto conn{std::make_shared<QMetaObject::Connection>()};
+	*conn = connect(appUserModel(), &DBUserModel::fileDownloaded, this, [this,conn,request_id,getPage]
+												(const bool success, const uint requestid, const QString &localFileName)
+	{
+		if (request_id == requestid)
+		{
+			disconnect(*conn);
+			if (success)
+				getPage(localFileName);
+		}
+	});
 }
 
 void DBMesocyclesModel::scanTemporaryMesocycles()
 {
 	QFileInfoList mesos;
-	appUtils()->scanDir(appSettings()->userDir(appUserModel()->userId(0)) + mesosDir, mesos, "*.txt"_L1, true);
+	appUtils()->scanDir(appUserModel()->userDir() + mesosSubDir, mesos, "*.txt"_L1, true);
 	if (!mesos.isEmpty())
 	{
 		for(const auto &mesofile : std::as_const(mesos))

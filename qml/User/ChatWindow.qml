@@ -32,7 +32,7 @@ TPPopup {
 
 	onActiveFocusChanged: {
 		if (activeFocus)
-			chatWindowIsActiveWindow();
+			chatWindowIsActiveWindow(chatManager);
 	}
 
 	onOpened: txtMessage.forceActiveFocus();

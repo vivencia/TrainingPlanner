@@ -482,21 +482,24 @@ void TPOnlineServices::checkMessages(const int requestid, const QString &usernam
 	makeNetworkRequest(requestid, url);
 }
 
-void TPOnlineServices::sendMessage(const int requestid, const QString &username, const QString &passwd, const QString &receiver, const QString &encoded_message)
+void TPOnlineServices::sendMessage(const int requestid, const QString &username, const QString &passwd,
+										const QString &receiver, const QString &encoded_message)
 {
 	const QUrl &url{makeCommandURL(username, passwd, "sendmessage"_L1, receiver, "message"_L1, encoded_message)};
 	makeNetworkRequest(requestid, url);
 }
 
-void TPOnlineServices::chatMessageReceived(const int requestid, const QString &username, const QString &passwd, const QString &sender, const QString &msgid)
+void TPOnlineServices::chatMessageAcknowledgeReceived(const int requestid, const QString &username,
+										const QString &passwd, const QString &recipient, const QString &msgid)
 {
-	const QUrl &url{makeCommandURL(username, passwd, "messagereceived"_L1, sender, "messageid"_L1, msgid)};
+	const QUrl &url{makeCommandURL(username, passwd, "messagereceived"_L1, recipient, "messageid"_L1, msgid)};
 	makeNetworkRequest(requestid, url);
 }
 
-void TPOnlineServices::chatMessageRead(const int requestid, const QString &username, const QString &passwd, const QString &sender, const QString &msgid)
+void TPOnlineServices::chatMessageAcknowledgeRead(const int requestid, const QString &username, const QString &passwd,
+											const QString &recipient, const QString &msgid)
 {
-	const QUrl &url{makeCommandURL(username, passwd, "messageread"_L1, sender, "messageid"_L1, msgid)};
+	const QUrl &url{makeCommandURL(username, passwd, "messageread"_L1, recipient, "messageid"_L1, msgid)};
 	makeNetworkRequest(requestid, url);
 }
 

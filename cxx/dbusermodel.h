@@ -80,6 +80,11 @@ Q_PROPERTY(OnlineUserInfo *allUsers READ allUsers NOTIFY allUsersChanged FINAL)
 public:
 	explicit DBUserModel(QObject *parent = nullptr, const bool bMainUserModel = true);
 
+	inline QString userDir(const int user_idx = 0) const { return userDir(userId(user_idx)); }
+	QString userDir(const QString &userid) const;
+	QString profileFileName(const QString &userid) const;
+	QString profileFilePath(const QString &userid) const;
+
 	inline QString idLabel() const { return "Id: "_L1; }
 	inline QString onlineAccountUserLabel() const { return tr("Create online account: "); }
 	inline QString nameLabel() const { return tr("Name: "); }
@@ -316,6 +321,7 @@ public:
 							   const QString &subdir = QString{}, const QString &targetUser = QString{});
 	void removeFileFromServer(const QString &filename, const QString &subdir = QString{}, const QString &targetUser = QString{});
 	int listFilesFromServer(const QString &subdir, const QString &targetUser, const QString &filter = QString{});
+	void prepareCmdFile(const QString &filename);
 	void sendCmdFileToServer(const QString &cmd_filename);
 	void downloadCmdFilesFromServer(const QString &subdir);
 
@@ -371,7 +377,7 @@ signals:
 
 private:
 	QList<QStringList> m_usersData, m_tempUserData;
-	int m_tempRow, n_devices, n_cmdOrderValue;
+	int m_tempRow, n_devices, m_localCmdOrder, m_onlineCmdOrder;
 	QString m_onlineAccountId, m_password, m_defaultAvatar, m_emptyString;
 	std::optional<bool> mb_singleDevice, mb_userRegistered, mb_coachRegistered;
 	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses,
@@ -383,11 +389,6 @@ private:
 	OnlineUserInfo *m_allUsers;
 #endif
 
-	QString userDir(const int user_idx) const;
-	QString userDir(const QString &userid) const;
-	QString profileFileName(const QString &userid) const;
-	QString profileFilePath(const QString &userid) const;
-
 	QString getPhonePart(const QString &str_phone, const bool prefix) const;
 	void setPhoneBasedOnLocale();
 	QString generateUniqueUserId() const;
@@ -397,7 +398,9 @@ private:
 	void getOnlineDevicesList();
 	void switchToUser(const QString &new_userid, const bool user_switching_for_testing = false);
 	void downloadAllUserFiles(const QString &userid);
-	void lastOnlineCmd(const uint requestid, const QString &subdir = QString{});
+	void lastOnlineCmd(const uint requestid, const QString &subdir);
+	void lastLocalCmd(const QString &subdir);
+	void sendUnsentCmdFiles(const QString &subdir);
 	QString resume(const uint user_idx) const;
 	void checkIfCoachRegisteredOnline();
 	void getUserOnlineProfile(const QString &netName, const QString &save_as_filename);

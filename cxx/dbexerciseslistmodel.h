@@ -31,14 +31,14 @@ Q_PROPERTY(QString muscularGroupsLabel READ muscularGroupsLabel NOTIFY labelsCha
 Q_PROPERTY(QString mediaLabel READ mediaLabel NOTIFY labelsChanged)
 
 enum RoleNames {
-	exerciseIdRole = Qt::UserRole,
-	mainNameRole = Qt::UserRole+EXERCISES_LIST_COL_MAINNAME,
-	subNameRole = Qt::UserRole+EXERCISES_LIST_COL_SUBNAME,
-	muscularGroupRole = Qt::UserRole+EXERCISES_LIST_COL_MUSCULARGROUP,
-	mediaPathRole = Qt::UserRole+EXERCISES_LIST_COL_MEDIAPATH,
-	fromListRole = Qt::UserRole+EXERCISES_LIST_COL_FROMAPPLIST,
-	actualIndexRole = Qt::UserRole+EXERCISES_LIST_COL_ACTUALINDEX,
-	selectedRole = Qt::UserRole+EXERCISES_LIST_COL_SELECTED
+	exerciseIdRole		= Qt::UserRole,
+	mainNameRole		= Qt::UserRole + EXERCISES_LIST_COL_MAINNAME,
+	subNameRole			= Qt::UserRole + EXERCISES_LIST_COL_SUBNAME,
+	muscularGroupRole	= Qt::UserRole + EXERCISES_LIST_COL_MUSCULARGROUP,
+	mediaPathRole		= Qt::UserRole + EXERCISES_LIST_COL_MEDIAPATH,
+	fromListRole		= Qt::UserRole + EXERCISES_LIST_COL_FROMAPPLIST,
+	actualIndexRole		= Qt::UserRole + EXERCISES_LIST_COL_ACTUALINDEX,
+	selectedRole		= Qt::UserRole + EXERCISES_LIST_COL_SELECTED
 };
 
 public:
@@ -125,7 +125,10 @@ public:
 				return m_exercisesData.count();
 		}
 	}
+
 	inline int currentRow() const { return m_currentRow; }
+	void setCurrentRow(const int row);
+
 	Q_INVOKABLE inline int currentRealRow() const
 	{
 		if (m_currentRow == -1)
@@ -140,12 +143,12 @@ public:
 				return m_currentRow;
 		}
 	}
-	void setCurrentRow(const int row);
 
 	bool hasExercises() const { return !m_exercisesData.isEmpty(); };
 
+	void newExerciseFromList(QString &&name, QString &&subname, QString &&muscular_group);
 	Q_INVOKABLE void newExercise(const QString &name = QString{}, const QString &subname = QString{},
-											const QString &muscular_group = QString{});
+																						const QString &muscular_group = QString{});
 	Q_INVOKABLE void removeExercise(const uint index);
 	Q_INVOKABLE void setFilter(const QString &filter);
 	Q_INVOKABLE void search(const QString &search_term);

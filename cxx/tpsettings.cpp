@@ -39,7 +39,7 @@ QString TPSettings::userConfigFileName(const bool fullpath, const QString &useri
 	if (!fullpath)
 		return configfile;
 	else
-		return userDir(userid) + configfile;
+		return appUserModel()->userDir(userid) + configfile;
 }
 
 void TPSettings::importFromUserConfig(const QString &userid)
@@ -144,12 +144,6 @@ QStringList TPSettings::availableLanguages() const
 {
 	return QStringList{} << std::move("en_US"_L1) << std::move("pt_BR"_L1) << std::move("de_DE"_L1);
 }
-
-QString TPSettings::userDir(const QString &userid) const
-{
-	return m_localAppFilesDir + userid + '/';
-}
-
 //--------------------------------------------GLOBAL SETTINGS---------------------------------------------//
 
 //--------------------------------------------USER   SETTINGS---------------------------------------------//

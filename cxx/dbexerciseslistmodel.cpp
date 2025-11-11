@@ -14,7 +14,7 @@ constexpr uint fieldsNumberInDatabase{EXERCISES_LIST_COL_FROMAPPLIST+1}; //FromA
 
 DBExercisesListModel::DBExercisesListModel(QObject *parent, const bool bMainExercisesModel)
 	: QAbstractListModel{parent}, m_selectedEntryToReplace{0}, m_exercisesTableLastId{-1},
-							m_muscularFilterApplied{false}, m_searchFilterApplied{false}
+												m_muscularFilterApplied{false}, m_searchFilterApplied{false}
 {
 	if (bMainExercisesModel)
 	{
@@ -32,9 +32,9 @@ DBExercisesListModel::DBExercisesListModel(QObject *parent, const bool bMainExer
 		connect(appTr(), &TranslationClass::applicationLanguageChanged, this, &DBExercisesListModel::labelsChanged);
 
 		//Value is hardcoded based on the most current exercises list
-		m_exercisesData.reserve(305);
-		m_searchFilteredIndices.reserve(305);
-		m_muscularFilteredIndices.reserve(305);
+		m_exercisesData.reserve(304);
+		m_searchFilteredIndices.reserve(304);
+		m_muscularFilteredIndices.reserve(304);
 	}
 }
 
@@ -99,12 +99,20 @@ void DBExercisesListModel::setCurrentRow(const int row)
 	}
 }
 
+void DBExercisesListModel::newExerciseFromList(QString &&name, QString &&subname, QString &&muscular_group)
+{
+	setLastID(lastID() + 1);
+	appendList(std::move(QStringList{} << std::move(QString::number(lastID())) << std::move(name) << std::move(subname) <<
+				std::move(muscular_group) << QString{} << std::move("1"_L1) << std::move(QString::number(m_exercisesData.count())) <<
+				std::move("0"_L1)));
+}
+
 void DBExercisesListModel::newExercise(const QString &name, const QString &subname, const QString &muscular_group)
 {
 	setLastID(lastID() + 1);
-	appendList(std::move(QStringList{} << std::move(QString::number(lastID())) << std::move(name) <<
-				std::move(subname) << std::move(muscular_group) << std::move("qrc:/images/no-image.jpg"_L1) <<
-				std::move("0"_L1) << std::move(QString::number(m_exercisesData.count())) << std::move("0"_L1)));
+	appendList(std::move(QStringList{} << std::move(QString::number(lastID())) << std::move(name) << std::move(subname) <<
+				std::move(muscular_group) << QString{} << std::move("0"_L1) << std::move(QString::number(m_exercisesData.count())) <<
+				std::move("0"_L1)));
 }
 
 void DBExercisesListModel::removeExercise(const uint index)
@@ -580,7 +588,7 @@ bool DBExercisesListModel::setData(const QModelIndex &index, const QVariant &val
 	const int row{index.row()};
 	if (row >= 0 && row < m_exercisesData.count())
 	{
-		const int field{role-Qt::UserRole};
+		const int field{role - Qt::UserRole};
 		switch (role) {
 			case exerciseIdRole:
 			case mainNameRole:

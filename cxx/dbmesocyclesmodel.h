@@ -43,7 +43,7 @@ QT_FORWARD_DECLARE_CLASS(QMLMesoInterface)
 
 QT_FORWARD_DECLARE_CLASS(QFile)
 
-static const QLatin1StringView mesosDir{"mesocycles/"};
+static constexpr QLatin1StringView mesosSubDir{"mesocycles/"};
 
 class DBMesocyclesModel : public QObject
 {

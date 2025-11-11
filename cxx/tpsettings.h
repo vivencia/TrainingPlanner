@@ -127,8 +127,7 @@ public:
 	QStringList availableLanguages() const;
 
 	inline const QString &localAppFilesDir() const { return m_localAppFilesDir; }
-	QString userDir(const QString &userid) const;
-	inline QString currentUserDir() const { return userDir(currentUser()); }
+	inline QString currentUserDir() const { return m_localAppFilesDir + currentUser() + '/'; }
 
 signals:
 	void currentUserChanged();

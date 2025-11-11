@@ -12,7 +12,7 @@ class DBExercisesListTable final : public TPDatabaseTable
 Q_OBJECT
 
 public:
-	explicit DBExercisesListTable(DBExercisesListModel *model);
+	explicit DBExercisesListTable();
 
 	inline static QLatin1StringView tableName() { return "exercises_table"_L1; }
 	static QLatin1StringView createTableQuery();
@@ -26,7 +26,6 @@ signals:
 	void updatedFromExercisesList();
 
 private:
-	DBExercisesListModel *m_model;
 	uint m_exercisesTableLastId;
 	QStringList m_ExercisesList;
 

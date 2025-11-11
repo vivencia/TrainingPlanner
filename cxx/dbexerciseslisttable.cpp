@@ -1,14 +1,13 @@
 #include "dbexerciseslisttable.h"
 
 #include "dbexerciseslistmodel.h"
-
 #include "tputils.h"
 
 #include <QSqlError>
 #include <QThread>
 
-DBExercisesListTable::DBExercisesListTable(DBExercisesListModel *model)
-	: TPDatabaseTable{EXERCISES_TABLE_ID}, m_model{model}, m_exercisesTableLastId{1000}
+DBExercisesListTable::DBExercisesListTable()
+	: TPDatabaseTable{EXERCISES_TABLE_ID}, m_exercisesTableLastId{1000}
 {
 	setTableName(tableName());
 	m_uniqueID = appUtils()->generateUniqueId();
@@ -43,14 +42,14 @@ void DBExercisesListTable::getAllExercises()
 				QStringList data{EXERCISES_TOTAL_COLS};
 				for (uint i{EXERCISES_LIST_COL_ID}; i < EXERCISES_LIST_COL_ACTUALINDEX; ++i)
 					data[i] = std::move(m_workingQuery.value(static_cast<int>(i)).toString());
-				data[EXERCISES_LIST_COL_ACTUALINDEX] = std::move(QString::number(m_model->count()));
-				data[EXERCISES_LIST_COL_SELECTED] = '0';
-				m_model->appendList(std::move(data));
+				data[EXERCISES_LIST_COL_ACTUALINDEX] = std::move(QString::number(appExercisesList()->count()));
+				data[EXERCISES_LIST_COL_SELECTED] = std::move("0"_L1);
+				appExercisesList()->appendList(std::move(data));
 			} while (m_workingQuery.next ());
-			const uint highest_id{static_cast<uint>(m_model->_id(m_model->count() - 1))};
+			const uint highest_id{static_cast<uint>(appExercisesList()->_id(appExercisesList()->count() - 1))};
 			if (highest_id >= m_exercisesTableLastId)
 				m_exercisesTableLastId = highest_id + 1;
-			m_model->setLastID(m_exercisesTableLastId);
+			appExercisesList()->setLastID(m_exercisesTableLastId);
 		}
 		else //for whatever reason the database table is empty. Populate it with the app provided exercises list
 		{
@@ -86,13 +85,13 @@ void DBExercisesListTable::updateExercisesList()
 		uint idx{0};
 		for (const auto &data : std::as_const(m_ExercisesList))
 		{
-			const QStringList &fields{data.split(';')};
-			m_model->newExercise(fields.at(0), fields.at(1), fields.at(2).trimmed());
-			queryValues += std::move(m_model->makeTransactionStatementForDataBase(idx));
+			QStringList fields{std::move(data.split(';'))};
+			appExercisesList()->newExerciseFromList(std::move(fields[0]), std::move(fields[1]), std::move(fields.at(2).trimmed()));
+			queryValues += std::move(appExercisesList()->makeTransactionStatementForDataBase(idx));
 			++idx;
 		}
 
-		queryValues[queryValues.length()-1] = ';';
+		queryValues[queryValues.length() - 1] = ';';
 		if (m_sqlLiteDB.transaction())
 		{
 			m_strQuery = std::move(queryStart + queryValues);
@@ -114,7 +113,7 @@ void DBExercisesListTable::updateExercisesList()
 			}
 		}	
 	}
-	emit threadFinished();
+	emit threadFinished(true);
 }
 
 void DBExercisesListTable::saveExercises()
@@ -125,23 +124,23 @@ void DBExercisesListTable::saveExercises()
 	const QString &queryUpdate{u"UPDATE %1 SET primary_name=\'%2\', secondary_name=\'%3\', muscular_group=\'%4\', "
 									"media_path=\'%5\', from_list=0 WHERE id=%6 "_s};
 
-	for (uint i{0}; i < m_model->modifiedIndicesCount(); ++i)
+	for (uint i{0}; i < appExercisesList()->modifiedIndicesCount(); ++i)
 	{
-		const uint &idx{m_model->modifiedIndex(i)};
-		const QString &exerciseId{m_model->id(idx)};
+		const uint &idx{appExercisesList()->modifiedIndex(i)};
+		const QString &exerciseId{appExercisesList()->id(idx)};
 		const bool update{!(exerciseId.isEmpty() || exerciseId.toUInt() > m_exercisesTableLastId)};
 
-		if (m_model->_id(idx) > highest_id)
-			highest_id = m_model->_id(idx);		
+		if (appExercisesList()->_id(idx) > highest_id)
+			highest_id = appExercisesList()->_id(idx);
 		if (update)
 		{
-			m_strQuery += std::move(queryUpdate.arg(tableName(), m_model->mainName(idx), m_model->subName(idx),
-						m_model->muscularGroup(idx), m_model->mediaPath(idx), exerciseId));
+			m_strQuery += std::move(queryUpdate.arg(tableName(), appExercisesList()->mainName(idx), appExercisesList()->subName(idx),
+						appExercisesList()->muscularGroup(idx), appExercisesList()->mediaPath(idx), exerciseId));
 		}
 		else
 		{
-			m_strQuery += std::move(queryInsert.arg(tableName(), exerciseId, m_model->mainName(idx),
-						m_model->subName(idx), m_model->muscularGroup(idx), m_model->mediaPath(idx)));
+			m_strQuery += std::move(queryInsert.arg(tableName(), exerciseId, appExercisesList()->mainName(idx),
+						appExercisesList()->subName(idx), appExercisesList()->muscularGroup(idx), appExercisesList()->mediaPath(idx)));
 		}
 	}
 	bool ok{false};
@@ -153,7 +152,7 @@ void DBExercisesListTable::saveExercises()
 			if (m_sqlLiteDB.commit())
 			{
 				m_exercisesTableLastId = highest_id;
-				m_model->clearModifiedIndices();
+				appExercisesList()->clearModifiedIndices();
 				ok = true;
 			}
 			#ifndef QT_NO_DEBUG
@@ -172,18 +171,16 @@ void DBExercisesListTable::saveExercises()
 
 void DBExercisesListTable::getExercisesList()
 {
-	QFile exercisesListFile{":/extras/exerciseslist.lst"_L1};
-	if (exercisesListFile.open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
+	QFile *exercises_list_file{appUtils()->openFile(":/extras/exerciseslist.lst"_L1)};
+	if (exercises_list_file)
 	{
-		char buf[512];
-		if (exercisesListFile.readLine(buf, sizeof(buf)) < 0) //read version
-			return;
-		do
-		{
-			if (exercisesListFile.readLine(buf, sizeof(buf)) < 0)
-				continue;
-			m_ExercisesList.append(buf);
-		} while (!exercisesListFile.atEnd());
-		exercisesListFile.close();
+		m_ExercisesList.reserve(304);
+		QString line{1024, QChar{0}};
+		QTextStream stream{exercises_list_file};
+		stream.readLineInto(&line); //skip first line
+		while (stream.readLineInto(&line))
+			m_ExercisesList.append(std::move(line));
+		exercises_list_file->close();
+		delete exercises_list_file;
 	}
 }

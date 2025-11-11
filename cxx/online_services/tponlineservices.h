@@ -85,8 +85,8 @@ public:
 
 	void checkMessages(const int requestid, const QString &username, const QString &passwd);
 	void sendMessage(const int requestid, const QString &username, const QString &passwd, const QString &receiver, const QString &encoded_message);
-	void chatMessageReceived(const int requestid, const QString &username, const QString &passwd, const QString &sender, const QString &msgid);
-	void chatMessageRead(const int requestid, const QString &username, const QString &passwd, const QString &sender, const QString &msgid);
+	void chatMessageAcknowledgeReceived(const int requestid, const QString &username, const QString &passwd, const QString &recipient, const QString &msgid);
+	void chatMessageAcknowledgeRead(const int requestid, const QString &username, const QString &passwd, const QString &recipient, const QString &msgid);
 	void removeMessage(const int requestid, const QString &username, const QString &passwd, const QString &receiver, const QString &msgid);
 
 signals:

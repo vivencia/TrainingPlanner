@@ -3,9 +3,11 @@
 #include "dbexerciseslisttable.h"
 #include "dbmesocalendartable.h"
 #include "dbmesocyclestable.h"
+#include "dbusermodel.h"
 #include "dbusertable.h"
 #include "dbworkoutsorsplitstable.h"
 #include "osinterface.h"
+#include "tpsettings.h"
 #include "tputils.h"
 
 #include <QFile>
@@ -18,30 +20,51 @@ TPDatabaseTable *TPDatabaseTable::createDBTable(const uint table_id, const bool 
 	TPDatabaseTable *db_table{nullptr};
 	switch (table_id)
 	{
-		case EXERCISES_TABLE_ID: db_table = new DBExercisesListTable{nullptr}; break;
-		case MESOCYCLES_TABLE_ID: db_table = new DBMesocyclesTable{nullptr}; break;
+		case EXERCISES_TABLE_ID: db_table = new DBExercisesListTable; break;
+		case MESOCYCLES_TABLE_ID: db_table = new DBMesocyclesTable; break;
 		case MESOSPLIT_TABLE_ID: db_table = new DBWorkoutsOrSplitsTable{MESOSPLIT_TABLE_ID}; break;
 		case MESOCALENDAR_TABLE_ID: db_table = new DBMesoCalendarTable{nullptr}; break;
 		case WORKOUT_TABLE_ID: db_table = new DBWorkoutsOrSplitsTable{WORKOUT_TABLE_ID}; break;
-		case USERS_TABLE_ID: db_table = new DBUserTable{nullptr}; break;
+		case USERS_TABLE_ID: db_table = new DBUserTable; break;
 	}
 	if (db_table && auto_delete)
 		db_table->deleteLater();
 	return db_table;
 }
 
-QString TPDatabaseTable::createTableQuery(const uint table_id)
+void TPDatabaseTable::createTableQuery(const uint table_id)
 {
 	switch (table_id)
 	{
-		case EXERCISES_TABLE_ID: return QString{DBExercisesListTable::createTableQuery()}.arg(DBExercisesListTable::tableName());
-		case MESOCYCLES_TABLE_ID: return QString{DBMesocyclesTable::createTableQuery()}.arg(DBMesocyclesTable::tableName());
-		case MESOSPLIT_TABLE_ID: return QString{DBWorkoutsOrSplitsTable::createTableQuery()}.arg(DBWorkoutsOrSplitsTable::tableName(MESOSPLIT_TABLE_ID));
-		case MESOCALENDAR_TABLE_ID: return QString{DBMesoCalendarTable::createTableQuery()}.arg(DBMesoCalendarTable::tableName());
-		case WORKOUT_TABLE_ID: return QString{DBWorkoutsOrSplitsTable::createTableQuery()}.arg(DBWorkoutsOrSplitsTable::tableName(WORKOUT_TABLE_ID));
-		case USERS_TABLE_ID: return QString{DBUserTable::createTableQuery()}.arg(DBUserTable::tableName());
+		case EXERCISES_TABLE_ID:
+			m_strQuery = std::move(DBExercisesListTable::createTableQuery().arg(DBExercisesListTable::tableName())); break;
+		case MESOCYCLES_TABLE_ID:
+			m_strQuery = std::move(DBMesocyclesTable::createTableQuery().arg(DBMesocyclesTable::tableName())); break;
+		case MESOSPLIT_TABLE_ID:
+			m_strQuery = std::move(DBWorkoutsOrSplitsTable::createTableQuery().arg(DBWorkoutsOrSplitsTable::tableName(MESOSPLIT_TABLE_ID))); break;
+		case MESOCALENDAR_TABLE_ID:
+			m_strQuery = std::move(DBMesoCalendarTable::createTableQuery().arg(DBMesoCalendarTable::tableName())); break;
+		case WORKOUT_TABLE_ID:
+			m_strQuery = std::move(DBWorkoutsOrSplitsTable::createTableQuery().arg(DBWorkoutsOrSplitsTable::tableName(WORKOUT_TABLE_ID))); break;
+		case USERS_TABLE_ID:
+			m_strQuery = std::move(DBUserTable::createTableQuery().arg(DBUserTable::tableName())); break;
 	}
-	return QString{};
+}
+
+bool TPDatabaseTable::createCmdFile()
+{
+	const QString &cmd_filename{createServerCmdFile(dbFilePath(0, true), {sqliteApp, databaseFileNames[tableId()], strQuery()})};
+	if (!cmd_filename.isEmpty())
+	{
+		appUserModel()->prepareCmdFile(cmd_filename);
+		return true;
+	}
+	return false;
+}
+
+QString TPDatabaseTable::dbFilePath(const uint table_id, const bool path_only)
+{
+	return appSettings()->currentUserDir() + databaseSubDir + (path_only ? QString{} : databaseFileNames[table_id]);
 }
 
 void TPDatabaseTable::removeEntry(const bool bUseMesoId)
@@ -145,6 +168,26 @@ bool TPDatabaseTable::execQuery(const QString &str_query, const bool read_only, 
 	return ok;
 }
 
+//TODO
+bool TPDatabaseTable::executeCmdFile(const QString &cmd_file, const QString &success_message, const bool remove_file) const
+{
+	QFile *cmdfile{appUtils()->openFile(cmd_file)};
+	if (cmdfile)
+	{
+		QString command{1024, QChar{0}};
+		QTextStream stream{cmdfile};
+
+		while (stream.readLineInto(&command))
+		{
+			if (command.isEmpty() || command.startsWith('#'))
+				continue;
+			break;
+		}
+
+	}
+	return false;
+}
+
 QString TPDatabaseTable::createServerCmdFile(const QString &dir, const std::initializer_list<QString> &command_parts,
 												const bool overwrite) const
 {
@@ -188,24 +231,4 @@ QString TPDatabaseTable::createServerCmdFile(const QString &dir, const std::init
 			return QString{};
 	}
 	return cmd_filename;
-}
-
-//TODO
-bool TPDatabaseTable::executeCmdFile(const QString &cmd_file, const QString &success_message, const bool remove_file) const
-{
-	QFile *cmdfile{appUtils()->openFile(cmd_file)};
-	if (cmdfile)
-	{
-		QString command{1024, QChar{0}};
-		QTextStream stream{cmdfile};
-
-		while (stream.readLineInto(&command))
-		{
-			if (command.isEmpty() || command.startsWith('#'))
-				continue;
-			break;
-		}
-
-	}
-	return false;
 }

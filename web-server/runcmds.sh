@@ -23,14 +23,14 @@ if [ -f "$DEVICES_FILE" ]; then
 	done < "$DEVICES_FILE"
 else
 	echo "No devices file found in user's directory. Doing nothing. Exiting."
-	exit 1
+	exit 102
 fi
 
 N_DEVICES=${#DEVICES[@]}
 
 if [ "$N_DEVICES" -eq 0 ]; then
 	echo "No devices listed in devices file. Doing nothing. Exiting."
-	exit 2
+	exit 123
 fi
 
 check_device() {
@@ -46,15 +46,15 @@ check_device() {
 if [[ -f "$CMDFILE" && -r "$CMDFILE" ]]; then
 	DEVICE_ID=$(head -n 1 "$CMDFILE")
 	if check_device $DEVICE_ID; then
-		if source "$CMDFILE"; then
+		if source "$CMDFILE" 2>&1; then
 			echo "0"
 			exit 0
 		else
-			echo "1"
-			exit 1
+			echo "Source command failed"
+			exit 101
 		fi
 	fi
 else
 	echo "Error: File '$CMDFILE' does not exist or is not readable."
-	exit 1
+	exit 112
 fi

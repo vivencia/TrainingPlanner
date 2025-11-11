@@ -33,6 +33,7 @@ public:
 	Q_INVOKABLE void execAction(const int message_index, const uint action_id);
 	Q_INVOKABLE void itemClicked(const qsizetype message_id);
 
+	TPMessage *createChatMessage(const QString &userid);
 	/**
 	 * @brief Creates a chat entry in the messages window. Therefore, the message created will be added to the messages list
 	 * @param display_text should reflect the user name
@@ -43,6 +44,7 @@ public:
 	void openChatWindow(TPChat *chat_manager);
 	inline TPChat *chatManager(const QString &userid) const { return m_chatsList.value(userid); }
 	Q_INVOKABLE void openChat(const QString &username);
+	void startChatMessagesPolling(const QString &userid, const QString &password);
 
 	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
 	QVariant data(const QModelIndex &index, int role) const override final;
@@ -66,9 +68,12 @@ private:
 	QVariantMap m_chatWindowProperties;
 
 	void readAllChats();
-	void startChatMessagesPolling();
 	int newMessagesCheckingInterval() const;
 	void parseNewChatMessages(const QString &encoded_messages);
+	void parseNewMessage(const QString &sender_id, const QString &sender_messages);
+	void parseReceivedActionMessage(const QString &sender_id, const QString &action_message);
+	void parseReadActionMessage(const QString &sender_id, const QString &action_message);
+	void parseRemovedActionMessage(const QString &sender_id, const QString &action_message);
 	void createChatWindow_part2(TPChat *chat_manager);
 	void removeChatWindow(const QString &other_userid);
 
