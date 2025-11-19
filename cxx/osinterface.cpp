@@ -1,7 +1,7 @@
 #include "osinterface.h"
 
 #include "dbusermodel.h"
-#include "dbinterface.h"
+#include "thread_manager.h"
 #include "qmlitemmanager.h"
 #include "tpsettings.h"
 #include "tputils.h"
@@ -326,7 +326,7 @@ void OSInterface::checkWorkouts()
 
 	/*if (appMesoModel()->count() > 0)
 	{
-		DBMesoCalendarTable *calTable{new DBMesoCalendarTable{appDBInterface()->dbFilesPath()}};
+		DBMesoCalendarTable *calTable{new DBMesoCalendarTable{appThreadManager()->dbFilesPath()}};
 		QStringList dayInfoList;
 		calTable->dayInfo(QDate::currentDate(), dayInfoList);
 		if (!dayInfoList.isEmpty())

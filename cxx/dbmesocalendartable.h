@@ -5,44 +5,28 @@
 #include <QDate>
 #include <QObject>
 
-class DBMesoCalendarManager;
+#define CALENDAR_DATABASE_MESOID 0
+#define CALENDAR_DATABASE_DATE 1
+#define CALENDAR_DATABASE_DATA 2
+#define CALENDAR_DATABASE_TOTAL_FIELDS 3
 
-struct st_workoutDayInfo {
-	int meso_id;
-	QString trainingDay;
-	QString splitLetter;
-	bool completed;
-	QDate date;
-
-	explicit inline st_workoutDayInfo(): meso_id{-1}, trainingDay{" - "_L1}, splitLetter{'-'}, completed{false} {}
-};
+QT_FORWARD_DECLARE_CLASS(DBCalendarModel);
+QT_FORWARD_DECLARE_CLASS(DBModelInterfaceCalendar)
 
 class DBMesoCalendarTable final : public TPDatabaseTable
 {
 
+Q_OBJECT
+
 public:
-	explicit DBMesoCalendarTable(DBMesoCalendarManager *model);
-	inline ~DBMesoCalendarTable() { clearWorkoutsInfoList(); }
-
-	inline static QLatin1StringView tableName() { return "mesocycles_calendar_table"_L1; }
-	static QLatin1StringView createTableQuery();
-
+	explicit DBMesoCalendarTable();
+	QString dbFilePath() const override final;
+	QString dbFileName(const bool fullpath = true) const override final;
 	void updateTable() override final {}
-	void getMesoCalendar();
-	void saveMesoCalendar();
-	bool mesoCalendarSavedInDB(const QString &meso_id);
 
-	void workoutDayInfoForEntireMeso();
-	inline const QList<st_workoutDayInfo*> &workoutsInfo() const { return m_workoutsInfoList; }
+	bool getMesoCalendar();
+	std::pair<QVariant, QVariant> mesoCalendarSavedInDB();
 
-	//Functions for TPStatistics
-	void completedDaysForSplitWithinTimePeriod();
-	inline const QList<QDate> &retrievedDates() const { return m_completedWorkoutDates; }
-
-private:
-	DBMesoCalendarManager *m_model;
-	QList<QDate> m_completedWorkoutDates;
-	QList<st_workoutDayInfo*> m_workoutsInfoList;
-
-	inline void clearWorkoutsInfoList() { qDeleteAll(m_workoutsInfoList); m_workoutsInfoList.clear(); }
+signals:
+	void calendarLoaded(const uint meso_idx, const bool success);
 };

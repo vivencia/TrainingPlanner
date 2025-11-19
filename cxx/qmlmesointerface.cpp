@@ -1,6 +1,5 @@
 #include "qmlmesointerface.h"
 
-#include "dbinterface.h"
 #include "dbmesocalendarmanager.h"
 #include "dbmesocyclesmodel.h"
 #include "dbusermodel.h"
@@ -8,7 +7,6 @@
 #include "qmlmesosplitinterface.h"
 #include "qmlmesocalendarinterface.h"
 #include "qmlworkoutinterface.h"
-#include "osinterface.h"
 #include "tputils.h"
 #include "translationclass.h"
 
@@ -428,18 +426,14 @@ void QMLMesoInterface::getMesocyclePage()
 		appPagesListModel()->openPage(m_mesoPage);
 }
 
-void QMLMesoInterface::sendMesocycleFileToServer()
+void QMLMesoInterface::sendMesocycleFileToClient()
 {
-	if (m_canSendMesoToServer)
-	{
-		appMesoModel()->sendMesoToUser(m_mesoIdx);
-		m_canSendMesoToServer = false;
-	}
+	appMesoModel()->sendMesoToUser(m_mesoIdx);
 }
 
 void QMLMesoInterface::incorporateMeso()
 {
-	appDBInterface()->saveMesocycle(m_mesoIdx);
+	appMesoModel()->incorporateMeso(m_mesoIdx);
 }
 
 void QMLMesoInterface::createMesocyclePage()
@@ -511,9 +505,7 @@ void QMLMesoInterface::createMesocyclePage_part2()
 	appQmlEngine()->setObjectOwnership(m_mesoPage, QQmlEngine::CppOwnership);
 	m_mesoPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"_L1));
 
-	connect(appOsInterface(), &OSInterface::appAboutToExit, this, [this] () { sendMesocycleFileToServer(); });
 	appPagesListModel()->openPage(m_mesoPage, std::move(tr("Program: ") + name()), [this] () {
-		sendMesocycleFileToServer();
 		appMesoModel()->removeMesoManager(m_mesoIdx);
 	});
 
@@ -573,10 +565,10 @@ void QMLMesoInterface::mesoChanged(const uint meso_idx, const uint meso_field)
 			}
 		break;
 	}
-	appMesoModel()->sendMesoToUser(m_mesoIdx, true);
+
 	if (!appMesoModel()->isNewMeso(m_mesoIdx))
 	{
-		appDBInterface()->saveMesocycle(m_mesoIdx);
+		appThreadManager()->saveMesocycle(m_mesoIdx);
 		if (!ownMeso())
 			appMesoModel()->checkIfCanExport(m_mesoIdx);
 		else

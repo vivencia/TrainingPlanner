@@ -2,7 +2,7 @@
 
 #include "../dbmesocalendarmanager.h"
 #include "../dbmesocyclesmodel.h"
-#include "../dbinterface.h"
+#include "../thread_manager.h"
 
 #include <QtCharts/QtCharts>
 #include <QtCharts/QAreaSeries>
@@ -47,7 +47,7 @@ void TPStatistics::createDataSet(const uint meso_idx, const QChar &splitLetter)
 	}
 
 	auto conn = std::make_shared<QMetaObject::Connection>();
-	*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [this,conn,meso_idx,splitLetter]
+	*conn = connect(appThreadManager(), &ThreadManager::databaseReadyWithData, this, [this,conn,meso_idx,splitLetter]
 										(const uint table_idx, QVariant data) {
 		if (table_idx == MESOSPLIT_TABLE_ID)
 		{
@@ -60,7 +60,7 @@ void TPStatistics::createDataSet(const uint meso_idx, const QChar &splitLetter)
 			}
 		}
 	});
-	//appDBInterface()->getExercisesForSplitWithinMeso(meso_idx, splitLetter);
+	//appThreadManager()->getExercisesForSplitWithinMeso(meso_idx, splitLetter);
 
 	m_workingDataSet = new DataSet;
 	m_workingDataSet->m_MesoIdx = meso_idx;
@@ -145,31 +145,31 @@ void TPStatistics::generateDataSet()
 	const uint mesoIdx(m_workingDataSet->m_MesoIdx);
 	if (!appMesoModel()->mesoCalendarManager()->hasDBData(mesoIdx))
 	{
-		connect(appDBInterface(), &DBInterface::databaseReady, this, [this] (const uint db_id) {
+		connect(appThreadManager(), &ThreadManager::databaseReady, this, [this] (const uint db_id) {
 			generateDataSet();
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		appDBInterface()->getMesoCalendar(mesoIdx);
+		appThreadManager()->getMesoCalendar(mesoIdx);
 		return;
 	}
 	auto conn = std::make_shared<QMetaObject::Connection>();
-	*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this] (const uint table_idx, QVariant data) {
+	*conn = connect(appThreadManager(), &ThreadManager::databaseReadyWithData, this, [=,this] (const uint table_idx, QVariant data) {
 		if (table_idx == MESOCALENDAR_TABLE_ID)
 		{
 			disconnect(*conn);
 			const QList<QDate> &dates{data.value<QList<QDate>>()};
 			createXData(dates);
 			auto conn2 = std::make_shared<QMetaObject::Connection>();
-			*conn2 = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this] (const uint table_idx, QVariant data2) {
+			*conn2 = connect(appThreadManager(), &ThreadManager::databaseReadyWithData, this, [=,this] (const uint table_idx, QVariant data2) {
 				if (table_idx == WORKOUT_TABLE_ID)
 				{
 					disconnect(*conn2);
 					createYData(data2.value<QList<QList<QStringList>>>());
 				}
 			});
-			//appDBInterface()->workoutsInfoForTimePeriod(m_workingDataSet->m_ExercisesList, dates);
+			//appThreadManager()->workoutsInfoForTimePeriod(m_workingDataSet->m_ExercisesList, dates);
 		}
 	});
-	//appDBInterface()->completedDaysForSplitWithinTimePeriod(m_workingDataSet->m_SplitLetter, m_startDate, m_endDate);
+	//appThreadManager()->completedDaysForSplitWithinTimePeriod(m_workingDataSet->m_SplitLetter, m_startDate, m_endDate);
 }
 
 void TPStatistics::update(const int exercise_idx, QAbstractSeries *series)

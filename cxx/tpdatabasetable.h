@@ -1,5 +1,7 @@
 #pragma once
 
+#include "thread_manager.h"
+
 #include <QObject>
 #include <QVariant>
 #include <QStringList>
@@ -13,7 +15,9 @@ constexpr uint MESOSPLIT_TABLE_ID{0x0003};
 constexpr uint MESOCALENDAR_TABLE_ID{0x0004};
 constexpr uint WORKOUT_TABLE_ID{0x0005};
 constexpr uint USERS_TABLE_ID{0x0006};
+constexpr uint CHAT_TABLE_ID{0x0007};
 
+QT_FORWARD_DECLARE_CLASS(DBModelInterface)
 QT_FORWARD_DECLARE_CLASS(QFile)
 
 using namespace Qt::Literals::StringLiterals;
@@ -25,16 +29,6 @@ Q_OBJECT
 
 public:
 	static constexpr QLatin1StringView databaseSubDir{"Database/"};
-
-	static constexpr QLatin1StringView databaseFileNames[APP_TABLES_NUMBER+1] = { ""_L1,
-									"ExercisesList.db.sqlite"_L1,
-									"Mesocycles.db.sqlite"_L1,
-									"MesocyclesSplits.db.sqlite"_L1,
-									"MesoCalendar.db.sqlite"_L1,
-									"Workouts.db.sqlite"_L1,
-									"Users.db.sqlite"_L1,
-	};
-
 	static constexpr QLatin1StringView sqliteApp{"sqlite3"_L1};
 
 	TPDatabaseTable(const TPDatabaseTable &other) = delete;
@@ -43,66 +37,69 @@ public:
 	TPDatabaseTable& operator() (TPDatabaseTable &&other) = delete;
 	inline ~TPDatabaseTable() { m_sqlLiteDB.close(); }
 
-	static TPDatabaseTable *createDBTable(const uint table_id, const bool auto_delete = true);
-	void createTableQuery(const uint table_id);
-	virtual inline bool createTable()
-	{
-		createTableQuery(m_tableId);
-		if (execQuery(m_strQuery, false))
-			return createCmdFile();
-		return false;
-	}
+	virtual QString dbFilePath() const;
+	virtual QString dbFileName(const bool fullpath = true) const = 0;
 	virtual void updateTable() = 0;
 
-	bool createCmdFile();
-	virtual QString dbFilePath(const uint table_id, const bool path_only = false);
 	inline uint tableId() const { return m_tableId; }
 	inline int uniqueId() const { return m_uniqueID; }
 	inline void setUniqueId(const int uid) { m_uniqueID = uid; }
 	inline bool deleteAfterThreadFinished() const { return m_deleteAfterFinished; }
-	inline QThread *originalThread() const { return m_originalThread; }
-	inline void addExecArg(const QVariant &arg) { m_execArgs.append(arg); }
-	inline void clearExecArgs() { m_execArgs.clear(); }
-	inline void changeExecArg(const QVariant &arg, const uint pos)
-	{
-		if (pos < m_execArgs.count())
-			m_execArgs[pos] = arg;
-	}
 
-	void removeEntry(const bool bUseMesoId = false);
-	void removeTemporaries(const bool bUseMesoId = false);
-	void clearTable();
-	void removeDBFile();
+	std::pair<bool,bool> createTable();
+	std::pair<bool,bool> insertRecord();
+	std::pair<bool,bool> insertRecords();
+	std::pair<bool,bool> updateRecord();
+	std::pair<bool,bool> updateFieldsOfRecord();
+	std::pair<bool,bool> updateRecords();
+	std::pair<bool,bool> removeRecord();
+	std::pair<bool,bool> clearTable();
+	std::pair<bool,bool> removeTemporaries();
+
+	bool createCmdFile();
+	inline const QStringList &databaseFilenamesPool() const { return m_databaseFilenamesPool;}
 
 	bool openDatabase(const bool read_only = false);
 	QSqlQuery getQuery() const;
 	bool execQuery(const QString &str_query, const bool read_only = true, const bool close_db = true);
 	inline const QString &strQuery() const { return m_strQuery; }
 
-	bool executeCmdFile(const QString &cmd_file, const QString &success_message, const bool remove_file = true) const;
+	inline void setDBModelInterface(DBModelInterface *dbmodel_interface) { m_dbModelInterface = dbmodel_interface; }
+	inline std::function<void()> threadedFunction(ThreadManager::StandardOps op) const { return m_threadedFunctions.value(op); }
+	inline void setReadAllRecordsFunc(const std::function<bool()> &func) { m_readAllRecordsFunc = func;}
+	inline std::function<std::pair<QVariant,QVariant>()> &customQueryFunc() { return m_customQueryFunc; }
+	inline void setCustQueryFunction(std::function<std::pair<QVariant,QVariant>()> &func) { m_customQueryFunc = func; }
+
+public slots:
+	void startAction(const int unique_id, ThreadManager::StandardOps operation);
 
 signals:
-	void threadFinished(const bool send_to_server = false);
+	void actionFinished(const ThreadManager::StandardOps op, QVariant &&return_value1, QVariant &&return_value2);
 
 protected:
-	explicit inline TPDatabaseTable(const uint table_id, QObject *parent = nullptr)
-		: QObject{parent}, m_tableId{table_id}, m_deleteAfterFinished{true} { m_originalThread = thread(); }
+	explicit TPDatabaseTable(const uint table_id, DBModelInterface *dbmodel_interface = nullptr);
 
-	inline void setTableName(const QLatin1StringView &table_name) { m_tableName = std::move(QString{table_name}); }
+	static constexpr QLatin1StringView dbfile_extension{ ".db.sqlite"_L1 };
+	void setUpConnection();
+
 	QSqlDatabase m_sqlLiteDB;
 	QSqlQuery m_workingQuery;
 	QString m_strQuery;
-	QVariantList m_execArgs;
-
+	QStringList m_databaseFilenamesPool;
+	const QLatin1StringView *m_tableName;
+	const QLatin1StringView (*m_fieldNames)[2];
+	int m_uniqueID, m_fieldCount;
 	uint m_tableId;
-	int m_uniqueID;
 	bool m_deleteAfterFinished;
 
-private:
-	QString m_tableName;
-	QThread *m_originalThread;
+	DBModelInterface *m_dbModelInterface;
 
-	QString createServerCmdFile(const QString &dir, const std::initializer_list<QString> &command_parts,
+private:
+	QHash<ThreadManager::StandardOps, std::function<void()>> m_threadedFunctions;
+	std::function<std::pair<QVariant,QVariant>()> m_customQueryFunc;
+	std::function<bool()> m_readAllRecordsFunc;
+
+	bool createServerCmdFile(const QString &dir, const std::initializer_list<QString> &command_parts,
 									const bool overwrite = false) const;
 };
 

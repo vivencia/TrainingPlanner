@@ -1,5 +1,7 @@
 #pragma once
 
+#include "dbmodelinterface.h"
+
 #include <QAbstractListModel>
 #include <QQmlEngine>
 
@@ -13,6 +15,8 @@
 #define EXERCISES_LIST_COL_SELECTED 7
 #define EXERCISES_TOTAL_COLS EXERCISES_LIST_COL_SELECTED+1
 
+QT_FORWARD_DECLARE_CLASS(DBExercisesListTable)
+QT_FORWARD_DECLARE_CLASS(DBModelInterfaceExercisesList);
 QT_FORWARD_DECLARE_CLASS(QFile)
 
 class DBExercisesListModel : public QAbstractListModel
@@ -42,7 +46,7 @@ enum RoleNames {
 };
 
 public:
-	explicit DBExercisesListModel(QObject *parent = nullptr, const bool bMainExercisesModel = true);
+	explicit DBExercisesListModel(QObject *parent = nullptr);
 
 	inline QString exerciseNameLabel() const { return tr("Exercise: "); }
 	inline QString exerciseSpecificsLabel() const { return tr("Specifics: "); }
@@ -148,8 +152,9 @@ public:
 
 	void newExerciseFromList(QString &&name, QString &&subname, QString &&muscular_group);
 	Q_INVOKABLE void newExercise(const QString &name = QString{}, const QString &subname = QString{},
-																						const QString &muscular_group = QString{});
+																	const QString &muscular_group = QString{});
 	Q_INVOKABLE void removeExercise(const uint index);
+
 	Q_INVOKABLE void setFilter(const QString &filter);
 	Q_INVOKABLE void search(const QString &search_term);
 	Q_INVOKABLE QString getFilter() const { return m_filterString; }
@@ -161,25 +166,12 @@ public:
 	inline const QString &selectedEntriesValue_fast(const uint index, const uint field) const { return m_exercisesData.at(m_selectedEntries.at(index).real_index).at(field); }
 	inline uint selectedEntriesCount() const { return m_selectedEntries.count(); }
 
-	inline void clearModifiedIndices() { m_modifiedIndices.clear(); }
-	inline void addModifiedIndex(const uint index)
-	{
-		if (!m_modifiedIndices.contains(index))
-			m_modifiedIndices.append(index);
-	}
-
-	inline uint modifiedIndicesCount() const { return m_modifiedIndices.count(); }
-	inline uint modifiedIndex(const uint pos) const { return m_modifiedIndices.at(pos); }
-
-	void setLastID(uint exercisesTableLastId) { m_exercisesTableLastId = exercisesTableLastId; }
-	inline int lastID() const { return m_exercisesTableLastId; }
 	bool collectExportData();
 
 	inline QStringList &lastRow() { return m_exercisesData.last(); }
-	void appendList(const QStringList &list);
-	void appendList(QStringList &&list);
+	void appendList(const QStringList &list, const bool save_to_database = false);
+	void appendList(QStringList &&list, const bool save_to_database = false);
 	void clear();
-	QString makeTransactionStatementForDataBase(const uint index) const;
 
 	int exportToFile(const QString &filename, QFile *out_file = nullptr) const;
 	int exportToFormattedFile(const QString &filename, QFile *out_file = nullptr) const;
@@ -210,19 +202,34 @@ private:
 	QList<QStringList> m_exercisesData;
 	QList<uint> m_muscularFilteredIndices;
 	QList<uint> m_searchFilteredIndices;
-	QList<uint> m_modifiedIndices;
 	QList<uint> m_exportRows;
 	QHash<int, QByteArray> m_roleNames;
 	QList<selectedEntry> m_selectedEntries;
-	QString m_filterString, m_searchString;
+	QString m_filterString, m_searchString, m_exercisesListVersion;
 	uint m_selectedEntryToReplace;
-	int m_exercisesTableLastId, m_currentRow;
+	int m_currentRow;
 	bool m_muscularFilterApplied, m_searchFilterApplied;
+	DBModelInterfaceExercisesList *m_dbModelInterface;
+	DBExercisesListTable *m_db;
 
 	QString untranslatedMuscularGroup(const QString &translated_group) const;
 	void resetSearchModel();
+	bool getExercisesListVersion();
+	void getAllExcercises();
+
 	static DBExercisesListModel *app_exercises_list;
 	friend DBExercisesListModel *appExercisesList();
+	friend class DBModelInterfaceExercisesList;
 };
 
 inline DBExercisesListModel *appExercisesList() { return DBExercisesListModel::app_exercises_list; }
+
+class DBModelInterfaceExercisesList : public DBModelInterface
+{
+
+public:
+	explicit inline DBModelInterfaceExercisesList() : DBModelInterface{appExercisesList()} {}
+	inline const QList<QStringList> &modelData() const { return appExercisesList()->m_exercisesData; }
+	inline QList<QStringList> &modelData() { return appExercisesList()->m_exercisesData; }
+};
+

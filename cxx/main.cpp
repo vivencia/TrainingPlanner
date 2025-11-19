@@ -1,12 +1,13 @@
-#include "dbinterface.h"
+#include "thread_manager.h"
 #include "dbexerciseslistmodel.h"
-#include "dbmesocyclesmodel.h"
+
 #include "dbusermodel.h"
 #include "osinterface.h"
 #include "qmlitemmanager.h"
 #include "tpsettings.h"
 #include "tputils.h"
 #include "translationclass.h"
+#include "thread_manager.h"
 #include "online_services/tponlineservices.h"
 #include "tpkeychain/tpkeychain.h"
 
@@ -76,15 +77,14 @@ int main(int argc, char *argv[])
 	app.setApplicationName("TrainingPlanner"_L1);
 
 	TPUtils tpUtils{};
+	ThreadManager threadManager{};
 	TPSettings tpSettings{};
 	TPKeyChain tpKeyChain{};
 	TranslationClass appTranslations{};
 	TPOnlineServices appTOS{};
 	OSInterface osInterface{};
 	DBUserModel userModel{};
-	DBMesocyclesModel mesocyclesModel{};
 	DBExercisesListModel exercisesModel{};
-	DBInterface appDB{};
 	QQmlApplicationEngine qmlEngine;
 	QmlItemManager rootQmlManager{&qmlEngine};
 

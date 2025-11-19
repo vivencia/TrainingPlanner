@@ -148,7 +148,7 @@ public:
 	Q_INVOKABLE void getWorkoutPage(const QDate &date);
 
 	void getMesocyclePage();
-	Q_INVOKABLE void sendMesocycleFileToServer();
+	Q_INVOKABLE void sendMesocycleFileToClient();
 	Q_INVOKABLE void incorporateMeso();
 
 signals:
@@ -184,7 +184,7 @@ private:
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	uint m_mesoIdx;
-	bool m_bCanExport, m_mesoNameOK, m_startDateOK, m_endDateOK, m_canSendMesoToServer;
+	bool m_bCanExport, m_mesoNameOK, m_startDateOK, m_endDateOK;
 	QString m_name, m_strStartDate, m_strEndDate, m_nameError;
 	QDate m_startDate, m_endDate, m_minimumMesoStartDate, m_maximumMesoEndDate;
 	int m_newMesoFieldCounter;

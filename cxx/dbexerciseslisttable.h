@@ -4,7 +4,7 @@
 
 #include <QObject>
 
-QT_FORWARD_DECLARE_CLASS(DBExercisesListModel)
+QT_FORWARD_DECLARE_CLASS(DBModelInterfaceExercisesList)
 
 class DBExercisesListTable final : public TPDatabaseTable
 {
@@ -12,23 +12,20 @@ class DBExercisesListTable final : public TPDatabaseTable
 Q_OBJECT
 
 public:
-	explicit DBExercisesListTable();
+	explicit DBExercisesListTable(DBModelInterfaceExercisesList *dbmodel_interface);
 
-	inline static QLatin1StringView tableName() { return "exercises_table"_L1; }
-	static QLatin1StringView createTableQuery();
-
+	QString dbFilePath() const override final;
+	QString dbFileName(const bool fullpath = true) const override final;
 	void updateTable() override final {}
-	void getAllExercises();
-	void updateExercisesList();
-	void saveExercises();
+
+	bool getAllExercises();
+	bool updateExercisesList();
 
 signals:
 	void updatedFromExercisesList();
 
 private:
-	uint m_exercisesTableLastId;
-	QStringList m_ExercisesList;
-
-	void getExercisesList();
+	QStringList m_exercisesList;
+	bool getExercisesList();
 };
 

@@ -1,6 +1,6 @@
 #include "tpworkoutscalendar.h"
 
-#include "dbinterface.h"
+#include "thread_manager.h"
 #include "dbmesocyclesmodel.h"
 #include "dbmesocalendartable.h"
 
@@ -184,7 +184,7 @@ void TPWorkoutsCalendar::getWorkoutInfo()
 	else if (m_workoutInfoList.isEmpty() || m_selectedDay->meso_id != m_workoutInfoList.at(0)->meso_id)
 	{
 		auto conn = std::make_shared<QMetaObject::Connection>();
-		*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this] (const uint table_idx, QVariant data) {
+		*conn = connect(appThreadManager(), &ThreadManager::databaseReadyWithData, this, [=,this] (const uint table_idx, QVariant data) {
 			if (table_idx == MESOCALENDAR_TABLE_ID)
 			{
 				disconnect(*conn);
@@ -192,7 +192,7 @@ void TPWorkoutsCalendar::getWorkoutInfo()
 				findWorkoutInList();
 			}
 		});
-		//appDBInterface()->getWorkoutDayInfoForAllWorkouts(m_selectedDay->meso_id);
+		//appThreadManager()->getWorkoutDayInfoForAllWorkouts(m_selectedDay->meso_id);
 		return;
 	}
 	findWorkoutInList();

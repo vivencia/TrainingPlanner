@@ -1,7 +1,7 @@
 #include "qmlexercisesdatabaseinterface.h"
 
 #include "dbexerciseslistmodel.h"
-#include "dbinterface.h"
+#include "thread_manager.h"
 #include "qmlitemmanager.h"
 #include "qmlworkoutinterface.h"
 #include "osinterface.h"
@@ -20,12 +20,12 @@ QmlExercisesDatabaseInterface::~QmlExercisesDatabaseInterface()
 
 void QmlExercisesDatabaseInterface::saveExercise()
 {
-	appDBInterface()->saveExercises();
+	appThreadManager()->saveExercises();
 }
 
 const uint QmlExercisesDatabaseInterface::removeExercise(const uint row)
 {
-	appDBInterface()->removeExercise(appExercisesList()->actualIndex(row));
+	appThreadManager()->removeExercise(appExercisesList()->actualIndex(row));
 	appExercisesList()->removeExercise(row);
 	return row > 0 ? row - 1 : 0;
 }
@@ -67,7 +67,7 @@ void QmlExercisesDatabaseInterface::getExercisesPage(QmlWorkoutInterface* connec
 	if (!m_exercisesComponent)
 	{
 		if (appExercisesList()->count() == 0)
-			appDBInterface()->getAllExercises();
+			appThreadManager()->getAllExercises();
 		createExercisesPage(connectPage);
 	}
 	else

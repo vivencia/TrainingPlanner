@@ -4,18 +4,19 @@
 
 #include <QObject>
 
-QT_FORWARD_DECLARE_CLASS(DBMesocyclesModel)
+QT_FORWARD_DECLARE_CLASS(DBModelInterfaceMesocycle)
 
 class DBMesocyclesTable final : public TPDatabaseTable
 {
 
+Q_OBJECT
+
 public:
-	explicit DBMesocyclesTable();
+	explicit DBMesocyclesTable(DBModelInterfaceMesocycle *dbmodel_interface);
 
-	inline static QLatin1StringView tableName() { return "mesocycles_table"_L1; }
-	static QLatin1StringView createTableQuery();
-
+	QString dbFilePath() const override final;
+	QString dbFileName(const bool fullpath = true) const override final;
 	void updateTable() override final {}
-	void getAllMesocycles();
-	void saveMesocycle();
+
+	bool getAllMesocycles();
 };

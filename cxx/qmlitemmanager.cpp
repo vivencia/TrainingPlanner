@@ -1,7 +1,7 @@
 #include "qmlitemmanager.h"
 
 #include "dbcalendarmodel.h"
-#include "dbinterface.h"
+#include "thread_manager.h"
 #include "dbexercisesmodel.h"
 #include "dbexerciseslistmodel.h"
 #include "dbmesocalendarmanager.h"
@@ -329,8 +329,8 @@ void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QStri
 	if (appExercisesList()->count() == 0)
 	{
 		auto conn{std::make_shared<QMetaObject::Connection>()};
-		const int conn_id{appDBInterface()->getAllExercises()};
-		*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn_id,conn,filter] (const int _conn_id) {
+		const int conn_id{appThreadManager()->getAllExercises()};
+		*conn = connect(appThreadManager(), &ThreadManager::databaseReady, this, [this,conn_id,conn,filter] (const int _conn_id) {
 			if (conn_id == _conn_id)
 			{
 				disconnect(*conn);

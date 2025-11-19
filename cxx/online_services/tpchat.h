@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../dbmodelinterface.h"
+
 #include <QAbstractListModel>
 #include <QQmlEngine>
 
@@ -18,6 +20,7 @@ constexpr uint MESSAGE_TEXT				{11};
 constexpr uint MESSAGE_MEDIA			{12};
 constexpr uint TP_CHAT_MESSAGE_FIELDS	{MESSAGE_MEDIA+1};
 
+QT_FORWARD_DECLARE_CLASS(DBModelInterfaceChat)
 QT_FORWARD_DECLARE_CLASS(TPChatDB)
 QT_FORWARD_DECLARE_STRUCT(ChatMessage)
 
@@ -64,6 +67,9 @@ public:
 	bool setData(const QModelIndex &index, const QVariant &value, int role) override final;
 	inline virtual int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
 
+public slots:
+	void chatLoaded();
+
 signals:
 	void countChanged();
 	void interlocutorNameChanged();
@@ -75,15 +81,28 @@ private:
 	uint m_userIdx, m_unreadMessages;
 	QList<ChatMessage*> m_messages;
 	QHash<int, QByteArray> m_roleNames;
-	TPChatDB *m_chatDB;
 	QObject *m_chatWindow;
+	DBModelInterfaceChat *m_dbModelInterface;
+	TPChatDB *m_db;
 
 	QString tempMessagesFile() const;
 	QString encodeMessageToUpload(ChatMessage* message) const;
+	void encodeMessageToSave(ChatMessage* message) const;
+	void updateFieldToSave(const uint msg_id, const uint field, const QString &value) const;
 	ChatMessage* decodeDownloadedMessage(const QString &encoded_message);
-	void saveNewMessageIntoDB(ChatMessage *message);
 	void saveMessageToFile(ChatMessage *message) const;
 
 	friend class TPMessagesManager;
 };
 
+class DBModelInterfaceChat : public DBModelInterface
+{
+
+public:
+	explicit inline DBModelInterfaceChat(TPChat *model) : DBModelInterface{model} {}
+	inline const QList<QStringList> &modelData() const { return m_modelData; }
+	inline QList<QStringList> &modelData() { return m_modelData; }
+
+private:
+	QList<QStringList> m_modelData;
+};

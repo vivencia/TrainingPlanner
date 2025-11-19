@@ -65,10 +65,11 @@ set( RESOURCE_FILES app_resources.qrc )
 set( CXX_SOURCES
 	cxx/main.cpp
 	cxx/return_codes.h
+	cxx/tpbool.h
 
 	cxx/translationclass.cpp cxx/translationclass.h
 	cxx/tputils.cpp cxx/tputils.h
-	cxx/dbinterface.h cxx/dbinterface.cpp
+	cxx/thread_manager.h cxx/thread_manager.cpp
 	cxx/qmlitemmanager.h cxx/qmlitemmanager.cpp
 	cxx/osinterface.h cxx/osinterface.cpp
 	cxx/tptimer.h cxx/tptimer.cpp
@@ -83,6 +84,7 @@ set( CXX_SOURCES
 	cxx/dbmesocalendartable.h cxx/dbmesocalendartable.cpp
 	cxx/dbworkoutsorsplitstable.h cxx/dbworkoutsorsplitstable.cpp
 	cxx/dbusertable.h cxx/dbusertable.cpp
+	cxx/dbmodelinterface.h cxx/dbmodelinterface.cpp
 	cxx/dbexerciseslistmodel.h cxx/dbexerciseslistmodel.cpp
 	cxx/dbmesocyclesmodel.h cxx/dbmesocyclesmodel.cpp
 	cxx/homepagemesomodel.h cxx/homepagemesomodel.cpp

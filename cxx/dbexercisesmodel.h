@@ -1,5 +1,7 @@
 #pragma once
 
+#include "dbmodelinterface.h"
+
 #include <QAbstractListModel>
 #include <QQmlEngine>
 
@@ -7,24 +9,25 @@
 #define EXERCISES_COL_MESOID 1
 #define EXERCISES_COL_CALENDARDAY 2
 #define EXERCISES_COL_SPLITLETTER 3
-#define EXERCISES_COL_EXERCISES 4
-#define EXERCISES_COL_TRACKRESTTIMES 5
-#define EXERCISES_COL_AUTORESTTIMES 6
-#define EXERCISES_COL_SETTYPES 7
-#define EXERCISES_COL_RESTTIMES 8
-#define EXERCISES_COL_SUBSETS 9
-#define EXERCISES_COL_REPS 10
-#define EXERCISES_COL_WEIGHTS 11
-#define EXERCISES_COL_NOTES 12
-#define EXERCISES_COL_COMPLETED 13
-#define WORKOUT_TOTALCOLS EXERCISES_COL_COMPLETED+1
+#define EXERCISES_COL_TRACKRESTTIMES 4
+#define EXERCISES_COL_AUTORESTTIMES 5
+#define EXERCISES_COL_EXERCISES 6
+#define EXERCISES_COL_NOTES 7
+#define EXERCISES_COL_COMPLETED 8
+#define EXERCISES_COL_SETTYPES 9
+#define EXERCISES_COL_RESTTIMES 10
+#define EXERCISES_COL_SUBSETS 11
+#define EXERCISES_COL_REPS 12
+#define EXERCISES_COL_WEIGHTS 13
+#define WORKOUT_TOTALCOLS EXERCISES_COL_WEIGHTS+1
 
 #define EXERCISE_IGNORE_NOTIFY_IDX 1000
 #define EXERCISE_ADD_NOTIFY_IDX 100
 #define EXERCISE_DEL_NOTIFY_IDX 101
 #define EXERCISE_MOVE_NOTIFY_IDX 102
 
-
+QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
+QT_FORWARD_DECLARE_CLASS(DBWorkoutsOrSplitsTable)
 QT_FORWARD_DECLARE_CLASS(DBMesoCalendarManager)
 QT_FORWARD_DECLARE_STRUCT(exerciseEntry)
 QT_FORWARD_DECLARE_STRUCT(stSet)
@@ -46,6 +49,18 @@ enum SetMode {
 	SM_START_REST = 2,
 	SM_START_EXERCISE = 3,
 	SM_COMPLETED = 4,
+};
+
+class DBModelInterfaceExercises : public DBModelInterface
+{
+
+public:
+	explicit DBModelInterfaceExercises(DBExercisesModel *model);
+	inline const QList<QStringList> &modelData() const { return m_modelData; }
+	inline QList<QStringList> &modelData() { return m_modelData; }
+
+private:
+	QList<QStringList> m_modelData;
 };
 
 class DBExercisesModel : public QAbstractListModel
@@ -78,15 +93,15 @@ Q_PROPERTY(QString restTimeUntrackedLabel READ restTimeUntrackedLabel NOTIFY lab
 Q_PROPERTY(QString splitLabel READ splitLabel NOTIFY labelChanged FINAL)
 
 public:
-	inline explicit DBExercisesModel(DBMesoCalendarManager *parent, const uint meso_idx, const int calendar_day)
-		: QAbstractListModel{reinterpret_cast<QObject*>(parent)},
-			m_calendarManager{parent}, m_mesoIdx{meso_idx}, m_calendarDay{calendar_day}, m_splitLetter{'N'}, m_workingExercise{11111}
+	inline explicit DBExercisesModel(DBMesoCalendarManager *parent, DBWorkoutsOrSplitsTable* db, const uint meso_idx, const int calendar_day)
+		: QAbstractListModel{reinterpret_cast<QObject*>(parent)}, m_calendarManager{parent}, m_db{db},
+			m_mesoIdx{meso_idx}, m_calendarDay{calendar_day}, m_splitLetter{'N'}, m_workingExercise{11111}
 	{
 		commonConstructor();
 	}
-	inline explicit DBExercisesModel(DBMesoCalendarManager *parent, const uint meso_idx, const QChar &splitletter)
-		: QAbstractListModel{reinterpret_cast<QObject*>(parent)},
-			m_calendarManager{parent}, m_mesoIdx{meso_idx}, m_calendarDay{-1}, m_splitLetter{splitletter}, m_workingExercise{11111}
+	inline explicit DBExercisesModel(DBMesoCalendarManager *parent, DBWorkoutsOrSplitsTable *db, const uint meso_idx, const QChar &splitletter)
+		: QAbstractListModel{reinterpret_cast<QObject*>(parent)}, m_calendarManager{parent}, m_db{db},
+			m_mesoIdx{meso_idx}, m_calendarDay{-1}, m_splitLetter{splitletter}, m_workingExercise{11111}
 	{
 		commonConstructor();
 	}
@@ -95,10 +110,8 @@ public:
 	void operator=(DBExercisesModel *other_model);
 
 	[[nodiscard]] inline DBMesoCalendarManager *calendarManager() const { return m_calendarManager; }
-	[[nodiscard]] inline const QString &id() const {return m_id; }
-	inline void setId(const QString &new_id) { m_id = new_id; changeCalendarDayId(); }
-	[[nodiscard]] inline const QString &mesoId() const {return m_mesoId; }
-	inline void setMesoId(const QString &new_mesoid) { m_mesoId = new_mesoid; }
+	[[nodiscard]] inline const QString &id() const { return m_dbModelInterface->modelData().at(0).at(EXERCISES_COL_ID); }
+	[[nodiscard]] inline const QString &mesoId() const { return m_dbModelInterface->modelData().at(0).at(EXERCISES_COL_MESOID); }
 	[[nodiscard]] inline const uint mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; }
 	[[nodiscard]] inline int calendarDay() const { return m_calendarDay; }
@@ -115,8 +128,7 @@ public:
 	[[nodiscard]] inline bool importModel() const { return m_importMode; }
 	inline void setImportMode(const bool import_mode) { m_importMode = import_mode; }
 
-	bool fromDataBase(const QStringList &data, const bool bClearSomeFieldsForReUse = false);
-	[[nodiscard]] const QStringList toDatabase(const bool to_export_file = false) const;
+	bool fromDatabase();
 	void clearExercises();
 
 	[[nodiscard]] int exportToFile(const QString &filename, QFile *out_file = nullptr) const;
@@ -216,10 +228,6 @@ public:
 	inline QString restTimeUntrackedLabel() const { return tr("As needed"); }
 	static inline QString splitLabel() { return tr("Split: "); }
 
-	void clearPreviousWorkouts() { m_previousWorkouts.clear(); }
-	inline void appendPreviousWorkout(const uint calendar_day) { m_previousWorkouts.append(calendar_day); }
-	const QList<uint> &previousWorkouts() const { return m_previousWorkouts; }
-
 	QVariant data(const QModelIndex &index, int role) const override final;
 	bool setData(const QModelIndex &index, const QVariant &value, int role) override final;
 	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return exerciseCount(); }
@@ -249,7 +257,6 @@ signals:
 
 private:
 	DBMesoCalendarManager *m_calendarManager;
-	QString m_id, m_mesoId;
 	const QString *m_identifierInFile;
 	uint m_mesoIdx, m_workingExercise;
 	int m_calendarDay;
@@ -258,6 +265,9 @@ private:
 	QList<exerciseEntry*> m_exerciseData;
 	QHash<int, QByteArray> m_roleNames;
 	QList<uint> m_previousWorkouts;
+
+	DBWorkoutsOrSplitsTable *m_db;
+	DBModelInterfaceExercises *m_dbModelInterface;
 
 	void commonConstructor();
 	void changeCalendarDayId();

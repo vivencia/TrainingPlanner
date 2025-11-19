@@ -20,7 +20,7 @@ TPPage {
 
 	property TPBalloonTip newMesoTip: newMesoLoader.item
 
-	onPageDeActivated: mesoManager.sendMesocycleFileToServer();
+	onPageDeActivated: mesoManager.sendMesocycleFileToClient();
 
 	Connections {
 		target: mesoManager
@@ -493,7 +493,7 @@ TPPage {
 				enabled: mesoManager.canExport
 				Layout.alignment: Qt.AlignCenter
 
-				onClicked: mesoManager.sendMesocycleFileToServer();
+				onClicked: mesoManager.sendMesocycleFileToClient();
 			}
 		} //ColumnLayout
 	} //ScrollView

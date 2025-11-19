@@ -2,7 +2,7 @@
 
 #include "dbcalendarmodel.h"
 #include "dbexercisesmodel.h"
-#include "dbinterface.h"
+#include "thread_manager.h"
 #include "dbmesocalendarmanager.h"
 #include "dbmesocyclesmodel.h"
 #include "qmlitemmanager.h"
@@ -24,9 +24,9 @@ QmlWorkoutInterface::QmlWorkoutInterface(QObject *parent, const uint meso_idx, c
 	setMainDateIsToday(date == QDate::currentDate());
 	if (!appMesoModel()->mesoCalendarManager()->hasDBData(m_mesoIdx))
 	{
-		const int id{appDBInterface()->getMesoCalendar(m_mesoIdx)};
+		const int id{appThreadManager()->getMesoCalendar(m_mesoIdx)};
 		auto conn{std::make_shared<QMetaObject::Connection>()};
-		*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn,id] (const uint thread_id)
+		*conn = connect(appThreadManager(), &ThreadManager::databaseReady, this, [this,conn,id] (const uint thread_id)
 		{
 			if (id == thread_id)
 			{
@@ -152,7 +152,7 @@ void QmlWorkoutInterface::setDayIsFinished(const bool finished)
 	{
 		calculateWorkoutTime();
 		rollUpExercises();
-		appDBInterface()->saveMesoCalendar(m_mesoIdx);
+		appThreadManager()->saveMesoCalendar(m_mesoIdx);
 	}
 }
 
@@ -318,9 +318,9 @@ void QmlWorkoutInterface::loadExercisesFromCalendarDay(const uint calendar_day)
 {
 	const int correct_calendar_day{m_workoutModel->calendarDay()};
 	m_workoutModel->setCalendarDay(calendar_day);
-	const int id{appDBInterface()->getWorkout(m_workoutModel)};
+	const int id{appThreadManager()->getWorkout(m_workoutModel)};
 	auto conn = std::make_shared<QMetaObject::Connection>();
-	*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn,id,correct_calendar_day] (const uint thread_id) {
+	*conn = connect(appThreadManager(), &ThreadManager::databaseReady, this, [this,conn,id,correct_calendar_day] (const uint thread_id) {
 		if (id == thread_id)
 		{
 			disconnect(*conn);
@@ -338,8 +338,8 @@ void QmlWorkoutInterface::getExercisesFromSplitPlan()
 	else
 	{
 		auto conn = std::make_shared<QMetaObject::Connection>();
-		const int id{appDBInterface()->getMesoSplit(split_model)};
-		*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn,id] (const uint thread_id) {
+		const int id{appThreadManager()->getMesoSplit(split_model)};
+		*conn = connect(appThreadManager(), &ThreadManager::databaseReady, this, [this,conn,id] (const uint thread_id) {
 			if (id == thread_id)
 			{
 				disconnect(*conn);
@@ -353,7 +353,7 @@ void QmlWorkoutInterface::exportWorkoutToSplitPlan()
 {
 	DBExercisesModel *split_model{appMesoModel()->splitModel(m_mesoIdx, m_workoutModel->splitLetter(), false)};
 	*split_model = m_workoutModel;
-	appDBInterface()->saveMesoSplit(split_model);
+	appThreadManager()->saveMesoSplit(split_model);
 }
 
 void QmlWorkoutInterface::resetWorkout()
@@ -551,7 +551,7 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 	connect(m_workoutModel, &DBExercisesModel::exerciseModified, this, [this] (const uint exercise_number, const uint exercise_idx, const uint set_number, const uint field) {
 		if (field != EXERCISE_IGNORE_NOTIFY_IDX)
 		{
-			appDBInterface()->saveWorkout(m_workoutModel);
+			appThreadManager()->saveWorkout(m_workoutModel);
 			if (field == EXERCISES_COL_COMPLETED)
 			{
 				const bool all_exercises_completed{m_workoutModel->allSetsCompleted()};
@@ -632,9 +632,9 @@ void QmlWorkoutInterface::continueInit()
 		emit notesChanged();
 		emit headerTextChanged();
 	}
-	const int id{appDBInterface()->getWorkout(m_workoutModel)};
+	const int id{appThreadManager()->getWorkout(m_workoutModel)};
 		auto conn{std::make_shared<QMetaObject::Connection>()};
-		*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn,id] (const uint thread_id) {
+		*conn = connect(appThreadManager(), &ThreadManager::databaseReady, this, [this,conn,id] (const uint thread_id) {
 		if (id == thread_id)
 		{
 			disconnect(*conn);
@@ -649,11 +649,11 @@ void QmlWorkoutInterface::verifyWorkoutOptions()
 	if (m_workoutModel->splitLetter() != 'R')
 	{
 		bool have_workoutoptions{true};
-		setCanImportFromSplitPlan(have_workoutoptions |= appDBInterface()->mesoHasSplitPlan(appMesoModel()->id(m_mesoIdx), m_workoutModel->splitLetter()));
+		setCanImportFromSplitPlan(have_workoutoptions |= appThreadManager()->mesoHasSplitPlan(appMesoModel()->id(m_mesoIdx), m_workoutModel->splitLetter()));
 		have_workoutoptions |= canImportFromSplitPlan();
 		auto conn{std::make_shared<QMetaObject::Connection>()};
-		const int id{appDBInterface()->getPreviousWorkouts(m_workoutModel)};
-		*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn,id,have_workoutoptions] (const uint db_id) mutable {
+		const int id{appThreadManager()->getPreviousWorkouts(m_workoutModel)};
+		*conn = connect(appThreadManager(), &ThreadManager::databaseReady, this, [this,conn,id,have_workoutoptions] (const uint db_id) mutable {
 			if (id == db_id)
 			{
 				disconnect(*conn);

@@ -1,9 +1,13 @@
 #pragma once
 
+#include "dbmodelinterface.h"
+
 #include <QAbstractListModel>
 #include <QQmlEngine>
 
 QT_FORWARD_DECLARE_CLASS(DBMesoCalendarManager)
+QT_FORWARD_DECLARE_CLASS(DBMesoCalendarTable)
+QT_FORWARD_DECLARE_CLASS(DBModelInterfaceCalendar);
 
 class DBCalendarModel : public QAbstractListModel
 {
@@ -12,10 +16,13 @@ Q_OBJECT
 QML_ELEMENT
 
 public:
-	explicit DBCalendarModel(DBMesoCalendarManager *parent, const uint meso_idx);
-	inline void setNMonths(const uint new_nmonths) { m_nmonths = new_nmonths; }
+	explicit DBCalendarModel(DBMesoCalendarManager *parent, DBMesoCalendarTable *db, const uint meso_idx);
+	DBModelInterfaceCalendar *dbModelInterface() const { return m_dbModelInterface; }
+
+	inline uint mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; }
 	QDate firstDateOfEachMonth(const uint index) const;
+	const QString &mesoId() const;
 
 	Q_INVOKABLE int getIndexFromDate(const QDate &date) const;
 	Q_INVOKABLE inline uint count() const { return m_nmonths; }
@@ -26,33 +33,33 @@ public:
 	Q_INVOKABLE bool isWorkoutDay(const QDate &date) const;
 	Q_INVOKABLE bool isWorkoutDay(const uint calendar_day) const;
 
-	Q_INVOKABLE QString dayText(const QDate &date) const;
-	Q_INVOKABLE QString workoutNumber(const QDate &date) const;
-	Q_INVOKABLE QString workoutNumber(const uint calendar_day) const;
-	Q_INVOKABLE QString splitLetter(const QDate &date) const;
-	Q_INVOKABLE QString splitLetter(const uint calendar_day) const;
-	Q_INVOKABLE void setSplitLetter(const QDate &date, const QString &new_splitletter);
-	Q_INVOKABLE void setSplitLetter(const uint calendar_day, const QString &new_splitletter);
-	Q_INVOKABLE QTime timeIn(const QDate &date) const;
-	Q_INVOKABLE QTime timeIn(const uint calendar_day) const;
-	Q_INVOKABLE void setTimeIn(const QDate &date, const QTime &new_timein);
-	Q_INVOKABLE void setTimeIn(const uint calendar_day, const QTime &new_timein);
-	Q_INVOKABLE QTime timeOut(const QDate &date) const;
-	Q_INVOKABLE QTime timeOut(const uint calendar_day) const;
-	Q_INVOKABLE void setTimeOut(const QDate &date, const QTime &new_timeout);
-	Q_INVOKABLE void setTimeOut(const uint calendar_day, const QTime &new_timeout);
-	Q_INVOKABLE QString location(const QDate &date) const;
-	Q_INVOKABLE QString location(const uint calendar_day) const;
-	Q_INVOKABLE void setLocation(const QDate &date, const QString &new_location);
-	Q_INVOKABLE void setLocation(const uint calendar_day, const QString &new_location);
-	Q_INVOKABLE QString notes(const QDate &date) const;
-	Q_INVOKABLE QString notes(const uint calendar_day) const;
-	Q_INVOKABLE void setNotes(const QDate &date, const QString &new_notes);
-	Q_INVOKABLE void setNotes(const uint calendar_day, const QString &new_notes);
-	Q_INVOKABLE bool completed(const QDate &date) const;
-	Q_INVOKABLE bool completed(const uint calendar_day) const;
-	Q_INVOKABLE void setCompleted(const QDate &date, const bool completed);
-	Q_INVOKABLE void setCompleted(const uint calendar_day, const bool completed);
+	QString dayText(const QDate &date) const;
+	QString workoutNumber(const QDate &date) const;
+	QString workoutNumber(const uint calendar_day) const;
+	QString splitLetter(const QDate &date) const;
+	QString splitLetter(const uint calendar_day) const;
+	void setSplitLetter(const QDate &date, const QString &new_splitletter);
+	void setSplitLetter(const uint calendar_day, const QString &new_splitletter);
+	QTime timeIn(const QDate &date) const;
+	QTime timeIn(const uint calendar_day) const;
+	void setTimeIn(const QDate &date, const QTime &new_timein);
+	void setTimeIn(const uint calendar_day, const QTime &new_timein);
+	QTime timeOut(const QDate &date) const;
+	QTime timeOut(const uint calendar_day) const;
+	void setTimeOut(const QDate &date, const QTime &new_timeout);
+	void setTimeOut(const uint calendar_day, const QTime &new_timeout);
+	QString location(const QDate &date) const;
+	QString location(const uint calendar_day) const;
+	void setLocation(const QDate &date, const QString &new_location);
+	void setLocation(const uint calendar_day, const QString &new_location);
+	QString notes(const QDate &date) const;
+	QString notes(const uint calendar_day) const;
+	void setNotes(const QDate &date, const QString &new_notes);
+	void setNotes(const uint calendar_day, const QString &new_notes);
+	bool completed(const QDate &date) const;
+	bool completed(const uint calendar_day) const;
+	void setCompleted(const QDate &date, const bool completed);
+	void setCompleted(const uint calendar_day, const bool completed);
 
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
 	QVariant data(const QModelIndex &index, int role) const override final;
@@ -64,7 +71,23 @@ signals:
 	void completedChanged(const QDate &date);
 
 private:
-	DBMesoCalendarManager* m_calendarManager;
+	DBMesoCalendarManager *m_calendarManager;
 	uint m_mesoIdx, m_nmonths;
 	QHash<int, QByteArray> m_roleNames;
+
+	DBMesoCalendarTable *m_db;
+	DBModelInterfaceCalendar *m_dbModelInterface;
 };
+
+class DBModelInterfaceCalendar : public DBModelInterface
+{
+
+public:
+	explicit inline DBModelInterfaceCalendar(DBCalendarModel *model) : DBModelInterface{model} {}
+	inline const QList<QStringList> &modelData() const { return m_modelData; }
+	inline QList<QStringList> &modelData() { return m_modelData; }
+
+private:
+	QList<QStringList> m_modelData;
+};
+

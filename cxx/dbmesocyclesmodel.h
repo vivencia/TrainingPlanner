@@ -1,6 +1,7 @@
 #pragma once
 
-//Must include the header files of properties that are pointers
+#include "dbmodelinterface.h"
+//Must include the header files of properties of custom types
 #include "homepagemesomodel.h"
 
 #include <QObject>
@@ -29,20 +30,23 @@
 #define MESOCYCLES_COL_IMPORTED_AND_UNACCEPTED 21
 
 enum MesoRoleNames {
-	mesoNameRole = Qt::UserRole + MESOCYCLES_COL_NAME,
-	mesoStartDateRole = Qt::UserRole + MESOCYCLES_COL_STARTDATE,
-	mesoEndDateRole = Qt::UserRole + MESOCYCLES_COL_ENDDATE,
-	mesoSplitRole = Qt::UserRole + MESOCYCLES_COL_SPLIT,
-	mesoCoachRole = Qt::UserRole + MESOCYCLES_COL_COACH,
-	mesoClientRole = Qt::UserRole + MESOCYCLES_COL_CLIENT
+	mesoNameRole		=	Qt::UserRole + MESOCYCLES_COL_NAME,
+	mesoStartDateRole	=	Qt::UserRole + MESOCYCLES_COL_STARTDATE,
+	mesoEndDateRole		=	Qt::UserRole + MESOCYCLES_COL_ENDDATE,
+	mesoSplitRole		=	Qt::UserRole + MESOCYCLES_COL_SPLIT,
+	mesoCoachRole		=	Qt::UserRole + MESOCYCLES_COL_COACH,
+	mesoClientRole		=	Qt::UserRole + MESOCYCLES_COL_CLIENT
 };
 
+QT_FORWARD_DECLARE_CLASS(DBMesocyclesModel)
+QT_FORWARD_DECLARE_CLASS(DBMesocyclesTable)
+QT_FORWARD_DECLARE_CLASS(DBModelInterfaceMesocycle);
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(DBMesoCalendarManager)
 QT_FORWARD_DECLARE_CLASS(QMLMesoInterface)
-
 QT_FORWARD_DECLARE_CLASS(QFile)
 
+static DBMesocyclesModel *app_meso_model(nullptr);
 static constexpr QLatin1StringView mesosSubDir{"mesocycles/"};
 
 class DBMesocyclesModel : public QObject
@@ -76,16 +80,13 @@ Q_PROPERTY(QString splitR READ splitR NOTIFY labelChanged FINAL)
 
 public:
 	explicit DBMesocyclesModel(QObject *parent = nullptr);
-	inline ~DBMesocyclesModel() { clear(); }
-	#ifndef Q_OS_ANDROID
-	void userSwitchingActions();
-	#endif
 
 	inline uint fieldCount() const { return MESOCYCLES_TOTAL_COLS; }
 	inline uint count() const { return m_mesoData.count(); }
 	QMLMesoInterface *mesoManager(const uint meso_idx);
 	void removeMesoManager(const uint meso_idx);
 	DBExercisesModel *splitModel(const uint meso_idx, const QChar &split_letter, const bool auto_load = true);
+	void incorporateMeso(const uint meso_idx);
 
 	uint startNewMesocycle(const bool bCreatePage, const std::optional<bool> bOwnMeso = std::nullopt);
 	Q_INVOKABLE inline void startNewMesocycle_QML(const bool bOwnMeso)
@@ -419,16 +420,16 @@ private:
 	int m_currentMesoIdx, m_mostRecentOwnMesoIdx, m_importMesoIdx, m_lowestTempMesoId;
 	bool m_bCanHaveTodaysWorkout;
 
-	#ifndef Q_OS_ANDROID
-	static QHash<QString,DBMesocyclesModel*> app_meso_models;
-	#else
+	DBModelInterfaceMesocycle *m_dbModelInterface;
+	DBMesocyclesTable *m_db;
+
 	static DBMesocyclesModel *app_meso_model;
-	#endif
 	friend DBMesocyclesModel *appMesoModel();
+	friend class DBModelInterfaceMesocycle;
 
 	inline QString newMesoTemporaryId() { return QString::number(m_lowestTempMesoId--); }
 	inline bool isMesoTemporary(const uint meso_idx) const { return _id(meso_idx) < 0; }
-	void clear();
+	void getAllMesocycles();
 	void loadSplits(const uint meso_idx, const uint thread_id);
 	int continueExport(const uint meso_idx, const QString &filename, const bool formatted) const;
 	int exportToFile_splitData(const uint meso_idx, QFile *mesoFile, const bool formatted) const;
@@ -437,9 +438,13 @@ signals:
 	void internalSignal(const uint _meso_idx, const uint _id, const bool _result);
 };
 
-#ifndef Q_OS_ANDROID
-#include "tpsettings.h"
-inline DBMesocyclesModel *appMesoModel() { return DBMesocyclesModel::app_meso_models.value(appSettings()->currentUser()); }
-#else
 inline DBMesocyclesModel *appMesoModel() { return DBMesocyclesModel::app_meso_model; }
-#endif
+
+class DBModelInterfaceMesocycle : public DBModelInterface
+{
+
+public:
+	explicit inline DBModelInterfaceMesocycle() : DBModelInterface{appMesoModel()} {}
+	inline const QList<QStringList> &modelData() const { return appMesoModel()->m_mesoData; }
+	inline QList<QStringList> &modelData() { return appMesoModel()->m_mesoData; }
+};

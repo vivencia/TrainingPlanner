@@ -2,7 +2,7 @@
 
 #include "dbexerciseslistmodel.h"
 #include "dbexercisesmodel.h"
-#include "dbinterface.h"
+#include "thread_manager.h"
 #include "dbmesocyclesmodel.h"
 #include "qmlitemmanager.h"
 #include "tpsettings.h"
@@ -59,9 +59,9 @@ void QmlMesoSplitInterface::swapMesoPlans()
 {
 	DBExercisesModel* tempSplit{currentSplitModel()};
 	m_splitModels[currentSplitLetter()] = m_splitModels.value(currentSwappableLetter());
-	appDBInterface()->saveMesoSplit(currentSplitModel());
+	appThreadManager()->saveMesoSplit(currentSplitModel());
 	m_splitModels[currentSwappableLetter()] = tempSplit;
-	appDBInterface()->saveMesoSplit(m_splitModels.value(currentSplitLetter()));
+	appThreadManager()->saveMesoSplit(m_splitModels.value(currentSplitLetter()));
 }
 
 //TODO
@@ -71,16 +71,16 @@ void QmlMesoSplitInterface::loadSplitFromPreviousMeso()
 	{
 		currentSplitModel()->setMesoId(m_prevMesoId);
 		auto conn = std::make_shared<QMetaObject::Connection>();
-		*conn = connect(appDBInterface(), &DBInterface::databaseReady, this, [this,conn] (const uint db_id) mutable {
+		*conn = connect(appThreadManager(), &ThreadManager::databaseReady, this, [this,conn] (const uint db_id) mutable {
 			if (db_id == MESOSPLIT_TABLE_ID)
 			{
 				disconnect(*conn);
 				currentSplitModel()->setMesoId(appMesoModel()->id(m_mesoIdx));
-				appDBInterface()->saveMesoSplit(currentSplitModel());
+				appThreadManager()->saveMesoSplit(currentSplitModel());
 				appMesoModel()->checkIfCanExport(m_mesoIdx);
 			}
 		});
-		appDBInterface()->getMesoSplit(currentSplitModel());
+		appThreadManager()->getMesoSplit(currentSplitModel());
 	}
 }
 
@@ -271,7 +271,7 @@ void QmlMesoSplitInterface::setSplitPageProperties(const QChar &split_letter)
 
 		if (prev_mesoid >= 0)
 		{
-			if (appDBInterface()->mesoHasSplitPlan(m_prevMesoId, split_letter))
+			if (appThreadManager()->mesoHasSplitPlan(m_prevMesoId, split_letter))
 			{
 				m_prevMesoName = appMesoModel()->name(appMesoModel()->idxFromId(m_prevMesoId));
 				m_hasPreviousPlan[split_letter] = true;
@@ -308,7 +308,7 @@ void QmlMesoSplitInterface::removePage(const QChar &split_letter)
 	DBExercisesModel *split_model{m_splitModels.value(split_letter)};
 	if (split_model)
 	{
-		appDBInterface()->removeMesoSplit(split_model);
+		appThreadManager()->removeMesoSplit(split_model);
 		split_model->deleteLater();
 	}
 }
@@ -330,7 +330,7 @@ void QmlMesoSplitInterface::addPage(const QChar &split_letter, const uint index)
 	connect(split_model, &DBExercisesModel::exerciseModified, this, [this,split_model] (const uint exercise_number, const uint exercise_idx, const uint set_number, const uint field) {
 		if (field != EXERCISE_IGNORE_NOTIFY_IDX)
 		{
-			appDBInterface()->saveMesoSplit(split_model);
+			appThreadManager()->saveMesoSplit(split_model);
 			//appMesoModel()->checkIfCanExport(m_mesoIdx);
 		}
 	});

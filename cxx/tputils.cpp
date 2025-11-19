@@ -1,6 +1,6 @@
 #include "tputils.h"
 
-#include "dbinterface.h"
+#include "thread_manager.h"
 #include "dbexercisesmodel.h"
 #include "qmlitemmanager.h"
 
@@ -420,7 +420,7 @@ void TPUtils::parseCmdFile(const QString &filename)
 						case 0: //sqlite statement
 							if (affected_file.isEmpty())
 							{
-								for (const auto &dbname : TPDatabaseTable::databaseFileNames)
+								for (const auto &dbname : std::as_const(TPDatabaseTable::databaseFileNames))
 								{
 									if (value == dbname)
 									{
@@ -436,7 +436,7 @@ void TPUtils::parseCmdFile(const QString &filename)
 								if (!command.isEmpty())
 									break;
 								command = std::move(value);
-								appDBInterface()->executeExternalQuery(affected_file, command);
+								appThreadManager()->executeExternalQuery(affected_file, command);
 							}
 						break;
 						default: return;

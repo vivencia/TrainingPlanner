@@ -4,40 +4,28 @@
 
 #include <QObject>
 
-QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
+QT_FORWARD_DECLARE_CLASS(DBModelInterfaceExercises)
 
 class DBWorkoutsOrSplitsTable final : public TPDatabaseTable
 {
 
+Q_OBJECT
+
 public:
-	explicit DBWorkoutsOrSplitsTable(DBExercisesModel *model);
-	inline explicit DBWorkoutsOrSplitsTable(const uint table_id)
-		: TPDatabaseTable{table_id, nullptr}, m_model{nullptr} { commonConstructor(); }
+	explicit DBWorkoutsOrSplitsTable(const uint tableid);
 
-	inline static QLatin1StringView tableName(const uint table_id)
-	{
-		return table_id == WORKOUT_TABLE_ID ? "workouts_table"_L1 : "mesosplit_table"_L1;
-	}
-	static QLatin1StringView createTableQuery();
-
+	QString dbFilePath() const override final;
+	QString dbFileName(const bool fullpath = true) const override final;
 	void updateTable() override final {}
-	void getExercises();
-	void saveExercises();
-	void removeExercises();
-	bool mesoHasAllSplitPlans(const QString &meso_id, const QString &split);
-	bool mesoHasSplitPlan(const QString &meso_id, const QChar &split_letter);
-	void getPreviousWorkouts();
 
-	inline DBExercisesModel *model() const { return m_model; }
-	inline void setModel(DBExercisesModel *model) { m_model = model; }
+	bool getExercises();
+	std::pair<QVariant,QVariant> mesoHasAllSplitPlans(const QString &meso_id, const QString &split);
+	std::pair<QVariant,QVariant> mesoHasSplitPlan();
+	std::pair<QVariant,QVariant> getPreviousWorkoutsIds();
 
-	//Functions for TPStatistics
-	//void workoutsInfoForTimePeriod();
-	//inline const QList<QList<QStringList>>& workoutsInfo() const { return m_workoutsInfo; }
+signals:
+	void exercisesLoaded(const uint meso_idx, const bool success, const QVariant &extra_info);
 
 private:
-	DBExercisesModel *m_model;
-	//QList<QList<QStringList>> m_workoutsInfo;
-
-	void commonConstructor();
+	DBModelInterfaceExercises *m_dbmodelInterface;
 };

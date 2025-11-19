@@ -1,11 +1,6 @@
 #include "tpdatabasetable.h"
 
-#include "dbexerciseslisttable.h"
-#include "dbmesocalendartable.h"
-#include "dbmesocyclestable.h"
-#include "dbusermodel.h"
-#include "dbusertable.h"
-#include "dbworkoutsorsplitstable.h"
+#include "dbmodelinterface.h"
 #include "osinterface.h"
 #include "tpsettings.h"
 #include "tputils.h"
@@ -15,83 +10,276 @@
 
 using namespace Qt::Literals::StringLiterals;
 
-TPDatabaseTable *TPDatabaseTable::createDBTable(const uint table_id, const bool auto_delete)
+TPDatabaseTable::TPDatabaseTable(const uint table_id, DBModelInterface *dbmodel_interface)
+	: QObject{nullptr}, m_tableId{table_id}, m_dbModelInterface{dbmodel_interface},
+		m_deleteAfterFinished{false}
 {
-	TPDatabaseTable *db_table{nullptr};
-	switch (table_id)
+	m_dbModelInterface->setTPDatabaseTable(this);
+	m_threadedFunctions.insert(ThreadManager::CustomOperation, [this] () {
+		if (m_customQueryFunc)
+		{
+			auto result{m_customQueryFunc()};
+			emit actionFinished(ThreadManager::CustomOperation, std::move(result.first), std::move(result.second));
+		}
+		else
+			emit actionFinished(ThreadManager::CustomOperation, std::move(QVariant{}), std::move(QVariant{}));
+	});
+	m_threadedFunctions.insert(ThreadManager::CreateTable, [this] () {
+		auto result{createTable()};
+		emit actionFinished(ThreadManager::CreateTable, result.first, result.second);
+	});
+	m_threadedFunctions.insert(ThreadManager::InsertRecord, [this] () {
+		auto result{insertRecord()};
+		emit actionFinished(ThreadManager::InsertRecord, result.first, result.second);
+	});
+	m_threadedFunctions.insert(ThreadManager::InsertRecords, [this] () {
+		auto result{insertRecords()};
+		emit actionFinished(ThreadManager::InsertRecords, result.first, result.second);
+	});
+	m_threadedFunctions.insert(ThreadManager::UpdateOneField, [this] () {
+		auto result{updateRecord()};
+		emit actionFinished(ThreadManager::UpdateOneField, result.first, result.second);
+	});
+	m_threadedFunctions.insert(ThreadManager::UpdateSeveralFields, [this] () {
+		auto result{updateFieldsOfRecord()};
+		emit actionFinished(ThreadManager::UpdateSeveralFields, result.first, result.second);
+	});
+	m_threadedFunctions.insert(ThreadManager::UpdateRecords, [this] () {
+		auto result{updateRecords()};
+		emit actionFinished(ThreadManager::UpdateRecords, result.first, result.second);
+	});
+	m_threadedFunctions.insert(ThreadManager::DeleteRecord, [this] () {
+		auto result{removeRecord()};
+		emit actionFinished(ThreadManager::DeleteRecord, result.first, result.second);
+	});
+	m_threadedFunctions.insert(ThreadManager::RemoveTemporaries, [this] () {
+		auto result{removeTemporaries()};
+		emit actionFinished(ThreadManager::RemoveTemporaries, result.first, result.second);
+	});
+	m_threadedFunctions.insert(ThreadManager::ClearTable, [this] () {
+		auto result{clearTable()};
+		emit actionFinished(ThreadManager::ClearTable, result.first, result.second);
+	});
+}
+
+void TPDatabaseTable::startAction(const int unique_id, ThreadManager::StandardOps operation)
+{
+	if (unique_id == uniqueId())
+		m_threadedFunctions.value(operation)();
+}
+
+void TPDatabaseTable::setUpConnection()
+{
+	m_uniqueID = appUtils()->generateUniqueId();
+	const QString &cnx_name{*m_tableName + "_connection"_L1 + QString::number(m_uniqueID)};
+	m_sqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name));
+
+	QString dbfilename{std::move(dbFileName())};
+	m_sqlLiteDB.setDatabaseName(dbfilename);
+	if (!m_databaseFilenamesPool.contains(dbfilename))
+		m_databaseFilenamesPool.append(std::move(dbfilename));
+}
+
+QString TPDatabaseTable::dbFilePath() const
+{
+	return appSettings()->currentUserDir() + databaseSubDir;
+}
+
+std::pair<bool, bool> TPDatabaseTable::createTable()
+{
+	bool success{false}, cmd_ok{false};
+	if (!QFile::exists(dbFileName()))
 	{
-		case EXERCISES_TABLE_ID: db_table = new DBExercisesListTable; break;
-		case MESOCYCLES_TABLE_ID: db_table = new DBMesocyclesTable; break;
-		case MESOSPLIT_TABLE_ID: db_table = new DBWorkoutsOrSplitsTable{MESOSPLIT_TABLE_ID}; break;
-		case MESOCALENDAR_TABLE_ID: db_table = new DBMesoCalendarTable{nullptr}; break;
-		case WORKOUT_TABLE_ID: db_table = new DBWorkoutsOrSplitsTable{WORKOUT_TABLE_ID}; break;
-		case USERS_TABLE_ID: db_table = new DBUserTable; break;
+		if (appUtils()->mkdir(dbFilePath()))
+		{
+			m_strQuery = {std::move("CREATE TABLE IF NOT EXISTS "_L1 + *m_tableName + " ("_L1)};
+			for (uint i{0}; i < m_fieldCount; ++i)
+				m_strQuery += std::move(m_fieldNames[i][0] + ' ' + m_fieldNames[i][1]) + ',';
+			m_strQuery.chop(1);
+			m_strQuery += std::move(");"_L1);
+			success = execQuery(m_strQuery, false);
+			if (success)
+				cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), strQuery()});
+		}
 	}
-	if (db_table && auto_delete)
-		db_table->deleteLater();
-	return db_table;
+	return std::pair<bool,bool>{success, cmd_ok};
 }
 
-void TPDatabaseTable::createTableQuery(const uint table_id)
+std::pair<bool, bool> TPDatabaseTable::insertRecord()
 {
-	switch (table_id)
+	bool success{false}, cmd_ok{false};
+	const uint modified_row{m_dbModelInterface->modifiedIndices().cbegin().key()};
+	const QStringList &data{m_dbModelInterface->modelData().at(modified_row)};
+
+	m_strQuery = std::move("INSERT INTO "_L1 + *m_tableName + " ("_L1);
+	for (int i{0}; i < m_fieldCount; ++i)
+		m_strQuery += std::move(m_fieldNames[i][0] + ',');
+	m_strQuery += std::move(") VALUES("_L1);
+	for (int i{0}; i < m_fieldCount; ++i)
+		m_strQuery += std::move((m_fieldNames[i][1] == "TEXT"_L1 ? '\'' + data.at(i) + '\'' : data.at(i)) + ',');
+	m_strQuery += std::move(");"_L1);
+
+	const bool query_id_back{m_fieldNames[modified_row][1].contains("AUTOINCREMENT"_L1)};
+	if (execQuery(m_strQuery, false, !query_id_back))
 	{
-		case EXERCISES_TABLE_ID:
-			m_strQuery = std::move(DBExercisesListTable::createTableQuery().arg(DBExercisesListTable::tableName())); break;
-		case MESOCYCLES_TABLE_ID:
-			m_strQuery = std::move(DBMesocyclesTable::createTableQuery().arg(DBMesocyclesTable::tableName())); break;
-		case MESOSPLIT_TABLE_ID:
-			m_strQuery = std::move(DBWorkoutsOrSplitsTable::createTableQuery().arg(DBWorkoutsOrSplitsTable::tableName(MESOSPLIT_TABLE_ID))); break;
-		case MESOCALENDAR_TABLE_ID:
-			m_strQuery = std::move(DBMesoCalendarTable::createTableQuery().arg(DBMesoCalendarTable::tableName())); break;
-		case WORKOUT_TABLE_ID:
-			m_strQuery = std::move(DBWorkoutsOrSplitsTable::createTableQuery().arg(DBWorkoutsOrSplitsTable::tableName(WORKOUT_TABLE_ID))); break;
-		case USERS_TABLE_ID:
-			m_strQuery = std::move(DBUserTable::createTableQuery().arg(DBUserTable::tableName())); break;
+		if (query_id_back)
+		{
+			m_dbModelInterface->modelData()[modified_row][0] = std::move(m_workingQuery.lastInsertId().toString());
+			m_sqlLiteDB.close();
+		}
+		success = true;
+		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), strQuery()});
 	}
+	m_dbModelInterface->modifiedIndices().remove(modified_row);
+	return std::pair<bool,bool>{success, cmd_ok};
 }
 
-bool TPDatabaseTable::createCmdFile()
+std::pair<bool,bool> TPDatabaseTable::insertRecords()
 {
-	const QString &cmd_filename{createServerCmdFile(dbFilePath(0, true), {sqliteApp, databaseFileNames[tableId()], strQuery()})};
-	if (!cmd_filename.isEmpty())
+	bool success{false}, cmd_ok{false};
+	if (m_sqlLiteDB.transaction())
 	{
-		appUserModel()->prepareCmdFile(cmd_filename);
-		return true;
+		m_strQuery = std::move("INSERT INTO "_L1 + *m_tableName + " ("_L1);
+		for (int i{0}; i < m_fieldCount; ++i)
+			m_strQuery += std::move(m_fieldNames[i][0] + ',');
+		m_strQuery += std::move(") VALUES("_L1);
+		for (const auto &data : std::as_const(m_dbModelInterface->modelData()))
+		{
+			for (int i{0}; i < m_fieldCount; ++i)
+				m_strQuery += std::move((m_fieldNames[i][1] == "TEXT"_L1 ? '\'' + data.at(i) + '\'' : data.at(i)) + ',');
+		}
+
+		const bool query_id_back{m_fieldNames[0][1].contains("AUTOINCREMENT"_L1)};
+		if (execQuery(m_strQuery, false, !query_id_back))
+		{
+			success = m_sqlLiteDB.commit();
+			if (success)
+			{
+				cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), strQuery()});
+				if (query_id_back)
+				{
+					int last_insert_id{m_workingQuery.lastInsertId().toInt()};
+					m_sqlLiteDB.close();
+					for (auto &data : m_dbModelInterface->modelData() | std::views::reverse)
+						data[0] = std::move(QString::number(last_insert_id--));
+				}
+			}
+		}
 	}
-	return false;
+	return std::pair<bool,bool>{success, cmd_ok};
 }
 
-QString TPDatabaseTable::dbFilePath(const uint table_id, const bool path_only)
+std::pair<bool,bool> TPDatabaseTable::updateRecord()
 {
-	return appSettings()->currentUserDir() + databaseSubDir + (path_only ? QString{} : databaseFileNames[table_id]);
-}
+	bool success{false}, cmd_ok{false};
+	const uint modified_row{m_dbModelInterface->modifiedIndices().cbegin().key()};
+	const QString &id{m_dbModelInterface->modelData().at(modified_row).at(0)};
+	const uint modified_field{m_dbModelInterface->modifiedIndices().cbegin().value().first()};
+	const QString &new_value{m_dbModelInterface->modelData().at(modified_row).at(modified_field)};
 
-void TPDatabaseTable::removeEntry(const bool bUseMesoId)
-{
-	const bool success{execQuery("DELETE FROM "_L1 + m_tableName + (bUseMesoId ? " WHERE meso_id="_L1 : " WHERE id="_L1) +
-					m_execArgs.at(0).toString(), false)};
-	emit threadFinished(success);
-}
-
-void TPDatabaseTable::removeTemporaries(const bool bUseMesoId)
-{
-	execQuery("DELETE FROM "_L1 + m_tableName + (bUseMesoId ? " WHERE meso_id<0"_L1 : " WHERE id<0"_L1), false, true);
-	emit threadFinished();
-}
-
-void TPDatabaseTable::clearTable()
-{
-	const bool success{execQuery("DELETE FROM "_L1 + m_tableName, false)};
-	emit threadFinished(success);
-}
-
-void TPDatabaseTable::removeDBFile()
-{
-	bool success{QFile::remove(m_sqlLiteDB.databaseName())};
+	m_strQuery = std::move("UPDATE "_L1 + *m_tableName + u"SET %1=%2 WHERE %3=%4;"_s.arg(
+		m_fieldNames[modified_field][0], m_fieldNames[modified_field][1] == "TEXT"_L1 ?
+											'\'' + new_value + '\'' : new_value, m_fieldNames[0][0], id));
+	success = execQuery(m_strQuery, false);
 	if (success)
-		success = createTable();
-	emit threadFinished(success);
+		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), strQuery()});
+	m_dbModelInterface->modifiedIndices().remove(modified_row);
+	return std::pair<bool,bool>{success, cmd_ok};
+}
+
+std::pair<bool,bool> TPDatabaseTable::updateFieldsOfRecord()
+{
+	bool success{false}, cmd_ok{false};
+	const uint modified_row{m_dbModelInterface->modifiedIndices().cbegin().key()};
+	const QString &id{m_dbModelInterface->modelData().at(modified_row).at(0)};
+	const QList<uint> &fields{m_dbModelInterface->modifiedIndices().value(modified_row)};
+
+	m_strQuery = std::move("UPDATE "_L1 + *m_tableName + "SET "_L1);
+	for (uint i{0}; i < fields.count(); ++i)
+	{
+		m_strQuery += std::move(m_fieldNames[i][0] + '=' + (m_fieldNames[i][1] == "TEXT"_L1 ?
+							'\'' + m_dbModelInterface->modelData().at(modified_row).at(i) + '\'' :
+												m_dbModelInterface->modelData().at(modified_row).at(i)));
+	}
+	m_strQuery = std::move(" WHERE %1=%2;"_L1.arg(m_fieldNames[0][0], id));
+	success = execQuery(m_strQuery, false);
+	if (success)
+		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), strQuery()});
+	m_dbModelInterface->modifiedIndices().remove(modified_row);
+	return std::pair<bool,bool>{success, cmd_ok};
+}
+
+std::pair<bool,bool> TPDatabaseTable::updateRecords()
+{
+	bool success{false}, cmd_ok{false};
+	if (m_sqlLiteDB.transaction())
+	{
+		const QString &query_cmd{"UPDATE "_L1 + *m_tableName + "SET "_L1};
+		QList<QList<uint>> modified_fields{m_dbModelInterface->modifiedIndices().count()};
+		QList<QStringList> modified_values{m_dbModelInterface->modifiedIndices().count()};
+		uint modified_row{0};
+		for (const auto &fields : m_dbModelInterface->modifiedIndices())
+		{
+			for (const auto field : std::as_const(fields))
+			{
+				m_strQuery += std::move(m_fieldNames[field][0] + '=' + (m_fieldNames[field][1] == "TEXT"_L1 ?
+							'\'' + m_dbModelInterface->modelData().at(modified_row).at(field) + '\'' :
+												m_dbModelInterface->modelData().at(modified_row).at(field)));
+			}
+			const QString &id{m_dbModelInterface->modelData().at(modified_row).at(0)};
+			m_strQuery = std::move(" WHERE %1=%2;"_L1.arg(m_fieldNames[0][0], id));
+			++modified_row;
+		}
+		m_dbModelInterface->clearModifiedIndices();
+
+		if (execQuery(m_strQuery, false, false))
+		{
+			if (m_sqlLiteDB.commit())
+			{
+				success = true;
+				cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), strQuery()});
+			}
+		}
+	}
+	return std::pair<bool,bool>{success, cmd_ok};
+}
+
+std::pair<bool,bool> TPDatabaseTable::removeRecord()
+{
+	bool success{false}, cmd_ok{false};
+	for (const auto value : std::as_const(m_dbModelInterface->removalInfo()))
+	{
+		m_strQuery = std::move("DELETE FROM "_L1 + *m_tableName + " WHERE "_L1);
+		for (uint i{0}; i < value->fields.count(); ++i)
+		{
+			if (i == 0)
+				m_strQuery += std::move(m_fieldNames[value->fields.at(i)][0] + '=' + value->values.at(i));
+			else
+				m_strQuery += std::move(u" AND %1=%2"_s).arg(m_fieldNames[value->fields.at(i)][0], value->values.at(i));
+		}
+		m_strQuery += ';';
+		success = execQuery(m_strQuery, false);
+		if (success)
+			cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), strQuery()});
+		m_dbModelInterface->clearRemovalIndices();
+	}
+	return std::pair<bool,bool>{success, cmd_ok};
+}
+
+std::pair<bool, bool> TPDatabaseTable::clearTable()
+{
+	bool cmd_ok{false};
+	m_strQuery = std::move("DELETE FROM "_L1 + *m_tableName + ';');
+	const bool success{execQuery(m_strQuery, false)};
+	if (success)
+		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), strQuery()});
+	return std::pair<bool,bool>{success, cmd_ok};
+}
+
+std::pair<bool,bool> TPDatabaseTable::removeTemporaries()
+{
+	const bool success{execQuery("DELETE FROM "_L1 + *m_tableName + " WHERE %1<0;"_L1.arg(m_fieldNames[0][0]), false, true)};
+	return std::pair<bool,bool>{success, false};
 }
 
 bool TPDatabaseTable::openDatabase(const bool read_only)
@@ -168,67 +356,60 @@ bool TPDatabaseTable::execQuery(const QString &str_query, const bool read_only, 
 	return ok;
 }
 
-//TODO
-bool TPDatabaseTable::executeCmdFile(const QString &cmd_file, const QString &success_message, const bool remove_file) const
-{
-	QFile *cmdfile{appUtils()->openFile(cmd_file)};
-	if (cmdfile)
-	{
-		QString command{1024, QChar{0}};
-		QTextStream stream{cmdfile};
-
-		while (stream.readLineInto(&command))
-		{
-			if (command.isEmpty() || command.startsWith('#'))
-				continue;
-			break;
-		}
-
-	}
-	return false;
-}
-
-QString TPDatabaseTable::createServerCmdFile(const QString &dir, const std::initializer_list<QString> &command_parts,
+bool TPDatabaseTable::createServerCmdFile(const QString &dir, const std::initializer_list<QString> &command_parts,
 												const bool overwrite) const
 {
-	QString cmd_string{"#Device_ID "_L1 + appOsInterface()->deviceID() + '\n'};
-	int n_part{1};
-	QStringList var_list;
-	QString vars_cmd;
-	for (const QString &cmd_part : command_parts)
+	bool cmd_ok{false};
+	if (command_parts.size() > 0)
 	{
-		if (n_part == 1)
+		QString cmd_string{"#Device_ID "_L1 + appOsInterface()->deviceID() + '\n'};
+		int n_part{1};
+		QStringList var_list;
+		QString vars_cmd;
+		for (const QString &cmd_part : command_parts)
 		{
-			var_list.append(std::move("VAR_1="_L1 + cmd_part + '\n'));
-			vars_cmd = "$VAR_1"_L1;
-		}
-		else
-		{
-			var_list.append(std::move("VAR_"_L1 + QString::number(n_part) + "=\""_L1 + cmd_part + "\"\n"_L1));
-			if (cmd_part.count(' ') > 0)
-				vars_cmd += " \"${VAR_"_L1 + QString::number(n_part) + "}\""_L1;
+			if (n_part == 1)
+			{
+				var_list.append(std::move("VAR_1="_L1 + cmd_part + '\n'));
+				vars_cmd = "$VAR_1"_L1;
+			}
 			else
-				vars_cmd += " $VAR_"_L1 + QString::number(n_part);
+			{
+				var_list.append(std::move("VAR_"_L1 + QString::number(n_part) + "=\""_L1 + cmd_part + "\"\n"_L1));
+				if (cmd_part.count(' ') > 0)
+					vars_cmd += " \"${VAR_"_L1 + QString::number(n_part) + "}\""_L1;
+				else
+					vars_cmd += " $VAR_"_L1 + QString::number(n_part);
+			}
+			++n_part;
 		}
-		++n_part;
-	}
-	for (const QString &var : std::as_const(var_list))
-		cmd_string += var;
-	cmd_string += vars_cmd + "\n#Downloads 1"_L1;
+		for (const QString &var : std::as_const(var_list))
+			cmd_string += var;
+		cmd_string += vars_cmd + "\n#Downloads 1"_L1;
 
-	std::hash<std::string> str_hash;
-	const QString &cmd_filename{dir + QString::number(str_hash(cmd_string.toStdString())) + ".cmd"_L1};
-	if (!QFile::exists(cmd_filename) || overwrite)
-	{
-		QFile *cmd_file{appUtils()->openFile(cmd_filename, false, true, false, true)};
-		if (cmd_file)
+		const QString &cmd_filename{dir + QString::number(QDateTime::currentSecsSinceEpoch()) + ".cmd"_L1};
+		if (!QFile::exists(cmd_filename) || overwrite)
 		{
-			cmd_file->write(cmd_string.toUtf8().constData());
-			cmd_file->flush();
-			cmd_file->close();
+			QFile *cmd_file{appUtils()->openFile(cmd_filename, false, true, false, true)};
+			if (cmd_file)
+			{
+				cmd_ok = true;
+				cmd_file->write(cmd_string.toUtf8().constData());
+				cmd_file->flush();
+				cmd_file->close();
+			}
 		}
-		else
-			return QString{};
 	}
-	return cmd_filename;
+	return cmd_ok;
 }
+
+/*bool TPDatabaseTable::updateInsteadOfInsert(const QString &id)
+{
+	bool update{false};
+	if (execQuery("SELECT %1 FROM %2 WHERE %1=%3;"_L1.arg(m_fieldNames[0][0], *m_tableName, id), true, false))
+	{
+		if (m_workingQuery.first())
+			update = m_workingQuery.value(0).toUInt() >= 0;
+	}
+	return update;
+}*/

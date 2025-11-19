@@ -4,18 +4,19 @@
 
 #include <QObject>
 
-class DBUserTable : public TPDatabaseTable
+QT_FORWARD_DECLARE_CLASS(DBModelInterfaceUser)
+
+class DBUserTable final: public TPDatabaseTable
 {
 
+Q_OBJECT
+
 public:
-	explicit DBUserTable();
+	explicit DBUserTable(DBModelInterfaceUser *dbmodel_interface);
 
-	inline static QLatin1StringView tableName() { return "users_table"_L1; }
-	static QLatin1StringView createTableQuery();
-
+	QString dbFilePath() const override final;
+	QString dbFileName(const bool fullpath = true) const override final;
 	void updateTable() override final {}
-	void getAllUsers();
-	void saveUser();
-	void removeUser();
+	bool getAllUsers();
 };
 

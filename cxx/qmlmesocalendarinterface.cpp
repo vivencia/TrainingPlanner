@@ -1,6 +1,6 @@
 #include "qmlmesocalendarinterface.h"
 
-#include "dbinterface.h"
+#include "thread_manager.h"
 #include "dbmesocalendarmanager.h"
 #include "dbmesocyclesmodel.h"
 #include "qmlitemmanager.h"
@@ -44,7 +44,7 @@ void QmlMesoCalendarInterface::getMesoCalendarPage()
 	if (!m_calComponent)
 	{
 		if (!appMesoModel()->mesoCalendarManager()->hasDBData(m_mesoIdx))	
-			appDBInterface()->getMesoCalendar(m_mesoIdx);
+			appThreadManager()->getMesoCalendar(m_mesoIdx);
 		createMesoCalendarPage();
 	}
 	else

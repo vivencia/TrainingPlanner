@@ -1,7 +1,8 @@
 #include "dbusermodel.h"
 
-#include "dbinterface.h"
+#include "thread_manager.h"
 #include "dbmesocyclesmodel.h"
+#include "dbusertable.h"
 #include "qmlitemmanager.h"
 #include "osinterface.h"
 #include "tpdatabasetable.h"
@@ -10,6 +11,7 @@
 #include "translationclass.h"
 #include "tpsettings.h"
 #include "online_services/onlineuserinfo.h"
+#include "online_services/tpchat.h"
 #include "online_services/tpmessage.h"
 #include "online_services/tpmessagesmanager.h"
 #include "online_services/tponlineservices.h"
@@ -49,9 +51,9 @@ static inline QString userNameWithoutConfirmationWarning(const QString &userName
 }
 
 DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
-	: QObject{parent}, m_tempRow{-1}, m_onlineCmdOrder{-1}, m_availableCoaches{nullptr}, m_pendingClientRequests{nullptr},
+	: QObject{parent}, m_tempRow{-1}, m_availableCoaches{nullptr}, m_pendingClientRequests{nullptr},
 		m_pendingCoachesResponses{nullptr}, m_tempUserInfo{nullptr}, m_mainTimer{nullptr}, m_currentCoaches{nullptr},
-			m_currentClients{nullptr}, m_currentCoachesAndClients{nullptr}
+			m_currentClients{nullptr}, m_currentCoachesAndClients{nullptr}, m_db{nullptr}
 
 #ifndef Q_OS_ANDROID
 	,m_allUsers{nullptr}
@@ -61,24 +63,9 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 	{
 		_appUserModel = this;
 		mb_MainUserInfoChanged = false;
-		connect(this, &DBUserModel::userModified, this, [this] (const uint user_idx, const uint field) {
-			if (field < USER_TOTAL_COLS)
-			{
-				if (user_idx == 0)
-				{
-					mb_MainUserInfoChanged = true;
-					if (field == USER_COL_APP_USE_MODE)
-						emit appUseModeChanged();
-				}
-				appDBInterface()->saveUser(user_idx);
-			}
-		});
+		connect(this, &DBUserModel::userModified, this, &DBUserModel::saveUserInfo);
 
-		lastLocalCmd(TPDatabaseTable::dbFilePath(1, true));
-		mb_userRegistered = std::nullopt;
 		mb_canConnectToServer = appOsInterface()->tpServerOK();
-		if (mb_canConnectToServer)
-			onlineCheckIn();
 #ifdef Q_OS_ANDROID
 		connect(appOsInterface(), &OSInterface::internetStatusChanged, this, [this] (const bool connected) {
 			if (!connected)
@@ -102,21 +89,28 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 				setPhoneBasedOnLocale();
 			emit labelsChanged();
 		});
-		/*connect(appKeyChain(), &TPKeyChain::keyRestored, this, [&] (const QString &key, const QString &value) {
-			qDebug() << "Read key:";
-			qDebug() << "key: " << key;
-			qDebug() << "password: " << value;
-			qDebug() << "";
+
+		connect(appThreadManager(), &ThreadManager::databaseReady, this, [this]
+												(const bool success, const int table_id, const bool has_cmd_file)
+		{
+				if (success && has_cmd_file)
+				{
+					switch (table_id)
+					{
+						case EXERCISES_TABLE_ID:
+						case MESOCYCLES_TABLE_ID:
+						case MESOSPLIT_TABLE_ID:
+						case MESOCALENDAR_TABLE_ID:
+						case WORKOUT_TABLE_ID:
+						case USERS_TABLE_ID:
+							sendUnsentCmdFiles(TPDatabaseTable::databaseSubDir);
+						break;
+						case CHAT_TABLE_ID:
+							sendUnsentCmdFiles(TPChat::chatsSubDir);
+						break;
+					}
+				}
 		});
-		connect(appKeyChain(), &TPKeyChain::keyStored, this, [&] (const QString &key) {
-			qDebug() << "Write key:";
-			qDebug() << "key: " << key;
-			qDebug() << "";
-		});*/
-		//appKeyChain()->writeKey("1739296696780", "userpassword");
-		//appKeyChain()->readKey("1739296696780");
-		//appKeyChain()->writeKey("test", "testpassword");
-		//appKeyChain()->readKey("test");
 	}
 }
 
@@ -187,7 +181,6 @@ void DBUserModel::createMainUser(const QString &userid, const QString &name)
 			QString{} << QString{} << QString{} << QString{} << QString{} << std::move("0"_L1)));
 		static_cast<void>(appUtils()->mkdir(userDir(0)));
 		setPhoneBasedOnLocale();
-		appDBInterface()->init();
 		emit userModified(0, USER_MODIFIED_CREATED);
 	}
 }
@@ -213,19 +206,13 @@ void DBUserModel::removeUser(const int user_idx, const bool remove_local, const 
 				return;
 		}
 
-		connect(appDBInterface(), &DBInterface::databaseReady, this, [this,user_idx] (const uint) {
-			m_usersData.remove(user_idx);
-			uint next_cur_user_idx{0};
-			if (m_usersData.count() > 1)
-				next_cur_user_idx = user_idx - 1;
-			//setCurrentRow(next_cur_user_idx);
-		}, Qt::SingleShotConnection);
+		m_dbModelInterface->setRemovalIndex(user_idx);
 		if (isCoach(user_idx))
 			delCoach(user_idx);
 		if (isClient(user_idx))
 			delClient(user_idx);
-		appDBInterface()->removeUser(user_idx);
-		emit userModified(0, USER_MODIFIED_REMOVED);
+		m_usersData.remove(user_idx);
+		emit userModified(user_idx, USER_MODIFIED_REMOVED);
 	}
 }
 
@@ -548,16 +535,10 @@ void DBUserModel::userSwitchingActions(const bool create, QString &&userid)
 		m_tempUserInfo->clear();
 
 	appSettings()->importFromUserConfig(userid);
-	if (!appMesoModel())
-	{
-		new DBMesocyclesModel{this};
-		new PagesListModel{this};
-	}
 
 	if (create)
 		createMainUser(appSettings()->currentUser(), tr("New user"));
-	else
-		appDBInterface()->init();
+	initUserSession();
 
 	emit appUseModeChanged();
 	emit onlineUserChanged();
@@ -566,7 +547,6 @@ void DBUserModel::userSwitchingActions(const bool create, QString &&userid)
 	if (canConnectToServer())
 		onlineCheckIn();
 
-	appMesoModel()->userSwitchingActions();
 	appPagesListModel()->userSwitchingActions();
 	emit userIdChanged();
 }
@@ -635,7 +615,6 @@ void DBUserModel::acceptUser(OnlineUserInfo *userInfo, const int userInfoRow)
 		}
 		userInfo->removeUserInfo(userInfoRow);
 		emit userModified(lastidx, USER_MODIFIED_ACCEPTED);
-		appDBInterface()->saveUser(lastidx);
 	}, Qt::SingleShotConnection);
 	appKeyChain()->readKey(userId(0));
 }
@@ -1092,25 +1071,8 @@ int DBUserModel::listFilesFromServer(const QString &subdir, const QString &targe
 	return requestid;
 }
 
-//When a cmd creation occurs before a server login or when there has not been any server login as of yet, so no m_onlineCmdOrder
-//acquired, rename the cmds from 1. The code to send them to the server will be triggered after m_onlineCmdOrder has been
-//properly set, and it will rename the alredy renamed cmds to a name that will not conflate with the cmds in the server.
-void DBUserModel::prepareCmdFile(const QString &filename)
-{
-	const QString &cmd_filename{appUtils()->getFilePath(filename) + QString::number(m_localCmdOrder++) + cmd_file_extension};
-	if (appUtils()->rename(filename, cmd_filename, true) && canConnectToServer())
-		sendCmdFileToServer(cmd_filename);
-}
-
 void DBUserModel::sendCmdFileToServer(const QString &cmd_filename)
 {
-	const uint cmd_order{appUtils()->getFileName(cmd_filename, true).toUInt()};
-	if (cmd_order == 0 || cmd_order < m_onlineCmdOrder)
-	{
-		m_localCmdOrder = m_onlineCmdOrder;
-		prepareCmdFile(cmd_filename);
-		return;
-	}
 	QFile *cmd_file{appUtils()->openFile(cmd_filename, true, false, false, false, false)};
 	if (!cmd_file)
 		return;
@@ -1336,6 +1298,35 @@ int DBUserModel::newUserFromFile(const QString &filename, const std::optional<bo
 	return TP_RET_CODE_IMPORT_OK;
 }
 
+void DBUserModel::saveUserInfo(const uint user_idx, const uint field)
+{
+	m_dbModelInterface->setModified(user_idx, field);
+	if (field < USER_TOTAL_COLS)
+	{
+		if (user_idx == 0)
+		{
+			mb_MainUserInfoChanged = true;
+			if (field == USER_COL_APP_USE_MODE)
+				emit appUseModeChanged();
+		}
+		appThreadManager()->runAction(m_db, ThreadManager::UpdateOneField);
+	}
+	else
+	{
+		switch (field)
+		{
+			case USER_MODIFIED_CREATED:
+			case USER_MODIFIED_IMPORTED:
+			case USER_MODIFIED_ACCEPTED:
+				appThreadManager()->runAction(m_db, ThreadManager::InsertRecord);
+			break;
+			case USER_MODIFIED_REMOVED:
+				appThreadManager()->runAction(m_db, ThreadManager::DeleteRecord);
+			break;
+		}
+	}
+}
+
 void DBUserModel::getPasswordFromUserInput(const int resultCode, const QString &password)
 {
 	if (resultCode == TP_RET_CODE_SUCCESS)
@@ -1424,6 +1415,35 @@ inline QString DBUserModel::profileFileName(const QString &userid) const
 inline QString DBUserModel::profileFilePath(const QString &userid) const
 {
 	return userDir(userid) + profileFileName(userid);
+}
+
+void DBUserModel::initUserSession()
+{
+	if (!m_db)
+	{
+		m_dbModelInterface = new DBModelInterfaceUser;
+		m_db = new DBUserTable{m_dbModelInterface};
+		appThreadManager()->runAction(m_db, ThreadManager::CreateTable);
+		appThreadManager()->runAction(m_db, ThreadManager::ReadAllRecords);
+
+		app_meso_model = m_mesoModels.value(userId(0));
+		if (!app_meso_model)
+		{
+			app_meso_model = new DBMesocyclesModel{this};
+			new PagesListModel{this};
+			m_mesoModels.insert(userId(0), app_meso_model);
+		}
+
+		if (appSettings()->appVersion() != TP_APP_VERSION)
+		{
+			//All the code to update the database goes in here
+			//updateDB(new DBMesocyclesTable{nullptr});
+			//appSettings()->saveAppVersion(TP_APP_VERSION);
+		}
+	}
+	mb_userRegistered = std::nullopt;
+	if (mb_canConnectToServer)
+		onlineCheckIn();
 }
 
 QString DBUserModel::getPhonePart(const QString &str_phone, const bool prefix) const
@@ -1541,7 +1561,10 @@ void DBUserModel::onlineCheckinActions()
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this] (const QString &key, const QString &value) {
 		if (!mb_singleDevice.has_value())
 		{
-			connect(this, &DBUserModel::onlineDevicesListReceived, this, [this,value] () {
+			connect(this, &DBUserModel::onlineDevicesListReceived, this, [this,value] ()
+			{
+				if (!mb_singleDevice.value())
+					downloadCmdFilesFromServer(TPDatabaseTable::databaseSubDir);
 				appOnlineServices()->executeCommands(appUtils()->idFromString("execcmds"_L1), userId(0), value,
 					TPDatabaseTable::databaseSubDir, mb_singleDevice.value());
 			}, Qt::SingleShotConnection);
@@ -1620,7 +1643,7 @@ void DBUserModel::switchToUser(const QString &new_userid, const bool user_switch
 			if (!user_switching_for_testing)
 			{
 				appSettings()->importFromUserConfig(new_userid);
-				appDBInterface()->init();
+				initUserSession();
 			}
 		}
 		if (!user_switching_for_testing)
@@ -1718,43 +1741,12 @@ void DBUserModel::downloadAllUserFiles(const QString &userid)
 	appKeyChain()->readKey(userId(0));
 }
 
-void DBUserModel::lastOnlineCmd(const uint requestid, const QString &subdir)
-{
-	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,requestid,subdir] (const QString &key, const QString &value)
-	{
-		auto conn{std::make_shared<QMetaObject::Connection>()};
-		*conn = connect(appOnlineServices(), &TPOnlineServices::networkListReceived, this, [this,conn,requestid,subdir]
-							(const int request_id, const int ret_code, const QStringList &ret_list)
-		{
-			if (request_id == requestid)
-			{
-				disconnect(*conn);
-				if (ret_list.isEmpty())
-					m_onlineCmdOrder = 1;
-				else
-					m_onlineCmdOrder = ret_list.last().first(ret_list.last().length() - 4).toInt() + 1;
-				sendUnsentCmdFiles(subdir);
-			}
-		});
-		appOnlineServices()->listFiles(requestid, userId(0), value, true, false, cmd_file_extension, subdir, userId(0));
-	}, Qt::SingleShotConnection);
-	appKeyChain()->readKey(userId(0));
-}
-
-void DBUserModel::lastLocalCmd(const QString &subdir)
-{
-	QFileInfoList cmd_files;
-	appUtils()->scanDir(userDir() + subdir, cmd_files, '*' + cmd_file_extension);
-	m_localCmdOrder = cmd_files.count() + 1;
-}
-
 void DBUserModel::sendUnsentCmdFiles(const QString &subdir)
 {
 	QFileInfoList cmd_files;
 	appUtils()->scanDir(userDir() + subdir, cmd_files, '*' + cmd_file_extension);
 	for (const auto &cmd_file : std::as_const(cmd_files))
 		sendCmdFileToServer(cmd_file.absoluteFilePath());
-	m_localCmdOrder = 1;
 }
 
 QString DBUserModel::resume(const uint user_idx) const
@@ -1979,14 +1971,6 @@ void DBUserModel::pollServer()
 		pollCoachesAnswers();
 		pollCurrentCoaches();
 		checkNewMesos();
-	}
-	//When single device, only query the server once per session
-	if (!mb_singleDevice.has_value() || !mb_singleDevice.value())
-		lastOnlineCmd(appUtils()->generateUniqueId("lastOnlineCmd"_L1), TPDatabaseTable::databaseSubDir);
-	else
-	{
-		if (!mb_singleDevice.value() && m_onlineCmdOrder != -1 )
-			downloadCmdFilesFromServer(TPDatabaseTable::databaseSubDir);
 	}
 }
 

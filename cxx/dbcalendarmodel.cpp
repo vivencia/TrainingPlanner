@@ -1,6 +1,9 @@
 #include "dbcalendarmodel.h"
 
 #include "dbmesocalendarmanager.h"
+#include "dbmesocyclesmodel.h"
+#include "dbmesocalendartable.h"
+#include "tputils.h"
 
 enum RoleNames {
 	yearRole = Qt::UserRole,
@@ -10,8 +13,8 @@ enum RoleNames {
 //const auto &value = []<typename T>(const std::optional<T> &retValue) { return retValue.has_) ? retValue.) : T{}; };
 //auto &&rvalue = []<typename T>(const std::optional<T> &retValue) mutable { return retValue.has_) ? retValue.) : T{}; };
 
-DBCalendarModel::DBCalendarModel(DBMesoCalendarManager *parent, const uint meso_idx)
-	: QAbstractListModel{parent}, m_calendarManager{parent}, m_mesoIdx(meso_idx), m_nmonths{0}
+DBCalendarModel::DBCalendarModel(DBMesoCalendarManager *parent, DBMesoCalendarTable* db, const uint meso_idx)
+	: QAbstractListModel{parent}, m_calendarManager{parent}, m_db{db}, m_mesoIdx(meso_idx), m_nmonths{0}
 {
 	m_roleNames[yearRole] = std::move("year");
 	m_roleNames[monthRole] = std::move("month");
@@ -33,6 +36,24 @@ DBCalendarModel::DBCalendarModel(DBMesoCalendarManager *parent, const uint meso_
 			}
 		}
 	});
+
+	m_dbModelInterface = new DBModelInterfaceCalendar{this};
+	auto conn{std::make_shared<QMetaObject::Connection>()};
+	*conn = connect(m_db, &DBMesoCalendarTable::calendarLoaded, this, [this,conn] (const uint meso_idx, const bool success)
+	{
+		if (meso_idx == m_mesoIdx)
+		{
+			disconnect(*conn);
+			if (success)
+			{
+				const QDate startDate{appUtils()->getDateFromDateString(m_dbModelInterface->modelData().constLast().at(1), TPUtils::DF_DATABASE)};
+				const QDate endDate{appUtils()->getDateFromDateString(m_dbModelInterface->modelData().constLast().at(1), TPUtils::DF_DATABASE)};
+				m_nmonths = appUtils()->calculateNumberOfMonths(startDate, endDate);
+				emit dataChanged(index(0), index(m_nmonths));
+			}
+		}
+	});
+	appThreadManager()->runAction(m_db, ThreadManager::ReadAllRecords);
 }
 
 QDate DBCalendarModel::firstDateOfEachMonth(const uint index) const
@@ -47,6 +68,11 @@ QDate DBCalendarModel::firstDateOfEachMonth(const uint index) const
 			date = std::move(date.addMonths(1));
 	}
 	return date;
+}
+
+const QString &DBCalendarModel::mesoId() const
+{
+	return appMesoModel()->id(m_mesoIdx);
 }
 
 int DBCalendarModel::getIndexFromDate(const QDate &date) const

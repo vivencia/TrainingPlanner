@@ -1,6 +1,6 @@
 #include "qmluserinterface.h"
 
-#include "dbinterface.h"
+#include "thread_manager.h"
 #include "dbusermodel.h"
 #include "qmlitemmanager.h"
 

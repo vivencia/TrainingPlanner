@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QHash>
 #include <QObject>
 
 #define MESOCALENDAR_COL_MESOID 0
@@ -16,42 +17,17 @@
 
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(DBCalendarModel)
-
-class TPBool {
-public:
-	// Default constructor initializes the value to false
-	inline TPBool() : m_value(false) {}
-
-	// Constructor to initialize with a specific boolean value
-	inline explicit TPBool(bool val) : m_value{val} {}
-
-	// Operator overloading to allow implicit conversion to bool
-	operator bool() const {
-		return m_value;
-	}
-
-	bool operator=(bool val) { m_value = val; return m_value; }
-
-private:
-	bool m_value;
-};
-
-struct stDayInfo
-{
-	QString data;
-	QString date;
-	TPBool modified;
-};
+QT_FORWARD_DECLARE_CLASS(DBMesoCalendarTable)
+QT_FORWARD_DECLARE_CLASS(DBWorkoutsOrSplitsTable)
 
 class DBMesoCalendarManager : public QObject
 {
 
 Q_OBJECT
 
-friend class DBMesoCalendarTable;
-
 public:
-	explicit inline DBMesoCalendarManager(QObject *parent) : QObject{parent} {}
+	explicit DBMesoCalendarManager(QObject *parent);
+
 	void removeCalendarForMeso(const uint meso_idx, const bool remove_workouts);
 	void addCalendarForMeso(const uint meso_idx);
 	void addNewCalendarForMeso(const uint new_mesoidx);
@@ -65,11 +41,6 @@ public:
 	int importWorkoutFromFile(const QString &filename, const uint meso_idx, const QDate &date,
 												const std::optional<bool> &file_formatted = std::nullopt);
 
-	[[nodiscard]] inline bool hasCalendarInfo(const uint meso_idx) const
-	{
-			return meso_idx < m_dayInfoList.count() ? m_dayInfoList.at(meso_idx).count() > 0 : false;
-	}
-	[[nodiscard]] inline const QList<stDayInfo*> &dayInfo(const uint meso_idx) const { return m_dayInfoList.at(meso_idx); }
 	[[nodiscard]] const int calendarDay(const uint meso_idx, const QDate& date) const;
 	[[nodiscard]] QDate dateFromCalendarDay(const uint meso_idx, const uint calendar_day) const;
 	[[nodiscard]] const int nthMonth(const uint meso_idx, const QDate &date) const;
@@ -106,26 +77,18 @@ public:
 
 	Q_INVOKABLE inline DBCalendarModel *calendar(const uint meso_idx) const
 	{
-		return meso_idx < m_calendars.count() ? m_calendars.at(meso_idx) : nullptr;
-	}
-
-	inline bool hasDBData(const uint meso_idx) const
-	{
-		return meso_idx < m_dbDataReady.count() ? m_dbDataReady.at(meso_idx) : false;
+		return m_calendars.value(meso_idx);
 	}
 
 signals:
 	void calendarChanged(const uint meso_idx, const uint field, const int calendar_day = -1);
 
 private:
-	QList<QList<stDayInfo*>> m_dayInfoList;
-	QList<QList<DBExercisesModel*>> m_workouts;
-	QList<DBCalendarModel*> m_calendars;
-	QList<TPBool> m_dbDataReady;
+	QHash<uint,QList<DBExercisesModel*>> m_workouts;
+	QHash<uint,DBCalendarModel*> m_calendars;
 
-	inline const QList<stDayInfo*> &mesoCalendar(const uint meso_idx) const { return m_dayInfoList.at(meso_idx); }
-	inline QList<stDayInfo*> &mesoCalendar(const uint meso_idx) { return m_dayInfoList[meso_idx]; }
-	void setDBDataReady(const uint meso_idx, const bool ready, const uint n_months);
+	DBMesoCalendarTable *m_calendarDB;
+	DBWorkoutsOrSplitsTable *m_ExercisesDB;
 
 	uint populateCalendarDays(const uint meso_idx, const QDate &start_date, const QDate &end_date, const QString &split);
 	void createCalendar(const uint meso_idx);

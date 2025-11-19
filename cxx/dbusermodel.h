@@ -1,5 +1,6 @@
 #pragma once
 
+#include "dbmodelinterface.h"
 #include "tputils.h"
 #include "online_services/onlineuserinfo.h"
 
@@ -33,6 +34,9 @@
 #define USER_MODIFIED_REMOVED 102
 #define USER_MODIFIED_ACCEPTED 103
 
+QT_FORWARD_DECLARE_CLASS(DBUserTable)
+QT_FORWARD_DECLARE_CLASS(DBModelInterfaceUser);
+QT_FORWARD_DECLARE_CLASS(DBMesocyclesModel)
 QT_FORWARD_DECLARE_CLASS(QTimer)
 
 class DBUserModel : public QObject
@@ -321,7 +325,6 @@ public:
 							   const QString &subdir = QString{}, const QString &targetUser = QString{});
 	void removeFileFromServer(const QString &filename, const QString &subdir = QString{}, const QString &targetUser = QString{});
 	int listFilesFromServer(const QString &subdir, const QString &targetUser, const QString &filter = QString{});
-	void prepareCmdFile(const QString &filename);
 	void sendCmdFileToServer(const QString &cmd_filename);
 	void downloadCmdFilesFromServer(const QString &subdir);
 
@@ -333,6 +336,7 @@ public:
 	int newUserFromFile(const QString &filename, const std::optional<bool> &file_formatted = std::nullopt);
 
 public slots:
+	void saveUserInfo(const uint user_idx, const uint field);
 	void getPasswordFromUserInput(const int resultCode, const QString &password);
 	void slot_unregisterUser(const bool unregister);
 	void slot_removeNoLongerAvailableUser(const int user_idx, bool remove);
@@ -377,7 +381,7 @@ signals:
 
 private:
 	QList<QStringList> m_usersData, m_tempUserData;
-	int m_tempRow, n_devices, m_localCmdOrder, m_onlineCmdOrder;
+	int m_tempRow, n_devices;
 	QString m_onlineAccountId, m_password, m_defaultAvatar, m_emptyString;
 	std::optional<bool> mb_singleDevice, mb_userRegistered, mb_coachRegistered;
 	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses,
@@ -385,10 +389,15 @@ private:
 	bool mb_canConnectToServer, mb_coachPublic, mb_MainUserInfoChanged;
 	QTimer *m_mainTimer;
 
+	DBUserTable *m_db;
+	DBModelInterfaceUser *m_dbModelInterface;
+
 #ifndef Q_OS_ANDROID
 	OnlineUserInfo *m_allUsers;
+	QHash<QString,DBMesocyclesModel*> m_mesoModels;
 #endif
 
+	void initUserSession();
 	QString getPhonePart(const QString &str_phone, const bool prefix) const;
 	void setPhoneBasedOnLocale();
 	QString generateUniqueUserId() const;
@@ -398,7 +407,6 @@ private:
 	void getOnlineDevicesList();
 	void switchToUser(const QString &new_userid, const bool user_switching_for_testing = false);
 	void downloadAllUserFiles(const QString &userid);
-	void lastOnlineCmd(const uint requestid, const QString &subdir);
 	void lastLocalCmd(const QString &subdir);
 	void sendUnsentCmdFiles(const QString &subdir);
 	QString resume(const uint user_idx) const;
@@ -434,6 +442,16 @@ private:
 	static DBUserModel *_appUserModel;
 	friend DBUserModel *appUserModel();
 	friend class OnlineUserInfo;
+	friend class DBModelInterfaceUser;
 };
 
 inline DBUserModel *appUserModel() { return DBUserModel::_appUserModel; }
+
+class DBModelInterfaceUser : public DBModelInterface
+{
+
+public:
+	explicit inline DBModelInterfaceUser() : DBModelInterface{appUserModel()} {}
+	inline const QList<QStringList> &modelData() const { return appUserModel()->m_usersData; }
+	inline QList<QStringList> &modelData() { return appUserModel()->m_usersData; }
+};
