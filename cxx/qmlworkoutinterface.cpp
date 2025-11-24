@@ -5,6 +5,7 @@
 #include "thread_manager.h"
 #include "dbmesocalendarmanager.h"
 #include "dbmesocyclesmodel.h"
+#include "dbworkoutsorsplitstable.h"
 #include "qmlitemmanager.h"
 #include "tptimer.h"
 #include "tpsettings.h"
@@ -16,27 +17,32 @@
 #include <QQuickWindow>
 
 QmlWorkoutInterface::QmlWorkoutInterface(QObject *parent, const uint meso_idx, const QDate &date)
-	: QObject{parent}, m_workoutPage{nullptr}, m_workoutModel{nullptr}, m_calendarModel{nullptr},
-		m_mesoIdx{meso_idx}, m_workoutTimer{nullptr}, m_restTimer{nullptr}, m_date{date}, m_haveNewWorkoutOptions{false},
-		m_hour{0}, m_min{0}, m_sec{0}, m_editMode{false}, m_workoutIsEditable{false}, m_importFromPrevWorkout{false},
-		m_importFromSplitPlan{false}, m_bMainDateIsToday{false}
+	: QObject{parent}, m_workoutPage{nullptr}, m_workoutModel{nullptr}, m_calendarModel{nullptr}, m_mesoIdx{meso_idx},
+		m_workoutTimer{nullptr}, m_restTimer{nullptr}, m_date{date}, m_hour{0}, m_min{0}, m_sec{0}, m_editMode{false},
+		m_workoutIsEditable{false}, m_importFromPrevWorkout{false}, m_importFromSplitPlan{false}, m_bMainDateIsToday{false}
 {
 	setMainDateIsToday(date == QDate::currentDate());
-	if (!appMesoModel()->mesoCalendarManager()->hasDBData(m_mesoIdx))
+	m_calendarModel = appMesoModel()->mesoCalendarManager()->calendar(m_mesoIdx);
+	m_calendarDay = appMesoModel()->mesoCalendarManager()->calendarDay(m_mesoIdx, m_date);
+	m_workoutModel = appMesoModel()->mesoCalendarManager()->workoutForDay(m_mesoIdx, m_calendarDay);
+	if (m_workoutModel->exerciseCount() == 0)
 	{
-		const int id{appThreadManager()->getMesoCalendar(m_mesoIdx)};
-		auto conn{std::make_shared<QMetaObject::Connection>()};
-		*conn = connect(appThreadManager(), &ThreadManager::databaseReady, this, [this,conn,id] (const uint thread_id)
-		{
-			if (id == thread_id)
-			{
-				disconnect(*conn);
-				continueInit();
-			}
+		connect(m_workoutModel, &DBWorkoutModel::exerciseCountChanged, this, [this] () {
+			if (m_workoutModel->exerciseCount() == 0)
+				verifyWorkoutOptions();
 		});
-		return;
 	}
-	continueInit();
+	if (appMesoModel()->mesoCalendarManager()->workoutId(m_mesoIdx, m_calendarDay) == "-1"_L1)
+		appMesoModel()->mesoCalendarManager()->setWorkoutId(m_mesoIdx, m_calendarDay, m_workoutModel->id());
+	if (m_workoutPage)
+	{
+		m_workoutPage->setProperty("workoutModel", QVariant::fromValue(m_workoutModel));
+		emit timeInChanged();
+		emit timeOutChanged();
+		emit locationChanged();
+		emit notesChanged();
+		emit headerTextChanged();
+	}
 }
 
 void QmlWorkoutInterface::cleanUp()
@@ -152,7 +158,6 @@ void QmlWorkoutInterface::setDayIsFinished(const bool finished)
 	{
 		calculateWorkoutTime();
 		rollUpExercises();
-		appThreadManager()->saveMesoCalendar(m_mesoIdx);
 	}
 }
 
@@ -226,24 +231,19 @@ bool QmlWorkoutInterface::haveExercises() const
 QStringList QmlWorkoutInterface::previousWorkoutsList_text() const
 {
 	QStringList texts;
-	QHash<QString,uint>::const_iterator prev_workout{m_prevWorkouts.constBegin()};
-	const QHash<QString,uint>::const_iterator prev_workouts_end{m_prevWorkouts.constEnd()};
-	while (prev_workout != prev_workouts_end)
-	{
-		texts.append(prev_workout.key());
-		++prev_workout;
-	}
+	for (const auto &prev_workout : std::as_const(m_prevWorkouts))
+		texts += prev_workout;
 	return texts;
 }
 
 QList<uint> QmlWorkoutInterface::previousWorkoutsList_value() const
 {
 	QList<uint> values;
-	QHash<QString,uint>::const_iterator prev_workout{m_prevWorkouts.constBegin()};
-	const QHash<QString,uint>::const_iterator prev_workouts_end{m_prevWorkouts.constEnd()};
+	QHash<uint,QString>::const_iterator prev_workout{m_prevWorkouts.constBegin()};
+	const QHash<uint,QString>::const_iterator prev_workouts_end{m_prevWorkouts.constEnd()};
 	while (prev_workout != prev_workouts_end)
 	{
-		values.append(prev_workout.value());
+		values.append(prev_workout.key());
 		++prev_workout;
 	}
 	return values;
@@ -316,44 +316,30 @@ void QmlWorkoutInterface::getWorkoutPage()
 
 void QmlWorkoutInterface::loadExercisesFromCalendarDay(const uint calendar_day)
 {
-	const int correct_calendar_day{m_workoutModel->calendarDay()};
-	m_workoutModel->setCalendarDay(calendar_day);
-	const int id{appThreadManager()->getWorkout(m_workoutModel)};
-	auto conn = std::make_shared<QMetaObject::Connection>();
-	*conn = connect(appThreadManager(), &ThreadManager::databaseReady, this, [this,conn,id,correct_calendar_day] (const uint thread_id) {
-		if (id == thread_id)
-		{
-			disconnect(*conn);
-			m_workoutModel->setCalendarDay(correct_calendar_day);
-			m_workoutModel->setAllSetsCompleted(false);
-		}
-	});
+	DBWorkoutModel *w_model{appMesoModel()->mesoCalendarManager()->workoutForDay(m_mesoIdx, calendar_day)};
+	auto load = [this,w_model] () -> void {
+		m_workoutModel = w_model;
+		m_workoutModel->setAllSetsCompleted(false);
+	};
+	if (w_model->exerciseCount() == 0)
+	{
+		connect(w_model, &DBSplitModel::exerciseCountChanged, this, [&load] () { load(); });
+	}
+	else
+		load();
 }
 
 void QmlWorkoutInterface::getExercisesFromSplitPlan()
 {
-	DBExercisesModel *split_model{appMesoModel()->splitModel(m_mesoIdx, m_workoutModel->splitLetter(), false)};
+	DBExercisesModel *split_model{appMesoModel()->splitModel(m_mesoIdx, m_workoutModel->splitLetter())};
 	if (split_model->exerciseCount() > 0)
 		m_workoutModel = split_model;
-	else
-	{
-		auto conn = std::make_shared<QMetaObject::Connection>();
-		const int id{appThreadManager()->getMesoSplit(split_model)};
-		*conn = connect(appThreadManager(), &ThreadManager::databaseReady, this, [this,conn,id] (const uint thread_id) {
-			if (id == thread_id)
-			{
-				disconnect(*conn);
-				getExercisesFromSplitPlan();
-			}
-		});
-	}
 }
 
 void QmlWorkoutInterface::exportWorkoutToSplitPlan()
 {
-	DBExercisesModel *split_model{appMesoModel()->splitModel(m_mesoIdx, m_workoutModel->splitLetter(), false)};
+	DBExercisesModel *split_model{appMesoModel()->splitModel(m_mesoIdx, m_workoutModel->splitLetter())};
 	*split_model = m_workoutModel;
-	appThreadManager()->saveMesoSplit(split_model);
 }
 
 void QmlWorkoutInterface::resetWorkout()
@@ -505,21 +491,22 @@ void QmlWorkoutInterface::silenceTimeWarning()
 void QmlWorkoutInterface::createWorkoutPage()
 {
 	m_workoutComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/WorkoutPage.qml"_L1}, QQmlComponent::Asynchronous};
-	if (m_workoutComponent->status() == QQmlComponent::Ready)
-		createWorkoutPage_part2();
-	else
+	switch (m_workoutComponent->status())
 	{
-		connect(m_workoutComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status status) {
-			if (status == QQmlComponent::Ready)
-				return createWorkoutPage_part2();
-#ifndef QT_NO_DEBUG
-			else if (status == QQmlComponent::Error)
-			{
-				qDebug() << m_workoutComponent->errorString();
-				return;
-			}
-#endif
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		case QQmlComponent::Ready:
+			createWorkoutPage_part2();
+		break;
+		case QQmlComponent::Loading:
+			connect(m_workoutComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
+				createWorkoutPage_part2();
+			}, Qt::SingleShotConnection);
+		break;
+		case QQmlComponent::Null:
+		case QQmlComponent::Error:
+			#ifndef QT_NO_DEBUG
+			qDebug() << m_workoutComponent->errorString();
+			#endif
+		break;
 	}
 }
 
@@ -548,21 +535,20 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 			QMetaObject::invokeMethod(m_workoutPage, "changeComboModel", Q_ARG(QString, appMesoModel()->split(m_mesoIdx)));
 	});
 
-	connect(m_workoutModel, &DBExercisesModel::exerciseModified, this, [this] (const uint exercise_number, const uint exercise_idx, const uint set_number, const uint field) {
-		if (field != EXERCISE_IGNORE_NOTIFY_IDX)
+
+	connect(m_workoutModel, &DBExercisesModel::exerciseModified, this, [this]
+					(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint field)
+	{
+		if (field == EXERCISES_COL_COMPLETED)
 		{
-			appThreadManager()->saveWorkout(m_workoutModel);
-			if (field == EXERCISES_COL_COMPLETED)
+			const bool all_exercises_completed{m_workoutModel->allSetsCompleted()};
+			if (all_exercises_completed != dayIsFinished())
 			{
-				const bool all_exercises_completed{m_workoutModel->allSetsCompleted()};
-				if (all_exercises_completed != dayIsFinished())
-				{
-					if (!all_exercises_completed || !m_workoutTimer->isActive())
-						setDayIsFinished(all_exercises_completed);
-					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
-						appUtils()->string_strings({ tr("Workout"), workoutCompletedMessage(all_exercises_completed)}, record_separator),
-								"app_logo"_L1, m_workoutTimer->isActive() ? 0 : 5000);
-				}
+				if (!all_exercises_completed || !m_workoutTimer->isActive())
+					setDayIsFinished(all_exercises_completed);
+				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
+					appUtils()->string_strings({ tr("Workout"), workoutCompletedMessage(all_exercises_completed)}, record_separator),
+							"app_logo"_L1, m_workoutTimer->isActive() ? 0 : 5000);
 			}
 		}
 	});
@@ -616,65 +602,51 @@ void QmlWorkoutInterface::startRestTimer(const uint exercise_number, const QStri
 	m_restTimer->startTimer();
 }
 
-void QmlWorkoutInterface::continueInit()
-{
-	m_calendarModel = appMesoModel()->mesoCalendarManager()->calendar(m_mesoIdx);
-	m_calendarDay = appMesoModel()->mesoCalendarManager()->calendarDay(m_mesoIdx, m_date);
-	m_workoutModel = appMesoModel()->mesoCalendarManager()->workoutForDay(m_mesoIdx, m_calendarDay);
-	if (appMesoModel()->mesoCalendarManager()->workoutId(m_mesoIdx, m_calendarDay) == "-1"_L1)
-		appMesoModel()->mesoCalendarManager()->setWorkoutId(m_mesoIdx, m_calendarDay, m_workoutModel->id());
-	if (m_workoutPage)
-	{
-		m_workoutPage->setProperty("workoutModel", QVariant::fromValue(m_workoutModel));
-		emit timeInChanged();
-		emit timeOutChanged();
-		emit locationChanged();
-		emit notesChanged();
-		emit headerTextChanged();
-	}
-	const int id{appThreadManager()->getWorkout(m_workoutModel)};
-		auto conn{std::make_shared<QMetaObject::Connection>()};
-		*conn = connect(appThreadManager(), &ThreadManager::databaseReady, this, [this,conn,id] (const uint thread_id) {
-		if (id == thread_id)
-		{
-			disconnect(*conn);
-			if (m_workoutModel->exerciseCount() == 0)
-				verifyWorkoutOptions();
-		}
-	});
-}
-
 void QmlWorkoutInterface::verifyWorkoutOptions()
 {
 	if (m_workoutModel->splitLetter() != 'R')
 	{
-		bool have_workoutoptions{true};
-		setCanImportFromSplitPlan(have_workoutoptions |= appThreadManager()->mesoHasSplitPlan(appMesoModel()->id(m_mesoIdx), m_workoutModel->splitLetter()));
-		have_workoutoptions |= canImportFromSplitPlan();
+		DBSplitModel *split_model{appMesoModel()->splitModel(m_mesoIdx, m_workoutModel->splitLetter())};
 		auto conn{std::make_shared<QMetaObject::Connection>()};
-		const int id{appThreadManager()->getPreviousWorkouts(m_workoutModel)};
-		*conn = connect(appThreadManager(), &ThreadManager::databaseReady, this, [this,conn,id,have_workoutoptions] (const uint db_id) mutable {
-			if (id == db_id)
+		*conn = connect(split_model->database(), &TPDatabaseTable::actionFinished, this, [this,conn,split_model]
+					(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2)
+		{
+			if (op == ThreadManager::CustomOperation)
 			{
 				disconnect(*conn);
-				have_workoutoptions |= m_workoutModel->previousWorkouts().count() > 0;
-				setCanImportFromPreviousWorkout(m_workoutModel->previousWorkouts().count() > 0);
-				m_prevWorkouts.clear();
-				if (canImportFromPreviousWorkout())
-				{
-					for (const auto prev_calday : m_workoutModel->previousWorkouts())
-					{
-						m_prevWorkouts.emplace(std::move(appUtils()->formatDate(
-									appMesoModel()->mesoCalendarManager()->dateFromCalendarDay(m_mesoIdx, prev_calday))), prev_calday);
-					}
-					emit previousWorkoutsListChanged();
-				}
-				setHaveNewWorkoutOptions(have_workoutoptions);
+				setCanImportFromSplitPlan(return_value2.toBool());
 			}
 		});
+		auto x = [this,split_model] () -> std::pair<QVariant,QVariant> { return split_model->database()->mesoHasSplitPlan(); };
+		split_model->database()->setCustQueryFunction(x);
+		appThreadManager()->runAction(split_model->database(), ThreadManager::CustomOperation);
+
+		auto conn2{std::make_shared<QMetaObject::Connection>()};
+		*conn2 = connect(m_workoutModel->database(), &TPDatabaseTable::actionFinished, this, [this,conn2]
+					(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2)
+		{
+			if (op == ThreadManager::CustomOperation)
+			{
+				disconnect(*conn2);
+				if (canImportFromPreviousWorkout())
+				{
+					m_prevWorkouts.clear();
+					for (const auto &prev_calday : return_value1.toList())
+					{
+						const uint prev_calendar_day{prev_calday.toUInt()};
+						m_prevWorkouts.insert(prev_calendar_day, appUtils()->formatDate(
+								appMesoModel()->mesoCalendarManager()->dateFromCalendarDay(m_mesoIdx, prev_calendar_day)));
+					}
+				}
+				setCanImportFromPreviousWorkout(return_value1.toBool());
+			}
+		});
+		auto y = [this,split_model] () -> std::pair<QVariant,QVariant> {
+			return m_workoutModel->database()->getPreviousWorkoutsIds();
+		};
+		m_workoutModel->database()->setCustQueryFunction(y);
+		appThreadManager()->runAction(m_workoutModel->database(), ThreadManager::CustomOperation);
 	}
-	else
-		setHaveNewWorkoutOptions(false);
 }
 
 QString QmlWorkoutInterface::workoutCompletedMessage(const bool completed) const

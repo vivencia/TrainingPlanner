@@ -12,9 +12,8 @@ class DBExercisesListTable final : public TPDatabaseTable
 Q_OBJECT
 
 public:
-	explicit DBExercisesListTable(DBModelInterfaceExercisesList *dbmodel_interface);
+	explicit DBExercisesListTable(DBModelInterfaceExercisesList *dbmodel_interface, const QString &list_version);
 
-	QString dbFilePath() const override final;
 	QString dbFileName(const bool fullpath = true) const override final;
 	void updateTable() override final {}
 
@@ -26,6 +25,7 @@ signals:
 
 private:
 	QStringList m_exercisesList;
+	bool m_updateList;
 	bool getExercisesList();
 };
 

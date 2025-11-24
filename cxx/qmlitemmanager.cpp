@@ -1,7 +1,6 @@
 #include "qmlitemmanager.h"
 
 #include "dbcalendarmodel.h"
-#include "thread_manager.h"
 #include "dbexercisesmodel.h"
 #include "dbexerciseslistmodel.h"
 #include "dbmesocalendarmanager.h"
@@ -19,11 +18,11 @@
 #include "pageslistmodel.h"
 #include "osinterface.h"
 #include "statistics/tpstatistics.h"
+#include "tpbool.h"
 #include "tpimage.h"
 #include "tpimageprovider.h"
 #include "tpsettings.h"
 #include "tptimer.h"
-#include "tpworkoutscalendar.h"
 #include "translationclass.h"
 
 #include "online_services/onlineuserinfo.h"
@@ -57,12 +56,6 @@ QmlItemManager::~QmlItemManager()
 		delete m_statisticsPage;
 		delete m_statisticsComponent;
 	}
-	if (m_allWorkoutsPage)
-	{
-		delete m_allWorkoutsPage;
-		delete m_allWorkoutsComponent;
-		delete m_wokoutsCalendar;
-	}
 }
 
 void QmlItemManager::configureQmlEngine()
@@ -73,7 +66,8 @@ void QmlItemManager::configureQmlEngine()
 	qmlRegisterType<DBUserModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBUserModel");
 	qmlRegisterType<DBExercisesListModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBExercisesListModel");
 	qmlRegisterType<DBMesocyclesModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBMesocyclesModel");
-	qmlRegisterType<DBExercisesModel>("org.vivenciasofopacity: 0.8tware.TrainingPlanner.qmlcomponents", 1, 0, "DBExercisesModel");
+	qmlRegisterType<DBExercisesModel>("org.vivenciasofopacity: 0.8tware.TrainingPlanner.qmlcomponents", 1, 0, "DBSplitModel");
+	qmlRegisterType<DBExercisesModel>("org.vivenciasofopacity: 0.8tware.TrainingPlanner.qmlcomponents", 1, 0, "DBWorkoutModel");
 	qmlRegisterType<DBMesoCalendarManager>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBMesoCalendarManager");
 	qmlRegisterType<DBCalendarModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBCalendarModel");
 	qmlRegisterType<TPTimer>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "TPTimer");
@@ -87,7 +81,6 @@ void QmlItemManager::configureQmlEngine()
 	qmlRegisterType<WeatherInfo>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "WeatherInfo");
 	qmlRegisterType<TPStatistics>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "Statistics");
 	qmlRegisterType<PagesListModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "PagesListModel");
-	qmlRegisterType<TPWorkoutsCalendar>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "WorkoutsCalendar");
 	qmlRegisterType<OnlineUserInfo>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "OnlineUserInfo");
 	qmlRegisterType<TPMessagesManager>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "MessagesManager");
 	qmlRegisterType<HomePageMesoModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "HomePageMesoModel");
@@ -298,48 +291,9 @@ void QmlItemManager::getStatisticsPage()
 		appPagesListModel()->openPage(m_statisticsPage);
 }
 
-void QmlItemManager::getAllWorkoutsPage()
-{
-	if (!m_allWorkoutsPage)
-	{
-		m_allWorkoutsComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/AllWorkouts.qml"_L1}, QQmlComponent::Asynchronous};
-		if (m_allWorkoutsComponent->status() != QQmlComponent::Ready)
-		{
-			connect(m_allWorkoutsComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
-				if (status == QQmlComponent::Ready)
-					createAllWorkoutsPage_part2();
-				#ifndef QT_NO_DEBUG
-				else if (status == QQmlComponent::Error)
-				{
-					qDebug() << m_allWorkoutsComponent->errorString();
-					return;
-				}
-				#endif
-			}, Qt::SingleShotConnection);
-		}
-		else
-			createAllWorkoutsPage_part2();
-	}
-	else
-		appPagesListModel()->openPage(m_allWorkoutsPage);
-}
-
 void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QString &filter) const
 {
-	if (appExercisesList()->count() == 0)
-	{
-		auto conn{std::make_shared<QMetaObject::Connection>()};
-		const int conn_id{appThreadManager()->getAllExercises()};
-		*conn = connect(appThreadManager(), &ThreadManager::databaseReady, this, [this,conn_id,conn,filter] (const int _conn_id) {
-			if (conn_id == _conn_id)
-			{
-				disconnect(*conn);
-				appExercisesList()->setFilter(filter);
-			}
-		});
-	}
-	else
-		appExercisesList()->setFilter(filter);
+	appExercisesList()->setFilter(filter);
 	QMetaObject::invokeMethod(parentPage, "showSimpleExercisesList");
 }
 
@@ -677,21 +631,4 @@ void QmlItemManager::createStatisticsPage_part2()
 	appQmlEngine()->setObjectOwnership(m_statisticsPage, QQmlEngine::CppOwnership);
 	m_statisticsPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
 	appPagesListModel()->openPage(m_statisticsPage, std::move(tr("Statistics")));
-}
-
-void QmlItemManager::createAllWorkoutsPage_part2()
-{
-	m_wokoutsCalendar = new TPWorkoutsCalendar{this};
-	QVariantMap allWorkoutsProperties;
-	allWorkoutsProperties.insert("workoutsCalendar", QVariant::fromValue(m_wokoutsCalendar));
-	m_allWorkoutsPage = static_cast<QQuickItem*>(m_allWorkoutsComponent->createWithInitialProperties(allWorkoutsProperties, appQmlEngine()->rootContext()));
-	appQmlEngine()->setObjectOwnership(m_allWorkoutsPage, QQmlEngine::CppOwnership);
-	m_allWorkoutsPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
-	appPagesListModel()->openPage(m_allWorkoutsPage, std::move(tr("All Workouts")));
-
-	//connect(appMesoModel(), &DBMesocyclesModel::mesoCalendarFieldsChanged, m_wokoutsCalendar, &TPWorkoutsCalendar::reScanMesocycles);
-	connect(appMesoModel(), &DBMesocyclesModel::isNewMesoChanged, m_wokoutsCalendar, &TPWorkoutsCalendar::reScanMesocycles);
-	connect(appMesoModel(), &DBMesocyclesModel::mesoIdxChanged, m_wokoutsCalendar, &TPWorkoutsCalendar::reScanMesocycles);
-
-	m_wokoutsCalendar->scanMesocycles();
 }

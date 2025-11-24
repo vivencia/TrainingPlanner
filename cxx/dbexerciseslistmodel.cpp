@@ -2,7 +2,6 @@
 
 #include "dbexerciseslisttable.h"
 #include "return_codes.h"
-#include "tpsettings.h"
 #include "tputils.h"
 #include "translationclass.h"
 
@@ -35,7 +34,10 @@ DBExercisesListModel::DBExercisesListModel(QObject *parent)
 	m_searchFilteredIndices.reserve(304);
 	m_muscularFilteredIndices.reserve(304);
 
-	getAllExcercises();
+	m_dbModelInterface = new DBModelInterfaceExercisesList;
+	m_db = new DBExercisesListTable{m_dbModelInterface, getExercisesListVersion()};
+	appThreadManager()->runAction(m_db, ThreadManager::CreateTable);
+	appThreadManager()->runAction(m_db, ThreadManager::ReadAllRecords);
 }
 
 QString DBExercisesListModel::muscularGroup(const int index) const
@@ -119,7 +121,7 @@ void DBExercisesListModel::newExercise(const QString &name, const QString &subna
 
 void DBExercisesListModel::removeExercise(const uint index)
 {
-	m_dbModelInterface->setRemovalIndex(actualIndex(index));
+	m_dbModelInterface->setRemovalInfo(actualIndex(index), QList<uint>{} << EXERCISES_LIST_COL_ID);
 	appThreadManager()->runAction(m_db, ThreadManager::DeleteRecord);
 
 	beginRemoveRows(QModelIndex{}, index, index);
@@ -692,9 +694,9 @@ void DBExercisesListModel::resetSearchModel()
 	endResetModel();
 }
 
-bool DBExercisesListModel::getExercisesListVersion()
+QString DBExercisesListModel::getExercisesListVersion() const
 {
-	m_exercisesListVersion = std::move("0"_L1);
+	QString version{std::move("0"_L1)};
 	QFile exercisesListFile{":/extras/exerciseslist.lst"_L1};
 	if (exercisesListFile.open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
@@ -703,29 +705,11 @@ bool DBExercisesListModel::getExercisesListVersion()
 		lineLength = exercisesListFile.readLine(buf, sizeof(buf));
 		if (lineLength > 0)
 		{
-			QString line{std::move(buf)};
-			if (line.startsWith("#Vers"_L1))
-				m_exercisesListVersion = std::move(line.split(';').at(1).trimmed());
+			version = buf;
+			if (version.startsWith("#Vers"_L1))
+				version = std::move(version.split(';').at(1).trimmed());
 		}
 		exercisesListFile.close();
 	}
-	return m_exercisesListVersion != appSettings()->exercisesListVersion();
-}
-
-void DBExercisesListModel::getAllExcercises()
-{
-	m_dbModelInterface = new DBModelInterfaceExercisesList;
-	m_db = new DBExercisesListTable(this, m_dbModelInterface);
-	appThreadManager()->runAction(m_db, ThreadManager::CreateTable);
-
-	if (getExercisesListVersion())
-		appThreadManager()->runAction(m_db, ThreadManager::ReadAllRecords);
-	else
-	{
-		m_db->customQueryFunc() = [this] () { return m_db->updateExercisesList(); };
-		connect(m_db, &DBExercisesListTable::updatedFromExercisesList, this, [this] () {
-			appSettings()->setExercisesListVersion(m_exercisesListVersion);
-		});
-		appThreadManager()->runAction(m_db, ThreadManager::CustomOperation);
-	}
+	return version;
 }

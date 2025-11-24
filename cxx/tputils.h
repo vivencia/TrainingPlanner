@@ -89,7 +89,6 @@ public:
 	void scanDir(const QString &path, QFileInfoList &results, const QString &match = QString{}, const bool follow_tree = false) const;
 	void rmDir(const QString &path) const;
 
-	void parseCmdFile(const QString &filename);
 	bool writeDataToFile(QFile *out_file,
 							const QString &identifier,
 							const QList<QStringList> &data,

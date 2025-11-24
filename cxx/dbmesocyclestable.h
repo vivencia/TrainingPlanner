@@ -14,7 +14,6 @@ Q_OBJECT
 public:
 	explicit DBMesocyclesTable(DBModelInterfaceMesocycle *dbmodel_interface);
 
-	QString dbFilePath() const override final;
 	QString dbFileName(const bool fullpath = true) const override final;
 	void updateTable() override final {}
 

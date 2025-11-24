@@ -20,9 +20,6 @@ void ThreadManager::runAction(TPDatabaseTable *worker, StandardOps operation )
 		QObject::connect(thread, &QThread::finished, thread, &QObject::deleteLater);
 
 		connect(this, &ThreadManager::newThreadedOperation, worker, &TPDatabaseTable::startAction, Qt::BlockingQueuedConnection);
-		connect(worker, &TPDatabaseTable::actionFinished, this, [this,worker] (const bool success, const bool has_cmd_file) {
-			emit databaseReady(success, worker->tableId(), has_cmd_file);
-		});
 
 		//Enters the thread's event loop, which waits for queued signal deliveries. and sleeps when idle
 		thread->start();

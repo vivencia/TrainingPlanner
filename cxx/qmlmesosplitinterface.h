@@ -7,7 +7,8 @@
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel);
 QT_FORWARD_DECLARE_CLASS(QQmlComponent);
 
-Q_DECLARE_OPAQUE_POINTER(DBExercisesModel*)
+using DBSplitModel = DBExercisesModel;
+Q_DECLARE_OPAQUE_POINTER(DBSplitModel*)
 
 class QmlMesoSplitInterface : public QObject
 {
@@ -15,7 +16,7 @@ class QmlMesoSplitInterface : public QObject
 Q_OBJECT
 
 Q_PROPERTY(QQuickItem* currentPage READ currentPage NOTIFY currentPageChanged FINAL)
-Q_PROPERTY(DBExercisesModel* currentSplitModel READ currentSplitModel NOTIFY currentPageChanged FINAL)
+Q_PROPERTY(DBSplitModel* currentSplitModel READ currentSplitModel NOTIFY currentPageChanged FINAL)
 Q_PROPERTY(QChar currentSplitLetter READ currentSplitLetter NOTIFY currentPageChanged FINAL)
 Q_PROPERTY(QChar currentSwappableLetter READ currentSwappableLetter NOTIFY currentPageChanged FINAL)
 Q_PROPERTY(bool haveExercises READ haveExercises NOTIFY currentPageChanged FINAL)
@@ -37,12 +38,11 @@ public:
 	Q_INVOKABLE void loadSplitFromPreviousMeso();
 	Q_INVOKABLE void simpleExercisesList(const bool show);
 	Q_INVOKABLE void exportMesoSplit(const bool bShare);
-	Q_INVOKABLE void exportAllMesoSplits(const bool bShare);
 	Q_INVOKABLE void importMesoSplit(const QString &filename = QString{});
 	Q_INVOKABLE QString prevMesoName() const { return m_prevMesoName; }
 	Q_INVOKABLE QQuickItem *setCurrentPage(const int index);
 
-	inline DBExercisesModel *currentSplitModel() const { return m_splitModels.value(m_currentSplitLetter); }
+	DBSplitModel *currentSplitModel() const;
 	inline QQuickItem *currentPage() const { return m_currentSplitPage; }
 	inline QChar currentSplitLetter() const { return m_currentSplitLetter; }
 	inline QChar currentSwappableLetter() const { return m_currentSwappableLetter; }
@@ -63,7 +63,6 @@ private:
 
 	QQmlComponent* m_splitComponent;
 	QMap<QChar,QQuickItem*> m_splitPages;
-	QMap<QChar,DBExercisesModel*> m_splitModels;
 	QMap<QChar,bool> m_hasPreviousPlan;
 	QVariantMap m_splitProperties;
 	uint m_mesoIdx;
@@ -76,7 +75,7 @@ private:
 	void createPlannerPage_part2();
 	void createMesoSplitPages();
 	void createMesoSplitPages_part2();
-	void setSplitPageProperties(const QChar &split_letter);
+	void setSplitPageProperties(DBSplitModel *split_model);
 	void syncSplitPagesWithMesoSplit();
 	void addPage(const QChar &split_letter, const uint index);
 	void removePage(const QChar &split_letter);

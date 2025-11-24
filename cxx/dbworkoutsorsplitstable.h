@@ -14,7 +14,6 @@ Q_OBJECT
 public:
 	explicit DBWorkoutsOrSplitsTable(const uint tableid);
 
-	QString dbFilePath() const override final;
 	QString dbFileName(const bool fullpath = true) const override final;
 	void updateTable() override final {}
 

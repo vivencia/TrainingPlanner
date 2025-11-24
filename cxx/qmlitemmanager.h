@@ -32,7 +32,6 @@ QT_FORWARD_DECLARE_CLASS(QmlWorkoutInterface)
 QT_FORWARD_DECLARE_CLASS(QmlUserInterface)
 QT_FORWARD_DECLARE_CLASS(TPChat)
 QT_FORWARD_DECLARE_CLASS(TPListModel)
-QT_FORWARD_DECLARE_CLASS(TPWorkoutsCalendar)
 
 QT_FORWARD_DECLARE_CLASS(QQmlApplicationEngine)
 QT_FORWARD_DECLARE_CLASS(QQmlComponent)
@@ -49,8 +48,8 @@ Q_PROPERTY(PagesListModel* appPagesModel READ appPagesModel NOTIFY userChangedSi
 
 public:
 	explicit inline QmlItemManager(QQmlApplicationEngine *qml_engine)
-		: QObject{nullptr}, m_usersManager{nullptr}, m_exercisesListManager{nullptr}, m_weatherPage{nullptr},
-				m_statisticsPage{nullptr}, m_allWorkoutsPage{nullptr}
+		: QObject{nullptr}, m_usersManager{nullptr}, m_exercisesListManager{nullptr},
+										m_weatherPage{nullptr}, m_statisticsPage{nullptr}
 	{
 		_appItemManager = this;
 		_appQmlEngine = qml_engine;
@@ -73,7 +72,6 @@ public:
 	Q_INVOKABLE void getExercisesPage(QmlWorkoutInterface *connectPage = nullptr);
 	Q_INVOKABLE void getWeatherPage();
 	Q_INVOKABLE void getStatisticsPage();
-	Q_INVOKABLE void getAllWorkoutsPage();
 
 	void showSimpleExercisesList(QQuickItem *parentPage, const QString &filter) const;
 	void hideSimpleExercisesList(QQuickItem *parentPage) const;
@@ -100,9 +98,8 @@ private:
 	QString m_exportFilename, m_importFilename;
 	QmlUserInterface *m_usersManager;
 	QmlExercisesDatabaseInterface *m_exercisesListManager;
-	QQmlComponent *m_weatherComponent, *m_statisticsComponent, *m_allWorkoutsComponent;
-	QQuickItem *m_homePage, *m_weatherPage, *m_statisticsPage, *m_allWorkoutsPage;
-	TPWorkoutsCalendar *m_wokoutsCalendar;
+	QQmlComponent *m_weatherComponent, *m_statisticsComponent;
+	QQuickItem *m_homePage, *m_weatherPage, *m_statisticsPage;
 
 	static QmlItemManager *_appItemManager;
 	friend QmlItemManager *appItemManager();
@@ -115,7 +112,6 @@ private:
 
 	void createWeatherPage_part2();
 	void createStatisticsPage_part2();
-	void createAllWorkoutsPage_part2();
 };
 
 inline QmlItemManager *appItemManager() { return QmlItemManager::_appItemManager; }

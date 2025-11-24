@@ -19,6 +19,8 @@ QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(DBCalendarModel)
 QT_FORWARD_DECLARE_CLASS(DBMesoCalendarTable)
 QT_FORWARD_DECLARE_CLASS(DBWorkoutsOrSplitsTable)
+QT_FORWARD_DECLARE_CLASS(DBModelInterfaceCalendar)
+QT_FORWARD_DECLARE_CLASS(DBModelInterfaceExercises)
 
 class DBMesoCalendarManager : public QObject
 {
@@ -29,9 +31,8 @@ public:
 	explicit DBMesoCalendarManager(QObject *parent);
 
 	void removeCalendarForMeso(const uint meso_idx, const bool remove_workouts);
-	void addCalendarForMeso(const uint meso_idx);
-	void addNewCalendarForMeso(const uint new_mesoidx);
-	void remakeMesoCalendar(const uint meso_idx, const bool preserve_old_info);
+	void getCalendarForMeso(const uint meso_idx, const bool create_calendar = false);
+	void remakeMesoCalendar(const uint meso_idx);
 	void alterCalendarSplits(const uint meso_idx, const QDate &start_date, const QDate &end_date, const QChar &new_splitletter);
 	DBExercisesModel *workoutForDay(const uint meso_idx, const int calendar_day);
 	inline DBExercisesModel *workoutForDay(const uint meso_idx, const QDate &date)
@@ -80,18 +81,21 @@ public:
 		return m_calendars.value(meso_idx);
 	}
 
+	[[nodiscard]] inline DBWorkoutsOrSplitsTable *workoutsTable() const { return m_workoutsDB; }
+
 signals:
 	void calendarChanged(const uint meso_idx, const uint field, const int calendar_day = -1);
 
 private:
-	QHash<uint,QList<DBExercisesModel*>> m_workouts;
+	QHash<uint,QHash<uint,DBExercisesModel*>> m_workouts;
 	QHash<uint,DBCalendarModel*> m_calendars;
 
 	DBMesoCalendarTable *m_calendarDB;
-	DBWorkoutsOrSplitsTable *m_ExercisesDB;
+	DBWorkoutsOrSplitsTable *m_workoutsDB;
 
+	DBModelInterfaceCalendar *getDBModelInterfaceCalendar(const uint meso_idx) const;
+	DBModelInterfaceExercises *getDBModelInterfaceExercises(const uint meso_idx, const uint calendar_day) const;
 	uint populateCalendarDays(const uint meso_idx, const QDate &start_date, const QDate &end_date, const QString &split);
-	void createCalendar(const uint meso_idx);
 	inline QString dayInfo(const uint meso_idx, const uint calendar_day, const uint field) const;
 	inline void setDayInfo(const uint meso_idx, const uint calendar_day, const uint field, const QString &new_value, const bool emit_signal = true);
 };

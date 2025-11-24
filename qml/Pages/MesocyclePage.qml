@@ -497,42 +497,4 @@ TPPage {
 			}
 		} //ColumnLayout
 	} //ScrollView
-
-	property int calDialogAnswer: 0
-
-	Loader {
-		id: changeCalendarLoader
-		asynchronous: true
-		active: false
-
-		sourceComponent: TPComplexDialog {
-			title: qsTr("Adjust meso calendar?")
-			parentPage: mesoPropertiesPage
-			customItemSource: "TPAdjustMesoCalendarFrame.qml"
-
-			onButton1Clicked: {
-				calDialogAnswer = customBoolProperty1 ? 1 : 2;
-				changeCalendar();
-				changeCalendarLoader.active = false;
-			}
-			onButton2Clicked: {
-				mesoManager.doNotChangeMesoCalendar();
-				calDialogAnswer = 0; //A "No", warrants a possible new confirmation
-				changeCalendarLoader.active = false;
-			}
-		}
-
-		onLoaded: item.show(-1);
-	}
-
-	function showCalendarChangedDialog(): void {
-		if (calDialogAnswer > 0)
-			changeCalendar();
-		else
-			changeCalendarLoader.active = true;
-	}
-
-	function changeCalendar(): void {
-		mesoManager.changeMesoCalendar(calDialogAnswer === 1);
-	}
 } //Page

@@ -46,7 +46,7 @@ void TPStatistics::createDataSet(const uint meso_idx, const QChar &splitLetter)
 		++itr;
 	}
 
-	auto conn = std::make_shared<QMetaObject::Connection>();
+	/*auto conn = std::make_shared<QMetaObject::Connection>();
 	*conn = connect(appThreadManager(), &ThreadManager::databaseReadyWithData, this, [this,conn,meso_idx,splitLetter]
 										(const uint table_idx, QVariant data) {
 		if (table_idx == MESOSPLIT_TABLE_ID)
@@ -59,7 +59,7 @@ void TPStatistics::createDataSet(const uint meso_idx, const QChar &splitLetter)
 
 			}
 		}
-	});
+	});*/
 	//appThreadManager()->getExercisesForSplitWithinMeso(meso_idx, splitLetter);
 
 	m_workingDataSet = new DataSet;
@@ -143,7 +143,7 @@ void TPStatistics::createYData(const QList<QList<QStringList>> &workoutInfo)
 void TPStatistics::generateDataSet()
 {
 	const uint mesoIdx(m_workingDataSet->m_MesoIdx);
-	if (!appMesoModel()->mesoCalendarManager()->hasDBData(mesoIdx))
+/*	if (!appMesoModel()->mesoCalendarManager()->hasDBData(mesoIdx))
 	{
 		connect(appThreadManager(), &ThreadManager::databaseReady, this, [this] (const uint db_id) {
 			generateDataSet();
@@ -168,7 +168,7 @@ void TPStatistics::generateDataSet()
 			});
 			//appThreadManager()->workoutsInfoForTimePeriod(m_workingDataSet->m_ExercisesList, dates);
 		}
-	});
+	});*/
 	//appThreadManager()->completedDaysForSplitWithinTimePeriod(m_workingDataSet->m_SplitLetter, m_startDate, m_endDate);
 }
 

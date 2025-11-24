@@ -4,14 +4,11 @@
 #include <QObject>
 #include <QVariantMap>
 
-class QmlWorkoutInterface;
-class QmlMesoSplitInterface;
-class QmlMesoCalendarInterface;
-class DBMesoSplitModel;
-class DBWorkoutModel;
-
-class QQmlComponent;
-class QQuickItem;
+QT_FORWARD_DECLARE_CLASS(QmlWorkoutInterface)
+QT_FORWARD_DECLARE_CLASS(QmlMesoSplitInterface)
+QT_FORWARD_DECLARE_CLASS(QmlMesoCalendarInterface)
+QT_FORWARD_DECLARE_CLASS(QQmlComponent)
+QT_FORWARD_DECLARE_CLASS(QQuickItem)
 
 class QMLMesoInterface : public QObject
 {
@@ -57,8 +54,7 @@ Q_PROPERTY(QDate maximumMesoEndDate READ maximumMesoEndDate CONSTANT FINAL)
 
 public:
 	explicit inline QMLMesoInterface(QObject *parent, const uint meso_idx)
-		: QObject{parent}, m_mesoComponent{nullptr}, m_mesoIdx{meso_idx}, m_exercisesPage{nullptr}, m_calendarPage{nullptr},
-				m_canSendMesoToServer{false} {}
+		: QObject{parent}, m_mesoComponent{nullptr}, m_mesoIdx{meso_idx}, m_exercisesPage{nullptr}, m_calendarPage{nullptr} {}
 	inline ~QMLMesoInterface() { cleanUp(); }
 
 	void cleanUp();
@@ -140,9 +136,6 @@ public:
 	void setNewMesoFieldCounter(const int new_value) { m_newMesoFieldCounter = new_value; emit newMesoFieldCounterChanged(new_value);}
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
-
-	Q_INVOKABLE void changeMesoCalendar(const bool preserve_old_cal);
-	Q_INVOKABLE void doNotChangeMesoCalendar();
 	Q_INVOKABLE void getCalendarPage();
 	Q_INVOKABLE void getExercisesPlannerPage();
 	Q_INVOKABLE void getWorkoutPage(const QDate &date);
@@ -196,7 +189,6 @@ private:
 
 	void createMesocyclePage();
 	void createMesocyclePage_part2();
-	void mesoChanged(const uint meso_idx, const uint meso_field);
 	inline bool isSplitOK(const QString &split) const;
 	void maybeChangeNewMesoFieldCounter();
 };

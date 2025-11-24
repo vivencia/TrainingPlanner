@@ -1,31 +1,22 @@
 #include "qmlexercisesdatabaseinterface.h"
 
 #include "dbexerciseslistmodel.h"
-#include "thread_manager.h"
 #include "qmlitemmanager.h"
 #include "qmlworkoutinterface.h"
 #include "osinterface.h"
-#include "tputils.h"
 
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickWindow>
 
-QmlExercisesDatabaseInterface::~QmlExercisesDatabaseInterface()
-{
-	delete m_exercisesPage;
-	delete m_exercisesComponent;
-}
-
 void QmlExercisesDatabaseInterface::saveExercise()
 {
-	appThreadManager()->saveExercises();
+
 }
 
 const uint QmlExercisesDatabaseInterface::removeExercise(const uint row)
 {
-	appThreadManager()->removeExercise(appExercisesList()->actualIndex(row));
 	appExercisesList()->removeExercise(row);
 	return row > 0 ? row - 1 : 0;
 }
@@ -62,14 +53,10 @@ void QmlExercisesDatabaseInterface::importExercises(const QString &filename)
 		appItemManager()->openRequestedFile(filename, IFC_EXERCISES);
 }
 
-void QmlExercisesDatabaseInterface::getExercisesPage(QmlWorkoutInterface* connectPage)
+void QmlExercisesDatabaseInterface::getExercisesPage(QmlWorkoutInterface *connectPage)
 {
 	if (!m_exercisesComponent)
-	{
-		if (appExercisesList()->count() == 0)
-			appThreadManager()->getAllExercises();
 		createExercisesPage(connectPage);
-	}
 	else
 	{
 		m_exercisesPage->setProperty("bChooseButtonEnabled", connectPage != nullptr);
@@ -83,27 +70,28 @@ void QmlExercisesDatabaseInterface::getExercisesPage(QmlWorkoutInterface* connec
 	}
 }
 
-void QmlExercisesDatabaseInterface::createExercisesPage(QmlWorkoutInterface* connectPage)
+void QmlExercisesDatabaseInterface::createExercisesPage(QmlWorkoutInterface *connectPage)
 {
 	m_exercisesProperties.insert("bChooseButtonEnabled"_L1, connectPage != nullptr);
 	m_exercisesProperties.insert("exercisesManager"_L1, QVariant::fromValue(this));
 	m_exercisesComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/ExercisesListPage.qml"_L1}, QQmlComponent::Asynchronous};
-	if (m_exercisesComponent->status() != QQmlComponent::Ready)
+	switch (m_exercisesComponent->status())
 	{
-		connect(m_exercisesComponent, &QQmlComponent::statusChanged, this, [this,connectPage] (QQmlComponent::Status status) {
-			if (status == QQmlComponent::Ready)
+		case QQmlComponent::Ready:
+			createExercisesPage_part2(connectPage);
+		break;
+		case QQmlComponent::Loading:
+			connect(m_exercisesComponent, &QQmlComponent::statusChanged, this, [this,connectPage] (QQmlComponent::Status status) {
 				createExercisesPage_part2(connectPage);
-#ifndef QT_NO_DEBUG
-			else if (status == QQmlComponent::Error)
-			{
-				qDebug() << m_exercisesComponent->errorString();
-				return;
-			}
-#endif
-		}, Qt::SingleShotConnection);
+			}, Qt::SingleShotConnection);
+		break;
+		case QQmlComponent::Null:
+		case QQmlComponent::Error:
+			#ifndef QT_NO_DEBUG
+			qDebug() << m_exercisesComponent->errorString();
+			#endif
+		break;
 	}
-	else
-		createExercisesPage_part2(connectPage);
 }
 
 void QmlExercisesDatabaseInterface::createExercisesPage_part2(QmlWorkoutInterface *connectPage)

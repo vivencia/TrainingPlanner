@@ -18,6 +18,7 @@ QML_ELEMENT
 public:
 	explicit DBCalendarModel(DBMesoCalendarManager *parent, DBMesoCalendarTable *db, const uint meso_idx);
 	DBModelInterfaceCalendar *dbModelInterface() const { return m_dbModelInterface; }
+	inline void setNMonths(const uint n_months) { m_nmonths = n_months; }
 
 	inline uint mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; }

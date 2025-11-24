@@ -34,9 +34,14 @@ TPChatDB::TPChatDB(const QString &user_id, const QString &otheruser_id, DBModelI
 	setReadAllRecordsFunc([this] () { return loadChat(); });
 }
 
+QString TPChatDB::subDir() const
+{
+	return TPChat::chatsSubDir;
+}
+
 QString TPChatDB::dbFilePath() const
 {
-	return appUserModel()->userDir(m_userId) + TPChat::chatsSubDir;
+	return appUserModel()->userDir(m_userId) + subDir();
 }
 
 QString TPChatDB::dbFileName(const bool fullpath) const

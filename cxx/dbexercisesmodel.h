@@ -19,12 +19,9 @@
 #define EXERCISES_COL_SUBSETS 11
 #define EXERCISES_COL_REPS 12
 #define EXERCISES_COL_WEIGHTS 13
-#define WORKOUT_TOTALCOLS EXERCISES_COL_WEIGHTS+1
+#define EXERCISES_TOTALCOLS EXERCISES_COL_WEIGHTS+1
 
 #define EXERCISE_IGNORE_NOTIFY_IDX 1000
-#define EXERCISE_ADD_NOTIFY_IDX 100
-#define EXERCISE_DEL_NOTIFY_IDX 101
-#define EXERCISE_MOVE_NOTIFY_IDX 102
 
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(DBWorkoutsOrSplitsTable)
@@ -99,37 +96,32 @@ public:
 	{
 		commonConstructor();
 	}
-	inline explicit DBExercisesModel(DBMesoCalendarManager *parent, DBWorkoutsOrSplitsTable *db, const uint meso_idx, const QChar &splitletter)
-		: QAbstractListModel{reinterpret_cast<QObject*>(parent)}, m_calendarManager{parent}, m_db{db},
+	//An exercises model that will contain data for the meso splits do not need access to a calendar manager
+	inline explicit DBExercisesModel(QObject *parent, DBWorkoutsOrSplitsTable *db, const uint meso_idx, const QChar &splitletter)
+		: QAbstractListModel{parent}, m_db{db}, m_calendarManager{nullptr},
 			m_mesoIdx{meso_idx}, m_calendarDay{-1}, m_splitLetter{splitletter}, m_workingExercise{11111}
 	{
 		commonConstructor();
 	}
 	~DBExercisesModel() { clearExercises(); }
+	inline DBModelInterfaceExercises *dbModelInterface() const { return m_dbModelInterface; }
+	inline DBWorkoutsOrSplitsTable *database() const { return m_db; }
 
 	void operator=(DBExercisesModel *other_model);
+	bool fromDatabase();
+	void clearExercises();
 
 	[[nodiscard]] inline DBMesoCalendarManager *calendarManager() const { return m_calendarManager; }
 	[[nodiscard]] inline const QString &id() const { return m_dbModelInterface->modelData().at(0).at(EXERCISES_COL_ID); }
-	[[nodiscard]] inline const QString &mesoId() const { return m_dbModelInterface->modelData().at(0).at(EXERCISES_COL_MESOID); }
+	[[nodiscard]] const QString &mesoId() const;
 	[[nodiscard]] inline const uint mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; }
 	[[nodiscard]] inline int calendarDay() const { return m_calendarDay; }
 	inline void setCalendarDay(const uint new_calendarday) { m_calendarDay = new_calendarday; }
 	[[nodiscard]] inline const QChar &splitLetter() const { return m_splitLetter; }
-	inline void setSplitLetter(const QChar &new_splitletter)
-	{
-		if (m_splitLetter != new_splitletter)
-		{
-			m_splitLetter = new_splitletter;
-			emit splitLetterChanged();
-		}
-	}
+	void setSplitLetter(const QChar &new_splitletter);
 	[[nodiscard]] inline bool importModel() const { return m_importMode; }
 	inline void setImportMode(const bool import_mode) { m_importMode = import_mode; }
-
-	bool fromDatabase();
-	void clearExercises();
 
 	[[nodiscard]] int exportToFile(const QString &filename, QFile *out_file = nullptr) const;
 	[[nodiscard]] int exportToFormattedFile(const QString &filename, QFile *out_file = nullptr) const;
@@ -146,7 +138,7 @@ public:
 	Q_INVOKABLE const uint setsNumber(const uint exercise_number, const uint exercise_idx) const;
 
 	QString muscularGroup() const;
-	[[maybe_unused]] Q_INVOKABLE uint addExercise(const bool emit_signal = true);
+	[[maybe_unused]] Q_INVOKABLE uint addExercise(int exercise_number = -1, const bool emit_signal = true);
 	Q_INVOKABLE void delExercise(const uint exercise_number, const bool emit_signal = true);
 	Q_INVOKABLE void moveExercise(const uint from, const uint to);
 	[[maybe_unused]] Q_INVOKABLE uint addSubExercise(const uint exercise_number, const bool emit_signal = true);
@@ -236,6 +228,7 @@ public:
 
 public slots:
 	void newExerciseFromExercisesList();
+	void saveExercises(const int exercise_number, const int exercise_idx, const int set_number, const int field);
 
 signals:
 	void setModeChanged(const int exercise_number, const int exercise_idx, const int set_number, const int mode);
@@ -264,7 +257,6 @@ private:
 	QChar m_splitLetter;
 	QList<exerciseEntry*> m_exerciseData;
 	QHash<int, QByteArray> m_roleNames;
-	QList<uint> m_previousWorkouts;
 
 	DBWorkoutsOrSplitsTable *m_db;
 	DBModelInterfaceExercises *m_dbModelInterface;

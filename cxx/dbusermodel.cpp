@@ -89,28 +89,6 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 				setPhoneBasedOnLocale();
 			emit labelsChanged();
 		});
-
-		connect(appThreadManager(), &ThreadManager::databaseReady, this, [this]
-												(const bool success, const int table_id, const bool has_cmd_file)
-		{
-				if (success && has_cmd_file)
-				{
-					switch (table_id)
-					{
-						case EXERCISES_TABLE_ID:
-						case MESOCYCLES_TABLE_ID:
-						case MESOSPLIT_TABLE_ID:
-						case MESOCALENDAR_TABLE_ID:
-						case WORKOUT_TABLE_ID:
-						case USERS_TABLE_ID:
-							sendUnsentCmdFiles(TPDatabaseTable::databaseSubDir);
-						break;
-						case CHAT_TABLE_ID:
-							sendUnsentCmdFiles(TPChat::chatsSubDir);
-						break;
-					}
-				}
-		});
 	}
 }
 
@@ -206,7 +184,6 @@ void DBUserModel::removeUser(const int user_idx, const bool remove_local, const 
 				return;
 		}
 
-		m_dbModelInterface->setRemovalIndex(user_idx);
 		if (isCoach(user_idx))
 			delCoach(user_idx);
 		if (isClient(user_idx))
@@ -1123,9 +1100,9 @@ void DBUserModel::downloadCmdFilesFromServer(const QString &subdir)
 						const QString &local_file_name{userDir(0) + subdir + file};
 						const int requestid2{downloadFileFromServer(file, local_file_name, QString{}, subdir, userId(0))};
 
-						auto parseCmd = [] (const QString &cmd_file)
+						auto parseCmd = [this] (const QString &cmd_file)
 						{
-							appUtils()->parseCmdFile(cmd_file);
+							m_db->parseCmdFile(cmd_file);
 							QFile::remove(cmd_file);
 						};
 						if (requestid2 == TP_RET_CODE_DOWNLOAD_FAILED)
@@ -1152,6 +1129,14 @@ void DBUserModel::downloadCmdFilesFromServer(const QString &subdir)
 		}, Qt::SingleShotConnection);
 		appKeyChain()->readKey(userId(0));
 	}
+}
+
+void DBUserModel::sendUnsentCmdFiles(const QString &subdir)
+{
+	QFileInfoList cmd_files;
+	appUtils()->scanDir(userDir() + subdir, cmd_files, '*' + cmd_file_extension);
+	for (const auto &cmd_file : std::as_const(cmd_files))
+		sendCmdFileToServer(cmd_file.absoluteFilePath());
 }
 
 int DBUserModel::exportToFile(const uint user_idx, const QString &filename, const bool write_header, QFile *out_file) const
@@ -1300,7 +1285,6 @@ int DBUserModel::newUserFromFile(const QString &filename, const std::optional<bo
 
 void DBUserModel::saveUserInfo(const uint user_idx, const uint field)
 {
-	m_dbModelInterface->setModified(user_idx, field);
 	if (field < USER_TOTAL_COLS)
 	{
 		if (user_idx == 0)
@@ -1309,6 +1293,7 @@ void DBUserModel::saveUserInfo(const uint user_idx, const uint field)
 			if (field == USER_COL_APP_USE_MODE)
 				emit appUseModeChanged();
 		}
+		m_dbModelInterface->setModified(user_idx, field);
 		appThreadManager()->runAction(m_db, ThreadManager::UpdateOneField);
 	}
 	else
@@ -1318,9 +1303,11 @@ void DBUserModel::saveUserInfo(const uint user_idx, const uint field)
 			case USER_MODIFIED_CREATED:
 			case USER_MODIFIED_IMPORTED:
 			case USER_MODIFIED_ACCEPTED:
+				m_dbModelInterface->setModified(user_idx, field);
 				appThreadManager()->runAction(m_db, ThreadManager::InsertRecord);
 			break;
 			case USER_MODIFIED_REMOVED:
+				m_dbModelInterface->setRemovalInfo(user_idx, QList<uint>{} << USER_COL_ID);
 				appThreadManager()->runAction(m_db, ThreadManager::DeleteRecord);
 			break;
 		}
@@ -1564,9 +1551,9 @@ void DBUserModel::onlineCheckinActions()
 			connect(this, &DBUserModel::onlineDevicesListReceived, this, [this,value] ()
 			{
 				if (!mb_singleDevice.value())
-					downloadCmdFilesFromServer(TPDatabaseTable::databaseSubDir);
+					downloadCmdFilesFromServer(m_db->subDir());
 				appOnlineServices()->executeCommands(appUtils()->idFromString("execcmds"_L1), userId(0), value,
-					TPDatabaseTable::databaseSubDir, mb_singleDevice.value());
+					m_db->subDir(), mb_singleDevice.value());
 			}, Qt::SingleShotConnection);
 			getOnlineDevicesList();
 		}
@@ -1739,14 +1726,6 @@ void DBUserModel::downloadAllUserFiles(const QString &userid)
 		appOnlineServices()->listDirs(requestid, key, value, QString{}, QString{}, userid, true);
 	}, Qt::SingleShotConnection);
 	appKeyChain()->readKey(userId(0));
-}
-
-void DBUserModel::sendUnsentCmdFiles(const QString &subdir)
-{
-	QFileInfoList cmd_files;
-	appUtils()->scanDir(userDir() + subdir, cmd_files, '*' + cmd_file_extension);
-	for (const auto &cmd_file : std::as_const(cmd_files))
-		sendCmdFileToServer(cmd_file.absoluteFilePath());
 }
 
 QString DBUserModel::resume(const uint user_idx) const

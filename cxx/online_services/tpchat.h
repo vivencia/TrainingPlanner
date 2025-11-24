@@ -67,9 +67,6 @@ public:
 	bool setData(const QModelIndex &index, const QVariant &value, int role) override final;
 	inline virtual int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
 
-public slots:
-	void chatLoaded();
-
 signals:
 	void countChanged();
 	void interlocutorNameChanged();

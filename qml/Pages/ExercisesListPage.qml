@@ -51,7 +51,7 @@ TPPage {
 		}
 
 		onItemDoubleClicked: {
-			if (btnAddExercise.enabled)
+			if (btnChooseExercise.enabled)
 				chooseExercise();
 		}
 	}
@@ -127,14 +127,14 @@ TPPage {
 		} //btnEditExercise
 
 		TPButton {
-			id: btnAddExercise
+			id: btnChooseExercise
 			enabled: bChooseButtonEnabled && !bCanEdit && exercisesModel.currentRow >= 0
-			text: qsTr("Add")
+			text: qsTr("Choose")
 			width: toolbarExercises.buttonWidth
 			rounded: false
 
 			onClicked: chooseExercise();
-		} //btnAddExercise
+		} //btnChooseExercise
 
 		TPButton {
 			id: btnImExport

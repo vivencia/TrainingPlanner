@@ -34,6 +34,9 @@ DBCalendarModel::DBCalendarModel(DBMesoCalendarManager *parent, DBMesoCalendarTa
 				break;
 				default: break;
 			}
+			m_dbModelInterface->setModified(calendar_day, field);
+			m_db->setDBModelInterface(m_dbModelInterface);
+			appThreadManager()->runAction(m_db, ThreadManager::UpdateOneField);
 		}
 	});
 
@@ -53,6 +56,7 @@ DBCalendarModel::DBCalendarModel(DBMesoCalendarManager *parent, DBMesoCalendarTa
 			}
 		}
 	});
+	m_db->setDBModelInterface(m_dbModelInterface);
 	appThreadManager()->runAction(m_db, ThreadManager::ReadAllRecords);
 }
 

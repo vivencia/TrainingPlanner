@@ -94,7 +94,7 @@ set( CXX_SOURCES
     cxx/dbcalendarmodel.h cxx/dbcalendarmodel.cpp
 	cxx/dbusermodel.h cxx/dbusermodel.cpp
 	cxx/pageslistmodel.h cxx/pageslistmodel.cpp
-	cxx/tpworkoutscalendar.h cxx/tpworkoutscalendar.cpp
+
 
 	cxx/qmluserinterface.h cxx/qmluserinterface.cpp
 	cxx/qmlexercisesdatabaseinterface.h cxx/qmlexercisesdatabaseinterface.cpp
@@ -196,7 +196,7 @@ set( QML_SOURCES
     "qml/ExercisesAndSets/SetNotesField.qml"
     "qml/ExercisesAndSets/SimpleExercisesListPanel.qml"
 	"qml/ExercisesAndSets/WorkoutOrSplitExercisesList.qml"
-    "qml/Pages/AllWorkouts.qml"
+
     "qml/Pages/ClientsPage.qml"
 	"qml/Pages/CoachesPage.qml"
     "qml/Pages/ConfigurationPage.qml"

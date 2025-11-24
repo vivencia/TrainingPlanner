@@ -21,9 +21,16 @@ public:
 	template<typename T> T *model() const { return qobject_cast<T*>(m_model); }
 	inline void setModel(QObject* model) { m_model = model; }
 
-	void setTPDatabaseTable(TPDatabaseTable *db) { m_db = db; }
+	inline void setTPDatabaseTable(TPDatabaseTable *db) { m_db = db; }
 	virtual const QList<QStringList> &modelData() const = 0;
 	virtual QList<QStringList> &modelData() = 0;
+
+	void clearData(const QList<uint> &excluded_fields = QList<uint> {});
+	inline void copyData(DBModelInterface *other_dbmi, const uint row, const uint field)
+	{
+		setModified(row, field);
+		modelData()[row][field] = other_dbmi->modelData().at(row).at(field);
+	}
 
 	inline QHash<uint, QList<uint>> &modifiedIndices() { return m_modifiedIndices; }
 	inline const QHash<uint, QList<uint>> &modifiedIndices() const { return m_modifiedIndices; }
@@ -43,7 +50,7 @@ public:
 		return m_modifiedIndices.value(row).contains(field);
 	}
 
-	void setRemovalIndex(const int removal_index, const uint field = 0);
+	void setRemovalInfo(const uint row, const QList<uint> &fields);
 	inline void clearRemovalIndices()
 	{
 		qDeleteAll(m_removalInfo);

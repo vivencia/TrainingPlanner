@@ -40,13 +40,16 @@ enum MesoRoleNames {
 
 QT_FORWARD_DECLARE_CLASS(DBMesocyclesModel)
 QT_FORWARD_DECLARE_CLASS(DBMesocyclesTable)
-QT_FORWARD_DECLARE_CLASS(DBModelInterfaceMesocycle);
+QT_FORWARD_DECLARE_CLASS(DBModelInterfaceMesocycle)
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
+QT_FORWARD_DECLARE_CLASS(DBWorkoutsOrSplitsTable)
 QT_FORWARD_DECLARE_CLASS(DBMesoCalendarManager)
 QT_FORWARD_DECLARE_CLASS(QMLMesoInterface)
 QT_FORWARD_DECLARE_CLASS(QFile)
 
-static DBMesocyclesModel *app_meso_model(nullptr);
+using DBSplitModel = DBExercisesModel;
+
+static DBMesocyclesModel *app_meso_model{nullptr};
 static constexpr QLatin1StringView mesosSubDir{"mesocycles/"};
 
 class DBMesocyclesModel : public QObject
@@ -85,7 +88,7 @@ public:
 	inline uint count() const { return m_mesoData.count(); }
 	QMLMesoInterface *mesoManager(const uint meso_idx);
 	void removeMesoManager(const uint meso_idx);
-	DBExercisesModel *splitModel(const uint meso_idx, const QChar &split_letter, const bool auto_load = true);
+
 	void incorporateMeso(const uint meso_idx);
 
 	uint startNewMesocycle(const bool bCreatePage, const std::optional<bool> bOwnMeso = std::nullopt);
@@ -102,7 +105,7 @@ public:
 	void openSpecificWorkout(const uint meso_idx, const QDate &date);
 
 	const uint newMesocycle(QStringList &&infolist);
-	inline DBMesoCalendarManager *mesoCalendarManager() const { return m_calendarModel; }
+	inline DBMesoCalendarManager *mesoCalendarManager() const { return m_calendarManager; }
 
 	inline HomePageMesoModel *currentHomePageMesoModel() { return m_curMesos; }
 	Q_INVOKABLE inline HomePageMesoModel *ownMesos() const { return m_ownMesos; }
@@ -346,6 +349,13 @@ public:
 	inline int mostRecentOwnMesoIdx() const { return m_mostRecentOwnMesoIdx; }
 	Q_INVOKABLE inline QString usedSplits(const uint meso_idx) const { return m_usedSplits.at(meso_idx); }
 	void makeUsedSplits(const uint meso_idx);
+	void loadSplits(const uint meso_idx);
+	void removeSplit(const uint meso_idx, const QChar &split_letter);
+	inline DBSplitModel *splitModel(const uint meso_idx, const QChar &split_letter) const
+	{
+		return m_splitModels.at(meso_idx).value(split_letter);
+	}
+	inline QMap<QChar,DBSplitModel*> &splitModelsForMeso(const uint meso_idx) { return m_splitModels[meso_idx]; }
 
 	bool isDateWithinMeso(const int meso_idx, const QDate &date) const;
 	bool mesoPlanExists(const QString &mesoName, const QString &coach, const QString &client) const;
@@ -399,7 +409,7 @@ signals:
 	void deferredActionFinished(const uint action_id, const int action_result);
 	void mesoIdxChanged(const uint old_meso_idx, const uint new_meso_idx);
 	void labelChanged();
-	void isNewMesoChanged(const uint meso_idx, const uint = 9999); //2nd parameter only need by TPWorkoutsCalendar
+	void isNewMesoChanged(const uint meso_idx);
 	void canExportChanged(const uint meso_idx, const bool can_export);
 	void mesoChanged(const uint meso_idx, const uint field);
 	void mostRecentOwnMesoChanged(const int meso_idx);
@@ -411,8 +421,8 @@ signals:
 private:	
 	QList<QStringList> m_mesoData;
 	QHash<uint,QMLMesoInterface*> m_mesoManagerList;
-	QList<QMap<QChar,DBExercisesModel*>> m_splitModels;
-	DBMesoCalendarManager* m_calendarModel;
+	QList<QMap<QChar,DBSplitModel*>> m_splitModels;
+	DBMesoCalendarManager *m_calendarManager;
 	HomePageMesoModel *m_curMesos, *m_ownMesos, *m_clientMesos;
 	QList<int32_t> m_isNewMeso;
 	QList<bool> m_canExport;
@@ -422,23 +432,21 @@ private:
 
 	DBModelInterfaceMesocycle *m_dbModelInterface;
 	DBMesocyclesTable *m_db;
+	DBWorkoutsOrSplitsTable *m_splitsDB;
 
-	static DBMesocyclesModel *app_meso_model;
 	friend DBMesocyclesModel *appMesoModel();
 	friend class DBModelInterfaceMesocycle;
 
 	inline QString newMesoTemporaryId() { return QString::number(m_lowestTempMesoId--); }
 	inline bool isMesoTemporary(const uint meso_idx) const { return _id(meso_idx) < 0; }
 	void getAllMesocycles();
-	void loadSplits(const uint meso_idx, const uint thread_id);
-	int continueExport(const uint meso_idx, const QString &filename, const bool formatted) const;
 	int exportToFile_splitData(const uint meso_idx, QFile *mesoFile, const bool formatted) const;
 
 signals:
 	void internalSignal(const uint _meso_idx, const uint _id, const bool _result);
 };
 
-inline DBMesocyclesModel *appMesoModel() { return DBMesocyclesModel::app_meso_model; }
+inline DBMesocyclesModel *appMesoModel() { return app_meso_model; }
 
 class DBModelInterfaceMesocycle : public DBModelInterface
 {

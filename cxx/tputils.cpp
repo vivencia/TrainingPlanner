@@ -390,63 +390,6 @@ void TPUtils::rmDir(const QString &path) const
 	static_cast<void>(directory.rmdir(path));
 }
 
-void TPUtils::parseCmdFile(const QString &filename)
-{
-	QFile *cmd_file{openFile(filename)};
-	if (cmd_file)
-	{
-		QString line{1024, QChar{0}};
-		QString affected_file, command;
-		QTextStream stream{cmd_file};
-		int execution_module_found{-1};
-		static const QStringList execution_modules{QStringList{} << std::move("sqlite3"_L1) };
-		while (stream.readLineInto(&line))
-		{
-			if (line.startsWith('#'))
-				continue;
-			if (line.contains('='))
-			{
-				QString value{std::move(line.section('=', 1, 1 , QString::SectionSkipEmpty))};
-				if (execution_module_found == -1)
-				{
-					const int module{static_cast<int>(execution_modules.indexOf(value))};
-					if (module >= 0)
-						execution_module_found = module;
-				}
-				else
-				{
-					switch (execution_module_found)
-					{
-						case 0: //sqlite statement
-							if (affected_file.isEmpty())
-							{
-								for (const auto &dbname : std::as_const(TPDatabaseTable::databaseFileNames))
-								{
-									if (value == dbname)
-									{
-										affected_file = dbname;
-										break;
-									}
-								}
-								if (!affected_file.isEmpty())
-									break;
-							}
-							if (!affected_file.isEmpty())
-							{
-								if (!command.isEmpty())
-									break;
-								command = std::move(value);
-								appThreadManager()->executeExternalQuery(affected_file, command);
-							}
-						break;
-						default: return;
-					}
-				}
-			}
-		}
-	}
-}
-
 bool TPUtils::writeDataToFile(QFile *out_file,
 								const QString &identifier,
 								const QList<QStringList> &data,
@@ -1042,7 +985,8 @@ QString TPUtils::lastValueInComposite(const QString &compositeString, const QLat
 		return compositeString;
 }
 
-void TPUtils::setCompositeValue(const uint idx, const QString &newValue, QString &compositeString, const QLatin1Char &chr_sep) const
+void TPUtils::setCompositeValue(const uint idx, const QString &newValue, QString &compositeString,
+																			const QLatin1Char &chr_sep) const
 {
 	qsizetype sep_pos{compositeString.indexOf(chr_sep)};
 	qsizetype n_seps{-1};

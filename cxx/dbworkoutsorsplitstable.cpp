@@ -2,7 +2,7 @@
 
 #include "dbexercisesmodel.h"
 
-constexpr int n_fields{WORKOUT_TOTALCOLS};
+constexpr int n_fields{EXERCISES_TOTALCOLS};
 constexpr QLatin1StringView table_name{ "workouts_table"_L1 };
 constexpr QLatin1StringView table_name_2{ "mesosplit_table"_L1 };
 constexpr QLatin1StringView field_names[n_fields][2] {
@@ -60,8 +60,8 @@ bool DBWorkoutsOrSplitsTable::getExercises()
 	{
 		if (m_workingQuery.first())
 		{
-			QStringList exercises{WORKOUT_TOTALCOLS};
-			for (uint i{EXERCISES_COL_ID}; i < WORKOUT_TOTALCOLS; ++i)
+			QStringList exercises{EXERCISES_TOTALCOLS};
+			for (uint i{EXERCISES_COL_ID}; i < EXERCISES_TOTALCOLS; ++i)
 				exercises[i] = std::move(m_workingQuery.value(i).toString());
 			m_dbModelInterface->modelData().append(std::move(exercises));
 			success = true;
@@ -90,7 +90,7 @@ std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::mesoHasAllSplitPlans(const
 				if (m_workingQuery.first())
 				{
 					success = true;
-					static_cast<void>(m_workingQuery.value(0).toUInt(&yes));
+					static_cast<void>(m_workingQuery.value(0).toInt(&yes));
 					if (!yes)
 						break;
 				}

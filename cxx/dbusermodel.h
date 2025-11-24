@@ -327,6 +327,7 @@ public:
 	int listFilesFromServer(const QString &subdir, const QString &targetUser, const QString &filter = QString{});
 	void sendCmdFileToServer(const QString &cmd_filename);
 	void downloadCmdFilesFromServer(const QString &subdir);
+	void sendUnsentCmdFiles(const QString &subdir);
 
 	int exportToFile(const uint user_idx, const QString &filename, const bool write_header, QFile *out_file = nullptr) const;
 	int exportToFormattedFile(const uint user_idx, const QString &filename, QFile *out_file = nullptr) const;
@@ -407,8 +408,6 @@ private:
 	void getOnlineDevicesList();
 	void switchToUser(const QString &new_userid, const bool user_switching_for_testing = false);
 	void downloadAllUserFiles(const QString &userid);
-	void lastLocalCmd(const QString &subdir);
-	void sendUnsentCmdFiles(const QString &subdir);
 	QString resume(const uint user_idx) const;
 	void checkIfCoachRegisteredOnline();
 	void getUserOnlineProfile(const QString &netName, const QString &save_as_filename);

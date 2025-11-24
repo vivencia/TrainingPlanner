@@ -1,6 +1,5 @@
 #include "qmluserinterface.h"
 
-#include "thread_manager.h"
 #include "dbusermodel.h"
 #include "qmlitemmanager.h"
 
@@ -39,22 +38,23 @@ void QmlUserInterface::getSettingsPage(const uint startPageIndex)
 	{
 		m_settingsProperties.insert("startPageIndex"_L1, startPageIndex);
 		m_settingsComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/ConfigurationPage.qml"_L1}, QQmlComponent::Asynchronous};
-		if (m_settingsComponent->status() != QQmlComponent::Ready)
+		switch (m_settingsComponent->status())
 		{
-			connect(m_settingsComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
-				if (status == QQmlComponent::Ready)
+			case QQmlComponent::Ready:
+				createSettingsPage();
+			break;
+			case QQmlComponent::Loading:
+				connect(m_settingsComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
 					createSettingsPage();
+				}, Qt::SingleShotConnection);
+			break;
+			case QQmlComponent::Null:
+			case QQmlComponent::Error:
 				#ifndef QT_NO_DEBUG
-				else if (status == QQmlComponent::Error)
-				{
-					qDebug() << m_settingsComponent->errorString();
-					return;
-				}
+				qDebug() << m_settingsComponent->errorString();
 				#endif
-			}, Qt::SingleShotConnection);
+			break;
 		}
-		else
-			createSettingsPage();
 	}
 }
 
@@ -66,22 +66,23 @@ void QmlUserInterface::getCoachesPage()
 	{
 		m_coachesProperties.insert("userManager"_L1, QVariant::fromValue(this));
 		m_coachesComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/CoachesPage.qml"_L1}, QQmlComponent::Asynchronous};
-		if (m_coachesComponent->status() != QQmlComponent::Ready)
+		switch (m_coachesComponent->status())
 		{
-			connect(m_coachesComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
-				if (status == QQmlComponent::Ready)
+			case QQmlComponent::Ready:
+				createCoachesPage();
+			break;
+			case QQmlComponent::Loading:
+				connect(m_coachesComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
 					createCoachesPage();
+				}, Qt::SingleShotConnection);
+			break;
+			case QQmlComponent::Null:
+			case QQmlComponent::Error:
 				#ifndef QT_NO_DEBUG
-				else if (status == QQmlComponent::Error)
-				{
-					qDebug() << m_coachesComponent->errorString();
-					return;
-				}
+				qDebug() << m_coachesComponent->errorString();
 				#endif
-			}, Qt::SingleShotConnection);
+			break;
 		}
-		else
-			createCoachesPage();
 	}
 }
 
@@ -93,22 +94,23 @@ void QmlUserInterface::getClientsPage()
 	{
 		m_clientsProperties.insert("userManager"_L1, QVariant::fromValue(this));
 		m_clientsComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/ClientsPage.qml"_L1}, QQmlComponent::Asynchronous};
-		if (m_clientsComponent->status() != QQmlComponent::Ready)
+		switch (m_clientsComponent->status())
 		{
-			connect(m_clientsComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
-				if (status == QQmlComponent::Ready)
+			case QQmlComponent::Ready:
+				createClientsPage();
+			break;
+			case QQmlComponent::Loading:
+				connect(m_clientsComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
 					createClientsPage();
+				}, Qt::SingleShotConnection);
+			break;
+			case QQmlComponent::Null:
+			case QQmlComponent::Error:
 				#ifndef QT_NO_DEBUG
-				else if (status == QQmlComponent::Error)
-				{
-					qDebug() << m_clientsComponent->errorString();
-					return;
-				}
+				qDebug() << m_clientsComponent->errorString();
 				#endif
-			}, Qt::SingleShotConnection);
+			break;
 		}
-		else
-			createClientsPage();
 	}
 }
 

@@ -1,6 +1,7 @@
 #include "dbexerciseslisttable.h"
 
 #include "dbexerciseslistmodel.h"
+#include "tpsettings.h"
 #include "tputils.h"
 
 constexpr int n_fields{6};
@@ -14,7 +15,7 @@ constexpr QLatin1StringView field_names[n_fields][2] {
 	{"from_list"_L1,		"INTEGER"_L1},
 };
 
-DBExercisesListTable::DBExercisesListTable(DBModelInterfaceExercisesList* dbmodel_interface)
+DBExercisesListTable::DBExercisesListTable(DBModelInterfaceExercisesList* dbmodel_interface, const QString &list_version)
 	: TPDatabaseTable{EXERCISES_TABLE_ID, dbmodel_interface}
 {
 	m_tableName = &table_name;
@@ -24,6 +25,7 @@ DBExercisesListTable::DBExercisesListTable(DBModelInterfaceExercisesList* dbmode
 	#ifndef QT_NO_DEBUG
 	setObjectName("ExercisesListTable");
 	#endif
+	m_updateList = list_version != appSettings()->exercisesListVersion();
 	setReadAllRecordsFunc([this] () { return getAllExercises(); });
 }
 
@@ -36,7 +38,9 @@ QString DBExercisesListTable::dbFileName(const bool fullpath) const
 bool DBExercisesListTable::getAllExercises()
 {
 	bool success{false};
-	if (execQuery("SELECT * FROM %1 ORDER BY ROWID;"_L1.arg(table_name), true, false))
+	if (m_updateList)
+		success = updateExercisesList();
+	else if (execQuery("SELECT * FROM %1 ORDER BY ROWID;"_L1.arg(table_name), true, false))
 	{
 		if (m_workingQuery.first())
 		{

@@ -1,6 +1,5 @@
 #include "qmlmesocalendarinterface.h"
 
-#include "thread_manager.h"
 #include "dbmesocalendarmanager.h"
 #include "dbmesocyclesmodel.h"
 #include "qmlitemmanager.h"
@@ -42,11 +41,7 @@ void QmlMesoCalendarInterface::cleanUp()
 void QmlMesoCalendarInterface::getMesoCalendarPage()
 {
 	if (!m_calComponent)
-	{
-		if (!appMesoModel()->mesoCalendarManager()->hasDBData(m_mesoIdx))	
-			appThreadManager()->getMesoCalendar(m_mesoIdx);
 		createMesoCalendarPage();
-	}
 	else
 		appPagesListModel()->openPage(m_calPage);
 }
@@ -91,7 +86,6 @@ QString QmlMesoCalendarInterface::dayInfo()
 				appMesoModel()->muscularGroup(m_mesoIdx, m_selectedSplitLetter.at(0));
 	else
 		return std::move(appUtils()->formatDate(m_selectedDate)) + std::move(tr(": Rest day"));
-
 }
 
 QString QmlMesoCalendarInterface::nameLabel() const
@@ -108,22 +102,23 @@ QString QmlMesoCalendarInterface::dateLabel() const
 void QmlMesoCalendarInterface::createMesoCalendarPage()
 {
 	m_calComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/MesoCalendarPage.qml"_L1}, QQmlComponent::Asynchronous};
-	if (m_calComponent->status() != QQmlComponent::Ready)
+	switch (m_calComponent->status())
 	{
-		connect(m_calComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
-			if (status == QQmlComponent::Ready)
+		case QQmlComponent::Ready:
+			createMesoCalendarPage_part2();
+		break;
+		case QQmlComponent::Loading:
+			connect(m_calComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
 				createMesoCalendarPage_part2();
-#ifndef QT_NO_DEBUG
-			else if (status == QQmlComponent::Error)
-			{
-				qDebug() << m_calComponent->errorString();
-				return;
-			}
-#endif
-		}, Qt::SingleShotConnection);
+			}, Qt::SingleShotConnection);
+		break;
+		case QQmlComponent::Null:
+		case QQmlComponent::Error:
+			#ifndef QT_NO_DEBUG
+			qDebug() << m_calComponent->errorString();
+			#endif
+		break;
 	}
-	else
-		createMesoCalendarPage_part2();
 }
 
 void QmlMesoCalendarInterface::createMesoCalendarPage_part2()
@@ -134,11 +129,10 @@ void QmlMesoCalendarInterface::createMesoCalendarPage_part2()
 	m_calPage = static_cast<QQuickItem*>(m_calComponent->createWithInitialProperties(m_calProperties, appQmlEngine()->rootContext()));
 	appQmlEngine()->setObjectOwnership(m_calPage, QQmlEngine::CppOwnership);
 	m_calPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
-	appPagesListModel()->openPage(m_calPage, std::move(tr("Calendar: ") + appMesoModel()->name(m_mesoIdx)), [this] () {
-		cleanUp();
-	});
+	appPagesListModel()->openPage(m_calPage, std::move(tr("Calendar: ") + appMesoModel()->name(m_mesoIdx)), [this] () { cleanUp(); });
 
-	connect(appMesoModel(), &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field) {
+	connect(appMesoModel(), &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field)
+	{
 		switch (field)
 		{
 			case MESOCYCLES_COL_NAME:

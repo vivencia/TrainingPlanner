@@ -10,6 +10,8 @@ QT_FORWARD_DECLARE_CLASS(TPTimer)
 QT_FORWARD_DECLARE_CLASS(QQmlComponent)
 QT_FORWARD_DECLARE_CLASS(QQuickItem)
 
+using DBWorkoutModel = DBExercisesModel;
+
 class QmlWorkoutInterface : public QObject
 {
 
@@ -25,12 +27,12 @@ Q_PROPERTY(QString notes READ notes WRITE setNotes NOTIFY notesChanged FINAL)
 Q_PROPERTY(QString headerText READ headerText NOTIFY headerTextChanged FINAL)
 Q_PROPERTY(QString headerText_2 READ headerText_2 NOTIFY headerTextChanged FINAL)
 Q_PROPERTY(QString sessionLabel READ sessionLabel NOTIFY haveNewWorkoutOptionsChanged FINAL)
-Q_PROPERTY(bool haveNewWorkoutOptions READ haveNewWorkoutOptions WRITE setHaveNewWorkoutOptions NOTIFY haveNewWorkoutOptionsChanged FINAL)
+Q_PROPERTY(bool haveNewWorkoutOptions READ haveNewWorkoutOptions NOTIFY haveNewWorkoutOptionsChanged FINAL)
+Q_PROPERTY(bool canImportFromSplitPlan READ canImportFromSplitPlan WRITE setCanImportFromSplitPlan NOTIFY haveNewWorkoutOptionsChanged FINAL)
+Q_PROPERTY(bool canImportFromPreviousWorkout READ canImportFromPreviousWorkout WRITE setCanImportFromPreviousWorkout NOTIFY haveNewWorkoutOptionsChanged FINAL)
 Q_PROPERTY(bool editMode READ editMode WRITE setEditMode NOTIFY editModeChanged FINAL)
 Q_PROPERTY(bool dayIsFinished READ dayIsFinished WRITE setDayIsFinished NOTIFY dayIsFinishedChanged FINAL)
 Q_PROPERTY(bool workoutIsEditable READ workoutIsEditable WRITE setWorkoutIsEditable NOTIFY workoutIsEditableChanged FINAL)
-Q_PROPERTY(bool canImportFromPreviousWorkout READ canImportFromPreviousWorkout WRITE setCanImportFromPreviousWorkout NOTIFY canImportFromPreviousWorkoutChanged FINAL)
-Q_PROPERTY(bool canImportFromSplitPlan READ canImportFromSplitPlan WRITE setCanImportFromSplitPlan NOTIFY canImportFromSplitPlanChanged FINAL)
 Q_PROPERTY(bool mainDateIsToday READ mainDateIsToday WRITE setMainDateIsToday NOTIFY mainDateIsTodayChanged FINAL)
 Q_PROPERTY(bool timerActive READ timerActive NOTIFY timerActiveChanged FINAL)
 Q_PROPERTY(bool haveExercises READ haveExercises NOTIFY haveExercisesChanged FINAL)
@@ -73,20 +75,17 @@ public:
 	void setHeaderText();
 	QString sessionLabel() const;
 
-	inline bool haveNewWorkoutOptions() const { return m_haveNewWorkoutOptions; }
-	inline void setHaveNewWorkoutOptions(const bool nave_new_workout_options) { m_haveNewWorkoutOptions = nave_new_workout_options; emit haveNewWorkoutOptionsChanged(); }
+	inline bool haveNewWorkoutOptions() const { return canImportFromSplitPlan() || canImportFromPreviousWorkout(); }
+	inline bool canImportFromSplitPlan() const { return m_importFromSplitPlan; }
+	inline void setCanImportFromSplitPlan(const bool can_import) { m_importFromSplitPlan = can_import; emit haveNewWorkoutOptionsChanged(); }
+	inline bool canImportFromPreviousWorkout() const { return m_importFromPrevWorkout; }
+	inline void setCanImportFromPreviousWorkout(const bool can_import) { m_importFromPrevWorkout = can_import; emit haveNewWorkoutOptionsChanged(); }
 
 	inline bool editMode() const { return m_editMode; }
 	void setEditMode(const bool edit_mode);
 
 	inline bool workoutIsEditable() const { return m_workoutIsEditable; }
 	void setWorkoutIsEditable(const bool editable);
-
-	inline bool canImportFromSplitPlan() const { return m_importFromSplitPlan; }
-	inline void setCanImportFromSplitPlan(const bool can_import) { m_importFromSplitPlan = can_import; emit canImportFromSplitPlanChanged(); }
-
-	inline bool canImportFromPreviousWorkout() const { return m_importFromPrevWorkout; }
-	inline void setCanImportFromPreviousWorkout(const bool can_import) { m_importFromPrevWorkout = can_import; emit canImportFromPreviousWorkoutChanged(); }
 
 	inline bool mainDateIsToday() const { return m_bMainDateIsToday; }
 	void setMainDateIsToday(const bool is_today);
@@ -118,7 +117,7 @@ public:
 	Q_INVOKABLE void removeExercise(const int exercise_number = -1);
 	Q_INVOKABLE bool canChangeSetMode(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 
-	inline DBExercisesModel *workoutModel() const { return m_workoutModel; }
+	inline DBWorkoutModel *workoutModel() const { return m_workoutModel; }
 	inline QQuickItem *workoutPage() const { return m_workoutPage; }
 
 	void askRemoveExercise(const uint exercise_number);
@@ -144,12 +143,9 @@ signals:
 	void editModeChanged();
 	void dayIsFinishedChanged();
 	void workoutIsEditableChanged();
-	void canImportFromPreviousWorkoutChanged();
-	void canImportFromSplitPlanChanged();
 	void mainDateIsTodayChanged();
 	void timerActiveChanged();
 	void haveExercisesChanged();
-	void previousWorkoutsListChanged();
 	void updateRestTime(const int exercise_number, const QString &rest_time);
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
@@ -158,19 +154,18 @@ signals:
 
 private:
 	QQmlComponent *m_workoutComponent;
-	DBExercisesModel *m_workoutModel;
-	DBCalendarModel  *m_calendarModel;
+	DBWorkoutModel *m_workoutModel;
+	DBCalendarModel *m_calendarModel;
 	QQuickItem *m_workoutPage;
 	QVariantMap m_workoutProperties;
 	uint m_mesoIdx, m_calendarDay;
 	TPTimer *m_workoutTimer, *m_restTimer;
 	QTime m_lastSetCompleted;
 	int m_nExercisesToCreate;
-	QHash<QString,uint> m_prevWorkouts;
+	QHash<uint,QString> m_prevWorkouts;
 	QDate m_date;
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
-	bool m_haveNewWorkoutOptions;
 	uint m_hour, m_min, m_sec;
 	QString m_headerText, m_headerText_2;
 	bool m_editMode, m_workoutIsEditable, m_importFromPrevWorkout, m_importFromSplitPlan, m_bMainDateIsToday, m_bTimerActive;
@@ -180,7 +175,6 @@ private:
 	void createWorkoutPage_part2();
 	void calculateWorkoutTime();
 	void startRestTimer(const uint exercise_number, const QString &rest_time);
-	void continueInit();
 	void verifyWorkoutOptions();
 	QString workoutCompletedMessage(const bool completed) const;
 };

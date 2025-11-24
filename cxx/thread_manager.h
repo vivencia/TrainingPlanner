@@ -3,7 +3,7 @@
 #include <QHash>
 #include <QObject>
 
-QT_FORWARD_DECLARE_CLASS(TPDatabaseTable);
+QT_FORWARD_DECLARE_CLASS(TPDatabaseTable)
 
 class ThreadManager : public QObject
 {
@@ -17,7 +17,7 @@ public:
 		CustomOperation,
 		CreateTable,
 		InsertRecord,
-		InsertRecords,
+		alterRecords,
 		UpdateOneField,
 		UpdateSeveralFields,
 		UpdateRecords,
@@ -31,11 +31,9 @@ public:
 	inline ThreadManager &operator()(const ThreadManager &other) = delete;
 	inline ~ThreadManager() {}
 
-	void executeExternalQuery(const QString &dbfilename, const QString &query);
 	void runAction(TPDatabaseTable *worker, StandardOps operation);
 
 signals:
-	void databaseReady(const bool success, const int table_id, const bool has_cmd_file);
 	void newThreadedOperation(const int unique_id, ThreadManager::StandardOps operation);
 
 private:

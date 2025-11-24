@@ -205,7 +205,7 @@ private:
 	QList<uint> m_exportRows;
 	QHash<int, QByteArray> m_roleNames;
 	QList<selectedEntry> m_selectedEntries;
-	QString m_filterString, m_searchString, m_exercisesListVersion;
+	QString m_filterString, m_searchString;
 	uint m_selectedEntryToReplace;
 	int m_currentRow;
 	bool m_muscularFilterApplied, m_searchFilterApplied;
@@ -214,8 +214,7 @@ private:
 
 	QString untranslatedMuscularGroup(const QString &translated_group) const;
 	void resetSearchModel();
-	bool getExercisesListVersion();
-	void getAllExcercises();
+	QString getExercisesListVersion() const;
 
 	static DBExercisesListModel *app_exercises_list;
 	friend DBExercisesListModel *appExercisesList();
