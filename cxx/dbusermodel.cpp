@@ -63,9 +63,8 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 	{
 		_appUserModel = this;
 		mb_MainUserInfoChanged = false;
-		connect(this, &DBUserModel::userModified, this, &DBUserModel::saveUserInfo);
-
 		mb_canConnectToServer = appOsInterface()->tpServerOK();
+
 #ifdef Q_OS_ANDROID
 		connect(appOsInterface(), &OSInterface::internetStatusChanged, this, [this] (const bool connected) {
 			if (!connected)
@@ -89,6 +88,13 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 				setPhoneBasedOnLocale();
 			emit labelsChanged();
 		});
+
+		connect(this, &DBUserModel::userModified, this, &DBUserModel::saveUserInfo);
+		connect(this, &DBUserModel::mainUserConfigurationFinished, this, [this] () {
+			appOsInterface()->initialCheck();
+			appItemManager()->appHomePage()->setProperty("loadClientMesos", mainUserConfigured() && mainUserIsCoach());
+			appItemManager()->appHomePage()->setProperty("loadOwnMesos", mainUserConfigured() && mainUserIsClient());
+		}, Qt::SingleShotConnection);
 	}
 }
 
@@ -105,12 +111,71 @@ QString DBUserModel::userDir(const QString &userid) const
 }
 #endif
 
-void DBUserModel::showFirstTimeUseDialog()
+void DBUserModel::initUserSession()
 {
-	QMetaObject::invokeMethod(appMainWindow(), "showFirstTimeUseDialog");
-	connect(this, &DBUserModel::mainUserConfigurationFinished, this, [this] () {
-		appOsInterface()->initialCheck();
-	}, Qt::SingleShotConnection);
+	if (!m_db)
+	{
+		m_dbModelInterface = new DBModelInterfaceUser;
+		m_db = new DBUserTable{m_dbModelInterface};
+		appThreadManager()->runAction(m_db, ThreadManager::CreateTable);
+		connect(m_db, &DBUserTable::userInfoAcquired, this, [this] (QStringList user_info)
+		{
+			const qsizetype last_idx{m_usersData.count()};
+			m_usersData.append(std::move(user_info));
+			if (last_idx == 0)
+			{
+				appOsInterface()->initialCheck();
+				initUserSession();
+			}
+			else
+			{
+				if (isCoach(0) && isClient(last_idx))
+					addClient(last_idx);
+				if (isCoach(last_idx))
+					addCoach(last_idx);
+			}
+		});
+		appThreadManager()->runAction(m_db, ThreadManager::ReadAllRecords);
+	}
+	else
+	{
+		if (!mainUserConfigured())
+			QMetaObject::invokeMethod(appMainWindow(), "showFirstTimeUseDialog");
+		else
+		{
+			#ifndef Q_OS_ANDROID
+			DBMesocyclesModel *meso_model{m_mesoModels.value(userId(0))};
+			if (!meso_model)
+			{
+				meso_model = new DBMesocyclesModel{this};
+				new PagesListModel{this};
+				m_mesoModels.insert(userId(0), meso_model);
+			}
+			#else
+				m_mesoModel = new DBMesocyclesModel{this};
+				new PagesListModel{this};
+			#endif
+			appItemManager()->appHomePage()->setProperty("mesoModel", QVariant::fromValue(meso_model));
+			appMainWindow()->setProperty("appPagesModel", QVariant::fromValue(appPagesListModel()));
+
+			if (appSettings()->appVersion() != TP_APP_VERSION)
+			{
+				//All the code to update the database goes in here
+				//updateDB(new DBMesocyclesTable{nullptr});
+				//appSettings()->saveAppVersion(TP_APP_VERSION);
+			}
+
+			emit mainUserConfigurationFinished();
+			emit appUseModeChanged();
+			emit onlineUserChanged();
+			emit currentCoachesChanged();
+			emit currentClientsChanged();
+			emit userIdChanged();
+			if (mb_canConnectToServer)
+				onlineCheckIn();
+		}
+	}
+	mb_userRegistered = std::nullopt;
 }
 
 void DBUserModel::setOnlineAccount(const bool online_user, const uint user_idx)
@@ -135,19 +200,6 @@ void DBUserModel::setOnlineAccount(const bool online_user, const uint user_idx)
 	emit onlineUserChanged();
 	m_usersData[0][USER_COL_ONLINEACCOUNT] = online_user ? '1' : '0';
 	emit userModified(0, USER_COL_ONLINEACCOUNT);
-}
-
-void DBUserModel::addUser(QStringList &&user_info)
-{
-	m_usersData.append(std::move(user_info));
-	const qsizetype last_idx{m_usersData.count() - 1};
-	if (last_idx > 0)
-	{
-		if (isCoach(0) && isClient(last_idx))
-			addClient(last_idx);
-		if (isCoach(last_idx))
-			addCoach(last_idx);
-	}
 }
 
 void DBUserModel::createMainUser(const QString &userid, const QString &name)
@@ -465,12 +517,6 @@ void DBUserModel::switchUser()
 	}
 }
 
-void DBUserModel::createNewUser()
-{
-	userSwitchingActions(true, std::move(generateUniqueUserId()));
-	showFirstTimeUseDialog();
-}
-
 void DBUserModel::removeOtherUser()
 {
 	const QString &userid{m_allUsers->data(m_allUsers->currentRow(), USER_COL_ID)};
@@ -517,15 +563,7 @@ void DBUserModel::userSwitchingActions(const bool create, QString &&userid)
 		createMainUser(appSettings()->currentUser(), tr("New user"));
 	initUserSession();
 
-	emit appUseModeChanged();
-	emit onlineUserChanged();
-	emit currentCoachesChanged();
-	emit currentClientsChanged();
-	if (canConnectToServer())
-		onlineCheckIn();
-
 	appPagesListModel()->userSwitchingActions();
-	emit userIdChanged();
 }
 #endif
 
@@ -564,16 +602,13 @@ bool DBUserModel::mainUserConfigured() const
 
 void DBUserModel::acceptUser(OnlineUserInfo *userInfo, const int userInfoRow)
 {
-	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,userInfo,userInfoRow] (const QString &key, const QString &value) {
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,userInfo,userInfoRow] (const QString &key, const QString &value)
+	{
 		const QString &user_id{userInfo->data(userInfoRow, USER_COL_ID)};
 		const bool userIsCoach{userInfo->isCoach(userInfoRow)};
 		const int new_app_use_mode{userIsCoach ? APP_USE_MODE_SINGLE_COACH : APP_USE_MODE_PENDING_CLIENT};
 
-		if (userId(m_tempRow) == user_id)
-			m_tempRow = -1;
-		else
-			addUser(std::move(userInfo->modeldata(userInfoRow)));
-
+		m_tempRow = -1;
 		m_usersData.last()[USER_COL_APP_USE_MODE] = std::move(QString::number(new_app_use_mode));
 		const uint lastidx{userCount()-1};
 		if (userIsCoach)
@@ -1404,35 +1439,6 @@ inline QString DBUserModel::profileFilePath(const QString &userid) const
 	return userDir(userid) + profileFileName(userid);
 }
 
-void DBUserModel::initUserSession()
-{
-	if (!m_db)
-	{
-		m_dbModelInterface = new DBModelInterfaceUser;
-		m_db = new DBUserTable{m_dbModelInterface};
-		appThreadManager()->runAction(m_db, ThreadManager::CreateTable);
-		appThreadManager()->runAction(m_db, ThreadManager::ReadAllRecords);
-
-		app_meso_model = m_mesoModels.value(userId(0));
-		if (!app_meso_model)
-		{
-			app_meso_model = new DBMesocyclesModel{this};
-			new PagesListModel{this};
-			m_mesoModels.insert(userId(0), app_meso_model);
-		}
-
-		if (appSettings()->appVersion() != TP_APP_VERSION)
-		{
-			//All the code to update the database goes in here
-			//updateDB(new DBMesocyclesTable{nullptr});
-			//appSettings()->saveAppVersion(TP_APP_VERSION);
-		}
-	}
-	mb_userRegistered = std::nullopt;
-	if (mb_canConnectToServer)
-		onlineCheckIn();
-}
-
 QString DBUserModel::getPhonePart(const QString &str_phone, const bool prefix) const
 {
 	if (str_phone.length() > 0)
@@ -2216,7 +2222,7 @@ void DBUserModel::checkNewMesos()
 				{
 					for (const auto &mesoFileName : ret_list)
 					{
-						if (!appMesoModel()->mesoPlanExists(appUtils()->getFileName(mesoFileName, true), coach_id, userId(0)))
+						if (!actualMesoModel()->mesoPlanExists(appUtils()->getFileName(mesoFileName, true), coach_id, userId(0)))
 						{
 							const int id{appUtils()->idFromString(mesoFileName)};
 							if (appMessagesManager()->message(id) == nullptr)
@@ -2225,8 +2231,8 @@ void DBUserModel::checkNewMesos()
 										tr(" has sent you a new Exercises Program"), "message-meso"_L1, appMessagesManager())};
 								new_message->setId(id);
 								new_message->insertData(mesoFileName);
-								new_message->insertAction(tr("View"), [=] (const QVariant &mesofile) {
-												appMesoModel()->viewOnlineMeso(coach_id, mesofile.toString()); }, true);
+								new_message->insertAction(tr("View"), [this,coach_id] (const QVariant &mesofile) {
+												actualMesoModel()->viewOnlineMeso(coach_id, mesofile.toString()); }, true);
 								new_message->insertAction(tr("Delete"), [=,this] (const QVariant &mesofile) {
 												appOnlineServices()->removeFile(request_id, userId(0), m_password,
 														mesofile.toString(), mesosSubDir, coach_id); }, true);

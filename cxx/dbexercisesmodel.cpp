@@ -218,7 +218,7 @@ void DBExercisesModel::clearExercises()
 
 const QString &DBExercisesModel::mesoId() const
 {
-	return appMesoModel()->id(m_mesoIdx);
+	return m_mesoModel->id(m_mesoIdx);
 }
 
 void DBExercisesModel::setSplitLetter(const QChar &new_splitletter)
@@ -543,7 +543,7 @@ const uint DBExercisesModel::setsNumber(const uint exercise_number, const uint e
 
 QString DBExercisesModel::muscularGroup() const
 {
-	return appMesoModel()->muscularGroup(m_mesoIdx, m_splitLetter);
+	return m_mesoModel->muscularGroup(m_mesoIdx, m_splitLetter);
 }
 
 uint DBExercisesModel::addExercise(int exercise_number, const bool emit_signal)
@@ -571,7 +571,7 @@ uint DBExercisesModel::addExercise(int exercise_number, const bool emit_signal)
 	if (!reutilize_modeldata || exercise_number >= m_dbModelInterface->modelData().count())
 	{
 		m_dbModelInterface->modelData().append(std::move(QStringList{} << std::move("-1"_L1) <<
-			appMesoModel()->id(m_mesoIdx) << std::move(QString::number(m_calendarDay)) << m_splitLetter <<
+			m_mesoModel->id(m_mesoIdx) << std::move(QString::number(m_calendarDay)) << m_splitLetter <<
 			std::move(tr("Choose exercise...") + comp_exercise_separator) << std::move("0"_L1) << std::move("0"_L1) <<
 			std::move(QString{comp_exercise_separator}) << std::move(QString{comp_exercise_separator}) <<
 			std::move(QString{comp_exercise_separator}) << std::move(QString{comp_exercise_separator}) <<
@@ -1501,13 +1501,13 @@ void DBExercisesModel::commonConstructor()
 
 	if (m_calendarDay >= 0)
 	{
-		m_splitLetter = std::move(m_calendarManager->splitLetter(m_mesoIdx, m_calendarDay));
+		m_splitLetter = std::move(m_mesoModel->mesoCalendarManager()->splitLetter(m_mesoIdx, m_calendarDay));
 		m_identifierInFile = &appUtils()->workoutFileIdentifier;
 	}
 	else
 		m_identifierInFile = &appUtils()->splitFileIdentifier;
 
-	connect(appMesoModel(), &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field)
+	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field)
 	{
 		if (meso_idx == m_mesoIdx)
 		{
@@ -1535,8 +1535,8 @@ void DBExercisesModel::commonConstructor()
 
 void DBExercisesModel::changeCalendarDayId()
 {
-	if (m_calendarManager->workoutId(m_mesoIdx, m_calendarDay) == "-1"_L1)
-		m_calendarManager->setWorkoutId(m_mesoIdx, m_calendarDay, id());
+	if (m_mesoModel->mesoCalendarManager()->workoutId(m_mesoIdx, m_calendarDay) == "-1"_L1)
+		m_mesoModel->mesoCalendarManager()->setWorkoutId(m_mesoIdx, m_calendarDay, id());
 }
 
 TPSetTypes DBExercisesModel::formatSetTypeToImport(const QString& fieldValue) const
@@ -1559,10 +1559,11 @@ TPSetTypes DBExercisesModel::formatSetTypeToImport(const QString& fieldValue) co
 //contain a valid value because export will only be an option if those values are valid. Those checks are made elsewhere in the code path.
 const QString DBExercisesModel::exportExtraInfo() const
 {
-	QString extra_info{std::move(splitLabel() + splitLetter() + " ("_L1 + appMesoModel()->muscularGroup(mesoIdx(), splitLetter()) + ')')};
+	QString extra_info{std::move(splitLabel() + splitLetter() + " ("_L1 + m_mesoModel->muscularGroup(mesoIdx(), splitLetter()) + ')')};
 	if (m_calendarDay >= 0)
 		extra_info += std::forward<QString>(calendarDayExtraInfo + std::move(QString::number(m_calendarDay)) +
-				std::move(tr(" at ")) + std::move(appUtils()->formatDate(calendarManager()->date(mesoIdx(), m_calendarDay))));
+			std::move(tr(" at ")) + std::move(
+					appUtils()->formatDate(m_mesoModel->mesoCalendarManager()->date(mesoIdx(), m_calendarDay))));
 	return extra_info;
 }
 

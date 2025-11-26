@@ -7,6 +7,7 @@
 #include "dbmesocyclesmodel.h"
 #include "dbusermodel.h"
 #include "homepagemesomodel.h"
+#include "pageslistmodel.h"
 
 #include "qmlexercisesdatabaseinterface.h"
 #include "qmlmesocalendarinterface.h"
@@ -61,11 +62,10 @@ QmlItemManager::~QmlItemManager()
 void QmlItemManager::configureQmlEngine()
 {
 	QQuickStyle::setStyle(appSettings()->themeStyle());
-	new PagesListModel{this};
 
 	qmlRegisterType<DBUserModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBUserModel");
 	qmlRegisterType<DBExercisesListModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBExercisesListModel");
-	qmlRegisterType<DBMesocyclesModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBMesocyclesModel");
+	qmlRegisterType<DBMesocyclesModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "MesocyclesModel");
 	qmlRegisterType<DBExercisesModel>("org.vivenciasofopacity: 0.8tware.TrainingPlanner.qmlcomponents", 1, 0, "DBSplitModel");
 	qmlRegisterType<DBExercisesModel>("org.vivenciasofopacity: 0.8tware.TrainingPlanner.qmlcomponents", 1, 0, "DBWorkoutModel");
 	qmlRegisterType<DBMesoCalendarManager>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBMesoCalendarManager");
@@ -102,7 +102,8 @@ void QmlItemManager::configureQmlEngine()
 	appQmlEngine()->addImageProvider("tpimageprovider"_L1, new TPImageProvider{});
 
 	QUrl url{};
-	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(), [this] (const QObject *const obj, const QUrl &objUrl)
+	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(),
+																[this] (const QObject *const obj, const QUrl &objUrl)
 	{
 		if (!obj)
 		{
@@ -115,17 +116,11 @@ void QmlItemManager::configureQmlEngine()
 		{
 			_appMainWindow = qobject_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));
 			appQmlEngine()->rootContext()->setContextProperty("mainwindow"_L1, QVariant::fromValue(appMainWindow()));
-
 			m_homePage = appMainWindow()->findChild<QQuickItem*>("homePage");
-			if (m_homePage)
-				appPagesListModel()->insertHomePage(m_homePage);
+
 			if (obj->objectName() == "mainWindow"_L1)
 			{
-				if (!appUserModel()->mainUserConfigured())
-					appUserModel()->showFirstTimeUseDialog();
-				else
-					appOsInterface()->initialCheck();
-
+				appUserModel()->initUserSession();
 				connect(appMainWindow(), SIGNAL(openFileChosen(QString,int)), this, SLOT(importSlot_FileChosen(QString,int)));
 				connect(appMainWindow(), SIGNAL(openFileRejected(QString)), this, SLOT(importSlot_FileChosen(QString)));
 				connect(appMainWindow(), SIGNAL(saveFileChosen(QString)), this, SLOT(exportSlot(QString)));
@@ -135,9 +130,6 @@ void QmlItemManager::configureQmlEngine()
 	});
 
 #ifndef Q_OS_ANDROID
-	connect(appUserModel(), &DBUserModel::userIdChanged, this, [this] () {
-		emit userChangedSignal();
-	});
 	#ifndef QT_NO_DEBUG
 	const QStringList &args{qApp->arguments()};
 	if (args.count() > 1)
@@ -153,6 +145,11 @@ void QmlItemManager::configureQmlEngine()
 #endif
 
 	appQmlEngine()->load(url);
+}
+
+PagesListModel *QmlItemManager::appPagesModel() const
+{
+	return appPagesListModel();
 }
 
 void QmlItemManager::exitApp()
@@ -181,7 +178,7 @@ void QmlItemManager::importFromSelectedFile(const QList<bool> &selectedFields)
 				importFileMessageId = appUserModel()->newUserFromFile(m_importFilename, formatted);
 			break;
 			case IFC_MESO:
-				importFileMessageId = appMesoModel()->newMesoFromFile(m_importFilename, true, formatted);
+				importFileMessageId = appUserModel()->actualMesoModel()->newMesoFromFile(m_importFilename, true, formatted);
 			break;
 			case IFC_MESOSPLIT_A:
 			case IFC_MESOSPLIT_B:
@@ -189,13 +186,13 @@ void QmlItemManager::importFromSelectedFile(const QList<bool> &selectedFields)
 			case IFC_MESOSPLIT_D:
 			case IFC_MESOSPLIT_E:
 			case IFC_MESOSPLIT_F:
-				importFileMessageId = appMesoModel()->importSplitFromFile(m_importFilename, appMesoModel()->importIdx(), i, formatted);
+				importFileMessageId = appUserModel()->actualMesoModel()->importSplitFromFile(m_importFilename, appUserModel()->actualMesoModel()->importIdx(), i, formatted);
 			break;
 			case IFC_EXERCISES:
 				importFileMessageId = appExercisesList()->newExerciseFromFile(m_importFilename, formatted);
 			break;
 			case IFC_WORKOUT: //TODO Display a dialog offering all the possible dates into which to add the workout
-				importFileMessageId = appMesoModel()->mesoCalendarManager()->importWorkoutFromFile(m_importFilename, appMesoModel()->importIdx(),
+				importFileMessageId = appUserModel()->actualMesoModel()->mesoCalendarManager()->importWorkoutFromFile(m_importFilename, appUserModel()->actualMesoModel()->importIdx(),
 																				QDate::currentDate(), formatted);
 			break;
 		}
@@ -207,7 +204,7 @@ void QmlItemManager::importFromSelectedFile(const QList<bool> &selectedFields)
 
 void QmlItemManager::displayImportDialogMessageAfterMesoSelection(const int meso_idx)
 {
-	appMesoModel()->setImportIdx(meso_idx);
+	appUserModel()->actualMesoModel()->setImportIdx(meso_idx);
 	emit mesoForImportSelected();
 }
 
@@ -396,45 +393,45 @@ void QmlItemManager::openRequestedFile(const QString &filename, const int wanted
 	}
 	if (isBitSet(file_contents, IFC_MESOSPLIT))
 	{
-		const bool newMesoImport{appMesoModel()->importIdx() < 0};
+		const bool newMesoImport{appUserModel()->actualMesoModel()->importIdx() < 0};
 		if (isBitSet(file_contents, IFC_MESOSPLIT_A))
 		{
-			if (!newMesoImport && appMesoModel()->split(appMesoModel()->importIdx()).contains('A'))
+			if (!newMesoImport && appUserModel()->actualMesoModel()->split(appUserModel()->actualMesoModel()->importIdx()).contains('A'))
 				importOptions[IFC_MESOSPLIT_A] = std::move(tr("Exercises Program A"));
 			else
 				unSetBit(file_contents, IFC_MESOSPLIT_A);
 		}
 		if (isBitSet(file_contents, IFC_MESOSPLIT_B))
 		{
-			if (!newMesoImport && appMesoModel()->split(appMesoModel()->importIdx()).contains('B'))
+			if (!newMesoImport && appUserModel()->actualMesoModel()->split(appUserModel()->actualMesoModel()->importIdx()).contains('B'))
 				importOptions[IFC_MESOSPLIT_B] = std::move(tr("Exercises Program B"));
 			else
 				unSetBit(file_contents, IFC_MESOSPLIT_B);
 		}
 		if (isBitSet(file_contents, IFC_MESOSPLIT_C))
 		{
-			if (!newMesoImport && appMesoModel()->split(appMesoModel()->importIdx()).contains('C'))
+			if (!newMesoImport && appUserModel()->actualMesoModel()->split(appUserModel()->actualMesoModel()->importIdx()).contains('C'))
 				importOptions[IFC_MESOSPLIT_C] = std::move(tr("Exercises Program C"));
 			else
 				unSetBit(file_contents, IFC_MESOSPLIT_C);
 		}
 		if (isBitSet(file_contents, IFC_MESOSPLIT_D))
 		{
-			if (!newMesoImport && appMesoModel()->split(appMesoModel()->importIdx()).contains('D'))
+			if (!newMesoImport && appUserModel()->actualMesoModel()->split(appUserModel()->actualMesoModel()->importIdx()).contains('D'))
 				importOptions[IFC_MESOSPLIT_D] = std::move(tr("Exercises Program D"));
 			else
 				unSetBit(file_contents, IFC_MESOSPLIT_D);
 		}
 		if (isBitSet(file_contents, IFC_MESOSPLIT_E))
 		{
-			if (!newMesoImport && appMesoModel()->split(appMesoModel()->importIdx()).contains('E'))
+			if (!newMesoImport && appUserModel()->actualMesoModel()->split(appUserModel()->actualMesoModel()->importIdx()).contains('E'))
 				importOptions[IFC_MESOSPLIT_E] = std::move(tr("Exercises Program E"));
 			else
 				unSetBit(file_contents, IFC_MESOSPLIT_E);
 		}
 		if (isBitSet(file_contents, IFC_MESOSPLIT_F))
 		{
-			if (!newMesoImport && appMesoModel()->split(appMesoModel()->importIdx()).contains('F'))
+			if (!newMesoImport && appUserModel()->actualMesoModel()->split(appUserModel()->actualMesoModel()->importIdx()).contains('F'))
 				importOptions[IFC_MESOSPLIT_F] = std::move(tr("Exercises Program F"));
 			else
 				unSetBit(file_contents, IFC_MESOSPLIT_F);

@@ -27,10 +27,13 @@ PagesListModel::PagesListModel(QObject *parent)
 			}
 		}
 	}
+	else
+		insertHomePage(appItemManager()->appHomePage());
 	m_backKey = Qt::Key_Left;
 	#else
 	app_Pages_list_model = this;
 	m_backKey = Qt::Key_Back;
+	insertHomePage(appItemManager()->appHomePage());
 	#endif
 	m_roleNames[displayTextRole] = std::move("displayText");
 	m_roleNames[pageRole] = std::move("page");

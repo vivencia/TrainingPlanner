@@ -9,6 +9,7 @@ TPToolBar {
 	id: root
 	height: appSettings.windowHeight - appSettings.pageHeight
 
+	property PagesListModel pagesModel
 	property CalendarDialog mainCalendar: null
 	property TimerDialog mainTimer: null
 
@@ -26,7 +27,7 @@ TPToolBar {
 			verticalCenter: parent.verticalCenter
 		}
 
-		onClicked: itemManager.appPagesModel.prevPage();
+		onClicked: pagesModel.prevPage();
 	}
 
 	TPButton {
@@ -35,14 +36,14 @@ TPToolBar {
 		hasDropShadow: false
 		width: appSettings.itemLargeHeight
 		height: width
-		enabled: itemManager.appPagesModel.currentIndex < itemManager.appPagesModel.count - 1
+		enabled: pagesModel.currentIndex < pagesModel.count - 1
 
 		anchors {
 			left: btnBack.right
 			verticalCenter: parent.verticalCenter
 		}
 
-		onClicked: itemManager.appPagesModel.nextPage();
+		onClicked: pagesModel.nextPage();
 	}
 
 	TPButton {
@@ -177,11 +178,15 @@ TPToolBar {
 		height: width
 
 		enabled: {
-			switch (itemManager.appMesocyclesModel.count) {
-				case 0: return false;
-				case 1: return !itemManager.appMesocyclesModel.isNewMeso();
-				default: return true;
+			if (homePage.mesoModel)
+			{
+				switch (homePage.mesoModel.count) {
+					case 0: return false;
+					case 1: return !homePage.mesoModel.isNewMeso();
+					default: return true;
+				}
 			}
+			return false;
 		}
 
 		anchors {

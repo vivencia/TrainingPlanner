@@ -39,7 +39,7 @@ Pane {
 
 		TPLabel {
 			id: lblMesoSplit
-			text: itemManager.appMesocyclesModel.splitLabel
+			text: mesoModel.splitLabel
 			Layout.fillWidth: true
 		}
 

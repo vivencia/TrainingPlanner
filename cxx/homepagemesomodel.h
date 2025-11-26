@@ -3,6 +3,8 @@
 #include <QAbstractListModel>
 #include <QQmlEngine>
 
+QT_FORWARD_DECLARE_CLASS(DBMesocyclesModel)
+
 class HomePageMesoModel : public QAbstractListModel
 {
 
@@ -12,7 +14,7 @@ QML_ELEMENT
 Q_PROPERTY(uint count READ count NOTIFY countChanged)
 
 public:
-	explicit HomePageMesoModel(QObject *parent = nullptr);
+	explicit HomePageMesoModel(DBMesocyclesModel *meso_model = nullptr);
 	#ifndef Q_OS_ANDROID
 	void userSwitchingActions();
 	#endif
@@ -22,6 +24,7 @@ public:
 
 	void appendData(const uint mesoModelRow);
 	void removeRow(const uint row);
+	inline int indexOf(const uint mesorow) const { return m_mesoModelRows.indexOf(mesorow); }
 
 	inline void removeData(const uint mesorow)
 	{
@@ -46,5 +49,6 @@ signals:
 private:
 	QList<uint> m_mesoModelRows;
 	QHash<int, QByteArray> m_roleNames;
+	DBMesocyclesModel *m_mesoModel;
 };
 

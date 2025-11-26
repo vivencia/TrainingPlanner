@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QVariantMap>
 
+QT_FORWARD_DECLARE_CLASS(DBMesocyclesModel)
 QT_FORWARD_DECLARE_CLASS(QmlWorkoutInterface)
 QT_FORWARD_DECLARE_CLASS(QmlMesoSplitInterface)
 QT_FORWARD_DECLARE_CLASS(QmlMesoCalendarInterface)
@@ -53,12 +54,12 @@ Q_PROPERTY(QDate minimumMesoStartDate READ minimumMesoStartDate NOTIFY minimumSt
 Q_PROPERTY(QDate maximumMesoEndDate READ maximumMesoEndDate CONSTANT FINAL)
 
 public:
-	explicit inline QMLMesoInterface(QObject *parent, const uint meso_idx)
-		: QObject{parent}, m_mesoComponent{nullptr}, m_mesoIdx{meso_idx}, m_exercisesPage{nullptr}, m_calendarPage{nullptr} {}
+	explicit inline QMLMesoInterface(DBMesocyclesModel *meso_model, const uint meso_idx)
+		: QObject{reinterpret_cast<QObject*>(meso_model)}, m_mesoModel{meso_model}, m_mesoComponent{nullptr},
+						m_mesoIdx{meso_idx}, m_exercisesPage{nullptr}, m_calendarPage{nullptr} {}
 	inline ~QMLMesoInterface() { cleanUp(); }
 
 	void cleanUp();
-	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	bool isMesoNameOK(const QString &meso_name) const;
 	[[nodiscard]] inline bool mesoNameOK() const { return m_mesoNameOK; }
 	void setMesoNameOK(const bool nameok);
@@ -135,7 +136,6 @@ public:
 	[[nodiscard]] inline int newMesoFieldCounter() const { return m_newMesoFieldCounter; }
 	void setNewMesoFieldCounter(const int new_value) { m_newMesoFieldCounter = new_value; emit newMesoFieldCounterChanged(new_value);}
 
-	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	Q_INVOKABLE void getCalendarPage();
 	Q_INVOKABLE void getExercisesPlannerPage();
 	Q_INVOKABLE void getWorkoutPage(const QDate &date);
@@ -168,20 +168,18 @@ signals:
 	void splitChanged();
 	void notesChanged();
 	void newMesoFieldCounterChanged(const int next_field);
-	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
 private:
 	QQmlComponent *m_mesoComponent;
 	QQuickItem *m_mesoPage;
 	QVariantMap m_mesoProperties;
+	DBMesocyclesModel *m_mesoModel;
 
-	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	uint m_mesoIdx;
 	bool m_bCanExport, m_mesoNameOK, m_startDateOK, m_endDateOK;
 	QString m_name, m_strStartDate, m_strEndDate, m_nameError;
 	QDate m_startDate, m_endDate, m_minimumMesoStartDate, m_maximumMesoEndDate;
 	int m_newMesoFieldCounter;
-	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
 	QHash<QDate,QmlWorkoutInterface*> m_workoutPages;
 	QmlMesoSplitInterface *m_exercisesPage;

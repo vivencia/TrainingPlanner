@@ -24,6 +24,7 @@
 #define EXERCISE_IGNORE_NOTIFY_IDX 1000
 
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
+QT_FORWARD_DECLARE_CLASS(DBMesocyclesModel)
 QT_FORWARD_DECLARE_CLASS(DBWorkoutsOrSplitsTable)
 QT_FORWARD_DECLARE_CLASS(DBMesoCalendarManager)
 QT_FORWARD_DECLARE_STRUCT(exerciseEntry)
@@ -90,15 +91,15 @@ Q_PROPERTY(QString restTimeUntrackedLabel READ restTimeUntrackedLabel NOTIFY lab
 Q_PROPERTY(QString splitLabel READ splitLabel NOTIFY labelChanged FINAL)
 
 public:
-	inline explicit DBExercisesModel(DBMesoCalendarManager *parent, DBWorkoutsOrSplitsTable* db, const uint meso_idx, const int calendar_day)
-		: QAbstractListModel{reinterpret_cast<QObject*>(parent)}, m_calendarManager{parent}, m_db{db},
+	inline explicit DBExercisesModel(DBMesocyclesModel *meso_model, DBWorkoutsOrSplitsTable* db, const uint meso_idx, const int calendar_day)
+		: QAbstractListModel{reinterpret_cast<QObject*>(meso_model)}, m_mesoModel{meso_model}, m_db{db},
 			m_mesoIdx{meso_idx}, m_calendarDay{calendar_day}, m_splitLetter{'N'}, m_workingExercise{11111}
 	{
 		commonConstructor();
 	}
 	//An exercises model that will contain data for the meso splits do not need access to a calendar manager
-	inline explicit DBExercisesModel(QObject *parent, DBWorkoutsOrSplitsTable *db, const uint meso_idx, const QChar &splitletter)
-		: QAbstractListModel{parent}, m_db{db}, m_calendarManager{nullptr},
+	inline explicit DBExercisesModel(DBMesocyclesModel *meso_model, DBWorkoutsOrSplitsTable *db, const uint meso_idx, const QChar &splitletter)
+		: QAbstractListModel{reinterpret_cast<QObject*>(meso_model)}, m_db{db}, m_mesoModel{meso_model},
 			m_mesoIdx{meso_idx}, m_calendarDay{-1}, m_splitLetter{splitletter}, m_workingExercise{11111}
 	{
 		commonConstructor();
@@ -111,7 +112,6 @@ public:
 	bool fromDatabase();
 	void clearExercises();
 
-	[[nodiscard]] inline DBMesoCalendarManager *calendarManager() const { return m_calendarManager; }
 	[[nodiscard]] inline const QString &id() const { return m_dbModelInterface->modelData().at(0).at(EXERCISES_COL_ID); }
 	[[nodiscard]] const QString &mesoId() const;
 	[[nodiscard]] inline const uint mesoIdx() const { return m_mesoIdx; }
@@ -249,7 +249,7 @@ signals:
 	void stopRestTimer();
 
 private:
-	DBMesoCalendarManager *m_calendarManager;
+	DBMesocyclesModel *m_mesoModel;
 	const QString *m_identifierInFile;
 	uint m_mesoIdx, m_workingExercise;
 	int m_calendarDay;

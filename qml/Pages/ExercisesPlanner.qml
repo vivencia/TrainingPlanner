@@ -26,7 +26,7 @@ TPPage {
 		if (event.key === mainwindow.backKey) {
 			event.accepted = true;
 			if (splitView.currentIndex === 0)
-				itemManager.appPagesModel.prevPage();
+				itemManager.appPagesModel().prevPage();
 			else
 				splitView.decrementCurrentIndex();
 		}

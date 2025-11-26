@@ -10,8 +10,8 @@
 #include <ranges>
 #include <utility>
 
-DBExercisesListModel *DBExercisesListModel::app_exercises_list(nullptr);
-constexpr uint fieldsNumberInDatabase{EXERCISES_LIST_COL_FROMAPPLIST+1}; //FromAppList is the last savable field + the Id field
+DBExercisesListModel *DBExercisesListModel::app_exercises_list{nullptr};
+constexpr uint fieldsNumberInDatabase{EXERCISES_LIST_COL_FROMAPPLIST + 1}; //FromAppList is the last savable field + the Id field
 
 DBExercisesListModel::DBExercisesListModel(QObject *parent)
 	: QAbstractListModel{parent}, m_selectedEntryToReplace{0}, m_muscularFilterApplied{false}, m_searchFilterApplied{false}

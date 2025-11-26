@@ -1,6 +1,7 @@
 #include "qmlexercisesdatabaseinterface.h"
 
 #include "dbexerciseslistmodel.h"
+#include "pageslistmodel.h"
 #include "qmlitemmanager.h"
 #include "qmlworkoutinterface.h"
 #include "osinterface.h"

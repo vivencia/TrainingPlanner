@@ -64,7 +64,7 @@ TPPage {
 					background: Rectangle {
 						id: backRec
 						radius: 6
-						color: index === itemManager.appMesocyclesModel.currentMesoIdx ? appSettings.primaryLightColor : appSettings.listEntryColor2
+						color: index === mesoModel.currentMesoIdx ? appSettings.primaryLightColor : appSettings.listEntryColor2
 						opacity: 0.8
 						anchors.fill: parent
 					}
@@ -78,13 +78,13 @@ TPPage {
 						id: mesoNameLabel
 						text: mesoName
 						elide: Text.ElideRight
-						color: index === itemManager.appMesocyclesModel.currentMesoIdx ? "black" : appSettings.fontColor
+						color: index === mesoModel.currentMesoIdx ? "black" : appSettings.fontColor
 						topPadding: -3
 					}
 				}
 
 				Component.onCompleted: {
-					currentIndex = itemManager.appMesocyclesModel.currentMesoIdx;
+					currentIndex = mesoModel.currentMesoIdx;
 					selectedMesoIdx = currentIndex;
 					setDates();
 					positionViewAtIndex(currentIndex, ListView.Center);
@@ -136,15 +136,15 @@ TPPage {
 
 						TPTextInput {
 							id: txtStartDate
-							text: appUtils.formatDate(itemManager.appMesocyclesModel.startDate(selectedMesoIdx))
+							text: appUtils.formatDate(mesoModel.startDate(selectedMesoIdx))
 							readOnly: true
 							width: parent.width*0.4
 
 							CalendarDialog {
 								id: caldlg
-								showDate: itemManager.appMesocyclesModel.startDate(selectedMesoIdx)
-								initDate: itemManager.appMesocyclesModel.startDate(selectedMesoIdx)
-								finalDate: itemManager.appMesocyclesModel.endDate(selectedMesoIdx)
+								showDate: mesoModel.startDate(selectedMesoIdx)
+								initDate: mesoModel.startDate(selectedMesoIdx)
+								finalDate: mesoModel.endDate(selectedMesoIdx)
 								parentPage: statisticsPage
 
 								onDateSelected: (date) => {
@@ -171,16 +171,16 @@ TPPage {
 
 						TPTextInput {
 							id: txtEndDate
-							text: appUtils.formatDate(itemManager.appMesocyclesModel.endDate(selectedMesoIdx))
+							text: appUtils.formatDate(mesoModel.endDate(selectedMesoIdx))
 							readOnly: true
 							width: parent.width*0.4
 							Layout.leftMargin: -10
 
 							CalendarDialog {
 								id: caldlg2
-								showDate: itemManager.appMesocyclesModel.endDate(selectedMesoIdx)
-								initDate: itemManager.appMesocyclesModel.startDate(selectedMesoIdx)
-								finalDate: itemManager.appMesocyclesModel.endDate(selectedMesoIdx)
+								showDate: mesoModel.endDate(selectedMesoIdx)
+								initDate: mesoModel.startDate(selectedMesoIdx)
+								finalDate: mesoModel.endDate(selectedMesoIdx)
 								parentPage: statisticsPage
 
 								onDateSelected: (date) => {
@@ -215,7 +215,7 @@ TPPage {
 							id: cboUsedSplitsModel
 
 							Component.onCompleted: {
-								itemManager.appMesocyclesModel.usedSplitsChanged.connect(function(meso_idx) {
+								mesoModel.usedSplitsChanged.connect(function(meso_idx) {
 								if (meso_idx === selectedMesoIdx)
 									loadData();
 								});
@@ -223,9 +223,9 @@ TPPage {
 
 							function loadData(): void {
 								clear();
-								const splits = itemManager.appMesocyclesModel.usedSplits(selectedMesoIdx);
+								const splits = mesoModel.usedSplits(selectedMesoIdx);
 								for(let i = 0; i < splits.length; ++i)
-									append({ "text": splits[i] + ": " + itemManager.appMesocyclesModel.muscularGroup(selectedMesoIdx, splits[i]),
+									append({ "text": splits[i] + ": " + mesoModel.muscularGroup(selectedMesoIdx, splits[i]),
 											"value": splits[i], "enabled": true });
 							}
 						}
@@ -316,8 +316,8 @@ TPPage {
 	} //ScroolView
 
 	function setDates() {
-		appStatistics.setStartDate(itemManager.appMesocyclesModel.startDate(selectedMesoIdx));
-		appStatistics.setEndDate(itemManager.appMesocyclesModel.endDate(selectedMesoIdx));
+		appStatistics.setStartDate(mesoModel.startDate(selectedMesoIdx));
+		appStatistics.setEndDate(mesoModel.endDate(selectedMesoIdx));
 	}
 
 	function changeSeries(type): void {

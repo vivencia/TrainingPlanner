@@ -26,7 +26,7 @@ public:
 		ClearTable,
 	};
 
-	explicit inline ThreadManager(QObject *parent = nullptr) : QObject{parent} {}
+	explicit inline ThreadManager(QObject *parent = nullptr) : QObject{parent} { app_thread_mngr = this; }
 	inline ThreadManager(const ThreadManager &other) = delete;
 	inline ThreadManager &operator()(const ThreadManager &other) = delete;
 	inline ~ThreadManager() {}
@@ -35,6 +35,9 @@ public:
 
 signals:
 	void newThreadedOperation(const int unique_id, ThreadManager::StandardOps operation);
+
+public slots:
+	void aboutToExit();
 
 private:
 	QHash<int,QThread*> m_subThreadsList;

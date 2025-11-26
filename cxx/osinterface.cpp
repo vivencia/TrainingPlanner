@@ -1,7 +1,6 @@
 #include "osinterface.h"
 
 #include "dbusermodel.h"
-#include "thread_manager.h"
 #include "qmlitemmanager.h"
 #include "tpsettings.h"
 #include "tputils.h"
@@ -76,7 +75,6 @@ OSInterface::OSInterface(QObject *parent)
 	: QObject{parent}, m_networkStatus{0}
 {
 	app_os_interface = this;
-	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(aboutToExit()));
 
 	m_checkConnectionTimer = new QTimer{this};
 	m_checkConnectionTimer->callOnTimeout([this] () { checkInternetConnection(); });
@@ -173,12 +171,6 @@ void OSInterface::setConnectionMessage(QString &&message)
 {
 	m_connectionMessage = std::move(message);
 	emit connectionMessageChanged();
-}
-
-void OSInterface::aboutToExit()
-{
-	emit appAboutToExit();
-	::exit(0);
 }
 
 #ifdef Q_OS_ANDROID
@@ -613,11 +605,6 @@ void OSInterface::restartApp()
 QString OSInterface::deviceID() const
 {
 	return QSysInfo::machineUniqueId();
-}
-
-void OSInterface::checkOnlineResources()
-{
-//TODO
 }
 
 void OSInterface::shareFile(const QString &fileName) const

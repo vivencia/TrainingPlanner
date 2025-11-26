@@ -38,7 +38,6 @@ enum MesoRoleNames {
 	mesoClientRole		=	Qt::UserRole + MESOCYCLES_COL_CLIENT
 };
 
-QT_FORWARD_DECLARE_CLASS(DBMesocyclesModel)
 QT_FORWARD_DECLARE_CLASS(DBMesocyclesTable)
 QT_FORWARD_DECLARE_CLASS(DBModelInterfaceMesocycle)
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
@@ -49,7 +48,6 @@ QT_FORWARD_DECLARE_CLASS(QFile)
 
 using DBSplitModel = DBExercisesModel;
 
-static DBMesocyclesModel *app_meso_model{nullptr};
 static constexpr QLatin1StringView mesosSubDir{"mesocycles/"};
 
 class DBMesocyclesModel : public QObject
@@ -108,8 +106,8 @@ public:
 	inline DBMesoCalendarManager *mesoCalendarManager() const { return m_calendarManager; }
 
 	inline HomePageMesoModel *currentHomePageMesoModel() { return m_curMesos; }
-	Q_INVOKABLE inline HomePageMesoModel *ownMesos() const { return m_ownMesos; }
-	Q_INVOKABLE inline HomePageMesoModel *clientMesos() const { return m_clientMesos; }
+	inline HomePageMesoModel *ownMesos() const { return m_ownMesos; }
+	inline HomePageMesoModel *clientMesos() const { return m_clientMesos; }
 
 	inline bool isNewMeso(const uint meso_idx) const { return m_isNewMeso.at(meso_idx) != 0; }
 	bool isNewMesoFieldSet(const uint meso_idx, const uint field) const;
@@ -369,15 +367,13 @@ public:
 
 	//When importing a complete program: importIdx() will be set to -1 because we will be getting a new meso model. When other parts of the code
 	//check importIdx() and get a -1, they will act in accordance with whole program import. After the meso model has been succesfully imported
-	//and incorporated into the database and appMesoModel(), any other model that depends on a meso_idx can query mesoIdx() which will now reflect
-	//the recently added meso
+	//and incorporated, any other model that depends on a meso_idx can query mesoIdx() which will now reflect the recently added meso
 	inline int importIdx() const { return m_importMesoIdx; }
 	inline void setImportIdx(const int new_import_idx) { m_importMesoIdx = new_import_idx; }
 	int exportToFile(const uint meso_idx, const QString &filename) const;
 	int exportToFormattedFile(const uint meso_idx, const QString &filename) const;
 	int importFromFile(const uint meso_idx, const QString &filename);
 	int importFromFormattedFile(const uint meso_idx, const QString &filename);
-	//bool updateFromModel(const uint meso_idx, TPListModel *model);
 
 	inline bool isFieldFormatSpecial (const uint field) const
 	{
@@ -434,7 +430,6 @@ private:
 	DBMesocyclesTable *m_db;
 	DBWorkoutsOrSplitsTable *m_splitsDB;
 
-	friend DBMesocyclesModel *appMesoModel();
 	friend class DBModelInterfaceMesocycle;
 
 	inline QString newMesoTemporaryId() { return QString::number(m_lowestTempMesoId--); }
@@ -446,13 +441,11 @@ signals:
 	void internalSignal(const uint _meso_idx, const uint _id, const bool _result);
 };
 
-inline DBMesocyclesModel *appMesoModel() { return app_meso_model; }
-
 class DBModelInterfaceMesocycle : public DBModelInterface
 {
 
 public:
-	explicit inline DBModelInterfaceMesocycle() : DBModelInterface{appMesoModel()} {}
-	inline const QList<QStringList> &modelData() const { return appMesoModel()->m_mesoData; }
-	inline QList<QStringList> &modelData() { return appMesoModel()->m_mesoData; }
+	explicit inline DBModelInterfaceMesocycle(DBMesocyclesModel *meso_model) : DBModelInterface{meso_model} {}
+	inline const QList<QStringList> &modelData() const { return model<DBMesocyclesModel>()->m_mesoData; }
+	inline QList<QStringList> &modelData() { return model<DBMesocyclesModel>()->m_mesoData; }
 };

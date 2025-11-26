@@ -16,6 +16,7 @@ Drawer {
 	padding: 0
 	edge: Qt.RightEdge
 
+	property PagesListModel pagesModel
 	required property Page rootPage
 
 	Connections {
@@ -190,7 +191,7 @@ Drawer {
 
 		ListView {
 			id: pagesList
-			model: itemManager.appPagesModel
+			model: pagesModel
 			clip: true
 			spacing: 2
 			boundsBehavior: Flickable.StopAtBounds
@@ -224,7 +225,7 @@ Drawer {
 					opacity: 1
 				}
 
-				onClicked: itemManager.appPagesModel.openMainMenuShortCut(index);
+				onClicked: pagesModel.openMainMenuShortCut(index);
 
 				swipe.right: Rectangle {
 					width: parent.width
@@ -247,7 +248,7 @@ Drawer {
 					}
 				} //swipe.right
 
-				swipe.onCompleted: itemManager.appPagesModel.closePage(index);
+				swipe.onCompleted: pagesModel.closePage(index);
 			} //delegate: SwipeDelegate
 		} //ListView
 	} //ColumnLayout

@@ -76,7 +76,7 @@ QDate DBCalendarModel::firstDateOfEachMonth(const uint index) const
 
 const QString &DBCalendarModel::mesoId() const
 {
-	return appMesoModel()->id(m_mesoIdx);
+	return m_calendarManager->mesoModel()->id(m_mesoIdx);
 }
 
 int DBCalendarModel::getIndexFromDate(const QDate &date) const

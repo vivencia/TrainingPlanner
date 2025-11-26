@@ -8,6 +8,7 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 import "../"
 import "../Dialogs"
 import "../TPWidgets"
+import "../User"
 import "./MesocyclePageElements"
 
 TPPage {
@@ -17,7 +18,7 @@ TPPage {
 	objectName: "mesoPage"
 
 	required property MesoManager mesoManager
-
+	required property MesocyclesModel mesoModel
 	property TPBalloonTip newMesoTip: newMesoLoader.item
 
 	onPageDeActivated: mesoManager.sendMesocycleFileToClient();
@@ -31,13 +32,6 @@ TPPage {
 			}
 			else
 				newMesoMessageHandler(next_field);
-		}
-	}
-	Connections {
-		target: userModel
-		function onCoachesNamesChanged() {
-			coachesModel.clear();
-			coachesModel.populate();
 		}
 	}
 
@@ -85,7 +79,7 @@ TPPage {
 				newMesoTip.message = qsTr("Until you accept this program you can only view it");
 				newMesoTip.button1Text = qsTr("Yes");
 				newMesoTip.button2Text = qsTr("No");
-				newMesoTip.button1Clicked.connect(function() { mesoManager.incorporateMeso();} )
+				newMesoTip.button1Clicked.connect(function() { mesoManager.incorporateMeso(); });
 			break;
 			default:
 				newMesoTip.title = qsTr("New program setup incomplete");
@@ -105,36 +99,32 @@ TPPage {
 		ScrollBar.vertical.interactive: true
 		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 		ScrollBar.vertical.policy: ScrollBar.AlwaysOn
-
-		anchors {
-			fill: parent
-			leftMargin: 5
-			rightMargin: 5
-			topMargin: 5
-			bottomMargin: 5
-		}
+		anchors.fill: parent
 
 		ColumnLayout {
 			id: colMain
-			spacing: 5
-			anchors.fill: parent
+			spacing: 10
+			anchors {
+				fill: parent
+				margins: 5
+			}
 
 			Loader {
-				active: !mesoManager.ownMeso && userModel.haveClients
+				active: !mesoManager.ownMeso && userModel.currentClients.count > 0
 				asynchronous: true
 				Layout.fillWidth: true
 
 				sourceComponent: ColumnLayout {
-					spacing: 5
+					spacing: 10
 
 					TPLabel {
 						id: lblClient
-						text: itemManager.appMesocyclesModel.clientLabel
+						text: mesoModel.clientLabel
 					}
 
 					TPCoachesAndClientsList {
 						id: clientsList
-						currentRow: userModel.findUserByName(mesoManager.client)
+						currentIndex: userModel.findUserByName(mesoManager.client)
 						buttonString: qsTr("Go to client's page")
 						height: 0.2 * mesoPropertiesPage.height
 						Layout.fillWidth: true
@@ -146,7 +136,7 @@ TPPage {
 
 					TPLabel {
 						id: lblCoachName
-						text: itemManager.appMesocyclesModel.coachLabel
+						text: mesoModel.coachLabel
 					}
 
 					TPTextInput {
@@ -159,7 +149,7 @@ TPPage {
 			} //Loader
 
 			TPLabel {
-				text: itemManager.appMesocyclesModel.mesoNameLabel
+				text: mesoModel.mesoNameLabel
 				Layout.topMargin: 10
 
 				TPButton {
@@ -186,19 +176,18 @@ TPPage {
 				text: mesoManager.name
 				ToolTip.text: mesoManager.mesoNameErrorTooltip
 				ToolTip.visible: !mesoManager.mesoNameOK
-				Layout.preferredWidth: 0.9 * parent.width
+				Layout.fillWidth: true
 
 				onEditingFinished: mesoManager.name = text;
 				onEnterOrReturnKeyPressed: cboMesoType.forceActiveFocus();
 			}
 
 			TPLabel {
-				text: itemManager.appMesocyclesModel.typeLabel
+				text: mesoModel.typeLabel
 			}
 
 			TPComboBox {
 				id: cboMesoType
-				width: 0.75 * parent.width
 				Layout.fillWidth: true
 				model: ListModel {
 					id: typeModel
@@ -295,7 +284,7 @@ TPPage {
 			}
 
 			TPLabel {
-				text: itemManager.appMesocyclesModel.startDateLabel
+				text: mesoModel.startDateLabel
 
 				TPButton {
 					imageSource: "set-completed"
@@ -372,7 +361,7 @@ TPPage {
 			}
 
 			TPLabel {
-				text: itemManager.appMesocyclesModel.endDateLabel
+				text: mesoModel.endDateLabel
 				visible: mesoManager.realMeso
 
 				TPButton {
@@ -430,7 +419,7 @@ TPPage {
 
 			TPLabel {
 				id: lblnWeeks
-				text: itemManager.appMesocyclesModel.nWeeksLabel
+				text: mesoModel.nWeeksLabel
 				visible: mesoManager.realMeso
 			}
 
@@ -449,7 +438,7 @@ TPPage {
 			}
 
 			TPLabel {
-				text: itemManager.appMesocyclesModel.notesLabel
+				text: mesoModel.notesLabel
 				Layout.topMargin: 10
 			}
 

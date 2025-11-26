@@ -42,7 +42,7 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
 			if (field >= MESOCYCLES_COL_SPLIT && field <= MESOCYCLES_COL_SPLITF)
 			{
 				if (!isOwnMeso(meso_idx))
-						appMesoModel()->checkIfCanExport(meso_idx);
+					checkIfCanExport(meso_idx);
 			}
 		}
 	});
@@ -98,7 +98,6 @@ uint DBMesocyclesModel::startNewMesocycle(const bool bCreatePage, const std::opt
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_ENDDATE);
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_SPLIT);
 	m_isNewMeso[meso_idx] = newMesoRequiredFields;
-	setOwnMeso(meso_idx);
 
 	if (bCreatePage)
 	{
@@ -168,16 +167,12 @@ void DBMesocyclesModel::openSpecificWorkout(const uint meso_idx, const QDate &da
 
 const uint DBMesocyclesModel::newMesocycle(QStringList &&infolist)
 {
+	const uint meso_idx{count()};
 	m_mesoData.append(std::move(infolist));
 	m_splitModels.append(std::move(QMap<QChar, DBSplitModel*>{{'A', nullptr}}));
-	const uint meso_idx{count()-1};
-
 	m_canExport.append(false);
-	//A temporary meso will not have enough info at this time to have it determined if it's a own meso or not
-	if (_id(meso_idx) >= 0)
-		setOwnMeso(meso_idx);
+	setOwnMeso(meso_idx);
 	m_calendarManager->getCalendarForMeso(meso_idx);
-
 	m_usedSplits.append(QString{});
 	makeUsedSplits(meso_idx);
 	m_isNewMeso.append(0);
@@ -280,7 +275,7 @@ bool DBMesocyclesModel::isSplitOK(const QString &strsplit, const uint meso_idx) 
 		if (splitletter >= 'A' && splitletter <= 'F')
 		{
 			ok = true;
-			if (appMesoModel()->muscularGroup(meso_idx, splitletter).isEmpty())
+			if (muscularGroup(meso_idx, splitletter).isEmpty())
 			{
 				ok = false;
 				break;
@@ -317,18 +312,23 @@ bool DBMesocyclesModel::isOwnMeso(const uint meso_idx) const
 
 void DBMesocyclesModel::setOwnMeso(const uint meso_idx)
 {
-	std::optional<bool> b_ownMeso{isOwnMeso(meso_idx)};
-	if (b_ownMeso.has_value())
+	const bool own_meso{isOwnMeso(meso_idx)};
+	if (own_meso)
 	{
-		if (b_ownMeso.value())
-		{
-			m_mostRecentOwnMesoIdx = meso_idx;
-			emit mostRecentOwnMesoChanged(m_mostRecentOwnMesoIdx);
-			changeCanHaveTodaysWorkout(meso_idx);
-			m_ownMesos->appendData(meso_idx);
-		}
-		else
-			m_clientMesos->appendData(meso_idx);
+		m_mostRecentOwnMesoIdx = meso_idx;
+		emit mostRecentOwnMesoChanged(m_mostRecentOwnMesoIdx);
+		changeCanHaveTodaysWorkout(meso_idx);
+		m_ownMesos->appendData(meso_idx);
+		const int conflicting_meso_idx{m_clientMesos->indexOf(meso_idx)};
+		if (conflicting_meso_idx >= 0)
+			m_clientMesos->removeRow(conflicting_meso_idx);
+	}
+	else
+	{
+		m_clientMesos->appendData(meso_idx);
+		const int conflicting_meso_idx{m_ownMesos->indexOf(meso_idx)};
+		if (conflicting_meso_idx >= 0)
+			m_ownMesos->removeRow(conflicting_meso_idx);
 	}
 }
 
@@ -644,6 +644,8 @@ void DBMesocyclesModel::removeMesoFile(const uint meso_idx)
 
 void DBMesocyclesModel::sendMesoToUser(const uint meso_idx, const bool just_save_local_file)
 {
+	if (isNewMeso(meso_idx))
+		return;
 	const QString &filename{mesoFileName(meso_idx)};
 	const int ret{exportToFile(meso_idx, filename)};
 	if (just_save_local_file)
@@ -784,9 +786,12 @@ void DBMesocyclesModel::scanTemporaryMesocycles()
 
 void DBMesocyclesModel::getAllMesocycles()
 {
-	m_dbModelInterface = new DBModelInterfaceMesocycle;
+	m_dbModelInterface = new DBModelInterfaceMesocycle{this};
 	m_db = new DBMesocyclesTable{m_dbModelInterface};
 	appThreadManager()->runAction(m_db, ThreadManager::CreateTable);
+	connect(m_db, &DBMesocyclesTable::mesocyclesAcquired, this, [this] (QStringList meso_info) {
+		newMesocycle(std::move(meso_info));
+	});
 	appThreadManager()->runAction(m_db, ThreadManager::ReadAllRecords);
 
 	m_splitsDB = new DBWorkoutsOrSplitsTable{MESOSPLIT_TABLE_ID};
@@ -796,12 +801,18 @@ void DBMesocyclesModel::getAllMesocycles()
 int DBMesocyclesModel::exportToFile_splitData(const uint meso_idx, QFile *mesoFile, const bool formatted) const
 {
 	int ret{TP_RET_CODE_EXPORT_FAILED};
-	for (const auto split_model : m_splitModels.at(meso_idx))
+	const QMap<QChar,DBSplitModel*> &split_models{m_splitModels.at(meso_idx)};
+	if (!split_models.isEmpty())
 	{
-		if (!formatted)
-			ret = split_model->exportToFile(QString{}, mesoFile);
-		else
-			ret = split_model->exportToFormattedFile(QString{}, mesoFile);
+		for (const DBSplitModel *split_model : split_models)
+		{
+			if (!split_model)
+				continue;
+			if (!formatted)
+				ret = split_model->exportToFile(QString{}, mesoFile);
+			else
+				ret = split_model->exportToFormattedFile(QString{}, mesoFile);
+		}
 	}
 	return ret;
 }

@@ -8,7 +8,7 @@ import "../../TPWidgets"
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 Item {
-	required property HomePageMesoModel mesoModel
+	required property HomePageMesoModel mesoSubModel
 	required property bool mainUserPrograms
 
 	property int viewedMesoIdx
@@ -16,7 +16,7 @@ Item {
 
 	ListView {
 		id: mesosListView
-		model: mesoModel
+		model: mesoSubModel
 		boundsBehavior: Flickable.StopAtBounds
 		reuseItems: true
 		spacing: 10
@@ -36,7 +36,7 @@ Item {
 		}
 
 		Connections {
-			target: itemManager.appMesocyclesModel
+			target: mesoModel
 			function onCanExportChanged(meso_idx: int, can_export: bool) : void {
 				viewedMesoIdx = meso_idx;
 				viewedMesoCanBeExported = can_export;
@@ -47,9 +47,9 @@ Item {
 			id: mesoDelegate
 			width: parent ? parent.width : 0
 
-			onClicked: itemManager.appMesocyclesModel.getMesocyclePage(mesoModel.mesoRow(index));
-			onPressAndHold: itemManager.appMesocyclesModel.currentMesoIdx = mesoModel.mesoRow(index);
-			swipe.onCompleted: itemManager.appMesocyclesModel.setCurrentlyViewedMeso(mesoModel.mesoRow(index));
+			onClicked: mesoModel.getMesocyclePage(mesoSubModel.mesoRow(index));
+			onPressAndHold: mesoModel.currentMesoIdx = mesoSubModel.mesoRow(index);
+			swipe.onCompleted: mesoModel.setCurrentlyViewedMeso(mesoSubModel.mesoRow(index));
 
 			Rectangle {
 				id: optionsRec
@@ -93,7 +93,7 @@ Item {
 						leftMargin: 5
 					}
 
-					onClicked: itemManager.appMesocyclesModel.getMesocyclePage(mesoModel.mesoRow(index));
+					onClicked: mesoModel.getMesocyclePage(mesoSubModel.mesoRow(index));
 				}
 
 				TPButton {
@@ -103,6 +103,7 @@ Item {
 					imageSize: 30
 					rounded: false
 					textUnderIcon: true
+					enabled: !mesoModel.isNewMeso()
 					width: parent.width/2 - 10
 					height: parent.height/2 - 10
 					z:1
@@ -114,7 +115,7 @@ Item {
 						leftMargin: 5
 					}
 
-					onClicked: itemManager.appMesocyclesModel.getMesoCalendarPage(mesoModel.mesoRow(index));
+					onClicked: mesoModel.getMesoCalendarPage(mesoSubModel.mesoRow(index));
 				}
 
 				TPButton {
@@ -123,6 +124,7 @@ Item {
 					imageSource: "meso-splitplanner.png"
 					imageSize: 30
 					rounded: false
+					enabled: !mesoModel.isNewMeso()
 					textUnderIcon: true
 					width: parent.width/2 - 10
 					height: parent.height/2 - 10
@@ -135,7 +137,7 @@ Item {
 						leftMargin: 5
 					}
 
-					onClicked: itemManager.appMesocyclesModel.getExercisesPlannerPage(mesoModel.mesoRow(index));
+					onClicked: mesoModel.getExercisesPlannerPage(mesoSubModel.mesoRow(index));
 				}
 
 				TPButton {
@@ -145,7 +147,7 @@ Item {
 					imageSize: 30
 					rounded: false
 					textUnderIcon: true
-					enabled: viewedMesoIdx === mesoModel.mesoRow(index) ? viewedMesoCanBeExported : false
+					enabled: viewedMesoIdx === mesoSubModel.mesoRow(index) ? viewedMesoCanBeExported : false
 					width: parent.width/2 - 10
 					height: parent.height/2 - 10
 					z:1
@@ -157,7 +159,7 @@ Item {
 						leftMargin: 5
 					}
 
-					onClicked: showExportMenu(mesoModel.mesoRow(index), this);
+					onClicked: showExportMenu(mesoSubModel.mesoRow(index), this);
 				}
 			} //swipe.left: Rectangle
 
@@ -197,7 +199,7 @@ Item {
 						verticalCenter: parent.verticalCenter
 					}
 
-					onClicked: msgDlg.init(mesoModel.mesoRow(index));
+					onClicked: msgDlg.init(mesoSubModel.mesoRow(index));
 				}
 
 				TPBalloonTip {
@@ -208,10 +210,10 @@ Item {
 					parentPage: homePage
 
 					property int mesoidx
-					onButton1Clicked: itemManager.appMesocyclesModel.removeMesocycle(mesoidx);
+					onButton1Clicked: mesoModel.removeMesocycle(mesoidx);
 
 					function init(meso_idx: int): void {
-						title = qsTr("Remove ") + itemManager.appMesocyclesModel.name_QML(meso_idx) + "?";
+						title = qsTr("Remove ") + mesoModel.name_QML(meso_idx) + "?";
 						mesoidx = meso_idx;
 						show(-1);
 					}
@@ -223,7 +225,7 @@ Item {
 				anchors.fill: parent
 				radius: 6
 				layer.enabled: true
-				color: mesoModel.mesoRow(index) === itemManager.appMesocyclesModel.currentMesoIdx ? appSettings.primaryColor : appSettings.listEntryColor2
+				color: mesoSubModel.mesoRow(index) === mesoModel.currentMesoIdx ? appSettings.primaryColor : appSettings.listEntryColor2
 				visible: false
 			}
 
@@ -305,7 +307,7 @@ Item {
 				Layout.maximumHeight: appSettings.itemDefaultHeight
 				Layout.alignment: Qt.AlignCenter
 
-				onClicked: itemManager.appMesocyclesModel.startNewMesocycle_QML(mainUserPrograms);
+				onClicked: mesoModel.startNewMesocycle_QML(mainUserPrograms);
 			}
 
 			TPButton {
@@ -325,12 +327,12 @@ Item {
 				text: qsTr("Today's workout")
 				imageSource: "workout.png"
 				visible: mainUserPrograms
-				enabled: itemManager.appMesocyclesModel.canHaveTodaysWorkout
+				enabled: mesoModel ? mesoModel.canHaveTodaysWorkout : false
 				Layout.preferredWidth: preferredWidth
 				Layout.maximumHeight: appSettings.itemDefaultHeight
 				Layout.alignment: Qt.AlignCenter
 
-				onClicked: itemManager.appMesocyclesModel.todaysWorkout();
+				onClicked: mesoModel.todaysWorkout();
 			}
 		}
 	}
@@ -340,8 +342,8 @@ Item {
 		if (exportMenu === null) {
 			let exportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
 			exportMenu = exportMenuComponent.createObject(homePage, { parentPage: homePage });
-			if (!itemManager.appMesocyclesModel.isOwnMeso(meso_idx)) {
-				const userid = itemManager.appMesocyclesModel.mesoClient(meso_idx);
+			if (!mesoModel.isOwnMeso(meso_idx)) {
+				const userid = mesoModel.mesoClient(meso_idx);
 				if (userid !== "")
 					exportMenu.addEntry(qsTr("Send to ") + userModel.userNameFromId(userid), userModel.avatarFromId(userid), 10, true);
 			}
@@ -351,7 +353,7 @@ Item {
 				exportMenu.addEntry(qsTr("Share"), "export.png", 30, true);
 			exportMenu.menuEntrySelected.connect(function(id) {
 				switch (id) {
-					case 10: itemManager.appMesocyclesModel.sendMesoToUser(meso_idx); break;
+					case 10: mesoModel.sendMesoToUser(meso_idx); break;
 					case 20: exportTypeTip.init(meso_idx, false); break;
 					case 30: exportTypeTip.init(meso_idx, true); break;
 				}
@@ -376,7 +378,7 @@ Item {
 			parentPage: homePage
 
 			onButton1Clicked: {
-				itemManager.appMesocyclesModel.exportMeso(mesoIdx, bShare, customBoolProperty1);
+				mesoModel.exportMeso(mesoIdx, bShare, customBoolProperty1);
 				exportTypeTip.active = false;
 			}
 		}

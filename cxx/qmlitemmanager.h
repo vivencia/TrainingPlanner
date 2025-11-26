@@ -1,7 +1,5 @@
 #pragma once
 
-#include "dbmesocyclesmodel.h"
-#include "pageslistmodel.h"
 #include "return_codes.h"
 
 #include <QObject>
@@ -30,6 +28,7 @@ static inline int deferredActionId()
 QT_FORWARD_DECLARE_CLASS(QmlExercisesDatabaseInterface)
 QT_FORWARD_DECLARE_CLASS(QmlWorkoutInterface)
 QT_FORWARD_DECLARE_CLASS(QmlUserInterface)
+QT_FORWARD_DECLARE_CLASS(PagesListModel)
 QT_FORWARD_DECLARE_CLASS(TPChat)
 QT_FORWARD_DECLARE_CLASS(TPListModel)
 
@@ -43,13 +42,10 @@ class QmlItemManager : public QObject
 
 Q_OBJECT
 
-Q_PROPERTY(DBMesocyclesModel* appMesocyclesModel READ appMesocyclesModel NOTIFY userChangedSignal FINAL)
-Q_PROPERTY(PagesListModel* appPagesModel READ appPagesModel NOTIFY userChangedSignal FINAL)
-
 public:
 	explicit inline QmlItemManager(QQmlApplicationEngine *qml_engine)
 		: QObject{nullptr}, m_usersManager{nullptr}, m_exercisesListManager{nullptr},
-										m_weatherPage{nullptr}, m_statisticsPage{nullptr}
+																	m_weatherPage{nullptr}, m_statisticsPage{nullptr}
 	{
 		_appItemManager = this;
 		_appQmlEngine = qml_engine;
@@ -58,10 +54,9 @@ public:
 	~QmlItemManager();
 	void configureQmlEngine();
 
-	inline DBMesocyclesModel *appMesocyclesModel() const { return appMesoModel(); }
-	inline PagesListModel *appPagesModel() const { return appPagesListModel(); }
 	inline QQuickItem* appHomePage() const { return m_homePage; }
 
+	Q_INVOKABLE PagesListModel *appPagesModel() const;
 	Q_INVOKABLE void exitApp();
 	Q_INVOKABLE void chooseFileToImport();
 	Q_INVOKABLE void importFromSelectedFile(const QList<bool> &selectedFields);
@@ -82,7 +77,6 @@ public:
 	void openRequestedFile(const QString &filename, const int wanted_content = 0x3FF);
 
 signals:
-	void userChangedSignal();
 	void mesoForImportSelected();
 	void qmlPasswordDialogClosed(int resultCode, QString password);
 

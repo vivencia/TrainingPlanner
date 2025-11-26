@@ -12,7 +12,10 @@ TPPage {
 	id: homePage
 	imageSource: ":/images/backgrounds/backimage-home.jpg"
 
-	property date minimumStartDate;
+	property bool loadOwnMesos: false
+	property bool loadClientMesos: false
+	property date minimumStartDate
+	property MesocyclesModel mesoModel: null
 
 	header: TPToolBar {
 		bottomPadding: 20
@@ -64,22 +67,22 @@ TPPage {
 
 		Loader {
 			id: ownMesosListLoader
-			active: userModel.mainUserConfigured && userModel.mainUserIsClient
+			active: loadOwnMesos
 			asynchronous: true
 
 			sourceComponent: MesosList {
-				mesoModel: itemManager.appMesocyclesModel.ownMesos;
-				mainUserPrograms: true;
+				mesoSubModel: mesoModel.ownMesos
+				mainUserPrograms: true
 			}
 		}
 
 		Loader {
 			id: clientsMesosListLoader
-			active: userModel.mainUserConfigured && userModel.mainUserIsCoach
+			active: loadClientMesos
 			asynchronous: true
 
 			sourceComponent: MesosList {
-				mesoModel: itemManager.appMesocyclesModel.clientMesos;
+				mesoSubModel: mesoModel.clientMesos
 				mainUserPrograms: false
 			}
 		}

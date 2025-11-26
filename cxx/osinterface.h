@@ -96,7 +96,6 @@ public:
 				processArguments();
 			#endif
 		#endif
-		checkOnlineResources();
 	}
 
 #ifdef Q_OS_ANDROID
@@ -128,7 +127,6 @@ public:
 #endif
 
 	QString deviceID() const;
-	void checkOnlineResources();
 	void shareFile(const QString &fileName) const;
 	Q_INVOKABLE void openURL(const QString &address) const;
 	Q_INVOKABLE void startChatApp(const QString &phone, const QString &appname) const;
@@ -139,15 +137,11 @@ signals:
 #ifdef Q_OS_ANDROID
 	void activityFinishedResult(const int requestCode, const int resultCode);
 #endif
-	void appAboutToExit();
 	void appSuspended();
 	void appResumed();
 	void internetStatusChanged(const bool connected);
 	void serverStatusChanged(const bool online);
 	void connectionMessageChanged();
-
-public slots:
-	void aboutToExit();
 
 private:
 	int m_networkStatus;

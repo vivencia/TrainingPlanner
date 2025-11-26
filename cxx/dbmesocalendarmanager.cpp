@@ -10,8 +10,8 @@
 
 #include <ranges>
 
-DBMesoCalendarManager::DBMesoCalendarManager(QObject *parent)
-	: QObject{parent}
+DBMesoCalendarManager::DBMesoCalendarManager(DBMesocyclesModel *meso_model)
+	: QObject{meso_model}, m_mesoModel{meso_model}
 {
 	m_calendarDB = new DBMesoCalendarTable{};
 	appThreadManager()->runAction(m_calendarDB, ThreadManager::CreateTable);
@@ -38,7 +38,7 @@ uint DBMesoCalendarManager::populateCalendarDays(const uint meso_idx, const QDat
 	const qsizetype n_days{m_workouts.value(meso_idx).count()};
 	DBModelInterfaceCalendar *dbmic{getDBModelInterfaceCalendar(meso_idx)};
 	QDate day_date{start_date};
-	const QString &meso_id{appMesoModel()->id(meso_idx)};
+	const QString &meso_id{m_mesoModel->id(meso_idx)};
 	const QString &str_id{"-1"_L1};
 	for (uint i{0}; i < n_days; ++i)
 	{
@@ -72,7 +72,7 @@ void DBMesoCalendarManager::setDayInfo(const uint meso_idx, const uint calendar_
 
 void DBMesoCalendarManager::removeCalendarForMeso(const uint meso_idx, const bool remove_workouts)
 {
-	if (appMesoModel()->_id(meso_idx) >= 0)
+	if (m_mesoModel->_id(meso_idx) >= 0)
 	{
 		DBModelInterfaceCalendar *dbmic{getDBModelInterfaceCalendar(meso_idx)};
 		dbmic->setRemovalInfo(0, QList<uint>{} << CALENDAR_DATABASE_MESOID);
@@ -108,14 +108,14 @@ void DBMesoCalendarManager::removeCalendarForMeso(const uint meso_idx, const boo
 
 void DBMesoCalendarManager::getCalendarForMeso(const uint meso_idx, const bool create_calendar)
 {
-	if (appMesoModel()->_id(meso_idx) >= 0)
+	if (m_mesoModel->_id(meso_idx) >= 0)
 	{
 		if (!create_calendar)
 			m_calendars.insert(meso_idx, new DBCalendarModel{this, m_calendarDB, meso_idx});
 		else
 		{
-			const QDate &startDate{appMesoModel()->startDate(meso_idx)};
-			const uint n_months{populateCalendarDays(meso_idx, startDate, appMesoModel()->endDate(meso_idx), appMesoModel()->split(meso_idx))};
+			const QDate &startDate{m_mesoModel->startDate(meso_idx)};
+			const uint n_months{populateCalendarDays(meso_idx, startDate, m_mesoModel->endDate(meso_idx), m_mesoModel->split(meso_idx))};
 			DBCalendarModel *model{m_calendars.value(meso_idx)};
 			model->setNMonths(n_months);
 			DBModelInterfaceCalendar *dbmic{getDBModelInterfaceCalendar(meso_idx)};
@@ -128,7 +128,7 @@ void DBMesoCalendarManager::getCalendarForMeso(const uint meso_idx, const bool c
 	else
 	{
 		auto conn{std::make_shared<QMetaObject::Connection>()};
-		*conn = connect(appMesoModel(), &DBMesocyclesModel::isNewMesoChanged, this, [this,conn,meso_idx] (const uint _meso_idx)
+		*conn = connect(m_mesoModel, &DBMesocyclesModel::isNewMesoChanged, this, [this,conn,meso_idx] (const uint _meso_idx)
 		{
 			if (meso_idx == _meso_idx)
 			{
@@ -154,7 +154,7 @@ void DBMesoCalendarManager::alterCalendarSplits(const uint meso_idx, const QDate
 		if (last_day >= 0)
 		{
 			const int day_of_week{start_date.dayOfWeek() - 1};
-			const QString &split{appMesoModel()->split(meso_idx)};
+			const QString &split{m_mesoModel->split(meso_idx)};
 			uint i{0};
 
 			QString::const_iterator splitletter{const_cast<QString::const_iterator>(split.begin())};
@@ -185,7 +185,7 @@ DBExercisesModel *DBMesoCalendarManager::workoutForDay(const uint meso_idx, cons
 	DBExercisesModel *w_model{m_workouts.value(meso_idx).value(calendar_day)};
 	if (w_model)
 	{
-		w_model = new DBExercisesModel{this, m_workoutsDB, meso_idx, calendar_day};
+		w_model = new DBExercisesModel{m_mesoModel, m_workoutsDB, meso_idx, calendar_day};
 		m_workouts.value(meso_idx).insert(calendar_day, w_model);
 	}
 	return w_model;
@@ -201,15 +201,15 @@ int DBMesoCalendarManager::importWorkoutFromFile(const QString &filename, const 
 
 const int DBMesoCalendarManager::calendarDay(const uint meso_idx, const QDate &date) const
 {
-	const QDate &start_calendar_date{appMesoModel()->startDate(meso_idx)};
+	const QDate &start_calendar_date{m_mesoModel->startDate(meso_idx)};
 	const int calendar_day{static_cast<int>(start_calendar_date.daysTo(date))};
 	return calendar_day;
 }
 
 QDate DBMesoCalendarManager::dateFromCalendarDay(const uint meso_idx, const uint calendar_day) const
 {
-	const QDate &calendar_date{appMesoModel()->startDate(meso_idx).addDays(calendar_day)};
-	if (calendar_date < appMesoModel()->endDate(meso_idx))
+	const QDate &calendar_date{m_mesoModel->startDate(meso_idx).addDays(calendar_day)};
+	if (calendar_date < m_mesoModel->endDate(meso_idx))
 		return calendar_date;
 	return QDate{};
 }
@@ -218,7 +218,7 @@ const int DBMesoCalendarManager::nthMonth(const uint meso_idx, const QDate &date
 {
 	if (calendarDay(meso_idx, date) >= 0)
 	{
-		const QDate &start_calendar_date{appMesoModel()->startDate(meso_idx)};
+		const QDate &start_calendar_date{m_mesoModel->startDate(meso_idx)};
 		return appUtils()->calculateNumberOfMonths(start_calendar_date, date) - 1;
 	}
 	return -1;

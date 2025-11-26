@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QVariantMap>
 
+QT_FORWARD_DECLARE_CLASS(DBMesocyclesModel)
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(DBCalendarModel)
 QT_FORWARD_DECLARE_CLASS(TPTimer)
@@ -38,7 +39,7 @@ Q_PROPERTY(bool timerActive READ timerActive NOTIFY timerActiveChanged FINAL)
 Q_PROPERTY(bool haveExercises READ haveExercises NOTIFY haveExercisesChanged FINAL)
 
 public:
-	explicit QmlWorkoutInterface(QObject *parent, const uint meso_idx, const QDate &date);
+	explicit QmlWorkoutInterface(QObject *parent, DBMesocyclesModel *meso_model, const uint meso_idx, const QDate &date);
 	inline ~QmlWorkoutInterface() { cleanUp(); }
 	void cleanUp();
 
@@ -153,6 +154,7 @@ signals:
 	void requestMesoSplitModel(const QChar &splitletter);
 
 private:
+	DBMesocyclesModel *m_mesoModel;
 	QQmlComponent *m_workoutComponent;
 	DBWorkoutModel *m_workoutModel;
 	DBCalendarModel *m_calendarModel;

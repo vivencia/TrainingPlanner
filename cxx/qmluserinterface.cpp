@@ -1,6 +1,7 @@
 #include "qmluserinterface.h"
 
 #include "dbusermodel.h"
+#include "pageslistmodel.h"
 #include "qmlitemmanager.h"
 
 #include <QQmlApplicationEngine>

@@ -20,6 +20,7 @@ ApplicationWindow {
 	flags: Qt.platform.os === "android" ? Qt.Window | Qt.FramelessWindowHint | Qt.WA_KeepScreenOn :
 				Qt.Window | Qt.CustomizeWindowHint & ~Qt.WindowMaximizeButtonHint
 
+	property PagesListModel appPagesModel
 	property int n_dialogs_open: 0
 
 	onN_dialogs_openChanged: {
@@ -42,7 +43,9 @@ ApplicationWindow {
 		id: navBar
 		active: userModel.mainUserConfigured
 		asynchronous: true
-		source: "qrc:/qml/Dialogs/NavBar.qml"
+		sourceComponent: NavBar {
+			pagesModel: appPagesModel
+		}
 	}
 
 	Loader {
@@ -51,6 +54,7 @@ ApplicationWindow {
 		asynchronous: true
 		sourceComponent: MainMenu {
 			rootPage: homePage
+			pagesModel: appPagesModel
 		}
 	}
 

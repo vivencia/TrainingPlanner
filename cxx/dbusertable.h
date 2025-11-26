@@ -17,5 +17,8 @@ public:
 	QString dbFileName(const bool fullpath = true) const override final;
 	void updateTable() override final {}
 	bool getAllUsers();
+
+signals:
+	void userInfoAcquired(QStringList user_info);
 };
 

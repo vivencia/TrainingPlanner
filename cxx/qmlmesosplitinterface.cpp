@@ -3,6 +3,7 @@
 #include "dbexercisesmodel.h"
 #include "dbworkoutsorsplitstable.h"
 #include "dbmesocyclesmodel.h"
+#include "pageslistmodel.h"
 #include "qmlitemmanager.h"
 #include "thread_manager.h"
 #include "tpsettings.h"
@@ -58,18 +59,18 @@ void QmlMesoSplitInterface::removeExercise(const int exercise_number)
 void QmlMesoSplitInterface::swapMesoPlans()
 {
 	DBSplitModel* tempSplit{currentSplitModel()};
-	appMesoModel()->splitModelsForMeso(m_mesoIdx)[currentSplitLetter()] =
-							appMesoModel()->splitModelsForMeso(m_mesoIdx).value(currentSwappableLetter());
-	appMesoModel()->splitModelsForMeso(m_mesoIdx)[currentSwappableLetter()] = tempSplit;
+	m_mesoModel->splitModelsForMeso(m_mesoIdx)[currentSplitLetter()] =
+							m_mesoModel->splitModelsForMeso(m_mesoIdx).value(currentSwappableLetter());
+	m_mesoModel->splitModelsForMeso(m_mesoIdx)[currentSwappableLetter()] = tempSplit;
 }
 
 void QmlMesoSplitInterface::loadSplitFromPreviousMeso()
 {
 	if (m_hasPreviousPlan.value(m_currentSplitLetter))
 	{
-		DBSplitModel *split_model{new DBSplitModel{this, currentSplitModel()->database(), m_mesoIdx, m_currentSplitLetter}};
+		DBSplitModel *split_model{new DBSplitModel{m_mesoModel, currentSplitModel()->database(), m_mesoIdx, m_currentSplitLetter}};
 		connect(split_model, &DBSplitModel::exerciseCountChanged, this, [this,split_model] () {
-			appMesoModel()->splitModelsForMeso(m_mesoIdx)[m_currentSplitLetter] = split_model;
+			m_mesoModel->splitModelsForMeso(m_mesoIdx)[m_currentSplitLetter] = split_model;
 			delete split_model;
 		});
 	}
@@ -85,7 +86,7 @@ void QmlMesoSplitInterface::simpleExercisesList(const bool show)
 
 void QmlMesoSplitInterface::exportMesoSplit(const bool bShare)
 {
-	const QString &suggestedName{appMesoModel()->name(m_mesoIdx) +
+	const QString &suggestedName{m_mesoModel->name(m_mesoIdx) +
 				tr(" - Exercises Plan - Split ") + currentSplitLetter() + ".txt"_L1};
 	const QString &exportFileName{appItemManager()->setExportFileName(suggestedName)};
 	appItemManager()->continueExport(currentSplitModel()->exportToFormattedFile(exportFileName), bShare);
@@ -95,7 +96,7 @@ void QmlMesoSplitInterface::importMesoSplit(const QString &filename)
 {
 	if (filename.isEmpty())
 	{
-		appMesoModel()->setImportIdx(m_mesoIdx);
+		m_mesoModel->setImportIdx(m_mesoIdx);
 		QMetaObject::invokeMethod(appMainWindow(), "chooseFileToImport", Q_ARG(int, IFC_MESOSPLIT));
 	}
 	else
@@ -133,7 +134,7 @@ QQuickItem* QmlMesoSplitInterface::setCurrentPage(const int index)
 
 DBSplitModel *QmlMesoSplitInterface::currentSplitModel() const
 {
-	return appMesoModel()->splitModel(m_mesoIdx, m_currentSplitLetter);
+	return m_mesoModel->splitModel(m_mesoIdx, m_currentSplitLetter);
 }
 
 bool QmlMesoSplitInterface::haveExercises() const
@@ -181,9 +182,9 @@ void QmlMesoSplitInterface::createPlannerPage_part2()
 	emit plannerPageCreated();
 
 	appPagesListModel()->openPage(m_plannerPage,
-			std::move(tr("Exercises Planner: ") + appMesoModel()->name(m_mesoIdx)), [this] () { cleanUp(); });
+			std::move(tr("Exercises Planner: ") + m_mesoModel->name(m_mesoIdx)), [this] () { cleanUp(); });
 	connect(m_plannerPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), this, SLOT(changeExerciseName()));
-	connect(appMesoModel(), &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field) {
+	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field) {
 		if (meso_idx == m_mesoIdx)
 		{
 			if (field == MESOCYCLES_COL_SPLIT)
@@ -222,14 +223,14 @@ void QmlMesoSplitInterface::createMesoSplitPages_part2()
 	m_splitProperties["height"_L1] = m_plannerPage->property("splitPageHeight").toInt();
 
 	uint index{0};
-	const QString &split_letters{appMesoModel()->usedSplits(m_mesoIdx)};
+	const QString &split_letters{m_mesoModel->usedSplits(m_mesoIdx)};
 	for (const auto &split_letter : split_letters)
 		addPage(split_letter, index++);
 }
 
 void QmlMesoSplitInterface::setSplitPageProperties(DBSplitModel *split_model)
 {
-	auto prev_mesoid{appMesoModel()->getPreviousMesoId(appMesoModel()->client(m_mesoIdx), appMesoModel()->_id(m_mesoIdx))};
+	auto prev_mesoid{m_mesoModel->getPreviousMesoId(m_mesoModel->client(m_mesoIdx), m_mesoModel->_id(m_mesoIdx))};
 	if (prev_mesoid >= 0)
 	{
 		m_prevMesoId = QString::number(prev_mesoid);
@@ -244,11 +245,11 @@ void QmlMesoSplitInterface::setSplitPageProperties(DBSplitModel *split_model)
 				const bool has_prevplan{return_value2.toBool()};
 				m_hasPreviousPlan.insert(split_model->splitLetter(), has_prevplan);
 				if (has_prevplan)
-					m_prevMesoName = appMesoModel()->name(appMesoModel()->idxFromId(m_prevMesoId));
+					m_prevMesoName = m_mesoModel->name(m_mesoModel->idxFromId(m_prevMesoId));
 			}
 		});
 		auto x = [this,split_model] () -> std::pair<QVariant,QVariant> {
-							return split_model->database()->mesoHasAllSplitPlans(appMesoModel()->id(m_mesoIdx), appMesoModel()->usedSplits(m_mesoIdx)); };
+							return split_model->database()->mesoHasAllSplitPlans(m_mesoModel->id(m_mesoIdx), m_mesoModel->usedSplits(m_mesoIdx)); };
 		split_model->database()->setCustQueryFunction(x);
 		appThreadManager()->runAction(split_model->database(), ThreadManager::CustomOperation);
 	}
@@ -256,7 +257,7 @@ void QmlMesoSplitInterface::setSplitPageProperties(DBSplitModel *split_model)
 
 void QmlMesoSplitInterface::syncSplitPagesWithMesoSplit()
 {
-	const QString &split_letters{appMesoModel()->usedSplits(m_mesoIdx)};
+	const QString &split_letters{m_mesoModel->usedSplits(m_mesoIdx)};
 	int current_splits{0};
 	const QMap<QChar,QQuickItem*>::const_iterator itr_begin{m_splitPages.constBegin()};
 	QMap<QChar,QQuickItem*>::const_iterator itr{m_splitPages.constEnd()};
@@ -283,13 +284,13 @@ void QmlMesoSplitInterface::removePage(const QChar &split_letter)
 	if (split_page)
 	{
 		delete split_page;
-		appMesoModel()->removeSplit(m_mesoIdx, split_letter);
+		m_mesoModel->removeSplit(m_mesoIdx, split_letter);
 	}
 }
 
 void QmlMesoSplitInterface::addPage(const QChar &split_letter, const uint index)
 {
-	DBSplitModel *split_model{appMesoModel()->splitModel(m_mesoIdx, split_letter)};
+	DBSplitModel *split_model{m_mesoModel->splitModel(m_mesoIdx, split_letter)};
 	m_splitProperties["exercisesModel"_L1] = std::move(QVariant::fromValue(split_model));
 	setSplitPageProperties(split_model);
 
@@ -305,12 +306,12 @@ QChar QmlMesoSplitInterface::findSwappableModel() const
 {
 	QString muscularGroup1{std::move(currentSplitModel()->muscularGroup())};
 	muscularGroupSimplified(muscularGroup1);
-	const QString &split_letters{appMesoModel()->usedSplits(m_mesoIdx)};
+	const QString &split_letters{m_mesoModel->usedSplits(m_mesoIdx)};
 	for (const auto &split_letter : split_letters)
 	{
 		if (split_letter != m_currentSplitLetter)
 		{
-			QString muscularGroup2{std::move(appMesoModel()->muscularGroup(mesoIdx(), split_letter))};
+			QString muscularGroup2{std::move(m_mesoModel->muscularGroup(mesoIdx(), split_letter))};
 			muscularGroupSimplified(muscularGroup2);
 			if (appUtils()->similarityBetweenString(muscularGroup1, muscularGroup2) >= 0.8)
 				return split_letter;

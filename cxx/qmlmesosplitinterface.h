@@ -4,6 +4,7 @@
 #include <QVariantMap>
 #include <QQuickItem>
 
+QT_FORWARD_DECLARE_CLASS(DBMesocyclesModel)
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel);
 QT_FORWARD_DECLARE_CLASS(QQmlComponent);
 
@@ -23,8 +24,9 @@ Q_PROPERTY(bool haveExercises READ haveExercises NOTIFY currentPageChanged FINAL
 Q_PROPERTY(bool canSwapExercises READ canSwapExercises NOTIFY currentPageChanged FINAL)
 
 public:
-	explicit inline QmlMesoSplitInterface(QObject *parent, const uint meso_idx)
-		: QObject{parent}, m_plannerPage{nullptr}, m_currentSplitPage{nullptr}, m_splitComponent{nullptr}, m_mesoIdx{meso_idx} {}
+	explicit inline QmlMesoSplitInterface(QObject *parent, DBMesocyclesModel* meso_model, const uint meso_idx)
+		: QObject{parent}, m_mesoModel{meso_model}, m_plannerPage{nullptr}, m_currentSplitPage{nullptr},
+								m_splitComponent{nullptr}, m_mesoIdx{meso_idx} {}
 	inline ~QmlMesoSplitInterface() { cleanUp(); }
 	void cleanUp();
 
@@ -57,6 +59,7 @@ signals:
 	void currentPageChanged();
 
 private:
+	DBMesocyclesModel *m_mesoModel;
 	QQmlComponent* m_plannerComponent;
 	QQuickItem* m_plannerPage, *m_currentSplitPage;
 	QVariantMap m_plannerProperties;

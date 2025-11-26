@@ -65,7 +65,7 @@ public:
 
 	inline void setDBModelInterface(DBModelInterface *dbmodel_interface) { m_dbModelInterface = dbmodel_interface; }
 	inline std::function<void()> threadedFunction(ThreadManager::StandardOps op) const { return m_threadedFunctions.value(op); }
-	inline void setReadAllRecordsFunc(const std::function<bool()> &func) { m_readAllRecordsFunc = func;}
+	void setReadAllRecordsFunc(const std::function<bool()> &func);
 	inline std::function<std::pair<QVariant,QVariant>()> &customQueryFunc() { return m_customQueryFunc; }
 	inline void setCustQueryFunction(const std::function<std::pair<QVariant,QVariant>()> &func) { m_customQueryFunc = func; }
 
@@ -96,7 +96,6 @@ protected:
 private:
 	QHash<ThreadManager::StandardOps, std::function<void()>> m_threadedFunctions;
 	std::function<std::pair<QVariant,QVariant>()> m_customQueryFunc;
-	std::function<bool()> m_readAllRecordsFunc;
 
 	bool createServerCmdFile(const QString &dir, const std::initializer_list<QString> &command_parts,
 									const bool overwrite = false) const;

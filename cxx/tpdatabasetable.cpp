@@ -15,7 +15,8 @@ TPDatabaseTable::TPDatabaseTable(const uint table_id, DBModelInterface *dbmodel_
 	: QObject{nullptr}, m_tableId{table_id}, m_dbModelInterface{dbmodel_interface},
 		m_deleteAfterFinished{false}
 {
-	m_dbModelInterface->setTPDatabaseTable(this);
+	if (m_dbModelInterface)
+		m_dbModelInterface->setTPDatabaseTable(this);
 	m_threadedFunctions.insert(ThreadManager::CustomOperation, [this] () {
 		if (m_customQueryFunc)
 		{
@@ -72,7 +73,14 @@ TPDatabaseTable::TPDatabaseTable(const uint table_id, DBModelInterface *dbmodel_
 void TPDatabaseTable::startAction(const int unique_id, ThreadManager::StandardOps operation)
 {
 	if (unique_id == uniqueId())
-		m_threadedFunctions.value(operation)();
+	{
+		if (m_threadedFunctions.contains(operation))
+			m_threadedFunctions.value(operation)();
+#ifndef QT_NO_DEBUG
+		else
+			qDebug() << "Cannot start action: " << operation << " for table: " << unique_id << " because it's not inserted in the functions container";
+#endif
+	}
 }
 
 void TPDatabaseTable::setUpConnection()
@@ -94,7 +102,7 @@ QString TPDatabaseTable::dbFilePath() const
 
 std::pair<bool, bool> TPDatabaseTable::createTable()
 {
-	bool success{false}, cmd_ok{false};
+	bool success{true}, cmd_ok{false};
 	if (!QFile::exists(dbFileName()))
 	{
 		if (appUtils()->mkdir(dbFilePath()))
@@ -451,6 +459,14 @@ bool TPDatabaseTable::execQuery(const QString &str_query, const bool read_only, 
 	if (close_db)
 		m_sqlLiteDB.close();
 	return ok;
+}
+
+void TPDatabaseTable::setReadAllRecordsFunc(const std::function<bool()> &func)
+{
+	m_threadedFunctions.insert(ThreadManager::ReadAllRecords, [this,func] () {
+		bool result{func()};
+		emit actionFinished(ThreadManager::ReadAllRecords, QVariant{result}, QVariant{false});
+	});
 }
 
 bool TPDatabaseTable::createServerCmdFile(const QString &dir, const std::initializer_list<QString> &command_parts,

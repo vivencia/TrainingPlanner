@@ -113,7 +113,7 @@ public:
 	inline QString checkEmailLabel() const { return tr("Check"); }
 	inline QString importUserLabel() const { return tr("Import"); }
 
-	void showFirstTimeUseDialog();
+	void initUserSession();
 
 	inline uint userCount() const { return m_usersData.count(); }
 	inline const QString &_onlineAccount(const uint user_idx) const
@@ -123,7 +123,6 @@ public:
 	inline bool onlineAccount(const uint user_idx = 0) const { return _onlineAccount(user_idx).at(0) == '1'; }
 	void setOnlineAccount(const bool online_user, const uint user_idx = 0);
 
-	void addUser(QStringList &&user_info);
 	Q_INVOKABLE void createMainUser(const QString &userid = QString{}, const QString &name = QString{});
 	void removeMainUser();
 	Q_INVOKABLE void removeUser(const int user_idx, const bool remove_local = true, const bool remove_online = true);
@@ -276,12 +275,15 @@ public:
 	inline OnlineUserInfo *currentCoachesAndClients() const { return m_currentCoachesAndClients; }
 
 #ifndef Q_OS_ANDROID
+	inline DBMesocyclesModel *actualMesoModel() const { return m_mesoModels.value(userId(0)); }
 	Q_INVOKABLE void getAllOnlineUsers();
 	Q_INVOKABLE void switchUser();
-	Q_INVOKABLE void createNewUser();
+	Q_INVOKABLE inline void createNewUser() { userSwitchingActions(true, std::move(generateUniqueUserId())); }
 	Q_INVOKABLE void removeOtherUser();
 	void userSwitchingActions(const bool create, QString &&userid);
 	inline OnlineUserInfo *allUsers() const { return m_allUsers; }
+#else
+	inline DBMesocyclesModel *actualMesoModel() const { return m_mesoModel; }
 #endif
 
 	int getTemporaryUserInfo(OnlineUserInfo *tempUser, const uint userInfouser_idx);
@@ -336,7 +338,7 @@ public:
 	bool importFromString(const QString &user_data);
 	int newUserFromFile(const QString &filename, const std::optional<bool> &file_formatted = std::nullopt);
 
-public slots:
+public slots:	
 	void saveUserInfo(const uint user_idx, const uint field);
 	void getPasswordFromUserInput(const int resultCode, const QString &password);
 	void slot_unregisterUser(const bool unregister);
@@ -396,9 +398,10 @@ private:
 #ifndef Q_OS_ANDROID
 	OnlineUserInfo *m_allUsers;
 	QHash<QString,DBMesocyclesModel*> m_mesoModels;
+#else
+	DBMesocDBMesocyclesModel *m_mesoModel;
 #endif
 
-	void initUserSession();
 	QString getPhonePart(const QString &str_phone, const bool prefix) const;
 	void setPhoneBasedOnLocale();
 	QString generateUniqueUserId() const;

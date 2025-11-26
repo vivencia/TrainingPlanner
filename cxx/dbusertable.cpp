@@ -46,13 +46,12 @@ bool DBUserTable::getAllUsers()
 	{
 		if (m_workingQuery.first())
 		{
-			auto model{m_dbModelInterface->model<DBUserModel>()};
 			do
 			{
 				QStringList user_info{USER_TOTAL_COLS};
 				for (uint i{USER_COL_ID}; i < USER_TOTAL_COLS; ++i)
 					user_info[i] = std::move(m_workingQuery.value(i).toString());
-				model->addUser(std::move(user_info));
+				emit userInfoAcquired(user_info);
 			} while (m_workingQuery.next());
 			success = true;
 		}

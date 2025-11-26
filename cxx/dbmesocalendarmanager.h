@@ -15,6 +15,7 @@
 #define MESOCALENDAR_COL_WORKOUT_COMPLETED 9
 #define MESOCALENDAR_TOTAL_COLS MESOCALENDAR_COL_WORKOUT_COMPLETED + 1
 
+QT_FORWARD_DECLARE_CLASS(DBMesocyclesModel)
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(DBCalendarModel)
 QT_FORWARD_DECLARE_CLASS(DBMesoCalendarTable)
@@ -28,8 +29,9 @@ class DBMesoCalendarManager : public QObject
 Q_OBJECT
 
 public:
-	explicit DBMesoCalendarManager(QObject *parent);
+	explicit DBMesoCalendarManager(DBMesocyclesModel *meso_model);
 
+	inline DBMesocyclesModel *mesoModel() const { return m_mesoModel; }
 	void removeCalendarForMeso(const uint meso_idx, const bool remove_workouts);
 	void getCalendarForMeso(const uint meso_idx, const bool create_calendar = false);
 	void remakeMesoCalendar(const uint meso_idx);
@@ -90,6 +92,7 @@ private:
 	QHash<uint,QHash<uint,DBExercisesModel*>> m_workouts;
 	QHash<uint,DBCalendarModel*> m_calendars;
 
+	DBMesocyclesModel *m_mesoModel;
 	DBMesoCalendarTable *m_calendarDB;
 	DBWorkoutsOrSplitsTable *m_workoutsDB;
 

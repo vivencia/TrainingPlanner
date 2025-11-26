@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QVariantMap>
 
+QT_FORWARD_DECLARE_CLASS(DBMesocyclesModel)
 QT_FORWARD_DECLARE_CLASS(QMLMesoInterface)
 QT_FORWARD_DECLARE_CLASS(QQmlComponent)
 QT_FORWARD_DECLARE_CLASS(QQuickItem)
@@ -20,7 +21,7 @@ Q_PROPERTY(QString dateLabel READ dateLabel NOTIFY dateLabelChanged FINAL)
 Q_PROPERTY(QString selectedSplitLetter READ selectedSplitLetter NOTIFY selectedSplitLetterChanged FINAL)
 
 public:
-	explicit QmlMesoCalendarInterface(QObject *parent, const uint meso_idx);
+	explicit QmlMesoCalendarInterface(QObject *parent, DBMesocyclesModel *meso_model, const uint meso_idx);
 	inline ~QmlMesoCalendarInterface() { cleanUp(); }
 	void cleanUp();
 
@@ -45,6 +46,7 @@ signals:
 	void selectedSplitLetterChanged();
 
 private:
+	DBMesocyclesModel *m_mesoModel;
 	QQmlComponent *m_calComponent;
 	QQuickItem *m_calPage;
 	QVariantMap m_calProperties;

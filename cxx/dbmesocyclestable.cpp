@@ -51,13 +51,12 @@ bool DBMesocyclesTable::getAllMesocycles()
 	{
 		if (m_workingQuery.first ())
 		{
-			auto model{m_dbModelInterface->model<DBMesocyclesModel>()};
 			do
 			{
 				QStringList meso_info{MESOCYCLES_TOTAL_COLS};
 				for (uint i{MESOCYCLES_COL_ID}; i < MESOCYCLES_TOTAL_COLS; ++i)
 					meso_info[i] = std::move(m_workingQuery.value(i).toString());
-				static_cast<void>(model->newMesocycle(std::move(meso_info)));
+				emit mesocyclesAcquired(meso_info);
 			} while (m_workingQuery.next());
 			success = true;
 		}
