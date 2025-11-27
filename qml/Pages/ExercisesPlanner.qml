@@ -24,11 +24,10 @@ TPPage {
 
 	Keys.onPressed: (event) => {
 		if (event.key === mainwindow.backKey) {
-			event.accepted = true;
-			if (splitView.currentIndex === 0)
-				itemManager.appPagesModel().prevPage();
-			else
+			if (splitView.currentIndex !== 0) {
+				event.accepted = true;
 				splitView.decrementCurrentIndex();
+			}
 		}
 	}
 

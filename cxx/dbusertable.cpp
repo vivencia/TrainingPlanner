@@ -42,7 +42,7 @@ QString DBUserTable::dbFileName(const bool fullpath) const
 bool DBUserTable::getAllUsers()
 {
 	bool success{false};
-	if (execQuery("SELECT * FROM users_table ORDER BY inserttime ASC;"_L1, true, false))
+	if (execReadOnlyQuery("SELECT * FROM users_table ORDER BY inserttime ASC;"_L1))
 	{
 		if (m_workingQuery.first())
 		{
@@ -53,6 +53,7 @@ bool DBUserTable::getAllUsers()
 					user_info[i] = std::move(m_workingQuery.value(i).toString());
 				emit userInfoAcquired(user_info);
 			} while (m_workingQuery.next());
+			emit userInfoAcquired(QStringList{}, true);
 			success = true;
 		}
 	}

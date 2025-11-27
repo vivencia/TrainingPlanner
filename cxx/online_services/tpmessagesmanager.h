@@ -19,6 +19,7 @@ public:
 	explicit TPMessagesManager(QObject *parent = nullptr);
 
 	inline uint count() const { return m_data.count(); }
+	void readAllChats();
 
 	TPMessage *message(const qsizetype message_id) const;
 
@@ -67,7 +68,6 @@ private:
 	QQmlComponent *m_chatWindowComponent;
 	QVariantMap m_chatWindowProperties;
 
-	void readAllChats();
 	int newMessagesCheckingInterval() const;
 	void parseNewChatMessages(const QString &encoded_messages);
 	void parseNewMessage(const QString &sender_id, const QString &sender_messages);

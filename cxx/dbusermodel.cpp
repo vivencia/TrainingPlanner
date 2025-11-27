@@ -89,6 +89,7 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 			emit labelsChanged();
 		});
 
+		connect(this, &DBUserModel::cmdFileCreated, this, &DBUserModel::sendUnsentCmdFiles);
 		connect(this, &DBUserModel::userModified, this, &DBUserModel::saveUserInfo);
 		connect(this, &DBUserModel::mainUserConfigurationFinished, this, [this] () {
 			appOsInterface()->initialCheck();
@@ -106,8 +107,8 @@ QString DBUserModel::userDir(const QString &userid) const
 #else
 QString DBUserModel::userDir(const QString &userid) const
 {
-	return userid == userId(0) ? QString{std::move(appSettings()->localAppFilesDir() + userid + '/')} :
-								 QString{std::move(appSettings()->localAppFilesDir() + userId(0) + '/' + userid + '/')};
+	return userid == userId(0) ? appSettings()->currentUserDir() :
+								 appSettings()->currentUserDir() + userId(0) + '/' + userid + '/';
 }
 #endif
 
@@ -118,22 +119,27 @@ void DBUserModel::initUserSession()
 		m_dbModelInterface = new DBModelInterfaceUser;
 		m_db = new DBUserTable{m_dbModelInterface};
 		appThreadManager()->runAction(m_db, ThreadManager::CreateTable);
-		connect(m_db, &DBUserTable::userInfoAcquired, this, [this] (QStringList user_info)
+		connect(m_db, &DBUserTable::userInfoAcquired, this, [this] (QStringList user_info, const bool all_info_acquired)
 		{
-			const qsizetype last_idx{m_usersData.count()};
-			m_usersData.append(std::move(user_info));
-			if (last_idx == 0)
+			if (!all_info_acquired)
 			{
-				appOsInterface()->initialCheck();
-				initUserSession();
+				const qsizetype last_idx{m_usersData.count()};
+				m_usersData.append(std::move(user_info));
+				if (last_idx == 0)
+				{
+					appOsInterface()->initialCheck();
+					initUserSession();
+				}
+				else
+				{
+					if (isCoach(0) && isClient(last_idx))
+						addClient(last_idx);
+					if (isCoach(last_idx))
+						addCoach(last_idx);
+				}
 			}
 			else
-			{
-				if (isCoach(0) && isClient(last_idx))
-					addClient(last_idx);
-				if (isCoach(last_idx))
-					addCoach(last_idx);
-			}
+				appMessagesManager()->readAllChats();
 		});
 		appThreadManager()->runAction(m_db, ThreadManager::ReadAllRecords);
 	}
@@ -1166,14 +1172,6 @@ void DBUserModel::downloadCmdFilesFromServer(const QString &subdir)
 	}
 }
 
-void DBUserModel::sendUnsentCmdFiles(const QString &subdir)
-{
-	QFileInfoList cmd_files;
-	appUtils()->scanDir(userDir() + subdir, cmd_files, '*' + cmd_file_extension);
-	for (const auto &cmd_file : std::as_const(cmd_files))
-		sendCmdFileToServer(cmd_file.absoluteFilePath());
-}
-
 int DBUserModel::exportToFile(const uint user_idx, const QString &filename, const bool write_header, QFile *out_file) const
 {
 	if (!out_file)
@@ -1347,6 +1345,14 @@ void DBUserModel::saveUserInfo(const uint user_idx, const uint field)
 			break;
 		}
 	}
+}
+
+void DBUserModel::sendUnsentCmdFiles(const QString &dir)
+{
+	QFileInfoList cmd_files;
+	appUtils()->scanDir(dir, cmd_files, '*' + cmd_file_extension);
+	for (const auto &cmd_file : std::as_const(cmd_files))
+		sendCmdFileToServer(cmd_file.absoluteFilePath());
 }
 
 void DBUserModel::getPasswordFromUserInput(const int resultCode, const QString &password)
@@ -1558,8 +1564,7 @@ void DBUserModel::onlineCheckinActions()
 			{
 				if (!mb_singleDevice.value())
 					downloadCmdFilesFromServer(m_db->subDir());
-				appOnlineServices()->executeCommands(appUtils()->idFromString("execcmds"_L1), userId(0), value,
-					m_db->subDir(), mb_singleDevice.value());
+				sendUnsentCmdFiles(userDir() + m_db->subDir());
 			}, Qt::SingleShotConnection);
 			getOnlineDevicesList();
 		}

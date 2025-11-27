@@ -47,7 +47,7 @@ QString DBMesocyclesTable::dbFileName(const bool fullpath) const
 bool DBMesocyclesTable::getAllMesocycles()
 {
 	bool success{false};
-	if (execQuery("SELECT * FROM %1 ORDER BY ROWID;"_L1.arg(table_name), true, false))
+	if (execReadOnlyQuery("SELECT * FROM %1 ORDER BY ROWID;"_L1.arg(table_name)))
 	{
 		if (m_workingQuery.first ())
 		{

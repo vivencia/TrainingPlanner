@@ -123,6 +123,7 @@ public:
 	[[nodiscard]] inline bool importModel() const { return m_importMode; }
 	inline void setImportMode(const bool import_mode) { m_importMode = import_mode; }
 
+	[[nodiscard]] inline const bool isWorkout() const { return m_calendarDay != -1; }
 	[[nodiscard]] int exportToFile(const QString &filename, QFile *out_file = nullptr) const;
 	[[nodiscard]] int exportToFormattedFile(const QString &filename, QFile *out_file = nullptr) const;
 	[[nodiscard]] int importFromFile(const QString &filename, QFile *in_file = nullptr);
@@ -132,12 +133,12 @@ public:
 	[[nodiscard]] const QString formatSetTypeToExport(const uint type) const;
 	[[nodiscard]] static bool importExtraInfo(const QString &maybe_extra_info, int &calendar_day, QChar &split_letter);
 
-	inline const bool isWorkout() const { return m_calendarDay != -1; }
-	const uint inline exerciseCount() const { return m_exerciseData.count(); }
+	[[nodiscard]] QString muscularGroup() const;
+	[[nodiscard]] const uint inline exerciseCount() const { return m_exerciseData.count(); }
 	Q_INVOKABLE const uint subExercisesCount(const uint exercise_number) const;
 	Q_INVOKABLE const uint setsNumber(const uint exercise_number, const uint exercise_idx) const;
 
-	QString muscularGroup() const;
+	void newExerciseFromExercisesList();
 	[[maybe_unused]] Q_INVOKABLE uint addExercise(int exercise_number = -1, const bool emit_signal = true);
 	Q_INVOKABLE void delExercise(const uint exercise_number, const bool emit_signal = true);
 	Q_INVOKABLE void moveExercise(const uint from, const uint to);
@@ -202,7 +203,7 @@ public:
 
 	[[nodiscard]] Q_INVOKABLE uint setMode(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	void setSetMode(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint mode);
-	uint getSetNextMode(const uint exercise_number, const uint exercise_idx, const uint set_number);
+	[[nodiscard]] uint getSetNextMode(const uint exercise_number, const uint exercise_idx, const uint set_number);
 	[[nodiscard]] Q_INVOKABLE QString setModeLabel(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 
 	inline QString totalSetsLabel() const { return tr("Number of sets: "); }
@@ -221,13 +222,13 @@ public:
 	static inline QString splitLabel() { return tr("Split: "); }
 
 	QVariant data(const QModelIndex &index, int role) const override final;
-	bool setData(const QModelIndex &index, const QVariant &value, int role) override final;
+	[[maybe_unused]] bool setData(const QModelIndex &index, const QVariant &value, int role) override final;
 	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return exerciseCount(); }
 	// return the roles mapping to be used by QML
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
 
 public slots:
-	void newExerciseFromExercisesList();
+	void newExerciseChosen();
 	void saveExercises(const int exercise_number, const int exercise_idx, const int set_number, const int field);
 
 signals:

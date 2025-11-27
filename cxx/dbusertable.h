@@ -19,6 +19,6 @@ public:
 	bool getAllUsers();
 
 signals:
-	void userInfoAcquired(QStringList user_info);
+	void userInfoAcquired(QStringList user_info, const bool all_info_acquired = false);
 };
 

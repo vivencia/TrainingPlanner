@@ -329,7 +329,6 @@ public:
 	int listFilesFromServer(const QString &subdir, const QString &targetUser, const QString &filter = QString{});
 	void sendCmdFileToServer(const QString &cmd_filename);
 	void downloadCmdFilesFromServer(const QString &subdir);
-	void sendUnsentCmdFiles(const QString &subdir);
 
 	int exportToFile(const uint user_idx, const QString &filename, const bool write_header, QFile *out_file = nullptr) const;
 	int exportToFormattedFile(const uint user_idx, const QString &filename, QFile *out_file = nullptr) const;
@@ -340,6 +339,7 @@ public:
 
 public slots:	
 	void saveUserInfo(const uint user_idx, const uint field);
+	void sendUnsentCmdFiles(const QString &dir);
 	void getPasswordFromUserInput(const int resultCode, const QString &password);
 	void slot_unregisterUser(const bool unregister);
 	void slot_removeNoLongerAvailableUser(const int user_idx, bool remove);
@@ -372,7 +372,7 @@ signals:
 	void fileUploaded(const bool success, const uint requestid);
 	void filesListReceived(const bool success, const uint requestid, const QStringList& files_list);
 	void onlineDevicesListReceived();
-	void lastOnlineCmdRetrieved(const uint requestid, const QString &last_cmd);
+	void cmdFileCreated(const QString &dir);
 	//Only used in desktop for development purposes, but must be here so that the QML parser does not complain
 	//when it finds onUserIdChanged() in a Connections{} block
 	void userIdChanged();

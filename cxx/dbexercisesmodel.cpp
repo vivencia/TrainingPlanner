@@ -4,6 +4,7 @@
 #include "dbmesocalendarmanager.h"
 #include "dbmesocyclesmodel.h"
 #include "dbworkoutsorsplitstable.h"
+#include "pageslistmodel.h"
 #include "return_codes.h"
 #include "tpbool.h"
 #include "tputils.h"
@@ -528,6 +529,11 @@ bool DBExercisesModel::importExtraInfo(const QString &maybe_extra_info, int &cal
 	return false;
 }
 
+QString DBExercisesModel::muscularGroup() const
+{
+	return m_mesoModel->muscularGroup(m_mesoIdx, m_splitLetter);
+}
+
 const uint DBExercisesModel::subExercisesCount(const uint exercise_number) const
 {
 	return exercise_number < m_exerciseData.count() ? m_exerciseData.at(exercise_number)->m_exercises.count() : 0;
@@ -541,9 +547,12 @@ const uint DBExercisesModel::setsNumber(const uint exercise_number, const uint e
 		return 0;
 }
 
-QString DBExercisesModel::muscularGroup() const
+void DBExercisesModel::newExerciseFromExercisesList()
 {
-	return m_mesoModel->muscularGroup(m_mesoIdx, m_splitLetter);
+	setExerciseName(m_workingExercise, workingSubExercise(m_workingExercise), std::move(
+		appExercisesList()->selectedEntriesValue(0, EXERCISES_LIST_COL_MAINNAME) + " - "_L1 +
+		appExercisesList()->selectedEntriesValue(0, EXERCISES_LIST_COL_SUBNAME)));
+	emit exerciseNameChanged(m_workingExercise, workingSubExercise(m_workingExercise));
 }
 
 uint DBExercisesModel::addExercise(int exercise_number, const bool emit_signal)
@@ -655,12 +664,10 @@ void DBExercisesModel::moveExercise(const uint from, const uint to)
 	}
 }
 
-void DBExercisesModel::newExerciseFromExercisesList()
+void DBExercisesModel::newExerciseChosen()
 {
-	setExerciseName(m_workingExercise, workingSubExercise(m_workingExercise), std::move(
-		appExercisesList()->selectedEntriesValue(0, EXERCISES_LIST_COL_MAINNAME) + " - "_L1 +
-		appExercisesList()->selectedEntriesValue(0, EXERCISES_LIST_COL_SUBNAME)));
-	emit exerciseNameChanged(m_workingExercise, workingSubExercise(m_workingExercise));
+	appPagesListModel()->prevPage();
+	newExerciseFromExercisesList();
 }
 
 void DBExercisesModel::saveExercises(const int exercise_number, const int exercise_idx, const int set_number, const int field)
@@ -1474,11 +1481,11 @@ bool DBExercisesModel::setData(const QModelIndex &index, const QVariant &value, 
 	if (row >= 0 && row < m_exerciseData.count())
 	{
 		switch (role) { //dataChanged is emitted in the setters
-			case workingExerciseRole: setWorkingExercise(value.toUInt());
-			case workingSubExerciseRole: setWorkingSubExercise(row, value.toUInt());
-			case workingSetRole: setWorkingSet(row, workingSubExercise(row), value.toUInt());
-			case trackRestTimeRole: setTrackRestTime(row, value.toBool());
-			case autoRestTimeRole: setAutoRestTime(row, value.toBool());
+			case workingExerciseRole:		setWorkingExercise(value.toUInt());
+			case workingSubExerciseRole:	setWorkingSubExercise(row, value.toUInt());
+			case workingSetRole:			setWorkingSet(row, workingSubExercise(row), value.toUInt());
+			case trackRestTimeRole:			setTrackRestTime(row, value.toBool());
+			case autoRestTimeRole:			setAutoRestTime(row, value.toBool());
 			break;
 		}
 		return true;

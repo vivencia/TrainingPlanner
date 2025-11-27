@@ -34,8 +34,8 @@ bool DBMesoCalendarTable::getMesoCalendar()
 {
 	bool success{false};
 	auto model{m_dbModelInterface->model<DBCalendarModel>()};
-	if (execQuery("SELECT * FROM %1 WHERE %2=%3;"_L1.arg(table_name,
-						field_names[CALENDAR_DATABASE_MESOID][0], model->mesoId()), true, false))
+	if (execReadOnlyQuery("SELECT * FROM %1 WHERE %2=%3;"_L1.arg(table_name,
+						field_names[CALENDAR_DATABASE_MESOID][0], model->mesoId())))
 	{
 		if (m_workingQuery.first())
 		{

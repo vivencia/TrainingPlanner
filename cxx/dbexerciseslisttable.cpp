@@ -40,7 +40,7 @@ bool DBExercisesListTable::getAllExercises()
 	bool success{false};
 	if (m_updateList)
 		success = updateExercisesList();
-	else if (execQuery("SELECT * FROM %1 ORDER BY ROWID;"_L1.arg(table_name), true, false))
+	else if (execReadOnlyQuery("SELECT * FROM %1 ORDER BY ROWID;"_L1.arg(table_name)))
 	{
 		if (m_workingQuery.first())
 		{
@@ -70,7 +70,7 @@ bool DBExercisesListTable::updateExercisesList()
 	if (getExercisesList())
 	{
 		//remove previous list entries from DB
-		if (execQuery("DELETE FROM %1 WHERE from_list=1;"_L1.arg(table_name), false, false))
+		if (execSingleWriteQuery("DELETE FROM %1 WHERE %2=1;"_L1.arg(table_name, field_names[EXERCISES_LIST_COL_FROMAPPLIST][0])))
 		{
 			auto model{m_dbModelInterface->model<DBExercisesListModel>()};
 			for (const auto &data : std::as_const(m_exercisesList))

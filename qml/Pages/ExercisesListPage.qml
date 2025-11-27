@@ -24,7 +24,7 @@ TPPage {
 	property ImageViewer imageViewer: null
 	property VideoPlayer videoViewer: null
 
-	signal exerciseChosen()
+	signal exerciseChosen();
 
 	onPageActivated: if (exercisesModel.count > 0) exercisesList.simulateMouseClick(0, true);
 

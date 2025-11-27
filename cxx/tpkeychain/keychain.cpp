@@ -10,13 +10,10 @@
 #include "keychain_p.h"
 
 using namespace QKeychain;
+using namespace Qt::Literals::StringLiterals;
 
-Job::Job(JobPrivate *q, QObject *parent) : QObject(parent), d(q) { }
-
-Job::~Job()
-{
-	delete d;
-}
+Job::Job(JobPrivate *q, QObject *parent) : QObject{parent}, d{q} {}
+Job::~Job() { delete d; }
 
 QString Job::service() const
 {
@@ -108,11 +105,8 @@ void Job::setErrorString(const QString &errorString)
 }
 
 ReadPasswordJob::ReadPasswordJob(const QString &service, QObject *parent)
-	: Job(new ReadPasswordJobPrivate(service, this), parent)
-{
-}
-
-ReadPasswordJob::~ReadPasswordJob() { }
+	: Job{new ReadPasswordJobPrivate{service, this}, parent} {}
+ReadPasswordJob::~ReadPasswordJob() {}
 
 QString ReadPasswordJob::textData() const
 {
@@ -135,11 +129,8 @@ void Job::setKey(const QString &key_)
 }
 
 WritePasswordJob::WritePasswordJob(const QString &service, QObject *parent)
-	: Job(new WritePasswordJobPrivate(service, this), parent)
-{
-}
-
-WritePasswordJob::~WritePasswordJob() { }
+	: Job{new WritePasswordJobPrivate{service, this}, parent} {}
+WritePasswordJob::~WritePasswordJob() {}
 
 void WritePasswordJob::setBinaryData(const QByteArray &data)
 {
@@ -154,18 +145,8 @@ void WritePasswordJob::setTextData(const QString &data)
 }
 
 DeletePasswordJob::DeletePasswordJob(const QString &service, QObject *parent)
-	: Job(new DeletePasswordJobPrivate(service, this), parent)
-{
-}
-
-DeletePasswordJob::~DeletePasswordJob() { }
-
-DeletePasswordJobPrivate::DeletePasswordJobPrivate(const QString &service_, DeletePasswordJob *qq)
-	: JobPrivate(service_, qq)
-{
-}
-
-JobExecutor::JobExecutor() : QObject(nullptr), m_jobRunning(false) { }
+	: Job{new DeletePasswordJobPrivate{service, this}, parent} {}
+DeletePasswordJob::~DeletePasswordJob() {}
 
 void JobExecutor::enqueue(Job *job)
 {
@@ -178,10 +159,10 @@ void JobExecutor::startNextIfNoneRunning()
 	if (m_queue.isEmpty() || m_jobRunning)
 		return;
 	QPointer<Job> next;
-	while (!next && !m_queue.isEmpty()) {
+	while (!next && !m_queue.isEmpty())
 		next = m_queue.dequeue();
-	}
-	if (next) {
+	if (next)
+	{
 		connect(next, &Job::finished, this, &JobExecutor::jobFinished);
 		connect(next, &Job::destroyed, this, &JobExecutor::jobDestroyed);
 		m_jobRunning = true;
@@ -191,7 +172,7 @@ void JobExecutor::startNextIfNoneRunning()
 
 void JobExecutor::jobDestroyed(QObject *object)
 {
-	Job *job = static_cast<Job *>(object);
+	Job *job{static_cast<Job *>(object)};
 	Q_UNUSED(object) // for release mode
 	job->disconnect(this);
 	m_jobRunning = false;
@@ -206,56 +187,27 @@ void JobExecutor::jobFinished(Job *job)
 	startNextIfNoneRunning();
 }
 
-JobExecutor *JobExecutor::s_instance = nullptr;
-
-JobExecutor *JobExecutor::instance()
-{
-	if (!s_instance)
-		s_instance = new JobExecutor;
-	return s_instance;
-}
-
-ReadPasswordJobPrivate::ReadPasswordJobPrivate(const QString &service_, ReadPasswordJob *qq)
-	: JobPrivate(service_, qq)
-{
-}
-
-JobPrivate::JobPrivate(const QString &service_, Job *qq)
-	: q(qq),
-	  mode(Binary),
-	  error(NoError),
-	  service(service_),
-	  autoDelete(true),
-	  insecureFallback(false)
-{
-}
+JobExecutor *JobExecutor::s_instance{nullptr};
 
 QString JobPrivate::modeToString(Mode m)
 {
-	switch (m) {
-	case Text:
-		return QLatin1String("Text");
-	case Binary:
-		return QLatin1String("Binary");
+	switch (m)
+	{
+		case Text:
+			return "Text"_L1;
+		case Binary:
+			return "Binary"_L1;
 	}
-
 	Q_ASSERT_X(false, Q_FUNC_INFO, "Unhandled Mode value");
-	return QString();
+	return QString{};
 }
 
 JobPrivate::Mode JobPrivate::stringToMode(const QString &s)
 {
-	if (s == QLatin1String("Text") || s == QLatin1String("1"))
+	if (s == "Text"_L1 || s == "1"_L1)
 		return Text;
-	if (s == QLatin1String("Binary") || s == QLatin1String("2"))
+	if (s == "Binary"_L1 || s == "2"_L1)
 		return Binary;
-
 	qCritical("Unexpected mode string '%s'", qPrintable(s));
-
 	return Text;
-}
-
-WritePasswordJobPrivate::WritePasswordJobPrivate(const QString &service_, WritePasswordJob *qq)
-	: JobPrivate(service_, qq)
-{
 }

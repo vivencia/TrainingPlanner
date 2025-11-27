@@ -53,7 +53,7 @@ QString TPChatDB::dbFileName(const bool fullpath) const
 bool TPChatDB::loadChat()
 {
 	bool success{false};
-	if (execQuery("SELECT * FROM "_L1 + table_name, true, false))
+	if (execReadOnlyQuery("SELECT * FROM "_L1 + table_name))
 	{
 		if (m_workingQuery.first ())
 		{

@@ -65,7 +65,7 @@ void QmlExercisesDatabaseInterface::getExercisesPage(QmlWorkoutInterface *connec
 		if (connectPage)
 		{
 			disconnect(m_exercisesPage, SIGNAL(exerciseChosen()), nullptr, nullptr);
-			connect(m_exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(newExerciseFromExercisesList()));
+			connect(m_exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(newExerciseChosen()));
 		}
 		appPagesListModel()->openPage(m_exercisesPage);
 	}

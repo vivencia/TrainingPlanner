@@ -16,9 +16,10 @@
 
 #include "keychain.h"
 
-namespace QKeychain {
+namespace QKeychain
+{
 
-class JobExecutor;
+QT_FORWARD_DECLARE_CLASS(JobExecutor)
 
 class JobPrivate : public QObject
 {
@@ -38,7 +39,13 @@ public:
 	QByteArray data;
 
 protected:
-	JobPrivate(const QString &service_, Job *q);
+	inline JobPrivate(const QString &service_, Job *q)
+		:	q{q},
+			mode{Binary},
+			error{NoError},
+			service{service_},
+			autoDelete{true},
+			insecureFallback{false} {}
 
 	QKeychain::Error error;
 	QString errorString;
@@ -57,9 +64,11 @@ protected:
 
 class ReadPasswordJobPrivate : public JobPrivate
 {
-	Q_OBJECT
+
+Q_OBJECT
+
 public:
-	explicit ReadPasswordJobPrivate(const QString &service_, ReadPasswordJob *qq);
+	inline explicit ReadPasswordJobPrivate(const QString &service_, ReadPasswordJob *qq) : JobPrivate{service_, qq} {}
 	void scheduledStart() override;
 	void fallbackOnError();
 
@@ -68,9 +77,11 @@ public:
 
 class WritePasswordJobPrivate : public JobPrivate
 {
-	Q_OBJECT
+
+Q_OBJECT
+
 public:
-	explicit WritePasswordJobPrivate(const QString &service_, WritePasswordJob *qq);
+	inline explicit WritePasswordJobPrivate(const QString &service_, WritePasswordJob *qq) : JobPrivate{service_, qq} {}
 	void scheduledStart() override;
 	void fallbackOnError();
 
@@ -79,28 +90,35 @@ public:
 
 class DeletePasswordJobPrivate : public JobPrivate
 {
-	Q_OBJECT
+
+Q_OBJECT
+
 public:
-	explicit DeletePasswordJobPrivate(const QString &service_, DeletePasswordJob *qq);
+	inline explicit DeletePasswordJobPrivate(const QString &service_, DeletePasswordJob *qq) : JobPrivate(service_, qq) {}
 	void scheduledStart() override;
 	void fallbackOnError();
 
 protected:
 	void doStart();
-
 	friend class DeletePasswordJob;
 };
 
 class JobExecutor : public QObject
 {
-	Q_OBJECT
-public:
-	static JobExecutor *instance();
 
+Q_OBJECT
+
+public:
+	static inline JobExecutor *instance()
+	{
+		if (!s_instance)
+			s_instance = new JobExecutor;
+		return s_instance;
+	}
 	void enqueue(Job *job);
 
 private:
-	explicit JobExecutor();
+	inline explicit JobExecutor() : QObject{nullptr}, m_jobRunning{false} {}
 	void startNextIfNoneRunning();
 
 private Q_SLOTS:

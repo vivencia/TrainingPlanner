@@ -108,12 +108,12 @@ void TPChat::loadChat()
 		if (success)
 		{
 			beginInsertRows(QModelIndex{}, 0, m_dbModelInterface->modelData().count() - 1);
-			for (auto &&str_message : m_dbModelInterface->modelData())
+			for (const auto &str_message : std::as_const(m_dbModelInterface->modelData()))
 			{
 				ChatMessage *message = new ChatMessage;
 				message->id = str_message.at(MESSAGE_ID).toUInt();
-				message->sender = std::move(str_message[MESSAGE_SENDER]);
-				message->receiver = std::move(str_message[MESSAGE_RECEIVER]);
+				message->sender = str_message.at(MESSAGE_SENDER);
+				message->receiver = str_message.at(MESSAGE_RECEIVER);
 				message->sdate = std::move(appUtils()->getDateFromDateString(str_message.at(MESSAGE_SDATE), TPUtils::DF_ONLINE));
 				message->stime = std::move(appUtils()->getTimeFromTimeString(str_message.at(MESSAGE_STIME), TPUtils::TF_ONLINE));
 				message->rdate = std::move(appUtils()->getDateFromDateString(str_message.at(MESSAGE_RDATE), TPUtils::DF_ONLINE));
@@ -122,8 +122,8 @@ void TPChat::loadChat()
 				message->sent = str_message.at(MESSAGE_SENT).toUInt() == 1;
 				message->received = str_message.at(MESSAGE_RECEIVED).toUInt() == 1;
 				message->read = str_message.at(MESSAGE_READ).toUInt() == 1;
-				message->text = std::move(str_message[MESSAGE_TEXT]);
-				message->media = std::move(str_message[MESSAGE_MEDIA]);
+				message->text = str_message.at(MESSAGE_TEXT);
+				message->media = str_message.at(MESSAGE_MEDIA);
 				m_messages.append(message);
 				if (!message->read && (message->sender == appUserModel()->userId(0)))
 					++m_unreadMessages;
@@ -131,7 +131,6 @@ void TPChat::loadChat()
 			emit dataChanged(index(0, 0), index(count() - 1));
 			emit countChanged();
 			endInsertRows();
-			m_dbModelInterface->modelData().clear();
 		}
 	});
 	appThreadManager()->runAction(m_db, ThreadManager::ReadAllRecords);

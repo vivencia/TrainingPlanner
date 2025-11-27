@@ -45,8 +45,17 @@ TPMessagesManager::TPMessagesManager(QObject *parent)
 	m_roleNames[actionsRole]		= std::move("actions");
 	m_roleNames[stickyRole]			= std::move("sticky");
 	m_roleNames[hasActionsRole]		= std::move("hasActions");
+}
 
-	readAllChats();
+void TPMessagesManager::readAllChats()
+{
+	QFileInfoList chat_dbs;
+	appUtils()->scanDir(appUserModel()->userDir() + TPChat::chatsSubDir, chat_dbs, "*.db.sqlite"_L1);
+	for (const auto &db_file : std::as_const(chat_dbs))
+	{
+		if (!message(db_file.baseName().toLong()))
+			static_cast<void>(createChatMessage(db_file.baseName()));
+	}
 }
 
 TPMessage *TPMessagesManager::message(const qsizetype message_id) const
@@ -261,17 +270,6 @@ QVariant TPMessagesManager::data(const QModelIndex &index, int role) const
 		}
 	}
 	return QVariant{};
-}
-
-void TPMessagesManager::readAllChats()
-{
-	QFileInfoList chat_dbs;
-	appUtils()->scanDir(appUserModel()->userDir() + TPChat::chatsSubDir, chat_dbs, "*.db.sqlite"_L1);
-	for (const auto &db_file : std::as_const(chat_dbs))
-	{
-		if (!message(db_file.baseName().toLong()))
-			static_cast<void>(createChatMessage(db_file.baseName()));
-	}
 }
 
 int TPMessagesManager::newMessagesCheckingInterval() const

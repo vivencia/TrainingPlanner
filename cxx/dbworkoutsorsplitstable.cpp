@@ -56,7 +56,7 @@ bool DBWorkoutsOrSplitsTable::getExercises()
 								table_name, field_names[EXERCISES_COL_MESOID][0], model->mesoId(),
 								field_names[EXERCISES_COL_SPLITLETTER][0], model->splitLetter())
 	);
-	if (execQuery(m_strQuery, true, false))
+	if (execReadOnlyQuery(m_strQuery))
 	{
 		if (m_workingQuery.first())
 		{
@@ -85,7 +85,7 @@ std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::mesoHasAllSplitPlans(const
 	{
 		if (split_letter.cell() >= 'A' && split_letter.cell() <= 'F')
 		{
-			if (execQuery(m_strQuery.arg(split_letter), true, false))
+			if (execReadOnlyQuery(m_strQuery.arg(split_letter)))
 			{
 				if (m_workingQuery.first())
 				{
@@ -111,7 +111,7 @@ std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::mesoHasSplitPlan()
 			field_names[EXERCISES_COL_SETTYPES][0], table_name,
 			field_names[EXERCISES_COL_MESOID][0], model->mesoId(),
 			field_names[EXERCISES_COL_SPLITLETTER][0], model->splitLetter()));
-	if (execQuery(m_strQuery, true, false))
+	if (execReadOnlyQuery(m_strQuery))
 	{
 		if (m_workingQuery.first())
 		{
@@ -131,7 +131,7 @@ std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::getPreviousWorkoutsIds()
 					field_names[EXERCISES_COL_MESOID][0], model->mesoId(),
 					field_names[EXERCISES_COL_SPLITLETTER][0], model->splitLetter(),
 					field_names[EXERCISES_COL_CALENDARDAY][0], QString::number(model->calendarDay())));
-	if (execQuery(m_strQuery, true, false))
+	if (execReadOnlyQuery(m_strQuery))
 	{
 		if (m_workingQuery.first())
 		{

@@ -34,7 +34,6 @@ public:
 	TPDatabaseTable& operator() (const TPDatabaseTable &other) = delete;
 	TPDatabaseTable (TPDatabaseTable &&other) = delete;
 	TPDatabaseTable& operator() (TPDatabaseTable &&other) = delete;
-	inline ~TPDatabaseTable() { m_sqlLiteDB.close(); }
 
 	virtual QString subDir() const { return "Database/"_L1; }
 	virtual QString dbFilePath() const;
@@ -59,9 +58,9 @@ public:
 	void parseCmdFile(const QString &filename);
 
 	inline const QStringList &databaseFilenamesPool() const { return m_databaseFilenamesPool;}
-	bool openDatabase(const bool read_only = false);
-	QSqlQuery getQuery() const;
-	bool execQuery(const QString &str_query, const bool read_only = true, const bool close_db = true);
+	bool execReadOnlyQuery(const QString &str_query);
+	bool execSingleWriteQuery(const QString &str_query);
+	bool execMultipleWritesQuery(const QStringList &queries);
 
 	inline void setDBModelInterface(DBModelInterface *dbmodel_interface) { m_dbModelInterface = dbmodel_interface; }
 	inline std::function<void()> threadedFunction(ThreadManager::StandardOps op) const { return m_threadedFunctions.value(op); }
