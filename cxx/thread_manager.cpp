@@ -17,8 +17,8 @@ void ThreadManager::runAction(TPDatabaseTable *worker, StandardOps operation )
 		m_subThreadsList.insert(worker->tableId(), thread);
 
 		 // Connect the thread's finished signal to delete both the thread and the worker
-		QObject::connect(thread, &QThread::finished, worker, &QObject::deleteLater);
-		QObject::connect(thread, &QThread::finished, thread, &QObject::deleteLater);
+		QObject::connect(thread, &QThread::finished, worker, &TPDatabaseTable::deleteLater);
+		QObject::connect(thread, &QThread::finished, thread, &QThread::deleteLater);
 		connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(aboutToExit()));
 
 		connect(this, &ThreadManager::newThreadedOperation, worker, &TPDatabaseTable::startAction, Qt::QueuedConnection);

@@ -21,12 +21,6 @@ ApplicationWindow {
 				Qt.Window | Qt.CustomizeWindowHint & ~Qt.WindowMaximizeButtonHint
 
 	property PagesListModel appPagesModel
-	property int n_dialogs_open: 0
-
-	onN_dialogs_openChanged: {
-		if (n_dialogs_open < 0)
-			n_dialogs_open = 0;
-	}
 
 	signal saveFileChosen(filepath: string);
 	signal saveFileRejected(filepath: string);
@@ -37,7 +31,6 @@ ApplicationWindow {
 	signal unregisterUser(unregister: bool);
 	signal revokeCoachStatus(new_use_opt: int, revoke: bool);
 	signal revokeClientStatus(new_use_opt: int, revoke: bool);
-	signal closeDialog();
 
 	header: Loader {
 		id: navBar

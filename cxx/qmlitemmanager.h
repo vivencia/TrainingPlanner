@@ -56,7 +56,6 @@ public:
 
 	inline QQuickItem* appHomePage() const { return m_homePage; }
 
-	Q_INVOKABLE PagesListModel *appPagesModel() const;
 	Q_INVOKABLE void exitApp();
 	Q_INVOKABLE void chooseFileToImport();
 	Q_INVOKABLE void importFromSelectedFile(const QList<bool> &selectedFields);

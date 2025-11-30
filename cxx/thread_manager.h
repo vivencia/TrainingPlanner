@@ -16,7 +16,7 @@ public:
 		ReadAllRecords,
 		CustomOperation,
 		CreateTable,
-		InsertRecord,
+		InsertRecords,
 		alterRecords,
 		UpdateOneField,
 		UpdateSeveralFields,

@@ -14,7 +14,6 @@ Rectangle {
 	property string objName
 
 	signal clicked()
-	signal controlMoved(int xpos, int ypos)
 	property bool bVisible: false
 
 	Component.onCompleted: {
@@ -50,13 +49,9 @@ Rectangle {
 	TPMouseArea {
 		movingWidget: dragWidget
 		movableWidget: control
-
-		onPressed: (mouse) => pressedFunction(mouse);
-		onPositionChanged: (mouse) => positionChangedFunction(mouse);
-		onMouseClicked: anim.start();
-		onMoved: (x, y) => {
-			if (emitMoveSignal)
-				controlMoved(x, y);
+		onMouseClicked: (hold_clicked) => {
+			if (!hold_clicked)
+				anim.start();
 		}
 	}
 }

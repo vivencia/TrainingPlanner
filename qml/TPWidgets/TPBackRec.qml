@@ -9,6 +9,7 @@ Rectangle {
 	property bool useShape: false
 	property bool useGradient: false
 	property bool useImage: false
+	property bool scaleImageToControlSize: true
 
 	property string sourceImage
 	property double widthScale: 1.0
@@ -30,14 +31,17 @@ Rectangle {
 	Loader {
 		active: useImage
 		asynchronous: true
-		anchors.fill: parent
+		Component.onCompleted: {
+			if (scaleImageToControlSize)
+				anchors.fill = parent;
+		}
 
 		sourceComponent: TPImage {
 			id: _image
+			imageSizeFollowControlSize: scaleImageToControlSize
 			wScale: widthScale
 			hScale: heightScale
 			source: sourceImage
-			anchors.fill: parent
 
 			readonly property Translate translate_viewport: x_translation !== 0 ? trlt_view : null
 			readonly property Rotation rotate_viewport: rotate_angle !== 0 ? rtt_view: null
@@ -54,14 +58,7 @@ Rectangle {
 				origin.x: _image.width / 2
 				origin.y: _image.height / 2
 			}
-			transform: [ rtt_view, trlt_view ]
-
-			Component.onCompleted: {
-				if (image_size !== 0) {
-					width = image_size.width;
-					height = image_size.height;
-				}
-			}
+			transform: [ rotate_viewport, translate_viewport ]
 
 			Rectangle {
 				color: appSettings.primaryColor

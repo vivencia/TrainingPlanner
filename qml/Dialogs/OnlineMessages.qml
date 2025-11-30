@@ -14,7 +14,6 @@ TPPopup {
 	showTitleBar: false
 	closeButtonVisible: false
 	disableMouseHandling: true
-	enableEffects: false
 	x: appSettings.pageWidth - 80
 	finalYPos: 180
 	width: mainIcon.width
@@ -114,10 +113,12 @@ TPPopup {
 			enabled: !fullDialogVisible
 
 			onPositionChanged: (mouse) => positionChangedFunction(mouse);
-			onMouseClicked: {
-				mainIconUserDefinedX = onlineMsgsDlg.x;
-				mainIconUserDefinedY = onlineMsgsDlg.y;
-				expand.start();
+			onMouseClicked: (hold_clicked) => {
+				if (!hold_clicked) {
+					mainIconUserDefinedX = onlineMsgsDlg.x;
+					mainIconUserDefinedY = onlineMsgsDlg.y;
+					expand.start();
+				}
 			}
 		}
 	}
@@ -154,8 +155,12 @@ TPPopup {
 
 			onPositionChanged: (mouse) => positionChangedFunction(mouse);
 			onMouseClicked: {
-				mainIconUserDefinedY = onlineMsgsDlg.y;
-				shrink.start();
+				if (mainwindow.appPagesModel.isPopupAboveAllOthers(onlineMsgsDlg)) {
+					mainIconUserDefinedY = onlineMsgsDlg.y;
+					shrink.start();
+				}
+				else
+					mainwindow.appPagesModel.raisePopup(onlineMsgsDlg);
 			}
 		}
 	}
@@ -163,7 +168,7 @@ TPPopup {
 	StackLayout {
 		id: mainLayout
 		visible: fullDialogVisible
-		currentIndex: appMessages.count > 0 ? 1 : 0
+		currentIndex: appMessages ? appMessages.count > 0 ? 1 : 0 : 0
 		height: childrenRect.height
 
 		anchors {

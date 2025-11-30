@@ -11,8 +11,8 @@ MouseArea {
 	property point mousePosWithinWidget
 	property bool bPressed: false
 
-	signal mouseClicked()
-	signal moved(int x, int y)
+	signal mouseClicked();
+	signal moved(int x, int y);
 
 	onReleased: (mouse) => {
 		if (!bPressed) {

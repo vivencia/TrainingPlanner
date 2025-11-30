@@ -44,9 +44,8 @@ TPPopup {
 		border.color: "white"
 		sourceImage: ":/images/backgrounds/backimage-timer.png"
 		radius: 8
-		layer.enabled: true
 		anchors.fill: parent
-		visible: false
+		clip: true
 	}
 
 	TPTimer {

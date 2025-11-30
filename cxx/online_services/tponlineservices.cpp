@@ -503,7 +503,8 @@ void TPOnlineServices::chatMessageAcknowledgeRead(const int requestid, const QSt
 	makeNetworkRequest(requestid, url);
 }
 
-void TPOnlineServices::removeMessage(const int requestid, const QString &username, const QString &passwd, const QString &receiver, const QString &msgid)
+void TPOnlineServices::removeMessage(const int requestid, const QString &username, const QString &passwd,
+																		const QString &receiver, const QString &msgid)
 {
 	const QUrl &url{makeCommandURL(username, passwd, "removemessage"_L1, receiver, "messageid"_L1, msgid)};
 	makeNetworkRequest(requestid, url);
@@ -513,24 +514,24 @@ QString TPOnlineServices::makeCommandURL(const QString &username, const QString 
 								const QString &value1, const QString &option2, const QString &value2,
 								const QString &option3, const QString &value3)
 {
-	QString ret{server_address.arg(appSettings()->serverAddress()) + "?user="_L1 + username + "&password="_L1 + passwd};
+	QString ret{std::move(server_address.arg(appSettings()->serverAddress()) + "?user="_L1 + username + "&password="_L1 + passwd)};
 	if (!option1.isEmpty())
 	{
-		ret += '&' + option1 + '=';
+		ret += std::move('&' + option1 + '=');
 		if (!value1.isEmpty())
-			ret += value1;
+			ret += std::move(value1);
 	}
 	if (!option2.isEmpty())
 	{
-		ret += '&' + option2 + '=';
+		ret += std::move('&' + option2 + '=');
 		if (!value2.isEmpty())
-			ret += value2;
+			ret += std::move(value2);
 	}
 	if (!option3.isEmpty())
 	{
-		ret += '&' + option3 + '=';
+		ret += std::move('&' + option3 + '=');
 		if (!value3.isEmpty())
-			ret += value3;
+			ret += std::move(value3);
 	}
 	return ret;
 }

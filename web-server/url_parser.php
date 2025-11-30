@@ -742,17 +742,20 @@ function get_newmessages($username) {
 	$files = array_values(array_diff(scandir($messages_dir), array('.', '..')));
 	if (count($files) > 0) {
 		$content = "";
-		echo "0: ";
 		foreach ($files as $file) {
 			if (str_contains($file, ".sqlite"))
 				continue;
 			$content = $content . file_get_contents($messages_dir.'/'.$file);
 			$content = $content . "\034" . $file . "\034";
 		}
-		echo $content;
+		if ($content != "")
+		{
+			echo "0: ";
+			echo $content;
+			return;
+		}
 	}
-	else
-		echo get_return_code("directory empty") . ": No new messages";
+	echo get_return_code("directory empty") . ": No new messages";
 }
 
 function send_message($username, $receiver, $message) {
@@ -783,9 +786,15 @@ function message_worker($sender, $recipient, $messageid, $argument) {
 		$fh = fopen($messages_file, "w") or die(get_return_code("open write failed") . ": Unable to create " . $messages_file);
 		chper($messages_file);
 	}
-	else
+	else {
+		$msgids = file($messages_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+		if (str_contains($msgids, $messageid . "\037")) {
+			echo get_return_code("no changes success") . ": Message " . $argument . "!";
+			return;
+		}
 		$fh = fopen($messages_file, "a+") or die(get_return_code("open write failed") . ": Unable to append to " . $messages_file);
-	fwrite($fh, $messageid . "\037");
+	}
+	fwrite($fh, $messageid);
 	fclose($fh);
 	echo "0: Message " . $argument . "!";
 }

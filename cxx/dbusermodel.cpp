@@ -452,18 +452,6 @@ void DBUserModel::delClient(const uint user_idx)
 	appKeyChain()->readKey(userId(0));
 }
 
-//When client changes name remotely or when changing from not yet accepted coach(main user) to accepted coach
-void DBUserModel::changeClient(const uint user_idx, const QString &oldname)
-{
-	//TODO
-	/*const qsizetype idx{m_clientsNames.indexOf(oldname)};
-	if (idx >= 0)
-	{
-		m_clientsNames[idx] = _userName(user_idx);
-		emit clientsNamesChanged();
-	}*/
-}
-
 #ifndef Q_OS_ANDROID
 void DBUserModel::getAllOnlineUsers()
 {
@@ -538,11 +526,10 @@ void DBUserModel::removeOtherUser()
 			appUtils()->rmDir(userDir(userid));
 			m_allUsers->removeUserInfo(m_allUsers->currentRow());
 			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
-				appUtils()->string_strings({tr("User removed"), m_allUsers->data(m_allUsers->currentRow(), USER_COL_NAME) +
-				tr(" removed locally and remotely")}, record_separator));
+				appUtils()->string_strings({tr("User removal"), m_allUsers->data(m_allUsers->currentRow(), USER_COL_NAME) +
+				ret_string}, record_separator), ret_code == TP_RET_CODE_SUCCESS ? "set-completed" : "error");
 		}
 	});
-
 	appOnlineServices()->removeUser(requestid, userid);
 }
 
@@ -753,11 +740,14 @@ void DBUserModel::setCoachPublicStatus(const bool bPublic)
 				if (request_id == requestid)
 				{
 					disconnect(*conn);
-					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
+					if (ret_code == TP_RET_CODE_SUCCESS)
+					{
+						appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_SUCCESS, appUtils()->string_strings(
 									{tr("Coach registration"), ret_string}, record_separator));
+					}
 					mb_coachRegistered = (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS) &&
 											mb_coachPublic;
-					emit coachOnlineStatus(mb_coachRegistered == true);
+					emit coachOnlineStatus(mb_coachRegistered.value());
 					if (!mb_coachRegistered && m_currentClients && m_currentClients->count() > 0)
 					{
 						for (qsizetype i{m_currentClients->count() - 1}; i >= 1; --i)
@@ -835,7 +825,7 @@ void DBUserModel::sendRequestToCoaches()
 						{
 							disconnect(*conn);
 							if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS)
-								appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
+								appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_SUCCESS, appUtils()->string_strings(
 									{tr("Coach contacting"), tr("Online coach contacted ") + m_availableCoaches->data(i, USER_COL_NAME)}, record_separator));
 							else
 								appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_UNKNOWN_ERROR, ret_string);
@@ -911,8 +901,7 @@ int DBUserModel::sendFileToServer(const QString &filename, QFile *upload_file, c
 	else if (!canConnectToServer())
 	{
 		if (!successMessage.isEmpty())
-			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
-				{network_msg_title, tr("Online server unavailable. Try it again once the app is connected to the server.")}, record_separator));
+			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_SERVER_UNREACHABLE);
 		return -1;
 	}
 	else {
@@ -946,10 +935,10 @@ int DBUserModel::sendFileToServer(const QString &filename, QFile *upload_file, c
 					upload_file->close();
 					if (removeLocalFile)
 						QFile::remove(upload_file->fileName());
-					if (ret_code == TP_RET_CODE_SUCCESS)
+					if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS)
 					{
 						if (!successMessage.isEmpty())
-							appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
+							appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_SUCCESS,
 								appUtils()->string_strings({network_msg_title, successMessage}, record_separator));
 					}
 					else
@@ -972,8 +961,7 @@ int DBUserModel::downloadFileFromServer(const QString &filename, const QString &
 {
 	if (!canConnectToServer())
 	{
-		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
-					{network_msg_title, tr("Online server unavailable. Try it again once the app is connected to the server.")}, record_separator));
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_SERVER_UNREACHABLE);
 		return TP_RET_CODE_DOWNLOAD_FAILED;
 	}
 	else
@@ -1025,7 +1013,7 @@ int DBUserModel::downloadFileFromServer(const QString &filename, const QString &
 						}
 						delete local_file;
 						if (!successMessage.isEmpty())
-							appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
+							appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_SUCCESS, appUtils()->string_strings(
 									{network_msg_title, successMessage}, record_separator));
 					}
 					break;
@@ -1337,7 +1325,7 @@ void DBUserModel::saveUserInfo(const uint user_idx, const uint field)
 			case USER_MODIFIED_IMPORTED:
 			case USER_MODIFIED_ACCEPTED:
 				m_dbModelInterface->setModified(user_idx, field);
-				appThreadManager()->runAction(m_db, ThreadManager::InsertRecord);
+				appThreadManager()->runAction(m_db, ThreadManager::InsertRecords);
 			break;
 			case USER_MODIFIED_REMOVED:
 				m_dbModelInterface->setRemovalInfo(user_idx, QList<uint>{} << USER_COL_ID);
@@ -1394,7 +1382,8 @@ void DBUserModel::slot_unregisterUser(const bool unregister)
 							}
 							appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
 								appUtils()->string_strings({network_msg_title, ret_code == TP_RET_CODE_SUCCESS ?
-								tr("Online account removed") : tr("Failed to remove online account")}, record_separator));
+								tr("Online account removed") : tr("Failed to remove online account")}, record_separator),
+								ret_code == TP_RET_CODE_SUCCESS ? "set-completed" : "error");
 						}
 					});
 					appOnlineServices()->removeUser(requestid, userId(0));
@@ -1537,7 +1526,8 @@ void DBUserModel::registerUserOnline()
 									emit mainUserOnlineCheckInChanged(true);
 								}
 								appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
-											{network_msg_title, tr("User information updated")}, record_separator));
+											{network_msg_title, ret_string}, record_separator),
+											ret_code == TP_RET_CODE_CUSTOM_SUCCESS ? "set_separator" : "error");
 							}
 						});
 						appOnlineServices()->registerUser(requestid, key, value);
@@ -2147,16 +2137,6 @@ void DBUserModel::pollCurrentClients()
 							Q_ARG(QString, userId(i) + tr(" - unavailable")),
 							Q_ARG(QString, tr("The user is no longer available as your client. If you need to know more about this, contact them to "
 							"find out the reason. Remove the user from your list of clients?")));
-					}
-					else
-					{
-						if (_userName(i).last(1) == '!')
-						{
-							const QString &oldUserName{_userName(i)};
-							setUserName(i, userNameWithoutConfirmationWarning(oldUserName));
-							setAppUseMode(i, APP_USE_MODE_SINGLE_USER);
-							changeClient(i, oldUserName);
-						}
 					}
 				}
 			}

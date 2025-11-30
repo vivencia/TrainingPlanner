@@ -147,11 +147,6 @@ void QmlItemManager::configureQmlEngine()
 	appQmlEngine()->load(url);
 }
 
-PagesListModel *QmlItemManager::appPagesModel() const
-{
-	return appPagesListModel();
-}
-
 void QmlItemManager::exitApp()
 {
 	qApp->exit(0);
@@ -533,6 +528,10 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 			case TP_RET_CODE_OPEN_CREATE_FAILED:
 				title = std::move(tr("Could not open file for exporting"));
 				message = std::move(appUtils()->getFileName(fileName));
+			break;
+			case TP_RET_CODE_SERVER_UNREACHABLE:
+				title = std::move(tr("Online server unavailable"));
+				message = std::move(tr("Try it again later"));
 			break;
 		}
 	}

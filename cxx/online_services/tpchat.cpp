@@ -7,6 +7,8 @@
 #include "../tpbool.h"
 #include "../tpkeychain/tpkeychain.h"
 
+#include <QTimer>
+
 #include <ranges>
 
 using namespace Qt::Literals::StringLiterals;
@@ -96,11 +98,6 @@ TPChat::TPChat(const QString &otheruser_id, QObject *parent)
 	});
 }
 
-TPChat::~TPChat()
-{
-	delete m_db;
-}
-
 void TPChat::loadChat()
 {
 	connect(m_db, &TPChatDB::chatLoaded, this, [this] (const bool success)
@@ -125,7 +122,7 @@ void TPChat::loadChat()
 				message->text = str_message.at(MESSAGE_TEXT);
 				message->media = str_message.at(MESSAGE_MEDIA);
 				m_messages.append(message);
-				if (!message->read && (message->sender == appUserModel()->userId(0)))
+				if (!message->read && (message->sender != appUserModel()->userId(0)))
 					++m_unreadMessages;
 			};
 			emit dataChanged(index(0, 0), index(count() - 1));
@@ -134,6 +131,12 @@ void TPChat::loadChat()
 		}
 	});
 	appThreadManager()->runAction(m_db, ThreadManager::ReadAllRecords);
+	m_sendMessageTimer = new QTimer{this};
+	m_sendMessageTimer->setInterval(10000);
+	m_sendMessageTimer->callOnTimeout([this] () {
+		appThreadManager()->runAction(m_db, ThreadManager::alterRecords);
+		m_sendMessageTimer->stop();
+	});
 }
 
 QString TPChat::interlocutorName() const
@@ -174,13 +177,11 @@ void TPChat::removeMessage(const uint msgid)
 		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,message] (const QString &key, const QString &value)
 		{
 			const int requestid{appUtils()->generateRandomNumber(0, 5000)};
-			appOnlineServices()->removeMessage(requestid, key, value, m_otherUserId, QString::number(message->id));
+			appOnlineServices()->removeMessage(requestid, key, value, m_otherUserId, QString::number(message->id) + set_separator);
 		}, Qt::SingleShotConnection);
 		appKeyChain()->readKey(appUserModel()->userId(0));
 	}
-
 	updateFieldToSave(msgid, MESSAGE_DELETED, "1"_L1);
-	appThreadManager()->runAction(m_db, ThreadManager::UpdateOneField);
 }
 
 void TPChat::setUnreadMessages(const int n_unread)
@@ -199,7 +200,7 @@ void TPChat::markAllIncomingMessagesRead()
 	QStringList msg_ids;
 	for (const auto message : std::as_const(m_messages) | std::views::reverse)
 	{
-		if (message->read)
+		if (message->read || message->sender == appUserModel()->userId(0))
 			break;
 		message->read = true;
 		msg_ids.append(std::move(QString::number(message->id)));
@@ -207,17 +208,16 @@ void TPChat::markAllIncomingMessagesRead()
 	}
 	if (!msg_ids.isEmpty())
 	{
-		appThreadManager()->runAction(m_db, ThreadManager::UpdateRecords);
 		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,msg_ids] (const QString &key, const QString &value)
 		{
 			const int requestid{appUtils()->generateRandomNumber(0, 5000)};
-			appOnlineServices()->chatMessageAcknowledgeRead(requestid, key, value, m_otherUserId, msg_ids.join(fancy_record_separator1));
+			appOnlineServices()->chatMessageAcknowledgeRead(requestid, key, value, m_otherUserId, msg_ids.join(set_separator) + set_separator);
 		}, Qt::SingleShotConnection);
 		appKeyChain()->readKey(appUserModel()->userId(0));
 	}
 }
 
-void TPChat::newMessage(const QString &text, const QString &media)
+void TPChat::createNewMessage(const QString &text, const QString &media)
 {
 	beginInsertRows(QModelIndex{}, count(), count());
 	ChatMessage *message{new ChatMessage};
@@ -233,7 +233,6 @@ void TPChat::newMessage(const QString &text, const QString &media)
 	endInsertRows();
 
 	encodeMessageToSave(message);
-	appThreadManager()->runAction(m_db, ThreadManager::InsertRecord);
 
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,message] (const QString &key, const QString &value)
 	{
@@ -264,15 +263,14 @@ void TPChat::incomingMessage(const QString &encoded_message)
 	endInsertRows();
 
 	encodeMessageToSave(message);
-	appThreadManager()->runAction(m_db, ThreadManager::InsertRecord);
 
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,message] (const QString &key, const QString &value)
 	{
 		const int requestid{appUtils()->generateRandomNumber(0, 5000)};
-		appOnlineServices()->chatMessageAcknowledgeReceived(requestid, key, value, m_otherUserId, QString::number(message->id));
+		appOnlineServices()->chatMessageAcknowledgeReceived(requestid, key, value, m_otherUserId, QString::number(message->id) + set_separator);
 		if (m_chatWindow && m_chatWindow->property("activeFocus").toBool())
 		{
-			appOnlineServices()->chatMessageAcknowledgeRead(requestid, key, value, m_otherUserId, QString::number(message->id));
+			appOnlineServices()->chatMessageAcknowledgeRead(requestid, key, value, m_otherUserId, QString::number(message->id) + set_separator);
 			setUnreadMessages(-1);
 		}
 	}, Qt::SingleShotConnection);
@@ -292,11 +290,10 @@ inline QString TPChat::tempMessagesFile() const
 	return m_db->dbFileName() + m_otherUserId + ".msg"_L1;
 }
 
-/*
-	record_separator(oct 036, dec 30) separates the message fields
-	set_separator (oct 037, dec 31) separates messages of the same sender
-	exercises_separator (oct 034 dec 28) separates the senders (the even number are the messages content and the odd numbers are the sender ids)
-*/
+//record_separator(oct 036, dec 30) separates the message fields
+//set_separator (oct 037, dec 31) separates messages of the same sender
+//exercises_separator (oct 034 dec 28) separates the senders (the even number are the messages content and
+//the odd numbers are the sender ids)
 QString TPChat::encodeMessageToUpload(ChatMessage* message) const
 {
 	return appUtils()->string_strings({
@@ -316,7 +313,7 @@ QString TPChat::encodeMessageToUpload(ChatMessage* message) const
 	}, record_separator);
 }
 
-void TPChat::encodeMessageToSave(ChatMessage* message) const
+void TPChat::encodeMessageToSave(ChatMessage* message)
 {
 	const uint modified_row{static_cast<uint>(m_dbModelInterface->modelData().count())};
 	m_dbModelInterface->modelData().append(std::move(QStringList{
@@ -334,13 +331,15 @@ void TPChat::encodeMessageToSave(ChatMessage* message) const
 					message->text,
 					message->media
 	}));
-	m_dbModelInterface->setAllFieldsModified(modified_row, TP_CHAT_MESSAGE_FIELDS);
+	updateFieldToSave(modified_row, -1, QString{});
 }
 
-void TPChat::updateFieldToSave(const uint msg_id, const uint field, const QString &value) const
+void TPChat::updateFieldToSave(const uint msg_id, const int field, const QString &value) const
 {
-	m_dbModelInterface->modelData()[msg_id][field] = value;
+	if (field >= 0)
+		m_dbModelInterface->modelData()[msg_id][field] = value;
 	m_dbModelInterface->setModified(msg_id, field);
+	m_sendMessageTimer->start();
 }
 
 ChatMessage* TPChat::decodeDownloadedMessage(const QString &encoded_message)
@@ -447,7 +446,6 @@ bool TPChat::setData(const QModelIndex &index, const QVariant &value, int role)
 		}
 		emit dataChanged(index, index, QList<int>{} << role);
 		updateFieldToSave(m_messages.at(row)->id, role - Qt::UserRole, data(index, role).toString());
-		appThreadManager()->runAction(m_db, ThreadManager::UpdateOneField);
 		return true;
 	}
 	return false;

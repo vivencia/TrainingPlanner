@@ -17,6 +17,7 @@ Q_PROPERTY(uint count READ count NOTIFY countChanged FINAL)
 
 public:
 	explicit TPMessagesManager(QObject *parent = nullptr);
+	~TPMessagesManager();
 
 	inline uint count() const { return m_data.count(); }
 	void readAllChats();

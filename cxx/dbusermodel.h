@@ -270,7 +270,6 @@ public:
 	inline const QString &defaultClient() const { return m_currentClients ? m_currentClients->data(0, USER_COL_NAME) : m_emptyString; }
 	void addClient(const uint user_idx, const bool emit_signal = true);
 	void delClient(const uint user_idx);
-	void changeClient(const uint user_idx, const QString &oldname);
 
 	inline OnlineUserInfo *currentCoachesAndClients() const { return m_currentCoachesAndClients; }
 

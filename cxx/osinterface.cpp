@@ -712,7 +712,8 @@ void OSInterface::onlineServicesResponse(const uint online_status)
 					std::move(tr("Connected to server ") + '(' + appSettings()->serverAddress() + ')') :
 					std::move(tr("Server unreachable")));
 		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
-					{"Linux TP Server"_L1, connectionMessage()}, record_separator));
+					{"Linux TP Server"_L1, connectionMessage()}, record_separator),
+					online_status == TP_RET_CODE_SUCCESS ? "set-completed" : "error");
 		emit serverStatusChanged(online);
 	}
 	m_checkConnectionTimer->start(online ? CONNECTION_CHECK_TIMEOUT : CONNECTION_ERR_TIMEOUT); //When network is out, check more frequently)

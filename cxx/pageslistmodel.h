@@ -40,14 +40,18 @@ public:
 	Q_INVOKABLE void openMainMenuShortCut(const uint index, const bool change_order = true);
 	void changeLabel(QQuickItem *page, QString &&new_label);
 
+	Q_INVOKABLE inline void prevPage() { if (m_pagesIndex > 0) openMainMenuShortCut(m_pagesIndex - 1, false); }
+	Q_INVOKABLE inline void nextPage() { if (m_pagesIndex < m_pagesData.count() - 1) openMainMenuShortCut(m_pagesIndex + 1, false); }
+	Q_INVOKABLE void popupOpened(QObject* popup);
+	Q_INVOKABLE void popupClosed(QObject* popup);
+	Q_INVOKABLE void raisePopup(QObject* popup);
+	Q_INVOKABLE bool isPopupAboveAllOthers(QObject* popup) const;
+
 	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
 	QVariant data(const QModelIndex&, int) const override final;
 	inline bool setData(const QModelIndex&, const QVariant &, int) override final { return false; }
 	// return the roles mapping to be used by QML
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
-
-	Q_INVOKABLE void prevPage() { if (m_pagesIndex > 0) openMainMenuShortCut(m_pagesIndex - 1, false); }
-	Q_INVOKABLE void nextPage() { if (m_pagesIndex < m_pagesData.count() - 1) openMainMenuShortCut(m_pagesIndex + 1, false); }
 
 signals:
 	void countChanged();
@@ -65,6 +69,7 @@ private:
 	};
 
 	QList<pageInfo*> m_pagesData;
+	QList<QObject*> m_popupsOpen;
 	QHash<int, QByteArray> m_roleNames;
 	uint m_pagesIndex;
 	int m_backKey;

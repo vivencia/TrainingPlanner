@@ -32,20 +32,14 @@ Popup {
 	signal keyboardEnterPressed();
 	signal backKeyPressed();
 
-	onOpened: ++mainwindow.n_dialogs_open;
-	onClosed: --mainwindow.n_dialogs_open;
+	onOpened: mainwindow.appPagesModel.popupOpened(this);
+	onClosed: mainwindow.appPagesModel.popupClosed(this);
 
 	Component.onCompleted: {
 		if (!modal && keepAbove) {
 			parentPage.pageDeActivated.connect(function() { bVisible = tpPopup.visible; tpPopup.visible = false; });
 			parentPage.pageActivated.connect(function() { if (bVisible) tpPopup.visible = true; });
 		}
-		mainwindow.closeDialog.connect(function () {
-			if (!modal && keepAbove)
-				closePopup();
-			else
-				backKeyPressed();
-		});
 	}
 
 	TPBackRec {
@@ -54,27 +48,27 @@ Popup {
 		implicitHeight: height
 		implicitWidth: width
 		radius: 8
-		layer.enabled: enableEffects
-		visible: backgroundRec === this && !enableEffects
+		visible: backgroundRec === this
+	}
+
+	Loader {
+		asynchronous: true
+		active: enableEffects
+
+		RectangularShadow {
+			x: backgroundRec.x
+			y: backgroundRec.y
+			width: backgroundRec.width
+			height: backgroundRec.height
+			color: "#80000000" // Semi-transparent black
+			radius: 8
+			cached: true
+			offset: Qt.point(5, 5) // Horizontal and vertical offset
+			spread: 5 // controls the shadow's expansion
+		}
 	}
 
 	background: backgroundRec
-
-	MultiEffect {
-		enabled: enableEffects
-		visible: enableEffects
-		source: enableEffects ? backgroundRec : null
-		anchors.fill: backgroundRec
-		shadowEnabled: true
-		shadowOpacity: 0.5
-		blurMax: 16
-		shadowBlur: 1
-		shadowHorizontalOffset: 5
-		shadowVerticalOffset: 5
-		shadowColor: "black"
-		shadowScale: 1
-		opacity: 0.9
-	}
 
 	Timer {
 		id: keyPressTimer
@@ -147,6 +141,7 @@ Popup {
 		movableWidget: tpPopup
 		movingWidget: titlebar
 		onPositionChanged: (mouse) => positionChangedFunction(mouse);
+		onPressed: mainwindow.appPagesModel.raisePopup(tpPopup);
 	}
 
 	enter: Transition {

@@ -30,9 +30,9 @@ TPDatabaseTable::TPDatabaseTable(const uint table_id, DBModelInterface *dbmodel_
 		auto result{createTable()};
 		emit actionFinished(ThreadManager::CreateTable, result.first, result.second);
 	});
-	m_threadedFunctions.insert(ThreadManager::InsertRecord, [this] () {
+	m_threadedFunctions.insert(ThreadManager::InsertRecords, [this] () {
 		auto result{insertRecord()};
-		emit actionFinished(ThreadManager::InsertRecord, result.first, result.second);
+		emit actionFinished(ThreadManager::InsertRecords, result.first, result.second);
 	});
 	m_threadedFunctions.insert(ThreadManager::alterRecords, [this] () {
 		auto result{alterRecords()};
@@ -65,9 +65,15 @@ TPDatabaseTable::TPDatabaseTable(const uint table_id, DBModelInterface *dbmodel_
 
 	connect(this, &TPDatabaseTable::actionFinished, this, [this]
 				(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2) {
-		m_sqlLiteDB.close();
-		if (op != ThreadManager::CustomOperation && return_value2.toBool())
-			appUserModel()->cmdFileCreated(dbFilePath());
+		switch (op)
+		{
+			case ThreadManager::ReadAllRecords: m_sqlLiteDB.close(); break;
+			case ThreadManager::CustomOperation: break;
+			default:
+				if (return_value2.toBool())
+					emit appUserModel()->cmdFileCreated(dbFilePath());
+			break;
+		}
 	});
 }
 
@@ -126,19 +132,37 @@ std::pair<bool, bool> TPDatabaseTable::insertRecord()
 	bool success{false}, cmd_ok{false};
 	const uint modified_row{m_dbModelInterface->modifiedIndices().cbegin().key()};
 	const QStringList &data{m_dbModelInterface->modelData().at(modified_row)};
+	const bool auto_increment{m_fieldNames[0][1].contains("AUTOINCREMENT"_L1)};
 
 	m_strQuery = std::move("INSERT INTO "_L1 + *m_tableName + " ("_L1);
 	for (int i{0}; i < m_fieldCount; ++i)
 		m_strQuery += std::move(m_fieldNames[i][0] + ',');
-	m_strQuery += std::move(") VALUES("_L1);
-	for (int i{0}; i < m_fieldCount; ++i)
-		m_strQuery += std::move((m_fieldNames[i][1] == "TEXT"_L1 ? '\'' + data.at(i) + '\'' : data.at(i)) + ',');
+	m_strQuery.chop(1);
+	m_strQuery += ')';
+
+	QHash<uint, QList<int>>::const_iterator itr{m_dbModelInterface->modifiedIndices().constBegin()};
+	const QHash<uint, QList<int>>::const_iterator itr_end{m_dbModelInterface->modifiedIndices().constEnd()};
+	while (itr != itr_end)
+	{
+		auto modified_row{itr.key()};
+		uint field{0};
+		m_strQuery += std::move(" VALUES("_L1);
+		for (const auto &data : std::as_const(m_dbModelInterface->modelData().at(modified_row)))
+		{
+			if (field != 0 || !auto_increment)
+				m_strQuery += std::move(m_fieldNames[field][1] == "TEXT"_L1 ? QString{'\'' + data + '\''} : data + ',');
+			++field;
+		}
+		m_strQuery.chop(1);
+		m_strQuery += std::move("),"_L1);
+		++itr;
+	}
+	m_strQuery.chop(1);
 	m_strQuery += std::move(");"_L1);
 
-	const bool query_id_back{m_fieldNames[modified_row][1].contains("AUTOINCREMENT"_L1)};
 	if (execSingleWriteQuery(m_strQuery))
 	{
-		if (query_id_back)
+		if (auto_increment)
 			m_dbModelInterface->modelData()[modified_row][0] = std::move(m_workingQuery.lastInsertId().toString());
 		success = true;
 		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
@@ -152,35 +176,37 @@ std::pair<bool,bool> TPDatabaseTable::alterRecords()
 	bool success{false}, cmd_ok{false};
 	QString insert_cmd{std::move("INSERT INTO "_L1 + *m_tableName + " ("_L1)};
 	for (int i{0}; i < m_fieldCount; ++i)
-			insert_cmd += std::move(m_fieldNames[i][0] + ',');
+		insert_cmd += std::move(m_fieldNames[i][0] + ',');
+	insert_cmd.chop(1);
 	insert_cmd += std::move(") VALUES("_L1);
-	const QString &update_cmd{"UPDATE "_L1 + *m_tableName + "SET "_L1};
+	const QString &update_cmd{"UPDATE "_L1 + *m_tableName + " SET "_L1};
 	bool has_insert{false};
 	const bool auto_increment{m_fieldNames[0][1].contains("AUTOINCREMENT"_L1)};
 	QString str_query;
 	QStringList queries;
 
-	QHash<uint, QList<uint>>::const_iterator itr{m_dbModelInterface->modifiedIndices().constBegin()};
-	const QHash<uint, QList<uint>>::const_iterator itr_end{m_dbModelInterface->modifiedIndices().constEnd()};
+	QHash<uint, QList<int>>::const_iterator itr{m_dbModelInterface->modifiedIndices().constBegin()};
+	const QHash<uint, QList<int>>::const_iterator itr_end{m_dbModelInterface->modifiedIndices().constEnd()};
 	while (itr != itr_end)
 	{
 		auto modified_row{itr.key()};
-		if (m_dbModelInterface->modelData().at(modified_row).at(0).toInt() < 0)
+		if (m_dbModelInterface->modelData().at(modified_row).at(0).toInt() < 0 || itr.value().at(0) < 0)
 		{
 			int field{0};
 			has_insert = true;
-			str_query += insert_cmd;
+			str_query = insert_cmd;
 			for (const auto &data : std::as_const(m_dbModelInterface->modelData().at(modified_row)))
 			{
-				if (!(auto_increment && field != 0))
-					str_query += std::move(m_fieldNames[field][1] == "TEXT"_L1 ? QString{'\'' + data + '\''} : QString{data + ','});
+				if (field != 0 || !auto_increment)
+					str_query += std::move((m_fieldNames[field][1] == "TEXT"_L1 ? QString{'\'' + data + '\''} : data) + ',');
 				++field;
 			}
-			str_query.append(';');
+			str_query.chop(1);
+			str_query.append(");"_L1);
 		}
 		else
 		{
-			str_query += update_cmd;
+			str_query = update_cmd;
 			for (const auto field : std::as_const(itr.value()))
 			{
 				str_query += std::move(m_fieldNames[field][0] + '=' + (m_fieldNames[field][1] == "TEXT"_L1 ?
@@ -207,6 +233,8 @@ std::pair<bool,bool> TPDatabaseTable::alterRecords()
 					data[0] = std::move(QString::number(last_insert_id--));
 			}
 		}
+		for (auto &&query : queries)
+			m_strQuery = std::move(query);
 		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
 	}
 	return std::pair<bool,bool>{success, cmd_ok};
@@ -217,10 +245,10 @@ std::pair<bool,bool> TPDatabaseTable::updateRecord()
 	bool success{false}, cmd_ok{false};
 	const uint modified_row{m_dbModelInterface->modifiedIndices().cbegin().key()};
 	const QString &id{m_dbModelInterface->modelData().at(modified_row).at(0)};
-	const uint modified_field{m_dbModelInterface->modifiedIndices().cbegin().value().first()};
+	const int modified_field{m_dbModelInterface->modifiedIndices().cbegin().value().first()};
 	const QString &new_value{m_dbModelInterface->modelData().at(modified_row).at(modified_field)};
 
-	m_strQuery = std::move("UPDATE "_L1 + *m_tableName + u"SET %1=%2 WHERE %3=%4;"_s.arg(
+	m_strQuery = std::move("UPDATE "_L1 + *m_tableName + u" SET %1=%2 WHERE %3=%4;"_s.arg(
 		m_fieldNames[modified_field][0], m_fieldNames[modified_field][1] == "TEXT"_L1 ?
 											'\'' + new_value + '\'' : new_value, m_fieldNames[0][0], id));
 	success = execSingleWriteQuery(m_strQuery);
@@ -235,9 +263,9 @@ std::pair<bool,bool> TPDatabaseTable::updateFieldsOfRecord()
 	bool success{false}, cmd_ok{false};
 	const uint modified_row{m_dbModelInterface->modifiedIndices().cbegin().key()};
 	const QString &id{m_dbModelInterface->modelData().at(modified_row).at(0)};
-	const QList<uint> &fields{m_dbModelInterface->modifiedIndices().value(modified_row)};
+	const QList<int> &fields{m_dbModelInterface->modifiedIndices().value(modified_row)};
 
-	m_strQuery = std::move("UPDATE "_L1 + *m_tableName + "SET "_L1);
+	m_strQuery = std::move("UPDATE "_L1 + *m_tableName + " SET "_L1);
 	for (uint i{0}; i < fields.count(); ++i)
 	{
 		m_strQuery += std::move(m_fieldNames[i][0] + '=' + (m_fieldNames[i][1] == "TEXT"_L1 ?
@@ -261,7 +289,7 @@ std::pair<bool,bool> TPDatabaseTable::updateRecords()
 	QStringList queries;
 	for (const auto &fields : m_dbModelInterface->modifiedIndices())
 	{
-		str_query += query_cmd;
+		str_query = query_cmd;
 		for (const auto field : std::as_const(fields))
 		{
 			str_query += std::move(m_fieldNames[field][0] + '=' + (m_fieldNames[field][1] == "TEXT"_L1 ?
@@ -278,6 +306,8 @@ std::pair<bool,bool> TPDatabaseTable::updateRecords()
 	if (execMultipleWritesQuery(queries))
 	{
 		success = true;
+		for (auto &&query : queries)
+			m_strQuery = std::move(query);
 		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
 	}
 	return std::pair<bool,bool>{success, cmd_ok};
@@ -378,22 +408,30 @@ void TPDatabaseTable::parseCmdFile(const QString &filename)
 	}
 }
 
+#define prepareQuery(forward_only) \
+		QSqlQuery query{m_sqlLiteDB}; \
+		if (forward_only) \
+			query.setForwardOnly(true); \
+		m_workingQuery = std::move(query); \
+		static_cast<void>(m_workingQuery.exec("PRAGMA page_size = 4096"_L1)); \
+		static_cast<void>(m_workingQuery.exec("PRAGMA cache_size = 16384"_L1)); \
+		static_cast<void>(m_workingQuery.exec("PRAGMA temp_store = MEMORY"_L1)); \
+		static_cast<void>(m_workingQuery.exec("PRAGMA journal_mode = OFF"_L1)); \
+		static_cast<void>(m_workingQuery.exec("PRAGMA locking_mode = EXCLUSIVE"_L1)); \
+		static_cast<void>(m_workingQuery.exec("PRAGMA synchronous = 0"_L1)); \
+
+//optimize after modifying the database
+#define optimizeTable() \
+		static_cast<void>(m_workingQuery.exec("VACUUM;"_L1)); \
+		static_cast<void>(m_workingQuery.exec("PRAGMA optimize;"_L1)); \
+
 bool TPDatabaseTable::execReadOnlyQuery(const QString &str_query)
 {
 	bool ok{false};
 	m_sqlLiteDB.setConnectOptions("QSQLITE_OPEN_READONLY"_L1);
 	if (m_sqlLiteDB.open())
 	{
-
-		QSqlQuery query{m_sqlLiteDB};
-		query.setForwardOnly(true);
-		m_workingQuery = std::move(query);
-		static_cast<void>(m_workingQuery.exec("PRAGMA page_size = 4096"_L1));
-		static_cast<void>(m_workingQuery.exec("PRAGMA cache_size = 16384"_L1));
-		static_cast<void>(m_workingQuery.exec("PRAGMA temp_store = MEMORY"_L1));
-		static_cast<void>(m_workingQuery.exec("PRAGMA journal_mode = OFF"_L1));
-		static_cast<void>(m_workingQuery.exec("PRAGMA locking_mode = EXCLUSIVE"_L1));
-		static_cast<void>(m_workingQuery.exec("PRAGMA synchronous = 0"_L1));
+		prepareQuery(true);
 		ok = m_workingQuery.exec(str_query);
 		#ifndef QT_NO_DEBUG
 		if (!ok)
@@ -414,15 +452,7 @@ bool TPDatabaseTable::execSingleWriteQuery(const QString &str_query)
 	m_sqlLiteDB.setConnectOptions("QSQLITE_BUSY_TIMEOUT=0"_L1);
 	if (m_sqlLiteDB.open())
 	{
-
-		QSqlQuery query{m_sqlLiteDB};
-		m_workingQuery = std::move(query);
-		static_cast<void>(m_workingQuery.exec("PRAGMA page_size = 4096"_L1));
-		static_cast<void>(m_workingQuery.exec("PRAGMA cache_size = 16384"_L1));
-		static_cast<void>(m_workingQuery.exec("PRAGMA temp_store = MEMORY"_L1));
-		static_cast<void>(m_workingQuery.exec("PRAGMA journal_mode = OFF"_L1));
-		static_cast<void>(m_workingQuery.exec("PRAGMA locking_mode = EXCLUSIVE"_L1));
-		static_cast<void>(m_workingQuery.exec("PRAGMA synchronous = 0"_L1));
+		prepareQuery(false);
 		ok = m_workingQuery.exec(str_query);
 		#ifndef QT_NO_DEBUG
 		if (!ok)
@@ -435,9 +465,9 @@ bool TPDatabaseTable::execSingleWriteQuery(const QString &str_query)
 		#endif
 		if (ok)
 		{
-			static_cast<void>(m_workingQuery.exec("VACUUM;"_L1));
-			static_cast<void>(m_workingQuery.exec("PRAGMA optimize;"_L1)); //optimize after modifying the database
+			optimizeTable();
 		}
+		m_sqlLiteDB.close();
 	}
 	return ok;
 }
@@ -450,16 +480,8 @@ bool TPDatabaseTable::execMultipleWritesQuery(const QStringList &queries)
 	{
 		if (!m_sqlLiteDB.transaction())
 			return false;
-
 		ok = true;
-		QSqlQuery query{m_sqlLiteDB};
-		m_workingQuery = std::move(query);
-		static_cast<void>(m_workingQuery.exec("PRAGMA page_size = 4096"_L1));
-		static_cast<void>(m_workingQuery.exec("PRAGMA cache_size = 16384"_L1));
-		static_cast<void>(m_workingQuery.exec("PRAGMA temp_store = MEMORY"_L1));
-		static_cast<void>(m_workingQuery.exec("PRAGMA journal_mode = OFF"_L1));
-		static_cast<void>(m_workingQuery.exec("PRAGMA locking_mode = EXCLUSIVE"_L1));
-		static_cast<void>(m_workingQuery.exec("PRAGMA synchronous = 0"_L1));
+		prepareQuery(false);
 		for (const QString &str_query : std::as_const(queries))
 		{
 			if (!m_workingQuery.exec(str_query))
@@ -478,8 +500,11 @@ bool TPDatabaseTable::execMultipleWritesQuery(const QStringList &queries)
 		if (ok)
 		{
 			if ((ok = m_sqlLiteDB.commit()))
-				m_workingQuery.exec("VACUUM; PRAGMA optimize;"_L1); //optimize after modifying the database
+			{
+				optimizeTable();
+			}
 		}
+		m_sqlLiteDB.close();
 	}
 	return ok;
 }

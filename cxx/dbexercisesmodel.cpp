@@ -590,7 +590,7 @@ uint DBExercisesModel::addExercise(int exercise_number, const bool emit_signal)
 		m_dbModelInterface->setModified(exercise_number, 0);
 	}
 	m_db->setDBModelInterface(m_dbModelInterface);
-	appThreadManager()->runAction(m_db, ThreadManager::InsertRecord);
+	appThreadManager()->runAction(m_db, ThreadManager::InsertRecords);
 
 	return exercise_number;
 }
@@ -755,7 +755,7 @@ uint DBExercisesModel::addSubExercise(const uint exercise_number, const bool emi
 		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << giantSetExerciseRole);
 		emit subExerciseCountChanged(exercise_number);
 
-		QList<uint> modified_fields{EXERCISES_TOTALCOLS - EXERCISES_COL_EXERCISES, EXERCISES_COL_EXERCISES};
+		QList<int> modified_fields{EXERCISES_TOTALCOLS - EXERCISES_COL_EXERCISES, EXERCISES_COL_EXERCISES};
 		for (uint i{EXERCISES_COL_EXERCISES}; i < EXERCISES_TOTALCOLS; ++i)
 		{
 			const auto ins_pos{m_dbModelInterface->modelData().at(exercise_number).at(i).length()};
@@ -789,7 +789,7 @@ void DBExercisesModel::delSubExercise(const uint exercise_number, const uint exe
 		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << giantSetExerciseRole);
 		emit subExerciseCountChanged(exercise_number);
 
-		QList<uint> modified_fields{EXERCISES_TOTALCOLS - EXERCISES_COL_EXERCISES, EXERCISES_COL_EXERCISES};
+		QList<int> modified_fields{EXERCISES_TOTALCOLS - EXERCISES_COL_EXERCISES, EXERCISES_COL_EXERCISES};
 		for (uint i{EXERCISES_COL_EXERCISES}; i < EXERCISES_TOTALCOLS; ++i)
 		{
 			appUtils()->removeFieldFromCompositeValue(exercise_idx, m_dbModelInterface->modelData()[exercise_number][i], comp_exercise_separator);
@@ -818,7 +818,7 @@ uint DBExercisesModel::addSet(const uint exercise_number, const uint exercise_id
 		emit setsNumberChanged(exercise_number, exercise_idx);
 		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << setsNumberRole);
 
-		QList<uint> modified_fields{EXERCISES_TOTALCOLS - EXERCISES_COL_SETTYPES, EXERCISES_COL_SETTYPES};
+		QList<int> modified_fields{EXERCISES_TOTALCOLS - EXERCISES_COL_SETTYPES, EXERCISES_COL_SETTYPES};
 		for (uint i{EXERCISES_COL_SETTYPES}; i < EXERCISES_TOTALCOLS; ++i)
 		{
 			const auto ins_pos{m_dbModelInterface->modelData().at(exercise_number).at(i).length() - 2};
@@ -850,7 +850,7 @@ void DBExercisesModel::delSet(const uint exercise_number, const uint exercise_id
 		emit setsNumberChanged(exercise_number, exercise_idx);
 		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << setsNumberRole);
 
-		QList<uint> modified_fields{EXERCISES_TOTALCOLS - EXERCISES_COL_SETTYPES, EXERCISES_COL_SETTYPES};
+		QList<int> modified_fields{EXERCISES_TOTALCOLS - EXERCISES_COL_SETTYPES, EXERCISES_COL_SETTYPES};
 		for (uint i{EXERCISES_COL_SETTYPES}; i < EXERCISES_TOTALCOLS; ++i)
 		{
 			QString sub_exercise_info{std::move(appUtils()->getCompositeValue(exercise_idx, m_dbModelInterface->modelData()[exercise_number][i], comp_exercise_separator))};

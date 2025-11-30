@@ -5,6 +5,8 @@
 #include <QQuickItem>
 #include <QQuickWindow>
 
+#include <ranges>
+
 #ifndef Q_OS_ANDROID
 QHash<QString,PagesListModel*> PagesListModel::app_Pages_list_models{};
 #else
@@ -169,6 +171,42 @@ QVariant PagesListModel::data(const QModelIndex &index, int role) const
 	return QVariant{};
 }
 
+void PagesListModel::popupOpened(QObject* popup)
+{
+	m_popupsOpen.append(popup);
+}
+
+void PagesListModel::popupClosed(QObject* popup)
+{
+	auto z_order{m_popupsOpen.indexOf(popup)};
+	if (z_order >= 0)
+	{
+		m_popupsOpen.removeAt(z_order);
+		if (z_order < m_popupsOpen.count() - 1)
+		{
+			for (const auto pop_up : std::as_const(m_popupsOpen) | std::views::drop(z_order))
+				pop_up->setProperty("z", z_order++);
+		}
+	}
+}
+
+void PagesListModel::raisePopup(QObject* popup)
+{
+	auto z_order{m_popupsOpen.indexOf(popup)};
+	if (z_order >= 0 && z_order < m_popupsOpen.count() - 1)
+	{
+		m_popupsOpen.move(z_order, m_popupsOpen.count() - 1);
+		for (const auto pop_up : std::as_const(m_popupsOpen) | std::views::drop(z_order))
+			pop_up->setProperty("z", z_order++);
+		QMetaObject::invokeMethod(popup, "forceActiveFocus");
+	}
+}
+
+bool PagesListModel::isPopupAboveAllOthers(QObject* popup) const
+{
+	return m_popupsOpen.indexOf(popup) == m_popupsOpen.count() - 1;
+}
+
 bool PagesListModel::eventFilter(QObject *obj, QEvent *event)
 {
 	if (event->type() == QEvent::KeyPress)
@@ -176,9 +214,16 @@ bool PagesListModel::eventFilter(QObject *obj, QEvent *event)
 		QKeyEvent *key_event{static_cast<QKeyEvent*>(event)};
 		if (key_event->key() == m_backKey)
 		{
-			if (appMainWindow()->property("n_dialogs_open").toInt() > 0)
-				QMetaObject::invokeMethod(appMainWindow(), "closeDialog");
-			else {
+			if (!m_popupsOpen.isEmpty())
+			{
+				QObject *popup{m_popupsOpen.last()};
+				if (popup->property("modal").toBool() || popup->property("keepAbove").toBool())
+					QMetaObject::invokeMethod(popup, "backKeyPressed");
+				else
+					QMetaObject::invokeMethod(popup, "closePopup");
+			}
+			else
+			{
 				if (currentIndex() != 0)
 					prevPage();
 				else

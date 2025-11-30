@@ -24,24 +24,24 @@ void DBModelInterface::clearData(const QList<uint> &excluded_fields)
 
 void DBModelInterface::setAllFieldsModified(uint row, const uint n_fields)
 {
-	QList<uint> fields{std::move(m_modifiedIndices.value(row))};
+	QList<int> fields{std::move(m_modifiedIndices.value(row))};
 	fields.clear();
-	for (uint i{0}; i < n_fields; ++i)
+	for (int i{0}; i < n_fields; ++i)
 		fields.append(i);
 	m_modifiedIndices.insertOrAssign(std::move(row), std::move(fields));
 }
 
-void DBModelInterface::setModified(uint row, const uint field)
+void DBModelInterface::setModified(uint row, const int field)
 {
-	QList<uint> fields{std::move(m_modifiedIndices.value(row))};
+	QList<int> fields{std::move(m_modifiedIndices.value(row))};
 	if (!fields.contains(field))
 		fields.append(field);
 	m_modifiedIndices.insertOrAssign(std::move(row), std::move(fields));
 }
 
-void DBModelInterface::setModified(uint row, const QList<uint> &more_fields)
+void DBModelInterface::setModified(uint row, const QList<int> &more_fields)
 {
-	QList<uint> fields{std::move(m_modifiedIndices.value(row))};
+	QList<int> fields{std::move(m_modifiedIndices.value(row))};
 	for (const auto field : std::as_const(more_fields))
 	{
 		if (!fields.contains(field))

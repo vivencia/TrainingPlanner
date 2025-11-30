@@ -73,7 +73,7 @@ void DBMesocyclesModel::removeMesoManager(const uint meso_idx)
 void DBMesocyclesModel::incorporateMeso(const uint meso_idx)
 {
 	m_dbModelInterface->setModified(meso_idx, 0);
-	appThreadManager()->runAction(m_db, ThreadManager::InsertRecord);
+	appThreadManager()->runAction(m_db, ThreadManager::InsertRecords);
 }
 
 void DBMesocyclesModel::getMesocyclePage(const uint meso_idx)

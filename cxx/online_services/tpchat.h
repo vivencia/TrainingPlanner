@@ -23,6 +23,7 @@ constexpr uint TP_CHAT_MESSAGE_FIELDS	{MESSAGE_MEDIA+1};
 QT_FORWARD_DECLARE_CLASS(DBModelInterfaceChat)
 QT_FORWARD_DECLARE_CLASS(TPChatDB)
 QT_FORWARD_DECLARE_STRUCT(ChatMessage)
+QT_FORWARD_DECLARE_CLASS(QTimer)
 
 class TPChat : public QAbstractListModel
 {
@@ -38,7 +39,6 @@ public:
 	static constexpr QLatin1StringView chatsSubDir{"chats/"};
 
 	explicit TPChat(const QString &otheruser_id, QObject *parent = nullptr);
-	~TPChat();
 
 	void loadChat();
 	inline void setChatWindow(QObject *chat_window) { m_chatWindow = chat_window; }
@@ -56,7 +56,7 @@ public:
 	inline uint unreadMessages() const { return m_unreadMessages; }
 	void setUnreadMessages(const int n_unread);
 	void markAllIncomingMessagesRead();
-	Q_INVOKABLE void newMessage(const QString &text, const QString &media = QString{});
+	Q_INVOKABLE void createNewMessage(const QString &text, const QString &media = QString{});
 	void incomingMessage(const QString &encoded_message);
 	void clearChat();
 
@@ -81,11 +81,12 @@ private:
 	QObject *m_chatWindow;
 	DBModelInterfaceChat *m_dbModelInterface;
 	TPChatDB *m_db;
+	QTimer *m_sendMessageTimer;
 
 	QString tempMessagesFile() const;
 	QString encodeMessageToUpload(ChatMessage* message) const;
-	void encodeMessageToSave(ChatMessage* message) const;
-	void updateFieldToSave(const uint msg_id, const uint field, const QString &value) const;
+	void encodeMessageToSave(ChatMessage* message);
+	void updateFieldToSave(const uint msg_id, const int field, const QString &value) const;
 	ChatMessage* decodeDownloadedMessage(const QString &encoded_message);
 	void saveMessageToFile(ChatMessage *message) const;
 

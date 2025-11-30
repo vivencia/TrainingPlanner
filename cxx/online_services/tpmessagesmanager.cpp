@@ -47,6 +47,12 @@ TPMessagesManager::TPMessagesManager(QObject *parent)
 	m_roleNames[hasActionsRole]		= std::move("hasActions");
 }
 
+TPMessagesManager::~TPMessagesManager()
+{
+	qDeleteAll(m_chatWindowList);
+	qDeleteAll(m_chatsList);
+}
+
 void TPMessagesManager::readAllChats()
 {
 	QFileInfoList chat_dbs;
@@ -176,7 +182,8 @@ TPMessage *TPMessagesManager::createChatMessage(const QString &userid, QString &
 
 void TPMessagesManager::openChatWindow(TPChat *chat_manager)
 {
-	if (!m_chatWindowList.value(chat_manager->otherUserId()))
+	QObject *chat_window{m_chatWindowList.value(chat_manager->otherUserId())};
+	if (!chat_window)
 	{
 		if (!m_chatWindowComponent)
 		{
@@ -203,7 +210,7 @@ void TPMessagesManager::openChatWindow(TPChat *chat_manager)
 		}
 	}
 	else
-		QMetaObject::invokeMethod(m_chatWindowList.value(chat_manager->otherUserId()), "open");
+		QMetaObject::invokeMethod(chat_window, "open");
 }
 
 void TPMessagesManager::openChat(const QString &username)

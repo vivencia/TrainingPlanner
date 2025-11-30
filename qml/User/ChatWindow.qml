@@ -16,7 +16,6 @@ TPPopup {
 	width: normalWidth
 	height: normalHeight
 	backgroundRec: backRec
-	enableEffects: false
 
 	required property ChatModel chatManager
 
@@ -35,11 +34,10 @@ TPPopup {
 			chatWindowIsActiveWindow(chatManager);
 	}
 
-	onOpened: txtMessage.forceActiveFocus();
-
 	TPBackRec {
 		id: backRec
 		useImage: true
+		scaleImageToControlSize: false
 		sourceImage: ":/images/backgrounds/backimage-chat.jpg"
 		radius: 8
 		opacity: 0.8
@@ -238,7 +236,7 @@ TPPopup {
 
 				TPImage {
 					id: sentIcon
-					source:  msgSent ? "message-read.png" : "message-sent.png"
+					source:  msgSent ? "message-sent.png" : "message-read.png"
 					dropShadow: false
 					width: appSettings.itemSmallHeight * 0.5
 					height: width
@@ -311,19 +309,28 @@ TPPopup {
 			bottom: parent.bottom
 		}
 
-		TPTextInput {
-			id: txtMessage
-			enableRegex: false
+		FocusScope {
+			id: txtFocus
 			width: parent.width * 0.9
-
+			height: txtMessage.height
 			anchors {
 				left: parent.left
 				verticalCenter: parent.verticalCenter
 			}
 
-			onEnterOrReturnKeyPressed: (mod_key) => {
-				if (mod_key === Qt.Key_Control)
-					sendMessage();
+			TPTextInput {
+				id: txtMessage
+				enableRegex: false
+				anchors {
+					left: parent.left
+					right: parent.right
+					top: parent.top
+				}
+
+				onEnterOrReturnKeyPressed: (mod_key) => {
+					if (mod_key === Qt.Key_Control)
+						sendMessage();
+				}
 			}
 		}
 
@@ -335,7 +342,7 @@ TPPopup {
 			enabled: txtMessage.text.length > 0
 
 			anchors {
-				left: txtMessage.right
+				left: txtFocus.right
 				leftMargin: 5
 				verticalCenter: parent.verticalCenter
 			}
@@ -386,7 +393,7 @@ TPPopup {
 	} //Frame frmFooter
 
 	function sendMessage() {
-		chatManager.newMessage(txtMessage.text);
+		chatManager.createNewMessage(txtMessage.text);
 		messagesList.positionViewAtEnd();
 		//Qt.inputMethod.reset();
 		txtMessage.clear();

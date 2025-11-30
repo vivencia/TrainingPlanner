@@ -32,13 +32,13 @@ public:
 		modelData()[row][field] = other_dbmi->modelData().at(row).at(field);
 	}
 
-	inline QHash<uint, QList<uint>> &modifiedIndices() { return m_modifiedIndices; }
-	inline const QHash<uint, QList<uint>> &modifiedIndices() const { return m_modifiedIndices; }
+	inline QHash<uint, QList<int>> &modifiedIndices() { return m_modifiedIndices; }
+	inline const QHash<uint, QList<int>> &modifiedIndices() const { return m_modifiedIndices; }
 	inline const QList<stRemovalInfo*> &removalInfo() const { return m_removalInfo; }
 
 	void setAllFieldsModified(uint row, const uint n_fields);
-	void setModified(uint row, const uint field);
-	void setModified(uint row, const QList<uint> &more_fields);
+	void setModified(uint row, const int field);
+	void setModified(uint row, const QList<int> &more_fields);
 
 	inline void clearModifiedIndices()
 	{
@@ -57,7 +57,7 @@ public:
 	}
 
 protected:
-	QHash<uint, QList<uint>> m_modifiedIndices;
+	QHash<uint, QList<int>> m_modifiedIndices;
 	QList<stRemovalInfo*> m_removalInfo;
 	TPDatabaseTable *m_db;
 	QStringList m_emptyList;

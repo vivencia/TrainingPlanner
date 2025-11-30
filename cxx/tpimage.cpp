@@ -16,19 +16,14 @@ using namespace Qt::Literals::StringLiterals;
 #define DROP_SHADOW_EXTENT 5
 
 TPImage::TPImage(QQuickItem *parent)
-	: QQuickPaintedItem{parent}, m_imageToPaint{nullptr}, mDropShadow{true}, m_wscale{1.0}, m_hscale{1.0},
-							mbCanUpdate{true}, mbCanColorize{false}
+	: QQuickPaintedItem{parent}, m_imageToPaint{nullptr}, m_dropShadow{true}, m_wscale{1.0}, m_hscale{1.0}, m_canColorize{false}
 {
 	connect(this, &QQuickItem::enabledChanged, this, [&] () { checkEnabled(); });
-	connect(this, &QQuickItem::heightChanged, this, [&] () { maybeResize(); });
+	connect(this, &QQuickItem::heightChanged, this, [this] () { scaleImage(); });
 	connect(appSettings(), &TPSettings::colorChanged, this, [&] ()
 	{
-		if (mbCanColorize)
-		{
-			colorize(mImage, mImage);
-			mbCanUpdate = true;
-			checkEnabled(true);
-		}
+		if (m_canColorize)
+			checkEnabled();
 	});
 }
 
@@ -36,25 +31,24 @@ void TPImage::setSource(const QString &source)
 {
 	if (!source.isEmpty())
 	{
-		mbCanColorize = false;
+		m_canColorize = false;
 		m_aspectRatioMode = Qt::KeepAspectRatio;
 		QFileInfo img_file{source};
 		if (img_file.isFile())
 		{
 			if (img_file.isReadable())
 			{
-				mSource = source;
+				m_source = source;
 				m_aspectRatioMode = Qt::IgnoreAspectRatio;
 			}
 		}
 		else if (source.startsWith("image://tpimageprovider"_L1))
 		{
-			mImage = std::move(tpImageProvider()->getAvatar(source));
-			if (!mImage.isNull())
+			m_image = std::move(tpImageProvider()->getAvatar(source));
+			if (!m_image.isNull())
 			{
-				mSource = source;
-				mNominalSize.setHeight(0);
-				maybeResize(true);
+				m_source = source;
+				scaleImage();
 				emit sourceChanged();
 			}
 			return;
@@ -63,29 +57,27 @@ void TPImage::setSource(const QString &source)
 		{
 			if (source.endsWith("png"_L1))
 			{
-				mbCanColorize = true;
-				mSource = std::move(":/images/flat/"_L1 + source);
+				m_canColorize = true;
+				m_source = std::move(":/images/flat/"_L1 + source);
 			}
 			else if (source.endsWith("svg"_L1))
 			{
-				mbCanColorize = true;
-				mDropShadow = false;
-				mSource = std::move(":/images/"_L1 + source);
+				m_canColorize = true;
+				m_dropShadow = false;
+				m_source = std::move(":/images/"_L1 + source);
 			}
 			else if (source.endsWith('_'))
 			{
-				mSource = std::move(":/images/"_L1 + source.chopped(1) +
+				m_source = std::move(":/images/"_L1 + source.chopped(1) +
 											appSettings()->indexColorSchemeToColorSchemeName() + ".png"_L1);
 			}
 			else
-				mSource = std::move(":/images/"_L1 + source + ".png"_L1);
+				m_source = std::move(":/images/"_L1 + source + ".png"_L1);
 		}
 
-		if (mImage.load(mSource))
+		if (m_image.load(m_source))
 		{
-			if (mbCanColorize)
-				colorize(mImage, mImage);
-			maybeResize(true);
+			scaleImage();
 			emit sourceChanged();
 		}
 	}
@@ -93,9 +85,9 @@ void TPImage::setSource(const QString &source)
 
 void TPImage::setDropShadow(const bool drop_shadow)
 {
-	mDropShadow = drop_shadow;
+	m_dropShadow = drop_shadow;
 	emit dropShadowChanged();
-	checkEnabled(false);
+	checkEnabled();
 }
 
 void TPImage::setWScale(const double new_wscale)
@@ -118,7 +110,7 @@ void TPImage::setHScale(const double new_hscale)
 
 void TPImage::saveToDisk(const QString &filename)
 {
-	if (mImage.isNull())
+	if (m_image.isNull())
 		return;
 	QFileInfo img_info{filename};
 	if (img_info.exists())
@@ -126,13 +118,11 @@ void TPImage::saveToDisk(const QString &filename)
 		if (!QFile::remove(filename))
 			return;
 	}
-	static_cast<void>(mImage.save(filename));
+	static_cast<void>(m_image.save(filename));
 }
 
 void TPImage::paint(QPainter *painter)
 {
-	if (!mbCanUpdate)
-		return;
 	if (!m_imageToPaint)
 		return;
 
@@ -146,86 +136,85 @@ void TPImage::paint(QPainter *painter)
 	painter->drawImage(center, *m_imageToPaint);
 }
 
-void TPImage::checkEnabled(const bool bCallUpdate)
+void TPImage::checkEnabled()
 {
 	if (isEnabled())
 	{
-		if (!mDropShadow)
-			m_imageToPaint = &mImage;
+		if (m_canColorize)
+			colorize(m_image, m_image);
+		if (!m_dropShadow)
+			m_imageToPaint = &m_image;
 		else
 		{
-			if (mImageShadow.isNull())
+			if (m_imageShadow.isNull())
 				createDropShadowImage();
-			m_imageToPaint = &mImageShadow;
+			m_imageToPaint = &m_imageShadow;
 		}
 	}
 	else
 	{
-		if (mImageDisabled.isNull())
+		if (m_imageDisabled.isNull())
 			convertToGrayScale();
-		m_imageToPaint = &mImageDisabled;
+		m_imageToPaint = &m_imageDisabled;
 	}
-	if (bCallUpdate)
-		update();
+	update();
 }
 
-void TPImage::scaleImage(const bool bCallUpdate)
+void TPImage::scaleImage()
 {
-	if (!mImage.isNull() && !mNominalSize.isEmpty())
+	if (height() <= 0 || width() <= 0)
+		return;
+	if (m_image.isNull())
+		return;
+
+	if (imageSizeFollowControlSize())
 	{
-		mbCanUpdate = false;
-		if (mDropShadow)
-			mSize = mNominalSize - QSize{DROP_SHADOW_EXTENT, DROP_SHADOW_EXTENT};
+		setImageWidth(width());
+		setImageHeight(height());
+		QSize drawn_image_size{m_imageSize};
+		if (m_dropShadow)
+			drawn_image_size -= QSize{DROP_SHADOW_EXTENT, DROP_SHADOW_EXTENT};
 		else
-			mSize = mNominalSize - QSize{qCeil(mNominalSize.width()*0.05), qCeil(mNominalSize.height()*0.05)};
+			drawn_image_size -= QSize{qCeil(width() * 0.05), qCeil(height() * 0.05)};
 
-		if (m_wscale != 1.0)
-			mSize.rwidth() *= m_wscale;
-		if (m_hscale != 1.0)
-			mSize.rheight() *= m_hscale;
-		mImage = std::move(mImage.scaled(mSize, m_aspectRatioMode, Qt::SmoothTransformation));
-
-		mImageDisabled = std::move(QImage{});
-		mImageShadow = std::move(QImage{});
-		mbCanUpdate = true;
-		checkEnabled(bCallUpdate);
-	}
-}
-
-void TPImage::maybeResize(const bool bForceResize)
-{
-	if (mSource.isEmpty())
-		return;
-	if (width() <= 0 || height() <= 0)
-		return;
-
-	if (mNominalSize.height() != height())
-	{
-		mNominalSize.setHeight(height());
-		mNominalSize.setWidth(width());
-		scaleImage(true);
+		if (wScale() != 1.0)
+			drawn_image_size.rwidth() *= m_wscale;
+		if (hScale() != 1.0)
+			drawn_image_size.rheight() *= m_hscale;
+		m_image = std::move(m_image.scaled(drawn_image_size, m_aspectRatioMode, Qt::SmoothTransformation));
 	}
 	else
 	{
-		if (bForceResize)
-			scaleImage(true);
+		if (!m_imageSize.isValid())
+		{
+			setImageWidth(m_image.width());
+			setImageHeight(m_image.height());
+		}
+		else
+		{
+			if (m_image.size() != m_imageSize)
+				m_image = std::move(m_image.scaled(m_imageSize, m_aspectRatioMode, Qt::SmoothTransformation));
+		}
 	}
+	m_imageDisabled = std::move(QImage{});
+	m_imageShadow = std::move(QImage{});
+	checkEnabled();
 }
 
 void TPImage::convertToGrayScale()
 {
-	if (!mImage.isNull())
-		grayScale(mImageDisabled, mImage);
+	if (!m_image.isNull())
+		grayScale(m_imageDisabled, m_image);
 }
 
 void TPImage::createDropShadowImage()
 {
-	if (!mImage.isNull())
+	if (!m_image.isNull())
 	{
 		QGraphicsDropShadowEffect *shadowEffect{new QGraphicsDropShadowEffect()};
 		shadowEffect->setOffset(DROP_SHADOW_EXTENT, DROP_SHADOW_EXTENT);
 		shadowEffect->setBlurRadius(DROP_SHADOW_EXTENT);
-		applyEffectToImage(mImageShadow, mImage, shadowEffect, DROP_SHADOW_EXTENT);
+		applyEffectToImage(m_imageShadow, m_image, shadowEffect, DROP_SHADOW_EXTENT);
 	}
 }
 
@@ -236,7 +225,7 @@ void TPImage::applyEffectToImage(QImage &dstImg, const QImage &srcImg, QGraphics
 	item.setPixmap(QPixmap::fromImage(srcImg));
 	item.setGraphicsEffect(effect);
 	scene.addItem(&item);
-	dstImg = std::move(srcImg.scaled(mSize+QSize(extent * 2, extent * 2), m_aspectRatioMode, Qt::SmoothTransformation));
+	dstImg = std::move(srcImg.scaled(m_imageSize + QSize{extent * 2, extent * 2}, m_aspectRatioMode, Qt::SmoothTransformation));
 	dstImg.reinterpretAsFormat(QImage::Format_ARGB32);
 	dstImg.fill(Qt::transparent);
 	QPainter ptr{&dstImg};
@@ -267,10 +256,8 @@ void TPImage::colorize(QImage &dstImg, const QImage &srcImg)
 {
 	if (!srcImg.isNull())
 	{
-		mSize.setHeight(srcImg.height());
-		mSize.setWidth(srcImg.width());
 		const QColor color{appSettings()->fontColor()};
-		QGraphicsColorizeEffect *colorEffect{new QGraphicsColorizeEffect()};
+		QGraphicsColorizeEffect *colorEffect{new QGraphicsColorizeEffect};
 		colorEffect->setColor(color);
 		applyEffectToImage(dstImg, srcImg, colorEffect);
 	}
