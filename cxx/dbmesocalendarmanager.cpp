@@ -75,17 +75,17 @@ void DBMesoCalendarManager::removeCalendarForMeso(const uint meso_idx, const boo
 	if (m_mesoModel->_id(meso_idx) >= 0)
 	{
 		DBModelInterfaceCalendar *dbmic{getDBModelInterfaceCalendar(meso_idx)};
-		dbmic->setRemovalInfo(0, QList<uint>{} << CALENDAR_DATABASE_MESOID);
+		dbmic->setRemovalInfo(0, QList<uint>{1, CALENDAR_DATABASE_MESOID});
 		m_calendarDB->setDBModelInterface(dbmic);
-		appThreadManager()->runAction(m_calendarDB, ThreadManager::DeleteRecord);
+		appThreadManager()->runAction(m_calendarDB, ThreadManager::DeleteRecords);
 		dbmic->modelData().remove(meso_idx);
 		if (remove_workouts)
 		{
 			//Get the meso_id from the first workout. DeleteRecord will remove all the records based on it
 			DBModelInterfaceExercises *dbmie{getDBModelInterfaceExercises(meso_idx, 0)};
-			dbmie->setRemovalInfo(0, QList<uint>{} << CALENDAR_DATABASE_MESOID);
+			dbmie->setRemovalInfo(0, QList<uint>{1, CALENDAR_DATABASE_MESOID});
 			m_workoutsDB->setDBModelInterface(dbmie);
-			appThreadManager()->runAction(m_workoutsDB, ThreadManager::DeleteRecord);
+			appThreadManager()->runAction(m_workoutsDB, ThreadManager::DeleteRecords);
 		}
 	}
 	if (meso_idx < m_calendars.count())

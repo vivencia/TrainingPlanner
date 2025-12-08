@@ -6,6 +6,8 @@
 #include <QImage>
 #include <QPainter>
 
+using namespace Qt::Literals::StringLiterals;
+
 class TPImageProvider : public QQuickImageProvider
 {
 
@@ -32,7 +34,7 @@ public:
 	void initializeEngine(QQmlEngine *engine, const char *uri) override
 	{
 		Q_UNUSED(uri);
-		engine->addImageProvider("TPImageProvider", new TPImageProvider);
+		engine->addImageProvider("TPImageProvider"_L1, new TPImageProvider);
 	}
 };
 

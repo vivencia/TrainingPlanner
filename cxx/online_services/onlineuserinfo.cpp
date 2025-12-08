@@ -65,13 +65,13 @@ void OnlineUserInfo::setSelected(const uint row, const bool selected, const int 
 			for (uint i {0}; i < m_totalCols; ++i)
 				appUtils()->setCompositeValue(i, selected ? "1"_L1 : "0"_L1, m_extraInfo[row][USER_EXTRA_SELECTED],
 																				fancy_record_separator1);
-			emit dataChanged(index(row, 0), index(row, m_totalCols), QList<int>{} << selectedRole);
+			emit dataChanged(index(row, 0), index(row, m_totalCols), QList<int>{1, selectedRole});
 		}
 		else
 		{
 			appUtils()->setCompositeValue(column, selected ? "1"_L1 : "0"_L1, m_extraInfo[row][USER_EXTRA_SELECTED],
 																				fancy_record_separator1);
-			emit dataChanged(index(row, column), index(row, column), QList<int>{} << selectedRole);
+			emit dataChanged(index(row, column), index(row, column), QList<int>{1, selectedRole});
 		}
 		if (item_already_selected && !selected)
 			--m_nselected;
@@ -86,7 +86,7 @@ void OnlineUserInfo::setExtraName(const uint row, const QString &extra_name)
 	if (row < count())
 	{
 		m_extraInfo[row][USER_EXTRA_NAME] = extra_name;
-		emit dataChanged(index(row), index(row), QList<int>{} << extraNameRole);
+		emit dataChanged(index(row), index(row), QList<int>{1, extraNameRole});
 	}
 }
 
@@ -95,7 +95,7 @@ void OnlineUserInfo::setIsCoach(const uint row, bool coach)
 	if (row < count())
 	{
 		m_extraInfo[row][USER_EXTRA_ISCOACH] = coach ? '1' : '0';
-		emit dataChanged(index(row), index(row), QList<int>{} << isCoachRole);
+		emit dataChanged(index(row), index(row), QList<int>{1, isCoachRole});
 	}
 }
 
@@ -104,7 +104,7 @@ void OnlineUserInfo::setVisible(const uint row, bool visible, const int column)
 	if (row < count())
 	{
 		m_extraInfo[row][USER_EXTRA_VISIBLE] = visible ? '1' : '0';
-		emit dataChanged(index(row, column), index(row, column), QList<int>{} << visibleRole);
+		emit dataChanged(index(row, column), index(row, column), QList<int>{1, visibleRole});
 	}
 }
 

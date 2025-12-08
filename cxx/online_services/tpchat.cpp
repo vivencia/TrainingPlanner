@@ -46,7 +46,7 @@ struct ChatMessage {
 };
 
 TPChat::TPChat(const QString &otheruser_id, QObject *parent)
-	: QAbstractListModel{parent}, m_otherUserId{otheruser_id}, m_unreadMessages{0}, m_chatWindow{nullptr}
+	: QAbstractListModel{parent}, m_otherUserId{otheruser_id}, m_unreadMessages{0}, m_chatWindow{nullptr}, m_chatLoaded{false}
 {
 	m_roleNames[idRole]			=	std::move("msgId");
 	m_roleNames[senderRole]		=	std::move("msgSender");
@@ -100,6 +100,9 @@ TPChat::TPChat(const QString &otheruser_id, QObject *parent)
 
 void TPChat::loadChat()
 {
+	if (m_chatLoaded)
+		return;
+
 	connect(m_db, &TPChatDB::chatLoaded, this, [this] (const bool success)
 	{
 		if (success)
@@ -129,12 +132,15 @@ void TPChat::loadChat()
 			emit countChanged();
 			endInsertRows();
 		}
+		m_chatLoaded = true;
+		m_sendMessageTimer->start(0);
 	});
 	appThreadManager()->runAction(m_db, ThreadManager::ReadAllRecords);
 	m_sendMessageTimer = new QTimer{this};
 	m_sendMessageTimer->setInterval(10000);
 	m_sendMessageTimer->callOnTimeout([this] () {
-		appThreadManager()->runAction(m_db, ThreadManager::alterRecords);
+		if (!m_dbModelInterface->modifiedIndices().isEmpty())
+			appThreadManager()->runAction(m_db, ThreadManager::alterRecords);
 		m_sendMessageTimer->stop();
 	});
 }
@@ -254,6 +260,8 @@ void TPChat::createNewMessage(const QString &text, const QString &media)
 void TPChat::incomingMessage(const QString &encoded_message)
 {
 	ChatMessage *message{decodeDownloadedMessage(encoded_message)};
+	if (!message)
+		return;
 	message->received = true;
 	message->rdate = std::move(QDate::currentDate());
 	message->rtime = std::move(QTime::currentTime());
@@ -339,13 +347,21 @@ void TPChat::updateFieldToSave(const uint msg_id, const int field, const QString
 	if (field >= 0)
 		m_dbModelInterface->modelData()[msg_id][field] = value;
 	m_dbModelInterface->setModified(msg_id, field);
-	m_sendMessageTimer->start();
+	if (m_chatLoaded)
+		m_sendMessageTimer->start();
 }
 
 ChatMessage* TPChat::decodeDownloadedMessage(const QString &encoded_message)
 {
+	uint id{appUtils()->getCompositeValue(MESSAGE_ID, encoded_message, record_separator).toUInt()};
+	for (const auto msg : std::as_const(m_messages))
+	{
+		if (msg->id == id)
+			return nullptr;
+	}
+
 	ChatMessage *new_message{new ChatMessage};
-	new_message->id = appUtils()->getCompositeValue(MESSAGE_ID, encoded_message, record_separator).toUInt();
+	new_message->id = id;
 	new_message->sender = std::move(appUtils()->getCompositeValue(MESSAGE_SENDER, encoded_message, record_separator));
 	new_message->receiver = std::move(appUtils()->getCompositeValue(MESSAGE_RECEIVER, encoded_message, record_separator));
 	new_message->sdate = std::move(appUtils()->getDateFromDateString(
@@ -444,7 +460,7 @@ bool TPChat::setData(const QModelIndex &index, const QVariant &value, int role)
 			case textRole:		m_messages.at(row)->text		=		std::move(value.toString());	break;
 			case mediaRole:		m_messages.at(row)->media		=		std::move(value.toString());	break;
 		}
-		emit dataChanged(index, index, QList<int>{} << role);
+		emit dataChanged(index, index, QList<int>{1, role});
 		updateFieldToSave(m_messages.at(row)->id, role - Qt::UserRole, data(index, role).toString());
 		return true;
 	}

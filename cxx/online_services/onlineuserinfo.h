@@ -50,7 +50,7 @@ public:
 	{
 		Q_ASSERT_X(row < count(), "OnlineUserInfo::setData", "row out of range");
 		m_modeldata[row][user_field] = std::move(value);
-		emit dataChanged(index(row), index(row), QList<int>{} << Qt::UserRole + user_field);
+		emit dataChanged(index(row), index(row), QList<int>{1, Qt::UserRole + static_cast<int>(user_field)});
 	}
 
 	bool isSelected(const uint row, const int column = 0) const;

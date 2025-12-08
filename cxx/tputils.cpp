@@ -34,10 +34,11 @@ int TPUtils::generateUniqueId(const QLatin1StringView &seed) const
 	{
 		int n{0};
 		int shift{2};
+		int pos{0};
 		const int shifter{qFloor(QTime::currentTime().msec() / 100)};
 		for (const auto &itr : seed)
 		{
-			n += static_cast<int>(itr);
+			n += static_cast<int>(itr) * ++pos;
 			if (--shift == 0)
 			{
 				n <<= shifter;
@@ -45,10 +46,9 @@ int TPUtils::generateUniqueId(const QLatin1StringView &seed) const
 			}
 		}
 		//Avoid collision with the values defined in return_codes.h
-		if (n < 0 || n >= (TP_RET_CODE_DEFERRED_ACTION + 100))
-			return n;
-		else
-			return n + 1000;
+		if (n >= 0 && n <= (TP_RET_CODE_DEFERRED_ACTION + 100))
+			n += 1000;
+		return n;
 	}
 }
 

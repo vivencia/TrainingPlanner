@@ -82,6 +82,7 @@ private:
 	DBModelInterfaceChat *m_dbModelInterface;
 	TPChatDB *m_db;
 	QTimer *m_sendMessageTimer;
+	bool m_chatLoaded;
 
 	QString tempMessagesFile() const;
 	QString encodeMessageToUpload(ChatMessage* message) const;

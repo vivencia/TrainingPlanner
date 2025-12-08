@@ -15,7 +15,12 @@ QString TPMessage::time() const
 
 void TPMessage::plug()
 {
-	m_parent->addMessage(this);
+	if (!m_plugged)
+	{
+		m_ctime = std::move(QDateTime::currentDateTime());
+		m_plugged = true;
+		m_parent->addMessage(this);
+	}
 }
 
 int TPMessage::insertAction(const QString& actionLabel, const std::function<void(const QVariant &var)> &actionFunc, std::optional<bool> remove)
@@ -28,6 +33,7 @@ int TPMessage::insertAction(const QString& actionLabel, const std::function<void
 		setSticky(remove.value());
 	}
 	const qsizetype n_action{m_actions.count() - 1};
+	emit dataChanged(MESSAGE_COL_ACTIONS);
 	return n_action;
 }
 
@@ -63,7 +69,7 @@ uint TPMessage::insertData(const QVariant &data, const int action_id)
 	}
 	else if (action_id >= m_data.count())
 	{
-		for (qsizetype i{m_data.count()}; i <= action_id ; ++i)
+		for (auto i{m_data.count()}; i <= action_id ; ++i)
 			m_data.append(QVariant{});
 	}
 	m_data[action_id] = data;
@@ -74,11 +80,4 @@ void TPMessage::removeData(const int data_id)
 {
 	if (data_id >= 0 && data_id < m_data.count())
 		m_data.remove(data_id);
-}
-
-void TPMessage::setPlugged(const bool plugged)
-{
-	if (!m_plugged && plugged)
-		m_ctime = std::move(QDateTime::currentDateTime());
-	m_plugged = plugged;
 }

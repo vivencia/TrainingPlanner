@@ -29,7 +29,7 @@ public:
 	 * @return message_id
 	 * @see removeMessage
 	 */
-	std::optional<int> addMessage(TPMessage *msg);
+	void addMessage(TPMessage *msg);
 	Q_INVOKABLE inline void removeMessage(const qsizetype message_id) { removeMessage(message(message_id)); }
 	void removeMessage(TPMessage *msg);
 	Q_INVOKABLE void execAction(const int message_index, const uint action_id);

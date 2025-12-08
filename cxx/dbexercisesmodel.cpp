@@ -573,7 +573,7 @@ uint DBExercisesModel::addExercise(int exercise_number, const bool emit_signal)
 		setExerciseName(exercise_number, 0, tr("Choose exercise..."));
 		setWorkingExercise(exercise_number);
 		emit exerciseCountChanged();
-		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << exerciseNumberRole);
+		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{1, exerciseNumberRole});
 		endInsertRows();
 	}
 
@@ -611,17 +611,17 @@ void DBExercisesModel::delExercise(const uint exercise_number, const bool emit_s
 	if (exercise_number >= workingExercise())
 	{
 		if (workingExercise() > 0)
-			setWorkingExercise(exercise_number-1);
+			setWorkingExercise(exercise_number - 1);
 	}
 	if (emit_signal)
 	{
-		emit dataChanged(index(exercise_number, 0), index(m_exerciseData.count() - 1, 0), QList<int>{} << exerciseNumberRole);
+		emit dataChanged(index(exercise_number, 0), index(m_exerciseData.count() - 1, 0), QList<int>{1, exerciseNumberRole});
 		emit exerciseCountChanged();
 		endRemoveRows();
 
-		m_dbModelInterface->setRemovalInfo(exercise_number, QList<uint>{} << EXERCISES_COL_ID);
+		m_dbModelInterface->setRemovalInfo(exercise_number, QList<uint>{1, EXERCISES_COL_ID});
 		m_db->setDBModelInterface(m_dbModelInterface);
-		appThreadManager()->runAction(m_db, ThreadManager::DeleteRecord);
+		appThreadManager()->runAction(m_db, ThreadManager::DeleteRecords);
 		m_dbModelInterface->modelData().remove(exercise_number);
 	}
 }
@@ -657,7 +657,7 @@ void DBExercisesModel::moveExercise(const uint from, const uint to)
 		}
 		m_exerciseData[to] = std::move(tempExerciseData);
 		m_exerciseData.at(to)->exercise_number = to;
-		emit dataChanged(index(to > from ? from : to, 0), index(to > from ? to : from, 0), QList<int>{} << exerciseNumberRole);
+		emit dataChanged(index(to > from ? from : to, 0), index(to > from ? to : from, 0), QList<int>{1, exerciseNumberRole});
 		endMoveRows();
 		m_db->setDBModelInterface(m_dbModelInterface);
 		appThreadManager()->runAction(m_db, ThreadManager::UpdateRecords);
@@ -752,7 +752,7 @@ uint DBExercisesModel::addSubExercise(const uint exercise_number, const bool emi
 	if (emit_signal)
 	{
 		setWorkingSubExercise(exercise_idx, exercise_number);
-		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << giantSetExerciseRole);
+		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{1, giantSetExerciseRole});
 		emit subExerciseCountChanged(exercise_number);
 
 		QList<int> modified_fields{EXERCISES_TOTALCOLS - EXERCISES_COL_EXERCISES, EXERCISES_COL_EXERCISES};
@@ -786,7 +786,7 @@ void DBExercisesModel::delSubExercise(const uint exercise_number, const uint exe
 	}
 	if (emit_signal)
 	{
-		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << giantSetExerciseRole);
+		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{1, giantSetExerciseRole});
 		emit subExerciseCountChanged(exercise_number);
 
 		QList<int> modified_fields{EXERCISES_TOTALCOLS - EXERCISES_COL_EXERCISES, EXERCISES_COL_EXERCISES};
@@ -816,7 +816,7 @@ uint DBExercisesModel::addSet(const uint exercise_number, const uint exercise_id
 			setModeForSet(new_set);
 		setWorkingSet(set_number, exercise_number, exercise_idx);
 		emit setsNumberChanged(exercise_number, exercise_idx);
-		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << setsNumberRole);
+		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{1, setsNumberRole});
 
 		QList<int> modified_fields{EXERCISES_TOTALCOLS - EXERCISES_COL_SETTYPES, EXERCISES_COL_SETTYPES};
 		for (uint i{EXERCISES_COL_SETTYPES}; i < EXERCISES_TOTALCOLS; ++i)
@@ -848,7 +848,7 @@ void DBExercisesModel::delSet(const uint exercise_number, const uint exercise_id
 	if (emit_signal)
 	{
 		emit setsNumberChanged(exercise_number, exercise_idx);
-		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << setsNumberRole);
+		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{1, setsNumberRole});
 
 		QList<int> modified_fields{EXERCISES_TOTALCOLS - EXERCISES_COL_SETTYPES, EXERCISES_COL_SETTYPES};
 		for (uint i{EXERCISES_COL_SETTYPES}; i < EXERCISES_TOTALCOLS; ++i)
@@ -934,7 +934,7 @@ void DBExercisesModel::setWorkingExercise(const uint new_workingexercise)
 		if (workingSubExercise(m_workingExercise) == UNSET_VALUE)
 			setWorkingSubExercise(0, m_workingExercise);
 		emit workingExerciseChanged(m_workingExercise);
-		emit dataChanged(index(new_workingexercise, 0), index(new_workingexercise, 0), QList<int>{} << workingExerciseRole);
+		emit dataChanged(index(new_workingexercise, 0), index(new_workingexercise, 0), QList<int>{1, workingExerciseRole});
 	}
 }
 
@@ -955,7 +955,7 @@ void DBExercisesModel::setWorkingSubExercise(const uint new_workingsubexercise, 
 		if (workingSet(exercise_number, new_workingsubexercise) == UNSET_VALUE)
 			setWorkingSet(0, exercise_number, new_workingsubexercise);
 		emit workingSubExerciseChanged(exercise_number, new_workingsubexercise);
-		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << workingSubExerciseRole);
+		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{1, workingSubExerciseRole});
 	}
 }
 
@@ -981,7 +981,7 @@ void DBExercisesModel::setWorkingSet(const uint new_workingset, int exercise_num
 	{
 		m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->working_set = new_workingset;
 		emit workingSetChanged(exercise_number, exercise_idx, new_workingset);
-		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << workingSetRole);
+		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{1, workingSetRole});
 	}
 }
 
@@ -1017,7 +1017,7 @@ void DBExercisesModel::setTrackRestTime(const uint exercise_number, const bool t
 	m_exerciseData.at(exercise_number)->track_rest_time = track_resttime;
 	changeAllSetsMode(exercise_number);
 	emit exerciseModified(exercise_number, EXERCISE_IGNORE_NOTIFY_IDX, EXERCISE_IGNORE_NOTIFY_IDX, EXERCISES_COL_TRACKRESTTIMES);
-	emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << trackRestTimeRole);
+	emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{1, trackRestTimeRole});
 }
 
 bool DBExercisesModel::autoRestTime(const uint exercise_number) const
@@ -1030,7 +1030,7 @@ void DBExercisesModel::setAutoRestTime(const uint exercise_number, const bool au
 	m_exerciseData.at(exercise_number)->auto_rest_time = auto_resttime;
 	changeAllSetsMode(exercise_number);
 	emit exerciseModified(exercise_number, EXERCISE_IGNORE_NOTIFY_IDX, EXERCISE_IGNORE_NOTIFY_IDX, EXERCISES_COL_AUTORESTTIMES);
-	emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << autoRestTimeRole);
+	emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{1, autoRestTimeRole});
 }
 
 int DBExercisesModel::setType(const uint exercise_number, const uint exercise_idx, const uint set_number) const
@@ -1321,7 +1321,7 @@ bool DBExercisesModel::setCompleted(const uint exercise_number, const uint exerc
 void DBExercisesModel::setSetCompleted(const uint exercise_number, const uint exercise_idx, const uint set_number, const bool completed)
 {
 	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->completed = completed;
-	emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{} << exerciseCompletedRole);
+	emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{1, exerciseCompletedRole});
 	emit exerciseModified(exercise_number, exercise_idx, set_number, EXERCISES_COL_COMPLETED);
 }
 

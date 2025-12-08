@@ -271,7 +271,6 @@ TPPopup {
 								}
 								TPLabel {
 									text: extraInfo
-									horizontalAlignment: Text.AlignHCenter
 									minimumPixelSize: appSettings.smallFontSize * 0.7
 									z: 1
 									width: parent.width * 0.5

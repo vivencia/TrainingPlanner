@@ -19,16 +19,16 @@ TPMessagesManager *TPMessagesManager::_appMessagesManager{nullptr};
 
 enum RoleNames
 {
-	idRole				= Qt::UserRole,
-	labelTextRole		= Qt::UserRole + 1,
-	iconRole			= Qt::UserRole + 2,
-	dateRole			= Qt::UserRole + 3,
-	timeRole			= Qt::UserRole + 4,
-	extraInfoLabelRole	= Qt::UserRole + 5,
-	extraInfoIconRole	= Qt::UserRole + 6,
-	actionsRole			= Qt::UserRole + 7,
-	stickyRole			= Qt::UserRole + 8,
-	hasActionsRole		= Qt::UserRole + 9,
+	idRole				= Qt::UserRole + MESSAGE_COL_ID,
+	labelTextRole		= Qt::UserRole + MESSAGE_COL_TEXT,
+	iconRole			= Qt::UserRole + MESSAGE_COL_ICON,
+	dateRole			= Qt::UserRole + MESSAGE_COL_DATE,
+	timeRole			= Qt::UserRole + MESSAGE_COL_TIME,
+	extraInfoLabelRole	= Qt::UserRole + MESSAGE_COL_EXTRA_INFO,
+	extraInfoIconRole	= Qt::UserRole + MESSAGE_COL_EXTRA_ICON,
+	actionsRole			= Qt::UserRole + MESSAGE_COL_ACTIONS,
+	stickyRole			= Qt::UserRole + MESSAGE_COL_STICKY,
+	hasActionsRole		= stickyRole   + 1,
 };
 
 TPMessagesManager::TPMessagesManager(QObject *parent)
@@ -73,31 +73,31 @@ TPMessage *TPMessagesManager::message(const qsizetype message_id) const
 	return it != m_data.cend() ? *it : nullptr;
 }
 
-std::optional<int> TPMessagesManager::addMessage(TPMessage *msg)
+void TPMessagesManager::addMessage(TPMessage *msg)
 {
-	if (msg && !msg->plugged())
+	beginInsertRows(QModelIndex{}, count(), count());
+	const QLatin1StringView v{std::move(msg->_displayText().toLatin1())};
+	if (msg->id() == -1) //do not override an id set elsewhere
+		msg->setId(appUtils()->generateUniqueId(v));
+	m_data.append(msg);
+	endInsertRows();
+	emit countChanged();
+	connect(msg, &TPMessage::actionTriggered, this, [this,msg] (const int action_id, const std::optional<bool> remove_message)
 	{
-		beginInsertRows(QModelIndex{}, count(), count());
-		const QLatin1StringView v{std::move(msg->_displayText().toLatin1())};
-		if (msg->id() == -1) //do not override an id set elsewhere
-			msg->setId(appUtils()->generateUniqueId(v));
-		m_data.append(msg);
-		endInsertRows();
-		emit countChanged();
-		msg->setPlugged(true);
-		connect(msg, &TPMessage::actionTriggered, this, [this,msg] (const int action_id, const std::optional<bool> remove_message) {
-			if (remove_message.has_value())
-			{
-				if (remove_message.value())
-					removeMessage(msg);
-			}
-			else
-				if (!msg->sticky())
-					removeMessage(msg);
-		});
-		return msg->id();
-	}
-	return std::nullopt;
+		if (remove_message.has_value())
+		{
+			if (remove_message.value())
+				removeMessage(msg);
+		}
+		else
+			if (!msg->sticky())
+				removeMessage(msg);
+	});
+	connect(msg, &TPMessage::dataChanged, this, [this] (const uint field) {
+		const auto idx{m_data.indexOf(sender())};
+		if (idx >= 0)
+			emit dataChanged(index(idx, 0), index(idx, 0), QList<int>{1, static_cast<int>(Qt::UserRole + field)} );
+	});
 }
 
 void TPMessagesManager::removeMessage(TPMessage *msg)
@@ -383,11 +383,12 @@ void TPMessagesManager::parseNewChatMessages(const QString &encoded_messages)
 
 void TPMessagesManager::parseNewMessage(const QString &sender_id, const QString &sender_messages)
 {
-	const qsizetype i_sender_id{sender_id.toLong()};
+	const auto i_sender_id{sender_id.toLong()};
 	TPMessage *chat_message{message(i_sender_id)};
 	if (!chat_message)
 		chat_message = createChatMessage(sender_id);
 	TPChat *chat_mngr{chatManager(sender_id)};
+	chat_mngr->loadChat();
 	uint msg_idx{0};
 	do {
 		const QString &encoded_message{appUtils()->getCompositeValue(msg_idx, sender_messages, set_separator)};

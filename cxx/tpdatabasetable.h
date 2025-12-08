@@ -51,7 +51,7 @@ public:
 	std::pair<bool,bool> updateRecord();
 	std::pair<bool,bool> updateFieldsOfRecord();
 	std::pair<bool,bool> updateRecords();
-	std::pair<bool,bool> removeRecord();
+	std::pair<bool,bool> removeRecords();
 	std::pair<bool,bool> clearTable();
 	std::pair<bool,bool> removeTemporaries();
 

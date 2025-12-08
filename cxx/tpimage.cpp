@@ -126,14 +126,14 @@ void TPImage::paint(QPainter *painter)
 	if (!m_imageToPaint)
 		return;
 
-	QPointF center{boundingRect().center() - m_imageToPaint->rect().center()};
-
-	if (center.x() < 0)
-		center.setX(0);
-	if (center.y() < 0)
-		center.setY(0);
-
-	painter->drawImage(center, *m_imageToPaint);
+	if (imageSizeFollowControlSize())
+		painter->drawImage(QPoint{0, 0}, *m_imageToPaint);
+	else
+	{
+		const QRect center_rect_of_image{(m_imageToPaint->width() - static_cast<int>(width()))/2,
+					(m_imageToPaint->height() - static_cast<int>(height()))/2, qFloor(width()), qFloor(height())};
+		painter->drawImage(QPoint{0, 0}, *m_imageToPaint, center_rect_of_image);
+	}
 }
 
 void TPImage::checkEnabled()
@@ -211,7 +211,7 @@ void TPImage::createDropShadowImage()
 {
 	if (!m_image.isNull())
 	{
-		QGraphicsDropShadowEffect *shadowEffect{new QGraphicsDropShadowEffect()};
+		QGraphicsDropShadowEffect *shadowEffect{new QGraphicsDropShadowEffect};
 		shadowEffect->setOffset(DROP_SHADOW_EXTENT, DROP_SHADOW_EXTENT);
 		shadowEffect->setBlurRadius(DROP_SHADOW_EXTENT);
 		applyEffectToImage(m_imageShadow, m_image, shadowEffect, DROP_SHADOW_EXTENT);

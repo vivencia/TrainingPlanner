@@ -776,27 +776,69 @@ function send_message($username, $receiver, $message) {
 	echo "0: Message Sent!";
 }
 
+//$messageid must be comprised of the message id followed by set_separator
 function message_worker($sender, $recipient, $messageid, $argument) {
 	global $rootdir;
 	$messages_dir = $rootdir . $recipient . "/chats/";
-	if (!create_dir($messages_dir))
-		die(get_return_code("directory not writable") . ": Unable to create messages dir " .$messages_dir);
+	if (!create_dir($messages_dir)) {
+		echo get_return_code("directory not writable") . ": Unable to create messages dir " .$messages_dir;
+		return false;
+	}
 	$messages_file = $messages_dir . $sender . "." . $argument;
 	if (!file_exists($messages_file)) {
-		$fh = fopen($messages_file, "w") or die(get_return_code("open write failed") . ": Unable to create " . $messages_file);
+		$fh = fopen($messages_file, "w");
+		if (!$fh) {
+			echo get_return_code("open write failed") . ": Unable to create " . $messages_file;
+			return false;
+		}
 		chper($messages_file);
 	}
 	else {
-		$msgids = file($messages_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-		if (str_contains($msgids, $messageid . "\037")) {
-			echo get_return_code("no changes success") . ": Message " . $argument . "!";
-			return;
+		$msgids_arr = file($messages_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+		foreach ($msgids_arr as $msgids) {
+			if (str_contains($msgids, $messageid)) {
+				echo get_return_code("no changes success") . ": Message " . $argument . "!";
+				return true;
+			}
 		}
-		$fh = fopen($messages_file, "a+") or die(get_return_code("open write failed") . ": Unable to append to " . $messages_file);
+		$fh = fopen($messages_file, "a+");
+		if (!$fh) {
+			echo get_return_code("open write failed") . ": Unable to append to " . $messages_file;
+			return false;
+		}
 	}
 	fwrite($fh, $messageid);
 	fclose($fh);
 	echo "0: Message " . $argument . "!";
+	return true;
+}
+
+function remove_received_message($sender, $recipient, $messageid)
+{
+	global $rootdir;
+	$messages_dir = $rootdir . $recipient . "/chats/";
+	$messages_file = $messages_dir . $sender . ".msg";
+	$messages_arr = file($messages_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+	$sep_idx1 = 0;
+	$sep_idx2 = 0;
+	$kept_messages = [];
+	$msgid = (int)$messageid;
+	foreach ($messages_arr as $messages) {
+		do {
+			$sep_idx2 = strpos($messages, "\037", $sep_idx1);
+			if ($sep_idx2 > 0) {
+				$message = substr($messages, $sep_idx1, $sep_idx2 - $sep_idx1);
+				$message_id = substr($message, 0, strpos($message, "\036", 0));
+				$id = (int)$message_id;
+				if ($id !== $msgid)
+					$kept_messages[] = $message . "\037";
+				$sep_idx1 = $sep_idx2 + 1;
+			}
+		} while ($sep_idx2 > 0);
+	}
+	$fh = fopen($messages_file, "w");
+	fwrite($fh, implode($kept_messages));
+	fclose($fh);
 }
 
 function run_htpasswd($cmd_args, $username, $password) {
@@ -1060,7 +1102,8 @@ if ($username) {
 					$recipient != "" or die(get_return_code("argument missing") . ": No sender argument **messagereceived**");
 					$messageid = $_GET['messageid'];
 					$messageid != "" or die(get_return_code("argument missing") . ": No message id argument **messagereceived**");
-					message_worker($username, $recipient, $messageid, "received");
+					if (message_worker($username, $recipient, $messageid, "received"))
+						remove_received_message($recipient, $username, $messageid);
 					exit;
 				}
 				if (isset($_GET['messageread'])) {

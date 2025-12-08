@@ -6,7 +6,7 @@
 //--------------------------------------------GLOBAL SETTINGS---------------------------------------------//
 using namespace Qt::Literals::StringLiterals;
 
-constexpr QLatin1StringView TP_APP_VERSION("v20250922 Build 20"_L1);
+constexpr QLatin1StringView TP_APP_VERSION("v20251206 Build 6"_L1);
 constexpr QLatin1StringView GLOBAL_GROUP("app"_L1);
 constexpr QLatin1StringView DEFAULT_USER{"default"_L1};
 
@@ -108,6 +108,11 @@ public:
 	QString userConfigFileName(const bool fullpath, const QString &userid = QString{}) const;
 	void importFromUserConfig(const QString &userid);
 	bool exportToUserConfig(const QString &userid);
+#ifndef QT_NO_QDEBUG
+#ifndef Q_OS_ANDROID
+	void setReadOnlyGroup(const QString &group, const bool read_only);
+#endif
+#endif
 
 	inline QString appVersion() const { return getValue(GLOBAL_GROUP, APP_VERSION_INDEX, TP_APP_VERSION).toString(); }
 	inline uint windowWidth() const { return m_windowWidth; }
@@ -140,17 +145,37 @@ private:
 	double m_HeightToWidth;
 	QString m_localAppFilesDir;
 
-	void getScreenMeasures();
-	static TPSettings* app_settings;
-	friend TPSettings* appSettings();
+#ifndef QT_NO_QDEBUG
+#ifndef Q_OS_ANDROID
+	QHash<QString,QVariant> m_readOnlyValues;
+	QStringList m_readOnlyGroups;
+	inline bool isGroupReadOnly(const QString &group) const { return m_readOnlyGroups.contains(group); }
 
+	inline QVariant getValue(const QString &group, const uint index, const QVariant &default_value = QVariant{}) const
+	{
+		if (!isGroupReadOnly(group))
+			return value(group + '/' + (group == GLOBAL_GROUP ? m_propertyNames.value(index) :
+										m_userPropertyNames.value(index)), default_value);
+		else
+		{
+			const QVariant &read_only_value{m_readOnlyValues.value(group + '/' + (group == GLOBAL_GROUP ? m_propertyNames.value(index) :
+										m_userPropertyNames.value(index)))};
+			return !read_only_value.isNull() ? read_only_value : value(group + '/' + (group == GLOBAL_GROUP ? m_propertyNames.value(index) :
+										m_userPropertyNames.value(index)), default_value);
+		}
+	}
+#endif
+#else
 	inline QVariant getValue(const QString &group, const uint index, const QVariant &default_value = QVariant{}) const
 	{
 		return value(group + '/' + (group == GLOBAL_GROUP ? m_propertyNames.value(index) :
 										m_userPropertyNames.value(index)), default_value);
 	}
-
+#endif
 	void changeValue(const QString &group, const uint index, const QVariant &new_value, const bool dosync = true);
+	void getScreenMeasures();
+	static TPSettings* app_settings;
+	friend TPSettings* appSettings();
 //--------------------------------------------GLOBAL SETTINGS---------------------------------------------//
 
 //--------------------------------------------USER   SETTINGS---------------------------------------------//

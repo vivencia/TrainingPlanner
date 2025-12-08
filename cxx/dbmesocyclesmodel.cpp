@@ -112,12 +112,12 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 	if (meso_idx >= m_mesoData.count())
 		return;
 
-	m_dbModelInterface->setRemovalInfo(meso_idx, QList<uint>{} << MESOCYCLES_COL_ID);
-	appThreadManager()->runAction(m_db, ThreadManager::DeleteRecord);
+	m_dbModelInterface->setRemovalInfo(meso_idx, QList<uint>{1, MESOCYCLES_COL_ID});
+	appThreadManager()->runAction(m_db, ThreadManager::DeleteRecords);
 	DBSplitModel *split_model{splitModel(meso_idx, 'A')};
 	m_splitsDB->setDBModelInterface(split_model->dbModelInterface());
-	split_model->dbModelInterface()->setRemovalInfo(0, QList<uint>{} << EXERCISES_COL_MESOID);
-	appThreadManager()->runAction(m_splitsDB, ThreadManager::DeleteRecord);
+	split_model->dbModelInterface()->setRemovalInfo(0, QList<uint>{1, EXERCISES_COL_MESOID});
+	appThreadManager()->runAction(m_splitsDB, ThreadManager::DeleteRecords);
 
 	qDeleteAll(m_splitModels.at(meso_idx));
 	m_splitModels.remove(meso_idx);
@@ -384,8 +384,8 @@ void DBMesocyclesModel::loadSplits(const uint meso_idx)
 void DBMesocyclesModel::removeSplit(const uint meso_idx, const QChar &split_letter)
 {
 	DBSplitModel *split_model{splitModel(meso_idx, split_letter)};
-	split_model->dbModelInterface()->setRemovalInfo(0, QList<uint>{} << EXERCISES_COL_MESOID << EXERCISES_COL_SPLITLETTER);
-	appThreadManager()->runAction(m_splitsDB, ThreadManager::DeleteRecord);
+	split_model->dbModelInterface()->setRemovalInfo(0, QList<uint>{2} << EXERCISES_COL_MESOID << EXERCISES_COL_SPLITLETTER);
+	appThreadManager()->runAction(m_splitsDB, ThreadManager::DeleteRecords);
 	m_splitModels[meso_idx].remove(split_letter);
 }
 

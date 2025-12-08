@@ -210,10 +210,10 @@ TPPopup {
 	RowLayout {
 		id: headerPane
 		spacing: 5
+		z: 1
 
 		anchors {
 			top: parent.top
-			topMargin: 5
 			left: parent.left
 			right: parent.right
 		}

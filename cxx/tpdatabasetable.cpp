@@ -50,9 +50,9 @@ TPDatabaseTable::TPDatabaseTable(const uint table_id, DBModelInterface *dbmodel_
 		auto result{updateRecords()};
 		emit actionFinished(ThreadManager::UpdateRecords, result.first, result.second);
 	});
-	m_threadedFunctions.insert(ThreadManager::DeleteRecord, [this] () {
-		auto result{removeRecord()};
-		emit actionFinished(ThreadManager::DeleteRecord, result.first, result.second);
+	m_threadedFunctions.insert(ThreadManager::DeleteRecords, [this] () {
+		auto result{removeRecords()};
+		emit actionFinished(ThreadManager::DeleteRecords, result.first, result.second);
 	});
 	m_threadedFunctions.insert(ThreadManager::RemoveTemporaries, [this] () {
 		auto result{removeTemporaries()};
@@ -234,7 +234,7 @@ std::pair<bool,bool> TPDatabaseTable::alterRecords()
 			}
 		}
 		for (auto &&query : queries)
-			m_strQuery = std::move(query);
+			m_strQuery += std::move(query);
 		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
 	}
 	return std::pair<bool,bool>{success, cmd_ok};
@@ -307,13 +307,13 @@ std::pair<bool,bool> TPDatabaseTable::updateRecords()
 	{
 		success = true;
 		for (auto &&query : queries)
-			m_strQuery = std::move(query);
+			m_strQuery += std::move(query);
 		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
 	}
 	return std::pair<bool,bool>{success, cmd_ok};
 }
 
-std::pair<bool,bool> TPDatabaseTable::removeRecord()
+std::pair<bool,bool> TPDatabaseTable::removeRecords()
 {
 	bool success{false}, cmd_ok{false};
 	for (const auto value : std::as_const(m_dbModelInterface->removalInfo()))

@@ -83,6 +83,26 @@ bool TPSettings::exportToUserConfig(const QString &userid)
 	return false;
 }
 
+#ifndef QT_NO_QDEBUG
+#ifndef Q_OS_ANDROID
+void TPSettings::setReadOnlyGroup(const QString &group, const bool read_only)
+{
+	if (read_only)
+		m_readOnlyGroups.append(group);
+	else
+	{
+		if (isGroupReadOnly(group))
+		{
+			m_readOnlyGroups.remove(m_readOnlyGroups.indexOf(group));
+			static_cast<void>(erase_if(m_readOnlyValues, [group] (const QHash<QString,QVariant>::iterator it) {
+				return it.key().startsWith(group);
+			}));
+		}
+	}
+}
+#endif
+#endif
+
 void TPSettings::getScreenMeasures()
 {
 	const QScreen *screen{QGuiApplication::primaryScreen()};
@@ -115,9 +135,21 @@ void TPSettings::getScreenMeasures()
 
 void TPSettings::changeValue(const QString &group, const uint index, const QVariant &new_value, const bool dosync)
 {
+	#ifndef QT_NO_QDEBUG
+	#ifndef Q_OS_ANDROID
+	if (isGroupReadOnly(group))
+	{
+		m_readOnlyValues.insert(group + '/' + (group == GLOBAL_GROUP ? m_propertyNames.value(index) :
+										m_userPropertyNames.value(index)), new_value.toString());
+		return;
+	}
+	#endif
+	#endif
+
 	beginGroup(group);
 	setValue(group == GLOBAL_GROUP ? m_propertyNames.value(index) : m_userPropertyNames.value(index), new_value);
 	endGroup();
+
 	if (dosync)
 	{
 		sync();

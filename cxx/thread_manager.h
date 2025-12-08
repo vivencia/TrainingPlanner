@@ -21,7 +21,7 @@ public:
 		UpdateOneField,
 		UpdateSeveralFields,
 		UpdateRecords,
-		DeleteRecord,
+		DeleteRecords,
 		RemoveTemporaries,
 		ClearTable,
 	};

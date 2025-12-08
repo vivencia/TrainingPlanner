@@ -1328,8 +1328,8 @@ void DBUserModel::saveUserInfo(const uint user_idx, const uint field)
 				appThreadManager()->runAction(m_db, ThreadManager::InsertRecords);
 			break;
 			case USER_MODIFIED_REMOVED:
-				m_dbModelInterface->setRemovalInfo(user_idx, QList<uint>{} << USER_COL_ID);
-				appThreadManager()->runAction(m_db, ThreadManager::DeleteRecord);
+				m_dbModelInterface->setRemovalInfo(user_idx, QList<uint>{1, USER_COL_ID});
+				appThreadManager()->runAction(m_db, ThreadManager::DeleteRecords);
 			break;
 		}
 	}
@@ -2159,7 +2159,7 @@ void DBUserModel::pollCurrentCoaches()
 			{
 				QStringList coaches_list{std::move(ret_string.split(' ', Qt::SkipEmptyParts))};
 				bool connected{false};
-				for (qsizetype i{m_usersData.count()-1}; i >= 1 ; --i)
+				for (auto i{m_usersData.count() - 1}; i >= 1 ; --i)
 				{
 					if (i == m_tempRow)
 						continue;

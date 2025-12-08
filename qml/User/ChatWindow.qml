@@ -311,7 +311,7 @@ TPPopup {
 
 		FocusScope {
 			id: txtFocus
-			width: parent.width * 0.9
+			width: parent.width * 0.88
 			height: txtMessage.height
 			anchors {
 				left: parent.left
@@ -320,6 +320,7 @@ TPPopup {
 
 			TPTextInput {
 				id: txtMessage
+				showClearTextButton: true
 				enableRegex: false
 				anchors {
 					left: parent.left

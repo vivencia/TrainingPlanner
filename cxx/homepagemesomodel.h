@@ -36,7 +36,7 @@ public:
 	{
 		const int row{findMesoIdx(meso_idx)};
 		if (row >= 0)
-			emit dataChanged(index(row, 0), index(row, 0), role >= 0 ? QList<int>{} << role : QList<int>{});
+			emit dataChanged(index(row, 0), index(row, 0), role >= 0 ? QList<int>{1, role} : QList<int>{});
 	}
 
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }

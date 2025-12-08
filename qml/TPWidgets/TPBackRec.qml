@@ -31,10 +31,7 @@ Rectangle {
 	Loader {
 		active: useImage
 		asynchronous: true
-		Component.onCompleted: {
-			if (scaleImageToControlSize)
-				anchors.fill = parent;
-		}
+		anchors.fill: parent
 
 		sourceComponent: TPImage {
 			id: _image

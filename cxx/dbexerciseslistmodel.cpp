@@ -121,8 +121,8 @@ void DBExercisesListModel::newExercise(const QString &name, const QString &subna
 
 void DBExercisesListModel::removeExercise(const uint index)
 {
-	m_dbModelInterface->setRemovalInfo(actualIndex(index), QList<uint>{} << EXERCISES_LIST_COL_ID);
-	appThreadManager()->runAction(m_db, ThreadManager::DeleteRecord);
+	m_dbModelInterface->setRemovalInfo(actualIndex(index), QList<uint>{1 , EXERCISES_LIST_COL_ID});
+	appThreadManager()->runAction(m_db, ThreadManager::DeleteRecords);
 
 	beginRemoveRows(QModelIndex{}, index, index);
 	const uint actual_index{actualIndex(index)};
@@ -360,12 +360,12 @@ bool DBExercisesListModel::manageSelectedEntries(const uint item_pos, const uint
 		}
 		m_exercisesData[m_selectedEntries.at(idx).real_index][EXERCISES_LIST_COL_SELECTED] = '0';
 		emit dataChanged(index(m_selectedEntries.at(idx).view_index, 0),
-					index(m_selectedEntries.at(idx).view_index, 0), QList<int>{} << selectedRole);
+					index(m_selectedEntries.at(idx).view_index, 0), QList<int>{1, selectedRole});
 		m_selectedEntries.remove(idx, 1);
 		return false;
 	}
 	m_exercisesData[real_item_pos][EXERCISES_LIST_COL_SELECTED] = '1';
-	emit dataChanged(index(item_pos, 0), index(item_pos, 0), QList<int>{} << selectedRole);
+	emit dataChanged(index(item_pos, 0), index(item_pos, 0), QList<int>{1, selectedRole});
 	return true;
 }
 
