@@ -165,6 +165,7 @@ std::pair<bool, bool> TPDatabaseTable::insertRecord()
 		if (auto_increment)
 			m_dbModelInterface->modelData()[modified_row][0] = std::move(m_workingQuery.lastInsertId().toString());
 		success = true;
+		m_strQuery.prepend("PRAGMA busy_timeout = 5000;"_L1);
 		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
 	}
 	m_dbModelInterface->modifiedIndices().remove(modified_row);
@@ -233,6 +234,7 @@ std::pair<bool,bool> TPDatabaseTable::alterRecords()
 					data[0] = std::move(QString::number(last_insert_id--));
 			}
 		}
+		m_strQuery = std::move("PRAGMA busy_timeout = 5000;"_L1);
 		for (auto &&query : queries)
 			m_strQuery += std::move(query);
 		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
@@ -253,7 +255,10 @@ std::pair<bool,bool> TPDatabaseTable::updateRecord()
 											'\'' + new_value + '\'' : new_value, m_fieldNames[0][0], id));
 	success = execSingleWriteQuery(m_strQuery);
 	if (success)
+	{
+		m_strQuery.prepend("PRAGMA busy_timeout = 5000;"_L1);
 		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
+	}
 	m_dbModelInterface->modifiedIndices().remove(modified_row);
 	return std::pair<bool,bool>{success, cmd_ok};
 }
@@ -275,7 +280,10 @@ std::pair<bool,bool> TPDatabaseTable::updateFieldsOfRecord()
 	m_strQuery += std::move(" WHERE %1=%2;"_L1.arg(m_fieldNames[0][0], id));
 	success = execSingleWriteQuery(m_strQuery);
 	if (success)
+	{
+		m_strQuery.prepend("PRAGMA busy_timeout = 5000;"_L1);
 		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
+	}
 	m_dbModelInterface->modifiedIndices().remove(modified_row);
 	return std::pair<bool,bool>{success, cmd_ok};
 }
@@ -306,6 +314,7 @@ std::pair<bool,bool> TPDatabaseTable::updateRecords()
 	if (execMultipleWritesQuery(queries))
 	{
 		success = true;
+		m_strQuery = std::move("PRAGMA busy_timeout = 5000;"_L1);
 		for (auto &&query : queries)
 			m_strQuery += std::move(query);
 		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
@@ -329,7 +338,10 @@ std::pair<bool,bool> TPDatabaseTable::removeRecords()
 		m_strQuery += ';';
 		success = execSingleWriteQuery(m_strQuery);
 		if (success)
+		{
+			m_strQuery.prepend("PRAGMA busy_timeout = 5000;"_L1);
 			cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
+		}
 		m_dbModelInterface->clearRemovalIndices();
 	}
 	return std::pair<bool,bool>{success, cmd_ok};

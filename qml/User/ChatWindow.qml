@@ -29,6 +29,7 @@ TPPopup {
 
 	signal chatWindowIsActiveWindow(ChatModel chat_manager);
 
+	onOpened: chatWindowIsActiveWindow(chatManager);
 	onActiveFocusChanged: {
 		if (activeFocus)
 			chatWindowIsActiveWindow(chatManager);
@@ -172,12 +173,12 @@ TPPopup {
 			width: messagesList.width
 			height: !msgDeleted ? msgHeight : 0
 
-			readonly property bool senderMessage: msgSender === userModel.userId
+			readonly property bool ownMessage: msgSender === userModel.userId
 			property int msgHeight: 10
 
 			Rectangle {
 				id: messageRec
-				color: messageItem.senderMessage ? appSettings.listEntryColor1 : appSettings.listEntryColor2
+				color: messageItem.ownMessage ? appSettings.listEntryColor1 : appSettings.listEntryColor2
 				border.color: appSettings.fontColor
 				radius: 8
 				opacity: 1 + swipe.position
@@ -187,7 +188,7 @@ TPPopup {
 				anchors.top: parent.top
 
 				Component.onCompleted: {
-					if (messageItem.senderMessage) {
+					if (messageItem.ownMessage) {
 						anchors.right = parent.right;
 						anchors.rightMargin = 10;
 					}
@@ -214,7 +215,7 @@ TPPopup {
 
 				TPLabel {
 					id: lblExtraInfo
-					text: messageItem.senderMessage ? msgSentDate + "  " + msgSentTime : msgReceivedDate + "  " + msgReceivedTime
+					text: messageItem.ownMessage ? msgSentDate + "  " + msgSentTime : msgReceivedDate + "  " + msgReceivedTime
 					font: Qt.font({
 						family: Qt.fontFamilies()[0],
 						weight: Font.ExtraLight,
@@ -236,8 +237,9 @@ TPPopup {
 
 				TPImage {
 					id: sentIcon
-					source:  msgSent ? "message-sent.png" : "message-read.png"
+					source: msgRead ? "message-read.png" : "message-sent.png"
 					dropShadow: false
+					visible: msgSent
 					width: appSettings.itemSmallHeight * 0.5
 					height: width
 
@@ -274,19 +276,104 @@ TPPopup {
 				opacity: messageItem.swipe.complete ? 0.8 : 0 - messageItem.swipe.position
 				radius: 8
 
-				TPImage {
-					source: "remove"
-					width: appSettings.itemDefaultHeight
-					height: width
+				readonly property int imageSize: height <= appSettings.itemDefaultHeight * 4 ?
+										appSettings.itemSmallHeight * 0.9 : appSettings.itemDefaultHeight
+
+				MouseArea {
+					z: 1
+					anchors.fill: parent
+					onClicked: (mouse) => {
+						if (messageItem.ownMessage)
+							chatManager.removeMessage(index, mouse.x > parent.width);
+						else
+							chatManager.removeMessage(index, false);
+					}
+				}
+
+				Item {
+					anchors {
+						top: parent.top
+						left: parent.left
+						right: messageItem.ownMessage ? parent.horizontalCenter : parent.right
+						bottom: parent.bottom
+					}
+
+					TPImage {
+						id: delImage1
+						source: "remove"
+						width: removeBackground.imageSize
+						height: width
+
+						anchors {
+							horizontalCenter: parent.horizontalCenter
+							verticalCenter: parent.verticalCenter
+							verticalCenterOffset: - height / 2
+						}
+					}
+
+					TPLabel {
+						text: qsTr("Remove for myself only")
+						singleLine: false
+						width: parent.width - 5
+
+						anchors {
+							horizontalCenter: parent.horizontalCenter
+							top: delImage1.bottom
+							bottom: parent.bottom
+						}
+					}
+				}
+
+				Item {
+					visible: messageItem.ownMessage
 
 					anchors {
-						horizontalCenter: parent.horizontalCenter
-						verticalCenter: parent.verticalCenter
+						top: parent.top
+						left: parent.horizontalCenter
+						right: parent.right
+						bottom: parent.bottom
+					}
+
+					TPImage {
+						id: delImage2
+						source: "remove"
+						width: removeBackground.imageSize
+						height: width
+
+						anchors {
+							horizontalCenter: parent.horizontalCenter
+							horizontalCenterOffset: - width / 2
+							verticalCenter: parent.verticalCenter
+							verticalCenterOffset: - height / 2
+						}
+					}
+					TPImage {
+						id: delImage3
+						source: "remove"
+						width: removeBackground.imageSize
+						height: width
+
+						anchors {
+							left: delImage2.right
+							leftMargin: - width / 2
+							top: delImage2.top
+							topMargin: width / 3
+						}
+					}
+
+					TPLabel {
+						text: qsTr("Remove as well for ") + chatManager.interlocutorName
+						singleLine: false
+						width: parent.width - 5
+
+						anchors {
+							horizontalCenter: parent.horizontalCenter
+							top: delImage3.bottom
+							bottom: parent.bottom
+						}
 					}
 				}
 			} //swipe.right
-
-			swipe.onCompleted: chatManager.removeMessage(msgId);
 		} //delegate
 	} // messagesList
 

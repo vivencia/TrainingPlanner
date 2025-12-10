@@ -71,3 +71,24 @@ bool TPChatDB::loadChat()
 	emit chatLoaded(success);
 	return success;
 }
+
+std::pair<QVariant,QVariant> TPChatDB::getNumberOfUnreadMessages()
+{
+	bool success{false};
+	uint n_unreadmsgs{0};
+	m_strQuery = std::move("SELECT %1 FROM %2 WHERE %3=%4 AND %5=\'%6\';"_L1.arg(
+			field_names[MESSAGE_ID][0], table_name,
+			field_names[MESSAGE_READ][0], "0"_L1,
+			field_names[MESSAGE_RECEIVER][0], m_userId));
+	if (execReadOnlyQuery(m_strQuery))
+	{
+		if (m_workingQuery.first())
+		{
+			success = true;
+			do {
+				++n_unreadmsgs;
+			} while (m_workingQuery.next());
+		}
+	}
+	return std::pair<QVariant,QVariant>{success, n_unreadmsgs};
+}

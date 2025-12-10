@@ -743,7 +743,7 @@ function get_newmessages($username) {
 	if (count($files) > 0) {
 		$content = "";
 		foreach ($files as $file) {
-			if (str_contains($file, ".sqlite"))
+			if (str_contains($file, ".sqlite") || str_contains($file, ".cmd"))
 				continue;
 			$content = $content . file_get_contents($messages_dir.'/'.$file);
 			$content = $content . "\034" . $file . "\034";
@@ -784,7 +784,7 @@ function message_worker($sender, $recipient, $messageid, $argument) {
 		echo get_return_code("directory not writable") . ": Unable to create messages dir " .$messages_dir;
 		return false;
 	}
-	$messages_file = $messages_dir . $sender . "." . $argument;
+	$messages_file = $messages_dir . $sender . $argument;
 	if (!file_exists($messages_file)) {
 		$fh = fopen($messages_file, "w");
 		if (!$fh) {
@@ -813,6 +813,32 @@ function message_worker($sender, $recipient, $messageid, $argument) {
 	return true;
 }
 
+function message_worked($sender, $recipient, $messageid, $work) {
+	global $rootdir;
+	$messages_dir = $rootdir . $sender . "/chats/";
+	$ids_file = $messages_dir . $recipient . $work;
+	$ids_arr = file($ids_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+	$sep_idx1 = 0;
+	$sep_idx2 = 0;
+	$kept_ids = [];
+	$msgid = (int)$messageid;
+	foreach ($ids_arr as $ids) {
+		do {
+			$sep_idx2 = strpos($ids, "\037", $sep_idx1);
+			if ($sep_idx2) {
+				$message_id = substr($ids, $sep_idx1, $sep_idx2);
+				$id = (int)$message_id;
+				if ($id !== $msgid)
+					$kept_ids[] = $message_id . "\037";
+				$sep_idx1 = $sep_idx2 + 1;
+			}
+		} while ($sep_idx2);
+	}
+	$fh = fopen($ids_file, "w");
+	fwrite($fh, implode($kept_ids));
+	fclose($fh);
+}
+
 function remove_received_message($sender, $recipient, $messageid)
 {
 	global $rootdir;
@@ -826,7 +852,7 @@ function remove_received_message($sender, $recipient, $messageid)
 	foreach ($messages_arr as $messages) {
 		do {
 			$sep_idx2 = strpos($messages, "\037", $sep_idx1);
-			if ($sep_idx2 > 0) {
+			if ($sep_idx2) {
 				$message = substr($messages, $sep_idx1, $sep_idx2 - $sep_idx1);
 				$message_id = substr($message, 0, strpos($message, "\036", 0));
 				$id = (int)$message_id;
@@ -834,7 +860,7 @@ function remove_received_message($sender, $recipient, $messageid)
 					$kept_messages[] = $message . "\037";
 				$sep_idx1 = $sep_idx2 + 1;
 			}
-		} while ($sep_idx2 > 0);
+		} while ($sep_idx2);
 	}
 	$fh = fopen($messages_file, "w");
 	fwrite($fh, implode($kept_messages));
@@ -1097,29 +1123,24 @@ if ($username) {
 					send_message($username, $receiver, $message);
 					exit;
 				}
-				if (isset($_GET['messagereceived'])) {
-					$recipient=$_GET['messagereceived'];
-					$recipient != "" or die(get_return_code("argument missing") . ": No sender argument **messagereceived**");
+				if (isset($_GET['workmessage'])) {
+					$recipient=$_GET['workmessage'];
+					$recipient != "" or die(get_return_code("argument missing") . ": No sender argument **workmessage**");
 					$messageid = $_GET['messageid'];
-					$messageid != "" or die(get_return_code("argument missing") . ": No message id argument **messagereceived**");
-					if (message_worker($username, $recipient, $messageid, "received"))
-						remove_received_message($recipient, $username, $messageid);
+					$messageid != "" or die(get_return_code("argument missing") . ": No message id argument **workmessage**");
+					$work = $_GET['work'];
+					$work != "" or die(get_return_code("argument missing") . ": No work identifier argument **workmessage**");
+					message_worker($username, $recipient, $messageid, $work);
 					exit;
 				}
-				if (isset($_GET['messageread'])) {
-					$recipient=$_GET['messageread'];
-					$recipient != "" or die(get_return_code("argument missing") . ": No sender argument **messageread**");
+				if (isset($_GET['messageworked'])) {
+					$recipient=$_GET['messageworked'];
+					$recipient != "" or die(get_return_code("argument missing") . ": No sender argument **messageworked**");
 					$messageid = $_GET['messageid'];
-					$messageid != "" or die(get_return_code("argument missing") . ": No message id argument **messageread**");
-					message_worker($username, $recipient, $messageid, "read");
-					exit;
-				}
-				if (isset($_GET['removemessage'])) {
-					$recipient=$_GET['removemessage'];
-					$recipient != "" or die(get_return_code("argument missing") . ": No receiver argument **removemessage**");
-					$messageid = $_GET['messageid'];
-					$messageid != "" or die(get_return_code("argument missing") . ": No message id argument **removemessage**");
-					message_worker($username, $recipient, $messageid, "removed");
+					$messageid != "" or die(get_return_code("argument missing") . ": No message id argument **messageworked**");
+					$work = $_GET['work'];
+					$work != "" or die(get_return_code("argument missing") . ": No work identifier argument **messageworked**");
+					message_worked($username, $recipient, $messageid, $work);
 					exit;
 				}
 

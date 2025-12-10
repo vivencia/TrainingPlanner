@@ -60,7 +60,7 @@ void TPMessagesManager::readAllChats()
 	for (const auto &db_file : std::as_const(chat_dbs))
 	{
 		if (!message(db_file.baseName().toLong()))
-			static_cast<void>(createChatMessage(db_file.baseName()));
+			static_cast<void>(createChatMessage(db_file.baseName(), true));
 	}
 }
 
@@ -142,15 +142,16 @@ void TPMessagesManager::itemClicked(const qsizetype message_id)
 	}
 }
 
-TPMessage *TPMessagesManager::createChatMessage(const QString &userid)
+TPMessage *TPMessagesManager::createChatMessage(const QString &userid, const bool check_unread_messages)
 {
 	const int user_idx{appUserModel()->userIdxFromFieldValue(USER_COL_ID, userid)};
 	QString user_name{std::move(user_idx != -1 ? appUserModel()->userName(user_idx) : tr("Unknown contact"))};
 	QString user_icon{std::move(user_idx != -1 ? appUserModel()->avatar(user_idx, false) : "unknown-user")};
-	return createChatMessage(userid, std::move(user_name), std::move(user_icon));
+	return createChatMessage(userid, std::move(user_name), std::move(user_icon), check_unread_messages);
 }
 
-TPMessage *TPMessagesManager::createChatMessage(const QString &userid, QString &&display_text, QString &&icon_source)
+TPMessage *TPMessagesManager::createChatMessage(const QString &userid, QString &&display_text, QString &&icon_source,
+																						const bool check_unread_messages)
 {
 	TPMessage *chat_message{new TPMessage{std::move(display_text), std::move(icon_source), this}};
 	chat_message->setAutoDelete(false);
@@ -165,7 +166,7 @@ TPMessage *TPMessagesManager::createChatMessage(const QString &userid, QString &
 	});
 	chat_message->plug();
 
-	TPChat *new_chat{new TPChat{userid, this}};
+	TPChat *new_chat{new TPChat{userid, check_unread_messages, this}};
 	m_chatsList.insert(userid, new_chat);
 	connect(new_chat, &TPChat::interlocutorNameChanged, this, [this,chat_message,new_chat] () {
 		chat_message->setDisplayText(std::move(new_chat->interlocutorName()));
@@ -219,7 +220,7 @@ void TPMessagesManager::openChat(const QString &username)
 	const qsizetype i_userid{userid.toLong()};
 
 	if (!message(i_userid))
-		createChatMessage(userid, std::move(QString{username}), std::move(appUserModel()->avatarFromId(userid)));
+		createChatMessage(userid, std::move(QString{username}), std::move(appUserModel()->avatarFromId(userid)), false);
 	openChatWindow(m_chatsList.value(userid));
 }
 
@@ -358,22 +359,22 @@ void TPMessagesManager::parseNewChatMessages(const QString &encoded_messages)
 		QString sender_messages{std::move(appUtils()->getCompositeValue(sender_idx, encoded_messages, exercises_separator))};
 		if (sender_messages.isEmpty())
 			continue;
-		if (sender_id.endsWith(".msg"_L1))
+		if (sender_id.endsWith(messageFileExtension))
 		{
 			sender_id.chop(4);
 			parseNewMessage(sender_id, sender_messages);
 		}
-		else if (sender_id.endsWith(".received"_L1))
+		else if (sender_id.endsWith(messageWorkReceived))
 		{
 			sender_id.chop(9);
 			parseReceivedActionMessage(sender_id, sender_messages);
 		}
-		else if (sender_id.endsWith(".read"_L1))
+		else if (sender_id.endsWith(messageWorkRead))
 		{
 			sender_id.chop(5);
 			parseReadActionMessage(sender_id, sender_messages);
 		}
-		else if (sender_id.endsWith(".removed"_L1))
+		else if (sender_id.endsWith(messageWorkRemoved))
 		{
 			sender_id.chop(5);
 			parseRemovedActionMessage(sender_id, sender_messages);
@@ -386,7 +387,7 @@ void TPMessagesManager::parseNewMessage(const QString &sender_id, const QString 
 	const auto i_sender_id{sender_id.toLong()};
 	TPMessage *chat_message{message(i_sender_id)};
 	if (!chat_message)
-		chat_message = createChatMessage(sender_id);
+		chat_message = createChatMessage(sender_id, true);
 	TPChat *chat_mngr{chatManager(sender_id)};
 	chat_mngr->loadChat();
 	uint msg_idx{0};
@@ -410,7 +411,7 @@ void TPMessagesManager::parseReceivedActionMessage(const QString &sender_id, con
 			const QString &message_received{appUtils()->getCompositeValue(msg_idx, action_message, set_separator)};
 			if (message_received.isEmpty())
 				break;
-			chat_mngr->setSentMessageReceived(message_received.toUInt());
+			chat_mngr->setSentMessageReceived(message_received.toUInt(), true);
 		} while (++msg_idx);
 	}
 }
@@ -426,7 +427,7 @@ void TPMessagesManager::parseReadActionMessage(const QString &sender_id, const Q
 			const QString &message_read{appUtils()->getCompositeValue(msg_idx, action_message, set_separator)};
 			if (message_read.isEmpty())
 				break;
-			chat_mngr->setSentMessageRead(message_read.toUInt());
+			chat_mngr->setSentMessageRead(message_read.toUInt(), true);
 		} while (++msg_idx);
 	}
 }
@@ -442,7 +443,7 @@ void TPMessagesManager::parseRemovedActionMessage(const QString &sender_id, cons
 			const QString &message_removed{appUtils()->getCompositeValue(msg_idx, action_message, set_separator)};
 			if (message_removed.isEmpty())
 				break;
-			chat_mngr->removeMessage(message_removed.toUInt());
+			chat_mngr->removeMessage(message_removed.toUInt(), false, false);
 		} while (++msg_idx);
 	}
 }

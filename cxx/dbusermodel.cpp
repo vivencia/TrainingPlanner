@@ -133,9 +133,9 @@ void DBUserModel::initUserSession()
 				else
 				{
 					if (isCoach(0) && isClient(last_idx))
-						addClient(last_idx);
+						addClient(last_idx, false);
 					if (isCoach(last_idx))
-						addCoach(last_idx);
+						addCoach(last_idx, false);
 				}
 			}
 			else

@@ -13,13 +13,13 @@
 #include <QNetworkReply>
 #include <QThread>
 
-using namespace Qt::Literals::StringLiterals;
+using namespace Qt::StringLiterals;
 
 TPOnlineServices* TPOnlineServices::_appOnlineServices{nullptr};
 
 constexpr QLatin1StringView server_address{"http://%1:8080/trainingplanner/"_L1};
-constexpr QLatin1StringView root_user{"admin"};
-constexpr QLatin1StringView root_passwd{"admin"};
+constexpr QLatin1StringView root_user{"admin"_L1};
+constexpr QLatin1StringView root_passwd{"admin"_L1};
 
 void TPOnlineServices::scanNetwork(const QString &last_working_address, const bool assume_working)
 {
@@ -325,7 +325,7 @@ void TPOnlineServices::removeCoachFromClient(const int requestid, const QString 
 void TPOnlineServices::executeCommands(const int requestid, const QString &username, const QString &passwd,
 											const QString &subdir, const bool delete_cmdfile)
 {
-	const QUrl &url{makeCommandURL(username, passwd, "runcmds"_L1, subdir, "delete", delete_cmdfile ? "1"_L1 : "0"_L1)};
+	const QUrl &url{makeCommandURL(username, passwd, "runcmds"_L1, subdir, "delete"_L1, delete_cmdfile ? "1"_L1 : "0"_L1)};
 	makeNetworkRequest(requestid, url);
 }
 
@@ -347,7 +347,7 @@ void TPOnlineServices::sendFile(const int requestid, const QString &username, co
 					return;
 				}
 			}
-			const QUrl &url{makeCommandURL(username, passwd, "upload"_L1, subdir, "targetuser", targetUser.isEmpty() ? username : targetUser)};
+			const QUrl &url{makeCommandURL(username, passwd, "upload"_L1, subdir, "targetuser"_L1, targetUser.isEmpty() ? username : targetUser)};
 			uploadFile(requestid, url, file, b_internal_signal_only);
 		}
 	});
@@ -489,30 +489,23 @@ void TPOnlineServices::sendMessage(const int requestid, const QString &username,
 	makeNetworkRequest(requestid, url);
 }
 
-void TPOnlineServices::chatMessageAcknowledgeReceived(const int requestid, const QString &username,
-										const QString &passwd, const QString &recipient, const QString &msgid)
+void TPOnlineServices::chatMessageAcknowledgement(const int requestid, const QString &username, const QString &passwd,
+											const QString &recipient, const QString &msgid, const QLatin1StringView &work)
 {
-	const QUrl &url{makeCommandURL(username, passwd, "messagereceived"_L1, recipient, "messageid"_L1, msgid)};
+	const QUrl &url{makeCommandURL(username, passwd, "workmessage"_L1, recipient, "messageid"_L1, msgid, "work"_L1, work)};
 	makeNetworkRequest(requestid, url);
 }
 
-void TPOnlineServices::chatMessageAcknowledgeRead(const int requestid, const QString &username, const QString &passwd,
-											const QString &recipient, const QString &msgid)
+void TPOnlineServices::chatMessageAcknowledgmentAcknowledged(const int requestid, const QString &username,
+				const QString &passwd, const QString &recipient, const QString &msgid, const QLatin1StringView &work)
 {
-	const QUrl &url{makeCommandURL(username, passwd, "messageread"_L1, recipient, "messageid"_L1, msgid)};
+	const QUrl &url{makeCommandURL(username, passwd, "messageworked"_L1, recipient, "messageid"_L1, msgid, "work"_L1, work)};
 	makeNetworkRequest(requestid, url);
 }
 
-void TPOnlineServices::removeMessage(const int requestid, const QString &username, const QString &passwd,
-																		const QString &receiver, const QString &msgid)
-{
-	const QUrl &url{makeCommandURL(username, passwd, "removemessage"_L1, receiver, "messageid"_L1, msgid)};
-	makeNetworkRequest(requestid, url);
-}
-
-QString TPOnlineServices::makeCommandURL(const QString &username, const QString &passwd, const QString &option1,
-								const QString &value1, const QString &option2, const QString &value2,
-								const QString &option3, const QString &value3)
+QString TPOnlineServices::makeCommandURL(const QString &username, const QString &passwd, const QLatin1StringView &option1,
+								const QString &value1, const QLatin1StringView &option2, const QString &value2,
+								const QLatin1StringView &option3, const QString &value3)
 {
 	QString ret{std::move(server_address.arg(appSettings()->serverAddress()) + "?user="_L1 + username + "&password="_L1 + passwd)};
 	if (!option1.isEmpty())

@@ -55,6 +55,6 @@ if [[ -f "$CMDFILE" && -r "$CMDFILE" ]]; then
 		fi
 	fi
 else
-	echo "Error: File '$CMDFILE' does not exist or is not readable."
+	echo "Error: File "$TP_DIR/$USERID/$CMDDIR/$CMDFILE" does not exist or is not readable."
 	exit 112
 fi

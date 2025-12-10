@@ -20,6 +20,11 @@ constexpr uint MESSAGE_TEXT				{11};
 constexpr uint MESSAGE_MEDIA			{12};
 constexpr uint TP_CHAT_MESSAGE_FIELDS	{MESSAGE_MEDIA+1};
 
+constexpr QLatin1StringView messageFileExtension {".msg"};
+constexpr QLatin1StringView messageWorkRead {".read"};
+constexpr QLatin1StringView messageWorkReceived {".received"};
+constexpr QLatin1StringView messageWorkRemoved {".removed"};
+
 QT_FORWARD_DECLARE_CLASS(DBModelInterfaceChat)
 QT_FORWARD_DECLARE_CLASS(TPChatDB)
 QT_FORWARD_DECLARE_STRUCT(ChatMessage)
@@ -38,7 +43,7 @@ Q_PROPERTY(QString avatarIcon READ avatarIcon NOTIFY avatarIconChanged FINAL)
 public:
 	static constexpr QLatin1StringView chatsSubDir{"chats/"};
 
-	explicit TPChat(const QString &otheruser_id, QObject *parent = nullptr);
+	explicit TPChat(const QString &otheruser_id, const bool check_unread_messages, QObject *parent = nullptr);
 
 	void loadChat();
 	inline void setChatWindow(QObject *chat_window) { m_chatWindow = chat_window; }
@@ -50,9 +55,9 @@ public:
 	QString avatarIcon() const;
 	inline uint userIdx() const { return m_userIdx; }
 
-	void setSentMessageReceived(const uint msgid);
-	void setSentMessageRead(const uint msgid);
-	Q_INVOKABLE void removeMessage(const uint msgid);
+	void setSentMessageReceived(const uint msgid, const bool notify_server);
+	void setSentMessageRead(const uint msgid, const bool notify_server);
+	Q_INVOKABLE void removeMessage(const uint msgid, const bool remove_for_interlocutor, const bool from_qml = true);
 	inline uint unreadMessages() const { return m_unreadMessages; }
 	void setUnreadMessages(const int n_unread);
 	void markAllIncomingMessagesRead();
@@ -84,6 +89,7 @@ private:
 	QTimer *m_sendMessageTimer;
 	bool m_chatLoaded;
 
+	void acknowledgeAcknowledgement(const uint msgid, const QLatin1StringView &work);
 	QString tempMessagesFile() const;
 	QString encodeMessageToUpload(ChatMessage* message) const;
 	void encodeMessageToSave(ChatMessage* message);

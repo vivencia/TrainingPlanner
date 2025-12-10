@@ -35,14 +35,14 @@ public:
 	Q_INVOKABLE void execAction(const int message_index, const uint action_id);
 	Q_INVOKABLE void itemClicked(const qsizetype message_id);
 
-	TPMessage *createChatMessage(const QString &userid);
+	TPMessage *createChatMessage(const QString &userid, const bool check_unread_messages);
 	/**
 	 * @brief Creates a chat entry in the messages window. Therefore, the message created will be added to the messages list
 	 * @param display_text should reflect the user name
 	 * @param icon_source should use the user's avatar
 	 * @return Returns the newly created message
 	 */
-	TPMessage *createChatMessage(const QString &userid, QString &&display_text, QString &&icon_source);
+	TPMessage *createChatMessage(const QString &userid, QString &&display_text, QString &&icon_source, const bool check_unread_messages);
 	void openChatWindow(TPChat *chat_manager);
 	inline TPChat *chatManager(const QString &userid) const { return m_chatsList.value(userid); }
 	Q_INVOKABLE void openChat(const QString &username);

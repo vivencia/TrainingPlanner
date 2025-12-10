@@ -8,7 +8,7 @@ Label {
 	color: enabled ? fontColor : appSettings.disabledFontColor
 	wrapMode: singleLine ? Text.NoWrap : Text.WordWrap
 	font: AppGlobals.regularFont
-	minimumPixelSize: appSettings.smallFontSize * 0.9
+	minimumPixelSize: appSettings.smallFontSize * 0.5
 	fontSizeMode: Text.Fit
 	verticalAlignment: Text.AlignVCenter
 	topInset: 0

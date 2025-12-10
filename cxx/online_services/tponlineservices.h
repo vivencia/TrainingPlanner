@@ -58,7 +58,8 @@ public:
 	void removeClientFromCoach(const int requestid, const QString &username, const QString &passwd, const QString &client);
 	void checkCurrentCoaches(const int requestid, const QString &username, const QString &passwd);
 	void removeCoachFromClient(const int requestid, const QString &username, const QString &passwd, const QString &coach);
-	void executeCommands(const int requestid, const QString &username, const QString &passwd, const QString &subdir, const bool delete_cmdfile = true);
+	void executeCommands(const int requestid, const QString &username, const QString &passwd, const QString &subdir,
+																					const bool delete_cmdfile = true);
 
 	void sendFile(const int requestid, const QString &username, const QString &passwd, QFile *file, const QString &subdir = QString{},
 					const QString &targetUser = QString{}, const bool b_internal_signal_only = false);
@@ -73,21 +74,26 @@ public:
 	 * @param targetUser
 	 */
 	void listFiles(const int requestid, const QString &username, const QString &passwd, const bool only_new = true,
-					const bool include_ctime = false, const QString &pattern = QString{}, const QString &subdir = QString{}, const QString &targetUser = QString{});
+					const bool include_ctime = false, const QString &pattern = QString{},
+					const QString &subdir = QString{}, const QString &targetUser = QString{});
 	void listDirs(const int requestid, const QString &username, const QString &passwd, const QString &pattern = QString{},
-					const QString &subdir = QString{}, const QString &targetUser = QString{}, const bool include_dot_dir = false);
+					const QString &subdir = QString{}, const QString &targetUser = QString{},
+					const bool include_dot_dir = false);
 	void removeFile(const int requestid, const QString &username, const QString &passwd, const QString &filename, const QString &subdir = QString{},
 					const QString &targetUser = QString{});
 	void getFile(const int requestid, const QString &username, const QString &passwd, const QString &filename,
-					const QString &subdir = {}, const QString &targetUser = QString{}, const QString &localFilePath = QString{});
+					const QString &subdir = {}, const QString &targetUser = QString{},
+					const QString &localFilePath = QString{});
 	void getCmdFile(const int requestid, const QString &username, const QString &passwd, const QString &filename,
 						const QString &subdir = QString{});
 
 	void checkMessages(const int requestid, const QString &username, const QString &passwd);
-	void sendMessage(const int requestid, const QString &username, const QString &passwd, const QString &receiver, const QString &encoded_message);
-	void chatMessageAcknowledgeReceived(const int requestid, const QString &username, const QString &passwd, const QString &recipient, const QString &msgid);
-	void chatMessageAcknowledgeRead(const int requestid, const QString &username, const QString &passwd, const QString &recipient, const QString &msgid);
-	void removeMessage(const int requestid, const QString &username, const QString &passwd, const QString &receiver, const QString &msgid);
+	void sendMessage(const int requestid, const QString &username, const QString &passwd, const QString &receiver,
+																					const QString &encoded_message);
+	void chatMessageAcknowledgement(const int requestid, const QString &username, const QString &passwd,
+									const QString &recipient, const QString &msgid, const QLatin1StringView &work);
+	void chatMessageAcknowledgmentAcknowledged(const int requestid, const QString &username, const QString &passwd,
+										const QString &recipient, const QString &msgid, const QLatin1StringView &work);
 
 signals:
 	void networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string);
@@ -99,9 +105,10 @@ signals:
 	void _serverResponse(const uint online_status, const QString &address);
 
 private:
-	QString makeCommandURL(const QString &username, const QString &passwd = QString{}, const QString &option1 = QString{},
-								const QString &value1 = QString{}, const QString &option2 = QString{}, const QString &value2 = QString{},
-								const QString &option3 = QString{}, const QString &value3 = QString{});
+	QString makeCommandURL(const QString &username, const QString &passwd = QString{},
+						   const QLatin1StringView &option1 = QLatin1StringView{}, const QString &value1 = QString{},
+						   const QLatin1StringView &option2 = QLatin1StringView{}, const QString &value2 = QString{},
+						   const QLatin1StringView &option3 = QLatin1StringView{}, const QString &value3 = QString{});
 	void makeNetworkRequest(const int requestid, const QUrl &url, const bool b_internal_signal_only = false);
 	void handleServerRequestReply(const int requestid, QNetworkReply *reply, const bool b_internal_signal_only = false);
 	void uploadFile(const int requestid, const QUrl &url, QFile *file, const bool b_internal_signal_only = false);

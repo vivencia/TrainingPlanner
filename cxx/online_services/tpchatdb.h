@@ -19,6 +19,7 @@ public:
 	QString dbFileName(const bool fullpath = true) const override final;
 	void updateTable() override final {}
 	bool loadChat();
+	std::pair<QVariant,QVariant> getNumberOfUnreadMessages();
 
 signals:
 	void chatLoaded(const bool success);
