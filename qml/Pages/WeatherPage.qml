@@ -19,7 +19,7 @@ TPPage {
 
 	ColumnLayout {
 		id: mainLayout
-		spacing: 5
+		spacing: 0
 
 		anchors {
 			fill: parent
@@ -31,6 +31,7 @@ TPPage {
 
 		TPLabel {
 			text: weatherInfo.gpsMessage
+			font: AppGlobals.smallFont
 			wrapMode: Text.WordWrap
 			Layout.minimumWidth: parent.width - 30
 			Layout.maximumWidth: parent.width - 30
@@ -57,7 +58,7 @@ TPPage {
 			Layout.alignment: Qt.AlignCenter
 			Layout.preferredHeight: 0.2 * mainLayout.height
 			Layout.fillWidth: true
-			Layout.topMargin: 10
+			Layout.topMargin: 5
 
 			ListView {
 				id: scrollViewCities
@@ -72,7 +73,9 @@ TPPage {
 				anchors {
 					top: parent.top
 					left: parent.left
+					leftMargin: 5
 					right: parent.right
+					rightMargin: 5
 				}
 
 				ScrollBar.vertical: ScrollBar {
@@ -84,32 +87,39 @@ TPPage {
 					id: delegate
 					spacing: 0
 					padding: 0
-					width: parent.width
+					width: scrollViewCities.width
 					height: appSettings.itemDefaultHeight
 
 					contentItem: TPLabel {
 						id: txtCity
-						text: appSettings.weatherCity(index)
-						leftPadding: 10
+						text: appSettings.weatherLocationName(index)
+						leftPadding: 5
+					}
 
-						TPButton {
-							imageSource: "remove"
-							width: appSettings.itemDefaultHeight
+					TPButton {
+						imageSource: "remove"
+						width: appSettings.itemDefaultHeight
 
-							anchors {
-								right: parent.right
-								rightMargin: 10
-								verticalCenter: parent.verticalCenter
-							}
-
-							onClicked: appSettings.removeWeatherCity(index);
+						anchors {
+							right: txtCity.right
+							rightMargin: 5
+							verticalCenter: parent.verticalCenter
 						}
-					} //contentItem
+
+						onClicked: appSettings.removeWeatherLocation(index);
+					}
 
 					background: Rectangle {
-						color: index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
+						color: index == scrollViewCities.currentIndex ? appSettings.listEntryColor1 : appSettings.listEntryColor2
+						border.color: appSettings.fontColor
+						border.width: index == scrollViewCities.currentIndex ? 1 : 0
+						radius: 8
 					}
-					onClicked: weatherInfo.requestWeatherForSavedCity(index);
+
+					onClicked: {
+						weatherInfo.requestWeatherForSavedCity(index);
+						scrollViewCities.currentIndex = index;
+					}
 				} //ItemDelegate
 			} //ListView
 
@@ -159,7 +169,6 @@ TPPage {
 			height: 0.22 * mainLayout.height
 			Layout.alignment: Qt.AlignHCenter
 			Layout.preferredHeight: height
-			Layout.bottomMargin: 10
 			Layout.fillWidth: true
 
 			Rectangle {
@@ -222,7 +231,7 @@ TPPage {
 
 
 	property TPFloatingMenuBar locationsMenu: null
-	function showLocationsList() {
+	function showLocationsList(): void {
 		const list_len = weatherInfo.locationList.length;
 		if (list_len > 0) {
 			if (locationsMenu === null) {

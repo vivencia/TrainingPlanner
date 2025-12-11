@@ -17,22 +17,19 @@ ColumnLayout {
 	property string bottomText: "Mostly cloudy"
 	property string bottomBottomText: "Mostly cloudy"
 
-	readonly property real smallSide: (width < height ? width : height)
-
 	TPLabel {
 		id: lblTopText
 		text: topText
-		font: AppGlobals.largeFont
 		singleLine: false
 		horizontalAlignment: Text.AlignHCenter
 		Layout.fillWidth: true
-		Layout.maximumHeight: height
+		Layout.maximumHeight: parent.height * 0.3
 	}
 
 	TPImage {
 		source: "weather/weather-" + weatherIcon + ".svg"
 		smooth: true
-		width: smallSide * 0.3
+		width: parent.height * 0.3
 		height: width
 		Layout.preferredWidth: width
 		Layout.preferredHeight: height
@@ -42,16 +39,20 @@ ColumnLayout {
 	TPLabel {
 		id: lblBottomText
 		text: bottomText
+		font: AppGlobals.smallFont
 		horizontalAlignment: Text.AlignHCenter
 		singleLine: false
 		Layout.fillWidth: true
+		Layout.maximumHeight: parent.height * 0.2
 	}
 
 	TPLabel {
 		id: lblBottomBottomText
 		text: bottomBottomText
+		font: AppGlobals.smallFont
 		horizontalAlignment: Text.AlignHCenter
 		singleLine: false
 		Layout.fillWidth: true
+		Layout.maximumHeight: parent.height * 0.2
 	}
 }

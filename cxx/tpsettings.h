@@ -1,6 +1,5 @@
 #pragma once
 
-#include <QGeoCoordinate>
 #include <QSettings>
 
 //--------------------------------------------GLOBAL SETTINGS---------------------------------------------//
@@ -229,16 +228,15 @@ public:
 
 	inline QString weightUnit() const { return getValue(currentUser(), WEIGHT_UNIT_INDEX, m_defaultValues.at(WEIGHT_UNIT_INDEX)).toString(); }
 	inline void setWeightUnit(const QString &new_value) { changeValue(currentUser(), WEIGHT_UNIT_INDEX, new_value); emit weightUnitChanged(); }
-
 	inline int lastViewedMesoIdx() const { return getValue(currentUser(), MESO_IDX_INDEX, m_defaultValues.at(MESO_IDX_INDEX)).toInt(); }
 	inline void setLastViewedMesoIdx(const int new_value) { changeValue(currentUser(), MESO_IDX_INDEX, QString::number(new_value)); emit lastViewedMesoIdxChanged(); }
-
 	inline uint userLocaleIdx() const { return m_languageIdx; }
-	inline uint weatherCitiesCount() const { return m_weatherLocations.count(); }
-	void addWeatherCity(const QString &city, const QString &latitude, const QString &longitude);
-	Q_INVOKABLE void removeWeatherCity(const uint idx);
-	Q_INVOKABLE QString weatherCity(const uint idx);
-	Q_INVOKABLE QGeoCoordinate weatherCityCoordinates(const uint idx);
+
+	uint weatherCitiesCount();
+	void addWeatherLocation(const QString &city, const QString &latitude, const QString &longitude);
+	Q_INVOKABLE void removeWeatherLocation(const uint idx);
+	Q_INVOKABLE QString weatherLocationName(const uint idx);
+	std::pair<QString,QString> weatherLocationCoordinates(const uint idx);
 
 	QString indexColorSchemeToColorSchemeName() const;
 	inline QString settingsBackground() const
@@ -274,9 +272,9 @@ signals:
 	void alwaysAskConfirmationChanged();
 
 private:
-	QMap<uint,QLatin1StringView> m_userPropertyNames;
+	QHash<uint,QLatin1StringView> m_userPropertyNames;
+	QString m_weatherInfo;
 	QStringList m_defaultValues;
-	QStringList m_weatherLocations;
 	QStringList m_colorSchemes;
 	QString m_userId;
 	int m_languageIdx, m_prevColorScheme;

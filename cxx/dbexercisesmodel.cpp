@@ -792,8 +792,9 @@ void DBExercisesModel::delSubExercise(const uint exercise_number, const uint exe
 		QList<int> modified_fields{EXERCISES_TOTALCOLS - EXERCISES_COL_EXERCISES, EXERCISES_COL_EXERCISES};
 		for (uint i{EXERCISES_COL_EXERCISES}; i < EXERCISES_TOTALCOLS; ++i)
 		{
-			appUtils()->removeFieldFromCompositeValue(exercise_idx, m_dbModelInterface->modelData()[exercise_number][i], comp_exercise_separator);
-			modified_fields.append(i);
+			if (appUtils()->removeFieldFromCompositeValue(exercise_idx,
+									m_dbModelInterface->modelData()[exercise_number][i], comp_exercise_separator))
+				modified_fields.append(i);
 		}
 		m_dbModelInterface->setModified(exercise_number, modified_fields);
 		m_db->setDBModelInterface(m_dbModelInterface);
@@ -854,9 +855,11 @@ void DBExercisesModel::delSet(const uint exercise_number, const uint exercise_id
 		for (uint i{EXERCISES_COL_SETTYPES}; i < EXERCISES_TOTALCOLS; ++i)
 		{
 			QString sub_exercise_info{std::move(appUtils()->getCompositeValue(exercise_idx, m_dbModelInterface->modelData()[exercise_number][i], comp_exercise_separator))};
-			appUtils()->removeFieldFromCompositeValue(set_number, sub_exercise_info, set_separator);
-			appUtils()->setCompositeValue(exercise_idx, sub_exercise_info, m_dbModelInterface->modelData()[exercise_number][i], comp_exercise_separator);
-			modified_fields.append(i);
+			if (appUtils()->removeFieldFromCompositeValue(set_number, sub_exercise_info, set_separator))
+			{
+				appUtils()->setCompositeValue(exercise_idx, sub_exercise_info, m_dbModelInterface->modelData()[exercise_number][i], comp_exercise_separator);
+				modified_fields.append(i);
+			}
 		}
 		m_dbModelInterface->setModified(exercise_number, modified_fields);
 		m_db->setDBModelInterface(m_dbModelInterface);
@@ -1160,12 +1163,16 @@ void DBExercisesModel::delSetSubSet(const uint exercise_number, const uint exerc
 	if (m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->type >= Drop)
 	{
 		const uint new_subsets{setSubSets(exercise_number, exercise_idx, set_number).toUInt() - 1};
-		appUtils()->removeFieldFromCompositeValue(new_subsets,
-			m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->reps, record_separator);
-		appUtils()->removeFieldFromCompositeValue(new_subsets,
-			m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->weight, record_separator);
-		setSetSubSets(exercise_number, exercise_idx, set_number, QString::number(new_subsets));
-		emit exerciseModified(exercise_number, exercise_idx, set_number, EXERCISES_COL_SUBSETS);
+		if (appUtils()->removeFieldFromCompositeValue(new_subsets,
+			m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->reps, record_separator))
+		{
+			if (appUtils()->removeFieldFromCompositeValue(new_subsets,
+				m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->weight, record_separator))
+			{
+				setSetSubSets(exercise_number, exercise_idx, set_number, QString::number(new_subsets));
+				emit exerciseModified(exercise_number, exercise_idx, set_number, EXERCISES_COL_SUBSETS);
+			}
+		}
 	}
 }
 

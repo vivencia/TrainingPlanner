@@ -269,7 +269,7 @@ int DBUserModel::userIdxFromFieldValue(const uint field, const QString &value, c
 		std::pair<double,int> greatest_similarity{0.0,-1};
 		for (const auto &user : m_usersData)
 		{
-			const double similarity{appUtils()->similarityBetweenString(user.at(field), value)};
+			const double similarity{appUtils()->similarityBetweenStrings(user.at(field), value)};
 			if (greatest_similarity.first < similarity)
 			{
 				greatest_similarity.first = similarity;

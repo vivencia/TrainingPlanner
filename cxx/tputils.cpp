@@ -944,16 +944,10 @@ QDateTime TPUtils::getDateTimeFromOnlineString(const QString &datetime) const
 QString TPUtils::makeCompositeValue(const QString &defaultValue, const uint n_fields, const QLatin1Char &chr_sep) const
 {
 	QString comp;
+	comp.resize(n_fields * (defaultValue.length() + 1));
 	for(uint i{0}; i < n_fields; ++i)
-		comp += defaultValue + chr_sep;
+		comp += defaultValue % chr_sep;
 	return comp;
-}
-
-QString TPUtils::makeDoubleCompositeValue(const QString &defaultValue, const uint n_fields1, const uint n_fields2,
-												const QLatin1Char &chr_sep1, const QLatin1Char &chr_sep2) const
-{
-	QString comp1{std::move(makeCompositeValue(defaultValue, n_fields1, chr_sep1))};
-	return makeCompositeValue(comp1, n_fields2, chr_sep2);
 }
 
 QString TPUtils::getCompositeValue(const uint idx, const QString &compositeString, const QLatin1Char &chr_sep) const
@@ -985,9 +979,14 @@ QString TPUtils::lastValueInComposite(const QString &compositeString, const QLat
 		return compositeString;
 }
 
-void TPUtils::setCompositeValue(const uint idx, const QString &newValue, QString &compositeString,
+void TPUtils::setCompositeValue(const int idx, const QString &newValue, QString &compositeString,
 																			const QLatin1Char &chr_sep) const
 {
+	if (idx == -1)
+	{
+		compositeString.append(newValue % chr_sep);
+		return;
+	}
 	qsizetype sep_pos{compositeString.indexOf(chr_sep)};
 	qsizetype n_seps{-1};
 
@@ -998,8 +997,8 @@ void TPUtils::setCompositeValue(const uint idx, const QString &newValue, QString
 		else
 		{
 			while (++n_seps < idx)
-				compositeString += chr_sep;
-			compositeString += newValue + chr_sep;
+				compositeString.append(chr_sep);
+			compositeString.append(newValue % chr_sep);
 		}
 		return;
 	}
@@ -1017,25 +1016,33 @@ void TPUtils::setCompositeValue(const uint idx, const QString &newValue, QString
 		sep_pos = compositeString.indexOf(chr_sep, last_sep_pos);
 	} while(sep_pos != -1);
 	while (++n_seps < idx)
-		compositeString += chr_sep;
-	compositeString += newValue + chr_sep;
+		compositeString.append(chr_sep);
+	compositeString.append(newValue % chr_sep);
 }
 
-void TPUtils::removeFieldFromCompositeValue(const uint idx, QString &compositeString, const QLatin1Char &chr_sep) const
+bool TPUtils::removeFieldFromCompositeValue(const uint idx, QString &compositeString, const QLatin1Char &chr_sep) const
 {
-	qsizetype sep_pos{compositeString.indexOf(chr_sep)};
-	qsizetype n_seps{-1}, del_pos_1{0}, del_pos_2{-1};
-	do {
-		++n_seps;
-		if (n_seps == idx)
+	auto sep_pos{compositeString.indexOf(chr_sep)};
+	if (sep_pos >= 0)
+	{
+		int n_seps{-1}, del_pos_1{0}, del_pos_2{-1};
+		do {
+			++n_seps;
+			if (n_seps == idx)
+			{
+				del_pos_2 = sep_pos;
+				break;
+			}
+			del_pos_1 = sep_pos + 1;
+			sep_pos = compositeString.indexOf(chr_sep, sep_pos + 1);
+		} while(sep_pos != -1);
+		if (del_pos_2 >= 0)
 		{
-			del_pos_2 = sep_pos;
-			break;
+			compositeString.remove(del_pos_1, del_pos_2 - del_pos_1 + 1);
+			return true;
 		}
-		del_pos_1 = sep_pos + 1;
-		sep_pos = compositeString.indexOf(chr_sep, sep_pos + 1);
-	} while(sep_pos != -1);
-	compositeString.remove(del_pos_1, del_pos_2 - del_pos_1 + 1);
+	}
+	return false;
 }
 
 int TPUtils::fieldOfValue(const QString &value, const QString &compositeString, const QLatin1Char &chr_sep) const
@@ -1052,7 +1059,7 @@ int TPUtils::fieldOfValue(const QString &value, const QString &compositeString, 
 				const QString &word{compositeString.sliced(value_start, value_end-value_start)};
 				if (word == value)
 					return idx;
-				sep_pos = compositeString.indexOf(chr_sep, value_end+1);
+				sep_pos = compositeString.indexOf(chr_sep, value_end + 1);
 				if (sep_pos != -1)
 				{
 					++idx;
@@ -1077,17 +1084,17 @@ QString TPUtils::subSetOfCompositeValue(const QString &value, const uint from, c
 		if (chr.toLatin1() == chr_sep)
 		{
 			if (n_seps <= from)
-				ret += value.sliced(last_sep_pos, chr_pos + 1);
+				ret.append(value.sliced(last_sep_pos, chr_pos + 1));
 			if (++n_seps >= n)
 				break;
 			last_sep_pos += chr_pos + 1;
 		}
 		++chr_pos;
 	}
-	return ret.isEmpty() ? value + chr_sep : ret;
+	return ret.isEmpty() ? value % chr_sep : ret;
 }
 
-double TPUtils::similarityBetweenString(const QString &string1, const QString &string2) const
+double TPUtils::similarityBetweenStrings(const QString &string1, const QString &string2) const
 {
 	const QStringList& words2{string2.split(' ')};
 	QStringList::const_iterator itr{words2.begin()};

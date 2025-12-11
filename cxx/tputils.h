@@ -163,23 +163,21 @@ public:
 	QDateTime getDateTimeFromOnlineString(const QString &datetime) const;
 
 	QString makeCompositeValue(const QString &defaultValue, const uint n_fields, const QLatin1Char &chr_sep) const;
-	QString makeDoubleCompositeValue(const QString &defaultValue, const uint n_fields1, const uint n_fields2,
-										const QLatin1Char &chr_sep1, const QLatin1Char &chr_sep2) const;
 	QString getCompositeValue(const uint idx, const QString &compositeString, const QLatin1Char &chr_sep) const;
 	QString lastValueInComposite(const QString &compositeString, const QLatin1Char &chr_sep) const;
-	void setCompositeValue(const uint idx, const QString &newValue, QString &compositeString, const QLatin1Char &chr_sep) const;
-	void removeFieldFromCompositeValue(const uint idx, QString &compositeString, const QLatin1Char &chr_sep) const;
+	void setCompositeValue(const int idx, const QString &newValue, QString &compositeString, const QLatin1Char &chr_sep) const;
+	bool removeFieldFromCompositeValue(const uint idx, QString &compositeString, const QLatin1Char &chr_sep) const;
 	int fieldOfValue(const QString &value, const QString &compositeString, const QLatin1Char &chr_sep) const;
 	QString subSetOfCompositeValue(const QString &value, const uint from, const uint n, const QLatin1Char &chr_sep) const;
 	inline QString string_strings(const std::initializer_list<QString> &strings, const QLatin1Char &chr_sep) const
 	{
-		return std::accumulate(strings.begin(), strings.end(), QString{}, [chr_sep] (QString &&final_str, QString str){
-			return final_str += std::move(str + chr_sep);
+		return std::accumulate(strings.begin(), strings.end(), QString{}, [chr_sep] (QString &&final_str, QString str) {
+			return final_str.append(str % chr_sep);
 		});
 	}
 	inline uint nFieldsInCompositeString(const QString &compositeString, const QLatin1Char &chr_sep) const { return compositeString.count(chr_sep); }
 
-	double similarityBetweenString(const QString &string1, const QString &string2) const;
+	double similarityBetweenStrings(const QString &string1, const QString &string2) const;
 	QString stripDiacriticsFromString(const QString &src) const;
 
 	Q_INVOKABLE QString setTypeOperation(const uint settype, const bool bIncrease, QString strValue, const bool seconds = false) const;

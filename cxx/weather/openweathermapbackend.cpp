@@ -18,7 +18,7 @@
 
 using namespace Qt::Literals::StringLiterals;
 
-static constexpr auto kZeroKelvin{273.15};
+constexpr auto kZeroKelvin{273.15};
 
 static const QString &key_today{"current"_L1};
 static const QString &key_forecast{"daily"_L1};
@@ -35,10 +35,10 @@ static const QString &key_uv{"uvi"_L1};
 static const QString &key_wind{"wind_speed"_L1};
 static const QString &key_description{"description"_L1};
 static const QString &key_icon{"icon"_L1};
-
 static const QString &keys_current{"dt sunrise sunset temp feels_like pressure humidity uvi wind_speed description icon "_L1};
 static const QString &keys_daily{"dt sunrise sunset min max pressure humidity uvi wind_speed description icon "_L1};
 static const QString &weather_field{"weather"_L1};
+static const QString &app_id{"31d07fed3c1e19a6465c04a40c71e9a0"_L1};
 
 class parseOpenWeatherMapReply
 {
@@ -64,7 +64,7 @@ public:
 
 private:
 	bool m_bParsedOK;
-	QList<QMap<QString,QString>> m_weatherData;
+	QList<QHash<QString,QString>> m_weatherData;
 	const QString *m_usedKeys;
 
 	inline const bool isCurrentKey(const QString &word)
@@ -150,7 +150,7 @@ parseOpenWeatherMapReply::parseOpenWeatherMapReply(const QString &net_response)
 							{
 								if (m_weatherData.count() < 5)
 								{
-									QMap<QString,QString> data;
+									QHash<QString,QString> data;
 									m_weatherData.append(std::move(data));
 								}
 								else
@@ -174,7 +174,7 @@ parseOpenWeatherMapReply::parseOpenWeatherMapReply(const QString &net_response)
 					case ',':
 						if (have_key)
 						{
-							QMap<QString,QString> &parsedData{m_weatherData.last()};
+							QHash<QString,QString> &parsedData{m_weatherData.last()};
 							parsedData.insert(std::move(key), std::move(word));
 							have_key = false;
 						}
@@ -229,7 +229,7 @@ void OpenWeatherMapBackend::getCityFromCoordinates(const QGeoCoordinate &coordin
 	query.addQueryItem("lat"_L1, QString::number(coordinate.latitude()));
 	query.addQueryItem("lon"_L1, QString::number(coordinate.longitude()));
 	query.addQueryItem("limit"_L1, "1"_L1);
-	query.addQueryItem("appid"_L1, "31d07fed3c1e19a6465c04a40c71e9a0"_L1);
+	query.addQueryItem("appid"_L1, app_id);
 	url.setQuery(query);
 
 	QNetworkRequest net_request{url};
@@ -270,7 +270,8 @@ void OpenWeatherMapBackend::searchForCities(const QString &search_term)
 	QUrlQuery query;
 	QUrl url{"http://api.openweathermap.org/geo/1.0/direct"_L1};
 	query.addQueryItem("q"_L1, search_term);
-	query.addQueryItem("appid"_L1, "31d07fed3c1e19a6465c04a40c71e9a0"_L1);
+	query.addQueryItem("limit"_L1, "5"_L1);
+	query.addQueryItem("appid"_L1, app_id);
 	url.setQuery(query);
 	QNetworkRequest net_request{url};
 	QNetworkReply *reply{m_networkManager->get(net_request)};
@@ -288,7 +289,7 @@ void OpenWeatherMapBackend::requestWeatherInfoFromNet(const QGeoCoordinate &coor
 	QUrl url{"http://api.openweathermap.org/data/3.0/onecall"_L1};
 	query.addQueryItem("lat"_L1, QString::number(coordinate.latitude()));
 	query.addQueryItem("lon"_L1, QString::number(coordinate.longitude()));
-	query.addQueryItem("appid"_L1, "31d07fed3c1e19a6465c04a40c71e9a0"_L1);
+	query.addQueryItem("appid"_L1, app_id);
 	query.addQueryItem("exclude"_L1, "minutely,hourly,alerts"_L1);
 	query.addQueryItem("lang"_L1, appSettings()->userLocale().left(2));
 	url.setQuery(query);

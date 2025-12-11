@@ -7,7 +7,6 @@
 #include <QObject>
 #include <qqml.h>
 #include <QQmlListProperty>
-#include <QString>
 
 class WeatherData : public QObject
 {
@@ -109,7 +108,6 @@ private:
 	void addLocationToConfig(const QString &location, const QGeoCoordinate &coord);
 
 	WeatherInfoPrivate *d;
-	QMap<QString, st_LocationInfo> m_usedLocations;
 	QList<st_LocationInfo> *m_foundLocations;
 	st_LocationInfo m_gpsLocation;
 	QStringList m_locationList;

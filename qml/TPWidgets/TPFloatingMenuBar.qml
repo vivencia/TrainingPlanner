@@ -8,13 +8,9 @@ import "../"
 TPPopup {
 	id: menu
 	keepAbove: false
-	height: entriesTotalHeight
-	width: largestEntryWidth
 	closeButtonVisible: false
 
 	property list<Item> entriesList: []
-	property int entriesTotalHeight: 0
-	property int largestEntryWidth: 0
 	property Component entryComponent: null
 
 	signal menuEntrySelected(id: int);
@@ -26,6 +22,14 @@ TPPopup {
 		anchors.fill: parent
 		spacing: 5
 		opacity: menu.opacity
+
+		Rectangle {
+			Layout.fillHeight: true
+			Layout.fillWidth: true
+			border.color: "white"
+			border.width: 2
+			color: "transparent"
+		}
 	}
 
 	function addEntry(label: string, img: string, id: int, bvisible: bool): void {
@@ -33,14 +37,10 @@ TPPopup {
 			entryComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPButton.qml", Qt.Asynchronous);
 
 		function finishCreation() {
-			let button = entryComponent.createObject(mainLayout, { text: label, imageSource: img, clickId: id, rounded: false,
-									autoSize: true, color: "transparent", "Layout.fillWidth": true });
-			if (bvisible) {
-				entriesTotalHeight += button.height + 7;
-				if (button.width > largestEntryWidth)
-					largestEntryWidth = button.width + 10;
+			let button = entryComponent.createObject(mainLayout, { text: label, imageSource: img, clickId: id,
+																		rounded: false, "Layout.fillWidth": true });
+			if (bvisible)
 				button.clicked.connect(menuEntryClicked);
-			}
 			else
 				button.visible = false;
 			entriesList.push(button);

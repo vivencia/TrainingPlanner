@@ -214,7 +214,7 @@ void WeatherInfo::handleWeatherData(const st_LocationInfo &location, const QList
 
 inline void WeatherInfo::addLocationToConfig(const QString &location, const QGeoCoordinate &coord)
 {
-	appSettings()->addWeatherCity(location, QString::number(coord.latitude()), QString::number(coord.longitude()));
+	appSettings()->addWeatherLocation(location, QString::number(coord.latitude()), QString::number(coord.longitude()));
 }
 
 void WeatherInfo::buildLocationsList(const QList<st_LocationInfo> *foundLocations)
@@ -287,7 +287,15 @@ void WeatherInfo::requestWeatherForGpsCity()
 
 void WeatherInfo::requestWeatherForSavedCity(const uint index)
 {
-	d->m_currentBackend->requestWeatherInfo(appSettings()->weatherCity(index), appSettings()->weatherCityCoordinates(index));
+	const QString &weather_location{appSettings()->weatherLocationName(index)};
+	if (!weather_location.isEmpty())
+	{
+		QGeoCoordinate coord;
+		const std::pair<QString,QString> &coords{appSettings()->weatherLocationCoordinates(index)};
+		coord.setLatitude(coords.first.toDouble());
+		coord.setLongitude(coords.second.toDouble());
+		d->m_currentBackend->requestWeatherInfo(weather_location, coord);
+	}
 }
 
 void WeatherInfo::refreshWeather()
@@ -306,7 +314,6 @@ void WeatherInfo::searchForCities(const QString &place)
 void WeatherInfo::locationSelected(const uint index)
 {
 	d->m_currentBackend->requestWeatherInfo(m_foundLocations->at(index).m_name, m_foundLocations->at(index).m_coordinate);
-	m_usedLocations.insert(m_locationList.at(index), m_foundLocations->at(index));
 	m_locationList.clear();
 	emit locationListChanged();
 }

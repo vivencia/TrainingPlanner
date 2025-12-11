@@ -232,6 +232,7 @@ void TPSettings::userSettingsInit()
 	setFontSize(getValue(currentUser(), FONT_SIZE_INDEX,
 								applyFontRatio(fi.pixelSize(), appSettings()->fontRatio())).toUInt(), false);
 	setColorScheme(getValue(currentUser(), COLOR_SCHEME_INDEX, m_defaultValues.at(COLOR_SCHEME_INDEX)).toUInt(), false);
+	m_weatherInfo = getValue(currentUser(), WEATHER_CITIES_INDEX, QString{}).toString();
 }
 
 void TPSettings::setUserLocale(const QString &locale, const bool write_to_file)
@@ -493,45 +494,49 @@ void TPSettings::setFontSize(const uint new_value, const bool bFromQml)
 	}
 }
 
-void TPSettings::addWeatherCity(const QString &city, const QString &latitude, const QString &longitude)
+uint TPSettings::weatherCitiesCount()
 {
-	for (const auto &location: std::as_const(m_weatherLocations))
+	return appUtils()->nFieldsInCompositeString(m_weatherInfo, record_separator);
+}
+
+void TPSettings::addWeatherLocation(const QString &city, const QString &latitude, const QString &longitude)
+{
+	if (!m_weatherInfo.isEmpty())
 	{
-		if (location.contains(city, Qt::CaseInsensitive))
+		if (m_weatherInfo.contains(city + set_separator, Qt::CaseInsensitive))
 			return;
 	}
-	m_weatherLocations.append(appUtils()->string_strings({city, latitude, longitude}, record_separator));
-	changeValue(currentUser(), WEATHER_CITIES_INDEX, QVariant::fromValue(m_weatherLocations));
+	appUtils()->setCompositeValue(-1, appUtils()->string_strings({city, latitude, longitude}, set_separator),
+																			m_weatherInfo, record_separator);
+	changeValue(currentUser(), WEATHER_CITIES_INDEX, m_weatherInfo);
 	emit weatherCitiesCountChanged();
 }
 
-void TPSettings::removeWeatherCity(const uint idx)
+void TPSettings::removeWeatherLocation(const uint idx)
 {
-	m_weatherLocations.removeAt(idx);
-	changeValue(currentUser(), WEATHER_CITIES_INDEX, QVariant::fromValue(m_weatherLocations));
-	emit weatherCitiesCountChanged();
-}
-
-QString TPSettings::weatherCity(const uint idx)
-{
-	if (m_weatherLocations.isEmpty())
-		m_weatherLocations = std::move(value(m_userPropertyNames.value(WEATHER_CITIES_INDEX)).value<QStringList>());
-
-	return idx < m_weatherLocations.count() ? appUtils()->getCompositeValue(0, m_weatherLocations.at(idx), record_separator) : QString();
-}
-
-QGeoCoordinate TPSettings::weatherCityCoordinates(const uint idx)
-{
-	if (m_weatherLocations.isEmpty())
-		m_weatherLocations = std::move(value(m_userPropertyNames.value(WEATHER_CITIES_INDEX)).value<QStringList>());
-
-	QGeoCoordinate coord;
-	if (idx < m_weatherLocations.count())
+	if (appUtils()->removeFieldFromCompositeValue(idx, m_weatherInfo, record_separator))
 	{
-		coord.setLatitude(appUtils()->getCompositeValue(1, m_weatherLocations.at(idx), record_separator).toDouble());
-		coord.setLongitude(appUtils()->getCompositeValue(2, m_weatherLocations.at(idx), record_separator).toDouble());
+		changeValue(currentUser(), WEATHER_CITIES_INDEX, m_weatherInfo);
+		emit weatherCitiesCountChanged();
 	}
-	return coord;
+}
+
+QString TPSettings::weatherLocationName(const uint idx)
+{
+	const QString &location_info{appUtils()->getCompositeValue(idx, m_weatherInfo, record_separator)};
+	return appUtils()->getCompositeValue(0, location_info, set_separator);
+}
+
+std::pair<QString,QString> TPSettings::weatherLocationCoordinates(const uint idx)
+{
+	const QString &location_info{appUtils()->getCompositeValue(idx, m_weatherInfo, record_separator)};
+	std::pair<QString,QString> ret;
+	if (!location_info.isEmpty())
+	{
+		ret.first = appUtils()->getCompositeValue(1, location_info, set_separator);
+		ret.second = appUtils()->getCompositeValue(2, location_info, set_separator);
+	}
+	return ret;
 }
 
 QString TPSettings::indexColorSchemeToColorSchemeName() const
@@ -551,6 +556,7 @@ void TPSettings::userSwitchingActions()
 {
 	setFontSize(getValue(currentUser(), FONT_SIZE_INDEX, m_defaultValues.at(FONT_SIZE_INDEX)).toUInt(), false);
 	setColorScheme(getValue(currentUser(), COLOR_SCHEME_INDEX, m_defaultValues.at(COLOR_SCHEME_INDEX)).toUInt(), false);
+	m_weatherInfo = getValue(currentUser(), WEATHER_CITIES_INDEX, QString{}).toString();
 	emit fontSizeChanged();
 	emit userLocaleChanged();
 	emit themeStyleChanged();
@@ -560,4 +566,5 @@ void TPSettings::userSwitchingActions()
 	emit weatherCitiesCountChanged();
 	emit alwaysAskConfirmationChanged();
 }
+
 //--------------------------------------------USER   SETTINGS---------------------------------------------//

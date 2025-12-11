@@ -313,7 +313,7 @@ QChar QmlMesoSplitInterface::findSwappableModel() const
 		{
 			QString muscularGroup2{std::move(m_mesoModel->muscularGroup(mesoIdx(), split_letter))};
 			muscularGroupSimplified(muscularGroup2);
-			if (appUtils()->similarityBetweenString(muscularGroup1, muscularGroup2) >= 0.8)
+			if (appUtils()->similarityBetweenStrings(muscularGroup1, muscularGroup2) >= 0.8)
 				return split_letter;
 		}
 	}
