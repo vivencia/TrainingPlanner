@@ -70,6 +70,36 @@ TPPage {
 				spacing: 0
 				clip: true
 
+				property int my_count: 0
+				property int my_currentIndex: -1
+
+				onCountChanged: {
+					if (count === my_count)
+						return;
+					if (count > my_count)
+						my_currentIndex = count - 1;
+					else {
+						if (my_currentIndex > 0)
+							my_currentIndex--;
+						else {
+							if (count > 1)
+								my_currentIndex++;
+						}
+					}
+					my_count = count;
+				}
+
+				onMy_currentIndexChanged: {
+					if (height > 0) //positionViewAtIndex() only works when the ListView is completely resized within the layout
+						positionView();
+				}
+				onHeightChanged: positionView();
+
+				function positionView(): void {
+					weatherInfo.requestWeatherForSavedCity(my_currentIndex);
+					scrollViewCities.positionViewAtIndex(my_currentIndex, ListView.Visible);
+				}
+
 				anchors {
 					top: parent.top
 					left: parent.left
@@ -99,6 +129,7 @@ TPPage {
 					TPButton {
 						imageSource: "remove"
 						width: appSettings.itemDefaultHeight
+						enabled: index == scrollViewCities.my_currentIndex
 
 						anchors {
 							right: txtCity.right
@@ -110,16 +141,13 @@ TPPage {
 					}
 
 					background: Rectangle {
-						color: index == scrollViewCities.currentIndex ? appSettings.listEntryColor1 : appSettings.listEntryColor2
+						color: index == scrollViewCities.my_currentIndex ? appSettings.listEntryColor1 : appSettings.listEntryColor2
 						border.color: appSettings.fontColor
-						border.width: index == scrollViewCities.currentIndex ? 1 : 0
+						border.width: index == scrollViewCities.my_currentIndex ? 1 : 0
 						radius: 8
 					}
 
-					onClicked: {
-						weatherInfo.requestWeatherForSavedCity(index);
-						scrollViewCities.currentIndex = index;
-					}
+					onClicked: scrollViewCities.my_currentIndex = index;
 				} //ItemDelegate
 			} //ListView
 
@@ -236,8 +264,12 @@ TPPage {
 		if (list_len > 0) {
 			if (locationsMenu === null) {
 				let locationsMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
-				locationsMenu = locationsMenuComponent.createObject(weatherPage, { parentPage: weatherPage, width: weatherPage.width*0.9 });
-				locationsMenu.menuEntrySelected.connect(function(id) { weatherInfo.locationSelected(id);  txtCities.clear(); });
+				locationsMenu = locationsMenuComponent.createObject(weatherPage, { parentPage: weatherPage,
+														titleHeader: qsTr("Places"), width: weatherPage.width*0.9 });
+				locationsMenu.menuEntrySelected.connect(function(id) {
+					weatherInfo.locationSelected(id);
+					txtCities.clear();
+				});
 			}
 			for(let i = 0; i < list_len; ++i)
 				locationsMenu.addEntry(weatherInfo.locationList[i], "", i, true);

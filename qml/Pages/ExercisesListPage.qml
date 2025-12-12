@@ -56,18 +56,106 @@ TPPage {
 		}
 	}
 
+	ScrollView {
+		id: scrollExercises
+		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+		ScrollBar.vertical.policy: ScrollBar.AsNeeded
+		ScrollBar.vertical.active: true
+		contentWidth: availableWidth //stops bouncing to the sides
+		contentHeight: layoutMain.implicitHeight
+
+		background: Rectangle {
+			color: appSettings.listEntryColor2
+			opacity: 0.6
+		}
+
+		anchors {
+			top: exercisesList.bottom
+			topMargin: -15
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+			bottom: parent.bottom
+		}
+
+		ColumnLayout {
+			id: layoutMain
+			anchors.fill: parent
+			anchors.topMargin: 10
+
+			TPLabel {
+				text: exercisesModel.exerciseNameLabel
+			}
+			TPTextInput {
+				id: txtExerciseName
+				readOnly: !bCanEdit
+				font.italic: bCanEdit
+				Layout.fillWidth: true
+				Layout.rightMargin: 10
+
+				onEnterOrReturnKeyPressed: txtMuscularGroup.forceActiveFocus();
+				onEditingFinished: exercisesModel.setMainName(exercisesModel.currentRow, text);
+			}
+
+			TPLabel {
+				text: exercisesModel.exerciseSpecificsLabel
+			}
+
+			TPTextInput {
+				id: txtExerciseSubName
+				readOnly: !bCanEdit
+				font.italic: bCanEdit
+				Layout.fillWidth: true
+				Layout.rightMargin: 10
+
+				onEnterOrReturnKeyPressed: txtExerciseSubName.forceActiveFocus();
+				onEditingFinished: exercisesModel.setSubName(exercisesModel.currentRow, text);
+			}
+
+			TPLabel {
+				text: exercisesModel.muscularGroupsLabel
+			}
+			TPTextInput {
+				id: txtMuscularGroup
+				readOnly: !bCanEdit
+				font.italic: bCanEdit
+				Layout.fillWidth: true
+				Layout.rightMargin: 10
+				Layout.minimumHeight: 30
+				Layout.maximumHeight: 80
+
+				onEditingFinished: exercisesModel.setMuscularGroup(exercisesModel.currentRow, text);
+			}
+
+			TPLabel {
+				text: exercisesModel.mediaLabel
+			}
+
+			TPButton {
+				id: btnChooseMediaFromDevice
+				text: qsTr("Choose media")
+				autoSize: true
+				rounded: false
+				onClicked: fileDialog.open();
+				Layout.alignment: Qt.AlignCenter
+				enabled: bNew || bEdit
+			}
+		} // ColumnLayout
+	} // ScrollView
+
 	Row {
 		id: toolbarExercises
 		spacing: 0
 		height: appSettings.itemDefaultHeight
 
 		anchors {
-			top: exercisesList.bottom
-			topMargin: 5
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
 			rightMargin: 5
+			bottom: parent.bottom
+			bottomMargin: 10
 		}
 		readonly property int buttonWidth: (parent.width - 10) * 0.25
 
@@ -147,91 +235,6 @@ TPPage {
 		} // btnImExport
 
 	} // Row
-
-	ScrollView {
-		id: scrollExercises
-		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-		ScrollBar.vertical.policy: ScrollBar.AsNeeded
-		ScrollBar.vertical.active: true
-		contentWidth: availableWidth //stops bouncing to the sides
-		contentHeight: layoutMain.implicitHeight
-		padding: 2
-
-		anchors {
-			top: toolbarExercises.bottom
-			topMargin: 15
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-			bottom: parent.bottom
-			bottomMargin: 5
-		}
-
-		ColumnLayout {
-			id: layoutMain
-			spacing: 10
-			anchors.fill: parent
-
-			TPLabel {
-				text: exercisesModel.exerciseNameLabel
-			}
-			TPTextInput {
-				id: txtExerciseName
-				readOnly: !bCanEdit
-				font.italic: bCanEdit
-				Layout.fillWidth: true
-				Layout.rightMargin: 10
-
-				onEnterOrReturnKeyPressed: txtMuscularGroup.forceActiveFocus();
-				onEditingFinished: exercisesModel.setMainName(exercisesModel.currentRow, text);
-			}
-
-			TPLabel {
-				text: exercisesModel.exerciseSpecificsLabel
-			}
-
-			TPTextInput {
-				id: txtExerciseSubName
-				readOnly: !bCanEdit
-				font.italic: bCanEdit
-				Layout.fillWidth: true
-				Layout.rightMargin: 10
-
-				onEnterOrReturnKeyPressed: txtExerciseSubName.forceActiveFocus();
-				onEditingFinished: exercisesModel.setSubName(exercisesModel.currentRow, text);
-			}
-
-			TPLabel {
-				text: exercisesModel.muscularGroupsLabel
-			}
-			TPTextInput {
-				id: txtMuscularGroup
-				readOnly: !bCanEdit
-				font.italic: bCanEdit
-				Layout.fillWidth: true
-				Layout.rightMargin: 10
-				Layout.minimumHeight: 30
-				Layout.maximumHeight: 80
-
-				onEditingFinished: exercisesModel.setMuscularGroup(exercisesModel.currentRow, text);
-			}
-
-			TPLabel {
-				text: exercisesModel.mediaLabel
-			}
-
-			TPButton {
-				id: btnChooseMediaFromDevice
-				text: qsTr("Choose media")
-				autoSize: true
-				rounded: false
-				onClicked: fileDialog.open();
-				Layout.alignment: Qt.AlignCenter
-				enabled: bNew || bEdit
-			}
-		} // ColumnLayout
-	} // ScrollView
 
 	FileDialog {
 		id: fileDialog

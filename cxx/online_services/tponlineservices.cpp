@@ -111,9 +111,6 @@ void TPOnlineServices::scanNetwork(const QString &last_working_address, const bo
 					m_scanning = false;
 					appSettings()->setServerAddress(address);
 					thread->requestInterruption();
-					#ifndef Q_OS_ANDROID
-					m_useLocalHost = false;
-					#endif
 				}
 			}
 			emit serverOnline(online_status);

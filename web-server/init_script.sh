@@ -4,11 +4,11 @@
 #https://www.shellcheck.net/
 #to spell check shell scripts and make them more robust
 
+PHP_FPM_SERVICE="php-fpm"
+
 BASE_SERVER_DIR="/var/www/html"
 TP_DIR=$BASE_SERVER_DIR"/trainingplanner"
-PHP_FPM_SERVICE="php-fpm"
 SCRIPTS_DIR="$TP_DIR/scripts"
-
 source "$SCRIPTS_DIR/function_library.sh"
 
 print_usage() {
@@ -103,14 +103,8 @@ test_tp_server() {
 			fi
 		;;
 		1)
-			if [ $2 != "lan" ]; then
-				echo "TPSERVER not running in the local network. Trying localhost only"
-				test_tp_server "http://localhost:8080"
-				return $?
-			else
-				echo "TPSERVER is not reachable."
-				return 1
-			fi
+			echo "TPSERVER is not reachable."
+			return 1
 		;;
 		2)
 			if [ $2 == "lan" ]; then
@@ -169,7 +163,8 @@ start_server() {
 			test_tp_server "$SERVER_IP:8080" "lan"
 			EXIT_STATUS=$?
 		else
-			EXIT_STATUS=1
+			test_tp_server "localhost:8080" "lan"
+			EXIT_STATUS=$?
 		fi
 	else
 		echo "TPSERVER not running because PHP-FPM failed to start"
@@ -257,7 +252,8 @@ get_tpserver_status() {
 				test_tp_server "$SERVER_IP:8080" "lan"
 				TEST_RESULT=$?
 			else
-				TEST_RESULT=1
+				test_tp_server "localhost:8080" "lo"
+				TEST_RESULT=$?
 			fi
 		fi
 

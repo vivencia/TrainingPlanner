@@ -17,9 +17,6 @@ Q_OBJECT
 
 public:
 	inline explicit TPOnlineServices(QObject *parent = nullptr) : QObject{parent}, m_scanning{false}
-#ifndef Q_OS_ANDROID
-	, m_useLocalHost{false}
-#endif
 	{
 		if (!_appOnlineServices)
 			_appOnlineServices = this;
@@ -29,7 +26,6 @@ public:
 
 	void scanNetwork(const QString &last_working_address, const bool assume_working = true);
 #ifndef Q_OS_ANDROID
-	inline void setUseLocalHost(const bool use_localhost) { m_useLocalHost = use_localhost; }
 	void getAllUsers(const int requestid);
 #endif
 	void checkOnlineUser(const int requestid, const QString &query, const QString &passwd);
@@ -117,9 +113,6 @@ private:
 	bool localFileUpToDate(const QString &onlineDate, const QString &localFile) const;
 
 	QNetworkAccessManager *m_networkManager;
-#ifndef Q_OS_ANDROID
-	bool m_useLocalHost;
-#endif
 	bool m_scanning;
 	static TPOnlineServices* _appOnlineServices;
 	friend TPOnlineServices* appOnlineServices();

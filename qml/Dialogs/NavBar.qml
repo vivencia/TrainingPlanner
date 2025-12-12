@@ -145,6 +145,7 @@ TPToolBar {
 		hasDropShadow: false
 		width: appSettings.itemLargeHeight
 		height: width
+		enabled: osInterface.internetOK
 
 		anchors {
 			verticalCenter: parent.verticalCenter

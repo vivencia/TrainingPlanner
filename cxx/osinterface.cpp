@@ -56,6 +56,7 @@ static const QString &tp_server_config_script{"/var/www/html/trainingplanner/scr
 
 #include <QFileInfo>
 #include <QGuiApplication>
+#include <QNetworkInterface>
 #include <QProcess>
 #include <QSysInfo>
 #include <QTcpSocket>
@@ -71,18 +72,25 @@ constexpr uint CONNECTION_CHECK_TIMEOUT{10*60*1000};
 constexpr uint CONNECTION_ERR_TIMEOUT{20*1000};
 #endif
 
+enum connectMessagesIndex {
+	interfaceMessage = 0,
+	internetMessage = 1,
+	serverMessage = 2,
+};
+
 OSInterface::OSInterface(QObject *parent)
 	: QObject{parent}, m_networkStatus{0}
 {
 	app_os_interface = this;
+	m_connectionMessages.resize(3);
 
 	m_checkConnectionTimer = new QTimer{this};
-	m_checkConnectionTimer->callOnTimeout([this] () { checkInternetConnection(); });
+	m_checkConnectionTimer->callOnTimeout([this] () { checkNetworkInterfaces(); });
 	connect(appOnlineServices(), &TPOnlineServices::serverOnline, this, [this] (const uint online_status)
 	{
 		onlineServicesResponse(online_status);
 	});
-	checkInternetConnection();
+	checkNetworkInterfaces();
 
 #ifdef Q_OS_ANDROID
 	const QJniObject &context{QNativeInterface::QAndroidApplication::context()};
@@ -139,38 +147,6 @@ OSInterface::OSInterface(QObject *parent)
 
 	m_AndroidNotification = new TPAndroidNotification{this};
 #endif
-}
-
-void OSInterface::checkInternetConnection()
-{
-	int network_status{0};
-    QTcpSocket checkConnectionSocket;
-    checkConnectionSocket.connectToHost("google.com"_L1, 443); // 443 for HTTPS or use Port 80 for HTTP
-    checkConnectionSocket.waitForConnected(2000);
-
-	const bool is_connected{checkConnectionSocket.state() == QTcpSocket::ConnectedState};
-    checkConnectionSocket.close();
-	if (internetOK() != is_connected)
-	{
-		setBit(network_status, is_connected ? HAS_INTERNET : NO_INTERNET_ACCESS);
-		unSetBit(network_status, !is_connected ? HAS_INTERNET : NO_INTERNET_ACCESS);
-		emit internetStatusChanged(is_connected);
-		#ifndef QT_NO_DEBUG
-		qDebug() << "checkInternetConnection() -> not connected to the internet";
-		#endif
-	}
-
-	#ifndef Q_OS_ANDROID
-	checkLocalServer();
-	#else
-	appOnlineServices()->scanNetwork(appSettings()->serverAddress());
-	#endif
-}
-
-void OSInterface::setConnectionMessage(QString &&message)
-{
-	m_connectionMessage = std::move(message);
-	emit connectionMessageChanged();
 }
 
 #ifdef Q_OS_ANDROID
@@ -514,20 +490,18 @@ void OSInterface::serverProcessFinished(QProcess *proc, const int exitCode, QPro
 	switch (exitCode)
 	{
 		case TPSERVER_OK:
-		case TPSERVER_OK_LOCALHOST:
-			appOnlineServices()->setUseLocalHost(exitCode == TPSERVER_OK_LOCALHOST);
 			appOnlineServices()->scanNetwork(appSettings()->serverAddress());
+			onlineServicesResponse(TPSERVER_OK);
+		break;
+		case TPSERVER_OK_LOCALHOST:
+			appSettings()->setServerAddress("localhost"_L1);
+			onlineServicesResponse(TPSERVER_OK);
 		break;
 		case TPSERVER_ERROR:
 		case TPSERVER_NGINX_ERROR:
 		case TPSERVER_PAUSED_FAILED:
-			setBit(m_networkStatus, SERVER_UNREACHABLE);
-			unSetBit(m_networkStatus, SERVER_UP_AND_RUNNING);
-			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR, appUtils()->string_strings(
-				{"Linux TP Server"_L1, proc->readAllStandardOutput() + "\nReturn code("_L1 + QString::number(exitCode) + ')'}, record_separator));
-			emit serverStatusChanged(false);
-			m_checkConnectionTimer->setInterval(CONNECTION_ERR_TIMEOUT);
-
+			onlineServicesResponse(exitCode, proc->readAllStandardOutput() % "\nReturn code("_L1 % QString::number(exitCode) % ')');
+		break;
 		case TPSERVER_PHPFPM_ERROR:
 			commandLocalServer("Start server service?"_L1, "start"_L1);
 		break;
@@ -539,7 +513,6 @@ void OSInterface::serverProcessFinished(QProcess *proc, const int exitCode, QPro
 		case TPSERVER_PAUSED:
 		case TPSERVER_PAUSED_LOCALHOST:
 			commandLocalServer("Unpause server?"_L1, "pause"_L1);
-			appOnlineServices()->setUseLocalHost(exitCode == TPSERVER_PAUSED_LOCALHOST);
 		break;
 	}
 	delete proc;
@@ -569,8 +542,7 @@ void OSInterface::commandLocalServer(const QString &message, const QString &comm
 			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
 						{message, "Operation canceled by the user"_L1}, record_separator));
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-	appItemManager()->getPasswordDialog(message,
-					"In order to setup/start/stop/pause the local HTTP server, your user password is required"_L1);
+	appItemManager()->getPasswordDialog(message, "Your user password is required"_L1);
 }
 
 void OSInterface::processArguments() const
@@ -701,20 +673,129 @@ void OSInterface::viewExternalFile(const QString &filename) const
 	#endif
 }
 
-void OSInterface::onlineServicesResponse(const uint online_status)
+
+
+void OSInterface::setNetStatus(uint messages_index, bool success, QString &&message)
+{
+	short on_bit{0}, off_bit{0};
+	switch (messages_index)
+	{
+		case interfaceMessage:
+			on_bit = success ? HAS_INTERFACE : NO_INTERFACE_RUNNING;
+			off_bit = success ? NO_INTERFACE_RUNNING : HAS_INTERFACE;
+		break;
+		case internetMessage:
+			on_bit = success ? HAS_INTERNET : NO_INTERNET_ACCESS;
+			off_bit = success ? NO_INTERNET_ACCESS : HAS_INTERNET;
+		break;
+		case serverMessage:
+			on_bit = success ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE;
+			off_bit = success ? SERVER_UNREACHABLE : SERVER_UP_AND_RUNNING;
+		break;
+	}
+	setBit(m_networkStatus, on_bit);
+	unSetBit(m_networkStatus, off_bit);
+	m_currentNetworkStatus[messages_index] = success;
+	setConnectionMessage(messages_index, std::move(message));
+	emit serverStatusChanged(success);
+}
+
+void OSInterface::checkNetworkInterfaces()
+{
+	QNetworkInterface running_interface;
+	QList<QNetworkInterface> interfaces{std::move(QNetworkInterface::allInterfaces())};
+	for (const auto &interface : std::as_const(interfaces))
+	{
+		if (interface.flags() & QNetworkInterface::IsRunning)
+		{
+			if (interface.name() == "lo"_L1)
+			{
+				#ifndef Q_OS_ANDROID
+				running_interface = interface;
+				#endif
+			}
+			else
+			{
+				QList<QNetworkAddressEntry> addresses{std::move(interface.addressEntries())};
+				for (const auto &address : std::as_const(addresses))
+				{
+					if (!address.ip().isNull())
+					{
+						running_interface = interface;
+						break;
+					}
+				}
+			}
+		}
+	}
+	const bool success{running_interface.isValid()};
+	if (!m_currentNetworkStatus[interfaceMessage].has_value() || m_currentNetworkStatus[interfaceMessage].value() != success)
+	{
+		QString message{tr("Network interface: ")};
+		if (success)
+		{
+			switch (running_interface.type())
+			{
+				case QNetworkInterface::Loopback: message += "Loopback"_L1; break;
+				case QNetworkInterface::Virtual: message += "Virtual"_L1; break;
+				case QNetworkInterface::Ethernet:  message += "Ethernet"_L1; break;
+				case QNetworkInterface::Wifi: message += "WiFi"_L1; break;
+				default: message += "Unknown"_L1; break;
+			}
+			message += '(' % running_interface.name() % ')';
+		}
+		else
+			message += tr("This device does not have access to any network interface or the app does not have permission to access them");
+		setNetStatus(interfaceMessage, success, std::move(message));
+	}
+	checkInternetConnection();
+}
+
+void OSInterface::checkInternetConnection()
+{
+	bool is_connected{false};
+	if (networkInterfaceOK())
+	{
+		QTcpSocket checkConnectionSocket;
+		checkConnectionSocket.connectToHost("google.com"_L1, 443); // 443 for HTTPS or use Port 80 for HTTP
+		checkConnectionSocket.waitForConnected(2000);
+		is_connected = checkConnectionSocket.state() == QTcpSocket::ConnectedState;
+		checkConnectionSocket.close();
+	}
+	if (!m_currentNetworkStatus[internetMessage].has_value() || m_currentNetworkStatus[internetMessage].value() != is_connected)
+	{
+		setNetStatus(internetMessage, is_connected,
+			std::move(is_connected ? tr("Device is connected to the internet") : tr("Device is not connected to the internet")));
+		emit internetStatusChanged();
+	}
+
+	#ifndef Q_OS_ANDROID
+	checkLocalServer();
+	#else
+	appOnlineServices()->scanNetwork(appSettings()->serverAddress());
+	#endif
+}
+
+void OSInterface::setConnectionMessage(int msg_idx, QString &&message)
+{
+	m_connectionMessages[msg_idx] = std::move(message);
+	emit connectionMessageChanged();
+}
+
+void OSInterface::onlineServicesResponse(const uint online_status, const QString &additional_message)
 {
 	const bool online{online_status == TP_RET_CODE_SUCCESS};
-	if (tpServerOK() != online)
+	if (!m_currentNetworkStatus[serverMessage].has_value() || m_currentNetworkStatus[serverMessage].value() != online)
 	{
-		setBit(m_networkStatus, online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
-		unSetBit(m_networkStatus, online ? SERVER_UNREACHABLE : SERVER_UP_AND_RUNNING);
-		setConnectionMessage(online_status == TP_RET_CODE_SUCCESS ?
-					std::move(tr("Connected to server ") + '(' + appSettings()->serverAddress() + ')') :
-					std::move(tr("Server unreachable")));
+		QString message{online ? tr("Connected to server ") : tr("Server unreachable")};
+		if (online)
+			message += '(' + appSettings()->serverAddress() % ')' % additional_message;
+		else
+			message += additional_message;
+		setNetStatus(serverMessage, online, std::move(message));
 		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
 					{"Linux TP Server"_L1, connectionMessage()}, record_separator),
 					online_status == TP_RET_CODE_SUCCESS ? "set-completed" : "error");
-		emit serverStatusChanged(online);
 	}
 	m_checkConnectionTimer->start(online ? CONNECTION_CHECK_TIMEOUT : CONNECTION_ERR_TIMEOUT); //When network is out, check more frequently)
 }

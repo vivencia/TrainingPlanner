@@ -33,16 +33,6 @@ struct notificationData {
 QT_FORWARD_DECLARE_CLASS(TPListModel)
 QT_FORWARD_DECLARE_CLASS(QTimer);
 
-enum SERVER_STATUS {
-	SERVER_UP_AND_RUNNING = 0,
-	SERVER_UNREACHABLE = 1
-};
-
-enum INTERNET_STATUS {
-	HAS_INTERNET = 2,
-	NO_INTERNET_ACCESS = 3
-};
-
 class OSInterface : public QObject
 {
 
@@ -51,6 +41,13 @@ Q_OBJECT
 Q_PROPERTY(bool internetOK READ internetOK NOTIFY internetStatusChanged FINAL)
 Q_PROPERTY(bool tpServerOK READ tpServerOK NOTIFY serverStatusChanged FINAL)
 Q_PROPERTY(QString connectionMessage READ connectionMessage NOTIFY connectionMessageChanged FINAL)
+
+static constexpr short HAS_INTERFACE{0};
+static constexpr short NO_INTERFACE_RUNNING{1};
+static constexpr short HAS_INTERNET{2};
+static constexpr short NO_INTERNET_ACCESS{3};
+static constexpr short SERVER_UP_AND_RUNNING{4};
+static constexpr short SERVER_UNREACHABLE{5};
 
 public:
 	explicit OSInterface(QObject *parent = nullptr);
@@ -61,7 +58,16 @@ public:
 	#endif
 	}
 
-	void checkInternetConnection();
+	inline bool networkInterfaceOK() const
+	{
+		#ifndef QT_NO_DEBUG
+		const bool interface_ok{isBitSet(m_networkStatus, HAS_INTERFACE)};
+		return interface_ok;
+		#else
+		return isBitSet(m_networkStatus, HAS_INTERFACE);
+		#endif
+	}
+
 	inline bool internetOK() const
 	{
 #ifndef QT_NO_DEBUG
@@ -81,8 +87,7 @@ public:
 		return isBitSet(m_networkStatus, SERVER_UP_AND_RUNNING);
 #endif
 	}
-	QString connectionMessage() const { return m_connectionMessage; }
-	void setConnectionMessage(QString &&message);
+	QString connectionMessage() const { return m_connectionMessages.join('\n'); }
 
 	inline int networkStatus() const { return m_networkStatus; }
 
@@ -139,14 +144,15 @@ signals:
 #endif
 	void appSuspended();
 	void appResumed();
-	void internetStatusChanged(const bool connected);
+	void internetStatusChanged();
 	void serverStatusChanged(const bool online);
 	void connectionMessageChanged();
 
 private:
 	int m_networkStatus;
 	QTimer *m_checkConnectionTimer;
-	QString m_connectionMessage;
+	QStringList m_connectionMessages;
+	std::optional<bool> m_currentNetworkStatus[3];
 
 #ifdef Q_OS_ANDROID
 	TPAndroidNotification *m_AndroidNotification;
@@ -155,7 +161,11 @@ private:
 	QTimer *m_notificationsTimer;
 #endif
 
-	void onlineServicesResponse(const uint online_status);
+	void setNetStatus(uint messages_index, bool success, QString &&message);
+	void checkNetworkInterfaces();
+	void checkInternetConnection();
+	void setConnectionMessage(int msg_idx, QString &&message);
+	void onlineServicesResponse(const uint online_status, const QString &additional_message = QString{});
 	static OSInterface *app_os_interface;
 	friend OSInterface *appOsInterface();
 };

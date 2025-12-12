@@ -10,6 +10,7 @@ TPPopup {
 	keepAbove: false
 	closeButtonVisible: false
 
+	property string titleHeader
 	property list<Item> entriesList: []
 	property Component entryComponent: null
 
@@ -29,6 +30,13 @@ TPPopup {
 			border.color: "white"
 			border.width: 2
 			color: "transparent"
+		}
+
+		TPLabel {
+			text: titleHeader
+			horizontalAlignment: Text.AlignHCenter
+			height: titleHeader.length > 0 ? appSettings.itemSmallHeight : 0
+			Layout.fillWidth: true
 		}
 	}
 
@@ -56,7 +64,6 @@ TPPopup {
 		for(let i = 0; i < entriesList.length; ++i)
 			entriesList[i].destroy();
 		entriesList.length = 0;
-		entriesTotalHeight = 0;
 		close();
 	}
 

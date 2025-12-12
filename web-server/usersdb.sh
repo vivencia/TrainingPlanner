@@ -14,27 +14,11 @@ SQLITE="/usr/bin/sqlite3"
 
 SOURCES_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd ) #the directory of this script
 cd "${SOURCES_DIR}" || exit
+
+source "$SOURCES_DIR/function_library.sh"
 N_FIELDS=$(wc -l "${FIELDS_FILE}" | cut -d ' ' -f 1)
 LAST_FIELD=$N_FIELDS
 (( LAST_FIELD-- ))
-
-get_return_code() {
-	LINE=""
-	SEARCH_STRING="${1^^}"
-	SEARCH_STRING="${SEARCH_STRING// /_}"
-	while IFS= read -r line || [[ -n "$line" ]]; do
-		if [[ "${line}" == *"$SEARCH_STRING"* ]]; then
-			LINE=("${line}")
-			break
-		fi
-	done < "$CODES_FILE"
-
-	RET_CODE=100 #Unknown error code
-	if [ "$LINE" != "" ]; then
-		RET_CODE=$(echo "$LINE" | cut -d ' ' -f 3)
-	fi
-	return "$RET_CODE"
-}
 
 user_exists() {
 	RETURN_ID=$($SQLITE -line $USERS_DB "SELECT id FROM users_table WHERE userid=$USER_ID;")

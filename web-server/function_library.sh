@@ -4,6 +4,24 @@ SCRIPT_NAME=$(basename "$0")
 USER_NAME=$(whoami)
 NGINX="$(which nginx)"
 
+get_return_code() {
+	LINE=""
+	SEARCH_STRING="${1^^}"
+	SEARCH_STRING="${SEARCH_STRING// /_}"
+	while IFS= read -r line || [[ -n "$line" ]]; do
+		if [[ "${line}" == *"$SEARCH_STRING"* ]]; then
+			LINE=("${line}")
+			break
+		fi
+	done < "$CODES_FILE"
+
+	RET_CODE=100 #Unknown error code
+	if [ "$LINE" != "" ]; then
+		RET_CODE=$(echo "$LINE" | cut -d ' ' -f 3)
+	fi
+	return "$RET_CODE"
+}
+
 get_passwd() {
     if [ ! "$PASSWORD" ]; then
         read -p "Sudo's password: " -sr

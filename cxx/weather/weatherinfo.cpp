@@ -199,11 +199,6 @@ void WeatherInfo::handleWeatherData(const st_LocationInfo &location, const QList
 				d->nextThreeDays[i].setWeatherInfo(weatherDetails.at(i+2));
 		}
 		setCity(location.m_name);
-
-		/*const QString &coordinates{weatherDetails.first().m_coordinates};
-		const qsizetype comma_idx{coordinates.indexOf(',')};
-		d->coord.setLatitude(coordinates.sliced(1, comma_idx-1).toDouble());
-		d->coord.setLongitude(coordinates.sliced(comma_idx+1,coordinates.length()-comma_idx-2).toDouble());*/
 		d->coord = location.m_coordinate;
 		addLocationToConfig(location.m_name, location.m_coordinate);
 		emit weatherChanged();

@@ -53,9 +53,11 @@ Column {
 		}
 	} //Timer
 
-	Item {
+	Rectangle {
 		width: parent.width
 		height: appSettings.itemDefaultHeight
+		color: appSettings.listEntryColor2
+		opacity: 0.6
 
 		TPLabel {
 			text: qsTr("Search: ")
@@ -113,102 +115,94 @@ Column {
 		}
 	} // txtSearch
 
-	ListView {
-		id: lstExercises
-		model: exercisesModel
-		boundsBehavior: Flickable.StopAtBounds
-		clip: true
-		reuseItems: true
+	Rectangle {
+		color: "transparent"
+		border.color: appSettings.fontColor
+		border.width: 2
 		width: parent.width
 		height: parent.height * 0.75
-		contentHeight: exercisesModel.count * 40 * 1.1 //contentHeight: Essencial for the ScrollBars to work.
-		contentWidth: width
+		radius: 8
 
-		ScrollBar.vertical: ScrollBar {
-			policy: ScrollBar.AsNeeded
-			active: true
-			visible: lstExercises.contentHeight > lstExercises.height
-			interactive: true
-		}
 
-		/*function ensureVisible(item): void {
-			if (item) {
-				const ypos = item.mapToItem(contentItem, 0, 0).y;
-				const ext = item.height + ypos
-				if ( ypos < contentY // begins before
-					|| ypos > contentY + height // begins after
-					|| ext < contentY // ends before
-					|| ext > contentY + height) { // ends after
-					// don't exceed bounds
-					contentY = Math.max(0, Math.min(ypos - height + item.height, contentHeight - height));
+		ListView {
+			id: lstExercises
+			model: exercisesModel
+			boundsBehavior: Flickable.StopAtBounds
+			clip: true
+			reuseItems: true
+			contentHeight: exercisesModel.count * 40 * 1.1 //contentHeight: Essencial for the ScrollBars to work.
+			contentWidth: width
+			anchors.fill: parent
+			anchors.margins: 4
+
+			ScrollBar.vertical: ScrollBar {
+				policy: ScrollBar.AsNeeded
+				active: true
+				visible: lstExercises.contentHeight > lstExercises.height
+				interactive: true
+			}
+
+			delegate: SwipeDelegate {
+				id: delegate
+				padding: 5
+				width: lstExercises.width
+				height: appSettings.itemExtraLargeHeight
+
+				contentItem: TPLabel {
+					text: String(index+1) + ":  " + mainName + "\n"+ subName
+					leftPadding: 5
+					topPadding: 5
 				}
-			}
-			else
-				contentY = 0;
-		}*/
 
-		delegate: SwipeDelegate {
-			id: delegate
-			padding: 5
-			width: lstExercises.width
-			height: appSettings.itemExtraLargeHeight
-
-			contentItem: TPLabel {
-				id: listItem
-				text: index+1 + ":  " + mainName + "\n"+ subName
-				leftPadding: 5
-				topPadding: 5
-			}
-
-			background: Rectangle {
-				id:	backgroundColor
-				color: selected ? appSettings.entrySelectedColor : index % 2 === 0 ?
+				background: Rectangle {
+					color: selected ? appSettings.entrySelectedColor : index % 2 === 0 ?
 													appSettings.listEntryColor1 : appSettings.listEntryColor2
-				opacity: 0.9
-			}
+					opacity: 0.6
+				}
 
-			onClicked: itemClicked(index, true);
+				onClicked: itemClicked(index, true);
 
-			swipe.right: Rectangle {
-				width: parent.width
-				height: parent.height
-				clip: false
-				color: SwipeDelegate.pressed ? "#555" : "#666"
-				radius: 5
+				swipe.right: Rectangle {
+					width: parent.width
+					height: parent.height
+					clip: false
+					color: SwipeDelegate.pressed ? "#555" : "#666"
+					radius: 8
 
-				TPImage {
-					id: delImage
-					source: "remove"
-					width: appSettings.itemDefaultHeight
-					height: width
-					opacity: 2 * -delegate.swipe.position
-					z: 2
+					TPImage {
+						id: delImage
+						source: "remove"
+						width: appSettings.itemDefaultHeight
+						height: width
+						opacity: 2 * -delegate.swipe.position
+						z: 2
 
-					anchors {
-						left: parent.left
-						leftMargin: 10
-						verticalCenter: parent.verticalCenter
+						anchors {
+							left: parent.left
+							leftMargin: 10
+							verticalCenter: parent.verticalCenter
+						}
 					}
+
+					TPLabel {
+						text: qsTr("Removing in ") + parseInt(miliseconds/1000) + "s"
+						padding: delImage.width + 20
+						anchors.fill: parent
+						opacity: delegate.swipe.complete ? 1 : 0
+						Behavior on opacity { NumberAnimation {} }
+					}
+
+					SwipeDelegate.onClicked: delegate.swipe.close();
+					SwipeDelegate.onPressedChanged: undoTimer.stop();
+				} //swipe.right
+
+				swipe.onCompleted: {
+					miliseconds = 4000;
+					undoTimer.init(index);
 				}
-
-				TPLabel {
-					text: qsTr("Removing in ") + parseInt(miliseconds/1000) + "s"
-					padding: delImage.width + 20
-					anchors.fill: parent
-					opacity: delegate.swipe.complete ? 1 : 0
-					Behavior on opacity { NumberAnimation {} }
-				}
-
-				SwipeDelegate.onClicked: delegate.swipe.close();
-				SwipeDelegate.onPressedChanged: undoTimer.stop();
-			} //swipe.right
-
-			swipe.onCompleted: {
-				miliseconds = 4000;
-				undoTimer.init(index);
-			}
-		} // SwipeDelegate
-	} // ListView
+			} // SwipeDelegate
+		} // ListView
+	} //Rectangle
 
 	function itemClicked(idx: int, emit_signal: bool): void {
 		if (!bMultipleSelection) {

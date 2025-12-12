@@ -118,7 +118,7 @@ void TPSettings::getScreenMeasures()
 	m_HeightToWidth = static_cast<double>(s_width)/s_height;
 	m_windowWidth = s_width/4;
 	m_windowHeight = qCeil(m_windowWidth * m_HeightToWidth);
-	m_qmlPageHeight = qCeil(0.95 * (qCeil((s_width/4) * m_HeightToWidth)));
+	m_qmlPageHeight = qCeil(0.94 * m_windowHeight);
 #endif
 
 	constexpr qreal refDpi{100.};

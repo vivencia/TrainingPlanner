@@ -65,15 +65,6 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 		mb_MainUserInfoChanged = false;
 		mb_canConnectToServer = appOsInterface()->tpServerOK();
 
-#ifdef Q_OS_ANDROID
-		connect(appOsInterface(), &OSInterface::internetStatusChanged, this, [this] (const bool connected) {
-			if (!connected)
-			{
-				mb_canConnectToServer = false;
-				emit canConnectToServerChanged();
-			}
-		});
-#endif
 		connect(appOsInterface(), &OSInterface::serverStatusChanged, this, [this] (const bool online) {
 			if (!mb_canConnectToServer && online)
 				onlineCheckIn();
