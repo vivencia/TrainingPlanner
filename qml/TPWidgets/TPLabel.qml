@@ -29,9 +29,4 @@ Label {
 		radius: 6
 		opacity: 0.5
 	}
-
-	/*background: Rectangle {
-		color: "transparent"
-		border.color: "black"
-	}*/
 }

@@ -9,42 +9,42 @@ constexpr QLatin1StringView TP_APP_VERSION("v20251206 Build 6"_L1);
 constexpr QLatin1StringView GLOBAL_GROUP("app"_L1);
 constexpr QLatin1StringView DEFAULT_USER{"default"_L1};
 
-#define APP_VERSION_INDEX 0
-#define WINDOW_WIDTH_INDEX 1
-#define WINDOW_HEIGHT_INDEX 2
-#define PAGE_WIDTH_INDEX 3
-#define PAGE_HEIGHT_INDEX 4
-#define HEIGHT_TO_WIDTH_RATIO_INDEX 5
-#define FONT_RATIO 6
-#define CURRENT_USER 7
-#define SERVER_ADDRESS 8
-#define EXERCISES_VERSION_INDEX 9
-#define APP_SETTINGS_FIELD_COUNT EXERCISES_VERSION_INDEX + 1
+constexpr int APP_VERSION_INDEX{0};
+constexpr int WINDOW_WIDTH_INDEX{1};
+constexpr int WINDOW_HEIGHT_INDEX{2};
+constexpr int PAGE_WIDTH_INDEX{3};
+constexpr int PAGE_HEIGHT_INDEX{4};
+constexpr int HEIGHT_TO_WIDTH_RATIO_INDEX{5};
+constexpr int FONT_RATIO{6};
+constexpr int CURRENT_USER{7};
+constexpr int SERVER_ADDRESS{8};
+constexpr int EXERCISES_VERSION_INDEX{9};
+constexpr int APP_SETTINGS_FIELD_COUNT{EXERCISES_VERSION_INDEX + 1};
 //--------------------------------------------GLOBAL SETTINGS---------------------------------------------//
 
 //--------------------------------------------USER   SETTINGS---------------------------------------------//
-#define USER_LOCALE_INDEX 0
-#define THEME_STYLE_INDEX 1
-#define COLOR_INDEX 2
-#define LIGHT_COLOR_INDEX 3
-#define DARK_COLOR_INDEX 4
-#define PANE_COLOR_INDEX 5
-#define SELECTED_COLOR_INDEX 6
-#define LISTS_COLOR_1_INDEX 7
-#define LISTS_COLOR_2_INDEX 8
-#define FONT_COLOR_INDEX 9
-#define DISABLED_FONT_COLOR_INDEX 10
-#define WEIGHT_UNIT_INDEX 11
-#define MESO_IDX_INDEX 12
-#define FONT_SIZE_INDEX 13
-#define SMALLFONT_SIZE_INDEX 14
-#define LARGEFONT_SIZE_INDEX 15
-#define EXTRALARGEFONT_SIZE_INDEX 16
-#define COLOR_SCHEME_INDEX 17
-#define ITEM_DEFAULT_HEIGHT 18
-#define ASK_CONFIRMATION_INDEX 19
-#define WEATHER_CITIES_INDEX 20
-#define USER_SETTINGS_FIELD_COUNT WEATHER_CITIES_INDEX + 1
+constexpr int USER_LOCALE_INDEX{0};
+constexpr int THEME_STYLE_INDEX{1};
+constexpr int COLOR_INDEX{2};
+constexpr int LIGHT_COLOR_INDEX{3};
+constexpr int DARK_COLOR_INDEX{4};
+constexpr int PANE_COLOR_INDEX{5};
+constexpr int SELECTED_COLOR_INDEX{6};
+constexpr int LISTS_COLOR_1_INDEX{7};
+constexpr int LISTS_COLOR_2_INDEX{8};
+constexpr int FONT_COLOR_INDEX{9};
+constexpr int DISABLED_FONT_COLOR_INDEX{10};
+constexpr int WEIGHT_UNIT_INDEX{11};
+constexpr int MESO_IDX_INDEX{12};
+constexpr int FONT_SIZE_INDEX{13};
+constexpr int SMALLFONT_SIZE_INDEX{14};
+constexpr int LARGEFONT_SIZE_INDEX{15};
+constexpr int EXTRALARGEFONT_SIZE_INDEX{16};
+constexpr int COLOR_SCHEME_INDEX{17};
+constexpr int ITEM_DEFAULT_HEIGHT{18};
+constexpr int ASK_CONFIRMATION_INDEX{19};
+constexpr int WEATHER_CITIES_INDEX{20};
+constexpr int USER_SETTINGS_FIELD_COUNT{WEATHER_CITIES_INDEX + 1};
 //--------------------------------------------USER   SETTINGS---------------------------------------------//
 
 class TPSettings : public QSettings
@@ -138,7 +138,7 @@ signals:
 	void serverAddressChanged();
 
 private:
-	QMap<uint,QLatin1StringView> m_propertyNames;
+	QMap<uint,QLatin1StringView> m_globalPropertyNames;
 	qreal m_ratioFont;
 	uint m_windowWidth, m_windowHeight, m_qmlPageHeight;
 	double m_HeightToWidth;
@@ -153,13 +153,13 @@ private:
 	inline QVariant getValue(const QString &group, const uint index, const QVariant &default_value = QVariant{}) const
 	{
 		if (!isGroupReadOnly(group))
-			return value(group + '/' + (group == GLOBAL_GROUP ? m_propertyNames.value(index) :
+			return value(group + '/' + (group == GLOBAL_GROUP ? m_globalPropertyNames.value(index) :
 										m_userPropertyNames.value(index)), default_value);
 		else
 		{
-			const QVariant &read_only_value{m_readOnlyValues.value(group + '/' + (group == GLOBAL_GROUP ? m_propertyNames.value(index) :
+			const QVariant &read_only_value{m_readOnlyValues.value(group + '/' + (group == GLOBAL_GROUP ? m_globalPropertyNames.value(index) :
 										m_userPropertyNames.value(index)))};
-			return !read_only_value.isNull() ? read_only_value : value(group + '/' + (group == GLOBAL_GROUP ? m_propertyNames.value(index) :
+			return !read_only_value.isNull() ? read_only_value : value(group + '/' + (group == GLOBAL_GROUP ? m_globalPropertyNames.value(index) :
 										m_userPropertyNames.value(index)), default_value);
 		}
 	}
@@ -167,7 +167,7 @@ private:
 #else
 	inline QVariant getValue(const QString &group, const uint index, const QVariant &default_value = QVariant{}) const
 	{
-		return value(group + '/' + (group == GLOBAL_GROUP ? m_propertyNames.value(index) :
+		return value(group + '/' + (group == GLOBAL_GROUP ? m_globalPropertyNames.value(index) :
 										m_userPropertyNames.value(index)), default_value);
 	}
 #endif

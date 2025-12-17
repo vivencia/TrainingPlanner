@@ -4,12 +4,15 @@
 #include "tponlineservices.h"
 #include "../thread_manager.h"
 #include "../dbusermodel.h"
+#include "../pageslistmodel.h"
 #include "../tpbool.h"
 #include "../tpkeychain/tpkeychain.h"
 
 #include <QTimer>
 
 #include <ranges>
+
+constexpr uint MESSAGE_OWNMESSAGE{MESSAGE_MEDIA + 1};
 
 using namespace Qt::Literals::StringLiterals;
 
@@ -27,6 +30,7 @@ enum ChatRoleNames {
 	readRole		=		Qt::UserRole + MESSAGE_READ,
 	textRole		=		Qt::UserRole + MESSAGE_TEXT,
 	mediaRole		=		Qt::UserRole + MESSAGE_MEDIA,
+	ownMessageRole	=		mediaRole + 1,
 };
 
 struct ChatMessage {
@@ -41,8 +45,9 @@ struct ChatMessage {
 	TPBool read;
 	QString text;
 	QString media;
+	QString queued;
 
-	TPBool queued;
+	TPBool own_message;
 };
 
 TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QObject *parent)
@@ -61,6 +66,7 @@ TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QO
 	m_roleNames[readRole]		=	std::move("msgRead");
 	m_roleNames[textRole]		=	std::move("msgText");
 	m_roleNames[mediaRole]		=	std::move("msgMedia");
+	m_roleNames[ownMessageRole]	=	std::move("ownMessage");
 
 	m_userIdx = appUserModel()->userIdxFromFieldValue(USER_COL_ID, m_otherUserId);
 	m_dbModelInterface = new DBModelInterfaceChat{this};
@@ -83,16 +89,12 @@ TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QO
 
 	connect(appUserModel(), &DBUserModel::canConnectToServerChanged, this, [this] ()
 	{
-		if (appUserModel()->canConnectToServer() && QFile::exists(tempMessagesFile()))
+		if (appUserModel()->canConnectToServer())
 		{
-			appUserModel()->sendFileToServer(tempMessagesFile(), nullptr, QString{}, m_db->subDir(), appUserModel()->userId(0), true);
 			for (const auto msg : std::as_const(m_messages))
 			{
-				if (msg->queued)
-				{
-					msg->queued = false;
-					setData(index(msg->id), true, sentRole);
-				}
+				if (!msg->queued.isEmpty())
+					unqueueMessage(msg);
 			}
 		}
 	});
@@ -143,8 +145,9 @@ void TPChat::loadChat()
 				message->read = str_message.at(MESSAGE_READ).toUInt() == 1;
 				message->text = str_message.at(MESSAGE_TEXT);
 				message->media = str_message.at(MESSAGE_MEDIA);
+				message->own_message = message->sender == appUserModel()->userId(0);
 				m_messages.append(message);
-				if (!message->read && (message->sender != appUserModel()->userId(0)))
+				if (!message->read && !message->own_message)
 					++unread_messages;
 			};
 			emit dataChanged(index(0, 0), index(count() - 1));
@@ -179,21 +182,14 @@ QString TPChat::avatarIcon() const
 void TPChat::setSentMessageReceived(const uint msgid, const bool notify_server)
 {
 	if (m_chatLoaded)
-	{
 		setData(index(msgid), true, receivedRole);
-		if (notify_server)
-			acknowledgeAcknowledgement(msgid, messageWorkReceived);
-	}
+
 }
 
 void TPChat::setSentMessageRead(const uint msgid, const bool notify_server)
 {
 	if (m_chatLoaded)
-	{
 		setData(index(msgid), true, readRole);
-		if (notify_server)
-			acknowledgeAcknowledgement(msgid, messageWorkRead);
-	}
 }
 
 //When called from ChatWindow: deletes the message locally and, if it is a sent message, insctruct the other party to have
@@ -205,25 +201,16 @@ void TPChat::removeMessage(const uint msgid, const bool remove_for_interlocutor,
 	if (!m_chatLoaded)
 		return;
 
-	ChatMessage *message{m_messages.at(msgid)};
-	message->text.clear();
-	message->media.clear();
-	message->deleted = true;
-	emit dataChanged(index(msgid, 0), index(msgid, 0));
-	updateFieldToSave(msgid, MESSAGE_DELETED, "1"_L1);
-
-	if (remove_for_interlocutor && message->sender == appUserModel()->userId())
+	setData(index(msgid), QString{}, textRole);
+	setData(index(msgid), QString{}, mediaRole);
+	if (remove_for_interlocutor)
+		setData(index(msgid), "1"_L1, deletedRole);
+	else //Remove locally only. Do not call setData() because it will, in turn, call uploadAction()
 	{
-		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [=,this] (const QString &key, const QString &value)
-		{
-			const int requestid{appUtils()->generateRandomNumber(0, 5000)};
-			appOnlineServices()->chatMessageAcknowledgement(requestid, key, value, m_otherUserId,
-													QString::number(message->id) + set_separator, messageWorkRemoved);
-		}, Qt::SingleShotConnection);
-		appKeyChain()->readKey(appUserModel()->userId(0));
+		m_messages.at(msgid)->deleted = true;
+		emit dataChanged(index(msgid), index(msgid), QList<int>{1, deletedRole});
+		updateFieldToSave(msgid, MESSAGE_DELETED, "1"_L1);
 	}
-	else if (!remove_for_interlocutor && !from_qml && message->sender == m_otherUserId)
-		acknowledgeAcknowledgement(msgid, messageWorkRemoved);
 }
 
 void TPChat::setUnreadMessages(const int n_unread)
@@ -242,7 +229,7 @@ void TPChat::markAllIncomingMessagesRead()
 	QStringList msg_ids;
 	for (const auto message : std::as_const(m_messages) | std::views::reverse)
 	{
-		if (message->read || message->sender == appUserModel()->userId(0))
+		if (message->read || message->own_message)
 			break;
 		msg_ids.append(std::move(QString::number(message->id)));
 		setSentMessageRead(message->id, true);
@@ -253,8 +240,8 @@ void TPChat::markAllIncomingMessagesRead()
 		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,msg_ids] (const QString &key, const QString &value)
 		{
 			const int requestid{appUtils()->generateRandomNumber(0, 5000)};
-			appOnlineServices()->chatMessageAcknowledgement(requestid, key, value, m_otherUserId,
-												msg_ids.join(set_separator) + set_separator, messageWorkRead);
+			appOnlineServices()->chatMessageWork(requestid, key, value, m_otherUserId,
+												msg_ids.join(set_separator), messageWorkRead);
 		}, Qt::SingleShotConnection);
 		appKeyChain()->readKey(appUserModel()->userId(0));
 	}
@@ -271,27 +258,12 @@ void TPChat::createNewMessage(const QString &text, const QString &media)
 	message->stime = std::move(QTime::currentTime());
 	message->text = text;
 	message->media = media;
+	message->own_message = true;
 	m_messages.append(message);
 	emit countChanged();
 	endInsertRows();
-
 	encodeMessageToSave(message);
-
-	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,message] (const QString &key, const QString &value)
-	{
-		const int requestid{appUtils()->generateRandomNumber(0, 5000)};
-		if (appUserModel()->canConnectToServer())
-		{
-			setData(index(message->id), true, sentRole);
-			appOnlineServices()->sendMessage(requestid, key, value, m_otherUserId, std::move(encodeMessageToUpload(message)));
-		}
-		else
-		{
-			message->queued = true;
-			saveMessageToFile(message);
-		}
-	}, Qt::SingleShotConnection);
-	appKeyChain()->readKey(appUserModel()->userId(0));
+	uploadAction(MESSAGE_ID, message);
 }
 
 void TPChat::incomingMessage(const QString &encoded_message)
@@ -299,29 +271,22 @@ void TPChat::incomingMessage(const QString &encoded_message)
 	ChatMessage *message{decodeDownloadedMessage(encoded_message)};
 	if (!message)
 		return;
-	message->received = true;
 	message->rdate = std::move(QDate::currentDate());
 	message->rtime = std::move(QTime::currentTime());
+	message->received = true;
+	message->own_message = false;
 	beginInsertRows(QModelIndex{}, count(), count());
 	m_messages.append(message);
 	setUnreadMessages(-1);
 	emit countChanged();
 	endInsertRows();
-
 	encodeMessageToSave(message);
-	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,message] (const QString &key, const QString &value)
+	uploadAction(MESSAGE_RECEIVED, message);
+	if (m_chatWindow)
 	{
-		const int requestid{appUtils()->generateRandomNumber(0, 5000)};
-		appOnlineServices()->chatMessageAcknowledgement(requestid, key, value, m_otherUserId,
-										QString::number(message->id) + set_separator, messageWorkReceived);
-		if (m_chatWindow && m_chatWindow->property("activeFocus").toBool())
-		{
-			appOnlineServices()->chatMessageAcknowledgement(requestid, key, value, m_otherUserId,
-											QString::number(message->id) + set_separator, messageWorkRead);
-			setUnreadMessages(0);
-		}
-	}, Qt::SingleShotConnection);
-	appKeyChain()->readKey(appUserModel()->userId(0));
+		if (appPagesListModel()->isPopupAboveAllOthers(m_chatWindow))
+			setSentMessageRead(message->id, true);
+	}
 }
 
 void TPChat::clearChat()
@@ -332,26 +297,208 @@ void TPChat::clearChat()
 	void endResetModel();
 }
 
-void TPChat::acknowledgeAcknowledgement(const uint msgid, const QLatin1StringView &work)
+QVariant TPChat::data(const ChatMessage *const message, const uint field, const bool format_output) const
 {
-	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,msgid,work] (const QString &key, const QString &value)
+	switch (field)
 	{
-		const int requestid{appUtils()->generateRandomNumber(0, 5000)};
-		appOnlineServices()->chatMessageAcknowledgmentAcknowledged(requestid, key, value, m_otherUserId, QString::number(msgid), work);
+		case MESSAGE_ID: return message->id;
+		case MESSAGE_SENDER: return message->sender;
+		case MESSAGE_RECEIVER: return message->receiver;
+		case MESSAGE_SDATE: return format_output ? QVariant{appUtils()->formatDate(message->sdate)} : QVariant{message->sdate};
+		case MESSAGE_STIME: return format_output ? QVariant{appUtils()->formatTime(message->stime)} : QVariant{message->stime};
+		case MESSAGE_RDATE: return format_output ? QVariant{appUtils()->formatDate(message->rdate)} : QVariant{message->rdate};
+		case MESSAGE_RTIME: return format_output ? QVariant{appUtils()->formatTime(message->rtime)} : QVariant{message->rtime};
+		case MESSAGE_DELETED: return static_cast<bool>(message->deleted);
+		case MESSAGE_SENT: return static_cast<bool>(message->sent);
+		case MESSAGE_RECEIVED: return static_cast<bool>(message->received);
+		case MESSAGE_READ: return static_cast<bool>(message->read);
+		case MESSAGE_TEXT: return message->text;
+		case MESSAGE_MEDIA: return message->media;
+		case MESSAGE_OWNMESSAGE: return static_cast<bool>(message->own_message);
+	}
+	return QVariant{};
+}
+
+QVariant TPChat::data(const QModelIndex &index, int role) const
+{
+	const int row{index.row()};
+	if (row >= 0 && row < m_messages.count())
+		return data(m_messages.at(row), role - Qt::UserRole, true);
+	return QVariant{};
+}
+
+bool TPChat::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+	const int row{index.row()};
+	if (row >= 0 && row < m_messages.count())
+	{
+		ChatMessage *const message{m_messages.at(row)};
+
+		switch (role)
+		{
+			case rDateRole:
+				message->rdate = std::move(value.toDate());
+			break;
+			case rTimeRole:
+				message->rtime = std::move(value.toTime());
+			break;
+			case deletedRole:
+				uploadAction(MESSAGE_DELETED, message);
+			break;
+			case sentRole:
+				message->sent = value.toBool();
+			break;
+			case receivedRole:
+				message->received = value.toBool();
+				uploadAction(MESSAGE_RECEIVED, message);
+			break;
+			case readRole:
+				message->read = value.toBool();
+				uploadAction(MESSAGE_READ, message);
+				setUnreadMessages(message->read ? -1 : -2);
+			break;
+			case textRole:
+				message->text = std::move(value.toString());
+				uploadAction(MESSAGE_TEXT, message);
+			break;
+			case mediaRole:
+				message->media = std::move(value.toString());
+				uploadAction(MESSAGE_MEDIA, message);
+			break;
+			default: return false;
+		}
+		emit dataChanged(index, index, QList<int>{1, role});
+		const int field{role - Qt::UserRole};
+		updateFieldToSave(message->id, field, data(message, field).toString());
+		return true;
+	}
+	return false;
+}
+
+void TPChat::unqueueMessage(ChatMessage* const message)
+{
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [=,this] (const QString &key, const QString &value)
+	{
+		const QString &msgid{QString::number(message->id)};
+		for (uint i{0}; i <= MESSAGE_MEDIA; ++i)
+		{
+			const QString &field_value{appUtils()->getCompositeValue(i, message->queued, record_separator)};
+			if (field_value == "1"_L1)
+				uploadAction(i, message);
+		}
+		message->queued.clear();
 	}, Qt::SingleShotConnection);
 	appKeyChain()->readKey(appUserModel()->userId(0));
 }
 
-inline QString TPChat::tempMessagesFile() const
+void TPChat::uploadAction(const uint field, ChatMessage *const message)
 {
-	return m_db->dbFileName() + m_otherUserId + messageFileExtension;
+	if (appUserModel()->canConnectToServer())
+	{
+		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [=,this] (const QString &key, const QString &value)
+		{
+			const QString &msgid{QString::number(message->id)};
+			const QLatin1StringView seed{QString{message->text % QString::number(field)}.toLatin1()};
+			const int requestid{appUtils()->generateUniqueId(seed)};
+			switch (field)
+			{
+				case MESSAGE_ID:
+					if (message->own_message)
+					{
+						setData(index(message->id), true, sentRole);
+						appOnlineServices()->sendMessage(requestid, key, value, m_otherUserId, std::move(encodeMessageToUpload(message)));
+					}
+				break;
+				case MESSAGE_DELETED:
+					if (!message->own_message)
+						//Add message->id to the m_otherUserId/chats/this_user.removed file
+						appOnlineServices()->chatMessageWork(requestid, key, value, m_otherUserId, msgid, messageWorkRemoved);
+					else
+						//Remove message->id from the m_otherUserId/chats/this_user.removed file
+						appOnlineServices()->chatMessageWorkAcknowledged(requestid, key, value, m_otherUserId, msgid, messageWorkRemoved);
+				break;
+				case MESSAGE_RECEIVED:
+					if (!message->own_message)
+					{
+						//Remove message from the this_user/chats/m_otherUserId.msg file
+						appOnlineServices()->chatMessageWork(requestid, key, value, m_otherUserId, msgid, messageFileExtension);
+						//Add message->id to the m_otherUserId/chats/this_user.received file
+						appOnlineServices()->chatMessageWork(requestid, key, value, m_otherUserId, msgid, messageWorkReceived);
+					}
+					else
+						//Remove message->id from the m_otherUserId/chats/this_user.received file
+						appOnlineServices()->chatMessageWorkAcknowledged(requestid, key, value, m_otherUserId, msgid, messageWorkReceived);
+				break;
+				case MESSAGE_READ:
+					if (!message->own_message)
+						//Add message->id to the m_otherUserId/chats/this_user.read file
+						appOnlineServices()->chatMessageWork(requestid, key, value, m_otherUserId, msgid, messageWorkRead);
+					else
+						//Remove message->id from the m_otherUserId/chats/this_user.read file
+						appOnlineServices()->chatMessageWorkAcknowledged(requestid, key, value, m_otherUserId, msgid, messageWorkRead);
+				break;
+				case MESSAGE_TEXT:
+				case MESSAGE_MEDIA:
+					if (!message->own_message)
+						appOnlineServices()->chatMessageWork(requestid, key, value, m_otherUserId, msgid, messageWorkEdited);
+					else
+						appOnlineServices()->chatMessageWorkAcknowledged(requestid, key, value, m_otherUserId, msgid, messageWorkEdited);
+
+				default: break;
+			}
+		}, Qt::SingleShotConnection);
+		appKeyChain()->readKey(appUserModel()->userId(0));
+	}
+	else
+		appUtils()->setCompositeValue(field, "1"_L1, message->queued, record_separator);
+}
+
+void TPChat::acknowledgeMessageWorked(const uint msgid, const QLatin1StringView &work)
+{
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,msgid,work] (const QString &key, const QString &value)
+	{
+		const int requestid{appUtils()->generateRandomNumber(0, 5000)};
+		appOnlineServices()->chatMessageWorkAcknowledged(requestid, key, value, m_otherUserId, QString::number(msgid), work);
+	}, Qt::SingleShotConnection);
+	appKeyChain()->readKey(appUserModel()->userId(0));
+}
+
+void TPChat::encodeMessageToSave(const ChatMessage* const message)
+{
+	const uint modified_row{static_cast<uint>(m_dbModelInterface->modelData().count())};
+	m_dbModelInterface->modelData().append(std::move(QStringList{
+					std::move(QString::number(message->id)),
+					message->sender,
+					message->receiver,
+					std::move(appUtils()->formatDate(message->sdate, TPUtils::DF_ONLINE)),
+					std::move(appUtils()->formatTime(message->stime, TPUtils::TF_ONLINE)),
+					std::move(appUtils()->formatDate(message->rdate, TPUtils::DF_ONLINE)),
+					std::move(appUtils()->formatTime(message->rtime, TPUtils::TF_ONLINE)),
+					std::move(message->deleted ? "1"_L1 : "0"_L1),
+					std::move(message->sent ? "1"_L1 : "0"_L1),
+					std::move(message->received ? "1"_L1 : "0"_L1),
+					std::move(message->read ? "1"_L1 : "0"_L1),
+					message->text,
+					message->media,
+					message->queued
+	}));
+	updateFieldToSave(modified_row, -1, QString{});
+}
+
+void TPChat::updateFieldToSave(const uint msg_id, const int field, const QString &value) const
+{
+	if (field >= 0)
+		m_dbModelInterface->modelData()[msg_id][field] = value;
+	m_dbModelInterface->setModified(msg_id, field);
+	if (m_chatLoaded)
+		m_sendMessageTimer->start();
 }
 
 //record_separator(oct 036, dec 30) separates the message fields
 //set_separator (oct 037, dec 31) separates messages of the same sender
 //exercises_separator (oct 034 dec 28) separates the senders (the even number are the messages content and
 //the odd numbers are the sender ids)
-QString TPChat::encodeMessageToUpload(ChatMessage* message) const
+QString TPChat::encodeMessageToUpload(const ChatMessage* const message) const
 {
 	return appUtils()->string_strings({
 					QString::number(message->id),
@@ -370,44 +517,14 @@ QString TPChat::encodeMessageToUpload(ChatMessage* message) const
 	}, record_separator);
 }
 
-void TPChat::encodeMessageToSave(ChatMessage* message)
-{
-	const uint modified_row{static_cast<uint>(m_dbModelInterface->modelData().count())};
-	m_dbModelInterface->modelData().append(std::move(QStringList{
-					std::move(QString::number(message->id)),
-					message->sender,
-					message->receiver,
-					std::move(appUtils()->formatDate(message->sdate, TPUtils::DF_ONLINE)),
-					std::move(appUtils()->formatTime(message->stime, TPUtils::TF_ONLINE)),
-					std::move(appUtils()->formatDate(message->rdate, TPUtils::DF_ONLINE)),
-					std::move(appUtils()->formatTime(message->rtime, TPUtils::TF_ONLINE)),
-					std::move(message->deleted ? "1"_L1 : "0"_L1),
-					std::move(message->sent ? "1"_L1 : "0"_L1),
-					std::move(message->received ? "1"_L1 : "0"_L1),
-					std::move(message->read ? "1"_L1 : "0"_L1),
-					message->text,
-					message->media
-	}));
-	updateFieldToSave(modified_row, -1, QString{});
-}
-
-void TPChat::updateFieldToSave(const uint msg_id, const int field, const QString &value) const
-{
-	if (field >= 0)
-		m_dbModelInterface->modelData()[msg_id][field] = value;
-	m_dbModelInterface->setModified(msg_id, field);
-	if (m_chatLoaded)
-		m_sendMessageTimer->start();
-}
-
 ChatMessage* TPChat::decodeDownloadedMessage(const QString &encoded_message)
 {
 	uint id{appUtils()->getCompositeValue(MESSAGE_ID, encoded_message, record_separator).toUInt()};
-	for (const auto msg : std::as_const(m_messages))
-	{
-		if (msg->id == id)
-			return nullptr;
-	}
+	const auto &itr{std::find_if(m_messages.cbegin(), m_messages.cend(), [id] (const ChatMessage *message) {
+		return message->id == id;
+	})};
+	if (itr != m_messages.cend())
+		return nullptr;
 
 	ChatMessage *new_message{new ChatMessage};
 	new_message->id = id;
@@ -428,182 +545,4 @@ ChatMessage* TPChat::decodeDownloadedMessage(const QString &encoded_message)
 	new_message->text = std::move(appUtils()->getCompositeValue(MESSAGE_TEXT, encoded_message, record_separator));
 	new_message->media = std::move(appUtils()->getCompositeValue(MESSAGE_MEDIA, encoded_message, record_separator));
 	return new_message;
-}
-
-void TPChat::saveMessageToFile(ChatMessage *message) const
-{
-	QFile* msg_file{appUtils()->openFile(tempMessagesFile(), false, true, true)};
-	if (msg_file)
-	{
-		msg_file->write(encodeMessageToUpload(message).toUtf8().constData());
-		msg_file->write(QByteArray{1, set_separator.toLatin1()});
-		msg_file->close();
-		delete msg_file;
-	}
-}
-
-QVariant TPChat::data(ChatMessage *message, const uint field) const
-{
-	switch (field)
-	{
-		case MESSAGE_ID: return message->id;
-		case MESSAGE_SENDER: return message->sender;
-		case MESSAGE_RECEIVER: return message->receiver;
-		case MESSAGE_SDATE: return message->sdate;
-		case MESSAGE_STIME: return message->stime;
-		case MESSAGE_RDATE: return message->rdate;
-		case MESSAGE_RTIME: return message->rtime;
-		case MESSAGE_DELETED: return static_cast<bool>(message->deleted);
-		case MESSAGE_SENT: return static_cast<bool>(message->sent);
-		case MESSAGE_RECEIVED: return static_cast<bool>(message->received);
-		case MESSAGE_READ: return static_cast<bool>(message->read);
-		case MESSAGE_TEXT: return message->text;
-		case MESSAGE_MEDIA: return message->media;
-	}
-	return QVariant{};
-}
-
-QVariant TPChat::data(const QModelIndex &index, int role) const
-{
-	const int row{index.row()};
-	if (row >= 0 && row < m_messages.count())
-	{
-		switch (role)
-		{
-			case idRole: return m_messages.at(row)->id;
-			case senderRole: return m_messages.at(row)->sender;
-			case receiverRole: return m_messages.at(row)->receiver;
-			case sDateRole: return appUtils()->formatDate(m_messages.at(row)->sdate);
-			case sTimeRole: return appUtils()->formatTime(m_messages.at(row)->stime);
-			case rDateRole: return appUtils()->formatDate(m_messages.at(row)->rdate);
-			case rTimeRole: return appUtils()->formatTime(m_messages.at(row)->rtime);
-			case deletedRole: return static_cast<bool>(m_messages.at(row)->deleted);
-			case sentRole: return static_cast<bool>(m_messages.at(row)->sent);
-			case receivedRole: return static_cast<bool>(m_messages.at(row)->received);
-			case readRole: return static_cast<bool>(m_messages.at(row)->read);
-			case textRole: return m_messages.at(row)->text;
-			case mediaRole: return m_messages.at(row)->media;
-		}
-	}
-	return QVariant{};
-}
-
-bool TPChat::setData(const QModelIndex &index, const QVariant &value, int role)
-{
-	const int row{index.row()};
-	if (row >= 0 && row < m_messages.count())
-	{
-		switch (role)
-		{
-			case idRole:
-			{
-				bool ok{false};
-				const int id{value.toInt(&ok)};
-				if (!ok || m_messages.at(row)->id == id)
-					return false;
-				m_messages.at(row)->id = id;
-			}
-			break;
-			case senderRole:
-			{
-				QString sender{std::move(value.toString())};
-				if (sender == m_messages.at(row)->sender)
-					return false;
-				m_messages.at(row)->sender = std::move(sender);
-			}
-			break;
-			case receiverRole:
-			{
-				QString receiver{std::move(value.toString())};
-				if (receiver == m_messages.at(row)->receiver)
-					return false;
-				m_messages.at(row)->receiver = std::move(receiver);
-			}
-			break;
-			case sDateRole:
-			{
-				QDate date{std::move(value.toDate())};
-				if (date == m_messages.at(row)->sdate)
-					return false;
-				m_messages.at(row)->sdate = std::move(date);
-			}
-			break;
-			case sTimeRole:
-			{
-				QTime time{std::move(value.toTime())};
-				if (time == m_messages.at(row)->stime)
-					return false;
-				m_messages.at(row)->stime = std::move(time);
-			}
-			break;
-			case rDateRole:
-			{
-				QDate date{std::move(value.toDate())};
-				if (date == m_messages.at(row)->rdate)
-					return false;
-				m_messages.at(row)->rdate = std::move(date);
-			}
-			break;
-			case rTimeRole:
-			{
-				QTime time{std::move(value.toTime())};
-				if (time == m_messages.at(row)->rtime)
-					return false;
-				m_messages.at(row)->rtime = std::move(time);
-			}
-			break;
-			case deletedRole:
-			{
-				bool val{value.toBool()};
-				if (val == m_messages.at(row)->deleted)
-					return false;
-				m_messages.at(row)->deleted = val;
-			}
-			break;
-			case sentRole:
-			{
-				bool val{value.toBool()};
-				if (val == m_messages.at(row)->sent)
-					return false;
-				m_messages.at(row)->sent = val;
-			}
-			break;
-			case receivedRole:
-			{
-				bool val{value.toBool()};
-				if (val == m_messages.at(row)->received)
-					return false;
-				m_messages.at(row)->received = val;
-			}
-			break;
-			case readRole:
-			{
-				bool val{value.toBool()};
-				if (val == m_messages.at(row)->read)
-					return false;
-				m_messages.at(row)->read = val;
-			}
-			break;
-			case textRole:
-			{
-				QString text{std::move(value.toString())};
-				if (text == m_messages.at(row)->text)
-					return false;
-				m_messages.at(row)->text = std::move(text);
-			}
-			break;
-			case mediaRole:
-			{
-				QString media{std::move(value.toString())};
-				if (media == m_messages.at(row)->media)
-					return false;
-				m_messages.at(row)->media = std::move(media);
-			}
-			break;
-		}
-		emit dataChanged(index, index, QList<int>{1, role});
-		updateFieldToSave(m_messages.at(row)->id, role - Qt::UserRole, data(index, role).toString());
-		return true;
-	}
-	return false;
 }

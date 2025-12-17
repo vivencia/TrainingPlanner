@@ -19,6 +19,7 @@ constexpr QLatin1StringView field_names[TP_CHAT_MESSAGE_FIELDS][2] {
 	{"read"_L1,		"INTEGER"_L1},
 	{"text"_L1,		"TEXT"_L1},
 	{"media"_L1,	"TEXT"_L1},
+	{"queued"_L1,	"TEXT"_L1},
 };
 
 TPChatDB::TPChatDB(const QString &user_id, const QString &otheruser_id, DBModelInterfaceChat *dbmodel_interface)

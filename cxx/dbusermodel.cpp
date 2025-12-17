@@ -68,7 +68,7 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 		connect(appOsInterface(), &OSInterface::serverStatusChanged, this, [this] (const bool online) {
 			if (!mb_canConnectToServer && online)
 				onlineCheckIn();
-			else if (mb_canConnectToServer && !online)
+			else if (mb_canConnectToServer && !online && m_mainTimer)
 				m_mainTimer->stop();
 			mb_canConnectToServer = online;
 			emit canConnectToServerChanged();

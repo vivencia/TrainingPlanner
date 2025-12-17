@@ -42,15 +42,16 @@ extern "C"
 
 static const QString &tp_server_config_script{"/var/www/html/trainingplanner/scripts/init_script.sh"_L1};
 
-#define TPSERVER_OK 0
-#define TPSERVER_ERROR 1
-#define TPSERVER_NGINX_ERROR 2
-#define TPSERVER_PHPFPM_ERROR 3
-#define TPSERVER_CONFIG_ERROR 4
-#define TPSERVER_OK_LOCALHOST 5
-#define TPSERVER_PAUSED 6
-#define TPSERVER_PAUSED_LOCALHOST 7
-#define TPSERVER_PAUSED_FAILED 8
+constexpr int TPSERVER_OK				{0};
+constexpr int TPSERVER_ERROR			{1};
+constexpr int TPSERVER_NGINX_ERROR		{2};
+constexpr int TPSERVER_PHPFPM_ERROR		{3};
+constexpr int TPSERVER_CONFIG_ERROR		{4};
+constexpr int TPSERVER_OK_LOCALHOST		{5};
+constexpr int TPSERVER_PAUSED			{6};
+constexpr int TPSERVER_PAUSED_LOCALHOST	{7};
+constexpr int TPSERVER_PAUSED_FAILED	{8};
+
 #endif //Q_OS_LINUX
 #endif //Q_OS_ANDROID
 
@@ -65,11 +66,11 @@ static const QString &tp_server_config_script{"/var/www/html/trainingplanner/scr
 OSInterface *OSInterface::app_os_interface{nullptr};
 #ifndef QT_NO_DEBUG
 //When testing, poll more frequently
-constexpr uint CONNECTION_CHECK_TIMEOUT{60*1000};
-constexpr uint CONNECTION_ERR_TIMEOUT{10*1000};
+constexpr int CONNECTION_CHECK_TIMEOUT{60*1000};
+constexpr int CONNECTION_ERR_TIMEOUT{10*1000};
 #else
-constexpr uint CONNECTION_CHECK_TIMEOUT{10*60*1000};
-constexpr uint CONNECTION_ERR_TIMEOUT{20*1000};
+constexpr int CONNECTION_CHECK_TIMEOUT{10*60*1000};
+constexpr int CONNECTION_ERR_TIMEOUT{20*1000};
 #endif
 
 enum connectMessagesIndex {
@@ -80,6 +81,9 @@ enum connectMessagesIndex {
 
 OSInterface::OSInterface(QObject *parent)
 	: QObject{parent}, m_networkStatus{0}
+#ifndef Q_OS_ANDROID
+	, m_currentNetInterface{nullptr}
+#endif
 {
 	app_os_interface = this;
 	m_connectionMessages.resize(3);
@@ -606,7 +610,7 @@ void OSInterface::openURL(const QString &address) const
 	}
 }
 
-void OSInterface::startChatApp(const QString &phone, const QString &appname) const
+void OSInterface::startMessagingApp(const QString &phone, const QString &appname) const
 {
 	if (phone.length() < 17)
 		return;
@@ -637,10 +641,9 @@ void OSInterface::sendMail(const QString &address, const QString &subject, const
 		}
 	}
 	#else
-	const QStringList &args (QStringList{} <<
-		"--utf8"_L1 << "--subject"_L1 << QChar{'\''} + subject + QChar{'\''} << "--attach"_L1 << attachment_file <<
-			QChar{'\''} + address + QChar{'\''});
-	auto *__restrict proc(new QProcess ());
+	const QStringList &args{QStringList{6} << "--utf8"_L1 << "--subject"_L1 << QChar{'\''} + subject + QChar{'\''} <<
+						"--attach"_L1 << attachment_file << QChar{'\''} + address + QChar{'\''}};
+	auto *__restrict proc{new QProcess};
 	proc->start("xdg-email"_L1, args);
 	connect(proc, &QProcess::finished, this, [&,proc,address,subject] (int exitCode, QProcess::ExitStatus)
 	{
@@ -702,39 +705,39 @@ void OSInterface::setNetStatus(uint messages_index, bool success, QString &&mess
 
 void OSInterface::checkNetworkInterfaces()
 {
-	QNetworkInterface running_interface;
-	QList<QNetworkInterface> interfaces{std::move(QNetworkInterface::allInterfaces())};
-	for (const auto &interface : std::as_const(interfaces))
+	const QNetworkInterface *running_interface;
+	const QList<QNetworkInterface> &interfaces{QNetworkInterface::allInterfaces()};
+	for (const auto &interface : interfaces)
 	{
 		if (interface.flags() & QNetworkInterface::IsRunning)
 		{
 			if (interface.name() == "lo"_L1)
 			{
 				#ifndef Q_OS_ANDROID
-				running_interface = interface;
+				running_interface = &interface;
 				#endif
 			}
 			else
 			{
-				QList<QNetworkAddressEntry> addresses{std::move(interface.addressEntries())};
-				for (const auto &address : std::as_const(addresses))
+				const QList<QNetworkAddressEntry> &addresses{interface.addressEntries()};
+				for (const auto &address : addresses)
 				{
 					if (!address.ip().isNull())
 					{
-						running_interface = interface;
+						running_interface = &interface;
 						break;
 					}
 				}
 			}
 		}
 	}
-	const bool success{running_interface.isValid()};
+	const bool success{running_interface->isValid()};
 	if (!m_currentNetworkStatus[interfaceMessage].has_value() || m_currentNetworkStatus[interfaceMessage].value() != success)
 	{
 		QString message{tr("Network interface: ")};
 		if (success)
 		{
-			switch (running_interface.type())
+			switch (running_interface->type())
 			{
 				case QNetworkInterface::Loopback: message += "Loopback"_L1; break;
 				case QNetworkInterface::Virtual: message += "Virtual"_L1; break;
@@ -742,7 +745,18 @@ void OSInterface::checkNetworkInterfaces()
 				case QNetworkInterface::Wifi: message += "WiFi"_L1; break;
 				default: message += "Unknown"_L1; break;
 			}
-			message += '(' % running_interface.name() % ')';
+			m_localIPAddress = running_interface->addressEntries().constFirst().ip().toString();
+			message += '(' % running_interface->name() % ')';
+			#ifndef Q_OS_ANDROID
+			//On the desktop, the loopback interface is good for testing almost everything, but some code pathways
+			//would never be reached with it, so whenever there is a good alternative interface, more closely related
+			//to a real world example, use it, ditching loopback
+			if (appSettings()->serverAddress() == "localhost"_L1)
+				appSettings()->setServerAddress(m_localIPAddress);
+			m_currentNetInterface = running_interface;
+			#else
+			appSettings()->setServerAddress(m_localIPAddress);
+			#endif
 		}
 		else
 			message += tr("This device does not have access to any network interface or the app does not have permission to access them");

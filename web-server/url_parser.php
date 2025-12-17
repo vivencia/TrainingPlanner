@@ -256,14 +256,13 @@ function run_commands($userid, $subdir, $delete_cmdfile) {
 				elseif (!$return_var)
 					echo "the pipe could not be established";
 				else {
-					if ($return_var == 0) {
+					if ($return_var == 0)
 						echo "0: " . $file . " executed correctly";
-						if ($delete_cmdfile == "1")
-							unlink($path.$file);
-					}
 					else
 						echo get_return_code("exec failed") . ": " . $file . " (".$return_var.")";
 				}
+				if ($delete_cmdfile == "1")
+					unlink($path.$file);
 			}
 			//$output = ob_get_clean();
 			return true;
@@ -776,8 +775,39 @@ function send_message($username, $receiver, $message) {
 	echo "0: Message Sent!";
 }
 
-//$messageid must be comprised of the message id followed by set_separator
+function remove_received_message($sender, $recipient, $messageid)
+{
+	global $rootdir;
+	$messages_dir = $rootdir . $recipient . "/chats/";
+	$messages_file = $messages_dir . $sender . ".msg";
+	$messages_arr = file($messages_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+	$sep_idx1 = 0;
+	$sep_idx2 = 0;
+	$kept_messages = [];
+	$msgid = (int)$messageid;
+	foreach ($messages_arr as $messages) {
+		do {
+			$sep_idx2 = strpos($messages, "\037", $sep_idx1);
+			if ($sep_idx2) {
+				$message = substr($messages, $sep_idx1, $sep_idx2 - $sep_idx1);
+				$message_id = substr($message, 0, strpos($message, "\036", 0));
+				$id = (int)$message_id;
+				if ($id !== $msgid)
+					$kept_messages[] = $message . "\037";
+				$sep_idx1 = $sep_idx2 + 1;
+			}
+		} while ($sep_idx2);
+	}
+	$fh = fopen($messages_file, "w");
+	fwrite($fh, implode($kept_messages));
+	fclose($fh);
+}
+
 function message_worker($sender, $recipient, $messageid, $argument) {
+	if ($argument == ".msg") {
+		remove_received_message($recipient, $sender, $messageid);
+		return true;
+	}
 	global $rootdir;
 	$messages_dir = $rootdir . $recipient . "/chats/";
 	if (!create_dir($messages_dir)) {
@@ -796,7 +826,7 @@ function message_worker($sender, $recipient, $messageid, $argument) {
 	else {
 		$msgids_arr = file($messages_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 		foreach ($msgids_arr as $msgids) {
-			if (str_contains($msgids, $messageid)) {
+			if (str_contains($msgids, $messageid . "\037")) {
 				echo get_return_code("no changes success") . ": Message " . $argument . "!";
 				return true;
 			}
@@ -836,34 +866,6 @@ function message_worked($sender, $recipient, $messageid, $work) {
 	}
 	$fh = fopen($ids_file, "w");
 	fwrite($fh, implode($kept_ids));
-	fclose($fh);
-}
-
-function remove_received_message($sender, $recipient, $messageid)
-{
-	global $rootdir;
-	$messages_dir = $rootdir . $recipient . "/chats/";
-	$messages_file = $messages_dir . $sender . ".msg";
-	$messages_arr = file($messages_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-	$sep_idx1 = 0;
-	$sep_idx2 = 0;
-	$kept_messages = [];
-	$msgid = (int)$messageid;
-	foreach ($messages_arr as $messages) {
-		do {
-			$sep_idx2 = strpos($messages, "\037", $sep_idx1);
-			if ($sep_idx2) {
-				$message = substr($messages, $sep_idx1, $sep_idx2 - $sep_idx1);
-				$message_id = substr($message, 0, strpos($message, "\036", 0));
-				$id = (int)$message_id;
-				if ($id !== $msgid)
-					$kept_messages[] = $message . "\037";
-				$sep_idx1 = $sep_idx2 + 1;
-			}
-		} while ($sep_idx2);
-	}
-	$fh = fopen($messages_file, "w");
-	fwrite($fh, implode($kept_messages));
 	fclose($fh);
 }
 

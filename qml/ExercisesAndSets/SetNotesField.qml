@@ -50,7 +50,7 @@ Column {
 		ScrollBar.horizontal.policy: ScrollBar.AsNeeded
 		ScrollBar.vertical.policy: ScrollBar.AsNeeded
 		width: control.width
-		height: appSettings.pageHeight*0.15
+		height: appSettings.pageHeight * 0.15
 		Layout.maximumWidth: width
 		Layout.maximumHeight: height
 

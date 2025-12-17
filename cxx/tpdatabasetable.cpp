@@ -64,7 +64,8 @@ TPDatabaseTable::TPDatabaseTable(const uint table_id, DBModelInterface *dbmodel_
 	});
 
 	connect(this, &TPDatabaseTable::actionFinished, this, [this]
-				(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2) {
+				(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2)
+	{
 		switch (op)
 		{
 			case ThreadManager::ReadAllRecords: m_sqlLiteDB.close(); break;
@@ -114,9 +115,9 @@ std::pair<bool, bool> TPDatabaseTable::createTable()
 	{
 		if (appUtils()->mkdir(dbFilePath()))
 		{
-			m_strQuery = {std::move("CREATE TABLE IF NOT EXISTS "_L1 + *m_tableName + " ("_L1)};
+			m_strQuery = {std::move("CREATE TABLE IF NOT EXISTS "_L1 % *m_tableName % " ("_L1)};
 			for (uint i{0}; i < m_fieldCount; ++i)
-				m_strQuery += std::move(m_fieldNames[i][0] + ' ' + m_fieldNames[i][1]) + ',';
+				m_strQuery += std::move(m_fieldNames[i][0] % ' ' % m_fieldNames[i][1]) % ',';
 			m_strQuery.chop(1);
 			m_strQuery += std::move(");"_L1);
 			success = execSingleWriteQuery(m_strQuery);
@@ -134,9 +135,9 @@ std::pair<bool, bool> TPDatabaseTable::insertRecord()
 	const QStringList &data{m_dbModelInterface->modelData().at(modified_row)};
 	const bool auto_increment{m_fieldNames[0][1].contains("AUTOINCREMENT"_L1)};
 
-	m_strQuery = std::move("INSERT INTO "_L1 + *m_tableName + " ("_L1);
+	m_strQuery = std::move("INSERT INTO "_L1 % *m_tableName % " ("_L1);
 	for (int i{0}; i < m_fieldCount; ++i)
-		m_strQuery += std::move(m_fieldNames[i][0] + ',');
+		m_strQuery += std::move(m_fieldNames[i][0] % ',');
 	m_strQuery.chop(1);
 	m_strQuery += ')';
 
@@ -150,7 +151,7 @@ std::pair<bool, bool> TPDatabaseTable::insertRecord()
 		for (const auto &data : std::as_const(m_dbModelInterface->modelData().at(modified_row)))
 		{
 			if (field != 0 || !auto_increment)
-				m_strQuery += std::move(m_fieldNames[field][1] == "TEXT"_L1 ? QString{'\'' + data + '\''} : data + ',');
+				m_strQuery += std::move(m_fieldNames[field][1] == "TEXT"_L1 ? QString{'\'' % data % '\''} : data % ',');
 			++field;
 		}
 		m_strQuery.chop(1);
@@ -158,7 +159,7 @@ std::pair<bool, bool> TPDatabaseTable::insertRecord()
 		++itr;
 	}
 	m_strQuery.chop(1);
-	m_strQuery += std::move(");"_L1);
+	m_strQuery += ';';
 
 	if (execSingleWriteQuery(m_strQuery))
 	{
@@ -175,12 +176,12 @@ std::pair<bool, bool> TPDatabaseTable::insertRecord()
 std::pair<bool,bool> TPDatabaseTable::alterRecords()
 {
 	bool success{false}, cmd_ok{false};
-	QString insert_cmd{std::move("INSERT INTO "_L1 + *m_tableName + " ("_L1)};
+	QString insert_cmd{std::move("INSERT INTO "_L1 % *m_tableName % " ("_L1)};
 	for (int i{0}; i < m_fieldCount; ++i)
-		insert_cmd += std::move(m_fieldNames[i][0] + ',');
+		insert_cmd += std::move(m_fieldNames[i][0] % ',');
 	insert_cmd.chop(1);
 	insert_cmd += std::move(") VALUES("_L1);
-	const QString &update_cmd{"UPDATE "_L1 + *m_tableName + " SET "_L1};
+	const QString &update_cmd{"UPDATE "_L1 % *m_tableName % " SET "_L1};
 	bool has_insert{false};
 	const bool auto_increment{m_fieldNames[0][1].contains("AUTOINCREMENT"_L1)};
 	QString str_query;
@@ -199,7 +200,7 @@ std::pair<bool,bool> TPDatabaseTable::alterRecords()
 			for (const auto &data : std::as_const(m_dbModelInterface->modelData().at(modified_row)))
 			{
 				if (field != 0 || !auto_increment)
-					str_query += std::move((m_fieldNames[field][1] == "TEXT"_L1 ? QString{'\'' + data + '\''} : data) + ',');
+					str_query += std::move((m_fieldNames[field][1] == "TEXT"_L1 ? QString{'\'' % data % '\''} : data) % ',');
 				++field;
 			}
 			str_query.chop(1);
@@ -210,10 +211,11 @@ std::pair<bool,bool> TPDatabaseTable::alterRecords()
 			str_query = update_cmd;
 			for (const auto field : std::as_const(itr.value()))
 			{
-				str_query += std::move(m_fieldNames[field][0] + '=' + (m_fieldNames[field][1] == "TEXT"_L1 ?
-						'\'' + m_dbModelInterface->modelData().at(modified_row).at(field) + '\'' :
-											m_dbModelInterface->modelData().at(modified_row).at(field)));
+				str_query += std::move(m_fieldNames[field][0] % '=' % (m_fieldNames[field][1] == "TEXT"_L1 ?
+						'\'' % m_dbModelInterface->modelData().at(modified_row).at(field) % '\'' :
+									m_dbModelInterface->modelData().at(modified_row).at(field)) % ',');
 			}
+			str_query.chop(1);
 			const QString &id{m_dbModelInterface->modelData().at(modified_row).at(0)};
 			str_query += std::move(" WHERE %1=%2;"_L1.arg(m_fieldNames[0][0], id));
 		}
@@ -250,9 +252,9 @@ std::pair<bool,bool> TPDatabaseTable::updateRecord()
 	const int modified_field{m_dbModelInterface->modifiedIndices().cbegin().value().first()};
 	const QString &new_value{m_dbModelInterface->modelData().at(modified_row).at(modified_field)};
 
-	m_strQuery = std::move("UPDATE "_L1 + *m_tableName + u" SET %1=%2 WHERE %3=%4;"_s.arg(
+	m_strQuery = std::move("UPDATE "_L1 % *m_tableName % u" SET %1=%2 WHERE %3=%4;"_s.arg(
 		m_fieldNames[modified_field][0], m_fieldNames[modified_field][1] == "TEXT"_L1 ?
-											'\'' + new_value + '\'' : new_value, m_fieldNames[0][0], id));
+											'\'' % new_value % '\'' : new_value, m_fieldNames[0][0], id));
 	success = execSingleWriteQuery(m_strQuery);
 	if (success)
 	{
@@ -270,13 +272,14 @@ std::pair<bool,bool> TPDatabaseTable::updateFieldsOfRecord()
 	const QString &id{m_dbModelInterface->modelData().at(modified_row).at(0)};
 	const QList<int> &fields{m_dbModelInterface->modifiedIndices().value(modified_row)};
 
-	m_strQuery = std::move("UPDATE "_L1 + *m_tableName + " SET "_L1);
+	m_strQuery = std::move("UPDATE "_L1 % *m_tableName % " SET "_L1);
 	for (uint i{0}; i < fields.count(); ++i)
 	{
-		m_strQuery += std::move(m_fieldNames[i][0] + '=' + (m_fieldNames[i][1] == "TEXT"_L1 ?
-							'\'' + m_dbModelInterface->modelData().at(modified_row).at(i) + '\'' :
-												m_dbModelInterface->modelData().at(modified_row).at(i)));
+		m_strQuery += std::move(m_fieldNames[i][0] % '=' % (m_fieldNames[i][1] == "TEXT"_L1 ?
+							'\'' % m_dbModelInterface->modelData().at(modified_row).at(i) % '\'' :
+												m_dbModelInterface->modelData().at(modified_row).at(i)) % ',');
 	}
+	m_strQuery.chop(1);
 	m_strQuery += std::move(" WHERE %1=%2;"_L1.arg(m_fieldNames[0][0], id));
 	success = execSingleWriteQuery(m_strQuery);
 	if (success)

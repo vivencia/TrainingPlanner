@@ -18,12 +18,14 @@ constexpr uint MESSAGE_RECEIVED			{9};
 constexpr uint MESSAGE_READ				{10};
 constexpr uint MESSAGE_TEXT				{11};
 constexpr uint MESSAGE_MEDIA			{12};
-constexpr uint TP_CHAT_MESSAGE_FIELDS	{MESSAGE_MEDIA+1};
+constexpr uint MESSAGE_QUEUED			{13};
+constexpr uint TP_CHAT_MESSAGE_FIELDS	{MESSAGE_QUEUED + 1};
 
 constexpr QLatin1StringView messageFileExtension {".msg"};
 constexpr QLatin1StringView messageWorkRead {".read"};
 constexpr QLatin1StringView messageWorkReceived {".received"};
 constexpr QLatin1StringView messageWorkRemoved {".removed"};
+constexpr QLatin1StringView messageWorkEdited {".edited"};
 
 QT_FORWARD_DECLARE_CLASS(DBModelInterfaceChat)
 QT_FORWARD_DECLARE_CLASS(TPChatDB)
@@ -64,8 +66,7 @@ public:
 	Q_INVOKABLE void createNewMessage(const QString &text, const QString &media = QString{});
 	void incomingMessage(const QString &encoded_message);
 	void clearChat();
-
-	QVariant data(ChatMessage* message, const uint field) const;
+	QVariant data(const ChatMessage *const message, const uint field, const bool format_output = false) const;
 
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
 	QVariant data(const QModelIndex &index, int role) const override final;
@@ -89,13 +90,13 @@ private:
 	QTimer *m_sendMessageTimer;
 	bool m_chatLoaded;
 
-	void acknowledgeAcknowledgement(const uint msgid, const QLatin1StringView &work);
-	QString tempMessagesFile() const;
-	QString encodeMessageToUpload(ChatMessage* message) const;
-	void encodeMessageToSave(ChatMessage* message);
+	void unqueueMessage(ChatMessage *const message);
+	void uploadAction(const uint field, ChatMessage *const message);
+	void acknowledgeMessageWorked(const uint msgid, const QLatin1StringView &work);
+	QString encodeMessageToUpload(const ChatMessage *const message) const;
+	void encodeMessageToSave(const ChatMessage *const message);
 	void updateFieldToSave(const uint msg_id, const int field, const QString &value) const;
 	ChatMessage* decodeDownloadedMessage(const QString &encoded_message);
-	void saveMessageToFile(ChatMessage *message) const;
 
 	friend class TPMessagesManager;
 };

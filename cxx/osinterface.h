@@ -32,6 +32,7 @@ struct notificationData {
 
 QT_FORWARD_DECLARE_CLASS(TPListModel)
 QT_FORWARD_DECLARE_CLASS(QTimer);
+QT_FORWARD_DECLARE_CLASS(QNetworkInterface)
 
 class OSInterface : public QObject
 {
@@ -134,7 +135,7 @@ public:
 	QString deviceID() const;
 	void shareFile(const QString &fileName) const;
 	Q_INVOKABLE void openURL(const QString &address) const;
-	Q_INVOKABLE void startChatApp(const QString &phone, const QString &appname) const;
+	Q_INVOKABLE void startMessagingApp(const QString &phone, const QString &appname) const;
 	Q_INVOKABLE void sendMail(const QString &address, const QString &subject, const QString &attachment_file) const;
 	Q_INVOKABLE void viewExternalFile(const QString &filename) const;
 
@@ -152,9 +153,12 @@ private:
 	int m_networkStatus;
 	QTimer *m_checkConnectionTimer;
 	QStringList m_connectionMessages;
+	QString m_localIPAddress;
 	std::optional<bool> m_currentNetworkStatus[3];
 
-#ifdef Q_OS_ANDROID
+#ifndef Q_OS_ANDROID
+	const QNetworkInterface *m_currentNetInterface;
+#else
 	TPAndroidNotification *m_AndroidNotification;
 	bool mb_appSuspended, m_bTodaysWorkoutFinishedConnected;
 	QList<notificationData*> m_notifications;

@@ -26,10 +26,10 @@ TPSettings::TPSettings(QObject *parent)
 //--------------------------------------------GLOBAL SETTINGS---------------------------------------------//
 void TPSettings::globalSettingsInit()
 {
-	m_propertyNames.insert(APP_VERSION_INDEX, std::move("appVersion"_L1));
-	m_propertyNames.insert(CURRENT_USER, std::move("currentUser"_L1));
-	m_propertyNames.insert(SERVER_ADDRESS, std::move("serverAddress"_L1));
-	m_propertyNames.insert(EXERCISES_VERSION_INDEX, std::move("exercisesListVersion"_L1));
+	m_globalPropertyNames.insert(APP_VERSION_INDEX, std::move("appVersion"_L1));
+	m_globalPropertyNames.insert(CURRENT_USER, std::move("currentUser"_L1));
+	m_globalPropertyNames.insert(SERVER_ADDRESS, std::move("serverAddress"_L1));
+	m_globalPropertyNames.insert(EXERCISES_VERSION_INDEX, std::move("exercisesListVersion"_L1));
 	getScreenMeasures();
 }
 
@@ -139,7 +139,7 @@ void TPSettings::changeValue(const QString &group, const uint index, const QVari
 	#ifndef Q_OS_ANDROID
 	if (isGroupReadOnly(group))
 	{
-		m_readOnlyValues.insert(group + '/' + (group == GLOBAL_GROUP ? m_propertyNames.value(index) :
+		m_readOnlyValues.insert(group + '/' + (group == GLOBAL_GROUP ? m_globalPropertyNames.value(index) :
 										m_userPropertyNames.value(index)), new_value.toString());
 		return;
 	}
@@ -147,7 +147,7 @@ void TPSettings::changeValue(const QString &group, const uint index, const QVari
 	#endif
 
 	beginGroup(group);
-	setValue(group == GLOBAL_GROUP ? m_propertyNames.value(index) : m_userPropertyNames.value(index), new_value);
+	setValue(group == GLOBAL_GROUP ? m_globalPropertyNames.value(index) : m_userPropertyNames.value(index), new_value);
 	endGroup();
 
 	if (dosync)

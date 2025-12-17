@@ -10,7 +10,7 @@ TPPopup {
 	id: passwdDlg
 	keepAbove: true
 	width: appSettings.pageWidth * 0.8
-	height: appSettings.pageHeight * 0.4
+	height: mainLayout.childrenRect.height * 1.1
 
 	required property string title
 	required property string message
@@ -24,102 +24,78 @@ TPPopup {
 		txtPassword.forceActiveFocus();
 	}
 
-	TPLabel {
-		id: lblTitle
-		text: title
-		horizontalAlignment: Text.AlignHCenter
-		width: parent.width - 20
-		visible: title.length > 0
-
+	ColumnLayout {
+		id: mainLayout
+		spacing: 10
 		anchors {
 			top: parent.top
-			topMargin: 5
 			left: parent.left
-			leftMargin: 5
-			right: btnClose.left
-		}
-	}
-
-	TPImage {
-		id: imgElement
-		source: "password"
-		width: appSettings.itemDefaultHeight * 2
-		height: width
-
-		anchors {
-			left: parent.left
-			leftMargin: 5
-			verticalCenter: lblMessage.lineCount > 1 ? lblMessage.verticalCenter : parent.verticalCenter
-			top: lblTitle.bottom
-			topMargin: 10
-		}
-	}
-
-	TPLabel {
-		id: lblMessage
-		text: message
-		singleLine: false
-		horizontalAlignment: Text.AlignJustify
-		width: passwdDlg.width - imgElement.width - 10
-		visible: message.length > 0
-
-		anchors {
-			top: lblTitle.bottom
-			left: imgElement.right
-			leftMargin: 5
 			right: parent.right
-			rightMargin: 5
-			bottom: txtPassword.top
-		}
-	}
-
-	TPPasswordInput {
-		id: txtPassword
-
-		anchors {
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-			bottom: buttonsRow.top
-			bottomMargin: 10
+			margins: 5
 		}
 
-		onEnterOrReturnKeyPressed: acceptInput();
-	}
-
-	RowLayout {
-		id: buttonsRow
-		spacing: 0
-
-		anchors {
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-			bottom: parent.bottom
-			bottomMargin: 5
+		TPLabel {
+			id: lblTitle
+			text: title
+			horizontalAlignment: Text.AlignHCenter
+			visible: title.length > 0
+			width: parent.width - 20
 		}
 
-		TPButton {
-			id: btn1
-			text: "OK"
-			autoSize: true
-			enabled: txtPassword.text.length > 4
-			Layout.alignment: Qt.AlignCenter
+		RowLayout {
+			Layout.fillWidth: true
 
-			onClicked: acceptInput();
+			TPImage {
+				id: imgElement
+				source: "password"
+				Layout.preferredWidth: appSettings.itemExtraLargeHeight
+				Layout.preferredHeight: appSettings.itemExtraLargeHeight
+				Layout.alignment: Qt.AlignVCenter
+			}
+
+			TPLabel {
+				id: lblMessage
+				text: message
+				singleLine: false
+				horizontalAlignment: Text.AlignJustify
+				width: passwdDlg.width - imgElement.width - 10
+				visible: message.length > 0
+				Layout.fillWidth: true
+			}
 		}
 
-		TPButton {
-			id: btn2
-			text: qsTr("Cancel")
-			autoSize: true
-			Layout.alignment: Qt.AlignCenter
+		TPPasswordInput {
+			id: txtPassword
+			Layout.fillWidth: true
 
-			onClicked: {
-				mainwindow.passwordDialogClosed(1, "");
-				passwdDlg.closePopup();
+			onEnterOrReturnKeyPressed: acceptInput();
+		}
+
+		RowLayout {
+			id: buttonsRow
+			spacing: (passwdDlg.width - btn1.width - btn2.width) / 2
+			Layout.alignment: Qt.AlignHCenter
+
+			TPButton {
+				id: btn1
+				text: "OK"
+				autoSize: true
+				enabled: txtPassword.text.length > 4
+				Layout.alignment: Qt.AlignHCenter
+
+				onClicked: acceptInput();
+			}
+
+			TPButton {
+				id: btn2
+				text: qsTr("Cancel")
+				autoSize: true
+				Layout.alignment: Qt.AlignHCenter
+
+				onClicked: {
+					mainwindow.passwordDialogClosed(1, "");
+					passwdDlg.closePopup();
+				}
 			}
 		}
 	}

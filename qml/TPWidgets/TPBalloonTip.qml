@@ -12,6 +12,7 @@ TPPopup {
 	showTitleBar: title.length > 0
 	focus: false
 	width: appSettings.pageWidth * 0.8
+	height: mainLayout.childrenRect.height * 1.1
 	disableMouseHandling: true
 
 	property string message: ""
@@ -45,110 +46,92 @@ TPPopup {
 		easing.type: Easing.InOutCubic
 	}
 
-	TPLabel {
-		id: lblTitle
-		text: title
-		horizontalAlignment: Text.AlignHCenter
-		visible: title.length > 0
-
+	ColumnLayout {
+		id: mainLayout
+		spacing: 10
 		anchors {
 			top: parent.top
-			topMargin: 5
 			left: parent.left
-			leftMargin: 5
-			right: btnClose.left
-		}
-
-		onTextChanged: anchored = false;
-	}
-
-	TPImage {
-		id: imgElement
-		source: imageSource
-		visible: imageSource.length > 0
-		enabled: imageEnabled
-		width: appSettings.itemDefaultHeight * 2
-		height: width
-
-		anchors {
-			topMargin: 10
-			left: parent.left
-			leftMargin: 5
-		}
-
-		onSourceChanged: anchored = false;
-	}
-
-	TPLabel {
-		id: lblImageSibling
-		text: subImageLabel
-		visible: subImageLabel.length > 0
-		font: AppGlobals.smallFont
-
-		anchors {
-			left: imgElement.right
-			leftMargin: -5
-			bottom: imgElement.bottom
-			bottomMargin: -5
-		}
-	}
-
-	TPLabel {
-		id: lblMessage
-		text: message
-		singleLine: false
-		useBackground: true
-		horizontalAlignment: Text.AlignHCenter
-		visible: message.length > 0
-		width: (imageSource.length > 0 ? parent.width - imgElement.width : parent.width) - 10
-
-		anchors {
-			topMargin: 10
-			leftMargin: 5
 			right: parent.right
-			rightMargin: 5
+			margins: 5
 		}
 
-		onTextChanged: anchored = false;
-	}
-
-	RowLayout {
-		spacing: 0
-		z: 1
-
-		anchors {
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-			bottom: parent.bottom
-			bottomMargin: 5
+		TPLabel {
+			id: lblTitle
+			text: title
+			horizontalAlignment: Text.AlignHCenter
+			visible: title.length > 0
+			Layout.maximumWidth: parent.width - titleBarHeight
 		}
 
-		TPButton {
-			id: btn1
-			text: button1Text
-			autoSize: true
-			visible: button1Text.length > 0
-			Layout.alignment: Qt.AlignCenter
+		RowLayout {
+			Layout.fillWidth: true
 
-			onClicked: {
-				button1Clicked();
-				balloon.closePopup();
+			TPImage {
+				id: imgElement
+				source: imageSource
+				visible: imageSource.length > 0
+				enabled: imageEnabled
+				Layout.preferredWidth: appSettings.itemExtraLargeHeight
+				Layout.preferredHeight: appSettings.itemExtraLargeHeight
+				Layout.alignment: Qt.AlignVCenter
+
+				TPLabel {
+					id: lblImageSibling
+					text: subImageLabel
+					visible: subImageLabel.length > 0
+					font: AppGlobals.smallFont
+
+					anchors {
+						left: imgElement.right
+						leftMargin: -5
+						bottom: imgElement.bottom
+						bottomMargin: -5
+					}
+				}
+			}
+
+			TPLabel {
+				id: lblMessage
+				text: message
+				singleLine: false
+				horizontalAlignment: Text.AlignHCenter
+				visible: message.length > 0
+				Layout.fillWidth: true
+				Layout.maximumHeight: contentHeight
 			}
 		}
 
-		TPButton {
-			id: btn2
-			text: button2Text
-			autoSize: true
-			visible: button2Text.length > 0
-			Layout.alignment: Qt.AlignCenter
-			Layout.maximumWidth: availableWidth - btn1.width - 10
+		RowLayout {
+			visible: btn1.visible || btn2.visible
+			Layout.fillWidth: true
+			spacing: (balloon.width - btn1.width - btn2.width) / 2
 
-			onClicked: {
-				button2Clicked();
-				balloon.closePopup();
+			TPButton {
+				id: btn1
+				text: button1Text
+				autoSize: true
+				visible: button1Text.length > 0
+				Layout.alignment: Qt.AlignCenter
+
+				onClicked: {
+					button1Clicked();
+					balloon.closePopup();
+				}
+			}
+
+			TPButton {
+				id: btn2
+				text: button2Text
+				autoSize: true
+				visible: button2Text.length > 0
+				Layout.alignment: Qt.AlignCenter
+				Layout.maximumWidth: availableWidth - btn1.width - 10
+
+				onClicked: {
+					button2Clicked();
+					balloon.closePopup();
+				}
 			}
 		}
 	}
@@ -232,18 +215,6 @@ TPPopup {
 	}
 
 	function show(ypos: int): void {
-		let new_height = 0;
-		if (title.length > 0)
-			new_height = lblTitle.height + 10
-		if (imageSource.length > 0)
-			new_height += Math.max(imgElement.height, lblMessage.height) + 10
-		else
-			new_height += lblMessage.height + 10;
-		if (button1Text.length > 0)
-			new_height += btn1.height + 10;
-		balloon.height = new_height;
-		if (!anchored)
-			anchorElements();
 		show1(ypos);
 	}
 
@@ -253,13 +224,5 @@ TPPopup {
 
 	function showLate(timeout: int, ypos: int): void {
 		hideTimer.delayedOpen(timeout, ypos);
-	}
-
-	function anchorElements() {
-		lblMessage.anchors.top = title.length > 0 ? lblTitle.bottom : balloon.top;
-		lblMessage.anchors.left = imageSource.length > 0 ? imgElement.right : balloon.left;
-		if (imageSource.length > 0)
-			imgElement.anchors.verticalCenter = lblMessage.verticalCenter;
-		anchored = true;
 	}
 }

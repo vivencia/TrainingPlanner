@@ -486,14 +486,14 @@ void TPOnlineServices::sendMessage(const int requestid, const QString &username,
 	makeNetworkRequest(requestid, url);
 }
 
-void TPOnlineServices::chatMessageAcknowledgement(const int requestid, const QString &username, const QString &passwd,
+void TPOnlineServices::chatMessageWork(const int requestid, const QString &username, const QString &passwd,
 											const QString &recipient, const QString &msgid, const QLatin1StringView &work)
 {
 	const QUrl &url{makeCommandURL(username, passwd, "workmessage"_L1, recipient, "messageid"_L1, msgid, "work"_L1, work)};
 	makeNetworkRequest(requestid, url);
 }
 
-void TPOnlineServices::chatMessageAcknowledgmentAcknowledged(const int requestid, const QString &username,
+void TPOnlineServices::chatMessageWorkAcknowledged(const int requestid, const QString &username,
 				const QString &passwd, const QString &recipient, const QString &msgid, const QLatin1StringView &work)
 {
 	const QUrl &url{makeCommandURL(username, passwd, "messageworked"_L1, recipient, "messageid"_L1, msgid, "work"_L1, work)};

@@ -70,7 +70,7 @@ ColumnLayout {
 			width: appSettings.itemDefaultHeight
 			height: width
 
-			onClicked: osInterface.startChatApp(userModel.phone(userRow), "WhatsApp");
+			onClicked: osInterface.startMessagingApp(userModel.phone(userRow), "WhatsApp");
 		}
 
 		TPButton {
@@ -80,7 +80,7 @@ ColumnLayout {
 			width: appSettings.itemDefaultHeight
 			height: width
 
-			onClicked: osInterface.startChatApp(userModel.phone(userRow), "Telegram");
+			onClicked: osInterface.startMessagingApp(userModel.phone(userRow), "Telegram");
 		}
 	}
 
