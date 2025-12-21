@@ -607,9 +607,15 @@ int TPUtils::readDataFromFormattedFile(QFile *in_file,
 	return identifier_found ? field : TP_RET_CODE_WRONG_IMPORT_FILE_TYPE;
 }
 
-void TPUtils::copyToClipBoard(const QString &text) const
+void TPUtils::copyToClipboard(const QString &text) const
 {
 	qApp->clipboard()->setText(text);
+}
+
+QString TPUtils::pasteFromClipboard() const
+{
+	QString subtype{"html"_L1};
+	return qApp->clipboard()->text(subtype, QClipboard::Clipboard);
 }
 
 QString TPUtils::formatDate(const QDate &date, const DATE_FORMAT format) const

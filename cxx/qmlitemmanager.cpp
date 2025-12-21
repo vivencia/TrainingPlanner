@@ -159,9 +159,7 @@ void QmlItemManager::configureQmlEngine()
 
 void QmlItemManager::exitApp()
 {
-	qApp->exit(0);
-	// When the main event loop is not running, the above function does nothing, so we must actually exit, then
-	::exit(0);
+	qApp->quit();
 }
 
 void QmlItemManager::chooseFileToImport()

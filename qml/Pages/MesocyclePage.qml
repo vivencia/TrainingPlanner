@@ -442,38 +442,10 @@ TPPage {
 				Layout.topMargin: 10
 			}
 
-			ScrollView {
-				contentWidth: availableWidth
-				height: appSettings.pageHeight * 0.15
+			TPMultiLineEdit {
 				Layout.fillWidth: true
-				Layout.preferredHeight: height
-				ScrollBar.horizontal.interactive: true
-				ScrollBar.vertical.interactive: true
-				ScrollBar.horizontal.policy: ScrollBar.AsNeeded
-				ScrollBar.vertical.policy: ScrollBar.AsNeeded
-
-				TextArea {
-					id: txtMesoNotes
-					text: mesoManager.notes
-					color: "black"
-					font.pixelSize: appSettings.fontSize
-					font.bold: true
-					topPadding: appSettings.fontSize
-					leftPadding: 5
-					rightPadding: 5
-					bottomPadding: 5
-					height: 50
-
-					background: Rectangle {
-						color: "white"
-						radius: 6
-						border.color: appSettings.fontColor
-					}
-
-					onEditingFinished: mesoManager.notes = text;
-					onActiveFocusChanged: cursorPosition = activeFocus ? length : 0;
-					onTextChanged: cursorPosition = 0;
-				}
+				Layout.preferredHeight: appSettings.pageHeight * 0.15
+				onTextAltered: mesoManager.notes = text;
 			}
 
 			TPButton {

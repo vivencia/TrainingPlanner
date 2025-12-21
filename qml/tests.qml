@@ -6,138 +6,100 @@ import QtQuick.Layouts
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 import "ExercisesAndSets"
-import "TPWidgets"
 import "Dialogs"
 import "Pages"
+import "TPWidgets"
 import "User"
 
 ApplicationWindow {
 	id: mainwindow
 	visible: true
 	title: "TraininPlanner Tests"
+	objectName: "mainWindow"
+	width: appSettings.windowWidth
+	height: appSettings.windowHeight
+	flags: Qt.platform.os === "android" ? Qt.Window | Qt.FramelessWindowHint | Qt.WA_KeepScreenOn :
+				Qt.Window | Qt.CustomizeWindowHint & ~Qt.WindowMaximizeButtonHint
 
 	signal pageActivated_main(Item page);
 	signal pageDeActivated_main(Item page);
+	signal passwordDialogClosed(resultCode: int, password: string);
+	signal saveFileChosen(filepath: string);
+	signal saveFileRejected(filepath: string);
+	signal openFileChosen(filepath: string, content_type: int);
+	signal openFileRejected(filepath: string);
+
+	property PagesListModel appPagesModel
 
 	//Component.onCompleted: timePicker.show1();
 
-	//TPPage {
-	//	id: mainPage
-	//	anchors.fill: parent
+	TPPage {
+		id: homePage
+		anchors.fill: parent
 
-	//	Rectangle {
-	//		anchors.fill: parent
-	//		color: appSettings.paneBackgroundColor
+		Rectangle {
+			x: (parent.width - width) / 2;
+			y: (parent.height - height) / 2;
+			width: parent.width * 0.8
+			height: 300
+			color: appSettings.paneBackgroundColor
+			border.width: 2
+			border.color: appSettings.fontColor
 
-	//		ColumnLayout {
-	//			anchors {
-	//				fill: parent
-	//				leftMargin: 10
-	//				rightMargin: 10
-	//				topMargin: 10
-	//				bottomMargin: 10
-	//			}
+			TPMultiLineEdit {
+				anchors.fill: parent
+				anchors.margins: 20
+			}
+		}
+	}
 
-				/*Row {
-					Layout.fillWidth: true
-					spacing: 20
+	TPBalloonTip {
+		id: textCopiedInfo
+		height: 40
+		message: qsTr("Text copied to the clipboard")
+		button1Text: ""
+		button2Text: ""
+		parentPage: homePage
+	}
 
-					TPPhoneNumberInput {
-						id: txtPhonePrefix
-						countryPrefix: true
-						width: parent.width * 0.2
+	function showTextCopiedMessage(): void {
+		textCopiedInfo.showTimed(3000, 0);
+	}
 
+	TPBalloonTip {
+		id: generalMessagesPopup
+		parentPage: homePage
+		button1Text: ""
+		button2Text: ""
+	}
 
-						onPhoneNumberOKChanged: result.text = phoneNumberOK ? "Phone Prefix OK" : "Phone Prefix Not OK"
-					}
+	function displayResultMessage(title: string, message: string, img_src: string, msecs: int): void {
+		generalMessagesPopup.title = title;
+		generalMessagesPopup.message = message;
+		generalMessagesPopup.imageSource = img_src;
+		if (msecs > 0)
+			generalMessagesPopup.showTimed(msecs, 0);
+		else
+			generalMessagesPopup.show(0);
+	}
 
-					TPPhoneNumberInput {
-						id: txtPhone
-						width: parent.width * 0.6
-						onPhoneNumberOKChanged: result.text = phoneNumberOK ? "Phone OK" : "Phone Not OK"
-					}
+	property PasswordDialog passwdDlg: null
+	function showPasswordDialog(title: string, message: string): void {
+		if (passwdDlg === null) {
+			function createPasswordDialog() {
+				let component = Qt.createComponent("qrc:/qml/Dialogs/PasswordDialog.qml", Qt.Asynchronous);
+
+				function finishCreation() {
+					passwdDlg = component.createObject(contentItem, { parentPage: homePage, title: title, message: message });
 				}
 
-				TPLabel {
-					id: result
-					Layout.alignment: Qt.AlignCenter
-					Layout.minimumWidth: parent.width * 0.5
-				}
-
-				Row {
-					Layout.fillWidth: true
-					spacing: 10
-
-					TPLabel {
-						text: "Min:"
-						width: parent.width * 0.15
-					}
-					TPTextInput {
-						id: randomMin
-						width: parent.width * 0.25
-						inputMethodHints: Qt.ImhDigitsOnly
-						validator: IntValidator { bottom: 0; top: 9999; }
-						maximumLength: 4
-					}
-					TPLabel {
-						text: "Max:"
-						width: parent.width * 0.1
-					}
-					TPTextInput {
-						id: randomMax
-						width: parent.width * 0.2
-						inputMethodHints: Qt.ImhDigitsOnly
-						validator: IntValidator { bottom: 0; top: 9999; }
-						maximumLength: 4
-					}
-				}
-
-				Row {
-					Layout.fillWidth: true
-					spacing: 10
-
-					TPButton {
-						text: "Generate random number"
-						autoSize: true
-						enabled: randomMin.text.length > 0 && randomMax.text.length > 0
-
-						onClicked: randomResult.text = String(appUtils.generateRandomNumber(randomMin.text, randomMax.text));
-					}
-					TPTextInput {
-						id: randomResult
-						readOnly: true
-						width: parent.width * 0.2
-					}
-				}*/
-
-				/*TimePicker {
-					id: timePicker
-					parentPage: mainPage
-				}*/
-
-				/*SetInputField {
-					type: SetInputField.TimeType
-					availableWidth: testWindow.width * 0.9
-					Layout.alignment: Qt.AlignCenter
-
-					onValueChanged: (str) => result.text = str;
-				}
-
-				/*CalendarModel {
-					id: calModel
-					from: new Date(2000, 0, 1)
-					to: new Date(2030, 11, 31)
-
-					readonly property bool ready: true //the c++ and qml models must have the same API to avoid warnings and errors
-				}
-
-				TPDatePicker {
-					calendarModel: calModel
-					startDate: calModel.from
-					endDate: calModel.to
-					selectedDate: new Date()
-				}*/
-		//	}
-	//	}
-	//}
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			createPasswordDialog();
+		}
+		passwdDlg.show(-1);
+	}
 }

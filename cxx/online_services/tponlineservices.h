@@ -36,6 +36,9 @@ public:
 	void removeUser(const int requestid, const QString &username);
 	void changePassword(const int requestid, const QString &username, const QString &old_passwd, const QString &new_passwd);
 
+	void webSocketsClientRegistration(const int requestid, const QString &id, const QString &address, const QString &port);
+	void getOnlineVisibility(const int requestid, const QString &username);
+	void setOnlineVisibility(const int requestid, const QString &username, const bool visible);
 	void addDevice(const int requestid, const QString &username, const QString &passwd, const QString &device_id);
 	void delDevice(const int requestid, const QString &username, const QString &passwd, const QString &device_id);
 	void getDevicesList(const int requestid, const QString &username, const QString &passwd);

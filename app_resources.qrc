@@ -159,5 +159,13 @@
         <file>images/backgrounds/backimage-home.jpg</file>
         <file>images/backgrounds/backimage-messages.jpg</file>
         <file>images/backgrounds/backimage-chat.jpg</file>
+        <file>images/toolbox_blue.png</file>
+        <file>images/undo_blue.png</file>
+        <file>images/redo_blue.png</file>
+        <file>images/copy_blue.png</file>
+        <file>images/underscore_blue.png</file>
+        <file>images/italic_blue.png</file>
+        <file>images/upperlowercase_blue.png</file>
+        <file>images/paste_blue.png</file>
     </qresource>
 </RCC>

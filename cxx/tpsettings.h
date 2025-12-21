@@ -152,26 +152,37 @@ private:
 
 	inline QVariant getValue(const QString &group, const uint index, const QVariant &default_value = QVariant{}) const
 	{
+		return getValue(group, (group == GLOBAL_GROUP ? m_globalPropertyNames.value(index) :
+															m_userPropertyNames.value(index)), default_value);
+	}
+	inline QVariant getValue(const QString &group, const QString &field_name, const QVariant &default_value = QVariant{}) const
+	{
 		if (!isGroupReadOnly(group))
-			return value(group + '/' + (group == GLOBAL_GROUP ? m_globalPropertyNames.value(index) :
-										m_userPropertyNames.value(index)), default_value);
+			return value(group + '/' + field_name, default_value);
 		else
 		{
-			const QVariant &read_only_value{m_readOnlyValues.value(group + '/' + (group == GLOBAL_GROUP ? m_globalPropertyNames.value(index) :
-										m_userPropertyNames.value(index)))};
-			return !read_only_value.isNull() ? read_only_value : value(group + '/' + (group == GLOBAL_GROUP ? m_globalPropertyNames.value(index) :
-										m_userPropertyNames.value(index)), default_value);
+			const QVariant &read_only_value{m_readOnlyValues.value(group + '/' + field_name)};
+			return !read_only_value.isNull() ? read_only_value : value(group + '/' + field_name, default_value);
 		}
 	}
 #endif
 #else
 	inline QVariant getValue(const QString &group, const uint index, const QVariant &default_value = QVariant{}) const
 	{
-		return value(group + '/' + (group == GLOBAL_GROUP ? m_globalPropertyNames.value(index) :
-										m_userPropertyNames.value(index)), default_value);
+		return getValue(group, (group == GLOBAL_GROUP ? m_globalPropertyNames.value(index) :
+															m_userPropertyNames.value(index)), default_value);
+	}
+	inline QVariant getValue(const QString &group, const QString &field_name, const QVariant &default_value = QVariant{}) const
+	{
+		return value(group + '/' + field_name, default_value);
 	}
 #endif
-	void changeValue(const QString &group, const uint index, const QVariant &new_value, const bool dosync = true);
+	inline void changeValue(const QString &group, const uint index, const QVariant &new_value, const bool dosync = true)
+	{
+		changeValue(group, group == GLOBAL_GROUP ? m_globalPropertyNames.value(index) : m_userPropertyNames.value(index),
+									new_value, dosync);
+	}
+	void changeValue(const QString &group, const QString &field_name, const QVariant &new_value, const bool dosync = true);
 	void getScreenMeasures();
 	static TPSettings* app_settings;
 	friend TPSettings* appSettings();
@@ -258,6 +269,15 @@ public:
 
 	inline bool alwaysAskConfirmation() const { return getValue(currentUser(), ASK_CONFIRMATION_INDEX, m_defaultValues.at(ASK_CONFIRMATION_INDEX)).toBool(); }
 	inline void setAlwaysAskConfirmation(const bool new_value) { changeValue(currentUser(), ASK_CONFIRMATION_INDEX, QString::number(new_value)); emit alwaysAskConfirmationChanged(); }
+
+	inline QVariant getCustomValue(const QString &value_name, const QVariant &default_value) const
+	{
+		return getValue(currentUser(), value_name, default_value);
+	}
+	inline void setCustomValue(const QString &value_name, const QVariant &value)
+	{
+		changeValue(currentUser(), value_name, value);
+	}
 
 	void userSwitchingActions();
 

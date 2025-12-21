@@ -133,21 +133,20 @@ void TPSettings::getScreenMeasures()
 		m_ratioFont = 1.5;
 }
 
-void TPSettings::changeValue(const QString &group, const uint index, const QVariant &new_value, const bool dosync)
+void TPSettings::changeValue(const QString &group, const QString &field_name, const QVariant &new_value, const bool dosync)
 {
 	#ifndef QT_NO_QDEBUG
 	#ifndef Q_OS_ANDROID
 	if (isGroupReadOnly(group))
 	{
-		m_readOnlyValues.insert(group + '/' + (group == GLOBAL_GROUP ? m_globalPropertyNames.value(index) :
-										m_userPropertyNames.value(index)), new_value.toString());
+		m_readOnlyValues.insert(group + '/' + field_name, new_value.toString());
 		return;
 	}
 	#endif
 	#endif
 
 	beginGroup(group);
-	setValue(group == GLOBAL_GROUP ? m_globalPropertyNames.value(index) : m_userPropertyNames.value(index), new_value);
+	setValue(field_name, new_value);
 	endGroup();
 
 	if (dosync)

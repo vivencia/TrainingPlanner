@@ -399,29 +399,18 @@ TPPopup {
 			bottom: parent.bottom
 		}
 
-		FocusScope {
-			id: txtFocus
+		TPMultiLineEdit {
+			id: txtMessage
 			width: parent.width * 0.88
-			height: txtMessage.height
+
 			anchors {
 				left: parent.left
 				verticalCenter: parent.verticalCenter
 			}
 
-			TPTextInput {
-				id: txtMessage
-				showClearTextButton: true
-				enableRegex: false
-				anchors {
-					left: parent.left
-					right: parent.right
-					top: parent.top
-				}
-
-				onEnterOrReturnKeyPressed: (mod_key) => {
-					if (mod_key === Qt.Key_Control)
-						sendMessage();
-				}
+			onEnterOrReturnKeyPressed: (mod_key) => {
+				if (mod_key === Qt.Key_Control)
+					sendMessage();
 			}
 		}
 
@@ -433,7 +422,7 @@ TPPopup {
 			enabled: txtMessage.text.length > 0
 
 			anchors {
-				left: txtFocus.right
+				left: txtMessage.right
 				leftMargin: 5
 				verticalCenter: parent.verticalCenter
 			}

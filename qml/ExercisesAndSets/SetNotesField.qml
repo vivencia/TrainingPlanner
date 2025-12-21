@@ -9,11 +9,11 @@ Column {
 	id: control
 	padding: 5
 
-	property string info: qsTr("Notes:")
-	property string text
-	property bool editable
+	property alias info: lblMain.text
+	property alias text: setNotesArea.text
+	property alias editable: setNotesArea.editable
 
-	signal editFinished(string new_text)
+	signal editFinished(string new_text);
 
 	Row {
 		Layout.fillWidth: true
@@ -21,7 +21,7 @@ Column {
 
 		TPLabel {
 			id: lblMain
-			text: control.info
+			text: qsTr("Notes:")
 			width: control.width * 0.9
 		}
 
@@ -34,54 +34,18 @@ Column {
 			onClicked: {
 				setNotesArea.visible = !setNotesArea.visible;
 				if (setNotesArea.visible)
-				{
-					txtNotes.forceActiveFocus();
-					txtNotes.cursorPosition = txtNotes.length;
-				}
+					setNotesArea.forceActiveFocus();
 			}
 		}
 	}
 
-	ScrollView {
+	TPMultiLineEdit {
 		id: setNotesArea
-		contentWidth: availableWidth
-		contentHeight: availableHeight
 		visible: false
-		ScrollBar.horizontal.policy: ScrollBar.AsNeeded
-		ScrollBar.vertical.policy: ScrollBar.AsNeeded
-		width: control.width
-		height: appSettings.pageHeight * 0.15
-		Layout.maximumWidth: width
-		Layout.maximumHeight: height
+		Layout.fillWidth: true
+		Layout.minimumHeight: appSettings.pageHeight * 0.15
+		Layout.maximumHeight: appSettings.pageHeight * 0.15
 
-		TextArea {
-			id: txtNotes
-			text: control.text
-			readOnly: !editable
-			color: appSettings.fontColor
-			font.pixelSize: appSettings.fontSize
-			font.bold: true
-			topPadding: appSettings.fontSize
-			leftPadding: 5
-			rightPadding: 5
-			bottomPadding: 5
-			height: 50
-
-			property bool modified: false
-
-			background: Rectangle {
-				color: "white"
-				radius: 6
-				border.color: appSettings.fontColor
-			}
-
-			onTextEdited: modified = true;
-			onEditingFinished: {
-				if (modified) {
-					modified = false;
-					editFinished(text);
-				}
-			}
-		}
+		onTextAltered: (_text) => editFinished(_text);
 	}
 }

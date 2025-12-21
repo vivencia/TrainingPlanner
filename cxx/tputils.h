@@ -115,7 +115,8 @@ public:
 								  const QString &identifier,
 								  const std::function<QString(const uint field, const QString &value)> &formatToImport = nullptr) const;
 
-	Q_INVOKABLE void copyToClipBoard(const QString &text) const;
+	Q_INVOKABLE void copyToClipboard(const QString &text) const;
+	Q_INVOKABLE QString pasteFromClipboard() const;
 
 	Q_INVOKABLE inline QString monthName(const uint qml_month) const { return _months_names.at(qml_month); }
 	Q_INVOKABLE inline QString dayName(const uint week_day) const { return _days_names.at(week_day); }

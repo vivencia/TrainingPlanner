@@ -49,10 +49,11 @@ set(QT_CREATOR_SKIP_MAINTENANCE_TOOL_PROVIDER ON)
 set(QT_FORCE_CMP0156_TO_VALUE NEW)
 
 if (ANDROID)
-	find_package(Qt6 REQUIRED COMPONENTS Core CorePrivate Gui Multimedia Qml Quick QuickControls2 LinguistTools Widgets Sql Network Positioning Charts)
+	find_package(Qt6 REQUIRED COMPONENTS Core CorePrivate Gui Multimedia Qml Quick QuickControls2 LinguistTools Widgets Sql Network Positioning Charts WebSockets)
 else()
-	find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 LinguistTools Widgets Sql Network Positioning Charts)
-	find_package(PkgConfig REQUIRED)
+	find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 LinguistTools Widgets Sql Network Positioning Charts WebSockets)
+find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(PkgConfig REQUIRED)
 endif(ANDROID)
 
 add_compile_definitions(REQUEST_PERMISSIONS_ON_ANDROID)
@@ -94,7 +95,6 @@ set( CXX_SOURCES
     cxx/dbcalendarmodel.h cxx/dbcalendarmodel.cpp
 	cxx/dbusermodel.h cxx/dbusermodel.cpp
 	cxx/pageslistmodel.h cxx/pageslistmodel.cpp
-
 
 	cxx/qmluserinterface.h cxx/qmluserinterface.cpp
 	cxx/qmlexercisesdatabaseinterface.h cxx/qmlexercisesdatabaseinterface.cpp
@@ -174,6 +174,7 @@ set ( ANDROID_FILES
 )
 
 set( QML_SOURCES
+
     "qml/AppGlobals.qml"
     "qml/ImageViewer.qml"
     "qml/main.qml"
@@ -196,7 +197,6 @@ set( QML_SOURCES
     "qml/ExercisesAndSets/SetNotesField.qml"
     "qml/ExercisesAndSets/SimpleExercisesListPanel.qml"
 	"qml/ExercisesAndSets/WorkoutOrSplitExercisesList.qml"
-
     "qml/Pages/ClientsPage.qml"
 	"qml/Pages/CoachesPage.qml"
     "qml/Pages/ConfigurationPage.qml"
@@ -230,6 +230,7 @@ set( QML_SOURCES
     "qml/TPWidgets/TPImportDialog.qml"
     "qml/TPWidgets/TPLabel.qml"
     "qml/TPWidgets/TPMouseArea.qml"
+	"qml/TPWidgets/TPMultiLineEdit.qml"
     "qml/TPWidgets/TPPassword.qml"
 	"qml/TPWidgets/TPPasswordInput.qml"
     "qml/TPWidgets/TPPopup.qml"
@@ -266,6 +267,7 @@ qt_add_executable(TrainingPlanner
 	${QM_FILES}
 	${SERVER_FILES}
 	${ANDROID_FIES}
+	cxx/online_services/tcpserver.h cxx/online_services/tcpserver.cpp
 )
 
 if(NOT ANDROID)
@@ -293,6 +295,7 @@ if(NOT ANDROID)
 		Qt6::Network
 		Qt6::Positioning
 		Qt6::Charts
+		Qt6::WebSockets
 		${keychain_LIBRARIES_PRIVATE}
 		LIBRATS
 	)
@@ -313,6 +316,7 @@ else()
 		Qt6::Positioning
 		Qt6::Charts
 	)
+target_link_libraries(TrainingPlanner PRIVATE Qt6::Core)
 target_link_libraries(TrainingPlanner PRIVATE Qt6::Core)
 target_link_libraries(TrainingPlanner PRIVATE Qt6::Core)
 endif(NOT ANDROID)

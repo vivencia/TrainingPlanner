@@ -9,7 +9,7 @@ TPBackRec {
 	focus: true
 	border.color: flat ? "transparent" : buttonText.color
 	radius: rounded ? height : 6
-	opacity: checked ? 0.7 : 1
+	opacity: checked ? 0.9 : 1
 	color: backgroundColor
 	height: (autoSize ? buttonText.contentHeight : appSettings.itemDefaultHeight) +
 							(textUnderIcon ? imageSize : 0) + (text.length > 0 ? buttonText.lineCount * 10 : 0)

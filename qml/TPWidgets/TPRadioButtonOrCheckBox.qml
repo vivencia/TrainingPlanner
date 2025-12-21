@@ -14,7 +14,7 @@ TPLabel {
 	property int imageWidth: image.length > 0 ? imageHeight : 0
 	property bool checked: false
 	property bool multiLine: false
-	property bool actionable: true
+	property bool actionable: enabled
 	property bool radio: true
 	property TPButtonGroup buttonGroup: null
 

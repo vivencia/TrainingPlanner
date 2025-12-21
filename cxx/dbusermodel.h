@@ -37,6 +37,7 @@
 QT_FORWARD_DECLARE_CLASS(DBUserTable)
 QT_FORWARD_DECLARE_CLASS(DBModelInterfaceUser);
 QT_FORWARD_DECLARE_CLASS(DBMesocyclesModel)
+QT_FORWARD_DECLARE_CLASS(ChatServer)
 QT_FORWARD_DECLARE_CLASS(QTimer)
 
 class DBUserModel : public QObject
@@ -74,6 +75,7 @@ Q_PROPERTY(OnlineUserInfo *currentCoachesAndClients READ currentCoachesAndClient
 Q_PROPERTY(bool mainUserIsClient READ mainUserIsClient NOTIFY appUseModeChanged FINAL)
 Q_PROPERTY(bool mainUserIsCoach READ mainUserIsCoach NOTIFY appUseModeChanged FINAL)
 Q_PROPERTY(bool onlineAccount READ onlineAccount WRITE setOnlineAccount NOTIFY onlineUserChanged FINAL)
+Q_PROPERTY(bool onlineVisible READ onlineVisible WRITE setOnlineVisible NOTIFY onlineVisibleChanged FINAL)
 Q_PROPERTY(bool mainUserConfigured READ mainUserConfigured NOTIFY mainUserConfigurationFinished FINAL)
 Q_PROPERTY(bool canConnectToServer READ canConnectToServer NOTIFY canConnectToServerChanged FINAL)
 
@@ -122,6 +124,9 @@ public:
 	}
 	inline bool onlineAccount(const uint user_idx = 0) const { return _onlineAccount(user_idx).at(0) == '1'; }
 	void setOnlineAccount(const bool online_user, const uint user_idx = 0);
+	void onlineVisible(const QString &userid);
+	inline bool onlineVisible() const { return mb_onlineVisible; }
+	void setOnlineVisible(const bool visible);
 
 	Q_INVOKABLE void createMainUser(const QString &userid = QString{}, const QString &name = QString{});
 	void removeMainUser();
@@ -350,6 +355,8 @@ signals:
 	void labelsChanged();
 	void appUseModeChanged();
 	void onlineUserChanged();
+	void onlineVisibleChanged();
+	void userIsOnlineVisible(const QString &userid, const QString &ip, const bool visible);
 	void pendingCoachesResponsesChanged();
 	void pendingClientsRequestsChanged();
 	void currentCoachesChanged();
@@ -388,8 +395,9 @@ private:
 	std::optional<bool> mb_singleDevice, mb_userRegistered, mb_coachRegistered;
 	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses,
 						*m_tempUserInfo, *m_currentCoaches, *m_currentClients, *m_currentCoachesAndClients;
-	bool mb_canConnectToServer, mb_coachPublic, mb_MainUserInfoChanged;
+	bool mb_canConnectToServer, mb_coachPublic, mb_MainUserInfoChanged, mb_onlineVisible;
 	QTimer *m_mainTimer;
+	ChatServer *m_chatServer;
 
 	DBUserTable *m_db;
 	DBModelInterfaceUser *m_dbModelInterface;

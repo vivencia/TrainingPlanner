@@ -11,6 +11,7 @@
 #include "translationclass.h"
 #include "tpsettings.h"
 #include "online_services/onlineuserinfo.h"
+#include "online_services/tcpserver.h"
 #include "online_services/tpchat.h"
 #include "online_services/tpmessage.h"
 #include "online_services/tpmessagesmanager.h"
@@ -53,7 +54,7 @@ static inline QString userNameWithoutConfirmationWarning(const QString &userName
 DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 	: QObject{parent}, m_tempRow{-1}, m_availableCoaches{nullptr}, m_pendingClientRequests{nullptr},
 		m_pendingCoachesResponses{nullptr}, m_tempUserInfo{nullptr}, m_mainTimer{nullptr}, m_currentCoaches{nullptr},
-			m_currentClients{nullptr}, m_currentCoachesAndClients{nullptr}, m_db{nullptr}
+			m_currentClients{nullptr}, m_currentCoachesAndClients{nullptr}, m_db{nullptr}, m_chatServer{nullptr}
 
 #ifndef Q_OS_ANDROID
 	,m_allUsers{nullptr}
@@ -84,8 +85,11 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 		connect(this, &DBUserModel::userModified, this, &DBUserModel::saveUserInfo);
 		connect(this, &DBUserModel::mainUserConfigurationFinished, this, [this] () {
 			appOsInterface()->initialCheck();
-			appItemManager()->appHomePage()->setProperty("loadClientMesos", mainUserConfigured() && mainUserIsCoach());
-			appItemManager()->appHomePage()->setProperty("loadOwnMesos", mainUserConfigured() && mainUserIsClient());
+			if (appItemManager()->appHomePage()) //When -test cml is used, appHomePage() will be nullptr
+			{
+				appItemManager()->appHomePage()->setProperty("loadClientMesos", mainUserConfigured() && mainUserIsCoach());
+				appItemManager()->appHomePage()->setProperty("loadOwnMesos", mainUserConfigured() && mainUserIsClient());
+			}
 		}, Qt::SingleShotConnection);
 	}
 }
@@ -152,7 +156,8 @@ void DBUserModel::initUserSession()
 				m_mesoModel = new DBMesocyclesModel{this};
 				new PagesListModel{this};
 			#endif
-			appItemManager()->appHomePage()->setProperty("mesoModel", QVariant::fromValue(meso_model));
+			if (appItemManager()->appHomePage())
+				appItemManager()->appHomePage()->setProperty("mesoModel", QVariant::fromValue(meso_model));
 			appMainWindow()->setProperty("appPagesModel", QVariant::fromValue(appPagesListModel()));
 
 			if (appSettings()->appVersion() != TP_APP_VERSION)
@@ -197,6 +202,35 @@ void DBUserModel::setOnlineAccount(const bool online_user, const uint user_idx)
 	emit onlineUserChanged();
 	m_usersData[0][USER_COL_ONLINEACCOUNT] = online_user ? '1' : '0';
 	emit userModified(0, USER_COL_ONLINEACCOUNT);
+}
+
+void DBUserModel::onlineVisible(const QString &userid)
+{
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,userid] (const QString &key, const QString &value) {
+		auto conn{std::make_shared<QMetaObject::Connection>()};
+		const int requestid{appUtils()->generateUniqueId("setOnlineVisible"_L1)};
+		*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid,userid]
+							(const int request_id, const int ret_code, const QString &ret_string)
+		{
+			if (request_id == requestid)
+			{
+				disconnect(*conn);
+				emit userIsOnlineVisible(userid, ret_string, ret_code == TP_RET_CODE_SUCCESS);
+			}
+		});
+	}, Qt::SingleShotConnection);
+	appKeyChain()->readKey(userId(0));
+}
+
+void DBUserModel::setOnlineVisible(const bool visible)
+{
+	mb_onlineVisible = visible;
+	emit onlineVisibleChanged();
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,visible] (const QString &key, const QString &value) {
+		const int requestid{appUtils()->generateUniqueId("setOnlineVisible"_L1)};
+		appOnlineServices()->setOnlineVisibility(requestid, userId(0), visible);
+	}, Qt::SingleShotConnection);
+	appKeyChain()->readKey(userId(0));
 }
 
 void DBUserModel::createMainUser(const QString &userid, const QString &name)
@@ -1468,10 +1502,15 @@ void DBUserModel::onlineCheckIn()
 		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this] (const bool first_checkin) {
 			if (first_checkin)
 			{
+				setOnlineVisible(true);
 				sendUserDataToServerDatabase();
 				sendProfileToServer();
 				sendAvatarToServer();
 			}
+			else
+				setOnlineVisible(appSettings()->getCustomValue("onlineVisible"_L1, true).toBool());
+			if (!m_chatServer)
+				m_chatServer = new ChatServer{userId(0), appSettings()->serverAddress(), userId(0).last(5).toUShort(), this};
 			if (m_onlineAccountId.isEmpty()) //When importing an user from the server there is no need to perform any action online
 				onlineCheckinActions();
 			if (!isCoachRegistered() && mb_coachPublic)

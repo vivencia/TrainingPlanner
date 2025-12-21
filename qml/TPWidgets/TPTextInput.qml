@@ -10,6 +10,7 @@ TextField {
 	color: enabled ? textColor : appSettings.disabledFontColor
 	wrapMode: heightAdjustable ? TextInput.WordWrap : TextInput.NoWrap
 	validator: enableRegex ? defaultRegEx : null
+	font.preferShaping: false
 	leftInset: 0
 	rightInset: 0
 	topInset: 0
@@ -41,7 +42,7 @@ TextField {
 
 	onPressAndHold: (event) => {
 		event.accepted = true;
-		appUtils.copyToClipBoard(selectionStart === selectionEnd ? text : text.substr(selectionStart, selectionEnd));
+		appUtils.copyToClipboard(selectionStart === selectionEnd ? text : text.substr(selectionStart, selectionEnd));
 		mainwindow.showTextCopiedMessage();
 	}
 
@@ -132,7 +133,7 @@ TextField {
 			cursorPosition = 0;
 		}
 		else {
-			const len = text.length
+			const len = text.length;
 			ensureVisible(len-1);
 			cursorPosition = len;
 		}

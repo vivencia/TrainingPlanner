@@ -196,6 +196,27 @@ void TPOnlineServices::changePassword(const int requestid, const QString &userna
 	makeNetworkRequest(requestid, url);
 }
 
+void TPOnlineServices::webSocketsClientRegistration(const int requestid, const QString &id, const QString &address, const QString &port)
+{
+	const QUrl &url{makeCommandURL(root_user, root_passwd, "registerwsclient"_L1, id, "addr"_L1, address, "port"_L1, port)};
+	#ifndef QT_NO_DEBUG
+	qDebug() << url.toDisplayString() << " * "_L1  << QString::number(requestid);
+	#endif
+	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{url})};
+}
+
+void TPOnlineServices::getOnlineVisibility(const int requestid, const QString &username)
+{
+	const QUrl &url{makeCommandURL(root_user, root_passwd, "onlinevisible"_L1, "0"_L1, "userid"_L1, username)};
+	makeNetworkRequest(requestid, url);
+}
+
+void TPOnlineServices::setOnlineVisibility(const int requestid, const QString &username, const bool visible)
+{
+	const QUrl &url{makeCommandURL(root_user, root_passwd, "onlinevisible"_L1, visible ? "1"_L1 : "2"_L1, "userid"_L1, username)};
+	makeNetworkRequest(requestid, url);
+}
+
 void TPOnlineServices::addDevice(const int requestid, const QString &username, const QString &passwd, const QString &device_id)
 {
 	const QUrl &url{makeCommandURL(username, passwd, "adddevice"_L1, device_id)};

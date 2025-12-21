@@ -94,6 +94,9 @@ OSInterface::OSInterface(QObject *parent)
 	{
 		onlineServicesResponse(online_status);
 	});
+	connect(qApp, &QCoreApplication::aboutToQuit, this, [this] () {
+		appOnlineServices()->setOnlineVisibility(0, appUserModel()->userId(0), false);
+	});
 	checkNetworkInterfaces();
 
 #ifdef Q_OS_ANDROID
@@ -705,7 +708,7 @@ void OSInterface::setNetStatus(uint messages_index, bool success, QString &&mess
 
 void OSInterface::checkNetworkInterfaces()
 {
-	const QNetworkInterface *running_interface;
+	const QNetworkInterface *running_interface{nullptr};
 	const QList<QNetworkInterface> &interfaces{QNetworkInterface::allInterfaces()};
 	for (const auto &interface : interfaces)
 	{
@@ -731,7 +734,7 @@ void OSInterface::checkNetworkInterfaces()
 			}
 		}
 	}
-	const bool success{running_interface->isValid()};
+	const bool success{running_interface ? running_interface->isValid() : false};
 	if (!m_currentNetworkStatus[interfaceMessage].has_value() || m_currentNetworkStatus[interfaceMessage].value() != success)
 	{
 		QString message{tr("Network interface: ")};

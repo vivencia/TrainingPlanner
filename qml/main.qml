@@ -357,25 +357,26 @@ ApplicationWindow {
 		button2Text: ""
 		parentPage: homePage
 	}
+
 	function showTextCopiedMessage(): void {
 		textCopiedInfo.showTimed(3000, 0);
 	}
 
 	TPBalloonTip {
-		id: activityFinishedTip
+		id: generalMessagesPopup
 		parentPage: homePage
 		button1Text: ""
 		button2Text: ""
 	}
 
 	function displayResultMessage(title: string, message: string, img_src: string, msecs: int): void {
-		activityFinishedTip.title = title;
-		activityFinishedTip.message = message;
-		activityFinishedTip.imageSource = img_src;
+		generalMessagesPopup.title = title;
+		generalMessagesPopup.message = message;
+		generalMessagesPopup.imageSource = img_src;
 		if (msecs > 0)
-			activityFinishedTip.showTimed(msecs, 0);
+			generalMessagesPopup.showTimed(msecs, 0);
 		else
-			activityFinishedTip.show(0);
+			generalMessagesPopup.show(0);
 	}
 
 	property ChatWindow chatDlg: null
