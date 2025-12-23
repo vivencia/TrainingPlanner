@@ -267,7 +267,7 @@ qt_add_executable(TrainingPlanner
 	${QM_FILES}
 	${SERVER_FILES}
 	${ANDROID_FIES}
-	cxx/online_services/tcpserver.h cxx/online_services/tcpserver.cpp
+	cxx/online_services/websocketserver.h cxx/online_services/websocketserver.cpp
 )
 
 if(NOT ANDROID)

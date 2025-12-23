@@ -28,9 +28,10 @@ constexpr QLatin1StringView messageWorkRemoved {".removed"};
 constexpr QLatin1StringView messageWorkEdited {".edited"};
 
 QT_FORWARD_DECLARE_CLASS(DBModelInterfaceChat)
-QT_FORWARD_DECLARE_CLASS(TPChatDB)
 QT_FORWARD_DECLARE_STRUCT(ChatMessage)
+QT_FORWARD_DECLARE_CLASS(TPChatDB)
 QT_FORWARD_DECLARE_CLASS(QTimer)
+QT_FORWARD_DECLARE_CLASS(QWebSocket)
 
 class TPChat : public QAbstractListModel
 {
@@ -46,6 +47,8 @@ public:
 	static constexpr QLatin1StringView chatsSubDir{"chats/"};
 
 	explicit TPChat(const QString &otheruser_id, const bool check_unread_messages, QObject *parent = nullptr);
+	void setWebSocket(QWebSocket *socket);
+	void unsetWebSocket(QWebSocket *socket);
 
 	void loadChat();
 	inline void setChatWindow(QObject *chat_window) { m_chatWindow = chat_window; }
@@ -73,11 +76,15 @@ public:
 	bool setData(const QModelIndex &index, const QVariant &value, int role) override final;
 	inline virtual int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
 
+public slots:
+	void processWebSocketMessage(const QString &message);
+
 signals:
 	void countChanged();
 	void interlocutorNameChanged();
 	void avatarIconChanged();
 	void unreadMessagesChanged(const uint n_unread_messages);
+	void initWSConnection(const QString &id, const QString &address);
 
 private:
 	QString m_otherUserId;
@@ -87,8 +94,9 @@ private:
 	QObject *m_chatWindow;
 	DBModelInterfaceChat *m_dbModelInterface;
 	TPChatDB *m_db;
+	QWebSocket *m_socket;
 	QTimer *m_sendMessageTimer;
-	bool m_chatLoaded;
+	bool m_chatLoaded, m_useWebSocket;
 
 	void unqueueMessage(ChatMessage *const message);
 	void uploadAction(const uint field, ChatMessage *const message);

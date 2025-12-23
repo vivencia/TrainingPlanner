@@ -37,7 +37,6 @@
 QT_FORWARD_DECLARE_CLASS(DBUserTable)
 QT_FORWARD_DECLARE_CLASS(DBModelInterfaceUser);
 QT_FORWARD_DECLARE_CLASS(DBMesocyclesModel)
-QT_FORWARD_DECLARE_CLASS(ChatServer)
 QT_FORWARD_DECLARE_CLASS(QTimer)
 
 class DBUserModel : public QObject
@@ -397,7 +396,6 @@ private:
 						*m_tempUserInfo, *m_currentCoaches, *m_currentClients, *m_currentCoachesAndClients;
 	bool mb_canConnectToServer, mb_coachPublic, mb_MainUserInfoChanged, mb_onlineVisible;
 	QTimer *m_mainTimer;
-	ChatServer *m_chatServer;
 
 	DBUserTable *m_db;
 	DBModelInterfaceUser *m_dbModelInterface;

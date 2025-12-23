@@ -95,7 +95,7 @@ OSInterface::OSInterface(QObject *parent)
 		onlineServicesResponse(online_status);
 	});
 	connect(qApp, &QCoreApplication::aboutToQuit, this, [this] () {
-		appOnlineServices()->setOnlineVisibility(0, appUserModel()->userId(0), false);
+		appOnlineServices()->setOnlineVisibility(0, false);
 	});
 	checkNetworkInterfaces();
 

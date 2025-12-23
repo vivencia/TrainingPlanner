@@ -6,9 +6,9 @@
 #include "../dbusermodel.h"
 #include "../pageslistmodel.h"
 #include "../tpbool.h"
-#include "../tpkeychain/tpkeychain.h"
 
 #include <QTimer>
+#include <QWebSocket>
 
 #include <ranges>
 
@@ -51,7 +51,8 @@ struct ChatMessage {
 };
 
 TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QObject *parent)
-	: QAbstractListModel{parent}, m_otherUserId{otheruser_id}, m_unreadMessages{0}, m_chatWindow{nullptr}, m_chatLoaded{false}
+	: QAbstractListModel{parent}, m_otherUserId{otheruser_id}, m_unreadMessages{0}, m_chatWindow{nullptr},  m_chatLoaded{false},
+				m_socket{nullptr}, m_useWebSocket{false}
 {
 	m_roleNames[idRole]			=	std::move("msgId");
 	m_roleNames[senderRole]		=	std::move("msgSender");
@@ -72,6 +73,15 @@ TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QO
 	m_dbModelInterface = new DBModelInterfaceChat{this};
 	m_db = new TPChatDB{appUserModel()->userId(0), m_otherUserId, m_dbModelInterface};
 	appThreadManager()->runAction(m_db, ThreadManager::CreateTable);
+
+	connect(appUserModel(), &DBUserModel::userIsOnlineVisible, [this] (const QString &userid, const QString &ip, const bool visible) {
+		if (userid == m_otherUserId)
+		{
+			if (visible && !m_socket)
+				emit initWSConnection(m_otherUserId, ip);
+			m_useWebSocket = visible;
+		}
+	});
 
 	connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_idx, const uint field)
 	{
@@ -116,6 +126,36 @@ TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QO
 		m_db->setCustQueryFunction(x);
 		appThreadManager()->runAction(m_db, ThreadManager::CustomOperation);
 	}
+}
+
+void TPChat::setWebSocket(QWebSocket *socket)
+{
+	if (socket->origin() == m_otherUserId)
+	{
+		m_socket = socket;
+		if (m_useWebSocket)
+		{
+			if (socket)
+				connect(m_socket, SIGNAL(textMessageReceived()), this, SLOT(processWebSocketMessage()), Qt::UniqueConnection);
+			else
+				m_useWebSocket = false;
+		}
+	}
+}
+
+void TPChat::unsetWebSocket(QWebSocket *socket)
+{
+	if (socket->origin() == m_otherUserId)
+	{
+		m_socket->disconnect();
+		m_socket = nullptr;
+		m_useWebSocket = false;
+	}
+}
+
+void TPChat::processWebSocketMessage(const QString &message)
+{
+
 }
 
 void TPChat::loadChat()
@@ -183,7 +223,6 @@ void TPChat::setSentMessageReceived(const uint msgid, const bool notify_server)
 {
 	if (m_chatLoaded)
 		setData(index(msgid), true, receivedRole);
-
 }
 
 void TPChat::setSentMessageRead(const uint msgid, const bool notify_server)
@@ -237,13 +276,8 @@ void TPChat::markAllIncomingMessagesRead()
 	if (!msg_ids.isEmpty())
 	{
 		setUnreadMessages(0);
-		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,msg_ids] (const QString &key, const QString &value)
-		{
-			const int requestid{appUtils()->generateRandomNumber(0, 5000)};
-			appOnlineServices()->chatMessageWork(requestid, key, value, m_otherUserId,
-												msg_ids.join(set_separator), messageWorkRead);
-		}, Qt::SingleShotConnection);
-		appKeyChain()->readKey(appUserModel()->userId(0));
+		const int requestid{appUtils()->generateRandomNumber(0, 5000)};
+		appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msg_ids.join(set_separator), messageWorkRead);
 	}
 }
 
@@ -377,77 +411,68 @@ bool TPChat::setData(const QModelIndex &index, const QVariant &value, int role)
 
 void TPChat::unqueueMessage(ChatMessage* const message)
 {
-	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [=,this] (const QString &key, const QString &value)
+	const QString &msgid{QString::number(message->id)};
+	for (uint i{0}; i <= MESSAGE_MEDIA; ++i)
 	{
-		const QString &msgid{QString::number(message->id)};
-		for (uint i{0}; i <= MESSAGE_MEDIA; ++i)
-		{
-			const QString &field_value{appUtils()->getCompositeValue(i, message->queued, record_separator)};
-			if (field_value == "1"_L1)
-				uploadAction(i, message);
-		}
-		message->queued.clear();
-	}, Qt::SingleShotConnection);
-	appKeyChain()->readKey(appUserModel()->userId(0));
+		const QString &field_value{appUtils()->getCompositeValue(i, message->queued, record_separator)};
+		if (field_value == "1"_L1)
+			uploadAction(i, message);
+	}
+	message->queued.clear();
 }
 
 void TPChat::uploadAction(const uint field, ChatMessage *const message)
 {
 	if (appUserModel()->canConnectToServer())
 	{
-		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [=,this] (const QString &key, const QString &value)
+		const QString &msgid{QString::number(message->id)};
+		const QLatin1StringView seed{QString{message->text % QString::number(field)}.toLatin1()};
+		const int requestid{appUtils()->generateUniqueId(seed)};
+		switch (field)
 		{
-			const QString &msgid{QString::number(message->id)};
-			const QLatin1StringView seed{QString{message->text % QString::number(field)}.toLatin1()};
-			const int requestid{appUtils()->generateUniqueId(seed)};
-			switch (field)
-			{
-				case MESSAGE_ID:
-					if (message->own_message)
-					{
-						setData(index(message->id), true, sentRole);
-						appOnlineServices()->sendMessage(requestid, key, value, m_otherUserId, std::move(encodeMessageToUpload(message)));
-					}
-				break;
-				case MESSAGE_DELETED:
-					if (!message->own_message)
-						//Add message->id to the m_otherUserId/chats/this_user.removed file
-						appOnlineServices()->chatMessageWork(requestid, key, value, m_otherUserId, msgid, messageWorkRemoved);
-					else
-						//Remove message->id from the m_otherUserId/chats/this_user.removed file
-						appOnlineServices()->chatMessageWorkAcknowledged(requestid, key, value, m_otherUserId, msgid, messageWorkRemoved);
-				break;
-				case MESSAGE_RECEIVED:
-					if (!message->own_message)
-					{
-						//Remove message from the this_user/chats/m_otherUserId.msg file
-						appOnlineServices()->chatMessageWork(requestid, key, value, m_otherUserId, msgid, messageFileExtension);
-						//Add message->id to the m_otherUserId/chats/this_user.received file
-						appOnlineServices()->chatMessageWork(requestid, key, value, m_otherUserId, msgid, messageWorkReceived);
-					}
-					else
-						//Remove message->id from the m_otherUserId/chats/this_user.received file
-						appOnlineServices()->chatMessageWorkAcknowledged(requestid, key, value, m_otherUserId, msgid, messageWorkReceived);
-				break;
-				case MESSAGE_READ:
-					if (!message->own_message)
-						//Add message->id to the m_otherUserId/chats/this_user.read file
-						appOnlineServices()->chatMessageWork(requestid, key, value, m_otherUserId, msgid, messageWorkRead);
-					else
-						//Remove message->id from the m_otherUserId/chats/this_user.read file
-						appOnlineServices()->chatMessageWorkAcknowledged(requestid, key, value, m_otherUserId, msgid, messageWorkRead);
-				break;
-				case MESSAGE_TEXT:
-				case MESSAGE_MEDIA:
-					if (!message->own_message)
-						appOnlineServices()->chatMessageWork(requestid, key, value, m_otherUserId, msgid, messageWorkEdited);
-					else
-						appOnlineServices()->chatMessageWorkAcknowledged(requestid, key, value, m_otherUserId, msgid, messageWorkEdited);
-
+			case MESSAGE_ID:
+				if (message->own_message)
+				{
+					setData(index(message->id), true, sentRole);
+					appOnlineServices()->sendMessage(requestid, m_otherUserId, std::move(encodeMessageToUpload(message)));
+				}
+			break;
+			case MESSAGE_DELETED:
+				if (!message->own_message)
+					//Add message->id to the m_otherUserId/chats/this_user.removed file
+					appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkRemoved);
+				else
+					//Remove message->id from the m_otherUserId/chats/this_user.removed file
+					appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkRemoved);
+			break;
+			case MESSAGE_RECEIVED:
+				if (!message->own_message)
+				{
+					//Remove message from the this_user/chats/m_otherUserId.msg file
+					appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageFileExtension);
+					//Add message->id to the m_otherUserId/chats/this_user.received file
+					appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkReceived);
+				}
+				else
+					//Remove message->id from the m_otherUserId/chats/this_user.received file
+					appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkReceived);
+			break;
+			case MESSAGE_READ:
+				if (!message->own_message)
+					//Add message->id to the m_otherUserId/chats/this_user.read file
+					appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkRead);
+				else
+					//Remove message->id from the m_otherUserId/chats/this_user.read file
+					appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkRead);
+			break;
+			case MESSAGE_TEXT:
+			case MESSAGE_MEDIA:
+				if (!message->own_message)
+					appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkEdited);
+				else
+					appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkEdited);
 				default: break;
-			}
-		}, Qt::SingleShotConnection);
-		appKeyChain()->readKey(appUserModel()->userId(0));
+		}
 	}
 	else
 		appUtils()->setCompositeValue(field, "1"_L1, message->queued, record_separator);
@@ -455,12 +480,8 @@ void TPChat::uploadAction(const uint field, ChatMessage *const message)
 
 void TPChat::acknowledgeMessageWorked(const uint msgid, const QLatin1StringView &work)
 {
-	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,msgid,work] (const QString &key, const QString &value)
-	{
-		const int requestid{appUtils()->generateRandomNumber(0, 5000)};
-		appOnlineServices()->chatMessageWorkAcknowledged(requestid, key, value, m_otherUserId, QString::number(msgid), work);
-	}, Qt::SingleShotConnection);
-	appKeyChain()->readKey(appUserModel()->userId(0));
+	const int requestid{appUtils()->generateRandomNumber(0, 5000)};
+	appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, QString::number(msgid), work);
 }
 
 void TPChat::encodeMessageToSave(const ChatMessage* const message)

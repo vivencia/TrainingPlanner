@@ -632,7 +632,7 @@ QString DBMesocyclesModel::formatFieldToImport(const uint field, const QString &
 QString DBMesocyclesModel::mesoFileName(const uint meso_idx) const
 {
 	return appUserModel()->userDir(client(meso_idx)) + mesosSubDir +
-			(coach(meso_idx) != appUserModel()->userId(0) ? coach(meso_idx) + '/': QString{}) + name(meso_idx) + ".txt"_L1;
+			(coach(meso_idx) != appUserModel()->userId(0) ? coach(meso_idx) % '/': QString{}) % name(meso_idx) % ".txt"_L1;
 }
 
 void DBMesocyclesModel::removeMesoFile(const uint meso_idx)
