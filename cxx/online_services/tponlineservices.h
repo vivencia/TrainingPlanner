@@ -25,7 +25,8 @@ public:
 #endif
 	void checkOnlineUser(const int requestid, const QString &query, const QString &passwd);
 	void getOnlineUserData(const int requestid, const QString &user_id);
-	void checkUser(const int requestid, const QString &userid = QString{}, const QString &password = QString{});
+	void userLogin(const int requestid);
+	void userLogout(const int requestid);
 	void registerUser(const int requestid);
 	void removeUser(const int requestid, const QString &userid);
 

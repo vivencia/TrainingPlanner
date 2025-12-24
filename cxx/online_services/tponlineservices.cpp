@@ -174,21 +174,16 @@ void TPOnlineServices::getOnlineUserData(const int requestid, const QString &use
 	makeNetworkRequest(requestid, url);
 }
 
-void TPOnlineServices::checkUser(const int requestid, const QString &userid, const QString &password)
+void TPOnlineServices::userLogin(const int requestid)
 {
-	if (userid.isEmpty())
-	{
-		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,requestid] (const QString &key, const QString &value) {
-			const QUrl &url{makeCommandURL(true, "checkuser"_L1, key, "userpassword"_L1, value)};
-			makeNetworkRequest(requestid, url);
-		}, Qt::SingleShotConnection);
-		appKeyChain()->readKey(appUserModel()->userId(0));
-	}
-	else
-	{
-		const QUrl &url{makeCommandURL(true, "checkuser"_L1, userid, "userpassword"_L1, password)};
-		makeNetworkRequest(requestid, url);
-	}
+	const QUrl &url{makeCommandURL(false, "login"_L1)};
+	makeNetworkRequest(requestid, url);
+}
+
+void TPOnlineServices::userLogout(const int requestid)
+{
+	const QUrl &url{makeCommandURL(false, "logout"_L1)};
+	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::registerUser(const int requestid)

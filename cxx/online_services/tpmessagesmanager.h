@@ -3,7 +3,6 @@
 #include <QAbstractListModel>
 #include <QQmlEngine>
 
-QT_FORWARD_DECLARE_STRUCT(ChatWSServer)
 QT_FORWARD_DECLARE_CLASS(TPChat)
 QT_FORWARD_DECLARE_CLASS(TPMessage)
 QT_FORWARD_DECLARE_CLASS(QTimer)
@@ -24,7 +23,6 @@ public:
 	void readAllChats();
 
 	TPMessage *message(const qsizetype message_id) const;
-
 	/**
 	 * @brief Add a message to be displayed to the user based on online data received
 	 * @return message_id
@@ -48,7 +46,6 @@ public:
 	inline TPChat *chatManager(const QString &userid) const { return m_chatsList.value(userid); }
 	Q_INVOKABLE void openChat(const QString &username);
 	void startChatMessagesPolling(const QString &userid);
-	void processWebSocketMessage(const QString &sender_id, const QString &message);
 
 	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
 	QVariant data(const QModelIndex &index, int role) const override final;
@@ -67,7 +64,6 @@ private:
 	QHash<int, QByteArray> m_roleNames;
 	QHash<QString,TPChat*> m_chatsList;
 	QHash<QString,QObject*> m_chatWindowList;
-	ChatWSServer *m_chatServer;
 	QTimer *m_newChatMessagesTimer;
 	QQmlComponent *m_chatWindowComponent;
 	QVariantMap m_chatWindowProperties;

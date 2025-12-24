@@ -13,8 +13,8 @@ if ($developmentMode) {
 	$fileMode = 0664;
 }
 else {
-	$dirMode = 0755;
-	$fileMode = 0644;
+	$dirMode = 0750;
+	$fileMode = 0640;
 }
 
 // set the default timezone to use.
@@ -26,7 +26,7 @@ function print_r2($val){
 		echo  '</pre>';
 }
 
-function get_return_code($desc) {
+function get_return_code(string $desc): int {
 	global $scriptsdir;
 	$codes_file = $scriptsdir . "return_codes.h";
 	$ret_codes = file($codes_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -74,18 +74,18 @@ function chper($file) {
 }
 
 // Function to verify credentials against .htpasswd file
-function verify_credentials($username, $password, $htpasswd_file) {
+function verify_credentials($userid, $password, $htpasswd_file): bool {
 	if (!file_exists($htpasswd_file)) {
 		die("htpasswd file not found");
 	}
-	#print_r2("Authenticating " . $username . " with password " . $password);
+	#print_r2("Authenticating " . $userid . " with password " . $password);
 	// Read the .htpasswd file line by line
 	$lines = file($htpasswd_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 	foreach ($lines as $line) {
 		// Each line is in format: username:hashed_password
 		list($storedUser, $storedHash) = explode(':', $line, 2);
 
-		if ($storedUser === $username) {
+		if ($storedUser === $userid) {
 			// Check password against stored hash
 			if (password_verify($password, $storedHash) || crypt($password, $storedHash) === $storedHash) {
 				return true;
@@ -304,10 +304,94 @@ function cmd_downloaded($userid, $deviceid, $cmd_file) {
 	}
 }
 
-function run_test_function($username, $password) {
+function run_test_function($userid, $password) {
 	echo get_return_code("no changes success") . ": Some message";
 	echo get_return_code("custom error") . ": Some message";
 	echo get_return_code("directory not found") . ": Some message";
+}
+
+require 'php-websocket/vendor/autoload.php';
+function initiate_websocket_connection($id, $client_ip, $client_port): bool {
+	$client = apcu_fetch($id);
+	if ($client === false) {
+		$wsUrl = "ws://{$client_ip}:{$client_port}";
+		$client = new WebSocket\Client($wsUrl);
+
+		$client
+			->setPersistent(true)
+			// Add standard middlewares
+			->addMiddleware(new WebSocket\Middleware\CloseHandler())
+			->addMiddleware(new WebSocket\Middleware\PingResponder())
+			// Listen to incoming Text messages
+			->onText(function (WebSocket\Client $client, WebSocket\Connection $connection, WebSocket\Message\Text $message) {
+				// Act on incoming message
+				$words = explode("\036", $message->getContent());
+				switch ($words[1]) {
+					case "close": $client->close(); break; // Close connection
+					case "peer_address": $client->text($words[0]."\036".apcu_fetch($words[2]."ip")); break; //get $words[2](the interlocutor's id) stored ip address
+					//default: echo $words[0];
+				}
+				//foreach ($words as $word) {
+				//	echo $word . "\n";
+				//}
+			})
+			// Listen to incoming Binary messages
+			->onBinary(function (WebSocket\Client $client, WebSocket\Connection $connection, WebSocket\Message\Binary $message) {
+				// Act on incoming message
+				echo "Got file: {$message->getContent()} \n";
+			})
+			->start();
+		apcu_store($id, $client);
+		apcu_store($id."ip", $client_ip);
+	}
+	else {
+		if (!$client->isConnected()) {
+			$client->connect();
+			if (!$client->isConnected()) {
+				$stored_ip = apcu_fetch($id."ip");
+				if ($stored_ip != $client_ip) {
+					apcu_delete($id);
+					apcu_delete($id."ip");
+					return initiate_websocket_connection($id, $client_ip, $client_port);
+				}
+			}
+		}
+	}
+
+	return $client->isRunning();
+	/*
+	 echo "Connected *to client " . $id . "\n";
+	 // Send a message
+	 $client->text("*************** Hello $id Server here!");
+	 // Read response (this is blocking)
+	 $message = $client->receive();
+	 echo "Got message: {$message->getContent()} \n";
+	 // Close connection
+	 $client->close();
+	 */
+}
+
+function terminate_websocket_connection($id) {
+	$client = apcu_fetch($id);
+	if ($client !== false) {
+		$client->close();
+		apcu_delete($id);
+		apcu_delete($id."ip");
+	}
+}
+
+function set_online_visible($userid, $visible) {
+	global $rootdir;
+	$visible_file = $rootdir . $userid . "/visible";
+	if ($visible) {
+		$fh = fopen($visible_file, "c");
+		$ip = $_SERVER['REMOTE_ADDR'];
+		fwrite($fh, $ip . "\n");
+		fclose($fh);
+	}
+	else {
+		unlink($visible_file);
+	}
 }
 
 function add_device($userid, $device_id) {
@@ -441,7 +525,7 @@ function get_online_coaches() {
 		echo get_return_code("file not found") . ": Public coaches file does not exist";
 }
 
-function request_coach($username, $coach) {
+function request_coach($userid, $coach) {
 	global $rootdir;
 	$requests_file = $rootdir . $coach . "/requests.txt";
 	if (!file_exists($requests_file)) {
@@ -451,14 +535,14 @@ function request_coach($username, $coach) {
 	else {
 		$clients = file($requests_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 		foreach ($clients as $line) {
-			if ($line == $username) {
+			if ($line == $userid) {
 				echo get_return_code("no changes success") . ": Client's request had already been placed";
 				return;
 			}
 		}
 		$fh = fopen($requests_file, "a+") or die(get_return_code("open write failed") . ": Unable to open requests file to append new request " .$requests_file);
 	}
-	fwrite($fh, $username . "\n");
+	fwrite($fh, $userid . "\n");
 	fclose($fh);
 	echo "0: Client's request to coach OK";
 }
@@ -732,9 +816,9 @@ function remove_coach_from_coaches($client, $coach) {
 	exercises_separator (oct 034 dec 28) separates the senders (the even number are the messages content and the odd numbers are the sender file names)
 */
 
-function get_newmessages($username) {
+function get_newmessages($userid) {
 	global $rootdir;
-	$messages_dir = $rootdir . $username . "/chats";
+	$messages_dir = $rootdir . $userid . "/chats";
 	if (!create_dir($messages_dir))
 		die(get_return_code("directory not writable") . ": Unable to create messages dir " .$messages_dir);
 
@@ -757,12 +841,12 @@ function get_newmessages($username) {
 	echo get_return_code("directory empty") . ": No new messages";
 }
 
-function send_message($username, $receiver, $message) {
+function send_message($userid, $receiver, $message) {
 	global $rootdir;
 	$messages_dir = $rootdir . $receiver . "/chats/";
 	if (!create_dir($messages_dir))
 		die(get_return_code("directory not writable") . ": Unable to create messages dir " .$messages_dir);
-	$messages_file = $messages_dir . $username . ".msg";
+	$messages_file = $messages_dir . $userid . ".msg";
 
 	if (!file_exists($messages_file)) {
 		$fh = fopen($messages_file, "w") or die(get_return_code("open write failed") . ": Unable to create messages file " . $messages_file);
@@ -865,11 +949,11 @@ function message_worked($sender, $recipient, $messageid, $work) {
 		} while ($sep_idx2);
 	}
 	$fh = fopen($ids_file, "w");
-	fwrite($fh, implode($kept_ids));
+	// fwrite($fh, implode($kept_ids));
 	fclose($fh);
 }
 
-function run_htpasswd($cmd_args, $username, $password) {
+function run_htpasswd($cmd_args, $userid, $password) {
 	global $htpasswd;
 	global $htpasswd_file;
 
@@ -877,12 +961,12 @@ function run_htpasswd($cmd_args, $username, $password) {
 		$cmd_args = $cmd_args . "c";
 	$return_var = 0;
 	$output = [];
-	exec("$htpasswd $cmd_args $htpasswd_file $username $password", $output, $return_var);
+	exec("$htpasswd $cmd_args $htpasswd_file $userid $password", $output, $return_var);
 	return $return_var;
 }
 
-function user_exists($username, $user_password) {
-	return run_htpasswd("-bv", $username, $user_password);
+function user_exists($userid, $user_password) {
+	return run_htpasswd("-bv", $userid, $user_password);
 }
 
 function user_exists_return_message($return_var) {
@@ -890,7 +974,7 @@ function user_exists_return_message($return_var) {
 		case 0: $error_string = "0: User exists and password is correct"; break;
 		case 3: $error_string = get_return_code("wrong password") . ": User exists and password is wrong"; break;
 		case 6: $error_string = get_return_code("user does not exist") . ": User does not exist"; break;
-		default: $error_string = get_return_code("user does not exist") . ": User does not exist"; break;
+		default: $error_string = get_return_code("authentication failed") . ": Authentication Failed. Invalid user or password."; break;
 	}
 	return $error_string;
 }
@@ -903,8 +987,8 @@ function update_datafile_with_password($userid) {
 	$password="";
 	foreach ($users as $user) {
 		$sep=strpos($user, ':');
-		$username=substr($user, 0, $sep);
-		if ($username == $userid) {
+		$userid=substr($user, 0, $sep);
+		if ($userid == $userid) {
 			$password=substr($user, $sep+1, strlen($user)-$sep);
 			break;
 		}
@@ -951,87 +1035,119 @@ if (file_exists($pause_file)) {
 	}
 }
 
-$username = isset($_GET['user']) ? $_GET['user'] : '';
+$userid = isset($_GET['user']) ? $_GET['user'] : '';
 
-if ($username) {
+if ($userid) {
 	$password = isset($_GET['password']) ? $_GET['password'] : '';
 	if (!$password)
 		die(get_return_code("password missing") . ": Missing password");
 	else {
-		if (verify_credentials($username, $password, $htpasswd_file)) {
+		if (verify_credentials($userid, $password, $htpasswd_file)) {
 			// Authentication successful
 
 			if (isset($_GET['test'])) {
-				run_test_function($username, $password);
+				run_test_function($userid, $password);
 				exit;
 			}
 
-			if (isset($_GET['listfiles'])) {
-				$subdir = isset($_GET['listfiles']) ? $_GET['listfiles'] . "/" : '';
-				$targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $username;
-				if ($targetuser == "")
-					$targetuser = $username;
-				$filedir = $rootdir . $targetuser . $subdir;
-				$pattern = isset($_GET['pattern']) ? $_GET['pattern'] : '';
-				$files = scan_dir($filedir, $pattern, false, true, true);
-				echo $files;
-				exit;
-			}
-			if (isset($_GET['listdirs'])) {
-				$subdir = isset($_GET['listdirs']) ? $_GET['listdirs'] . "/" : '';
-				$targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $username;
-				if ($targetuser == "")
-					$targetuser = $username;
-				$filedir = $rootdir . $targetuser . $subdir;
-				$pattern = isset($_GET['pattern']) ? $_GET['pattern'] : '';
-				$files = scan_dir($filedir, $pattern, true, false, false);
-				echo $files;
-				exit;
-			}
+			if ($userid != "admin") {
 
-			if (isset($_GET['runcmds'])) {
-				$subdir = $_GET['runcmds'];
-				$delete_cmdfile = isset($_GET['delete']) ? $_GET['delete'] : 0;
-				run_commands($username, $subdir, $delete_cmdfile);
-				exit;
-			}
+				if (isset($_GET['listfiles'])) {
+					$subdir = isset($_GET['listfiles']) ? $_GET['listfiles'] . "/" : '';
+					$targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $userid;
+					if ($targetuser == "")
+						$targetuser = $userid;
+					$filedir = $rootdir . $targetuser . $subdir;
+					$pattern = isset($_GET['pattern']) ? $_GET['pattern'] : '';
+					$files = scan_dir($filedir, $pattern, false, true, true);
+					echo $files;
+					exit;
+				}
+				if (isset($_GET['listdirs'])) {
+					$subdir = isset($_GET['listdirs']) ? $_GET['listdirs'] . "/" : '';
+					$targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $userid;
+					if ($targetuser == "")
+						$targetuser = $userid;
+					$filedir = $rootdir . $targetuser . $subdir;
+					$pattern = isset($_GET['pattern']) ? $_GET['pattern'] : '';
+					$files = scan_dir($filedir, $pattern, true, false, false);
+					echo $files;
+					exit;
+				}
 
-			if (isset($_GET['downloadcmd'])) {
-				$subdir = isset($_GET['subdir']) ? $_GET['subdir'] . "/" : '';
-				$filedir = $rootdir . $username . "/" . $subdir;
-				$device_id = $_GET['deviceid'];
-				if ($device_id == "")
-					die(get_return_code("no device id") . ": Missing device id argument");
-				else if (!is_device_listed($username, $device_id))
-					die(get_return_code("deviceid not registered") . ": Device id not registered");
-				if (download_file($_GET['downloadcmd'], $filedir))
-					cmd_downloaded($username, $device_id, $filedir . $_GET['downloadcmd']);
-				exit;
-			}
+				if (isset($_GET['runcmds'])) {
+					$subdir = $_GET['runcmds'];
+					$delete_cmdfile = isset($_GET['delete']) ? $_GET['delete'] : 0;
+					run_commands($userid, $subdir, $delete_cmdfile);
+					exit;
+				}
 
-			if ($username != "admin") {
+				if (isset($_GET['downloadcmd'])) {
+					$subdir = isset($_GET['subdir']) ? $_GET['subdir'] . "/" : '';
+					$filedir = $rootdir . $userid . "/" . $subdir;
+					$device_id = $_GET['deviceid'];
+					if ($device_id == "")
+						die(get_return_code("no device id") . ": Missing device id argument");
+					else if (!is_device_listed($userid, $device_id))
+						die(get_return_code("deviceid not registered") . ": Device id not registered");
+					if (download_file($_GET['downloadcmd'], $filedir))
+						cmd_downloaded($userid, $device_id, $filedir . $_GET['downloadcmd']);
+					exit;
+				}
+
+				if (isset($_GET['login'])) {
+					$port = $_GET['port'];
+					set_online_visible($userid, true);
+					if (initiate_websocket_connection($userid, $_SERVER['REMOTE_ADDR'], $port))
+						echo "0 : Login successfull and connected as client to websocket server " . $userid;
+					else
+						echo get_return_code("wsconnection failed") . ": Login successfull but websocket connection to server " . $userid . " failed";
+					exit;
+				}
+				if (isset($_GET['logout'])) {
+					set_online_visible($userid, false);
+					initiate_websocket_connection($userid, $_SERVER['REMOTE_ADDR'], $port);
+				}
 
 				if (isset($_GET['adddevice'])) {
 					$device_id = $_GET['adddevice'];
-					add_device($username, $device_id);
+					add_device($userid, $device_id);
 					exit;
 				}
 				if (isset($_GET['deldevice'])) {
 					$device_id = $_GET['deldevice'];
-					del_device($username, $device_id);
+					del_device($userid, $device_id);
 					exit;
 				}
 				if (isset($_GET['getdeviceslist'])) {
-					get_devices_list($username);
+					get_devices_list($userid);
+					exit;
+				}
+
+				if (isset($_GET['changepassword'])) {
+					$old_password = $_GET['changepassword'];
+					$return_var = user_exists($userid, $old_password);
+					if ($return_var !== 0) {
+						echo user_exists_return_message($return_var);
+						exit;
+					}
+					$new_password = $_GET['newpassword'];
+					if ($new_password == "")
+						die(get_return_code("argument missing") . ": no new passord given **changecredentials**");
+					$ok = run_htpasswd("-bB", $userid, $new_password);
+					if ($ok == 0)
+						echo "0: " . $userid . "  password successfully modified";
+					else
+						echo get_return_code("unknown error") . ": " . $userid . " password modification failed";
 					exit;
 				}
 
 				if (isset($_GET['addcoach'])) {
-					add_coach($username);
+					add_coach($userid);
 					exit;
 				}
 				if (isset($_GET['delcoach'])) {
-					del_coach($username);
+					del_coach($userid);
 					exit;
 				}
 
@@ -1042,79 +1158,79 @@ if ($username) {
 				if (isset($_GET['requestcoach'])) {
 					$coach = $_GET['requestcoach'];
 					if ($coach)
-						request_coach($username, $coach);
+						request_coach($userid, $coach);
 					exit;
 				}
 				if (isset($_GET['deleteclientrequest'])) {
 					$client = $_GET['deleteclientrequest'];
 					if ($client)
-						delete_client_request($username, $client);
+						delete_client_request($userid, $client);
 					exit;
 				}
 				if (isset($_GET['listclientsrequests'])) {
-					list_clients_requests($username);
+					list_clients_requests($userid);
 					exit;
 				}
 				if (isset($_GET['acceptclientrequest'])) {
 					$client = $_GET['acceptclientrequest'];
 					if ($client)
-						accept_client_request($username, $client);
+						accept_client_request($userid, $client);
 					exit;
 				}
 				if (isset($_GET['rejectclientrequest'])) {
 					$client = $_GET['rejecttclientrequest'];
 					if ($client)
-						reject_client_request($username, $client);
+						reject_client_request($userid, $client);
 					exit;
 				}
 
 				if (isset($_GET['deletecoachanswer'])) {
 					$coach = $_GET['deletecoachanswer'];
 					if ($coach)
-						delete_coach_answer($username, $coach);
+						delete_coach_answer($userid, $coach);
 					exit;
 				}
 				if (isset($_GET['listcoachesanswers'])) {
-					list_coaches_answers($username);
+					list_coaches_answers($userid);
 					exit;
 				}
 				if (isset($_GET['acceptcoachanswer'])) {
 					$coach = $_GET['acceptcoachanswer'];
 					if ($coach)
-						accept_coach_answer($username, $coach);
+						accept_coach_answer($userid, $coach);
 					exit;
 				}
 				if (isset($_GET['rejectcoachanswer'])) {
 					$coach = $_GET['rejectcoachanswer'];
 					if ($coach)
-						reject_coach_answer($username, $coach);
+						reject_coach_answer($userid, $coach);
 					exit;
 				}
 
 				if (isset($_GET['getclients'])) {
-					get_clients_list($username);
+					get_clients_list($userid);
 					exit;
 				}
 				if (isset($_GET['removecurclient'])) {
 					$client = $_GET['removecurclient'];
 					if ($client)
-						remove_client_from_clients($username, $client);
+						remove_client_from_clients($userid, $client);
 					exit;
 				}
 
 				if (isset($_GET['getcoaches'])) {
-					get_coaches_list($username);
+					get_coaches_list($userid);
 					exit;
 				}
 				if (isset($_GET['removecurcoach'])) {
 					$coach = $_GET['removecurcoach'];
 					if ($coach)
-						remove_coach_from_coaches($username, $coach);
+						remove_coach_from_coaches($userid, $coach);
 					exit;
 				}
 
 				if (isset($_GET['getnewmessages'])) {
-					get_newmessages($username);
+					get_newmessages($userid);
 					exit;
 				}
 				if (isset($_GET['sendmessage'])) {
@@ -1122,7 +1238,7 @@ if ($username) {
 					$receiver != "" or die(get_return_code("argument missing") . ": No receiver argument **sendmessage**");
 					$message = $_GET['message'];
 					$message != "" or die(get_return_code("argument missing") . ": No message argument **sendmessage**");
-					send_message($username, $receiver, $message);
+					send_message($userid, $receiver, $message);
 					exit;
 				}
 				if (isset($_GET['workmessage'])) {
@@ -1132,7 +1248,7 @@ if ($username) {
 					$messageid != "" or die(get_return_code("argument missing") . ": No message id argument **workmessage**");
 					$work = $_GET['work'];
 					$work != "" or die(get_return_code("argument missing") . ": No work identifier argument **workmessage**");
-					message_worker($username, $recipient, $messageid, $work);
+					message_worker($userid, $recipient, $messageid, $work);
 					exit;
 				}
 				if (isset($_GET['messageworked'])) {
@@ -1142,7 +1258,7 @@ if ($username) {
 					$messageid != "" or die(get_return_code("argument missing") . ": No message id argument **messageworked**");
 					$work = $_GET['work'];
 					$work != "" or die(get_return_code("argument missing") . ": No work identifier argument **messageworked**");
-					message_worked($username, $recipient, $messageid, $work);
+					message_worked($userid, $recipient, $messageid, $work);
 					exit;
 				}
 
@@ -1151,7 +1267,7 @@ if ($username) {
 					if ($targetuser)
 						$fileDir = $rootdir . $targetuser;
 					else
-						$fileDir = $rootdir . $username;
+						$fileDir = $rootdir . $userid;
 					$subdir = $_GET['upload'];
 					if ($subdir)
 						$fileDir = $fileDir . "/" . $subdir;
@@ -1160,9 +1276,9 @@ if ($username) {
 				}
 				if (isset($_GET['file'])) {
 					$subdir = isset($_GET['subdir']) ? $_GET['subdir'] . "/" : '';
-					$targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $username;
+					$targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $userid;
 					if ($targetuser == "")
-						$targetuser = $username;
+						$targetuser = $userid;
 					$filedir=$rootdir . $targetuser . $subdir;
 					download_file($_GET['file'], $filedir);
 					exit;
@@ -1171,9 +1287,9 @@ if ($username) {
 					$binfile = $_GET['getbinfile'];
 					if ($binfile) {
 						$subdir = isset($_GET['subdir']) ? $_GET['subdir'] . "/" : '';
-						$targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $username;
+						$targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $userid;
 						if ($targetuser == "")
-							$targetuser = $username;
+							$targetuser = $userid;
 						$filedir = $rootdir . $targetuser . $subdir;
 						get_binfile($binfile, $filedir);
 						exit;
@@ -1181,10 +1297,10 @@ if ($username) {
 				}
 				if (isset($_GET['delfile'])) {
 					$subdir = isset($_GET['subdir']) ? $_GET['subdir'] . "/" : '';
-					$targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $username;
+					$targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $userid;
 					if ($targetuser == "")
-						$targetuser = $username;
-					$file = $rootdir . $username  . "/" . $subdir . $targetuser . $_GET['delfile'];
+						$targetuser = $userid;
+					$file = $rootdir . $userid  . "/" . $subdir . $targetuser . $_GET['delfile'];
 					if (is_file($file))
 						unlink($file);
 					exit;
@@ -1194,9 +1310,9 @@ if ($username) {
 				if (isset($_GET['checkfilectime'])) {
 					$file = $_GET['checkfilectime'];
 					if ($file) {
-						$targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] : $username;
+						$targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] : $userid;
 						if ($targetuser == "")
-							$targetuser = $username;
+							$targetuser = $userid;
 						$subdir = isset($_GET['subdir']) ? $_GET['subdir'] . "/" : '';
 						$filename=$rootdir . $targetuser . "/" . $subdir . $file;
 						check_file_ctime($filename);
@@ -1207,7 +1323,7 @@ if ($username) {
 				echo get_return_code("custom error") . ": Missing action argument";
 			}
 			else { //username == admin
-				//user management
+
 				$query = isset($_GET['onlineuser']) ? $_GET['onlineuser'] : '';
 				if ($query) { //Check if there is an already existing user in the online database. The unique key used to identify an user is decided on the TrainingPlanner app source code. This script is agnostic to it
 					$userpassword = isset($_GET['userpassword']) ? $_GET['userpassword'] : '';
@@ -1223,113 +1339,75 @@ if ($username) {
 					exit;
 				}
 
-				$userid = isset($_GET['onlinedata']) ? $_GET['onlinedata'] : '';
-				if ($userid) { //Check if there is an already existing user in the online database. The  unique key used to identify an user is decided on the TrainingPlanner app source code. This script is agnostic to it
-					run_dbscript("getall", "", $userid, true);
+				$user_id = isset($_GET['onlinedata']) ? $_GET['onlinedata'] : '';
+				if ($user_id) { //Check if there is an already existing user in the online database. The  unique key used to identify an user is decided on the TrainingPlanner app source code. This script is agnostic to it
+					run_dbscript("getall", "", $user_id, true);
 					exit;
 				}
 
-				$username = isset($_GET['checkuser']) ? $_GET['checkuser'] : '';
-				if ($username) { //check if user exists
-					$user_password = isset($_GET['userpassword']) ? $_GET['userpassword'] : '';
-					$return_var = user_exists($username, $user_password);
-					echo user_exists_return_message($return_var);
-					exit;
-				}
-
-				$username = isset($_GET['adduser']) ? $_GET['adduser'] : '';
-				if ($username) { //new user creation. Encrypt password onto file and create the user's dir
+				$user_id = isset($_GET['adduser']) ? $_GET['adduser'] : '';
+				if ($user_id) { //new user creation. Encrypt password onto file and create the user's dir
 					$new_user_password = isset($_GET['userpassword']) ? $_GET['userpassword'] : '';
-					$return_var = user_exists($username, $new_user_password);
+					$return_var = user_exists($user_id, $new_user_password);
 					if ($return_var == 6) {
-						$ok = run_htpasswd("-bB", $username, $new_user_password);
+						$ok = run_htpasswd("-bB", $user_id, $new_user_password);
 						if ($ok == 0) {
-							$userdir = $rootdir . $username;
+							$userdir = $rootdir . $user_id;
 							if (!create_dir($userdir . "/Database")) //Creates the user dir and its database subdir
 								$ok = 1;
 							if (!create_dir($userdir . "/chats")) //Creates the user dir and its database subdir
 								$ok = 1;
 						}
-						if ($ok == 0)
-							echo "0: " . $username . " successfully created";
-						else
-							echo get_return_code("custom error") . ": Error creating user " . $username;
-					}
-					else
-						echo user_exists_return_message($return_var);
-					exit;
-				}
-
-				$userid = isset($_GET['alteronlineuser']) ? $_GET['alteronlineuser'] : '';
-				if ($userid) { //dbscript expects the file user.data to have been previously uploaded to $userid dir
-					if (!isset($_GET['userpassword'])) {
-						echo get_return_code("password missing") . ": Cannot update user information. No user password provided.";
-						exit;
-					}
-					$user_password = $_GET['userpassword'];
-					$return_var = user_exists($userid, $user_password);
-					if ($return_var == 0) {
-						if (update_datafile_with_password($userid))
-							run_dbscript("add", "", $userid, true);
-						else
-							echo get_return_code("user does not exist") . ": Cannot update ".$userid." information. User not found on database.";
-					}
-					else
-						echo user_exists_return_message($return_var);
-					exit;
-				}
-
-				$username = isset($_GET['deluser']) ? $_GET['deluser'] : '';
-				if ($username) { //remove user and their dir
-					if (!isset($_GET['userpassword'])) {
-						echo get_return_code("password missing") . ": Cannot update user information. No user password provided.";
-						exit;
-					}
-					$user_password = $_GET['userpassword'];
-					$return_var = user_exists($username, $user_password);
-					if ($return_var == 0) {
-						del_coach($username);
-						$ok = run_htpasswd("-D", $username, "");
 						if ($ok == 0) {
-							run_dbscript("del", "", $username, false);
-							$userdir = $rootdir . $username;
+							if (update_datafile_with_password($user_id))
+								run_dbscript("add", "", $user_id, true);
+							echo "0: " . $user_id . " successfully created";
+						}
+						else
+							echo get_return_code("custom error") . ": Error creating user " . $user_id;
+					}
+					else
+						echo user_exists_return_message($return_var);
+					exit;
+				}
+
+				$user_id = isset($_GET['deluser']) ? $_GET['deluser'] : '';
+				if ($user_id) { //remove user and their dir
+					if (!isset($_GET['userpassword'])) {
+						echo get_return_code("password missing") . ": Cannot update user information. No user password provided.";
+						exit;
+					}
+					$user_password = $_GET['userpassword'];
+					$return_var = user_exists($user_id, $user_password);
+					if ($return_var == 0) {
+						del_coach($user_id);
+						$ok = run_htpasswd("-D", $user_id, "");
+						if ($ok == 0) {
+							run_dbscript("del", "", $user_id, false);
+							$userdir = $rootdir . $user_id;
 							if (is_dir($userdir)) {
 								if (!erasedir($userdir))
 									$ok = 1;
 							}
 						}
 						if ($ok == 0)
-							echo "0:" . $username . " successfully removed.";
+							echo "0:" . $user_id . " successfully removed.";
 						else
-							echo get_return_code("unknown error") . ": " . $username . " not removed.";
+							echo get_return_code("unknown error") . ": " . $user_id . " not removed.";
 					}
 					else
 						echo user_exists_return_message($return_var);
 					exit;
 				}
 
-				$username = isset($_GET['changepassword']) ? $_GET['changepassword'] : '';
-				if ($username) {
-					$cur_password = isset($_GET['oldpassword']) ? $_GET['oldpassword'] : '';
-					$return_var = user_exists($username, $cur_password);
-					if ($return_var == 0) {
-						$new_password = isset($_GET['newpassword']) ? $_GET['newpassword'] : '';
-						$ok = run_htpasswd("-bB", $username, $new_password);
-						if ($ok == 0)
-							echo "0: " . $username . "  password successfully modified";
-						else
-							echo get_return_code("unknown error") . ": " . $username . " password modification failed";
-					}
-					else
-						echo user_exists_return_message($return_var);
-					exit;
-				}
+				echo get_return_code("argument missing") . ": No argument given **admin**";
 			}
 		}
 		else {
 			// Authentication failed
 			header('HTTP/1.1 401 Unauthorized');
-			echo get_return_code("authentication failed") . ": Authentication Failed. Invalid user or password.";
+			$return_var = user_exists($userid, $password);
+			echo user_exists_return_message($return_var);
 		}
 	}
 }

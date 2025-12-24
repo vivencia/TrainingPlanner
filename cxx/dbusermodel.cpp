@@ -15,6 +15,7 @@
 #include "online_services/tpmessage.h"
 #include "online_services/tpmessagesmanager.h"
 #include "online_services/tponlineservices.h"
+#include "online_services/websocketserver.h"
 #include "tpkeychain/tpkeychain.h"
 
 #include <QDateTime>
@@ -34,7 +35,6 @@ DBUserModel *DBUserModel::_appUserModel(nullptr);
 
 constexpr QLatin1StringView local_user_data_file{"user.data"_L1};
 constexpr QLatin1StringView cmd_file_extension{".cmd"_L1};
-constexpr QLatin1String visible_setting_name{"onlineVisible"};
 static const QString &network_msg_title{qApp->tr("TP Network")};
 
 #ifndef QT_NO_DEBUG
@@ -203,31 +203,6 @@ void DBUserModel::setOnlineAccount(const bool online_user, const uint user_idx)
 	emit onlineUserChanged();
 	m_usersData[0][USER_COL_ONLINEACCOUNT] = online_user ? '1' : '0';
 	emit userModified(0, USER_COL_ONLINEACCOUNT);
-}
-
-void DBUserModel::onlineVisible(const QString &userid)
-{
-	auto conn{std::make_shared<QMetaObject::Connection>()};
-	const int requestid{appUtils()->generateUniqueId("setOnlineVisible"_L1)};
-	*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid,userid]
-														(const int request_id, const int ret_code, const QString &ret_string)
-	{
-		if (request_id == requestid)
-		{
-			disconnect(*conn);
-			emit userIsOnlineVisible(userid, ret_string, ret_code == TP_RET_CODE_SUCCESS);
-		}
-	});
-	appOnlineServices()->getOnlineVisibility(requestid, userid);
-}
-
-void DBUserModel::setOnlineVisible(const bool visible)
-{
-	mb_onlineVisible = visible;
-	emit onlineVisibleChanged();
-	const int requestid{appUtils()->generateUniqueId("setOnlineVisible"_L1)};
-	appOnlineServices()->setOnlineVisibility(requestid, visible);
-	appSettings()->setCustomValue(visible_setting_name, visible);
 }
 
 void DBUserModel::createMainUser(const QString &userid, const QString &name)
@@ -530,7 +505,7 @@ void DBUserModel::switchUser()
 void DBUserModel::removeOtherUser()
 {
 	const QString &userid{m_allUsers->data(m_allUsers->currentRow(), USER_COL_ID)};
-	const QLatin1StringView seed{"remove" + userid.toLatin1()};
+	const QLatin1StringView seed{"remove" % userid.toLatin1()};
 	const int requestid{appUtils()->generateUniqueId(seed)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,userid,conn,requestid]
@@ -1436,16 +1411,15 @@ void DBUserModel::onlineCheckIn()
 {
 	if (mainUserConfigured() && onlineAccount())
 	{
-		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this] (const bool first_checkin) {
+		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this] (const bool first_checkin)
+		{
+			new ChatWSServer{userId(0), appSettings()->serverAddress(), this};
 			if (first_checkin)
 			{
-				setOnlineVisible(true);
 				sendUserDataToServerDatabase();
 				sendProfileToServer();
 				sendAvatarToServer();
 			}
-			else
-				setOnlineVisible(appSettings()->getCustomValue(visible_setting_name, true).toBool());
 			if (m_onlineAccountId.isEmpty()) //When importing an user from the server there is no need to perform any action online
 				onlineCheckinActions();
 			if (!isCoachRegistered() && mb_coachPublic)
@@ -1504,7 +1478,7 @@ void DBUserModel::registerUserOnline()
 			}
 		}
 	});
-	appOnlineServices()->checkUser(requestid);
+	appOnlineServices()->userLogin(requestid);
 }
 
 void DBUserModel::onlineCheckinActions()

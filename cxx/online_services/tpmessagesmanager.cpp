@@ -3,10 +3,8 @@
 #include "tpchat.h"
 #include "tpmessage.h"
 #include "tponlineservices.h"
-#include "websocketserver.h"
 #include "../dbusermodel.h"
 #include "../qmlitemmanager.h"
-#include "../tpsettings.h"
 #include "../tputils.h"
 
 #include <QQmlApplicationEngine>
@@ -47,9 +45,6 @@ TPMessagesManager::TPMessagesManager(QObject *parent)
 	m_roleNames[actionsRole]		= std::move("actions");
 	m_roleNames[stickyRole]			= std::move("sticky");
 	m_roleNames[hasActionsRole]		= std::move("hasActions");
-
-	if (appUserModel()->onlineAccount(0))
-		m_chatServer = new ChatWSServer{appUserModel()->userId(0), appSettings()->serverAddress(), this};
 }
 
 TPMessagesManager::~TPMessagesManager()
@@ -173,15 +168,6 @@ TPMessage *TPMessagesManager::createChatMessage(const QString &userid, QString &
 
 	TPChat *new_chat{new TPChat{userid, check_unread_messages, this}};
 	m_chatsList.insert(userid, new_chat);
-	connect(new_chat, &TPChat::initWSConnection, this, [this,new_chat] (const QString &id, const QString &address) {
-		connect(m_chatServer, &ChatWSServer::connectionEstabilished, this, [this,new_chat] (QWebSocket *peer) {
-			new_chat->setWebSocket(peer);
-			connect(m_chatServer, &ChatWSServer::lostConnection, this, [this,new_chat] (QWebSocket *peer) {
-				new_chat->setWebSocket(peer);
-			});
-		});
-		m_chatServer->connectToPeer(id, address);
-	});
 	connect(new_chat, &TPChat::interlocutorNameChanged, this, [this,chat_message,new_chat] () {
 		chat_message->setDisplayText(std::move(new_chat->interlocutorName()));
 	});
@@ -270,11 +256,6 @@ void TPMessagesManager::startChatMessagesPolling(const QString &userid)
 		m_newChatMessagesTimer->setInterval(newMessagesCheckingInterval());
 	});
 	m_newChatMessagesTimer->start();
-}
-
-void TPMessagesManager::processWebSocketMessage(const QString &sender_id, const QString &message)
-{
-
 }
 
 QVariant TPMessagesManager::data(const QModelIndex &index, int role) const

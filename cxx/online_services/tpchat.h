@@ -47,8 +47,9 @@ public:
 	static constexpr QLatin1StringView chatsSubDir{"chats/"};
 
 	explicit TPChat(const QString &otheruser_id, const bool check_unread_messages, QObject *parent = nullptr);
-	void setWebSocket(QWebSocket *socket);
-	void unsetWebSocket(QWebSocket *socket);
+
+	Q_INVOKABLE void onChatWindowOpened();
+	void setWSPeer(QWebSocket *peer);
 
 	void loadChat();
 	inline void setChatWindow(QObject *chat_window) { m_chatWindow = chat_window; }
@@ -94,9 +95,9 @@ private:
 	QObject *m_chatWindow;
 	DBModelInterfaceChat *m_dbModelInterface;
 	TPChatDB *m_db;
-	QWebSocket *m_socket;
+	QWebSocket *m_peerSocket;
 	QTimer *m_sendMessageTimer;
-	bool m_chatLoaded, m_useWebSocket;
+	bool m_chatLoaded;
 
 	void unqueueMessage(ChatMessage *const message);
 	void uploadAction(const uint field, ChatMessage *const message);

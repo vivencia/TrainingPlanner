@@ -29,7 +29,7 @@ TPPopup {
 
 	signal chatWindowIsActiveWindow(ChatModel chat_manager);
 
-	onOpened: chatWindowIsActiveWindow(chatManager);
+	onOpened: chatManager.onChatWindowOpened();
 	onActiveFocusChanged: {
 		if (activeFocus)
 			chatWindowIsActiveWindow(chatManager);

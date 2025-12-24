@@ -1,7 +1,9 @@
 #include "tpchat.h"
 
 #include "tpchatdb.h"
+#include "tpmessagesmanager.h"
 #include "tponlineservices.h"
+#include "websocketserver.h"
 #include "../thread_manager.h"
 #include "../dbusermodel.h"
 #include "../pageslistmodel.h"
@@ -52,7 +54,7 @@ struct ChatMessage {
 
 TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QObject *parent)
 	: QAbstractListModel{parent}, m_otherUserId{otheruser_id}, m_unreadMessages{0}, m_chatWindow{nullptr},  m_chatLoaded{false},
-				m_socket{nullptr}, m_useWebSocket{false}
+									m_peerSocket{nullptr}
 {
 	m_roleNames[idRole]			=	std::move("msgId");
 	m_roleNames[senderRole]		=	std::move("msgSender");
@@ -73,15 +75,6 @@ TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QO
 	m_dbModelInterface = new DBModelInterfaceChat{this};
 	m_db = new TPChatDB{appUserModel()->userId(0), m_otherUserId, m_dbModelInterface};
 	appThreadManager()->runAction(m_db, ThreadManager::CreateTable);
-
-	connect(appUserModel(), &DBUserModel::userIsOnlineVisible, [this] (const QString &userid, const QString &ip, const bool visible) {
-		if (userid == m_otherUserId)
-		{
-			if (visible && !m_socket)
-				emit initWSConnection(m_otherUserId, ip);
-			m_useWebSocket = visible;
-		}
-	});
 
 	connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_idx, const uint field)
 	{
@@ -126,36 +119,88 @@ TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QO
 		m_db->setCustQueryFunction(x);
 		appThreadManager()->runAction(m_db, ThreadManager::CustomOperation);
 	}
-}
 
-void TPChat::setWebSocket(QWebSocket *socket)
-{
-	if (socket->origin() == m_otherUserId)
-	{
-		m_socket = socket;
-		if (m_useWebSocket)
-		{
-			if (socket)
-				connect(m_socket, SIGNAL(textMessageReceived()), this, SLOT(processWebSocketMessage()), Qt::UniqueConnection);
-			else
-				m_useWebSocket = false;
-		}
-	}
-}
-
-void TPChat::unsetWebSocket(QWebSocket *socket)
-{
-	if (socket->origin() == m_otherUserId)
-	{
-		m_socket->disconnect();
-		m_socket = nullptr;
-		m_useWebSocket = false;
-	}
+	if (appWSServer()->peerSocket(m_otherUserId)) //If peer had initiated the connection before, become their client
+		setWSPeer(appWSServer()->peerSocket(m_otherUserId));
+	connect(appWSServer(), &ChatWSServer::wsConnectionToServerPeerConcluded, this, [this]
+															(const bool success, const QString &id, QWebSocket *peer) {
+		if (success && id == m_otherUserId)
+			setWSPeer(peer);
+	});
 }
 
 void TPChat::processWebSocketMessage(const QString &message)
 {
+	bool ok{false};
+	const int requestid{appUtils()->getCompositeValue(0, message, record_separator).toInt(&ok)};
+	if (ok)
+	{
+		const QString &action{appUtils()->getCompositeValue(1, message, record_separator)};
+		QString value{std::move(appUtils()->getCompositeValue(2, message, record_separator))};
+		if (action == "msg"_L1)
+			incomingMessage(value);
+		else if (action == "del")
+		;//TODO
+	}
+}
 
+void TPChat::onChatWindowOpened()
+{
+	if (!m_peerSocket) //Start of the connection to peer process
+	{
+		if (appWSServer()->peerSocket(m_otherUserId)) //If peer had initiated the connection before, become their client
+		{
+			setWSPeer(appWSServer()->peerSocket(m_otherUserId));
+			return;
+		}
+		if (!appUserModel()->canConnectToServer())
+			return;
+		//Attempt to initiate the connection by querying the server for the peer's(interlocutor's) address
+		auto conn{std::make_shared<QMetaObject::Connection>()};
+		const int requestid{appWSServer()->queryPeerAddress(m_otherUserId)};
+		*conn = connect(appWSServer(), &ChatWSServer::tpServerReply, this, [this,conn,requestid]
+																			(const int request_id, const QString &reply) {
+			if (requestid == request_id)
+			{
+				disconnect(*conn);
+				*conn = connect(appWSServer(), &ChatWSServer::wsConnectionToClientPeerConcluded, this, [this,conn]
+																		(const bool success, const QString &id, QWebSocket *peer)
+				{
+					if (id == m_otherUserId)
+					{
+						disconnect(*conn);
+						if (success)
+							setWSPeer(peer);
+						else
+							appMessagesManager()->chatWindowIsActiveWindow(this);
+					}
+				});
+				//Attempt to make the connection proper
+				appWSServer()->connectToPeer(m_otherUserId, reply);
+			}
+		});
+	}
+	else
+	{
+		if (!m_peerSocket->isValid())
+		{
+			m_peerSocket->disconnect();
+			m_peerSocket->deleteLater();
+			m_peerSocket = nullptr;
+		}
+	}
+}
+
+void TPChat::setWSPeer(QWebSocket *peer)
+{
+	m_peerSocket = peer;
+	m_peerSocket->setParent(this);
+	connect(m_peerSocket, SIGNAL(textMessageReceived()), this, SLOT(processWebSocketMessage()));
+	connect(m_peerSocket, &QWebSocket::disconnected, this, [this] () {
+		m_peerSocket->disconnect();
+		m_peerSocket->deleteLater();
+		m_peerSocket = nullptr;
+	});
 }
 
 void TPChat::loadChat()
@@ -428,50 +473,82 @@ void TPChat::uploadAction(const uint field, ChatMessage *const message)
 		const QString &msgid{QString::number(message->id)};
 		const QLatin1StringView seed{QString{message->text % QString::number(field)}.toLatin1()};
 		const int requestid{appUtils()->generateUniqueId(seed)};
+		const bool use_ws{m_peerSocket && m_peerSocket->isValid()};
 		switch (field)
 		{
 			case MESSAGE_ID:
 				if (message->own_message)
 				{
 					setData(index(message->id), true, sentRole);
-					appOnlineServices()->sendMessage(requestid, m_otherUserId, std::move(encodeMessageToUpload(message)));
+					if (use_ws)
+						m_peerSocket->sendTextMessage(appUtils()->string_strings(
+							{QString::number(requestid), "send"_L1, encodeMessageToUpload(message)}, record_separator));
+					else
+						appOnlineServices()->sendMessage(requestid, m_otherUserId, std::move(encodeMessageToUpload(message)));
 				}
 			break;
 			case MESSAGE_DELETED:
-				if (!message->own_message)
-					//Add message->id to the m_otherUserId/chats/this_user.removed file
-					appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkRemoved);
+				if (use_ws)
+					m_peerSocket->sendTextMessage(appUtils()->string_strings(
+															{QString::number(requestid), "del"_L1, msgid}, record_separator));
 				else
-					//Remove message->id from the m_otherUserId/chats/this_user.removed file
-					appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkRemoved);
+				{
+					if (!message->own_message)
+					{
+						if (use_ws)
+						//Add message->id to the m_otherUserId/chats/this_user.removed file
+						appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkRemoved);
+					}
+					else
+						//Remove message->id from the m_otherUserId/chats/this_user.removed file
+						appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkRemoved);
+				}
 			break;
 			case MESSAGE_RECEIVED:
-				if (!message->own_message)
-				{
-					//Remove message from the this_user/chats/m_otherUserId.msg file
-					appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageFileExtension);
-					//Add message->id to the m_otherUserId/chats/this_user.received file
-					appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkReceived);
-				}
+				if (use_ws)
+					m_peerSocket->sendTextMessage(appUtils()->string_strings(
+															{QString::number(requestid), "received"_L1, msgid}, record_separator));
 				else
-					//Remove message->id from the m_otherUserId/chats/this_user.received file
-					appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkReceived);
+				{
+					if (!message->own_message)
+					{
+						//Remove message from the this_user/chats/m_otherUserId.msg file
+						appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageFileExtension);
+						//Add message->id to the m_otherUserId/chats/this_user.received file
+						appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkReceived);
+					}
+					else
+						//Remove message->id from the m_otherUserId/chats/this_user.received file
+						appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkReceived);
+				}
 			break;
 			case MESSAGE_READ:
-				if (!message->own_message)
-					//Add message->id to the m_otherUserId/chats/this_user.read file
-					appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkRead);
+				if (use_ws)
+					m_peerSocket->sendTextMessage(appUtils()->string_strings(
+															{QString::number(requestid), "read"_L1, msgid}, record_separator));
 				else
-					//Remove message->id from the m_otherUserId/chats/this_user.read file
-					appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkRead);
+				{
+					if (!message->own_message)
+						//Add message->id to the m_otherUserId/chats/this_user.read file
+						appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkRead);
+					else
+						//Remove message->id from the m_otherUserId/chats/this_user.read file
+						appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkRead);
+				}
 			break;
 			case MESSAGE_TEXT:
 			case MESSAGE_MEDIA:
-				if (!message->own_message)
-					appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkEdited);
+				if (use_ws)
+					m_peerSocket->sendTextMessage(appUtils()->string_strings(
+															{QString::number(requestid), "edit"_L1, msgid}, record_separator));
 				else
-					appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkEdited);
-				default: break;
+				{
+					if (!message->own_message)
+						appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkEdited);
+					else
+						appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkEdited);
+				}
+			default: break;
 		}
 	}
 	else

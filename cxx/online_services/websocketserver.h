@@ -15,13 +15,16 @@ public:
 	explicit ChatWSServer(const QString &id, const QString &address, QObject *parent = nullptr);
 	~ChatWSServer() override;
 
-	void sendMessageToInterlocutor(const QString &id, const QString &message) const;
+	int queryPeerAddress(const QString &userid);
 	void connectToPeer(const QString &id, const QString &address);
 	inline const QString &port() const { return m_port; }
+	inline bool hasPeers() const { return !m_peersSockets.isEmpty(); }
+	inline QWebSocket *peerSocket(const QString &id) const { return m_peersSockets.value(id); }
 
 signals:
-	void connectionEstabilished(QWebSocket *peer);
-	void lostConnection(QWebSocket *peer);
+	void tpServerReply(const int request_id, const QString &reply);
+	void wsConnectionToClientPeerConcluded(const bool success, const QString &id, QWebSocket *peer);
+	void wsConnectionToServerPeerConcluded(const bool success, const QString &id, QWebSocket *peer);
 
 private slots:
 	void onNewConnection();
@@ -30,8 +33,12 @@ private slots:
 
 private:
 	QWebSocketServer *m_pWebSocketServer;
-	QHash<QString, QWebSocket*> m_interlocutorSockets;
+	QWebSocket* m_tpServerSocket;
+	QHash<QString,QWebSocket*> m_peersSockets;
 	QString m_id, m_port;
 
-	void connectPeer(QWebSocket *peer);
+	static ChatWSServer *app_ws_server;
+	friend ChatWSServer *appWSServer();
 };
+
+inline ChatWSServer *appWSServer() { return ChatWSServer::app_ws_server; }
