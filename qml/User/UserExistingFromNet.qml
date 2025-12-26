@@ -126,7 +126,7 @@ ColumnLayout {
 			autoSize: true
 
 			onClicked: {
-				userModel.checkUserOnline(txtEmail.text.trim(), passwordControl.getPassword());
+				userModel.checkExistingAccount(txtEmail.text.trim(), passwordControl.getPassword());
 				enabled = false;
 			}
 		}

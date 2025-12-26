@@ -1,7 +1,6 @@
 #include "tpchat.h"
 
 #include "tpchatdb.h"
-#include "tpmessagesmanager.h"
 #include "tponlineservices.h"
 #include "websocketserver.h"
 #include "../thread_manager.h"
@@ -122,64 +121,56 @@ TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QO
 
 	if (appWSServer()->peerSocket(m_otherUserId)) //If peer had initiated the connection before, become their client
 		setWSPeer(appWSServer()->peerSocket(m_otherUserId));
-	connect(appWSServer(), &ChatWSServer::wsConnectionToServerPeerConcluded, this, [this]
-															(const bool success, const QString &id, QWebSocket *peer) {
-		if (success && id == m_otherUserId)
-			setWSPeer(peer);
+
+	connect(appWSServer(), &ChatWSServer::wsConnectionToClientPeerConcluded, this, [this]
+																(const bool success, const QString &userid, QWebSocket *peer)
+	{
+		if (userid == m_otherUserId)
+		{
+			if (success)
+				setWSPeer(peer);
+		}
 	});
 }
 
 void TPChat::processWebSocketMessage(const QString &message)
 {
 	bool ok{false};
-	const int requestid{appUtils()->getCompositeValue(0, message, record_separator).toInt(&ok)};
+	static_cast<void>(appUtils()->getCompositeValue(0, message, exercises_separator).toInt(&ok));
 	if (ok)
 	{
-		const QString &action{appUtils()->getCompositeValue(1, message, record_separator)};
-		QString value{std::move(appUtils()->getCompositeValue(2, message, record_separator))};
-		if (action == "msg"_L1)
+		const QString &action{appUtils()->getCompositeValue(1, message, exercises_separator)};
+		QString value{std::move(appUtils()->getCompositeValue(2, message, exercises_separator))};
+		if (action == "send"_L1)
 			incomingMessage(value);
-		else if (action == "del")
-		;//TODO
+		else {
+			const uint msgid{value.toUInt()};
+			ChatMessage *msg{m_messages.at(msgid)};
+			if (!msg)
+				return;
+
+			if (action == "del" && !msg->deleted)
+				removeMessage(msgid, false, false);
+			else if (action == "received" && !msg->received)
+				setSentMessageReceived(msgid);
+			else if (action == "read" && !msg->read)
+				setSentMessageRead(msgid);
+			else if (action == "edit" && !msg->own_message)
+			{
+				QString modified_text{std::move(appUtils()->getCompositeValue(3, message, exercises_separator))};
+				uint modified_field{appUtils()->getCompositeValue(4, message, exercises_separator).toUInt()};
+				setData(index(msgid), modified_text, Qt::UserRole + modified_field);
+			}
+		}
+
 	}
 }
 
 void TPChat::onChatWindowOpened()
 {
-	if (!m_peerSocket) //Start of the connection to peer process
-	{
-		if (appWSServer()->peerSocket(m_otherUserId)) //If peer had initiated the connection before, become their client
-		{
-			setWSPeer(appWSServer()->peerSocket(m_otherUserId));
-			return;
-		}
-		if (!appUserModel()->canConnectToServer())
-			return;
+	if (!m_peerSocket)
 		//Attempt to initiate the connection by querying the server for the peer's(interlocutor's) address
-		auto conn{std::make_shared<QMetaObject::Connection>()};
-		const int requestid{appWSServer()->queryPeerAddress(m_otherUserId)};
-		*conn = connect(appWSServer(), &ChatWSServer::tpServerReply, this, [this,conn,requestid]
-																			(const int request_id, const QString &reply) {
-			if (requestid == request_id)
-			{
-				disconnect(*conn);
-				*conn = connect(appWSServer(), &ChatWSServer::wsConnectionToClientPeerConcluded, this, [this,conn]
-																		(const bool success, const QString &id, QWebSocket *peer)
-				{
-					if (id == m_otherUserId)
-					{
-						disconnect(*conn);
-						if (success)
-							setWSPeer(peer);
-						else
-							appMessagesManager()->chatWindowIsActiveWindow(this);
-					}
-				});
-				//Attempt to make the connection proper
-				appWSServer()->connectToPeer(m_otherUserId, reply);
-			}
-		});
-	}
+		appWSServer()->connectToPeer(m_otherUserId);
 	else
 	{
 		if (!m_peerSocket->isValid())
@@ -189,18 +180,21 @@ void TPChat::onChatWindowOpened()
 			m_peerSocket = nullptr;
 		}
 	}
+	markAllIncomingMessagesRead();
 }
 
 void TPChat::setWSPeer(QWebSocket *peer)
 {
-	m_peerSocket = peer;
-	m_peerSocket->setParent(this);
-	connect(m_peerSocket, SIGNAL(textMessageReceived()), this, SLOT(processWebSocketMessage()));
-	connect(m_peerSocket, &QWebSocket::disconnected, this, [this] () {
-		m_peerSocket->disconnect();
-		m_peerSocket->deleteLater();
-		m_peerSocket = nullptr;
-	});
+	if (peer != m_peerSocket)
+	{
+		m_peerSocket = peer;
+		connect(m_peerSocket, SIGNAL(textMessageReceived(const QString &)), this, SLOT(processWebSocketMessage(const QString &)));
+		connect(m_peerSocket, &QWebSocket::disconnected, this, [this] () {
+			m_peerSocket->disconnect();
+			m_peerSocket->deleteLater();
+			m_peerSocket = nullptr;
+		});
+	}
 }
 
 void TPChat::loadChat()
@@ -264,13 +258,13 @@ QString TPChat::avatarIcon() const
 	return appUserModel()->avatar(m_userIdx, false);
 }
 
-void TPChat::setSentMessageReceived(const uint msgid, const bool notify_server)
+void TPChat::setSentMessageReceived(const uint msgid)
 {
 	if (m_chatLoaded)
 		setData(index(msgid), true, receivedRole);
 }
 
-void TPChat::setSentMessageRead(const uint msgid, const bool notify_server)
+void TPChat::setSentMessageRead(const uint msgid)
 {
 	if (m_chatLoaded)
 		setData(index(msgid), true, readRole);
@@ -301,7 +295,7 @@ void TPChat::setUnreadMessages(const int n_unread)
 {
 	switch (n_unread)
 	{
-		case -1: --m_unreadMessages; break;
+		case -1: if (m_unreadMessages > 0) --m_unreadMessages; break;
 		case -2: ++m_unreadMessages; break;
 		default: m_unreadMessages = n_unread; break;
 	}
@@ -316,7 +310,7 @@ void TPChat::markAllIncomingMessagesRead()
 		if (message->read || message->own_message)
 			break;
 		msg_ids.append(std::move(QString::number(message->id)));
-		setSentMessageRead(message->id, true);
+		setSentMessageRead(message->id);
 	}
 	if (!msg_ids.isEmpty())
 	{
@@ -356,7 +350,6 @@ void TPChat::incomingMessage(const QString &encoded_message)
 	message->own_message = false;
 	beginInsertRows(QModelIndex{}, count(), count());
 	m_messages.append(message);
-	setUnreadMessages(-1);
 	emit countChanged();
 	endInsertRows();
 	encodeMessageToSave(message);
@@ -364,8 +357,12 @@ void TPChat::incomingMessage(const QString &encoded_message)
 	if (m_chatWindow)
 	{
 		if (appPagesListModel()->isPopupAboveAllOthers(m_chatWindow))
-			setSentMessageRead(message->id, true);
+		{
+			setSentMessageRead(message->id);
+			return;
+		}
 	}
+	setUnreadMessages(-2);
 }
 
 void TPChat::clearChat()
@@ -482,7 +479,7 @@ void TPChat::uploadAction(const uint field, ChatMessage *const message)
 					setData(index(message->id), true, sentRole);
 					if (use_ws)
 						m_peerSocket->sendTextMessage(appUtils()->string_strings(
-							{QString::number(requestid), "send"_L1, encodeMessageToUpload(message)}, record_separator));
+							{QString::number(requestid), "send"_L1, encodeMessageToUpload(message)}, exercises_separator));
 					else
 						appOnlineServices()->sendMessage(requestid, m_otherUserId, std::move(encodeMessageToUpload(message)));
 				}
@@ -490,7 +487,7 @@ void TPChat::uploadAction(const uint field, ChatMessage *const message)
 			case MESSAGE_DELETED:
 				if (use_ws)
 					m_peerSocket->sendTextMessage(appUtils()->string_strings(
-															{QString::number(requestid), "del"_L1, msgid}, record_separator));
+															{QString::number(requestid), "del"_L1, msgid}, exercises_separator));
 				else
 				{
 					if (!message->own_message)
@@ -507,7 +504,7 @@ void TPChat::uploadAction(const uint field, ChatMessage *const message)
 			case MESSAGE_RECEIVED:
 				if (use_ws)
 					m_peerSocket->sendTextMessage(appUtils()->string_strings(
-															{QString::number(requestid), "received"_L1, msgid}, record_separator));
+															{QString::number(requestid), "received"_L1, msgid}, exercises_separator));
 				else
 				{
 					if (!message->own_message)
@@ -525,7 +522,7 @@ void TPChat::uploadAction(const uint field, ChatMessage *const message)
 			case MESSAGE_READ:
 				if (use_ws)
 					m_peerSocket->sendTextMessage(appUtils()->string_strings(
-															{QString::number(requestid), "read"_L1, msgid}, record_separator));
+															{QString::number(requestid), "read"_L1, msgid}, exercises_separator));
 				else
 				{
 					if (!message->own_message)
@@ -540,7 +537,7 @@ void TPChat::uploadAction(const uint field, ChatMessage *const message)
 			case MESSAGE_MEDIA:
 				if (use_ws)
 					m_peerSocket->sendTextMessage(appUtils()->string_strings(
-															{QString::number(requestid), "edit"_L1, msgid}, record_separator));
+															{QString::number(requestid), "edit"_L1, msgid}, exercises_separator));
 				else
 				{
 					if (!message->own_message)

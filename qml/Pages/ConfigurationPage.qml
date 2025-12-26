@@ -11,7 +11,6 @@ TPPage {
 	property alias currentPage: splitView.currentItem
 	property alias startPageIndex: splitView.currentIndex
 
-	onPageActivated: userPage.whenPageActivated();
 	onPageDeActivated: userPage.whenPageDeActivated();
 
 	SwipeView {

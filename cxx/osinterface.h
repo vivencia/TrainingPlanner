@@ -40,15 +40,15 @@ class OSInterface : public QObject
 Q_OBJECT
 
 Q_PROPERTY(bool internetOK READ internetOK NOTIFY internetStatusChanged FINAL)
-Q_PROPERTY(bool tpServerOK READ tpServerOK NOTIFY serverStatusChanged FINAL)
+Q_PROPERTY(bool tpServerOK READ tpServerOK NOTIFY tpServerStatusChanged FINAL)
 Q_PROPERTY(QString connectionMessage READ connectionMessage NOTIFY connectionMessageChanged FINAL)
 
-static constexpr short HAS_INTERFACE{0};
-static constexpr short NO_INTERFACE_RUNNING{1};
-static constexpr short HAS_INTERNET{2};
-static constexpr short NO_INTERNET_ACCESS{3};
-static constexpr short SERVER_UP_AND_RUNNING{4};
-static constexpr short SERVER_UNREACHABLE{5};
+static constexpr short HAS_INTERFACE			{0};
+static constexpr short NO_INTERFACE_RUNNING		{1};
+static constexpr short HAS_INTERNET				{2};
+static constexpr short NO_INTERNET_ACCESS		{3};
+static constexpr short SERVER_UP_AND_RUNNING	{4};
+static constexpr short SERVER_UNREACHABLE		{5};
 
 public:
 	explicit OSInterface(QObject *parent = nullptr);
@@ -123,7 +123,6 @@ public:
 	void checkWorkouts();
 #else
 	#ifdef Q_OS_LINUX
-		QString executeAndCaptureOutput(const QString &program, QStringList &arguments, const bool b_asRoot = false, int *exitCode = nullptr);
 		void serverProcessFinished(QProcess *proc, const int exitCode, QProcess::ExitStatus exitStatus);
 		void checkLocalServer();
 		void commandLocalServer(const QString &message, const QString &command);
@@ -146,7 +145,7 @@ signals:
 	void appSuspended();
 	void appResumed();
 	void internetStatusChanged();
-	void serverStatusChanged(const bool online);
+	void tpServerStatusChanged(const bool online);
 	void connectionMessageChanged();
 
 private:

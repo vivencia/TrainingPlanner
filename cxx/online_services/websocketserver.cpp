@@ -1,6 +1,7 @@
 #include "websocketserver.h"
 
 #include "tponlineservices.h"
+#include "../tpsettings.h"
 #include "../tputils.h"
 
 #include <QtWebSockets>
@@ -14,29 +15,11 @@ static inline QString getIdentifier(QWebSocket *peer)
 	return peer->peerAddress().toString() % ':' % QString::number(peer->peerPort());
 }
 
-ChatWSServer::ChatWSServer(const QString &id, const QString &address, QObject *parent)
-	: QObject{parent}, m_id{id}, m_tpServerSocket{nullptr},
-							m_pWebSocketServer{new QWebSocketServer{id, QWebSocketServer::NonSecureMode, this}}
+ChatWSServer::ChatWSServer(const QString &id, QObject *parent)
+	: QObject{parent}, m_id{id}, m_pWebSocketServer{new QWebSocketServer{id, QWebSocketServer::NonSecureMode, this}}
 {
-	if (app_ws_server)
-		return;
-
 	app_ws_server = this;
-	connect(m_pWebSocketServer, &QWebSocketServer::serverError, this, [](QWebSocketProtocol::CloseCode code) {
-		qDebug() << "WebSocket Server error:" << code;
-	});
-	m_port = std::move(id.last(5));
-	if (m_pWebSocketServer->listen(QHostAddress{address}, m_port.toUShort()))
-	{
-		#ifndef QT_NO_DEBUG
-		qDebug() << "--------------  Chat Server listening on : " <<
-						m_pWebSocketServer->serverAddress().toString() + ':' + QString::number(m_pWebSocketServer->serverPort());
-		#endif
-		connect(m_pWebSocketServer, &QWebSocketServer::newConnection, this, &ChatWSServer::onNewConnection);
-	}
-	else
-		 qDebug() << "Error starting server:" << m_pWebSocketServer->errorString();
-	appOnlineServices()->webSocketsClientRegistration(m_id, m_port);
+	m_port = std::move(m_id.last(5));
 }
 
 ChatWSServer::~ChatWSServer()
@@ -44,35 +27,44 @@ ChatWSServer::~ChatWSServer()
 	m_pWebSocketServer->close();
 }
 
-int ChatWSServer::queryPeerAddress(const QString &userid)
+void ChatWSServer::setServerStatus(const bool enabled)
 {
-	if (m_tpServerSocket)
+	if (!enabled && m_pWebSocketServer->isListening())
 	{
-		const QLatin1String seed{"queryPeerAddress" % userid.toLatin1()};
-		const int request_id{appUtils()->generateUniqueId(seed)};
-		m_tpServerSocket->sendTextMessage(appUtils()->string_strings({
-											QString::number(request_id), "peer_address"_L1, userid}, set_separator));
-		return request_id;
+		m_pWebSocketServer->close();
+		emit wsServerStatusChanged(enabled);
 	}
-	return -1;
+	else if (enabled && !m_pWebSocketServer->isListening())
+		setupWSServer();
 }
 
-void ChatWSServer::connectToPeer(const QString &id, const QString &address)
+void ChatWSServer::connectToPeer(const QString &userid)
 {
-	QWebSocket *this_client{new QWebSocket(m_id, QWebSocketProtocol::Version13, this)};
-	connect(this_client, &QWebSocket::connected, [=,this] () {
-		qDebug() << "WebSocket connected to " << id;
-		emit wsConnectionToClientPeerConcluded(true, id, qobject_cast<QWebSocket*>(sender()));
-	});
+	const QLatin1String seed{"connectToPeer" % userid.toLatin1()};
+	const int requestid{appUtils()->generateUniqueId(seed)};
+	auto conn{std::make_shared<QMetaObject::Connection>()};
+	*conn = connect(this, &ChatWSServer::gotPeerAddress, [this,conn,requestid,userid] (const int request_id, const QString &address)
+	{
+		if (request_id == requestid)
+		{
+			disconnect(*conn);
+			QWebSocket *peer{new QWebSocket(m_id, QWebSocketProtocol::Version13, this)};
+			connect(peer, &QWebSocket::connected, [=,this] () {
+				qDebug() << "****** WebSocket connected to " << userid;
+				emit wsConnectionToClientPeerConcluded(true, userid, peer);
+			});
 
-	#ifndef QT_NO_DEBUG
-	// Handle errors (e.g., server not found, connection refused)
-	QObject::connect(this_client, &QWebSocket::errorOccurred, [=,this] (QAbstractSocket::SocketError error) {
-		qDebug() << "WebSocket error: " << error << " " << this_client->errorString();
-		emit wsConnectionToClientPeerConcluded(false, id, nullptr);
+			#ifndef QT_NO_DEBUG
+			// Handle errors (e.g., server not found, connection refused)
+			QObject::connect(peer, &QWebSocket::errorOccurred, [=,this] (QAbstractSocket::SocketError error) {
+				qDebug() << "****** WebSocket error: " << error << " " << peer->errorString() << " " << peer->peerAddress();
+				emit wsConnectionToClientPeerConcluded(false, userid, nullptr);
+			});
+			#endif
+			peer->open(QUrl{"ws://"_L1 % address});
+		}
 	});
-	#endif
-	this_client->open(QUrl{"ws://"_L1 % address % ':' % id.last(5)});
+	queryPeerAddress(requestid, userid);
 }
 
 void ChatWSServer::onNewConnection()
@@ -83,57 +75,56 @@ void ChatWSServer::onNewConnection()
 		#ifndef QT_NO_DEBUG
 		qDebug() << "--------------  " << getIdentifier(p_socket) << " connected!";
 		#endif
-		if (p_socket->origin().isEmpty()) //TPServer connection
-		{
-			p_socket->setParent(this);
-			connect(p_socket, &QWebSocket::textMessageReceived, this, &ChatWSServer::processMessage);
-			connect(p_socket, &QWebSocket::disconnected, this, &ChatWSServer::socketDisconnected);
-			m_tpServerSocket = p_socket;
-		}
-		else //result of connectToPeer() from another user. Now we are not the server in the connection. They are.
-		{
-			const QString &id{p_socket->origin()};
-			m_peersSockets.insert(id, p_socket);
-			emit wsConnectionToServerPeerConcluded(true, id, p_socket);
+		const QString &id{p_socket->origin()};
+		m_peersSockets.insert(id, p_socket);
+		p_socket->setParent(this);
+		emit wsConnectionToClientPeerConcluded(true, id, p_socket);
 
-			//Remove all closed or otherwise invalid connections
-			QHash<QString,QWebSocket*>::iterator itr{m_peersSockets.begin()};
-			const QHash<QString,QWebSocket*>::iterator itr_end{m_peersSockets.end()};
-			do {
-				if (!(*itr)->isValid())
-				{
-					m_peersSockets.remove(itr.key());
-					delete (*itr);
-				}
-			} while (++itr != itr_end);
-		}
+		//Remove all closed or otherwise invalid connections
+		QHash<QString,QWebSocket*>::iterator itr{m_peersSockets.begin()};
+		const QHash<QString,QWebSocket*>::iterator itr_end{m_peersSockets.end()};
+		do {
+			if (!(*itr)->isValid())
+			{
+				m_peersSockets.remove(itr.key());
+				delete (*itr);
+			}
+		} while (++itr != itr_end);
 	}
 }
 
-void ChatWSServer::processMessage(const QString &message)
+void ChatWSServer::queryPeerAddress(const int requestid, const QString &userid)
 {
-	QWebSocket *socket{qobject_cast<QWebSocket*>(sender())};
-	if (socket == m_tpServerSocket)
+	auto conn{std::make_shared<QMetaObject::Connection>()};
+	*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid]
+														(const int request_id, const int ret_code, const QString &ret_string)
 	{
-		bool ok{false};
-		const int requestid{appUtils()->getCompositeValue(0, message, record_separator).toInt(&ok)};
-		if (ok)
+		if (request_id == requestid)
 		{
-			const QString &reply{appUtils()->getCompositeValue(1, message, record_separator)};
-			emit tpServerReply(requestid, reply);
+			disconnect(*conn);
+			emit gotPeerAddress(requestid, ret_string);
 		}
-	}
+	});
+	appOnlineServices()->getPeerAddress(requestid, userid);
 }
 
-void ChatWSServer::socketDisconnected()
+void ChatWSServer::setupWSServer()
 {
-	QWebSocket *socket{qobject_cast<QWebSocket*>(sender())};
-	if (socket == m_tpServerSocket)
+	connect(m_pWebSocketServer, &QWebSocketServer::serverError, this, [](QWebSocketProtocol::CloseCode code) {
+		qDebug() << "WebSocket Server error:" << code;
+	});
+	if (m_pWebSocketServer->listen(QHostAddress{appSettings()->serverAddress()}, m_port.toUShort()))
 	{
 		#ifndef QT_NO_DEBUG
-		qDebug() << "--------------  " << getIdentifier(socket) << " disconnected!";
+		qDebug() << "--------------  Chat Server listening on : " <<
+						m_pWebSocketServer->serverAddress().toString() + ':' + QString::number(m_pWebSocketServer->serverPort());
 		#endif
-		m_tpServerSocket->deleteLater();
-		m_tpServerSocket = nullptr;
+		emit wsServerStatusChanged(true);
+		connect(m_pWebSocketServer, &QWebSocketServer::newConnection, this, &ChatWSServer::onNewConnection);
+	}
+	else
+	{
+		qDebug() << "Error starting server:" << m_pWebSocketServer->errorString();
+		emit wsServerStatusChanged(false);
 	}
 }

@@ -19,20 +19,18 @@ public:
 	explicit TPOnlineServices(QObject *parent = nullptr);
 	inline ~TPOnlineServices() { delete m_networkManager; }
 
-	void scanNetwork(const QString &last_working_address, const bool assume_working = true);
+	//void scanNetwork(const QString &last_working_address, const bool assume_working = true);
 #ifndef Q_OS_ANDROID
 	void getAllUsers(const int requestid);
 #endif
-	void checkOnlineUser(const int requestid, const QString &query, const QString &passwd);
+	void checkUserAccount(const int requestid, const QString &query, const QString &passwd);
 	void getOnlineUserData(const int requestid, const QString &user_id);
 	void userLogin(const int requestid);
 	void userLogout(const int requestid);
 	void registerUser(const int requestid);
 	void removeUser(const int requestid, const QString &userid);
 
-	void webSocketsClientRegistration(const QString &id, const QString &port);
-	void getOnlineVisibility(const int requestid, const QString &userid);
-	void setOnlineVisibility(const int requestid, const bool visible);
+	void getPeerAddress(const int requestid, const QString &userid);
 	void addDevice(const int requestid, const QString &device_id);
 	void delDevice(const int requestid, const QString &device_id);
 	void getDevicesList(const int requestid);
@@ -85,12 +83,13 @@ public slots:
 	void storeCredentials();
 
 signals:
+	void onlineServicesReady();
 	void networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string);
 	void _networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string,
 									const QByteArray &contents = QByteArray{});
 	void networkListReceived(const int request_id, const int ret_code, const QStringList &ret_list);
 	void fileReceived(const int request_id, const int ret_code, const QString& filename, const QByteArray &contents);
-	void serverOnline(const uint online_status);
+	//void serverOnline(const uint online_status);
 	void _serverResponse(const uint online_status, const QString &address);
 
 private:
@@ -101,7 +100,7 @@ private:
 	void makeNetworkRequest(const int requestid, const QUrl &url, const bool b_internal_signal_only = false);
 	void handleServerRequestReply(const int requestid, QNetworkReply *reply, const bool b_internal_signal_only = false);
 	void uploadFile(const int requestid, const QUrl &url, QFile *file, const bool b_internal_signal_only = false);
-	void checkServerResponse(const int ret_code, const QString &ret_string, const QString &address);
+	//void checkServerResponse(const int ret_code, const QString &ret_string, const QString &address);
 	bool remoteFileUpToDate(const QString &onlineDate, const QString &localFile) const;
 	bool localFileUpToDate(const QString &onlineDate, const QString &localFile) const;
 

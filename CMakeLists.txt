@@ -277,11 +277,11 @@ if(NOT ANDROID)
 	LINK_DIRECTORIES(${LIBSECRET_LIBRARY_DIRS})
 	list(APPEND keychain_LIBRARIES_PRIVATE ${LIBSECRET_LIBRARIES})
 
-	add_library(LIBRATS STATIC IMPORTED)
-	set_target_properties(LIBRATS PROPERTIES
-		IMPORTED_LOCATION "/DATA/librats/build/lib/librats.a"
-		INTERFACE_INCLUDE_DIRECTORIES "/DATA/librats/src"
-	)
+	#add_library(LIBRATS STATIC IMPORTED)
+	#set_target_properties(LIBRATS PROPERTIES
+	#	IMPORTED_LOCATION "/DATA/librats/build/lib/librats.a"
+	#	INTERFACE_INCLUDE_DIRECTORIES "/DATA/librats/src"
+	#)
 
 	target_link_libraries(TrainingPlanner PUBLIC
 		Qt6::Core
@@ -297,7 +297,7 @@ if(NOT ANDROID)
 		Qt6::Charts
 		Qt6::WebSockets
 		${keychain_LIBRARIES_PRIVATE}
-		LIBRATS
+		#LIBRATS
 	)
 else()
 	set (keychain_LIBRARIES_PRIVATE "")

@@ -90,12 +90,12 @@ OSInterface::OSInterface(QObject *parent)
 
 	m_checkConnectionTimer = new QTimer{this};
 	m_checkConnectionTimer->callOnTimeout([this] () { checkNetworkInterfaces(); });
-	connect(appOnlineServices(), &TPOnlineServices::serverOnline, this, [this] (const uint online_status)
+	/*connect(appOnlineServices(), &TPOnlineServices::serverOnline, this, [this] (const uint online_status)
 	{
 		onlineServicesResponse(online_status);
-	});
+	});*/
 	connect(qApp, &QCoreApplication::aboutToQuit, this, [this] () {
-		appOnlineServices()->setOnlineVisibility(0, false);
+		appOnlineServices()->userLogout(111111);
 	});
 	checkNetworkInterfaces();
 
@@ -460,31 +460,6 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_noti
 
 #else
 
-QString OSInterface::executeAndCaptureOutput(const QString &program, QStringList &arguments, const bool b_asRoot, int *exitCode)
-{
-	auto *__restrict proc{new QProcess()};
-	QString app;
-
-	if (b_asRoot)
-	{
-		arguments.prepend(program);
-		app = std::move("/usr/bin/pkexec"_L1);
-	}
-	else
-		app = program;
-
-	proc->start(app, arguments);
-	proc->waitForFinished(10000);
-	QString strOutput{std::move(proc->readAllStandardOutput().constData())};
-	if (strOutput.isEmpty())
-		strOutput = std::move(proc->readAllStandardError().constData());
-	if (exitCode != nullptr)
-		*exitCode = proc->exitCode();
-
-	delete proc;
-	return strOutput;
-}
-
 void OSInterface::serverProcessFinished(QProcess *proc, const int exitCode, QProcess::ExitStatus exitStatus)
 {
 	if (exitStatus != QProcess::NormalExit)
@@ -497,7 +472,7 @@ void OSInterface::serverProcessFinished(QProcess *proc, const int exitCode, QPro
 	switch (exitCode)
 	{
 		case TPSERVER_OK:
-			appOnlineServices()->scanNetwork(appSettings()->serverAddress());
+			//appOnlineServices()->scanNetwork(appSettings()->serverAddress());
 			onlineServicesResponse(TPSERVER_OK);
 		break;
 		case TPSERVER_OK_LOCALHOST:
@@ -522,7 +497,8 @@ void OSInterface::serverProcessFinished(QProcess *proc, const int exitCode, QPro
 			commandLocalServer("Unpause server?"_L1, "pause"_L1);
 		break;
 	}
-	delete proc;
+	proc->close();
+	proc->deleteLater();
 }
 
 void OSInterface::checkLocalServer()
@@ -703,7 +679,7 @@ void OSInterface::setNetStatus(uint messages_index, bool success, QString &&mess
 	unSetBit(m_networkStatus, off_bit);
 	m_currentNetworkStatus[messages_index] = success;
 	setConnectionMessage(messages_index, std::move(message));
-	emit serverStatusChanged(success);
+	emit tpServerStatusChanged(success);
 }
 
 void OSInterface::checkNetworkInterfaces()

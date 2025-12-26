@@ -53,9 +53,6 @@ public:
 	// return the roles mapping to be used by QML
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
 
-public slots:
-	void chatWindowIsActiveWindow(TPChat *chat_manager);
-
 signals:
 	void countChanged();
 

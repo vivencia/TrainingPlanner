@@ -19,41 +19,6 @@
 #include <QtCore/private/qandroidextras_p.h>
 #endif
 
-/*#include <librats.h>
-
-void testLibRats()
-{
-	librats::RatsClient client(8081);
-
-	// Set up message handlers using the modern API
-	client.on("chat", [](const std::string& peer_id, const nlohmann::json& data) {
-		std::cout << "[CHAT] " << peer_id << ": " << data["message"].get<std::string>() << std::endl;
-	});
-
-	client.on("user_join", [](const std::string& peer_id, const nlohmann::json& data) {
-		std::cout << "[JOIN] " << data["username"].get<std::string>() << " joined" << std::endl;
-	});
-
-	// Connection callback
-	client.set_connection_callback([&](socket_t socket, const std::string& peer_id) {
-		std::cout << "✅ Peer connected: " << peer_id << std::endl;
-
-		// Send welcome message
-		nlohmann::json welcome;
-		welcome["username"] = "User_" + client.get_our_peer_id().substr(0, 8);
-		client.send("user_join", welcome);
-	});
-
-	client.start();
-
-	// Send a chat message
-	nlohmann::json chat_msg;
-	chat_msg["message"] = "Hello, P2P chat!";
-	chat_msg["timestamp"] = std::time(nullptr);
-	client.send("chat", chat_msg);
-}
-*/
-
 int main(int argc, char *argv[])
 {
 #ifdef Q_OS_ANDROID
@@ -81,13 +46,11 @@ int main(int argc, char *argv[])
 	TPSettings tpSettings{};
 	TPKeyChain tpKeyChain{};
 	TranslationClass appTranslations{};
-	TPOnlineServices appTOS{};
 	OSInterface osInterface{};
+	TPOnlineServices appTOS{};
 	DBUserModel userModel{};
 	DBExercisesListModel exercisesModel{};
 	QQmlApplicationEngine qmlEngine;
 	QmlItemManager rootQmlManager{&qmlEngine};
-
-	//testLibRats();
 	return app.exec();
 }

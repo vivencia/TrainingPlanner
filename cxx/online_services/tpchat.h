@@ -48,7 +48,6 @@ public:
 
 	explicit TPChat(const QString &otheruser_id, const bool check_unread_messages, QObject *parent = nullptr);
 
-	Q_INVOKABLE void onChatWindowOpened();
 	void setWSPeer(QWebSocket *peer);
 
 	void loadChat();
@@ -61,12 +60,12 @@ public:
 	QString avatarIcon() const;
 	inline uint userIdx() const { return m_userIdx; }
 
-	void setSentMessageReceived(const uint msgid, const bool notify_server);
-	void setSentMessageRead(const uint msgid, const bool notify_server);
+	void setSentMessageReceived(const uint msgid);
+	void setSentMessageRead(const uint msgid);
 	Q_INVOKABLE void removeMessage(const uint msgid, const bool remove_for_interlocutor, const bool from_qml = true);
 	inline uint unreadMessages() const { return m_unreadMessages; }
 	void setUnreadMessages(const int n_unread);
-	void markAllIncomingMessagesRead();
+	Q_INVOKABLE void markAllIncomingMessagesRead();
 	Q_INVOKABLE void createNewMessage(const QString &text, const QString &media = QString{});
 	void incomingMessage(const QString &encoded_message);
 	void clearChat();
@@ -79,6 +78,7 @@ public:
 
 public slots:
 	void processWebSocketMessage(const QString &message);
+	Q_INVOKABLE void onChatWindowOpened();
 
 signals:
 	void countChanged();

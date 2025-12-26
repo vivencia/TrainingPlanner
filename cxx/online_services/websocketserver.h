@@ -12,30 +12,30 @@ class ChatWSServer : public QObject
 Q_OBJECT
 
 public:
-	explicit ChatWSServer(const QString &id, const QString &address, QObject *parent = nullptr);
+	explicit ChatWSServer(const QString &id, QObject *parent = nullptr);
 	~ChatWSServer() override;
+	void setServerStatus(const bool enabled);
 
-	int queryPeerAddress(const QString &userid);
-	void connectToPeer(const QString &id, const QString &address);
+	void connectToPeer(const QString &userid);
 	inline const QString &port() const { return m_port; }
 	inline bool hasPeers() const { return !m_peersSockets.isEmpty(); }
 	inline QWebSocket *peerSocket(const QString &id) const { return m_peersSockets.value(id); }
 
 signals:
-	void tpServerReply(const int request_id, const QString &reply);
-	void wsConnectionToClientPeerConcluded(const bool success, const QString &id, QWebSocket *peer);
-	void wsConnectionToServerPeerConcluded(const bool success, const QString &id, QWebSocket *peer);
+	void wsServerStatusChanged(const bool enabled);
+	void gotPeerAddress(const int request_id, const QString &address);
+	void wsConnectionToClientPeerConcluded(const bool success, const QString &userid, QWebSocket *peer);
 
 private slots:
 	void onNewConnection();
-	void processMessage(const QString &message);
-	void socketDisconnected();
 
 private:
 	QWebSocketServer *m_pWebSocketServer;
-	QWebSocket* m_tpServerSocket;
 	QHash<QString,QWebSocket*> m_peersSockets;
 	QString m_id, m_port;
+
+	void queryPeerAddress(const int requestid, const QString &userid);
+	void setupWSServer();
 
 	static ChatWSServer *app_ws_server;
 	friend ChatWSServer *appWSServer();

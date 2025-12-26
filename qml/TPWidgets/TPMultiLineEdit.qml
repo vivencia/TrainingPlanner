@@ -254,4 +254,8 @@ ColumnLayout {
 			}
 		} //Item
 	} //Row
+
+	function clear(): void {
+		textControl.clear();
+	}
 } //ColumnLayout

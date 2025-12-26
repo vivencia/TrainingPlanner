@@ -287,16 +287,12 @@ public:
 
 	int getTemporaryUserInfo(OnlineUserInfo *tempUser, const uint userInfouser_idx);
 	bool mainUserConfigured() const;
-	inline bool canConnectToServer() const { return mb_canConnectToServer; }
+	inline bool canConnectToServer() const { return mb_canConnectToServer.has_value() && mb_canConnectToServer.value(); }
 
 	Q_INVOKABLE void acceptUser(OnlineUserInfo *userInfo, const int userInfouser_idx);
 	Q_INVOKABLE void rejectUser(OnlineUserInfo *userInfo, const int userInfouser_idx);
 
-	Q_INVOKABLE inline void cancelPendingOnlineRequests()
-	{
-		disconnect(this, &DBUserModel::mainUserOnlineCheckInChanged, nullptr, nullptr);
-	}
-	Q_INVOKABLE void checkUserOnline(const QString &email, const QString &password);
+	Q_INVOKABLE void checkExistingAccount(const QString &email, const QString &password);
 	Q_INVOKABLE void changePassword(const QString &old_password, const QString &new_password);
 	Q_INVOKABLE void importFromOnlineServer();
 	Q_INVOKABLE inline bool mainUserRegistered() const { return mb_userRegistered.has_value() && mb_userRegistered == true; }
@@ -363,7 +359,8 @@ signals:
 	void allUserFilesDownloaded(const bool success);
 	void mainUserConfigurationFinished();
 	void canConnectToServerChanged();
-	void mainUserOnlineCheckInChanged(const bool first_checkin = false);
+	void userLoggedIn(const bool first_checkin = false);
+	void userLoggedOut();
 	void coachOnlineStatus(bool registered);
 	void userProfileAcquired(const QString &userid, const bool success);
 	void userPasswordAvailable(const QString &password);
@@ -385,10 +382,10 @@ private:
 	QList<QStringList> m_usersData, m_tempUserData;
 	int m_tempRow, n_devices;
 	QString m_onlineAccountId, m_password, m_defaultAvatar, m_emptyString;
-	std::optional<bool> mb_singleDevice, mb_userRegistered, mb_coachRegistered;
+	std::optional<bool> mb_canConnectToServer, mb_singleDevice, mb_userRegistered, mb_coachRegistered;
 	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses,
 						*m_tempUserInfo, *m_currentCoaches, *m_currentClients, *m_currentCoachesAndClients;
-	bool mb_canConnectToServer, mb_coachPublic, mb_MainUserInfoChanged;
+	bool mb_coachPublic, mb_MainUserInfoChanged;
 	QTimer *m_mainTimer;
 
 	DBUserTable *m_db;
@@ -405,7 +402,7 @@ private:
 	void setPhoneBasedOnLocale();
 	QString generateUniqueUserId() const;
 	void onlineCheckIn();
-	void registerUserOnline();
+	void loginUser();
 	void onlineCheckinActions();
 	void getOnlineDevicesList();
 	void switchToUser(const QString &new_userid, const bool user_switching_for_testing = false);

@@ -305,16 +305,15 @@ function cmd_downloaded($userid, $deviceid, $cmd_file) {
 }
 
 function run_test_function($userid, $password) {
-	echo get_return_code("no changes success") . ": Some message";
-	echo get_return_code("custom error") . ": Some message";
-	echo get_return_code("directory not found") . ": Some message";
+
 }
 
-require 'php-websocket/vendor/autoload.php';
+/*require 'php-websocket/vendor/autoload.php';
 function initiate_websocket_connection($id, $client_ip, $client_port): bool {
 	$client = apcu_fetch($id);
 	if ($client === false) {
 		$wsUrl = "ws://{$client_ip}:{$client_port}";
+
 		$client = new WebSocket\Client($wsUrl);
 
 		$client
@@ -359,17 +358,16 @@ function initiate_websocket_connection($id, $client_ip, $client_port): bool {
 	}
 
 	return $client->isRunning();
-	/*
-	 echo "Connected *to client " . $id . "\n";
+
+	 //echo "Connected *to client " . $id . "\n";
 	 // Send a message
-	 $client->text("*************** Hello $id Server here!");
+	 //$client->text("*************** Hello $id Server here!");
 	 // Read response (this is blocking)
-	 $message = $client->receive();
-	 echo "Got message: {$message->getContent()} \n";
+	 //$message = $client->receive();
+	 //echo "Got message: {$message->getContent()} \n";
 	 // Close connection
-	 $client->close();
-	 */
-}
+	 //$client->close();
+}*/
 
 function terminate_websocket_connection($id) {
 	$client = apcu_fetch($id);
@@ -1095,18 +1093,28 @@ if ($userid) {
 					exit;
 				}
 
+
 				if (isset($_GET['login'])) {
-					$port = $_GET['port'];
+					$port = $_GET['login'];
 					set_online_visible($userid, true);
-					if (initiate_websocket_connection($userid, $_SERVER['REMOTE_ADDR'], $port))
-						echo "0 : Login successfull and connected as client to websocket server " . $userid;
-					else
-						echo get_return_code("wsconnection failed") . ": Login successfull but websocket connection to server " . $userid . " failed";
+					$peer_addr = apcu_fetch($userid);
+					if ($peer_addr == false)
+						apcu_store($userid, $_SERVER['REMOTE_ADDR'] . ":" .$port);
 					exit;
 				}
 				if (isset($_GET['logout'])) {
 					set_online_visible($userid, false);
-					initiate_websocket_connection($userid, $_SERVER['REMOTE_ADDR'], $port);
+					apcu_delete($userid);
+				}
+
+				if (isset($_GET['getpeeraddress'])) {
+					$peer = $_GET['getpeeraddress'];
+					$peer_addr = apcu_fetch($peer);
+					if ($peer_addr == false)
+						echo get_return_code("user does not exist") . ": " . $peer . " is not logged in";
+					else
+						echo "0: " . $peer_addr;
+					exit;
 				}
 
 				if (isset($_GET['adddevice'])) {
@@ -1324,7 +1332,7 @@ if ($userid) {
 			}
 			else { //username == admin
 
-				$query = isset($_GET['onlineuser']) ? $_GET['onlineuser'] : '';
+				$query = isset($_GET['checkaccount']) ? $_GET['checkaccount'] : '';
 				if ($query) { //Check if there is an already existing user in the online database. The unique key used to identify an user is decided on the TrainingPlanner app source code. This script is agnostic to it
 					$userpassword = isset($_GET['userpassword']) ? $_GET['userpassword'] : '';
 					run_dbscript("getid", $query . " '" . $userpassword . "'", "", true);
@@ -1412,5 +1420,5 @@ if ($userid) {
 	}
 }
 else
-	print_r2("Welcome to the TrainingPlanner app server!");
+	echo "Welcome to the TrainingPlanner app server!";
 ?>

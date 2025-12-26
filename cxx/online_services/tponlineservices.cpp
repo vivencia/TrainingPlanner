@@ -1,6 +1,7 @@
 #include "tponlineservices.h"
 
 #include "scan_network.h"
+#include "websocketserver.h"
 #include "../dbusermodel.h"
 #include "../osinterface.h"
 #include "../tpsettings.h"
@@ -28,9 +29,17 @@ TPOnlineServices::TPOnlineServices(QObject *parent) : QObject{parent}, m_scannin
 	_appOnlineServices = this;
 	m_networkManager = new QNetworkAccessManager{this};
 	connect(appKeyChain(), &TPKeyChain::keyStored, this, &TPOnlineServices::storeCredentials);
+	auto conn{std::make_shared<QMetaObject::Connection>()};
+	*conn = connect(appOsInterface(), &OSInterface::tpServerStatusChanged, this, [this,conn] (const bool online) {
+		if (online && !m_userid.isEmpty())
+		{
+			disconnect(*conn);
+			emit onlineServicesReady();
+		}
+	});
 }
 
-void TPOnlineServices::scanNetwork(const QString &last_working_address, const bool assume_working)
+/*void TPOnlineServices::scanNetwork(const QString &last_working_address, const bool assume_working)
 {
 	if (m_scanning)
 		return;
@@ -139,7 +148,7 @@ void TPOnlineServices::scanNetwork(const QString &last_working_address, const bo
 		m_scanning = true;
 		thread->start();
 	}
-}
+}*/
 
 #ifndef Q_OS_ANDROID
 void TPOnlineServices::getAllUsers(const int requestid)
@@ -162,9 +171,9 @@ void TPOnlineServices::getAllUsers(const int requestid)
 }
 #endif
 
-void TPOnlineServices::checkOnlineUser(const int requestid, const QString &query, const QString &passwd)
+void TPOnlineServices::checkUserAccount(const int requestid, const QString &query, const QString &passwd)
 {
-	const QUrl &url{makeCommandURL(true, "onlineuser"_L1, query, "userpassword"_L1, passwd)};
+	const QUrl &url{makeCommandURL(true, "checkaccount"_L1, query, "userpassword"_L1, passwd)};
 	makeNetworkRequest(requestid, url);
 }
 
@@ -176,7 +185,7 @@ void TPOnlineServices::getOnlineUserData(const int requestid, const QString &use
 
 void TPOnlineServices::userLogin(const int requestid)
 {
-	const QUrl &url{makeCommandURL(false, "login"_L1)};
+	const QUrl &url{makeCommandURL(false, "login"_L1, appWSServer()->port())};
 	makeNetworkRequest(requestid, url);
 }
 
@@ -201,24 +210,9 @@ void TPOnlineServices::removeUser(const int requestid, const QString &userid)
 	makeNetworkRequest(requestid, url);
 }
 
-void TPOnlineServices::webSocketsClientRegistration(const QString &id, const QString &port)
+void TPOnlineServices::getPeerAddress(const int requestid, const QString &userid)
 {
-	const QUrl &url{makeCommandURL(true, "registerwsclient"_L1, id, "port"_L1, port)};
-	#ifndef QT_NO_DEBUG
-	qDebug() << url.toDisplayString();
-	#endif
-	static_cast<void>(m_networkManager->get(QNetworkRequest{url}));
-}
-
-void TPOnlineServices::getOnlineVisibility(const int requestid, const QString &userid)
-{
-	const QUrl &url{makeCommandURL(true, "onlinevisible"_L1, "0"_L1, "user_id"_L1, userid)};
-	makeNetworkRequest(requestid, url);
-}
-
-void TPOnlineServices::setOnlineVisibility(const int requestid, const bool visible)
-{
-	const QUrl &url{makeCommandURL(true, "onlinevisible"_L1, visible ? "1"_L1 : "2"_L1, "user_id"_L1, appUserModel()->userId(0))};
+	const QUrl &url{makeCommandURL(false, "getpeeraddress"_L1, userid)};
 	makeNetworkRequest(requestid, url);
 }
 
@@ -537,6 +531,8 @@ void TPOnlineServices::storeCredentials()
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this] (const QString &key, const QString &value) {
 		m_userid = key;
 		m_passwd = value;
+		if (appOsInterface()->tpServerOK())
+			emit onlineServicesReady();
 	}, Qt::SingleShotConnection);
 	appKeyChain()->readKey(appUserModel()->userId(0));
 }
@@ -593,7 +589,7 @@ void TPOnlineServices::makeNetworkRequest(const int requestid, const QUrl &url, 
 
 void TPOnlineServices::handleServerRequestReply(const int requestid, QNetworkReply *reply, const bool b_internal_signal_only)
 {
-	int ret_code{-100};
+	int ret_code{TP_RET_CODE_SUCCESS};
 	QString reply_string;
 	QByteArray file_contents;
 
@@ -610,14 +606,13 @@ void TPOnlineServices::handleServerRequestReply(const int requestid, QNetworkRep
 				const qsizetype filename_sep_idx{file_contents.indexOf("%%")};
 				if (filename_sep_idx >= 2)
 				{
-					ret_code = 0;
 					reply_string = std::move(file_contents.sliced(0, filename_sep_idx));
 					static_cast<void>(file_contents.slice(filename_sep_idx + 2, file_contents.size() - filename_sep_idx - 2));
 				}
 				else
 				{
 					reply_string = std::move(tr("Error downloading file"));
-					ret_code = 2;
+					ret_code = TP_RET_CODE_DOWNLOAD_FAILED;
 				}
 			}
 			else //Only text replies, including text files
@@ -685,7 +680,7 @@ void TPOnlineServices::uploadFile(const int requestid, const QUrl &url, QFile *f
 	}
 }
 
-void TPOnlineServices::checkServerResponse(const int ret_code, const QString &ret_string, const QString &address)
+/*void TPOnlineServices::checkServerResponse(const int ret_code, const QString &ret_string, const QString &address)
 {
 	#ifndef QT_NO_DEBUG
 	qDebug() << "checkServerResponse() ret_code = " << ret_code << " , ret_string = " << ret_string << " , address = " << address;
@@ -696,7 +691,7 @@ void TPOnlineServices::checkServerResponse(const int ret_code, const QString &re
 	else if (ret_string.contains("server paused"_L1))
 		online_status = TP_RET_CODE_SERVER_PAUSED;
 	emit _serverResponse(online_status, address);
-}
+}*/
 
 bool TPOnlineServices::remoteFileUpToDate(const QString &onlineDate, const QString &localFile) const
 {

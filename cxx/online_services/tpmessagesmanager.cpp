@@ -411,7 +411,7 @@ void TPMessagesManager::parseReceivedActionMessage(const QString &sender_id, con
 			const QString &message_received{appUtils()->getCompositeValue(msg_idx, action_message, set_separator)};
 			if (message_received.isEmpty())
 				break;
-			chat_mngr->setSentMessageReceived(message_received.toUInt(), true);
+			chat_mngr->setSentMessageReceived(message_received.toUInt());
 		} while (++msg_idx);
 	}
 }
@@ -427,7 +427,7 @@ void TPMessagesManager::parseReadActionMessage(const QString &sender_id, const Q
 			const QString &message_read{appUtils()->getCompositeValue(msg_idx, action_message, set_separator)};
 			if (message_read.isEmpty())
 				break;
-			chat_mngr->setSentMessageRead(message_read.toUInt(), true);
+			chat_mngr->setSentMessageRead(message_read.toUInt());
 		} while (++msg_idx);
 	}
 }
@@ -454,15 +454,9 @@ void TPMessagesManager::createChatWindow_part2(TPChat *chat_manager)
 	QObject *chat_window{m_chatWindowComponent->createWithInitialProperties(m_chatWindowProperties, appQmlEngine()->rootContext())};
 	appQmlEngine()->setObjectOwnership(chat_window, QQmlEngine::CppOwnership);
 	chat_window->setProperty("parent", QVariant::fromValue(appItemManager()->appHomePage()));
-	connect(chat_window, SIGNAL(chatWindowIsActiveWindow(TPChat*)), this, SLOT(chatWindowIsActiveWindow(TPChat*)));
 	QMetaObject::invokeMethod(chat_window, "open");
 	chat_manager->setChatWindow(chat_window);
 	m_chatWindowList.insert(chat_manager->otherUserId(), chat_window);
-}
-
-void TPMessagesManager::chatWindowIsActiveWindow(TPChat *chat_manager)
-{
-	chat_manager->markAllIncomingMessagesRead();
 }
 
 void TPMessagesManager::removeChatWindow(const QString &other_userid)

@@ -181,16 +181,6 @@ Drawer {
 			Layout.alignment: Qt.AlignHCenter
 		}
 
-		TPRadioButtonOrCheckBox {
-			text: qsTr("Visible online?")
-			radio: false
-			checked: userModel.onlineVisible
-			visible: userModel.onlineAccount
-			enabled: osInterface.tpServerOK
-			Layout.alignment: Qt.AlignHCenter
-			onClicked: userModel.onlineVisible = checked;
-		}
-
 		Rectangle {
 			color: appSettings.fontColor
 			height: 3

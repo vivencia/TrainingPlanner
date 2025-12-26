@@ -117,11 +117,6 @@ TPPage {
 		usrProfile.defaultAvatarChanged(row);
 	}
 
-	function whenPageActivated(): void {
-		//If there was no internet when a previous user page interaction happened, cancel all the pending requests because new ones might eventually be queued.
-		userModel.cancelPendingOnlineRequests();
-	}
-
 	function whenPageDeActivated(): void {
 		if (mainUserModified) {
 			userModel.setMainUserConfigurationFinished();

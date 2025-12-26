@@ -64,12 +64,13 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 	{
 		_appUserModel = this;
 		mb_MainUserInfoChanged = false;
-		mb_canConnectToServer = appOsInterface()->tpServerOK();
 
-		connect(appOsInterface(), &OSInterface::serverStatusChanged, this, [this] (const bool online) {
-			if (!mb_canConnectToServer && online)
+		connect(appOsInterface(), &OSInterface::tpServerStatusChanged, this, [this] (const bool online) {
+			if (!mb_canConnectToServer.has_value())
+				return;
+			if (!mb_canConnectToServer.value() && online)
 				onlineCheckIn();
-			else if (mb_canConnectToServer && !online && m_mainTimer)
+			else if (mb_canConnectToServer.value() && !online && m_mainTimer)
 				m_mainTimer->stop();
 			mb_canConnectToServer = online;
 			emit canConnectToServerChanged();
@@ -102,8 +103,7 @@ QString DBUserModel::userDir(const QString &userid) const
 #else
 QString DBUserModel::userDir(const QString &userid) const
 {
-	return userid == userId(0) ? appSettings()->currentUserDir() :
-								 appSettings()->currentUserDir() + userId(0) + '/' + userid + '/';
+	return userid == userId(0) ? appSettings()->currentUserDir() : appSettings()->currentUserDir() + userid + '/';
 }
 #endif
 
@@ -121,10 +121,7 @@ void DBUserModel::initUserSession()
 				const qsizetype last_idx{m_usersData.count()};
 				m_usersData.append(std::move(user_info));
 				if (last_idx == 0)
-				{
 					appOsInterface()->initialCheck();
-					initUserSession();
-				}
 				else
 				{
 					if (isCoach(0) && isClient(last_idx))
@@ -134,7 +131,7 @@ void DBUserModel::initUserSession()
 				}
 			}
 			else
-				appMessagesManager()->readAllChats();
+				initUserSession();
 		});
 		appThreadManager()->runAction(m_db, ThreadManager::ReadAllRecords);
 	}
@@ -144,7 +141,20 @@ void DBUserModel::initUserSession()
 			QMetaObject::invokeMethod(appMainWindow(), "showFirstTimeUseDialog");
 		else
 		{
+			if (onlineAccount())
+			{
+				new ChatWSServer{userId(0), this};
+				appMessagesManager()->readAllChats();
+				connect(appOnlineServices(), &TPOnlineServices::onlineServicesReady, [this] () {
+					appWSServer()->setServerStatus(true);
+					if ((mb_canConnectToServer = appOsInterface()->tpServerOK()))
+						onlineCheckIn();
+				});
+			}
+			else
+				appWSServer()->setServerStatus(false);
 			appOnlineServices()->storeCredentials();
+
 			#ifndef Q_OS_ANDROID
 			DBMesocyclesModel *meso_model{m_mesoModels.value(userId(0))};
 			if (!meso_model)
@@ -174,8 +184,6 @@ void DBUserModel::initUserSession()
 			emit currentCoachesChanged();
 			emit currentClientsChanged();
 			emit userIdChanged();
-			if (mb_canConnectToServer)
-				onlineCheckIn();
 		}
 	}
 	mb_userRegistered = std::nullopt;
@@ -624,11 +632,11 @@ void DBUserModel::rejectUser(OnlineUserInfo *userInfo, const int userInfoRow)
 	userInfo->removeUserInfo(userInfoRow);
 }
 
-void DBUserModel::checkUserOnline(const QString &email, const QString &password)
+void DBUserModel::checkExistingAccount(const QString &email, const QString &password)
 {
 	if (appOsInterface()->tpServerOK())
 	{
-		const int requestid{appUtils()->generateUniqueId("checkUserOnline"_L1)};
+		const int requestid{appUtils()->generateUniqueId("checkExistingAccount"_L1)};
 		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid,password]
 								(const int request_id, const int ret_code, const QString &ret_string) {
@@ -643,7 +651,7 @@ void DBUserModel::checkUserOnline(const QString &email, const QString &password)
 				emit userOnlineCheckResult(ret_code == TP_RET_CODE_SUCCESS);
 			}
 		});
-		appOnlineServices()->checkOnlineUser(requestid, "email="_L1 + email, password);
+		appOnlineServices()->checkUserAccount(requestid, "email="_L1 + email, password);
 	}
 }
 
@@ -1291,7 +1299,7 @@ void DBUserModel::getPasswordFromUserInput(const int resultCode, const QString &
 	{
 		setPassword(password);
 		if (onlineAccount())
-			registerUserOnline();
+			loginUser();
 	}
 }
 
@@ -1317,7 +1325,7 @@ void DBUserModel::slot_unregisterUser(const bool unregister)
 						if (ret_code == TP_RET_CODE_SUCCESS)
 						{
 							mb_userRegistered = false;
-							emit mainUserOnlineCheckInChanged();
+							emit userLoggedOut();
 						}
 						appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
 							appUtils()->string_strings({network_msg_title, ret_code == TP_RET_CODE_SUCCESS ?
@@ -1411,9 +1419,8 @@ void DBUserModel::onlineCheckIn()
 {
 	if (mainUserConfigured() && onlineAccount())
 	{
-		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this] (const bool first_checkin)
+		connect(this, &DBUserModel::userLoggedIn, this, [this] (const bool first_checkin)
 		{
-			new ChatWSServer{userId(0), appSettings()->serverAddress(), this};
 			if (first_checkin)
 			{
 				sendUserDataToServerDatabase();
@@ -1425,14 +1432,15 @@ void DBUserModel::onlineCheckIn()
 			if (!isCoachRegistered() && mb_coachPublic)
 				setCoachPublicStatus(mb_coachPublic);
 			startServerPolling();
+			appWSServer()->setServerStatus(true);
 		}, Qt::SingleShotConnection);
-		registerUserOnline();
+		loginUser();
 	}
 }
 
-void DBUserModel::registerUserOnline()
+void DBUserModel::loginUser()
 {
-	const int requestid{appUtils()->generateUniqueId("registerUserOnline"_L1)};
+	const int requestid{appUtils()->generateUniqueId("loginUser"_L1)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid]
 														(const int request_id, const int ret_code, const QString &ret_string)
@@ -1444,7 +1452,7 @@ void DBUserModel::registerUserOnline()
 			{
 				case TP_RET_CODE_SUCCESS:
 					mb_userRegistered = true;
-					emit mainUserOnlineCheckInChanged();
+					emit userLoggedIn();
 				break;
 				case TP_RET_CODE_WRONG_PASSWORD:
 					connect(appMainWindow(), SIGNAL(passwordDialogClosed(int,QString)), this, SLOT(getPasswordFromUserInput(int,QString)));
@@ -1461,7 +1469,7 @@ void DBUserModel::registerUserOnline()
 							if (ret_code == TP_RET_CODE_SUCCESS)
 							{
 								mb_userRegistered = true;
-								emit mainUserOnlineCheckInChanged(true);
+								emit userLoggedIn(true);
 							}
 							appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
 										{network_msg_title, ret_string}, record_separator),
