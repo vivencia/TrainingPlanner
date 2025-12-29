@@ -135,10 +135,7 @@ void TPMessagesManager::itemClicked(const qsizetype message_id)
 		const QString &userid{QString::number(message_id)};
 		TPChat *chat{m_chatsList.value(userid)};
 		if (chat)
-		{
 			openChatWindow(chat);
-			msg->setExtraInfoLabel(QString{});
-		}
 	}
 }
 
@@ -359,99 +356,29 @@ void TPMessagesManager::parseNewChatMessages(const QString &encoded_messages)
 		QString sender_messages{std::move(appUtils()->getCompositeValue(sender_idx, encoded_messages, exercises_separator))};
 		if (sender_messages.isEmpty())
 			continue;
-		if (sender_id.endsWith(messageFileExtension))
+
+		const QStringList &sender_parts{sender_id.split('.')};
+		bool ok{false};
+		const auto i_sender_id{sender_parts.at(0).toLong(&ok)};
+		if (ok)
 		{
-			sender_id.chop(4);
-			parseNewMessage(sender_id, sender_messages);
-		}
-		else if (sender_id.endsWith(messageWorkReceived))
-		{
-			sender_id.chop(9);
-			parseReceivedActionMessage(sender_id, sender_messages);
-		}
-		else if (sender_id.endsWith(messageWorkRead))
-		{
-			sender_id.chop(5);
-			parseReadActionMessage(sender_id, sender_messages);
-		}
-		else if (sender_id.endsWith(messageWorkRemoved))
-		{
-			sender_id.chop(5);
-			parseRemovedActionMessage(sender_id, sender_messages);
+			TPMessage *chat_message{message(i_sender_id)};
+			if (!chat_message && sender_id.endsWith(messageWorkSend))
+				static_cast<void>(createChatMessage(sender_id, true));
+			TPChat *chat_mngr{chatManager(sender_parts.at(0))};
+			chat_mngr->processTPServerMessage('.' % sender_parts.at(1), sender_messages);
 		}
 	} while (sender_idx += 2);
-}
-
-void TPMessagesManager::parseNewMessage(const QString &sender_id, const QString &sender_messages)
-{
-	const auto i_sender_id{sender_id.toLong()};
-	TPMessage *chat_message{message(i_sender_id)};
-	if (!chat_message)
-		chat_message = createChatMessage(sender_id, true);
-	TPChat *chat_mngr{chatManager(sender_id)};
-	chat_mngr->loadChat();
-	uint msg_idx{0};
-	do {
-		const QString &encoded_message{appUtils()->getCompositeValue(msg_idx, sender_messages, set_separator)};
-		if (encoded_message.isEmpty())
-			break;
-		chat_mngr->incomingMessage(encoded_message);
-	} while (++msg_idx);
-	chat_message->setExtraInfoLabel(QString::number(msg_idx + chat_mngr->unreadMessages()));
-}
-
-void TPMessagesManager::parseReceivedActionMessage(const QString &sender_id, const QString &action_message)
-{
-	const qsizetype i_sender_id{sender_id.toLong()};
-	if (message(i_sender_id))
-	{
-		TPChat *chat_mngr{chatManager(sender_id)};
-		uint msg_idx{0};
-		do {
-			const QString &message_received{appUtils()->getCompositeValue(msg_idx, action_message, set_separator)};
-			if (message_received.isEmpty())
-				break;
-			chat_mngr->setSentMessageReceived(message_received.toUInt());
-		} while (++msg_idx);
-	}
-}
-
-void TPMessagesManager::parseReadActionMessage(const QString &sender_id, const QString &action_message)
-{
-	const qsizetype i_sender_id{sender_id.toLong()};
-	if (message(i_sender_id))
-	{
-		TPChat *chat_mngr{chatManager(sender_id)};
-		uint msg_idx{0};
-		do {
-			const QString &message_read{appUtils()->getCompositeValue(msg_idx, action_message, set_separator)};
-			if (message_read.isEmpty())
-				break;
-			chat_mngr->setSentMessageRead(message_read.toUInt());
-		} while (++msg_idx);
-	}
-}
-
-void TPMessagesManager::parseRemovedActionMessage(const QString &sender_id, const QString &action_message)
-{
-	const qsizetype i_sender_id{sender_id.toLong()};
-	if (message(i_sender_id))
-	{
-		TPChat *chat_mngr{chatManager(sender_id)};
-		uint msg_idx{0};
-		do {
-			const QString &message_removed{appUtils()->getCompositeValue(msg_idx, action_message, set_separator)};
-			if (message_removed.isEmpty())
-				break;
-			chat_mngr->removeMessage(message_removed.toUInt(), false, false);
-		} while (++msg_idx);
-	}
 }
 
 void TPMessagesManager::createChatWindow_part2(TPChat *chat_manager)
 {
 	m_chatWindowProperties.insert("chatManager"_L1, QVariant::fromValue(chat_manager));
 	QObject *chat_window{m_chatWindowComponent->createWithInitialProperties(m_chatWindowProperties, appQmlEngine()->rootContext())};
+	#ifndef QT_NO_DEBUG
+	if (!chat_window)
+		qDebug() << m_chatWindowComponent->errorString();
+	#endif
 	appQmlEngine()->setObjectOwnership(chat_window, QQmlEngine::CppOwnership);
 	chat_window->setProperty("parent", QVariant::fromValue(appItemManager()->appHomePage()));
 	QMetaObject::invokeMethod(chat_window, "open");

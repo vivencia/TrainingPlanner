@@ -128,7 +128,7 @@ Item {
 					textUnderIcon: true
 					width: parent.width/2 - 10
 					height: parent.height/2 - 10
-					z:1
+					z: 1
 
 					anchors {
 						top: btnMesoInfo.bottom
@@ -150,7 +150,7 @@ Item {
 					enabled: viewedMesoIdx === mesoSubModel.mesoRow(index) ? viewedMesoCanBeExported : false
 					width: parent.width/2 - 10
 					height: parent.height/2 - 10
-					z:1
+					z: 1
 
 					anchors {
 						top: btnMesoCalendar.bottom

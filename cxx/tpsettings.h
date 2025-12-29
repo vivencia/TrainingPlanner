@@ -202,19 +202,19 @@ public:
 	QStringList colorSchemes() const { return m_colorSchemes; }
 	void setColorScheme(const uint new_value, const bool bFromQml = true);
 	inline uint colorScheme() const { return getValue(currentUser(), COLOR_SCHEME_INDEX, m_defaultValues.at(COLOR_SCHEME_INDEX)).toUInt(); }
-	inline QString primaryColor() const { return getValue(currentUser(), COLOR_INDEX, colorForScheme(colorScheme())).toString(); }
+	inline QString primaryColor() const { return colorForScheme(colorScheme()); }
 	void setPrimaryColor(const QColor &color);
-	inline QString primaryLightColor() const { return getValue(currentUser(), LIGHT_COLOR_INDEX, lightColorForScheme(colorScheme())).toString(); }
+	inline QString primaryLightColor() const { return lightColorForScheme(colorScheme()); }
 	void setPrimaryLightColor(const QColor &color);
-	inline QString primaryDarkColor() const { return getValue(currentUser(), DARK_COLOR_INDEX, darkColorForScheme(colorScheme())).toString(); }
+	inline QString primaryDarkColor() const { return darkColorForScheme(colorScheme()); }
 	void setPrimaryDarkColor(const QColor &color);
-	inline QString paneBackgroundColor() const { return getValue(currentUser(), PANE_COLOR_INDEX, paneColorForScheme(colorScheme())).toString(); }
-	inline QString entrySelectedColor() const { return getValue(currentUser(), SELECTED_COLOR_INDEX, selectedColorForScheme(colorScheme())).toString(); };
-	inline QString listEntryColor1() const { { return getValue(currentUser(), LISTS_COLOR_1_INDEX, listColor1ForScheme(colorScheme())).toString(); } }
-	inline QString listEntryColor2() const { { return getValue(currentUser(), LISTS_COLOR_2_INDEX, listColor2ForScheme(colorScheme())).toString(); } }
-	inline QString fontColor() const { return getValue(currentUser(), FONT_COLOR_INDEX, fontColorForScheme(colorScheme())).toString(); }
+	inline QString paneBackgroundColor() const { return paneColorForScheme(colorScheme()); }
+	inline QString entrySelectedColor() const { return selectedColorForScheme(colorScheme()); };
+	inline QString listEntryColor1() const { { return listColor1ForScheme(colorScheme()); } }
+	inline QString listEntryColor2() const { { return listColor2ForScheme(colorScheme()); } }
+	inline QString fontColor() const { return fontColorForScheme(colorScheme()); }
 	void setFontColor(const QColor &color);
-	inline QString disabledFontColor() const { return getValue(currentUser(), DISABLED_FONT_COLOR_INDEX, disabledFontColorForScheme(colorScheme())).toString(); }
+	inline QString disabledFontColor() const { return disabledFontColorForScheme(colorScheme()); }
 	void setDisabledFontColor(const QColor &color);
 
 	Q_INVOKABLE QString colorForScheme(const uint scheme) const;

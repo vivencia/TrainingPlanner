@@ -9,12 +9,15 @@ ColumnLayout {
 	property bool showToolBox: false
 	property bool editable: true
 	property alias text: textControl.text
-	readonly property int maxHeight: appSettings.pageHeight / 3
 
 	signal textAltered(_text: string);
 	signal enterOrReturnKeyPressed(mod_key: int);
 
+	readonly property int _maxHeight: appSettings.pageHeight / 3
+	property int _nFormatting: 0
+
 	RowLayout {
+		id: toolBoxLayout
 		visible: showToolBox
 		spacing: 5
 		Layout.fillWidth: true
@@ -22,6 +25,7 @@ ColumnLayout {
 		TPButton {
 			imageSource: "copy_"
 			focus: false
+			enabled: textControl.length > 0
 			width: appSettings.itemDefaultHeight
 			height: width
 			onClicked: {
@@ -60,33 +64,38 @@ ColumnLayout {
 			imageSource: "italic_"
 			checkable: true
 			focus: false
+			enabled: textControl.length > 0
 			width: appSettings.itemDefaultHeight
 			height: width
-			onCheck: textControl.cursorSelection.font.italic = checked
+			onCheck: {
+				formatChanged(checked);
+				textControl.cursorSelection.font.italic = checked;
+			}
 		}
 		TPButton {
 			id: btnUnderline
 			imageSource: "underscore_"
 			checkable: true
 			focus: false
+			enabled: textControl.length > 0
 			width: appSettings.itemDefaultHeight
 			height: width
-			onCheck: textControl.cursorSelection.font.underline = checked
+			onCheck: {
+				formatChanged(checked);
+				textControl.cursorSelection.font.underline = checked
+			}
 		}
 		TPButton {
 			id: btnCase
 			imageSource: "upperlowercase_"
 			checkable: true
 			focus: false
+			enabled: textControl.length > 0
 			width: appSettings.itemDefaultHeight
 			height: width
 			onCheck: {
-				if (textControl.cursorSelection.font.capitalization !== Font.AllUppercase)
-					textControl.cursorSelection.font.capitalization = Font.AllUppercase;
-				else {
-					textControl.cursorSelection.font.capitalization = Font.AllLowercase;
-					textControl.cursorSelection.font.capitalization = Font.MixedCase;
-				}
+				formatChanged(checked);
+				textControl.cursorSelection.font.capitalization = checked ? Font.AllUppercase : Font.MixedCase;
 			}
 		}
 	}
@@ -95,53 +104,44 @@ ColumnLayout {
 		Layout.fillWidth: true
 		spacing: 5
 
-		ScrollView {
+		Flickable {
 			id: scrollArea
 			contentWidth: availableWidth
 			contentHeight: availableHeight
 			clip: true
 			height: 2 * appSettings.itemDefaultHeight
 			width: parent.width - appSettings.itemDefaultHeight - 5
-			spacing: 0
-			padding: 0
-			ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
-			ScrollBar.vertical: ScrollBar {
-				id: vBar
-				policy: ScrollBar.AsNeeded
-				visible: textControl.contentHeight > scrollArea.height
-				z: 1
-				anchors {
-					top: scrollArea.top
-					right: scrollArea.right
-					bottom: scrollArea.bottom
-				}
-			}
+			ScrollBar.vertical: ScrollBar { id: vBar }
 
-			background: Rectangle {
-				color: appSettings.paneBackgroundColor
-				radius: 8
-				border.color: appSettings.fontColor
-			}
-
-			TextArea {
+			TextArea.flickable: TextArea {
 				id: textControl
 				readOnly: !editable
 				wrapMode: TextEdit.Wrap
-				textFormat: TextEdit.AutoText
+				textFormat: TextEdit.RichText
+				renderType: TextEdit.QtRendering
 				color: appSettings.fontColor
 				font.pixelSize: appSettings.fontSize
-				font.bold: true
 				font.preferShaping: false
 				focus: true
-				padding: 0
+				persistentSelection: true
+				topPadding: 6
+				leftPadding: 6
 				rightPadding: btnClearText.width
+				bottomPadding: 6
 				leftInset: 0
 				rightInset: 0
 				topInset: 0
 				bottomInset: 0
 
+				background: Rectangle {
+					color: appSettings.paneBackgroundColor
+					radius: 8
+					border.color: appSettings.fontColor
+				}
+
 				property bool modified: false
+				property bool formatted: false
 
 				cursorSelection.onFontChanged: {
 					btnItalic.checked = cursorSelection.font.italic;
@@ -197,18 +197,21 @@ ColumnLayout {
 					}
 					else {
 						vBar.setPosition(1);
-						const len = text.length;
-						cursorPosition = len;
+						cursorPosition = length;
 					}
 				}
 			} //TextArea
 
 			function calculateHeight(): void {
 				const new_height = (textControl.lineCount * appSettings.itemDefaultHeight) + 10;
-				if (new_height <= maxHeight)
-					height = implicitHeight = new_height;
+				if (new_height <= _maxHeight) {
+					if (new_height < (2 * appSettings.itemDefaultHeight))
+						height = implicitHeight = 2 * appSettings.itemDefaultHeight;
+					else
+						height = implicitHeight = new_height;
+				}
 				else
-					height = implicitHeight = maxHeight;
+					height = implicitHeight = _maxHeight;
 			}
 		} //ScrollView
 
@@ -237,7 +240,7 @@ ColumnLayout {
 				id: btnClearText
 				imageSource: "edit-clear"
 				hasDropShadow: false
-				enabled: textControl.text.length > 0
+				enabled: textControl.length > 0
 				width: appSettings.itemDefaultHeight
 				height: width
 
@@ -248,7 +251,7 @@ ColumnLayout {
 				}
 
 				onClicked: {
-					textControl.clear();
+					clear();
 					textControl.forceActiveFocus();
 				}
 			}
@@ -257,5 +260,23 @@ ColumnLayout {
 
 	function clear(): void {
 		textControl.clear();
+		_nFormatting = 0;
+	}
+
+	function formatChanged(added_format: bool) : void {
+		if (added_format)
+			_nFormatting++;
+		else {
+			_nFormatting--;
+			if (_nFormatting < 0)
+				_nFormatting = 0;
+		}
+	}
+
+	function messageText() : string {
+		if (_nFormatting == 0)
+			return textControl.getText(0, textControl.length);
+		else
+			return textControl.text;
 	}
 } //ColumnLayout

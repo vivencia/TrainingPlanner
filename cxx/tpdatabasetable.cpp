@@ -542,28 +542,30 @@ bool TPDatabaseTable::createServerCmdFile(const QString &dir, const std::initial
 		int n_part{1};
 		QStringList var_list;
 		QString vars_cmd;
-		for (const QString &cmd_part : command_parts)
+		for (QString cmd_part : command_parts)
 		{
 			if (n_part == 1)
 			{
-				var_list.append(std::move("VAR_1="_L1 + cmd_part + '\n'));
-				vars_cmd = "$VAR_1"_L1;
+				var_list.append(std::move("VAR_1="_L1 % cmd_part % '\n'));
+				vars_cmd = std::move("$VAR_1"_L1);
 			}
 			else
 			{
-				var_list.append(std::move("VAR_"_L1 + QString::number(n_part) + "=\""_L1 + cmd_part + "\"\n"_L1));
+				if (cmd_part.contains('\''))
+					cmd_part.replace('\'', R"('\'')");
+				var_list.append(std::move("VAR_"_L1 % QString::number(n_part) % "='"_L1 % cmd_part % "'\n"_L1));
 				if (cmd_part.count(' ') > 0)
-					vars_cmd += " \"${VAR_"_L1 + QString::number(n_part) + "}\""_L1;
+					vars_cmd += std::move(" \"${VAR_"_L1 % QString::number(n_part) % "}\""_L1);
 				else
-					vars_cmd += " $VAR_"_L1 + QString::number(n_part);
+					vars_cmd += std::move(" $VAR_"_L1 % QString::number(n_part));
 			}
 			++n_part;
 		}
 		for (QString &var : var_list)
 			cmd_string += std::move(var);
-		cmd_string += std::move(vars_cmd + "\n#Downloads 1"_L1);
+		cmd_string += std::move(vars_cmd % "\n#Downloads 1"_L1);
 
-		const QString &cmd_filename{dir + QString::number(QDateTime::currentSecsSinceEpoch()) + ".cmd"_L1};
+		const QString &cmd_filename{dir % QString::number(QDateTime::currentSecsSinceEpoch()) % ".cmd"_L1};
 		if (!QFile::exists(cmd_filename) || overwrite)
 		{
 			QFile *cmd_file{appUtils()->openFile(cmd_filename, false, true, false, true)};

@@ -8,7 +8,7 @@ TPBackRec {
 	id: button
 	focus: true
 	border.color: flat ? "transparent" : buttonText.color
-	radius: rounded ? height : 6
+	radius: rounded ? height : 8
 	opacity: checked ? 0.9 : 1
 	color: backgroundColor
 	height: (autoSize ? buttonText.contentHeight : appSettings.itemDefaultHeight) +
@@ -157,7 +157,7 @@ TPBackRec {
 	function onMouseReleased(mouse: MouseEvent): void {
 		mouse.accepted = true;
 		if (_bPressed) {
-			if (checkable){
+			if (checkable) {
 				checked = !checked;
 				check(clickId);
 			}

@@ -48,20 +48,36 @@ void ChatWSServer::connectToPeer(const QString &userid)
 		if (request_id == requestid)
 		{
 			disconnect(*conn);
-			QWebSocket *peer{new QWebSocket(m_id, QWebSocketProtocol::Version13, this)};
-			connect(peer, &QWebSocket::connected, [=,this] () {
-				qDebug() << "****** WebSocket connected to " << userid;
-				emit wsConnectionToClientPeerConcluded(true, userid, peer);
-			});
-
-			#ifndef QT_NO_DEBUG
-			// Handle errors (e.g., server not found, connection refused)
-			QObject::connect(peer, &QWebSocket::errorOccurred, [=,this] (QAbstractSocket::SocketError error) {
-				qDebug() << "****** WebSocket error: " << error << " " << peer->errorString() << " " << peer->peerAddress();
+			if (address.contains("not logged"_L1))
+			{
+				qDebug() << "****** WebSocket error: " << address;
 				emit wsConnectionToClientPeerConcluded(false, userid, nullptr);
-			});
-			#endif
-			peer->open(QUrl{"ws://"_L1 % address});
+			}
+			else
+			{
+				QWebSocket *peer{new QWebSocket(m_id, QWebSocketProtocol::Version13, this)};
+				connect(peer, &QWebSocket::connected, [=,this] () {
+					qDebug() << "****** WebSocket connected to " << userid;
+					emit wsConnectionToClientPeerConcluded(true, userid, peer);
+				});
+				// Handle errors (e.g., server not found, connection refused)
+				QObject::connect(peer, &QWebSocket::errorOccurred, [=,this] (QAbstractSocket::SocketError error)
+				{
+					switch (error)
+					{
+						case QAbstractSocket::ConnectionRefusedError:
+						case QAbstractSocket::RemoteHostClosedError:
+							peer->close();
+							connectToPeer(userid);
+						break;
+						default:
+							qDebug() << "****** WebSocket error: " << error << " " << peer->errorString() << " " << peer->peerAddress();
+							emit wsConnectionToClientPeerConcluded(false, userid, nullptr);
+						break;
+					}
+				});
+				peer->open(QUrl{"ws://"_L1 % address});
+			}
 		}
 	});
 	queryPeerAddress(requestid, userid);

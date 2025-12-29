@@ -919,7 +919,7 @@ function message_worker($sender, $recipient, $messageid, $argument) {
 			return false;
 		}
 	}
-	fwrite($fh, $messageid);
+	fwrite($fh, $messageid . "\037");
 	fclose($fh);
 	echo "0: Message " . $argument . "!";
 	return true;

@@ -67,10 +67,6 @@ private:
 
 	int newMessagesCheckingInterval() const;
 	void parseNewChatMessages(const QString &encoded_messages);
-	void parseNewMessage(const QString &sender_id, const QString &sender_messages);
-	void parseReceivedActionMessage(const QString &sender_id, const QString &action_message);
-	void parseReadActionMessage(const QString &sender_id, const QString &action_message);
-	void parseRemovedActionMessage(const QString &sender_id, const QString &action_message);
 	void createChatWindow_part2(TPChat *chat_manager);
 	void removeChatWindow(const QString &other_userid);
 

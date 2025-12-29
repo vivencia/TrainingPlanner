@@ -47,7 +47,7 @@ Column {
 			}
 		}
 
-		function init(idxtoremove) {
+		function init(idxtoremove): void {
 			idxToRemove = idxtoremove;
 			start();
 		}
@@ -165,7 +165,6 @@ Column {
 				swipe.right: Rectangle {
 					width: parent.width
 					height: parent.height
-					clip: false
 					color: SwipeDelegate.pressed ? "#555" : "#666"
 					radius: 8
 
@@ -175,7 +174,6 @@ Column {
 						width: appSettings.itemDefaultHeight
 						height: width
 						opacity: 2 * -delegate.swipe.position
-						z: 2
 
 						anchors {
 							left: parent.left

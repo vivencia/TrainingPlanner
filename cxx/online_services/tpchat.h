@@ -21,9 +21,9 @@ constexpr uint MESSAGE_MEDIA			{12};
 constexpr uint MESSAGE_QUEUED			{13};
 constexpr uint TP_CHAT_MESSAGE_FIELDS	{MESSAGE_QUEUED + 1};
 
-constexpr QLatin1StringView messageFileExtension {".msg"};
-constexpr QLatin1StringView messageWorkRead {".read"};
+constexpr QLatin1StringView messageWorkSend {".msg"};
 constexpr QLatin1StringView messageWorkReceived {".received"};
+constexpr QLatin1StringView messageWorkRead {".read"};
 constexpr QLatin1StringView messageWorkRemoved {".removed"};
 constexpr QLatin1StringView messageWorkEdited {".edited"};
 
@@ -42,6 +42,7 @@ QML_ELEMENT
 Q_PROPERTY(uint count READ count NOTIFY countChanged FINAL)
 Q_PROPERTY(QString interlocutorName READ interlocutorName NOTIFY interlocutorNameChanged FINAL)
 Q_PROPERTY(QString avatarIcon READ avatarIcon NOTIFY avatarIconChanged FINAL)
+Q_PROPERTY(bool hasUnreadMessages READ hasUnreadMessages WRITE setHasUnreadMessages NOTIFY unreadMessagesChanged FINAL)
 
 public:
 	static constexpr QLatin1StringView chatsSubDir{"chats/"};
@@ -60,11 +61,13 @@ public:
 	QString avatarIcon() const;
 	inline uint userIdx() const { return m_userIdx; }
 
-	void setSentMessageReceived(const uint msgid);
-	void setSentMessageRead(const uint msgid);
-	Q_INVOKABLE void removeMessage(const uint msgid, const bool remove_for_interlocutor, const bool from_qml = true);
+	void processTPServerMessage(const QString &work, const QString &messages);
+	Q_INVOKABLE void removeMessage(const uint msgid, const bool remove_for_interlocutor);
+	void editMessage(const QString &encoded_data);
 	inline uint unreadMessages() const { return m_unreadMessages; }
 	void setUnreadMessages(const int n_unread);
+	inline bool hasUnreadMessages() const { return m_unreadMessages > 0; }
+	inline void setHasUnreadMessages(const bool has_unread) { if (!has_unread) markAllIncomingMessagesRead(); }
 	Q_INVOKABLE void markAllIncomingMessagesRead();
 	Q_INVOKABLE void createNewMessage(const QString &text, const QString &media = QString{});
 	void incomingMessage(const QString &encoded_message);
@@ -84,8 +87,9 @@ signals:
 	void countChanged();
 	void interlocutorNameChanged();
 	void avatarIconChanged();
-	void unreadMessagesChanged(const uint n_unread_messages);
+	void unreadMessagesChanged();
 	void initWSConnection(const QString &id, const QString &address);
+	void messageReceived();
 
 private:
 	QString m_otherUserId;
@@ -98,7 +102,9 @@ private:
 	QWebSocket *m_peerSocket;
 	QTimer *m_sendMessageTimer;
 	bool m_chatLoaded;
+	QHash<QString,std::function<void(const QString&)>> m_workFuncs;
 
+	short connectionType() const;
 	void unqueueMessage(ChatMessage *const message);
 	void uploadAction(const uint field, ChatMessage *const message);
 	void acknowledgeMessageWorked(const uint msgid, const QLatin1StringView &work);

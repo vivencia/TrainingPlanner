@@ -20,6 +20,8 @@ TPPopup {
 	required property ChatModel chatManager
 
 	readonly property int defaultWidth: appSettings.pageWidth * 0.8
+	readonly property bool canViewNewMessages: mBar.position + mBar.size >= 1
+
 	property bool maximized: false
 	property bool minimized: false
 	property int normalWidth: defaultWidth
@@ -35,6 +37,14 @@ TPPopup {
 	onActiveFocusChanged: {
 		if (activeFocus)
 			chatManager.markAllIncomingMessagesRead();
+	}
+
+	Connections {
+		target: chatManager
+		function onMessageReceived(): void {
+			if (canViewNewMessages)
+				messagesList.positionViewAtEnd();
+		}
 	}
 
 	TPBackRec {
@@ -158,12 +168,12 @@ TPPopup {
 		}
 
 		ScrollBar.vertical: ScrollBar {
+			id: mBar
 			policy: ScrollBar.AsNeeded
-			active: true; visible: messagesList.contentHeight > messagesList.height
+			visible: messagesList.contentHeight > messagesList.height
 		}
 		ScrollBar.horizontal: ScrollBar {
-			policy: ScrollBar.AsNeeded
-			active: true; visible: messagesList.contentWidth > messagesList.width
+			policy: ScrollBar.AlwaysOff
 		}
 
 		delegate: SwipeDelegate {
@@ -211,6 +221,7 @@ TPPopup {
 					TPLabel {
 						id: lblMessageContent
 						text: msgText
+						textFormat: Text.RichText
 						singleLine: false
 						Layout.fillWidth: true
 						Layout.maximumWidth: messagesList.width * 0.9
@@ -236,8 +247,6 @@ TPPopup {
 						}
 
 						Loader {
-							id: sentLoader
-							asynchronous: true
 							active: ownMessage
 							width: appSettings.itemSmallHeight * 0.5
 							height: width
@@ -251,8 +260,6 @@ TPPopup {
 						}
 
 						Loader {
-							id: receivedLoader
-							asynchronous: true
 							active: ownMessage
 							width: appSettings.itemSmallHeight * 0.5
 							height: width
@@ -268,8 +275,6 @@ TPPopup {
 				}//ColumnLayout
 			} //Rectangle messageRec
 
-			ListView.onAdd: messagesList.positionViewAtEnd();
-
 			background: Rectangle {
 				color: "transparent"
 			}
@@ -277,25 +282,21 @@ TPPopup {
 			swipe.right: Rectangle {
 				id: removeBackground
 				color: SwipeDelegate.pressed ? Qt.darker("tomato", 1.1) : "tomato"
-				opacity: messageItem.swipe.complete ? 0.8 : 0 - messageItem.swipe.position
+				opacity: messageItem.swipe.complete ? 0.9 : 0 - messageItem.swipe.position
 				radius: 8
 				anchors.fill: messageRec
 
 				readonly property int imageSize: height <= appSettings.itemDefaultHeight * 4 ?
 										appSettings.itemSmallHeight * 0.9 : appSettings.itemDefaultHeight
 
-				MouseArea {
-					z: 1
-					anchors.fill: parent
-					onClicked: (mouse) => {
-						if (ownMessage)
-							chatManager.removeMessage(index, mouse.x > parent.width);
-						else
-							chatManager.removeMessage(index, false);
-					}
-				}
+				Pane {
+					SwipeDelegate.onClicked: chatManager.removeMessage(index, false);
 
-				Item {
+					background: Rectangle {
+						radius: 8
+						border.color: appSettings.fontColor
+						color: "transparent"
+					}
 					anchors {
 						top: parent.top
 						left: parent.left
@@ -318,6 +319,7 @@ TPPopup {
 
 					TPLabel {
 						text: qsTr("Remove for myself only")
+						color: "white"
 						singleLine: false
 						width: parent.width - 5
 
@@ -329,8 +331,15 @@ TPPopup {
 					}
 				}
 
-				Item {
+				Pane {
 					visible: ownMessage
+					SwipeDelegate.onClicked: chatManager.removeMessage(index, true);
+
+					background: Rectangle {
+						radius: 8
+						border.color: appSettings.fontColor
+						color: "transparent"
+					}
 
 					anchors {
 						top: parent.top
@@ -368,6 +377,7 @@ TPPopup {
 
 					TPLabel {
 						text: qsTr("Remove as well for ") + chatManager.interlocutorName
+						color: "white"
 						singleLine: false
 						width: parent.width - 5
 
@@ -399,6 +409,29 @@ TPPopup {
 			left: parent.left
 			right: parent.right
 			bottom: parent.bottom
+		}
+
+		TPButton {
+			id: btnScrollDown
+			imageSource: "downward"
+			hasDropShadow: false
+			border.color: chatManager.hasUnreadMessages ? appSettings.primaryLightColor : "transparent"
+			border.width: 2
+			width: appSettings.itemDefaultHeight
+			height: width
+			visible: !canViewNewMessages
+
+			onClicked: {
+				mBar.setPosition(1);
+				chatManager.hasUnreadMessages = false;
+			}
+
+			anchors {
+				bottom: parent.top
+				bottomMargin: 20
+				right: parent.right
+				rightMargin: 10
+			}
 		}
 
 		TPMultiLineEdit {
@@ -475,9 +508,8 @@ TPPopup {
 	} //Frame frmFooter
 
 	function sendMessage() {
-		chatManager.createNewMessage(txtMessage.text);
+		chatManager.createNewMessage(txtMessage.messageText());
 		messagesList.positionViewAtEnd();
-		//Qt.inputMethod.reset();
 		txtMessage.clear();
 	}
 }
