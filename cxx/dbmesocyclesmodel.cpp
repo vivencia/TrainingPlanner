@@ -14,14 +14,18 @@
 
 #include <utility>
 
+constexpr QLatin1StringView curMesoIdxSetting{"lastViewedMesoIdx"};
+
 DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
-	: QObject{parent}, m_currentMesoIdx{-11111}, m_mostRecentOwnMesoIdx{-11111}, m_lowestTempMesoId{-1}, m_bCanHaveTodaysWorkout{false}
+	: QObject{parent}, m_currentMesoIdx{-1}, m_mostRecentOwnMesoIdx{-1}, m_lowestTempMesoId{-1}, m_bCanHaveTodaysWorkout{false}
 {
-	setCurrentMesoIdx(appSettings()->lastViewedMesoIdx(), false);
+	setCurrentMesoIdx(appSettings()->getCustomValue(curMesoIdxSetting, m_currentMesoIdx).toInt(), false);
 
 	m_calendarManager = new DBMesoCalendarManager{this};
-	m_ownMesos = new HomePageMesoModel{this};
-	m_clientMesos = new HomePageMesoModel{this};
+	if (appUserModel()->isClient(0))
+		m_ownMesos = new HomePageMesoModel{this};
+	if (appUserModel()->isCoach(0))
+		m_clientMesos = new HomePageMesoModel{this};
 
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, &DBMesocyclesModel::labelChanged);
 	connect(this, &DBMesocyclesModel::isNewMesoChanged, this, [this] (const uint meso_idx) { incorporateMeso(meso_idx); });
@@ -86,11 +90,10 @@ void DBMesocyclesModel::getMesocyclePage(const uint meso_idx)
 uint DBMesocyclesModel::startNewMesocycle(const bool bCreatePage, const std::optional<bool> bOwnMeso)
 {
 	const bool own_meso{bOwnMeso.has_value() ? bOwnMeso.value() : true};
-	const uint meso_idx{newMesocycle(std::move(QStringList{} << std::move(newMesoTemporaryId()) <<
-		std::move(QString::number(appUtils()->generateUniqueId())) << QString{} << QString{} << QString{} << QString{} <<
-		std::move("RRRRRRR"_L1) << QString{} << QString{} << QString{} << QString{} << QString{} << QString{} <<
-		appUserModel()->userId(0) << (own_meso ? appUserModel()->userId(0) : appUserModel()->defaultClient()) <<
-		QString{} << QString{} << std::move("1"_L1)))};
+	const uint meso_idx{newMesocycle(std::move(QStringList{std::move(newMesoTemporaryId()), QString{}, QString{}, QString{}, QString{},
+		QString{}, std::move("RRRRRRR"_L1), QString{}, QString{}, QString{}, QString{}, QString{}, QString{},
+		appUserModel()->userId(0), (own_meso ? appUserModel()->userId(0) : appUserModel()->defaultClient()), QString{},
+		QString{}, std::move("1"_L1)}))};
 
 	int32_t newMesoRequiredFields{0};
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_NAME);
@@ -221,14 +224,14 @@ void DBMesocyclesModel::setName(const uint meso_idx, const QString &new_name)
 {
 	m_mesoData[meso_idx][MESOCYCLES_COL_NAME] = new_name;
 	setModified(meso_idx, MESOCYCLES_COL_NAME);
-	m_curMesos->emitDataChanged(meso_idx, mesoNameRole);
+	m_currentMesoModel->emitDataChanged(meso_idx, mesoNameRole);
 }
 
 void DBMesocyclesModel::setStartDate(const uint meso_idx, const QDate &new_date)
 {
 	m_mesoData[meso_idx][MESOCYCLES_COL_STARTDATE] = std::move(QString::number(new_date.toJulianDay()));
 	setModified(meso_idx, MESOCYCLES_COL_STARTDATE);
-	m_curMesos->emitDataChanged(meso_idx, mesoStartDateRole);
+	m_currentMesoModel->emitDataChanged(meso_idx, mesoStartDateRole);
 	changeCanHaveTodaysWorkout(meso_idx);
 }
 
@@ -236,7 +239,7 @@ void DBMesocyclesModel::setEndDate(const uint meso_idx, const QDate &new_date)
 {
 	m_mesoData[meso_idx][MESOCYCLES_COL_ENDDATE] = std::move(QString::number(new_date.toJulianDay()));
 	setModified(meso_idx, MESOCYCLES_COL_ENDDATE);
-	m_curMesos->emitDataChanged(meso_idx, mesoEndDateRole);
+	m_currentMesoModel->emitDataChanged(meso_idx, mesoEndDateRole);
 	changeCanHaveTodaysWorkout(meso_idx);
 }
 
@@ -247,7 +250,7 @@ void DBMesocyclesModel::setSplit(const uint meso_idx, const QString &new_split)
 		m_mesoData[meso_idx][MESOCYCLES_COL_SPLIT] = new_split;
 		if (isSplitOK(meso_idx))
 			setModified(meso_idx, MESOCYCLES_COL_SPLIT);
-		m_curMesos->emitDataChanged(meso_idx, mesoSplitRole);
+		m_currentMesoModel->emitDataChanged(meso_idx, mesoSplitRole);
 		makeUsedSplits(meso_idx);
 	}
 }
@@ -289,14 +292,14 @@ void DBMesocyclesModel::setCoach(const uint meso_idx, const QString &new_coach)
 {
 	m_mesoData[meso_idx][MESOCYCLES_COL_COACH] = new_coach;
 	setModified(meso_idx, MESOCYCLES_COL_COACH);
-	m_curMesos->emitDataChanged(meso_idx, mesoCoachRole);
+	m_currentMesoModel->emitDataChanged(meso_idx, mesoCoachRole);
 }
 
 void DBMesocyclesModel::setClient(const uint meso_idx, const QString &new_client)
 {
 	m_mesoData[meso_idx][MESOCYCLES_COL_CLIENT] = new_client;
 	setModified(meso_idx, MESOCYCLES_COL_CLIENT);
-	m_curMesos->emitDataChanged(meso_idx, mesoClientRole);
+	m_currentMesoModel->emitDataChanged(meso_idx, mesoClientRole);
 }
 
 bool DBMesocyclesModel::isOwnMeso(const uint meso_idx) const
@@ -348,7 +351,8 @@ void DBMesocyclesModel::setCurrentMesoIdx(const int meso_idx, const bool emit_si
 		}
 		if (emit_signal)
 		{
-			appSettings()->setLastViewedMesoIdx(m_currentMesoIdx);
+			if (m_currentMesoIdx != appSettings()->getCustomValue(curMesoIdxSetting).toInt())
+				appSettings()->setCustomValue(curMesoIdxSetting, m_currentMesoIdx);
 			emit currentMesoIdxChanged();
 			changeCanHaveTodaysWorkout(m_currentMesoIdx);
 		}
@@ -695,9 +699,7 @@ int DBMesocyclesModel::newMesoFromFile(const QString &filename, const bool from_
 	}
 
 	int32_t newMesoRequiredFields{0};
-	if (from_coach)
-		setBit(newMesoRequiredFields, MESOCYCLES_COL_IMPORTED_AND_UNACCEPTED);
-	else
+	if (!from_coach)
 	{
 		if (name(meso_idx).length() < 5)
 			setBit(newMesoRequiredFields, MESOCYCLES_COL_NAME);
@@ -715,7 +717,7 @@ int DBMesocyclesModel::newMesoFromFile(const QString &filename, const bool from_
 }
 
 int DBMesocyclesModel::importSplitFromFile(const QString &filename, const uint meso_idx, uint split,
-													const std::optional<bool> &file_formatted)
+																		const std::optional<bool> &file_formatted)
 {
 	QChar split_letter;
 	switch (split)

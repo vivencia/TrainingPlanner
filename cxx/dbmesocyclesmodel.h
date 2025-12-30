@@ -6,28 +6,25 @@
 
 #include <QObject>
 
-#define MESOCYCLES_COL_ID 0
-#define MESOCYCLES_COL_NAME 1
-#define MESOCYCLES_COL_STARTDATE 2
-#define MESOCYCLES_COL_ENDDATE 3
-#define MESOCYCLES_COL_NOTE 4
-#define MESOCYCLES_COL_WEEKS 5
-#define MESOCYCLES_COL_SPLIT 6
-#define MESOCYCLES_COL_SPLITA 7
-#define MESOCYCLES_COL_SPLITB 8
-#define MESOCYCLES_COL_SPLITC 9
-#define MESOCYCLES_COL_SPLITD 10
-#define MESOCYCLES_COL_SPLITE 11
-#define MESOCYCLES_COL_SPLITF 12
-#define MESOCYCLES_COL_COACH 13
-#define MESOCYCLES_COL_CLIENT 14
-#define MESOCYCLES_COL_FILE 15
-#define MESOCYCLES_COL_TYPE 16
-#define MESOCYCLES_COL_REALMESO 17
-#define MESOCYCLES_TOTAL_COLS MESOCYCLES_COL_REALMESO + 1
-
-#define MESOCYCLES_COL_MUSCULARGROUP 20
-#define MESOCYCLES_COL_IMPORTED_AND_UNACCEPTED 21
+constexpr uint16_t MESOCYCLES_COL_ID			{0};
+constexpr uint16_t MESOCYCLES_COL_NAME			{1};
+constexpr uint16_t MESOCYCLES_COL_STARTDATE		{2};
+constexpr uint16_t MESOCYCLES_COL_ENDDATE		{3};
+constexpr uint16_t MESOCYCLES_COL_NOTE			{4};
+constexpr uint16_t MESOCYCLES_COL_WEEKS			{5};
+constexpr uint16_t MESOCYCLES_COL_SPLIT			{6};
+constexpr uint16_t MESOCYCLES_COL_SPLITA		{7};
+constexpr uint16_t MESOCYCLES_COL_SPLITB		{8};
+constexpr uint16_t MESOCYCLES_COL_SPLITC		{9};
+constexpr uint16_t MESOCYCLES_COL_SPLITD		{10};
+constexpr uint16_t MESOCYCLES_COL_SPLITE		{11};
+constexpr uint16_t MESOCYCLES_COL_SPLITF		{12};
+constexpr uint16_t MESOCYCLES_COL_COACH			{13};
+constexpr uint16_t MESOCYCLES_COL_CLIENT		{14};
+constexpr uint16_t MESOCYCLES_COL_FILE			{15};
+constexpr uint16_t MESOCYCLES_COL_TYPE			{16};
+constexpr uint16_t MESOCYCLES_COL_REALMESO		{17};
+constexpr uint16_t MESOCYCLES_TOTAL_COLS		{MESOCYCLES_COL_REALMESO + 1};
 
 enum MesoRoleNames {
 	mesoNameRole		=	Qt::UserRole + MESOCYCLES_COL_NAME,
@@ -105,7 +102,6 @@ public:
 	const uint newMesocycle(QStringList &&infolist);
 	inline DBMesoCalendarManager *mesoCalendarManager() const { return m_calendarManager; }
 
-	inline HomePageMesoModel *currentHomePageMesoModel() { return m_curMesos; }
 	inline HomePageMesoModel *ownMesos() const { return m_ownMesos; }
 	inline HomePageMesoModel *clientMesos() const { return m_clientMesos; }
 
@@ -120,7 +116,7 @@ public:
 	{
 		if (meso_idx < m_mesoData.count())
 		{
-			m_curMesos = isOwnMeso(meso_idx) ? m_ownMesos : m_clientMesos;
+			m_currentMesoModel = isOwnMeso(meso_idx) ? m_ownMesos : m_clientMesos;
 			checkIfCanExport(meso_idx, bEmitSignal);
 		}
 	}
@@ -139,7 +135,7 @@ public:
 	inline void setId(const uint meso_idx, const QString &new_id)
 	{
 		m_mesoData[meso_idx][MESOCYCLES_COL_ID] = new_id;
-		m_curMesos->emitDataChanged(meso_idx, -1);
+		m_currentMesoModel->emitDataChanged(meso_idx, -1);
 	}
 
 	inline const QString &name(const uint meso_idx) const
@@ -419,8 +415,8 @@ private:
 	QHash<uint,QMLMesoInterface*> m_mesoManagerList;
 	QList<QMap<QChar,DBSplitModel*>> m_splitModels;
 	DBMesoCalendarManager *m_calendarManager;
-	HomePageMesoModel *m_curMesos, *m_ownMesos, *m_clientMesos;
-	QList<int32_t> m_isNewMeso;
+	HomePageMesoModel *m_currentMesoModel, *m_ownMesos, *m_clientMesos;
+	QList<int16_t> m_isNewMeso;
 	QList<bool> m_canExport;
 	QStringList m_usedSplits;
 	int m_currentMesoIdx, m_mostRecentOwnMesoIdx, m_importMesoIdx, m_lowestTempMesoId;

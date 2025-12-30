@@ -14,6 +14,19 @@ Item {
 	property int viewedMesoIdx
 	property bool viewedMesoCanBeExported
 
+	TPLabel {
+		id: lblTitle
+		text: mainUserPrograms ? qsTr("My Programs") : qsTr("Clients' Programs")
+		useBackground: true
+		backgroundColor: mainUserPrograms ? appSettings.primaryLightColor : appSettings.primaryColor
+
+		anchors {
+			top: parent.top
+			horizontalCenter: parent.horizontalCenter
+			margins: 5
+		}
+	}
+
 	ListView {
 		id: mesosListView
 		model: mesoSubModel
@@ -21,10 +34,10 @@ Item {
 		reuseItems: true
 		spacing: 10
 		width: parent.width
-		height: parent.height * 0.8
+		height: parent.height * 0.8 - lblTitle.height - 10
 
 		anchors {
-			top: parent.top
+			top: lblTitle.bottom
 			left: parent.left
 			right: parent.right
 			margins: 5

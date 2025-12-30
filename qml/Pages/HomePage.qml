@@ -54,26 +54,13 @@ TPPage {
 
 	SwipeView {
 		id: mesoView
-		currentIndex: userModel.mainUserConfigured ? (userModel.mainUserIsClient ? 0 : 1) : -1
+		currentIndex: userModel.mainUserConfigured ? (userModel.mainUserIsCoach ? 0 : 1) : -1
 		interactive: userModel.mainUserIsCoach && userModel.mainUserIsClient
 		anchors.fill: parent
 
 		onCurrentIndexChanged: {
 			homePage.colorLight = currentIndex === 0 ? appSettings.primaryDarkColor : appSettings.primaryColor
 			homePage.colorDark = currentIndex === 0 ? appSettings.primaryColor : appSettings.primaryLightColor
-		}
-
-		readonly property list<string> pageTitle: [qsTr("My Programs"), qsTr("Clients' Programs")]
-
-		Loader {
-			id: ownMesosListLoader
-			active: loadOwnMesos
-			asynchronous: true
-
-			sourceComponent: MesosList {
-				mesoSubModel: mesoModel.ownMesos
-				mainUserPrograms: true
-			}
 		}
 
 		Loader {
@@ -86,6 +73,17 @@ TPPage {
 				mainUserPrograms: false
 			}
 		}
+
+		Loader {
+			id: ownMesosListLoader
+			active: loadOwnMesos
+			asynchronous: true
+
+			sourceComponent: MesosList {
+				mesoSubModel: mesoModel.ownMesos
+				mainUserPrograms: true
+			}
+		}
 	} //SwipeView
 
 	PageIndicator {
@@ -93,35 +91,25 @@ TPPage {
 		count: mesoView.count
 		currentIndex: mesoView.currentIndex
 		visible: userModel.mainUserConfigured && (userModel.mainUserIsCoach && userModel.mainUserIsClient)
-		height: 25
-		width: parent.width
 
-		delegate: TPLabel {
-			text: mesoView.pageTitle[index]
-			width: parent.width/2
-			elide: Text.ElideMiddle
-			horizontalAlignment: Text.AlignHCenter
+		delegate: Rectangle {
+			width: appSettings.itemSmallHeight
+			height: width
+			radius: width/2
+			opacity: index === indicator.currentIndex ? 0.95 : pressed ? 0.7 : 0.45
+			color: index === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
 
-			required property int index
-
-			background: Rectangle {
-				radius: width/2
-				opacity: index === indicator.currentIndex ? 0.95 : pressed ? 0.7 : 0.45
-				color: index === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
-			}
-
-			Behavior on opacity {
-				OpacityAnimator {
-					duration: 200
-				}
+			Text {
+				text: String(index + 1)
+				color: appSettings.fontColor
+				anchors.centerIn: parent
 			}
 		}
 
 		anchors {
 			bottom: parent.bottom
 			bottomMargin: ownMesosListLoader.height * (Qt.platform.os !== "android" ? 0.22 : 0.28)
-			horizontalCenter: parent.horizontalCenter
+			horizontalCenter: mesoView.horizontalCenter
 		}
 	}
 } //Page
-

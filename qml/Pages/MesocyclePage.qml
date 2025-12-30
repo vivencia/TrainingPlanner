@@ -21,7 +21,10 @@ TPPage {
 	required property MesocyclesModel mesoModel
 	property TPBalloonTip newMesoTip: newMesoLoader.item
 
-	onPageDeActivated: mesoManager.sendMesocycleFileToClient();
+	onPageDeActivated: {
+		if (mesoManager.ownMeso)
+			mesoManager.sendMesocycleFileToClient();
+	}
 
 	Connections {
 		target: mesoManager
@@ -61,7 +64,7 @@ TPPage {
 		onLoaded: {
 			newMesoMessageHandler(start_field);
 			start_field = -1;
-			item.show(-2);
+			item.show(-4);
 		}
 	}
 
@@ -95,18 +98,21 @@ TPPage {
 	}
 
 	ScrollView {
+		id: scrollView
 		contentWidth: availableWidth
-		ScrollBar.vertical.interactive: true
-		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-		ScrollBar.vertical.policy: ScrollBar.AlwaysOn
+		contentHeight: layoutMain.implicitHeight
+		ScrollBar.vertical.interactive: Qt.platform.os !== "android"
 		anchors.fill: parent
 
 		ColumnLayout {
-			id: colMain
+			id: layoutMain
 			spacing: 10
 			anchors {
 				fill: parent
-				margins: 5
+				leftMargin: 5
+				rightMargin: 5
+				topMargin: 0
+				bottomMargin: 10
 			}
 
 			Loader {
@@ -115,6 +121,7 @@ TPPage {
 				Layout.fillWidth: true
 
 				sourceComponent: ColumnLayout {
+					id: loaderLayout
 					spacing: 10
 
 					TPLabel {
@@ -128,7 +135,7 @@ TPPage {
 						buttonString: qsTr("Go to client's page")
 						height: 0.2 * mesoPropertiesPage.height
 						Layout.fillWidth: true
-						Layout.preferredHeight: height
+						Layout.minimumHeight: height
 
 						onItemSelected: (userRow) => mesoManager.client = userModel.userId(userRow);
 						onButtonClicked: itemManager.getClientsPage();
@@ -137,12 +144,15 @@ TPPage {
 					TPLabel {
 						id: lblCoachName
 						text: mesoModel.coachLabel
+						visible: !mesoManager.coachIsMainUser
 					}
 
 					TPTextInput {
 						id: txtCoachName
 						text: mesoManager.coach
 						readOnly: true
+						visible: !mesoManager.coachIsMainUser
+
 						Layout.fillWidth: true
 					}
 				} //ColumnLayout: Loader sourceComponent
@@ -440,6 +450,7 @@ TPPage {
 			TPLabel {
 				text: mesoModel.notesLabel
 				Layout.topMargin: 10
+				Layout.maximumWidth: parent.width * 0.9
 			}
 
 			TPMultiLineEdit {
@@ -450,6 +461,7 @@ TPPage {
 
 			TPButton {
 				text: qsTr("Send to client")
+				autoSize: true
 				visible: !mesoManager.ownMeso
 				enabled: mesoManager.canExport
 				Layout.alignment: Qt.AlignCenter

@@ -16,9 +16,9 @@
 #include <QQuickItem>
 #include <QQuickWindow>
 
-#define NEW_MESO_N_REQUIRED_FIELDS 4
-constexpr uint32_t new_meso_required_fields[5] {MESOCYCLES_COL_NAME, MESOCYCLES_COL_STARTDATE,
-						MESOCYCLES_COL_ENDDATE, MESOCYCLES_COL_SPLIT, MESOCYCLES_COL_IMPORTED_AND_UNACCEPTED};
+constexpr uint16_t NEW_MESO_N_REQUIRED_FIELDS{4};
+constexpr uint16_t new_meso_required_fields[NEW_MESO_N_REQUIRED_FIELDS]
+					{MESOCYCLES_COL_NAME, MESOCYCLES_COL_STARTDATE, MESOCYCLES_COL_ENDDATE, MESOCYCLES_COL_SPLIT};
 
 void QMLMesoInterface::cleanUp()
 {
@@ -27,13 +27,12 @@ void QMLMesoInterface::cleanUp()
 		delete m_mesoPage;
 		delete m_mesoComponent;
 	}
-	if (m_exercisesPage)
-		delete m_exercisesPage;
+	if (m_splitsPage)
+		delete m_splitsPage;
 	if (m_calendarPage)
 		delete m_calendarPage;
 
-	for (const auto it: std::as_const(m_workoutPages))
-		delete it;
+	qDeleteAll(m_workoutPages);
 }
 
 bool QMLMesoInterface::isMesoNameOK(const QString &meso_name) const
@@ -45,29 +44,20 @@ bool QMLMesoInterface::isMesoNameOK(const QString &meso_name) const
 
 void QMLMesoInterface::setMesoNameOK(const bool nameok)
 {
-	if (m_mesoNameOK != nameok)
-	{
-		m_mesoNameOK = nameok;
-		emit mesoNameOKChanged();
-	}
+	m_mesoNameOK = nameok;
+	emit mesoNameOKChanged();
 }
 
 void QMLMesoInterface::setStartDateOK(const bool dateok)
 {
-	if (m_startDateOK != dateok)
-	{
-		m_startDateOK = dateok;
-		emit startDateOKChanged();
-	}
+	m_startDateOK = dateok;
+	emit startDateOKChanged();
 }
 
 void QMLMesoInterface::setEndDateOK(const bool dateok)
 {
-	if (m_endDateOK != dateok)
-	{
-		m_endDateOK = dateok;
-		emit endDateOKChanged();
-	}
+	m_endDateOK = dateok;
+	emit endDateOKChanged();
 }
 
 bool QMLMesoInterface::realMeso() const
@@ -111,28 +101,36 @@ bool QMLMesoInterface::isTempMeso() const
 	return m_mesoModel->_id(m_mesoIdx) < 0;
 }
 
-//m_mesoModel->isNewMeso(m_mesoIdx) does not work here because txtMesoName in MesocylePage.qml
-//calls here onEditingFinished() signal. So a simple focus in and out would result in accepting the
-//proposed name without any intent from the user
-void QMLMesoInterface::setName(const QString &new_name, const bool modify_new_meso_counter, const bool from_qml)
+bool QMLMesoInterface::canExport() const
 {
-	if ((from_qml && new_name != m_mesoModel->name(m_mesoIdx)) || (!from_qml && m_name != new_name))
+	return m_mesoModel->canExport(m_mesoIdx);
+}
+
+bool QMLMesoInterface::coachIsMainUser() const
+{
+	return appUserModel()->userId(0) == m_mesoModel->coach(m_mesoIdx);
+}
+
+QString QMLMesoInterface::name() const
+{
+	return m_mesoModel->name(m_mesoIdx);
+}
+
+void QMLMesoInterface::setName(const QString &new_name)
+{
+	if (new_name != m_mesoModel->name(m_mesoIdx))
 	{
-		if (!from_qml || (from_qml && isMesoNameOK(new_name)))
+		if (isMesoNameOK(new_name))
 		{
 			setMesoNameOK(true);
 			m_name = new_name;
 			emit nameChanged();
-			if (modify_new_meso_counter)
-			{
-				QFile::remove(m_mesoModel->mesoFileName(m_mesoIdx)); //remove meso file with the previous name
-				m_mesoModel->setName(m_mesoIdx, new_name);
-				maybeChangeNewMesoFieldCounter();
-			}
+			QFile::remove(m_mesoModel->mesoFileName(m_mesoIdx)); //remove a -possible- meso file with the previous name
+			m_mesoModel->setName(m_mesoIdx, new_name);
+			maybeChangeNewMesoFieldCounter();
 		}
 		else {
-			m_nameError = new_name.length() < 5 ?
-							std::move(tr("Error: name too short") ): std::move(tr("Error: Name already in use."));
+			m_nameError = new_name.length() < 5 ? std::move(tr("Error: name too short")): std::move(tr("Error: Name already in use."));
 			setMesoNameOK(false);
 		}
 	}
@@ -392,9 +390,9 @@ void QMLMesoInterface::getCalendarPage()
 
 void QMLMesoInterface::getExercisesPlannerPage()
 {
-	if (!m_exercisesPage)
-		m_exercisesPage = new QmlMesoSplitInterface{this, m_mesoModel, m_mesoIdx};
-	m_exercisesPage->getExercisesPlannerPage();
+	if (!m_splitsPage)
+		m_splitsPage = new QmlMesoSplitInterface{this, m_mesoModel, m_mesoIdx};
+	m_splitsPage->getExercisesPlannerPage();
 }
 
 void QMLMesoInterface::getWorkoutPage(const QDate &date)
@@ -432,7 +430,7 @@ void QMLMesoInterface::createMesocyclePage()
 	{
 		m_mesoModel->loadSplits(m_mesoIdx);
 		m_newMesoFieldCounter = -1;
-		setName(m_mesoModel->name(m_mesoIdx), false, false);
+		m_name = m_mesoModel->name(m_mesoIdx);
 		setStartDate(m_mesoModel->startDate(m_mesoIdx), false);
 		setEndDate(m_mesoModel->endDate(m_mesoIdx), false);
 		setMinimumMesoStartDate(m_mesoModel->getMesoMinimumStartDate(m_mesoModel->client(m_mesoIdx), m_mesoIdx));
@@ -448,15 +446,14 @@ void QMLMesoInterface::createMesocyclePage()
 
 		if (m_mesoModel->isNewMesoFieldSet(m_mesoIdx, MESOCYCLES_COL_NAME))
 		{
-			QString meso_name{std::move(tr("New Program"))};
+			QString meso_name;
 			uint i{1};
-			while (!isMesoNameOK(meso_name))
+			do {
 				meso_name = std::move(tr("New Program") + " %1"_L1.arg(QString::number(i++)));
-			setName(meso_name, false, false);
+			} while (!isMesoNameOK(meso_name));
+			setName(meso_name);
 			m_newMesoFieldCounter++;
 		}
-		else
-			setName(m_mesoModel->name(m_mesoIdx), false, false);
 
 		if (m_mesoModel->isNewMesoFieldSet(m_mesoIdx, MESOCYCLES_COL_STARTDATE))
 			m_newMesoFieldCounter++;
@@ -508,8 +505,8 @@ void QMLMesoInterface::createMesocyclePage_part2()
 			m_mesoIdx = new_meso_idx;
 			for (const auto workout_page : std::as_const(m_workoutPages))
 				workout_page->setMesoIdx(m_mesoIdx);
-			if (m_exercisesPage)
-				m_exercisesPage->setMesoIdx(m_mesoIdx);
+			if (m_splitsPage)
+				m_splitsPage->setMesoIdx(m_mesoIdx);
 			if (m_calendarPage)
 				m_calendarPage->setMesoIdx(m_mesoIdx);
 		}
@@ -523,16 +520,13 @@ void QMLMesoInterface::createMesocyclePage_part2()
 		});
 	}
 
-	connect(m_mesoModel, &DBMesocyclesModel::canExportChanged, this, [this] (const uint meso_idx, const bool can_export)
-	{
+	connect(m_mesoModel, &DBMesocyclesModel::canExportChanged, this, [this] (const uint meso_idx, const bool can_export) {
 		if (meso_idx == m_mesoIdx)
-		{
-			m_bCanExport = can_export;
 			emit canExportChanged();
-		}
 	});
 
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, &QMLMesoInterface::labelsChanged);
+
 	if (m_mesoModel->isNewMeso(m_mesoIdx))
 		maybeChangeNewMesoFieldCounter();
 

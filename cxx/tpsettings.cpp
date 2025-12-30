@@ -39,7 +39,7 @@ QString TPSettings::userConfigFileName(const bool fullpath, const QString &useri
 	if (!fullpath)
 		return configfile;
 	else
-		return appUserModel()->userDir(userid) + configfile;
+		return appUserModel()->userDir(userid) % configfile;
 }
 
 void TPSettings::importFromUserConfig(const QString &userid)
@@ -139,7 +139,7 @@ void TPSettings::changeValue(const QString &group, const QString &field_name, co
 	#ifndef Q_OS_ANDROID
 	if (isGroupReadOnly(group))
 	{
-		m_readOnlyValues.insert(group + '/' + field_name, new_value.toString());
+		m_readOnlyValues.insert(group % '/' % field_name, new_value.toString());
 		return;
 	}
 	#endif
@@ -204,21 +204,18 @@ void TPSettings::userSettingsInit()
 	m_userPropertyNames.insert(COLOR_SCHEME_INDEX, std::move("colorScheme"_L1));
 	m_userPropertyNames.insert(FONT_SIZE_INDEX, std::move("fontPixelSize"_L1));
 	m_userPropertyNames.insert(WEIGHT_UNIT_INDEX, std::move("weightUnit"_L1));
-	m_userPropertyNames.insert(MESO_IDX_INDEX, std::move("lastViewedMesoIdx"_L1));
 	m_userPropertyNames.insert(ASK_CONFIRMATION_INDEX, std::move("alwaysAskConfirmation"_L1));
 	m_userPropertyNames.insert(WEATHER_CITIES_INDEX, std::move("weatherLocations"_L1));
 
-	m_defaultValues.reserve(USER_SETTINGS_FIELD_COUNT);
+	m_defaultValues.resize(USER_SETTINGS_FIELD_COUNT);
 	for(uint i{USER_LOCALE_INDEX}; i < USER_SETTINGS_FIELD_COUNT; ++i)
 	{
 		switch (i)
 		{
-			case THEME_STYLE_INDEX: m_defaultValues.append(std::move("Material"_L1)); break;
-			case WEIGHT_UNIT_INDEX: m_defaultValues.append(std::move("(kg)"_L1)); break;
-			case MESO_IDX_INDEX: m_defaultValues.append(std::move("-1"_L1)); break;
-			case ASK_CONFIRMATION_INDEX: m_defaultValues.append(std::move(QString{'1'})); break;
-			case COLOR_SCHEME_INDEX: m_defaultValues.append(std::move(QString{'3'})); break;
-			default: m_defaultValues.append(QString{}); break;
+			case THEME_STYLE_INDEX: m_defaultValues[i] = std::move("Material"_L1); break;
+			case WEIGHT_UNIT_INDEX: m_defaultValues[i] = std::move("(kg)"_L1); break;
+			case ASK_CONFIRMATION_INDEX: m_defaultValues[i] = std::move(QString{'1'}); break;
+			case COLOR_SCHEME_INDEX: m_defaultValues[i] = std::move(QString{'3'}); break;
 		}
 	}
 

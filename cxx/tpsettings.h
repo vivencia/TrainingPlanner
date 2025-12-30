@@ -5,46 +5,49 @@
 //--------------------------------------------GLOBAL SETTINGS---------------------------------------------//
 using namespace Qt::Literals::StringLiterals;
 
-constexpr QLatin1StringView TP_APP_VERSION("v20251206 Build 6"_L1);
-constexpr QLatin1StringView GLOBAL_GROUP("app"_L1);
-constexpr QLatin1StringView DEFAULT_USER{"default"_L1};
+constexpr QLatin1StringView TP_APP_VERSION("v20251206 Build 6");
+constexpr QLatin1StringView GLOBAL_GROUP("app");
+constexpr QLatin1StringView DEFAULT_USER{"default"};
 
-constexpr int APP_VERSION_INDEX{0};
-constexpr int WINDOW_WIDTH_INDEX{1};
-constexpr int WINDOW_HEIGHT_INDEX{2};
-constexpr int PAGE_WIDTH_INDEX{3};
-constexpr int PAGE_HEIGHT_INDEX{4};
-constexpr int HEIGHT_TO_WIDTH_RATIO_INDEX{5};
-constexpr int FONT_RATIO{6};
-constexpr int CURRENT_USER{7};
-constexpr int SERVER_ADDRESS{8};
-constexpr int EXERCISES_VERSION_INDEX{9};
-constexpr int APP_SETTINGS_FIELD_COUNT{EXERCISES_VERSION_INDEX + 1};
+enum {
+	APP_VERSION_INDEX,
+	WINDOW_WIDTH_INDEX,
+	WINDOW_HEIGHT_INDEX,
+	PAGE_WIDTH_INDEX,
+	PAGE_HEIGHT_INDEX,
+	HEIGHT_TO_WIDTH_RATIO_INDEX,
+	FONT_RATIO,
+	CURRENT_USER,
+	SERVER_ADDRESS,
+	EXERCISES_VERSION_INDEX,
+	APP_SETTINGS_FIELD_COUNT
+} GlobalSettingFields;
 //--------------------------------------------GLOBAL SETTINGS---------------------------------------------//
 
 //--------------------------------------------USER   SETTINGS---------------------------------------------//
-constexpr int USER_LOCALE_INDEX{0};
-constexpr int THEME_STYLE_INDEX{1};
-constexpr int COLOR_INDEX{2};
-constexpr int LIGHT_COLOR_INDEX{3};
-constexpr int DARK_COLOR_INDEX{4};
-constexpr int PANE_COLOR_INDEX{5};
-constexpr int SELECTED_COLOR_INDEX{6};
-constexpr int LISTS_COLOR_1_INDEX{7};
-constexpr int LISTS_COLOR_2_INDEX{8};
-constexpr int FONT_COLOR_INDEX{9};
-constexpr int DISABLED_FONT_COLOR_INDEX{10};
-constexpr int WEIGHT_UNIT_INDEX{11};
-constexpr int MESO_IDX_INDEX{12};
-constexpr int FONT_SIZE_INDEX{13};
-constexpr int SMALLFONT_SIZE_INDEX{14};
-constexpr int LARGEFONT_SIZE_INDEX{15};
-constexpr int EXTRALARGEFONT_SIZE_INDEX{16};
-constexpr int COLOR_SCHEME_INDEX{17};
-constexpr int ITEM_DEFAULT_HEIGHT{18};
-constexpr int ASK_CONFIRMATION_INDEX{19};
-constexpr int WEATHER_CITIES_INDEX{20};
-constexpr int USER_SETTINGS_FIELD_COUNT{WEATHER_CITIES_INDEX + 1};
+enum {
+	USER_LOCALE_INDEX,
+	THEME_STYLE_INDEX,
+	COLOR_INDEX,
+	LIGHT_COLOR_INDEX,
+	DARK_COLOR_INDEX,
+	PANE_COLOR_INDEX,
+	SELECTED_COLOR_INDEX,
+	LISTS_COLOR_1_INDEX,
+	LISTS_COLOR_2_INDEX,
+	FONT_COLOR_INDEX,
+	DISABLED_FONT_COLOR_INDEX,
+	WEIGHT_UNIT_INDEX,
+	FONT_SIZE_INDEX,
+	SMALLFONT_SIZE_INDEX,
+	LARGEFONT_SIZE_INDEX,
+	EXTRALARGEFONT_SIZE_INDEX,
+	COLOR_SCHEME_INDEX,
+	ITEM_DEFAULT_HEIGHT,
+	ASK_CONFIRMATION_INDEX,
+	WEATHER_CITIES_INDEX,
+	USER_SETTINGS_FIELD_COUNT
+} UserSettingFields;
 //--------------------------------------------USER   SETTINGS---------------------------------------------//
 
 class TPSettings : public QSettings
@@ -94,7 +97,6 @@ Q_PROPERTY(QString userBackground READ userBackground NOTIFY colorChanged FINAL)
 Q_PROPERTY(QString coachesBackground READ coachesBackground NOTIFY colorChanged FINAL)
 Q_PROPERTY(QString clientsBackground READ clientsBackground NOTIFY colorChanged FINAL)
 
-Q_PROPERTY(int lastViewedMesoIdx READ lastViewedMesoIdx WRITE setLastViewedMesoIdx NOTIFY lastViewedMesoIdxChanged)
 Q_PROPERTY(bool alwaysAskConfirmation READ alwaysAskConfirmation WRITE setAlwaysAskConfirmation NOTIFY alwaysAskConfirmationChanged)
 Q_PROPERTY(QStringList colorSchemes READ colorSchemes FINAL CONSTANT)
 //--------------------------------------------USER   SETTINGS---------------------------------------------//
@@ -239,8 +241,6 @@ public:
 
 	inline QString weightUnit() const { return getValue(currentUser(), WEIGHT_UNIT_INDEX, m_defaultValues.at(WEIGHT_UNIT_INDEX)).toString(); }
 	inline void setWeightUnit(const QString &new_value) { changeValue(currentUser(), WEIGHT_UNIT_INDEX, new_value); emit weightUnitChanged(); }
-	inline int lastViewedMesoIdx() const { return getValue(currentUser(), MESO_IDX_INDEX, m_defaultValues.at(MESO_IDX_INDEX)).toInt(); }
-	inline void setLastViewedMesoIdx(const int new_value) { changeValue(currentUser(), MESO_IDX_INDEX, QString::number(new_value)); emit lastViewedMesoIdxChanged(); }
 	inline uint userLocaleIdx() const { return m_languageIdx; }
 
 	uint weatherCitiesCount();
@@ -270,7 +270,7 @@ public:
 	inline bool alwaysAskConfirmation() const { return getValue(currentUser(), ASK_CONFIRMATION_INDEX, m_defaultValues.at(ASK_CONFIRMATION_INDEX)).toBool(); }
 	inline void setAlwaysAskConfirmation(const bool new_value) { changeValue(currentUser(), ASK_CONFIRMATION_INDEX, QString::number(new_value)); emit alwaysAskConfirmationChanged(); }
 
-	inline QVariant getCustomValue(const QString &value_name, const QVariant &default_value) const
+	inline QVariant getCustomValue(const QString &value_name, const QVariant &default_value = QVariant{}) const
 	{
 		return getValue(currentUser(), value_name, default_value);
 	}

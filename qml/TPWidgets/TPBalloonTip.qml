@@ -13,7 +13,7 @@ TPPopup {
 	focus: false
 	width: appSettings.pageWidth * 0.8
 	height: mainLayout.childrenRect.height * 1.1
-	disableMouseHandling: true
+	disableMouseHandling: !movable
 
 	property string message: ""
 	property string title: ""
@@ -102,11 +102,14 @@ TPPopup {
 			}
 		}
 
-		RowLayout {
-			visible: btn1.visible || btn2.visible
+		Row {
+			visible: button1Text.length > 0 || button2Text.length > 0
 			Layout.fillWidth: true
-			spacing: (balloon.width - btn1.width - btn2.width) / 2
+			Layout.leftMargin: empty_space
+			spacing: empty_space
+			height: Math.max(Math.max(appSettings.itemDefaultHeight, btn1.height), btn2.height);
 
+			readonly property int empty_space: (balloon.width - btn1.width - btn2.width) / 3
 			TPButton {
 				id: btn1
 				text: button1Text
@@ -158,15 +161,19 @@ TPPopup {
 		}
 	}
 
-	TPMouseArea {
-		movingWidget: parent
-		movableWidget: parent
+	Loader {
+		active: !movable
+		asynchronous: true
+		anchors.fill: parent
 
-		property point prevPos
+		sourceComponent:  TPMouseArea {
+			movingWidget: parent
+			movableWidget: parent
 
-		onPressed: (mouse) => prevPos = { x: mouse.x, y: mouse.y };
-		onPositionChanged: (mouse) => {
-			if (!balloon.movable) {
+			property point prevPos
+
+			onPressed: (mouse) => prevPos = { x: mouse.x, y: mouse.y };
+			onPositionChanged: (mouse) => {
 				const deltaX = mouse.x - prevPos.x;
 				if (Math.abs(deltaX) >= 10) {
 					x += deltaX;
@@ -179,10 +186,8 @@ TPPopup {
 				}
 				prevPos = { x: mouse.x, y: mouse.y };
 			}
-			else
-				positionChangedFunction(mouse);
 		}
-	}
+	} //Loadeer
 
 	Timer {
 		id: hideTimer

@@ -8,6 +8,6 @@ ToolBar {
 	width: appSettings.windowWidth
 
 	background: TPBackRec {
-		useShape: true
+		useGradient: true
 	}
 }

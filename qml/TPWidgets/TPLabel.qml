@@ -20,13 +20,14 @@ Label {
 	property string fontColor: appSettings.fontColor
 	property bool singleLine: true
 	property bool useBackground: false
+	property string backgroundColor: appSettings.primaryDarkColor
 
 	background: useBackground ? itemBack : null
 
 	Rectangle {
 		id: itemBack
-		color: control.enabled ? appSettings.primaryDarkColor : "transparent"
-		radius: 6
+		color: control.enabled ? backgroundColor : "transparent"
+		radius: 8
 		opacity: 0.5
 	}
 }

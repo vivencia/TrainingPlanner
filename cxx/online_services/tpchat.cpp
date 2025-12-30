@@ -192,7 +192,7 @@ void TPChat::loadChat()
 			endInsertRows();
 			m_chatLoaded = true;
 		}
-		m_sendMessageTimer->start(0);
+		m_sendMessageTimer->start(1);
 	}, Qt::SingleShotConnection);
 	appThreadManager()->runAction(m_db, ThreadManager::ReadAllRecords);
 	m_sendMessageTimer = new QTimer{this};

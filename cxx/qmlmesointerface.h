@@ -20,11 +20,12 @@ Q_PROPERTY(bool mesoNameOK READ mesoNameOK WRITE setMesoNameOK NOTIFY mesoNameOK
 Q_PROPERTY(bool startDateOK READ startDateOK WRITE setStartDateOK NOTIFY startDateOKChanged FINAL)
 Q_PROPERTY(bool endDateOK READ endDateOK WRITE setEndDateOK NOTIFY endDateOKChanged FINAL)
 Q_PROPERTY(bool realMeso READ realMeso WRITE setRealMeso NOTIFY realMesoChanged FINAL)
-Q_PROPERTY(bool ownMeso READ ownMeso NOTIFY ownMesoChanged FINAL)
+Q_PROPERTY(bool ownMeso READ ownMeso CONSTANT FINAL)
 Q_PROPERTY(bool splitOK READ splitOK NOTIFY splitOKChanged FINAL)
 Q_PROPERTY(bool isNewMeso READ isNewMeso NOTIFY isNewMesoChanged FINAL)
 Q_PROPERTY(bool isTempMeso READ isTempMeso NOTIFY isTempMesoChanged FINAL)
 Q_PROPERTY(bool canExport READ canExport NOTIFY canExportChanged FINAL)
+Q_PROPERTY(bool coachIsMainUser READ coachIsMainUser CONSTANT FINAL)
 
 Q_PROPERTY(QString mesoNameErrorTooltip READ mesoNameErrorTooltip NOTIFY mesoNameOKChanged FINAL)
 Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged FINAL)
@@ -56,7 +57,7 @@ Q_PROPERTY(QDate maximumMesoEndDate READ maximumMesoEndDate CONSTANT FINAL)
 public:
 	explicit inline QMLMesoInterface(DBMesocyclesModel *meso_model, const uint meso_idx)
 		: QObject{reinterpret_cast<QObject*>(meso_model)}, m_mesoModel{meso_model}, m_mesoComponent{nullptr},
-						m_mesoIdx{meso_idx}, m_exercisesPage{nullptr}, m_calendarPage{nullptr} {}
+						m_mesoIdx{meso_idx}, m_splitsPage{nullptr}, m_calendarPage{nullptr} {}
 	inline ~QMLMesoInterface() { cleanUp(); }
 
 	void cleanUp();
@@ -80,11 +81,12 @@ public:
 	[[nodiscard]] bool ownMeso() const;
 	[[nodiscard]] bool isNewMeso() const;
 	[[nodiscard]] bool isTempMeso() const;
-	[[nodiscard]] inline bool canExport() const { return m_bCanExport; }
+	[[nodiscard]] bool canExport() const;
+	[[nodiscard]] bool coachIsMainUser() const;
 
 	inline QString mesoNameErrorTooltip() const { return m_nameError; }
-	[[nodiscard]] inline QString name() const { return m_name; }
-	void setName(const QString &new_name, const bool modify_new_meso_counter = true, const bool from_qml = true);
+	[[nodiscard]] QString name() const;
+	void setName(const QString &new_name);
 
 	[[nodiscard]] QString coach() const;
 	void setCoach(const QString &new_value);
@@ -149,7 +151,6 @@ signals:
 	void startDateOKChanged();
 	void endDateOKChanged();
 	void realMesoChanged();
-	void ownMesoChanged();
 	void splitOKChanged();
 	void isNewMesoChanged();
 	void isTempMesoChanged();
@@ -176,13 +177,13 @@ private:
 	DBMesocyclesModel *m_mesoModel;
 
 	uint m_mesoIdx;
-	bool m_bCanExport, m_mesoNameOK, m_startDateOK, m_endDateOK;
+	bool m_mesoNameOK, m_startDateOK, m_endDateOK;
 	QString m_name, m_strStartDate, m_strEndDate, m_nameError;
 	QDate m_startDate, m_endDate, m_minimumMesoStartDate, m_maximumMesoEndDate;
 	int m_newMesoFieldCounter;
 
 	QHash<QDate,QmlWorkoutInterface*> m_workoutPages;
-	QmlMesoSplitInterface *m_exercisesPage;
+	QmlMesoSplitInterface *m_splitsPage;
 	QmlMesoCalendarInterface *m_calendarPage;
 
 	void createMesocyclePage();

@@ -68,7 +68,6 @@ Item {
 		} //ItemDelegate
 	}
 
-
 	TPButton {
 		id: button
 		text: buttonString
@@ -84,7 +83,6 @@ Item {
 			horizontalCenter: parent.horizontalCenter
 		}
 	}
-
 
 	Component.onCompleted: {
 		if (listClients && listCoaches)
