@@ -35,8 +35,8 @@ DBUserTable::DBUserTable(DBModelInterfaceUser *dbmodel_interface)
 
 QString DBUserTable::dbFileName(const bool fullpath) const
 {
-	const QString &filename{std::move("Users"_L1 + dbfile_extension)};
-	return fullpath ? dbFilePath() + filename : filename;
+	const QString &filename{std::move("Users"_L1 % dbfile_extension)};
+	return fullpath ? dbFilePath() % filename : filename;
 }
 
 bool DBUserTable::getAllUsers()

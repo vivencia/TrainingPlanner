@@ -29,7 +29,7 @@ Q_PROPERTY(bool coachIsMainUser READ coachIsMainUser CONSTANT FINAL)
 
 Q_PROPERTY(QString mesoNameErrorTooltip READ mesoNameErrorTooltip NOTIFY mesoNameOKChanged FINAL)
 Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged FINAL)
-Q_PROPERTY(QString coach READ coach WRITE setCoach NOTIFY coachChanged FINAL)
+Q_PROPERTY(QString coachName READ coachName CONSTANT FINAL)
 Q_PROPERTY(QString client READ client WRITE setClient NOTIFY clientChanged FINAL)
 Q_PROPERTY(QString type READ type WRITE setType NOTIFY typeChanged FINAL)
 Q_PROPERTY(QString displayFileName READ displayFileName NOTIFY displayFileNameChanged FINAL)
@@ -88,8 +88,7 @@ public:
 	[[nodiscard]] QString name() const;
 	void setName(const QString &new_name);
 
-	[[nodiscard]] QString coach() const;
-	void setCoach(const QString &new_value);
+	[[nodiscard]] QString coachName() const;
 
 	[[nodiscard]] QString client() const;
 	void setClient(const QString &new_value);
@@ -157,7 +156,6 @@ signals:
 	void canExportChanged();
 	void labelsChanged();
 	void nameChanged();
-	void coachChanged();
 	void clientChanged();
 	void typeChanged();
 	void displayFileNameChanged();

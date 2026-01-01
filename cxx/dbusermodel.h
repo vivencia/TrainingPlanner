@@ -139,9 +139,11 @@ public:
 	}
 	inline bool mainUserIsClient() const { return isClient(0); }
 
-	Q_INVOKABLE inline int findUserByName(const QString &username, const bool exact_match = true) const
+	//the first() method of results indicates whether the file belongs to a main user's coach(or not)
+	void scanUsersSubDirs(std::pair<QList<bool>, QFileInfoList> &results, const QString &subdir = QString{}, const QString &match = QString{});
+	Q_INVOKABLE inline int findUserById(const QString &userid, const bool exact_match = true) const
 	{
-		return userIdxFromFieldValue(USER_COL_NAME, username, exact_match);
+		return userIdxFromFieldValue(USER_COL_NAME, userid, exact_match);
 	}
 	Q_INVOKABLE inline QString userNameFromId(const QString &userid) const { return userName(userIdxFromFieldValue(USER_COL_ID, userid)); }
 	int userIdxFromFieldValue(const uint field, const QString &value, const bool exact_match = true) const;
@@ -267,7 +269,7 @@ public:
 
 	inline OnlineUserInfo *pendingClientsRequests() const { return m_pendingClientRequests; }
 	inline OnlineUserInfo *currentClients() const { return m_currentClients; }
-	inline const QString &defaultClient() const { return m_currentClients ? m_currentClients->data(0, USER_COL_NAME) : m_emptyString; }
+	inline const QString &mostRecentClientId() const { return m_currentClients ? m_currentClients->data(0, USER_COL_ID) : m_emptyString; }
 	void addClient(const uint user_idx, const bool emit_signal = true);
 	void delClient(const uint user_idx);
 

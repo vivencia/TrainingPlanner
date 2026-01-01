@@ -1,6 +1,6 @@
 #include "tponlineservices.h"
 
-#include "scan_network.h"
+//#include "scan_network.h"
 #include "websocketserver.h"
 #include "../dbusermodel.h"
 #include "../osinterface.h"
@@ -526,6 +526,12 @@ void TPOnlineServices::chatMessageWorkAcknowledged(const int requestid, const QS
 	makeNetworkRequest(requestid, url);
 }
 
+void TPOnlineServices::recheckNewMessages()
+{
+	const QUrl &url{makeCommandURL(false, "forcegetnewmessages"_L1)};
+	static_cast<void>(m_networkManager->get(QNetworkRequest{url}));
+}
+
 void TPOnlineServices::storeCredentials()
 {
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this] (const QString &key, const QString &value) {
@@ -589,7 +595,7 @@ void TPOnlineServices::makeNetworkRequest(const int requestid, const QUrl &url, 
 
 void TPOnlineServices::handleServerRequestReply(const int requestid, QNetworkReply *reply, const bool b_internal_signal_only)
 {
-	int ret_code{TP_RET_CODE_SUCCESS};
+	int ret_code{TP_RET_CODE_UNKNOWN_ERROR};
 	QString reply_string;
 	QByteArray file_contents;
 
@@ -630,6 +636,8 @@ void TPOnlineServices::handleServerRequestReply(const int requestid, QNetworkRep
 					ret_code = reply_string.sliced(0, ret_code_idx).toInt();
 					static_cast<void>(reply_string.remove(0, ret_code_idx + 1));
 				}
+				else
+					ret_code = TP_RET_CODE_INVALID_REQUEST_METHOD;
 				reply_string = std::move(reply_string.trimmed());
 			}
 		}

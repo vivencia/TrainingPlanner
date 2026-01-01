@@ -9,7 +9,7 @@ TPPopup {
 	id: balloon
 	keepAbove: false
 	closeButtonVisible: false
-	showTitleBar: title.length > 0
+	showTitleBar: false
 	focus: false
 	width: appSettings.pageWidth * 0.8
 	height: mainLayout.childrenRect.height * 1.1
@@ -59,9 +59,10 @@ TPPopup {
 		TPLabel {
 			id: lblTitle
 			text: title
+			useBackground: true
 			horizontalAlignment: Text.AlignHCenter
 			visible: title.length > 0
-			Layout.maximumWidth: parent.width - titleBarHeight
+			Layout.fillWidth: true
 		}
 
 		RowLayout {
@@ -99,6 +100,34 @@ TPPopup {
 				visible: message.length > 0
 				Layout.fillWidth: true
 				Layout.maximumHeight: contentHeight
+
+				Loader {
+					active: !movable
+					asynchronous: true
+					anchors.fill: parent
+
+					sourceComponent:  TPMouseArea {
+						movingWidget: parent
+						movableWidget: balloon
+
+						property point prevPos
+
+						onPressed: (mouse) => prevPos = { x: mouse.x, y: mouse.y };
+						onPositionChanged: (mouse) => {
+							const deltaX = mouse.x - prevPos.x;
+							if (Math.abs(deltaX) >= 10) {
+								x += deltaX;
+								if (deltaX > 0)
+									finalXPos = appSettings.pageWidth + 300;
+								else
+									finalXPos = -300;
+								alternateCloseTransition.start();
+								balloon.closePopup();
+							}
+							prevPos = { x: mouse.x, y: mouse.y };
+						}
+					}
+				} //Loader
 			}
 		}
 
@@ -137,7 +166,7 @@ TPPopup {
 				}
 			}
 		}
-	}
+	} // ColumnLayout
 
 	SequentialAnimation {
 		loops: Animation.Infinite
@@ -160,34 +189,6 @@ TPPopup {
 			easing.type: Easing.InOutCubic
 		}
 	}
-
-	Loader {
-		active: !movable
-		asynchronous: true
-		anchors.fill: parent
-
-		sourceComponent:  TPMouseArea {
-			movingWidget: parent
-			movableWidget: parent
-
-			property point prevPos
-
-			onPressed: (mouse) => prevPos = { x: mouse.x, y: mouse.y };
-			onPositionChanged: (mouse) => {
-				const deltaX = mouse.x - prevPos.x;
-				if (Math.abs(deltaX) >= 10) {
-					x += deltaX;
-					if (deltaX > 0)
-						finalXPos = appSettings.pageWidth + 300;
-					else
-						finalXPos = -300;
-					alternateCloseTransition.start();
-					balloon.closePopup();
-				}
-				prevPos = { x: mouse.x, y: mouse.y };
-			}
-		}
-	} //Loadeer
 
 	Timer {
 		id: hideTimer

@@ -17,20 +17,26 @@ constexpr uint MESSAGE_OWNMESSAGE{MESSAGE_MEDIA + 1};
 
 using namespace Qt::Literals::StringLiterals;
 
+enum ChatLoadedStatus {
+	Unloaded,
+	Waiting,
+	Loaded
+};
+
 enum ChatRoleNames {
-	idRole			=		Qt::UserRole + MESSAGE_ID,
-	senderRole		=		Qt::UserRole + MESSAGE_SENDER,
-	receiverRole	=		Qt::UserRole + MESSAGE_RECEIVER,
-	sDateRole		=		Qt::UserRole + MESSAGE_SDATE,
-	sTimeRole		=		Qt::UserRole + MESSAGE_STIME,
-	rDateRole		=		Qt::UserRole + MESSAGE_RDATE,
-	rTimeRole		=		Qt::UserRole + MESSAGE_RTIME,
-	deletedRole		=		Qt::UserRole + MESSAGE_DELETED,
-	sentRole		=		Qt::UserRole + MESSAGE_SENT,
-	receivedRole	=		Qt::UserRole + MESSAGE_RECEIVED,
-	readRole		=		Qt::UserRole + MESSAGE_READ,
-	textRole		=		Qt::UserRole + MESSAGE_TEXT,
-	mediaRole		=		Qt::UserRole + MESSAGE_MEDIA,
+	idRole			=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_ID),
+	senderRole		=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_SENDER),
+	receiverRole	=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_RECEIVER),
+	sDateRole		=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_SDATE),
+	sTimeRole		=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_STIME),
+	rDateRole		=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_RDATE),
+	rTimeRole		=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_RTIME),
+	deletedRole		=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_DELETED),
+	sentRole		=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_SENT),
+	receivedRole	=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_RECEIVED),
+	readRole		=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_READ),
+	textRole		=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_TEXT),
+	mediaRole		=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_MEDIA),
 	ownMessageRole	=		mediaRole + 1,
 };
 
@@ -52,7 +58,7 @@ struct ChatMessage {
 };
 
 TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QObject *parent)
-	: QAbstractListModel{parent}, m_otherUserId{otheruser_id}, m_unreadMessages{0}, m_chatWindow{nullptr},  m_chatLoaded{false},
+	: QAbstractListModel{parent}, m_otherUserId{otheruser_id}, m_chatWindow{nullptr},  m_chatLoaded{Unloaded},
 									m_sendMessageTimer{nullptr}, m_peerSocket{nullptr}
 {
 	m_roleNames[idRole]			=	std::move("msgId");
@@ -117,7 +123,7 @@ TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QO
 			{
 				disconnect(*conn);
 				if (return_value1.toBool())
-					setUnreadMessages(return_value2.toUInt());
+					setUnreadMessages(return_value2.toString());
 			}
 		});
 		auto x = [this] () -> std::pair<QVariant,QVariant> { return m_db->getNumberOfUnreadMessages(); };
@@ -163,7 +169,6 @@ void TPChat::loadChat()
 		if (success)
 		{
 			beginInsertRows(QModelIndex{}, 0, m_dbModelInterface->modelData().count() - 1);
-			uint unread_messages{0};
 			for (const auto &str_message : std::as_const(m_dbModelInterface->modelData()))
 			{
 				ChatMessage *message = new ChatMessage;
@@ -182,15 +187,17 @@ void TPChat::loadChat()
 				message->media = str_message.at(MESSAGE_MEDIA);
 				message->own_message = message->sender == appUserModel()->userId(0);
 				m_messages.append(message);
-				if (!message->read && !message->own_message)
-					++unread_messages;
 			};
+			if (m_messageWorksQueued)
+			{
+				setChatLoadedStatus(Waiting);
+				appOnlineServices()->recheckNewMessages();
+			}
+			else
+				setChatLoadedStatus(Loaded);
 			emit dataChanged(index(0, 0), index(count() - 1));
 			emit countChanged();
-			if (unread_messages > 0)
-				setUnreadMessages(unread_messages);
 			endInsertRows();
-			m_chatLoaded = true;
 		}
 		m_sendMessageTimer->start(1);
 	}, Qt::SingleShotConnection);
@@ -216,16 +223,28 @@ QString TPChat::avatarIcon() const
 
 void TPChat::processTPServerMessage(const QString &work, const QString &messages)
 {
-	if (!m_chatLoaded)
-		return;
-	uint msg_idx{0};
-	do {
-		const QString &message{appUtils()->getCompositeValue(msg_idx, messages, set_separator)};
-		if (message.isEmpty())
-			break;
-		if (m_workFuncs.contains(work))
-			m_workFuncs.value(work)(message);
-	} while (++msg_idx);
+	if (m_chatLoaded == Unloaded)
+	{
+		m_messageWorksQueued = true;
+		if (work == messageWorkSend)
+			getNewMessagesNumber(messages);
+	}
+	else
+	{
+		uint msg_idx{0};
+		do {
+			const QString &message{appUtils()->getCompositeValue(msg_idx, messages, set_separator)};
+			if (message.isEmpty())
+				break;
+			if (m_workFuncs.contains(work))
+				m_workFuncs.value(work)(message);
+		} while (++msg_idx);
+		if (m_chatLoaded == Waiting) {
+			if (!hasUnreadMessages() || work == messageWorkSend)
+				setChatLoadedStatus(Loaded);
+		}
+		m_messageWorksQueued = false;
+	}
 }
 
 //When called from ChatWindow: deletes the message locally and, if it is a sent message, insctruct the other party to have
@@ -265,17 +284,6 @@ void TPChat::editMessage(const QString &encoded_data)
 			}
 		}
 	}
-}
-
-void TPChat::setUnreadMessages(const int n_unread)
-{
-	switch (n_unread)
-	{
-		case -1: if (m_unreadMessages > 0) --m_unreadMessages; break;
-		case -2: ++m_unreadMessages; break;
-		default: m_unreadMessages = n_unread; break;
-	}
-	emit unreadMessagesChanged();
 }
 
 void TPChat::markAllIncomingMessagesRead()
@@ -328,7 +336,7 @@ void TPChat::incomingMessage(const QString &encoded_message)
 		}
 	}
 	if (!message->read)
-		setUnreadMessages(-2);
+		setUnreadMessages(QString::number(message->id));
 	m_messages.append(message);
 	if (m_chatWindow)
 	{
@@ -418,7 +426,7 @@ bool TPChat::setData(const QModelIndex &index, const QVariant &value, int role)
 				if (message->read == value.toBool())
 					return false;
 				message->read = value.toBool();
-				setUnreadMessages(message->read ? -1 : -2);
+				setUnreadMessages(QString::number(message->id), !message->read);
 				if (respond || !message->own_message)
 					uploadAction(MESSAGE_READ, message);
 			break;
@@ -448,11 +456,12 @@ void TPChat::processWebSocketMessage(const QString &message)
 	static_cast<void>(appUtils()->getCompositeValue(0, message, exercises_separator).toInt(&ok));
 	if (ok)
 	{
-		if (!m_chatLoaded)
+		if (m_chatLoaded == Unloaded)
 		{
-			connect(this, &TPChat::countChanged, this, [this,message] {
-				processWebSocketMessage(message);
-			}, Qt::SingleShotConnection);
+			connect(this, &TPChat::chatLoadedStatusChanged, this, [this,message] {
+				if (m_chatLoaded == Loaded)
+					processWebSocketMessage(message);
+			});
 			loadChat();
 			return;
 		}
@@ -479,10 +488,19 @@ void TPChat::onChatWindowOpened()
 	markAllIncomingMessagesRead();
 }
 
+inline void TPChat::setChatLoadedStatus(uint8_t status)
+{
+	if (status != m_chatLoaded)
+	{
+		m_chatLoaded = status;
+		emit chatLoadedStatusChanged();
+	}
+}
+
 inline short TPChat::connectionType() const
 {
 	short has_connection{0};
-	if (m_peerSocket && m_peerSocket->isValid())
+	if (!m_messageWorksQueued && m_peerSocket && m_peerSocket->isValid())
 		setBit(has_connection, 0);
 	if (appUserModel()->canConnectToServer())
 		setBit(has_connection, 1);
@@ -678,4 +696,46 @@ ChatMessage* TPChat::decodeDownloadedMessage(const QString &encoded_message)
 	new_message->text = std::move(appUtils()->getCompositeValue(MESSAGE_TEXT, encoded_message, record_separator));
 	new_message->media = std::move(appUtils()->getCompositeValue(MESSAGE_MEDIA, encoded_message, record_separator));
 	return new_message;
+}
+
+void TPChat::getNewMessagesNumber(const QString &encoded_messages)
+{
+	uint msg_idx{0};
+	QString unread_ids;
+	do {
+		const QString &encoded_message{appUtils()->getCompositeValue(msg_idx, encoded_messages, set_separator)};
+		if (encoded_message.isEmpty())
+			break;
+		unread_ids.append(appUtils()->getCompositeValue(MESSAGE_ID, encoded_message, record_separator) % set_separator);
+	} while (++msg_idx);
+	setUnreadMessages(unread_ids);
+}
+
+void TPChat::setUnreadMessages(const QString &unread_ids, const bool add)
+{
+	uint idx{0};
+	const auto n_unread_ids{m_unreadIds.count()};
+	if (unread_ids.contains(set_separator))
+	{
+		do {
+			QString msg_id{std::move(appUtils()->getCompositeValue(idx, unread_ids, set_separator))};
+			if (msg_id.isEmpty())
+				break;
+			const bool contains{m_unreadIds.contains(msg_id)};
+			if (add && !contains)
+				m_unreadIds.append(std::move(msg_id));
+			else if (!add && contains)
+				m_unreadIds.removeOne(unread_ids);
+		} while (++idx);
+	}
+	else
+	{
+		const bool contains{m_unreadIds.contains(unread_ids)};
+		if (add && !contains)
+			m_unreadIds.append(unread_ids);
+		else if (!add && contains)
+			m_unreadIds.removeOne(unread_ids);
+	}
+	if (n_unread_ids != m_unreadIds.count())
+		emit unreadMessagesChanged();
 }

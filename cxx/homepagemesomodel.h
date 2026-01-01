@@ -18,9 +18,7 @@ public:
 	#ifndef Q_OS_ANDROID
 	void userSwitchingActions();
 	#endif
-	Q_INVOKABLE inline uint count() const { return m_mesoModelRows.count(); }
-	Q_INVOKABLE inline uint mesoRow(const uint row) const { return row < m_mesoModelRows.count() ? m_mesoModelRows.at(row) : row; }
-	Q_INVOKABLE inline int findMesoIdx(const uint meso_idx) const { return m_mesoModelRows.indexOf(meso_idx); }
+	inline uint count() const { return m_mesoModelRows.count(); }
 
 	void appendData(const uint mesoModelRow);
 	void removeRow(const uint row);
@@ -34,7 +32,7 @@ public:
 
 	inline void emitDataChanged(const uint meso_idx, const int role)
 	{
-		const int row{findMesoIdx(meso_idx)};
+		const int row{findLocalIdx(meso_idx)};
 		if (row >= 0)
 			emit dataChanged(index(row, 0), index(row, 0), role >= 0 ? QList<int>{1, role} : QList<int>{});
 	}
@@ -50,5 +48,7 @@ private:
 	QList<uint> m_mesoModelRows;
 	QHash<int, QByteArray> m_roleNames;
 	DBMesocyclesModel *m_mesoModel;
+
+	inline int findLocalIdx(const uint meso_idx) const { return m_mesoModelRows.indexOf(meso_idx); }
 };
 

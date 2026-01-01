@@ -181,7 +181,7 @@ void QmlItemManager::importFromSelectedFile(const QList<bool> &selectedFields)
 				importFileMessageId = appUserModel()->newUserFromFile(m_importFilename, formatted);
 			break;
 			case IFC_MESO:
-				importFileMessageId = appUserModel()->actualMesoModel()->newMesoFromFile(m_importFilename, true, formatted);
+				importFileMessageId = appUserModel()->actualMesoModel()->newMesoFromFile(m_importFilename, formatted);
 			break;
 			case IFC_MESOSPLIT_A:
 			case IFC_MESOSPLIT_B:

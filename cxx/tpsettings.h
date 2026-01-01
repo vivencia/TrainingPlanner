@@ -9,7 +9,7 @@ constexpr QLatin1StringView TP_APP_VERSION("v20251206 Build 6");
 constexpr QLatin1StringView GLOBAL_GROUP("app");
 constexpr QLatin1StringView DEFAULT_USER{"default"};
 
-enum {
+enum GlobalSettingFields {
 	APP_VERSION_INDEX,
 	WINDOW_WIDTH_INDEX,
 	WINDOW_HEIGHT_INDEX,
@@ -21,11 +21,11 @@ enum {
 	SERVER_ADDRESS,
 	EXERCISES_VERSION_INDEX,
 	APP_SETTINGS_FIELD_COUNT
-} GlobalSettingFields;
+};
 //--------------------------------------------GLOBAL SETTINGS---------------------------------------------//
 
 //--------------------------------------------USER   SETTINGS---------------------------------------------//
-enum {
+enum UserSettingFields {
 	USER_LOCALE_INDEX,
 	THEME_STYLE_INDEX,
 	COLOR_INDEX,
@@ -47,7 +47,7 @@ enum {
 	ASK_CONFIRMATION_INDEX,
 	WEATHER_CITIES_INDEX,
 	USER_SETTINGS_FIELD_COUNT
-} UserSettingFields;
+};
 //--------------------------------------------USER   SETTINGS---------------------------------------------//
 
 class TPSettings : public QSettings

@@ -400,7 +400,7 @@ bool TPUtils::writeDataToFile(QFile *out_file,
 		return false;
 
 	if (!identifier.isEmpty())
-		out_file->write(QString{STR_START_EXPORT + identifier + '\n'}.toUtf8().constData());
+		out_file->write(QString{STR_START_EXPORT % identifier % '\n'}.toUtf8().constData());
 
 	if (export_rows.isEmpty())
 	{
@@ -456,8 +456,8 @@ bool TPUtils::writeDataToFormattedFile(QFile *out_file,
 
 	QString first_line{std::move(STR_START_FORMATTED_EXPORT + identifier)};
 	if (!header.isEmpty())
-		first_line += std::forward<QString>("  "_L1 + header);
-	first_line += std::forward<QString>(std::move("\n\n"_L1));
+		first_line += std::move<QString>("  "_L1 + header);
+	first_line += std::move<QString>(std::move("\n\n"_L1));
 	out_file->write(first_line.toUtf8().constData());
 
 	if (export_rows.isEmpty())
@@ -511,14 +511,14 @@ int TPUtils::readDataFromFile(QFile *in_file,
 								const int row) const
 {
 	if (!in_file || !in_file->isOpen())
-		return -1;
+		return TP_RET_CODE_OPEN_READ_FAILED;
 
-	const qsizetype prevCount{data.count()};
 	QStringList data_read{field_count};
 	QStringList::iterator itr{data_read.begin()};
-	bool identifier_found{false};
+	bool identifier_found{false}, data_found{false};
 	QString line{512, QChar{0}};
 	QTextStream stream{in_file};
+
 	while (stream.readLineInto(&line))
 	{
 		if (!identifier_found)
@@ -543,15 +543,14 @@ int TPUtils::readDataFromFile(QFile *in_file,
 						data.append(std::move(data_read));
 					else if (row < data.count())
 						data.replace(row, std::move(data_read));
+					data_found = true;
 				}
 			}
-			else {
-				if (itr != data_read.end())
-					*itr++ = std::move(line);
-			}
+			else
+				*itr++ = std::move(line);
 		}
 	}
-	return identifier_found ? data.count() - prevCount : TP_RET_CODE_WRONG_IMPORT_FILE_TYPE;
+	return identifier_found ? (data_found ? TP_RET_CODE_IMPORT_OK : TP_RET_CODE_IMPORT_FAILED) : TP_RET_CODE_WRONG_IMPORT_FILE_TYPE;
 }
 
 int TPUtils::readDataFromFormattedFile(QFile *in_file,
@@ -604,7 +603,7 @@ int TPUtils::readDataFromFormattedFile(QFile *in_file,
 			}
 		}
 	}
-	return identifier_found ? field : TP_RET_CODE_WRONG_IMPORT_FILE_TYPE;
+	return identifier_found ? (field > 1 ? TP_RET_CODE_IMPORT_OK : TP_RET_CODE_IMPORT_FAILED) : TP_RET_CODE_WRONG_IMPORT_FILE_TYPE;
 }
 
 void TPUtils::copyToClipboard(const QString &text) const

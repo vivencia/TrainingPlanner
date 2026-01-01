@@ -32,7 +32,8 @@ enum MesoRoleNames {
 	mesoEndDateRole		=	Qt::UserRole + MESOCYCLES_COL_ENDDATE,
 	mesoSplitRole		=	Qt::UserRole + MESOCYCLES_COL_SPLIT,
 	mesoCoachRole		=	Qt::UserRole + MESOCYCLES_COL_COACH,
-	mesoClientRole		=	Qt::UserRole + MESOCYCLES_COL_CLIENT
+	mesoClientRole		=	Qt::UserRole + MESOCYCLES_COL_CLIENT,
+	mesoIdxRole			=	mesoClientRole + 1,
 };
 
 QT_FORWARD_DECLARE_CLASS(DBMesocyclesTable)
@@ -87,9 +88,9 @@ public:
 	void incorporateMeso(const uint meso_idx);
 
 	uint startNewMesocycle(const bool bCreatePage, const std::optional<bool> bOwnMeso = std::nullopt);
-	Q_INVOKABLE inline void startNewMesocycle_QML(const bool bOwnMeso)
+	Q_INVOKABLE inline void startNewMesocycle_QML(const bool own_meso)
 	{
-		static_cast<void>(startNewMesocycle(true, bOwnMeso));
+		static_cast<void>(startNewMesocycle(true, own_meso));
 	}
 
 	Q_INVOKABLE void getMesocyclePage(const uint meso_idx);
@@ -135,7 +136,6 @@ public:
 	inline void setId(const uint meso_idx, const QString &new_id)
 	{
 		m_mesoData[meso_idx][MESOCYCLES_COL_ID] = new_id;
-		m_currentMesoModel->emitDataChanged(meso_idx, -1);
 	}
 
 	inline const QString &name(const uint meso_idx) const
@@ -366,7 +366,7 @@ public:
 	//and incorporated, any other model that depends on a meso_idx can query mesoIdx() which will now reflect the recently added meso
 	inline int importIdx() const { return m_importMesoIdx; }
 	inline void setImportIdx(const int new_import_idx) { m_importMesoIdx = new_import_idx; }
-	int exportToFile(const uint meso_idx, const QString &filename) const;
+	int exportToFile(const uint meso_idx, const QString &filename, const bool include_splits = true) const;
 	int exportToFormattedFile(const uint meso_idx, const QString &filename) const;
 	int importFromFile(const uint meso_idx, const QString &filename);
 	int importFromFormattedFile(const uint meso_idx, const QString &filename);
@@ -390,11 +390,11 @@ public:
 
 	QString mesoFileName(const uint meso_idx) const;
 	void removeMesoFile(const uint meso_idx);
-	Q_INVOKABLE void sendMesoToUser(const uint meso_idx, const bool just_save_local_file = false);
-	int newMesoFromFile(const QString &filename, const bool from_coach, const std::optional<bool> &file_formatted = std::nullopt);
+	Q_INVOKABLE void sendMesoToUser(const uint meso_idx);
+	int newMesoFromFile(const QString &filename, const bool own_meso, const std::optional<bool> &file_formatted = std::nullopt);
 	int importSplitFromFile(const QString &filename, const uint meso_idx, uint split,
 									const std::optional<bool> &file_formatted = std::nullopt);
-	void viewOnlineMeso(const QString &coach, const QString &mesoFileName);
+	void viewOnlineMeso(const QString &coach, const QString &filename);
 	void scanTemporaryMesocycles();
 
 signals:

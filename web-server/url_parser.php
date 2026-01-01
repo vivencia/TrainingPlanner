@@ -826,17 +826,38 @@ function get_newmessages($userid) {
 		foreach ($files as $file) {
 			if (str_contains($file, ".sqlite") || str_contains($file, ".cmd"))
 				continue;
+			//apcu_store("$userid-$file", false); //uncomment to force new messages checking during development
+			$is_not_modified = apcu_fetch("$userid-$file");
+			if ($is_not_modified === true)
+				continue;
+			apcu_store("$userid-$file", true);
 			$content = $content . file_get_contents($messages_dir.'/'.$file);
 			$content = $content . "\034" . $file . "\034";
 		}
-		if ($content != "")
-		{
+		if ($content != "") {
 			echo "0: ";
 			echo $content;
 			return;
 		}
 	}
 	echo get_return_code("directory empty") . ": No new messages";
+}
+
+
+function clear_apcu_cache($userid) {
+	global $rootdir;
+	$messages_dir = $rootdir . $userid . "/chats";
+	if (is_dir($messages_dir)) {
+		$files = array_values(array_diff(scandir($messages_dir), array('.', '..')));
+		if (count($files) > 0) {
+			$content = "";
+			foreach ($files as $file) {
+				if (str_contains($file, ".sqlite") || str_contains($file, ".cmd"))
+					continue;
+				apcu_store("$userid-$file", false); //force new messages checking during development
+			}
+		}
+	}
 }
 
 function send_message($userid, $receiver, $message) {
@@ -854,6 +875,7 @@ function send_message($userid, $receiver, $message) {
 		$fh = fopen($messages_file, "a+") or die(get_return_code("open write failed") . ": Unable to append to to messages file " . $messages_file);
 	fwrite($fh, $message . "\037");
 	fclose($fh);
+	apcu_store("$receiver-$userid.msg", false);
 	echo "0: Message Sent!";
 }
 
@@ -883,6 +905,7 @@ function remove_received_message($sender, $recipient, $messageid)
 	$fh = fopen($messages_file, "w");
 	fwrite($fh, implode($kept_messages));
 	fclose($fh);
+	apcu_store("$recipient-$sender.msg", false);
 }
 
 function message_worker($sender, $recipient, $messageid, $argument) {
@@ -921,6 +944,7 @@ function message_worker($sender, $recipient, $messageid, $argument) {
 	}
 	fwrite($fh, $messageid . "\037");
 	fclose($fh);
+	apcu_store("$recipient-$sender.$argument", false);
 	echo "0: Message " . $argument . "!";
 	return true;
 }
@@ -1100,11 +1124,14 @@ if ($userid) {
 					$peer_addr = apcu_fetch($userid);
 					if ($peer_addr == false)
 						apcu_store($userid, $_SERVER['REMOTE_ADDR'] . ":" .$port);
+					clear_apcu_cache($userid); //only during development
+					echo "0: User $userid logged in";
 					exit;
 				}
 				if (isset($_GET['logout'])) {
 					set_online_visible($userid, false);
 					apcu_delete($userid);
+					echo "0: User $userid logged out";
 				}
 
 				if (isset($_GET['getpeeraddress'])) {
@@ -1267,6 +1294,10 @@ if ($userid) {
 					$work = $_GET['work'];
 					$work != "" or die(get_return_code("argument missing") . ": No work identifier argument **messageworked**");
 					message_worked($userid, $recipient, $messageid, $work);
+					exit;
+				}
+				if (isset($_GET['forcegetnewmessages'])) {
+					clear_apcu_cache($userid);
 					exit;
 				}
 

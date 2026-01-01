@@ -78,6 +78,7 @@ public:
 	void sendMessage(const int requestid, const QString &receiver, const QString &encoded_message);
 	void chatMessageWork(const int requestid, const QString &recipient, const QString &msgid, const QLatin1StringView &work);
 	void chatMessageWorkAcknowledged(const int requestid, const QString &recipient, const QString &msgid, const QLatin1StringView &work);
+	void recheckNewMessages();
 
 public slots:
 	void storeCredentials();

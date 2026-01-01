@@ -1,31 +1,34 @@
 #pragma once
 
 #include "../dbmodelinterface.h"
+#include "../tpbool.h"
 
 #include <QAbstractListModel>
 #include <QQmlEngine>
 
-constexpr uint MESSAGE_ID				{0};
-constexpr uint MESSAGE_SENDER			{1};
-constexpr uint MESSAGE_RECEIVER			{2};
-constexpr uint MESSAGE_SDATE			{3};
-constexpr uint MESSAGE_STIME			{4};
-constexpr uint MESSAGE_RDATE			{5};
-constexpr uint MESSAGE_RTIME			{6};
-constexpr uint MESSAGE_DELETED			{7};
-constexpr uint MESSAGE_SENT				{8};
-constexpr uint MESSAGE_RECEIVED			{9};
-constexpr uint MESSAGE_READ				{10};
-constexpr uint MESSAGE_TEXT				{11};
-constexpr uint MESSAGE_MEDIA			{12};
-constexpr uint MESSAGE_QUEUED			{13};
-constexpr uint TP_CHAT_MESSAGE_FIELDS	{MESSAGE_QUEUED + 1};
+enum MessageFields {
+	MESSAGE_ID = 0,
+	MESSAGE_SENDER,
+	MESSAGE_RECEIVER,
+	MESSAGE_SDATE,
+	MESSAGE_STIME,
+	MESSAGE_RDATE,
+	MESSAGE_RTIME,
+	MESSAGE_DELETED,
+	MESSAGE_SENT,
+	MESSAGE_RECEIVED,
+	MESSAGE_READ,
+	MESSAGE_TEXT,
+	MESSAGE_MEDIA,
+	MESSAGE_QUEUED,
+	TP_CHAT_TOTAL_MESSAGE_FIELDS
+};
 
-constexpr QLatin1StringView messageWorkSend {".msg"};
-constexpr QLatin1StringView messageWorkReceived {".received"};
-constexpr QLatin1StringView messageWorkRead {".read"};
-constexpr QLatin1StringView messageWorkRemoved {".removed"};
-constexpr QLatin1StringView messageWorkEdited {".edited"};
+constexpr QLatin1StringView messageWorkSend {".0msg"};
+constexpr QLatin1StringView messageWorkReceived {".1received"};
+constexpr QLatin1StringView messageWorkRead {".2read"};
+constexpr QLatin1StringView messageWorkRemoved {".3removed"};
+constexpr QLatin1StringView messageWorkEdited {".4edited"};
 
 QT_FORWARD_DECLARE_CLASS(DBModelInterfaceChat)
 QT_FORWARD_DECLARE_STRUCT(ChatMessage)
@@ -64,9 +67,8 @@ public:
 	void processTPServerMessage(const QString &work, const QString &messages);
 	Q_INVOKABLE void removeMessage(const uint msgid, const bool remove_for_interlocutor);
 	void editMessage(const QString &encoded_data);
-	inline uint unreadMessages() const { return m_unreadMessages; }
-	void setUnreadMessages(const int n_unread);
-	inline bool hasUnreadMessages() const { return m_unreadMessages > 0; }
+	inline uint unreadMessages() const { return m_unreadIds.count(); }
+	inline bool hasUnreadMessages() const { return unreadMessages() > 0; }
 	inline void setHasUnreadMessages(const bool has_unread) { if (!has_unread) markAllIncomingMessagesRead(); }
 	Q_INVOKABLE void markAllIncomingMessagesRead();
 	Q_INVOKABLE void createNewMessage(const QString &text, const QString &media = QString{});
@@ -90,10 +92,11 @@ signals:
 	void unreadMessagesChanged();
 	void initWSConnection(const QString &id, const QString &address);
 	void messageReceived();
+	void chatLoadedStatusChanged();
 
 private:
 	QString m_otherUserId;
-	uint m_userIdx, m_unreadMessages;
+	uint m_userIdx;
 	QList<ChatMessage*> m_messages;
 	QHash<int, QByteArray> m_roleNames;
 	QObject *m_chatWindow;
@@ -101,9 +104,12 @@ private:
 	TPChatDB *m_db;
 	QWebSocket *m_peerSocket;
 	QTimer *m_sendMessageTimer;
-	bool m_chatLoaded;
+	uint8_t m_chatLoaded;
 	QHash<QString,std::function<void(const QString&)>> m_workFuncs;
+	QStringList m_unreadIds;
+	TPBool m_messageWorksQueued;
 
+	void setChatLoadedStatus(uint8_t status);
 	short connectionType() const;
 	void unqueueMessage(ChatMessage *const message);
 	void uploadAction(const uint field, ChatMessage *const message);
@@ -112,6 +118,8 @@ private:
 	void encodeMessageToSave(const ChatMessage *const message);
 	void updateFieldToSave(const uint msg_id, const int field, const QString &value) const;
 	ChatMessage* decodeDownloadedMessage(const QString &encoded_message);
+	void getNewMessagesNumber(const QString &encoded_messages);
+	void setUnreadMessages(const QString &unread_ids, const bool add = true);
 
 	friend class TPMessagesManager;
 };

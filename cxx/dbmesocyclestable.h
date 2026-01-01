@@ -19,5 +19,5 @@ public:
 	bool getAllMesocycles();
 
 signals:
-	void mesocyclesAcquired(QStringList meso_info);
+	void mesocyclesAcquired(QStringList meso_info, const bool last_meso);
 };

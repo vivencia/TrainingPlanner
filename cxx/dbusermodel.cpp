@@ -98,12 +98,12 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 #ifdef Q_OS_ANDROID
 QString DBUserModel::userDir(const QString &userid) const
 {
-	return appSettings()->localAppFilesDir() + userid + '/';
+	return appSettings()->localAppFilesDir() % userid % '/';
 }
 #else
 QString DBUserModel::userDir(const QString &userid) const
 {
-	return userid == userId(0) ? appSettings()->currentUserDir() : appSettings()->currentUserDir() + userid + '/';
+	return userid == userId(0) ? appSettings()->currentUserDir() : appSettings()->currentUserDir() % userid % '/';
 }
 #endif
 
@@ -253,6 +253,22 @@ void DBUserModel::removeUser(const int user_idx, const bool remove_local, const 
 			delClient(user_idx);
 		m_usersData.remove(user_idx);
 		emit userModified(user_idx, USER_MODIFIED_REMOVED);
+	}
+}
+
+void DBUserModel::scanUsersSubDirs(std::pair<QList<bool>,QFileInfoList> &results, const QString &subdir, const QString &match)
+{
+	QDir user_dir{userDir(0)};
+	const QStringList &all_dirs{user_dir.entryList(QDir::AllDirs|QDir::NoDotAndDotDot)};
+	auto n_results{results.second.count()};
+	for (const auto &dir: all_dirs)
+	{
+		if (dir.at(0).isDigit())
+		{
+			appUtils()->scanDir(userDir(0) % dir % '/' % subdir, results.second, match);
+			for (; n_results < results.second.count(); ++n_results)
+				results.first.append(isCoach(userIdxFromFieldValue(USER_COL_ID, dir)));
+		}
 	}
 }
 
@@ -1015,11 +1031,6 @@ void DBUserModel::removeFileFromServer(const QString &filename, const QString &s
 
 int DBUserModel::listFilesFromServer(const QString &subdir, const QString &targetUser, const QString &filter)
 {
-	if (!canConnectToServer())
-		return -1;
-	if (!mainUserRegistered())
-		return -2;
-
 	QLatin1StringView v{QString{targetUser + subdir}.toLatin1().constData()};
 	const int requestid{appUtils()->generateUniqueId(v)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
@@ -1580,9 +1591,16 @@ void DBUserModel::switchToUser(const QString &new_userid, const bool user_switch
 		#endif
 
 	}, Qt::SingleShotConnection);
-	downloadAllUserFiles(new_userid);
-	download_timeout->callOnTimeout([this] () { emit allUserFilesDownloaded(false); });
-	//download_timeout->start(60*1000);
+	if (canConnectToServer())
+	{
+		download_timeout->callOnTimeout([this] () { emit allUserFilesDownloaded(false); });
+		download_timeout->start(60*1000);
+		downloadAllUserFiles(new_userid);
+	}
+	#ifndef Q_OS_ANDROID
+	else if (user_switching_for_testing) // maybe all the files have been previously downloaded, maybe not. This is testing, go for it
+		emit userSwitchPhase1Finished(true);
+	#endif
 }
 
 void DBUserModel::downloadAllUserFiles(const QString &userid)

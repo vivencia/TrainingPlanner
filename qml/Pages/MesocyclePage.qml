@@ -21,10 +21,7 @@ TPPage {
 	required property MesocyclesModel mesoModel
 	property TPBalloonTip newMesoTip: newMesoLoader.item
 
-	onPageDeActivated: {
-		if (mesoManager.ownMeso)
-			mesoManager.sendMesocycleFileToClient();
-	}
+	onPageDeActivated: mesoManager.sendMesocycleFileToClient();
 
 	Connections {
 		target: mesoManager
@@ -112,7 +109,7 @@ TPPage {
 				leftMargin: 5
 				rightMargin: 5
 				topMargin: 0
-				bottomMargin: 10
+				bottomMargin: mesoManager.isNewMeso ? newMesoTip.height : 10
 			}
 
 			Loader {
@@ -131,7 +128,7 @@ TPPage {
 
 					TPCoachesAndClientsList {
 						id: clientsList
-						currentIndex: userModel.findUserByName(mesoManager.client)
+						currentIndex: userModel.findUserById(mesoManager.client)
 						buttonString: qsTr("Go to client's page")
 						height: 0.2 * mesoPropertiesPage.height
 						Layout.fillWidth: true
@@ -149,7 +146,7 @@ TPPage {
 
 					TPTextInput {
 						id: txtCoachName
-						text: mesoManager.coach
+						text: mesoManager.coachName
 						readOnly: true
 						visible: !mesoManager.coachIsMainUser
 
@@ -450,7 +447,7 @@ TPPage {
 			TPLabel {
 				text: mesoModel.notesLabel
 				Layout.topMargin: 10
-				Layout.maximumWidth: parent.width * 0.9
+				Layout.fillWidth: true
 			}
 
 			TPMultiLineEdit {

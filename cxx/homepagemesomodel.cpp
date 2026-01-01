@@ -15,6 +15,7 @@ HomePageMesoModel::HomePageMesoModel(DBMesocyclesModel *meso_model)
 	m_roleNames[mesoSplitRole] = std::move("mesoSplit");
 	m_roleNames[mesoCoachRole] = std::move("mesoCoach");
 	m_roleNames[mesoClientRole] = std::move("mesoClient");
+	m_roleNames[mesoIdxRole] = std::move("mesoIdx");
 }
 
 #ifndef Q_OS_ANDROID
@@ -27,10 +28,17 @@ void HomePageMesoModel::userSwitchingActions()
 
 void HomePageMesoModel::appendData(const uint mesoModelRow)
 {
-	beginInsertRows(QModelIndex{}, count(), count());
-	m_mesoModelRows.append(mesoModelRow);
-	emit countChanged();
-	endInsertRows();
+	if (!m_mesoModelRows.contains(mesoModelRow))
+	{
+		beginInsertRows(QModelIndex{}, count(), count());
+		m_mesoModelRows.append(mesoModelRow);
+		emit countChanged();
+		endInsertRows();
+	}
+	#ifndef QT_NO_DEBUG
+	else
+		qDebug() << "WARNING!!! Attempt to reinsert the same meso_index into a HomePageMesoModel!!";
+	#endif
 }
 
 void HomePageMesoModel::removeRow(const uint row)
@@ -53,25 +61,27 @@ QVariant HomePageMesoModel::data(const QModelIndex &index, int role) const
 		switch (role)
 		{
 			case mesoNameRole:
-				return QVariant{"<b>"_L1 + (m_mesoModel->name(meso_idx).length() >= 5 ?
-					m_mesoModel->name(meso_idx) : tr("Not set")) + (m_mesoModel->_id(meso_idx) < 0 ? tr(" (Temporary)") : QString{}) + "</b>"_L1};
+				return QVariant{"<b>"_L1 % (m_mesoModel->name(meso_idx).length() >= 5 ?
+					m_mesoModel->name(meso_idx) : tr("Not set")) % (m_mesoModel->_id(meso_idx) < 0 ? tr(" (Temporary)") : QString{}) % "</b>"_L1};
 			case mesoStartDateRole:
-				return QVariant{m_mesoModel->startDateLabel() + "<b>"_L1 +
+				return QVariant{m_mesoModel->startDateLabel() % "<b>"_L1 %
 					(!m_mesoModel->strStartDate(meso_idx).isEmpty() ?
-						appUtils()->formatDate(m_mesoModel->startDate(meso_idx)) : tr("Not set")) + "</b>"_L1};
+						appUtils()->formatDate(m_mesoModel->startDate(meso_idx)) : tr("Not set")) % "</b>"_L1};
 			case mesoEndDateRole:
-				return QVariant{m_mesoModel->endDateLabel() + "<b>"_L1 +
+				return QVariant{m_mesoModel->endDateLabel() % "<b>"_L1 %
 					(!m_mesoModel->strEndDate(meso_idx).isEmpty() ?
-						appUtils()->formatDate(m_mesoModel->endDate(meso_idx)) : tr("Not set")) + "</b>"_L1};
+						appUtils()->formatDate(m_mesoModel->endDate(meso_idx)) : tr("Not set")) % "</b>"_L1};
 			case mesoSplitRole:
-				return QVariant{m_mesoModel->splitLabel() + "<b>"_L1 +
-					(m_mesoModel->isSplitOK(meso_idx) ? m_mesoModel->split(meso_idx) : tr("Not set")) + "</b>"_L1};
+				return QVariant{m_mesoModel->splitLabel() % "<b>"_L1 %
+					(m_mesoModel->isSplitOK(meso_idx) ? m_mesoModel->split(meso_idx) : tr("Not set")) % "</b>"_L1};
 			case mesoCoachRole:
-				return QVariant{m_mesoModel->coachLabel() + "<b>"_L1 + (!m_mesoModel->coach(meso_idx).isEmpty() ?
-					appUserModel()->userNameFromId(m_mesoModel->coach(meso_idx)) : tr("Not set")) + "</b>"_L1};
+				return QVariant{m_mesoModel->coachLabel() % "<b>"_L1 % (!m_mesoModel->coach(meso_idx).isEmpty() ?
+					appUserModel()->userNameFromId(m_mesoModel->coach(meso_idx)) : tr("Not set")) % "</b>"_L1};
 			case mesoClientRole:
-				return QVariant{m_mesoModel->clientLabel() + "<b>"_L1 + (!m_mesoModel->coach(meso_idx).isEmpty() ?
-					appUserModel()->userNameFromId(m_mesoModel->client(meso_idx)) : tr("Not set")) + "</b>"_L1};
+				return QVariant{m_mesoModel->clientLabel() % "<b>"_L1 % (!m_mesoModel->coach(meso_idx).isEmpty() ?
+					appUserModel()->userNameFromId(m_mesoModel->client(meso_idx)) : tr("Not set")) % "</b>"_L1};
+			case mesoIdxRole:
+				return meso_idx;
 		}
 	}
 	return QVariant{};

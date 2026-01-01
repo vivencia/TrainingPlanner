@@ -3,9 +3,9 @@
 #include "tpchat.h"
 #include "../dbusermodel.h"
 
-constexpr int n_fields{TP_CHAT_MESSAGE_FIELDS};
+constexpr int n_fields{TP_CHAT_TOTAL_MESSAGE_FIELDS};
 constexpr QLatin1StringView table_name{ "chat_table"_L1 };
-constexpr QLatin1StringView field_names[TP_CHAT_MESSAGE_FIELDS][2] {
+constexpr QLatin1StringView field_names[TP_CHAT_TOTAL_MESSAGE_FIELDS][2] {
 	{"msgid"_L1,	"INTEGER PRIMARY KEY"_L1},
 	{"sender"_L1,	"INTEGER"_L1},
 	{"receiver"_L1,	"INTEGER"_L1},
@@ -61,8 +61,8 @@ bool TPChatDB::loadChat()
 
 			do
 			{
-				QStringList message_info{TP_CHAT_MESSAGE_FIELDS};
-				for (uint i{0}; i < TP_CHAT_MESSAGE_FIELDS; ++i)
+				QStringList message_info{TP_CHAT_TOTAL_MESSAGE_FIELDS};
+				for (uint i{0}; i < TP_CHAT_TOTAL_MESSAGE_FIELDS; ++i)
 					message_info[i] = std::move(m_workingQuery.value(i).toString());
 				m_dbModelInterface->modelData().append(std::move(message_info));
 			} while (m_workingQuery.next());
@@ -76,7 +76,7 @@ bool TPChatDB::loadChat()
 std::pair<QVariant,QVariant> TPChatDB::getNumberOfUnreadMessages()
 {
 	bool success{false};
-	uint n_unreadmsgs{0};
+	QString unread_ids;
 	m_strQuery = std::move("SELECT %1 FROM %2 WHERE %3=%4 AND %5=\'%6\';"_L1.arg(
 			field_names[MESSAGE_ID][0], table_name,
 			field_names[MESSAGE_READ][0], "0"_L1,
@@ -87,9 +87,9 @@ std::pair<QVariant,QVariant> TPChatDB::getNumberOfUnreadMessages()
 		{
 			success = true;
 			do {
-				++n_unreadmsgs;
+				unread_ids.append(m_workingQuery.value(0).toString() % set_separator);
 			} while (m_workingQuery.next());
 		}
 	}
-	return std::pair<QVariant,QVariant>{success, n_unreadmsgs};
+	return std::pair<QVariant,QVariant>{success, unread_ids};
 }

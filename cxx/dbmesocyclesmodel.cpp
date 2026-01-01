@@ -49,6 +49,8 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
 					checkIfCanExport(meso_idx);
 			}
 		}
+		else
+			static_cast<void>(exportToFile(meso_idx, mesoFileName(meso_idx), false)); //temporary new mesocycles
 	});
 	getAllMesocycles();
 }
@@ -92,7 +94,7 @@ uint DBMesocyclesModel::startNewMesocycle(const bool bCreatePage, const std::opt
 	const bool own_meso{bOwnMeso.has_value() ? bOwnMeso.value() : true};
 	const uint meso_idx{newMesocycle(std::move(QStringList{std::move(newMesoTemporaryId()), QString{}, QString{}, QString{}, QString{},
 		QString{}, std::move("RRRRRRR"_L1), QString{}, QString{}, QString{}, QString{}, QString{}, QString{},
-		appUserModel()->userId(0), (own_meso ? appUserModel()->userId(0) : appUserModel()->defaultClient()), QString{},
+		appUserModel()->userId(0), (own_meso ? appUserModel()->userId(0) : appUserModel()->mostRecentClientId()), QString{},
 		QString{}, std::move("1"_L1)}))};
 
 	int32_t newMesoRequiredFields{0};
@@ -118,11 +120,13 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 	m_dbModelInterface->setRemovalInfo(meso_idx, QList<uint>{1, MESOCYCLES_COL_ID});
 	appThreadManager()->runAction(m_db, ThreadManager::DeleteRecords);
 	DBSplitModel *split_model{splitModel(meso_idx, 'A')};
-	m_splitsDB->setDBModelInterface(split_model->dbModelInterface());
-	split_model->dbModelInterface()->setRemovalInfo(0, QList<uint>{1, EXERCISES_COL_MESOID});
-	appThreadManager()->runAction(m_splitsDB, ThreadManager::DeleteRecords);
-
-	qDeleteAll(m_splitModels.at(meso_idx));
+	if (split_model)
+	{
+		m_splitsDB->setDBModelInterface(split_model->dbModelInterface());
+		split_model->dbModelInterface()->setRemovalInfo(0, QList<uint>{1, EXERCISES_COL_MESOID});
+		appThreadManager()->runAction(m_splitsDB, ThreadManager::DeleteRecords);
+		qDeleteAll(m_splitModels.at(meso_idx));
+	}
 	m_splitModels.remove(meso_idx);
 	m_calendarManager->removeCalendarForMeso(meso_idx, true);
 	m_isNewMeso.remove(meso_idx);
@@ -399,15 +403,7 @@ bool DBMesocyclesModel::mesoPlanExists(const QString &mesoName, const QString &c
 	{
 		if (modeldata.at(MESOCYCLES_COL_NAME) == mesoName)
 		{
-			if (coach != "mesocycles"_L1)
-			{
-				if (modeldata.at(MESOCYCLES_COL_COACH) == coach)
-				{
-					if (modeldata.at(MESOCYCLES_COL_CLIENT) == client)
-						return true;
-				}
-			}
-			else
+			if (modeldata.at(MESOCYCLES_COL_COACH) == coach)
 				return true;
 		}
 	}
@@ -502,7 +498,7 @@ void DBMesocyclesModel::checkIfCanExport(const uint meso_idx, const bool emit_si
 	}
 }
 
-int DBMesocyclesModel::exportToFile(const uint meso_idx, const QString &filename) const
+int DBMesocyclesModel::exportToFile(const uint meso_idx, const QString &filename, const bool include_splits) const
 {
 	QFile *out_file{appUtils()->openFile(filename, false, true, false, true)};
 	if (!out_file)
@@ -512,7 +508,7 @@ int DBMesocyclesModel::exportToFile(const uint meso_idx, const QString &filename
 	QList<uint> export_row;
 	export_row.append(meso_idx);
 	if (appUtils()->writeDataToFile(out_file, appUtils()->mesoFileIdentifier, m_mesoData, export_row))
-		ret = exportToFile_splitData(meso_idx, out_file, false);
+		ret = include_splits ? exportToFile_splitData(meso_idx, out_file, false) : TP_RET_CODE_EXPORT_OK;
 	out_file->close();
 	return ret;
 }
@@ -566,14 +562,19 @@ int DBMesocyclesModel::importFromFile(const uint meso_idx, const QString &filena
 		return  TP_RET_CODE_OPEN_READ_FAILED;
 
 	int ret{appUtils()->readDataFromFile(in_file, m_mesoData, fieldCount(), appUtils()->mesoFileIdentifier, meso_idx)};
-	if (ret > 0)
+	if (ret == TP_RET_CODE_IMPORT_OK)
 	{
 		setId(meso_idx, newMesoTemporaryId());
-		for (const auto split_model : std::as_const(m_splitModels.at(meso_idx)))
+		const QMap<QChar,DBSplitModel*> &split_models{m_splitModels.at(meso_idx)};
+		for (DBSplitModel *split_model : split_models)
 		{
-			if ((ret = split_model->importFromFile(filename, in_file)) != TP_RET_CODE_IMPORT_OK)
-				break;
+			if (split_model)
+			{
+				if ((ret = split_model->importFromFile(filename, in_file)) != TP_RET_CODE_IMPORT_OK)
+					break;
+			}
 		}
+
 	}
 	in_file->close();
 	return ret;
@@ -591,13 +592,17 @@ int DBMesocyclesModel::importFromFormattedFile(const uint meso_idx, const QStrin
 												appUtils()->mesoFileIdentifier,
 												[this] (const uint field, const QString &value) { return formatFieldToImport(field, value); })
 	};
-	if (ret > 0)
+	if (ret == TP_RET_CODE_IMPORT_OK)
 	{
 		setId(meso_idx, newMesoTemporaryId());
-		for (auto split_model : m_splitModels.at(meso_idx))
+		const QMap<QChar,DBSplitModel*> &split_models{m_splitModels.at(meso_idx)};
+		for (DBSplitModel *split_model : split_models)
 		{
-			if ((ret = split_model->importFromFormattedFile(filename, in_file)) != TP_RET_CODE_IMPORT_OK)
-				break;
+			if (split_model)
+			{
+				if ((ret = split_model->importFromFormattedFile(filename, in_file)) != TP_RET_CODE_IMPORT_OK)
+					break;
+			}
 		}
 	}
 	in_file->close();
@@ -635,8 +640,7 @@ QString DBMesocyclesModel::formatFieldToImport(const uint field, const QString &
 
 QString DBMesocyclesModel::mesoFileName(const uint meso_idx) const
 {
-	return appUserModel()->userDir(client(meso_idx)) + mesosSubDir +
-			(coach(meso_idx) != appUserModel()->userId(0) ? coach(meso_idx) % '/': QString{}) % name(meso_idx) % ".txt"_L1;
+	return appUserModel()->userDir(client(meso_idx)) % mesosSubDir % name(meso_idx) % ".txt"_L1;
 }
 
 void DBMesocyclesModel::removeMesoFile(const uint meso_idx)
@@ -646,14 +650,12 @@ void DBMesocyclesModel::removeMesoFile(const uint meso_idx)
 	static_cast<void>(QFile::remove(mesofilename));
 }
 
-void DBMesocyclesModel::sendMesoToUser(const uint meso_idx, const bool just_save_local_file)
+void DBMesocyclesModel::sendMesoToUser(const uint meso_idx)
 {
 	if (isNewMeso(meso_idx))
 		return;
 	const QString &filename{mesoFileName(meso_idx)};
 	const int ret{exportToFile(meso_idx, filename)};
-	if (just_save_local_file)
-		return;
 
 	if (ret >= TP_RET_CODE_DEFERRED_ACTION)
 	{
@@ -670,14 +672,14 @@ void DBMesocyclesModel::sendMesoToUser(const uint meso_idx, const bool just_save
 			}
 		});
 	}
-	else
+	else if (ret == TP_RET_CODE_EXPORT_OK)
 		appUserModel()->sendFileToServer(filename, nullptr, !isOwnMeso(meso_idx) ? tr("Exercises Program sent to client") : QString{},
 										mesosSubDir + coach(meso_idx), client(meso_idx));
 }
 
-int DBMesocyclesModel::newMesoFromFile(const QString &filename, const bool from_coach, const std::optional<bool> &file_formatted)
+int DBMesocyclesModel::newMesoFromFile(const QString &filename, const bool own_meso, const std::optional<bool> &file_formatted)
 {
-	const uint meso_idx{startNewMesocycle(false, false)};
+	const uint meso_idx{startNewMesocycle(false, own_meso)};
 	int import_result{TP_RET_CODE_IMPORT_FAILED};
 	if (file_formatted.has_value())
 	{
@@ -692,28 +694,11 @@ int DBMesocyclesModel::newMesoFromFile(const QString &filename, const bool from_
 		if (import_result == TP_RET_CODE_WRONG_IMPORT_FILE_TYPE)
 			import_result = importFromFormattedFile(meso_idx, filename);
 	}
-	if (import_result < 0)
-	{
+	if (import_result != TP_RET_CODE_IMPORT_OK)
 		removeMesocycle(meso_idx);
-		return import_result;
-	}
-
-	int32_t newMesoRequiredFields{0};
-	if (!from_coach)
-	{
-		if (name(meso_idx).length() < 5)
-			setBit(newMesoRequiredFields, MESOCYCLES_COL_NAME);
-		if (strStartDate(meso_idx).isEmpty())
-			setBit(newMesoRequiredFields, MESOCYCLES_COL_STARTDATE);
-		if (isRealMeso(meso_idx) && strEndDate(meso_idx).isEmpty())
-			setBit(newMesoRequiredFields, MESOCYCLES_COL_ENDDATE);
-		if (!isSplitOK(meso_idx))
-			setBit(newMesoRequiredFields, MESOCYCLES_COL_SPLIT);
-	}
-	m_isNewMeso[meso_idx] = newMesoRequiredFields;
-	makeUsedSplits(meso_idx);
-	setOwnMeso(meso_idx);
-	return TP_RET_CODE_IMPORT_OK;
+	else
+		makeUsedSplits(meso_idx);
+	return import_result;
 }
 
 int DBMesocyclesModel::importSplitFromFile(const QString &filename, const uint meso_idx, uint split,
@@ -736,13 +721,13 @@ int DBMesocyclesModel::importSplitFromFile(const QString &filename, const uint m
 	return new_split->newExercisesFromFile(filename, file_formatted);
 }
 
-void DBMesocyclesModel::viewOnlineMeso(const QString &coach, const QString &mesoFileName)
+void DBMesocyclesModel::viewOnlineMeso(const QString &coach, const QString &filename)
 {
-	const int request_id{appUserModel()->downloadFileFromServer(mesoFileName, appUserModel()->userDir() + mesosSubDir + coach + '/',
+	const int request_id{appUserModel()->downloadFileFromServer(filename, appUserModel()->userDir(coach) % mesosSubDir,
 								QString{}, mesosSubDir + coach, appUserModel()->userId(0))};
 
-	auto getPage = [this] (const QString &meso_file_name) {
-		const int meso_idx{newMesoFromFile(meso_file_name, true)};
+	auto getPage = [this] (const QString &meso_file_name) ->void {
+		const int meso_idx{newMesoFromFile(meso_file_name, false, true)};
 		if (meso_idx >= 0)
 			getMesocyclePage(meso_idx);
 	};
@@ -751,7 +736,7 @@ void DBMesocyclesModel::viewOnlineMeso(const QString &coach, const QString &meso
 		return;
 	else if (request_id == TP_RET_CODE_NO_CHANGES_SUCCESS)
 	{
-		getPage(mesoFileName);
+		getPage(filename);
 		return;
 	}
 
@@ -770,19 +755,34 @@ void DBMesocyclesModel::viewOnlineMeso(const QString &coach, const QString &meso
 
 void DBMesocyclesModel::scanTemporaryMesocycles()
 {
-	QFileInfoList mesos;
-	appUtils()->scanDir(appUserModel()->userDir() + mesosSubDir, mesos, "*.txt"_L1, true);
-	if (!mesos.isEmpty())
+	//Get clients' or coaches' temporary mesos
+	std::pair<QList<bool>,QFileInfoList> mesos;
+	appUserModel()->scanUsersSubDirs(mesos, mesosSubDir, "*.txt"_L1);
+	if (!mesos.first.isEmpty())
 	{
-		for(const auto &mesofile : std::as_const(mesos))
+		uint idx{0};
+		for(const auto &mesofile : std::as_const(mesos.second))
 		{
-			const QString &coach{appUtils()->getLastDirInPath(mesofile.filePath())};
-			if (!mesoPlanExists(appUtils()->getFileName(mesofile.fileName(), true), coach, appUserModel()->userId(0)))
-			{
-				if (newMesoFromFile(mesofile.filePath(), coach != "mesocycles"_L1) < 0)
-					static_cast<void>(QFile::remove(mesofile.filePath()));
-			}
+			const QString &user_id{appUtils()->getLastDirInPath(mesofile.filePath())};
+			if (!mesoPlanExists(appUtils()->getFileName(mesofile.fileName(), true),
+						mesos.first.at(idx) ? user_id : appUserModel()->userId(0),
+						mesos.first.at(idx) ? appUserModel()->userId(0) : user_id))
+				static_cast<void>(newMesoFromFile(mesofile.filePath(), mesos.first.at(idx), false));
+			else
+				static_cast<void>(QFile::remove(mesofile.filePath()));
 		}
+	}
+
+	//Get own temporary mesos
+	mesos.second.clear();
+	appUtils()->scanDir(appUserModel()->userDir(0) % mesosSubDir, mesos.second, "*.txt"_L1);
+	for(const auto &mesofile : std::as_const(mesos.second))
+	{
+		if (!mesoPlanExists(appUtils()->getFileName(mesofile.fileName(), true),
+								appUserModel()->userId(0), appUserModel()->userId(0)))
+			static_cast<void>(newMesoFromFile(mesofile.filePath(), true, false));
+		else
+			static_cast<void>(QFile::remove(mesofile.filePath()));
 	}
 }
 
@@ -791,9 +791,12 @@ void DBMesocyclesModel::getAllMesocycles()
 	m_dbModelInterface = new DBModelInterfaceMesocycle{this};
 	m_db = new DBMesocyclesTable{m_dbModelInterface};
 	appThreadManager()->runAction(m_db, ThreadManager::CreateTable);
-	connect(m_db, &DBMesocyclesTable::mesocyclesAcquired, this, [this] (QStringList meso_info) {
-		newMesocycle(std::move(meso_info));
-	});
+	connect(m_db, &DBMesocyclesTable::mesocyclesAcquired, this, [this] (QStringList meso_info, const bool last_meso) {
+		if (!last_meso)
+			newMesocycle(std::move(meso_info));
+		else
+			scanTemporaryMesocycles();
+	}, Qt::SingleShotConnection);
 	appThreadManager()->runAction(m_db, ThreadManager::ReadAllRecords);
 
 	m_splitsDB = new DBWorkoutsOrSplitsTable{MESOSPLIT_TABLE_ID};
@@ -804,17 +807,14 @@ int DBMesocyclesModel::exportToFile_splitData(const uint meso_idx, QFile *mesoFi
 {
 	int ret{TP_RET_CODE_EXPORT_FAILED};
 	const QMap<QChar,DBSplitModel*> &split_models{m_splitModels.at(meso_idx)};
-	if (!split_models.isEmpty())
+	for (DBSplitModel *split_model : split_models)
 	{
-		for (const DBSplitModel *split_model : split_models)
-		{
-			if (!split_model)
-				continue;
-			if (!formatted)
-				ret = split_model->exportToFile(QString{}, mesoFile);
-			else
-				ret = split_model->exportToFormattedFile(QString{}, mesoFile);
-		}
+		if (!split_model)
+			continue;
+		if (!formatted)
+			ret = split_model->exportToFile(QString{}, mesoFile);
+		else
+			ret = split_model->exportToFormattedFile(QString{}, mesoFile);
 	}
 	return ret;
 }

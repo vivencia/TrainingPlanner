@@ -32,7 +32,6 @@ struct notificationData {
 
 QT_FORWARD_DECLARE_CLASS(TPListModel)
 QT_FORWARD_DECLARE_CLASS(QTimer);
-QT_FORWARD_DECLARE_CLASS(QNetworkInterface)
 
 class OSInterface : public QObject
 {
@@ -155,9 +154,7 @@ private:
 	QString m_localIPAddress;
 	std::optional<bool> m_currentNetworkStatus[3];
 
-#ifndef Q_OS_ANDROID
-	const QNetworkInterface *m_currentNetInterface;
-#else
+#ifdef Q_OS_ANDROID
 	TPAndroidNotification *m_AndroidNotification;
 	bool mb_appSuspended, m_bTodaysWorkoutFinishedConnected;
 	QList<notificationData*> m_notifications;

@@ -56,10 +56,11 @@ bool DBMesocyclesTable::getAllMesocycles()
 				QStringList meso_info{MESOCYCLES_TOTAL_COLS};
 				for (uint i{MESOCYCLES_COL_ID}; i < MESOCYCLES_TOTAL_COLS; ++i)
 					meso_info[i] = std::move(m_workingQuery.value(i).toString());
-				emit mesocyclesAcquired(meso_info);
+				emit mesocyclesAcquired(meso_info, false);
 			} while (m_workingQuery.next());
 			success = true;
 		}
 	}
+	emit mesocyclesAcquired(QStringList{}, true);
 	return success;
 }

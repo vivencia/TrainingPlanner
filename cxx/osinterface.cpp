@@ -81,9 +81,6 @@ enum connectMessagesIndex {
 
 OSInterface::OSInterface(QObject *parent)
 	: QObject{parent}, m_networkStatus{0}
-#ifndef Q_OS_ANDROID
-	, m_currentNetInterface{nullptr}
-#endif
 {
 	app_os_interface = this;
 	m_connectionMessages.resize(3);
@@ -726,16 +723,8 @@ void OSInterface::checkNetworkInterfaces()
 			}
 			m_localIPAddress = running_interface->addressEntries().constFirst().ip().toString();
 			message += '(' % running_interface->name() % ')';
-			#ifndef Q_OS_ANDROID
-			//On the desktop, the loopback interface is good for testing almost everything, but some code pathways
-			//would never be reached with it, so whenever there is a good alternative interface, more closely related
-			//to a real world example, use it, ditching loopback
-			if (appSettings()->serverAddress() == "localhost"_L1)
+			if (appSettings()->serverAddress() != m_localIPAddress)
 				appSettings()->setServerAddress(m_localIPAddress);
-			m_currentNetInterface = running_interface;
-			#else
-			appSettings()->setServerAddress(m_localIPAddress);
-			#endif
 		}
 		else
 			message += tr("This device does not have access to any network interface or the app does not have permission to access them");

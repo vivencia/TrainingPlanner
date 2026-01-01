@@ -125,7 +125,7 @@ void QMLMesoInterface::setName(const QString &new_name)
 			setMesoNameOK(true);
 			m_name = new_name;
 			emit nameChanged();
-			QFile::remove(m_mesoModel->mesoFileName(m_mesoIdx)); //remove a -possible- meso file with the previous name
+			m_mesoModel->removeMesoFile(m_mesoIdx); //remove a -possible- meso file with the previous name
 			m_mesoModel->setName(m_mesoIdx, new_name);
 			maybeChangeNewMesoFieldCounter();
 		}
@@ -136,18 +136,9 @@ void QMLMesoInterface::setName(const QString &new_name)
 	}
 }
 
-QString QMLMesoInterface::coach() const
+QString QMLMesoInterface::coachName() const
 {
 	return appUserModel()->userNameFromId(m_mesoModel->coach(m_mesoIdx));
-}
-
-void QMLMesoInterface::setCoach(const QString &new_value)
-{
-	if (m_mesoModel->coach(m_mesoIdx) != new_value)
-	{
-		m_mesoModel->setCoach(m_mesoIdx, new_value);
-		emit coachChanged();
-	}
 }
 
 QString QMLMesoInterface::client() const

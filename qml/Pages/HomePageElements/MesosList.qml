@@ -60,9 +60,9 @@ Item {
 			id: mesoDelegate
 			width: parent ? parent.width : 0
 
-			onClicked: mesoModel.getMesocyclePage(mesoSubModel.mesoRow(index));
-			onPressAndHold: mesoModel.currentMesoIdx = mesoSubModel.mesoRow(index);
-			swipe.onCompleted: mesoModel.setCurrentlyViewedMeso(mesoSubModel.mesoRow(index));
+			onClicked: mesoModel.getMesocyclePage(mesoIdx);
+			onPressAndHold: mesoModel.currentMesoIdx = mesoIdx;
+			swipe.onCompleted: mesoModel.setCurrentlyViewedMeso(mesoIdx);
 
 			Rectangle {
 				id: optionsRec
@@ -106,7 +106,7 @@ Item {
 						leftMargin: 5
 					}
 
-					onClicked: mesoModel.getMesocyclePage(mesoSubModel.mesoRow(index));
+					onClicked: mesoModel.getMesocyclePage(mesoIdx);
 				}
 
 				TPButton {
@@ -128,7 +128,7 @@ Item {
 						leftMargin: 5
 					}
 
-					onClicked: mesoModel.getMesoCalendarPage(mesoSubModel.mesoRow(index));
+					onClicked: mesoModel.getMesoCalendarPage(mesoIdx);
 				}
 
 				TPButton {
@@ -150,7 +150,7 @@ Item {
 						leftMargin: 5
 					}
 
-					onClicked: mesoModel.getExercisesPlannerPage(mesoSubModel.mesoRow(index));
+					onClicked: mesoModel.getExercisesPlannerPage(mesoIdx);
 				}
 
 				TPButton {
@@ -160,7 +160,7 @@ Item {
 					imageSize: 30
 					rounded: false
 					textUnderIcon: true
-					enabled: viewedMesoIdx === mesoSubModel.mesoRow(index) ? viewedMesoCanBeExported : false
+					enabled: viewedMesoIdx === mesoIdx ? viewedMesoCanBeExported : false
 					width: parent.width/2 - 10
 					height: parent.height/2 - 10
 					z: 1
@@ -172,7 +172,7 @@ Item {
 						leftMargin: 5
 					}
 
-					onClicked: showExportMenu(mesoSubModel.mesoRow(index), this);
+					onClicked: showExportMenu(mesoIdx, this);
 				}
 			} //swipe.left: Rectangle
 
@@ -212,7 +212,7 @@ Item {
 						verticalCenter: parent.verticalCenter
 					}
 
-					onClicked: msgDlg.init(mesoSubModel.mesoRow(index));
+					onClicked: msgDlg.init(mesoIdx);
 				}
 
 				TPBalloonTip {
@@ -238,7 +238,9 @@ Item {
 				anchors.fill: parent
 				radius: 6
 				layer.enabled: true
-				color: mesoSubModel.mesoRow(index) === mesoModel.currentMesoIdx ? appSettings.primaryColor : appSettings.listEntryColor2
+				color: mainUserPrograms ?
+						(mesoIdx === mesoModel.currentMesoIdx ? appSettings.primaryColor : appSettings.listEntryColor2) :
+						(mesoIdx === mesoModel.currentMesoIdx ? appSettings.primaryDarkColor : appSettings.listEntryColor1)
 				visible: false
 			}
 

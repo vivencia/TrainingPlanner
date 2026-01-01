@@ -94,7 +94,7 @@ void TPDatabaseTable::startAction(const int unique_id, ThreadManager::StandardOp
 void TPDatabaseTable::setUpConnection()
 {
 	m_uniqueID = appUtils()->generateUniqueId();
-	const QString &cnx_name{*m_tableName + "_connection"_L1 + QString::number(m_uniqueID)};
+	const QString &cnx_name{*m_tableName % "_connection"_L1 % QString::number(m_uniqueID)};
 	m_sqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name));
 
 	QString dbfilename{std::move(dbFileName())};
@@ -294,7 +294,7 @@ std::pair<bool,bool> TPDatabaseTable::updateFieldsOfRecord()
 std::pair<bool,bool> TPDatabaseTable::updateRecords()
 {
 	bool success{false}, cmd_ok{false};
-	const QString &query_cmd{"UPDATE "_L1 + *m_tableName + " SET "_L1};
+	const QString &query_cmd{"UPDATE "_L1 % *m_tableName % " SET "_L1};
 	QString str_query;
 	uint modified_row{0};
 	QStringList queries;
@@ -303,8 +303,8 @@ std::pair<bool,bool> TPDatabaseTable::updateRecords()
 		str_query = query_cmd;
 		for (const auto field : std::as_const(fields))
 		{
-			str_query += std::move(m_fieldNames[field][0] + '=' + (m_fieldNames[field][1] == "TEXT"_L1 ?
-						'\'' + m_dbModelInterface->modelData().at(modified_row).at(field) + '\'' :
+			str_query += std::move(m_fieldNames[field][0] % '=' % (m_fieldNames[field][1] == "TEXT"_L1 ?
+						'\'' % m_dbModelInterface->modelData().at(modified_row).at(field) % '\'' :
 											m_dbModelInterface->modelData().at(modified_row).at(field)));
 		}
 		const QString &id{m_dbModelInterface->modelData().at(modified_row).at(0)};
@@ -330,11 +330,11 @@ std::pair<bool,bool> TPDatabaseTable::removeRecords()
 	bool success{false}, cmd_ok{false};
 	for (const auto value : std::as_const(m_dbModelInterface->removalInfo()))
 	{
-		m_strQuery = std::move("DELETE FROM "_L1 + *m_tableName + " WHERE "_L1);
+		m_strQuery = std::move("DELETE FROM "_L1 % *m_tableName % " WHERE "_L1);
 		for (uint i{0}; i < value->fields.count(); ++i)
 		{
 			if (i == 0)
-				m_strQuery += std::move(m_fieldNames[value->fields.at(i)][0] + '=' + value->values.at(i));
+				m_strQuery += std::move(m_fieldNames[value->fields.at(i)][0] % '=' % value->values.at(i));
 			else
 				m_strQuery += std::move(u" AND %1=%2"_s).arg(m_fieldNames[value->fields.at(i)][0], value->values.at(i));
 		}
@@ -353,7 +353,7 @@ std::pair<bool,bool> TPDatabaseTable::removeRecords()
 std::pair<bool, bool> TPDatabaseTable::clearTable()
 {
 	bool cmd_ok{false};
-	m_strQuery = std::move("DELETE FROM "_L1 + *m_tableName + ';');
+	m_strQuery = std::move("DELETE FROM "_L1 % *m_tableName % ';');
 	const bool success{execSingleWriteQuery(m_strQuery)};
 	if (success)
 		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
@@ -362,7 +362,7 @@ std::pair<bool, bool> TPDatabaseTable::clearTable()
 
 std::pair<bool,bool> TPDatabaseTable::removeTemporaries()
 {
-	const bool success{execSingleWriteQuery("DELETE FROM "_L1 + *m_tableName + " WHERE %1<0;"_L1.arg(m_fieldNames[0][0]))};
+	const bool success{execSingleWriteQuery("DELETE FROM "_L1 % *m_tableName % " WHERE %1<0;"_L1.arg(m_fieldNames[0][0]))};
 	return std::pair<bool,bool>{success, false};
 }
 
@@ -515,9 +515,7 @@ bool TPDatabaseTable::execMultipleWritesQuery(const QStringList &queries)
 		if (ok)
 		{
 			if ((ok = m_sqlLiteDB.commit()))
-			{
 				optimizeTable();
-			}
 		}
 		m_sqlLiteDB.close();
 	}
@@ -538,7 +536,7 @@ bool TPDatabaseTable::createServerCmdFile(const QString &dir, const std::initial
 	bool cmd_ok{false};
 	if (command_parts.size() > 0)
 	{
-		QString cmd_string{"#Device_ID "_L1 + appOsInterface()->deviceID() + '\n'};
+		QString cmd_string{"#Device_ID "_L1 % appOsInterface()->deviceID() % '\n'};
 		int n_part{1};
 		QStringList var_list;
 		QString vars_cmd;

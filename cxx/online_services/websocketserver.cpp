@@ -132,7 +132,7 @@ void ChatWSServer::setupWSServer()
 	if (m_pWebSocketServer->listen(QHostAddress{appSettings()->serverAddress()}, m_port.toUShort()))
 	{
 		#ifndef QT_NO_DEBUG
-		qDebug() << "--------------  Chat Server listening on : " <<
+		qDebug() << "--------------  WebSocket Chat Server listening on : " <<
 						m_pWebSocketServer->serverAddress().toString() + ':' + QString::number(m_pWebSocketServer->serverPort());
 		#endif
 		emit wsServerStatusChanged(true);
@@ -140,7 +140,7 @@ void ChatWSServer::setupWSServer()
 	}
 	else
 	{
-		qDebug() << "Error starting server:" << m_pWebSocketServer->errorString();
+		qDebug() << "Error starting websocket server:" << m_pWebSocketServer->errorString();
 		emit wsServerStatusChanged(false);
 	}
 }
