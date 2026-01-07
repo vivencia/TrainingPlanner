@@ -187,21 +187,11 @@ Drawer {
 			Layout.fillWidth: true
 		}
 
-		ListView {
+		TPListView {
 			id: pagesList
 			model: pagesModel
-			clip: true
-			spacing: 2
-			boundsBehavior: Flickable.StopAtBounds
-			contentHeight: availableHeight
-			contentWidth: availableWidth
 			Layout.fillWidth: true
 			Layout.minimumHeight: mainMenu.height * 0.35
-
-			ScrollBar.vertical: ScrollBar {
-				policy: ScrollBar.AsNeeded
-				active: true
-			}
 
 			delegate: SwipeDelegate {
 				id: delegate

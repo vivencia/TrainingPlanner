@@ -34,9 +34,9 @@ TPDatabaseTable::TPDatabaseTable(const uint table_id, DBModelInterface *dbmodel_
 		auto result{insertRecord()};
 		emit actionFinished(ThreadManager::InsertRecords, result.first, result.second);
 	});
-	m_threadedFunctions.insert(ThreadManager::alterRecords, [this] () {
-		auto result{alterRecords()};
-		emit actionFinished(ThreadManager::alterRecords, result.first, result.second);
+	m_threadedFunctions.insert(ThreadManager::AlterRecords, [this] () {
+		auto result{AlterRecords()};
+		emit actionFinished(ThreadManager::AlterRecords, result.first, result.second);
 	});
 	m_threadedFunctions.insert(ThreadManager::UpdateOneField, [this] () {
 		auto result{updateRecord()};
@@ -66,9 +66,10 @@ TPDatabaseTable::TPDatabaseTable(const uint table_id, DBModelInterface *dbmodel_
 	connect(this, &TPDatabaseTable::actionFinished, this, [this]
 				(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2)
 	{
+		m_sqlLiteDB.close();
 		switch (op)
 		{
-			case ThreadManager::ReadAllRecords: m_sqlLiteDB.close(); break;
+			case ThreadManager::ReadAllRecords: break;
 			case ThreadManager::CustomOperation: break;
 			default:
 				if (return_value2.toBool())
@@ -84,10 +85,11 @@ void TPDatabaseTable::startAction(const int unique_id, ThreadManager::StandardOp
 	{
 		if (m_threadedFunctions.contains(operation))
 			m_threadedFunctions.value(operation)();
-#ifndef QT_NO_DEBUG
+		#ifndef QT_NO_DEBUG
 		else
-			qDebug() << "Cannot start action: " << operation << " for table: " << unique_id << " because it's not inserted in the functions container";
-#endif
+			qDebug() << "Cannot start action: " << operation << " for table: " << unique_id <<
+																	" because it's not inserted in the functions container";
+		#endif
 	}
 }
 
@@ -136,7 +138,7 @@ std::pair<bool, bool> TPDatabaseTable::insertRecord()
 	const bool auto_increment{m_fieldNames[0][1].contains("AUTOINCREMENT"_L1)};
 
 	m_strQuery = std::move("INSERT INTO "_L1 % *m_tableName % " ("_L1);
-	for (int i{0}; i < m_fieldCount; ++i)
+	for (int i{auto_increment ? 1 : 0}; i < m_fieldCount; ++i)
 		m_strQuery += std::move(m_fieldNames[i][0] % ',');
 	m_strQuery.chop(1);
 	m_strQuery += ')';
@@ -151,7 +153,7 @@ std::pair<bool, bool> TPDatabaseTable::insertRecord()
 		for (const auto &data : std::as_const(m_dbModelInterface->modelData().at(modified_row)))
 		{
 			if (field != 0 || !auto_increment)
-				m_strQuery += std::move(m_fieldNames[field][1] == "TEXT"_L1 ? QString{'\'' % data % '\''} : data % ',');
+				m_strQuery += std::move((m_fieldNames[field][1] == "TEXT"_L1 ? QString{'\'' % data % '\''} : data) % ',');
 			++field;
 		}
 		m_strQuery.chop(1);
@@ -173,19 +175,19 @@ std::pair<bool, bool> TPDatabaseTable::insertRecord()
 	return std::pair<bool,bool>{success, cmd_ok};
 }
 
-std::pair<bool,bool> TPDatabaseTable::alterRecords()
+std::pair<bool,bool> TPDatabaseTable::AlterRecords()
 {
 	bool success{false}, cmd_ok{false};
-	QString insert_cmd{std::move("INSERT INTO "_L1 % *m_tableName % " ("_L1)};
-	for (int i{0}; i < m_fieldCount; ++i)
-		insert_cmd += std::move(m_fieldNames[i][0] % ',');
-	insert_cmd.chop(1);
-	insert_cmd += std::move(") VALUES("_L1);
-	const QString &update_cmd{"UPDATE "_L1 % *m_tableName % " SET "_L1};
 	bool has_insert{false};
 	const bool auto_increment{m_fieldNames[0][1].contains("AUTOINCREMENT"_L1)};
 	QString str_query;
 	QStringList queries;
+	const QString &update_cmd{"UPDATE "_L1 % *m_tableName % " SET "_L1};
+	QString insert_cmd{std::move("INSERT INTO "_L1 % *m_tableName % " ("_L1)};
+	for (int i{auto_increment ? 1 : 0}; i < m_fieldCount; ++i)
+		insert_cmd += std::move(m_fieldNames[i][0] % ',');
+	insert_cmd.chop(1);
+	insert_cmd += std::move(") VALUES("_L1);
 
 	QHash<uint, QList<int>>::const_iterator itr{m_dbModelInterface->modifiedIndices().constBegin()};
 	const QHash<uint, QList<int>>::const_iterator itr_end{m_dbModelInterface->modifiedIndices().constEnd()};
@@ -479,10 +481,7 @@ bool TPDatabaseTable::execSingleWriteQuery(const QString &str_query)
 		}
 		#endif
 		if (ok)
-		{
 			optimizeTable();
-		}
-		m_sqlLiteDB.close();
 	}
 	return ok;
 }
@@ -517,7 +516,6 @@ bool TPDatabaseTable::execMultipleWritesQuery(const QStringList &queries)
 			if ((ok = m_sqlLiteDB.commit()))
 				optimizeTable();
 		}
-		m_sqlLiteDB.close();
 	}
 	return ok;
 }

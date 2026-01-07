@@ -35,14 +35,15 @@ public:
 	void removeCalendarForMeso(const uint meso_idx, const bool remove_workouts);
 	void getCalendarForMeso(const uint meso_idx, const bool create_calendar = false);
 	void remakeMesoCalendar(const uint meso_idx);
-	void alterCalendarSplits(const uint meso_idx, const QDate &start_date, const QDate &end_date, const QChar &new_splitletter);
+	void alterCalendarSplits(const uint meso_idx, const QDate &start_date, const QDate &end_date,
+																							const QChar &new_splitletter);
 	DBExercisesModel *workoutForDay(const uint meso_idx, const int calendar_day);
 	inline DBExercisesModel *workoutForDay(const uint meso_idx, const QDate &date)
 	{
 		return workoutForDay(meso_idx, calendarDay(meso_idx, date));
 	}
 	int importWorkoutFromFile(const QString &filename, const uint meso_idx, const QDate &date,
-												const std::optional<bool> &file_formatted = std::nullopt);
+															const std::optional<bool> &file_formatted = std::nullopt);
 
 	[[nodiscard]] const int calendarDay(const uint meso_idx, const QDate& date) const;
 	[[nodiscard]] QDate dateFromCalendarDay(const uint meso_idx, const uint calendar_day) const;

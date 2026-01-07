@@ -70,7 +70,6 @@ TPPage {
 
 			sourceComponent: MesosList {
 				mesoSubModel: mesoModel.clientMesos
-				mainUserPrograms: false
 			}
 		}
 
@@ -81,7 +80,6 @@ TPPage {
 
 			sourceComponent: MesosList {
 				mesoSubModel: mesoModel.ownMesos
-				mainUserPrograms: true
 			}
 		}
 	} //SwipeView

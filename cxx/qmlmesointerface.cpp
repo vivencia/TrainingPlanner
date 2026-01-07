@@ -16,10 +16,6 @@
 #include <QQuickItem>
 #include <QQuickWindow>
 
-constexpr uint16_t NEW_MESO_N_REQUIRED_FIELDS{4};
-constexpr uint16_t new_meso_required_fields[NEW_MESO_N_REQUIRED_FIELDS]
-					{MESOCYCLES_COL_NAME, MESOCYCLES_COL_STARTDATE, MESOCYCLES_COL_ENDDATE, MESOCYCLES_COL_SPLIT};
-
 void QMLMesoInterface::cleanUp()
 {
 	if (m_mesoComponent)
@@ -35,29 +31,24 @@ void QMLMesoInterface::cleanUp()
 	qDeleteAll(m_workoutPages);
 }
 
-bool QMLMesoInterface::isMesoNameOK(const QString &meso_name) const
+bool QMLMesoInterface::mesoNameOK() const
 {
-	if (meso_name.length() >= 5)
-		return !m_mesoModel->mesoPlanExists(meso_name, m_mesoModel->coach(m_mesoIdx), m_mesoModel->client(m_mesoIdx));
-	return false;
+	return !m_mesoModel->isRequiredFieldWrong(m_mesoIdx, MESO_FIELD_NAME);
 }
 
-void QMLMesoInterface::setMesoNameOK(const bool nameok)
+bool QMLMesoInterface::startDateOK() const
 {
-	m_mesoNameOK = nameok;
-	emit mesoNameOKChanged();
+	return !m_mesoModel->isRequiredFieldWrong(m_mesoIdx, MESO_FIELD_STARTDATE);
 }
 
-void QMLMesoInterface::setStartDateOK(const bool dateok)
+bool QMLMesoInterface::endDateOK() const
 {
-	m_startDateOK = dateok;
-	emit startDateOKChanged();
+	return !m_mesoModel->isRequiredFieldWrong(m_mesoIdx, MESO_FIELD_ENDDATE);
 }
 
-void QMLMesoInterface::setEndDateOK(const bool dateok)
+bool QMLMesoInterface::splitOK() const
 {
-	m_endDateOK = dateok;
-	emit endDateOKChanged();
+	return !m_mesoModel->isRequiredFieldWrong(m_mesoIdx, MESO_FIELD_SPLIT);
 }
 
 bool QMLMesoInterface::realMeso() const
@@ -69,31 +60,16 @@ void QMLMesoInterface::setRealMeso(const bool new_value)
 {
 	if (m_mesoModel->isRealMeso(m_mesoIdx) != new_value)
 	{
-		if (!m_mesoModel->isRealMeso(m_mesoIdx) && new_value)
-		{
-			if (isNewMeso())
-				setNewMesoFieldCounter(newMesoFieldCounter() + 1);
-		}
 		m_mesoModel->setIsRealMeso(m_mesoIdx, new_value);
-		setEndDate(new_value ? m_mesoModel->endDate(m_mesoIdx) : maximumMesoEndDate(), !isNewMeso());
+		setEndDate(new_value ? m_mesoModel->endDate(m_mesoIdx) : maximumMesoEndDate());
 		emit realMesoChanged();
 	}
-}
-
-bool QMLMesoInterface::splitOK() const
-{
-	return m_mesoModel->isSplitOK(m_mesoIdx);
 }
 
 bool QMLMesoInterface::ownMeso() const
 {
 	std::optional<bool> own_meso{m_mesoModel->isOwnMeso(m_mesoIdx)};
 	return own_meso.has_value() ? own_meso.value() : false;
-}
-
-bool QMLMesoInterface::isNewMeso() const
-{
-	return m_mesoModel->isNewMeso(m_mesoIdx);
 }
 
 bool QMLMesoInterface::isTempMeso() const
@@ -120,19 +96,16 @@ void QMLMesoInterface::setName(const QString &new_name)
 {
 	if (new_name != m_mesoModel->name(m_mesoIdx))
 	{
-		if (isMesoNameOK(new_name))
+		if (m_mesoModel->isMesoNameOK(m_mesoIdx, new_name))
 		{
-			setMesoNameOK(true);
-			m_name = new_name;
-			emit nameChanged();
 			m_mesoModel->removeMesoFile(m_mesoIdx); //remove a -possible- meso file with the previous name
 			m_mesoModel->setName(m_mesoIdx, new_name);
-			maybeChangeNewMesoFieldCounter();
+			emit nameChanged();
+			verifyMesoRequiredFieldsStatus();
+			emit mesoNameOKChanged();
 		}
-		else {
+		else
 			m_nameError = new_name.length() < 5 ? std::move(tr("Error: name too short")): std::move(tr("Error: Name already in use."));
-			setMesoNameOK(false);
-		}
 	}
 }
 
@@ -197,24 +170,27 @@ void QMLMesoInterface::setFileName(const QString &new_filename)
 	}
 }
 
-void QMLMesoInterface::setStartDate(const QDate &new_startdate, const bool modify_new_meso_counter)
+QDate QMLMesoInterface::startDate() const
 {
-	if (m_startDate != new_startdate || m_mesoModel->isNewMeso(m_mesoIdx))
+	return m_mesoModel->startDate(m_mesoIdx);
+}
+
+void QMLMesoInterface::setStartDate(const QDate &new_startdate)
+{
+	if (new_startdate != m_mesoModel->startDate(m_mesoIdx))
 	{
-		m_startDate = new_startdate;
-		m_strStartDate = appUtils()->formatDate(m_startDate);
-		emit startDateChanged();
-		m_mesoModel->setWeeks(m_mesoIdx, QString::number(appUtils()->calculateNumberOfWeeks(m_startDate, m_endDate)));
-		emit weeksChanged();
-		setStartDateOK(true);
-		if (modify_new_meso_counter)
+		if (m_mesoModel->isStartDateOK(m_mesoIdx, new_startdate))
 		{
-			m_mesoModel->setStartDate(m_mesoIdx, m_startDate);
-			maybeChangeNewMesoFieldCounter();
+			m_strStartDate = appUtils()->formatDate(new_startdate);
+			m_mesoModel->setStartDate(m_mesoIdx, new_startdate);
+			m_mesoModel->setWeeks(m_mesoIdx,
+							QString::number(appUtils()->calculateNumberOfWeeks(new_startdate, m_mesoModel->endDate(m_mesoIdx))));
+			emit startDateChanged();
+			emit weeksChanged();
+			verifyMesoRequiredFieldsStatus();
+			emit startDateOKChanged();
 		}
 	}
-	else
-		setStartDateOK(false);
 }
 
 void QMLMesoInterface::setMinimumMesoStartDate(const QDate &new_value)
@@ -223,24 +199,27 @@ void QMLMesoInterface::setMinimumMesoStartDate(const QDate &new_value)
 	emit minimumStartDateChanged();
 }
 
-void QMLMesoInterface::setEndDate(const QDate &new_enddate, const bool modify_new_meso_counter)
+QDate QMLMesoInterface::endDate() const
 {
-	if (m_endDate != new_enddate || m_mesoModel->isNewMeso(m_mesoIdx))
+	return m_mesoModel->endDate(m_mesoIdx);
+}
+
+void QMLMesoInterface::setEndDate(const QDate &new_enddate)
+{
+	if (new_enddate != m_mesoModel->endDate(m_mesoIdx))
 	{
-		m_endDate = new_enddate;
-		m_strEndDate = appUtils()->formatDate(m_endDate);
-		emit endDateChanged();
-		m_mesoModel->setWeeks(m_mesoIdx, QString::number(appUtils()->calculateNumberOfWeeks(m_startDate, m_endDate)));
-		emit weeksChanged();
-		setEndDateOK(true);
-		if (modify_new_meso_counter)
+		if (m_mesoModel->isEndDateOK(m_mesoIdx, new_enddate))
 		{
-			m_mesoModel->setEndDate(m_mesoIdx, m_endDate);
-			maybeChangeNewMesoFieldCounter();
+			m_strEndDate = appUtils()->formatDate(new_enddate);
+			m_mesoModel->setEndDate(m_mesoIdx, new_enddate);
+			m_mesoModel->setWeeks(m_mesoIdx,
+						QString::number(appUtils()->calculateNumberOfWeeks(m_mesoModel->startDate(m_mesoIdx), new_enddate)));
+			emit endDateChanged();
+			emit weeksChanged();
+			verifyMesoRequiredFieldsStatus();
+			emit endDateOKChanged();
 		}
 	}
-	else
-		setEndDateOK(false);
 }
 
 void QMLMesoInterface::setMaximumMesoEndDate(const QDate &new_value)
@@ -260,15 +239,12 @@ QString QMLMesoInterface::split() const
 
 void QMLMesoInterface::setSplit(const QString &new_split)
 {
-	if (m_mesoModel->split(m_mesoIdx) != new_split)
+	if (new_split != m_mesoModel->split(m_mesoIdx))
 	{
 		m_mesoModel->setSplit(m_mesoIdx, new_split);
 		emit splitChanged();
-		if (m_mesoModel->isSplitOK(new_split, m_mesoIdx))
-		{
-			maybeChangeNewMesoFieldCounter();	
-			emit splitOKChanged();
-		}
+		verifyMesoRequiredFieldsStatus();
+		emit splitOKChanged();
 	}
 }
 
@@ -283,93 +259,14 @@ void QMLMesoInterface::setNotes(const QString &new_value)
 	emit notesChanged();
 }
 
-QString QMLMesoInterface::muscularGroupA() const
+QString QMLMesoInterface::muscularGroup(const QString &split) const
 {
-	return m_mesoModel->splitA(m_mesoIdx);
+	return !split.isEmpty() ? m_mesoModel->muscularGroup(m_mesoIdx, split.at(0)) : QString{};
 }
 
-void QMLMesoInterface::setMuscularGroupA(const QString &new_value)
+void QMLMesoInterface::setMuscularGroup(const QString &split, const QString &new_value)
 {
-	if (m_mesoModel->splitA(m_mesoIdx) != new_value)
-	{
-		m_mesoModel->setSplitA(m_mesoIdx, new_value);
-		emit splitOKChanged();
-	}
-}
-
-QString QMLMesoInterface::muscularGroupB() const
-{
-	return m_mesoModel->splitB(m_mesoIdx);
-}
-
-void QMLMesoInterface::setMuscularGroupB(const QString &new_value)
-{
-	if (m_mesoModel->splitB(m_mesoIdx) != new_value)
-	{
-		m_mesoModel->setSplitB(m_mesoIdx, new_value);
-		emit splitOKChanged();
-	}
-}
-
-QString QMLMesoInterface::muscularGroupC() const
-{
-	return m_mesoModel->splitC(m_mesoIdx);
-}
-
-void QMLMesoInterface::setMuscularGroupC(const QString &new_value)
-{
-	if (m_mesoModel->splitC(m_mesoIdx) != new_value)
-	{
-		m_mesoModel->setSplitC(m_mesoIdx, new_value);
-		emit splitOKChanged();
-	}
-}
-
-QString QMLMesoInterface::muscularGroupD() const
-{
-	return m_mesoModel->splitD(m_mesoIdx);
-}
-
-void QMLMesoInterface::setMuscularGroupD(const QString &new_value)
-{
-	if (m_mesoModel->splitD(m_mesoIdx) != new_value)
-	{
-		m_mesoModel->setSplitD(m_mesoIdx, new_value);
-		emit splitOKChanged();
-	}
-}
-
-QString QMLMesoInterface::muscularGroupE() const
-{
-	return m_mesoModel->splitE(m_mesoIdx);
-}
-
-void QMLMesoInterface::setMuscularGroupE(const QString &new_value)
-{
-	if (m_mesoModel->splitE(m_mesoIdx) != new_value)
-	{
-		m_mesoModel->setSplitE(m_mesoIdx, new_value);
-		emit splitOKChanged();
-	}
-}
-
-QString QMLMesoInterface::muscularGroupF() const
-{
-	return m_mesoModel->splitF(m_mesoIdx);
-}
-
-void QMLMesoInterface::setMuscularGroupF(const QString &new_value)
-{
-	if (m_mesoModel->splitF(m_mesoIdx) != new_value)
-	{
-		m_mesoModel->setSplitF(m_mesoIdx, new_value);
-		emit splitOKChanged();
-	}
-}
-
-QString QMLMesoInterface::muscularGroupR() const
-{
-	return m_mesoModel->splitR();
+	m_mesoModel->setMuscularGroup(m_mesoIdx, split.at(0), new_value);
 }
 
 void QMLMesoInterface::getCalendarPage()
@@ -382,7 +279,10 @@ void QMLMesoInterface::getCalendarPage()
 void QMLMesoInterface::getExercisesPlannerPage()
 {
 	if (!m_splitsPage)
+	{
+		m_mesoModel->loadSplits(m_mesoIdx);
 		m_splitsPage = new QmlMesoSplitInterface{this, m_mesoModel, m_mesoIdx};
+	}
 	m_splitsPage->getExercisesPlannerPage();
 }
 
@@ -397,10 +297,10 @@ void QMLMesoInterface::getWorkoutPage(const QDate &date)
 	workoutPage->getWorkoutPage();
 }
 
-void QMLMesoInterface::getMesocyclePage()
+void QMLMesoInterface::getMesocyclePage(const bool new_meso)
 {
 	if (!m_mesoComponent)
-		createMesocyclePage();
+		createMesocyclePage(new_meso);
 	else
 		appPagesListModel()->openPage(m_mesoPage);
 }
@@ -415,49 +315,28 @@ void QMLMesoInterface::incorporateMeso()
 	m_mesoModel->incorporateMeso(m_mesoIdx);
 }
 
-void QMLMesoInterface::createMesocyclePage()
+void QMLMesoInterface::createMesocyclePage(const bool new_meso)
 {
-	if (!m_mesoModel->isNewMeso(m_mesoIdx))
+	setMinimumMesoStartDate(m_mesoModel->getMesoMinimumStartDate(m_mesoModel->client(m_mesoIdx), m_mesoIdx));
+	setMaximumMesoEndDate(m_mesoModel->getMesoMaximumEndDate(m_mesoModel->client(m_mesoIdx), m_mesoIdx));
+
+	if (new_meso)
 	{
-		m_mesoModel->loadSplits(m_mesoIdx);
-		m_newMesoFieldCounter = -1;
-		m_name = m_mesoModel->name(m_mesoIdx);
-		setStartDate(m_mesoModel->startDate(m_mesoIdx), false);
-		setEndDate(m_mesoModel->endDate(m_mesoIdx), false);
-		setMinimumMesoStartDate(m_mesoModel->getMesoMinimumStartDate(m_mesoModel->client(m_mesoIdx), m_mesoIdx));
-		setMaximumMesoEndDate(m_mesoModel->getMesoMaximumEndDate(m_mesoModel->client(m_mesoIdx), m_mesoIdx));
+		QString meso_name;
+		uint i{1};
+		do {
+			meso_name = std::move(tr("New Program") + " %1"_L1.arg(QString::number(i++)));
+		} while (!m_mesoModel->isMesoNameOK(m_mesoIdx, meso_name));
+		setName(meso_name);
 	}
+	if (!startDateOK())
+		setStartDate(appUtils()->getNextMonday(QDate::currentDate()));
 	else
-	{
-		m_newMesoFieldCounter = 1;
-		const QDate &minimumStartDate{m_mesoModel->getMesoMinimumStartDate(m_mesoModel->client(m_mesoIdx), 99999)};
-		const QDate &minimumEndDate{appUtils()->createDate(QDate::currentDate(), 0, 2, 0)};
-		setMinimumMesoStartDate(minimumStartDate);
-		setMaximumMesoEndDate(appUtils()->createDate(QDate::currentDate(), 0, 6, 0));
-
-		if (m_mesoModel->isNewMesoFieldSet(m_mesoIdx, MESOCYCLES_COL_NAME))
-		{
-			QString meso_name;
-			uint i{1};
-			do {
-				meso_name = std::move(tr("New Program") + " %1"_L1.arg(QString::number(i++)));
-			} while (!isMesoNameOK(meso_name));
-			setName(meso_name);
-			m_newMesoFieldCounter++;
-		}
-
-		if (m_mesoModel->isNewMesoFieldSet(m_mesoIdx, MESOCYCLES_COL_STARTDATE))
-			m_newMesoFieldCounter++;
-		setStartDate(appUtils()->getNextMonday(QDate::currentDate()), false);
-
-		if (m_mesoModel->isNewMesoFieldSet(m_mesoIdx, MESOCYCLES_COL_ENDDATE))
-			m_newMesoFieldCounter++;
-		setEndDate(appUtils()->getNextSunday(minimumEndDate), false);
-
-		if (m_mesoModel->isNewMesoFieldSet(m_mesoIdx, MESOCYCLES_COL_SPLIT))
-			m_newMesoFieldCounter++;
-	}
-
+		m_strStartDate = appUtils()->formatDate(m_mesoModel->startDate(m_mesoIdx));
+	if (!endDateOK())
+		setEndDate(appUtils()->getNextSunday(m_mesoModel->startDate(m_mesoIdx).addDays(60)));
+	else
+		m_strEndDate = appUtils()->formatDate(m_mesoModel->endDate(m_mesoIdx));
 	m_mesoProperties.insert("mesoManager"_L1, QVariant::fromValue(this));
 	m_mesoProperties.insert("mesoModel"_L1, QVariant::fromValue(m_mesoModel));
 	m_mesoComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/MesocyclePage.qml"_L1}, QQmlComponent::Asynchronous};
@@ -472,25 +351,32 @@ void QMLMesoInterface::createMesocyclePage()
 				createMesocyclePage_part2();
 			}, Qt::SingleShotConnection);
 		break;
+		#ifndef QT_NO_DEBUG
 		case QQmlComponent::Null:
 		case QQmlComponent::Error:
-			#ifndef QT_NO_DEBUG
 			qDebug() << m_mesoComponent->errorString();
-			#endif
 		break;
+		#endif
 	}
 }
 
 void QMLMesoInterface::createMesocyclePage_part2()
 {
 	m_mesoPage = static_cast<QQuickItem*>(m_mesoComponent->createWithInitialProperties(m_mesoProperties, appQmlEngine()->rootContext()));
+	#ifndef QT_NO_DEBUG
+	if (!m_mesoPage)
+		qDebug() << m_mesoComponent->errorString();
+	#endif
+
 	appQmlEngine()->setObjectOwnership(m_mesoPage, QQmlEngine::CppOwnership);
 	m_mesoPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"_L1));
+	verifyMesoRequiredFieldsStatus();
 
 	appPagesListModel()->openPage(m_mesoPage, std::move(tr("Program: ") + name()),
 												[this] () { m_mesoModel->removeMesoManager(m_mesoIdx); });
 
-	connect(m_mesoModel, &DBMesocyclesModel::mesoIdxChanged, this, [this] (const uint old_meso_idx, const uint new_meso_idx) {
+	connect(m_mesoModel, &DBMesocyclesModel::mesoIdxChanged, this, [this] (const uint old_meso_idx, const uint new_meso_idx)
+	{
 		if (old_meso_idx == m_mesoIdx)
 		{
 			m_mesoIdx = new_meso_idx;
@@ -503,42 +389,31 @@ void QMLMesoInterface::createMesocyclePage_part2()
 		}
 	});
 
-	if (m_mesoModel->isNewMeso(m_mesoIdx))
-	{
-		connect(m_mesoModel, &DBMesocyclesModel::isNewMesoChanged, this, [this] (const uint meso_idx) {
-			if (meso_idx == m_mesoIdx)
-				emit isNewMesoChanged();
-		});
-	}
-
 	connect(m_mesoModel, &DBMesocyclesModel::canExportChanged, this, [this] (const uint meso_idx, const bool can_export) {
 		if (meso_idx == m_mesoIdx)
 			emit canExportChanged();
 	});
 
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, &QMLMesoInterface::labelsChanged);
-
-	if (m_mesoModel->isNewMeso(m_mesoIdx))
-		maybeChangeNewMesoFieldCounter();
-
-	connect(this, &QMLMesoInterface::nameChanged, this, [this] () {
-		appPagesListModel()->changeLabel(m_mesoPage, name());
-	});
+	connect(this, &QMLMesoInterface::nameChanged, this, [this] () { appPagesListModel()->changeLabel(m_mesoPage, name()); });
 }
 
-void QMLMesoInterface::maybeChangeNewMesoFieldCounter()
+void QMLMesoInterface::verifyMesoRequiredFieldsStatus()
 {
-	if (--m_newMesoFieldCounter >= 0)
+	if (m_mesoPage)
 	{
-		for (uint i{0}; i < NEW_MESO_N_REQUIRED_FIELDS; ++i)
+		int n_required_fields{0}, first_required_field{-1};
+		for (uint i{0}; i < DBMesocyclesModel::MESO_N_REQUIRED_FIELDS; ++i)
 		{
-			if (m_mesoModel->isNewMesoFieldSet(m_mesoIdx, new_meso_required_fields[i]))
+			if (m_mesoModel->isRequiredFieldWrong(m_mesoIdx, DBMesocyclesModel::meso_required_fields[i]))
 			{
-				emit newMesoFieldCounterChanged(new_meso_required_fields[i]);
-				return;
+				if (first_required_field == -1)
+					first_required_field = DBMesocyclesModel::meso_required_fields[i];
+				n_required_fields++;
 			}
 		}
-		emit newMesoFieldCounterChanged(0);
+		QMetaObject::invokeMethod(m_mesoPage, "wrongFieldValueMessageHandler",
+															Q_ARG(int, n_required_fields), Q_ARG(int, first_required_field));
 	}
 }
 

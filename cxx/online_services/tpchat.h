@@ -24,11 +24,11 @@ enum MessageFields {
 	TP_CHAT_TOTAL_MESSAGE_FIELDS
 };
 
-constexpr QLatin1StringView messageWorkSend {".0msg"};
-constexpr QLatin1StringView messageWorkReceived {".1received"};
-constexpr QLatin1StringView messageWorkRead {".2read"};
-constexpr QLatin1StringView messageWorkRemoved {".3removed"};
-constexpr QLatin1StringView messageWorkEdited {".4edited"};
+constexpr QLatin1StringView messageWorkSend{".0msg"};
+constexpr QLatin1StringView messageWorkReceived{".1received"};
+constexpr QLatin1StringView messageWorkRead{".2read"};
+constexpr QLatin1StringView messageWorkRemoved{".3removed"};
+constexpr QLatin1StringView messageWorkEdited{".4edited"};
 
 QT_FORWARD_DECLARE_CLASS(DBModelInterfaceChat)
 QT_FORWARD_DECLARE_STRUCT(ChatMessage)

@@ -18,7 +18,9 @@ DBCalendarModel::DBCalendarModel(DBMesoCalendarManager *parent, DBMesoCalendarTa
 {
 	m_roleNames[yearRole] = std::move("year");
 	m_roleNames[monthRole] = std::move("month");
-	connect(m_calendarManager, &DBMesoCalendarManager::calendarChanged, this, [this] (const uint meso_idx, const int calendar_day, const uint field) {
+	connect(m_calendarManager, &DBMesoCalendarManager::calendarChanged, this, [this]
+													(const uint meso_idx, const int calendar_day, const uint field)
+	{
 		if (meso_idx == m_mesoIdx)
 		{
 			switch (field)
@@ -49,8 +51,10 @@ DBCalendarModel::DBCalendarModel(DBMesoCalendarManager *parent, DBMesoCalendarTa
 			disconnect(*conn);
 			if (success)
 			{
-				const QDate startDate{appUtils()->getDateFromDateString(m_dbModelInterface->modelData().constLast().at(1), TPUtils::DF_DATABASE)};
-				const QDate endDate{appUtils()->getDateFromDateString(m_dbModelInterface->modelData().constLast().at(1), TPUtils::DF_DATABASE)};
+				const QDate startDate{appUtils()->getDateFromDateString(m_dbModelInterface->modelData().constLast().at(1),
+																										TPUtils::DF_DATABASE)};
+				const QDate endDate{appUtils()->getDateFromDateString(m_dbModelInterface->modelData().constLast().at(1),
+																										TPUtils::DF_DATABASE)};
 				m_nmonths = appUtils()->calculateNumberOfMonths(startDate, endDate);
 				emit dataChanged(index(0), index(m_nmonths));
 			}

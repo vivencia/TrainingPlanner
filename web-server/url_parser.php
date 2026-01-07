@@ -1132,6 +1132,7 @@ if ($userid) {
 					set_online_visible($userid, false);
 					apcu_delete($userid);
 					echo "0: User $userid logged out";
+					exit;
 				}
 
 				if (isset($_GET['getpeeraddress'])) {

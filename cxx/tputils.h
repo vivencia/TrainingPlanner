@@ -180,16 +180,12 @@ public:
 
 	double similarityBetweenStrings(const QString &string1, const QString &string2) const;
 	QString stripDiacriticsFromString(const QString &src) const;
+	Q_INVOKABLE QString stripInvalidCharacters(const QString &string) const;
 
 	Q_INVOKABLE QString setTypeOperation(const uint settype, const bool bIncrease, QString strValue, const bool seconds = false) const;
 
 	inline QLocale *appLocale() const { return m_appLocale; }
 	void setAppLocale(const QString &locale_str);
-
-	inline uint splitLetterToIndex(const QString &strletter) const { return splitLetterToIndex(strletter.at(0)); }
-	inline uint splitLetterToIndex(const QChar &letter) const { return static_cast<int>(letter.cell()) - static_cast<int>('A'); }
-	inline uint splitLetterToMesoSplitIndex(const QString &strletter) const { return splitLetterToIndex(strletter.at(0)) + 2; }
-	inline uint splitLetterToMesoSplitIndex(const QChar &letter) const { return splitLetterToIndex(letter) + 2; }
 
 private:
 	QLocale *m_appLocale;

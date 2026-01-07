@@ -91,18 +91,21 @@ Q_PROPERTY(QString restTimeUntrackedLabel READ restTimeUntrackedLabel NOTIFY lab
 Q_PROPERTY(QString splitLabel READ splitLabel NOTIFY labelChanged FINAL)
 
 public:
-	inline explicit DBExercisesModel(DBMesocyclesModel *meso_model, DBWorkoutsOrSplitsTable* db, const uint meso_idx, const int calendar_day)
+	//DBWorkoutModel
+	inline explicit DBExercisesModel(DBMesocyclesModel *meso_model, DBWorkoutsOrSplitsTable* db,
+																				const uint meso_idx, const int calendar_day)
 		: QAbstractListModel{reinterpret_cast<QObject*>(meso_model)}, m_mesoModel{meso_model}, m_db{db},
 			m_mesoIdx{meso_idx}, m_calendarDay{calendar_day}, m_splitLetter{'N'}, m_workingExercise{11111}
 	{
-		commonConstructor();
+		commonConstructor(true);
 	}
-	//An exercises model that will contain data for the meso splits do not need access to a calendar manager
-	inline explicit DBExercisesModel(DBMesocyclesModel *meso_model, DBWorkoutsOrSplitsTable *db, const uint meso_idx, const QChar &splitletter)
+	//DBSplitModel, no need for a calendar manager
+	inline explicit DBExercisesModel(DBMesocyclesModel *meso_model, DBWorkoutsOrSplitsTable *db,
+														const uint meso_idx, const QChar &splitletter, const bool load_from_db)
 		: QAbstractListModel{reinterpret_cast<QObject*>(meso_model)}, m_db{db}, m_mesoModel{meso_model},
 			m_mesoIdx{meso_idx}, m_calendarDay{-1}, m_splitLetter{splitletter}, m_workingExercise{11111}
 	{
-		commonConstructor();
+		commonConstructor(load_from_db);
 	}
 	~DBExercisesModel() { clearExercises(); }
 	inline DBModelInterfaceExercises *dbModelInterface() const { return m_dbModelInterface; }
@@ -262,7 +265,7 @@ private:
 	DBWorkoutsOrSplitsTable *m_db;
 	DBModelInterfaceExercises *m_dbModelInterface;
 
-	void commonConstructor();
+	void commonConstructor(const bool load_from_db);
 	void changeCalendarDayId();
 	TPSetTypes formatSetTypeToImport(const QString &fieldValue) const;
 	const QString exportExtraInfo() const;

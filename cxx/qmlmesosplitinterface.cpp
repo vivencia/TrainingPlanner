@@ -30,7 +30,7 @@ void QmlMesoSplitInterface::getExercisesPlannerPage()
 	if (!m_plannerPage)
 	{
 		connect(this, &QmlMesoSplitInterface::plannerPageCreated, this,
-								&QmlMesoSplitInterface::createMesoSplitPages, Qt::SingleShotConnection);
+													&QmlMesoSplitInterface::createMesoSplitPages, Qt::SingleShotConnection);
 		createPlannerPage();
 	}
 	else
@@ -68,7 +68,8 @@ void QmlMesoSplitInterface::loadSplitFromPreviousMeso()
 {
 	if (m_hasPreviousPlan.value(m_currentSplitLetter))
 	{
-		DBSplitModel *split_model{new DBSplitModel{m_mesoModel, currentSplitModel()->database(), m_mesoIdx, m_currentSplitLetter}};
+		DBSplitModel *split_model{new DBSplitModel{m_mesoModel, currentSplitModel()->database(),
+																					m_mesoIdx, m_currentSplitLetter, true}};
 		connect(split_model, &DBSplitModel::exerciseCountChanged, this, [this,split_model] () {
 			m_mesoModel->splitModelsForMeso(m_mesoIdx)[m_currentSplitLetter] = split_model;
 			delete split_model;
@@ -187,7 +188,7 @@ void QmlMesoSplitInterface::createPlannerPage_part2()
 	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field) {
 		if (meso_idx == m_mesoIdx)
 		{
-			if (field == MESOCYCLES_COL_SPLIT)
+			if (field == MESO_FIELD_SPLIT)
 				syncSplitPagesWithMesoSplit();
 		}
 	});

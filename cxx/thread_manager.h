@@ -17,7 +17,7 @@ public:
 		CustomOperation,
 		CreateTable,
 		InsertRecords,
-		alterRecords,
+		AlterRecords,
 		UpdateOneField,
 		UpdateSeveralFields,
 		UpdateRecords,

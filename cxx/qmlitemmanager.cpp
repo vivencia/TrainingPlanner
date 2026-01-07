@@ -340,7 +340,7 @@ void QmlItemManager::displayActivityResultMessage(const int requestCode, const i
 void QmlItemManager::getPasswordDialog(const QString &title, const QString &message) const
 {
 	connect(appMainWindow(), SIGNAL(passwordDialogClosed(int,QString)), this,
-				SLOT(qmlPasswordDialogClosed_slot(int,QString)), Qt::SingleShotConnection);
+											SLOT(qmlPasswordDialogClosed_slot(int,QString)), Qt::SingleShotConnection);
 	QMetaObject::invokeMethod(appMainWindow(), "showPasswordDialog", Q_ARG(QString, title), Q_ARG(QString, message));
 }
 

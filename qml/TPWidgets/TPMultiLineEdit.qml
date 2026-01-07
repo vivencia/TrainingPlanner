@@ -182,7 +182,7 @@ ColumnLayout {
 				onEditingFinished: {
 					if (modified) {
 						modified = false;
-						textAltered(text);
+						textAltered(contentsText());
 					}
 				}
 				onActiveFocusChanged: {
@@ -271,12 +271,13 @@ ColumnLayout {
 			if (_nFormatting < 0)
 				_nFormatting = 0;
 		}
+		textControl.modified = true;
 	}
 
-	function messageText() : string {
+	function contentsText() : string {
 		if (_nFormatting == 0)
 			return textControl.getText(0, textControl.length);
 		else
-			return textControl.text;
+			return appUtils.stripInvalidCharacters(textControl.text);
 	}
 } //ColumnLayout

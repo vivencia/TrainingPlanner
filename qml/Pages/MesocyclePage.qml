@@ -19,24 +19,12 @@ TPPage {
 
 	required property MesoManager mesoManager
 	required property MesocyclesModel mesoModel
-	property TPBalloonTip newMesoTip: newMesoLoader.item
+	property TPBalloonTip missingFieldsTip: requiredFieldsMissingLoader.item
 
 	onPageDeActivated: mesoManager.sendMesocycleFileToClient();
 
-	Connections {
-		target: mesoManager
-		function onNewMesoFieldCounterChanged(next_field: int): void {
-			if (!newMesoLoader.active) {
-				newMesoLoader.start_field = next_field;
-				newMesoLoader.active = true;
-			}
-			else
-				newMesoMessageHandler(next_field);
-		}
-	}
-
 	Loader {
-		id: newMesoLoader
+		id: requiredFieldsMissingLoader
 		active: false
 		asynchronous: true
 
@@ -50,45 +38,48 @@ TPPage {
 			keepAbove: true
 			movable: true
 
-			onClosed: {
-				if (mesoManager.newMesoFieldCounter === 0) {
-					mesoManager.newMesoFieldCounter = -1;
-					newMesoLoader.active = false;
-				}
-			}
-		}
-
-		onLoaded: {
-			newMesoMessageHandler(start_field);
-			start_field = -1;
-			item.show(-4);
+			onClosed: requiredFieldsMissingLoader.active = false;
 		}
 	}
 
-	function newMesoMessageHandler(next_field: int): void {
-		switch (next_field) {
-			case 0:
-				newMesoTip.subImageLabel = "OK";
-				newMesoTip.title = qsTr("New program setup complete!");
-				newMesoTip.message = qsTr("Required fields setup");
-				newMesoTip.showTimed(5000, -3);
+	function wrongFieldValueMessageHandler(wrong_field_counter: int, field: int): void {
+		if (!requiredFieldsMissingLoader.active)
+		{
+			if (wrong_field_counter === 0)
+				return;
+			else if (wrong_field_counter >= 1) {
+				requiredFieldsMissingLoader.loaded.connect(function() {
+					missingFieldsTip.show(-4);
+					wrongFieldValueMessageHandler(wrong_field_counter, field);
+				});
+				requiredFieldsMissingLoader.active = true;
+				return;
+			}
+		}
+
+		switch (field) {
+			case -1:
+				missingFieldsTip.subImageLabel = "OK";
+				missingFieldsTip.title = qsTr("New program setup complete!");
+				missingFieldsTip.message = qsTr("Required fields setup");
+				missingFieldsTip.showTimed(5000, -3);
 			break;
 			case 21:
-				newMesoTip.subImageLabel = "?";
-				newMesoTip.title = qsTr("Accept program from coach?");
-				newMesoTip.message = qsTr("Until you accept this program you can only view it");
-				newMesoTip.button1Text = qsTr("Yes");
-				newMesoTip.button2Text = qsTr("No");
-				newMesoTip.button1Clicked.connect(function() { mesoManager.incorporateMeso(); });
+				missingFieldsTip.subImageLabel = "?";
+				missingFieldsTip.title = qsTr("Accept program from coach?");
+				missingFieldsTip.message = qsTr("Until you accept this program you can only view it");
+				missingFieldsTip.button1Text = qsTr("Yes");
+				missingFieldsTip.button2Text = qsTr("No");
+				missingFieldsTip.button1Clicked.connect(function() { mesoManager.incorporateMeso(); });
 			break;
 			default:
-				newMesoTip.title = qsTr("New program setup incomplete");
-				newMesoTip.subImageLabel = String(mesoManager.newMesoFieldCounter);
-				switch (next_field) {
-					case 1: newMesoTip.message = qsTr("Change and/or accept the program's name"); break; //MESOCYCLES_COL_NAME
-					case 2: newMesoTip.message = qsTr("Change and/or accept the start date"); break; //MESOCYCLES_COL_STARTDATE
-					case 3: newMesoTip.message = qsTr("Change and/or accept the end date"); break; //MESOCYCLES_COL_ENDDATE
-					case 6: newMesoTip.message = qsTr("Change and/or accept the split division"); break; //MESOCYCLES_COL_SPLIT
+				missingFieldsTip.title = qsTr("New program setup incomplete");
+				missingFieldsTip.subImageLabel = String(wrong_field_counter);
+				switch (field) {
+					case 1: missingFieldsTip.message = qsTr("Change and/or accept the program's name"); break; //MESO_FIELD_NAME
+					case 2: missingFieldsTip.message = qsTr("Change and/or accept the start date"); break; //MESO_FIELD_STARTDATE
+					case 3: missingFieldsTip.message = qsTr("Change and/or accept the end date"); break; //MESO_FIELD_ENDDATE
+					case 6: missingFieldsTip.message = qsTr("Change and/or accept the split division"); break; //MESO_FIELD_SPLIT
 				}
 			break;
 		}
@@ -109,7 +100,7 @@ TPPage {
 				leftMargin: 5
 				rightMargin: 5
 				topMargin: 0
-				bottomMargin: mesoManager.isNewMeso ? newMesoTip.height : 10
+				bottomMargin: requiredFieldsMissingLoader.active ? missingFieldsTip.height + 20 : 10
 			}
 
 			Loader {
@@ -159,9 +150,8 @@ TPPage {
 				text: mesoModel.mesoNameLabel
 				Layout.topMargin: 10
 
-				TPButton {
-					imageSource: "set-completed"
-					visible: mesoManager.isNewMeso
+				TPImage {
+					source: "set-completed"
 					enabled: mesoManager.mesoNameOK
 					width: appSettings.itemDefaultHeight
 					height: width
@@ -169,11 +159,6 @@ TPPage {
 					anchors {
 						left: parent.right
 						verticalCenter: parent.verticalCenter
-					}
-
-					onClicked: {
-						if (mesoManager.isNewMeso)
-							mesoManager.name = txtMesoName.text;
 					}
 				}
 			}
@@ -213,6 +198,7 @@ TPPage {
 						mesoManager.type = textAt(index);
 					else
 						txtMesoTypeOther.forceActiveFocus();
+					currentIndex = index;
 				}
 
 				Component.onCompleted: {
@@ -293,10 +279,9 @@ TPPage {
 			TPLabel {
 				text: mesoModel.startDateLabel
 
-				TPButton {
-					imageSource: "set-completed"
-					visible: mesoManager.isNewMeso
-					enabled: mesoManager.mesoNameOK
+				TPImage {
+					source: "set-completed"
+					enabled: mesoManager.startDateOK
 					width: appSettings.itemDefaultHeight
 					height: width
 
@@ -304,8 +289,6 @@ TPPage {
 						left: parent.right
 						verticalCenter: parent.verticalCenter
 					}
-
-					onClicked: mesoManager.startDate = mesoManager.startDate;
 				}
 			}
 
@@ -371,10 +354,9 @@ TPPage {
 				text: mesoModel.endDateLabel
 				visible: mesoManager.realMeso
 
-				TPButton {
-					imageSource: "set-completed"
-					visible: mesoManager.isNewMeso
-					enabled: mesoManager.mesoNameOK
+				TPImage {
+					source: "set-completed"
+					enabled: mesoManager.endDateOK
 					width: appSettings.itemDefaultHeight
 					height: width
 
@@ -382,8 +364,6 @@ TPPage {
 						left: parent.right
 						verticalCenter: parent.verticalCenter
 					}
-
-					onClicked: mesoManager.endDate = mesoManager.endDate;
 				}
 			}
 
@@ -453,7 +433,8 @@ TPPage {
 			TPMultiLineEdit {
 				Layout.fillWidth: true
 				Layout.preferredHeight: appSettings.pageHeight * 0.15
-				onTextAltered: mesoManager.notes = text;
+				text: mesoManager.notes
+				onTextAltered: (_text) => mesoManager.notes = _text;
 			}
 
 			TPButton {

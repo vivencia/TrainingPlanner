@@ -123,24 +123,11 @@ Column {
 		height: parent.height * 0.75
 		radius: 8
 
-
-		ListView {
+		TPListView {
 			id: lstExercises
 			model: exercisesModel
-			boundsBehavior: Flickable.StopAtBounds
-			clip: true
-			reuseItems: true
-			contentHeight: exercisesModel.count * 40 * 1.1 //contentHeight: Essencial for the ScrollBars to work.
-			contentWidth: width
 			anchors.fill: parent
 			anchors.margins: 4
-
-			ScrollBar.vertical: ScrollBar {
-				policy: ScrollBar.AsNeeded
-				active: true
-				visible: lstExercises.contentHeight > lstExercises.height
-				interactive: true
-			}
 
 			delegate: SwipeDelegate {
 				id: delegate
@@ -155,8 +142,7 @@ Column {
 				}
 
 				background: Rectangle {
-					color: selected ? appSettings.entrySelectedColor : index % 2 === 0 ?
-													appSettings.listEntryColor1 : appSettings.listEntryColor2
+					color: selected ? appSettings.entrySelectedColor : "transparent"
 					opacity: 0.6
 				}
 
@@ -235,7 +221,7 @@ Column {
 			let component = Qt.createComponent("qrc:/qml/Dialogs/MuscularGroupPicker.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				filterDlg = component.createObject(mainwindow, { parentPage: mainItem.parentPage, groupsSeparator: '|' });
+				filterDlg = component.createObject(mainwindow, { parentPage: mainItem.parentPage });
 				filterDlg.muscularGroupCreated.connect(function(filterStr) {
 					exercisesModel.setFilter(filterStr);
 				});

@@ -2132,7 +2132,7 @@ void DBUserModel::checkNewMesos()
 				{
 					for (const auto &mesoFileName : ret_list)
 					{
-						if (!actualMesoModel()->mesoPlanExists(appUtils()->getFileName(mesoFileName, true), coach_id, userId(0)))
+						if (actualMesoModel()->mesoPlanExists(appUtils()->getFileName(mesoFileName, true), coach_id, userId(0)) == -1)
 						{
 							const int id{appUtils()->idFromString(mesoFileName)};
 							if (appMessagesManager()->message(id) == nullptr)
@@ -2145,7 +2145,7 @@ void DBUserModel::checkNewMesos()
 									actualMesoModel()->viewOnlineMeso(coach_id, mesofile.toString());
 								}, true);
 								new_message->insertAction(tr("Delete"), [=,this] (const QVariant &mesofile) {
-									appOnlineServices()->removeFile(request_id, mesofile.toString(), mesosSubDir, coach_id);
+									appOnlineServices()->removeFile(request_id, mesofile.toString(), mesos_subdir, coach_id);
 								}, true);
 								new_message->plug();
 							}
@@ -2154,7 +2154,7 @@ void DBUserModel::checkNewMesos()
 				}
 			}
 		});
-		appOnlineServices()->listFiles(requestid, true, false, QString{}, mesosSubDir +
+		appOnlineServices()->listFiles(requestid, true, false, QString{}, mesos_subdir +
 												userIdFromFieldValue(USER_COL_NAME, coach.at(USER_COL_NAME)), userId(0));
 	}
 }

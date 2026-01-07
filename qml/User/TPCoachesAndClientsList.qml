@@ -17,12 +17,8 @@ Item {
 	property alias currentIndex: listview.currentIndex
 	property OnlineUserInfo workingModel: null
 
-	ListView {
+	TPListView {
 		id: listview
-		contentHeight: availableHeight
-		contentWidth: availableWidth
-		spacing: 0
-		clip: true
 		currentIndex: model ? model.currentRow : -1
 		height: button.visible ? parent.height - button.height - 5 : parent.height
 		model: workingModel
@@ -32,15 +28,6 @@ Item {
 			top: parent.top
 			left: parent.left
 			right: parent.right
-		}
-
-		ScrollBar.vertical: ScrollBar {
-			policy: ScrollBar.AsNeeded
-			active: true; visible: listview.contentHeight > listview.height
-		}
-		ScrollBar.horizontal: ScrollBar {
-			policy: ScrollBar.AsNeeded
-			active: true; visible: listview.contentWidth > listview.width
 		}
 
 		delegate: ItemDelegate {

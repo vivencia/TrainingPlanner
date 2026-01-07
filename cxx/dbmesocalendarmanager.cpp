@@ -108,34 +108,20 @@ void DBMesoCalendarManager::removeCalendarForMeso(const uint meso_idx, const boo
 
 void DBMesoCalendarManager::getCalendarForMeso(const uint meso_idx, const bool create_calendar)
 {
-	if (m_mesoModel->_id(meso_idx) >= 0)
-	{
-		if (!create_calendar)
-			m_calendars.insert(meso_idx, new DBCalendarModel{this, m_calendarDB, meso_idx});
-		else
-		{
-			const QDate &startDate{m_mesoModel->startDate(meso_idx)};
-			const uint n_months{populateCalendarDays(meso_idx, startDate, m_mesoModel->endDate(meso_idx), m_mesoModel->split(meso_idx))};
-			DBCalendarModel *model{m_calendars.value(meso_idx)};
-			model->setNMonths(n_months);
-			DBModelInterfaceCalendar *dbmic{getDBModelInterfaceCalendar(meso_idx)};
-			for (uint i{0}; i < model->count(); ++i)
-				dbmic->setModified(i, 0);
-			m_calendarDB->setDBModelInterface(dbmic);
-			appThreadManager()->runAction(m_calendarDB, ThreadManager::alterRecords);
-		}
-	}
+	if (!create_calendar)
+		m_calendars.insert(meso_idx, new DBCalendarModel{this, m_calendarDB, meso_idx});
 	else
 	{
-		auto conn{std::make_shared<QMetaObject::Connection>()};
-		*conn = connect(m_mesoModel, &DBMesocyclesModel::isNewMesoChanged, this, [this,conn,meso_idx] (const uint _meso_idx)
-		{
-			if (meso_idx == _meso_idx)
-			{
-				disconnect(*conn);
-				getCalendarForMeso(meso_idx, true);
-			}
-		});
+		const QDate &startDate{m_mesoModel->startDate(meso_idx)};
+		const uint n_months{populateCalendarDays(meso_idx, startDate, m_mesoModel->endDate(meso_idx),
+																							m_mesoModel->split(meso_idx))};
+		DBCalendarModel *model{m_calendars.value(meso_idx)};
+		model->setNMonths(n_months);
+		DBModelInterfaceCalendar *dbmic{getDBModelInterfaceCalendar(meso_idx)};
+		for (uint i{0}; i < model->count(); ++i)
+			dbmic->setModified(i, 0);
+		m_calendarDB->setDBModelInterface(dbmic);
+		appThreadManager()->runAction(m_calendarDB, ThreadManager::InsertRecords);
 	}
 }
 

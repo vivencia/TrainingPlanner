@@ -60,15 +60,11 @@ TPPage {
 			Layout.fillWidth: true
 			Layout.topMargin: 5
 
-			ListView {
+			TPListView {
 				id: scrollViewCities
 				model: appSettings.weatherCitiesCount
 				width: mainLayout.width
 				height: parent.height - appSettings.itemDefaultHeight - 10
-				contentHeight: model.count * appSettings.itemLargeHeight
-				contentWidth: availableWidth
-				spacing: 0
-				clip: true
 
 				property int my_count: 0
 				property int my_currentIndex: -1
@@ -106,11 +102,6 @@ TPPage {
 					leftMargin: 5
 					right: parent.right
 					rightMargin: 5
-				}
-
-				ScrollBar.vertical: ScrollBar {
-					policy: ScrollBar.AsNeeded
-					active: true; visible: scrollViewCities.contentHeight > scrollViewCities.height
 				}
 
 				delegate: ItemDelegate {

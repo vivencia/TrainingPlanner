@@ -18,10 +18,9 @@ Pane {
 	property alias mesoSplitText: txtMesoSplit.text
 	readonly property int col1Width: width * 0.1
 	readonly property int col2Width: width * 0.15
-	readonly property int col3Width: appSettings.pageWidth * 0.6
-	readonly property int col4Width: appSettings.itemDefaultHeight
+	readonly property int col3Width: appSettings.itemDefaultHeight
+	readonly property int col4Width: appSettings.pageWidth * 0.6
 	readonly property list<string> daysOfWeek: [qsTr("Mon"), qsTr("Tue"), qsTr("Wed"), qsTr("Thu"), qsTr("Fri"), qsTr("Sat"), qsTr("Sun")]
-
 	property bool bMesoSplitChanged: false
 
 	background: Rectangle {
@@ -82,15 +81,6 @@ Pane {
 				required property int index
 				readonly property int delegateIndex: index
 
-				/*Component.onCompleted: {
-					for (let i = 0; i < children.length; ++i)
-					{
-						console.log(i, children[i].objectName);
-						for (let x = 0; x < children[i].children.length; ++x)
-							console.log(i,x, children[i].children[x].objectName);
-					}
-				}*/
-
 				TPLabel {
 					//objectName: "label"
 					text: daysOfWeek[delegateIndex]
@@ -99,8 +89,6 @@ Pane {
 				}
 
 				TPComboBox {
-					//objectName: "combo"
-					// Don't allow a day to skip a letter. Letters must be added sequentially or be repeated, never skipped
 					id: cboSplit
 					Layout.preferredWidth: col2Width
 					Layout.alignment: Qt.AlignCenter
@@ -118,10 +106,13 @@ Pane {
 						ListElement { text: "R"; value: "R"; enabled: true; }
 					}
 
+					// Don't allow a day to skip a letter. Letters must be added sequentially or be repeated, never skipped
 					onActivated: (cboindex) => {
 						let mesoSplit = txtMesoSplit.text;
 						mesoManager.split = mesoSplit.substring(0,delegateRow.delegateIndex) +
 													valueAt(cboindex) + mesoSplit.substring(delegateRow.delegateIndex+1);
+						fillMuscularGroupsModel(delegateRow.index, currentValue, mesoManager.muscularGroup(currentValue))
+
 						let last_letter_idx = cboindex + 1;
 						if (last_letter_idx === nDelegateRows) {
 							last_letter_idx = 0;
@@ -150,6 +141,8 @@ Pane {
 
 					Component.onCompleted: {
 						currentIndex = indexOfValue(txtMesoSplit.text.charAt(delegateRow.delegateIndex));
+						fillMuscularGroupsModel(delegateRow.index, currentValue, mesoManager.muscularGroup(currentValue))
+
 						let last_letter_idx = indexOfValue(currentValue);
 						if (last_letter_idx === nLastDelegateIdx) { //split is an 'R'
 							let prev_index = delegateRow.delegateIndex-1;
@@ -171,66 +164,36 @@ Pane {
 					}
 				} //TPComboBox
 
-				TPTextInput {
-					//objectName: "text"
-					id: txtSplit
-					readOnly: true
-					suggestedHeight: 30
-					Layout.minimumWidth: col3Width
-					Layout.maximumWidth: col3Width
-					Layout.minimumHeight: 50
-					Layout.maximumHeight: 80
-
-					Component.onCompleted: {
-						createBindings();
-
-						textChanged.connect(function() {
-							switch (cboSplit.currentIndex) {
-								case 0: mesoManager.muscularGroupA = text; break;
-								case 1: mesoManager.muscularGroupB = text; break;
-								case 2: mesoManager.muscularGroupC = text; break;
-								case 3: mesoManager.muscularGroupD = text; break;
-								case 4: mesoManager.muscularGroupE = text; break;
-								case 5: mesoManager.muscularGroupF = text; break;
-							}
-						});
-					}
-
-					function createBindings(): void {
-						text = Qt.binding(function() {
-							switch (cboSplit.currentIndex) {
-								case 0: return mesoManager.muscularGroupA;
-								case 1: return mesoManager.muscularGroupB;
-								case 2: return mesoManager.muscularGroupC;
-								case 3: return mesoManager.muscularGroupD;
-								case 4: return mesoManager.muscularGroupE;
-								case 5: return mesoManager.muscularGroupF;
-								case 6: return mesoManager.muscularGroupR;
-							}
-						});
-					}
-				} //TPTextInput
-
 				TPButton {
-					//objectName: "button"
 					id: btnMuscularGroups
 					imageSource: "choose.png"
 					enabled: cboSplit.currentIndex !== 6
-					width: col4Width
-					height: col4Width
+					width: col3Width
+					height: col3Width
+
+					onClicked: showMGDialog(this, cboSplit.currentValue);
+				}
+
+				TPComboBox {
+					id: cboMuscularGroup
+					selectable: false
+					displayText: model.count > 0 ? _displayText : qsTr("<- Choose muscle groups...")
 					Layout.minimumWidth: col4Width
 					Layout.maximumWidth: col4Width
-					Layout.preferredHeight: col4Width
 
-					onClicked: showMGDialog(this, splitRepeater.itemAt(index).children[2]);
-				}
+					property string _displayText
+
+					model: ListModel {
+						id: groupsModel
+					}
+				} //cboMuscularGroup
 			} //RowLayout
 		} //Repeater
 	} //GridLayout
 
 	TPButton {
 		text: qsTr("Exercises Planner")
-		enabled: !mesoManager.isNewMeso && mesoManager.splitOK
+		enabled: mesoManager.splitOK
 		autoSize: true
 
 		anchors {
@@ -245,15 +208,29 @@ Pane {
 		splitRepeater.itemAt(0).children[1].forceActiveFocus();
 	}
 
+	function setMuscularGroup(split: string, groups: string): void {
+			mesoManager.setMuscularGroup(split, groups);
+			let index = -1;
+			switch (split) {
+				case 'A' : index = 0; break;
+				case 'B' : index = 1; break;
+				case 'C' : index = 2; break;
+				case 'D' : index = 3; break;
+				case 'E' : index = 4; break;
+				case 'F' : index = 5; break;
+			}
+			fillMuscularGroupsModel(index, split, groups);
+		}
+
 	property MuscularGroupPicker filterDlg: null
-	property TPTextInput txtWidget: null
-	function showMGDialog(button: TPButton, text_widget: TPTextInput): void {
+	function showMGDialog(button: TPButton, split: string): void {
 		if (filterDlg === null) {
 			let component = Qt.createComponent("qrc:/qml/Dialogs/MuscularGroupPicker.qml", Qt.Asynchronous);
 
-			function finishCreation() { //use fancy_record_separator1 as groupsSeparator
-				filterDlg = component.createObject(mainwindow, { parentPage: mesoPropertiesPage, groupsSeparator: '|',
-									buttonLabel: qsTr("Define"), useFancyNames: true });
+			function finishCreation() {
+				filterDlg = component.createObject(mainwindow, {
+										parentPage: mesoPropertiesPage, buttonLabel: qsTr("Define"), useFancyNames: true });
+				filterDlg.muscularGroupsCreated.connect(function(groups) { setMuscularGroup(split, groups) });
 			}
 
 			if (component.status === Component.Ready)
@@ -261,16 +238,24 @@ Pane {
 			else
 				component.statusChanged.connect(finishCreation);
 		}
+		filterDlg.show(mesoManager.muscularGroup(split), button, 3);
+	}
 
-		function setWidgetText(groups) {
-			txtWidget.text = groups;
-			txtWidget.createBindings();
+	function fillMuscularGroupsModel(index: int, split: string, groups_str: string): void {
+		let groups = groups_str.split('|');
+		const cboBox = splitRepeater.itemAt(index).children[3];
+		cboBox.model.clear();
+		if (groups.length > 0)
+		{
+			let display_text = "";
+			for (let i = 0; i < groups.length; ++i) {
+				if (groups[i] !== "") {
+					cboBox.model.append({ text: groups[i], value: "", enabled: true });
+					display_text += groups[i] + ", ";
+				}
+			}
+			cboBox._displayText = display_text.substring(0, display_text.length - 2);
+			cboBox.currentIndex = 0;
 		}
-
-		filterDlg.muscularGroupCreated.disconnect(setWidgetText);
-		txtWidget = text_widget;
-
-		filterDlg.muscularGroupCreated.connect(setWidgetText);
-		filterDlg.show(text_widget.text, button, 3);
 	}
 } //Pane

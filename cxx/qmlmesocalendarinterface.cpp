@@ -136,11 +136,11 @@ void QmlMesoCalendarInterface::createMesoCalendarPage_part2()
 	{
 		switch (field)
 		{
-			case MESOCYCLES_COL_NAME:
+			case MESO_FIELD_NAME:
 				emit nameLabelChanged();
 			break;
-			case MESOCYCLES_COL_STARTDATE:
-			case MESOCYCLES_COL_ENDDATE:
+			case MESO_FIELD_STARTDATE:
+			case MESO_FIELD_ENDDATE:
 				emit dateLabelChanged();
 			break;
 		}

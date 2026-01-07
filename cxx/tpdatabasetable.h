@@ -8,14 +8,14 @@
 #include <QSqlDatabase>
 #include <QSqlQuery>
 
-constexpr uint APP_TABLES_NUMBER{7};
-constexpr uint EXERCISES_TABLE_ID{0x0001};
-constexpr uint MESOCYCLES_TABLE_ID{0x0002};
-constexpr uint MESOSPLIT_TABLE_ID{0x0003};
-constexpr uint MESOCALENDAR_TABLE_ID{0x0004};
-constexpr uint WORKOUT_TABLE_ID{0x0005};
-constexpr uint USERS_TABLE_ID{0x0006};
-constexpr uint CHAT_TABLE_ID{0x0007};
+constexpr uint8_t APP_TABLES_NUMBER{7};
+constexpr uint8_t EXERCISES_TABLE_ID{0x0001};
+constexpr uint8_t MESOCYCLES_TABLE_ID{0x0002};
+constexpr uint8_t MESOSPLIT_TABLE_ID{0x0003};
+constexpr uint8_t MESOCALENDAR_TABLE_ID{0x0004};
+constexpr uint8_t WORKOUT_TABLE_ID{0x0005};
+constexpr uint8_t USERS_TABLE_ID{0x0006};
+constexpr uint8_t CHAT_TABLE_ID{0x0007};
 
 QT_FORWARD_DECLARE_CLASS(DBModelInterface)
 QT_FORWARD_DECLARE_CLASS(QFile)
@@ -47,7 +47,7 @@ public:
 
 	std::pair<bool,bool> createTable();
 	std::pair<bool,bool> insertRecord();
-	std::pair<bool,bool> alterRecords();
+	std::pair<bool,bool> AlterRecords();
 	std::pair<bool,bool> updateRecord();
 	std::pair<bool,bool> updateFieldsOfRecord();
 	std::pair<bool,bool> updateRecords();

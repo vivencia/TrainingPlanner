@@ -459,6 +459,7 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_noti
 
 void OSInterface::serverProcessFinished(QProcess *proc, const int exitCode, QProcess::ExitStatus exitStatus)
 {
+	proc->deleteLater();
 	if (exitStatus != QProcess::NormalExit)
 	{
 		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR, appUtils()->string_strings(
@@ -479,7 +480,8 @@ void OSInterface::serverProcessFinished(QProcess *proc, const int exitCode, QPro
 		case TPSERVER_ERROR:
 		case TPSERVER_NGINX_ERROR:
 		case TPSERVER_PAUSED_FAILED:
-			onlineServicesResponse(exitCode, proc->readAllStandardOutput() % "\nReturn code("_L1 % QString::number(exitCode) % ')');
+			onlineServicesResponse(exitCode, proc->readAllStandardOutput() % "\nReturn code("_L1 %
+																							QString::number(exitCode) % ')');
 		break;
 		case TPSERVER_PHPFPM_ERROR:
 			commandLocalServer("Start server service?"_L1, "start"_L1);
@@ -495,13 +497,13 @@ void OSInterface::serverProcessFinished(QProcess *proc, const int exitCode, QPro
 		break;
 	}
 	proc->close();
-	proc->deleteLater();
 }
 
 void OSInterface::checkLocalServer()
 {
 	QProcess *check_server_proc{new QProcess{this}};
-	connect(check_server_proc, &QProcess::finished, this, [this,check_server_proc] (int exitCode, QProcess::ExitStatus exitStatus) {
+	connect(check_server_proc, &QProcess::finished, this, [this,check_server_proc]
+																			(int exitCode, QProcess::ExitStatus exitStatus) {
 		serverProcessFinished(check_server_proc, exitCode, exitStatus);
 	});
 	check_server_proc->start(tp_server_config_script, {"status"_L1}, QIODeviceBase::ReadOnly);
@@ -509,11 +511,13 @@ void OSInterface::checkLocalServer()
 
 void OSInterface::commandLocalServer(const QString &message, const QString &command)
 {
-	connect(appItemManager(), &QmlItemManager::qmlPasswordDialogClosed, this, [this,message,command] (int resultCode, const QString &password) {
-		if (resultCode == 0)
+	connect(appItemManager(), &QmlItemManager::qmlPasswordDialogClosed, this, [this,message,command]
+																					(int resultCode, const QString &password) {
+		if (resultCode == TP_RET_CODE_SUCCESS)
 		{
 			QProcess *server_script_proc{new QProcess{this}};
-			connect(server_script_proc, &QProcess::finished, this, [this,server_script_proc] (int exitCode, QProcess::ExitStatus exitStatus) {
+			connect(server_script_proc, &QProcess::finished, this, [this,server_script_proc]
+																			(int exitCode, QProcess::ExitStatus exitStatus) {
 				serverProcessFinished(server_script_proc, exitCode, exitStatus);
 			});
 			server_script_proc->start(tp_server_config_script , {command, "-p="_L1 + password}, QIODeviceBase::ReadOnly);
@@ -744,10 +748,12 @@ void OSInterface::checkInternetConnection()
 		is_connected = checkConnectionSocket.state() == QTcpSocket::ConnectedState;
 		checkConnectionSocket.close();
 	}
-	if (!m_currentNetworkStatus[internetMessage].has_value() || m_currentNetworkStatus[internetMessage].value() != is_connected)
+	if (!m_currentNetworkStatus[internetMessage].has_value() ||
+															m_currentNetworkStatus[internetMessage].value() != is_connected)
 	{
 		setNetStatus(internetMessage, is_connected,
-			std::move(is_connected ? tr("Device is connected to the internet") : tr("Device is not connected to the internet")));
+			std::move(is_connected ? tr("Device is connected to the internet") :
+																			tr("Device is not connected to the internet")));
 		emit internetStatusChanged();
 	}
 
@@ -779,5 +785,6 @@ void OSInterface::onlineServicesResponse(const uint online_status, const QString
 					{"Linux TP Server"_L1, connectionMessage()}, record_separator),
 					online_status == TP_RET_CODE_SUCCESS ? "set-completed" : "error");
 	}
-	m_checkConnectionTimer->start(online ? CONNECTION_CHECK_TIMEOUT : CONNECTION_ERR_TIMEOUT); //When network is out, check more frequently)
+	//When network is out, check more frequently)
+	m_checkConnectionTimer->start(online ? CONNECTION_CHECK_TIMEOUT : CONNECTION_ERR_TIMEOUT);
 }

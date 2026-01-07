@@ -533,7 +533,7 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 	});
 
 	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field) {
-		if (meso_idx == m_mesoIdx  &&field == MESOCYCLES_COL_SPLIT)
+		if (meso_idx == m_mesoIdx  &&field == MESO_FIELD_SPLIT)
 			QMetaObject::invokeMethod(m_workoutPage, "changeComboModel", Q_ARG(QString, m_mesoModel->split(m_mesoIdx)));
 	});
 

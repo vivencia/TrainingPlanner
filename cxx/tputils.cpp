@@ -1130,6 +1130,12 @@ QString TPUtils::stripDiacriticsFromString(const QString &src) const
 	return filtered;
 }
 
+QString TPUtils::stripInvalidCharacters(const QString &string) const
+{
+	QString ret{string};
+	return ret.replace('\'', '"');
+}
+
 QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QString strValue, const bool seconds) const
 {
 	if (strValue.isEmpty())

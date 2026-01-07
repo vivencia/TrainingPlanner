@@ -8,6 +8,7 @@ ComboBox {
 	property string textColor: appSettings.fontColor
 	property string backgroundColor: appSettings.primaryDarkColor
 	property bool completeModel: false
+	property bool selectable: true
 
 	id: control
 	height: appSettings.itemLargeHeight
@@ -32,7 +33,6 @@ ComboBox {
 			text: model.text
 			enabled: model.enabled
 			leftPadding: completeModel ? appSettings.itemDefaultHeight + 5 : 5
-			elide: Text.ElideRight
 
 			TPImage {
 				id: lblImg
@@ -81,6 +81,8 @@ ComboBox {
 	contentItem: TPLabel {
 		text: control.displayText
 		leftPadding: completeModel ? appSettings.itemDefaultHeight + 5 : 5
+		minimumPixelSize: -1
+		fontSizeMode: Text.FixedSize
 		elide: Text.ElideRight
 	}
 
@@ -119,6 +121,27 @@ ComboBox {
 			implicitHeight: contentHeight
 			model: control.popup.visible ? control.delegateModel : null
 			currentIndex: control.highlightedIndex
+			highlight: selectable ? highlight_component : null
+			highlightFollowsCurrentItem: false
+			delegateModelAccess: DelegateModel.ReadOnly
+			enabled: selectable
+
+			Component {
+				id:	highlight_component
+				Rectangle {
+					width: ListView.view.width
+					height: appSettings.itemDefaultHeight
+					color: appSettings.primaryColor
+					radius: 8
+					y: ListView.view.currentItem ? ListView.view.currentItem.y : 0
+					Behavior on y {
+						SpringAnimation {
+							spring: 3
+							damping: 0.2
+						}
+					}
+				}
+			}
 		}
 
 		background: Rectangle {

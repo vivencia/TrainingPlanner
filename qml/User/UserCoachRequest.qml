@@ -52,23 +52,12 @@ TPPopup {
 			Layout.maximumWidth: parent.width - 10
 		}
 
-		ListView {
+		TPListView {
 			id: availableCoachesList
-			contentHeight: availableHeight;	contentWidth: availableWidth; clip: true
-			spacing: 0
 			model: userModel.availableCoaches
 			visible: userModel.availableCoaches.count > 0
 			Layout.fillWidth: true
 			Layout.fillHeight: true
-
-			ScrollBar.vertical: ScrollBar {
-				policy: ScrollBar.AsNeeded
-				active: true; visible: availableCoachesList.contentHeight > availableCoachesList.height
-			}
-			ScrollBar.horizontal: ScrollBar {
-				policy: ScrollBar.AlwaysOff
-				active: false; visible: false
-			}
 
 			delegate: Rectangle {
 				required property int index

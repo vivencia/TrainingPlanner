@@ -13,10 +13,12 @@ TPPopup {
 
 	property string buttonLabel: qsTr("Filter")
 	property bool useFancyNames: false
-	property string groupsSeparator
+
 	property bool shown: true
+	readonly property string groupsSeparator: '|'
 	readonly property int dlgHeight: appSettings.pageHeight * 0.5
-	signal muscularGroupCreated(group: string);
+
+	signal muscularGroupsCreated(groups: string);
 
 	property ListModel groupsModel: ListModel {
 		ListElement { display: QT_TR_NOOP("Quadriceps"); value: "quadriceps"; selected: false; }
@@ -119,16 +121,16 @@ TPPopup {
 		}
 
 		onClicked: {
-			let muscularGroup = "";
+			let muscularGroups = "";
 			for (let i = 0; i < groupsModel.count; ++i) {
 				if (groupsModel.get(i).selected) {
 					if (!useFancyNames)
-						muscularGroup += groupsModel.get(i).value + groupsSeparator;
+						muscularGroups += groupsModel.get(i).value + groupsSeparator;
 					else
-						muscularGroup += qsTr(groupsModel.get(i).display) + groupsSeparator;
+						muscularGroups += qsTr(groupsModel.get(i).display) + groupsSeparator;
 				}
 			}
-			muscularGroupCreated(muscularGroup);
+			muscularGroupsCreated(muscularGroups);
 		}
 	}
 

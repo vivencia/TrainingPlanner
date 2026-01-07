@@ -20,7 +20,7 @@ TPPopup {
 	required property ChatModel chatManager
 
 	readonly property int defaultWidth: appSettings.pageWidth * 0.8
-	readonly property bool canViewNewMessages: mBar.position + mBar.size >= 1
+	readonly property bool canViewNewMessages: messagesList.vBar.position + messagesList.vBar.size >= 1
 
 	property bool maximized: false
 	property bool minimized: false
@@ -150,7 +150,7 @@ TPPopup {
 		maximized = false;
 	}
 
-	ListView {
+	TPListView {
 		id: messagesList
 		contentHeight: availableHeight
 		contentWidth: availableWidth
@@ -165,15 +165,6 @@ TPPopup {
 			right: parent.right
 			bottom: frmFooter.top
 			bottomMargin: 10
-		}
-
-		ScrollBar.vertical: ScrollBar {
-			id: mBar
-			policy: ScrollBar.AsNeeded
-			visible: messagesList.contentHeight > messagesList.height
-		}
-		ScrollBar.horizontal: ScrollBar {
-			policy: ScrollBar.AlwaysOff
 		}
 
 		delegate: SwipeDelegate {
@@ -422,7 +413,7 @@ TPPopup {
 			visible: !canViewNewMessages
 
 			onClicked: {
-				mBar.setPosition(1);
+				messagesList.vBar.setPosition(1);
 				chatManager.hasUnreadMessages = false;
 			}
 
@@ -508,7 +499,7 @@ TPPopup {
 	} //Frame frmFooter
 
 	function sendMessage() {
-		chatManager.createNewMessage(txtMessage.messageText());
+		chatManager.createNewMessage(txtMessage.contentsText());
 		messagesList.positionViewAtEnd();
 		txtMessage.clear();
 	}

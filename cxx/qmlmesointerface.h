@@ -16,13 +16,12 @@ class QMLMesoInterface : public QObject
 
 Q_OBJECT
 
-Q_PROPERTY(bool mesoNameOK READ mesoNameOK WRITE setMesoNameOK NOTIFY mesoNameOKChanged FINAL)
-Q_PROPERTY(bool startDateOK READ startDateOK WRITE setStartDateOK NOTIFY startDateOKChanged FINAL)
-Q_PROPERTY(bool endDateOK READ endDateOK WRITE setEndDateOK NOTIFY endDateOKChanged FINAL)
+Q_PROPERTY(bool mesoNameOK READ mesoNameOK NOTIFY mesoNameOKChanged FINAL)
+Q_PROPERTY(bool startDateOK READ startDateOK NOTIFY startDateOKChanged FINAL)
+Q_PROPERTY(bool endDateOK READ endDateOK NOTIFY endDateOKChanged FINAL)
+Q_PROPERTY(bool splitOK READ splitOK NOTIFY splitOKChanged FINAL)
 Q_PROPERTY(bool realMeso READ realMeso WRITE setRealMeso NOTIFY realMesoChanged FINAL)
 Q_PROPERTY(bool ownMeso READ ownMeso CONSTANT FINAL)
-Q_PROPERTY(bool splitOK READ splitOK NOTIFY splitOKChanged FINAL)
-Q_PROPERTY(bool isNewMeso READ isNewMeso NOTIFY isNewMesoChanged FINAL)
 Q_PROPERTY(bool isTempMeso READ isTempMeso NOTIFY isTempMesoChanged FINAL)
 Q_PROPERTY(bool canExport READ canExport NOTIFY canExportChanged FINAL)
 Q_PROPERTY(bool coachIsMainUser READ coachIsMainUser CONSTANT FINAL)
@@ -39,15 +38,6 @@ Q_PROPERTY(QString strEndDate READ strEndDate NOTIFY endDateChanged FINAL)
 Q_PROPERTY(QString weeks READ weeks NOTIFY weeksChanged FINAL)
 Q_PROPERTY(QString split READ split WRITE setSplit NOTIFY splitChanged FINAL)
 Q_PROPERTY(QString notes READ notes WRITE setNotes NOTIFY notesChanged FINAL)
-Q_PROPERTY(QString muscularGroupA READ muscularGroupA WRITE setMuscularGroupA NOTIFY splitChanged FINAL)
-Q_PROPERTY(QString muscularGroupB READ muscularGroupB WRITE setMuscularGroupB NOTIFY splitChanged FINAL)
-Q_PROPERTY(QString muscularGroupC READ muscularGroupC WRITE setMuscularGroupC NOTIFY splitChanged FINAL)
-Q_PROPERTY(QString muscularGroupD READ muscularGroupD WRITE setMuscularGroupD NOTIFY splitChanged FINAL)
-Q_PROPERTY(QString muscularGroupE READ muscularGroupE WRITE setMuscularGroupE NOTIFY splitChanged FINAL)
-Q_PROPERTY(QString muscularGroupF READ muscularGroupF WRITE setMuscularGroupF NOTIFY splitChanged FINAL)
-Q_PROPERTY(QString muscularGroupR READ muscularGroupR CONSTANT FINAL)
-
-Q_PROPERTY(int newMesoFieldCounter READ newMesoFieldCounter WRITE setNewMesoFieldCounter NOTIFY newMesoFieldCounterChanged FINAL)
 
 Q_PROPERTY(QDate startDate READ startDate WRITE setStartDate NOTIFY startDateChanged FINAL)
 Q_PROPERTY(QDate endDate READ endDate WRITE setEndDate NOTIFY endDateChanged FINAL)
@@ -57,29 +47,21 @@ Q_PROPERTY(QDate maximumMesoEndDate READ maximumMesoEndDate CONSTANT FINAL)
 public:
 	explicit inline QMLMesoInterface(DBMesocyclesModel *meso_model, const uint meso_idx)
 		: QObject{reinterpret_cast<QObject*>(meso_model)}, m_mesoModel{meso_model}, m_mesoComponent{nullptr},
-						m_mesoIdx{meso_idx}, m_splitsPage{nullptr}, m_calendarPage{nullptr} {}
+			m_mesoPage{nullptr}, m_mesoIdx{meso_idx}, m_splitsPage{nullptr}, m_calendarPage{nullptr} {}
 	inline ~QMLMesoInterface() { cleanUp(); }
-
 	void cleanUp();
-	bool isMesoNameOK(const QString &meso_name) const;
-	[[nodiscard]] inline bool mesoNameOK() const { return m_mesoNameOK; }
-	void setMesoNameOK(const bool nameok);
 
-	[[nodiscard]] inline bool startDateOK() const { return m_startDateOK; }
-	void setStartDateOK(const bool dateok);
-	[[nodiscard]] inline bool endDateOK() const { return m_endDateOK; }
-	void setEndDateOK(const bool dateok);
+	[[nodiscard]] bool mesoNameOK() const;
+	[[nodiscard]] bool startDateOK() const;
+	[[nodiscard]] bool endDateOK() const;
+	[[nodiscard]] bool splitOK() const;
 
 	[[nodiscard]] inline const uint mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const uint new_value) { m_mesoIdx = new_value; }
 
 	[[nodiscard]] bool realMeso() const;
 	void setRealMeso(const bool new_value);
-
-	[[nodiscard]] bool splitOK() const;
-
 	[[nodiscard]] bool ownMeso() const;
-	[[nodiscard]] bool isNewMeso() const;
 	[[nodiscard]] bool isTempMeso() const;
 	[[nodiscard]] bool canExport() const;
 	[[nodiscard]] bool coachIsMainUser() const;
@@ -100,17 +82,17 @@ public:
 	[[nodiscard]] QString fileName() const;
 	void setFileName(const QString &new_filename);
 
-	[[nodiscard]] inline QString strStartDate() const { return m_strStartDate; }
-	[[nodiscard]] inline QDate startDate() const { return m_startDate; }
+	[[nodiscard]] QDate startDate() const;
+	void setStartDate(const QDate &new_startdate);
 	[[nodiscard]] inline QDate minimumMesoStartDate() const { return m_minimumMesoStartDate; }
-	void setStartDate(const QDate &new_startdate, const bool modify_new_meso_counter = true);
 	void setMinimumMesoStartDate(const QDate &new_value);
+	[[nodiscard]] inline QString strStartDate() const { return m_strStartDate; }
 
-	[[nodiscard]] inline QString strEndDate() const { return m_strEndDate; }
-	[[nodiscard]] inline QDate endDate() const { return m_endDate; }
+	[[nodiscard]] QDate endDate() const;
+	void setEndDate(const QDate &new_enddate);
 	[[nodiscard]] inline QDate maximumMesoEndDate() const { return m_maximumMesoEndDate; }
-	void setEndDate(const QDate &new_enddate, const bool modify_new_meso_counter = true);
 	void setMaximumMesoEndDate(const QDate &new_value);
+	[[nodiscard]] inline QString strEndDate() const { return m_strEndDate; }
 
 	[[nodiscard]] QString weeks() const;
 
@@ -120,28 +102,14 @@ public:
 	[[nodiscard]] QString notes() const;
 	void setNotes(const QString &new_value);
 
-	[[nodiscard]] QString muscularGroupA() const;
-	void setMuscularGroupA(const QString &new_value);
-	[[nodiscard]] QString muscularGroupB() const;
-	void setMuscularGroupB(const QString &new_value);
-	[[nodiscard]] QString muscularGroupC() const;
-	void setMuscularGroupC(const QString &new_value);
-	[[nodiscard]] QString muscularGroupD() const;
-	void setMuscularGroupD(const QString &new_value);
-	[[nodiscard]] QString muscularGroupE() const;
-	void setMuscularGroupE(const QString &new_value);
-	[[nodiscard]] QString muscularGroupF() const;
-	void setMuscularGroupF(const QString &new_value);
-	[[nodiscard]] QString muscularGroupR() const;
-
-	[[nodiscard]] inline int newMesoFieldCounter() const { return m_newMesoFieldCounter; }
-	void setNewMesoFieldCounter(const int new_value) { m_newMesoFieldCounter = new_value; emit newMesoFieldCounterChanged(new_value);}
+	[[nodiscard]] Q_INVOKABLE QString muscularGroup(const QString &split) const;
+	Q_INVOKABLE void setMuscularGroup(const QString &split, const QString &new_value);
 
 	Q_INVOKABLE void getCalendarPage();
 	Q_INVOKABLE void getExercisesPlannerPage();
 	Q_INVOKABLE void getWorkoutPage(const QDate &date);
 
-	void getMesocyclePage();
+	void getMesocyclePage(const bool new_meso);
 	Q_INVOKABLE void sendMesocycleFileToClient();
 	Q_INVOKABLE void incorporateMeso();
 
@@ -151,7 +119,6 @@ signals:
 	void endDateOKChanged();
 	void realMesoChanged();
 	void splitOKChanged();
-	void isNewMesoChanged();
 	void isTempMesoChanged();
 	void canExportChanged();
 	void labelsChanged();
@@ -166,7 +133,6 @@ signals:
 	void weeksChanged();
 	void splitChanged();
 	void notesChanged();
-	void newMesoFieldCounterChanged(const int next_field);
 
 private:
 	QQmlComponent *m_mesoComponent;
@@ -175,17 +141,14 @@ private:
 	DBMesocyclesModel *m_mesoModel;
 
 	uint m_mesoIdx;
-	bool m_mesoNameOK, m_startDateOK, m_endDateOK;
-	QString m_name, m_strStartDate, m_strEndDate, m_nameError;
-	QDate m_startDate, m_endDate, m_minimumMesoStartDate, m_maximumMesoEndDate;
-	int m_newMesoFieldCounter;
+	QString m_strStartDate, m_strEndDate, m_nameError;
+	QDate m_minimumMesoStartDate, m_maximumMesoEndDate;
 
 	QHash<QDate,QmlWorkoutInterface*> m_workoutPages;
 	QmlMesoSplitInterface *m_splitsPage;
 	QmlMesoCalendarInterface *m_calendarPage;
 
-	void createMesocyclePage();
+	void createMesocyclePage(const bool new_meso);
 	void createMesocyclePage_part2();
-	inline bool isSplitOK(const QString &split) const;
-	void maybeChangeNewMesoFieldCounter();
+	void verifyMesoRequiredFieldsStatus();
 };

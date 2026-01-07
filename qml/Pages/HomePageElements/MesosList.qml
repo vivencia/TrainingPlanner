@@ -9,16 +9,12 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 Item {
 	required property HomePageMesoModel mesoSubModel
-	required property bool mainUserPrograms
-
-	property int viewedMesoIdx
-	property bool viewedMesoCanBeExported
 
 	TPLabel {
 		id: lblTitle
-		text: mainUserPrograms ? qsTr("My Programs") : qsTr("Clients' Programs")
+		text: mesoSubModel.ownMesosModel ? qsTr("My Programs") : qsTr("Clients' Programs")
 		useBackground: true
-		backgroundColor: mainUserPrograms ? appSettings.primaryLightColor : appSettings.primaryColor
+		backgroundColor: mesoSubModel.ownMesosModel ? appSettings.primaryLightColor : appSettings.primaryColor
 
 		anchors {
 			top: parent.top
@@ -27,11 +23,9 @@ Item {
 		}
 	}
 
-	ListView {
+	TPListView {
 		id: mesosListView
 		model: mesoSubModel
-		boundsBehavior: Flickable.StopAtBounds
-		reuseItems: true
 		spacing: 10
 		width: parent.width
 		height: parent.height * 0.8 - lblTitle.height - 10
@@ -43,26 +37,13 @@ Item {
 			margins: 5
 		}
 
-		ScrollBar.vertical: ScrollBar {
-			policy: ScrollBar.AsNeeded
-			active: ScrollBar.AsNeeded
-		}
-
-		Connections {
-			target: mesoModel
-			function onCanExportChanged(meso_idx: int, can_export: bool) : void {
-				viewedMesoIdx = meso_idx;
-				viewedMesoCanBeExported = can_export;
-			}
-		}
-
 		delegate: SwipeDelegate {
 			id: mesoDelegate
 			width: parent ? parent.width : 0
 
-			onClicked: mesoModel.getMesocyclePage(mesoIdx);
-			onPressAndHold: mesoModel.currentMesoIdx = mesoIdx;
-			swipe.onCompleted: mesoModel.setCurrentlyViewedMeso(mesoIdx);
+			onClicked: mesoModel.getMesocyclePage(mesoIdx, false);
+			onPressAndHold: mesoSubModel.currentIndex = index;
+			swipe.onCompleted: mesoSubModel.currentIndex = index;
 
 			Rectangle {
 				id: optionsRec
@@ -92,7 +73,7 @@ Item {
 					id: btnMesoInfo
 					text: qsTr("View Program")
 					imageSource: "mesocycle.png"
-					imageSize: 30
+					imageSize: appSettings.itemDefaultHeight
 					textUnderIcon: true
 					rounded: false
 					width: parent.width/2 - 10
@@ -113,13 +94,13 @@ Item {
 					id: btnMesoCalendar
 					text: qsTr("Calendar")
 					imageSource: "meso-calendar.png"
-					imageSize: 30
+					imageSize: appSettings.itemDefaultHeight
 					rounded: false
 					textUnderIcon: true
-					enabled: !mesoModel.isNewMeso()
+					enabled: haveCalendar
 					width: parent.width/2 - 10
 					height: parent.height/2 - 10
-					z:1
+					z: 1
 
 					anchors {
 						top: parent.top
@@ -135,9 +116,9 @@ Item {
 					id: btnMesoPlan
 					text: qsTr("Exercises Table")
 					imageSource: "meso-splitplanner.png"
-					imageSize: 30
+					imageSize: appSettings.itemDefaultHeight
 					rounded: false
-					enabled: !mesoModel.isNewMeso()
+					enabled: mesoSplitsAvailable
 					textUnderIcon: true
 					width: parent.width/2 - 10
 					height: parent.height/2 - 10
@@ -157,10 +138,10 @@ Item {
 					id: btnExport
 					text: qsTr("Export")
 					imageSource: "export.png"
-					imageSize: 30
+					imageSize: appSettings.itemDefaultHeight
 					rounded: false
 					textUnderIcon: true
-					enabled: viewedMesoIdx === mesoIdx ? viewedMesoCanBeExported : false
+					enabled: mesoExportable
 					width: parent.width/2 - 10
 					height: parent.height/2 - 10
 					z: 1
@@ -212,35 +193,34 @@ Item {
 						verticalCenter: parent.verticalCenter
 					}
 
-					onClicked: msgDlg.init(mesoIdx);
+					onClicked: {
+						msgDlg.meso_name = mesoName;
+						msgDlg.mesoidx = mesoIdx;
+						msgDlg.show(-1);
+					}
 				}
 
 				TPBalloonTip {
 					id: msgDlg
+					title: qsTr("Remove ") + meso_name + "?"
 					message: qsTr("This action cannot be undone.")
 					imageSource: "remove"
 					keepAbove: true
 					parentPage: homePage
 
+					property string meso_name
 					property int mesoidx
 					onButton1Clicked: mesoModel.removeMesocycle(mesoidx);
-
-					function init(meso_idx: int): void {
-						title = qsTr("Remove ") + mesoModel.name_QML(meso_idx) + "?";
-						mesoidx = meso_idx;
-						show(-1);
-					}
 				}
 			} //swipe.right
 
 			Rectangle {
 				id: backRec
 				anchors.fill: parent
-				radius: 6
+				radius: 8
 				layer.enabled: true
-				color: mainUserPrograms ?
-						(mesoIdx === mesoModel.currentMesoIdx ? appSettings.primaryColor : appSettings.listEntryColor2) :
-						(mesoIdx === mesoModel.currentMesoIdx ? appSettings.primaryDarkColor : appSettings.listEntryColor1)
+				color: mesoSubModel.ownMesosModel ? appSettings.primaryColor : appSettings.primaryDarkColor
+				border.color: index === mesoSubModel.currentIndex ? appSettings.fontColor : "transparent"
 				visible: false
 			}
 
@@ -274,13 +254,13 @@ Item {
 					text: mesoCoach
 					fontColor: appSettings.fontColor
 					Layout.maximumWidth: parent.width
-					visible: mainUserPrograms
+					visible: mesoSubModel.ownMesosModel
 				}
 				TPLabel {
 					text: mesoClient
 					fontColor: appSettings.fontColor
 					Layout.maximumWidth: parent.width
-					visible: !mainUserPrograms
+					visible: !mesoSubModel.ownMesosModel
 				}
 				TPLabel {
 					text: mesoStartDate
@@ -322,7 +302,7 @@ Item {
 				Layout.maximumHeight: appSettings.itemDefaultHeight
 				Layout.alignment: Qt.AlignCenter
 
-				onClicked: mesoModel.startNewMesocycle_QML(mainUserPrograms);
+				onClicked: mesoModel.startNewMesocycle(mesoSubModel.ownMesosModel);
 			}
 
 			TPButton {
@@ -341,13 +321,13 @@ Item {
 				id: btnWorkout
 				text: qsTr("Today's workout")
 				imageSource: "workout.png"
-				visible: mainUserPrograms
-				enabled: mesoModel ? mesoModel.canHaveTodaysWorkout : false
+				visible: mesoSubModel.ownMesosModel
+				enabled: mesoSubModel.canHaveTodaysWorkout
 				Layout.preferredWidth: preferredWidth
 				Layout.maximumHeight: appSettings.itemDefaultHeight
 				Layout.alignment: Qt.AlignCenter
 
-				onClicked: mesoModel.todaysWorkout();
+				onClicked: mesoModel.startTodaysWorkout(mesoIdx);
 			}
 		}
 	}

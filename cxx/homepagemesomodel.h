@@ -12,30 +12,27 @@ Q_OBJECT
 QML_ELEMENT
 
 Q_PROPERTY(uint count READ count NOTIFY countChanged)
+Q_PROPERTY(bool ownMesosModel READ ownMesosModel CONSTANT FINAL)
+Q_PROPERTY(bool canHaveTodaysWorkout READ canHaveTodaysWorkout NOTIFY canHaveTodaysWorkoutChanged FINAL)
+Q_PROPERTY(int currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentIndexChanged FINAL)
 
 public:
-	explicit HomePageMesoModel(DBMesocyclesModel *meso_model = nullptr);
+	explicit HomePageMesoModel(DBMesocyclesModel *meso_model, const bool own_mesos);
 	#ifndef Q_OS_ANDROID
 	void userSwitchingActions();
 	#endif
 	inline uint count() const { return m_mesoModelRows.count(); }
-
-	void appendData(const uint mesoModelRow);
-	void removeRow(const uint row);
-	inline int indexOf(const uint mesorow) const { return m_mesoModelRows.indexOf(mesorow); }
-
-	inline void removeData(const uint mesorow)
+	inline bool ownMesosModel() const { return m_ownMesos; }
+	bool canHaveTodaysWorkout() const;
+	inline int currentIndex() const { return m_curIndex; }
+	void setCurrentIndex(const int new_index);
+	inline void setCurrentIndexViaMesoIdx(const int meso_idx)
 	{
-		const qsizetype row{m_mesoModelRows.indexOf(mesorow)};
-		removeRow(row);
+		setCurrentIndex(findLocalIdx(meso_idx));
 	}
 
-	inline void emitDataChanged(const uint meso_idx, const int role)
-	{
-		const int row{findLocalIdx(meso_idx)};
-		if (row >= 0)
-			emit dataChanged(index(row, 0), index(row, 0), role >= 0 ? QList<int>{1, role} : QList<int>{});
-	}
+	void appendMesoIdx(const uint meso_idx);
+	void removeMesoIdx(const uint meso_idx);
 
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
 	QVariant data(const QModelIndex &index, int role) const override final;
@@ -43,12 +40,15 @@ public:
 
 signals:
 	void countChanged();
+	void currentIndexChanged();
+	void canHaveTodaysWorkoutChanged();
 
 private:
 	QList<uint> m_mesoModelRows;
 	QHash<int, QByteArray> m_roleNames;
 	DBMesocyclesModel *m_mesoModel;
+	int m_curIndex;
+	bool m_ownMesos;
 
 	inline int findLocalIdx(const uint meso_idx) const { return m_mesoModelRows.indexOf(meso_idx); }
 };
-

@@ -117,8 +117,7 @@ void DBExercisesModel::operator=(DBExercisesModel *other_model)
 			}
 		}
 	}
-	m_db->setDBModelInterface(m_dbModelInterface);
-	appThreadManager()->runAction(m_db, ThreadManager::alterRecords);
+	appThreadManager()->runAction(m_db, ThreadManager::AlterRecords);
 	setWorkingExercise(0);
 	setWorkingSubExercise(0, 0);
 	setWorkingSet(0, 0, 0);
@@ -234,7 +233,6 @@ void DBExercisesModel::setSplitLetter(const QChar &new_splitletter)
 			data[EXERCISES_COL_SPLITLETTER] = new_splitletter;
 			m_dbModelInterface->setModified(modified_row++, EXERCISES_COL_SPLITLETTER);
 		}
-		m_db->setDBModelInterface(m_dbModelInterface);
 		appThreadManager()->runAction(m_db, ThreadManager::UpdateRecords);
 	}
 }
@@ -589,7 +587,6 @@ uint DBExercisesModel::addExercise(int exercise_number, const bool emit_signal)
 		));
 		m_dbModelInterface->setModified(exercise_number, 0);
 	}
-	m_db->setDBModelInterface(m_dbModelInterface);
 	appThreadManager()->runAction(m_db, ThreadManager::InsertRecords);
 
 	return exercise_number;
@@ -620,7 +617,6 @@ void DBExercisesModel::delExercise(const uint exercise_number, const bool emit_s
 		endRemoveRows();
 
 		m_dbModelInterface->setRemovalInfo(exercise_number, QList<uint>{1, EXERCISES_COL_ID});
-		m_db->setDBModelInterface(m_dbModelInterface);
 		appThreadManager()->runAction(m_db, ThreadManager::DeleteRecords);
 		m_dbModelInterface->modelData().remove(exercise_number);
 	}
@@ -659,7 +655,6 @@ void DBExercisesModel::moveExercise(const uint from, const uint to)
 		m_exerciseData.at(to)->exercise_number = to;
 		emit dataChanged(index(to > from ? from : to, 0), index(to > from ? to : from, 0), QList<int>{1, exerciseNumberRole});
 		endMoveRows();
-		m_db->setDBModelInterface(m_dbModelInterface);
 		appThreadManager()->runAction(m_db, ThreadManager::UpdateRecords);
 	}
 }
@@ -737,7 +732,6 @@ void DBExercisesModel::saveExercises(const int exercise_number, const int exerci
 			break;
 		}
 	}
-	m_db->setDBModelInterface(m_dbModelInterface);
 	appThreadManager()->runAction(m_db, ThreadManager::UpdateOneField);
 }
 
@@ -763,7 +757,6 @@ uint DBExercisesModel::addSubExercise(const uint exercise_number, const bool emi
 			modified_fields.append(i);
 		}
 		m_dbModelInterface->setModified(exercise_number, modified_fields);
-		m_db->setDBModelInterface(m_dbModelInterface);
 		appThreadManager()->runAction(m_db, ThreadManager::UpdateSeveralFields);
 	}
 	return exercise_idx;
@@ -797,7 +790,6 @@ void DBExercisesModel::delSubExercise(const uint exercise_number, const uint exe
 				modified_fields.append(i);
 		}
 		m_dbModelInterface->setModified(exercise_number, modified_fields);
-		m_db->setDBModelInterface(m_dbModelInterface);
 		appThreadManager()->runAction(m_db, ThreadManager::UpdateSeveralFields);
 	}
 }
@@ -827,7 +819,6 @@ uint DBExercisesModel::addSet(const uint exercise_number, const uint exercise_id
 			modified_fields.append(i);
 		}
 		m_dbModelInterface->setModified(exercise_number, modified_fields);
-		m_db->setDBModelInterface(m_dbModelInterface);
 		appThreadManager()->runAction(m_db, ThreadManager::UpdateSeveralFields);
 	}
 	return set_number;
@@ -862,7 +853,6 @@ void DBExercisesModel::delSet(const uint exercise_number, const uint exercise_id
 			}
 		}
 		m_dbModelInterface->setModified(exercise_number, modified_fields);
-		m_db->setDBModelInterface(m_dbModelInterface);
 		appThreadManager()->runAction(m_db, ThreadManager::UpdateSeveralFields);
 	}
 }
@@ -916,7 +906,6 @@ void DBExercisesModel::moveSet(const uint exercise_number, const uint exercise_i
 		sub_exercise->sets[to_set] = std::move(tempSet);
 		sub_exercise->sets.at(to_set)->set_number = to_set;
 		emit setsNumberChanged(exercise_number, exercise_idx);
-		m_db->setDBModelInterface(m_dbModelInterface);
 		appThreadManager()->runAction(m_db, ThreadManager::UpdateRecords);
 	}
 }
@@ -1500,7 +1489,7 @@ bool DBExercisesModel::setData(const QModelIndex &index, const QVariant &value, 
 	return false;
 }
 
-void DBExercisesModel::commonConstructor()
+void DBExercisesModel::commonConstructor(const bool load_from_db)
 {
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, &DBExercisesModel::labelChanged);
 	m_roleNames[exerciseNumberRole]			=		std::move("exerciseNumber");
@@ -1525,26 +1514,30 @@ void DBExercisesModel::commonConstructor()
 	{
 		if (meso_idx == m_mesoIdx)
 		{
-			if (field >= MESOCYCLES_COL_SPLITA && field <= MESOCYCLES_COL_SPLITF)
+			if (field >= MESO_FIELD_SPLITA && field <= MESO_FIELD_SPLITF)
 			{
-				if (static_cast<int>(m_splitLetter.cell()) - static_cast<int>('A') == field - MESOCYCLES_COL_SPLITA)
+				if (static_cast<int>(m_splitLetter.cell()) - static_cast<int>('A') == field - MESO_FIELD_SPLITA)
 					emit muscularGroupChanged();
 			}
 		}
 	});
 
-	m_dbModelInterface = new DBModelInterfaceExercises{this};
-	auto conn{std::make_shared<QMetaObject::Connection>()};
-	*conn = connect(m_db, &DBWorkoutsOrSplitsTable::exercisesLoaded, this, [this,conn]
-			(const uint meso_idx, const bool success, const QVariant &extra_info)
-	{
-		if (success && meso_idx == m_mesoIdx)
-			static_cast<void>(fromDatabase());
-	});
-	m_db->setDBModelInterface(m_dbModelInterface);
-	appThreadManager()->runAction(m_db, ThreadManager::ReadAllRecords);
-
 	connect(this, &DBExercisesModel::exerciseModified, this, &DBExercisesModel::saveExercises);
+
+	m_dbModelInterface = new DBModelInterfaceExercises{this};
+	m_db->setDBModelInterface(m_dbModelInterface);
+
+	if (load_from_db)
+	{
+		auto conn{std::make_shared<QMetaObject::Connection>()};
+		*conn = connect(m_db, &DBWorkoutsOrSplitsTable::exercisesLoaded, this, [this,conn]
+			(const uint meso_idx, const bool success, const QVariant &extra_info)
+		{
+			if (success && meso_idx == m_mesoIdx)
+				static_cast<void>(fromDatabase());
+		});
+		appThreadManager()->runAction(m_db, ThreadManager::ReadAllRecords);
+	}
 }
 
 void DBExercisesModel::changeCalendarDayId()

@@ -9,13 +9,10 @@ import "../Pages"
 
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
-ListView {
+TPListView {
 	id: control
 	model: exercisesModel
-	reuseItems: true
 	snapMode: ListView.SnapOneItem
-	boundsBehavior: Flickable.StopAtBounds
-	flickableDirection: Flickable.VerticalFlick
 	spacing: 5
 
 	required property QtObject pageManager

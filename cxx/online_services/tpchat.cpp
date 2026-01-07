@@ -206,7 +206,7 @@ void TPChat::loadChat()
 	m_sendMessageTimer->setInterval(10000);
 	m_sendMessageTimer->callOnTimeout([this] () {
 		if (!m_dbModelInterface->modifiedIndices().isEmpty())
-			appThreadManager()->runAction(m_db, ThreadManager::alterRecords);
+			appThreadManager()->runAction(m_db, ThreadManager::AlterRecords);
 		m_sendMessageTimer->stop();
 	});
 }
@@ -305,7 +305,6 @@ void TPChat::createNewMessage(const QString &text, const QString &media)
 	message->sdate = std::move(QDate::currentDate());
 	message->stime = std::move(QTime::currentTime());
 	message->text = text;
-	message->text.replace('\'', '"');
 	message->media = media;
 	message->own_message = true;
 	beginInsertRows(QModelIndex{}, count(), count());

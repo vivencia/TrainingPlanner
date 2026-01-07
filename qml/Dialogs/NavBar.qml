@@ -183,7 +183,7 @@ TPToolBar {
 			{
 				switch (homePage.mesoModel.count) {
 					case 0: return false;
-					case 1: return !homePage.mesoModel.isNewMeso();
+					case 1: return !homePage.mesoModel.isMesoOK();
 					default: return true;
 				}
 			}

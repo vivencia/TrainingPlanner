@@ -2,12 +2,12 @@
 
 #include "dbmesocyclesmodel.h"
 
-constexpr int n_fields{MESOCYCLES_TOTAL_COLS};
+constexpr int n_fields{MESO_TOTAL_FIELDS};
 constexpr QLatin1StringView table_name{ "mesocycles_table"_L1 };
 constexpr QLatin1StringView field_names[n_fields][2] {
-	{"id"_L1,					"INTEGER PRIMARY KEY"_L1},
+	{"id"_L1,					"INTEGER PRIMARY KEY AUTOINCREMENT"_L1},
 	{"meso_name"_L1,			"TEXT"_L1},
-	{"meso_start_date"_L1,		"TEXT"_L1},
+	{"meso_start_date"_L1,		"INTEGER"_L1},
 	{"meso_end_date"_L1,		"INTEGER"_L1},
 	{"meso_note"_L1,			"TEXT"_L1},
 	{"meso_nweeks"_L1,			"INTEGER"_L1},
@@ -53,8 +53,8 @@ bool DBMesocyclesTable::getAllMesocycles()
 		{
 			do
 			{
-				QStringList meso_info{MESOCYCLES_TOTAL_COLS};
-				for (uint i{MESOCYCLES_COL_ID}; i < MESOCYCLES_TOTAL_COLS; ++i)
+				QStringList meso_info{MESO_TOTAL_FIELDS};
+				for (uint i{MESO_FIELD_ID}; i < MESO_TOTAL_FIELDS; ++i)
 					meso_info[i] = std::move(m_workingQuery.value(i).toString());
 				emit mesocyclesAcquired(meso_info, false);
 			} while (m_workingQuery.next());

@@ -36,6 +36,13 @@ public:
 	inline const QHash<uint, QList<int>> &modifiedIndices() const { return m_modifiedIndices; }
 	inline const QList<stRemovalInfo*> &removalInfo() const { return m_removalInfo; }
 
+	/**
+	 * @brief setAllFieldsModified: used by AlterRecords when all fields are modified, i.e. in a swap operation
+	 * @param row: required for all operations
+	 * @param field: for InsertRecords can be anything because it is not checked. Must be precise for AlterRecords
+	 * @param n_fields: setAllFieldsModified: used by AlterRecords when all fields are modified, i.e. in a swap operation
+	 * @param &more_fields: insert two or more fields for an AlterRecord operation
+	 */
 	void setAllFieldsModified(uint row, const uint n_fields);
 	void setModified(uint row, const int field);
 	void setModified(uint row, const QList<int> &more_fields);

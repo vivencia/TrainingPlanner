@@ -186,23 +186,13 @@ TPPopup {
 			Layout.fillWidth: true
 		}
 
-		ListView {
+		TPListView {
 			id: messagesList
-			contentHeight: availableHeight
-			contentWidth: availableWidth
-			spacing: 5
-			reuseItems: true
-			clip: true
 			model: appMessages
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 
 			property int messagesHeight: 0
-
-			ScrollBar.vertical: ScrollBar {
-				policy: ScrollBar.AsNeeded
-				active: true; visible: messagesList.contentHeight > messagesList.height
-			}
 
 			delegate: SwipeDelegate {
 				id: delegateItem

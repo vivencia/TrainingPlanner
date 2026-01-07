@@ -52,41 +52,41 @@ QString DBExercisesListModel::muscularGroup(const int index) const
 	for (const auto &group : groups)
 	{
 		if (group == "quadriceps")
-			translatedGroups += std::move(tr("Quadriceps")) + fancy_record_separator1;
+			translatedGroups += std::move(tr("Quadriceps")) % fancy_record_separator1;
 		else if (group == "hamstrings")
-			translatedGroups += std::move(tr("Hamstrings")) + fancy_record_separator1;
+			translatedGroups += std::move(tr("Hamstrings")) % fancy_record_separator1;
 		else if (group == "glutes")
-			translatedGroups += std::move(tr("Glutes")) + fancy_record_separator1;
+			translatedGroups += std::move(tr("Glutes")) % fancy_record_separator1;
 		else if (group == "calves")
-			translatedGroups += std::move(tr("Calves")) + fancy_record_separator1;
+			translatedGroups += std::move(tr("Calves")) % fancy_record_separator1;
 		else if (group == "upper back")
-			translatedGroups += std::move(tr("Upper Back")) + fancy_record_separator1;
+			translatedGroups += std::move(tr("Upper Back")) % fancy_record_separator1;
 		else if (group == "middle back")
-			translatedGroups += std::move(tr("Middle Back")) + fancy_record_separator1;
+			translatedGroups += std::move(tr("Middle Back")) % fancy_record_separator1;
 		else if (group == "lower back")
-			translatedGroups += std::move(tr("Lower Back")) + fancy_record_separator1;
+			translatedGroups += std::move(tr("Lower Back")) % fancy_record_separator1;
 		else if (group == "biceps")
-			translatedGroups += std::move(tr("Biceps")) + fancy_record_separator1;
+			translatedGroups += std::move(tr("Biceps")) % fancy_record_separator1;
 		else if (group == "triceps")
-			translatedGroups += std::move(tr("Triceps")) + fancy_record_separator1;
+			translatedGroups += std::move(tr("Triceps")) % fancy_record_separator1;
 		else if (group == "fore arms")
-			translatedGroups += std::move(tr("Forearms")) + fancy_record_separator1;
+			translatedGroups += std::move(tr("Forearms")) % fancy_record_separator1;
 		else if (group == "upper chest")
-			translatedGroups += std::move(tr("Upper Chest")) + fancy_record_separator1;
+			translatedGroups += std::move(tr("Upper Chest")) % fancy_record_separator1;
 		else if (group == "middle chest")
-			translatedGroups += std::move(tr("Middle Chest")) + fancy_record_separator1;
+			translatedGroups += std::move(tr("Middle Chest")) % fancy_record_separator1;
 		else if (group == "lower chest")
-			translatedGroups += std::move(tr("Lower Chest")) + fancy_record_separator1;
+			translatedGroups += std::move(tr("Lower Chest")) % fancy_record_separator1;
 		else if (group == "front delts")
-			translatedGroups += std::move(tr("Front Delts")) + fancy_record_separator1;
+			translatedGroups += std::move(tr("Front Delts")) % fancy_record_separator1;
 		else if (group == "lateral delts")
-			translatedGroups += std::move(tr("Lateral Delts")) + fancy_record_separator1;
+			translatedGroups += std::move(tr("Lateral Delts")) % fancy_record_separator1;
 		else if (group == "rear delts")
-			translatedGroups += std::move(tr("Rear Delts")) + fancy_record_separator1;
+			translatedGroups += std::move(tr("Rear Delts")) % fancy_record_separator1;
 		else if (group == "traps")
-			translatedGroups += std::move(tr("Traps")) + fancy_record_separator1;
+			translatedGroups += std::move(tr("Traps")) % fancy_record_separator1;
 		else if (group == "abs")
-			translatedGroups += std::move(tr("Abs")) + fancy_record_separator1;
+			translatedGroups += std::move(tr("Abs")) % fancy_record_separator1;
 	}
 	translatedGroups.chop(2);
 	return translatedGroups;
@@ -383,7 +383,8 @@ bool DBExercisesListModel::collectExportData()
 void DBExercisesListModel::appendList(const QStringList &list, const bool save_to_database)
 {
 	if (save_to_database)
-		m_dbModelInterface->setAllFieldsModified(m_exercisesData.count(), list.count());
+		//m_dbModelInterface->setAllFieldsModified(m_exercisesData.count(), list.count());
+		m_dbModelInterface->setModified(m_exercisesData.count(), 0);
 	beginInsertRows(QModelIndex{}, m_exercisesData.count(), m_exercisesData.count() + list.count() - 1);
 	m_exercisesData.append(list);
 	emit countChanged();
@@ -394,7 +395,8 @@ void DBExercisesListModel::appendList(const QStringList &list, const bool save_t
 void DBExercisesListModel::appendList(QStringList &&list, const bool save_to_database)
 {
 	if (save_to_database)
-		m_dbModelInterface->setAllFieldsModified(m_exercisesData.count(), list.count());
+		//m_dbModelInterface->setAllFieldsModified(m_exercisesData.count(), list.count());
+		m_dbModelInterface->setModified(m_exercisesData.count(), 0);
 	beginInsertRows(QModelIndex{}, m_exercisesData.count(), m_exercisesData.count() + list.count() - 1);
 	m_exercisesData.append(std::move(list));
 	emit countChanged();
