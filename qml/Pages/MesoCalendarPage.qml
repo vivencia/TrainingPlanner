@@ -37,6 +37,8 @@ TPPage {
 
 	header: TPToolBar {
 		height: appSettings.pageHeight * 0.1
+		padding: 0
+		spacing: 0
 
 		ColumnLayout {
 			anchors.fill: parent
@@ -46,19 +48,17 @@ TPPage {
 				id: lbl1
 				text: calendarManager.nameLabel
 				font: AppGlobals.extraLargeFont
-				singleLine: true
-				Layout.maximumWidth: parent.width*0.8
-				Layout.alignment: Qt.AlignCenter
+				horizontalAlignment: Text.AlignHCenter
+				Layout.maximumWidth: parent.width - 10
+				Layout.maximumHeight: parent.height * 0.65
 			}
 			TPLabel {
 				id: lbl2
 				text: calendarManager.dateLabel
 				font: AppGlobals.regularFont
-				Layout.alignment: Qt.AlignCenter
+				horizontalAlignment: Text.AlignHCenter
 				Layout.maximumWidth: parent.width - 10
-				Layout.leftMargin: 5
-				Layout.rightMargin: 5
-				Layout.bottomMargin: 5
+				Layout.maximumHeight: parent.height * 0.3
 			}
 		}
 	}
@@ -80,7 +80,7 @@ TPPage {
 		}
 
 		delegate: Rectangle {
-			height: calendar.cellSize * 10.5
+			height: calendar.cellSize * 11
 			width: calendar.width - 10
 			color: appSettings.primaryDarkColor
 			opacity: 0.7
@@ -132,17 +132,16 @@ TPPage {
 
 				delegate: Rectangle {
 					id: dayEntry
-					width: calendar.cellSize * 0.8
-					height: width
 					radius: width * 0.5
 					border.color: "green"
 					border.width: dayIsFinished ? 2 : 0
-					opacity: !highlighted ? 1 : 0.5
+					opacity: workoutDay ? 1 : calendarModel.isPartOfMeso(month_day) ?  0.7 : 0.4
 					color: appSettings.primaryLightColor
 
 					readonly property date month_day: new Date(model.year, model.month, model.day);
 					readonly property bool todayDate: month_day.getUTCFullYear() === _today.getUTCFullYear() &&
-								month_day.getUTCMonth() === _today.getUTCMonth() && month_day.getUTCDate() === _today.getUTCDate()
+							month_day.getUTCMonth() === _today.getUTCMonth() && month_day.getUTCDate() === _today.getUTCDate()
+					readonly property bool workoutDay: calendarModel.isWorkoutDay(month_day)
 					property bool dayIsFinished: calendarModel.completed(month_day)
 					property bool highlighted: false
 
@@ -162,13 +161,13 @@ TPPage {
 						}
 					}
 
-					Text {
+					TPLabel {
 						id: txtDay
 						anchors.centerIn: parent
 						text: calendarModel.dayText(dayEntry.month_day)
-						color: !dayEntry.todayDate ? (calendarModel.isPartOfMeso(dayEntry.month_day) ? appSettings.fontColor : appSettings.disabledFontColor) : "red"
-						font.bold: true
-						font.pixelSize: appSettings.fontSize
+						font: AppGlobals.smallFont
+						color: !dayEntry.todayDate ? (calendarModel.isPartOfMeso(dayEntry.month_day) ?
+														appSettings.fontColor : appSettings.disabledFontColor) : "red"
 
 						Connections {
 							enabled: calendarModel !== null
@@ -226,6 +225,8 @@ TPPage {
 
 	footer: TPToolBar {
 		height: appSettings.pageHeight / 4
+		padding: 0
+		spacing: 0
 
 		TPLabel {
 			id: lblInfo
@@ -265,7 +266,6 @@ TPPage {
 
 			anchors {
 				top: lblInfo.bottom
-				topMargin: 5
 				left: cboSplitLetter.right
 				leftMargin: 10
 				right: parent.right
@@ -279,7 +279,6 @@ TPPage {
 
 			anchors {
 				top: optChangeOnlyThisDay.bottom
-				topMargin: 5
 				left: cboSplitLetter.right
 				leftMargin: 10
 				right: parent.right
@@ -291,7 +290,7 @@ TPPage {
 			text: qsTr("Change Calendar")
 			imageSource: "edit-calendar.png"
 			enabled: optChangeOnlyThisDay.checked || optChangeAfterThisDay.checked
-			autoSize: true
+			width: parent.width * 0.65
 
 			onClicked: {
 				calendarManager.changeSplitLetter(cboSplitLetter.currentValue, optChangeAfterThisDay.checked);
@@ -311,7 +310,7 @@ TPPage {
 			id: btnViewWorkout
 			text: qsTr("Workout")
 			imageSource: "workout.png"
-			autoSize: true
+			width: parent.width * 0.3
 
 			anchors {
 				right: parent.right

@@ -16,7 +16,7 @@ public:
 
 	QString dbFileName(const bool fullpath = true) const override final;
 	void updateTable() override final {}
-	bool getAllUsers();
+	bool getAllUsers(void *);
 
 signals:
 	void userInfoAcquired(QStringList user_info, const bool all_info_acquired = false);

@@ -34,7 +34,7 @@ public:
 	Q_INVOKABLE bool isWorkoutDay(const QDate &date) const;
 	Q_INVOKABLE bool isWorkoutDay(const uint calendar_day) const;
 
-	QString dayText(const QDate &date) const;
+	Q_INVOKABLE QString dayText(const QDate &date) const;
 	QString workoutNumber(const QDate &date) const;
 	QString workoutNumber(const uint calendar_day) const;
 	QString splitLetter(const QDate &date) const;
@@ -57,7 +57,7 @@ public:
 	QString notes(const uint calendar_day) const;
 	void setNotes(const QDate &date, const QString &new_notes);
 	void setNotes(const uint calendar_day, const QString &new_notes);
-	bool completed(const QDate &date) const;
+	Q_INVOKABLE bool completed(const QDate &date) const;
 	bool completed(const uint calendar_day) const;
 	void setCompleted(const QDate &date, const bool completed);
 	void setCompleted(const uint calendar_day, const bool completed);
@@ -70,10 +70,11 @@ signals:
 	void workoutNumberChanged(const QDate &date);
 	void splitLetterChanged(const QDate &date);
 	void completedChanged(const QDate &date);
+	void calendarLoaded(const bool success);
 
 private:
 	DBMesoCalendarManager *m_calendarManager;
-	uint m_mesoIdx, m_nmonths;
+	uint m_mesoIdx, m_nmonths, m_ncaldays;
 	QHash<int, QByteArray> m_roleNames;
 
 	DBMesoCalendarTable *m_db;

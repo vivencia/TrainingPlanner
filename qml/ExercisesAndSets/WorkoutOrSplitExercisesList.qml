@@ -42,7 +42,7 @@ TPListView {
 		implicitHeight: contentsLayout.implicitHeight * 1.1
 
 		readonly property int exerciseNumber: index
-		property int nSubExercises: exercisesModel.subExercisesCount(delegate.exerciseNumber)
+		property int nSubExercises: exercisesModel.subExercisesCount(exerciseNumber)
 		property bool restTimeEditable: !exercisesModel.autoRestTime(exerciseNumber)
 		property bool setCompleted: exercisesModel.setCompleted(exerciseNumber, exercisesModel.workingSubExercise, exercisesModel.workingSet)
 		property bool allSetsCompleted: exercisesModel.allSetsCompleted(exerciseNumber, exercisesModel.workingSubExercise)
@@ -103,10 +103,10 @@ TPListView {
 			function onExerciseModified(exercise_number: int, exercise_idx: int, set_number: int, field: int): void {
 				if (exercise_number === index) {
 					switch (field) {
-						case 7: //EXERCISES_COL_SETTYPES
+						case 7: //EXERCISES_FIELD_SETTYPES
 							changeFields(index, exercise_idx, set_number, true);
 						break;
-						case 13: //EXERCISES_COL_COMPLETED
+						case 13: //EXERCISES_FIELD_COMPLETED
 							let completed = exercisesModel.setCompleted(exercise_number, exercise_idx, set_number);
 							delegate.setCompleted = completed;
 							if (completed) {
@@ -165,7 +165,7 @@ TPListView {
 				TPRadioButtonOrCheckBox {
 					id: optCurrentExercise
 					text: qsTr("Exercise #") + "<b>" + (index + 1) + "</b>" + (delegate.nSubExercises > 1 ? qsTr(" - Giant sets") : "")
-					checked: index === exercisesModel.workingExercise
+					checked: delegate.exerciseNumber === exercisesModel.workingExercise
 					width: parent.width * 0.7
 
 					anchors {
@@ -181,7 +181,8 @@ TPListView {
 					imageSource: "goto-next"
 					width: appSettings.itemDefaultHeight
 					height: width
-					enabled: index === exercisesModel.workingExercise && index < exercisesModel.exerciseCount - 1 && delegate.allSetsCompleted
+					enabled: delegate.exerciseNumber === exercisesModel.workingExercise &&
+										delegate.exerciseNumber < exercisesModel.exerciseCount - 1 && delegate.allSetsCompleted
 
 					anchors {
 						right: btnDelExercise.left
@@ -204,7 +205,7 @@ TPListView {
 					imageSource: "remove"
 					width: appSettings.itemDefaultHeight
 					height: width
-					enabled: index === exercisesModel.workingExercise
+					enabled: delegate.exerciseNumber === exercisesModel.workingExercise
 
 					anchors {
 						right: btnMoveExerciseUp.left
@@ -219,9 +220,9 @@ TPListView {
 					id: btnMoveExerciseUp
 					imageSource: "up.png"
 					hasDropShadow: false
-					width: appSettings.itemSmallHeight
+					width: appSettings.itemDefaultHeight
 					height: width
-					enabled: index === exercisesModel.workingExercise ? (index >= 1) : false
+					enabled: delegate.exerciseNumber === exercisesModel.workingExercise ? (index >= 1) : false
 
 					anchors {
 						right: btnMoveExerciseDown.left
@@ -236,9 +237,9 @@ TPListView {
 					id: btnMoveExerciseDown
 					imageSource: "down.png"
 					hasDropShadow: false
-					width: appSettings.itemSmallHeight
+					width: appSettings.itemDefaultHeight
 					height: width
-					enabled: index === exercisesModel.workingExercise ? (index < exercisesModel.exerciseCount - 1) : false
+					enabled: delegate.exerciseNumber === exercisesModel.workingExercise ? (index < exercisesModel.exerciseCount - 1) : false
 
 					anchors {
 						right: parent.right
@@ -251,7 +252,7 @@ TPListView {
 			} //Item
 
 			Item {
-				enabled: index === exercisesModel.workingExercise
+				enabled: delegate.exerciseNumber === exercisesModel.workingExercise
 				Layout.minimumWidth: listItem.width
 				Layout.maximumWidth: listItem.width
 				Layout.preferredHeight: appSettings.itemLargeHeight
@@ -274,10 +275,11 @@ TPListView {
 					}
 				}
 
-				StackLayout{
-					id: subExercisesStack
-					currentIndex: delegate.nSubExercises > 0 ? 1 : 0
+				TabBar {
+					id: subExercisesTabBar
 					height: appSettings.itemLargeHeight
+					contentWidth: width
+					clip: true
 
 					anchors {
 						left: btnAddSubExercise.right
@@ -285,41 +287,24 @@ TPListView {
 						verticalCenter: parent.verticalCenter
 					}
 
-					TPLabel {
-						text: qsTr(" <<-- Add some machine or free weight exercise")
-						wrapMode: Text.WordWrap
-						horizontalAlignment: Text.AlignHCenter
-						Layout.maximumWidth: parent.width * 0.8
-						Layout.minimumWidth: parent.width * 0.8
-						Layout.minimumHeight: appSettings.itemDefaultHeight * 2
-					}
+					Repeater {
+						id: subExerciseButtonsRepeater
+						model: delegate.nSubExercises
 
-					TabBar {
-						id: subExercisesTabBar
-						Layout.fillWidth: true
-						Layout.fillHeight: true
-						contentWidth: width
-						clip: true
+						TPTabButton {
+							id: subExercisesTabButton
+							text: exercisesModel.exerciseName(delegate.exerciseNumber, index)
+							checked: index === exercisesModel.workingSubExercise
+							parentTab: subExercisesTabBar
 
-						Repeater {
-							id: subExerciseButtonsRepeater
-							model: delegate.nSubExercises
-
-							TPTabButton {
-								id: subExercisesTabButton
-								text: exercisesModel.exerciseName(delegate.exerciseNumber, index)
-								checked: index === exercisesModel.workingSubExercise
-								parentTab: subExercisesTabBar
-
-								onClicked: {
-									exercisesModel.workingSubExercise = index;
-									if (text.startsWith(qsTr("Choose")))
-										pageManager.simpleExercisesList(true);
-								}
-							} //subExercisesTabButton
-						} //subExerciseButtonsRepeater
-					} //subExercisesTabBar
-				} //StackLayout
+							onClicked: {
+								exercisesModel.workingSubExercise = index;
+								if (text.startsWith(qsTr("Choose")))
+									pageManager.simpleExercisesList(true);
+							}
+						} //subExercisesTabButton
+					} //subExerciseButtonsRepeater
+				} //subExercisesTabBar
 
 				TPButton {
 					id: btnDelSubExercise
@@ -345,7 +330,7 @@ TPListView {
 				id: txtExerciseName
 				text: exercisesModel.exerciseName(index, exercisesModel.workingSubExercise)
 				showRemoveButton: false
-				editable: delegate.nSubExercises > 0 && index === exercisesModel.workingExercise
+				editable: delegate.nSubExercises > 0 && delegate.exerciseNumber === exercisesModel.workingExercise
 				Layout.preferredWidth: parent.width
 				Layout.preferredHeight: appSettings.pageHeight * 0.1
 
@@ -356,7 +341,7 @@ TPListView {
 
 			Row {
 				id: trackRestTimeRow
-				enabled: index === exercisesModel.workingExercise
+				enabled: delegate.exerciseNumber === exercisesModel.workingExercise
 				spacing: 0
 				Layout.fillWidth: true
 				Layout.leftMargin: 10
@@ -395,7 +380,7 @@ TPListView {
 				id: setsGroup
 				padding: 0
 				spacing: 0
-				enabled: delegate.nSubExercises > 0 && index === exercisesModel.workingExercise
+				enabled: delegate.nSubExercises > 0 && delegate.exerciseNumber === exercisesModel.workingExercise
 				Layout.maximumWidth: parent.width
 				Layout.minimumWidth: parent.width
 
@@ -497,24 +482,22 @@ TPListView {
 						}
 					} //Item
 
-					Row {
+					RowLayout {
+						Layout.minimumWidth: listItem.width * 0.9
+						Layout.maximumWidth: listItem.width * 0.9
 						Layout.alignment: Qt.AlignCenter
-						Layout.preferredWidth: listItem.width * 0.9
-						Layout.minimumHeight: appSettings.itemDefaultHeight
-						padding: 10
-						enabled: setsGroup.nSets > 0 && !delegate.setCompleted
 
 						TPLabel {
 							text: exercisesModel.setTypeLabel
-							width: listItem.width * 0.36
+							Layout.maximumWidth: listItem.width * 0.3
 						}
 
 						TPComboBox {
 							id: cboSetType
-							enabled: index === exercisesModel.workingExercise
+							enabled: setsGroup.nSets > 0 && !delegate.setCompleted
 							model: AppGlobals.setTypesModel
 							currentIndex: exercisesModel.setType(index, exercisesModel.workingSubExercise, exercisesModel.workingSet)
-							width: listItem.width * 0.45
+							Layout.fillWidth: true
 
 							onActivated: (cboIndex) => exercisesModel.setSetType(index, exercisesModel.workingSubExercise, exercisesModel.workingSet, cboIndex);
 						}
@@ -587,7 +570,9 @@ TPListView {
 						info: exercisesModel.setNotesLabel
 						text: exercisesModel.setNotes(index, exercisesModel.workingSubExercise, exercisesModel.workingSet)
 						enabled: cboSetType.currentIndex >= 0 && !delegate.setCompleted
-						Layout.fillWidth: true
+						Layout.minimumWidth: txtNWeight.width
+						Layout.maximumWidth: txtNWeight.width
+						Layout.alignment: Qt.AlignCenter
 
 						onEditFinished: (new_text) => exercisesModel.setSetNotes(exercisesModel.workingExercise,
 														exercisesModel.workingSubExercise, exercisesModel.workingSet, new_text);
@@ -595,7 +580,7 @@ TPListView {
 
 					Item {
 						id: setModeLayout
-						visible: exercisesModel ? (exercisesModel.isWorkout && cboSetType.currentIndex >= 0) : false
+						visible: exercisesModel.isWorkout && cboSetType.currentIndex >= 0
 						width: parent.width * 0.55
 						Layout.alignment: Qt.AlignCenter
 						Layout.maximumWidth: width

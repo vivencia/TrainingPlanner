@@ -19,16 +19,16 @@ TPMessagesManager *TPMessagesManager::_appMessagesManager{nullptr};
 
 enum RoleNames
 {
-	idRole				= Qt::UserRole + MESSAGE_COL_ID,
-	labelTextRole		= Qt::UserRole + MESSAGE_COL_TEXT,
-	iconRole			= Qt::UserRole + MESSAGE_COL_ICON,
-	dateRole			= Qt::UserRole + MESSAGE_COL_DATE,
-	timeRole			= Qt::UserRole + MESSAGE_COL_TIME,
-	extraInfoLabelRole	= Qt::UserRole + MESSAGE_COL_EXTRA_INFO,
-	extraInfoIconRole	= Qt::UserRole + MESSAGE_COL_EXTRA_ICON,
-	actionsRole			= Qt::UserRole + MESSAGE_COL_ACTIONS,
-	stickyRole			= Qt::UserRole + MESSAGE_COL_STICKY,
-	hasActionsRole		= stickyRole   + 1,
+	createRole(idRole,				TPMESSAGE_FIELD_ID)
+	createRole(labelTextRole,		TPMESSAGE_FIELD_TEXT)
+	createRole(iconRole,			TPMESSAGE_FIELD_ICON)
+	createRole(dateRole,			TPMESSAGE_FIELD_DATE)
+	createRole(timeRole,			TPMESSAGE_FIELD_TIME)
+	createRole(extraInfoLabelRole,	TPMESSAGE_FIELD_EXTRA_INFO)
+	createRole(extraInfoIconRole,	TPMESSAGE_FIELD_EXTRA_ICON)
+	createRole(actionsRole,			TPMESSAGE_FIELD_ACTIONS)
+	createRole(stickyRole,			TPMESSAGE_FIELD_STICKY)
+	hasActionsRole			=		stickyRole   + 1,
 };
 
 TPMessagesManager::TPMessagesManager(QObject *parent)
@@ -345,7 +345,6 @@ int TPMessagesManager::newMessagesCheckingInterval() const
 	set_separator (oct 037, dec 31) separates messages of the same sender
 	exercises_separator (oct 034 dec 28) separates the senders (the even number are the messages content and the odd numbers are the sender ids)
 */
-
 void TPMessagesManager::parseNewChatMessages(const QString &encoded_messages)
 {
 	uint sender_idx{0};
@@ -377,7 +376,10 @@ void TPMessagesManager::createChatWindow_part2(TPChat *chat_manager)
 	QObject *chat_window{m_chatWindowComponent->createWithInitialProperties(m_chatWindowProperties, appQmlEngine()->rootContext())};
 	#ifndef QT_NO_DEBUG
 	if (!chat_window)
+	{
 		qDebug() << m_chatWindowComponent->errorString();
+		return;
+	}
 	#endif
 	appQmlEngine()->setObjectOwnership(chat_window, QQmlEngine::CppOwnership);
 	chat_window->setProperty("parent", QVariant::fromValue(appItemManager()->appHomePage()));

@@ -16,7 +16,7 @@ public:
 
 	QString dbFileName(const bool fullpath = true) const override final;
 	void updateTable() override final {}
-	bool getAllMesocycles();
+	bool getAllMesocycles(void *);
 
 signals:
 	void mesocyclesAcquired(QStringList meso_info, const bool last_meso);

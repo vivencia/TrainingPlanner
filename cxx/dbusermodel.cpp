@@ -31,7 +31,7 @@
 
 #include <utility>
 
-DBUserModel *DBUserModel::_appUserModel(nullptr);
+DBUserModel *DBUserModel::_appUserModel{nullptr};
 
 constexpr QLatin1StringView local_user_data_file{"user.data"_L1};
 constexpr QLatin1StringView cmd_file_extension{".cmd"_L1};
@@ -186,7 +186,7 @@ void DBUserModel::initUserSession()
 			emit userIdChanged();
 		}
 	}
-	mb_userRegistered = std::nullopt;
+	mb_userLoggedIn = std::nullopt;
 }
 
 void DBUserModel::setOnlineAccount(const bool online_user, const uint user_idx)
@@ -550,7 +550,7 @@ void DBUserModel::removeOtherUser()
 
 void DBUserModel::userSwitchingActions(const bool create, QString &&userid)
 {
-	mb_userRegistered = false;
+	mb_userLoggedIn = false;
 	m_usersData.clear();
 	if (m_currentCoaches)
 		m_currentCoaches->clear();
@@ -710,7 +710,7 @@ void DBUserModel::importFromOnlineServer()
 					removeMainUser();
 					if (importFromString(ret_string))
 					{
-						mb_userRegistered = true;
+						mb_userLoggedIn = true;
 						setPassword(m_password);
 						switchToUser(m_onlineAccountId);
 					}
@@ -785,7 +785,7 @@ void DBUserModel::setMainUserConfigurationFinished()
 {
 	if (canConnectToServer())
 	{
-		if (!mainUserRegistered())
+		if (!mainUserLoggedIn())
 			onlineCheckIn();
 		else
 		{
@@ -893,7 +893,7 @@ int DBUserModel::sendFileToServer(const QString &filename, QFile *upload_file, c
 		return -1;
 	}
 	else {
-		if (!mainUserRegistered())
+		if (!mainUserLoggedIn())
 			return -1;
 	}
 
@@ -952,7 +952,7 @@ int DBUserModel::downloadFileFromServer(const QString &filename, const QString &
 	}
 	else
 	{
-		if (!mainUserRegistered())
+		if (!mainUserLoggedIn())
 			return TP_RET_CODE_DOWNLOAD_FAILED;
 	}
 
@@ -1021,7 +1021,7 @@ int DBUserModel::downloadFileFromServer(const QString &filename, const QString &
 
 void DBUserModel::removeFileFromServer(const QString &filename, const QString &subdir, const QString &targetUser)
 {
-	if (!mainUserRegistered())
+	if (!mainUserLoggedIn())
 		return;
 
 	QLatin1StringView v{filename.toLatin1().constData()};
@@ -1049,6 +1049,8 @@ int DBUserModel::listFilesFromServer(const QString &subdir, const QString &targe
 
 void DBUserModel::sendCmdFileToServer(const QString &cmd_filename)
 {
+	if (!canConnectToServer())
+		return;
 	QFile *cmd_file{appUtils()->openFile(cmd_filename, true, false, false, false, false)};
 	if (!cmd_file)
 		return;
@@ -1335,7 +1337,7 @@ void DBUserModel::slot_unregisterUser(const bool unregister)
 						disconnect(*conn2);
 						if (ret_code == TP_RET_CODE_SUCCESS)
 						{
-							mb_userRegistered = false;
+							mb_userLoggedIn = false;
 							emit userLoggedOut();
 						}
 						appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
@@ -1462,7 +1464,7 @@ void DBUserModel::loginUser()
 			switch (ret_code)
 			{
 				case TP_RET_CODE_SUCCESS:
-					mb_userRegistered = true;
+					mb_userLoggedIn = true;
 					emit userLoggedIn();
 				break;
 				case TP_RET_CODE_WRONG_PASSWORD:
@@ -1479,7 +1481,7 @@ void DBUserModel::loginUser()
 							disconnect(*conn2);
 							if (ret_code == TP_RET_CODE_SUCCESS)
 							{
-								mb_userRegistered = true;
+								mb_userLoggedIn = true;
 								emit userLoggedIn(true);
 							}
 							appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
@@ -1492,7 +1494,7 @@ void DBUserModel::loginUser()
 				break;
 				default:
 					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_UNKNOWN_ERROR, ret_string);
-					mb_userRegistered = false;
+					mb_userLoggedIn = false;
 				break;
 			}
 		}

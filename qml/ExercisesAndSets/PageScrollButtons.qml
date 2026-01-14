@@ -13,7 +13,7 @@ Rectangle {
 	visible: false
 	color: "transparent"
 
-	signal scrollTo(int pos)
+	signal scrollTo(int pos);
 
 	property bool showUpButton: true
 	property bool showDownButton: true
@@ -31,7 +31,6 @@ Rectangle {
 		dragWidget: img1
 		x: appSettings.pageWidth - buttonSize - 10;
 		y: btnDown.y - buttonSize
-		emitMoveSignal: true
 
 		onControlMoved: (xpos, ypos) => {
 			btnDown.x = xpos;
@@ -59,7 +58,6 @@ Rectangle {
 		dragWidget: img2
 		x: appSettings.pageWidth - buttonSize - 10;
 		y: appSettings.pageHeight - buttonSize
-		emitMoveSignal: true
 
 		onControlMoved: (xpos, ypos) => {
 			btnUp.x = xpos;

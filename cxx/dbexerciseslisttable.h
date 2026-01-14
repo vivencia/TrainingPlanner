@@ -17,7 +17,7 @@ public:
 	QString dbFileName(const bool fullpath = true) const override final;
 	void updateTable() override final {}
 
-	bool getAllExercises();
+	bool getAllExercises(void *);
 	bool updateExercisesList();
 
 signals:

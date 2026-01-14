@@ -59,7 +59,9 @@ class WeatherInfo : public QObject
 
 Q_OBJECT
 
+Q_PROPERTY(uint savedLocationsCount READ savedLocationsCount NOTIFY savedLocationsCountChanged FINAL)
 Q_PROPERTY(bool canUseGps READ canUseGps WRITE setCanUseGps NOTIFY canUseGpsChanged FINAL)
+
 Q_PROPERTY(QString city READ city WRITE setCity NOTIFY cityChanged)
 Q_PROPERTY(QString gpsMessage READ gpsMessage WRITE setGpsMessage NOTIFY gpsMessageChanged)
 Q_PROPERTY(QStringList locationList READ locationList NOTIFY locationListChanged)
@@ -84,9 +86,20 @@ public:
 	Q_INVOKABLE void requestWeatherForGpsCity();
 #endif
 	Q_INVOKABLE void requestWeatherForSavedCity(const uint index);
+	Q_INVOKABLE void removeWeatherLocation(const uint index);
 	Q_INVOKABLE void refreshWeather();
 	Q_INVOKABLE void searchForCities(const QString &place);
 	Q_INVOKABLE void locationSelected(const uint index);
+	Q_INVOKABLE QString savedLocationName(const uint index);
+	uint savedLocationsCount() const;
+
+signals:
+	void canUseGpsChanged();
+	void cityChanged();
+	void gpsMessageChanged();
+	void weatherChanged();
+	void locationListChanged();
+	void savedLocationsCountChanged();
 
 private slots:
 #ifdef Q_OS_ANDROID
@@ -97,13 +110,6 @@ private slots:
 	void handleWeatherData(const st_LocationInfo &location, const QList<st_WeatherInfo> &weatherDetails);
 	void buildLocationsList(const QList<st_LocationInfo> *foundLocations);
 
-signals:
-	void canUseGpsChanged();
-	void cityChanged();
-	void gpsMessageChanged();
-	void weatherChanged();
-	void locationListChanged();
-
 private:
 	void addLocationToConfig(const QString &location, const QGeoCoordinate &coord);
 
@@ -111,4 +117,5 @@ private:
 	QList<st_LocationInfo> *m_foundLocations;
 	st_LocationInfo m_gpsLocation;
 	QStringList m_locationList;
+	QString m_savedLocations;
 };

@@ -1,6 +1,5 @@
 #include "dbmesocyclesmodel.h"
 
-#include "thread_manager.h"
 #include "dbmesocyclestable.h"
 #include "dbexercisesmodel.h"
 #include "dbmesocalendarmanager.h"
@@ -9,12 +8,16 @@
 #include "homepagemesomodel.h"
 #include "qmlitemmanager.h"
 #include "qmlmesointerface.h"
+#include "thread_manager.h"
+#include "tpsettings.h"
 #include "translationclass.h"
 
-constexpr QLatin1StringView curMesoIdxSetting{"lastViewedMesoIdx"};
+#include <QQuickItem>
+
+constexpr QLatin1StringView mesosViewIdxSetting{"mesosViewIdx"};
 
 DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
-	: QObject{parent}, m_lowestTempMesoId{-1}
+	: QObject{parent}, m_currentWorkingMeso{-1}
 {
 	m_calendarManager = new DBMesoCalendarManager{this};
 	if (appUserModel()->isClient(0))
@@ -72,7 +75,7 @@ void DBMesocyclesModel::incorporateMeso(const uint meso_idx)
 	m_dbModelInterface->setModified(meso_idx, 0);
 	appThreadManager()->runAction(m_db, ThreadManager::InsertRecords);
 	m_calendarManager->getCalendarForMeso(meso_idx);
-	//removeMesoFile(meso_idx);
+	removeMesoFile(meso_idx);
 }
 
 void DBMesocyclesModel::getMesocyclePage(const uint meso_idx, const bool new_meso)
@@ -84,7 +87,7 @@ void DBMesocyclesModel::getMesocyclePage(const uint meso_idx, const bool new_mes
 
 void DBMesocyclesModel::startNewMesocycle(const bool own_meso)
 {
-	const uint meso_idx{newMesoData(std::move(QStringList{std::move(newMesoTemporaryId()), QString{}, QString{}, QString{},
+	const uint meso_idx{newMesoData(std::move(QStringList{std::move(appUtils()->newDBTemporaryId()), QString{}, QString{}, QString{},
 		QString{}, QString{}, std::move("RRRRRRR"_L1), QString{}, QString{}, QString{}, QString{}, QString{}, QString{},
 		appUserModel()->userId(0), (own_meso ? appUserModel()->userId(0) : appUserModel()->mostRecentClientId()), QString{},
 		QString{}, std::move("1"_L1)}))};
@@ -108,7 +111,7 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 	if (split_model)
 	{
 		m_splitsDB->setDBModelInterface(split_model->dbModelInterface());
-		split_model->dbModelInterface()->setRemovalInfo(0, QList<uint>{1, EXERCISES_COL_MESOID});
+		split_model->dbModelInterface()->setRemovalInfo(0, QList<uint>{1, EXERCISES_FIELD_MESOID});
 		appThreadManager()->runAction(m_splitsDB, ThreadManager::DeleteRecords);
 		qDeleteAll(m_splitModels.at(meso_idx));
 	}
@@ -129,18 +132,32 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 
 void DBMesocyclesModel::getExercisesPlannerPage(const uint meso_idx)
 {
-	if (meso_idx < m_mesoData.count())
-		mesoManager(meso_idx)->getExercisesPlannerPage();
+	mesoManager(meso_idx)->getExercisesPlannerPage();
 }
 
 void DBMesocyclesModel::getMesoCalendarPage(const uint meso_idx)
 {
+	m_calendarManager->getCalendarForMeso(meso_idx);
 	mesoManager(meso_idx)->getCalendarPage();
 }
 
 void DBMesocyclesModel::openSpecificWorkout(const uint meso_idx, const QDate &date)
 {
 	mesoManager(meso_idx)->getWorkoutPage(date);
+}
+
+void DBMesocyclesModel::setCurrentMesosView(const bool own_mesos_view)
+{
+	int new_working_meso{own_mesos_view ? m_ownMesos->currentMesoIdx() : m_clientMesos->currentMesoIdx()};
+	if (new_working_meso != m_currentWorkingMeso)
+	{
+		m_currentWorkingMeso = new_working_meso;
+		m_calendarManager->setWorkingCalendar(m_currentWorkingMeso);
+		int view_idx{-1};
+		QMetaObject::invokeMethod(appItemManager()->appHomePage(), "mesosViewIndex", qReturnArg(view_idx));
+		if (view_idx != -1)
+			appSettings()->setCustomValue(mesosViewIdxSetting, view_idx);
+	}
 }
 
 bool DBMesocyclesModel::isRequiredFieldWrong(const uint meso_idx, const uint field) const
@@ -202,7 +219,7 @@ void DBMesocyclesModel::setSplit(const uint meso_idx, const QString &new_split)
 
 QString DBMesocyclesModel::muscularGroup(const uint meso_idx, const QChar &splitLetter) const
 {
-	return splitLetter != 'R' ?
+	return !splitLetter.isNull() && splitLetter != 'R' ?
 		m_mesoData.at(meso_idx).at(MESO_FIELD_SPLITA + static_cast<int>(splitLetter.cell()) - static_cast<int>('A')) :
 		splitR();
 }
@@ -266,6 +283,7 @@ void DBMesocyclesModel::loadSplits(const uint meso_idx)
 		{
 			split_model = new DBSplitModel{this, m_splitsDB, meso_idx, split_letter, true};
 			m_splitModels[meso_idx].insert(split_letter, split_model);
+			::usleep(1000);
 		}
 	}
 }
@@ -273,7 +291,7 @@ void DBMesocyclesModel::loadSplits(const uint meso_idx)
 void DBMesocyclesModel::removeSplit(const uint meso_idx, const QChar &split_letter)
 {
 	DBSplitModel *split_model{splitModel(meso_idx, split_letter)};
-	split_model->dbModelInterface()->setRemovalInfo(0, QList<uint>{2} << EXERCISES_COL_MESOID << EXERCISES_COL_SPLITLETTER);
+	split_model->dbModelInterface()->setRemovalInfo(0, QList<uint>{2} << EXERCISES_FIELD_MESOID << EXERCISES_FIELD_SPLITLETTER);
 	appThreadManager()->runAction(m_splitsDB, ThreadManager::DeleteRecords);
 	m_splitModels[meso_idx].remove(split_letter);
 }
@@ -312,7 +330,7 @@ int DBMesocyclesModel::getPreviousMesoId(const QString &userid, const int curren
 	for (; meso_idx >= 0; --meso_idx)
 	{
 		if (client(meso_idx) == userid)
-			if (_id(meso_idx) < current_mesoid)
+			if (_id(meso_idx) >= 0 && _id(meso_idx) < current_mesoid)
 				break;
 	}
 	return meso_idx >= 0 ? _id(meso_idx) : -1;
@@ -438,7 +456,7 @@ int DBMesocyclesModel::importFromFile(const uint meso_idx, const QString &filena
 	int ret{appUtils()->readDataFromFile(in_file, m_mesoData, fieldCount(), appUtils()->mesoFileIdentifier, meso_idx)};
 	if (ret == TP_RET_CODE_IMPORT_OK)
 	{
-		setId(meso_idx, newMesoTemporaryId());
+		setId(meso_idx, appUtils()->newDBTemporaryId());
 		for (const auto &split_letter : m_usedSplits.at(meso_idx))
 		{
 			DBSplitModel *split_model{splitModel(meso_idx, split_letter)};
@@ -470,7 +488,7 @@ int DBMesocyclesModel::importFromFormattedFile(const uint meso_idx, const QStrin
 	};
 	if (ret == TP_RET_CODE_IMPORT_OK)
 	{
-		setId(meso_idx, newMesoTemporaryId());
+		setId(meso_idx, appUtils()->newDBTemporaryId());
 		const QMap<QChar,DBSplitModel*> &split_models{m_splitModels.at(meso_idx)};
 		for (DBSplitModel *split_model : split_models)
 		{
@@ -714,6 +732,19 @@ void DBMesocyclesModel::getAllMesocycles()
 		{
 			disconnect(*conn);
 			scanTemporaryMesocycles();
+			QMetaObject::invokeMethod(appItemManager()->appHomePage(), "setMesosViewIndex",
+					Q_ARG(int, appSettings()->getCustomValue(mesosViewIdxSetting, 0).toInt()));
+			if (m_ownMesos)
+			{
+				connect(m_ownMesos, &HomePageMesoModel::currentIndexChanged, [this] () {
+					m_calendarManager->setWorkingCalendar(m_ownMesos->currentMesoIdx());
+				});
+			}
+			if (m_clientMesos) {
+				connect(m_clientMesos, &HomePageMesoModel::currentIndexChanged, [this] () {
+					m_calendarManager->setWorkingCalendar(m_clientMesos->currentMesoIdx());
+				});
+			}
 		}
 	});
 	appThreadManager()->runAction(m_db, ThreadManager::ReadAllRecords);

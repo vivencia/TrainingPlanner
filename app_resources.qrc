@@ -167,6 +167,5 @@
         <file>images/italic_blue.png</file>
         <file>images/upperlowercase_blue.png</file>
         <file>images/paste_blue.png</file>
-        <file>qml/TPWidgets/TPListView.qml</file>
     </qresource>
 </RCC>

@@ -24,10 +24,10 @@ enum MesoRoleNames {
 	haveCalendarRole	=	canHaveWorkoutRole + 1,
 };
 
-using namespace Qt::Literals::StringLiterals;
+using namespace QLiterals;
 
 HomePageMesoModel::HomePageMesoModel(DBMesocyclesModel *meso_model, const bool own_mesos)
-	: QAbstractListModel{meso_model}, m_mesoModel{meso_model}, m_ownMesos{own_mesos}
+	: QAbstractListModel{meso_model}, m_mesoModel{meso_model}, m_ownMesos{own_mesos}, m_curIndex{-1}
 {
 	m_roleNames[mesoNameRole]		= std::move("mesoName");
 	m_roleNames[mesoStartDateRole]	= std::move("mesoStartDate");
@@ -40,7 +40,8 @@ HomePageMesoModel::HomePageMesoModel(DBMesocyclesModel *meso_model, const bool o
 	m_roleNames[mesoSplitsRole]		= std::move("mesoSplitsAvailable");
 	m_roleNames[canHaveWorkoutRole]	= std::move("canHaveWorkout");
 	m_roleNames[haveCalendarRole]	= std::move("haveCalendar");
-	m_curIndex = appSettings()->getCustomValue(m_ownMesos ? ownMesosCurIndexSettingsName : clientMesosCurIndexSettingsName, -1).toInt();
+	setCurrentIndex(appSettings()->getCustomValue(m_ownMesos ?
+											ownMesosCurIndexSettingsName : clientMesosCurIndexSettingsName, -1).toInt());
 
 	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, [this] (const uint meso_idx, const uint field)
 	{
@@ -85,10 +86,9 @@ void HomePageMesoModel::setCurrentIndex(const int new_index)
 {
 	if (m_curIndex != new_index)
 	{
+		if (m_curIndex != -1)
+			appSettings()->setCustomValue(m_ownMesos ? ownMesosCurIndexSettingsName : clientMesosCurIndexSettingsName, m_curIndex);
 		m_curIndex = new_index;
-		appSettings()->setCustomValue(m_ownMesos ?
-									ownMesosCurIndexSettingsName : clientMesosCurIndexSettingsName, m_curIndex);
-
 		emit currentIndexChanged();
 	}
 }

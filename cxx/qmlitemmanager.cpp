@@ -45,6 +45,9 @@ QmlItemManager *QmlItemManager::_appItemManager{nullptr};
 QQmlApplicationEngine *QmlItemManager::_appQmlEngine{nullptr};
 QQuickWindow *QmlItemManager::_appMainWindow{nullptr};
 
+#define REGISTER_QML_TYPE(cpp_name, qmlname) \
+	qmlRegisterType<cpp_name> ("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, qmlname);
+
 QmlItemManager::~QmlItemManager()
 {
 	if (m_weatherPage)
@@ -64,28 +67,27 @@ void QmlItemManager::configureQmlEngine()
 	QQuickStyle::setStyle(appSettings()->themeStyle());
 	QQuickWindow::setTextRenderType(QQuickWindow::NativeTextRendering);
 
-	qmlRegisterType<DBUserModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBUserModel");
-	qmlRegisterType<DBExercisesListModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBExercisesListModel");
-	qmlRegisterType<DBMesocyclesModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "MesocyclesModel");
-	qmlRegisterType<DBExercisesModel>("org.vivenciasofopacity: 0.8tware.TrainingPlanner.qmlcomponents", 1, 0, "DBSplitModel");
-	qmlRegisterType<DBExercisesModel>("org.vivenciasofopacity: 0.8tware.TrainingPlanner.qmlcomponents", 1, 0, "DBWorkoutModel");
-	qmlRegisterType<DBMesoCalendarManager>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBMesoCalendarManager");
-	qmlRegisterType<DBCalendarModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBCalendarModel");
-	qmlRegisterType<TPTimer>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "TPTimer");
-	qmlRegisterType<TPImage>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "TPImage");
-	qmlRegisterType<QmlUserInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "UserManager");
-	qmlRegisterType<QmlExercisesDatabaseInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "ExercisesListManager");
-	qmlRegisterType<QMLMesoInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "MesoManager");
-	qmlRegisterType<QmlMesoCalendarInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "CalendarManager");
-	qmlRegisterType<QmlMesoSplitInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "SplitManager");
-	qmlRegisterType<QmlWorkoutInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "WorkoutManager");
-	qmlRegisterType<WeatherInfo>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "WeatherInfo");
-	qmlRegisterType<TPStatistics>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "Statistics");
-	qmlRegisterType<PagesListModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "PagesListModel");
-	qmlRegisterType<OnlineUserInfo>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "OnlineUserInfo");
-	qmlRegisterType<TPMessagesManager>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "MessagesManager");
-	qmlRegisterType<HomePageMesoModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "HomePageMesoModel");
-	qmlRegisterType<TPChat>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "ChatModel");
+	REGISTER_QML_TYPE(DBUserModel, "DBUserModel")
+	REGISTER_QML_TYPE(DBExercisesListModel, "DBExercisesListModel")
+	REGISTER_QML_TYPE(DBMesocyclesModel, "MesocyclesModel")
+	REGISTER_QML_TYPE(DBExercisesModel, "DBExercisesModel")
+	REGISTER_QML_TYPE(DBMesoCalendarManager, "DBMesoCalendarManager")
+	REGISTER_QML_TYPE(DBCalendarModel, "DBCalendarModel")
+	REGISTER_QML_TYPE(TPTimer, "TPTimer")
+	REGISTER_QML_TYPE(TPImage, "TPImage")
+	REGISTER_QML_TYPE(QmlUserInterface, "UserManager")
+	REGISTER_QML_TYPE(QmlExercisesDatabaseInterface, "ExercisesListManager")
+	REGISTER_QML_TYPE(QMLMesoInterface, "MesoManager")
+	REGISTER_QML_TYPE(QmlMesoCalendarInterface, "CalendarManager")
+	REGISTER_QML_TYPE(QmlMesoSplitInterface, "SplitManager")
+	REGISTER_QML_TYPE(QmlWorkoutInterface, "WorkoutManager")
+	REGISTER_QML_TYPE(WeatherInfo, "WeatherInfo")
+	REGISTER_QML_TYPE(TPStatistics, "Statistics")
+	REGISTER_QML_TYPE(PagesListModel, "PagesListModel")
+	REGISTER_QML_TYPE(OnlineUserInfo, "OnlineUserInfo")
+	REGISTER_QML_TYPE(TPMessagesManager, "MessagesManager")
+	REGISTER_QML_TYPE(HomePageMesoModel, "HomePageMesoModel")
+	REGISTER_QML_TYPE(TPChat, "ChatModel")
 
 	QList<QQmlContext::PropertyPair> global_properties{9};
 	global_properties[0] = std::move(QQmlContext::PropertyPair{ "appSettings"_L1, QVariant::fromValue(appSettings()) });
@@ -125,6 +127,7 @@ void QmlItemManager::configureQmlEngine()
 				connect(appMainWindow(), SIGNAL(openFileRejected(QString)), this, SLOT(importSlot_FileChosen(QString)));
 				connect(appMainWindow(), SIGNAL(saveFileChosen(QString)), this, SLOT(exportSlot(QString)));
 				connect(appMainWindow(), SIGNAL(saveFileRejected(QString)), this, SLOT(exportSlot(QString)));
+				connect(appHomePage(), SIGNAL(mesosViewChanged(bool)), this, SLOT(homePageViewChanged(bool)));
 			}
 		}
 	});
@@ -619,6 +622,11 @@ void QmlItemManager::importSlot_FileChosen(const QString &filePath, const int co
 		openRequestedFile(filePath, content_type);
 	else
 		displayMessageOnAppWindow(TP_RET_CODE_OPERATION_CANCELED);
+}
+
+void QmlItemManager::homePageViewChanged(const bool own_mesos_view)
+{
+	appUserModel()->actualMesoModel()->setCurrentMesosView(own_mesos_view);
 }
 
 void QmlItemManager::createWeatherPage_part2()

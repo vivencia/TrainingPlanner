@@ -9,15 +9,15 @@
 #include <QFile>
 #include <QSqlError>
 
-using namespace Qt::Literals::StringLiterals;
+#include <ranges>
+
+using namespace QLiterals;
 
 TPDatabaseTable::TPDatabaseTable(const uint table_id, DBModelInterface *dbmodel_interface)
 	: QObject{nullptr}, m_tableId{table_id}, m_dbModelInterface{dbmodel_interface},
 		m_deleteAfterFinished{false}
 {
-	if (m_dbModelInterface)
-		m_dbModelInterface->setTPDatabaseTable(this);
-	m_threadedFunctions.insert(ThreadManager::CustomOperation, [this] () {
+	m_threadedFunctions.insert(ThreadManager::CustomOperation, [this] (void*) {
 		if (m_customQueryFunc)
 		{
 			auto result{m_customQueryFunc()};
@@ -26,39 +26,39 @@ TPDatabaseTable::TPDatabaseTable(const uint table_id, DBModelInterface *dbmodel_
 		else
 			emit actionFinished(ThreadManager::CustomOperation, QVariant{}, QVariant{});
 	});
-	m_threadedFunctions.insert(ThreadManager::CreateTable, [this] () {
+	m_threadedFunctions.insert(ThreadManager::CreateTable, [this] (void*) {
 		auto result{createTable()};
 		emit actionFinished(ThreadManager::CreateTable, result.first, result.second);
 	});
-	m_threadedFunctions.insert(ThreadManager::InsertRecords, [this] () {
+	m_threadedFunctions.insert(ThreadManager::InsertRecords, [this] (void*) {
 		auto result{insertRecord()};
 		emit actionFinished(ThreadManager::InsertRecords, result.first, result.second);
 	});
-	m_threadedFunctions.insert(ThreadManager::AlterRecords, [this] () {
+	m_threadedFunctions.insert(ThreadManager::AlterRecords, [this] (void*) {
 		auto result{AlterRecords()};
 		emit actionFinished(ThreadManager::AlterRecords, result.first, result.second);
 	});
-	m_threadedFunctions.insert(ThreadManager::UpdateOneField, [this] () {
+	m_threadedFunctions.insert(ThreadManager::UpdateOneField, [this] (void*) {
 		auto result{updateRecord()};
 		emit actionFinished(ThreadManager::UpdateOneField, result.first, result.second);
 	});
-	m_threadedFunctions.insert(ThreadManager::UpdateSeveralFields, [this] () {
+	m_threadedFunctions.insert(ThreadManager::UpdateSeveralFields, [this] (void*) {
 		auto result{updateFieldsOfRecord()};
 		emit actionFinished(ThreadManager::UpdateSeveralFields, result.first, result.second);
 	});
-	m_threadedFunctions.insert(ThreadManager::UpdateRecords, [this] () {
+	m_threadedFunctions.insert(ThreadManager::UpdateRecords, [this] (void*) {
 		auto result{updateRecords()};
 		emit actionFinished(ThreadManager::UpdateRecords, result.first, result.second);
 	});
-	m_threadedFunctions.insert(ThreadManager::DeleteRecords, [this] () {
+	m_threadedFunctions.insert(ThreadManager::DeleteRecords, [this] (void*) {
 		auto result{removeRecords()};
 		emit actionFinished(ThreadManager::DeleteRecords, result.first, result.second);
 	});
-	m_threadedFunctions.insert(ThreadManager::RemoveTemporaries, [this] () {
+	m_threadedFunctions.insert(ThreadManager::RemoveTemporaries, [this] (void*) {
 		auto result{removeTemporaries()};
 		emit actionFinished(ThreadManager::RemoveTemporaries, result.first, result.second);
 	});
-	m_threadedFunctions.insert(ThreadManager::ClearTable, [this] () {
+	m_threadedFunctions.insert(ThreadManager::ClearTable, [this] (void*) {
 		auto result{clearTable()};
 		emit actionFinished(ThreadManager::ClearTable, result.first, result.second);
 	});
@@ -73,18 +73,21 @@ TPDatabaseTable::TPDatabaseTable(const uint table_id, DBModelInterface *dbmodel_
 			case ThreadManager::CustomOperation: break;
 			default:
 				if (return_value2.toBool())
-					emit appUserModel()->cmdFileCreated(dbFilePath());
+				{
+					if (appUserModel()->mainUserLoggedIn())
+						emit appUserModel()->cmdFileCreated(dbFilePath());
+				}
 			break;
 		}
 	});
 }
 
-void TPDatabaseTable::startAction(const int unique_id, ThreadManager::StandardOps operation)
+void TPDatabaseTable::startAction(const int unique_id, ThreadManager::StandardOps operation, void *extra_param)
 {
 	if (unique_id == uniqueId())
 	{
 		if (m_threadedFunctions.contains(operation))
-			m_threadedFunctions.value(operation)();
+			m_threadedFunctions.value(operation)(extra_param);
 		#ifndef QT_NO_DEBUG
 		else
 			qDebug() << "Cannot start action: " << operation << " for table: " << unique_id <<
@@ -141,15 +144,15 @@ std::pair<bool, bool> TPDatabaseTable::insertRecord()
 	for (int i{auto_increment ? 1 : 0}; i < m_fieldCount; ++i)
 		m_strQuery += std::move(m_fieldNames[i][0] % ',');
 	m_strQuery.chop(1);
-	m_strQuery += ')';
+	m_strQuery += std::move(") VALUES ("_L1);
 
-	QHash<uint, QList<int>>::const_iterator itr{m_dbModelInterface->modifiedIndices().constBegin()};
-	const QHash<uint, QList<int>>::const_iterator itr_end{m_dbModelInterface->modifiedIndices().constEnd()};
+	QMap<uint, QList<int>>::const_iterator itr{m_dbModelInterface->modifiedIndices().constBegin()};
+	const QMap<uint, QList<int>>::const_iterator itr_end{m_dbModelInterface->modifiedIndices().constEnd()};
 	while (itr != itr_end)
 	{
 		auto modified_row{itr.key()};
 		uint field{0};
-		m_strQuery += std::move(" VALUES("_L1);
+
 		for (const auto &data : std::as_const(m_dbModelInterface->modelData().at(modified_row)))
 		{
 			if (field != 0 || !auto_increment)
@@ -157,21 +160,30 @@ std::pair<bool, bool> TPDatabaseTable::insertRecord()
 			++field;
 		}
 		m_strQuery.chop(1);
-		m_strQuery += std::move("),"_L1);
+		m_strQuery += std::move("),("_L1);
 		++itr;
 	}
-	m_strQuery.chop(1);
+	m_strQuery.chop(2);
 	m_strQuery += ';';
 
 	if (execSingleWriteQuery(m_strQuery))
 	{
 		if (auto_increment)
-			m_dbModelInterface->modelData()[modified_row][0] = std::move(m_workingQuery.lastInsertId().toString());
+		{
+			int last_id{m_workingQuery.lastInsertId().toInt()};
+			auto n{m_dbModelInterface->modifiedIndices().count()};
+			for (auto &data : m_dbModelInterface->modelData() | std::views::reverse)
+			{
+				data[0] = std::move(QString::number(last_id--));
+				if (--n == 0)
+					break;
+			}
+		}
 		success = true;
 		m_strQuery.prepend("PRAGMA busy_timeout = 5000;"_L1);
 		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
 	}
-	m_dbModelInterface->modifiedIndices().remove(modified_row);
+	m_dbModelInterface->modifiedIndices().clear();
 	return std::pair<bool,bool>{success, cmd_ok};
 }
 
@@ -187,10 +199,10 @@ std::pair<bool,bool> TPDatabaseTable::AlterRecords()
 	for (int i{auto_increment ? 1 : 0}; i < m_fieldCount; ++i)
 		insert_cmd += std::move(m_fieldNames[i][0] % ',');
 	insert_cmd.chop(1);
-	insert_cmd += std::move(") VALUES("_L1);
+	insert_cmd += std::move(") VALUES ("_L1);
 
-	QHash<uint, QList<int>>::const_iterator itr{m_dbModelInterface->modifiedIndices().constBegin()};
-	const QHash<uint, QList<int>>::const_iterator itr_end{m_dbModelInterface->modifiedIndices().constEnd()};
+	QMap<uint, QList<int>>::const_iterator itr{m_dbModelInterface->modifiedIndices().constBegin()};
+	const QMap<uint, QList<int>>::const_iterator itr_end{m_dbModelInterface->modifiedIndices().constEnd()};
 	while (itr != itr_end)
 	{
 		auto modified_row{itr.key()};
@@ -520,12 +532,9 @@ bool TPDatabaseTable::execMultipleWritesQuery(const QStringList &queries)
 	return ok;
 }
 
-void TPDatabaseTable::setReadAllRecordsFunc(const std::function<bool()> &func)
+void TPDatabaseTable::setDBModelInterface(DBModelInterface *dbmodel_interface)
 {
-	m_threadedFunctions.insert(ThreadManager::ReadAllRecords, [this,func] () {
-		bool result{func()};
-		emit actionFinished(ThreadManager::ReadAllRecords, QVariant{result}, QVariant{false});
-	});
+	m_dbModelInterface = dbmodel_interface;
 }
 
 bool TPDatabaseTable::createServerCmdFile(const QString &dir, const std::initializer_list<QString> &command_parts,

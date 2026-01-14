@@ -1,6 +1,8 @@
 #include "pageslistmodel.h"
 
+#include "dbmesocyclesmodel.h"
 #include "qmlitemmanager.h"
+#include "dbusermodel.h"
 
 #include <QQuickItem>
 #include <QQuickWindow>
@@ -47,6 +49,7 @@ void PagesListModel::userSwitchingActions()
 	QMetaObject::invokeMethod(appMainWindow(), "clearWindowsStack");
 	for (const auto page_st : std::as_const(m_pagesData))
 		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, page_st->page), Q_ARG(bool, false));
+	appUserModel()->actualMesoModel()->setCurrentMesosView(appUserModel()->actualMesoModel()->isOwnMeso(m_pagesMesoIdx.last()));
 	emit countChanged();
 	emit currentIndexChanged();
 	emit dataChanged(index(0, 0), index(count() - 1, 0));
@@ -59,6 +62,7 @@ void PagesListModel::insertHomePage(QQuickItem *page)
 	pageinfo->displayText = std::move(tr("Home"));
 	pageinfo->page = page;
 	m_pagesData.append(pageinfo);
+	m_pagesMesoIdx.append(-1);
 	#ifndef Q_OS_ANDROID
 	if (app_Pages_list_models.count() > 1)
 		qApp->removeEventFilter(app_Pages_list_models.constBegin().value());
@@ -78,15 +82,15 @@ void PagesListModel::openPage(QQuickItem *page, QString &&label, const std::func
 		}
 		++index;
 	}
-	QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, page), Q_ARG(bool, true));
-
 	beginInsertRows(QModelIndex{}, count(), count());
 	pageInfo *pageinfo{new pageInfo};
 	pageinfo->displayText = std::move(label);
 	pageinfo->cleanUpFunc = clean_up_func;
 	pageinfo->page = page;
 	m_pagesData.append(pageinfo);
+	m_pagesMesoIdx.append(appUserModel()->actualMesoModel()->currentWorkingMeso());
 	endInsertRows();
+	openQMLPage(m_pagesData.count() - 1);
 	emit countChanged();
 	setCurrentIndex(m_pagesData.count() - 1);
 }
@@ -113,6 +117,7 @@ void PagesListModel::closePage(const uint index)
 			m_pagesData.at(index)->cleanUpFunc();
 		delete m_pagesData.at(index);
 		m_pagesData.remove(index);
+		m_pagesMesoIdx.remove(index);
 		endRemoveRows();
 		emit countChanged();
 		if (m_pagesIndex >= index && m_pagesIndex > 0)
@@ -124,8 +129,7 @@ void PagesListModel::openMainMenuShortCut(const uint index, const bool change_or
 {
 	if (index > 0)
 	{
-		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_pagesData.at(index)->page),
-					Q_ARG(bool, true));
+		openQMLPage(index);
 		if (change_order)
 		{
 			setCurrentIndex(m_pagesData.count() - 1);
@@ -158,7 +162,7 @@ void PagesListModel::changeLabel(QQuickItem *page, QString &&new_label)
 QVariant PagesListModel::data(const QModelIndex &index, int role) const
 {
 	const int row{index.row()};
-	if(row >= 0 && row < m_pagesData.count())
+	if (row >= 0 && row < m_pagesData.count())
 	{
 		switch (role)
 		{
@@ -233,4 +237,13 @@ bool PagesListModel::eventFilter(QObject *obj, QEvent *event)
 		}
 	}
 	return QObject::eventFilter(obj, event);
+}
+
+void PagesListModel::openQMLPage(const uint index)
+{
+	QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_pagesData.at(index)->page),
+			Q_ARG(bool, true));
+	if (index > 0)
+		appUserModel()->actualMesoModel()->setCurrentMesosView(
+												appUserModel()->actualMesoModel()->isOwnMeso(m_pagesMesoIdx.at(index)));
 }

@@ -6,14 +6,14 @@
 #include "../thread_manager.h"
 #include "../dbusermodel.h"
 #include "../pageslistmodel.h"
-#include "../tpbool.h"
+#include "../tputils.h"
 
 #include <QTimer>
 #include <QWebSocket>
 
 #include <ranges>
 
-constexpr uint MESSAGE_OWNMESSAGE{MESSAGE_MEDIA + 1};
+constexpr uint8_t MESSAGE_OWNMESSAGE{MESSAGE_MEDIA + 1};
 
 using namespace Qt::Literals::StringLiterals;
 
@@ -24,20 +24,20 @@ enum ChatLoadedStatus {
 };
 
 enum ChatRoleNames {
-	idRole			=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_ID),
-	senderRole		=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_SENDER),
-	receiverRole	=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_RECEIVER),
-	sDateRole		=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_SDATE),
-	sTimeRole		=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_STIME),
-	rDateRole		=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_RDATE),
-	rTimeRole		=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_RTIME),
-	deletedRole		=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_DELETED),
-	sentRole		=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_SENT),
-	receivedRole	=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_RECEIVED),
-	readRole		=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_READ),
-	textRole		=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_TEXT),
-	mediaRole		=		Qt::UserRole + static_cast<uint8_t>(MESSAGE_MEDIA),
-	ownMessageRole	=		mediaRole + 1,
+	createRole(idRole,			MESSAGE_ID)
+	createRole(senderRole,		MESSAGE_SENDER)
+	createRole(receiverRole,	MESSAGE_RECEIVER)
+	createRole(sDateRole,		MESSAGE_SDATE)
+	createRole(sTimeRole,		MESSAGE_STIME)
+	createRole(rDateRole,		MESSAGE_RDATE)
+	createRole(rTimeRole,		MESSAGE_RTIME)
+	createRole(deletedRole,		MESSAGE_DELETED)
+	createRole(sentRole,		MESSAGE_SENT)
+	createRole(receivedRole,	MESSAGE_RECEIVED)
+	createRole(readRole,		MESSAGE_READ)
+	createRole(textRole,		MESSAGE_TEXT)
+	createRole(mediaRole,		MESSAGE_MEDIA)
+	ownMessageRole		=		mediaRole + 1,
 };
 
 struct ChatMessage {

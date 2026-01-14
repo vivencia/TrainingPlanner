@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QtGlobal>
-#include <QHash>
+#include <QMap>
 
 QT_FORWARD_DECLARE_CLASS(TPDatabaseTable)
 
@@ -21,7 +21,6 @@ public:
 	template<typename T> T *model() const { return qobject_cast<T*>(m_model); }
 	inline void setModel(QObject* model) { m_model = model; }
 
-	inline void setTPDatabaseTable(TPDatabaseTable *db) { m_db = db; }
 	virtual const QList<QStringList> &modelData() const = 0;
 	virtual QList<QStringList> &modelData() = 0;
 
@@ -32,8 +31,8 @@ public:
 		modelData()[row][field] = other_dbmi->modelData().at(row).at(field);
 	}
 
-	inline QHash<uint, QList<int>> &modifiedIndices() { return m_modifiedIndices; }
-	inline const QHash<uint, QList<int>> &modifiedIndices() const { return m_modifiedIndices; }
+	inline QMap<uint, QList<int>> &modifiedIndices() { return m_modifiedIndices; }
+	inline const QMap<uint, QList<int>> &modifiedIndices() const { return m_modifiedIndices; }
 	inline const QList<stRemovalInfo*> &removalInfo() const { return m_removalInfo; }
 
 	/**
@@ -64,9 +63,8 @@ public:
 	}
 
 protected:
-	QHash<uint, QList<int>> m_modifiedIndices;
+	QMap<uint, QList<int>> m_modifiedIndices;
 	QList<stRemovalInfo*> m_removalInfo;
-	TPDatabaseTable *m_db;
 	QStringList m_emptyList;
 	QObject *m_model;
 };

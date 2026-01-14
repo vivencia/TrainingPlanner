@@ -17,8 +17,8 @@ Column {
 	property bool bMultipleSelection: false
 	property bool canDoMultipleSelection: false
 
-	signal exerciseEntrySelected(int idx)
-	signal itemDoubleClicked()
+	signal exerciseEntrySelected(int idx);
+	signal itemDoubleClicked();
 
 	//When the list is shared among several objects, if a previous object requested multiple selection and the current
 	//does not, bMultipleSelection will be left however the previous caller might have left it. We must make sure
@@ -132,18 +132,29 @@ Column {
 			delegate: SwipeDelegate {
 				id: delegate
 				padding: 5
-				width: lstExercises.width
-				height: appSettings.itemExtraLargeHeight
+				width: selected ? lstExercises.width * 1.5 : lstExercises.width
+				height: selected ? appSettings.itemExtraLargeHeight * 1.5 : appSettings.itemExtraLargeHeight
 
 				contentItem: TPLabel {
 					text: String(index+1) + ":  " + mainName + "\n"+ subName
 					leftPadding: 5
 					topPadding: 5
+					singleLine: false
 				}
 
 				background: Rectangle {
 					color: selected ? appSettings.entrySelectedColor : "transparent"
-					opacity: 0.6
+					border.color: selected ? appSettings.fontColor : "transparent"
+					opacity: selected ? 1 : 0.6
+				}
+
+				Behavior on height {
+					SpringAnimation {
+						easing.type: Easing.InOutQuad
+						spring: 3
+						damping: 0.2
+						mass: 2
+					}
 				}
 
 				onClicked: itemClicked(index, true);

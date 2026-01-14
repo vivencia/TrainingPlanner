@@ -5,23 +5,25 @@
 #include <QAbstractListModel>
 #include <QQmlEngine>
 
-#define EXERCISES_COL_ID 0
-#define EXERCISES_COL_MESOID 1
-#define EXERCISES_COL_CALENDARDAY 2
-#define EXERCISES_COL_SPLITLETTER 3
-#define EXERCISES_COL_TRACKRESTTIMES 4
-#define EXERCISES_COL_AUTORESTTIMES 5
-#define EXERCISES_COL_EXERCISES 6
-#define EXERCISES_COL_NOTES 7
-#define EXERCISES_COL_COMPLETED 8
-#define EXERCISES_COL_SETTYPES 9
-#define EXERCISES_COL_RESTTIMES 10
-#define EXERCISES_COL_SUBSETS 11
-#define EXERCISES_COL_REPS 12
-#define EXERCISES_COL_WEIGHTS 13
-#define EXERCISES_TOTALCOLS EXERCISES_COL_WEIGHTS+1
+enum ExercisesSheetFields {
+	EXERCISES_FIELD_ID,
+	EXERCISES_FIELD_MESOID,
+	EXERCISES_FIELD_CALENDARDAY,
+	EXERCISES_FIELD_SPLITLETTER,
+	EXERCISES_FIELD_TRACKRESTTIMES,
+	EXERCISES_FIELD_AUTORESTTIMES,
+	EXERCISES_FIELD_EXERCISES,
+	EXERCISES_FIELD_NOTES,
+	EXERCISES_FIELD_COMPLETED,
+	EXERCISES_FIELD_SETTYPES,
+	EXERCISES_FIELD_RESTTIMES,
+	EXERCISES_FIELD_SUBSETS,
+	EXERCISES_FIELD_REPS,
+	EXERCISES_FIELD_WEIGHTS,
+	EXERCISES_TOTALCOLS
+};
 
-#define EXERCISE_IGNORE_NOTIFY_IDX 1000
+constexpr uint8_t EXERCISE_IGNORE_NOTIFY_IDX{255};
 
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(DBMesocyclesModel)
@@ -29,7 +31,6 @@ QT_FORWARD_DECLARE_CLASS(DBWorkoutsOrSplitsTable)
 QT_FORWARD_DECLARE_CLASS(DBMesoCalendarManager)
 QT_FORWARD_DECLARE_STRUCT(exerciseEntry)
 QT_FORWARD_DECLARE_STRUCT(stSet)
-
 QT_FORWARD_DECLARE_CLASS(QFile)
 
 enum {
@@ -110,12 +111,13 @@ public:
 	~DBExercisesModel() { clearExercises(); }
 	inline DBModelInterfaceExercises *dbModelInterface() const { return m_dbModelInterface; }
 	inline DBWorkoutsOrSplitsTable *database() const { return m_db; }
+	void plugDBModelInterfaceIntoDatabase();
 
 	void operator=(DBExercisesModel *other_model);
 	bool fromDatabase();
 	void clearExercises();
 
-	[[nodiscard]] inline const QString &id() const { return m_dbModelInterface->modelData().at(0).at(EXERCISES_COL_ID); }
+	[[nodiscard]] inline const QString &id() const { return m_dbModelInterface->modelData().at(0).at(EXERCISES_FIELD_ID); }
 	[[nodiscard]] const QString &mesoId() const;
 	[[nodiscard]] inline const uint mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; }
@@ -123,7 +125,6 @@ public:
 	inline void setCalendarDay(const uint new_calendarday) { m_calendarDay = new_calendarday; }
 	[[nodiscard]] inline const QChar &splitLetter() const { return m_splitLetter; }
 	void setSplitLetter(const QChar &new_splitletter);
-	[[nodiscard]] inline bool importModel() const { return m_importMode; }
 	inline void setImportMode(const bool import_mode) { m_importMode = import_mode; }
 
 	[[nodiscard]] inline const bool isWorkout() const { return m_calendarDay != -1; }
@@ -142,13 +143,13 @@ public:
 	Q_INVOKABLE const uint setsNumber(const uint exercise_number, const uint exercise_idx) const;
 
 	void newExerciseFromExercisesList();
-	[[maybe_unused]] Q_INVOKABLE uint addExercise(int exercise_number = -1, const bool emit_signal = true);
-	Q_INVOKABLE void delExercise(const uint exercise_number, const bool emit_signal = true);
+	[[maybe_unused]] Q_INVOKABLE uint addExercise(int exercise_number = -1, const bool from_qml = true);
+	Q_INVOKABLE void delExercise(const uint exercise_number, const bool from_qml = true);
 	Q_INVOKABLE void moveExercise(const uint from, const uint to);
-	[[maybe_unused]] Q_INVOKABLE uint addSubExercise(const uint exercise_number, const bool emit_signal = true);
-	Q_INVOKABLE void delSubExercise(const uint exercise_number, const uint exercise_idx, const bool emit_signal = true);
-	[[maybe_unused]] Q_INVOKABLE uint addSet(const uint exercise_number, const uint exercise_idx, const bool emit_signal = true);
-	Q_INVOKABLE void delSet(const uint exercise_number, const uint exercise_idx, const uint set_number, const bool emit_signal = true);
+	[[maybe_unused]] Q_INVOKABLE uint addSubExercise(const uint exercise_number, const bool from_qml = true);
+	Q_INVOKABLE void delSubExercise(const uint exercise_number, const uint exercise_idx, const bool from_qml = true);
+	[[maybe_unused]] Q_INVOKABLE uint addSet(const uint exercise_number, const uint exercise_idx, const bool from_qml = true);
+	Q_INVOKABLE void delSet(const uint exercise_number, const uint exercise_idx, const uint set_number, const bool from_qml = true);
 	void moveSet(const uint exercise_number, const uint exercise_idx, const uint from_set, const uint to_set);
 	Q_INVOKABLE bool exerciseIsComposite(const uint exercise_number) const;
 
@@ -161,7 +162,6 @@ public:
 
 	[[nodiscard]] Q_INVOKABLE QString exerciseName(const uint exercise_number, const uint exercise_idx) const;
 	Q_INVOKABLE void setExerciseName(const uint exercise_number, const uint exercise_idx, const QString &new_name);
-	void setExerciseName(const uint exercise_number, const uint exercise_idx, QString &&new_name);
 
 	[[nodiscard]] Q_INVOKABLE bool trackRestTime(const uint exercise_number) const;
 	Q_INVOKABLE void setTrackRestTime(const uint exercise_number, const bool track_resttime);
@@ -169,7 +169,7 @@ public:
 	Q_INVOKABLE void setAutoRestTime(const uint exercise_number, const bool auto_resttime);
 
 	[[nodiscard]] Q_INVOKABLE int setType(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
-	Q_INVOKABLE void setSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type, const bool emit_signal = true);
+	Q_INVOKABLE void setSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type, const bool from_qml = true);
 	void changeSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type);
 
 	[[nodiscard]] QTime suggestedRestTime(const QTime &prev_resttime, const uint set_type) const;

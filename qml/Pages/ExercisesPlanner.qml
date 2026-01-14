@@ -24,9 +24,9 @@ TPPage {
 
 	Keys.onPressed: (event) => {
 		if (event.key === mainwindow.backKey) {
-			if (splitView.currentIndex !== 0) {
+			if (swipeView.currentIndex !== 0) {
 				event.accepted = true;
-				splitView.decrementCurrentIndex();
+				swipeView.decrementCurrentIndex();
 			}
 		}
 	}
@@ -43,39 +43,37 @@ TPPage {
 				margins: 5
 			}
 
-			TPLabel {
-				id: lblMain
-				text: currentSplitPage && currentSplitPage.exercisesModel && qsTr("Training Division ") + currentSplitPage.exercisesModel.splitLetter
-				font: AppGlobals.largeFont
-				width: parent.width
-				horizontalAlignment: Text.AlignHCenter
+			Row {
 				Layout.fillWidth: true
+				spacing: 2
+				padding: 0
+
+				TPButton {
+					imageSource: "prev"
+					enabled: swipeView.currentIndex > 0
+					width: appSettings.itemDefaultHeight
+					height: width
+
+					onClicked: swipeView.decrementCurrentIndex();
+				}
+
+				TPLabel {
+					id: lblMain
+					text: currentSplitPage && currentSplitPage.exercisesModel && qsTr("Training Division ") + currentSplitPage.exercisesModel.splitLetter
+					font: AppGlobals.largeFont
+					width: parent.width - appSettings.itemDefaultHeight * 2 - 5
+					horizontalAlignment: Text.AlignHCenter
+				}
 
 				TPButton {
 					imageSource: "next"
-					enabled: splitView.count > 0 && splitView.currentIndex < splitView.count - 1
+					enabled: swipeView.count > 0 && swipeView.currentIndex < swipeView.count - 1
 					width: appSettings.itemDefaultHeight
 					height: width
-					anchors {
-						right: parent.right
-						verticalCenter: parent.verticalCenter
-					}
 
-					onClicked: splitView.incrementCurrentIndex();
+					onClicked: swipeView.incrementCurrentIndex();
 				}
-				TPButton {
-					imageSource: "prev"
-					enabled: splitView.currentIndex > 0
-					width: appSettings.itemDefaultHeight
-					height: width
-					anchors {
-						left: parent.left
-						verticalCenter: parent.verticalCenter
-					}
-
-					onClicked: splitView.decrementCurrentIndex();
-				}
-			}
+			} //Row
 
 			TPLabel {
 				id: lblGroups
@@ -83,10 +81,8 @@ TPPage {
 				Layout.fillWidth: true
 			}
 
-			TPTextInput {
-				id: txtGroups
-				text: currentSplitPage && currentSplitPage.exercisesModel && currentSplitPage.exercisesModel.muscularGroup
-				readOnly: true
+			TPMuscularGroupsList {
+				id: cboGroups
 				Layout.fillWidth: true
 			}
 
@@ -97,7 +93,7 @@ TPPage {
 				spacing: 0
 
 				TPLabel {
-					text: qsTr("Go to exercise #: ")
+					text: qsTr("Go to exercise: ")
 					width: parent.width * 0.4
 				}
 
@@ -131,8 +127,6 @@ TPPage {
 							if (cboGoToExercise.current_exercise !== exercise_number)
 								cboModel.get(cboGoToExercise.current_exercise).enabled = true;
 							cboGoToExercise.current_exercise = exercise_number;
-							if (exercise_number === currentSplitPage.exercisesModel.exerciseCount - 1)
-								exercise_number = -1;
 							cboGoToExercise.currentIndex = exercise_number;
 						}
 					}
@@ -150,15 +144,11 @@ TPPage {
 							cboGoToExercise.manageComboItems(exercise_number);
 						}
 
-						function onExerciseModified(exercise_number: int, exercise_idx: int, set_number: int, field: int): void {
-							switch (field) {
-								case 100: //EXERCISE_ADD_NOTIFY_IDX
-									cboGoToExercise.addExerciseToCombo(exercise_number);
-								break;
-								case 101: //EXERCISE_DEL_NOTIFY_IDX
-									cboGoToExercise.delExerciseFromCombo(exercise_number);
-								break;
-							}
+						function onExerciseCountChanged(): void {
+							if (currentSplitPage.exercisesModel.exerciseCount > cboModel.count)
+								cboGoToExercise.addExerciseToCombo(currentSplitPage.exercisesModel.exerciseCount - 1);
+							else if (currentSplitPage.exercisesModel.exerciseCount < cboModel.count)
+								cboGoToExercise.delExerciseFromCombo(currentSplitPage.exercisesModel.workingExercise);
 						}
 					}
 				}
@@ -167,13 +157,15 @@ TPPage {
 	}
 
 	SwipeView {
-		id: splitView
+		id: swipeView
+		objectName: "swipeView"
 		interactive: !exercisesPane.visible
 		anchors.fill: parent
 
 		onCurrentIndexChanged: {
 			currentSplitPage = splitManager.setCurrentPage(currentIndex);
 			cboModel.clear();
+			cboGroups.fillMuscularGroupsModel(currentSplitPage.exercisesModel.muscularGroup);
 			cboGoToExercise.populateComboModel();
 			if (!navButtons)
 				createNavButtons();
@@ -182,13 +174,13 @@ TPPage {
 
 	PageIndicator {
 		id: indicator
-		count: splitView.count
-		currentIndex: splitView.currentIndex
+		count: swipeView.count
+		currentIndex: swipeView.currentIndex
 		visible: !exercisesPane.visible
 		height: 20
 
 		delegate: Label {
-			text: splitView.itemAt(index).exercisesModel.splitLetter
+			text: swipeView.itemAt(index).exercisesModel.splitLetter
 			color: appSettings.fontColor
 			font.bold: true
 			fontSizeMode: Text.Fit
@@ -207,7 +199,7 @@ TPPage {
 
 			MouseArea {
 				anchors.fill: parent
-				onClicked: splitView.setCurrentIndex(index);
+				onClicked: swipeView.setCurrentIndex(index);
 			}
 
 			Behavior on opacity {
@@ -342,10 +334,6 @@ TPPage {
 			currentSplitPage.positionViewAtBeginning();
 		else
 			currentSplitPage.positionViewAtEnd();
-	}
-
-	function insertSplitPage(page: Item, idx: int): void {
-		splitView.insertItem(idx, page);
 	}
 
 	readonly property bool bExportEnabled: splitManager.haveExercises

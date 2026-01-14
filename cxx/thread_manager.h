@@ -26,15 +26,15 @@ public:
 		ClearTable,
 	};
 
-	explicit inline ThreadManager(QObject *parent = nullptr) : QObject{parent} { app_thread_mngr = this; }
+	explicit ThreadManager(QObject *parent = nullptr);
 	inline ThreadManager(const ThreadManager &other) = delete;
 	inline ThreadManager &operator()(const ThreadManager &other) = delete;
 	inline ~ThreadManager() {}
 
-	void runAction(TPDatabaseTable *worker, StandardOps operation);
+	void runAction(TPDatabaseTable *worker, StandardOps operation, void *extra_param = nullptr);
 
 signals:
-	void newThreadedOperation(const int unique_id, ThreadManager::StandardOps operation);
+	void newThreadedOperation(const int unique_id, ThreadManager::StandardOps operation, void *extra_param);
 
 public slots:
 	void aboutToExit();

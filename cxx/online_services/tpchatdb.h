@@ -18,7 +18,7 @@ public:
 	QString dbFilePath() const override final;
 	QString dbFileName(const bool fullpath = true) const override final;
 	void updateTable() override final {}
-	bool loadChat();
+	bool loadChat(void *);
 	std::pair<QVariant,QVariant> getNumberOfUnreadMessages();
 
 signals:

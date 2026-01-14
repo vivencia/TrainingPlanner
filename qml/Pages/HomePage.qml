@@ -14,8 +14,12 @@ TPPage {
 
 	property bool loadOwnMesos: false
 	property bool loadClientMesos: false
+	property bool modelsLoaded: false
 	property date minimumStartDate
 	property MesocyclesModel mesoModel: null
+
+
+	signal mesosViewChanged(bool own_mesos);
 
 	header: TPToolBar {
 		bottomPadding: 20
@@ -53,14 +57,18 @@ TPPage {
 	}
 
 	SwipeView {
-		id: mesoView
+		id: mesosView
 		currentIndex: userModel.mainUserConfigured ? (userModel.mainUserIsCoach ? 0 : 1) : -1
 		interactive: userModel.mainUserIsCoach && userModel.mainUserIsClient
 		anchors.fill: parent
 
 		onCurrentIndexChanged: {
-			homePage.colorLight = currentIndex === 0 ? appSettings.primaryDarkColor : appSettings.primaryColor
-			homePage.colorDark = currentIndex === 0 ? appSettings.primaryColor : appSettings.primaryLightColor
+			if (modelsLoaded && currentIndex >= 0) {
+				const own_meso = currentIndex === 1;
+				homePage.colorLight = own_meso ? appSettings.primaryColor : appSettings.primaryDarkColor
+				homePage.colorDark = own_meso ? appSettings.primaryLightColor : appSettings.primaryColor
+				mesosViewChanged(own_meso);
+			}
 		}
 
 		Loader {
@@ -86,8 +94,8 @@ TPPage {
 
 	PageIndicator {
 		id: indicator
-		count: mesoView.count
-		currentIndex: mesoView.currentIndex
+		count: mesosView.count
+		currentIndex: mesosView.currentIndex
 		visible: userModel.mainUserConfigured && (userModel.mainUserIsCoach && userModel.mainUserIsClient)
 
 		delegate: Rectangle {
@@ -107,7 +115,17 @@ TPPage {
 		anchors {
 			bottom: parent.bottom
 			bottomMargin: ownMesosListLoader.height * (Qt.platform.os !== "android" ? 0.22 : 0.28)
-			horizontalCenter: mesoView.horizontalCenter
+			horizontalCenter: mesosView.horizontalCenter
 		}
+	}
+
+	function mesosViewIndex(): int {
+		return mesosView.currentIndex;
+	}
+
+	function setMesosViewIndex(index: int) {
+		mesosView.currentIndex = -1;
+		modelsLoaded = true;
+		mesosView.currentIndex = index;
 	}
 } //Page

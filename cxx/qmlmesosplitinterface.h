@@ -61,7 +61,7 @@ signals:
 private:
 	DBMesocyclesModel *m_mesoModel;
 	QQmlComponent* m_plannerComponent;
-	QQuickItem* m_plannerPage, *m_currentSplitPage;
+	QQuickItem* m_plannerPage, *m_currentSplitPage, *m_swipeView;
 	QVariantMap m_plannerProperties;
 
 	QQmlComponent* m_splitComponent;
@@ -80,7 +80,7 @@ private:
 	void createMesoSplitPages_part2();
 	void setSplitPageProperties(DBSplitModel *split_model);
 	void syncSplitPagesWithMesoSplit();
-	void addPage(const QChar &split_letter, const uint index);
+	void addPage(const QChar &split_letter);
 	void removePage(const QChar &split_letter);
 	QChar findSwappableModel() const;
 };

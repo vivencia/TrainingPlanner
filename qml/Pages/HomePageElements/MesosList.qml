@@ -87,7 +87,7 @@ Item {
 						leftMargin: 5
 					}
 
-					onClicked: mesoModel.getMesocyclePage(mesoIdx);
+					onClicked: mesoModel.getMesocyclePage(mesoIdx, false);
 				}
 
 				TPButton {
@@ -114,7 +114,7 @@ Item {
 
 				TPButton {
 					id: btnMesoPlan
-					text: qsTr("Exercises Table")
+					text: qsTr("Exercises Sheet")
 					imageSource: "meso-splitplanner.png"
 					imageSize: appSettings.itemDefaultHeight
 					rounded: false

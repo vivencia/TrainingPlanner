@@ -11,8 +11,8 @@ TPBackRec {
 	radius: rounded ? height : 8
 	opacity: checked ? 0.9 : 1
 	color: backgroundColor
-	height: (autoSize ? buttonText.contentHeight : appSettings.itemDefaultHeight) +
-							(textUnderIcon ? imageSize : 0) + (text.length > 0 ? buttonText.lineCount * 10 : 0)
+	height: autoSize ? buttonText.contentHeight : (text.length > 0 ? appSettings.itemDefaultHeight * buttonText.lineCount : 0) +
+							(textUnderIcon ? imageSize : 0)
 	width: autoSize ? preferredWidth : undefined
 	useGradient: enabled && button.text.length !== 0
 
@@ -135,7 +135,7 @@ TPBackRec {
 		wrapMode: multiline ? Text.WordWrap : Text.NoWrap
 		font: AppGlobals.regularFont
 		minimumPixelSize: appSettings.smallFontSize * 0.8
-		maximumLineCount: 5
+		maximumLineCount: multiline ? 5 : 1
 		fontSizeMode: autoSize ? Text.FixedSize : Text.Fit
 		topInset: 0
 		bottomInset: 0
@@ -211,8 +211,11 @@ TPBackRec {
 			buttonText.anchors.right = button.right;
 		}
 		else {
-			if (imageSource.length > 0)
+			if (imageSource.length > 0) {
+				buttonText.width = button.width - imageSize - 5;
+				buttonText.height = button.height - 5;
 				buttonText.anchors.horizontalCenter = button.horizontalCenter;
+			}
 			else
 				buttonText.anchors.fill = button;
 			buttonText.anchors.verticalCenter = button.verticalCenter;

@@ -20,12 +20,12 @@ FocusScope {
 	property bool showButtons: true
 	property bool clearInput: true
 	property bool editable: true
-	property list<string> labelText: [ qsTr("Weight") + appSettings.weightUnit + ':', qsTr("Reps:"), qsTr("Rest time:"), qsTr("SubSets:") ]
 	property color borderColor: appSettings.fontColor
 	property color labelColor: appSettings.fontColor
 	property color inputColor: appSettings.fontColor
 	property color backColor: appSettings.paneBackgroundColor
 
+	readonly property list<string> labelText: [ qsTr("Weight") + appSettings.weightUnit + ':', qsTr("Reps:"), qsTr("Rest time:"), qsTr("SubSets:") ]
 	readonly property list<QtObject> validatorType: [val_weigth, val_rep, val_time, val_set]
 	readonly property list<int> maxLen: [5,4,5,1]
 	property string origText
@@ -111,7 +111,7 @@ FocusScope {
 		}
 
 		TPButton {
-			id: btnDecreaseMinutes
+			id: btnDecrease
 			imageSource: "minus"
 			hasDropShadow: false
 			width: appSettings.itemSmallHeight
@@ -157,7 +157,7 @@ FocusScope {
 			}
 
 			anchors {
-				left: showButtons ? btnDecreaseMinutes.right : showLabel ? lblMain.right : parent.left
+				left: showButtons ? btnDecrease.right : showLabel ? lblMain.right : parent.left
 				leftMargin: 1
 				rightMargin: 1
 				verticalCenter: parent.verticalCenter
@@ -191,7 +191,7 @@ FocusScope {
 		} //TextInput
 
 		TPButton {
-			id: btnIncreaseSeconds
+			id: btnIncrease
 			imageSource: "plus"
 			hasDropShadow: false
 			width: appSettings.itemSmallHeight
@@ -223,7 +223,7 @@ FocusScope {
 			enabled: editable
 
 			anchors {
-				left: btnIncreaseSeconds.right
+				left: btnIncrease.right
 				leftMargin: 1
 				rightMargin: 1
 				verticalCenter: parent.verticalCenter

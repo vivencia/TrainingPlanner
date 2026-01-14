@@ -10,15 +10,14 @@ Rectangle {
 
 	property Page parentPage
 	property var dragWidget
-	property bool emitMoveSignal: false
-	property string objName
 
-	signal clicked()
-	property bool bVisible: false
+	signal clicked();
+	signal controlMoved(int x, int y);
+	property bool _visible: false
 
 	Component.onCompleted: {
-		parentPage.pageDeActivated.connect(function() { bVisible = control.visible; control.visible = false; });
-		parentPage.pageActivated.connect(function() { if (bVisible) control.visible = true; });
+		parentPage.pageDeActivated.connect(function() { _visible = control.visible; control.visible = false; });
+		parentPage.pageActivated.connect(function() { if (_visible) control.visible = true; });
 	}
 
 	SequentialAnimation {
@@ -49,9 +48,7 @@ Rectangle {
 	TPMouseArea {
 		movingWidget: dragWidget
 		movableWidget: control
-		onMouseClicked: (hold_clicked) => {
-			if (!hold_clicked)
-				anim.start();
-		}
+		onMouseClicked: anim.start();
+		onMoved: (x, y) => controlMoved(x, y);
 	}
 }

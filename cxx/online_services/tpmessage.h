@@ -3,15 +3,17 @@
 #include <QObject>
 #include <QQmlEngine>
 
-constexpr int MESSAGE_COL_ID			{0};
-constexpr int MESSAGE_COL_TEXT			{1};
-constexpr int MESSAGE_COL_ICON			{2};
-constexpr int MESSAGE_COL_DATE			{3};
-constexpr int MESSAGE_COL_TIME			{4};
-constexpr int MESSAGE_COL_EXTRA_INFO	{5};
-constexpr int MESSAGE_COL_EXTRA_ICON	{6};
-constexpr int MESSAGE_COL_ACTIONS		{7};
-constexpr int MESSAGE_COL_STICKY		{8};
+enum TPMessageFields {
+	TPMESSAGE_FIELD_ID,
+	TPMESSAGE_FIELD_TEXT,
+	TPMESSAGE_FIELD_ICON,
+	TPMESSAGE_FIELD_DATE,
+	TPMESSAGE_FIELD_TIME,
+	TPMESSAGE_FIELD_EXTRA_INFO,
+	TPMESSAGE_FIELD_EXTRA_ICON,
+	TPMESSAGE_FIELD_ACTIONS,
+	TPMESSAGE_FIELD_STICKY,
+};
 
 QT_FORWARD_DECLARE_CLASS(TPMessagesManager)
 
@@ -23,7 +25,7 @@ QML_ELEMENT
 
 public:
 	inline explicit TPMessage(TPMessagesManager *parent) : QObject{nullptr}, m_parent{parent}, m_id{-1},
-									m_plugged{false}, m_autodelete{true}, m_sticky{false} {}
+																m_plugged{false}, m_autodelete{true}, m_sticky{false} {}
 	inline TPMessage(QString &&displayText, QString &&iconSource, TPMessagesManager *parent)
 			: QObject{nullptr}, m_parent{parent}, m_id{-1}, m_plugged{false}, m_autodelete{true}, m_sticky{false}
 	{
@@ -32,24 +34,24 @@ public:
 	}
 
 	inline qsizetype id() const { return m_id; }
-	inline void setId(const qsizetype id) { m_id = id; emit dataChanged(MESSAGE_COL_ID); }
+	inline void setId(const qsizetype id) { m_id = id; emit dataChanged(TPMESSAGE_FIELD_ID); }
 
 	inline const QString &_displayText() const { return m_text; }
 	//32 is the space character. All the separators are 31 or less. Good output is 33 or greater
 	inline QString displayText() const { return static_cast<int>(m_text.last(1).at(0).toLatin1()) > 32 ? m_text : m_text.chopped(1); }
-	inline void setDisplayText(QString &&new_text) { m_text = std::move(new_text); emit dataChanged(MESSAGE_COL_TEXT); }
+	inline void setDisplayText(QString &&new_text) { m_text = std::move(new_text); emit dataChanged(TPMESSAGE_FIELD_TEXT); }
 
 	inline const QString &_iconSource() const { return m_icon; }
 	inline QString iconSource() const { return m_icon; }
-	inline void setIconSource(QString &&new_icon) { m_icon = std::move(new_icon); emit dataChanged(MESSAGE_COL_ICON); }
+	inline void setIconSource(QString &&new_icon) { m_icon = std::move(new_icon); emit dataChanged(TPMESSAGE_FIELD_ICON); }
 
 	QString date() const;
 	QString time() const;
 
 	inline const QString &extraInfoLabel() const { return m_extraInfoLabel; }
-	inline void setExtraInfoLabel(const QString &new_label) { m_extraInfoLabel = new_label; emit dataChanged(MESSAGE_COL_EXTRA_INFO); }
+	inline void setExtraInfoLabel(const QString &new_label) { m_extraInfoLabel = new_label; emit dataChanged(TPMESSAGE_FIELD_EXTRA_INFO); }
 	inline const QString &extraInfoImage() const { return m_extraInfoImage; }
-	inline void setExtraInfoImage(const QString &new_image) { m_extraInfoImage = new_image; emit dataChanged(MESSAGE_COL_EXTRA_ICON); }
+	inline void setExtraInfoImage(const QString &new_image) { m_extraInfoImage = new_image; emit dataChanged(TPMESSAGE_FIELD_EXTRA_ICON); }
 
 	inline const bool plugged() const { return m_plugged; }
 	void plug();
@@ -58,7 +60,7 @@ public:
 	inline void setAutoDelete(const bool autodelete) { m_autodelete = autodelete; }
 
 	inline const bool sticky() const { return m_sticky; }
-	inline void setSticky(const bool sticky) { m_sticky = sticky; emit dataChanged(MESSAGE_COL_STICKY); }
+	inline void setSticky(const bool sticky) { m_sticky = sticky; emit dataChanged(TPMESSAGE_FIELD_STICKY); }
 
 	inline const bool hasActions() const { return !m_actions.isEmpty(); }
 

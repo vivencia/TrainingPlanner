@@ -541,7 +541,7 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 	connect(m_workoutModel, &DBExercisesModel::exerciseModified, this, [this]
 					(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint field)
 	{
-		if (field == EXERCISES_COL_COMPLETED)
+		if (field == EXERCISES_FIELD_COMPLETED)
 		{
 			const bool all_exercises_completed{m_workoutModel->allSetsCompleted()};
 			if (all_exercises_completed != dayIsFinished())

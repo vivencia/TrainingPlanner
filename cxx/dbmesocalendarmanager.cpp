@@ -25,47 +25,40 @@ inline DBModelInterfaceExercises *DBMesoCalendarManager::getDBModelInterfaceExer
 	return model->dbModelInterface();
 }
 
-inline DBModelInterfaceCalendar *DBMesoCalendarManager::getDBModelInterfaceCalendar(const uint meso_idx) const
+uint DBMesoCalendarManager::populateCalendarDays(const uint meso_idx)
 {
-	DBCalendarModel *model{m_calendars.value(meso_idx)};
-	return model->dbModelInterface();
-	return nullptr;
-}
-
-uint DBMesoCalendarManager::populateCalendarDays(const uint meso_idx, const QDate &start_date, const QDate &end_date, const QString &split)
-{
+	const QString &split{m_mesoModel->split(meso_idx)};
 	QString::const_iterator splitletter{split.constBegin()};
-	const qsizetype n_days{m_workouts.value(meso_idx).count()};
-	DBModelInterfaceCalendar *dbmic{getDBModelInterfaceCalendar(meso_idx)};
-	QDate day_date{start_date};
+	QDate day_date{m_mesoModel->startDate(meso_idx)};
+	const qsizetype n_days{day_date.daysTo(m_mesoModel->endDate(meso_idx))};
 	const QString &meso_id{m_mesoModel->id(meso_idx)};
-	const QString &str_id{"-1"_L1};
+	uint workout_number{1};
 	for (uint i{0}; i < n_days; ++i)
 	{
-		day_date = std::move(start_date.addDays(i));
-		QStringList day_info{3};
-		day_info[CALENDAR_DATABASE_ID] = str_id;
+		QStringList day_info{CALENDAR_DATABASE_TOTAL_FIELDS};
 		day_info[CALENDAR_DATABASE_MESOID] = meso_id;
 		day_info[CALENDAR_DATABASE_DATE] = std::move(appUtils()->formatDate(day_date, TPUtils::DF_DATABASE));
-		day_info[CALENDAR_DATABASE_DATA] = std::move(appUtils()->string_strings({meso_id, str_id, day_info.at(CALENDAR_DATABASE_DATE),
-			QString::number(i+1), *splitletter, QString{}, QString{}, QString{}, QString{}, "0"_L1}, record_separator));
+		day_info[CALENDAR_DATABASE_DATA] = std::move(appUtils()->string_strings({meso_id, QString{}, day_info.at(CALENDAR_DATABASE_DATE),
+			*splitletter != 'R' ? QString::number(workout_number++) : QString{}, *splitletter, QString{}, QString{},
+			QString{}, QString{}, "0"_L1}, record_separator));
 		if (++splitletter == split.constEnd())
 			splitletter = split.constBegin();
-		dbmic->modelData().append(std::move(day_info));
+		m_workingDBmic->modelData().append(std::move(day_info));
+		m_workingDBmic->setModified(i, 0);
+		day_date = std::move(day_date.addDays(1));
 	}
-	return appUtils()->calculateNumberOfMonths(start_date, end_date);
+	return appUtils()->calculateNumberOfMonths(m_mesoModel->startDate(meso_idx), day_date);
 }
 
 QString DBMesoCalendarManager::dayInfo(const uint meso_idx, const uint calendar_day, const uint field) const
 {
-	DBModelInterfaceCalendar *dbmic{getDBModelInterfaceCalendar(meso_idx)};
-	return appUtils()->getCompositeValue(field, dbmic->modelData().at(calendar_day).at(CALENDAR_DATABASE_DATA), record_separator);
+	return m_workingDBmic ? appUtils()->getCompositeValue(
+		field, m_workingDBmic->modelData().at(calendar_day).at(CALENDAR_DATABASE_DATA), record_separator) : QString{};
 }
 
 void DBMesoCalendarManager::setDayInfo(const uint meso_idx, const uint calendar_day, const uint field, const QString &new_value, const bool emit_signal)
 {
-	DBModelInterfaceCalendar *dbmic{getDBModelInterfaceCalendar(meso_idx)};
-	appUtils()->setCompositeValue(field, new_value, dbmic->modelData()[calendar_day][CALENDAR_DATABASE_DATA], record_separator);
+	appUtils()->setCompositeValue(field, new_value, m_workingDBmic->modelData()[calendar_day][CALENDAR_DATABASE_DATA], record_separator);
 	if (emit_signal)
 		emit calendarChanged(meso_idx, field, calendar_day);
 }
@@ -74,11 +67,10 @@ void DBMesoCalendarManager::removeCalendarForMeso(const uint meso_idx, const boo
 {
 	if (m_mesoModel->_id(meso_idx) >= 0)
 	{
-		DBModelInterfaceCalendar *dbmic{getDBModelInterfaceCalendar(meso_idx)};
-		dbmic->setRemovalInfo(0, QList<uint>{1, CALENDAR_DATABASE_MESOID});
-		m_calendarDB->setDBModelInterface(dbmic);
+		m_workingDBmic->setRemovalInfo(0, QList<uint>{1, CALENDAR_DATABASE_MESOID});
+		m_calendarDB->setDBModelInterface(m_workingDBmic);
 		appThreadManager()->runAction(m_calendarDB, ThreadManager::DeleteRecords);
-		dbmic->modelData().remove(meso_idx);
+		m_workingDBmic->modelData().remove(meso_idx);
 		if (remove_workouts)
 		{
 			//Get the meso_id from the first workout. DeleteRecord will remove all the records based on it
@@ -106,29 +98,29 @@ void DBMesoCalendarManager::removeCalendarForMeso(const uint meso_idx, const boo
 	}
 }
 
-void DBMesoCalendarManager::getCalendarForMeso(const uint meso_idx, const bool create_calendar)
+void DBMesoCalendarManager::getCalendarForMeso(const uint meso_idx)
 {
-	if (!create_calendar)
-		m_calendars.insert(meso_idx, new DBCalendarModel{this, m_calendarDB, meso_idx});
-	else
+	DBCalendarModel *model{m_calendars.value(meso_idx)};
+	if (!model)
 	{
-		const QDate &startDate{m_mesoModel->startDate(meso_idx)};
-		const uint n_months{populateCalendarDays(meso_idx, startDate, m_mesoModel->endDate(meso_idx),
-																							m_mesoModel->split(meso_idx))};
-		DBCalendarModel *model{m_calendars.value(meso_idx)};
-		model->setNMonths(n_months);
-		DBModelInterfaceCalendar *dbmic{getDBModelInterfaceCalendar(meso_idx)};
-		for (uint i{0}; i < model->count(); ++i)
-			dbmic->setModified(i, 0);
-		m_calendarDB->setDBModelInterface(dbmic);
-		appThreadManager()->runAction(m_calendarDB, ThreadManager::InsertRecords);
+		model = new DBCalendarModel{this, m_calendarDB, meso_idx};
+		connect(model, &DBCalendarModel::calendarLoaded, this, [this, meso_idx] (const bool success) {
+			getCalendarForMeso(meso_idx);
+		}, Qt::SingleShotConnection);
+		m_calendars.insert(meso_idx, model);
+		return;
 	}
+	setWorkingCalendar(meso_idx);
+	const uint n_months{populateCalendarDays(meso_idx)};
+	model->setNMonths(n_months);
+	m_calendarDB->setDBModelInterface(m_workingDBmic);
+	appThreadManager()->runAction(m_calendarDB, ThreadManager::InsertRecords);
 }
 
 void DBMesoCalendarManager::remakeMesoCalendar(const uint meso_idx)
 {
 	removeCalendarForMeso(meso_idx, false);
-	getCalendarForMeso(meso_idx, true);
+	getCalendarForMeso(meso_idx);
 }
 
 void DBMesoCalendarManager::alterCalendarSplits(const uint meso_idx, const QDate &start_date, const QDate &end_date, const QChar &new_splitletter)
@@ -316,4 +308,11 @@ bool DBMesoCalendarManager::workoutCompleted(const uint meso_idx, const uint cal
 void DBMesoCalendarManager::setWorkoutCompleted(const uint meso_idx, const uint calendar_day, const bool completed)
 {
 	setDayInfo(meso_idx, calendar_day, MESOCALENDAR_COL_WORKOUT_COMPLETED, completed ? "1"_L1 : "0"_L1);
+}
+
+void DBMesoCalendarManager::setWorkingCalendar(const uint meso_idx)
+{
+	m_workingCalendar = m_calendars.value(meso_idx);
+	if (m_workingCalendar)
+		m_workingDBmic = m_workingCalendar->dbModelInterface();
 }

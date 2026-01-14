@@ -5,9 +5,9 @@
 constexpr int n_fields{CALENDAR_DATABASE_TOTAL_FIELDS};
 constexpr QLatin1StringView table_name{ "mesocycles_calendar_table"_L1 };
 constexpr QLatin1StringView field_names[n_fields][2] {
-	{"id"_L1		"INTEGER PRIMARY KEY AUTOINCREMENT"_L1},
+	{"id"_L1,		"INTEGER PRIMARY KEY AUTOINCREMENT"_L1},
 	{"meso_id"_L1,	"INTEGER"_L1},
-	{"date"_L1,		"TEXT"_L1},
+	{"date"_L1,		"INTEGER"_L1},
 	{"data"_L1,		"TEXT"_L1},
 };
 
@@ -21,7 +21,9 @@ DBMesoCalendarTable::DBMesoCalendarTable()
 	#ifndef QT_NO_QDEBUG
 	setObjectName("MesoCalendarTable");
 	#endif
-	setReadAllRecordsFunc([this] () { return getMesoCalendar(); });
+	setReadAllRecordsFunc<DBModelInterfaceCalendar>([this] (void *param) {
+		return getMesoCalendar(static_cast<DBModelInterfaceCalendar*>(param));
+	});
 }
 
 QString DBMesoCalendarTable::dbFileName(const bool fullpath) const
@@ -30,12 +32,11 @@ QString DBMesoCalendarTable::dbFileName(const bool fullpath) const
 	return fullpath ? dbFilePath() + filename : filename;
 }
 
-bool DBMesoCalendarTable::getMesoCalendar()
+bool DBMesoCalendarTable::getMesoCalendar(DBModelInterfaceCalendar *dbmi)
 {
 	bool success{false};
-	auto model{m_dbModelInterface->model<DBCalendarModel>()};
-	if (execReadOnlyQuery("SELECT * FROM %1 WHERE %2=%3;"_L1.arg(table_name,
-						field_names[CALENDAR_DATABASE_MESOID][0], model->mesoId())))
+	auto model{dbmi->model<DBCalendarModel>()};
+	if (execReadOnlyQuery("SELECT * FROM %1 WHERE %2=%3;"_L1.arg(table_name, field_names[CALENDAR_DATABASE_MESOID][0], model->mesoId())))
 	{
 		if (m_workingQuery.first())
 		{
@@ -46,7 +47,7 @@ bool DBMesoCalendarTable::getMesoCalendar()
 				calendar_day[CALENDAR_DATABASE_MESOID] = model->mesoId();
 				calendar_day[CALENDAR_DATABASE_DATE] = std::move(m_workingQuery.value(CALENDAR_DATABASE_DATE).toString());
 				calendar_day[CALENDAR_DATABASE_DATA] = std::move(m_workingQuery.value(CALENDAR_DATABASE_DATA).toString());
-				m_dbModelInterface->modelData().append(std::move(calendar_day));
+				dbmi->modelData().append(std::move(calendar_day));
 			} while (m_workingQuery.next());
 			success = true;
 		}

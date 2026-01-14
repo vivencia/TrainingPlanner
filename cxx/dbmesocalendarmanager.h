@@ -3,17 +3,20 @@
 #include <QHash>
 #include <QObject>
 
-#define MESOCALENDAR_COL_MESOID 0
-#define MESOCALENDAR_COL_WORKOUTID 1
-#define MESOCALENDAR_COL_DATE 2
-#define MESOCALENDAR_COL_WORKOUTNUMBER 3
-#define MESOCALENDAR_COL_SPLITLETTER 4
-#define MESOCALENDAR_COL_TIMEIN 5
-#define MESOCALENDAR_COL_TIMEOUT 6
-#define MESOCALENDAR_COL_LOCATION 7
-#define MESOCALENDAR_COL_NOTES 8
-#define MESOCALENDAR_COL_WORKOUT_COMPLETED 9
-#define MESOCALENDAR_TOTAL_COLS MESOCALENDAR_COL_WORKOUT_COMPLETED + 1
+enum MesoCalendarFields
+{
+	MESOCALENDAR_COL_MESOID,
+	MESOCALENDAR_COL_WORKOUTID,
+	MESOCALENDAR_COL_DATE,
+	MESOCALENDAR_COL_WORKOUTNUMBER,
+	MESOCALENDAR_COL_SPLITLETTER,
+	MESOCALENDAR_COL_TIMEIN,
+	MESOCALENDAR_COL_TIMEOUT,
+	MESOCALENDAR_COL_LOCATION,
+	MESOCALENDAR_COL_NOTES,
+	MESOCALENDAR_COL_WORKOUT_COMPLETED,
+	MESOCALENDAR_TOTAL_COLS
+};
 
 QT_FORWARD_DECLARE_CLASS(DBMesocyclesModel)
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
@@ -33,7 +36,7 @@ public:
 
 	inline DBMesocyclesModel *mesoModel() const { return m_mesoModel; }
 	void removeCalendarForMeso(const uint meso_idx, const bool remove_workouts);
-	void getCalendarForMeso(const uint meso_idx, const bool create_calendar = false);
+	void getCalendarForMeso(const uint meso_idx);
 	void remakeMesoCalendar(const uint meso_idx);
 	void alterCalendarSplits(const uint meso_idx, const QDate &start_date, const QDate &end_date,
 																							const QChar &new_splitletter);
@@ -79,10 +82,9 @@ public:
 	[[nodiscard]] bool workoutCompleted(const uint meso_idx, const uint calendar_day) const;
 	void setWorkoutCompleted(const uint meso_idx, const uint calendar_day, const bool completed);
 
-	Q_INVOKABLE inline DBCalendarModel *calendar(const uint meso_idx) const
-	{
-		return m_calendars.value(meso_idx);
-	}
+	inline DBCalendarModel *calendar(const uint meso_idx) const { return m_calendars.value(meso_idx); }
+	inline DBCalendarModel *workingCalendar() const { return m_workingCalendar; }
+	void setWorkingCalendar(const uint meso_idx);
 
 	[[nodiscard]] inline DBWorkoutsOrSplitsTable *workoutsTable() const { return m_workoutsDB; }
 
@@ -92,14 +94,15 @@ signals:
 private:
 	QHash<uint,QHash<uint,DBExercisesModel*>> m_workouts;
 	QHash<uint,DBCalendarModel*> m_calendars;
+	DBCalendarModel* m_workingCalendar;
 
 	DBMesocyclesModel *m_mesoModel;
 	DBMesoCalendarTable *m_calendarDB;
 	DBWorkoutsOrSplitsTable *m_workoutsDB;
+	DBModelInterfaceCalendar *m_workingDBmic;
 
-	DBModelInterfaceCalendar *getDBModelInterfaceCalendar(const uint meso_idx) const;
 	DBModelInterfaceExercises *getDBModelInterfaceExercises(const uint meso_idx, const uint calendar_day) const;
-	uint populateCalendarDays(const uint meso_idx, const QDate &start_date, const QDate &end_date, const QString &split);
+	uint populateCalendarDays(const uint meso_idx);
 	inline QString dayInfo(const uint meso_idx, const uint calendar_day, const uint field) const;
 	inline void setDayInfo(const uint meso_idx, const uint calendar_day, const uint field, const QString &new_value, const bool emit_signal = true);
 };

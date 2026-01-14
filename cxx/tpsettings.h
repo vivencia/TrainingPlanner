@@ -45,7 +45,6 @@ enum UserSettingFields {
 	COLOR_SCHEME_INDEX,
 	ITEM_DEFAULT_HEIGHT,
 	ASK_CONFIRMATION_INDEX,
-	WEATHER_CITIES_INDEX,
 	USER_SETTINGS_FIELD_COUNT
 };
 //--------------------------------------------USER   SETTINGS---------------------------------------------//
@@ -78,7 +77,6 @@ Q_PROPERTY(uint itemSmallHeight READ itemSmallHeight NOTIFY fontSizeChanged FINA
 Q_PROPERTY(uint itemLargeHeight READ itemLargeHeight NOTIFY fontSizeChanged FINAL)
 Q_PROPERTY(uint itemExtraLargeHeight READ itemExtraLargeHeight NOTIFY fontSizeChanged FINAL)
 Q_PROPERTY(uint userLocaleIdx READ userLocaleIdx NOTIFY userLocaleChanged FINAL)
-Q_PROPERTY(uint weatherCitiesCount READ weatherCitiesCount NOTIFY weatherCitiesCountChanged)
 
 Q_PROPERTY(QString userLocale READ userLocale NOTIFY userLocaleChanged)
 Q_PROPERTY(QString themeStyle READ themeStyle WRITE setThemeStyle NOTIFY themeStyleChanged)
@@ -243,12 +241,6 @@ public:
 	inline void setWeightUnit(const QString &new_value) { changeValue(currentUser(), WEIGHT_UNIT_INDEX, new_value); emit weightUnitChanged(); }
 	inline uint userLocaleIdx() const { return m_languageIdx; }
 
-	uint weatherCitiesCount();
-	void addWeatherLocation(const QString &city, const QString &latitude, const QString &longitude);
-	Q_INVOKABLE void removeWeatherLocation(const uint idx);
-	Q_INVOKABLE QString weatherLocationName(const uint idx);
-	std::pair<QString,QString> weatherLocationCoordinates(const uint idx);
-
 	QString indexColorSchemeToColorSchemeName() const;
 	inline QString settingsBackground() const
 	{
@@ -270,11 +262,11 @@ public:
 	inline bool alwaysAskConfirmation() const { return getValue(currentUser(), ASK_CONFIRMATION_INDEX, m_defaultValues.at(ASK_CONFIRMATION_INDEX)).toBool(); }
 	inline void setAlwaysAskConfirmation(const bool new_value) { changeValue(currentUser(), ASK_CONFIRMATION_INDEX, QString::number(new_value)); emit alwaysAskConfirmationChanged(); }
 
-	inline QVariant getCustomValue(const QString &value_name, const QVariant &default_value = QVariant{}) const
+	inline QVariant getCustomValue(const QLatin1StringView &value_name, const QVariant &default_value = QVariant{}) const
 	{
 		return getValue(currentUser(), value_name, default_value);
 	}
-	inline void setCustomValue(const QString &value_name, const QVariant &value)
+	inline void setCustomValue(const QLatin1StringView &value_name, const QVariant &value)
 	{
 		changeValue(currentUser(), value_name, value);
 	}
@@ -288,12 +280,10 @@ signals:
 	void weightUnitChanged();
 	void fontSizeChanged();
 	void lastViewedMesoIdxChanged();
-	void weatherCitiesCountChanged();
 	void alwaysAskConfirmationChanged();
 
 private:
 	QHash<uint,QLatin1StringView> m_userPropertyNames;
-	QString m_weatherInfo;
 	QStringList m_defaultValues;
 	QStringList m_colorSchemes;
 	QString m_userId;

@@ -39,7 +39,7 @@ void QmlMesoSplitInterface::getExercisesPlannerPage()
 
 void QmlMesoSplitInterface::addExercise()
 {
-	currentSplitModel()->setWorkingExercise(currentSplitModel()->addExercise(true));
+	currentSplitModel()->setWorkingExercise(currentSplitModel()->addExercise());
 }
 
 void QmlMesoSplitInterface::removeExercise(const int exercise_number)
@@ -48,7 +48,7 @@ void QmlMesoSplitInterface::removeExercise(const int exercise_number)
 	{
 		if (appSettings()->alwaysAskConfirmation())
 			QMetaObject::invokeMethod(m_plannerPage, "showDeleteDialog", Q_ARG(QString,
-						currentSplitModel()->exerciseName(exercise_number, currentSplitModel()->workingSubExercise(exercise_number))));
+				currentSplitModel()->exerciseName(exercise_number, currentSplitModel()->workingSubExercise(exercise_number))));
 		else
 			currentSplitModel()->delExercise(exercise_number);
 	}
@@ -127,7 +127,8 @@ static void muscularGroupSimplified(QString &muscularGroup)
 QQuickItem* QmlMesoSplitInterface::setCurrentPage(const int index)
 {
 	m_currentSplitPage = m_splitPages.value(QChar(static_cast<char>(static_cast<int>('A') + index)));
-	m_currentSplitLetter = std::move(m_splitPages.key(m_currentSplitPage));
+	m_currentSplitLetter = m_currentSplitPage ? std::move(m_splitPages.key(m_currentSplitPage)) : 'A';
+	m_mesoModel->splitModel(m_mesoIdx, m_currentSplitLetter)->plugDBModelInterfaceIntoDatabase();
 	m_currentSwappableLetter = std::move(findSwappableModel());
 	emit currentPageChanged();
 	return m_currentSplitPage;
@@ -152,8 +153,6 @@ void QmlMesoSplitInterface::createPlannerPage()
 {
 	m_plannerComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/ExercisesPlanner.qml"_L1}, QQmlComponent::Asynchronous};
 	m_plannerProperties["splitManager"_L1] = QVariant::fromValue(this);
-	m_currentSplitLetter = 'N';
-	m_currentSwappableLetter = 'N';
 
 	switch (m_plannerComponent->status())
 	{
@@ -165,12 +164,12 @@ void QmlMesoSplitInterface::createPlannerPage()
 				createPlannerPage_part2();
 			}, Qt::SingleShotConnection);
 		break;
+		#ifndef QT_NO_DEBUG
 		case QQmlComponent::Null:
 		case QQmlComponent::Error:
-			#ifndef QT_NO_DEBUG
 			qDebug() << m_plannerComponent->errorString();
-			#endif
 		break;
+		#endif
 	}
 }
 
@@ -178,8 +177,16 @@ void QmlMesoSplitInterface::createPlannerPage_part2()
 {
 	m_plannerPage = static_cast<QQuickItem*>(m_plannerComponent->createWithInitialProperties(
 															m_plannerProperties, appQmlEngine()->rootContext()));
+	#ifndef QT_NO_DEBUG
+	if (!m_plannerPage)
+	{
+		qDebug() << m_plannerComponent->errorString();
+		return;
+	}
+	#endif
 	appQmlEngine()->setObjectOwnership(m_plannerPage, QQmlEngine::CppOwnership);
 	m_plannerPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
+	m_swipeView = m_plannerPage->findChild<QQuickItem*>("swipeView");
 	emit plannerPageCreated();
 
 	appPagesListModel()->openPage(m_plannerPage,
@@ -209,24 +216,22 @@ void QmlMesoSplitInterface::createMesoSplitPages()
 				createMesoSplitPages_part2();
 			}, Qt::SingleShotConnection);
 		break;
+		#ifndef QT_NO_DEBUG
 		case QQmlComponent::Null:
 		case QQmlComponent::Error:
-			#ifndef QT_NO_DEBUG
 			qDebug() << m_splitComponent->errorString();
-			#endif
 		break;
+		#endif
 	}
 }
 
 void QmlMesoSplitInterface::createMesoSplitPages_part2()
 {
-	m_splitProperties["pageManager"_L1] = std::move(QVariant::fromValue(this));
+	m_splitProperties["pageManager"_L1] = QVariant::fromValue(this);
 	m_splitProperties["height"_L1] = m_plannerPage->property("splitPageHeight").toInt();
-
-	uint index{0};
 	const QString &split_letters{m_mesoModel->usedSplits(m_mesoIdx)};
 	for (const auto &split_letter : split_letters)
-		addPage(split_letter, index++);
+		addPage(split_letter);
 }
 
 void QmlMesoSplitInterface::setSplitPageProperties(DBSplitModel *split_model)
@@ -270,12 +275,10 @@ void QmlMesoSplitInterface::syncSplitPagesWithMesoSplit()
 			break;
 	} while (true);
 
-	uint index{0};
 	for (const auto &split_letter : split_letters)
 	{
 		if (!m_splitPages.value(split_letter))
-			addPage(split_letter, index);
-		index++;
+			addPage(split_letter);
 	}
 }
 
@@ -289,18 +292,23 @@ void QmlMesoSplitInterface::removePage(const QChar &split_letter)
 	}
 }
 
-void QmlMesoSplitInterface::addPage(const QChar &split_letter, const uint index)
+void QmlMesoSplitInterface::addPage(const QChar &split_letter)
 {
 	DBSplitModel *split_model{m_mesoModel->splitModel(m_mesoIdx, split_letter)};
-	m_splitProperties["exercisesModel"_L1] = std::move(QVariant::fromValue(split_model));
+	m_splitProperties["exercisesModel"_L1] = QVariant::fromValue(split_model);
 	setSplitPageProperties(split_model);
 
 	QQuickItem *item{static_cast<QQuickItem*>(m_splitComponent->createWithInitialProperties(m_splitProperties, appQmlEngine()->rootContext()))};
-	appQmlEngine()->setObjectOwnership(item, QQmlEngine::CppOwnership);
-	item->setParentItem(m_plannerPage);
-
+	#ifndef QT_NO_DEBUG
+	if (!item)
+	{
+		qDebug() << m_splitComponent->errorString();
+		return;
+	}
+	#endif
 	m_splitPages.insert(split_letter, item);
-	QMetaObject::invokeMethod(m_plannerPage, "insertSplitPage", Q_ARG(QQuickItem*, item), Q_ARG(int, static_cast<int>(index)));
+	appQmlEngine()->setObjectOwnership(item, QQmlEngine::CppOwnership);
+	item->setParentItem(m_swipeView);
 }
 
 QChar QmlMesoSplitInterface::findSwappableModel() const
@@ -318,5 +326,5 @@ QChar QmlMesoSplitInterface::findSwappableModel() const
 				return split_letter;
 		}
 	}
-	return 'N';
+	return QChar{};
 }

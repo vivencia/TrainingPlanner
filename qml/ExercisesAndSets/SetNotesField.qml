@@ -5,9 +5,9 @@ import QtQuick.Layouts
 import "../"
 import "../TPWidgets"
 
-Column {
+ColumnLayout {
 	id: control
-	padding: 5
+	spacing: 5
 
 	property alias info: lblMain.text
 	property alias text: setNotesArea.text
@@ -18,6 +18,7 @@ Column {
 	Row {
 		Layout.fillWidth: true
 		height: appSettings.itemDefaultHeight
+		spacing: 5
 
 		TPLabel {
 			id: lblMain
@@ -43,8 +44,6 @@ Column {
 		id: setNotesArea
 		visible: false
 		Layout.fillWidth: true
-		Layout.minimumHeight: appSettings.pageHeight * 0.15
-		Layout.maximumHeight: appSettings.pageHeight * 0.15
 
 		onTextAltered: (_text) => editFinished(_text);
 	}

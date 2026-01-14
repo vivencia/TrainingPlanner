@@ -35,7 +35,7 @@ DBMesocyclesTable::DBMesocyclesTable(DBModelInterfaceMesocycle *dbmodel_interfac
 	#ifndef QT_NO_DEBUG
 	setObjectName("MesocyclesTable");
 	#endif
-	setReadAllRecordsFunc([this] () { return getAllMesocycles(); });
+	setReadAllRecordsFunc<void>([this] (void *param) { return getAllMesocycles(param); });
 }
 
 QString DBMesocyclesTable::dbFileName(const bool fullpath) const
@@ -44,7 +44,7 @@ QString DBMesocyclesTable::dbFileName(const bool fullpath) const
 	return fullpath ? dbFilePath() + filename : filename;
 }
 
-bool DBMesocyclesTable::getAllMesocycles()
+bool DBMesocyclesTable::getAllMesocycles(void *)
 {
 	bool success{false};
 	if (execReadOnlyQuery("SELECT * FROM %1 ORDER BY ROWID;"_L1.arg(table_name)))

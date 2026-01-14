@@ -28,15 +28,15 @@ void DBModelInterface::setAllFieldsModified(uint row, const uint n_fields)
 	fields.clear();
 	for (int i{0}; i < n_fields; ++i)
 		fields.append(i);
-	m_modifiedIndices.insertOrAssign(std::move(row), std::move(fields));
+	m_modifiedIndices[row] = std::move(fields);
 }
 
 void DBModelInterface::setModified(uint row, const int field)
 {
-	QList<int> fields{std::move(m_modifiedIndices.value(row))};
+	QList<int> fields{m_modifiedIndices.value(row)};
 	if (!fields.contains(field))
 		fields.append(field);
-	m_modifiedIndices.insertOrAssign(std::move(row), std::move(fields));
+	m_modifiedIndices[row] = std::move(fields);
 }
 
 void DBModelInterface::setModified(uint row, const QList<int> &more_fields)
@@ -47,7 +47,7 @@ void DBModelInterface::setModified(uint row, const QList<int> &more_fields)
 		if (!fields.contains(field))
 			fields.append(field);
 	}
-	m_modifiedIndices.insertOrAssign(std::move(row), std::move(fields));
+	m_modifiedIndices[row] = std::move(fields);
 }
 
 void DBModelInterface::setRemovalInfo(const uint row, const QList<uint> &fields)

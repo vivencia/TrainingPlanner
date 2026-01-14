@@ -7,17 +7,18 @@
 
 enum RoleNames {
 	yearRole = Qt::UserRole,
-	monthRole = Qt::UserRole+1
+	monthRole = Qt::UserRole + 1
 };
 
 //const auto &value = []<typename T>(const std::optional<T> &retValue) { return retValue.has_) ? retValue.) : T{}; };
 //auto &&rvalue = []<typename T>(const std::optional<T> &retValue) mutable { return retValue.has_) ? retValue.) : T{}; };
 
 DBCalendarModel::DBCalendarModel(DBMesoCalendarManager *parent, DBMesoCalendarTable* db, const uint meso_idx)
-	: QAbstractListModel{parent}, m_calendarManager{parent}, m_db{db}, m_mesoIdx(meso_idx), m_nmonths{0}
+	: QAbstractListModel{parent}, m_calendarManager{parent}, m_db{db}, m_mesoIdx(meso_idx), m_nmonths{0}, m_ncaldays{0}
 {
-	m_roleNames[yearRole] = std::move("year");
-	m_roleNames[monthRole] = std::move("month");
+	roleToString(year)
+	roleToString(month)
+
 	connect(m_calendarManager, &DBMesoCalendarManager::calendarChanged, this, [this]
 													(const uint meso_idx, const int calendar_day, const uint field)
 	{
@@ -51,17 +52,18 @@ DBCalendarModel::DBCalendarModel(DBMesoCalendarManager *parent, DBMesoCalendarTa
 			disconnect(*conn);
 			if (success)
 			{
-				const QDate startDate{appUtils()->getDateFromDateString(m_dbModelInterface->modelData().constLast().at(1),
-																										TPUtils::DF_DATABASE)};
-				const QDate endDate{appUtils()->getDateFromDateString(m_dbModelInterface->modelData().constLast().at(1),
-																										TPUtils::DF_DATABASE)};
+				const QDate startDate{appUtils()->getDateFromDateString(
+								m_dbModelInterface->modelData().constFirst().at(CALENDAR_DATABASE_DATE), TPUtils::DF_DATABASE)};
+				const QDate endDate{appUtils()->getDateFromDateString(
+								m_dbModelInterface->modelData().constLast().at(CALENDAR_DATABASE_DATE), TPUtils::DF_DATABASE)};
 				m_nmonths = appUtils()->calculateNumberOfMonths(startDate, endDate);
+				m_ncaldays = startDate.daysTo(endDate) + 1;
 				emit dataChanged(index(0), index(m_nmonths));
 			}
+			emit calendarLoaded(success);
 		}
 	});
-	m_db->setDBModelInterface(m_dbModelInterface);
-	appThreadManager()->runAction(m_db, ThreadManager::ReadAllRecords);
+	appThreadManager()->runAction(m_db, ThreadManager::ReadAllRecords, m_dbModelInterface);
 }
 
 QDate DBCalendarModel::firstDateOfEachMonth(const uint index) const
@@ -95,7 +97,8 @@ QDate DBCalendarModel::date(const uint calendar_day) const
 
 bool DBCalendarModel::isPartOfMeso(const QDate &date) const
 {
-	return m_calendarManager->calendarDay(m_mesoIdx, date) != -1;
+	const auto cal_day{m_calendarManager->calendarDay(m_mesoIdx, date)};
+	return cal_day >= 0 && cal_day <= m_ncaldays;
 }
 
 bool DBCalendarModel::isWorkoutDay(const QDate &date) const
@@ -110,7 +113,7 @@ bool DBCalendarModel::isWorkoutDay(const uint calendar_day) const
 
 QString DBCalendarModel::dayText(const QDate &date) const
 {
-	return isPartOfMeso(date) ? QString::number(date.day()) + '-' + splitLetter(date) : QString::number(date.day());
+	return isPartOfMeso(date) ? QString::number(date.day()) % '-' % splitLetter(date) : QString::number(date.day());
 }
 
 QString DBCalendarModel::workoutNumber(const QDate &date) const
@@ -120,7 +123,8 @@ QString DBCalendarModel::workoutNumber(const QDate &date) const
 
 QString DBCalendarModel::workoutNumber(const uint calendar_day) const
 {
-	return m_calendarManager->workoutNumber(m_mesoIdx, calendar_day);
+	return calendar_day < m_dbModelInterface->modelData().count() ?
+													m_calendarManager->workoutNumber(m_mesoIdx, calendar_day) : QString{};
 }
 
 QString DBCalendarModel::splitLetter(const QDate &date) const
@@ -130,7 +134,8 @@ QString DBCalendarModel::splitLetter(const QDate &date) const
 
 QString DBCalendarModel::splitLetter(const uint calendar_day) const
 {
-	return m_calendarManager->splitLetter(m_mesoIdx, calendar_day);
+	return calendar_day < m_dbModelInterface->modelData().count() ?
+															m_calendarManager->splitLetter(m_mesoIdx, calendar_day) : QString{};
 }
 
 void DBCalendarModel::setSplitLetter(const QDate &date, const QString &new_splitletter)
@@ -230,7 +235,8 @@ bool DBCalendarModel::completed(const QDate &date) const
 
 bool DBCalendarModel::completed(const uint calendar_day) const
 {
-	return m_calendarManager->workoutCompleted(m_mesoIdx, calendar_day);
+	return calendar_day < m_dbModelInterface->modelData().count() ?
+														m_calendarManager->workoutCompleted(m_mesoIdx, calendar_day) : false;
 }
 
 void DBCalendarModel::setCompleted(const QDate &date, const bool completed)
@@ -250,12 +256,8 @@ QVariant DBCalendarModel::data(const QModelIndex &index, int role) const
 	{
 		switch (role)
 		{
-			case yearRole:
-				return m_calendarManager->nThDate(m_mesoIdx, row).year();
-			break;
-			case monthRole:
-				return m_calendarManager->nThDate(m_mesoIdx, row).month() - 1;
-			break;
+			case yearRole: return m_calendarManager->nThDate(m_mesoIdx, row).year();
+			case monthRole: return m_calendarManager->nThDate(m_mesoIdx, row).month() - 1;
 		}
 	}
 	return QVariant{};

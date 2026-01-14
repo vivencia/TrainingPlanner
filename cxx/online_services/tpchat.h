@@ -6,8 +6,8 @@
 #include <QAbstractListModel>
 #include <QQmlEngine>
 
-enum MessageFields {
-	MESSAGE_ID = 0,
+enum ChatMessageFields {
+	MESSAGE_ID,
 	MESSAGE_SENDER,
 	MESSAGE_RECEIVER,
 	MESSAGE_SDATE,

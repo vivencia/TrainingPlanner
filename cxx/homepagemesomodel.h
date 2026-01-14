@@ -30,6 +30,7 @@ public:
 	{
 		setCurrentIndex(findLocalIdx(meso_idx));
 	}
+	inline int currentMesoIdx() const { return m_curIndex < m_mesoModelRows.count() ? m_mesoModelRows.at(m_curIndex) : -1; }
 
 	void appendMesoIdx(const uint meso_idx);
 	void removeMesoIdx(const uint meso_idx);

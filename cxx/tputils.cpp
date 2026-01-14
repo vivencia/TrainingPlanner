@@ -12,15 +12,14 @@
 #include <ranges>
 #include <random>
 
-QStringList TPUtils::_months_names{QStringList{} <<
-		std::move(tr("January")) << std::move(tr("February")) << std::move(tr("March")) << std::move(tr("April")) <<
-		std::move(tr("May")) << std::move(tr("June")) << std::move(tr("July")) << std::move(tr("August")) <<
-		std::move(tr("September")) << std::move(tr("October")) << std::move(tr("November")) << std::move(tr("December"))
+QStringList TPUtils::_months_names{
+		std::move(tr("January")), std::move(tr("February")), std::move(tr("March")), std::move(tr("April")),
+		std::move(tr("May")), std::move(tr("June")), std::move(tr("July")), std::move(tr("August")),
+		std::move(tr("September")), std::move(tr("October")), std::move(tr("November")), std::move(tr("December"))
 };
 
-QStringList TPUtils::_days_names{QStringList{} << std::move(tr("Sunday")) << std::move(tr("Monday")) <<
-	std::move(tr("Tuesday")) << std::move(tr("Wednesday")) << std::move(tr("Thursday")) << std::move(tr("Friday")) <<
-	std::move(tr("Saturday"))
+QStringList TPUtils::_days_names{std::move(tr("Sunday")), std::move(tr("Monday")), std::move(tr("Tuesday")),
+	std::move(tr("Wednesday")), std::move(tr("Thursday")), std::move(tr("Friday")), std::move(tr("Saturday"))
 };
 
 TPUtils *TPUtils::app_utils{nullptr};
@@ -1136,23 +1135,27 @@ QString TPUtils::stripInvalidCharacters(const QString &string) const
 	return ret.replace('\'', '"');
 }
 
-QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QString strValue, const bool seconds) const
+QString TPUtils::setTypeOperation(const uint settype, const bool increase, QString str_value, const bool seconds) const
 {
-	if (strValue.isEmpty())
-		return QString{};
-	strValue.replace('.', ',');
-	strValue.replace('-', ""_L1);
-	strValue.replace('E', ""_L1);
-	strValue = strValue.trimmed();
-	const char rightmostDigit{!strValue.isEmpty() ? strValue.at(strValue.length()-1).toLatin1() : '0'};
+	if (str_value.isEmpty())
+		str_value = "0"_L1;
+	else
+	{
+		str_value.replace('.', ',');
+		str_value.replace('-', ""_L1);
+		str_value.replace('E', ""_L1);
+		str_value = str_value.trimmed();
+	}
+	const char rightmostDigit{str_value.at(str_value.length() - 1).toLatin1()};
 
-	float result{m_appLocale->toFloat(strValue)};
+	float result{m_appLocale->toFloat(str_value)};
 	switch (settype)
+	{
 		case 0: //SetInputField.Type.WeightType
 		{
-			if (strValue.contains('.') || strValue.contains(','))
+			if (str_value.contains('.') || str_value.contains(','))
 			{
-				if (bIncrease)
+				if (increase)
 					result += rightmostDigit == '5' ? 2.5 : 5.0;
 				else
 					result -= rightmostDigit == '5' ? 2.5 : 5.0;
@@ -1167,7 +1170,7 @@ QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QStr
 						case '2':
 						case '6':
 						case '8':
-							bIncrease ? result += 2 : result -= 2;
+							increase ? result += 2 : result -= 2;
 						break;
 						case '1':
 						case '3':
@@ -1175,31 +1178,31 @@ QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QStr
 						case '5':
 						case '7':
 						case '9':
-							bIncrease ? ++result : --result;
+							increase ? ++result : --result;
 						break;
 					}
 				}
 				else
 				{
-					int paddingValue{0};
+					int8_t paddingValue{0};
 					switch (rightmostDigit)
 					{
 						case '0':
-							bIncrease ? paddingValue = 5 : paddingValue = -5; break;
+							increase ? paddingValue = 5 : paddingValue = -5; break;
 						case '1':
 						case '6':
-							bIncrease ? paddingValue = 4 : paddingValue = -1; break;
+							increase ? paddingValue = 4 : paddingValue = -1; break;
 						case '2':
 						case '7':
-							bIncrease ? paddingValue = 3 : paddingValue = -2; break;
+							increase ? paddingValue = 3 : paddingValue = -2; break;
 						case '3':
 						case '8':
-							bIncrease ? paddingValue = 2 : paddingValue = -3; break;
+							increase ? paddingValue = 2 : paddingValue = -3; break;
 						case '4':
 						case '9':
-							bIncrease ? paddingValue = 1 : paddingValue = -4; break;
+							increase ? paddingValue = 1 : paddingValue = -4; break;
 						case '5':
-							bIncrease ? paddingValue = 5 : paddingValue = -5; break;
+							increase ? paddingValue = 5 : paddingValue = -5; break;
 					}
 					result += paddingValue;
 				}
@@ -1209,29 +1212,30 @@ QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QStr
 			else if (result < 0)
 				result = 0;
 
-			strValue = std::move(QString::number(result, 'f', 2));
-			if (strValue.last(2) != "50"_L1)
-				strValue.chop(3);
-			return strValue;
+			str_value = std::move(QString::number(result, 'f', 2));
+			if (str_value.last(2) != "50"_L1)
+				str_value.chop(3);
+			return str_value;
+		} // 0: SetInputField.Type.WeightType
 		break;
 
 		case 1: //SetInputField.Type.RepType
-			if (strValue.contains('.') || strValue.contains(','))
-				bIncrease ? result += 0.5 : result -= 0.5;
+			if (str_value.contains('.') || str_value.contains(','))
+				increase ? result += 0.5 : result -= 0.5;
 			else
-				bIncrease ? ++result : --result;
+				increase ? ++result : --result;
 
 			if (result > 100)
 				result = 100;
 			else if (result < 0)
 				result = 0;
 			return QString::number(static_cast<uint>(result));
-		break;
+		break; //1: SetInputField.Type.RepType
 
 		case 2: //SetInputField.Type.TimeType
 		{
-			result = seconds ? strValue.last(2).toUInt() : strValue.first(2).toUInt();
-			if (bIncrease)
+			result = seconds ? str_value.last(2).toUInt() : str_value.first(2).toUInt();
+			if (increase)
 			{
 				if (seconds)
 				{
@@ -1269,13 +1273,13 @@ QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QStr
 				}
 			}
 			const QString &str_result{(result < 10 ? "0"_L1 : ""_L1) + QString::number(result)};
-			strValue = seconds ? strValue.replace(3, 2, str_result) : strValue.replace(0, 2, str_result);
-			return strValue;
-		}
+			str_value = seconds ? str_value.replace(3, 2, str_result) : str_value.replace(0, 2, str_result);
+			return str_value;
+		} //2: SetInputField.Type.TimeType
 		break;
 
 		case 3: //SetInputField.Type.SetType
-			if (bIncrease)
+			if (increase)
 			{
 				++result;
 				if (result > 9)
@@ -1288,7 +1292,7 @@ QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QStr
 					result = 0;
 			}
 			return QString::number(static_cast<uint>(result));
-		break;
+		break; //3: SetInputField.Type.SetType
 
 		default: return QString{};
 	}

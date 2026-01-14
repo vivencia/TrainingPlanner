@@ -79,7 +79,6 @@ public:
 	inline uint count() const { return m_mesoData.count(); }
 	QMLMesoInterface *mesoManager(const uint meso_idx);
 	void removeMesoManager(const uint meso_idx);
-
 	void incorporateMeso(const uint meso_idx);
 
 	Q_INVOKABLE void startNewMesocycle(const bool own_meso);
@@ -94,6 +93,8 @@ public:
 	inline DBMesoCalendarManager *mesoCalendarManager() const { return m_calendarManager; }
 	inline HomePageMesoModel *ownMesos() const { return m_ownMesos; }
 	inline HomePageMesoModel *clientMesos() const { return m_clientMesos; }
+	void setCurrentMesosView(const bool own_mesos_view);
+	inline int currentWorkingMeso() const { return m_currentWorkingMeso; }
 
 	inline bool isMesoOK(const uint meso_idx) const { return m_isMesoOK.at(meso_idx) == 0; }
 	bool isRequiredFieldWrong(const uint meso_idx, const uint field) const;
@@ -106,7 +107,7 @@ public:
 	}
 	inline const int _id(const uint meso_idx) const
 	{
-		return meso_idx < m_mesoData.count() ? m_mesoData.at(meso_idx).at(MESO_FIELD_ID).toInt() : m_lowestTempMesoId;
+		return meso_idx < m_mesoData.count() ? m_mesoData.at(meso_idx).at(MESO_FIELD_ID).toInt() : -1;
 	}
 	inline void setId(const uint meso_idx, const QString &new_id)
 	{
@@ -372,7 +373,7 @@ public:
 		{
 			case 0: return meso_idx >= 0 ? (!name(meso_idx).isEmpty() ?
 										mesoPlanExists(name(meso_idx), coach(meso_idx), client(meso_idx)) == meso_idx : false)
-					: false;
+										: false;
 			case 1: case 2: case 3: case 4: return false;
 			default: return mesoPlanExists(meso_name, coach(meso_idx), client(meso_idx)) == -1;
 		}
@@ -441,7 +442,7 @@ private:
 	QList<int8_t> m_isMesoOK;
 	QList<bool> m_canExport;
 	QStringList m_usedSplits;
-	int m_importMesoIdx, m_lowestTempMesoId;
+	int m_importMesoIdx, m_currentWorkingMeso;
 
 	DBModelInterfaceMesocycle *m_dbModelInterface;
 	DBMesocyclesTable *m_db;
@@ -449,7 +450,6 @@ private:
 
 	friend class DBModelInterfaceMesocycle;
 
-	inline QString newMesoTemporaryId() { return QString::number(m_lowestTempMesoId--); }
 	inline bool isMesoTemporary(const uint meso_idx) const { return _id(meso_idx) < 0; }
 	const uint newMesoData(QStringList &&infolist);
 	void getAllMesocycles();

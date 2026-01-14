@@ -7,7 +7,14 @@
 
 ThreadManager *ThreadManager::app_thread_mngr{nullptr};
 
-void ThreadManager::runAction(TPDatabaseTable *worker, StandardOps operation )
+ThreadManager::ThreadManager(QObject *parent)
+	: QObject{parent}
+{
+	app_thread_mngr = this;
+	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(aboutToExit()));
+}
+
+void ThreadManager::runAction(TPDatabaseTable *worker, StandardOps operation, void* extra_param)
 {
 	QThread *thread{m_subThreadsList.value(worker->tableId())};
 	if (!thread)
@@ -19,14 +26,13 @@ void ThreadManager::runAction(TPDatabaseTable *worker, StandardOps operation )
 		 // Connect the thread's finished signal to delete both the thread and the worker
 		QObject::connect(thread, &QThread::finished, worker, &TPDatabaseTable::deleteLater);
 		QObject::connect(thread, &QThread::finished, thread, &QThread::deleteLater);
-		connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(aboutToExit()));
 
 		connect(this, &ThreadManager::newThreadedOperation, worker, &TPDatabaseTable::startAction, Qt::QueuedConnection);
 
 		//Enters the thread's event loop, which waits for queued signal deliveries. and sleeps when idle
 		thread->start();
 	}
-	emit newThreadedOperation(worker->uniqueId(), operation);
+	emit newThreadedOperation(worker->uniqueId(), operation, extra_param);
 }
 
 void ThreadManager::aboutToExit()

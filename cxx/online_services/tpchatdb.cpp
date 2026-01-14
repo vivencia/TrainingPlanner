@@ -23,7 +23,7 @@ constexpr QLatin1StringView field_names[TP_CHAT_TOTAL_MESSAGE_FIELDS][2] {
 };
 
 TPChatDB::TPChatDB(const QString &user_id, const QString &otheruser_id, DBModelInterfaceChat *dbmodel_interface)
-	: TPDatabaseTable{CHAT_TABLE_ID, dbmodel_interface}, m_userId{user_id}, m_otherUserId{otheruser_id}
+	: TPDatabaseTable{user_id.last(5).toUInt(), dbmodel_interface}, m_userId{user_id}, m_otherUserId{otheruser_id}
 {
 	m_tableName = &table_name;
 	m_fieldNames = field_names;
@@ -32,7 +32,7 @@ TPChatDB::TPChatDB(const QString &user_id, const QString &otheruser_id, DBModelI
 	#ifndef QT_NOT_DEBUG
 	setObjectName("ChatTable");
 	#endif
-	setReadAllRecordsFunc([this] () { return loadChat(); });
+	setReadAllRecordsFunc<void>([this] (void *param) { return loadChat(param); });
 }
 
 QString TPChatDB::subDir() const
@@ -51,7 +51,7 @@ QString TPChatDB::dbFileName(const bool fullpath) const
 	return fullpath ? dbFilePath() + filename : filename;
 }
 
-bool TPChatDB::loadChat()
+bool TPChatDB::loadChat(void *)
 {
 	bool success{false};
 	if (execReadOnlyQuery("SELECT * FROM "_L1 + table_name))

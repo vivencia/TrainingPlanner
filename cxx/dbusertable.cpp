@@ -30,7 +30,7 @@ DBUserTable::DBUserTable(DBModelInterfaceUser *dbmodel_interface)
 	#ifndef QT_NOT_DEBUG
 	setObjectName("UsersTable");
 	#endif
-	setReadAllRecordsFunc([this] () { return getAllUsers(); });
+	setReadAllRecordsFunc<void>([this] (void *param) { return getAllUsers(param); });
 }
 
 QString DBUserTable::dbFileName(const bool fullpath) const
@@ -39,7 +39,7 @@ QString DBUserTable::dbFileName(const bool fullpath) const
 	return fullpath ? dbFilePath() % filename : filename;
 }
 
-bool DBUserTable::getAllUsers()
+bool DBUserTable::getAllUsers(void *)
 {
 	bool success{false};
 	if (execReadOnlyQuery("SELECT * FROM users_table ORDER BY inserttime ASC;"_L1))

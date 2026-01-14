@@ -62,7 +62,7 @@ TPPage {
 
 			TPListView {
 				id: scrollViewCities
-				model: appSettings.weatherCitiesCount
+				model: weatherInfo.savedLocationsCount
 				width: mainLayout.width
 				height: parent.height - appSettings.itemDefaultHeight - 10
 
@@ -113,7 +113,7 @@ TPPage {
 
 					contentItem: TPLabel {
 						id: txtCity
-						text: appSettings.weatherLocationName(index)
+						text: weatherInfo.savedLocationName(index)
 						leftPadding: 5
 					}
 
@@ -128,7 +128,7 @@ TPPage {
 							verticalCenter: parent.verticalCenter
 						}
 
-						onClicked: appSettings.removeWeatherLocation(index);
+						onClicked: weatherInfo.removeWeatherLocation(index);
 					}
 
 					background: Rectangle {

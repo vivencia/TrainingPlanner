@@ -33,7 +33,7 @@ int TPMessage::insertAction(const QString& actionLabel, const std::function<void
 		setSticky(remove.value());
 	}
 	const qsizetype n_action{m_actions.count() - 1};
-	emit dataChanged(MESSAGE_COL_ACTIONS);
+	emit dataChanged(TPMESSAGE_FIELD_ACTIONS);
 	return n_action;
 }
 

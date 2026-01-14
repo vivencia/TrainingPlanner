@@ -297,7 +297,7 @@ public:
 	Q_INVOKABLE void checkExistingAccount(const QString &email, const QString &password);
 	Q_INVOKABLE void changePassword(const QString &old_password, const QString &new_password);
 	Q_INVOKABLE void importFromOnlineServer();
-	Q_INVOKABLE inline bool mainUserRegistered() const { return mb_userRegistered.has_value() && mb_userRegistered == true; }
+	Q_INVOKABLE inline bool mainUserLoggedIn() const { return mb_userLoggedIn.has_value() && mb_userLoggedIn.value(); }
 	Q_INVOKABLE void setCoachPublicStatus(const bool bPublic);
 	Q_INVOKABLE inline void viewResume(const uint user_idx)
 	{
@@ -384,7 +384,7 @@ private:
 	QList<QStringList> m_usersData, m_tempUserData;
 	int m_tempRow, n_devices;
 	QString m_onlineAccountId, m_password, m_defaultAvatar, m_emptyString;
-	std::optional<bool> mb_canConnectToServer, mb_singleDevice, mb_userRegistered, mb_coachRegistered;
+	std::optional<bool> mb_canConnectToServer, mb_singleDevice, mb_userLoggedIn, mb_coachRegistered;
 	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses,
 						*m_tempUserInfo, *m_currentCoaches, *m_currentClients, *m_currentCoachesAndClients;
 	bool mb_coachPublic, mb_MainUserInfoChanged;

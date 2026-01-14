@@ -42,10 +42,10 @@ public:
 
 	Q_INVOKABLE inline void prevPage() { if (m_pagesIndex > 0) openMainMenuShortCut(m_pagesIndex - 1, false); }
 	Q_INVOKABLE inline void nextPage() { if (m_pagesIndex < m_pagesData.count() - 1) openMainMenuShortCut(m_pagesIndex + 1, false); }
-	Q_INVOKABLE void popupOpened(QObject* popup);
-	Q_INVOKABLE void popupClosed(QObject* popup);
-	Q_INVOKABLE void raisePopup(QObject* popup);
-	Q_INVOKABLE bool isPopupAboveAllOthers(QObject* popup) const;
+	Q_INVOKABLE void popupOpened(QObject *popup);
+	Q_INVOKABLE void popupClosed(QObject *popup);
+	Q_INVOKABLE void raisePopup(QObject *popup);
+	Q_INVOKABLE bool isPopupAboveAllOthers(QObject *popup) const;
 
 	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
 	QVariant data(const QModelIndex&, int) const override final;
@@ -69,11 +69,13 @@ private:
 	};
 
 	QList<pageInfo*> m_pagesData;
+	QList<uint> m_pagesMesoIdx;
 	QList<QObject*> m_popupsOpen;
 	QHash<int, QByteArray> m_roleNames;
 	uint m_pagesIndex;
 	int m_backKey;
 
+	void openQMLPage(const uint index);
 	#ifndef Q_OS_ANDROID
 	static QHash<QString,PagesListModel*> app_Pages_list_models;
 	#else

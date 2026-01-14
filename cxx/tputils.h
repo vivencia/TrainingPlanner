@@ -5,19 +5,36 @@
 #include <QObject>
 #include <QUrl>
 
-using namespace Qt::Literals::StringLiterals;
+namespace QLiterals = Qt::Literals::StringLiterals;
+using namespace QLiterals;
 
-constexpr QLatin1Char exercises_separator(28);
-constexpr QLatin1Char comp_exercise_separator(29);
-constexpr QLatin1Char record_separator(30);
-constexpr QLatin1Char set_separator(31);
+constexpr QLatin1Char exercises_separator{28};
+constexpr QLatin1Char comp_exercise_separator{29};
+constexpr QLatin1Char record_separator{30};
+constexpr QLatin1Char set_separator{31};
 
-constexpr QLatin1Char fancy_record_separator1('|');
-constexpr QLatin1Char fancy_record_separator2(';');
-constexpr QLatin1StringView comp_exercise_fancy_separator(" + "_L1);
+constexpr QLatin1Char fancy_record_separator1{'|'};
+constexpr QLatin1Char fancy_record_separator2{';'};
+constexpr QLatin1StringView comp_exercise_fancy_separator{" + "_L1};
 
 static const QString STR_ONE{'1'};
 static const QString STR_ZERO{'0'};
+
+// Helper macros for token pasting
+#define PASTE_HELPER(a, b) a##b
+#define PASTE(a, b) PASTE_HELPER(a, b)
+
+#define createRole2(roleName, enumField) \
+	PASTE(roleName, Role) = Qt::UserRole + static_cast<uint8_t>(enumField),
+
+#define createRole(roleName, enumField) \
+	roleName = Qt::UserRole + static_cast<uint8_t>(enumField),
+
+#define STRINGIFY(x) #x
+// Macro to wrap the parameter with quotes
+#define QUOTE(x) STRINGIFY(x)
+#define roleToString(roleName) \
+	m_roleNames[PASTE(roleName, Role)] = std::move(QUOTE(roleName));
 
 class TPUtils : public QObject
 {
@@ -42,18 +59,18 @@ public:
 		TF_ONLINE
 	};
 
-	const QString exercisesListFileIdentifier{Qt::Literals::StringLiterals::operator""_L1("0x01", 4)};
-	const QString mesoFileIdentifier{Qt::Literals::StringLiterals::operator""_L1("0x02", 4)};
-	const QString splitFileIdentifier{Qt::Literals::StringLiterals::operator""_L1("0x03", 4)};
-	const QString workoutFileIdentifier{Qt::Literals::StringLiterals::operator""_L1("0x05", 4)};
-	const QString userFileIdentifier{Qt::Literals::StringLiterals::operator""_L1("0x06", 4)};
+	const QString exercisesListFileIdentifier{QLiterals::operator""_L1("0x01", 4)};
+	const QString mesoFileIdentifier{QLiterals::operator""_L1("0x02", 4)};
+	const QString splitFileIdentifier{QLiterals::operator""_L1("0x03", 4)};
+	const QString workoutFileIdentifier{QLiterals::operator""_L1("0x05", 4)};
+	const QString userFileIdentifier{QLiterals::operator""_L1("0x06", 4)};
 
 	const QString STR_START_EXPORT{"##%%"_L1};
 	const QString STR_START_FORMATTED_EXPORT{"####"_L1};
 	const QString STR_END_EXPORT{"##!!"_L1};
 	const QString STR_END_FORMATTED_EXPORT{"##$$"_L1};
 
-	explicit inline TPUtils(QObject *parent = nullptr): QObject{parent}, m_appLocale{nullptr}
+	explicit inline TPUtils(QObject *parent = nullptr): QObject{parent}, m_appLocale{nullptr}, m_lowestTempId{-1}
 	{
 		app_utils = this;
 	}
@@ -118,8 +135,8 @@ public:
 	Q_INVOKABLE void copyToClipboard(const QString &text) const;
 	Q_INVOKABLE QString pasteFromClipboard() const;
 
-	Q_INVOKABLE inline QString monthName(const uint qml_month) const { return _months_names.at(qml_month); }
-	Q_INVOKABLE inline QString dayName(const uint week_day) const { return _days_names.at(week_day); }
+	Q_INVOKABLE inline QString monthName(const uint qml_month) const { return qml_month < 12 ? _months_names.at(qml_month) : QString{}; }
+	Q_INVOKABLE inline QString dayName(const uint week_day) const { return week_day < 7 ? _days_names.at(week_day) : QString{}; }
 	Q_INVOKABLE QString formatDate(const QDate &date, const DATE_FORMAT format = DF_QML_DISPLAY) const;
 	inline QString formatTodayDate(const DATE_FORMAT format = DF_QML_DISPLAY) const { return std::move(formatDate(QDate::currentDate())); }
 	QDate getDateFromDateString(const QString &strdate, const DATE_FORMAT format = DF_QML_DISPLAY) const;
@@ -182,13 +199,15 @@ public:
 	QString stripDiacriticsFromString(const QString &src) const;
 	Q_INVOKABLE QString stripInvalidCharacters(const QString &string) const;
 
-	Q_INVOKABLE QString setTypeOperation(const uint settype, const bool bIncrease, QString strValue, const bool seconds = false) const;
+	Q_INVOKABLE QString setTypeOperation(const uint settype, const bool increase, QString str_value, const bool seconds = false) const;
 
 	inline QLocale *appLocale() const { return m_appLocale; }
 	void setAppLocale(const QString &locale_str);
+	inline QString newDBTemporaryId() const { return QString::number(m_lowestTempId--); }
 
 private:
 	QLocale *m_appLocale;
+	mutable int16_t m_lowestTempId;
 
 	static QStringList _months_names;
 	static QStringList _days_names;
@@ -226,17 +245,19 @@ inline bool isBitSet(const T &__restrict var, const unsigned char bit)
 inline bool containsAllWords(const QString &mainString, const QStringList &wordSet)
 {
 	const QStringList &searched_words{mainString.split(' ', Qt::SkipEmptyParts)};
+	QStringList::const_iterator haystack{searched_words.constBegin()};
+	const QStringList::const_iterator haystack_end{searched_words.constEnd()};
 	for (const auto &needle : std::as_const(wordSet))
 	{
 		bool found{false};
-		for (const auto &haystack : std::as_const(searched_words))
+		do
 		{
-			if (haystack.startsWith(needle, Qt::CaseInsensitive))
+			if (haystack->startsWith(needle, Qt::CaseInsensitive))
 			{
 				found = true;
 				break;
 			}
-		}
+		} while (++haystack != haystack_end);
 		if (!found)
 			return false;
 	}

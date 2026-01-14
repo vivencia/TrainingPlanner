@@ -111,7 +111,7 @@ Pane {
 						let mesoSplit = txtMesoSplit.text;
 						mesoManager.split = mesoSplit.substring(0,delegateRow.delegateIndex) +
 													valueAt(cboindex) + mesoSplit.substring(delegateRow.delegateIndex+1);
-						fillMuscularGroupsModel(delegateRow.index, currentValue, mesoManager.muscularGroup(currentValue))
+						splitRepeater.itemAt(delegateRow.index).children[3].fillMuscularGroupsModel(mesoManager.muscularGroup(currentValue));
 
 						let last_letter_idx = cboindex + 1;
 						if (last_letter_idx === nDelegateRows) {
@@ -141,7 +141,7 @@ Pane {
 
 					Component.onCompleted: {
 						currentIndex = indexOfValue(txtMesoSplit.text.charAt(delegateRow.delegateIndex));
-						fillMuscularGroupsModel(delegateRow.index, currentValue, mesoManager.muscularGroup(currentValue))
+						splitRepeater.itemAt(delegateRow.index).children[3].fillMuscularGroupsModel(mesoManager.muscularGroup(currentValue));
 
 						let last_letter_idx = indexOfValue(currentValue);
 						if (last_letter_idx === nLastDelegateIdx) { //split is an 'R'
@@ -174,18 +174,10 @@ Pane {
 					onClicked: showMGDialog(this, cboSplit.currentValue);
 				}
 
-				TPComboBox {
+				TPMuscularGroupsList {
 					id: cboMuscularGroup
-					selectable: false
-					displayText: model.count > 0 ? _displayText : qsTr("<- Choose muscle groups...")
 					Layout.minimumWidth: col4Width
 					Layout.maximumWidth: col4Width
-
-					property string _displayText
-
-					model: ListModel {
-						id: groupsModel
-					}
 				} //cboMuscularGroup
 			} //RowLayout
 		} //Repeater
@@ -219,7 +211,7 @@ Pane {
 				case 'E' : index = 4; break;
 				case 'F' : index = 5; break;
 			}
-			fillMuscularGroupsModel(index, split, groups);
+			splitRepeater.itemAt(index).children[3].fillMuscularGroupsModel(groups);
 		}
 
 	property MuscularGroupPicker filterDlg: null
@@ -239,23 +231,5 @@ Pane {
 				component.statusChanged.connect(finishCreation);
 		}
 		filterDlg.show(mesoManager.muscularGroup(split), button, 3);
-	}
-
-	function fillMuscularGroupsModel(index: int, split: string, groups_str: string): void {
-		let groups = groups_str.split('|');
-		const cboBox = splitRepeater.itemAt(index).children[3];
-		cboBox.model.clear();
-		if (groups.length > 0)
-		{
-			let display_text = "";
-			for (let i = 0; i < groups.length; ++i) {
-				if (groups[i] !== "") {
-					cboBox.model.append({ text: groups[i], value: "", enabled: true });
-					display_text += groups[i] + ", ";
-				}
-			}
-			cboBox._displayText = display_text.substring(0, display_text.length - 2);
-			cboBox.currentIndex = 0;
-		}
 	}
 } //Pane

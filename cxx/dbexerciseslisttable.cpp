@@ -26,7 +26,7 @@ DBExercisesListTable::DBExercisesListTable(DBModelInterfaceExercisesList* dbmode
 	setObjectName("ExercisesListTable");
 	#endif
 	m_updateList = list_version != appSettings()->exercisesListVersion();
-	setReadAllRecordsFunc([this] () { return getAllExercises(); });
+	setReadAllRecordsFunc<void>([this] (void *param) { return getAllExercises(param); });
 }
 
 QString DBExercisesListTable::dbFileName(const bool fullpath) const
@@ -35,7 +35,7 @@ QString DBExercisesListTable::dbFileName(const bool fullpath) const
 	return fullpath ? dbFilePath() + filename : filename;
 }
 
-bool DBExercisesListTable::getAllExercises()
+bool DBExercisesListTable::getAllExercises(void *)
 {
 	bool success{false};
 	if (m_updateList)

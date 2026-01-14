@@ -2,6 +2,7 @@
 
 #include "thread_manager.h"
 
+#include <QHash>
 #include <QObject>
 #include <QVariant>
 #include <QStringList>
@@ -9,13 +10,13 @@
 #include <QSqlQuery>
 
 constexpr uint8_t APP_TABLES_NUMBER{7};
-constexpr uint8_t EXERCISES_TABLE_ID{0x0001};
-constexpr uint8_t MESOCYCLES_TABLE_ID{0x0002};
-constexpr uint8_t MESOSPLIT_TABLE_ID{0x0003};
-constexpr uint8_t MESOCALENDAR_TABLE_ID{0x0004};
-constexpr uint8_t WORKOUT_TABLE_ID{0x0005};
-constexpr uint8_t USERS_TABLE_ID{0x0006};
-constexpr uint8_t CHAT_TABLE_ID{0x0007};
+constexpr uint8_t EXERCISES_TABLE_ID{0x01};
+constexpr uint8_t MESOCYCLES_TABLE_ID{0x02};
+constexpr uint8_t MESOSPLIT_TABLE_ID{0x03};
+constexpr uint8_t MESOCALENDAR_TABLE_ID{0x04};
+constexpr uint8_t WORKOUT_TABLE_ID{0x05};
+constexpr uint8_t USERS_TABLE_ID{0x06};
+constexpr uint8_t CHAT_TABLE_ID{0x07};
 
 QT_FORWARD_DECLARE_CLASS(DBModelInterface)
 QT_FORWARD_DECLARE_CLASS(QFile)
@@ -62,14 +63,21 @@ public:
 	bool execSingleWriteQuery(const QString &str_query);
 	bool execMultipleWritesQuery(const QStringList &queries);
 
-	inline void setDBModelInterface(DBModelInterface *dbmodel_interface) { m_dbModelInterface = dbmodel_interface; }
-	inline std::function<void()> threadedFunction(ThreadManager::StandardOps op) const { return m_threadedFunctions.value(op); }
-	void setReadAllRecordsFunc(const std::function<bool()> &func);
+	void setDBModelInterface(DBModelInterface *dbmodel_interface);
+	template<typename T> inline void setReadAllRecordsFunc(const std::function<bool (void *param)> &func)
+	{
+		m_threadedFunctions.insert(ThreadManager::ReadAllRecords, [this,func] (void *param) {
+			const bool result{func(static_cast<T*>(param))};
+			emit actionFinished(ThreadManager::ReadAllRecords, QVariant{result}, QVariant{false});
+		});
+	}
+
+	inline std::function<void(void *)> threadedFunction(ThreadManager::StandardOps op) const { return m_threadedFunctions.value(op); }
 	inline std::function<std::pair<QVariant,QVariant>()> &customQueryFunc() { return m_customQueryFunc; }
 	inline void setCustQueryFunction(const std::function<std::pair<QVariant,QVariant>()> &func) { m_customQueryFunc = func; }
 
 public slots:
-	void startAction(const int unique_id, ThreadManager::StandardOps operation);
+	void startAction(const int unique_id, ThreadManager::StandardOps operation, void *extra_param);
 
 signals:
 	void actionFinished(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2);
@@ -93,7 +101,7 @@ protected:
 	DBModelInterface *m_dbModelInterface;
 
 private:
-	QHash<ThreadManager::StandardOps, std::function<void()>> m_threadedFunctions;
+	QHash<ThreadManager::StandardOps, std::function<void(void *param)>> m_threadedFunctions;
 	std::function<std::pair<QVariant,QVariant>()> m_customQueryFunc;
 
 	bool createServerCmdFile(const QString &dir, const std::initializer_list<QString> &command_parts,
