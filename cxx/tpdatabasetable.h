@@ -81,13 +81,9 @@ public slots:
 
 signals:
 	void actionFinished(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2);
+	void dbOperationsFinished(const ThreadManager::StandardOps op, const bool success);
 
 protected:
-	explicit TPDatabaseTable(const uint table_id, DBModelInterface *dbmodel_interface = nullptr);
-
-	static constexpr QLatin1StringView dbfile_extension{ ".db.sqlite"_L1 };
-	void setUpConnection();
-
 	QSqlDatabase m_sqlLiteDB;
 	QSqlQuery m_workingQuery;
 	QString m_strQuery;
@@ -100,11 +96,15 @@ protected:
 
 	DBModelInterface *m_dbModelInterface;
 
+	explicit TPDatabaseTable(const uint table_id, DBModelInterface *dbmodel_interface = nullptr);
+
+	static constexpr QLatin1StringView dbfile_extension{ ".db.sqlite"_L1 };
+	void setUpConnection();
+	bool createServerCmdFile(const QString &dir, const std::initializer_list<QString> &command_parts,
+									const bool overwrite = false) const;
+
 private:
 	QHash<ThreadManager::StandardOps, std::function<void(void *param)>> m_threadedFunctions;
 	std::function<std::pair<QVariant,QVariant>()> m_customQueryFunc;
-
-	bool createServerCmdFile(const QString &dir, const std::initializer_list<QString> &command_parts,
-									const bool overwrite = false) const;
 };
 

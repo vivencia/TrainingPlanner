@@ -90,7 +90,6 @@ set( CXX_SOURCES
 	cxx/dbmesocyclesmodel.h cxx/dbmesocyclesmodel.cpp
 	cxx/homepagemesomodel.h cxx/homepagemesomodel.cpp
 
-	cxx/dbmesocalendarmanager.h cxx/dbmesocalendarmanager.cpp
 	cxx/dbexercisesmodel.h cxx/dbexercisesmodel.cpp
     cxx/dbcalendarmodel.h cxx/dbcalendarmodel.cpp
 	cxx/dbusermodel.h cxx/dbusermodel.cpp

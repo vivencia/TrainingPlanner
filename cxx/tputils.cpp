@@ -642,7 +642,7 @@ QString TPUtils::formatDate(const QDate &date, const DATE_FORMAT format) const
 	return QString{};
 }
 
-QDate TPUtils::getDateFromDateString(const QString &strdate, const DATE_FORMAT format) const
+QDate TPUtils::dateFromString(const QString &strdate, const DATE_FORMAT format) const
 {
 	if (strdate.length() < 6)
 		return QDate{};
@@ -800,7 +800,7 @@ QString TPUtils::formatTime(const QTime &time, const TIME_FORMAT format) const
 	return QString{};
 }
 
-QTime TPUtils::getTimeFromTimeString(const QString &strtime, const TIME_FORMAT format) const
+QTime TPUtils::timeFromString(const QString &strtime, const TIME_FORMAT format) const
 {
 	int hour{0}, min{0}, sec{0};
 	if (strtime.length() >= 4)
@@ -940,8 +940,8 @@ QTime TPUtils::calculateTimeDifference(const QString &strTimeInit, const QString
 
 QDateTime TPUtils::getDateTimeFromOnlineString(const QString &datetime) const
 {
-	const QDate &date{getDateFromDateString(datetime.right(6), DF_ONLINE)};
-	const QTime &time{getTimeFromTimeString(datetime.left(6), TF_ONLINE)};
+	const QDate &date{dateFromString(datetime.right(6), DF_ONLINE)};
+	const QTime &time{timeFromString(datetime.left(6), TF_ONLINE)};
 	return QDateTime{date, time};
 }
 

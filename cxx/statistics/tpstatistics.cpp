@@ -1,9 +1,5 @@
 #include "tpstatistics.h"
 
-#include "../dbmesocalendarmanager.h"
-#include "../dbmesocyclesmodel.h"
-#include "../thread_manager.h"
-
 #include <QtCharts/QtCharts>
 #include <QtCharts/QAreaSeries>
 #include <QtCharts/QXYSeries>

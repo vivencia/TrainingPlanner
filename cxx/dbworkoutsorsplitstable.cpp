@@ -149,3 +149,16 @@ std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::getPreviousWorkoutsIds()
 	}
 	return std::pair<QVariant,QVariant>{false, false};
 }
+
+std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::removeAllMesoExercises(const QString &mesoid)
+{
+	m_strQuery = std::move("DELETE FROM %1 WHERE %3=%4;"_L1.arg(table_name, field_names[EXERCISES_FIELD_MESOID][0], mesoid));
+	bool cmd_ok{false};
+	const bool success{execSingleWriteQuery(m_strQuery)};
+	if (success)
+	{
+		m_strQuery.prepend("PRAGMA busy_timeout = 5000;"_L1);
+		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
+	}
+	return std::pair<QVariant,QVariant>{success, cmd_ok};
+}

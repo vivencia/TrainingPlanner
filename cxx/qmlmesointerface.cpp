@@ -51,6 +51,15 @@ bool QMLMesoInterface::splitOK() const
 	return !m_mesoModel->isRequiredFieldWrong(m_mesoIdx, MESO_FIELD_SPLIT);
 }
 
+void QMLMesoInterface::setMesoIdx(const uint new_value)
+{
+	m_mesoIdx = new_value;
+	m_splitsPage->setMesoIdx(m_mesoIdx);
+	m_calendarPage->setMesoIdx(m_mesoIdx);
+	for (const auto workout_page : std::as_const(m_workoutPages))
+		workout_page->setMesoIdx(m_mesoIdx);
+}
+
 bool QMLMesoInterface::realMeso() const
 {
 	return m_mesoModel->isRealMeso(m_mesoIdx);
@@ -272,7 +281,7 @@ void QMLMesoInterface::setMuscularGroup(const QString &split, const QString &new
 void QMLMesoInterface::getCalendarPage()
 {
 	if (!m_calendarPage)
-		m_calendarPage = new QmlMesoCalendarInterface{this, m_mesoModel, m_mesoIdx};
+		m_calendarPage = new QmlMesoCalendarInterface{this, m_mesoModel, m_mesoModel->calendar(m_mesoIdx), m_mesoIdx};
 	m_calendarPage->getMesoCalendarPage();
 }
 
@@ -294,6 +303,7 @@ void QMLMesoInterface::getWorkoutPage(const QDate &date)
 		workoutPage = new QmlWorkoutInterface{this, m_mesoModel, m_mesoIdx, date};
 		m_workoutPages.insert(date, workoutPage);
 	}
+	m_mesoModel->setWorkingWorkout(m_mesoIdx, m_mesoModel->workoutForDay(m_mesoIdx, date));
 	workoutPage->getWorkoutPage();
 }
 

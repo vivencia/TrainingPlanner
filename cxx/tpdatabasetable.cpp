@@ -66,19 +66,19 @@ TPDatabaseTable::TPDatabaseTable(const uint table_id, DBModelInterface *dbmodel_
 	connect(this, &TPDatabaseTable::actionFinished, this, [this]
 				(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2)
 	{
-		m_sqlLiteDB.close();
-		switch (op)
+		if (op != ThreadManager::ReadAllRecords)
 		{
-			case ThreadManager::ReadAllRecords: break;
-			case ThreadManager::CustomOperation: break;
-			default:
+			if (!m_sqlLiteDB.connectOptions().contains("READONLY"_L1))
+			{
 				if (return_value2.toBool())
 				{
 					if (appUserModel()->mainUserLoggedIn())
 						emit appUserModel()->cmdFileCreated(dbFilePath());
 				}
-			break;
+			}
 		}
+		m_sqlLiteDB.close();
+		emit dbOperationsFinished(op, return_value1.toBool());
 	});
 }
 
@@ -94,18 +94,6 @@ void TPDatabaseTable::startAction(const int unique_id, ThreadManager::StandardOp
 																	" because it's not inserted in the functions container";
 		#endif
 	}
-}
-
-void TPDatabaseTable::setUpConnection()
-{
-	m_uniqueID = appUtils()->generateUniqueId();
-	const QString &cnx_name{*m_tableName % "_connection"_L1 % QString::number(m_uniqueID)};
-	m_sqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name));
-
-	QString dbfilename{std::move(dbFileName())};
-	m_sqlLiteDB.setDatabaseName(dbfilename);
-	if (!m_databaseFilenamesPool.contains(dbfilename))
-		m_databaseFilenamesPool.append(std::move(dbfilename));
 }
 
 QString TPDatabaseTable::dbFilePath() const
@@ -535,6 +523,18 @@ bool TPDatabaseTable::execMultipleWritesQuery(const QStringList &queries)
 void TPDatabaseTable::setDBModelInterface(DBModelInterface *dbmodel_interface)
 {
 	m_dbModelInterface = dbmodel_interface;
+}
+
+void TPDatabaseTable::setUpConnection()
+{
+	m_uniqueID = appUtils()->generateUniqueId();
+	const QString &cnx_name{*m_tableName % "_connection"_L1 % QString::number(m_uniqueID)};
+	m_sqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name));
+
+	QString dbfilename{std::move(dbFileName())};
+	m_sqlLiteDB.setDatabaseName(dbfilename);
+	if (!m_databaseFilenamesPool.contains(dbfilename))
+		m_databaseFilenamesPool.append(std::move(dbfilename));
 }
 
 bool TPDatabaseTable::createServerCmdFile(const QString &dir, const std::initializer_list<QString> &command_parts,

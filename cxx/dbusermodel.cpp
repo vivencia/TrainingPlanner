@@ -2199,7 +2199,7 @@ QString DBUserModel::formatFieldToImport(const uint field, const QString &fieldV
 	switch (field)
 	{
 		case USER_COL_BIRTHDAY:
-			return QString::number(appUtils()->getDateFromDateString(fieldValue).toJulianDay());
+			return QString::number(appUtils()->dateFromString(fieldValue).toJulianDay());
 		case USER_COL_SEX:
 			return fieldValue == tr("Male") ? "0"_L1 : "1"_L1;
 		case USER_COL_SOCIALMEDIA:

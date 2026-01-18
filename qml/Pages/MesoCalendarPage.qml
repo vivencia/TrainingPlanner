@@ -16,22 +16,14 @@ TPPage {
 	property DBCalendarModel calendarModel
 
 	property date _today: new Date()
-	property bool bAlreadyLoaded: false
 
-	onPageActivated: {
-		if (!bAlreadyLoaded && calendarModel !== null)
-		{
-			calendar.positionViewAtIndex(calendarModel.getIndexFromDate(_today), ListView.Contain);
-			calendarManager.selectedDate = _today;
-			bAlreadyLoaded = true;
-		}
-	}
+	onPageActivated: calendar.positionViewAtIndex(calendarModel.getIndexFromDate(calendarModel.currentDate), ListView.Contain);
 
 	Connections {
-		target: calendarManager
-		function onSelectedDateChanged() : void {
+		target: calendarModel
+		function onCurrentDayChanged() : void {
 			lblInfo.text = calendarManager.dayInfo();
-			cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(calendarManager.selectedSplitLetter);
+			cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(calendarModel.splitLetter);
 		}
 	}
 
@@ -135,15 +127,16 @@ TPPage {
 					radius: width * 0.5
 					border.color: "green"
 					border.width: dayIsFinished ? 2 : 0
-					opacity: workoutDay ? 1 : calendarModel.isPartOfMeso(month_day) ?  0.7 : 0.4
-					color: appSettings.primaryLightColor
+					opacity: workoutDay ? 1 : mesoDay ?  0.7 : 0.4
+					color: visibleDay ? appSettings.primaryLightColor : "transparent"
 
 					readonly property date month_day: new Date(model.year, model.month, model.day);
 					readonly property bool todayDate: month_day.getUTCFullYear() === _today.getUTCFullYear() &&
 							month_day.getUTCMonth() === _today.getUTCMonth() && month_day.getUTCDate() === _today.getUTCDate()
+					readonly property bool visibleDay: model.month === monthGrid.month
+					readonly property bool mesoDay: calendarModel.isPartOfMeso(month_day)
 					readonly property bool workoutDay: calendarModel.isWorkoutDay(month_day)
-					property bool dayIsFinished: calendarModel.completed(month_day)
-					property bool highlighted: false
+					readonly property bool dayIsFinished: calendarModel.completed_by_date(month_day)
 
 					function highlightDay(highlighted: bool): void {
 						if (highlighted)
@@ -164,13 +157,12 @@ TPPage {
 					TPLabel {
 						id: txtDay
 						anchors.centerIn: parent
-						text: calendarModel.dayText(dayEntry.month_day)
+						text: calendarModel.dayEntryLabel(dayEntry.month_day)
 						font: AppGlobals.smallFont
-						color: !dayEntry.todayDate ? (calendarModel.isPartOfMeso(dayEntry.month_day) ?
-														appSettings.fontColor : appSettings.disabledFontColor) : "red"
+						visible: dayEntry.visibleDay
+						color: !dayEntry.todayDate ? (mesoDay ? appSettings.fontColor : appSettings.disabledFontColor) : "red"
 
 						Connections {
-							enabled: calendarModel !== null
 							target: calendarModel
 							function onSplitLetterChanged(date: Date) : void {
 								txtDay.text = calendarModel.dayText(date);
@@ -212,11 +204,11 @@ TPPage {
 								monthGrid.selectedDay.highlightDay(false);
 							dayEntry.highlightDay(true);
 							monthGrid.selectedDay = dayEntry;
-							selectDay(model.year, model.month, model.day);
+							calendarModel.currentDate = dayEntry.month_day;
+							optChangeOnlyThisDay.checked = optChangeAfterThisDay.checked = false;
+							optChangeOnlyThisDay.enabled = optChangeAfterThisDay.enabled = false;
+							btnViewWorkout.enabled = dayEntry.workoutDay;
 						}
-
-						onEntered: dayEntry.highlighted = true;
-						onExited: dayEntry.highlighted = false;
 					}
 				} //delegate: Rectangle
 			} //MonthGrid
@@ -246,11 +238,11 @@ TPPage {
 		TPComboBox {
 			id: cboSplitLetter
 			model: AppGlobals.splitModel
-			currentIndex: indexOfValue(calendarManager.selectedSplitLetter);
+			currentIndex: indexOfValue(calendarModel.splitLetter);
 			width: parent.width * 0.2
 
 			onActivated: (index) => optChangeOnlyThisDay.enabled = optChangeAfterThisDay.enabled =
-															calendarManager.selectedSplitLetter !== valueAt(index);
+																				calendarModel.splitLetter !== valueAt(index);
 
 			anchors {
 				top: optChangeOnlyThisDay.bottom
@@ -322,12 +314,4 @@ TPPage {
 			onClicked: calendarManager.getWorkoutPage();
 		}
 	} // footer: ToolBar
-
-	//Javascript month values differ from QDate's
-	//JS 0-11 Qt:1-12
-	function selectDay(year, month, day): void {
-		calendarManager.selectedDate = new Date(year, month, day);
-		optChangeOnlyThisDay.checked = optChangeAfterThisDay.checked = false;
-		optChangeOnlyThisDay.enabled = optChangeAfterThisDay.enabled = false;
-	}
 } //Page

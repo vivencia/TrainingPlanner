@@ -59,9 +59,9 @@ void QmlMesoSplitInterface::removeExercise(const int exercise_number)
 void QmlMesoSplitInterface::swapMesoPlans()
 {
 	DBSplitModel* tempSplit{currentSplitModel()};
-	m_mesoModel->splitModelsForMeso(m_mesoIdx)[currentSplitLetter()] =
-							m_mesoModel->splitModelsForMeso(m_mesoIdx).value(currentSwappableLetter());
-	m_mesoModel->splitModelsForMeso(m_mesoIdx)[currentSwappableLetter()] = tempSplit;
+	m_mesoModel->splitModelsForMeso(m_mesoIdx).insert(currentSplitLetter(),
+										m_mesoModel->splitModelsForMeso(m_mesoIdx).value(currentSwappableLetter()));
+	m_mesoModel->splitModelsForMeso(m_mesoIdx).insert(currentSwappableLetter(), tempSplit);
 }
 
 void QmlMesoSplitInterface::loadSplitFromPreviousMeso()
@@ -71,7 +71,7 @@ void QmlMesoSplitInterface::loadSplitFromPreviousMeso()
 		DBSplitModel *split_model{new DBSplitModel{m_mesoModel, currentSplitModel()->database(),
 																					m_mesoIdx, m_currentSplitLetter, true}};
 		connect(split_model, &DBSplitModel::exerciseCountChanged, this, [this,split_model] () {
-			m_mesoModel->splitModelsForMeso(m_mesoIdx)[m_currentSplitLetter] = split_model;
+			m_mesoModel->splitModelsForMeso(m_mesoIdx).insert(m_currentSplitLetter, split_model);
 			delete split_model;
 		});
 	}

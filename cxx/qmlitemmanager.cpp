@@ -3,7 +3,6 @@
 #include "dbcalendarmodel.h"
 #include "dbexercisesmodel.h"
 #include "dbexerciseslistmodel.h"
-#include "dbmesocalendarmanager.h"
 #include "dbmesocyclesmodel.h"
 #include "dbusermodel.h"
 #include "homepagemesomodel.h"
@@ -71,7 +70,6 @@ void QmlItemManager::configureQmlEngine()
 	REGISTER_QML_TYPE(DBExercisesListModel, "DBExercisesListModel")
 	REGISTER_QML_TYPE(DBMesocyclesModel, "MesocyclesModel")
 	REGISTER_QML_TYPE(DBExercisesModel, "DBExercisesModel")
-	REGISTER_QML_TYPE(DBMesoCalendarManager, "DBMesoCalendarManager")
 	REGISTER_QML_TYPE(DBCalendarModel, "DBCalendarModel")
 	REGISTER_QML_TYPE(TPTimer, "TPTimer")
 	REGISTER_QML_TYPE(TPImage, "TPImage")
@@ -198,8 +196,8 @@ void QmlItemManager::importFromSelectedFile(const QList<bool> &selectedFields)
 				importFileMessageId = appExercisesList()->newExerciseFromFile(m_importFilename, formatted);
 			break;
 			case IFC_WORKOUT: //TODO Display a dialog offering all the possible dates into which to add the workout
-				importFileMessageId = appUserModel()->actualMesoModel()->mesoCalendarManager()->importWorkoutFromFile(m_importFilename, appUserModel()->actualMesoModel()->importIdx(),
-																				QDate::currentDate(), formatted);
+				importFileMessageId = appUserModel()->actualMesoModel()->workingWorkout()->newExercisesFromFile(
+																								m_importFilename, formatted);
 			break;
 		}
 		if (importFileMessageId != TP_RET_CODE_SUCCESS)

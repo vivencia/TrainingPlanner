@@ -29,11 +29,12 @@ enum MesoFields
 	MESO_TOTAL_FIELDS
 };
 
+QT_FORWARD_DECLARE_CLASS(DBCalendarModel)
+QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
+QT_FORWARD_DECLARE_CLASS(DBMesoCalendarTable)
 QT_FORWARD_DECLARE_CLASS(DBMesocyclesTable)
 QT_FORWARD_DECLARE_CLASS(DBModelInterfaceMesocycle)
-QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(DBWorkoutsOrSplitsTable)
-QT_FORWARD_DECLARE_CLASS(DBMesoCalendarManager)
 QT_FORWARD_DECLARE_CLASS(QMLMesoInterface)
 QT_FORWARD_DECLARE_CLASS(QFile)
 
@@ -90,7 +91,6 @@ public:
 	Q_INVOKABLE inline void startTodaysWorkout(const uint meso_idx) { openSpecificWorkout(meso_idx, QDate::currentDate()); }
 	void openSpecificWorkout(const uint meso_idx, const QDate &date);
 
-	inline DBMesoCalendarManager *mesoCalendarManager() const { return m_calendarManager; }
 	inline HomePageMesoModel *ownMesos() const { return m_ownMesos; }
 	inline HomePageMesoModel *clientMesos() const { return m_clientMesos; }
 	void setCurrentMesosView(const bool own_mesos_view);
@@ -313,20 +313,36 @@ public:
 	}
 
 	Q_INVOKABLE inline QString usedSplits(const uint meso_idx) const { return m_usedSplits.at(meso_idx); }
+	void removeSplitsForMeso(const uint meso_idx);
 	void makeUsedSplits(const uint meso_idx);
 	void loadSplits(const uint meso_idx);
 	void removeSplit(const uint meso_idx, const QChar &split_letter);
 	inline DBSplitModel *splitModel(const uint meso_idx, const QChar &split_letter) const
 	{
-		return m_splitModels.at(meso_idx).value(split_letter);
+		return m_splitModels.value(meso_idx).value(split_letter);
 	}
-	inline QMap<QChar,DBSplitModel*> &splitModelsForMeso(const uint meso_idx) { return m_splitModels[meso_idx]; }
+	inline QMap<QChar,DBSplitModel*> splitModelsForMeso(const uint meso_idx) const { return m_splitModels.value(meso_idx); }
 
 	bool isDateWithinMeso(const int meso_idx, const QDate &date) const;
 	int mesoPlanExists(const QString &mesoName, const QString &coach, const QString &client) const;
 	int getPreviousMesoId(const QString &userid, const int current_mesoid) const;
 	QDate getMesoMinimumStartDate(const QString &userid, const uint exclude_idx) const;
 	QDate getMesoMaximumEndDate(const QString &userid, const uint exclude_idx) const;
+
+	void removeCalendarForMeso(const uint meso_idx, const bool remake_calendar);
+	void getCalendarForMeso(const uint meso_idx);
+	uint populateCalendarDays(const uint meso_idx);
+	inline DBCalendarModel *calendar(const uint meso_idx) const { return m_calendars.value(meso_idx); }
+	inline DBCalendarModel *workingCalendar() const { return m_workingCalendar; }
+	void setWorkingCalendar(const uint meso_idx);
+	inline DBExercisesModel *workingWorkout(const uint meso_idx) const { return m_workingWorkouts.value(meso_idx); }
+	DBExercisesModel *workingWorkout() const;
+	void setWorkingWorkout(const uint meso_idx, DBExercisesModel* model);
+	DBExercisesModel *workoutForDay(const uint meso_idx, const int calendar_day);
+	Q_INVOKABLE inline DBExercisesModel *workoutForDay(const uint meso_idx, const QDate &date)
+	{
+		return workoutForDay(meso_idx, static_cast<int>(startDate(meso_idx).daysTo(date)));
+	}
 
 	[[nodiscard]] inline bool canExport(const uint meso_idx) const { return meso_idx < m_canExport.count() ? m_canExport.at(meso_idx) : false; }
 	void checkIfCanExport(const uint meso_idx, const bool bEmitSignal = true);
@@ -436,8 +452,10 @@ signals:
 private:	
 	QList<QStringList> m_mesoData;
 	QHash<uint,QMLMesoInterface*> m_mesoManagerList;
-	QList<QMap<QChar,DBSplitModel*>> m_splitModels;
-	DBMesoCalendarManager *m_calendarManager;
+	QHash<uint, QMap<QChar,DBSplitModel*>> m_splitModels;
+	QHash<uint,QMap<uint,DBExercisesModel*>> m_workouts;
+	QHash<uint,DBCalendarModel*> m_calendars;
+
 	HomePageMesoModel *m_ownMesos, *m_clientMesos;
 	QList<int8_t> m_isMesoOK;
 	QList<bool> m_canExport;
@@ -446,7 +464,10 @@ private:
 
 	DBModelInterfaceMesocycle *m_dbModelInterface;
 	DBMesocyclesTable *m_db;
-	DBWorkoutsOrSplitsTable *m_splitsDB;
+	DBMesoCalendarTable *m_calendarDB;
+	DBWorkoutsOrSplitsTable *m_splitsDB, *m_workoutsDB;
+	QHash<uint,DBExercisesModel*> m_workingWorkouts;
+	DBCalendarModel* m_workingCalendar;
 
 	friend class DBModelInterfaceMesocycle;
 

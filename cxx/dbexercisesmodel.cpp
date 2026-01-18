@@ -1,7 +1,7 @@
 #include "dbexercisesmodel.h"
 
+#include "dbcalendarmodel.h"
 #include "dbexerciseslistmodel.h"
-#include "dbmesocalendarmanager.h"
 #include "dbmesocyclesmodel.h"
 #include "dbworkoutsorsplitstable.h"
 #include "pageslistmodel.h"
@@ -183,7 +183,7 @@ bool DBExercisesModel::fromDatabase()
 				set->type = static_cast<TPSetTypes>(appUtils()->getCompositeValue(set_number, set_types, set_separator).toUInt());
 				if (!rest_times.isEmpty())
 				{
-					set->restTime = std::move(appUtils()->getTimeFromTimeString(
+					set->restTime = std::move(appUtils()->timeFromString(
 						appUtils()->getCompositeValue(set_number, rest_times, set_separator), TPUtils::TF_QML_DISPLAY_NO_HOUR));
 				}
 				if (!sub_sets.isEmpty())
@@ -202,12 +202,12 @@ bool DBExercisesModel::fromDatabase()
 		}
 	}
 	endInsertRows();
-
+	m_exercisesLoaded = true;
+	setWorkingExercise(0);
+	setWorkingSubExercise(0, 0);
+	setWorkingSet(0, 0, 0);
 	if (m_exerciseData.count() > 0)
 	{
-		setWorkingExercise(0);
-		setWorkingSubExercise(0, 0);
-		setWorkingSet(0, 0, 0);
 		emit exerciseCountChanged();
 		emit dataChanged(index(0, 0), index(m_exerciseData.count() - 1, 0));
 		return true;
@@ -558,13 +558,6 @@ const uint DBExercisesModel::setsNumber(const uint exercise_number, const uint e
 		return 0;
 }
 
-void DBExercisesModel::newExerciseFromExercisesList()
-{
-	setExerciseName(m_workingExercise, workingSubExercise(m_workingExercise),
-		appExercisesList()->selectedEntriesValue(0, EXERCISES_LIST_COL_MAINNAME) % " - "_L1 %
-		appExercisesList()->selectedEntriesValue(0, EXERCISES_LIST_COL_SUBNAME));
-}
-
 uint DBExercisesModel::addExercise(int exercise_number, const bool from_qml)
 {
 	bool reutilize_modeldata{false};
@@ -674,6 +667,13 @@ void DBExercisesModel::newExerciseChosen()
 {
 	appPagesListModel()->prevPage();
 	newExerciseFromExercisesList();
+}
+
+void DBExercisesModel::newExerciseFromExercisesList()
+{
+	setExerciseName(m_workingExercise, workingSubExercise(m_workingExercise),
+		appExercisesList()->selectedEntriesValue(0, EXERCISES_LIST_COL_MAINNAME) % " - "_L1 %
+		appExercisesList()->selectedEntriesValue(0, EXERCISES_LIST_COL_SUBNAME));
 }
 
 void DBExercisesModel::saveExercises(const int exercise_number, const int exercise_idx, const int set_number, const int field)
@@ -1100,7 +1100,7 @@ QString DBExercisesModel::setRestTime(const uint exercise_number, const uint exe
 void DBExercisesModel::setSetRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number, const QString &new_time)
 {
 	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->restTime =
-						std::move(appUtils()->getTimeFromTimeString(new_time, TPUtils::TF_QML_DISPLAY_NO_HOUR));
+						std::move(appUtils()->timeFromString(new_time, TPUtils::TF_QML_DISPLAY_NO_HOUR));
 	emit exerciseModified(exercise_number, exercise_idx, set_number, EXERCISES_FIELD_RESTTIMES);
 }
 
@@ -1325,17 +1325,19 @@ bool DBExercisesModel::allSetsCompleted(int exercise_number, int exercise_idx) c
 	if (!isWorkout())
 		return true;
 
-	const uint last_exercise_number{exercise_number == -1 ? exerciseCount() : exercise_number + 1};
-	for (int i{exercise_number == -1 ? 0 : exercise_number}; i < last_exercise_number; ++i)
+	const uint last_exercise_number{exercise_number == UNSET_VALUE ? exerciseCount() : exercise_number + 1};
+	for (int i{exercise_number == UNSET_VALUE ? 0 : exercise_number}; i < last_exercise_number; ++i)
 	{
-		const uint last_exercise_idx{exercise_idx == -1 ? static_cast<uint>(m_exerciseData.at(i)->m_exercises.count()) : exercise_idx + 1};
-		for (int x{exercise_idx == -1 ? 0 : exercise_idx}; x < last_exercise_idx; ++x)
+		const uint last_exercise_idx{exercise_idx == UNSET_VALUE ? static_cast<uint>(m_exerciseData.at(i)->m_exercises.count()) : exercise_idx + 1};
+		for (int x{exercise_idx == UNSET_VALUE ? 0 : exercise_idx}; x < last_exercise_idx; ++x)
 		{
 			for (const auto set : std::as_const(m_exerciseData.at(i)->m_exercises.at(x)->sets))
+			{
 				if (!set->completed)
 					return false;
+			}
+			return true;
 		}
-		return true;
 	}
 	return false;
 }
@@ -1504,7 +1506,7 @@ void DBExercisesModel::commonConstructor(const bool load_from_db)
 
 	if (m_calendarDay >= 0)
 	{
-		m_splitLetter = std::move(m_mesoModel->mesoCalendarManager()->splitLetter(m_mesoIdx, m_calendarDay));
+		m_splitLetter = m_mesoModel->calendar(m_mesoIdx)->splitLetter().at(0);
 		m_identifierInFile = &appUtils()->workoutFileIdentifier;
 	}
 	else
@@ -1541,12 +1543,6 @@ void DBExercisesModel::commonConstructor(const bool load_from_db)
 	}
 }
 
-void DBExercisesModel::changeCalendarDayId()
-{
-	if (m_mesoModel->mesoCalendarManager()->workoutId(m_mesoIdx, m_calendarDay) == "-1"_L1)
-		m_mesoModel->mesoCalendarManager()->setWorkoutId(m_mesoIdx, m_calendarDay, id());
-}
-
 TPSetTypes DBExercisesModel::formatSetTypeToImport(const QString& fieldValue) const
 {
 	if (fieldValue == tr("Pyramid"))
@@ -1567,11 +1563,11 @@ TPSetTypes DBExercisesModel::formatSetTypeToImport(const QString& fieldValue) co
 //contain a valid value because export will only be an option if those values are valid. Those checks are made elsewhere in the code path.
 const QString DBExercisesModel::exportExtraInfo() const
 {
-	QString extra_info{std::move(splitLabel() + splitLetter() + " ("_L1 + m_mesoModel->muscularGroup(mesoIdx(), splitLetter()) + ')')};
+	QString extra_info{std::move(splitLabel() % splitLetter() % " ("_L1 % m_mesoModel->muscularGroup(
+																							m_mesoIdx, splitLetter()) % ')')};
 	if (m_calendarDay >= 0)
-		extra_info += std::forward<QString>(calendarDayExtraInfo + std::move(QString::number(m_calendarDay)) +
-			std::move(tr(" at ")) + std::move(
-					appUtils()->formatDate(m_mesoModel->mesoCalendarManager()->date(mesoIdx(), m_calendarDay))));
+		extra_info += calendarDayExtraInfo % QString::number(m_calendarDay) % tr(" at ") %  appUtils()->formatDate(
+																		m_mesoModel->calendar(m_mesoIdx)->date(m_calendarDay));
 	return extra_info;
 }
 

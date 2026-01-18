@@ -26,6 +26,7 @@ public:
 	void updateTable() override final {}
 
 	bool getMesoCalendar(DBModelInterfaceCalendar *dbmi);
+	std::pair<QVariant,QVariant> removeMesoCalendar(const QString &mesoid);
 
 signals:
 	void calendarLoaded(const uint meso_idx, const bool success);

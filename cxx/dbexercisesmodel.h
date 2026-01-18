@@ -96,7 +96,7 @@ public:
 	inline explicit DBExercisesModel(DBMesocyclesModel *meso_model, DBWorkoutsOrSplitsTable* db,
 																				const uint meso_idx, const int calendar_day)
 		: QAbstractListModel{reinterpret_cast<QObject*>(meso_model)}, m_mesoModel{meso_model}, m_db{db},
-			m_mesoIdx{meso_idx}, m_calendarDay{calendar_day}, m_splitLetter{'N'}, m_workingExercise{11111}
+			m_mesoIdx{meso_idx}, m_calendarDay{calendar_day}, m_splitLetter{'N'}, m_workingExercise{11111}, m_exercisesLoaded{false}
 	{
 		commonConstructor(true);
 	}
@@ -117,6 +117,7 @@ public:
 	bool fromDatabase();
 	void clearExercises();
 
+	[[nodiscard]] inline const bool exercisesLoaded() const { return m_exercisesLoaded; }
 	[[nodiscard]] inline const QString &id() const { return m_dbModelInterface->modelData().at(0).at(EXERCISES_FIELD_ID); }
 	[[nodiscard]] const QString &mesoId() const;
 	[[nodiscard]] inline const uint mesoIdx() const { return m_mesoIdx; }
@@ -142,7 +143,6 @@ public:
 	Q_INVOKABLE const uint subExercisesCount(const uint exercise_number) const;
 	Q_INVOKABLE const uint setsNumber(const uint exercise_number, const uint exercise_idx) const;
 
-	void newExerciseFromExercisesList();
 	[[maybe_unused]] Q_INVOKABLE uint addExercise(int exercise_number = -1, const bool from_qml = true);
 	Q_INVOKABLE void delExercise(const uint exercise_number, const bool from_qml = true);
 	Q_INVOKABLE void moveExercise(const uint from, const uint to);
@@ -232,6 +232,7 @@ public:
 
 public slots:
 	void newExerciseChosen();
+	void newExerciseFromExercisesList();
 	void saveExercises(const int exercise_number, const int exercise_idx, const int set_number, const int field);
 
 signals:
@@ -257,7 +258,7 @@ private:
 	const QString *m_identifierInFile;
 	uint m_mesoIdx, m_workingExercise;
 	int m_calendarDay;
-	bool m_importMode;
+	bool m_importMode, m_exercisesLoaded;
 	QChar m_splitLetter;
 	QList<exerciseEntry*> m_exerciseData;
 	QHash<int, QByteArray> m_roleNames;
@@ -266,7 +267,6 @@ private:
 	DBModelInterfaceExercises *m_dbModelInterface;
 
 	void commonConstructor(const bool load_from_db);
-	void changeCalendarDayId();
 	TPSetTypes formatSetTypeToImport(const QString &fieldValue) const;
 	const QString exportExtraInfo() const;
 	inline bool importExtraInfo(const QString &maybe_extra_info);

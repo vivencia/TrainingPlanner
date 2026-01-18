@@ -173,77 +173,76 @@ TPPage {
 					id: timeLayout
 					anchors.fill: parent
 
+					TPButtonGroup {
+						id: timeSessionGroup
+					}
+
 					TPRadioButtonOrCheckBox {
 						id: optFreeTimeSession
 						text: qsTr("Open time training session")
+						buttonGroup: timeSessionGroup
 						checked: true
+						enabled: workoutManager.mainDateIsToday
 						Layout.fillWidth: true
 
-						onClicked: {
-							workoutManager.prepareWorkOutTimer();
-							optTimeConstrainedSession.checked = false;
-						}
+						onClicked: workoutManager.prepareWorkOutTimer();
 					}
 
 					TPRadioButtonOrCheckBox {
 						id: optTimeConstrainedSession
 						text: qsTr("Time constrained session")
+						buttonGroup: timeSessionGroup
 						checked: false
 						Layout.fillWidth: true
-
-						onClicked: optFreeTimeSession.checked = false;
 					}
 
-					RowLayout {
+					TPButtonGroup {
+						id: timeConstrainedSessionGroup
+					}
+
+					TPRadioButtonOrCheckBox {
+						text: qsTr("By duration")
+						buttonGroup: timeConstrainedSessionGroup
 						visible: optTimeConstrainedSession.checked
-						Layout.fillWidth: true
-						Layout.leftMargin: 30
-						Layout.bottomMargin: 10
+						Layout.alignment: Qt.AlignCenter
 
-						TPButton {
-							id: btnTimeLength
-							text: qsTr("By duration")
-							autoSize: true
-							Layout.alignment: Qt.AlignCenter
+						onClicked: showLimitedSessionTimerDialog();
+					}
 
-							onClicked: showLimitedSessionTimerDialog();
+					TPRadioButtonOrCheckBox {
+						text: qsTr("By time of day")
+						buttonGroup: timeConstrainedSessionGroup
+						visible: optTimeConstrainedSession.checked
+						Layout.alignment: Qt.AlignCenter
+
+						onClicked: restrictedTimeLoader.openDlg();
+					}
+
+					Loader {
+						id: restrictedTimeLoader
+						active: false
+						asynchronous: true
+
+						sourceComponent: TimePicker {
+							id: dlgTimeEndSession
+							hrsDisplay: appUtils.getHourFromCurrentTime()
+							minutesDisplay: appUtils.getMinutesFromCurrentTime()
+							bOnlyFutureTime: workoutManager.mainDateIsToday ? workoutManager.editMode : false
+							parentPage: workoutPage
+
+							onTimeSet: (hour, minutes) => workoutManager.prepareWorkOutTimer(appUtils.getCurrentTimeString(), hour + ":" + minutes);
+							onClosed: restrictedTimeLoader.active = false;
 						}
 
-						TPButton {
-							id: btnTimeHour
-							text: qsTr("By time of day")
-							autoSize: true
-							Layout.alignment: Qt.AlignCenter
+						onLoaded: openDlg();
 
-							onClicked: restrictedTimeLoader.openDlg();
+						function openDlg(): void {
+							if (status === Loader.Ready)
+								item.open();
+							else
+								active = true;
 						}
-
-						Loader {
-							id: restrictedTimeLoader
-							active: false
-							asynchronous: true
-
-							sourceComponent: TimePicker {
-								id: dlgTimeEndSession
-								hrsDisplay: appUtils.getHourFromCurrentTime()
-								minutesDisplay: appUtils.getMinutesFromCurrentTime()
-								bOnlyFutureTime: workoutManager.mainDateIsToday ? workoutManager.editMode : false
-								parentPage: workoutPage
-
-								onTimeSet: (hour, minutes) => workoutManager.prepareWorkOutTimer(appUtils.getCurrentTimeString(), hour + ":" + minutes);
-								onClosed: restrictedTimeLoader.active = false;
-							}
-
-							onLoaded: openDlg();
-
-							function openDlg(): void {
-								if (status === Loader.Ready)
-									item.open();
-								else
-									active = true;
-							}
-						}
-					} //RowLayout
+					}
 
 					Row {
 						enabled: optFreeTimeSession.checked && (workoutManager.editMode || workoutManager.mainDateIsToday)
@@ -430,7 +429,6 @@ TPPage {
 			pageManager: workoutPage.workoutManager
 			exercisesModel: workoutPage.workoutModel
 			parentPage: workoutPage
-			height: contentHeight
 
 			anchors {
 				top: layoutMain.bottom

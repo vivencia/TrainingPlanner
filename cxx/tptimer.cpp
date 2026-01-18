@@ -47,7 +47,7 @@ void TPTimer::startTimer(const QString &initialTimeOfDay)
 		if (initialTimeOfDay.isEmpty() || initialTimeOfDay.contains('-'))
 			m_timeOfDay = std::move(QTime::currentTime());
 		else
-			m_timeOfDay = std::move(appUtils()->getTimeFromTimeString(initialTimeOfDay));
+			m_timeOfDay = std::move(appUtils()->timeFromString(initialTimeOfDay));
 	}
 	else
 	{

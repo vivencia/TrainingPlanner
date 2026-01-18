@@ -57,7 +57,7 @@ public:
 	[[nodiscard]] bool splitOK() const;
 
 	[[nodiscard]] inline const uint mesoIdx() const { return m_mesoIdx; }
-	inline void setMesoIdx(const uint new_value) { m_mesoIdx = new_value; }
+	void setMesoIdx(const uint new_value);
 
 	[[nodiscard]] bool realMeso() const;
 	void setRealMeso(const bool new_value);

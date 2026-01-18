@@ -175,10 +175,10 @@ void TPChat::loadChat()
 				message->id = str_message.at(MESSAGE_ID).toUInt();
 				message->sender = str_message.at(MESSAGE_SENDER);
 				message->receiver = str_message.at(MESSAGE_RECEIVER);
-				message->sdate = std::move(appUtils()->getDateFromDateString(str_message.at(MESSAGE_SDATE), TPUtils::DF_ONLINE));
-				message->stime = std::move(appUtils()->getTimeFromTimeString(str_message.at(MESSAGE_STIME), TPUtils::TF_ONLINE));
-				message->rdate = std::move(appUtils()->getDateFromDateString(str_message.at(MESSAGE_RDATE), TPUtils::DF_ONLINE));
-				message->rtime = std::move(appUtils()->getTimeFromTimeString(str_message.at(MESSAGE_RTIME), TPUtils::TF_ONLINE));
+				message->sdate = std::move(appUtils()->dateFromString(str_message.at(MESSAGE_SDATE), TPUtils::DF_ONLINE));
+				message->stime = std::move(appUtils()->timeFromString(str_message.at(MESSAGE_STIME), TPUtils::TF_ONLINE));
+				message->rdate = std::move(appUtils()->dateFromString(str_message.at(MESSAGE_RDATE), TPUtils::DF_ONLINE));
+				message->rtime = std::move(appUtils()->timeFromString(str_message.at(MESSAGE_RTIME), TPUtils::TF_ONLINE));
 				message->deleted = str_message.at(MESSAGE_DELETED).toUInt() == 1;
 				message->sent = str_message.at(MESSAGE_SENT).toUInt() == 1;
 				message->received = str_message.at(MESSAGE_RECEIVED).toUInt() == 1;
@@ -680,13 +680,13 @@ ChatMessage* TPChat::decodeDownloadedMessage(const QString &encoded_message)
 	new_message->id = id;
 	new_message->sender = std::move(appUtils()->getCompositeValue(MESSAGE_SENDER, encoded_message, record_separator));
 	new_message->receiver = std::move(appUtils()->getCompositeValue(MESSAGE_RECEIVER, encoded_message, record_separator));
-	new_message->sdate = std::move(appUtils()->getDateFromDateString(
+	new_message->sdate = std::move(appUtils()->dateFromString(
 							appUtils()->getCompositeValue(MESSAGE_SDATE, encoded_message, record_separator), TPUtils::DF_ONLINE));
-	new_message->rdate = std::move(appUtils()->getDateFromDateString(
+	new_message->rdate = std::move(appUtils()->dateFromString(
 							appUtils()->getCompositeValue(MESSAGE_RDATE, encoded_message, record_separator), TPUtils::DF_ONLINE));
-	new_message->stime = std::move(appUtils()->getTimeFromTimeString(
+	new_message->stime = std::move(appUtils()->timeFromString(
 							appUtils()->getCompositeValue(MESSAGE_STIME, encoded_message, record_separator), TPUtils::TF_ONLINE));
-	new_message->rtime = std::move(appUtils()->getTimeFromTimeString(
+	new_message->rtime = std::move(appUtils()->timeFromString(
 							appUtils()->getCompositeValue(MESSAGE_RTIME, encoded_message, record_separator), TPUtils::TF_ONLINE));
 	new_message->deleted = appUtils()->getCompositeValue(MESSAGE_DELETED, encoded_message, record_separator) == STR_ONE;
 	new_message->sent = appUtils()->getCompositeValue(MESSAGE_SENT, encoded_message, record_separator) == STR_ONE;

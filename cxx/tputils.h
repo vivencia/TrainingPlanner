@@ -139,12 +139,12 @@ public:
 	Q_INVOKABLE inline QString dayName(const uint week_day) const { return week_day < 7 ? _days_names.at(week_day) : QString{}; }
 	Q_INVOKABLE QString formatDate(const QDate &date, const DATE_FORMAT format = DF_QML_DISPLAY) const;
 	inline QString formatTodayDate(const DATE_FORMAT format = DF_QML_DISPLAY) const { return std::move(formatDate(QDate::currentDate())); }
-	QDate getDateFromDateString(const QString &strdate, const DATE_FORMAT format = DF_QML_DISPLAY) const;
+	QDate dateFromString(const QString &strdate, const DATE_FORMAT format = DF_QML_DISPLAY) const;
 	uint calculateNumberOfWeeks(const QDate &date1, const QDate &date2) const;
 	//The returned value contains the number of months in between the dates plus the starting month
 	inline uint calculateNumberOfMonths(const QString &date1, const QString &date2) const
 	{
-		return calculateNumberOfMonths(getDateFromDateString(date1, DF_DATABASE), getDateFromDateString(date2, DF_DATABASE));
+		return calculateNumberOfMonths(dateFromString(date1, DF_DATABASE), dateFromString(date2, DF_DATABASE));
 	}
 	uint calculateNumberOfMonths(const QDate &date1, const QDate &date2) const;
 	QDate getNextSunday(const QDate &fromDate) const;
@@ -157,7 +157,7 @@ public:
 	int daysInMonth(const int month, const int year) const;
 
 	Q_INVOKABLE QString formatTime(const QTime &time, const TIME_FORMAT format = TF_QML_DISPLAY_NO_SEC) const;
-	QTime getTimeFromTimeString(const QString &strtime, const TIME_FORMAT format = TF_QML_DISPLAY_NO_SEC) const;
+	QTime timeFromString(const QString &strtime, const TIME_FORMAT format = TF_QML_DISPLAY_NO_SEC) const;
 	Q_INVOKABLE inline QString getCurrentTimeString(const TIME_FORMAT format = TF_QML_DISPLAY_NO_SEC) const { return formatTime(QTime::currentTime(), format); }
 	Q_INVOKABLE QString addTimeToStrTime(const QString &strTime, const int addmins, const int addsecs) const;
 	Q_INVOKABLE inline QString getHourFromCurrentTime() const
