@@ -114,7 +114,7 @@ public:
 	void plugDBModelInterfaceIntoDatabase();
 
 	void operator=(DBExercisesModel *other_model);
-	bool fromDatabase();
+	bool fromDatabase(const bool db_data_ok);
 	void clearExercises();
 
 	[[nodiscard]] inline const bool exercisesLoaded() const { return m_exercisesLoaded; }

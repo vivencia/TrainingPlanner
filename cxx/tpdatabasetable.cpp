@@ -171,7 +171,7 @@ std::pair<bool, bool> TPDatabaseTable::insertRecord()
 		m_strQuery.prepend("PRAGMA busy_timeout = 5000;"_L1);
 		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
 	}
-	m_dbModelInterface->modifiedIndices().clear();
+	m_dbModelInterface->clearRemovalIndices();
 	return std::pair<bool,bool>{success, cmd_ok};
 }
 
@@ -263,7 +263,8 @@ std::pair<bool,bool> TPDatabaseTable::updateRecord()
 		m_strQuery.prepend("PRAGMA busy_timeout = 5000;"_L1);
 		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
 	}
-	m_dbModelInterface->modifiedIndices().remove(modified_row);
+
+	m_dbModelInterface->removeModifiedIndex(modified_row);
 	return std::pair<bool,bool>{success, cmd_ok};
 }
 
@@ -289,7 +290,7 @@ std::pair<bool,bool> TPDatabaseTable::updateFieldsOfRecord()
 		m_strQuery.prepend("PRAGMA busy_timeout = 5000;"_L1);
 		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
 	}
-	m_dbModelInterface->modifiedIndices().remove(modified_row);
+	m_dbModelInterface->removeModifiedIndex(modified_row);
 	return std::pair<bool,bool>{success, cmd_ok};
 }
 

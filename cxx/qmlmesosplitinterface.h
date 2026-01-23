@@ -16,7 +16,6 @@ class QmlMesoSplitInterface : public QObject
 
 Q_OBJECT
 
-Q_PROPERTY(QQuickItem* currentPage READ currentPage NOTIFY currentPageChanged FINAL)
 Q_PROPERTY(DBSplitModel* currentSplitModel READ currentSplitModel NOTIFY currentPageChanged FINAL)
 Q_PROPERTY(QChar currentSplitLetter READ currentSplitLetter NOTIFY currentPageChanged FINAL)
 Q_PROPERTY(QChar currentSwappableLetter READ currentSwappableLetter NOTIFY currentPageChanged FINAL)
@@ -45,7 +44,6 @@ public:
 	Q_INVOKABLE QQuickItem *setCurrentPage(const int index);
 
 	DBSplitModel *currentSplitModel() const;
-	inline QQuickItem *currentPage() const { return m_currentSplitPage; }
 	inline QChar currentSplitLetter() const { return m_currentSplitLetter; }
 	inline QChar currentSwappableLetter() const { return m_currentSwappableLetter; }
 	bool haveExercises() const;

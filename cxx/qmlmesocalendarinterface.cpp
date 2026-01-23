@@ -110,7 +110,6 @@ void QmlMesoCalendarInterface::createMesoCalendarPage_part2()
 {
 	m_calProperties.insert("calendarManager"_L1, QVariant::fromValue(this));
 	m_calProperties.insert("calendarModel"_L1, QVariant::fromValue(m_calendarModel));
-	qDebug() << "1: " << m_calendarModel->nMonths();
 	m_calPage = static_cast<QQuickItem*>(m_calComponent->createWithInitialProperties(m_calProperties, appQmlEngine()->rootContext()));
 	appQmlEngine()->setObjectOwnership(m_calPage, QQmlEngine::CppOwnership);
 	m_calPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));

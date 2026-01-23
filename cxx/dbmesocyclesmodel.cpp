@@ -22,9 +22,9 @@ constexpr QLatin1StringView mesosViewIdxSetting{"mesosViewIdx"};
 DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
 	: QObject{parent}, m_currentWorkingMeso{-1}
 {
-	if (appUserModel()->isClient(0))
+	if (appUserModel()->mainUserIsClient())
 		m_ownMesos = new HomePageMesoModel{this, true};
-	if (appUserModel()->isCoach(0))
+	if (appUserModel()->mainUserIsCoach())
 		m_clientMesos = new HomePageMesoModel{this, false};
 
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, &DBMesocyclesModel::labelChanged);
@@ -140,7 +140,10 @@ void DBMesocyclesModel::getMesoCalendarPage(const uint meso_idx)
 
 void DBMesocyclesModel::openSpecificWorkout(const uint meso_idx, const QDate &date)
 {
-	mesoManager(meso_idx)->getWorkoutPage(date);
+	connect(this, &DBMesocyclesModel::calendarReady, [this,date] (const uint meso_idx) {
+		mesoManager(meso_idx)->getWorkoutPage(date);
+	});
+	getCalendarForMeso(meso_idx);
 }
 
 void DBMesocyclesModel::setCurrentMesosView(const bool own_mesos_view)
@@ -432,7 +435,7 @@ void DBMesocyclesModel::removeCalendarForMeso(const uint meso_idx, const bool re
 		if (!remake_calendar)
 		{
 			auto y = [this,meso_idx] () -> std::pair<QVariant,QVariant> {
-											return m_workoutsDB->removeAllMesoExercises(id(meso_idx)); };
+											return m_workoutsDB->removeAllMesoWorkouts(id(meso_idx)); };
 			m_workoutsDB->setCustQueryFunction(y);
 			appThreadManager()->runAction(m_workoutsDB, ThreadManager::CustomOperation);
 		}
@@ -448,6 +451,11 @@ void DBMesocyclesModel::getCalendarForMeso(const uint meso_idx)
 		connect(model, &DBCalendarModel::calendarLoaded, this, [this, meso_idx] (const bool success) {
 			if (!success)
 				getCalendarForMeso(meso_idx);
+			else
+			{
+				setWorkingCalendar(meso_idx);
+				emit calendarReady(meso_idx);
+			}
 		}, Qt::SingleShotConnection);
 		m_calendars.insert(meso_idx, model);
 		return;
@@ -459,6 +467,7 @@ void DBMesocyclesModel::getCalendarForMeso(const uint meso_idx)
 		model->setNMonths(n_months);
 		appThreadManager()->runAction(m_calendarDB, ThreadManager::InsertRecords);
 	}
+	emit calendarReady(meso_idx);
 }
 
 uint DBMesocyclesModel::populateCalendarDays(const uint meso_idx)
@@ -520,7 +529,9 @@ DBExercisesModel *DBMesocyclesModel::workoutForDay(const uint meso_idx, const in
 	if (!w_model)
 	{
 		w_model = new DBExercisesModel{this, m_workoutsDB, meso_idx, calendar_day};
-		m_workouts.value(meso_idx).insert(calendar_day, w_model);
+		QMap<uint,DBExercisesModel*> workouts_for_meso;
+		workouts_for_meso.insert(calendar_day, w_model);
+		m_workouts.insert(meso_idx, workouts_for_meso);
 	}
 	return w_model;
 }
@@ -906,6 +917,9 @@ void DBMesocyclesModel::getAllMesocycles()
 					setWorkingCalendar(m_clientMesos->currentMesoIdx());
 				});
 			}
+			#ifndef QT_NO_DEBUG
+			emit mesoDataLoaded();
+			#endif
 		}
 	});
 	appThreadManager()->runAction(m_db, ThreadManager::ReadAllRecords);
@@ -914,7 +928,7 @@ void DBMesocyclesModel::getAllMesocycles()
 	appThreadManager()->runAction(m_splitsDB, ThreadManager::CreateTable);
 	m_calendarDB = new DBMesoCalendarTable{};
 	appThreadManager()->runAction(m_calendarDB, ThreadManager::CreateTable);
-	m_workoutsDB = new DBWorkoutsOrSplitsTable{EXERCISES_TABLE_ID};
+	m_workoutsDB = new DBWorkoutsOrSplitsTable{WORKOUT_TABLE_ID};
 	appThreadManager()->runAction(m_workoutsDB, ThreadManager::CreateTable);
 }
 

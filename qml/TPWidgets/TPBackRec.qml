@@ -9,6 +9,7 @@ Rectangle {
 	property bool useShape: false
 	property bool useGradient: false
 	property bool useImage: false
+	property bool showBorder: false
 	property bool scaleImageToControlSize: true
 
 	property string sourceImage
@@ -27,6 +28,7 @@ Rectangle {
 
 	gradient: useGradient ? _gradient : null
 	color: appSettings.paneBackgroundColor
+	border.color: showBorder ? appSettings.fontColor : "transparent"
 
 	Loader {
 		active: useImage

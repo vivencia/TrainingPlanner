@@ -24,20 +24,20 @@ enum ChatLoadedStatus {
 };
 
 enum ChatRoleNames {
-	createRole(idRole,			MESSAGE_ID)
-	createRole(senderRole,		MESSAGE_SENDER)
-	createRole(receiverRole,	MESSAGE_RECEIVER)
-	createRole(sDateRole,		MESSAGE_SDATE)
-	createRole(sTimeRole,		MESSAGE_STIME)
-	createRole(rDateRole,		MESSAGE_RDATE)
-	createRole(rTimeRole,		MESSAGE_RTIME)
-	createRole(deletedRole,		MESSAGE_DELETED)
-	createRole(sentRole,		MESSAGE_SENT)
-	createRole(receivedRole,	MESSAGE_RECEIVED)
-	createRole(readRole,		MESSAGE_READ)
-	createRole(textRole,		MESSAGE_TEXT)
-	createRole(mediaRole,		MESSAGE_MEDIA)
-	ownMessageRole		=		mediaRole + 1,
+	createRole(id, MESSAGE_ID)
+	createRole(sender, MESSAGE_SENDER)
+	createRole(receiver, MESSAGE_RECEIVER)
+	createRole(sDate, MESSAGE_SDATE)
+	createRole(sTime, MESSAGE_STIME)
+	createRole(rDate, MESSAGE_RDATE)
+	createRole(rTime, MESSAGE_RTIME)
+	createRole(deleted, MESSAGE_DELETED)
+	createRole(sent, MESSAGE_SENT)
+	createRole(received, MESSAGE_RECEIVED)
+	createRole(read, MESSAGE_READ)
+	createRole(text, MESSAGE_TEXT)
+	createRole(media, MESSAGE_MEDIA)
+	createRole(ownMessage, mediaRole + 1)
 };
 
 struct ChatMessage {

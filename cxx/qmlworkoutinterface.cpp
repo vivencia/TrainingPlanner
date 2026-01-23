@@ -16,13 +16,19 @@
 #include <QQuickItem>
 #include <QQuickWindow>
 
+enum workoutStatusFlags {
+	WS_IN_PROGRESS = 0x001,
+	WS_EDIT_MODE = 0X002,
+	WS_TODAY = 0X004,
+	WS_EDITABLE = 0x008,
+	WS_FINISHED = 0x010,
+};
+
 QmlWorkoutInterface::QmlWorkoutInterface(QObject *parent,DBMesocyclesModel *meso_model, const uint meso_idx, const QDate &date)
 	: QObject{parent}, m_mesoModel{meso_model}, m_workoutPage{nullptr}, m_workoutModel{nullptr}, m_calendarModel{nullptr},
 		m_mesoIdx{meso_idx}, m_workoutTimer{nullptr}, m_restTimer{nullptr}, m_date{date}, m_hour{0}, m_min{0}, m_sec{0},
-		m_editMode{false}, m_workoutIsEditable{false}, m_importFromPrevWorkout{false}, m_importFromSplitPlan{false},
-		m_bMainDateIsToday{false}
+		m_workoutStatus{0}, m_importFromSplitPlan{false}, m_importFromPrevWorkout{false}
 {
-	setMainDateIsToday(date == QDate::currentDate());
 	m_calendarModel = m_mesoModel->calendar(m_mesoIdx);
 	m_calendarDay = m_calendarModel->calendarDay(m_date);
 	m_workoutModel = m_mesoModel->workoutForDay(m_mesoIdx, m_calendarDay);
@@ -33,19 +39,8 @@ QmlWorkoutInterface::QmlWorkoutInterface(QObject *parent,DBMesocyclesModel *meso
 				verifyWorkoutOptions();
 		});
 	}
-	else if (m_workoutModel->exerciseCount() == 0)
+	else
 		verifyWorkoutOptions();
-	//if (m_mesoModel->mesoCalendarManager()->workoutId(m_mesoIdx, m_calendarDay) == "-1"_L1)
-	//	m_mesoModel->mesoCalendarManager()->setWorkoutId(m_mesoIdx, m_calendarDay, m_workoutModel->id());
-	/*if (m_workoutPage)
-	{
-		m_workoutPage->setProperty("workoutModel", QVariant::fromValue(m_workoutModel));
-		emit timeInChanged();
-		emit timeOutChanged();
-		emit locationChanged();
-		emit notesChanged();
-		emit headerTextChanged();
-	}*/
 }
 
 void QmlWorkoutInterface::cleanUp()
@@ -108,33 +103,31 @@ void QmlWorkoutInterface::setTimeOut(const QString &new_timeout)
 	emit timeInChanged();
 }
 
-QString QmlWorkoutInterface::location() const
-{
-	return m_calendarModel ? m_calendarModel->location() : QString{};
-}
-
 void QmlWorkoutInterface::setLocation(const QString &new_location)
 {
 	m_calendarModel->setLocation(new_location);
-	emit locationChanged();
 }
 
-QString QmlWorkoutInterface::lastWorkOutLocation() const
+QString QmlWorkoutInterface::location()
 {
-	QString last_location{};
 	if (m_calendarModel)
 	{
-		for (int i{static_cast<int>(m_calendarDay)}; i >= 0; --i)
+		if (!todaysWorkout())
+			return m_calendarModel->location(m_calendarDay);
+		else
 		{
-			if (m_calendarModel->isWorkoutDay(i))
-			{
-				last_location = std::move(m_calendarModel->location(i));
-				if (!last_location.isEmpty())
-					break;
-			}
+			int i{static_cast<int>(m_calendarDay)};
+			do {
+				if (m_calendarModel->isWorkoutDay(i) && (!m_calendarModel->location(i).isEmpty()))
+				{
+					if (i != m_calendarDay)
+						setLocation(m_calendarModel->location(i));
+					return m_calendarModel->location(i);
+				}
+			} while (--i >= 0);
 		}
 	}
-	return last_location;
+	return QString{};
 }
 
 QString QmlWorkoutInterface::notes() const
@@ -145,23 +138,6 @@ QString QmlWorkoutInterface::notes() const
 void QmlWorkoutInterface::setNotes(const QString &new_notes)
 {
 	m_calendarModel->setNotes(new_notes);
-	emit notesChanged();
-}
-
-bool QmlWorkoutInterface::dayIsFinished() const
-{
-	return m_calendarModel->completed();
-}
-
-void QmlWorkoutInterface::setDayIsFinished(const bool finished)
-{
-	m_calendarModel->setCompleted(finished);
-	emit dayIsFinishedChanged();
-	if (finished)
-	{
-		calculateWorkoutTime();
-		rollUpExercises();
-	}
 }
 
 void QmlWorkoutInterface::setHeaderText()
@@ -185,48 +161,87 @@ QString QmlWorkoutInterface::sessionLabel() const
 	return QString{};
 }
 
-void QmlWorkoutInterface::setEditMode(const bool edit_mode)
+bool QmlWorkoutInterface::haveExercises() const
 {
-	if (m_editMode != edit_mode)
+	return m_workoutModel->exerciseCount();
+}
+
+bool QmlWorkoutInterface::workoutFinished() const
+{
+	return m_calendarModel->completed();
+}
+
+void QmlWorkoutInterface::setWorkoutFinished(const bool finished)
+{
+	m_calendarModel->setCompleted(finished);
+	if (changeWorkoutStatus(WS_FINISHED, finished) && finished)
 	{
-		m_editMode = edit_mode;
-		emit editModeChanged();
-		setWorkoutIsEditable(m_editMode);
-		setDayIsFinished(!m_editMode);
+		calculateWorkoutTime();
+		rollUpExercises();
 	}
 }
 
-void QmlWorkoutInterface::setWorkoutIsEditable(const bool editable)
+bool QmlWorkoutInterface::workoutInProgress() const
 {
-	if (m_workoutIsEditable != editable)
-	{
-		m_workoutIsEditable = editable;
-		emit workoutIsEditableChanged();
-	}
+	return checkWorkoutStatus(WS_IN_PROGRESS);
 }
 
-void QmlWorkoutInterface::setMainDateIsToday(const bool is_today)
+void QmlWorkoutInterface::setWorkoutInProgress(const bool in_progress)
 {
-	if (m_bMainDateIsToday != is_today)
+	if (changeWorkoutStatus(WS_IN_PROGRESS, in_progress))
 	{
-		m_bMainDateIsToday = is_today;
-		emit mainDateIsTodayChanged();
-		if (m_bMainDateIsToday && !m_workoutTimer)
+		if (in_progress)
 		{
-			m_workoutTimer = new TPTimer(this);
-			connect(m_workoutTimer, &TPTimer::timeWarning, this, [this] (QString remaingTime, bool bminutes) {
-				QMetaObject::invokeMethod(m_workoutPage, "displayTimeWarning", Q_ARG(QString, remaingTime), Q_ARG(bool, bminutes));
-			});
-			connect(m_workoutTimer, &TPTimer::hoursChanged, this, [this] () { setTimerHour(m_workoutTimer->hours()); });
-			connect(m_workoutTimer, &TPTimer::minutesChanged, this, [this] () { setTimerMinute(m_workoutTimer->minutes()); });
-			connect(m_workoutTimer, &TPTimer::secondsChanged, this, [this] () { setTimerSecond(m_workoutTimer->seconds()); });
+			if (!m_workoutTimer)
+			{
+				m_workoutTimer = new TPTimer(this);
+				connect(m_workoutTimer, &TPTimer::timeWarning, this, [this] (QString remaingTime, bool bminutes) {
+					QMetaObject::invokeMethod(m_workoutPage, "displayTimeWarning", Q_ARG(QString, remaingTime), Q_ARG(bool, bminutes));
+				});
+				connect(m_workoutTimer, &TPTimer::hoursChanged, this, [this] () { setTimerHour(m_workoutTimer->hours()); });
+				connect(m_workoutTimer, &TPTimer::minutesChanged, this, [this] () { setTimerMinute(m_workoutTimer->minutes()); });
+				connect(m_workoutTimer, &TPTimer::secondsChanged, this, [this] () { setTimerSecond(m_workoutTimer->seconds()); });
+			}
+			m_workoutTimer->startTimer();
+		}
+		else if (m_workoutTimer)
+		{
+			if (workoutFinished())
+				m_workoutTimer->stopTimer();
+			else
+				m_workoutTimer->pauseTimer();
 		}
 	}
 }
 
-bool QmlWorkoutInterface::haveExercises() const
+bool QmlWorkoutInterface::editMode() const
 {
-	return m_workoutModel->exerciseCount();
+	return checkWorkoutStatus(WS_EDIT_MODE);
+}
+
+void QmlWorkoutInterface::setEditMode(const bool edit_mode)
+{
+	changeWorkoutStatus(WS_EDIT_MODE, edit_mode);
+}
+
+bool QmlWorkoutInterface::workoutIsEditable() const
+{
+	return checkWorkoutStatus(WS_EDITABLE);
+}
+
+void QmlWorkoutInterface::setWorkoutIsEditable(const bool editable)
+{
+	changeWorkoutStatus(WS_EDITABLE, editable);
+}
+
+bool QmlWorkoutInterface::todaysWorkout() const
+{
+	return checkWorkoutStatus(WS_TODAY);
+}
+
+void QmlWorkoutInterface::setTodaysWorkout(const bool is_today)
+{
+	changeWorkoutStatus(WS_TODAY, is_today);
 }
 
 QStringList QmlWorkoutInterface::previousWorkoutsList_text() const
@@ -248,11 +263,6 @@ QList<uint> QmlWorkoutInterface::previousWorkoutsList_value() const
 		++prev_workout;
 	}
 	return values;
-}
-
-bool QmlWorkoutInterface::timerActive() const
-{
-	return m_workoutTimer ? m_workoutTimer->isActive() : false;
 }
 
 void QmlWorkoutInterface::setWorkingSetMode()
@@ -345,7 +355,7 @@ void QmlWorkoutInterface::resetWorkout()
 {
 	setTimeIn("--:--"_L1);
 	setTimeOut("--:--"_L1);
-	setDayIsFinished(false);
+	setWorkoutFinished(false);
 	m_workoutTimer->prepareTimer();
 }
 
@@ -392,9 +402,7 @@ void QmlWorkoutInterface::startWorkout()
 {
 	if (timeIn().contains('-'))
 		setTimeIn(appUtils()->getCurrentTimeString());
-	setWorkoutIsEditable(true);
-	m_workoutTimer->startTimer();
-	emit timerActiveChanged();
+	setWorkoutInProgress(true);
 }
 
 void QmlWorkoutInterface::stopWorkout()
@@ -408,8 +416,7 @@ void QmlWorkoutInterface::stopWorkout()
 		setTimerSecond(elapsedTime.second());
 	}
 	setTimeOut(appUtils()->getCurrentTimeString());
-	setWorkoutIsEditable(false);
-	setDayIsFinished(true);
+	setWorkoutFinished(true);
 }
 
 void QmlWorkoutInterface::addExercise()
@@ -428,7 +435,7 @@ void QmlWorkoutInterface::simpleExercisesList(const bool show)
 void QmlWorkoutInterface::clearExercises(const bool bShowIntentDialog)
 {
 	m_workoutModel->clearExercises();
-	setDayIsFinished(false);
+	setWorkoutFinished(false);
 	emit haveExercisesChanged();
 	if (bShowIntentDialog)
 		verifyWorkoutOptions();
@@ -489,6 +496,55 @@ void QmlWorkoutInterface::silenceTimeWarning()
 	m_workoutTimer->stopAlarmSound();
 }
 
+inline bool QmlWorkoutInterface::checkWorkoutStatus(uint8_t flag) const
+{
+	return m_workoutStatus & flag;
+}
+
+bool QmlWorkoutInterface::changeWorkoutStatus(uint8_t flag, const bool set, const bool emit_signal)
+{
+	bool ok{false};
+	switch (flag)
+	{
+		case WS_IN_PROGRESS:
+			if ((ok = checkWorkoutStatus(WS_TODAY)))
+				changeWorkoutStatus(WS_EDITABLE, set, false);
+		break;
+		case WS_EDIT_MODE:
+			if ((ok = checkWorkoutStatus(WS_FINISHED)) || (ok = !checkWorkoutStatus(WS_TODAY)))
+			{
+				changeWorkoutStatus(WS_EDITABLE, set, false);
+				changeWorkoutStatus(WS_FINISHED, !set, false);
+			}
+		break;
+		case WS_TODAY:
+			if ((ok = !checkWorkoutStatus(WS_FINISHED)))
+			{
+				changeWorkoutStatus(WS_EDITABLE, set, false);
+				changeWorkoutStatus(WS_IN_PROGRESS, !set, false);
+				changeWorkoutStatus(WS_FINISHED, !set, false);
+			}
+		break;
+		case WS_EDITABLE:
+			ok = !checkWorkoutStatus(WS_IN_PROGRESS);
+		break;
+		case WS_FINISHED:
+			if ((ok = checkWorkoutStatus(WS_TODAY)))
+			{
+				changeWorkoutStatus(WS_IN_PROGRESS, !set, false);
+				changeWorkoutStatus(WS_EDITABLE, set, false);
+			}
+		break;
+	}
+	if (ok)
+	{
+		set ? m_workoutStatus |= flag : m_workoutStatus &= ~flag;
+		if (emit_signal)
+			emit workoutStatusChanged();
+	}
+	return ok;
+}
+
 void QmlWorkoutInterface::createWorkoutPage()
 {
 	m_workoutComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/WorkoutPage.qml"_L1}, QQmlComponent::Asynchronous};
@@ -542,10 +598,10 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 		if (field == EXERCISES_FIELD_COMPLETED)
 		{
 			const bool all_exercises_completed{m_workoutModel->allSetsCompleted()};
-			if (all_exercises_completed != dayIsFinished())
+			if (all_exercises_completed != workoutFinished())
 			{
 				if (!all_exercises_completed || !m_workoutTimer->isActive())
-					setDayIsFinished(all_exercises_completed);
+					setWorkoutFinished(all_exercises_completed);
 				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
 					appUtils()->string_strings({ tr("Workout"), workoutCompletedMessage(all_exercises_completed)}, record_separator),
 							"app_logo"_L1, m_workoutTimer->isActive() ? 0 : 5000);
@@ -553,13 +609,53 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 		}
 	});
 
-	if (mainDateIsToday())
+	if (todaysWorkout())
 		connect(m_workoutPage, SIGNAL(silenceTimeWarning()), this, SLOT(silenceTimeWarning()));
+
+	auto createExercisesItem = [this] () -> void {
+		m_exercisesProperties["pageManager"] = QVariant::fromValue(this);
+		m_exercisesProperties["exercisesModel"] = QVariant::fromValue(m_workoutModel);
+		m_exercisesProperties["height"_L1] = qCeil(appSettings()->pageHeight());
+		m_exercisesProperties["width"_L1] = appSettings()->pageWidth() - 10;
+		m_exercisesProperties["x"_L1] = 0;
+		m_exercisesProperties["y"_L1] = 0;
+		m_exercisesItem = static_cast<QQuickItem*>(m_exercisesComponent->createWithInitialProperties(
+																		m_exercisesProperties, appQmlEngine()->rootContext()));
+		#ifndef QT_NO_DEBUG
+		if (!m_exercisesItem)
+		{
+			qDebug() << m_exercisesComponent->errorString();
+			return;
+		}
+		#endif
+		appQmlEngine()->setObjectOwnership(m_exercisesItem, QQmlEngine::CppOwnership);
+		m_exercisesItem->setParentItem(m_workoutPage->findChild<QQuickItem*>("exercisesFrame"_L1));
+		m_workoutPage->setProperty("lstWorkoutExercises", QVariant::fromValue(m_exercisesItem));
+	};
+
+	m_exercisesComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/ExercisesAndSets/WorkoutOrSplitExercisesList.qml"_L1}, QQmlComponent::Asynchronous};
+	switch (m_exercisesComponent->status())
+	{
+		case QQmlComponent::Ready:
+			createExercisesItem();
+		break;
+		case QQmlComponent::Loading:
+			connect(m_exercisesComponent, &QQmlComponent::statusChanged, this, [this,createExercisesItem] (QQmlComponent::Status status) {
+				createExercisesItem();
+			}, Qt::SingleShotConnection);
+		break;
+		#ifndef QT_NO_DEBUG
+		case QQmlComponent::Null:
+		case QQmlComponent::Error:
+			qDebug() << m_exercisesComponent->errorString();
+		break;
+		#endif
+	}
 }
 
 void QmlWorkoutInterface::calculateWorkoutTime()
 {
-	if (!mainDateIsToday() || editMode() || dayIsFinished())
+	if (!todaysWorkout() || editMode() || workoutFinished())
 	{
 		if (!timeIn().isEmpty()  &&!timeIn().contains('-'))
 		{
@@ -576,7 +672,7 @@ void QmlWorkoutInterface::calculateWorkoutTime()
 	}
 	else
 	{
-		if (mainDateIsToday())
+		if (todaysWorkout())
 		{
 			if (!timeOut().isEmpty()  &&!timeOut().contains('-'))
 			{
@@ -594,9 +690,9 @@ void QmlWorkoutInterface::startRestTimer(const uint exercise_number, const QStri
 		m_restTimer = new TPTimer{this};
 		m_restTimer->setInterval(1000);
 	}
-	m_restTimer->prepareTimer("00:"_L1 + rest_time, rest_time.isEmpty() || rest_time == "00:00"_L1);
+	m_restTimer->prepareTimer("00:"_L1 % rest_time, rest_time.isEmpty() || rest_time == "00:00"_L1);
 	m_restTimer->callOnTimeout([this, exercise_number] () {
-		const QString &rest_time{m_restTimer->strMinutes() + ':' + m_restTimer->strSeconds()};
+		const QString &rest_time{m_restTimer->strMinutes() % ':' % m_restTimer->strSeconds()};
 		emit updateRestTime(exercise_number, rest_time);
 	});
 	m_restTimer->startTimer();
@@ -604,26 +700,31 @@ void QmlWorkoutInterface::startRestTimer(const uint exercise_number, const QStri
 
 void QmlWorkoutInterface::verifyWorkoutOptions()
 {
+	setTodaysWorkout(m_date == QDate::currentDate());
+
 	if (m_workoutModel->splitLetter() != 'R')
 	{
 		DBSplitModel *split_model{m_mesoModel->splitModel(m_mesoIdx, m_workoutModel->splitLetter())};
-		auto conn{std::make_shared<QMetaObject::Connection>()};
-		*conn = connect(split_model->database(), &TPDatabaseTable::actionFinished, this, [this,conn,split_model]
-					(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2)
+		if (split_model)
 		{
-			if (op == ThreadManager::CustomOperation)
+			auto conn{std::make_shared<QMetaObject::Connection>()};
+			*conn = connect(split_model->database(), &TPDatabaseTable::dbOperationsFinished, this, [this,conn,split_model]
+																	(const ThreadManager::StandardOps op, const bool success)
 			{
-				disconnect(*conn);
-				setCanImportFromSplitPlan(return_value2.toBool());
-			}
-		});
-		auto x = [this,split_model] () -> std::pair<QVariant,QVariant> { return split_model->database()->mesoHasSplitPlan(); };
-		split_model->database()->setCustQueryFunction(x);
-		appThreadManager()->runAction(split_model->database(), ThreadManager::CustomOperation);
+				if (op == ThreadManager::CustomOperation)
+				{
+					disconnect(*conn);
+					setCanImportFromSplitPlan(success);
+				}
+			});
+			auto x = [this,split_model] () -> std::pair<QVariant,QVariant> { return split_model->database()->mesoHasSplitPlan(); };
+			split_model->database()->setCustQueryFunction(x);
+			appThreadManager()->runAction(split_model->database(), ThreadManager::CustomOperation);
+		}
 
 		auto conn2{std::make_shared<QMetaObject::Connection>()};
 		*conn2 = connect(m_workoutModel->database(), &TPDatabaseTable::actionFinished, this, [this,conn2]
-					(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2)
+						(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2)
 		{
 			if (op == ThreadManager::CustomOperation)
 			{
@@ -631,7 +732,7 @@ void QmlWorkoutInterface::verifyWorkoutOptions()
 				if (canImportFromPreviousWorkout())
 				{
 					m_prevWorkouts.clear();
-					for (const auto &prev_calday : return_value1.toList())
+					for (const auto &prev_calday : return_value2.toList())
 					{
 						const uint prev_calendar_day{prev_calday.toUInt()};
 						m_prevWorkouts.insert(prev_calendar_day, appUtils()->formatDate(m_calendarModel->date(prev_calendar_day)));

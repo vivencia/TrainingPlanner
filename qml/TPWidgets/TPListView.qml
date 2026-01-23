@@ -10,8 +10,6 @@ ListView {
 	reuseItems: true
 	clip: true
 	focus: true
-	contentHeight: availableHeight ? availableHeight : height
-	contentWidth: availableWidth ? availableWidth : width
 	spacing: 2
 
 	ScrollBar.vertical: ScrollBar {

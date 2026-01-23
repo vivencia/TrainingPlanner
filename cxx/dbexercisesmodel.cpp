@@ -51,14 +51,14 @@ struct exerciseEntry {
 };
 
 enum RoleNames {
-	exerciseNumberRole		=	Qt::UserRole,
-	setsNumberRole			=	Qt::UserRole+2,
-	exerciseCompletedRole	=	Qt::UserRole+3,
-	workingExerciseRole		=	Qt::UserRole+4,
-	workingSubExerciseRole	=	Qt::UserRole+5,
-	workingSetRole			=	Qt::UserRole+6,
-	trackRestTimeRole		=	Qt::UserRole+7,
-	autoRestTimeRole		=	Qt::UserRole+8
+	createRole(exerciseNumber, 1)
+	createRole(setsNumber, 2)
+	createRole(exerciseCompleted, 3)
+	createRole(workingExercise, 4)
+	createRole(workingSubExercise, 5)
+	createRole(workingSet, 6)
+	createRole(trackRestTime, 7)
+	createRole(autoRestTime, 8)
 };
 
 static const QString &calendarDayExtraInfo{qApp->tr(" Workout #: ")};
@@ -127,12 +127,25 @@ void DBExercisesModel::operator=(DBExercisesModel *other_model)
 	setWorkingSet(0, 0, 0);
 }
 
-bool DBExercisesModel::fromDatabase()
+bool DBExercisesModel::fromDatabase(const bool db_data_ok)
 {
+	auto end_func = [this] () -> bool {
+		m_exercisesLoaded = true;
+		setWorkingExercise(0);
+		setWorkingSubExercise(0, 0);
+		setWorkingSet(0, 0, 0);
+		emit exerciseCountChanged();
+		endResetModel();
+		return m_exerciseData.count() > 0;
+	};
+
+	beginResetModel();
+	if (!db_data_ok)
+		return end_func();
+
 	m_calendarDay = m_dbModelInterface->modelData().at(0).at(EXERCISES_FIELD_CALENDARDAY).toInt();
 	m_splitLetter = m_dbModelInterface->modelData().at(0).at(EXERCISES_FIELD_SPLITLETTER).at(0);
 
-	beginInsertRows(QModelIndex{}, 0, m_dbModelInterface->modelData().count() - 1);
 	for (const auto &data : std::as_const(m_dbModelInterface->modelData()))
 	{
 		const auto exercise_number{addExercise(-1, false)};
@@ -201,18 +214,7 @@ bool DBExercisesModel::fromDatabase()
 			}
 		}
 	}
-	endInsertRows();
-	m_exercisesLoaded = true;
-	setWorkingExercise(0);
-	setWorkingSubExercise(0, 0);
-	setWorkingSet(0, 0, 0);
-	if (m_exerciseData.count() > 0)
-	{
-		emit exerciseCountChanged();
-		emit dataChanged(index(0, 0), index(m_exerciseData.count() - 1, 0));
-		return true;
-	}
-	return false;
+	return end_func();
 }
 
 void DBExercisesModel::clearExercises()
@@ -351,7 +353,7 @@ int DBExercisesModel::importFromFile(const QString& filename, QFile *in_file)
 	int ret{appUtils()->readDataFromFile(in_file, m_dbModelInterface->modelData(), EXERCISES_TOTALCOLS, identifierInFile())};
 	if (ret != TP_RET_CODE_WRONG_IMPORT_FILE_TYPE)
 	{
-		if (fromDatabase())
+		if (fromDatabase(true))
 			ret = TP_RET_CODE_IMPORT_OK;
 		else
 			ret = TP_RET_CODE_IMPORT_FAILED;
@@ -745,7 +747,7 @@ void DBExercisesModel::saveExercises(const int exercise_number, const int exerci
 			break;
 		}
 	}
-	appThreadManager()->runAction(m_db, ThreadManager::UpdateOneField);
+	appThreadManager()->queueAction(m_db, ThreadManager::UpdateOneField);
 }
 
 uint DBExercisesModel::addSubExercise(const uint exercise_number, const bool from_qml)
@@ -1460,7 +1462,6 @@ QVariant DBExercisesModel::data(const QModelIndex &index, int role) const
 		{
 			case exerciseNumberRole: return QString::number(row+1);
 			case setsNumberRole: return setsNumber(row, workingSubExercise(row));
-
 			case exerciseCompletedRole: return allSetsCompleted(row);
 			case workingExerciseRole: return workingExercise();
 			case workingSubExerciseRole: return workingSubExercise(row);
@@ -1530,12 +1531,13 @@ void DBExercisesModel::commonConstructor(const bool load_from_db)
 	{
 		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(m_db, &DBWorkoutsOrSplitsTable::exercisesLoaded, this, [this,conn]
-			(const uint meso_idx, const bool success, const QVariant &extra_info)
+														(const uint meso_idx, const bool success, const QVariant &extra_info)
 		{
-			if (success && meso_idx == m_mesoIdx && extra_info.toChar() == m_splitLetter)
+			if (meso_idx == m_mesoIdx && m_calendarDay != -1 ?
+												extra_info.toInt() == m_calendarDay : extra_info.toChar() == m_splitLetter)
 			{
 				disconnect(*conn);
-				static_cast<void>(fromDatabase());
+				static_cast<void>(fromDatabase(success));
 			}
 		});
 		m_dbModelInterface = new DBModelInterfaceExercises{this};

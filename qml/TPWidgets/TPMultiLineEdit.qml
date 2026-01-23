@@ -216,7 +216,7 @@ ColumnLayout {
 		} //ScrollView
 
 		Item {
-			visible: editable
+			enabled: editable
 			width: appSettings.itemDefaultHeight
 			height: scrollArea.height
 

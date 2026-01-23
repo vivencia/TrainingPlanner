@@ -37,6 +37,8 @@ QT_FORWARD_DECLARE_CLASS(QQmlComponent)
 QT_FORWARD_DECLARE_CLASS(QQuickItem)
 QT_FORWARD_DECLARE_CLASS(QQuickWindow)
 
+QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
+
 class QmlItemManager : public QObject
 {
 
@@ -75,9 +77,15 @@ public:
 	void getPasswordDialog(const QString &title, const QString &message) const;
 	void openRequestedFile(const QString &filename, const int wanted_content = 0x3FF);
 
+	Q_INVOKABLE DBExercisesModel *workoutModel() const { return m_workout_model; }
+	DBExercisesModel *m_workout_model;
+
 signals:
 	void mesoForImportSelected();
 	void qmlPasswordDialogClosed(int resultCode, QString password);
+#ifndef QT_NO_DEBUG
+	void cppDataForQMLReady();
+#endif
 
 public slots:
 	void mainWindowStarted() const;
@@ -94,6 +102,10 @@ private:
 	QmlExercisesDatabaseInterface *m_exercisesListManager;
 	QQmlComponent *m_weatherComponent, *m_statisticsComponent;
 	QQuickItem *m_homePage, *m_weatherPage, *m_statisticsPage;
+
+#ifndef QT_NO_DEBUG
+	bool m_qml_testing;
+#endif
 
 	static QmlItemManager *_appItemManager;
 	friend QmlItemManager *appItemManager();

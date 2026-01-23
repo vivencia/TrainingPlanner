@@ -15,7 +15,7 @@ ApplicationWindow {
 	id: mainwindow
 	visible: true
 	title: "TraininPlanner Tests"
-	objectName: "mainWindow"
+	objectName: "mainwindow"
 	width: appSettings.windowWidth
 	height: appSettings.windowHeight
 	flags: Qt.platform.os === "android" ? Qt.Window | Qt.FramelessWindowHint | Qt.WA_KeepScreenOn :
@@ -30,26 +30,28 @@ ApplicationWindow {
 	signal openFileRejected(filepath: string);
 
 	property PagesListModel appPagesModel
-
 	//Component.onCompleted: timePicker.show1();
+
+	Connections {
+		target: itemManager
+		function onCppDataForQMLReady() : void {
+			lstWorkoutExercises.exercisesModel = itemManager.workoutModel();
+			lstWorkoutExercises.currentIndex = itemManager.workoutModel().workingExercise;
+		}
+	}
 
 	TPPage {
 		id: homePage
+		objectName: "homePage"
 		anchors.fill: parent
 
-		Rectangle {
-			x: (parent.width - width) / 2;
-			y: (parent.height - height) / 2;
-			width: parent.width * 0.8
-			height: 300
-			color: appSettings.paneBackgroundColor
-			border.width: 2
-			border.color: appSettings.fontColor
+		property MesocyclesModel mesoModel: null
+		signal mesosViewChanged(bool own_mesos);
 
-			TPMultiLineEdit {
-				anchors.fill: parent
-				anchors.margins: 20
-			}
+		WorkoutOrSplitExercisesList {
+			id: lstWorkoutExercises
+			pageManager: homePage
+			anchors.fill: parent
 		}
 	}
 
@@ -101,5 +103,9 @@ ApplicationWindow {
 			createPasswordDialog();
 		}
 		passwdDlg.show(-1);
+	}
+
+	function canChangeSetMode(exercise_number: int, exercise_idx: int, set_number: int) : bool {
+		return false;
 	}
 }

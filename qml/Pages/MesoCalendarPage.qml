@@ -19,14 +19,6 @@ TPPage {
 
 	onPageActivated: calendar.positionViewAtIndex(calendarModel.getIndexFromDate(calendarModel.currentDate), ListView.Contain);
 
-	Connections {
-		target: calendarModel
-		function onCurrentDayChanged() : void {
-			lblInfo.text = calendarManager.dayInfo();
-			cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(calendarModel.splitLetter);
-		}
-	}
-
 	header: TPToolBar {
 		height: appSettings.pageHeight * 0.1
 		padding: 0
@@ -126,9 +118,20 @@ TPPage {
 					id: dayEntry
 					radius: width * 0.5
 					border.color: "green"
-					border.width: dayIsFinished ? 2 : 0
+					border.width: workoutFinished ? 2 : 0
 					opacity: workoutDay ? 1 : mesoDay ?  0.7 : 0.4
 					color: visibleDay ? appSettings.primaryLightColor : "transparent"
+
+					function dateSelected(): void {
+						highlightDay(true);
+						monthGrid.selectedDay = this;
+						calendarModel.currentDate = month_day;
+						optChangeOnlyThisDay.checked = optChangeAfterThisDay.checked = false;
+						optChangeOnlyThisDay.enabled = optChangeAfterThisDay.enabled = false;
+						btnViewWorkout.enabled = workoutDay;
+						lblInfo.text = calendarManager.dayInfo();
+						cboSplitLetter.currentIndex = calendarModel.splitLetterToIndex();
+					}
 
 					readonly property date month_day: new Date(model.year, model.month, model.day);
 					readonly property bool todayDate: month_day.getUTCFullYear() === _today.getUTCFullYear() &&
@@ -136,7 +139,7 @@ TPPage {
 					readonly property bool visibleDay: model.month === monthGrid.month
 					readonly property bool mesoDay: calendarModel.isPartOfMeso(month_day)
 					readonly property bool workoutDay: calendarModel.isWorkoutDay(month_day)
-					readonly property bool dayIsFinished: calendarModel.completed_by_date(month_day)
+					readonly property bool workoutFinished: calendarModel.completed_by_date(month_day)
 
 					function highlightDay(highlighted: bool): void {
 						if (highlighted)
@@ -145,12 +148,17 @@ TPPage {
 							animShrink.start();
 					}
 
+					Component.onCompleted: {
+						if (todayDate)
+							dateSelected();
+					}
+
 					Connections {
 						enabled: calendarModel !== null
 						target: calendarModel
 						function onCompletedChanged(date: Date) : void {
 							if (date === dayEntry.month_day)
-								dayIsFinished = calendarModel.completed(date);
+								workoutFinished = calendarModel.completed(date);
 						}
 					}
 
@@ -202,12 +210,7 @@ TPPage {
 						onClicked: {
 							if (monthGrid.selectedDay)
 								monthGrid.selectedDay.highlightDay(false);
-							dayEntry.highlightDay(true);
-							monthGrid.selectedDay = dayEntry;
-							calendarModel.currentDate = dayEntry.month_day;
-							optChangeOnlyThisDay.checked = optChangeAfterThisDay.checked = false;
-							optChangeOnlyThisDay.enabled = optChangeAfterThisDay.enabled = false;
-							btnViewWorkout.enabled = dayEntry.workoutDay;
+							dayEntry.dateSelected();
 						}
 					}
 				} //delegate: Rectangle
@@ -222,7 +225,6 @@ TPPage {
 
 		TPLabel {
 			id: lblInfo
-			text: calendarManager.dayInfo()
 			wrapMode: Text.WordWrap
 			horizontalAlignment: Text.AlignHCenter
 			width: parent.width
@@ -238,7 +240,6 @@ TPPage {
 		TPComboBox {
 			id: cboSplitLetter
 			model: AppGlobals.splitModel
-			currentIndex: indexOfValue(calendarModel.splitLetter);
 			width: parent.width * 0.2
 
 			onActivated: (index) => optChangeOnlyThisDay.enabled = optChangeAfterThisDay.enabled =
@@ -271,6 +272,7 @@ TPPage {
 
 			anchors {
 				top: optChangeOnlyThisDay.bottom
+				topMargin: -5
 				left: cboSplitLetter.right
 				leftMargin: 10
 				right: parent.right

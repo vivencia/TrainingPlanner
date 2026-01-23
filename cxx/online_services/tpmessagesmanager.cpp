@@ -19,16 +19,16 @@ TPMessagesManager *TPMessagesManager::_appMessagesManager{nullptr};
 
 enum RoleNames
 {
-	createRole(idRole,				TPMESSAGE_FIELD_ID)
-	createRole(labelTextRole,		TPMESSAGE_FIELD_TEXT)
-	createRole(iconRole,			TPMESSAGE_FIELD_ICON)
-	createRole(dateRole,			TPMESSAGE_FIELD_DATE)
-	createRole(timeRole,			TPMESSAGE_FIELD_TIME)
-	createRole(extraInfoLabelRole,	TPMESSAGE_FIELD_EXTRA_INFO)
-	createRole(extraInfoIconRole,	TPMESSAGE_FIELD_EXTRA_ICON)
-	createRole(actionsRole,			TPMESSAGE_FIELD_ACTIONS)
-	createRole(stickyRole,			TPMESSAGE_FIELD_STICKY)
-	hasActionsRole			=		stickyRole   + 1,
+	createRole(id, TPMESSAGE_FIELD_ID)
+	createRole(labelText, TPMESSAGE_FIELD_TEXT)
+	createRole(icon, TPMESSAGE_FIELD_ICON)
+	createRole(date, TPMESSAGE_FIELD_DATE)
+	createRole(time, TPMESSAGE_FIELD_TIME)
+	createRole(extraInfoLabel, TPMESSAGE_FIELD_EXTRA_INFO)
+	createRole(extraInfoIcon, TPMESSAGE_FIELD_EXTRA_ICON)
+	createRole(actions, TPMESSAGE_FIELD_ACTIONS)
+	createRole(sticky, TPMESSAGE_FIELD_STICKY)
+	createRole(hasActions, stickyRole   + 1)
 };
 
 TPMessagesManager::TPMessagesManager(QObject *parent)

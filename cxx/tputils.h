@@ -24,11 +24,8 @@ static const QString STR_ZERO{'0'};
 #define PASTE_HELPER(a, b) a##b
 #define PASTE(a, b) PASTE_HELPER(a, b)
 
-#define createRole2(roleName, enumField) \
-	PASTE(roleName, Role) = Qt::UserRole + static_cast<uint8_t>(enumField),
-
 #define createRole(roleName, enumField) \
-	roleName = Qt::UserRole + static_cast<uint8_t>(enumField),
+	PASTE(roleName, Role) = Qt::UserRole + static_cast<uint8_t>(enumField),
 
 #define STRINGIFY(x) #x
 // Macro to wrap the parameter with quotes

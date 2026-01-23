@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Effects
 
 import "../"
 
@@ -9,80 +8,81 @@ TPPopup {
 	id: menu
 	keepAbove: false
 	closeButtonVisible: false
+	width: Math.max(lblTitle, mainLayout.childrenRect.width + 20)
+	height: mainLayout.childrenRect.height + lblTitle.height + 20
 
 	property string titleHeader
-	property list<Item> entriesList: []
 	property Component entryComponent: null
 
 	signal menuEntrySelected(id: int);
 
 	Component.onDestruction: clear();
 
-	ColumnLayout {
-		id: mainLayout
-		anchors.fill: parent
-		spacing: 5
-		opacity: menu.opacity
+	ListModel {
+		id: entriesList
+	}
 
-		Rectangle {
-			Layout.fillHeight: true
-			Layout.fillWidth: true
-			border.color: "white"
-			border.width: 2
-			color: "transparent"
-		}
+	TPLabel {
+		id: lblTitle
+		text: titleHeader
+		horizontalAlignment: Text.AlignHCenter
+		visible: titleHeader.length > 0
+		height: visible ? appSettings.itemDefaultHeight : 0
+		font: AppGlobals.smallFont
 
-		TPLabel {
-			text: titleHeader
-			horizontalAlignment: Text.AlignHCenter
-			height: titleHeader.length > 0 ? appSettings.itemSmallHeight : 0
-			Layout.fillWidth: true
+		anchors {
+			top: parent.top
+			horizontalCenter: parent.horizontalCenter
 		}
 	}
 
-	function addEntry(label: string, img: string, id: int, bvisible: bool): void {
-		if (!entryComponent)
-			entryComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPButton.qml", Qt.Asynchronous);
+	ColumnLayout {
+		id: mainLayout
+		spacing: 2
+		opacity: menu.opacity
+		uniformCellSizes: true
 
-		function finishCreation() {
-			let button = entryComponent.createObject(mainLayout, { text: label, imageSource: img, clickId: id,
-																		rounded: false, "Layout.fillWidth": true });
-			if (bvisible)
-				button.clicked.connect(menuEntryClicked);
-			else
-				button.visible = false;
-			entriesList.push(button);
+		anchors {
+			top: titleHeader.length > 0 ? lblTitle.bottom : parent.top
+			left: parent.left
+			margins: 5
+			topMargin: 10
 		}
 
-		if (entryComponent.status === Component.Ready)
-			finishCreation();
-		else
-			entryComponent.statusChanged.connect(finishCreation);
+		Repeater {
+			id: entriesRepeater
+			model: entriesList.count
+
+			TPButton {
+				required property int index
+				text: entriesList.get(index).Label
+				imageSource: entriesList.get(index).Image
+				clickId: entriesList.get(index).ClickId
+				visible: entriesList.get(index).Visible
+				rounded: false
+				Layout.alignment: Qt.AlignCenter
+				Layout.preferredWidth: Math.max(appSettings.pageWidth * 0.5, menu.width - 10)
+
+				onClicked: menuEntryClicked(clickId);
+			}
+		}
+	}
+
+	function addEntry(label: string, img: string, id: int, bvisible: bool): void {		
+		entriesList.append( {"Label": label, "Image": img, "ClickId": id, "Visible": bvisible} );
 	}
 
 	function clear(): void {
-		for(let i = 0; i < entriesList.length; ++i)
-			entriesList[i].destroy();
-		entriesList.length = 0;
+		entriesList.clear();
 		close();
 	}
 
 	function enableMenuEntry(id: int, benabled: bool): void {
-		for(let i = 0; i < entriesList.length; ++i) {
-			if (entriesList[i].clickId === id) {
-				entriesList[i].enabled = benabled;
-				return;
-			}
-		}
+		entriesList.get(id).Visible = benabled;
 	}
 
 	function setMenuText(id: int, newText: string): void {
-		for(let i = 0; i < entriesList.length; ++i) {
-			if (entriesList[i].clickId === id) {
-				entriesList[i].text = newText;
-				return;
-			}
-		}
+		entriesList.get(id).Label = newText;
 	}
 
 	function menuEntryClicked(buttonid: int): void {

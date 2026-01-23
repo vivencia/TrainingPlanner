@@ -80,7 +80,9 @@ public slots:
 	void startAction(const int unique_id, ThreadManager::StandardOps operation, void *extra_param);
 
 signals:
+	//Should be only used internally, unless op == CustomOperation and return_value1 and/or return_value2 is/are not bool
 	void actionFinished(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2);
+	//This one should be used externally when the return types of the called operation are bool and bool
 	void dbOperationsFinished(const ThreadManager::StandardOps op, const bool success);
 
 protected:

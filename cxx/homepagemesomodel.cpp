@@ -11,17 +11,16 @@ constexpr QLatin1StringView ownMesosCurIndexSettingsName{"ownMesosCurIndex"};
 constexpr QLatin1StringView clientMesosCurIndexSettingsName{"clientMesosCurIndex"};
 
 enum MesoRoleNames {
-	mesoNameRole		=	Qt::UserRole + static_cast<int>(MESO_FIELD_NAME),
-	mesoStartDateRole	=	Qt::UserRole + static_cast<int>(MESO_FIELD_STARTDATE),
-	mesoEndDateRole		=	Qt::UserRole + static_cast<int>(MESO_FIELD_ENDDATE),
-	mesoSplitRole		=	Qt::UserRole + static_cast<int>(MESO_FIELD_SPLIT),
-	mesoCoachRole		=	Qt::UserRole + static_cast<int>(MESO_FIELD_COACH),
-	mesoClientRole		=	Qt::UserRole + static_cast<int>(MESO_FIELD_CLIENT),
-	mesoIdxRole			=	mesoClientRole + 1,
-	mesoExportableRole	=	mesoIdxRole + 1,
-	mesoSplitsRole		=	mesoExportableRole + 1,
-	canHaveWorkoutRole	=	mesoSplitsRole + 1,
-	haveCalendarRole	=	canHaveWorkoutRole + 1,
+	createRole(mesoName, MESO_FIELD_NAME)
+	createRole(mesoStartDate, MESO_FIELD_STARTDATE)
+	createRole(mesoEndDate, MESO_FIELD_ENDDATE)
+	createRole(mesoSplit, MESO_FIELD_SPLIT)
+	createRole(mesoCoach, MESO_FIELD_COACH)
+	createRole(mesoClient, MESO_FIELD_CLIENT)
+	createRole(mesoIdx, mesoClientRole + 1)
+	createRole(mesoExportable, mesoIdxRole + 1)
+	createRole(mesoSplitsAvailable, mesoExportableRole + 1)
+	createRole(haveCalendar, mesoSplitsAvailableRole + 1)
 };
 
 using namespace QLiterals;
@@ -29,19 +28,16 @@ using namespace QLiterals;
 HomePageMesoModel::HomePageMesoModel(DBMesocyclesModel *meso_model, const bool own_mesos)
 	: QAbstractListModel{meso_model}, m_mesoModel{meso_model}, m_ownMesos{own_mesos}, m_curIndex{-1}
 {
-	m_roleNames[mesoNameRole]		= std::move("mesoName");
-	m_roleNames[mesoStartDateRole]	= std::move("mesoStartDate");
-	m_roleNames[mesoEndDateRole]	= std::move("mesoEndDate");
-	m_roleNames[mesoSplitRole]		= std::move("mesoSplit");
-	m_roleNames[mesoCoachRole]		= std::move("mesoCoach");
-	m_roleNames[mesoClientRole]		= std::move("mesoClient");
-	m_roleNames[mesoIdxRole]		= std::move("mesoIdx");
-	m_roleNames[mesoExportableRole]	= std::move("mesoExportable");
-	m_roleNames[mesoSplitsRole]		= std::move("mesoSplitsAvailable");
-	m_roleNames[canHaveWorkoutRole]	= std::move("canHaveWorkout");
-	m_roleNames[haveCalendarRole]	= std::move("haveCalendar");
-	setCurrentIndex(appSettings()->getCustomValue(m_ownMesos ?
-											ownMesosCurIndexSettingsName : clientMesosCurIndexSettingsName, -1).toInt());
+	roleToString(mesoName)
+	roleToString(mesoStartDate)
+	roleToString(mesoEndDate)
+	roleToString(mesoSplit)
+	roleToString(mesoCoach)
+	roleToString(mesoClient)
+	roleToString(mesoIdx)
+	roleToString(mesoExportable)
+	roleToString(mesoSplitsAvailable)
+	roleToString(haveCalendar)
 
 	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, [this] (const uint meso_idx, const uint field)
 	{
@@ -58,11 +54,12 @@ HomePageMesoModel::HomePageMesoModel(DBMesocyclesModel *meso_model, const bool o
 					case MESO_FIELD_SPLIT:
 					case MESO_FIELD_COACH:
 					case MESO_FIELD_CLIENT:
+						emit canHaveTodaysWorkoutChanged();
 						emit dataChanged(index(row, 0), index(row, 0), QList<int>{1, Qt::UserRole + static_cast<int>(field)});
 					break;
 					default:
 						if (field >= MESO_FIELD_SPLITA && field <= MESO_FIELD_SPLITF)
-							emit dataChanged(index(row, 0), index(row, 0), QList<int>{1, mesoSplitsRole});
+							emit dataChanged(index(row, 0), index(row, 0), QList<int>{1, mesoSplitsAvailableRole});
 				}
 			}
 		}
@@ -79,7 +76,9 @@ void HomePageMesoModel::userSwitchingActions()
 
 bool HomePageMesoModel::canHaveTodaysWorkout() const
 {
-	return data(index(m_curIndex), canHaveWorkoutRole).toBool();
+	if (m_mesoModel->isMesoOK(currentMesoIdx()))
+		return m_ownMesos && m_mesoModel->isDateWithinMeso(m_curIndex, QDate::currentDate());
+	return false;
 }
 
 void HomePageMesoModel::setCurrentIndex(const int new_index)
@@ -90,6 +89,7 @@ void HomePageMesoModel::setCurrentIndex(const int new_index)
 			appSettings()->setCustomValue(m_ownMesos ? ownMesosCurIndexSettingsName : clientMesosCurIndexSettingsName, m_curIndex);
 		m_curIndex = new_index;
 		emit currentIndexChanged();
+		emit canHaveTodaysWorkoutChanged();
 	}
 }
 
@@ -160,10 +160,8 @@ QVariant HomePageMesoModel::data(const QModelIndex &index, int role) const
 				return meso_idx;
 			case mesoExportableRole:
 				return m_mesoModel->canExport(meso_idx);
-			case mesoSplitsRole:
-				return m_mesoModel->isSplitOK(meso_idx);
-			case canHaveWorkoutRole:
-				return m_ownMesos && m_mesoModel->isDateWithinMeso(meso_idx, QDate::currentDate());
+			case mesoSplitsAvailableRole:
+				return m_mesoModel->isSplitOK(meso_idx);				
 			case haveCalendarRole:
 				return m_mesoModel->isMesoOK(meso_idx);
 		}

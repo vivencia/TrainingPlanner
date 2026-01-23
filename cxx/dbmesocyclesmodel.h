@@ -96,7 +96,7 @@ public:
 	void setCurrentMesosView(const bool own_mesos_view);
 	inline int currentWorkingMeso() const { return m_currentWorkingMeso; }
 
-	inline bool isMesoOK(const uint meso_idx) const { return m_isMesoOK.at(meso_idx) == 0; }
+	inline bool isMesoOK(const uint meso_idx) const { return meso_idx <= m_isMesoOK.count() ? m_isMesoOK.at(meso_idx) == 0 : false; }
 	bool isRequiredFieldWrong(const uint meso_idx, const uint field) const;
 	void setModified(const uint meso_idx, const uint field);
 
@@ -448,6 +448,9 @@ signals:
 	void mesoChanged(const uint meso_idx, const uint field);
 	void todaysWorkoutFinished();
 	void usedSplitsChanged(const uint meso_idx);
+#ifndef QT_NO_DEBUG
+	void mesoDataLoaded();
+#endif
 
 private:	
 	QList<QStringList> m_mesoData;
@@ -477,7 +480,7 @@ private:
 	int exportToFile_splitData(const uint meso_idx, QFile *mesoFile, const bool formatted) const;
 
 signals:
-	void internalSignal(const uint _meso_idx, const uint _id, const bool _result);
+	void calendarReady(const uint meso_idx);
 };
 
 class DBModelInterfaceMesocycle : public DBModelInterface

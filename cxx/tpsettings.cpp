@@ -16,9 +16,17 @@ static const QColor black {"#000000"_L1};
 
 TPSettings::TPSettings(QObject *parent)
 	: QSettings{parent},
-	  m_localAppFilesDir{std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)) + QLatin1Char('/')}
+	  m_localAppFilesDir{std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)) % QLatin1Char('/')}
 {
 	TPSettings::app_settings = this;
+	auto save_config = [this] () -> void {
+		sync();
+		if (exportToUserConfig(currentUser()))
+			appUserModel()->sendFileToServer(userConfigFileName(true, currentUser()), nullptr, QString{}, QString{}, currentUser());
+		m_timer.stop();
+	};
+	connect(qApp, &QCoreApplication::aboutToQuit, this, save_config);
+	m_timer.callOnTimeout(save_config);
 	globalSettingsInit();
 	userSettingsInit();
 }
@@ -151,12 +159,8 @@ void TPSettings::changeValue(const QString &group, const QString &field_name, co
 
 	if (dosync)
 	{
-		sync();
 		if (group != GLOBAL_GROUP && group != DEFAULT_USER)
-		{
-			if (exportToUserConfig(group))
-				appUserModel()->sendFileToServer(userConfigFileName(true, group), nullptr, QString{}, QString{}, group);
-		}
+			m_timer.start(10000);
 	}
 }
 

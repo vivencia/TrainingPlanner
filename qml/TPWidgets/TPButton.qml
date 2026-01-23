@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Effects
 
 import "../"
 
@@ -37,6 +36,7 @@ TPBackRec {
 
 	//Local variables. Do not use outside this file
 	property bool _bPressed: false
+	property bool _labelCreated: false
 	property TPButtonImage _buttonImage: null
 
 	signal clicked(int clickid);
@@ -96,7 +96,9 @@ TPBackRec {
 	onWidthChanged: {
 		if (width < 0) return;
 		if (!autoSize && text.length > 0)
-			buttonText.width = Math.min(button.width*0.9, buttonText.width);
+			buttonText.width = Math.min(button.width * 0.9, buttonText.width);
+		if (_labelCreated)
+			anchorLabel();
 	}
 
 	onHeightChanged: {
@@ -146,7 +148,10 @@ TPBackRec {
 		verticalAlignment: Text.AlignVCenter
 		horizontalAlignment: Text.AlignHCenter
 
-		Component.onCompleted: anchorLabel();
+		Component.onCompleted: {
+			_labelCreated = true;
+			anchorLabel();
+		}
 	}
 
 	function onMousePressed(mouse: MouseEvent): void {
@@ -204,6 +209,8 @@ TPBackRec {
 	}
 
 	function anchorLabel(): void {
+		if (button.width <= 0)
+			return;
 		if (textUnderIcon) {
 			buttonText.anchors.bottom = button.bottom;
 			buttonText.anchors.bottomMargin = 5;
@@ -249,14 +256,16 @@ TPBackRec {
 
 		function finishCreation() {
 			if (text.length > 0) {
-				imageSize = Math.min(buttonText.height, buttonText.width);
-				if (imageSize === 0)
-					imageSize = Math.ceil(appSettings.itemSmallHeight);
+				if (imageSize === 0) {
+					imageSize = Math.min(buttonText.height, buttonText.width);
+					if (imageSize === 0)
+						imageSize = Math.ceil(appSettings.itemSmallHeight);
+				}
 			}
 			else {
 				if (autoSize)
 					imageSize = appSettings.appDefaultHeight * 0.9;
-				else
+				else if (imageSize === 0)
 					imageSize = Math.min(height, width) * 0.9;
 			}
 			_buttonImage = component.createObject(button,

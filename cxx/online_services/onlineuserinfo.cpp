@@ -7,44 +7,43 @@
 constexpr uint totalExtraFields{4};
 
 enum RoleNames {
-	idRole			= Qt::UserRole		+ USER_COL_ID,
-	nameRole		= Qt::UserRole		+ USER_COL_NAME,
-	birthdayRole	= Qt::UserRole		+ USER_COL_BIRTHDAY,
-	sexRole			= Qt::UserRole		+ USER_COL_SEX,
-	phoneRole		= Qt::UserRole		+ USER_COL_PHONE,
-	emailRole		= Qt::UserRole		+ USER_COL_EMAIL,
-	socialMediaRole	= Qt::UserRole		+ USER_COL_SOCIALMEDIA,
-	userRole		= Qt::UserRole		+ USER_COL_USERROLE,
-	coachRole		= Qt::UserRole		+ USER_COL_COACHROLE,
-	goalRole		= Qt::UserRole		+ USER_COL_GOAL,
-	useModeRole		= Qt::UserRole		+ USER_COL_APP_USE_MODE,
-	extraNameRole	= useModeRole		+ 1,
-	selectedRole	= extraNameRole		+ 1,
-	isCoachRole		= selectedRole		+ 1,
-	allDataRole		= isCoachRole		+ 1,
-	visibleRole		= allDataRole		+ 1,
+	createRole(id, USER_COL_ID)
+	createRole(name, USER_COL_NAME)
+	createRole(birthday, USER_COL_BIRTHDAY)
+	createRole(sex, USER_COL_SEX)
+	createRole(phone, USER_COL_PHONE)
+	createRole(email, USER_COL_EMAIL)
+	createRole(socialMedia, USER_COL_SOCIALMEDIA)
+	createRole(userrole, USER_COL_USERROLE)
+	createRole(coachrole, USER_COL_COACHROLE)
+	createRole(goal, USER_COL_GOAL)
+	createRole(useMode, USER_COL_APP_USE_MODE)
+	createRole(extraName, useModeRole + 1)
+	createRole(selected, extraNameRole + 1)
+	createRole(isCoach, selectedRole + 1)
+	createRole(allData, isCoachRole + 1)
+	createRole(itemVisible, allDataRole + 1)
 };
 
 OnlineUserInfo::OnlineUserInfo(QObject *parent)
 	: QAbstractListModel{parent}, m_nselected{0}, m_totalCols{USER_TOTAL_COLS}, m_currentRow{-1}, m_selectEntireRow{false}
 {
-	m_roleNames[idRole]				= std::move(QByteArray{"id"});
-	m_roleNames[nameRole]			= std::move(QByteArray{"name"});
-	m_roleNames[birthdayRole]		= std::move(QByteArray{"birthday"});
-	m_roleNames[sexRole]			= std::move(QByteArray{"sex"});
-	m_roleNames[phoneRole]			= std::move(QByteArray{"phone"});
-	m_roleNames[emailRole]			= std::move(QByteArray{"email"});
-	m_roleNames[socialMediaRole]	= std::move(QByteArray{"socialMedia"});
-	m_roleNames[userRole]			= std::move(QByteArray{"userrole"});
-	m_roleNames[coachRole]			= std::move(QByteArray{"coachrole"});
-	m_roleNames[goalRole]			= std::move(QByteArray{"goal"});
-	m_roleNames[useModeRole]		= std::move(QByteArray{"useMode"});
-	m_roleNames[extraNameRole]		= std::move(QByteArray{"extraName"});
-	m_roleNames[selectedRole]		= std::move(QByteArray{"selected"});
-	m_roleNames[isCoachRole]		= std::move(QByteArray{"iscoach"});
-	m_roleNames[allDataRole]		= std::move(QByteArray{"allData"});
-	m_roleNames[Qt::DisplayRole]	= std::move(QByteArray{"display"});
-	m_roleNames[visibleRole]		= std::move(QByteArray{"itemVisible"});
+	roleToString(id)
+	roleToString(name)
+	roleToString(birthday)
+	roleToString(sex)
+	roleToString(phone)
+	roleToString(email)
+	roleToString(socialMedia)
+	roleToString(userrole)
+	roleToString(coachrole)
+	roleToString(goal)
+	roleToString(useMode)
+	roleToString(extraName)
+	roleToString(selected)
+	roleToString(isCoach)
+	roleToString(allData)
+	roleToString(itemVisible)
 }
 
 bool OnlineUserInfo::isSelected(const uint row, const int column) const
@@ -104,7 +103,7 @@ void OnlineUserInfo::setVisible(const uint row, bool visible, const int column)
 	if (row < count())
 	{
 		m_extraInfo[row][USER_EXTRA_VISIBLE] = visible ? '1' : '0';
-		emit dataChanged(index(row, column), index(row, column), QList<int>{1, visibleRole});
+		emit dataChanged(index(row, column), index(row, column), QList<int>{1, itemVisibleRole});
 	}
 }
 
@@ -306,15 +305,15 @@ QVariant OnlineUserInfo::data(const QModelIndex &index, int role) const
 			case phoneRole: return m_modeldata.at(row).at(USER_COL_PHONE);
 			case emailRole: return m_modeldata.at(row).at(USER_COL_EMAIL);
 			case socialMediaRole: return m_modeldata.at(row).at(USER_COL_SOCIALMEDIA);
-			case userRole: return m_modeldata.at(row).at(USER_COL_USERROLE);
-			case coachRole: return m_modeldata.at(row).at(USER_COL_COACHROLE);
+			case userroleRole: return m_modeldata.at(row).at(USER_COL_USERROLE);
+			case coachroleRole: return m_modeldata.at(row).at(USER_COL_COACHROLE);
 			case goalRole: return m_modeldata.at(row).at(USER_COL_GOAL);
 			case useModeRole: return m_modeldata.at(row).at(USER_COL_APP_USE_MODE);
 			case extraNameRole: return extraName(row);
 			case selectedRole: return isSelected(row, index.column());
 			case isCoachRole: return isCoach(row);
 			case allDataRole: return m_modeldata.at(row).at(index.column());
-			case visibleRole: return visible(row);
+			case itemVisibleRole: return visible(row);
 		}
 	}
 	return QVariant{};
@@ -334,8 +333,8 @@ bool OnlineUserInfo::setData(const QModelIndex &index, const QVariant &value, in
 			case phoneRole:
 			case emailRole:
 			case socialMediaRole:
-			case userRole:
-			case coachRole:
+			case userroleRole:
+			case coachroleRole:
 			case goalRole:
 			case useModeRole:
 				setData(row, role-Qt::UserRole, std::move(value.toString()));
@@ -350,7 +349,7 @@ bool OnlineUserInfo::setData(const QModelIndex &index, const QVariant &value, in
 			case isCoachRole:
 				setIsCoach(row, value.toBool());
 			break;
-			case visibleRole:
+			case itemVisibleRole:
 				setVisible(row, value.toBool());
 			break;
 			default:

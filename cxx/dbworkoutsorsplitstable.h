@@ -21,7 +21,7 @@ public:
 	std::pair<QVariant,QVariant> mesoHasAllSplitPlans(const QString &meso_id, const QString &split);
 	std::pair<QVariant,QVariant> mesoHasSplitPlan();
 	std::pair<QVariant,QVariant> getPreviousWorkoutsIds();
-	std::pair<QVariant,QVariant> removeAllMesoExercises(const QString &mesoid);
+	std::pair<QVariant,QVariant> removeAllMesoWorkouts(const QString &mesoid);
 
 signals:
 	void exercisesLoaded(const uint meso_idx, const bool success, const QVariant &extra_info);

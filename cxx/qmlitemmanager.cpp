@@ -118,25 +118,44 @@ void QmlItemManager::configureQmlEngine()
 			appQmlEngine()->rootContext()->setContextProperty("mainwindow"_L1, QVariant::fromValue(appMainWindow()));
 			m_homePage = appMainWindow()->findChild<QQuickItem*>("homePage");
 
-			if (obj->objectName() == "mainWindow"_L1)
+			appUserModel()->initUserSession();
+			connect(appMainWindow(), SIGNAL(openFileChosen(QString,int)), this, SLOT(importSlot_FileChosen(QString,int)));
+			connect(appMainWindow(), SIGNAL(openFileRejected(QString)), this, SLOT(importSlot_FileChosen(QString)));
+			connect(appMainWindow(), SIGNAL(saveFileChosen(QString)), this, SLOT(exportSlot(QString)));
+			connect(appMainWindow(), SIGNAL(saveFileRejected(QString)), this, SLOT(exportSlot(QString)));
+			connect(appHomePage(), SIGNAL(mesosViewChanged(bool)), this, SLOT(homePageViewChanged(bool)));
+			if (m_qml_testing)
 			{
-				appUserModel()->initUserSession();
-				connect(appMainWindow(), SIGNAL(openFileChosen(QString,int)), this, SLOT(importSlot_FileChosen(QString,int)));
-				connect(appMainWindow(), SIGNAL(openFileRejected(QString)), this, SLOT(importSlot_FileChosen(QString)));
-				connect(appMainWindow(), SIGNAL(saveFileChosen(QString)), this, SLOT(exportSlot(QString)));
-				connect(appMainWindow(), SIGNAL(saveFileRejected(QString)), this, SLOT(exportSlot(QString)));
-				connect(appHomePage(), SIGNAL(mesosViewChanged(bool)), this, SLOT(homePageViewChanged(bool)));
+				connect(appUserModel(), &DBUserModel::mainUserConfigurationFinished, [this] () {
+					connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::mesoDataLoaded, [this] () {
+						connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::calendarReady, this, [this] (const uint meso_idx) {
+							const int cal_day{appUserModel()->actualMesoModel()->calendar(0)->calendarDay(QDate::currentDate())};
+							m_workout_model = appUserModel()->actualMesoModel()->workoutForDay(meso_idx, cal_day);
+							if (!m_workout_model->exercisesLoaded())
+							{
+								connect(m_workout_model, &DBWorkoutModel::exerciseCountChanged, [this] () {
+									emit cppDataForQMLReady();
+								});
+							}
+						});
+						appUserModel()->actualMesoModel()->getCalendarForMeso(0);
+					});
+				});
 			}
 		}
 	});
 
 #ifndef Q_OS_ANDROID
 	#ifndef QT_NO_DEBUG
+	m_qml_testing = false;
 	const QStringList &args{qApp->arguments()};
 	if (args.count() > 1)
 	{
 		if (args.at(1) == "-test"_L1)
+		{
+			m_qml_testing = true;
 			url = std::move("qrc:/qml/tests.qml"_L1);
+		}
 		else if (args.at(1) == "-user"_L1)
 		{
 			if (!args.at(2).isEmpty())
@@ -149,6 +168,8 @@ void QmlItemManager::configureQmlEngine()
 		}
 	}
 	if (url.isEmpty())
+		url = std::move("qrc:/qml/main.qml"_L1);
+	#else
 		url = std::move("qrc:/qml/main.qml"_L1);
 	#endif
 #else

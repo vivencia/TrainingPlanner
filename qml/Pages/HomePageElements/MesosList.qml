@@ -9,6 +9,7 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 Item {
 	required property HomePageMesoModel mesoSubModel
+	property bool canLoadFooter: false
 
 	TPLabel {
 		id: lblTitle
@@ -27,7 +28,7 @@ Item {
 		id: mesosListView
 		model: mesoSubModel
 		spacing: 10
-		width: parent.width
+		width: parent.width - 10
 		height: parent.height * 0.8 - lblTitle.height - 10
 
 		anchors {
@@ -39,7 +40,7 @@ Item {
 
 		delegate: SwipeDelegate {
 			id: mesoDelegate
-			width: parent ? parent.width : 0
+			width: parent.width - 10
 
 			onClicked: mesoModel.getMesocyclePage(mesoIdx, false);
 			onPressAndHold: mesoSubModel.currentIndex = index;
@@ -280,7 +281,6 @@ Item {
 	} //ListView
 
 	TPToolBar {
-		id: quickActionToolbar
 		height: parent.height * (Qt.platform.os !== "android" ? 0.2 : 0.25)
 
 		anchors {
@@ -290,15 +290,16 @@ Item {
 		}
 
 		ColumnLayout {
-			anchors.fill: parent
 			spacing: 5
+			anchors.fill: parent
+			anchors.margins: 5
 
 			TPButton {
 				id: btnAddMeso
 				text: qsTr("New Training Program")
 				imageSource: "mesocycle-add.png"
 				Layout.preferredWidth: preferredWidth
-				Layout.maximumWidth: parent.width - 20
+				Layout.maximumWidth: parent.width
 				Layout.maximumHeight: appSettings.itemDefaultHeight
 				Layout.alignment: Qt.AlignCenter
 
@@ -310,7 +311,7 @@ Item {
 				text: qsTr("Import program from file")
 				imageSource: "import.png"
 				Layout.preferredWidth: preferredWidth
-				Layout.maximumWidth: parent.width - 20
+				Layout.maximumWidth: parent.width
 				Layout.maximumHeight: appSettings.itemDefaultHeight
 				Layout.alignment: Qt.AlignCenter
 
@@ -327,9 +328,9 @@ Item {
 				Layout.maximumHeight: appSettings.itemDefaultHeight
 				Layout.alignment: Qt.AlignCenter
 
-				onClicked: mesoModel.startTodaysWorkout(mesoIdx);
+				onClicked: mesoModel.startTodaysWorkout(mesoSubModel.currentMesoIdx());
 			}
-		}
+		} //ColumnLayout
 	}
 
 	property TPFloatingMenuBar exportMenu: null

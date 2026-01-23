@@ -383,7 +383,6 @@ bool DBExercisesListModel::collectExportData()
 void DBExercisesListModel::appendList(const QStringList &list, const bool save_to_database)
 {
 	if (save_to_database)
-		//m_dbModelInterface->setAllFieldsModified(m_exercisesData.count(), list.count());
 		m_dbModelInterface->setModified(m_exercisesData.count(), 0);
 	beginInsertRows(QModelIndex{}, m_exercisesData.count(), m_exercisesData.count() + list.count() - 1);
 	m_exercisesData.append(list);
@@ -395,7 +394,6 @@ void DBExercisesListModel::appendList(const QStringList &list, const bool save_t
 void DBExercisesListModel::appendList(QStringList &&list, const bool save_to_database)
 {
 	if (save_to_database)
-		//m_dbModelInterface->setAllFieldsModified(m_exercisesData.count(), list.count());
 		m_dbModelInterface->setModified(m_exercisesData.count(), 0);
 	beginInsertRows(QModelIndex{}, m_exercisesData.count(), m_exercisesData.count() + list.count() - 1);
 	m_exercisesData.append(std::move(list));

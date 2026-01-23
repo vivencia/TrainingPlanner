@@ -3,8 +3,8 @@
 #include "dbexercisesmodel.h"
 
 constexpr int n_fields{EXERCISES_TOTALCOLS};
-constexpr QLatin1StringView table_name{ "workouts_table"_L1 };
-constexpr QLatin1StringView table_name_2{ "mesosplit_table"_L1 };
+constexpr QLatin1StringView table_name_workouts{ "workouts_table"_L1 };
+constexpr QLatin1StringView table_name_splits{ "mesosplit_table"_L1 };
 constexpr QLatin1StringView field_names[n_fields][2] {
 	{"id"_L1,					"INTEGER PRIMARY KEY AUTOINCREMENT"_L1},
 	{"meso_id"_L1,				"INTEGER"_L1},
@@ -27,7 +27,7 @@ using namespace Qt::Literals::StringLiterals;
 DBWorkoutsOrSplitsTable::DBWorkoutsOrSplitsTable(const uint tableid)
 	: TPDatabaseTable{tableid}
 {
-	m_tableName = tableid == WORKOUT_TABLE_ID ? &table_name : &table_name_2;
+	m_tableName = tableid == WORKOUT_TABLE_ID ? &table_name_workouts : &table_name_splits;
 	m_fieldNames = field_names;
 	m_fieldCount = n_fields;
 	setUpConnection();
@@ -52,10 +52,10 @@ bool DBWorkoutsOrSplitsTable::getExercises(DBModelInterfaceExercises *dbmi)
 
 	m_strQuery = std::move(tableId() == WORKOUT_TABLE_ID ?
 					"SELECT * FROM %1 WHERE %2=%3 AND %4=%5;"_L1.arg(
-								table_name, field_names[EXERCISES_FIELD_MESOID][0], model->mesoId(),
+								table_name_workouts, field_names[EXERCISES_FIELD_MESOID][0], model->mesoId(),
 								field_names[EXERCISES_FIELD_CALENDARDAY][0], QString::number(model->calendarDay())) :
 					"SELECT * FROM %1 WHERE %2=%3 AND %4=\'%5\';"_L1.arg(
-								table_name_2, field_names[EXERCISES_FIELD_MESOID][0], model->mesoId(),
+								table_name_splits, field_names[EXERCISES_FIELD_MESOID][0], model->mesoId(),
 								field_names[EXERCISES_FIELD_SPLITLETTER][0], model->splitLetter())
 	);
 	if (execReadOnlyQuery(m_strQuery))
@@ -83,7 +83,7 @@ std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::mesoHasAllSplitPlans(const
 	bool yes{false};
 	auto model{m_dbModelInterface->model<DBExercisesModel>()};
 	m_strQuery = std::move("SELECT %1 FROM %2 WHERE %3=%4 AND %5=\'%6\';"_L1.arg(
-		field_names[EXERCISES_FIELD_SETTYPES][0], table_name_2,
+		field_names[EXERCISES_FIELD_SETTYPES][0], table_name_splits,
 		field_names[EXERCISES_FIELD_MESOID][0], model->mesoId(),
 		field_names[EXERCISES_FIELD_SPLITLETTER][0], model->splitLetter()));
 	for (const auto &split_letter : split)
@@ -113,7 +113,7 @@ std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::mesoHasSplitPlan()
 	bool yes{false};
 	auto model{m_dbModelInterface->model<DBExercisesModel>()};
 	m_strQuery = std::move("SELECT %1 FROM %2 WHERE %3=%4 AND %5=\'%6\';"_L1.arg(
-			field_names[EXERCISES_FIELD_SETTYPES][0], table_name_2,
+			field_names[EXERCISES_FIELD_SETTYPES][0], table_name_splits,
 			field_names[EXERCISES_FIELD_MESOID][0], model->mesoId(),
 			field_names[EXERCISES_FIELD_SPLITLETTER][0], model->splitLetter()));
 	if (execReadOnlyQuery(m_strQuery))
@@ -132,7 +132,7 @@ std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::getPreviousWorkoutsIds()
 	auto model{m_dbModelInterface->model<DBExercisesModel>()};
 	m_strQuery = std::move("SELECT %1 FROM %2 WHERE %3=%4 AND %5=\'%6\' "
 					"AND %7<%8 ORDER BY %1 DESC LIMIT 5;"_L1.arg(
-					field_names[EXERCISES_FIELD_CALENDARDAY][0], table_name_2,
+					field_names[EXERCISES_FIELD_CALENDARDAY][0], table_name_workouts,
 					field_names[EXERCISES_FIELD_MESOID][0], model->mesoId(),
 					field_names[EXERCISES_FIELD_SPLITLETTER][0], model->splitLetter(),
 					field_names[EXERCISES_FIELD_CALENDARDAY][0], QString::number(model->calendarDay())));
@@ -150,9 +150,9 @@ std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::getPreviousWorkoutsIds()
 	return std::pair<QVariant,QVariant>{false, false};
 }
 
-std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::removeAllMesoExercises(const QString &mesoid)
+std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::removeAllMesoWorkouts(const QString &mesoid)
 {
-	m_strQuery = std::move("DELETE FROM %1 WHERE %3=%4;"_L1.arg(table_name, field_names[EXERCISES_FIELD_MESOID][0], mesoid));
+	m_strQuery = std::move("DELETE FROM %1 WHERE %3=%4;"_L1.arg(table_name_workouts, field_names[EXERCISES_FIELD_MESOID][0], mesoid));
 	bool cmd_ok{false};
 	const bool success{execSingleWriteQuery(m_strQuery)};
 	if (success)

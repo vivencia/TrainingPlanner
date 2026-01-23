@@ -1,6 +1,5 @@
 #pragma once
 
-#include <QtGlobal>
 #include <QMap>
 
 QT_FORWARD_DECLARE_CLASS(TPDatabaseTable)
@@ -31,10 +30,7 @@ public:
 		modelData()[row][field] = other_dbmi->modelData().at(row).at(field);
 	}
 
-	inline QMap<uint, QList<int>> &modifiedIndices() { return m_modifiedIndices; }
 	inline const QMap<uint, QList<int>> &modifiedIndices() const { return m_modifiedIndices; }
-	inline const QList<stRemovalInfo*> &removalInfo() const { return m_removalInfo; }
-
 	/**
 	 * @brief setAllFieldsModified: used by AlterRecords when all fields are modified, i.e. in a swap operation
 	 * @param row: required for all operations
@@ -46,21 +42,14 @@ public:
 	void setModified(uint row, const int field);
 	void setModified(uint row, const QList<int> &more_fields);
 
-	inline void clearModifiedIndices()
-	{
-		m_modifiedIndices.clear();
-	}
+	inline void clearModifiedIndices() { m_modifiedIndices.clear(); }
+	inline void removeModifiedIndex(const uint row) { m_modifiedIndices.remove(row); }
 
-	inline bool isModified(const uint row, const uint field) const
-	{
-		return m_modifiedIndices.value(row).contains(field);
-	}
+	inline bool isModified(const uint row, const uint field) const { return m_modifiedIndices.value(row).contains(field); }
 
+	inline const QList<stRemovalInfo*> &removalInfo() const { return m_removalInfo; }
 	void setRemovalInfo(const uint row, const QList<uint> &fields);
-	inline void clearRemovalIndices()
-	{
-		qDeleteAll(m_removalInfo);
-	}
+	inline void clearRemovalIndices() { qDeleteAll(m_removalInfo); }
 
 protected:
 	QMap<uint, QList<int>> m_modifiedIndices;

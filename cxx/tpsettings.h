@@ -1,11 +1,12 @@
 #pragma once
 
 #include <QSettings>
+#include <QTimer>
 
 //--------------------------------------------GLOBAL SETTINGS---------------------------------------------//
 using namespace Qt::Literals::StringLiterals;
 
-constexpr QLatin1StringView TP_APP_VERSION("v20251206 Build 6");
+constexpr QLatin1StringView TP_APP_VERSION("v20260123 Build 1");
 constexpr QLatin1StringView GLOBAL_GROUP("app");
 constexpr QLatin1StringView DEFAULT_USER{"default"};
 
@@ -143,6 +144,7 @@ private:
 	uint m_windowWidth, m_windowHeight, m_qmlPageHeight;
 	double m_HeightToWidth;
 	QString m_localAppFilesDir;
+	QTimer m_timer;
 
 #ifndef QT_NO_QDEBUG
 #ifndef Q_OS_ANDROID
@@ -288,6 +290,8 @@ private:
 	QStringList m_colorSchemes;
 	QString m_userId;
 	int m_languageIdx, m_prevColorScheme;
+
+
 //--------------------------------------------USER   SETTINGS---------------------------------------------//
 };
 

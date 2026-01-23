@@ -90,6 +90,11 @@ public:
 	void setSplitLetter(const QDate &date, const QString &new_splitletter);
 	QString splitLetter() const;
 	void setSplitLetter(const QString &new_splitletter);
+	Q_INVOKABLE inline int splitLetterToIndex() const
+	{
+		const QChar &splitletter{splitLetter().at(0)};
+		return splitletter != 'R' ? static_cast<int>(splitletter.cell()) - static_cast<int>('A') : 6;
+	}
 	Q_INVOKABLE QString dayEntryLabel(const QDate &date) const;
 	QString location(const int calendar_day) const;
 	QString location() const;

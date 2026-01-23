@@ -33,7 +33,6 @@ DBCalendarModel::DBCalendarModel(DBMesocyclesModel *parent, DBMesoCalendarTable*
 				m_nCaldays = m_startDate.daysTo(endDate) + 1;
 				endResetModel();
 			}
-			qDebug() << "3: " << nMonths() << "  " << success;
 			emit calendarLoaded(success);
 		}
 	});

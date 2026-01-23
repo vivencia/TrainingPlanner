@@ -319,7 +319,7 @@ TPPage {
 			imExportMenu.addEntry(qsTr("Export"), "save-day.png", 1, true);
 			if (Qt.platform.os === "android")
 				imExportMenu.addEntry(qsTr("Share"), "export.png", 2, true);
-			imExportMenu.menuEntrySelected.connect(functionselectedMenuOption);
+			imExportMenu.menuEntrySelected.connect(selectedMenuOption);
 		}
 		imExportMenu.show2(btnImExport, 0);
 	}
@@ -334,7 +334,7 @@ TPPage {
 
 	TPBalloonTip {
 		id: exportTypeTip
-		title: bShare ? qsTr("Share custom exercises?") : qsTr("Export custom exercises to file?")
+		message: bShare ? qsTr("Share custom exercises?") : qsTr("Export custom exercises to file?")
 		imageSource:  "export"
 		parentPage: exercisesPage
 		closeButtonVisible: true

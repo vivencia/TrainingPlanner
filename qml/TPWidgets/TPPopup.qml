@@ -45,6 +45,7 @@ Popup {
 	TPBackRec {
 		id: _backRec
 		useGradient: useBackgroundGradient
+		showBorder: true
 		implicitHeight: height
 		implicitWidth: width
 		radius: 8
@@ -219,10 +220,10 @@ Popup {
 		switch (pos) {
 			case 0: //top
 				xpos = point.x;
-				ypos = point.y - height - 15;
+				ypos = point.y - height - 20;
 			break;
 			case 1: //left
-				xpos = point.x - width - 15;
+				xpos = point.x - width - 20;
 				ypos = point.y;
 			break;
 			case 2: //right

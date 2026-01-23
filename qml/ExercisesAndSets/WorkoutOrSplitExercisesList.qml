@@ -15,9 +15,8 @@ TPListView {
 	snapMode: ListView.SnapOneItem
 	spacing: 5
 
-	required property QtObject pageManager
-	required property DBExercisesModel exercisesModel
-	property TPPage parentPage
+	property QtObject pageManager
+	property DBExercisesModel exercisesModel
 	property bool viewPositionAtBeginning: true
 	property bool viewPositionAtEnd: false
 
@@ -58,7 +57,7 @@ TPListView {
 			border.color: "transparent"
 			color: workingExercise === index ? appSettings.primaryColor :
 							(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
-			radius: 5
+			radius: 8
 		}
 
 		Connections {
@@ -91,6 +90,10 @@ TPListView {
 
 			function onWorkingSetChanged(exercise_number: int, exercise_idx: int, set_number: int) : void {
 				delegate.changeFields(exercise_number, exercise_idx, set_number, true);
+			}
+
+			function onSubExerciseCountChanged(exercise_number: int): void {
+				delegate.nSubExercises = exercisesModel.subExercisesCount(exercise_number);
 			}
 
 			function onExerciseNameChanged(exercise_number: int, exercise_idx: int) : void {
@@ -193,9 +196,9 @@ TPListView {
 					onClicked: {
 						const next_exercise_number = index + 1;
 						exercisesModel.workingExercise = next_exercise_number;
-						if (exercisesModel.isWorkout)
-							parentPage.placeExerciseIntoView(control.itemAtIndex(index+1).y)
-						else
+						//if (exercisesModel.isWorkout)
+						//	parentPage.placeExerciseIntoView(control.itemAtIndex(index+1).y)
+						//else
 							control.positionViewAtIndex(next_exercise_number, ListView.Contain);
 					}
 				} //btnNextExercise
@@ -265,7 +268,7 @@ TPListView {
 					height: width
 
 					onClicked: {
-						nSubExercises = exercisesModel.addSubExercise(delegate.exerciseNumber) + 1;
+						exercisesModel.addSubExercise(delegate.exerciseNumber) + 1;
 						subExercisesTabBar.setCurrentIndex(exercisesModel.workingSubExercise);
 					}
 
@@ -644,7 +647,8 @@ TPListView {
 	}
 
 	function appendNewExerciseToDivision(): void {
-		pageManager.addExercise();
+		//pageManager.addExercise();
+		exercisesModel.setWorkingExercise = exercisesModel.addExercise();
 		control.currentIndex = exercisesModel.workingExercise;
 		control.positionViewAtIndex(exercisesModel.workingExercise, ListView.Contain);
 	}
