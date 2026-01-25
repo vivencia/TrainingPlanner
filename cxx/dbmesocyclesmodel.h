@@ -316,6 +316,7 @@ public:
 	void removeSplitsForMeso(const uint meso_idx);
 	void makeUsedSplits(const uint meso_idx);
 	void loadSplits(const uint meso_idx);
+	void loadSplit(const uint meso_idx, const QChar& splitletter);
 	void removeSplit(const uint meso_idx, const QChar &split_letter);
 	inline DBSplitModel *splitModel(const uint meso_idx, const QChar &split_letter) const
 	{
@@ -448,6 +449,7 @@ signals:
 	void mesoChanged(const uint meso_idx, const uint field);
 	void todaysWorkoutFinished();
 	void usedSplitsChanged(const uint meso_idx);
+	void splitLoaded(const uint meso_idx, const QChar &splitletter);
 #ifndef QT_NO_DEBUG
 	void mesoDataLoaded();
 #endif
@@ -455,9 +457,9 @@ signals:
 private:	
 	QList<QStringList> m_mesoData;
 	QHash<uint,QMLMesoInterface*> m_mesoManagerList;
-	QHash<uint, QMap<QChar,DBSplitModel*>> m_splitModels;
 	QHash<uint,QMap<uint,DBExercisesModel*>> m_workouts;
 	QHash<uint,DBCalendarModel*> m_calendars;
+	QMap<uint, QMap<QChar,DBSplitModel*>> m_splitModels;
 
 	HomePageMesoModel *m_ownMesos, *m_clientMesos;
 	QList<int8_t> m_isMesoOK;

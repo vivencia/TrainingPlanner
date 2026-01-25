@@ -1,51 +1,41 @@
 import QtQuick
 
 QtObject {
-	property list<Item> buttons: []
-	property int n_buttons: 0
-	signal buttonChecked(btn_idx: int, checked: bool);
+	property int selectedOption: -1
+
+	property list<Item> _buttons: []
+	property int _nbuttons: 0
 
 	function addButton(button: TPRadioButtonOrCheckBox): int {
-		n_buttons++;
-		buttons.push(button);
-		return n_buttons;
+		_nbuttons++;
+		_buttons.push(button);
+		return _nbuttons;
 	}
 
 	function removeButton(button: TPRadioButtonOrCheckBox): void {
 		let new_buttons = [];
 		let found = false;
-		for (let i = 0; i < buttons.length; ++i) {
-			if (buttons[i] !== button)
+		for (let i = 0; i < _buttons.length; ++i) {
+			if (_buttons[i] !== button)
 				new_buttons.push(button);
 			else
 				found = true;
 		}
 		if (found) {
-			buttons = 0;
-			buttons = new_buttons;
-			n_buttons--;
+			_buttons = 0;
+			_buttons = new_buttons;
+			_nbuttons--;
 		}
 	}
 
 	function setChecked(button: TPRadioButtonOrCheckBox, checked: bool) : void {
-		let btn_idx = -1;
-		for (let i = 0; i < buttons.length; ++i) {
-			if (buttons[i] === button) {
-				btn_idx = i;
-				buttons[i].checked = true;
+		for (let i = 0; i < _buttons.length; ++i) {
+			if (_buttons[i] === button) {
+				_buttons[i].checked = true;
+				selectedOption = Math.abs(_buttons.length - i - 1);
 			}
 			else
-				buttons[i].checked = !checked;
-		}
-		if (btn_idx >= 0)
-			buttonChecked(btn_idx, checked);
-	}
-
-	function anyButtonChecked(): bool {
-		for (let i = 0; i < buttons.length; ++i) {
-			if (buttons[i].checked)
-				return true;
-		}
-		return false;
+				_buttons[i].checked = false;
+		}	
 	}
 }

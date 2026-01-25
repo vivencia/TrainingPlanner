@@ -173,7 +173,6 @@ set ( ANDROID_FILES
 )
 
 set( QML_SOURCES
-
     "qml/AppGlobals.qml"
     "qml/ImageViewer.qml"
     "qml/main.qml"
@@ -213,6 +212,7 @@ set( QML_SOURCES
 	"qml/Pages/WeatherPage.qml"
 	"qml/Pages/WeatherPageElements/NextDaysForecast.qml"
 	"qml/Pages/WeatherPageElements/TodayForecast.qml"
+	"qml/Pages/WorkoutElements/WorkoutOptionsDialog.qml"
 	"qml/Pages/WorkoutPage.qml"
 	"qml/TPWidgets/TPBackRec.qml"
     "qml/TPWidgets/TPBalloonTip.qml"
@@ -222,7 +222,6 @@ set( QML_SOURCES
     "qml/TPWidgets/TPFloatingControl.qml"
     "qml/TPWidgets/TPColorRectangle.qml"
     "qml/TPWidgets/TPComboBox.qml"
-    "qml/TPWidgets/TPComplexDialog.qml"
     "qml/TPWidgets/TPDatePicker.qml"
     "qml/TPWidgets/TPDigitalClock.qml"
     "qml/TPWidgets/TPFloatingMenuBar.qml"
@@ -241,9 +240,6 @@ set( QML_SOURCES
 	"qml/TPWidgets/TPTabButton.qml"
 	"qml/TPWidgets/TPTextInput.qml"
 	"qml/TPWidgets/TPToolBar.qml"
-	"qml/TPWidgets/ComplexDialogModules/TPAdjustMesoCalendarFrame.qml"
-	"qml/TPWidgets/ComplexDialogModules/TPTDayIntentGroup.qml"
-	"qml/TPWidgets/ComplexDialogModules/TPDialogWithMessageAndCheckBox.qml"
 	"qml/User/AllUsers.qml"
 	"qml/User/AvatarsPopup.qml"
 	"qml/User/ChatWindow.qml"

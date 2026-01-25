@@ -194,7 +194,7 @@ std::pair<bool,bool> TPDatabaseTable::AlterRecords()
 	while (itr != itr_end)
 	{
 		auto modified_row{itr.key()};
-		if (m_dbModelInterface->modelData().at(modified_row).at(0).toInt() < 0 || itr.value().at(0) < 0)
+		if (itr.value().at(0) < 0)
 		{
 			int field{0};
 			has_insert = true;

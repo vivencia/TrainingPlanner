@@ -27,7 +27,7 @@ enum workoutStatusFlags {
 QmlWorkoutInterface::QmlWorkoutInterface(QObject *parent,DBMesocyclesModel *meso_model, const uint meso_idx, const QDate &date)
 	: QObject{parent}, m_mesoModel{meso_model}, m_workoutPage{nullptr}, m_workoutModel{nullptr}, m_calendarModel{nullptr},
 		m_mesoIdx{meso_idx}, m_workoutTimer{nullptr}, m_restTimer{nullptr}, m_date{date}, m_hour{0}, m_min{0}, m_sec{0},
-		m_workoutStatus{0}, m_importFromSplitPlan{false}, m_importFromPrevWorkout{false}
+		m_workoutStatus{0}, m_importFromSplitPlan{false}
 {
 	m_calendarModel = m_mesoModel->calendar(m_mesoIdx);
 	m_calendarDay = m_calendarModel->calendarDay(m_date);
@@ -100,7 +100,7 @@ void QmlWorkoutInterface::setTimeOut(const QString &new_timeout)
 {
 	m_calendarModel->setTimeOut(appUtils()->timeFromString(new_timeout));
 	calculateWorkoutTime();
-	emit timeInChanged();
+	emit timeOutChanged();
 }
 
 void QmlWorkoutInterface::setLocation(const QString &new_location)
@@ -342,7 +342,7 @@ void QmlWorkoutInterface::getExercisesFromSplitPlan()
 {
 	DBExercisesModel *split_model{m_mesoModel->splitModel(m_mesoIdx, m_workoutModel->splitLetter())};
 	if (split_model->exerciseCount() > 0)
-		m_workoutModel = split_model;
+		*m_workoutModel = split_model;
 }
 
 void QmlWorkoutInterface::exportWorkoutToSplitPlan()
@@ -572,6 +572,13 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 	m_workoutProperties["workoutManager"_L1] = QVariant::fromValue(this);
 	m_workoutProperties["workoutModel"_L1] = QVariant::fromValue(m_workoutModel);
 	m_workoutPage = static_cast<QQuickItem*>(m_workoutComponent->createWithInitialProperties(m_workoutProperties, appQmlEngine()->rootContext()));
+#ifndef QT_NO_DEBUG
+	if (!m_workoutPage)
+	{
+		qDebug() << m_workoutComponent->errorString();
+		return;
+	}
+#endif
 	appQmlEngine()->setObjectOwnership(m_workoutPage, QQmlEngine::CppOwnership);
 	m_workoutPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
 
@@ -615,7 +622,7 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 	auto createExercisesItem = [this] () -> void {
 		m_exercisesProperties["pageManager"] = QVariant::fromValue(this);
 		m_exercisesProperties["exercisesModel"] = QVariant::fromValue(m_workoutModel);
-		m_exercisesProperties["height"_L1] = qCeil(appSettings()->pageHeight());
+		m_exercisesProperties["height"_L1] = appSettings()->pageHeight() - m_workoutPage->property("bottomBarHeight").toInt();
 		m_exercisesProperties["width"_L1] = appSettings()->pageWidth() - 10;
 		m_exercisesProperties["x"_L1] = 0;
 		m_exercisesProperties["y"_L1] = 0;
@@ -705,9 +712,9 @@ void QmlWorkoutInterface::verifyWorkoutOptions()
 	if (m_workoutModel->splitLetter() != 'R')
 	{
 		DBSplitModel *split_model{m_mesoModel->splitModel(m_mesoIdx, m_workoutModel->splitLetter())};
+		auto conn{std::make_shared<QMetaObject::Connection>()};
 		if (split_model)
 		{
-			auto conn{std::make_shared<QMetaObject::Connection>()};
 			*conn = connect(split_model->database(), &TPDatabaseTable::dbOperationsFinished, this, [this,conn,split_model]
 																	(const ThreadManager::StandardOps op, const bool success)
 			{
@@ -721,31 +728,41 @@ void QmlWorkoutInterface::verifyWorkoutOptions()
 			split_model->database()->setCustQueryFunction(x);
 			appThreadManager()->runAction(split_model->database(), ThreadManager::CustomOperation);
 		}
-
-		auto conn2{std::make_shared<QMetaObject::Connection>()};
-		*conn2 = connect(m_workoutModel->database(), &TPDatabaseTable::actionFinished, this, [this,conn2]
-						(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2)
-		{
-			if (op == ThreadManager::CustomOperation)
-			{
-				disconnect(*conn2);
-				if (canImportFromPreviousWorkout())
+		else {
+			*conn = connect(m_mesoModel, &DBMesocyclesModel::splitLoaded, [this,conn] (const uint meso_idx, const QChar &splitletter) {
+				if (meso_idx == m_mesoIdx && splitletter == m_workoutModel->splitLetter())
 				{
+					disconnect(*conn);
+					verifyWorkoutOptions();
+				}
+			});
+			m_mesoModel->loadSplit(m_mesoIdx, m_workoutModel->splitLetter());
+		}
+
+		if (!m_importFromPrevWorkout.has_value())
+		{
+			auto conn2{std::make_shared<QMetaObject::Connection>()};
+			*conn2 = connect(m_workoutModel->database(), &TPDatabaseTable::actionFinished, this, [this,conn2]
+						(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2)
+			{
+				if (op == ThreadManager::CustomOperation)
+				{
+					disconnect(*conn2);
 					m_prevWorkouts.clear();
 					for (const auto &prev_calday : return_value2.toList())
 					{
 						const uint prev_calendar_day{prev_calday.toUInt()};
 						m_prevWorkouts.insert(prev_calendar_day, appUtils()->formatDate(m_calendarModel->date(prev_calendar_day)));
 					}
+					setCanImportFromPreviousWorkout(return_value1.toBool());
 				}
-				setCanImportFromPreviousWorkout(return_value1.toBool());
-			}
-		});
-		auto y = [this,split_model] () -> std::pair<QVariant,QVariant> {
-			return m_workoutModel->database()->getPreviousWorkoutsIds();
-		};
-		m_workoutModel->database()->setCustQueryFunction(y);
-		appThreadManager()->runAction(m_workoutModel->database(), ThreadManager::CustomOperation);
+			});
+			auto y = [this,split_model] () -> std::pair<QVariant,QVariant> {
+				return m_workoutModel->database()->getPreviousWorkoutsIds();
+			};
+			m_workoutModel->database()->setCustQueryFunction(y);
+			appThreadManager()->runAction(m_workoutModel->database(), ThreadManager::CustomOperation);
+		}
 	}
 }
 

@@ -8,6 +8,7 @@ import "../"
 import "../Dialogs"
 import "../ExercisesAndSets"
 import "../TPWidgets"
+import "WorkoutElements"
 
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
@@ -20,6 +21,7 @@ TPPage {
 	required property WorkoutManager workoutManager
 	property DBExercisesModel workoutModel
 	property WorkoutOrSplitExercisesList lstWorkoutExercises: null
+	readonly property int bottomBarHeight: footerHeight + (workoutManager.todaysWorkout ? appSettings.itemExtraLargeHeight : 0)
 
 	signal exerciseSelectedFromSimpleExercisesList();
 	signal silenceTimeWarning();
@@ -32,20 +34,10 @@ TPPage {
 		}
 	}
 
-	Connections {
-		target: workoutManager
-		function onHaveNewWorkoutOptionsChanged(): void {
-			if (workoutManager.haveNewWorkoutOptions())
-				showIntentionDialog();
-		}
-	}
-
 	onPageActivated: {
 		if (!navButtons) {
 			cboSplitLetter.currentIndex = Qt.binding(function() { return cboSplitLetter.indexOfValue(workoutModel.splitLetter); })
 			createNavButtons();
-			if (workoutManager.haveNewWorkoutOptions())
-				showIntentionDialog();
 		}
 	}
 
@@ -258,7 +250,7 @@ TPPage {
 					}
 
 					Row {
-						enabled: workoutManager.todaysWorkout ? optFreeTimeSession.checked && workoutManager.editMode : true
+						enabled: optFreeTimeSession.checked && (workoutManager.editMode || workoutManager.todaysWorkout)
 						padding: 0
 						spacing: 10
 						Layout.fillWidth: true
@@ -272,7 +264,7 @@ TPPage {
 
 						TPTextInput {
 							id: txtInTime
-							text: workoutManager.timeIn()
+							text: workoutManager.timeIn
 							horizontalAlignment: Text.AlignHCenter
 							readOnly: true
 							width: parent.width * 0.25
@@ -298,7 +290,7 @@ TPPage {
 								minutesDisplay: appUtils.getMinutesFromStrTime(txtInTime.text)
 								parentPage: workoutPage
 
-								onTimeSet: (hour, minutes) => workoutManager.setTimeIn(hour + ":" + minutes);
+								onTimeSet: (hour, minutes) => workoutManager.timeIn = hour + ":" + minutes;
 								onClosed: timeInLoader.active = false;
 							}
 
@@ -328,7 +320,7 @@ TPPage {
 
 						TPTextInput {
 							id: txtOutTime
-							text: workoutManager.timeOut()
+							text: workoutManager.timeOut
 							horizontalAlignment: Text.AlignHCenter
 							readOnly: true
 							width: parent.width * 0.25
@@ -355,7 +347,7 @@ TPPage {
 								parentPage: workoutPage
 								bOnlyFutureTime: workoutManager.todaysWorkout ? workoutManager.editMode : false
 
-								onTimeSet: (hour, minutes) => workoutManager.setTimeOut(hour + ":" + minutes);
+								onTimeSet: (hour, minutes) => workoutManager.timeOut = hour + ":" + minutes;
 								onClosed: timeOutLoader.active = false;
 							}
 
@@ -412,7 +404,7 @@ TPPage {
 				topMargin: 20
 			}
 
-			onClicked: layoutMain.visible = !layoutMain.visible;
+			onClicked: exercisesFrame.visible = !exercisesFrame.visible;
 		}
 
 		Item {
@@ -431,14 +423,15 @@ TPPage {
 
 	footer: TPToolBar {
 		id: dayInfoToolBar
-		height: appSettings.pageHeight * 0.18
+		height: bottomBarHeight
 		visible: workoutModel.splitLetter !== "R"
 
-		readonly property int buttonHeight: height * 0.45
+		readonly property int buttonHeight: appSettings.itemDefaultHeight * 2.3
 
 		RowLayout {
 			id: workoutLengthRow
 			height: parent.height * 0.4
+			visible: workoutManager.todaysWorkout
 			spacing: 10
 
 			anchors {
@@ -455,8 +448,7 @@ TPPage {
 				text: qsTr("Begin")
 				width: parent.width * 0.2
 				height: appSettings.itemDefaultHeight
-				visible: workoutManager.todaysWorkout ? !workoutManager.workoutFinished && !workoutManager.editMode : false
-				enabled: !workoutManager.workoutInProgress && workoutManager.todaysWorkout
+				enabled: !workoutManager.workoutInProgress
 				Layout.alignment: Qt.AlignLeft
 
 				onClicked: workoutManager.startWorkout();
@@ -491,7 +483,6 @@ TPPage {
 				text: qsTr("Finish")
 				width: parent.width * 0.2
 				height: appSettings.itemDefaultHeight
-				visible: btnStartWorkout.visible
 				enabled: workoutManager.workoutInProgress
 
 				onClicked: workoutManager.stopWorkout();
@@ -511,7 +502,6 @@ TPPage {
 			anchors {
 				left: parent.left
 				leftMargin: 5
-				top: workoutLengthRow.bottom
 				bottom: parent.bottom
 				bottomMargin: 5
 			}
@@ -532,7 +522,6 @@ TPPage {
 			anchors {
 				left: btnFinishedDayOptions.right
 				leftMargin: 5
-				top: workoutLengthRow.bottom
 				bottom: parent.bottom
 				bottomMargin: 5
 			}
@@ -560,7 +549,6 @@ TPPage {
 			anchors {
 				right: parent.right
 				rightMargin: 5
-				top: workoutLengthRow.bottom
 				bottom: parent.bottom
 				bottomMargin: 5
 			}
@@ -568,6 +556,38 @@ TPPage {
 			onClicked: lstWorkoutExercises.appendNewExerciseToDivision();
 		} // bntAddExercise
 	} //footer: ToolBar
+
+	Loader {
+		active: workoutManager.haveNewWorkoutOptions
+		asynchronous: true
+		sourceComponent: WorkoutOptionsDialog {
+			workoutModel: workoutPage.workoutModel
+			workoutManager: workoutPage.workoutManager
+			parentWorkoutPage: workoutPage
+
+			property ListModel prevWorkoutsList
+
+			onSelectedOption: (option) => {
+				switch (option) {
+					case 0: workoutManager.getExercisesFromSplitPlan(); break;
+					case 1: workoutManager.loadExercisesFromCalendarDay(intentDlg.customIntProperty2); break;
+					case 2: workoutManager.importWorkout(); break;
+					case 3: break; //leave it empty
+				}
+			}
+		}
+
+		onLoaded: {
+			if (workoutManager.canImportFromPreviousWorkout) {
+				prevWorkoutsList.clear();
+				const texts = workoutManager.previousWorkoutsList_text();
+				const values = workoutManager.previousWorkoutsList_value();
+				for (let i = 0; i < texts.length; ++i)
+					prevWorkoutsList.append({ text: texts[i], value: values[i], enabled: true });
+			}
+			item.show1(-1);
+		}
+	}
 
 	property TPBalloonTip msgClearExercises: null
 	function showClearExercisesMessage(): void {
@@ -589,61 +609,6 @@ TPPage {
 			createMessageBox();
 		}
 		msgClearExercises.show(-1);
-	}
-
-	property TPComplexDialog intentDlg: null
-	function showIntentionDialog(): void {
-		if (!intentDlg)
-			createIntentionDialog();
-		else {
-			intentDlg.cboModel.clear();
-			intentDlg.customStringProperty2 = workoutModel.splitLetter;
-			intentDlg.customStringProperty3 = workoutManager.sessionLabel;
-			intentDlg.customBoolProperty1 = workoutManager.canImportFromSplitPlan;
-			intentDlg.customBoolProperty2 = workoutManager.canImportFromPreviousWorkout;
-			intentDlg.customBoolProperty3 = !workoutManager.haveExercises;
-			if (workoutManager.canImportFromPreviousWorkout) {
-				const texts = workoutManager.previousWorkoutsList_text();
-				const values = workoutManager.previousWorkoutsList_value();
-				for (let i = 0; i < texts.length; ++i)
-					intentDlg.cboModel.append({ text: texts[i], value: values[i], enabled: true });
-			}
-			intentDlg.show(-1);
-		}
-	}
-
-	function createIntentionDialog(): void {
-		let component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
-
-		function finishCreation() {
-			if (!intentDlg) {
-				intentDlg = component.createObject(workoutPage, { parentPage: workoutPage, title: qsTr("What do you want to do today?"),
-					button1Text: qsTr("Proceed"), button2Text: "", customItemSource:"TPTDayIntentGroup.qml" });
-				intentDlg.button1Clicked.connect(intentChosen);
-			}
-			showIntentionDialog();
-		}
-
-		if (component.status === Component.Ready)
-			finishCreation();
-		else
-			component.statusChanged.connect(finishCreation);
-	}
-
-	function intentChosen(): void {
-		switch (intentDlg.customIntProperty1) {
-			case 1: //use meso plan
-				workoutManager.getExercisesFromSplitPlan();
-			break;
-			case 2: //use previous day
-				workoutManager.loadExercisesFromCalendarDay(intentDlg.customIntProperty2);
-			break;
-			case 3: //import from file
-				workoutManager.importWorkout();
-			break;
-			case 4: //empty session
-			break;
-		}
 	}
 
 	//TODO remove maybe

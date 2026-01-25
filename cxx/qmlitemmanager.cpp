@@ -233,6 +233,30 @@ void QmlItemManager::displayImportDialogMessageAfterMesoSelection(const int meso
 	emit mesoForImportSelected();
 }
 
+void QmlItemManager::exportMeso(const uint meso_idx, const bool share)
+{
+	int exportFileMessageId{0};
+	if (appExercisesList()->collectExportData())
+	{
+		const QString &exportFileName{appSettings()->localAppFilesDir() + tr("TrainingPlanner Exercises List") + ".txt"_L1};
+		exportFileMessageId = appExercisesList()->exportToFile(exportFileName);
+		if (exportFileMessageId >= 0)
+		{
+			if (share)
+			{
+				appOsInterface()->shareFile(exportFileName);
+				exportFileMessageId = TP_RET_CODE_SHARE_OK;
+			}
+			else
+				QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, exportFileName));
+		}
+		appItemManager()->displayMessageOnAppWindow(exportFileMessageId, exportFileName);
+	}
+	else
+		exportFileMessageId = TP_RET_CODE_NOTHING_TO_EXPORT;
+	appItemManager()->displayMessageOnAppWindow(exportFileMessageId);
+}
+
 void QmlItemManager::getSettingsPage(const uint startPageIndex)
 {
 	if (!m_usersManager)

@@ -76,7 +76,7 @@ void DBMesocyclesModel::removeMesoManager(const uint meso_idx)
 
 void DBMesocyclesModel::incorporateMeso(const uint meso_idx)
 {
-	m_dbModelInterface->setModified(meso_idx, 0);
+	m_dbModelInterface->setModified(meso_idx, -1);
 	appThreadManager()->runAction(m_db, ThreadManager::InsertRecords);
 	getCalendarForMeso(meso_idx);
 	removeMesoFile(meso_idx);
@@ -304,14 +304,24 @@ void DBMesocyclesModel::loadSplits(const uint meso_idx)
 {
 	for (const auto &split_letter : m_usedSplits.at(meso_idx))
 	{
-		DBSplitModel *split_model{splitModel(meso_idx, split_letter)};
-		if (!split_model)
-		{
-			split_model = new DBSplitModel{this, m_splitsDB, meso_idx, split_letter, true};
-			m_splitModels[meso_idx].insert(split_letter, split_model);
-			::usleep(1000);
-		}
+		loadSplit(meso_idx, split_letter);
+		::usleep(1000);
 	}
+}
+
+void DBMesocyclesModel::loadSplit(const uint meso_idx, const QChar& splitletter)
+{
+	DBSplitModel *split_model{splitModel(meso_idx, splitletter)};
+	if (!split_model)
+	{
+		split_model = new DBSplitModel{this, m_splitsDB, meso_idx, splitletter, true};
+		connect(split_model, &DBSplitModel::exerciseCountChanged, this, [this,split_model,meso_idx] () {
+			emit splitLoaded(meso_idx, split_model->splitLetter());
+		}, Qt::SingleShotConnection);
+		m_splitModels[meso_idx].insert(splitletter, split_model);
+	}
+	else
+		emit splitLoaded(meso_idx, split_model->splitLetter());
 }
 
 void DBMesocyclesModel::removeSplit(const uint meso_idx, const QChar &split_letter)
@@ -488,7 +498,7 @@ uint DBMesocyclesModel::populateCalendarDays(const uint meso_idx)
 		if (++splitletter == split.constEnd())
 			splitletter = split.constBegin();
 		m_workingCalendar->dbModelInterface()->modelData().append(std::move(day_info));
-		m_workingCalendar->dbModelInterface()->setModified(i, 0);
+		m_workingCalendar->dbModelInterface()->setModified(i, -1);
 		day_date = std::move(day_date.addDays(1));
 	}
 	return appUtils()->calculateNumberOfMonths(startDate(meso_idx), day_date);

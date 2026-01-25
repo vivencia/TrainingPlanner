@@ -28,7 +28,7 @@ Item {
 		id: mesosListView
 		model: mesoSubModel
 		spacing: 10
-		width: parent.width - 10
+		width: parent.width
 		height: parent.height * 0.8 - lblTitle.height - 10
 
 		anchors {
@@ -40,7 +40,7 @@ Item {
 
 		delegate: SwipeDelegate {
 			id: mesoDelegate
-			width: parent.width - 10
+			width: parent.width
 
 			onClicked: mesoModel.getMesocyclePage(mesoIdx, false);
 			onPressAndHold: mesoSubModel.currentIndex = index;
@@ -363,18 +363,15 @@ Item {
 		asynchronous: true
 		active: false
 
-		sourceComponent: TPComplexDialog {
-			customStringProperty1: bShare ? qsTr("Share complete program?") : qsTr("Export complete program to file?")
-			customStringProperty2: qsTr("Include Coach data?")
-			customStringProperty3: "export.png"
+		sourceComponent: TPBalloonTip {
+			message: bShare ? qsTr("Share complete program?") : qsTr("Export complete program to file?")
 			button1Text: qsTr("Yes")
 			button2Text: qsTr("No")
-			customItemSource: "TPDialogWithMessageAndCheckBox.qml"
 			closeButtonVisible: true
 			parentPage: homePage
 
 			onButton1Clicked: {
-				mesoModel.exportMeso(mesoIdx, bShare, customBoolProperty1);
+				itemManager.exportMeso(mesoIdx, bShare);
 				exportTypeTip.active = false;
 			}
 		}
@@ -385,9 +382,9 @@ Item {
 		property bool bShare
 
 		function init(meso_idx: int, share: bool): void {
-			active = true;
 			mesoIdx = meso_idx;
 			bShare = share;
+			active = true;
 		}
 	}
 } //ListView

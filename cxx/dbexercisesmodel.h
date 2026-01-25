@@ -110,7 +110,7 @@ public:
 	}
 	~DBExercisesModel() { clearExercises(); }
 	inline DBModelInterfaceExercises *dbModelInterface() const { return m_dbModelInterface; }
-	inline DBWorkoutsOrSplitsTable *database() const { return m_db; }
+	DBWorkoutsOrSplitsTable *database() const;
 	void plugDBModelInterfaceIntoDatabase();
 
 	void operator=(DBExercisesModel *other_model);
@@ -176,6 +176,7 @@ public:
 	[[nodiscard]] QTime restTime(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	[[nodiscard]] Q_INVOKABLE QString setRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	Q_INVOKABLE void setSetRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number, const QString &new_time);
+	void _setSetRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number, const QTime &time);
 
 	[[nodiscard]] QString suggestedSubSets(const uint set_type);
 	[[nodiscard]] Q_INVOKABLE QString setSubSets(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
@@ -200,8 +201,6 @@ public:
 	[[nodiscard]] Q_INVOKABLE bool setCompleted(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	Q_INVOKABLE void setSetCompleted(const uint exercise_number, const uint exercise_idx, const uint set_number, const bool completed);
 	[[nodiscard]] Q_INVOKABLE bool allSetsCompleted(int exercise_number = -1, int exercise_idx = -1) const;
-	[[nodiscard]] bool anySetCompleted(int exercise_number = -1, int exercise_idx = -1) const;
-	[[nodiscard]] bool noSetsCompleted(int exercise_number = -1, int exercise_idx = -1) const;
 	void setAllSetsCompleted(const bool completed, int exercise_number = -1, int exercise_idx = -1);
 
 	[[nodiscard]] Q_INVOKABLE uint setMode(const uint exercise_number, const uint exercise_idx, const uint set_number) const;

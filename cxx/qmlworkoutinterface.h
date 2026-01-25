@@ -24,7 +24,10 @@ Q_PROPERTY(uint timerSecond READ timerSecond WRITE setTimerSecond NOTIFY timerSe
 Q_PROPERTY(QString headerText READ headerText NOTIFY headerTextChanged FINAL)
 Q_PROPERTY(QString headerText_2 READ headerText_2 NOTIFY headerTextChanged FINAL)
 Q_PROPERTY(QString sessionLabel READ sessionLabel NOTIFY haveNewWorkoutOptionsChanged FINAL)
+Q_PROPERTY(QString timeIn READ timeIn WRITE setTimeIn NOTIFY timeInChanged FINAL)
+Q_PROPERTY(QString timeOut READ timeOut WRITE setTimeOut NOTIFY timeOutChanged FINAL)
 Q_PROPERTY(bool haveExercises READ haveExercises NOTIFY haveExercisesChanged FINAL)
+Q_PROPERTY(bool haveNewWorkoutOptions READ haveNewWorkoutOptions NOTIFY haveNewWorkoutOptionsChanged FINAL)
 Q_PROPERTY(bool canImportFromSplitPlan READ canImportFromSplitPlan WRITE setCanImportFromSplitPlan NOTIFY haveNewWorkoutOptionsChanged FINAL)
 Q_PROPERTY(bool canImportFromPreviousWorkout READ canImportFromPreviousWorkout WRITE setCanImportFromPreviousWorkout NOTIFY haveNewWorkoutOptionsChanged FINAL)
 Q_PROPERTY(bool workoutInProgress READ workoutInProgress WRITE setWorkoutInProgress NOTIFY workoutStatusChanged FINAL)
@@ -50,11 +53,11 @@ public:
 
 	Q_INVOKABLE void changeSplitLetter(const QString &new_splitletter);	
 
-	Q_INVOKABLE QString timeIn() const;
-	Q_INVOKABLE void setTimeIn(const QString &new_timein);
+	QString timeIn() const;
+	void setTimeIn(const QString &new_timein);
 
-	Q_INVOKABLE QString timeOut() const;
-	Q_INVOKABLE void setTimeOut(const QString &new_timeout);
+	QString timeOut() const;
+	void setTimeOut(const QString &new_timeout);
 
 	Q_INVOKABLE QString location();
 	Q_INVOKABLE void setLocation(const QString &new_location);
@@ -68,11 +71,10 @@ public:
 	QString sessionLabel() const;
 
 	bool haveExercises() const;
-
-	Q_INVOKABLE inline bool haveNewWorkoutOptions() const { return canImportFromSplitPlan() || canImportFromPreviousWorkout(); }
+	inline bool haveNewWorkoutOptions() const { return (canImportFromSplitPlan() || canImportFromPreviousWorkout()); }
 	inline bool canImportFromSplitPlan() const { return m_importFromSplitPlan; }
 	inline void setCanImportFromSplitPlan(const bool can_import) { m_importFromSplitPlan = can_import; emit haveNewWorkoutOptionsChanged(); }
-	inline bool canImportFromPreviousWorkout() const { return m_importFromPrevWorkout; }
+	inline bool canImportFromPreviousWorkout() const { return m_importFromPrevWorkout.has_value() && m_importFromPrevWorkout.value(); }
 	inline void setCanImportFromPreviousWorkout(const bool can_import) { m_importFromPrevWorkout = can_import; emit haveNewWorkoutOptionsChanged(); }
 
 	bool workoutFinished() const;
@@ -110,7 +112,7 @@ public:
 	Q_INVOKABLE bool canChangeSetMode(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 
 	inline DBWorkoutModel *workoutModel() const { return m_workoutModel; }
-	inline QQuickItem *workoutPage() const { return m_workoutPage; }
+	Q_INVOKABLE inline QQuickItem *workoutPage() const { return m_workoutPage; }
 
 	void askRemoveExercise(const uint exercise_number);
 	void gotoNextExercise();
@@ -129,7 +131,6 @@ signals:
 	void timeInChanged();
 	void timeOutChanged();
 	void headerTextChanged();
-	void muscularGroupChanged();
 	void workoutStatusChanged();
 	void editModeChanged();
 	void haveExercisesChanged();
@@ -154,7 +155,8 @@ private:
 	QDate m_date;
 	uint8_t m_workoutStatus;
 	uint m_hour, m_min, m_sec;
-	bool m_importFromSplitPlan, m_importFromPrevWorkout;
+	bool m_importFromSplitPlan;
+	std::optional<bool> m_importFromPrevWorkout;
 	QString m_headerText, m_headerText_2;
 
 	bool checkWorkoutStatus(uint8_t flag) const;

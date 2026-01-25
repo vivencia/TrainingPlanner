@@ -12,7 +12,6 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 TPListView {
 	id: control
 	model: exercisesModel
-	snapMode: ListView.SnapOneItem
 	spacing: 5
 
 	property QtObject pageManager
@@ -42,7 +41,7 @@ TPListView {
 
 		readonly property int exerciseNumber: index
 		property int nSubExercises: exercisesModel.subExercisesCount(exerciseNumber)
-		property bool restTimeEditable: !exercisesModel.autoRestTime(exerciseNumber)
+		property bool restTimeEditable: exercisesModel.trackRestTime(exerciseNumber) && !exercisesModel.autoRestTime(exerciseNumber)
 		property bool setCompleted: exercisesModel.setCompleted(exerciseNumber, exercisesModel.workingSubExercise, exercisesModel.workingSet)
 		property bool allSetsCompleted: exercisesModel.allSetsCompleted(exerciseNumber, exercisesModel.workingSubExercise)
 
@@ -50,7 +49,7 @@ TPListView {
 			return delegate.mapToItem(mainwindow.contentItem, txtExerciseName.x, txtExerciseName.y).y;
 		}
 
-		onClicked: workingExercise = index;
+		onClicked: exercisesModel.workingExercise = index;
 
 		contentItem: Rectangle {
 			id: listItem
@@ -144,7 +143,7 @@ TPListView {
 				txtNWeight.text = exercisesModel.setWeight(exercise_number, exercise_idx, set_number);
 				if (exercisesModel.isWorkout) {
 					setCompleted = exercisesModel.setCompleted(exercise_number, exercise_idx, set_number);
-					btnSetMode.enabled = pageManager.canChangeSetMode(exercise_number, exercise_idx, set_number);
+					setModeLoader.buttonEnabled = pageManager.canChangeSetMode(exercise_number, exercise_idx, set_number);
 				}
 			}
 		}
@@ -167,7 +166,7 @@ TPListView {
 
 				TPRadioButtonOrCheckBox {
 					id: optCurrentExercise
-					text: qsTr("Exercise #") + "<b>" + (index + 1) + "</b>" + (delegate.nSubExercises > 1 ? qsTr(" - Giant sets") : "")
+					text: qsTr("Exercise ") + "<b>" + (index + 1) + "</b>" + (delegate.nSubExercises > 1 ? qsTr(" - Giant sets") : "")
 					checked: delegate.exerciseNumber === exercisesModel.workingExercise
 					width: parent.width * 0.7
 
@@ -453,7 +452,7 @@ TPListView {
 
 									TPTabButton {
 										id: tabButton
-										text: qsTr("Set # ") + parseInt(index + 1)
+										text: qsTr("Set ") + parseInt(index + 1)
 										checked: delegate.exerciseNumber === exercisesModel.workingExercise &&
 											subExercisesTabBar.currentIndex === exercisesModel.workingSubExercise && index === exercisesModel.workingSet
 										parentTab: setsTabBar
@@ -581,9 +580,10 @@ TPListView {
 														exercisesModel.workingSubExercise, exercisesModel.workingSet, new_text);
 					}
 
-					Item {
-						id: setModeLayout
-						visible: exercisesModel.isWorkout && cboSetType.currentIndex >= 0
+					Loader {
+						id: setModeLoader
+						active: exercisesModel.isWorkout ? pageManager.todaysWorkout && cboSetType.currentIndex >= 0 : false
+						asynchronous: true
 						width: parent.width * 0.55
 						Layout.alignment: Qt.AlignCenter
 						Layout.maximumWidth: width
@@ -591,53 +591,60 @@ TPListView {
 						Layout.minimumHeight: appSettings.itemDefaultHeight
 						Layout.maximumHeight: appSettings.itemDefaultHeight
 
-						TPImage {
-							id: imgSetCompleted
-							source: "set-completed"
-							width: appSettings.itemDefaultHeight
-							height: width
-							enabled: delegate.setCompleted
+						property bool buttonEnabled: pageManager.canChangeSetMode(index, exercisesModel.workingSubExercise, exercisesModel.workingSet)
 
-							anchors {
-								left: parent.left
-								verticalCenter: parent.verticalCenter
+						sourceComponent: Item {
+							TPImage {
+								id: imgSetCompleted
+								source: "set-completed"
+								width: appSettings.itemDefaultHeight
+								height: width
+								enabled: delegate.setCompleted
+
+								anchors {
+									left: parent.left
+									verticalCenter: parent.verticalCenter
+								}
+							}
+
+							TPButton {
+								text: exercisesModel.setModeLabel(index, exercisesModel.workingSubExercise, exercisesModel.workingSet)
+								width: parent.width - imgSetCompleted.width
+								height: parent.height
+								enabled: setModeLoader.buttonEnabled
+								onClicked: pageManager.setWorkingSetMode();
+
+								anchors {
+									left: imgSetCompleted.right
+									verticalCenter: parent.verticalCenter
+								}
 							}
 						}
-
-						TPButton {
-							id: btnSetMode
-							text: exercisesModel.setModeLabel(index, exercisesModel.workingSubExercise, exercisesModel.workingSet)
-							width: parent.width - imgSetCompleted.width
-							height: parent.height
-							enabled: exercisesModel.isWorkout ? pageManager.canChangeSetMode(index, exercisesModel.workingSubExercise, exercisesModel.workingSet) : false
-							onClicked: pageManager.setWorkingSetMode();
-
-							anchors {
-								left: imgSetCompleted.right
-								verticalCenter: parent.verticalCenter
-							}
-						}
-					} //setModeLayout
+					} //Loader setMode
 				} //setsItemsLayout
 			} //setsGroup
 
-			RowLayout {
-				visible: exercisesModel.isWorkout
-				enabled: delegate.allSetsCompleted
+			Loader {
+				active: exercisesModel.isWorkout ? pageManager.todaysWorkout : false
+				asynchronous: true
 				Layout.alignment: Qt.AlignCenter
 				Layout.preferredWidth: listItem.width * 0.9
 
-				TPLabel {
-					text: qsTr("Exercise completed")
-					Layout.preferredWidth: listItem.width * 0.63
-				}
+				sourceComponent: RowLayout {
+					enabled: delegate.allSetsCompleted
 
-				TPImage {
-					source: "set-completed"
-					width: appSettings.itemDefaultHeight
-					height: width
-				}
-			} //RowLayout
+					TPLabel {
+						text: qsTr("Exercise completed")
+						Layout.preferredWidth: listItem.width * 0.63
+					}
+
+					TPImage {
+						source: "set-completed"
+						width: appSettings.itemDefaultHeight
+						height: width
+					}
+				} //RowLayout
+			} //Loader
 		} //contentsLayout
 	} //delegate: ItemDelegate
 
