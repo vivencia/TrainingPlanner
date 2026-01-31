@@ -8,7 +8,7 @@ import "../Dialogs"
 
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
-Column {
+ColumnLayout {
 	id: mainItem
 	spacing: 5
 
@@ -53,34 +53,24 @@ Column {
 		}
 	} //Timer
 
-	Rectangle {
-		width: parent.width
+	RowLayout {
+		spacing: 5
 		height: appSettings.itemDefaultHeight
-		color: appSettings.listEntryColor2
-		opacity: 0.6
+		Layout.fillWidth: true
 
 		TPLabel {
 			text: qsTr("Search: ")
-			width: parent.width * 0.3
-
-			anchors {
-				left: parent.left
-				verticalCenter: parent.verticalCenter
-			}
+			Layout.preferredWidth: mainItem.width * 0.3
+			Layout.leftMargin: 5
 		}
 
 		TPRadioButtonOrCheckBox {
 			id: chkMultipleSelection
 			text: qsTr("Multiple selection")
 			radio: false
-			enabled: canDoMultipleSelection
-			width: parent.width * 0.6
-
-			anchors {
-				right: parent.right
-				verticalCenter: parent.verticalCenter
-				verticalCenterOffset: 5
-			}
+			visible: canDoMultipleSelection
+			Layout.preferredWidth: mainItem.width * 0.6
+			Layout.alignment: Qt.AlignRight
 
 			onCheckedChanged: {
 				exercisesModel.clearSelectedEntries();
@@ -94,8 +84,8 @@ Column {
 		showClearTextButton: true
 		readOnly: !mainItem.enabled
 		enabled: exercisesModel.hasExercises
-		width: parent.width * 0.9
-		Layout.topMargin: 5
+		Layout.preferredWidth: parent.width * 0.9
+		Layout.leftMargin: 5
 
 		onTextChanged: exercisesModel.search(text);
 
@@ -119,9 +109,9 @@ Column {
 		color: "transparent"
 		border.color: appSettings.fontColor
 		border.width: 2
-		width: parent.width
-		height: parent.height * 0.75
 		radius: 8
+		height: parent.height * 0.75
+		Layout.fillWidth: true
 
 		TPListView {
 			id: lstExercises
@@ -218,6 +208,10 @@ Column {
 					exerciseEntrySelected(idx);
 			}
 		}
+		txtSearch.forceActiveFocus();
+	}
+
+	function setFocusToSearchField(): void {
 		txtSearch.forceActiveFocus();
 	}
 

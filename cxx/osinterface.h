@@ -159,6 +159,7 @@ private:
 	bool mb_appSuspended, m_bTodaysWorkoutFinishedConnected;
 	QList<notificationData*> m_notifications;
 	QTimer *m_notificationsTimer;
+	QString m_workoutDoneMessage
 #endif
 
 	void setNetStatus(uint messages_index, bool success, QString &&message);

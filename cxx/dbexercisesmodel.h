@@ -108,14 +108,14 @@ public:
 	{
 		commonConstructor(load_from_db);
 	}
-	~DBExercisesModel() { clearExercises(); }
+	~DBExercisesModel() { clearExercises(false); }
 	inline DBModelInterfaceExercises *dbModelInterface() const { return m_dbModelInterface; }
 	DBWorkoutsOrSplitsTable *database() const;
 	void plugDBModelInterfaceIntoDatabase();
 
 	void operator=(DBExercisesModel *other_model);
 	bool fromDatabase(const bool db_data_ok);
-	void clearExercises();
+	Q_INVOKABLE void clearExercises(const bool from_qml = true);
 
 	[[nodiscard]] inline const bool exercisesLoaded() const { return m_exercisesLoaded; }
 	[[nodiscard]] inline const QString &id() const { return m_dbModelInterface->modelData().at(0).at(EXERCISES_FIELD_ID); }
@@ -162,6 +162,7 @@ public:
 
 	[[nodiscard]] Q_INVOKABLE QString exerciseName(const uint exercise_number, const uint exercise_idx) const;
 	Q_INVOKABLE void setExerciseName(const uint exercise_number, const uint exercise_idx, const QString &new_name);
+	[[nodiscard]] Q_INVOKABLE QString allExerciseNames(const uint exercise_number) const;
 
 	[[nodiscard]] Q_INVOKABLE bool trackRestTime(const uint exercise_number) const;
 	Q_INVOKABLE void setTrackRestTime(const uint exercise_number, const bool track_resttime);
@@ -170,6 +171,7 @@ public:
 
 	[[nodiscard]] Q_INVOKABLE int setType(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	Q_INVOKABLE void setSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type, const bool from_qml = true);
+	void _setSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type);
 	void changeSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type);
 
 	[[nodiscard]] QTime suggestedRestTime(const QTime &prev_resttime, const uint set_type) const;

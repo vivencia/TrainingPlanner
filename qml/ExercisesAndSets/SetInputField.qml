@@ -28,7 +28,6 @@ FocusScope {
 	readonly property list<string> labelText: [ qsTr("Weight") + appSettings.weightUnit + ':', qsTr("Reps:"), qsTr("Rest time:"), qsTr("SubSets:") ]
 	readonly property list<QtObject> validatorType: [val_weigth, val_rep, val_time, val_set]
 	readonly property list<int> maxLen: [5,4,5,1]
-	property string origText
 
 	signal valueChanged(string str)
 	signal enterOrReturnKeyPressed()
@@ -128,7 +127,8 @@ FocusScope {
 
 			onClicked: {
 				clearInput = false;
-				txtMain.text = appUtils.setTypeOperation(type, false, txtMain.text, false);
+				const value = txtMain.text !== "" ? txtMain.text : txtMain.origText;
+				txtMain.text = appUtils.setTypeOperation(type, false, value, false);
 				valueChanged(txtMain.text);
 			}
 		}
@@ -142,6 +142,8 @@ FocusScope {
 			readOnly: !editable
 			padding: 0
 			focus: true
+
+			property string origText
 
 			width: {
 				switch (type) {
@@ -170,7 +172,7 @@ FocusScope {
 
 			onActiveFocusChanged: {
 				if (activeFocus) {
-					if (clearInput) {
+					if (clearInput && editable) {
 						origText = text;
 						txtMain.clear();
 						clearInput = false; //In case the window loose focus, when returning do not erase what was being written before the loosing of focus
@@ -185,9 +187,11 @@ FocusScope {
 			onTextEdited: {
 				if (type === SetInputField.Type.TimeType)
 					text = formatTime(text);
+				else
+					text = sanitizeText(text);
+				valueChanged(text);
 			}
 			onTextChanged: if (!activeFocus) clearInput = true;
-			onEditingFinished: valueChanged(text = sanitizeText(text));
 		} //TextInput
 
 		TPButton {
@@ -208,7 +212,8 @@ FocusScope {
 
 			onClicked: {
 				clearInput = false;
-				txtMain.text = appUtils.setTypeOperation(type, true, txtMain.text, true);
+				const value = txtMain.text !== "" ? txtMain.text : txtMain.origText;
+				txtMain.text = appUtils.setTypeOperation(type, true, value, true);
 				valueChanged(txtMain.text);
 			}
 		}

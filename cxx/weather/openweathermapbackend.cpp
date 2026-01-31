@@ -16,7 +16,7 @@
 #include <QtNetwork/qnetworkreply.h>
 #include <QtPositioning/qgeocoordinate.h>
 
-using namespace Qt::Literals::StringLiterals;
+using namespace QLiterals;
 
 constexpr auto kZeroKelvin{273.15};
 
@@ -49,14 +49,14 @@ public:
 	inline const uint forecastDays() const { return m_weatherData.count(); }
 
 	inline QString date(const uint day) const { return formatDate(m_weatherData.at(day).value(key_date)); }
-	inline QString sunrise(const uint day) const { return formatTime(m_weatherData.at(day).value(key_sunrise)) + "hs"_L1; }
-	inline QString sunset(const uint day) const { return formatTime(m_weatherData.at(day).value(key_sunset))  + "hs"_L1; }
+	inline QString sunrise(const uint day) const { return formatTime(m_weatherData.at(day).value(key_sunrise)) % "hs"_L1; }
+	inline QString sunset(const uint day) const { return formatTime(m_weatherData.at(day).value(key_sunset)) % "hs"_L1; }
 	inline QString temperature(const uint day) const { return formatTemp(m_weatherData.at(day).value(key_temp)); }
 	inline QString feel_temperature(const uint day) const { return formatTemp(m_weatherData.at(day).value(key_tempfeel)); }
 	inline QString min_temperature(const uint day) const { return formatTemp(m_weatherData.at(day).value(key_min)); }
 	inline QString max_temperature(const uint day) const { return formatTemp(m_weatherData.at(day).value(key_max)); }
-	inline QString pressure(const uint day) const { return m_weatherData.at(day).value(key_pressure) + "hPa"_L1; }
-	inline QString humidity(const uint day) const { return m_weatherData.at(day).value(key_humidity) + "%"_L1; }
+	inline QString pressure(const uint day) const { return m_weatherData.at(day).value(key_pressure) % "hPa"_L1; }
+	inline QString humidity(const uint day) const { return m_weatherData.at(day).value(key_humidity) % "%"_L1; }
 	inline QString uv_index(const uint day) const { return m_weatherData.at(day).value(key_uv); }
 	inline QString wind_speed(const uint day) const { return formatSpeed(m_weatherData.at(day).value(key_wind)); }
 	inline QString weather_description(const uint day) const { return m_weatherData.at(day).value(key_description); }
@@ -91,7 +91,7 @@ private:
 
 	inline const bool isKey(const QString &word) const
 	{
-		return m_usedKeys ? m_usedKeys->contains(word + ' ') : false;
+		return m_usedKeys ? m_usedKeys->contains(word % ' ') : false;
 	}
 
 	inline const bool isWeatherSubField(const QString &word) const
@@ -101,7 +101,7 @@ private:
 
 	inline QString formatTemp(const QString &strTemp) const
 	{
-		return QString::number(qRound(strTemp.toDouble() - kZeroKelvin)) + u"°C"_s;
+		return QString::number(qRound(strTemp.toDouble() - kZeroKelvin)) % u"°C"_s;
 	}
 
 	inline QString formatDate(const QString &strDate) const

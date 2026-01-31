@@ -83,6 +83,7 @@ TPListView {
 
 			function onWorkingSubExerciseChanged(exercise_number: int, exercise_idx: int) : void {
 				const set_number = exercisesModel.workingSet;
+				setsGroup.nSets = exercisesModel.setsNumber(exercise_number, exercise_idx);
 				setsTabBar.currentIndex = set_number;
 				delegate.changeFields(exercise_number, exercise_idx, set_number, false);
 			}
@@ -105,8 +106,12 @@ TPListView {
 			function onExerciseModified(exercise_number: int, exercise_idx: int, set_number: int, field: int): void {
 				if (exercise_number === index) {
 					switch (field) {
+						case 4: //EXERCISES_FIELD_TRACKRESTTIMES
+						case 5: //EXERCISES_FIELD_AUTORESTTIMES
+							delegate.restTimeEditable = exercisesModel.trackRestTime(exerciseNumber) && !exercisesModel.autoRestTime(exerciseNumber);
+						break;
 						case 7: //EXERCISES_FIELD_SETTYPES
-							changeFields(index, exercise_idx, set_number, true);
+							delegate.changeFields(index, exercise_idx, set_number, true);
 						break;
 						case 13: //EXERCISES_FIELD_COMPLETED
 							let completed = exercisesModel.setCompleted(exercise_number, exercise_idx, set_number);
@@ -123,6 +128,14 @@ TPListView {
 				}
 			}
 
+			function onSetTypeChanged(exercise_number: int, exercise_idx: int, set_number: int, mode: int): void {
+				txtRestTime.text = exercisesModel.setRestTime(exercise_number, exercise_idx, set_number);
+				if (subSetsLoader.active && subSetsLoader.status === Loader.Ready)
+					subSetsLoader.item.subSetsNumber = exercisesModel.setSubSets(exercise_number, exercise_idx, set_number);
+				txtNWeight.text = exercisesModel.setWeight(exercise_number, exercise_idx, set_number);
+				txtNReps.text = exercisesModel.setReps(exercise_number, exercise_idx, set_number);
+			}
+
 			function onSetModeChanged(exercise_number: int, exercise_idx: int, set_number: int, mode: int): void {
 				if (exercise_number === index) {
 					btnSetMode.text = exercisesModel.setModeLabel(exercise_number, exercise_idx, set_number);
@@ -132,18 +145,19 @@ TPListView {
 
 		function changeFields(exercise_number: int, exercise_idx: int, set_number: int, only_settype_dependent_fields: bool): void {
 			if (exercise_number === index) {
-				if (!only_settype_dependent_fields) {
+				if (!only_settype_dependent_fields)
 					txtExerciseName.text = exercisesModel.exerciseName(exercise_number, exercise_idx);
-					txtNotes.text = exercisesModel.setNotes(exercise_number, exercise_idx, set_number);
-				}
-				cboSetType.currentIndex = exercisesModel.setType(exercise_number, exercise_idx, set_number);
+
+				cboSetType.setCurIndex(exercisesModel.setType(exercise_number, exercise_idx, set_number));
 				txtRestTime.text = exercisesModel.setRestTime(exercise_number, exercise_idx, set_number);
-				txtNSubsets.text = exercisesModel.setSubSets(exercise_number, exercise_idx, set_number);
+				if (subSetsLoader.active && subSetsLoader.status === Loader.Ready)
+					subSetsLoader.item.subSetsNumber = exercisesModel.setSubSets(exercise_number, exercise_idx, set_number);
 				txtNReps.text = exercisesModel.setReps(exercise_number, exercise_idx, set_number);
 				txtNWeight.text = exercisesModel.setWeight(exercise_number, exercise_idx, set_number);
+				txtNotes.text = exercisesModel.setNotes(exercise_number, exercise_idx, set_number);
 				if (exercisesModel.isWorkout) {
 					setCompleted = exercisesModel.setCompleted(exercise_number, exercise_idx, set_number);
-					setModeLoader.buttonEnabled = pageManager.canChangeSetMode(exercise_number, exercise_idx, set_number);
+					setModeLoader.item.buttonEnabled = pageManager.canChangeSetMode(exercise_number, exercise_idx, set_number);
 				}
 			}
 		}
@@ -166,9 +180,9 @@ TPListView {
 
 				TPRadioButtonOrCheckBox {
 					id: optCurrentExercise
-					text: qsTr("Exercise ") + "<b>" + (index + 1) + "</b>" + (delegate.nSubExercises > 1 ? qsTr(" - Giant sets") : "")
+					text: qsTr("Exercise ") + "<b>" + (index + 1) + "</b>"
 					checked: delegate.exerciseNumber === exercisesModel.workingExercise
-					width: parent.width * 0.7
+					width: parent.width * 0.6
 
 					anchors {
 						left: parent.left
@@ -179,26 +193,43 @@ TPListView {
 				} //optCurrentExercise
 
 				TPButton {
+					id: btnPrevExercise
+					imageSource: "goto-prev"
+					width: appSettings.itemDefaultHeight
+					height: width
+					enabled: delegate.exerciseNumber === exercisesModel.workingExercise && delegate.exerciseNumber > 0
+
+					anchors {
+						right: btnNextExercise.left
+						rightMargin: 5
+						verticalCenter: parent.verticalCenter
+					}
+
+					onClicked: {
+						const prev_exercise_number = index - 1;
+						exercisesModel.workingExercise = prev_exercise_number;
+						control.positionViewAtIndex(prev_exercise_number, ListView.Contain);
+					}
+				} //btnPrevExercise
+
+				TPButton {
 					id: btnNextExercise
 					imageSource: "goto-next"
 					width: appSettings.itemDefaultHeight
 					height: width
 					enabled: delegate.exerciseNumber === exercisesModel.workingExercise &&
-										delegate.exerciseNumber < exercisesModel.exerciseCount - 1 && delegate.allSetsCompleted
+															delegate.exerciseNumber < exercisesModel.exerciseCount - 1
 
 					anchors {
 						right: btnDelExercise.left
-						rightMargin: 10
+						rightMargin: 5
 						verticalCenter: parent.verticalCenter
 					}
 
 					onClicked: {
 						const next_exercise_number = index + 1;
 						exercisesModel.workingExercise = next_exercise_number;
-						//if (exercisesModel.isWorkout)
-						//	parentPage.placeExerciseIntoView(control.itemAtIndex(index+1).y)
-						//else
-							control.positionViewAtIndex(next_exercise_number, ListView.Contain);
+						control.positionViewAtIndex(next_exercise_number, ListView.Contain);
 					}
 				} //btnNextExercise
 
@@ -211,11 +242,11 @@ TPListView {
 
 					anchors {
 						right: btnMoveExerciseUp.left
-						rightMargin: 10
+						rightMargin: 5
 						verticalCenter: parent.verticalCenter
 					}
 
-					onClicked: pageManager.removeExercise(index);
+					onClicked: showDeleteDialog();
 				} //btnDelExercise
 
 				TPButton {
@@ -228,7 +259,7 @@ TPListView {
 
 					anchors {
 						right: btnMoveExerciseDown.left
-						rightMargin: 10
+						rightMargin: 5
 						verticalCenter: parent.verticalCenter
 					}
 
@@ -245,7 +276,7 @@ TPListView {
 
 					anchors {
 						right: parent.right
-						rightMargin: 5
+						rightMargin: 10
 						verticalCenter: parent.verticalCenter
 					}
 
@@ -302,7 +333,9 @@ TPListView {
 							onClicked: {
 								exercisesModel.workingSubExercise = index;
 								if (text.startsWith(qsTr("Choose")))
-									pageManager.simpleExercisesList(true);
+									itemManager.showSimpleExercisesList(pageManager.qmlPage(), exercisesModel.muscularGroup);
+								else
+									ToolTip.show(text, 2000);
 							}
 						} //subExercisesTabButton
 					} //subExerciseButtonsRepeater
@@ -338,7 +371,7 @@ TPListView {
 
 				onExerciseChanged: (new_text) => exercisesModel.setExerciseName(exercisesModel.workingExercise, exercisesModel.workingSubExercise, new_text);
 				onItemClicked: exercisesModel.workingExercise = index;
-				onShowExercisesListButtonClicked: pageManager.simpleExercisesList(true);
+				onShowExercisesListButtonClicked: itemManager.showSimpleExercisesList(pageManager.qmlPage(), exercisesModel.muscularGroup);
 			} //txtExerciseName
 
 			Row {
@@ -359,7 +392,10 @@ TPListView {
 
 					onClicked: {
 						exercisesModel.setTrackRestTime(index, checked);
-						delegate.restTimeEditable = !chkAutoRestTime.checked;
+						if (!checked) {
+							chkAutoRestTime.checked = false;
+							exercisesModel.setAutoRestTime(index, false);
+						}
 					}
 				}
 
@@ -371,10 +407,7 @@ TPListView {
 					checked: exercisesModel.autoRestTime(index)
 					width: listItem.width * 0.5
 
-					onClicked: {
-						exercisesModel.setAutoRestTime(index, checked);
-						delegate.restTimeEditable = !checked;
-					}
+					onClicked: exercisesModel.setAutoRestTime(index, checked);
 				}
 			}
 
@@ -505,27 +538,33 @@ TPListView {
 						}
 					} //RowLayout
 
-					RowLayout {
-						visible: setsGroup.nSets > 0 && cboSetType.currentIndex >= 3
-						enabled: !delegate.setCompleted
+					Loader {
+						id: subSetsLoader
+						active: setsGroup.nSets > 0 && cboSetType.currentIndex >= 3
+						asynchronous: true
 						Layout.alignment: Qt.AlignCenter
 						Layout.preferredWidth: listItem.width * 0.9
 
-						TPLabel {
-							text: exercisesModel.setTotalSubsets
-							Layout.preferredWidth: listItem.width * 0.63
-						}
+						sourceComponent: RowLayout {
+							enabled: !delegate.setCompleted
 
-						SetInputField {
-							id: txtNSubsets
-							text: exercisesModel.setSubSets(index, exercisesModel.workingSubExercise, exercisesModel.workingSet)
-							type: SetInputField.Type.SetType
-							availableWidth: listItem.width * 0.25
-							showLabel: false
+							property string subSetsNumber: exercisesModel.setSubSets(index, exercisesModel.workingSubExercise, exercisesModel.workingSet)
 
-							onValueChanged: (str) => exercisesModel.setSetSubSets(exercisesModel.workingExercise,
+							TPLabel {
+								text: exercisesModel.setTotalSubsets
+								Layout.preferredWidth: listItem.width * 0.63
+							}
+
+							SetInputField {
+								text: parent.subSetsNumber
+								type: SetInputField.Type.SetType
+								availableWidth: listItem.width * 0.25
+								showLabel: false
+
+								onValueChanged: (str) => exercisesModel.setSetSubSets(exercisesModel.workingExercise,
 															exercisesModel.workingSubExercise, exercisesModel.workingSet, str);
-							onEnterOrReturnKeyPressed: txtNReps.forceActiveFocus();
+								onEnterOrReturnKeyPressed: txtNReps.forceActiveFocus();
+							}
 						}
 					} //RowLayout
 
@@ -591,9 +630,9 @@ TPListView {
 						Layout.minimumHeight: appSettings.itemDefaultHeight
 						Layout.maximumHeight: appSettings.itemDefaultHeight
 
-						property bool buttonEnabled: pageManager.canChangeSetMode(index, exercisesModel.workingSubExercise, exercisesModel.workingSet)
-
 						sourceComponent: Item {
+							property bool buttonEnabled: pageManager.canChangeSetMode(index, exercisesModel.workingSubExercise, exercisesModel.workingSet)
+
 							TPImage {
 								id: imgSetCompleted
 								source: "set-completed"
@@ -611,7 +650,7 @@ TPListView {
 								text: exercisesModel.setModeLabel(index, exercisesModel.workingSubExercise, exercisesModel.workingSet)
 								width: parent.width - imgSetCompleted.width
 								height: parent.height
-								enabled: setModeLoader.buttonEnabled
+								enabled: parent.buttonEnabled
 								onClicked: pageManager.setWorkingSetMode();
 
 								anchors {
@@ -648,13 +687,66 @@ TPListView {
 		} //contentsLayout
 	} //delegate: ItemDelegate
 
-	function reloadModel(): void {
-		control.model = 0;
-		control.model = exercisesModel.count;
+	function showDeleteDialog(exercise_number: int): void {
+		if (appSettings.alwaysAskConfirmation)
+			delExerciseLoader.active = true;
+		else
+			exercisesModel.delExercise(exercisesModel.workingExercise);
+	}
+
+	Loader {
+		id: delExerciseLoader
+		active: false
+		asynchronous: true
+
+		sourceComponent: TPBalloonTip {
+			title: qsTr("Remove Exercise?")
+			message: exerciseName + qsTr("\nThis action cannot be undone.")
+			imageSource: "remove"
+			keepAbove: true
+			button1Text: qsTr("Yes")
+			button2Text: qsTr("No")
+			onButton1Clicked: exercisesModel.delExercise(exercisesModel.workingExercise);
+			parentPage: control.pageManager
+
+			onClosed: delExerciseLoader.active = false;
+		}
+
+		onLoaded: {
+			item.exerciseName = exercisesModel.exerciseName(exercisesModel.workingExercise, exercisesModel.allExerciseNames);
+			item.show(-1);
+		}
+	}
+
+	function showClearExercisesMessage(): void {
+		if (appSettings.alwaysAskConfirmation)
+			clearExercises.active = true;
+		else
+			exercisesModel.clearExercises();
+	}
+
+	Loader {
+		id: clearExercises
+		active: false
+		asynchronous: true
+
+		sourceComponent: TPBalloonTip {
+			title: qsTr("Remove all exercises?")
+			message: qsTr("This action cannot be undone.")
+			imageSource: "remove"
+			keepAbove: true
+			button1Text: qsTr("Yes")
+			button2Text: qsTr("No")
+			onButton1Clicked: exercisesModel.clearExercises();
+			parentPage: control.pageManager
+
+			onClosed: clearExercises.active = false;
+		}
+
+		onLoaded: item.show(-1);
 	}
 
 	function appendNewExerciseToDivision(): void {
-		//pageManager.addExercise();
 		exercisesModel.setWorkingExercise = exercisesModel.addExercise();
 		control.currentIndex = exercisesModel.workingExercise;
 		control.positionViewAtIndex(exercisesModel.workingExercise, ListView.Contain);

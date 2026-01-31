@@ -21,6 +21,7 @@
 #endif
 
 constexpr QLatin1StringView weatherLocationsSettingsName{"weatherLocations"};
+constexpr QLatin1StringView weatherLastViewedLocationSettings{"viewedLocation"};
 
 enum savedLocationsFields {
 	locationName,
@@ -41,9 +42,9 @@ void WeatherData::setWeatherInfo(const st_WeatherInfo &w_info, const st_WeatherI
 	m_description = std::move(tr("Weather now(") % std::move(appUtils()->formatTime(
 									QTime::currentTime(), TPUtils::TF_FANCY)) % ")\n"_L1 % w_info.m_weatherDescription);
 	m_extra_info = std::move(
-					tr("Humidity: ") % w_info.m_humidity % '\t' + tr("Pressure: ") % w_info.m_pressure % '\n' %
-					tr("Wind speed: " ) % w_info.m_wind % ' ' + tr("UV Index: ") % w_info.m_uvi % '\n' +
-					tr("Sun rise: ") % w_info.m_sunrise  % '\n' + tr("Sun set: ") % w_info.m_sunset);
+					tr("Humidity: ") % w_info.m_humidity % '\t' % tr("Pressure: ") % w_info.m_pressure % '\n' %
+					tr("Wind speed: " ) % w_info.m_wind % ' ' % tr("UV Index: ") % w_info.m_uvi % '\n' +
+					tr("Sun rise: ") % w_info.m_sunrise  % '\n' % tr("Sun set: ") % w_info.m_sunset);
 	m_provider = std::move(w_info.m_provider_name);
 	m_minmax = std::move(w_info.m_temp_min % '/' % w_info.m_temp_max);
 	emit dataChanged();
@@ -95,7 +96,7 @@ WeatherInfo::WeatherInfo(QObject *parent)
 	connect(d->m_currentBackend, &OpenWeatherMapBackend::weatherInformation, this, &WeatherInfo::handleWeatherData);
 
 	m_savedLocations = std::move(appSettings()->getCustomValue(weatherLocationsSettingsName).toString());
-	requestWeatherForSavedCity(0);
+	setCurrentlyViewedLocationIndex(appSettings()->getCustomValue(weatherLastViewedLocationSettings, 0).toInt());
 
 #ifdef Q_OS_ANDROID
 	connect(d->m_currentBackend, &OpenWeatherMapBackend::receivedCityFromCoordinates, this, &WeatherInfo::gotGPSLocation);
@@ -231,12 +232,14 @@ void WeatherInfo::addLocationToConfig(const QString &location, const QGeoCoordin
 	const auto n{savedLocationsCount()};
 	for (uint i{0}; i < n; ++i)
 	{
-		if (containsAllWords(savedLocationName(i), location.split(' ')))
+		if (appUtils()->containsAllWords(savedLocationName(i), location.split(' '), true))
 			return;
 	}
 	QString new_location{std::move(appUtils()->string_strings(
 						{location, QString::number(coord.latitude()), QString::number(coord.longitude())}, set_separator))};
 	appUtils()->setCompositeValue(-1, new_location, m_savedLocations, record_separator);
+	setCurrentlyViewedLocationIndex(savedLocationsCount() - 1, false);
+	appSettings()->setCustomValue(weatherLastViewedLocationSettings, currentlyViewedLocationIndex());
 	emit savedLocationsCountChanged();
 }
 
@@ -299,8 +302,10 @@ void WeatherInfo::requestWeatherForGpsCity()
 }
 #endif
 
-void WeatherInfo::requestWeatherForSavedCity(const uint index)
+void WeatherInfo::requestWeatherForSavedCity(const int index)
 {
+	if (index < 0)
+		return;
 	const QString &location_info{appUtils()->getCompositeValue(index, m_savedLocations, record_separator)};
 	if (!location_info.isEmpty())
 	{
@@ -309,6 +314,7 @@ void WeatherInfo::requestWeatherForSavedCity(const uint index)
 					appUtils()->getCompositeValue(latitude, location_info, set_separator).toDouble(),
 					appUtils()->getCompositeValue(longitude, location_info, set_separator).toDouble()};
 		d->m_currentBackend->requestWeatherInfo(place, coord);
+		appSettings()->setCustomValue(weatherLastViewedLocationSettings, index);
 	}
 }
 

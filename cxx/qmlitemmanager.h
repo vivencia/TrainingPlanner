@@ -3,6 +3,7 @@
 #include "return_codes.h"
 
 #include <QObject>
+#include <QVariantMap>
 
 enum {
 	IFC_USER = 0,
@@ -46,8 +47,8 @@ Q_OBJECT
 
 public:
 	explicit inline QmlItemManager(QQmlApplicationEngine *qml_engine)
-		: QObject{nullptr}, m_usersManager{nullptr}, m_exercisesListManager{nullptr},
-																	m_weatherPage{nullptr}, m_statisticsPage{nullptr}
+		: QObject{nullptr}, m_usersManager{nullptr}, m_exercisesListManager{nullptr}, m_simpleExercisesList{nullptr},
+																		m_weatherPage{nullptr}, m_statisticsPage{nullptr}
 	{
 		_appItemManager = this;
 		_appQmlEngine = qml_engine;
@@ -67,11 +68,10 @@ public:
 	Q_INVOKABLE void getCoachesPage();
 	Q_INVOKABLE void getClientsPage();
 	Q_INVOKABLE void getExercisesPage(QmlWorkoutInterface *connectPage = nullptr);
+	Q_INVOKABLE void showSimpleExercisesList(QQuickItem *parentPage, const QString &filter);
 	Q_INVOKABLE void getWeatherPage();
 	Q_INVOKABLE void getStatisticsPage();
 
-	void showSimpleExercisesList(QQuickItem *parentPage, const QString &filter) const;
-	void hideSimpleExercisesList(QQuickItem *parentPage) const;
 	const QString &setExportFileName(const QString &filename);
 	void continueExport(int exportMessageId, const bool bShare);
 	void displayActivityResultMessage(const int requestCode, const int resultCode) const;
@@ -82,6 +82,7 @@ public:
 	DBExercisesModel *m_workout_model;
 
 signals:
+	void selectedExerciseFromSimpleExercisesList(QQuickItem *parentPage);
 	void mesoForImportSelected();
 	void qmlPasswordDialogClosed(int resultCode, QString password);
 #ifndef QT_NO_DEBUG
@@ -101,8 +102,10 @@ private:
 	QString m_exportFilename, m_importFilename;
 	QmlUserInterface *m_usersManager;
 	QmlExercisesDatabaseInterface *m_exercisesListManager;
-	QQmlComponent *m_weatherComponent, *m_statisticsComponent;
+	QQmlComponent *m_simpleExercisesListComponent, *m_weatherComponent, *m_statisticsComponent;
 	QQuickItem *m_homePage, *m_weatherPage, *m_statisticsPage;
+	QObject *m_simpleExercisesList;
+	QVariantMap m_simpleExercisesListProperties;
 
 #ifndef QT_NO_DEBUG
 	bool m_qml_testing;
@@ -117,6 +120,8 @@ private:
 	static QQuickWindow *_appMainWindow;
 	friend QQuickWindow *appMainWindow();
 
+	void showSimpleExercisesList();
+	void createSimpleExercisesList(QQuickItem *parentPage);
 	void createWeatherPage_part2();
 	void createStatisticsPage_part2();
 };

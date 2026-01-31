@@ -9,6 +9,7 @@ ColumnLayout {
 	property bool showToolBox: false
 	property bool editable: true
 	property alias text: textControl.text
+	property alias modified: textControl.modified
 
 	signal textAltered(_text: string);
 	signal enterOrReturnKeyPressed(mod_key: int);

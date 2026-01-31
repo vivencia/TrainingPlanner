@@ -32,15 +32,11 @@ QmlWorkoutInterface::QmlWorkoutInterface(QObject *parent,DBMesocyclesModel *meso
 	m_calendarModel = m_mesoModel->calendar(m_mesoIdx);
 	m_calendarDay = m_calendarModel->calendarDay(m_date);
 	m_workoutModel = m_mesoModel->workoutForDay(m_mesoIdx, m_calendarDay);
-	if (!m_workoutModel->exercisesLoaded())
-	{
-		connect(m_workoutModel, &DBWorkoutModel::exerciseCountChanged, [this] () {
-			if (m_workoutModel->exerciseCount() == 0)
-				verifyWorkoutOptions();
-		});
-	}
-	else
-		verifyWorkoutOptions();
+	connect(m_workoutModel, &DBWorkoutModel::exerciseCountChanged, [this] () {
+		if (m_workoutModel->exerciseCount() == 0)
+			verifyWorkoutOptions();
+	});
+	verifyWorkoutOptions();
 }
 
 void QmlWorkoutInterface::cleanUp()
@@ -329,8 +325,9 @@ void QmlWorkoutInterface::loadExercisesFromCalendarDay(const uint calendar_day)
 {
 	DBWorkoutModel *w_model{m_mesoModel->workoutForDay(m_mesoIdx, calendar_day)};
 	auto load = [this,w_model] () -> void {
-		m_workoutModel = w_model;
+		*m_workoutModel = w_model;
 		m_workoutModel->setAllSetsCompleted(false);
+		delete w_model;
 	};
 	if (w_model->exerciseCount() == 0)
 		connect(w_model, &DBSplitModel::exerciseCountChanged, this, [&load] () { load(); });
@@ -419,56 +416,11 @@ void QmlWorkoutInterface::stopWorkout()
 	setWorkoutFinished(true);
 }
 
-void QmlWorkoutInterface::addExercise()
-{
-	m_workoutModel->setWorkingExercise(m_workoutModel->addExercise());
-}
-
-void QmlWorkoutInterface::simpleExercisesList(const bool show)
-{
-	if (show)
-		appItemManager()->showSimpleExercisesList(m_workoutPage, m_workoutModel->muscularGroup());
-	else
-		appItemManager()->hideSimpleExercisesList(m_workoutPage);
-}
-
-void QmlWorkoutInterface::clearExercises(const bool bShowIntentDialog)
-{
-	m_workoutModel->clearExercises();
-	setWorkoutFinished(false);
-	emit haveExercisesChanged();
-	if (bShowIntentDialog)
-		verifyWorkoutOptions();
-}
-
-void QmlWorkoutInterface::removeExercise(const int exercise_number)
-{
-	if (exercise_number >= 0)
-	{
-		if (appSettings()->alwaysAskConfirmation())
-			QMetaObject::invokeMethod(m_workoutPage, "showDeleteDialog", Q_ARG(QString,
-						m_workoutModel->exerciseName(exercise_number, m_workoutModel->workingSubExercise(exercise_number))));
-		else
-			m_workoutModel->delExercise(exercise_number);
-	}
-	else
-		m_workoutModel->delExercise(m_workoutModel->workingExercise());
-}
-
 bool QmlWorkoutInterface::canChangeSetMode(const uint exercise_number, const uint exercise_idx, const uint set_number) const
 {
 	const bool set_has_data{!m_workoutModel->setReps(exercise_number, exercise_idx, set_number).isEmpty() &&
 		!m_workoutModel->setWeight(exercise_number, exercise_idx, set_number).isEmpty()};
 	return set_has_data && (set_number == 0 ? true : m_workoutModel->setCompleted(exercise_number, exercise_idx, set_number - 1));
-}
-
-void QmlWorkoutInterface::askRemoveExercise(const uint exercise_number)
-{
-	if (appSettings()->alwaysAskConfirmation())
-		QMetaObject::invokeMethod(m_workoutPage, "showRemoveExerciseMessage", Q_ARG(int, static_cast<int>(exercise_number)),
-			Q_ARG(QString, m_workoutModel->exerciseName(exercise_number, 0)));
-	else
-		removeExercise(exercise_number);
 }
 
 void QmlWorkoutInterface::gotoNextExercise()
@@ -585,8 +537,6 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 	appPagesListModel()->openPage(m_workoutPage, std::move(tr("Workout: ") + appUtils()->formatDate(m_date)), [this] () {
 		cleanUp();
 	});
-	connect(m_workoutPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), m_workoutModel, SLOT(newExerciseFromExercisesList()));
-
 	setHeaderText();
 
 	connect(m_workoutModel, &DBExercisesModel::muscularGroupChanged, this, [this] () {
@@ -598,6 +548,10 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 			QMetaObject::invokeMethod(m_workoutPage, "changeComboModel", Q_ARG(QString, m_mesoModel->split(m_mesoIdx)));
 	});
 
+	connect(appItemManager(), &QmlItemManager::selectedExerciseFromSimpleExercisesList, [this] (QQuickItem *parentPage) {
+		if (parentPage == m_workoutPage)
+			m_workoutModel->newExerciseFromExercisesList();
+	});
 
 	connect(m_workoutModel, &DBExercisesModel::exerciseModified, this, [this]
 					(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint field)

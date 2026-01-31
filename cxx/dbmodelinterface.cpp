@@ -35,40 +35,24 @@ void DBModelInterface::setModified(uint row, const int field)
 {
 	QList<int> fields{m_modifiedIndices.value(row)};
 	if (!fields.contains(field))
+	{
 		fields.append(field);
-	m_modifiedIndices[row] = std::move(fields);
+		m_modifiedIndices[row] = std::move(fields);
+	}
 }
 
 void DBModelInterface::setModified(uint row, const QList<int> &more_fields)
 {
+	bool has_alterations{false};
 	QList<int> fields{std::move(m_modifiedIndices.value(row))};
 	for (const auto field : std::as_const(more_fields))
 	{
 		if (!fields.contains(field))
+		{
+			has_alterations = true;
 			fields.append(field);
-	}
-	m_modifiedIndices[row] = std::move(fields);
-}
-
-void DBModelInterface::setRemovalInfo(const uint row, const QList<uint> &fields)
-{
-	for (const auto field : std::as_const(fields))
-	{
-		bool found{false};
-		for (const auto ri : std::as_const(m_removalInfo))
-		{
-			if (ri->index == row && ri->fields.contains(field))
-			{
-				found = true;
-				break;
-			}
-		}
-		if (!found)
-		{
-			stRemovalInfo *stri{new stRemovalInfo};
-			stri->index = row;
-			stri->fields.append(field);
-			stri->values.append(modelData().at(row).at(field));
 		}
 	}
+	if (has_alterations)
+		m_modifiedIndices[row] = std::move(fields);
 }

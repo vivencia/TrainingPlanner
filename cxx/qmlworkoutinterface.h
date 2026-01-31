@@ -105,16 +105,11 @@ public:
 	Q_INVOKABLE void prepareWorkOutTimer(const QString &strStartTime = QString(), const QString &strEndTime = QString());
 	Q_INVOKABLE void startWorkout();
 	Q_INVOKABLE void stopWorkout();
-	Q_INVOKABLE void addExercise();
-	Q_INVOKABLE void simpleExercisesList(const bool show);
-	Q_INVOKABLE void clearExercises(const bool bShowIntentDialog = true);
-	Q_INVOKABLE void removeExercise(const int exercise_number = -1);
 	Q_INVOKABLE bool canChangeSetMode(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 
 	inline DBWorkoutModel *workoutModel() const { return m_workoutModel; }
-	Q_INVOKABLE inline QQuickItem *workoutPage() const { return m_workoutPage; }
+	Q_INVOKABLE inline QQuickItem *qmlPage() const { return m_workoutPage; }
 
-	void askRemoveExercise(const uint exercise_number);
 	void gotoNextExercise();
 	void rollUpExercise(const uint exercise_number) const;
 	void rollUpExercises() const;

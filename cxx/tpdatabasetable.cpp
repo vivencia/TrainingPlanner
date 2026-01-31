@@ -82,10 +82,12 @@ TPDatabaseTable::TPDatabaseTable(const uint table_id, DBModelInterface *dbmodel_
 	});
 }
 
-void TPDatabaseTable::startAction(const int unique_id, ThreadManager::StandardOps operation, void *extra_param)
+void TPDatabaseTable::startAction(const int unique_id, ThreadManager::StandardOps operation, void *extra_param, QMutex *mutex)
 {
 	if (unique_id == uniqueId())
 	{
+		if (mutex)
+			QMutexLocker locker{mutex};
 		if (m_threadedFunctions.contains(operation))
 			m_threadedFunctions.value(operation)(extra_param);
 		#ifndef QT_NO_DEBUG
@@ -124,8 +126,6 @@ std::pair<bool, bool> TPDatabaseTable::createTable()
 std::pair<bool, bool> TPDatabaseTable::insertRecord()
 {
 	bool success{false}, cmd_ok{false};
-	const uint modified_row{m_dbModelInterface->modifiedIndices().cbegin().key()};
-	const QStringList &data{m_dbModelInterface->modelData().at(modified_row)};
 	const bool auto_increment{m_fieldNames[0][1].contains("AUTOINCREMENT"_L1)};
 
 	m_strQuery = std::move("INSERT INTO "_L1 % *m_tableName % " ("_L1);
@@ -168,7 +168,6 @@ std::pair<bool, bool> TPDatabaseTable::insertRecord()
 			}
 		}
 		success = true;
-		m_strQuery.prepend("PRAGMA busy_timeout = 5000;"_L1);
 		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
 	}
 	m_dbModelInterface->clearRemovalIndices();
@@ -238,7 +237,7 @@ std::pair<bool,bool> TPDatabaseTable::AlterRecords()
 					data[0] = std::move(QString::number(last_insert_id--));
 			}
 		}
-		m_strQuery = std::move("PRAGMA busy_timeout = 5000;"_L1);
+		m_strQuery.clear();
 		for (auto &&query : queries)
 			m_strQuery += std::move(query);
 		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
@@ -259,10 +258,7 @@ std::pair<bool,bool> TPDatabaseTable::updateRecord()
 											'\'' % new_value % '\'' : new_value, m_fieldNames[0][0], id));
 	success = execSingleWriteQuery(m_strQuery);
 	if (success)
-	{
-		m_strQuery.prepend("PRAGMA busy_timeout = 5000;"_L1);
 		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
-	}
 
 	m_dbModelInterface->removeModifiedIndex(modified_row);
 	return std::pair<bool,bool>{success, cmd_ok};
@@ -276,20 +272,18 @@ std::pair<bool,bool> TPDatabaseTable::updateFieldsOfRecord()
 	const QList<int> &fields{m_dbModelInterface->modifiedIndices().value(modified_row)};
 
 	m_strQuery = std::move("UPDATE "_L1 % *m_tableName % " SET "_L1);
-	for (uint i{0}; i < fields.count(); ++i)
+	for (const auto field : fields)
 	{
-		m_strQuery += std::move(m_fieldNames[i][0] % '=' % (m_fieldNames[i][1] == "TEXT"_L1 ?
-							'\'' % m_dbModelInterface->modelData().at(modified_row).at(i) % '\'' :
-												m_dbModelInterface->modelData().at(modified_row).at(i)) % ',');
+		m_strQuery += std::move(m_fieldNames[field][0] % '=' % (m_fieldNames[field][1] == "TEXT"_L1 ?
+							'\'' % m_dbModelInterface->modelData().at(modified_row).at(field) % '\'' :
+												m_dbModelInterface->modelData().at(modified_row).at(field)) % ',');
 	}
 	m_strQuery.chop(1);
 	m_strQuery += std::move(" WHERE %1=%2;"_L1.arg(m_fieldNames[0][0], id));
 	success = execSingleWriteQuery(m_strQuery);
 	if (success)
-	{
-		m_strQuery.prepend("PRAGMA busy_timeout = 5000;"_L1);
 		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
-	}
+
 	m_dbModelInterface->removeModifiedIndex(modified_row);
 	return std::pair<bool,bool>{success, cmd_ok};
 }
@@ -304,7 +298,7 @@ std::pair<bool,bool> TPDatabaseTable::updateRecords()
 	for (const auto &fields : m_dbModelInterface->modifiedIndices())
 	{
 		str_query = query_cmd;
-		for (const auto field : std::as_const(fields))
+		for (const auto field : fields)
 		{
 			str_query += std::move(m_fieldNames[field][0] % '=' % (m_fieldNames[field][1] == "TEXT"_L1 ?
 						'\'' % m_dbModelInterface->modelData().at(modified_row).at(field) % '\'' :
@@ -320,7 +314,7 @@ std::pair<bool,bool> TPDatabaseTable::updateRecords()
 	if (execMultipleWritesQuery(queries))
 	{
 		success = true;
-		m_strQuery = std::move("PRAGMA busy_timeout = 5000;"_L1);
+		m_strQuery.clear();
 		for (auto &&query : queries)
 			m_strQuery += std::move(query);
 		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
@@ -331,25 +325,36 @@ std::pair<bool,bool> TPDatabaseTable::updateRecords()
 std::pair<bool,bool> TPDatabaseTable::removeRecords()
 {
 	bool success{false}, cmd_ok{false};
-	for (const auto value : std::as_const(m_dbModelInterface->removalInfo()))
-	{
+	QStringList del_statements;
+	do {
 		m_strQuery = std::move("DELETE FROM "_L1 % *m_tableName % " WHERE "_L1);
-		for (uint i{0}; i < value->fields.count(); ++i)
+		uint n_fields{0};
+		QMap<uint, QList<uint>>::const_iterator itr{m_dbModelInterface->removalInfo().cbegin()};
+		const QMap<uint, QList<uint>>::const_iterator itr_end{m_dbModelInterface->removalInfo().cend()};
+		for (const auto field : itr.value())
 		{
-			if (i == 0)
-				m_strQuery += std::move(m_fieldNames[value->fields.at(i)][0] % '=' % value->values.at(i));
+			if (n_fields == 0)
+			{
+				++n_fields;
+				m_strQuery += std::move(m_fieldNames[itr.key()][0] % '=' %  m_dbModelInterface->modelData().at(itr.key()).at(field));
+			}
 			else
-				m_strQuery += std::move(u" AND %1=%2"_s).arg(m_fieldNames[value->fields.at(i)][0], value->values.at(i));
+				m_strQuery += std::move(u" AND %1=%2;"_s).arg(m_fieldNames[itr.key()][0], m_dbModelInterface->modelData().at(itr.key()).at(field));
 		}
-		m_strQuery += ';';
+		if (++itr != itr_end)
+			del_statements.append(std::move(m_strQuery));
+		else
+			break;
+	} while(true);
+
+	if (del_statements.isEmpty())
 		success = execSingleWriteQuery(m_strQuery);
-		if (success)
-		{
-			m_strQuery.prepend("PRAGMA busy_timeout = 5000;"_L1);
-			cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
-		}
-		m_dbModelInterface->clearRemovalIndices();
-	}
+	else
+		success = execMultipleWritesQuery(del_statements);
+	if (success)
+		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
+
+	m_dbModelInterface->clearRemovalIndices();
 	return std::pair<bool,bool>{success, cmd_ok};
 }
 
@@ -473,13 +478,11 @@ bool TPDatabaseTable::execSingleWriteQuery(const QString &str_query)
 		prepareQuery(false);
 		ok = m_workingQuery.exec(str_query);
 		#ifndef QT_NO_DEBUG
+		qDebug() << (ok ? "****** OK ******" : "****** ERROR ******");
+		qDebug() << str_query;
 		if (!ok)
-		{
-			qDebug() << "****** ERROR ******";
-			qDebug() << str_query;
 			qDebug() << m_sqlLiteDB.lastError().text();
-			qDebug();
-		}
+		qDebug();
 		#endif
 		if (ok)
 			optimizeTable();

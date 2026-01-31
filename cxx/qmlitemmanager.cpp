@@ -126,21 +126,22 @@ void QmlItemManager::configureQmlEngine()
 			connect(appHomePage(), SIGNAL(mesosViewChanged(bool)), this, SLOT(homePageViewChanged(bool)));
 			if (m_qml_testing)
 			{
-				connect(appUserModel(), &DBUserModel::mainUserConfigurationFinished, [this] () {
-					connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::mesoDataLoaded, [this] () {
-						connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::calendarReady, this, [this] (const uint meso_idx) {
+				connect(appUserModel(), &DBUserModel::mainUserConfigurationFinished, this, [this] () {
+					connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::mesoDataLoaded, this, [this] () {
+						showSimpleExercisesList(appHomePage(), QString{});
+						/*connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::calendarReady, this, [this] (const uint meso_idx) {
 							const int cal_day{appUserModel()->actualMesoModel()->calendar(0)->calendarDay(QDate::currentDate())};
 							m_workout_model = appUserModel()->actualMesoModel()->workoutForDay(meso_idx, cal_day);
 							if (!m_workout_model->exercisesLoaded())
 							{
-								connect(m_workout_model, &DBWorkoutModel::exerciseCountChanged, [this] () {
+								connect(m_workout_model, &DBWorkoutModel::exerciseCountChanged, this, [this] () {
 									emit cppDataForQMLReady();
-								});
+								}, Qt::SingleShotConnection);
 							}
-						});
-						appUserModel()->actualMesoModel()->getCalendarForMeso(0);
-					});
-				});
+						}, Qt::SingleShotConnection);
+						appUserModel()->actualMesoModel()->getCalendarForMeso(0);*/
+					}, Qt::SingleShotConnection);
+				}, Qt::SingleShotConnection);
 			}
 		}
 	});
@@ -285,27 +286,64 @@ void QmlItemManager::getExercisesPage(QmlWorkoutInterface *connectPage)
 	m_exercisesListManager->getExercisesPage(connectPage);
 }
 
+void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QString &filter)
+{
+	appExercisesList()->setFilter(filter);
+	if (!m_simpleExercisesList)
+	{
+		m_simpleExercisesListProperties.insert("parentPage", QVariant::fromValue(parentPage));
+		m_simpleExercisesListComponent = new QQmlComponent{appQmlEngine(),
+						QUrl{"qrc:/qml/ExercisesAndSets/SimpleExercisesListPanel.qml"_L1}, QQmlComponent::Asynchronous};
+
+		switch (m_simpleExercisesListComponent->status())
+		{
+			case QQmlComponent::Ready:
+				createSimpleExercisesList(parentPage);
+			break;
+			case QQmlComponent::Loading:
+				connect(m_simpleExercisesListComponent, &QQmlComponent::statusChanged, this, [this,parentPage] (QQmlComponent::Status status) {
+					createSimpleExercisesList(parentPage);
+				}, Qt::SingleShotConnection);
+			break;
+			case QQmlComponent::Null:
+			case QQmlComponent::Error:
+				#ifndef QT_NO_DEBUG
+				qDebug() << m_simpleExercisesListComponent->errorString();
+				#endif
+			break;
+		}
+	}
+	else
+	{
+		QQuickItem *cur_parent_page{m_simpleExercisesList->property("parentPage").value<QQuickItem*>()};
+		if (parentPage != cur_parent_page)
+			QMetaObject::invokeMethod(m_simpleExercisesList, "changeParentPage", Q_ARG(QQuickItem*, parentPage));
+		showSimpleExercisesList();
+	}
+}
+
 void QmlItemManager::getWeatherPage()
 {
 	if (!m_weatherPage)
 	{
 		m_weatherComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/WeatherPage.qml"_L1}, QQmlComponent::Asynchronous};
-		if (m_weatherComponent->status() != QQmlComponent::Ready)
+		switch (m_weatherComponent->status())
 		{
-			connect(m_weatherComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
-				if (status == QQmlComponent::Ready)
+			case QQmlComponent::Ready:
+				createWeatherPage_part2();
+			break;
+			case QQmlComponent::Loading:
+				connect(m_weatherComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
 					createWeatherPage_part2();
-#ifndef QT_NO_DEBUG
-				else if (status == QQmlComponent::Error)
-				{
-					qDebug() << m_weatherComponent->errorString();
-					return;
-				}
-#endif
-			}, Qt::SingleShotConnection);
+				}, Qt::SingleShotConnection);
+			break;
+			case QQmlComponent::Null:
+			case QQmlComponent::Error:
+				#ifndef QT_NO_DEBUG
+				qDebug() << m_weatherComponent->errorString();
+				#endif
+			break;
 		}
-		else
-			createWeatherPage_part2();
 	}
 	else
 		appPagesListModel()->openPage(m_weatherPage);
@@ -335,17 +373,6 @@ void QmlItemManager::getStatisticsPage()
 	}
 	else
 		appPagesListModel()->openPage(m_statisticsPage);
-}
-
-void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QString &filter) const
-{
-	appExercisesList()->setFilter(filter);
-	QMetaObject::invokeMethod(parentPage, "showSimpleExercisesList");
-}
-
-void QmlItemManager::hideSimpleExercisesList(QQuickItem *parentPage) const
-{
-	QMetaObject::invokeMethod(parentPage, "hideSimpleExercisesList");
 }
 
 const QString &QmlItemManager::setExportFileName(const QString &filename)
@@ -670,6 +697,24 @@ void QmlItemManager::importSlot_FileChosen(const QString &filePath, const int co
 void QmlItemManager::homePageViewChanged(const bool own_mesos_view)
 {
 	appUserModel()->actualMesoModel()->setCurrentMesosView(own_mesos_view);
+}
+
+void QmlItemManager::showSimpleExercisesList()
+{
+	int name_field_ypos{0};
+	QQuickItem *parent_page{m_simpleExercisesList->property("parentPage").value<QQuickItem*>()};
+	QMetaObject::invokeMethod(parent_page, "getExerciseNameFieldYPos", Q_RETURN_ARG(int,name_field_ypos));
+	QMetaObject::invokeMethod(m_simpleExercisesList, "show",
+													Q_ARG(int, name_field_ypos <= appSettings()->pageHeight() / 2 ? -2 : 0));
+}
+void QmlItemManager::createSimpleExercisesList(QQuickItem *parentPage)
+{
+	m_simpleExercisesList = m_simpleExercisesListComponent->createWithInitialProperties(m_simpleExercisesListProperties,
+																								appQmlEngine()->rootContext());
+	appQmlEngine()->setObjectOwnership(m_simpleExercisesList, QQmlEngine::CppOwnership);
+	m_simpleExercisesList->setProperty("parent", QVariant::fromValue(parentPage));
+	connect(m_simpleExercisesList, SIGNAL(exerciseSelected(QQuickItem*)), this, SIGNAL(selectedExerciseFromSimpleExercisesList(QQuickItem*)));
+	showSimpleExercisesList();
 }
 
 void QmlItemManager::createWeatherPage_part2()

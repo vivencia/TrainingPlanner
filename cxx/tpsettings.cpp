@@ -15,11 +15,12 @@ static const QColor white {"#ffffff"_L1};
 static const QColor black {"#000000"_L1};
 
 TPSettings::TPSettings(QObject *parent)
-	: QSettings{parent},
+	: QSettings{parent}, m_appExiting{false},
 	  m_localAppFilesDir{std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)) % QLatin1Char('/')}
 {
 	TPSettings::app_settings = this;
 	auto save_config = [this] () -> void {
+		m_appExiting = true;
 		sync();
 		if (exportToUserConfig(currentUser()))
 			appUserModel()->sendFileToServer(userConfigFileName(true, currentUser()), nullptr, QString{}, QString{}, currentUser());
@@ -37,7 +38,6 @@ void TPSettings::globalSettingsInit()
 	m_globalPropertyNames.insert(APP_VERSION_INDEX, std::move("appVersion"_L1));
 	m_globalPropertyNames.insert(CURRENT_USER, std::move("currentUser"_L1));
 	m_globalPropertyNames.insert(SERVER_ADDRESS, std::move("serverAddress"_L1));
-	m_globalPropertyNames.insert(EXERCISES_VERSION_INDEX, std::move("exercisesListVersion"_L1));
 	getScreenMeasures();
 }
 
@@ -152,6 +152,9 @@ void TPSettings::changeValue(const QString &group, const QString &field_name, co
 	}
 	#endif
 	#endif
+
+	if (new_value == getValue(group, field_name))
+		return;
 
 	beginGroup(group);
 	setValue(field_name, new_value);

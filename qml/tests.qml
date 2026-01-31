@@ -108,4 +108,12 @@ ApplicationWindow {
 	function canChangeSetMode(exercise_number: int, exercise_idx: int, set_number: int) : bool {
 		return false;
 	}
+
+	function mesosViewIndex(): int {
+		return 0;
+	}
+
+	function setMesosViewIndex(index: int) {
+		return;
+	}
 }

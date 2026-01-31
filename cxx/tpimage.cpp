@@ -16,14 +16,27 @@ using namespace Qt::Literals::StringLiterals;
 #define DROP_SHADOW_EXTENT 5
 
 TPImage::TPImage(QQuickItem *parent)
-	: QQuickPaintedItem{parent}, m_imageToPaint{nullptr}, m_dropShadow{true}, m_wscale{1.0}, m_hscale{1.0}, m_canColorize{false}
+	: QQuickPaintedItem{parent}, m_imageToPaint{nullptr}, m_dropShadow{true}, m_canColorize{false}, m_wscale{1.0}, m_hscale{1.0}
 {
-	connect(this, &QQuickItem::enabledChanged, this, [&] () { checkEnabled(); });
-	connect(this, &QQuickItem::heightChanged, this, [this] () { scaleImage(); });
+	connect(this, &QQuickItem::enabledChanged, this, [&] () {
+		if (m_image.isNull())
+			return;
+		//Under some circumstances(only noted when the app was quitting and the TPImage was the sourceComponent of
+		//a Loader on a TPButton) the QML engine would update the property of an already deleted TPImage because it
+		//was deleted after QML engine sent the signal
+		if (!appSettings()->appExiting())
+			checkEnabled();
+	});
+	connect(this, &QQuickItem::heightChanged, this, [this] () {
+		if (m_image.isNull())
+			return;
+		scaleImage();
+	});
 	connect(appSettings(), &TPSettings::colorChanged, this, [&] ()
 	{
-		if (m_canColorize)
-			checkEnabled();
+		if (m_image.isNull() || !m_canColorize)
+			return;
+		checkEnabled();
 	});
 }
 
@@ -163,8 +176,6 @@ void TPImage::checkEnabled()
 void TPImage::scaleImage()
 {
 	if (height() <= 0 || width() <= 0)
-		return;
-	if (m_image.isNull())
 		return;
 
 	if (imageSizeFollowControlSize())

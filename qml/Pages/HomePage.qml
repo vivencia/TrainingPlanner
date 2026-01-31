@@ -126,7 +126,5 @@ TPPage {
 		mesosView.currentIndex = -1;
 		modelsLoaded = true;
 		mesosView.currentIndex = index;
-		//clientsMesosListLoader.item.canLoadFooter = true;
-		//ownMesosListLoader.item.canLoadFooter = true;
 	}
 } //Page

@@ -33,8 +33,7 @@ struct st_WeatherInfo
 
 	explicit inline st_WeatherInfo() :
 		m_coordinates{std::move("(0,0)"_L1)}, m_dayOfWeek{std::move("??"_L1)}, m_weatherIconId{std::move("error.png"_L1)},
-		m_weatherDescription{std::move(qApp->tr("No weather data"))}, m_temperature{std::move(u"??°C"_s)},
-		m_temp_min{std::move("??"_L1)}, m_temp_max{std::move("??"_L1)} {}
+		m_temperature{std::move(u"??°C"_s)}, m_temp_min{std::move("??"_L1)}, m_temp_max{std::move("??"_L1)} {}
 };
 
 struct st_LocationInfo

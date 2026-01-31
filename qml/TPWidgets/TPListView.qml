@@ -6,7 +6,6 @@ ListView {
 
 	boundsBehavior: ListView.StopAtBounds
 	delegateModelAccess: DelegateModel.ReadOnly
-	snapMode: ListView.SnapToItem
 	reuseItems: true
 	clip: true
 	focus: true

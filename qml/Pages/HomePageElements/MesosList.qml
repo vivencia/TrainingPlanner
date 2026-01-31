@@ -74,7 +74,6 @@ Item {
 					id: btnMesoInfo
 					text: qsTr("View Program")
 					imageSource: "mesocycle.png"
-					imageSize: appSettings.itemDefaultHeight
 					textUnderIcon: true
 					rounded: false
 					width: parent.width/2 - 10
@@ -95,7 +94,6 @@ Item {
 					id: btnMesoCalendar
 					text: qsTr("Calendar")
 					imageSource: "meso-calendar.png"
-					imageSize: appSettings.itemDefaultHeight
 					rounded: false
 					textUnderIcon: true
 					enabled: haveCalendar
@@ -117,7 +115,6 @@ Item {
 					id: btnMesoPlan
 					text: qsTr("Exercises Sheet")
 					imageSource: "meso-splitplanner.png"
-					imageSize: appSettings.itemDefaultHeight
 					rounded: false
 					enabled: mesoSplitsAvailable
 					textUnderIcon: true
@@ -139,7 +136,6 @@ Item {
 					id: btnExport
 					text: qsTr("Export")
 					imageSource: "export.png"
-					imageSize: appSettings.itemDefaultHeight
 					rounded: false
 					textUnderIcon: true
 					enabled: mesoExportable

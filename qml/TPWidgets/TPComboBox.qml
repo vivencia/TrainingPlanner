@@ -19,20 +19,42 @@ ComboBox {
 	padding: 0
 	spacing: 0
 
+	//Prevents the combo box from erasing the current text after the fist click on the combo box when no item is selectec
+	property int _current_index;
+	property bool ignore_index_change: false
+	onCurrentIndexChanged: {
+		if (ignore_index_change) {
+			ignore_index_change = false;
+			return;
+		}
+
+		if (currentIndex === -1 && _current_index !== -1)
+			currentIndex = _current_index;
+		else
+			_current_index = currentIndex;
+	}
+	Component.onCompleted: _current_index = currentIndex;
+
 	delegate: ItemDelegate {
 		id: delegate
-		width: control.width
+		width: control.width - 10
 		enabled: model.enabled
-		padding: 0
+		leftPadding: 5
+		rightPadding: 5
+		topPadding: 0
+		bottomPadding: 0
 		spacing: 0
+		clip: true
 
 		required property var model
 		required property int index
 
 		contentItem: TPLabel {
 			text: model.text
-			enabled: model.enabled
+			elide: Text.ElideRight
+			minimumPixelSize: appSettings.smallFontSize * 0.8
 			leftPadding: completeModel ? appSettings.itemDefaultHeight + 5 : 5
+			enabled: model.enabled
 
 			TPImage {
 				id: lblImg
@@ -81,8 +103,7 @@ ComboBox {
 	contentItem: TPLabel {
 		text: control.displayText
 		leftPadding: completeModel ? appSettings.itemDefaultHeight + 5 : 5
-		minimumPixelSize: -1
-		fontSizeMode: Text.FixedSize
+		minimumPixelSize: appSettings.smallFontSize * 0.8
 		elide: Text.ElideRight
 	}
 
@@ -107,7 +128,7 @@ ComboBox {
 		opacity: 0.8
 		border.width: control.visualFocus ? 2 : 1
 		border.color: textColor
-		radius: 6
+		radius: 8
 	}
 
 	popup: Popup {
@@ -129,11 +150,12 @@ ComboBox {
 			Component {
 				id:	highlight_component
 				Rectangle {
-					width: ListView.view.width
+					width: ListView.view.width - 10
 					height: appSettings.itemDefaultHeight
+					x: 5
 					color: appSettings.primaryColor
 					radius: 8
-					y: ListView.view.currentItem ? ListView.view.currentItem.y : 0
+					y: ListView.view.currentItem ? ListView.view.currentItem.y + 2 : 2
 					Behavior on y {
 						SpringAnimation {
 							spring: 3
@@ -148,7 +170,12 @@ ComboBox {
 			border.color: textColor
 			color: backgroundColor
 			opacity: 0.9
-			radius: 6
+			radius: 8
 		}
+	}
+
+	function setCurIndex(new_index: int): void {
+		ignore_index_change = true;
+		control.currentIndex = new_index;
 	}
 }

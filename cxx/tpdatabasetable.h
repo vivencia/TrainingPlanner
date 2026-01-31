@@ -77,7 +77,7 @@ public:
 	inline void setCustQueryFunction(const std::function<std::pair<QVariant,QVariant>()> &func) { m_customQueryFunc = func; }
 
 public slots:
-	void startAction(const int unique_id, ThreadManager::StandardOps operation, void *extra_param);
+	void startAction(const int unique_id, ThreadManager::StandardOps operation, void *extra_param, QMutex *mutex = nullptr);
 
 signals:
 	//Should be only used internally, unless op == CustomOperation and return_value1 and/or return_value2 is/are not bool

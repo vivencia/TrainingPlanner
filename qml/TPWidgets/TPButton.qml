@@ -1,7 +1,8 @@
 import QtQuick
 import QtQuick.Controls
 
-import "../"
+import ".."
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPBackRec {
 	id: button
@@ -11,11 +12,11 @@ TPBackRec {
 	opacity: checked ? 0.9 : 1
 	color: backgroundColor
 	height: autoSize ? buttonText.contentHeight : (text.length > 0 ? appSettings.itemDefaultHeight * buttonText.lineCount : 0) +
-							(textUnderIcon ? imageSize : 0)
+							(textUnderIcon ? imageLoader.width : 0)
 	width: autoSize ? preferredWidth : undefined
 	useGradient: enabled && button.text.length !== 0
 
-	readonly property int preferredWidth: buttonText.contentWidth + (textUnderIcon ? 0 : imageSize) + (text.length > 0 ? 20 : 0)
+	readonly property int preferredWidth: buttonText.contentWidth + (textUnderIcon ? 0 : appSettings.itemDefaultHeight) + (text.length > 0 ? 20 : 0)
 	property color textColor: appSettings.fontColor
 	property alias font: buttonText.font
 	property alias text: buttonText.text
@@ -32,12 +33,9 @@ TPBackRec {
 	property bool checked: false
 	property bool multiline: false
 	property int clickId: -1
-	property int imageSize: 0
 
 	//Local variables. Do not use outside this file
 	property bool _bPressed: false
-	property bool _labelCreated: false
-	property TPButtonImage _buttonImage: null
 
 	signal clicked(int clickid);
 	signal check(int clickid);
@@ -89,47 +87,6 @@ TPBackRec {
 		}
 	}
 
-	//implicitHeight for layouts, height for other circumstances
-	//The width of the button must be specified either by the layout(or anchors) or must be explicitly set, in which case
-	//the property fixedSize must be set to true
-
-	onWidthChanged: {
-		if (width < 0) return;
-		if (!autoSize && text.length > 0)
-			buttonText.width = Math.min(button.width * 0.9, buttonText.width);
-		if (_labelCreated)
-			anchorLabel();
-	}
-
-	onHeightChanged: {
-		if (height < 0) return;
-		if (!autoSize && textUnderIcon) {
-			if (buttonText.lineCount > 1)
-				buttonText.height = button.height - imageSize - 10;
-			else
-				buttonText.height = appSettings.itemDefaultHeight;
-		}
-	}
-
-	Component.onCompleted: {
-		if (imageSource.length > 0)
-			createImageComponent();
-	}
-
-	onImageSourceChanged: {
-		if (imageSource.length === 0)
-		{
-			if (_buttonImage) {
-				_buttonImage.destroy();
-				_buttonImage = 0;
-			}
-		}
-		else {
-			if (_buttonImage)
-				_buttonImage.imageSource = button.imageSource;
-		}
-	}
-
 	Label {
 		id: buttonText
 		visible: text.length > 0
@@ -143,14 +100,28 @@ TPBackRec {
 		bottomInset: 0
 		leftInset: 0
 		rightInset: 0
-		padding: 2
+		padding: 0
 		opacity: button.opacity
 		verticalAlignment: Text.AlignVCenter
 		horizontalAlignment: Text.AlignHCenter
 
 		Component.onCompleted: {
-			_labelCreated = true;
-			anchorLabel();
+			if (textUnderIcon) {
+				anchors.bottom = button.bottom;
+				anchors.bottomMargin = 5;
+				anchors.left = button.left;
+				anchors.right = button.right;
+			}
+			else {
+				if (imageSource.length > 0) {
+					width = button.width - appSettings.itemDefaultHeight - 5;
+					height = button.height - 5;
+					anchors.horizontalCenter = button.horizontalCenter;
+					anchors.verticalCenter = button.verticalCenter;
+				}
+				else
+					anchors.fill = button;
+			}
 		}
 	}
 
@@ -208,76 +179,46 @@ TPBackRec {
 		onFinished: button.clicked(button.clickId);
 	}
 
-	function anchorLabel(): void {
-		if (button.width <= 0)
-			return;
-		if (textUnderIcon) {
-			buttonText.anchors.bottom = button.bottom;
-			buttonText.anchors.bottomMargin = 5;
-			buttonText.anchors.left = button.left;
-			buttonText.anchors.right = button.right;
+	Loader {
+		id: imageLoader
+		active: imageSource.length > 0
+		asynchronous: true
+		sourceComponent: TPImage {
+			source: imageSource
+			dropShadow: hasDropShadow
+			opacity: button.opacity
+			enabled: checkable ? !checked : button.enabled
 		}
-		else {
-			if (imageSource.length > 0) {
-				buttonText.width = button.width - imageSize - 5;
-				buttonText.height = button.height - 5;
-				buttonText.anchors.horizontalCenter = button.horizontalCenter;
-			}
-			else
-				buttonText.anchors.fill = button;
-			buttonText.anchors.verticalCenter = button.verticalCenter;
-		}
-		if (_buttonImage)
-			anchorImage();
-	}
 
-	function anchorImage(): void {
-		if (textUnderIcon) {
-			_buttonImage.anchors.top = button.top;
-			_buttonImage.anchors.topMargin = 5;
-			_buttonImage.anchors.horizontalCenter = button.horizontalCenter;
-			_buttonImage.anchors.bottomMargin = 10;
-		}
-		else {
-			_buttonImage.anchors.verticalCenter = button.verticalCenter;
-			if (iconOnTheLeft) {
-				buttonText.anchors.horizontalCenterOffset = imageSize/2;
-				_buttonImage.anchors.right = buttonText.left;
-			}
-			else {
-				buttonText.anchors.horizontalCenterOffset = -imageSize/2;
-				_buttonImage.anchors.left = buttonText.right;
-			}
-		}
-	}
-
-	function createImageComponent(): void {
-		let component = Qt.createComponent("TPButtonImage.qml", Qt.Asynchronous);
-
-		function finishCreation() {
-			if (text.length > 0) {
-				if (imageSize === 0) {
-					imageSize = Math.min(buttonText.height, buttonText.width);
-					if (imageSize === 0)
-						imageSize = Math.ceil(appSettings.itemSmallHeight);
-				}
-			}
-			else {
-				if (autoSize)
-					imageSize = appSettings.appDefaultHeight * 0.9;
-				else if (imageSize === 0)
-					imageSize = Math.min(height, width) * 0.9;
-			}
-			_buttonImage = component.createObject(button,
-				{ imageSource: imageSource, width: imageSize, height: imageSize, dropShadow: hasDropShadow});
-			if (button.text.length === 0) {
-				_buttonImage.anchors.centerIn = button;
+		Component.onCompleted: {
+			if (buttonText.text.length === 0) {
+				anchors.fill = parent;
+				anchors.margins = 2;
 				flat = true;
 			}
+			else {
+				if (textUnderIcon) {
+					width = appSettings.itemDefaultHeight;
+					anchors.top = button.top;
+					anchors.topMargin = 5;
+					anchors.horizontalCenter = button.horizontalCenter;
+					anchors.bottomMargin = 10;
+				}
+				else {
+					width = appSettings.itemDefaultHeight * 0.9;
+					anchors.verticalCenter = button.verticalCenter;
+					anchors.verticalCenterOffset = 2;
+					if (iconOnTheLeft) {
+						buttonText.anchors.horizontalCenterOffset = width/2;
+						anchors.right = buttonText.left;
+					}
+					else {
+						buttonText.anchors.horizontalCenterOffset = -width/2;
+						anchors.left = buttonText.right;
+					}
+				}
+				height = width;
+			}
 		}
-		if (component.status === Component.Ready)
-			finishCreation();
-		else
-			component.statusChanged.connect(finishCreation);
-	}
+	} //Loader
 } //Rectangle

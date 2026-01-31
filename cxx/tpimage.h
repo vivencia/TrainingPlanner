@@ -63,13 +63,10 @@ signals:
 
 private:
 	QString m_source;
-	QImage m_image;
-	QImage m_imageDisabled;
-	QImage m_imageShadow;
+	QImage m_image, m_imageDisabled, m_imageShadow;
 	QImage *m_imageToPaint;
 	QSize m_imageSize;
-	bool m_dropShadow;
-	bool m_canColorize;
+	bool m_dropShadow, m_canColorize;
 	std::optional<bool> m_imageFollowControl;
 	double m_wscale, m_hscale;
 	Qt::AspectRatioMode m_aspectRatioMode;

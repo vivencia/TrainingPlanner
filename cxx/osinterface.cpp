@@ -17,8 +17,6 @@
 //"(Landroid/content/Context;Landroid/net/Uri;)Ljava/lang/String;"
 // String f(Context, Uri)
 
-static const QString &workoutDoneMessage{qApp->tr("Your training routine seems to go well. Workout for the day is concluded")};
-
 #define NOTIFY_DO_NOTHING 0xA
 #define MESOCYCLE_NOTIFICATION 0x14
 #define SPLIT_NOTIFICATION 0x1E
@@ -87,16 +85,13 @@ OSInterface::OSInterface(QObject *parent)
 
 	m_checkConnectionTimer = new QTimer{this};
 	m_checkConnectionTimer->callOnTimeout([this] () { checkNetworkInterfaces(); });
-	/*connect(appOnlineServices(), &TPOnlineServices::serverOnline, this, [this] (const uint online_status)
-	{
-		onlineServicesResponse(online_status);
-	});*/
 	connect(qApp, &QCoreApplication::aboutToQuit, this, [this] () {
 		appOnlineServices()->userLogout(111111);
 	});
 	checkNetworkInterfaces();
 
 #ifdef Q_OS_ANDROID
+	m_workoutDoneMessage = std::move(tr("Your training routine seems to go well. Workout for the day is concluded"));
 	const QJniObject &context{QNativeInterface::QAndroidApplication::context()};
 
 	context.callStaticMethod<void>(
@@ -311,7 +306,7 @@ void OSInterface::checkWorkouts()
 
 				if (dayInfoList.at(3) == '1') //day is completed
 				{
-					data->message = workoutDoneMessage;
+					data->message = m_workoutDoneMessage;
 					data->action = NOTIFY_DO_NOTHING;
 				}
 				else
@@ -402,7 +397,7 @@ void OSInterface::removeNotification(notificationData *data)
 		if (data->resolved) //Send a new notification with an innocuous greeting message.
 		{
 			data->resolved = false;
-			data->message = workoutDoneMessage;
+			data->message = m_workoutDoneMessage;
 			data->action = NOTIFY_DO_NOTHING;
 			m_AndroidNotification->sendNotification(data);
 			return;

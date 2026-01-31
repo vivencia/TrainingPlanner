@@ -35,10 +35,6 @@ Q_PROPERTY(int currentDay READ currentDay WRITE setCurrentDay NOTIFY currentDayC
 Q_PROPERTY(QDate currentDate READ currentDate WRITE setCurrentDate NOTIFY currentDayChanged FINAL)
 Q_PROPERTY(QString workoutNumber READ workoutNumber NOTIFY workoutNumberChanged FINAL)
 Q_PROPERTY(QString splitLetter READ splitLetter WRITE setSplitLetter NOTIFY splitLetterChanged FINAL)
-Q_PROPERTY(QString location READ location WRITE setLocation CONSTANT FINAL)
-Q_PROPERTY(QString notes READ notes WRITE setNotes CONSTANT FINAL)
-Q_PROPERTY(QTime timeIn READ timeIn WRITE setTimeIn CONSTANT FINAL)
-Q_PROPERTY(QTime timeOut READ timeOut WRITE setTimeOut CONSTANT FINAL)
 Q_PROPERTY(bool completed READ completed WRITE setCompleted NOTIFY completedChanged FINAL)
 
 public:

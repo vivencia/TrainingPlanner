@@ -35,7 +35,7 @@ DBUserModel *DBUserModel::_appUserModel{nullptr};
 
 constexpr QLatin1StringView local_user_data_file{"user.data"_L1};
 constexpr QLatin1StringView cmd_file_extension{".cmd"_L1};
-static const QString &network_msg_title{qApp->tr("TP Network")};
+static QString network_msg_title;
 
 #ifndef QT_NO_DEBUG
 #define POLLING_INTERVAL 60*1000 //When testing, poll more frequently
@@ -64,6 +64,7 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 	{
 		_appUserModel = this;
 		mb_MainUserInfoChanged = false;
+		network_msg_title = std::move(tr("TP Network"));
 
 		connect(appOsInterface(), &OSInterface::tpServerStatusChanged, this, [this] (const bool online) {
 			if (!mb_canConnectToServer.has_value())

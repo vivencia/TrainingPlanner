@@ -67,10 +67,7 @@ public:
 	const QString STR_END_EXPORT{"##!!"_L1};
 	const QString STR_END_FORMATTED_EXPORT{"##$$"_L1};
 
-	explicit inline TPUtils(QObject *parent = nullptr): QObject{parent}, m_appLocale{nullptr}, m_lowestTempId{-1}
-	{
-		app_utils = this;
-	}
+	explicit TPUtils(QObject *parent = nullptr);
 	inline ~TPUtils() { delete m_appLocale; }
 
 	int generateUniqueId(const QLatin1StringView &seed = QLatin1StringView{}) const;
@@ -132,13 +129,13 @@ public:
 	Q_INVOKABLE void copyToClipboard(const QString &text) const;
 	Q_INVOKABLE QString pasteFromClipboard() const;
 
-	Q_INVOKABLE inline QString monthName(const uint qml_month) const { return qml_month < 12 ? _months_names.at(qml_month) : QString{}; }
-	Q_INVOKABLE inline QString dayName(const uint week_day) const { return week_day < 7 ? _days_names.at(week_day) : QString{}; }
+	Q_INVOKABLE inline QString monthName(const uint qml_month) const { return _months_names.at(qml_month); }
+	Q_INVOKABLE inline QString dayName(const uint week_day) const { return _days_names.at(week_day); }
 	Q_INVOKABLE QString formatDate(const QDate &date, const DATE_FORMAT format = DF_QML_DISPLAY) const;
 	inline QString formatTodayDate(const DATE_FORMAT format = DF_QML_DISPLAY) const { return std::move(formatDate(QDate::currentDate())); }
 	QDate dateFromString(const QString &strdate, const DATE_FORMAT format = DF_QML_DISPLAY) const;
 	uint calculateNumberOfWeeks(const QDate &date1, const QDate &date2) const;
-	//The returned value contains the number of months in between the dates plus the starting month
+	//Returns the number of months in between the dates plus one(the starting month)
 	inline uint calculateNumberOfMonths(const QString &date1, const QString &date2) const
 	{
 		return calculateNumberOfMonths(dateFromString(date1, DF_DATABASE), dateFromString(date2, DF_DATABASE));
@@ -195,6 +192,7 @@ public:
 	double similarityBetweenStrings(const QString &string1, const QString &string2) const;
 	QString stripDiacriticsFromString(const QString &src) const;
 	Q_INVOKABLE QString stripInvalidCharacters(const QString &string) const;
+	bool containsAllWords(const QString &mainString, const QStringList &wordSet, const bool precise = false);
 
 	Q_INVOKABLE QString setTypeOperation(const uint settype, const bool increase, QString str_value, const bool seconds = false) const;
 
@@ -205,9 +203,9 @@ public:
 private:
 	QLocale *m_appLocale;
 	mutable int16_t m_lowestTempId;
+	QStringList _months_names;
+	QStringList _days_names;
 
-	static QStringList _months_names;
-	static QStringList _days_names;
 	static TPUtils *app_utils;
 	friend TPUtils *appUtils();
 };
@@ -237,28 +235,6 @@ inline bool isBitSet(const T &__restrict var, const unsigned char bit)
 		return static_cast<bool>(var & (2 << (bit - 1)));
 	else
 		return static_cast<bool>(var & 1);
-}
-
-inline bool containsAllWords(const QString &mainString, const QStringList &wordSet)
-{
-	const QStringList &searched_words{mainString.split(' ', Qt::SkipEmptyParts)};
-	QStringList::const_iterator haystack{searched_words.constBegin()};
-	const QStringList::const_iterator haystack_end{searched_words.constEnd()};
-	for (const auto &needle : std::as_const(wordSet))
-	{
-		bool found{false};
-		do
-		{
-			if (haystack->startsWith(needle, Qt::CaseInsensitive))
-			{
-				found = true;
-				break;
-			}
-		} while (++haystack != haystack_end);
-		if (!found)
-			return false;
-	}
-	return true; // All words found in the main string
 }
 
 inline TPUtils *appUtils() { return TPUtils::app_utils; }

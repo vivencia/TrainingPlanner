@@ -8,14 +8,6 @@ class DBModelInterface
 {
 
 public:
-
-	struct stRemovalInfo
-	{
-		uint index;
-		QList<uint> fields;
-		QStringList values;
-	};
-
 	explicit inline DBModelInterface(QObject *model = nullptr) : m_model(model) {}
 	template<typename T> T *model() const { return qobject_cast<T*>(m_model); }
 	inline void setModel(QObject* model) { m_model = model; }
@@ -41,19 +33,32 @@ public:
 	void setAllFieldsModified(uint row, const uint n_fields);
 	void setModified(uint row, const int field);
 	void setModified(uint row, const QList<int> &more_fields);
+	//For bulk insertions
+	inline void setModifiedRows(const uint start_row, const uint end_row)
+	{
+		for (uint i{start_row}; i < end_row; ++i)
+			m_modifiedIndices.insert(i, QList<int>{1, -1});
+	}
 
 	inline void clearModifiedIndices() { m_modifiedIndices.clear(); }
 	inline void removeModifiedIndex(const uint row) { m_modifiedIndices.remove(row); }
 
 	inline bool isModified(const uint row, const uint field) const { return m_modifiedIndices.value(row).contains(field); }
 
-	inline const QList<stRemovalInfo*> &removalInfo() const { return m_removalInfo; }
-	void setRemovalInfo(const uint row, const QList<uint> &fields);
-	inline void clearRemovalIndices() { qDeleteAll(m_removalInfo); }
+	inline const QMap<uint, QList<uint>> &removalInfo() const { return m_removalInfo; }
+	inline void setRemovalInfo(const uint row, const QList<uint> &fields) { m_removalInfo.insert(row, fields); }
+	//For bulk deletions, eg. remove all rows based on id, meso_id, split letter, or whatever
+	inline void setRemovalRows(const uint start_row, const uint end_row, const uint field)
+	{
+		for (uint i{start_row}; i < end_row; ++i)
+			m_removalInfo.insert(i, QList<uint>{1, field});
+	}
+
+	inline void clearRemovalIndices() { m_removalInfo.clear(); }
 
 protected:
 	QMap<uint, QList<int>> m_modifiedIndices;
-	QList<stRemovalInfo*> m_removalInfo;
+	QMap<uint, QList<uint>> m_removalInfo;
 	QStringList m_emptyList;
 	QObject *m_model;
 };

@@ -6,8 +6,8 @@
 //--------------------------------------------GLOBAL SETTINGS---------------------------------------------//
 using namespace Qt::Literals::StringLiterals;
 
-constexpr QLatin1StringView TP_APP_VERSION("v20260123 Build 1");
-constexpr QLatin1StringView GLOBAL_GROUP("app");
+constexpr QLatin1StringView TP_APP_VERSION{"v20260123 Build 1"};
+constexpr QLatin1StringView GLOBAL_GROUP{"app"};
 constexpr QLatin1StringView DEFAULT_USER{"default"};
 
 enum GlobalSettingFields {
@@ -20,7 +20,6 @@ enum GlobalSettingFields {
 	FONT_RATIO,
 	CURRENT_USER,
 	SERVER_ADDRESS,
-	EXERCISES_VERSION_INDEX,
 	APP_SETTINGS_FIELD_COUNT
 };
 //--------------------------------------------GLOBAL SETTINGS---------------------------------------------//
@@ -125,14 +124,14 @@ public:
 	inline void setCurrentUser(const QString &new_value) { changeValue(GLOBAL_GROUP, CURRENT_USER, new_value); emit currentUserChanged(); }
 	inline QString serverAddress() const { return getValue(GLOBAL_GROUP, SERVER_ADDRESS).toString(); }
 	inline void setServerAddress(const QString &new_value) { changeValue(GLOBAL_GROUP, SERVER_ADDRESS, new_value); emit serverAddressChanged(); }
-	inline QString exercisesListVersion() const { return getValue(GLOBAL_GROUP, EXERCISES_VERSION_INDEX).toString(); }
-	inline void setExercisesListVersion(const QString &new_value) { changeValue(GLOBAL_GROUP, EXERCISES_VERSION_INDEX, new_value); }
 
 	Q_INVOKABLE QString availableLanguagesLabel(const uint language_idx) const;
 	QStringList availableLanguages() const;
 
 	inline const QString &localAppFilesDir() const { return m_localAppFilesDir; }
 	inline QString currentUserDir() const { return m_localAppFilesDir + currentUser() + '/'; }
+
+	inline bool appExiting() const { return m_appExiting; }
 
 signals:
 	void currentUserChanged();
@@ -145,6 +144,7 @@ private:
 	double m_HeightToWidth;
 	QString m_localAppFilesDir;
 	QTimer m_timer;
+	bool m_appExiting;
 
 #ifndef QT_NO_QDEBUG
 #ifndef Q_OS_ANDROID

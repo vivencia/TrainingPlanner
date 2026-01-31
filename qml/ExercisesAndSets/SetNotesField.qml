@@ -36,6 +36,10 @@ ColumnLayout {
 				setNotesArea.visible = !setNotesArea.visible;
 				if (setNotesArea.visible)
 					setNotesArea.forceActiveFocus();
+				else {
+					if (setNotesArea.modified)
+						editFinished(setNotesArea.contentsText());
+				}
 			}
 		}
 	}

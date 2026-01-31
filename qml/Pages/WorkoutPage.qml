@@ -589,30 +589,8 @@ TPPage {
 		}
 	}
 
-	property TPBalloonTip msgClearExercises: null
-	function showClearExercisesMessage(): void {
-		if (msgClearExercises === null) {
-			function createMessageBox() {
-				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
-
-				function finishCreation() {
-					msgClearExercises = component.createObject(workoutPage, { parentPage: workoutPage, title: qsTr("Clear exercises list?"),
-						keepAbove: true, message: qsTr("All exercises changes will be removed"), imageSource: "revert-day.png" } );
-					msgClearExercises.button1Clicked.connect(function () { workoutManager.clearExercises(true);});
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			createMessageBox();
-		}
-		msgClearExercises.show(-1);
-	}
-
 	//TODO remove maybe
-	function placeExerciseIntoView(ypos: int): void {
+	/*function placeExerciseIntoView(ypos: int): void {
 		if (ypos === -1)
 			ypos = 0;
 		else if (ypos === -2)
@@ -621,30 +599,7 @@ TPPage {
 			ypos += lstWorkoutExercises.y;
 
 		scrollTraining.contentItem.contentY = ypos;
-	}
-
-	property alias exercisesPane: simpleExercisesListLoader.item
-	Loader {
-		id: simpleExercisesListLoader
-		active: false
-		asynchronous: true
-
-		sourceComponent: SimpleExercisesListPanel {
-			parentPage: workoutPage
-			onExerciseSelected: exerciseSelectedFromSimpleExercisesList();
-			onListClosed: simpleExercisesListLoader.active = false;
-		}
-		property bool enableMultipleSelection
-		onLoaded: exercisesPane.show(lstWorkoutExercises.exerciseNameFieldYPosition() > appSettings.pageHeight/2 ? 0 : -2)
-	}
-
-	function showSimpleExercisesList(): void {
-		simpleExercisesListLoader.active = true;
-	}
-
-	function hideSimpleExercisesList(): void {
-		exercisesPane.visible = false;
-	}
+	}*/
 
 	property TimerDialog dlgSessionLength: null
 	function showLimitedSessionTimerDialog(): void {
@@ -694,52 +649,6 @@ TPPage {
 			timeout = 18000;
 		tipTimeWarn.message = "<b>" + timeleft + (bmin ? qsTr(" minutes") : qsTr(" seconds")) + qsTr("</b> until end of training session!");
 		tipTimeWarn.showTimed(timeout, 0);
-	}
-
-	TPBalloonTip {
-		id: msgDlgRemove
-		title: qsTr("Remove Exercise?")
-		message: exerciseName + qsTr("\nThis action cannot be undone.")
-		imageSource: "remove"
-		keepAbove: true
-		button1Text: qsTr("Yes")
-		button2Text: qsTr("No")
-		onButton1Clicked: workoutManager.removeExercise();
-		parentPage: workoutPage
-
-		property string exerciseName
-
-		function init(exercise: string): void {
-			exerciseName = exercise;
-			show(-1);
-		}
-	} //TPBalloonTip
-
-	function showDeleteDialog(exercise: string): void {
-		msgDlgRemove.init(exercise);
-	}
-
-	property TPBalloonTip msgRemoveSet: null
-	function showRemoveSetMessage(setnumber: int): void {
-		if (msgRemoveSet === null) {
-			function createMessageBox() {
-				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
-
-				function finishCreation() {
-					msgRemoveSet = component.createObject(workoutPage, { parentPage: workoutPage, keepAbove: true, imageSource: "remove",
-						message: qsTr("This action cannot be undone.") } );
-					msgRemoveSet.button1Clicked.connect(function () { workoutManager.currentExercise().removeSetObject(false); } );
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			createMessageBox();
-		}
-		msgRemoveSet.title = qsTr("Remove set #") + parseInt(setnumber + 1) + "?"
-		msgRemoveSet.show(-1);
 	}
 
 	property TPBalloonTip resetWorkoutMsg: null
@@ -843,5 +752,9 @@ TPPage {
 			else
 				active = true;
 		}
+	}
+
+	function getExerciseNameFieldYPos(): int {
+		return lstWorkoutExercises.exerciseNameFieldYPosition();
 	}
 } // Page

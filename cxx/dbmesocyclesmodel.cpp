@@ -915,7 +915,7 @@ void DBMesocyclesModel::getAllMesocycles()
 			disconnect(*conn);
 			scanTemporaryMesocycles();
 			QMetaObject::invokeMethod(appItemManager()->appHomePage(), "setMesosViewIndex",
-					Q_ARG(int, appSettings()->getCustomValue(mesosViewIdxSetting, 0).toInt()));
+											Q_ARG(int, appSettings()->getCustomValue(mesosViewIdxSetting, 0).toInt()));
 			if (m_ownMesos)
 			{
 				connect(m_ownMesos, &HomePageMesoModel::currentIndexChanged, [this] () {

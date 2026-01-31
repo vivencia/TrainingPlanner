@@ -6,7 +6,6 @@
 #include "pageslistmodel.h"
 #include "qmlitemmanager.h"
 #include "thread_manager.h"
-#include "tpsettings.h"
 #include "tputils.h"
 
 #include <QQmlApplicationEngine>
@@ -18,10 +17,10 @@ void QmlMesoSplitInterface::cleanUp()
 {
 	if (m_plannerComponent)
 	{
-		qDeleteAll(m_splitPages);
-		delete m_splitComponent;
 		delete m_plannerPage;
 		delete m_plannerComponent;
+		delete m_splitComponent;
+		qDeleteAll(m_splitPages);
 	}
 }
 
@@ -35,25 +34,6 @@ void QmlMesoSplitInterface::getExercisesPlannerPage()
 	}
 	else
 		appPagesListModel()->openPage(m_plannerPage);
-}
-
-void QmlMesoSplitInterface::addExercise()
-{
-	currentSplitModel()->setWorkingExercise(currentSplitModel()->addExercise());
-}
-
-void QmlMesoSplitInterface::removeExercise(const int exercise_number)
-{
-	if (exercise_number >= 0)
-	{
-		if (appSettings()->alwaysAskConfirmation())
-			QMetaObject::invokeMethod(m_plannerPage, "showDeleteDialog", Q_ARG(QString,
-				currentSplitModel()->exerciseName(exercise_number, currentSplitModel()->workingSubExercise(exercise_number))));
-		else
-			currentSplitModel()->delExercise(exercise_number);
-	}
-	else
-		currentSplitModel()->delExercise(currentSplitModel()->workingExercise());
 }
 
 void QmlMesoSplitInterface::swapMesoPlans()
@@ -71,24 +51,22 @@ void QmlMesoSplitInterface::loadSplitFromPreviousMeso()
 		DBSplitModel *split_model{new DBSplitModel{m_mesoModel, currentSplitModel()->database(),
 																					m_mesoIdx, m_currentSplitLetter, true}};
 		connect(split_model, &DBSplitModel::exerciseCountChanged, this, [this,split_model] () {
-			m_mesoModel->splitModelsForMeso(m_mesoIdx).insert(m_currentSplitLetter, split_model);
-			delete split_model;
+			if (split_model->exerciseCount() > 0)
+			{
+				connect(currentSplitModel(), &DBSplitModel::exerciseCountChanged, this, [this,split_model] () {
+					split_model->setMesoIdx(m_mesoIdx);
+					delete currentSplitModel();
+					m_mesoModel->splitModelsForMeso(m_mesoIdx).insert(m_currentSplitLetter, split_model);
+				});
+				currentSplitModel()->clearExercises(true);
+			}
 		});
 	}
 }
 
-void QmlMesoSplitInterface::simpleExercisesList(const bool show)
-{
-	if (show)
-		appItemManager()->showSimpleExercisesList(m_plannerPage, currentSplitModel()->muscularGroup());
-	else
-		appItemManager()->hideSimpleExercisesList(m_plannerPage);
-}
-
 void QmlMesoSplitInterface::exportMesoSplit(const bool bShare)
 {
-	const QString &suggestedName{m_mesoModel->name(m_mesoIdx) +
-				tr(" - Exercises Plan - Split ") + currentSplitLetter() + ".txt"_L1};
+	const QString &suggestedName{m_mesoModel->name(m_mesoIdx) % tr(" - Exercises Plan - Split ") % currentSplitLetter() % ".txt"_L1};
 	const QString &exportFileName{appItemManager()->setExportFileName(suggestedName)};
 	appItemManager()->continueExport(currentSplitModel()->exportToFormattedFile(exportFileName), bShare);
 }
@@ -144,11 +122,6 @@ bool QmlMesoSplitInterface::haveExercises() const
 	return currentSplitModel() ? currentSplitModel()->exerciseCount() > 0 : false;
 }
 
-void QmlMesoSplitInterface::changeExerciseName()
-{
-	currentSplitModel()->newExerciseFromExercisesList();
-}
-
 void QmlMesoSplitInterface::createPlannerPage()
 {
 	m_plannerComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/ExercisesPlanner.qml"_L1}, QQmlComponent::Asynchronous};
@@ -191,13 +164,16 @@ void QmlMesoSplitInterface::createPlannerPage_part2()
 
 	appPagesListModel()->openPage(m_plannerPage,
 			std::move(tr("Exercises Planner: ") + m_mesoModel->name(m_mesoIdx)), [this] () { cleanUp(); });
-	connect(m_plannerPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), this, SLOT(changeExerciseName()));
 	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field) {
 		if (meso_idx == m_mesoIdx)
 		{
 			if (field == MESO_FIELD_SPLIT)
 				syncSplitPagesWithMesoSplit();
 		}
+	});
+	connect(appItemManager(), &QmlItemManager::selectedExerciseFromSimpleExercisesList, [this] (QQuickItem *parentPage) {
+		if (parentPage == m_plannerPage)
+			currentSplitModel()->newExerciseFromExercisesList();
 	});
 }
 

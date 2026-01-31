@@ -1,6 +1,5 @@
 #include "tputils.h"
 
-#include "thread_manager.h"
 #include "dbexercisesmodel.h"
 #include "qmlitemmanager.h"
 
@@ -12,17 +11,20 @@
 #include <ranges>
 #include <random>
 
-QStringList TPUtils::_months_names{
-		std::move(tr("January")), std::move(tr("February")), std::move(tr("March")), std::move(tr("April")),
-		std::move(tr("May")), std::move(tr("June")), std::move(tr("July")), std::move(tr("August")),
-		std::move(tr("September")), std::move(tr("October")), std::move(tr("November")), std::move(tr("December"))
-};
-
-QStringList TPUtils::_days_names{std::move(tr("Sunday")), std::move(tr("Monday")), std::move(tr("Tuesday")),
-	std::move(tr("Wednesday")), std::move(tr("Thursday")), std::move(tr("Friday")), std::move(tr("Saturday"))
-};
-
 TPUtils *TPUtils::app_utils{nullptr};
+
+TPUtils::TPUtils(QObject *parent)
+	: QObject{parent}, m_appLocale{nullptr}, m_lowestTempId{-1}
+{
+	app_utils = this;
+	_months_names = QStringList{} << std::move(tr("January")) << std::move(tr("February")) << std::move(tr("March")) <<
+		std::move(tr("April")) << std::move(tr("May")) << std::move(tr("June")) << std::move(tr("July")) <<
+		std::move(tr("August")) << std::move(tr("September")) << std::move(tr("October")) << std::move(tr("November")) <<
+		std::move(tr("December"));
+
+	_days_names = QStringList{} << std::move(tr("Sunday")) << std::move(tr("Monday")) << std::move(tr("Tuesday")) <<
+		std::move(tr("Wednesday")) << std::move(tr("Thursday")) << std::move(tr("Friday")) << std::move(tr("Saturday"));
+}
 
 int TPUtils::generateUniqueId(const QLatin1StringView &seed) const
 {
@@ -1133,6 +1135,29 @@ QString TPUtils::stripInvalidCharacters(const QString &string) const
 {
 	QString ret{string};
 	return ret.replace('\'', '"');
+}
+
+bool TPUtils::containsAllWords(const QString &mainString, const QStringList &wordSet, const bool precise)
+{
+	const QStringList &searched_words{precise ? mainString.split(' ', Qt::SkipEmptyParts) :
+														stripDiacriticsFromString(mainString).split(' ', Qt::SkipEmptyParts)};
+	QStringList::const_iterator haystack{searched_words.constBegin()};
+	const QStringList::const_iterator haystack_end{searched_words.constEnd()};
+	for (const auto &needle : std::as_const(wordSet))
+	{
+		bool found{false};
+		do
+		{
+			if (haystack->startsWith(needle, !precise ? Qt::CaseInsensitive : Qt::CaseSensitive))
+			{
+				found = true;
+				break;
+			}
+		} while (++haystack != haystack_end);
+		if (!found)
+			return false;
+	}
+	return true; // All words found in the main string
 }
 
 QString TPUtils::setTypeOperation(const uint settype, const bool increase, QString str_value, const bool seconds) const

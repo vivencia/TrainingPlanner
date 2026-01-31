@@ -60,6 +60,7 @@ class WeatherInfo : public QObject
 Q_OBJECT
 
 Q_PROPERTY(uint savedLocationsCount READ savedLocationsCount NOTIFY savedLocationsCountChanged FINAL)
+Q_PROPERTY(int currentlyViewedLocationIndex READ currentlyViewedLocationIndex WRITE setCurrentlyViewedLocationIndex NOTIFY currentlyViewedLocationIndexChanged FINAL)
 Q_PROPERTY(bool canUseGps READ canUseGps WRITE setCanUseGps NOTIFY canUseGpsChanged FINAL)
 
 Q_PROPERTY(QString city READ city WRITE setCity NOTIFY cityChanged)
@@ -85,15 +86,24 @@ public:
 #ifdef Q_OS_ANDROID
 	Q_INVOKABLE void requestWeatherForGpsCity();
 #endif
-	Q_INVOKABLE void requestWeatherForSavedCity(const uint index);
+	void requestWeatherForSavedCity(const int index);
 	Q_INVOKABLE void removeWeatherLocation(const uint index);
 	Q_INVOKABLE void refreshWeather();
 	Q_INVOKABLE void searchForCities(const QString &place);
 	Q_INVOKABLE void locationSelected(const uint index);
 	Q_INVOKABLE QString savedLocationName(const uint index);
 	uint savedLocationsCount() const;
+	inline int currentlyViewedLocationIndex() const { return m_curViewIndex; }
+	void setCurrentlyViewedLocationIndex(const int new_index, const bool make_request = true)
+	{
+		if (make_request)
+			requestWeatherForSavedCity(new_index);
+		m_curViewIndex = new_index;
+		emit currentlyViewedLocationIndexChanged();
+	}
 
 signals:
+	void currentlyViewedLocationIndexChanged();
 	void canUseGpsChanged();
 	void cityChanged();
 	void gpsMessageChanged();
@@ -118,4 +128,5 @@ private:
 	st_LocationInfo m_gpsLocation;
 	QStringList m_locationList;
 	QString m_savedLocations;
+	int m_curViewIndex;
 };

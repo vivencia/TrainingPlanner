@@ -33,24 +33,19 @@ public:
 	inline void setMesoIdx(const uint new_meso_idx) { m_mesoIdx = new_meso_idx; }
 
 	Q_INVOKABLE void getExercisesPlannerPage();
-	Q_INVOKABLE void addExercise();
-	Q_INVOKABLE void removeExercise(const int exercise_number = -1);
 	Q_INVOKABLE void swapMesoPlans();
 	Q_INVOKABLE void loadSplitFromPreviousMeso();
-	Q_INVOKABLE void simpleExercisesList(const bool show);
 	Q_INVOKABLE void exportMesoSplit(const bool bShare);
 	Q_INVOKABLE void importMesoSplit(const QString &filename = QString{});
 	Q_INVOKABLE QString prevMesoName() const { return m_prevMesoName; }
 	Q_INVOKABLE QQuickItem *setCurrentPage(const int index);
+	Q_INVOKABLE inline QQuickItem *qmlPage() const { return m_plannerPage; }
 
 	DBSplitModel *currentSplitModel() const;
 	inline QChar currentSplitLetter() const { return m_currentSplitLetter; }
 	inline QChar currentSwappableLetter() const { return m_currentSwappableLetter; }
 	bool haveExercises() const;
-	inline bool canSwapExercises() const { return m_currentSwappableLetter != 'N'; }
-
-public slots:
-	void changeExerciseName();
+	inline bool canSwapExercises() const { return !m_currentSwappableLetter.isNull(); }
 
 signals:
 	void plannerPageCreated();

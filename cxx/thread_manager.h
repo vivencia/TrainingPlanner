@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QHash>
+#include <QMutex>
 #include <QObject>
 #include <QTimer>
 
@@ -37,7 +38,7 @@ public:
 	void queueAction(TPDatabaseTable *worker, StandardOps operation, void *extra_param = nullptr);
 
 signals:
-	void newThreadedOperation(const int unique_id, ThreadManager::StandardOps operation, void *extra_param);
+	void newThreadedOperation(const int unique_id, ThreadManager::StandardOps operation, void *extra_param, QMutex *mutex = nullptr);
 
 public slots:
 	void aboutToExit();
@@ -46,6 +47,7 @@ private:
 	QT_FORWARD_DECLARE_STRUCT(stQueuedOps)
 	QHash<int,QThread*> m_subThreadsList;
 	QHash<int,ThreadManager::stQueuedOps*> m_queuedOps;
+	QMutex m_mutex;
 	static ThreadManager *app_thread_mngr;
 	friend ThreadManager *appThreadManager();
 

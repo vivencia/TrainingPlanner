@@ -66,35 +66,7 @@ TPPage {
 				width: mainLayout.width
 				height: parent.height - appSettings.itemDefaultHeight - 10
 
-				property int my_count: 0
-				property int my_currentIndex: -1
-
-				onCountChanged: {
-					if (count === my_count)
-						return;
-					if (count > my_count)
-						my_currentIndex = count - 1;
-					else {
-						if (my_currentIndex > 0)
-							my_currentIndex--;
-						else {
-							if (count > 1)
-								my_currentIndex++;
-						}
-					}
-					my_count = count;
-				}
-
-				onMy_currentIndexChanged: {
-					if (height > 0) //positionViewAtIndex() only works when the ListView is completely resized within the layout
-						positionView();
-				}
-				onHeightChanged: positionView();
-
-				function positionView(): void {
-					weatherInfo.requestWeatherForSavedCity(my_currentIndex);
-					scrollViewCities.positionViewAtIndex(my_currentIndex, ListView.Visible);
-				}
+				onCountChanged: scrollViewCities.positionViewAtIndex(weatherInfo.currentlyViewedLocationIndex, ListView.Contain);
 
 				anchors {
 					top: parent.top
@@ -120,7 +92,7 @@ TPPage {
 					TPButton {
 						imageSource: "remove"
 						width: appSettings.itemDefaultHeight
-						enabled: index == scrollViewCities.my_currentIndex
+						enabled: index == weatherInfo.currentlyViewedLocationIndex
 
 						anchors {
 							right: txtCity.right
@@ -132,13 +104,13 @@ TPPage {
 					}
 
 					background: Rectangle {
-						color: index == scrollViewCities.my_currentIndex ? appSettings.listEntryColor1 : appSettings.listEntryColor2
+						color: index === weatherInfo.currentlyViewedLocationIndex ? appSettings.listEntryColor1 : appSettings.listEntryColor2
 						border.color: appSettings.fontColor
-						border.width: index == scrollViewCities.my_currentIndex ? 1 : 0
+						border.width: index === weatherInfo.currentlyViewedLocationIndex ? 1 : 0
 						radius: 8
 					}
 
-					onClicked: scrollViewCities.my_currentIndex = index;
+					onClicked: weatherInfo.currentlyViewedLocationIndex = index;
 				} //ItemDelegate
 			} //ListView
 

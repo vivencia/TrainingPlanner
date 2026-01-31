@@ -13,13 +13,13 @@ TPPopup {
 	x: 0
 
 	onShownChanged: {
-		dlgExercisesList.height = shown ? appSettings.pageHeight * 0.5 : recTitleBar.height;
+		dlgExercisesList.height = shown ? appSettings.pageHeight * 0.5 : titleBar.height;
 		exercisesList.visible = shown;
 	}
 
 	property bool shown: false
 	property bool bEnableMultipleSelection: false
-	signal exerciseSelected();
+	signal exerciseSelected(Item parentPage);
 	signal listClosed();
 
 	onClosed: listClosed();
@@ -30,50 +30,42 @@ TPPopup {
 		}
 	}
 
-	ColumnLayout {
-		anchors.fill: parent
+	TPButton {
+		imageSource: dlgExercisesList.shown ? "fold-up.png" : "fold-down.png"
+		hasDropShadow: false
+		width: appSettings.itemDefaultHeight
+		height: width
+		z: 1
 
-		TPBackRec {
-			id: recTitleBar
-			height: appSettings.itemDefaultHeight
-			Layout.fillWidth: true
-			opacity: 0.8
-
-			TPButton {
-				id: btnShowHideList
-				imageSource: dlgExercisesList.shown ? "fold-up.png" : "fold-down.png"
-				hasDropShadow: false
-				height: appSettings.itemSmallHeight
-				width: height
-
-				anchors {
-					left: parent.left
-					verticalCenter: parent.verticalCenter
-				}
-
-				onClicked: dlgExercisesList.shown = !dlgExercisesList.shown;
-			}
+		anchors {
+			left: titleBar.left
+			leftMargin: 5
+			verticalCenter: titleBar.verticalCenter
 		}
 
-		ExercisesListView {
-			id: exercisesList
-			parentPage: dlgExercisesList.parentPage
-			Layout.fillWidth: true
-			Layout.fillHeight: true
-			Layout.topMargin: 0
-			Layout.rightMargin: 5
-			Layout.leftMargin: 5
-			canDoMultipleSelection: bEnableMultipleSelection
+		onClicked: dlgExercisesList.shown = !dlgExercisesList.shown;
+	}
 
-			onExerciseEntrySelected: exerciseSelected();
-			onItemDoubleClicked: listClosed();
+	ExercisesListView {
+		id: exercisesList
+		parentPage: dlgExercisesList.parentPage
+		canDoMultipleSelection: bEnableMultipleSelection
+
+		anchors {
+			top: titleBar.bottom
+			left: parent.left
+			right: parent.right
+			bottom: parent.bottom
 		}
+
+		onExerciseEntrySelected: exerciseSelected(parentPage);
+		onItemDoubleClicked: listClosed();
 	}
 
 	function show(ypos: int): void {
 		shown = true;
-		exercisesList.forceActiveFocus();
 		exercisesList.canDoMultipleSelection = bEnableMultipleSelection;
+		exercisesList.setFocusToSearchField();
 		exercisesModel.clearSelectedEntries();
 		show1(ypos);
 	}

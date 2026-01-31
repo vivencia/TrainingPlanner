@@ -84,11 +84,15 @@ TPPage {
 	}
 
 	footer: TPToolBar {
-		height: appSettings.itemDefaultHeight * 4
+		height: appSettings.itemDefaultHeight * 3
 
 		ColumnLayout {
-			anchors.fill: parent
-			spacing: appSettings.itemDefaultHeight
+			spacing: 10
+			anchors {
+				fill: parent
+				topMargin: 10
+				bottomMargin: 20
+			}
 
 			TPButton {
 				id: btnManageCoach
@@ -103,7 +107,6 @@ TPPage {
 			TPButton {
 				id: btnManageClients
 				text: qsTr("Manage clients")
-				autoSize: true
 				visible: userModel.mainUserIsCoach
 				Layout.alignment: Qt.AlignCenter
 				Layout.preferredWidth: parent.width - 20

@@ -42,6 +42,16 @@ Popup {
 		}
 	}
 
+	function changeParentPage(parent_page: Page): void {
+		if (!modal && keepAbove) {
+			parentPage.pageDeActivated.disconnect();
+			parentPage.pageActivated.disconnect();
+			parentPage = parent_page;
+			parentPage.pageDeActivated.connect(function() { bVisible = tpPopup.visible; tpPopup.visible = false; });
+			parentPage.pageActivated.connect(function() { if (bVisible) tpPopup.visible = true; });
+		}
+	}
+
 	TPBackRec {
 		id: _backRec
 		useGradient: useBackgroundGradient
@@ -128,10 +138,9 @@ Popup {
 		z: 2
 
 		anchors {
-			top: parent.top
-			topMargin: 2
-			right: parent.right
-			rightMargin: 2
+			verticalCenter: titlebar.verticalCenter
+			right: titlebar.right
+			rightMargin: 5
 		}
 
 		onClicked: closePopup();

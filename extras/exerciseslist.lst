@@ -1,6 +1,7 @@
-#Version;C
+#Version;D
 Cadeira Extensora;;legs,quadriceps
-Cadeira Extensora;unilateral;legs,quadriceps
+Cadeira Extensora;máquina articulada, bilateral;legs,quadriceps
+Cadeira Extensora;máquina articulada, unilateral;legs,quadriceps
 Cadeira Flexora;;legs,hamstrings
 Cadeira Flexora;unilateral;legs,hamstrings
 Máquina Flexora em Pé;unilateral;legs,hamstrings

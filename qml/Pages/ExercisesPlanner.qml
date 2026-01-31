@@ -20,8 +20,6 @@ TPPage {
 	property WorkoutOrSplitExercisesList currentSplitPage: null
 	readonly property int splitPageHeight: appSettings.pageHeight - topToolBar.height - bottomToolBar.height
 
-	signal exerciseSelectedFromSimpleExercisesList();
-
 	Keys.onPressed: (event) => {
 		if (event.key === mainwindow.backKey) {
 			if (swipeView.currentIndex !== 0) {
@@ -159,7 +157,7 @@ TPPage {
 	SwipeView {
 		id: swipeView
 		objectName: "swipeView"
-		interactive: !exercisesPane.visible
+		interactive: true
 		anchors.fill: parent
 
 		onCurrentIndexChanged: {
@@ -176,7 +174,6 @@ TPPage {
 		id: indicator
 		count: swipeView.count
 		currentIndex: swipeView.currentIndex
-		visible: !exercisesPane.visible
 		height: 20
 
 		delegate: Label {
@@ -238,7 +235,7 @@ TPPage {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: splitManager.currentexercisesModel.clearExercises();
+			onClicked: splitManager.currentSplitModel.clearExercises();
 		}
 
 		TPButton {
@@ -295,20 +292,6 @@ TPPage {
 
 			onClicked: currentSplitPage.appendNewExerciseToDivision();
 		} //btnAddExercise
-	}
-
-	SimpleExercisesListPanel {
-		id: exercisesPane
-		parentPage: pagePlanner
-		onExerciseSelected: exerciseSelectedFromSimpleExercisesList();
-	}
-
-	function showSimpleExercisesList(): void {
-		exercisesPane.show(currentSplitPage.exerciseNameFieldYPosition() > appSettings.pageHeight/2 ? 0 : -2)
-	}
-
-	function hideSimpleExercisesList(): void {
-		exercisesPane.visible = false;
 	}
 
 	property PageScrollButtons navButtons: null
@@ -401,26 +384,7 @@ TPPage {
 		}
 	}
 
-	TPBalloonTip {
-		id: msgDlgRemove
-		title: qsTr("Remove Exercise?")
-		message: exerciseName + qsTr("\nThis action cannot be undone.")
-		imageSource: "remove"
-		keepAbove: true
-		button1Text: qsTr("Yes")
-		button2Text: qsTr("No")
-		onButton1Clicked: splitManager.removeExercise();
-		parentPage: pagePlanner
-
-		property string exerciseName
-
-		function init(exercise: string): void {
-			exerciseName = exercise;
-			show(-1);
-		}
-	} //TPBalloonTip
-
-	function showDeleteDialog(exercise: string): void {
-		msgDlgRemove.init(exercise);
+	function getExerciseNameFieldYPos(): int {
+		return currentSplitPage.exerciseNameFieldYPosition();
 	}
 } //Page
