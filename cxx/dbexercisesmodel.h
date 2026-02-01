@@ -171,14 +171,11 @@ public:
 
 	[[nodiscard]] Q_INVOKABLE int setType(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	Q_INVOKABLE void setSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type, const bool from_qml = true);
-	void _setSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type);
-	void changeSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type);
 
 	[[nodiscard]] QTime suggestedRestTime(const QTime &prev_resttime, const uint set_type) const;
 	[[nodiscard]] QTime restTime(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	[[nodiscard]] Q_INVOKABLE QString setRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	Q_INVOKABLE void setSetRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number, const QString &new_time);
-	void _setSetRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number, const QTime &time);
 
 	[[nodiscard]] QString suggestedSubSets(const uint set_type);
 	[[nodiscard]] Q_INVOKABLE QString setSubSets(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
@@ -189,16 +186,13 @@ public:
 	[[nodiscard]] QString suggestedReps(const QString &prev_reps, const uint set_type, const uint subset = 0) const;
 	[[nodiscard]] Q_INVOKABLE QString setReps(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint subset = 0) const;
 	Q_INVOKABLE void setSetReps(const uint exercise_number, const uint exercise_idx, const uint set_number, const QString &new_reps, const uint subset = 0);
-	void setSetReps(const uint exercise_number, const uint exercise_idx, const uint set_number, QString &&new_reps);
 
-	[[nodiscard]] QString suggestedWeight(const QString &prev_weight, const uint set_type, const uint subset = 0) const;
+	[[nodiscard]] QString suggestedWeight(const QString &prev_weight, const uint set_type, const uint n_sets, const uint subset = 0) const;
 	[[nodiscard]] Q_INVOKABLE QString setWeight(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint subset = 0) const;
 	Q_INVOKABLE void setSetWeight(const uint exercise_number, const uint exercise_idx, const uint set_number, const QString &new_weight, const uint subset = 0);
-	void setSetWeight(const uint exercise_number, const uint exercise_idx, const uint set_number, QString &&new_weight);
 
 	[[nodiscard]] Q_INVOKABLE QString setNotes(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	Q_INVOKABLE void setSetNotes(const uint exercise_number, const uint exercise_idx, const uint set_number, const QString &new_notes);
-	void setSetNotes(const uint exercise_number, const uint exercise_idx, const uint set_number, QString &&new_notes);
 
 	[[nodiscard]] Q_INVOKABLE bool setCompleted(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 	Q_INVOKABLE void setSetCompleted(const uint exercise_number, const uint exercise_idx, const uint set_number, const bool completed);
@@ -274,11 +268,17 @@ private:
 	void setSetMode(stSet *set, const uint mode);
 	void setModeForSet(stSet *set);
 	void changeAllSetsMode(const uint exercise_number);
+	void _setExerciseName(const uint exercise_number, const uint exercise_idx, QString &&new_name);
+	void _setTrackRestTime(const uint exercise_number, const bool track_resttime);
+	void _setAutoRestTime(const uint exercise_number, const bool auto_resttime);
+	void _setSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type);
+	void _setSetRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number, const QTime &time);
+	void _setSetSubSets(const uint exercise_number, const uint exercise_idx, const uint set_number, const QString &new_subsets);
+	void _setSetReps(const uint exercise_number, const uint exercise_idx, const uint set_number, QString &&new_reps);
+	void _setSetWeight(const uint exercise_number, const uint exercise_idx, const uint set_number, QString &&new_weight);
+	void _setSetNotes(const uint exercise_number, const uint exercise_idx, const uint set_number, QString &&new_notes);
+	void _setSetCompleted(const uint exercise_number, const uint exercise_idx, const uint set_number, const bool completed);
 	QString increaseStringTimeBy(const QString &strtime, const uint add_mins, const uint add_secs);
-	void setSuggestedTime(const uint set_number, const QList<stSet*> &sets);
-	void setSuggestedSubSets(const uint set_number, const QList<stSet*> &sets);
-	void setSuggestedReps(const uint set_number, const QList<stSet*> &sets, const uint from_subset = 0);
-	void setSuggestedWeight(const uint set_number, const QList<stSet *> &sets, const uint from_subset = 0);
 	QString dropSetReps(const QString &reps, const uint from_subset = 0) const;
 	QString clusterReps(const QString &total_reps, const uint from_subset = 0) const;
 	QString myorepsReps(const QString &first_set_reps, const uint n_sets, const uint from_set = 0) const;

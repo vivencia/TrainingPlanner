@@ -74,22 +74,22 @@ void DBExercisesModel::plugDBModelInterfaceIntoDatabase()
 
 void DBExercisesModel::operator=(DBExercisesModel *other_model)
 {
-	clearExercises();
-	m_dbModelInterface->clearData({EXERCISES_FIELD_ID, EXERCISES_FIELD_MESOID, EXERCISES_FIELD_CALENDARDAY, EXERCISES_FIELD_SPLITLETTER});
 	if (m_calendarDay < 0) //only a split model might change its splitletter property. A workout model keeps it
 		setSplitLetter(other_model->splitLetter());
+	QString mesoid{std::move(m_dbModelInterface->modelData().at(0).at(EXERCISES_FIELD_MESOID))};
+	QString calendar_day{std::move(m_dbModelInterface->modelData().at(0).at(EXERCISES_FIELD_CALENDARDAY))};
+	QString split_letter{std::move(m_dbModelInterface->modelData().at(0).at(EXERCISES_FIELD_SPLITLETTER))};
+	clearExercises();
+	m_dbModelInterface->clearData();
+	m_dbModelInterface->modelData() = other_model->m_dbModelInterface->modelData();
 
-	const auto n_exercises_in_modeldata{m_dbModelInterface->modelData().count()};
+	beginResetModel();
 	for (const auto &exercise_entry : std::as_const(other_model->m_exerciseData))
 	{
-		const uint exercise_number{addExercise(-1)};
-		if (exercise_number >= n_exercises_in_modeldata)
-		{
-			m_dbModelInterface->modelData()[exercise_number][EXERCISES_FIELD_MESOID] = m_dbModelInterface->modelData().at(0).at(EXERCISES_FIELD_MESOID);
-			m_dbModelInterface->modelData()[exercise_number][EXERCISES_FIELD_CALENDARDAY] = m_dbModelInterface->modelData().at(0).at(EXERCISES_FIELD_CALENDARDAY);
-			m_dbModelInterface->modelData()[exercise_number][EXERCISES_FIELD_MESOID] = m_dbModelInterface->modelData().at(0).at(EXERCISES_FIELD_MESOID);
-			m_dbModelInterface->modelData()[exercise_number][EXERCISES_FIELD_SPLITLETTER] = m_dbModelInterface->modelData().at(0).at(EXERCISES_FIELD_SPLITLETTER);
-		}
+		const uint exercise_number{addExercise(-1, false)};
+		m_dbModelInterface->modelData()[exercise_number][EXERCISES_FIELD_MESOID] = mesoid;
+		m_dbModelInterface->modelData()[exercise_number][EXERCISES_FIELD_CALENDARDAY] = calendar_day;
+		m_dbModelInterface->modelData()[exercise_number][EXERCISES_FIELD_SPLITLETTER] = split_letter;
 
 		setTrackRestTime(exercise_number, exercise_entry->track_rest_time);
 		setAutoRestTime(exercise_number, exercise_entry->auto_rest_time);
@@ -102,19 +102,22 @@ void DBExercisesModel::operator=(DBExercisesModel *other_model)
 				const uint set_number{addSet(exercise_number, exercise_idx)};
 				_setSetType(exercise_number, exercise_idx, set_number, set->type);
 				_setSetRestTime(exercise_number, exercise_idx, set_number, set->restTime);
-				setSetSubSets(exercise_number, exercise_idx, set_number, set->subsets);
-				setSetReps(exercise_number, exercise_idx, set_number, set->reps);
-				setSetWeight(exercise_number, exercise_idx, set_number, set->weight);
-				setSetNotes(exercise_number, exercise_idx, set_number, set->notes);
-				setSetCompleted(exercise_number, exercise_idx, set_number, set->completed);
+				_setSetSubSets(exercise_number, exercise_idx, set_number, set->subsets);
+				_setSetReps(exercise_number, exercise_idx, set_number, std::move(set->reps));
+				_setSetWeight(exercise_number, exercise_idx, set_number, std::move(set->weight));
+				_setSetNotes(exercise_number, exercise_idx, set_number, std::move(set->notes));
+				_setSetCompleted(exercise_number, exercise_idx, set_number, set->completed);
 			}
 			if (++exercise_idx >= exercise_entry->m_exercises.count())
 				break;
-		} while (addSubExercise(exercise_number));
+		} while (addSubExercise(exercise_number, false));
 	}
 	setWorkingExercise(0);
 	setWorkingSubExercise(0, 0);
 	setWorkingSet(0, 0, 0);
+	endResetModel();
+	m_dbModelInterface->setModifiedRows(0, exerciseCount());
+	appThreadManager()->runAction(m_db, ThreadManager::InsertRecords);
 }
 
 bool DBExercisesModel::fromDatabase(const bool db_data_ok)
@@ -345,9 +348,20 @@ int DBExercisesModel::importFromFile(const QString& filename, QFile *in_file)
 			return TP_RET_CODE_OPEN_READ_FAILED;
 	}
 
+	clearExercises();
+	m_dbModelInterface->clearData();
+
 	int ret{appUtils()->readDataFromFile(in_file, m_dbModelInterface->modelData(), EXERCISES_TOTALCOLS, identifierInFile())};
 	if (ret != TP_RET_CODE_WRONG_IMPORT_FILE_TYPE)
 	{
+		const QString &mesoid{m_mesoModel->id(m_mesoIdx)};
+		const QString &calendar_day{QString::number(m_calendarDay)};
+		for (auto &exercise_entry : m_dbModelInterface->modelData())
+		{
+			exercise_entry[EXERCISES_FIELD_MESOID] = mesoid;
+			exercise_entry[EXERCISES_FIELD_CALENDARDAY] = calendar_day;
+			exercise_entry[EXERCISES_FIELD_SPLITLETTER] = m_splitLetter;
+		}
 		if (fromDatabase(true))
 			ret = TP_RET_CODE_IMPORT_OK;
 		else
@@ -365,6 +379,10 @@ int DBExercisesModel::importFromFormattedFile(const QString& filename, QFile *in
 		if (!in_file)
 			return TP_RET_CODE_OPEN_READ_FAILED;
 	}
+
+	beginResetModel();
+	clearExercises();
+	m_dbModelInterface->clearData();
 
 	QString value;
 	uint exercise_number(0);
@@ -415,18 +433,18 @@ int DBExercisesModel::importFromFormattedFile(const QString& filename, QFile *in
 											{
 												addSubExercise(exercise_number, false);
 												value.remove(0, sub_exercise_delim_len);
-												setExerciseName(exercise_number, exercise_idx, value.trimmed());
+												_setExerciseName(exercise_number, exercise_idx, std::move(value.trimmed()));
 												next_field = SETS_FIELDS;
 											}
 										break;
 										case EXERCISES_FIELD_TRACKRESTTIMES:
 											value = std::move(value.remove(0, value.indexOf(':') + 2).trimmed());
-											setTrackRestTime(exercise_number, value == tr("Yes"));
+											_setTrackRestTime(exercise_number, value == tr("Yes"));
 											next_field = EXERCISES_FIELD_AUTORESTTIMES;
 										break;
 										case EXERCISES_FIELD_AUTORESTTIMES:
 											value = std::move(value.remove(0, value.indexOf(':') + 2).trimmed());
-											setAutoRestTime(exercise_number, value == tr("Yes"));
+											_setAutoRestTime(exercise_number, value == tr("Yes"));
 											next_field = EXERCISES_FIELD_EXERCISES;
 										break;
 										case SETS_FIELDS:
@@ -438,34 +456,35 @@ int DBExercisesModel::importFromFormattedFile(const QString& filename, QFile *in
 										break;
 										case EXERCISES_FIELD_SETTYPES:
 											value = std::move(value.remove(0, value.indexOf(':') + 2).trimmed());
-											setSetType(exercise_number, exercise_idx, set_number, formatSetTypeToImport(value), false);
+											_setSetType(exercise_number, exercise_idx, set_number, formatSetTypeToImport(value));
 											next_field = EXERCISES_FIELD_RESTTIMES;
 										break;
 										case EXERCISES_FIELD_RESTTIMES:
 											if (!m_exerciseData.at(exercise_number)->track_rest_time)
-												setSetRestTime(exercise_number, exercise_idx, set_number, "00:00"_L1);
+												_setSetRestTime(exercise_number, exercise_idx, set_number, QTime{0, 0, 0});
 											else
 											{
 												value = std::move(value.remove(0, value.indexOf(':') + 2).trimmed());
-												setSetRestTime(exercise_number, exercise_idx, set_number, value);
+												_setSetRestTime(exercise_number, exercise_idx, set_number,
+														appUtils()->timeFromString(value, TPUtils::TF_QML_DISPLAY_NO_HOUR));
 											}
 											next_field = EXERCISES_FIELD_REPS;
 										break;
 										case EXERCISES_FIELD_REPS:
 											value = std::move(value.remove(0, value.indexOf(':') + 2).trimmed());
-											setSetReps(exercise_number, exercise_idx, set_number,
+											_setSetReps(exercise_number, exercise_idx, set_number,
 															std::move(value.replace(comp_exercise_fancy_separator, QString{comp_exercise_separator})));
 											next_field = EXERCISES_FIELD_WEIGHTS;
 										break;
 										case EXERCISES_FIELD_WEIGHTS:
 											value = std::move(value.remove(0, value.indexOf(':') + 2).trimmed());
-											setSetWeight(exercise_number, exercise_idx, set_number,
+											_setSetWeight(exercise_number, exercise_idx, set_number,
 															std::move(value.replace(comp_exercise_fancy_separator, QString{comp_exercise_separator})));
 											next_field = EXERCISES_FIELD_NOTES;
 										break;
 										case EXERCISES_FIELD_NOTES:
 											value = std::move(value.remove(0, value.indexOf(':') + 2).trimmed());
-											setSetNotes(exercise_number, exercise_idx, set_number, std::move(value));
+											_setSetNotes(exercise_number, exercise_idx, set_number, std::move(value));
 											next_field = SETS_FIELDS;
 										break;
 									}
@@ -480,6 +499,13 @@ int DBExercisesModel::importFromFormattedFile(const QString& filename, QFile *in
 			break;
 	}
 	in_file->close();
+
+	m_exercisesLoaded = true;
+	setWorkingExercise(0);
+	setWorkingSubExercise(0, 0);
+	setWorkingSet(0, 0, 0);
+	emit exerciseCountChanged();
+	endResetModel();
 	return exerciseCount() > 0 ? TP_RET_CODE_IMPORT_OK : TP_RET_CODE_IMPORT_FAILED;
 }
 
@@ -669,9 +695,9 @@ void DBExercisesModel::newExerciseChosen()
 
 void DBExercisesModel::newExerciseFromExercisesList()
 {
-	setExerciseName(m_workingExercise, workingSubExercise(m_workingExercise),
-		appExercisesList()->selectedEntriesValue(0, EXERCISES_LIST_FIELD_MAINNAME) % " - "_L1 %
-		appExercisesList()->selectedEntriesValue(0, EXERCISES_LIST_FIELD_SUBNAME));
+	setExerciseName(m_workingExercise, workingSubExercise(m_workingExercise), std::move(
+						appExercisesList()->selectedEntriesValue(0, EXERCISES_LIST_FIELD_MAINNAME) % " - "_L1 %
+						appExercisesList()->selectedEntriesValue(0, EXERCISES_LIST_FIELD_SUBNAME)));
 }
 
 void DBExercisesModel::saveExercises(const int exercise_number, const int exercise_idx, const int set_number, const int field)
@@ -1043,34 +1069,29 @@ int DBExercisesModel::setType(const uint exercise_number, const uint exercise_id
 void DBExercisesModel::setSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type, const bool from_qml)
 {
 	const QList<stSet*> &sets{m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets};
-	sets.at(set_number)->type = static_cast<TPSetTypes>(new_type);
+	stSet *set{sets.at(set_number)};
+	set->type = static_cast<TPSetTypes>(new_type);
 	if (from_qml)
 	{
-		setSuggestedTime(set_number, sets);
-		setSuggestedSubSets(set_number, sets);
-		setSuggestedReps(set_number, sets);
-		setSuggestedWeight(set_number, sets);
+		if (set_number != 0)
+		{
+			stSet *prev_set{sets.at(set_number - 1)};
+			setSetRestTime(exercise_number, exercise_idx, set_number, appUtils()->formatTime(
+										suggestedRestTime(prev_set->restTime, set->type), TPUtils::TF_QML_DISPLAY_NO_HOUR));
+			setSetReps(exercise_number, exercise_idx, set_number, suggestedReps(prev_set->reps, set->type));
+			setSetWeight(exercise_number, exercise_idx, set_number, suggestedWeight(prev_set->weight, set->type, sets.count()));
+		}
+		else
+		{
+			setSetRestTime(exercise_number, exercise_idx, set_number, appUtils()->formatTime(
+										suggestedRestTime(QTime{0,0,0}, set->type), TPUtils::TF_QML_DISPLAY_NO_HOUR));
+			setSetReps(exercise_number, exercise_idx, set_number, suggestedReps(QString{}, set->type));
+			setSetWeight(exercise_number, exercise_idx, set_number, suggestedWeight(QString{}, set->type, sets.count()));
+		}
+		setSetSubSets(exercise_number, exercise_idx, set_number, suggestedSubSets(set->type));
 		emit setTypeChanged(exercise_number, exercise_idx, set_number);
 		emit exerciseModified(exercise_number, exercise_idx, set_number, EXERCISES_FIELD_SETTYPES);
 	}
-}
-
-void DBExercisesModel::_setSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type)
-{
-	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->type = static_cast<TPSetTypes>(new_type);
-	emit exerciseModified(exercise_number, exercise_idx, set_number, EXERCISES_FIELD_SETTYPES);
-}
-
-void DBExercisesModel::changeSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type)
-{
-	const QList<stSet*> &sets{m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets};
-	sets.at(set_number)->type = static_cast<TPSetTypes>(new_type);
-	setSuggestedTime(set_number, sets);
-	setSuggestedSubSets(set_number, sets);
-	setSuggestedReps(set_number, sets);
-	setSuggestedWeight(set_number, sets);
-	emit setTypeChanged(exercise_number, exercise_idx, set_number);
-	emit exerciseModified(exercise_number, exercise_idx, set_number, EXERCISES_FIELD_SETTYPES);
 }
 
 QTime DBExercisesModel::suggestedRestTime(const QTime &prev_resttime, const uint set_type) const
@@ -1117,12 +1138,6 @@ void DBExercisesModel::setSetRestTime(const uint exercise_number, const uint exe
 	emit exerciseModified(exercise_number, exercise_idx, set_number, EXERCISES_FIELD_RESTTIMES);
 }
 
-void DBExercisesModel::_setSetRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number, const QTime &time)
-{
-	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->restTime = time;
-	emit exerciseModified(exercise_number, exercise_idx, set_number, EXERCISES_FIELD_RESTTIMES);
-}
-
 QString DBExercisesModel::suggestedSubSets(const uint set_type)
 {
 	switch (set_type)
@@ -1158,9 +1173,16 @@ void DBExercisesModel::addSetSubSet(const uint exercise_number, const uint exerc
 {
 	if (m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->type >= Drop)
 	{
-		const uint old_subsets{setSubSets(exercise_number, exercise_idx, set_number).toUInt()};
-		setSetSubSets(exercise_number, exercise_idx, set_number, QString::number(old_subsets + 1));
-		setSuggestedReps(set_number, m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets, old_subsets);
+		const uint n_subsets{setSubSets(exercise_number, exercise_idx, set_number).toUInt()};
+		setSetSubSets(exercise_number, exercise_idx, set_number, QString::number(n_subsets + 1));
+		QString prev_set_reps;
+		stSet *set{m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)};
+		if (set_number > 0)
+		{
+			stSet *prev_set{m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number - 1)};
+			prev_set_reps = prev_set->reps;
+		}
+		setSetReps(exercise_number, exercise_idx, set_number, suggestedReps(prev_set_reps, set->type, n_subsets), n_subsets);
 	}
 }
 
@@ -1223,8 +1245,8 @@ QString DBExercisesModel::setReps(const uint exercise_number, const uint exercis
 	return "0"_L1;
 }
 
-void DBExercisesModel::setSetReps(const uint exercise_number, const uint exercise_idx, const uint set_number, const QString &new_reps,
-										const uint subset)
+void DBExercisesModel::setSetReps(const uint exercise_number, const uint exercise_idx, const uint set_number,
+																				const QString &new_reps, const uint subset)
 {
 	if (m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->type < Drop)
 		m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->reps = new_reps;
@@ -1234,33 +1256,26 @@ void DBExercisesModel::setSetReps(const uint exercise_number, const uint exercis
 	emit exerciseModified(exercise_number, exercise_idx, set_number, EXERCISES_FIELD_REPS);
 }
 
-void DBExercisesModel::setSetReps(const uint exercise_number, const uint exercise_idx, const uint set_number, QString &&new_reps)
-{
-	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->reps = std::forward<QString>(new_reps);
-}
-
-QString DBExercisesModel::suggestedWeight(const QString &prev_weight, const uint set_type, const uint subset) const
+QString DBExercisesModel::suggestedWeight(const QString &prev_weight, const uint set_type, const uint n_sets, const uint subset) const
 {
 	switch (set_type)
 	{
 		case Regular:
-			return prev_weight.isEmpty() ? std::move("20"_L1) : prev_weight;
+			return prev_weight.isEmpty() ? "20"_L1 : prev_weight;
 		break;
 		case Pyramid:
-			return prev_weight.isEmpty() ? std::move("20"_L1) :
-											std::move(appUtils()->appLocale()->toString(qCeil(prev_weight.toUInt() * 1.2)));
+			return prev_weight.isEmpty() ? "20"_L1 : appUtils()->appLocale()->toString(qCeil(prev_weight.toUInt() * 1.2));
 		break;
 		case ReversePyramid:
-			return prev_weight.isEmpty() ? std::move("80"_L1) :
-											std::move(appUtils()->appLocale()->toString(qCeil(prev_weight.toUInt() * 0.6)));
+			return prev_weight.isEmpty() ? "80"_L1 : appUtils()->appLocale()->toString(qCeil(prev_weight.toUInt() * 0.6));
 		break;
 		case Drop:
-			return prev_weight.isEmpty() ? std::move(dropSetWeight("80"_L1, 0)) : std::move(dropSetReps(prev_weight, subset));
+			return prev_weight.isEmpty() ? "80"_L1 : dropSetReps(prev_weight, subset);
 		break;
 		case Cluster:
-			return prev_weight.isEmpty() ? std::move(clusterWeight("100"_L1, 4)) : std::move(clusterReps(prev_weight, subset));
+			return prev_weight.isEmpty() ? clusterWeight("100"_L1) : clusterReps(prev_weight, subset);
 		case MyoReps:
-			return prev_weight.isEmpty() ? std::move(myorepsWeight("100"_L1, 4)) : std::move(myorepsReps(prev_weight, subset));
+			return prev_weight.isEmpty() ? myorepsWeight("100"_L1, n_sets) : myorepsReps(prev_weight, n_sets, subset);
 		break;
 	}
 	return QString {};
@@ -1293,11 +1308,6 @@ void DBExercisesModel::setSetWeight(const uint exercise_number, const uint exerc
 	emit exerciseModified(exercise_number, exercise_idx, set_number, EXERCISES_FIELD_WEIGHTS);
 }
 
-void DBExercisesModel::setSetWeight(const uint exercise_number, const uint exercise_idx, const uint set_number, QString &&new_weight)
-{
-	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->weight = std::forward<QString>(new_weight);
-}
-
 QString DBExercisesModel::setNotes(const uint exercise_number, const uint exercise_idx, const uint set_number) const
 {
 	if (exercise_number < m_exerciseData.count() && exercise_idx < m_exerciseData.at(exercise_number)->m_exercises.count())
@@ -1312,11 +1322,6 @@ void DBExercisesModel::setSetNotes(const uint exercise_number, const uint exerci
 {
 	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->notes = new_notes;
 	emit exerciseModified(exercise_number, exercise_idx, set_number, EXERCISES_FIELD_NOTES);
-}
-
-void DBExercisesModel::setSetNotes(const uint exercise_number, const uint exercise_idx, const uint set_number, QString &&new_notes)
-{
-	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->notes = std::forward<QString>(new_notes);
 }
 
 bool DBExercisesModel::setCompleted(const uint exercise_number, const uint exercise_idx, const uint set_number) const
@@ -1584,12 +1589,67 @@ void DBExercisesModel::setModeForSet(stSet *set)
 
 void DBExercisesModel::changeAllSetsMode(const uint exercise_number)
 {
+	if (!isWorkout())
+		return;
 	exerciseEntry *exercise{m_exerciseData.at(exercise_number)};
 	for (const auto sub_exercise : std::as_const(exercise->m_exercises))
 	{
 		for (const auto set : std::as_const(sub_exercise->sets))
 			setModeForSet(set);
 	}
+}
+
+void DBExercisesModel::_setSetRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number, const QTime &time)
+{
+	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->restTime = time;
+	emit exerciseModified(exercise_number, exercise_idx, set_number, EXERCISES_FIELD_RESTTIMES);
+}
+
+void DBExercisesModel::_setExerciseName(const uint exercise_number, const uint exercise_idx, QString &&new_name)
+{
+	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->name = std::forward<QString>(new_name);
+}
+
+void DBExercisesModel::_setTrackRestTime(const uint exercise_number, const bool track_resttime)
+{
+	m_exerciseData.at(exercise_number)->track_rest_time = track_resttime;
+	changeAllSetsMode(exercise_number);
+}
+
+void DBExercisesModel::_setAutoRestTime(const uint exercise_number, const bool auto_resttime)
+{
+	m_exerciseData.at(exercise_number)->auto_rest_time = auto_resttime;
+	changeAllSetsMode(exercise_number);
+}
+
+void DBExercisesModel::_setSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type)
+{
+	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->type = static_cast<TPSetTypes>(new_type);
+}
+
+void DBExercisesModel::_setSetSubSets(const uint exercise_number, const uint exercise_idx, const uint set_number, const QString &new_subsets)
+{
+	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->subsets = new_subsets;
+}
+
+void DBExercisesModel::_setSetReps(const uint exercise_number, const uint exercise_idx, const uint set_number, QString &&new_reps)
+{
+	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->reps = std::forward<QString>(new_reps);
+}
+
+void DBExercisesModel::_setSetWeight(const uint exercise_number, const uint exercise_idx, const uint set_number, QString &&new_weight)
+{
+	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->weight = std::forward<QString>(new_weight);
+}
+
+void DBExercisesModel::_setSetNotes(const uint exercise_number, const uint exercise_idx, const uint set_number, QString &&new_notes)
+{
+	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->notes = std::forward<QString>(new_notes);
+}
+
+void DBExercisesModel::_setSetCompleted(const uint exercise_number, const uint exercise_idx, const uint set_number, const bool completed)
+{
+	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->completed = completed;
 }
 
 QString DBExercisesModel::increaseStringTimeBy(const QString &strtime, const uint add_mins, const uint add_secs)
@@ -1607,50 +1667,6 @@ QString DBExercisesModel::increaseStringTimeBy(const QString &strtime, const uin
 	const QString &ret{(mins <= 9 ? "0"_L1 + QString::number(mins) : QString::number(mins)) + QChar(':') +
 		(secs <= 9 ? "0"_L1 + QString::number(secs) : QString::number(secs))};
 	return ret;
-}
-
-void DBExercisesModel::setSuggestedTime(const uint set_number, const QList<stSet*> &sets)
-{
-	QTime prev_set_time;
-	if (set_number == 0)
-		prev_set_time.setHMS(0, 1, 0);
-	else
-		prev_set_time = sets.at(set_number-1)->restTime;
-
-	stSet *set{sets.at(set_number)};
-	set->restTime = std::move(suggestedRestTime(prev_set_time, set->type));
-}
-
-void DBExercisesModel::setSuggestedSubSets(const uint set_number, const QList<stSet*> &sets)
-{
-	stSet *set{sets.at(set_number)};
-	set->subsets = std::move(suggestedSubSets(set->type));
-}
-
-void DBExercisesModel::setSuggestedReps(const uint set_number, const QList<stSet*> &sets, const uint from_subset)
-{
-	stSet *set{sets.at(set_number)};
-	stSet *prev_set{nullptr};
-	QString prev_set_reps;
-	if (set_number != 0)
-	{
-		prev_set = sets.at(set_number-1);
-		prev_set_reps = std::move(appUtils()->getCompositeValue(0, prev_set->reps, record_separator));
-	}
-	set->reps = std::move(suggestedReps(prev_set_reps, set->type, from_subset));
-}
-
-void DBExercisesModel::setSuggestedWeight(const uint set_number, const QList<stSet*> &sets, const uint from_subset)
-{
-	stSet *set{sets.at(set_number)};
-	stSet *prev_set{nullptr};
-	QString prev_set_weight;
-	if (set_number != 0)
-	{
-		prev_set = sets.at(set_number-1);
-		prev_set_weight = std::move(appUtils()->getCompositeValue(0, prev_set->weight, record_separator));
-	}
-	set->weight = std::move(suggestedWeight(prev_set_weight, set->type, from_subset));
 }
 
 QString DBExercisesModel::dropSetReps(const QString &reps, const uint from_subset) const

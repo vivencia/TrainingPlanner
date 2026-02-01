@@ -20,9 +20,6 @@ TPPopup {
 	property bool shown: false
 	property bool bEnableMultipleSelection: false
 	signal exerciseSelected(Item parentPage);
-	signal listClosed();
-
-	onClosed: listClosed();
 
 	Behavior on height {
 		NumberAnimation {
@@ -59,7 +56,7 @@ TPPopup {
 		}
 
 		onExerciseEntrySelected: exerciseSelected(parentPage);
-		onItemDoubleClicked: listClosed();
+		onItemDoubleClicked: closePopup();
 	}
 
 	function show(ypos: int): void {

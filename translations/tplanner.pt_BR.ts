@@ -282,7 +282,7 @@
         <location filename="../cxx/dbexerciseslistmodel.cpp" line="117"/>
         <location filename="../cxx/dbexerciseslistmodel.cpp" line="743"/>
         <source>Middle Chest</source>
-        <translation>Peitoral médio</translation>
+        <translation>Peitoral Médio</translation>
     </message>
     <message>
         <location filename="../cxx/dbexerciseslistmodel.cpp" line="119"/>
@@ -306,7 +306,7 @@
         <location filename="../cxx/dbexerciseslistmodel.cpp" line="125"/>
         <location filename="../cxx/dbexerciseslistmodel.cpp" line="751"/>
         <source>Rear Delts</source>
-        <translation></translation>
+        <translation>Deltoide Posterior</translation>
     </message>
     <message>
         <location filename="../cxx/dbexerciseslistmodel.cpp" line="127"/>
@@ -338,12 +338,12 @@
     <message>
         <location filename="../cxx/dbexerciseslistmodel.h" line="44"/>
         <source>Muscular Groups: </source>
-        <translation></translation>
+        <translation>Grupos musculares: </translation>
     </message>
     <message>
         <location filename="../cxx/dbexerciseslistmodel.h" line="45"/>
         <source>Descriptive media: </source>
-        <translation>Mídia de exemplo: </translation>
+        <translation>Mídia descritiva: </translation>
     </message>
 </context>
 <context>

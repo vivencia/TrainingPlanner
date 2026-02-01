@@ -228,15 +228,14 @@ void DBExercisesListModel::setFilter(const QString &filter)
 	if (!filter.isEmpty())
 	{									
 		QStringList words_list{std::move(filter.split(fancy_record_separator1, Qt::SkipEmptyParts, Qt::CaseInsensitive))};
-		const qsizetype modelCount{m_searchFilterApplied ? m_searchFilteredIndices.count() : m_exercisesData.count()};
+		const auto modelCount{m_searchFilterApplied ? m_searchFilteredIndices.count() : m_exercisesData.count()};
 		for (uint i{0}; i < modelCount; ++i)
 		{
-			const uint index{m_searchFilterApplied ? m_searchFilteredIndices.at(i) :
-										(m_muscularFilterApplied ? m_muscularFilteredIndices.at(i) : i)};
+			const uint index{m_searchFilterApplied ? m_searchFilteredIndices.at(i) : i};
 			const QString &subject{m_exercisesData.at(index).at(EXERCISES_LIST_FIELD_MUSCULARGROUP)};
 			for (const auto &word : std::as_const(words_list))
 			{
-				if (subject.contains(word, Qt::CaseInsensitive))
+				if (subject.contains(untranslatedMuscularGroup(word), Qt::CaseInsensitive))
 				{
 					if (!m_muscularFilterApplied)
 					{
@@ -244,27 +243,22 @@ void DBExercisesListModel::setFilter(const QString &filter)
 						clearSelectedEntries();
 						m_filterString = filter;
 						m_muscularFilterApplied = true;
-						emit countChanged();
-						endResetModel();
 					}
-					m_muscularFilteredIndices.append(m_exercisesData.at(index).at(EXERCISES_LIST_FIELD_ACTUALINDEX).toUInt());
-					if (!m_searchFilterApplied)
-					{
-						beginInsertRows(QModelIndex{}, m_muscularFilteredIndices.count() - 1, m_muscularFilteredIndices.count() - 1);
-						emit countChanged();
-						endInsertRows();
-					}
+					m_muscularFilteredIndices.append(index);
+					break;
 				}
 			}
 		}
-		if (m_muscularFilterApplied && m_searchFilterApplied)
+		if (m_muscularFilterApplied)
 		{
-			beginResetModel();
-			clearSelectedEntries();
-			m_searchFilteredIndices.clear();
-			m_searchFilteredIndices = m_muscularFilteredIndices;
-			emit countChanged();
+			if (m_searchFilterApplied)
+			{
+				beginResetModel();
+				m_searchFilteredIndices.clear();
+				m_searchFilteredIndices = m_muscularFilteredIndices;
+			}
 			endResetModel();
+			emit countChanged();
 		}
 	}
 	else
@@ -331,11 +325,8 @@ void DBExercisesListModel::search(const QString &search_term)
 				{
 					beginResetModel();
 					m_searchFilterApplied = true;
-					emit countChanged();
+					m_searchFilteredIndices.append(index);
 					endResetModel();
-					beginInsertRows(QModelIndex{}, m_searchFilteredIndices.count(), m_searchFilteredIndices.count());
-					m_searchFilteredIndices.append(m_exercisesData.at(index).at(EXERCISES_LIST_FIELD_ACTUALINDEX).toUInt());
-					endInsertRows();
 					emit countChanged();
 				}
 				else
@@ -365,6 +356,7 @@ void DBExercisesListModel::search(const QString &search_term)
 			resetSearchModel();
 			if (m_muscularFilterApplied)
 			{
+				beginResetModel();
 				m_muscularFilteredIndices.clear();
 				setFilter(m_filterString);
 			}
@@ -374,12 +366,8 @@ void DBExercisesListModel::search(const QString &search_term)
 
 void DBExercisesListModel::clearSelectedEntries()
 {
-	for (uint i{0}; i < m_selectedEntries.count(); ++i)
-	{
-		m_exercisesData[m_selectedEntries.at(i).real_index][EXERCISES_LIST_FIELD_SELECTED] = '0';
-		emit dataChanged(index(m_selectedEntries.at(i).view_index, 0),
-				index(m_selectedEntries.at(i).view_index, 0), QList<int>{} << selectedRole);
-	}
+	for (const auto idx : std::as_const(m_selectedEntries))
+		setData(index(idx), false, selectedRole);
 	setCurrentRow(-1);
 	m_selectedEntries.clear();
 	m_selectedEntryToReplace = 0;
@@ -389,68 +377,18 @@ void DBExercisesListModel::clearSelectedEntries()
 //When an item is added, it becomes selected. When an item is removed, it becomes deselected
 bool DBExercisesListModel::manageSelectedEntries(const uint item_pos, const uint max_selected)
 {
-	selectedEntry entry;
-	const uint real_item_pos{actualIndex(item_pos)};
-	entry.real_index = real_item_pos;
-	entry.view_index = item_pos;
-
-	int idx{-1};
-	for (uint i{0}; i < m_selectedEntries.count(); ++i)
+	if (m_selectedEntries.contains(item_pos))
+		return false;
+	if (m_selectedEntries.count() == max_selected)
 	{
-		if (m_selectedEntries.at(i).real_index == real_item_pos)
-		{
-			if (max_selected == 1) //Item is double clicked. Do not deselect it
-				return false;
-			idx = i;
-			break;
-		}
-	}
-
-	if (idx == -1)
-	{
-		if (m_selectedEntries.count() < max_selected)
-			m_selectedEntries.append(entry);
-		else if (m_selectedEntries.count() == max_selected)
-		{
-			if (m_selectedEntryToReplace > max_selected - 1)
-				m_selectedEntryToReplace = 0;
-			m_exercisesData[m_selectedEntries.at(m_selectedEntryToReplace).real_index][EXERCISES_LIST_FIELD_SELECTED] = '0';
-			emit dataChanged(index(m_selectedEntries.at(m_selectedEntryToReplace).view_index, 0),
-					index(m_selectedEntries.at(m_selectedEntryToReplace).view_index, 0), QList<int>{} << selectedRole);
-			m_selectedEntries[m_selectedEntryToReplace].real_index = real_item_pos;
-			m_selectedEntries[m_selectedEntryToReplace].view_index = item_pos;
-			m_selectedEntryToReplace++;
-		}
-		else
-		{
-			for (uint i{0}; i <= max_selected; ++i)
-			{
-				m_exercisesData[m_selectedEntries.at(0).real_index][EXERCISES_LIST_FIELD_SELECTED] = '0';
-				emit dataChanged(index(m_selectedEntries.at(0).view_index, 0),
-					index(m_selectedEntries.at(0).view_index, 0), QList<int>{} << selectedRole);
-				if (m_selectedEntries.count() > 1)
-					m_selectedEntries.remove(0, 1);
-			}
-			m_selectedEntries[0].real_index = real_item_pos;
-			m_selectedEntries[0].view_index = item_pos;
-		}
+		setData(index(m_selectedEntries.at(m_selectedEntryToReplace)), false, selectedRole);
+		m_selectedEntries[m_selectedEntryToReplace] = item_pos;
+		if (++m_selectedEntryToReplace == max_selected)
+			m_selectedEntryToReplace = 0;
 	}
 	else
-	{
-		if (m_selectedEntryToReplace == idx)
-		{
-			++m_selectedEntryToReplace;
-			if (m_selectedEntryToReplace > max_selected - 1)
-				m_selectedEntryToReplace = 0;
-		}
-		m_exercisesData[m_selectedEntries.at(idx).real_index][EXERCISES_LIST_FIELD_SELECTED] = '0';
-		emit dataChanged(index(m_selectedEntries.at(idx).view_index, 0),
-					index(m_selectedEntries.at(idx).view_index, 0), QList<int>{1, selectedRole});
-		m_selectedEntries.remove(idx, 1);
-		return false;
-	}
-	m_exercisesData[real_item_pos][EXERCISES_LIST_FIELD_SELECTED] = '1';
-	emit dataChanged(index(item_pos, 0), index(item_pos, 0), QList<int>{1, selectedRole});
+		m_selectedEntries.append(item_pos);
+	setData(index(item_pos), true, selectedRole);
 	return true;
 }
 
@@ -627,7 +565,7 @@ QVariant DBExercisesListModel::data(const QModelIndex &index, int role) const
 			case exerciseIdRole:
 			case mainNameRole:
 			case subNameRole:
-			case muscularGroupRole:
+			case muscularGroupRole: //for translated groups, use muscularGroup()
 			case mediaPathRole:
 			case actualIndexRole:
 				if (m_searchFilterApplied)

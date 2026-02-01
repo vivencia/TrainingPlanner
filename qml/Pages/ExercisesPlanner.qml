@@ -122,7 +122,7 @@ TPPage {
 					function manageComboItems(exercise_number: int): void {
 						if (cboModel.count > 0) {
 							cboModel.get(exercise_number).enabled = false;
-							if (cboGoToExercise.current_exercise !== exercise_number)
+							if (cboGoToExercise.current_exercise >= 0 && cboGoToExercise.current_exercise !== exercise_number)
 								cboModel.get(cboGoToExercise.current_exercise).enabled = true;
 							cboGoToExercise.current_exercise = exercise_number;
 							cboGoToExercise.currentIndex = exercise_number;

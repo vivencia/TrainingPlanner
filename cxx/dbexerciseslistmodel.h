@@ -105,9 +105,10 @@ public:
 
 	Q_INVOKABLE void clearSelectedEntries();
 	Q_INVOKABLE bool manageSelectedEntries(uint index, const uint max_selected = 1);
-	Q_INVOKABLE QString selectedEntriesValue(const uint index, const uint field) const { return m_exercisesData.at(m_selectedEntries.at(index).real_index).at(field); }
-
-	inline const QString &selectedEntriesValue_fast(const uint index, const uint field) const { return m_exercisesData.at(m_selectedEntries.at(index).real_index).at(field); }
+	inline QString selectedEntriesValue(const uint index, const uint field) const
+	{
+		return data(QAbstractListModel::index(index), Qt::UserRole + field).toString();
+	}
 	inline uint selectedEntriesCount() const { return m_selectedEntries.count(); }
 
 	bool collectExportData();
@@ -134,20 +135,12 @@ signals:
 	void hasExercisesChanged();
 
 private:
-	typedef struct st_SelEntry
-	{
-		uint real_index;
-		uint view_index;
-
-		explicit inline st_SelEntry() : real_index{0}, view_index{0} {}
-	} selectedEntry;
-
 	QList<QStringList> m_exercisesData;
 	QList<uint> m_muscularFilteredIndices;
 	QList<uint> m_searchFilteredIndices;
 	QList<uint> m_exportRows;
 	QHash<int, QByteArray> m_roleNames;
-	QList<selectedEntry> m_selectedEntries;
+	QList<uint> m_selectedEntries;
 	QString m_filterString, m_searchString;
 	uint m_selectedEntryToReplace;
 	int m_currentRow;
