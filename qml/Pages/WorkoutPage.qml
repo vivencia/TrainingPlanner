@@ -84,7 +84,6 @@ TPPage {
 			id: btnWorkoutInfo
 			text: qsTr("--- WORKOUT INFO ---")
 			imageSource: layoutMain.visible ? "fold-up.png" : "fold-down.png"
-			imageSize: appSettings.itemSmallHeight * 0.8
 			hasDropShadow: false
 			flat: true
 			rounded: false
@@ -391,7 +390,6 @@ TPPage {
 			id: btnExercises
 			text: qsTr("--- EXERCISES ---")
 			imageSource: exercisesFrame.visible ? "fold-up.png" : "fold-down.png"
-			imageSize: appSettings.itemSmallHeight * 0.8
 			autoSize: true
 			flat: true
 			rounded: false
@@ -535,7 +533,6 @@ TPPage {
 		}
 
 		TPButton {
-			id: btnAddExercise
 			text: qsTr("Add exercise")
 			imageSource: "exercises-add.png"
 			multiline: true
@@ -553,8 +550,11 @@ TPPage {
 				bottomMargin: 5
 			}
 
-			onClicked: lstWorkoutExercises.appendNewExerciseToDivision();
-		} // bntAddExercise
+			onClicked: {
+				lstWorkoutExercises.forceActiveFocus();//Force triggering of onEditFinished of the last text control to receive input
+				lstWorkoutExercises.appendNewExerciseToDivision();
+			}
+		}
 	} //footer: ToolBar
 
 	Loader {

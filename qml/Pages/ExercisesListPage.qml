@@ -26,7 +26,7 @@ TPPage {
 
 	signal exerciseChosen();
 
-	onPageActivated: if (exercisesModel.count > 0) exercisesList.simulateMouseClick(0, true);
+	onPageActivated: if (exercisesListModel.count > 0) exercisesList.simulateMouseClick(0, true);
 
 	ExercisesListView {
 		id: exercisesList
@@ -44,9 +44,9 @@ TPPage {
 		}
 
 		onExerciseEntrySelected: (index, multipleSelection) => {
-			txtExerciseName.text = exercisesModel.mainName(index);
-			txtExerciseSubName.text = exercisesModel.subName(index);
-			txtMuscularGroup.text = exercisesModel.muscularGroup(index);
+			txtExerciseName.text = exercisesListModel.mainName(index);
+			txtExerciseSubName.text = exercisesListModel.subName(index);
+			txtMuscularGroup.text = exercisesListModel.muscularGroup(index);
 			displaySelectedMedia();
 		}
 
@@ -85,7 +85,7 @@ TPPage {
 			anchors.topMargin: 10
 
 			TPLabel {
-				text: exercisesModel.exerciseNameLabel
+				text: exercisesListModel.exerciseNameLabel
 			}
 			TPTextInput {
 				id: txtExerciseName
@@ -95,11 +95,11 @@ TPPage {
 				Layout.rightMargin: 10
 
 				onEnterOrReturnKeyPressed: txtMuscularGroup.forceActiveFocus();
-				onEditingFinished: exercisesModel.setMainName(exercisesModel.currentRow, text);
+				onEditingFinished: exercisesListModel.setMainName(exercisesListModel.currentRow, text);
 			}
 
 			TPLabel {
-				text: exercisesModel.exerciseSpecificsLabel
+				text: exercisesListModel.exerciseSpecificsLabel
 			}
 
 			TPTextInput {
@@ -110,11 +110,11 @@ TPPage {
 				Layout.rightMargin: 10
 
 				onEnterOrReturnKeyPressed: txtExerciseSubName.forceActiveFocus();
-				onEditingFinished: exercisesModel.setSubName(exercisesModel.currentRow, text);
+				onEditingFinished: exercisesListModel.setSubName(exercisesListModel.currentRow, text);
 			}
 
 			TPLabel {
-				text: exercisesModel.muscularGroupsLabel
+				text: exercisesListModel.muscularGroupsLabel
 			}
 			TPTextInput {
 				id: txtMuscularGroup
@@ -125,11 +125,11 @@ TPPage {
 				Layout.minimumHeight: 30
 				Layout.maximumHeight: 80
 
-				onEditingFinished: exercisesModel.setMuscularGroup(exercisesModel.currentRow, text);
+				onEditingFinished: exercisesListModel.setMuscularGroup(exercisesListModel.currentRow, text);
 			}
 
 			TPLabel {
-				text: exercisesModel.mediaLabel
+				text: exercisesListModel.mediaLabel
 			}
 
 			TPButton {
@@ -177,10 +177,10 @@ TPPage {
 					txtMuscularGroup.clear();
 					exercisesList.enabled = false;
 					text = qsTr("Cancel");
-					exercisesModel.newExercise();
+					exercisesListModel.newExercise();
 				}
 				else {
-					exercisesModel.removeRow(exercisesModel.currentRow);
+					exercisesListModel.removeRow(exercisesListModel.currentRow);
 					bNew = false;
 					bCanEdit = false;
 					exercisesList.enabled = true;
@@ -192,7 +192,7 @@ TPPage {
 		TPButton {
 			id: btnEditExercise
 			text: qsTr("Edit")
-			enabled: !bNew && exercisesModel.currentRow >= 0
+			enabled: !bNew && exercisesListModel.currentRow >= 0
 			width: toolbarExercises.buttonWidth
 			rounded: false
 
@@ -216,7 +216,7 @@ TPPage {
 
 		TPButton {
 			id: btnChooseExercise
-			enabled: bChooseButtonEnabled && !bCanEdit && exercisesModel.currentRow >= 0
+			enabled: bChooseButtonEnabled && !bCanEdit && exercisesListModel.currentRow >= 0
 			text: qsTr("Choose")
 			width: toolbarExercises.buttonWidth
 			rounded: false
@@ -246,7 +246,7 @@ TPPage {
 
 		onAccepted: {
 			const mediapath = appUtils.getCorrectPath(currentFile);
-			exercisesModel.setMediaPath(exercisesModel.currentRow, mediapath);
+			exercisesListModel.setMediaPath(exercisesListModel.currentRow, mediapath);
 			displaySelectedMedia(mediapath);
 		}
 	}

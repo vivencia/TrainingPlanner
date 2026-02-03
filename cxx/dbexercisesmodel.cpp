@@ -37,6 +37,7 @@ struct stExercise {
 	QString name;
 	uint exercise_idx, working_set;
 	QList<stSet*> sets;
+	TPBool sync_giant_sets;
 	exerciseEntry *parent;
 
 	inline explicit stExercise() : working_set{UNSET_VALUE} {}
@@ -1440,6 +1441,31 @@ QString DBExercisesModel::setModeLabel(const uint exercise_number, const uint ex
 		case SM_COMPLETED: return tr("Completed!");
 	}
 	return QString{};
+}
+
+bool DBExercisesModel::syncGiantSets(const uint exercise_number, const uint exercise_idx) const
+{
+	if (exercise_number < m_exerciseData.count() && exercise_idx < m_exerciseData.at(exercise_number)->m_exercises.count())
+		return m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sync_giant_sets;
+	return false;
+}
+
+void DBExercisesModel::setSyncGiantSets(const uint exercise_number, const uint exercise_idx, const bool sync)
+{
+	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sync_giant_sets = sync;
+	if (sync)
+	{
+		for (const auto set : std::as_const(m_exerciseData.at(exercise_number)->m_exercises.at(0)->sets))
+		{
+			addSet(exercise_number, exercise_idx);
+			setSetType(exercise_number, exercise_idx, set->set_number, set->type);
+			setSetRestTime(exercise_number, exercise_idx, set->set_number, appUtils()->formatTime(set->restTime, TPUtils::TF_QML_DISPLAY_NO_HOUR));
+			setSetSubSets(exercise_number, exercise_idx, set->set_number, set->subsets);
+			setSetReps(exercise_number, exercise_idx, set->set_number, set->reps);
+			setSetWeight(exercise_number, exercise_idx, set->set_number, set->weight);
+			setSetNotes(exercise_number, exercise_idx, set->set_number, set->notes);
+		}
+	}
 }
 
 QVariant DBExercisesModel::data(const QModelIndex &index, int role) const

@@ -92,7 +92,7 @@ void QmlItemManager::configureQmlEngine()
 	global_properties[1] = std::move(QQmlContext::PropertyPair{ "appUtils"_L1, QVariant::fromValue(appUtils()) });
 	global_properties[2] = std::move(QQmlContext::PropertyPair{ "appTr"_L1, QVariant::fromValue(appTr()) });
 	global_properties[3] = std::move(QQmlContext::PropertyPair{ "userModel"_L1, QVariant::fromValue(appUserModel()) });
-	global_properties[4] = std::move(QQmlContext::PropertyPair{ "exercisesModel"_L1, QVariant::fromValue(appExercisesList()) });
+	global_properties[4] = std::move(QQmlContext::PropertyPair{ "exercisesListModel"_L1, QVariant::fromValue(appExercisesList()) });
 	global_properties[5] = std::move(QQmlContext::PropertyPair{ "itemManager"_L1, QVariant::fromValue(this) });
 	global_properties[6] = std::move(QQmlContext::PropertyPair{ "appStatistics"_L1, QVariant::fromValue(appStatistics()) });
 	global_properties[7] = std::move(QQmlContext::PropertyPair{ "appMessages"_L1, QVariant::fromValue(new TPMessagesManager{this}) });

@@ -30,8 +30,7 @@ ColumnLayout {
 			width: appSettings.itemDefaultHeight
 			height: width
 			onClicked: {
-				appUtils.copyToClipboard(textControl.selectionStart === textControl.selectionEnd ?
-						textControl.text : textControl.text.substr(textControl.selectionStart, textControl.selectionEnd));
+				appUtils.copyToClipboard(getControlText(textControl.selectionStart, textControl.selectionEnd));
 				mainwindow.showTextCopiedMessage();
 			}
 		}
@@ -259,7 +258,7 @@ ColumnLayout {
 		} //Item
 	} //Row
 
-	function clear(): void {
+	function clear() : void {
 		textControl.clear();
 		_nFormatting = 0;
 	}
@@ -276,9 +275,13 @@ ColumnLayout {
 	}
 
 	function contentsText() : string {
+		return getControlText(0, textControl.length);
+	}
+
+	function getControlText(start: int, end: int) : string {
 		if (_nFormatting == 0)
-			return textControl.getText(0, textControl.length);
+			return start !== end ? textControl.getText(start, end) : textControl.getText(0, textControl.length);
 		else
-			return appUtils.stripInvalidCharacters(textControl.text);
+			return appUtils.stripInvalidCharacters(start === end ? textControl.text : textControl.selectedText);
 	}
 } //ColumnLayout

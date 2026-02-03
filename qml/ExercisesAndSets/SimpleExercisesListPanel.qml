@@ -63,7 +63,7 @@ TPPopup {
 		shown = true;
 		exercisesList.canDoMultipleSelection = bEnableMultipleSelection;
 		exercisesList.setFocusToSearchField();
-		exercisesModel.clearSelectedEntries();
+		exercisesListModel.clearSelectedEntries();
 		show1(ypos);
 	}
 }

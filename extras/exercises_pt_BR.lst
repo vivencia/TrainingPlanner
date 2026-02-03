@@ -1,0 +1,305 @@
+Cadeira Extensora;convencional;Pernas|Quadríceps
+Cadeira Extensora;máquina articulada, bilateral;Pernas|Quadríceps
+Cadeira Extensora;máquina articulada, unilateral;Pernas|Quadríceps
+Cadeira Flexora;convencional;Pernas|Posterior de Coxa
+Cadeira Flexora;unilateral;Pernas|Posterior de Coxa
+Máquina Flexora em Pé;unilateral;Pernas|Posterior de Coxa
+Mesa Flexora;;Pernas|Posterior de Coxa
+Mesa Flexora;unilateral;Pernas|Posterior de Coxa
+Rack Squat;pés juntos ou muito próximos;Pernas|Quadríceps
+Rack Squat;pés na largura dos ombros;Pernas|Quadríceps
+Leg Press;45o, pés na largura dos ombros;Pernas|Quadríceps|Glúteos
+Leg Press;45o, pés juntos ou muito próximos;Pernas|Quadríceps|Glúteos
+Leg Press;articulado, pés na largura dos ombros;Pernas|Quadríceps|Glúteos
+Leg Press;pés juntos ou muito próximos|articulado;Pernas|Quadríceps|Glúteos
+Passadas;kettlebell;Pernas|Posterior de Coxa,Quadríceps|Quadríceps
+Passadas;halter ou anilhas;Pernas|Quadríceps|Posterior de Coxa|Glúteos
+Passadas;barra;Pernas|Quadríceps|Posterior de Coxa|Glúteos
+Belt Squat;corpo ereto; Pernas|Quadríceps
+Belt Squat;sumô, corpo ereto; Pernas|Quadríceps|Glúteos
+Belt Squat;corpo inclinado; Pernas|Quadríceps|Posterior de Coxa|Glúteos
+Belt Squat;sumô, corpo inclinado; Pernas|Quadríceps|Posterior de Coxa|Glúteos
+Agachamento Livre;barra;Pernas|Quadríceps|Glúteos|Posterior de Coxa
+Agachamento Livre;sumô, barra;Pernas|Quadríceps|Glúteos|Posterior de Coxa
+Agachamento Livre;plataforma elevada,halter;Pernas|Quadríceps|Glúteos|Posterior de Coxa
+Agachamento Livre;sumô, plataforma elevada,halter;Pernas|Quadríceps|Glúteos|Posterior de Coxa
+Agachamento Smith;;Pernas|Quadríceps|Glúteos|Posterior de Coxa
+Agachamento Smith;sumô;Pernas|Quadríceps|Glúteos|Posterior de Coxa
+Agachamento Frontal;smith;;Pernas|Quadríceps
+Agachamento Frontal;barra;Pernas|Quadríceps
+Agachamento Frontal;halter ou kettlebell ou anilha;Pernas|Quadríceps
+Agachamento Pêndulo;pés juntos ou muito próximos;Pernas|Quadríceps
+Agachamento Pêndulo;pés na largura dos Ombros;Pernas|Quadríceps
+Agachamento Búlgaro;halter;Pernas|Quadríceps|Posterior de Coxa|Glúteos
+Agachamento Búlgaro;smith;Pernas|Quadríceps|Posterior de Coxa|Glúteos
+Agachamento Búlgaro;máquina;Pernas|Quadríceps|Posterior de Coxa|Glúteos
+Agachamento Sissy;livre;Pernas|Quadríceps
+Agachamento Sissy;máquina;Pernas|Quadríceps
+Agachamento Máquina Sentado;pés juntos ou muito próximos;Pernas|Quadríceps
+Agachamento Máquina Sentado;pés na largura dos Ombros;Pernas|Quadríceps|Posterior de Coxa
+Agachamento Máquina Plataforma Inclinada;de frente para a máquina;Pernas|Quadríceps|Posterior de Coxa|Glúteos
+Agachamento Máquina Plataforma Inclinada;encostado na máquina;Pernas|Quadríceps
+Stiff;barra;Pernas|Posterior de Coxa|Glúteos|Lombar|Meio das Costas|Superior de Costas|Trapézio
+Stiff;halter ou kettlebell;Pernas|Posterior de Coxa|Glúteos|Lombar|Meio das Costas|Superior de Costas|Trapézio
+Stiff;máquina;Pernas|Posterior de Coxa|Glúteos|Lombar|Meio das Costas|Superior de Costas|Trapézio
+Bom dia;barra;Pernas|Posterior de Coxa
+Bom dia;máquina;Pernas|Posterior de Coxa
+Elevação Pélvica;livre, barra;Glúteos
+Elevação Pélvica;máquina;Glúteos
+Abdutora;cadeira;Pernas|Glúteos
+Abdutora;unilateral, polia;Pernas|Glúteos
+Adutora;cadeira;Pernas|Glúteos
+Adutora;máquina em pé;Pernas|Glúteos
+Adutora;unilateral, polia;Pernas|Glúteos
+Coice;máquina;Glúteos
+Coice;polia;Glúteos
+Panturrilha em Pé;máquina;Pernas|Panturrilhas
+Panturrilha em Pé;smith;Pernas|Panturrilhas
+Panturrilha em Pé;livre;Pernas|Panturrilhas
+Panturrilha sentado;máquina;Pernas|Panturrilhas
+Panturrilha na Máquina;Leg Press;Pernas|Panturrilhas
+Panturrilha na Máquina;agachamento sentado;Pernas|Panturrilhas
+Levantamento Terra;livre, barra, convencional;Pernas|Posterior de Coxa|Glúteos|Quadríceps|Lombar|Meio das Costas|Superior de Costas|Trapézio|Antebraço
+Levantamento Terra;livre, barra, sumô;Pernas|Posterior de Coxa|Glúteos|Quadríceps|Lombar|Meio das Costas|Superior de Costas|Trapézio|Antebraço
+Levantamento Terra;smith, barra, convencional;Pernas|Posterior de Coxa|Glúteos|Quadríceps|Lombar|Meio das Costas|Superior de Costas|Trapézio|Antebraço
+Levantamento Terra;smith, barra, sumô;Pernas|Posterior de Coxa|Glúteos|Quadríceps|Lombar|Meio das Costas|Superior de Costas|Trapézio|Antebraço
+Levantamento Terra Parcial(1/2);livre, barra, convencional;Pernas|Posterior de Coxa|Glúteos|Quadríceps|Lombar|Meio das Costas|Superior de Costas|Trapézio|Antebraço
+Levantamento Terra Parcial(1/2);livre, barra, sumô;Pernas|Posterior de Coxa|Glúteos|Quadríceps|Lombar|Meio das Costas|Superior de Costas|Trapézio|Antebraço
+Levantamento Terra Parcial(1/2);smith, barra, convencional;Pernas|Posterior de Coxa|Glúteos|Quadríceps|Lombar|Meio das Costas|Superior de Costas|Trapézio|Antebraço
+Levantamento Terra Parcial(1/2);smith, barra, sumô;Pernas|Posterior de Coxa|Glúteos|Quadríceps|Lombar|Meio das Costas|Superior de Costas|Trapézio|Antebraço
+Levantamento Terra Parcial(3/4);livre, barra, convencional;Posterior de Coxa|Glúteos|Quadríceps|Lombar|Meio das Costas|Superior de Costas|Trapézio|Antebraço
+Levantamento Terra Parcial(3/4);livre, barra, sumô;Pernas|Posterior de Coxa|Glúteos|Quadríceps|Lombar|Meio das Costas|Superior de Costas|Trapézio|Antebraço
+Levantamento Terra Parcial(3/4);smith, barra, convencional;Pernas|Posterior de Coxa|Glúteos|Quadríceps|Lombar|Meio das Costas|Superior de Costas|Trapézio|Antebraço
+Levantamento Terra Parcial(3/4);smith, barra, sumô;Pernas|Posterior de Coxa|Glúteos|Quadríceps|Lombar|Meio das Costas|Superior de Costas|Trapézio|Antebraço
+Levantamento Terra;livre, barra hexagonal, convencional;Pernas|Posterior de Coxa|Glúteos|Quadríceps|Lombar|Meio das Costas|Superior de Costas|Trapézio|Antebraço
+Levantamento Terra;smith, barra hexagonal, convencional;Pernas|Posterior de Coxa|Glúteos|Quadríceps|Lombar|Meio das Costas|Superior de Costas|Trapézio|Antebraço
+Levantamento Terra Parcial(1/2);livre, barra hexagonal, convencional;Pernas|Posterior de Coxa|Glúteos|Quadríceps|Lombar|Meio das Costas|Superior de Costas|Trapézio|Antebraço
+Levantamento Terra Parcial(1/2);smith, barra hexagonal, convencional;Pernas|Posterior de Coxa|Glúteos|Quadríceps|Lombar|Meio das Costas|Superior de Costas|Trapézio|Antebraço
+Levantamento Terra Parcial(3/4);livre, barra hexagonal, convencional;Pernas|Posterior de Coxa|Glúteos|Quadríceps|Lombar|Meio das Costas|Superior de Costas|Trapézio|Antebraço
+Levantamento Terra Parcial(3/4);smith, barra hexagonal, convencional;Pernas|Posterior de Coxa|Glúteos|Quadríceps|Lombar|Meio das Costas|Superior de Costas|Trapézio|Antebraço
+Barra Fixa;sem peso, com strap;Meio das Costas|Superior de Costas|Bíceps|Antebraço
+Barra Fixa;sem peso, sem strap;Meio das Costas|Superior de Costas|Bíceps|Antebraço
+Barra Fixa;com peso, com strap;Meio das Costas|Superior de Costas|Bíceps|Antebraço
+Barra Fixa;com peso, sem strap;Meio das Costas|Superior de Costas|Bíceps|Antebraço
+Pull-Down;polia, barra;Meio das Costas
+Pull-Down;polia, corda;Meio das Costas
+Pull-Down;máquina;Meio das Costas
+Puxada Frontal;polia, pegada pronada aberta;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Puxada Frontal;polia, pegada pronada média;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Puxada Frontal;polia, pegada pronada fechada;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Puxada Frontal;polia, pegada supinada aberta;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Puxada Frontal;polia, pegada supinada média;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Puxada Frontal;polia, pegada supinada fechada;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Puxada Frontal;polia, pegada neutra aberta;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Puxada Frontal;polia, pegada neutra média;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Puxada Frontal;polia, pegada neutra fechada;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Puxada Frontal;polia, unilateral, pegada pronada;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Puxada Frontal;polia, unilateral, pegada supinadas;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Puxada Frontal;polia, unilateral, pegada neutra;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Puxada Frontal;máquina articulada, pegada pronada;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Puxada Frontal;máquina articulada, pegada supinada;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Puxada Frontal;máquina articulada, pegada neutra;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Puxada Atrás;polia, pegada pronada aberta;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Puxada Atrás;polia, pegada pronada média;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Puxada Atrás;polia, pegada supinada aberta;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Puxada Atrás;polia, pegada supinada média;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Puxada Atrás;polia, pegada neutra aberta;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Puxada Atrás;polia, pegada neutra média;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Remada Alta;máquina articulada, pegada pronada;Superior de Costas|Deltoide Posterior|Antebraço
+Remada Alta;máquina articulada, pegada supinada;Superior de Costas|Deltoide Posterior|Antebraço
+Remada Alta;máquina articulada, pegada neutra;Superior de Costas|Deltoide Posterior|Antebraço
+Remada Alta;máquina articulada, unilateral, pegada pronada;Superior de Costas|Deltoide Posterior|Antebraço
+Remada Alta;máquina articulada, unilateral, pegada supinada;Superior de Costas|Deltoide Posterior|Antebraço
+Remada Alta;máquina articulada, unilateral, pegada neutra;Superior de Costas|Deltoide Posterior|Antebraço
+Remada Baixa(Sentada);polia, pegada pronada aberta;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Baixa(Sentada);polia, pegada pronada média;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Baixa(Sentada);polia, pegada pronada fechada;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Baixa(Sentada);polia, unilateral, pegada pronada aberta;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Baixa(Sentada);polia, unilateral, pegada pronada média;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Baixa(Sentada);polia, unilateral, pegada pronada fechada;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Baixa(Sentada);polia, pegada supinada aberta;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Baixa(Sentada);polia, pegada supinada média;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Baixa(Sentada);polia, pegada supinada fechada;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Baixa(Sentada);polia, unilateral, pegada supinada aberta;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Baixa(Sentada);polia, unilateral, pegada supinada média;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Baixa(Sentada);polia, unilateral, pegada supinada fechada;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Baixa(Sentada);polia, pegada neutra aberta;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Baixa(Sentada);polia, pegada neutra média;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Baixa(Sentada);polia, pegada neutra fechada;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Baixa(Sentada);polia, unilateral, pegada neutra aberta;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Baixa(Sentada);polia, unilateral, pegada neutra média;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Baixa(Sentada);polia, unilateral, pegada neutra fechada;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Baixa;máquina articulada, pegada supinada;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Remada Baixa;máquina articulada, pegada pronada;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Remada Baixa;máquina articulada, unilateral, pegada supinada;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Remada Baixa;máquina articulada, unilateral, pegada pronada;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Remada Curvada;barra, pegada supinada;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Curvada;barra, pegada pronada;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Curvada;barra, pegada neutra;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Curvada;halter ou kettlebell, pegada supinada;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Curvada;halter ou kettlebell, pegada pronada;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Curvada;halter ou kettlebell, pegada neutra;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Curvada;máquina, pegada supinada;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Curvada;máquina, pegada pronada;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Curvada;máquina, pegada neutra;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Banco Inclinado; halter ou kettlebell, pegada supinada;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Remada Banco Inclinado; halter ou kettlebell, pegada pronada;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Remada Banco Inclinado; halter ou kettlebell, pegada neutra;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço|Antebraço
+Remada Banco Reto; halter ou kettlebell, pegada supinada;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Remada Banco Reto; halter ou kettlebell, pegada pronada;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Remada Banco Reto; halter ou kettlebell, pegada neutra;Meio das Costas|Superior de Costas|Bíceps|Deltoide Posterior|Antebraço
+Remada Cavalinho;barra, pegada neutra;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Cavalinho;barra, pegada pronada;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Cavalinho;belt squat, pegada neutra;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Cavalinho;belt squat, pegada pronada;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Cavalinho;máquina, pegada neutra;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Cavalinho;máquina, pegada supinada;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Remada Cavalinho;máquina, pegada pronada;Meio das Costas|Superior de Costas|Lombar,Bíceps|Deltoide Posterior|Antebraço
+Serrote;halter ou kettlebell;Meio das Costas|Superior de Costas|Lombar
+Pull-Over;barra,halter, anilha ou kettlebell, pegada neutra; Meio das Costas
+Pull-Over;barra,halter, anilha ou kettlebell, pegada pronada; Meio das Costas
+Abdominal Reto;parcial;Abdômen
+Abdominal Reto;completo;Abdômen
+Abdominal Declinado;parcial, sem peso;Abdômen
+Abdominal Declinado;completo, sem peso;Abdômen
+Abdominal Declinado;parcial, com peso;Abdômen
+Abdominal Declinado;completo, com peso;Abdômen
+Abdominal na Barra Paralela;sem peso;Abdômen
+Abdominal na Barra Paralela;com peso;Abdômen
+Abdominal na Barra Fixa;sem peso;Abdômen|Antebraço
+Abdominal na Barra Fixa;com peso;Abdômen|Antebraço
+Abdominal na Máquina;reto;Abdômen
+Abdominal na Máquina;lateral;Abdômen
+Supino Reto;barra;Peitoral Médio|Tríceps|Deltoide Frontal
+Supino Reto;halter;Peitoral Médio|Tríceps|Deltoide Frontal
+Supino Reto;máquina, pegada neutra;Peitoral Médio|Tríceps|Deltoide Frontal
+Supino Reto;máquina, pegada pronada;Peitoral Médio|Tríceps|Deltoide Frontal
+Supino Inclinado 45o;barra;Peitoral Superior|Tríceps|Deltoide Frontal
+Supino Inclinado 45o;halter;Peitoral Superior|Tríceps|Deltoide Frontal
+Supino Inclinado 45o;máquina, pegada neutra;Peitoral Superior|Tríceps|Deltoide Frontal
+Supino Inclinado 45o;máquina, pegada pronada;Peitoral Superior|Tríceps|Deltoide Frontal
+Supino Inclinado 30o;barra;Peitoral Superior,Peitoral Médio|Tríceps|Deltoide Frontal
+Supino Inclinado 30o;halter;Peitoral Superior,Peitoral Médio|Tríceps|Deltoide Frontal
+Supino Inclinado 30o;máquina, pegada neutra;Peitoral Superior,Peitoral Médio|Tríceps|Deltoide Frontal
+Supino Inclinado 30o;máquina, pegada pronada;Peitoral Superior,Peitoral Médio|Tríceps|Deltoide Frontal
+Supino Declinado;barra;Peitoral Inferior,Peitoral Médio|Tríceps|Deltoide Frontal
+Supino Declinado;halter;Peitoral Inferior,Peitoral Médio|Tríceps|Deltoide Frontal
+Supino Declinado;máquina, pegada neutra;Peitoral Inferior,Peitoral Médio|Tríceps|Deltoide Frontal
+Supino Declinado;máquina, pegada pronada;Peitoral Inferior,Peitoral Médio|Tríceps|Deltoide Frontal
+Flexão 180o;chão;Peitoral Médio|Tríceps|Deltoide Frontal
+Flexão 180o;pegador neutro para flexão;Peitoral Médio|Tríceps|Deltoide Frontal|Antebraço
+Flexão; pés acima do nível da cabeça;chão;Peitoral Superior|Tríceps|Deltoide Frontal
+Flexão; pés acima do nível da cabeça;pegador neutro para flexão;Peitoral Superior|Tríceps|Deltoide Frontal|Antebraço
+Crucifixo Reto;halter;Peitoral Médio|Deltoide Frontal|Antebraço
+Crucifixo Reto;máquina deitada;Peitoral Médio|Deltoide Frontal
+Crucifixo Reto;máquina sentada;Peitoral Médio|Deltoide Frontal
+Crucifixo Inclinado 45o;halter;Peitoral Superior,Peitoral Médio|Deltoide Frontal|Antebraço
+Crucifixo Inclinado 45o;máquina deitada;Peitoral Superior|Deltoide Frontal
+Crucifixo Inclinado 45o;máquina sentada;Peitoral Superior|Deltoide Frontal
+Crucifixo Inclinado 30o;halter;Peitoral Superior,Peitoral Médio|Deltoide Frontal|Antebraço
+Crucifixo Inclinado 30o;máquina deitada;Peitoral Superior,Peitoral Médio|Deltoide Frontal|Antebraço
+Crucifixo Inclinado 30o;máquina sentada;Peitoral Superior,Peitoral Médio|Deltoide Frontal|Antebraço
+Crossover;polia, pegada alta;Peitoral Inferior|Deltoide Frontal
+Crossover;polia, pegada média;Peitoral Médio|Deltoide Frontal
+Crossover;polia, pegada baixa;Peitoral Superior|Deltoide Frontal
+Barras paralelas;corpo ligeiramento inclinado;Peitoral Superior|Tríceps|Deltoide Frontal
+Barras paralelas;corpo 90o;Peitoral Superior|Tríceps|Deltoide Frontal
+Elevação Lateral;halter, sentado;Deltoide Lateral|Antebraço
+Elevação Lateral;halter, em pé;Deltoide Lateral|Antebraço
+Elevação Lateral;máquina;Deltoide Lateral
+Elevação Lateral;polia;Deltoide Lateral|Antebraço
+Elevação Lateral;polia, alternado;Deltoide Lateral|Antebraço
+Elevação Frontal;halter, em pé, pegada neutra;Deltoide Frontal|Antebraço
+Elevação Frontal;halter, sentado, pegada neutra;Deltoide Frontal|Antebraço
+Elevação Frontal;halter, alternado, pegada neutra, em pé;Deltoide Frontal|Antebraço
+Elevação Frontal;halter, alternado, pegada neutra, sentado;Deltoide Frontal|Antebraço
+Elevação Frontal;halter, em pé, pegada pronada;Deltoide Frontal|Antebraço
+Elevação Frontal;halter, sentado, pegada pronada;Deltoide Frontal|Antebraço
+Elevação Frontal;halter, alternado, pegada pronada, em pé;Deltoide Frontal|Antebraço
+Elevação Frontal;halter, alternado, pegada pronada, sentado;Deltoide Frontal|Antebraço
+Elevação Frontal;halter, em pé, pegada supinada;Deltoide Frontal|Antebraço
+Elevação Frontal;halter, sentado, pegada supinada;Deltoide Frontal|Antebraço
+Elevação Frontal;halter, alternado, pegada supinada, em pé;Deltoide Frontal|Antebraço
+Elevação Frontal;halter, alternado, pegada supinada, sentado;Deltoide Frontal|Antebraço
+Elevação Frontal;halter, banco inclinado, pegada supinada;Deltoide Frontal|Antebraço
+Elevação Frontal;halter, banco inclinado, pegada supinada, em pé;Deltoide Frontal|Antebraço
+Elevação Frontal;halter, banco inclinado, pegada supinada, sentado;Deltoide Frontal|Antebraço
+Elevação Frontal;barra, em pé, pegada neutra;Deltoide Frontal|Antebraço
+Elevação Frontal;barra, sentado, pegada neutra;Deltoide Frontal|Antebraço
+Elevação Frontal;barra, em pé, pegada pronada;Deltoide Frontal|Antebraço
+Elevação Frontal;barra, sentado, pegada pronada;Deltoide Frontal|Antebraço
+Elevação Frontal;barra, em pé, pegada supinada;Deltoide Frontal|Antebraço
+Elevação Frontal;barra, sentado, pegada supinada;Deltoide Frontal|Antebraço
+Elevação Frontal;polia, pegada neutra;Deltoide Frontal|Antebraço
+Elevação Frontal;polia, pegada supinada;Deltoide Frontal|Antebraço
+Elevação Frontal;polia, pegada pronada;Deltoide Frontal|Antebraço
+Elevação Posterior;halter, em pé;Deltoide Posterior|Antebraço
+Elevação Posterior;halter, em pé, cabeça apoiada;Deltoide Posterior|Antebraço
+Elevação Posterior;halter, sentado;Deltoide Posterior|Antebraço
+Encolhimento frontal;halter;Trapézio|Deltoide Posterior|Antebraço
+Encolhimento frontal;barra;Trapézio|Deltoide Posterior|Antebraço
+Encolhimento frontal;smith;Trapézio|Deltoide Posterior|Antebraço
+Encolhimento frontal;barra hexagonal;Trapézio|Deltoide Posterior|Antebraço
+Encolhimento posterior;barra;Trapézio|Deltoide Posterior|Antebraço
+Encolhimento posterior;smith;Trapézio|Deltoide Posterior|Antebraço
+Arnold Press;halter, sentado;Ombros
+Arnold Press;halter, em pé;Ombros
+Desenvolvimento Frontal;halter, sentado, pegada neutra;Deltoide Frontal|Tríceps
+Desenvolvimento Frontal;halter, em pé, pegada neutra;Deltoide Frontal|Tríceps|Lombar
+Desenvolvimento Frontal;halter, sentado, pegada pronada;Deltoide Frontal|Tríceps
+Desenvolvimento Frontal;halter, em pé, pegada pronada;Deltoide Frontal|Tríceps|Lombar
+Desenvolvimento Frontal;máquina;Deltoide Frontal|Tríceps
+Desenvolvimento Frontal;barra;Deltoide Frontal|Tríceps
+Desenvolvimento Frontal;smith;Deltoide Frontal|Tríceps
+Desenvolvimento Millitar;barra;Deltoide Frontal|Tríceps|Lombar
+Desenvolvimento Millitar;halter;Deltoide Frontal|Tríceps|Lombar
+Crucifixo Inverso(Voador);halter;Deltoide Posterior|Antebraço
+Crucifixo Inverso(Voador);máquina;Deltoide Posterior
+Crucifixo Inverso(Voador);polia;Deltoide Posterior|Antebraço
+Crucifixo Inverso(Voador);polia, unilateral;Deltoide Posterior|Antebraço
+Rosca Direta;halter, em pé;Bíceps|Antebraço
+Rosca Direta;halter, em pé, alternado;Bíceps|Antebraço
+Rosca Direta;halter, sentado;Bíceps|Antebraço
+Rosca Direta;halter, sentado, alternado;Bíceps|Antebraço
+Rosca Direta;halter, banco inclinado;Bíceps|Antebraço
+Rosca Direta;halter, banco inclinado, alternado;Bíceps|Antebraço
+Rosca Direta;barra, em pé;Bíceps|Antebraço
+Rosca Direta;barra, sentado;Bíceps|Antebraço
+Rosca Direta;polia;Bíceps|Antebraço
+Rosca Direta;polia, alternado;Bíceps|Antebraço
+Rosca Direta;polia, barra reta;Bíceps|Antebraço
+Rosca Direta;polia, barra W ou V;Bíceps|Antebraço
+Rosca Direta;máquina;Bíceps|Antebraço
+Rosca Direta mesa Scott;sentado;Bíceps|Antebraço
+Rosca Direta mesa Scott;em pé;Bíceps|Antebraço
+Rosca Direta mesa Scott;lado inverso;Bíceps|Antebraço
+Rosca Martelo;halter, em pé;Bíceps|Antebraço
+Rosca Martelo;halter, em pé, alternado;Bíceps|Antebraço
+Rosca Martelo;halter, sentado;Bíceps|Antebraço
+Rosca Martelo;halter, sentado, alternado;Bíceps|Antebraço
+Rosca Martelo;halter, banco inclinado;Bíceps|Antebraço
+Rosca Martelo;halter, banco inclinado, alternado;Bíceps|Antebraço
+Rosca Martelo;barra, em pé;Bíceps|Antebraço
+Rosca Martelo;barra, sentado;Bíceps|Antebraço
+Rosca Martelo;polia;Bíceps|Antebraço
+Rosca Martelo;polia, alternado;Bíceps|Antebraço
+Extensão de Tríceps;polia, barra reta;Tríceps
+Extensão de Tríceps;polia, barra W ou V;Tríceps
+Extensão de Tríceps;máquina;Tríceps
+Tríceps Coice;polia;Tríceps
+Tríceps Coice;halter;Tríceps
+Tríceps Francês;halter;Tríceps
+Tríceps Francês;halter, alternado;Tríceps
+Tríceps Francês;barra;Tríceps
+Tríceps Francês;polia;Tríceps
+Tríceps Testa;barra, banco reto;Tríceps
+Tríceps Testa;barra, banco inclinado;Tríceps
+Tríceps Testa;halter, banco reto;Tríceps
+Tríceps Testa;halter, banco inclinado;Tríceps
+Tríceps Testa;polia;Tríceps
+Tríceps Corda;polia;Tríceps
+Supino Fechado;barra;Tríceps|Peitoral|Deltoide Frontal
+Supino Fechado;smith;Tríceps|Peitoral|Deltoide Frontal
+Supino Fechado;halter;Tríceps|Peitoral|Deltoide Frontal
+Mergulho no banco;Pernas no chão;Tríceps|Peitoral|Deltoide Frontal
+Mergulho no banco;Pernas elevadas;Tríceps|Peitoral|Deltoide Frontal

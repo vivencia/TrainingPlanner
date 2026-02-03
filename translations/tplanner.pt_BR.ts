@@ -213,115 +213,7 @@
 <context>
     <name>DBExercisesListModel</name>
     <message>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="95"/>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="721"/>
-        <source>Quadriceps</source>
-        <translation>Quadríceps</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="97"/>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="723"/>
-        <source>Hamstrings</source>
-        <translation>Posterior de Coxa</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="99"/>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="725"/>
-        <source>Glutes</source>
-        <translation>Glúteos</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="101"/>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="727"/>
-        <source>Calves</source>
-        <translation>Panturrilhas</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="103"/>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="729"/>
-        <source>Upper Back</source>
-        <translation>Superior de Costas</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="105"/>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="731"/>
-        <source>Middle Back</source>
-        <translation>Meio das Costas</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="107"/>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="733"/>
-        <source>Lower Back</source>
-        <translation>Lombar</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="109"/>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="735"/>
-        <source>Biceps</source>
-        <translation>Bíceps</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="111"/>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="737"/>
-        <source>Triceps</source>
-        <translation>Tríceps</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="113"/>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="739"/>
-        <source>Forearms</source>
-        <translation>Antebraço</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="115"/>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="741"/>
-        <source>Upper Chest</source>
-        <translation>Peitoral Superior</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="117"/>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="743"/>
-        <source>Middle Chest</source>
-        <translation>Peitoral Médio</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="119"/>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="745"/>
-        <source>Lower Chest</source>
-        <translation>Peitoral Inferior</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="121"/>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="747"/>
-        <source>Front Delts</source>
-        <translation>Deltoide Frontal</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="123"/>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="749"/>
-        <source>Lateral Delts</source>
-        <translation>Deltoide Lateral</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="125"/>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="751"/>
-        <source>Rear Delts</source>
-        <translation>Deltoide Posterior</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="127"/>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="753"/>
-        <source>Traps</source>
-        <translation>Trapézios</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="129"/>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="755"/>
-        <source>Abs</source>
-        <translation>Abdômen</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="533"/>
+        <location filename="../cxx/dbexerciseslistmodel.cpp" line="408"/>
         <source>Exercises List</source>
         <translation>Lista de Exercícios</translation>
     </message>
@@ -349,178 +241,178 @@
 <context>
     <name>DBExercisesModel</name>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="213"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="207"/>
         <source>Number of sets: </source>
         <translation>Quantidade de séries: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="215"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="209"/>
         <source>Exercise: </source>
         <translation>Exercício: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="216"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="210"/>
         <source>Track rest times: </source>
         <translation>Acompanhar tempo de descanso: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="217"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="211"/>
         <source>Auto tracking: </source>
         <translation>Acompanhamento automático: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="218"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="212"/>
         <source>Set type: </source>
         <translation>Tipo de série: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="219"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="213"/>
         <source>Rest time: </source>
         <translation>Tempo de descanso: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="220"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="214"/>
         <source>Number of subsets: </source>
         <translation>Número de subséries: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="221"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="215"/>
         <source>Repetitions: </source>
         <translation>Repetições: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="223"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="217"/>
         <source>Notes/Instructions for the set: </source>
         <translation>Instruções para a série: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="224"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="218"/>
         <source>Completed?</source>
         <translation>Concluída?</translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="225"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="219"/>
         <source>As needed</source>
         <translation>Conforme necessário</translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="226"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="220"/>
         <source>Split: </source>
         <translation>Divisão: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="222"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="216"/>
         <source>Weight: </source>
         <translation>Peso: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="281"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="284"/>
         <source>Workout</source>
         <translation>Treino</translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="282"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="285"/>
         <source>Exercises Program</source>
         <translation>Programa de Exercícios</translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="294"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="297"/>
         <source>Giant set with </source>
         <translation>Série composta por </translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="294"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="297"/>
         <source> exercises</source>
         <translation> exercícios</translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="297"/>
         <location filename="../cxx/dbexercisesmodel.cpp" line="300"/>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="424"/>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="429"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="303"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="442"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="447"/>
         <source>Yes</source>
         <translation>Sim</translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="297"/>
         <location filename="../cxx/dbexercisesmodel.cpp" line="300"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="303"/>
         <source>No</source>
         <translation>Não</translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="381"/>
-        <location filename="../cxx/dbexercisesmodel.h" line="214"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="399"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="208"/>
         <source>Set #: </source>
         <translation>Série #: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="509"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="535"/>
         <source>Regular</source>
         <translation>Normal</translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="510"/>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="1534"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="536"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="1539"/>
         <source>Pyramid</source>
         <translation>Pirâmide</translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="511"/>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="1536"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="537"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="1541"/>
         <source>Reverse Pyramid</source>
         <translation>Pirâmide Inversa</translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="512"/>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="1538"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="538"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="1543"/>
         <source>Drop Set</source>
         <translation>Drop Set</translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="513"/>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="1540"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="539"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="1545"/>
         <source>Cluster Set</source>
         <translation>Cluster Set</translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="514"/>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="1542"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="540"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="1547"/>
         <source>Myo Reps</source>
         <translation>Myo Reps</translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="526"/>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="1553"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="552"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="1558"/>
         <source> Workout #: </source>
         <translation> Treino #: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="761"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="787"/>
         <source>Choose exercise...</source>
         <translation>Escolher exercício...</translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="1432"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="1437"/>
         <source>Mark as completed</source>
         <translation>Marcar como concluída</translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="1433"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="1438"/>
         <source>Start rest time</source>
         <translation>Iniciar descanso</translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="1434"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="1439"/>
         <source>Start exercise</source>
         <translation>Iniciar exercício</translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="1435"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="1440"/>
         <source>Completed!</source>
         <translation>Concluída!</translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="1553"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="1558"/>
         <source> at </source>
         <translation> em </translation>
     </message>
@@ -2944,42 +2836,42 @@ Vamos iniciar criando seu perfil de usuário.</translation>
 <context>
     <name>WeatherData</name>
     <message>
-        <location filename="../cxx/weather/weatherinfo.cpp" line="37"/>
+        <location filename="../cxx/weather/weatherinfo.cpp" line="38"/>
         <source> (Feels: </source>
         <translation> (Sensação: </translation>
     </message>
     <message>
-        <location filename="../cxx/weather/weatherinfo.cpp" line="41"/>
+        <location filename="../cxx/weather/weatherinfo.cpp" line="42"/>
         <source>Weather now(</source>
         <translation>Tempo agora(</translation>
     </message>
     <message>
-        <location filename="../cxx/weather/weatherinfo.cpp" line="44"/>
+        <location filename="../cxx/weather/weatherinfo.cpp" line="45"/>
         <source>Humidity: </source>
         <translation>Umidate: </translation>
     </message>
     <message>
-        <location filename="../cxx/weather/weatherinfo.cpp" line="44"/>
+        <location filename="../cxx/weather/weatherinfo.cpp" line="45"/>
         <source>Pressure: </source>
         <translation>Pressão: </translation>
     </message>
     <message>
-        <location filename="../cxx/weather/weatherinfo.cpp" line="45"/>
+        <location filename="../cxx/weather/weatherinfo.cpp" line="46"/>
         <source>UV Index: </source>
         <translation>Índice UV: </translation>
     </message>
     <message>
-        <location filename="../cxx/weather/weatherinfo.cpp" line="45"/>
+        <location filename="../cxx/weather/weatherinfo.cpp" line="46"/>
         <source>Wind speed: </source>
         <translation>Velocidade do vento: </translation>
     </message>
     <message>
-        <location filename="../cxx/weather/weatherinfo.cpp" line="46"/>
+        <location filename="../cxx/weather/weatherinfo.cpp" line="47"/>
         <source>Sun rise: </source>
         <translation>Nascer do sol: </translation>
     </message>
     <message>
-        <location filename="../cxx/weather/weatherinfo.cpp" line="46"/>
+        <location filename="../cxx/weather/weatherinfo.cpp" line="47"/>
         <source>Sun set: </source>
         <translation>Pôr-do-sol: </translation>
     </message>
@@ -2987,37 +2879,37 @@ Vamos iniciar criando seu perfil de usuário.</translation>
 <context>
     <name>WeatherInfo</name>
     <message>
-        <location filename="../cxx/weather/weatherinfo.cpp" line="130"/>
+        <location filename="../cxx/weather/weatherinfo.cpp" line="131"/>
         <source>Resquesting GPS info...</source>
         <translation>Procurando sinal de GPS...</translation>
     </message>
     <message>
-        <location filename="../cxx/weather/weatherinfo.cpp" line="139"/>
+        <location filename="../cxx/weather/weatherinfo.cpp" line="140"/>
         <source>Cannot use GPS on this device</source>
         <translation>Não é possível utilizar GPS neste dispositivo</translation>
     </message>
     <message>
-        <location filename="../cxx/weather/weatherinfo.cpp" line="165"/>
+        <location filename="../cxx/weather/weatherinfo.cpp" line="166"/>
         <source>The connection setup to the remote positioning backend failed because the application lacked the required privileges</source>
         <translation>A conexão falhou por que o app não tem permissão para acessar a localização do dispositivo</translation>
     </message>
     <message>
-        <location filename="../cxx/weather/weatherinfo.cpp" line="169"/>
+        <location filename="../cxx/weather/weatherinfo.cpp" line="170"/>
         <source>Location(GPS) service is disabled. Enable it(turn it on) to use satelite location on this device</source>
         <translation>Serviço de localização(GPS) está desabilitado. Para utilizá-lo neste dispositivo você deve habilitá-lo primeiro</translation>
     </message>
     <message>
-        <location filename="../cxx/weather/weatherinfo.cpp" line="172"/>
+        <location filename="../cxx/weather/weatherinfo.cpp" line="173"/>
         <source>An unidentified error occurred.</source>
         <translation>Um erro não identificado ocorreu.</translation>
     </message>
     <message>
-        <location filename="../cxx/weather/weatherinfo.cpp" line="178"/>
+        <location filename="../cxx/weather/weatherinfo.cpp" line="179"/>
         <source>If requestUpdate() was called, this error indicates that the current position could not be retrieved within the specified timeout. If startUpdates() was called, this error indicates that this QGeoPositionInfoSource subclass determined that it will not be able to provide further regular updates. In the latter case the error would not be emitted again until after the regular updates resume</source>
         <translation>Se requestUpdate() foi chamado, este erro indica que a posição atual não pôde ser recuperada dentro do tempo limite especificado. Se startUpdates() foi chamado, este erro indica que esta subclasse QGeoPositionInfoSource determinou que não será capaz de fornecer mais atualizações regulares. Neste último caso, o erro não será emitido novamente até que as atualizações regulares sejam retomadas</translation>
     </message>
     <message>
-        <location filename="../cxx/weather/weatherinfo.cpp" line="194"/>
+        <location filename="../cxx/weather/weatherinfo.cpp" line="195"/>
         <source>Using GPS location:
 </source>
         <translation>Utilizando localização por GPS:
@@ -3027,12 +2919,12 @@ Vamos iniciar criando seu perfil de usuário.</translation>
 <context>
     <name>WeatherPage</name>
     <message>
-        <location filename="../qml/Pages/WeatherPage.qml" line="156"/>
+        <location filename="../qml/Pages/WeatherPage.qml" line="128"/>
         <source>Search:</source>
         <translation>Procurar:</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/WeatherPage.qml" line="259"/>
+        <location filename="../qml/Pages/WeatherPage.qml" line="231"/>
         <source>Places</source>
         <translation>Locais</translation>
     </message>

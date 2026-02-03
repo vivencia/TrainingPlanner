@@ -73,7 +73,7 @@ ColumnLayout {
 			Layout.alignment: Qt.AlignRight
 
 			onCheckedChanged: {
-				exercisesModel.clearSelectedEntries();
+				exercisesListModel.clearSelectedEntries();
 				bMultipleSelection = checked;
 			}
 		}
@@ -83,11 +83,11 @@ ColumnLayout {
 		id: txtSearch
 		showClearTextButton: true
 		readOnly: !mainItem.enabled
-		enabled: exercisesModel.hasExercises
+		enabled: exercisesListModel.hasExercises
 		Layout.preferredWidth: parent.width * 0.9
 		Layout.leftMargin: 5
 
-		onTextChanged: exercisesModel.search(text);
+		onTextChanged: exercisesListModel.search(text);
 
 		TPButton {
 			id: btnChooseFilters
@@ -115,7 +115,7 @@ ColumnLayout {
 
 		TPListView {
 			id: lstExercises
-			model: exercisesModel
+			model: exercisesListModel
 			anchors.fill: parent
 			anchors.margins: 4
 
@@ -191,8 +191,8 @@ ColumnLayout {
 
 	function itemClicked(idx: int, emit_signal: bool): void {
 		if (!bMultipleSelection) {
-			if (exercisesModel.manageSelectedEntries(idx, 1)) {
-				exercisesModel.currentRow = idx;
+			if (exercisesListModel.manageSelectedEntries(idx, 1)) {
+				exercisesListModel.currentRow = idx;
 				if (emit_signal)
 					exerciseEntrySelected(idx);
 			}
@@ -202,8 +202,8 @@ ColumnLayout {
 			}
 		}
 		else {
-			if (exercisesModel.manageSelectedEntries(idx, 2)) {
-				exercisesModel.currentRow = idx;
+			if (exercisesListModel.manageSelectedEntries(idx, 2)) {
+				exercisesListModel.currentRow = idx;
 				if (emit_signal)
 					exerciseEntrySelected(idx);
 			}
@@ -227,8 +227,8 @@ ColumnLayout {
 
 			function finishCreation() {
 				filterDlg = component.createObject(mainwindow, { parentPage: mainItem.parentPage });
-				filterDlg.muscularGroupCreated.connect(function(filterStr) {
-					exercisesModel.setFilter(filterStr);
+				filterDlg.muscularGroupsCreated.connect(function(filterStr) {
+					exercisesListModel.setFilter(filterStr);
 				});
 			}
 
@@ -237,6 +237,6 @@ ColumnLayout {
 			else
 				component.statusChanged.connect(finishCreation);
 		}
-		filterDlg.show(exercisesModel.muscularGroup(exercisesModel.currentRealRow()), btnChooseFilters, 3);
+		filterDlg.show(btnChooseFilters, 3);
 	}
 }

@@ -1,0 +1,277 @@
+Leg Extension;conventional;Legs|Quadriceps
+Leg Extension;articulated machine, bilateral;Legs|Quadriceps
+Leg Extension;articulated machine, unilateral;Legs|Quadriceps
+Seated Leg Curl;conventional;Legs|Hamstrings
+Seated Leg Curl;unilateral;Legs|Hamstrings
+Standing Leg Curl;unilateral;Legs|Hamstrings
+Lying Leg Curl;conventional;Legs|Hamstrings
+Lying Leg Curl;unilateral;Legs|Hamstrings
+Leg Press;45o, feet apart;Legs|Quadriceps|Glutes
+Leg Press;45o, close feet;Legs|Quadriceps|Glutes
+Leg Press;articulated, unilateral;Legs|Quadriceps|Glutes
+Leg Press;articulated, bilateral;Legs|Quadriceps|Glutes
+Lounges;kettlebell;Legs|Hamstrings|Quadriceps|Quadriceps
+Lounges;dumbbell or plates;Legs|Quadriceps|Hamstrings|Glutes
+Lounges;barbell;Legs|Quadriceps|Hamstrings|Glutes
+Back Squat;barbell;Legs|Quadriceps|Glutes|Hamstrings
+Back Squat;smith machine;Legs|Quadriceps|Glutes
+Back Squat;sumo stance,barbell;Legs|Quadriceps|Glutes|Hamstrings
+Back Squat;smith machine, sumo stance;Legs|Quadriceps|Glutes|Hamstrings
+Hack Squat;pés juntos or muito próximos;Legs|Quadriceps
+Hack Squat;pés na largura dos Shoulders;Legs|Quadriceps
+Belt Squat;straight Back;Legs|Quadriceps
+Belt Squat;sumo stance;Legs|Quadriceps|Glutes
+Belt Squat;leaning forward;Legs|Quadriceps|Hamstrings|Glutes
+Front Squat;barbell;Legs|Quadriceps
+Front Squat;dumbbell or kettlebell or plate;Legs|Quadriceps
+Pendulum Squat;close feet;Legs|Quadriceps
+Pendulum Squat;wider stance;Legs|Quadriceps
+Bulgarian Split Squat;dumbbell;Legs|Quadriceps|Hamstrings|Glutes
+Bulgarian Split Squat;smith;Legs|Quadriceps|Hamstrings|Glutes
+Bulgarian Split Squat;machine;Legs|Quadriceps|Hamstrings|Glutes
+Sissy Squat;barbell;Legs|Quadriceps
+Sissy Squat;machine;Legs|Quadriceps
+Seated Squat;machine;Legs|Quadriceps
+V-Squat;Back against the machine;Legs|Quadriceps
+V-Squat;Back out of the machine;Legs|Quadriceps|Hamstrings|Glutes
+Stiff;barbell;Legs|Hamstrings|Glutes|Lower Back|Middle Back|Upper Back|Traps
+Stiff;dumbbell or kettlebell;Legs|Hamstrings|Glutes|Lower Back|Middle Back|Upper Back|Traps
+Stiff;smith machine;Legs|Hamstrings|Glutes|Lower Back|Middle Back|Upper Back|Traps
+Good Morning;barbell;Legs|Hamstrings
+Good Morning;machine;Legs|Hamstrings
+Hip Thrust;barbell;Glutes
+Hip Thrust;machine;Glutes
+Hip Abductor;seated;Legs|Glutes
+Hip Abductor;standing,pulley;Legs|Glutes
+Hip Adductor;seated;Legs|Glutes
+Hip Adductor;machine, standing;Legs|Glutes
+Hip Adductor;pulley;Legs|Glutes
+Glute KickBack;machine;Glutes
+Glute KickBack;pulley;Glutes
+Calf Raise;machine;Legs|Calves
+Calf Raise;smith;Legs|Calves
+Calf Raise;body weight;Legs|Calves
+Seated Calf Raise;machine;Legs|Calves
+Seated Calf Raise;Leg Press machine;Legs|Calves
+Seated Calf Raise;Seated Squat machine;Legs|Calves
+Deadlift;barbell,convencional;Legs|Hamstrings|Glutes|Quadriceps|Lower Back|Middle Back|Upper Back|Traps|Forearms
+Deadlift;barbell, sumo stance;Legs|Hamstrings|Glutes|Quadriceps|Lower Back|Middle Back|Upper Back|Traps|Forearms
+Deadlift;smith;Legs|Hamstrings|Glutes|Quadriceps|Lower Back|Middle Back|Upper Back|Traps|Forearms
+Deadlift;smith,sumo stance;Legs|Hamstrings|Glutes|Quadriceps|Lower Back|Middle Back|Upper Back|Traps|Forearms
+Deadlift Partial(1/2);barbell;Legs|Hamstrings|Glutes|Quadriceps|Lower Back|Middle Back|Upper Back|Traps|Forearms
+Deadlift Partial(1/2);barbell,sumo stance;Legs|Hamstrings|Glutes|Quadriceps|Lower Back|Middle Back|Upper Back|Traps|Forearms
+Deadlift Partial(1/2);smith;Legs|Hamstrings|Glutes|Quadriceps|Lower Back|Middle Back|Upper Back|Traps|Forearms
+Deadlift Partial(1/2);smith, sumo stance;Legs|Hamstrings|Glutes|Quadriceps|Lower Back|Middle Back|Upper Back|Traps|Forearms
+Deadlift Partial(3/4);barbell;Hamstrings|Glutes|Quadriceps|Lower Back|Middle Back|Upper Back|Traps|Forearms
+Deadlift Partial(3/4);barbell, sumo stance;Legs|Hamstrings|Glutes|Quadriceps|Lower Back|Middle Back|Upper Back|Traps|Forearms
+Deadlift Partial(3/4);smith;Legs|Hamstrings|Glutes|Quadriceps|Lower Back|Middle Back|Upper Back|Traps|Forearms
+Deadlift Partial(3/4);smith, sumo stance;Legs|Hamstrings|Glutes|Quadriceps|Lower Back|Middle Back|Upper Back|Traps|Forearms
+Deadlift;trapbar;Legs|Hamstrings|Glutes|Quadriceps|Lower Back|Middle Back|Upper Back|Traps|Forearms
+Deadlift Partial(1/2);trapbar;Legs|Hamstrings|Glutes|Quadriceps|Lower Back|Middle Back|Upper Back|Traps|Forearms
+Deadlift Partial(3/4);trapbar;Legs|Hamstrings|Glutes|Quadriceps|Lower Back|Middle Back|Upper Back|Traps|Forearms
+Chin-Up;body weight;Middle Back|Upper Back|Biceps|Forearms
+Chin-Up;weighted;Middle Back|Upper Back|Biceps|Forearms
+Pull-Up;body weight;Middle Back|Upper Back|Biceps|Forearms
+Pull-Up;weighted;Middle Back|Upper Back|Biceps|Forearms
+Lat Pullover;pulley,barbell;Middle Back
+Lat Pullover;pulley,rope;Middle Back
+Lat Pullover;machine;Middle Back
+Seated Lat Pulldown;wide pronated grip;Middle Back|Upper Back|Biceps|Rear Delts|Forearms
+Seated Lat Pulldown;medium pronated grip;Middle Back|Upper Back|Biceps|Rear Delts|Forearms
+Seated Lat Pulldown;close pronated grip;Middle Back|Upper Back|Biceps|Rear Delts|Forearms
+Seated Lat Pulldown;wide supinated grip;Middle Back|Upper Back|Biceps|Rear Delts|Forearms
+Seated Lat Pulldown;medium supinated grip;Middle Back|Upper Back|Biceps|Rear Delts|Forearms
+Seated Lat Pulldown;close supinated grip;Middle Back|Upper Back|Biceps|Rear Delts|Forearms
+Seated Lat Pulldown;wide standard grip;Middle Back|Upper Back|Biceps|Rear Delts|Forearms
+Seated Lat Pulldown;medium standard grip;Middle Back|Upper Back|Biceps|Rear Delts|Forearms
+Seated Lat Pulldown;close standard grip;Middle Back|Upper Back|Biceps|Rear Delts|Forearms
+Seated Lat Pulldown;articulated machine, pronated grip;Middle Back|Upper Back|Biceps|Rear Delts|Forearms
+Seated Lat Pulldown;articulated machine, supinated grip;Middle Back|Upper Back|Biceps|Rear Delts|Forearms
+Seated Lat Pulldown;articulated machine, standard grip;Middle Back|Upper Back|Biceps|Rear Delts|Forearms
+Seated Lat Pulldown;behind the head, wide pronated grip;Middle Back|Upper Back|Biceps|Rear Delts|Forearms
+Seated Lat Pulldown;behind the head, medium pronated grip;Middle Back|Upper Back|Biceps|Rear Delts|Forearms
+Seated Lat Pulldown;behind the head, wide supinated grip;Middle Back|Upper Back|Biceps|Rear Delts|Forearms
+Seated Lat Pulldown;behind the head, medium supinated grip;Middle Back|Upper Back|Biceps|Rear Delts|Forearms
+Seated Lat Pulldown;behind the head, wide standard grip;Middle Back|Upper Back|Biceps|Rear Delts|Forearms
+Seated Lat Pulldown;behind the head, medium standard grip;Middle Back|Upper Back|Biceps|Rear Delts|Forearms
+Face Pull;pulley, rope;Upper Back,Rear Delts|Forearms
+Seated Row;pulley, wide pronated grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Seated Row;pulley, medium pronated grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Seated Row;pulley, close pronated grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Seated Row;pulley, unilateral, pronated grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Seated Row;pulley, wide supinated grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Seated Row;pulley, medium supinated grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Seated Row;pulley, close supinated grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Seated Row;pulley, unilateral, supinated grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Seated Row;pulley, wide standard grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Seated Row;pulley, medium standard grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Seated Row;pulley, close standard grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Seated Row;pulley, unilateral, standard grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Seated Row;articulated machine, wide pronated grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Seated Row;articulated machine, medium pronated grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Seated Row;articulated machine, close pronated grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Seated Row;articulated machine, unilateral,pronated grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Seated Row;articulated machine, wide supinated grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Seated Row;articulated machine, medium supinated grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Seated Row;articulated machine, close supinated grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Seated Row;articulated machine, unilateral,supinated grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Seated Row;articulated machine, wide standard grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Seated Row;articulated machine, medium standard grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Seated Row;articulated machine, close standard grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Seated Row;articulated machine, unilateral,standard grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Bent Over Row;barbell, supinated grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Bent Over Row;barbell, pronated;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Bent Over Row;barbell, standard grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Bent Over Row;dumbbell or kettlebell, supinated grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Bent Over Row;dumbbell or kettlebell, pronated;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Bent Over Row;dumbbell or kettlebell, standard grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Bent Over Row;machine, supinated grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Bent Over Row;machine, pronated;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Bent Over Row;machine, standard grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+T-Bar Row;barbell, standard grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+T-Bar Row;barbell, pronated grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+T-Bar Row;barbell, supinated grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+T-Bar Row;belt squat, standard grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+T-Bar Row;belt squat, pronated;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+T-Bar Row;machine, standard grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+T-Bar Row;machine, supinated grip;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+T-Bar Row;machine, pronated;Middle Back|Upper Back|Lower Back|Biceps|Rear Delts|Forearms
+Dumbbell Row;conventional;Middle Back|Upper Back|Lower Back
+PullOver;barbell, dumbbell, plate or kettlebell, standard grip; Middle Back
+PullOver;barbell, dumbbell, plate or kettlebell, pronated grip; Middle Back
+Sit-Up;horizontal;Abs
+Sit-Up;horizontal;Abs
+Sit-Up;machine;Abs
+Sit-Up;declined, body weight;Abs
+Sit-Up;declined, weighted;Abs
+Leg-Raise; parallel bars| body weight;Abs
+Leg-Raise; parallel bars| weighted;Abs
+Leg-Raise; hanging, body weight;Abs
+Leg-Raise; hanging, weighted;Abs
+Lateral Sit-Up; machine;Abs| Lower Back
+Bench Press;barbell;Middle Chest|Triceps|Front Delts
+Bench Press;dumbbell;Middle Chest|Triceps|Front Delts
+Chest Press;machine, standard grip;Middle Chest|Triceps|Front Delts
+Chest Press;machine, pronated grip;Middle Chest|Triceps|Front Delts
+Bench Press 45o;barbell;Upper Chest|Triceps|Front Delts
+Bench Press 45o;dumbbell;Upper Chest|Triceps|Front Delts
+Chest Press 45o;machine, standard grip;Upper Chest|Triceps|Front Delts
+Chest Press 45o;machine, pronated grip;Upper Chest|Triceps|Front Delts
+Bench Press 30o;barbell;Upper Chest|Middle Chest|Triceps|Front Delts
+Bench Press 30o;dumbbell;Upper Chest|Middle Chest|Triceps|Front Delts
+Chest Press 30o;machine, standard grip;Upper Chest|Middle Chest|Triceps|Front Delts
+Chest Press 30o;machine, pronated;Upper Chest|Middle Chest|Triceps|Front Delts
+Decline Bench Press;barbell;Lower Chest|Middle Chest|Triceps|Front Delts
+Decline Bench Press;dumbbell;Lower Chest|Middle Chest|Triceps|Front Delts
+Decline Chest Press;machine, standard grip;Lower Chest|Middle Chest|Triceps|Front Delts
+Decline Cheat Press;machine, pronated grip;Lower Chest|Middle Chest|Triceps|Front Delts
+Push-up;horizontal;Middle Chest|Triceps|Front Delts
+Push-up;elevated feet;Upper Chest|Triceps|Front Delts
+Peck Deck;machine;Middle Chest|Front Delts
+Chest Fly;dumbbell;Middle Chest|Front Delts|Forearms
+Chest Fly;machine;Middle Chest|Front Delts
+Chest Fly;pulley;Middle Chest|Front Delts
+Chest Fly 45o;dumbbell;Upper Chest|Middle Chest|Front Delts|Forearms
+Chest Fly 45o;machine;Upper Chest|Front Delts
+Chest Fly 45o;pulley;Upper Chest|Front Delts
+Chest Fly 30o;dumbbell;Upper Chest|Middle Chest|Front Delts|Forearms
+Chest Fly 30o;machine;Upper Chest|Middle Chest|Front Delts|Forearms
+Chest Fly 30o;pulley;Upper Chest|Middle Chest|Front Delts|Forearms
+Cable Crossover;high pulley;Lower Chest|Front Delts
+Cable Crossover;medium pulley;Middle Chest|Front Delts
+Cable Crossover;low pulley;Upper Chest|Front Delts
+Parallel Bars Dip;slanted;Upper Chest|Triceps|Front Delts
+Parallel Bars Dip;straight;Upper Chest|Triceps|Front Delts
+Lateral Raise;dumbbell, seated;Lateral Delts|Forearms
+Lateral Raise;dumbbell, standing;Lateral Delts|Forearms
+Lateral Raise;machine;Lateral Delts
+Lateral Raise;pulley;Lateral Delts|Forearms
+Front Raise;dumbbell, standing, standard grip;Front Delts|Forearms
+Front Raise;dumbbell, seated, standard grip;Front Delts|Forearms
+Front Raise;dumbbell, alternating, standard grip, standing;Front Delts|Forearms
+Front Raise;dumbbell, alternating, standard grip, seated;Front Delts|Forearms
+Front Raise;dumbbell, standing, pronated grip;Front Delts|Forearms
+Front Raise;dumbbell, seated, pronated grip;Front Delts|Forearms
+Front Raise;dumbbell, alternating, pronated grip,standing;Front Delts|Forearms
+Front Raise;dumbbell, alternating, pronated grip,seated;Front Delts|Forearms
+Front Raise;dumbbell, standing, supinated grip;Front Delts|Forearms
+Front Raise;dumbbell, seated, supinated grip;Front Delts|Forearms
+Front Raise;dumbbell, alternating, supinated grip, standing;Front Delts|Forearms
+Front Raise;dumbbell, alternating, supinated grip, seated;Front Delts|Forearms
+Front Raise;barbell, standing,standard grip;Front Delts|Forearms
+Front Raise;barbell, seated,standard grip;Front Delts|Forearms
+Front Raise;barbell, standing, pronated grip;Front Delts|Forearms
+Front Raise;barbell, seated, pronated grip;Front Delts|Forearms
+Front Raise;barbell, standing,supinated grip;Front Delts|Forearms
+Front Raise;barbell, seated,supinated grip;Front Delts|Forearms
+Front Raise;pulley, standard grip;Front Delts|Forearms
+Front Raise;pulley, supinated grip;Front Delts|Forearms
+Front Raise;pulley, pronated grip;Front Delts|Forearms
+Rear Lateral Raise;dumbbell, standing;Rear Delts|Forearms
+Rear Lateral Raise;dumbbell, standing, supported head;Rear Delts|Forearms
+Rear Lateral Raise;dumbbell, seated;Rear Delts|Forearms
+Reverse Peck Deck;machine;Rear Delts|Upper Back
+Shrug;dumbbell;traps|Rear Delts|Forearms
+Shrug;barbell;traps|Rear Delts|Forearms
+Shrug;smith;traps|Rear Delts|Forearms
+Shrug;trapbar;traps|Rear Delts|Forearms
+Rear Shrug;barbell;traps|Rear Delts|Forearms
+Rear Shrug;smith machine;traps|Rear Delts|Forearms
+Arnold Press;dumbbell,seated;Shoulder
+Arnold Press;dumbbell,standing;Shoulder
+Shoulder Press;dumbbell, seated, standard grip;Front Delts|Triceps
+Shoulder Press;dumbbell, standing, standard grip;Front Delts|Triceps|Lower Back
+Shoulder Press;dumbbell, seated, pronated grip;Front Delts|Triceps
+Shoulder Press;dumbbell, standing, pronated grip;Front Delts|Triceps|Lower Back
+Shoulder Press;machine;Front Delts|Triceps
+Shoulder Press;barbell, seated;Front Delts|Triceps
+Shoulder Press;barbell, standing;Front Delts|Triceps
+Shoulder Press;smith machine;Front Delts|Triceps
+Reverse Fly;dumbbell;Rear Delts|Forearms
+Reverse Fly;machine;Rear Delts
+Reverse Fly;pulley;Rear Delts|Forearms
+Reverse Fly;pulley, unilateral;Rear Delts|Forearms
+Biceps Curl;dumbbell, standing;Biceps|Forearms
+Biceps Curl;dumbbell, standing, alternating;Biceps|Forearms
+Biceps Curl;dumbbell, seated;Biceps|Forearms
+Biceps Curl;dumbbell, seated,alternating;Biceps|Forearms
+Biceps Curl;dumbbell, inclined bench;Biceps|Forearms
+Biceps Curl;dumbbell, inclined bench, alternating;Biceps|Forearms
+Biceps Curl;barbell, standing;Biceps|Forearms
+Biceps Curl;barbell, seated;Biceps|Forearms
+Biceps Curl;pulley;Biceps|Forearms
+Biceps Curl;pulley, alternating;Biceps|Forearms
+Biceps Curl;pulley, barbell;Biceps|Forearms
+Biceps Curl;pulley, W or V barbell;Biceps|Forearms
+Biceps Curl;machine;Biceps|Forearms
+Scott Curl;seated;Biceps|Forearms
+Scott Curl;standing;Biceps|Forearms
+Scott Curl;machine;Biceps|Forearms
+Hammer Curl;dumbbell, standing;Biceps|Forearms
+Hammer Curl;dumbbell, standing, alternating;Biceps|Forearms
+Hammer Curl;dumbbell, seated;Biceps|Forearms
+Hammer Curl;dumbbell, seated, alternating;Biceps|Forearms
+Hammer Curl;dumbbell, banco inclinado;Biceps|Forearms
+Hammer Curl;dumbbell, banco inclinado, alternating;Biceps|Forearms
+Hammer Curl;barbell, standing;Biceps|Forearms
+Hammer Curl;barbell, seated;Biceps|Forearms
+Hammer Curl;pulley;Biceps|Forearms
+Hammer Curl;pulley,alternating;Biceps|Forearms
+Triceps Extension;dumbbell, seated;Triceps
+Triceps Extension;dumbbell, standing;Triceps
+Triceps Extension;pulley, straight, W or V bar;Triceps
+Triceps Extension;machine;Triceps
+Triceps Pushdown;pulley, rope;Triceps
+Triceps Pushdown;pulley, straight, W or V bar;Triceps
+Triceps KickBack;pulley;Triceps
+Triceps KickBack;dumbbell;Triceps
+Skull Crusher;barbell, seated;Triceps
+Skull Crusher;barbell, standing;Triceps
+Skull Crusher;dumbbell, seated;Triceps
+Skull Crusher;dumbbell, standing;Triceps
+Skull Crusher;pulley;Triceps
+Close-Grip Bench Press;barbell;Triceps|Chest|Front Delts
+Close-Grip Bench Press;dumbbell;Triceps|Chest|Front Delts
+Close-Grip Bench Press;smith machine;Triceps|Chest|Front Delts
+Dip; bench, Legs down;Triceps
+Dip; bench, Legs up;Triceps

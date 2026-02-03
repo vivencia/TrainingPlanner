@@ -1148,7 +1148,7 @@ bool TPUtils::containsAllWords(const QString &mainString, const QStringList &wor
 		bool found{false};
 		do
 		{
-			if (haystack->startsWith(needle, !precise ? Qt::CaseInsensitive : Qt::CaseSensitive))
+			if ((precise && haystack->startsWith(needle)) || (!precise && haystack->contains(needle, Qt::CaseInsensitive)))
 			{
 				found = true;
 				break;

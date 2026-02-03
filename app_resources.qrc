@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>extras/exerciseslist.lst</file>
         <file>sounds/timer-end.wav</file>
         <file>translations/tplanner.pt_BR.qm</file>
         <file>images/avatars.png</file>
@@ -168,5 +167,8 @@
         <file>images/upperlowercase_blue.png</file>
         <file>images/paste_blue.png</file>
         <file>images/goto-prev.png</file>
+        <file>extras/exercises_de_DE.lst</file>
+        <file>extras/exercises_en_EN.lst</file>
+        <file>extras/exercises_pt_BR.lst</file>
     </qresource>
 </RCC>

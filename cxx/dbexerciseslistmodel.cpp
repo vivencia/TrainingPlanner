@@ -2,6 +2,7 @@
 
 #include "dbexerciseslisttable.h"
 #include "return_codes.h"
+#include "tpsettings.h"
 #include "tputils.h"
 #include "translationclass.h"
 
@@ -43,7 +44,11 @@ DBExercisesListModel::DBExercisesListModel(QObject *parent)
 	m_exercisesData.reserve(306);
 	m_searchFilteredIndices.reserve(306);
 	m_muscularFilteredIndices.reserve(306);
+}
 
+void DBExercisesListModel::initExercisesList()
+{
+	readExercisesList();
 	m_dbModelInterface = new DBModelInterfaceExercisesList;
 	m_db = new DBExercisesListTable{m_dbModelInterface};
 	appThreadManager()->runAction(m_db, ThreadManager::CreateTable);
@@ -85,51 +90,8 @@ QString DBExercisesListModel::muscularGroup(const int index) const
 	if (index < 0)
 		return QString{};
 
-	const QStringList &groups{m_exercisesData.at(m_searchFilterApplied ? m_searchFilteredIndices.at(index) :
-											(m_muscularFilterApplied ? m_muscularFilteredIndices.at(index) : index)).
-																		at(EXERCISES_LIST_FIELD_MUSCULARGROUP).split(',')};
-	QString translatedGroups;
-	for (const auto &group : groups)
-	{
-		if (group == "quadriceps")
-			translatedGroups += std::move(tr("Quadriceps")) % fancy_record_separator1;
-		else if (group == "hamstrings")
-			translatedGroups += std::move(tr("Hamstrings")) % fancy_record_separator1;
-		else if (group == "glutes")
-			translatedGroups += std::move(tr("Glutes")) % fancy_record_separator1;
-		else if (group == "calves")
-			translatedGroups += std::move(tr("Calves")) % fancy_record_separator1;
-		else if (group == "upper back")
-			translatedGroups += std::move(tr("Upper Back")) % fancy_record_separator1;
-		else if (group == "middle back")
-			translatedGroups += std::move(tr("Middle Back")) % fancy_record_separator1;
-		else if (group == "lower back")
-			translatedGroups += std::move(tr("Lower Back")) % fancy_record_separator1;
-		else if (group == "biceps")
-			translatedGroups += std::move(tr("Biceps")) % fancy_record_separator1;
-		else if (group == "triceps")
-			translatedGroups += std::move(tr("Triceps")) % fancy_record_separator1;
-		else if (group == "fore arms")
-			translatedGroups += std::move(tr("Forearms")) % fancy_record_separator1;
-		else if (group == "upper chest")
-			translatedGroups += std::move(tr("Upper Chest")) % fancy_record_separator1;
-		else if (group == "middle chest")
-			translatedGroups += std::move(tr("Middle Chest")) % fancy_record_separator1;
-		else if (group == "lower chest")
-			translatedGroups += std::move(tr("Lower Chest")) % fancy_record_separator1;
-		else if (group == "front delts")
-			translatedGroups += std::move(tr("Front Delts")) % fancy_record_separator1;
-		else if (group == "lateral delts")
-			translatedGroups += std::move(tr("Lateral Delts")) % fancy_record_separator1;
-		else if (group == "rear delts")
-			translatedGroups += std::move(tr("Rear Delts")) % fancy_record_separator1;
-		else if (group == "traps")
-			translatedGroups += std::move(tr("Traps")) % fancy_record_separator1;
-		else if (group == "abs")
-			translatedGroups += std::move(tr("Abs")) % fancy_record_separator1;
-	}
-	translatedGroups.chop(2);
-	return translatedGroups;
+	return m_exercisesData.at(m_searchFilterApplied ? m_searchFilteredIndices.at(index) :
+							(m_muscularFilterApplied ? m_muscularFilteredIndices.at(index) : index)).at(EXERCISES_LIST_FIELD_MUSCULARGROUP);
 }
 
 void DBExercisesListModel::setMuscularGroup(const uint index, const QString &new_group)
@@ -176,32 +138,10 @@ void DBExercisesListModel::setCurrentRow(const int row)
 	}
 }
 
-void DBExercisesListModel::allExercisesFromListInserted()
-{
-	beginResetModel();
-	m_dbModelInterface->setModifiedRows(0, m_exercisesData.count() - 1);
-	appThreadManager()->runAction(m_db, ThreadManager::InsertRecords);
-	emit countChanged();
-	emit hasExercisesChanged();
-	endResetModel();
-}
-
-void DBExercisesListModel::newExerciseFromList(const uint id, QString &&name, QString &&subname, QString &&muscular_group)
-{
-	m_exercisesData.append(std::move(QStringList{} <<
-		std::forward<QString>(QString::number(id)) << std::forward<QString>(name) << std::forward<QString>(subname) <<
-		std::forward<QString>(muscular_group) << QString{} << std::forward<QString>("1"_L1) <<
-		std::forward<QString>(QString::number(m_exercisesData.count())) << std::forward<QString>("0"_L1)));
-}
-
 void DBExercisesListModel::newExercise(const QString &name, const QString &subname, const QString &muscular_group)
 {
-	uint last_id{m_exercisesData.last().at(EXERCISES_LIST_FIELD_ID).toUInt()};
-	if (last_id < 1000)
-		last_id = 1000;
-	appendList(std::move(QStringList{} << std::forward<QString>(QString::number(last_id + 1)) << name <<
-		subname << muscular_group << QString{} << std::forward<QString>("0"_L1) <<
-		std::forward<QString>(QString::number(m_exercisesData.count())) << std::forward<QString>("0"_L1)));
+	appendList(std::move(QStringList{} <<std::move("-1"_L1) << name << subname << muscular_group << QString{} << std::move("0"_L1) <<
+																	std::move(QString::number(m_exercisesData.count())) << std::move("0"_L1)));
 }
 
 void DBExercisesListModel::removeExercise(const uint index)
@@ -226,7 +166,15 @@ void DBExercisesListModel::removeExercise(const uint index)
 void DBExercisesListModel::setFilter(const QString &filter)
 {
 	if (!filter.isEmpty())
-	{									
+	{
+		if (m_muscularFilterApplied)
+		{
+			if (m_filterString != filter)
+				setFilter(QString{});
+			else
+				return;
+		}
+
 		QStringList words_list{std::move(filter.split(fancy_record_separator1, Qt::SkipEmptyParts, Qt::CaseInsensitive))};
 		const auto modelCount{m_searchFilterApplied ? m_searchFilteredIndices.count() : m_exercisesData.count()};
 		for (uint i{0}; i < modelCount; ++i)
@@ -235,7 +183,7 @@ void DBExercisesListModel::setFilter(const QString &filter)
 			const QString &subject{m_exercisesData.at(index).at(EXERCISES_LIST_FIELD_MUSCULARGROUP)};
 			for (const auto &word : std::as_const(words_list))
 			{
-				if (subject.contains(untranslatedMuscularGroup(word), Qt::CaseInsensitive))
+				if (subject.contains(word, Qt::CaseInsensitive))
 				{
 					if (!m_muscularFilterApplied)
 					{
@@ -267,6 +215,7 @@ void DBExercisesListModel::setFilter(const QString &filter)
 		{
 			m_muscularFilterApplied = false;
 			m_muscularFilteredIndices.clear();
+			m_filterString.clear();
 			if (!m_searchFilterApplied)
 			{
 				beginResetModel();
@@ -348,20 +297,11 @@ void DBExercisesListModel::search(const QString &search_term)
 				}
 			}
 		}
+		if (!found)
+			m_searchFilterApplied = false;
 	}
-	if (!found)
-	{
-		if (m_searchFilterApplied)
-		{
-			resetSearchModel();
-			if (m_muscularFilterApplied)
-			{
-				beginResetModel();
-				m_muscularFilteredIndices.clear();
-				setFilter(m_filterString);
-			}
-		}
-	}
+	else if (!m_searchFilteredIndices.isEmpty())
+		resetSearchModel();
 }
 
 void DBExercisesListModel::clearSelectedEntries()
@@ -395,11 +335,8 @@ bool DBExercisesListModel::manageSelectedEntries(const uint item_pos, const uint
 bool DBExercisesListModel::collectExportData()
 {
 	m_exportRows.clear();
-	for (uint i{count() - 1}; i > 0; --i)
-	{
-		if (_id(i) >= 1000)
-			m_exportRows.append(i);
-	}
+	for (uint i{m_exercisesListCount}; i < m_exercisesData.count(); ++i)
+		m_exportRows.append(i);
 	return m_exportRows.count() > 0;
 }
 
@@ -565,7 +502,7 @@ QVariant DBExercisesListModel::data(const QModelIndex &index, int role) const
 			case exerciseIdRole:
 			case mainNameRole:
 			case subNameRole:
-			case muscularGroupRole: //for translated groups, use muscularGroup()
+			case muscularGroupRole:
 			case mediaPathRole:
 			case actualIndexRole:
 				if (m_searchFilterApplied)
@@ -645,7 +582,6 @@ bool DBExercisesListModel::setData(const QModelIndex &index, const QVariant &val
 				if (m_muscularFilterApplied)
 					row = m_exercisesData.at(m_muscularFilteredIndices.at(row)).at(EXERCISES_LIST_FIELD_ACTUALINDEX).toInt();
 				else
-					row = m_exercisesData.at(m_searchFilteredIndices.at(row)).at(EXERCISES_LIST_FIELD_ACTUALINDEX).toInt();
 					row = m_exercisesData.at(row).at(EXERCISES_LIST_FIELD_ACTUALINDEX).toInt();
 			}
 			m_dbModelInterface->setModified(row, field);
@@ -654,45 +590,32 @@ bool DBExercisesListModel::setData(const QModelIndex &index, const QVariant &val
 	return data_set;
 }
 
-QString DBExercisesListModel::untranslatedMuscularGroup(const QString &translated_group) const
+void DBExercisesListModel::readExercisesList()
 {
-	if (translated_group == tr("Quadriceps"))
-		return "quadriceps"_L1;
-	if (translated_group == tr("Hamstrings"))
-		return "hamstrings"_L1;
-	if (translated_group == tr("Glutes"))
-		return "glutes"_L1;
-	if (translated_group == tr("Calves"))
-		return "calves"_L1;
-	if (translated_group == tr("Upper Back"))
-		return "upper back"_L1;
-	if (translated_group == tr("Middle Back"))
-		return "middle back"_L1;
-	if (translated_group == tr("Lower Back"))
-		return "lower back"_L1;
-	if (translated_group == tr("Biceps"))
-		return "biceps"_L1;
-	if (translated_group == tr("Triceps"))
-		return "triceps"_L1;
-	if (translated_group == tr("Forearms"))
-		return "fore arms"_L1;
-	if (translated_group == tr("Upper Chest"))
-		return "upper chest"_L1;
-	if (translated_group == tr("Middle Chest"))
-		return "middle chest"_L1;
-	if (translated_group == tr("Lower Chest"))
-		return "lower chest"_L1;
-	if (translated_group == tr("Front Delts"))
-		return "front delts"_L1;
-	if (translated_group == tr("Lateral Delts"))
-		return "lateral delts"_L1;
-	if (translated_group == tr("Rear Delts"))
-		return "rear delts"_L1;
-	if (translated_group == tr("Traps"))
-		return "traps"_L1;
-	if (translated_group == tr("Abs"))
-		return "abs"_L1;
-	return QString {};
+	const QString &list_filename{":/extras/exercises_%1.lst"_L1};
+	QFile *file{appUtils()->openFile(list_filename.arg(appSettings()->userLocale()))};
+	if (!file)
+		file = appUtils()->openFile(list_filename.arg("en_US"_L1));
+	if (file)
+	{
+		beginResetModel();
+		QString line{256, QChar{0}}, version{};
+		QTextStream stream{file};
+		stream.readLineInto(&line);
+		while (stream.readLineInto(&line))
+		{
+			QStringList fields{std::forward<QStringList>(line.split(';'))};
+			m_exercisesData.append(std::move(QStringList{} <<
+			std::move("-1"_L1) << std::move(fields[0]) << std::move(fields[1]) << std::move(fields[2]) << QString{} << std::move("1"_L1) <<
+				std::move(QString::number(m_exercisesData.count())) << std::move("0"_L1)));
+		}
+		m_exercisesListCount = m_exercisesData.count();
+		emit countChanged();
+		emit hasExercisesChanged();
+		endResetModel();
+		file->close();
+		delete file;
+	}
 }
 
 void DBExercisesListModel::resetSearchModel()

@@ -204,6 +204,9 @@ public:
 	[[nodiscard]] uint getSetNextMode(const uint exercise_number, const uint exercise_idx, const uint set_number);
 	[[nodiscard]] Q_INVOKABLE QString setModeLabel(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 
+	[[nodiscard]] Q_INVOKABLE bool syncGiantSets(const uint exercise_number, const uint exercise_idx) const;
+	Q_INVOKABLE void setSyncGiantSets(const uint exercise_number, const uint exercise_idx, const bool sync);
+
 	inline QString totalSetsLabel() const { return tr("Number of sets: "); }
 	inline QString setNumberLabel() const { return tr("Set #: "); }
 	inline QString exerciseNameLabel() const { return tr("Exercise: "); }

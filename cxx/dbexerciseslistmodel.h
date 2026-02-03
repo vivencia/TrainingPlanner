@@ -38,6 +38,7 @@ Q_PROPERTY(QString mediaLabel READ mediaLabel NOTIFY labelsChanged)
 
 public:
 	explicit DBExercisesListModel(QObject *parent = nullptr);
+	void initExercisesList();
 
 	inline QString exerciseNameLabel() const { return tr("Exercise: "); }
 	inline QString exerciseSpecificsLabel() const { return tr("Specifics: "); }
@@ -93,15 +94,13 @@ public:
 
 	bool hasExercises() const { return !m_exercisesData.isEmpty(); };
 
-	void allExercisesFromListInserted();
-	void newExerciseFromList(const uint id, QString &&name, QString &&subname, QString &&muscular_group);
 	Q_INVOKABLE void newExercise(const QString &name = QString{}, const QString &subname = QString{},
 																	const QString &muscular_group = QString{});
 	Q_INVOKABLE void removeExercise(const uint index);
 
 	Q_INVOKABLE void setFilter(const QString &filter);
 	Q_INVOKABLE void search(const QString &search_term);
-	Q_INVOKABLE QString getFilter() const { return m_filterString; }
+	Q_INVOKABLE inline QString filter() const { return m_filterString; }
 
 	Q_INVOKABLE void clearSelectedEntries();
 	Q_INVOKABLE bool manageSelectedEntries(uint index, const uint max_selected = 1);
@@ -142,13 +141,13 @@ private:
 	QHash<int, QByteArray> m_roleNames;
 	QList<uint> m_selectedEntries;
 	QString m_filterString, m_searchString;
-	uint m_selectedEntryToReplace;
+	uint m_exercisesListCount, m_selectedEntryToReplace;
 	int m_currentRow;
 	bool m_muscularFilterApplied, m_searchFilterApplied;
 	DBModelInterfaceExercisesList *m_dbModelInterface;
 	DBExercisesListTable *m_db;
 
-	QString untranslatedMuscularGroup(const QString &translated_group) const;
+	void readExercisesList();
 	void resetSearchModel();
 
 	static DBExercisesListModel *app_exercises_list;

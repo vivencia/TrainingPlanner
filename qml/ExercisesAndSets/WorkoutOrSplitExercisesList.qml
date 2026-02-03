@@ -466,10 +466,32 @@ TPListView {
 								verticalCenter: parent.verticalCenter
 							}
 
-							TPLabel {
-								text: qsTr(" <<-- Add some sets")
-								horizontalAlignment: Text.AlignHCenter
-								Layout.fillWidth: true
+							Item {
+								height: parent.height
+								Layout.maximumWidth: setsStack.width - 10
+								Layout.minimumWidth: setsStack.width - 10
+
+								TPLabel {
+									text: qsTr(" <<-- Add some sets")
+									horizontalAlignment: Text.AlignHCenter
+									visible: subExercisesTabBar.currentIndex === 0 || exercisesModel.syncGiantSets(
+																			exercisesModel.workingExercise, exercisesModel.workingSubExercise)
+									width: parent.width
+								}
+								TPRadioButtonOrCheckBox {
+									id: chkSyncGiantSets
+									text: qsTr("Follow first exercise sets")
+									radio: false
+									checked: exercisesModel.syncGiantSets(exercisesModel.workingExercise, exercisesModel.workingSubExercise)
+									visible: subExercisesTabBar.currentIndex !== 0 && setsGroup.nSets === 0
+									width: parent.width
+
+									onClicked: {
+										exercisesModel.setSyncGiantSets(exercisesModel.workingExercise,
+																								exercisesModel.workingSubExercise, checked);
+										setsGroup.nSets = exercisesModel.setsNumber(exercisesModel.workingExercise, exercisesModel.workingSubExercise);
+									}
+								}
 							}
 
 							TabBar {
@@ -513,6 +535,8 @@ TPListView {
 							onClicked: {
 								exercisesModel.delSet(exercisesModel.workingExercise, exercisesModel.workingSubExercise, exercisesModel.workingSet);
 								setsGroup.nSets--;
+								if (setsGroup.nSets === 0 && exercisesModel.workingSubExercise !== 0)
+									chkSyncGiantSets.checked = false;
 							}
 						}
 					} //Item

@@ -12,7 +12,6 @@ TPPopup {
 	height: shown ? dlgHeight : appSettings.itemDefaultHeight
 
 	property string buttonLabel: qsTr("Filter")
-	property bool useFancyNames: false
 
 	property bool shown: true
 	readonly property string groupsSeparator: '|'
@@ -21,24 +20,24 @@ TPPopup {
 	signal muscularGroupsCreated(groups: string);
 
 	property ListModel groupsModel: ListModel {
-		ListElement { display: QT_TR_NOOP("Quadriceps"); value: "quadriceps"; selected: false; }
-		ListElement { display: QT_TR_NOOP("Hamstrings"); value: "hamstrings"; selected: false; }
-		ListElement { display: QT_TR_NOOP("Calves"); value: "calves"; selected: false; }
-		ListElement { display: QT_TR_NOOP("Glutes"); value: "glutes"; selected: false; }
-		ListElement	{ display: QT_TR_NOOP("Upper Back"); value: "upper back"; selected: false; }
-		ListElement { display: QT_TR_NOOP("Middle Back"); value: "middle back"; selected: false; }
-		ListElement { display: QT_TR_NOOP("Lower Back"); value: "lower back"; selected: false; }
-		ListElement { display: QT_TR_NOOP("Biceps"); value: "biceps"; selected: false; }
-		ListElement { display: QT_TR_NOOP("Triceps"); value: "triceps"; selected: false; }
-		ListElement { display: QT_TR_NOOP("Forearms"); value: "fore arms"; selected: false; }
-		ListElement { display: QT_TR_NOOP("Upper Chest"); value: "upper chest"; selected: false; }
-		ListElement { display: QT_TR_NOOP("Middle Chest"); value: "middle chest"; selected: false; }
-		ListElement { display: QT_TR_NOOP("Lower Chest"); value: "lower chest"; selected: false; }
-		ListElement { display: QT_TR_NOOP("Front Delts"); value: "front delts"; selected: false; }
-		ListElement { display: QT_TR_NOOP("Lateral Delts"); value: "lateral delts"; selected: false; }
-		ListElement { display: QT_TR_NOOP("Rear Delts"); value: "rear delts"; selected: false; }
-		ListElement { display: QT_TR_NOOP("Traps"); value: "traps"; selected: false; }
-		ListElement { display: QT_TR_NOOP("Abs"); value: "abs"; selected: false; }
+		ListElement { display: qsTr("Quadriceps"); value: ""; selected: false; }
+		ListElement { display: qsTr("Hamstrings"); value: ""; selected: false; }
+		ListElement { display: qsTr("Calves"); value: ""; selected: false; }
+		ListElement { display: qsTr("Glutes"); value: ""; selected: false; }
+		ListElement	{ display: qsTr("Upper Back"); value: ""; selected: false; }
+		ListElement { display: qsTr("Middle Back"); value: ""; selected: false; }
+		ListElement { display: qsTr("Lower Back"); value: ""; selected: false; }
+		ListElement { display: qsTr("Biceps"); value: ""; selected: false; }
+		ListElement { display: qsTr("Triceps"); value: ""; selected: false; }
+		ListElement { display: qsTr("Forearms"); value: ""; selected: false; }
+		ListElement { display: qsTr("Upper Chest"); value: ""; selected: false; }
+		ListElement { display: qsTr("Middle Chest"); value: ""; selected: false; }
+		ListElement { display: qsTr("Lower Chest"); value: ""; selected: false; }
+		ListElement { display: qsTr("Front Delts"); value: ""; selected: false; }
+		ListElement { display: qsTr("Lateral Delts"); value: ""; selected: false; }
+		ListElement { display: qsTr("Rear Delts"); value: ""; selected: false; }
+		ListElement { display: qsTr("Traps"); value: ""; selected: false; }
+		ListElement { display: qsTr("Abs"); value: ""; selected: false; }
 	}
 
 	Behavior on height {
@@ -123,25 +122,21 @@ TPPopup {
 		onClicked: {
 			let muscularGroups = "";
 			for (let i = 0; i < groupsModel.count; ++i) {
-				if (groupsModel.get(i).selected) {
-					if (!useFancyNames)
-						muscularGroups += groupsModel.get(i).value + groupsSeparator;
-					else
-						muscularGroups += qsTr(groupsModel.get(i).display) + groupsSeparator;
-				}
+				if (groupsModel.get(i).selected)
+					muscularGroups += qsTr(groupsModel.get(i).display) + groupsSeparator;
 			}
 			muscularGroupsCreated(muscularGroups);
 		}
 	}
 
-	function show(initialGroups: string, targetItem: Item, pos: int): void {
-		selectInitialGroups(initialGroups);
+	function show(targetItem: Item, pos: int): void {
+		selectInitialGroups();
 		shown = true;
 		show2(targetItem, pos);
 	}
 
-	function selectInitialGroups(initialGroups: string): void {
-		const groups = initialGroups.split(groupsSeparator);
+	function selectInitialGroups(): void {
+		const groups = exercisesListModel.filter().split(groupsSeparator);
 		for (let x = 0; x < groupsModel.count; ++x) {
 			let included = false;
 			for (let i = 0; i < groups.length; ++i) {

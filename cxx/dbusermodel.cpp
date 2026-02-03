@@ -1,10 +1,11 @@
 #include "dbusermodel.h"
 
-#include "thread_manager.h"
+#include "dbexerciseslistmodel.h"
 #include "dbmesocyclesmodel.h"
 #include "dbusertable.h"
 #include "qmlitemmanager.h"
 #include "osinterface.h"
+#include "thread_manager.h"
 #include "tpdatabasetable.h"
 #include "tpimage.h"
 #include "tputils.h"
@@ -172,6 +173,7 @@ void DBUserModel::initUserSession()
 				appItemManager()->appHomePage()->setProperty("mesoModel", QVariant::fromValue(meso_model));
 			appMainWindow()->setProperty("appPagesModel", QVariant::fromValue(appPagesListModel()));
 
+			appExercisesList()->initExercisesList();
 			if (appSettings()->appVersion() != TP_APP_VERSION)
 			{
 				//All the code to update the database goes in here

@@ -276,7 +276,6 @@ TPPage {
 		}
 
 		TPButton {
-			id: btnAddExercise
 			text: qsTr("+Exercise")
 			imageSource: "exercises-add.png"
 			textUnderIcon: true
@@ -290,8 +289,11 @@ TPPage {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: currentSplitPage.appendNewExerciseToDivision();
-		} //btnAddExercise
+			onClicked: {
+				cboGroups.forceActiveFocus(); //Force triggering of onEditFinished of the last text control to receive input
+				currentSplitPage.appendNewExerciseToDivision();
+			}
+		}
 	}
 
 	property PageScrollButtons navButtons: null

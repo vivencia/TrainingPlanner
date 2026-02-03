@@ -21,7 +21,7 @@ TPLabel {
 	signal clicked();
 	signal pressAndHold();
 
-	wrapMode: multiLine ? Text.WordWrap : Text.NoWrap
+	singleLine: !multiLine
 	topPadding: 0
 	rightPadding: 0
 	bottomPadding: 5

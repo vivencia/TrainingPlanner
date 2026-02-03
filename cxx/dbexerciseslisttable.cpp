@@ -1,14 +1,11 @@
 #include "dbexerciseslisttable.h"
 
 #include "dbexerciseslistmodel.h"
-#include "tpsettings.h"
-#include "tputils.h"
 
 constexpr int n_fields{EXERCISES_TOTAL_COLS};
-constexpr QLatin1StringView exercisesListVersionSetting{"exercisesListVersion"};
 constexpr QLatin1StringView table_name{ "exercises_table"_L1 };
 constexpr QLatin1StringView field_names[n_fields][2] {
-	{"id"_L1,				"INTEGER PRIMARY KEY"_L1},
+	{"id"_L1,				"INTEGER PRIMARY KEY AUTOINCREMENT"_L1},
 	{"primary_name"_L1,		"TEXT"_L1},
 	{"secondary_name"_L1,	"TEXT"_L1},
 	{"muscular_group"_L1,	"TEXT"_L1},
@@ -39,8 +36,8 @@ QString DBExercisesListTable::dbFileName(const bool fullpath) const
 
 bool DBExercisesListTable::getAllExercises(void *)
 {
-	bool success{readExercisesFromList()};
-	if (!success && execReadOnlyQuery("SELECT * FROM %1 ORDER BY ROWID;"_L1.arg(table_name)))
+	bool success{false};
+	if (execReadOnlyQuery("SELECT * FROM %1 ORDER BY ROWID;"_L1.arg(table_name)))
 	{
 		if (m_workingQuery.first())
 		{
@@ -59,40 +56,3 @@ bool DBExercisesListTable::getAllExercises(void *)
 	return success;
 }
 
-bool DBExercisesListTable::readExercisesFromList()
-{
-	QFile *file{appUtils()->openFile(":/extras/exerciseslist.lst"_L1)};
-	if (file)
-	{
-		QString line{1024, QChar{0}}, version{};
-		QTextStream stream{file};
-		stream.readLineInto(&line);
-		if (!line.startsWith("#Vers"_L1))
-			return false;
-		version = std::move(line.split(';').at(1).trimmed());
-		bool use_list{version != appSettings()->getCustomValue(exercisesListVersionSetting, 'C').toString()};
-		if (use_list)
-		{
-			while (stream.readLineInto(&line))
-				m_exercisesList.append(std::move(line));
-
-			if (execSingleWriteQuery("DELETE FROM %1 WHERE %2=1;"_L1.arg(table_name, field_names[EXERCISES_LIST_FIELD_FROMAPPLIST][0])))
-			{
-				m_sqlLiteDB.close();
-				auto model{m_dbModelInterface->model<DBExercisesListModel>()};
-				uint id{0};
-				for (const auto &data : std::as_const(m_exercisesList))
-				{
-					QStringList fields{std::forward<QStringList>(data.split(';'))};
-					model->newExerciseFromList(id++, std::move(fields[0]), std::move(fields[1]), std::move(fields.at(2).trimmed()));
-				}
-				model->allExercisesFromListInserted();
-				appSettings()->setCustomValue(exercisesListVersionSetting, version);
-			}
-		}
-		file->close();
-		delete file;
-		return use_list;
-	}
-	return false;
-}
