@@ -128,18 +128,24 @@ TPListView {
 				}
 			}
 
+			function onSetsNumberChanged(exercise_number: int, exercise_idx: int): void {
+				if (exercise_number === index)
+					setsGroup.nSets = exercisesModel.setsNumber(exercise_number, exercise_idx);
+			}
+
 			function onSetTypeChanged(exercise_number: int, exercise_idx: int, set_number: int, mode: int): void {
-				txtRestTime.text = exercisesModel.setRestTime(exercise_number, exercise_idx, set_number);
-				if (subSetsLoader.active && subSetsLoader.status === Loader.Ready)
-					subSetsLoader.item.subSetsNumber = exercisesModel.setSubSets(exercise_number, exercise_idx, set_number);
-				txtNWeight.text = exercisesModel.setWeight(exercise_number, exercise_idx, set_number);
-				txtNReps.text = exercisesModel.setReps(exercise_number, exercise_idx, set_number);
+				if (exercise_number === index) {
+					txtRestTime.text = exercisesModel.setRestTime(exercise_number, exercise_idx, set_number);
+					if (subSetsLoader.active && subSetsLoader.status === Loader.Ready)
+						subSetsLoader.item.subSetsNumber = exercisesModel.setSubSets(exercise_number, exercise_idx, set_number);
+					txtNWeight.text = exercisesModel.setWeight(exercise_number, exercise_idx, set_number);
+					txtNReps.text = exercisesModel.setReps(exercise_number, exercise_idx, set_number);
+				}
 			}
 
 			function onSetModeChanged(exercise_number: int, exercise_idx: int, set_number: int, mode: int): void {
-				if (exercise_number === index) {
+				if (exercise_number === index)
 					btnSetMode.text = exercisesModel.setModeLabel(exercise_number, exercise_idx, set_number);
-				}
 			}
 		} //Connections
 
@@ -298,7 +304,7 @@ TPListView {
 					height: width
 
 					onClicked: {
-						exercisesModel.addSubExercise(delegate.exerciseNumber) + 1;
+						exercisesModel.addSubExercise(delegate.exerciseNumber);
 						subExercisesTabBar.setCurrentIndex(exercisesModel.workingSubExercise);
 					}
 
@@ -356,7 +362,6 @@ TPListView {
 
 					onClicked: {
 						exercisesModel.delSubExercise(exercisesModel.workingExercise, exercisesModel.workingSubExercise);
-						delegate.nSubExercises--;
 					}
 				}
 			} //Item
@@ -421,6 +426,11 @@ TPListView {
 
 				property int nSets: exercisesModel.setsNumber(delegate.exerciseNumber, exercisesModel.workingSubExercise)
 
+				onNSetsChanged: {
+					if (nSets === 0 && exercisesModel.workingSubExercise !== 0)
+						chkSyncGiantSets.checked = false;
+				}
+
 				background: Rectangle {
 					color: "transparent"
 					border.color: appSettings.fontColor
@@ -445,7 +455,7 @@ TPListView {
 							height: width
 
 							onClicked: {
-								setsGroup.nSets = exercisesModel.addSet(exercisesModel.workingExercise, exercisesModel.workingSubExercise) + 1;
+								exercisesModel.addSet(exercisesModel.workingExercise, exercisesModel.workingSubExercise) + 1;
 								setsTabBar.setCurrentIndex(exercisesModel.workingSet);
 							}
 
@@ -486,11 +496,8 @@ TPListView {
 									visible: subExercisesTabBar.currentIndex !== 0 && setsGroup.nSets === 0
 									width: parent.width
 
-									onClicked: {
-										exercisesModel.setSyncGiantSets(exercisesModel.workingExercise,
-																								exercisesModel.workingSubExercise, checked);
-										setsGroup.nSets = exercisesModel.setsNumber(exercisesModel.workingExercise, exercisesModel.workingSubExercise);
-									}
+									onClicked: exercisesModel.setSyncGiantSets(exercisesModel.workingExercise,
+																									exercisesModel.workingSubExercise, checked);
 								}
 							}
 
@@ -529,15 +536,28 @@ TPListView {
 
 							anchors {
 								right: parent.right
-								verticalCenter: parent.verticalCenter
+								top: setsStack.top
+								topMargin: -appSettings.itemDefaultHeight/4 - 5
 							}
 
-							onClicked: {
-								exercisesModel.delSet(exercisesModel.workingExercise, exercisesModel.workingSubExercise, exercisesModel.workingSet);
-								setsGroup.nSets--;
-								if (setsGroup.nSets === 0 && exercisesModel.workingSubExercise !== 0)
-									chkSyncGiantSets.checked = false;
+							onClicked: exercisesModel.delSet(exercisesModel.workingExercise, exercisesModel.workingSubExercise, exercisesModel.workingSet);
+						}
+
+						TPButton {
+							id: btnDelAllSets
+							imageSource: "remove"
+							hasDropShadow: false
+							enabled: setsGroup.nSets > 0
+							width: appSettings.itemDefaultHeight
+							height: width
+
+							anchors {
+								right: parent.right
+								bottom: setsStack.bottom
+								bottomMargin: -appSettings.itemDefaultHeight/4
 							}
+
+							onClicked: exercisesModel.removeAllSets(exercisesModel.workingExercise, exercisesModel.workingSubExercise);
 						}
 					} //Item
 

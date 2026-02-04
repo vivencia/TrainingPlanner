@@ -48,11 +48,15 @@ TPPage {
 
 				TPButton {
 					imageSource: "prev"
-					enabled: swipeView.currentIndex > 0
 					width: appSettings.itemDefaultHeight
 					height: width
 
-					onClicked: swipeView.decrementCurrentIndex();
+					onClicked: {
+						if (swipeView.currentIndex > 0)
+							swipeView.decrementCurrentIndex();
+						else
+							swipeView.setCurrentIndex(swipeView.count - 1);
+					}
 				}
 
 				TPLabel {
@@ -65,11 +69,15 @@ TPPage {
 
 				TPButton {
 					imageSource: "next"
-					enabled: swipeView.count > 0 && swipeView.currentIndex < swipeView.count - 1
 					width: appSettings.itemDefaultHeight
 					height: width
 
-					onClicked: swipeView.incrementCurrentIndex();
+					onClicked: {
+						if (swipeView.currentIndex < swipeView.count - 1)
+							swipeView.incrementCurrentIndex();
+						else
+							swipeView.setCurrentIndex(0);
+					}
 				}
 			} //Row
 
@@ -110,6 +118,11 @@ TPPage {
 						currentSplitPage.exercisesModel.workingExercise = cboIndex;
 					}
 
+					function changeExercisename(exercise_number: int, new_name: string): void {
+						cboModel.setProperty(exercise_number, "text", new_name);
+
+					}
+
 					function addExerciseToCombo(exercise_number: int): void {
 						cboModel.append({ text: String(exercise_number+1) + ": " + currentSplitPage.exercisesModel.exerciseName(exercise_number, 0),
 							value: exercise_number, enabled: exercise_number !== currentSplitPage.exercisesModel.workingExercise});
@@ -147,6 +160,11 @@ TPPage {
 								cboGoToExercise.addExerciseToCombo(currentSplitPage.exercisesModel.exerciseCount - 1);
 							else if (currentSplitPage.exercisesModel.exerciseCount < cboModel.count)
 								cboGoToExercise.delExerciseFromCombo(currentSplitPage.exercisesModel.workingExercise);
+						}
+
+						function onExerciseNameChanged(exercise_number: int, exercise_idx: int): void {
+								if (exercise_idx === 0)
+									cboGoToExercise.changeExercisename(exercise_number, currentSplitPage.exercisesModel.exerciseName(exercise_number, 0));
 						}
 					}
 				}

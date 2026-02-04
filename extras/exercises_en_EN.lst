@@ -180,8 +180,10 @@ Chest Fly 30o;pulley;Upper Chest|Middle Chest|Front Delts|Forearms
 Cable Crossover;high pulley;Lower Chest|Front Delts
 Cable Crossover;medium pulley;Middle Chest|Front Delts
 Cable Crossover;low pulley;Upper Chest|Front Delts
-Parallel Bars Dip;slanted;Upper Chest|Triceps|Front Delts
-Parallel Bars Dip;straight;Upper Chest|Triceps|Front Delts
+Parallel Bars Dip;bodyweight, slanted;Upper Chest|Triceps|Front Delts
+Parallel Bars Dip;bodyweight, straight;Upper Chest|Triceps|Front Delts
+Parallel Bars Dip;weighted, slanted;Upper Chest|Triceps|Front Delts
+Parallel Bars Dip;weighted, straight;Upper Chest|Triceps|Front Delts
 Lateral Raise;dumbbell, seated;Lateral Delts|Forearms
 Lateral Raise;dumbbell, standing;Lateral Delts|Forearms
 Lateral Raise;machine;Lateral Delts

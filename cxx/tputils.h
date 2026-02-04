@@ -8,10 +8,10 @@
 namespace QLiterals = Qt::Literals::StringLiterals;
 using namespace QLiterals;
 
-constexpr QLatin1Char exercises_separator{28};
-constexpr QLatin1Char comp_exercise_separator{29};
-constexpr QLatin1Char record_separator{30};
-constexpr QLatin1Char set_separator{31};
+constexpr QLatin1Char exercises_separator{28}; // \034 1c
+constexpr QLatin1Char comp_exercise_separator{29}; // \035 1d
+constexpr QLatin1Char record_separator{30}; // \036 1e
+constexpr QLatin1Char set_separator{31}; // \037 1f
 
 constexpr QLatin1Char fancy_record_separator1{'|'};
 constexpr QLatin1Char fancy_record_separator2{';'};

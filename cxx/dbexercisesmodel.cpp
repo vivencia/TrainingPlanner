@@ -111,7 +111,8 @@ void DBExercisesModel::operator=(DBExercisesModel *other_model)
 			}
 			if (++exercise_idx >= exercise_entry->m_exercises.count())
 				break;
-		} while (addSubExercise(exercise_number, false));
+			addSubExercise(exercise_number, false);
+		} while (true);
 	}
 	setWorkingExercise(0);
 	setWorkingSubExercise(0, 0);
@@ -773,7 +774,7 @@ void DBExercisesModel::saveExercises(const int exercise_number, const int exerci
 	appThreadManager()->queueAction(m_db, ThreadManager::UpdateOneField);
 }
 
-uint DBExercisesModel::addSubExercise(const uint exercise_number, const bool from_qml)
+void DBExercisesModel::addSubExercise(const uint exercise_number, const bool from_qml)
 {
 	exerciseEntry *exercise{m_exerciseData[exercise_number]};
 	stExercise* new_sub_exercise{new stExercise};
@@ -785,22 +786,37 @@ uint DBExercisesModel::addSubExercise(const uint exercise_number, const bool fro
 	{
 		setWorkingSubExercise(exercise_idx, exercise_number);
 		emit subExerciseCountChanged(exercise_number);
+		QList<int> modified_fields{};
+		for (uint i{EXERCISES_FIELD_EXERCISES}; i < EXERCISES_TOTALCOLS; ++i)
+		{
+			appUtils()->setCompositeValue(exercise_idx, QString{}, m_dbModelInterface->modelData()[exercise_number][i], comp_exercise_separator);
+			modified_fields.append(i);
+		}
+		m_dbModelInterface->setModified(exercise_number, modified_fields);
+		appThreadManager()->queueAction(m_db, ThreadManager::UpdateSeveralFields);
+
 		setExerciseName(exercise_number, exercise_idx, tr("Choose exercise..."));
 	}
-	return exercise_idx;
 }
 
 void DBExercisesModel::delSubExercise(const uint exercise_number, const uint exercise_idx, const bool from_qml)
 {
+	removeAllSets(exercise_number, exercise_idx, from_qml);
 	exerciseEntry *exercise{m_exerciseData[exercise_number]};
-	for (const auto sub_exercise : exercise->m_exercises | std::views::drop(exercise_idx + 1))
-		sub_exercise->exercise_idx--;
-
 	stExercise* sub_exercise{exercise->m_exercises.at(exercise_idx)};
 	qDeleteAll(sub_exercise->sets);
-	delete sub_exercise;
-	exercise->m_exercises.remove(exercise_idx);
-	if (from_qml)
+
+	if (exercise_idx == 0)
+		setExerciseName(exercise_number, exercise_idx, tr("Choose exercise..."));
+	else
+	{
+		for (const auto sub_exercise : exercise->m_exercises | std::views::drop(exercise_idx + 1))
+			sub_exercise->exercise_idx--;
+		exercise->m_exercises.remove(exercise_idx);
+		delete sub_exercise;
+	}
+
+	if (from_qml && exercise_idx > 0)
 	{
 		emit subExerciseCountChanged(exercise_number);
 		if (workingSubExercise(exercise_number) >= exercise_idx)
@@ -841,8 +857,9 @@ uint DBExercisesModel::addSet(const uint exercise_number, const uint exercise_id
 		QList<int> modified_fields{};
 		for (uint i{EXERCISES_FIELD_NOTES}; i < EXERCISES_TOTALCOLS; ++i)
 		{
-			const auto ins_pos{m_dbModelInterface->modelData().at(exercise_number).at(i).length() - 2};
-			m_dbModelInterface->modelData()[exercise_number][i].insert(ins_pos, set_separator);
+			QString sub_exercise_info{std::move(appUtils()->getCompositeValue(exercise_idx, m_dbModelInterface->modelData()[exercise_number][i], comp_exercise_separator))};
+			sub_exercise_info.append(set_separator);
+			appUtils()->setCompositeValue(exercise_idx, sub_exercise_info, m_dbModelInterface->modelData()[exercise_number][i], comp_exercise_separator);
 			modified_fields.append(i);
 		}
 		m_dbModelInterface->setModified(exercise_number, modified_fields);
@@ -883,6 +900,12 @@ void DBExercisesModel::delSet(const uint exercise_number, const uint exercise_id
 		m_dbModelInterface->setModified(exercise_number, modified_fields);
 		appThreadManager()->queueAction(m_db, ThreadManager::UpdateSeveralFields);
 	}
+}
+
+void DBExercisesModel::removeAllSets(const uint exercise_number, const uint exercise_idx, const bool from_qml)
+{
+	for (auto set_number{m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.count() - 1}; set_number >= 0; --set_number)
+		delSet(exercise_number, exercise_idx, set_number, from_qml);
 }
 
 void DBExercisesModel::moveSet(const uint exercise_number, const uint exercise_idx, const uint from_set, const uint to_set)
@@ -1168,6 +1191,7 @@ QString DBExercisesModel::setSubSets(const uint exercise_number, const uint exer
 void DBExercisesModel::setSetSubSets(const uint exercise_number, const uint exercise_idx, const uint set_number, const QString &new_subsets)
 {
 	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->subsets = new_subsets;
+	emit exerciseModified(exercise_number, exercise_idx, set_number, EXERCISES_FIELD_SUBSETS);
 }
 
 void DBExercisesModel::addSetSubSet(const uint exercise_number, const uint exercise_idx, const uint set_number)
@@ -1193,10 +1217,10 @@ void DBExercisesModel::delSetSubSet(const uint exercise_number, const uint exerc
 	{
 		const uint new_subsets{setSubSets(exercise_number, exercise_idx, set_number).toUInt() - 1};
 		if (appUtils()->removeFieldFromCompositeValue(new_subsets,
-			m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->reps, record_separator))
+							m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->reps, record_separator))
 		{
 			if (appUtils()->removeFieldFromCompositeValue(new_subsets,
-				m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->weight, record_separator))
+							m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->weight, record_separator))
 			{
 				setSetSubSets(exercise_number, exercise_idx, set_number, QString::number(new_subsets));
 				emit exerciseModified(exercise_number, exercise_idx, set_number, EXERCISES_FIELD_SUBSETS);
@@ -1464,7 +1488,9 @@ void DBExercisesModel::setSyncGiantSets(const uint exercise_number, const uint e
 			setSetReps(exercise_number, exercise_idx, set->set_number, set->reps);
 			setSetWeight(exercise_number, exercise_idx, set->set_number, set->weight);
 			setSetNotes(exercise_number, exercise_idx, set->set_number, set->notes);
+			setSetCompleted(exercise_number, exercise_idx, set->set_number, set->completed);
 		}
+		setWorkingSet(0, exercise_number, exercise_idx);
 	}
 }
 

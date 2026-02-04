@@ -202,8 +202,10 @@ Crucifixo Inclinado 30o;máquina sentada;Peitoral Superior,Peitoral Médio|Delto
 Crossover;polia, pegada alta;Peitoral Inferior|Deltoide Frontal
 Crossover;polia, pegada média;Peitoral Médio|Deltoide Frontal
 Crossover;polia, pegada baixa;Peitoral Superior|Deltoide Frontal
-Barras paralelas;corpo ligeiramento inclinado;Peitoral Superior|Tríceps|Deltoide Frontal
-Barras paralelas;corpo 90o;Peitoral Superior|Tríceps|Deltoide Frontal
+Barras paralelas;sem peso, corpo ligeiramento inclinado;Peitoral Superior|Tríceps|Deltoide Frontal
+Barras paralelas;sem peso, corpo 90o;Peitoral Superior|Tríceps|Deltoide Frontal
+Barras paralelas;com peso, corpo ligeiramento inclinado;Peitoral Superior|Tríceps|Deltoide Frontal
+Barras paralelas;com peso, corpo 90o;Peitoral Superior|Tríceps|Deltoide Frontal
 Elevação Lateral;halter, sentado;Deltoide Lateral|Antebraço
 Elevação Lateral;halter, em pé;Deltoide Lateral|Antebraço
 Elevação Lateral;máquina;Deltoide Lateral
@@ -269,10 +271,9 @@ Rosca Direta;polia;Bíceps|Antebraço
 Rosca Direta;polia, alternado;Bíceps|Antebraço
 Rosca Direta;polia, barra reta;Bíceps|Antebraço
 Rosca Direta;polia, barra W ou V;Bíceps|Antebraço
+Rosca Direta;mesa Scott sentado;Bíceps|Antebraço
+Rosca Direta;mesa Scott em pé;Bíceps|Antebraço
 Rosca Direta;máquina;Bíceps|Antebraço
-Rosca Direta mesa Scott;sentado;Bíceps|Antebraço
-Rosca Direta mesa Scott;em pé;Bíceps|Antebraço
-Rosca Direta mesa Scott;lado inverso;Bíceps|Antebraço
 Rosca Martelo;halter, em pé;Bíceps|Antebraço
 Rosca Martelo;halter, em pé, alternado;Bíceps|Antebraço
 Rosca Martelo;halter, sentado;Bíceps|Antebraço

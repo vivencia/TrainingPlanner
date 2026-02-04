@@ -146,10 +146,11 @@ public:
 	[[maybe_unused]] Q_INVOKABLE uint addExercise(int exercise_number = -1, const bool from_qml = true);
 	Q_INVOKABLE void delExercise(const uint exercise_number, const bool from_qml = true);
 	Q_INVOKABLE void moveExercise(const uint from, const uint to);
-	[[maybe_unused]] Q_INVOKABLE uint addSubExercise(const uint exercise_number, const bool from_qml = true);
+	[[maybe_unused]] Q_INVOKABLE void addSubExercise(const uint exercise_number, const bool from_qml = true);
 	Q_INVOKABLE void delSubExercise(const uint exercise_number, const uint exercise_idx, const bool from_qml = true);
 	[[maybe_unused]] Q_INVOKABLE uint addSet(const uint exercise_number, const uint exercise_idx, const bool from_qml = true);
 	Q_INVOKABLE void delSet(const uint exercise_number, const uint exercise_idx, const uint set_number, const bool from_qml = true);
+	Q_INVOKABLE void removeAllSets(const uint exercise_number, const uint exercise_idx, const bool from_qml = true);
 	void moveSet(const uint exercise_number, const uint exercise_idx, const uint from_set, const uint to_set);
 	Q_INVOKABLE bool exerciseIsComposite(const uint exercise_number) const;
 

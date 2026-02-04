@@ -106,7 +106,7 @@ public:
 	Q_INVOKABLE bool manageSelectedEntries(uint index, const uint max_selected = 1);
 	inline QString selectedEntriesValue(const uint index, const uint field) const
 	{
-		return data(QAbstractListModel::index(index), Qt::UserRole + field).toString();
+		return data(QAbstractListModel::index(m_selectedEntries.at(index)), Qt::UserRole + field).toString();
 	}
 	inline uint selectedEntriesCount() const { return m_selectedEntries.count(); }
 
