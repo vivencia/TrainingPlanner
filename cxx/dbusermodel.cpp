@@ -885,7 +885,7 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 }
 
 int DBUserModel::sendFileToServer(const QString &filename, QFile *upload_file, const QString &successMessage,
-									const QString &subdir, const QString &targetUser, const bool removeLocalFile)
+																const QString &subdir, const QString &targetUser, const bool removeLocalFile)
 {
 	if (!onlineAccount())
 		return -1;

@@ -13,14 +13,19 @@
 
 #include <ranges>
 
-constexpr uint8_t MESSAGE_OWNMESSAGE{MESSAGE_MEDIA + 1};
-
 using namespace Qt::Literals::StringLiterals;
 
 enum ChatLoadedStatus {
 	Unloaded,
 	Waiting,
 	Loaded
+};
+
+//These fields are not saved in the database, they are meant for use during the session only
+enum ChatMessageFields_Extra {
+	MESSAGE_MEDIA_PREVIEW = TP_CHAT_TOTAL_MESSAGE_FIELDS,
+	MESSAGE_MEDIA_OPEN_EXTERNALLY,
+	MESSAGE_OWN_MESSAGE,
 };
 
 enum ChatRoleNames {
@@ -37,7 +42,9 @@ enum ChatRoleNames {
 	createRole(read, MESSAGE_READ)
 	createRole(text, MESSAGE_TEXT)
 	createRole(media, MESSAGE_MEDIA)
-	createRole(ownMessage, mediaRole + 1)
+	createRole(mediaPreview, MESSAGE_MEDIA_PREVIEW)
+	createRole(mediaOpenExternal, MESSAGE_MEDIA_OPEN_EXTERNALLY)
+	createRole(ownMessage, MESSAGE_OWN_MESSAGE)
 };
 
 struct ChatMessage {
@@ -54,27 +61,30 @@ struct ChatMessage {
 	QString media;
 	QString queued;
 
-	TPBool own_message;
+	QString preview_media;
+	TPBool external_media, own_message;
 };
 
 TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QObject *parent)
 	: QAbstractListModel{parent}, m_otherUserId{otheruser_id}, m_chatWindow{nullptr},  m_chatLoaded{Unloaded},
 									m_sendMessageTimer{nullptr}, m_peerSocket{nullptr}
 {
-	m_roleNames[idRole]			=	std::move("msgId");
-	m_roleNames[senderRole]		=	std::move("msgSender");
-	m_roleNames[receiverRole]	=	std::move("msgReceiver");
-	m_roleNames[sDateRole]		=	std::move("msgSentDate");
-	m_roleNames[sTimeRole]		=	std::move("msgSentTime");
-	m_roleNames[rDateRole]		=	std::move("msgReceivedDate");
-	m_roleNames[rTimeRole]		=	std::move("msgReceivedTime");
-	m_roleNames[deletedRole]	=	std::move("msgDeleted");
-	m_roleNames[sentRole]		=	std::move("msgSent");
-	m_roleNames[receivedRole]	=	std::move("msgReceived");
-	m_roleNames[readRole]		=	std::move("msgRead");
-	m_roleNames[textRole]		=	std::move("msgText");
-	m_roleNames[mediaRole]		=	std::move("msgMedia");
-	m_roleNames[ownMessageRole]	=	std::move("ownMessage");
+	m_roleNames[idRole]					=	std::move("msgId");
+	m_roleNames[senderRole]				=	std::move("msgSender");
+	m_roleNames[receiverRole]			=	std::move("msgReceiver");
+	m_roleNames[sDateRole]				=	std::move("msgSentDate");
+	m_roleNames[sTimeRole]				=	std::move("msgSentTime");
+	m_roleNames[rDateRole]				=	std::move("msgReceivedDate");
+	m_roleNames[rTimeRole]				=	std::move("msgReceivedTime");
+	m_roleNames[deletedRole]			=	std::move("msgDeleted");
+	m_roleNames[sentRole]				=	std::move("msgSent");
+	m_roleNames[receivedRole]			=	std::move("msgReceived");
+	m_roleNames[readRole]				=	std::move("msgRead");
+	m_roleNames[textRole]				=	std::move("msgText");
+	m_roleNames[mediaRole]				=	std::move("msgMedia");
+	m_roleNames[mediaPreviewRole]		=	std::move("msgMediaPreview");
+	m_roleNames[mediaOpenExternalRole]	=	std::move("msgOpenExternally");
+	m_roleNames[ownMessageRole]			=	std::move("ownMessage");
 
 	m_userIdx = appUserModel()->userIdxFromFieldValue(USER_COL_ID, m_otherUserId);
 	m_dbModelInterface = new DBModelInterfaceChat{this};
@@ -150,7 +160,8 @@ void TPChat::setWSPeer(QWebSocket *peer)
 	if (peer != m_peerSocket)
 	{
 		m_peerSocket = peer;
-		connect(m_peerSocket, SIGNAL(textMessageReceived(const QString &)), this, SLOT(processWebSocketMessage(const QString &)));
+		connect(m_peerSocket, SIGNAL(textMessageReceived(const QString &)), this, SLOT(processWebSocketTextMessage(const QString &)));
+		connect(m_peerSocket, SIGNAL(binaryMessageReceived(const QByteArray &)), this, SLOT(processWebSocketBinaryMessage(const QByteArray &)));
 		connect(m_peerSocket, &QWebSocket::disconnected, this, [this] () {
 			m_peerSocket->disconnect();
 			m_peerSocket->deleteLater();
@@ -305,7 +316,11 @@ void TPChat::createNewMessage(const QString &text, const QString &media)
 	message->sdate = std::move(QDate::currentDate());
 	message->stime = std::move(QTime::currentTime());
 	message->text = text;
-	message->media = media;
+	if (!media.isEmpty())
+	{
+		if (appUtils()->copyFile(media, chatsMediaSubDir(true), true))
+			message->media = chatsMediaSubDir(true) + appUtils()->getFileName(media);
+	}
 	message->own_message = true;
 	beginInsertRows(QModelIndex{}, count(), count());
 	m_messages.append(message);
@@ -324,6 +339,17 @@ void TPChat::incomingMessage(const QString &encoded_message)
 	message->rtime = std::move(QTime::currentTime());
 	message->own_message = false;
 	message->received = true;
+	if (!message->media.isEmpty())
+	{
+		//message was probaly delivered via server, so we use the server to retrieve it. If it fails, hopefully message was sent via the web socket
+		//interface, but for some reason it is late to arrive.
+		if (!QFile::exists(message->media))
+		{
+			const QString &media_filename{appUtils()->getFileName(message->media)};
+			appUserModel()->downloadFileFromServer(media_filename, chatsMediaSubDir(true) % media_filename, QString{}, chatsMediaSubDir(false));
+		}
+		getMediaPreviewFile(message);
+	}
 
 	if (m_chatWindow)
 	{
@@ -374,7 +400,9 @@ QVariant TPChat::data(const ChatMessage *const message, const uint field, const 
 		case MESSAGE_READ: return static_cast<bool>(message->read);
 		case MESSAGE_TEXT: return message->text;
 		case MESSAGE_MEDIA: return message->media;
-		case MESSAGE_OWNMESSAGE: return static_cast<bool>(message->own_message);
+		case MESSAGE_MEDIA_PREVIEW: return message->preview_media;
+		case MESSAGE_MEDIA_OPEN_EXTERNALLY: return static_cast<bool>(message->external_media);
+		case MESSAGE_OWN_MESSAGE: return static_cast<bool>(message->own_message); //MESSAGE_QUEUED is used on the cpp side, OWN_MESSAGE on the QML side
 	}
 	return QVariant{};
 }
@@ -439,6 +467,12 @@ bool TPChat::setData(const QModelIndex &index, const QVariant &value, int role)
 				if (respond && !message->deleted)
 					uploadAction(MESSAGE_MEDIA, message);
 			break;
+			case mediaPreviewRole:
+				message->preview_media = std::move(value.toString());
+			break;
+			case mediaOpenExternalRole:
+				message->external_media = value.toBool();
+			break;
 			default: return false;
 		}
 		emit dataChanged(index, index, QList<int>{1, role});
@@ -449,7 +483,7 @@ bool TPChat::setData(const QModelIndex &index, const QVariant &value, int role)
 	return false;
 }
 
-void TPChat::processWebSocketMessage(const QString &message)
+void TPChat::processWebSocketTextMessage(const QString &message)
 {
 	bool ok{false};
 	static_cast<void>(appUtils()->getCompositeValue(0, message, exercises_separator).toInt(&ok));
@@ -459,7 +493,7 @@ void TPChat::processWebSocketMessage(const QString &message)
 		{
 			connect(this, &TPChat::chatLoadedStatusChanged, this, [this,message] {
 				if (m_chatLoaded == Loaded)
-					processWebSocketMessage(message);
+					processWebSocketTextMessage(message);
 			});
 			loadChat();
 			return;
@@ -468,6 +502,13 @@ void TPChat::processWebSocketMessage(const QString &message)
 		const QString &value{appUtils()->getCompositeValue(2, message, exercises_separator)};
 		m_workFuncs.value(action)(value);
 	}
+}
+
+void TPChat::processWebSocketBinaryMessage(const QByteArray &data)
+{
+	QString filename{std::move(data.last(data.length() - data.lastIndexOf(record_separator.toLatin1())))};
+	filename.removeFirst();
+	appUtils()->writeBinaryFile(filename, data);
 }
 
 void TPChat::onChatWindowOpened()
@@ -532,6 +573,13 @@ void TPChat::uploadAction(const uint field, ChatMessage *const message)
 				if (message->own_message)
 				{
 					setData(index(message->id), true, sentRole);
+					if (!message->media.isEmpty())
+					{
+						if (isBitSet(has_connection, 0))
+							m_peerSocket->sendBinaryMessage(appUtils()->readBinaryFile(message->media));
+						else
+							appUserModel()->sendFileToServer(message->media, nullptr, QString{}, chatsMediaSubDir(false), m_otherUserId);
+					}
 					if (isBitSet(has_connection, 0))
 						m_peerSocket->sendTextMessage(appUtils()->string_strings(
 							{QString::number(requestid), messageWorkSend, encodeMessageToUpload(message)}, exercises_separator));
@@ -737,4 +785,64 @@ void TPChat::setUnreadMessages(const QString &unread_ids, const bool add)
 	}
 	if (n_unread_ids != m_unreadIds.count())
 		emit unreadMessagesChanged();
+}
+
+inline QString TPChat::chatsMediaSubDir(const bool fullpath) const
+{
+	return (fullpath ? appUserModel()->userId() : QString{}) % chatsSubDir % QLatin1StringView{m_otherUserId.toLatin1().constData()} % '/';
+}
+
+void TPChat::getMediaPreviewFile(const ChatMessage *const message)
+{
+	QString ext{std::move(appUtils()->getFileExtension(message->media))};
+	if (ext == "png"_L1 || ext == "jpg"_L1 || ext == "gif"_L1)
+		getImagePreviewFile(message);
+
+	if (ext != "pdf"_L1 && !ext.contains("doc"_L1) && ext != "odf"_L1 && ext != "mp4"_L1 && ext != "mkv"_L1)
+		ext = std::move("generic"_L1);
+	const QString &image_source{":/images/%1_preview.png"_L1};
+	setData(index(message->id), image_source.arg(ext), mediaPreviewRole);
+	setData(index(message->id), true, mediaOpenExternalRole);
+}
+
+#include <QImage>
+
+void TPChat::getImagePreviewFile(const ChatMessage *const message)
+{
+	if (!QFile::exists(message->media))
+	{
+		QTimer *waitForMediaToDownloadTimer{new QTimer{this}};
+		int n_attempts{10};
+		waitForMediaToDownloadTimer->setInterval(1000);
+		waitForMediaToDownloadTimer->callOnTimeout([this,message,waitForMediaToDownloadTimer,n_attempts] () mutable {
+			if (QFile::exists(message->media))
+			{
+				waitForMediaToDownloadTimer->stop();
+				delete waitForMediaToDownloadTimer;
+				getImagePreviewFile(message);
+			}
+			else
+			{
+				if (--n_attempts <= 0) //give up
+					delete waitForMediaToDownloadTimer;
+			}
+		});
+		waitForMediaToDownloadTimer->start();
+	}
+	else
+	{
+		const QString &preview_filename{chatsMediaSubDir(true) % "preview/"_L1 % QString::number(message->id) % ".png"_L1};
+		if (!QFile::exists(preview_filename))
+		{
+			QImage thumbnail{message->media};
+			QSize img_size{std::move(thumbnail.size())};
+			const auto ratio{img_size.width() / img_size.height()};
+			img_size.rwidth() = appSettings()->pageWidth() * 0.4;
+			img_size.rheight() = img_size.width() * ratio;
+			thumbnail = std::move(thumbnail.scaled(img_size));
+			thumbnail.save(preview_filename, "PNG", 10);
+			setData(index(message->id), preview_filename, mediaPreviewRole);
+			setData(index(message->id), false, mediaOpenExternalRole);
+		}
+	}
 }

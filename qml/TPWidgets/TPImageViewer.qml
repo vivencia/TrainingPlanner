@@ -4,35 +4,38 @@ import QtQuick.Layouts
 import QtMultimedia
 
 Image {
-	required property string mediaSource
+	property string mediaSource
+	property string previewSource
+	property bool openExternally
 
 	id: imagePreview
 	fillMode: Image.PreserveAspectFit
 	asynchronous: true
 	clip: true
-	source: mediaSource
-	width: appSettings.pageWidth * 0.7
-	height: appSettings.pageHeight * 0.4
-	Layout.margins: 10
-	Layout.alignment: Qt.AlignCenter
-	Layout.maximumHeight: height
-	Layout.maximumWidth: width
+	source: previewSource
 
 	MouseArea {
 		anchors.fill: parent
-		onDoubleClicked: pictureWindow.showFullScreen();
-		onClicked: console.log("imagePreview.source:  ", imagePreview.source);
+		onClicked: {
+			if (mediaSource.length > 0) {
+				if (!openExternally) {
+					largeImage.source = mediaSource;
+					pictureWindow.showFullScreen();
+				}
+				else
+					osInterface.openURL(mediaSource);
+			}
+		}
 	}
 
 	Window {
 		id: pictureWindow
 
 		Image {
-			id: photoFullScreen
+			id: largeImage
 			anchors.fill: parent
 			fillMode: Image.PreserveAspectFit
 			asynchronous: true
-			source: mediaSource
 
 			MouseArea {
 				anchors.fill: parent

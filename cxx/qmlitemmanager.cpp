@@ -119,7 +119,7 @@ void QmlItemManager::configureQmlEngine()
 			m_homePage = appMainWindow()->findChild<QQuickItem*>("homePage");
 
 			appUserModel()->initUserSession();
-			connect(appMainWindow(), SIGNAL(openFileChosen(QString,int)), this, SLOT(importSlot_FileChosen(QString,int)));
+			connect(appMainWindow(), SIGNAL(openFileChosen(QString)), this, SLOT(importSlot_FileChosen(QString)));
 			connect(appMainWindow(), SIGNAL(openFileRejected(QString)), this, SLOT(importSlot_FileChosen(QString)));
 			connect(appMainWindow(), SIGNAL(saveFileChosen(QString)), this, SLOT(exportSlot(QString)));
 			connect(appMainWindow(), SIGNAL(saveFileRejected(QString)), this, SLOT(exportSlot(QString)));
@@ -686,10 +686,10 @@ void QmlItemManager::exportSlot(const QString &filePath)
 	m_exportFilename.clear();
 }
 
-void QmlItemManager::importSlot_FileChosen(const QString &filePath, const int content_type)
+void QmlItemManager::importSlot_FileChosen(const QString &filePath)
 {
 	if (!filePath.isEmpty())
-		openRequestedFile(filePath, content_type);
+		openRequestedFile(filePath);
 	else
 		displayMessageOnAppWindow(TP_RET_CODE_OPERATION_CANCELED);
 }

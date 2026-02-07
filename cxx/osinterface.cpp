@@ -720,7 +720,7 @@ void OSInterface::checkNetworkInterfaces()
 				case QNetworkInterface::Wifi: message += "WiFi"_L1; break;
 				default: message += "Unknown"_L1; break;
 			}
-			m_localIPAddress = running_interface->addressEntries().constFirst().ip().toString();
+			m_localIPAddress = std::move(running_interface->addressEntries().constFirst().ip().toString());
 			message += '(' % running_interface->name() % ')';
 			if (appSettings()->serverAddress() != m_localIPAddress)
 				appSettings()->setServerAddress(m_localIPAddress);

@@ -82,7 +82,8 @@ public:
 	inline virtual int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
 
 public slots:
-	void processWebSocketMessage(const QString &message);
+	void processWebSocketTextMessage(const QString &message);
+	void processWebSocketBinaryMessage(const QByteArray &data);
 	Q_INVOKABLE void onChatWindowOpened();
 
 signals:
@@ -120,6 +121,9 @@ private:
 	ChatMessage* decodeDownloadedMessage(const QString &encoded_message);
 	void getNewMessagesNumber(const QString &encoded_messages);
 	void setUnreadMessages(const QString &unread_ids, const bool add = true);
+	QString chatsMediaSubDir(const bool fullpath) const;
+	void getMediaPreviewFile(const ChatMessage *const message);
+	void getImagePreviewFile(const ChatMessage *const message);
 
 	friend class TPMessagesManager;
 };

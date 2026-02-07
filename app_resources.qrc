@@ -170,5 +170,17 @@
         <file>extras/exercises_de_DE.lst</file>
         <file>extras/exercises_en_EN.lst</file>
         <file>extras/exercises_pt_BR.lst</file>
+        <file>images/attach_red.png</file>
+        <file>images/attach_grey.png</file>
+        <file>images/attach_light.png</file>
+        <file>images/attach_dark.png</file>
+        <file>images/attach_blue.png</file>
+        <file>images/attach_green.png</file>
+        <file>images/mp4_preview.png</file>
+        <file>images/mkv_preview.png</file>
+        <file>images/odf_preview.png</file>
+        <file>images/docx_preview.png</file>
+        <file>images/pdf_preview.png</file>
+        <file>images/generic_preview.png</file>
     </qresource>
 </RCC>

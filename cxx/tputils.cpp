@@ -607,6 +607,31 @@ int TPUtils::readDataFromFormattedFile(QFile *in_file,
 	return identifier_found ? (field > 1 ? TP_RET_CODE_IMPORT_OK : TP_RET_CODE_IMPORT_FAILED) : TP_RET_CODE_WRONG_IMPORT_FILE_TYPE;
 }
 
+QByteArray TPUtils::readBinaryFile(const QString &filename) const &
+{
+	QFile *file{openFile(filename, true, false, false, false, false)};
+	if (file)
+	{
+		QByteArray data{std::move(file->readAll())};
+		file->close();
+		delete file;
+		data.append(QString{record_separator % getFileName(filename)}.toLocal8Bit());
+		return data;
+	}
+	return QByteArray{};
+}
+
+void TPUtils::writeBinaryFile(const QString &filename, const QByteArray &data)
+{
+	QFile *file{openFile(filename, false, true, false, true, false)};
+	if (file)
+	{
+		file->write(data);
+		file->close();
+		delete file;
+	}
+}
+
 void TPUtils::copyToClipboard(const QString &text) const
 {
 	qApp->clipboard()->setText(text);

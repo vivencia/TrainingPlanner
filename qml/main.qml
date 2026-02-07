@@ -24,7 +24,7 @@ ApplicationWindow {
 
 	signal saveFileChosen(filepath: string);
 	signal saveFileRejected(filepath: string);
-	signal openFileChosen(filepath: string, content_type: int);
+	signal openFileChosen(filepath: string);
 	signal openFileRejected(filepath: string);
 	signal passwordDialogClosed(resultCode: int, password: string);
 	signal removeNoLongerAvailableUser(row: int, remove: bool);
@@ -156,30 +156,31 @@ ApplicationWindow {
 		//firstTimeDlgg.show1(-1);
 	}
 
-	property TPImportDialog importOpenDialog: null
-	function chooseFileToImport(content_type: int): void {
-		if (importOpenDialog === null) {
-			function createImportDialog() {
-				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPImportDialog.qml", Qt.Asynchronous);
+	Loader {
+		id: importLoader
+		asynchronous: true
+		active: false
 
-				function finishCreation() {
-					importOpenDialog = component.createObject(contentItem, {contentType: content_type});
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation();
+		sourceComponent: TPFileDialog {
+			onDialogClosed: (result) => {
+				if (result === 0)
+					openFileChosen(appUtils.getCorrectPath(currentFile));
 				else
-					component.statusChanged.connect(finishCreation);
+					openFileRejected("");
+				importLoader.active = false;
 			}
-			createImportDialog();
 		}
-		importOpenDialog.open();
+
+		onLoaded: item.show();
+	}
+	function chooseFileToImport(): void {
+		importLoader.active = true;
 	}
 
 	property ImportDialog importConfirmDialog: null
 	function createImportConfirmDialog(importOptions: list<string>, selectedFields: list<bool>): void {
 		if (importConfirmDialog === null) {
-			var component = Qt.createComponent("qrc:/qml/Dialogs/ImportDialog.qml", Qt.Asynchronous);
+			let component = Qt.createComponent("qrc:/qml/Dialogs/ImportDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
 				importConfirmDialog = component.createObject(contentItem, {
@@ -200,24 +201,32 @@ ApplicationWindow {
 		importConfirmDialog.show(-1);
 	}
 
-	property TPSaveDialog saveDialog: null
-	function chooseFolderToSave(filename: string): void {
-		if (saveDialog === null) {
-			function createSaveDialog() {
-				let component = Qt.createComponent("qrc:/qml/Dialogs/TPSaveDialog.qml", Qt.Asynchronous);
+	Loader {
+		id: saveDialogLoader
+		asynchronous: true
+		active: false
 
-				function finishCreation() {
-					saveDialog = component.createObject(contentItem, {});
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation();
+		property string suggestedFileName;
+		sourceComponent: TPFileDialog {
+			saveDialog: true
+			chooseDialog: false
+			onDialogClosed: (result) => {
+				if (result === 0)
+					saveFileChosen(appUtils.getCorrectPath(currentFile));
 				else
-					component.statusChanged.connect(finishCreation);
+					saveFileRejected("");
+				saveDialogLoader.active = false;
 			}
-			createSaveDialog();
 		}
-		saveDialog.init(filename);
+
+		onLoaded: {
+			item.suggestedName = suggestedFileName;
+			item.show();
+		}
+	}
+	function chooseFolderToSave(filename: string): void {
+		saveDialogLoader.suggestedFileName = filename;
+		saveDialogLoader.active = true;
 	}
 
 	property PasswordDialog passwdDlg: null

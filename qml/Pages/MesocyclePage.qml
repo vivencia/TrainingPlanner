@@ -21,8 +21,6 @@ TPPage {
 	required property MesocyclesModel mesoModel
 	property TPBalloonTip missingFieldsTip: requiredFieldsMissingLoader.item
 
-	onPageDeActivated: mesoManager.sendMesocycleFileToClient();
-
 	Loader {
 		id: requiredFieldsMissingLoader
 		active: false
@@ -248,15 +246,11 @@ TPPage {
 						verticalCenter: parent.verticalCenter
 					}
 
-					onClicked: fileDialog.open();
+					onClicked: fileDialog.show();
 
-					FileDialog {
+					TPFileDialog {
 						id: fileDialog
 						title: qsTr("Choose the instruction's file for this mesocycles")
-						nameFilters: [qsTr("PDF Files") + " (*.pdf)", qsTr("Documents") + " (*.doc *.docx *.odt)"]
-						options: FileDialog.ReadOnly
-						currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
-						fileMode: FileDialog.OpenFile
 
 						onAccepted: mesoManager.fileName = appUtils.getCorrectPath(selectedFile);
 					}

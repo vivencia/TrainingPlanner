@@ -20,7 +20,6 @@ VideoOutput {
 	property alias position: mediaPlayer.position
 	property alias seekable: mediaPlayer.seekable
 
-
 	MediaPlayer {
 		id: mediaPlayer
 		videoOutput: videoPreview

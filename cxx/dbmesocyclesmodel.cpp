@@ -46,7 +46,7 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
 				checkIfCanExport(meso_idx);
 		}
 		else
-			static_cast<void>(exportToFile(meso_idx, mesoFileName(meso_idx), false)); //temporary new mesocycles
+			exportToFile(meso_idx, mesoFileName(meso_idx), false); //temporary new mesocycles
 	});
 	getAllMesocycles();
 }
@@ -573,28 +573,44 @@ void DBMesocyclesModel::checkIfCanExport(const uint meso_idx, const bool emit_si
 	}
 }
 
-int DBMesocyclesModel::exportToFile(const uint meso_idx, const QString &filename, const bool include_splits) const
+void DBMesocyclesModel::exportToFile(const uint meso_idx, const QString &filename, const bool export_splits)
 {
-	QFile *out_file{appUtils()->openFile(filename, false, true, false, true)};
-	if (!out_file)
-		return TP_RET_CODE_OPEN_CREATE_FAILED;
+	QFile *meso_file{appUtils()->openFile(filename, false, true, false, true)};
+	if (!meso_file)
+	{
+		emit mesoExported(meso_idx, filename, TP_RET_CODE_OPEN_CREATE_FAILED);
+		return;
+	}
 
 	int ret{TP_RET_CODE_EXPORT_FAILED};
-	QList<uint> export_row;
-	export_row.append(meso_idx);
-	if (appUtils()->writeDataToFile(out_file, appUtils()->mesoFileIdentifier, m_mesoData, export_row))
-		ret = include_splits ? exportToFile_splitData(meso_idx, out_file, false) : TP_RET_CODE_EXPORT_OK;
-	out_file->close();
-	return ret;
+	const QList<uint> export_row{1, meso_idx};
+	if (appUtils()->writeDataToFile(meso_file, appUtils()->mesoFileIdentifier, m_mesoData, export_row))
+	{
+		if (export_splits)
+			exportToFile_splitData(meso_idx, meso_file, false);
+		else
+		{
+			meso_file->close();
+			emit mesoExported(meso_idx, meso_file->fileName(), ret);
+			if (ret != TP_RET_CODE_EXPORT_OK)
+				static_cast<void>(QFile::remove(meso_file->fileName()));
+			delete meso_file;
+		}
+	}
+	emit mesoExported(meso_idx, filename, ret);
 }
 
-int DBMesocyclesModel::exportToFormattedFile(const uint meso_idx, const QString &filename) const
+void DBMesocyclesModel::exportToFormattedFile(const uint meso_idx, const QString &filename)
 {
 	QFile *out_file{appUtils()->openFile(filename, false, true, false, true)};
 	if (!out_file)
-		return TP_RET_CODE_OPEN_CREATE_FAILED;
+	{
+		emit mesoExported(meso_idx, filename, TP_RET_CODE_OPEN_CREATE_FAILED);
+		return;
+	}
 
-	const QList<uint> &export_row{QList<uint>{} << meso_idx};
+	int ret{TP_RET_CODE_EXPORT_FAILED};
+	const QList<uint> export_row{1, meso_idx};
 	QList<std::function<QString(void)>> field_description{QList<std::function<QString(void)>>{} << nullptr <<
 										[this] () { return mesoNameLabel(); } <<
 										[this] () { return startDateLabel(); } <<
@@ -615,8 +631,7 @@ int DBMesocyclesModel::exportToFormattedFile(const uint meso_idx, const QString 
 										[this] () { return realMesoLabel(); }
 	};
 
-	int ret{TP_RET_CODE_EXPORT_FAILED};
-	if (appUtils()->writeDataToFormattedFile(out_file,
+	if (!appUtils()->writeDataToFormattedFile(out_file,
 					appUtils()->mesoFileIdentifier,
 					m_mesoData,
 					field_description,
@@ -624,10 +639,11 @@ int DBMesocyclesModel::exportToFormattedFile(const uint meso_idx, const QString 
 					export_row,
 					QString{tr("Exercises Program") + "\n\n"_L1})
 	)
-		ret = exportToFile_splitData(meso_idx, out_file, true);
-
-	out_file->close();
-	return ret;
+	{
+		emit mesoExported(meso_idx, filename, TP_RET_CODE_EXPORT_FAILED);
+		return;
+	}
+	exportToFile_splitData(meso_idx, out_file, true);
 }
 
 int DBMesocyclesModel::importFromFile(const uint meso_idx, const QString &filename)
@@ -742,26 +758,14 @@ void DBMesocyclesModel::sendMesoToUser(const uint meso_idx)
 	if (!isMesoOK(meso_idx))
 		return;
 	const QString &filename{mesoFileName(meso_idx)};
-	const int ret{exportToFile(meso_idx, filename)};
-
-	if (ret >= TP_RET_CODE_DEFERRED_ACTION)
+	connect(this, &DBMesocyclesModel::mesoExported, this, [this] (const uint meso_idx, const QString& filename, const int return_code)
 	{
-		auto conn{std::make_shared<QMetaObject::Connection>()};
-		*conn = connect(this, &DBMesocyclesModel::deferredActionFinished, this, [this,conn,ret,meso_idx,filename]
-											(const uint action_id, const int action_result)
-		{
-			if (ret == action_id)
-			{
-				disconnect(*conn);
-				if (action_result == TP_RET_CODE_EXPORT_OK)
-					appUserModel()->sendFileToServer(filename, nullptr, !isOwnMeso(meso_idx) ?
-						tr("Exercises Program sent to client") : QString{}, mesos_subdir + coach(meso_idx), client(meso_idx));
-			}
-		});
-	}
-	else if (ret == TP_RET_CODE_EXPORT_OK)
-		appUserModel()->sendFileToServer(filename, nullptr, !isOwnMeso(meso_idx) ? tr("Exercises Program sent to client") : QString{},
-										mesos_subdir + coach(meso_idx), client(meso_idx));
+		if (return_code == TP_RET_CODE_EXPORT_OK)
+			appUserModel()->sendFileToServer(filename, nullptr, !isOwnMeso(meso_idx) ?
+										tr("Exercises Program sent to client") : QString{}, mesos_subdir + coach(meso_idx), client(meso_idx));
+
+	}, Qt::SingleShotConnection);
+	exportToFile(meso_idx, filename);
 }
 
 int DBMesocyclesModel::newMesoFromFile(const QString &filename, const bool own_meso, const std::optional<bool> &file_formatted)
@@ -903,12 +907,13 @@ void DBMesocyclesModel::getAllMesocycles()
 	m_db = new DBMesocyclesTable{m_dbModelInterface};
 	appThreadManager()->runAction(m_db, ThreadManager::CreateTable);
 	auto conn = std::make_shared<QMetaObject::Connection>();
-	*conn = connect(m_db, &DBMesocyclesTable::mesocyclesAcquired, this, [this,conn] (QStringList meso_info, const bool last_meso)
+	*conn = connect(m_db, &DBMesocyclesTable::mesocycleAcquired, this, [this,conn] (QStringList meso_info, const bool last_meso)
 	{
 		if (!last_meso)
 		{
 			const uint meso_idx{newMesoData(std::move(meso_info))};
 			addSubMesoModel(meso_idx, isOwnMeso(meso_idx));
+			checkIfCanExport(meso_idx);
 		}
 		else
 		{
@@ -942,18 +947,28 @@ void DBMesocyclesModel::getAllMesocycles()
 	appThreadManager()->runAction(m_workoutsDB, ThreadManager::CreateTable);
 }
 
-int DBMesocyclesModel::exportToFile_splitData(const uint meso_idx, QFile *mesoFile, const bool formatted) const
+void DBMesocyclesModel::exportToFile_splitData(const uint meso_idx, QFile *meso_file, const bool formatted)
 {
-	int ret{TP_RET_CODE_EXPORT_FAILED};
-	const QMap<QChar,DBSplitModel*> &split_models{m_splitModels.value(meso_idx)};
-	for (const DBSplitModel *split_model : split_models)
+	auto n_conns{m_usedSplits.count()};
+	auto conn{std::make_shared<QMetaObject::Connection>()};
+	*conn = connect(this, &DBMesocyclesModel::splitLoaded, [this,conn,n_conns,meso_file,formatted]
+																					(const uint meso_idx, const QChar &splitletter) mutable
 	{
-		if (!split_model)
-			continue;
+		int ret;
 		if (!formatted)
-			ret = split_model->exportToFile(QString{}, mesoFile);
+			ret = splitModel(meso_idx, splitletter)->exportToFile(QString{}, meso_file);
 		else
-			ret = split_model->exportToFormattedFile(QString{}, mesoFile);
-	}
-	return ret;
+			ret = splitModel(meso_idx, splitletter)->exportToFormattedFile(QString{}, meso_file);
+
+		if (--n_conns == 0 || ret != TP_RET_CODE_EXPORT_OK)
+		{
+			disconnect(*conn);
+			meso_file->close();
+			emit mesoExported(meso_idx, meso_file->fileName(), ret);
+			if (ret != TP_RET_CODE_EXPORT_OK)
+				static_cast<void>(QFile::remove(meso_file->fileName()));
+			delete meso_file;
+		}
+	});
+	loadSplits(meso_idx);
 }

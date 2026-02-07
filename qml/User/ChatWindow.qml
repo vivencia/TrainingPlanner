@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import "../"
+import "../Dialogs"
 import "../TPWidgets"
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
@@ -207,6 +207,21 @@ TPPopup {
 						left: parent.left
 						top: parent.top
 						margins: 5
+					}
+
+					Loader {
+						id: mediaLoader
+						asynchronous: true
+						active: msgMedia.length > 0
+						Layout.margins: 2
+						Layout.alignment: Qt.AlignCenter
+						Layout.maximumHeight: appSettings.pageHeight * 0.4
+						Layout.maximumWidth: appSettings.pageWidth * 0.7
+						sourceComponent: TPImageViewer {
+							previewSource: msgMediaPreview
+							mediaSource: msgMedia
+							openExternally: msgOpenExternally
+						}
 					}
 
 					TPLabel {
@@ -441,6 +456,21 @@ TPPopup {
 		}
 
 		TPButton {
+			id: btnSendFile
+			imageSource: "attach_"
+			width: appSettings.itemDefaultHeight
+			height: width
+
+			anchors {
+				left: txtMessage.right
+				leftMargin: 5
+				top: txtMessage.top
+			}
+
+			onClicked: sendFile();
+		} //TPButton
+
+		TPButton {
 			id: btnSend
 			imageSource: "send-message"
 			width: appSettings.itemDefaultHeight
@@ -450,10 +480,10 @@ TPPopup {
 			anchors {
 				left: txtMessage.right
 				leftMargin: 5
-				verticalCenter: parent.verticalCenter
+				bottom: txtMessage.bottom
 			}
 
-			onClicked: sendMessage();
+			onClicked: sendMessage("");
 		} //TPButton
 
 		TPImage {
@@ -498,8 +528,29 @@ TPPopup {
 		} //MouseArea
 	} //Frame frmFooter
 
-	function sendMessage() {
-		chatManager.createNewMessage(txtMessage.contentsText());
+	Loader {
+		id: sendFileLoader
+		asynchronous: true
+		active: false
+
+		sourceComponent: TPFileDialog {
+			includeAllFilesFilter: true
+			onDialogClosed: (result) => {
+				if (result === 0)
+					chatWindow.sendMessage(selectedFile);
+				importLoader.active = false;
+			}
+		}
+
+		onLoaded: item.show();
+	}
+
+	function sendFile(): void {
+		sendFileLoader.active = true;
+	}
+
+	function sendMessage(media_file: string): void {
+		chatManager.createNewMessage(txtMessage.contentsText(), media_file);
 		messagesList.positionViewAtEnd();
 		txtMessage.clear();
 	}

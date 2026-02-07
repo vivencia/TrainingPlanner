@@ -353,8 +353,8 @@ public:
 	//and incorporated, any other model that depends on a meso_idx can query mesoIdx() which will now reflect the recently added meso
 	inline int importIdx() const { return m_importMesoIdx; }
 	inline void setImportIdx(const int new_import_idx) { m_importMesoIdx = new_import_idx; }
-	int exportToFile(const uint meso_idx, const QString &filename, const bool include_splits = true) const;
-	int exportToFormattedFile(const uint meso_idx, const QString &filename) const;
+	void exportToFile(const uint meso_idx, const QString &filename, const bool export_splits = true);
+	void exportToFormattedFile(const uint meso_idx, const QString &filename);
 	int importFromFile(const uint meso_idx, const QString &filename);
 	int importFromFormattedFile(const uint meso_idx, const QString &filename);
 
@@ -442,10 +442,10 @@ public:
 	}
 
 signals:
-	void deferredActionFinished(const uint action_id, const int action_result);
 	void mesoIdxChanged(const uint old_meso_idx, const uint new_meso_idx);
 	void labelChanged();
 	void canExportChanged(const uint meso_idx, const bool can_export);
+	void mesoExported(const uint meso_idx, const QString& filename, const int return_code);
 	void mesoChanged(const uint meso_idx, const uint field);
 	void todaysWorkoutFinished();
 	void usedSplitsChanged(const uint meso_idx);
@@ -479,7 +479,7 @@ private:
 	inline bool isMesoTemporary(const uint meso_idx) const { return _id(meso_idx) < 0; }
 	const uint newMesoData(QStringList &&infolist);
 	void getAllMesocycles();
-	int exportToFile_splitData(const uint meso_idx, QFile *mesoFile, const bool formatted) const;
+	void exportToFile_splitData(const uint meso_idx, QFile *meso_file, const bool formatted);
 
 signals:
 	void calendarReady(const uint meso_idx);

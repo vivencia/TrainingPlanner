@@ -1,10 +1,9 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Dialogs
 import QtCore
 
-import "../"
+import "../Dialogs"
 import "../ExercisesAndSets"
 import "../TPWidgets"
 
@@ -137,7 +136,7 @@ TPPage {
 				text: qsTr("Choose media")
 				autoSize: true
 				rounded: false
-				onClicked: fileDialog.open();
+				onClicked: fileDialog.show();
 				Layout.alignment: Qt.AlignCenter
 				enabled: bNew || bEdit
 			}
@@ -236,13 +235,10 @@ TPPage {
 
 	} // Row
 
-	FileDialog {
+	TPFileDialog {
 		id: fileDialog
 		title: qsTr("Please choose a media file");
-		nameFilters: [qsTr("Videos") + " (*.mp4 *.mkv)", qsTr("Images") + " (*.jpg *.jpeg *.png)"]
-		options: FileDialog.ReadOnly
-		currentFolder: StandardPaths.standardLocations(StandardPaths.MoviesLocation)[0]
-		fileMode: FileDialog.OpenFile
+		includeVideoFilter: true
 
 		onAccepted: {
 			const mediapath = appUtils.getCorrectPath(currentFile);

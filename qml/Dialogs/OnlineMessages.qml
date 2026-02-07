@@ -320,64 +320,48 @@ TPPopup {
 							delegate: TPButton {
 								text: actions[index]
 								width: constrainSize ? actionsLayout.maxButtonWidth : preferredWidth
-								autoSize: constrainSize
+								autoSize: !constrainSize
 								rounded: false
-								Layout.leftMargin: 0
-								Layout.rightMargin: 0
+								Layout.alignment: Qt.AlignCenter
 								onClicked: appMessages.execAction(actionsLayout.msgIndex, index);
 
 								required property int index
 								property bool constrainSize: false
+								property int row: 0
+								property int col: 0
 							}
 
-							//items are added in reverse order(last to first)
+							//items are added in reverse order(from last to first) from TPMessages::insertAction call order
 							onItemAdded: (index, item) => {
-								if (index % 2 === 0) {
-									let itemsWidths = new Array(2);
-									itemsWidths[0] = item;
-									itemsWidths[1] = null;
-									let rowWidth = item.width;
-
-									if (actionsRepeater.itemAt(index+1)) {
-										const item1 = actionsRepeater.itemAt(index+1);
-										if (item1.width > itemsWidths[0].width) {
-											itemsWidths[1] = itemsWidths[0];
-											itemsWidths[0] = item1;
+								if (index === 0) {
+									const n_items = actionsRepeater.model.count;
+									let row_width = 0, row  = 0, col = 0;
+									for (let i = 0; i < n_items; ++i) {
+										row_width += itemAt(i).width;
+										if (col === 0 || (row_width < dlgMaxWidth - 5)) {
+											itemAt(i).Layout.column = col;
+											itemAt(1).Layout.row = row;
+											col++
 										}
-										else
-											itemsWidths[1] = item1;
-										rowWidth += item1.width;
-									}
-									/*if (actionsRepeater.itemAt(index+2)) {
-										const item2 = actionsRepeater.itemAt(index+2);
-										if (item2.width > itemsWidths[1].width) {
-											itemsWidths[2] = itemsWidths[1];
-											itemsWidths[1] = itemsWidths[0];
-											itemsWidths[0] = item2;
-										}
-										else if (item2.width > itemsWidths[0].width) {
-											itemsWidths[2] = itemsWidths[1];
-											itemsWidths[1] = item2;
-										}
-										else
-											itemsWidths[2] = item2;
-										rowWidth += item2.width;
-									}*/
-
-									if (rowWidth >= dlgMaxWidth) {
-										rowWidth -= itemsWidths[0].width;
-										itemsWidths[0].constrainSize = true;
-										rowWidth += itemsWidths[0].width;
-										if (rowWidth >= dlgMaxWidth) {
-											rowWidth -= itemsWidths[1].width;
-											itemsWidths[1].constrainSize = true;
-											rowWidth += itemsWidths[1].width;
+										else {
+											if (itemAt(i).width >= itemAt(i-1).width)
+												itemAt(i).constrainSize = true;
+											else
+												itemAt(i-1).constrainSize = true;
+											if (itemAt(i).width + itemAt(i-1).width >= dlgMaxWidth - 5) {
+												itemAt(i).Layout.column = col = 0;
+												itemAt(i).Layout.row = ++row;
+												itemAt(i-1).constrainSize = false;
+											}
+											else {
+												itemAt(i).Layout.column = col;
+												itemAt(1).Layout.row = row;
+												col++
+											}
 										}
 									}
-									item.Layout.leftMargin = (dlgMaxWidth - rowWidth)/2;
-								}
-								if (index === 0)
 									messagesList.messagesHeight += actionsLayout.childrenRect.height + lblMessage.height + messageTextLayout.height;
+								}
 							}
 						}
 					}

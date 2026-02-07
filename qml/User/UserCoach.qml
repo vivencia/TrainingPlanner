@@ -6,7 +6,7 @@ import QtCore
 
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
-import ".."
+import "../Dialogs"
 import "../TPWidgets"
 import "../Pages"
 
@@ -137,13 +137,11 @@ ColumnLayout {
 		active: bChooseResume
 		asynchronous: true
 
-		sourceComponent: FileDialog {
+		sourceComponent: TPFileDialog {
 			id: chooseFileDlg
 			title: qsTr("Choose the file to import from")
-			defaultSuffix: "txt"
-			nameFilters: [qsTr("Any file type") + " (*.*)"]
-			currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
-			fileMode: FileDialog.OpenFile
+			includePDFFilter: true
+			includeDocFilesFilter: true
 
 			onAccepted: {
 				userModel.uploadResume(currentFile);

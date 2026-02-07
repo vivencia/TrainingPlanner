@@ -126,6 +126,8 @@ public:
 								  const QString &identifier,
 								  const std::function<QString(const uint field, const QString &value)> &formatToImport = nullptr) const;
 
+	QByteArray readBinaryFile(const QString &filename) const &;
+	void writeBinaryFile(const QString &filename, const QByteArray &data);
 	Q_INVOKABLE void copyToClipboard(const QString &text) const;
 	Q_INVOKABLE QString pasteFromClipboard() const;
 

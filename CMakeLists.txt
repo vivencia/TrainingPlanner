@@ -174,7 +174,6 @@ set ( ANDROID_FILES
 
 set( QML_SOURCES
     "qml/AppGlobals.qml"
-    "qml/ImageViewer.qml"
     "qml/main.qml"
 	"qml/tests.qml"
     "qml/VideoPlayer.qml"
@@ -188,6 +187,7 @@ set( QML_SOURCES
     "qml/Dialogs/PasswordDialog.qml"
     "qml/Dialogs/TimePicker.qml"
     "qml/Dialogs/TimerDialog.qml"
+	"qml/Dialogs/TPFileDialog.qml"
     "qml/ExercisesAndSets/ExerciseNameField.qml"
     "qml/ExercisesAndSets/ExercisesListView.qml"
     "qml/ExercisesAndSets/PageScrollButtons.qml"
@@ -224,7 +224,7 @@ set( QML_SOURCES
     "qml/TPWidgets/TPDatePicker.qml"
     "qml/TPWidgets/TPDigitalClock.qml"
     "qml/TPWidgets/TPFloatingMenuBar.qml"
-    "qml/TPWidgets/TPImportDialog.qml"
+	"qml/TPWidgets/TPImageViewer.qml"
     "qml/TPWidgets/TPLabel.qml"
 	"qml/TPWidgets/TPListView.qml"
     "qml/TPWidgets/TPMouseArea.qml"
@@ -235,7 +235,6 @@ set( QML_SOURCES
     "qml/TPWidgets/TPPopup.qml"
     "qml/TPWidgets/TPPhoneNumberInput.qml"
 	"qml/TPWidgets/TPRadioButtonOrCheckBox.qml"
-	"qml/TPWidgets/TPSaveDialog.qml"
 	"qml/TPWidgets/TPTabButton.qml"
 	"qml/TPWidgets/TPTextInput.qml"
 	"qml/TPWidgets/TPToolBar.qml"

@@ -81,11 +81,10 @@ std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::mesoHasAllSplitPlans(const
 {
 	bool success{false};
 	bool yes{false};
-	auto model{m_dbModelInterface->model<DBExercisesModel>()};
 	m_strQuery = std::move("SELECT %1 FROM %2 WHERE %3=%4 AND %5=\'%6\';"_L1.arg(
 		field_names[EXERCISES_FIELD_SETTYPES][0], table_name_splits,
-		field_names[EXERCISES_FIELD_MESOID][0], model->mesoId(),
-		field_names[EXERCISES_FIELD_SPLITLETTER][0], model->splitLetter()));
+		field_names[EXERCISES_FIELD_MESOID][0], meso_id,
+		field_names[EXERCISES_FIELD_SPLITLETTER][0], "%1"_L1));
 	for (const auto &split_letter : split)
 	{
 		if (split_letter.cell() >= 'A' && split_letter.cell() <= 'F')
@@ -95,7 +94,9 @@ std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::mesoHasAllSplitPlans(const
 				if (m_workingQuery.first())
 				{
 					success = true;
-					static_cast<void>(m_workingQuery.value(0).toInt(&yes));
+					const QString &settypes{m_workingQuery.value(0).toString()};
+					if (!settypes.isEmpty())
+						yes = settypes.at(0).isDigit();
 					if (!yes)
 						break;
 				}

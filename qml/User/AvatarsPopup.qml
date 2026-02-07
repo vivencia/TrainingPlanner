@@ -6,7 +6,7 @@ import QtCore
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 import "../TPWidgets"
-import ".."
+import "../Dialogs"
 
 TPPopup {
 	id: avatarsDlg
@@ -51,7 +51,7 @@ TPPopup {
 				top: parent.top
 			}
 
-			onClicked: fileDialog.open();
+			onClicked: fileDialog.show();
 		}
 
 		anchors {
@@ -98,13 +98,10 @@ TPPopup {
 		}
 	}
 
-	FileDialog {
+	TPFileDialog {
 		id: fileDialog
 		title: qsTr("Choose an image to be used as the avatar for the profile")
-		nameFilters: [qsTr("Images") + "(*.png *.jpg *.jpeg)"]
-		options: FileDialog.ReadOnly
-		currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
-		fileMode: FileDialog.OpenFile
+		includeImageFilter: true
 
 		onAccepted: {
 			callerWidget.selectExternalAvatar(appUtils.getCorrectPath(currentFile));
