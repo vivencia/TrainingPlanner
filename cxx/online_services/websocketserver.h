@@ -16,7 +16,7 @@ public:
 	~ChatWSServer() override;
 	void setServerStatus(const bool enabled);
 
-	void connectToPeer(const QString &userid);
+	void connectToPeer(const QString &userid, int n_attempts = 5);
 	inline const QString &port() const { return m_port; }
 	inline bool hasPeers() const { return !m_peersSockets.isEmpty(); }
 	inline QWebSocket *peerSocket(const QString &id) const { return m_peersSockets.value(id); }

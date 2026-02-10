@@ -865,7 +865,7 @@ function send_message($userid, $receiver, $message) {
 	$messages_dir = $rootdir . $receiver . "/chats/";
 	if (!create_dir($messages_dir))
 		die(get_return_code("directory not writable") . ": Unable to create messages dir " .$messages_dir);
-	$messages_file = $messages_dir . $userid . ".msg";
+	$messages_file = $messages_dir . $userid . ".0msg";
 
 	if (!file_exists($messages_file)) {
 		$fh = fopen($messages_file, "w") or die(get_return_code("open write failed") . ": Unable to create messages file " . $messages_file);
@@ -875,7 +875,7 @@ function send_message($userid, $receiver, $message) {
 		$fh = fopen($messages_file, "a+") or die(get_return_code("open write failed") . ": Unable to append to to messages file " . $messages_file);
 	fwrite($fh, $message . "\037");
 	fclose($fh);
-	apcu_store("$receiver-$userid.msg", false);
+	apcu_store("$receiver-$userid.0msg", false);
 	echo "0: Message Sent!";
 }
 
@@ -883,7 +883,7 @@ function remove_received_message($sender, $recipient, $messageid)
 {
 	global $rootdir;
 	$messages_dir = $rootdir . $recipient . "/chats/";
-	$messages_file = $messages_dir . $sender . ".msg";
+	$messages_file = $messages_dir . $sender . ".0msg";
 	$messages_arr = file($messages_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 	$sep_idx1 = 0;
 	$sep_idx2 = 0;
@@ -905,11 +905,11 @@ function remove_received_message($sender, $recipient, $messageid)
 	$fh = fopen($messages_file, "w");
 	fwrite($fh, implode($kept_messages));
 	fclose($fh);
-	apcu_store("$recipient-$sender.msg", false);
+	apcu_store("$recipient-$sender.0msg", false);
 }
 
 function message_worker($sender, $recipient, $messageid, $argument) {
-	if ($argument == ".msg") {
+	if ($argument == ".0msg") {
 		remove_received_message($recipient, $sender, $messageid);
 		return true;
 	}

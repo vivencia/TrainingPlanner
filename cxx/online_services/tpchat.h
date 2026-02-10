@@ -122,10 +122,11 @@ private:
 	void getNewMessagesNumber(const QString &encoded_messages);
 	void setUnreadMessages(const QString &unread_ids, const bool add = true);
 	QString chatsMediaSubDir(const bool fullpath) const;
-	void getMediaPreviewFile(const ChatMessage *const message);
-	void getImagePreviewFile(const ChatMessage *const message);
+	void getMediaPreviewFile(ChatMessage *const message);
+	void getImagePreviewFile(ChatMessage *const message);
 
 	friend class TPMessagesManager;
+	Q_DISABLE_COPY(TPChat)
 };
 
 class DBModelInterfaceChat : public DBModelInterface

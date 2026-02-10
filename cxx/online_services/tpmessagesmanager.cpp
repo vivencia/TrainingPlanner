@@ -283,28 +283,6 @@ int TPMessagesManager::newMessagesCheckingInterval() const
 	int last_sent{0}, last_received{0};
 	for (const auto chat : m_chatsList)
 	{
-		if (last_sent == -1 || last_received == -1)
-			break;
-		else if (last_sent != 0 && last_received != 0)
-		{
-			msecs = last_sent - last_received;
-			if (msecs < 0)
-				msecs *= -1;
-			if (msecs < 15*60*1000)
-			{
-				if (msecs <= 5*60*1000)
-				{
-					if (msecs <= 60*1000)
-						msecs = 1000; //Last message exchange was within the last minute. Check again after 1 second
-					else
-						msecs = 5000; //Last message exchange was between 1 and 5 minutes ago. Check again after 5 seconsd
-				}
-				else
-					msecs = 8000; //Last message exchange was less then 15 minutes ago. Check again after 8 seconds
-			}
-			//Last message exchange was more then 15 minutes ago. Check again after 20 seconds(the default value)
-			break;
-		}
 		for (const auto message : std::as_const(chat->m_messages) | std::views::reverse)
 		{
 			if (last_sent == 0 && chat->data(message, MESSAGE_SENT).toBool())
@@ -335,6 +313,29 @@ int TPMessagesManager::newMessagesCheckingInterval() const
 					last_received = QTime::currentTime().msecsSinceStartOfDay() - received_time.msecsSinceStartOfDay();
 				}
 			}
+		}
+
+		if (last_sent == -1 || last_received == -1)
+			break;
+		else if (last_sent != 0 && last_received != 0)
+		{
+			msecs = last_sent - last_received;
+			if (msecs < 0)
+				msecs *= -1;
+			if (msecs < 15*60*1000)
+			{
+				if (msecs <= 5*60*1000)
+				{
+					if (msecs <= 60*1000)
+						msecs = 1000; //Last message exchange was within the last minute. Check again after 1 second
+					else
+						msecs = 5000; //Last message exchange was between 1 and 5 minutes ago. Check again after 5 seconsd
+				}
+				else
+					msecs = 8000; //Last message exchange was less then 15 minutes ago. Check again after 8 seconds
+			}
+			//Last message exchange was more then 15 minutes ago. Check again after 20 seconds(the default value)
+			break;
 		}
 	}
 	return msecs;

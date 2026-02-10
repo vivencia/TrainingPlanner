@@ -18,7 +18,6 @@ Popup {
 	property bool disableMouseHandling: false
 	property bool showTitleBar: true
 	property bool enableEffects: true
-	property bool useBackgroundGradient: false
 	property int finalYPos: 0
 	property int startYPos: 0
 	property double titleBarOpacity: 1
@@ -26,6 +25,7 @@ Popup {
 	property alias titleBar: titlebar
 	property int _key_pressed
 	property TPBackRec backgroundRec: _backRec
+	property string backGroundImage
 
 	readonly property int titleBarHeight: appSettings.itemDefaultHeight + 5
 	signal keyboardNumberPressed(int key1, int key2);
@@ -54,12 +54,15 @@ Popup {
 
 	TPBackRec {
 		id: _backRec
-		useGradient: useBackgroundGradient
+		useGradient: backGroundImage.length === 0
+		useImage: backGroundImage.length > 0
+		sourceImage: backGroundImage
 		showBorder: true
 		implicitHeight: height
 		implicitWidth: width
 		radius: 8
-		visible: backgroundRec === this
+		layer.enabled: true
+		visible: true
 	}
 
 	Loader {
@@ -67,9 +70,9 @@ Popup {
 		active: enableEffects
 
 		RectangularShadow {
-			x: backgroundRec.x
-			y: backgroundRec.y
-			width: backgroundRec.width
+			x: _backRec.x
+			y: _backRec.y
+			width: _backRec.width
 			height: backgroundRec.height
 			color: "#80000000" // Semi-transparent black
 			radius: 8
@@ -79,7 +82,7 @@ Popup {
 		}
 	}
 
-	background: backgroundRec
+	background: _backRec
 
 	Timer {
 		id: keyPressTimer

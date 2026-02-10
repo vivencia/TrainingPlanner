@@ -8,6 +8,7 @@
 #include "../pageslistmodel.h"
 #include "../tputils.h"
 
+#include <QImage>
 #include <QTimer>
 #include <QWebSocket>
 
@@ -25,6 +26,7 @@ enum ChatLoadedStatus {
 enum ChatMessageFields_Extra {
 	MESSAGE_MEDIA_PREVIEW = TP_CHAT_TOTAL_MESSAGE_FIELDS,
 	MESSAGE_MEDIA_OPEN_EXTERNALLY,
+	MESSAGE_MEDIA_FILENAME,
 	MESSAGE_OWN_MESSAGE,
 };
 
@@ -44,6 +46,7 @@ enum ChatRoleNames {
 	createRole(media, MESSAGE_MEDIA)
 	createRole(mediaPreview, MESSAGE_MEDIA_PREVIEW)
 	createRole(mediaOpenExternal, MESSAGE_MEDIA_OPEN_EXTERNALLY)
+	createRole(mediaFileName, MESSAGE_MEDIA_FILENAME)
 	createRole(ownMessage, MESSAGE_OWN_MESSAGE)
 };
 
@@ -84,6 +87,7 @@ TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QO
 	m_roleNames[mediaRole]				=	std::move("msgMedia");
 	m_roleNames[mediaPreviewRole]		=	std::move("msgMediaPreview");
 	m_roleNames[mediaOpenExternalRole]	=	std::move("msgOpenExternally");
+	m_roleNames[mediaFileNameRole]		=	std::move("msgMediaFileName");
 	m_roleNames[ownMessageRole]			=	std::move("ownMessage");
 
 	m_userIdx = appUserModel()->userIdxFromFieldValue(USER_COL_ID, m_otherUserId);
@@ -196,6 +200,8 @@ void TPChat::loadChat()
 				message->read = str_message.at(MESSAGE_READ).toUInt() == 1;
 				message->text = str_message.at(MESSAGE_TEXT);
 				message->media = str_message.at(MESSAGE_MEDIA);
+				if (!message->media.isEmpty())
+					getMediaPreviewFile(message);
 				message->own_message = message->sender == appUserModel()->userId(0);
 				m_messages.append(message);
 			};
@@ -318,8 +324,16 @@ void TPChat::createNewMessage(const QString &text, const QString &media)
 	message->text = text;
 	if (!media.isEmpty())
 	{
-		if (appUtils()->copyFile(media, chatsMediaSubDir(true), true))
-			message->media = chatsMediaSubDir(true) + appUtils()->getFileName(media);
+		if (appUtils()->copyFile(appUtils()->getCorrectPath(media), chatsMediaSubDir(true), true))
+		{
+			message->media = std::move(chatsMediaSubDir(true) % appUtils()->getFileName(media));
+			getMediaPreviewFile(message);
+		}
+		else
+		{
+			delete message;
+			return;
+		}
 	}
 	message->own_message = true;
 	beginInsertRows(QModelIndex{}, count(), count());
@@ -341,8 +355,8 @@ void TPChat::incomingMessage(const QString &encoded_message)
 	message->received = true;
 	if (!message->media.isEmpty())
 	{
-		//message was probaly delivered via server, so we use the server to retrieve it. If it fails, hopefully message was sent via the web socket
-		//interface, but for some reason it is late to arrive.
+		//If file is inexistent, the message was probably delivered via server, so we use the server to retrieve it.
+		//If it fails, hopefully message was sent via the web socket interface, but for some reason it is late to arrive.
 		if (!QFile::exists(message->media))
 		{
 			const QString &media_filename{appUtils()->getFileName(message->media)};
@@ -402,7 +416,8 @@ QVariant TPChat::data(const ChatMessage *const message, const uint field, const 
 		case MESSAGE_MEDIA: return message->media;
 		case MESSAGE_MEDIA_PREVIEW: return message->preview_media;
 		case MESSAGE_MEDIA_OPEN_EXTERNALLY: return static_cast<bool>(message->external_media);
-		case MESSAGE_OWN_MESSAGE: return static_cast<bool>(message->own_message); //MESSAGE_QUEUED is used on the cpp side, OWN_MESSAGE on the QML side
+		case MESSAGE_MEDIA_FILENAME: return appUtils()->getFileName(message->media, true);
+		case MESSAGE_OWN_MESSAGE: return static_cast<bool>(message->own_message);
 	}
 	return QVariant{};
 }
@@ -466,12 +481,6 @@ bool TPChat::setData(const QModelIndex &index, const QVariant &value, int role)
 				message->media = std::move(value.toString());
 				if (respond && !message->deleted)
 					uploadAction(MESSAGE_MEDIA, message);
-			break;
-			case mediaPreviewRole:
-				message->preview_media = std::move(value.toString());
-			break;
-			case mediaOpenExternalRole:
-				message->external_media = value.toBool();
 			break;
 			default: return false;
 		}
@@ -789,32 +798,33 @@ void TPChat::setUnreadMessages(const QString &unread_ids, const bool add)
 
 inline QString TPChat::chatsMediaSubDir(const bool fullpath) const
 {
-	return (fullpath ? appUserModel()->userId() : QString{}) % chatsSubDir % QLatin1StringView{m_otherUserId.toLatin1().constData()} % '/';
+	return (fullpath ? appUserModel()->userDir() : QString{}) % chatsSubDir % QLatin1StringView{m_otherUserId.toLatin1().constData()} % '/';
 }
 
-void TPChat::getMediaPreviewFile(const ChatMessage *const message)
+void TPChat::getMediaPreviewFile(ChatMessage *const message)
 {
 	QString ext{std::move(appUtils()->getFileExtension(message->media))};
 	if (ext == "png"_L1 || ext == "jpg"_L1 || ext == "gif"_L1)
 		getImagePreviewFile(message);
-
-	if (ext != "pdf"_L1 && !ext.contains("doc"_L1) && ext != "odf"_L1 && ext != "mp4"_L1 && ext != "mkv"_L1)
-		ext = std::move("generic"_L1);
-	const QString &image_source{":/images/%1_preview.png"_L1};
-	setData(index(message->id), image_source.arg(ext), mediaPreviewRole);
-	setData(index(message->id), true, mediaOpenExternalRole);
+	else
+	{
+		if (ext != "pdf"_L1 && !ext.contains("doc"_L1) && ext != "odf"_L1 && ext != "mp4"_L1 && ext != "mkv"_L1)
+			ext = std::move("generic"_L1);
+		const QString &image_source{"%1_preview"_L1};
+		message->preview_media = std::move(image_source.arg(ext));
+		message->external_media = true;
+	}
 }
 
-#include <QImage>
-
-void TPChat::getImagePreviewFile(const ChatMessage *const message)
+void TPChat::getImagePreviewFile(ChatMessage *const message)
 {
 	if (!QFile::exists(message->media))
 	{
 		QTimer *waitForMediaToDownloadTimer{new QTimer{this}};
 		int n_attempts{10};
 		waitForMediaToDownloadTimer->setInterval(1000);
-		waitForMediaToDownloadTimer->callOnTimeout([this,message,waitForMediaToDownloadTimer,n_attempts] () mutable {
+		waitForMediaToDownloadTimer->callOnTimeout([this,message,waitForMediaToDownloadTimer,n_attempts] () mutable
+		{
 			if (QFile::exists(message->media))
 			{
 				waitForMediaToDownloadTimer->stop();
@@ -831,18 +841,21 @@ void TPChat::getImagePreviewFile(const ChatMessage *const message)
 	}
 	else
 	{
-		const QString &preview_filename{chatsMediaSubDir(true) % "preview/"_L1 % QString::number(message->id) % ".png"_L1};
+		QString preview_filename{chatsMediaSubDir(true) % "preview/"_L1 % QString::number(message->id) % ".jpg"_L1};
 		if (!QFile::exists(preview_filename))
 		{
-			QImage thumbnail{message->media};
-			QSize img_size{std::move(thumbnail.size())};
-			const auto ratio{img_size.width() / img_size.height()};
-			img_size.rwidth() = appSettings()->pageWidth() * 0.4;
-			img_size.rheight() = img_size.width() * ratio;
-			thumbnail = std::move(thumbnail.scaled(img_size));
-			thumbnail.save(preview_filename, "PNG", 10);
-			setData(index(message->id), preview_filename, mediaPreviewRole);
-			setData(index(message->id), false, mediaOpenExternalRole);
+			if (appUtils()->mkdir(chatsMediaSubDir(true) % "preview/"_L1))
+			{
+				QImage thumbnail{message->media};
+				QSize img_size{std::move(thumbnail.size())};
+				const auto ratio{img_size.width() / img_size.height()};
+				img_size.rwidth() = qMin(static_cast<int>(appSettings()->pageWidth() * 0.5), img_size.width() * ratio);
+				img_size.rheight() = qMin(static_cast<int>(appSettings()->pageHeight() * 0.3), img_size.height() * ratio);
+				thumbnail = std::move(thumbnail.scaled(img_size));
+				thumbnail.save(preview_filename, "JPG", 10);
+			}
 		}
+		message->preview_media = std::move(preview_filename);
+		message->external_media = false;
 	}
 }

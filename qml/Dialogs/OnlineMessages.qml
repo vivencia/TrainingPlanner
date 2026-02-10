@@ -18,24 +18,14 @@ TPPopup {
 	finalYPos: 180
 	width: mainIcon.width
 	height: mainIcon.height
-	backgroundRec: backRec
+	backgroundRec.visible: fullDialogVisible
+	backGroundImage: ":/images/backgrounds/backimage-messages.jpg"
 
 	property bool fullDialogVisible: false
 	property int mainIconUserDefinedX: x
 	property int mainIconUserDefinedY: y
 	readonly property int dlgMaxWidth: appSettings.pageWidth * 0.8
 	readonly property int maxHeight: appSettings.pageHeight * 0.5
-
-	TPBackRec {
-		id: backRec
-		useImage: fullDialogVisible
-		visible: fullDialogVisible
-		sourceImage: ":/images/backgrounds/backimage-messages.jpg"
-		image_size: Qt.size(dlgMaxWidth, maxHeight)
-		radius: 8
-		layer.enabled: true
-		anchors.fill: parent
-	}
 
 	ParallelAnimation
 	{
@@ -237,6 +227,9 @@ TPPopup {
 
 							TPImage {
 								source: msgicon
+								imageSizeFollowControlSize: true
+								keepAspectRatio: true
+								fullWindowView: false
 								dropShadow: false
 								width: 20
 								height: 20

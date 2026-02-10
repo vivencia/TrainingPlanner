@@ -171,7 +171,7 @@
         <file>extras/exercises_en_EN.lst</file>
         <file>extras/exercises_pt_BR.lst</file>
         <file>images/attach_red.png</file>
-        <file>images/attach_grey.png</file>
+        <file>images/attach_gray.png</file>
         <file>images/attach_light.png</file>
         <file>images/attach_dark.png</file>
         <file>images/attach_blue.png</file>
@@ -182,5 +182,11 @@
         <file>images/docx_preview.png</file>
         <file>images/pdf_preview.png</file>
         <file>images/generic_preview.png</file>
+        <file>images/backgrounds/weather_light.jpg</file>
+        <file>images/backgrounds/weather_gray.jpg</file>
+        <file>images/backgrounds/weather_dark.jpg</file>
+        <file>images/backgrounds/weather_red.jpg</file>
+        <file>images/backgrounds/weather_green.jpg</file>
+        <file>images/backgrounds/weather_blue.jpg</file>
     </qresource>
 </RCC>

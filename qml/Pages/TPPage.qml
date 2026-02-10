@@ -30,8 +30,6 @@ Page {
 	background: TPBackRec {
 		useImage: imageSource.length > 0
 		image_size: Qt.size(appSettings.pageWidth, appSettings.pageHeight * 1.1)
-		//widthScale: 1.05
-		//heightScale: 1.3
 		sourceImage: imageSource
 		overlayOpacity: backgroundOpacity
 	}

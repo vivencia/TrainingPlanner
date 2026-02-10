@@ -143,7 +143,7 @@ QString TPUtils::getFileName(const QString &filename, const bool without_extensi
 QString TPUtils::getFileExtension(const QString &filename, const bool include_dot, const QString &default_ext) const
 {
 	const qsizetype dot_idx{filename.lastIndexOf('.')};
-	return dot_idx > 0 ? filename.last(filename.length() - dot_idx + (include_dot ? 0 : 1)) : default_ext;
+	return dot_idx > 0 ? filename.last(filename.length() - dot_idx - (include_dot ? 0 : 1)) : default_ext;
 }
 
 bool TPUtils::fileRecentlyModified(const QString &filename, const int threshold) const

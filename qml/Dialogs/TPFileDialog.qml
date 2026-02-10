@@ -6,10 +6,11 @@ FileDialog {
 	fileMode: saveDialog ? FileDialog.SaveFile : FileDialog.OpenFile
 	defaultSuffix: "txt"
 	options: saveDialog ? FileDialog.ReadOnly : 0
-	selectedFile: suggestedName
+	nameFilters: filters
 
 	signal dialogClosed(int result);
 
+	property list<string> filters
 	property string suggestedName
 	property bool saveDialog: false
 	property bool chooseDialog: true
@@ -21,24 +22,26 @@ FileDialog {
 	property bool includeAllFilesFilter: false
 
 	function show() {
-		nameFilters = 0;
+		if (!saveDialog && suggestedName !== "")
+			selectedFile = suggestedName;
+		filters.length = 0;
 		currentFolder = StandardPaths.writableLocation(StandardPaths.DocumentsLocation);
 		if (includeAllFilesFilter)
-			nameFilter.push(qsTr("Any file type") + " (*.*)");
+			filters.push(qsTr("Any file type") + " (*.*)");
 		else {
 			if (includeTextFilter)
-				nameFilter.push(qsTr("Training Planner's files") + " (*.txt)");
+				filters.push(qsTr("Training Planner's files") + " (*.txt)");
 			if (includeDocFilesFilter)
-				nameFilter.push(qsTr("Documents") + " (*.doc *.docx *.odt)");
+				filters.push(qsTr("Documents") + " (*.doc *.docx *.odt)");
 			if (includePDFFilter)
-				nameFilter.push(qsTr("PDF Files") + " (*.pdf)");
+				filters.push(qsTr("PDF Files") + " (*.pdf)");
 			if (includeVideoFilter) {
 				currentFolder = StandardPaths.writableLocation(StandardPaths.MoviesLocation);
-				nameFilter.push(qsTr("Videos") + " (*.mp4 *.mkv)");
+				filters.push(qsTr("Videos") + " (*.mp4 *.mkv)");
 			}
 			if (includeImageFilter) {
 				currentFolder = StandardPaths.writableLocation(StandardPaths.PicturesLocation);
-				nameFilter.push(qsTr("Images") + " (*.jpg *.jpeg *.png)");
+				filters.push(qsTr("Images") + " (*.jpg *.jpeg *.png)");
 			}
 		}
 		open();

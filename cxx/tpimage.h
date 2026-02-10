@@ -16,8 +16,9 @@ Q_PROPERTY(QString source READ source WRITE setSource NOTIFY sourceChanged)
 Q_PROPERTY(bool dropShadow READ dropShadow WRITE setDropShadow NOTIFY dropShadowChanged FINAL)
 Q_PROPERTY(bool keepAspectRatio READ keepAspectRatio WRITE setKeepAspectRatio NOTIFY keepAspectRatioChanged FINAL)
 Q_PROPERTY(bool imageSizeFollowControlSize READ imageSizeFollowControlSize WRITE setImageSizeFollowControlSize NOTIFY imageSizeFollowControlSizeChanged FINAL)
-Q_PROPERTY(double imageWidth READ imageWidth WRITE setImageWidth NOTIFY imageSizeChanged FINAL)
-Q_PROPERTY(double imageHeight READ imageHeight WRITE setImageHeight NOTIFY imageSizeChanged FINAL)
+Q_PROPERTY(bool fullWindowView READ fullWindowView WRITE setFullWindowView NOTIFY fullWindowViewChanged FINAL)
+Q_PROPERTY(double preferredWidth READ preferredWidth CONSTANT FINAL)
+Q_PROPERTY(double preferredHeight READ preferredHeight CONSTANT FINAL)
 Q_PROPERTY(double wScale READ wScale WRITE setWScale NOTIFY scaleChanged FINAL)
 Q_PROPERTY(double hScale READ hScale WRITE setHScale NOTIFY scaleChanged FINAL)
 
@@ -30,18 +31,14 @@ public:
 	inline bool dropShadow() const { return m_dropShadow; }
 	void setDropShadow(const bool drop_shadow);
 	inline bool keepAspectRatio() const { return m_aspectRatioMode == Qt::KeepAspectRatio; }
-	inline void setKeepAspectRatio(const bool keep_ar)
-	{
-		m_aspectRatioMode = (keep_ar ? Qt::KeepAspectRatio : Qt::IgnoreAspectRatio);
-		emit keepAspectRatioChanged();
-	}
-	inline bool imageSizeFollowControlSize() const { return m_imageFollowControl.has_value() ? m_imageFollowControl.value() : true; }
-	inline void setImageSizeFollowControlSize(const bool follow) { m_imageFollowControl = follow; emit imageSizeFollowControlSizeChanged(); }
-	inline double imageWidth() const { return m_imageSize.width(); }
-	inline void setImageWidth(const double new_iwidth) { m_imageSize.setWidth(new_iwidth); emit imageSizeChanged(); }
-	inline double imageHeight() const { return m_imageSize.height(); }
-	inline void setImageHeight(const double new_iheight) { m_imageSize.setHeight(new_iheight); emit imageSizeChanged(); }
+	void setKeepAspectRatio(const bool keep_ar);
+	inline bool imageSizeFollowControlSize() const { return m_imageFollowControl.has_value() ? m_imageFollowControl.value() : false; }
+	void setImageSizeFollowControlSize(const bool follow);
+	inline bool fullWindowView() const { return m_fullWindowView.has_value() ? m_fullWindowView.value() : false; }
+	void setFullWindowView(const bool fullview);
 
+	double preferredWidth() const;
+	double preferredHeight() const;
 	inline double wScale() const { return m_wscale; }
 	void setWScale(const double new_wscale);
 	inline double hScale() const { return m_hscale; }
@@ -58,7 +55,7 @@ signals:
 	void dropShadowChanged();
 	void keepAspectRatioChanged();
 	void imageSizeFollowControlSizeChanged();
-	void imageSizeChanged();
+	void fullWindowViewChanged();
 	void scaleChanged();
 
 private:
@@ -67,9 +64,9 @@ private:
 	QImage *m_imageToPaint;
 	QSize m_imageSize;
 	bool m_dropShadow, m_canColorize;
-	std::optional<bool> m_imageFollowControl;
+	std::optional<bool> m_imageFollowControl, m_fullWindowView;
+	std::optional<Qt::AspectRatioMode> m_aspectRatioMode;
 	double m_wscale, m_hscale;
-	Qt::AspectRatioMode m_aspectRatioMode;
 
 	void scaleImage();
 	void convertToGrayScale();

@@ -20,7 +20,7 @@
 constexpr QLatin1StringView mesosViewIdxSetting{"mesosViewIdx"};
 
 DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
-	: QObject{parent}, m_currentWorkingMeso{-1}
+	: QObject{parent}, m_currentWorkingMeso{-1}, m_ownMesos{nullptr}, m_clientMesos{nullptr}
 {
 	if (appUserModel()->mainUserIsClient())
 		m_ownMesos = new HomePageMesoModel{this, true};
@@ -148,7 +148,7 @@ void DBMesocyclesModel::openSpecificWorkout(const uint meso_idx, const QDate &da
 
 void DBMesocyclesModel::setCurrentMesosView(const bool own_mesos_view)
 {
-	int new_working_meso{own_mesos_view ? m_ownMesos->currentMesoIdx() : m_clientMesos->currentMesoIdx()};
+	int new_working_meso{own_mesos_view ? (m_ownMesos ? m_ownMesos->currentMesoIdx() : -1) : (m_clientMesos ? m_clientMesos->currentMesoIdx() : -1)};
 	if (new_working_meso != m_currentWorkingMeso)
 	{
 		m_currentWorkingMeso = new_working_meso;

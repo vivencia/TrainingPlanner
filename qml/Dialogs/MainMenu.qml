@@ -136,6 +136,9 @@ Drawer {
 		TPImage {
 			id: imgAvatar
 			dropShadow: true
+			keepAspectRatio: true
+			imageSizeFollowControlSize: true
+			fullWindowView: false
 			source: userModel.avatar(0)
 			width: parent.height * 0.25
 			height: width

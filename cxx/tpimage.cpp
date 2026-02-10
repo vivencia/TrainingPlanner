@@ -32,8 +32,7 @@ TPImage::TPImage(QQuickItem *parent)
 			return;
 		scaleImage();
 	});
-	connect(appSettings(), &TPSettings::colorChanged, this, [&] ()
-	{
+	connect(appSettings(), &TPSettings::colorChanged, this, [&] () {
 		if (m_image.isNull() || !m_canColorize)
 			return;
 		checkEnabled();
@@ -45,53 +44,59 @@ void TPImage::setSource(const QString &source)
 	if (!source.isEmpty())
 	{
 		m_canColorize = false;
-		m_aspectRatioMode = Qt::KeepAspectRatio;
 		QFileInfo img_file{source};
-		if (img_file.isFile())
+		if (img_file.isFile() && img_file.isReadable())
 		{
-			if (img_file.isReadable())
+			m_source = source;
+			if (m_image.load(m_source))
 			{
-				m_source = source;
-				m_aspectRatioMode = Qt::IgnoreAspectRatio;
-			}
-		}
-		else if (source.startsWith("image://tpimageprovider"_L1))
-		{
-			m_image = std::move(tpImageProvider()->getAvatar(source));
-			if (!m_image.isNull())
-			{
-				m_source = source;
-				scaleImage();
 				emit sourceChanged();
+				if (m_imageFollowControl.has_value() && m_fullWindowView.has_value() && m_aspectRatioMode.has_value())
+					scaleImage();
 			}
-			return;
 		}
 		else
 		{
-			if (source.endsWith("png"_L1))
+			m_aspectRatioMode = Qt::KeepAspectRatio;
+			m_imageFollowControl = true;
+			m_fullWindowView = false;
+			if (source.startsWith("image://tpimageprovider"_L1))
 			{
-				m_canColorize = true;
-				m_source = std::move(":/images/flat/"_L1 % source);
-			}
-			else if (source.endsWith("svg"_L1))
-			{
-				m_canColorize = true;
-				m_dropShadow = false;
-				m_source = std::move(":/images/"_L1 % source);
-			}
-			else if (source.endsWith('_'))
-			{
-				m_source = std::move(":/images/"_L1 % source.chopped(1) %
-											appSettings()->indexColorSchemeToColorSchemeName() % ".png"_L1);
+				m_image = std::move(tpImageProvider()->getAvatar(source));
+				if (!m_image.isNull())
+				{
+					m_source = source;
+					scaleImage();
+					emit sourceChanged();
+				}
+				return;
 			}
 			else
-				m_source = std::move(":/images/"_L1 % source % ".png"_L1);
-		}
-
-		if (m_image.load(m_source))
-		{
-			scaleImage();
-			emit sourceChanged();
+			{
+				if (source.endsWith("png"_L1))
+				{
+					m_canColorize = true;
+					m_source = std::move(":/images/flat/"_L1 % source);
+				}
+				else if (source.endsWith("svg"_L1))
+				{
+					m_canColorize = true;
+					m_dropShadow = false;
+					m_source = std::move(":/images/"_L1 % source);
+				}
+				else if (source.endsWith('_'))
+				{
+					m_source = std::move(":/images/"_L1 % source.chopped(1) %
+											appSettings()->indexColorSchemeToColorSchemeName() % ".png"_L1);
+				}
+				else
+					m_source = std::move(":/images/"_L1 % source % ".png"_L1);
+			}
+			if (m_image.load(m_source))
+			{
+				scaleImage();
+				emit sourceChanged();
+			}
 		}
 	}
 }
@@ -101,6 +106,44 @@ void TPImage::setDropShadow(const bool drop_shadow)
 	m_dropShadow = drop_shadow;
 	emit dropShadowChanged();
 	checkEnabled();
+}
+
+void TPImage::setKeepAspectRatio(const bool keep_ar)
+{
+	m_aspectRatioMode = (keep_ar ? Qt::KeepAspectRatio : Qt::IgnoreAspectRatio);
+	emit keepAspectRatioChanged();
+	if (m_fullWindowView.has_value() && m_imageFollowControl && !m_image.isNull())
+		scaleImage();
+}
+
+void TPImage::setImageSizeFollowControlSize(const bool follow)
+{
+	m_imageFollowControl = follow;
+	emit imageSizeFollowControlSizeChanged();
+	if (m_fullWindowView.has_value() && m_aspectRatioMode.has_value() && !m_image.isNull())
+		scaleImage();
+}
+
+void TPImage::setFullWindowView(const bool fullview)
+{
+	m_fullWindowView = fullview;
+	emit fullWindowViewChanged();
+	if (m_imageFollowControl.has_value() && m_aspectRatioMode.has_value() && !m_image.isNull())
+		scaleImage();
+}
+
+double TPImage::preferredWidth() const
+{
+	if (m_image.isNull())
+		return 0;
+	return QImage{m_source}.width();
+}
+
+double TPImage::preferredHeight() const
+{
+	if (m_image.isNull())
+		return 0;
+	return QImage{m_source}.height();
 }
 
 void TPImage::setWScale(const double new_wscale)
@@ -138,15 +181,7 @@ void TPImage::paint(QPainter *painter)
 {
 	if (!m_imageToPaint)
 		return;
-
-	if (imageSizeFollowControlSize())
-		painter->drawImage(QPoint{0, 0}, *m_imageToPaint);
-	else
-	{
-		const QRect center_rect_of_image{(m_imageToPaint->width() - static_cast<int>(width()))/2,
-					(m_imageToPaint->height() - static_cast<int>(height()))/2, qFloor(width()), qFloor(height())};
-		painter->drawImage(QPoint{0, 0}, *m_imageToPaint, center_rect_of_image);
-	}
+	painter->drawImage(QPoint{0, 0}, *m_imageToPaint);
 }
 
 void TPImage::checkEnabled()
@@ -179,32 +214,33 @@ void TPImage::scaleImage()
 		return;
 
 	if (imageSizeFollowControlSize())
-	{
-		setImageWidth(width());
-		setImageHeight(height());
-		QSize drawn_image_size{m_imageSize};
+	{		
+		m_imageSize = QSize{static_cast<int>(width()), static_cast<int>(height())};
 		if (m_dropShadow)
-			drawn_image_size -= QSize{DROP_SHADOW_EXTENT, DROP_SHADOW_EXTENT};
+			m_imageSize -= QSize{DROP_SHADOW_EXTENT, DROP_SHADOW_EXTENT};
 		else
-			drawn_image_size -= QSize{qCeil(width() * 0.05), qCeil(height() * 0.05)};
+			m_imageSize -= QSize{qCeil(width() * 0.05), qCeil(height() * 0.05)};
 
 		if (wScale() != 1.0)
-			drawn_image_size.rwidth() *= m_wscale;
+			m_imageSize.rwidth() *= m_wscale;
 		if (hScale() != 1.0)
-			drawn_image_size.rheight() *= m_hscale;
-		m_image = std::move(m_image.scaled(drawn_image_size, m_aspectRatioMode, Qt::SmoothTransformation));
+			m_imageSize.rheight() *= m_hscale;
+		m_image = std::move(m_image.scaled(m_imageSize, m_aspectRatioMode.value(), Qt::SmoothTransformation));
 	}
 	else
 	{
-		if (!m_imageSize.isValid())
-		{
-			setImageWidth(m_image.width());
-			setImageHeight(m_image.height());
-		}
+		if (!fullWindowView())
+			m_imageSize = QSize{m_image.width(), m_image.height()};
 		else
 		{
-			if (m_image.size() != m_imageSize)
-				m_image = std::move(m_image.scaled(m_imageSize, m_aspectRatioMode, Qt::SmoothTransformation));
+			//if (m_image.width() > m_image.height())
+			//{
+				m_imageSize = QSize{m_image.width(), m_image.height()};
+				QTransform transform;
+				transform.rotate(90, Qt::YAxis, 0);
+				m_image = std::move(m_image.transformed(transform, Qt::SmoothTransformation));
+
+			//}
 		}
 	}
 	m_imageDisabled = std::move(QImage{});
@@ -236,7 +272,7 @@ void TPImage::applyEffectToImage(QImage &dstImg, const QImage &srcImg, QGraphics
 	item.setPixmap(QPixmap::fromImage(srcImg));
 	item.setGraphicsEffect(effect);
 	scene.addItem(&item);
-	dstImg = std::move(srcImg.scaled(m_imageSize + QSize{extent * 2, extent * 2}, m_aspectRatioMode, Qt::SmoothTransformation));
+	dstImg = std::move(srcImg.scaled(m_imageSize + QSize{extent * 2, extent * 2}, m_aspectRatioMode.value(), Qt::SmoothTransformation));
 	dstImg.reinterpretAsFormat(QImage::Format_ARGB32);
 	dstImg.fill(Qt::transparent);
 	QPainter ptr{&dstImg};

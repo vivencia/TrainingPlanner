@@ -38,12 +38,12 @@ void ChatWSServer::setServerStatus(const bool enabled)
 		setupWSServer();
 }
 
-void ChatWSServer::connectToPeer(const QString &userid)
+void ChatWSServer::connectToPeer(const QString &userid, int n_attempts)
 {
 	const QLatin1String seed{"connectToPeer" % userid.toLatin1()};
 	const int requestid{appUtils()->generateUniqueId(seed)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
-	*conn = connect(this, &ChatWSServer::gotPeerAddress, [this,conn,requestid,userid] (const int request_id, const QString &address)
+	*conn = connect(this, &ChatWSServer::gotPeerAddress, [this,conn,requestid,userid,&n_attempts] (const int request_id, const QString &address)
 	{
 		if (request_id == requestid)
 		{
@@ -61,18 +61,24 @@ void ChatWSServer::connectToPeer(const QString &userid)
 					emit wsConnectionToClientPeerConcluded(true, userid, peer);
 				});
 				// Handle errors (e.g., server not found, connection refused)
-				QObject::connect(peer, &QWebSocket::errorOccurred, [=,this] (QAbstractSocket::SocketError error)
+				QObject::connect(peer, &QWebSocket::errorOccurred, [=,this,&n_attempts] (QAbstractSocket::SocketError error)
 				{
+					auto err_func = [this,peer,userid,error] () -> void {
+						qDebug() << "****** WebSocket error: " << error << " " << peer->errorString() << " " << peer->peerAddress();
+						emit wsConnectionToClientPeerConcluded(false, userid, nullptr);
+					};
 					switch (error)
 					{
 						case QAbstractSocket::ConnectionRefusedError:
 						case QAbstractSocket::RemoteHostClosedError:
 							peer->close();
-							connectToPeer(userid);
+							if (--n_attempts > 0)
+								connectToPeer(userid, n_attempts);
+							else
+								err_func();
 						break;
 						default:
-							qDebug() << "****** WebSocket error: " << error << " " << peer->errorString() << " " << peer->peerAddress();
-							emit wsConnectionToClientPeerConcluded(false, userid, nullptr);
+							err_func();
 						break;
 					}
 				});

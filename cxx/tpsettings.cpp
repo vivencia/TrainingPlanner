@@ -499,12 +499,12 @@ QString TPSettings::indexColorSchemeToColorSchemeName() const
 {
 	switch (colorScheme())
 	{
-		case Dark: return "_dark"_L1; break;
-		case Light: return "_light"_L1; break;
-		case Green: return "_green"_L1; break;
-		case Red: return "_red"_L1; break;
-		case Gray: return "_gray"_L1; break;
-		default: return "_blue"_L1; break;
+		case Dark: return "dark"_L1; break;
+		case Light: return "light"_L1; break;
+		case Green: return "green"_L1; break;
+		case Red: return "red"_L1; break;
+		case Gray: return "gray"_L1; break;
+		default: return "blue"_L1; break;
 	}
 }
 

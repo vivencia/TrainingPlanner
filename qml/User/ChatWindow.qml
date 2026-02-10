@@ -15,7 +15,7 @@ TPPopup {
 	finalYPos: normalY
 	width: normalWidth
 	height: normalHeight
-	backgroundRec: backRec
+	backGroundImage: ":/images/backgrounds/backimage-chat.jpg"
 
 	required property ChatModel chatManager
 
@@ -45,16 +45,6 @@ TPPopup {
 			if (canViewNewMessages)
 				messagesList.positionViewAtEnd();
 		}
-	}
-
-	TPBackRec {
-		id: backRec
-		useImage: true
-		scaleImageToControlSize: false
-		sourceImage: ":/images/backgrounds/backimage-chat.jpg"
-		radius: 8
-		opacity: 0.8
-		anchors.fill: parent
 	}
 
 	TPImage {
@@ -184,7 +174,7 @@ TPPopup {
 				border.color: appSettings.fontColor
 				radius: 8
 				opacity: 1 + swipe.position
-				width: mainLayout.childrenRect.width + 20
+				width: mainLayout.childrenRect.width + 10
 				height: mainLayout.childrenRect.height + 20
 				visible: !msgDeleted
 				anchors.top: parent.top
@@ -213,14 +203,44 @@ TPPopup {
 						id: mediaLoader
 						asynchronous: true
 						active: msgMedia.length > 0
-						Layout.margins: 2
 						Layout.alignment: Qt.AlignCenter
-						Layout.maximumHeight: appSettings.pageHeight * 0.4
-						Layout.maximumWidth: appSettings.pageWidth * 0.7
-						sourceComponent: TPImageViewer {
-							previewSource: msgMediaPreview
-							mediaSource: msgMedia
-							openExternally: msgOpenExternally
+						Layout.preferredWidth: parent.width
+						Layout.preferredHeight: active ? Math.min(Math.max(appSettings.itemExtraLargeHeight, item.imgViewer.preferredHeight) + item.lblFileName.height, appSettings.pageHeight * 0.15) : 0
+
+						sourceComponent: Item {
+
+							readonly property TPImageViewer imgViewer: image_viewer
+							readonly property TPLabel lblFileName: label_filename
+
+							TPImageViewer {
+								id: image_viewer
+								previewSource: msgMediaPreview
+								mediaSource: msgMedia
+								openExternally: msgOpenExternally
+								width: Math.min(Math.max(appSettings.itemExtraLargeHeight, preferredWidth), appSettings.pageWidth * 0.25)
+								height: Math.min(Math.max(appSettings.itemExtraLargeHeight, preferredHeight), appSettings.pageHeight * 0.15)
+
+								anchors {
+									top: parent.top
+									bottom: label_filename.top
+									horizontalCenter: label_filename.horizontalCenter
+									horizontalCenterOffset: (width - height) / 2
+								}
+							}
+
+							TPLabel {
+								id: label_filename
+								text: msgMediaFileName
+								horizontalAlignment: Text.AlignHCenter
+								useBackground: true
+								elide: Text.ElideRight
+
+								anchors {
+									left: parent.left
+									right: parent.right
+									bottom: parent.bottom
+								}
+							}
 						}
 					}
 
@@ -229,6 +249,7 @@ TPPopup {
 						text: msgText
 						textFormat: Text.RichText
 						singleLine: false
+						visible: msgText.length > 0
 						Layout.fillWidth: true
 						Layout.maximumWidth: messagesList.width * 0.9
 					}
@@ -248,7 +269,6 @@ TPPopup {
 								hintingPreference: Font.PreferFullHinting,
 								pixelSize: appSettings.smallFontSize * 0.7
 							})
-							Layout.alignment: Qt.AlignLeft
 							Layout.fillWidth: true
 						}
 
@@ -534,11 +554,12 @@ TPPopup {
 		active: false
 
 		sourceComponent: TPFileDialog {
-			includeAllFilesFilter: true
+			//includeAllFilesFilter: true
+			includePDFFilter: true
 			onDialogClosed: (result) => {
 				if (result === 0)
 					chatWindow.sendMessage(selectedFile);
-				importLoader.active = false;
+				sendFileLoader.active = false;
 			}
 		}
 

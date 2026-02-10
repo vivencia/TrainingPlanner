@@ -2,17 +2,21 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtMultimedia
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
-Image {
-	property string mediaSource
-	property string previewSource
-	property bool openExternally
-
+TPImage {
 	id: imagePreview
-	fillMode: Image.PreserveAspectFit
-	asynchronous: true
 	clip: true
+	smooth: false
 	source: previewSource
+	dropShadow: false
+	keepAspectRatio: true
+	imageSizeFollowControlSize: true
+	fullWindowView: false
+
+	required property string mediaSource
+	required property string previewSource
+	required property bool openExternally
 
 	MouseArea {
 		anchors.fill: parent
@@ -31,11 +35,14 @@ Image {
 	Window {
 		id: pictureWindow
 
-		Image {
+		TPImage {
 			id: largeImage
+			dropShadow: false
+			antialiasing: true
+			imageSizeFollowControlSize: false
+			fullWindowView: true
+			keepAspectRatio: true
 			anchors.fill: parent
-			fillMode: Image.PreserveAspectFit
-			asynchronous: true
 
 			MouseArea {
 				anchors.fill: parent

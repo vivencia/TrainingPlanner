@@ -94,7 +94,7 @@ Q_PROPERTY(QString settingsBackground READ settingsBackground NOTIFY colorChange
 Q_PROPERTY(QString userBackground READ userBackground NOTIFY colorChanged FINAL)
 Q_PROPERTY(QString coachesBackground READ coachesBackground NOTIFY colorChanged FINAL)
 Q_PROPERTY(QString clientsBackground READ clientsBackground NOTIFY colorChanged FINAL)
-
+Q_PROPERTY(QString weatherBackground READ weatherBackground NOTIFY colorChanged FINAL)
 Q_PROPERTY(bool alwaysAskConfirmation READ alwaysAskConfirmation WRITE setAlwaysAskConfirmation NOTIFY alwaysAskConfirmationChanged)
 Q_PROPERTY(QStringList colorSchemes READ colorSchemes FINAL CONSTANT)
 //--------------------------------------------USER   SETTINGS---------------------------------------------//
@@ -246,19 +246,23 @@ public:
 	QString indexColorSchemeToColorSchemeName() const;
 	inline QString settingsBackground() const
 	{
-		return ":/images/backgrounds/settings"_L1 + indexColorSchemeToColorSchemeName() + ".jpg"_L1;
+		return ":/images/backgrounds/settings_"_L1 + indexColorSchemeToColorSchemeName() + ".jpg"_L1;
 	}
 	inline QString userBackground() const
 	{
-		return ":/images/backgrounds/user"_L1 + indexColorSchemeToColorSchemeName() + ".jpg"_L1;
+		return ":/images/backgrounds/user_"_L1 + indexColorSchemeToColorSchemeName() + ".jpg"_L1;
 	}
 	inline QString coachesBackground() const
 	{
-		return ":/images/backgrounds/coaches"_L1 + indexColorSchemeToColorSchemeName() + ".jpg"_L1;
+		return ":/images/backgrounds/coaches_"_L1 + indexColorSchemeToColorSchemeName() + ".jpg"_L1;
 	}
 	inline QString clientsBackground() const
 	{
-		return ":/images/backgrounds/clients"_L1 + indexColorSchemeToColorSchemeName() + ".jpg"_L1;
+		return ":/images/backgrounds/clients_"_L1 + indexColorSchemeToColorSchemeName() + ".jpg"_L1;
+	}
+	inline QString weatherBackground() const
+	{
+		return ":/images/backgrounds/weather_"_L1 + indexColorSchemeToColorSchemeName() + ".jpg"_L1;
 	}
 
 	inline bool alwaysAskConfirmation() const { return getValue(currentUser(), ASK_CONFIRMATION_INDEX, m_defaultValues.at(ASK_CONFIRMATION_INDEX)).toBool(); }

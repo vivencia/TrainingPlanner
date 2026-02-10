@@ -10,7 +10,6 @@ Rectangle {
 	property bool useGradient: false
 	property bool useImage: false
 	property bool showBorder: false
-	property bool scaleImageToControlSize: true
 
 	property string sourceImage
 	property double widthScale: 1.0
@@ -37,7 +36,9 @@ Rectangle {
 
 		sourceComponent: TPImage {
 			id: _image
-			imageSizeFollowControlSize: scaleImageToControlSize
+			imageSizeFollowControlSize: true
+			keepAspectRatio: false
+			fullWindowView: false
 			wScale: widthScale
 			hScale: heightScale
 			source: sourceImage
