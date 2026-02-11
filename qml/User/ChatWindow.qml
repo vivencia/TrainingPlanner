@@ -28,6 +28,7 @@ TPPopup {
 	property int normalHeight: appSettings.pageHeight * 0.5
 	property int normalX: (appSettings.pageWidth - width) / 2
 	property int normalY: (appSettings.pageHeight - height) / 2
+	property int nMedia: 0
 
 	onOpened: {
 		chatManager.onChatWindowOpened();
@@ -204,27 +205,37 @@ TPPopup {
 						asynchronous: true
 						active: msgMedia.length > 0
 						Layout.alignment: Qt.AlignCenter
-						Layout.preferredWidth: parent.width
-						Layout.preferredHeight: active ? Math.min(Math.max(appSettings.itemExtraLargeHeight, item.imgViewer.preferredHeight) + item.lblFileName.height, appSettings.pageHeight * 0.15) : 0
+						Layout.preferredWidth: active ? Math.max(item.imgViewer.width, item.lblFileName.contentWidth) + 10 : 0
+						Layout.preferredHeight: active ? item.imgViewer.height + appSettings.itemDefaultHeight + 10 : 0
 
 						sourceComponent: Item {
 
 							readonly property TPImageViewer imgViewer: image_viewer
 							readonly property TPLabel lblFileName: label_filename
 
+							Timer {
+								id: waitTimer
+								interval: 100
+								onTriggered: messagesList.positionViewAtEnd();
+							}
+
 							TPImageViewer {
 								id: image_viewer
 								previewSource: msgMediaPreview
 								mediaSource: msgMedia
 								openExternally: msgOpenExternally
-								width: Math.min(Math.max(appSettings.itemExtraLargeHeight, preferredWidth), appSettings.pageWidth * 0.25)
-								height: Math.min(Math.max(appSettings.itemExtraLargeHeight, preferredHeight), appSettings.pageHeight * 0.15)
+								width: msgOpenExternally ? appSettings.itemExtraLargeHeight : preferredWidth
+								height: msgOpenExternally ? appSettings.itemExtraLargeHeight : preferredHeight
 
 								anchors {
 									top: parent.top
-									bottom: label_filename.top
 									horizontalCenter: label_filename.horizontalCenter
 									horizontalCenterOffset: (width - height) / 2
+								}
+
+								onImageSizeChanged: {
+									if (++nMedia === chatManager.nMediaMessages())
+										waitTimer.start();
 								}
 							}
 
@@ -238,7 +249,7 @@ TPPopup {
 								anchors {
 									left: parent.left
 									right: parent.right
-									bottom: parent.bottom
+									top: image_viewer.bottom
 								}
 							}
 						}

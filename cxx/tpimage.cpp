@@ -10,6 +10,7 @@
 #include <QGraphicsEffect>
 #include <QGraphicsScene>
 #include <QGraphicsPixmapItem>
+#include <QScreen>
 
 using namespace Qt::Literals::StringLiterals;
 
@@ -28,9 +29,12 @@ TPImage::TPImage(QQuickItem *parent)
 			checkEnabled();
 	});
 	connect(this, &QQuickItem::heightChanged, this, [this] () {
-		if (m_image.isNull())
-			return;
-		scaleImage();
+		if (!m_image.isNull())
+			scaleImage();
+	});
+	connect(this, &QQuickItem::widthChanged, this, [this] () {
+		if (!m_image.isNull() && !m_imageSize.isValid())
+			scaleImage();
 	});
 	connect(appSettings(), &TPSettings::colorChanged, this, [&] () {
 		if (m_image.isNull() || !m_canColorize)
@@ -179,9 +183,8 @@ void TPImage::saveToDisk(const QString &filename)
 
 void TPImage::paint(QPainter *painter)
 {
-	if (!m_imageToPaint)
-		return;
-	painter->drawImage(QPoint{0, 0}, *m_imageToPaint);
+	if (m_imageToPaint)
+		painter->drawImage(QPoint{0, 0}, *m_imageToPaint);
 }
 
 void TPImage::checkEnabled()
@@ -210,11 +213,11 @@ void TPImage::checkEnabled()
 
 void TPImage::scaleImage()
 {
-	if (height() <= 0 || width() <= 0)
-		return;
-
 	if (imageSizeFollowControlSize())
-	{		
+	{
+		if (height() <= 0 || width() <= 0)
+			return;
+
 		m_imageSize = QSize{static_cast<int>(width()), static_cast<int>(height())};
 		if (m_dropShadow)
 			m_imageSize -= QSize{DROP_SHADOW_EXTENT, DROP_SHADOW_EXTENT};
@@ -233,16 +236,25 @@ void TPImage::scaleImage()
 			m_imageSize = QSize{m_image.width(), m_image.height()};
 		else
 		{
-			//if (m_image.width() > m_image.height())
-			//{
-				m_imageSize = QSize{m_image.width(), m_image.height()};
-				QTransform transform;
-				transform.rotate(90, Qt::YAxis, 0);
-				m_image = std::move(m_image.transformed(transform, Qt::SmoothTransformation));
+			const QScreen *screen{QGuiApplication::primaryScreen()};
+			const QRect &screenGeometry{screen->availableGeometry()};
+			const int s_width{screenGeometry.width()};
+			const int s_height{screenGeometry.height()};
+			if (m_image.width() > m_image.height())
+			{
+				if (s_height > s_width)
+					m_image = std::move(QImage{m_source}.transformed(QTransform{}.rotate(-270), Qt::SmoothTransformation));
+			}
+			m_imageSize = QSize{s_width, s_height};
+			m_image = std::move(m_image.scaled(m_imageSize, m_aspectRatioMode.value(), Qt::SmoothTransformation));
+			m_imageToPaint = &m_image;
+			update();
+			emit imageSizeChanged();
+			return;
 
-			//}
 		}
 	}
+	emit imageSizeChanged();
 	m_imageDisabled = std::move(QImage{});
 	m_imageShadow = std::move(QImage{});
 	checkEnabled();

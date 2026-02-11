@@ -183,6 +183,7 @@ void TPChat::loadChat()
 	{
 		if (success)
 		{
+			m_nMedia = 0;
 			beginInsertRows(QModelIndex{}, 0, m_dbModelInterface->modelData().count() - 1);
 			for (const auto &str_message : std::as_const(m_dbModelInterface->modelData()))
 			{
@@ -803,6 +804,7 @@ inline QString TPChat::chatsMediaSubDir(const bool fullpath) const
 
 void TPChat::getMediaPreviewFile(ChatMessage *const message)
 {
+	++m_nMedia;
 	QString ext{std::move(appUtils()->getFileExtension(message->media))};
 	if (ext == "png"_L1 || ext == "jpg"_L1 || ext == "gif"_L1)
 		getImagePreviewFile(message);

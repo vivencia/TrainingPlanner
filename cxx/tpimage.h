@@ -19,6 +19,8 @@ Q_PROPERTY(bool imageSizeFollowControlSize READ imageSizeFollowControlSize WRITE
 Q_PROPERTY(bool fullWindowView READ fullWindowView WRITE setFullWindowView NOTIFY fullWindowViewChanged FINAL)
 Q_PROPERTY(double preferredWidth READ preferredWidth CONSTANT FINAL)
 Q_PROPERTY(double preferredHeight READ preferredHeight CONSTANT FINAL)
+Q_PROPERTY(int imageWidth READ imageWidth NOTIFY imageSizeChanged FINAL)
+Q_PROPERTY(int imageHeight READ imageHeight NOTIFY imageSizeChanged FINAL)
 Q_PROPERTY(double wScale READ wScale WRITE setWScale NOTIFY scaleChanged FINAL)
 Q_PROPERTY(double hScale READ hScale WRITE setHScale NOTIFY scaleChanged FINAL)
 
@@ -39,6 +41,8 @@ public:
 
 	double preferredWidth() const;
 	double preferredHeight() const;
+	inline int imageWidth() const { return m_imageSize.width(); }
+	inline int imageHeight() const { return m_imageSize.height(); }
 	inline double wScale() const { return m_wscale; }
 	void setWScale(const double new_wscale);
 	inline double hScale() const { return m_hscale; }
@@ -57,6 +61,7 @@ signals:
 	void imageSizeFollowControlSizeChanged();
 	void fullWindowViewChanged();
 	void scaleChanged();
+	void imageSizeChanged();
 
 private:
 	QString m_source;

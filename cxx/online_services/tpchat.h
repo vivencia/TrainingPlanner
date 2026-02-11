@@ -75,6 +75,7 @@ public:
 	void incomingMessage(const QString &encoded_message);
 	void clearChat();
 	QVariant data(const ChatMessage *const message, const uint field, const bool format_output = false) const;
+	Q_INVOKABLE inline int nMediaMessages() const { return m_nMedia; }
 
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
 	QVariant data(const QModelIndex &index, int role) const override final;
@@ -97,7 +98,7 @@ signals:
 
 private:
 	QString m_otherUserId;
-	uint m_userIdx;
+	uint m_userIdx, m_nMedia;
 	QList<ChatMessage*> m_messages;
 	QHash<int, QByteArray> m_roleNames;
 	QObject *m_chatWindow;
