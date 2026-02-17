@@ -27,7 +27,7 @@ FileDialog {
 		filters.length = 0;
 		currentFolder = StandardPaths.writableLocation(StandardPaths.DocumentsLocation);
 		if (includeAllFilesFilter)
-			filters.push(qsTr("Any file type") + " (*.*)");
+			filters.push(qsTr("Any") + " (*.*)");
 		else {
 			if (includeTextFilter)
 				filters.push(qsTr("Training Planner's files") + " (*.txt)");

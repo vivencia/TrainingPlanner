@@ -109,7 +109,7 @@ void TPMessagesManager::removeMessage(TPMessage *msg)
 		{
 			beginRemoveRows(QModelIndex{}, row, row);
 			m_data.remove(row);
-			if (msg->autoDelete())
+			if (!msg->sticky())
 				delete msg;
 			emit countChanged();
 			emit dataChanged(QModelIndex{}, QModelIndex{}); //Needed because this is the only signal the QML side is getting, but I don't know why
@@ -139,6 +139,37 @@ void TPMessagesManager::itemClicked(const qsizetype message_id)
 	}
 }
 
+void TPMessagesManager::binaryFileReceived(const QByteArray &data, const QString &userid)
+{
+	QString filename{std::move(appUserModel()->userDir())};
+	filename.removeFirst();
+	const int id{appUtils()->idFromString(filename)};
+
+	filename += std::move(data.last(data.length() - data.lastIndexOf(record_separator.toLatin1())));
+
+	if (message(id) == nullptr)
+	{
+		TPMessage *new_message{new TPMessage(appUserModel()->userNameFromId(userid) % tr(" has sent you a file"), "message-file-received"_L1)};
+		new_message->setId(id);
+		new_message->insertData(filename);
+		new_message->insertAction(tr("View"), [this,userid] (const QVariant &var) {
+			appUtils()->
+				//actualMesoModel()->viewOnlineMeso(userid, var.toString());
+		}, true);
+		new_message->insertData(filename);
+		new_message->insertAction(tr("Delete"), [=,this] (const QVariant &var) {
+			//appUtils()->getFileName()
+			//appOnlineServices()->removeFile(appUtils()->generateUniqueId(), var.toString(), mesos_subdir, userid);
+		}, true);
+		new_message->plug();
+	}
+}
+
+void TPMessagesManager::textMesssageReceived(const QString &message)
+{
+
+}
+
 TPMessage *TPMessagesManager::createChatMessage(const QString &userid, const bool check_unread_messages)
 {
 	const int user_idx{appUserModel()->userIdxFromFieldValue(USER_COL_ID, userid)};
@@ -150,8 +181,7 @@ TPMessage *TPMessagesManager::createChatMessage(const QString &userid, const boo
 TPMessage *TPMessagesManager::createChatMessage(const QString &userid, QString &&display_text, QString &&icon_source,
 																						const bool check_unread_messages)
 {
-	TPMessage *chat_message{new TPMessage{std::move(display_text), std::move(icon_source), this}};
-	chat_message->setAutoDelete(false);
+	TPMessage *chat_message{new TPMessage{std::move(display_text), std::move(icon_source)}};
 	chat_message->setSticky(true);
 	chat_message->setId(userid.toLong());
 	chat_message->setExtraInfoImage("new-messages");

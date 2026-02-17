@@ -34,7 +34,6 @@ QT_FORWARD_DECLARE_CLASS(DBModelInterfaceChat)
 QT_FORWARD_DECLARE_STRUCT(ChatMessage)
 QT_FORWARD_DECLARE_CLASS(TPChatDB)
 QT_FORWARD_DECLARE_CLASS(QTimer)
-QT_FORWARD_DECLARE_CLASS(QWebSocket)
 
 class TPChat : public QAbstractListModel
 {
@@ -51,8 +50,6 @@ public:
 	static constexpr QLatin1StringView chatsSubDir{"chats/"};
 
 	explicit TPChat(const QString &otheruser_id, const bool check_unread_messages, QObject *parent = nullptr);
-
-	void setWSPeer(QWebSocket *peer);
 
 	void loadChat();
 	inline void setChatWindow(QObject *chat_window) { m_chatWindow = chat_window; }
@@ -77,14 +74,17 @@ public:
 	QVariant data(const ChatMessage *const message, const uint field, const bool format_output = false) const;
 	Q_INVOKABLE inline int nMediaMessages() const { return m_nMedia; }
 
+	bool canUseWebSocket() const;
+	bool canUseServer() const;
+
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
 	QVariant data(const QModelIndex &index, int role) const override final;
 	bool setData(const QModelIndex &index, const QVariant &value, int role) override final;
 	inline virtual int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
 
 public slots:
-	void processWebSocketTextMessage(const QString &message);
-	void processWebSocketBinaryMessage(const QByteArray &data);
+	void processWebSocketTextMessage(QString &&message);
+	void processWebSocketBinaryMessage(const QString &filename, QByteArray &&data);
 	Q_INVOKABLE void onChatWindowOpened();
 
 signals:
@@ -104,7 +104,6 @@ private:
 	QObject *m_chatWindow;
 	DBModelInterfaceChat *m_dbModelInterface;
 	TPChatDB *m_db;
-	QWebSocket *m_peerSocket;
 	QTimer *m_sendMessageTimer;
 	uint8_t m_chatLoaded;
 	QHash<QString,std::function<void(const QString&)>> m_workFuncs;
@@ -112,7 +111,7 @@ private:
 	TPBool m_messageWorksQueued;
 
 	void setChatLoadedStatus(uint8_t status);
-	short connectionType() const;
+	short checkConnectionOptions() const;
 	void unqueueMessage(ChatMessage *const message);
 	void uploadAction(const uint field, ChatMessage *const message);
 	void acknowledgeMessageWorked(const uint msgid, const QLatin1StringView &work);
@@ -124,7 +123,6 @@ private:
 	void setUnreadMessages(const QString &unread_ids, const bool add = true);
 	QString chatsMediaSubDir(const bool fullpath) const;
 	void getMediaPreviewFile(ChatMessage *const message);
-	void getImagePreviewFile(ChatMessage *const message);
 
 	friend class TPMessagesManager;
 	Q_DISABLE_COPY(TPChat)

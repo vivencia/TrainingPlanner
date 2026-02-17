@@ -78,10 +78,6 @@ TPPopup {
 		onFinished: {
 			if ((onlineMsgsDlg.x + onlineMsgsDlg.width) > appSettings.pageWidth)
 				onlineMsgsDlg.x = appSettings.pageWidth - onlineMsgsDlg.width - 10;
-			/*if ((onlineMsgsDlg.y + onlineMsgsDlg.height) > appSettings.pageHeight) {
-				console.log(onlineMsgsDlg.y, onlineMsgsDlg.height, appSettings.pageHeight);
-				onlineMsgsDlg.y = appSettings.pageHeight - onlineMsgsDlg.height - 10;
-			}*/
 			fullDialogVisible = true;
 		}
 	}
@@ -231,15 +227,15 @@ TPPopup {
 								keepAspectRatio: true
 								fullWindowView: false
 								dropShadow: false
-								width: 20
-								height: 20
+								width: appSettings.itemSmallHeight
+								height: width
 							}
 
 							TPLabel {
 								text: msgdate + "  " + msgtime
 								font: AppGlobals.smallFont
-								height: 15
-								Layout.leftMargin: 20
+								height: appSettings.itemSmallHeight
+								Layout.leftMargin: appSettings.itemSmallHeight
 							}
 
 							Item {

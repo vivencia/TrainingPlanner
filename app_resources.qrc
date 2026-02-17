@@ -98,7 +98,7 @@
         <file>images/flat/show-password.png</file>
         <file>images/color-choose.png</file>
         <file>images/messages.png</file>
-        <file>images/message-meso.png</file>
+        <file>images/message-file-received.png</file>
         <file>images/flat/list.png</file>
         <file>images/goto-next.png</file>
         <file>images/settings.png</file>
@@ -176,8 +176,7 @@
         <file>images/attach_dark.png</file>
         <file>images/attach_blue.png</file>
         <file>images/attach_green.png</file>
-        <file>images/mp4_preview.png</file>
-        <file>images/mkv_preview.png</file>
+        <file>images/video_preview.png</file>
         <file>images/odf_preview.png</file>
         <file>images/docx_preview.png</file>
         <file>images/pdf_preview.png</file>
@@ -188,5 +187,9 @@
         <file>images/backgrounds/weather_red.jpg</file>
         <file>images/backgrounds/weather_green.jpg</file>
         <file>images/backgrounds/weather_blue.jpg</file>
+        <file>images/user_preview.png</file>
+        <file>images/meso_preview.png</file>
+        <file>images/exerciselist_preview.png</file>
+        <file>images/workout_preview.png</file>
     </qresource>
 </RCC>

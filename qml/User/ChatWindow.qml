@@ -180,16 +180,32 @@ TPPopup {
 				visible: !msgDeleted
 				anchors.top: parent.top
 
-				Component.onCompleted: {
-					if (ownMessage) {
-						anchors.right = parent.right;
-						anchors.rightMargin = 10;
+				states: [
+					State {
+						when: ownMessage
+
+						AnchorChanges {
+							target: messageRec
+							anchors.right: parent.right
+						}
+						PropertyChanges {
+							target: messageRec
+							anchors.rightMargin: 10
+						}
+					},
+					State {
+						when: !ownMessage
+
+						AnchorChanges {
+							target: messageRec
+							anchors.left: parent.left
+						}
+						PropertyChanges {
+							target: messageRec
+							anchors.leftMargin: 10
+						}
 					}
-					else {
-						anchors.left = parent.left;
-						anchors.leftMargin = 10;
-					}
-				}
+				]
 
 				ColumnLayout {
 					id: mainLayout
@@ -565,8 +581,7 @@ TPPopup {
 		active: false
 
 		sourceComponent: TPFileDialog {
-			//includeAllFilesFilter: true
-			includePDFFilter: true
+			includeAllFilesFilter: true
 			onDialogClosed: (result) => {
 				if (result === 0)
 					chatWindow.sendMessage(selectedFile);

@@ -17,7 +17,7 @@ using namespace Qt::Literals::StringLiterals;
 #define DROP_SHADOW_EXTENT 5
 
 TPImage::TPImage(QQuickItem *parent)
-	: QQuickPaintedItem{parent}, m_imageToPaint{nullptr}, m_dropShadow{true}, m_canColorize{false}, m_wscale{1.0}, m_hscale{1.0}
+	: QQuickPaintedItem{parent}, m_imageToPaint{nullptr}, m_wscale{1.0}, m_hscale{1.0}
 {
 	connect(this, &QQuickItem::enabledChanged, this, [&] () {
 		if (m_image.isNull())
@@ -47,13 +47,14 @@ void TPImage::setSource(const QString &source)
 {
 	if (!source.isEmpty())
 	{
-		m_canColorize = false;
 		QFileInfo img_file{source};
 		if (img_file.isFile() && img_file.isReadable())
 		{
 			m_source = source;
 			if (m_image.load(m_source))
 			{
+				m_canColorize = false;
+				m_dropShadow = false;
 				emit sourceChanged();
 				if (m_imageFollowControl.has_value() && m_fullWindowView.has_value() && m_aspectRatioMode.has_value())
 					scaleImage();
@@ -64,6 +65,8 @@ void TPImage::setSource(const QString &source)
 			m_aspectRatioMode = Qt::KeepAspectRatio;
 			m_imageFollowControl = true;
 			m_fullWindowView = false;
+			m_canColorize = false;
+			m_dropShadow = true;
 			if (source.startsWith("image://tpimageprovider"_L1))
 			{
 				m_image = std::move(tpImageProvider()->getAvatar(source));
@@ -89,10 +92,7 @@ void TPImage::setSource(const QString &source)
 					m_source = std::move(":/images/"_L1 % source);
 				}
 				else if (source.endsWith('_'))
-				{
-					m_source = std::move(":/images/"_L1 % source.chopped(1) %
-											appSettings()->indexColorSchemeToColorSchemeName() % ".png"_L1);
-				}
+					m_source = std::move(":/images/"_L1 % source % appSettings()->indexColorSchemeToColorSchemeName() % ".png"_L1);
 				else
 					m_source = std::move(":/images/"_L1 % source % ".png"_L1);
 			}
@@ -221,8 +221,6 @@ void TPImage::scaleImage()
 		m_imageSize = QSize{static_cast<int>(width()), static_cast<int>(height())};
 		if (m_dropShadow)
 			m_imageSize -= QSize{DROP_SHADOW_EXTENT, DROP_SHADOW_EXTENT};
-		else
-			m_imageSize -= QSize{qCeil(width() * 0.05), qCeil(height() * 0.05)};
 
 		if (wScale() != 1.0)
 			m_imageSize.rwidth() *= m_wscale;

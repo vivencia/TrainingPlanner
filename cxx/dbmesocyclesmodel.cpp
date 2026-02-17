@@ -867,7 +867,7 @@ void DBMesocyclesModel::scanTemporaryMesocycles()
 		uint idx{0};
 		for(const auto &mesofile : std::as_const(mesos.second))
 		{
-			const QString &user_id{appUtils()->getLastDirInPath(mesofile.filePath())};
+			const QString &user_id{appUtils()->getNthDirInPath(mesofile.filePath())};
 			if (mesoPlanExists(appUtils()->getFileName(mesofile.fileName(), true),
 						mesos.first.at(idx) ? user_id : appUserModel()->userId(0),
 						mesos.first.at(idx) ? appUserModel()->userId(0) : user_id) == -1)

@@ -15,8 +15,6 @@ enum TPMessageFields {
 	TPMESSAGE_FIELD_STICKY,
 };
 
-QT_FORWARD_DECLARE_CLASS(TPMessagesManager)
-
 class TPMessage : public QObject
 {
 
@@ -24,10 +22,8 @@ Q_OBJECT
 QML_ELEMENT
 
 public:
-	inline explicit TPMessage(TPMessagesManager *parent) : QObject{nullptr}, m_parent{parent}, m_id{-1},
-																m_plugged{false}, m_autodelete{true}, m_sticky{false} {}
-	inline TPMessage(QString &&displayText, QString &&iconSource, TPMessagesManager *parent)
-			: QObject{nullptr}, m_parent{parent}, m_id{-1}, m_plugged{false}, m_autodelete{true}, m_sticky{false}
+	inline explicit TPMessage() : QObject{nullptr}, m_id{-1}, m_plugged{false}, m_sticky{false} {}
+	inline TPMessage(QString &&displayText, QString &&iconSource) : QObject{nullptr}
 	{
 		setDisplayText(std::move(displayText));
 		setIconSource(std::move(iconSource));
@@ -55,9 +51,6 @@ public:
 
 	inline const bool plugged() const { return m_plugged; }
 	void plug();
-
-	inline const bool autoDelete() const { return m_autodelete; }
-	inline void setAutoDelete(const bool autodelete) { m_autodelete = autodelete; }
 
 	inline const bool sticky() const { return m_sticky; }
 	inline void setSticky(const bool sticky) { m_sticky = sticky; emit dataChanged(TPMESSAGE_FIELD_STICKY); }
@@ -115,9 +108,8 @@ signals:
 	void dataChanged(const uint field);
 
 private:
-	TPMessagesManager *m_parent;
 	qsizetype m_id;
-	bool m_plugged, m_autodelete, m_sticky;
+	bool m_plugged, m_sticky;
 	QString m_text;
 	QString m_icon;
 	QString m_extraInfoImage, m_extraInfoLabel;

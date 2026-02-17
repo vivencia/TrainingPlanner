@@ -579,7 +579,7 @@ void OSInterface::openURL(const QString &address) const
 		androidOpenURL(address);
 		#else
 		auto *__restrict proc{new QProcess{}};
-		proc->startDetached("xdg-open"_L1, QStringList{} << address);
+		proc->startDetached("xdg-open"_L1, QStringList{1} << address);
 		delete proc;
 		#endif
 	}

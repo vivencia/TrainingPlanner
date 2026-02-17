@@ -10,11 +10,15 @@
 
 #include <QImage>
 #include <QTimer>
-#include <QWebSocket>
 
 #include <ranges>
 
-using namespace Qt::Literals::StringLiterals;
+using namespace QLiterals;
+
+enum ConnectionType {
+	CT_WS,
+	Ct_SERVER,
+};
 
 enum ChatLoadedStatus {
 	Unloaded,
@@ -69,8 +73,7 @@ struct ChatMessage {
 };
 
 TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QObject *parent)
-	: QAbstractListModel{parent}, m_otherUserId{otheruser_id}, m_chatWindow{nullptr},  m_chatLoaded{Unloaded},
-									m_sendMessageTimer{nullptr}, m_peerSocket{nullptr}
+	: QAbstractListModel{parent}, m_otherUserId{otheruser_id}, m_chatWindow{nullptr},  m_chatLoaded{Unloaded}, m_sendMessageTimer{nullptr}
 {
 	m_roleNames[idRole]					=	std::move("msgId");
 	m_roleNames[senderRole]				=	std::move("msgSender");
@@ -143,34 +146,6 @@ TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QO
 		auto x = [this] () -> std::pair<QVariant,QVariant> { return m_db->getNumberOfUnreadMessages(); };
 		m_db->setCustQueryFunction(x);
 		appThreadManager()->runAction(m_db, ThreadManager::CustomOperation);
-	}
-
-	if (appWSServer()->peerSocket(m_otherUserId)) //If peer had initiated the connection before, become their client
-		setWSPeer(appWSServer()->peerSocket(m_otherUserId));
-
-	connect(appWSServer(), &ChatWSServer::wsConnectionToClientPeerConcluded, this, [this]
-																(const bool success, const QString &userid, QWebSocket *peer)
-	{
-		if (userid == m_otherUserId)
-		{
-			if (success)
-				setWSPeer(peer);
-		}
-	});
-}
-
-void TPChat::setWSPeer(QWebSocket *peer)
-{
-	if (peer != m_peerSocket)
-	{
-		m_peerSocket = peer;
-		connect(m_peerSocket, SIGNAL(textMessageReceived(const QString &)), this, SLOT(processWebSocketTextMessage(const QString &)));
-		connect(m_peerSocket, SIGNAL(binaryMessageReceived(const QByteArray &)), this, SLOT(processWebSocketBinaryMessage(const QByteArray &)));
-		connect(m_peerSocket, &QWebSocket::disconnected, this, [this] () {
-			m_peerSocket->disconnect();
-			m_peerSocket->deleteLater();
-			m_peerSocket = nullptr;
-		});
 	}
 }
 
@@ -423,6 +398,16 @@ QVariant TPChat::data(const ChatMessage *const message, const uint field, const 
 	return QVariant{};
 }
 
+bool TPChat::canUseWebSocket() const
+{
+	return isBitSet(checkConnectionOptions(), CT_WS);
+}
+
+bool TPChat::canUseServer() const
+{
+	return isBitSet(checkConnectionOptions(), Ct_SERVER);
+}
+
 QVariant TPChat::data(const QModelIndex &index, int role) const
 {
 	const int row{index.row()};
@@ -437,7 +422,7 @@ bool TPChat::setData(const QModelIndex &index, const QVariant &value, int role)
 	if (row >= 0 && row < m_messages.count())
 	{
 		ChatMessage *const message{m_messages.at(row)};
-		const bool respond{!isBitSet(connectionType(), 0)}; //when not using WebSockets, a response to the server is needed
+		const bool respond{!canUseWebSocket()}; //when not using WebSockets, a response to the server is needed
 
 		switch (role)
 		{
@@ -493,7 +478,7 @@ bool TPChat::setData(const QModelIndex &index, const QVariant &value, int role)
 	return false;
 }
 
-void TPChat::processWebSocketTextMessage(const QString &message)
+void TPChat::processWebSocketTextMessage(QString &&message)
 {
 	bool ok{false};
 	static_cast<void>(appUtils()->getCompositeValue(0, message, exercises_separator).toInt(&ok));
@@ -501,9 +486,9 @@ void TPChat::processWebSocketTextMessage(const QString &message)
 	{
 		if (m_chatLoaded == Unloaded)
 		{
-			connect(this, &TPChat::chatLoadedStatusChanged, this, [this,message] {
+			connect(this, &TPChat::chatLoadedStatusChanged, this, [this,&message] {
 				if (m_chatLoaded == Loaded)
-					processWebSocketTextMessage(message);
+					processWebSocketTextMessage(std::move(message));
 			});
 			loadChat();
 			return;
@@ -514,28 +499,15 @@ void TPChat::processWebSocketTextMessage(const QString &message)
 	}
 }
 
-void TPChat::processWebSocketBinaryMessage(const QByteArray &data)
+void TPChat::processWebSocketBinaryMessage(const QString &filename, QByteArray &&data)
 {
-	QString filename{std::move(data.last(data.length() - data.lastIndexOf(record_separator.toLatin1())))};
-	filename.removeFirst();
-	appUtils()->writeBinaryFile(filename, data);
+	appUtils()->writeBinaryFile(appUserModel()->userDir() % filename, data);
 }
 
 void TPChat::onChatWindowOpened()
 {
-	if (!m_peerSocket)
-		//Attempt to initiate the connection by querying the server for the peer's(interlocutor's) address
-		appWSServer()->connectToPeer(m_otherUserId);
-	else
-	{
-		if (!m_peerSocket->isValid())
-		{
-			m_peerSocket->disconnect();
-			m_peerSocket->deleteLater();
-			m_peerSocket = nullptr;
-		}
-	}
 	markAllIncomingMessagesRead();
+	appWSServer()->connectToPeer(this, ChatWSServer::WS_TPCHAT, m_otherUserId);
 }
 
 inline void TPChat::setChatLoadedStatus(uint8_t status)
@@ -547,13 +519,13 @@ inline void TPChat::setChatLoadedStatus(uint8_t status)
 	}
 }
 
-inline short TPChat::connectionType() const
+inline short TPChat::checkConnectionOptions() const
 {
 	short has_connection{0};
-	if (!m_messageWorksQueued && m_peerSocket && m_peerSocket->isValid())
-		setBit(has_connection, 0);
+	if (!m_messageWorksQueued && appWSServer()->isConnectionOK(m_otherUserId))
+		setBit(has_connection, CT_WS);
 	if (appUserModel()->canConnectToServer())
-		setBit(has_connection, 1);
+		setBit(has_connection, Ct_SERVER);
 	return has_connection;
 }
 
@@ -571,8 +543,8 @@ void TPChat::unqueueMessage(ChatMessage* const message)
 
 void TPChat::uploadAction(const uint field, ChatMessage *const message)
 {
-	const short has_connection{connectionType()};
-	if (has_connection != 0)
+	const bool use_ws{canUseWebSocket()};
+	if (use_ws || canUseServer())
 	{
 		const QString &msgid{QString::number(message->id)};
 		const QLatin1StringView seed{QString{message->text % QString::number(field)}.toLatin1()};
@@ -585,38 +557,37 @@ void TPChat::uploadAction(const uint field, ChatMessage *const message)
 					setData(index(message->id), true, sentRole);
 					if (!message->media.isEmpty())
 					{
-						if (isBitSet(has_connection, 0))
-							m_peerSocket->sendBinaryMessage(appUtils()->readBinaryFile(message->media));
+						if (use_ws)
+							appWSServer()->sendBinaryMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId,
+																		appUtils()->readBinaryFile(message->media, chatsMediaSubDir(false)));
 						else
 							appUserModel()->sendFileToServer(message->media, nullptr, QString{}, chatsMediaSubDir(false), m_otherUserId);
 					}
-					if (isBitSet(has_connection, 0))
-						m_peerSocket->sendTextMessage(appUtils()->string_strings(
-							{QString::number(requestid), messageWorkSend, encodeMessageToUpload(message)}, exercises_separator));
+					if (use_ws)
+						appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId, appUtils()->string_strings(
+										{QString::number(requestid), messageWorkSend, encodeMessageToUpload(message)}, exercises_separator));
 					else
 						appOnlineServices()->sendMessage(requestid, m_otherUserId, std::move(encodeMessageToUpload(message)));
 				}
 			break;
 			case MESSAGE_DELETED:
-				if (isBitSet(has_connection, 0))
-					m_peerSocket->sendTextMessage(appUtils()->string_strings(
-												{QString::number(requestid), messageWorkRemoved, msgid}, exercises_separator));
+				if (use_ws)
+					appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId,
+								appUtils()->string_strings({QString::number(requestid), messageWorkRemoved, msgid}, exercises_separator));
 				else
 				{
 					if (message->own_message)
-					{
 						//Add message->id to the m_otherUserId/chats/this_user.removed file
 						appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkRemoved);
-					}
 					else
 						//Remove message->id from the m_otherUserId/chats/this_user.removed file
 						appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkRemoved);
 				}
 			break;
 			case MESSAGE_RECEIVED:
-				if (isBitSet(has_connection, 0))
-					m_peerSocket->sendTextMessage(appUtils()->string_strings(
-											{QString::number(requestid), messageWorkReceived, msgid}, exercises_separator));
+				if (use_ws)
+					appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId,
+								appUtils()->string_strings({QString::number(requestid), messageWorkReceived, msgid}, exercises_separator));
 				else
 				{
 					if (!message->own_message)
@@ -632,9 +603,9 @@ void TPChat::uploadAction(const uint field, ChatMessage *const message)
 				}
 			break;
 			case MESSAGE_READ:
-				if (isBitSet(has_connection, 0))
-					m_peerSocket->sendTextMessage(appUtils()->string_strings(
-													{QString::number(requestid), messageWorkRead, msgid}, exercises_separator));
+				if (use_ws)
+					appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId,
+									appUtils()->string_strings({QString::number(requestid), messageWorkRead, msgid}, exercises_separator));
 				else
 				{
 					if (!message->own_message)
@@ -647,9 +618,9 @@ void TPChat::uploadAction(const uint field, ChatMessage *const message)
 			break;
 			case MESSAGE_TEXT:
 			case MESSAGE_MEDIA:
-				if (isBitSet(has_connection, 0))
-					m_peerSocket->sendTextMessage(appUtils()->string_strings(
-												{QString::number(requestid), messageWorkEdited, msgid}, exercises_separator));
+				if (use_ws)
+					appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId,
+									appUtils()->string_strings({QString::number(requestid), messageWorkEdited, msgid}, exercises_separator));
 				else
 				{
 					if (!message->own_message)
@@ -804,23 +775,8 @@ inline QString TPChat::chatsMediaSubDir(const bool fullpath) const
 
 void TPChat::getMediaPreviewFile(ChatMessage *const message)
 {
-	++m_nMedia;
-	QString ext{std::move(appUtils()->getFileExtension(message->media))};
-	if (ext == "png"_L1 || ext == "jpg"_L1 || ext == "gif"_L1)
-		getImagePreviewFile(message);
-	else
-	{
-		if (ext != "pdf"_L1 && !ext.contains("doc"_L1) && ext != "odf"_L1 && ext != "mp4"_L1 && ext != "mkv"_L1)
-			ext = std::move("generic"_L1);
-		const QString &image_source{"%1_preview"_L1};
-		message->preview_media = std::move(image_source.arg(ext));
-		message->external_media = true;
-	}
-}
-
-void TPChat::getImagePreviewFile(ChatMessage *const message)
-{
-	if (!QFile::exists(message->media))
+	QString preview_image = std::move(appUtils()->getFileTypeIcon(message->media));
+	if (preview_image == "$error$"_L1)
 	{
 		QTimer *waitForMediaToDownloadTimer{new QTimer{this}};
 		int n_attempts{10};
@@ -831,7 +787,7 @@ void TPChat::getImagePreviewFile(ChatMessage *const message)
 			{
 				waitForMediaToDownloadTimer->stop();
 				delete waitForMediaToDownloadTimer;
-				getImagePreviewFile(message);
+				getMediaPreviewFile(message);
 			}
 			else
 			{
@@ -839,25 +795,12 @@ void TPChat::getImagePreviewFile(ChatMessage *const message)
 					delete waitForMediaToDownloadTimer;
 			}
 		});
-		waitForMediaToDownloadTimer->start();
 	}
 	else
 	{
-		QString preview_filename{chatsMediaSubDir(true) % "preview/"_L1 % QString::number(message->id) % ".jpg"_L1};
-		if (!QFile::exists(preview_filename))
-		{
-			if (appUtils()->mkdir(chatsMediaSubDir(true) % "preview/"_L1))
-			{
-				QImage thumbnail{message->media};
-				QSize img_size{std::move(thumbnail.size())};
-				const auto ratio{img_size.width() / img_size.height()};
-				img_size.rwidth() = qMin(static_cast<int>(appSettings()->pageWidth() * 0.5), img_size.width() * ratio);
-				img_size.rheight() = qMin(static_cast<int>(appSettings()->pageHeight() * 0.3), img_size.height() * ratio);
-				thumbnail = std::move(thumbnail.scaled(img_size));
-				thumbnail.save(preview_filename, "JPG", 10);
-			}
-		}
-		message->preview_media = std::move(preview_filename);
-		message->external_media = false;
+		message->preview_media = std::move(appUtils()->getFileTypeIcon(message->media));
+		message->external_media = !message->preview_media.endsWith("jpg"_L1);
+		if (!message->external_media)
+			++m_nMedia;
 	}
 }

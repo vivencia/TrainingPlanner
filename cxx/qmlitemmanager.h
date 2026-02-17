@@ -5,21 +5,6 @@
 #include <QObject>
 #include <QVariantMap>
 
-enum {
-	IFC_USER = 0,
-	IFC_MESO = 1,
-	IFC_MESOSPLIT = 2,
-		IFC_MESOSPLIT_A = 3,
-		IFC_MESOSPLIT_B = 4,
-		IFC_MESOSPLIT_C = 5,
-		IFC_MESOSPLIT_D = 6,
-		IFC_MESOSPLIT_E = 7,
-		IFC_MESOSPLIT_F = 8,
-	IFC_EXERCISES = 9,
-	IFC_WORKOUT = 10
-} typedef importFileContents;
-constexpr short ifc_count{11};
-
 static inline int deferredActionId()
 {
 	static uint da_id{TP_RET_CODE_DEFERRED_ACTION};

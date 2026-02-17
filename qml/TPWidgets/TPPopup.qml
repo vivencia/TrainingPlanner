@@ -32,8 +32,8 @@ Popup {
 	signal keyboardEnterPressed();
 	signal backKeyPressed();
 
-	onOpened: mainwindow.appPagesModel.popupOpened(this);
-	onClosed: mainwindow.appPagesModel.popupClosed(this);
+	onOpened: if (mainwindow.appPagesModel) mainwindow.appPagesModel.popupOpened(this);
+	onClosed: if (mainwindow.appPagesModel) mainwindow.appPagesModel.popupClosed(this);
 
 	Component.onCompleted: {
 		if (!modal && keepAbove) {

@@ -8,10 +8,10 @@
 namespace QLiterals = Qt::Literals::StringLiterals;
 using namespace QLiterals;
 
-constexpr QLatin1Char exercises_separator{28}; // \034 1c
-constexpr QLatin1Char comp_exercise_separator{29}; // \035 1d
-constexpr QLatin1Char record_separator{30}; // \036 1e
-constexpr QLatin1Char set_separator{31}; // \037 1f
+constexpr QLatin1Char exercises_separator{28}; // \034 0x1c
+constexpr QLatin1Char comp_exercises_separator{29}; // \035 0x1d
+constexpr QLatin1Char record_separator{30}; // \036 0x1e
+constexpr QLatin1Char set_separator{31}; // \037 0x1f
 
 constexpr QLatin1Char fancy_record_separator1{'|'};
 constexpr QLatin1Char fancy_record_separator2{';'};
@@ -56,16 +56,39 @@ public:
 		TF_ONLINE
 	};
 
+	enum FILE_TYPE {
+		FT_TP_USER_PROFILE	= 1U << 0,
+		FT_TP_PROGRAM		= 1U << 1,
+		FT_TP_WORKOUT_A		= 1U << 2,
+		FT_TP_WORKOUT_B		= 1U << 3,
+		FT_TP_WORKOUT_C		= 1U << 4,
+		FT_TP_WORKOUT_D		= 1U << 5,
+		FT_TP_WORKOUT_E		= 1U << 6,
+		FT_TP_WORKOUT_F		= 1U << 7,
+		FT_TP_EXERCISES		= 1U << 8,
+		FT_TP_FORMATTED		= 1U << 9,
+		FT_IMAGE			= 1U << 10,
+		FT_VIDEO			= 1U << 11,
+		FT_PDF				= 1U << 12,
+		FT_TEXT				= 1U << 13,
+		FT_OPEN_DOCUMENT	= 1U << 14,
+		FT_MS_DOCUMENT		= 1U << 15,
+		FT_OTHER			= 1U << 30,
+		FT_UNKNOWN			= 1U << 31,
+	};
+
 	const QString exercisesListFileIdentifier{QLiterals::operator""_L1("0x01", 4)};
 	const QString mesoFileIdentifier{QLiterals::operator""_L1("0x02", 4)};
 	const QString splitFileIdentifier{QLiterals::operator""_L1("0x03", 4)};
 	const QString workoutFileIdentifier{QLiterals::operator""_L1("0x05", 4)};
 	const QString userFileIdentifier{QLiterals::operator""_L1("0x06", 4)};
 
-	const QString STR_START_EXPORT{"##%%"_L1};
-	const QString STR_START_FORMATTED_EXPORT{"####"_L1};
-	const QString STR_END_EXPORT{"##!!"_L1};
-	const QString STR_END_FORMATTED_EXPORT{"##$$"_L1};
+	static constexpr QLatin1StringView STR_START_EXPORT{"##%%"_L1};
+	static constexpr QLatin1StringView STR_START_FORMATTED_EXPORT{"####"_L1};
+	static constexpr QLatin1StringView STR_END_EXPORT{"##!!"_L1};
+	static constexpr QLatin1StringView STR_END_FORMATTED_EXPORT{"##$$"_L1};
+
+	static constexpr QLatin1StringView previewImagesSubDir{"temp-img/"};
 
 	explicit TPUtils(QObject *parent = nullptr);
 	inline ~TPUtils() { delete m_appLocale; }
@@ -74,11 +97,16 @@ public:
 	int idFromString(const QString &string_id) const; //not unique
 	Q_INVOKABLE int generateRandomNumber(const int min, const int max) const;
 
+	FILE_TYPE getFileType(const QString &filename) const;
+	FILE_TYPE getTPFileType(const QString &filename, std::optional<bool> &formatted) const;
+	QString getFileTypeIcon(const QString &filename) const;
+	QString getImagePreviewFile(const QString &image_filename) const;
+
+
 	Q_INVOKABLE QString getCorrectPath(const QUrl &url) const;
-	Q_INVOKABLE int getFileType(const QString &filename) const;
 	Q_INVOKABLE bool canReadFile(const QString &filename) const;
 	QString getFilePath(const QString &filename) const;
-	QString getLastDirInPath(const QString &filename) const;
+	QString getNthDirInPath(const QString &filename, int nth_dir = -1, int n_dirs = 1) const;
 	//Returns the filename or the last directory in path if path does not include a file
 	QString getFileName(const QString &filename, const bool without_extension = false) const;
 	QString getFileExtension(const QString &filename, const bool include_dot = false, const QString &default_ext = QString{}) const;
@@ -96,7 +124,6 @@ public:
 	bool copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath = true, const bool remove_source = false) const;
 	QFile *openFile(const QString &filename, const bool read = true, const bool write = false, const bool append = false,
 							const bool overwrite = false, const bool text = true) const;
-	bool scanFile(const QString &filename, std::optional<bool> &formatted, uint &fileContents) const;
 	void scanDir(const QString &path, QFileInfoList &results, const QString &match = QString{}, const bool follow_tree = false) const;
 	void rmDir(const QString &path) const;
 
@@ -126,7 +153,7 @@ public:
 								  const QString &identifier,
 								  const std::function<QString(const uint field, const QString &value)> &formatToImport = nullptr) const;
 
-	QByteArray readBinaryFile(const QString &filename) const &;
+	QByteArray readBinaryFile(const QString &filename, const QString &filename_part_to_include) const &;
 	void writeBinaryFile(const QString &filename, const QByteArray &data);
 	Q_INVOKABLE void copyToClipboard(const QString &text) const;
 	Q_INVOKABLE QString pasteFromClipboard() const;

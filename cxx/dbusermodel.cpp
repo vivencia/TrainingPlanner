@@ -604,9 +604,9 @@ bool DBUserModel::mainUserConfigured() const
 	bool ret{false};
 	if (m_usersData.count() >= 1)
 	{
-		ret = onlineAccount(0) && !email(0).isEmpty();
-		ret &= isCoach(0) == !m_usersData.at(0).at(USER_COL_COACHROLE).isEmpty();
-		ret &= isClient(0) == !m_usersData.at(0).at(USER_COL_GOAL).isEmpty();
+		ret = (onlineAccount(0) && !email(0).isEmpty());
+		ret &= (isCoach(0) == !m_usersData.at(0).at(USER_COL_COACHROLE).isEmpty());
+		ret &= (isClient(0) == !m_usersData.at(0).at(USER_COL_GOAL).isEmpty());
 	}
 	return ret;
 }
@@ -2124,7 +2124,7 @@ void DBUserModel::checkNewMesos()
 	for (const auto &coach : m_currentCoaches->userInfo())
 	{
 		const QString &coach_id{coach.at(USER_COL_ID)};
-		QLatin1StringView v{QString{"checkNewMesos"_L1 + coach_id.toLatin1()}.toLatin1()};
+		QLatin1StringView v{QString{"checkNewMesos"_L1 % coach_id.toLatin1()}.toLatin1()};
 		const int requestid{appUtils()->generateUniqueId(v)};
 		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(appOnlineServices(), &TPOnlineServices::networkListReceived, this, [this,conn,requestid,coach,coach_id]
@@ -2142,8 +2142,8 @@ void DBUserModel::checkNewMesos()
 							const int id{appUtils()->idFromString(mesoFileName)};
 							if (appMessagesManager()->message(id) == nullptr)
 							{
-								TPMessage *new_message{new TPMessage(coach.at(USER_COL_NAME) +
-										tr(" has sent you a new Exercises Program"), "message-meso"_L1, appMessagesManager())};
+								TPMessage *new_message{new TPMessage{coach.at(USER_COL_NAME) + tr(" has sent you a new Exercises Program"),
+																															"message-meso"_L1}};
 								new_message->setId(id);
 								new_message->insertData(mesoFileName);
 								new_message->insertAction(tr("View"), [this,coach_id] (const QVariant &mesofile) {

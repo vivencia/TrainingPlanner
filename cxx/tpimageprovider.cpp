@@ -31,7 +31,7 @@ QImage TPImageProvider::getAvatar(const QString &imagePath)
 	const QString &avatarId{imagePath.last(imagePath.length() - imagePath.lastIndexOf('/') - 1)};
 	bool bOK{false};
 	const uint id{avatarId.last(avatarId.length() - 1).toUInt(&bOK)};
-	return bOK ? std::move(getAvatar(id, avatarId.first(1))) : QImage{};
+	return bOK ? getAvatar(id, avatarId.first(1)) : QImage{};
 }
 
 QImage TPImageProvider::getAvatar(const uint id, const QString &strSex)

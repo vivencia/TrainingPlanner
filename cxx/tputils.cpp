@@ -1,11 +1,13 @@
 #include "tputils.h"
 
 #include "dbexercisesmodel.h"
-#include "qmlitemmanager.h"
+#include "return_codes.h"
+#include "tpsettings.h"
 
 #include <QClipboard>
 #include <QDir>
 #include <QGuiApplication>
+#include <QImage>
 #include <QLocale>
 
 #include <ranges>
@@ -17,6 +19,7 @@ TPUtils::TPUtils(QObject *parent)
 	: QObject{parent}, m_appLocale{nullptr}, m_lowestTempId{-1}
 {
 	app_utils = this;
+	mkdir(appSettings()->currentUserDir() % previewImagesSubDir);
 	_months_names = QStringList{} << std::move(tr("January")) << std::move(tr("February")) << std::move(tr("March")) <<
 		std::move(tr("April")) << std::move(tr("May")) << std::move(tr("June")) << std::move(tr("July")) <<
 		std::move(tr("August")) << std::move(tr("September")) << std::move(tr("October")) << std::move(tr("November")) <<
@@ -76,16 +79,149 @@ QString TPUtils::getCorrectPath(const QUrl &url) const
 	return path;
 }
 
-int TPUtils::getFileType(const QString &filename) const
+TPUtils::FILE_TYPE TPUtils::getFileType(const QString &filename) const
 {
-	#ifdef Q_OS_ANDROID
-		return filename.contains("video%"_L1) ? 1 : (filename.contains("image%"_L1) ? 0 : -1);
-	#else
-		if (filename.endsWith(".mp4"_L1) || filename.endsWith(".mkv"_L1) || filename.endsWith(".mov"_L1))
-			return 1;
-		else
-			return (filename.endsWith(".png"_L1) || filename.endsWith(".jpg"_L1)) ? 0 : -1;
-	#endif
+	if (!QFile::exists(filename))
+		return FT_UNKNOWN;
+
+	const QString &ext{appUtils()->getFileExtension(filename).toLower()};
+	if (ext.isEmpty())
+	{
+		#ifdef Q_OS_ANDROID
+			return filename.contains("video%"_L1) ? 1 : (filename.contains("image%"_L1) ? 0 : -1);
+		#else
+			return FT_OTHER;
+		#endif
+	}
+
+	if (ext == "txt"_L1)
+	{
+		std::optional<bool> formatted;
+		uint32_t type{getTPFileType(filename, formatted)};
+		if (formatted.value())
+			type |= FT_TP_FORMATTED;
+		return static_cast<FILE_TYPE>(type);
+	}
+	else if (ext == "png"_L1 || ext == "jpg"_L1 || ext == "gif"_L1)
+		return FT_IMAGE;
+	else if (ext == "pdf")
+		return FT_PDF;
+	else if (ext == "mp4"_L1 || ext == "mkv"_L1)
+		return FT_VIDEO;
+	else if (ext.contains("od"_L1))
+		return FT_OPEN_DOCUMENT;
+	else if (ext.contains("doc"_L1) || ext.contains("xls"))
+		return FT_MS_DOCUMENT;
+	else
+		return FT_OTHER;
+}
+
+TPUtils::FILE_TYPE TPUtils::getTPFileType(const QString &filename, std::optional<bool> &formatted) const
+{
+	QFile *in_file{openFile(filename)};
+	if (!in_file)
+		return FT_OTHER;
+
+	formatted = std::nullopt;
+
+	QString line{64, QChar{0}};
+	QTextStream stream{in_file};
+	uint32_t ret{FT_TEXT};
+
+	while (stream.readLineInto(&line))
+	{
+		if (line.contains("##"_L1))
+		{
+			if (line.startsWith(STR_START_EXPORT))
+				formatted = false;
+			else if (line.startsWith(STR_START_FORMATTED_EXPORT))
+				formatted = true;
+			if (!formatted.has_value())
+				continue;
+			if (line.contains(userFileIdentifier))
+			{
+				ret = FT_TP_USER_PROFILE;
+				break;
+			}
+			else if (line.contains(mesoFileIdentifier))
+				ret = FT_OTHER;
+			else if (line.contains(splitFileIdentifier) && ret == FT_OTHER)
+			{
+				ret = FT_TP_PROGRAM;
+				break;
+			}
+			else if (line.contains(exercisesListFileIdentifier))
+			{
+				ret = FT_TP_EXERCISES;
+				break;
+			}
+			else if (line.contains(workoutFileIdentifier))
+			{
+				switch (line.at(line.length() -1).cell()) {
+					case 'A': ret = FT_TP_WORKOUT_A; break;
+					case 'B': ret = FT_TP_WORKOUT_B; break;
+					case 'C': ret = FT_TP_WORKOUT_C; break;
+					case 'D': ret = FT_TP_WORKOUT_D; break;
+					case 'E': ret = FT_TP_WORKOUT_E; break;
+					case 'F': ret = FT_TP_WORKOUT_F; break;
+				}
+			}
+		}
+	}
+	if (formatted)
+		ret |= FT_TP_FORMATTED;
+	in_file->close();
+	delete in_file;
+	return static_cast<FILE_TYPE>(ret);
+}
+
+QString TPUtils::getFileTypeIcon(const QString &filename) const
+{
+	uint32_t ft{static_cast<uint32_t>(getFileType(filename)) & ~FT_TP_FORMATTED};
+
+	switch (ft)
+	{
+		case FT_TP_USER_PROFILE:	return "user_preview.png"_L1;
+		case FT_TP_PROGRAM:			return "meso_preview.png"_L1;
+		case FT_TP_WORKOUT_A:
+		case FT_TP_WORKOUT_B:
+		case FT_TP_WORKOUT_C:
+		case FT_TP_WORKOUT_D:
+		case FT_TP_WORKOUT_E:
+		case FT_TP_WORKOUT_F:		return "workout_preview.png"_L1;
+		case FT_TP_EXERCISES:		return "exerciselist_preview.png"_L1;
+		case FT_IMAGE:				return getImagePreviewFile(filename);
+		case FT_VIDEO:				return "video_preview.png"_L1;
+		case FT_PDF:				return "pdf_preview.png"_L1;
+		case FT_TEXT:				return "genreric_preview.png"_L1;
+		case FT_OPEN_DOCUMENT:		return "odf_preview.png"_L1;
+		case FT_MS_DOCUMENT:		return "docx_preview.png"_L1;
+		case FT_OTHER:				return "generic_preview.png"_L1;
+		case FT_UNKNOWN:
+		default:					return "$error$"_L1;
+	}
+}
+
+QString TPUtils::getImagePreviewFile(const QString &image_filename) const
+{
+	QString preview_filename{previewImagesSubDir % QString::number(QDateTime::currentMSecsSinceEpoch()) % ".jpg"_L1};
+	if (QFile::exists(preview_filename))
+	{
+		::usleep(1000);
+		return getImagePreviewFile(image_filename);
+	}
+	if (QFile::exists(image_filename))
+	{
+		QImage thumbnail{image_filename};
+		QSize img_size{std::move(thumbnail.size())};
+		const auto ratio{img_size.width() / img_size.height()};
+		img_size.rwidth() = qMin(static_cast<int>(appSettings()->pageWidth() * 0.5), img_size.width() * ratio);
+		img_size.rheight() = qMin(static_cast<int>(appSettings()->pageHeight() * 0.3), img_size.height() * ratio);
+		thumbnail = std::move(thumbnail.scaled(img_size));
+		thumbnail.save(preview_filename, "JPG", 10);
+		return preview_filename;
+	}
+	return QString{};
 }
 
 bool TPUtils::canReadFile(const QString &filename) const
@@ -104,18 +240,44 @@ QString TPUtils::getFilePath(const QString &filename) const
 	return filename;
 }
 
-QString TPUtils::getLastDirInPath(const QString &filename) const
+QString TPUtils::getNthDirInPath(const QString &filename, int nth_dir, int n_dirs) const
 {
-	const QString &filePath{getFilePath(filename)};
+	const QString &filepath{getFilePath(filename)};
 	QString ret;
-	for (const auto &chr : filePath | std::views::reverse)
+	const auto n_chars{filepath.length()};
+	ret.reserve(n_chars);
+	bool reverse_searh{false};
+	if (nth_dir < 0)
 	{
-		if (chr != '/')
-			ret.insert(0, chr);
-		else
+		reverse_searh = true;
+		nth_dir *= -1;
+	}
+	if (reverse_searh)
+	{
+		for (const auto &chr : filepath | std::views::reverse)
 		{
-			if (ret.length() > 0)
-				break;
+			if (chr != '/')
+				ret.insert(0, chr);
+			else
+			{
+				if (--nth_dir == 0 || --n_dirs == 0)
+					break;
+				ret.insert(0, chr);
+			}
+		}
+	}
+	else
+	{
+		for (const auto &chr : filepath | std::views::take(n_chars))
+		{
+			if (chr != '/')
+				ret.insert(0, chr);
+			else
+			{
+				if (--nth_dir == 0 || --n_dirs == 0)
+					break;
+				ret.insert(0, chr);
+			}
 		}
 	}
 	return ret;
@@ -290,75 +452,6 @@ QFile *TPUtils::openFile(const QString &filename, const bool read, const bool wr
 		delete file;
 	}
 	return nullptr;
-}
-
-bool TPUtils::scanFile(const QString &filename, std::optional<bool> &formatted, uint &file_contents) const
-{
-	QFile *in_file{openFile(filename)};
-	if (!in_file)
-		return false;
-
-	formatted = std::nullopt;
-	file_contents = 0;
-
-	qint64 lineLength{0};
-	char buf[128];
-	QString split_info;
-	const char *raw_data_file{STR_START_EXPORT.toUtf8().constData()};
-	const char *raw_data_file_end{STR_END_EXPORT.toUtf8().constData()};
-	const char *formatted_data_file{STR_START_FORMATTED_EXPORT.toUtf8().constData()};
-	const char *formatted_data_file_end{STR_END_FORMATTED_EXPORT.toUtf8().constData()};
-	const char *split_label{DBExercisesModel::splitLabel().toUtf8().constData()};
-	const uint split_label_length{static_cast<uint>(DBExercisesModel::splitLabel().length())};
-
-	while ((lineLength = in_file->readLine(buf, sizeof(buf))) != -1)
-	{
-		if (lineLength >= 8)
-		{
-			if(strncmp(buf, "##", 2) == 0)
-			{
-				if(strncmp(buf, raw_data_file_end, 4) == 0)
-					continue;
-				else if(strncmp(buf, formatted_data_file_end, 4) == 0)
-					continue;
-				else if (strstr(buf, raw_data_file) != NULL)
-					*formatted = false;
-				else if (strstr(buf, formatted_data_file) != NULL)
-					*formatted = true;
-				else if (strstr(buf, exercisesListFileIdentifier.toLatin1().constData()) != NULL)
-					setBit(file_contents, IFC_EXERCISES);
-				else if (strstr(buf, mesoFileIdentifier.toLatin1().constData()) != NULL)
-					setBit(file_contents, IFC_MESO);
-				else if (strstr(buf, splitFileIdentifier.toLatin1().constData()) != NULL)
-					setBit(file_contents, IFC_MESOSPLIT);
-				else if (strstr(buf, workoutFileIdentifier.toLatin1().constData()) != NULL)
-					setBit(file_contents, IFC_WORKOUT);
-				else if (strstr(buf, userFileIdentifier.toLatin1().constData()) != NULL)
-					setBit(file_contents, IFC_USER);
-
-				if (isBitSet(file_contents, IFC_MESOSPLIT) || isBitSet(file_contents, IFC_WORKOUT))
-				{
-					if(strncmp(buf, split_label, split_label_length) == 0)
-					{
-						split_info = buf;
-						const int idx{static_cast<int>(split_info.indexOf(DBExercisesModel::splitLabel()) + split_label_length + 2)};
-						switch (split_info.sliced(idx, 1).at(0).toLatin1())
-						{
-							case 'A': setBit(file_contents, IFC_MESOSPLIT_A); break;
-							case 'B': setBit(file_contents, IFC_MESOSPLIT_B); break;
-							case 'C': setBit(file_contents, IFC_MESOSPLIT_C); break;
-							case 'D': setBit(file_contents, IFC_MESOSPLIT_D); break;
-							case 'E': setBit(file_contents, IFC_MESOSPLIT_E); break;
-							case 'F': setBit(file_contents, IFC_MESOSPLIT_F); break;
-						}
-					}
-				}
-			}
-		}
-	}
-	in_file->close();
-	delete in_file;
-	return true;
 }
 
 void TPUtils::scanDir(const QString &path, QFileInfoList &results, const QString &match, const bool follow_tree) const
@@ -607,7 +700,7 @@ int TPUtils::readDataFromFormattedFile(QFile *in_file,
 	return identifier_found ? (field > 1 ? TP_RET_CODE_IMPORT_OK : TP_RET_CODE_IMPORT_FAILED) : TP_RET_CODE_WRONG_IMPORT_FILE_TYPE;
 }
 
-QByteArray TPUtils::readBinaryFile(const QString &filename) const &
+QByteArray TPUtils::readBinaryFile(const QString &filename, const QString &filename_part_to_include) const &
 {
 	QFile *file{openFile(filename, true, false, false, false, false)};
 	if (file)
@@ -615,7 +708,7 @@ QByteArray TPUtils::readBinaryFile(const QString &filename) const &
 		QByteArray data{std::move(file->readAll())};
 		file->close();
 		delete file;
-		data.append(QString{record_separator % getFileName(filename)}.toLocal8Bit());
+		data.append(QString{record_separator % filename_part_to_include % getFileName(filename)}.toLocal8Bit());
 		return data;
 	}
 	return QByteArray{};
@@ -1146,7 +1239,7 @@ double TPUtils::similarityBetweenStrings(const QString &string1, const QString &
 QString TPUtils::stripDiacriticsFromString(const QString &src) const
 {
 	QString filtered;
-    for (qsizetype i{0}; i < src.length(); ++i)
+	for (qsizetype i{0}; i < src.length(); ++i)
 	{
 		if (src.at(i).decompositionTag() != QChar::NoDecomposition)
 			filtered.push_back(src.at(i).decomposition().at(0));

@@ -34,6 +34,9 @@ public:
 	Q_INVOKABLE void execAction(const int message_index, const uint action_id);
 	Q_INVOKABLE void itemClicked(const qsizetype message_id);
 
+	void binaryFileReceived(const QByteArray &data, const QString &userid);
+	void textMesssageReceived(const QString &message);
+
 	TPMessage *createChatMessage(const QString &userid, const bool check_unread_messages);
 	/**
 	 * @brief Creates a chat entry in the messages window. Therefore, the message created will be added to the messages list

@@ -1,9 +1,9 @@
 #pragma once
 
-#include <qqmlextensionplugin.h>
-#include <qqmlengine.h>
-#include <qquickimageprovider.h>
 #include <QImage>
+#include <QQmlEngine>
+#include <QQmlExtensionPlugin>
+#include <QQuickImageProvider>
 #include <QPainter>
 
 using namespace Qt::Literals::StringLiterals;

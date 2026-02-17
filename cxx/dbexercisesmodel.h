@@ -134,7 +134,7 @@ public:
 	[[nodiscard]] int importFromFile(const QString &filename, QFile *in_file = nullptr);
 	[[nodiscard]] int importFromFormattedFile(const QString &filename, QFile *in_file = nullptr);
 	[[maybe_unused]] int newExercisesFromFile(const QString &filename, const std::optional<bool> &file_formatted = std::nullopt);
-	[[nodiscard]] inline const QString &identifierInFile() const { return *m_identifierInFile; }
+	[[nodiscard]] inline const QString &identifierInFile() const { return m_identifierInFile; }
 	[[nodiscard]] const QString formatSetTypeToExport(const uint type) const;
 	[[nodiscard]] static bool importExtraInfo(const QString &maybe_extra_info, int &calendar_day, QChar &split_letter);
 
@@ -254,7 +254,7 @@ signals:
 
 private:
 	DBMesocyclesModel *m_mesoModel;
-	const QString *m_identifierInFile;
+	QString m_identifierInFile;
 	uint m_mesoIdx, m_workingExercise;
 	int m_calendarDay;
 	bool m_importMode, m_exercisesLoaded;

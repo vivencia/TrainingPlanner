@@ -19,7 +19,7 @@ void TPMessage::plug()
 	{
 		m_ctime = std::move(QDateTime::currentDateTime());
 		m_plugged = true;
-		m_parent->addMessage(this);
+		appMessagesManager()->addMessage(this);
 	}
 }
 
