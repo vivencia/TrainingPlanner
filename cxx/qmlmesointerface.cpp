@@ -31,6 +31,21 @@ void QMLMesoInterface::cleanUp()
 	qDeleteAll(m_workoutPages);
 }
 
+void QMLMesoInterface::updateInterface()
+{
+	emit realMesoChanged();
+	emit canExportChanged();
+	emit typeChanged();
+	emit displayFileNameChanged();
+	emit fileNameChanged();
+	emit startDateChanged();
+	emit endDateChanged();
+	emit minimumStartDateChanged();
+	emit weeksChanged();
+	emit splitChanged();
+	emit notesChanged();
+}
+
 bool QMLMesoInterface::mesoNameOK() const
 {
 	return !m_mesoModel->isRequiredFieldWrong(m_mesoIdx, MESO_FIELD_NAME);

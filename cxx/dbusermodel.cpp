@@ -34,8 +34,9 @@
 
 DBUserModel *DBUserModel::_appUserModel{nullptr};
 
-constexpr QLatin1StringView local_user_data_file{"user.data"_L1};
-constexpr QLatin1StringView cmd_file_extension{".cmd"_L1};
+constexpr QLatin1StringView local_user_data_file{"user.data"};
+constexpr QLatin1StringView cmd_file_extension{".cmd"};
+
 static QString network_msg_title;
 
 #ifndef QT_NO_DEBUG
@@ -61,40 +62,36 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 	,m_allUsers{nullptr}
 #endif
 {
-	if (bMainUserModel)
-	{
-		_appUserModel = this;
-		mb_MainUserInfoChanged = false;
-		network_msg_title = std::move(tr("TP Network"));
+	_appUserModel = this;
+	mb_MainUserInfoChanged = false;
+	network_msg_title = std::move(tr("TP Network"));
 
-		connect(appOsInterface(), &OSInterface::tpServerStatusChanged, this, [this] (const bool online) {
-			if (!mb_canConnectToServer.has_value())
-				return;
-			if (!mb_canConnectToServer.value() && online)
-				onlineCheckIn();
-			else if (mb_canConnectToServer.value() && !online && m_mainTimer)
-				m_mainTimer->stop();
-			mb_canConnectToServer = online;
-			emit canConnectToServerChanged();
-		});
+	connect(appOsInterface(), &OSInterface::tpServerStatusChanged, this, [this] (const bool online) {
+		if (!mb_canConnectToServer.has_value())
+			return;
+		if (!mb_canConnectToServer.value() && online)
+			onlineCheckIn();
+		else if (mb_canConnectToServer.value() && !online && m_mainTimer)
+			m_mainTimer->stop();
+		mb_canConnectToServer = online;
+		emit canConnectToServerChanged();
+	});
 
-		connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
-			if (m_usersData.count() > 0)
-				setPhoneBasedOnLocale();
-			emit labelsChanged();
-		});
+	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
+		if (m_usersData.count() > 0)
+			setPhoneBasedOnLocale();
+		emit labelsChanged();
+	});
 
-		connect(this, &DBUserModel::cmdFileCreated, this, &DBUserModel::sendUnsentCmdFiles);
-		connect(this, &DBUserModel::userModified, this, &DBUserModel::saveUserInfo);
-		connect(this, &DBUserModel::mainUserConfigurationFinished, this, [this] () {
-			appOsInterface()->initialCheck();
-			if (appItemManager()->appHomePage()) //When -test cml is used, appHomePage() will be nullptr
-			{
-				appItemManager()->appHomePage()->setProperty("loadClientMesos", mainUserConfigured() && mainUserIsCoach());
-				appItemManager()->appHomePage()->setProperty("loadOwnMesos", mainUserConfigured() && mainUserIsClient());
-			}
-		}, Qt::SingleShotConnection);
-	}
+	connect(this, &DBUserModel::cmdFileCreated, this, &DBUserModel::sendUnsentCmdFiles);
+	connect(this, &DBUserModel::userModified, this, &DBUserModel::saveUserInfo);
+	connect(this, &DBUserModel::mainUserConfigurationFinished, this, [this] () {
+		appOsInterface()->initialCheck();
+		if (appItemManager()->appHomePage()) { //When -test cml is used, appHomePage() will be nullptr
+			appItemManager()->appHomePage()->setProperty("loadClientMesos", mainUserConfigured() && mainUserIsCoach());
+			appItemManager()->appHomePage()->setProperty("loadOwnMesos", mainUserConfigured() && mainUserIsClient());
+		}
+	}, Qt::SingleShotConnection);
 }
 
 #ifdef Q_OS_ANDROID
@@ -111,21 +108,17 @@ QString DBUserModel::userDir(const QString &userid) const
 
 void DBUserModel::initUserSession()
 {
-	if (!m_db)
-	{
+	if (!m_db) {
 		m_dbModelInterface = new DBModelInterfaceUser;
 		m_db = new DBUserTable{m_dbModelInterface};
 		appThreadManager()->runAction(m_db, ThreadManager::CreateTable);
-		connect(m_db, &DBUserTable::userInfoAcquired, this, [this] (QStringList user_info, const bool all_info_acquired)
-		{
-			if (!all_info_acquired)
-			{
+		connect(m_db, &DBUserTable::userInfoAcquired, this, [this] (QStringList user_info, const bool all_info_acquired) {
+			if (!all_info_acquired) {
 				const qsizetype last_idx{m_usersData.count()};
 				m_usersData.append(std::move(user_info));
 				if (last_idx == 0)
 					appOsInterface()->initialCheck();
-				else
-				{
+				else {
 					if (isCoach(0) && isClient(last_idx))
 						addClient(last_idx, false);
 					if (isCoach(last_idx))
@@ -137,14 +130,11 @@ void DBUserModel::initUserSession()
 		});
 		appThreadManager()->runAction(m_db, ThreadManager::ReadAllRecords);
 	}
-	else
-	{
+	else {
 		if (!mainUserConfigured())
 			QMetaObject::invokeMethod(appMainWindow(), "showFirstTimeUseDialog");
-		else
-		{
-			if (onlineAccount())
-			{
+		else {
+			if (onlineAccount()) {
 				new ChatWSServer{userId(0), this};
 				appMessagesManager()->readAllChats();
 				connect(appOnlineServices(), &TPOnlineServices::onlineServicesReady, [this] () {
@@ -159,8 +149,7 @@ void DBUserModel::initUserSession()
 
 			#ifndef Q_OS_ANDROID
 			DBMesocyclesModel *meso_model{m_mesoModels.value(userId(0))};
-			if (!meso_model)
-			{
+			if (!meso_model) {
 				meso_model = new DBMesocyclesModel{this};
 				new PagesListModel{this};
 				m_mesoModels.insert(userId(0), meso_model);
@@ -174,8 +163,7 @@ void DBUserModel::initUserSession()
 			appMainWindow()->setProperty("appPagesModel", QVariant::fromValue(appPagesListModel()));
 
 			appExercisesList()->initExercisesList();
-			if (appSettings()->appVersion() != TP_APP_VERSION)
-			{
+			if (appSettings()->appVersion() != TP_APP_VERSION) {
 				//All the code to update the database goes in here
 				//updateDB(new DBMesocyclesTable{nullptr});
 				//appSettings()->saveAppVersion(TP_APP_VERSION);
@@ -884,13 +872,41 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 	}
 }
 
+void DBUserModel::sendFileToUser(const QString &userid, const QString &filename, const QVariant &extra_info, const QString &success_message,
+																													const bool first_attempt)
+{
+	const bool use_ws{appWSServer()->isConnectionOK(userid)};
+	if (!use_ws && first_attempt) {
+		QTimer::singleShot(5000, [=,this] () {
+			sendFileToUser(userid, filename, extra_info, success_message, false);
+		});
+		appWSServer()->connectToPeer(this, ChatWSServer::WS_TPMESSAGESMANAGER, userid);
+		return;
+	}
+
+	QString str_extra_info{appUtils()->string_strings({
+			QString::number(ChatWSServer::WS_TPMESSAGESMANAGER),
+			appUtils()->getSubDir(filename) % appUtils()->getFileName(filename),
+			userId(0),
+			userid,
+			extra_info.toString()
+	}, binary_file_separator)};
+	QByteArray data{std::move(appUtils()->readBinaryFile(filename, filename.right(filename.length() - userDir().length())))};
+	if (use_ws)
+		appWSServer()->sendBinaryMessage(ChatWSServer::WS_TPMESSAGESMANAGER, userid, data);
+	else {
+		const QString &temp_filename{userDir(userid) % binary_files_subdir % appUtils()->getFileName(filename)};
+		appUtils()->writeBinaryFile(temp_filename, data, false);
+		sendFileToServer(temp_filename, nullptr, success_message, binary_files_subdir % userId(0) % '/', userid, true);
+	}
+}
+
 int DBUserModel::sendFileToServer(const QString &filename, QFile *upload_file, const QString &successMessage,
 																const QString &subdir, const QString &targetUser, const bool removeLocalFile)
 {
 	if (!onlineAccount())
 		return -1;
-	else if (!canConnectToServer())
-	{
+	else if (!canConnectToServer()) {
 		if (!successMessage.isEmpty())
 			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_SERVER_UNREACHABLE);
 		return -1;
@@ -905,29 +921,23 @@ int DBUserModel::sendFileToServer(const QString &filename, QFile *upload_file, c
 
 	if (!upload_file)
 		upload_file = appUtils()->openFile(filename, true, false, false, false, false);
-	else
-	{
-		if (upload_file->isOpen())
-		{
+	else {
+		if (upload_file->isOpen()) {
 			upload_file->close();
 			if (!upload_file->open(QIODeviceBase::ReadOnly))
 				return -1;
 		}
 	}
-	if (upload_file)
-	{
+	if (upload_file) {
 		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [=,this]
-												(const int request_id, const int ret_code, const QString &ret_string)
-		{
-			if (request_id == requestid)
-			{
+												(const int request_id, const int ret_code, const QString &ret_string) {
+			if (request_id == requestid) {
 				disconnect(*conn);
 				upload_file->close();
 				if (removeLocalFile)
 					QFile::remove(upload_file->fileName());
-				if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS)
-				{
+				if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS) {
 					if (!successMessage.isEmpty())
 						appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_SUCCESS,
 							appUtils()->string_strings({network_msg_title, successMessage}, record_separator));

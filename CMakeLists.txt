@@ -47,6 +47,7 @@ set(CMAKE_AUTOGEN_VERBOSE ON)
 set(CMAKE_AUTORCC ON)
 set(QT_CREATOR_SKIP_MAINTENANCE_TOOL_PROVIDER ON)
 set(QT_FORCE_CMP0156_TO_VALUE NEW)
+set(QT_QML_GENERATE_QMLLS_INI ON)
 
 if (ANDROID)
 	find_package(Qt6 REQUIRED COMPONENTS Core CorePrivate Gui Multimedia Qml Quick QuickControls2 LinguistTools Widgets Sql Network Positioning Charts WebSockets)
@@ -179,7 +180,6 @@ set( QML_SOURCES
     "qml/VideoPlayer.qml"
     "qml/Dialogs/CalendarDialog.qml"
     "qml/Dialogs/FirstTimeDialog.qml"
-    "qml/Dialogs/ImportDialog.qml"
     "qml/Dialogs/MainMenu.qml"
     "qml/Dialogs/MuscularGroupPicker.qml"
     "qml/Dialogs/NavBar.qml"

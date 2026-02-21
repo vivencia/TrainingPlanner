@@ -5,6 +5,7 @@
 #include "tponlineservices.h"
 #include "../dbusermodel.h"
 #include "../qmlitemmanager.h"
+#include "../tpsettings.h"
 #include "../tputils.h"
 
 #include <QQmlApplicationEngine>
@@ -141,33 +142,43 @@ void TPMessagesManager::itemClicked(const qsizetype message_id)
 
 void TPMessagesManager::binaryFileReceived(const QByteArray &data, const QString &userid)
 {
-	QString filename{std::move(appUserModel()->userDir())};
+	QString filename{std::move(data.last(data.length() - data.lastIndexOf(record_separator.toLatin1())))};
 	filename.removeFirst();
 	const int id{appUtils()->idFromString(filename)};
+	const QString &full_filename{appUserModel()->userDir() % filename};
 
-	filename += std::move(data.last(data.length() - data.lastIndexOf(record_separator.toLatin1())));
-
-	if (message(id) == nullptr)
-	{
-		TPMessage *new_message{new TPMessage(appUserModel()->userNameFromId(userid) % tr(" has sent you a file"), "message-file-received"_L1)};
+	if (message(id) == nullptr) {
+		TPMessage *new_message{new TPMessage(appUserModel()->userNameFromId(userid) % tr(" has sent you a file"),
+			appUtils()->getFileTypeIcon(full_filename, QSize{appSettings()->itemLargeHeight(), appSettings()->itemLargeHeight()}))};
 		new_message->setId(id);
-		new_message->insertData(filename);
+		new_message->insertData(full_filename);
 		new_message->insertAction(tr("View"), [this,userid] (const QVariant &var) {
-			appUtils()->
-				//actualMesoModel()->viewOnlineMeso(userid, var.toString());
+			appUtils()->viewOrOpenFile(var.toString(), userid);
 		}, true);
-		new_message->insertData(filename);
-		new_message->insertAction(tr("Delete"), [=,this] (const QVariant &var) {
-			//appUtils()->getFileName()
-			//appOnlineServices()->removeFile(appUtils()->generateUniqueId(), var.toString(), mesos_subdir, userid);
+		new_message->insertAction(tr("Save"), [this,userid] (const QVariant &var) {
+			QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, var.toString()));
+		}, true);
+		new_message->insertData(full_filename);
+		new_message->insertAction(tr("Delete"), [this,userid,filename] (const QVariant &var) {
+			const QString &f_name{var.toString()};
+			QFile::remove(f_name);
+			appOnlineServices()->removeFile(appUtils()->generateUniqueId(), f_name, appUtils()->getFilePath(filename), userid);
 		}, true);
 		new_message->plug();
 	}
 }
 
-void TPMessagesManager::textMesssageReceived(const QString &message)
+void TPMessagesManager::textMesssageReceived(const QString &msg, const QString &userid)
 {
-
+	const int id{appUtils()->idFromString(msg.length() <= 30 ? msg : msg.sliced(5, 25))};
+	if (message(id) == nullptr) {
+		TPMessage *new_message{new TPMessage(appUserModel()->userNameFromId(userid) % ": "_L1 % msg, "send-message"_L1)};
+		new_message->setId(id);
+		new_message->insertAction(tr("Delete"), [this] (const QVariant &) {
+			return;
+		}, true);
+		new_message->plug();
+	}
 }
 
 TPMessage *TPMessagesManager::createChatMessage(const QString &userid, const bool check_unread_messages)
@@ -269,8 +280,12 @@ void TPMessagesManager::startChatMessagesPolling(const QString &userid)
 	{
 		if (request_id == requestid)
 		{
-			if (ret_code == TP_RET_CODE_SUCCESS)
-				parseNewChatMessages(ret_string);
+			if (ret_code == TP_RET_CODE_SUCCESS) {
+				if (ret_string.startsWith("file://"_L1))
+					parseTPMessage(ret_string);
+				else
+					parseNewChatMessages(ret_string);
+			}
 			#ifndef QT_NO_DEBUG
 			else
 				qDebug() << ret_string;
@@ -280,6 +295,7 @@ void TPMessagesManager::startChatMessagesPolling(const QString &userid)
 	m_newChatMessagesTimer->callOnTimeout( [this,requestid] ()
 	{
 		appOnlineServices()->checkMessages(requestid);
+		appOnlineServices()->checkTPMessages(requestid);
 		m_newChatMessagesTimer->setInterval(newMessagesCheckingInterval());
 	});
 	m_newChatMessagesTimer->start();
@@ -369,6 +385,43 @@ int TPMessagesManager::newMessagesCheckingInterval() const
 		}
 	}
 	return msecs;
+}
+
+void TPMessagesManager::parseTPMessage(const QString &encoded_message)
+{
+	QString sender_id{std::move(appUtils()->getCompositeValue(0, encoded_message, exercises_separator))};
+	sender_id.remove(0, "file://"_L1.length());
+	if (appUserModel()->userIdxFromFieldValue(USER_COL_ID, sender_id) > 0) {
+		uint msg_idx{1};
+		do {
+			QString file{std::move(appUtils()->getCompositeValue(msg_idx, encoded_message, exercises_separator))};
+			if (file.isEmpty())
+				break;
+
+			auto createTPMessage = [this,sender_id,file] () -> void {
+				const QString &local_filename{appUserModel()->userDir(sender_id) % appUserModel()->binary_files_subdir % sender_id % '/'  % file};
+				binaryFileReceived(appUtils()->readBinaryFile(local_filename), sender_id);
+			};
+
+			const auto request_id{appUserModel()->downloadFileFromServer(file, appUserModel()->userDir(sender_id), QString{},
+																							appUserModel()->binary_files_subdir % sender_id)};
+			if (request_id == TP_RET_CODE_DOWNLOAD_FAILED)
+				continue;
+			else if (request_id == TP_RET_CODE_NO_CHANGES_SUCCESS) {
+				createTPMessage();
+				return;
+			}
+			auto conn{std::make_shared<QMetaObject::Connection>()};
+			*conn = connect(appUserModel(), &DBUserModel::fileDownloaded, this, [this,conn,request_id,createTPMessage]
+																(const bool success, const uint requestid, const QString &localFileName) {
+				if (request_id == requestid) {
+					disconnect(*conn);
+					if (success)
+						createTPMessage();
+				}
+			});
+		} while (++msg_idx);
+	}
 }
 
 /*

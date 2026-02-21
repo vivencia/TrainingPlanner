@@ -26,8 +26,7 @@ void QmlMesoSplitInterface::cleanUp()
 
 void QmlMesoSplitInterface::getExercisesPlannerPage()
 {
-	if (!m_plannerPage)
-	{
+	if (!m_plannerPage) {
 		connect(this, &QmlMesoSplitInterface::plannerPageCreated, this,
 													&QmlMesoSplitInterface::createMesoSplitPages, Qt::SingleShotConnection);
 		createPlannerPage();
@@ -46,13 +45,10 @@ void QmlMesoSplitInterface::swapMesoPlans()
 
 void QmlMesoSplitInterface::loadSplitFromPreviousMeso()
 {
-	if (m_hasPreviousPlan.value(m_currentSplitLetter))
-	{
-		DBSplitModel *split_model{new DBSplitModel{m_mesoModel, currentSplitModel()->database(),
-																					m_mesoIdx, m_currentSplitLetter, true}};
+	if (m_hasPreviousPlan.value(m_currentSplitLetter)) {
+		DBSplitModel *split_model{new DBSplitModel{m_mesoModel, currentSplitModel()->database(), m_mesoIdx, m_currentSplitLetter, true}};
 		connect(split_model, &DBSplitModel::exerciseCountChanged, this, [this,split_model] () {
-			if (split_model->exerciseCount() > 0)
-			{
+			if (split_model->exerciseCount() > 0) {
 				connect(currentSplitModel(), &DBSplitModel::exerciseCountChanged, this, [this,split_model] () {
 					split_model->setMesoIdx(m_mesoIdx);
 					delete currentSplitModel();
@@ -64,31 +60,12 @@ void QmlMesoSplitInterface::loadSplitFromPreviousMeso()
 	}
 }
 
-void QmlMesoSplitInterface::exportMesoSplit(const bool bShare)
-{
-	const QString &suggestedName{m_mesoModel->name(m_mesoIdx) % tr(" - Exercises Plan - Split ") % currentSplitLetter() % ".txt"_L1};
-	const QString &exportFileName{appItemManager()->setExportFileName(suggestedName)};
-	appItemManager()->continueExport(currentSplitModel()->exportToFormattedFile(exportFileName), bShare);
-}
-
-void QmlMesoSplitInterface::importMesoSplit(const QString &filename)
-{
-	if (filename.isEmpty())
-	{
-		m_mesoModel->setImportIdx(m_mesoIdx);
-		QMetaObject::invokeMethod(appMainWindow(), "chooseFileToImport", Q_ARG(int, IFC_MESOSPLIT));
-	}
-	else
-		appItemManager()->openRequestedFile(filename, IFC_MESOSPLIT);
-}
-
 static void muscularGroupSimplified(QString &muscularGroup)
 {
 	muscularGroup = muscularGroup.replace(',', ' ').simplified();
 	const QStringList &words(muscularGroup.split(' '));
 	muscularGroup.clear();
-	for (const auto &word : words)
-	{
+	for (const auto &word : words) {
 		if(word.length() < 3)
 			continue;
 		if (!muscularGroup.isEmpty())

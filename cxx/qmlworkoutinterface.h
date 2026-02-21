@@ -101,8 +101,8 @@ public:
 	Q_INVOKABLE void exportWorkoutToSplitPlan();
 	Q_INVOKABLE void resetWorkout();
 	Q_INVOKABLE void exportWorkout(const bool bShare);
-	Q_INVOKABLE void importWorkout(const QString &filename = QString());
-	Q_INVOKABLE void prepareWorkOutTimer(const QString &strStartTime = QString(), const QString &strEndTime = QString());
+	Q_INVOKABLE void importWorkout(const QString &filename);
+	Q_INVOKABLE void prepareWorkOutTimer(const QString &strStartTime = QString{}, const QString &strEndTime = QString{});
 	Q_INVOKABLE void startWorkout();
 	Q_INVOKABLE void stopWorkout();
 	Q_INVOKABLE bool canChangeSetMode(const uint exercise_number, const uint exercise_idx, const uint set_number) const;

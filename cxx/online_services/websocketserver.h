@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QHash>
 
+QT_FORWARD_DECLARE_CLASS(TPMessagesManager)
 QT_FORWARD_DECLARE_CLASS(QWebSocketServer)
 QT_FORWARD_DECLARE_CLASS(QWebSocket)
 
@@ -29,9 +30,10 @@ public:
 	inline bool hasPeers() const { return !m_peersSockets.isEmpty(); }
 
 	bool sendTextMessage(const WS_USES use, const QString &sender_id, const QString &receiver_id, const QString &message);
-	bool sendBinaryMessage(const WS_USES use, const QString &sender_id, const QString &receiver_id, QByteArray &&data);
+	bool sendBinaryMessage(const WS_USES use, const QString &receiver_id, const QByteArray &data);
 
 signals:
+	void connectionAttemptResult(const bool established, const QString &userid);
 	void wsServerStatusChanged(const bool enabled);
 	void gotPeerAddress(const int request_id, const QString &address);
 	void textMessageReceived(const uint use, const QString &userid, const QString &message);

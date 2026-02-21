@@ -8,7 +8,6 @@
 #include "../pageslistmodel.h"
 #include "../tputils.h"
 
-#include <QImage>
 #include <QTimer>
 
 #include <ranges>
@@ -478,7 +477,7 @@ bool TPChat::setData(const QModelIndex &index, const QVariant &value, int role)
 	return false;
 }
 
-void TPChat::processWebSocketTextMessage(QString &&message)
+void TPChat::processWebSocketTextMessage(const QString &message)
 {
 	bool ok{false};
 	static_cast<void>(appUtils()->getCompositeValue(0, message, exercises_separator).toInt(&ok));
@@ -486,9 +485,9 @@ void TPChat::processWebSocketTextMessage(QString &&message)
 	{
 		if (m_chatLoaded == Unloaded)
 		{
-			connect(this, &TPChat::chatLoadedStatusChanged, this, [this,&message] {
+			connect(this, &TPChat::chatLoadedStatusChanged, this, [this,&message] () {
 				if (m_chatLoaded == Loaded)
-					processWebSocketTextMessage(std::move(message));
+					processWebSocketTextMessage(message);
 			});
 			loadChat();
 			return;
@@ -499,9 +498,10 @@ void TPChat::processWebSocketTextMessage(QString &&message)
 	}
 }
 
-void TPChat::processWebSocketBinaryMessage(const QString &filename, QByteArray &&data)
+void TPChat::processWebSocketBinaryMessage(const QByteArray &data)
 {
-	appUtils()->writeBinaryFile(appUserModel()->userDir() % filename, data);
+	const QString &filename{appUserModel()->userDir() % appUtils()->binaryFileExtraFieldValue(data, TPUtils::BFIF_SUBDIR_PLUS_FILENAME)};
+	appUtils()->writeBinaryFile(filename, data, true);
 }
 
 void TPChat::onChatWindowOpened()
@@ -557,9 +557,18 @@ void TPChat::uploadAction(const uint field, ChatMessage *const message)
 					setData(index(message->id), true, sentRole);
 					if (!message->media.isEmpty())
 					{
-						if (use_ws)
-							appWSServer()->sendBinaryMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId,
-																		appUtils()->readBinaryFile(message->media, chatsMediaSubDir(false)));
+						if (use_ws) {
+							QString extra_info{appUtils()->string_strings({
+								QString::number(ChatWSServer::WS_TPCHAT),
+								chatsMediaSubDir(false) % appUtils()->getFileName(message->media),
+								appUserModel()->userId(0),
+								m_otherUserId
+								//Meso name, split letter missing. TODO: identify that included media is a tp workout file and popup a dialog
+								//to select the meso and the split it belongs to
+							}, binary_file_separator)};
+							appWSServer()->sendBinaryMessage(ChatWSServer::WS_TPCHAT, m_otherUserId, appUtils()->readBinaryFile(
+																												message->media, extra_info));
+						}
 						else
 							appUserModel()->sendFileToServer(message->media, nullptr, QString{}, chatsMediaSubDir(false), m_otherUserId);
 					}

@@ -41,7 +41,7 @@ TPPopup {
 		running: false
 		property: "x"
 		from: x
-		to: finalXPos
+		to: balloon.finalXPos
 		duration: 500
 		easing.type: Easing.InOutCubic
 	}
@@ -58,10 +58,10 @@ TPPopup {
 
 		TPLabel {
 			id: lblTitle
-			text: title
+			text: balloon.title
 			useBackground: true
 			horizontalAlignment: Text.AlignHCenter
-			visible: title.length > 0
+			visible: balloon.title.length > 0
 			Layout.fillWidth: true
 		}
 
@@ -70,17 +70,17 @@ TPPopup {
 
 			TPImage {
 				id: imgElement
-				source: imageSource
-				visible: imageSource.length > 0
-				enabled: imageEnabled
+				source: balloon.imageSource
+				visible: balloon.imageSource.length > 0
+				enabled: balloon.imageEnabled
 				Layout.preferredWidth: appSettings.itemExtraLargeHeight
 				Layout.preferredHeight: appSettings.itemExtraLargeHeight
 				Layout.alignment: Qt.AlignVCenter
 
 				TPLabel {
 					id: lblImageSibling
-					text: subImageLabel
-					visible: subImageLabel.length > 0
+					text: balloon.subImageLabel
+					visible: balloon.subImageLabel.length > 0
 					font: AppGlobals.smallFont
 
 					anchors {
@@ -94,10 +94,10 @@ TPPopup {
 
 			TPLabel {
 				id: lblMessage
-				text: message
+				text: balloon.message
 				singleLine: false
 				horizontalAlignment: Text.AlignHCenter
-				visible: message.length > 0
+				visible: balloon.message.length > 0
 				Layout.fillWidth: true
 				Layout.maximumHeight: contentHeight
 
@@ -118,9 +118,9 @@ TPPopup {
 							if (Math.abs(deltaX) >= 10) {
 								x += deltaX;
 								if (deltaX > 0)
-									finalXPos = appSettings.pageWidth + 300;
+									balloon.finalXPos = appSettings.pageWidth + 300;
 								else
-									finalXPos = -300;
+									balloon.finalXPos = -300;
 								alternateCloseTransition.start();
 								balloon.closePopup();
 							}
@@ -132,7 +132,7 @@ TPPopup {
 		}
 
 		Row {
-			visible: button1Text.length > 0 || button2Text.length > 0
+			visible: balloon.button1Text.length > 0 || balloon.button2Text.length > 0
 			Layout.fillWidth: true
 			Layout.leftMargin: empty_space
 			spacing: empty_space
@@ -141,9 +141,9 @@ TPPopup {
 			readonly property int empty_space: (balloon.width - btn1.width - btn2.width) / 3
 			TPButton {
 				id: btn1
-				text: button1Text
+				text: balloon.button1Text
 				autoSize: true
-				visible: button1Text.length > 0
+				visible: balloon.button1Text.length > 0
 				Layout.alignment: Qt.AlignCenter
 
 				onClicked: {
@@ -154,9 +154,9 @@ TPPopup {
 
 			TPButton {
 				id: btn2
-				text: button2Text
+				text: balloon.button2Text
 				autoSize: true
-				visible: button2Text.length > 0
+				visible: balloon.button2Text.length > 0
 				Layout.alignment: Qt.AlignCenter
 				Layout.maximumWidth: availableWidth - btn1.width - 10
 
@@ -221,7 +221,7 @@ TPPopup {
 	}
 
 	function show(ypos: int): void {
-		show1(ypos);
+		balloon.show1(ypos);
 	}
 
 	function showTimed(timeout: int, ypos: int): void {

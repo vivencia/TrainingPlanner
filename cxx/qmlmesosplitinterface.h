@@ -35,8 +35,6 @@ public:
 	Q_INVOKABLE void getExercisesPlannerPage();
 	Q_INVOKABLE void swapMesoPlans();
 	Q_INVOKABLE void loadSplitFromPreviousMeso();
-	Q_INVOKABLE void exportMesoSplit(const bool bShare);
-	Q_INVOKABLE void importMesoSplit(const QString &filename = QString{});
 	Q_INVOKABLE QString prevMesoName() const { return m_prevMesoName; }
 	Q_INVOKABLE QQuickItem *setCurrentPage(const int index);
 	Q_INVOKABLE inline QQuickItem *qmlPage() const { return m_plannerPage; }

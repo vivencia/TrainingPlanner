@@ -35,7 +35,7 @@ public:
 	Q_INVOKABLE void itemClicked(const qsizetype message_id);
 
 	void binaryFileReceived(const QByteArray &data, const QString &userid);
-	void textMesssageReceived(const QString &message);
+	void textMesssageReceived(const QString &msg, const QString &userid);
 
 	TPMessage *createChatMessage(const QString &userid, const bool check_unread_messages);
 	/**
@@ -69,6 +69,7 @@ private:
 	QVariantMap m_chatWindowProperties;
 
 	int newMessagesCheckingInterval() const;
+	void parseTPMessage(const QString &encoded_message);
 	void parseNewChatMessages(const QString &encoded_messages);
 	void createChatWindow_part2(TPChat *chat_manager);
 	void removeChatWindow(const QString &other_userid);

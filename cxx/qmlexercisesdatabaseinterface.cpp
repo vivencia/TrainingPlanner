@@ -51,7 +51,7 @@ void QmlExercisesDatabaseInterface::importExercises(const QString &filename)
 	if (filename.isEmpty())
 		QMetaObject::invokeMethod(appMainWindow(), "chooseFileToImport");
 	else
-		appItemManager()->openRequestedFile(filename, IFC_EXERCISES);
+		appUtils()->viewOrOpenFile(filename, TPUtils::FT_TP_EXERCISES);
 }
 
 void QmlExercisesDatabaseInterface::getExercisesPage(QmlWorkoutInterface *connectPage)

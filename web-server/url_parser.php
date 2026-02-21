@@ -808,6 +808,34 @@ function remove_coach_from_coaches($client, $coach) {
 	}
 }
 
+function get_tpmessages($userid) {
+	global $rootdir;
+	$exchangefiles_dir = $rootdir . $userid . "/exchange_files";
+	if (!create_dir($exchangefiles_dir))
+		die(get_return_code("directory not writable") . ": Unable to create messages dir " .$exchangefiles_dir);
+
+	$files = array_values(array_diff(scandir($exchangefiles_dir), array('.', '..')));
+	if (count($files) > 0) {
+		$content = "";
+		foreach ($files as $file) {
+			if (str_contains($file, ".sqlite") || str_contains($file, ".cmd"))
+				continue;
+			//apcu_store("$userid-$file", false); //uncomment to force new messages checking during development
+			$is_not_modified = apcu_fetch("$userid-$file");
+			if ($is_not_modified === true)
+				continue;
+			apcu_store("$userid-$file", true);
+			$content = $content . $file . "\034";
+		}
+		if ($content != "") {
+			echo "0: ";
+			echo $content;
+			return;
+		}
+	}
+	echo get_return_code("directory empty") . ": No new messages";
+}
+
 /*
 	record_separator(oct 036, dec 30) separates the message fields
 	set_separator (oct 037, dec 31) separates messages of the same sender
@@ -1269,6 +1297,12 @@ if ($userid) {
 					get_newmessages($userid);
 					exit;
 				}
+
+				if (isset($_GET['gettpmessages'])) {
+					get_tpmessages($userid);
+					exit;
+				}
+
 				if (isset($_GET['sendmessage'])) {
 					$receiver=$_GET['sendmessage'];
 					$receiver != "" or die(get_return_code("argument missing") . ": No receiver argument **sendmessage**");

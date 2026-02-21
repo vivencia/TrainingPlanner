@@ -82,6 +82,8 @@ Q_PROPERTY(OnlineUserInfo *allUsers READ allUsers NOTIFY allUsersChanged FINAL)
 #endif
 
 public:
+	static constexpr QLatin1StringView binary_files_subdir{"exchange_files/" };
+
 	explicit DBUserModel(QObject *parent = nullptr, const bool bMainUserModel = true);
 
 	inline QString userDir(const int user_idx = 0) const { return userDir(userId(user_idx)); }
@@ -318,6 +320,8 @@ public:
 	Q_INVOKABLE void sendRequestToCoaches();
 	Q_INVOKABLE void getOnlineCoachesList(const bool get_list_only = false);
 
+	void sendFileToUser(const QString &userid, const QString &filename, const QVariant &extra_info = QVariant{},
+																const QString &success_message = QString{}, const bool first_attempt = true);
 	int sendFileToServer(const QString &filename, QFile *upload_file = nullptr, const QString &successMessage = QString{},
 			const QString &subdir = QString{}, const QString &targetUser = QString{}, const bool removeLocalFile = false);
 	int downloadFileFromServer(const QString &filename, const QString &local_filename = QString{}, const QString &successMessage = QString{},

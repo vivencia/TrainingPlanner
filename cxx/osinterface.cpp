@@ -40,15 +40,17 @@ extern "C"
 
 static const QString &tp_server_config_script{"/var/www/html/trainingplanner/scripts/init_script.sh"_L1};
 
-constexpr int TPSERVER_OK				{0};
-constexpr int TPSERVER_ERROR			{1};
-constexpr int TPSERVER_NGINX_ERROR		{2};
-constexpr int TPSERVER_PHPFPM_ERROR		{3};
-constexpr int TPSERVER_CONFIG_ERROR		{4};
-constexpr int TPSERVER_OK_LOCALHOST		{5};
-constexpr int TPSERVER_PAUSED			{6};
-constexpr int TPSERVER_PAUSED_LOCALHOST	{7};
-constexpr int TPSERVER_PAUSED_FAILED	{8};
+enum procExitCodes {
+	TPSERVER_OK,
+	TPSERVER_ERROR,
+	TPSERVER_NGINX_ERROR,
+	TPSERVER_PHPFPM_ERROR,
+	TPSERVER_CONFIG_ERROR,
+	TPSERVER_OK_LOCALHOST,
+	TPSERVER_PAUSED,
+	TPSERVER_PAUSED_LOCALHOST,
+	TPSERVER_PAUSED_FAILED,
+};
 
 #endif //Q_OS_LINUX
 #endif //Q_OS_ANDROID
@@ -72,9 +74,9 @@ constexpr int CONNECTION_ERR_TIMEOUT{20*1000};
 #endif
 
 enum connectMessagesIndex {
-	interfaceMessage = 0,
-	internetMessage = 1,
-	serverMessage = 2,
+	interfaceMessage,
+	internetMessage,
+	serverMessage,
 };
 
 OSInterface::OSInterface(QObject *parent)
@@ -535,7 +537,7 @@ void OSInterface::processArguments() const
 		filename.chop(1);
 		const QFileInfo file{filename};
 		if (file.isFile())
-			appItemManager()->openRequestedFile(appUtils()->getCorrectPath(filename));
+			appUtils()->viewOrOpenFile(filename);
 	}
 }
 

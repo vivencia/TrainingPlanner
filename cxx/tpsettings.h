@@ -234,10 +234,10 @@ public:
 	inline uint smallFontSize() const { return m_defaultValues.at(SMALLFONT_SIZE_INDEX).toUInt(); }
 	inline uint largeFontSize() const { return m_defaultValues.at(LARGEFONT_SIZE_INDEX).toUInt(); }
 	inline uint extraLargeFontSize() const { return m_defaultValues.at(EXTRALARGEFONT_SIZE_INDEX).toUInt(); }
-	inline uint itemDefaultHeight() const { return m_defaultValues.at(ITEM_DEFAULT_HEIGHT).toUInt(); }
-	inline uint itemSmallHeight() const { return static_cast<uint>(qFloor(static_cast<float>(m_defaultValues.at(ITEM_DEFAULT_HEIGHT).toUInt()) * 0.8)); }
-	inline uint itemLargeHeight() const { return static_cast<uint>(qFloor(static_cast<float>(m_defaultValues.at(ITEM_DEFAULT_HEIGHT).toUInt()) * 1.2)); }
-	inline uint itemExtraLargeHeight() const { return static_cast<uint>(qFloor(static_cast<float>(m_defaultValues.at(ITEM_DEFAULT_HEIGHT).toUInt()) * 1.5)); }
+	inline int itemDefaultHeight() const { return m_defaultValues.at(ITEM_DEFAULT_HEIGHT).toInt(); }
+	inline int itemSmallHeight() const { return qFloor(static_cast<float>(m_defaultValues.at(ITEM_DEFAULT_HEIGHT).toInt()) * 0.8); }
+	inline int itemLargeHeight() const { return qFloor(static_cast<float>(m_defaultValues.at(ITEM_DEFAULT_HEIGHT).toInt()) * 1.2); }
+	inline int itemExtraLargeHeight() const { return qFloor(static_cast<float>(m_defaultValues.at(ITEM_DEFAULT_HEIGHT).toInt()) * 1.5); }
 
 	inline QString weightUnit() const { return getValue(currentUser(), WEIGHT_UNIT_INDEX, m_defaultValues.at(WEIGHT_UNIT_INDEX)).toString(); }
 	inline void setWeightUnit(const QString &new_value) { changeValue(currentUser(), WEIGHT_UNIT_INDEX, new_value); emit weightUnitChanged(); }

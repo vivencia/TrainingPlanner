@@ -499,6 +499,12 @@ void TPOnlineServices::getCmdFile(const int requestid,
 	makeNetworkRequest(requestid, url, true);
 }
 
+void TPOnlineServices::checkTPMessages(const int requestid)
+{
+	const QUrl &url{makeCommandURL(false, "gettpmessages"_L1)};
+	makeNetworkRequest(requestid, url);
+}
+
 void TPOnlineServices::checkMessages(const int requestid)
 {
 	const QUrl &url{makeCommandURL(false, "getnewmessages"_L1)};

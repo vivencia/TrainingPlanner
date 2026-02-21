@@ -344,6 +344,7 @@ public:
 	{
 		return workoutForDay(meso_idx, static_cast<int>(startDate(meso_idx).daysTo(date)));
 	}
+	void newWorkoutFromFile(const QString &filename, const bool formatted, const QVariant &workout_info);
 
 	[[nodiscard]] inline bool canExport(const uint meso_idx) const { return meso_idx < m_canExport.count() ? m_canExport.at(meso_idx) : false; }
 	void checkIfCanExport(const uint meso_idx, const bool bEmitSignal = true);
@@ -379,8 +380,6 @@ public:
 	void removeMesoFile(const uint meso_idx);
 	Q_INVOKABLE void sendMesoToUser(const uint meso_idx);
 	int newMesoFromFile(const QString &filename, const bool own_meso, const std::optional<bool> &file_formatted = std::nullopt);
-	int importSplitFromFile(const QString &filename, const uint meso_idx, uint split,
-									const std::optional<bool> &file_formatted = std::nullopt);
 	void viewOnlineMeso(const QString &coach, const QString &filename);
 	void scanTemporaryMesocycles();
 

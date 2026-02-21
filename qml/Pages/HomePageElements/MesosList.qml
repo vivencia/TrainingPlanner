@@ -3,19 +3,19 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Effects
 
-import "../"
 import "../../TPWidgets"
+
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 Item {
+	id: control
 	required property HomePageMesoModel mesoSubModel
-	property bool canLoadFooter: false
 
 	TPLabel {
 		id: lblTitle
-		text: mesoSubModel.ownMesosModel ? qsTr("My Programs") : qsTr("Clients' Programs")
+		text: control.mesoSubModel.ownMesosModel ? qsTr("My Programs") : qsTr("Clients' Programs")
 		useBackground: true
-		backgroundColor: mesoSubModel.ownMesosModel ? appSettings.primaryLightColor : appSettings.primaryColor
+		backgroundColor: control.mesoSubModel.ownMesosModel ? appSettings.primaryLightColor : appSettings.primaryColor
 
 		anchors {
 			top: parent.top
@@ -26,7 +26,7 @@ Item {
 
 	TPListView {
 		id: mesosListView
-		model: mesoSubModel
+		model: control.mesoSubModel
 		spacing: 10
 		width: parent.width
 		height: parent.height * 0.8 - lblTitle.height - 10
@@ -43,8 +43,8 @@ Item {
 			width: parent.width
 
 			onClicked: mesoModel.getMesocyclePage(mesoIdx, false);
-			onPressAndHold: mesoSubModel.currentIndex = index;
-			swipe.onCompleted: mesoSubModel.currentIndex = index;
+			onPressAndHold: control.mesoSubModel.currentIndex = index;
+			swipe.onCompleted: control.mesoSubModel.currentIndex = index;
 
 			Rectangle {
 				id: optionsRec
@@ -216,8 +216,8 @@ Item {
 				anchors.fill: parent
 				radius: 8
 				layer.enabled: true
-				color: mesoSubModel.ownMesosModel ? appSettings.primaryColor : appSettings.primaryDarkColor
-				border.color: index === mesoSubModel.currentIndex ? appSettings.fontColor : "transparent"
+				color: control.mesoSubModel.ownMesosModel ? appSettings.primaryColor : appSettings.primaryDarkColor
+				border.color: index === control.mesoSubModel.currentIndex ? appSettings.fontColor : "transparent"
 				visible: false
 			}
 
@@ -251,13 +251,13 @@ Item {
 					text: mesoCoach
 					fontColor: appSettings.fontColor
 					Layout.maximumWidth: parent.width
-					visible: mesoSubModel.ownMesosModel
+					visible: control.mesoSubModel.ownMesosModel
 				}
 				TPLabel {
 					text: mesoClient
 					fontColor: appSettings.fontColor
 					Layout.maximumWidth: parent.width
-					visible: !mesoSubModel.ownMesosModel
+					visible: !control.mesoSubModel.ownMesosModel
 				}
 				TPLabel {
 					text: mesoStartDate
@@ -299,7 +299,7 @@ Item {
 				Layout.maximumHeight: appSettings.itemDefaultHeight
 				Layout.alignment: Qt.AlignCenter
 
-				onClicked: mesoModel.startNewMesocycle(mesoSubModel.ownMesosModel);
+				onClicked: mesoModel.startNewMesocycle(control.mesoSubModel.ownMesosModel);
 			}
 
 			TPButton {
@@ -318,13 +318,13 @@ Item {
 				id: btnWorkout
 				text: qsTr("Today's workout")
 				imageSource: "workout.png"
-				visible: mesoSubModel.ownMesosModel
-				enabled: mesoSubModel.canHaveTodaysWorkout
+				visible: control.mesoSubModel.ownMesosModel
+				enabled: control.mesoSubModel.canHaveTodaysWorkout
 				Layout.preferredWidth: preferredWidth
 				Layout.maximumHeight: appSettings.itemDefaultHeight
 				Layout.alignment: Qt.AlignCenter
 
-				onClicked: mesoModel.startTodaysWorkout(mesoSubModel.currentMesoIdx());
+				onClicked: mesoModel.startTodaysWorkout(control.mesoSubModel.currentMesoIdx());
 			}
 		} //ColumnLayout
 	}

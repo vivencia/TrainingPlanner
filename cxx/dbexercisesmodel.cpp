@@ -404,7 +404,7 @@ int DBExercisesModel::importFromFormattedFile(const QString& filename, QFile *in
 
 	while ((lineLength = in_file->readLine(buf, sizeof(buf))) != -1)
 	{
-		if (strstr(buf, appUtils()->STR_END_FORMATTED_EXPORT.toLatin1().constData()) == NULL)
+		if (strstr(buf, appUtils()->STR_END_FORMATTED_EXPORT.latin1()) == NULL)
 		{
 			if (lineLength > 10)
 			{
@@ -1552,7 +1552,7 @@ void DBExercisesModel::commonConstructor(const bool load_from_db)
 		m_identifierInFile = appUtils()->workoutFileIdentifier;
 	}
 	else
-		m_identifierInFile = &appUtils()->splitFileIdentifier;
+		m_identifierInFile = appUtils()->splitFileIdentifier;
 	m_identifierInFile += m_splitLetter;
 
 	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field)

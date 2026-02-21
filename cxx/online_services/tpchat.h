@@ -83,8 +83,8 @@ public:
 	inline virtual int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
 
 public slots:
-	void processWebSocketTextMessage(QString &&message);
-	void processWebSocketBinaryMessage(const QString &filename, QByteArray &&data);
+	void processWebSocketTextMessage(const QString &message);
+	void processWebSocketBinaryMessage(const QByteArray &data);
 	Q_INVOKABLE void onChatWindowOpened();
 
 signals:

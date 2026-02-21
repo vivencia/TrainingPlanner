@@ -50,6 +50,7 @@ public:
 			m_mesoPage{nullptr}, m_mesoIdx{meso_idx}, m_splitsPage{nullptr}, m_calendarPage{nullptr} {}
 	inline ~QMLMesoInterface() { cleanUp(); }
 	void cleanUp();
+	void updateInterface(); //Call when a meso is updated programatically, e.g. importing from an update file
 
 	[[nodiscard]] bool mesoNameOK() const;
 	[[nodiscard]] bool startDateOK() const;

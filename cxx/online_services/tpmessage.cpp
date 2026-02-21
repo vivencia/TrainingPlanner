@@ -30,7 +30,7 @@ int TPMessage::insertAction(const QString& actionLabel, const std::function<void
 	if (remove != std::nullopt && remove.has_value())
 	{
 		m_actions.last().append(remove.value() ? record_separator : set_separator);
-		setSticky(remove.value());
+		setSticky(!remove.value());
 	}
 	const qsizetype n_action{m_actions.count() - 1};
 	emit dataChanged(TPMESSAGE_FIELD_ACTIONS);

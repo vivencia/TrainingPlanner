@@ -32,6 +32,8 @@ ApplicationWindow {
 	signal revokeCoachStatus(new_use_opt: int, revoke: bool);
 	signal revokeClientStatus(new_use_opt: int, revoke: bool);
 
+	signal tpFileOpenInquiryResult(do_import: bool);
+
 	header: Loader {
 		id: navBar
 		active: userModel.mainUserConfigured
@@ -162,11 +164,11 @@ ApplicationWindow {
 		active: false
 
 		sourceComponent: TPFileDialog {
+			property bool includeTextFilter: true
+
 			onDialogClosed: (result) => {
 				if (result === 0)
-					openFileChosen(appUtils.getCorrectPath(currentFile));
-				else
-					openFileRejected("");
+					appUtils.viewOrOpenFile(appUtils.getCorrectPath(currentFile));
 				importLoader.active = false;
 			}
 		}
@@ -177,36 +179,13 @@ ApplicationWindow {
 		importLoader.active = true;
 	}
 
-	property ImportDialog importConfirmDialog: null
-	function createImportConfirmDialog(importOptions: list<string>, selectedFields: list<bool>): void {
-		if (importConfirmDialog === null) {
-			let component = Qt.createComponent("qrc:/qml/Dialogs/ImportDialog.qml", Qt.Asynchronous);
-
-			function finishCreation() {
-				importConfirmDialog = component.createObject(contentItem, {
-								parentPage: stackView.currentItem, importOptions: importOptions, selectedFields: selectedFields});
-			}
-
-			if (component.status === Component.Ready)
-				finishCreation();
-			else
-				component.statusChanged.connect(finishCreation);
-		}
-		else {
-			importConfirmDialog.parentPage = stackView.currentItem;
-			importConfirmDialog.selectedFields = selectedFields;
-			importConfirmDialog.importOptions = 0;
-			importConfirmDialog.importOptions = importOptions;
-		}
-		importConfirmDialog.show(-1);
-	}
-
 	Loader {
 		id: saveDialogLoader
 		asynchronous: true
 		active: false
 
 		property string suggestedFileName;
+
 		sourceComponent: TPFileDialog {
 			saveDialog: true
 			chooseDialog: false
@@ -227,6 +206,44 @@ ApplicationWindow {
 	function chooseFolderToSave(filename: string): void {
 		saveDialogLoader.suggestedFileName = filename;
 		saveDialogLoader.active = true;
+	}
+
+	Loader {
+		id: tpFileLoader
+		asynchronous: true
+		active: false
+
+		property string dlgTitle
+		property string dlgMessage
+		property string dlgImage
+
+		sourceComponent: TPBalloonTip {
+			title: tpFileLoader.dlgTitle
+			message: tpFileLoader.dlgMessage
+			imageSource: tpFileLoader.dlgImage
+			button1Text: qsTr("Yes")
+			button2Text: qsTr("No")
+			modal: true
+			keepAbove: true
+			parentPage: homePage
+
+			onButton1Clicked: {
+				mainwindow.tpFileOpenInquiryResult(true);
+				tpFileLoader.active = false;
+			}
+			onButton2Clicked: {
+				mainwindow.tpFileOpenInquiryResult(false);
+				tpFileLoader.active = false;
+			}
+		}
+
+		onLoaded: item.show();
+	}
+	function confirmTPFileOpening(type: string, details: string, image: string): void {
+		tpFileLoader.dlgTitle = qsTr("Import ") + type;
+		tpFileLoader.dlgMessage = details;
+		tpFileLoader.dlgImage = image;
+		tpFileLoader.active = true;
 	}
 
 	property PasswordDialog passwdDlg: null

@@ -1,6 +1,6 @@
 #include "tputils.h"
 
-#include "dbexercisesmodel.h"
+#include "osinterface.h"
 #include "return_codes.h"
 #include "tpsettings.h"
 
@@ -14,6 +14,19 @@
 #include <random>
 
 TPUtils *TPUtils::app_utils{nullptr};
+
+// FNV-1a constants
+const uint32_t FNV_PRIME_32{0x01000193};
+const uint32_t FNV_OFFSET_BASIS_32{0x811c9dc5};
+
+inline uint32_t fnv1a_hash(const QString& s) {
+	uint32_t hash{FNV_OFFSET_BASIS_32};
+	for (const auto c : s.toStdU16String()) {
+		hash ^= static_cast<uint8_t>(c);
+		hash *= FNV_PRIME_32;
+	}
+	return hash;
+}
 
 TPUtils::TPUtils(QObject *parent)
 	: QObject{parent}, m_appLocale{nullptr}, m_lowestTempId{-1}
@@ -34,17 +47,14 @@ int TPUtils::generateUniqueId(const QLatin1StringView &seed) const
 
 	if (seed.isEmpty())
 		return generateRandomNumber(0, 5000);
-	else
-	{
+	else {
 		int n{0};
 		int shift{2};
 		int pos{0};
 		const int shifter{qFloor(QTime::currentTime().msec() / 100)};
-		for (const auto &itr : seed)
-		{
+		for (const auto &itr : seed) {
 			n += static_cast<int>(itr) * ++pos;
-			if (--shift == 0)
-			{
+			if (--shift == 0) {
 				n <<= shifter;
 				shift = 2;
 			}
@@ -85,8 +95,7 @@ TPUtils::FILE_TYPE TPUtils::getFileType(const QString &filename) const
 		return FT_UNKNOWN;
 
 	const QString &ext{appUtils()->getFileExtension(filename).toLower()};
-	if (ext.isEmpty())
-	{
+	if (ext.isEmpty()) {
 		#ifdef Q_OS_ANDROID
 			return filename.contains("video%"_L1) ? 1 : (filename.contains("image%"_L1) ? 0 : -1);
 		#else
@@ -94,8 +103,7 @@ TPUtils::FILE_TYPE TPUtils::getFileType(const QString &filename) const
 		#endif
 	}
 
-	if (ext == "txt"_L1)
-	{
+	if (ext == "txt"_L1) {
 		std::optional<bool> formatted;
 		uint32_t type{getTPFileType(filename, formatted)};
 		if (formatted.value())
@@ -128,35 +136,29 @@ TPUtils::FILE_TYPE TPUtils::getTPFileType(const QString &filename, std::optional
 	QTextStream stream{in_file};
 	uint32_t ret{FT_TEXT};
 
-	while (stream.readLineInto(&line))
-	{
-		if (line.contains("##"_L1))
-		{
+	while (stream.readLineInto(&line)) {
+		if (line.contains("##"_L1)) {
 			if (line.startsWith(STR_START_EXPORT))
 				formatted = false;
 			else if (line.startsWith(STR_START_FORMATTED_EXPORT))
 				formatted = true;
 			if (!formatted.has_value())
 				continue;
-			if (line.contains(userFileIdentifier))
-			{
+			if (line.contains(userFileIdentifier)) {
 				ret = FT_TP_USER_PROFILE;
 				break;
 			}
 			else if (line.contains(mesoFileIdentifier))
 				ret = FT_OTHER;
-			else if (line.contains(splitFileIdentifier) && ret == FT_OTHER)
-			{
+			else if (line.contains(splitFileIdentifier) && ret == FT_OTHER) {
 				ret = FT_TP_PROGRAM;
 				break;
 			}
-			else if (line.contains(exercisesListFileIdentifier))
-			{
+			else if (line.contains(exercisesListFileIdentifier)) {
 				ret = FT_TP_EXERCISES;
 				break;
 			}
-			else if (line.contains(workoutFileIdentifier))
-			{
+			else if (line.contains(workoutFileIdentifier)) {
 				switch (line.at(line.length() -1).cell()) {
 					case 'A': ret = FT_TP_WORKOUT_A; break;
 					case 'B': ret = FT_TP_WORKOUT_B; break;
@@ -175,12 +177,10 @@ TPUtils::FILE_TYPE TPUtils::getTPFileType(const QString &filename, std::optional
 	return static_cast<FILE_TYPE>(ret);
 }
 
-QString TPUtils::getFileTypeIcon(const QString &filename) const
+QString TPUtils::getFileTypeIcon(const QString &filename, const QSize &preferred_size) const
 {
 	uint32_t ft{static_cast<uint32_t>(getFileType(filename)) & ~FT_TP_FORMATTED};
-
-	switch (ft)
-	{
+	switch (ft) {
 		case FT_TP_USER_PROFILE:	return "user_preview.png"_L1;
 		case FT_TP_PROGRAM:			return "meso_preview.png"_L1;
 		case FT_TP_WORKOUT_A:
@@ -190,7 +190,7 @@ QString TPUtils::getFileTypeIcon(const QString &filename) const
 		case FT_TP_WORKOUT_E:
 		case FT_TP_WORKOUT_F:		return "workout_preview.png"_L1;
 		case FT_TP_EXERCISES:		return "exerciselist_preview.png"_L1;
-		case FT_IMAGE:				return getImagePreviewFile(filename);
+		case FT_IMAGE:				return getImagePreviewFile(filename, preferred_size);
 		case FT_VIDEO:				return "video_preview.png"_L1;
 		case FT_PDF:				return "pdf_preview.png"_L1;
 		case FT_TEXT:				return "genreric_preview.png"_L1;
@@ -202,26 +202,38 @@ QString TPUtils::getFileTypeIcon(const QString &filename) const
 	}
 }
 
-QString TPUtils::getImagePreviewFile(const QString &image_filename) const
+QString TPUtils::getImagePreviewFile(const QString &image_filename, const QSize &preferred_size) const
 {
-	QString preview_filename{previewImagesSubDir % QString::number(QDateTime::currentMSecsSinceEpoch()) % ".jpg"_L1};
-	if (QFile::exists(preview_filename))
-	{
-		::usleep(1000);
-		return getImagePreviewFile(image_filename);
-	}
-	if (QFile::exists(image_filename))
-	{
+	static const QString size_template{"%1x%2"_L1};
+	QString preview_filename{previewImagesSubDir % QString::number(fnv1a_hash(image_filename)) % (!preferred_size.isNull() ?
+			size_template.arg(QString::number(preferred_size.width()), QString::number(preferred_size.height())) : QString{}) % ".jpg"_L1};
+	if (!QFile::exists(image_filename)) {
 		QImage thumbnail{image_filename};
 		QSize img_size{std::move(thumbnail.size())};
-		const auto ratio{img_size.width() / img_size.height()};
-		img_size.rwidth() = qMin(static_cast<int>(appSettings()->pageWidth() * 0.5), img_size.width() * ratio);
-		img_size.rheight() = qMin(static_cast<int>(appSettings()->pageHeight() * 0.3), img_size.height() * ratio);
+		if (preferred_size.isNull()) {
+			const auto ratio{img_size.width() / img_size.height()};
+			img_size.rwidth() = qMin(static_cast<int>(appSettings()->pageWidth() * 0.5), img_size.width() * ratio);
+			img_size.rheight() = qMin(static_cast<int>(appSettings()->pageHeight() * 0.3), img_size.height() * ratio);
+		}
+		else
+			img_size = preferred_size;
 		thumbnail = std::move(thumbnail.scaled(img_size));
 		thumbnail.save(preview_filename, "JPG", 10);
 		return preview_filename;
 	}
 	return QString{};
+}
+
+void TPUtils::viewOrOpenFile(const QString &filename, const QVariant &extra_info)
+{
+	uint32_t ft{getFileType(filename)};
+	if (ft >= FT_IMAGE)
+		appOsInterface()->openURL(filename);
+	else {
+		const bool formatted{(ft & FT_TP_FORMATTED) == FT_TP_FORMATTED};
+		ft &= static_cast<uint32_t>(~FT_TP_FORMATTED);
+		emit tpFileOpenRequest(ft, filename, formatted, extra_info);
+	}
 }
 
 bool TPUtils::canReadFile(const QString &filename) const
@@ -308,6 +320,13 @@ QString TPUtils::getFileExtension(const QString &filename, const bool include_do
 	return dot_idx > 0 ? filename.last(filename.length() - dot_idx - (include_dot ? 0 : 1)) : default_ext;
 }
 
+QString TPUtils::getSubDir(const QString &filename) const
+{
+	const auto start_pos{appSettings()->currentUserDir().length()};
+	const auto end_pos{filename.length() - getFileName(filename).length()};
+	return filename.sliced(start_pos, end_pos - start_pos);
+}
+
 bool TPUtils::fileRecentlyModified(const QString &filename, const int threshold) const
 {
 	QFileInfo fi{filename};
@@ -339,25 +358,19 @@ bool TPUtils::rename(const QString &source_file_or_dir, const QString &dest_file
 	const QFileInfo fi_src{source_file_or_dir};
 	const QFileInfo fi_dest{dest_file_or_dir};
 
-	if (fi_src.exists())
-	{
+	if (fi_src.exists()) {
 		bool ok{false};
-		if (fi_src.isDir())
-		{
+		if (fi_src.isDir()) {
 			QDir dest_dir;
-			if (fi_dest.exists())
-			{
-				if (!fi_dest.isDir()) //dest_file_or_dir is a file
-				{
+			if (fi_dest.exists()) {
+				if (!fi_dest.isDir()) { //dest_file_or_dir is a file
 					if (overwrite)
 						QFile::remove(dest_file_or_dir);
 					else
 						return false;
 				}
-				else
-				{
-					if (overwrite)
-					{
+				else {
+					if (overwrite) {
 						dest_dir.setPath(dest_file_or_dir);
 						if (!dest_dir.removeRecursively())
 							return false;
@@ -368,15 +381,11 @@ bool TPUtils::rename(const QString &source_file_or_dir, const QString &dest_file
 			}
 			ok = dest_dir.rename(source_file_or_dir, dest_file_or_dir);
 		}
-		else
-		{
+		else {
 			QFile dest_file;
-			if (fi_dest.exists())
-			{
-				if (!fi_dest.isFile()) //dest_file_or_dir is a dir
-				{
-					if (overwrite)
-					{
+			if (fi_dest.exists()) {
+				if (!fi_dest.isFile()) { //dest_file_or_dir is a dir
+					if (overwrite) {
 						QDir dest_dir{dest_file_or_dir};
 						if (!dest_dir.removeRecursively())
 							return false;
@@ -384,8 +393,7 @@ bool TPUtils::rename(const QString &source_file_or_dir, const QString &dest_file
 					else
 						return false;
 				}
-				else
-				{
+				else {
 					if (overwrite)
 						QFile::remove(dest_file_or_dir);
 					else
@@ -404,18 +412,15 @@ bool TPUtils::rename(const QString &source_file_or_dir, const QString &dest_file
 
 bool TPUtils::copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath, const bool remove_source) const
 {
-	if (QFile::exists(srcFile))
-	{
-		if (createPath)
-		{
+	if (QFile::exists(srcFile)) {
+		if (createPath) {
 			const QString &filepath{getFilePath(dstFileOrDir)};
 			if (!mkdir(filepath))
 				return false;
 		}
 		const QFileInfo fi{dstFileOrDir};
 		const QString &dstFile{fi.isDir() ? dstFileOrDir + getFileName(srcFile) : dstFileOrDir};
-		if (QFile::copy(srcFile, dstFile))
-		{
+		if (QFile::copy(srcFile, dstFile)) {
 			if (remove_source)
 				QFile::remove(srcFile);
 			return true;
@@ -428,8 +433,7 @@ QFile *TPUtils::openFile(const QString &filename, const bool read, const bool wr
 							const bool text) const
 {
 	QIODeviceBase::OpenMode flags{QIODeviceBase::NotOpen};
-	if (write)
-	{
+	if (write) {
 		if (overwrite)
 			flags |= QIODeviceBase::Truncate;
 		else if (append)
@@ -444,8 +448,7 @@ QFile *TPUtils::openFile(const QString &filename, const bool read, const bool wr
 	if (text)
 		flags |= QIODeviceBase::Text;
 
-	if (mkdir(filename))
-	{
+	if (mkdir(filename)) {
 		QFile *file{new QFile{filename}};
 		if (file->open(flags))
 			return file;
@@ -457,11 +460,9 @@ QFile *TPUtils::openFile(const QString &filename, const bool read, const bool wr
 void TPUtils::scanDir(const QString &path, QFileInfoList &results, const QString &match, const bool follow_tree) const
 {
 	QDir dir{path};
-	if (dir.isReadable())
-	{
+	if (dir.isReadable()) {
 		results.append(std::move(dir.entryInfoList(QStringList{match}, QDir::Files|QDir::NoDotAndDotDot)));
-		if (follow_tree)
-		{
+		if (follow_tree) {
 			const QStringList &subdirs{dir.entryList(QDir::Dirs|QDir::NoDotAndDotDot)};
 			for (const auto &subdir: subdirs)
 				scanDir(path + subdir, results, match, true);
@@ -474,8 +475,7 @@ void TPUtils::rmDir(const QString &path) const
 	QDir directory{path};
 	const QFileInfoList &user_files{directory.entryInfoList(QStringList{} << std::move("*.*"_L1),
 															QDir::AllEntries|QDir::System|QDir::NoDotAndDotDot)};
-	for (const auto &it : user_files)
-	{
+	for (const auto &it : user_files) {
 		if (it.isDir())
 			rmDir(it.filePath());
 		else if (it.isFile())
@@ -496,18 +496,14 @@ bool TPUtils::writeDataToFile(QFile *out_file,
 	if (!identifier.isEmpty())
 		out_file->write(QString{STR_START_EXPORT % identifier % '\n'}.toUtf8().constData());
 
-	if (export_rows.isEmpty())
-	{
-		for (const auto &modeldata : std::as_const(data))
-		{
+	if (export_rows.isEmpty()) {
+		for (const auto &modeldata : std::as_const(data)) {
 			uint i{0};
-			if (!use_real_id)
-			{
+			if (!use_real_id) {
 				out_file->write("-1\n", 3);
 				i = 1;
 			}
-			for (; i < modeldata.count(); ++i)
-			{
+			for (; i < modeldata.count(); ++i) {
 				out_file->write(modeldata.at(i).toUtf8().constData());
 				out_file->write("\n", 1);
 			}
@@ -517,14 +513,11 @@ bool TPUtils::writeDataToFile(QFile *out_file,
 	}
 	else
 	{
-		for (const auto row : export_rows)
-		{
-			for (const auto &modeldata : std::as_const(data.at(row)))
-			{
+		for (const auto row : export_rows) {
+			for (const auto &modeldata : std::as_const(data.at(row))) {
 				if (!use_real_id && row == export_rows.constFirst())
 					out_file->write("-1\n", 3);
-				else
-				{
+				else {
 					out_file->write(modeldata.toUtf8().constData());
 					out_file->write("\n", 1);
 				}
@@ -554,14 +547,10 @@ bool TPUtils::writeDataToFormattedFile(QFile *out_file,
 	first_line += std::move<QString>(std::move("\n\n"_L1));
 	out_file->write(first_line.toUtf8().constData());
 
-	if (export_rows.isEmpty())
-	{
-		for (const auto &modeldata : data)
-		{
-			for (uint i{0}; i < modeldata.count(); ++i)
-			{
-				if (field_description.at(i) != nullptr)
-				{
+	if (export_rows.isEmpty()) {
+		for (const auto &modeldata : data) {
+			for (uint i{0}; i < modeldata.count(); ++i) {
+				if (field_description.at(i) != nullptr) {
 					out_file->write(field_description.at(i)().toUtf8().constData());
 					if (formatToExport == nullptr)
 						out_file->write(modeldata.at(i).toUtf8().constData());
@@ -573,15 +562,11 @@ bool TPUtils::writeDataToFormattedFile(QFile *out_file,
 			out_file->write(STR_END_FORMATTED_EXPORT.toUtf8().constData());
 		}
 	}
-	else
-	{
-		for (uint x{0}; x < export_rows.count(); ++x)
-		{
-			for (const auto &modeldata : data.at(export_rows.at(x)))
-			{
+	else {
+		for (uint x{0}; x < export_rows.count(); ++x) {
+			for (const auto &modeldata : data.at(export_rows.at(x))) {
 				uint i{0};
-				if (field_description.at(i) != nullptr)
-				{
+				if (field_description.at(i) != nullptr) {
 					out_file->write(field_description.at(i)().toUtf8().constData());
 					if (formatToExport == nullptr)
 						out_file->write(modeldata.toUtf8().constData());
@@ -700,7 +685,7 @@ int TPUtils::readDataFromFormattedFile(QFile *in_file,
 	return identifier_found ? (field > 1 ? TP_RET_CODE_IMPORT_OK : TP_RET_CODE_IMPORT_FAILED) : TP_RET_CODE_WRONG_IMPORT_FILE_TYPE;
 }
 
-QByteArray TPUtils::readBinaryFile(const QString &filename, const QString &filename_part_to_include) const &
+QByteArray TPUtils::readBinaryFile(const QString &filename, const QString &extra_info) const &
 {
 	QFile *file{openFile(filename, true, false, false, false, false)};
 	if (file)
@@ -708,21 +693,48 @@ QByteArray TPUtils::readBinaryFile(const QString &filename, const QString &filen
 		QByteArray data{std::move(file->readAll())};
 		file->close();
 		delete file;
-		data.append(QString{record_separator % filename_part_to_include % getFileName(filename)}.toLocal8Bit());
+		if (!extra_info.isEmpty())
+			data.append(QString{binary_file_initial_separator % extra_info}.toLocal8Bit());
 		return data;
 	}
 	return QByteArray{};
 }
 
-void TPUtils::writeBinaryFile(const QString &filename, const QByteArray &data)
+void TPUtils::writeBinaryFile(const QString &filename, const QByteArray &data, const bool strip_extra_info) const
 {
 	QFile *file{openFile(filename, false, true, false, true, false)};
 	if (file)
 	{
-		file->write(data);
+		if (!strip_extra_info)
+			file->write(data);
+		else
+			file->write(data.chopped(data.length() - data.lastIndexOf(binary_file_initial_separator.toLatin1(), -1)));
 		file->close();
 		delete file;
 	}
+}
+
+void TPUtils::insertOrModifyBinaryFileField(QByteArray &data, BINARY_FILE_INFO_FIELDS field, const QString &info) const
+{
+	const auto extra_fields_pos{data.lastIndexOf(binary_file_initial_separator.toLatin1(), -1)};
+	if (extra_fields_pos > 0)
+	{
+		QString extra_info{data.last(data.length() - extra_fields_pos - 1)};
+		setCompositeValue(field, info, extra_info, binary_file_separator);
+		data.chop(data.length() - extra_fields_pos);
+		data.append(extra_info.toLocal8Bit());
+	}
+}
+
+QString TPUtils::binaryFileExtraFieldValue(const QByteArray &data, BINARY_FILE_INFO_FIELDS field) const
+{
+	const auto extra_fields_pos{data.lastIndexOf(binary_file_initial_separator.toLatin1(), -1)};
+	if (extra_fields_pos > 0)
+	{
+		const QString &extra_info{data.last(data.length() - extra_fields_pos - 1)};
+		return getCompositeValue(field, extra_info, binary_file_separator);
+	}
+	return QString{};
 }
 
 void TPUtils::copyToClipboard(const QString &text) const
@@ -1171,23 +1183,20 @@ bool TPUtils::removeFieldFromCompositeValue(const uint idx, QString &compositeSt
 
 int TPUtils::fieldOfValue(const QString &value, const QString &compositeString, const QLatin1Char &chr_sep) const
 {
-	qsizetype sep_pos{compositeString.indexOf(chr_sep)};
-	if (sep_pos != -1)
-	{
-		qsizetype value_start{sep_pos+1};
-		qsizetype value_end{compositeString.indexOf(chr_sep, value_start)};
-		if (value_end != -1 && value_end != value_start)
-		{
+	auto sep_pos{compositeString.indexOf(chr_sep)};
+	if (sep_pos != -1) {
+		auto value_start{sep_pos+1};
+		auto value_end{compositeString.indexOf(chr_sep, value_start)};
+		if (value_end != -1 && value_end != value_start) {
 			int idx{0};
 			do {
-				const QString &word{compositeString.sliced(value_start, value_end-value_start)};
+				const QString &word{compositeString.sliced(value_start, value_end - value_start)};
 				if (word == value)
 					return idx;
 				sep_pos = compositeString.indexOf(chr_sep, value_end + 1);
-				if (sep_pos != -1)
-				{
+				if (sep_pos != -1) {
 					++idx;
-					value_start = sep_pos+1;
+					value_start = sep_pos + 1;
 					value_end = compositeString.indexOf(chr_sep, value_start);
 				}
 			} while (sep_pos != -1);
@@ -1203,10 +1212,8 @@ QString TPUtils::subSetOfCompositeValue(const QString &value, const uint from, c
 	uint last_sep_pos{0};
 	QString ret;
 
-	for (const auto &chr : value)
-	{
-		if (chr.toLatin1() == chr_sep)
-		{
+	for (const auto &chr : value) {
+		if (chr.toLatin1() == chr_sep) {
 			if (n_seps <= from)
 				ret.append(value.sliced(last_sep_pos, chr_pos + 1));
 			if (++n_seps >= n)

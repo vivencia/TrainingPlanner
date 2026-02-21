@@ -74,6 +74,7 @@ public:
 																						const QString &localFilePath = QString{});
 	void getCmdFile(const int requestid, const QString &filename, const QString &subdir = QString{});
 
+	void checkTPMessages(const int requestid);
 	void checkMessages(const int requestid);
 	void sendMessage(const int requestid, const QString &receiver, const QString &encoded_message);
 	void chatMessageWork(const int requestid, const QString &recipient, const QString &msgid, const QLatin1StringView &work);

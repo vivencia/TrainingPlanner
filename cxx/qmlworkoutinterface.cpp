@@ -359,34 +359,29 @@ void QmlWorkoutInterface::resetWorkout()
 void QmlWorkoutInterface::exportWorkout(const bool bShare)
 {
 	const QString &suggestedName{m_mesoModel->name(m_mesoIdx) + tr(" - Workout ") + m_workoutModel->splitLetter() + ".txt"_L1};
-	const QString &exportFileName{appItemManager()->setExportFileName(suggestedName)};
-	appItemManager()->continueExport(m_workoutModel->exportToFile(exportFileName), bShare);
+	//const QString &exportFileName{appItemManager()->setExportFileName(suggestedName)};
+	//appItemManager()->continueExport(m_workoutModel->exportToFile(exportFileName), bShare);
 }
 
 void QmlWorkoutInterface::importWorkout(const QString &filename)
 {
-	if (filename.isEmpty())
-	{
+	if (filename.isEmpty()) {
 		m_mesoModel->setImportIdx(m_mesoIdx);
-		QMetaObject::invokeMethod(appMainWindow(), "chooseFileToImport", Q_ARG(int, IFC_WORKOUT));
+		QMetaObject::invokeMethod(appMainWindow(), "chooseFileToImport");
 	}
-	else
-		appItemManager()->openRequestedFile(filename, IFC_WORKOUT);
 }
 
 void QmlWorkoutInterface::prepareWorkOutTimer(const QString &strStartTime, const QString &strEndTime)
 {
 	if (!m_workoutTimer)
 		return;
-	if (!strEndTime.isEmpty())
-	{
+	if (!strEndTime.isEmpty()) {
 		m_workoutTimer->setStopWatch(false);
 		m_workoutTimer->prepareTimer(strEndTime); //time constrained(limited) workout by length.
 		if (!strStartTime.isEmpty()) //time constrained(limited) workout by time of day.
 			m_workoutTimer->prepareTimer(appUtils()->calculateTimeDifference_str(strStartTime, strEndTime));
 	}
-	else
-	{
+	else {
 		m_workoutTimer->setStopWatch(true);
 		if (strStartTime.isEmpty())
 			m_workoutTimer->prepareTimer("00:00:00"_L1); //a regular workout timer. Open end time, start when begin workout is clicked
@@ -405,8 +400,7 @@ void QmlWorkoutInterface::startWorkout()
 void QmlWorkoutInterface::stopWorkout()
 {
 	m_workoutTimer->stopTimer();
-	if (!m_workoutTimer->stopWatch())
-	{
+	if (!m_workoutTimer->stopWatch()) {
 		const QTime &elapsedTime{m_workoutTimer->elapsedTime()};
 		setTimerHour(elapsedTime.hour());
 		setTimerMinute(elapsedTime.minute());
@@ -425,8 +419,7 @@ bool QmlWorkoutInterface::canChangeSetMode(const uint exercise_number, const uin
 
 void QmlWorkoutInterface::gotoNextExercise()
 {
-	if (m_workoutModel->workingExercise() < (m_workoutModel->exerciseCount() - 1) )
-	{
+	if (m_workoutModel->workingExercise() < (m_workoutModel->exerciseCount() - 1) ) {
 		rollUpExercise(m_workoutModel->workingExercise());
 		m_workoutModel->setWorkingExercise(m_workoutModel->workingExercise() + 1);
 		QMetaObject::invokeMethod(m_workoutPage, "setViewingExercise", Q_ARG(int, m_workoutModel->workingExercise()));
@@ -456,8 +449,7 @@ inline bool QmlWorkoutInterface::checkWorkoutStatus(uint8_t flag) const
 bool QmlWorkoutInterface::changeWorkoutStatus(uint8_t flag, const bool set, const bool emit_signal)
 {
 	bool ok{false};
-	switch (flag)
-	{
+	switch (flag) {
 		case WS_IN_PROGRESS:
 			if ((ok = checkWorkoutStatus(WS_TODAY)))
 				changeWorkoutStatus(WS_EDITABLE, set, false);

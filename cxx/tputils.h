@@ -3,6 +3,7 @@
 #include <QDateTime>
 #include <QFileInfo>
 #include <QObject>
+#include <QSize>
 #include <QUrl>
 
 namespace QLiterals = Qt::Literals::StringLiterals;
@@ -12,6 +13,8 @@ constexpr QLatin1Char exercises_separator{28}; // \034 0x1c
 constexpr QLatin1Char comp_exercises_separator{29}; // \035 0x1d
 constexpr QLatin1Char record_separator{30}; // \036 0x1e
 constexpr QLatin1Char set_separator{31}; // \037 0x1f
+constexpr QLatin1Char binary_file_initial_separator{record_separator};
+constexpr QLatin1Char binary_file_separator{set_separator};
 
 constexpr QLatin1Char fancy_record_separator1{'|'};
 constexpr QLatin1Char fancy_record_separator2{';'};
@@ -77,6 +80,16 @@ public:
 		FT_UNKNOWN			= 1U << 31,
 	};
 
+	enum BINARY_FILE_INFO_FIELDS {
+		BFIF_LOCAL_HANDLER_ID,
+		BFIF_SUBDIR_PLUS_FILENAME,
+		BFIF_SENDERID,
+		BFIF_RECEIVERID,
+		BFIF_MESONAME,
+		BFIF_SPLITLETTER,
+		BFIF_TOTAL_FIELDS
+	};
+
 	const QString exercisesListFileIdentifier{QLiterals::operator""_L1("0x01", 4)};
 	const QString mesoFileIdentifier{QLiterals::operator""_L1("0x02", 4)};
 	const QString splitFileIdentifier{QLiterals::operator""_L1("0x03", 4)};
@@ -99,9 +112,9 @@ public:
 
 	FILE_TYPE getFileType(const QString &filename) const;
 	FILE_TYPE getTPFileType(const QString &filename, std::optional<bool> &formatted) const;
-	QString getFileTypeIcon(const QString &filename) const;
-	QString getImagePreviewFile(const QString &image_filename) const;
-
+	QString getFileTypeIcon(const QString &filename, const QSize &preferred_size = QSize{}) const;
+	QString getImagePreviewFile(const QString &image_filename, const QSize &preferred_size = QSize{}) const;
+	Q_INVOKABLE void viewOrOpenFile(const QString &filename, const QVariant &extra_info = QVariant{});
 
 	Q_INVOKABLE QString getCorrectPath(const QUrl &url) const;
 	Q_INVOKABLE bool canReadFile(const QString &filename) const;
@@ -110,6 +123,8 @@ public:
 	//Returns the filename or the last directory in path if path does not include a file
 	QString getFileName(const QString &filename, const bool without_extension = false) const;
 	QString getFileExtension(const QString &filename, const bool include_dot = false, const QString &default_ext = QString{}) const;
+	//Only for files stored in the app's private directory
+	QString getSubDir(const QString &filename) const;
 
 	/**
 	 * @brief fileRecentlyModified
@@ -153,8 +168,11 @@ public:
 								  const QString &identifier,
 								  const std::function<QString(const uint field, const QString &value)> &formatToImport = nullptr) const;
 
-	QByteArray readBinaryFile(const QString &filename, const QString &filename_part_to_include) const &;
-	void writeBinaryFile(const QString &filename, const QByteArray &data);
+	QByteArray readBinaryFile(const QString &filename, const QString &extra_info = QString{}) const &;
+	void writeBinaryFile(const QString &filename, const QByteArray &data, const bool strip_extra_info) const;
+	void insertOrModifyBinaryFileField(QByteArray &data, BINARY_FILE_INFO_FIELDS field, const QString &info) const;
+	QString binaryFileExtraFieldValue(const QByteArray &data, BINARY_FILE_INFO_FIELDS field) const;
+
 	Q_INVOKABLE void copyToClipboard(const QString &text) const;
 	Q_INVOKABLE QString pasteFromClipboard() const;
 
@@ -228,6 +246,9 @@ public:
 	inline QLocale *appLocale() const { return m_appLocale; }
 	void setAppLocale(const QString &locale_str);
 	inline QString newDBTemporaryId() const { return QString::number(m_lowestTempId--); }
+
+signals:
+	void tpFileOpenRequest(uint32_t tp_filetype, const QString &filename, const bool formatted = false, const QVariant &extra_info = QVariant{});
 
 private:
 	QLocale *m_appLocale;

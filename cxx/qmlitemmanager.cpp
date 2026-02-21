@@ -18,7 +18,6 @@
 #include "pageslistmodel.h"
 #include "osinterface.h"
 #include "statistics/tpstatistics.h"
-#include "tpbool.h"
 #include "tpimage.h"
 #include "tpimageprovider.h"
 #include "tpsettings.h"
@@ -28,7 +27,6 @@
 #include "online_services/onlineuserinfo.h"
 #include "online_services/tpchat.h"
 #include "online_services/tpmessagesmanager.h"
-#include "online_services/tponlineservices.h"
 
 #include "weather/weatherinfo.h"
 
@@ -66,66 +64,61 @@ void QmlItemManager::configureQmlEngine()
 	QQuickStyle::setStyle(appSettings()->themeStyle());
 	QQuickWindow::setTextRenderType(QQuickWindow::NativeTextRendering);
 
-	REGISTER_QML_TYPE(DBUserModel, "DBUserModel")
-	REGISTER_QML_TYPE(DBExercisesListModel, "DBExercisesListModel")
-	REGISTER_QML_TYPE(DBMesocyclesModel, "MesocyclesModel")
-	REGISTER_QML_TYPE(DBExercisesModel, "DBExercisesModel")
-	REGISTER_QML_TYPE(DBCalendarModel, "DBCalendarModel")
-	REGISTER_QML_TYPE(TPTimer, "TPTimer")
-	REGISTER_QML_TYPE(TPImage, "TPImage")
-	REGISTER_QML_TYPE(QmlUserInterface, "UserManager")
-	REGISTER_QML_TYPE(QmlExercisesDatabaseInterface, "ExercisesListManager")
-	REGISTER_QML_TYPE(QMLMesoInterface, "MesoManager")
-	REGISTER_QML_TYPE(QmlMesoCalendarInterface, "CalendarManager")
-	REGISTER_QML_TYPE(QmlMesoSplitInterface, "SplitManager")
-	REGISTER_QML_TYPE(QmlWorkoutInterface, "WorkoutManager")
-	REGISTER_QML_TYPE(WeatherInfo, "WeatherInfo")
-	REGISTER_QML_TYPE(TPStatistics, "Statistics")
-	REGISTER_QML_TYPE(PagesListModel, "PagesListModel")
-	REGISTER_QML_TYPE(OnlineUserInfo, "OnlineUserInfo")
-	REGISTER_QML_TYPE(TPMessagesManager, "MessagesManager")
-	REGISTER_QML_TYPE(HomePageMesoModel, "HomePageMesoModel")
-	REGISTER_QML_TYPE(TPChat, "ChatModel")
+	REGISTER_QML_TYPE(DBUserModel,						"DBUserModel")
+	REGISTER_QML_TYPE(DBExercisesListModel,				"DBExercisesListModel")
+	REGISTER_QML_TYPE(DBMesocyclesModel,				"MesocyclesModel")
+	REGISTER_QML_TYPE(DBExercisesModel,					"DBExercisesModel")
+	REGISTER_QML_TYPE(DBCalendarModel,					"DBCalendarModel")
+	REGISTER_QML_TYPE(TPTimer,							"TPTimer")
+	REGISTER_QML_TYPE(TPImage,							"TPImage")
+	REGISTER_QML_TYPE(QmlUserInterface,					"UserManager")
+	REGISTER_QML_TYPE(QmlExercisesDatabaseInterface,	"ExercisesListManager")
+	REGISTER_QML_TYPE(QMLMesoInterface,					"MesoManager")
+	REGISTER_QML_TYPE(QmlMesoCalendarInterface,			"CalendarManager")
+	REGISTER_QML_TYPE(QmlMesoSplitInterface,			"SplitManager")
+	REGISTER_QML_TYPE(QmlWorkoutInterface,				"WorkoutManager")
+	REGISTER_QML_TYPE(WeatherInfo,						"WeatherInfo")
+	REGISTER_QML_TYPE(TPStatistics,						"Statistics")
+	REGISTER_QML_TYPE(PagesListModel,					"PagesListModel")
+	REGISTER_QML_TYPE(OnlineUserInfo,					"OnlineUserInfo")
+	REGISTER_QML_TYPE(TPMessagesManager,				"MessagesManager")
+	REGISTER_QML_TYPE(HomePageMesoModel,				"HomePageMesoModel")
+	REGISTER_QML_TYPE(TPChat,							"ChatModel")
 
 	QList<QQmlContext::PropertyPair> global_properties{9};
-	global_properties[0] = std::move(QQmlContext::PropertyPair{ "appSettings"_L1, QVariant::fromValue(appSettings()) });
-	global_properties[1] = std::move(QQmlContext::PropertyPair{ "appUtils"_L1, QVariant::fromValue(appUtils()) });
-	global_properties[2] = std::move(QQmlContext::PropertyPair{ "appTr"_L1, QVariant::fromValue(appTr()) });
-	global_properties[3] = std::move(QQmlContext::PropertyPair{ "userModel"_L1, QVariant::fromValue(appUserModel()) });
-	global_properties[4] = std::move(QQmlContext::PropertyPair{ "exercisesListModel"_L1, QVariant::fromValue(appExercisesList()) });
-	global_properties[5] = std::move(QQmlContext::PropertyPair{ "itemManager"_L1, QVariant::fromValue(this) });
-	global_properties[6] = std::move(QQmlContext::PropertyPair{ "appStatistics"_L1, QVariant::fromValue(appStatistics()) });
-	global_properties[7] = std::move(QQmlContext::PropertyPair{ "appMessages"_L1, QVariant::fromValue(new TPMessagesManager{this}) });
-	global_properties[8] = std::move(QQmlContext::PropertyPair{ "osInterface"_L1, QVariant::fromValue(appOsInterface()) });
+	global_properties[0] = std::move(QQmlContext::PropertyPair{ "appSettings"_L1,			QVariant::fromValue(appSettings()) });
+	global_properties[1] = std::move(QQmlContext::PropertyPair{ "appUtils"_L1,				QVariant::fromValue(appUtils()) });
+	global_properties[2] = std::move(QQmlContext::PropertyPair{ "appTr"_L1,					QVariant::fromValue(appTr()) });
+	global_properties[3] = std::move(QQmlContext::PropertyPair{ "userModel"_L1,				QVariant::fromValue(appUserModel()) });
+	global_properties[4] = std::move(QQmlContext::PropertyPair{ "exercisesListModel"_L1,	QVariant::fromValue(appExercisesList()) });
+	global_properties[5] = std::move(QQmlContext::PropertyPair{ "itemManager"_L1,			QVariant::fromValue(this) });
+	global_properties[6] = std::move(QQmlContext::PropertyPair{ "appStatistics"_L1,			QVariant::fromValue(appStatistics()) });
+	global_properties[7] = std::move(QQmlContext::PropertyPair{ "appMessages"_L1,			QVariant::fromValue(new TPMessagesManager{this}) });
+	global_properties[8] = std::move(QQmlContext::PropertyPair{ "osInterface"_L1,			QVariant::fromValue(appOsInterface()) });
 	appQmlEngine()->rootContext()->setContextProperties(global_properties);
 	appQmlEngine()->addImportPath(":/"_L1);
 	appQmlEngine()->addImageProvider("tpimageprovider"_L1, new TPImageProvider{});
 
 	QUrl url{};
 	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(),
-																[this] (const QObject *const obj, const QUrl &objUrl)
-	{
-		if (!obj)
-		{
+																[this] (const QObject *const obj, const QUrl &objUrl) {
+		if (!obj) {
 			#ifndef QT_NO_DEBUG
 			qDebug () << "*******************Mainwindow not loaded*******************";
 			#endif
 			QCoreApplication::exit(-1);
 		}
-		else
-		{
+		else {
 			_appMainWindow = qobject_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));
 			appQmlEngine()->rootContext()->setContextProperty("mainwindow"_L1, QVariant::fromValue(appMainWindow()));
 			m_homePage = appMainWindow()->findChild<QQuickItem*>("homePage");
 
 			appUserModel()->initUserSession();
-			connect(appMainWindow(), SIGNAL(openFileChosen(QString)), this, SLOT(importSlot_FileChosen(QString)));
-			connect(appMainWindow(), SIGNAL(openFileRejected(QString)), this, SLOT(importSlot_FileChosen(QString)));
 			connect(appMainWindow(), SIGNAL(saveFileChosen(QString)), this, SLOT(exportSlot(QString)));
 			connect(appMainWindow(), SIGNAL(saveFileRejected(QString)), this, SLOT(exportSlot(QString)));
 			connect(appHomePage(), SIGNAL(mesosViewChanged(bool)), this, SLOT(homePageViewChanged(bool)));
-			if (m_qml_testing)
-			{
+			connect(appUtils(), &TPUtils::tpFileOpenRequest, this, &QmlItemManager::openTPFile);
+			if (m_qml_testing) {
 				connect(appUserModel(), &DBUserModel::mainUserConfigurationFinished, this, [this] () {
 					connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::mesoDataLoaded, this, [this] () {
 						showSimpleExercisesList(appHomePage(), QString{});
@@ -150,17 +143,13 @@ void QmlItemManager::configureQmlEngine()
 	#ifndef QT_NO_DEBUG
 	m_qml_testing = false;
 	const QStringList &args{qApp->arguments()};
-	if (args.count() > 1)
-	{
-		if (args.at(1) == "-test"_L1)
-		{
+	if (args.count() > 1) {
+		if (args.at(1) == "-test"_L1) {
 			m_qml_testing = true;
 			url = std::move("qrc:/qml/tests.qml"_L1);
 		}
-		else if (args.at(1) == "-user"_L1)
-		{
-			if (!args.at(2).isEmpty())
-			{
+		else if (args.at(1) == "-user"_L1) {
+			if (!args.at(2).isEmpty()) {
 				appSettings()->setReadOnlyGroup(GLOBAL_GROUP, true);
 				appSettings()->setCurrentUser(args.at(2));
 			}
@@ -187,45 +176,7 @@ void QmlItemManager::exitApp()
 
 void QmlItemManager::chooseFileToImport()
 {
-	QMetaObject::invokeMethod(appMainWindow(), "chooseFileToImport", Q_ARG(int, IFC_MESO));
-}
-
-void QmlItemManager::importFromSelectedFile(const QList<bool> &selectedFields)
-{
-	const bool formatted{m_importFilename.at(0).cell() == 'f'};
-	int importFileMessageId{TP_RET_CODE_IMPORT_FAILED};
-
-	m_importFilename.remove(0, 1);
-	for (uint i{0}; i < selectedFields.count(); ++i)
-	{
-		switch (i)
-		{
-			case IFC_USER:
-				importFileMessageId = appUserModel()->newUserFromFile(m_importFilename, formatted);
-			break;
-			case IFC_MESO:
-				importFileMessageId = appUserModel()->actualMesoModel()->newMesoFromFile(m_importFilename, formatted);
-			break;
-			case IFC_MESOSPLIT_A:
-			case IFC_MESOSPLIT_B:
-			case IFC_MESOSPLIT_C:
-			case IFC_MESOSPLIT_D:
-			case IFC_MESOSPLIT_E:
-			case IFC_MESOSPLIT_F:
-				importFileMessageId = appUserModel()->actualMesoModel()->importSplitFromFile(m_importFilename, appUserModel()->actualMesoModel()->importIdx(), i, formatted);
-			break;
-			case IFC_EXERCISES:
-				importFileMessageId = appExercisesList()->newExerciseFromFile(m_importFilename, formatted);
-			break;
-			case IFC_WORKOUT: //TODO Display a dialog offering all the possible dates into which to add the workout
-				importFileMessageId = appUserModel()->actualMesoModel()->workingWorkout()->newExercisesFromFile(
-																								m_importFilename, formatted);
-			break;
-		}
-		if (importFileMessageId != TP_RET_CODE_SUCCESS)
-			break;
-	}
-	displayMessageOnAppWindow(importFileMessageId, m_importFilename);
+	QMetaObject::invokeMethod(appMainWindow(), "chooseFileToImport");
 }
 
 void QmlItemManager::displayImportDialogMessageAfterMesoSelection(const int meso_idx)
@@ -237,14 +188,11 @@ void QmlItemManager::displayImportDialogMessageAfterMesoSelection(const int meso
 void QmlItemManager::exportMeso(const uint meso_idx, const bool share)
 {
 	int exportFileMessageId{0};
-	if (appExercisesList()->collectExportData())
-	{
+	if (appExercisesList()->collectExportData()) {
 		const QString &exportFileName{appSettings()->localAppFilesDir() + tr("TrainingPlanner Exercises List") + ".txt"_L1};
 		exportFileMessageId = appExercisesList()->exportToFile(exportFileName);
-		if (exportFileMessageId >= 0)
-		{
-			if (share)
-			{
+		if (exportFileMessageId >= 0) {
+			if (share) {
 				appOsInterface()->shareFile(exportFileName);
 				exportFileMessageId = TP_RET_CODE_SHARE_OK;
 			}
@@ -289,11 +237,10 @@ void QmlItemManager::getExercisesPage(QmlWorkoutInterface *connectPage)
 void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QString &filter)
 {
 	appExercisesList()->setFilter(filter);
-	if (!m_simpleExercisesList)
-	{
+	if (!m_simpleExercisesList) {
 		m_simpleExercisesListProperties.insert("parentPage", QVariant::fromValue(parentPage));
 		m_simpleExercisesListComponent = new QQmlComponent{appQmlEngine(),
-						QUrl{"qrc:/qml/ExercisesAndSets/SimpleExercisesListPanel.qml"_L1}, QQmlComponent::Asynchronous};
+										QUrl{"qrc:/qml/ExercisesAndSets/SimpleExercisesListPanel.qml"_L1}, QQmlComponent::Asynchronous};
 
 		switch (m_simpleExercisesListComponent->status())
 		{
@@ -313,8 +260,7 @@ void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QStri
 			break;
 		}
 	}
-	else
-	{
+	else {
 		QQuickItem *cur_parent_page{m_simpleExercisesList->property("parentPage").value<QQuickItem*>()};
 		if (parentPage != cur_parent_page)
 			QMetaObject::invokeMethod(m_simpleExercisesList, "changeParentPage", Q_ARG(QQuickItem*, parentPage));
@@ -324,11 +270,9 @@ void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QStri
 
 void QmlItemManager::getWeatherPage()
 {
-	if (!m_weatherPage)
-	{
+	if (!m_weatherPage) {
 		m_weatherComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/WeatherPage.qml"_L1}, QQmlComponent::Asynchronous};
-		switch (m_weatherComponent->status())
-		{
+		switch (m_weatherComponent->status()) {
 			case QQmlComponent::Ready:
 				createWeatherPage_part2();
 			break;
@@ -375,155 +319,21 @@ void QmlItemManager::getStatisticsPage()
 		appPagesListModel()->openPage(m_statisticsPage);
 }
 
-const QString &QmlItemManager::setExportFileName(const QString &filename)
-{
-	m_exportFilename = std::move(appSettings()->localAppFilesDir() + filename);
-	return m_exportFilename;
-}
-
-void QmlItemManager::continueExport(int exportMessageId, const bool bShare)
-{
-	const QString &filename{appUtils()->getFileName(m_exportFilename)};
-	if (exportMessageId == TP_RET_CODE_SUCCESS)
-	{
-		if (bShare)
-		{
-			appOsInterface()->shareFile(m_exportFilename);
-			exportMessageId = TP_RET_CODE_SUCCESS;
-		}
-		else
-			QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, filename));
-	}
-	displayMessageOnAppWindow(exportMessageId, filename);
-}
-
 void QmlItemManager::displayActivityResultMessage(const int requestCode, const int resultCode) const
 {
 	int message_id(0);
-	switch (resultCode)
-	{
+	switch (resultCode) {
 		case -1: message_id = TP_RET_CODE_SUCCESS; break;
 		case 0: message_id = TP_RET_CODE_SHARE_FAILED; break;
 		default: message_id = TP_RET_CODE_UNKNOWN_ERROR; break;
 	}
 	displayMessageOnAppWindow(message_id);
-	QFile::remove(m_exportFilename);
 }
 
 void QmlItemManager::getPasswordDialog(const QString &title, const QString &message) const
 {
-	connect(appMainWindow(), SIGNAL(passwordDialogClosed(int,QString)), this,
-											SLOT(qmlPasswordDialogClosed_slot(int,QString)), Qt::SingleShotConnection);
+	connect(appMainWindow(), SIGNAL(passwordDialogClosed(int,QString)), SLOT(qmlPasswordDialogClosed_slot(int,QString)), Qt::SingleShotConnection);
 	QMetaObject::invokeMethod(appMainWindow(), "showPasswordDialog", Q_ARG(QString, title), Q_ARG(QString, message));
-}
-
-void QmlItemManager::openRequestedFile(const QString &filename, const int wanted_content)
-{
-	QString corrected_filename;
-	#ifdef Q_OS_ANDROID
-	const QString &androidFilename{appOsInterface()->readFileFromAndroidFileDialog(filename)};
-	corrected_filename = std::move(appUtils()->getCorrectPath(filename));
-	#else
-	corrected_filename = filename;
-	#endif
-
-	std::optional<bool> formatted;
-	uint file_contents;
-	if (!appUtils()->scanFile(corrected_filename, formatted, file_contents))
-	{
-		displayMessageOnAppWindow(TP_RET_CODE_OPEN_READ_FAILED, corrected_filename);
-		return;
-	}
-	if (!formatted.has_value())
-	{
-		displayMessageOnAppWindow(TP_RET_CODE_WRONG_IMPORT_FILE_TYPE, corrected_filename);
-		return;
-	}
-	if (file_contents == 0)
-	{
-		displayMessageOnAppWindow(TP_RET_CODE_IMPORT_FAILED, corrected_filename);
-		return;
-	}
-	if (isBitSet(wanted_content, IFC_MESO) && !isBitSet(file_contents, IFC_MESO))
-	{
-		displayMessageOnAppWindow(TP_RET_CODE_WRONG_IMPORT_FILE_TYPE, tr("The TP file does not contain any information for a Training Program"));
-		return;
-	}
-	if (isBitSet(wanted_content, IFC_MESOSPLIT) && !isBitSet(file_contents, IFC_MESOSPLIT))
-	{
-		displayMessageOnAppWindow(TP_RET_CODE_WRONG_IMPORT_FILE_TYPE, tr("The TP file does not contain any information for an exercises plan"));
-		return;
-	}
-	if (isBitSet(wanted_content, IFC_WORKOUT) && !isBitSet(file_contents, IFC_WORKOUT))
-	{
-		displayMessageOnAppWindow(TP_RET_CODE_WRONG_IMPORT_FILE_TYPE, tr("The TP file does not contain any information for a workout"));
-		return;
-	}
-
-	QStringList importOptions{ifc_count};
-	if (isBitSet(file_contents, IFC_MESO))
-	{
-		importOptions[IFC_MESO] = std::move(tr("Complete Training Plan"));
-		if (isBitSet(file_contents, IFC_USER))
-			importOptions[IFC_USER] = std::move(tr("Coach information"));
-	}
-	if (isBitSet(file_contents, IFC_MESOSPLIT))
-	{
-		const bool newMesoImport{appUserModel()->actualMesoModel()->importIdx() < 0};
-		if (isBitSet(file_contents, IFC_MESOSPLIT_A))
-		{
-			if (!newMesoImport && appUserModel()->actualMesoModel()->split(appUserModel()->actualMesoModel()->importIdx()).contains('A'))
-				importOptions[IFC_MESOSPLIT_A] = std::move(tr("Exercises Program A"));
-			else
-				unSetBit(file_contents, IFC_MESOSPLIT_A);
-		}
-		if (isBitSet(file_contents, IFC_MESOSPLIT_B))
-		{
-			if (!newMesoImport && appUserModel()->actualMesoModel()->split(appUserModel()->actualMesoModel()->importIdx()).contains('B'))
-				importOptions[IFC_MESOSPLIT_B] = std::move(tr("Exercises Program B"));
-			else
-				unSetBit(file_contents, IFC_MESOSPLIT_B);
-		}
-		if (isBitSet(file_contents, IFC_MESOSPLIT_C))
-		{
-			if (!newMesoImport && appUserModel()->actualMesoModel()->split(appUserModel()->actualMesoModel()->importIdx()).contains('C'))
-				importOptions[IFC_MESOSPLIT_C] = std::move(tr("Exercises Program C"));
-			else
-				unSetBit(file_contents, IFC_MESOSPLIT_C);
-		}
-		if (isBitSet(file_contents, IFC_MESOSPLIT_D))
-		{
-			if (!newMesoImport && appUserModel()->actualMesoModel()->split(appUserModel()->actualMesoModel()->importIdx()).contains('D'))
-				importOptions[IFC_MESOSPLIT_D] = std::move(tr("Exercises Program D"));
-			else
-				unSetBit(file_contents, IFC_MESOSPLIT_D);
-		}
-		if (isBitSet(file_contents, IFC_MESOSPLIT_E))
-		{
-			if (!newMesoImport && appUserModel()->actualMesoModel()->split(appUserModel()->actualMesoModel()->importIdx()).contains('E'))
-				importOptions[IFC_MESOSPLIT_E] = std::move(tr("Exercises Program E"));
-			else
-				unSetBit(file_contents, IFC_MESOSPLIT_E);
-		}
-		if (isBitSet(file_contents, IFC_MESOSPLIT_F))
-		{
-			if (!newMesoImport && appUserModel()->actualMesoModel()->split(appUserModel()->actualMesoModel()->importIdx()).contains('F'))
-				importOptions[IFC_MESOSPLIT_F] = std::move(tr("Exercises Program F"));
-			else
-				unSetBit(file_contents, IFC_MESOSPLIT_F);
-		}
-	}
-	else
-	{
-		if (isBitSet(file_contents, IFC_WORKOUT))
-			importOptions[IFC_WORKOUT] = std::move(tr("One Workout"));
-		else if (isBitSet(file_contents, IFC_EXERCISES))
-			importOptions[IFC_EXERCISES] = std::move(tr("Exercises database update"));
-	}
-
-	m_importFilename = QString{formatted ? 'f' : 'r'} + filename;
-	const QList<TPBool> selectedFields{ifc_count};
-	QMetaObject::invokeMethod(appMainWindow(), "createImportConfirmDialog", Q_ARG(QStringList, importOptions), Q_ARG(QList<TPBool>, selectedFields));
 }
 //-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 
@@ -542,11 +352,9 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 {
 	QString title, message;
 	int icon_to_use{MI_Error}; //Only applicable when image_source is an empty string
-	if (message_id < TP_RET_CODE_CUSTOM_ERROR)
-	{
+	if (message_id < TP_RET_CODE_CUSTOM_ERROR) {
 		icon_to_use = MI_OK;
-		switch (message_id)
-		{
+		switch (message_id) {
 			case TP_RET_CODE_CUSTOM_SUCCESS:
 				title = std::move(appUtils()->getCompositeValue(0, fileName, record_separator));
 				message = std::move(appUtils()->getCompositeValue(1, fileName, record_separator));
@@ -565,11 +373,9 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 			break;
 		}
 	}
-	else if (message_id < TP_RET_CODE_CUSTOM_WARNING)
-	{
+	else if (message_id < TP_RET_CODE_CUSTOM_WARNING) {
 		icon_to_use = MI_Error;
-		switch (message_id)
-		{
+		switch (message_id) {
 			case TP_RET_CODE_CUSTOM_ERROR:
 				title = std::move(appUtils()->getCompositeValue(0, fileName, record_separator));
 				message = std::move(appUtils()->getCompositeValue(1, fileName, record_separator));
@@ -616,11 +422,9 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 			break;
 		}
 	}
-	else if (message_id < TP_RET_CODE_CUSTOM_MESSAGE)
-	{
+	else if (message_id < TP_RET_CODE_CUSTOM_MESSAGE) {
 		icon_to_use = MI_Warning;
-		switch (message_id)
-		{
+		switch (message_id) {
 			case TP_RET_CODE_CUSTOM_WARNING:
 				title = std::move(tr("Warning! ") + appUtils()->getCompositeValue(0, fileName, record_separator));
 				message = std::move(appUtils()->getCompositeValue(1, fileName, record_separator));
@@ -643,18 +447,15 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 			break;
 		}
 	}
-	else
-	{
+	else {
 		icon_to_use = MI_None;
 		title = std::move(appUtils()->getCompositeValue(0, fileName, record_separator));
 		message = std::move(appUtils()->getCompositeValue(1, fileName, record_separator));
 	}
 
 	QString img_src;
-	if (image_source.isEmpty())
-	{
-		switch (icon_to_use)
-		{
+	if (image_source.isEmpty()) {
+		switch (icon_to_use) {
 			case MI_Error: img_src = std::move("error"); break;
 			case MI_Warning: img_src = std::move("warning"); break;
 			case MI_OK: img_src = std::move("set-completed"); break;
@@ -668,10 +469,76 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 					Q_ARG(QString, img_src), Q_ARG(int, static_cast<int>(msecs)));
 }
 
+void QmlItemManager::openTPFile(uint32_t tp_filetype, const QString &filename, const bool formatted, const QVariant &extra_info)
+{
+	std::shared_ptr<QMetaObject::Connection> conn{std::make_shared<QMetaObject::Connection>()};
+	*conn = connect(this, &QmlItemManager::qmlImportDialogClose, [=,this] (bool result) -> void {
+		disconnect(*conn);
+		switch (tp_filetype) {
+			case TPUtils::FT_TP_USER_PROFILE:	appUserModel()->newUserFromFile(filename, formatted); break;
+			case TPUtils::FT_TP_PROGRAM:		appUserModel()->actualMesoModel()->newMesoFromFile(filename, false, formatted); break;
+			case TPUtils::FT_TP_WORKOUT_A:
+			case TPUtils::FT_TP_WORKOUT_B:
+			case TPUtils::FT_TP_WORKOUT_C:
+			case TPUtils::FT_TP_WORKOUT_D:
+			case TPUtils::FT_TP_WORKOUT_E:
+			case TPUtils::FT_TP_WORKOUT_F:		appUserModel()->actualMesoModel()->newWorkoutFromFile(filename, formatted, extra_info); break;
+			case TPUtils::FT_TP_EXERCISES:		appExercisesList()->newExerciseFromFile(filename, formatted);
+		}
+	});
+	connect(appMainWindow(), SIGNAL(tpFileOpenInquiryResult(bool)), this, SLOT(qmlImportDialogClose(bool)), Qt::SingleShotConnection);
+	QString str_type, str_details, str_image;
+	const QString &str_extra_info{extra_info.toString()};
+
+	const QString &coach{appUserModel()->userNameFromId(appUtils()->getCompositeValue(0, str_extra_info, record_separator))};
+
+	switch (tp_filetype) {
+		case TPUtils::FT_TP_USER_PROFILE: {
+			const bool is_coach{appUtils()->getCompositeValue(1, str_extra_info, record_separator) == "1"_L1};
+			str_type = std::move(is_coach ? tr("data for a new coach") : tr("data for a new client"));
+			str_details = coach;
+			str_image = std::move(is_coach ? "manage-coaches"_L1 : "manage-clients"_L1);
+		}
+		break;
+		case TPUtils::FT_TP_PROGRAM:
+			str_type = std::move(tr("program"));
+			str_details = std::move(tr("A complete exercises program from coach ") % coach);
+			str_image = std::move("meso_preview"_L1);
+		break;
+		case TPUtils::FT_TP_WORKOUT_A:
+		case TPUtils::FT_TP_WORKOUT_B:
+		case TPUtils::FT_TP_WORKOUT_C:
+		case TPUtils::FT_TP_WORKOUT_D:
+		case TPUtils::FT_TP_WORKOUT_E:
+		case TPUtils::FT_TP_WORKOUT_F:
+		{
+			const uint meso_idx{appUtils()->getCompositeValue(1, str_extra_info, record_separator).toUInt()};
+			const QChar &splitletter{appUtils()->getCompositeValue(2, str_extra_info, record_separator).at(0)};
+			str_type = std::move(tr("workout"));
+			str_details = std::move(tr("An extra workout from ") % coach % tr(" for the program: ") %
+				appUserModel()->actualMesoModel()->name(meso_idx) % tr(" for the next time you train ") %
+									appUserModel()->actualMesoModel()->muscularGroup(meso_idx, splitletter));
+			str_image = std::move("workout_preview"_L1);
+		}
+		break;
+		case TPUtils::FT_TP_EXERCISES:
+		{
+			str_type = std::move(tr("Excercise Description"));
+			str_details = std::move(tr("A new exercise for the exercises database from ") % coach);
+			str_image = std::move("exerciselist_preview"_L1);
+		}
+		break;
+		default: return;
+	}
+	QMetaObject::invokeMethod(appMainWindow(), "confirmTPFileOpening", Q_ARG(QString, str_type), Q_ARG(QString, str_details),
+																												Q_ARG(QString, str_image));
+}
+
 void QmlItemManager::exportSlot(const QString &filePath)
 {
+	//TODO
 	int messageId(TP_RET_CODE_EXPORT_FAILED);
-	if (!filePath.isEmpty())
+	/*if (!filePath.isEmpty())
 	{
 		messageId = TP_RET_CODE_EXPORT_OK;
 		QFile file{filePath};
@@ -683,15 +550,7 @@ void QmlItemManager::exportSlot(const QString &filePath)
 	}
 	displayMessageOnAppWindow(messageId);
 	QFile::remove(m_exportFilename);
-	m_exportFilename.clear();
-}
-
-void QmlItemManager::importSlot_FileChosen(const QString &filePath)
-{
-	if (!filePath.isEmpty())
-		openRequestedFile(filePath);
-	else
-		displayMessageOnAppWindow(TP_RET_CODE_OPERATION_CANCELED);
+	m_exportFilename.clear();*/
 }
 
 void QmlItemManager::homePageViewChanged(const bool own_mesos_view)

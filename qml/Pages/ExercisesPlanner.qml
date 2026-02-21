@@ -243,9 +243,9 @@ TPPage {
 			imageSource: "clear.png"
 			textUnderIcon: true
 			rounded: false
-			enabled: splitManager.haveExercises
+			enabled: pagePlanner.splitManager.haveExercises
 			width: bottomToolBar.buttonWidth
-			height: footerHeight - 4
+			height: pagePlanner.footerHeight - 4
 
 			anchors {
 				left: parent.left
@@ -253,18 +253,18 @@ TPPage {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: splitManager.currentSplitModel.clearExercises();
+			onClicked: pagePlanner.splitManager.currentSplitModel.clearExercises();
 		}
 
 		TPButton {
 			id: btnSwapPlan
-			text: splitManager.currentSplitLetter + " <-> " + splitManager.currentSwappableLetter
+			text: pagePlanner.splitManager.currentSplitLetter + " <-> " + splitManager.currentSwappableLetter
 			imageSource: "swap.png"
 			textUnderIcon: true
-			visible: splitManager.canSwapExercises
+			visible: pagePlanner.splitManager.canSwapExercises
 			rounded: false
 			width: bottomToolBar.buttonWidth
-			height: footerHeight - 4
+			height: pagePlanner.footerHeight - 4
 
 			anchors {
 				left: btnClearPlan.right
@@ -272,25 +272,7 @@ TPPage {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: splitManager.swapMesoPlans();
-		}
-
-		TPButton {
-			id: btnImExport
-			text: qsTr("In/Ex")
-			imageSource: "import-export.png"
-			textUnderIcon: true
-			rounded: false
-			width: bottomToolBar.buttonWidth
-			height: footerHeight - 4
-
-			anchors {
-				left: btnSwapPlan.right
-				leftMargin: 3
-				verticalCenter: parent.verticalCenter
-			}
-
-			onClicked: showInExMenu();
+			onClicked: pagePlanner.splitManager.swapMesoPlans();
 		}
 
 		TPButton {
@@ -299,7 +281,7 @@ TPPage {
 			textUnderIcon: true
 			rounded: false
 			width: bottomToolBar.buttonWidth*1.3
-			height: footerHeight - 4
+			height: pagePlanner.footerHeight - 4
 
 			anchors {
 				right: parent.right
@@ -309,7 +291,7 @@ TPPage {
 
 			onClicked: {
 				cboGroups.forceActiveFocus(); //Force triggering of onEditFinished of the last text control to receive input
-				currentSplitPage.appendNewExerciseToDivision();
+				pagePlanner.currentSplitPage.appendNewExerciseToDivision();
 			}
 		}
 	}
@@ -339,40 +321,6 @@ TPPage {
 			currentSplitPage.positionViewAtEnd();
 	}
 
-	readonly property bool bExportEnabled: splitManager.haveExercises
-	onBExportEnabledChanged: {
-		if (imExportMenu) {
-			imExportMenu.enableMenuEntry(1, bExportEnabled);
-			if (Qt.platform.os === "android")
-				imExportMenu.enableMenuEntry(2, bExportEnabled);
-		}
-	}
-
-	property TPFloatingMenuBar imExportMenu: null
-	function showInExMenu(): void {
-		if (imExportMenu === null) {
-			let imExportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
-			imExportMenu = imExportMenuComponent.createObject(pagePlanner, { parentPage: pagePlanner });
-			imExportMenu.addEntry(qsTr("Import"), "import.png", 0, true);
-			if (splitManager.prevMesoName().length > 0)
-				imExportMenu.addEntry(qsTr("Import from ") + splitManager.prevMesoName(), "import.png", 1, true);
-			imExportMenu.addEntry(qsTr("Export"), "export.png", 2, true);
-			if (Qt.platform.os === "android")
-				imExportMenu.addEntry(qsTr("Share"), "export.png", 3, true);
-			imExportMenu.menuEntrySelected.connect(selectedMenuOption);
-		}
-		imExportMenu.show2(btnImExport, 0);
-	}
-
-	function selectedMenuOption(menuid): void {
-		switch (menuid) {
-			case 0: splitManager.importMesoSplit(); break;
-			case 1: msgDlgImport.show(-1); break;
-			case 2: exportTypeTip.init(false); break;
-			case 3: exportTypeTip.init(true); break;
-		}
-	}
-
 	TPBalloonTip {
 		id: msgDlgImport
 		title: qsTr("Import Exercises Plan?")
@@ -383,26 +331,6 @@ TPPage {
 
 		onButton1Clicked: splitManager.loadSplitFromPreviousMeso();
 	} //TPBalloonTip
-
-	TPBalloonTip {
-		id: exportTypeTip
-		title: bShare ? qsTr("What do you want to share?") : qsTr("What to you want to export?")
-		imageSource: "export"
-		closeButtonVisible: true
-		button1Text: qsTr("Entire plan")
-		button2Text: qsTr("Just this split")
-		parentPage: pagePlanner
-
-		onButton1Clicked: splitManager.exportMesoSplit(bShare, "X");
-		onButton2Clicked: splitManager.exportMesoSplit(bShare, currentSplitPage.exercisesModel.splitLetter());
-
-		property bool bShare: false
-
-		function init(share: bool): void {
-			bShare = share;
-			show(-1);
-		}
-	}
 
 	function getExerciseNameFieldYPos(): int {
 		return currentSplitPage.exerciseNameFieldYPosition();
