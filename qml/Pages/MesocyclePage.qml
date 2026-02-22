@@ -5,14 +5,13 @@ import QtQuick.Dialogs
 import QtCore
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
-import "../"
 import "../Dialogs"
 import "../TPWidgets"
 import "../User"
 import "./MesocyclePageElements"
 
 TPPage {
-	id: mesoPropertiesPage
+	id: mesoPage
 	imageSource: ":/images/backgrounds/backimage-meso.jpg"
 	backgroundOpacity: 0.6
 	objectName: "mesoPage"
@@ -29,7 +28,7 @@ TPPage {
 		property int start_field: -1
 
 		sourceComponent: TPBalloonTip {
-			parentPage: mesoPropertiesPage
+			parentPage: mesoPage
 			imageSource: "set-completed"
 			button1Text: ""
 			button2Text: ""
@@ -62,7 +61,7 @@ TPPage {
 				missingFieldsTip.message = qsTr("Required fields setup");
 				missingFieldsTip.showTimed(5000, -3);
 			break;
-			case 21:
+			case 8:
 				missingFieldsTip.subImageLabel = "?";
 				missingFieldsTip.title = qsTr("Accept program from coach?");
 				missingFieldsTip.message = qsTr("Until you accept this program you can only view it");
@@ -83,11 +82,10 @@ TPPage {
 		}
 	}
 
-	ScrollView {
-		id: scrollView
-		contentWidth: availableWidth
+	TPScrollView {
+		parentPage: mesoPage
+		navButtonsVisible: true
 		contentHeight: layoutMain.implicitHeight
-		ScrollBar.vertical.interactive: Qt.platform.os !== "android"
 		anchors.fill: parent
 
 		ColumnLayout {
@@ -119,7 +117,7 @@ TPPage {
 						id: clientsList
 						currentIndex: userModel.findUserById(mesoManager.client)
 						buttonString: qsTr("Go to client's page")
-						height: 0.2 * mesoPropertiesPage.height
+						height: 0.2 * mesoPage.height
 						Layout.fillWidth: true
 						Layout.minimumHeight: height
 
@@ -298,7 +296,7 @@ TPPage {
 					showDate: mesoManager.startDate
 					initDate: mesoManager.minimumMesoStartDate
 					finalDate: mesoManager.maximumMesoEndDate
-					parentPage: mesoPropertiesPage
+					parentPage: mesoPage
 
 					onDateSelected: (date) => mesoManager.startDate = date;
 				}
@@ -374,7 +372,7 @@ TPPage {
 					showDate: mesoManager.endDate
 					initDate: mesoManager.minimumMesoStartDate
 					finalDate: mesoManager.maximumMesoEndDate
-					parentPage: mesoPropertiesPage
+					parentPage: mesoPage
 
 					onDateSelected: (date) => {
 						mesoManager.endDate = date;

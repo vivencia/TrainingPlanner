@@ -107,11 +107,11 @@ Drawer {
 				height: width
 				enabled: { // Force the binding to re-evaluate so that the check is run each time the page changes.
 					stackView.currentItem
-					!stackView.find((item, index) => { return item.objectName === "configurationPage"; })
+					!stackView.find((item, index) => { return item.objectName === "settingsPage"; })
 				}
 
 				onClicked: {
-					itemManager.getSettingsPage(0);
+					itemManager.getSettingsPage();
 					close();
 				}
 
@@ -150,11 +150,11 @@ Drawer {
 				anchors.fill: parent
 				enabled: { // Force the binding to re-evaluate so that the check is run each time the page changes.
 					stackView.currentItem
-					!stackView.find((item, index) => { return item.objectName === "configurationPage"; })
+					!stackView.find((item, index) => { return item.objectName === "userPage"; })
 				}
 
 				onClicked: {
-					itemManager.getSettingsPage(1);
+					itemManager.getUserPage();
 					close();
 				}
 			}

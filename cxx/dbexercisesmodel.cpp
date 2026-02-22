@@ -257,15 +257,17 @@ int DBExercisesModel::exportToFile(const QString &filename, QFile *out_file) con
 	if (exerciseCount() == 0)
 		return TP_RET_CODE_NOTHING_TO_EXPORT;
 
-	if (!out_file)
-	{
+	bool close_file{false};
+	if (!out_file) {
 		out_file = appUtils()->openFile(filename, false, true, false, true);
 		if (!out_file)
 			return TP_RET_CODE_OPEN_WRITE_FAILED;
+		close_file = true;
 	}
 
 	const bool ret{appUtils()->writeDataToFile(out_file, identifierInFile(), m_dbModelInterface->modelData())};
-	out_file->close();
+	if (close_file)
+		out_file->close();
 	return ret ? TP_RET_CODE_EXPORT_OK : TP_RET_CODE_EXPORT_FAILED;
 }
 
@@ -274,8 +276,7 @@ int DBExercisesModel::exportToFormattedFile(const QString &filename, QFile *out_
 	if (exerciseCount() == 0)
 		return TP_RET_CODE_NOTHING_TO_EXPORT;
 
-	if (!out_file)
-	{
+	if (!out_file) {
 		out_file = appUtils()->openFile(filename, false, true, false, true);
 		if (!out_file)
 			return TP_RET_CODE_OPEN_CREATE_FAILED;
@@ -290,8 +291,7 @@ int DBExercisesModel::exportToFormattedFile(const QString &filename, QFile *out_
 	out_file->write(strHeader.toUtf8().constData());
 	out_file->write(exportExtraInfo().toUtf8().constData());
 
-	for (const auto exercise_entry : std::as_const(m_exerciseData))
-	{
+	for (const auto exercise_entry : std::as_const(m_exerciseData)) {
 		out_file->write("\n\n\n", 3);
 		out_file->write(QString{exerciseNameLabel() + QString::number(exercise_entry->exercise_number + 1)}.toUtf8().constData());
 		const uint giant_set{static_cast<uint>(exercise_entry->m_exercises.count())};
@@ -304,16 +304,14 @@ int DBExercisesModel::exportToFormattedFile(const QString &filename, QFile *out_
 		out_file->write(autoRestTimeLabel().toUtf8().constData());
 		out_file->write(QString{exercise_entry->auto_rest_time ? tr("Yes") : tr("No")}.toUtf8().constData());
 
-		for (const auto sub_exercise : std::as_const(exercise_entry->m_exercises))
-		{
+		for (const auto sub_exercise : std::as_const(exercise_entry->m_exercises)) {
 			out_file->write("\n\n** ", 2);
 			out_file->write(sub_exercise->name.toUtf8().constData());
 			out_file->write("\n", 1);
 			out_file->write(totalSetsLabel().toUtf8().constData());
 			out_file->write(QString::number(sub_exercise->sets.count()).toUtf8().constData());
 
-			for (const auto set : std::as_const(sub_exercise->sets))
-			{
+			for (const auto set : std::as_const(sub_exercise->sets)) {
 				out_file->write("\n\n", 2);
 				out_file->write(QString{setNumberLabel() + QString::number(set->set_number) + '\n'}.toUtf8().constData());
 				out_file->write(setTypeLabel().toUtf8().constData());
@@ -343,8 +341,7 @@ int DBExercisesModel::exportToFormattedFile(const QString &filename, QFile *out_
 
 int DBExercisesModel::importFromFile(const QString& filename, QFile *in_file)
 {
-	if (!in_file)
-	{
+	if (!in_file) {
 		in_file = appUtils()->openFile(filename);
 		if (!in_file)
 			return TP_RET_CODE_OPEN_READ_FAILED;
@@ -354,12 +351,10 @@ int DBExercisesModel::importFromFile(const QString& filename, QFile *in_file)
 	m_dbModelInterface->clearData();
 
 	int ret{appUtils()->readDataFromFile(in_file, m_dbModelInterface->modelData(), EXERCISES_TOTALCOLS, identifierInFile())};
-	if (ret != TP_RET_CODE_WRONG_IMPORT_FILE_TYPE)
-	{
+	if (ret != TP_RET_CODE_WRONG_IMPORT_FILE_TYPE) {
 		const QString &mesoid{m_mesoModel->id(m_mesoIdx)};
 		const QString &calendar_day{QString::number(m_calendarDay)};
-		for (auto &exercise_entry : m_dbModelInterface->modelData())
-		{
+		for (auto &exercise_entry : m_dbModelInterface->modelData()) {
 			exercise_entry[EXERCISES_FIELD_MESOID] = mesoid;
 			exercise_entry[EXERCISES_FIELD_CALENDARDAY] = calendar_day;
 			exercise_entry[EXERCISES_FIELD_SPLITLETTER] = m_splitLetter;
@@ -602,7 +597,7 @@ uint DBExercisesModel::addExercise(int exercise_number, const bool from_qml)
 		endInsertRows();
 		emit exerciseCountChanged();
 		setWorkingExercise(exercise_number);
-		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{1, exerciseNumberRole});
+		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{exerciseNumberRole});
 
 		if (!reutilize_modeldata || exercise_number >= m_dbModelInterface->modelData().count())
 		{
@@ -644,7 +639,7 @@ void DBExercisesModel::delExercise(const uint exercise_number, const bool from_q
 			if (workingExercise() > 0)
 				setWorkingExercise(exercise_number - 1);
 		}
-		emit dataChanged(index(exercise_number, 0), index(m_exerciseData.count() - 1, 0), QList<int>{1, exerciseNumberRole});
+		emit dataChanged(index(exercise_number, 0), index(m_exerciseData.count() - 1, 0), QList<int>{exerciseNumberRole});
 
 		m_dbModelInterface->setRemovalInfo(exercise_number, QList<uint>{1, EXERCISES_FIELD_ID});
 		appThreadManager()->queueAction(m_db, ThreadManager::DeleteRecords);
@@ -684,7 +679,7 @@ void DBExercisesModel::moveExercise(const uint from, const uint to)
 		m_exerciseData[to] = std::move(tempExerciseData);
 		m_exerciseData.at(to)->exercise_number = to;
 		endMoveRows();
-		emit dataChanged(index(to > from ? from : to, 0), index(to > from ? to : from, 0), QList<int>{1, exerciseNumberRole});
+		emit dataChanged(index(to > from ? from : to, 0), index(to > from ? to : from, 0), QList<int>{exerciseNumberRole});
 		appThreadManager()->queueAction(m_db, ThreadManager::UpdateRecords);
 	}
 }
@@ -852,7 +847,7 @@ uint DBExercisesModel::addSet(const uint exercise_number, const uint exercise_id
 		if (isWorkout())
 			setModeForSet(new_set);
 		setWorkingSet(set_number, exercise_number, exercise_idx);
-		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{1, setsNumberRole});
+		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{setsNumberRole});
 
 		QList<int> modified_fields{};
 		for (uint i{EXERCISES_FIELD_NOTES}; i < EXERCISES_TOTALCOLS; ++i)
@@ -885,7 +880,7 @@ void DBExercisesModel::delSet(const uint exercise_number, const uint exercise_id
 			if (workingSet(exercise_number, exercise_idx) > 0)
 				setWorkingSet(set_number - 1, exercise_number, exercise_idx);
 		}
-		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{1, setsNumberRole});
+		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{setsNumberRole});
 
 		QList<int> modified_fields{};
 		for (uint i{EXERCISES_FIELD_NOTES}; i < EXERCISES_TOTALCOLS; ++i)
@@ -977,7 +972,7 @@ void DBExercisesModel::setWorkingExercise(const uint new_workingexercise)
 		if (workingSubExercise(m_workingExercise) == UNSET_VALUE)
 			setWorkingSubExercise(0, m_workingExercise);
 		emit workingExerciseChanged(m_workingExercise);
-		emit dataChanged(index(new_workingexercise, 0), index(new_workingexercise, 0), QList<int>{1, workingExerciseRole});
+		emit dataChanged(index(new_workingexercise, 0), index(new_workingexercise, 0), QList<int>{workingExerciseRole});
 	}
 }
 
@@ -998,7 +993,7 @@ void DBExercisesModel::setWorkingSubExercise(const uint new_workingsubexercise, 
 		if (workingSet(exercise_number, new_workingsubexercise) == UNSET_VALUE)
 			setWorkingSet(0, exercise_number, new_workingsubexercise);
 		emit workingSubExerciseChanged(exercise_number, new_workingsubexercise);
-		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{1, workingSubExerciseRole});
+		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{workingSubExerciseRole});
 	}
 }
 
@@ -1024,7 +1019,7 @@ void DBExercisesModel::setWorkingSet(const uint new_workingset, int exercise_num
 	{
 		m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->working_set = new_workingset;
 		emit workingSetChanged(exercise_number, exercise_idx, new_workingset);
-		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{1, workingSetRole});
+		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{workingSetRole});
 	}
 }
 
@@ -1064,7 +1059,7 @@ void DBExercisesModel::setTrackRestTime(const uint exercise_number, const bool t
 	m_exerciseData.at(exercise_number)->track_rest_time = track_resttime;
 	changeAllSetsMode(exercise_number);
 	emit exerciseModified(exercise_number, EXERCISE_IGNORE_NOTIFY_IDX, EXERCISE_IGNORE_NOTIFY_IDX, EXERCISES_FIELD_TRACKRESTTIMES);
-	emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{1, trackRestTimeRole});
+	emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{trackRestTimeRole});
 }
 
 bool DBExercisesModel::autoRestTime(const uint exercise_number) const
@@ -1077,7 +1072,7 @@ void DBExercisesModel::setAutoRestTime(const uint exercise_number, const bool au
 	m_exerciseData.at(exercise_number)->auto_rest_time = auto_resttime;
 	changeAllSetsMode(exercise_number);
 	emit exerciseModified(exercise_number, EXERCISE_IGNORE_NOTIFY_IDX, EXERCISE_IGNORE_NOTIFY_IDX, EXERCISES_FIELD_AUTORESTTIMES);
-	emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{1, autoRestTimeRole});
+	emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{autoRestTimeRole});
 }
 
 int DBExercisesModel::setType(const uint exercise_number, const uint exercise_idx, const uint set_number) const
@@ -1365,7 +1360,7 @@ bool DBExercisesModel::setCompleted(const uint exercise_number, const uint exerc
 void DBExercisesModel::setSetCompleted(const uint exercise_number, const uint exercise_idx, const uint set_number, const bool completed)
 {
 	m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->completed = completed;
-	emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{1, exerciseCompletedRole});
+	emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{exerciseCompletedRole});
 	emit exerciseModified(exercise_number, exercise_idx, set_number, EXERCISES_FIELD_COMPLETED);
 }
 

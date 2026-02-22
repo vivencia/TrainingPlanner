@@ -206,25 +206,24 @@ void QmlItemManager::exportMeso(const uint meso_idx, const bool share)
 	appItemManager()->displayMessageOnAppWindow(exportFileMessageId);
 }
 
-void QmlItemManager::getSettingsPage(const uint startPageIndex)
+void QmlItemManager::getSettingsPage()
 {
-	if (!m_usersManager)
-		m_usersManager = new QmlUserInterface{this};
-	m_usersManager->getSettingsPage(startPageIndex);
+	usersManager()->getSettingsPage();
+}
+
+void QmlItemManager::getUserPage()
+{
+	usersManager()->getUserPage();
 }
 
 void QmlItemManager::getCoachesPage()
 {
-	if (!m_usersManager)
-		m_usersManager = new QmlUserInterface{this};
-	m_usersManager->getCoachesPage();
+	usersManager()->getCoachesPage();
 }
 
 void QmlItemManager::getClientsPage()
 {
-	if (!m_usersManager)
-		m_usersManager = new QmlUserInterface{this};
-	m_usersManager->getClientsPage();
+	usersManager()->getClientsPage();
 }
 
 void QmlItemManager::getExercisesPage(QmlWorkoutInterface *connectPage)
@@ -590,4 +589,12 @@ void QmlItemManager::createStatisticsPage_part2()
 	appQmlEngine()->setObjectOwnership(m_statisticsPage, QQmlEngine::CppOwnership);
 	m_statisticsPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
 	appPagesListModel()->openPage(m_statisticsPage, std::move(tr("Statistics")));
+}
+
+inline QmlUserInterface *QmlItemManager::usersManager()
+{
+	static QmlUserInterface *users_manager{nullptr};
+	if (!users_manager)
+		users_manager = new QmlUserInterface{this};
+	return users_manager;
 }

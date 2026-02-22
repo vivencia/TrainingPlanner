@@ -7,6 +7,7 @@ import "../TPWidgets"
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 ColumnLayout {
+	id: mainLayout
 	spacing: 20
 
 	readonly property bool bReady: languages_group.selectedOption !== -1
@@ -18,17 +19,16 @@ ColumnLayout {
 
 	Repeater {
 		model: appSettings.availableLanguages.length
-
 		delegate: TPRadioButtonOrCheckBox {
-
 			required property int index
 
 			text: appSettings.availableLanguagesLabel(index)
 			checked: appSettings.userLocaleIdx === index
-			image: country_flags[index]
+			image: mainLayout.country_flags[index]
 			multiLine: true
 			buttonGroup: languages_group
-			imageWidth: imageHeight * 2
+			imageWidth: appSettings.itemExtraLargeHeight
+			imageHeight: appSettings.itemDefaultHeight
 			Layout.fillWidth: true
 
 			onClicked: appTr.switchToLanguage(appSettings.availableLanguages[index], true);

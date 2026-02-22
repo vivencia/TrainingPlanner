@@ -574,7 +574,7 @@ bool DBExercisesListModel::setData(const QModelIndex &index, const QVariant &val
 		}
 		if (data_set)
 		{
-			emit dataChanged(index, index, QList<int>{} << role);
+			emit dataChanged(index, index, QList<int>{role});
 			if (m_searchFilterApplied)
 				row = m_exercisesData.at(m_searchFilteredIndices.at(row)).at(EXERCISES_LIST_FIELD_ACTUALINDEX).toInt();
 			else

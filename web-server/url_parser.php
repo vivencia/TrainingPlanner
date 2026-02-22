@@ -828,8 +828,7 @@ function get_tpmessages($userid) {
 			$content = $content . $file . "\034";
 		}
 		if ($content != "") {
-			echo "0: ";
-			echo $content;
+			echo "0: file://" . $userid . "\034" . $content;
 			return;
 		}
 	}

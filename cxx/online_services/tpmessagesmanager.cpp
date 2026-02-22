@@ -97,7 +97,7 @@ void TPMessagesManager::addMessage(TPMessage *msg)
 	connect(msg, &TPMessage::dataChanged, this, [this] (const uint field) {
 		const auto idx{m_data.indexOf(sender())};
 		if (idx >= 0)
-			emit dataChanged(index(idx, 0), index(idx, 0), QList<int>{1, static_cast<int>(Qt::UserRole + field)} );
+			emit dataChanged(index(idx, 0), index(idx, 0), QList<int>{static_cast<int>(Qt::UserRole + field)} );
 	});
 }
 

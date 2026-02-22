@@ -167,10 +167,9 @@ TPPage {
 		}//Item
 	} //StackLayout
 
-	ScrollView {
-		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-		ScrollBar.vertical.policy: ScrollBar.AlwaysOn
-		contentWidth: availableWidth //stops bouncing to the sides
+	TPScrollView {
+		parentPage: clientsPage
+		navButtonsVisible: enabled
 		contentHeight: colMain.implicitHeight
 		enabled: clientsPage.userRow > 0
 

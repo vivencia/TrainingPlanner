@@ -221,7 +221,7 @@ Pane {
 
 			function finishCreation() {
 				filterDlg = component.createObject(mainwindow, {
-										parentPage: mesoPropertiesPage, buttonLabel: qsTr("Define") });
+										parentPage: mesoPage, buttonLabel: qsTr("Define") });
 				filterDlg.muscularGroupsCreated.connect(function(groups) { setMuscularGroup(split, groups) });
 			}
 

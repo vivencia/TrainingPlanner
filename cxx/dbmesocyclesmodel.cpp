@@ -596,19 +596,19 @@ void DBMesocyclesModel::exportToFile(const uint meso_idx, const QString &filenam
 	}
 
 	int ret{TP_RET_CODE_EXPORT_FAILED};
-	const QList<uint> export_row{1, meso_idx};
+	const QList<uint> export_row{meso_idx};
 	if (appUtils()->writeDataToFile(meso_file, appUtils()->mesoFileIdentifier, m_mesoData, export_row)) {
-		if (export_splits)
+		if (export_splits) {
 			exportToFile_splitData(meso_idx, meso_file, false);
-		else {
-			meso_file->close();
-			emit mesoExported(meso_idx, meso_file->fileName(), ret);
-			if (ret != TP_RET_CODE_EXPORT_OK)
-				static_cast<void>(QFile::remove(meso_file->fileName()));
-			delete meso_file;
+			return;
 		}
+		ret = TP_RET_CODE_EXPORT_OK;
 	}
+	else
+		static_cast<void>(QFile::remove(filename));
 	emit mesoExported(meso_idx, filename, ret);
+	meso_file->close();
+	delete meso_file;
 }
 
 void DBMesocyclesModel::exportToFormattedFile(const uint meso_idx, const QString &filename)
@@ -747,8 +747,7 @@ QString DBMesocyclesModel::mesoFileName(const uint meso_idx) const
 	QString userid;
 	if (client(meso_idx) != appUserModel()->userId(0))
 		userid = client(meso_idx);
-	else
-	{
+	else {
 		if (coach(meso_idx) != appUserModel()->userId(0))
 			userid = coach(meso_idx);
 		else
@@ -795,11 +794,15 @@ int DBMesocyclesModel::newMesoFromFile(const QString &filename, const bool own_m
 		removeMesocycle(meso_idx);
 	else {
 		const auto plan_idx{mesoPlanExists(name(meso_idx), coach(meso_idx), client(meso_idx))};
-		if (plan_idx != -1 && plan_idx != meso_idx) {
+		const bool existing_meso{plan_idx != -1 && plan_idx != meso_idx};
+		if (existing_meso) {
 			m_mesoData.swapItemsAt(meso_idx, plan_idx);
 			removeMesocycle(meso_idx);
 			meso_idx = plan_idx;
+			m_dbModelInterface->setModified(meso_idx, -1);
+			appThreadManager()->runAction(m_db, ThreadManager::UpdateSeveralFields);
 		}
+
 		uint8_t meso_required_fields{0};
 		if (!isMesoNameOK(meso_idx))
 			setBit(meso_required_fields, MESO_FIELD_NAME);
@@ -810,10 +813,11 @@ int DBMesocyclesModel::newMesoFromFile(const QString &filename, const bool own_m
 		if (!isSplitOK(meso_idx))
 			setBit(meso_required_fields, MESO_FIELD_SPLIT);
 		m_isMesoOK[meso_idx] = meso_required_fields;
+		if (!existing_meso && isMesoOK(meso_idx))
+			setBit(meso_required_fields, 8); //the incorporate bit
+
 		makeUsedSplits(meso_idx);
 		addSubMesoModel(meso_idx, own_meso);
-		m_dbModelInterface->setModified(meso_idx, -1);
-		appThreadManager()->runAction(m_db, ThreadManager::UpdateSeveralFields);
 		QMLMesoInterface *mesomanager{m_mesoManagerList.value(meso_idx)};
 		if (mesomanager)
 			mesomanager->updateInterface();
@@ -935,7 +939,7 @@ void DBMesocyclesModel::getAllMesocycles()
 
 void DBMesocyclesModel::exportToFile_splitData(const uint meso_idx, QFile *meso_file, const bool formatted)
 {
-	auto n_conns{m_usedSplits.count()};
+	auto n_conns{usedSplits(meso_idx).length()};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &DBMesocyclesModel::splitLoaded, [this,conn,n_conns,meso_file,formatted]
 																					(const uint meso_idx, const QChar &splitletter) mutable {

@@ -45,7 +45,7 @@ static QString network_msg_title;
 #define POLLING_INTERVAL 20*60*1000
 #endif
 
-//A non-confirmed user both has appUseMode set to APP_USE_MODE_PENDING_CLIENT and
+//A non-confirmed user both has appUseMode set to USEMODE_PENDING_CLIENT and
 //appended to their name an additional string containing the not allowed char '!'
 static inline QString userNameWithoutConfirmationWarning(const QString &userName)
 {
@@ -213,6 +213,7 @@ void DBUserModel::createMainUser(const QString &userid, const QString &name)
 			QString{} << QString{} << QString{} << QString{} << QString{} << std::move("0"_L1)));
 		static_cast<void>(appUtils()->mkdir(userDir(0)));
 		setPhoneBasedOnLocale();
+		appUtils()->mkdir(appSettings()->currentUserDir() % TPUtils::previewImagesSubDir);
 		emit userModified(0, USER_MODIFIED_CREATED);
 	}
 }
@@ -380,7 +381,7 @@ void DBUserModel::setAppUseMode(const int user_idx, const int new_use_opt)
 		{
 			if (isCoach(0) && m_currentClients->count() > 0)
 			{
-				if (new_use_opt != APP_USE_MODE_SINGLE_COACH && new_use_opt != APP_USE_MODE_COACH_USER_WITH_COACH)
+				if (new_use_opt != USEMODE_SINGLE_COACH && new_use_opt != USEMODE_COACH_USER_WITH_COACH)
 				{
 					connect(appMainWindow(), SIGNAL(revokeCoachStatus(int,bool)), this,
 										SLOT(slot_revokeCoachStatus(int,bool)), Qt::SingleShotConnection);
@@ -392,7 +393,7 @@ void DBUserModel::setAppUseMode(const int user_idx, const int new_use_opt)
 			}
 			if (isClient(0) && m_currentCoaches->count() > 0)
 			{
-				if (new_use_opt == APP_USE_MODE_SINGLE_COACH)
+				if (new_use_opt == USEMODE_SINGLE_COACH)
 				{
 					connect(appMainWindow(), SIGNAL(revokeClientStatus(int,bool)), this,
 							SLOT(slot_revokeClientStatus(int,bool)), Qt::SingleShotConnection);
@@ -603,7 +604,7 @@ void DBUserModel::acceptUser(OnlineUserInfo *userInfo, const int userInfoRow)
 {
 	const QString &user_id{userInfo->data(userInfoRow, USER_COL_ID)};
 	const bool userIsCoach{userInfo->isCoach(userInfoRow)};
-	const int new_app_use_mode{userIsCoach ? APP_USE_MODE_SINGLE_COACH : APP_USE_MODE_PENDING_CLIENT};
+	const int new_app_use_mode{userIsCoach ? USEMODE_SINGLE_COACH : USEMODE_PENDING_CLIENT};
 
 	m_tempRow = -1;
 	m_usersData.last()[USER_COL_APP_USE_MODE] = std::move(QString::number(new_app_use_mode));
@@ -1259,7 +1260,7 @@ int DBUserModel::newUserFromFile(const QString &filename, const std::optional<bo
 
 	const QString &temp_user_data{m_tempUserData.at(0).join('\n')};
 	const uint tempUserAppUseMode{m_tempUserData.at(0).at(USER_COL_APP_USE_MODE).toUInt()};
-	const bool tempUserIsCoach{tempUserAppUseMode == APP_USE_MODE_SINGLE_COACH || tempUserAppUseMode == APP_USE_MODE_COACH_USER_WITH_COACH};
+	const bool tempUserIsCoach{tempUserAppUseMode == USEMODE_SINGLE_COACH || tempUserAppUseMode == USEMODE_COACH_USER_WITH_COACH};
 	if (tempUserIsCoach)
 	{
 		if (m_pendingCoachesResponses->dataFromString(temp_user_data))
@@ -2064,7 +2065,7 @@ void DBUserModel::pollCurrentClients()
 						continue;
 					if (!clients_list.contains(userId(i)))
 					{
-						if (appUseMode(i) == APP_USE_MODE_PENDING_CLIENT)
+						if (appUseMode(i) == USEMODE_PENDING_CLIENT)
 							continue;
 						if (!connected)
 						{

@@ -263,8 +263,7 @@ QString QMLMesoInterface::split() const
 
 void QMLMesoInterface::setSplit(const QString &new_split)
 {
-	if (new_split != m_mesoModel->split(m_mesoIdx))
-	{
+	if (new_split != m_mesoModel->split(m_mesoIdx)) {
 		m_mesoModel->setSplit(m_mesoIdx, new_split);
 		emit splitChanged();
 		verifyMesoRequiredFieldsStatus();
@@ -302,8 +301,7 @@ void QMLMesoInterface::getCalendarPage()
 
 void QMLMesoInterface::getExercisesPlannerPage()
 {
-	if (!m_splitsPage)
-	{
+	if (!m_splitsPage) {
 		m_mesoModel->loadSplits(m_mesoIdx);
 		m_splitsPage = new QmlMesoSplitInterface{this, m_mesoModel, m_mesoIdx};
 	}
@@ -313,8 +311,7 @@ void QMLMesoInterface::getExercisesPlannerPage()
 void QMLMesoInterface::getWorkoutPage(const QDate &date)
 {
 	QmlWorkoutInterface *workoutPage(m_workoutPages.value(date));
-	if (!workoutPage)
-	{
+	if (!workoutPage) {
 		workoutPage = new QmlWorkoutInterface{this, m_mesoModel, m_mesoIdx, date};
 		m_workoutPages.insert(date, workoutPage);
 	}
@@ -345,8 +342,7 @@ void QMLMesoInterface::createMesocyclePage(const bool new_meso)
 	setMinimumMesoStartDate(m_mesoModel->getMesoMinimumStartDate(m_mesoModel->client(m_mesoIdx), m_mesoIdx));
 	setMaximumMesoEndDate(m_mesoModel->getMesoMaximumEndDate(m_mesoModel->client(m_mesoIdx), m_mesoIdx));
 
-	if (new_meso)
-	{
+	if (new_meso) {
 		QString meso_name;
 		uint i{1};
 		do {
@@ -366,8 +362,7 @@ void QMLMesoInterface::createMesocyclePage(const bool new_meso)
 	m_mesoProperties.insert("mesoModel"_L1, QVariant::fromValue(m_mesoModel));
 	m_mesoComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/MesocyclePage.qml"_L1}, QQmlComponent::Asynchronous};
 
-	switch (m_mesoComponent->status())
-	{
+	switch (m_mesoComponent->status()) {
 		case QQmlComponent::Ready:
 			createMesocyclePage_part2();
 		break;
@@ -400,10 +395,8 @@ void QMLMesoInterface::createMesocyclePage_part2()
 	appPagesListModel()->openPage(m_mesoPage, std::move(tr("Program: ") + name()),
 												[this] () { m_mesoModel->removeMesoManager(m_mesoIdx); });
 
-	connect(m_mesoModel, &DBMesocyclesModel::mesoIdxChanged, this, [this] (const uint old_meso_idx, const uint new_meso_idx)
-	{
-		if (old_meso_idx == m_mesoIdx)
-		{
+	connect(m_mesoModel, &DBMesocyclesModel::mesoIdxChanged, this, [this] (const uint old_meso_idx, const uint new_meso_idx) {
+		if (old_meso_idx == m_mesoIdx) {
 			m_mesoIdx = new_meso_idx;
 			for (const auto workout_page : std::as_const(m_workoutPages))
 				workout_page->setMesoIdx(m_mesoIdx);
@@ -425,13 +418,10 @@ void QMLMesoInterface::createMesocyclePage_part2()
 
 void QMLMesoInterface::verifyMesoRequiredFieldsStatus()
 {
-	if (m_mesoPage)
-	{
+	if (m_mesoPage) {
 		int n_required_fields{0}, first_required_field{-1};
-		for (uint i{0}; i < DBMesocyclesModel::MESO_N_REQUIRED_FIELDS; ++i)
-		{
-			if (m_mesoModel->isRequiredFieldWrong(m_mesoIdx, DBMesocyclesModel::meso_required_fields[i]))
-			{
+		for (uint i{0}; i < DBMesocyclesModel::MESO_N_REQUIRED_FIELDS; ++i) {
+			if (m_mesoModel->isRequiredFieldWrong(m_mesoIdx, DBMesocyclesModel::meso_required_fields[i])) {
 				if (first_required_field == -1)
 					first_required_field = DBMesocyclesModel::meso_required_fields[i];
 				n_required_fields++;

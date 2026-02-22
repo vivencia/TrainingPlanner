@@ -32,7 +32,6 @@ TPUtils::TPUtils(QObject *parent)
 	: QObject{parent}, m_appLocale{nullptr}, m_lowestTempId{-1}
 {
 	app_utils = this;
-	mkdir(appSettings()->currentUserDir() % previewImagesSubDir);
 	_months_names = QStringList{} << std::move(tr("January")) << std::move(tr("February")) << std::move(tr("March")) <<
 		std::move(tr("April")) << std::move(tr("May")) << std::move(tr("June")) << std::move(tr("July")) <<
 		std::move(tr("August")) << std::move(tr("September")) << std::move(tr("October")) << std::move(tr("November")) <<
@@ -523,7 +522,7 @@ bool TPUtils::writeDataToFile(QFile *out_file,
 				}
 			}
 			if (!identifier.isEmpty())
-				out_file->write(STR_END_EXPORT.toUtf8().constData());
+				out_file->write((STR_END_EXPORT % '\n').toUtf8().constData());
 		}
 	}
 	out_file->flush();
@@ -595,27 +594,21 @@ int TPUtils::readDataFromFile(QFile *in_file,
 	QStringList data_read{field_count};
 	QStringList::iterator itr{data_read.begin()};
 	bool identifier_found{false}, data_found{false};
-	QString line{512, QChar{0}};
+	QString line{2048, QChar{0}};
 	QTextStream stream{in_file};
 
-	while (stream.readLineInto(&line))
-	{
-		if (!identifier_found)
-		{
+	while (stream.readLineInto(&line)) {
+		if (!identifier_found) {
 			if (line.contains(STR_START_EXPORT))
 				identifier_found = line.contains(identifier);
-			if (!identifier_found) //Found the beginning of another data set of a different type, rewind and return
-			{
+			if (!identifier_found) { //Found the beginning of another data set of a different type, rewind and return
 				in_file->seek(in_file->pos()-line.length());
 				break;
 			}
 		}
-		else
-		{
-			if (line.contains(STR_END_EXPORT))
-			{
-				if (data_read.count() >= field_count)
-				{
+		else {
+			if (line.contains(STR_END_EXPORT)) {
+				if (data_read.count() >= field_count) {
 					if (data_read.count() > field_count)
 						data_read.resize(field_count);
 					if (row == -1)
@@ -644,34 +637,27 @@ int TPUtils::readDataFromFormattedFile(QFile *in_file,
 	bool identifier_found{false};
 	uint field{1}; //skip ID
 	QStringList data_read{field_count};
-	QString line{512, QChar{0}};
+	QString line{2048, QChar{0}};
 	QTextStream stream{in_file};
 
-	while (stream.readLineInto(&line))
-	{
+	while (stream.readLineInto(&line)) {
 		if (line.length() < 5)
 			continue;
-		if (!identifier_found)
-		{
+		if (!identifier_found) {
 			if (line.contains(STR_START_FORMATTED_EXPORT))
 				identifier_found = line.contains(identifier);
-			if (!identifier_found) //Found the beginning of another data set of a different type, rewind and return
-			{
+			if (!identifier_found) { //Found the beginning of another data set of a different type, rewind and return
 				in_file->seek(in_file->pos()-line.length());
 				break;
 			}
 		}
-		else
-		{
-			if (line.contains(STR_END_FORMATTED_EXPORT))
-			{
+		else {
+			if (line.contains(STR_END_FORMATTED_EXPORT)) {
 				data.append(std::move(data_read));
 				field = 1;
 			}
-			else
-			{
-				if (field < field_count)
-				{
+			else {
+				if (field < field_count) {
 					line = std::move(line.remove(0, line.indexOf(':') + 2).simplified());
 					if (formatToImport == nullptr)
 						data_read[field] = std::move(line);
@@ -688,8 +674,7 @@ int TPUtils::readDataFromFormattedFile(QFile *in_file,
 QByteArray TPUtils::readBinaryFile(const QString &filename, const QString &extra_info) const &
 {
 	QFile *file{openFile(filename, true, false, false, false, false)};
-	if (file)
-	{
+	if (file) {
 		QByteArray data{std::move(file->readAll())};
 		file->close();
 		delete file;
@@ -703,8 +688,7 @@ QByteArray TPUtils::readBinaryFile(const QString &filename, const QString &extra
 void TPUtils::writeBinaryFile(const QString &filename, const QByteArray &data, const bool strip_extra_info) const
 {
 	QFile *file{openFile(filename, false, true, false, true, false)};
-	if (file)
-	{
+	if (file) {
 		if (!strip_extra_info)
 			file->write(data);
 		else
@@ -717,8 +701,7 @@ void TPUtils::writeBinaryFile(const QString &filename, const QByteArray &data, c
 void TPUtils::insertOrModifyBinaryFileField(QByteArray &data, BINARY_FILE_INFO_FIELDS field, const QString &info) const
 {
 	const auto extra_fields_pos{data.lastIndexOf(binary_file_initial_separator.toLatin1(), -1)};
-	if (extra_fields_pos > 0)
-	{
+	if (extra_fields_pos > 0) {
 		QString extra_info{data.last(data.length() - extra_fields_pos - 1)};
 		setCompositeValue(field, info, extra_info, binary_file_separator);
 		data.chop(data.length() - extra_fields_pos);
@@ -729,8 +712,7 @@ void TPUtils::insertOrModifyBinaryFileField(QByteArray &data, BINARY_FILE_INFO_F
 QString TPUtils::binaryFileExtraFieldValue(const QByteArray &data, BINARY_FILE_INFO_FIELDS field) const
 {
 	const auto extra_fields_pos{data.lastIndexOf(binary_file_initial_separator.toLatin1(), -1)};
-	if (extra_fields_pos > 0)
-	{
+	if (extra_fields_pos > 0) {
 		const QString &extra_info{data.last(data.length() - extra_fields_pos - 1)};
 		return getCompositeValue(field, extra_info, binary_file_separator);
 	}
@@ -750,25 +732,24 @@ QString TPUtils::pasteFromClipboard() const
 
 QString TPUtils::formatDate(const QDate &date, const DATE_FORMAT format) const
 {
-	switch (format)
-	{
+	switch (format) {
 		case DF_QML_DISPLAY:
 			return m_appLocale->toString(date, "ddd d/M/yyyy"_L1);
 		break;
 		case DF_LOCALE:
 			return m_appLocale->toString(date, QLocale::ShortFormat);
 		case DF_CATALOG:
-			return QString::number(date.year()) +
-				QString{std::move(date.month() <= 9 ? QString{'0' + QString::number(date.month())} : QString::number(date.month()))} +
-				QString{std::move(date.day() <= 9 ? QString{'0' + QString::number(date.day())} : QString::number(date.day()))};
+			return QString::number(date.year()) %
+				QString{std::move(date.month() <= 9 ? QString{'0' % QString::number(date.month())} : QString::number(date.month()))} +
+				QString{std::move(date.day() <= 9 ? QString{'0' % QString::number(date.day())} : QString::number(date.day()))};
 		break;
 		case DF_DATABASE:
 			return QString::number(date.toJulianDay());
 		break;
 		case DF_ONLINE:
-			return QString::number(date.year()).right(2) +
-				QString{std::move(date.month() <= 9 ? QString{'0' + QString::number(date.month())} : QString::number(date.month()))} +
-				QString{std::move(date.day() <= 9 ? QString{'0' + QString::number(date.day())} : QString::number(date.day()))};
+			return QString::number(date.year()).right(2) %
+				QString{std::move(date.month() <= 9 ? QString{'0' % QString::number(date.month())} : QString::number(date.month()))} +
+				QString{std::move(date.day() <= 9 ? QString{'0' % QString::number(date.day())} : QString::number(date.day()))};
 		break;
 	}
 	return QString{};
@@ -780,20 +761,19 @@ QDate TPUtils::dateFromString(const QString &strdate, const DATE_FORMAT format) 
 		return QDate{};
 
 	int day{0}, month{0}, year{0};
-	switch (format)
-	{
+	switch (format) {
 		case DF_QML_DISPLAY:
-			{
-				const qsizetype spaceIdx{strdate.indexOf(' ')};
-				const qsizetype fSlashIdx{strdate.indexOf('/')};
-				const qsizetype fSlashIdx2{strdate.indexOf('/', fSlashIdx + 1)};
-				day = strdate.sliced(spaceIdx + 1, fSlashIdx-spaceIdx - 1).toInt();
-				month = strdate.sliced(fSlashIdx + 1, fSlashIdx2-fSlashIdx - 1).toInt();
-				year = strdate.last(4).toInt();
-			}
+		{
+			const qsizetype spaceIdx{strdate.indexOf(' ')};
+			const qsizetype fSlashIdx{strdate.indexOf('/')};
+			const qsizetype fSlashIdx2{strdate.indexOf('/', fSlashIdx + 1)};
+			day = strdate.sliced(spaceIdx + 1, fSlashIdx-spaceIdx - 1).toInt();
+			month = strdate.sliced(fSlashIdx + 1, fSlashIdx2-fSlashIdx - 1).toInt();
+			year = strdate.last(4).toInt();
+		}
 		break;
 		case DF_LOCALE:
-
+		//TODO
 		break;
 		case DF_CATALOG:
 			year = strdate.first(4).toInt();
@@ -818,8 +798,7 @@ uint TPUtils::calculateNumberOfWeeks(const QDate &date1, const QDate &date2) con
 	const int week1{date1.weekNumber()};
 	const int week2{date2.weekNumber()};
 	//Every 6 years we have a 53 week year
-	if (week2 < week1)
-	{
+	if (week2 < week1) {
 		const int totalWeeksInYear{QDate::currentDate().year() != 2026 ? 52 : 53};
 		n = (totalWeeksInYear - week1) + week2;
 	}
@@ -831,21 +810,17 @@ uint TPUtils::calculateNumberOfWeeks(const QDate &date1, const QDate &date2) con
 uint TPUtils::calculateNumberOfMonths(const QDate &date1, const QDate &date2) const
 {
 	int n_months{0};
-	if (date1.year() == date2.year())
-	{
+	if (date1.year() == date2.year()) {
 		n_months = date2.month() - date1.month() + 1;
 		if (n_months < 0)
 			n_months *= -1;
 	}
-	else
-	{
-		if (date2.year() > date1.year())
-		{
+	else {
+		if (date2.year() > date1.year()) {
 			n_months = date2.month();
 			n_months += 12 - date1.month() + 1;
 		}
-		else
-		{
+		else {
 			n_months = date1.month();
 			n_months += 12 - date2.month() + 1;
 		}

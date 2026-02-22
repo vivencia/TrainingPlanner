@@ -55,12 +55,10 @@ TPPage {
 		}
 	}
 
-	ScrollView {
+	TPScrollView {
 		id: scrollExercises
-		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-		ScrollBar.vertical.policy: ScrollBar.AsNeeded
-		ScrollBar.vertical.active: true
-		contentWidth: availableWidth //stops bouncing to the sides
+		parentPage: exercisesPage
+		navButtonsVisible: enabled
 		contentHeight: layoutMain.implicitHeight
 
 		background: Rectangle {

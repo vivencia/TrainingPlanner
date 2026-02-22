@@ -32,8 +32,7 @@ Q_OBJECT
 
 public:
 	explicit inline QmlItemManager(QQmlApplicationEngine *qml_engine)
-		: QObject{nullptr}, m_usersManager{nullptr}, m_exercisesListManager{nullptr}, m_simpleExercisesList{nullptr},
-																		m_weatherPage{nullptr}, m_statisticsPage{nullptr}
+		: QObject{nullptr}, m_exercisesListManager{nullptr}, m_simpleExercisesList{nullptr}, m_weatherPage{nullptr}, m_statisticsPage{nullptr}
 	{
 		_appItemManager = this;
 		_appQmlEngine = qml_engine;
@@ -48,7 +47,8 @@ public:
 	Q_INVOKABLE void chooseFileToImport();
 	Q_INVOKABLE void displayImportDialogMessageAfterMesoSelection(const int meso_idx);
 	Q_INVOKABLE void exportMeso(const uint meso_idx, const bool share);
-	Q_INVOKABLE void getSettingsPage(const uint startPageIndex);
+	Q_INVOKABLE void getSettingsPage();
+	Q_INVOKABLE void getUserPage();
 	Q_INVOKABLE void getCoachesPage();
 	Q_INVOKABLE void getClientsPage();
 	Q_INVOKABLE void getExercisesPage(QmlWorkoutInterface *connectPage = nullptr);
@@ -81,7 +81,6 @@ public slots:
 	inline void qmlPasswordDialogClosed_slot(int resultCode, const QString &password) { emit qmlPasswordDialogClosed(resultCode, password); }
 
 private:
-	QmlUserInterface *m_usersManager;
 	QmlExercisesDatabaseInterface *m_exercisesListManager;
 	QQmlComponent *m_simpleExercisesListComponent, *m_weatherComponent, *m_statisticsComponent;
 	QQuickItem *m_homePage, *m_weatherPage, *m_statisticsPage;
@@ -105,6 +104,7 @@ private:
 	void createSimpleExercisesList(QQuickItem *parentPage);
 	void createWeatherPage_part2();
 	void createStatisticsPage_part2();
+	QmlUserInterface *usersManager();
 };
 
 inline QmlItemManager *appItemManager() { return QmlItemManager::_appItemManager; }

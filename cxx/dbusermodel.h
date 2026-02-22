@@ -6,26 +6,30 @@
 
 //Everytime these indexes change, look in the QML files for Connections to onUserModified to see if the hardcoded field
 //numbers in those functions are affected by the changes here
-#define USER_COL_ID 0
-#define USER_COL_INSERTTIME 1
-#define USER_COL_ONLINEACCOUNT 2
-#define USER_COL_NAME 3
-#define USER_COL_BIRTHDAY 4
-#define USER_COL_SEX 5
-#define USER_COL_PHONE 6
-#define USER_COL_EMAIL 7
-#define USER_COL_SOCIALMEDIA 8
-#define USER_COL_USERROLE 9
-#define USER_COL_COACHROLE 10
-#define USER_COL_GOAL 11
-#define USER_COL_APP_USE_MODE 12
-#define USER_TOTAL_COLS USER_COL_APP_USE_MODE + 1
+enum userFields {
+	USER_COL_ID,
+	USER_COL_INSERTTIME,
+	USER_COL_ONLINEACCOUNT,
+	USER_COL_NAME,
+	USER_COL_BIRTHDAY,
+	USER_COL_SEX,
+	USER_COL_PHONE,
+	USER_COL_EMAIL,
+	USER_COL_SOCIALMEDIA,
+	USER_COL_USERROLE,
+	USER_COL_COACHROLE,
+	USER_COL_GOAL,
+	USER_COL_APP_USE_MODE,
+	USER_TOTAL_COLS
+};
 
-#define APP_USE_MODE_SINGLE_USER 1
-#define APP_USE_MODE_SINGLE_COACH 2
-#define APP_USE_MODE_SINGLE_USER_WITH_COACH 3
-#define APP_USE_MODE_COACH_USER_WITH_COACH 4
-#define APP_USE_MODE_PENDING_CLIENT 5
+enum appUseMode {
+	USEMODE_SINGLE_USER,
+	USEMODE_SINGLE_COACH,
+	USEMODE_SINGLE_USER_WITH_COACH,
+	USEMODE_COACH_USER_WITH_COACH,
+	USEMODE_PENDING_CLIENT,
+};
 
 #define USER_COL_AVATAR 20 //not in database, but used on model and GUI operations
 
@@ -132,12 +136,12 @@ public:
 	Q_INVOKABLE inline bool isCoach(const uint user_idx) const
 	{
 		const uint app_use_mode{appUseMode(user_idx)};
-		return app_use_mode == APP_USE_MODE_SINGLE_COACH || app_use_mode == APP_USE_MODE_COACH_USER_WITH_COACH;
+		return app_use_mode == USEMODE_SINGLE_COACH || app_use_mode == USEMODE_COACH_USER_WITH_COACH;
 	}
 	inline bool mainUserIsCoach() const { return isCoach(0); }
 	Q_INVOKABLE inline bool isClient(const uint user_idx) const
 	{
-		return appUseMode(user_idx) != APP_USE_MODE_SINGLE_COACH;
+		return appUseMode(user_idx) != USEMODE_SINGLE_COACH;
 	}
 	inline bool mainUserIsClient() const { return isClient(0); }
 

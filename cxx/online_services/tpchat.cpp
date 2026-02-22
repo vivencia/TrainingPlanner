@@ -252,7 +252,7 @@ void TPChat::removeMessage(const uint msgid, const bool remove_for_interlocutor)
 	else //Remove locally only. Do not call setData() because it will, in turn, call uploadAction()
 	{
 		m_messages.at(msgid)->deleted = true;
-		emit dataChanged(index(msgid), index(msgid), QList<int>{1, deletedRole});
+		emit dataChanged(index(msgid), index(msgid), QList<int>{deletedRole});
 		updateFieldToSave(msgid, MESSAGE_DELETED, "1"_L1);
 	}
 	setData(index(msgid), QString{}, textRole);
@@ -469,7 +469,7 @@ bool TPChat::setData(const QModelIndex &index, const QVariant &value, int role)
 			break;
 			default: return false;
 		}
-		emit dataChanged(index, index, QList<int>{1, role});
+		emit dataChanged(index, index, QList<int>{role});
 		const int field{role - Qt::UserRole};
 		updateFieldToSave(message->id, field, data(message, field).toString());
 		return true;

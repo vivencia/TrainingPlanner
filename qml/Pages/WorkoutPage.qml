@@ -41,39 +41,9 @@ TPPage {
 		}
 	}
 
-	ScrollView {
+	TPScrollView {
 		id: scrollTraining
-		contentWidth: availableWidth //stops bouncing to the sides
 		contentHeight: layoutMain.height + exercisesFrame.height
-		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-
-		ScrollBar.vertical: ScrollBar {
-			id: vBar
-			policy: ScrollBar.AsNeeded
-
-			onPositionChanged: {
-				//const absoluteScrollY =  vBar.position * (scrollTraining.contentHeight - scrollTraining.height);
-				if ((vBar.position - (1 - vBar.size)) < -0.279) {
-					navButtons.showUpButton = false;
-					navButtons.showDownButton = true;
-				}
-				else if (vBar.position - (1 - vBar.size) > -0.029) {
-					navButtons.showUpButton = true;
-					navButtons.showDownButton = false;
-				}
-				else {
-					navButtons.showUpButton = true;
-					navButtons.showDownButton = true;
-				}
-			}
-		}
-
-		function setScrollBarPosition(pos: int): void {
-			if (pos === 0)
-				vBar.setPosition(0);
-			else
-				vBar.setPosition(pos - vBar.size/2);
-		}
 
 		anchors {
 			fill: parent
@@ -671,22 +641,6 @@ TPPage {
 			createMessageBox();
 		}
 		resetWorkoutMsg.show(-1);
-	}
-
-	property PageScrollButtons navButtons: null
-	function createNavButtons(): void {
-		let component = Qt.createComponent("qrc:/qml/ExercisesAndSets/PageScrollButtons.qml", Qt.Asynchronous);
-
-		function finishCreation() {
-			navButtons = component.createObject(workoutPage, { ownerPage: workoutPage });
-			navButtons.scrollTo.connect(scrollTraining.setScrollBarPosition);
-			navButtons.visible = Qt.binding(function() { return workoutModel.exerciseCount > 0; });
-		}
-
-		if (component.status === Component.Ready)
-			finishCreation();
-		else
-			component.statusChanged.connect(finishCreation);
 	}
 
 	property TPFloatingMenuBar optionsMenu: null

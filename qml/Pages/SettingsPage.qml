@@ -39,16 +39,16 @@ TPPage {
 		}
 	}
 
-	ScrollView {
-		anchors.fill: parent
-		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-		ScrollBar.vertical.policy: ScrollBar.AlwaysOn
-		contentWidth: availableWidth //stops bouncing to the sides
+	TPScrollView {
+		parentPage: settingsPage
+		navButtonsVisible: true
 		contentHeight: colMain.implicitHeight
+		anchors.fill: parent
 
 		ColumnLayout {
 			id: colMain
 			anchors.fill: parent
+			anchors.margins: 5
 			spacing: 5
 
 			TPLabel {
@@ -199,7 +199,7 @@ TPPage {
 				Layout.leftMargin: 10
 
 				onClicked: {
-					bNeedRestart = true;
+					settingsPage.bNeedRestart = true;
 					appSettings.themeStyle = text;
 				}
 			}
@@ -211,7 +211,7 @@ TPPage {
 				Layout.leftMargin: 10
 
 				onClicked: {
-					bNeedRestart = true;
+					settingsPage.bNeedRestart = true;
 					appSettings.themeStyle = text;
 				}
 			}
@@ -223,7 +223,7 @@ TPPage {
 				Layout.leftMargin: 10
 
 				onClicked: {
-					bNeedRestart = true;
+					settingsPage.bNeedRestart = true;
 					appSettings.themeStyle = text;
 				}
 			}
@@ -235,7 +235,7 @@ TPPage {
 				Layout.leftMargin: 10
 
 				onClicked: {
-					bNeedRestart = true;
+					settingsPage.bNeedRestart = true;
 					appSettings.themeStyle = text;
 				}
 			}
@@ -247,7 +247,7 @@ TPPage {
 				Layout.leftMargin: 10
 
 				onClicked: {
-					bNeedRestart = true;
+					settingsPage.bNeedRestart = true;
 					appSettings.themeStyle = text;
 				}
 			}

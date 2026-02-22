@@ -55,11 +55,11 @@ HomePageMesoModel::HomePageMesoModel(DBMesocyclesModel *meso_model, const bool o
 					case MESO_FIELD_COACH:
 					case MESO_FIELD_CLIENT:
 						emit canHaveTodaysWorkoutChanged();
-						emit dataChanged(index(row, 0), index(row, 0), QList<int>{1, Qt::UserRole + static_cast<int>(field)});
+						emit dataChanged(index(row, 0), index(row, 0), QList<int>{Qt::UserRole + static_cast<int>(field)});
 					break;
 					default:
 						if (field >= MESO_FIELD_SPLITA && field <= MESO_FIELD_SPLITF)
-							emit dataChanged(index(row, 0), index(row, 0), QList<int>{1, mesoSplitsAvailableRole});
+							emit dataChanged(index(row, 0), index(row, 0), QList<int>{mesoSplitsAvailableRole});
 				}
 			}
 		}

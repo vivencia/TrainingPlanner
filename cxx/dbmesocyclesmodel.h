@@ -6,8 +6,7 @@
 
 #include <QObject>
 
-enum MesoFields
-{
+enum MesoFields {
 	MESO_FIELD_ID,
 	MESO_FIELD_NAME,
 	MESO_FIELD_STARTDATE,

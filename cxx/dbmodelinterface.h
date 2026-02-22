@@ -37,7 +37,7 @@ public:
 	inline void setModifiedRows(const uint start_row, const uint end_row)
 	{
 		for (uint i{start_row}; i < end_row; ++i)
-			m_modifiedIndices.insert(i, QList<int>{1, -1});
+			m_modifiedIndices.insert(i, QList<int>{-1});
 	}
 
 	inline void clearModifiedIndices() { m_modifiedIndices.clear(); }

@@ -27,10 +27,9 @@ TPPage {
 		}
 	}
 
-	ScrollView {
-		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-		ScrollBar.vertical.policy: ScrollBar.AlwaysOn
-		contentWidth: availableWidth //stops bouncing to the sides
+	TPScrollView {
+		parentPage: userPage
+		navButtonsVisible: true
 		contentHeight: colMain.implicitHeight
 		anchors.fill: parent
 
