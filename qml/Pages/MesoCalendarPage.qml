@@ -60,7 +60,6 @@ TPPage {
 
 		ScrollBar.vertical: ScrollBar {
 			policy: ScrollBar.AsNeeded
-			active: true//ScrollBar.AlwaysOn
 		}
 
 		delegate: Rectangle {

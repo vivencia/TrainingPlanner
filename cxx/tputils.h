@@ -120,6 +120,7 @@ public:
 	Q_INVOKABLE bool canReadFile(const QString &filename) const;
 	QString getFilePath(const QString &filename) const;
 	QString getNthDirInPath(const QString &filename, int nth_dir = -1, int n_dirs = 1) const;
+	void removeNthDirFromPath(QString &path, int nth_dir);
 	//Returns the filename or the last directory in path if path does not include a file
 	QString getFileName(const QString &filename, const bool without_extension = false) const;
 	QString getFileExtension(const QString &filename, const bool include_dot = false, const QString &default_ext = QString{}) const;

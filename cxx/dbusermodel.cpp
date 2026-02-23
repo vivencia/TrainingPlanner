@@ -885,14 +885,18 @@ void DBUserModel::sendFileToUser(const QString &userid, const QString &filename,
 		return;
 	}
 
+	QString target_filename{std::move(appUtils()->getSubDir(filename))};
+	appUtils()->removeNthDirFromPath(target_filename, 1);
+	target_filename.prepend(userId(0));
+	target_filename += appUtils()->getFileName(filename);
 	QString str_extra_info{appUtils()->string_strings({
 			QString::number(ChatWSServer::WS_TPMESSAGESMANAGER),
-			appUtils()->getSubDir(filename) % appUtils()->getFileName(filename),
+			target_filename,
 			userId(0),
 			userid,
 			extra_info.toString()
 	}, binary_file_separator)};
-	QByteArray data{std::move(appUtils()->readBinaryFile(filename, filename.right(filename.length() - userDir().length())))};
+	QByteArray data{std::move(appUtils()->readBinaryFile(filename, str_extra_info))};
 	if (use_ws)
 		appWSServer()->sendBinaryMessage(ChatWSServer::WS_TPMESSAGESMANAGER, userid, data);
 	else {
@@ -980,29 +984,24 @@ int DBUserModel::downloadFileFromServer(const QString &filename, const QString &
 	const int requestid{appUtils()->generateUniqueId(v)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [=,this]
-							(const int request_id, const int ret_code, const QString &filename, const QByteArray &contents)
-	{
-		if (request_id == requestid)
-		{
+							(const int request_id, const int ret_code, const QString &filename, const QByteArray &contents) {
+		if (request_id == requestid) {
 			disconnect(*conn);
 			bool success{!contents.isEmpty()};
 			QString dest_file;
 			if (local_filename.isEmpty())
 				dest_file = std::move(userDir(targetUser.isEmpty() ? userId(0) : targetUser) + filename);
-			else
-			{
+			else {
 				static_cast<void>(appUtils()->mkdir(appUtils()->getFilePath(local_filename)));
 				dest_file = local_filename;
 			}
-			switch (ret_code)
-			{
+			switch (ret_code) {
 				case TP_RET_CODE_SUCCESS: //file downloaded
 				{
 					if (!success)
 						break;
 					QFile *local_file{new QFile{dest_file, this}};
-					if (!local_file->exists() || local_file->remove())
-					{
+					if (!local_file->exists() || local_file->remove()) {
 						if (local_file->open(QIODeviceBase::WriteOnly))
 						{
 							local_file->write(contents);
@@ -1022,10 +1021,8 @@ int DBUserModel::downloadFileFromServer(const QString &filename, const QString &
 					success = false;
 			}
 			if (!success && !successMessage.isEmpty())
-			{
 				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR, appUtils()->string_strings(
-																	{filename + contents}, record_separator));
-			}
+																									{filename + contents}, record_separator));
 			emit fileDownloaded(success, requestid, dest_file);
 		}
 	});
@@ -1863,32 +1860,25 @@ void DBUserModel::startServerPolling()
 
 void DBUserModel::pollServer()
 {
-	if (isCoach(0))
-	{
-		if (!mb_coachRegistered)
-		{
+	if (isCoach(0)) {
+		if (!mb_coachRegistered) {
 			//poll immediatelly after receiving confirmation the man user is  a registerd coach
-			connect(this, &DBUserModel::coachOnlineStatus, this, [this] (bool registered)
-			{
-				if (registered)
-				{
+			connect(this, &DBUserModel::coachOnlineStatus, this, [this] (bool registered) {
+				if (registered) {
 					pollClientsRequests();
 					pollCurrentClients();
 				}
 			}, Qt::SingleShotConnection);
 			checkIfCoachRegisteredOnline();
 		}
-		else
-		{
-			if (mb_coachRegistered == true)
-			{
+		else {
+			if (mb_coachRegistered == true) {
 				pollClientsRequests();
 				pollCurrentClients();
 			}
 		}
 	}
-	if (isClient(0))
-	{
+	if (isClient(0)) {
 		pollCoachesAnswers();
 		pollCurrentCoaches();
 		checkNewMesos();
@@ -1900,23 +1890,18 @@ void DBUserModel::pollClientsRequests()
 	const int requestid{appUtils()->generateUniqueId("pollClientsRequests"_L1)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid]
-							(const int request_id, const int ret_code, const QString &ret_string)
-	{
-		if (request_id == requestid)
-		{
+																(const int request_id, const int ret_code, const QString &ret_string) {
+		if (request_id == requestid) {
 			disconnect(*conn);
-			if (ret_code == TP_RET_CODE_SUCCESS)
-			{
+			if (ret_code == TP_RET_CODE_SUCCESS) {
 				QStringList requests_list{std::move(ret_string.split(' ', Qt::SkipEmptyParts))};
 				if (m_pendingClientRequests->sanitize(requests_list, USER_COL_ID))
 					emit pendingClientsRequestsChanged();
 
 				//First pass
-				for (qsizetype i{requests_list.count() - 1}; i >= 0; --i)
-				{
+				for (qsizetype i{requests_list.count() - 1}; i >= 0; --i) {
 					const int userrow{userIdxFromFieldValue(USER_COL_ID, requests_list.at(i))};
-					if (userrow != -1 && userrow != m_tempRow)
-					{
+					if (userrow != -1 && userrow != m_tempRow) {
 						appOnlineServices()->removeClientRequest(0, requests_list.at(i));
 						requests_list.remove(i);
 					}
@@ -1926,10 +1911,8 @@ void DBUserModel::pollClientsRequests()
 				qsizetype n_connections{requests_list.count()};
 				auto conn2{std::make_shared<QMetaObject::Connection>()};
 				*conn2 = connect(this, &DBUserModel::userProfileAcquired, this, [this,conn2,requests_list,n_connections]
-																(const QString &userid, const bool success) mutable
-				{
-					if (requests_list.contains(userid))
-					{
+																					(const QString &userid, const bool success) mutable {
+					if (requests_list.contains(userid)) {
 						if (--n_connections == TP_RET_CODE_SUCCESS)
 							disconnect(*conn2);
 						if (success)
@@ -1946,10 +1929,8 @@ void DBUserModel::pollClientsRequests()
 
 void DBUserModel::addPendingClient(const QString &user_id)
 {
-	if (!m_pendingClientRequests->containsUser(user_id))
-	{
-		if (m_pendingClientRequests->dataFromFileSource(profileFilePath(user_id)))
-		{
+	if (!m_pendingClientRequests->containsUser(user_id)) {
+		if (m_pendingClientRequests->dataFromFileSource(profileFilePath(user_id))) {
 			m_pendingClientRequests->setIsCoach(m_pendingClientRequests->count() - 1, false);
 			emit pendingClientsRequestsChanged();
 		}
@@ -1961,27 +1942,21 @@ void DBUserModel::pollCoachesAnswers()
 	const int requestid{appUtils()->generateUniqueId("pollCoachesAnswers"_L1)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid]
-													(const int request_id, const int ret_code, const QString &ret_string)
-	{
-		if (request_id == requestid)
-		{
+																(const int request_id, const int ret_code, const QString &ret_string) {
+		if (request_id == requestid) {
 			disconnect(*conn);
-			if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS)
-			{
+			if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS) {
 				QStringList answers_list{std::move(ret_string.split(' ', Qt::SkipEmptyParts))};
 				if (m_pendingCoachesResponses->sanitize(answers_list, USER_COL_ID))
 					emit pendingCoachesResponsesChanged();
 
 				//First pass
-				for (qsizetype i{answers_list.count() - 1}; i >= 0; --i)
-				{
+				for (qsizetype i{answers_list.count() - 1}; i >= 0; --i) {
 					QString coach_id{answers_list.at(i)};
-					if (coach_id.endsWith("AOK"_L1))
-					{
+					if (coach_id.endsWith("AOK"_L1)) {
 						coach_id.chop(3);
 						const int userrow{userIdxFromFieldValue(USER_COL_ID, coach_id)};
-						if (userrow != -1 && userrow != m_tempRow)
-						{
+						if (userrow != -1 && userrow != m_tempRow) {
 							appOnlineServices()->acceptCoachAnswer(requestid, coach_id);
 							//appOnlineServices()->removeCoachAnwers(requestid, userId(0), m_password, coach_id);
 							answers_list.remove(i);
@@ -1995,21 +1970,18 @@ void DBUserModel::pollCoachesAnswers()
 				qsizetype n_connections{answers_list.count()};
 				auto conn2{std::make_shared<QMetaObject::Connection>()};
 				*conn2 = connect(this, &DBUserModel::userProfileAcquired, this, [this,conn2,answers_list,n_connections]
-															(const QString &userid, const bool success) mutable
-				{
+																					(const QString &userid, const bool success) mutable {
 					const auto &it{std::find_if(answers_list.cbegin(), answers_list.cend(), [userid] (const auto &coach) {
 						return coach.startsWith(userid);
 					})};
-					if (it != answers_list.cend())
-					{
+					if (it != answers_list.cend()) {
 						if (--n_connections == 0)
 							disconnect(*conn2);
 						if (success)
 							addCoachAnswer(userid);
 					}
 				});
-				for (auto &coach_id : answers_list)
-				{
+				for (auto &coach_id : answers_list) {
 					coach_id.chop(3);
 					getUserOnlineProfile(coach_id, profileFilePath(coach_id));
 				}
@@ -2021,10 +1993,8 @@ void DBUserModel::pollCoachesAnswers()
 
 void DBUserModel::addCoachAnswer(const QString &user_id)
 {
-	if (!m_pendingCoachesResponses->containsUser(user_id))
-	{
-		if (m_pendingCoachesResponses->dataFromFileSource(profileFilePath(user_id)))
-		{
+	if (!m_pendingCoachesResponses->containsUser(user_id)) {
+		if (m_pendingCoachesResponses->dataFromFileSource(profileFilePath(user_id))) {
 			m_pendingCoachesResponses->setIsCoach(m_pendingCoachesResponses->count() - 1, true);
 			emit pendingCoachesResponsesChanged();
 		}
@@ -2033,10 +2003,8 @@ void DBUserModel::addCoachAnswer(const QString &user_id)
 
 void DBUserModel::addAvailableCoach(const QString &user_id)
 {
-	if (!m_availableCoaches->containsUser(user_id))
-	{
-		if (m_availableCoaches->dataFromFileSource(profileFilePath(user_id)))
-		{
+	if (!m_availableCoaches->containsUser(user_id)) {
+		if (m_availableCoaches->dataFromFileSource(profileFilePath(user_id))) {
 			m_availableCoaches->setIsCoach(m_availableCoaches->count() - 1, true);
 			emit availableCoachesChanged();
 		}

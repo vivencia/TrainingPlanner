@@ -133,7 +133,7 @@ function download_file($file, $downloadDir) {
 	ignore_user_abort(true);
 	$filename=$downloadDir . "/" . $file;
 	if (file_exists($filename)) {
-		$file_name = basename($filename)."%%";
+		$file_name = basename($filename)."^^";
 		$size = strlen($file_name) + filesize($filename);
 		echo $file_name;
 		header('Content-Description: File Transfer');
@@ -810,25 +810,34 @@ function remove_coach_from_coaches($client, $coach) {
 
 function get_tpmessages($userid) {
 	global $rootdir;
-	$exchangefiles_dir = $rootdir . $userid . "/exchange_files";
+	$exchangefiles_dir = $rootdir . $userid . "/exchange_files/";
 	if (!create_dir($exchangefiles_dir))
 		die(get_return_code("directory not writable") . ": Unable to create messages dir " .$exchangefiles_dir);
 
-	$files = array_values(array_diff(scandir($exchangefiles_dir), array('.', '..')));
-	if (count($files) > 0) {
-		$content = "";
-		foreach ($files as $file) {
-			if (str_contains($file, ".sqlite") || str_contains($file, ".cmd"))
-				continue;
-			//apcu_store("$userid-$file", false); //uncomment to force new messages checking during development
-			$is_not_modified = apcu_fetch("$userid-$file");
-			if ($is_not_modified === true)
-				continue;
-			apcu_store("$userid-$file", true);
-			$content = $content . $file . "\034";
+	$dirs = array_values(array_diff(scandir($exchangefiles_dir), array('.', '..')));
+	if (count($dirs) > 0) {
+		$all_messages = "";
+		foreach ($dirs as $dir) {
+			$files = array_values(array_diff(scandir($exchangefiles_dir . $dir), array('.', '..')));
+			if (count($files) > 0) {
+				$content = "";
+				foreach ($files as $file) {
+					if (str_contains($file, ".sqlite") || str_contains($file, ".cmd"))
+						continue;
+					//apcu_delete("$dir-$file");
+					$is_not_modified = apcu_fetch("$dir-$file");
+					if ($is_not_modified === true)
+						continue;
+					apcu_store("$dir-$file", false); //uncomment to force new messages checking during development
+					//apcu_store("$dir-$file", true);
+					$content = $content . $file . "\034";
+				}
+				if ($content !== "")
+					$all_messages = $all_messages . $dir . "\034" . $content;
+			}
 		}
-		if ($content != "") {
-			echo "0: file://" . $userid . "\034" . $content;
+		if ($all_messages !== "") {
+			echo "0: file://" . $all_messages;
 			return;
 		}
 	}

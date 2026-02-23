@@ -15,26 +15,27 @@ Rectangle {
 
 	signal scrollTo(int pos);
 
+	property point position
 	property bool showUpButton: true
 	property bool showDownButton: true
 	property TPPage ownerPage
-	readonly property int buttonSize: Math.ceil(appSettings.itemLargeHeight)
+	readonly property int buttonSize: appSettings.itemLargeHeight
 
 	TPFloatingControl {
 		id: btnUp
-		parentPage: ownerPage
-		width: buttonSize
-		height: buttonSize
-		radius: buttonSize
+		parentPage: button.ownerPage
+		width: button.buttonSize
+		height: button.buttonSize
+		radius: button.buttonSize
 		color: "transparent"
-		visible: button.visible && showUpButton
+		visible: button.visible && button.showUpButton
 		dragWidget: img1
-		x: appSettings.pageWidth - buttonSize - 10;
-		y: btnDown.y - buttonSize
+		x: button.position.x - button.buttonSize - 10
+		y: btnDown.y - button.buttonSize
 
 		onControlMoved: (xpos, ypos) => {
 			btnDown.x = xpos;
-			btnDown.y = y + buttonSize;
+			btnDown.y = y + button.buttonSize;
 		}
 
 		TPImage {
@@ -44,24 +45,24 @@ Rectangle {
 			anchors.fill: parent
 		}
 
-		onClicked: scrollTo(0);
+		onClicked: button.scrollTo(0);
 	}
 
 	TPFloatingControl {
 		id: btnDown
-		parentPage: ownerPage
-		width: buttonSize
-		height: buttonSize
-		radius: buttonSize
-		visible: button.visible && showDownButton
+		parentPage: button.ownerPage
+		width: button.buttonSize
+		height: button.buttonSize
+		radius: button.buttonSize
+		visible: button.visible && button.showDownButton
 		color: "transparent"
 		dragWidget: img2
-		x: appSettings.pageWidth - buttonSize - 10;
-		y: appSettings.pageHeight - buttonSize
+		x: button.position.x - button.buttonSize - 10
+		y: button.position.y - button.buttonSize
 
 		onControlMoved: (xpos, ypos) => {
 			btnUp.x = xpos;
-			btnUp.y = y - buttonSize;
+			btnUp.y = y - button.buttonSize;
 		}
 
 		TPImage {
@@ -71,6 +72,6 @@ Rectangle {
 			anchors.fill: parent
 		}
 
-		onClicked: scrollTo(1);
+		onClicked: button.scrollTo(1);
 	}
 }

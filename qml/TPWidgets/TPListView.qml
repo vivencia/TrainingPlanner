@@ -15,11 +15,9 @@ ListView {
 		id: _vBar
 		policy: ScrollBar.AsNeeded
 		active: true
-		interactive: true
 	}
 
 	ScrollBar.horizontal: ScrollBar {
 		policy: ScrollBar.AsNeeded
-		interactive: true
 	}
 }

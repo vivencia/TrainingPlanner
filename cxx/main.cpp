@@ -21,9 +21,11 @@
 
 int main(int argc, char *argv[])
 {
+#ifndef QT_NO_DEBUG
+	qputenv("QT_ASSUME_STDERR_HAS_CONSOLE", "1");
+#endif
 #ifdef Q_OS_ANDROID
-	if (argc > 1 && strcmp(argv[1], "-service") == 0)
-	{
+	if (argc > 1 && strcmp(argv[1], "-service") == 0) {
 		qInfo() << "Service starting with from the same .so file";
 		QAndroidService app(argc, argv);
 		return app.exec();

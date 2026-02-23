@@ -98,7 +98,6 @@ TPPopup {
 			movableWidget: onlineMsgsDlg
 			enabled: !fullDialogVisible
 
-			onPositionChanged: (mouse) => positionChangedFunction(mouse);
 			onMouseClicked: (hold_clicked) => {
 				if (!hold_clicked) {
 					mainIconUserDefinedX = onlineMsgsDlg.x;
@@ -139,7 +138,6 @@ TPPopup {
 			movingWidget: parent
 			movableWidget: onlineMsgsDlg
 
-			onPositionChanged: (mouse) => positionChangedFunction(mouse);
 			onMouseClicked: {
 				if (mainwindow.appPagesModel.isPopupAboveAllOthers(onlineMsgsDlg)) {
 					mainIconUserDefinedY = onlineMsgsDlg.y;

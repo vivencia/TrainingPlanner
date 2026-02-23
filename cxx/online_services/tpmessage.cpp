@@ -15,8 +15,7 @@ QString TPMessage::time() const
 
 void TPMessage::plug()
 {
-	if (!m_plugged)
-	{
+	if (!m_plugged) {
 		m_ctime = std::move(QDateTime::currentDateTime());
 		m_plugged = true;
 		appMessagesManager()->addMessage(this);
@@ -27,8 +26,7 @@ int TPMessage::insertAction(const QString& actionLabel, const std::function<void
 {
 	m_actions.append(actionLabel);
 	m_actionFuncs.append(actionFunc);
-	if (remove != std::nullopt && remove.has_value())
-	{
+	if (remove != std::nullopt && remove.has_value()) {
 		m_actions.last().append(remove.value() ? record_separator : set_separator);
 		setSticky(!remove.value());
 	}
@@ -39,8 +37,7 @@ int TPMessage::insertAction(const QString& actionLabel, const std::function<void
 
 void TPMessage::removeAction(const int action_id)
 {
-	if (action_id >= 0 && action_id < m_actions.count())
-	{
+	if (action_id >= 0 && action_id < m_actions.count()) {
 		m_actions.remove(action_id);
 		m_actionFuncs.remove(action_id);
 	}

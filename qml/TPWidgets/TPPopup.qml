@@ -153,7 +153,6 @@ Popup {
 		enabled: !disableMouseHandling
 		movableWidget: tpPopup
 		movingWidget: titlebar
-		onPositionChanged: (mouse) => positionChangedFunction(mouse);
 		onPressed: mainwindow.appPagesModel.raisePopup(tpPopup);
 	}
 

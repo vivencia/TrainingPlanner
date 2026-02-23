@@ -258,33 +258,26 @@ QString TPUtils::getNthDirInPath(const QString &filename, int nth_dir, int n_dir
 	const auto n_chars{filepath.length()};
 	ret.reserve(n_chars);
 	bool reverse_searh{false};
-	if (nth_dir < 0)
-	{
+	if (nth_dir < 0) {
 		reverse_searh = true;
 		nth_dir *= -1;
 	}
-	if (reverse_searh)
-	{
-		for (const auto &chr : filepath | std::views::reverse)
-		{
+	if (reverse_searh) {
+		for (const auto &chr : filepath | std::views::reverse) {
 			if (chr != '/')
 				ret.insert(0, chr);
-			else
-			{
+			else {
 				if (--nth_dir == 0 || --n_dirs == 0)
 					break;
 				ret.insert(0, chr);
 			}
 		}
 	}
-	else
-	{
-		for (const auto &chr : filepath | std::views::take(n_chars))
-		{
+	else {
+		for (const auto &chr : filepath | std::views::take(n_chars)) {
 			if (chr != '/')
 				ret.insert(0, chr);
-			else
-			{
+			else {
 				if (--nth_dir == 0 || --n_dirs == 0)
 					break;
 				ret.insert(0, chr);
@@ -292,6 +285,42 @@ QString TPUtils::getNthDirInPath(const QString &filename, int nth_dir, int n_dir
 		}
 	}
 	return ret;
+}
+
+void TPUtils::removeNthDirFromPath(QString &path, int nth_dir)
+{
+	int i{0}, first_slash{0};
+	bool reverse_searh{false};
+	if (nth_dir < 0) {
+		reverse_searh = true;
+		nth_dir *= -1;
+		i = path.length() - 1;
+	}
+	if (reverse_searh) {
+		for (; i >=0; --i) {
+			if (path.at(i) == '/') {
+				if (--nth_dir == 0)
+					first_slash = i;
+				else if (nth_dir == -1) {
+					auto temp_idx{i};
+					i = first_slash;
+					first_slash = temp_idx;
+					break;
+				}
+			}
+		}
+	}
+	else {
+		if (!path.startsWith('/'))
+			--nth_dir;
+		for (; i < path.length(); ++i) {
+			if (path.at(i) == '/') {
+				if (--nth_dir == -1)
+					break;
+			}
+		}
+	}
+	static_cast<void>(path.remove(first_slash, i - first_slash));
 }
 
 QString TPUtils::getFileName(const QString &filename, const bool without_extension) const
@@ -851,8 +880,7 @@ QDate TPUtils::createDate(const QDate &fromDate, const int years, const int mont
 
 int TPUtils::daysInMonth(const int month, const int year) const
 {
-	switch (month)
-	{
+	switch (month) {
 		case 3: case 5: case 8: case 10: return 30;
 		case 1: return year % 4 == 0 ? 29 : 28;
 		default: return 31;
@@ -861,8 +889,7 @@ int TPUtils::daysInMonth(const int month, const int year) const
 
 QString TPUtils::formatTime(const QTime &time, const TIME_FORMAT format) const
 {
-	switch (format)
-	{
+	switch (format) {
 		case TF_QML_DISPLAY_COMPLETE:
 			return time.isValid() ? time.toString("hh:mm:ss"_L1) : "00:00:00"_L1;
 		break;
@@ -874,12 +901,11 @@ QString TPUtils::formatTime(const QTime &time, const TIME_FORMAT format) const
 		break;
 		case TF_FANCY:
 		{
-			if (time.isValid())
-			{
+			if (time.isValid()) {
 				QString strTime{std::move(time.toString("hh  mm"_L1))};
-				strTime.insert(6, std::move("min"_L1));
-				strTime.insert(3, std::move(tr("and")));
-				strTime.insert(2, std::move("hs"_L1));
+				strTime.insert(6, "min"_L1);
+				strTime.insert(3, tr("and"));
+				strTime.insert(2, "hs"_L1);
 				return strTime;
 			}
 			else
@@ -887,13 +913,12 @@ QString TPUtils::formatTime(const QTime &time, const TIME_FORMAT format) const
 		}
 		case TF_FANCY_SECS:
 		{
-			if (time.isValid())
-			{
+			if (time.isValid()) {
 				QString strTime{std::move(time.toString("hh, mm  ss"_L1))};
-				strTime.insert(10, std::move("secs"));
-				strTime.insert(7, std::move(tr("and")));
-				strTime.insert(6, std::move("min"_L1));
-				strTime.insert(2, std::move("hs"_L1));
+				strTime.insert(10, "secs");
+				strTime.insert(7, tr("and"));
+				strTime.insert(6, "min"_L1);
+				strTime.insert(2, "hs"_L1);
 				return strTime;
 			}
 			else
@@ -910,10 +935,8 @@ QString TPUtils::formatTime(const QTime &time, const TIME_FORMAT format) const
 QTime TPUtils::timeFromString(const QString &strtime, const TIME_FORMAT format) const
 {
 	int hour{0}, min{0}, sec{0};
-	if (strtime.length() >= 4)
-	{
-		switch (format)
-		{
+	if (strtime.length() >= 4) {
+		switch (format) {
 			case TF_QML_DISPLAY_COMPLETE:
 				hour = strtime.first(2).toInt();
 				min = strtime.sliced(3, 2).toInt();
@@ -954,31 +977,27 @@ QString TPUtils::addTimeToStrTime(const QString &strTime, const int addmins, con
 	int mins{QStringView{strTime}.first(2).toInt()};
 
 	secs += addsecs;
-	if (secs > 59)
-	{
+	if (secs > 59) {
 		secs -= 60;
 		mins++;
 	}
-	else if (secs < 0)
-	{
+	else if (secs < 0) {
 		secs += 60;
 		mins--;
 	}
 	mins += addmins;
-	if (mins < 0)
-	{
+	if (mins < 0) {
 		mins = 0;
 		secs = 0;
 	}
-	const QString &ret{(mins <= 9 ? '0' + QString::number(mins) : QString::number(mins)) + QChar(':') +
-		(secs <= 9 ? '0' + QString::number(secs) : QString::number(secs))};
+	const QString &ret{(mins <= 9 ? '0' % QString::number(mins) : QString::number(mins)) + QChar(':') %
+																		(secs <= 9 ? '0' % QString::number(secs) : QString::number(secs))};
 	return ret;
 }
 
 QString TPUtils::getHourFromStrTime(const QString &strTime, const TIME_FORMAT format) const
 {
-	switch (format)
-	{
+	switch (format) {
 		case TF_QML_DISPLAY_COMPLETE:
 		case TF_QML_DISPLAY_NO_SEC:
 		case TF_ONLINE:
@@ -994,8 +1013,7 @@ QString TPUtils::getHourFromStrTime(const QString &strTime, const TIME_FORMAT fo
 
 QString TPUtils::getMinutesFromStrTime(const QString &strTime, const TIME_FORMAT format) const
 {
-	switch (format)
-	{
+	switch (format) {
 		case TF_QML_DISPLAY_COMPLETE:
 			return strTime.sliced(3, 2);
 		case TF_QML_DISPLAY_NO_SEC:
@@ -1019,13 +1037,11 @@ QTime TPUtils::calculateTimeDifference(const QTime &start_time, const QTime &end
 	int sec{end_time.second() - start_time.second()};
 	if (hour < 0)
 		hour *= -1;
-	if (min < 0)
-	{
+	if (min < 0) {
 		hour--;
 		min = 60 - start_time.minute() + end_time.minute();
 	}
-	if (sec < 0)
-	{
+	if (sec < 0) {
 		--min;
 		sec = 60 - start_time.second() + end_time.second();
 	}
@@ -1037,8 +1053,7 @@ QTime TPUtils::calculateTimeDifference(const QString &strTimeInit, const QString
 	int hour{strTimeFinal.first(2).toInt() - strTimeInit.first(2).toInt()};
 	int min {strTimeFinal.last(2).toInt() - strTimeInit.last(2).toInt()};
 
-	if (min < 0)
-	{
+	if (min < 0) {
 		hour--;
 		min += 60;
 	}
@@ -1067,10 +1082,8 @@ QString TPUtils::getCompositeValue(const uint idx, const QString &compositeStrin
 	int chr_pos{0};
 	uint last_sep_pos{0};
 
-	for (const auto &chr : compositeString)
-	{
-		if (chr == chr_sep)
-		{
+	for (const auto &chr : compositeString) {
+		if (chr == chr_sep) {
 			if (++n_seps == idx)
 				return compositeString.sliced(last_sep_pos, chr_pos);
 			last_sep_pos += chr_pos + 1;
@@ -1090,23 +1103,19 @@ QString TPUtils::lastValueInComposite(const QString &compositeString, const QLat
 		return compositeString;
 }
 
-void TPUtils::setCompositeValue(const int idx, const QString &newValue, QString &compositeString,
-																			const QLatin1Char &chr_sep) const
+void TPUtils::setCompositeValue(const int idx, const QString &newValue, QString &compositeString, const QLatin1Char &chr_sep) const
 {
-	if (idx == -1)
-	{
+	if (idx == -1) {
 		compositeString.append(newValue % chr_sep);
 		return;
 	}
 	qsizetype sep_pos{compositeString.indexOf(chr_sep)};
 	qsizetype n_seps{-1};
 
-	if (sep_pos == -1)
-	{
+	if (sep_pos == -1) {
 		if (idx == 0)
 			compositeString = newValue;
-		else
-		{
+		else {
 			while (++n_seps < idx)
 				compositeString.append(chr_sep);
 			compositeString.append(newValue % chr_sep);
@@ -1117,8 +1126,7 @@ void TPUtils::setCompositeValue(const int idx, const QString &newValue, QString 
 	qsizetype last_sep_pos{0};
 	do {
 		++n_seps;
-		if (idx == n_seps)
-		{
+		if (idx == n_seps) {
 			compositeString.remove(last_sep_pos, sep_pos - last_sep_pos);
 			compositeString.insert(last_sep_pos, newValue);
 			return;
@@ -1134,21 +1142,18 @@ void TPUtils::setCompositeValue(const int idx, const QString &newValue, QString 
 bool TPUtils::removeFieldFromCompositeValue(const uint idx, QString &compositeString, const QLatin1Char &chr_sep) const
 {
 	auto sep_pos{compositeString.indexOf(chr_sep)};
-	if (sep_pos >= 0)
-	{
+	if (sep_pos >= 0) {
 		int n_seps{-1}, del_pos_1{0}, del_pos_2{-1};
 		do {
 			++n_seps;
-			if (n_seps == idx)
-			{
+			if (n_seps == idx) {
 				del_pos_2 = sep_pos;
 				break;
 			}
 			del_pos_1 = sep_pos + 1;
 			sep_pos = compositeString.indexOf(chr_sep, sep_pos + 1);
 		} while(sep_pos != -1);
-		if (del_pos_2 >= 0)
-		{
+		if (del_pos_2 >= 0) {
 			compositeString.remove(del_pos_1, del_pos_2 - del_pos_1 + 1);
 			return true;
 		}
@@ -1207,8 +1212,7 @@ double TPUtils::similarityBetweenStrings(const QString &string1, const QString &
 	const QStringList::const_iterator& itr_end{words2.end()};
 	uint matches{0};
 	uint nwords{0};
-	do
-	{
+	do {
 		nwords++;
 		if (string1.contains(*itr))
 			matches++;
@@ -1221,8 +1225,7 @@ double TPUtils::similarityBetweenStrings(const QString &string1, const QString &
 QString TPUtils::stripDiacriticsFromString(const QString &src) const
 {
 	QString filtered;
-	for (qsizetype i{0}; i < src.length(); ++i)
-	{
+	for (qsizetype i{0}; i < src.length(); ++i) {
 		if (src.at(i).decompositionTag() != QChar::NoDecomposition)
 			filtered.push_back(src.at(i).decomposition().at(0));
 		else
@@ -1240,16 +1243,13 @@ QString TPUtils::stripInvalidCharacters(const QString &string) const
 bool TPUtils::containsAllWords(const QString &mainString, const QStringList &wordSet, const bool precise)
 {
 	const QStringList &searched_words{precise ? mainString.split(' ', Qt::SkipEmptyParts) :
-														stripDiacriticsFromString(mainString).split(' ', Qt::SkipEmptyParts)};
+																	stripDiacriticsFromString(mainString).split(' ', Qt::SkipEmptyParts)};
 	QStringList::const_iterator haystack{searched_words.constBegin()};
 	const QStringList::const_iterator haystack_end{searched_words.constEnd()};
-	for (const auto &needle : std::as_const(wordSet))
-	{
+	for (const auto &needle : std::as_const(wordSet)) {
 		bool found{false};
-		do
-		{
-			if ((precise && haystack->startsWith(needle)) || (!precise && haystack->contains(needle, Qt::CaseInsensitive)))
-			{
+		do {
+			if ((precise && haystack->startsWith(needle)) || (!precise && haystack->contains(needle, Qt::CaseInsensitive))) {
 				found = true;
 				break;
 			}
@@ -1264,8 +1264,7 @@ QString TPUtils::setTypeOperation(const uint settype, const bool increase, QStri
 {
 	if (str_value.isEmpty())
 		str_value = "0"_L1;
-	else
-	{
+	else {
 		str_value.replace('.', ',');
 		str_value.replace('-', ""_L1);
 		str_value.replace('E', ""_L1);
@@ -1274,23 +1273,18 @@ QString TPUtils::setTypeOperation(const uint settype, const bool increase, QStri
 	const char rightmostDigit{str_value.at(str_value.length() - 1).toLatin1()};
 
 	float result{m_appLocale->toFloat(str_value)};
-	switch (settype)
-	{
+	switch (settype) {
 		case 0: //SetInputField.Type.WeightType
 		{
-			if (str_value.contains('.') || str_value.contains(','))
-			{
+			if (str_value.contains('.') || str_value.contains(',')) {
 				if (increase)
 					result += rightmostDigit == '5' ? 2.5 : 5.0;
 				else
 					result -= rightmostDigit == '5' ? 2.5 : 5.0;
 			}
-			else
-			{
-				if (result < 40)
-				{
-					switch (rightmostDigit)
-					{
+			else {
+				if (result < 40) {
+					switch (rightmostDigit) {
 						case '0':
 						case '2':
 						case '6':
@@ -1307,11 +1301,9 @@ QString TPUtils::setTypeOperation(const uint settype, const bool increase, QStri
 						break;
 					}
 				}
-				else
-				{
+				else {
 					int8_t paddingValue{0};
-					switch (rightmostDigit)
-					{
+					switch (rightmostDigit) {
 						case '0':
 							increase ? paddingValue = 5 : paddingValue = -5; break;
 						case '1':
@@ -1360,12 +1352,9 @@ QString TPUtils::setTypeOperation(const uint settype, const bool increase, QStri
 		case 2: //SetInputField.Type.TimeType
 		{
 			result = seconds ? str_value.last(2).toUInt() : str_value.first(2).toUInt();
-			if (increase)
-			{
-				if (seconds)
-				{
-					if (result >= 55)
-					{
+			if (increase) {
+				if (seconds) {
+					if (result >= 55) {
 						++result;
 						if (result >= 60)
 							result = 0;
@@ -1378,10 +1367,8 @@ QString TPUtils::setTypeOperation(const uint settype, const bool increase, QStri
 						++result;
 				}
 			}
-			else
-			{
-				if (seconds)
-				{
+			else {
+				if (seconds) {
 					if (result > 55)
 						--result;
 					else if (result <= 5)
@@ -1391,27 +1378,24 @@ QString TPUtils::setTypeOperation(const uint settype, const bool increase, QStri
 					if (result < 0)
 						result = 0;
 				}
-				else
-				{
+				else {
 					if (result >= 1)
 						--result;
 				}
 			}
 			const QString &str_result{(result < 10 ? "0"_L1 : ""_L1) + QString::number(result)};
-			str_value = seconds ? str_value.replace(3, 2, str_result) : str_value.replace(0, 2, str_result);
+			str_value = std::move(seconds ? str_value.replace(3, 2, str_result) : str_value.replace(0, 2, str_result));
 			return str_value;
 		} //2: SetInputField.Type.TimeType
 		break;
 
 		case 3: //SetInputField.Type.SetType
-			if (increase)
-			{
+			if (increase) {
 				++result;
 				if (result > 9)
 					result = 9;
 			}
-			else
-			{
+			else {
 				--result;
 				if (result < 0)
 					result = 0;

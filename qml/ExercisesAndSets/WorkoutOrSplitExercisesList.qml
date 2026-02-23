@@ -22,7 +22,6 @@ TPListView {
 	ScrollBar.vertical: ScrollBar {
 		id: vBar
 		policy: ScrollBar.AsNeeded
-		active: ScrollBar.AsNeeded
 
 		onPositionChanged: {
 			if (exercisesModel.isWorkout) return;

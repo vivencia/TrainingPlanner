@@ -21,6 +21,12 @@ ScrollView {
 		id: vBar
 		policy: ScrollBar.AsNeeded
 
+		anchors {
+			top: parent.top
+			bottom: parent.bottom
+			right: parent.right
+		}
+
 		onPositionChanged: {
 			if (vBar.position < 0.06) {
 				navButtons.showUpButton = false;
@@ -57,8 +63,9 @@ ScrollView {
 		let component = Qt.createComponent("qrc:/qml/ExercisesAndSets/PageScrollButtons.qml", Qt.Asynchronous);
 
 		function finishCreation() {
-			navButtons = component.createObject(control.parentPage, { ownerPage: control.parentPage, showUpButton: false,
-																									visible: control.navButtonsVisible });
+			const coord = control.parentPage.mapToItem(Overlay.overlay, control.parentPage.x, control.parentPage.y + control.height);
+			navButtons = component.createObject(control.parentPage, { ownerPage: control.parentPage, showUpButton: false, position: coord,
+																										visible: control.navButtonsVisible });
 			navButtons.scrollTo.connect(control.setScrollBarPosition);
 		}
 

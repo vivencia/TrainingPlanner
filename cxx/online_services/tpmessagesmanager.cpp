@@ -20,16 +20,16 @@ TPMessagesManager *TPMessagesManager::_appMessagesManager{nullptr};
 
 enum RoleNames
 {
-	createRole(id, TPMESSAGE_FIELD_ID)
-	createRole(labelText, TPMESSAGE_FIELD_TEXT)
-	createRole(icon, TPMESSAGE_FIELD_ICON)
-	createRole(date, TPMESSAGE_FIELD_DATE)
-	createRole(time, TPMESSAGE_FIELD_TIME)
-	createRole(extraInfoLabel, TPMESSAGE_FIELD_EXTRA_INFO)
-	createRole(extraInfoIcon, TPMESSAGE_FIELD_EXTRA_ICON)
-	createRole(actions, TPMESSAGE_FIELD_ACTIONS)
-	createRole(sticky, TPMESSAGE_FIELD_STICKY)
-	createRole(hasActions, stickyRole   + 1)
+	createRole(id,				TPMESSAGE_FIELD_ID)
+	createRole(labelText,		TPMESSAGE_FIELD_TEXT)
+	createRole(icon,			TPMESSAGE_FIELD_ICON)
+	createRole(date,			TPMESSAGE_FIELD_DATE)
+	createRole(time,			TPMESSAGE_FIELD_TIME)
+	createRole(extraInfoLabel,	TPMESSAGE_FIELD_EXTRA_INFO)
+	createRole(extraInfoIcon,	TPMESSAGE_FIELD_EXTRA_ICON)
+	createRole(actions,			TPMESSAGE_FIELD_ACTIONS)
+	createRole(sticky,			TPMESSAGE_FIELD_STICKY)
+	createRole(hasActions,		stickyRole + 1)
 };
 
 TPMessagesManager::TPMessagesManager(QObject *parent)
@@ -67,8 +67,7 @@ void TPMessagesManager::readAllChats()
 
 TPMessage *TPMessagesManager::message(const qsizetype message_id) const
 {
-	const auto it{std::find_if(m_data.cbegin(), m_data.cend(), [message_id] (const auto msg)
-	{
+	const auto it{std::find_if(m_data.cbegin(), m_data.cend(), [message_id] (const auto msg) {
 		return msg->id() == message_id;
 	})};
 	return it != m_data.cend() ? *it : nullptr;
@@ -83,10 +82,8 @@ void TPMessagesManager::addMessage(TPMessage *msg)
 	m_data.append(msg);
 	endInsertRows();
 	emit countChanged();
-	connect(msg, &TPMessage::actionTriggered, this, [this,msg] (const int action_id, const std::optional<bool> remove_message)
-	{
-		if (remove_message.has_value())
-		{
+	connect(msg, &TPMessage::actionTriggered, this, [this,msg] (const int action_id, const std::optional<bool> remove_message) {
+		if (remove_message.has_value()) {
 			if (remove_message.value())
 				removeMessage(msg);
 		}
@@ -103,11 +100,9 @@ void TPMessagesManager::addMessage(TPMessage *msg)
 
 void TPMessagesManager::removeMessage(TPMessage *msg)
 {
-	if (msg != nullptr)
-	{
+	if (msg != nullptr) {
 		const qsizetype row{m_data.indexOf(msg)};
-		if (row >= 0)
-		{
+		if (row >= 0) {
 			beginRemoveRows(QModelIndex{}, row, row);
 			m_data.remove(row);
 			if (!msg->sticky())
@@ -121,8 +116,7 @@ void TPMessagesManager::removeMessage(TPMessage *msg)
 
 void TPMessagesManager::execAction(const int message_index, const uint action_id)
 {
-	if (message_index >= 0 && message_index < m_data.count())
-	{
+	if (message_index >= 0 && message_index < m_data.count()) {
 		TPMessage *msg{m_data.at(message_index)};
 		msg->execAction(action_id);
 	}
@@ -131,8 +125,7 @@ void TPMessagesManager::execAction(const int message_index, const uint action_id
 void TPMessagesManager::itemClicked(const qsizetype message_id)
 {
 	TPMessage *msg{message(message_id)};
-	if (msg)
-	{
+	if (msg) {
 		const QString &userid{QString::number(message_id)};
 		TPChat *chat{m_chatsList.value(userid)};
 		if (chat)
@@ -142,14 +135,13 @@ void TPMessagesManager::itemClicked(const qsizetype message_id)
 
 void TPMessagesManager::binaryFileReceived(const QByteArray &data, const QString &userid)
 {
-	QString filename{std::move(data.last(data.length() - data.lastIndexOf(record_separator.toLatin1())))};
-	filename.removeFirst();
-	const int id{appUtils()->idFromString(filename)};
-	const QString &full_filename{appUserModel()->userDir() % filename};
+	const QString &full_filename{appUserModel()->userDir() % appUtils()->binaryFileExtraFieldValue(data, TPUtils::BFIF_SUBDIR_PLUS_FILENAME)};
+	const int id{appUtils()->idFromString(full_filename)};
 
 	if (message(id) == nullptr) {
-		TPMessage *new_message{new TPMessage(appUserModel()->userNameFromId(userid) % tr(" has sent you a file"),
-			appUtils()->getFileTypeIcon(full_filename, QSize{appSettings()->itemLargeHeight(), appSettings()->itemLargeHeight()}))};
+		TPMessage *new_message{new TPMessage(appUserModel()->userNameFromId(userid) % tr(" has sent you a file: ") %
+			appUtils()->binaryFileExtraFieldValue(data, TPUtils::BFIF_MESONAME), appUtils()->getFileTypeIcon(full_filename,
+																QSize{appSettings()->itemLargeHeight(), appSettings()->itemLargeHeight()}))};
 		new_message->setId(id);
 		new_message->insertData(full_filename);
 		new_message->insertAction(tr("View"), [this,userid] (const QVariant &var) {
@@ -159,10 +151,11 @@ void TPMessagesManager::binaryFileReceived(const QByteArray &data, const QString
 			QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, var.toString()));
 		}, true);
 		new_message->insertData(full_filename);
-		new_message->insertAction(tr("Delete"), [this,userid,filename] (const QVariant &var) {
+		new_message->insertAction(tr("Delete"), [this,userid] (const QVariant &var) {
 			const QString &f_name{var.toString()};
 			QFile::remove(f_name);
-			appOnlineServices()->removeFile(appUtils()->generateUniqueId(), f_name, appUtils()->getFilePath(filename), userid);
+			appOnlineServices()->removeFile(appUtils()->generateUniqueId(), appUtils()->getFileName(f_name),
+																									appUtils()->getSubDir(f_name), userid);
 		}, true);
 		new_message->plug();
 	}
@@ -222,15 +215,12 @@ TPMessage *TPMessagesManager::createChatMessage(const QString &userid, QString &
 void TPMessagesManager::openChatWindow(TPChat *chat_manager)
 {
 	QObject *chat_window{m_chatWindowList.value(chat_manager->otherUserId())};
-	if (!chat_window)
-	{
-		if (!m_chatWindowComponent)
-		{
+	if (!chat_window) {
+		if (!m_chatWindowComponent) {
 			m_chatWindowProperties.insert("parentPage"_L1, QVariant::fromValue(appItemManager()->appHomePage()));
 			m_chatWindowComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/User/ChatWindow.qml"_L1}, QQmlComponent::Asynchronous};
 		}
-		switch (m_chatWindowComponent->status())
-		{
+		switch (m_chatWindowComponent->status()) {
 			case QQmlComponent::Ready:
 				chat_manager->loadChat();
 				createChatWindow_part2(chat_manager);
@@ -264,8 +254,7 @@ void TPMessagesManager::openChat(const QString &username)
 
 void TPMessagesManager::startChatMessagesPolling(const QString &userid)
 {
-	connect(appUserModel(), &DBUserModel::canConnectToServerChanged, this, [this] ()
-	{
+	connect(appUserModel(), &DBUserModel::canConnectToServerChanged, this, [this] () {
 		if (!appUserModel()->canConnectToServer())
 			m_newChatMessagesTimer->stop();
 		else
@@ -276,10 +265,8 @@ void TPMessagesManager::startChatMessagesPolling(const QString &userid)
 	const QLatin1StringView seed{QString{userid + "check_messages"_L1}.toLatin1()};
 	const int requestid{appUtils()->generateUniqueId(seed)};
 	connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,requestid]
-										(const int request_id, const int ret_code, const QString &ret_string)
-	{
-		if (request_id == requestid)
-		{
+																(const int request_id, const int ret_code, const QString &ret_string) {
+		if (request_id == requestid) {
 			if (ret_code == TP_RET_CODE_SUCCESS) {
 				if (ret_string.startsWith("file://"_L1))
 					parseTPMessage(ret_string);
@@ -292,8 +279,7 @@ void TPMessagesManager::startChatMessagesPolling(const QString &userid)
 			#endif
 		}
 	});
-	m_newChatMessagesTimer->callOnTimeout( [this,requestid] ()
-	{
+	m_newChatMessagesTimer->callOnTimeout( [this,requestid] () {
 		appOnlineServices()->checkMessages(requestid);
 		appOnlineServices()->checkTPMessages(requestid);
 		m_newChatMessagesTimer->setInterval(newMessagesCheckingInterval());
@@ -398,26 +384,22 @@ void TPMessagesManager::parseTPMessage(const QString &encoded_message)
 			if (file.isEmpty())
 				break;
 
-			auto createTPMessage = [this,sender_id,file] () -> void {
-				const QString &local_filename{appUserModel()->userDir(sender_id) % appUserModel()->binary_files_subdir % sender_id % '/'  % file};
-				binaryFileReceived(appUtils()->readBinaryFile(local_filename), sender_id);
-			};
-
-			const auto request_id{appUserModel()->downloadFileFromServer(file, appUserModel()->userDir(sender_id), QString{},
-																							appUserModel()->binary_files_subdir % sender_id)};
+			const QString &local_filename{appUserModel()->userDir(0) % appUserModel()->binary_files_subdir % sender_id % '/' % file};
+			const auto request_id{appUserModel()->downloadFileFromServer(file, local_filename, QString{},
+																appUserModel()->binary_files_subdir % sender_id, appUserModel()->userId())};
 			if (request_id == TP_RET_CODE_DOWNLOAD_FAILED)
 				continue;
 			else if (request_id == TP_RET_CODE_NO_CHANGES_SUCCESS) {
-				createTPMessage();
+				binaryFileReceived(appUtils()->readBinaryFile(local_filename), sender_id);
 				return;
 			}
 			auto conn{std::make_shared<QMetaObject::Connection>()};
-			*conn = connect(appUserModel(), &DBUserModel::fileDownloaded, this, [this,conn,request_id,createTPMessage]
+			*conn = connect(appUserModel(), &DBUserModel::fileDownloaded, this, [=,this]
 																(const bool success, const uint requestid, const QString &localFileName) {
 				if (request_id == requestid) {
 					disconnect(*conn);
 					if (success)
-						createTPMessage();
+						binaryFileReceived(appUtils()->readBinaryFile(local_filename), sender_id);
 				}
 			});
 		} while (++msg_idx);
@@ -443,8 +425,7 @@ void TPMessagesManager::parseNewChatMessages(const QString &encoded_messages)
 		const QStringList &sender_parts{sender_id.split('.')};
 		bool ok{false};
 		const auto i_sender_id{sender_parts.at(0).toLong(&ok)};
-		if (ok)
-		{
+		if (ok) {
 			TPMessage *chat_message{message(i_sender_id)};
 			if (!chat_message && sender_id.endsWith(messageWorkSend))
 				static_cast<void>(createChatMessage(sender_id, true));
@@ -459,8 +440,7 @@ void TPMessagesManager::createChatWindow_part2(TPChat *chat_manager)
 	m_chatWindowProperties.insert("chatManager"_L1, QVariant::fromValue(chat_manager));
 	QObject *chat_window{m_chatWindowComponent->createWithInitialProperties(m_chatWindowProperties, appQmlEngine()->rootContext())};
 	#ifndef QT_NO_DEBUG
-	if (!chat_window)
-	{
+	if (!chat_window) {
 		qDebug() << m_chatWindowComponent->errorString();
 		return;
 	}

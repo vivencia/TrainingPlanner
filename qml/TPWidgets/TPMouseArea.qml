@@ -31,7 +31,7 @@ MouseArea {
 		mousePosWithinWidget = movingWidget.mapToItem(movingWidget, mouse.x, mouse.y);
 	}
 
-	function positionChangedFunction(mouse: MouseEvent): void {
+	onPositionChanged: (mouse) => {
 		if (bPressed) {
 			movableWidget.x += mouse.x - mousePosWithinWidget.x;
 			movableWidget.y += mouse.y - mousePosWithinWidget.y;
