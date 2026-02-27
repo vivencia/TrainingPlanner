@@ -441,7 +441,6 @@ private:
 	void addAvailableCoach(const QString &user_id);
 	void pollCurrentClients();
 	void pollCurrentCoaches();
-	void checkNewMesos();
 	void addIntoCoachesAndClients(OnlineUserInfo* other_userinfo, const uint row);
 	QString formatFieldToExport(const uint field, const QString &fieldValue) const;
 	QString formatFieldToImport(const uint field, const QString &fieldValue) const;

@@ -3,6 +3,7 @@
 #include <QDateTime>
 #include <QFileInfo>
 #include <QObject>
+#include <QQmlEngine>
 #include <QSize>
 #include <QUrl>
 
@@ -40,6 +41,7 @@ class TPUtils : public QObject
 {
 
 Q_OBJECT
+QML_ELEMENT
 
 public:
 	enum DATE_FORMAT {
@@ -79,6 +81,7 @@ public:
 		FT_OTHER			= 1U << 30,
 		FT_UNKNOWN			= 1U << 31,
 	};
+	Q_ENUM(FILE_TYPE);
 
 	enum BINARY_FILE_INFO_FIELDS {
 		BFIF_LOCAL_HANDLER_ID,
@@ -110,7 +113,7 @@ public:
 	int idFromString(const QString &string_id) const; //not unique
 	Q_INVOKABLE int generateRandomNumber(const int min, const int max) const;
 
-	FILE_TYPE getFileType(const QString &filename) const;
+	Q_INVOKABLE FILE_TYPE getFileType(const QString &filename) const;
 	FILE_TYPE getTPFileType(const QString &filename, std::optional<bool> &formatted) const;
 	QString getFileTypeIcon(const QString &filename, const QSize &preferred_size = QSize{}) const;
 	QString getImagePreviewFile(const QString &image_filename, const QSize &preferred_size = QSize{}) const;

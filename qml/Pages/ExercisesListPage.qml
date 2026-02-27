@@ -20,8 +20,8 @@ TPPage {
 	property bool bNew: false
 	property bool bEdit: false
 	property bool bChooseButtonEnabled: true
-	property ImageViewer imageViewer: null
-	property VideoPlayer videoViewer: null
+	property TPImageViewer imageViewer: null
+	property TPVideoPlayer videoViewer: null
 
 	signal exerciseChosen();
 

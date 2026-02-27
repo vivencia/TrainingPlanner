@@ -43,6 +43,11 @@ TPImage::TPImage(QQuickItem *parent)
 	});
 }
 
+void TPImage::operator=(const QImage &other)
+{
+	m_image = other;
+}
+
 void TPImage::setSource(const QString &source)
 {
 	if (!source.isEmpty())
@@ -187,30 +192,6 @@ void TPImage::paint(QPainter *painter)
 		painter->drawImage(QPoint{0, 0}, *m_imageToPaint);
 }
 
-void TPImage::checkEnabled()
-{
-	if (isEnabled())
-	{
-		if (m_canColorize)
-			colorize(m_image, m_image);
-		if (!m_dropShadow)
-			m_imageToPaint = &m_image;
-		else
-		{
-			if (m_imageShadow.isNull())
-				createDropShadowImage();
-			m_imageToPaint = &m_imageShadow;
-		}
-	}
-	else
-	{
-		if (m_imageDisabled.isNull())
-			convertToGrayScale();
-		m_imageToPaint = &m_imageDisabled;
-	}
-	update();
-}
-
 void TPImage::scaleImage()
 {
 	if (imageSizeFollowControlSize())
@@ -256,6 +237,30 @@ void TPImage::scaleImage()
 	m_imageDisabled = std::move(QImage{});
 	m_imageShadow = std::move(QImage{});
 	checkEnabled();
+}
+
+void TPImage::checkEnabled()
+{
+	if (isEnabled())
+	{
+		if (m_canColorize)
+			colorize(m_image, m_image, appSettings()->fontColor());
+		if (!m_dropShadow)
+			m_imageToPaint = &m_image;
+		else
+		{
+			if (m_imageShadow.isNull())
+				createDropShadowImage();
+			m_imageToPaint = &m_imageShadow;
+		}
+	}
+	else
+	{
+		if (m_imageDisabled.isNull())
+			convertToGrayScale();
+		m_imageToPaint = &m_imageDisabled;
+	}
+	update();
 }
 
 void TPImage::convertToGrayScale()
@@ -309,11 +314,10 @@ void TPImage::grayScale(QImage &dstImg, const QImage &srcImg)
 	}
 }
 
-void TPImage::colorize(QImage &dstImg, const QImage &srcImg)
+void TPImage::colorize(QImage &dstImg, const QImage &srcImg, const QColor& color)
 {
 	if (!srcImg.isNull())
 	{
-		const QColor color{appSettings()->fontColor()};
 		QGraphicsColorizeEffect *colorEffect{new QGraphicsColorizeEffect};
 		colorEffect->setColor(color);
 		applyEffectToImage(dstImg, srcImg, colorEffect);

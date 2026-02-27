@@ -82,15 +82,6 @@ void TPMessagesManager::addMessage(TPMessage *msg)
 	m_data.append(msg);
 	endInsertRows();
 	emit countChanged();
-	connect(msg, &TPMessage::actionTriggered, this, [this,msg] (const int action_id, const std::optional<bool> remove_message) {
-		if (remove_message.has_value()) {
-			if (remove_message.value())
-				removeMessage(msg);
-		}
-		else
-			if (!msg->sticky())
-				removeMessage(msg);
-	});
 	connect(msg, &TPMessage::dataChanged, this, [this] (const uint field) {
 		const auto idx{m_data.indexOf(sender())};
 		if (idx >= 0)
@@ -146,17 +137,17 @@ void TPMessagesManager::binaryFileReceived(const QByteArray &data, const QString
 		new_message->insertData(full_filename);
 		new_message->insertAction(tr("View"), [this,userid] (const QVariant &var) {
 			appUtils()->viewOrOpenFile(var.toString(), userid);
-		}, true);
+		});
 		new_message->insertAction(tr("Save"), [this,userid] (const QVariant &var) {
 			QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, var.toString()));
-		}, true);
+		});
 		new_message->insertData(full_filename);
 		new_message->insertAction(tr("Delete"), [this,userid] (const QVariant &var) {
 			const QString &f_name{var.toString()};
 			QFile::remove(f_name);
 			appOnlineServices()->removeFile(appUtils()->generateUniqueId(), appUtils()->getFileName(f_name),
 																									appUtils()->getSubDir(f_name), userid);
-		}, true);
+		});
 		new_message->plug();
 	}
 }
@@ -169,7 +160,7 @@ void TPMessagesManager::textMesssageReceived(const QString &msg, const QString &
 		new_message->setId(id);
 		new_message->insertAction(tr("Delete"), [this] (const QVariant &) {
 			return;
-		}, true);
+		});
 		new_message->plug();
 	}
 }

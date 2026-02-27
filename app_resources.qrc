@@ -191,5 +191,6 @@
         <file>images/meso_preview.png</file>
         <file>images/exerciselist_preview.png</file>
         <file>images/workout_preview.png</file>
+        <file>images/media_controls.png</file>
     </qresource>
 </RCC>

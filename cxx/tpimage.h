@@ -5,6 +5,7 @@
 #include <QImage>
 
 QT_FORWARD_DECLARE_CLASS(QGraphicsEffect);
+QT_FORWARD_DECLARE_CLASS(QPainter)
 
 class TPImage : public QQuickPaintedItem
 {
@@ -26,6 +27,7 @@ Q_PROPERTY(double hScale READ hScale WRITE setHScale NOTIFY scaleChanged FINAL)
 
 public:
 	explicit TPImage(QQuickItem *parent = nullptr);
+	void operator=(const QImage &other);
 
 	inline QString source() const { return m_source; }
 	void setSource(const QString &source);
@@ -38,6 +40,8 @@ public:
 	void setImageSizeFollowControlSize(const bool follow);
 	inline bool fullWindowView() const { return m_fullWindowView.has_value() ? m_fullWindowView.value() : false; }
 	void setFullWindowView(const bool fullview);
+	inline bool colorize() const { return m_canColorize; }
+	inline void setColorize(const bool colorize) { m_canColorize = colorize; }
 
 	double preferredWidth() const;
 	double preferredHeight() const;
@@ -50,9 +54,7 @@ public:
 
 	void saveToDisk(const QString &filename);
 	void paint(QPainter *painter);
-
-public slots:
-	void checkEnabled();
+	void colorize(QImage &dstImg, const QImage &srcImg, const QColor &color);
 
 signals:
 	void sourceChanged();
@@ -74,9 +76,10 @@ private:
 	double m_wscale, m_hscale;
 
 	void scaleImage();
+	void checkEnabled();
 	void convertToGrayScale();
 	void createDropShadowImage();
 	void grayScale(QImage &dstImg, const QImage &srcImg);
-	void colorize(QImage &dstImg, const QImage &srcImg);
+	//void colorize(QImage &dstImg, const QImage &srcImg, const QColor &color);
 	void applyEffectToImage(QImage &dstImg, const QImage &srcImg, QGraphicsEffect *effect, const int extent = 0);
 };

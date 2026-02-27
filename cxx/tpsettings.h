@@ -6,7 +6,7 @@
 //--------------------------------------------GLOBAL SETTINGS---------------------------------------------//
 using namespace Qt::Literals::StringLiterals;
 
-constexpr QLatin1StringView TP_APP_VERSION{"v20260123 Build 1"};
+constexpr QLatin1StringView TP_APP_VERSION{"v20260224 Build 1"};
 constexpr QLatin1StringView GLOBAL_GROUP{"app"};
 constexpr QLatin1StringView DEFAULT_USER{"default"};
 
@@ -192,6 +192,17 @@ private:
 
 //--------------------------------------------USER   SETTINGS---------------------------------------------//
 public:
+
+enum ColorSchemes {
+	Custom,
+	Dark,
+	Light,
+	Blue,
+	Green,
+	Red,
+	Gray
+};
+
 	void userSettingsInit();
 
 	inline QString userLocale() const { return getValue(currentUser(), USER_LOCALE_INDEX, m_defaultValues.at(USER_LOCALE_INDEX)).toString(); }

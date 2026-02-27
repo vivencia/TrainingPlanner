@@ -63,8 +63,7 @@ public:
 	  *@param remove if Specified, overrides sticky
 	  *@return action_id
 	 */
-	int insertAction(const QString& actionLabel, const std::function<void(const QVariant &var)> &actionFunc = nullptr,
-					 std::optional<bool> remove = std::nullopt);
+	int insertAction(const QString& actionLabel, const std::function<void(const QVariant &var)> &actionFunc = nullptr);
 	inline const QString &_action(const uint action_id) const
 	{
 		Q_ASSERT_X(action_id < m_actions.count(), "TPMessage::_action", "action_id out of range");
@@ -104,7 +103,7 @@ public:
 	void removeData(const int data_id);
 
 signals:
-	void actionTriggered(const int action_id, const std::optional<bool> remove_message);
+	void actionTriggered(const int action_id);
 	void dataChanged(const uint field);
 
 private:

@@ -20,6 +20,7 @@
 #include "statistics/tpstatistics.h"
 #include "tpimage.h"
 #include "tpimageprovider.h"
+#include "tpmediacontrols.h"
 #include "tpsettings.h"
 #include "tptimer.h"
 #include "translationclass.h"
@@ -44,20 +45,6 @@ QQuickWindow *QmlItemManager::_appMainWindow{nullptr};
 
 #define REGISTER_QML_TYPE(cpp_name, qmlname) \
 	qmlRegisterType<cpp_name> ("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, qmlname);
-
-QmlItemManager::~QmlItemManager()
-{
-	if (m_weatherPage)
-	{
-		delete m_weatherPage;
-		delete m_weatherComponent;
-	}
-	if (m_statisticsPage)
-	{
-		delete m_statisticsPage;
-		delete m_statisticsComponent;
-	}
-}
 
 void QmlItemManager::configureQmlEngine()
 {
@@ -84,6 +71,8 @@ void QmlItemManager::configureQmlEngine()
 	REGISTER_QML_TYPE(TPMessagesManager,				"MessagesManager")
 	REGISTER_QML_TYPE(HomePageMesoModel,				"HomePageMesoModel")
 	REGISTER_QML_TYPE(TPChat,							"ChatModel")
+	REGISTER_QML_TYPE(TPUtils,							"TPUtils")
+	REGISTER_QML_TYPE(TPMediaControls,					"MediaControls")
 
 	QList<QQmlContext::PropertyPair> global_properties{9};
 	global_properties[0] = std::move(QQmlContext::PropertyPair{ "appSettings"_L1,			QVariant::fromValue(appSettings()) });
@@ -121,7 +110,7 @@ void QmlItemManager::configureQmlEngine()
 			if (m_qml_testing) {
 				connect(appUserModel(), &DBUserModel::mainUserConfigurationFinished, this, [this] () {
 					connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::mesoDataLoaded, this, [this] () {
-						showSimpleExercisesList(appHomePage(), QString{});
+						//showSimpleExercisesList(appHomePage(), QString{});
 						/*connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::calendarReady, this, [this] (const uint meso_idx) {
 							const int cal_day{appUserModel()->actualMesoModel()->calendar(0)->calendarDay(QDate::currentDate())};
 							m_workout_model = appUserModel()->actualMesoModel()->workoutForDay(meso_idx, cal_day);

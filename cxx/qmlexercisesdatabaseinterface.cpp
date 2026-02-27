@@ -25,14 +25,11 @@ const uint QmlExercisesDatabaseInterface::removeExercise(const uint row)
 void QmlExercisesDatabaseInterface::exportExercises(const bool bShare)
 {
 	int exportFileMessageId{0};
-	if (appExercisesList()->collectExportData())
-	{
+	if (appExercisesList()->collectExportData()) {
 		const QString &exportFileName{appSettings()->localAppFilesDir() + tr("TrainingPlanner Exercises List") + ".txt"_L1};
 		exportFileMessageId = appExercisesList()->exportToFile(exportFileName);
-		if (exportFileMessageId >= 0)
-		{
-			if (bShare)
-			{
+		if (exportFileMessageId >= 0) {
+			if (bShare) {
 				appOsInterface()->shareFile(exportFileName);
 				exportFileMessageId = TP_RET_CODE_SHARE_OK;
 			}
@@ -76,14 +73,13 @@ void QmlExercisesDatabaseInterface::createExercisesPage(QmlWorkoutInterface *con
 	m_exercisesProperties.insert("bChooseButtonEnabled"_L1, connectPage != nullptr);
 	m_exercisesProperties.insert("exercisesManager"_L1, QVariant::fromValue(this));
 	m_exercisesComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/ExercisesListPage.qml"_L1}, QQmlComponent::Asynchronous};
-	switch (m_exercisesComponent->status())
-	{
+	switch (m_exercisesComponent->status()) {
 		case QQmlComponent::Ready:
 			createExercisesPage_part2(connectPage);
 		break;
 		case QQmlComponent::Loading:
 			connect(m_exercisesComponent, &QQmlComponent::statusChanged, this, [this,connectPage] (QQmlComponent::Status status) {
-				createExercisesPage_part2(connectPage);
+				createExercisesPage(connectPage);
 			}, Qt::SingleShotConnection);
 		break;
 		case QQmlComponent::Null:
@@ -98,6 +94,12 @@ void QmlExercisesDatabaseInterface::createExercisesPage(QmlWorkoutInterface *con
 void QmlExercisesDatabaseInterface::createExercisesPage_part2(QmlWorkoutInterface *connectPage)
 {
 	m_exercisesPage = static_cast<QQuickItem*>(m_exercisesComponent->createWithInitialProperties(m_exercisesProperties, appQmlEngine()->rootContext()));
+#ifndef QT_NO_DEBUG
+	if (!m_exercisesPage) {
+		m_exercisesComponent->errorString();
+		return;
+	}
+#endif
 	appQmlEngine()->setObjectOwnership(m_exercisesPage, QQmlEngine::CppOwnership);
 	m_exercisesPage->setParentItem(appMainWindow()->contentItem());
 	appExercisesList()->clearSelectedEntries();

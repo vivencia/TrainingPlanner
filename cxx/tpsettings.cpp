@@ -185,16 +185,6 @@ QStringList TPSettings::availableLanguages() const
 //--------------------------------------------GLOBAL SETTINGS---------------------------------------------//
 
 //--------------------------------------------USER   SETTINGS---------------------------------------------//
-enum ColorSchemes {
-	Custom = 0,
-	Dark,
-	Light,
-	Blue,
-	Green,
-	Red,
-	Gray
-};
-
 const auto applyFontRatio = [] (const uint value, const qreal ratio) { return value * ratio; };
 
 void TPSettings::userSettingsInit()

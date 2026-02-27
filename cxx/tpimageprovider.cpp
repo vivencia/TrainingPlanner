@@ -2,11 +2,9 @@
 
 #include <QtMath>
 
-using namespace Qt::Literals::StringLiterals;
-
-static const uint avatarWidth{140};
-static const uint avatarHeight{140};
-static const QString &avatarsFile{":/images/avatars.png"_L1};
+constexpr uint avatarWidth{140};
+constexpr uint avatarHeight{140};
+constexpr QLatin1StringView avatarsFile{":/images/avatars.png"};
 
 TPImageProvider *TPImageProvider::mtpImageProvider{nullptr};
 

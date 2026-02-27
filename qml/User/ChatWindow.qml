@@ -239,7 +239,7 @@ TPPopup {
 								id: image_viewer
 								previewSource: msgMediaPreview
 								mediaSource: msgMedia
-								openExternally: msgOpenExternally
+								//openExternally: msgOpenExternally
 								width: msgOpenExternally ? appSettings.itemExtraLargeHeight : preferredWidth
 								height: msgOpenExternally ? appSettings.itemExtraLargeHeight : preferredHeight
 

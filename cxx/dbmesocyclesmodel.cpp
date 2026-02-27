@@ -268,7 +268,7 @@ void DBMesocyclesModel::removeSplitsForMeso(const uint meso_idx)
 		m_splitsDB->setDBModelInterface(split_model->dbModelInterface());
 		split_model->dbModelInterface()->setRemovalInfo(0, QList<uint>{1, EXERCISES_FIELD_MESOID});
 		auto conn{std::make_shared<QMetaObject::Connection>()};
-		*conn = connect(m_splitsDB, &DBWorkoutsOrSplitsTable::dbOperationsFinished, [this,conn,meso_idx]
+		*conn = connect(m_splitsDB, &DBWorkoutsOrSplitsTable::dbOperationsFinished, this, [this,conn,meso_idx]
 																	(const ThreadManager::StandardOps op, const bool success) {
 			if (op == ThreadManager::DeleteRecords && success)
 			{
@@ -398,7 +398,7 @@ void DBMesocyclesModel::removeCalendarForMeso(const uint meso_idx, const bool re
 		if (remake_calendar)
 		{
 			auto conn{std::make_shared<QMetaObject::Connection>()};
-			*conn = connect(m_calendarDB, &TPDatabaseTable::dbOperationsFinished, [this,meso_idx,remake_calendar,conn]
+			*conn = connect(m_calendarDB, &TPDatabaseTable::dbOperationsFinished, this, [this,meso_idx,remake_calendar,conn]
 																	(const ThreadManager::StandardOps op, const bool success) {
 				if (op == ThreadManager::CustomOperation && success)
 				{
@@ -411,7 +411,7 @@ void DBMesocyclesModel::removeCalendarForMeso(const uint meso_idx, const bool re
 		else
 		{
 			auto conn{std::make_shared<QMetaObject::Connection>()};
-			*conn = connect(m_workoutsDB, &TPDatabaseTable::dbOperationsFinished, [this,meso_idx,conn]
+			*conn = connect(m_workoutsDB, &TPDatabaseTable::dbOperationsFinished, this, [this,meso_idx,conn]
 																	(const ThreadManager::StandardOps op, const bool success) {
 				if (op == ThreadManager::CustomOperation && success)
 				{
@@ -913,12 +913,12 @@ void DBMesocyclesModel::getAllMesocycles()
 			QMetaObject::invokeMethod(appItemManager()->appHomePage(), "setMesosViewIndex",
 											Q_ARG(int, appSettings()->getCustomValue(mesosViewIdxSetting, 0).toInt()));
 			if (m_ownMesos) {
-				connect(m_ownMesos, &HomePageMesoModel::currentIndexChanged, [this] () {
+				connect(m_ownMesos, &HomePageMesoModel::currentIndexChanged, this, [this] () {
 					setWorkingCalendar(m_ownMesos->currentMesoIdx());
 				});
 			}
 			if (m_clientMesos) {
-				connect(m_clientMesos, &HomePageMesoModel::currentIndexChanged, [this] () {
+				connect(m_clientMesos, &HomePageMesoModel::currentIndexChanged, this, [this] () {
 					setWorkingCalendar(m_clientMesos->currentMesoIdx());
 				});
 			}
@@ -941,7 +941,7 @@ void DBMesocyclesModel::exportToFile_splitData(const uint meso_idx, QFile *meso_
 {
 	auto n_conns{usedSplits(meso_idx).length()};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
-	*conn = connect(this, &DBMesocyclesModel::splitLoaded, [this,conn,n_conns,meso_file,formatted]
+	*conn = connect(this, &DBMesocyclesModel::splitLoaded, this, [this,conn,n_conns,meso_file,formatted]
 																					(const uint meso_idx, const QChar &splitletter) mutable {
 		int ret;
 		if (!formatted)

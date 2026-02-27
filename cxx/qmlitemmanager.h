@@ -38,7 +38,6 @@ public:
 		_appQmlEngine = qml_engine;
 		configureQmlEngine();
 	}
-	~QmlItemManager();
 	void configureQmlEngine();
 
 	inline QQuickItem* appHomePage() const { return m_homePage; }

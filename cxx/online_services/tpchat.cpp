@@ -103,12 +103,9 @@ TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QO
 	m_workFuncs.insert(messageWorkRemoved, [this] (const QString &data) -> void { removeMessage(data.toUInt(), false); });
 	m_workFuncs.insert(messageWorkEdited, [this] (const QString &data) -> void { editMessage(data); });
 
-	connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_idx, const uint field)
-	{
-		if (user_idx == m_userIdx)
-		{
-			switch (field)
-			{
+	connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_idx, const uint field) {
+		if (user_idx == m_userIdx) {
+			switch (field) {
 				case USER_COL_NAME: emit interlocutorNameChanged(); break;
 				case USER_COL_AVATAR: emit avatarIconChanged(); break;
 			}
@@ -117,24 +114,19 @@ TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QO
 			m_userIdx = appUserModel()->userIdxFromFieldValue(USER_COL_ID, m_otherUserId);
 	});
 
-	connect(appUserModel(), &DBUserModel::canConnectToServerChanged, this, [this] ()
-	{
-		if (appUserModel()->canConnectToServer())
-		{
-			for (const auto msg : std::as_const(m_messages))
-			{
+	connect(appUserModel(), &DBUserModel::canConnectToServerChanged, this, [this] () {
+		if (appUserModel()->canConnectToServer()) {
+			for (const auto msg : std::as_const(m_messages)) {
 				if (!msg->queued.isEmpty())
 					unqueueMessage(msg);
 			}
 		}
 	});
 
-	if (check_unread_messages)
-	{
+	if (check_unread_messages) {
 		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(m_db, &TPDatabaseTable::actionFinished, this, [this,conn]
-					(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2)
-		{
+									(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2) {
 			if (op == ThreadManager::CustomOperation)
 			{
 				disconnect(*conn);
@@ -153,14 +145,11 @@ void TPChat::loadChat()
 	if (m_sendMessageTimer)
 		return;
 
-	connect(m_db, &TPChatDB::chatLoaded, this, [this] (const bool success)
-	{
-		if (success)
-		{
+	connect(m_db, &TPChatDB::chatLoaded, this, [this] (const bool success) {
+		if (success) {
 			m_nMedia = 0;
 			beginInsertRows(QModelIndex{}, 0, m_dbModelInterface->modelData().count() - 1);
-			for (const auto &str_message : std::as_const(m_dbModelInterface->modelData()))
-			{
+			for (const auto &str_message : std::as_const(m_dbModelInterface->modelData())) {
 				ChatMessage *message = new ChatMessage;
 				message->id = str_message.at(MESSAGE_ID).toUInt();
 				message->sender = str_message.at(MESSAGE_SENDER);
@@ -180,8 +169,7 @@ void TPChat::loadChat()
 				message->own_message = message->sender == appUserModel()->userId(0);
 				m_messages.append(message);
 			};
-			if (m_messageWorksQueued)
-			{
+			if (m_messageWorksQueued) {
 				setChatLoadedStatus(Waiting);
 				appOnlineServices()->recheckNewMessages();
 			}
@@ -215,14 +203,12 @@ QString TPChat::avatarIcon() const
 
 void TPChat::processTPServerMessage(const QString &work, const QString &messages)
 {
-	if (m_chatLoaded == Unloaded)
-	{
+	if (m_chatLoaded == Unloaded) {
 		m_messageWorksQueued = true;
 		if (work == messageWorkSend)
 			getNewMessagesNumber(messages);
 	}
-	else
-	{
+	else {
 		uint msg_idx{0};
 		do {
 			const QString &message{appUtils()->getCompositeValue(msg_idx, messages, set_separator)};
@@ -249,8 +235,7 @@ void TPChat::removeMessage(const uint msgid, const bool remove_for_interlocutor)
 		return;
 	if (remove_for_interlocutor)
 		setData(index(msgid), "1"_L1, deletedRole);
-	else //Remove locally only. Do not call setData() because it will, in turn, call uploadAction()
-	{
+	else { //Remove locally only. Do not call setData() because it will, in turn, call uploadAction()
 		m_messages.at(msgid)->deleted = true;
 		emit dataChanged(index(msgid), index(msgid), QList<int>{deletedRole});
 		updateFieldToSave(msgid, MESSAGE_DELETED, "1"_L1);
@@ -263,13 +248,10 @@ void TPChat::editMessage(const QString &encoded_data)
 {
 	bool ok{false};
 	const uint msgid{appUtils()->getCompositeValue(0, encoded_data, set_separator).toUInt(&ok)};
-	if (ok)
-	{
+	if (ok) {
 		ChatMessage *message{m_messages.at(msgid)};
-		if (message)
-		{
-			if (!message->deleted)
-			{
+		if (message) {
+			if (!message->deleted) {
 				const uint field{appUtils()->getCompositeValue(1, encoded_data, set_separator).toUInt() + Qt::UserRole};
 				if (field >= textRole && field <= mediaRole)
 					setData(index(msgid), appUtils()->getCompositeValue(2, encoded_data, set_separator), field);
@@ -280,8 +262,7 @@ void TPChat::editMessage(const QString &encoded_data)
 
 void TPChat::markAllIncomingMessagesRead()
 {
-	for (const auto message : std::as_const(m_messages) | std::views::reverse)
-	{
+	for (const auto message : std::as_const(m_messages) | std::views::reverse) {
 		if (message->read || message->own_message)
 			break;
 		setData(index(message->id), true, readRole);
@@ -297,15 +278,12 @@ void TPChat::createNewMessage(const QString &text, const QString &media)
 	message->sdate = std::move(QDate::currentDate());
 	message->stime = std::move(QTime::currentTime());
 	message->text = text;
-	if (!media.isEmpty())
-	{
-		if (appUtils()->copyFile(appUtils()->getCorrectPath(media), chatsMediaSubDir(true), true))
-		{
+	if (!media.isEmpty()) {
+		if (appUtils()->copyFile(appUtils()->getCorrectPath(media), chatsMediaSubDir(true), true)) {
 			message->media = std::move(chatsMediaSubDir(true) % appUtils()->getFileName(media));
 			getMediaPreviewFile(message);
 		}
-		else
-		{
+		else {
 			delete message;
 			return;
 		}
@@ -328,23 +306,19 @@ void TPChat::incomingMessage(const QString &encoded_message)
 	message->rtime = std::move(QTime::currentTime());
 	message->own_message = false;
 	message->received = true;
-	if (!message->media.isEmpty())
-	{
+	if (!message->media.isEmpty()) {
 		//If file is inexistent, the message was probably delivered via server, so we use the server to retrieve it.
 		//If it fails, hopefully message was sent via the web socket interface, but for some reason it is late to arrive.
-		if (!QFile::exists(message->media))
-		{
+		if (!QFile::exists(message->media)) {
 			const QString &media_filename{appUtils()->getFileName(message->media)};
 			appUserModel()->downloadFileFromServer(media_filename, chatsMediaSubDir(true) % media_filename, QString{}, chatsMediaSubDir(false));
 		}
 		getMediaPreviewFile(message);
 	}
 
-	if (m_chatWindow)
-	{
+	if (m_chatWindow) {
 		beginInsertRows(QModelIndex{}, count(), count());
-		if (appPagesListModel()->isPopupAboveAllOthers(m_chatWindow))
-		{
+		if (appPagesListModel()->isPopupAboveAllOthers(m_chatWindow)) {
 			if (m_chatWindow->property("canViewNewMessages").toBool())
 				message->read = true;
 		}
@@ -352,8 +326,7 @@ void TPChat::incomingMessage(const QString &encoded_message)
 	if (!message->read)
 		setUnreadMessages(QString::number(message->id));
 	m_messages.append(message);
-	if (m_chatWindow)
-	{
+	if (m_chatWindow) {
 		emit countChanged();
 		endInsertRows();
 		emit messageReceived();
@@ -374,8 +347,7 @@ void TPChat::clearChat()
 
 QVariant TPChat::data(const ChatMessage *const message, const uint field, const bool format_output) const
 {
-	switch (field)
-	{
+	switch (field) {
 		case MESSAGE_ID: return message->id;
 		case MESSAGE_SENDER: return message->sender;
 		case MESSAGE_RECEIVER: return message->receiver;
@@ -418,13 +390,11 @@ QVariant TPChat::data(const QModelIndex &index, int role) const
 bool TPChat::setData(const QModelIndex &index, const QVariant &value, int role)
 {
 	const int row{index.row()};
-	if (row >= 0 && row < m_messages.count())
-	{
+	if (row >= 0 && row < m_messages.count()) {
 		ChatMessage *const message{m_messages.at(row)};
 		const bool respond{!canUseWebSocket()}; //when not using WebSockets, a response to the server is needed
 
-		switch (role)
-		{
+		switch (role) {
 			case rDateRole:
 				message->rdate = std::move(value.toDate());
 			break;
@@ -481,10 +451,8 @@ void TPChat::processWebSocketTextMessage(const QString &message)
 {
 	bool ok{false};
 	static_cast<void>(appUtils()->getCompositeValue(0, message, exercises_separator).toInt(&ok));
-	if (ok)
-	{
-		if (m_chatLoaded == Unloaded)
-		{
+	if (ok) {
+		if (m_chatLoaded == Unloaded) {
 			connect(this, &TPChat::chatLoadedStatusChanged, this, [this,&message] () {
 				if (m_chatLoaded == Loaded)
 					processWebSocketTextMessage(message);
@@ -512,8 +480,7 @@ void TPChat::onChatWindowOpened()
 
 inline void TPChat::setChatLoadedStatus(uint8_t status)
 {
-	if (status != m_chatLoaded)
-	{
+	if (status != m_chatLoaded) {
 		m_chatLoaded = status;
 		emit chatLoadedStatusChanged();
 	}
@@ -532,8 +499,7 @@ inline short TPChat::checkConnectionOptions() const
 void TPChat::unqueueMessage(ChatMessage* const message)
 {
 	const QString &msgid{QString::number(message->id)};
-	for (uint i{0}; i <= MESSAGE_MEDIA; ++i)
-	{
+	for (uint i{0}; i <= MESSAGE_MEDIA; ++i) {
 		const QString &field_value{appUtils()->getCompositeValue(i, message->queued, record_separator)};
 		if (field_value == "1"_L1)
 			uploadAction(i, message);
@@ -544,19 +510,15 @@ void TPChat::unqueueMessage(ChatMessage* const message)
 void TPChat::uploadAction(const uint field, ChatMessage *const message)
 {
 	const bool use_ws{canUseWebSocket()};
-	if (use_ws || canUseServer())
-	{
+	if (use_ws || canUseServer()) {
 		const QString &msgid{QString::number(message->id)};
 		const QLatin1StringView seed{QString{message->text % QString::number(field)}.toLatin1()};
 		const int requestid{appUtils()->generateUniqueId(seed)};
-		switch (field)
-		{
+		switch (field) {
 			case MESSAGE_ID:
-				if (message->own_message)
-				{
+				if (message->own_message) {
 					setData(index(message->id), true, sentRole);
-					if (!message->media.isEmpty())
-					{
+					if (!message->media.isEmpty()) {
 						if (use_ws) {
 							QString extra_info{appUtils()->string_strings({
 								QString::number(ChatWSServer::WS_TPCHAT),
@@ -583,8 +545,7 @@ void TPChat::uploadAction(const uint field, ChatMessage *const message)
 				if (use_ws)
 					appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId,
 								appUtils()->string_strings({QString::number(requestid), messageWorkRemoved, msgid}, exercises_separator));
-				else
-				{
+				else {
 					if (message->own_message)
 						//Add message->id to the m_otherUserId/chats/this_user.removed file
 						appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkRemoved);
@@ -597,10 +558,8 @@ void TPChat::uploadAction(const uint field, ChatMessage *const message)
 				if (use_ws)
 					appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId,
 								appUtils()->string_strings({QString::number(requestid), messageWorkReceived, msgid}, exercises_separator));
-				else
-				{
-					if (!message->own_message)
-					{
+				else {
+					if (!message->own_message) {
 						//Remove message from the this_user/chats/m_otherUserId.msg file
 						appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkSend);
 						//Add message->id to the m_otherUserId/chats/this_user.received file
@@ -615,8 +574,7 @@ void TPChat::uploadAction(const uint field, ChatMessage *const message)
 				if (use_ws)
 					appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId,
 									appUtils()->string_strings({QString::number(requestid), messageWorkRead, msgid}, exercises_separator));
-				else
-				{
+				else {
 					if (!message->own_message)
 						//Add message->id to the m_otherUserId/chats/this_user.read file
 						appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkRead);
@@ -630,8 +588,7 @@ void TPChat::uploadAction(const uint field, ChatMessage *const message)
 				if (use_ws)
 					appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId,
 									appUtils()->string_strings({QString::number(requestid), messageWorkEdited, msgid}, exercises_separator));
-				else
-				{
+				else {
 					if (!message->own_message)
 						appOnlineServices()->chatMessageWork(requestid, m_otherUserId, appUtils()->string_strings(
 							{msgid, QString::number(field - Qt::UserRole), data(index(msgid.toUInt()), field).toString()},
@@ -752,8 +709,7 @@ void TPChat::setUnreadMessages(const QString &unread_ids, const bool add)
 {
 	uint idx{0};
 	const auto n_unread_ids{m_unreadIds.count()};
-	if (unread_ids.contains(set_separator))
-	{
+	if (unread_ids.contains(set_separator)) {
 		do {
 			QString msg_id{std::move(appUtils()->getCompositeValue(idx, unread_ids, set_separator))};
 			if (msg_id.isEmpty())
@@ -765,8 +721,7 @@ void TPChat::setUnreadMessages(const QString &unread_ids, const bool add)
 				m_unreadIds.removeOne(unread_ids);
 		} while (++idx);
 	}
-	else
-	{
+	else {
 		const bool contains{m_unreadIds.contains(unread_ids)};
 		if (add && !contains)
 			m_unreadIds.append(unread_ids);
@@ -785,28 +740,23 @@ inline QString TPChat::chatsMediaSubDir(const bool fullpath) const
 void TPChat::getMediaPreviewFile(ChatMessage *const message)
 {
 	QString preview_image = std::move(appUtils()->getFileTypeIcon(message->media));
-	if (preview_image == "$error$"_L1)
-	{
+	if (preview_image == "$error$"_L1) {
 		QTimer *waitForMediaToDownloadTimer{new QTimer{this}};
 		int n_attempts{10};
 		waitForMediaToDownloadTimer->setInterval(1000);
-		waitForMediaToDownloadTimer->callOnTimeout([this,message,waitForMediaToDownloadTimer,n_attempts] () mutable
-		{
-			if (QFile::exists(message->media))
-			{
+		waitForMediaToDownloadTimer->callOnTimeout([this,message,waitForMediaToDownloadTimer,n_attempts] () mutable {
+			if (QFile::exists(message->media)) {
 				waitForMediaToDownloadTimer->stop();
 				delete waitForMediaToDownloadTimer;
 				getMediaPreviewFile(message);
 			}
-			else
-			{
+			else {
 				if (--n_attempts <= 0) //give up
 					delete waitForMediaToDownloadTimer;
 			}
 		});
 	}
-	else
-	{
+	else {
 		message->preview_media = std::move(appUtils()->getFileTypeIcon(message->media));
 		message->external_media = !message->preview_media.endsWith("jpg"_L1);
 		if (!message->external_media)

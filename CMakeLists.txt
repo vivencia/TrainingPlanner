@@ -78,6 +78,7 @@ set( CXX_SOURCES
 	cxx/tpsettings.h cxx/tpsettings.cpp
 	cxx/tpimageprovider.h cxx/tpimageprovider.cpp
 	cxx/tpimage.h cxx/tpimage.cpp
+	cxx/tpmediacontrols.h cxx/tpmediacontrols.cpp
 	cxx/tpandroidnotification.h cxx/tpandroidnotification.cpp
 
 	cxx/tpdatabasetable.h cxx/tpdatabasetable.cpp
@@ -109,13 +110,14 @@ set( CXX_SOURCES
 
 	cxx/statistics/tpstatistics.h cxx/statistics/tpstatistics.cpp
 
-	cxx/online_services/tponlineservices.h cxx/online_services/tponlineservices.cpp
 	cxx/online_services/onlineuserinfo.h cxx/online_services/onlineuserinfo.cpp
-    cxx/online_services/tpmessagesmanager.h cxx/online_services/tpmessagesmanager.cpp
-    cxx/online_services/tpmessage.h cxx/online_services/tpmessage.cpp
-	cxx/online_services/scan_network.h
+    cxx/online_services/scan_network.h
 	cxx/online_services/tpchat.h cxx/online_services/tpchat.cpp
 	cxx/online_services/tpchatdb.h cxx/online_services/tpchatdb.cpp
+    cxx/online_services/tpmessage.h cxx/online_services/tpmessage.cpp
+	cxx/online_services/tpmessagesmanager.h cxx/online_services/tpmessagesmanager.cpp
+	cxx/online_services/tponlineservices.h cxx/online_services/tponlineservices.cpp
+	cxx/online_services/websocketserver.h cxx/online_services/websocketserver.cpp
 
 	cxx/tpkeychain/tpkeychain.h cxx/tpkeychain/tpkeychain.cpp
 	cxx/tpkeychain/keychain.h cxx/tpkeychain/keychain_p.h cxx/tpkeychain/keychain.cpp
@@ -177,7 +179,6 @@ set( QML_SOURCES
     "qml/AppGlobals.qml"
     "qml/main.qml"
 	"qml/tests.qml"
-    "qml/VideoPlayer.qml"
     "qml/Dialogs/CalendarDialog.qml"
     "qml/Dialogs/FirstTimeDialog.qml"
     "qml/Dialogs/MainMenu.qml"
@@ -238,6 +239,7 @@ set( QML_SOURCES
 	"qml/TPWidgets/TPTabButton.qml"
 	"qml/TPWidgets/TPTextInput.qml"
 	"qml/TPWidgets/TPToolBar.qml"
+	"qml/TPWidgets/TPVideoPlayer.qml"
 	"qml/User/AllUsers.qml"
 	"qml/User/AvatarsPopup.qml"
 	"qml/User/ChatWindow.qml"
@@ -262,7 +264,6 @@ qt_add_executable(TrainingPlanner
 	${QM_FILES}
 	${SERVER_FILES}
 	${ANDROID_FIES}
-	cxx/online_services/websocketserver.h cxx/online_services/websocketserver.cpp
 )
 
 if(NOT ANDROID)

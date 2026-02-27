@@ -22,14 +22,10 @@ void TPMessage::plug()
 	}
 }
 
-int TPMessage::insertAction(const QString& actionLabel, const std::function<void(const QVariant &var)> &actionFunc, std::optional<bool> remove)
+int TPMessage::insertAction(const QString& actionLabel, const std::function<void(const QVariant &var)> &actionFunc)
 {
 	m_actions.append(actionLabel);
 	m_actionFuncs.append(actionFunc);
-	if (remove != std::nullopt && remove.has_value()) {
-		m_actions.last().append(remove.value() ? record_separator : set_separator);
-		setSticky(!remove.value());
-	}
 	const qsizetype n_action{m_actions.count() - 1};
 	emit dataChanged(TPMESSAGE_FIELD_ACTIONS);
 	return n_action;
@@ -48,12 +44,9 @@ void TPMessage::execAction(const int action_id)
 	if (action_id >= 0 && action_id < m_actions.count())
 	{
 		const QChar &lastChar{m_actions.at(action_id).last(1).at(0)};
-		std::optional<bool> remove{std::nullopt};
-		if (lastChar.toLatin1() < set_separator)
-			remove = lastChar == record_separator;
 		if (m_actionFuncs.at(action_id) != nullptr)
 			m_actionFuncs.at(action_id)(action_id < m_data.count() ? m_data.at(action_id) : m_data);
-		emit actionTriggered(action_id, remove);
+		emit actionTriggered(action_id);
 	}
 }
 
