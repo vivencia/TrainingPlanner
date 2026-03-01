@@ -113,8 +113,8 @@ ApplicationWindow {
 			}
 		}*/
 
-		TPImageViewer {
-			mediaSource: "/home/guilhermef/Videos/Premiação - Dança Do Ventre Duo.mp4"
+		TPFileViewer {
+			mediaSource: "file:///home/guilhermef/Videos/Premiação - Dança Do Ventre Duo.mp4"
 			previewSource: "video_preview"
 			width: preferredWidth
 			height: preferredHeight

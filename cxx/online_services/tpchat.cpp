@@ -653,10 +653,10 @@ QString TPChat::encodeMessageToUpload(const ChatMessage* const message) const
 					appUtils()->formatTime(message->stime, TPUtils::TF_ONLINE),
 					QString{},
 					QString{},
-					STR_ZERO,
-					STR_ONE,
-					STR_ZERO,
-					STR_ZERO,
+					"0"_L1,
+					"1"_L1,
+					"0"_L1,
+					"0"_L1,
 					message->text,
 					message->media
 	}, record_separator);
@@ -683,10 +683,10 @@ ChatMessage* TPChat::decodeDownloadedMessage(const QString &encoded_message)
 							appUtils()->getCompositeValue(MESSAGE_STIME, encoded_message, record_separator), TPUtils::TF_ONLINE));
 	new_message->rtime = std::move(appUtils()->timeFromString(
 							appUtils()->getCompositeValue(MESSAGE_RTIME, encoded_message, record_separator), TPUtils::TF_ONLINE));
-	new_message->deleted = appUtils()->getCompositeValue(MESSAGE_DELETED, encoded_message, record_separator) == STR_ONE;
-	new_message->sent = appUtils()->getCompositeValue(MESSAGE_SENT, encoded_message, record_separator) == STR_ONE;
-	new_message->received = appUtils()->getCompositeValue(MESSAGE_RECEIVED, encoded_message, record_separator) == STR_ONE;
-	new_message->read = appUtils()->getCompositeValue(MESSAGE_READ, encoded_message, record_separator) == STR_ONE;
+	new_message->deleted = appUtils()->getCompositeValue(MESSAGE_DELETED, encoded_message, record_separator) == "1"_L1;
+	new_message->sent = appUtils()->getCompositeValue(MESSAGE_SENT, encoded_message, record_separator) == "1"_L1;
+	new_message->received = appUtils()->getCompositeValue(MESSAGE_RECEIVED, encoded_message, record_separator) == "1"_L1;
+	new_message->read = appUtils()->getCompositeValue(MESSAGE_READ, encoded_message, record_separator) == "1"_L1;
 	new_message->text = std::move(appUtils()->getCompositeValue(MESSAGE_TEXT, encoded_message, record_separator));
 	new_message->media = std::move(appUtils()->getCompositeValue(MESSAGE_MEDIA, encoded_message, record_separator));
 	return new_message;

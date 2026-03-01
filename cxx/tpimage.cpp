@@ -250,7 +250,7 @@ void TPImage::checkEnabled()
 		else
 		{
 			if (m_imageShadow.isNull())
-				createDropShadowImage();
+				createDropShadowImage(m_image, m_imageShadow);
 			m_imageToPaint = &m_imageShadow;
 		}
 	}
@@ -266,44 +266,18 @@ void TPImage::checkEnabled()
 void TPImage::convertToGrayScale()
 {
 	if (!m_image.isNull())
-		grayScale(m_imageDisabled, m_image);
+		grayScale(m_image, m_imageDisabled);
 }
 
-void TPImage::createDropShadowImage()
-{
-	if (!m_image.isNull())
-	{
-		QGraphicsDropShadowEffect *shadowEffect{new QGraphicsDropShadowEffect};
-		shadowEffect->setOffset(DROP_SHADOW_EXTENT, DROP_SHADOW_EXTENT);
-		shadowEffect->setBlurRadius(DROP_SHADOW_EXTENT);
-		applyEffectToImage(m_imageShadow, m_image, shadowEffect, DROP_SHADOW_EXTENT);
-	}
-}
-
-void TPImage::applyEffectToImage(QImage &dstImg, const QImage &srcImg, QGraphicsEffect *effect, const int extent)
-{
-	QGraphicsScene scene;
-	QGraphicsPixmapItem item;
-	item.setPixmap(QPixmap::fromImage(srcImg));
-	item.setGraphicsEffect(effect);
-	scene.addItem(&item);
-	dstImg = std::move(srcImg.scaled(m_imageSize + QSize{extent * 2, extent * 2}, m_aspectRatioMode.value(), Qt::SmoothTransformation));
-	dstImg.reinterpretAsFormat(QImage::Format_ARGB32);
-	dstImg.fill(Qt::transparent);
-	QPainter ptr{&dstImg};
-	scene.render(&ptr, QRectF(-extent, -extent, dstImg.width(), dstImg.height()),
-								QRectF(-extent, -extent, dstImg.width(), dstImg.height()));
-}
-
-void TPImage::grayScale(QImage &dstImg, const QImage &srcImg)
+void TPImage::grayScale(const QImage &source_img, QImage &dest_img)
 {		
-	dstImg = std::move(srcImg.convertToFormat(srcImg.hasAlphaChannel() ? QImage::Format_ARGB32 : QImage::Format_RGB32));
-	const int imgHeight{dstImg.height()};
-	const int imgWidth{dstImg.width()};
+	dest_img = std::move(source_img.convertToFormat(source_img.hasAlphaChannel() ? QImage::Format_ARGB32 : QImage::Format_RGB32));
+	const int imgHeight{dest_img.height()};
+	const int imgWidth{dest_img.width()};
 	QRgb pixel;
 	for (uint y{0}; y < imgHeight; ++y)
 	{
-		QRgb *scanLine{reinterpret_cast<QRgb*>(dstImg.scanLine(y))};
+		QRgb *scanLine{reinterpret_cast<QRgb*>(dest_img.scanLine(y))};
 		for (uint x{0}; x < imgWidth; ++x)
 		{
 			pixel = *scanLine;
@@ -314,13 +288,47 @@ void TPImage::grayScale(QImage &dstImg, const QImage &srcImg)
 	}
 }
 
-void TPImage::colorize(QImage &dstImg, const QImage &srcImg, const QColor& color)
+void TPImage::colorizeImage(QImage &source_img, const QColor &color)
 {
-	if (!srcImg.isNull())
+	QPainter painter(&source_img);
+	painter.setCompositionMode(QPainter::CompositionMode_SourceAtop);
+	painter.fillRect(source_img.rect(), color);
+	painter.end();
+}
+
+void TPImage::applyEffectToImage(const QImage &source_img, QImage &dest_img, QGraphicsEffect *effect, const QSize &size, const int extent)
+{
+	QGraphicsScene scene;
+	QGraphicsPixmapItem item;
+	item.setPixmap(QPixmap::fromImage(source_img));
+	item.setGraphicsEffect(effect);
+	scene.addItem(&item);
+	dest_img = std::move(source_img.scaled(size + QSize{extent * 2, extent * 2}, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+	dest_img.reinterpretAsFormat(QImage::Format_ARGB32);
+	dest_img.fill(Qt::transparent);
+	QPainter ptr{&dest_img};
+	scene.render(&ptr, QRectF(-extent, -extent, dest_img.width(), dest_img.height()),
+																				QRectF(-extent, -extent, dest_img.width(), dest_img.height()));
+}
+
+void TPImage::createDropShadowImage(const QImage &source_img, QImage &dest_img)
+{
+	if (!source_img.isNull())
+	{
+		QGraphicsDropShadowEffect *shadowEffect{new QGraphicsDropShadowEffect};
+		shadowEffect->setOffset(DROP_SHADOW_EXTENT, DROP_SHADOW_EXTENT);
+		shadowEffect->setBlurRadius(DROP_SHADOW_EXTENT);
+		applyEffectToImage(source_img, dest_img, shadowEffect, source_img.size(), DROP_SHADOW_EXTENT);
+	}
+}
+
+void TPImage::colorize(const QImage &source_img, QImage &dest_img, const QColor& color)
+{
+	if (!source_img.isNull())
 	{
 		QGraphicsColorizeEffect *colorEffect{new QGraphicsColorizeEffect};
 		colorEffect->setColor(color);
-		applyEffectToImage(dstImg, srcImg, colorEffect);
+		applyEffectToImage(source_img, dest_img, colorEffect, source_img.size());
 	}
 }
 

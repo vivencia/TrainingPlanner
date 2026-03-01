@@ -581,7 +581,7 @@ void OSInterface::openURL(const QString &address) const
 		androidOpenURL(address);
 		#else
 		auto *__restrict proc{new QProcess{}};
-		proc->startDetached("xdg-open"_L1, QStringList{1} << address);
+		proc->startDetached("xdg-open"_L1, {address});
 		delete proc;
 		#endif
 	}
@@ -639,7 +639,8 @@ void OSInterface::sendMail(const QString &address, const QString &subject, const
 
 void OSInterface::viewExternalFile(const QString &filename) const
 {
-	if (!appUtils()->canReadFile(appUtils()->getCorrectPath(filename)))
+	const QString &_filename{appUtils()->getCorrectPath(filename)};
+	if (!appUtils()->canReadFile(_filename))
 		return;
 	#ifdef Q_OS_ANDROID
 	const QString &localFile{appSettings()->localAppFilesDir() + "tempfile"_L1 + filename.last(4)};
@@ -649,7 +650,7 @@ void OSInterface::viewExternalFile(const QString &filename) const
 	else
 		qDebug() << "could not copy:  " << filename << "    to   " << localFile;
 	#else
-	openURL(filename);
+	openURL(_filename);
 	#endif
 }
 

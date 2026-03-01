@@ -1,7 +1,5 @@
 #pragma once
 
-#include "tpbool.h"
-
 #include <QColor>
 #include <QImage>
 #include <QList>
@@ -24,18 +22,18 @@ Q_PROPERTY(QList<int> availableControls READ availableControls WRITE setAvailabl
 
 public:
 
-enum ControlType {
-	CT_Stop,
-	CT_Play,
-	CT_Pause,
-	CT_Prev,
-	CT_Next,
-	CT_Equalizer,
-	CT_Rewind,
-	CT_FastForward,
-	CT_Mute
-};
-Q_ENUM(ControlType)
+	enum ControlType {
+		CT_Stop,
+		CT_Play,
+		CT_Pause,
+		CT_Prev,
+		CT_Next,
+		CT_Equalizer,
+		CT_Rewind,
+		CT_FastForward,
+		CT_Mute
+	};
+	Q_ENUM(ControlType)
 
 	explicit TPMediaControls(QQuickItem *parent = nullptr);
 	void paint(QPainter *painter) override;
@@ -50,11 +48,10 @@ Q_ENUM(ControlType)
 		createControls();
 	}
 
-	Q_INVOKABLE void setEnabled(TPMediaControls::ControlType type, const bool enabled);
+	Q_INVOKABLE void setEnabled(TPMediaControls::ControlType type, const bool enabled, const bool call_update = true);
 
 signals:
 	void availableControlsChanged();
-	void controlSizeChanged();
 	void controlClicked(TPMediaControls::ControlType type);
 	void controlPressed(TPMediaControls::ControlType type);
 	void controlReleased(TPMediaControls::ControlType type);
@@ -70,9 +67,12 @@ private:
 		QImage default_image;
 		QImage pressed_image;
 		QImage *current_image;
-		TPBool pressed, enabled;
+		bool pressed, enabled;
 		QRect rect;
+
+		inline controlInfo() : current_image{nullptr}, pressed{false} {}
 	};
+
 	QList<controlInfo*> m_controls;
 	controlInfo *m_currentControl;
 	QList<int> m_types;
@@ -84,9 +84,8 @@ private:
 
 	QImage getControlImageFromSource(ControlType type);
 	void createControls();
-	void colorizeImage(QImage &image);
-	void disableImage(QImage &image);
 	controlInfo *controlFromMouseClick(const QPointF& mouse_pos) const;
 	controlInfo *controlFromType(const ControlType type) const;
+	void _controlClicked(controlInfo *ci);
+	void _setEnabled(controlInfo *ci, const bool enabled);
 };
-

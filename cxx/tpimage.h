@@ -54,7 +54,12 @@ public:
 
 	void saveToDisk(const QString &filename);
 	void paint(QPainter *painter);
-	void colorize(QImage &dstImg, const QImage &srcImg, const QColor &color);
+
+	static void grayScale(const QImage &source_img, QImage &dest_img);
+	static void colorizeImage(QImage &source_img, const QColor &color);
+	static void applyEffectToImage(const QImage &source_img, QImage &dest_img, QGraphicsEffect *effect, const QSize &size, const int extent = 0);
+	static void createDropShadowImage(const QImage &source_img, QImage &dest_img);
+	static void colorize(const QImage &source_img, QImage &dest_img, const QColor &color);
 
 signals:
 	void sourceChanged();
@@ -78,8 +83,4 @@ private:
 	void scaleImage();
 	void checkEnabled();
 	void convertToGrayScale();
-	void createDropShadowImage();
-	void grayScale(QImage &dstImg, const QImage &srcImg);
-	//void colorize(QImage &dstImg, const QImage &srcImg, const QColor &color);
-	void applyEffectToImage(QImage &dstImg, const QImage &srcImg, QGraphicsEffect *effect, const int extent = 0);
 };

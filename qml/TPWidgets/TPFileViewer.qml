@@ -5,6 +5,8 @@ import QtMultimedia
 
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
+import "../"
+
 TPImage {
 	id: imagePreview
 	clip: true
@@ -24,18 +26,45 @@ TPImage {
 			mediaType = appUtils.getFileType(mediaSource);
 	}
 
-	Loader {
-		id: videoPreviewControlsLoader
-		asynchronous: true
-		active: mediaType === TPUtils.FT_VIDEO;
+	Rectangle {
+		id: fileOpsRec
+		radius: 8
+		color: appSettings.paneBackgroundColor
+		border.color: appSettings.fontColor
+		opacity: 0.8
 		height: appSettings.itemDefaultHeight
-		width: (height * 2) + 30
-		z: 2
+		width: appSettings.itemDefaultHeight * 4 + 20
 
 		anchors {
 			horizontalCenter: parent.horizontalCenter
 			bottom: parent.bottom
 			bottomMargin: 10
+		}
+
+		FileOperations {
+			fileName: mediaSource
+			fileType: mediaType
+			anchors.fill: parent
+
+			anchors {
+				horizontalCenter: parent.horizontalCenter
+				verticalCenter: parent.verticalCenter
+			}
+		}
+	}
+
+	Loader {
+		id: videoPreviewControlsLoader
+		asynchronous: true
+		active: mediaType === TPUtils.FT_VIDEO;
+		height: appSettings.itemDefaultHeight
+		width: parent.width / 2
+		z: 1
+
+		anchors {
+			horizontalCenter: parent.horizontalCenter
+			bottom: fileOpsRec.top
+			bottomMargin: 5
 		}
 
 		sourceComponent: Rectangle {
@@ -45,7 +74,7 @@ TPImage {
 			opacity: 0.8
 
 			MediaControls {
-				availableControls: [ MediaControls.CT_Play, MediaControls.CT_Mute]
+				availableControls: [ MediaControls.CT_Play, MediaControls.CT_Stop, MediaControls.CT_Mute]
 				anchors.fill: parent
 
 				anchors {
@@ -59,16 +88,19 @@ TPImage {
 							previewMediaPlayerLoader.play();
 							setEnabled(MediaControls.CT_Mute, true);
 						break;
+						case MediaControls.CT_Stop:
+							previewMediaPlayerLoader.stop();
+						break;
 						case MediaControls.CT_Mute:
 							previewMediaPlayerLoader.sound();
 						break;
 					}
 				}
 
-				Component.onCompleted: setEnabled(MediaControls.CT_Mute, false);
+				Component.onCompleted: setEnabled(MediaControls.CT_Mute, false, false);
 			}
 		}
-	}
+	} //videoPreviewControlerLoader
 
 	Loader {
 		id: previewMediaPlayerLoader
@@ -76,24 +108,34 @@ TPImage {
 		active: false
 		anchors.fill: parent
 
+		property string remainingTime
+		property real media_volume: 0.0
+
 		sourceComponent: VideoOutput {
 			id: videoPreview
 			fillMode: VideoOutput.Stretch
 			clip: true
 			focus: false
 
-			property string mediaSource: imagePreview.mediaSource
 			property alias playing: mediaPlayer.playing
-			property alias position: mediaPlayer.position
 			property alias seekable: mediaPlayer.seekable
-			property alias volume: mediaPlayer.audioOutput.volume
 
 			MediaPlayer {
 				id: mediaPlayer
 				videoOutput: videoPreview
+				autoPlay: true
+				source: imagePreview.mediaSource
+
 				audioOutput: AudioOutput {
 					id: audioOutput
-					volume: 0.0
+					volume: previewMediaPlayerLoader.media_volume
+				}
+				onMediaStatusChanged: {
+					if (mediaStatus === MediaPlayer.EndOfMedia)
+						imagePreview.setControlEnabled(MediaControls.CT_Stop, false);
+				}
+				onPositionChanged: {
+					previewMediaPlayerLoader.remainingTime = appUtils.formatTime(mediaPlayer.duration - mediaPlayer.position);
 				}
 			}
 
@@ -103,9 +145,8 @@ TPImage {
 			function pause() : void {
 				mediaPlayer.pause();
 			}
-
-			function setVolume(vol: real): void {
-				mediaPlayer.audioOutput.volume = vol;
+			function stop() : void {
+				mediaPlayer.stop();
 			}
 		}
 
@@ -122,30 +163,32 @@ TPImage {
 			}
 		}
 
-		function sound(): void {
-			if (item.volume === 0.0)
-				item.setVolume(0.5);
-			else
-				item.setVolume(0.0);
+		function stop(): void {
+			item.stop();
+			active = false;
 		}
-	}
 
-	MouseArea {
-		anchors.fill: parent
-		onClicked: {
-			switch (mediaType) {
-				case TPUtils.FT_UNKNOWN:
-				break;
-				case TPUtils.FT_IMAGE:
-					fullScreenLoader.active = true;
-				break;
-				case TPUtils.FT_VIDEO:
-					//fullScreenLoader.active = true;
-				break;
-				default:
-					osInterface.openURL(imagePreview.mediaSource);
-				break;
-			}
+		function sound(): void {
+			if (media_volume == 0.0)
+				media_volume = 0.5;
+			else
+				media_volume = 0.0;
+		}
+	} //previewMediaPlayerLoader
+
+	Loader {
+		id: videoLengthLoader
+		asynchronous: true
+		active: previewMediaPlayerLoader.active
+		height: appSettings.itemDefaultHeight
+		width: parent.width / 3
+		x: 10
+		y: 10
+
+		sourceComponent: TPLabel {
+			text: previewMediaPlayerLoader.remainingTime
+			font: AppGlobals.smallFont
+			horizontalAlignment: Text.AlignHCenter
 		}
 	}
 
@@ -243,5 +286,9 @@ TPImage {
 		}
 
 		onLoaded: item.showFullScreen();
+	}
+
+	function setControlEnabled(control_type: int, enabled: bool) : void {
+
 	}
 } // Image

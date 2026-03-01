@@ -88,8 +88,9 @@ QString TPUtils::getCorrectPath(const QUrl &url) const
 	return path;
 }
 
-TPUtils::FILE_TYPE TPUtils::getFileType(const QString &filename) const
+TPUtils::FILE_TYPE TPUtils::getFileType(QString filename) const
 {
+	filename = std::move(getCorrectPath(filename));
 	if (!QFile::exists(filename))
 		return FT_UNKNOWN;
 
@@ -176,7 +177,7 @@ TPUtils::FILE_TYPE TPUtils::getTPFileType(const QString &filename, std::optional
 	return static_cast<FILE_TYPE>(ret);
 }
 
-QString TPUtils::getFileTypeIcon(const QString &filename, const QSize &preferred_size) const
+QString TPUtils::getFileTypeIcon(const QString &filename, const QSize &preferred_size, const bool image_thumbnail) const
 {
 	uint32_t ft{static_cast<uint32_t>(getFileType(filename)) & ~FT_TP_FORMATTED};
 	switch (ft) {
@@ -189,7 +190,7 @@ QString TPUtils::getFileTypeIcon(const QString &filename, const QSize &preferred
 		case FT_TP_WORKOUT_E:
 		case FT_TP_WORKOUT_F:		return "workout_preview.png"_L1;
 		case FT_TP_EXERCISES:		return "exerciselist_preview.png"_L1;
-		case FT_IMAGE:				return getImagePreviewFile(filename, preferred_size);
+		case FT_IMAGE:				return image_thumbnail ? getImagePreviewFile(filename, preferred_size) : "image_preview.png"_L1;
 		case FT_VIDEO:				return "video_preview.png"_L1;
 		case FT_PDF:				return "pdf_preview.png"_L1;
 		case FT_TEXT:				return "genreric_preview.png"_L1;
@@ -227,7 +228,7 @@ void TPUtils::viewOrOpenFile(const QString &filename, const QVariant &extra_info
 {
 	uint32_t ft{getFileType(filename)};
 	if (ft >= FT_IMAGE)
-		appOsInterface()->openURL(filename);
+		appOsInterface()->viewExternalFile(filename);
 	else {
 		const bool formatted{(ft & FT_TP_FORMATTED) == FT_TP_FORMATTED};
 		ft &= static_cast<uint32_t>(~FT_TP_FORMATTED);
@@ -930,6 +931,16 @@ QString TPUtils::formatTime(const QTime &time, const TIME_FORMAT format) const
 		break;
 	}
 	return QString{};
+}
+
+QString TPUtils::formatTime(const int msecs, const TIME_FORMAT format) const
+{
+	int secs{msecs/1000};
+	int mins{qFloor(secs/60)};
+	int hours{qFloor(mins/60)};
+	mins -= hours * 60;
+	secs -= mins * 60;
+	return formatTime(QTime{hours, mins, secs}, hours == 0 ? TF_QML_DISPLAY_NO_HOUR : format);
 }
 
 QTime TPUtils::timeFromString(const QString &strtime, const TIME_FORMAT format) const

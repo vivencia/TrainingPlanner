@@ -20,6 +20,7 @@
 #include "statistics/tpstatistics.h"
 #include "tpimage.h"
 #include "tpimageprovider.h"
+#include "tpfileops.h"
 #include "tpmediacontrols.h"
 #include "tpsettings.h"
 #include "tptimer.h"
@@ -73,6 +74,7 @@ void QmlItemManager::configureQmlEngine()
 	REGISTER_QML_TYPE(TPChat,							"ChatModel")
 	REGISTER_QML_TYPE(TPUtils,							"TPUtils")
 	REGISTER_QML_TYPE(TPMediaControls,					"MediaControls")
+	REGISTER_QML_TYPE(TPFileOps,						"FileOperations")
 
 	QList<QQmlContext::PropertyPair> global_properties{9};
 	global_properties[0] = std::move(QQmlContext::PropertyPair{ "appSettings"_L1,			QVariant::fromValue(appSettings()) });

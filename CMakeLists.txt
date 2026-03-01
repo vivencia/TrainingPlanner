@@ -78,6 +78,7 @@ set( CXX_SOURCES
 	cxx/tpsettings.h cxx/tpsettings.cpp
 	cxx/tpimageprovider.h cxx/tpimageprovider.cpp
 	cxx/tpimage.h cxx/tpimage.cpp
+	cxx/tpfileops.h cxx/tpfileops.cpp
 	cxx/tpmediacontrols.h cxx/tpmediacontrols.cpp
 	cxx/tpandroidnotification.h cxx/tpandroidnotification.cpp
 
@@ -223,8 +224,9 @@ set( QML_SOURCES
     "qml/TPWidgets/TPComboBox.qml"
     "qml/TPWidgets/TPDatePicker.qml"
     "qml/TPWidgets/TPDigitalClock.qml"
+	"qml/TPWidgets/TPFileOps.qml"
+	"qml/TPWidgets/TPFileViewer.qml"
     "qml/TPWidgets/TPFloatingMenuBar.qml"
-	"qml/TPWidgets/TPImageViewer.qml"
     "qml/TPWidgets/TPLabel.qml"
 	"qml/TPWidgets/TPListView.qml"
     "qml/TPWidgets/TPMouseArea.qml"

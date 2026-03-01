@@ -1,4 +1,5 @@
 #include "tpmediacontrols.h"
+#include "tpimage.h"
 #include "tpsettings.h"
 
 #include <QPainter>
@@ -42,16 +43,13 @@ void TPMediaControls::paint(QPainter *painter)
 	}
 }
 
-void TPMediaControls::setEnabled(TPMediaControls::ControlType type, const bool enabled)
+void TPMediaControls::setEnabled(TPMediaControls::ControlType type, const bool enabled, const bool call_update)
 {
 	controlInfo *ci{controlFromType(type)};
 	if (ci && ci->enabled != enabled) {
-		ci->enabled = enabled;
-		if (enabled)
-			ci->default_image = std::move(getControlImageFromSource(type));
-		else
-			disableImage(ci->default_image);
-		update(ci->rect);
+		_setEnabled(ci, enabled);
+		if (call_update)
+			update(ci->rect);
 	}
 }
 
@@ -67,11 +65,9 @@ void TPMediaControls::mousePressEvent(QMouseEvent *event)
 				if (ci->pressed_image.isNull()) {
 					if (ci->type != CT_Play)
 						ci->pressed_image = ci->default_image.copy();
-					else {
+					else
 						ci->pressed_image = std::move(getControlImageFromSource(CT_Pause));
-						setEnabled(CT_Equalizer, false);
-					}
-					colorizeImage(ci->pressed_image);
+					TPImage::colorizeImage(ci->pressed_image, m_pressedColor);
 				}
 				ci->current_image = &ci->pressed_image;
 				ci->pressed = true;
@@ -79,7 +75,6 @@ void TPMediaControls::mousePressEvent(QMouseEvent *event)
 			else {
 				ci->current_image = &ci->default_image;
 				ci->pressed = false;
-				setEnabled(CT_Equalizer, true);
 			}
 			update(ci->rect);
 		}
@@ -100,6 +95,7 @@ void TPMediaControls::mouseReleaseEvent(QMouseEvent *event)
 			case CT_Equalizer:
 			case CT_Mute:
 				emit controlClicked(ci->type);
+				_controlClicked(ci);
 			break;
 			case CT_Prev:
 			case CT_Next:
@@ -150,39 +146,12 @@ void TPMediaControls::createControls()
 				ci->type = static_cast<ControlType>(type);
 				ci->default_image = std::move(getControlImageFromSource(static_cast<ControlType>(type)));
 				ci->default_image = std::move(ci->default_image.scaled(m_controlSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-				ci->current_image = &ci->default_image;
-				ci->enabled = true;
 				ci->rect = QRect{control_x, m_qml_control_extra_height / 2, m_controlSize.width(), m_controlSize.height()};
+				_setEnabled(ci, ci->type == CT_Play);
 				control_x += m_controlSize.width() + m_qml_control_spacing;
 				m_controls.append(ci);
 			}
 			update();
-		}
-	}
-}
-
-void TPMediaControls::colorizeImage(QImage &image)
-{
-	QPainter painter(&image);
-	painter.setCompositionMode(QPainter::CompositionMode_SourceAtop);
-	painter.fillRect(image.rect(), m_pressedColor);
-	painter.end();
-	image.save("/DATA/img.jpg", "jpg");
-}
-
-void TPMediaControls::disableImage(QImage &image)
-{
-	image = std::move(image.convertToFormat(image.hasAlphaChannel() ? QImage::Format_ARGB32 : QImage::Format_RGB32));
-	const int imgHeight{image.height()};
-	const int imgWidth{image.width()};
-	QRgb pixel;
-	for (uint y{0}; y < imgHeight; ++y) {
-		QRgb *scanLine{reinterpret_cast<QRgb*>(image.scanLine(y))};
-		for (uint x{0}; x < imgWidth; ++x) {
-			pixel = *scanLine;
-			const uint ci{static_cast<uint>(qGray(pixel))};
-			*scanLine = qRgba(ci, ci, ci, qAlpha(pixel)/3);
-			++scanLine;
 		}
 	}
 }
@@ -202,4 +171,54 @@ TPMediaControls::controlInfo *TPMediaControls::controlFromType(const ControlType
 		return ci->type == type;
 	})};
 	return ci_itr != m_controls.cend() ? *ci_itr : nullptr;
+}
+
+void TPMediaControls::_controlClicked(controlInfo *ci)
+{
+	bool revert_play{false};
+	switch (ci->type) {
+		case CT_Stop:
+			setEnabled(CT_Equalizer, false);
+			setEnabled(CT_Pause, false);
+			setEnabled(CT_Rewind, false);
+			setEnabled(CT_FastForward, false);
+			setEnabled(CT_Stop, false);
+			revert_play = true;
+		break;
+		case CT_Play:
+			setEnabled(CT_Equalizer, true);
+			setEnabled(CT_Stop, true);
+			setEnabled(CT_Rewind, true);
+			setEnabled(CT_FastForward, false);
+		break;
+		case CT_Pause:
+			setEnabled(CT_Stop, false);
+			revert_play = true;
+			break;
+		case CT_Prev:
+			setEnabled(CT_Next, true);
+		break;
+		case CT_Next:
+			setEnabled(CT_Prev, true);
+		break;
+		default:
+			return;
+	}
+	if (revert_play) {
+		controlInfo *ci_play{controlFromType(CT_Play)};
+		ci_play->current_image = &ci_play->default_image;
+		ci_play->pressed = false;
+		ci_play->enabled = true;
+		update(ci_play->rect);
+	}
+}
+
+void TPMediaControls::_setEnabled(controlInfo *ci, const bool enabled)
+{
+	ci->enabled = enabled;
+	if (enabled)
+		ci->default_image = std::move(getControlImageFromSource(ci->type));
+	else
+		TPImage::grayScale(ci->default_image, ci->default_image);
+	ci->current_image = &ci->default_image;
 }

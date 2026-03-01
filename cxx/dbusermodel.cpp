@@ -36,8 +36,6 @@ DBUserModel *DBUserModel::_appUserModel{nullptr};
 constexpr QLatin1StringView local_user_data_file{"user.data"};
 constexpr QLatin1StringView cmd_file_extension{".cmd"};
 
-static QString network_msg_title;
-
 #ifndef QT_NO_DEBUG
 #define POLLING_INTERVAL 60*1000 //When testing, poll more frequently
 #else
@@ -63,7 +61,7 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 {
 	_appUserModel = this;
 	mb_MainUserInfoChanged = false;
-	network_msg_title = std::move(tr("TP Network"));
+	m_network_msg_title = std::move(tr("TP Network"));
 
 	connect(appOsInterface(), &OSInterface::tpServerStatusChanged, this, [this] (const bool online) {
 		if (!mb_canConnectToServer.has_value())
@@ -136,7 +134,7 @@ void DBUserModel::initUserSession()
 			if (onlineAccount()) {
 				new ChatWSServer{userId(0), this};
 				appMessagesManager()->readAllChats();
-				connect(appOnlineServices(), &TPOnlineServices::onlineServicesReady, [this] () {
+				connect(appOnlineServices(), &TPOnlineServices::onlineServicesReady, this, [this] () {
 					appWSServer()->setServerStatus(true);
 					if ((mb_canConnectToServer = appOsInterface()->tpServerOK()))
 						onlineCheckIn();
@@ -841,7 +839,7 @@ void DBUserModel::sendFileToUser(const QString &userid, const QString &filename,
 {
 	const bool use_ws{appWSServer()->isConnectionOK(userid)};
 	if (!use_ws && first_attempt) {
-		QTimer::singleShot(5000, [=,this] () {
+		QTimer::singleShot(5000, this, [=,this] () {
 			sendFileToUser(userid, filename, extra_info, success_message, false);
 		});
 		appWSServer()->connectToPeer(this, ChatWSServer::WS_TPMESSAGESMANAGER, userid);
@@ -908,7 +906,7 @@ int DBUserModel::sendFileToServer(const QString &filename, QFile *upload_file, c
 				if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS) {
 					if (!successMessage.isEmpty())
 						appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_SUCCESS,
-							appUtils()->string_strings({network_msg_title, successMessage}, record_separator));
+							appUtils()->string_strings({m_network_msg_title, successMessage}, record_separator));
 				}
 				else
 					appItemManager()->displayMessageOnAppWindow(ret_code, ret_string);
@@ -974,7 +972,7 @@ int DBUserModel::downloadFileFromServer(const QString &filename, const QString &
 					delete local_file;
 					if (!successMessage.isEmpty())
 						appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_SUCCESS, appUtils()->string_strings(
-								{network_msg_title, successMessage}, record_separator));
+								{m_network_msg_title, successMessage}, record_separator));
 				}
 				break;
 				case TP_RET_CODE_NO_CHANGES_SUCCESS: //online file and local file are the same
@@ -1315,7 +1313,7 @@ void DBUserModel::slot_unregisterUser(const bool unregister)
 							emit userLoggedOut();
 						}
 						appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
-							appUtils()->string_strings({network_msg_title, ret_code == TP_RET_CODE_SUCCESS ?
+							appUtils()->string_strings({m_network_msg_title, ret_code == TP_RET_CODE_SUCCESS ?
 							tr("Online account removed") : tr("Failed to remove online account")}, record_separator),
 							ret_code == TP_RET_CODE_SUCCESS ? "set-completed" : "error");
 					}
@@ -1459,7 +1457,7 @@ void DBUserModel::loginUser()
 								emit userLoggedIn(true);
 							}
 							appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
-										{network_msg_title, ret_string}, record_separator),
+										{m_network_msg_title, ret_string}, record_separator),
 										ret_code == TP_RET_CODE_CUSTOM_SUCCESS ? "set_separator" : "error");
 						}
 					});

@@ -122,9 +122,9 @@ public:
 	void initUserSession();
 
 	inline uint userCount() const { return m_usersData.count(); }
-	inline const QString &_onlineAccount(const uint user_idx) const
+	inline const QString _onlineAccount(const uint user_idx) const
 	{
-		return user_idx < m_usersData.count() ? m_usersData.at(user_idx).at(USER_COL_ONLINEACCOUNT) : STR_ZERO;
+		return user_idx < m_usersData.count() ? m_usersData.at(user_idx).at(USER_COL_ONLINEACCOUNT) : "0"_L1;
 	}
 	inline bool onlineAccount(const uint user_idx = 0) const { return _onlineAccount(user_idx).at(0) == '1'; }
 	void setOnlineAccount(const bool online_user, const uint user_idx = 0);
@@ -391,7 +391,7 @@ signals:
 private:
 	QList<QStringList> m_usersData, m_tempUserData;
 	int m_tempRow, n_devices;
-	QString m_onlineAccountId, m_password, m_defaultAvatar, m_emptyString;
+	QString m_onlineAccountId, m_password, m_defaultAvatar, m_emptyString, m_network_msg_title;
 	std::optional<bool> mb_canConnectToServer, mb_singleDevice, mb_userLoggedIn, mb_coachRegistered;
 	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses,
 						*m_tempUserInfo, *m_currentCoaches, *m_currentClients, *m_currentCoachesAndClients;

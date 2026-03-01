@@ -192,5 +192,30 @@
         <file>images/exerciselist_preview.png</file>
         <file>images/workout_preview.png</file>
         <file>images/media_controls.png</file>
+        <file>images/fullscreen_gray.png</file>
+        <file>images/download_gray.png</file>
+        <file>images/share_gray.png</file>
+        <file>images/share_light.png</file>
+        <file>images/download_light.png</file>
+        <file>images/fullscreen_light.png</file>
+        <file>images/fullscreen_dark.png</file>
+        <file>images/download_dark.png</file>
+        <file>images/share_dark.png</file>
+        <file>images/share_red.png</file>
+        <file>images/download_red.png</file>
+        <file>images/fullscreen_red.png</file>
+        <file>images/fullscreen_green.png</file>
+        <file>images/fullscreen_blue.png</file>
+        <file>images/download_green.png</file>
+        <file>images/share_green.png</file>
+        <file>images/share_blue.png</file>
+        <file>images/download_blue.png</file>
+        <file>images/forward_blue.png</file>
+        <file>images/forward_green.png</file>
+        <file>images/forward_red.png</file>
+        <file>images/forward_light.png</file>
+        <file>images/forward_gray.png</file>
+        <file>images/forward_black.png</file>
+        <file>images/image_preview.png</file>
     </qresource>
 </RCC>

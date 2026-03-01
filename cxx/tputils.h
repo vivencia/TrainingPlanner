@@ -21,9 +21,6 @@ constexpr QLatin1Char fancy_record_separator1{'|'};
 constexpr QLatin1Char fancy_record_separator2{';'};
 constexpr QLatin1StringView comp_exercise_fancy_separator{" + "_L1};
 
-static const QString STR_ONE{'1'};
-static const QString STR_ZERO{'0'};
-
 // Helper macros for token pasting
 #define PASTE_HELPER(a, b) a##b
 #define PASTE(a, b) PASTE_HELPER(a, b)
@@ -81,7 +78,7 @@ public:
 		FT_OTHER			= 1U << 30,
 		FT_UNKNOWN			= 1U << 31,
 	};
-	Q_ENUM(FILE_TYPE);
+	Q_ENUM(FILE_TYPE)
 
 	enum BINARY_FILE_INFO_FIELDS {
 		BFIF_LOCAL_HANDLER_ID,
@@ -113,9 +110,9 @@ public:
 	int idFromString(const QString &string_id) const; //not unique
 	Q_INVOKABLE int generateRandomNumber(const int min, const int max) const;
 
-	Q_INVOKABLE FILE_TYPE getFileType(const QString &filename) const;
+	Q_INVOKABLE FILE_TYPE getFileType(QString filename) const;
 	FILE_TYPE getTPFileType(const QString &filename, std::optional<bool> &formatted) const;
-	QString getFileTypeIcon(const QString &filename, const QSize &preferred_size = QSize{}) const;
+	QString getFileTypeIcon(const QString &filename, const QSize &preferred_size = QSize{}, const bool image_thumbnail = true) const;
 	QString getImagePreviewFile(const QString &image_filename, const QSize &preferred_size = QSize{}) const;
 	Q_INVOKABLE void viewOrOpenFile(const QString &filename, const QVariant &extra_info = QVariant{});
 
@@ -202,6 +199,7 @@ public:
 	int daysInMonth(const int month, const int year) const;
 
 	Q_INVOKABLE QString formatTime(const QTime &time, const TIME_FORMAT format = TF_QML_DISPLAY_NO_SEC) const;
+	Q_INVOKABLE QString formatTime(const int msecs, const TIME_FORMAT format = TF_QML_DISPLAY_COMPLETE) const;
 	QTime timeFromString(const QString &strtime, const TIME_FORMAT format = TF_QML_DISPLAY_NO_SEC) const;
 	Q_INVOKABLE inline QString getCurrentTimeString(const TIME_FORMAT format = TF_QML_DISPLAY_NO_SEC) const { return formatTime(QTime::currentTime(), format); }
 	Q_INVOKABLE QString addTimeToStrTime(const QString &strTime, const int addmins, const int addsecs) const;
