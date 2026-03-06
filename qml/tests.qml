@@ -59,7 +59,8 @@ ApplicationWindow {
 			height: appSettings.itemDefaultHeight
 			width: homePage.width * 0.8
 			availableControls: [ MediaControls.CT_Play, MediaControls.CT_Stop, MediaControls.CT_Prev, MediaControls.CT_Next,
-				MediaControls.CT_Equalizer, MediaControls.CT_Rewind, MediaControls.CT_FastForward, MediaControls.CT_Mute ]
+				MediaControls.CT_Equalizer, MediaControls.CT_Rewind, MediaControls.CT_FastForward, MediaControls.CT_VolumeUp,
+				MediaControls.CT_VolumeDown, MediaControls.CT_Mute ]
 			onControlPressed: (type) => {
 				switch (type) {
 					case MediaControls.CT_Play: console.log("Play - pressed"); break;
@@ -70,6 +71,8 @@ ApplicationWindow {
 					case MediaControls.CT_Equalizer: console.log("Equalizer - pressed"); break;
 					case MediaControls.CT_Rewind: console.log("Rewind - pressed"); break;
 					case MediaControls.CT_FastForward: console.log("Fast Forward - pressed"); break;
+					case MediaControls.CT_VolumeUp: console.log("Volume Up - pressed"); break;
+					case MediaControls.CT_VolumeDown: console.log("Volume Down - pressed"); break;
 					case MediaControls.CT_Mute: console.log("Mute - pressed"); break;
 				}
 			}
@@ -83,6 +86,8 @@ ApplicationWindow {
 					case MediaControls.CT_Equalizer: console.log("Equalizer - click"); break;
 					case MediaControls.CT_Rewind: console.log("Rewind - click"); break;
 					case MediaControls.CT_FastForward: console.log("Fast Forward - click"); break;
+					case MediaControls.CT_VolumeUp: console.log("Volume Up - click"); break;
+					case MediaControls.CT_VolumeDown: console.log("Volume Down - çlick"); break;
 					case MediaControls.CT_Mute: console.log("Mute - click"); break;
 				}
 			}
@@ -96,6 +101,8 @@ ApplicationWindow {
 					case MediaControls.CT_Equalizer: console.log("Equalizer - released"); break;
 					case MediaControls.CT_Rewind: console.log("Rewind - released"); break;
 					case MediaControls.CT_FastForward: console.log("Fast Forward - released"); break;
+					case MediaControls.CT_VolumeUp: console.log("Volume Up - released"); break;
+					case MediaControls.CT_VolumeDown: console.log("Volume Down - released"); break;
 					case MediaControls.CT_Mute: console.log("Mute - released"); break;
 				}
 			}

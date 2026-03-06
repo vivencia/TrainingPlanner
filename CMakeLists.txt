@@ -224,7 +224,6 @@ set( QML_SOURCES
     "qml/TPWidgets/TPComboBox.qml"
     "qml/TPWidgets/TPDatePicker.qml"
     "qml/TPWidgets/TPDigitalClock.qml"
-	"qml/TPWidgets/TPFileOps.qml"
 	"qml/TPWidgets/TPFileViewer.qml"
     "qml/TPWidgets/TPFloatingMenuBar.qml"
     "qml/TPWidgets/TPLabel.qml"

@@ -20,12 +20,9 @@ PagesListModel::PagesListModel(QObject *parent)
 {
 	#ifndef Q_OS_ANDROID
 	app_Pages_list_models.insert(appSettings()->currentUser(), this);
-	if (app_Pages_list_models.count() > 1)
-	{
-		for (const auto page_info : std::as_const(app_Pages_list_models))
-		{
-			if (page_info->m_pagesData.count() > 0 && page_info->m_pagesData.first()->page)
-			{
+	if (app_Pages_list_models.count() > 1) {
+		for (const auto page_info : std::as_const(app_Pages_list_models)) {
+			if (page_info->m_pagesData.count() > 0 && page_info->m_pagesData.first()->page) {
 				insertHomePage(page_info->m_pagesData.first()->page);
 				break;
 			}
@@ -56,6 +53,16 @@ void PagesListModel::userSwitchingActions()
 }
 #endif
 
+void PagesListModel::removeEventFilter()
+{
+	qApp->removeEventFilter(this);
+}
+
+void PagesListModel::reinstallEventFilter()
+{
+	qApp->installEventFilter(this);
+}
+
 void PagesListModel::insertHomePage(QQuickItem *page)
 {
 	pageInfo *pageinfo{new pageInfo};
@@ -73,10 +80,8 @@ void PagesListModel::insertHomePage(QQuickItem *page)
 void PagesListModel::openPage(QQuickItem *page, QString &&label, const std::function<void ()> &clean_up_func)
 {
 	int index{0};
-	for (const auto page_st : std::as_const(m_pagesData))
-	{
-		if (page_st->page == page)
-		{
+	for (const auto page_st : std::as_const(m_pagesData)) {
+		if (page_st->page == page) {
 			openMainMenuShortCut(index);
 			return;
 		}
@@ -97,10 +102,8 @@ void PagesListModel::openPage(QQuickItem *page, QString &&label, const std::func
 
 void PagesListModel::closePage(QQuickItem *page)
 {
-	for (uint i{0}; i < m_pagesData.count(); ++i)
-	{
-		if (m_pagesData.at(i)->page == page)
-		{
+	for (uint i{0}; i < m_pagesData.count(); ++i) {
+		if (m_pagesData.at(i)->page == page) {
 			closePage(i);
 			return;
 		}
@@ -109,8 +112,7 @@ void PagesListModel::closePage(QQuickItem *page)
 
 void PagesListModel::closePage(const uint index)
 {
-	if (index > 0 && index < m_pagesData.count())
-	{
+	if (index > 0 && index < m_pagesData.count()) {
 		QMetaObject::invokeMethod(appMainWindow(), "popFromStack", Q_ARG(QQuickItem*, m_pagesData.at(index)->page));
 		beginRemoveRows(QModelIndex{}, index, index);
 		if (m_pagesData.at(index)->cleanUpFunc)
@@ -127,14 +129,11 @@ void PagesListModel::closePage(const uint index)
 
 void PagesListModel::openMainMenuShortCut(const uint index, const bool change_order)
 {
-	if (index > 0)
-	{
+	if (index > 0) {
 		openQMLPage(index);
-		if (change_order)
-		{
+		if (change_order) {
 			setCurrentIndex(m_pagesData.count() - 1);
-			if (index != currentIndex())
-			{
+			if (index != currentIndex()) {
 				beginMoveRows(QModelIndex{}, index, index, QModelIndex{}, m_pagesIndex + 1);
 				m_pagesData.move(index, m_pagesIndex);
 				endMoveRows();
@@ -149,10 +148,8 @@ void PagesListModel::openMainMenuShortCut(const uint index, const bool change_or
 
 void PagesListModel::changeLabel(QQuickItem *page, QString &&new_label)
 {
-	for (uint i{0}; i < m_pagesData.count(); ++i)
-	{
-		if (m_pagesData.at(i)->page == page)
-		{
+	for (uint i{0}; i < m_pagesData.count(); ++i) {
+		if (m_pagesData.at(i)->page == page) {
 			m_pagesData.at(i)->displayText = std::move(new_label);
 			return;
 		}
@@ -162,10 +159,8 @@ void PagesListModel::changeLabel(QQuickItem *page, QString &&new_label)
 QVariant PagesListModel::data(const QModelIndex &index, int role) const
 {
 	const int row{index.row()};
-	if (row >= 0 && row < m_pagesData.count())
-	{
-		switch (role)
-		{
+	if (row >= 0 && row < m_pagesData.count()) {
+		switch (role) {
 			case displayTextRole:
 				return m_pagesData.at(row)->displayText;
 			case pageRole:
@@ -183,13 +178,11 @@ void PagesListModel::popupOpened(QObject* popup)
 void PagesListModel::popupClosed(QObject* popup)
 {
 	auto z_order{m_popupsOpen.indexOf(popup)};
-	if (z_order >= 0)
-	{
+	if (z_order >= 0) {
 		m_popupsOpen.removeAt(z_order);
-		if (z_order < m_popupsOpen.count() - 1)
-		{
+		if (z_order < m_popupsOpen.count() - 1) {
 			for (const auto pop_up : std::as_const(m_popupsOpen) | std::views::drop(z_order))
-				pop_up->setProperty("z", z_order++);
+				pop_up->setProperty("z", z_order--);
 		}
 	}
 }
@@ -197,11 +190,10 @@ void PagesListModel::popupClosed(QObject* popup)
 void PagesListModel::raisePopup(QObject* popup)
 {
 	auto z_order{m_popupsOpen.indexOf(popup)};
-	if (z_order >= 0 && z_order < m_popupsOpen.count() - 1)
-	{
+	if (z_order >= 0 && z_order < m_popupsOpen.count() - 1) {
 		m_popupsOpen.move(z_order, m_popupsOpen.count() - 1);
 		for (const auto pop_up : std::as_const(m_popupsOpen) | std::views::drop(z_order))
-			pop_up->setProperty("z", z_order++);
+			pop_up->setProperty("z", z_order--);
 		QMetaObject::invokeMethod(popup, "forceActiveFocus");
 	}
 }
@@ -213,21 +205,17 @@ bool PagesListModel::isPopupAboveAllOthers(QObject* popup) const
 
 bool PagesListModel::eventFilter(QObject *obj, QEvent *event)
 {
-	if (event->type() == QEvent::KeyPress)
-	{
+	if (event->type() == QEvent::KeyPress) {
 		QKeyEvent *key_event{static_cast<QKeyEvent*>(event)};
-		if (key_event->key() == m_backKey)
-		{
-			if (!m_popupsOpen.isEmpty())
-			{
+		if (key_event->key() == m_backKey) {
+			if (!m_popupsOpen.isEmpty()) {
 				QObject *popup{m_popupsOpen.last()};
 				if (popup->property("modal").toBool() || popup->property("keepAbove").toBool())
 					QMetaObject::invokeMethod(popup, "backKeyPressed");
 				else
 					QMetaObject::invokeMethod(popup, "closePopup");
 			}
-			else
-			{
+			else {
 				if (currentIndex() != 0)
 					prevPage();
 				else
@@ -235,15 +223,15 @@ bool PagesListModel::eventFilter(QObject *obj, QEvent *event)
 			}
 			return true; // Return true to stop the event from propagating
 		}
+		else
+			return false;
 	}
 	return QObject::eventFilter(obj, event);
 }
 
 void PagesListModel::openQMLPage(const uint index)
 {
-	QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_pagesData.at(index)->page),
-			Q_ARG(bool, true));
+	QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_pagesData.at(index)->page), Q_ARG(bool, true));
 	if (index > 0)
-		appUserModel()->actualMesoModel()->setCurrentMesosView(
-												appUserModel()->actualMesoModel()->isOwnMeso(m_pagesMesoIdx.at(index)));
+		appUserModel()->actualMesoModel()->setCurrentMesosView(appUserModel()->actualMesoModel()->isOwnMeso(m_pagesMesoIdx.at(index)));
 }

@@ -1,6 +1,7 @@
 #include "tpfileops.h"
 #include "dbusermodel.h"
 #include "osinterface.h"
+#include "pageslistmodel.h"
 #include "qmlitemmanager.h"
 #include "tpimage.h"
 #include "tpsettings.h"
@@ -9,7 +10,7 @@
 #include <QQuickWindow>
 
 TPFileOps::TPFileOps(QQuickItem *parent)
-	: QQuickPaintedItem{parent}, m_currentControl{nullptr}, m_qml_control_spacing{5}, m_qml_control_extra_height{10}
+	: QQuickPaintedItem{parent}, m_currentControl{nullptr}, m_qml_control_spacing{5}, m_qml_control_extra_height{10}, m_controls{nullptr}
 {
 	setAcceptTouchEvents(true);
 	setAcceptedMouseButtons(Qt::LeftButton);
@@ -35,8 +36,10 @@ void TPFileOps::paint(QPainter *painter)
 	if (painter->clipBoundingRect().width() == m_controlSize.width() && m_currentControl)
 		painter->drawImage(painter->clipBoundingRect(), *(m_currentControl->current_image));
 	else {
-		for (const auto &ci : std::as_const(m_controls))
-			painter->drawImage(ci->rect, *(ci->current_image));
+		for (const auto &ci : std::as_const(m_controls)) {
+			if (ci)
+				painter->drawImage(ci->rect, *(ci->current_image));
+		}
 	}
 }
 
@@ -81,9 +84,13 @@ void TPFileOps::mouseReleaseEvent(QMouseEvent *event)
 
 	controlInfo* ci{controlFromMouseClick(event->position())};
 	if (ci == m_currentControl) {
+		ci->current_image = &ci->default_image;
+		ci->pressed = false;
+		update(ci->rect);
+
 		switch (ci->type) {
 			case OT_FullScreen:
-				emit showFullScreen();
+				doFullScreen();
 			break;
 			case OT_Download:
 				QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, appUtils()->getFileName(m_filename)));
@@ -92,50 +99,109 @@ void TPFileOps::mouseReleaseEvent(QMouseEvent *event)
 				appOsInterface()->viewExternalFile(m_filename);
 			break;
 			case OT_Forward:
-			{//TODO
+			{//TODO use TPMessagesManager
 				QString userid;
 				QMetaObject::invokeMethod(appMainWindow(), "getUsersList", Q_RETURN_ARG(QString, userid));
 				appUserModel()->sendFileToUser(userid, m_filename);
 			}
 			break;
-			case OT_ViewExternally: appUtils()->viewOrOpenFile(m_filename); break;
+			case OT_ViewExternally:
+				appUtils()->viewOrOpenFile(m_filename);
+			break;
 			default: return;
 		}
-		ci->current_image = &ci->default_image;
-		ci->pressed = false;
-		update(ci->rect);
 	}
+}
+
+bool TPFileOps::eventFilter(QObject *obj, QEvent *event)
+{
+	if (event->type() == QEvent::KeyPress) {
+		QKeyEvent *key_event{static_cast<QKeyEvent*>(event)};
+		switch (key_event->key()) {
+			case Qt::Key_Space:
+			break;
+			case Qt::Key_Left:
+			case Qt::Key_Right:
+			case Qt::Key_Up:
+			case Qt::Key_Down:
+				if (key_event->isAutoRepeat())
+					emit multimediaKeyPressed(key_event->key());
+			break;
+			default: return false;
+		}
+		return true; // Return true to stop the event from propagating
+	}
+	else if (event->type() == QEvent::KeyRelease) {
+		QKeyEvent *key_event{static_cast<QKeyEvent*>(event)};
+		switch (key_event->key()) {
+			case Qt::Key_Space:
+			case Qt::Key_Left:
+			case Qt::Key_Right:
+			case Qt::Key_Up:
+			case Qt::Key_Down:
+				emit multimediaKeyReleased(key_event->key());
+			break;
+			case Qt::Key_Delete:
+				doFullScreen();
+				break;
+			default: return false;
+		}
+		return true; // Return true to stop the event from propagating
+	}
+	else
+		return QObject::eventFilter(obj, event);
+}
+
+void TPFileOps::doFullScreen()
+{
+	m_fullscreen = !m_fullscreen;
+	if (m_fullscreen) {
+		appPagesListModel()->removeEventFilter();
+		qApp->installEventFilter(this);
+	}
+	else {
+		qApp->removeEventFilter(this);
+		appPagesListModel()->reinstallEventFilter();
+	}
+	emit showFullScreen();
 }
 
 void TPFileOps::createControls()
 {
 	if (width() > 0 && height() > 0) {
-		int new_height{static_cast<int>(height()) - m_qml_control_extra_height};
-		int new_width{qFloor((width() - 5 - (static_cast<int>(OT_TypeCount) * m_qml_control_spacing)) / static_cast<int>(OT_TypeCount))};
+		const int new_height{static_cast<int>(height()) - m_qml_control_extra_height};
+		if (new_height < 0 || new_height == m_controlSize.height())
+			return;
+		int new_width{qFloor((width() - 5 - static_cast<int>(OT_TypeCount) * m_qml_control_spacing) / static_cast<int>(OT_TypeCount))};
+		if (new_width < 0)
+			return;
 		if (new_height < new_width) {
 			new_width = new_height;
 			m_qml_control_spacing = qFloor((width() - 5 - (static_cast<int>(OT_TypeCount) * new_width)) / static_cast<int>(OT_TypeCount));
 		}
 		else if (new_height > new_width) {
-			new_height = new_width;
+			new_width = new_height;
 			m_qml_control_extra_height = height() - new_height;
 		}
-		if (new_height != m_controlSize.height() || new_width != m_controlSize.width()) {
-			m_controlSize.rwidth() = new_width;
-			m_controlSize.rheight() = new_height;
-			int control_x{qCeil((width() - static_cast<int>(OT_TypeCount) * (m_qml_control_spacing + new_width))/2) + qCeil(m_qml_control_spacing / 2)};
-			for (int i{OT_FullScreen}; i < OT_TypeCount; ++i) {
-				controlInfo *ci{new controlInfo};
-				ci->type = static_cast<OpType>(i);
-				_getDefaultImage(ci);
-				ci->default_image = std::move(ci->default_image.scaled(m_controlSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-				ci->current_image = &ci->default_image;
-				ci->rect = QRect{control_x, m_qml_control_extra_height / 2, m_controlSize.width(), m_controlSize.height()};
-				control_x += m_controlSize.width() + m_qml_control_spacing;
+
+		m_controlSize.rwidth() = new_width;
+		m_controlSize.rheight() = new_height;
+		int control_x{qCeil((width() - static_cast<int>(OT_TypeCount) * (m_qml_control_spacing + new_width))/2) + qCeil(m_qml_control_spacing / 2)};
+		for (int i{OT_FullScreen}; i < OT_TypeCount; ++i) {
+			controlInfo *ci{m_controls[i]};
+			if (!m_controls[i]) {
+				ci = new controlInfo;
 				m_controls[i] = ci;
+				ci->type = static_cast<OpType>(i);
 			}
-			update();
+
+			_getDefaultImage(ci);
+			ci->default_image = std::move(ci->default_image.scaled(m_controlSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+			ci->current_image = &ci->default_image;
+			ci->rect = QRect{control_x, m_qml_control_extra_height / 2, m_controlSize.width(), m_controlSize.height()};
+			control_x += m_controlSize.width() + m_qml_control_spacing;
 		}
+		update();
 	}
 }
 
@@ -169,7 +235,7 @@ void TPFileOps::_setEnabled(controlInfo *ci, const bool enabled)
 
 void TPFileOps::_getDefaultImage(controlInfo *ci)
 {
-	const QString &str_image_source{":/images/%1_"_L1 % appSettings()->indexColorSchemeToColorSchemeName() % ".png"};
+	const QString &str_image_source{":/images/%1_"_L1 % appSettings()->indexColorSchemeToColorSchemeName() % ".png"_L1};
 	switch (ci->type) {
 		case OT_FullScreen: ci->default_image.load(str_image_source.arg("fullscreen")); break;
 		case OT_Download: ci->default_image.load(str_image_source.arg("download")); break;

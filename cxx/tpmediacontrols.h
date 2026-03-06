@@ -1,5 +1,7 @@
 #pragma once
 
+#include "tpfileops.h"
+
 #include <QColor>
 #include <QImage>
 #include <QList>
@@ -19,6 +21,7 @@ Q_OBJECT
 QML_ELEMENT
 
 Q_PROPERTY(QList<int> availableControls READ availableControls WRITE setAvailableControls NOTIFY availableControlsChanged FINAL)
+Q_PROPERTY(TPFileOps* fileOps READ fileOps WRITE setFileOps NOTIFY fileOpsChanged FINAL)
 
 public:
 
@@ -31,7 +34,9 @@ public:
 		CT_Equalizer,
 		CT_Rewind,
 		CT_FastForward,
-		CT_Mute
+		CT_VolumeUp,
+		CT_VolumeDown,
+		CT_Mute,
 	};
 	Q_ENUM(ControlType)
 
@@ -41,6 +46,7 @@ public:
 	inline QList<int> availableControls() const { return m_types; }
 	inline void setAvailableControls(const QList<int> &types_list)
 	{
+		m_types.clear();
 		m_types.reserve(types_list.count());
 		for (const auto type : types_list)
 			m_types.append(type);
@@ -48,13 +54,28 @@ public:
 		createControls();
 	}
 
+	inline TPFileOps *fileOps() const { return m_fileOps; }
+	void setFileOps(TPFileOps *fileops);
 	Q_INVOKABLE void setEnabled(TPMediaControls::ControlType type, const bool enabled, const bool call_update = true);
+	Q_INVOKABLE void controlReachedLimit(TPMediaControls::ControlType type);
+	Q_INVOKABLE inline void emulateControlEvent(TPMediaControls::ControlType type, const bool pressed)
+	{
+		controlInfo *ci{controlFromType(type)};
+		if (ci && ci->enabled) {
+			if (pressed)
+				pressEvent(ci);
+			else
+				releaseEvent(ci);
+			update();
+		}
+	}
 
 signals:
 	void availableControlsChanged();
 	void controlClicked(TPMediaControls::ControlType type);
 	void controlPressed(TPMediaControls::ControlType type);
 	void controlReleased(TPMediaControls::ControlType type);
+	void fileOpsChanged();
 
 protected:
 	void mousePressEvent(QMouseEvent *event) override;
@@ -80,12 +101,16 @@ private:
 	QColor m_pressedColor;
 	int8_t m_qml_control_spacing;
 	int8_t m_qml_control_extra_height;
+	TPFileOps *m_fileOps;
 	static QImage img_all_controls;
 
+	void pressEvent(controlInfo *ci);
+	void releaseEvent(controlInfo *ci);
 	QImage getControlImageFromSource(ControlType type);
 	void createControls();
 	controlInfo *controlFromMouseClick(const QPointF& mouse_pos) const;
 	controlInfo *controlFromType(const ControlType type) const;
+	controlInfo *controlFromKey(const int key) const;
 	void _controlClicked(controlInfo *ci);
 	void _setEnabled(controlInfo *ci, const bool enabled);
 };

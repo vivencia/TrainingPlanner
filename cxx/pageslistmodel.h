@@ -33,6 +33,8 @@ public:
 	inline uint currentIndex() const { return m_pagesIndex; }
 	inline void setCurrentIndex(const uint new_index) { if (m_pagesIndex != new_index) { m_pagesIndex = new_index; emit currentIndexChanged(); } }
 
+	void removeEventFilter();
+	void reinstallEventFilter();
 	void insertHomePage(QQuickItem *page);
 	void openPage(QQuickItem *page, QString &&label = QString{}, const std::function<void(void)> &clean_up_func = nullptr);
 	void closePage(QQuickItem *page);

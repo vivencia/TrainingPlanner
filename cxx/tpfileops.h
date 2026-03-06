@@ -1,5 +1,6 @@
 #pragma once
 
+#include "tpbool.h"
 #include "tputils.h"
 
 #include <QColor>
@@ -48,10 +49,13 @@ signals:
 	void fileTypeChanged();
 	void fileNameChanged();
 	void showFullScreen();
+	void multimediaKeyPressed(const int key);
+	void multimediaKeyReleased(const int key);
 
 protected:
 	void mousePressEvent(QMouseEvent *event) override;
 	void mouseReleaseEvent(QMouseEvent *event) override;
+	bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
 
@@ -74,7 +78,9 @@ private:
 	int8_t m_qml_control_extra_height;
 	TPUtils::FILE_TYPE m_filetype;
 	QString m_filename;
+	TPBool m_fullscreen;
 
+	void doFullScreen();
 	void createControls();
 	void colorizeImage(QImage &image);
 	void disableImage(QImage &image);

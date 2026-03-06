@@ -8,64 +8,128 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 import "../"
 
 TPImage {
-	id: imagePreview
+	id: fileViewer
 	clip: true
 	smooth: false
 	source: previewSource
 	dropShadow: false
 	keepAspectRatio: true
-	imageSizeFollowControlSize: mediaType !== TPUtils.FT_Image
+	imageSizeFollowControlSize: _media_type !== TPUtils.FT_Image
 	fullWindowView: false
+
+	enum WindowStates { WS_UNDEFINED, WS_NORMAL, WS_FULLSCREEN }
 
 	required property string mediaSource
 	required property string previewSource
-	property int mediaType: TPUtils.FT_UNKNOWN
+
+	property int _media_type: TPUtils.FT_UNKNOWN
+	property int _window_state: TPFileViewer.WindowStates.WS_UNDEFINED
+	property FileOperations _file_ops
 
 	Component.onCompleted: {
-		if (mediaType === TPUtils.FT_UNKNOWN)
-			mediaType = appUtils.getFileType(mediaSource);
+		if (_media_type === TPUtils.FT_UNKNOWN)
+			_media_type = appUtils.getFileType(mediaSource);
+		_window_state = TPFileViewer.WindowStates.WS_NORMAL;
 	}
 
-	Rectangle {
-		id: fileOpsRec
+	property Rectangle fileOpsRec: Rectangle {
 		radius: 8
 		color: appSettings.paneBackgroundColor
 		border.color: appSettings.fontColor
 		opacity: 0.8
-		height: appSettings.itemDefaultHeight
-		width: appSettings.itemDefaultHeight * 4 + 20
+		height: 0
+		width: 0
+		z: 1
 
-		anchors {
-			horizontalCenter: parent.horizontalCenter
-			bottom: parent.bottom
-			bottomMargin: 10
-		}
+		states: [
+			State {
+				when: fileViewer._window_state === TPFileViewer.WindowStates.WS_FULLSCREEN
+
+				PropertyChanges {
+					target: fileOpsRec
+					parent: fullScreenLoader.fullScreenWidget.contentItem
+					height: appSettings.itemLargeHeight
+					width: (FileOperations.OT_TypeCount * (height + 5))
+					x: (fullScreenLoader.fullScreenWidget.contentItem.width - fileOpsRec.width) / 2
+					y: fullScreenLoader.fullScreenWidget.contentItem.height - fileOpsRec.height - 10
+				}
+			},
+			State {
+				when: fileViewer._window_state === TPFileViewer.WindowStates.WS_NORMAL
+
+				PropertyChanges {
+					target: fileOpsRec
+					parent: fileViewer
+					height: appSettings.itemDefaultHeight
+					width: (FileOperations.OT_TypeCount * (height + 5))
+					x: (fileViewer.width - fileOpsRec.width) / 2
+					y: fileViewer.height - fileOpsRec.height - 10
+				}
+			}
+		]
 
 		FileOperations {
 			fileName: mediaSource
-			fileType: mediaType
+			fileType: _media_type
 			anchors.fill: parent
 
 			anchors {
 				horizontalCenter: parent.horizontalCenter
 				verticalCenter: parent.verticalCenter
 			}
+
+			Component.onCompleted: fileViewer._file_ops = this;
+			onShowFullScreen: fullScreenLoader.showFullScreen();
 		}
 	}
 
-	Loader {
-		id: videoPreviewControlsLoader
+	property Loader mediaControlsLoader: Loader {
 		asynchronous: true
-		active: mediaType === TPUtils.FT_VIDEO;
-		height: appSettings.itemDefaultHeight
-		width: parent.width / 2
+		active: _media_type === TPUtils.FT_VIDEO;
+		height: 0
+		width: media_controls ? media_controls.availableControls.length * (height + 10) : 0
 		z: 1
 
-		anchors {
-			horizontalCenter: parent.horizontalCenter
-			bottom: fileOpsRec.top
-			bottomMargin: 5
-		}
+		readonly property list<int> previewControls: [MediaControls.CT_Play, MediaControls.CT_Stop, MediaControls.CT_Mute]
+		readonly property list<int> fullScreenControls: [MediaControls.CT_Play, MediaControls.CT_Stop, MediaControls.CT_Rewind,
+								MediaControls.CT_FastForward, MediaControls.CT_VolumeUp, MediaControls.CT_VolumeDown, MediaControls.CT_Mute]
+		property MediaControls media_controls
+
+		states: [
+			State {
+				when: fileViewer._window_state === TPFileViewer.WindowStates.WS_UNDEFINED
+
+				PropertyChanges {
+					target: mediaControlsLoader
+					parent: null
+					height: 0
+					x: 0
+					y: 0
+				}
+			},
+			State {
+				when: fileViewer._window_state === TPFileViewer.WindowStates.WS_NORMAL
+
+				PropertyChanges {
+					target: mediaControlsLoader
+					parent: fileViewer
+					height: appSettings.itemDefaultHeight
+					x: (fileViewer.width - mediaControlsLoader.width) / 2
+					y: fileViewer.height - mediaControlsLoader.height - fileOpsRec.height - 15
+				}
+			},
+			State {
+				when: fileViewer._window_state === TPFileViewer.WindowStates.WS_FULLSCREEN
+
+				PropertyChanges {
+					target: mediaControlsLoader
+					parent: fullScreenLoader.fullScreenWidget.contentItem
+					height: appSettings.itemLargeHeight
+					x: (fullScreenLoader.fullScreenWidget.contentItem.width - mediaControlsLoader.width) / 2
+					y: fullScreenLoader.fullScreenWidget.contentItem.height - mediaControlsLoader.height - fileOpsRec.height - 15
+				}
+			}
+		]
 
 		sourceComponent: Rectangle {
 			radius: 8
@@ -74,80 +138,177 @@ TPImage {
 			opacity: 0.8
 
 			MediaControls {
-				availableControls: [ MediaControls.CT_Play, MediaControls.CT_Stop, MediaControls.CT_Mute]
+				id: mediaControls
+				fileOps: fileViewer._file_ops
 				anchors.fill: parent
 
-				anchors {
-					horizontalCenter: parent.horizontalCenter
-					verticalCenter: parent.verticalCenter
-				}
+				states: [
+					State {
+						when: fileViewer._window_state === TPFileViewer.WindowStates.WS_UNDEFINED
+
+						PropertyChanges {
+							target: mediaControls
+							availableControls: []
+						}
+					},
+					State {
+						when: fileViewer._window_state === TPFileViewer.WindowStates.WS_NORMAL
+
+						PropertyChanges {
+							target: mediaControls
+							availableControls: mediaControlsLoader.previewControls
+						}
+					},
+					State {
+						when: fileViewer._window_state === TPFileViewer.WindowStates.WS_FULLSCREEN
+
+						PropertyChanges {
+							target: mediaControls
+							availableControls: mediaControlsLoader.fullScreenControls
+						}
+					}
+				]
 
 				onControlClicked: (type) => {
 					switch (type) {
 						case MediaControls.CT_Play:
-							previewMediaPlayerLoader.play();
+							mediaPlayerLoader.play();
 							setEnabled(MediaControls.CT_Mute, true);
 						break;
 						case MediaControls.CT_Stop:
-							previewMediaPlayerLoader.stop();
+							mediaPlayerLoader.stop();
 						break;
 						case MediaControls.CT_Mute:
-							previewMediaPlayerLoader.sound();
+							mediaPlayerLoader.mute();
 						break;
 					}
 				}
 
-				Component.onCompleted: setEnabled(MediaControls.CT_Mute, false, false);
+				onControlPressed: (type) => mediaPlayerLoader.pressed_operations(type, true);
+				onControlReleased: (type) => mediaPlayerLoader.pressed_operations(type, false);
+
+				Component.onCompleted: {
+					mediaControlsLoader.media_controls = this;
+					setEnabled(MediaControls.CT_Mute, false, false);
+				}
 			}
 		}
-	} //videoPreviewControlerLoader
+	} //mediaControlsLoader
 
-	Loader {
-		id: previewMediaPlayerLoader
+	property Loader mediaPlayerLoader: Loader {
 		asynchronous: true
 		active: false
-		anchors.fill: parent
+		x: 0
+		y: 0
 
 		property string remainingTime
-		property real media_volume: 0.0
+		property string mediaVolume
+		property MediaPlayer mediaPlayer: null
+		property AudioOutput audioOutput: null
 
 		sourceComponent: VideoOutput {
-			id: videoPreview
-			fillMode: VideoOutput.Stretch
+			id: videoOutput
 			clip: true
-			focus: false
-
-			property alias playing: mediaPlayer.playing
-			property alias seekable: mediaPlayer.seekable
+			anchors.fill: parent
 
 			MediaPlayer {
-				id: mediaPlayer
-				videoOutput: videoPreview
 				autoPlay: true
-				source: imagePreview.mediaSource
+				videoOutput: videoOutput
+				source: fileViewer.mediaSource
+
+				Component.onCompleted: mediaPlayerLoader.mediaPlayer = this;
 
 				audioOutput: AudioOutput {
 					id: audioOutput
-					volume: previewMediaPlayerLoader.media_volume
+					volume: 0.5
+					muted: true
+
+					Component.onCompleted: {
+						mediaPlayerLoader.audioOutput = this;
+						mediaPlayerLoader.mediaVolume = Qt.binding(function() { return audioOutput.muted ?
+																				qsTr("Muted") : parseInt(audioOutput.volume * 100, 10); });
+					}
 				}
+
 				onMediaStatusChanged: {
 					if (mediaStatus === MediaPlayer.EndOfMedia)
-						imagePreview.setControlEnabled(MediaControls.CT_Stop, false);
+						mediaControlsLoader.emulateControlClick(MediaControls.CT_Stop);
 				}
-				onPositionChanged: {
-					previewMediaPlayerLoader.remainingTime = appUtils.formatTime(mediaPlayer.duration - mediaPlayer.position);
-				}
+				onPositionChanged: mediaPlayerLoader.remainingTime = appUtils.formatTime(mediaPlayer.duration - mediaPlayer.position);
+			} //MediaPlayer
+
+			TPLabel {
+				id: lblTime
+				text: mediaPlayerLoader.remainingTime
+				useBackground: true
+				horizontalAlignment: Text.AlignHCenter
+				x: 10
+				y: 10
+			}
+			TPLabel {
+				id: lblVolume
+				text: qsTr("Volume: ") + mediaPlayerLoader.mediaVolume
+				useBackground: true
+				horizontalAlignment: Text.AlignHCenter
+				x: 10
+				y: 15 + lblTime.height
 			}
 
-			function play(): void {
-				mediaPlayer.play();
-			}
-			function pause() : void {
-				mediaPlayer.pause();
-			}
-			function stop() : void {
-				mediaPlayer.stop();
-			}
+			states: [
+				State {
+					when: fileViewer._window_state === TPFileViewer.WindowStates.WS_UNDEFINED
+
+					PropertyChanges {
+						target: mediaPlayerLoader
+						parent: null
+					}
+				},
+				State {
+					when: fileViewer._window_state === TPFileViewer.WindowStates.WS_NORMAL
+
+					PropertyChanges {
+						target: mediaPlayerLoader
+						parent: fileViewer
+						width: fileViewer.width
+						height: fileViewer.height
+					}
+					PropertyChanges {
+						target: videoOutput
+						fillMode: VideoOutput.Stretch
+					}
+					PropertyChanges {
+						target: lblTime
+						font: AppGlobals.regularFont
+						height: appSettings.itemDefaultHeight
+					}
+				},
+				State {
+					when: fileViewer._window_state === TPFileViewer.WindowStates.WS_FULLSCREEN
+
+					PropertyChanges {
+						target: mediaPlayerLoader
+						parent: fullScreenLoader.fullScreenWidget.contentItem
+						width: fullScreenLoader.fullScreenWidget.contentItem.width
+						height: fullScreenLoader.fullScreenWidget.contentItem.height
+					}
+					PropertyChanges {
+						target: videoOutput
+						fillMode: VideoOutput.PreserveAspectFit
+					}
+					PropertyChanges {
+						target: lblTime
+						font: AppGlobals.largeFont
+						height: appSettings.itemLargeHeight
+					}
+				}
+			]
+		} //sourceCompoent: VideoOutput
+
+		Timer {
+			id: pressedTimer
+			interval: 500
+			repeat: true
+			triggeredOnStart: true
 		}
 
 		function play(): void {
@@ -156,59 +317,117 @@ TPImage {
 				active = true;
 			}
 			else {
-				if (!item.playing)
-					item.play();
+				if (!mediaPlayer.playing)
+					mediaPlayer.play();
 				else
-					item.pause();
+					mediaPlayer.pause();
 			}
 		}
 
 		function stop(): void {
-			item.stop();
+			mediaPlayer.stop();
 			active = false;
 		}
 
-		function sound(): void {
-			if (media_volume == 0.0)
-				media_volume = 0.5;
-			else
-				media_volume = 0.0;
+		function mute(): void {
+			audioOutput.muted = !audioOutput.muted;
 		}
-	} //previewMediaPlayerLoader
+
+
+		function pressed_operations(op: int, begin: bool) : void {
+			let pressed_function;
+			switch (op) {
+				case MediaControls.CT_FastForward:
+					pressed_function = function () {
+						mediaPlayer.position += 5000;
+						if (mediaPlayer.position >= mediaPlayer.duration)
+							mediaControlsLoader.media_controls.controlReachedLimit(MediaControls.CT_FastForward);
+					};
+				break;
+				case MediaControls.CT_Rewind:
+					pressed_function = function () {
+						mediaPlayer.position -= 5000;
+						if (mediaPlayer.position <= 0)
+							mediaControlsLoader.media_controls.controlReachedLimit(MediaControls.CT_Rewind);
+					};
+				break;
+				case MediaControls.CT_VolumeUp:
+					pressed_function = function () {
+						audioOutput.volume += 0.1;
+						if (audioOutput.volume >= 1.0)
+							mediaControlsLoader.media_controls.controlReachedLimit(MediaControls.CT_VolumeUp);
+					};
+				break;
+				case MediaControls.CT_VolumeDown:
+					pressed_function = function () {
+						audioOutput.volume -= 0.1;
+						if (audioOutput.volume === 0.0)
+							mediaControlsLoader.media_controls.controlReachedLimit(MediaControls.CT_VolumeDown);
+					};
+				break;
+				default: return;
+			}
+
+			if (begin) {
+				pressedTimer.triggered.connect(pressed_function);
+				pressedTimer.start();
+			}
+			else {
+				pressedTimer.stop();
+				pressedTimer.triggered.disconnect(pressed_function);
+			}
+		}
+	} //mediaPlayerLoader
 
 	Loader {
-		id: videoLengthLoader
-		asynchronous: true
-		active: previewMediaPlayerLoader.active
-		height: appSettings.itemDefaultHeight
-		width: parent.width / 3
-		x: 10
-		y: 10
-
-		sourceComponent: TPLabel {
-			text: previewMediaPlayerLoader.remainingTime
-			font: AppGlobals.smallFont
-			horizontalAlignment: Text.AlignHCenter
-		}
-	}
-
-	Loader
-	{
 		id: fullScreenLoader
 		asynchronous: true
 		active: false
 
+		property VideoOutput videoOutput
+		property Window fullScreenWidget: active ? item : null
+
+		function showFullScreen() : void {
+			if (!active) {
+				loaded.connect(showFullScreen);
+				active = true;
+				return;
+			}
+			const playing = mediaPlayerLoader.mediaPlayer ? mediaPlayerLoader.mediaPlayer.playing : false;
+			if (playing)
+				mediaControlsLoader.media_controls.emulateControlEvent(MediaControls.CT_Play, false);
+
+			if (fileViewer._window_state === TPFileViewer.WindowStates.WS_NORMAL) {
+				fileViewer._window_state = TPFileViewer.WindowStates.WS_UNDEFINED;
+				item.showNormal();
+				fileViewer._window_state = TPFileViewer.WindowStates.WS_FULLSCREEN;
+			}
+			else {
+				fileViewer._window_state = TPFileViewer.WindowStates.WS_UNDEFINED;
+				item.close();
+				fileViewer._window_state = TPFileViewer.WindowStates.WS_NORMAL;
+				active = false;
+			}
+			if (playing)
+				mediaControlsLoader.media_controls.emulateControlEvent(MediaControls.CT_Play, true);
+		}
+
 		sourceComponent: Window {
-			id: fullViewWindow
+			contentOrientation: Qt.LandscapeOrientation
+			width: 640
+			height: 480
+
+			Rectangle {
+				color: "#000000"
+				anchors.fill: parent
+			}
 
 			Loader {
-				id: fullImageLoader
 				asynchronous: true
-				active: mediaType === TPUtils.FT_IMAGE;
+				active: _media_type === TPUtils.FT_IMAGE;
 
 				TPImage {
-					id: largeImage
-					source: imagePreview.mediaSource
+					source: fileViewer.mediaSource
 					dropShadow: false
 					antialiasing: true
 					imageSizeFollowControlSize: false
@@ -218,77 +437,8 @@ TPImage {
 					height: preferredHeight
 					x: (parent.width - width)/2
 					y: (parent.height - height)/2
-
-					MouseArea {
-						anchors.fill: parent
-						onClicked: {
-							fullViewWindow.close();
-							fullScreenLoader.active = false;
-						}
-					}
 				}
-			}
-
-			Loader {
-				id: fullVideoLoader
-				asynchronous: true
-				active: mediaType === TPUtils.FT_IMAGE;
-
-				VideoOutput {
-					id: videoFullScreen
-					fillMode: VideoOutput.PreserveAspectCrop
-					clip: true
-					anchors.fill: parent
-					focus: true
-
-					MouseArea {
-						anchors.fill: parent
-						onClicked: videoFullScreen.playbackState === Video.PlayingState ? videoFullScreen.pause() : videoFullScreen.play();
-						onDoubleClicked: {
-							videoFullScreen.stop();
-							fullViewWindow.close();
-							videoPreview.play();
-							videoPreview.focus = true;
-						}
-					}
-
-					Keys.onSpacePressed: {
-						mediaPlayer2.playbackState === Video.PlayingState ? mediaPlayer2.pause() : mediaPlayer2.play();
-					}
-					Keys.onLeftPressed: mediaPlayer2.position = mediaPlayer2.position - 5000
-					Keys.onRightPressed: mediaPlayer2.position = mediaPlayer2.position + 5000
-					Keys.onUpPressed: audioOutput2.volume + 0.1
-					Keys.onDownPressed: audioOutput2.volume - 0.1
-
-					MediaPlayer {
-						id: mediaPlayer2
-						videoOutput: videoFullScreen
-						source: imagePreview.mediaSource
-						audioOutput: AudioOutput {
-							id: audioOutput2
-							volume: 0.5
-						}
-
-						onSourceChanged: {
-							if (fullViewWindow.visible) {
-								stop();
-								play();
-							}
-						}
-
-						onErrorOccurred: (error,errorString) => {
-							console.log("Fullscreen video error:")
-							console.log(error + ": " + errorString);
-						}
-					} //mediaPlayer2
-				} //videoFullScreen
-			} //fullVideoLoader
-		}
-
-		onLoaded: item.showFullScreen();
-	}
-
-	function setControlEnabled(control_type: int, enabled: bool) : void {
-
-	}
-} // Image
+			} //Loader
+		} //Window fullViewWindow
+	} //Loader fullScreenLoader
+} // TPImage
