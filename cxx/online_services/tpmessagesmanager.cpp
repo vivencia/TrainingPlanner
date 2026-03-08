@@ -5,7 +5,6 @@
 #include "tponlineservices.h"
 #include "../dbusermodel.h"
 #include "../qmlitemmanager.h"
-#include "../tpsettings.h"
 #include "../tputils.h"
 
 #include <QQmlApplicationEngine>
@@ -23,10 +22,11 @@ enum RoleNames
 	createRole(id,				TPMESSAGE_FIELD_ID)
 	createRole(labelText,		TPMESSAGE_FIELD_TEXT)
 	createRole(icon,			TPMESSAGE_FIELD_ICON)
-	createRole(date,			TPMESSAGE_FIELD_DATE)
-	createRole(time,			TPMESSAGE_FIELD_TIME)
+	createRole(file,			TPMESSAGE_FIELD_FILE)
 	createRole(extraInfoLabel,	TPMESSAGE_FIELD_EXTRA_INFO)
 	createRole(extraInfoIcon,	TPMESSAGE_FIELD_EXTRA_ICON)
+	createRole(date,			TPMESSAGE_FIELD_DATE)
+	createRole(time,			TPMESSAGE_FIELD_TIME)
 	createRole(actions,			TPMESSAGE_FIELD_ACTIONS)
 	createRole(sticky,			TPMESSAGE_FIELD_STICKY)
 	createRole(hasActions,		stickyRole + 1)
@@ -36,13 +36,14 @@ TPMessagesManager::TPMessagesManager(QObject *parent)
 	: QAbstractListModel{parent}, m_chatWindowComponent{nullptr}
 {
 	_appMessagesManager = this;
-	m_roleNames[idRole]				= std::move("id");
+	m_roleNames[idRole]				= std::move("msgid");
 	m_roleNames[labelTextRole]		= std::move("labelText");
 	m_roleNames[iconRole]			= std::move("msgicon");
-	m_roleNames[dateRole]			= std::move("msgdate");
-	m_roleNames[timeRole]			= std::move("msgtime");
+	m_roleNames[fileRole]			= std::move("filename");
 	m_roleNames[extraInfoLabelRole]	= std::move("extraInfo");
 	m_roleNames[extraInfoIconRole]	= std::move("extraInfoIcon");
+	m_roleNames[dateRole]			= std::move("msgdate");
+	m_roleNames[timeRole]			= std::move("msgtime");
 	m_roleNames[actionsRole]		= std::move("actions");
 	m_roleNames[stickyRole]			= std::move("sticky");
 	m_roleNames[hasActionsRole]		= std::move("hasActions");
@@ -76,7 +77,7 @@ TPMessage *TPMessagesManager::message(const qsizetype message_id) const
 void TPMessagesManager::addMessage(TPMessage *msg)
 {
 	beginInsertRows(QModelIndex{}, count(), count());
-	const QLatin1StringView v{std::move(msg->_displayText().toLatin1())};
+	const QLatin1StringView v{msg->displayText().toLatin1()};
 	if (msg->id() == -1) //do not override an id set elsewhere
 		msg->setId(appUtils()->generateUniqueId(v));
 	m_data.append(msg);
@@ -94,6 +95,9 @@ void TPMessagesManager::removeMessage(TPMessage *msg)
 	if (msg != nullptr) {
 		const qsizetype row{m_data.indexOf(msg)};
 		if (row >= 0) {
+			appOnlineServices()->removeFile(appUtils()->generateUniqueId(), appUtils()->getFileName(msg->fileName()),
+																			appUtils()->getSubDir(msg->fileName()), msg->data(0).toString());
+
 			beginRemoveRows(QModelIndex{}, row, row);
 			m_data.remove(row);
 			if (!msg->sticky())
@@ -131,23 +135,9 @@ void TPMessagesManager::binaryFileReceived(const QByteArray &data, const QString
 
 	if (message(id) == nullptr) {
 		TPMessage *new_message{new TPMessage(appUserModel()->userNameFromId(userid) % tr(" has sent you a file: ") %
-			appUtils()->binaryFileExtraFieldValue(data, TPUtils::BFIF_MESONAME), appUtils()->getFileTypeIcon(full_filename,
-																QSize{appSettings()->itemLargeHeight(), appSettings()->itemLargeHeight()}))};
+			appUtils()->binaryFileExtraFieldValue(data, TPUtils::BFIF_MESONAME), full_filename)};
 		new_message->setId(id);
-		new_message->insertData(full_filename);
-		new_message->insertAction(tr("View"), [this,userid] (const QVariant &var) {
-			appUtils()->viewOrOpenFile(var.toString(), userid);
-		});
-		new_message->insertAction(tr("Save"), [this,userid] (const QVariant &var) {
-			QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, var.toString()));
-		});
-		new_message->insertData(full_filename);
-		new_message->insertAction(tr("Delete"), [this,userid] (const QVariant &var) {
-			const QString &f_name{var.toString()};
-			QFile::remove(f_name);
-			appOnlineServices()->removeFile(appUtils()->generateUniqueId(), appUtils()->getFileName(f_name),
-																									appUtils()->getSubDir(f_name), userid);
-		});
+		new_message->insertData(userid);
 		new_message->plug();
 	}
 }
@@ -212,20 +202,20 @@ void TPMessagesManager::openChatWindow(TPChat *chat_manager)
 			m_chatWindowComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/User/ChatWindow.qml"_L1}, QQmlComponent::Asynchronous};
 		}
 		switch (m_chatWindowComponent->status()) {
-			case QQmlComponent::Ready:
-				chat_manager->loadChat();
-				createChatWindow_part2(chat_manager);
+		case QQmlComponent::Ready:
+			chat_manager->loadChat();
+			createChatWindow_part2(chat_manager);
 			break;
-			case QQmlComponent::Loading:
-				connect(m_chatWindowComponent, &QQmlComponent::statusChanged, this, [this,chat_manager] (QQmlComponent::Status status) {
-					openChatWindow(chat_manager);
-				}, Qt::SingleShotConnection);
+		case QQmlComponent::Loading:
+			connect(m_chatWindowComponent, &QQmlComponent::statusChanged, this, [this,chat_manager] (QQmlComponent::Status status) {
+				openChatWindow(chat_manager);
+			}, Qt::SingleShotConnection);
 			break;
-			case QQmlComponent::Null:
-			case QQmlComponent::Error:
-				#ifndef QT_NO_DEBUG
-				qDebug() << m_chatWindowComponent->errorString();
-				#endif
+		case QQmlComponent::Null:
+		case QQmlComponent::Error:
+			#ifndef QT_NO_DEBUG
+			qDebug() << m_chatWindowComponent->errorString();
+			#endif
 			break;
 		}
 	}
@@ -281,20 +271,19 @@ void TPMessagesManager::startChatMessagesPolling(const QString &userid)
 QVariant TPMessagesManager::data(const QModelIndex &index, int role) const
 {
 	const int row{index.row()};
-	if (row >= 0 && row < m_data.count())
-	{
-		switch (role)
-		{
-			case idRole: return m_data.at(row)->id();
-			case labelTextRole: return m_data.at(row)->displayText();
-			case iconRole: return m_data.at(row)->iconSource();
-			case dateRole: return m_data.at(row)->date();
-			case timeRole: return m_data.at(row)->time();
-			case extraInfoLabelRole: return m_data.at(row)->extraInfoLabel();
-			case extraInfoIconRole: return m_data.at(row)->extraInfoImage();
-			case actionsRole: return m_data.at(row)->actions();
-			case stickyRole: return m_data.at(row)->sticky();
-			case hasActionsRole: return m_data.at(row)->hasActions();
+	if (row >= 0 && row < m_data.count()) {
+		switch (role) {
+		case idRole:				return m_data.at(row)->id();
+		case labelTextRole:			return m_data.at(row)->displayText();
+		case iconRole:				return m_data.at(row)->iconSource();
+		case fileRole:				return m_data.at(row)->fileName();
+		case extraInfoLabelRole:	return m_data.at(row)->extraInfoLabel();
+		case extraInfoIconRole:		return m_data.at(row)->extraInfoImage();
+		case dateRole:				return m_data.at(row)->date();
+		case timeRole:				return m_data.at(row)->time();
+		case actionsRole:			return m_data.at(row)->actions();
+		case stickyRole:			return m_data.at(row)->sticky();
+		case hasActionsRole:		return m_data.at(row)->hasActions();
 		}
 	}
 	return QVariant{};
@@ -304,17 +293,12 @@ int TPMessagesManager::newMessagesCheckingInterval() const
 {
 	int msecs{20000};
 	int last_sent{0}, last_received{0};
-	for (const auto chat : m_chatsList)
-	{
-		for (const auto message : std::as_const(chat->m_messages) | std::views::reverse)
-		{
-			if (last_sent == 0 && chat->data(message, MESSAGE_SENT).toBool())
-			{
-				if (chat->data(message, MESSAGE_SENDER).toString() == appUserModel()->userId(0))
-				{
+	for (const auto chat : m_chatsList) {
+		for (const auto message : std::as_const(chat->m_messages) | std::views::reverse) {
+			if (last_sent == 0 && chat->data(message, MESSAGE_SENT).toBool()) {
+				if (chat->data(message, MESSAGE_SENDER).toString() == appUserModel()->userId(0)) {
 					const QDate &sent_date{chat->data(message, MESSAGE_SDATE).toDate()};
-					if (sent_date != QDate::currentDate())
-					{
+					if (sent_date != QDate::currentDate()) {
 						last_sent = -1;
 						continue;
 					}
@@ -322,13 +306,10 @@ int TPMessagesManager::newMessagesCheckingInterval() const
 					last_sent = QTime::currentTime().msecsSinceStartOfDay() - sent_time.msecsSinceStartOfDay();
 				}
 			}
-			if (last_received == 0 && chat->data(message, MESSAGE_RECEIVED).toBool())
-			{
-				if (chat->data(message, MESSAGE_RECEIVER).toString() != appUserModel()->userId(0))
-				{
+			if (last_received == 0 && chat->data(message, MESSAGE_RECEIVED).toBool()) {
+				if (chat->data(message, MESSAGE_RECEIVER).toString() != appUserModel()->userId(0)) {
 					const QDate &received_date{chat->data(message, MESSAGE_RDATE).toDate()};
-					if (received_date != QDate::currentDate())
-					{
+					if (received_date != QDate::currentDate()) {
 						last_received = -1;
 						continue;
 					}
@@ -340,15 +321,12 @@ int TPMessagesManager::newMessagesCheckingInterval() const
 
 		if (last_sent == -1 || last_received == -1)
 			break;
-		else if (last_sent != 0 && last_received != 0)
-		{
+		else if (last_sent != 0 && last_received != 0) {
 			msecs = last_sent - last_received;
 			if (msecs < 0)
 				msecs *= -1;
-			if (msecs < 15*60*1000)
-			{
-				if (msecs <= 5*60*1000)
-				{
+			if (msecs < 15*60*1000) {
+				if (msecs <= 5*60*1000) {
 					if (msecs <= 60*1000)
 						msecs = 1000; //Last message exchange was within the last minute. Check again after 1 second
 					else

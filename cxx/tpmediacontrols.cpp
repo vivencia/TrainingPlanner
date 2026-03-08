@@ -67,18 +67,15 @@ void TPMediaControls::controlReachedLimit(TPMediaControls::ControlType type)
 			break;
 				default: return;
 		}
-		update(ci->rect);
+		update();
 	}
 }
 
-void TPMediaControls::setEnabled(TPMediaControls::ControlType type, const bool enabled, const bool call_update)
+void TPMediaControls::setEnabled(TPMediaControls::ControlType type, const bool enabled)
 {
 	controlInfo *ci{controlFromType(type)};
-	if (ci && ci->enabled != enabled) {
+	if (ci && ci->enabled != enabled)
 		_setEnabled(ci, enabled);
-		if (call_update)
-			update(ci->rect);
-	}
 }
 
 void TPMediaControls::mousePressEvent(QMouseEvent *event)
@@ -109,18 +106,17 @@ void TPMediaControls::pressEvent(controlInfo *ci)
 					ci->pressed_image = std::move(getControlImageFromSource(CT_Pause));
 				TPImage::colorizeImage(ci->pressed_image, m_pressedColor);
 			}
+			ci->current_image = &ci->pressed_image;
+			ci->pressed = true;
 			switch (ci->type) {
 				case CT_Rewind:
 				case CT_FastForward:
 				case CT_VolumeUp:
 				case CT_VolumeDown:
 					_controlClicked(ci);
-				break;
+				return;
 				default: break;
 			}
-
-			ci->current_image = &ci->pressed_image;
-			ci->pressed = true;
 		}
 		else {
 			if (ci->type < CT_Rewind || ci->type == CT_Mute) {
@@ -304,8 +300,8 @@ void TPMediaControls::_controlClicked(controlInfo *ci)
 		ci_play->current_image = &ci_play->default_image;
 		ci_play->pressed = false;
 		ci_play->enabled = true;
-		update(ci_play->rect);
 	}
+	update();
 }
 
 void TPMediaControls::_setEnabled(controlInfo *ci, const bool enabled)

@@ -9,26 +9,29 @@ import "../"
 
 TPImage {
 	id: fileViewer
-	clip: true
 	smooth: false
-	source: previewSource
+	source: _preview_source
 	dropShadow: false
 	keepAspectRatio: true
 	imageSizeFollowControlSize: _media_type !== TPUtils.FT_Image
 	fullWindowView: false
 
+//public:
+	required property string mediaSource
+
+	signal removalRequested();
+
+//private:
 	enum WindowStates { WS_UNDEFINED, WS_NORMAL, WS_FULLSCREEN }
 
-	required property string mediaSource
-	required property string previewSource
-
+	property string _preview_source
 	property int _media_type: TPUtils.FT_UNKNOWN
 	property int _window_state: TPFileViewer.WindowStates.WS_UNDEFINED
 	property FileOperations _file_ops
 
 	Component.onCompleted: {
-		if (_media_type === TPUtils.FT_UNKNOWN)
-			_media_type = appUtils.getFileType(mediaSource);
+		mediaSource = appUtils.getCorrectPath(mediaSource);
+		_media_type = appUtils.getFileType(mediaSource);
 		_window_state = TPFileViewer.WindowStates.WS_NORMAL;
 	}
 
@@ -78,8 +81,12 @@ TPImage {
 				verticalCenter: parent.verticalCenter
 			}
 
-			Component.onCompleted: fileViewer._file_ops = this;
+			Component.onCompleted: {
+				fileViewer._file_ops = this;
+				fileViewer._preview_source = getFileTypeIcon(fileViewer.mediaSource, Qt.size(0, 0), true);
+			}
 			onShowFullScreen: fullScreenLoader.showFullScreen();
+			onFileRemovalRequested: fileViewer.removalRequested();
 		}
 	}
 
@@ -189,7 +196,7 @@ TPImage {
 
 				Component.onCompleted: {
 					mediaControlsLoader.media_controls = this;
-					setEnabled(MediaControls.CT_Mute, false, false);
+					setEnabled(MediaControls.CT_Mute, false);
 				}
 			}
 		}
@@ -232,7 +239,7 @@ TPImage {
 
 				onMediaStatusChanged: {
 					if (mediaStatus === MediaPlayer.EndOfMedia)
-						mediaControlsLoader.emulateControlClick(MediaControls.CT_Stop);
+						mediaControlsLoader.media_controls.emulateControlClick(MediaControls.CT_Stop);
 				}
 				onPositionChanged: mediaPlayerLoader.remainingTime = appUtils.formatTime(mediaPlayer.duration - mediaPlayer.position);
 			} //MediaPlayer
@@ -384,38 +391,42 @@ TPImage {
 		asynchronous: true
 		active: false
 
+		Component.onCompleted: loaded.connect(showFullScreen);
 		property VideoOutput videoOutput
 		property Window fullScreenWidget: active ? item : null
 
 		function showFullScreen() : void {
 			if (!active) {
-				loaded.connect(showFullScreen);
 				active = true;
 				return;
 			}
 			const playing = mediaPlayerLoader.mediaPlayer ? mediaPlayerLoader.mediaPlayer.playing : false;
 			if (playing)
-				mediaControlsLoader.media_controls.emulateControlEvent(MediaControls.CT_Play, false);
+				mediaControlsLoader.media_controls.emulateControlClick(MediaControls.CT_Play);
 
 			if (fileViewer._window_state === TPFileViewer.WindowStates.WS_NORMAL) {
 				fileViewer._window_state = TPFileViewer.WindowStates.WS_UNDEFINED;
-				item.showNormal();
+				item.showFullScreen();
 				fileViewer._window_state = TPFileViewer.WindowStates.WS_FULLSCREEN;
 			}
-			else {
-				fileViewer._window_state = TPFileViewer.WindowStates.WS_UNDEFINED;
+			else
 				item.close();
-				fileViewer._window_state = TPFileViewer.WindowStates.WS_NORMAL;
-				active = false;
-			}
+
 			if (playing)
-				mediaControlsLoader.media_controls.emulateControlEvent(MediaControls.CT_Play, true);
+				mediaControlsLoader.media_controls.emulateControlClick(MediaControls.CT_Play);
 		}
 
 		sourceComponent: Window {
 			contentOrientation: Qt.LandscapeOrientation
 			width: 640
 			height: 480
+			onClosing: (close_event) => {
+				fileViewer._window_state = TPFileViewer.WindowStates.WS_UNDEFINED;
+				if (mediaControlsLoader.active)
+					mediaControlsLoader.media_controls.emulateControlClick(MediaControls.CT_Stop);
+				fullScreenLoader.active = false;
+				fileViewer._window_state = TPFileViewer.WindowStates.WS_NORMAL;
+			}
 
 			Rectangle {
 				color: "#000000"
@@ -425,6 +436,7 @@ TPImage {
 			Loader {
 				asynchronous: true
 				active: _media_type === TPUtils.FT_IMAGE;
+				anchors.fill: parent
 
 				TPImage {
 					source: fileViewer.mediaSource
@@ -433,10 +445,6 @@ TPImage {
 					imageSizeFollowControlSize: false
 					fullWindowView: true
 					keepAspectRatio: true
-					width: preferredWidth
-					height: preferredHeight
-					x: (parent.width - width)/2
-					y: (parent.height - height)/2
 				}
 			} //Loader
 		} //Window fullViewWindow

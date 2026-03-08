@@ -9,6 +9,7 @@ enum TPMessageFields {
 	TPMESSAGE_FIELD_ICON,
 	TPMESSAGE_FIELD_DATE,
 	TPMESSAGE_FIELD_TIME,
+	TPMESSAGE_FIELD_FILE,
 	TPMESSAGE_FIELD_EXTRA_INFO,
 	TPMESSAGE_FIELD_EXTRA_ICON,
 	TPMESSAGE_FIELD_ACTIONS,
@@ -28,26 +29,28 @@ public:
 		setDisplayText(std::move(displayText));
 		setIconSource(std::move(iconSource));
 	}
+	inline TPMessage(QString &&displayText, const QString &filename) : QObject{nullptr}
+	{
+		setDisplayText(std::move(displayText));
+		setFileName(filename);
+	}
 
 	inline qsizetype id() const { return m_id; }
 	inline void setId(const qsizetype id) { m_id = id; emit dataChanged(TPMESSAGE_FIELD_ID); }
 
-	inline const QString &_displayText() const { return m_text; }
-	//32 is the space character. All the separators are 31 or less. Good output is 33 or greater
-	inline QString displayText() const { return static_cast<int>(m_text.last(1).at(0).toLatin1()) > 32 ? m_text : m_text.chopped(1); }
+	inline const QString &displayText() const { return m_text; }
 	inline void setDisplayText(QString &&new_text) { m_text = std::move(new_text); emit dataChanged(TPMESSAGE_FIELD_TEXT); }
-
-	inline const QString &_iconSource() const { return m_icon; }
-	inline QString iconSource() const { return m_icon; }
+	inline const QString &iconSource() const { return m_icon; }
 	inline void setIconSource(QString &&new_icon) { m_icon = std::move(new_icon); emit dataChanged(TPMESSAGE_FIELD_ICON); }
-
-	QString date() const;
-	QString time() const;
-
+	inline const QString& fileName() const { return m_filename; }
+	inline void setFileName(const QString &filename) { m_filename = filename; emit dataChanged(TPMESSAGE_FIELD_FILE); }
 	inline const QString &extraInfoLabel() const { return m_extraInfoLabel; }
 	inline void setExtraInfoLabel(const QString &new_label) { m_extraInfoLabel = new_label; emit dataChanged(TPMESSAGE_FIELD_EXTRA_INFO); }
 	inline const QString &extraInfoImage() const { return m_extraInfoImage; }
 	inline void setExtraInfoImage(const QString &new_image) { m_extraInfoImage = new_image; emit dataChanged(TPMESSAGE_FIELD_EXTRA_ICON); }
+
+	QString date() const;
+	QString time() const;
 
 	inline const bool plugged() const { return m_plugged; }
 	void plug();
@@ -109,9 +112,7 @@ signals:
 private:
 	qsizetype m_id;
 	bool m_plugged, m_sticky;
-	QString m_text;
-	QString m_icon;
-	QString m_extraInfoImage, m_extraInfoLabel;
+	QString m_text, m_icon, m_filename, m_extraInfoLabel, m_extraInfoImage;
 	QStringList m_actions;
 	QVariantList m_data;
 	QDateTime m_ctime;

@@ -22,10 +22,10 @@ ColumnLayout {
 			if (registered)
 				mainwindow.displayResultMessage(qsTr("Existing user account found"), Qt.platform.os !== "android" ?
 					qsTr("You can click on the Import button to download all the data for the user") :
-					qsTr("You can tap on the Import button to download all the data for the user"), "", 8000);
+					qsTr("You can tap on the Import button to download all the data for the user"), "", 8000, "", "");
 			else
 				mainwindow.displayResultMessage(qsTr("User account not found"),
-					qsTr("E-mail has not been registered before or the password is wrong"), "", 5000);
+					qsTr("E-mail has not been registered before or the password is wrong"), "", 5000, "", "");
 		}
 
 		function onUserOnlineImportFinished(result: bool): void {
@@ -33,12 +33,12 @@ ColumnLayout {
 			if (result) {
 				mainwindow.displayResultMessage(qsTr("User configuration imported"), Qt.platform.os !== "android" ?
 					qsTr("Click on Next to start using the app") :
-					qsTr("Tap on Next to start using the app"), "", 10000);
+					qsTr("Tap on Next to start using the app"), "", 10000, "", "");
 				mainwindow.firstTimeDlg.nextStartsTheApp = true;
 			}
 			else
-				mainwindow.displayResultMessage(qsTr("User data not imported"),
-					qsTr("Could not retrieve the data from the server"), "", 5000);
+				mainwindow.displayResultMessage(qsTr("User data not imported"), qsTr("Could not retrieve the data from the server"),
+																															"", 5000, "", "");
 		}
 	}
 

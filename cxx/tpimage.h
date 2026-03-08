@@ -79,6 +79,7 @@ private:
 	std::optional<bool> m_imageFollowControl, m_fullWindowView;
 	std::optional<Qt::AspectRatioMode> m_aspectRatioMode;
 	double m_wscale, m_hscale;
+	QPoint m_paintOrigin;
 
 	void scaleImage();
 	void checkEnabled();

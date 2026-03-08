@@ -110,13 +110,10 @@ public:
 	int idFromString(const QString &string_id) const; //not unique
 	Q_INVOKABLE int generateRandomNumber(const int min, const int max) const;
 
-	Q_INVOKABLE FILE_TYPE getFileType(QString filename) const;
-	FILE_TYPE getTPFileType(const QString &filename, std::optional<bool> &formatted) const;
-	QString getFileTypeIcon(const QString &filename, const QSize &preferred_size = QSize{}, const bool image_thumbnail = true) const;
-	QString getImagePreviewFile(const QString &image_filename, const QSize &preferred_size = QSize{}) const;
-	Q_INVOKABLE void viewOrOpenFile(const QString &filename, const QVariant &extra_info = QVariant{});
-
 	Q_INVOKABLE QString getCorrectPath(const QUrl &url) const;
+	Q_INVOKABLE FILE_TYPE getFileType(QString filename) const;
+	TPUtils::FILE_TYPE getTPFileType(const QString &filename, std::optional<bool> &formatted) const;
+	Q_INVOKABLE void viewOrOpenFile(const QString &filename, const QVariant &extra_info = QVariant{});
 	Q_INVOKABLE bool canReadFile(const QString &filename) const;
 	QString getFilePath(const QString &filename) const;
 	QString getNthDirInPath(const QString &filename, int nth_dir = -1, int n_dirs = 1) const;

@@ -15,19 +15,6 @@
 
 TPUtils *TPUtils::app_utils{nullptr};
 
-// FNV-1a constants
-const uint32_t FNV_PRIME_32{0x01000193};
-const uint32_t FNV_OFFSET_BASIS_32{0x811c9dc5};
-
-inline uint32_t fnv1a_hash(const QString& s) {
-	uint32_t hash{FNV_OFFSET_BASIS_32};
-	for (const auto c : s.toStdU16String()) {
-		hash ^= static_cast<uint8_t>(c);
-		hash *= FNV_PRIME_32;
-	}
-	return hash;
-}
-
 TPUtils::TPUtils(QObject *parent)
 	: QObject{parent}, m_appLocale{nullptr}, m_lowestTempId{-1}
 {
@@ -90,17 +77,17 @@ QString TPUtils::getCorrectPath(const QUrl &url) const
 
 TPUtils::FILE_TYPE TPUtils::getFileType(QString filename) const
 {
-	filename = std::move(getCorrectPath(filename));
+	filename = std::move(appUtils()->getCorrectPath(filename));
 	if (!QFile::exists(filename))
 		return FT_UNKNOWN;
 
 	const QString &ext{appUtils()->getFileExtension(filename).toLower()};
 	if (ext.isEmpty()) {
-		#ifdef Q_OS_ANDROID
-			return filename.contains("video%"_L1) ? 1 : (filename.contains("image%"_L1) ? 0 : -1);
-		#else
-			return FT_OTHER;
-		#endif
+#ifdef Q_OS_ANDROID
+		return filename.contains("video%"_L1) ? 1 : (filename.contains("image%"_L1) ? 0 : -1);
+#else
+		return FT_OTHER;
+#endif
 	}
 
 	if (ext == "txt"_L1) {
@@ -126,7 +113,7 @@ TPUtils::FILE_TYPE TPUtils::getFileType(QString filename) const
 
 TPUtils::FILE_TYPE TPUtils::getTPFileType(const QString &filename, std::optional<bool> &formatted) const
 {
-	QFile *in_file{openFile(filename)};
+	QFile *in_file{appUtils()->openFile(filename)};
 	if (!in_file)
 		return FT_OTHER;
 
@@ -138,34 +125,34 @@ TPUtils::FILE_TYPE TPUtils::getTPFileType(const QString &filename, std::optional
 
 	while (stream.readLineInto(&line)) {
 		if (line.contains("##"_L1)) {
-			if (line.startsWith(STR_START_EXPORT))
+			if (line.startsWith(TPUtils::STR_START_EXPORT))
 				formatted = false;
-			else if (line.startsWith(STR_START_FORMATTED_EXPORT))
+			else if (line.startsWith(TPUtils::STR_START_FORMATTED_EXPORT))
 				formatted = true;
 			if (!formatted.has_value())
 				continue;
-			if (line.contains(userFileIdentifier)) {
+			if (line.contains(appUtils()->userFileIdentifier)) {
 				ret = FT_TP_USER_PROFILE;
 				break;
 			}
-			else if (line.contains(mesoFileIdentifier))
+			else if (line.contains(appUtils()->mesoFileIdentifier))
 				ret = FT_OTHER;
-			else if (line.contains(splitFileIdentifier) && ret == FT_OTHER) {
+			else if (line.contains(appUtils()->splitFileIdentifier) && ret == FT_OTHER) {
 				ret = FT_TP_PROGRAM;
 				break;
 			}
-			else if (line.contains(exercisesListFileIdentifier)) {
+			else if (line.contains(appUtils()->exercisesListFileIdentifier)) {
 				ret = FT_TP_EXERCISES;
 				break;
 			}
-			else if (line.contains(workoutFileIdentifier)) {
+			else if (line.contains(appUtils()->workoutFileIdentifier)) {
 				switch (line.at(line.length() -1).cell()) {
-					case 'A': ret = FT_TP_WORKOUT_A; break;
-					case 'B': ret = FT_TP_WORKOUT_B; break;
-					case 'C': ret = FT_TP_WORKOUT_C; break;
-					case 'D': ret = FT_TP_WORKOUT_D; break;
-					case 'E': ret = FT_TP_WORKOUT_E; break;
-					case 'F': ret = FT_TP_WORKOUT_F; break;
+				case 'A': ret = FT_TP_WORKOUT_A; break;
+				case 'B': ret = FT_TP_WORKOUT_B; break;
+				case 'C': ret = FT_TP_WORKOUT_C; break;
+				case 'D': ret = FT_TP_WORKOUT_D; break;
+				case 'E': ret = FT_TP_WORKOUT_E; break;
+				case 'F': ret = FT_TP_WORKOUT_F; break;
 				}
 			}
 		}
@@ -175,53 +162,6 @@ TPUtils::FILE_TYPE TPUtils::getTPFileType(const QString &filename, std::optional
 	in_file->close();
 	delete in_file;
 	return static_cast<FILE_TYPE>(ret);
-}
-
-QString TPUtils::getFileTypeIcon(const QString &filename, const QSize &preferred_size, const bool image_thumbnail) const
-{
-	uint32_t ft{static_cast<uint32_t>(getFileType(filename)) & ~FT_TP_FORMATTED};
-	switch (ft) {
-		case FT_TP_USER_PROFILE:	return "user_preview.png"_L1;
-		case FT_TP_PROGRAM:			return "meso_preview.png"_L1;
-		case FT_TP_WORKOUT_A:
-		case FT_TP_WORKOUT_B:
-		case FT_TP_WORKOUT_C:
-		case FT_TP_WORKOUT_D:
-		case FT_TP_WORKOUT_E:
-		case FT_TP_WORKOUT_F:		return "workout_preview.png"_L1;
-		case FT_TP_EXERCISES:		return "exerciselist_preview.png"_L1;
-		case FT_IMAGE:				return image_thumbnail ? getImagePreviewFile(filename, preferred_size) : "image_preview.png"_L1;
-		case FT_VIDEO:				return "video_preview.png"_L1;
-		case FT_PDF:				return "pdf_preview.png"_L1;
-		case FT_TEXT:				return "genreric_preview.png"_L1;
-		case FT_OPEN_DOCUMENT:		return "odf_preview.png"_L1;
-		case FT_MS_DOCUMENT:		return "docx_preview.png"_L1;
-		case FT_OTHER:				return "generic_preview.png"_L1;
-		case FT_UNKNOWN:
-		default:					return "$error$"_L1;
-	}
-}
-
-QString TPUtils::getImagePreviewFile(const QString &image_filename, const QSize &preferred_size) const
-{
-	static const QString size_template{"%1x%2"_L1};
-	QString preview_filename{previewImagesSubDir % QString::number(fnv1a_hash(image_filename)) % (!preferred_size.isNull() ?
-			size_template.arg(QString::number(preferred_size.width()), QString::number(preferred_size.height())) : QString{}) % ".jpg"_L1};
-	if (!QFile::exists(image_filename)) {
-		QImage thumbnail{image_filename};
-		QSize img_size{std::move(thumbnail.size())};
-		if (preferred_size.isNull()) {
-			const auto ratio{img_size.width() / img_size.height()};
-			img_size.rwidth() = qMin(static_cast<int>(appSettings()->pageWidth() * 0.5), img_size.width() * ratio);
-			img_size.rheight() = qMin(static_cast<int>(appSettings()->pageHeight() * 0.3), img_size.height() * ratio);
-		}
-		else
-			img_size = preferred_size;
-		thumbnail = std::move(thumbnail.scaled(img_size));
-		thumbnail.save(preview_filename, "JPG", 10);
-		return preview_filename;
-	}
-	return QString{};
 }
 
 void TPUtils::viewOrOpenFile(const QString &filename, const QVariant &extra_info)

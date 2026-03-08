@@ -31,6 +31,7 @@ ApplicationWindow {
 	signal unregisterUser(unregister: bool);
 	signal revokeCoachStatus(new_use_opt: int, revoke: bool);
 	signal revokeClientStatus(new_use_opt: int, revoke: bool);
+	signal generalMessagesPopupClicked(button: int);
 
 	signal tpFileOpenInquiryResult(do_import: bool);
 
@@ -395,10 +396,18 @@ ApplicationWindow {
 		button2Text: ""
 	}
 
-	function displayResultMessage(title: string, message: string, img_src: string, msecs: int): void {
+	function displayResultMessage(title: string, message: string, img_src: string, msecs: int, button1Text: string, button2Text: string): void {
 		generalMessagesPopup.title = title;
 		generalMessagesPopup.message = message;
 		generalMessagesPopup.imageSource = img_src;
+		if (button1Text !== "") {
+			generalMessagesPopup.button1Text = button1Text;
+			generalMessagesPopup.button1Clicked.connect(function() { generalMessagesPopupClicked(1); });
+		}
+		if (button2Text !== "") {
+			generalMessagesPopup.button2Text = button2Text;
+			generalMessagesPopup.button1Clicked.connect(function() { generalMessagesPopupClicked(2); });
+		}
 		if (msecs > 0)
 			generalMessagesPopup.showTimed(msecs, 0);
 		else

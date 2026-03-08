@@ -165,7 +165,7 @@ void TPChat::loadChat()
 				message->text = str_message.at(MESSAGE_TEXT);
 				message->media = str_message.at(MESSAGE_MEDIA);
 				if (!message->media.isEmpty())
-					getMediaPreviewFile(message);
+					++m_nMedia;
 				message->own_message = message->sender == appUserModel()->userId(0);
 				m_messages.append(message);
 			};
@@ -279,10 +279,8 @@ void TPChat::createNewMessage(const QString &text, const QString &media)
 	message->stime = std::move(QTime::currentTime());
 	message->text = text;
 	if (!media.isEmpty()) {
-		if (appUtils()->copyFile(appUtils()->getCorrectPath(media), chatsMediaSubDir(true), true)) {
+		if (appUtils()->copyFile(appUtils()->getCorrectPath(media), chatsMediaSubDir(true), true))
 			message->media = std::move(chatsMediaSubDir(true) % appUtils()->getFileName(media));
-			getMediaPreviewFile(message);
-		}
 		else {
 			delete message;
 			return;
@@ -313,7 +311,7 @@ void TPChat::incomingMessage(const QString &encoded_message)
 			const QString &media_filename{appUtils()->getFileName(message->media)};
 			appUserModel()->downloadFileFromServer(media_filename, chatsMediaSubDir(true) % media_filename, QString{}, chatsMediaSubDir(false));
 		}
-		getMediaPreviewFile(message);
+		++m_nMedia;
 	}
 
 	if (m_chatWindow) {
@@ -735,31 +733,4 @@ void TPChat::setUnreadMessages(const QString &unread_ids, const bool add)
 inline QString TPChat::chatsMediaSubDir(const bool fullpath) const
 {
 	return (fullpath ? appUserModel()->userDir() : QString{}) % chatsSubDir % QLatin1StringView{m_otherUserId.toLatin1().constData()} % '/';
-}
-
-void TPChat::getMediaPreviewFile(ChatMessage *const message)
-{
-	QString preview_image = std::move(appUtils()->getFileTypeIcon(message->media));
-	if (preview_image == "$error$"_L1) {
-		QTimer *waitForMediaToDownloadTimer{new QTimer{this}};
-		int n_attempts{10};
-		waitForMediaToDownloadTimer->setInterval(1000);
-		waitForMediaToDownloadTimer->callOnTimeout([this,message,waitForMediaToDownloadTimer,n_attempts] () mutable {
-			if (QFile::exists(message->media)) {
-				waitForMediaToDownloadTimer->stop();
-				delete waitForMediaToDownloadTimer;
-				getMediaPreviewFile(message);
-			}
-			else {
-				if (--n_attempts <= 0) //give up
-					delete waitForMediaToDownloadTimer;
-			}
-		});
-	}
-	else {
-		message->preview_media = std::move(appUtils()->getFileTypeIcon(message->media));
-		message->external_media = !message->preview_media.endsWith("jpg"_L1);
-		if (!message->external_media)
-			++m_nMedia;
-	}
 }

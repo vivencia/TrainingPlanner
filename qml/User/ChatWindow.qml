@@ -168,6 +168,14 @@ TPPopup {
 			height: !msgDeleted ? messageRec.height : 0
 
 			property int msgHeight: 10
+			required property int index
+
+			readonly property bool inViewport: {
+				const view = messagesList.view;
+				const top = view.contentY;
+				const bottom = top + view.height;
+				return (y + height > top) && (y < bottom)
+			}
 
 			Rectangle {
 				id: messageRec
@@ -217,62 +225,29 @@ TPPopup {
 					}
 
 					Loader {
-						id: mediaLoader
 						asynchronous: true
-						active: msgMedia.length > 0
+						active: messageItem.inViewport && msgMedia.length > 0
 						Layout.alignment: Qt.AlignCenter
-						Layout.preferredWidth: active ? Math.max(item.imgViewer.width, item.lblFileName.contentWidth) + 10 : 0
-						Layout.preferredHeight: active ? item.imgViewer.height + appSettings.itemDefaultHeight + 10 : 0
+						Layout.preferredWidth: active ? (msgOpenExternally ? appSettings.itemExtraLargeHeight : item.preferredWidth) + 10 : 0
+						Layout.preferredHeight: active ? (msgOpenExternally ? appSettings.itemExtraLargeHeight : preferredHeight) + 10 : 0
 
-						sourceComponent: Item {
+						sourceComponent: TPFileViewer {
+							mediaSource: msgMedia
 
-							readonly property TPImageViewer imgViewer: image_viewer
-							readonly property TPLabel lblFileName: label_filename
+							onImageSizeChanged: {
+								if (++nMedia === chatManager.nMediaMessages())
+									waitTimer.start();
+							}
 
 							Timer {
 								id: waitTimer
 								interval: 100
 								onTriggered: messagesList.positionViewAtEnd();
 							}
-
-							TPImageViewer {
-								id: image_viewer
-								previewSource: msgMediaPreview
-								mediaSource: msgMedia
-								//openExternally: msgOpenExternally
-								width: msgOpenExternally ? appSettings.itemExtraLargeHeight : preferredWidth
-								height: msgOpenExternally ? appSettings.itemExtraLargeHeight : preferredHeight
-
-								anchors {
-									top: parent.top
-									horizontalCenter: label_filename.horizontalCenter
-									horizontalCenterOffset: (width - height) / 2
-								}
-
-								onImageSizeChanged: {
-									if (++nMedia === chatManager.nMediaMessages())
-										waitTimer.start();
-								}
-							}
-
-							TPLabel {
-								id: label_filename
-								text: msgMediaFileName
-								horizontalAlignment: Text.AlignHCenter
-								useBackground: true
-								elide: Text.ElideRight
-
-								anchors {
-									left: parent.left
-									right: parent.right
-									top: image_viewer.bottom
-								}
-							}
 						}
 					}
 
 					TPLabel {
-						id: lblMessageContent
 						text: msgText
 						textFormat: Text.RichText
 						singleLine: false

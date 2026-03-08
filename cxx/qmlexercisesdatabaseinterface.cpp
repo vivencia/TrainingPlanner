@@ -46,7 +46,7 @@ void QmlExercisesDatabaseInterface::exportExercises(const bool bShare)
 void QmlExercisesDatabaseInterface::importExercises(const QString &filename)
 {
 	if (filename.isEmpty())
-		QMetaObject::invokeMethod(appMainWindow(), "chooseFileToImport");
+		appItemManager()->chooseFileToImport();
 	else
 		appUtils()->viewOrOpenFile(filename, TPUtils::FT_TP_EXERCISES);
 }

@@ -121,10 +121,11 @@ ApplicationWindow {
 		}*/
 
 		TPFileViewer {
-			mediaSource: "file:///home/guilhermef/Videos/Premiação - Dança Do Ventre Duo.mp4"
-			previewSource: "video_preview"
-			width: preferredWidth
-			height: preferredHeight
+			mediaSource: "file:///home/guilhermef/Documents/Atendimento_CIP_35.001.003.26.1170764.pdf"
+			width: 300
+			height: 300
+			x: 0
+			y: 0
 		}
 	}
 
@@ -148,10 +149,18 @@ ApplicationWindow {
 		button2Text: ""
 	}
 
-	function displayResultMessage(title: string, message: string, img_src: string, msecs: int): void {
+	function displayResultMessage(title: string, message: string, img_src: string, msecs: int, button1Text: string, button2Text: string): void {
 		generalMessagesPopup.title = title;
 		generalMessagesPopup.message = message;
 		generalMessagesPopup.imageSource = img_src;
+		if (button1Text !== "") {
+			generalMessagesPopup.button1Text = button1Text;
+			generalMessagesPopup.button1Clicked.connect(function() { generalMessagesPopupClicked(1); });
+		}
+		if (button2Text !== "") {
+			generalMessagesPopup.button2Text = button2Text;
+			generalMessagesPopup.button1Clicked.connect(function() { generalMessagesPopupClicked(2); });
+		}
 		if (msecs > 0)
 			generalMessagesPopup.showTimed(msecs, 0);
 		else

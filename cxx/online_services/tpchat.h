@@ -122,7 +122,6 @@ private:
 	void getNewMessagesNumber(const QString &encoded_messages);
 	void setUnreadMessages(const QString &unread_ids, const bool add = true);
 	QString chatsMediaSubDir(const bool fullpath) const;
-	void getMediaPreviewFile(ChatMessage *const message);
 
 	friend class TPMessagesManager;
 	Q_DISABLE_COPY(TPChat)

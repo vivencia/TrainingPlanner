@@ -203,8 +203,7 @@ void DBUserModel::setOnlineAccount(const bool online_user, const uint user_idx)
 
 void DBUserModel::createMainUser(const QString &userid, const QString &name)
 {
-	if (m_usersData.count() == 0)
-	{
+	if (m_usersData.count() == 0) {
 		m_usersData.insert(0, std::move(QStringList{} << (userid.isEmpty() ? std::move(generateUniqueUserId()) : userid) <<
 			QString{} << std::move("0"_L1) << name << std::move("2429630"_L1) << std::move("2"_L1) << QString{} <<
 			QString{} << QString{} << QString{} << QString{} << QString{} << std::move("0"_L1)));
@@ -223,15 +222,12 @@ void DBUserModel::removeMainUser()
 
 void DBUserModel::removeUser(const int user_idx, const bool remove_local, const bool remove_online)
 {
-	if (user_idx >= 1 && user_idx < m_usersData.count())
-	{
-		if (onlineAccount(user_idx))
-		{
+	if (user_idx >= 1 && user_idx < m_usersData.count()) {
+		if (onlineAccount(user_idx)) {
 			if (!remove_online)
 				return;
 		}
-		else
-		{
+		else {
 			if (!remove_local)
 				return;
 		}
@@ -250,10 +246,8 @@ void DBUserModel::scanUsersSubDirs(std::pair<QList<bool>,QFileInfoList> &results
 	QDir user_dir{userDir(0)};
 	const QStringList &all_dirs{user_dir.entryList(QDir::AllDirs|QDir::NoDotAndDotDot)};
 	auto n_results{results.second.count()};
-	for (const auto &dir: all_dirs)
-	{
-		if (dir.at(0).isDigit())
-		{
+	for (const auto &dir: all_dirs) {
+		if (dir.at(0).isDigit()) {
 			appUtils()->scanDir(userDir(0) % dir % '/' % subdir, results.second, match);
 			for (; n_results < results.second.count(); ++n_results)
 				results.first.append(isCoach(userIdxFromFieldValue(USER_COL_ID, dir)));
@@ -264,24 +258,19 @@ void DBUserModel::scanUsersSubDirs(std::pair<QList<bool>,QFileInfoList> &results
 int DBUserModel::userIdxFromFieldValue(const uint field, const QString &value, const bool exact_match) const
 {
 	int user_idx{0};
-	if (exact_match)
-	{
-		for (const auto &user : m_usersData)
-		{
+	if (exact_match) {
+		for (const auto &user : m_usersData) {
 			if (user.at(field) == value)
 				return user_idx;
 			++user_idx;
 		}
 		return -1;
 	}
-	else
-	{
+	else {
 		std::pair<double,int> greatest_similarity{0.0,-1};
-		for (const auto &user : m_usersData)
-		{
+		for (const auto &user : m_usersData) {
 			const double similarity{appUtils()->similarityBetweenStrings(user.at(field), value)};
-			if (greatest_similarity.first < similarity)
-			{
+			if (greatest_similarity.first < similarity) {
 				greatest_similarity.first = similarity;
 				greatest_similarity.second = user_idx;
 			}

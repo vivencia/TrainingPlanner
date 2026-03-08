@@ -56,18 +56,13 @@ public:
 
 	inline TPFileOps *fileOps() const { return m_fileOps; }
 	void setFileOps(TPFileOps *fileops);
-	Q_INVOKABLE void setEnabled(TPMediaControls::ControlType type, const bool enabled, const bool call_update = true);
+	Q_INVOKABLE void setEnabled(TPMediaControls::ControlType type, const bool enabled);
 	Q_INVOKABLE void controlReachedLimit(TPMediaControls::ControlType type);
-	Q_INVOKABLE inline void emulateControlEvent(TPMediaControls::ControlType type, const bool pressed)
+	Q_INVOKABLE inline void emulateControlClick(TPMediaControls::ControlType type)
 	{
 		controlInfo *ci{controlFromType(type)};
-		if (ci && ci->enabled) {
-			if (pressed)
-				pressEvent(ci);
-			else
-				releaseEvent(ci);
-			update();
-		}
+		pressEvent(ci);
+		releaseEvent(ci);
 	}
 
 signals:

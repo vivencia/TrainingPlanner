@@ -50,9 +50,9 @@ set(QT_FORCE_CMP0156_TO_VALUE NEW)
 set(QT_QML_GENERATE_QMLLS_INI ON)
 
 if (ANDROID)
-	find_package(Qt6 REQUIRED COMPONENTS Core CorePrivate Gui Multimedia Qml Quick QuickControls2 LinguistTools Widgets Sql Network Positioning Charts WebSockets)
+	find_package(Qt6 REQUIRED COMPONENTS Core CorePrivate Gui Multimedia Qml Quick QuickControls2 LinguistTools Widgets Sql Network Positioning Charts WebSockets Pdf)
 else()
-	find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 LinguistTools Widgets Sql Network Positioning Charts WebSockets)
+	find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 LinguistTools Widgets Sql Network Positioning Charts WebSockets Pdf)
 find_package(Qt6 REQUIRED COMPONENTS Core)
 find_package(PkgConfig REQUIRED)
 endif(ANDROID)
@@ -293,6 +293,7 @@ if(NOT ANDROID)
 		Qt6::Positioning
 		Qt6::Charts
 		Qt6::WebSockets
+		Qt6::Pdf
 		${keychain_LIBRARIES_PRIVATE}
 		#LIBRATS
 	)
@@ -312,6 +313,8 @@ else()
 		Qt6::Network
 		Qt6::Positioning
 		Qt6::Charts
+		Qt6::WebSockets
+		Qt6::Pdf
 	)
 target_link_libraries(TrainingPlanner PRIVATE Qt6::Core)
 target_link_libraries(TrainingPlanner PRIVATE Qt6::Core)

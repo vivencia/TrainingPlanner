@@ -1,7 +1,7 @@
 #pragma once
 
-#include "tpbool.h"
 #include "tputils.h"
+#include "tpbool.h"
 
 #include <QColor>
 #include <QImage>
@@ -32,6 +32,7 @@ public:
 		OT_Share,
 		OT_Forward,
 		OT_ViewExternally,
+		OT_Delete,
 		OT_TypeCount
 	};
 	Q_ENUM(OpType)
@@ -45,12 +46,20 @@ public:
 	inline void setFileName(const QString &filename) { m_filename = filename; emit fileNameChanged(); }
 	Q_INVOKABLE void setEnabled(TPFileOps::OpType type, const bool enabled, const bool call_update = true);
 
+	Q_INVOKABLE QString getFileTypeIcon(const QString &filename, const QSize &preferred_size = QSize{}, const bool thumbnail = true) const;
+	QString getImagePreviewFile(const QString &image_filename, QSize preferred_size = QSize{}) const;
+	QString getPDFPreviewFile(const QString &pdf_filename, QSize preferred_size = QSize{}) const;
+
+public slots:
+	void removeFileAnswer(const int button);
+
 signals:
 	void fileTypeChanged();
 	void fileNameChanged();
 	void showFullScreen();
 	void multimediaKeyPressed(const int key);
 	void multimediaKeyReleased(const int key);
+	void fileRemovalRequested();
 
 protected:
 	void mousePressEvent(QMouseEvent *event) override;
@@ -81,6 +90,7 @@ private:
 	TPBool m_fullscreen;
 
 	void doFullScreen();
+	void removeFile(const bool bypass_confirmation = false);
 	void createControls();
 	void colorizeImage(QImage &image);
 	void disableImage(QImage &image);
@@ -88,4 +98,6 @@ private:
 	controlInfo *controlFromType(const OpType type) const;
 	void _setEnabled(controlInfo *ci, const bool enabled);
 	void _getDefaultImage(controlInfo *ci);
+
+	Q_DISABLE_COPY(TPFileOps)
 };

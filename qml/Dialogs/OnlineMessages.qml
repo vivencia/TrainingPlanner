@@ -227,6 +227,7 @@ TPPopup {
 								dropShadow: false
 								width: appSettings.itemSmallHeight
 								height: width
+								visible: msgicon.length > 0
 							}
 
 							TPLabel {
@@ -288,71 +289,88 @@ TPPopup {
 						}
 					}
 
-					GridLayout {
-						id: actionsLayout
-						columns: 2
-						visible: delegateItem.showActions
-						columnSpacing: 2
-						rowSpacing: 5
+					Loader {
+						asynchronous: true
+						active: filename.length > 0
 						Layout.maximumWidth: dlgMaxWidth
 						Layout.minimumWidth: dlgMaxWidth
 
-						readonly property int maxButtonWidth: (dlgMaxWidth - 25)/3
-						readonly property int msgIndex: index
+						sourceComponent: TPFileViewer {
+							mediaSource: filename
+							onRemovalRequested: appMessages.removeMessage(msgid);
+						}
+					}
 
-						Repeater {
-							id: actionsRepeater
-							model: actions
+					Loader {
+						asynchronous: true
+						active: actions.length > 0
+						Layout.maximumWidth: dlgMaxWidth
+						Layout.minimumWidth: dlgMaxWidth
 
-							delegate: TPButton {
-								text: actions[index]
-								width: constrainSize ? actionsLayout.maxButtonWidth : preferredWidth
-								autoSize: !constrainSize
-								rounded: false
-								Layout.alignment: Qt.AlignCenter
-								onClicked: appMessages.execAction(actionsLayout.msgIndex, index);
+						sourceComponent: GridLayout {
+							id: actionsLayout
+							columns: 2
+							visible: delegateItem.showActions
+							columnSpacing: 2
+							rowSpacing: 5
 
-								required property int index
-								property bool constrainSize: false
-								property int row: 0
-								property int col: 0
-							}
+							readonly property int maxButtonWidth: (dlgMaxWidth - 25)/3
+							readonly property int msgIndex: index
 
-							//items are added in reverse order(from last to first) from TPMessages::insertAction call order
-							onItemAdded: (index, item) => {
-								if (index === 0) {
-									const n_items = actionsRepeater.model.count;
-									let row_width = 0, row  = 0, col = 0;
-									for (let i = 0; i < n_items; ++i) {
-										row_width += itemAt(i).width;
-										if (col === 0 || (row_width < dlgMaxWidth - 5)) {
-											itemAt(i).Layout.column = col;
-											itemAt(1).Layout.row = row;
-											col++
-										}
-										else {
-											if (itemAt(i).width >= itemAt(i-1).width)
-												itemAt(i).constrainSize = true;
-											else
-												itemAt(i-1).constrainSize = true;
-											if (itemAt(i).width + itemAt(i-1).width >= dlgMaxWidth - 5) {
-												itemAt(i).Layout.column = col = 0;
-												itemAt(i).Layout.row = ++row;
-												itemAt(i-1).constrainSize = false;
-											}
-											else {
+							Repeater {
+								id: actionsRepeater
+								model: actions
+
+								delegate: TPButton {
+									text: actions[index]
+									width: constrainSize ? actionsLayout.maxButtonWidth : preferredWidth
+									autoSize: !constrainSize
+									rounded: false
+									Layout.alignment: Qt.AlignCenter
+									onClicked: appMessages.execAction(actionsLayout.msgIndex, index);
+
+									required property int index
+									property bool constrainSize: false
+									property int row: 0
+									property int col: 0
+								}
+
+								//items are added in reverse order(from last to first) from TPMessages::insertAction call order
+								onItemAdded: (index, item) => {
+									if (index === 0) {
+										const n_items = actionsRepeater.model.count;
+										let row_width = 0, row  = 0, col = 0;
+										for (let i = 0; i < n_items; ++i) {
+											row_width += itemAt(i).width;
+											if (col === 0 || (row_width < dlgMaxWidth - 5)) {
 												itemAt(i).Layout.column = col;
 												itemAt(1).Layout.row = row;
 												col++
 											}
+											else {
+												if (itemAt(i).width >= itemAt(i-1).width)
+													itemAt(i).constrainSize = true;
+												else
+													itemAt(i-1).constrainSize = true;
+												if (itemAt(i).width + itemAt(i-1).width >= dlgMaxWidth - 5) {
+													itemAt(i).Layout.column = col = 0;
+													itemAt(i).Layout.row = ++row;
+													itemAt(i-1).constrainSize = false;
+												}
+												else {
+													itemAt(i).Layout.column = col;
+													itemAt(1).Layout.row = row;
+													col++
+												}
+											}
 										}
+										messagesList.messagesHeight += actionsLayout.childrenRect.height + lblMessage.height + messageTextLayout.height;
 									}
-									messagesList.messagesHeight += actionsLayout.childrenRect.height + lblMessage.height + messageTextLayout.height;
-								}
-							}
-						}
-					}
-				} //ColumnLayout
+								} //onItemAdded
+							} //Repeater
+						} //sourceComponent: GridLayout
+					} //Loader
+				} //contentItem: Column
 
 				swipe.right: Rectangle {
 					id: removeBackground
@@ -372,8 +390,8 @@ TPPopup {
 					}
 				} //swipe.right
 				swipe.onCompleted: appMessages.removeMessage(index);
-			} //delegate
-		} // messagesList
+			} //delegate: SwipeDelegate
+		} // TPListView: messagesList
 
 		ColumnLayout {
 			spacing: 10
