@@ -2,6 +2,8 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Window
 import QtQuick.Layouts
+import QtQuick.Pdf
+import QtMultimedia
 
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
@@ -121,16 +123,28 @@ ApplicationWindow {
 		}*/
 
 		TPFileViewer {
-			mediaSource: "file:///home/guilhermef/Documents/Atendimento_CIP_35.001.003.26.1170764.pdf"
+			mediaSource: "/home/guilhermef/Documents/Atendimento_CIP_35.001.003.26.1170764.pdf"
+			//mediaSource: "/home/guilhermef/Videos/Premiação - Dança Cigana Solo 2.mp4"
+			//mediaSource: "/home/guilhermef/Pictures/CNH Rozângela Barbosa Fortunato.png"
 			width: 300
 			height: 300
 			x: 0
 			y: 0
 		}
+
+		/*PdfMultiPageView {
+			x: 0
+			y: 0
+			width: appSettings.pageWidth
+			height: appSettings.pageHeight
+			document: PdfDocument {
+				source: "file:///home/guilhermef/Documents/Atendimento_CIP_35.001.003.26.1170764.pdf"
+			}
+		}*/
 	}
 
 	TPBalloonTip {
-		id: textCopiedInfo
+		id: txextCopiedInfo
 		height: 40
 		message: qsTr("Text copied to the clipboard")
 		button1Text: ""

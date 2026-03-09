@@ -127,9 +127,10 @@ void TPMediaControls::pressEvent(controlInfo *ci)
 		update(ci->rect);
 	}
 }
+
 void TPMediaControls::releaseEvent(controlInfo *ci)
 {
-	if (ci && ci == m_currentControl) {
+	if (ci && ci == m_currentControl && ci->enabled) {
 		switch (ci->type) {
 			case CT_Stop:
 			case CT_Play:

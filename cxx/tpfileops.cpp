@@ -24,7 +24,7 @@ inline uint32_t fnv1a_hash(const QString& s) {
 }
 
 TPFileOps::TPFileOps(QQuickItem *parent)
-	: QQuickPaintedItem{parent}, m_currentControl{nullptr}, m_qml_control_spacing{5}, m_qml_control_extra_height{10}, m_controls{nullptr}
+	: QQuickPaintedItem{parent}
 {
 	setAcceptTouchEvents(true);
 	setAcceptedMouseButtons(Qt::LeftButton);
@@ -73,22 +73,22 @@ QString TPFileOps::getFileTypeIcon(const QString &filename, const QSize &preferr
 {
 	uint32_t ft{static_cast<uint32_t>(appUtils()->getFileType(filename)) & ~TPUtils::FT_TP_FORMATTED};
 	switch (ft) {
-	case TPUtils::FT_TP_USER_PROFILE:	return "user_preview.png"_L1;
-	case TPUtils::FT_TP_PROGRAM:		return "meso_preview.png"_L1;
+	case TPUtils::FT_TP_USER_PROFILE:	return "user_preview"_L1;
+	case TPUtils::FT_TP_PROGRAM:		return "meso_preview"_L1;
 	case TPUtils::FT_TP_WORKOUT_A:
 	case TPUtils::FT_TP_WORKOUT_B:
 	case TPUtils::FT_TP_WORKOUT_C:
 	case TPUtils::FT_TP_WORKOUT_D:
 	case TPUtils::FT_TP_WORKOUT_E:
-	case TPUtils::FT_TP_WORKOUT_F:		return "workout_preview.png"_L1;
-	case TPUtils::FT_TP_EXERCISES:		return "exerciselist_preview.png"_L1;
-	case TPUtils::FT_IMAGE:				return thumbnail ? getImagePreviewFile(filename, preferred_size) : "image_preview.png"_L1;
-	case TPUtils::FT_VIDEO:				return "video_preview.png"_L1;
-	case TPUtils::FT_PDF:				return thumbnail ? getPDFPreviewFile(filename, preferred_size) : "pdf_preview.png"_L1;;
-	case TPUtils::FT_TEXT:				return "genreric_preview.png"_L1;
-	case TPUtils::FT_OPEN_DOCUMENT:		return "odf_preview.png"_L1;
-	case TPUtils::FT_MS_DOCUMENT:		return "docx_preview.png"_L1;
-	case TPUtils::FT_OTHER:				return "generic_preview.png"_L1;
+	case TPUtils::FT_TP_WORKOUT_F:		return "workout_preview"_L1;
+	case TPUtils::FT_TP_EXERCISES:		return "exerciselist_preview"_L1;
+	case TPUtils::FT_IMAGE:				return thumbnail ? getImagePreviewFile(filename, preferred_size) : "image_preview"_L1;
+	case TPUtils::FT_VIDEO:				return "video_preview"_L1;
+	case TPUtils::FT_PDF:				return thumbnail ? getPDFPreviewFile(filename, preferred_size) : "pdf_preview"_L1;;
+	case TPUtils::FT_TEXT:				return "genreric_preview"_L1;
+	case TPUtils::FT_OPEN_DOCUMENT:		return "odf_preview"_L1;
+	case TPUtils::FT_MS_DOCUMENT:		return "docx_preview"_L1;
+	case TPUtils::FT_OTHER:				return "generic_preview"_L1;
 	case TPUtils::FT_UNKNOWN:
 	default:							return "$error$"_L1;
 	}
@@ -128,6 +128,30 @@ QString TPFileOps::getImagePreviewFile(const QString &image_filename, QSize pref
 	return preview_filename;
 }
 
+QImage composeImages(const QImage& image1, const QImage& image2, const QPoint& position = QPoint(0, 0))
+{
+	// 1. Create a destination QImage (ensure it has an alpha channel for blending)
+	QImage resultImage(image1.size(), QImage::Format_ARGB32_Premultiplied);
+	// Start with a transparent background
+	resultImage.fill(Qt::transparent);
+	// 2. Initialize a QPainter on the result image
+	QPainter painter(&resultImage);
+	// 3. Draw the first image (base)
+	// QPainter::CompositionMode_SourceOver is often the default, but explicit is fine.
+	painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+	painter.drawImage(0, 0, image1);
+	// 4. Set the composition mode for the second image
+	// QPainter::CompositionMode_SourceOver blends the source (image2) over the destination (image1),
+	// respecting the alpha channel of image2. This is the most common blending mode.
+	painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+	// 5. Draw the second image (overlay) at a specific position
+	painter.drawImage(position, image2);
+	// End painting
+	painter.end();
+	return resultImage;
+}
+
+
 QString TPFileOps::getPDFPreviewFile(const QString &pdf_filename, QSize preferred_size) const
 {
 	if (QFile::exists(pdf_filename)) {
@@ -139,10 +163,13 @@ QString TPFileOps::getPDFPreviewFile(const QString &pdf_filename, QSize preferre
 		if (!QFile::exists(preview_filename)) {
 			QPdfDocument *pdf_doc{new QPdfDocument{}};
 			pdf_doc->load(pdf_filename);
+			//pdf_doc->pagePointSize(0);
 			QPdfDocumentRenderOptions pdf_opts;
 			pdf_opts.setRenderFlags(QPdfDocumentRenderOptions::RenderFlag::TextAliased | QPdfDocumentRenderOptions::RenderFlag::ImageAliased |
 								QPdfDocumentRenderOptions::RenderFlag::PathAliased | QPdfDocumentRenderOptions::RenderFlag::OptimizedForLcd);
-			QImage pdf_image{std::move(pdf_doc->render(0, preferred_size, pdf_opts))};
+			QImage background_image{preferred_size, QImage::Format_ARGB32_Premultiplied};
+			background_image.fill(Qt::white);
+			const QImage &pdf_image{composeImages(background_image, pdf_doc->render(0, preferred_size, pdf_opts))};
 			pdf_doc->deleteLater();
 			if (!pdf_image.isNull())
 				pdf_image.save(preview_filename, "JPG", 10);

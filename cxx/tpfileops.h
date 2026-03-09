@@ -1,7 +1,6 @@
 #pragma once
 
 #include "tputils.h"
-#include "tpbool.h"
 
 #include <QColor>
 #include <QImage>
@@ -72,22 +71,20 @@ private:
 		OpType type;
 		QImage default_image;
 		QImage pressed_image;
-		QImage *current_image;
-		bool pressed, enabled;
+		QImage *current_image{nullptr};
+		bool pressed{false}, enabled{true};
 		QRect rect;
-
-		inline controlInfo() : current_image{nullptr}, pressed{false}, enabled{true} {}
 	};
 
-	controlInfo *m_controls[OT_TypeCount];
-	controlInfo *m_currentControl;
+	controlInfo *m_controls[OT_TypeCount]{nullptr};
+	controlInfo *m_currentControl{nullptr};
 	QSize m_controlSize;
 	QColor m_pressedColor;
-	int8_t m_qml_control_spacing;
-	int8_t m_qml_control_extra_height;
+	int8_t m_qml_control_spacing{5};
+	int8_t m_qml_control_extra_height{10};
 	TPUtils::FILE_TYPE m_filetype;
 	QString m_filename;
-	TPBool m_fullscreen;
+	bool m_fullscreen{false};
 
 	void doFullScreen();
 	void removeFile(const bool bypass_confirmation = false);

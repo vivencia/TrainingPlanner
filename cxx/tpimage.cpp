@@ -195,6 +195,8 @@ void TPImage::scaleImage()
 		if (hScale() != 1.0)
 			m_imageSize.rheight() *= m_hscale;
 		m_image = std::move(m_image.scaled(m_imageSize, m_aspectRatioMode.value(), Qt::SmoothTransformation));
+		m_paintOrigin.setX((width() - m_image.width()) / 2);
+		m_paintOrigin.setY((height() - m_image.height()) / 2);
 	}
 	else {
 		if (!fullWindowView())

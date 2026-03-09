@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtMultimedia
+import QtQuick.Pdf
 
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
@@ -28,6 +29,7 @@ TPImage {
 	property int _media_type: TPUtils.FT_UNKNOWN
 	property int _window_state: TPFileViewer.WindowStates.WS_UNDEFINED
 	property FileOperations _file_ops
+	readonly property string _media_uri: "file://" + fileViewer.mediaSource
 
 	Component.onCompleted: {
 		mediaSource = appUtils.getCorrectPath(mediaSource);
@@ -205,8 +207,7 @@ TPImage {
 	property Loader mediaPlayerLoader: Loader {
 		asynchronous: true
 		active: false
-		x: 0
-		y: 0
+		anchors.fill: parent
 
 		property string remainingTime
 		property string mediaVolume
@@ -216,12 +217,11 @@ TPImage {
 		sourceComponent: VideoOutput {
 			id: videoOutput
 			clip: true
-			anchors.fill: parent
 
 			MediaPlayer {
 				autoPlay: true
 				videoOutput: videoOutput
-				source: fileViewer.mediaSource
+				source: fileViewer._media_uri
 
 				Component.onCompleted: mediaPlayerLoader.mediaPlayer = this;
 
@@ -435,10 +435,10 @@ TPImage {
 
 			Loader {
 				asynchronous: true
-				active: _media_type === TPUtils.FT_IMAGE;
+				active: _media_type === TPUtils.FT_IMAGE
 				anchors.fill: parent
 
-				TPImage {
+				sourceComponent: TPImage {
 					source: fileViewer.mediaSource
 					dropShadow: false
 					antialiasing: true
@@ -446,7 +446,42 @@ TPImage {
 					fullWindowView: true
 					keepAspectRatio: true
 				}
-			} //Loader
+			} //Loader : TPImage
+
+			Loader {
+				asynchronous: true
+				active: _media_type === TPUtils.FT_PDF
+				anchors.fill: parent
+
+				sourceComponent: PdfMultiPageView {
+					id: pdfViewer
+					document: PdfDocument {
+						source: fileViewer._media_uri
+					}
+
+					Connections {
+						target: fileViewer._file_ops
+						function onMultimediaKeyPressed(key: int): void {
+							switch (key) {
+							case Qt.Key_Left:
+								if (pdfViewer.forwardEnabled)
+									pdfViewer.forward();
+								break;
+							case Qt.Key_Right:
+								if (pdfViewer.backEnabled)
+									pdfViewer.back();
+								break;
+							case Qt.Key_Up:
+								pdfViewer.goToPage(0);
+								break;
+							case Qt.Key_Down:
+								pdfViewer.goToPage(pdfViewer.document.pageCount - 1);
+								break;
+							}
+						}
+					}
+				}
+			} //Loader : PdfMultiPageView
 		} //Window fullViewWindow
 	} //Loader fullScreenLoader
 } // TPImage
