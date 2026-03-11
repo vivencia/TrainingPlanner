@@ -62,6 +62,7 @@ Q_PROPERTY(QString splitLabelE READ splitLabelA NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString splitLabelF READ splitLabelA NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString coachLabel READ coachLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString clientLabel READ clientLabel NOTIFY labelChanged FINAL)
+Q_PROPERTY(QString fileLabel READ fileLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString typeLabel READ typeLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString realMesoLabel READ realMesoLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString nonMesoLabel READ nonMesoLabel NOTIFY labelChanged FINAL)
@@ -302,6 +303,7 @@ public:
 	inline const QString splitLabelF() const { return tr("Muscular groups for division F: "); }
 	inline const QString coachLabel() const { return tr("Coach/Trainer: "); }
 	inline const QString clientLabel() const { return tr("Client: "); }
+	inline const QString fileLabel() const { return tr("Instructions file"); }
 	inline const QString typeLabel() const { return tr("Type: "); }
 	inline const QString realMesoLabel() const { return tr("Mesocycle-style program: "); }
 	inline const QString nonMesoLabel() const { return tr("Mesocycle-style program: "); }

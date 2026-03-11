@@ -367,10 +367,8 @@ int DBMesocyclesModel::getPreviousMesoId(const QString &userid, const int curren
 QDate DBMesocyclesModel::getMesoMinimumStartDate(const QString &userid, const uint exclude_idx) const
 {
 	int meso_idx{static_cast<int>(count()-1)};
-	for (; meso_idx >= 0; --meso_idx)
-	{
-		if (meso_idx != exclude_idx)
-		{
+	for (; meso_idx >= 0; --meso_idx) {
+		if (meso_idx != exclude_idx) {
 			if (client(meso_idx) == userid)
 				if (!isMesoTemporary(meso_idx) && isRealMeso(meso_idx))
 					break;
@@ -382,8 +380,7 @@ QDate DBMesocyclesModel::getMesoMinimumStartDate(const QString &userid, const ui
 QDate DBMesocyclesModel::getMesoMaximumEndDate(const QString &userid, const uint exclude_idx) const
 {
 	uint meso_idx{exclude_idx + 1};
-	for (; meso_idx < count(); ++meso_idx)
-	{
+	for (; meso_idx < count(); ++meso_idx) {
 		if (client(meso_idx) == userid)
 			if (_id(meso_idx) >= 0 && isRealMeso(meso_idx))
 				break;
@@ -393,35 +390,29 @@ QDate DBMesocyclesModel::getMesoMaximumEndDate(const QString &userid, const uint
 
 void DBMesocyclesModel::removeCalendarForMeso(const uint meso_idx, const bool remake_calendar)
 {
-	if (_id(meso_idx) >= 0)
-	{
-		if (remake_calendar)
-		{
+	if (_id(meso_idx) >= 0) {
+		if (remake_calendar) {
 			auto conn{std::make_shared<QMetaObject::Connection>()};
 			*conn = connect(m_calendarDB, &TPDatabaseTable::dbOperationsFinished, this, [this,meso_idx,remake_calendar,conn]
-																	(const ThreadManager::StandardOps op, const bool success) {
-				if (op == ThreadManager::CustomOperation && success)
-				{
+																			(const ThreadManager::StandardOps op, const bool success) {
+				if (op == ThreadManager::CustomOperation && success) {
 					delete m_calendars.value(meso_idx);
 					m_calendars.remove(meso_idx);
 					getCalendarForMeso(meso_idx);
 				}
 			});
 		}
-		else
-		{
+		else {
 			auto conn{std::make_shared<QMetaObject::Connection>()};
 			*conn = connect(m_workoutsDB, &TPDatabaseTable::dbOperationsFinished, this, [this,meso_idx,conn]
 																	(const ThreadManager::StandardOps op, const bool success) {
-				if (op == ThreadManager::CustomOperation && success)
-				{
+				if (op == ThreadManager::CustomOperation && success) {
 					delete m_calendars.value(meso_idx);
 					m_calendars.remove(meso_idx);
 					qDeleteAll(m_workouts.value(meso_idx));
 					m_workouts.remove(meso_idx);
 					uint i{meso_idx};
-					for (const auto calendar : std::as_const(m_calendars) | std::views::drop(meso_idx))
-					{
+					for (const auto calendar : std::as_const(m_calendars) | std::views::drop(meso_idx)) {
 						calendar->setMesoIdx(i);
 						for (const auto workout: m_workouts.value(i))
 							workout->setMesoIdx(i);
@@ -614,32 +605,32 @@ void DBMesocyclesModel::exportToFile(const uint meso_idx, const QString &filenam
 void DBMesocyclesModel::exportToFormattedFile(const uint meso_idx, const QString &filename)
 {
 	QFile *out_file{appUtils()->openFile(filename, false, true, false, true)};
-	if (!out_file)
-	{
+	if (!out_file) {
 		emit mesoExported(meso_idx, filename, TP_RET_CODE_OPEN_CREATE_FAILED);
 		return;
 	}
 
 	int ret{TP_RET_CODE_EXPORT_FAILED};
-	const QList<uint> export_row{1, meso_idx};
-	QList<std::function<QString(void)>> field_description{QList<std::function<QString(void)>>{} << nullptr <<
-										[this] () { return mesoNameLabel(); } <<
-										[this] () { return startDateLabel(); } <<
-										[this] () { return endDateLabel(); } <<
-										[this] () { return notesLabel(); } <<
-										[this] () { return nWeeksLabel(); } <<
-										[this] () { return splitLabel(); } <<
-										[this] () { return splitLabelA(); } <<
-										[this] () { return splitLabelB(); } <<
-										[this] () { return splitLabelC(); } <<
-										[this] () { return splitLabelD(); } <<
-										[this] () { return splitLabelE(); } <<
-										[this] () { return splitLabelF(); } <<
-										[this] () { return coachLabel(); } <<
-										[this] () { return clientLabel(); } <<
-										nullptr <<
-										[this] () { return typeLabel(); } <<
-										[this] () { return realMesoLabel(); }
+	const QList<uint> export_row{meso_idx};
+	QList<std::function<QString(void)>> field_description{
+										nullptr, //do not include the id field
+										std::move([this] () { return mesoNameLabel(); }),
+										std::move([this] () { return startDateLabel(); }),
+										std::move([this] () { return endDateLabel(); }),
+										std::move([this] () { return notesLabel(); }),
+										std::move([this] () { return nWeeksLabel(); }),
+										std::move([this] () { return splitLabel(); }),
+										std::move([this] () { return splitLabelA(); }),
+										std::move([this] () { return splitLabelB(); }),
+										std::move([this] () { return splitLabelC(); }),
+										std::move([this] () { return splitLabelD(); }),
+										std::move([this] () { return splitLabelE(); }),
+										std::move([this] () { return splitLabelF(); }),
+										std::move([this] () { return coachLabel(); }),
+										std::move([this] () { return clientLabel(); }),
+										std::move([this] () { return fileLabel(); }),
+										std::move([this] () { return typeLabel(); }),
+										std::move([this] () { return realMesoLabel(); })
 	};
 
 	if (!appUtils()->writeDataToFormattedFile(out_file,
@@ -648,7 +639,7 @@ void DBMesocyclesModel::exportToFormattedFile(const uint meso_idx, const QString
 					field_description,
 					[this] (const uint field, const QString &value) { return formatFieldToExport(field, value); },
 					export_row,
-					QString{tr("Exercises Program") + "\n\n"_L1})
+					QString{tr("Exercises Program")})
 	)
 	{
 		emit mesoExported(meso_idx, filename, TP_RET_CODE_EXPORT_FAILED);

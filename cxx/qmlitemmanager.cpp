@@ -105,8 +105,6 @@ void QmlItemManager::configureQmlEngine()
 			m_homePage = appMainWindow()->findChild<QQuickItem*>("homePage");
 
 			appUserModel()->initUserSession();
-			connect(appMainWindow(), SIGNAL(saveFileChosen(QString)), this, SLOT(exportSlot(QString)));
-			connect(appMainWindow(), SIGNAL(saveFileRejected(QString)), this, SLOT(exportSlot(QString)));
 			connect(appHomePage(), SIGNAL(mesosViewChanged(bool)), this, SLOT(homePageViewChanged(bool)));
 			connect(appUtils(), &TPUtils::tpFileOpenRequest, this, &QmlItemManager::openTPFile);
 			if (m_qml_testing) {
@@ -409,7 +407,7 @@ enum MESSAGE_ICON {
 	MI_None = -1, MI_OK = 0, MI_Error = 1, MI_Warning = 2,
 };
 
-void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QString &fileName,
+void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QString &filename_or_message,
 															const QString &image_source, const uint msecs) const
 {
 	QString title, message;
@@ -418,20 +416,20 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 		icon_to_use = MI_OK;
 		switch (message_id) {
 			case TP_RET_CODE_CUSTOM_SUCCESS:
-				title = std::move(appUtils()->getCompositeValue(0, fileName, record_separator));
-				message = std::move(appUtils()->getCompositeValue(1, fileName, record_separator));
+				title = std::move(appUtils()->getCompositeValue(0, filename_or_message, record_separator));
+				message = std::move(appUtils()->getCompositeValue(1, filename_or_message, record_separator));
 			break;
 			case TP_RET_CODE_EXPORT_OK:
 				title = std::move(tr("Succesfully exported"));
-				message = std::move(appUtils()->getFileName(fileName));
+				message = std::move(filename_or_message);
 			break;
 			case TP_RET_CODE_SHARE_OK:
 				title = std::move(tr("Succesfully shared"));
-				message = std::move(appUtils()->getFileName(fileName));
+				message = std::move(filename_or_message);
 			break;
 			case TP_RET_CODE_IMPORT_OK:
 				title = std::move(tr("Successfully imported"));
-				message = std::move(appUtils()->getFileName(fileName));
+				message = std::move(appUtils()->getFileName(filename_or_message));
 			break;
 		}
 	}
@@ -439,20 +437,20 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 		icon_to_use = MI_Error;
 		switch (message_id) {
 			case TP_RET_CODE_CUSTOM_ERROR:
-				title = std::move(appUtils()->getCompositeValue(0, fileName, record_separator));
-				message = std::move(appUtils()->getCompositeValue(1, fileName, record_separator));
+				title = std::move(appUtils()->getCompositeValue(0, filename_or_message, record_separator));
+				message = std::move(appUtils()->getCompositeValue(1, filename_or_message, record_separator));
 			break;
 			case TP_RET_CODE_UNKNOWN_ERROR:
 				title = std::move(tr("Unknown Error"));
-				message = fileName;
+				message = filename_or_message;
 			break;
 			case TP_RET_CODE_FILE_NOT_FOUND:
 				title = std::move(tr("File not found!"));
-				message = fileName;
+				message = filename_or_message;
 			break;
 			case TP_RET_CODE_OPEN_READ_FAILED:
 				title = std::move(tr("Failed to open file"));
-				message = std::move(appUtils()->getFileName(fileName));
+				message = std::move(appUtils()->getFileName(filename_or_message));
 			break;
 			case TP_RET_CODE_WRONG_IMPORT_FILE_TYPE:
 				title = std::move(tr("Error"));
@@ -460,23 +458,23 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 			break;
 			case TP_RET_CODE_CORRUPT_FILE:
 				title = std::move(tr("Error"));
-				message = std::move(appUtils()->getFileName(fileName) +  tr("\n is formatted wrongly or corrupted"));
+				message = std::move(appUtils()->getFileName(filename_or_message) +  tr("\n is formatted wrongly or corrupted"));
 			break;
 			case TP_RET_CODE_SHARE_FAILED:
 				title = std::move(tr("Sharing failed"));
-				message = std::move(appUtils()->getFileName(fileName));
+				message = std::move(appUtils()->getFileName(filename_or_message));
 			break;
 			case TP_RET_CODE_EXPORT_FAILED:
 				title = std::move(tr("Export failed"));
-				message = std::move(tr("Operation canceled"));
+				message = filename_or_message;
 			break;
 			case TP_RET_CODE_IMPORT_FAILED:
 				title = std::move(tr("Import from file failed"));
-				message = std::move(appUtils()->getFileName(fileName));
+				message = std::move(appUtils()->getFileName(filename_or_message));
 			break;
 			case TP_RET_CODE_OPEN_CREATE_FAILED:
 				title = std::move(tr("Could not open file for exporting"));
-				message = std::move(appUtils()->getFileName(fileName));
+				message = std::move(appUtils()->getFileName(filename_or_message));
 			break;
 			case TP_RET_CODE_SERVER_UNREACHABLE:
 				title = std::move(tr("Online server unavailable"));
@@ -488,8 +486,8 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 		icon_to_use = MI_Warning;
 		switch (message_id) {
 			case TP_RET_CODE_CUSTOM_WARNING:
-				title = std::move(tr("Warning! ") + appUtils()->getCompositeValue(0, fileName, record_separator));
-				message = std::move(appUtils()->getCompositeValue(1, fileName, record_separator));
+				title = std::move(tr("Warning! ") + appUtils()->getCompositeValue(0, filename_or_message, record_separator));
+				message = std::move(appUtils()->getCompositeValue(1, filename_or_message, record_separator));
 			break;
 			case TP_RET_CODE_NOTHING_TODO:
 				title = std::move(tr("Nothing to be done"));
@@ -511,8 +509,8 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 	}
 	else {
 		icon_to_use = MI_None;
-		title = std::move(appUtils()->getCompositeValue(0, fileName, record_separator));
-		message = std::move(appUtils()->getCompositeValue(1, fileName, record_separator));
+		title = std::move(appUtils()->getCompositeValue(0, filename_or_message, record_separator));
+		message = std::move(appUtils()->getCompositeValue(1, filename_or_message, record_separator));
 	}
 
 	QString img_src;
@@ -529,25 +527,6 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 
 	QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(QString, title), Q_ARG(QString, message),
 					Q_ARG(QString, img_src), Q_ARG(int, static_cast<int>(msecs)), Q_ARG(QString, QString{}), Q_ARG(QString, QString{}));
-}
-
-void QmlItemManager::exportSlot(const QString &filePath)
-{
-	//TODO
-	int messageId(TP_RET_CODE_EXPORT_FAILED);
-	/*if (!filePath.isEmpty())
-	{
-		messageId = TP_RET_CODE_EXPORT_OK;
-		QFile file{filePath};
-		if (file.exists())
-			messageId = file.remove() ? TP_RET_CODE_EXPORT_OK : TP_RET_CODE_EXPORT_FAILED;
-		if (messageId == TP_RET_CODE_EXPORT_OK)
-			if (!appUtils()->copyFile(m_exportFilename, filePath))
-				messageId = TP_RET_CODE_EXPORT_FAILED;
-	}
-	displayMessageOnAppWindow(messageId);
-	QFile::remove(m_exportFilename);
-	m_exportFilename.clear();*/
 }
 
 void QmlItemManager::homePageViewChanged(const bool own_mesos_view)

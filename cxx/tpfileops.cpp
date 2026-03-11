@@ -1,10 +1,15 @@
 #include "tpfileops.h"
+#include "dbexerciseslistmodel.h"
+#include "dbmesocyclesmodel.h"
 #include "dbusermodel.h"
-#include "osinterface.h"
 #include "pageslistmodel.h"
 #include "qmlitemmanager.h"
 #include "tpimage.h"
 #include "tpsettings.h"
+
+#ifdef Q_OS_ANDROID
+#include "osinterface.h"
+#endif
 
 #include <QPainter>
 #include <QtPdf/QPdfDocument>
@@ -28,6 +33,10 @@ TPFileOps::TPFileOps(QQuickItem *parent)
 {
 	setAcceptTouchEvents(true);
 	setAcceptedMouseButtons(Qt::LeftButton);
+	connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::mesoIdxChanged, this, [this] (const uint old_meso_idx, const uint new_meso_idx) {
+		if (old_meso_idx == m_mesoIdx)
+			setMesoIdx(new_meso_idx);
+	});
 	connect(this, &TPFileOps::widthChanged, [this] { createControls(); });
 	connect(this, &TPFileOps::heightChanged, [this] { createControls(); });
 	m_pressedColor.fromString(appSettings()->primaryColor());
@@ -59,6 +68,23 @@ void TPFileOps::paint(QPainter *painter)
 	}
 }
 
+void TPFileOps::setFileName(const QString &filename)
+{
+	m_filename = filename;
+	emit fileNameChanged();
+	const TPUtils::FILE_TYPE file_type{appUtils()->getFileType(filename)};
+	setFileType(file_type);
+	if (file_type < TPUtils::FT_IMAGE) {
+		if (file_type & TPUtils::FT_TP_FORMATTED) {
+			m_tpfileSections = 0;
+			m_tpFileInfo.clear();
+			readTPFile();
+		}
+		else
+			setEnabled(OT_FullScreen, false);
+	}
+}
+
 void TPFileOps::setEnabled(TPFileOps::OpType type, const bool enabled, const bool call_update)
 {
 	controlInfo *ci{controlFromType(type)};
@@ -71,7 +97,7 @@ void TPFileOps::setEnabled(TPFileOps::OpType type, const bool enabled, const boo
 
 QString TPFileOps::getFileTypeIcon(const QString &filename, const QSize &preferred_size, const bool thumbnail) const
 {
-	uint32_t ft{static_cast<uint32_t>(appUtils()->getFileType(filename)) & ~TPUtils::FT_TP_FORMATTED};
+	uint32_t ft{m_filetype & ~TPUtils::FT_TP_FORMATTED};
 	switch (ft) {
 	case TPUtils::FT_TP_USER_PROFILE:	return "user_preview"_L1;
 	case TPUtils::FT_TP_PROGRAM:		return "meso_preview"_L1;
@@ -94,89 +120,118 @@ QString TPFileOps::getFileTypeIcon(const QString &filename, const QSize &preferr
 	}
 }
 
-static inline QString previewFilename(const QString &source_filename, const QSize &preview_size)
+void TPFileOps::doFileOperation(const int op)
 {
-	constexpr QLatin1StringView size_template{"_%1x%2"};
-	return appSettings()->currentUserDir() % TPUtils::previewImagesSubDir % QString::number(fnv1a_hash(source_filename)) %
-					size_template.arg(QString::number(preview_size.width()), QString::number(preview_size.height())) % ".jpg"_L1;
+	OpType type;
+	switch (op) {
+	case 0: type = OT_Download; break;
+	case 1: type = OT_Share; break;
+	case 2: type = OT_Forward; break;
+	case 3: type = OT_ViewExternally; break;
+	default: return;
+	}
+	_doFileOperation(type);
 }
 
-QString TPFileOps::getImagePreviewFile(const QString &image_filename, QSize preferred_size) const
+void TPFileOps::saveFileAs()
 {
-	if (!QFile::exists(image_filename))
-		return QString{};
+	connect(appMainWindow(), SIGNAL(saveFileChosen(QString)), this, SLOT(exportSlot(QString)), Qt::SingleShotConnection);
+	QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, appUtils()->getFileName(m_filename)));
+}
 
-	QImage thumbnail;
-	if (preferred_size.isNull()) {
-		thumbnail.load(image_filename);
-		const QSize &img_size{thumbnail.size()};
-		const int page_img_width_ratio{qFloor(img_size.width() / appSettings()->pageWidth())};
-		if (page_img_width_ratio >= 1)
-			preferred_size.setWidth(appSettings()->pageWidth() * 0.8);
+void TPFileOps::shareFile()
+{
+#ifdef Q_OS_ANDROID
+	appOsInterface()->shareFile(m_filename);
+#else
+	saveFileAs();
+#endif
+}
+
+void TPFileOps::sendFileTo(QString userid)
+{
+	//TODO use TPMessagesManager
+	if (userid.isEmpty())
+		QMetaObject::invokeMethod(appMainWindow(), "getUsersList", Q_RETURN_ARG(QString, userid));
+	appUserModel()->sendFileToUser(userid, m_filename);
+}
+
+void TPFileOps::openFile()
+{
+	appUtils()->viewOrOpenFile(m_filename);
+}
+
+inline bool fileStillInUse(const QString &filename)
+{
+	QFileInfo fi{filename};
+	if (fi.exists()) {
+		const QDateTime &f_time{fi.lastModified()};
+		if (f_time.date() == QDate::currentDate())
+			return appUtils()->calculateTimeDifferenceInSecs(f_time.time(), QTime::currentTime()) <= 6;
+	}
+	return false;
+}
+
+void TPFileOps::exportSlot(const QString &filePath)
+{
+	int ret_code(TP_RET_CODE_EXPORT_FAILED);
+	QString export_filename{};
+	if (!filePath.isEmpty()) {
+		uint32_t ft{m_filetype & ~TPUtils::FT_TP_FORMATTED};
+		export_filename = std::move("%1export_file_%2.txt"_L1.arg(appSettings()->currentUserDir(), QString::number(ft)));
+		QFile export_file{export_filename};
+		if (!fileStillInUse(export_filename))
+			export_file.remove();
+
+		switch (ft) {
+		case TPUtils::FT_TP_USER_PROFILE:
+			ret_code = appUserModel()->exportToFormattedFile(0, export_filename);
+			break;
+		case TPUtils::FT_TP_PROGRAM:
+			if (QFile::exists(export_filename)) {
+				if (export_filename.endsWith(QString::number(TPUtils::FT_TP_PROGRAM) % ".txt"_L1)) {
+					ret_code = TP_RET_CODE_EXPORT_OK;
+					break;
+				}
+				else
+					export_file.remove();
+			}
+			connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::mesoExported, this, [this,filePath]
+															(const uint meso_idx, const QString& filename, const int return_code) {
+				exportSlot(return_code == TP_RET_CODE_EXPORT_OK ? filePath : QString{});
+			}, Qt::SingleShotConnection);
+			appUserModel()->actualMesoModel()->exportToFormattedFile(m_mesoIdx, export_filename);
+			return;
+		case TPUtils::FT_TP_WORKOUT_A:
+		case TPUtils::FT_TP_WORKOUT_B:
+		case TPUtils::FT_TP_WORKOUT_C:
+		case TPUtils::FT_TP_WORKOUT_D:
+		case TPUtils::FT_TP_WORKOUT_E:
+		case TPUtils::FT_TP_WORKOUT_F:
+			//TODO
+			break;
+		case TPUtils::FT_TP_EXERCISES:
+			ret_code = appExercisesList()->exportToFormattedFile(export_filename);
+			break;
+		default:
+#ifndef QT_NO_DEBUG
+			qDebug() << "Error! Trying to save/export a not TPApp file - TPFileOps::exportSlot(" << m_filename << ")";
+#endif
+			return;
+		}
+		if (ret_code == TP_RET_CODE_EXPORT_OK) {
+			QFile file{filePath};
+			if (!appUtils()->copyFile(export_filename, filePath, true, true))
+				ret_code = TP_RET_CODE_EXPORT_FAILED;
+		}
+		if (ret_code == TP_RET_CODE_EXPORT_OK)
+			export_filename = std::move(appUtils()->getFileName(filePath));
 		else
-			preferred_size.setWidth(img_size.width());
-		const auto ratio{static_cast<float>(img_size.height()) / img_size.width()};
-		preferred_size.setHeight(preferred_size.width() * ratio);
+			export_filename = std::move(tr("Could not save to: ") % appUtils()->getFileName(filePath));
 	}
-	const QString &preview_filename{previewFilename(image_filename, preferred_size)};
-	if (!QFile::exists(preview_filename)) {
-		if (thumbnail.isNull())
-			thumbnail.load(image_filename);
-		thumbnail = std::move(thumbnail.scaled(preferred_size));
-		thumbnail.save(preview_filename, "JPG", 10);
-	}
-	return preview_filename;
-}
-
-QImage composeImages(const QImage& image1, const QImage& image2, const QPoint& position = QPoint(0, 0))
-{
-	// 1. Create a destination QImage (ensure it has an alpha channel for blending)
-	QImage resultImage(image1.size(), QImage::Format_ARGB32_Premultiplied);
-	// Start with a transparent background
-	resultImage.fill(Qt::transparent);
-	// 2. Initialize a QPainter on the result image
-	QPainter painter(&resultImage);
-	// 3. Draw the first image (base)
-	// QPainter::CompositionMode_SourceOver is often the default, but explicit is fine.
-	painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-	painter.drawImage(0, 0, image1);
-	// 4. Set the composition mode for the second image
-	// QPainter::CompositionMode_SourceOver blends the source (image2) over the destination (image1),
-	// respecting the alpha channel of image2. This is the most common blending mode.
-	painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-	// 5. Draw the second image (overlay) at a specific position
-	painter.drawImage(position, image2);
-	// End painting
-	painter.end();
-	return resultImage;
-}
-
-
-QString TPFileOps::getPDFPreviewFile(const QString &pdf_filename, QSize preferred_size) const
-{
-	if (QFile::exists(pdf_filename)) {
-		if (preferred_size.isNull()) {
-			preferred_size.setWidth(appSettings()->pageWidth());
-			preferred_size.setHeight(appSettings()->pageHeight());
-		}
-		const QString &preview_filename{previewFilename(pdf_filename, preferred_size)};
-		if (!QFile::exists(preview_filename)) {
-			QPdfDocument *pdf_doc{new QPdfDocument{}};
-			pdf_doc->load(pdf_filename);
-			//pdf_doc->pagePointSize(0);
-			QPdfDocumentRenderOptions pdf_opts;
-			pdf_opts.setRenderFlags(QPdfDocumentRenderOptions::RenderFlag::TextAliased | QPdfDocumentRenderOptions::RenderFlag::ImageAliased |
-								QPdfDocumentRenderOptions::RenderFlag::PathAliased | QPdfDocumentRenderOptions::RenderFlag::OptimizedForLcd);
-			QImage background_image{preferred_size, QImage::Format_ARGB32_Premultiplied};
-			background_image.fill(Qt::white);
-			const QImage &pdf_image{composeImages(background_image, pdf_doc->render(0, preferred_size, pdf_opts))};
-			pdf_doc->deleteLater();
-			if (!pdf_image.isNull())
-				pdf_image.save(preview_filename, "JPG", 10);
-		}
-		return preview_filename;
-	}
-	return QString{};
+	else
+		export_filename = std::move(tr("Operation canceled"));
+	appItemManager()->displayMessageOnAppWindow(ret_code, export_filename);
 }
 
 void TPFileOps::removeFileAnswer(const int button)
@@ -219,33 +274,7 @@ void TPFileOps::mouseReleaseEvent(QMouseEvent *event)
 		ci->current_image = &ci->default_image;
 		ci->pressed = false;
 		update(ci->rect);
-
-		switch (ci->type) {
-		case OT_FullScreen:
-			doFullScreen();
-			break;
-		case OT_Download:
-			QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, appUtils()->getFileName(m_filename)));
-			break;
-		case OT_Share:
-			appOsInterface()->shareFile(m_filename);
-			break;
-		case OT_Forward:
-			{//TODO use TPMessagesManager
-			QString userid;
-			QMetaObject::invokeMethod(appMainWindow(), "getUsersList", Q_RETURN_ARG(QString, userid));
-			appUserModel()->sendFileToUser(userid, m_filename);
-			}
-			break;
-		case OT_ViewExternally:
-			appUtils()->viewOrOpenFile(m_filename);
-			break;
-		case OT_Delete:
-			removeFile();
-			break;
-		default:
-			Q_UNREACHABLE();
-		}
+		_doFileOperation(ci->type);
 	}
 }
 
@@ -289,6 +318,19 @@ bool TPFileOps::eventFilter(QObject *obj, QEvent *event)
 	}
 	else
 		return QObject::eventFilter(obj, event);
+}
+
+void TPFileOps::_doFileOperation(const OpType type)
+{
+	switch (type) {
+	case OT_FullScreen:			doFullScreen();	break;
+	case OT_Download:			saveFileAs();	break;
+	case OT_Share:				shareFile();	break;
+	case OT_Forward:			sendFileTo();	break;
+	case OT_ViewExternally:		openFile();		break;
+	case OT_Delete:				removeFile();	break;
+	default:					Q_UNREACHABLE();
+	}
 }
 
 void TPFileOps::doFullScreen()
@@ -375,6 +417,91 @@ TPFileOps::controlInfo *TPFileOps::controlFromType(const OpType type) const
 	return nullptr;
 }
 
+static inline QString previewFilename(const QString &source_filename, const QSize &preview_size)
+{
+	constexpr QLatin1StringView size_template{"_%1x%2"};
+	return appSettings()->currentUserDir() % TPUtils::previewImagesSubDir % QString::number(fnv1a_hash(source_filename)) %
+		   size_template.arg(QString::number(preview_size.width()), QString::number(preview_size.height())) % ".jpg"_L1;
+}
+
+QString TPFileOps::getImagePreviewFile(const QString &image_filename, QSize preferred_size) const
+{
+	if (!QFile::exists(image_filename))
+		return QString{};
+
+	QImage thumbnail;
+	if (preferred_size.isNull()) {
+		thumbnail.load(image_filename);
+		const QSize &img_size{thumbnail.size()};
+		const int page_img_width_ratio{qFloor(img_size.width() / appSettings()->pageWidth())};
+		if (page_img_width_ratio >= 1)
+			preferred_size.setWidth(appSettings()->pageWidth() * 0.8);
+		else
+			preferred_size.setWidth(img_size.width());
+		const auto ratio{static_cast<float>(img_size.height()) / img_size.width()};
+		preferred_size.setHeight(preferred_size.width() * ratio);
+	}
+	const QString &preview_filename{previewFilename(image_filename, preferred_size)};
+	if (!QFile::exists(preview_filename)) {
+		if (thumbnail.isNull())
+			thumbnail.load(image_filename);
+		thumbnail = std::move(thumbnail.scaled(preferred_size));
+		thumbnail.save(preview_filename, "JPG", 10);
+	}
+	return preview_filename;
+}
+
+static QImage composeImages(const QImage& image1, const QImage& image2, const QPoint& position = QPoint(0, 0))
+{
+	// 1. Create a destination QImage (ensure it has an alpha channel for blending)
+	QImage resultImage(image1.size(), QImage::Format_ARGB32_Premultiplied);
+	// Start with a transparent background
+	resultImage.fill(Qt::transparent);
+	// 2. Initialize a QPainter on the result image
+	QPainter painter(&resultImage);
+	// 3. Draw the first image (base)
+	// QPainter::CompositionMode_SourceOver is often the default, but explicit is fine.
+	painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+	painter.drawImage(0, 0, image1);
+	// 4. Set the composition mode for the second image
+	// QPainter::CompositionMode_SourceOver blends the source (image2) over the destination (image1),
+	// respecting the alpha channel of image2. This is the most common blending mode.
+	painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+	// 5. Draw the second image (overlay) at a specific position
+	painter.drawImage(position, image2);
+	// End painting
+	painter.end();
+	return resultImage;
+}
+
+
+QString TPFileOps::getPDFPreviewFile(const QString &pdf_filename, QSize preferred_size) const
+{
+	if (QFile::exists(pdf_filename)) {
+		if (preferred_size.isNull()) {
+			preferred_size.setWidth(appSettings()->pageWidth());
+			preferred_size.setHeight(appSettings()->pageHeight());
+		}
+		const QString &preview_filename{previewFilename(pdf_filename, preferred_size)};
+		if (!QFile::exists(preview_filename)) {
+			QPdfDocument *pdf_doc{new QPdfDocument{}};
+			pdf_doc->load(pdf_filename);
+			//pdf_doc->pagePointSize(0);
+			QPdfDocumentRenderOptions pdf_opts;
+			pdf_opts.setRenderFlags(QPdfDocumentRenderOptions::RenderFlag::TextAliased | QPdfDocumentRenderOptions::RenderFlag::ImageAliased |
+									QPdfDocumentRenderOptions::RenderFlag::PathAliased | QPdfDocumentRenderOptions::RenderFlag::OptimizedForLcd);
+			QImage background_image{preferred_size, QImage::Format_ARGB32_Premultiplied};
+			background_image.fill(Qt::white);
+			const QImage &pdf_image{composeImages(background_image, pdf_doc->render(0, preferred_size, pdf_opts))};
+			pdf_doc->deleteLater();
+			if (!pdf_image.isNull())
+				pdf_image.save(preview_filename, "JPG", 10);
+		}
+		return preview_filename;
+	}
+	return QString{};
+}
+
 void TPFileOps::_setEnabled(controlInfo *ci, const bool enabled)
 {
 	ci->enabled = enabled;
@@ -397,4 +524,80 @@ void TPFileOps::_getDefaultImage(controlInfo *ci)
 	case OT_Delete: ci->default_image.load(":/images/remove.png"_L1); break;
 	default: Q_UNREACHABLE();
 	}
+}
+
+void TPFileOps::readTPFile()
+{
+	QFile *in_file{appUtils()->openFile(m_filename)};
+	if (!in_file)
+		return;
+
+	const QString *identifier{nullptr};
+	QString extra_identifier;
+
+	uint32_t ft{m_filetype & ~TPUtils::FT_TP_FORMATTED};
+	switch (ft) {
+	case TPUtils::FT_TP_USER_PROFILE:
+		identifier = &appUtils()->userFileIdentifier;
+		break;
+	case TPUtils::FT_TP_PROGRAM:
+		identifier = &appUtils()->mesoFileIdentifier;
+		break;
+	case TPUtils::FT_TP_WORKOUT_A:
+		extra_identifier = appUtils()->workoutFileIdentifier % "A"_L1;
+		identifier = &extra_identifier;
+		break;
+	case TPUtils::FT_TP_WORKOUT_B:
+		extra_identifier = appUtils()->workoutFileIdentifier % "B"_L1;
+		identifier = &extra_identifier;
+		break;
+	case TPUtils::FT_TP_WORKOUT_C:
+		extra_identifier = appUtils()->workoutFileIdentifier % "C"_L1;
+		identifier = &extra_identifier;
+		break;
+	case TPUtils::FT_TP_WORKOUT_D:
+		extra_identifier = appUtils()->workoutFileIdentifier % "D"_L1;
+		identifier = &extra_identifier;
+		break;
+	case TPUtils::FT_TP_WORKOUT_E:
+		extra_identifier = appUtils()->workoutFileIdentifier % "E"_L1;
+		identifier = &extra_identifier;
+		break;
+	case TPUtils::FT_TP_WORKOUT_F:
+		extra_identifier = appUtils()->workoutFileIdentifier % "F"_L1;
+		identifier = &extra_identifier;
+		break;
+	case TPUtils::FT_TP_EXERCISES:
+		identifier = &appUtils()->exercisesListFileIdentifier;
+		break;
+		default: Q_UNREACHABLE();
+	}
+
+	QString line{64, QChar{0}};
+	QTextStream stream{in_file};
+	std::pair<QString,QString> section_info;
+
+	while (stream.readLineInto(&line)) {
+		if (line.isEmpty())
+			continue;
+		if (line.contains("##"_L1)) {
+			if (line.contains(*identifier)) {
+				section_info.first = std::move(line.right(line.length() - identifier->length() -
+																					TPUtils::STR_START_FORMATTED_EXPORT.length() - 1));
+				section_info.second.clear();
+			}
+			else if (line.startsWith(TPUtils::STR_END_FORMATTED_EXPORT)) {
+				m_tpFileInfo.insert(m_tpfileSections, section_info);
+				++m_tpfileSections;
+				if (identifier == &appUtils()->mesoFileIdentifier)
+					identifier =  &appUtils()->splitFileIdentifier;
+			}
+		}
+		else
+			section_info.second.append(line % "<br>"_L1);
+	}
+	if (!m_tpFileInfo.isEmpty())
+		emit tpFileSectionCountChanged();
+	in_file->close();
+	delete in_file;
 }

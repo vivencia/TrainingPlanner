@@ -218,7 +218,7 @@ TPPage {
 
 
 			TPLabel {
-				text: qsTr("Instructions file")
+				text: mesoModel.fileLabel
 			}
 
 			TPTextInput {

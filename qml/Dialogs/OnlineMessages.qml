@@ -190,9 +190,9 @@ TPPopup {
 
 				function setShowActions(show: bool) {
 					if (show !== showActions) {
-						messagesList.messagesHeight -= actionsLayout.childrenRect.height + lblMessage.height;
+						messagesList.messagesHeight -= actionsLoader.actionsLayout.childrenRect.height + lblMessage.height;
 						showActions = show;
-						messagesList.messagesHeight += actionsLayout.childrenRect.height + lblMessage.height;
+						messagesList.messagesHeight += actionsLoader.actionsLayout.childrenRect.height + lblMessage.height;
 					}
 				}
 
@@ -302,13 +302,16 @@ TPPopup {
 					}
 
 					Loader {
+						id: actionsLoader
 						asynchronous: true
 						active: actions.length > 0
 						Layout.maximumWidth: dlgMaxWidth
 						Layout.minimumWidth: dlgMaxWidth
 
+						property GridLayout actionsLayout
+
 						sourceComponent: GridLayout {
-							id: actionsLayout
+							id: _layout
 							columns: 2
 							visible: delegateItem.showActions
 							columnSpacing: 2
@@ -323,11 +326,11 @@ TPPopup {
 
 								delegate: TPButton {
 									text: actions[index]
-									width: constrainSize ? actionsLayout.maxButtonWidth : preferredWidth
+									width: constrainSize ? _layout.maxButtonWidth : preferredWidth
 									autoSize: !constrainSize
 									rounded: false
 									Layout.alignment: Qt.AlignCenter
-									onClicked: appMessages.execAction(actionsLayout.msgIndex, index);
+									onClicked: appMessages.execAction(_layout.msgIndex, index);
 
 									required property int index
 									property bool constrainSize: false
@@ -364,10 +367,12 @@ TPPopup {
 												}
 											}
 										}
-										messagesList.messagesHeight += actionsLayout.childrenRect.height + lblMessage.height + messageTextLayout.height;
+										messagesList.messagesHeight += _layout.childrenRect.height + lblMessage.height + messageTextLayout.height;
 									}
 								} //onItemAdded
 							} //Repeater
+
+							Component.onCompleted: actionsLoader.actionsLayout = this;
 						} //sourceComponent: GridLayout
 					} //Loader
 				} //contentItem: Column

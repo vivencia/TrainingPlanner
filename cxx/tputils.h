@@ -134,7 +134,8 @@ public:
 
 	bool mkdir(const QString &fileOrDir) const;
 	bool rename(const QString &source_file_or_dir, const QString &dest_file_or_dir, const bool overwrite) const;
-	bool copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath = true, const bool remove_source = false) const;
+	bool copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath = true, const bool remove_source = false,
+																										const bool overwrite = true) const;
 	QFile *openFile(const QString &filename, const bool read = true, const bool write = false, const bool append = false,
 							const bool overwrite = false, const bool text = true) const;
 	void scanDir(const QString &path, QFileInfoList &results, const QString &match = QString{}, const bool follow_tree = false) const;
@@ -216,6 +217,7 @@ public:
 		return formatTime(calculateTimeDifference(strTimeInit, strTimeFinal), TF_QML_DISPLAY_COMPLETE);
 	}
 
+	int calculateTimeDifferenceInSecs(const QTime &start_time, const QTime &end_time) const;
 	QTime calculateTimeDifference(const QTime &start_time, const QTime &end_time) const;
 	QTime calculateTimeDifference(const QString &strTimeInit, const QString &strTimeFinal) const;
 	QDateTime getDateTimeFromOnlineString(const QString &datetime) const;

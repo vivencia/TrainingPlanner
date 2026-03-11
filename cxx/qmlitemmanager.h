@@ -72,10 +72,9 @@ signals:
 
 public slots:
 	void mainWindowStarted() const;
-	void displayMessageOnAppWindow(const int message_id, const QString &fileName = QString{},
-											const QString &image_source = QString{}, const uint msecs = 5000) const;
+	void displayMessageOnAppWindow(const int message_id, const QString &filename_or_message = QString{},
+																const QString &image_source = QString{}, const uint msecs = 5000) const;
 	void openTPFile(uint32_t tp_filetype, const QString &filename, const bool formatted, const QVariant &extra_info);
-	void exportSlot(const QString &filePath = QString{});
 	void homePageViewChanged(const bool own_mesos_view);
 	inline void qmlPasswordDialogClosed_slot(int resultCode, const QString &password) { emit qmlPasswordDialogClosed(resultCode, password); }
 

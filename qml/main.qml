@@ -23,7 +23,6 @@ ApplicationWindow {
 	property PagesListModel appPagesModel
 
 	signal saveFileChosen(filepath: string);
-	signal saveFileRejected(filepath: string);
 	signal openFileChosen(filepath: string);
 	signal openFileRejected(filepath: string);
 	signal passwordDialogClosed(resultCode: int, password: string);
@@ -190,11 +189,13 @@ ApplicationWindow {
 		sourceComponent: TPFileDialog {
 			saveDialog: true
 			chooseDialog: false
+			includeTextFilter: true
+
 			onDialogClosed: (result) => {
 				if (result === 0)
 					saveFileChosen(appUtils.getCorrectPath(currentFile));
 				else
-					saveFileRejected("");
+					saveFileChosen("");
 				saveDialogLoader.active = false;
 			}
 		}

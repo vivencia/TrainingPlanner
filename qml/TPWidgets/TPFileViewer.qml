@@ -14,7 +14,7 @@ TPImage {
 	source: _preview_source
 	dropShadow: false
 	keepAspectRatio: true
-	imageSizeFollowControlSize: _media_type !== TPUtils.FT_Image
+	imageSizeFollowControlSize: _file_ops.fileType !== TPUtils.FT_Image
 	fullWindowView: false
 
 //public:
@@ -26,14 +26,12 @@ TPImage {
 	enum WindowStates { WS_UNDEFINED, WS_NORMAL, WS_FULLSCREEN }
 
 	property string _preview_source
-	property int _media_type: TPUtils.FT_UNKNOWN
 	property int _window_state: TPFileViewer.WindowStates.WS_UNDEFINED
 	property FileOperations _file_ops
 	readonly property string _media_uri: "file://" + fileViewer.mediaSource
 
 	Component.onCompleted: {
 		mediaSource = appUtils.getCorrectPath(mediaSource);
-		_media_type = appUtils.getFileType(mediaSource);
 		_window_state = TPFileViewer.WindowStates.WS_NORMAL;
 	}
 
@@ -75,7 +73,6 @@ TPImage {
 
 		FileOperations {
 			fileName: mediaSource
-			fileType: _media_type
 			anchors.fill: parent
 
 			anchors {
@@ -94,7 +91,7 @@ TPImage {
 
 	property Loader mediaControlsLoader: Loader {
 		asynchronous: true
-		active: _media_type === TPUtils.FT_VIDEO;
+		active: _file_ops.fileType === TPUtils.FT_VIDEO;
 		height: 0
 		width: media_controls ? media_controls.availableControls.length * (height + 10) : 0
 		z: 1
@@ -435,7 +432,7 @@ TPImage {
 
 			Loader {
 				asynchronous: true
-				active: _media_type === TPUtils.FT_IMAGE
+				active: _file_ops.fileType === TPUtils.FT_IMAGE
 				anchors.fill: parent
 
 				sourceComponent: TPImage {
@@ -450,7 +447,7 @@ TPImage {
 
 			Loader {
 				asynchronous: true
-				active: _media_type === TPUtils.FT_PDF
+				active: _file_ops.fileType === TPUtils.FT_PDF
 				anchors.fill: parent
 
 				sourceComponent: PdfMultiPageView {
@@ -482,6 +479,63 @@ TPImage {
 					}
 				}
 			} //Loader : PdfMultiPageView
+
+			Loader {
+				asynchronous: true
+				active: _file_ops.fileType < TPUtils.FT_IMAGE
+				anchors.fill: parent
+
+				sourceComponent: Item {
+					TabBar {
+						id: tabSections
+						height: appSettings.itemLargeHeight
+						clip: true
+						currentIndex: sectionsLayout.currentIndex
+
+						anchors {
+							top: parent.top
+							topMargin: 10
+							horizontalCenter: parent.horizontalCenter
+						}
+
+						Repeater {
+							id: tabSectionsRepeater
+							model: _file_ops.tpFileSectionCount
+
+							TPTabButton {
+								text: _file_ops.tpFileSectionTitle(index);
+								parentTab: tabSections
+
+								onClicked: sectionsLayout.currentIndex = index;
+							} //TPTabButton
+						} //Repeater: tabSectionsRepeater
+					} //TabBar: tabSections
+
+					StackLayout {
+						id: sectionsLayout
+						currentIndex: 0
+						anchors {
+							fill: parent
+							topMargin: appSettings.itemLargeHeight + 20
+							bottomMargin: 200
+						}
+
+						Repeater {
+							id: sectionsRepeater
+							model: _file_ops.tpFileSectionCount
+
+							TPMultiLineEdit {
+								text: _file_ops.tpFileSection(index);
+								maxHeight: -1
+								minHeight: width
+								width: sectionsLayout.width
+								height: sectionsLayout.height
+								Layout.maximumHeight: height
+							} //TPMultiLineEdit
+						} //Repeater: tabSectionsRepeater
+					} //StackLayout: sectionsLayout
+				} //Item
+			} //Loader : TPMultiLineEdit
 		} //Window fullViewWindow
 	} //Loader fullScreenLoader
 } // TPImage

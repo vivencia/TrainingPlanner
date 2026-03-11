@@ -22,6 +22,10 @@ QML_ELEMENT
 
 Q_PROPERTY(TPUtils::FILE_TYPE fileType READ fileType WRITE setFileType NOTIFY fileTypeChanged FINAL)
 Q_PROPERTY(QString fileName READ fileName WRITE setFileName NOTIFY fileNameChanged FINAL)
+Q_PROPERTY(int mesoIdx READ mesoIdx WRITE setMesoIdx NOTIFY mesoIdxChanged FINAL)
+Q_PROPERTY(int tpFileSectionCount READ tpFileSectionCount NOTIFY tpFileSectionCountChanged FINAL)
+Q_PROPERTY(int operationsCount READ operationsCount CONSTANT FINAL)
+Q_PROPERTY(QStringList operationsList READ operationsList CONSTANT FINAL)
 
 public:
 
@@ -42,14 +46,38 @@ public:
 	inline TPUtils::FILE_TYPE fileType() const { return m_filetype; }
 	inline void setFileType(TPUtils::FILE_TYPE new_type) { m_filetype = new_type; emit fileTypeChanged(); }
 	inline QString fileName() const { return m_filename; }
-	inline void setFileName(const QString &filename) { m_filename = filename; emit fileNameChanged(); }
-	Q_INVOKABLE void setEnabled(TPFileOps::OpType type, const bool enabled, const bool call_update = true);
+	void setFileName(const QString &filename);
+	inline int mesoIdx() const { return m_mesoIdx; }
+	inline void setMesoIdx(const int meso_idx) { m_mesoIdx = meso_idx; emit mesoIdxChanged(); }
+	inline int tpFileSectionCount() const { return m_tpfileSections; }
+	inline int operationsCount() const { return
+#ifdef Q_OS_ANDROID
+		4;
+#else
+		3;
+#endif
+	}
+	inline QStringList operationsList() const
+	{
+		return QStringList{} << tr("Save as") <<
+#ifdef Q_OS_ANDROID
+			   tr("Share") <<
+#endif
+			   tr("Send to") << tr("Open");
+	}
 
+	Q_INVOKABLE void setEnabled(TPFileOps::OpType type, const bool enabled, const bool call_update = true);
 	Q_INVOKABLE QString getFileTypeIcon(const QString &filename, const QSize &preferred_size = QSize{}, const bool thumbnail = true) const;
-	QString getImagePreviewFile(const QString &image_filename, QSize preferred_size = QSize{}) const;
-	QString getPDFPreviewFile(const QString &pdf_filename, QSize preferred_size = QSize{}) const;
+	Q_INVOKABLE void doFileOperation(const int op);
+	Q_INVOKABLE void saveFileAs();
+	Q_INVOKABLE void shareFile();
+	Q_INVOKABLE void sendFileTo(QString userid = QString{});
+	Q_INVOKABLE void openFile();
+	Q_INVOKABLE inline QString tpFileSectionTitle(const int section) { return m_tpFileInfo.value(section).first; }
+	Q_INVOKABLE inline QString tpFileSection(const int section) { return m_tpFileInfo.value(section).second; }
 
 public slots:
+	void exportSlot(const QString &filePath = QString{});
 	void removeFileAnswer(const int button);
 
 signals:
@@ -59,6 +87,8 @@ signals:
 	void multimediaKeyPressed(const int key);
 	void multimediaKeyReleased(const int key);
 	void fileRemovalRequested();
+	void mesoIdxChanged();
+	void tpFileSectionCountChanged();
 
 protected:
 	void mousePressEvent(QMouseEvent *event) override;
@@ -84,8 +114,12 @@ private:
 	int8_t m_qml_control_extra_height{10};
 	TPUtils::FILE_TYPE m_filetype;
 	QString m_filename;
+	QHash<int,std::pair<QString,QString>> m_tpFileInfo;
 	bool m_fullscreen{false};
+	int m_mesoIdx{-1};
+	uint  m_tpfileSections{0};
 
+	void _doFileOperation(const OpType type);
 	void doFullScreen();
 	void removeFile(const bool bypass_confirmation = false);
 	void createControls();
@@ -93,8 +127,11 @@ private:
 	void disableImage(QImage &image);
 	controlInfo *controlFromMouseClick(const QPointF& mouse_pos) const;
 	controlInfo *controlFromType(const OpType type) const;
+	QString getImagePreviewFile(const QString &image_filename, QSize preferred_size = QSize{}) const;
+	QString getPDFPreviewFile(const QString &pdf_filename, QSize preferred_size = QSize{}) const;
 	void _setEnabled(controlInfo *ci, const bool enabled);
 	void _getDefaultImage(controlInfo *ci);
+	void readTPFile();
 
 	Q_DISABLE_COPY(TPFileOps)
 };

@@ -9,6 +9,7 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 Item {
 	id: control
+
 	required property HomePageMesoModel mesoSubModel
 
 	TPLabel {
@@ -192,7 +193,6 @@ Item {
 
 					onClicked: {
 						msgDlg.meso_name = mesoName;
-						msgDlg.mesoidx = mesoIdx;
 						msgDlg.show(-1);
 					}
 				}
@@ -206,8 +206,7 @@ Item {
 					parentPage: homePage
 
 					property string meso_name
-					property int mesoidx
-					onButton1Clicked: mesoModel.removeMesocycle(mesoidx);
+					onButton1Clicked: mesoModel.removeMesocycle(mesoIdx);
 				}
 			} //swipe.right
 
@@ -329,58 +328,22 @@ Item {
 		} //ColumnLayout
 	}
 
-	property TPFloatingMenuBar exportMenu: null
-	function showExportMenu(meso_idx: int, callButton: TPButton): void {
-		if (exportMenu === null) {
-			let exportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
-			exportMenu = exportMenuComponent.createObject(homePage, { parentPage: homePage });
-			if (!mesoModel.isOwnMeso(meso_idx)) {
-				const userid = mesoModel.mesoClient(meso_idx);
-				if (userid !== "")
-					exportMenu.addEntry(qsTr("Send to ") + userModel.userNameFromId(userid), userModel.avatarFromId(userid), 10, true);
-			}
-			exportMenu.addEntry(qsTr("Export"), "save-day.png", 20, true);
-
-			if (Qt.platform.os === "android")
-				exportMenu.addEntry(qsTr("Share"), "export.png", 30, true);
-			exportMenu.menuEntrySelected.connect(function(id) {
-				switch (id) {
-					case 10: mesoModel.sendMesoToUser(meso_idx); break;
-					case 20: exportTypeTip.init(meso_idx, false); break;
-					case 30: exportTypeTip.init(meso_idx, true); break;
-				}
-			});
-		}
-		exportMenu.show2(callButton, 0);
+	FileOperations {
+		id: fileOps
+		fileType: TPUtils.FT_TP_PROGRAM
 	}
 
-	Loader {
-		id: exportTypeTip
-		asynchronous: true
-		active: false
+	property TPFloatingMenuBar exportMenu: null
+	function showExportMenu(mesoidx: int, callButton: TPButton): void {
+		if (exportMenu === null) {
+			let exportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
+			exportMenu = exportMenuComponent.createObject(homePage, { parentPage: homePage, titleHeader: qsTr("Export options") });
+			fileOps.mesoIdx = mesoidx;
+			for(let i = 0; i < fileOps.operationsCount; ++i)
+				exportMenu.addEntry(fileOps.operationsList[i], "", i, true);
 
-		sourceComponent: TPBalloonTip {
-			message: bShare ? qsTr("Share complete program?") : qsTr("Export complete program to file?")
-			button1Text: qsTr("Yes")
-			button2Text: qsTr("No")
-			closeButtonVisible: true
-			parentPage: homePage
-
-			onButton1Clicked: {
-				itemManager.exportMeso(mesoIdx, bShare);
-				exportTypeTip.active = false;
-			}
+			exportMenu.menuEntrySelected.connect(function(id) { fileOps.doFileOperation(id); });
 		}
-
-		onLoaded: item.show(-1);
-
-		property int mesoIdx
-		property bool bShare
-
-		function init(meso_idx: int, share: bool): void {
-			mesoIdx = meso_idx;
-			bShare = share;
-			active = true;
-		}
+		exportMenu.show2(callButton, 0);
 	}
 } //ListView

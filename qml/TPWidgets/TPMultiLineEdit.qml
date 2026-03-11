@@ -6,20 +6,22 @@ ColumnLayout {
 	id: mainLayout
 	spacing: 0
 
-	property bool showToolBox: false
+//public:
 	property bool editable: true
+	property int minHeight: 2 * appSettings.itemDefaultHeight
+	property int maxHeight: appSettings.pageHeight / 3
 	property alias text: textControl.text
 	property alias modified: textControl.modified
-
 	signal textAltered(_text: string);
 	signal enterOrReturnKeyPressed(mod_key: int);
 
-	readonly property int _maxHeight: appSettings.pageHeight / 3
+//private:
+	property bool _show_toolbox: false
 	property int _nFormatting: 0
 
 	RowLayout {
 		id: toolBoxLayout
-		visible: showToolBox
+		visible: _show_toolbox
 		spacing: 5
 		Layout.fillWidth: true
 
@@ -106,10 +108,8 @@ ColumnLayout {
 
 		Flickable {
 			id: scrollArea
-			contentWidth: availableWidth
-			contentHeight: availableHeight
 			clip: true
-			height: 2 * appSettings.itemDefaultHeight
+			height: minHeight
 			width: parent.width - appSettings.itemDefaultHeight - 5
 
 			ScrollBar.vertical: ScrollBar { id: vBar }
@@ -177,7 +177,7 @@ ColumnLayout {
 				}
 
 				onReadOnlyChanged: positionCaret();
-				onLineCountChanged: scrollArea.calculateHeight();
+				onLineCountChanged: if (maxHeight > 0) scrollArea.calculateHeight();
 				onTextEdited: modified = true;
 				onEditingFinished: {
 					if (modified) {
@@ -204,14 +204,14 @@ ColumnLayout {
 
 			function calculateHeight(): void {
 				const new_height = (textControl.lineCount * appSettings.itemDefaultHeight) + 10;
-				if (new_height <= _maxHeight) {
+				if (new_height <= maxHeight) {
 					if (new_height < (2 * appSettings.itemDefaultHeight))
 						height = implicitHeight = 2 * appSettings.itemDefaultHeight;
 					else
 						height = implicitHeight = new_height;
 				}
 				else
-					height = implicitHeight = _maxHeight;
+					height = implicitHeight = maxHeight;
 			}
 		} //ScrollView
 
@@ -233,7 +233,7 @@ ColumnLayout {
 					horizontalCenter: parent.horizontalCenter
 				}
 
-				onCheck: mainLayout.showToolBox = checked;
+				onCheck: mainLayout._show_toolbox = checked;
 			}
 
 			TPButton {

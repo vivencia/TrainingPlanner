@@ -123,9 +123,10 @@ ApplicationWindow {
 		}*/
 
 		TPFileViewer {
-			mediaSource: "/home/guilhermef/Documents/Atendimento_CIP_35.001.003.26.1170764.pdf"
+			//mediaSource: "/home/guilhermef/Documents/Atendimento_CIP_35.001.003.26.1170764.pdf"
 			//mediaSource: "/home/guilhermef/Videos/Premiação - Dança Cigana Solo 2.mp4"
 			//mediaSource: "/home/guilhermef/Pictures/CNH Rozângela Barbosa Fortunato.png"
+			mediaSource: "/home/guilhermef/Documents/programa 2.txt"
 			width: 300
 			height: 300
 			x: 0

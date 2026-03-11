@@ -379,7 +379,8 @@ bool TPUtils::rename(const QString &source_file_or_dir, const QString &dest_file
 		return fi_dest.exists();
 }
 
-bool TPUtils::copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath, const bool remove_source) const
+bool TPUtils::copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath, const bool remove_source,
+																												const bool overwrite) const
 {
 	if (QFile::exists(srcFile)) {
 		if (createPath) {
@@ -388,6 +389,8 @@ bool TPUtils::copyFile(const QString &srcFile, const QString &dstFileOrDir, cons
 				return false;
 		}
 		const QFileInfo fi{dstFileOrDir};
+		if (fi.isFile() && overwrite)
+			QFile::remove(dstFileOrDir);
 		const QString &dstFile{fi.isDir() ? dstFileOrDir + getFileName(srcFile) : dstFileOrDir};
 		if (QFile::copy(srcFile, dstFile)) {
 			if (remove_source)
@@ -459,7 +462,7 @@ bool TPUtils::writeDataToFile(QFile *out_file,
 								const QList<uint> &export_rows,
 								const bool use_real_id) const
 {
-	if (!out_file || !out_file->isOpen())
+	if (!out_file || !out_file->isWritable())
 		return false;
 
 	if (!identifier.isEmpty())
@@ -507,12 +510,12 @@ bool TPUtils::writeDataToFormattedFile(QFile *out_file,
 								const QList<uint> &export_rows,
 								const QString &header) const
 {
-	if (!out_file || !out_file->isOpen())
+	if (!out_file || !out_file->isWritable())
 		return false;
 
 	QString first_line{std::move(STR_START_FORMATTED_EXPORT + identifier)};
 	if (!header.isEmpty())
-		first_line += std::move<QString>("  "_L1 + header);
+		first_line += std::move<QString>(" "_L1 % header);
 	first_line += std::move<QString>(std::move("\n\n"_L1));
 	out_file->write(first_line.toUtf8().constData());
 
@@ -533,8 +536,9 @@ bool TPUtils::writeDataToFormattedFile(QFile *out_file,
 	}
 	else {
 		for (uint x{0}; x < export_rows.count(); ++x) {
-			for (const auto &modeldata : data.at(export_rows.at(x))) {
-				uint i{0};
+			const QStringList &rowdata{data.at(export_rows.at(x))};
+			uint i{0};
+			for (const QString &modeldata : rowdata) {
 				if (field_description.at(i) != nullptr) {
 					out_file->write(field_description.at(i)().toUtf8().constData());
 					if (formatToExport == nullptr)
@@ -546,6 +550,7 @@ bool TPUtils::writeDataToFormattedFile(QFile *out_file,
 				++i;
 			}
 			out_file->write(STR_END_FORMATTED_EXPORT.toUtf8().constData());
+			out_file->write("\n\n", 2);
 		}
 	}
 	out_file->flush();
@@ -979,6 +984,14 @@ QString TPUtils::getMinutesFromStrTime(const QString &strTime, const TIME_FORMAT
 			return strTime.sliced(4, 2);
 	}
 	return QString{};
+}
+
+int TPUtils::calculateTimeDifferenceInSecs(const QTime &start_time, const QTime &end_time) const
+{
+	int msecs{end_time.msecsSinceStartOfDay() - start_time.msecsSinceStartOfDay()};
+	if (msecs < 0)
+		msecs *= -1;
+	return msecs/1000;
 }
 
 QTime TPUtils::calculateTimeDifference(const QTime &start_time, const QTime &end_time) const

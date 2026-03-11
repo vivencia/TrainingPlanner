@@ -129,7 +129,7 @@ public:
 	QStringList availableLanguages() const;
 
 	inline const QString &localAppFilesDir() const { return m_localAppFilesDir; }
-	inline QString currentUserDir() const { return m_localAppFilesDir + currentUser() + '/'; }
+	inline QString currentUserDir() const { return m_localAppFilesDir % currentUser() % '/'; }
 
 	inline bool appExiting() const { return m_appExiting; }
 

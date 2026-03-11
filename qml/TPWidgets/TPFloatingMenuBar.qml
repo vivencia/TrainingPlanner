@@ -8,7 +8,7 @@ TPPopup {
 	id: menu
 	keepAbove: false
 	closeButtonVisible: false
-	width: Math.max(lblTitle, mainLayout.childrenRect.width + 20)
+	width: Math.max(lblTitle.width, mainLayout.childrenRect.width + 20)
 	height: mainLayout.childrenRect.height + lblTitle.height + 20
 
 	property string titleHeader
@@ -36,11 +36,11 @@ TPPopup {
 		}
 	}
 
-	ColumnLayout {
+	Column {
 		id: mainLayout
-		spacing: 2
+		padding: 5
+		spacing: 5
 		opacity: menu.opacity
-		uniformCellSizes: true
 
 		anchors {
 			top: titleHeader.length > 0 ? lblTitle.bottom : parent.top
@@ -60,8 +60,9 @@ TPPopup {
 				clickId: entriesList.get(index).ClickId
 				visible: entriesList.get(index).Visible
 				rounded: false
-				Layout.alignment: Qt.AlignCenter
-				Layout.preferredWidth: Math.max(appSettings.pageWidth * 0.5, menu.width - 10)
+				autoSize: true
+				Layout.alignment: Qt.AlignHCenter
+				Layout.preferredWidth: Math.min(appSettings.pageWidth * 0.5, width)
 
 				onClicked: menuEntryClicked(clickId);
 			}

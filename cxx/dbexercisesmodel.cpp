@@ -281,22 +281,24 @@ int DBExercisesModel::exportToFormattedFile(const QString &filename, QFile *out_
 		if (!out_file)
 			return TP_RET_CODE_OPEN_CREATE_FAILED;
 	}
+	if (!out_file->isWritable())
+		return TP_RET_CODE_FILE_NOT_WRITABLE;
 
 	const QString &strHeader {
 		m_calendarDay >= 0 ?
-			TPUtils::STR_START_FORMATTED_EXPORT % identifierInFile() % tr("Workout") % "\n\n"_L1 :
-			TPUtils::STR_START_FORMATTED_EXPORT % identifierInFile() + tr("Exercises Sheet") + "\n\n"_L1
+			TPUtils::STR_START_FORMATTED_EXPORT % identifierInFile() % " "_L1 % tr("Workout") % "\n\n"_L1 :
+			TPUtils::STR_START_FORMATTED_EXPORT % identifierInFile() % " "_L1 % tr("Exercises Sheet")  % "\n\n"_L1
 	};
 
 	out_file->write(strHeader.toUtf8().constData());
 	out_file->write(exportExtraInfo().toUtf8().constData());
 
 	for (const auto exercise_entry : std::as_const(m_exerciseData)) {
-		out_file->write("\n\n\n", 3);
-		out_file->write(QString{exerciseNameLabel() + QString::number(exercise_entry->exercise_number + 1)}.toUtf8().constData());
+		out_file->write("\n\n", 2);
+		out_file->write(QString{exerciseNameLabel() % QString::number(exercise_entry->exercise_number + 1) % '\n'}.toUtf8().constData());
 		const uint giant_set{static_cast<uint>(exercise_entry->m_exercises.count())};
 		if (giant_set > 1)
-			out_file->write(QString{tr("Giant set with ") + QString::number(giant_set) + tr(" exercises")}.toUtf8().constData());
+			out_file->write(QString{tr("Giant set with ") % QString::number(giant_set) % tr(" exercises") % '\n'}.toUtf8().constData());
 
 		out_file->write(trackRestTimeLabel().toUtf8().constData());
 		out_file->write(QString{exercise_entry->track_rest_time ? tr("Yes") : tr("No")}.toUtf8().constData());
@@ -313,7 +315,7 @@ int DBExercisesModel::exportToFormattedFile(const QString &filename, QFile *out_
 
 			for (const auto set : std::as_const(sub_exercise->sets)) {
 				out_file->write("\n\n", 2);
-				out_file->write(QString{setNumberLabel() + QString::number(set->set_number) + '\n'}.toUtf8().constData());
+				out_file->write(QString{setNumberLabel() % QString::number(set->set_number) % '\n'}.toUtf8().constData());
 				out_file->write(setTypeLabel().toUtf8().constData());
 				out_file->write(formatSetTypeToExport(set->type).toUtf8().constData());
 				out_file->write("\n", 1);
@@ -335,7 +337,7 @@ int DBExercisesModel::exportToFormattedFile(const QString &filename, QFile *out_
 	}
 	out_file->write("\n", 1);
 	out_file->write(appUtils()->STR_END_FORMATTED_EXPORT.toUtf8().constData());
-	out_file->close();
+	out_file->write("\n\n", 2);
 	return TP_RET_CODE_EXPORT_OK;
 }
 
@@ -1541,8 +1543,7 @@ void DBExercisesModel::commonConstructor(const bool load_from_db)
 	roleToString(trackRestTime)
 	roleToString(autoRestTime)
 
-	if (m_calendarDay >= 0)
-	{
+	if (m_calendarDay >= 0) {
 		m_splitLetter = m_mesoModel->calendar(m_mesoIdx)->splitLetter().at(0);
 		m_identifierInFile = appUtils()->workoutFileIdentifier;
 	}
@@ -1550,12 +1551,9 @@ void DBExercisesModel::commonConstructor(const bool load_from_db)
 		m_identifierInFile = appUtils()->splitFileIdentifier;
 	m_identifierInFile += m_splitLetter;
 
-	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field)
-	{
-		if (meso_idx == m_mesoIdx)
-		{
-			if (field >= MESO_FIELD_SPLITA && field <= MESO_FIELD_SPLITF)
-			{
+	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field) {
+		if (meso_idx == m_mesoIdx) {
+			if (field >= MESO_FIELD_SPLITA && field <= MESO_FIELD_SPLITF) {
 				if (static_cast<int>(m_splitLetter.cell()) - static_cast<int>('A') == field - MESO_FIELD_SPLITA)
 					emit muscularGroupChanged();
 			}
@@ -1564,15 +1562,11 @@ void DBExercisesModel::commonConstructor(const bool load_from_db)
 
 	connect(this, &DBExercisesModel::exerciseModified, this, &DBExercisesModel::saveExercises);
 
-	if (load_from_db)
-	{
+	if (load_from_db) {
 		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(m_db, &DBWorkoutsOrSplitsTable::exercisesLoaded, this, [this,conn]
-														(const uint meso_idx, const bool success, const QVariant &extra_info)
-		{
-			if (meso_idx == m_mesoIdx && m_calendarDay != -1 ?
-												extra_info.toInt() == m_calendarDay : extra_info.toChar() == m_splitLetter)
-			{
+																(const uint meso_idx, const bool success, const QVariant &extra_info) {
+			if (meso_idx == m_mesoIdx && m_calendarDay != -1 ? extra_info.toInt() == m_calendarDay : extra_info.toChar() == m_splitLetter) {
 				disconnect(*conn);
 				static_cast<void>(fromDatabase(success));
 			}
@@ -1600,8 +1594,8 @@ TPSetTypes DBExercisesModel::formatSetTypeToImport(const QString& fieldValue) co
 
 const QString DBExercisesModel::exportExtraInfo() const
 {
-	QString extra_info{std::move(splitLabel() % splitLetter() % " ("_L1 % m_mesoModel->muscularGroup(
-																							m_mesoIdx, splitLetter()) % ')')};
+	QString extra_info{std::move(splitLabel() % splitLetter() % " ("_L1 % m_mesoModel->muscularGroup(m_mesoIdx,
+																									 splitLetter()).chopped(1) % ')')};
 	if (m_calendarDay >= 0)
 		extra_info += tr(" Workout #: ") % QString::number(m_calendarDay) % tr(" at ") % appUtils()->formatDate(
 																		m_mesoModel->calendar(m_mesoIdx)->date(m_calendarDay));
