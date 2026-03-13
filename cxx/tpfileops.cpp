@@ -13,7 +13,10 @@
 
 #include <QPainter>
 #include <QtPdf/QPdfDocument>
+#include <QQuickTextDocument>
 #include <QQuickWindow>
+#include <QTextBlock>
+#include <QTextDocument>
 
 // FNV-1a constants
 const uint32_t FNV_PRIME_32{0x01000193};
@@ -161,6 +164,11 @@ void TPFileOps::openFile()
 	appUtils()->viewOrOpenFile(m_filename);
 }
 
+void TPFileOps::setWorkingDocumentCursorPosition(const int cursor_position)
+{
+	m_cursorPostion = cursor_position;
+}
+
 inline bool fileStillInUse(const QString &filename)
 {
 	QFileInfo fi{filename};
@@ -288,7 +296,10 @@ bool TPFileOps::eventFilter(QObject *obj, QEvent *event)
 		case Qt::Key_Right:
 		case Qt::Key_Up:
 		case Qt::Key_Down:
-			emit multimediaKeyPressed(key_event->key());
+			if (!m_textDocument)
+				emit multimediaKeyPressed(key_event->key());
+			else
+				textDocumentKeyNavigation(key_event->key());
 			break;
 		default:
 			return false;
@@ -579,7 +590,7 @@ void TPFileOps::readTPFile()
 
 	while (stream.readLineInto(&line)) {
 		if (line.isEmpty())
-			continue;
+			section_info.second.append(QChar{0x2029});
 		if (line.contains("##"_L1)) {
 			if (line.contains(*identifier)) {
 				section_info.first = std::move(line.right(line.length() - identifier->length() -
@@ -594,10 +605,30 @@ void TPFileOps::readTPFile()
 			}
 		}
 		else
-			section_info.second.append(line % "<br>"_L1);
+			section_info.second.append(line % QChar{0x2029});
 	}
 	if (!m_tpFileInfo.isEmpty())
 		emit tpFileSectionCountChanged();
 	in_file->close();
 	delete in_file;
+}
+
+void TPFileOps::textDocumentKeyNavigation(const int key)
+{
+	int other_line;
+	switch (key) {
+	case Qt::Key_Space: emit insertString("&nbsp"_L1, m_cursorPostion); return;
+	case Qt::Key_Left: emit setCursorPorsition(--m_cursorPostion); return;
+	case Qt::Key_Right: emit setCursorPorsition(++m_cursorPostion); return;
+	case Qt::Key_Up: other_line = -1; break;
+	case Qt::Key_Down: other_line = 1; break;
+	}
+	const QTextBlock &tb{m_textDocument->findBlock(m_cursorPostion)};
+	const auto pos_in_line{m_cursorPostion - tb.position()};
+	const QTextBlock &tb2{m_textDocument->findBlockByNumber(tb.blockNumber() + other_line)};
+	auto line_length2{tb2.length()};
+	if (line_length2 >= pos_in_line)
+		emit setCursorPorsition(tb2.position() + pos_in_line);
+	else
+		emit setCursorPorsition(tb2.position() + tb2.length() - 1);
 }

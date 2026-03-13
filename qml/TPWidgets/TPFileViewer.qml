@@ -432,7 +432,7 @@ TPImage {
 
 			Loader {
 				asynchronous: true
-				active: _file_ops.fileType === TPUtils.FT_IMAGE
+				active: fileViewer._file_ops.fileType === TPUtils.FT_IMAGE
 				anchors.fill: parent
 
 				sourceComponent: TPImage {
@@ -447,7 +447,7 @@ TPImage {
 
 			Loader {
 				asynchronous: true
-				active: _file_ops.fileType === TPUtils.FT_PDF
+				active: fileViewer._file_ops.fileType === TPUtils.FT_PDF
 				anchors.fill: parent
 
 				sourceComponent: PdfMultiPageView {
@@ -482,10 +482,11 @@ TPImage {
 
 			Loader {
 				asynchronous: true
-				active: _file_ops.fileType < TPUtils.FT_IMAGE
+				active: fileViewer._file_ops.fileType < TPUtils.FT_IMAGE
 				anchors.fill: parent
 
 				sourceComponent: Item {
+					id: _tpFileItem
 					TabBar {
 						id: tabSections
 						height: appSettings.itemLargeHeight
@@ -493,17 +494,17 @@ TPImage {
 						currentIndex: sectionsLayout.currentIndex
 
 						anchors {
-							top: parent.top
+							top: _tpFileItem.top
 							topMargin: 10
-							horizontalCenter: parent.horizontalCenter
+							horizontalCenter: _tpFileItem.horizontalCenter
 						}
 
 						Repeater {
 							id: tabSectionsRepeater
-							model: _file_ops.tpFileSectionCount
+							model: fileViewer._file_ops.tpFileSectionCount
 
 							TPTabButton {
-								text: _file_ops.tpFileSectionTitle(index);
+								text: fileViewer._file_ops.tpFileSectionTitle(index);
 								parentTab: tabSections
 
 								onClicked: sectionsLayout.currentIndex = index;
@@ -513,24 +514,48 @@ TPImage {
 
 					StackLayout {
 						id: sectionsLayout
-						currentIndex: 0
+
 						anchors {
 							fill: parent
 							topMargin: appSettings.itemLargeHeight + 20
-							bottomMargin: 200
 						}
 
 						Repeater {
 							id: sectionsRepeater
-							model: _file_ops.tpFileSectionCount
+							model: fileViewer._file_ops.tpFileSectionCount
 
 							TPMultiLineEdit {
-								text: _file_ops.tpFileSection(index);
+								id: _multiline_edit
+								text: fileViewer._file_ops.tpFileSection(index);
 								maxHeight: -1
-								minHeight: width
+								minHeight: height
 								width: sectionsLayout.width
 								height: sectionsLayout.height
-								Layout.maximumHeight: height
+
+								required property int index
+
+								onTextControlChanged: {
+									textControl.cursorPositionChanged.connect(function () {
+																	_file_ops.setWorkingDocumentCursorPosition(textControl.cursorPosition); });
+								}
+
+								Connections {
+									target: fileViewer._file_ops
+									function onSetCursorPorsition(cursor_pos: int) : void {
+										if (sectionsLayout.currentIndex === _multiline_edit.index)
+											_multiline_edit.textControl.cursorPosition = cursor_pos;
+									}
+									function onInsertString(str: string, pos: int): void {
+										_multiline_edit.textControl.insert(pos, str);
+									}
+								}
+								Connections {
+									target: sectionsLayout
+									function onCurrentIndexChanged(): void {
+										if (sectionsLayout.currentIndex === _multiline_edit.index)
+											fileViewer._file_ops.setWorkingTextDocument(_multiline_edit.textControl.textDocument);
+									}
+								}
 							} //TPMultiLineEdit
 						} //Repeater: tabSectionsRepeater
 					} //StackLayout: sectionsLayout

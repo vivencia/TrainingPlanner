@@ -8,11 +8,13 @@
 #include <QObject>
 #include <QQmlEngine>
 #include <QQuickPaintedItem>
+#include <QQuickTextDocument>
 #include <QRect>
 #include <QSize>
 
 QT_FORWARD_DECLARE_CLASS(QGraphicsEffect)
 QT_FORWARD_DECLARE_CLASS(QPainter)
+QT_FORWARD_DECLARE_CLASS(QTextDocument)
 
 class TPFileOps : public QQuickPaintedItem
 {
@@ -75,6 +77,8 @@ public:
 	Q_INVOKABLE void openFile();
 	Q_INVOKABLE inline QString tpFileSectionTitle(const int section) { return m_tpFileInfo.value(section).first; }
 	Q_INVOKABLE inline QString tpFileSection(const int section) { return m_tpFileInfo.value(section).second; }
+	Q_INVOKABLE inline void setWorkingTextDocument(QQuickTextDocument *text_doc) { m_textDocument = text_doc->textDocument(); }
+	Q_INVOKABLE void setWorkingDocumentCursorPosition(const int cursor_position);
 
 public slots:
 	void exportSlot(const QString &filePath = QString{});
@@ -89,6 +93,8 @@ signals:
 	void fileRemovalRequested();
 	void mesoIdxChanged();
 	void tpFileSectionCountChanged();
+	void setCursorPorsition(const int cursor_pos);
+	void insertString(const QString &ch, const int pos);
 
 protected:
 	void mousePressEvent(QMouseEvent *event) override;
@@ -116,8 +122,9 @@ private:
 	QString m_filename;
 	QHash<int,std::pair<QString,QString>> m_tpFileInfo;
 	bool m_fullscreen{false};
-	int m_mesoIdx{-1};
+	int m_mesoIdx{-1}, m_cursorPostion{-1};
 	uint  m_tpfileSections{0};
+	QTextDocument *m_textDocument{nullptr};
 
 	void _doFileOperation(const OpType type);
 	void doFullScreen();
@@ -132,6 +139,7 @@ private:
 	void _setEnabled(controlInfo *ci, const bool enabled);
 	void _getDefaultImage(controlInfo *ci);
 	void readTPFile();
+	void textDocumentKeyNavigation(const int key);
 
 	Q_DISABLE_COPY(TPFileOps)
 };

@@ -267,6 +267,17 @@ qt_add_executable(TrainingPlanner
 	${ANDROID_FIES}
 )
 
+#qt_add_qml_module(TrainingPlanner
+#	URI "org.vivenciasoftware.TrainingPlanner"
+#	VERSION 1.0
+#	QML_FILES
+#		${QML_SOURCES}
+#	RESOURCES
+#		${RESOURCE_FILES}
+#	SOURCES
+#		${CXX_SOURCES}
+#)
+
 if(NOT ANDROID)
 	pkg_check_modules(LIBSECRET REQUIRED libsecret-1)
 	add_definitions(-DHAVE_LIBSECRET=1)

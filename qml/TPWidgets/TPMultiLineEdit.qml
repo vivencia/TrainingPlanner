@@ -10,8 +10,9 @@ ColumnLayout {
 	property bool editable: true
 	property int minHeight: 2 * appSettings.itemDefaultHeight
 	property int maxHeight: appSettings.pageHeight / 3
-	property alias text: textControl.text
-	property alias modified: textControl.modified
+	property TextArea textControl
+	property alias text: _textControl.text
+	property alias modified: _textControl.modified
 	signal textAltered(_text: string);
 	signal enterOrReturnKeyPressed(mod_key: int);
 
@@ -19,46 +20,47 @@ ColumnLayout {
 	property bool _show_toolbox: false
 	property int _nFormatting: 0
 
-	RowLayout {
+	Row {
 		id: toolBoxLayout
 		visible: _show_toolbox
 		spacing: 5
 		Layout.fillWidth: true
+		height: _show_toolbox ? appSettings.itemDefaultHeight : 0
 
 		TPButton {
 			imageSource: "copy_"
 			focus: false
-			enabled: textControl.length > 0
+			enabled: mainLayout.textControl.length > 0
 			width: appSettings.itemDefaultHeight
 			height: width
 			onClicked: {
-				appUtils.copyToClipboard(getControlText(textControl.selectionStart, textControl.selectionEnd));
+				appUtils.copyToClipboard(getControlText(mainLayout.textControl.selectionStart, mainLayout.textControl.selectionEnd));
 				mainwindow.showTextCopiedMessage();
 			}
 		}
 		TPButton {
 			imageSource: "paste_"
 			focus: false
-			enabled: textControl.canPaste
+			enabled: mainLayout.textControl.canPaste
 			width: appSettings.itemDefaultHeight
 			height: width
-			onClicked: textControl.paste()
+			onClicked: mainLayout.textControl.paste()
 		}
 		TPButton {
 			imageSource: "undo_"
-			enabled: textControl.canUndo
+			enabled: mainLayout.textControl.canUndo
 			focus: false
 			width: appSettings.itemDefaultHeight
 			height: width
-			onClicked: textControl.undo();
+			onClicked: mainLayout.textControl.undo();
 		}
 		TPButton {
 			imageSource: "redo_"
-			enabled: textControl.canRedo
+			enabled: mainLayout.textControl.canRedo
 			focus: false
 			width: appSettings.itemDefaultHeight
 			height: width
-			onClicked: textControl.redo();
+			onClicked: mainLayout.textControl.redo();
 		}
 
 		TPButton {
@@ -66,12 +68,12 @@ ColumnLayout {
 			imageSource: "italic_"
 			checkable: true
 			focus: false
-			enabled: textControl.length > 0
+			enabled: mainLayout.textControl.length > 0
 			width: appSettings.itemDefaultHeight
 			height: width
 			onCheck: {
 				formatChanged(checked);
-				textControl.cursorSelection.font.italic = checked;
+				mainLayout.textControl.cursorSelection.font.italic = checked;
 			}
 		}
 		TPButton {
@@ -79,12 +81,12 @@ ColumnLayout {
 			imageSource: "underscore_"
 			checkable: true
 			focus: false
-			enabled: textControl.length > 0
+			enabled: mainLayout.textControl.length > 0
 			width: appSettings.itemDefaultHeight
 			height: width
 			onCheck: {
 				formatChanged(checked);
-				textControl.cursorSelection.font.underline = checked
+				mainLayout.textControl.cursorSelection.font.underline = checked
 			}
 		}
 		TPButton {
@@ -92,12 +94,12 @@ ColumnLayout {
 			imageSource: "upperlowercase_"
 			checkable: true
 			focus: false
-			enabled: textControl.length > 0
+			enabled: mainLayout.textControl.length > 0
 			width: appSettings.itemDefaultHeight
 			height: width
 			onCheck: {
 				formatChanged(checked);
-				textControl.cursorSelection.font.capitalization = checked ? Font.AllUppercase : Font.MixedCase;
+				mainLayout.textControl.cursorSelection.font.capitalization = checked ? Font.AllUppercase : Font.MixedCase;
 			}
 		}
 	}
@@ -109,13 +111,13 @@ ColumnLayout {
 		Flickable {
 			id: scrollArea
 			clip: true
-			height: minHeight
+			height: minHeight - toolBoxLayout.height
 			width: parent.width - appSettings.itemDefaultHeight - 5
 
 			ScrollBar.vertical: ScrollBar { id: vBar }
 
 			TextArea.flickable: TextArea {
-				id: textControl
+				id: _textControl
 				readOnly: !editable
 				wrapMode: TextEdit.Wrap
 				textFormat: TextEdit.RichText
@@ -190,15 +192,15 @@ ColumnLayout {
 						positionCaret();
 				}
 
+				Component.onCompleted: mainLayout.textControl = this;
+
 				function positionCaret(): void {
 					if (readOnly) {
 						vBar.setPosition(0);
 						cursorPosition = 0;
 					}
-					else {
-						vBar.setPosition(1);
-						cursorPosition = length;
-					}
+					else
+						vBar.setPosition(Math.floor(cursorPosition/length));
 				}
 			} //TextArea
 
@@ -240,7 +242,7 @@ ColumnLayout {
 				id: btnClearText
 				imageSource: "edit-clear"
 				hasDropShadow: false
-				enabled: textControl.length > 0
+				enabled: mainLayout.textControl.length > 0
 				width: appSettings.itemDefaultHeight
 				height: width
 
@@ -252,14 +254,14 @@ ColumnLayout {
 
 				onClicked: {
 					clear();
-					textControl.forceActiveFocus();
+					mainLayout.textControl.forceActiveFocus();
 				}
 			}
 		} //Item
 	} //Row
 
 	function clear() : void {
-		textControl.clear();
+		mainLayout.textControl.clear();
 		_nFormatting = 0;
 	}
 
@@ -271,17 +273,17 @@ ColumnLayout {
 			if (_nFormatting < 0)
 				_nFormatting = 0;
 		}
-		textControl.modified = true;
+		mainLayout.textControl.modified = true;
 	}
 
 	function contentsText() : string {
-		return getControlText(0, textControl.length);
+		return getControlText(0, mainLayout.textControl.length);
 	}
 
 	function getControlText(start: int, end: int) : string {
 		if (_nFormatting == 0)
-			return start !== end ? textControl.getText(start, end) : textControl.getText(0, textControl.length);
+			return start !== end ? mainLayout.textControl.getText(start, end) : mainLayout.textControl.getText(0, textControl.length);
 		else
-			return appUtils.stripInvalidCharacters(start === end ? textControl.text : textControl.selectedText);
+			return appUtils.stripInvalidCharacters(start === end ? mainLayout.textControl.text : mainLayout.textControl.selectedText);
 	}
 } //ColumnLayout
