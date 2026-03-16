@@ -21,6 +21,7 @@ class TPFileOps : public QQuickPaintedItem
 
 Q_OBJECT
 QML_ELEMENT
+QML_VALUE_TYPE(FileOperations)
 
 Q_PROPERTY(TPUtils::FILE_TYPE fileType READ fileType WRITE setFileType NOTIFY fileTypeChanged FINAL)
 Q_PROPERTY(QString fileName READ fileName WRITE setFileName NOTIFY fileNameChanged FINAL)

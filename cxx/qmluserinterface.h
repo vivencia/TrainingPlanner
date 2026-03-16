@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <qqml.h>
 #include <QVariantMap>
 
 QT_FORWARD_DECLARE_CLASS(QQmlComponent)
@@ -10,6 +11,8 @@ class QmlUserInterface : public QObject
 {
 
 Q_OBJECT
+QML_VALUE_TYPE(UserManager)
+QML_UNCREATABLE("")
 
 public:
 	explicit inline QmlUserInterface(QObject *parent)

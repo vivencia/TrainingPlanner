@@ -10,7 +10,7 @@ import "../ExercisesAndSets"
 import "../TPWidgets"
 import "WorkoutElements"
 
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 TPPage {
 	id: workoutPage
@@ -574,7 +574,7 @@ TPPage {
 	property TimerDialog dlgSessionLength: null
 	function showLimitedSessionTimerDialog(): void {
 		if (dlgSessionLength === null) {
-			let component = Qt.createComponent("qrc:/qml/Dialogs/TimerDialog.qml", Qt.Asynchronous);
+			let component = Qt.createComponent("qrc:/TpQml/qml/Dialogs/TimerDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
 				dlgSessionLength = component.createObject(workoutPage, { parentPage: workoutPage, timePickerOnly: true,
@@ -594,7 +594,7 @@ TPPage {
 	function displayTimeWarning(timeleft: string, bmin: bool): void {
 		if (tipTimeWarn === null) {
 			function createMessageBox() {
-				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					tipTimeWarn = component.createObject(workoutPage, { parentPage: workoutPage, title: qsTr("Attention!"),
@@ -625,7 +625,7 @@ TPPage {
 	function resetWorkoutMessage(): void {
 		if (resetWorkoutMsg === null) {
 			function createMessageBox() {
-				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					resetWorkoutMsg = component.createObject(workoutPage, { parentPage: workoutPage, title: qsTr("Reset workout?"),
@@ -646,7 +646,7 @@ TPPage {
 	property TPFloatingMenuBar optionsMenu: null
 	function showFinishedWorkoutOptions(): void {
 		if (optionsMenu === null) {
-			let optionsMenuMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
+			let optionsMenuMenuComponent = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPFloatingMenuBar.qml");
 			optionsMenu = optionsMenuMenuComponent.createObject(workoutPage, { titleHeader: qsTr("Non-current workout"),
 																parentPage: workoutPage, width: appSettings.pageWidth * 0.6 });
 			optionsMenu.addEntry(qsTr("Edit workout"), "edit.png", 0, true);
@@ -671,7 +671,7 @@ TPPage {
 	property TPFloatingMenuBar exportMenu: null
 	function showExportMenu(): void {
 		if (exportMenu === null) {
-			let exportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
+			let exportMenuComponent = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPFloatingMenuBar.qml");
 			exportMenu = exportMenuComponent.createObject(workoutPage, { parentPage: workoutPage });
 			exportMenu.addEntry(qsTr("Export"), "save-day.png", 0, true);
 			if (Qt.platform.os === "android")

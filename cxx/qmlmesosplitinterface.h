@@ -1,20 +1,21 @@
 #pragma once
 
+#include "dbexercisesmodel.h"
 #include <QObject>
 #include <QVariantMap>
 #include <QQuickItem>
 
 QT_FORWARD_DECLARE_CLASS(DBMesocyclesModel)
-QT_FORWARD_DECLARE_CLASS(DBExercisesModel);
 QT_FORWARD_DECLARE_CLASS(QQmlComponent);
 
 using DBSplitModel = DBExercisesModel;
-Q_DECLARE_OPAQUE_POINTER(DBSplitModel*)
 
 class QmlMesoSplitInterface : public QObject
 {
 
 Q_OBJECT
+QML_VALUE_TYPE(SplitManager)
+QML_UNCREATABLE("")
 
 Q_PROPERTY(DBSplitModel* currentSplitModel READ currentSplitModel NOTIFY currentPageChanged FINAL)
 Q_PROPERTY(QChar currentSplitLetter READ currentSplitLetter NOTIFY currentPageChanged FINAL)

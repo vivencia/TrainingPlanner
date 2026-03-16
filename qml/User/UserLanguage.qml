@@ -4,7 +4,7 @@ import QtQuick.Layouts
 
 import ".."
 import "../TPWidgets"
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 ColumnLayout {
 	id: mainLayout

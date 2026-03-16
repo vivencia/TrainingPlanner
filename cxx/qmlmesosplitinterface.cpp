@@ -101,7 +101,7 @@ bool QmlMesoSplitInterface::haveExercises() const
 
 void QmlMesoSplitInterface::createPlannerPage()
 {
-	m_plannerComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/ExercisesPlanner.qml"_L1}, QQmlComponent::Asynchronous};
+	m_plannerComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/Pages/ExercisesPlanner.qml"_L1}, QQmlComponent::Asynchronous};
 	m_plannerProperties["splitManager"_L1] = QVariant::fromValue(this);
 
 	switch (m_plannerComponent->status())
@@ -157,7 +157,7 @@ void QmlMesoSplitInterface::createPlannerPage_part2()
 void QmlMesoSplitInterface::createMesoSplitPages()
 {
 	if (m_splitComponent == nullptr)
-		m_splitComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/ExercisesAndSets/WorkoutOrSplitExercisesList.qml"_L1}, QQmlComponent::Asynchronous};
+		m_splitComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/ExercisesAndSets/WorkoutOrSplitExercisesList.qml"_L1}, QQmlComponent::Asynchronous};
 
 	switch (m_splitComponent->status())
 	{

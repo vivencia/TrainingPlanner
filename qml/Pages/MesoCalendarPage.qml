@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 import "../"
 import "../TPWidgets"

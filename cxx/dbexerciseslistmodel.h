@@ -25,6 +25,7 @@ class DBExercisesListModel : public QAbstractListModel
 {
 
 Q_OBJECT
+QML_VALUE_TYPE(DBExercisesListModel)
 QML_ELEMENT
 
 Q_PROPERTY(uint count READ count NOTIFY countChanged)

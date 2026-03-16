@@ -3,7 +3,7 @@ import QtQuick.Window
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 import "Dialogs"
 import "Pages"
@@ -142,7 +142,7 @@ ApplicationWindow {
 	property FirstTimeDialog firstTimeDlg: null
 	function showFirstTimeUseDialog(): void {
 		function createFirstTimeDialog() {
-			let component = Qt.createComponent("qrc:/qml/Dialogs/FirstTimeDialog.qml", Qt.Asynchronous);
+			let component = Qt.createComponent("qrc:/TpQml/qml/Dialogs/FirstTimeDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
 				firstTimeDlg = component.createObject(homePage, { parentPage: homePage });
@@ -252,7 +252,7 @@ ApplicationWindow {
 	function showPasswordDialog(title: string, message: string): void {
 		if (passwdDlg === null) {
 			function createPasswordDialog() {
-				let component = Qt.createComponent("qrc:/qml/Dialogs/PasswordDialog.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/TpQml/qml/Dialogs/PasswordDialog.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					passwdDlg = component.createObject(contentItem, { parentPage: homePage, title: title, message: message });
@@ -272,7 +272,7 @@ ApplicationWindow {
 	function showUserNoLongerAvailable(row: int, title: string, message: string): void {
 		if (userNoLongerAvailableDlg === null) {
 			function createDialog() {
-				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					userNoLongerAvailableDlg = component.createObject(contentItem, { parentPage: homePage, title: title, message: message, keepAbove: true });
@@ -294,7 +294,7 @@ ApplicationWindow {
 	function showExitPopUp(): void {
 		if (exitPopUp === null) {
 			function createDialog() {
-				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					exitPopUp = component.createObject(contentItem, { parentPage: homePage, title: qsTr("Exit app?"), keepAbove: true });
@@ -315,7 +315,7 @@ ApplicationWindow {
 	function showUnregisterUserDialog(title: string, message: string): void {
 		if (unregisterUserDlg === null) {
 			function createDialog() {
-				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					unregisterUserDlg = component.createObject(contentItem, { parentPage: homePage, title: title, message: message });
@@ -337,7 +337,7 @@ ApplicationWindow {
 	function showRevokeCoachStatus(new_use_opt: int, title: string, message: string): void {
 		if (revokeCoachStatusDlg === null) {
 			function createDialog() {
-				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					revokeCoachStatusDlg = component.createObject(contentItem, { parentPage: homePage, title: title, message: message });
@@ -359,7 +359,7 @@ ApplicationWindow {
 	function showRevokeClientStatus(new_use_opt: int, title: string, message: string): void {
 		if (revokeClientStatusDlg === null) {
 			function createDialog() {
-				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					revokeClientStatusDlg = component.createObject(contentItem, { parentPage: homePage, title:title, message:message });
@@ -419,7 +419,7 @@ ApplicationWindow {
 	function showChatWindow(chat_manager: ChatModel): void {
 		if (chatDlg === null) {
 			function createChatWindow() {
-				let component = Qt.createComponent("qrc:/qml/User/ChatWindow.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/TpQml/qml/User/ChatWindow.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					chatDlg = component.createObject(contentItem, { parentPage: homePage, chatManager: chat_manager });

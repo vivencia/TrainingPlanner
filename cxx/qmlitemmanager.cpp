@@ -44,37 +44,10 @@ QmlItemManager *QmlItemManager::_appItemManager{nullptr};
 QQmlApplicationEngine *QmlItemManager::_appQmlEngine{nullptr};
 QQuickWindow *QmlItemManager::_appMainWindow{nullptr};
 
-#define REGISTER_QML_TYPE(cpp_name, qmlname) \
-	qmlRegisterType<cpp_name> ("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, qmlname);
-
 void QmlItemManager::configureQmlEngine()
 {
 	QQuickStyle::setStyle(appSettings()->themeStyle());
 	QQuickWindow::setTextRenderType(QQuickWindow::NativeTextRendering);
-
-	REGISTER_QML_TYPE(DBUserModel,						"DBUserModel")
-	REGISTER_QML_TYPE(DBExercisesListModel,				"DBExercisesListModel")
-	REGISTER_QML_TYPE(DBMesocyclesModel,				"MesocyclesModel")
-	REGISTER_QML_TYPE(DBExercisesModel,					"DBExercisesModel")
-	REGISTER_QML_TYPE(DBCalendarModel,					"DBCalendarModel")
-	REGISTER_QML_TYPE(TPTimer,							"TPTimer")
-	REGISTER_QML_TYPE(TPImage,							"TPImage")
-	REGISTER_QML_TYPE(QmlUserInterface,					"UserManager")
-	REGISTER_QML_TYPE(QmlExercisesDatabaseInterface,	"ExercisesListManager")
-	REGISTER_QML_TYPE(QMLMesoInterface,					"MesoManager")
-	REGISTER_QML_TYPE(QmlMesoCalendarInterface,			"CalendarManager")
-	REGISTER_QML_TYPE(QmlMesoSplitInterface,			"SplitManager")
-	REGISTER_QML_TYPE(QmlWorkoutInterface,				"WorkoutManager")
-	REGISTER_QML_TYPE(WeatherInfo,						"WeatherInfo")
-	REGISTER_QML_TYPE(TPStatistics,						"Statistics")
-	REGISTER_QML_TYPE(PagesListModel,					"PagesListModel")
-	REGISTER_QML_TYPE(OnlineUserInfo,					"OnlineUserInfo")
-	REGISTER_QML_TYPE(TPMessagesManager,				"MessagesManager")
-	REGISTER_QML_TYPE(HomePageMesoModel,				"HomePageMesoModel")
-	REGISTER_QML_TYPE(TPChat,							"ChatModel")
-	REGISTER_QML_TYPE(TPUtils,							"TPUtils")
-	REGISTER_QML_TYPE(TPMediaControls,					"MediaControls")
-	REGISTER_QML_TYPE(TPFileOps,						"FileOperations")
 
 	QList<QQmlContext::PropertyPair> global_properties{9};
 	global_properties[0] = std::move(QQmlContext::PropertyPair{ "appSettings"_L1,			QVariant::fromValue(appSettings()) });
@@ -87,15 +60,17 @@ void QmlItemManager::configureQmlEngine()
 	global_properties[7] = std::move(QQmlContext::PropertyPair{ "appMessages"_L1,			QVariant::fromValue(new TPMessagesManager{this}) });
 	global_properties[8] = std::move(QQmlContext::PropertyPair{ "osInterface"_L1,			QVariant::fromValue(appOsInterface()) });
 	appQmlEngine()->rootContext()->setContextProperties(global_properties);
-	appQmlEngine()->addImportPath(":/"_L1);
+	//appQmlEngine()->addImportPath(":/"_L1);
 	appQmlEngine()->addImageProvider("tpimageprovider"_L1, new TPImageProvider{});
 
-	QUrl url{};
+	//QUrl url{};
+	QAnyStringView main_module{"Main"};
 	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(),
 																[this] (const QObject *const obj, const QUrl &objUrl) {
 		if (!obj) {
 			#ifndef QT_NO_DEBUG
-			qDebug () << "*******************Mainwindow not loaded*******************";
+			qDebug() << "*******************Mainwindow not loaded*******************";
+			qDebug() << objUrl;
 			#endif
 			QCoreApplication::exit(-1);
 		}
@@ -135,7 +110,8 @@ void QmlItemManager::configureQmlEngine()
 	if (args.count() > 1) {
 		if (args.at(1) == "-test"_L1) {
 			m_qml_testing = true;
-			url = std::move("qrc:/qml/tests.qml"_L1);
+			main_module = "Tests";
+			//url = std::move("qrc:/TpQml/qml/tests.qml"_L1);
 		}
 		else if (args.at(1) == "-user"_L1) {
 			if (!args.at(2).isEmpty()) {
@@ -146,16 +122,17 @@ void QmlItemManager::configureQmlEngine()
 				qDebug() << "Warning: Missing user id in the command line arguments"_L1;
 		}
 	}
-	if (url.isEmpty())
-		url = std::move("qrc:/qml/main.qml"_L1);
+	//if (url.isEmpty())
+	//	url = std::move("qrc:/TpQml/qml/main.qml"_L1);
 	#else
-		url = std::move("qrc:/qml/main.qml"_L1);
+		url = std::move("qrc:/TpQml/qml/main.qml"_L1);
 	#endif
 #else
-	url = std::move("qrc:/qml/main.qml"_L1);
+	url = std::move("qrc:/TpQml/qml/main.qml"_L1);
 #endif
 
-	appQmlEngine()->load(url);
+	//appQmlEngine()->load(url);
+	appQmlEngine()->loadFromModule("TpQml", main_module);
 }
 
 void QmlItemManager::exitApp()
@@ -228,7 +205,7 @@ void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QStri
 	if (!m_simpleExercisesList) {
 		m_simpleExercisesListProperties.insert("parentPage", QVariant::fromValue(parentPage));
 		m_simpleExercisesListComponent = new QQmlComponent{appQmlEngine(),
-										QUrl{"qrc:/qml/ExercisesAndSets/SimpleExercisesListPanel.qml"_L1}, QQmlComponent::Asynchronous};
+										QUrl{"qrc:/TpQml/qml/ExercisesAndSets/SimpleExercisesListPanel.qml"_L1}, QQmlComponent::Asynchronous};
 
 		switch (m_simpleExercisesListComponent->status())
 		{
@@ -259,7 +236,7 @@ void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QStri
 void QmlItemManager::getWeatherPage()
 {
 	if (!m_weatherPage) {
-		m_weatherComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/WeatherPage.qml"_L1}, QQmlComponent::Asynchronous};
+		m_weatherComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/Pages/WeatherPage.qml"_L1}, QQmlComponent::Asynchronous};
 		switch (m_weatherComponent->status()) {
 			case QQmlComponent::Ready:
 				createWeatherPage_part2();
@@ -285,7 +262,7 @@ void QmlItemManager::getStatisticsPage()
 {
 	if (!m_statisticsPage)
 	{
-		m_statisticsComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/StatisticsPage.qml"_L1}, QQmlComponent::Asynchronous};
+		m_statisticsComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/Pages/StatisticsPage.qml"_L1}, QQmlComponent::Asynchronous};
 		if (m_statisticsComponent->status() != QQmlComponent::Ready)
 		{
 			connect(m_statisticsComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {

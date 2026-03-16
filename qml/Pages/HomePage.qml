@@ -6,7 +6,7 @@ import "../"
 import "../TPWidgets"
 import "HomePageElements"
 
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 TPPage {
 	id: homePage

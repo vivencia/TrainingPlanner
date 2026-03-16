@@ -6,7 +6,7 @@ import "../"
 import "../TPWidgets"
 import "../Dialogs"
 
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 ColumnLayout {
 	id: mainItem
@@ -223,7 +223,7 @@ ColumnLayout {
 	property MuscularGroupPicker filterDlg: null
 	function showFilterDialog(): void {
 		if (filterDlg === null) {
-			let component = Qt.createComponent("qrc:/qml/Dialogs/MuscularGroupPicker.qml", Qt.Asynchronous);
+			let component = Qt.createComponent("qrc:/TpQml/qml/Dialogs/MuscularGroupPicker.qml", Qt.Asynchronous);
 
 			function finishCreation() {
 				filterDlg = component.createObject(mainwindow, { parentPage: mainItem.parentPage });

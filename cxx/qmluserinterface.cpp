@@ -16,7 +16,7 @@ void QmlUserInterface::getUserPage()
 	else {
 		m_userProperties.insert("useMode"_L1, appUserModel()->appUseMode(0));
 		m_userProperties.insert("userManager"_L1, QVariant::fromValue(this));
-		m_userComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/UserPage.qml"_L1}, QQmlComponent::Asynchronous};
+		m_userComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/Pages/UserPage.qml"_L1}, QQmlComponent::Asynchronous};
 		switch (m_userComponent->status()) {
 			case QQmlComponent::Ready:
 				createUserPage();
@@ -41,7 +41,7 @@ void QmlUserInterface::getSettingsPage()
 	if (m_settingsPage)
 		appPagesListModel()->openPage(m_settingsPage);
 	else {
-		m_settingsComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/SettingsPage.qml"_L1}, QQmlComponent::Asynchronous};
+		m_settingsComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/Pages/SettingsPage.qml"_L1}, QQmlComponent::Asynchronous};
 		switch (m_settingsComponent->status()) {
 			case QQmlComponent::Ready:
 				createSettingsPage();
@@ -67,7 +67,7 @@ void QmlUserInterface::getCoachesPage()
 		appPagesListModel()->openPage(m_coachesPage);
 	else {
 		m_coachesProperties.insert("userManager"_L1, QVariant::fromValue(this));
-		m_coachesComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/CoachesPage.qml"_L1}, QQmlComponent::Asynchronous};
+		m_coachesComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/Pages/CoachesPage.qml"_L1}, QQmlComponent::Asynchronous};
 		switch (m_coachesComponent->status()) {
 			case QQmlComponent::Ready:
 				createCoachesPage();
@@ -93,7 +93,7 @@ void QmlUserInterface::getClientsPage()
 		appPagesListModel()->openPage(m_clientsPage);
 	else {
 		m_clientsProperties.insert("userManager"_L1, QVariant::fromValue(this));
-		m_clientsComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/ClientsPage.qml"_L1}, QQmlComponent::Asynchronous};
+		m_clientsComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/Pages/ClientsPage.qml"_L1}, QQmlComponent::Asynchronous};
 		switch (m_clientsComponent->status()) {
 			case QQmlComponent::Ready:
 				createClientsPage();

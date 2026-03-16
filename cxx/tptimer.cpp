@@ -5,9 +5,7 @@
 
 #include <QSoundEffect>
 
-TPTimer::TPTimer(QObject *parent)
-	: QTimer{parent}, m_hours{0}, m_minutes{0}, m_seconds{0}, m_totalSeconds{0}, mb_stopWatch{true},
-		mb_timerForward{true}, mb_paused{false}, m_alarmSound{nullptr}
+TPTimer::TPTimer(QObject *parent) : QTimer{parent}
 {
 	connect(this, &QTimer::timeout, this, &TPTimer::calcTime);
 #ifdef Q_OS_ANDROID
@@ -40,8 +38,7 @@ void TPTimer::prepareTimer(const QString &strStartTime, const bool stop_watch)
 
 void TPTimer::startTimer(const QString &initialTimeOfDay)
 {
-	if (!mb_paused)
-	{
+	if (!mb_paused) {
 		m_elapsedTime.setHMS(0, 0, 0);
 		m_initialTime.setHMS(m_hours, m_minutes, m_seconds);
 		if (initialTimeOfDay.isEmpty() || initialTimeOfDay.contains('-'))
@@ -49,8 +46,7 @@ void TPTimer::startTimer(const QString &initialTimeOfDay)
 		else
 			m_timeOfDay = std::move(appUtils()->timeFromString(initialTimeOfDay));
 	}
-	else
-	{
+	else {
 		mb_paused = false;
 		emit pausedChanged();
 		calculateTimeBetweenTimes(m_timeOfPause, QTime::currentTime());
@@ -62,14 +58,12 @@ void TPTimer::startTimer(const QString &initialTimeOfDay)
 
 void TPTimer::stopTimer()
 {
-	if (isActive())
-	{
+	if (isActive()) {
 		stop();
 		stopAlarmSound();
 		calculateElapsedTime();
 	}
-	if (mb_paused)
-	{
+	if (mb_paused) {
 		calculateElapsedTime();
 		mb_paused = false;
 		mb_pausedTimePositive = false;
@@ -96,8 +90,7 @@ void TPTimer::resetTimer(const bool start)
 	prepareFromString();
 	if (start)
 		startTimer(QString{});
-	else
-	{
+	else {
 		emit hoursChanged();
 		emit minutesChanged();
 		emit secondsChanged();
@@ -152,8 +145,7 @@ void TPTimer::setStrSeconds(QString &str_seconds)
 
 void TPTimer::setAlarmSoundFile(const QString &soundFileName)
 {
-	if (!m_alarmSound)
-	{
+	if (!m_alarmSound) {
 		m_alarmSound = new QSoundEffect{this};
 		m_alarmSound->setLoopCount(1);
 		m_alarmSound->setVolume(0.25f);
@@ -176,15 +168,13 @@ void TPTimer::setAlarmSoundLoops(const uint nloops)
 
 void TPTimer::prepareFromString()
 {
-	if (!m_displayStartingTime.isEmpty())
-	{
+	if (!m_displayStartingTime.isEmpty()) {
 		m_hours = m_displayStartingTime.first(2).toUInt();
 		m_minutes = m_displayStartingTime.sliced(3, 2).toUInt();
 		m_seconds = m_displayStartingTime.last(2).toUInt();
 		mb_timerForward = mb_stopWatch;
 	}
-	else
-	{
+	else {
 		m_hours = m_minutes = m_seconds = 0;
 		if (mb_stopWatch)
 			mb_timerForward = true;
@@ -203,13 +193,11 @@ const QTime &TPTimer::calculateTimeBetweenTimes(const QTime &time1, const QTime 
 	int min{time2.minute() - time1.minute()};
 	int sec{time2.second() - time1.second()};
 
-	if (sec < 0)
-	{
+	if (sec < 0) {
 		--min;
 		sec += 60;
 	}
-	if (min < 0)
-	{
+	if (min < 0) {
 		--hour;
 		min += 60;
 	}
@@ -219,15 +207,13 @@ const QTime &TPTimer::calculateTimeBetweenTimes(const QTime &time1, const QTime 
 
 void TPTimer::calculateElapsedTime()
 {
-	if (mb_pausedTimePositive)
-	{
+	if (mb_pausedTimePositive) {
 		calculateTimeBetweenTimes(m_timeOfPause, QTime::currentTime());
 		m_pausedTime = m_pausedTime.addSecs(totalSecs(m_elapsedTime));
 	}
 	if (stopWatch())
 		m_elapsedTime.setHMS(m_hours, m_minutes, m_seconds);
-	else
-	{
+	else {
 		if (!mb_timerForward)
 			calculateTimeBetweenTimes(QTime{m_hours, m_minutes, m_seconds}, m_initialTime);
 		else
@@ -241,13 +227,10 @@ void TPTimer::calculateElapsedTime()
 
 void TPTimer::calcTime()
 {
-	if (mb_timerForward)
-	{
-		if (m_seconds == 59)
-		{
+	if (mb_timerForward) {
+		if (m_seconds == 59) {
 			m_seconds = -1;
-			if (m_minutes == 59)
-			{
+			if (m_minutes == 59) {
 				m_minutes = -1;
 				++m_hours;
 				emit hoursChanged();
@@ -260,14 +243,10 @@ void TPTimer::calcTime()
 		emit progressValueChanged();
 		emit secondsChanged();
 	}
-	else
-	{
-		if (m_seconds == 0)
-		{
-			if (m_minutes == 0)
-			{
-				if (m_hours == 0)
-				{
+	else {
+		if (m_seconds == 0) {
+			if (m_minutes == 0) {
+				if (m_hours == 0) {
 					mb_timerForward = true;
 					emit timerForwardChanged();
 					return;
@@ -277,14 +256,11 @@ void TPTimer::calcTime()
 				emit hoursChanged();
 				emit minutesChanged();
 			}
-			else
-			{
-				if (m_hours == 0)
-				{
-					mWarningIdx = mMinutesWarnings.indexOf(m_minutes);
-					if (mWarningIdx != -1)
-					{
-						mMinutesWarnings.remove(mWarningIdx);
+			else {
+				if (m_hours == 0) {
+					m_warningidx = mMinutesWarnings.indexOf(m_minutes);
+					if (m_warningidx != -1) {
+						mMinutesWarnings.remove(m_warningidx);
 						emit timeWarning(QString::number(m_minutes), true);
 						if (m_alarmSound)
 							m_alarmSound->play();
@@ -299,12 +275,10 @@ void TPTimer::calcTime()
 		--m_progressValue;
 		emit progressValueChanged();
 		emit secondsChanged();
-		if (m_minutes == 0)
-		{
-			mWarningIdx = mSecondsWarnings.indexOf(m_seconds);
-			if (mWarningIdx != -1)
-			{
-				mSecondsWarnings.remove(mWarningIdx);
+		if (m_minutes == 0) {
+			m_warningidx = mSecondsWarnings.indexOf(m_seconds);
+			if (m_warningidx != -1) {
+				mSecondsWarnings.remove(m_warningidx);
 				emit timeWarning(QString::number(m_seconds), false);
 				if (m_alarmSound)
 					m_alarmSound->play();
@@ -316,8 +290,7 @@ void TPTimer::calcTime()
 #ifdef Q_OS_ANDROID
 void TPTimer::correctTimer()
 {
-	if (isActive() && !paused())
-	{
+	if (isActive() && !paused()) {
 		static_cast<void>(calculateTimeBetweenTimes(m_timeOfDay, QTime::currentTime()));
 		if (mb_timerForward)
 			static_cast<void>(calculateTimeBetweenTimes(m_initialTime, m_elapsedTime));

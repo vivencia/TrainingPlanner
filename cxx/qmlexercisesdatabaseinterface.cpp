@@ -72,7 +72,7 @@ void QmlExercisesDatabaseInterface::createExercisesPage(QmlWorkoutInterface *con
 {
 	m_exercisesProperties.insert("bChooseButtonEnabled"_L1, connectPage != nullptr);
 	m_exercisesProperties.insert("exercisesManager"_L1, QVariant::fromValue(this));
-	m_exercisesComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/ExercisesListPage.qml"_L1}, QQmlComponent::Asynchronous};
+	m_exercisesComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/Pages/ExercisesListPage.qml"_L1}, QQmlComponent::Asynchronous};
 	switch (m_exercisesComponent->status()) {
 		case QQmlComponent::Ready:
 			createExercisesPage_part2(connectPage);

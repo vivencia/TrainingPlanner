@@ -13,6 +13,8 @@ class OnlineUserInfo : public QAbstractListModel
 
 Q_OBJECT
 QML_ELEMENT
+QML_VALUE_TYPE(OnlineUserInfo)
+QML_UNCREATABLE("")
 
 Q_PROPERTY(int currentRow READ currentRow WRITE setCurrentRow NOTIFY currentRowChanged FINAL)
 Q_PROPERTY(uint count READ count NOTIFY countChanged)

@@ -199,7 +199,7 @@ void TPMessagesManager::openChatWindow(TPChat *chat_manager)
 	if (!chat_window) {
 		if (!m_chatWindowComponent) {
 			m_chatWindowProperties.insert("parentPage"_L1, QVariant::fromValue(appItemManager()->appHomePage()));
-			m_chatWindowComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/User/ChatWindow.qml"_L1}, QQmlComponent::Asynchronous};
+			m_chatWindowComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/User/ChatWindow.qml"_L1}, QQmlComponent::Asynchronous};
 		}
 		switch (m_chatWindowComponent->status()) {
 		case QQmlComponent::Ready:

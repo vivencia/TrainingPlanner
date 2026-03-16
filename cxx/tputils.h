@@ -38,7 +38,7 @@ class TPUtils : public QObject
 {
 
 Q_OBJECT
-QML_ELEMENT
+QML_VALUE_TYPE(TPUtils)
 
 public:
 	enum DATE_FORMAT {
@@ -103,7 +103,7 @@ public:
 
 	static constexpr QLatin1StringView previewImagesSubDir{"temp-img/"};
 
-	explicit TPUtils(QObject *parent = nullptr);
+	explicit inline TPUtils(QObject *parent = nullptr) : QObject{parent} { app_utils = this; }
 	inline ~TPUtils() { delete m_appLocale; }
 
 	int generateUniqueId(const QLatin1StringView &seed = QLatin1StringView{}) const;
@@ -252,10 +252,13 @@ signals:
 	void tpFileOpenRequest(uint32_t tp_filetype, const QString &filename, const bool formatted = false, const QVariant &extra_info = QVariant{});
 
 private:
-	QLocale *m_appLocale;
-	mutable int16_t m_lowestTempId;
-	QStringList _months_names;
-	QStringList _days_names;
+	QLocale *m_appLocale{nullptr};
+	mutable int16_t m_lowestTempId{-1};
+	QStringList _months_names{std::move(tr("January")), std::move(tr("February")), std::move(tr("March")), std::move(tr("April")),
+							  std::move(tr("May")), std::move(tr("June")), std::move(tr("July")), std::move(tr("August")),
+							  std::move(tr("September")), std::move(tr("October")), std::move(tr("November")), std::move(tr("December"))};
+	QStringList _days_names{std::move(tr("Sunday")), std::move(tr("Monday")), std::move(tr("Tuesday")), std::move(tr("Wednesday")),
+								std::move(tr("Thursday")), std::move(tr("Friday")), std::move(tr("Saturday"))};
 
 	static TPUtils *app_utils;
 	friend TPUtils *appUtils();

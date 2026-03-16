@@ -3,7 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
 import QtCore
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 import "../Dialogs"
 import "../TPWidgets"

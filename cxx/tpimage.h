@@ -12,6 +12,7 @@ class TPImage : public QQuickPaintedItem
 
 Q_OBJECT
 QML_ELEMENT
+QML_VALUE_TYPE(TPImage)
 
 Q_PROPERTY(QString source READ source WRITE setSource NOTIFY sourceChanged)
 Q_PROPERTY(bool dropShadow READ dropShadow WRITE setDropShadow NOTIFY dropShadowChanged FINAL)

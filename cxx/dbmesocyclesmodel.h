@@ -45,6 +45,7 @@ class DBMesocyclesModel : public QObject
 {
 
 Q_OBJECT
+QML_VALUE_TYPE(MesocyclesModel)
 
 Q_PROPERTY(HomePageMesoModel* ownMesos READ ownMesos CONSTANT FINAL)
 Q_PROPERTY(HomePageMesoModel* clientMesos READ clientMesos CONSTANT FINAL)

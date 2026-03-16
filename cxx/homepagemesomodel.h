@@ -10,6 +10,8 @@ class HomePageMesoModel : public QAbstractListModel
 
 Q_OBJECT
 QML_ELEMENT
+QML_VALUE_TYPE(HomePageMesoModel)
+QML_UNCREATABLE("")
 
 Q_PROPERTY(uint count READ count NOTIFY countChanged)
 Q_PROPERTY(bool ownMesosModel READ ownMesosModel CONSTANT FINAL)

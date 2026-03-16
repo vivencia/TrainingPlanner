@@ -29,6 +29,8 @@ class DBCalendarModel : public QAbstractListModel
 
 Q_OBJECT
 QML_ELEMENT
+QML_VALUE_TYPE(DBCalendarModel)
+QML_UNCREATABLE("")
 
 Q_PROPERTY(int nMonths READ nMonths NOTIFY nMonthsChanged FINAL)
 Q_PROPERTY(int currentDay READ currentDay WRITE setCurrentDay NOTIFY currentDayChanged FINAL)

@@ -6,7 +6,7 @@ import "../"
 import "../TPWidgets"
 import "../User"
 
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 Drawer {
 	id: mainMenu
@@ -266,7 +266,7 @@ Drawer {
 
 		if (allUsersDialog === null) {
 			function createDialog() {
-				let component = Qt.createComponent("qrc:/qml/User/AllUsers.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/TpQml/qml/User/AllUsers.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					allUsersDialog = component.createObject(contentItem, { parentPage: mainMenu.rootPage });

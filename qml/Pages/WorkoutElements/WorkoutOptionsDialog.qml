@@ -3,7 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import "../../TPWidgets"
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 TPPopup {
 	id: dialog

@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 
-import "../"
+import TpQml
 
 Label {
 	id: control

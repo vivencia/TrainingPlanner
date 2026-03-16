@@ -1,7 +1,7 @@
-#ifndef QMLEXERCISESDATABASEINTERFACE_H
-#define QMLEXERCISESDATABASEINTERFACE_H
+#pragma once
 
 #include <QObject>
+#include <qqml.h>
 #include <QVariantMap>
 
 class QmlWorkoutInterface;
@@ -13,6 +13,8 @@ class QmlExercisesDatabaseInterface : public QObject
 {
 
 Q_OBJECT
+QML_VALUE_TYPE(ExercisesListManager)
+QML_UNCREATABLE("")
 
 public:
 	inline explicit QmlExercisesDatabaseInterface(QObject *parent) : QObject{parent}, m_exercisesComponent{nullptr} {}
@@ -33,5 +35,3 @@ private:
 	void createExercisesPage_part2(QmlWorkoutInterface *connectPage);
 
 };
-
-#endif // QMLEXERCISESDATABASEINTERFACE_H

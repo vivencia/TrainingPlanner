@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 import "../"
 import "../TPWidgets"
@@ -272,7 +272,7 @@ TPPage {
 
 		if (msgRemoveUser === null) {
 			function createMessageBox() {
-				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					msgRemoveUser = component.createObject(coachesPage, { parentPage: coachesPage, imageSource: "remove", keepAbove: true,
@@ -316,7 +316,7 @@ TPPage {
 	function displayOnlineCoachesDialog(): void {
 		if (requestDlg === null) {
 			function createRequestDialog() {
-				let component = Qt.createComponent("qrc:/qml/User/UserCoachRequest.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/TpQml/qml/User/UserCoachRequest.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					requestDlg = component.createObject(coachesPage, { parentPage: coachesPage });

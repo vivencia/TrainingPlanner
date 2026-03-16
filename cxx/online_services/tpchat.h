@@ -40,6 +40,8 @@ class TPChat : public QAbstractListModel
 
 Q_OBJECT
 QML_ELEMENT
+QML_VALUE_TYPE(ChatModel)
+QML_UNCREATABLE("")
 
 Q_PROPERTY(uint count READ count NOTIFY countChanged FINAL)
 Q_PROPERTY(QString interlocutorName READ interlocutorName NOTIFY interlocutorNameChanged FINAL)

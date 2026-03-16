@@ -19,6 +19,7 @@ class TPMediaControls : public QQuickPaintedItem
 
 Q_OBJECT
 QML_ELEMENT
+QML_VALUE_TYPE(MediaControls)
 
 Q_PROPERTY(QList<int> availableControls READ availableControls WRITE setAvailableControls NOTIFY availableControlsChanged FINAL)
 Q_PROPERTY(TPFileOps* fileOps READ fileOps WRITE setFileOps NOTIFY fileOpsChanged FINAL)

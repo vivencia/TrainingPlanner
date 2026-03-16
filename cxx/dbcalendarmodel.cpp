@@ -1,5 +1,4 @@
 #include "dbcalendarmodel.h"
-
 #include "dbmesocyclesmodel.h"
 #include "dbmesocalendartable.h"
 #include "tputils.h"
@@ -18,16 +17,13 @@ DBCalendarModel::DBCalendarModel(DBMesocyclesModel *parent, DBMesoCalendarTable*
 
 	m_dbmic = new DBModelInterfaceCalendar{this};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
-	*conn = connect(m_db, &DBMesoCalendarTable::calendarLoaded, this, [this,conn] (const uint meso_idx, const bool success)
-	{
-		if (meso_idx == m_mesoIdx)
-		{
+	*conn = connect(m_db, &DBMesoCalendarTable::calendarLoaded, this, [this,conn] (const uint meso_idx, const bool success) {
+		if (meso_idx == m_mesoIdx) {
 			disconnect(*conn);
-			if (success)
-			{
+			if (success) {
 				beginResetModel();
 				const QDate endDate{appUtils()->dateFromString(
-								m_dbmic->modelData().constLast().at(CALENDAR_DATABASE_DATE), TPUtils::DF_DATABASE)};
+													m_dbmic->modelData().constLast().at(CALENDAR_DATABASE_DATE), TPUtils::DF_DATABASE)};
 				m_nMonths = appUtils()->calculateNumberOfMonths(m_startDate, endDate);
 				emit nMonthsChanged();
 				m_nCaldays = m_startDate.daysTo(endDate) + 1;
@@ -41,8 +37,7 @@ DBCalendarModel::DBCalendarModel(DBMesocyclesModel *parent, DBMesoCalendarTable*
 
 QDate DBCalendarModel::firstDateOfEachMonth(const uint index) const
 {
-	if (index < m_nMonths)
-	{
+	if (index < m_nMonths) {
 		const QDate &date{m_startDate.addMonths(index)};
 		return QDate{date.year(), date.month(), 1};
 	}
@@ -100,8 +95,7 @@ QString DBCalendarModel::splitLetter(const QDate &date) const
 void DBCalendarModel::setSplitLetter(const QDate &date, const QString &new_splitletter)
 {
 	const auto cal_day{calendarDay(date)};
-	if (cal_day != -1)
-	{
+	if (cal_day != -1) {
 		setDayInfo(cal_day, CALENDAR_FIELD_SPLITLETTER, new_splitletter);
 		emit splitLetterChanged();
 	}
@@ -188,10 +182,8 @@ void DBCalendarModel::setCompleted(const bool completed)
 QVariant DBCalendarModel::data(const QModelIndex &index, int role) const
 {
 	const int row{index.row()};
-	if (row >= 0 && row < m_nMonths)
-	{
-		switch (role)
-		{
+	if (row >= 0 && row < m_nMonths) {
+		switch (role) {
 			case yearRole: return firstDateOfEachMonth(row).year();
 			case monthRole: return firstDateOfEachMonth(row).month() - 1;
 		}

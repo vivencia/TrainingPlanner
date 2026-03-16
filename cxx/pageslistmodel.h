@@ -13,7 +13,7 @@ class PagesListModel : public QAbstractListModel
 {
 
 Q_OBJECT
-QML_ELEMENT
+QML_VALUE_TYPE(PagesListModel)
 
 Q_PROPERTY(uint count READ count NOTIFY countChanged)
 Q_PROPERTY(uint currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentIndexChanged FINAL)

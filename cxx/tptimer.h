@@ -11,6 +11,7 @@ class TPTimer : public QTimer
 
 Q_OBJECT
 QML_ELEMENT
+QML_VALUE_TYPE(TPTimer)
 
 Q_PROPERTY(uint hours READ hours WRITE setHours NOTIFY hoursChanged FINAL)
 Q_PROPERTY(uint minutes READ minutes WRITE setMinutes NOTIFY minutesChanged FINAL)
@@ -85,10 +86,10 @@ signals:
 	void progressValueChanged();
 
 private:
-	int m_hours, m_minutes, m_seconds;
-	uint m_totalSeconds, m_progressValue;
-	int mWarningIdx;
-	bool mb_stopWatch, mb_timerForward, mb_paused, mb_pausedTimePositive;
+	int m_hours{0}, m_minutes{0}, m_seconds{0};
+	uint m_totalSeconds{0}, m_progressValue{0};
+	int m_warningidx{-1};
+	bool mb_stopWatch{true}, mb_timerForward{true}, mb_paused{false}, mb_pausedTimePositive{true};
 	QString m_alarmSoundFile, m_displayStartingTime;
 	QTime m_elapsedTime;
 	QTime m_initialTime;
@@ -97,7 +98,7 @@ private:
 	QTime m_timeOfPause;
 	QList<int> mMinutesWarnings;
 	QList<int> mSecondsWarnings;
-	QSoundEffect* m_alarmSound;
+	QSoundEffect* m_alarmSound{nullptr};
 
 	inline uint totalSecs(const QTime &time) const { return time.second() + time.minute() * 60 + time.hour() * 3600; }
 	inline void calcTotalSecs() { m_totalSeconds = m_seconds + m_minutes * 60 + m_hours * 3600; emit totalSecondsChanged(); }

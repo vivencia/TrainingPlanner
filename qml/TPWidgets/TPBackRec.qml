@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Shapes
 
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 Rectangle {
 	id: control

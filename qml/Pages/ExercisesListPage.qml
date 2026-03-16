@@ -7,7 +7,7 @@ import "../Dialogs"
 import "../ExercisesAndSets"
 import "../TPWidgets"
 
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 TPPage {
 	id: exercisesPage
@@ -307,7 +307,7 @@ TPPage {
 
 	function showInExMenu(): void {
 		if (imExportMenu === null) {
-			var imExportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
+			var imExportMenuComponent = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPFloatingMenuBar.qml");
 			imExportMenu = imExportMenuComponent.createObject(exercisesPage, { parentPage: exercisesPage });
 			imExportMenu.addEntry(qsTr("Import"), "import.png", 0, true);
 			imExportMenu.addEntry(qsTr("Export"), "save-day.png", 1, true);

@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 import ".."
 import "../TPWidgets"
@@ -252,7 +252,7 @@ ColumnLayout {
 	function showUserRegistrationDialog(): void {
 		if (userRegistrationDlg === null) {
 			function createDialog() {
-				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					userRegistrationDlg = component.createObject(mainwindow.contentItem, { parentPage: homePage,

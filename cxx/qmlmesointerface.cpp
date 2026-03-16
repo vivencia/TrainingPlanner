@@ -360,7 +360,7 @@ void QMLMesoInterface::createMesocyclePage(const bool new_meso)
 		m_strEndDate = appUtils()->formatDate(m_mesoModel->endDate(m_mesoIdx));
 	m_mesoProperties.insert("mesoManager"_L1, QVariant::fromValue(this));
 	m_mesoProperties.insert("mesoModel"_L1, QVariant::fromValue(m_mesoModel));
-	m_mesoComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/MesocyclePage.qml"_L1}, QQmlComponent::Asynchronous};
+	m_mesoComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/Pages/MesocyclePage.qml"_L1}, QQmlComponent::Asynchronous};
 
 	switch (m_mesoComponent->status()) {
 		case QQmlComponent::Ready:

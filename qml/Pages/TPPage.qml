@@ -5,7 +5,7 @@ import QtQuick.Shapes
 import "../"
 import "../TPWidgets"
 
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 Page {
 	id: tpPage

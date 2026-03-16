@@ -4,7 +4,7 @@ import QtQuick.Controls
 
 import "../TPWidgets"
 import "../Pages"
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 Rectangle {
 	id: button

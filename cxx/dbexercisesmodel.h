@@ -67,6 +67,8 @@ class DBExercisesModel : public QAbstractListModel
 
 Q_OBJECT
 QML_ELEMENT
+QML_VALUE_TYPE(DBExercisesModel)
+QML_UNCREATABLE("")
 
 Q_PROPERTY(uint exerciseCount READ exerciseCount NOTIFY exerciseCountChanged)
 Q_PROPERTY(int workingExercise READ workingExercise WRITE setWorkingExercise NOTIFY workingExerciseChanged)

@@ -58,6 +58,7 @@ class WeatherInfo : public QObject
 {
 
 Q_OBJECT
+QML_VALUE_TYPE(WeatherInfo)
 
 Q_PROPERTY(uint savedLocationsCount READ savedLocationsCount NOTIFY savedLocationsCountChanged FINAL)
 Q_PROPERTY(int currentlyViewedLocationIndex READ currentlyViewedLocationIndex WRITE setCurrentlyViewedLocationIndex NOTIFY currentlyViewedLocationIndexChanged FINAL)

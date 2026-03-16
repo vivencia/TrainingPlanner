@@ -6,7 +6,7 @@ import "../"
 import "../TPWidgets"
 import "../User"
 
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 TPPage {
 	id: clientsPage
@@ -218,7 +218,7 @@ TPPage {
 
 		if (msgRemoveUser === null) {
 			function createMessageBox() {
-				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					msgRemoveUser = component.createObject(clientsPage, { parentPage: clientsPage, imageSource: "remove", keepAbove: true,

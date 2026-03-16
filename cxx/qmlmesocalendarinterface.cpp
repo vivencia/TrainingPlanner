@@ -86,7 +86,7 @@ QString QmlMesoCalendarInterface::dateLabel() const
 
 void QmlMesoCalendarInterface::createMesoCalendarPage()
 {
-	m_calComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/MesoCalendarPage.qml"_L1}, QQmlComponent::Asynchronous};
+	m_calComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/Pages/MesoCalendarPage.qml"_L1}, QQmlComponent::Asynchronous};
 	switch (m_calComponent->status())
 	{
 		case QQmlComponent::Ready:

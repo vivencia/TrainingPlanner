@@ -15,19 +15,6 @@
 
 TPUtils *TPUtils::app_utils{nullptr};
 
-TPUtils::TPUtils(QObject *parent)
-	: QObject{parent}, m_appLocale{nullptr}, m_lowestTempId{-1}
-{
-	app_utils = this;
-	_months_names = QStringList{} << std::move(tr("January")) << std::move(tr("February")) << std::move(tr("March")) <<
-		std::move(tr("April")) << std::move(tr("May")) << std::move(tr("June")) << std::move(tr("July")) <<
-		std::move(tr("August")) << std::move(tr("September")) << std::move(tr("October")) << std::move(tr("November")) <<
-		std::move(tr("December"));
-
-	_days_names = QStringList{} << std::move(tr("Sunday")) << std::move(tr("Monday")) << std::move(tr("Tuesday")) <<
-		std::move(tr("Wednesday")) << std::move(tr("Thursday")) << std::move(tr("Friday")) << std::move(tr("Saturday"));
-}
-
 int TPUtils::generateUniqueId(const QLatin1StringView &seed) const
 {
 

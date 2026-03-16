@@ -8,7 +8,7 @@ import "../"
 import "../TPWidgets"
 import "../ExercisesAndSets"
 
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 TPPage {
 	id: pagePlanner
@@ -298,7 +298,7 @@ TPPage {
 
 	property PageScrollButtons navButtons: null
 	function createNavButtons(): void {
-		let component = Qt.createComponent("qrc:/qml/ExercisesAndSets/PageScrollButtons.qml", Qt.Asynchronous);
+		let component = Qt.createComponent("qrc:/TpQml/qml/ExercisesAndSets/PageScrollButtons.qml", Qt.Asynchronous);
 
 		function finishCreation() {
 			navButtons = component.createObject(pagePlanner, { ownerPage: pagePlanner });

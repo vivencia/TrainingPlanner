@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QDate>
+#include <qqml.h>
 #include <QObject>
 #include <QVariantMap>
 
@@ -15,6 +16,8 @@ class QMLMesoInterface : public QObject
 {
 
 Q_OBJECT
+QML_VALUE_TYPE(MesoManager)
+QML_UNCREATABLE("")
 
 Q_PROPERTY(bool mesoNameOK READ mesoNameOK NOTIFY mesoNameOKChanged FINAL)
 Q_PROPERTY(bool startDateOK READ startDateOK NOTIFY startDateOKChanged FINAL)

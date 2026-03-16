@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 
 import "../"
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 ComboBox {
 	property string textColor: appSettings.fontColor

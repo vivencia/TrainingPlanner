@@ -11,6 +11,7 @@ static inline int deferredActionId()
 	return da_id++;
 }
 
+QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(QmlExercisesDatabaseInterface)
 QT_FORWARD_DECLARE_CLASS(QmlWorkoutInterface)
 QT_FORWARD_DECLARE_CLASS(QmlUserInterface)
@@ -22,8 +23,6 @@ QT_FORWARD_DECLARE_CLASS(QQmlApplicationEngine)
 QT_FORWARD_DECLARE_CLASS(QQmlComponent)
 QT_FORWARD_DECLARE_CLASS(QQuickItem)
 QT_FORWARD_DECLARE_CLASS(QQuickWindow)
-
-QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 
 class QmlItemManager : public QObject
 {

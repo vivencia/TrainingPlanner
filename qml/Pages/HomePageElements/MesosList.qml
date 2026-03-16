@@ -5,7 +5,7 @@ import QtQuick.Effects
 
 import "../../TPWidgets"
 
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 Item {
 	id: control
@@ -336,7 +336,7 @@ Item {
 	property TPFloatingMenuBar exportMenu: null
 	function showExportMenu(mesoidx: int, callButton: TPButton): void {
 		if (exportMenu === null) {
-			let exportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
+			let exportMenuComponent = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPFloatingMenuBar.qml");
 			exportMenu = exportMenuComponent.createObject(homePage, { parentPage: homePage, titleHeader: qsTr("Export options") });
 			fileOps.mesoIdx = mesoidx;
 			for(let i = 0; i < fileOps.operationsCount; ++i)

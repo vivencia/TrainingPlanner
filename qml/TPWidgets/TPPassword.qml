@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 FocusScope {
 	id: control

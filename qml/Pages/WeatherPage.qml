@@ -3,7 +3,7 @@ import QtQuick.Controls
 import QtQuick.Effects
 import QtQuick.Layouts
 
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 import "./WeatherPageElements"
 import "../TPWidgets"
@@ -228,7 +228,7 @@ TPPage {
 		const list_len = weatherInfo.locationList.length;
 		if (list_len > 0) {
 			if (locationsMenu === null) {
-				let locationsMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
+				let locationsMenuComponent = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPFloatingMenuBar.qml");
 				locationsMenu = locationsMenuComponent.createObject(weatherPage, { parentPage: weatherPage,
 														titleHeader: qsTr("Places"), width: weatherPage.width*0.9 });
 				locationsMenu.menuEntrySelected.connect(function(id) {

@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 import ".."
 import "../TPWidgets"
@@ -212,7 +212,7 @@ ColumnLayout {
 	function showAvatarsPopup(): void {
 		if (chooseAvatarDlg === null) {
 			function createAvatarsDialog() {
-				let component = Qt.createComponent("qrc:/qml/User/AvatarsPopup.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/TpQml/qml/User/AvatarsPopup.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					chooseAvatarDlg = component.createObject(parentPage, { userRow: profileModule.userRow,

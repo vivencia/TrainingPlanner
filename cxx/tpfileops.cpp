@@ -626,9 +626,13 @@ void TPFileOps::textDocumentKeyNavigation(const int key)
 	const QTextBlock &tb{m_textDocument->findBlock(m_cursorPostion)};
 	const auto pos_in_line{m_cursorPostion - tb.position()};
 	const QTextBlock &tb2{m_textDocument->findBlockByNumber(tb.blockNumber() + other_line)};
-	auto line_length2{tb2.length()};
-	if (line_length2 >= pos_in_line)
-		emit setCursorPorsition(tb2.position() + pos_in_line);
-	else
-		emit setCursorPorsition(tb2.position() + tb2.length() - 1);
+	if (pos_in_line >= tb.position() + tb.length())
+		emit setCursorPorsition(tb2.position() + tb2.length());
+	else {
+		auto line_length2{tb2.length()};
+		if (line_length2 >= pos_in_line)
+			emit setCursorPorsition(tb2.position() + pos_in_line);
+		else
+			emit setCursorPorsition(tb2.position() + tb2.length() - 1);
+	}
 }

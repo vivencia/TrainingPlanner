@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QDate>
+#include <qqml.h>
 #include <QObject>
 #include <QVariantMap>
 
@@ -17,6 +18,8 @@ class QmlWorkoutInterface : public QObject
 {
 
 Q_OBJECT
+QML_VALUE_TYPE(WorkoutManager)
+QML_UNCREATABLE("")
 
 Q_PROPERTY(uint timerHour READ timerHour WRITE setTimerHour NOTIFY timerHourChanged FINAL)
 Q_PROPERTY(uint timerMinute READ timerMinute WRITE setTimerMinute NOTIFY timerMinuteChanged FINAL)
@@ -136,20 +139,20 @@ signals:
 	void requestMesoSplitModel(const QChar &splitletter);
 
 private:
-	DBMesocyclesModel *m_mesoModel;
-	DBWorkoutModel *m_workoutModel;
-	DBCalendarModel *m_calendarModel;
-	QQmlComponent *m_workoutComponent, *m_exercisesComponent;
+	DBMesocyclesModel *m_mesoModel{nullptr};
+	DBWorkoutModel *m_workoutModel{nullptr};
+	DBCalendarModel *m_calendarModel{nullptr};
+	QQmlComponent *m_workoutComponent{nullptr}, *m_exercisesComponent{nullptr};
 	QVariantMap m_workoutProperties, m_exercisesProperties;
-	QQuickItem *m_workoutPage, *m_exercisesItem;
+	QQuickItem *m_workoutPage{nullptr}, *m_exercisesItem{nullptr};
 	uint m_mesoIdx, m_calendarDay;
-	TPTimer *m_workoutTimer, *m_restTimer;
+	TPTimer *m_workoutTimer{nullptr}, *m_restTimer{nullptr};
 	QTime m_lastSetCompleted;
 	int m_nExercisesToCreate;
 	QHash<uint,QString> m_prevWorkouts;
 	QDate m_date;
-	uint8_t m_workoutStatus;
-	uint m_hour, m_min, m_sec;
+	uint8_t m_workoutStatus{0};
+	uint m_hour{0}, m_min{0}, m_sec{0};
 	bool m_importFromSplitPlan;
 	std::optional<bool> m_importFromPrevWorkout;
 	QString m_headerText, m_headerText_2;

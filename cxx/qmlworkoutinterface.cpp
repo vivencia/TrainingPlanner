@@ -25,14 +25,12 @@ enum workoutStatusFlags {
 };
 
 QmlWorkoutInterface::QmlWorkoutInterface(QObject *parent,DBMesocyclesModel *meso_model, const uint meso_idx, const QDate &date)
-	: QObject{parent}, m_mesoModel{meso_model}, m_workoutPage{nullptr}, m_workoutModel{nullptr}, m_calendarModel{nullptr},
-		m_mesoIdx{meso_idx}, m_workoutTimer{nullptr}, m_restTimer{nullptr}, m_date{date}, m_hour{0}, m_min{0}, m_sec{0},
-		m_workoutStatus{0}, m_importFromSplitPlan{false}
+	: QObject{parent}, m_mesoModel{meso_model}
 {
 	m_calendarModel = m_mesoModel->calendar(m_mesoIdx);
 	m_calendarDay = m_calendarModel->calendarDay(m_date);
 	m_workoutModel = m_mesoModel->workoutForDay(m_mesoIdx, m_calendarDay);
-	connect(m_workoutModel, &DBWorkoutModel::exerciseCountChanged, [this] () {
+	connect(m_workoutModel, &DBWorkoutModel::exerciseCountChanged, this, [this] () {
 		if (m_workoutModel->exerciseCount() == 0)
 			verifyWorkoutOptions();
 	});
@@ -53,8 +51,7 @@ void QmlWorkoutInterface::cleanUp()
 //----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 void QmlWorkoutInterface::changeSplitLetter(const QString &new_splitletter)
 {
-	if (m_workoutModel->splitLetter() != new_splitletter)
-	{
+	if (m_workoutModel->splitLetter() != new_splitletter){
 		setWorkoutIsEditable(new_splitletter != "R"_L1);
 		m_workoutModel->setSplitLetter(new_splitletter.at(0));
 		m_calendarModel->setSplitLetter(new_splitletter);
@@ -65,8 +62,7 @@ void QmlWorkoutInterface::changeSplitLetter(const QString &new_splitletter)
 
 QString QmlWorkoutInterface::timeIn() const
 {
-	if (m_calendarModel)
-	{
+	if (m_calendarModel) {
 		const QTime &time_in{m_calendarModel->timeIn()};
 		if (time_in.isValid())
 			return appUtils()->formatTime(time_in);
@@ -83,8 +79,7 @@ void QmlWorkoutInterface::setTimeIn(const QString &new_timein)
 
 QString QmlWorkoutInterface::timeOut() const
 {
-	if (m_calendarModel)
-	{
+	if (m_calendarModel) {
 		const QTime &time_out{m_calendarModel->timeOut()};
 		if (time_out.isValid())
 			return appUtils()->formatTime(time_out);
@@ -106,16 +101,13 @@ void QmlWorkoutInterface::setLocation(const QString &new_location)
 
 QString QmlWorkoutInterface::location()
 {
-	if (m_calendarModel)
-	{
+	if (m_calendarModel) {
 		if (!todaysWorkout())
 			return m_calendarModel->location(m_calendarDay);
-		else
-		{
+		else {
 			int i{static_cast<int>(m_calendarDay)};
 			do {
-				if (m_calendarModel->isWorkoutDay(i) && (!m_calendarModel->location(i).isEmpty()))
-				{
+				if (m_calendarModel->isWorkoutDay(i) && (!m_calendarModel->location(i).isEmpty())) {
 					if (i != m_calendarDay)
 						setLocation(m_calendarModel->location(i));
 					return m_calendarModel->location(i);
@@ -147,8 +139,7 @@ void QmlWorkoutInterface::setHeaderText()
 
 QString QmlWorkoutInterface::sessionLabel() const
 {
-	if (haveNewWorkoutOptions())
-	{
+	if (haveNewWorkoutOptions()) {
 		if (haveExercises())
 			return tr("Use or edit this already saved workout session");
 		else
@@ -170,8 +161,7 @@ bool QmlWorkoutInterface::workoutFinished() const
 void QmlWorkoutInterface::setWorkoutFinished(const bool finished)
 {
 	m_calendarModel->setCompleted(finished);
-	if (changeWorkoutStatus(WS_FINISHED, finished) && finished)
-	{
+	if (changeWorkoutStatus(WS_FINISHED, finished) && finished) {
 		calculateWorkoutTime();
 		rollUpExercises();
 	}
@@ -184,12 +174,9 @@ bool QmlWorkoutInterface::workoutInProgress() const
 
 void QmlWorkoutInterface::setWorkoutInProgress(const bool in_progress)
 {
-	if (changeWorkoutStatus(WS_IN_PROGRESS, in_progress))
-	{
-		if (in_progress)
-		{
-			if (!m_workoutTimer)
-			{
+	if (changeWorkoutStatus(WS_IN_PROGRESS, in_progress)) {
+		if (in_progress) {
+			if (!m_workoutTimer) {
 				m_workoutTimer = new TPTimer(this);
 				connect(m_workoutTimer, &TPTimer::timeWarning, this, [this] (QString remaingTime, bool bminutes) {
 					QMetaObject::invokeMethod(m_workoutPage, "displayTimeWarning", Q_ARG(QString, remaingTime), Q_ARG(bool, bminutes));
@@ -200,8 +187,7 @@ void QmlWorkoutInterface::setWorkoutInProgress(const bool in_progress)
 			}
 			m_workoutTimer->startTimer();
 		}
-		else if (m_workoutTimer)
-		{
+		else if (m_workoutTimer) {
 			if (workoutFinished())
 				m_workoutTimer->stopTimer();
 			else
@@ -253,8 +239,7 @@ QList<uint> QmlWorkoutInterface::previousWorkoutsList_value() const
 	QList<uint> values;
 	QHash<uint,QString>::const_iterator prev_workout{m_prevWorkouts.constBegin()};
 	const QHash<uint,QString>::const_iterator prev_workouts_end{m_prevWorkouts.constEnd()};
-	while (prev_workout != prev_workouts_end)
-	{
+	while (prev_workout != prev_workouts_end) {
 		values.append(prev_workout.key());
 		++prev_workout;
 	}
@@ -266,37 +251,31 @@ void QmlWorkoutInterface::setWorkingSetMode()
 	const uint exercise_number{m_workoutModel->workingExercise()};
 	const uint exercise_idx{m_workoutModel->workingSubExercise()};
 	const uint set_number{m_workoutModel->workingSet()};
-	if (m_workoutModel->trackRestTime(exercise_number))
-	{
+	if (m_workoutModel->trackRestTime(exercise_number)) {
 		const bool auto_time{m_workoutModel->autoRestTime(exercise_number)};
 		QTime rest_time{0, 0, 0};
-		switch (m_workoutModel->setMode(exercise_number, exercise_idx, set_number))
-		{
-			case SM_START_REST:
-				startRestTimer(exercise_number, m_workoutModel->setRestTime(exercise_number, m_workoutModel->workingSubExercise(), m_workoutModel->workingSet()));
+
+		switch (m_workoutModel->setMode(exercise_number, exercise_idx, set_number)) {
+		case SM_START_REST:
+			startRestTimer(exercise_number, m_workoutModel->setRestTime(exercise_number, m_workoutModel->workingSubExercise(), m_workoutModel->workingSet()));
 			break;
-			case SM_START_EXERCISE:
-			{
-				if (auto_time)
-				{
-					if (set_number == 0)
-					{
-						const std::optional<QTime> &time_in{m_calendarModel->timeIn()};
-						if (time_in.has_value())
-							rest_time = std::move(appUtils()->calculateTimeDifference(time_in.value(), QTime::currentTime()));
-					}
-					else
-						rest_time = std::move(appUtils()->calculateTimeDifference(m_lastSetCompleted, QTime::currentTime()));
+		case SM_START_EXERCISE:
+			if (auto_time) {
+				if (set_number == 0) {
+					const std::optional<QTime> &time_in{m_calendarModel->timeIn()};
+					if (time_in.has_value())
+						rest_time = std::move(appUtils()->calculateTimeDifference(time_in.value(), QTime::currentTime()));
 				}
 				else
-				{
-					m_restTimer->stopTimer();
-					rest_time = std::move(m_restTimer->elapsedTime());
-				}
-				const QString &new_resttime{appUtils()->formatTime(rest_time, appUtils()->TF_QML_DISPLAY_NO_HOUR)};
-				m_workoutModel->setSetRestTime(exercise_number, exercise_idx, set_number, new_resttime);
-				emit updateRestTime(exercise_number, new_resttime);
+					rest_time = std::move(appUtils()->calculateTimeDifference(m_lastSetCompleted, QTime::currentTime()));
 			}
+			else {
+				m_restTimer->stopTimer();
+				rest_time = std::move(m_restTimer->elapsedTime());
+			}
+			const QString &new_resttime{appUtils()->formatTime(rest_time, appUtils()->TF_QML_DISPLAY_NO_HOUR)};
+			m_workoutModel->setSetRestTime(exercise_number, exercise_idx, set_number, new_resttime);
+			emit updateRestTime(exercise_number, new_resttime);
 			break;
 		}
 	}
@@ -330,7 +309,7 @@ void QmlWorkoutInterface::loadExercisesFromCalendarDay(const uint calendar_day)
 		delete w_model;
 	};
 	if (w_model->exerciseCount() == 0)
-		connect(w_model, &DBSplitModel::exerciseCountChanged, this, [&load] () { load(); });
+		connect(w_model, &DBSplitModel::exerciseCountChanged, this, [load] () { load(); });
 	else
 		load();
 }
@@ -491,7 +470,7 @@ bool QmlWorkoutInterface::changeWorkoutStatus(uint8_t flag, const bool set, cons
 
 void QmlWorkoutInterface::createWorkoutPage()
 {
-	m_workoutComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/WorkoutPage.qml"_L1}, QQmlComponent::Asynchronous};
+	m_workoutComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/Pages/WorkoutPage.qml"_L1}, QQmlComponent::Asynchronous};
 	switch (m_workoutComponent->status())
 	{
 		case QQmlComponent::Ready:
@@ -540,19 +519,16 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 			QMetaObject::invokeMethod(m_workoutPage, "changeComboModel", Q_ARG(QString, m_mesoModel->split(m_mesoIdx)));
 	});
 
-	connect(appItemManager(), &QmlItemManager::selectedExerciseFromSimpleExercisesList, [this] (QQuickItem *parentPage) {
+	connect(appItemManager(), &QmlItemManager::selectedExerciseFromSimpleExercisesList, this, [this] (QQuickItem *parentPage) {
 		if (parentPage == m_workoutPage)
 			m_workoutModel->newExerciseFromExercisesList();
 	});
 
 	connect(m_workoutModel, &DBExercisesModel::exerciseModified, this, [this]
-					(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint field)
-	{
-		if (field == EXERCISES_FIELD_COMPLETED)
-		{
+					(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint field) {
+		if (field == EXERCISES_FIELD_COMPLETED) {
 			const bool all_exercises_completed{m_workoutModel->allSetsCompleted()};
-			if (all_exercises_completed != workoutFinished())
-			{
+			if (all_exercises_completed != workoutFinished()) {
 				if (!all_exercises_completed || !m_workoutTimer->isActive())
 					setWorkoutFinished(all_exercises_completed);
 				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
@@ -575,8 +551,7 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 		m_exercisesItem = static_cast<QQuickItem*>(m_exercisesComponent->createWithInitialProperties(
 																		m_exercisesProperties, appQmlEngine()->rootContext()));
 		#ifndef QT_NO_DEBUG
-		if (!m_exercisesItem)
-		{
+		if (!m_exercisesItem) {
 			qDebug() << m_exercisesComponent->errorString();
 			return;
 		}
@@ -586,34 +561,31 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 		m_workoutPage->setProperty("lstWorkoutExercises", QVariant::fromValue(m_exercisesItem));
 	};
 
-	m_exercisesComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/ExercisesAndSets/WorkoutOrSplitExercisesList.qml"_L1}, QQmlComponent::Asynchronous};
-	switch (m_exercisesComponent->status())
-	{
-		case QQmlComponent::Ready:
+	m_exercisesComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/ExercisesAndSets/WorkoutOrSplitExercisesList.qml"_L1},
+																												QQmlComponent::Asynchronous};
+	switch (m_exercisesComponent->status()) {
+	case QQmlComponent::Ready:
+		createExercisesItem();
+		break;
+	case QQmlComponent::Loading:
+		connect(m_exercisesComponent, &QQmlComponent::statusChanged, this, [this,createExercisesItem] (QQmlComponent::Status status) {
 			createExercisesItem();
+		}, Qt::SingleShotConnection);
 		break;
-		case QQmlComponent::Loading:
-			connect(m_exercisesComponent, &QQmlComponent::statusChanged, this, [this,createExercisesItem] (QQmlComponent::Status status) {
-				createExercisesItem();
-			}, Qt::SingleShotConnection);
+#ifndef QT_NO_DEBUG
+	case QQmlComponent::Null:
+	case QQmlComponent::Error:
+		qDebug() << m_exercisesComponent->errorString();
 		break;
-		#ifndef QT_NO_DEBUG
-		case QQmlComponent::Null:
-		case QQmlComponent::Error:
-			qDebug() << m_exercisesComponent->errorString();
-		break;
-		#endif
+#endif
 	}
 }
 
 void QmlWorkoutInterface::calculateWorkoutTime()
 {
-	if (!todaysWorkout() || editMode() || workoutFinished())
-	{
-		if (!timeIn().isEmpty()  &&!timeIn().contains('-'))
-		{
-			if (!timeOut().isEmpty()  &&!timeOut().contains('-'))
-			{
+	if (!todaysWorkout() || editMode() || workoutFinished()) {
+		if (!timeIn().isEmpty()  &&!timeIn().contains('-')) {
+			if (!timeOut().isEmpty()  &&!timeOut().contains('-')) {
 				const QTime &workoutLenght{appUtils()->calculateTimeDifference(timeIn(), timeOut())};
 				setTimerHour(workoutLenght.hour());
 				setTimerMinute(workoutLenght.minute());
@@ -623,12 +595,9 @@ void QmlWorkoutInterface::calculateWorkoutTime()
 		}
 		m_hour = m_min = m_sec = 0;
 	}
-	else
-	{
-		if (todaysWorkout())
-		{
-			if (!timeOut().isEmpty()  &&!timeOut().contains('-'))
-			{
+	else {
+		if (todaysWorkout()) {
+			if (!timeOut().isEmpty()  &&!timeOut().contains('-')) {
 				m_workoutTimer->setStopWatch(false);
 				m_workoutTimer->prepareTimer(appUtils()->calculateTimeDifference_str(appUtils()->getCurrentTimeString(), timeOut()));
 			}
@@ -638,8 +607,7 @@ void QmlWorkoutInterface::calculateWorkoutTime()
 
 void QmlWorkoutInterface::startRestTimer(const uint exercise_number, const QString &rest_time)
 {
-	if (!m_restTimer)
-	{
+	if (!m_restTimer) {
 		m_restTimer = new TPTimer{this};
 		m_restTimer->setInterval(1000);
 	}
@@ -655,17 +623,13 @@ void QmlWorkoutInterface::verifyWorkoutOptions()
 {
 	setTodaysWorkout(m_date == QDate::currentDate());
 
-	if (m_workoutModel->splitLetter() != 'R')
-	{
+	if (m_workoutModel->splitLetter() != 'R') {
 		DBSplitModel *split_model{m_mesoModel->splitModel(m_mesoIdx, m_workoutModel->splitLetter())};
 		auto conn{std::make_shared<QMetaObject::Connection>()};
-		if (split_model)
-		{
+		if (split_model) {
 			*conn = connect(split_model->database(), &TPDatabaseTable::dbOperationsFinished, this, [this,conn,split_model]
-																	(const ThreadManager::StandardOps op, const bool success)
-			{
-				if (op == ThreadManager::CustomOperation)
-				{
+																				(const ThreadManager::StandardOps op, const bool success) {
+				if (op == ThreadManager::CustomOperation) {
 					disconnect(*conn);
 					setCanImportFromSplitPlan(success);
 				}
@@ -675,9 +639,8 @@ void QmlWorkoutInterface::verifyWorkoutOptions()
 			appThreadManager()->runAction(split_model->database(), ThreadManager::CustomOperation);
 		}
 		else {
-			*conn = connect(m_mesoModel, &DBMesocyclesModel::splitLoaded, [this,conn] (const uint meso_idx, const QChar &splitletter) {
-				if (meso_idx == m_mesoIdx && splitletter == m_workoutModel->splitLetter())
-				{
+			*conn = connect(m_mesoModel, &DBMesocyclesModel::splitLoaded, this, [this,conn] (const uint meso_idx, const QChar &splitletter) {
+				if (meso_idx == m_mesoIdx && splitletter == m_workoutModel->splitLetter()) {
 					disconnect(*conn);
 					verifyWorkoutOptions();
 				}
@@ -685,18 +648,14 @@ void QmlWorkoutInterface::verifyWorkoutOptions()
 			m_mesoModel->loadSplit(m_mesoIdx, m_workoutModel->splitLetter());
 		}
 
-		if (!m_importFromPrevWorkout.has_value())
-		{
+		if (!m_importFromPrevWorkout.has_value()) {
 			auto conn2{std::make_shared<QMetaObject::Connection>()};
 			*conn2 = connect(m_workoutModel->database(), &TPDatabaseTable::actionFinished, this, [this,conn2]
-						(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2)
-			{
-				if (op == ThreadManager::CustomOperation)
-				{
+										(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2) {
+				if (op == ThreadManager::CustomOperation) {
 					disconnect(*conn2);
 					m_prevWorkouts.clear();
-					for (const auto &prev_calday : return_value2.toList())
-					{
+					for (const auto &prev_calday : return_value2.toList()) {
 						const uint prev_calendar_day{prev_calday.toUInt()};
 						m_prevWorkouts.insert(prev_calendar_day, appUtils()->formatDate(m_calendarModel->date(prev_calendar_day)));
 					}

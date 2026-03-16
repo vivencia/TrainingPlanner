@@ -1,8 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 
-import ".."
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 TPBackRec {
 	id: button

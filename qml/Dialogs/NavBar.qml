@@ -3,7 +3,7 @@ import QtQuick.Controls
 
 import "../TPWidgets"
 import "../Pages"
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 TPToolBar {
 	id: root
@@ -93,7 +93,7 @@ TPToolBar {
 
 		onClicked: {
 			if (mainCalendar === null) {
-				let component = Qt.createComponent("qrc:/qml/Dialogs/CalendarDialog.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/TpQml/qml/Dialogs/CalendarDialog.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					mainCalendar = component.createObject(mainwindow, { parentPage: homePage, showDate:new Date(),
@@ -124,7 +124,7 @@ TPToolBar {
 
 		onClicked: {
 			if (mainTimer === null) {
-				let component = Qt.createComponent("qrc:/qml/Dialogs/TimerDialog.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/TpQml/qml/Dialogs/TimerDialog.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					mainTimer = component.createObject(mainwindow, { parentPage: homePage });

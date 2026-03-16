@@ -14,6 +14,8 @@ class QmlMesoCalendarInterface : public QObject
 {
 
 Q_OBJECT
+QML_VALUE_TYPE(CalendarManager)
+QML_UNCREATABLE("")
 
 Q_PROPERTY(QString nameLabel READ nameLabel NOTIFY nameLabelChanged FINAL)
 Q_PROPERTY(QString dateLabel READ dateLabel NOTIFY dateLabelChanged FINAL)

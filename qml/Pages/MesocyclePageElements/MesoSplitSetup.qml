@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 import "../../TPWidgets"
 import "../../Dialogs"
@@ -217,7 +217,7 @@ Pane {
 	property MuscularGroupPicker filterDlg: null
 	function showMGDialog(button: TPButton, split: string): void {
 		if (filterDlg === null) {
-			let component = Qt.createComponent("qrc:/qml/Dialogs/MuscularGroupPicker.qml", Qt.Asynchronous);
+			let component = Qt.createComponent("qrc:/TpQml/qml/Dialogs/MuscularGroupPicker.qml", Qt.Asynchronous);
 
 			function finishCreation() {
 				filterDlg = component.createObject(mainwindow, {

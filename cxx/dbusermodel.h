@@ -47,6 +47,7 @@ class DBUserModel : public QObject
 {
 
 Q_OBJECT
+QML_VALUE_TYPE(DBUserModel)
 
 Q_PROPERTY(QString userId READ userId NOTIFY userIdChanged FINAL)
 Q_PROPERTY(QString onlineAccountUserLabel READ onlineAccountUserLabel NOTIFY labelsChanged FINAL)

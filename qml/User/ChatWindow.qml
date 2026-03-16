@@ -4,7 +4,7 @@ import QtQuick.Layouts
 
 import "../Dialogs"
 import "../TPWidgets"
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 TPPopup {
 	id: chatWindow

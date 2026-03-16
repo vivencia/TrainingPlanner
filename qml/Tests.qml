@@ -5,7 +5,7 @@ import QtQuick.Layouts
 import QtQuick.Pdf
 import QtMultimedia
 
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 import "ExercisesAndSets"
 import "Dialogs"
@@ -186,7 +186,7 @@ ApplicationWindow {
 	function showPasswordDialog(title: string, message: string): void {
 		if (passwdDlg === null) {
 			function createPasswordDialog() {
-				let component = Qt.createComponent("qrc:/qml/Dialogs/PasswordDialog.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/TpQml/qml/Dialogs/PasswordDialog.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					passwdDlg = component.createObject(contentItem, { parentPage: homePage, title: title, message: message });

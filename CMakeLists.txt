@@ -65,7 +65,6 @@ qt_standard_project_setup()
 set( RESOURCE_FILES app_resources.qrc )
 
 set( CXX_SOURCES
-	cxx/main.cpp
 	cxx/return_codes.h
 	cxx/tpbool.h
 
@@ -150,6 +149,18 @@ set( QM_FILES
     ${TRANSLATIONS_DIR}/tplanner.de_DE.qm
 )
 
+#set(trainingplanner_resource_files
+#	"app_resources.qrc"
+#	"qml/qmldir"
+#	${QML_SOURCES}
+#)
+
+list(APPEND QML_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/cxx")
+list(APPEND QML_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/qml")
+set(QML_IMPORT_PATH
+    ${QML_DIRS}
+)
+
 set( SERVER_FILES
 	web-server/function_library.sh
 	web-server/init_script.sh
@@ -177,9 +188,9 @@ set ( ANDROID_FILES
 )
 
 set( QML_SOURCES
-    "qml/AppGlobals.qml"
-    "qml/main.qml"
-	"qml/tests.qml"
+	"qml/AppGlobals.qml"
+	"qml/Main.qml"
+	"qml/Tests.qml"
     "qml/Dialogs/CalendarDialog.qml"
     "qml/Dialogs/FirstTimeDialog.qml"
     "qml/Dialogs/MainMenu.qml"
@@ -257,26 +268,44 @@ set( QML_SOURCES
 	"qml/User/UserWelcome.qml"
 )
 
+qt_policy(SET QTP0004 NEW)
+qt_policy(SET QTP0001 NEW)
+
+set_source_files_properties("qml/AppGlobals.qml" PROPERTIES
+    QT_QML_SINGLETON_TYPE TRUE
+)
+
 qt_add_executable(TrainingPlanner
-	${CXX_SOURCES}
+	"${CMAKE_CURRENT_SOURCE_DIR}/cxx/main.cpp"
 	${JAVA_SOURCES}
-	${QML_SOURCES}
-	${RESOURCE_FILES}
+	#${QML_SOURCES}
+	#${RESOURCE_FILES}
 	${QM_FILES}
 	${SERVER_FILES}
 	${ANDROID_FIES}
 )
 
-#qt_add_qml_module(TrainingPlanner
-#	URI "org.vivenciasoftware.TrainingPlanner"
-#	VERSION 1.0
-#	QML_FILES
-#		${QML_SOURCES}
-#	RESOURCES
-#		${RESOURCE_FILES}
-#	SOURCES
-#		${CXX_SOURCES}
+qt_add_qml_module(TrainingPlanner
+	URI TpQml
+	VERSION 1.0
+	QML_FILES
+		${QML_SOURCES}
+	SOURCES
+		${CXX_SOURCES}
+	RESOURCES
+		${RESOURCE_FILES}
+	RESOURCE_PREFIX
+		"/"
+)
+
+#qt_add_resources(TrainingPlanner "TrainingPlanner"
+#	PREFIX
+#		"/"
+#	FILES
+#		${trainingplanner_resource_files}
 #)
+
+target_include_directories(TrainingPlanner PUBLIC cxx cxx/online_services cxx/tpkeychain cxx/weather)
 
 if(NOT ANDROID)
 	pkg_check_modules(LIBSECRET REQUIRED libsecret-1)
@@ -331,35 +360,6 @@ target_link_libraries(TrainingPlanner PRIVATE Qt6::Core)
 target_link_libraries(TrainingPlanner PRIVATE Qt6::Core)
 target_link_libraries(TrainingPlanner PRIVATE Qt6::Core)
 endif(NOT ANDROID)
-
-set(trainingplanner_resource_files
-	"app_resources.qrc"
-	"qml/qmldir"
-	${QML_SOURCES}
-)
-
-qt_add_resources(TrainingPlanner "TrainingPlanner"
-	PREFIX
-		"/"
-	FILES
-		${trainingplanner_resource_files}
-)
-
-list(APPEND QML_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/cxx")
-list(APPEND QML_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/qml")
-set(QML_IMPORT_PATH
-    ${QML_DIRS}
-)
-
-#qt_add_qml_module(TrainingPlanner
-#    URI "Graph"
-#    VERSION 1.0
-#    QML_FILES
-#	qml/GraphicsViewer.qml
-#    SOURCES
-#	cxx/graph.h cxx/graph.cpp
-#    DEPENDENCIES QtQuick
-#)
 
 #target_sources(trainingplanner_other_files
 #  PRIVATE

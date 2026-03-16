@@ -4,7 +4,7 @@ import QtQuick.Layouts
 import QtMultimedia
 import QtQuick.Pdf
 
-import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+import TpQml
 
 import "../"
 
