@@ -149,7 +149,7 @@ TPPage {
 				TPImage {
 					source: "set-completed"
 					enabled: mesoManager.mesoNameOK
-					width: appSettings.itemDefaultHeight
+					width: AppSettings.itemDefaultHeight
 					height: width
 
 					anchors {
@@ -235,7 +235,7 @@ TPPage {
 				TPButton {
 					id: btnChooseMesoFile
 					imageSource: "choose-file"
-					width: appSettings.itemDefaultHeight
+					width: AppSettings.itemDefaultHeight
 					height: width
 
 					anchors {
@@ -274,7 +274,7 @@ TPPage {
 				TPImage {
 					source: "set-completed"
 					enabled: mesoManager.startDateOK
-					width: appSettings.itemDefaultHeight
+					width: AppSettings.itemDefaultHeight
 					height: width
 
 					anchors {
@@ -304,7 +304,7 @@ TPPage {
 				TPButton {
 					id: btnStartDate
 					imageSource: "calendar.png"
-					width: appSettings.itemDefaultHeight
+					width: AppSettings.itemDefaultHeight
 					height: width
 
 					anchors {
@@ -329,7 +329,7 @@ TPPage {
 
 				TPButton {
 					imageSource: "question.png"
-					width: appSettings.itemDefaultHeight
+					width: AppSettings.itemDefaultHeight
 					height: width
 
 					anchors {
@@ -349,7 +349,7 @@ TPPage {
 				TPImage {
 					source: "set-completed"
 					enabled: mesoManager.endDateOK
-					width: appSettings.itemDefaultHeight
+					width: AppSettings.itemDefaultHeight
 					height: width
 
 					anchors {
@@ -383,7 +383,7 @@ TPPage {
 				TPButton {
 					id: btnEndDate
 					imageSource: "calendar.png"
-					width: appSettings.itemDefaultHeight
+					width: AppSettings.itemDefaultHeight
 					height: width
 
 					anchors {
@@ -424,7 +424,7 @@ TPPage {
 
 			TPMultiLineEdit {
 				Layout.fillWidth: true
-				Layout.preferredHeight: appSettings.pageHeight * 0.15
+				Layout.preferredHeight: AppSettings.pageHeight * 0.15
 				text: mesoManager.notes
 				onTextAltered: (_text) => mesoManager.notes = _text;
 			}

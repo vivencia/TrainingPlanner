@@ -12,8 +12,7 @@ using namespace Qt::Literals::StringLiterals;
 TPAndroidNotification::TPAndroidNotification(QObject *parent)
 	: QObject{parent}
 {
-	if (QNativeInterface::QAndroidApplication::sdkVersion() >= __ANDROID_API_T__)
-	{
+	if (QNativeInterface::QAndroidApplication::sdkVersion() >= __ANDROID_API_T__) {
 		auto requestResult{QtAndroidPrivate::requestPermission("android.permission.POST_NOTIFICATIONS"_L1)};
 		if (requestResult.result() != QtAndroidPrivate::Authorized)
 			qWarning() << "Failed to acquire permission to post notifications (required for Android 13+)";

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "qml_singleton.h"
+
 #include <QDateTime>
 #include <QFileInfo>
 #include <QObject>
@@ -38,7 +40,6 @@ class TPUtils : public QObject
 {
 
 Q_OBJECT
-QML_VALUE_TYPE(TPUtils)
 
 public:
 	enum DATE_FORMAT {
@@ -103,7 +104,7 @@ public:
 
 	static constexpr QLatin1StringView previewImagesSubDir{"temp-img/"};
 
-	explicit inline TPUtils(QObject *parent = nullptr) : QObject{parent} { app_utils = this; }
+	explicit TPUtils(QObject *parent = nullptr);
 	inline ~TPUtils() { delete m_appLocale; }
 
 	int generateUniqueId(const QLatin1StringView &seed = QLatin1StringView{}) const;
@@ -260,9 +261,11 @@ private:
 	QStringList _days_names{std::move(tr("Sunday")), std::move(tr("Monday")), std::move(tr("Tuesday")), std::move(tr("Wednesday")),
 								std::move(tr("Thursday")), std::move(tr("Friday")), std::move(tr("Saturday"))};
 
-	static TPUtils *app_utils;
+	static TPUtils *_app_utils;
 	friend TPUtils *appUtils();
 };
+
+DECLARE_QML_NAMED_SINGLETON(TPUtils, AppUtils)
 
 template <typename T>
 inline void setBit(T &__restrict var, const unsigned char bit)
@@ -291,4 +294,4 @@ inline bool isBitSet(const T &__restrict var, const unsigned char bit)
 		return static_cast<bool>(var & 1);
 }
 
-inline TPUtils *appUtils() { return TPUtils::app_utils; }
+inline TPUtils *appUtils() { return TPUtils::_app_utils; }

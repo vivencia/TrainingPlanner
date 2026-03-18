@@ -10,7 +10,7 @@ TPPopup {
 	closeButtonVisible: false
 	showTitleBar: false
 	focus: false
-	width: appSettings.pageWidth * 0.8
+	width: AppSettings.pageWidth * 0.8
 	height: mainLayout.childrenRect.height * 1.1
 	disableMouseHandling: !movable
 
@@ -19,8 +19,8 @@ TPPopup {
 	property string button1Text: qsTr("Yes")
 	property string button2Text: qsTr("No")
 	property string imageSource: ""
-	property string backColor: appSettings.primaryColor
-	property string textColor: appSettings.fontColor
+	property string backColor: AppSettings.primaryColor
+	property string textColor: AppSettings.fontColor
 	property string subImageLabel: ""
 	property bool highlightMessage: false
 	property bool imageEnabled: true
@@ -72,8 +72,8 @@ TPPopup {
 				source: balloon.imageSource
 				visible: balloon.imageSource.length > 0
 				enabled: balloon.imageEnabled
-				Layout.preferredWidth: appSettings.itemExtraLargeHeight
-				Layout.preferredHeight: appSettings.itemExtraLargeHeight
+				Layout.preferredWidth: AppSettings.itemExtraLargeHeight
+				Layout.preferredHeight: AppSettings.itemExtraLargeHeight
 				Layout.alignment: Qt.AlignVCenter
 
 				TPLabel {
@@ -117,7 +117,7 @@ TPPopup {
 							if (Math.abs(deltaX) >= 10) {
 								x += deltaX;
 								if (deltaX > 0)
-									balloon.finalXPos = appSettings.pageWidth + 300;
+									balloon.finalXPos = AppSettings.pageWidth + 300;
 								else
 									balloon.finalXPos = -300;
 								alternateCloseTransition.start();
@@ -135,7 +135,7 @@ TPPopup {
 			Layout.fillWidth: true
 			Layout.leftMargin: empty_space
 			spacing: empty_space
-			height: Math.max(Math.max(appSettings.itemDefaultHeight, btn1.height), btn2.height);
+			height: Math.max(Math.max(AppSettings.itemDefaultHeight, btn1.height), btn2.height);
 
 			readonly property int empty_space: (balloon.width - btn1.width - btn2.width) / 3
 			TPButton {
@@ -174,7 +174,7 @@ TPPopup {
 		ColorAnimation {
 			target: lblMessage
 			property: "color"
-			from: appSettings.fontColor
+			from: AppSettings.fontColor
 			to: "darkred"
 			duration: 700
 			easing.type: Easing.InOutCubic
@@ -183,7 +183,7 @@ TPPopup {
 			target: lblMessage
 			property: "color"
 			from: "darkred"
-			to: appSettings.fontColor
+			to: AppSettings.fontColor
 			duration: 500
 			easing.type: Easing.InOutCubic
 		}

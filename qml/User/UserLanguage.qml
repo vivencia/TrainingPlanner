@@ -18,20 +18,20 @@ ColumnLayout {
 	}
 
 	Repeater {
-		model: appSettings.availableLanguages.length
+		model: AppSettings.availableLanguages.length
 		delegate: TPRadioButtonOrCheckBox {
 			required property int index
 
-			text: appSettings.availableLanguagesLabel(index)
-			checked: appSettings.userLocaleIdx === index
+			text: AppSettings.availableLanguagesLabel(index)
+			checked: AppSettings.userLocaleIdx === index
 			image: mainLayout.country_flags[index]
 			multiLine: true
 			buttonGroup: languages_group
-			imageWidth: appSettings.itemExtraLargeHeight
-			imageHeight: appSettings.itemDefaultHeight
+			imageWidth: AppSettings.itemExtraLargeHeight
+			imageHeight: AppSettings.itemDefaultHeight
 			Layout.fillWidth: true
 
-			onClicked: appTr.switchToLanguage(appSettings.availableLanguages[index], true);
+			onClicked: appTr.switchToLanguage(AppSettings.availableLanguages[index], true);
 		}
 	}
 }

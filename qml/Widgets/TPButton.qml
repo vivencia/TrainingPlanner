@@ -1,25 +1,27 @@
+pragma componentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 
 import TpQml
 
 TPBackRec {
-	id: button
+	id: _button
 	focus: true
 	border.color: flat ? "transparent" : buttonText.color
 	radius: rounded ? height : 8
 	opacity: checked ? 0.9 : 1
 	color: backgroundColor
-	height: autoSize ? buttonText.contentHeight : (text.length > 0 ? appSettings.itemDefaultHeight * buttonText.lineCount : 0) +
+	height: autoSize ? buttonText.contentHeight : (text.length > 0 ? AppSettings.itemDefaultHeight * buttonText.lineCount : 0) +
 							(textUnderIcon ? imageLoader.width : 0)
 	width: autoSize ? preferredWidth : undefined
-	useGradient: enabled && button.text.length !== 0
+	useGradient: enabled && buttonText.text.length !== 0
 
-	readonly property int preferredWidth: buttonText.contentWidth + (textUnderIcon ? 0 : appSettings.itemDefaultHeight) + (text.length > 0 ? 20 : 0)
-	property color textColor: appSettings.fontColor
+	readonly property int preferredWidth: buttonText.contentWidth + (textUnderIcon ? 0 : AppSettings.itemDefaultHeight) + (text.length > 0 ? 20 : 0)
+	property color textColor: AppSettings.fontColor
 	property alias font: buttonText.font
 	property alias text: buttonText.text
-	property string backgroundColor: text.length > 0 ? appSettings.paneBackgroundColor : "transparent"
+	property string backgroundColor: text.length > 0 ? AppSettings.paneBackgroundColor : "transparent"
 	property string imageSource
 	property bool autoSize: false
 	property bool textUnderIcon: false
@@ -56,31 +58,23 @@ TPBackRec {
 		onRunningChanged: {
 			if (!running) {
 				iteration = 4;
-				paneColor = appSettings.paneBackgroundColor;
-				lightColor = appSettings.primaryLightColor;
-				midColor = appSettings.primaryColor;
-				darkColor = appSettings.primaryDarkColor;
+				_button.paneColor = AppSettings.paneBackgroundColor;
+				_button.lightColor = AppSettings.primaryLightColor;
+				_button.midColor = AppSettings.primaryColor;
+				_button.darkColor = AppSettings.primaryDarkColor;
 			}
 		}
 
 		onTriggered: {
 			switch (iteration) {
-				case 4:
-					paneColor = appSettings.primaryLightColor;
+			case 4: _button.paneColor = AppSettings.primaryLightColor; break;
+			case 3: _button.paneColor = AppSettings.paneBackgroundColor; break;
+			case 2: _button.midColor = AppSettings.primaryLightColor; break;
+			case 1:
+				_button.midColor = AppSettings.primaryColor;
+				_button.darkColor = AppSettings.primaryLightColor;
 				break;
-				case 3:
-					paneColor = appSettings.paneBackgroundColor;
-				break;
-				case 2:
-					midColor = appSettings.primaryLightColor;
-				break;
-				case 1:
-					midColor = appSettings.primaryColor;
-					darkColor = appSettings.primaryLightColor;
-				break;
-				case 0:
-					highlightTimer.stop();
-				return;
+			case 0: highlightTimer.stop(); return;
 			}
 			--iteration;
 		}
@@ -89,37 +83,37 @@ TPBackRec {
 	Label {
 		id: buttonText
 		visible: text.length > 0
-		color: enabled ? appSettings.fontColor : appSettings.disabledFontColor
-		wrapMode: multiline ? Text.WordWrap : Text.NoWrap
+		color: enabled ? AppSettings.fontColor : AppSettings.disabledFontColor
+		wrapMode: _button.multiline ? Text.WordWrap : Text.NoWrap
 		font: AppGlobals.regularFont
-		minimumPixelSize: appSettings.smallFontSize * 0.8
-		maximumLineCount: multiline ? 5 : 1
-		fontSizeMode: autoSize ? Text.FixedSize : Text.Fit
+		minimumPixelSize: AppSettings.smallFontSize * 0.8
+		maximumLineCount: _button.multiline ? 5 : 1
+		fontSizeMode: _button.autoSize ? Text.FixedSize : Text.Fit
 		topInset: 0
 		bottomInset: 0
 		leftInset: 0
 		rightInset: 0
 		padding: 0
-		opacity: button.opacity
+		opacity: _button.opacity
 		verticalAlignment: Text.AlignVCenter
 		horizontalAlignment: Text.AlignHCenter
 
 		Component.onCompleted: {
-			if (textUnderIcon) {
-				anchors.bottom = button.bottom;
+			if (_button.textUnderIcon) {
+				anchors.bottom = _button.bottom;
 				anchors.bottomMargin = 5;
-				anchors.left = button.left;
-				anchors.right = button.right;
+				anchors.left = _button.left;
+				anchors.right = _button.right;
 			}
 			else {
-				if (imageSource.length > 0) {
-					width = button.width - appSettings.itemDefaultHeight - 5;
-					height = button.height - 5;
-					anchors.horizontalCenter = button.horizontalCenter;
-					anchors.verticalCenter = button.verticalCenter;
+				if (_button.imageSource.length > 0) {
+					width = _button.width - AppSettings.itemDefaultHeight - 5;
+					height = _button.height - 5;
+					anchors.horizontalCenter = _button.horizontalCenter;
+					anchors.verticalCenter = _button.verticalCenter;
 				}
 				else
-					anchors.fill = button;
+					anchors.fill = _button;
 			}
 		}
 	}
@@ -143,14 +137,14 @@ TPBackRec {
 	}
 
 	MouseArea {
-		hoverEnabled: button.text.length > 0
-		anchors.fill: button
-		enabled: button.enabled
+		hoverEnabled: _button.text.length > 0
+		anchors.fill: _button
+		enabled: _button.enabled
 
-		onPressed: (mouse) => onMousePressed(mouse);
-		onReleased: (mouse) => { if (containsMouse) onMouseReleased(mouse); }
-		onEntered: if (button.text.length > 0) button.highlighted = true;
-		onExited: if (button.text.length > 0) button.highlighted = false;
+		onPressed: (mouse) => _button.onMousePressed(mouse);
+		onReleased: (mouse) => { if (containsMouse) _button.onMouseReleased(mouse); }
+		onEntered: if (_button.text.length > 0) _button.highlighted = true;
+		onExited: if (_button.text.length > 0) _button.highlighted = false;
 	}
 
 	SequentialAnimation {
@@ -159,7 +153,7 @@ TPBackRec {
 
 		// Expand the button
 		PropertyAnimation {
-			target: button
+			target: _button
 			property: "scale"
 			to: 1.5
 			duration: 200
@@ -168,28 +162,28 @@ TPBackRec {
 
 		// Shrink back to normal
 		PropertyAnimation {
-			target: button
+			target: _button
 			property: "scale"
 			to: 1.0
 			duration: 200
 			easing.type: Easing.InOutCubic
 		}
 
-		onFinished: button.clicked(button.clickId);
+		onFinished: _button.clicked(_button.clickId);
 	}
 
 	Loader {
 		id: imageLoader
-		active: imageSource.length > 0
+		active: _button.imageSource.length > 0
 		asynchronous: true
 		sourceComponent: TPImage {
-			source: imageSource
-			dropShadow: hasDropShadow
-			opacity: button.opacity
-			enabled: checkable ? !checked : button.enabled
+			source: _button.imageSource
+			dropShadow: _button.hasDropShadow
+			opacity: _button.opacity
+			enabled: checkable ? !checked : _button.enabled
 		}
 
-		Component.onCompleted: {
+		onLoaded: {
 			if (buttonText.text.length === 0) {
 				anchors.fill = parent;
 				anchors.margins = 2;
@@ -197,14 +191,14 @@ TPBackRec {
 			}
 			else {
 				if (textUnderIcon) {
-					width = appSettings.itemDefaultHeight;
+					width = AppSettings.itemDefaultHeight;
 					anchors.top = button.top;
 					anchors.topMargin = 5;
 					anchors.horizontalCenter = button.horizontalCenter;
 					anchors.bottomMargin = 10;
 				}
 				else {
-					width = appSettings.itemDefaultHeight * 0.9;
+					width = AppSettings.itemDefaultHeight * 0.9;
 					anchors.verticalCenter = button.verticalCenter;
 					anchors.verticalCenterOffset = 2;
 					if (iconOnTheLeft) {

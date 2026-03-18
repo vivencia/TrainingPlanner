@@ -11,7 +11,7 @@
 #include <ranges>
 #include <utility>
 
-DBExercisesListModel *DBExercisesListModel::app_exercises_list{nullptr};
+DBExercisesListModel *DBExercisesListModel::_app_exercises_list{nullptr};
 constexpr uint8_t fieldsNumberInDatabase{EXERCISES_LIST_FIELD_FROMAPPLIST + 1}; //FromAppList is the last savable field + the Id field
 
 enum RoleNames {
@@ -25,10 +25,11 @@ enum RoleNames {
 	createRole(selected, EXERCISES_LIST_FIELD_SELECTED)
 };
 
-DBExercisesListModel::DBExercisesListModel(QObject *parent)
-	: QAbstractListModel{parent}, m_selectedEntryToReplace{0}, m_muscularFilterApplied{false}, m_searchFilterApplied{false}
+DBExercisesListModel::DBExercisesListModel(QObject *parent) : QAbstractListModel{parent}
 {
-	app_exercises_list = this;
+	_app_exercises_list = this;
+	REGISTER_QML_SINGLETON(DBExercisesListModel, this);
+
 	roleToString(exerciseId)
 	roleToString(mainName)
 	roleToString(subName)

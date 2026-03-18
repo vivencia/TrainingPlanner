@@ -9,7 +9,7 @@ import TpQml
 TPPopup {
 	id: passwdDlg
 	keepAbove: true
-	width: appSettings.pageWidth * 0.8
+	width: AppSettings.pageWidth * 0.8
 	height: mainLayout.childrenRect.height * 1.1
 
 	required property string title
@@ -48,8 +48,8 @@ TPPopup {
 			TPImage {
 				id: imgElement
 				source: "password"
-				Layout.preferredWidth: appSettings.itemExtraLargeHeight
-				Layout.preferredHeight: appSettings.itemExtraLargeHeight
+				Layout.preferredWidth: AppSettings.itemExtraLargeHeight
+				Layout.preferredHeight: AppSettings.itemExtraLargeHeight
 				Layout.alignment: Qt.AlignVCenter
 			}
 

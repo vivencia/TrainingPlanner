@@ -19,15 +19,15 @@ TPPopup {
 
 	required property ChatModel chatManager
 
-	readonly property int defaultWidth: appSettings.pageWidth * 0.8
+	readonly property int defaultWidth: AppSettings.pageWidth * 0.8
 	readonly property bool canViewNewMessages: messagesList.vBar.position + messagesList.vBar.size >= 1
 
 	property bool maximized: false
 	property bool minimized: false
 	property int normalWidth: defaultWidth
-	property int normalHeight: appSettings.pageHeight * 0.5
-	property int normalX: (appSettings.pageWidth - width) / 2
-	property int normalY: (appSettings.pageHeight - height) / 2
+	property int normalHeight: AppSettings.pageHeight * 0.5
+	property int normalX: (AppSettings.pageWidth - width) / 2
+	property int normalY: (AppSettings.pageHeight - height) / 2
 	property int nMedia: 0
 
 	onOpened: {
@@ -52,7 +52,7 @@ TPPopup {
 		id: avatarImg
 		source: chatManager.avatarIcon
 		dropShadow: false
-		width: appSettings.itemDefaultHeight
+		width: AppSettings.itemDefaultHeight
 		height: width
 
 		anchors {
@@ -78,7 +78,7 @@ TPPopup {
 		id: btnMaxRestoreWindow
 		imageSource: maximized ? "restore.png" : "maximize.png"
 		hasDropShadow: false
-		width: appSettings.itemDefaultHeight
+		width: AppSettings.itemDefaultHeight
 		height: width
 		z: 2
 
@@ -107,8 +107,8 @@ TPPopup {
 			normalHeight = chatWindow.height;
 			chatWindow.x = 0;
 			chatWindow.y = 0;
-			chatWindow.width = appSettings.pageWidth;
-			chatWindow.height = appSettings.pageHeight;
+			chatWindow.width = AppSettings.pageWidth;
+			chatWindow.height = AppSettings.pageHeight;
 			maximized = true;
 		}
 	}
@@ -118,7 +118,7 @@ TPPopup {
 		imageSource: "minimize.png"
 		hasDropShadow: false
 		enabled: !minimized
-		width: appSettings.itemDefaultHeight
+		width: AppSettings.itemDefaultHeight
 		height: width
 		z: 2
 
@@ -179,8 +179,8 @@ TPPopup {
 
 			Rectangle {
 				id: messageRec
-				color: ownMessage ? appSettings.listEntryColor1 : appSettings.listEntryColor2
-				border.color: appSettings.fontColor
+				color: ownMessage ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2
+				border.color: AppSettings.fontColor
 				radius: 8
 				opacity: 1 + swipe.position
 				width: mainLayout.childrenRect.width + 10
@@ -228,8 +228,8 @@ TPPopup {
 						asynchronous: true
 						active: messageItem.inViewport && msgMedia.length > 0
 						Layout.alignment: Qt.AlignCenter
-						Layout.preferredWidth: active ? (msgOpenExternally ? appSettings.itemExtraLargeHeight : item.preferredWidth) + 10 : 0
-						Layout.preferredHeight: active ? (msgOpenExternally ? appSettings.itemExtraLargeHeight : preferredHeight) + 10 : 0
+						Layout.preferredWidth: active ? (msgOpenExternally ? AppSettings.itemExtraLargeHeight : item.preferredWidth) + 10 : 0
+						Layout.preferredHeight: active ? (msgOpenExternally ? AppSettings.itemExtraLargeHeight : preferredHeight) + 10 : 0
 
 						sourceComponent: TPFileViewer {
 							mediaSource: msgMedia
@@ -269,14 +269,14 @@ TPPopup {
 								italic: true,
 								styleStrategy: Font.PreferAntialias,
 								hintingPreference: Font.PreferFullHinting,
-								pixelSize: appSettings.smallFontSize * 0.7
+								pixelSize: AppSettings.smallFontSize * 0.7
 							})
 							Layout.fillWidth: true
 						}
 
 						Loader {
 							active: ownMessage
-							width: appSettings.itemSmallHeight * 0.5
+							width: AppSettings.itemSmallHeight * 0.5
 							height: width
 							Layout.alignment: Qt.AlignRight
 
@@ -289,7 +289,7 @@ TPPopup {
 
 						Loader {
 							active: ownMessage
-							width: appSettings.itemSmallHeight * 0.5
+							width: AppSettings.itemSmallHeight * 0.5
 							height: width
 							Layout.alignment: Qt.AlignRight
 
@@ -314,15 +314,15 @@ TPPopup {
 				radius: 8
 				anchors.fill: messageRec
 
-				readonly property int imageSize: height <= appSettings.itemDefaultHeight * 4 ?
-										appSettings.itemSmallHeight * 0.9 : appSettings.itemDefaultHeight
+				readonly property int imageSize: height <= AppSettings.itemDefaultHeight * 4 ?
+										AppSettings.itemSmallHeight * 0.9 : AppSettings.itemDefaultHeight
 
 				Pane {
 					SwipeDelegate.onClicked: chatManager.removeMessage(index, false);
 
 					background: Rectangle {
 						radius: 8
-						border.color: appSettings.fontColor
+						border.color: AppSettings.fontColor
 						color: "transparent"
 					}
 					anchors {
@@ -365,7 +365,7 @@ TPPopup {
 
 					background: Rectangle {
 						radius: 8
-						border.color: appSettings.fontColor
+						border.color: AppSettings.fontColor
 						color: "transparent"
 					}
 
@@ -427,9 +427,9 @@ TPPopup {
 		padding: 5
 
 		background: Rectangle {
-			color: appSettings.primaryColor
+			color: AppSettings.primaryColor
 			border.width: 1
-			border.color: appSettings.fontColor
+			border.color: AppSettings.fontColor
 			radius: 8
 		}
 
@@ -443,9 +443,9 @@ TPPopup {
 			id: btnScrollDown
 			imageSource: "downward"
 			hasDropShadow: false
-			border.color: chatManager.hasUnreadMessages ? appSettings.primaryLightColor : "transparent"
+			border.color: chatManager.hasUnreadMessages ? AppSettings.primaryLightColor : "transparent"
 			border.width: 2
-			width: appSettings.itemDefaultHeight
+			width: AppSettings.itemDefaultHeight
 			height: width
 			visible: !canViewNewMessages
 
@@ -480,7 +480,7 @@ TPPopup {
 		TPButton {
 			id: btnSendFile
 			imageSource: "attach_"
-			width: appSettings.itemDefaultHeight
+			width: AppSettings.itemDefaultHeight
 			height: width
 
 			anchors {
@@ -495,7 +495,7 @@ TPPopup {
 		TPButton {
 			id: btnSend
 			imageSource: "send-message"
-			width: appSettings.itemDefaultHeight
+			width: AppSettings.itemDefaultHeight
 			height: width
 			enabled: txtMessage.text.length > 0
 
@@ -512,7 +512,7 @@ TPPopup {
 			id: imgResize
 			source: "resize-window.png"
 			dropShadow: false
-			width: appSettings.itemSmallHeight * 0.6
+			width: AppSettings.itemSmallHeight * 0.6
 			height: width
 			visible: !maximized && !minimized
 			z: 1

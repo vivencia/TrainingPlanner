@@ -37,8 +37,8 @@ TPImage {
 
 	property Rectangle fileOpsRec: Rectangle {
 		radius: 8
-		color: appSettings.paneBackgroundColor
-		border.color: appSettings.fontColor
+		color: AppSettings.paneBackgroundColor
+		border.color: AppSettings.fontColor
 		opacity: 0.8
 		height: 0
 		width: 0
@@ -51,7 +51,7 @@ TPImage {
 				PropertyChanges {
 					target: fileOpsRec
 					parent: fullScreenLoader.fullScreenWidget.contentItem
-					height: appSettings.itemLargeHeight
+					height: AppSettings.itemLargeHeight
 					width: (FileOperations.OT_TypeCount * (height + 5))
 					x: (fullScreenLoader.fullScreenWidget.contentItem.width - fileOpsRec.width) / 2
 					y: fullScreenLoader.fullScreenWidget.contentItem.height - fileOpsRec.height - 10
@@ -63,7 +63,7 @@ TPImage {
 				PropertyChanges {
 					target: fileOpsRec
 					parent: fileViewer
-					height: appSettings.itemDefaultHeight
+					height: AppSettings.itemDefaultHeight
 					width: (FileOperations.OT_TypeCount * (height + 5))
 					x: (fileViewer.width - fileOpsRec.width) / 2
 					y: fileViewer.height - fileOpsRec.height - 10
@@ -119,7 +119,7 @@ TPImage {
 				PropertyChanges {
 					target: mediaControlsLoader
 					parent: fileViewer
-					height: appSettings.itemDefaultHeight
+					height: AppSettings.itemDefaultHeight
 					x: (fileViewer.width - mediaControlsLoader.width) / 2
 					y: fileViewer.height - mediaControlsLoader.height - fileOpsRec.height - 15
 				}
@@ -130,7 +130,7 @@ TPImage {
 				PropertyChanges {
 					target: mediaControlsLoader
 					parent: fullScreenLoader.fullScreenWidget.contentItem
-					height: appSettings.itemLargeHeight
+					height: AppSettings.itemLargeHeight
 					x: (fullScreenLoader.fullScreenWidget.contentItem.width - mediaControlsLoader.width) / 2
 					y: fullScreenLoader.fullScreenWidget.contentItem.height - mediaControlsLoader.height - fileOpsRec.height - 15
 				}
@@ -139,8 +139,8 @@ TPImage {
 
 		sourceComponent: Rectangle {
 			radius: 8
-			color: appSettings.paneBackgroundColor
-			border.color: appSettings.fontColor
+			color: AppSettings.paneBackgroundColor
+			border.color: AppSettings.fontColor
 			opacity: 0.8
 
 			MediaControls {
@@ -283,7 +283,7 @@ TPImage {
 					PropertyChanges {
 						target: lblTime
 						font: AppGlobals.regularFont
-						height: appSettings.itemDefaultHeight
+						height: AppSettings.itemDefaultHeight
 					}
 				},
 				State {
@@ -302,7 +302,7 @@ TPImage {
 					PropertyChanges {
 						target: lblTime
 						font: AppGlobals.largeFont
-						height: appSettings.itemLargeHeight
+						height: AppSettings.itemLargeHeight
 					}
 				}
 			]
@@ -489,7 +489,7 @@ TPImage {
 					id: _tpFileItem
 					TabBar {
 						id: tabSections
-						height: appSettings.itemLargeHeight
+						height: AppSettings.itemLargeHeight
 						clip: true
 						currentIndex: sectionsLayout.currentIndex
 
@@ -517,7 +517,7 @@ TPImage {
 
 						anchors {
 							fill: parent
-							topMargin: appSettings.itemLargeHeight + 20
+							topMargin: AppSettings.itemLargeHeight + 20
 						}
 
 						Repeater {

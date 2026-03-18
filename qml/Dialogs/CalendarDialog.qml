@@ -2,15 +2,16 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import "../TPWidgets"
+import TpQml
+import TpQml.Widgets
 
 TPPopup {
     id: calendarPopup
 	keepAbove: !simpleCalendar
 	width: datePickerControl.width
 	height: datePickerControl.height + buttonsLayout.childrenRect.height + btnOK.height + 15
-	x: (appSettings.pageWidth - width) / 2 // horizontally centered
-	finalYPos: (appSettings.pageHeight - height) / 2 // vertically centered
+	x: (AppSettings.pageWidth - width) / 2 // horizontally centered
+	finalYPos: (AppSettings.pageHeight - height) / 2 // vertically centered
 
 	property date initDate
 	property date showDate

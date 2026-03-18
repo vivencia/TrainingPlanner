@@ -1,13 +1,12 @@
 import QtQuick
 import QtQuick.Controls
 
-import "../TPWidgets"
-import "../Pages"
 import TpQml
+import TpQml.Widgets
 
 TPToolBar {
-	id: root
-	height: appSettings.windowHeight - appSettings.pageHeight
+	id: _navBar
+	height: AppSettings.windowHeight - AppSettings.pageHeight
 
 	property PagesListModel pagesModel
 	property CalendarDialog mainCalendar: null
@@ -17,9 +16,9 @@ TPToolBar {
 		id: btnBack
 		imageSource: "back.png"
 		hasDropShadow: false
-		width: appSettings.itemLargeHeight
+		width: AppSettings.itemLargeHeight
 		height: width
-		enabled: stackView.depth >= 2
+		enabled: ItemManager.appPagesManager.currentIndex > 0
 
 		anchors {
 			left: parent.left
@@ -27,30 +26,30 @@ TPToolBar {
 			verticalCenter: parent.verticalCenter
 		}
 
-		onClicked: pagesModel.prevPage();
+		onClicked: ItemManager.appPagesManager.prevPage();
 	}
 
 	TPButton {
 		id: btnForward
 		imageSource: "next.png"
 		hasDropShadow: false
-		width: appSettings.itemLargeHeight
+		width: AppSettings.itemLargeHeight
 		height: width
-		enabled: pagesModel.currentIndex < pagesModel.count - 1
+		enabled: ItemManager.appPagesManager.currentIndex < ItemManager.appPagesManager.count - 1
 
 		anchors {
 			left: btnBack.right
 			verticalCenter: parent.verticalCenter
 		}
 
-		onClicked: pagesModel.nextPage();
+		onClicked: ItemManager.appPagesManager.nextPage();
 	}
 
 	TPButton {
 		id: btnHome
 		imageSource: "home.png"
 		hasDropShadow: false
-		width: appSettings.itemLargeHeight
+		width: AppSettings.itemLargeHeight
 		height: width
 		enabled: btnBack.enabled
 
@@ -59,14 +58,14 @@ TPToolBar {
 			verticalCenter: parent.verticalCenter
 		}
 
-		onClicked: goHome();
+		onClicked: ItemManager.appPagesManager.goHome();
 	}
 
 	TPButton {
 		id: btnMainMenu
 		imageSource: "mainmenu"
 		hasDropShadow: false
-		width: appSettings.itemLargeHeight
+		width: AppSettings.itemLargeHeight
 		height: width
 
 		anchors {
@@ -75,14 +74,14 @@ TPToolBar {
 			rightMargin: 5
 		}
 
-		onClicked: mainwindow.openMainMenu();
+		onClicked: ItemManager.appPagesManager.openMainMenu();
 	}
 
 	TPButton {
 		id: btnCalendar
 		imageSource: "calendar"
 		hasDropShadow: false
-		width: appSettings.itemLargeHeight
+		width: AppSettings.itemLargeHeight
 		height: width
 
 		anchors {
@@ -92,12 +91,13 @@ TPToolBar {
 		}
 
 		onClicked: {
-			if (mainCalendar === null) {
-				let component = Qt.createComponent("qrc:/TpQml/qml/Dialogs/CalendarDialog.qml", Qt.Asynchronous);
+			if (_navBar.mainCalendar === null) {
+				let component = Qt.createComponent("TpQml.Dialogs", CalendarDialog, Qt.Asynchronous);
 
 				function finishCreation() {
-					mainCalendar = component.createObject(mainwindow, { parentPage: homePage, showDate:new Date(),
-						simpleCalendar:true, initDate: new Date(2000, 0, 1), finalDate: new Date(2030, 11, 31) });
+					_navBar.mainCalendar = component.createObject(ItemManager.appMainWindow,
+						{ parentPage: ItemManager.appPagesManager.homePage(), showDate:new Date(), simpleCalendar:true,
+																initDate: new Date(2000, 0, 1), finalDate: new Date(2030, 11, 31) });
 				}
 
 				if (component.status === Component.Ready)
@@ -105,7 +105,7 @@ TPToolBar {
 				else
 					component.statusChanged.connect(finishCreation);
 			}
-			mainCalendar.open();
+			_navBar.mainCalendar.open();
 		}
 	}
 
@@ -113,7 +113,7 @@ TPToolBar {
 		id: btnTimer
 		imageSource: "timer"
 		hasDropShadow: false
-		width: appSettings.itemLargeHeight
+		width: AppSettings.itemLargeHeight
 		height: width
 
 		anchors {
@@ -123,11 +123,12 @@ TPToolBar {
 		}
 
 		onClicked: {
-			if (mainTimer === null) {
-				let component = Qt.createComponent("qrc:/TpQml/qml/Dialogs/TimerDialog.qml", Qt.Asynchronous);
+			if (_navBar.mainTimer === null) {
+				let component = Qt.createComponent("TpQml.Dialogs", TimerDialog, Qt.Asynchronous);
 
 				function finishCreation() {
-					mainTimer = component.createObject(mainwindow, { parentPage: homePage });
+					_navBar.mainTimer = component.createObject(ItemManager.appMainWindow,
+																			{ parentPage: ItemManager.appPagesManager.homePage() });
 				}
 
 				if (component.status === Component.Ready)
@@ -135,7 +136,7 @@ TPToolBar {
 				else
 					component.statusChanged.connect(finishCreation);
 			}
-			mainTimer.open();
+			_navBar.mainTimer.open();
 		}
 	}
 
@@ -143,9 +144,9 @@ TPToolBar {
 		id: btnWeather
 		imageSource: "weather"
 		hasDropShadow: false
-		width: appSettings.itemLargeHeight
+		width: AppSettings.itemLargeHeight
 		height: width
-		enabled: osInterface.internetOK
+		enabled: OsInterface.internetOK
 
 		anchors {
 			verticalCenter: parent.verticalCenter
@@ -153,14 +154,14 @@ TPToolBar {
 			rightMargin: 10
 		}
 
-		onClicked: itemManager.getWeatherPage();
+		onClicked: ItemManager.getWeatherPage();
 	}
 
 	TPButton {
 		id: btnExercisesList
 		imageSource: "exercisesdb"
 		hasDropShadow: false
-		width: appSettings.itemLargeHeight
+		width: AppSettings.itemLargeHeight
 		height: width
 
 		anchors {
@@ -169,26 +170,16 @@ TPToolBar {
 			rightMargin: 10
 		}
 
-		onClicked: itemManager.getExercisesPage();
+		onClicked: ItemManager.getExercisesPage();
 	}
 
 	TPButton {
 		imageSource: "statistics"
 		hasDropShadow: false
-		width: appSettings.itemLargeHeight
+		width: AppSettings.itemLargeHeight
 		height: width
 
-		enabled: {
-			if (homePage.mesoModel)
-			{
-				switch (homePage.mesoModel.count) {
-					case 0: return false;
-					case 1: return !homePage.mesoModel.isMesoOK();
-					default: return true;
-				}
-			}
-			return false;
-		}
+		enabled: false
 
 		anchors {
 			verticalCenter: parent.verticalCenter
@@ -196,13 +187,6 @@ TPToolBar {
 			rightMargin: 10
 		}
 
-		onClicked: itemManager.getStatisticsPage();
-	}
-
-	Component.onDestruction: {
-		if (mainCalendar !== null)
-			mainCalendar.destroy();
-		if (mainTimer !== null)
-			mainTimer.destroy();
+		onClicked: ItemManager.getStatisticsPage();
 	}
 }

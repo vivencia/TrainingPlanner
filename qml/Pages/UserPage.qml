@@ -11,10 +11,10 @@ import TpQml
 TPPage {
 	id: userPage
 	objectName: "userPage"
-	imageSource: appSettings.userBackground
+	imageSource: AppSettings.userBackground
 	backgroundOpacity: 0.6
-	implicitWidth: appSettings.pageWidth
-	implicitHeight: appSettings.pageHeight
+	implicitWidth: AppSettings.pageWidth
+	implicitHeight: AppSettings.pageHeight
 
 	property UserManager userManager
 	property bool mainUserModified: false
@@ -83,7 +83,7 @@ TPPage {
 	}
 
 	footer: TPToolBar {
-		height: appSettings.itemDefaultHeight * 3
+		height: AppSettings.itemDefaultHeight * 3
 
 		ColumnLayout {
 			spacing: 10

@@ -12,7 +12,7 @@ import ".."
 TPPage {
 	id: weatherPage
 	objectName: "weatherPage"
-	imageSource: appSettings.weatherBackground
+	imageSource: AppSettings.weatherBackground
 	backgroundOpacity: 0.6
 
 	WeatherInfo {
@@ -37,7 +37,7 @@ TPPage {
 			wrapMode: Text.WordWrap
 			Layout.minimumWidth: parent.width - 30
 			Layout.maximumWidth: parent.width - 30
-			Layout.maximumHeight: appSettings.itemDefaultHeight * 2
+			Layout.maximumHeight: AppSettings.itemDefaultHeight * 2
 
 			TPButton {
 				imageSource: "gps.png"
@@ -66,7 +66,7 @@ TPPage {
 				id: scrollViewCities
 				model: weatherInfo.savedLocationsCount
 				width: mainLayout.width
-				height: parent.height - appSettings.itemDefaultHeight - 10
+				height: parent.height - AppSettings.itemDefaultHeight - 10
 
 				onCountChanged: scrollViewCities.positionViewAtIndex(weatherInfo.currentlyViewedLocationIndex, ListView.Contain);
 
@@ -83,7 +83,7 @@ TPPage {
 					spacing: 0
 					padding: 0
 					width: scrollViewCities.width
-					height: appSettings.itemDefaultHeight
+					height: AppSettings.itemDefaultHeight
 
 					contentItem: TPLabel {
 						id: txtCity
@@ -93,7 +93,7 @@ TPPage {
 
 					TPButton {
 						imageSource: "remove"
-						width: appSettings.itemDefaultHeight
+						width: AppSettings.itemDefaultHeight
 						enabled: index == weatherInfo.currentlyViewedLocationIndex
 
 						anchors {
@@ -106,8 +106,8 @@ TPPage {
 					}
 
 					background: Rectangle {
-						color: index === weatherInfo.currentlyViewedLocationIndex ? appSettings.listEntryColor1 : appSettings.listEntryColor2
-						border.color: appSettings.fontColor
+						color: index === weatherInfo.currentlyViewedLocationIndex ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2
+						border.color: AppSettings.fontColor
 						border.width: index === weatherInfo.currentlyViewedLocationIndex ? 1 : 0
 						radius: 8
 					}

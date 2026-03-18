@@ -12,18 +12,18 @@ TPPopup {
 	id: avatarsDlg
 	closeButtonVisible: false
 	showTitleBar: false
-	width: appSettings.pageWidth
-	height: (repeater.bMale ? 2 * appSettings.pageWidth/5 : 3 * appSettings.pageWidth/5) + 30
+	width: AppSettings.pageWidth
+	height: (repeater.bMale ? 2 * AppSettings.pageWidth/5 : 3 * AppSettings.pageWidth/5) + 30
 	x: 0
-	finalYPos: (appSettings.pageHeight-height)/2;
+	finalYPos: (AppSettings.pageHeight-height)/2;
 
 	required property int userRow
 	required property Item callerWidget
 
 	Rectangle {
 		id: footerBar
-		width: appSettings.pageWidth
-		height: appSettings.itemDefaultHeight
+		width: AppSettings.pageWidth
+		height: AppSettings.itemDefaultHeight
 		color: "transparent"
 
 		TPLabel {
@@ -42,8 +42,8 @@ TPPopup {
 		TPButton {
 			id: btnChooseImage
 			imageSource: "choose-avatar"
-			width: appSettings.itemDefaultHeight
-			height: appSettings.itemDefaultHeight
+			width: AppSettings.itemDefaultHeight
+			height: AppSettings.itemDefaultHeight
 
 			anchors {
 				left: lblChooseImage.right
@@ -69,7 +69,7 @@ TPPopup {
 		readonly property string strSex: bMale ? "m" : "f"
 
 		delegate: Rectangle {
-			width: appSettings.pageWidth/5
+			width: AppSettings.pageWidth/5
 			height: width
 			border.color: "black"
 			border.width: 2

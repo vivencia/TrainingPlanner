@@ -18,8 +18,8 @@ ApplicationWindow {
 	visible: true
 	title: "TraininPlanner Tests"
 	objectName: "mainwindow"
-	width: appSettings.windowWidth
-	height: appSettings.windowHeight
+	width: AppSettings.windowWidth
+	height: AppSettings.windowHeight
 	flags: Qt.platform.os === "android" ? Qt.Window | Qt.FramelessWindowHint | Qt.WA_KeepScreenOn :
 				Qt.Window | Qt.CustomizeWindowHint & ~Qt.WindowMaximizeButtonHint
 
@@ -58,7 +58,7 @@ ApplicationWindow {
 
 		/*MediaControls {
 			id: mediaControls
-			height: appSettings.itemDefaultHeight
+			height: AppSettings.itemDefaultHeight
 			width: homePage.width * 0.8
 			availableControls: [ MediaControls.CT_Play, MediaControls.CT_Stop, MediaControls.CT_Prev, MediaControls.CT_Next,
 				MediaControls.CT_Equalizer, MediaControls.CT_Rewind, MediaControls.CT_FastForward, MediaControls.CT_VolumeUp,
@@ -117,7 +117,7 @@ ApplicationWindow {
 			Rectangle {
 				anchors.fill: parent
 				color: "transparent"
-				border.color: appSettings.fontColor
+				border.color: AppSettings.fontColor
 				radius: 8
 			}
 		}*/
@@ -136,8 +136,8 @@ ApplicationWindow {
 		/*PdfMultiPageView {
 			x: 0
 			y: 0
-			width: appSettings.pageWidth
-			height: appSettings.pageHeight
+			width: AppSettings.pageWidth
+			height: AppSettings.pageHeight
 			document: PdfDocument {
 				source: "file:///home/guilhermef/Documents/Atendimento_CIP_35.001.003.26.1170764.pdf"
 			}

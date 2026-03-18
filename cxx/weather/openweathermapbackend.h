@@ -15,14 +15,14 @@ using namespace Qt::Literals::StringLiterals;
 
 struct st_WeatherInfo
 {
-	QString m_coordinates;
-	QString m_dayOfWeek;
-	QString m_weatherIconId;
+	QString m_coordinates{std::move("(0,0)"_L1)};
+	QString m_dayOfWeek{std::move("??"_L1)};
+	QString m_weatherIconId{std::move("error.png"_L1)};
 	QString m_weatherDescription;
-	QString m_temperature;
+	QString m_temperature{std::move(u"??°C"_s)};
 	QString m_temperature_feel;
-	QString m_temp_min;
-	QString m_temp_max;
+	QString m_temp_min{std::move("??"_L1)};
+	QString m_temp_max{std::move("??"_L1)};
 	QString m_humidity;
 	QString m_pressure;
 	QString m_wind;
@@ -30,10 +30,6 @@ struct st_WeatherInfo
 	QString m_sunrise;
 	QString m_sunset;
 	QString m_provider_name;
-
-	explicit inline st_WeatherInfo() :
-		m_coordinates{std::move("(0,0)"_L1)}, m_dayOfWeek{std::move("??"_L1)}, m_weatherIconId{std::move("error.png"_L1)},
-		m_temperature{std::move(u"??°C"_s)}, m_temp_min{std::move("??"_L1)}, m_temp_max{std::move("??"_L1)} {}
 };
 
 struct st_LocationInfo

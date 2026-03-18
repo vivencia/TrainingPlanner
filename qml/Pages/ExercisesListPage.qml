@@ -62,7 +62,7 @@ TPPage {
 		contentHeight: layoutMain.implicitHeight
 
 		background: Rectangle {
-			color: appSettings.listEntryColor2
+			color: AppSettings.listEntryColor2
 			opacity: 0.6
 		}
 
@@ -144,7 +144,7 @@ TPPage {
 	Row {
 		id: toolbarExercises
 		spacing: 0
-		height: appSettings.itemDefaultHeight
+		height: AppSettings.itemDefaultHeight
 
 		anchors {
 			left: parent.left

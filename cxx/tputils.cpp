@@ -13,11 +13,17 @@
 #include <ranges>
 #include <random>
 
-TPUtils *TPUtils::app_utils{nullptr};
+TPUtils *TPUtils::_app_utils{nullptr};
+
+TPUtils::TPUtils(QObject *parent)
+	: QObject{parent}
+{
+	_app_utils = this;
+	REGISTER_QML_SINGLETON(TPUtils, this);
+}
 
 int TPUtils::generateUniqueId(const QLatin1StringView &seed) const
 {
-
 	if (seed.isEmpty())
 		return generateRandomNumber(0, 5000);
 	else {

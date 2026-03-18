@@ -16,7 +16,7 @@ Item {
 		id: lblTitle
 		text: control.mesoSubModel.ownMesosModel ? qsTr("My Programs") : qsTr("Clients' Programs")
 		useBackground: true
-		backgroundColor: control.mesoSubModel.ownMesosModel ? appSettings.primaryLightColor : appSettings.primaryColor
+		backgroundColor: control.mesoSubModel.ownMesosModel ? AppSettings.primaryLightColor : AppSettings.primaryColor
 
 		anchors {
 			top: parent.top
@@ -49,7 +49,7 @@ Item {
 
 			Rectangle {
 				id: optionsRec
-				color: appSettings.primaryDarkColor
+				color: AppSettings.primaryDarkColor
 				radius: 6
 				layer.enabled: true
 				visible: false
@@ -215,8 +215,8 @@ Item {
 				anchors.fill: parent
 				radius: 8
 				layer.enabled: true
-				color: control.mesoSubModel.ownMesosModel ? appSettings.primaryColor : appSettings.primaryDarkColor
-				border.color: index === control.mesoSubModel.currentIndex ? appSettings.fontColor : "transparent"
+				color: control.mesoSubModel.ownMesosModel ? AppSettings.primaryColor : AppSettings.primaryDarkColor
+				border.color: index === control.mesoSubModel.currentIndex ? AppSettings.fontColor : "transparent"
 				visible: false
 			}
 
@@ -241,34 +241,34 @@ Item {
 
 				TPLabel {
 					text: mesoName
-					fontColor: appSettings.fontColor
+					fontColor: AppSettings.fontColor
 					horizontalAlignment: Text.AlignHCenter
 					Layout.bottomMargin: 10
 					Layout.maximumWidth: parent.width
 				}
 				TPLabel {
 					text: mesoCoach
-					fontColor: appSettings.fontColor
+					fontColor: AppSettings.fontColor
 					Layout.maximumWidth: parent.width
 					visible: control.mesoSubModel.ownMesosModel
 				}
 				TPLabel {
 					text: mesoClient
-					fontColor: appSettings.fontColor
+					fontColor: AppSettings.fontColor
 					Layout.maximumWidth: parent.width
 					visible: !control.mesoSubModel.ownMesosModel
 				}
 				TPLabel {
 					text: mesoStartDate
-					fontColor: appSettings.fontColor
+					fontColor: AppSettings.fontColor
 				}
 				TPLabel {
 					text: mesoEndDate
-					fontColor: appSettings.fontColor
+					fontColor: AppSettings.fontColor
 				}
 				TPLabel {
 					text: mesoSplit
-					fontColor: appSettings.fontColor
+					fontColor: AppSettings.fontColor
 					Layout.maximumWidth: parent.width
 				}
 			}
@@ -295,7 +295,7 @@ Item {
 				imageSource: "mesocycle-add.png"
 				Layout.preferredWidth: preferredWidth
 				Layout.maximumWidth: parent.width
-				Layout.maximumHeight: appSettings.itemDefaultHeight
+				Layout.maximumHeight: AppSettings.itemDefaultHeight
 				Layout.alignment: Qt.AlignCenter
 
 				onClicked: mesoModel.startNewMesocycle(control.mesoSubModel.ownMesosModel);
@@ -307,7 +307,7 @@ Item {
 				imageSource: "import.png"
 				Layout.preferredWidth: preferredWidth
 				Layout.maximumWidth: parent.width
-				Layout.maximumHeight: appSettings.itemDefaultHeight
+				Layout.maximumHeight: AppSettings.itemDefaultHeight
 				Layout.alignment: Qt.AlignCenter
 
 				onClicked: itemManager.chooseFileToImport();
@@ -320,7 +320,7 @@ Item {
 				visible: control.mesoSubModel.ownMesosModel
 				enabled: control.mesoSubModel.canHaveTodaysWorkout
 				Layout.preferredWidth: preferredWidth
-				Layout.maximumHeight: appSettings.itemDefaultHeight
+				Layout.maximumHeight: AppSettings.itemDefaultHeight
 				Layout.alignment: Qt.AlignCenter
 
 				onClicked: mesoModel.startTodaysWorkout(control.mesoSubModel.currentMesoIdx());

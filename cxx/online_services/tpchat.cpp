@@ -59,20 +59,20 @@ struct ChatMessage {
 	QString receiver;
 	QDate sdate, rdate;
 	QTime stime, rtime;
-	TPBool deleted;
-	TPBool sent;
-	TPBool received;
-	TPBool read;
+	bool deleted{false};
+	bool sent{false};
+	bool received{false};
+	bool read{false};
 	QString text;
 	QString media;
 	QString queued;
 
 	QString preview_media;
-	TPBool external_media, own_message;
+	bool external_media{false}, own_message{false};
 };
 
 TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QObject *parent)
-	: QAbstractListModel{parent}, m_otherUserId{otheruser_id}, m_chatWindow{nullptr},  m_chatLoaded{Unloaded}, m_sendMessageTimer{nullptr}
+	: QAbstractListModel{parent}, m_otherUserId{otheruser_id}, m_chatLoaded{Unloaded}
 {
 	m_roleNames[idRole]					=	std::move("msgId");
 	m_roleNames[senderRole]				=	std::move("msgSender");

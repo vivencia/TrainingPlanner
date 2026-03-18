@@ -1,5 +1,7 @@
 #pragma once
 
+#include "qml_singleton.h"
+
 #include <QAbstractListModel>
 #include <QQmlEngine>
 
@@ -11,12 +13,12 @@ class TPMessagesManager : public QAbstractListModel
 {
 
 Q_OBJECT
+QML_UNCREATABLE("")
 
 Q_PROPERTY(uint count READ count NOTIFY countChanged FINAL)
 
 public:
 	explicit TPMessagesManager(QObject *parent = nullptr);
-	~TPMessagesManager();
 
 	inline uint count() const { return m_data.count(); }
 	void readAllChats();
@@ -63,8 +65,8 @@ private:
 	QHash<int, QByteArray> m_roleNames;
 	QHash<QString,TPChat*> m_chatsList;
 	QHash<QString,QObject*> m_chatWindowList;
-	QTimer *m_newChatMessagesTimer;
-	QQmlComponent *m_chatWindowComponent;
+	QTimer *m_newChatMessagesTimer{nullptr};
+	QQmlComponent *m_chatWindowComponent{nullptr};
 	QVariantMap m_chatWindowProperties;
 
 	int newMessagesCheckingInterval() const;
@@ -76,5 +78,7 @@ private:
 	static TPMessagesManager *_appMessagesManager;
 	friend TPMessagesManager *appMessagesManager();
 };
+
+DECLARE_QML_NAMED_SINGLETON(TPMessagesManager, AppMessages)
 
 inline TPMessagesManager *appMessagesManager() { return TPMessagesManager::_appMessagesManager; }

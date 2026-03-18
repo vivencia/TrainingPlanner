@@ -6,7 +6,7 @@ import "../"
 TPBackRec {
 	id: control
 	useGradient: true
-	width: appSettings.itemLargeHeight
+	width: AppSettings.itemLargeHeight
 	height: width * 1.1
 	enabled: false
 
@@ -25,10 +25,10 @@ TPBackRec {
 		delegate: Label {
 			text: String(index).length == 1 ? "0" + index : index
 			verticalAlignment: Text.AlignVCenter
-			color: enabled ? appSettings.fontColor : appSettings.disabledFontColor
+			color: enabled ? AppSettings.fontColor : AppSettings.disabledFontColor
 			leftPadding: (control.width - AppGlobals.fontMetricsRegular.boundingRect(text).width) / 2
 			font.bold: true
-			font.pixelSize: appSettings.fontSize
+			font.pixelSize: AppSettings.fontSize
 		}
 	}
 }

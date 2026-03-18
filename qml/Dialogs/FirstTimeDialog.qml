@@ -12,12 +12,12 @@ TPPopup {
 	keepAbove: true
 	showTitleBar: false
 	closeButtonVisible: false
-	width: appSettings.pageWidth - 50
+	width: AppSettings.pageWidth - 50
 	height: stackLayout.childrenRect.height
-	x: (appSettings.pageWidth - width)/2 // horizontally centered
-	finalYPos: (appSettings.pageHeight - height)/2 // vertically centered
+	x: (AppSettings.pageWidth - width)/2 // horizontally centered
+	finalYPos: (AppSettings.pageHeight - height)/2 // vertically centered
 
-	readonly property int minimumHeight: appSettings.windowHeight * 0.5
+	readonly property int minimumHeight: AppSettings.windowHeight * 0.5
 	property bool nextStartsTheApp: false
 
 	onBackKeyPressed: {
@@ -84,7 +84,7 @@ TPPopup {
 			Layout.preferredHeight: minimumHeight
 		}
 
-		Component.onCompleted: currentIndex = appSettings.userLocale.length > 0 ? 1 : 0;
+		Component.onCompleted: currentIndex = AppSettings.userLocale.length > 0 ? 1 : 0;
 	}
 
 	Frame {

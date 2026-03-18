@@ -11,7 +11,7 @@ import "../User"
 TPPage {
 	id: coachesPage
 	objectName: "CoachesPage"
-	imageSource: appSettings.coachesBackground
+	imageSource: AppSettings.coachesBackground
 	backgroundOpacity: 0.6
 
 	required property UserManager userManager
@@ -46,7 +46,7 @@ TPPage {
 	TabBar {
 		id: tabbar
 		contentWidth: width
-		height: appSettings.itemDefaultHeight
+		height: AppSettings.itemDefaultHeight
 
 		TPTabButton {
 			text: qsTr("Coaches or Trainers")
@@ -94,7 +94,7 @@ TPPage {
 				listClients: false
 				listCoaches: true
 				buttonString: qsTr("Résumé")
-				height: parent.height - appSettings.itemDefaultHeight - 5
+				height: parent.height - AppSettings.itemDefaultHeight - 5
 
 				anchors {
 					top: parent.top
@@ -110,7 +110,7 @@ TPPage {
 
 			RowLayout {
 				uniformCellSizes: true
-				height: appSettings.itemDefaultHeight
+				height: AppSettings.itemDefaultHeight
 
 				anchors {
 					top: coachesList.bottom
@@ -245,27 +245,27 @@ TPPage {
 				id: usrData
 				userRow: coachesPage.userRow
 				parentPage: coachesPage
-				width: appSettings.pageWidth - 20
+				width: AppSettings.pageWidth - 20
 			}
 
 			UserContact {
 				id: usrContact
 				userRow: coachesPage.userRow
-				width: appSettings.pageWidth - 20
+				width: AppSettings.pageWidth - 20
 			}
 
 			UserProfile {
 				id: usrProfile
 				userRow: coachesPage.userRow
 				parentPage: coachesPage
-				width: appSettings.pageWidth - 20
+				width: AppSettings.pageWidth - 20
 			}
 		}
 	}
 
 	property TPBalloonTip msgRemoveUser: null
 	function showRemoveMessage(decline: bool, Title: string, Message: string): void {
-		if (!appSettings.alwaysAskConfirmation) {
+		if (!AppSettings.alwaysAskConfirmation) {
 			removeOrDecline(decline);
 			return;
 		}

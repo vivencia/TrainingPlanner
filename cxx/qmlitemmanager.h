@@ -1,5 +1,7 @@
 #pragma once
 
+#include "pageslistmodel.h"
+#include "qml_singleton.h"
 #include "return_codes.h"
 
 #include <QObject>
@@ -15,7 +17,6 @@ QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(QmlExercisesDatabaseInterface)
 QT_FORWARD_DECLARE_CLASS(QmlWorkoutInterface)
 QT_FORWARD_DECLARE_CLASS(QmlUserInterface)
-QT_FORWARD_DECLARE_CLASS(PagesListModel)
 QT_FORWARD_DECLARE_CLASS(TPChat)
 QT_FORWARD_DECLARE_CLASS(TPListModel)
 
@@ -29,17 +30,15 @@ class QmlItemManager : public QObject
 
 Q_OBJECT
 
+Q_PROPERTY(QQuickWindow* appMainWindow READ appMainWindow CONSTANT FINAL)
+Q_PROPERTY(PagesListModel* appPagesManager READ appPagesManager CONSTANT FINAL)
+
 public:
-	explicit inline QmlItemManager(QQmlApplicationEngine *qml_engine)
-		: QObject{nullptr}, m_exercisesListManager{nullptr}, m_simpleExercisesList{nullptr}, m_weatherPage{nullptr}, m_statisticsPage{nullptr}
-	{
-		_appItemManager = this;
-		_appQmlEngine = qml_engine;
-		configureQmlEngine();
-	}
-	void configureQmlEngine();
+	explicit QmlItemManager(QQmlApplicationEngine *qml_engine);
 
 	inline QQuickItem* appHomePage() const { return m_homePage; }
+	inline QQuickWindow *appMainWindow() const { return _appMainWindow; }
+	inline PagesListModel *appPagesManager() const { return appPagesListModel(); }
 
 	Q_INVOKABLE void exitApp();
 	Q_INVOKABLE void chooseFileToImport();
@@ -78,14 +77,14 @@ public slots:
 	inline void qmlPasswordDialogClosed_slot(int resultCode, const QString &password) { emit qmlPasswordDialogClosed(resultCode, password); }
 
 private:
-	QmlExercisesDatabaseInterface *m_exercisesListManager;
-	QQmlComponent *m_simpleExercisesListComponent, *m_weatherComponent, *m_statisticsComponent;
-	QQuickItem *m_homePage, *m_weatherPage, *m_statisticsPage;
-	QObject *m_simpleExercisesList;
+	QmlExercisesDatabaseInterface *m_exercisesListManager{nullptr};
+	QQmlComponent *m_simpleExercisesListComponent{nullptr}, *m_weatherComponent{nullptr}, *m_statisticsComponent{nullptr};
+	QQuickItem *m_homePage{nullptr}, *m_weatherPage{nullptr}, *m_statisticsPage{nullptr};
+	QObject *m_simpleExercisesList{nullptr};
 	QVariantMap m_simpleExercisesListProperties;
 
 #ifndef QT_NO_DEBUG
-	bool m_qml_testing;
+	bool m_qml_testing{false};
 #endif
 
 	static QmlItemManager *_appItemManager;
@@ -103,6 +102,8 @@ private:
 	void createStatisticsPage_part2();
 	QmlUserInterface *usersManager();
 };
+
+DECLARE_QML_NAMED_SINGLETON(QmlItemManager, ItemManager)
 
 inline QmlItemManager *appItemManager() { return QmlItemManager::_appItemManager; }
 inline QQmlApplicationEngine *appQmlEngine() { return QmlItemManager::_appQmlEngine; }

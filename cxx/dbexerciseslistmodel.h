@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dbmodelinterface.h"
+#include "qml_singleton.h"
 
 #include <QAbstractListModel>
 #include <QQmlEngine>
@@ -25,8 +26,6 @@ class DBExercisesListModel : public QAbstractListModel
 {
 
 Q_OBJECT
-QML_VALUE_TYPE(DBExercisesListModel)
-QML_ELEMENT
 
 Q_PROPERTY(uint count READ count NOTIFY countChanged)
 Q_PROPERTY(int currentRow READ currentRow WRITE setCurrentRow NOTIFY currentRowChanged)
@@ -141,22 +140,24 @@ private:
 	QList<uint> m_exportRows;
 	QHash<int, QByteArray> m_roleNames;
 	QList<uint> m_selectedEntries;
+	DBModelInterfaceExercisesList *m_dbModelInterface{nullptr};
+	DBExercisesListTable *m_db{nullptr};
 	QString m_filterString, m_searchString;
-	uint m_exercisesListCount, m_selectedEntryToReplace;
-	int m_currentRow;
-	bool m_muscularFilterApplied, m_searchFilterApplied;
-	DBModelInterfaceExercisesList *m_dbModelInterface;
-	DBExercisesListTable *m_db;
+	uint m_exercisesListCount{0}, m_selectedEntryToReplace{0};
+	int m_currentRow{-1};
+	bool m_muscularFilterApplied{false}, m_searchFilterApplied{false};
 
 	void readExercisesList();
 	void resetSearchModel();
 
-	static DBExercisesListModel *app_exercises_list;
+	static DBExercisesListModel *_app_exercises_list;
 	friend DBExercisesListModel *appExercisesList();
 	friend class DBModelInterfaceExercisesList;
 };
 
-inline DBExercisesListModel *appExercisesList() { return DBExercisesListModel::app_exercises_list; }
+DECLARE_QML_NAMED_SINGLETON(DBExercisesListModel, AppExercisesList)
+
+inline DBExercisesListModel *appExercisesList() { return DBExercisesListModel::_app_exercises_list; }
 
 class DBModelInterfaceExercisesList : public DBModelInterface
 {

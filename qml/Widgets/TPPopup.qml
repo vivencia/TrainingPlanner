@@ -2,16 +2,17 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Effects
 
-import "../"
+import TpQml
+import TpQml.Pages
 
 Popup {
-	id: tpPopup
+	id: _control
 	closePolicy: keepAbove ? Popup.NoAutoClose : Popup.CloseOnPressOutside
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	spacing: 0
 	padding: 0
 
-	required property Page parentPage
+	required property TPPage parentPage
 	property bool keepAbove: false
 	property bool bVisible: false
 	property bool closeButtonVisible: true
@@ -27,18 +28,18 @@ Popup {
 	property TPBackRec backgroundRec: _backRec
 	property string backGroundImage
 
-	readonly property int titleBarHeight: appSettings.itemDefaultHeight + 5
+	readonly property int titleBarHeight: AppSettings.itemDefaultHeight + 5
 	signal keyboardNumberPressed(int key1, int key2);
 	signal keyboardEnterPressed();
 	signal backKeyPressed();
 
-	onOpened: if (mainwindow.appPagesModel) mainwindow.appPagesModel.popupOpened(this);
-	onClosed: if (mainwindow.appPagesModel) mainwindow.appPagesModel.popupClosed(this);
+	onOpened: if (ItemManager.appPagesManager) ItemManager.appPagesManager.popupOpened(this);
+	onClosed: if (ItemManager.appPagesManager) ItemManager.appPagesManager.popupClosed(this);
 
 	Component.onCompleted: {
 		if (!modal && keepAbove) {
-			parentPage.pageDeActivated.connect(function() { bVisible = tpPopup.visible; tpPopup.visible = false; });
-			parentPage.pageActivated.connect(function() { if (bVisible) tpPopup.visible = true; });
+			_control.parentPage.pageDeActivated.connect(function() { _control.bVisible = _control.visible; _control.visible = false; });
+			_control.parentPage.pageActivated.connect(function() { if (_control.bVisible) _control.visible = true; });
 		}
 	}
 
@@ -47,16 +48,16 @@ Popup {
 			parentPage.pageDeActivated.disconnect();
 			parentPage.pageActivated.disconnect();
 			parentPage = parent_page;
-			parentPage.pageDeActivated.connect(function() { bVisible = tpPopup.visible; tpPopup.visible = false; });
-			parentPage.pageActivated.connect(function() { if (bVisible) tpPopup.visible = true; });
+			parentPage.pageDeActivated.connect(function() { bVisible = _control.visible; _control.visible = false; });
+			parentPage.pageActivated.connect(function() { if (bVisible) _control.visible = true; });
 		}
 	}
 
 	TPBackRec {
 		id: _backRec
-		useGradient: backGroundImage.length === 0
-		useImage: backGroundImage.length > 0
-		sourceImage: backGroundImage
+		useGradient: _control.backGroundImage.length === 0
+		useImage: _control.backGroundImage.length > 0
+		sourceImage: _control.backGroundImage
 		showBorder: true
 		implicitHeight: height
 		implicitWidth: width
@@ -67,13 +68,13 @@ Popup {
 
 	Loader {
 		asynchronous: true
-		active: enableEffects
+		active: _control.enableEffects
 
 		RectangularShadow {
 			x: _backRec.x
 			y: _backRec.y
 			width: _backRec.width
-			height: backgroundRec.height
+			height: _control.backgroundRec.height
 			color: "#80000000" // Semi-transparent black
 			radius: 8
 			cached: true
@@ -120,9 +121,9 @@ Popup {
 		id: titlebar
 		useGradient: true
 		radius: 8
-		opacity: titleBarOpacity
-		height: titleBarHeight
-		visible: showTitleBar
+		opacity: _control.titleBarOpacity
+		height: _control.titleBarHeight
+		visible: _control.showTitleBar
 
 		anchors {
 			left: parent.left
@@ -135,8 +136,8 @@ Popup {
 		id: btnCloseWindow
 		imageSource: "close.png"
 		hasDropShadow: false
-		visible: closeButtonVisible
-		width: appSettings.itemDefaultHeight
+		visible: _control.closeButtonVisible
+		width: AppSettings.itemDefaultHeight
 		height: width
 		z: 2
 
@@ -146,21 +147,21 @@ Popup {
 			rightMargin: 5
 		}
 
-		onClicked: closePopup();
+		onClicked: _control.closePopup();
 	}
 
 	TPMouseArea {
-		enabled: !disableMouseHandling
-		movableWidget: tpPopup
+		enabled: !_control.disableMouseHandling
+		movableWidget: _control
 		movingWidget: titlebar
-		onPressed: mainwindow.appPagesModel.raisePopup(tpPopup);
+		onPressed: ItemManager.appPagesManager.raisePopup(_control);
 	}
 
 	enter: Transition {
 		NumberAnimation {
 			property: "y"
-			from: startYPos
-			to: finalYPos
+			from: _control.startYPos
+			to: _control.finalYPos
 			duration: 500
 			easing.type: Easing.InOutCubic
 		}
@@ -177,8 +178,8 @@ Popup {
 		id: closeTransition
 		NumberAnimation {
 			property: "y"
-			from: finalYPos
-			to: startYPos
+			from: _control.finalYPos
+			to: _control.startYPos
 			duration: 500
 			easing.type: Easing.InOutCubic
 		}
@@ -200,22 +201,22 @@ Popup {
 		if (visible)
 			return;
 
-		x = (appSettings.pageWidth - width)/2;
+		x = (AppSettings.pageWidth - width)/2;
 
 		if (ypos < 0) {
 			switch (ypos) {
-				case -1: ypos = (appSettings.windowHeight - height)/2; break;
-				case -2: ypos = appSettings.windowHeight - height; break;
-				case -3: ypos = y; break;
-				case -4: ypos = appSettings.pageHeight - height; break;
+			case -1: ypos = (AppSettings.windowHeight - height)/2; break;
+			case -2: ypos = AppSettings.windowHeight - height; break;
+			case -3: ypos = y; break;
+			case -4: ypos = AppSettings.pageHeight - height; break;
 			}
 		}
 
 		finalYPos = ypos;
-		if (ypos <= appSettings.pageHeight/2)
+		if (ypos <= AppSettings.pageHeight/2)
 			startYPos = -300;
 		else
-			startYPos = appSettings.pageHeight + 300;
+			startYPos = AppSettings.pageHeight + 300;
 
 		open();
 	}
@@ -229,21 +230,21 @@ Popup {
 
 		var xpos, ypos;
 		switch (pos) {
-			case 0: //top
-				xpos = point.x;
-				ypos = point.y - height - 20;
+		case 0: //top
+			xpos = point.x;
+			ypos = point.y - height - 20;
 			break;
-			case 1: //left
-				xpos = point.x - width - 20;
-				ypos = point.y;
+		case 1: //left
+			xpos = point.x - width - 20;
+			ypos = point.y;
 			break;
-			case 2: //right
-				xpos = point.x + targetItem.width;
-				ypos = point.y;
+		case 2: //right
+			xpos = point.x + targetItem.width;
+			ypos = point.y;
 			break;
-			case 3: //bottom
-				xpos = point.x;
-				ypos = point.y + targetItem.height;
+		case 3: //bottom
+			xpos = point.x;
+			ypos = point.y + targetItem.height;
 			break;
 		}
 
@@ -257,8 +258,8 @@ Popup {
 			ypos = parentPage.height - height - 10;
 		x = xpos;
 		finalYPos = ypos;
-		if (ypos > appSettings.pageHeight/2)
-			startYPos = appSettings.pageHeight;
+		if (ypos > AppSettings.pageHeight/2)
+			startYPos = AppSettings.pageHeight;
 		open();
 	}
 }

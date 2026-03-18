@@ -42,6 +42,9 @@ public:
 	Q_INVOKABLE void openMainMenuShortCut(const uint index, const bool change_order = true);
 	void changeLabel(QQuickItem *page, QString &&new_label);
 
+	Q_INVOKABLE QQuickItem *homePage() const { return m_pagesData.at(0)->page; }
+	Q_INVOKABLE void openMainMenu();
+	Q_INVOKABLE inline void goHome() { openMainMenuShortCut(0); }
 	Q_INVOKABLE inline void prevPage() { if (m_pagesIndex > 0) openMainMenuShortCut(m_pagesIndex - 1, false); }
 	Q_INVOKABLE inline void nextPage() { if (m_pagesIndex < m_pagesData.count() - 1) openMainMenuShortCut(m_pagesIndex + 1, false); }
 	Q_INVOKABLE void popupOpened(QObject *popup);
@@ -58,6 +61,8 @@ public:
 signals:
 	void countChanged();
 	void currentIndexChanged();
+	void pageActivated(QQuickItem *page);
+	void pageDeActivated(QQuickItem *page);
 
 protected:
 	bool eventFilter(QObject *obj, QEvent *event) override;
@@ -65,16 +70,15 @@ protected:
 private:
 	struct pageInfo {
 		QString displayText;
-		QQuickItem *page;
+		QQuickItem *page{nullptr};
 		std::function<void(void)> cleanUpFunc;
-		explicit inline pageInfo() : page{nullptr} {}
 	};
 
 	QList<pageInfo*> m_pagesData;
 	QList<uint> m_pagesMesoIdx;
 	QList<QObject*> m_popupsOpen;
 	QHash<int, QByteArray> m_roleNames;
-	uint m_pagesIndex;
+	uint m_pagesIndex{0};
 	int m_backKey;
 
 	void openQMLPage(const uint index);

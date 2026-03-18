@@ -20,7 +20,7 @@ TPPage {
 	onPageActivated: calendar.positionViewAtIndex(calendarModel.getIndexFromDate(calendarModel.currentDate), ListView.Contain);
 
 	header: TPToolBar {
-		height: appSettings.pageHeight * 0.1
+		height: AppSettings.pageHeight * 0.1
 		padding: 0
 		spacing: 0
 
@@ -65,7 +65,7 @@ TPPage {
 		delegate: Rectangle {
 			height: calendar.cellSize * 11
 			width: calendar.width - 10
-			color: appSettings.primaryDarkColor
+			color: AppSettings.primaryDarkColor
 			opacity: 0.7
 
 			Rectangle {
@@ -79,7 +79,7 @@ TPPage {
 				Text {
 					anchors.centerIn: parent
 					text: appUtils.monthName(calendarModel.month(index)) + " " + calendarModel.year(index);
-					font.pixelSize: appSettings.extraLargeFontSize
+					font.pixelSize: AppSettings.extraLargeFontSize
 					font.bold: true
 				}
 			}
@@ -95,15 +95,15 @@ TPPage {
 					text: model.shortName
 					horizontalAlignment: Text.AlignHCenter
 					verticalAlignment: Text.AlignVCenter
-					color: appSettings.fontColor
+					color: AppSettings.fontColor
 					font.bold: true
-					font.pixelSize: appSettings.fontSize
+					font.pixelSize: AppSettings.fontSize
 				}
 			}
 
 			MonthGrid {
 				id: monthGrid
-				locale: Qt.locale(appSettings.userLocale)
+				locale: Qt.locale(AppSettings.userLocale)
 				month: calendarModel.month(index)
 				year: calendarModel.year(index)
 				spacing: 2
@@ -119,7 +119,7 @@ TPPage {
 					border.color: "green"
 					border.width: workoutFinished ? 2 : 0
 					opacity: workoutDay ? 1 : mesoDay ?  0.7 : 0.4
-					color: visibleDay ? appSettings.primaryLightColor : "transparent"
+					color: visibleDay ? AppSettings.primaryLightColor : "transparent"
 
 					function dateSelected(): void {
 						highlightDay(true);
@@ -167,7 +167,7 @@ TPPage {
 						text: calendarModel.dayEntryLabel(dayEntry.month_day)
 						font: AppGlobals.smallFont
 						visible: dayEntry.visibleDay
-						color: !dayEntry.todayDate ? (mesoDay ? appSettings.fontColor : appSettings.disabledFontColor) : "red"
+						color: !dayEntry.todayDate ? (mesoDay ? AppSettings.fontColor : AppSettings.disabledFontColor) : "red"
 
 						Connections {
 							target: calendarModel
@@ -218,7 +218,7 @@ TPPage {
 	} //ListView
 
 	footer: TPToolBar {
-		height: appSettings.pageHeight / 4
+		height: AppSettings.pageHeight / 4
 		padding: 0
 		spacing: 0
 
@@ -267,7 +267,7 @@ TPPage {
 			id: optChangeAfterThisDay
 			text: qsTr("Adjust calendar from this day on")
 			multiLine: true
-			height: appSettings.itemExtraLargeHeight
+			height: AppSettings.itemExtraLargeHeight
 
 			anchors {
 				top: optChangeOnlyThisDay.bottom

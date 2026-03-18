@@ -5,13 +5,13 @@ import "../"
 import TpQml
 
 ComboBox {
-	property string textColor: appSettings.fontColor
-	property string backgroundColor: appSettings.primaryDarkColor
+	property string textColor: AppSettings.fontColor
+	property string backgroundColor: AppSettings.primaryDarkColor
 	property bool completeModel: false
 	property bool selectable: true
 
 	id: control
-	height: appSettings.itemLargeHeight
+	height: AppSettings.itemLargeHeight
 	implicitHeight: height
 	implicitWidth: width
 	textRole: "text"
@@ -52,8 +52,8 @@ ComboBox {
 		contentItem: TPLabel {
 			text: model.text
 			elide: Text.ElideRight
-			minimumPixelSize: appSettings.smallFontSize * 0.8
-			leftPadding: completeModel ? appSettings.itemDefaultHeight + 5 : 5
+			minimumPixelSize: AppSettings.smallFontSize * 0.8
+			leftPadding: completeModel ? AppSettings.itemDefaultHeight + 5 : 5
 			enabled: model.enabled
 
 			TPImage {
@@ -61,7 +61,7 @@ ComboBox {
 				source: completeModel ? model.icon : ""
 				dropShadow: false
 				visible: completeModel
-				width: appSettings.itemSmallHeight
+				width: AppSettings.itemSmallHeight
 				height: width
 
 				anchors {
@@ -78,7 +78,7 @@ ComboBox {
 		id: canvas
 		x: control.width - width - control.rightPadding
 		y: control.topPadding + (control.availableHeight - height) / 2
-		width: appSettings.itemDefaultHeight / 2
+		width: AppSettings.itemDefaultHeight / 2
 		height: width
 		contextType: "2d"
 
@@ -94,7 +94,7 @@ ComboBox {
 				context.lineTo(width, 0);
 				context.lineTo(width / 2, height);
 				context.closePath();
-				context.fillStyle = control.enabled ? textColor : appSettings.disabledFontColor
+				context.fillStyle = control.enabled ? textColor : AppSettings.disabledFontColor
 				context.fill();
 			}
 		}
@@ -102,8 +102,8 @@ ComboBox {
 
 	contentItem: TPLabel {
 		text: control.displayText
-		leftPadding: completeModel ? appSettings.itemDefaultHeight + 5 : 5
-		minimumPixelSize: appSettings.smallFontSize * 0.8
+		leftPadding: completeModel ? AppSettings.itemDefaultHeight + 5 : 5
+		minimumPixelSize: AppSettings.smallFontSize * 0.8
 		elide: Text.ElideRight
 	}
 
@@ -111,7 +111,7 @@ ComboBox {
 		visible: completeModel
 		source: completeModel ? model.get(currentIndex).icon : ""
 		dropShadow: false
-		width: appSettings.itemSmallHeight
+		width: AppSettings.itemSmallHeight
 		height: width
 
 		anchors {
@@ -151,9 +151,9 @@ ComboBox {
 				id:	highlight_component
 				Rectangle {
 					width: ListView.view.width - 10
-					height: appSettings.itemDefaultHeight
+					height: AppSettings.itemDefaultHeight
 					x: 5
-					color: appSettings.primaryColor
+					color: AppSettings.primaryColor
 					radius: 8
 					y: ListView.view.currentItem ? ListView.view.currentItem.y + 2 : 2
 					Behavior on y {

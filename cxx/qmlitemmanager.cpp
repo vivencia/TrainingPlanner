@@ -1,12 +1,9 @@
 #include "qmlitemmanager.h"
-
 #include "dbcalendarmodel.h"
 #include "dbexercisesmodel.h"
 #include "dbexerciseslistmodel.h"
 #include "dbmesocyclesmodel.h"
 #include "dbusermodel.h"
-#include "homepagemesomodel.h"
-#include "pageslistmodel.h"
 
 #include "qmlexercisesdatabaseinterface.h"
 #include "qmlmesocalendarinterface.h"
@@ -17,20 +14,9 @@
 
 #include "pageslistmodel.h"
 #include "osinterface.h"
-#include "statistics/tpstatistics.h"
-#include "tpimage.h"
 #include "tpimageprovider.h"
-#include "tpfileops.h"
-#include "tpmediacontrols.h"
 #include "tpsettings.h"
-#include "tptimer.h"
-#include "translationclass.h"
-
-#include "online_services/onlineuserinfo.h"
-#include "online_services/tpchat.h"
-#include "online_services/tpmessagesmanager.h"
-
-#include "weather/weatherinfo.h"
+#include "tputils.h"
 
 #include <QFile>
 #include <QQmlApplicationEngine>
@@ -44,26 +30,17 @@ QmlItemManager *QmlItemManager::_appItemManager{nullptr};
 QQmlApplicationEngine *QmlItemManager::_appQmlEngine{nullptr};
 QQuickWindow *QmlItemManager::_appMainWindow{nullptr};
 
-void QmlItemManager::configureQmlEngine()
+QmlItemManager::QmlItemManager(QQmlApplicationEngine *qml_engine) : QObject{nullptr}
 {
+	_appItemManager = this;
+	REGISTER_QML_SINGLETON(QmlItemManager, this);
+	_appQmlEngine = qml_engine;
+
 	QQuickStyle::setStyle(appSettings()->themeStyle());
 	QQuickWindow::setTextRenderType(QQuickWindow::NativeTextRendering);
-
-	QList<QQmlContext::PropertyPair> global_properties{9};
-	global_properties[0] = std::move(QQmlContext::PropertyPair{ "appSettings"_L1,			QVariant::fromValue(appSettings()) });
-	global_properties[1] = std::move(QQmlContext::PropertyPair{ "appUtils"_L1,				QVariant::fromValue(appUtils()) });
-	global_properties[2] = std::move(QQmlContext::PropertyPair{ "appTr"_L1,					QVariant::fromValue(appTr()) });
-	global_properties[3] = std::move(QQmlContext::PropertyPair{ "userModel"_L1,				QVariant::fromValue(appUserModel()) });
-	global_properties[4] = std::move(QQmlContext::PropertyPair{ "exercisesListModel"_L1,	QVariant::fromValue(appExercisesList()) });
-	global_properties[5] = std::move(QQmlContext::PropertyPair{ "itemManager"_L1,			QVariant::fromValue(this) });
-	global_properties[6] = std::move(QQmlContext::PropertyPair{ "appStatistics"_L1,			QVariant::fromValue(appStatistics()) });
-	global_properties[7] = std::move(QQmlContext::PropertyPair{ "appMessages"_L1,			QVariant::fromValue(new TPMessagesManager{this}) });
-	global_properties[8] = std::move(QQmlContext::PropertyPair{ "osInterface"_L1,			QVariant::fromValue(appOsInterface()) });
-	appQmlEngine()->rootContext()->setContextProperties(global_properties);
-	//appQmlEngine()->addImportPath(":/"_L1);
+	appQmlEngine()->addImportPath(":/"_L1);
 	appQmlEngine()->addImageProvider("tpimageprovider"_L1, new TPImageProvider{});
 
-	//QUrl url{};
 	QAnyStringView main_module{"Main"};
 	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(),
 																[this] (const QObject *const obj, const QUrl &objUrl) {
@@ -111,7 +88,6 @@ void QmlItemManager::configureQmlEngine()
 		if (args.at(1) == "-test"_L1) {
 			m_qml_testing = true;
 			main_module = "Tests";
-			//url = std::move("qrc:/TpQml/qml/tests.qml"_L1);
 		}
 		else if (args.at(1) == "-user"_L1) {
 			if (!args.at(2).isEmpty()) {
@@ -122,16 +98,12 @@ void QmlItemManager::configureQmlEngine()
 				qDebug() << "Warning: Missing user id in the command line arguments"_L1;
 		}
 	}
-	//if (url.isEmpty())
-	//	url = std::move("qrc:/TpQml/qml/main.qml"_L1);
 	#else
 		url = std::move("qrc:/TpQml/qml/main.qml"_L1);
 	#endif
 #else
 	url = std::move("qrc:/TpQml/qml/main.qml"_L1);
 #endif
-
-	//appQmlEngine()->load(url);
 	appQmlEngine()->loadFromModule("TpQml", main_module);
 }
 

@@ -1,12 +1,12 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import "../"
-import "../TPWidgets"
-import "../User"
-
 import TpQml
+import TpQml.Widgets
+import TpQml.User
 
 TPPopup {
 	id: onlineMsgsDlg
@@ -14,7 +14,7 @@ TPPopup {
 	showTitleBar: false
 	closeButtonVisible: false
 	disableMouseHandling: true
-	x: appSettings.pageWidth - 80
+	x: AppSettings.pageWidth - 80
 	finalYPos: 180
 	width: mainIcon.width
 	height: mainIcon.height
@@ -24,8 +24,8 @@ TPPopup {
 	property bool fullDialogVisible: false
 	property int mainIconUserDefinedX: x
 	property int mainIconUserDefinedY: y
-	readonly property int dlgMaxWidth: appSettings.pageWidth * 0.8
-	readonly property int maxHeight: appSettings.pageHeight * 0.5
+	readonly property int dlgMaxWidth: AppSettings.pageWidth * 0.8
+	readonly property int maxHeight: AppSettings.pageHeight * 0.5
 
 	ParallelAnimation
 	{
@@ -49,9 +49,9 @@ TPPopup {
 		}
 
 		onFinished: {
-			onlineMsgsDlg.x = mainIconUserDefinedX;
-			onlineMsgsDlg.y = mainIconUserDefinedY;
-			fullDialogVisible = false;
+			onlineMsgsDlg.x = onlineMsgsDlg.mainIconUserDefinedX;
+			onlineMsgsDlg.y = onlineMsgsDlg.mainIconUserDefinedY;
+			onlineMsgsDlg.fullDialogVisible = false;
 		}
 	}
 	ParallelAnimation
@@ -76,18 +76,18 @@ TPPopup {
 		}
 
 		onFinished: {
-			if ((onlineMsgsDlg.x + onlineMsgsDlg.width) > appSettings.pageWidth)
-				onlineMsgsDlg.x = appSettings.pageWidth - onlineMsgsDlg.width - 10;
-			fullDialogVisible = true;
+			if ((onlineMsgsDlg.x + onlineMsgsDlg.width) > AppSettings.pageWidth)
+				onlineMsgsDlg.x = AppSettings.pageWidth - onlineMsgsDlg.width - 10;
+			onlineMsgsDlg.fullDialogVisible = true;
 		}
 	}
 
 	TPImage {
 		id: mainIcon
 		source: "messages"
-		width: appSettings.itemExtraLargeHeight
+		width: AppSettings.itemExtraLargeHeight
 		height: width
-		visible: !fullDialogVisible
+		visible: !onlineMsgsDlg.fullDialogVisible
 		anchors {
 			verticalCenter: parent.verticalCenter
 			horizontalCenter: parent.horizontalCenter
@@ -96,14 +96,12 @@ TPPopup {
 		TPMouseArea {
 			movingWidget: mainIcon
 			movableWidget: onlineMsgsDlg
-			enabled: !fullDialogVisible
+			enabled: !onlineMsgsDlg.fullDialogVisible
 
-			onMouseClicked: (hold_clicked) => {
-				if (!hold_clicked) {
-					mainIconUserDefinedX = onlineMsgsDlg.x;
-					mainIconUserDefinedY = onlineMsgsDlg.y;
-					expand.start();
-				}
+			onMouseClicked: {
+				onlineMsgsDlg.mainIconUserDefinedX = onlineMsgsDlg.x;
+				onlineMsgsDlg.mainIconUserDefinedY = onlineMsgsDlg.y;
+				expand.start();
 			}
 		}
 	}
@@ -111,8 +109,8 @@ TPPopup {
 	TPLabel {
 		id: topBar
 		text: qsTr("Messages")
-		visible: fullDialogVisible
-		height: appSettings.itemLargeHeight
+		visible: onlineMsgsDlg.fullDialogVisible
+		height: AppSettings.itemLargeHeight
 		horizontalAlignment: Text.AlignHCenter
 
 		anchors {
@@ -125,7 +123,7 @@ TPPopup {
 			id: smallIcon
 			source: "messages"
 			dropShadow: false
-			width: appSettings.itemDefaultHeight
+			width: AppSettings.itemDefaultHeight
 			height: width
 
 			anchors {
@@ -139,20 +137,20 @@ TPPopup {
 			movableWidget: onlineMsgsDlg
 
 			onMouseClicked: {
-				if (mainwindow.appPagesModel.isPopupAboveAllOthers(onlineMsgsDlg)) {
-					mainIconUserDefinedY = onlineMsgsDlg.y;
+				if (ItemManager.appPagesManager.isPopupAboveAllOthers(onlineMsgsDlg)) {
+					onlineMsgsDlg.mainIconUserDefinedY = onlineMsgsDlg.y;
 					shrink.start();
 				}
 				else
-					mainwindow.appPagesModel.raisePopup(onlineMsgsDlg);
+					ItemManager.appPagesManager.raisePopup(onlineMsgsDlg);
 			}
 		}
 	}
 
 	StackLayout {
 		id: mainLayout
-		visible: fullDialogVisible
-		currentIndex: appMessages ? appMessages.count > 0 ? 1 : 0 : 0
+		visible: onlineMsgsDlg.fullDialogVisible
+		currentIndex: AppMessages ? AppMessages.count > 0 ? 1 : 0 : 0
 		height: childrenRect.height
 
 		anchors {
@@ -166,13 +164,13 @@ TPPopup {
 			useBackground: true
 			horizontalAlignment: Qt.AlignHCenter
 			font: AppGlobals.largeFont
-			height: maxHeight / 2
+			Layout.preferredHeight: onlineMsgsDlg.maxHeight / 2
 			Layout.fillWidth: true
 		}
 
 		TPListView {
 			id: messagesList
-			model: appMessages
+			model: AppMessages
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 
@@ -180,12 +178,13 @@ TPPopup {
 
 			delegate: SwipeDelegate {
 				id: delegateItem
-				swipe.enabled: sticky
+				swipe.enabled: messagesList.model.sticky
 				clip: true
 				padding: 0
 				spacing: 5
 				width: messagesList.width
 
+				required property int index
 				property bool showActions: false
 
 				function setShowActions(show: bool) {
@@ -198,14 +197,14 @@ TPPopup {
 
 				background: Rectangle {
 					opacity: 0.8
-					color: index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
+					color: delegateItem.index % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2
 				}
 
 				contentItem: Column {
 					id: messageLayout
 					spacing: 5
 					padding: 5
-					opacity: 1 + swipe.position
+					opacity: 1 + delegateItem.swipe.position
 
 					MouseArea {
 						width:  childrenRect.width
@@ -220,36 +219,36 @@ TPPopup {
 							Layout.rightMargin: 10
 
 							TPImage {
-								source: msgicon
+								source: messagesList.model.msgicon
 								imageSizeFollowControlSize: true
 								keepAspectRatio: true
 								fullWindowView: false
 								dropShadow: false
-								width: appSettings.itemSmallHeight
-								height: width
-								visible: msgicon.length > 0
+								Layout.preferredWidth: AppSettings.itemSmallHeight
+								Layout.preferredHeight: AppSettings.itemSmallHeight
+								visible: messagesList.model.msgicon.length > 0
 							}
 
 							TPLabel {
-								text: msgdate + "  " + msgtime
+								text: messagesList.model.msgdate + "  " + messagesList.model.msgtime
 								font: AppGlobals.smallFont
-								height: appSettings.itemSmallHeight
-								Layout.leftMargin: appSettings.itemSmallHeight
+								Layout.preferredHeight: AppSettings.itemSmallHeight
+								Layout.leftMargin: AppSettings.itemSmallHeight
 							}
 
 							Item {
-								width: appSettings.itemSmallHeight
-								height: width
-								visible: extraInfo.length > 0
+								Layout.preferredWidth: AppSettings.itemSmallHeight
+								Layout.preferredHeight: AppSettings.itemSmallHeight
+								visible: messagesList.model.extraInfo.length > 0
 
 								TPImage {
 									id: extraInfoImg
-									source: extraInfoIcon
+									source: messagesList.model.extraInfoIcon
 									anchors.fill: parent
 								}
 								TPLabel {
-									text: extraInfo
-									minimumPixelSize: appSettings.smallFontSize * 0.7
+									text: messagesList.model.extraInfo
+									minimumPixelSize: AppSettings.smallFontSize * 0.7
 									z: 1
 									width: parent.width * 0.5
 									height: parent.height * 0.8
@@ -261,8 +260,8 @@ TPPopup {
 								id: btnFoldIcon
 								source: delegateItem.showActions ? "fold-up.png" : "fold-down.png"
 								dropShadow: false
-								width: 18
-								height: 18
+								Layout.preferredWidth: 18
+								Layout.preferredHeight: 18
 								Layout.leftMargin: 30
 							}
 						}
@@ -270,43 +269,43 @@ TPPopup {
 
 					TPLabel {
 						id: lblMessage
-						text: labelText
+						text: messagesList.model.labelText
 						elide: delegateItem.showActions ? Text.ElideNone : Text.ElideRight
 						wrapMode: delegateItem.showActions ? Text.WordWrap : Text.NoWrap
 						singleLine: !delegateItem.showActions
 						width: onlineMsgsDlg.dlgMaxWidth - 10
-						height: delegateItem.showActions ? contentHeight : appSettings.itemDefaultHeight
+						height: delegateItem.showActions ? contentHeight : AppSettings.itemDefaultHeight
 						Layout.leftMargin: 20
 
 						MouseArea {
 							anchors.fill: parent
 							onClicked: {
-								if (hasActions)
+								if (messagesList.model.hasActions)
 									delegateItem.setShowActions(!delegateItem.showActions);
 								else
-									appMessages.itemClicked(index);
+									AppMessages.itemClicked(delegateItem.index);
 							}
 						}
 					}
 
 					Loader {
 						asynchronous: true
-						active: filename.length > 0
-						Layout.maximumWidth: dlgMaxWidth
-						Layout.minimumWidth: dlgMaxWidth
+						active: messagesList.model.filename.length > 0
+						Layout.maximumWidth: onlineMsgsDlg.dlgMaxWidth
+						Layout.minimumWidth: onlineMsgsDlg.dlgMaxWidth
 
 						sourceComponent: TPFileViewer {
-							mediaSource: filename
-							onRemovalRequested: appMessages.removeMessage(msgid);
+							mediaSource: messagesList.model.filename
+							onRemovalRequested: AppMessages.removeMessage(messagesList.model.msgid);
 						}
 					}
 
 					Loader {
 						id: actionsLoader
 						asynchronous: true
-						active: actions.length > 0
-						Layout.maximumWidth: dlgMaxWidth
-						Layout.minimumWidth: dlgMaxWidth
+						active: messagesList.model.actions.length > 0
+						Layout.maximumWidth: onlineMsgsDlg.dlgMaxWidth
+						Layout.minimumWidth: onlineMsgsDlg.dlgMaxWidth
 
 						property GridLayout actionsLayout
 
@@ -317,20 +316,20 @@ TPPopup {
 							columnSpacing: 2
 							rowSpacing: 5
 
-							readonly property int maxButtonWidth: (dlgMaxWidth - 25)/3
-							readonly property int msgIndex: index
+							readonly property int maxButtonWidth: (onlineMsgsDlg.dlgMaxWidth - 25)/3
+							readonly property int msgIndex: delegateItem.index
 
 							Repeater {
 								id: actionsRepeater
-								model: actions
+								model: messagesList.model.actions
 
 								delegate: TPButton {
-									text: actions[index]
+									text: messagesList.model.actions[index]
 									width: constrainSize ? _layout.maxButtonWidth : preferredWidth
 									autoSize: !constrainSize
 									rounded: false
 									Layout.alignment: Qt.AlignCenter
-									onClicked: appMessages.execAction(_layout.msgIndex, index);
+									onClicked: AppMessages.execAction(_layout.msgIndex, index);
 
 									required property int index
 									property bool constrainSize: false
@@ -345,7 +344,7 @@ TPPopup {
 										let row_width = 0, row  = 0, col = 0;
 										for (let i = 0; i < n_items; ++i) {
 											row_width += itemAt(i).width;
-											if (col === 0 || (row_width < dlgMaxWidth - 5)) {
+											if (col === 0 || (row_width < onlineMsgsDlg.dlgMaxWidth - 5)) {
 												itemAt(i).Layout.column = col;
 												itemAt(1).Layout.row = row;
 												col++
@@ -355,7 +354,7 @@ TPPopup {
 													itemAt(i).constrainSize = true;
 												else
 													itemAt(i-1).constrainSize = true;
-												if (itemAt(i).width + itemAt(i-1).width >= dlgMaxWidth - 5) {
+												if (itemAt(i).width + itemAt(i-1).width >= onlineMsgsDlg.dlgMaxWidth - 5) {
 													itemAt(i).Layout.column = col = 0;
 													itemAt(i).Layout.row = ++row;
 													itemAt(i-1).constrainSize = false;
@@ -367,7 +366,8 @@ TPPopup {
 												}
 											}
 										}
-										messagesList.messagesHeight += _layout.childrenRect.height + lblMessage.height + messageTextLayout.height;
+										messagesList.messagesHeight +=
+														_layout.childrenRect.height + lblMessage.height + messageTextLayout.height;
 									}
 								} //onItemAdded
 							} //Repeater
@@ -394,13 +394,13 @@ TPPopup {
 						}
 					}
 				} //swipe.right
-				swipe.onCompleted: appMessages.removeMessage(index);
+				swipe.onCompleted: AppMessages.removeMessage(index);
 			} //delegate: SwipeDelegate
 		} // TPListView: messagesList
 
 		ColumnLayout {
 			spacing: 10
-			height: childrenRect.height
+			Layout.preferredHeight: childrenRect.height
 			Layout.fillWidth: true
 
 			TPLabel {
@@ -420,16 +420,16 @@ TPPopup {
 				id: chatList
 				listClients: true
 				listCoaches: true
-				height: maxHeight - 2 * (appSettings.itemDefaultHeight + 10)
-				width: parent.width
+				Layout.preferredHeight: onlineMsgsDlg.maxHeight - 2 * (AppSettings.itemDefaultHeight + 10)
+				Layout.preferredWidth: parent.width
 				Layout.fillWidth: true
 
 				property string selectedChat
 
 				onItemSelected: (userRow) => {
-					selectedChat = userModel.userName(userRow);
+					selectedChat = AppUserModel.userName(userRow);
 					txtSearch.text = selectedChat;
-					openChat(selectedChat);
+					onlineMsgsDlg.openChat(selectedChat);
 				}
 			} //TPCoachesAndClientsList
 		}
@@ -437,7 +437,7 @@ TPPopup {
 
 	TPButton {
 		imageSource: "chat.png"
-		width: appSettings.itemDefaultHeight
+		width: AppSettings.itemDefaultHeight
 		height: width
 		visible: mainLayout.visible && mainLayout.currentIndex !== 2
 
@@ -452,7 +452,7 @@ TPPopup {
 	}
 
 	function openChat(user_name: string): void {
-		appMessages.openChat(user_name);
-		mainLayout.currentIndex = appMessages.count > 0 ? 1 : 0;
+		AppMessages.openChat(user_name);
+		mainLayout.currentIndex = AppMessages.count > 0 ? 1 : 0;
 	}
 }

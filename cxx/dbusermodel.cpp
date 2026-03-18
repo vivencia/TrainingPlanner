@@ -50,16 +50,11 @@ static inline QString userNameWithoutConfirmationWarning(const QString &userName
 	return userName.left(sep_idx-1);
 }
 
-DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
-	: QObject{parent}, m_tempRow{-1}, m_availableCoaches{nullptr}, m_pendingClientRequests{nullptr},
-		m_pendingCoachesResponses{nullptr}, m_tempUserInfo{nullptr}, m_mainTimer{nullptr}, m_currentCoaches{nullptr},
-			m_currentClients{nullptr}, m_currentCoachesAndClients{nullptr}, m_db{nullptr}
-
-#ifndef Q_OS_ANDROID
-	,m_allUsers{nullptr}
-#endif
+DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel) : QObject{parent}
 {
 	_appUserModel = this;
+	REGISTER_QML_SINGLETON(DBUserModel, this);
+
 	mb_MainUserInfoChanged = false;
 	m_network_msg_title = std::move(tr("TP Network"));
 
@@ -702,10 +697,8 @@ void DBUserModel::uploadResume(const QString &resumeFileName)
 {
 	const QString &resumeFileName_ok{appUtils()->getCorrectPath(resumeFileName)};
 	QFileInfo fi{resumeFileName_ok};
-	if (fi.isReadable())
-	{
-		if (fi.size() > file_upload_max_size)
-		{
+	if (fi.isReadable()) {
+		if (fi.size() > file_upload_max_size) {
 			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR,
 					appUtils()->string_strings({ tr("Cannot upload file"), tr("Maximum file size allowed: 8MB")}, record_separator), "error");
 			return;
@@ -714,8 +707,7 @@ void DBUserModel::uploadResume(const QString &resumeFileName)
 		const QString &extension{idx > 0 ? resumeFileName_ok.last(resumeFileName_ok.length() - idx) : QString{}};
 		const QString &localResumeFilePath{userDir(0) % "resume"_L1 % extension};
 		const QString &previousResumeFilePath{resume(0)};
-		if (appUtils()->copyFile(resumeFileName_ok, localResumeFilePath))
-		{
+		if (appUtils()->copyFile(resumeFileName_ok, localResumeFilePath)) {
 			sendFileToServer(localResumeFilePath, nullptr, tr("Résumé uploaded successfully!"), QString{}, userId(0), true);
 			if (previousResumeFilePath != localResumeFilePath)
 				removeFileFromServer(appUtils()->getFileName(previousResumeFilePath), QString{}, userId(0));
@@ -725,14 +717,11 @@ void DBUserModel::uploadResume(const QString &resumeFileName)
 
 void DBUserModel::setMainUserConfigurationFinished()
 {
-	if (canConnectToServer())
-	{
+	if (canConnectToServer()) {
 		if (!mainUserLoggedIn())
 			onlineCheckIn();
-		else
-		{
-			if (mb_MainUserInfoChanged)
-			{
+		else {
+			if (mb_MainUserInfoChanged) {
 				sendProfileToServer();
 				sendUserDataToServerDatabase();
 				mb_MainUserInfoChanged = false;
@@ -744,20 +733,15 @@ void DBUserModel::setMainUserConfigurationFinished()
 
 void DBUserModel::sendRequestToCoaches()
 {
-	if (m_availableCoaches)
-	{
-		for (uint i{0}; i < m_availableCoaches->nSelected(); ++i)
-		{
-			if (m_availableCoaches->isSelected(i))
-			{
+	if (m_availableCoaches) {
+		for (uint i{0}; i < m_availableCoaches->nSelected(); ++i) {
+			if (m_availableCoaches->isSelected(i)) {
 				const int requestid{appUtils()->generateUniqueId(QLatin1StringView{
 					QString{"sendRequestToCoaches"_L1 + m_availableCoaches->data(i, USER_COL_ID)}.toLatin1()})};
 				auto conn{std::make_shared<QMetaObject::Connection>()};
 				*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid,i]
-									(const int request_id, const int ret_code, const QString &ret_string)
-				{
-					if (request_id == requestid)
-					{
+															(const int request_id, const int ret_code, const QString &ret_string) {
+					if (request_id == requestid) {
 						disconnect(*conn);
 						if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS)
 							appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_SUCCESS, appUtils()->string_strings(
@@ -774,21 +758,16 @@ void DBUserModel::sendRequestToCoaches()
 
 void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 {
-	if (canConnectToServer() && onlineAccount())
-	{
+	if (canConnectToServer() && onlineAccount()) {
 		const int requestid{appUtils()->generateUniqueId("getOnlineCoachesList"_L1)};
 		auto conn {std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid,get_list_only]
-							(const int request_id, const int ret_code, const QString &ret_string)
-		{
-			if (request_id == requestid)
-			{
+							(const int request_id, const int ret_code, const QString &ret_string) {
+			if (request_id == requestid) {
 				disconnect(*conn);
-				if (ret_code == TP_RET_CODE_SUCCESS)
-				{
+				if (ret_code == TP_RET_CODE_SUCCESS) {
 					QStringList coaches{std::move(ret_string.split(' ', Qt::SkipEmptyParts))};
-					if (get_list_only)
-					{
+					if (get_list_only) {
 						emit coachesListReceived(coaches);
 						return;
 					}
@@ -796,8 +775,7 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 						emit availableCoachesChanged();
 
 					//First pass
-					for (qsizetype i{coaches.count()-1}; i >= 0; --i)
-					{
+					for (qsizetype i{coaches.count()-1}; i >= 0; --i) {
 						const int userrow{userIdxFromFieldValue(USER_COL_ID, coaches.at(i))};
 						if (userrow != -1 && userrow != m_tempRow)
 							coaches.remove(i); //coach is already in the database, therefore not available
@@ -807,8 +785,7 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 					qsizetype n_connections{coaches.count()};
 					auto conn{std::make_shared<QMetaObject::Connection>()};
 					*conn = connect(this, &DBUserModel::userProfileAcquired, this, [this,conn,coaches,n_connections]
-																		(const QString &userid, const bool success) mutable
-					{
+																		(const QString &userid, const bool success) mutable {
 						if (--n_connections == 0)
 							disconnect(*conn);
 						if (success)

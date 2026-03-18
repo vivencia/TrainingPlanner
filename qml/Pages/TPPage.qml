@@ -1,19 +1,16 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Shapes
-
-import "../"
-import "../TPWidgets"
 
 import TpQml
+import TpQml.Widgets
 
 Page {
-	id: tpPage
-	width: appSettings.pageWidth
-	height: appSettings.pageHeight
+	id: _page
+	width: AppSettings.pageWidth
+	height: AppSettings.pageHeight
 
-	property color colorLight: appSettings.primaryLightColor
-	property color colorDark: appSettings.primaryDarkColor
+	property color colorLight: AppSettings.primaryLightColor
+	property color colorDark: AppSettings.primaryDarkColor
 	property string imageSource
 	property double backgroundOpacity: 0
 	readonly property int headerHeight: 0.08 * height
@@ -22,28 +19,33 @@ Page {
 	signal pageActivated();
 	signal pageDeActivated();
 
-	Component.onCompleted: {
-		mainwindow.pageActivated_main.connect(pageActivation);
-		mainwindow.pageDeActivated_main.connect(pageDeActivation);
+	Connections {
+		target: ItemManager.appPagesManager
+		function onPageActivated(): void {
+			_page.pageActivation();
+		}
+		function onPageDeActivated(): void {
+			_page.pageDeActivation();
+		}
 	}
 
 	background: TPBackRec {
-		useImage: imageSource.length > 0
-		image_size: Qt.size(appSettings.pageWidth, appSettings.pageHeight * 1.1)
-		sourceImage: imageSource
-		overlayOpacity: backgroundOpacity
+		useImage: _page.imageSource.length > 0
+		image_size: Qt.size(AppSettings.pageWidth, AppSettings.pageHeight * 1.1)
+		sourceImage: _page.imageSource
+		overlayOpacity: _page.backgroundOpacity
 	}
 
 	function pageDeActivation(page: Item): void {
 		if (page !== null) {
-			if (page.objectName === tpPage.objectName)
+			if (page.objectName === _page.objectName)
 				pageDeActivated();
 		}
 	}
 
 	function pageActivation(page: Item): void {
 		if (page !== null) {
-			if (page.objectName === tpPage.objectName)
+			if (page.objectName === _page.objectName)
 				pageActivated();
 		}
 	}

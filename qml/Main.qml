@@ -1,20 +1,18 @@
 import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
-import QtQuick.Layouts
 
-import TpQml
-
-import "Dialogs"
-import "Pages"
-import "TPWidgets"
-import "User"
+import TpQml 1.0
+import TpQml.Widgets 1.0
+import TpQml.Dialogs 1.0
+import TpQml.User 1.0
+import TpQml.Pages 1.0
 
 ApplicationWindow {
 	id: mainwindow
 	objectName: "mainWindow"
-	width: appSettings.windowWidth
-	height: appSettings.windowHeight
+	width: AppSettings.windowWidth
+	height: AppSettings.windowHeight
 	visible: true
 	title: "Training Planner"
 	flags: Qt.platform.os === "android" ? Qt.Window | Qt.FramelessWindowHint | Qt.WA_KeepScreenOn :
@@ -57,14 +55,17 @@ ApplicationWindow {
 		id: appMessagesWidget
 		active: userModel.mainUserConfigured && userModel.onlineAccount
 		asynchronous: true
-		sourceComponent: OnlineMessages{
+		sourceComponent: OnlineMessages {
 			parentPage: homePage
 		}
 		onLoaded: item.open();
 	}
 
 	function openMainMenu(): void {
-		mainMenu.item.open();
+		if (!mainMenu.item.visible)
+			mainMenu.item.open();
+		else
+			mainMenu.item.close();
 	}
 
 	HomePage {
@@ -79,9 +80,7 @@ ApplicationWindow {
 		anchors.fill: parent
 	}
 
-	signal pageDeActivated_main(Item page);
 	function popFromStack(page: Item): void {
-		pageDeActivated_main(stackView.currentItem);
 		if (page) {
 			if (stackView.currentItem !== page) {
 				let items = [];
@@ -98,11 +97,9 @@ ApplicationWindow {
 		}
 		else
 			stackView.pop();
-		pageActivated_main(stackView.currentItem);
 	}
 
-	signal pageActivated_main(Item page);
-	function pushOntoStack(page: Item, emit_signals: bool): void {
+	function pushOntoStack(page: Item): void {
 		if (stackView.currentItem === page)
 			return;
 		if (emit_signals)
@@ -111,8 +108,6 @@ ApplicationWindow {
 			stackView.popToItem(page);
 		else
 			stackView.push(page);
-		if (emit_signals)
-			pageActivated_main(page);
 	}
 
 	function clearWindowsStack(): void {

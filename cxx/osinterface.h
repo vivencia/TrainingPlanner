@@ -1,5 +1,7 @@
 #pragma once
 
+#include "qml_singleton.h"
+
 #ifndef QT_NO_DEBUG
 #include "tputils.h"
 #endif
@@ -148,8 +150,8 @@ signals:
 	void connectionMessageChanged();
 
 private:
-	int m_networkStatus;
-	QTimer *m_checkConnectionTimer;
+	int m_networkStatus{0};
+	QTimer *m_checkConnectionTimer{nullptr};
 	QStringList m_connectionMessages;
 	QString m_localIPAddress;
 	std::optional<bool> m_currentNetworkStatus[3];
@@ -167,8 +169,9 @@ private:
 	void checkInternetConnection();
 	void setConnectionMessage(int msg_idx, QString &&message);
 	void onlineServicesResponse(const uint online_status, const QString &additional_message = QString{});
-	static OSInterface *app_os_interface;
+	static OSInterface *_app_os_interface;
 	friend OSInterface *appOsInterface();
 };
 
-inline OSInterface *appOsInterface() { return OSInterface::app_os_interface; }
+DECLARE_QML_SINGLETON(OSInterface)
+inline OSInterface *appOsInterface() { return OSInterface::_app_os_interface; }

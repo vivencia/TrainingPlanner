@@ -8,14 +8,14 @@ import "../TPWidgets"
 TPPopup {
 	id: dlgMuscularGroup
 	keepAbove: true
-	width: appSettings.pageWidth/2
-	height: shown ? dlgHeight : appSettings.itemDefaultHeight
+	width: AppSettings.pageWidth/2
+	height: shown ? dlgHeight : AppSettings.itemDefaultHeight
 
 	property string buttonLabel: qsTr("Filter")
 
 	property bool shown: true
 	readonly property string groupsSeparator: '|'
-	readonly property int dlgHeight: appSettings.pageHeight * 0.5
+	readonly property int dlgHeight: AppSettings.pageHeight * 0.5
 
 	signal muscularGroupsCreated(groups: string);
 

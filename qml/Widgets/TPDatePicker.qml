@@ -50,7 +50,7 @@ Rectangle {
 			inputMethodHints: Qt.ImhDigitsOnly
 			validator: IntValidator { id: val; bottom: startDate.getUTCFullYear(); top: endDate.getUTCFullYear(); }
 			opacity: yearsList.visible ? 1 : 0.7
-			color: appSettings.fontColor
+			color: AppSettings.fontColor
 			z: 1
 
 			property bool yearOK
@@ -118,7 +118,7 @@ Rectangle {
 			font.pixelSize: height * 0.5
 			font.bold: true
 			readOnly: true
-			color: appSettings.fontColor
+			color: AppSettings.fontColor
 			opacity: monthsList.visible ? 0.7 : 1
 			height: cellSize * 2
 			z: 1
@@ -256,7 +256,7 @@ Rectangle {
 				month: model.month
 				year: model.year
 				spacing: 0
-				locale: Qt.locale(appSettings.userLocale)
+				locale: Qt.locale(AppSettings.userLocale)
 				width: cellSize * 7
 				height: cellSize * 6
 				anchors.top: weekTitles.bottom
@@ -266,7 +266,7 @@ Rectangle {
 					width: cellSize
 					radius: cellSize * 0.5
 					opacity: monthGrid.month === model.month ? 1 : 0.5
-					color: appSettings.primaryColor
+					color: AppSettings.primaryColor
 
 					readonly property bool highlighted: model.day === selectedDate.getUTCDate() && model.month === selectedDate.getUTCMonth()
 					readonly property bool todayDate: model.year === thisDay.getUTCFullYear() && model.month === thisDay.getUTCMonth() && model.day === thisDay.getUTCDate()
@@ -277,7 +277,7 @@ Rectangle {
 						font.bold: true
 						scale: highlighted ? 1.25 : 1
 						Behavior on scale { NumberAnimation { duration: 150 } }
-						color: todayDate ? "red" : parent.highlighted ? "green" : monthGrid.month === model.month ? appSettings.fontColor : appSettings.disabledFontColor
+						color: todayDate ? "red" : parent.highlighted ? "green" : monthGrid.month === model.month ? AppSettings.fontColor : AppSettings.disabledFontColor
 						anchors.centerIn: parent
 					}
 
@@ -318,7 +318,7 @@ Rectangle {
 				font.pixelSize: fontSizePx * 1.5
 				text: name
 				scale: index === yearsList.currentYear - yearsList.startYear ? 1.5 : 1
-				color: appSettings.fontColor
+				color: AppSettings.fontColor
 			}
 			MouseArea {
 				anchors.fill: parent
@@ -362,7 +362,7 @@ Rectangle {
 				font.pixelSize: fontSizePx * 1.5
 				text: name
 				scale: index === monthsList.currentMonth ? 1.5 : 1
-				color: appSettings.fontColor
+				color: AppSettings.fontColor
 
 				MouseArea {
 					anchors.fill: parent

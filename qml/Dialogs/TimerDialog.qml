@@ -2,18 +2,16 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import "../"
-import "../TPWidgets"
-
 import TpQml
+import TpQml.Widgets
 
 TPPopup {
-	id: dlgTimer
+	id: _dlg_timer
 	keepAbove: true
-	width: appSettings.pageWidth * 0.75
-	height: appSettings.pageHeight * 0.3
-	x: (appSettings.pageWidth - width) / 2
-	finalYPos: (appSettings.pageHeight - height) / 2
+	width: AppSettings.pageWidth * 0.75
+	height: AppSettings.pageHeight * 0.3
+	x: (AppSettings.pageWidth - width) / 2
+	finalYPos: (AppSettings.pageHeight - height) / 2
 	backgroundRec: timerBackground
 
 	property bool timePickerOnly: false
@@ -66,7 +64,7 @@ TPPopup {
 			text: qsTr("Stopwatch")
 			radio: false
 			checked: false
-			enabled: !timePickerOnly
+			enabled: !_dlg_timer.timePickerOnly
 			Layout.leftMargin: 10
 			Layout.rightMargin: btnClose.width
 			Layout.topMargin: -5
@@ -78,7 +76,7 @@ TPPopup {
 		RowLayout {
 			spacing: 20
 			Layout.fillWidth: true
-			Layout.leftMargin: leftMarginValue
+			Layout.leftMargin: _dlg_timer.leftMarginValue
 
 			TPTextInput {
 				id: txtHours
@@ -88,12 +86,11 @@ TPPopup {
 				inputMethodHints: Qt.ImhDigitsOnly
 				maximumLength: 2
 				horizontalAlignment: Text.AlignHCenter
-				width: txtWidth
-				Layout.minimumWidth: txtWidth
-				Layout.maximumWidth: txtWidth
+				Layout.minimumWidth: _dlg_timer.txtWidth
+				Layout.maximumWidth: _dlg_timer.txtWidth
 				Layout.alignment: Qt.AlignCenter
 
-				Keys.onPressed: (event) => processKeyEvents(event);
+				Keys.onPressed: (event) => _dlg_timer.processKeyEvents(event);
 
 				onActiveFocusChanged: {
 					if (activeFocus)
@@ -109,7 +106,7 @@ TPPopup {
 				onTextEdited: {
 					if (acceptableInput) {
 						if ( text.length === 2 ) {
-							bTextChanged = true;
+							_dlg_timer.bTextChanged = true;
 							txtMinutes.focus = true;
 							txtMinutes.forceActiveFocus();
 						}
@@ -133,7 +130,7 @@ TPPopup {
 				}
 
 				TPLabel {
-					font.pixelSize: appSettings.smallFontSize
+					font.pixelSize: AppSettings.smallFontSize
 					text: qsTr("Hours")
 
 					anchors {
@@ -146,7 +143,7 @@ TPPopup {
 
 			TPLabel {
 				text: ":"
-				font.pixelSize: appSettings.largeFontSize
+				font.pixelSize: AppSettings.largeFontSize
 				font.bold: true
 				horizontalAlignment: Text.AlignHCenter
 				visible: txtHours.visible
@@ -162,12 +159,11 @@ TPPopup {
 				inputMethodHints: Qt.ImhDigitsOnly
 				maximumLength: 2
 				horizontalAlignment: Text.AlignHCenter
-				width: txtWidth
-				Layout.minimumWidth: txtWidth
-				Layout.maximumWidth: txtWidth
+				Layout.minimumWidth: _dlg_timer.txtWidth
+				Layout.maximumWidth: _dlg_timer.txtWidth
 				Layout.alignment: Qt.AlignCenter
 
-				Keys.onPressed: (event) => processKeyEvents(event);
+				Keys.onPressed: (event) => _dlg_timer.processKeyEvents(event);
 
 				onActiveFocusChanged: {
 					if (activeFocus)
@@ -183,8 +179,8 @@ TPPopup {
 				onTextEdited: {
 					if (acceptableInput) {
 						if (text.length === 2) {
-							bTextChanged = true;
-							if (!timePickerOnly) {
+							_dlg_timer.bTextChanged = true;
+							if (!_dlg_timer.timePickerOnly) {
 								txtSecs.focus = true;
 								txtSecs.forceActiveFocus();
 							}
@@ -195,7 +191,7 @@ TPPopup {
 				}
 
 				TPLabel {
-					font.pixelSize: appSettings.smallFontSize
+					font.pixelSize: AppSettings.smallFontSize
 					text: qsTr("Minutes")
 
 					anchors {
@@ -208,7 +204,7 @@ TPPopup {
 
 			TPLabel {
 				text: ":"
-				font.pixelSize: appSettings.largeFontSize
+				font.pixelSize: AppSettings.largeFontSize
 				font.bold: true
 				horizontalAlignment: Text.AlignHCenter
 				visible: txtSecs.visible
@@ -220,17 +216,16 @@ TPPopup {
 				id: txtSecs
 				text: mainTimer.strSeconds
 				focus: true
-				enabled: !timePickerOnly
+				enabled: !_dlg_timer.timePickerOnly
 				validator: IntValidator { bottom: 0; top: 59; }
 				inputMethodHints: Qt.ImhDigitsOnly
 				maximumLength: 2
 				horizontalAlignment: Text.AlignHCenter
-				width: txtWidth
-				Layout.minimumWidth: txtWidth
-				Layout.maximumWidth: txtWidth
+				Layout.minimumWidth: _dlg_timer.txtWidth
+				Layout.maximumWidth: _dlg_timer.txtWidth
 				Layout.alignment: Qt.AlignCenter
 
-				Keys.onPressed: (event) => processKeyEvents(event);
+				Keys.onPressed: (event) => _dlg_timer.processKeyEvents(event);
 
 				onActiveFocusChanged: {
 					if (activeFocus)
@@ -245,14 +240,14 @@ TPPopup {
 				onTextEdited: {
 					if (acceptableInput) {
 						if ( text.length === 2 ) {
-							bTextChanged = true;
+							_dlg_timer.bTextChanged = true;
 							btnStartPause.forceActiveFocus();
 						}
 					}
 				}
 
 				TPLabel {
-					font.pixelSize: appSettings.smallFontSize
+					font.pixelSize: AppSettings.smallFontSize
 					text: qsTr("Seconds")
 					enabled: parent.enabled
 
@@ -267,20 +262,20 @@ TPPopup {
 
 		ProgressBar {
 			id: progressBar
-			enabled: !timePickerOnly
-			height: 6
+			enabled: !_dlg_timer.timePickerOnly
 			from: mainTimer.totalSeconds
 			to: 0
 			value: mainTimer.progressValue
 			indeterminate: chkStopWatch.checked
 			Layout.fillWidth: true
-			Layout.rightMargin: leftMarginValue
-			Layout.leftMargin: leftMarginValue
+			Layout.preferredWidth: 6
+			Layout.rightMargin: _dlg_timer.leftMarginValue
+			Layout.leftMargin: _dlg_timer.leftMarginValue
 
 			background: Rectangle {
 				implicitWidth: parent.width
 				implicitHeight: 6
-				color: appSettings.fontColor
+				color: AppSettings.fontColor
 				opacity: 0.5
 				radius: 3
 			}
@@ -300,14 +295,14 @@ TPPopup {
 			id: btnsRow
 			spacing: 5
 			Layout.leftMargin: 5
-			Layout.preferredWidth: rowWidth
+			Layout.preferredWidth: _dlg_timer.rowWidth
 
-			readonly property int btnWidth: dlgTimer.width / 3 - 5
+			readonly property int btnWidth: _dlg_timer.width / 3 - 5
 
 			TPButton {
 				id: btnStartPause
 				text: mainTimer.active ? qsTr("Pause") : mainTimer.paused ? qsTr("Continue") : qsTr("Start")
-				enabled: !timePickerOnly ? mainTimer.stopWatch ? true : mainTimer.totalSeconds > 0 : false
+				enabled: !_dlg_timer.timePickerOnly ? mainTimer.stopWatch ? true : mainTimer.totalSeconds > 0 : false
 				Layout.minimumWidth: btnsRow.btnWidth
 				Layout.maximumWidth: btnsRow.btnWidth
 
@@ -322,7 +317,7 @@ TPPopup {
 			TPButton {
 				id: btnReset
 				text: qsTr("Reset")
-				enabled: !timePickerOnly
+				enabled: !_dlg_timer.timePickerOnly
 				Layout.minimumWidth: btnsRow.btnWidth
 				Layout.maximumWidth: btnsRow.btnWidth
 
@@ -331,14 +326,14 @@ TPPopup {
 
 			TPButton {
 				id: btnClose
-				text: timePickerOnly ? qsTr("Done") : qsTr("Close")
+				text: _dlg_timer.timePickerOnly ? qsTr("Done") : qsTr("Close")
 				Layout.minimumWidth: btnsRow.btnWidth
 				Layout.maximumWidth: btnsRow.btnWidth
 
 				onClicked: {
-					if (timePickerOnly)
-						useTime(mainTimer.strHours + ":" + mainTimer.strMinutes);
-					dlgTimer.closePopup();
+					if (_dlg_timer.timePickerOnly)
+						_dlg_timer.useTime(mainTimer.strHours + ":" + mainTimer.strMinutes);
+					_dlg_timer.closePopup();
 				} //btnClose
 			}
 		} //Row
@@ -348,7 +343,7 @@ TPPopup {
 		switch (event.key) {
 			case Qt.Key_Enter:
 			case Qt.Key_Return:
-				if (!timePickerOnly) {
+				if (!_dlg_timer.timePickerOnly) {
 					if (btnStartPause.enabled) {
 						btnStartPause.forceActiveFocus();
 						btnStartPause.clicked();
@@ -356,8 +351,8 @@ TPPopup {
 				}
 				else {
 					bTextChanged = true;
-					btnClose.forceActiveFocus();
-					btnClose.clicked();
+					_dlg_timer.btnClose.forceActiveFocus();
+					_dlg_timer.btnClose.clicked();
 				}
 			break;
 		}

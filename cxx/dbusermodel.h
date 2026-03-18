@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dbmodelinterface.h"
+#include "qml_singleton.h"
 #include "tputils.h"
 #include "online_services/onlineuserinfo.h"
 
@@ -47,7 +48,6 @@ class DBUserModel : public QObject
 {
 
 Q_OBJECT
-QML_VALUE_TYPE(DBUserModel)
 
 Q_PROPERTY(QString userId READ userId NOTIFY userIdChanged FINAL)
 Q_PROPERTY(QString onlineAccountUserLabel READ onlineAccountUserLabel NOTIFY labelsChanged FINAL)
@@ -391,22 +391,22 @@ signals:
 
 private:
 	QList<QStringList> m_usersData, m_tempUserData;
-	int m_tempRow, n_devices;
+	int m_tempRow{-1}, n_devices{0};
 	QString m_onlineAccountId, m_password, m_defaultAvatar, m_emptyString, m_network_msg_title;
 	std::optional<bool> mb_canConnectToServer, mb_singleDevice, mb_userLoggedIn, mb_coachRegistered;
-	OnlineUserInfo *m_availableCoaches, *m_pendingClientRequests, *m_pendingCoachesResponses,
-						*m_tempUserInfo, *m_currentCoaches, *m_currentClients, *m_currentCoachesAndClients;
+	OnlineUserInfo *m_availableCoaches{nullptr}, *m_pendingClientRequests{nullptr}, *m_pendingCoachesResponses{nullptr},
+						*m_tempUserInfo{nullptr}, *m_currentCoaches{nullptr}, *m_currentClients{nullptr}, *m_currentCoachesAndClients{nullptr};
 	bool mb_coachPublic, mb_MainUserInfoChanged;
-	QTimer *m_mainTimer;
+	QTimer *m_mainTimer{nullptr};
 
-	DBUserTable *m_db;
-	DBModelInterfaceUser *m_dbModelInterface;
+	DBUserTable *m_db{nullptr};
+	DBModelInterfaceUser *m_dbModelInterface{nullptr};
 
 #ifndef Q_OS_ANDROID
-	OnlineUserInfo *m_allUsers;
+	OnlineUserInfo *m_allUsers{nullptr};
 	QHash<QString,DBMesocyclesModel*> m_mesoModels;
 #else
-	DBMesocDBMesocyclesModel *m_mesoModel;
+	DBMesocDBMesocyclesModel *m_mesoModel{nullptr};
 #endif
 
 	QString getPhonePart(const QString &str_phone, const bool prefix) const;
@@ -452,6 +452,8 @@ private:
 	friend class OnlineUserInfo;
 	friend class DBModelInterfaceUser;
 };
+
+DECLARE_QML_NAMED_SINGLETON(DBUserModel, AppUserModel)
 
 inline DBUserModel *appUserModel() { return DBUserModel::_appUserModel; }
 

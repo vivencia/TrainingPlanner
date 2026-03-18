@@ -15,8 +15,7 @@ QHash<QString,PagesListModel*> PagesListModel::app_Pages_list_models{};
 PagesListModel *PagesListModel::app_Pages_list_model(nullptr);
 #endif
 
-PagesListModel::PagesListModel(QObject *parent)
-	: QAbstractListModel{parent}, m_pagesIndex{0}
+PagesListModel::PagesListModel(QObject *parent) : QAbstractListModel{parent}
 {
 	#ifndef Q_OS_ANDROID
 	app_Pages_list_models.insert(appSettings()->currentUser(), this);
@@ -114,6 +113,7 @@ void PagesListModel::closePage(const uint index)
 {
 	if (index > 0 && index < m_pagesData.count()) {
 		QMetaObject::invokeMethod(appMainWindow(), "popFromStack", Q_ARG(QQuickItem*, m_pagesData.at(index)->page));
+		emit pageDeActivated(m_pagesData.at(index)->page);
 		beginRemoveRows(QModelIndex{}, index, index);
 		if (m_pagesData.at(index)->cleanUpFunc)
 			m_pagesData.at(index)->cleanUpFunc();
@@ -124,6 +124,7 @@ void PagesListModel::closePage(const uint index)
 		emit countChanged();
 		if (m_pagesIndex >= index && m_pagesIndex > 0)
 			setCurrentIndex(--m_pagesIndex);
+		emit pageActivated(m_pagesData.at(currentIndex())->page);
 	}
 }
 
@@ -168,6 +169,11 @@ QVariant PagesListModel::data(const QModelIndex &index, int role) const
 		}
 	}
 	return QVariant{};
+}
+
+void PagesListModel::openMainMenu()
+{
+	QMetaObject::invokeMethod(appMainWindow(), "openMainMenu");
 }
 
 void PagesListModel::popupOpened(QObject* popup)
@@ -231,7 +237,8 @@ bool PagesListModel::eventFilter(QObject *obj, QEvent *event)
 
 void PagesListModel::openQMLPage(const uint index)
 {
-	QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_pagesData.at(index)->page), Q_ARG(bool, true));
+	QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_pagesData.at(index)->page));
+	emit pageActivated(m_pagesData.at(index)->page);
 	if (index > 0)
 		appUserModel()->actualMesoModel()->setCurrentMesosView(appUserModel()->actualMesoModel()->isOwnMeso(m_pagesMesoIdx.at(index)));
 }

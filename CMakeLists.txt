@@ -18,20 +18,20 @@ project(TrainingPlanner LANGUAGES CXX)
 
 #function(cmake_initialize_per_config_variable _PREFIX _DOCSTRING)
 #  if (_PREFIX MATCHES "CMAKE_(C|CXX|ASM)_FLAGS")
-#    set(CMAKE_${CMAKE_MATCH_1}_FLAGS_INIT "${QT_COMPILER_FLAGS}")
+#	set(CMAKE_${CMAKE_MATCH_1}_FLAGS_INIT "${QT_COMPILER_FLAGS}")
 
-#    foreach (config DEBUG RELEASE MINSIZEREL RELWITHDEBINFO)
-#      if (DEFINED QT_COMPILER_FLAGS_${config})
-#        set(CMAKE_${CMAKE_MATCH_1}_FLAGS_${config}_INIT "${QT_COMPILER_FLAGS_${config}}")
-#      endif()
-#    endforeach()
+#	foreach (config DEBUG RELEASE MINSIZEREL RELWITHDEBINFO)
+#	  if (DEFINED QT_COMPILER_FLAGS_${config})
+#		set(CMAKE_${CMAKE_MATCH_1}_FLAGS_${config}_INIT "${QT_COMPILER_FLAGS_${config}}")
+#	  endif()
+#	endforeach()
 #  endif()
 
 
 #  if (_PREFIX MATCHES "CMAKE_(SHARED|MODULE|EXE)_LINKER_FLAGS")
-#    foreach (config SHARED MODULE EXE)
-#      set(CMAKE_${config}_LINKER_FLAGS_INIT "${QT_LINKER_FLAGS}")
-#    endforeach()
+#	foreach (config SHARED MODULE EXE)
+#	  set(CMAKE_${config}_LINKER_FLAGS_INIT "${QT_LINKER_FLAGS}")
+#	endforeach()
 #  endif()
 
 #  _cmake_initialize_per_config_variable(${ARGV})
@@ -49,13 +49,18 @@ set(QT_CREATOR_SKIP_MAINTENANCE_TOOL_PROVIDER ON)
 set(QT_FORCE_CMP0156_TO_VALUE NEW)
 set(QT_QML_GENERATE_QMLLS_INI ON)
 
+#By ensuring the output directory structure matches the QML module's target path, you resolve the warning and enable correct functionality for Qt
+# For example, the 'tp_exercises_module' will be placed in ${CMAKE_BINARY_DIR}/qml/TpQml/Exercises
+set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/qml" CACHE PATH "Install path for QML" FORCE)
+set(QML_IMPORT_PATH "${CMAKE_BINARY_DIR}/qml" CACHE STRING "Import paths for Qt Creator" FORCE)
+
 if (ANDROID)
 	find_package(Qt6 REQUIRED COMPONENTS Core CorePrivate Gui Multimedia Qml Quick QuickControls2 LinguistTools Widgets Sql Network Positioning Charts WebSockets Pdf)
 else()
 	find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 LinguistTools Widgets Sql Network Positioning Charts WebSockets Pdf)
-find_package(Qt6 REQUIRED COMPONENTS Core)
-find_package(PkgConfig REQUIRED)
+#find_package(Qt6 REQUIRED COMPONENTS Core)
 endif(ANDROID)
+find_package(PkgConfig REQUIRED)
 
 add_compile_definitions(REQUEST_PERMISSIONS_ON_ANDROID)
 add_compile_options(-std=c++20 ${CMAKE_CXX_FLAGS_INIT})
@@ -64,36 +69,26 @@ qt_standard_project_setup()
 
 set( RESOURCE_FILES app_resources.qrc )
 
-set( CXX_SOURCES
-	cxx/return_codes.h
-	cxx/tpbool.h
-
-	cxx/translationclass.cpp cxx/translationclass.h
-	cxx/tputils.cpp cxx/tputils.h
-	cxx/thread_manager.h cxx/thread_manager.cpp
+set( CXX_SOURCES_QML_INTEGRATION
 	cxx/qmlitemmanager.h cxx/qmlitemmanager.cpp
 	cxx/osinterface.h cxx/osinterface.cpp
-	cxx/tptimer.h cxx/tptimer.cpp
-	cxx/tpsettings.h cxx/tpsettings.cpp
-	cxx/tpimageprovider.h cxx/tpimageprovider.cpp
-	cxx/tpimage.h cxx/tpimage.cpp
 	cxx/tpfileops.h cxx/tpfileops.cpp
+	cxx/tpimage.h cxx/tpimage.cpp
 	cxx/tpmediacontrols.h cxx/tpmediacontrols.cpp
-	cxx/tpandroidnotification.h cxx/tpandroidnotification.cpp
+	cxx/tpsettings.h cxx/tpsettings.cpp
+	cxx/tptimer.h cxx/tptimer.cpp
+	cxx/tputils.cpp cxx/tputils.h
+	cxx/translationclass.cpp cxx/translationclass.h
 
-	cxx/tpdatabasetable.h cxx/tpdatabasetable.cpp
-	cxx/dbexerciseslisttable.h cxx/dbexerciseslisttable.cpp
-	cxx/dbmesocyclestable.h cxx/dbmesocyclestable.cpp
-	cxx/dbmesocalendartable.h cxx/dbmesocalendartable.cpp
-	cxx/dbworkoutsorsplitstable.h cxx/dbworkoutsorsplitstable.cpp
-	cxx/dbusertable.h cxx/dbusertable.cpp
-	cxx/dbmodelinterface.h cxx/dbmodelinterface.cpp
+	cxx/online_services/tpmessagesmanager.h cxx/online_services/tpmessagesmanager.cpp
+	cxx/online_services/tpchat.h cxx/online_services/tpchat.cpp
+	cxx/weather/weatherinfo.h cxx/weather/weatherinfo.cpp
+
 	cxx/dbexerciseslistmodel.h cxx/dbexerciseslistmodel.cpp
 	cxx/dbmesocyclesmodel.h cxx/dbmesocyclesmodel.cpp
 	cxx/homepagemesomodel.h cxx/homepagemesomodel.cpp
-
 	cxx/dbexercisesmodel.h cxx/dbexercisesmodel.cpp
-    cxx/dbcalendarmodel.h cxx/dbcalendarmodel.cpp
+	cxx/dbcalendarmodel.h cxx/dbcalendarmodel.cpp
 	cxx/dbusermodel.h cxx/dbusermodel.cpp
 	cxx/pageslistmodel.h cxx/pageslistmodel.cpp
 
@@ -103,19 +98,32 @@ set( CXX_SOURCES
 	cxx/qmlmesocalendarinterface.h cxx/qmlmesocalendarinterface.cpp
 	cxx/qmlmesosplitinterface.h cxx/qmlmesosplitinterface.cpp
 	cxx/qmlworkoutinterface.h cxx/qmlworkoutinterface.cpp
+)
 
-	cxx/weather/weatherinfo.h cxx/weather/weatherinfo.cpp
-	cxx/weather/openweathermapbackend.h
-	cxx/weather/openweathermapbackend.cpp
+set( CXX_SOURCES
+	cxx/qml_singleton.h
+	cxx/return_codes.h
+	cxx/main.cpp
 
+	cxx/thread_manager.h cxx/thread_manager.cpp
+	cxx/tpimageprovider.h cxx/tpimageprovider.cpp
+	cxx/tpandroidnotification.h cxx/tpandroidnotification.cpp
+
+	cxx/tpdatabasetable.h cxx/tpdatabasetable.cpp
+	cxx/dbexerciseslisttable.h cxx/dbexerciseslisttable.cpp
+	cxx/dbmesocyclestable.h cxx/dbmesocyclestable.cpp
+	cxx/dbmesocalendartable.h cxx/dbmesocalendartable.cpp
+	cxx/dbworkoutsorsplitstable.h cxx/dbworkoutsorsplitstable.cpp
+	cxx/dbusertable.h cxx/dbusertable.cpp
+	cxx/dbmodelinterface.h cxx/dbmodelinterface.cpp
+
+	cxx/weather/openweathermapbackend.h cxx/weather/openweathermapbackend.cpp
 	cxx/statistics/tpstatistics.h cxx/statistics/tpstatistics.cpp
 
 	cxx/online_services/onlineuserinfo.h cxx/online_services/onlineuserinfo.cpp
-    cxx/online_services/scan_network.h
-	cxx/online_services/tpchat.h cxx/online_services/tpchat.cpp
+	#cxx/online_services/scan_network.h
 	cxx/online_services/tpchatdb.h cxx/online_services/tpchatdb.cpp
-    cxx/online_services/tpmessage.h cxx/online_services/tpmessage.cpp
-	cxx/online_services/tpmessagesmanager.h cxx/online_services/tpmessagesmanager.cpp
+	cxx/online_services/tpmessage.h cxx/online_services/tpmessage.cpp
 	cxx/online_services/tponlineservices.h cxx/online_services/tponlineservices.cpp
 	cxx/online_services/websocketserver.h cxx/online_services/websocketserver.cpp
 
@@ -130,23 +138,23 @@ set( CXX_SOURCES
 
 set( JAVA_SOURCES
 	java/TPService.java
-    java/TPActivity.java
-    java/QShareUtils.java
-    java/QSharePathResolver.java
-    java/NotificationClient.java
-    java/TPBroadcastReceiver.java
+	java/TPActivity.java
+	java/QShareUtils.java
+	java/QSharePathResolver.java
+	java/NotificationClient.java
+	java/TPBroadcastReceiver.java
 )
 
 set( TRANSLATIONS_DIR
-    "${CMAKE_CURRENT_SOURCE_DIR}/translations"
+	"${CMAKE_CURRENT_SOURCE_DIR}/translations"
 )
 set( TS_FILES
-    ${TRANSLATIONS_DIR}/tplanner.pt_BR.ts
-    ${TRANSLATIONS_DIR}/tplanner.de_DE.ts
+	${TRANSLATIONS_DIR}/tplanner.pt_BR.ts
+	${TRANSLATIONS_DIR}/tplanner.de_DE.ts
 )
 set( QM_FILES
-    ${TRANSLATIONS_DIR}/tplanner.pt_BR.qm
-    ${TRANSLATIONS_DIR}/tplanner.de_DE.qm
+	${TRANSLATIONS_DIR}/tplanner.pt_BR.qm
+	${TRANSLATIONS_DIR}/tplanner.de_DE.qm
 )
 
 #set(trainingplanner_resource_files
@@ -155,11 +163,19 @@ set( QM_FILES
 #	${QML_SOURCES}
 #)
 
-list(APPEND QML_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/cxx")
-list(APPEND QML_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/qml")
-set(QML_IMPORT_PATH
-    ${QML_DIRS}
-)
+#list(APPEND QML_DIRS
+#	"${CMAKE_CURRENT_SOURCE_DIR}/cxx"
+#	"${CMAKE_CURRENT_SOURCE_DIR}/qml"
+#	"${CMAKE_CURRENT_SOURCE_DIR}/qml/Widgets/"
+#	"${CMAKE_CURRENT_SOURCE_DIR}/qml/Pages/"
+#	"${CMAKE_CURRENT_SOURCE_DIR}/qml/Dialogs/"
+#	"${CMAKE_CURRENT_SOURCE_DIR}/qml/User"
+#	"${CMAKE_CURRENT_SOURCE_DIR}/qml/Exercises/"
+#)
+
+#set(QML_IMPORT_PATH
+#	${QML_DIRS}
+#)
 
 set( SERVER_FILES
 	web-server/function_library.sh
@@ -191,99 +207,29 @@ set( QML_SOURCES
 	"qml/AppGlobals.qml"
 	"qml/Main.qml"
 	"qml/Tests.qml"
-    "qml/Dialogs/CalendarDialog.qml"
-    "qml/Dialogs/FirstTimeDialog.qml"
-    "qml/Dialogs/MainMenu.qml"
-    "qml/Dialogs/MuscularGroupPicker.qml"
-    "qml/Dialogs/NavBar.qml"
-    "qml/Dialogs/OnlineMessages.qml"
-    "qml/Dialogs/PasswordDialog.qml"
-    "qml/Dialogs/TimePicker.qml"
-    "qml/Dialogs/TimerDialog.qml"
-	"qml/Dialogs/TPFileDialog.qml"
-    "qml/ExercisesAndSets/ExerciseNameField.qml"
-    "qml/ExercisesAndSets/ExercisesListView.qml"
-    "qml/ExercisesAndSets/PageScrollButtons.qml"
-    "qml/ExercisesAndSets/SetInputField.qml"
-    "qml/ExercisesAndSets/SetNotesField.qml"
-    "qml/ExercisesAndSets/SimpleExercisesListPanel.qml"
-	"qml/ExercisesAndSets/WorkoutOrSplitExercisesList.qml"
-    "qml/Pages/ClientsPage.qml"
-	"qml/Pages/CoachesPage.qml"
-    "qml/Pages/ExercisesListPage.qml"
-    "qml/Pages/ExercisesPlanner.qml"
-    "qml/Pages/HomePage.qml"
-    "qml/Pages/HomePageElements/MesosList.qml"
-	"qml/Pages/MesoCalendarPage.qml"
-	"qml/Pages/MesocyclePage.qml"
-	"qml/Pages/MesocyclePageElements/MesoSplitSetup.qml"
-    "qml/Pages/SettingsPage.qml"
-    "qml/Pages/StatisticsPage.qml"
-    "qml/Pages/TPPage.qml"
-    "qml/Pages/UserPage.qml"
-	"qml/Pages/WeatherPage.qml"
-	"qml/Pages/WeatherPageElements/NextDaysForecast.qml"
-	"qml/Pages/WeatherPageElements/TodayForecast.qml"
-	"qml/Pages/WorkoutElements/WorkoutOptionsDialog.qml"
-	"qml/Pages/WorkoutPage.qml"
-	"qml/TPWidgets/TPBackRec.qml"
-    "qml/TPWidgets/TPBalloonTip.qml"
-    "qml/TPWidgets/TPButton.qml"
-	"qml/TPWidgets/TPButtonGroup.qml"
-    "qml/TPWidgets/TPFloatingControl.qml"
-    "qml/TPWidgets/TPColorRectangle.qml"
-    "qml/TPWidgets/TPComboBox.qml"
-    "qml/TPWidgets/TPDatePicker.qml"
-    "qml/TPWidgets/TPDigitalClock.qml"
-	"qml/TPWidgets/TPFileViewer.qml"
-    "qml/TPWidgets/TPFloatingMenuBar.qml"
-    "qml/TPWidgets/TPLabel.qml"
-	"qml/TPWidgets/TPListView.qml"
-    "qml/TPWidgets/TPMouseArea.qml"
-	"qml/TPWidgets/TPMultiLineEdit.qml"
-	"qml/TPWidgets/TPMuscularGroupsList.qml"
-    "qml/TPWidgets/TPPassword.qml"
-	"qml/TPWidgets/TPPasswordInput.qml"
-    "qml/TPWidgets/TPPopup.qml"
-    "qml/TPWidgets/TPPhoneNumberInput.qml"
-	"qml/TPWidgets/TPRadioButtonOrCheckBox.qml"
-	"qml/TPWidgets/TPScrollView.qml"
-	"qml/TPWidgets/TPTabButton.qml"
-	"qml/TPWidgets/TPTextInput.qml"
-	"qml/TPWidgets/TPToolBar.qml"
-	"qml/TPWidgets/TPVideoPlayer.qml"
-	"qml/User/AllUsers.qml"
-	"qml/User/AvatarsPopup.qml"
-	"qml/User/ChatWindow.qml"
-	"qml/User/UserChangePassword.qml"
-	"qml/User/TPCoachesAndClientsList.qml"
-	"qml/User/UserCoachRequest.qml"
-	"qml/User/UserCoach.qml"
-	"qml/User/UserContact.qml"
-	"qml/User/UserExistingFromNet.qml"
-	"qml/User/UserLanguage.qml"
-	"qml/User/UserPersonalData.qml"
-	"qml/User/UserProfile.qml"
-	"qml/User/UserReady.qml"
-	"qml/User/UserWelcome.qml"
 )
 
 qt_policy(SET QTP0004 NEW)
 qt_policy(SET QTP0001 NEW)
 
 set_source_files_properties("qml/AppGlobals.qml" PROPERTIES
-    QT_QML_SINGLETON_TYPE TRUE
+	QT_QML_SINGLETON_TYPE TRUE
 )
 
+add_subdirectory(qml/Widgets/)
+add_subdirectory(qml/Pages/)
+add_subdirectory(qml/User/)
+add_subdirectory(qml/Exercises/)
+add_subdirectory(qml/Dialogs/)
+
 qt_add_executable(TrainingPlanner
-	"${CMAKE_CURRENT_SOURCE_DIR}/cxx/main.cpp"
+	${CXX_SOURCES}
 	${JAVA_SOURCES}
-	#${QML_SOURCES}
-	#${RESOURCE_FILES}
 	${QM_FILES}
 	${SERVER_FILES}
 	${ANDROID_FIES}
 )
+
 
 qt_add_qml_module(TrainingPlanner
 	URI TpQml
@@ -291,11 +237,25 @@ qt_add_qml_module(TrainingPlanner
 	QML_FILES
 		${QML_SOURCES}
 	SOURCES
-		${CXX_SOURCES}
+		${CXX_SOURCES_QML_INTEGRATION}
 	RESOURCES
 		${RESOURCE_FILES}
 	RESOURCE_PREFIX
 		"/"
+	DEPENDENCIES
+		tp_widgets_module
+		tp_pages_module
+		tp_user_module
+		tp_exercises_module
+		tp_dialogs_module
+)
+
+target_link_libraries(TrainingPlanner PRIVATE
+	tp_widgets_module
+	tp_pages_module
+	tp_user_module
+	tp_exercises_module
+	tp_dialogs_module
 )
 
 #qt_add_resources(TrainingPlanner "TrainingPlanner"
@@ -363,7 +323,7 @@ endif(NOT ANDROID)
 
 #target_sources(trainingplanner_other_files
 #  PRIVATE
-#    qml/qmldir
+#	qml/qmldir
 #)
 
 install(TARGETS TrainingPlanner
@@ -373,9 +333,9 @@ install(TARGETS TrainingPlanner
 )
 
 #set_target_properties(
-#        TrainingPlanner
-#    PROPERTIES
-#        QT_QMLCACHEGEN_ARGUMENTS "--only-bytecode"
+#		TrainingPlanner
+#	PROPERTIES
+#		QT_QMLCACHEGEN_ARGUMENTS "--only-bytecode"
 #)
 
 if (ANDROID)

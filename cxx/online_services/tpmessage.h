@@ -1,7 +1,8 @@
 #pragma once
 
+#include <QDateTime>
 #include <QObject>
-#include <QQmlEngine>
+#include <QVariant>
 
 enum TPMessageFields {
 	TPMESSAGE_FIELD_ID,
@@ -20,7 +21,6 @@ class TPMessage : public QObject
 {
 
 Q_OBJECT
-QML_ELEMENT
 
 public:
 	inline explicit TPMessage() : QObject{nullptr}, m_id{-1}, m_plugged{false}, m_sticky{false} {}

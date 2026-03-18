@@ -71,7 +71,7 @@ ColumnLayout {
 
 		TPButton {
 			imageSource: "chat_"
-			width: appSettings.itemDefaultHeight
+			width: AppSettings.itemDefaultHeight
 			height: width
 			visible: userRow != 0 && userModel.onlineAccount
 			enabled: bNameOK
@@ -161,7 +161,7 @@ ColumnLayout {
 		TPButton {
 			id: btnBirthDate
 			imageSource: "calendar.png"
-			width: appSettings.itemDefaultHeight
+			width: AppSettings.itemDefaultHeight
 			height: width
 			enabled: bPasswordOK && userRow === 0
 			anchors {
@@ -174,7 +174,7 @@ ColumnLayout {
 	}
 
 	Item {
-		height: appSettings.itemDefaultHeight
+		height: AppSettings.itemDefaultHeight
 		Layout.fillWidth: true
 		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : -5
 
@@ -235,7 +235,7 @@ ColumnLayout {
 
 		TPButton {
 			imageSource: "question.png"
-			width: appSettings.itemDefaultHeight
+			width: AppSettings.itemDefaultHeight
 			height: width
 
 			anchors {

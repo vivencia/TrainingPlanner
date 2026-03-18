@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../dbmodelinterface.h"
-#include "../tpbool.h"
 
 #include <QAbstractListModel>
 #include <QQmlEngine>
@@ -103,14 +102,14 @@ private:
 	uint m_userIdx, m_nMedia;
 	QList<ChatMessage*> m_messages;
 	QHash<int, QByteArray> m_roleNames;
-	QObject *m_chatWindow;
-	DBModelInterfaceChat *m_dbModelInterface;
-	TPChatDB *m_db;
-	QTimer *m_sendMessageTimer;
+	QObject *m_chatWindow{nullptr};
+	DBModelInterfaceChat *m_dbModelInterface{nullptr};
+	TPChatDB *m_db{nullptr};
+	QTimer *m_sendMessageTimer{nullptr};
 	uint8_t m_chatLoaded;
 	QHash<QString,std::function<void(const QString&)>> m_workFuncs;
 	QStringList m_unreadIds;
-	TPBool m_messageWorksQueued;
+	bool m_messageWorksQueued{false};
 
 	void setChatLoadedStatus(uint8_t status);
 	short checkConnectionOptions() const;

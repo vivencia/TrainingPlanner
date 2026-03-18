@@ -5,10 +5,10 @@ import TpQml
 
 Label {
 	id: control
-	color: enabled ? fontColor : appSettings.disabledFontColor
+	color: enabled ? fontColor : AppSettings.disabledFontColor
 	wrapMode: singleLine ? Text.NoWrap : Text.WordWrap
 	font: AppGlobals.regularFont
-	minimumPixelSize: appSettings.smallFontSize * 0.5
+	minimumPixelSize: AppSettings.smallFontSize * 0.5
 	fontSizeMode: Text.Fit
 	verticalAlignment: Text.AlignVCenter
 	topInset: 0
@@ -17,10 +17,10 @@ Label {
 	rightInset: 0
 	padding: 0
 
-	property string fontColor: appSettings.fontColor
+	property string fontColor: AppSettings.fontColor
 	property bool singleLine: true
 	property bool useBackground: false
-	property string backgroundColor: appSettings.primaryDarkColor
+	property string backgroundColor: AppSettings.primaryDarkColor
 
 	background: useBackground ? itemBack : null
 

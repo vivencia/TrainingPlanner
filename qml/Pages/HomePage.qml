@@ -2,11 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import "../"
-import "../TPWidgets"
-import "HomePageElements"
-
-import TpQml
+import TpQml.Pages
 
 TPPage {
 	id: homePage
@@ -28,7 +24,7 @@ TPPage {
 			id: imgAppIcon
 			source: "app-icon"
 			dropShadow: false
-			width: appSettings.itemExtraLargeHeight
+			width: AppSettings.itemExtraLargeHeight
 			height: width
 
 			anchors {
@@ -64,8 +60,8 @@ TPPage {
 		onCurrentIndexChanged: {
 			if (modelsLoaded && currentIndex >= 0) {
 				const own_meso = currentIndex === 1;
-				homePage.colorLight = own_meso ? appSettings.primaryColor : appSettings.primaryDarkColor
-				homePage.colorDark = own_meso ? appSettings.primaryLightColor : appSettings.primaryColor
+				homePage.colorLight = own_meso ? AppSettings.primaryColor : AppSettings.primaryDarkColor
+				homePage.colorDark = own_meso ? AppSettings.primaryLightColor : AppSettings.primaryColor
 				mesosViewChanged(own_meso);
 			}
 		}
@@ -98,15 +94,15 @@ TPPage {
 		visible: userModel.mainUserConfigured && (userModel.mainUserIsCoach && userModel.mainUserIsClient)
 
 		delegate: Rectangle {
-			width: appSettings.itemSmallHeight
+			width: AppSettings.itemSmallHeight
 			height: width
 			radius: width/2
 			opacity: index === indicator.currentIndex ? 0.95 : pressed ? 0.7 : 0.45
-			color: index === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
+			color: index === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2
 
 			Text {
 				text: String(index + 1)
-				color: appSettings.fontColor
+				color: AppSettings.fontColor
 				anchors.centerIn: parent
 			}
 		}

@@ -10,15 +10,15 @@ import "../TPWidgets"
 TPPopup {
 	id: dlgCoachRequest
 	keepAbove: true
-	width: appSettings.pageWidth - 20
-	height: appSettings.pageHeight * 0.4
+	width: AppSettings.pageWidth - 20
+	height: AppSettings.pageHeight * 0.4
 
 	onOpened: userModel.getOnlineCoachesList();
 
 	TPLabel {
 		id: lblTitle
 		text: qsTr("Available coaches online")
-		height: appSettings.itemDefaultHeight
+		height: AppSettings.itemDefaultHeight
 
 		anchors {
 			top: parent.top
@@ -64,11 +64,11 @@ TPPopup {
 				required property string extraName
 				required property bool selected
 
-				height: appSettings.itemDefaultHeight
+				height: AppSettings.itemDefaultHeight
 				width: parent.width
 				enabled: !userModel.availableCoaches.isUserDefault(index)
-				color: index === availableCoachesList.currentIndex ? appSettings.entrySelectedColor :
-					(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
+				color: index === availableCoachesList.currentIndex ? AppSettings.entrySelectedColor :
+					(index % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2)
 
 				TPRadioButtonOrCheckBox {
 					id: chkCoachName

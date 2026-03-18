@@ -12,7 +12,7 @@ TPPopup {
 	closeButtonVisible: false
 	showTitleBar: true
 	focus: true
-	width: appSettings.pageWidth * 0.8
+	width: AppSettings.pageWidth * 0.8
 	height: mainLayout.height * 1.1
 
 	required property DBExercisesModel workoutModel
@@ -55,7 +55,7 @@ TPPopup {
 			multiLine: true
 			enabled: workoutManager.canImportFromSplitPlan
 			Layout.fillWidth: true
-			Layout.maximumHeight: appSettings.itemDefaultHeight * 3
+			Layout.maximumHeight: AppSettings.itemDefaultHeight * 3
 		}
 
 		TPRadioButtonOrCheckBox {
@@ -65,7 +65,7 @@ TPPopup {
 			multiLine: true
 			enabled: workoutManager.canImportFromPreviousWorkout
 			Layout.fillWidth: true
-			Layout.maximumHeight: appSettings.itemDefaultHeight * 2
+			Layout.maximumHeight: AppSettings.itemDefaultHeight * 2
 		}
 
 		TPComboBox {

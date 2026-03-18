@@ -1,5 +1,7 @@
 #pragma once
 
+#include "qml_singleton.h"
+
 #include <QSettings>
 #include <QTimer>
 
@@ -139,12 +141,12 @@ signals:
 
 private:
 	QMap<uint,QLatin1StringView> m_globalPropertyNames;
+	QString m_localAppFilesDir;
+	QTimer m_timer;
 	qreal m_ratioFont;
 	uint m_windowWidth, m_windowHeight, m_qmlPageHeight;
 	double m_HeightToWidth;
-	QString m_localAppFilesDir;
-	QTimer m_timer;
-	bool m_appExiting;
+	bool m_appExiting{false};
 
 #ifndef QT_NO_QDEBUG
 #ifndef Q_OS_ANDROID
@@ -182,7 +184,7 @@ private:
 	inline void changeValue(const QString &group, const uint index, const QVariant &new_value, const bool dosync = true)
 	{
 		changeValue(group, group == GLOBAL_GROUP ? m_globalPropertyNames.value(index) : m_userPropertyNames.value(index),
-									new_value, dosync);
+																												new_value, dosync);
 	}
 	void changeValue(const QString &group, const QString &field_name, const QVariant &new_value, const bool dosync = true);
 	void getScreenMeasures();
@@ -257,23 +259,23 @@ enum ColorSchemes {
 	QString indexColorSchemeToColorSchemeName() const;
 	inline QString settingsBackground() const
 	{
-		return ":/images/backgrounds/settings_"_L1 + indexColorSchemeToColorSchemeName() + ".jpg"_L1;
+		return ":/images/backgrounds/settings_"_L1 % indexColorSchemeToColorSchemeName() % ".jpg"_L1;
 	}
 	inline QString userBackground() const
 	{
-		return ":/images/backgrounds/user_"_L1 + indexColorSchemeToColorSchemeName() + ".jpg"_L1;
+		return ":/images/backgrounds/user_"_L1 % indexColorSchemeToColorSchemeName() % ".jpg"_L1;
 	}
 	inline QString coachesBackground() const
 	{
-		return ":/images/backgrounds/coaches_"_L1 + indexColorSchemeToColorSchemeName() + ".jpg"_L1;
+		return ":/images/backgrounds/coaches_"_L1 % indexColorSchemeToColorSchemeName() % ".jpg"_L1;
 	}
 	inline QString clientsBackground() const
 	{
-		return ":/images/backgrounds/clients_"_L1 + indexColorSchemeToColorSchemeName() + ".jpg"_L1;
+		return ":/images/backgrounds/clients_"_L1 % indexColorSchemeToColorSchemeName() % ".jpg"_L1;
 	}
 	inline QString weatherBackground() const
 	{
-		return ":/images/backgrounds/weather_"_L1 + indexColorSchemeToColorSchemeName() + ".jpg"_L1;
+		return ":/images/backgrounds/weather_"_L1 % indexColorSchemeToColorSchemeName() % ".jpg"_L1;
 	}
 
 	inline bool alwaysAskConfirmation() const { return getValue(currentUser(), ASK_CONFIRMATION_INDEX, m_defaultValues.at(ASK_CONFIRMATION_INDEX)).toBool(); }
@@ -305,9 +307,9 @@ private:
 	QStringList m_colorSchemes;
 	QString m_userId;
 	int m_languageIdx, m_prevColorScheme;
-
-
 //--------------------------------------------USER   SETTINGS---------------------------------------------//
 };
 
 inline TPSettings* appSettings() { return TPSettings::app_settings; }
+
+DECLARE_QML_NAMED_SINGLETON(TPSettings, AppSettings)

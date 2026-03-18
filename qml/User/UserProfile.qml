@@ -186,7 +186,7 @@ ColumnLayout {
 	TPLabel {
 		id: lblAvatar
 		text: userModel.avatarLabel
-		color: appSettings.fontColor
+		color: AppSettings.fontColor
 	}
 
 	TPImage {
@@ -199,7 +199,7 @@ ColumnLayout {
 		Layout.alignment: Qt.AlignCenter
 		Layout.topMargin: -lblAvatar.height
 
-		readonly property int side_size: appSettings.itemDefaultHeight * 4
+		readonly property int side_size: AppSettings.itemDefaultHeight * 4
 
 		MouseArea {
 			enabled: userRow === 0

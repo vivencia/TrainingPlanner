@@ -8,8 +8,8 @@ import "../TPWidgets"
 
 TPPopup {
 	id: dlgSwitchUser
-	width: appSettings.pageWidth - 20
-	height: appSettings.pageHeight / 2
+	width: AppSettings.pageWidth - 20
+	height: AppSettings.pageHeight / 2
 
 	ColumnLayout {
 		spacing: 10
@@ -79,10 +79,10 @@ TPPopup {
 				delegate: Rectangle {
 					id: delegate
 					border.width: current ? 2 : 1
-					color: selected ? appSettings.entrySelectedColor :
-						(row % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
+					color: selected ? AppSettings.entrySelectedColor :
+						(row % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2)
 					implicitWidth: lblData.contentWidth > 0 ? lblData.contentWidth * 1.2 : 25
-					implicitHeight: appSettings.itemDefaultHeight
+					implicitHeight: AppSettings.itemDefaultHeight
 
 					required property bool current
 
@@ -120,7 +120,7 @@ TPPopup {
 				text: qsTr("Switch")
 				enabled: allUsersList.currentRow >= 0 ? userModel.allUsers.userId !== userModel.userId : false
 				width: buttonsRow.buttonSize
-				height: appSettings.itemDefaultHeight
+				height: AppSettings.itemDefaultHeight
 
 				onClicked: {
 					userModel.switchUser();
@@ -133,7 +133,7 @@ TPPopup {
 				text: qsTr("Remove")
 				enabled: allUsersList.currentRow >= 0 ? userModel.allUsers.userId !== userModel.userId : false
 				width: buttonsRow.buttonSize
-				height: appSettings.itemDefaultHeight
+				height: AppSettings.itemDefaultHeight
 
 				onClicked: {
 					userModel.removeOtherUser();
@@ -145,7 +145,7 @@ TPPopup {
 				imageSource: "add-new"
 				text: qsTr("New user")
 				width: buttonsRow.buttonSize
-				height: appSettings.itemDefaultHeight
+				height: AppSettings.itemDefaultHeight
 
 				onClicked: {
 					userModel.createNewUser();

@@ -10,7 +10,7 @@ TPPopup {
 	id: passwdDlg
 	keepAbove: true
 	dim: true
-	width: appSettings.pageWidth * 0.8
+	width: AppSettings.pageWidth * 0.8
 
 	onOpened: {
 		txtCurPassword.setPasswordText("");

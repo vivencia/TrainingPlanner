@@ -27,7 +27,7 @@ TPPopup {
 		text: titleHeader
 		horizontalAlignment: Text.AlignHCenter
 		visible: titleHeader.length > 0
-		height: visible ? appSettings.itemDefaultHeight : 0
+		height: visible ? AppSettings.itemDefaultHeight : 0
 		font: AppGlobals.smallFont
 
 		anchors {
@@ -62,7 +62,7 @@ TPPopup {
 				rounded: false
 				autoSize: true
 				Layout.alignment: Qt.AlignHCenter
-				Layout.preferredWidth: Math.min(appSettings.pageWidth * 0.5, width)
+				Layout.preferredWidth: Math.min(AppSettings.pageWidth * 0.5, width)
 
 				onClicked: menuEntryClicked(clickId);
 			}

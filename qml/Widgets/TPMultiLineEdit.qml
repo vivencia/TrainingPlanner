@@ -8,8 +8,8 @@ ColumnLayout {
 
 //public:
 	property bool editable: true
-	property int minHeight: 2 * appSettings.itemDefaultHeight
-	property int maxHeight: appSettings.pageHeight / 3
+	property int minHeight: 2 * AppSettings.itemDefaultHeight
+	property int maxHeight: AppSettings.pageHeight / 3
 	property TextArea textControl
 	property alias text: _textControl.text
 	property alias modified: _textControl.modified
@@ -25,13 +25,13 @@ ColumnLayout {
 		visible: _show_toolbox
 		spacing: 5
 		Layout.fillWidth: true
-		height: _show_toolbox ? appSettings.itemDefaultHeight : 0
+		height: _show_toolbox ? AppSettings.itemDefaultHeight : 0
 
 		TPButton {
 			imageSource: "copy_"
 			focus: false
 			enabled: mainLayout.textControl.length > 0
-			width: appSettings.itemDefaultHeight
+			width: AppSettings.itemDefaultHeight
 			height: width
 			onClicked: {
 				appUtils.copyToClipboard(getControlText(mainLayout.textControl.selectionStart, mainLayout.textControl.selectionEnd));
@@ -42,7 +42,7 @@ ColumnLayout {
 			imageSource: "paste_"
 			focus: false
 			enabled: mainLayout.textControl.canPaste
-			width: appSettings.itemDefaultHeight
+			width: AppSettings.itemDefaultHeight
 			height: width
 			onClicked: mainLayout.textControl.paste()
 		}
@@ -50,7 +50,7 @@ ColumnLayout {
 			imageSource: "undo_"
 			enabled: mainLayout.textControl.canUndo
 			focus: false
-			width: appSettings.itemDefaultHeight
+			width: AppSettings.itemDefaultHeight
 			height: width
 			onClicked: mainLayout.textControl.undo();
 		}
@@ -58,7 +58,7 @@ ColumnLayout {
 			imageSource: "redo_"
 			enabled: mainLayout.textControl.canRedo
 			focus: false
-			width: appSettings.itemDefaultHeight
+			width: AppSettings.itemDefaultHeight
 			height: width
 			onClicked: mainLayout.textControl.redo();
 		}
@@ -69,7 +69,7 @@ ColumnLayout {
 			checkable: true
 			focus: false
 			enabled: mainLayout.textControl.length > 0
-			width: appSettings.itemDefaultHeight
+			width: AppSettings.itemDefaultHeight
 			height: width
 			onCheck: {
 				formatChanged(checked);
@@ -82,7 +82,7 @@ ColumnLayout {
 			checkable: true
 			focus: false
 			enabled: mainLayout.textControl.length > 0
-			width: appSettings.itemDefaultHeight
+			width: AppSettings.itemDefaultHeight
 			height: width
 			onCheck: {
 				formatChanged(checked);
@@ -95,7 +95,7 @@ ColumnLayout {
 			checkable: true
 			focus: false
 			enabled: mainLayout.textControl.length > 0
-			width: appSettings.itemDefaultHeight
+			width: AppSettings.itemDefaultHeight
 			height: width
 			onCheck: {
 				formatChanged(checked);
@@ -112,7 +112,7 @@ ColumnLayout {
 			id: scrollArea
 			clip: true
 			height: minHeight - toolBoxLayout.height
-			width: parent.width - appSettings.itemDefaultHeight - 5
+			width: parent.width - AppSettings.itemDefaultHeight - 5
 
 			ScrollBar.vertical: ScrollBar { id: vBar }
 
@@ -122,8 +122,8 @@ ColumnLayout {
 				wrapMode: TextEdit.Wrap
 				textFormat: TextEdit.RichText
 				renderType: TextEdit.QtRendering
-				color: appSettings.fontColor
-				font.pixelSize: appSettings.fontSize
+				color: AppSettings.fontColor
+				font.pixelSize: AppSettings.fontSize
 				font.preferShaping: false
 				focus: true
 				persistentSelection: true
@@ -137,9 +137,9 @@ ColumnLayout {
 				bottomInset: 0
 
 				background: Rectangle {
-					color: appSettings.paneBackgroundColor
+					color: AppSettings.paneBackgroundColor
 					radius: 8
-					border.color: appSettings.fontColor
+					border.color: AppSettings.fontColor
 				}
 
 				property bool modified: false
@@ -205,10 +205,10 @@ ColumnLayout {
 			} //TextArea
 
 			function calculateHeight(): void {
-				const new_height = (textControl.lineCount * appSettings.itemDefaultHeight) + 10;
+				const new_height = (textControl.lineCount * AppSettings.itemDefaultHeight) + 10;
 				if (new_height <= maxHeight) {
-					if (new_height < (2 * appSettings.itemDefaultHeight))
-						height = implicitHeight = 2 * appSettings.itemDefaultHeight;
+					if (new_height < (2 * AppSettings.itemDefaultHeight))
+						height = implicitHeight = 2 * AppSettings.itemDefaultHeight;
 					else
 						height = implicitHeight = new_height;
 				}
@@ -219,14 +219,14 @@ ColumnLayout {
 
 		Item {
 			enabled: editable
-			width: appSettings.itemDefaultHeight
+			width: AppSettings.itemDefaultHeight
 			height: scrollArea.height
 
 			TPButton {
 				id: btnShowToolBox
 				imageSource: "toolbox_"
 				checkable: true
-				width: appSettings.itemDefaultHeight
+				width: AppSettings.itemDefaultHeight
 				height: width
 
 				anchors {
@@ -243,7 +243,7 @@ ColumnLayout {
 				imageSource: "edit-clear"
 				hasDropShadow: false
 				enabled: mainLayout.textControl.length > 0
-				width: appSettings.itemDefaultHeight
+				width: AppSettings.itemDefaultHeight
 				height: width
 
 				anchors {

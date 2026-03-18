@@ -34,7 +34,7 @@ Item {
 			spacing: 0
 			padding: 5
 			width: listview.width
-			height: itemVisible ? appSettings.itemDefaultHeight : 0
+			height: itemVisible ? AppSettings.itemDefaultHeight : 0
 
 			contentItem: TPLabel {
 				text: name
@@ -45,10 +45,10 @@ Item {
 
 			background: Rectangle {
 				readonly property bool selected: index === listview.currentIndex
-				color: selected ? appSettings.entrySelectedColor :
-								(index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2)
+				color: selected ? AppSettings.entrySelectedColor :
+								(index % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2)
 				//opacity: selected ? 1 : 0.8
-				border.color: selected ? appSettings.fontColor : "transparent"
+				border.color: selected ? AppSettings.fontColor : "transparent"
 			}
 
 			onClicked: selectItem(index);

@@ -32,10 +32,11 @@ enum RoleNames
 	createRole(hasActions,		stickyRole + 1)
 };
 
-TPMessagesManager::TPMessagesManager(QObject *parent)
-	: QAbstractListModel{parent}, m_chatWindowComponent{nullptr}
+TPMessagesManager::TPMessagesManager(QObject *parent) : QAbstractListModel{parent}
 {
 	_appMessagesManager = this;
+	REGISTER_QML_SINGLETON(TPMessagesManager, this);
+
 	m_roleNames[idRole]				= std::move("msgid");
 	m_roleNames[labelTextRole]		= std::move("labelText");
 	m_roleNames[iconRole]			= std::move("msgicon");
@@ -49,18 +50,11 @@ TPMessagesManager::TPMessagesManager(QObject *parent)
 	m_roleNames[hasActionsRole]		= std::move("hasActions");
 }
 
-TPMessagesManager::~TPMessagesManager()
-{
-	qDeleteAll(m_chatWindowList);
-	qDeleteAll(m_chatsList);
-}
-
 void TPMessagesManager::readAllChats()
 {
 	QFileInfoList chat_dbs;
 	appUtils()->scanDir(appUserModel()->userDir() + TPChat::chatsSubDir, chat_dbs, "*.db.sqlite"_L1);
-	for (const auto &db_file : std::as_const(chat_dbs))
-	{
+	for (const auto &db_file : std::as_const(chat_dbs)) {
 		if (!message(db_file.baseName().toLong()))
 			static_cast<void>(createChatMessage(db_file.baseName(), true));
 	}

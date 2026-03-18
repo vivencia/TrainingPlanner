@@ -7,10 +7,10 @@ import "../"
 
 TPLabel {
 	id: control
-	height: appSettings.itemDefaultHeight + 10
+	height: AppSettings.itemDefaultHeight + 10
 
 	property alias image: img.source
-	property int imageHeight: appSettings.itemDefaultHeight
+	property int imageHeight: AppSettings.itemDefaultHeight
 	property int imageWidth: imageHeight
 	property bool checked: false
 	property bool multiLine: false
@@ -29,11 +29,11 @@ TPLabel {
 
 	Rectangle {
 		id: indicator
-		implicitWidth: appSettings.itemSmallHeight
+		implicitWidth: AppSettings.itemSmallHeight
 		implicitHeight: implicitWidth
 		radius: control.radio ? implicitWidth / 2 : 4
 		color: "transparent"
-		border.color: control.enabled ? control.color : appSettings.disabledFontColor
+		border.color: control.enabled ? control.color : AppSettings.disabledFontColor
 
 		anchors {
 			left: control.left
@@ -48,7 +48,7 @@ TPLabel {
 			radius: control.radio ? width * 0.5 : indicator.radius / 2
 			x: (indicator.implicitWidth - width) * 0.5
 			y: x
-			border.color: control.enabled ? control.color : appSettings.disabledFontColor
+			border.color: control.enabled ? control.color : AppSettings.disabledFontColor
 			visible: control.checked
 		}
 	}

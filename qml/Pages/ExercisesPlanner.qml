@@ -18,7 +18,7 @@ TPPage {
 
 	required property SplitManager splitManager
 	property WorkoutOrSplitExercisesList currentSplitPage: null
-	readonly property int splitPageHeight: appSettings.pageHeight - topToolBar.height - bottomToolBar.height
+	readonly property int splitPageHeight: AppSettings.pageHeight - topToolBar.height - bottomToolBar.height
 
 	Keys.onPressed: (event) => {
 		if (event.key === mainwindow.backKey) {
@@ -31,7 +31,7 @@ TPPage {
 
 	header: TPToolBar {
 		id: topToolBar
-		height: appSettings.pageHeight * 0.3
+		height: AppSettings.pageHeight * 0.3
 
 		ColumnLayout {
 			id: toolbarLayout
@@ -48,7 +48,7 @@ TPPage {
 
 				TPButton {
 					imageSource: "prev"
-					width: appSettings.itemDefaultHeight
+					width: AppSettings.itemDefaultHeight
 					height: width
 
 					onClicked: {
@@ -63,13 +63,13 @@ TPPage {
 					id: lblMain
 					text: currentSplitPage && currentSplitPage.exercisesModel && qsTr("Training Division ") + currentSplitPage.exercisesModel.splitLetter
 					font: AppGlobals.largeFont
-					width: parent.width - appSettings.itemDefaultHeight * 2 - 5
+					width: parent.width - AppSettings.itemDefaultHeight * 2 - 5
 					horizontalAlignment: Text.AlignHCenter
 				}
 
 				TPButton {
 					imageSource: "next"
-					width: appSettings.itemDefaultHeight
+					width: AppSettings.itemDefaultHeight
 					height: width
 
 					onClicked: {
@@ -94,7 +94,7 @@ TPPage {
 
 			Row {
 				enabled: currentSplitPage && currentSplitPage.exercisesModel && currentSplitPage.exercisesModel.exerciseCount > 1
-				height: appSettings.itemDefaultHeight
+				height: AppSettings.itemDefaultHeight
 				Layout.fillWidth: true
 				spacing: 0
 
@@ -196,7 +196,7 @@ TPPage {
 
 		delegate: Label {
 			text: swipeView.itemAt(index).exercisesModel.splitLetter
-			color: appSettings.fontColor
+			color: AppSettings.fontColor
 			font.bold: true
 			fontSizeMode: Text.Fit
 			width: 25
@@ -209,7 +209,7 @@ TPPage {
 			background: Rectangle {
 				radius: width/2
 				opacity: index === indicator.currentIndex ? 0.95 : pressed ? 0.7 : 0.45
-				color: appSettings.paneBackgroundColor
+				color: AppSettings.paneBackgroundColor
 			}
 
 			MouseArea {

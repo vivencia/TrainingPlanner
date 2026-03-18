@@ -79,7 +79,7 @@ Drawer {
 			TPImage {
 				id: imgOnline
 				source: osInterface.tpServerOK ? "online" : "offline"
-				width: appSettings.itemLargeHeight
+				width: AppSettings.itemLargeHeight
 				height: width
 				visible: userModel.onlineAccount
 
@@ -103,7 +103,7 @@ Drawer {
 			TPButton {
 				id: btnSettings
 				imageSource: "settings"
-				width: appSettings.itemExtraLargeHeight
+				width: AppSettings.itemExtraLargeHeight
 				height: width
 				enabled: { // Force the binding to re-evaluate so that the check is run each time the page changes.
 					stackView.currentItem
@@ -124,7 +124,7 @@ Drawer {
 		}
 
 		TPLabel {
-			text: "TrainingPlanner by VivenciaSoftware - " + appSettings.appVersion
+			text: "TrainingPlanner by VivenciaSoftware - " + AppSettings.appVersion
 			wrapMode: Text.WordWrap
 			font: AppGlobals.smallFont
 			horizontalAlignment: Text.AlignHCenter
@@ -161,7 +161,7 @@ Drawer {
 
 			TPButton {
 				imageSource: "switch-user.png"
-				width: appSettings.itemDefaultHeight
+				width: AppSettings.itemDefaultHeight
 				height: width
 				visible: { return Qt.platform.os !== "android"}
 
@@ -185,7 +185,7 @@ Drawer {
 		}
 
 		Rectangle {
-			color: appSettings.fontColor
+			color: AppSettings.fontColor
 			height: 3
 			Layout.fillWidth: true
 		}
@@ -199,7 +199,7 @@ Drawer {
 			delegate: SwipeDelegate {
 				id: delegate
 				width: pagesList.width
-				height: appSettings.itemLargeHeight
+				height: AppSettings.itemLargeHeight
 
 				contentItem: TPLabel {
 					id: listItem
@@ -211,7 +211,7 @@ Drawer {
 
 				background: Rectangle {
 					id:	backgroundColor
-					color: appSettings.primaryDarkColor
+					color: AppSettings.primaryDarkColor
 					radius: 6
 					opacity: 1
 				}
@@ -227,7 +227,7 @@ Drawer {
 
 					TPImage {
 						source: "close.png"
-						width: appSettings.itemDefaultHeight
+						width: AppSettings.itemDefaultHeight
 						height: width
 						opacity: 2 * -delegate.swipe.position
 

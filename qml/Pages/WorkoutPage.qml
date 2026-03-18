@@ -21,7 +21,7 @@ TPPage {
 	required property WorkoutManager workoutManager
 	property DBExercisesModel workoutModel
 	property WorkoutOrSplitExercisesList lstWorkoutExercises: null
-	readonly property int bottomBarHeight: footerHeight + (workoutManager.todaysWorkout ? appSettings.itemExtraLargeHeight : 0)
+	readonly property int bottomBarHeight: footerHeight + (workoutManager.todaysWorkout ? AppSettings.itemExtraLargeHeight : 0)
 
 	signal exerciseSelectedFromSimpleExercisesList();
 	signal silenceTimeWarning();
@@ -104,7 +104,7 @@ TPPage {
 					id: cboSplitLetter
 					model: AppGlobals.splitModel
 					enabled: !workoutManager.workoutInProgress || workoutManager.workoutIsEditable
-					width: appSettings.pageWidth * 0.2
+					width: AppSettings.pageWidth * 0.2
 					onActivated: (index) => workoutManager.changeSplitLetter(valueAt(index));
 				} //TPComboBox
 			}
@@ -133,11 +133,11 @@ TPPage {
 				id: frmTrainingTime
 				visible: workoutModel.splitLetter !== "R"
 				enabled: !workoutManager.workoutInProgress || workoutManager.workoutIsEditable
-				height: appSettings.pageHeight*0.4
+				height: AppSettings.pageHeight*0.4
 				Layout.fillWidth: true
 
 				background: Rectangle {
-					border.color: appSettings.fontColor
+					border.color: AppSettings.fontColor
 					color: "transparent"
 					radius: 6
 				}
@@ -242,7 +242,7 @@ TPPage {
 						TPButton {
 							id: btnInTime
 							imageSource: "time.png"
-							width: appSettings.itemDefaultHeight
+							width: AppSettings.itemDefaultHeight
 							height: width
 
 							onClicked: timeInLoader.openDlg();
@@ -298,7 +298,7 @@ TPPage {
 						TPButton {
 							id: btnOutTime
 							imageSource: "time.png"
-							width: appSettings.itemDefaultHeight
+							width: AppSettings.itemDefaultHeight
 							height: width
 
 							onClicked: timeOutLoader.openDlg();
@@ -349,7 +349,7 @@ TPPage {
 				visible: workoutManager.workoutFinished && workoutManager.haveExercises
 				enabled: workoutManager.editMode;
 				Layout.fillWidth: true
-				Layout.minimumHeight: 3 * appSettings.itemDefaultHeight
+				Layout.minimumHeight: 3 * AppSettings.itemDefaultHeight
 				Layout.bottomMargin: 10
 
 				onClicked: workoutManager.exportWorkoutToSplitPlan();
@@ -378,7 +378,7 @@ TPPage {
 		Item {
 			id: exercisesFrame
 			objectName: "exercisesFrame"
-			height: appSettings.pageHeight
+			height: AppSettings.pageHeight
 			visible: workoutModel.exerciseCount > 0
 
 			anchors {
@@ -394,7 +394,7 @@ TPPage {
 		height: bottomBarHeight
 		visible: workoutModel.splitLetter !== "R"
 
-		readonly property int buttonHeight: appSettings.itemDefaultHeight * 2.3
+		readonly property int buttonHeight: AppSettings.itemDefaultHeight * 2.3
 
 		RowLayout {
 			id: workoutLengthRow
@@ -415,7 +415,7 @@ TPPage {
 				id: btnStartWorkout
 				text: qsTr("Begin")
 				width: parent.width * 0.2
-				height: appSettings.itemDefaultHeight
+				height: AppSettings.itemDefaultHeight
 				enabled: !workoutManager.workoutInProgress
 				Layout.alignment: Qt.AlignLeft
 
@@ -429,7 +429,7 @@ TPPage {
 				Layout.alignment: Qt.AlignCenter
 
 			}
-			Rectangle { color : appSettings.fontColor; width: 2; height: 35; Layout.alignment: Qt.AlignCenter }
+			Rectangle { color : AppSettings.fontColor; width: 2; height: 35; Layout.alignment: Qt.AlignCenter }
 
 			TPDigitalClock {
 				id: minsClock
@@ -437,7 +437,7 @@ TPPage {
 				value: workoutManager.timerMinute
 				Layout.alignment: Qt.AlignCenter
 			}
-			Rectangle { color : appSettings.fontColor; width: 2; height: 35; Layout.alignment: Qt.AlignCenter }
+			Rectangle { color : AppSettings.fontColor; width: 2; height: 35; Layout.alignment: Qt.AlignCenter }
 
 			TPDigitalClock {
 				id: secsClock
@@ -450,7 +450,7 @@ TPPage {
 				id: btnEndWorkout
 				text: qsTr("Finish")
 				width: parent.width * 0.2
-				height: appSettings.itemDefaultHeight
+				height: AppSettings.itemDefaultHeight
 				enabled: workoutManager.workoutInProgress
 
 				onClicked: workoutManager.stopWorkout();
@@ -461,7 +461,7 @@ TPPage {
 			id: btnFinishedDayOptions
 			imageSource: "menu.png"
 			rounded: false
-			backgroundColor: appSettings.paneBackgroundColor
+			backgroundColor: AppSettings.paneBackgroundColor
 			width: height * 0.6
 			height: dayInfoToolBar.buttonHeight
 			visible: workoutManager.workoutFinished || !workoutManager.todaysWorkout || workoutManager.editMode
@@ -648,7 +648,7 @@ TPPage {
 		if (optionsMenu === null) {
 			let optionsMenuMenuComponent = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPFloatingMenuBar.qml");
 			optionsMenu = optionsMenuMenuComponent.createObject(workoutPage, { titleHeader: qsTr("Non-current workout"),
-																parentPage: workoutPage, width: appSettings.pageWidth * 0.6 });
+																parentPage: workoutPage, width: AppSettings.pageWidth * 0.6 });
 			optionsMenu.addEntry(qsTr("Edit workout"), "edit.png", 0, true);
 			optionsMenu.addEntry(qsTr("Reset Workout"), "reset.png", 1, true);
 			optionsMenu.menuEntrySelected.connect(selectedOptionsMenuOption);
