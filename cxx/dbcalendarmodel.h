@@ -115,8 +115,8 @@ signals:
 	void nMonthsChanged();
 	void currentDayChanged();
 	void workoutNumberChanged();
-	void splitLetterChanged();
-	void completedChanged(const QDate &date = QDate{}, const bool completed = true);
+	void splitLetterChanged(const QDate &cal_date = QDate{});
+	void completedChanged(const QDate &cal_date = QDate{}, const bool completed = true);
 	void calendarLoaded(const bool success);
 
 private:

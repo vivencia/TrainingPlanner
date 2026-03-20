@@ -19,34 +19,10 @@ Page {
 	signal pageActivated();
 	signal pageDeActivated();
 
-	Connections {
-		target: ItemManager.appPagesManager
-		function onPageActivated(): void {
-			_page.pageActivation();
-		}
-		function onPageDeActivated(): void {
-			_page.pageDeActivation();
-		}
-	}
-
 	background: TPBackRec {
 		useImage: _page.imageSource.length > 0
 		image_size: Qt.size(AppSettings.pageWidth, AppSettings.pageHeight * 1.1)
 		sourceImage: _page.imageSource
 		overlayOpacity: _page.backgroundOpacity
-	}
-
-	function pageDeActivation(page: Item): void {
-		if (page !== null) {
-			if (page.objectName === _page.objectName)
-				pageDeActivated();
-		}
-	}
-
-	function pageActivation(page: Item): void {
-		if (page !== null) {
-			if (page.objectName === _page.objectName)
-				pageActivated();
-		}
 	}
 }

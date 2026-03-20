@@ -1,10 +1,11 @@
+pragma componentBahavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
 import TpQml
-
-import "../TPWidgets"
+import TpQml.Widgets
 
 TPPopup {
 	id: dlgSwitchUser
@@ -14,7 +15,7 @@ TPPopup {
 	ColumnLayout {
 		spacing: 10
 		anchors.fill: parent
-		anchors.topMargin: btnClose.height + 10
+		anchors.topMargin: dlgSwitchUser.btnClose.height + 10
 
 		 HorizontalHeaderView {
 			 id: horizontalHeader
@@ -37,7 +38,7 @@ TPPopup {
 
 			TableView {
 				id: allUsersList
-				contentHeight: availableHeight
+				contentHeight: dlgSwitchUser.availableHeight
 				contentWidth: rowWidth
 				clip: true
 				reuseItems: true
@@ -47,7 +48,7 @@ TPPopup {
 				selectionModel: ItemSelectionModel {
 					model: allUsersList.model
 				}
-				model: userModel.allUsers
+				model: AppUserModel.allUsers
 				width: parent.width * 0.9
 				height: parent.height
 
@@ -78,16 +79,17 @@ TPPopup {
 
 				delegate: Rectangle {
 					id: delegate
-					border.width: current ? 2 : 1
-					color: selected ? AppSettings.entrySelectedColor :
-						(row % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2)
+					border.width: selected ? 2 : 1
+					color: selected ? AppSettings.entrySelectedColor : (index % 2 === 0 ? AppSettings.listEntryColor1 :
+																								AppSettings.listEntryColor2)
 					implicitWidth: lblData.contentWidth > 0 ? lblData.contentWidth * 1.2 : 25
 					implicitHeight: AppSettings.itemDefaultHeight
 
-					required property bool current
+					required property int index
+					required property bool selected
 
 					function setSelected(_row: int, _selected: bool): void {
-						userModel.allUsers.setSelected(_row, _selected);
+						AppUserModel.allUsers.setSelected(_row, _selected);
 					}
 
 					TPLabel {
@@ -118,12 +120,12 @@ TPPopup {
 			TPButton {
 				imageSource: "switch-user.png"
 				text: qsTr("Switch")
-				enabled: allUsersList.currentRow >= 0 ? userModel.allUsers.userId !== userModel.userId : false
+				enabled: allUsersList.currentRow >= 0 ? AppUserModel.allUsers.userId !== AppUserModel.userId : false
 				width: buttonsRow.buttonSize
 				height: AppSettings.itemDefaultHeight
 
 				onClicked: {
-					userModel.switchUser();
+					AppUserModel.switchUser();
 					dlgSwitchUser.close();
 				}
 			}
@@ -131,12 +133,12 @@ TPPopup {
 			TPButton {
 				imageSource: "remove"
 				text: qsTr("Remove")
-				enabled: allUsersList.currentRow >= 0 ? userModel.allUsers.userId !== userModel.userId : false
+				enabled: allUsersList.currentRow >= 0 ? AppUserModel.allUsers.userId !== AppUserModel.userId : false
 				width: buttonsRow.buttonSize
 				height: AppSettings.itemDefaultHeight
 
 				onClicked: {
-					userModel.removeOtherUser();
+					AppUserModel.removeOtherUser();
 					dlgSwitchUser.close();
 				}
 			}
@@ -148,7 +150,7 @@ TPPopup {
 				height: AppSettings.itemDefaultHeight
 
 				onClicked: {
-					userModel.createNewUser();
+					AppUserModel.createNewUser();
 					dlgSwitchUser.close();
 				}
 			}

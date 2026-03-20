@@ -1,11 +1,12 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 
 import TpQml
 
 TPPopup {
-	id: balloon
+	id: _balloon
 	keepAbove: false
 	closeButtonVisible: false
 	showTitleBar: false
@@ -14,6 +15,7 @@ TPPopup {
 	height: mainLayout.childrenRect.height * 1.1
 	disableMouseHandling: !movable
 
+//public:
 	property string message: ""
 	property string title: ""
 	property string button1Text: qsTr("Yes")
@@ -25,22 +27,21 @@ TPPopup {
 	property bool highlightMessage: false
 	property bool imageEnabled: true
 	property bool movable: false
-	property bool anchored: false
-
-	property int startYPosition: 0
-	property int finalXPos: 0
 
 	signal button1Clicked();
 	signal button2Clicked();
 
+//private:
+	property int finalXPos: 0
+
 	NumberAnimation {
 		id: alternateCloseTransition
-		target: balloon
+		target: _balloon
 		alwaysRunToEnd: true
 		running: false
 		property: "x"
-		from: x
-		to: balloon.finalXPos
+		from: _balloon.x
+		to: _balloon.finalXPos
 		duration: 500
 		easing.type: Easing.InOutCubic
 	}
@@ -57,10 +58,10 @@ TPPopup {
 
 		TPLabel {
 			id: lblTitle
-			text: balloon.title
+			text: _balloon.title
 			useBackground: true
 			horizontalAlignment: Text.AlignHCenter
-			visible: balloon.title.length > 0
+			visible: _balloon.title.length > 0
 			Layout.fillWidth: true
 		}
 
@@ -69,17 +70,17 @@ TPPopup {
 
 			TPImage {
 				id: imgElement
-				source: balloon.imageSource
-				visible: balloon.imageSource.length > 0
-				enabled: balloon.imageEnabled
+				source: _balloon.imageSource
+				visible: _balloon.imageSource.length > 0
+				enabled: _balloon.imageEnabled
 				Layout.preferredWidth: AppSettings.itemExtraLargeHeight
 				Layout.preferredHeight: AppSettings.itemExtraLargeHeight
 				Layout.alignment: Qt.AlignVCenter
 
 				TPLabel {
 					id: lblImageSibling
-					text: balloon.subImageLabel
-					visible: balloon.subImageLabel.length > 0
+					text: _balloon.subImageLabel
+					visible: _balloon.subImageLabel.length > 0
 					font: AppGlobals.smallFont
 
 					anchors {
@@ -93,21 +94,21 @@ TPPopup {
 
 			TPLabel {
 				id: lblMessage
-				text: balloon.message
+				text: _balloon.message
 				singleLine: false
 				horizontalAlignment: Text.AlignHCenter
-				visible: balloon.message.length > 0
+				visible: _balloon.message.length > 0
 				Layout.fillWidth: true
 				Layout.maximumHeight: contentHeight
 
 				Loader {
-					active: !movable
+					active: !_balloon.movable
 					asynchronous: true
 					anchors.fill: parent
 
 					sourceComponent:  TPMouseArea {
 						movingWidget: parent
-						movableWidget: balloon
+						movableWidget: _balloon
 
 						property point prevPos
 
@@ -117,11 +118,11 @@ TPPopup {
 							if (Math.abs(deltaX) >= 10) {
 								x += deltaX;
 								if (deltaX > 0)
-									balloon.finalXPos = AppSettings.pageWidth + 300;
+									_balloon.finalXPos = AppSettings.pageWidth + 300;
 								else
-									balloon.finalXPos = -300;
+									_balloon.finalXPos = -300;
 								alternateCloseTransition.start();
-								balloon.closePopup();
+								_balloon.closePopup();
 							}
 							prevPos = { x: mouse.x, y: mouse.y };
 						}
@@ -131,37 +132,37 @@ TPPopup {
 		}
 
 		Row {
-			visible: balloon.button1Text.length > 0 || balloon.button2Text.length > 0
+			visible: _balloon.button1Text.length > 0 || _balloon.button2Text.length > 0
+			spacing: empty_space
 			Layout.fillWidth: true
 			Layout.leftMargin: empty_space
-			spacing: empty_space
-			height: Math.max(Math.max(AppSettings.itemDefaultHeight, btn1.height), btn2.height);
+			Layout.preferredHeight: Math.max(Math.max(AppSettings.itemDefaultHeight, btn1.height), btn2.height);
 
-			readonly property int empty_space: (balloon.width - btn1.width - btn2.width) / 3
+			readonly property int empty_space: (_balloon.width - btn1.width - btn2.width) / 3
 			TPButton {
 				id: btn1
-				text: balloon.button1Text
+				text: _balloon.button1Text
 				autoSize: true
-				visible: balloon.button1Text.length > 0
+				visible: _balloon.button1Text.length > 0
 				Layout.alignment: Qt.AlignCenter
 
 				onClicked: {
-					button1Clicked();
-					balloon.closePopup();
+					_balloon.button1Clicked();
+					_balloon.closePopup();
 				}
 			}
 
 			TPButton {
 				id: btn2
-				text: balloon.button2Text
+				text: _balloon.button2Text
 				autoSize: true
-				visible: balloon.button2Text.length > 0
+				visible: _balloon.button2Text.length > 0
 				Layout.alignment: Qt.AlignCenter
-				Layout.maximumWidth: availableWidth - btn1.width - 10
+				Layout.maximumWidth: _balloon.availableWidth - btn1.width - 10
 
 				onClicked: {
-					button2Clicked();
-					balloon.closePopup();
+					_balloon.button2Clicked();
+					_balloon.closePopup();
 				}
 			}
 		}
@@ -169,7 +170,7 @@ TPPopup {
 
 	SequentialAnimation {
 		loops: Animation.Infinite
-		running: highlightMessage
+		running: _balloon.highlightMessage
 
 		ColorAnimation {
 			target: lblMessage
@@ -199,9 +200,9 @@ TPPopup {
 
 		onTriggered: {
 			if (bCloseOnFinished)
-				balloon.closePopup();
+				_balloon.closePopup();
 			else
-				balloon.show(ypos);
+				_balloon.show(ypos);
 		}
 
 		function delayedOpen(timeout: int, ypos: int): void {
@@ -215,12 +216,12 @@ TPPopup {
 			bCloseOnFinished = true;
 			interval = timeout;
 			start();
-			balloon.show(ypos);
+			_balloon.show(ypos);
 		}
 	}
 
 	function show(ypos: int): void {
-		balloon.show1(ypos);
+		_balloon.show1(ypos);
 	}
 
 	function showTimed(timeout: int, ypos: int): void {

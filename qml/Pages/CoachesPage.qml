@@ -1,12 +1,12 @@
+pragma componentBahavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
 import TpQml
-
-import "../"
-import "../TPWidgets"
-import "../User"
+import TpQml.Widgets
+import TpQml.User
 
 TPPage {
 	id: coachesPage
@@ -14,8 +14,7 @@ TPPage {
 	imageSource: AppSettings.coachesBackground
 	backgroundOpacity: 0.6
 
-	required property UserManager userManager
-	property int userRow: -1
+	property int userRow
 
 	onPageActivated: {
 		if (coachesList.enabled) {
@@ -32,14 +31,14 @@ TPPage {
 		id: lblMain
 		text: qsTr("Coaches or Trainers");
 		font: AppGlobals.extraLargeFont
-		width: parent.width
+		width: coachesPage.width
 		horizontalAlignment: Text.AlignHCenter
 
 		anchors {
-			top: parent.top
+			top: coachesPage.top
 			topMargin: 20
-			left: parent.left
-			right: parent.right
+			left: coachesPage.left
+			right: coachesPage.right
 		}
 	}
 
@@ -52,21 +51,22 @@ TPPage {
 			text: qsTr("Coaches or Trainers")
 			enabled: coachesList.enabled
 
-			onClicked: userRow = userModel.currentCoaches.getUserIdx();
+			onClicked: coachesPage.userRow = AppUserModel.currentCoaches.getUserIdx();
 		}
+
 		TPTabButton {
 			text: qsTr("Pending answers")
 			enabled: pendingCoachesList.enabled
 
-			onClicked: userRow = userModel.pendingCoachesResponses.getUserIdx();
+			onClicked: coachesPage.userRow = AppUserModel.pendingCoachesResponses.getUserIdx();
 		}
 
 		anchors {
 			top: lblMain.bottom
 			topMargin: 5
-			left: parent.left
+			left: coachesPage.left
 			leftMargin: 5
-			right: parent.right
+			right: coachesPage.right
 			rightMargin: 5
 		}
 	}
@@ -79,9 +79,9 @@ TPPage {
 		anchors {
 			top: tabbar.bottom
 			topMargin: 5
-			left: parent.left
+			left: coachesPage.left
 			leftMargin: 5
-			right: parent.right
+			right: coachesPage.right
 			rightMargin: 5
 		}
 
@@ -105,7 +105,7 @@ TPPage {
 				}
 
 				onItemSelected: (userRow) => coachesPage.userRow = userRow;
-				onButtonClicked: userModel.viewResume(userRow);
+				onButtonClicked: AppUserModel.viewResume(coachesPage.userRow);
 			} //TPCoachesAndClientsList: coachesList
 
 			RowLayout {
@@ -121,14 +121,12 @@ TPPage {
 
 				TPButton {
 					text: qsTr("Remove")
-					enabled: userRow != 0 && coachesList.enabled  && coachesList.currentIndex !== -1
+					enabled: coachesPage.userRow != 0 && coachesList.enabled  && coachesList.currentIndex !== -1
 					rounded: false
 					autoSize: true
 					Layout.alignment: Qt.AlignCenter
 
-					onClicked: showRemoveMessage(false,
-								qsTr("Remove ") + userModel.userName(userRow) + "?",
-								qsTr("The coach will be notified of your decision, but might still contact you unless you block them"));
+					onClicked: showRemoveMessage(false);
 				}
 			}
 		} //Item
@@ -153,13 +151,13 @@ TPPage {
 					rightMargin: 5
 				}
 
-				//Temporary users(not confirmed) will always have the same index: userModel.count() - 1, so we need
+				//Temporary users(not confirmed) will always have the same index: AppUserModel.count() - 1, so we need
 				//to reset the userRow property in order for it to get a onChanged signal
 				onItemSelected: (userRow) => {
 					coachesPage.userRow = -1;
 					coachesPage.userRow = userRow;
 				}
-				onButtonClicked: userModel.viewResume(userRow);
+				onButtonClicked: AppUserModel.viewResume(coachesPage.userRow);
 			} //TPCoachesAndClientsList: pendingCoachesList
 
 			RowLayout {
@@ -181,7 +179,7 @@ TPPage {
 					Layout.alignment: Qt.AlignCenter
 
 					onClicked: {
-						userModel.acceptUser(userModel.pendingCoachesResponses, pendingCoachesList.currentIndex);
+						AppUserModel.acceptUser(AppUserModel.pendingCoachesResponses, pendingCoachesList.currentIndex);
 						if (!pendingCoachesList.enabled) {
 							if (coachesList.enabled)
 								tabbar.setCurrentIndex(0);
@@ -194,9 +192,7 @@ TPPage {
 					rounded: false
 					Layout.alignment: Qt.AlignCenter
 
-					onClicked: showRemoveMessage(true,
-								qsTr("Decline ") + userModel.pendingCoachesResponses.display(userModel.pendingCoachesResponses.currentRow) + "?",
-								qsTr("The coach will receive your reply, but might choose to send another answer unless you block them"));
+					onClicked: showRemoveMessage(true);
 				}
 			}
 		}//Item
@@ -207,16 +203,16 @@ TPPage {
 		text: qsTr("Look online for available coaches");
 		multiline: true
 		rounded: false
-		enabled: userModel.canConnectToServer
+		enabled: AppUserModel.canConnectToServer
 
 		onClicked: displayOnlineCoachesDialog();
 
 		anchors {
 			top: listsLayout.bottom
 			topMargin: 20
-			left: parent.left
+			left: coachesPage.left
 			leftMargin: 10
-			right: parent.right
+			right: coachesPage.right
 			rightMargin: 10
 		}
 	}
@@ -230,9 +226,9 @@ TPPage {
 		anchors {
 			top: btnFindCoachOnline.bottom
 			topMargin: 10
-			left: parent.left
-			right: parent.right
-			bottom: parent.bottom
+			left: coachesPage.left
+			right: coachesPage.right
+			bottom: coachesPage.bottom
 		}
 
 		ColumnLayout {
@@ -245,90 +241,86 @@ TPPage {
 				id: usrData
 				userRow: coachesPage.userRow
 				parentPage: coachesPage
-				width: AppSettings.pageWidth - 20
+				Layout.preferredWidth: AppSettings.pageWidth - 20
 			}
 
 			UserContact {
 				id: usrContact
 				userRow: coachesPage.userRow
-				width: AppSettings.pageWidth - 20
+				Layout.preferredWidth: AppSettings.pageWidth - 20
 			}
 
 			UserProfile {
 				id: usrProfile
 				userRow: coachesPage.userRow
 				parentPage: coachesPage
-				width: AppSettings.pageWidth - 20
+				Layout.preferredWidth: AppSettings.pageWidth - 20
 			}
 		}
 	}
 
-	property TPBalloonTip msgRemoveUser: null
-	function showRemoveMessage(decline: bool, Title: string, Message: string): void {
-		if (!AppSettings.alwaysAskConfirmation) {
-			removeOrDecline(decline);
-			return;
+	Loader {
+		id: onlineCoachesDialogLoader
+		asynchronous: true
+		active: false
+
+		sourceComponent: UserCoachRequest {
+			parentPage: coachesPage
+			onClosed: onlineCoachesDialogLoader.active = false;
 		}
 
-		if (msgRemoveUser === null) {
-			function createMessageBox() {
-				let component = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+		onLoaded: item.show1(-1);
+	}
+	function displayOnlineCoachesDialog(): void {
+		onlineCoachesDialogLoader.active = true;
+	}
 
-				function finishCreation() {
-					msgRemoveUser = component.createObject(coachesPage, { parentPage: coachesPage, imageSource: "remove", keepAbove: true,
-															title: Title, message: Message });
-					msgRemoveUser.button1Clicked.connect(function () { removeOrDecline(decline); });
-					msgRemoveUser.show(-1);
-				}
+	Loader {
+		id: removeUserDlgLoader
+		asynchronous: true
+		active: false
 
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			createMessageBox();
+		property bool decline
+
+		sourceComponent: TPBalloonTip {
+			parentPage: clientsPage
+			imageSource: "remove"
+			keepAbove: true
+			message: removeUserDlgLoader.decline ?
+						 qsTr("The coach will receive your reply, but might choose to send another answer unless you block them") :
+						 qsTr("The coach will be notified of your decision, but might still contact you unless you block them")
+			onButton1Clicked: clientsPage.removeOrDecline(removeUserDlgLoader.decline);
+			onClosed: removeuserDlgLoader.active = false;
 		}
-		else {
-			msgRemoveUser.title = Title;
-			msgRemoveUser.message = Message;
-			msgRemoveUser.show(-1);
+
+		onLoaded: {
+			if (decline)
+				item.title = qsTr("Remove ") + AppUserModel.userName(coachesPage.userRow) + "?";
+			else
+				item.title = qsTr("Decline ") +
+								AppUserModel.pendingCoachesResponses.display(AppUserModel.pendingCoachesResponses.currentRow) + "?";
+			item.show(-1);
 		}
+	}
+	function showRemoveMessage(decline: bool): void {
+		removeUserDlgLoader.decline = decline;
+		removeUserDlgLoader.active = true;
 	}
 
 	function removeOrDecline(decline: bool) {
 		if (!decline) {
-			userModel.removeUser(userRow);
+			AppUserModel.removeUser(coachesPage.userRow);
 			if (!coachesList.enabled)
 				if (pendingCoachesList.enabled) {
 					tabbar.setCurrentIndex(1);
 			}
 		}
 		else {
-			userModel.rejectUser(userModel.pendingCoachesResponses, pendingCoachesList.currentIndex);
+			AppUserModel.rejectUser(AppUserModel.pendingCoachesResponses, pendingCoachesList.currentIndex);
 			if (!pendingCoachesList.enabled) {
 				if (coachesList.enabled)
 					tabbar.setCurrentIndex(0);
 			}
 		}
-	}
-
-	property UserCoachRequest requestDlg: null
-	function displayOnlineCoachesDialog(): void {
-		if (requestDlg === null) {
-			function createRequestDialog() {
-				let component = Qt.createComponent("qrc:/TpQml/qml/User/UserCoachRequest.qml", Qt.Asynchronous);
-
-				function finishCreation() {
-					requestDlg = component.createObject(coachesPage, { parentPage: coachesPage });
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			createRequestDialog();
-		}
-		requestDlg.show1(-1);
 	}
 }

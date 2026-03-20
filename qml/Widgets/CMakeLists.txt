@@ -15,6 +15,7 @@ set( QML_WIDGETS
 	"TPMouseArea.qml"
 	"TPMultiLineEdit.qml"
 	"TPMuscularGroupsList.qml"
+	"TPPageScrollButtons.qml"
 	"TPPassword.qml"
 	"TPPasswordInput.qml"
 	"TPPopup.qml"
@@ -24,7 +25,6 @@ set( QML_WIDGETS
 	"TPTabButton.qml"
 	"TPTextInput.qml"
 	"TPToolBar.qml"
-	"TPVideoPlayer.qml"
 )
 
 qt_add_library(tp_widgets_module STATIC)

@@ -16,8 +16,7 @@ using namespace Qt::Literals::StringLiterals;
 
 #define DROP_SHADOW_EXTENT 5
 
-TPImage::TPImage(QQuickItem *parent)
-	: QQuickPaintedItem{parent}, m_imageToPaint{nullptr}, m_wscale{1.0}, m_hscale{1.0}
+TPImage::TPImage(QQuickItem *parent) : QQuickPaintedItem{parent}
 {
 	connect(this, &QQuickItem::enabledChanged, this, [&] () {
 		if (m_image.isNull())
@@ -149,7 +148,7 @@ void TPImage::setWScale(const double new_wscale)
 {
 	if (new_wscale != m_wscale) {
 		m_wscale = new_wscale;
-		emit scaleChanged();
+		emit imageScaleChanged();
 	}
 }
 
@@ -157,7 +156,7 @@ void TPImage::setHScale(const double new_hscale)
 {
 	if (new_hscale != m_hscale) {
 		m_hscale = new_hscale;
-		emit scaleChanged();
+		emit imageScaleChanged();
 	}
 }
 

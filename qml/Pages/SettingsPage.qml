@@ -26,7 +26,7 @@ TPPage {
 		function init() {
 			if (Qt.platform.os !== "android") {
 				button1Text = qsTr("Restart now");
-				applyTip.button1Clicked.connect(function() { osInterface.restartApp(); });
+				applyTip.button1Clicked.connect(function() { AppOsInterface.restartApp(); });
 			}
 			showTimed(4000, 0);
 		}

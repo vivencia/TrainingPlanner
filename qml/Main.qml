@@ -1,3 +1,5 @@
+pragma componentBehavior: Bound
+
 import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
@@ -134,23 +136,20 @@ ApplicationWindow {
 		parentPage: homePage
 	}*/
 
-	property FirstTimeDialog firstTimeDlg: null
-	function showFirstTimeUseDialog(): void {
-		function createFirstTimeDialog() {
-			let component = Qt.createComponent("qrc:/TpQml/qml/Dialogs/FirstTimeDialog.qml", Qt.Asynchronous);
+	Loader {
+		id: firstTimeDlgLoader
+		asynchronous: true
+		active: false
 
-			function finishCreation() {
-				firstTimeDlg = component.createObject(homePage, { parentPage: homePage });
-				firstTimeDlg.open();
-			}
-
-			if (component.status === Component.Ready)
-				finishCreation();
-			else
-				component.statusChanged.connect(finishCreation);
+		sourceComponent: FirstTimeDialog {
+			parentPage: mainwindow.homePage
+			onClosed: firstTimeDlgLoader.active = false;
 		}
-		createFirstTimeDialog();
-		//firstTimeDlgg.show1(-1);
+
+		onLoaded: item.open();
+	}
+	function showFirstTimeUseDialog(): void {
+		firstTimeDlgLoader.active = true;
 	}
 
 	Loader {
@@ -373,26 +372,14 @@ ApplicationWindow {
 	}
 
 	TPBalloonTip {
-		id: textCopiedInfo
-		height: 40
-		message: qsTr("Text copied to the clipboard")
-		button1Text: ""
-		button2Text: ""
-		parentPage: homePage
-	}
-
-	function showTextCopiedMessage(): void {
-		textCopiedInfo.showTimed(3000, 0);
-	}
-
-	TPBalloonTip {
 		id: generalMessagesPopup
 		parentPage: homePage
 		button1Text: ""
 		button2Text: ""
 	}
 
-	function displayResultMessage(title: string, message: string, img_src: string, msecs: int, button1Text: string, button2Text: string): void {
+	function showAppMainMessageDialog(title: string, message: string, img_src: string, msecs: int, button1Text: string,
+																										button2Text: string): void {
 		generalMessagesPopup.title = title;
 		generalMessagesPopup.message = message;
 		generalMessagesPopup.imageSource = img_src;

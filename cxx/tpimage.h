@@ -23,8 +23,8 @@ Q_PROPERTY(double preferredWidth READ preferredWidth CONSTANT FINAL)
 Q_PROPERTY(double preferredHeight READ preferredHeight CONSTANT FINAL)
 Q_PROPERTY(int imageWidth READ imageWidth NOTIFY imageSizeChanged FINAL)
 Q_PROPERTY(int imageHeight READ imageHeight NOTIFY imageSizeChanged FINAL)
-Q_PROPERTY(double wScale READ wScale WRITE setWScale NOTIFY scaleChanged FINAL)
-Q_PROPERTY(double hScale READ hScale WRITE setHScale NOTIFY scaleChanged FINAL)
+Q_PROPERTY(double wScale READ wScale WRITE setWScale NOTIFY imageScaleChanged FINAL)
+Q_PROPERTY(double hScale READ hScale WRITE setHScale NOTIFY imageScaleChanged FINAL)
 
 public:
 	explicit TPImage(QQuickItem *parent = nullptr);
@@ -68,18 +68,18 @@ signals:
 	void keepAspectRatioChanged();
 	void imageSizeFollowControlSizeChanged();
 	void fullWindowViewChanged();
-	void scaleChanged();
+	void imageScaleChanged();
 	void imageSizeChanged();
 
 private:
 	QString m_source;
 	QImage m_image, m_imageDisabled, m_imageShadow;
-	QImage *m_imageToPaint;
+	QImage *m_imageToPaint{nullptr};
 	QSize m_imageSize;
 	bool m_dropShadow, m_canColorize;
 	std::optional<bool> m_imageFollowControl, m_fullWindowView;
 	std::optional<Qt::AspectRatioMode> m_aspectRatioMode;
-	double m_wscale, m_hscale;
+	double m_wscale{1.0}, m_hscale{1.0};
 	QPoint m_paintOrigin;
 
 	void scaleImage();

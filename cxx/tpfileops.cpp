@@ -362,7 +362,7 @@ void::TPFileOps::removeFile(const bool bypass_confirmation)
 {
 	if (!bypass_confirmation && appSettings()->alwaysAskConfirmation()) {
 		connect(appMainWindow(), SIGNAL(generalMessagesPopupClicked(int)), this, SLOT(removeFileAnswer(int)), Qt::SingleShotConnection);
-		QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(QString, tr("Remove file?")), Q_ARG(QString, m_filename),
+		QMetaObject::invokeMethod(appMainWindow(), "showAppMainMessageDialog", Q_ARG(QString, tr("Remove file?")), Q_ARG(QString, m_filename),
 			Q_ARG(QString, getFileTypeIcon(m_filename, QSize{appSettings()->itemExtraLargeHeight(), appSettings()->itemExtraLargeHeight()})),
 			Q_ARG(int, 0), Q_ARG(QString, tr("Yes")), Q_ARG(QString, tr("No")));
 		return;

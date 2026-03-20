@@ -1,13 +1,14 @@
+pragma componentBahavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Dialogs
-import QtCore
-import TpQml
 
-import "../Dialogs"
-import "../TPWidgets"
-import "../User"
+import TpQml
+import TpQml.Widgets
+import TpQml.Dialogs
+import TpQml.User
+
 import "./MesocyclePageElements"
 
 TPPage {
@@ -18,7 +19,7 @@ TPPage {
 
 	required property MesoManager mesoManager
 	required property MesocyclesModel mesoModel
-	property TPBalloonTip missingFieldsTip: requiredFieldsMissingLoader.item
+	property TPBalloonTip missingFieldsTip: requiredFieldsMissingLoader.item as TPBalloonTip
 
 	Loader {
 		id: requiredFieldsMissingLoader
@@ -55,29 +56,29 @@ TPPage {
 		}
 
 		switch (field) {
-			case -1:
-				missingFieldsTip.subImageLabel = "OK";
-				missingFieldsTip.title = qsTr("New program setup complete!");
-				missingFieldsTip.message = qsTr("Required fields setup");
-				missingFieldsTip.showTimed(5000, -3);
+		case -1:
+			missingFieldsTip.subImageLabel = "OK";
+			missingFieldsTip.title = qsTr("New program setup complete!");
+			missingFieldsTip.message = qsTr("Required fields setup");
+			missingFieldsTip.showTimed(5000, -3);
 			break;
-			case 8:
-				missingFieldsTip.subImageLabel = "?";
-				missingFieldsTip.title = qsTr("Accept program from coach?");
-				missingFieldsTip.message = qsTr("Until you accept this program you can only view it");
-				missingFieldsTip.button1Text = qsTr("Yes");
-				missingFieldsTip.button2Text = qsTr("No");
-				missingFieldsTip.button1Clicked.connect(function() { mesoManager.incorporateMeso(); });
+		case 8:
+			missingFieldsTip.subImageLabel = "?";
+			missingFieldsTip.title = qsTr("Accept program from coach?");
+			missingFieldsTip.message = qsTr("Until you accept this program you can only view it");
+			missingFieldsTip.button1Text = qsTr("Yes");
+			missingFieldsTip.button2Text = qsTr("No");
+			missingFieldsTip.button1Clicked.connect(function() { mesoPage.mesoManager.incorporateMeso(); });
 			break;
-			default:
-				missingFieldsTip.title = qsTr("New program setup incomplete");
-				missingFieldsTip.subImageLabel = String(wrong_field_counter);
-				switch (field) {
-					case 1: missingFieldsTip.message = qsTr("Change and/or accept the program's name"); break; //MESO_FIELD_NAME
-					case 2: missingFieldsTip.message = qsTr("Change and/or accept the start date"); break; //MESO_FIELD_STARTDATE
-					case 3: missingFieldsTip.message = qsTr("Change and/or accept the end date"); break; //MESO_FIELD_ENDDATE
-					case 6: missingFieldsTip.message = qsTr("Change and/or accept the split division"); break; //MESO_FIELD_SPLIT
-				}
+		default:
+			missingFieldsTip.title = qsTr("New program setup incomplete");
+			missingFieldsTip.subImageLabel = String(wrong_field_counter);
+			switch (field) {
+			case mesoPage.mesoModel.MESO_FIELD_NAME: missingFieldsTip.message = qsTr("Change and/or accept the program's name"); break; //MESO_FIELD_NAME
+			case mesoPage.mesoModel.MESO_FIELD_STARTDATE: missingFieldsTip.message = qsTr("Change and/or accept the start date"); break; //MESO_FIELD_STARTDATE
+			case mesoPage.mesoModel.MESO_FIELD_ENDDATE: missingFieldsTip.message = qsTr("Change and/or accept the end date"); break; //MESO_FIELD_ENDDATE
+			case mesoModelMESO_FIELD_SPLIT: missingFieldsTip.message = qsTr("Change and/or accept the split division"); break; //MESO_FIELD_SPLIT
+			}
 			break;
 		}
 	}
@@ -86,7 +87,7 @@ TPPage {
 		parentPage: mesoPage
 		navButtonsVisible: true
 		contentHeight: layoutMain.implicitHeight
-		anchors.fill: parent
+		anchors.fill: mesoPage
 
 		ColumnLayout {
 			id: layoutMain
@@ -96,11 +97,11 @@ TPPage {
 				leftMargin: 5
 				rightMargin: 5
 				topMargin: 0
-				bottomMargin: requiredFieldsMissingLoader.active ? missingFieldsTip.height + 20 : 10
+				bottomMargin: requiredFieldsMissingLoader.active ? mesoPage.missingFieldsTip.height + 20 : 10
 			}
 
 			Loader {
-				active: !mesoManager.ownMeso && userModel.currentClients.count > 0
+				active: !mesoPage.mesoManager.ownMeso && userModel.currentClients.count > 0
 				asynchronous: true
 				Layout.fillWidth: true
 
@@ -110,32 +111,32 @@ TPPage {
 
 					TPLabel {
 						id: lblClient
-						text: mesoModel.clientLabel
+						text: mesoPage.mesoModel.clientLabel
 					}
 
 					TPCoachesAndClientsList {
 						id: clientsList
-						currentIndex: userModel.findUserById(mesoManager.client)
+						currentRow: userModel.findUserById(mesoPage.mesoManager.client)
 						buttonString: qsTr("Go to client's page")
-						height: 0.2 * mesoPage.height
+						Layout.preferredHeight: 0.2 * mesoPage.height
 						Layout.fillWidth: true
 						Layout.minimumHeight: height
 
-						onItemSelected: (userRow) => mesoManager.client = userModel.userId(userRow);
+						onItemSelected: (userRow) => mesoPage.mesoManager.client = userModel.userId(userRow);
 						onButtonClicked: itemManager.getClientsPage();
 					} //TPCoachesAndClientsList
 
 					TPLabel {
 						id: lblCoachName
-						text: mesoModel.coachLabel
-						visible: !mesoManager.coachIsMainUser
+						text: mesoPage.mesoModel.coachLabel
+						visible: !mesoPage.mesoManager.coachIsMainUser
 					}
 
 					TPTextInput {
 						id: txtCoachName
-						text: mesoManager.coachName
+						text: mesoPage.mesoManager.coachName
 						readOnly: true
-						visible: !mesoManager.coachIsMainUser
+						visible: !mesoPage.mesoManager.coachIsMainUser
 
 						Layout.fillWidth: true
 					}
@@ -143,12 +144,12 @@ TPPage {
 			} //Loader
 
 			TPLabel {
-				text: mesoModel.mesoNameLabel
+				text: mesoPage.mesoModel.mesoNameLabel
 				Layout.topMargin: 10
 
 				TPImage {
 					source: "set-completed"
-					enabled: mesoManager.mesoNameOK
+					enabled: mesoPage.mesoManager.mesoNameOK
 					width: AppSettings.itemDefaultHeight
 					height: width
 
@@ -161,17 +162,17 @@ TPPage {
 
 			TPTextInput {
 				id: txtMesoName
-				text: mesoManager.name
-				ToolTip.text: mesoManager.mesoNameErrorTooltip
-				ToolTip.visible: !mesoManager.mesoNameOK
+				text: mesoPage.mesoManager.name
+				ToolTip.text: mesoPage.mesoManager.mesoNameErrorTooltip
+				ToolTip.visible: !mesoPage.mesoManager.mesoNameOK
 				Layout.fillWidth: true
 
-				onEditingFinished: mesoManager.name = text;
+				onEditingFinished: mesoPage.mesoManager.name = text;
 				onEnterOrReturnKeyPressed: cboMesoType.forceActiveFocus();
 			}
 
 			TPLabel {
-				text: mesoModel.typeLabel
+				text: mesoPage.mesoModel.typeLabel
 			}
 
 			TPComboBox {
@@ -191,14 +192,14 @@ TPPage {
 
 				onActivated: (index) => {
 					if (index < (typeModel.count - 1))
-						mesoManager.type = textAt(index);
+						mesoPage.mesoManager.type = textAt(index);
 					else
 						txtMesoTypeOther.forceActiveFocus();
 					currentIndex = index;
 				}
 
 				Component.onCompleted: {
-					let cboidx = find(mesoManager.type);
+					let cboidx = find(mesoPage.mesoManager.type);
 					if (cboidx === -1)
 						cboidx = typeModel.count - 1;
 					currentIndex = cboidx;
@@ -207,30 +208,30 @@ TPPage {
 
 			TPTextInput {
 				id: txtMesoTypeOther
-				text: mesoManager.type
+				text: mesoPage.mesoManager.type
 				showClearTextButton: !readOnly
 				visible: cboMesoType.currentIndex === typeModel.count - 1
 				Layout.fillWidth: true
 
-				onEditingFinished: mesoManager.type = text;
+				onEditingFinished: mesoPage.mesoManager.type = text;
 				onEnterOrReturnKeyPressed: txtMesoFile.forceActiveFocus();
 			}
 
 
 			TPLabel {
-				text: mesoModel.fileLabel
+				text: mesoPage.mesoModel.fileLabel
 			}
 
 			TPTextInput {
 				id: txtMesoFile
-				text: mesoManager.displayFileName
+				text: mesoPage.mesoManager.displayFileName
 				readOnly: true
 				showClearTextButton: true
-				ToolTip.text: mesoManager.fileName
+				ToolTip.text: mesoPage.mesoManager.fileName
 				Layout.minimumWidth: 0.8 * parent.width
 				Layout.maximumWidth: 0.8 * parent.width
 
-				onTextCleared: mesoManager.fileName = "";
+				onTextCleared: mesoPage.mesoManager.fileName = "";
 
 				TPButton {
 					id: btnChooseMesoFile
@@ -250,30 +251,30 @@ TPPage {
 						id: fileDialog
 						title: qsTr("Choose the instruction's file for this mesocycles")
 
-						onAccepted: mesoManager.fileName = appUtils.getCorrectPath(selectedFile);
+						onAccepted: mesoPage.mesoManager.fileName = appUtils.getCorrectPath(selectedFile);
 					}
 				}
 
 				TPButton {
 					id: btnOpenMesoFile
 					imageSource: txtMesoFile.text.indexOf("pdf") !== -1 ? "pdf-icon" : "doc-icon"
-					visible: appUtils.canReadFile(mesoManager.fileName)
+					visible: appUtils.canReadFile(mesoPage.mesoManager.fileName)
 
 					anchors {
 						left: btnChooseMesoFile.right
 						verticalCenter: parent.verticalCenter
 					}
 
-					onClicked: osInterface.viewExternalFile(mesoManager.fileName);
+					onClicked: AppOsInterface.viewExternalFile(mesoPage.mesoManager.fileName);
 				}
 			}
 
 			TPLabel {
-				text: mesoModel.startDateLabel
+				text: mesoPage.mesoModel.startDateLabel
 
 				TPImage {
 					source: "set-completed"
-					enabled: mesoManager.startDateOK
+					enabled: mesoPage.mesoManager.startDateOK
 					width: AppSettings.itemDefaultHeight
 					height: width
 
@@ -286,19 +287,19 @@ TPPage {
 
 			TPTextInput {
 				id: txtMesoStartDate
-				text: mesoManager.strStartDate
+				text: mesoPage.mesoManager.strStartDate
 				readOnly: true
 				Layout.fillWidth: false
 				Layout.minimumWidth: 0.5*parent.width
 
 				CalendarDialog {
 					id: caldlg
-					showDate: mesoManager.startDate
-					initDate: mesoManager.minimumMesoStartDate
-					finalDate: mesoManager.maximumMesoEndDate
+					showDate: mesoPage.mesoManager.startDate
+					initDate: mesoPage.mesoManager.minimumMesoStartDate
+					finalDate: mesoPage.mesoManager.maximumMesoEndDate
 					parentPage: mesoPage
 
-					onDateSelected: (date) => mesoManager.startDate = date;
+					onDateSelected: (date) => mesoPage.mesoManager.startDate = date;
 				}
 
 				TPButton {
@@ -320,12 +321,12 @@ TPPage {
 			TPRadioButtonOrCheckBox {
 				text: qsTr("Mesocycle-style program")
 				radio: false
-				checked: mesoManager.realMeso
+				checked: mesoPage.mesoManager.realMeso
 				Layout.preferredWidth: 0.9 * parent.width
 				Layout.topMargin: 15
 				Layout.bottomMargin: 15
 
-				onClicked: mesoManager.realMeso = checked;
+				onClicked: mesoPage.mesoManager.realMeso = checked;
 
 				TPButton {
 					imageSource: "question.png"
@@ -343,12 +344,12 @@ TPPage {
 			}
 
 			TPLabel {
-				text: mesoModel.endDateLabel
-				visible: mesoManager.realMeso
+				text: mesoPage.mesoModel.endDateLabel
+				visible: mesoPage.mesoManager.realMeso
 
 				TPImage {
 					source: "set-completed"
-					enabled: mesoManager.endDateOK
+					enabled: mesoPage.mesoManager.endDateOK
 					width: AppSettings.itemDefaultHeight
 					height: width
 
@@ -361,21 +362,21 @@ TPPage {
 
 			TPTextInput {
 				id: txtMesoEndDate
-				text: mesoManager.strEndDate
+				text: mesoPage.mesoManager.strEndDate
 				readOnly: true
-				visible: mesoManager.realMeso
+				visible: mesoPage.mesoManager.realMeso
 				Layout.fillWidth: false
-				Layout.minimumWidth: 0.5*parent.width
+				Layout.minimumWidth: 0.5 * parent.width
 
 				CalendarDialog {
 					id: caldlg2
-					showDate: mesoManager.endDate
-					initDate: mesoManager.minimumMesoStartDate
-					finalDate: mesoManager.maximumMesoEndDate
+					showDate: mesoPage.mesoManager.endDate
+					initDate: mesoPage.mesoManager.minimumMesoStartDate
+					finalDate: mesoPage.mesoManager.maximumMesoEndDate
 					parentPage: mesoPage
 
 					onDateSelected: (date) => {
-						mesoManager.endDate = date;
+						mesoPage.mesoManager.endDate = date;
 						mesoSplitSetup.forcusOnFirstItem();
 					}
 				}
@@ -398,16 +399,16 @@ TPPage {
 
 			TPLabel {
 				id: lblnWeeks
-				text: mesoModel.nWeeksLabel
-				visible: mesoManager.realMeso
+				text: mesoPage.mesoModel.nWeeksLabel
+				visible: mesoPage.mesoManager.realMeso
 			}
 
 			TPTextInput {
 				id: txtMesoNWeeks
-				text: mesoManager.weeks
+				text: mesoPage.mesoManager.weeks
 				readOnly: true
-				visible: mesoManager.realMeso
-				Layout.preferredWidth: 0.2*parent.width
+				visible: mesoPage.mesoManager.realMeso
+				Layout.preferredWidth: 0.2 * parent.width
 			}
 
 			MesoSplitSetup {
@@ -417,7 +418,7 @@ TPPage {
 			}
 
 			TPLabel {
-				text: mesoModel.notesLabel
+				text: mesoPage.mesoModel.notesLabel
 				Layout.topMargin: 10
 				Layout.fillWidth: true
 			}
@@ -425,18 +426,18 @@ TPPage {
 			TPMultiLineEdit {
 				Layout.fillWidth: true
 				Layout.preferredHeight: AppSettings.pageHeight * 0.15
-				text: mesoManager.notes
-				onTextAltered: (_text) => mesoManager.notes = _text;
+				text: mesoPage.mesoManager.notes
+				onTextAltered: (_text) => mesoPage.mesoManager.notes = _text;
 			}
 
 			TPButton {
 				text: qsTr("Send to client")
 				autoSize: true
-				visible: !mesoManager.ownMeso
-				enabled: mesoManager.canExport
+				visible: !mesoPage.mesoManager.ownMeso
+				enabled: mesoPage.mesoManager.canExport
 				Layout.alignment: Qt.AlignCenter
 
-				onClicked: mesoManager.sendMesocycleFileToClient();
+				onClicked: mesoPage.mesoManager.sendMesocycleFileToClient();
 			}
 		} //ColumnLayout
 	} //ScrollView

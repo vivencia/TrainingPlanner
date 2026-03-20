@@ -1,15 +1,20 @@
+pragma componentBahavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 
-import "../ExercisesAndSets"
-import "../Pages"
+import TpQml.Pages
 
 ScrollView {
+	id: _control
+	contentWidth: availableWidth //stops bouncing to the sides
+
+//public:
 	required property TPPage parentPage
 	property bool navButtonsVisible
 
-	id: control
-	contentWidth: availableWidth //stops bouncing to the sides
+//private:
+	property TPPageScrollButtons _navButtons
 
 	anchors {
 		fill: parent
@@ -22,32 +27,24 @@ ScrollView {
 		policy: ScrollBar.AsNeeded
 
 		anchors {
-			top: parent.top
-			bottom: parent.bottom
-			right: parent.right
+			top: _control.top
+			bottom: _control.bottom
+			right: _control.right
 		}
 
 		onPositionChanged: {
 			if (vBar.position < 0.06) {
-				navButtons.showUpButton = false;
-				navButtons.showDownButton = true;
+				_control._navButtons.showUpButton = false;
+				_control._navButtons.showDownButton = true;
 			}
 			else if (vBar.position - (1 - vBar.size) > -0.029) {
-				navButtons.showUpButton = true;
-				navButtons.showDownButton = false;
+				_control._navButtons.showUpButton = true;
+				_control._navButtons.showDownButton = false;
 			}
 			else {
-				navButtons.showUpButton = true;
-				navButtons.showDownButton = true;
+				_control._navButtons.showUpButton = true;
+				_control._navButtons.showDownButton = true;
 			}
-		}
-	}
-
-	Connections {
-		target: parentPage
-		function onPageActivated(): void {
-			if (!navButtons && contentHeight > height)
-				createNavButtons();
 		}
 	}
 
@@ -58,20 +55,20 @@ ScrollView {
 			vBar.setPosition(pos - vBar.size);
 	}
 
-	property PageScrollButtons navButtons: null
-	function createNavButtons(): void {
-		let component = Qt.createComponent("qrc:/TpQml/qml/ExercisesAndSets/PageScrollButtons.qml", Qt.Asynchronous);
+	Loader {
+		id: navButtonsLoader
+		asynchronous: true
+		active: _control.contentHeight > _control.height
 
-		function finishCreation() {
-			const coord = control.parentPage.mapToItem(Overlay.overlay, control.parentPage.x, control.parentPage.y + control.height);
-			navButtons = component.createObject(control.parentPage, { ownerPage: control.parentPage, showUpButton: false, position: coord,
-																										visible: control.navButtonsVisible });
-			navButtons.scrollTo.connect(control.setScrollBarPosition);
+		readonly property point coord: _control.parentPage.mapToItem(Overlay.overlay, _control.parentPage.x,
+																						_control.parentPage.y + _control.height);
+		sourceComponent: TPPageScrollButtons {
+			ownerPage: control.parentPage
+			showUpButton: false
+			position: navButtonsLoader.coord
+			visible: _control.navButtonsVisible
+			onScrollTo: (pos) => setScrollBarPosition(pos);
+			Component.onCompleted: _control._navButtons = this;
 		}
-
-		if (component.status === Component.Ready)
-			finishCreation();
-		else
-			component.statusChanged.connect(finishCreation);
 	}
 }

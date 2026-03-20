@@ -78,7 +78,7 @@ Drawer {
 
 			TPImage {
 				id: imgOnline
-				source: osInterface.tpServerOK ? "online" : "offline"
+				source: AppOsInterface.tpServerOK ? "online" : "offline"
 				width: AppSettings.itemLargeHeight
 				height: width
 				visible: userModel.onlineAccount
@@ -95,7 +95,7 @@ Drawer {
 				MouseArea {
 					hoverEnabled: true
 					anchors.fill: parent
-					onEntered: onlineInfo.show(osInterface.connectionMessage, -1);
+					onEntered: onlineInfo.show(AppOsInterface.connectionMessage, -1);
 					onExited: onlineInfo.hide();
 				}
 			}

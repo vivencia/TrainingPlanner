@@ -6,13 +6,14 @@ import TpQml
 import TpQml.Widgets
 
 TPPopup {
-    id: calendarPopup
+    id: _control
 	keepAbove: !simpleCalendar
 	width: datePickerControl.width
 	height: datePickerControl.height + buttonsLayout.childrenRect.height + btnOK.height + 15
 	x: (AppSettings.pageWidth - width) / 2 // horizontally centered
 	finalYPos: (AppSettings.pageHeight - height) / 2 // vertically centered
 
+//public:
 	property date initDate
 	property date showDate
 	property date finalDate
@@ -42,8 +43,8 @@ TPPopup {
 
 	CalendarModel {
 		id: calModel
-		from: initDate
-		to: finalDate
+		from: _control.initDate
+		to: _control.finalDate
 
 		readonly property bool ready: true //the c++ and qml models must have the same API to avoid warnings and errors
 	}
@@ -55,12 +56,12 @@ TPPopup {
 		TPDatePicker {
 			id: datePickerControl
 			focus: true
-			startDate: initDate
-			selectedDate: showDate
-			endDate: finalDate
+			startDate: _control.initDate
+			selectedDate: _control.showDate
+			endDate: _control.finalDate
 			calendarModel: calModel
 
-			Component.onCompleted: datePickerControl.setDate(showDate);
+			Component.onCompleted: datePickerControl.setDate(_control.showDate);
 		}
 
 		Row {
@@ -68,28 +69,28 @@ TPPopup {
 			spacing: 2
 			Layout.fillWidth: true
 
-			readonly property int buttonWidth: (parent.width-5)/3
+			readonly property int buttonWidth: (parent.width - 5) / 3
 
 			TPButton {
 				id: btnYesterday
 				text: qsTr("Yesterday")
 				width: parent.buttonWidth
 
-				onClicked: datePickerControl.setDate2(appUtils.yesterday());
+				onClicked: datePickerControl.setDate2(AppUtils.yesterday());
 			}
 			TPButton {
 				id: btnToday
 				text: qsTr("Today")
 				width: parent.buttonWidth
 
-				onClicked: datePickerControl.setDate2(appUtils.today());
+				onClicked: datePickerControl.setDate2(AppUtils.today());
 			}
 			TPButton {
 				id: btnTomorrow
 				text: qsTr("Tomorrow")
 				width: parent.buttonWidth
 
-				onClicked: datePickerControl.setDate2(appUtils.tomorrow());
+				onClicked: datePickerControl.setDate2(AppUtils.tomorrow());
 			}
 		}
 
@@ -99,7 +100,7 @@ TPPopup {
 			autoSize: true
 			Layout.alignment: Qt.AlignCenter
 
-			onClicked: selectDate();
+			onClicked: _control.selectDate();
 		}
 	}
 
@@ -107,6 +108,6 @@ TPPopup {
 
 	function selectDate(): void {
 		dateSelected(datePickerControl.selectedDate)
-		calendarPopup.closePopup();
+		_control.closePopup();
 	}
 }

@@ -1,13 +1,13 @@
+pragma componentBehaviour: Bound
+
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 
-import ".."
-import "../TPWidgets"
 import TpQml
+import TpQml.Widgets
 
 ColumnLayout {
-	id: mainLayout
+	id: _control
 	spacing: 20
 
 	readonly property bool bReady: languages_group.selectedOption !== -1
@@ -20,18 +20,18 @@ ColumnLayout {
 	Repeater {
 		model: AppSettings.availableLanguages.length
 		delegate: TPRadioButtonOrCheckBox {
-			required property int index
-
 			text: AppSettings.availableLanguagesLabel(index)
 			checked: AppSettings.userLocaleIdx === index
-			image: mainLayout.country_flags[index]
+			image: _control.country_flags[index]
 			multiLine: true
-			buttonGroup: languages_group
+			buttonGroup: _control.languages_group
 			imageWidth: AppSettings.itemExtraLargeHeight
 			imageHeight: AppSettings.itemDefaultHeight
 			Layout.fillWidth: true
 
-			onClicked: appTr.switchToLanguage(AppSettings.availableLanguages[index], true);
+			required property int index
+
+			onClicked: AppTr.switchToLanguage(AppSettings.availableLanguages[index], true);
 		}
 	}
 }

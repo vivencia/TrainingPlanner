@@ -1,7 +1,10 @@
+pragma componentBahavior: Bound
+
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Layouts
 
+import TpQml
+import TpQml.Widgets
 import TpQml.Pages
 
 TPPage {
@@ -18,7 +21,7 @@ TPPage {
 
 	header: TPToolBar {
 		bottomPadding: 20
-		height: headerHeight
+		height: homePage.headerHeight
 
 		TPImage {
 			id: imgAppIcon
@@ -44,7 +47,7 @@ TPPage {
 
 			anchors {
 				verticalCenter: parent.verticalCenter
-				verticalCenterOffset: (headerHeight - height)/2
+				verticalCenterOffset: (homePage.headerHeight - height)/2
 				horizontalCenter: parent.horizontalCenter
 				horizontalCenterOffset: imgAppIcon.width/2
 			}
@@ -53,26 +56,26 @@ TPPage {
 
 	SwipeView {
 		id: mesosView
-		currentIndex: userModel.mainUserConfigured ? (userModel.mainUserIsCoach ? 0 : 1) : -1
-		interactive: userModel.mainUserIsCoach && userModel.mainUserIsClient
+		currentIndex: AppUserModel.mainUserConfigured ? (AppUserModel.mainUserIsCoach ? 0 : 1) : -1
+		interactive: AppUserModel.mainUserIsCoach && AppUserModel.mainUserIsClient
 		anchors.fill: parent
 
 		onCurrentIndexChanged: {
-			if (modelsLoaded && currentIndex >= 0) {
+			if (homePage.modelsLoaded && currentIndex >= 0) {
 				const own_meso = currentIndex === 1;
 				homePage.colorLight = own_meso ? AppSettings.primaryColor : AppSettings.primaryDarkColor
 				homePage.colorDark = own_meso ? AppSettings.primaryLightColor : AppSettings.primaryColor
-				mesosViewChanged(own_meso);
+				homePage.mesosViewChanged(own_meso);
 			}
 		}
 
 		Loader {
 			id: clientsMesosListLoader
-			active: loadClientMesos
+			active: homePage.loadClientMesos
 			asynchronous: true
 
 			sourceComponent: MesosList {
-				mesoSubModel: mesoModel.clientMesos
+				mesoSubModel: homePage.mesoModel.clientMesos
 			}
 		}
 
@@ -91,14 +94,16 @@ TPPage {
 		id: indicator
 		count: mesosView.count
 		currentIndex: mesosView.currentIndex
-		visible: userModel.mainUserConfigured && (userModel.mainUserIsCoach && userModel.mainUserIsClient)
+		visible: AppUserModel.mainUserConfigured && (AppUserModel.mainUserIsCoach && AppUserModel.mainUserIsClient)
 
 		delegate: Rectangle {
 			width: AppSettings.itemSmallHeight
 			height: width
-			radius: width/2
+			radius: width / 2
 			opacity: index === indicator.currentIndex ? 0.95 : pressed ? 0.7 : 0.45
 			color: index === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2
+
+			required property int index
 
 			Text {
 				text: String(index + 1)

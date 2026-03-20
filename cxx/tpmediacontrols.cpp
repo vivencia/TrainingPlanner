@@ -9,25 +9,25 @@ constexpr int16_t src_control_image_width{323};
 constexpr int16_t src_control_image_height{323};
 
 QImage TPMediaControls::img_all_controls{};
-TPMediaControls::TPMediaControls(QQuickItem *parent)
-	: QQuickPaintedItem{parent}, m_currentControl{nullptr}, m_qml_control_spacing{5}, m_qml_control_extra_height{10}, m_fileOps{nullptr}
+
+TPMediaControls::TPMediaControls(QQuickItem *parent) : QQuickPaintedItem{parent}
 {
 	if (img_all_controls.isNull())
 		img_all_controls.load(all_controls_source);
 	setAcceptTouchEvents(true);
 	setAcceptedMouseButtons(Qt::LeftButton);
-	connect(this, &TPMediaControls::widthChanged, [this] { createControls(); });
-	connect(this, &TPMediaControls::heightChanged, [this] { createControls(); });
+	connect(this, &TPMediaControls::widthChanged, this, [this] { createControls(); });
+	connect(this, &TPMediaControls::heightChanged, this, [this] { createControls(); });
 	m_pressedColor.fromString(appSettings()->primaryColor());
 	switch (appSettings()->colorScheme()) {
-		case TPSettings::Blue:
-			m_pressedColor.setRgb(0, 0, m_pressedColor.blue());
+	case TPSettings::Blue:
+		m_pressedColor.setRgb(0, 0, m_pressedColor.blue());
 		break;
-		case TPSettings::Green:
-			m_pressedColor.setRgb(0, m_pressedColor.green(), 0);
+	case TPSettings::Green:
+		m_pressedColor.setRgb(0, m_pressedColor.green(), 0);
 		break;
-		case TPSettings::Red:
-			m_pressedColor.setRgb(m_pressedColor.red(), 0, 0);
+	case TPSettings::Red:
+		m_pressedColor.setRgb(m_pressedColor.red(), 0, 0);
 		break;
 	}
 	m_pressedColor.setAlpha(100);
@@ -54,18 +54,18 @@ void TPMediaControls::controlReachedLimit(TPMediaControls::ControlType type)
 	controlInfo *ci{controlFromType(type)};
 	if (ci) {
 		switch (type) {
-			case CT_Prev:
-			case CT_Next:
-				_setEnabled(ci, false);
+		case CT_Prev:
+		case CT_Next:
+			_setEnabled(ci, false);
 			break;
-			case CT_Rewind:
-			case CT_FastForward:
-			case CT_VolumeUp:
-			case CT_VolumeDown:
-				releaseEvent(ci);
-				_setEnabled(ci, false);
+		case CT_Rewind:
+		case CT_FastForward:
+		case CT_VolumeUp:
+		case CT_VolumeDown:
+			releaseEvent(ci);
+			_setEnabled(ci, false);
 			break;
-				default: return;
+		default: return;
 		}
 		update();
 	}
@@ -109,13 +109,13 @@ void TPMediaControls::pressEvent(controlInfo *ci)
 			ci->current_image = &ci->pressed_image;
 			ci->pressed = true;
 			switch (ci->type) {
-				case CT_Rewind:
-				case CT_FastForward:
-				case CT_VolumeUp:
-				case CT_VolumeDown:
-					_controlClicked(ci);
-				return;
-				default: break;
+			case CT_Rewind:
+			case CT_FastForward:
+			case CT_VolumeUp:
+			case CT_VolumeDown:
+				_controlClicked(ci);
+			return;
+			default: break;
 			}
 		}
 		else {
@@ -132,29 +132,29 @@ void TPMediaControls::releaseEvent(controlInfo *ci)
 {
 	if (ci && ci == m_currentControl && ci->enabled) {
 		switch (ci->type) {
-			case CT_Stop:
-			case CT_Play:
-			case CT_Pause:
-			case CT_Equalizer:
-			case CT_Mute:
-				emit controlClicked(ci->type);
-				_controlClicked(ci);
+		case CT_Stop:
+		case CT_Play:
+		case CT_Pause:
+		case CT_Equalizer:
+		case CT_Mute:
+			emit controlClicked(ci->type);
+			_controlClicked(ci);
 			break;
-			case CT_Prev:
-			case CT_Next:
-				emit controlClicked(ci->type);
-				ci->current_image = &ci->default_image;
-				ci->pressed = false;
-				update(ci->rect);
+		case CT_Prev:
+		case CT_Next:
+			emit controlClicked(ci->type);
+			ci->current_image = &ci->default_image;
+			ci->pressed = false;
+			update(ci->rect);
 			break;
-			case CT_Rewind:
-			case CT_FastForward:
-			case CT_VolumeUp:
-			case CT_VolumeDown:
-				emit controlReleased(ci->type);
-				ci->current_image = &ci->default_image;
-				ci->pressed = false;
-				update(ci->rect);
+		case CT_Rewind:
+		case CT_FastForward:
+		case CT_VolumeUp:
+		case CT_VolumeDown:
+			emit controlReleased(ci->type);
+			ci->current_image = &ci->default_image;
+			ci->pressed = false;
+			update(ci->rect);
 			break;
 		}
 	}
@@ -237,12 +237,12 @@ TPMediaControls::controlInfo *TPMediaControls::controlFromKey(const int key) con
 {
 	ControlType type;
 	switch (key) {
-		case Qt::Key_Space: type = CT_Play; break;
-		case Qt::Key_Left: type = CT_Rewind; break;
-		case Qt::Key_Right: type = CT_FastForward; break;
-		case Qt::Key_Up: type = CT_VolumeUp; break;
-		case Qt::Key_Down: type = CT_VolumeDown; break;
-		default: return nullptr;
+	case Qt::Key_Space: type = CT_Play; break;
+	case Qt::Key_Left: type = CT_Rewind; break;
+	case Qt::Key_Right: type = CT_FastForward; break;
+	case Qt::Key_Up: type = CT_VolumeUp; break;
+	case Qt::Key_Down: type = CT_VolumeDown; break;
+	default: return nullptr;
 	}
 	return controlFromType(type);
 }
@@ -251,50 +251,50 @@ void TPMediaControls::_controlClicked(controlInfo *ci)
 {
 	bool revert_play{false};
 	switch (ci->type) {
-		case CT_Stop:
-			setEnabled(CT_Equalizer, false);
-			setEnabled(CT_Pause, false);
-			setEnabled(CT_Rewind, false);
-			setEnabled(CT_FastForward, false);
-			setEnabled(CT_Stop, false);
-			revert_play = true;
+	case CT_Stop:
+		setEnabled(CT_Equalizer, false);
+		setEnabled(CT_Pause, false);
+		setEnabled(CT_Rewind, false);
+		setEnabled(CT_FastForward, false);
+		setEnabled(CT_Stop, false);
+		revert_play = true;
 		break;
-		case CT_Play:
+	case CT_Play:
 		{
-			setEnabled(CT_Equalizer, true);
-			setEnabled(CT_Stop, true);
-			setEnabled(CT_Rewind, true);
-			setEnabled(CT_FastForward, true);
-			bool vol_keys_enabled{false};
-			controlInfo *ci{controlFromType(CT_Mute)};
-			if (ci)
-				vol_keys_enabled = ci->pressed;
-			setEnabled(CT_VolumeUp, vol_keys_enabled);
-			setEnabled(CT_VolumeDown, vol_keys_enabled);
+		setEnabled(CT_Equalizer, true);
+		setEnabled(CT_Stop, true);
+		setEnabled(CT_Rewind, true);
+		setEnabled(CT_FastForward, true);
+		bool vol_keys_enabled{false};
+		controlInfo *ci{controlFromType(CT_Mute)};
+		if (ci)
+			vol_keys_enabled = ci->pressed;
+		setEnabled(CT_VolumeUp, vol_keys_enabled);
+		setEnabled(CT_VolumeDown, vol_keys_enabled);
 		}
 		break;
-		case CT_Pause:
-			setEnabled(CT_Stop, false);
-			revert_play = true;
+	case CT_Pause:
+		setEnabled(CT_Stop, false);
+		revert_play = true;
 		break;
-		case CT_Prev:
-			setEnabled(CT_Next, true);
+	case CT_Prev:
+		setEnabled(CT_Next, true);
 		break;
-		case CT_Next:
-			setEnabled(CT_Prev, true);
+	case CT_Next:
+		setEnabled(CT_Prev, true);
 		break;
-		case CT_VolumeUp:
-			setEnabled(CT_VolumeDown, true);
+	case CT_VolumeUp:
+		setEnabled(CT_VolumeDown, true);
 		break;
-		case CT_VolumeDown:
-			setEnabled(CT_VolumeUp, true);
+	case CT_VolumeDown:
+		setEnabled(CT_VolumeUp, true);
 		break;
-		case CT_Mute:
-			setEnabled(CT_VolumeUp, ci->pressed);
-			setEnabled(CT_VolumeDown, ci->pressed);
+	case CT_Mute:
+		setEnabled(CT_VolumeUp, ci->pressed);
+		setEnabled(CT_VolumeDown, ci->pressed);
 		break;
-		default:
-			return;
+	default:
+		return;
 	}
 	if (revert_play) {
 		controlInfo *ci_play{controlFromType(CT_Play)};

@@ -1,13 +1,15 @@
+pragma componentBehavior: Bround
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import "../Dialogs"
-import "../TPWidgets"
 import TpQml
+import TpQml.Widgets
+import TpQml.Dialogs
 
 TPPopup {
-	id: chatWindow
+	id: _chatWindow
 	closePolicy: Popup.NoAutoClose
 	spacing: 0
 	padding: 0
@@ -17,8 +19,10 @@ TPPopup {
 	height: normalHeight
 	backGroundImage: ":/images/backgrounds/backimage-chat.jpg"
 
+//public:
 	required property ChatModel chatManager
 
+//private:
 	readonly property int defaultWidth: AppSettings.pageWidth * 0.8
 	readonly property bool canViewNewMessages: messagesList.vBar.position + messagesList.vBar.size >= 1
 
@@ -31,43 +35,43 @@ TPPopup {
 	property int nMedia: 0
 
 	onOpened: {
-		chatManager.onChatWindowOpened();
+		_chatWindow.chatManager.onChatWindowOpened();
 		messagesList.positionViewAtEnd();
 	}
 
 	onActiveFocusChanged: {
 		if (activeFocus)
-			chatManager.markAllIncomingMessagesRead();
+			_chatWindow.chatManager.markAllIncomingMessagesRead();
 	}
 
 	Connections {
-		target: chatManager
+		target: _chatWindow.chatManager
 		function onMessageReceived(): void {
-			if (canViewNewMessages)
+			if (_chatWindow.canViewNewMessages)
 				messagesList.positionViewAtEnd();
 		}
 	}
 
 	TPImage {
 		id: avatarImg
-		source: chatManager.avatarIcon
+		source: _chatWindow.chatManager.avatarIcon
 		dropShadow: false
 		width: AppSettings.itemDefaultHeight
 		height: width
 
 		anchors {
-			verticalCenter: titleBar.verticalCenter
-			left: titleBar.left
+			verticalCenter: _chatWindow.titleBar.verticalCenter
+			left: _chatWindow.titleBar.left
 			leftMargin: 2
 		}
 	}
 
 	TPLabel {
-		text: chatManager.interlocutorName
+		text: _chatWindow.chatManager.interlocutorName
 		elide: Text.ElideRight
 
 		anchors {
-			verticalCenter: titleBar.verticalCenter
+			verticalCenter: _chatWindow.titleBar.verticalCenter
 			left: avatarImg.right
 			leftMargin: 5
 			right: btnMinimizeWindow.left
@@ -76,7 +80,7 @@ TPPopup {
 
 	TPButton {
 		id: btnMaxRestoreWindow
-		imageSource: maximized ? "restore.png" : "maximize.png"
+		imageSource: _chatWindow.maximized ? "restore.png" : "maximize.png"
 		hasDropShadow: false
 		width: AppSettings.itemDefaultHeight
 		height: width
@@ -85,30 +89,30 @@ TPPopup {
 		anchors {
 			top: parent.top
 			topMargin: 2
-			right: btnClose.left
+			right: _chatWindow.btnClose.left
 			rightMargin: 2
 		}
 
-		onClicked: maximizeOrRestoresWindow();
+		onClicked: _chatWindow.maximizeOrRestoresWindow();
 	}
 
 	function  maximizeOrRestoresWindow(): void {
 		if (minimized || maximized) {
-			chatWindow.x = normalX;
-			chatWindow.y = normalY;
-			chatWindow.width = normalWidth;
-			chatWindow.height = normalHeight;
+			_chatWindow.x = normalX;
+			_chatWindow.y = normalY;
+			_chatWindow.width = normalWidth;
+			_chatWindow.height = normalHeight;
 			minimized = maximized = false;
 		}
 		else {
-			normalX = chatWindow.x;
-			normalY = chatWindow.y;
-			normalWidth = chatWindow.width;
-			normalHeight = chatWindow.height;
-			chatWindow.x = 0;
-			chatWindow.y = 0;
-			chatWindow.width = AppSettings.pageWidth;
-			chatWindow.height = AppSettings.pageHeight;
+			normalX = _chatWindow.x;
+			normalY = _chatWindow.y;
+			normalWidth = _chatWindow.width;
+			normalHeight = _chatWindow.height;
+			_chatWindow.x = 0;
+			_chatWindow.y = 0;
+			_chatWindow.width = AppSettings.pageWidth;
+			_chatWindow.height = AppSettings.pageHeight;
 			maximized = true;
 		}
 	}
@@ -117,7 +121,7 @@ TPPopup {
 		id: btnMinimizeWindow
 		imageSource: "minimize.png"
 		hasDropShadow: false
-		enabled: !minimized
+		enabled: !_chatWindow.minimized
 		width: AppSettings.itemDefaultHeight
 		height: width
 		z: 2
@@ -129,25 +133,25 @@ TPPopup {
 			rightMargin: 2
 		}
 
-		onClicked: minimizeWindow();
+		onClicked: _chatWindow.minimizeWindow();
 	}
 
 	function minimizeWindow(): void {
-		normalWidth = maximized ? chatWindow.width - 10 : chatWindow.width;
-		normalHeight = maximized ? chatWindow.height - 10 : chatWindow.height;
-		chatWindow.width = defaultWidth;
-		chatWindow.height = titleBar.height;
+		normalWidth = maximized ? _chatWindow.width - 10 : _chatWindow.width;
+		normalHeight = maximized ? _chatWindow.height - 10 : _chatWindow.height;
+		_chatWindow.width = defaultWidth;
+		_chatWindow.height = titleBar.height;
 		minimized = true;
 		maximized = false;
 	}
 
 	TPListView {
 		id: messagesList
-		contentHeight: availableHeight
-		contentWidth: availableWidth
+		contentHeight: _chatWindow.availableHeight
+		contentWidth: _chatWindow.availableWidth
 		spacing: 15
 		clip: true
-		model: chatManager
+		model: _chatWindow.chatManager
 
 		anchors {
 			top: btnMinimizeWindow.bottom
@@ -167,8 +171,21 @@ TPPopup {
 			width: messagesList.width
 			height: !msgDeleted ? messageRec.height : 0
 
-			property int msgHeight: 10
 			required property int index
+			required property bool msgRead
+			required property bool msgReceived
+			required property bool msgSent
+			required property bool msgDeleted
+			required property bool msgOpenExternally
+			required property bool ownMessage
+			required property string msgText
+			required property string msgMedia
+			required property string msgSentDate
+			required property string msgSentTime
+			required property string msgReceivedDate
+			required property string msgReceivedTime
+
+			property int msgHeight: 10
 
 			readonly property bool inViewport: {
 				const view = messagesList.view;
@@ -182,7 +199,7 @@ TPPopup {
 				color: ownMessage ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2
 				border.color: AppSettings.fontColor
 				radius: 8
-				opacity: 1 + swipe.position
+				opacity: 1 + messageItem.swipe.position
 				width: mainLayout.childrenRect.width + 10
 				height: mainLayout.childrenRect.height + 20
 				visible: !msgDeleted
@@ -197,7 +214,7 @@ TPPopup {
 							anchors.right: parent.right
 						}
 						PropertyChanges {
-							target: messageRec
+							explicit: true
 							anchors.rightMargin: 10
 						}
 					},
@@ -209,7 +226,7 @@ TPPopup {
 							anchors.left: parent.left
 						}
 						PropertyChanges {
-							target: messageRec
+							explicit: true
 							anchors.leftMargin: 10
 						}
 					}
@@ -218,6 +235,7 @@ TPPopup {
 				ColumnLayout {
 					id: mainLayout
 					spacing: 2
+
 					anchors {
 						left: parent.left
 						top: parent.top
@@ -226,16 +244,18 @@ TPPopup {
 
 					Loader {
 						asynchronous: true
-						active: messageItem.inViewport && msgMedia.length > 0
+						active: messageItem.inViewport && messageItem.msgMedia.length > 0
 						Layout.alignment: Qt.AlignCenter
-						Layout.preferredWidth: active ? (msgOpenExternally ? AppSettings.itemExtraLargeHeight : item.preferredWidth) + 10 : 0
-						Layout.preferredHeight: active ? (msgOpenExternally ? AppSettings.itemExtraLargeHeight : preferredHeight) + 10 : 0
+						Layout.preferredWidth: active ? (messageItem.msgOpenExternally ?
+															 AppSettings.itemExtraLargeHeight : item.preferredWidth) + 10 : 0
+						Layout.preferredHeight: active ? (messageItem.msgOpenExternally ?
+															  AppSettings.itemExtraLargeHeight : item.preferredHeight) + 10 : 0
 
 						sourceComponent: TPFileViewer {
 							mediaSource: msgMedia
 
 							onImageSizeChanged: {
-								if (++nMedia === chatManager.nMediaMessages())
+								if (++nMedia === _chatWindow.chatManager.nMediaMessages())
 									waitTimer.start();
 							}
 
@@ -248,10 +268,10 @@ TPPopup {
 					}
 
 					TPLabel {
-						text: msgText
+						text: messageItem.msgText
 						textFormat: Text.RichText
 						singleLine: false
-						visible: msgText.length > 0
+						visible: messageItem.msgText.length > 0
 						Layout.fillWidth: true
 						Layout.maximumWidth: messagesList.width * 0.9
 					}
@@ -262,7 +282,8 @@ TPPopup {
 
 						TPLabel {
 							id: lblExtraInfo
-							text: ownMessage ? msgSentDate + "  " + msgSentTime : msgReceivedDate + "  " + msgReceivedTime
+							text: messageItem.ownMessage ? messageItem.msgSentDate + "  " + messageItem.msgSentTime :
+																	messageItem.msgReceivedDate + "  " + messageItem.msgReceivedTime
 							font: Qt.font({
 								family: Qt.fontFamilies()[0],
 								weight: Font.ExtraLight,
@@ -275,27 +296,27 @@ TPPopup {
 						}
 
 						Loader {
-							active: ownMessage
-							width: AppSettings.itemSmallHeight * 0.5
-							height: width
+							active: messageItem.ownMessage
+							Layout.preferredWidth: AppSettings.itemSmallHeight * 0.5
+							Layout.preferredHeight: AppSettings.itemSmallHeight * 0.5
 							Layout.alignment: Qt.AlignRight
 
 							sourceComponent: TPImage {
-								source: msgRead ? "message-read.png" : "message-sent.png"
-								visible: msgSent
+								source: messageItem.msgRead ? "message-read.png" : "message-sent.png"
+								visible: messageItem.msgSent
 								dropShadow: false
 							}
 						}
 
 						Loader {
-							active: ownMessage
-							width: AppSettings.itemSmallHeight * 0.5
-							height: width
+							active: messageItem.ownMessage
+							Layout.preferredWidth: AppSettings.itemSmallHeight * 0.5
+							Layout.preferredHeight: AppSettings.itemSmallHeight * 0.5
 							Layout.alignment: Qt.AlignRight
 
 							sourceComponent: TPImage {
-								source: msgRead ? "message-read.png" : "message-sent.png"
-								visible: msgReceived
+								source: messageItem.msgRead ? "message-read.png" : "message-sent.png"
+								visible: messageItem.msgReceived
 								dropShadow: false
 							}
 						}
@@ -318,7 +339,7 @@ TPPopup {
 										AppSettings.itemSmallHeight * 0.9 : AppSettings.itemDefaultHeight
 
 				Pane {
-					SwipeDelegate.onClicked: chatManager.removeMessage(index, false);
+					SwipeDelegate.onClicked: _chatWindow.chatManager.removeMessage(index, false);
 
 					background: Rectangle {
 						radius: 8
@@ -360,8 +381,8 @@ TPPopup {
 				}
 
 				Pane {
-					visible: ownMessage
-					SwipeDelegate.onClicked: chatManager.removeMessage(index, true);
+					visible: messageItem.ownMessage
+					SwipeDelegate.onClicked: _chatWindow.chatManager.removeMessage(index, true);
 
 					background: Rectangle {
 						radius: 8
@@ -404,7 +425,7 @@ TPPopup {
 					}
 
 					TPLabel {
-						text: qsTr("Remove as well for ") + chatManager.interlocutorName
+						text: qsTr("Remove as well for ") + _chatWindow.chatManager.interlocutorName
 						color: "white"
 						singleLine: false
 						width: parent.width - 5
@@ -423,7 +444,7 @@ TPPopup {
 	Frame {
 		id: frmFooter
 		height: txtMessage.height + 12
-		visible: !minimized
+		visible: !_chatWindow.minimized
 		padding: 5
 
 		background: Rectangle {
@@ -443,15 +464,15 @@ TPPopup {
 			id: btnScrollDown
 			imageSource: "downward"
 			hasDropShadow: false
-			border.color: chatManager.hasUnreadMessages ? AppSettings.primaryLightColor : "transparent"
+			border.color: _chatWindow.chatManager.hasUnreadMessages ? AppSettings.primaryLightColor : "transparent"
 			border.width: 2
 			width: AppSettings.itemDefaultHeight
 			height: width
-			visible: !canViewNewMessages
+			visible: !_chatWindow.canViewNewMessages
 
 			onClicked: {
 				messagesList.vBar.setPosition(1);
-				chatManager.hasUnreadMessages = false;
+				_chatWindow.chatManager.hasUnreadMessages = false;
 			}
 
 			anchors {
@@ -473,7 +494,7 @@ TPPopup {
 
 			onEnterOrReturnKeyPressed: (mod_key) => {
 				if (mod_key === Qt.Key_Control)
-					sendMessage();
+					_chatWindow.sendMessage();
 			}
 		}
 
@@ -489,7 +510,7 @@ TPPopup {
 				top: txtMessage.top
 			}
 
-			onClicked: sendFile();
+			onClicked: _chatWindow.sendFile();
 		} //TPButton
 
 		TPButton {
@@ -505,7 +526,7 @@ TPPopup {
 				bottom: txtMessage.bottom
 			}
 
-			onClicked: sendMessage("");
+			onClicked: _chatWindow.sendMessage("");
 		} //TPButton
 
 		TPImage {
@@ -514,7 +535,7 @@ TPPopup {
 			dropShadow: false
 			width: AppSettings.itemSmallHeight * 0.6
 			height: width
-			visible: !maximized && !minimized
+			visible: !_chatWindow.maximized && !_chatWindow.minimized
 			z: 1
 
 			anchors {
@@ -559,7 +580,7 @@ TPPopup {
 			includeAllFilesFilter: true
 			onDialogClosed: (result) => {
 				if (result === 0)
-					chatWindow.sendMessage(selectedFile);
+					_chatWindow.sendMessage(selectedFile);
 				sendFileLoader.active = false;
 			}
 		}
@@ -572,7 +593,7 @@ TPPopup {
 	}
 
 	function sendMessage(media_file: string): void {
-		chatManager.createNewMessage(txtMessage.contentsText(), media_file);
+		_chatWindow.chatManager.createNewMessage(txtMessage.contentsText(), media_file);
 		messagesList.positionViewAtEnd();
 		txtMessage.clear();
 	}

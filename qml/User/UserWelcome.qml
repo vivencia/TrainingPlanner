@@ -1,8 +1,7 @@
 import QtQuick
-import QtQuick.Controls
 
-import "../TPWidgets"
-import ".."
+import TpQml
+import TpQml.Widgets
 
 TPLabel {
 	id: lblMain

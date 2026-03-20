@@ -91,13 +91,13 @@ private:
 	};
 
 	QList<controlInfo*> m_controls;
-	controlInfo *m_currentControl;
+	controlInfo *m_currentControl{nullptr};
 	QList<int> m_types;
 	QSize m_controlSize;
 	QColor m_pressedColor;
-	int8_t m_qml_control_spacing;
-	int8_t m_qml_control_extra_height;
-	TPFileOps *m_fileOps;
+	int8_t m_qml_control_spacing{5};
+	int8_t m_qml_control_extra_height{10};
+	TPFileOps *m_fileOps{nullptr};
 	static QImage img_all_controls;
 
 	void pressEvent(controlInfo *ci);

@@ -1,13 +1,11 @@
-import QtQuick
-import QtQuick.Controls
-import QtQuick.Layouts
-import QtCore
+pragma componentBehaviour: Bound
 
-import "../Dialogs"
-import "../ExercisesAndSets"
-import "../TPWidgets"
+import QtQuick
+import QtQuick.Layouts
 
 import TpQml
+import TpQml.Widgets
+import TpQml.Exercises
 
 TPPage {
 	id: exercisesPage
@@ -15,43 +13,45 @@ TPPage {
 	backgroundOpacity: 0.6
 	objectName: "exercisesPage"
 
+//public:
 	required property ExercisesListManager exercisesManager
-	property bool bCanEdit: false
-	property bool bNew: false
-	property bool bEdit: false
-	property bool bChooseButtonEnabled: true
-	property TPImageViewer imageViewer: null
-	property TPVideoPlayer videoViewer: null
+
+//private:
+	property bool _can_edit: false
+	property bool _new: false
+	property bool _editing: false
+	property bool _choose_button_enabled: true
+	property TPFileOps videoViewer: null
 
 	signal exerciseChosen();
 
-	onPageActivated: if (exercisesListModel.count > 0) exercisesList.simulateMouseClick(0, true);
+	onPageActivated: if (AppExercisesList.count > 0)
+						 exercisesList.simulateMouseClick(0, true);
 
 	ExercisesListView {
 		id: exercisesList
 		parentPage: exercisesPage
-		canDoMultipleSelection: bChooseButtonEnabled
-		height: parent.height * 0.5
+		canDoMultipleSelection: exercisesPage._choose_button_enabled
+		height: exercisesPage.height * 0.5
 
 		anchors {
-			top: parent.top
+			top: exercisesPage.top
 			topMargin: 5
-			left: parent.left
+			left: exercisesPage.left
 			leftMargin: 5
-			right: parent.right
+			right: exercisesPage.right
 			rightMargin: 5
 		}
 
-		onExerciseEntrySelected: (index, multipleSelection) => {
-			txtExerciseName.text = exercisesListModel.mainName(index);
-			txtExerciseSubName.text = exercisesListModel.subName(index);
-			txtMuscularGroup.text = exercisesListModel.muscularGroup(index);
-			displaySelectedMedia();
+		onExerciseEntrySelected: (index) => {
+			txtExerciseName.text = AppExercisesList.mainName(index);
+			txtExerciseSubName.text = AppExercisesList.subName(index);
+			txtMuscularGroup.text = AppExercisesList.muscularGroup(index);
 		}
 
 		onItemDoubleClicked: {
 			if (btnChooseExercise.enabled)
-				chooseExercise();
+				exercisesPage.chooseExercise();
 		}
 	}
 
@@ -69,74 +69,64 @@ TPPage {
 		anchors {
 			top: exercisesList.bottom
 			topMargin: -15
-			left: parent.left
+			left: exercisesPage.left
 			leftMargin: 5
-			right: parent.right
+			right: exercisesPage.right
 			rightMargin: 5
-			bottom: parent.bottom
+			bottom: exercisesPage.bottom
 		}
 
 		ColumnLayout {
 			id: layoutMain
-			anchors.fill: parent
+			anchors.fill: exercisesPage
 			anchors.topMargin: 10
 
 			TPLabel {
-				text: exercisesListModel.exerciseNameLabel
+				text: AppExercisesList.exerciseNameLabel
 			}
 			TPTextInput {
 				id: txtExerciseName
-				readOnly: !bCanEdit
-				font.italic: bCanEdit
+				readOnly: !exercisesPage._can_edit
+				font.italic: exercisesPage._can_edit
 				Layout.fillWidth: true
 				Layout.rightMargin: 10
 
 				onEnterOrReturnKeyPressed: txtMuscularGroup.forceActiveFocus();
-				onEditingFinished: exercisesListModel.setMainName(exercisesListModel.currentRow, text);
+				onEditingFinished: AppExercisesList.setMainName(AppExercisesList.currentRow, text);
 			}
 
 			TPLabel {
-				text: exercisesListModel.exerciseSpecificsLabel
+				text: AppExercisesList.exerciseSpecificsLabel
 			}
 
 			TPTextInput {
 				id: txtExerciseSubName
-				readOnly: !bCanEdit
-				font.italic: bCanEdit
+				readOnly: !exercisesPage._can_edit
+				font.italic: exercisesPage._can_edit
 				Layout.fillWidth: true
 				Layout.rightMargin: 10
 
 				onEnterOrReturnKeyPressed: txtExerciseSubName.forceActiveFocus();
-				onEditingFinished: exercisesListModel.setSubName(exercisesListModel.currentRow, text);
+				onEditingFinished: AppExercisesList.setSubName(AppExercisesList.currentRow, text);
 			}
 
 			TPLabel {
-				text: exercisesListModel.muscularGroupsLabel
+				text: AppExercisesList.muscularGroupsLabel
 			}
 			TPTextInput {
 				id: txtMuscularGroup
-				readOnly: !bCanEdit
-				font.italic: bCanEdit
+				readOnly: !exercisesPage._can_edit
+				font.italic: exercisesPage._can_edit
 				Layout.fillWidth: true
 				Layout.rightMargin: 10
 				Layout.minimumHeight: 30
 				Layout.maximumHeight: 80
 
-				onEditingFinished: exercisesListModel.setMuscularGroup(exercisesListModel.currentRow, text);
+				onEditingFinished: AppExercisesList.setMuscularGroup(AppExercisesList.currentRow, text);
 			}
 
 			TPLabel {
-				text: exercisesListModel.mediaLabel
-			}
-
-			TPButton {
-				id: btnChooseMediaFromDevice
-				text: qsTr("Choose media")
-				autoSize: true
-				rounded: false
-				onClicked: fileDialog.show();
-				Layout.alignment: Qt.AlignCenter
-				enabled: bNew || bEdit
+				text: AppExercisesList.mediaLabel
 			}
 		} // ColumnLayout
 	} // ScrollView
@@ -159,27 +149,27 @@ TPPage {
 		TPButton {
 			id: btnNewExercise
 			text: qsTr("New")
-			enabled: !bEdit
+			enabled: !exercisesPage._editing
 			width: toolbarExercises.buttonWidth
 			rounded: false
 
 			onClicked: {
-				if (!bNew) {
-					bNew = true;
-					bCanEdit = true;
-					scrollExercises.ScrollBar.vertical.setPosition(0);
+				if (!exercisesPage._new) {
+					exercisesPage._new = true;
+					exercisesPage._can_edit = true;
+					scrollExercises.setScrollBarPosition(0);
 					txtExerciseName.forceActiveFocus();
 					txtExerciseName.clear();
 					txtExerciseSubName.clear();
 					txtMuscularGroup.clear();
 					exercisesList.enabled = false;
 					text = qsTr("Cancel");
-					exercisesListModel.newExercise();
+					AppExercisesList.newExercise();
 				}
 				else {
-					exercisesListModel.removeRow(exercisesListModel.currentRow);
-					bNew = false;
-					bCanEdit = false;
+					AppExercisesList.removeRow(AppExercisesList.currentRow);
+					exercisesPage._new = false;
+					exercisesPage._can_edit = false;
 					exercisesList.enabled = true;
 					text = qsTr("New");
 				}
@@ -189,22 +179,22 @@ TPPage {
 		TPButton {
 			id: btnEditExercise
 			text: qsTr("Edit")
-			enabled: !bNew && exercisesListModel.currentRow >= 0
+			enabled: !exercisesPage._new && AppExercisesList.currentRow >= 0
 			width: toolbarExercises.buttonWidth
 			rounded: false
 
 			onClicked: {
-				if (!bEdit) {
-					bCanEdit = true;
-					bEdit = true;
-					scrollExercises.ScrollBar.vertical.setPosition(0);
+				if (!exercisesPage._editing) {
+					exercisesPage._can_edit = true;
+					exercisesPage._editing = true;
+					scrollExercises.setScrollBarPosition(0);
 					txtExerciseName.forceActiveFocus();
 					exercisesList.enabled = false;
 					text = qsTr("Cancel");
 				}
 				else {
-					bCanEdit = false;
-					bEdit = false;
+					exercisesPage._can_edit = false;
+					exercisesPage._editing = false;
 					exercisesList.enabled = true;
 					text = qsTr("Edit");
 				}
@@ -213,90 +203,33 @@ TPPage {
 
 		TPButton {
 			id: btnChooseExercise
-			enabled: bChooseButtonEnabled && !bCanEdit && exercisesListModel.currentRow >= 0
+			enabled: exercisesPage._choose_button_enabled && !exercisesPage._can_edit && AppExercisesList.currentRow >= 0
 			text: qsTr("Choose")
 			width: toolbarExercises.buttonWidth
 			rounded: false
 
-			onClicked: chooseExercise();
+			onClicked: exercisesPage.chooseExercise();
 		} //btnChooseExercise
 
 		TPButton {
 			id: btnImExport
 			text: qsTr("In/Export")
-			visible: !bChooseButtonEnabled
+			visible: !exercisesPage._choose_button_enabled
 			width: toolbarExercises.buttonWidth
 			rounded: false
 
-			onClicked: showInExMenu();
+			onClicked: exercisesPage.showInExMenu();
 		} // btnImExport
 
 	} // Row
 
-	TPFileDialog {
-		id: fileDialog
-		title: qsTr("Please choose a media file");
-		includeVideoFilter: true
-
-		onAccepted: {
-			const mediapath = appUtils.getCorrectPath(currentFile);
-			exercisesListModel.setMediaPath(exercisesListModel.currentRow, mediapath);
-			displaySelectedMedia(mediapath);
-		}
-	}
-
 	function chooseExercise(): void {
 		exerciseChosen();
-		mainwindow.appPagesModel.prevPage();
-	}
-
-	function displaySelectedMedia(strMediaPath: string): void {
-		const mediaType = appUtils.getFileType(strMediaPath);
-		if (mediaType === 1) { //video
-			if (imageViewer !== null) {
-				imageViewer.destroy();
-				imageViewer = null;
-			}
-			if (videoViewer === null)
-				generateObject(1, strMediaPath);
-			else
-				videoViewer.mediaSource = strMediaPath;
-		}
-		else {
-			if (mediaType === -1) //unknown
-				strMediaPath = "qrc:/images/no-image.jpg";
-			if (videoViewer !== null) {
-				videoViewer.destroy();
-				videoViewer = null;
-			}
-			if (imageViewer === null)
-				generateObject(0, strMediaPath);
-			else
-				imageViewer.mediaSource = strMediaPath;
-		}
-	}
-
-	function generateObject(obj: int, strMediaPath: string): void {
-		let component = Qt.createComponent(obj === 0 ? "../ImageViewer.qml" : "../VideoPlayer.qml", Qt.Asynchronous);
-		function finishCreation(Obj) {
-			if (Obj === 0)
-				imageViewer = component.createObject(layoutMain, { mediaSource:strMediaPath });
-			else
-				videoViewer = component.createObject(layoutMain, { mediaSource:strMediaPath });
-		}
-
-		function checkStatus() {
-			if (component.status === Component.Ready)
-				finishCreation(obj);
-		}
-		if (component.status === Component.Ready)
-			finishCreation(obj);
-		else
-			component.statusChanged.connect(checkStatus);
+		ItemManager.appPagesManager.prevPage();
 	}
 
 	property TPFloatingMenuBar imExportMenu: null
-	readonly property bool bExportEnabled: !bChooseButtonEnabled
+	readonly property bool bExportEnabled: !exercisesPage._choose_button_enabled
 	onBExportEnabledChanged: {
 		if (imExportMenu) {
 			imExportMenu.enableMenuEntry(1, bExportEnabled);
@@ -305,41 +238,65 @@ TPPage {
 		}
 	}
 
-	function showInExMenu(): void {
-		if (imExportMenu === null) {
-			var imExportMenuComponent = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPFloatingMenuBar.qml");
-			imExportMenu = imExportMenuComponent.createObject(exercisesPage, { parentPage: exercisesPage });
-			imExportMenu.addEntry(qsTr("Import"), "import.png", 0, true);
-			imExportMenu.addEntry(qsTr("Export"), "save-day.png", 1, true);
-			if (Qt.platform.os === "android")
-				imExportMenu.addEntry(qsTr("Share"), "export.png", 2, true);
-			imExportMenu.menuEntrySelected.connect(selectedMenuOption);
+	Loader {
+		id: inExMenuLoader
+		asynchronous: true
+		active: false
+
+		sourceComponent: TPFloatingMenuBar {
+			parentPage: exercisesPage
+			entriesList: [ QtObject {
+					property string label: qsTr("Import");
+					property string image: "import.png";
+					property int id: 0;
+					property bool visible: true},
+
+				QtObject {
+					property string label: qsTr("Export");
+					property string image: "save-day.png";
+					property int id: 1;
+					property bool visible: !exercisesPage._choose_button_enabled},
+
+				QtObject {
+					property string label: qsTr("Share");
+					property string image: "export.png";
+					property int id: 2;
+					property bool visible: !exercisesPage._choose_button_enabled && Qt.platform.os === "android"} ]
+
+			onMenuEntrySelected: (id) => {
+				switch (id) {
+				case 0: exercisesPage.exercisesManager.importExercises(); break;
+				case 1: exercisesPage.showExportDlg(false); break;
+				case 2: exercisesPage.showExportDlg(true); break;
+				}
+			}
+
+			onClosed: inExMenuLoader.active = false;
 		}
-		imExportMenu.show2(btnImExport, 0);
+
+		onLoaded: item.show2(btnImExport, 0);
 	}
 
-	function selectedMenuOption(menuid: int): void {
-		switch (menuid) {
-			case 0: exercisesManager.importExercises(); break;
-			case 1: exportTypeTip.init(false); break;
-			case 2: exportTypeTip.init(true); break;
+	Loader {
+		id: exportDlgLoader
+		asynchronous: true
+		active: false
+
+		property bool share
+
+		sourceComponent: TPBalloonTip {
+			message: exportDlgLoader.share ? qsTr("Share custom exercises?") : qsTr("Export custom exercises to file?")
+			imageSource:  "export"
+			parentPage: exercisesPage
+			closeButtonVisible: true
+			onButton1Clicked: exercisesPage.exercisesManager.exportExercises(exportDlgLoader.share);
+			onClosed: exportDlgLoader.active = false;
 		}
+
+		onLoaded: item.show(-1);
 	}
-
-	TPBalloonTip {
-		id: exportTypeTip
-		message: bShare ? qsTr("Share custom exercises?") : qsTr("Export custom exercises to file?")
-		imageSource:  "export"
-		parentPage: exercisesPage
-		closeButtonVisible: true
-
-		onButton1Clicked: exercisesManager.exportExercises(bShare);
-
-		property bool bShare: false
-
-		function init(share: bool): void {
-			bShare = share;
-			show(-1);
-		}
+	function showExportDlg(share: bool) : void {
+		exportDlgLoader.share = share;
+		exportDlgLoader.active = true;
 	}
 } // Page

@@ -1,13 +1,11 @@
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 
-import "../"
-import "../TPWidgets"
 import TpQml
+import TpQml.Widgets
 
 TPPopup {
-	id: passwdDlg
+	id: _passwdDlg
 	keepAbove: true
 	dim: true
 	width: AppSettings.pageWidth * 0.8
@@ -117,8 +115,8 @@ TPPopup {
 			Layout.alignment: Qt.AlignCenter
 
 			onClicked: {
-				userModel.changePassword(txtCurPassword.getPassword(), txtNewPassword.getPassword());
-				passwdDlg.closePopup();
+				AppUserModel.changePassword(txtCurPassword.getPassword(), txtNewPassword.getPassword());
+				_passwdDlg.closePopup();
 				enabled = false;
 			}
 		}
@@ -128,15 +126,15 @@ TPPopup {
 			text: qsTr("Cancel")
 			autoSize: true
 			Layout.alignment: Qt.AlignCenter
-			Layout.maximumWidth: availableWidth - btn1.width - 10
+			Layout.maximumWidth: _passwdDlg.availableWidth - btn1.width - 10
 
-			onClicked: passwdDlg.closePopup();
+			onClicked: _passwdDlg.closePopup();
 		}
 	}
 
 	function show(ypos: int): void {
 		const totalHeight = lblTitle.height + txtCurPassword.height + txtNewPassword.height + txtConfirmPassword.height;
-		passwdDlg.height = btn1.height + totalHeight + 30;
-		show1(ypos);
+		_passwdDlg.height = btn1.height + totalHeight + 30;
+		_passwdDlg.show1(ypos);
 	}
 }

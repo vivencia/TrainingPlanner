@@ -1,3 +1,5 @@
+pragma componentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -6,15 +8,13 @@ import QtQuick.Pdf
 
 import TpQml
 
-import "../"
-
 TPImage {
-	id: fileViewer
+	id: _fileViewer
 	smooth: false
 	source: _preview_source
 	dropShadow: false
 	keepAspectRatio: true
-	imageSizeFollowControlSize: _file_ops.fileType !== TPUtils.FT_Image
+	imageSizeFollowControlSize: _file_ops.fileType !== AppUtils.FT_IMAGE
 	fullWindowView: false
 
 //public:
@@ -28,10 +28,10 @@ TPImage {
 	property string _preview_source
 	property int _window_state: TPFileViewer.WindowStates.WS_UNDEFINED
 	property FileOperations _file_ops
-	readonly property string _media_uri: "file://" + fileViewer.mediaSource
+	readonly property string _media_uri: "file://" + _fileViewer.mediaSource
 
 	Component.onCompleted: {
-		mediaSource = appUtils.getCorrectPath(mediaSource);
+		mediaSource = AppUtils.getCorrectPath(mediaSource);
 		_window_state = TPFileViewer.WindowStates.WS_NORMAL;
 	}
 
@@ -46,10 +46,10 @@ TPImage {
 
 		states: [
 			State {
-				when: fileViewer._window_state === TPFileViewer.WindowStates.WS_FULLSCREEN
+				when: _fileViewer._window_state === TPFileViewer.WindowStates.WS_FULLSCREEN
 
-				PropertyChanges {
-					target: fileOpsRec
+				ParentChange {
+					target: _fileViewer.fileOpsRec
 					parent: fullScreenLoader.fullScreenWidget.contentItem
 					height: AppSettings.itemLargeHeight
 					width: (FileOperations.OT_TypeCount * (height + 5))
@@ -58,21 +58,21 @@ TPImage {
 				}
 			},
 			State {
-				when: fileViewer._window_state === TPFileViewer.WindowStates.WS_NORMAL
+				when: _fileViewer._window_state === TPFileViewer.WindowStates.WS_NORMAL
 
-				PropertyChanges {
-					target: fileOpsRec
-					parent: fileViewer
+				ParentChange {
+					target: _fileViewer.fileOpsRec
+					parent: _fileViewer
 					height: AppSettings.itemDefaultHeight
 					width: (FileOperations.OT_TypeCount * (height + 5))
-					x: (fileViewer.width - fileOpsRec.width) / 2
-					y: fileViewer.height - fileOpsRec.height - 10
+					x: (_fileViewer.width - fileOpsRec.width) / 2
+					y: _fileViewer.height - fileOpsRec.height - 10
 				}
 			}
 		]
 
 		FileOperations {
-			fileName: mediaSource
+			fileName: _fileViewer.mediaSource
 			anchors.fill: parent
 
 			anchors {
@@ -81,17 +81,17 @@ TPImage {
 			}
 
 			Component.onCompleted: {
-				fileViewer._file_ops = this;
-				fileViewer._preview_source = getFileTypeIcon(fileViewer.mediaSource, Qt.size(0, 0), true);
+				_fileViewer._file_ops = this;
+				_fileViewer._preview_source = getFileTypeIcon(_fileViewer.mediaSource, Qt.size(0, 0), true);
 			}
 			onShowFullScreen: fullScreenLoader.showFullScreen();
-			onFileRemovalRequested: fileViewer.removalRequested();
+			onFileRemovalRequested: _fileViewer.removalRequested();
 		}
 	}
 
 	property Loader mediaControlsLoader: Loader {
 		asynchronous: true
-		active: _file_ops.fileType === TPUtils.FT_VIDEO;
+		active: _fileViewer._file_ops.fileType === AppUtils.FT_VIDEO
 		height: 0
 		width: media_controls ? media_controls.availableControls.length * (height + 10) : 0
 		z: 1
@@ -103,10 +103,10 @@ TPImage {
 
 		states: [
 			State {
-				when: fileViewer._window_state === TPFileViewer.WindowStates.WS_UNDEFINED
+				when: _fileViewer._window_state === TPFileViewer.WindowStates.WS_UNDEFINED
 
-				PropertyChanges {
-					target: mediaControlsLoader
+				ParentChange {
+					target: _fileViewer.mediaControlsLoader
 					parent: null
 					height: 0
 					x: 0
@@ -114,21 +114,21 @@ TPImage {
 				}
 			},
 			State {
-				when: fileViewer._window_state === TPFileViewer.WindowStates.WS_NORMAL
+				when: _fileViewer._window_state === TPFileViewer.WindowStates.WS_NORMAL
 
-				PropertyChanges {
-					target: mediaControlsLoader
-					parent: fileViewer
+				ParentChange {
+					target: _fileViewer.mediaControlsLoader
+					parent: _fileViewer
 					height: AppSettings.itemDefaultHeight
-					x: (fileViewer.width - mediaControlsLoader.width) / 2
-					y: fileViewer.height - mediaControlsLoader.height - fileOpsRec.height - 15
+					x: (_fileViewer.width - mediaControlsLoader.width) / 2
+					y: _fileViewer.height - mediaControlsLoader.height - fileOpsRec.height - 15
 				}
 			},
 			State {
-				when: fileViewer._window_state === TPFileViewer.WindowStates.WS_FULLSCREEN
+				when: _fileViewer._window_state === TPFileViewer.WindowStates.WS_FULLSCREEN
 
-				PropertyChanges {
-					target: mediaControlsLoader
+				ParentChange {
+					target: _fileViewer.mediaControlsLoader
 					parent: fullScreenLoader.fullScreenWidget.contentItem
 					height: AppSettings.itemLargeHeight
 					x: (fullScreenLoader.fullScreenWidget.contentItem.width - mediaControlsLoader.width) / 2
@@ -145,31 +145,31 @@ TPImage {
 
 			MediaControls {
 				id: mediaControls
-				fileOps: fileViewer._file_ops
+				fileOps: _fileViewer._file_ops
 				anchors.fill: parent
 
 				states: [
 					State {
-						when: fileViewer._window_state === TPFileViewer.WindowStates.WS_UNDEFINED
+						when: _fileViewer._window_state === TPFileViewer.WindowStates.WS_UNDEFINED
 
 						PropertyChanges {
-							target: mediaControls
+							explicit: true
 							availableControls: []
 						}
 					},
 					State {
-						when: fileViewer._window_state === TPFileViewer.WindowStates.WS_NORMAL
+						when: _fileViewer._window_state === TPFileViewer.WindowStates.WS_NORMAL
 
 						PropertyChanges {
-							target: mediaControls
+							explicit: true
 							availableControls: mediaControlsLoader.previewControls
 						}
 					},
 					State {
-						when: fileViewer._window_state === TPFileViewer.WindowStates.WS_FULLSCREEN
+						when: _fileViewer._window_state === TPFileViewer.WindowStates.WS_FULLSCREEN
 
 						PropertyChanges {
-							target: mediaControls
+							explicit: true
 							availableControls: mediaControlsLoader.fullScreenControls
 						}
 					}
@@ -218,7 +218,7 @@ TPImage {
 			MediaPlayer {
 				autoPlay: true
 				videoOutput: videoOutput
-				source: fileViewer._media_uri
+				source: _fileViewer._media_uri
 
 				Component.onCompleted: mediaPlayerLoader.mediaPlayer = this;
 
@@ -230,7 +230,7 @@ TPImage {
 					Component.onCompleted: {
 						mediaPlayerLoader.audioOutput = this;
 						mediaPlayerLoader.mediaVolume = Qt.binding(function() { return audioOutput.muted ?
-																				qsTr("Muted") : parseInt(audioOutput.volume * 100, 10); });
+																		qsTr("Muted") : parseInt(audioOutput.volume * 100, 10); });
 					}
 				}
 
@@ -238,7 +238,7 @@ TPImage {
 					if (mediaStatus === MediaPlayer.EndOfMedia)
 						mediaControlsLoader.media_controls.emulateControlClick(MediaControls.CT_Stop);
 				}
-				onPositionChanged: mediaPlayerLoader.remainingTime = appUtils.formatTime(mediaPlayer.duration - mediaPlayer.position);
+				onPositionChanged: mediaPlayerLoader.remainingTime = AppUtils.formatTime(mediaPlayer.duration - mediaPlayer.position);
 			} //MediaPlayer
 
 			TPLabel {
@@ -248,6 +248,24 @@ TPImage {
 				horizontalAlignment: Text.AlignHCenter
 				x: 10
 				y: 10
+				states: [
+					State {
+						when: _fileViewer._window_state === TPFileViewer.WindowStates.WS_NORMAL
+						PropertyChanges {
+							explicit: true
+							font: AppGlobals.regularFont
+							height: AppSettings.itemDefaultHeight
+						}
+					},
+					State {
+						when: _fileViewer._window_state === TPFileViewer.WindowStates.WS_FULLSCREEN
+						PropertyChanges {
+							explicit: true
+							font: AppGlobals.largeFont
+							height: AppSettings.itemLargeHeight
+						}
+					}
+				]
 			}
 			TPLabel {
 				id: lblVolume
@@ -260,49 +278,39 @@ TPImage {
 
 			states: [
 				State {
-					when: fileViewer._window_state === TPFileViewer.WindowStates.WS_UNDEFINED
+					when: _fileViewer._window_state === TPFileViewer.WindowStates.WS_UNDEFINED
 
-					PropertyChanges {
-						target: mediaPlayerLoader
+					ParentChange {
+						target: _fileViewer.mediaPlayerLoader
 						parent: null
 					}
 				},
 				State {
-					when: fileViewer._window_state === TPFileViewer.WindowStates.WS_NORMAL
+					when: _fileViewer._window_state === TPFileViewer.WindowStates.WS_NORMAL
 
-					PropertyChanges {
-						target: mediaPlayerLoader
-						parent: fileViewer
-						width: fileViewer.width
-						height: fileViewer.height
+					ParentChange {
+						target: _fileViewer.mediaPlayerLoader
+						parent: _fileViewer
+						width: _fileViewer.width
+						height: _fileViewer.height
 					}
 					PropertyChanges {
-						target: videoOutput
+						explicit: true
 						fillMode: VideoOutput.Stretch
-					}
-					PropertyChanges {
-						target: lblTime
-						font: AppGlobals.regularFont
-						height: AppSettings.itemDefaultHeight
 					}
 				},
 				State {
-					when: fileViewer._window_state === TPFileViewer.WindowStates.WS_FULLSCREEN
+					when: _fileViewer._window_state === TPFileViewer.WindowStates.WS_FULLSCREEN
 
-					PropertyChanges {
-						target: mediaPlayerLoader
+					ParentChange {
+						target: _fileViewer.mediaPlayerLoader
 						parent: fullScreenLoader.fullScreenWidget.contentItem
 						width: fullScreenLoader.fullScreenWidget.contentItem.width
 						height: fullScreenLoader.fullScreenWidget.contentItem.height
 					}
 					PropertyChanges {
-						target: videoOutput
+						explicit: true
 						fillMode: VideoOutput.PreserveAspectFit
-					}
-					PropertyChanges {
-						target: lblTime
-						font: AppGlobals.largeFont
-						height: AppSettings.itemLargeHeight
 					}
 				}
 			]
@@ -401,10 +409,10 @@ TPImage {
 			if (playing)
 				mediaControlsLoader.media_controls.emulateControlClick(MediaControls.CT_Play);
 
-			if (fileViewer._window_state === TPFileViewer.WindowStates.WS_NORMAL) {
-				fileViewer._window_state = TPFileViewer.WindowStates.WS_UNDEFINED;
+			if (_fileViewer._window_state === TPFileViewer.WindowStates.WS_NORMAL) {
+				_fileViewer._window_state = TPFileViewer.WindowStates.WS_UNDEFINED;
 				item.showFullScreen();
-				fileViewer._window_state = TPFileViewer.WindowStates.WS_FULLSCREEN;
+				_fileViewer._window_state = TPFileViewer.WindowStates.WS_FULLSCREEN;
 			}
 			else
 				item.close();
@@ -418,11 +426,11 @@ TPImage {
 			width: 640
 			height: 480
 			onClosing: (close_event) => {
-				fileViewer._window_state = TPFileViewer.WindowStates.WS_UNDEFINED;
+				_fileViewer._window_state = TPFileViewer.WindowStates.WS_UNDEFINED;
 				if (mediaControlsLoader.active)
 					mediaControlsLoader.media_controls.emulateControlClick(MediaControls.CT_Stop);
 				fullScreenLoader.active = false;
-				fileViewer._window_state = TPFileViewer.WindowStates.WS_NORMAL;
+				_fileViewer._window_state = TPFileViewer.WindowStates.WS_NORMAL;
 			}
 
 			Rectangle {
@@ -432,11 +440,11 @@ TPImage {
 
 			Loader {
 				asynchronous: true
-				active: fileViewer._file_ops.fileType === TPUtils.FT_IMAGE
+				active: _fileViewer._file_ops.fileType === AppUtils.FT_IMAGE
 				anchors.fill: parent
 
 				sourceComponent: TPImage {
-					source: fileViewer.mediaSource
+					source: _fileViewer.mediaSource
 					dropShadow: false
 					antialiasing: true
 					imageSizeFollowControlSize: false
@@ -447,17 +455,17 @@ TPImage {
 
 			Loader {
 				asynchronous: true
-				active: fileViewer._file_ops.fileType === TPUtils.FT_PDF
+				active: _fileViewer._file_ops.fileType === AppUtils.FT_PDF
 				anchors.fill: parent
 
 				sourceComponent: PdfMultiPageView {
 					id: pdfViewer
 					document: PdfDocument {
-						source: fileViewer._media_uri
+						source: _fileViewer._media_uri
 					}
 
 					Connections {
-						target: fileViewer._file_ops
+						target: _fileViewer._file_ops
 						function onMultimediaKeyPressed(key: int): void {
 							switch (key) {
 							case Qt.Key_Left:
@@ -482,7 +490,7 @@ TPImage {
 
 			Loader {
 				asynchronous: true
-				active: fileViewer._file_ops.fileType < TPUtils.FT_IMAGE
+				active: _fileViewer._file_ops.fileType < AppUtils.FT_IMAGE
 				anchors.fill: parent
 
 				sourceComponent: Item {
@@ -501,10 +509,10 @@ TPImage {
 
 						Repeater {
 							id: tabSectionsRepeater
-							model: fileViewer._file_ops.tpFileSectionCount
+							model: _fileViewer._file_ops.tpFileSectionCount
 
 							TPTabButton {
-								text: fileViewer._file_ops.tpFileSectionTitle(index);
+								text: _fileViewer._file_ops.tpFileSectionTitle(index);
 								parentTab: tabSections
 
 								onClicked: sectionsLayout.currentIndex = index;
@@ -522,11 +530,11 @@ TPImage {
 
 						Repeater {
 							id: sectionsRepeater
-							model: fileViewer._file_ops.tpFileSectionCount
+							model: _fileViewer._file_ops.tpFileSectionCount
 
 							TPMultiLineEdit {
 								id: _multiline_edit
-								text: fileViewer._file_ops.tpFileSection(index);
+								text: _fileViewer._file_ops.tpFileSection(index);
 								maxHeight: -1
 								minHeight: height
 								width: sectionsLayout.width
@@ -540,7 +548,7 @@ TPImage {
 								}
 
 								Connections {
-									target: fileViewer._file_ops
+									target: _fileViewer._file_ops
 									function onSetCursorPorsition(cursor_pos: int) : void {
 										if (sectionsLayout.currentIndex === _multiline_edit.index)
 											_multiline_edit.textControl.cursorPosition = cursor_pos;
@@ -553,7 +561,7 @@ TPImage {
 									target: sectionsLayout
 									function onCurrentIndexChanged(): void {
 										if (sectionsLayout.currentIndex === _multiline_edit.index)
-											fileViewer._file_ops.setWorkingTextDocument(_multiline_edit.textControl.textDocument);
+											_fileViewer._file_ops.setWorkingTextDocument(_multiline_edit.textControl.textDocument);
 									}
 								}
 							} //TPMultiLineEdit

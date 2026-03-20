@@ -29,7 +29,7 @@ struct Type##QmlSingleton\
 			Q_ASSERT(engine == s_engine);\
 		else\
 			s_engine = engine;\
-			return s_instance;\
+		return s_instance;\
 	}\
 	private:\
 		static inline Type *s_instance{nullptr};\

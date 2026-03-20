@@ -173,5 +173,5 @@ private:
 	friend OSInterface *appOsInterface();
 };
 
-DECLARE_QML_SINGLETON(OSInterface)
+DECLARE_QML_NAMED_SINGLETON(OSInterface, AppOsInterface)
 inline OSInterface *appOsInterface() { return OSInterface::_app_os_interface; }

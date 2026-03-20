@@ -1,16 +1,12 @@
+pragma componentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 
-import "../"
 import TpQml
 
 ComboBox {
-	property string textColor: AppSettings.fontColor
-	property string backgroundColor: AppSettings.primaryDarkColor
-	property bool completeModel: false
-	property bool selectable: true
-
-	id: control
+	id: _control
 	height: AppSettings.itemLargeHeight
 	implicitHeight: height
 	implicitWidth: width
@@ -19,12 +15,20 @@ ComboBox {
 	padding: 0
 	spacing: 0
 
-	//Prevents the combo box from erasing the current text after the fist click on the combo box when no item is selectec
+//public:
+	property string textColor: AppSettings.fontColor
+	property string backgroundColor: AppSettings.primaryDarkColor
+	property bool completeModel: false
+	property bool selectable: true
+
+//private:
+	//Prevents the combo box from erasing the current text after the fist click on the combo box when no item is selected
 	property int _current_index;
-	property bool ignore_index_change: false
+	property bool _ignore_index_change: false
+
 	onCurrentIndexChanged: {
-		if (ignore_index_change) {
-			ignore_index_change = false;
+		if (_ignore_index_change) {
+			_ignore_index_change = false;
 			return;
 		}
 
@@ -37,7 +41,7 @@ ComboBox {
 
 	delegate: ItemDelegate {
 		id: delegate
-		width: control.width - 10
+		width: _control.width - 10
 		enabled: model.enabled
 		leftPadding: 5
 		rightPadding: 5
@@ -53,14 +57,14 @@ ComboBox {
 			text: model.text
 			elide: Text.ElideRight
 			minimumPixelSize: AppSettings.smallFontSize * 0.8
-			leftPadding: completeModel ? AppSettings.itemDefaultHeight + 5 : 5
+			leftPadding: _control.completeModel ? AppSettings.itemDefaultHeight + 5 : 5
 			enabled: model.enabled
 
 			TPImage {
 				id: lblImg
-				source: completeModel ? model.icon : ""
+				source: _control.completeModel ? model.icon : ""
 				dropShadow: false
-				visible: completeModel
+				visible: _control.completeModel
 				width: AppSettings.itemSmallHeight
 				height: width
 
@@ -71,19 +75,19 @@ ComboBox {
 				}
 			}
 		}
-		highlighted: control.highlightedIndex === index
+		highlighted: _control.highlightedIndex === index
 	}
 
 	indicator: Canvas {
 		id: canvas
-		x: control.width - width - control.rightPadding
-		y: control.topPadding + (control.availableHeight - height) / 2
+		x: _control.width - width - _control.rightPadding
+		y: _control.topPadding + (_control.availableHeight - height) / 2
 		width: AppSettings.itemDefaultHeight / 2
 		height: width
 		contextType: "2d"
 
 		Connections {
-			target: control
+			target: _control
 			function onEnabledChanged() { canvas.requestPaint(); }
 		}
 
@@ -94,22 +98,22 @@ ComboBox {
 				context.lineTo(width, 0);
 				context.lineTo(width / 2, height);
 				context.closePath();
-				context.fillStyle = control.enabled ? textColor : AppSettings.disabledFontColor
+				context.fillStyle = _control.enabled ? _control.textColor : AppSettings.disabledFontColor
 				context.fill();
 			}
 		}
 	}
 
 	contentItem: TPLabel {
-		text: control.displayText
-		leftPadding: completeModel ? AppSettings.itemDefaultHeight + 5 : 5
+		text: _control.displayText
+		leftPadding: _control.completeModel ? AppSettings.itemDefaultHeight + 5 : 5
 		minimumPixelSize: AppSettings.smallFontSize * 0.8
 		elide: Text.ElideRight
 	}
 
 	TPImage {
-		visible: completeModel
-		source: completeModel ? model.get(currentIndex).icon : ""
+		visible: _control.completeModel
+		source: _control.completeModel ? model.get(currentIndex).icon : ""
 		dropShadow: false
 		width: AppSettings.itemSmallHeight
 		height: width
@@ -122,30 +126,30 @@ ComboBox {
 	}
 
 	background: Rectangle {
-		implicitWidth: control.implicitWidth
-		implicitHeight: control.implicitHeight
-		color: control.enabled ? backgroundColor : "transparent"
+		implicitWidth: _control.implicitWidth
+		implicitHeight: _control.implicitHeight
+		color: _control.enabled ? _control.backgroundColor : "transparent"
 		opacity: 0.8
-		border.width: control.visualFocus ? 2 : 1
-		border.color: textColor
+		border.width: _control.visualFocus ? 2 : 1
+		border.color: _control.textColor
 		radius: 8
 	}
 
 	popup: Popup {
-		y: control.height - 1
-		width: control.width
+		y: _control.height - 1
+		width: _control.width
 		implicitHeight: contentItem.implicitHeight
 		padding: 0
 		spacing: 0
 
 		contentItem: ListView {
 			implicitHeight: contentHeight
-			model: control.popup.visible ? control.delegateModel : null
-			currentIndex: control.highlightedIndex
-			highlight: selectable ? highlight_component : null
+			model: _control.popup.visible ? _control.delegateModel : null
+			currentIndex: _control.highlightedIndex
+			highlight: _control.selectable ? highlight_component : null
 			highlightFollowsCurrentItem: false
 			delegateModelAccess: DelegateModel.ReadOnly
-			enabled: selectable
+			enabled: _control.selectable
 
 			Component {
 				id:	highlight_component
@@ -167,15 +171,15 @@ ComboBox {
 		}
 
 		background: Rectangle {
-			border.color: textColor
-			color: backgroundColor
+			border.color: _control.textColor
+			color: _control.backgroundColor
 			opacity: 0.9
 			radius: 8
 		}
 	}
 
 	function setCurIndex(new_index: int): void {
-		ignore_index_change = true;
-		control.currentIndex = new_index;
+		_control._ignore_index_change = true;
+		_control.currentIndex = new_index;
 	}
 }

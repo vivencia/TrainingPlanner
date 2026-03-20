@@ -1,12 +1,12 @@
+pragma componentBahavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import "../"
-import "../TPWidgets"
-import "../User"
-
 import TpQml
+import TpQml.Widgets
+import TpQml.User
 
 TPPage {
 	id: clientsPage
@@ -14,7 +14,6 @@ TPPage {
 	imageSource: AppSettings.clientsBackground
 	backgroundOpacity: 0.6
 
-	required property UserManager userManager
 	property int userRow
 
 	onPageActivated: {
@@ -32,14 +31,14 @@ TPPage {
 		id: lblMain
 		text: qsTr("Clients");
 		font: AppGlobals.extraLargeFont
-		width: parent.width
+		width: clientsPage.width
 		horizontalAlignment: Text.AlignHCenter
 
 		anchors {
-			top: parent.top
+			top: clientsPage.top
 			topMargin: 20
-			left: parent.left
-			right: parent.right
+			left: clientsPage.left
+			right: clientsPage.right
 		}
 	}
 
@@ -52,14 +51,14 @@ TPPage {
 			text: qsTr("Clients")
 			enabled: clientsList.enabled
 
-			onClicked: userRow = userModel.currentClients.getUserIdx();
+			onClicked: clientsPage.userRow = AppUserModel.currentClients.getUserIdx();
 		}
 
 		TPTabButton {
 			text: qsTr("Pending requests")
 			enabled: pendingClientsList.enabled
 
-			onClicked: userRow = userModel.pendingClientsRequests.getUserIdx();
+			onClicked: clientsPage.userRow = AppUserModel.pendingClientsRequests.getUserIdx();
 		}
 
 		anchors {
@@ -95,9 +94,7 @@ TPPage {
 			Layout.fillHeight: true
 
 			onItemSelected: (userRow) => clientsPage.userRow = userRow;
-			onButtonClicked: showRemoveMessage(false,
-					qsTr("Remove ") + userModel.userName(clientsPage.userRow) + "?",
-					qsTr("The client will be notified of your decision, but might still contact you unless you block them"));
+			onButtonClicked: showRemoveMessage(false);
 		} //TPCoachesAndClientsList: clientsList
 
 		Item {
@@ -119,8 +116,8 @@ TPPage {
 					rightMargin: 5
 				}
 
-				//Temporary users(not confirmed) will always have the same index: userModel.count() - 1, so we need
-				//to reset the userRow property in order for it to get a onChanged signal
+				//Temporary users(not confirmed) will always have the same index: AppUserModel.count() - 1, so we need
+				//to reset the clientsPage.userRow property in order for it to get a onChanged signal
 				onItemSelected: (userRow) => {
 					clientsPage.userRow = -1;
 					clientsPage.userRow = userRow;
@@ -130,7 +127,7 @@ TPPage {
 			RowLayout {
 				uniformCellSizes: true
 				height: AppSettings.itemDefaultHeight
-				enabled: userRow != 0 && pendingClientsList.enabled  && pendingClientsList.currentIndex !== -1
+				enabled: clientsPage.userRow != 0 && pendingClientsList.enabled  && pendingClientsList.currentIndex !== -1
 
 				anchors {
 					top: pendingClientsList.bottom
@@ -146,7 +143,7 @@ TPPage {
 					Layout.alignment: Qt.AlignCenter
 
 					onClicked: {
-						userModel.acceptUser(userModel.pendingClientsRequests, pendingClientsList.currentIndex);
+						AppUserModel.acceptUser(AppUserModel.pendingClientsRequests, pendingClientsList.currentIndex);
 						if (!pendingClientsList.enabled) {
 							if (clientsList.enabled)
 								tabbar.setCurrentIndex(0);
@@ -159,9 +156,7 @@ TPPage {
 					rounded: false
 					Layout.alignment: Qt.AlignCenter
 
-					onClicked: showRemoveMessage(true,
-								qsTr("Decline ") + userModel.pendingClientsRequests.display(userModel.pendingClientsRequests.currentRow) + "?",
-								qsTr("The client will receive your reply, but might choose to send another request unless you block them"));
+					onClicked: showRemoveMessage(true);
 				}
 			}
 		}//Item
@@ -191,66 +186,66 @@ TPPage {
 				id: usrData
 				userRow: clientsPage.userRow
 				parentPage: clientsPage
-				width: AppSettings.pageWidth - 20
+				Layout.preferredWidth: AppSettings.pageWidth - 20
 			}
 
 			UserContact {
 				id: usrContact
 				userRow: clientsPage.userRow
-				width: AppSettings.pageWidth - 20
+				Layout.preferredWidth: AppSettings.pageWidth - 20
 			}
 
 			UserProfile {
 				id: usrProfile
 				userRow: clientsPage.userRow
 				parentPage: clientsPage
-				width: AppSettings.pageWidth - 20
+				Layout.preferredWidth: AppSettings.pageWidth - 20
 			}
 		}
 	}
 
-	property TPBalloonTip msgRemoveUser: null
-	function showRemoveMessage(decline: bool, Title: string, Message: string): void {
-		if (!AppSettings.alwaysAskConfirmation) {
-			removeOrDecline(decline);
-			return;
+	Loader {
+		id: removeUserDlgLoader
+		asynchronous: true
+		active: false
+
+		property bool decline
+
+		sourceComponent: TPBalloonTip {
+			parentPage: clientsPage
+			imageSource: "remove"
+			keepAbove: true
+			message: removeUserDlgLoader.decline ?
+						 qsTr("The client will receive your reply, but might choose to send another request unless you block them") :
+						 qsTr("The client will be notified of your decision, but might still contact you unless you block them")
+			onButton1Clicked: clientsPage.removeOrDecline(removeUserDlgLoader.decline);
+			onClosed: removeuserDlgLoader.active = false;
 		}
 
-		if (msgRemoveUser === null) {
-			function createMessageBox() {
-				let component = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
-
-				function finishCreation() {
-					msgRemoveUser = component.createObject(clientsPage, { parentPage: clientsPage, imageSource: "remove", keepAbove: true,
-															title: Title, message: Message });
-					msgRemoveUser.button1Clicked.connect(function () { removeOrDecline(decline); });
-					msgRemoveUser.show(-1);
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			createMessageBox();
+		onLoaded: {
+			if (decline)
+				item.title = qsTr("Remove ") + AppUserModel.userName(clientsPage.userRow) + "?";
+			else
+				item.title = qsTr("Decline ") +
+								AppUserModel.pendingClientsRequests.display(AppUserModel.pendingClientsRequests.currentRow) + "?";
+			item.show(-1);
 		}
-		else {
-			msgRemoveUser.title = Title;
-			msgRemoveUser.message = Message;
-			msgRemoveUser.show(-1);
-		}
+	}
+	function showRemoveMessage(decline: bool): void {
+		removeUserDlgLoader.decline = decline;
+		removeUserDlgLoader.active = true;
 	}
 
 	function removeOrDecline(decline: bool) {
 		if (!decline) {
-			userModel.removeUser(userRow);
+			AppUserModel.removeUser(clientsPage.userRow);
 			if (!clientsList.enabled)
 				if (pendingClientsList.enabled) {
 					tabbar.setCurrentIndex(1);
 			}
 		}
 		else {
-			userModel.rejectUser(userModel.pendingClientsRequests, pendingClientsList.currentIndex);
+			AppUserModel.rejectUser(AppUserModel.pendingClientsRequests, pendingClientsList.currentIndex);
 			if (!pendingClientsList.enabled) {
 				if (clientsList.enabled)
 					tabbar.setCurrentIndex(0);

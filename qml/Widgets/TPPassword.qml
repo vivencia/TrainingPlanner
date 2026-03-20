@@ -4,7 +4,7 @@ import QtQuick.Controls
 import TpQml
 
 FocusScope {
-	id: control
+	id: _control
 	height: 2 * AppSettings.itemDefaultHeight
 	implicitHeight: height
 
@@ -21,8 +21,8 @@ FocusScope {
 
 	TPLabel {
 		id: lblPassword
-		text: (customLabel.length === 0 ? userModel.passwordLabel : customLabel) +
-					(includeNotAllowableChars ? "(" + notAllowableChars + qsTr(" not allowed)") : "")
+		text: (_control.customLabel.length === 0 ? AppUserModel.passwordLabel : _control.customLabel) +
+							(_control.includeNotAllowableChars ? "(" + _control.notAllowableChars + qsTr(" not allowed)") : "")
 		singleLine: true
 		height: AppSettings.itemDefaultHeight
 
@@ -42,13 +42,13 @@ FocusScope {
 		property bool matchOK: true
 
 		onEnterOrReturnKeyPressed: {
-			passwordOK = inputOK && matchOK;
-			if (passwordOK)
-				passwordAccepted();
+			_control.passwordOK = inputOK && matchOK;
+			if (_control.passwordOK)
+				_control.passwordAccepted();
 		}
 
 		onTextChanged: {
-			passwordOK = matchOK = inputOK = text.length >= 6;
+			_control.passwordOK = matchOK = inputOK = text.length >= 6;
 			ToolTip.visible = !inputOK;
 		}
 
@@ -56,30 +56,30 @@ FocusScope {
 			if (acceptableInput) {
 				if (text.length < 6) {
 					matchOK = inputOK = false;
-					passwordOK = false;
-					passwordUnacceptable();
-					ToolTip.text = userModel.invalidPasswordLabel
+					_control.passwordOK = false;
+					_control.passwordUnacceptable();
+					ToolTip.text = AppUserModel.invalidPasswordLabel
 					ToolTip.visible = true;
 				}
 				else {
 					inputOK = true;
 					ToolTip.visible = false;
-					if (matchAgainst.length > 0) {
-						matchOK = text === matchAgainst;
+					if (_control.matchAgainst.length > 0) {
+						matchOK = text === _control.matchAgainst;
 						if (matchOK) {
-							passwordOK = true;
-							passwordAccepted();
+							_control.passwordOK = true;
+							_control.passwordAccepted();
 						}
 						else {
-							passwordOK = false;
-							passwordUnacceptable();
+							_control.passwordOK = false;
+							_control.passwordUnacceptable();
 							ToolTip.text = qsTr("Passwords do not match")
 							ToolTip.visible = true;
 						}
 					}
 					else {
-						passwordOK = true;
-						passwordAccepted();
+						_control.passwordOK = true;
+						_control.passwordAccepted();
 					}
 				}
 			}
@@ -90,7 +90,7 @@ FocusScope {
 			topMargin: 5
 			left: parent.left
 			right: parent.right
-			rightMargin: showAcceptButton ? AppSettings.itemDefaultHeight + 5 : 5
+			rightMargin: _control.showAcceptButton ? AppSettings.itemDefaultHeight + 5 : 5
 		}
 	}
 
@@ -100,14 +100,14 @@ FocusScope {
 		width: AppSettings.itemDefaultHeight
 		height: width
 		enabled: txtPassword.inputOK && txtPassword.matchOK
-		visible: showAcceptButton
+		visible: _control.showAcceptButton
 
 		anchors {
 			verticalCenter: txtPassword.verticalCenter
 			left: txtPassword.right
 		}
 
-		onClicked: passwordAccepted();
+		onClicked: _control.passwordAccepted();
 	}
 
 	function setPasswordText(passwd: string): void {

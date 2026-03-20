@@ -61,8 +61,6 @@ public:
 signals:
 	void countChanged();
 	void currentIndexChanged();
-	void pageActivated(QQuickItem *page);
-	void pageDeActivated(QQuickItem *page);
 
 protected:
 	bool eventFilter(QObject *obj, QEvent *event) override;
@@ -82,6 +80,8 @@ private:
 	int m_backKey;
 
 	void openQMLPage(const uint index);
+	void activateQmlPage(const uint index);
+	void deActivateQmlPage(const uint index);
 	#ifndef Q_OS_ANDROID
 	static QHash<QString,PagesListModel*> app_Pages_list_models;
 	#else

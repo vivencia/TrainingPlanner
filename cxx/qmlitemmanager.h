@@ -52,6 +52,13 @@ public:
 	Q_INVOKABLE void showSimpleExercisesList(QQuickItem *parentPage, const QString &filter);
 	Q_INVOKABLE void getWeatherPage();
 	Q_INVOKABLE void getStatisticsPage();
+	Q_INVOKABLE void displayMessageOnAppWindow(const int message_id, const QString &filename_or_message = QString{},
+														const QString &image_source = QString{}, const uint msecs = 5000) const;
+	Q_INVOKABLE inline void showTextCopiedMessage(const QString &message = QString{})
+	{
+		displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, message.isEmpty() ?
+																  tr("Text copied to the clipboard") : message, QString{}, 3000);
+	}
 
 	void displayActivityResultMessage(const int requestCode, const int resultCode) const;
 	void getPasswordDialog(const QString &title, const QString &message) const;
@@ -70,8 +77,6 @@ signals:
 
 public slots:
 	void mainWindowStarted() const;
-	void displayMessageOnAppWindow(const int message_id, const QString &filename_or_message = QString{},
-																const QString &image_source = QString{}, const uint msecs = 5000) const;
 	void openTPFile(uint32_t tp_filetype, const QString &filename, const bool formatted, const QVariant &extra_info);
 	void homePageViewChanged(const bool own_mesos_view);
 	inline void qmlPasswordDialogClosed_slot(int resultCode, const QString &password) { emit qmlPasswordDialogClosed(resultCode, password); }

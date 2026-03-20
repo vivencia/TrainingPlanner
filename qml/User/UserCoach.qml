@@ -1,33 +1,34 @@
+pragma componentBehavior: Bound
+
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Dialogs
-import QtCore
 
 import TpQml
-
-import "../Dialogs"
-import "../TPWidgets"
-import "../Pages"
+import TpQml.Widgets
+import TpQml.Pages
+import TpQml.Dialogs
 
 ColumnLayout {
 	id: userCoachModule
 
+//public:
 	required property int userRow
 	required property TPPage parentPage
 	property bool bReady: false
+
+//private:
 	property bool bCoachOK: false
 	property bool bChooseResume: false
-	property bool bRescindCoaching: false
+	property bool bRescindCoach: false
 	property bool bResumeSent: false
 
-	onBCoachOKChanged: bReady = bCoachOK;
+	onBCoachOKChanged: bReady = userCoachModule.bCoachOK;
 
 	Connections {
-		target: userModel
+		target: AppUserModel
 		function onUserModified(row: int, field: int): void {
-			if (row === userRow && field >= 100)
-				getUserInfo();
+			if (row === userCoachModule.userRow && field >= 100)
+				userCoachModule.getUserInfo();
 		}
 	}
 
@@ -41,14 +42,14 @@ ColumnLayout {
 		id: optPersonalUse
 		text: qsTr("I will use this application to track my own workouts only")
 		multiLine: true
-		actionable: userRow === 0
+		actionable: userCoachModule.userRow === 0
 		Layout.fillWidth: true
 		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 30 : 10
 
 		onClicked: {
-			bReady = checked;
+			userCoachModule.bReady = checked;
 			if (checked)
-				userModel.setAppUseMode(userRow, 1 + (chkHaveCoach.checked ? 2 : 0));
+				AppUserModel.setAppUseMode(userCoachModule.userRow, 1 + (chkHaveCoach.checked ? 2 : 0));
 			optCoachUse.checked = false;
 		}
 	}
@@ -57,13 +58,13 @@ ColumnLayout {
 		id: optCoachUse
 		text: qsTr("I will use this application to track my own workouts and/or coach or train other people")
 		multiLine: true
-		actionable: userRow === 0
+		actionable: userCoachModule.userRow === 0
 		Layout.fillWidth: true
 
 		onClicked: {
-			bCoachOK = checked;
+			userCoachModule.bCoachOK = checked;
 			if (checked)
-				userModel.setAppUseMode(userRow, 2 + (chkHaveCoach.checked ? 2 : 0));
+				AppUserModel.setAppUseMode(userCoachModule.userRow, 2 + (chkHaveCoach.checked ? 2 : 0));
 			optPersonalUse.checked = false;
 		}
 	}
@@ -72,28 +73,28 @@ ColumnLayout {
 		id: chkOnlineCoach
 		text: qsTr("Make myself available online for TP users to contact me")
 		radio: false
-		checked: userModel.isCoachRegistered();
+		checked: AppUserModel.isCoachRegistered();
 		multiLine: true
-		actionable: userRow === 0
-		enabled: userModel.mainUserConfigured && userModel.onlineAccount && optCoachUse.checked && userRow === 0
+		actionable: userCoachModule.userRow === 0
+		enabled: AppUserModel.mainUserConfigured && AppUserModel.onlineAccount && optCoachUse.checked && userCoachModule.userRow === 0
 		Layout.fillWidth: true
 		Layout.leftMargin: 10
 		Layout.rightMargin: 10
 
 		Connections {
-			target: userModel
+			target: AppUserModel
 			function onCoachOnlineStatus(registered: bool): void { chkOnlineCoach.checked = registered; }
 		}
 
 		onClicked: {
-			if (!checked && userModel.isCoachRegistered()) {
-				if (userModel.haveClients)
-					bRescindCoaching = true;
+			if (!checked && AppUserModel.isCoachRegistered()) {
+				if (AppUserModel.haveClients)
+					userCoachModule.bRescindCoach = true;
 			}
 			else {
-				userModel.setCoachPublicStatus(checked);
+				AppUserModel.setCoachPublicStatus(checked);
 				if (checked)
-					bCoachOK = bResumeSent;
+					userCoachModule.bCoachOK = userCoachModule.bResumeSent;
 			}
 		}
 	}
@@ -106,12 +107,12 @@ ColumnLayout {
 		Layout.preferredWidth: parent.width/2
 		Layout.alignment: Qt.AlignCenter
 
-		onClicked: bChooseResume = true;
+		onClicked: userCoachModule.bChooseResume = true;
 	}
 
 	Loader {
 		id: rescindCoachingLoader
-		active: bRescindCoaching
+		active: userCoachModule.bRescindCoach
 		asynchronous: true
 
 		sourceComponent: TPBalloonTip {
@@ -120,12 +121,12 @@ ColumnLayout {
 			imageSource: "warning"
 
 			onButton1Clicked: {
-				userModel.setCoachPublicStatus(false);
-				bRescindCoaching = false;
+				AppUserModel.setCoachPublicStatus(false);
+				userCoachModule.bRescindCoach = false;
 			}
 			onButton2Clicked: {
 				chkOnlineCoach.checked = true;
-				bRescindCoaching = false;
+				userCoachModule.bRescindCoach = false;
 			}
 		}
 
@@ -134,7 +135,7 @@ ColumnLayout {
 
 	Loader {
 		id: chooseResumeLoader
-		active: bChooseResume
+		active: userCoachModule.bChooseResume
 		asynchronous: true
 
 		sourceComponent: TPFileDialog {
@@ -144,12 +145,12 @@ ColumnLayout {
 			includeDocFilesFilter: true
 
 			onAccepted: {
-				userModel.uploadResume(currentFile);
-				bChooseResume = false;
-				bResumeSent = true;
-				bCoachOK = true;
+				AppUserModel.uploadResume(currentFile);
+				userCoachModule.bChooseResume = false;
+				userCoachModule.bResumeSent = true;
+				userCoachModule.bCoachOK = true;
 			}
-			onRejected: bChooseResume = false;
+			onRejected: userCoachModule.bChooseResume = false;
 		}
 
 		onLoaded: item.open();
@@ -160,26 +161,26 @@ ColumnLayout {
 		text: qsTr("I intend to or do use a coach or a personal trainer")
 		radio: false
 		multiLine: true
-		actionable: userRow === 0
+		actionable: userCoachModule.userRow === 0
 		Layout.fillWidth: true
 
 		onClicked: {
 			if (checked)
-				userModel.setAppUseMode(userRow, 2 + (optPersonalUse.checked ? 1 : (optCoachUse.checked ? 2 : 0)));
+				AppUserModel.setAppUseMode(userCoachModule.userRow, 2 + (optPersonalUse.checked ? 1 : (optCoachUse.checked ? 2 : 0)));
 			else
-				userModel.setAppUseMode(userRow, optPersonalUse.checked ? 1 : (optCoachUse.checked ? 2 : 0));
+				AppUserModel.setAppUseMode(userCoachModule.userRow, optPersonalUse.checked ? 1 : (optCoachUse.checked ? 2 : 0));
 		}
 	}
 
 	function getUserInfo(): void {
-		if (userRow === -1)
+		if (userCoachModule.userRow === -1)
 			return;
-		const app_use_mode = userModel.appUseMode(userRow);
-		bReady = app_use_mode === 1 || app_use_mode === 3;
-		optPersonalUse.checked = bReady;
-		if (!bReady) {
-			bCoachOK = app_use_mode === 2 || app_use_mode === 4;
-			optCoachUse.checked = bCoachOK;
+		const app_use_mode = AppUserModel.appUseMode(userCoachModule.userRow);
+		userCoachModule.bReady = app_use_mode === 1 || app_use_mode === 3;
+		optPersonalUse.checked = userCoachModule.bReady;
+		if (!userCoachModule.bReady) {
+			userCoachModule.bCoachOK = app_use_mode === 2 || app_use_mode === 4;
+			optCoachUse.checked = userCoachModule.bCoachOK;
 			chkHaveCoach.checked = app_use_mode === 3 || app_use_mode === 4;
 		}
 	}

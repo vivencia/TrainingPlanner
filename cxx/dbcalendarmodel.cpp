@@ -97,7 +97,7 @@ void DBCalendarModel::setSplitLetter(const QDate &date, const QString &new_split
 	const auto cal_day{calendarDay(date)};
 	if (cal_day != -1) {
 		setDayInfo(cal_day, CALENDAR_FIELD_SPLITLETTER, new_splitletter);
-		emit splitLetterChanged();
+		emit splitLetterChanged(date);
 	}
 }
 

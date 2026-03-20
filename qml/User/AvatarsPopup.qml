@@ -1,21 +1,19 @@
+pragma componentBahavior: Bound
+
 import QtQuick
-import QtQuick.Controls
-import QtQuick.Dialogs
-import QtCore
 
 import TpQml
-
-import "../TPWidgets"
-import "../Dialogs"
+import TpQml.Widgets
+import TpQml.Dialogs
 
 TPPopup {
 	id: avatarsDlg
 	closeButtonVisible: false
 	showTitleBar: false
 	width: AppSettings.pageWidth
-	height: (repeater.bMale ? 2 * AppSettings.pageWidth/5 : 3 * AppSettings.pageWidth/5) + 30
+	height: (repeater.bMale ? 2 * AppSettings.pageWidth / 5 : 3 * AppSettings.pageWidth/5) + 30
 	x: 0
-	finalYPos: (AppSettings.pageHeight-height)/2;
+	finalYPos: (AppSettings.pageHeight-height) / 2;
 
 	required property int userRow
 	required property Item callerWidget
@@ -31,7 +29,7 @@ TPPopup {
 			text: qsTr("Choose another image...")
 			topPadding: 5
 			leftPadding: 10
-			width: parent.width*0.4
+			width: parent.width * 0.4
 
 			anchors {
 				left: parent.left
@@ -51,7 +49,7 @@ TPPopup {
 				top: parent.top
 			}
 
-			onClicked: fileDialog.show();
+			onClicked: fileDialogLoader.active = true;
 		}
 
 		anchors {
@@ -65,16 +63,18 @@ TPPopup {
 		id: repeater
 		model: bMale ? 10 : 15
 
-		readonly property bool bMale: userModel.sex(userRow) === 0
+		readonly property bool bMale: AppUserModel.sex(avatarsDlg.userRow) === 0
 		readonly property string strSex: bMale ? "m" : "f"
 
 		delegate: Rectangle {
-			width: AppSettings.pageWidth/5
+			width: AppSettings.pageWidth / 5
 			height: width
 			border.color: "black"
 			border.width: 2
 			x: (index % 5) * width
 			y: Math.floor(index / 5) * height
+
+			required property int index
 
 			TPImage {
 				source: "image://tpimageprovider/" + repeater.strSex + parseInt(index)
@@ -98,14 +98,24 @@ TPPopup {
 		}
 	}
 
-	TPFileDialog {
-		id: fileDialog
-		title: qsTr("Choose an image to be used as the avatar for the profile")
-		includeImageFilter: true
+	Loader {
+		id: fileDialogLoader
+		asynchronous: true
+		active: false
 
-		onAccepted: {
-			callerWidget.selectExternalAvatar(appUtils.getCorrectPath(currentFile));
-			avatarsDlg.close();
+		sourceComponent: TPFileDialog {
+			id: fileDialog
+			title: qsTr("Choose an image to be used as the avatar for the profile")
+			includeImageFilter: true
+
+			onAccepted: {
+				callerWidget.selectExternalAvatar(appUtils.getCorrectPath(currentFile));
+				fileDialogLoader.active = false;
+				avatarsDlg.close();
+			}
+			onRejected: fileDialogLoader.active = false;
 		}
+
+		onLoaded: item.show();
 	}
 }

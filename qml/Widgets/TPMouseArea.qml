@@ -1,40 +1,43 @@
 import QtQuick
 
 MouseArea {
-	anchors.fill: movingWidget
-	z: 1
 	propagateComposedEvents: true
 	pressAndHoldInterval: 300
+	z: 1
+	anchors.fill: movingWidget
 
+//public:
 	required property var movingWidget
 	required property var movableWidget
-	property point mousePosWithinWidget
-	property bool bPressed: false
 
 	signal mouseClicked();
 	signal moved(int x, int y);
 
+//private:
+	property point _mouse_pos_within_widget
+	property bool _pressed: false
+
 	onReleased: (mouse) => {
-		if (!bPressed) {
+		if (!_pressed) {
 			mouse.accepted = false;
 			mouseClicked();
 		}
 		else {
-			bPressed = false;
+			_pressed = false;
 			mouse.accepted = true;
 		}
 	}
 	onClicked: (mouse) => mouse.accepted = false;
 	onPressAndHold: (mouse) => {
-		bPressed = true;
+		_pressed = true;
 		mouse.accepted = true;
-		mousePosWithinWidget = movingWidget.mapToItem(movingWidget, mouse.x, mouse.y);
+		_mouse_pos_within_widget = movingWidget.mapToItem(movingWidget, mouse.x, mouse.y);
 	}
 
 	onPositionChanged: (mouse) => {
-		if (bPressed) {
-			movableWidget.x += mouse.x - mousePosWithinWidget.x;
-			movableWidget.y += mouse.y - mousePosWithinWidget.y;
+		if (_pressed) {
+			movableWidget.x += mouse.x - _mouse_pos_within_widget.x;
+			movableWidget.y += mouse.y - _mouse_pos_within_widget.y;
 			moved(movableWidget.x, movableWidget.y);
 			mouse.accepted = true;
 		}

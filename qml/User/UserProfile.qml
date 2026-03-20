@@ -1,31 +1,33 @@
+pragma componenBahavior: Bound
+
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 
 import TpQml
-
-import ".."
-import "../TPWidgets"
-import "../Pages"
+import TpQml.Widgets
+import TpQml.Pages
 
 ColumnLayout {
 	id: profileModule
 
+//public:
 	required property int userRow
 	required property TPPage parentPage
-	property bool bReady: bClientRoleOK && bCoachRoleOK && bGoalOK
-	property bool bClientRoleOK
-	property bool bGoalOK
-	property bool bCoachRoleOK
-	property bool isClient
-	property bool isCoach
+	property bool bReady: _clientrole_ok && _coachrole_ok && _goal_ok
+
+//private:
+	property bool _clientrole_ok
+	property bool _goal_ok
+	property bool _coachrole_ok
+	property bool _is_client
+	property bool _is_coach
 
 	Connections {
-		target: userModel
+		target: AppUserModel
 		function onUserModified(row: int, field: int): void {
-			if (row === userRow) {
+			if (row === profileModule.userRow) {
 				if (field === 20)
-					imgAvatar.source = userModel.avatar(userRow, false);
+					imgAvatar.source = AppUserModel.avatar(profileModule.userRow, false);
 				else
 					getUserInfo();
 			}
@@ -68,24 +70,24 @@ ColumnLayout {
 
 	TPLabel {
 		id: lblUserRole
-		text: userModel.userRoleLabel
-		visible: isClient
+		text: AppUserModel.userRoleLabel
+		visible: profileModule._is_client
 		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 0 : -5
 	}
 
 	TPComboBox {
 		id: cboUserRole
 		model: userRoleModel
-		visible: isClient
+		visible: profileModule._is_client
 		Layout.fillWidth: true
 
 		onActivated: (index) => {
 			if (index < userRoleModel.count - 1) {
-				userModel.setUserRole(userRow, textAt(index));
-				bClientRoleOK = true;
+				AppUserModel.setUserRole(profileModule.userRow, textAt(index));
+				profileModule._clientrole_ok = true;
 			}
 			else {
-				bClientRoleOK = false;
+				profileModule._clientrole_ok = false;
 				txtUserRole.forceActiveFocus();
 			}
 		}
@@ -93,38 +95,38 @@ ColumnLayout {
 
 	TPTextInput {
 		id: txtUserRole
-		visible: isClient && cboUserRole.currentIndex === userRoleModel.count - 1
+		visible: profileModule._is_client && cboUserRole.currentIndex === userRoleModel.count - 1
 		heightAdjustable: false
-		readOnly: userRow !== 0
+		readOnly: profileModule.userRow !== 0
 		Layout.fillWidth: true
 
-		onTextEdited: bClientRoleOK = text.length > 1
+		onTextEdited: profileModule._clientrole_ok = text.length > 1
 		onEditingFinished: {
-			if (bClientRoleOK)
-				userModel.setUserRole(userRow, text);
+			if (profileModule._clientrole_ok)
+				AppUserModel.setUserRole(profileModule.userRow, text);
 		}
 	}
 
 	TPLabel {
 		id: lblGoal
-		text: userModel.goalLabel
-		visible: isClient
+		text: AppUserModel.goalLabel
+		visible: profileModule._is_client
 	}
 
 	TPComboBox {
 		id: cboGoal
 		model: userGoalModel
-		visible: isClient
-		enabled: bClientRoleOK
+		visible: profileModule._is_client
+		enabled: profileModule._clientrole_ok
 		Layout.fillWidth: true
 
 		onActivated: (index) => {
 			if (index < userGoalModel.count - 1) {
-				userModel.setGoal(userRow, textAt(index));
-				bGoalOK = true;
+				AppUserModel.setGoal(profileModule.userRow, textAt(index));
+				profileModule._goal_ok = true;
 			}
 			else {
-				bGoalOK = false;
+				profileModule._goal_ok = false;
 				txtUserGoal.forceActiveFocus();
 			}
 		}
@@ -132,38 +134,38 @@ ColumnLayout {
 
 	TPTextInput {
 		id: txtUserGoal
-		visible: isClient && cboGoal.currentIndex === userGoalModel.count - 1
+		visible: profileModule._is_client && cboGoal.currentIndex === userGoalModel.count - 1
 		heightAdjustable: false
-		readOnly: userRow !== 0
+		readOnly: profileModule.userRow !== 0
 		Layout.fillWidth: true
 
-		onTextEdited: bGoalOK = text.length > 1
+		onTextEdited: profileModule._goal_ok = text.length > 1
 		onEditingFinished: {
-			if (bGoalOK)
-				userModel.setGoal(userRow, text);
+			if (profileModule._goal_ok)
+				AppUserModel.setGoal(profileModule.userRow, text);
 		}
 	}
 
 	TPLabel {
 		id: lblCoachRole
-		text: userModel.coachRoleLabel
-		visible: isCoach
+		text: AppUserModel.coachRoleLabel
+		visible: profileModule._is_coach
 	}
 
 	TPComboBox {
 		id: cboCoachRole
 		model: coachRoleModel
-		visible: isCoach
-		enabled: bClientRoleOK && bGoalOK
+		visible: profileModule._is_coach
+		enabled: profileModule._clientrole_ok && profileModule._goal_ok
 		Layout.fillWidth: true
 
 		onActivated: (index) => {
 			if (index < coachRoleModel.count - 1) {
-				userModel.setCoachRole(userRow, textAt(index));
-				bCoachRoleOK = true;
+				AppUserModel.setCoachRole(profileModule.userRow, textAt(index));
+				profileModule._coachrole_ok = true;
 			}
 			else {
-				bCoachRoleOK = false;
+				profileModule._coachrole_ok = false;
 				txtCoachRole.forceActiveFocus();
 			}
 		}
@@ -171,21 +173,21 @@ ColumnLayout {
 
 	TPTextInput {
 		id: txtCoachRole
-		visible: isCoach && cboCoachRole.currentIndex === coachRoleModel.count - 1
+		visible: profileModule._is_coach && cboCoachRole.currentIndex === coachRoleModel.count - 1
 		heightAdjustable: false
-		readOnly: userRow !== 0
+		readOnly: profileModule.userRow !== 0
 		Layout.fillWidth: true
 
-		onTextEdited: bCoachRoleOK = text.length > 1
+		onTextEdited: profileModule._coachrole_ok = text.length > 1
 		onEditingFinished: {
-			if (bCoachRoleOK)
-				userModel.setCoachRole(userRow, text);
+			if (profileModule._coachrole_ok)
+				AppUserModel.setCoachRole(profileModule.userRow, text);
 		}
 	}
 
 	TPLabel {
 		id: lblAvatar
-		text: userModel.avatarLabel
+		text: AppUserModel.avatarLabel
 		color: AppSettings.fontColor
 	}
 
@@ -202,61 +204,58 @@ ColumnLayout {
 		readonly property int side_size: AppSettings.itemDefaultHeight * 4
 
 		MouseArea {
-			enabled: userRow === 0
+			enabled: profileModule.userRow === 0
 			anchors.fill: parent
 			onClicked: showAvatarsPopup();
 		}
 	}
 
-	property AvatarsPopup chooseAvatarDlg: null
-	function showAvatarsPopup(): void {
-		if (chooseAvatarDlg === null) {
-			function createAvatarsDialog() {
-				let component = Qt.createComponent("qrc:/TpQml/qml/User/AvatarsPopup.qml", Qt.Asynchronous);
+	Loader {
+		id: chooseAvatarDlgLoader
+		asynchronous: true
+		active: false
 
-				function finishCreation() {
-					chooseAvatarDlg = component.createObject(parentPage, { userRow: profileModule.userRow,
-										parentPage: parentPage, callerWidget: profileModule });
-					chooseAvatarDlg.open();
-				}
+		sourceComponent: AvatarsPopup {
+			userRow: profileModule.userRow
+			parentPage: profileModule.parentPage
+			callerWidget: profileModule
 
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			createAvatarsDialog();
+			onClosed: chooseAvatarDlgLoader.active = false;
 		}
-		chooseAvatarDlg.open();
+
+		onLoaded: item.show(-1);
+	}
+	function showAvatarsPopup(): void {
+		chooseAvatarDlgLoader.active = true;
 	}
 
 	function selectAvatar(id: string): void {
-		userModel.setAvatar(userRow, "image://tpimageprovider/" + id);
-		imgAvatar.source = userModel.avatar(userRow);
+		AppUserModel.setAvatar(profileModule.userRow, "image://tpimageprovider/" + id);
+		imgAvatar.source = AppUserModel.avatar(profileModule.userRow);
 	}
 
 	function selectExternalAvatar(filename: string): void {
-		userModel.setAvatar(userRow, filename);
-		imgAvatar.source = userModel.avatar(userRow);
+		AppUserModel.setAvatar(profileModule.userRow, filename);
+		imgAvatar.source = AppUserModel.avatar(profileModule.userRow);
 	}
 
 	function defaultAvatarChanged(row: int): void {
-		if (row === userRow)
-			imgAvatar.source = userModel.avatar(userRow);
+		if (row === profileModule.userRow)
+			imgAvatar.source = AppUserModel.avatar(profileModule.userRow);
 	}
 
 	function getUserInfo(): void {
-		if (userRow === -1)
+		if (profileModule.userRow === -1)
 			return;
 		let idx;
-		const enabled = userRow === 0;
-		isClient = userModel.isClient(userRow);
-		isCoach = userModel.isCoach(userRow);
+		const enabled = profileModule.userRow === 0;
+		profileModule._is_client = AppUserModel.profileModule._is_client(profileModule.userRow);
+		profileModule._is_coach = AppUserModel.profileModule._is_coach(profileModule.userRow);
 
-		if (isClient) {
-			const client_role = userModel.userRole(userRow);
-			bClientRoleOK = client_role.length > 1;
-			if (!bClientRoleOK)
+		if (profileModule._is_client) {
+			const client_role = AppUserModel.userRole(profileModule.userRow);
+			profileModule._clientrole_ok = client_role.length > 1;
+			if (!profileModule._clientrole_ok)
 				cboUserRole.currentIndex = -1;
 			else {
 				idx = cboUserRole.find(client_role);
@@ -267,9 +266,9 @@ ColumnLayout {
 				cboUserRole.currentIndex = idx;
 			}
 
-			const user_goal = userModel.goal(userRow);
-			bGoalOK = user_goal.length > 1;
-			if (!bGoalOK)
+			const user_goal = AppUserModel.goal(profileModule.userRow);
+			profileModule._goal_ok = user_goal.length > 1;
+			if (!profileModule._goal_ok)
 				cboGoal.currentIndex = -1;
 			else {
 				idx = cboGoal.find(user_goal);
@@ -286,12 +285,12 @@ ColumnLayout {
 				userGoalModel.get(y).enabled = enabled;
 		}
 		else
-			bGoalOK = bClientRoleOK = true;
+			profileModule._goal_ok = profileModule._clientrole_ok = true;
 
-		if (isCoach) {
-			const coach_role = userModel.coachRole(userRow);
-			bCoachRoleOK = coach_role.length > 1;
-			if (!bCoachRoleOK)
+		if (profileModule._is_coach) {
+			const coach_role = AppUserModel.coachRole(profileModule.userRow);
+			profileModule._coachrole_ok = coach_role.length > 1;
+			if (!profileModule._coachrole_ok)
 				cboCoachRole.currentIndex = -1;
 			else {
 				idx = cboCoachRole.find(coach_role);
@@ -305,9 +304,9 @@ ColumnLayout {
 				coachRoleModel.get(x).enabled = enabled;
 		}
 		else
-			bCoachRoleOK = true;
+			profileModule._coachrole_ok = true;
 
-		imgAvatar.source = userModel.avatar(userRow);
+		imgAvatar.source = AppUserModel.avatar(profileModule.userRow);
 	}
 
 	function focusOnFirstField(): void {

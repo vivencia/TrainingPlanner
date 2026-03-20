@@ -1,23 +1,26 @@
 import QtQuick
 import QtQuick.Controls
 
-import "../"
+import TpQml.Pages
 
 Rectangle {
-	id: control
+	id: _control
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	focus: false
 
-	property Page parentPage
-	property var dragWidget
+//public:
+	property TPPage parentPage
+	property Item dragWidget
 
 	signal clicked();
 	signal controlMoved(int x, int y);
+
+//private:
 	property bool _visible: false
 
 	Component.onCompleted: {
-		parentPage.pageDeActivated.connect(function() { _visible = control.visible; control.visible = false; });
-		parentPage.pageActivated.connect(function() { if (_visible) control.visible = true; });
+		parentPage.pageDeActivated.connect(function() { _visible = _control.visible; _control.visible = false; });
+		parentPage.pageActivated.connect(function() { if (_visible) _control.visible = true; });
 	}
 
 	SequentialAnimation {
@@ -26,7 +29,7 @@ Rectangle {
 
 		// Expand the button
 		PropertyAnimation {
-			target: control
+			target: _control
 			property: "scale"
 			to: 1.5
 			duration: 200
@@ -35,20 +38,20 @@ Rectangle {
 
 		// Shrink back to normal
 		PropertyAnimation {
-			target: control
+			target: _control
 			property: "scale"
 			to: 1.0
 			duration: 200
 			easing.type: Easing.InOutCubic
 		}
 
-		onFinished: clicked();
+		onFinished: _control.clicked();
 	}
 
 	TPMouseArea {
-		movingWidget: dragWidget
-		movableWidget: control
+		movingWidget: _control.dragWidget
+		movableWidget: _control
 		onMouseClicked: anim.start();
-		onMoved: (x, y) => controlMoved(x, y);
+		onMoved: (x, y) => _control.controlMoved(x, y);
 	}
 }

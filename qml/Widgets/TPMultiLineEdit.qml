@@ -2,8 +2,10 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
+import TpQml
+
 ColumnLayout {
-	id: mainLayout
+	id: _control
 	spacing: 0
 
 //public:
@@ -22,45 +24,45 @@ ColumnLayout {
 
 	Row {
 		id: toolBoxLayout
-		visible: _show_toolbox
+		visible: _control._show_toolbox
 		spacing: 5
 		Layout.fillWidth: true
-		height: _show_toolbox ? AppSettings.itemDefaultHeight : 0
+		Layout.preferredHeight: _control._show_toolbox ? AppSettings.itemDefaultHeight : 0
 
 		TPButton {
 			imageSource: "copy_"
 			focus: false
-			enabled: mainLayout.textControl.length > 0
+			enabled: _control.textControl.length > 0
 			width: AppSettings.itemDefaultHeight
 			height: width
 			onClicked: {
-				appUtils.copyToClipboard(getControlText(mainLayout.textControl.selectionStart, mainLayout.textControl.selectionEnd));
-				mainwindow.showTextCopiedMessage();
+				AppUtils.copyToClipboard(_control.getControlText(_control.textControl.selectionStart, _control.textControl.selectionEnd));
+				ItemManager.showTextCopiedMessage();
 			}
 		}
 		TPButton {
 			imageSource: "paste_"
 			focus: false
-			enabled: mainLayout.textControl.canPaste
+			enabled: _control.textControl.canPaste
 			width: AppSettings.itemDefaultHeight
 			height: width
-			onClicked: mainLayout.textControl.paste()
+			onClicked: _control.textControl.paste()
 		}
 		TPButton {
 			imageSource: "undo_"
-			enabled: mainLayout.textControl.canUndo
+			enabled: _control.textControl.canUndo
 			focus: false
 			width: AppSettings.itemDefaultHeight
 			height: width
-			onClicked: mainLayout.textControl.undo();
+			onClicked: _control.textControl.undo();
 		}
 		TPButton {
 			imageSource: "redo_"
-			enabled: mainLayout.textControl.canRedo
+			enabled: _control.textControl.canRedo
 			focus: false
 			width: AppSettings.itemDefaultHeight
 			height: width
-			onClicked: mainLayout.textControl.redo();
+			onClicked: _control.textControl.redo();
 		}
 
 		TPButton {
@@ -68,12 +70,12 @@ ColumnLayout {
 			imageSource: "italic_"
 			checkable: true
 			focus: false
-			enabled: mainLayout.textControl.length > 0
+			enabled: _control.textControl.length > 0
 			width: AppSettings.itemDefaultHeight
 			height: width
 			onCheck: {
-				formatChanged(checked);
-				mainLayout.textControl.cursorSelection.font.italic = checked;
+				_control.formatChanged(checked);
+				_control.textControl.cursorSelection.font.italic = checked;
 			}
 		}
 		TPButton {
@@ -81,12 +83,12 @@ ColumnLayout {
 			imageSource: "underscore_"
 			checkable: true
 			focus: false
-			enabled: mainLayout.textControl.length > 0
+			enabled: _control.textControl.length > 0
 			width: AppSettings.itemDefaultHeight
 			height: width
 			onCheck: {
-				formatChanged(checked);
-				mainLayout.textControl.cursorSelection.font.underline = checked
+				_control.formatChanged(checked);
+				_control.textControl.cursorSelection.font.underline = checked
 			}
 		}
 		TPButton {
@@ -94,12 +96,12 @@ ColumnLayout {
 			imageSource: "upperlowercase_"
 			checkable: true
 			focus: false
-			enabled: mainLayout.textControl.length > 0
+			enabled: _control.textControl.length > 0
 			width: AppSettings.itemDefaultHeight
 			height: width
 			onCheck: {
-				formatChanged(checked);
-				mainLayout.textControl.cursorSelection.font.capitalization = checked ? Font.AllUppercase : Font.MixedCase;
+				_control.formatChanged(checked);
+				_control.textControl.cursorSelection.font.capitalization = checked ? Font.AllUppercase : Font.MixedCase;
 			}
 		}
 	}
@@ -111,14 +113,14 @@ ColumnLayout {
 		Flickable {
 			id: scrollArea
 			clip: true
-			height: minHeight - toolBoxLayout.height
+			height: _control.minHeight - toolBoxLayout.height
 			width: parent.width - AppSettings.itemDefaultHeight - 5
 
 			ScrollBar.vertical: ScrollBar { id: vBar }
 
 			TextArea.flickable: TextArea {
 				id: _textControl
-				readOnly: !editable
+				readOnly: !_control.editable
 				wrapMode: TextEdit.Wrap
 				textFormat: TextEdit.RichText
 				renderType: TextEdit.QtRendering
@@ -153,12 +155,11 @@ ColumnLayout {
 
 				Keys.onPressed: (event) => {
 					switch (event.key) {
-						case Qt.Key_Enter:
-						case Qt.Key_Return:
+					case Qt.Key_Enter:
+					case Qt.Key_Return:
 						{
 							let mod_key = 0;
-							if (event.modifiers)
-							{
+							if (event.modifiers) {
 								if (event.modifiers & Qt.ControlModifier)
 									mod_key = Qt.Key_Control;
 								else if (event.modifiers & Qt.AltModifier)
@@ -168,23 +169,23 @@ ColumnLayout {
 							}
 							if (mod_key !== 0)
 								event.accepted = true;
-							enterOrReturnKeyPressed(mod_key);
+							_control.enterOrReturnKeyPressed(mod_key);
 						}
 						break;
-						case Qt.Key_Left:
-							event.accepted = true;
+					case Qt.Key_Left:
+						event.accepted = true;
 						break;
-						default: return;
+					default: return;
 					}
 				}
 
 				onReadOnlyChanged: positionCaret();
-				onLineCountChanged: if (maxHeight > 0) scrollArea.calculateHeight();
+				onLineCountChanged: if (_control.maxHeight > 0) scrollArea.calculateHeight();
 				onTextEdited: modified = true;
 				onEditingFinished: {
 					if (modified) {
 						modified = false;
-						textAltered(contentsText());
+						_control.textAltered(_control.contentsText());
 					}
 				}
 				onActiveFocusChanged: {
@@ -192,7 +193,7 @@ ColumnLayout {
 						positionCaret();
 				}
 
-				Component.onCompleted: mainLayout.textControl = this;
+				Component.onCompleted: _control.textControl = this;
 
 				function positionCaret(): void {
 					if (readOnly) {
@@ -205,20 +206,20 @@ ColumnLayout {
 			} //TextArea
 
 			function calculateHeight(): void {
-				const new_height = (textControl.lineCount * AppSettings.itemDefaultHeight) + 10;
-				if (new_height <= maxHeight) {
+				const new_height = (_control.textControl.lineCount * AppSettings.itemDefaultHeight) + 10;
+				if (new_height <= _control.maxHeight) {
 					if (new_height < (2 * AppSettings.itemDefaultHeight))
 						height = implicitHeight = 2 * AppSettings.itemDefaultHeight;
 					else
 						height = implicitHeight = new_height;
 				}
 				else
-					height = implicitHeight = maxHeight;
+					height = implicitHeight = _control.maxHeight;
 			}
 		} //ScrollView
 
 		Item {
-			enabled: editable
+			enabled: _control.editable
 			width: AppSettings.itemDefaultHeight
 			height: scrollArea.height
 
@@ -235,14 +236,14 @@ ColumnLayout {
 					horizontalCenter: parent.horizontalCenter
 				}
 
-				onCheck: mainLayout._show_toolbox = checked;
+				onCheck: _control._show_toolbox = checked;
 			}
 
 			TPButton {
 				id: btnClearText
 				imageSource: "edit-clear"
 				hasDropShadow: false
-				enabled: mainLayout.textControl.length > 0
+				enabled: _control.textControl.length > 0
 				width: AppSettings.itemDefaultHeight
 				height: width
 
@@ -253,15 +254,15 @@ ColumnLayout {
 				}
 
 				onClicked: {
-					clear();
-					mainLayout.textControl.forceActiveFocus();
+					_control.clear();
+					_control.textControl.forceActiveFocus();
 				}
 			}
 		} //Item
 	} //Row
 
 	function clear() : void {
-		mainLayout.textControl.clear();
+		_control.textControl.clear();
 		_nFormatting = 0;
 	}
 
@@ -273,17 +274,17 @@ ColumnLayout {
 			if (_nFormatting < 0)
 				_nFormatting = 0;
 		}
-		mainLayout.textControl.modified = true;
+		_control.textControl.modified = true;
 	}
 
 	function contentsText() : string {
-		return getControlText(0, mainLayout.textControl.length);
+		return getControlText(0, _control.textControl.length);
 	}
 
 	function getControlText(start: int, end: int) : string {
 		if (_nFormatting == 0)
-			return start !== end ? mainLayout.textControl.getText(start, end) : mainLayout.textControl.getText(0, textControl.length);
+			return start !== end ? _control.textControl.getText(start, end) : _control.textControl.getText(0, textControl.length);
 		else
-			return appUtils.stripInvalidCharacters(start === end ? mainLayout.textControl.text : mainLayout.textControl.selectedText);
+			return AppUtils.stripInvalidCharacters(start === end ? _control.textControl.text : _control.textControl.selectedText);
 	}
 } //ColumnLayout

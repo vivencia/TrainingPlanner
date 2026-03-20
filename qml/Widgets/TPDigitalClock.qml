@@ -1,10 +1,12 @@
+pragma componentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 
-import "../"
+import TpQml
 
 TPBackRec {
-	id: control
+	id: _control
 	useGradient: true
 	width: AppSettings.itemLargeHeight
 	height: width * 1.1
@@ -21,14 +23,16 @@ TPBackRec {
 		preferredHighlightEnd: height / 3
 		clip: true
 		reuseItems: true
-		model: max
+		model: _control.max
 		delegate: Label {
 			text: String(index).length == 1 ? "0" + index : index
 			verticalAlignment: Text.AlignVCenter
 			color: enabled ? AppSettings.fontColor : AppSettings.disabledFontColor
-			leftPadding: (control.width - AppGlobals.fontMetricsRegular.boundingRect(text).width) / 2
+			leftPadding: (_control.width - AppGlobals.fontMetricsRegular.boundingRect(text).width) / 2
 			font.bold: true
 			font.pixelSize: AppSettings.fontSize
+
+			required property int index
 		}
 	}
 }

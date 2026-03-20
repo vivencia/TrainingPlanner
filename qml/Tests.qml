@@ -164,7 +164,7 @@ ApplicationWindow {
 		button2Text: ""
 	}
 
-	function displayResultMessage(title: string, message: string, img_src: string, msecs: int, button1Text: string, button2Text: string): void {
+	function showAppMainMessageDialog(title: string, message: string, img_src: string, msecs: int, button1Text: string, button2Text: string): void {
 		generalMessagesPopup.title = title;
 		generalMessagesPopup.message = message;
 		generalMessagesPopup.imageSource = img_src;

@@ -2,12 +2,12 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import "../TPWidgets"
-import "../User"
-import ".."
+import TpQml
+import TpQml.User
+import TpQml.Widgets
 
 TPPopup {
-	id: firstTimeDlg
+	id: _firstTimeDlg
 	modal: true
 	keepAbove: true
 	showTitleBar: false
@@ -37,51 +37,52 @@ TPPopup {
 
 		UserLanguage {
 			Layout.fillWidth: true
-			Layout.preferredHeight: minimumHeight
+			Layout.preferredHeight: _firstTimeDlg.minimumHeight
 		}
 
 		UserWelcome {
 			Layout.fillWidth: true
-			Layout.preferredHeight: minimumHeight
+			Layout.preferredHeight: _firstTimeDlg.minimumHeight
 		}
 
 		UserExistingFromNet {
+			parentDialog: _firstTimeDlg
 			Layout.fillWidth: true
-			Layout.minimumHeight: minimumHeight
+			Layout.minimumHeight: _firstTimeDlg.minimumHeight
 		}
 
 		UserPersonalData {
 			userRow: 0
-			parentPage: firstTimeDlg.parentPage
+			parentPage: _firstTimeDlg.parentPage
 			Layout.fillWidth: true
-			Layout.minimumHeight: minimumHeight
+			Layout.minimumHeight: _firstTimeDlg.minimumHeight
 		}
 
 		UserContact {
 			userRow: 0
 			Layout.fillWidth: true
-			Layout.minimumHeight: minimumHeight
+			Layout.minimumHeight: _firstTimeDlg.minimumHeight
 		}
 
 		UserCoach {
 			userRow: 0
-			parentPage: firstTimeDlg.parentPage
+			parentPage: _firstTimeDlg.parentPage
 			Layout.fillWidth: true
-			Layout.minimumHeight: minimumHeight
+			Layout.minimumHeight: _firstTimeDlg.minimumHeight
 		}
 
 		UserProfile {
 			id: usrProfile
 			userRow: 0
-			parentPage: firstTimeDlg.parentPage
+			parentPage: _firstTimeDlg.parentPage
 			Layout.fillWidth: true
-			Layout.minimumHeight: minimumHeight
+			Layout.minimumHeight: _firstTimeDlg.minimumHeight
 		}
 
 		UserReady {
 			Layout.fillWidth: true
 			Layout.fillHeight: true
-			Layout.preferredHeight: minimumHeight
+			Layout.preferredHeight:_firstTimeDlg. minimumHeight
 		}
 
 		Component.onCompleted: currentIndex = AppSettings.userLocale.length > 0 ? 1 : 0;
@@ -134,16 +135,9 @@ TPPopup {
 
 			onClicked: {
 				if (stackLayout.currentIndex === stackLayout.count - 1)
-					finish();
-				else {
-					if (stackLayout.currentIndex === 2) {
-						//Might be trying to connect online to retrieve existing user info. But, if Next was clicked, it means that a local
-						//new user will be created, so we must cancel pending requests to try to retrieve info from the net
-						userModel.cancelPendingOnlineRequests();
-					}
-				}
-				if (nextStartsTheApp)
-					finish();
+					_firstTimeDlg.finish();
+				if (_firstTimeDlg.nextStartsTheApp)
+					_firstTimeDlg.finish();
 				else {
 					stackLayout.currentIndex++;
 					if (stackLayout.currentIndex >= 3 && stackLayout.currentIndex < stackLayout.count - 2)
@@ -154,7 +148,7 @@ TPPopup {
 	}
 
 	function finish(): void {
-		userModel.setMainUserConfigurationFinished();
+		AppUserModel.setMainUserConfigurationFinished();
 		closePopup();
 	}
 }

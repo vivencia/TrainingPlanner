@@ -230,7 +230,6 @@ qt_add_executable(TrainingPlanner
 	${ANDROID_FIES}
 )
 
-
 qt_add_qml_module(TrainingPlanner
 	URI TpQml
 	VERSION 1.0

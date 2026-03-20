@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Controls
 
 TPComboBox {
 	id: cboMuscularGroup
@@ -10,8 +9,7 @@ TPComboBox {
 	function fillMuscularGroupsModel(groups_str: string): void {
 		let groups = groups_str.split('|');
 		groupsModel.clear();
-		if (groups.length > 0)
-		{
+		if (groups.length > 0) {
 			let display_text = "";
 			for (let i = 0; i < groups.length; ++i) {
 				if (groups[i] !== "") {

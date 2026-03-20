@@ -1,10 +1,11 @@
+pragma componentBahavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import TpQml
 
-import "../"
-import "../TPWidgets"
+import TpQml
+import TpQml.Widgets
 
 TPPage {
 	id: mesoCalendarPage
@@ -17,7 +18,8 @@ TPPage {
 
 	property date _today: new Date()
 
-	onPageActivated: calendar.positionViewAtIndex(calendarModel.getIndexFromDate(calendarModel.currentDate), ListView.Contain);
+	onPageActivated: calendar.positionViewAtIndex(mesoCalendarPage.calendarModel.getIndexFromDate(
+																	mesoCalendarPage.calendarModel.currentDate), ListView.Contain);
 
 	header: TPToolBar {
 		height: AppSettings.pageHeight * 0.1
@@ -30,7 +32,7 @@ TPPage {
 
 			TPLabel {
 				id: lbl1
-				text: calendarManager.nameLabel
+				text: mesoCalendarPage.calendarManager.nameLabel
 				font: AppGlobals.extraLargeFont
 				horizontalAlignment: Text.AlignHCenter
 				Layout.maximumWidth: parent.width - 10
@@ -38,7 +40,7 @@ TPPage {
 			}
 			TPLabel {
 				id: lbl2
-				text: calendarManager.dateLabel
+				text: mesoCalendarPage.calendarManager.dateLabel
 				font: AppGlobals.regularFont
 				horizontalAlignment: Text.AlignHCenter
 				Layout.maximumWidth: parent.width - 10
@@ -49,7 +51,7 @@ TPPage {
 
 	ListView {
 		id: calendar
-		model: calendarModel
+		model: mesoCalendarPage.calendarModel
 		reuseItems: true
 		snapMode: ListView.SnapToItem
 		spacing: 2
@@ -78,7 +80,7 @@ TPPage {
 
 				Text {
 					anchors.centerIn: parent
-					text: appUtils.monthName(calendarModel.month(index)) + " " + calendarModel.year(index);
+					text: appUtils.monthName(mesoCalendarPage.calendarModel.month(index)) + " " + mesoCalendarPage.calendarModel.year(index);
 					font.pixelSize: AppSettings.extraLargeFontSize
 					font.bold: true
 				}
@@ -104,8 +106,8 @@ TPPage {
 			MonthGrid {
 				id: monthGrid
 				locale: Qt.locale(AppSettings.userLocale)
-				month: calendarModel.month(index)
-				year: calendarModel.year(index)
+				month: mesoCalendarPage.calendarModel.month(index)
+				year: mesoCalendarPage.calendarModel.year(index)
 				spacing: 2
 				anchors.top: weekTitles.bottom
 				width: parent.width
@@ -124,21 +126,21 @@ TPPage {
 					function dateSelected(): void {
 						highlightDay(true);
 						monthGrid.selectedDay = this;
-						calendarModel.currentDate = month_day;
+						mesoCalendarPage.calendarModel.currentDate = month_day;
 						optChangeOnlyThisDay.checked = optChangeAfterThisDay.checked = false;
 						optChangeOnlyThisDay.enabled = optChangeAfterThisDay.enabled = false;
 						btnViewWorkout.enabled = workoutDay;
-						lblInfo.text = calendarManager.dayInfo();
-						cboSplitLetter.currentIndex = calendarModel.splitLetterToIndex();
+						lblInfo.text = mesoCalendarPage.calendarManager.dayInfo();
+						cboSplitLetter.currentIndex = mesoCalendarPage.calendarModel.splitLetterToIndex();
 					}
 
 					readonly property date month_day: new Date(model.year, model.month, model.day);
 					readonly property bool todayDate: month_day.getUTCFullYear() === _today.getUTCFullYear() &&
 							month_day.getUTCMonth() === _today.getUTCMonth() && month_day.getUTCDate() === _today.getUTCDate()
 					readonly property bool visibleDay: model.month === monthGrid.month
-					readonly property bool mesoDay: calendarModel.isPartOfMeso(month_day)
-					readonly property bool workoutDay: calendarModel.isWorkoutDay(month_day)
-					readonly property bool workoutFinished: calendarModel.completed_by_date(month_day)
+					readonly property bool mesoDay: mesoCalendarPage.calendarModel.isPartOfMeso(month_day)
+					readonly property bool workoutDay: mesoCalendarPage.calendarModel.isWorkoutDay(month_day)
+					readonly property bool workoutFinished: mesoCalendarPage.calendarModel.completed_by_date(month_day)
 
 					function highlightDay(highlighted: bool): void {
 						if (highlighted)
@@ -153,26 +155,27 @@ TPPage {
 					}
 
 					Connections {
-						enabled: calendarModel !== null
-						target: calendarModel
-						function onCompletedChanged(date: Date) : void {
-							if (date === dayEntry.month_day)
-								workoutFinished = calendarModel.completed(date);
+						enabled: mesoCalendarPage.calendarModel !== null
+						target: mesoCalendarPage.calendarModel
+						function onCompletedChanged(cal_date: date) : void {
+							if (cal_date === dayEntry.month_day)
+								workoutFinished = mesoCalendarPage.calendarModel.completed(cal_date);
 						}
 					}
 
 					TPLabel {
 						id: txtDay
 						anchors.centerIn: parent
-						text: calendarModel.dayEntryLabel(dayEntry.month_day)
+						text: mesoCalendarPage.calendarModel.dayEntryLabel(dayEntry.month_day)
 						font: AppGlobals.smallFont
 						visible: dayEntry.visibleDay
 						color: !dayEntry.todayDate ? (mesoDay ? AppSettings.fontColor : AppSettings.disabledFontColor) : "red"
 
 						Connections {
-							target: calendarModel
-							function onSplitLetterChanged(date: Date) : void {
-								txtDay.text = calendarModel.dayText(date);
+							target: mesoCalendarPage.calendarModel
+							function onSplitLetterChanged(cal_date: date) : void {
+								if (cal_date === dayEntry.month_day)
+									txtDay.text = mesoCalendarPage.calendarModel.dayText(cal_date);
 							}
 						}
 					}
@@ -242,7 +245,7 @@ TPPage {
 			width: parent.width * 0.2
 
 			onActivated: (index) => optChangeOnlyThisDay.enabled = optChangeAfterThisDay.enabled =
-																				calendarModel.splitLetter !== valueAt(index);
+																		mesoCalendarPage.calendarModel.splitLetter !== valueAt(index);
 
 			anchors {
 				top: optChangeOnlyThisDay.bottom
@@ -286,7 +289,7 @@ TPPage {
 			width: parent.width * 0.65
 
 			onClicked: {
-				calendarManager.changeSplitLetter(cboSplitLetter.currentValue, optChangeAfterThisDay.checked);
+				mesoCalendarPage.calendarManager.changeSplitLetter(cboSplitLetter.currentValue, optChangeAfterThisDay.checked);
 				optChangeOnlyThisDay.checked = optChangeAfterThisDay.checked = false;
 				optChangeOnlyThisDay.enabled = optChangeAfterThisDay.enabled = false;
 			}
@@ -312,7 +315,7 @@ TPPage {
 				bottomMargin: 5
 			}
 
-			onClicked: calendarManager.getWorkoutPage();
+			onClicked: mesoCalendarPage.calendarManager.getWorkoutPage();
 		}
 	} // footer: ToolBar
 } //Page

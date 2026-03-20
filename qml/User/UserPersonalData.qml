@@ -1,21 +1,25 @@
+pragma componentBahavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
 import TpQml
-
-import ".."
-import "../TPWidgets"
-import "../Dialogs"
-import "../Pages"
+import TpQml.Widgets
+import TpQml.Pages
+import TpQml.User
+import TpQml.Dialogs
 
 ColumnLayout {
 	id: userPersonalModule
 	spacing: 10
 
+//public:
 	required property TPPage parentPage
 	required property int userRow
 	property bool bReady: bNameOK && bPasswordOK && bBirthDateOK && bSexOK
+
+//private:
 	property bool bNameOK
 	property bool bPasswordOK
 	property bool bBirthDateOK
@@ -24,7 +28,7 @@ ColumnLayout {
 	Connections {
 		target: userModel
 		function onUserModified(row: int, field: int): void {
-			if (row === userRow && field >= 100)
+			if (row === userPersonalModule.userRow && field >= 100)
 				getUserInfo();
 		}
 	}
@@ -34,17 +38,17 @@ ColumnLayout {
 
 	TPLabel {
 		id: lblName
-		text: userModel.nameLabel
+		text: AppUserModel.nameLabel
 		Layout.fillWidth: true
 		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : 0
 	}
 
 	TPTextInput {
 		id: txtName
-		readOnly: userRow !== 0
+		readOnly: userPersonalModule.userRow !== 0
 		heightAdjustable: false
 		ToolTip.text: qsTr("The name is too short")
-		Layout.preferredWidth: parent.width*0.9
+		Layout.preferredWidth: parent.width * 0.9
 
 		property bool bTextChanged: false
 
@@ -52,7 +56,7 @@ ColumnLayout {
 
 		onEditingFinished: {
 			if (bTextChanged && bNameOK) {
-				userModel.setUserName(userRow, text);
+				AppUserModel.setUserName(userPersonalModule.userRow, text);
 				bTextChanged = false;
 			}
 		}
@@ -61,11 +65,11 @@ ColumnLayout {
 			bTextChanged = true;
 			if (text.length >= 5) {
 				ToolTip.visible = false;
-				bNameOK = true;
+				userPersonalModule.bNameOK = true;
 			}
 			else {
 				ToolTip.visible = true;
-				bNameOK = false;
+				userPersonalModule.bNameOK = false;
 			}
 		}
 
@@ -73,8 +77,8 @@ ColumnLayout {
 			imageSource: "chat_"
 			width: AppSettings.itemDefaultHeight
 			height: width
-			visible: userRow != 0 && userModel.onlineAccount
-			enabled: bNameOK
+			visible: userPersonalModule.userRow != 0 && AppUserModel.onlineAccount
+			enabled: userPersonalModule.bNameOK
 
 			anchors {
 				left: txtName.right
@@ -82,7 +86,7 @@ ColumnLayout {
 				verticalCenter: txtName.verticalCenter
 			}
 
-			onClicked: appMessages.openChat(userModel.userName(userRow));
+			onClicked: appMessages.openChat(AppUserModel.userName(userPersonalModule.userRow));
 		}
 	}
 
@@ -95,7 +99,7 @@ ColumnLayout {
 			text: qsTr("Change password")
 			rounded: false
 			imageSource: "password"
-			visible: userRow === 0 && userModel.mainUserConfigured
+			visible: userPersonalModule.userRow === 0 && AppUserModel.mainUserConfigured
 			autoSize: true
 			anchors.horizontalCenter: parent.horizontalCenter
 
@@ -106,14 +110,14 @@ ColumnLayout {
 	TPPassword {
 		id: passwordControl
 		enabled: bNameOK
-		visible: userRow === 0 && !userModel.mainUserConfigured
+		visible: userPersonalModule.userRow === 0 && !AppUserModel.mainUserConfigured
 		Layout.fillWidth: true
 		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : -5
 
-		onPasswordUnacceptable: bPasswordOK = false;
+		onPasswordUnacceptable: userPersonalModule.bPasswordOK = false;
 		onPasswordAccepted: {
-			bPasswordOK = true;
-			userModel.setPassword(getPassword());
+			userPersonalModule.bPasswordOK = true;
+			AppUserModel.setPassword(getPassword());
 		}
 	}
 
@@ -130,7 +134,7 @@ ColumnLayout {
 
 	TPLabel {
 		id: lblBirthdate
-		text: userModel.birthdayLabel
+		text: AppUserModel.birthdayLabel
 		Layout.fillWidth: true
 		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 15 : -5
 	}
@@ -138,21 +142,21 @@ ColumnLayout {
 	TPTextInput {
 		id: txtBirthdate
 		readOnly: true
-		enabled: bPasswordOK
-		Layout.minimumWidth: parent.width*0.6
-		Layout.maximumWidth: parent.width*0.6
+		enabled: userPersonalModule.bPasswordOK
+		Layout.minimumWidth: userPersonalModule.width * 0.6
+		Layout.maximumWidth: userPersonalModule.width * 0.6
 
 		CalendarDialog {
 			id: caldlg
-			showDate: userModel.birthDate(userRow)
+			showDate: AppAppUserModel.birthDate(userPersonalModule.userRow)
 			initDate: new Date(1940, 0, 1)
 			finalDate: new Date()
 			parentPage: userPersonalModule.parentPage
 
 			onDateSelected: (date) => {
-				userModel.setBirthDate(userRow, date);
-				txtBirthdate.text = userModel.birthDateFancy(userRow);
-				bBirthDateOK = true;
+				AppUserModel.setBirthDate(userPersonalModule.userRow, date);
+				txtBirthdate.text = AppUserModel.birthDateFancy(userPersonalModule.userRow);
+				userPersonalModule.bBirthDateOK = true;
 				if (txtName.text.length === 0)
 					txtName.forceActiveFocus();
 			}
@@ -163,7 +167,8 @@ ColumnLayout {
 			imageSource: "calendar.png"
 			width: AppSettings.itemDefaultHeight
 			height: width
-			enabled: bPasswordOK && userRow === 0
+			enabled: userPersonalModule.bPasswordOK && userPersonalModule.userRow === 0
+
 			anchors {
 				left: txtBirthdate.right
 				verticalCenter: txtBirthdate.verticalCenter
@@ -174,7 +179,7 @@ ColumnLayout {
 	}
 
 	Item {
-		height: AppSettings.itemDefaultHeight
+		Layout.preferredHeight: AppSettings.itemDefaultHeight
 		Layout.fillWidth: true
 		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : -5
 
@@ -185,8 +190,8 @@ ColumnLayout {
 		TPRadioButtonOrCheckBox {
 			id: chkMale
 			text: qsTr("Male")
-			actionable: userRow === 0
-			checked: userModel.sex(userRow) === 0
+			actionable: userPersonalModule.userRow === 0
+			checked: AppUserModel.sex(userPersonalModule.userRow) === 0
 			buttonGroup: sexGroup
 			width: parent.width/2
 
@@ -196,24 +201,24 @@ ColumnLayout {
 			}
 
 			onClicked: {
-				if (userModel.sex(userRow) !== 0)
-					userModel.setSex(userRow, true);
-				bSexOK = true;
+				if (AppUserModel.sex(userPersonalModule.userRow) !== 0)
+					AppUserModel.setSex(userPersonalModule.userRow, true);
+				userPersonalModule.bSexOK = true;
 			}
 		}
 
 		TPRadioButtonOrCheckBox {
 			id: chkFemale
 			text: qsTr("Female")
-			actionable: userRow === 0
-			checked: userModel.sex(userRow) === 1
+			actionable: userPersonalModule.userRow === 0
+			checked: AppUserModel.sex(userPersonalModule.userRow) === 1
 			buttonGroup: sexGroup
-			width: parent.width/2
+			width: parent.width / 2
 
 			onClicked: {
-				if (userModel.sex(userRow) !== 1)
-					userModel.setSex(userRow, false);
-				bSexOK = true;
+				if (AppUserModel.sex(userPersonalModule.userRow) !== 1)
+					AppUserModel.setSex(userPersonalModule.userRow, false);
+				userPersonalModule.bSexOK = true;
 			}
 
 			anchors {
@@ -225,13 +230,13 @@ ColumnLayout {
 
 	TPRadioButtonOrCheckBox {
 		id: chkOnlineUser
-		text: userModel.onlineAccountUserLabel
-		actionable: userRow === 0
+		text: AppUserModel.onlineAccountUserLabel
+		actionable: userPersonalModule.userRow === 0
 		radio: false
-		checked: userModel.onlineAccount
-		Layout.maximumWidth: parent.width * 0.7
+		checked: AppUserModel.onlineAccount
+		Layout.maximumWidth: userPersonalModule.width * 0.7
 
-		onClicked: userModel.onlineAccount = checked;
+		onClicked: AppUserModel.onlineAccount = checked;
 
 		TPButton {
 			imageSource: "question.png"
@@ -248,51 +253,50 @@ ColumnLayout {
 		}
 	}
 
-	property TPBalloonTip userRegistrationDlg: null
-	function showUserRegistrationDialog(): void {
-		if (userRegistrationDlg === null) {
-			function createDialog() {
-				let component = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+	Loader {
+		id: userRegistrationDlgLoader
+		asynchronous: true
+		active: false
 
-				function finishCreation() {
-					userRegistrationDlg = component.createObject(mainwindow.contentItem, { parentPage: homePage,
-					title: qsTr("Online Registration"), button1Text: "OK", button2Text: "",
-					message: qsTr("When you register online, you create a unique user account that will enable to sync your workouts and training programs from accross devices.
-					You'll be able to do that for your clients as well if you decide to be a trainer or coach.
-					You'll get programs and advices from coaches and more.
-					But it's not required for the app to work.") });
-				}
+		sourceComponent: TPBalloonTip {
+			parentPage: userPersonalModule.parentPage
+			title: qsTr("Online Registration")
+			button1Text: "OK"
+			button2Text: ""
+			message: qsTr(`When you register online, you create a unique user account that will enable to sync your workouts and training programs from accross devices.
+						  You'll be able to do that for your clients as well if you decide to be a trainer or coach.
+						  You'll get programs and advices from coaches and more.
+						  But it's not required for the app to work.`)
 
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			createDialog();
+			onClosed: userRegistrationDlgLoader.active = false;
 		}
-		userRegistrationDlg.show(-1);
+
+		onLoaded: item.show(-1);
+	}
+	function showUserRegistrationDialog(): void {
+		userRegistrationDlgLoader.active = true;
 	}
 
 	function getUserInfo(): void {
-		if (userRow === -1)
+		if (userPersonalModule.userRow === -1)
 			return;
-		txtName.text = userModel.userName(userRow);
+		txtName.text = AppUserModel.userName(userPersonalModule.userRow);
 		bNameOK = txtName.text.length >= 5;
-		txtBirthdate.text = userModel.birthDateFancy(userRow);
-		bBirthDateOK = userModel.birthYear(userRow) >= 1940;
-		const sex = userModel.sex(userRow);
+		txtBirthdate.text = AppUserModel.birthDateFancy(userPersonalModule.userRow);
+		bBirthDateOK = AppUserModel.birthYear(userPersonalModule.userRow) >= 1940;
+		const sex = AppUserModel.sex(userPersonalModule.userRow);
 		chkMale.checked = sex === 0;
 		chkFemale.checked = sex === 1;
 		bSexOK = sex <= 1;
-		chkOnlineUser.checked = userModel.onlineAccount
-		userModel.userPasswordAvailable.connect(getUserPassword);
-		userModel.getPassword();
+		chkOnlineUser.checked = AppUserModel.onlineAccount
+		AppUserModel.userPasswordAvailable.connect(getUserPassword);
+		AppUserModel.getPassword();
 	}
 
 	function getUserPassword(password: string): void {
 		passwordControl.setPasswordText(password);
 		bPasswordOK = password.length >= 6;
-		userModel.userPasswordAvailable.disconnect(getUserPassword);
+		AppUserModel.userPasswordAvailable.disconnect(getUserPassword);
 	}
 
 	function focusOnFirstField(): void {

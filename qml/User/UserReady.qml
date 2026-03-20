@@ -1,8 +1,7 @@
 import QtQuick
-import QtQuick.Controls
 
-import "../TPWidgets"
-import ".."
+import TpQml
+import TpQml.Widgets
 
 TPLabel {
 	id: lblMain
@@ -11,10 +10,9 @@ TPLabel {
 	horizontalAlignment: Text.AlignJustify
 	verticalAlignment: Text.AlignVCenter
 	font: AppGlobals.extraLargeFont
-
-	readonly property bool bReady: true
-
 	topPadding: 30
 	leftPadding: 30
 	rightPadding: 30
+
+	readonly property bool bReady: true
 }

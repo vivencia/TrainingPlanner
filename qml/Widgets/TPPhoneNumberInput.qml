@@ -2,10 +2,11 @@ import QtQuick
 import QtQuick.Controls
 
 TPTextInput {
+	id: _control
     inputMethodHints: Qt.ImhDigitsOnly
 	validator: RegularExpressionValidator {
-					regularExpression: countryPrefix ? /\+?[0-9]{0,3}/ : /\+?(\([0-9]{0,2}\))? ?[0-9]{0,5}-?[0-9]{0,4}/
-				}
+		regularExpression: _control.countryPrefix ? /\+?[0-9]{0,3}/ : /\+?(\([0-9]{0,2}\))? ?[0-9]{0,5}-?[0-9]{0,4}/
+	}
 	maximumLength: countryPrefix ? 5 : 15
     ToolTip.text: qsTr("Invalid phone number")
 

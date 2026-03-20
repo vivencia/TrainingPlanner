@@ -1,28 +1,30 @@
+pragma componentBehavior: Bound
+
 import QtQuick
-import QtQuick.Layouts
 import QtQuick.Controls
 
-import "../"
-import "../TPWidgets"
+import TpQml
 
 Rectangle {
-	id: root
+	id: _control
 	clip: true
-	height: cellSize * 10.5
-	width: cellSize * 8
+	height: _control.cellSize * 10.5
+	width: _control.cellSize * 8
 	radius: 10
 
+//public:
 	required property var calendarModel
 	property date startDate
 	property date endDate
 	property date selectedDate
 
-	property double sizeFactor: 7
-	readonly property date thisDay: new Date()
-	readonly property double cellSize: Screen.pixelDensity * sizeFactor
-	readonly property int fontSizePx: cellSize * (sizeFactor/21) //0.32
-
 	signal dateSelected(date selDate)
+
+//private:
+	readonly property double _size_factor: 7
+	readonly property date thisDay: new Date()
+	readonly property double cellSize: Screen.pixelDensity * _size_factor
+	readonly property int fontSizePx: _control.cellSize * (_size_factor / 21) //0.32
 
 	TPBackRec {
 		id: titleOfDate
@@ -30,7 +32,7 @@ Rectangle {
 		radius: 10
 		opacity: 0.8
 		z: 1
-		height: 2.5 * cellSize
+		height: 2.5 * _control.cellSize
 		width: parent.width
 
 		anchors {
@@ -40,15 +42,15 @@ Rectangle {
 
 		TextField {
 			id: selectedYear
-			text: selectedDate.getUTCFullYear()
-			leftPadding: cellSize * 0.5
+			text: _control.selectedDate.getUTCFullYear()
+			leftPadding: _control.cellSize * 0.5
 			horizontalAlignment: Text.AlignLeft
 			verticalAlignment: Text.AlignVCenter
-			font.pixelSize: fontSizePx * 2
+			font.pixelSize: _control.fontSizePx * 2
 			font.bold: true
 			readOnly: true
 			inputMethodHints: Qt.ImhDigitsOnly
-			validator: IntValidator { id: val; bottom: startDate.getUTCFullYear(); top: endDate.getUTCFullYear(); }
+			validator: IntValidator { id: val; bottom: _control.startDate.getUTCFullYear(); top: _control.endDate.getUTCFullYear(); }
 			opacity: yearsList.visible ? 1 : 0.7
 			color: AppSettings.fontColor
 			z: 1
@@ -56,7 +58,7 @@ Rectangle {
 			property bool yearOK
 
 			background: Rectangle {
-				height: cellSize * 2
+				height: _control.cellSize * 2
 				width: parent.width
 				border.color: "transparent"
 				color: "transparent"
@@ -72,23 +74,23 @@ Rectangle {
 
 			Keys.onPressed: (event) => {
 				switch (event.key) {
-					case Qt.Key_Enter:
-					case Qt.Key_Return:
-						if (selectedYear.yearOK) {
-							event.accepted = true;
-							yearChosen(parseInt(text));
-							showHideMonthsList();
-						}
-					break;
-					case Qt.Key_Escape:
+				case Qt.Key_Enter:
+				case Qt.Key_Return:
+					if (selectedYear.yearOK) {
 						event.accepted = true;
-						showHideYearsList();
+						_control.yearChosen(parseInt(text));
+						_control.showHideMonthsList();
+					}
 					break;
-					default: return;
+				case Qt.Key_Escape:
+					event.accepted = true;
+					_control.showHideYearsList();
+					break;
+				default: return;
 				}
 			}
 
-			onPressed: showHideYearsList();
+			onPressed: _control.showHideYearsList();
 
 			function filterInput(): void {
 				yearsModel.clear();
@@ -109,10 +111,10 @@ Rectangle {
 		}
 
 		TextField {
-			id: selectedWeekDayMonth
-			text: appUtils.dayName(selectedDate.getUTCDay()).slice(0, 3) + ", " + selectedDate.getUTCDate() + " " +
-											appUtils.monthName(selectedDate.getUTCMonth()).slice(0, 3)
-			leftPadding: cellSize * 0.5
+			id: txtSelectedWeekDayAndMonth
+			text: AppUtils.dayName(_control.selectedDate.getUTCDay()).slice(0, 3) + ", " + _control.selectedDate.getUTCDate() +
+															" " + AppUtils.monthName(_control.selectedDate.getUTCMonth()).slice(0, 3)
+			leftPadding: _control.cellSize * 0.5
 			horizontalAlignment: Text.AlignLeft
 			verticalAlignment: Text.AlignVCenter
 			font.pixelSize: height * 0.5
@@ -120,7 +122,7 @@ Rectangle {
 			readOnly: true
 			color: AppSettings.fontColor
 			opacity: monthsList.visible ? 0.7 : 1
-			height: cellSize * 2
+			height: _control.cellSize * 2
 			z: 1
 
 			background: Rectangle {
@@ -139,40 +141,40 @@ Rectangle {
 
 			Keys.onPressed: (event) => {
 				switch (event.key) {
-					case Qt.Key_Enter:
-					case Qt.Key_Return:
-						event.accepted = true;
-						monthChosen(monthsList.currentIndex);
+				case Qt.Key_Enter:
+				case Qt.Key_Return:
+					event.accepted = true;
+					_control.monthChosen(monthsList.currentIndex);
 					break;
-					case Qt.Key_Escape:
-						event.accepted = true;
-						selectedWeekDayMonth.readOnly = true;
-						monthsList.hide();
-					break;
-					default: return;
+				case Qt.Key_Escape:
+					event.accepted = true;
+					txtSelectedWeekDayAndMonth.readOnly = true;
+					monthsList.hide();
+				break;
+				default: return;
 				}
 			}
 
-			onPressed: showHideMonthsList();
+			onPressed: _control.showHideMonthsList();
 
 			function filterInput(): void {
 				monthsModel.clear();
 				let monthOK = false;
 				for (let i = 0; i < 12; ++i) {
-					if (selectedDate.getUTCFullYear() === startDate.getUTCFullYear()) {
-						if (i < startDate.getUTCMonth())
+					if (_control.selectedDate.getUTCFullYear() === _control.startDate.getUTCFullYear()) {
+						if (i < _control.startDate.getUTCMonth())
 							continue;
 					}
-					if (selectedDate.getUTCFullYear() === endDate.getUTCFullYear()) {
-						if (i > startDate.getUTCMonth())
+					if (_control.selectedDate.getUTCFullYear() === _control.endDate.getUTCFullYear()) {
+						if (i > _control.startDate.getUTCMonth())
 							continue;
 					}
 					if (text.length === 0)
-						monthsModel.append({name: appUtils.monthName(i)});
+						monthsModel.append({name: AppUtils.monthName(i)});
 					else {
-						const found = appUtils.monthName(i).toLowerCase().indexOf(text.toLowerCase()) >= 0;
+						const found = AppUtils.monthName(i).toLowerCase().indexOf(text.toLowerCase()) >= 0;
 						if (found) {
-							monthsModel.append({name: appUtils.monthName(i)});
+							monthsModel.append({name: AppUtils.monthName(i)});
 							if (!monthOK) {
 								monthOK = true;
 								monthsList.currentIndex = i;
@@ -181,7 +183,7 @@ Rectangle {
 					}
 				}
 				if (!monthOK)
-					monthsList.currentIndex = selectedDate.getUTCMonth();
+					monthsList.currentIndex = _control.selectedDate.getUTCMonth();
 			}
 		}
 	} //titleOfDate
@@ -193,17 +195,17 @@ Rectangle {
 		snapMode: ListView.SnapToItem
 		reuseItems: true
 		orientation: ListView.Horizontal
-		spacing: cellSize
-		model: calendarModel
+		spacing: _control.cellSize
+		model: _control.calendarModel
 
 		Connections {
-			target: calendarModel ? calendarModel : null
+			target: _control.calendarModel ? _control.calendarModel : null
 			ignoreUnknownSignals: true
 
 			function onReadyChanged() {
-				calendar.currentIndex = calendarModel.indexOf(selectedDate);
+				calendar.currentIndex = _control.calendarModel.indexOf(_control.selectedDate);
 				calendar.positionViewAtIndex(calendar.currentIndex, ListView.SnapPosition);
-				dateSelected(selectedDate);
+				_control.dateSelected(_control.selectedDate);
 			}
 		}
 
@@ -212,25 +214,25 @@ Rectangle {
 			bottom: parent.bottom
 			left: parent.left
 			right: parent.right
-			leftMargin: cellSize * 0.5
-			rightMargin: cellSize * 0.5
+			leftMargin: _control.cellSize * 0.5
+			rightMargin: _control.cellSize * 0.5
 		}
 
 		delegate: Rectangle {
-			height: cellSize * 7
-			width: cellSize * 7
+			height: _control.cellSize * 7
+			width: _control.cellSize * 7
 
 			Rectangle {
 				id: monthYearTitle
 				anchors.top: parent.top
-				height: cellSize
+				height: _control.cellSize
 				width: parent.width
 
 				Text {
 					anchors.centerIn: parent
-					font.pixelSize: fontSizePx * 1.2
+					font.pixelSize: _control.fontSizePx * 1.2
 					font.bold: true
-					text: appUtils.monthName(model.month) + " " + model.year;
+					text: AppUtils.monthName(model.month) + " " + calendar.model.year;
 				}
 			}
 
@@ -238,14 +240,14 @@ Rectangle {
 				id: weekTitles
 				locale: monthGrid.locale
 				anchors.top: monthYearTitle.bottom
-				height: cellSize
+				height: _control.cellSize
 				width: parent.width
 
 				delegate: Text {
-					text: model.shortName
+					text: calendar.model.shortName
 					horizontalAlignment: Text.AlignHCenter
 					verticalAlignment: Text.AlignVCenter
-					font.pixelSize: fontSizePx
+					font.pixelSize: _control.fontSizePx
 					font.bold: true
 				}
 			}
@@ -253,39 +255,44 @@ Rectangle {
 
 			MonthGrid {
 				id: monthGrid
-				month: model.month
-				year: model.year
+				month: calendar.model.month
+				year: calendar.model.year
 				spacing: 0
 				locale: Qt.locale(AppSettings.userLocale)
-				width: cellSize * 7
-				height: cellSize * 6
+				width: _control.cellSize * 7
+				height: _control.cellSize * 6
 				anchors.top: weekTitles.bottom
 
 				delegate: Rectangle {
-					height: cellSize
-					width: cellSize
-					radius: cellSize * 0.5
-					opacity: monthGrid.month === model.month ? 1 : 0.5
+					id: _delegate
+					height: _control.cellSize
+					width: _control.cellSize
+					radius: _control.cellSize * 0.5
+					opacity: monthGrid.month === calendar.model.month ? 1 : 0.5
 					color: AppSettings.primaryColor
 
-					readonly property bool highlighted: model.day === selectedDate.getUTCDate() && model.month === selectedDate.getUTCMonth()
-					readonly property bool todayDate: model.year === thisDay.getUTCFullYear() && model.month === thisDay.getUTCMonth() && model.day === thisDay.getUTCDate()
+					readonly property bool highlighted: calendar.model.day === _control.selectedDate.getUTCDate() &&
+																		calendar.model.month === _control.selectedDate.getUTCMonth()
+					readonly property bool todayDate: calendar.model.year === _control.thisDay.getUTCFullYear() &&
+																	calendar.model.month === _control.thisDay.getUTCMonth() &&
+																	calendar.model.day === _control.thisDay.getUTCDate()
 
 					Text {
 						text: model.day
-						font.pixelSize: fontSizePx
+						font.pixelSize: _control.fontSizePx
 						font.bold: true
-						scale: highlighted ? 1.25 : 1
+						scale: _delegate.highlighted ? 1.25 : 1
 						Behavior on scale { NumberAnimation { duration: 150 } }
-						color: todayDate ? "red" : parent.highlighted ? "green" : monthGrid.month === model.month ? AppSettings.fontColor : AppSettings.disabledFontColor
+						color: _control.todayDate ? "red" : _delegate.highlighted ? "green" : monthGrid.month === calendar.model.month ?
+																				AppSettings.fontColor : AppSettings.disabledFontColor
 						anchors.centerIn: parent
 					}
 
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							selectedDate = new Date(model.year, model.month, model.day);
-							dateSelected(selectedDate);
+							_control.selectedDate = new Date(calendar.model.year, calendar.model.month, calendar.model.day);
+							_control.dateSelected(_control.selectedDate);
 						}
 					}
 				} // delegate: Rectangle
@@ -299,9 +306,9 @@ Rectangle {
 		z: 1
 		anchors.fill: calendar
 
-		property int currentYear: startDate.getUTCFullYear()
-		readonly property int startYear: startDate.getUTCFullYear()
-		readonly property int endYear : endDate.getUTCFullYear()
+		property int currentYear: _control.startDate.getUTCFullYear()
+		readonly property int startYear: _control.startDate.getUTCFullYear()
+		readonly property int endYear : _control.endDate.getUTCFullYear()
 
 		model: ListModel {
 			id: yearsModel
@@ -311,12 +318,14 @@ Rectangle {
 			useGradient: true
 			opacity: 0.8
 			width: yearsList.width
-			height: cellSize * 1.5
+			height: _control.cellSize * 1.5
+
+			required property int index
 
 			Text {
 				anchors.centerIn: parent
-				font.pixelSize: fontSizePx * 1.5
-				text: name
+				font.pixelSize: _control.fontSizePx * 1.5
+				text: yearsModel.name
 				scale: index === yearsList.currentYear - yearsList.startYear ? 1.5 : 1
 				color: AppSettings.fontColor
 			}
@@ -329,8 +338,8 @@ Rectangle {
 		function show(): void {
 			visible = true;
 			calendar.visible = false;
-			currentYear = selectedDate.getUTCFullYear();
-			yearsList.positionViewAtIndex(currentYear - startYear, ListView.SnapToItem);
+			currentYear = _control.selectedDate.getUTCFullYear();
+			yearsList.positionViewAtIndex(currentYear - _control.startYear, ListView.SnapToItem);
 		}
 
 		function hide(): void {
@@ -354,19 +363,21 @@ Rectangle {
 		delegate: TPBackRec {
 			useGradient: true
 			width: monthsList.width
-			height: cellSize * 1.5
+			height: _control.cellSize * 1.5
 			opacity: 0.8
+
+			required property int index
 
 			Text {
 				anchors.centerIn: parent
-				font.pixelSize: fontSizePx * 1.5
-				text: name
+				font.pixelSize: _control.fontSizePx * 1.5
+				text: monthsModel.name
 				scale: index === monthsList.currentMonth ? 1.5 : 1
 				color: AppSettings.fontColor
 
 				MouseArea {
 					anchors.fill: parent
-					onClicked: monthChosen(index);
+					onClicked: _control.monthChosen(index);
 				}
 			}
 		}
@@ -390,7 +401,7 @@ Rectangle {
 
 	function showHideYearsList(): void {
 		if (yearsList.visible) {
-			selectedYear.text = Qt.binding(function() { return selectedDate.getUTCFullYear(); });
+			selectedYear.text = Qt.binding(function() { return _control.selectedDate.getUTCFullYear(); });
 			selectedYear.readOnly = true;
 			yearsList.hide();
 		}
@@ -405,18 +416,18 @@ Rectangle {
 
 	function showHideMonthsList(): void {
 		if (monthsList.visible) {
-			selectedWeekDayMonth.text = Qt.binding(function() {
-				return appUtils.dayName(selectedDate.getUTCDay()).slice(0, 3) + ", " + selectedDate.getUTCDate() +
-						" " + appUtils.monthName(selectedDate.getUTCMonth()).slice(0, 3); });
-			selectedWeekDayMonth.readOnly = true;
+			txtSelectedWeekDayAndMonth.text = Qt.binding(function() {
+				return AppUtils.dayName(_control.selectedDate.getUTCDay()).slice(0, 3) + ", " + _control.selectedDate.getUTCDate() +
+														" " + AppUtils.monthName(_control.selectedDate.getUTCMonth()).slice(0, 3); });
+			txtSelectedWeekDayAndMonth.readOnly = true;
 			monthsList.hide();
-			root.forceActiveFocus();
+			_control.forceActiveFocus();
 		}
 		else {
-			selectedWeekDayMonth.readOnly = false;
-			selectedWeekDayMonth.clear();
-			selectedWeekDayMonth.forceActiveFocus();
-			selectedWeekDayMonth.filterInput();
+			txtSelectedWeekDayAndMonth.readOnly = false;
+			txtSelectedWeekDayAndMonth.clear();
+			txtSelectedWeekDayAndMonth.forceActiveFocus();
+			txtSelectedWeekDayAndMonth.filterInput();
 			monthsList.show();
 		}
 	}
@@ -446,46 +457,42 @@ Rectangle {
 	function setDateByTyping(key1: int, key2: int): void {
 		let day = -1;
 		switch (key1) {
-			case Qt.Key_0: day = 0; break;
-			case Qt.Key_1: day = 1; break;
-			case Qt.Key_2: day = 2; break;
-			case Qt.Key_3: day = 3; break;
-			case Qt.Key_4: day = 4; break;
-			case Qt.Key_5: day = 5; break;
-			case Qt.Key_6: day = 6; break;
-			case Qt.Key_7: day = 7; break;
-			case Qt.Key_8: day = 8; break;
-			case Qt.Key_9: day = 9; break;
-			default: return;
+		case Qt.Key_0: day = 0; break;
+		case Qt.Key_1: day = 1; break;
+		case Qt.Key_2: day = 2; break;
+		case Qt.Key_3: day = 3; break;
+		case Qt.Key_4: day = 4; break;
+		case Qt.Key_5: day = 5; break;
+		case Qt.Key_6: day = 6; break;
+		case Qt.Key_7: day = 7; break;
+		case Qt.Key_8: day = 8; break;
+		case Qt.Key_9: day = 9; break;
+		default: return;
 		}
-		if (key2 === -1)
-		{
-			if (day >= 1)
-			{
+		if (key2 === -1) {
+			if (day >= 1) {
 				selectedDate = new Date(selectedDate.getUTCFullYear(), selectedDate.getUTCMonth(), day);
 				dateSelected(selectedDate);
 			}
 		}
-		else
-		{
+		else {
 			let typed_day = selectedDate.getUTCDate();
 			switch (typed_day) {
-				case 0:
-				case 1:
-				case 2:
-					typed_day *= 10;
-					typed_day += day;
+			case 0:
+			case 1:
+			case 2:
+				typed_day *= 10;
+				typed_day += day;
 				break;
-				case 3:
-					typed_day *= 10;
-					typed_day += day;
-					if (typed_day > daysInMonth(selectedDate))
-						typed_day = -1;
+			case 3:
+				typed_day *= 10;
+				typed_day += day;
+				if (typed_day > daysInMonth(selectedDate))
+					typed_day = -1;
 				break;
-				default: typed_day = -1;
+			default: typed_day = -1;
 			}
-			if (typed_day >= 1)
-			{
+			if (typed_day >= 1) {
 				selectedDate = new Date(selectedDate.getUTCFullYear(), selectedDate.getUTCMonth(), typed_day);
 				dateSelected(selectedDate);
 			}

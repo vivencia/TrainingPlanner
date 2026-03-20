@@ -431,4 +431,3 @@ void QMLMesoInterface::verifyMesoRequiredFieldsStatus()
 															Q_ARG(int, n_required_fields), Q_ARG(int, first_required_field));
 	}
 }
-

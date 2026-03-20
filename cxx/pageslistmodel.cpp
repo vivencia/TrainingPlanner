@@ -113,7 +113,6 @@ void PagesListModel::closePage(const uint index)
 {
 	if (index > 0 && index < m_pagesData.count()) {
 		QMetaObject::invokeMethod(appMainWindow(), "popFromStack", Q_ARG(QQuickItem*, m_pagesData.at(index)->page));
-		emit pageDeActivated(m_pagesData.at(index)->page);
 		beginRemoveRows(QModelIndex{}, index, index);
 		if (m_pagesData.at(index)->cleanUpFunc)
 			m_pagesData.at(index)->cleanUpFunc();
@@ -124,7 +123,6 @@ void PagesListModel::closePage(const uint index)
 		emit countChanged();
 		if (m_pagesIndex >= index && m_pagesIndex > 0)
 			setCurrentIndex(--m_pagesIndex);
-		emit pageActivated(m_pagesData.at(currentIndex())->page);
 	}
 }
 
@@ -238,7 +236,16 @@ bool PagesListModel::eventFilter(QObject *obj, QEvent *event)
 void PagesListModel::openQMLPage(const uint index)
 {
 	QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_pagesData.at(index)->page));
-	emit pageActivated(m_pagesData.at(index)->page);
 	if (index > 0)
 		appUserModel()->actualMesoModel()->setCurrentMesosView(appUserModel()->actualMesoModel()->isOwnMeso(m_pagesMesoIdx.at(index)));
+}
+
+void PagesListModel::activateQmlPage(const uint index)
+{
+	QMetaObject::invokeMethod(m_pagesData.at(index)->page, "pageActivated");
+}
+
+void PagesListModel::deActivateQmlPage(const uint index)
+{
+	QMetaObject::invokeMethod(m_pagesData.at(index)->page, "pageDeActivated");
 }

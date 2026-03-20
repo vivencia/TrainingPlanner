@@ -4,7 +4,7 @@ import QtQuick.Controls
 import "../"
 
 TextField {
-	id: control
+	id: _control
 	font.pixelSize: AppSettings.fontSize
 	font.weight: Font.Bold
 	color: enabled ? textColor : AppSettings.disabledFontColor
@@ -32,9 +32,9 @@ TextField {
 	readonly property int defaultPadding: showClearTextButton ? (text.length > 0 ? btnClearText.width : 0) : 5
 
 	readonly property FontMetrics currentFontMetrics: FontMetrics {
-		font.family: control.font.family
-		font.pixelSize: control.font.pixelSize
-		font.weight: control.font.weight
+		font.family: _control.font.family
+		font.pixelSize: _control.font.pixelSize
+		font.weight: _control.font.weight
 	}
 
 	signal enterOrReturnKeyPressed(mod_key: int)
@@ -42,28 +42,27 @@ TextField {
 
 	onPressAndHold: (event) => {
 		event.accepted = true;
-		appUtils.copyToClipboard(selectionStart === selectionEnd ? text : text.substr(selectionStart, selectionEnd));
-		mainwindow.showTextCopiedMessage();
+		AppUtils.copyToClipboard(selectionStart === selectionEnd ? text : text.substr(selectionStart, selectionEnd));
+		ItemManager.showTextCopiedMessage();
 	}
 
 	background: Rectangle {
 		id: itemBack
-		border.color: textColor
-		color: control.enabled ? backgroundColor : "transparent"
+		border.color: _control.textColor
+		color: _control.enabled ? _control.backgroundColor : "transparent"
 		radius: 6
 		opacity: 0.5
 	}
 
 	Keys.onPressed: (event) => {
-		textRemovedKeyPressed = false;
+		_control.textRemovedKeyPressed = false;
 		switch (event.key) {
-			case Qt.Key_Enter:
-			case Qt.Key_Return:
+		case Qt.Key_Enter:
+		case Qt.Key_Return:
 			{
 				event.accepted = true;
 				let mod_key = 0;
-				if (event.modifiers)
-				{
+				if (event.modifiers) {
 					if (event.modifiers & Qt.ControlModifier)
 						mod_key = Qt.Key_Control;
 					else if (event.modifiers & Qt.AltModifier)
@@ -74,11 +73,11 @@ TextField {
 				enterOrReturnKeyPressed(mod_key);
 			}
 			break;
-			case Qt.Key_Backspace:
-			case Qt.Key_Delete:
-				textRemovedKeyPressed = true;
+		case Qt.Key_Backspace:
+		case Qt.Key_Delete:
+			textRemovedKeyPressed = true;
 			break;
-			default: return;
+		default: return;
 		}
 	}
 
@@ -100,21 +99,21 @@ TextField {
 		id: btnClearText
 		imageSource: "edit-clear"
 		hasDropShadow: false
-		visible: showClearTextButton && control.text.length > 0
+		visible: _control.showClearTextButton && _control.text.length > 0
 		width: AppSettings.itemDefaultHeight
 		height: width
 
 		anchors {
-			right: control.right
+			right: _control.right
 			rightMargin: 5
-			verticalCenter: control.verticalCenter
+			verticalCenter: _control.verticalCenter
 		}
 
 		onClicked: {
-			control.clear();
-			control.forceActiveFocus();
-			if (readOnly)
-				textCleared();
+			_control.clear();
+			_control.forceActiveFocus();
+			if (_control.readOnly)
+				_control.textCleared();
 		}
 	}
 

@@ -70,6 +70,7 @@ Q_PROPERTY(QString nonMesoLabel READ nonMesoLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString splitR READ splitR NOTIFY labelChanged FINAL)
 
 public:
+	Q_ENUM(MesoFields)
 
 	static constexpr uint8_t MESO_N_REQUIRED_FIELDS{4};
 	static constexpr uint8_t meso_required_fields[MESO_N_REQUIRED_FIELDS]

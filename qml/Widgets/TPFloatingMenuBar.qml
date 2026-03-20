@@ -1,18 +1,20 @@
+pragma componentBehavior: Bound
+
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 
-import "../"
+import TpQml
 
 TPPopup {
-	id: menu
+	id: _control
 	keepAbove: false
 	closeButtonVisible: false
 	width: Math.max(lblTitle.width, mainLayout.childrenRect.width + 20)
 	height: mainLayout.childrenRect.height + lblTitle.height + 20
 
+//public:
 	property string titleHeader
-	property Component entryComponent: null
+	property list<QtObject> entriesList: []
 
 	signal menuEntrySelected(id: int);
 
@@ -20,13 +22,24 @@ TPPopup {
 
 	ListModel {
 		id: entriesList
+
+		Repeater {
+			model: _control.entriesList.length
+			delegateModelAccess: DelegateModel.ReadOnly
+			ListElement {
+				label: _control.entriesList[index].label
+				image: _control.entriesList[index].image
+				clickId: _control.entriesList[index].id
+				visible: _control.entriesList[index].visible
+			}
+		}
 	}
 
 	TPLabel {
 		id: lblTitle
-		text: titleHeader
+		text: _control.titleHeader
 		horizontalAlignment: Text.AlignHCenter
-		visible: titleHeader.length > 0
+		visible: _control.titleHeader.length > 0
 		height: visible ? AppSettings.itemDefaultHeight : 0
 		font: AppGlobals.smallFont
 
@@ -40,10 +53,10 @@ TPPopup {
 		id: mainLayout
 		padding: 5
 		spacing: 5
-		opacity: menu.opacity
+		opacity: _control.opacity
 
 		anchors {
-			top: titleHeader.length > 0 ? lblTitle.bottom : parent.top
+			top: _control.titleHeader.length > 0 ? lblTitle.bottom : parent.top
 			left: parent.left
 			margins: 5
 			topMargin: 10
@@ -54,7 +67,6 @@ TPPopup {
 			model: entriesList.count
 
 			TPButton {
-				required property int index
 				text: entriesList.get(index).Label
 				imageSource: entriesList.get(index).Image
 				clickId: entriesList.get(index).ClickId
@@ -64,30 +76,13 @@ TPPopup {
 				Layout.alignment: Qt.AlignHCenter
 				Layout.preferredWidth: Math.min(AppSettings.pageWidth * 0.5, width)
 
-				onClicked: menuEntryClicked(clickId);
+				required property int index
+
+				onClicked: {
+					_control.menuEntrySelected(clickId);
+					_control.close();
+				}
 			}
 		}
-	}
-
-	function addEntry(label: string, img: string, id: int, bvisible: bool): void {		
-		entriesList.append( {"Label": label, "Image": img, "ClickId": id, "Visible": bvisible} );
-	}
-
-	function clear(): void {
-		entriesList.clear();
-		close();
-	}
-
-	function enableMenuEntry(id: int, benabled: bool): void {
-		entriesList.get(id).Visible = benabled;
-	}
-
-	function setMenuText(id: int, newText: string): void {
-		entriesList.get(id).Label = newText;
-	}
-
-	function menuEntryClicked(buttonid: int): void {
-		menuEntrySelected(buttonid);
-		menu.close();
 	}
 }

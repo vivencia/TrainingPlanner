@@ -1,7 +1,6 @@
 set( QML_EXERCISES
 	"ExerciseNameField.qml"
 	"ExercisesListView.qml"
-	"PageScrollButtons.qml"
 	"SetInputField.qml"
 	"SetNotesField.qml"
 	"SimpleExercisesListPanel.qml"
@@ -13,7 +12,7 @@ qt_add_qml_module(tp_exercises_module
 	URI TpQml.Exercises
 	VERSION 1.0
 	QML_FILES
-		${QML_USER}
+		${QML_EXERCISES}
 	RESOURCE_PREFIX
 		"/"
 )

@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Shapes
+
+import TpQml
 
 ToolBar {
 	spacing: 0
