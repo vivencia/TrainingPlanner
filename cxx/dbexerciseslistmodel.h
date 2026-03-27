@@ -15,7 +15,7 @@ enum ExerciseListFields {
 	EXERCISES_LIST_FIELD_FROMAPPLIST,
 	EXERCISES_LIST_FIELD_ACTUALINDEX,
 	EXERCISES_LIST_FIELD_SELECTED,
-	EXERCISES_TOTAL_COLS
+	EXERCISES_LIST_N_FIELDS
 };
 
 QT_FORWARD_DECLARE_CLASS(DBExercisesListTable)
@@ -61,12 +61,10 @@ public:
 	Q_INVOKABLE bool isSelected(const uint index) const;
 	Q_INVOKABLE void setSelected(const uint index, const bool selected);
 
-	inline uint count() const
-	{
+	inline uint count() const {
 		if (m_searchFilterApplied)
 			return m_searchFilteredIndices.count();
-		else
-		{
+		else {
 			if (m_muscularFilterApplied)
 				return m_muscularFilteredIndices.count();
 			else
@@ -77,14 +75,12 @@ public:
 	inline int currentRow() const { return m_currentRow; }
 	void setCurrentRow(const int row);
 
-	Q_INVOKABLE inline int currentRealRow() const
-	{
+	Q_INVOKABLE inline int currentRealRow() const {
 		if (m_currentRow == -1)
 			return -1;
 		if (m_searchFilterApplied)
 			return m_exercisesData.at(m_searchFilteredIndices.at(m_currentRow)).at(EXERCISES_LIST_FIELD_SELECTED).toUInt();
-		else
-		{
+		else {
 			if (m_muscularFilterApplied)
 				return m_exercisesData.at(m_muscularFilteredIndices.at(m_currentRow)).at(EXERCISES_LIST_FIELD_SELECTED).toUInt();
 			else
@@ -154,7 +150,6 @@ private:
 	friend DBExercisesListModel *appExercisesList();
 	friend class DBModelInterfaceExercisesList;
 };
-
 DECLARE_QML_NAMED_SINGLETON(DBExercisesListModel, AppExercisesList)
 
 inline DBExercisesListModel *appExercisesList() { return DBExercisesListModel::_app_exercises_list; }

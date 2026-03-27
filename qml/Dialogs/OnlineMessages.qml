@@ -137,12 +137,12 @@ TPPopup {
 			movableWidget: onlineMsgsDlg
 
 			onMouseClicked: {
-				if (ItemManager.appPagesManager.isPopupAboveAllOthers(onlineMsgsDlg)) {
+				if (ItemManager.AppPagesManager.isPopupAboveAllOthers(onlineMsgsDlg)) {
 					onlineMsgsDlg.mainIconUserDefinedY = onlineMsgsDlg.y;
 					shrink.start();
 				}
 				else
-					ItemManager.appPagesManager.raisePopup(onlineMsgsDlg);
+					ItemManager.AppPagesManager.raisePopup(onlineMsgsDlg);
 			}
 		}
 	}
@@ -178,13 +178,25 @@ TPPopup {
 
 			delegate: SwipeDelegate {
 				id: delegateItem
-				swipe.enabled: messagesList.model.sticky
+				swipe.enabled: msgSticky
 				clip: true
 				padding: 0
 				spacing: 5
 				width: messagesList.width
 
 				required property int index
+				required property int msgId
+				required property string msgLabelText
+				required property string msgIcon
+				required property string msgFileName
+				required property string msgExtraInfoLabel
+				required property string msgExtraInfoIcon
+				required property string msgDate
+				required property string msgTime
+				required property list<string> msgActions
+				required property bool msgSticky
+				required property bool msgHasActions
+
 				property bool showActions: false
 
 				function setShowActions(show: bool) {
@@ -207,7 +219,7 @@ TPPopup {
 					opacity: 1 + delegateItem.swipe.position
 
 					MouseArea {
-						width:  childrenRect.width
+						width: childrenRect.width
 						height: childrenRect.height
 						onClicked: delegateItem.setShowActions(!delegateItem.showActions);
 
@@ -219,18 +231,18 @@ TPPopup {
 							Layout.rightMargin: 10
 
 							TPImage {
-								source: messagesList.model.msgicon
+								source: delegateItem.msgIcon
 								imageSizeFollowControlSize: true
 								keepAspectRatio: true
 								fullWindowView: false
 								dropShadow: false
 								Layout.preferredWidth: AppSettings.itemSmallHeight
 								Layout.preferredHeight: AppSettings.itemSmallHeight
-								visible: messagesList.model.msgicon.length > 0
+								visible: delegateItem.msgIcon.length > 0
 							}
 
 							TPLabel {
-								text: messagesList.model.msgdate + "  " + messagesList.model.msgtime
+								text: delegateItem.msgDate + "  " + delegateItem.msgTime
 								font: AppGlobals.smallFont
 								Layout.preferredHeight: AppSettings.itemSmallHeight
 								Layout.leftMargin: AppSettings.itemSmallHeight
@@ -239,15 +251,15 @@ TPPopup {
 							Item {
 								Layout.preferredWidth: AppSettings.itemSmallHeight
 								Layout.preferredHeight: AppSettings.itemSmallHeight
-								visible: messagesList.model.extraInfo.length > 0
+								visible: delegateItem.msgExtraInfoLabel.length > 0
 
 								TPImage {
 									id: extraInfoImg
-									source: messagesList.model.extraInfoIcon
+									source: delegateItem.msgExtraInfoIcon
 									anchors.fill: parent
 								}
 								TPLabel {
-									text: messagesList.model.extraInfo
+									text: delegateItem.msgExtraInfoLabel
 									minimumPixelSize: AppSettings.smallFontSize * 0.7
 									z: 1
 									width: parent.width * 0.5
@@ -269,7 +281,7 @@ TPPopup {
 
 					TPLabel {
 						id: lblMessage
-						text: messagesList.model.labelText
+						text: delegateItem.msgLabelText
 						elide: delegateItem.showActions ? Text.ElideNone : Text.ElideRight
 						wrapMode: delegateItem.showActions ? Text.WordWrap : Text.NoWrap
 						singleLine: !delegateItem.showActions
@@ -280,7 +292,7 @@ TPPopup {
 						MouseArea {
 							anchors.fill: parent
 							onClicked: {
-								if (messagesList.model.hasActions)
+								if (delegateItem.msgHasActions)
 									delegateItem.setShowActions(!delegateItem.showActions);
 								else
 									AppMessages.itemClicked(delegateItem.index);
@@ -290,20 +302,20 @@ TPPopup {
 
 					Loader {
 						asynchronous: true
-						active: messagesList.model.filename.length > 0
+						active: delegateItem.msgFileName.length > 0
 						Layout.maximumWidth: onlineMsgsDlg.dlgMaxWidth
 						Layout.minimumWidth: onlineMsgsDlg.dlgMaxWidth
 
 						sourceComponent: TPFileViewer {
-							mediaSource: messagesList.model.filename
-							onRemovalRequested: AppMessages.removeMessage(messagesList.model.msgid);
+							mediaSource: delegateItem.msgFileName
+							onRemovalRequested: AppMessages.removeMessage(delegateItem.msgId);
 						}
 					}
 
 					Loader {
 						id: actionsLoader
 						asynchronous: true
-						active: messagesList.model.actions.length > 0
+						active: delegateItem.msgActions.length > 0
 						Layout.maximumWidth: onlineMsgsDlg.dlgMaxWidth
 						Layout.minimumWidth: onlineMsgsDlg.dlgMaxWidth
 
@@ -321,10 +333,10 @@ TPPopup {
 
 							Repeater {
 								id: actionsRepeater
-								model: messagesList.model.actions
+								model: delegateItem.msgActions
 
 								delegate: TPButton {
-									text: messagesList.model.actions[index]
+									text: delegateItem.msgActions[delegateItem.index]
 									width: constrainSize ? _layout.maxButtonWidth : preferredWidth
 									autoSize: !constrainSize
 									rounded: false

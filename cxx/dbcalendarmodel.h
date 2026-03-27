@@ -21,7 +21,7 @@ enum MesoCalendarFields
 	CALENDAR_FIELD_LOCATION,
 	CALENDAR_FIELD_NOTES,
 	CALENDAR_FIELD_WORKOUT_COMPLETED,
-	MESOCALENDAR_TOTAL_COLS
+	MESOCALENDAR_N_FIELDS
 };
 
 class DBCalendarModel : public QAbstractListModel
@@ -59,8 +59,7 @@ public:
 	inline int currentDay() const { return m_curDay; }
 	inline void setCurrentDay(const uint new_day)
 	{
-		if (new_day != m_curDay)
-		{
+		if (new_day != m_curDay) {
 			m_curDay = new_day;
 			setCurrentDate(date(m_curDay));
 			emit currentDayChanged();

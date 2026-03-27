@@ -1,4 +1,4 @@
-pragma componentBahavior: Bound
+pragma ComponentBehavior: Bound
 
 import QtQuick
 
@@ -15,8 +15,10 @@ TPPopup {
 	x: 0
 	finalYPos: (AppSettings.pageHeight-height) / 2;
 
+//public:
 	required property int userRow
-	required property Item callerWidget
+
+	signal avatarSelected(string id, bool from_file);
 
 	Rectangle {
 		id: footerBar
@@ -67,6 +69,7 @@ TPPopup {
 		readonly property string strSex: bMale ? "m" : "f"
 
 		delegate: Rectangle {
+			id: delegate
 			width: AppSettings.pageWidth / 5
 			height: width
 			border.color: "black"
@@ -77,7 +80,7 @@ TPPopup {
 			required property int index
 
 			TPImage {
-				source: "image://tpimageprovider/" + repeater.strSex + parseInt(index)
+				source: "image://tpimageprovider/" + repeater.strSex + parseInt(delegate.index)
 				dropShadow: false
 				anchors.fill: parent
 			}
@@ -85,7 +88,7 @@ TPPopup {
 			MouseArea {
 				anchors.fill: parent
 				onClicked: {
-					callerWidget.selectAvatar(repeater.strSex + parseInt(index));
+					avatarsDlg.avatarSelected(repeater.strSex + parseInt(delegate.index), false);
 					avatarsDlg.close();
 				}
 			}
@@ -103,19 +106,21 @@ TPPopup {
 		asynchronous: true
 		active: false
 
+		property TPFileDialog _file_dialog
 		sourceComponent: TPFileDialog {
 			id: fileDialog
 			title: qsTr("Choose an image to be used as the avatar for the profile")
 			includeImageFilter: true
 
 			onAccepted: {
-				callerWidget.selectExternalAvatar(appUtils.getCorrectPath(currentFile));
+				avatarsDlg.avatarSelected(AppUtils.getCorrectPath(currentFile), true);
 				fileDialogLoader.active = false;
 				avatarsDlg.close();
 			}
 			onRejected: fileDialogLoader.active = false;
+			Component.onCompleted: fileDialogLoader._file_dialog = this;
 		}
 
-		onLoaded: item.show();
+		onLoaded: _file_dialog.show();
 	}
 }

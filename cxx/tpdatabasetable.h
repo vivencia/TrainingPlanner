@@ -90,20 +90,19 @@ protected:
 	QSqlQuery m_workingQuery;
 	QString m_strQuery;
 	QStringList m_databaseFilenamesPool;
-	const QLatin1StringView *m_tableName;
-	const QLatin1StringView (*m_fieldNames)[2];
+	const QLatin1StringView *m_tableName{nullptr};
+	const QLatin1StringView (*m_fieldNames)[2]{nullptr};
 	int m_uniqueID, m_fieldCount;
 	uint m_tableId;
-	bool m_deleteAfterFinished;
+	bool m_deleteAfterFinished{false};
 
 	DBModelInterface *m_dbModelInterface;
 
-	explicit TPDatabaseTable(const uint table_id, DBModelInterface *dbmodel_interface = nullptr);
+	explicit TPDatabaseTable(const uint table_id, DBModelInterface* dbmodel_interface = nullptr);
 
 	static constexpr QLatin1StringView dbfile_extension{ ".db.sqlite"_L1 };
 	void setUpConnection();
-	bool createServerCmdFile(const QString &dir, const std::initializer_list<QString> &command_parts,
-									const bool overwrite = false) const;
+	bool createServerCmdFile(const QString &dir, const std::initializer_list<QString> &command_parts, const bool overwrite = false) const;
 
 private:
 	QHash<ThreadManager::StandardOps, std::function<void(void *param)>> m_threadedFunctions;

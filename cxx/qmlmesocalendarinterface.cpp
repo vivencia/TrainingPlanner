@@ -16,14 +16,12 @@ QmlMesoCalendarInterface::QmlMesoCalendarInterface(QObject *parent, DBMesocycles
 	: QObject{parent}, m_mesoModel{meso_model}, m_calComponent{nullptr}, m_calPage{nullptr}, m_mesoIdx{meso_idx}, m_calendarModel{calendar_model}
 {
 	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, [this] (const uint meso_idx, const uint field) {
-		if (meso_idx == m_mesoIdx)
-		{
-			switch (field)
-			{
-				case MESO_FIELD_NAME: emit nameLabelChanged(); break;
-				case MESO_FIELD_STARTDATE:
-				case MESO_FIELD_ENDDATE: emit dateLabelChanged() ; break;
-				default: break;
+		if (meso_idx == m_mesoIdx) {
+			switch (field) {
+			case DBMesocyclesModel::MESO_FIELD_NAME: emit nameLabelChanged(); break;
+			case DBMesocyclesModel::MESO_FIELD_STARTDATE:
+			case DBMesocyclesModel::MESO_FIELD_ENDDATE: emit dateLabelChanged() ; break;
+			default: break;
 			}
 		}
 	});
@@ -60,8 +58,7 @@ void QmlMesoCalendarInterface::getWorkoutPage()
 
 QString QmlMesoCalendarInterface::dayInfo()
 {
-	if (m_calendarModel->isPartOfMeso())
-	{
+	if (m_calendarModel->isPartOfMeso()) {
 		if (m_calendarModel->splitLetter() != 'R')
 			return appUtils()->formatDate(m_calendarModel->currentDate()) % tr(": Workout #") % m_calendarModel->workoutNumber() %
 			tr(" Split: ") % m_calendarModel->splitLetter() % " - "_L1 % m_mesoModel->muscularGroup(m_mesoIdx,
@@ -81,28 +78,27 @@ QString QmlMesoCalendarInterface::nameLabel() const
 QString QmlMesoCalendarInterface::dateLabel() const
 {
 	return tr("from  <b>") % appUtils()->formatDate(m_mesoModel->startDate(m_mesoIdx)) % tr("</b>  through  <b>") %
-														appUtils()->formatDate(m_mesoModel->endDate(m_mesoIdx)) % "</b>"_L1;
+																	appUtils()->formatDate(m_mesoModel->endDate(m_mesoIdx)) % "</b>"_L1;
 }
 
 void QmlMesoCalendarInterface::createMesoCalendarPage()
 {
 	m_calComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/Pages/MesoCalendarPage.qml"_L1}, QQmlComponent::Asynchronous};
-	switch (m_calComponent->status())
-	{
-		case QQmlComponent::Ready:
+	switch (m_calComponent->status()) {
+	case QQmlComponent::Ready:
+		createMesoCalendarPage_part2();
+		break;
+	case QQmlComponent::Loading:
+		connect(m_calComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
 			createMesoCalendarPage_part2();
+		}, Qt::SingleShotConnection);
 		break;
-		case QQmlComponent::Loading:
-			connect(m_calComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
-				createMesoCalendarPage_part2();
-			}, Qt::SingleShotConnection);
+	#ifndef QT_NO_DEBUG
+	case QQmlComponent::Null:
+	case QQmlComponent::Error:
+		qDebug() << m_calComponent->errorString();
 		break;
-		#ifndef QT_NO_DEBUG
-		case QQmlComponent::Null:
-		case QQmlComponent::Error:
-			qDebug() << m_calComponent->errorString();
-		break;
-		#endif
+	#endif
 	}
 }
 
@@ -115,16 +111,14 @@ void QmlMesoCalendarInterface::createMesoCalendarPage_part2()
 	m_calPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
 	appPagesListModel()->openPage(m_calPage, std::move(tr("Calendar: ") + m_mesoModel->name(m_mesoIdx)), [this] () { cleanUp(); });
 
-	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field)
-	{
-		switch (field)
-		{
-			case MESO_FIELD_NAME:
-				emit nameLabelChanged();
+	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field) {
+		switch (field) {
+		case DBMesocyclesModel::MESO_FIELD_NAME:
+			emit nameLabelChanged();
 			break;
-			case MESO_FIELD_STARTDATE:
-			case MESO_FIELD_ENDDATE:
-				emit dateLabelChanged();
+		case DBMesocyclesModel::MESO_FIELD_STARTDATE:
+		case DBMesocyclesModel::MESO_FIELD_ENDDATE:
+			emit dateLabelChanged();
 			break;
 		}
 	});

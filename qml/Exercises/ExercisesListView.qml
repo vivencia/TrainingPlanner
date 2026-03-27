@@ -1,24 +1,26 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import "../"
-import "../TPWidgets"
-import "../Dialogs"
-
 import TpQml
+import TpQml.Widgets
+import TpQml.Dialogs
 
 ColumnLayout {
-	id: mainItem
+	id: _control
 	spacing: 5
 
-	required property Item parentPage
-	property int miliseconds
+//public:
 	property bool bMultipleSelection: false
 	property bool canDoMultipleSelection: false
 
 	signal exerciseEntrySelected(int idx);
 	signal itemDoubleClicked();
+
+//private:
+	property int miliseconds
 
 	//When the list is shared among several objects, if a previous object requested multiple selection and the current
 	//does not, bMultipleSelection will be left however the previous caller might have left it. We must make sure
@@ -36,13 +38,13 @@ ColumnLayout {
 		property int idxToRemove
 
 		onTriggered: {
-			if (miliseconds === 0) {
+			if (_control.miliseconds === 0) {
 				undoTimer.stop();
-				const newrow = itemManager.removeExercise(idxToRemove)
-				simulateMouseClick(newrow, true);
+				const newrow = AppExercisesList.removeExercise(idxToRemove)
+				_control.simulateMouseClick(newrow, true);
 			}
 			else {
-				miliseconds -= 1000;
+				_control.miliseconds -= 1000;
 				start();
 			}
 		}
@@ -55,12 +57,12 @@ ColumnLayout {
 
 	RowLayout {
 		spacing: 5
-		height: appSettings.itemDefaultHeight
+		Layout.preferredHeight: AppSettings.itemDefaultHeight
 		Layout.fillWidth: true
 
 		TPLabel {
 			text: qsTr("Search: ")
-			Layout.preferredWidth: mainItem.width * 0.3
+			Layout.preferredWidth: _control.width * 0.3
 			Layout.leftMargin: 5
 		}
 
@@ -68,13 +70,13 @@ ColumnLayout {
 			id: chkMultipleSelection
 			text: qsTr("Multiple selection")
 			radio: false
-			visible: canDoMultipleSelection
-			Layout.preferredWidth: mainItem.width * 0.6
+			visible: _control.canDoMultipleSelection
+			Layout.preferredWidth: _control.width * 0.6
 			Layout.alignment: Qt.AlignRight
 
 			onCheckedChanged: {
-				exercisesListModel.clearSelectedEntries();
-				bMultipleSelection = checked;
+				AppExercisesList.clearSelectedEntries();
+				_control.bMultipleSelection = checked;
 			}
 		}
 	}
@@ -82,17 +84,17 @@ ColumnLayout {
 	TPTextInput {
 		id: txtSearch
 		showClearTextButton: true
-		readOnly: !mainItem.enabled
-		enabled: exercisesListModel.hasExercises
-		Layout.preferredWidth: parent.width * 0.9
+		readOnly: !_control.enabled
+		enabled: AppExercisesList.hasExercises
+		Layout.preferredWidth: _control.width * 0.9
 		Layout.leftMargin: 5
 
-		onTextChanged: exercisesListModel.search(text);
+		onTextChanged: AppExercisesList.search(text);
 
 		TPButton {
 			id: btnChooseFilters
 			imageSource: "filter.png"
-			width: appSettings.itemSmallHeight
+			width: AppSettings.itemSmallHeight
 			height: width
 
 			anchors {
@@ -101,21 +103,21 @@ ColumnLayout {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: showFilterDialog();
+			onClicked: _control.showFilterDialog();
 		}
 	} // txtSearch
 
 	Rectangle {
 		color: "transparent"
-		border.color: appSettings.fontColor
+		border.color: AppSettings.fontColor
 		border.width: 2
 		radius: 8
-		height: parent.height * 0.75
+		Layout.preferredHeight: _control.height * 0.75
 		Layout.fillWidth: true
 
 		TPListView {
 			id: lstExercises
-			model: exercisesListModel
+			model: AppExercisesList
 			anchors.fill: parent
 			anchors.margins: 4
 
@@ -123,19 +125,24 @@ ColumnLayout {
 				id: delegate
 				padding: 5
 				width: selected ? lstExercises.width * 1.5 : lstExercises.width
-				height: selected ? appSettings.itemExtraLargeHeight * 1.5 : appSettings.itemExtraLargeHeight
+				height: selected ? AppSettings.itemExtraLargeHeight * 1.5 : AppSettings.itemExtraLargeHeight
+
+				required property int index
+				required property bool selected
+				required property string mainName
+				required property string subName
 
 				contentItem: TPLabel {
-					text: String(index+1) + ":  " + mainName + "\n"+ subName
+					text: String(delegate.index+1) + ":  " + delegate.mainName + "\n"+ delegate.subName
 					leftPadding: 5
 					topPadding: 5
 					singleLine: false
 				}
 
 				background: Rectangle {
-					color: selected ? appSettings.entrySelectedColor : "transparent"
-					border.color: selected ? appSettings.fontColor : "transparent"
-					opacity: selected ? 1 : 0.6
+					color: delegate.selected ? AppSettings.entrySelectedColor : "transparent"
+					border.color: delegate.selected ? AppSettings.fontColor : "transparent"
+					opacity: delegate.selected ? 1 : 0.6
 				}
 
 				Behavior on height {
@@ -147,7 +154,7 @@ ColumnLayout {
 					}
 				}
 
-				onClicked: itemClicked(index, true);
+				onClicked: _control.itemClicked(delegate.index, true);
 
 				swipe.right: Rectangle {
 					width: parent.width
@@ -158,7 +165,7 @@ ColumnLayout {
 					TPImage {
 						id: delImage
 						source: "remove"
-						width: appSettings.itemDefaultHeight
+						width: AppSettings.itemDefaultHeight
 						height: width
 						opacity: 2 * -delegate.swipe.position
 
@@ -170,7 +177,7 @@ ColumnLayout {
 					}
 
 					TPLabel {
-						text: qsTr("Removing in ") + parseInt(miliseconds/1000) + "s"
+						text: qsTr("Removing in ") + parseInt(_control.miliseconds/1000) + "s"
 						padding: delImage.width + 20
 						anchors.fill: parent
 						opacity: delegate.swipe.complete ? 1 : 0
@@ -182,7 +189,7 @@ ColumnLayout {
 				} //swipe.right
 
 				swipe.onCompleted: {
-					miliseconds = 4000;
+					_control.miliseconds = 4000;
 					undoTimer.init(index);
 				}
 			} // SwipeDelegate
@@ -191,8 +198,8 @@ ColumnLayout {
 
 	function itemClicked(idx: int, emit_signal: bool): void {
 		if (!bMultipleSelection) {
-			if (exercisesListModel.manageSelectedEntries(idx, 1)) {
-				exercisesListModel.currentRow = idx;
+			if (AppExercisesList.manageSelectedEntries(idx, 1)) {
+				AppExercisesList.currentRow = idx;
 				if (emit_signal)
 					exerciseEntrySelected(idx);
 			}
@@ -202,8 +209,8 @@ ColumnLayout {
 			}
 		}
 		else {
-			if (exercisesListModel.manageSelectedEntries(idx, 2)) {
-				exercisesListModel.currentRow = idx;
+			if (AppExercisesList.manageSelectedEntries(idx, 2)) {
+				AppExercisesList.currentRow = idx;
 				if (emit_signal)
 					exerciseEntrySelected(idx);
 			}
@@ -220,23 +227,20 @@ ColumnLayout {
 		itemClicked(new_index, emit_signal);
 	}
 
-	property MuscularGroupPicker filterDlg: null
-	function showFilterDialog(): void {
-		if (filterDlg === null) {
-			let component = Qt.createComponent("qrc:/TpQml/qml/Dialogs/MuscularGroupPicker.qml", Qt.Asynchronous);
+	Loader {
+		id: muscularGroupPickerLoader
+		asynchronous: true
+		active: false
 
-			function finishCreation() {
-				filterDlg = component.createObject(mainwindow, { parentPage: mainItem.parentPage });
-				filterDlg.muscularGroupsCreated.connect(function(filterStr) {
-					exercisesListModel.setFilter(filterStr);
-				});
-			}
-
-			if (component.status === Component.Ready)
-				finishCreation();
-			else
-				component.statusChanged.connect(finishCreation);
+		property MuscularGroupPicker dialog
+		sourceComponent: MuscularGroupPicker {
+			onClosed: muscularGroupPickerLoader.active = false;
+			Component.onCompleted: muscularGroupPickerLoader.dialog = this;
 		}
-		filterDlg.show(btnChooseFilters, 3);
+
+		onLoaded: dialog.show(btnChooseFilters, Qt.AlignBottom);
+	}
+	function showFilterDialog(): void {
+		muscularGroupPickerLoader.active = true;
 	}
 }

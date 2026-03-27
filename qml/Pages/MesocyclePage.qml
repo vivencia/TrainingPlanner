@@ -1,4 +1,4 @@
-pragma componentBahavior: Bound
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
@@ -47,7 +47,7 @@ TPPage {
 				return;
 			else if (wrong_field_counter >= 1) {
 				requiredFieldsMissingLoader.loaded.connect(function() {
-					missingFieldsTip.show(-4);
+					missingFieldsTip.showInWindow(-Qt.AlignBottom|Qt.AlignHCenter);
 					wrongFieldValueMessageHandler(wrong_field_counter, field);
 				});
 				requiredFieldsMissingLoader.active = true;
@@ -60,7 +60,7 @@ TPPage {
 			missingFieldsTip.subImageLabel = "OK";
 			missingFieldsTip.title = qsTr("New program setup complete!");
 			missingFieldsTip.message = qsTr("Required fields setup");
-			missingFieldsTip.showTimed(5000, -3);
+			missingFieldsTip.showTimed(5000, Qt.AlignBottom|Qt.AlignHCenter);
 			break;
 		case 8:
 			missingFieldsTip.subImageLabel = "?";
@@ -74,10 +74,10 @@ TPPage {
 			missingFieldsTip.title = qsTr("New program setup incomplete");
 			missingFieldsTip.subImageLabel = String(wrong_field_counter);
 			switch (field) {
-			case mesoPage.mesoModel.MESO_FIELD_NAME: missingFieldsTip.message = qsTr("Change and/or accept the program's name"); break; //MESO_FIELD_NAME
-			case mesoPage.mesoModel.MESO_FIELD_STARTDATE: missingFieldsTip.message = qsTr("Change and/or accept the start date"); break; //MESO_FIELD_STARTDATE
-			case mesoPage.mesoModel.MESO_FIELD_ENDDATE: missingFieldsTip.message = qsTr("Change and/or accept the end date"); break; //MESO_FIELD_ENDDATE
-			case mesoModelMESO_FIELD_SPLIT: missingFieldsTip.message = qsTr("Change and/or accept the split division"); break; //MESO_FIELD_SPLIT
+			case MesocyclesModel.MESO_FIELD_NAME: missingFieldsTip.message = qsTr("Change and/or accept the program's name"); break; //MESO_FIELD_NAME
+			case MesocyclesModel.MESO_FIELD_STARTDATE: missingFieldsTip.message = qsTr("Change and/or accept the start date"); break; //MESO_FIELD_STARTDATE
+			case MesocyclesModel.MESO_FIELD_ENDDATE: missingFieldsTip.message = qsTr("Change and/or accept the end date"); break; //MESO_FIELD_ENDDATE
+			case MesocyclesModel.MESO_FIELD_SPLIT: missingFieldsTip.message = qsTr("Change and/or accept the split division"); break; //MESO_FIELD_SPLIT
 			}
 			break;
 		}
@@ -101,7 +101,7 @@ TPPage {
 			}
 
 			Loader {
-				active: !mesoPage.mesoManager.ownMeso && userModel.currentClients.count > 0
+				active: !mesoPage.mesoManager.ownMeso && AppUserModel.currentClients.count > 0
 				asynchronous: true
 				Layout.fillWidth: true
 
@@ -116,14 +116,14 @@ TPPage {
 
 					TPCoachesAndClientsList {
 						id: clientsList
-						currentRow: userModel.findUserById(mesoPage.mesoManager.client)
+						currentRow: AppUserModel.findUserById(mesoPage.mesoManager.client)
 						buttonString: qsTr("Go to client's page")
 						Layout.preferredHeight: 0.2 * mesoPage.height
 						Layout.fillWidth: true
 						Layout.minimumHeight: height
 
-						onItemSelected: (userRow) => mesoPage.mesoManager.client = userModel.userId(userRow);
-						onButtonClicked: itemManager.getClientsPage();
+						onItemSelected: (userRow) => mesoPage.mesoManager.client = AppUserModel.userId_QML(userRow);
+						onButtonClicked: ItemManager.getClientsPage();
 					} //TPCoachesAndClientsList
 
 					TPLabel {
@@ -251,14 +251,14 @@ TPPage {
 						id: fileDialog
 						title: qsTr("Choose the instruction's file for this mesocycles")
 
-						onAccepted: mesoPage.mesoManager.fileName = appUtils.getCorrectPath(selectedFile);
+						onAccepted: mesoPage.mesoManager.fileName = AppUtils.getCorrectPath(selectedFile);
 					}
 				}
 
 				TPButton {
 					id: btnOpenMesoFile
 					imageSource: txtMesoFile.text.indexOf("pdf") !== -1 ? "pdf-icon" : "doc-icon"
-					visible: appUtils.canReadFile(mesoPage.mesoManager.fileName)
+					visible: AppUtils.canReadFile(mesoPage.mesoManager.fileName)
 
 					anchors {
 						left: btnChooseMesoFile.right
@@ -413,6 +413,8 @@ TPPage {
 
 			MesoSplitSetup {
 				id: mesoSplitSetup
+				mesoManager: mesoPage.mesoManager
+				mesoModel: mesoPage.mesoModel
 				Layout.fillWidth: true
 				Layout.topMargin: 10
 			}

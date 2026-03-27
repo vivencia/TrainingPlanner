@@ -1,9 +1,11 @@
-pragma componentBehavior: Bound
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
 
 import TpQml
+
+import "../Pages/MesoCalendarElements"
 
 Rectangle {
 	id: _control
@@ -13,7 +15,7 @@ Rectangle {
 	radius: 10
 
 //public:
-	required property var calendarModel
+	required property CalendarModel calendarModel
 	property date startDate
 	property date endDate
 	property date selectedDate
@@ -105,7 +107,7 @@ Rectangle {
 				}
 				for (let year = val.bottom; year <= val.top; year++) {
 					if (year >= bottomYear && year <= topYear)
-						yearsModel.append({name: year});
+						yearsModel.append({"name": year});
 				}
 			}
 		}
@@ -232,7 +234,7 @@ Rectangle {
 					anchors.centerIn: parent
 					font.pixelSize: _control.fontSizePx * 1.2
 					font.bold: true
-					text: AppUtils.monthName(model.month) + " " + calendar.model.year;
+					text: AppUtils.monthName(calendar.model.month) + " " + calendar.model.year;
 				}
 			}
 
@@ -263,39 +265,26 @@ Rectangle {
 				height: _control.cellSize * 6
 				anchors.top: weekTitles.bottom
 
-				delegate: Rectangle {
+				delegate: CalendarEntry {
 					id: _delegate
-					height: _control.cellSize
-					width: _control.cellSize
-					radius: _control.cellSize * 0.5
-					opacity: monthGrid.month === calendar.model.month ? 1 : 0.5
-					color: AppSettings.primaryColor
+					entryDay: day
+					entryMonth: month
+					entryYear: year
+					cellSize: _control.cellSize
+					today: _control.thisDay
+					parentMonth: monthGrid.month
+					qtCalendarModel: _control.calendarModel
 
-					readonly property bool highlighted: calendar.model.day === _control.selectedDate.getUTCDate() &&
-																		calendar.model.month === _control.selectedDate.getUTCMonth()
-					readonly property bool todayDate: calendar.model.year === _control.thisDay.getUTCFullYear() &&
-																	calendar.model.month === _control.thisDay.getUTCMonth() &&
-																	calendar.model.day === _control.thisDay.getUTCDate()
+					required property int day
+					required property int month
+					required property int year
 
-					Text {
-						text: model.day
-						font.pixelSize: _control.fontSizePx
-						font.bold: true
-						scale: _delegate.highlighted ? 1.25 : 1
-						Behavior on scale { NumberAnimation { duration: 150 } }
-						color: _control.todayDate ? "red" : _delegate.highlighted ? "green" : monthGrid.month === calendar.model.month ?
-																				AppSettings.fontColor : AppSettings.disabledFontColor
-						anchors.centerIn: parent
+					onDateSelected: (day, is_workout) => {
+						_control.selectedDate = new Date(year, month, day);
+						_control.dateSelected(_control.selectedDate);
 					}
 
-					MouseArea {
-						anchors.fill: parent
-						onClicked: {
-							_control.selectedDate = new Date(calendar.model.year, calendar.model.month, calendar.model.day);
-							_control.dateSelected(_control.selectedDate);
-						}
-					}
-				} // delegate: Rectangle
+				} // delegate
 			} // MonthGrid
 		} // model: CalendarModel
 	} // ListView calendar
@@ -315,23 +304,25 @@ Rectangle {
 		}
 
 		delegate: TPBackRec {
+			id: delegate
 			useGradient: true
 			opacity: 0.8
 			width: yearsList.width
 			height: _control.cellSize * 1.5
 
 			required property int index
+			required property string name
 
 			Text {
 				anchors.centerIn: parent
 				font.pixelSize: _control.fontSizePx * 1.5
-				text: yearsModel.name
-				scale: index === yearsList.currentYear - yearsList.startYear ? 1.5 : 1
+				text: delegate.name
+				scale: delegate.index === yearsList.currentYear - yearsList.startYear ? 1.5 : 1
 				color: AppSettings.fontColor
 			}
 			MouseArea {
 				anchors.fill: parent
-				onClicked: yearChosen(yearsModel.get(index).name);
+				onClicked: _control.yearChosen(delegate.name);
 			}
 		}
 
@@ -339,7 +330,7 @@ Rectangle {
 			visible = true;
 			calendar.visible = false;
 			currentYear = _control.selectedDate.getUTCFullYear();
-			yearsList.positionViewAtIndex(currentYear - _control.startYear, ListView.SnapToItem);
+			yearsList.positionViewAtIndex(currentYear - _control.startDate.setUTCFullYear, ListView.SnapToItem);
 		}
 
 		function hide(): void {
@@ -354,30 +345,32 @@ Rectangle {
 		z: 1
 		anchors.fill: calendar
 
-		property int currentMonth: startDate.getUTCMonth()
+		property int currentMonth: _control.startDate.getUTCMonth()
 
 		model: ListModel {
 			id: monthsModel
 		}
 
 		delegate: TPBackRec {
+			id: delegate2
 			useGradient: true
 			width: monthsList.width
 			height: _control.cellSize * 1.5
 			opacity: 0.8
 
 			required property int index
+			required property string name
 
 			Text {
 				anchors.centerIn: parent
 				font.pixelSize: _control.fontSizePx * 1.5
-				text: monthsModel.name
-				scale: index === monthsList.currentMonth ? 1.5 : 1
+				text: delegate2.name
+				scale: delegate2.index === monthsList.currentMonth ? 1.5 : 1
 				color: AppSettings.fontColor
 
 				MouseArea {
 					anchors.fill: parent
-					onClicked: _control.monthChosen(index);
+					onClicked: _control.monthChosen(delegate2.index);
 				}
 			}
 		}
@@ -385,7 +378,7 @@ Rectangle {
 		function show(): void {
 			visible = true;
 			calendar.visible = false;
-			currentMonth = selectedDate.getUTCMonth();
+			currentMonth = _control.selectedDate.getUTCMonth();
 			monthsList.positionViewAtIndex(currentMonth, ListView.SnapToItem);
 		}
 

@@ -92,7 +92,7 @@ TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QO
 	m_roleNames[mediaFileNameRole]		=	std::move("msgMediaFileName");
 	m_roleNames[ownMessageRole]			=	std::move("ownMessage");
 
-	m_userIdx = appUserModel()->userIdxFromFieldValue(USER_COL_ID, m_otherUserId);
+	m_userIdx = appUserModel()->userIdxFromFieldValue(DBUserModel::USER_FIELD_ID, m_otherUserId);
 	m_dbModelInterface = new DBModelInterfaceChat{this};
 	m_db = new TPChatDB{appUserModel()->userId(0), m_otherUserId, m_dbModelInterface};
 	appThreadManager()->runAction(m_db, ThreadManager::CreateTable);
@@ -106,12 +106,12 @@ TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QO
 	connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_idx, const uint field) {
 		if (user_idx == m_userIdx) {
 			switch (field) {
-				case USER_COL_NAME: emit interlocutorNameChanged(); break;
-				case USER_COL_AVATAR: emit avatarIconChanged(); break;
+			case DBUserModel::USER_FIELD_NAME: emit interlocutorNameChanged(); break;
+			case USER_FIELD_AVATAR: emit avatarIconChanged(); break;
 			}
 		}
 		else if (user_idx == 0 && field == USER_MODIFIED_REMOVED)
-			m_userIdx = appUserModel()->userIdxFromFieldValue(USER_COL_ID, m_otherUserId);
+			m_userIdx = appUserModel()->userIdxFromFieldValue(DBUserModel::USER_FIELD_ID, m_otherUserId);
 	});
 
 	connect(appUserModel(), &DBUserModel::canConnectToServerChanged, this, [this] () {
@@ -127,8 +127,7 @@ TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QO
 		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(m_db, &TPDatabaseTable::actionFinished, this, [this,conn]
 									(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2) {
-			if (op == ThreadManager::CustomOperation)
-			{
+			if (op == ThreadManager::CustomOperation) {
 				disconnect(*conn);
 				if (return_value1.toBool())
 					setUnreadMessages(return_value2.toString());
@@ -346,23 +345,23 @@ void TPChat::clearChat()
 QVariant TPChat::data(const ChatMessage *const message, const uint field, const bool format_output) const
 {
 	switch (field) {
-		case MESSAGE_ID: return message->id;
-		case MESSAGE_SENDER: return message->sender;
-		case MESSAGE_RECEIVER: return message->receiver;
-		case MESSAGE_SDATE: return format_output ? QVariant{appUtils()->formatDate(message->sdate)} : QVariant{message->sdate};
-		case MESSAGE_STIME: return format_output ? QVariant{appUtils()->formatTime(message->stime)} : QVariant{message->stime};
-		case MESSAGE_RDATE: return format_output ? QVariant{appUtils()->formatDate(message->rdate)} : QVariant{message->rdate};
-		case MESSAGE_RTIME: return format_output ? QVariant{appUtils()->formatTime(message->rtime)} : QVariant{message->rtime};
-		case MESSAGE_DELETED: return static_cast<bool>(message->deleted);
-		case MESSAGE_SENT: return static_cast<bool>(message->sent);
-		case MESSAGE_RECEIVED: return static_cast<bool>(message->received);
-		case MESSAGE_READ: return static_cast<bool>(message->read);
-		case MESSAGE_TEXT: return message->text;
-		case MESSAGE_MEDIA: return message->media;
-		case MESSAGE_MEDIA_PREVIEW: return message->preview_media;
-		case MESSAGE_MEDIA_OPEN_EXTERNALLY: return static_cast<bool>(message->external_media);
-		case MESSAGE_MEDIA_FILENAME: return appUtils()->getFileName(message->media, true);
-		case MESSAGE_OWN_MESSAGE: return static_cast<bool>(message->own_message);
+	case MESSAGE_ID: return message->id;
+    case MESSAGE_SENDER: return message->sender;
+    case MESSAGE_RECEIVER: return message->receiver;
+	case MESSAGE_SDATE: return format_output ? QVariant{appUtils()->formatDate(message->sdate)} : QVariant{message->sdate};
+	case MESSAGE_STIME: return format_output ? QVariant{appUtils()->formatTime(message->stime)} : QVariant{message->stime};
+	case MESSAGE_RDATE: return format_output ? QVariant{appUtils()->formatDate(message->rdate)} : QVariant{message->rdate};
+	case MESSAGE_RTIME: return format_output ? QVariant{appUtils()->formatTime(message->rtime)} : QVariant{message->rtime};
+	case MESSAGE_DELETED: return static_cast<bool>(message->deleted);
+	case MESSAGE_SENT: return static_cast<bool>(message->sent);
+	case MESSAGE_RECEIVED: return static_cast<bool>(message->received);
+	case MESSAGE_READ: return static_cast<bool>(message->read);
+	case MESSAGE_TEXT: return message->text;
+	case MESSAGE_MEDIA: return message->media;
+	case MESSAGE_MEDIA_PREVIEW: return message->preview_media;
+	case MESSAGE_MEDIA_OPEN_EXTERNALLY: return static_cast<bool>(message->external_media);
+	case MESSAGE_MEDIA_FILENAME: return appUtils()->getFileName(message->media, true);
+	case MESSAGE_OWN_MESSAGE: return static_cast<bool>(message->own_message);
 	}
 	return QVariant{};
 }
@@ -393,49 +392,49 @@ bool TPChat::setData(const QModelIndex &index, const QVariant &value, int role)
 		const bool respond{!canUseWebSocket()}; //when not using WebSockets, a response to the server is needed
 
 		switch (role) {
-			case rDateRole:
-				message->rdate = std::move(value.toDate());
+		case rDateRole:
+			message->rdate = std::move(value.toDate());
 			break;
-			case rTimeRole:
-				message->rtime = std::move(value.toTime());
+		case rTimeRole:
+			message->rtime = std::move(value.toTime());
 			break;
-			case deletedRole:
-				if (message->deleted == value.toBool())
-					return false;
-				message->deleted = value.toBool();
-				uploadAction(MESSAGE_DELETED, message);
+		case deletedRole:
+			if (message->deleted == value.toBool())
+				return false;
+			message->deleted = value.toBool();
+			uploadAction(MESSAGE_DELETED, message);
 			break;
-			case sentRole:
-				if (message->sent == value.toBool())
-					return false;
-				message->sent = value.toBool();
+		case sentRole:
+			if (message->sent == value.toBool())
+				return false;
+			message->sent = value.toBool();
 			break;
-			case receivedRole:
-				if (message->received == value.toBool())
-					return false;
-				message->received = value.toBool();
-				if (respond)
-					uploadAction(MESSAGE_RECEIVED, message);
+		case receivedRole:
+			if (message->received == value.toBool())
+				return false;
+			message->received = value.toBool();
+			if (respond)
+				uploadAction(MESSAGE_RECEIVED, message);
 			break;
-			case readRole:
-				if (message->read == value.toBool())
-					return false;
-				message->read = value.toBool();
-				setUnreadMessages(QString::number(message->id), !message->read);
-				if (respond || !message->own_message)
-					uploadAction(MESSAGE_READ, message);
+		case readRole:
+			if (message->read == value.toBool())
+				return false;
+			message->read = value.toBool();
+			setUnreadMessages(QString::number(message->id), !message->read);
+			if (respond || !message->own_message)
+				uploadAction(MESSAGE_READ, message);
 			break;
-			case textRole:
-				message->text = std::move(value.toString());
-				if (respond && !message->deleted)
-					uploadAction(MESSAGE_TEXT, message);
+		case textRole:
+			message->text = std::move(value.toString());
+			if (respond && !message->deleted)
+				uploadAction(MESSAGE_TEXT, message);
 			break;
-			case mediaRole:
-				message->media = std::move(value.toString());
-				if (respond && !message->deleted)
-					uploadAction(MESSAGE_MEDIA, message);
+		case mediaRole:
+			message->media = std::move(value.toString());
+			if (respond && !message->deleted)
+				uploadAction(MESSAGE_MEDIA, message);
 			break;
-			default: return false;
+		default: return false;
 		}
 		emit dataChanged(index, index, QList<int>{role});
 		const int field{role - Qt::UserRole};
@@ -513,88 +512,88 @@ void TPChat::uploadAction(const uint field, ChatMessage *const message)
 		const QLatin1StringView seed{QString{message->text % QString::number(field)}.toLatin1()};
 		const int requestid{appUtils()->generateUniqueId(seed)};
 		switch (field) {
-			case MESSAGE_ID:
-				if (message->own_message) {
-					setData(index(message->id), true, sentRole);
-					if (!message->media.isEmpty()) {
-						if (use_ws) {
-							QString extra_info{appUtils()->string_strings({
-								QString::number(ChatWSServer::WS_TPCHAT),
-								chatsMediaSubDir(false) % appUtils()->getFileName(message->media),
-								appUserModel()->userId(0),
-								m_otherUserId
-								//Meso name, split letter missing. TODO: identify that included media is a tp workout file and popup a dialog
-								//to select the meso and the split it belongs to
-							}, binary_file_separator)};
-							appWSServer()->sendBinaryMessage(ChatWSServer::WS_TPCHAT, m_otherUserId, appUtils()->readBinaryFile(
-																												message->media, extra_info));
-						}
-						else
-							appUserModel()->sendFileToServer(message->media, nullptr, QString{}, chatsMediaSubDir(false), m_otherUserId);
+		case MESSAGE_ID:
+			if (message->own_message) {
+				setData(index(message->id), true, sentRole);
+				if (!message->media.isEmpty()) {
+					if (use_ws) {
+						QString extra_info{appUtils()->string_strings({
+							QString::number(ChatWSServer::WS_TPCHAT),
+							chatsMediaSubDir(false) % appUtils()->getFileName(message->media),
+							appUserModel()->userId(0),
+							m_otherUserId
+							//Meso name, split letter missing. TODO: identify that included media is a tp workout file and popup a dialog
+							//to select the meso and the split it belongs to
+						}, binary_file_separator)};
+						appWSServer()->sendBinaryMessage(ChatWSServer::WS_TPCHAT, m_otherUserId, appUtils()->readBinaryFile(
+																											message->media, extra_info));
 					}
-					if (use_ws)
-						appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId, appUtils()->string_strings(
-										{QString::number(requestid), messageWorkSend, encodeMessageToUpload(message)}, exercises_separator));
-					else
-						appOnlineServices()->sendMessage(requestid, m_otherUserId, std::move(encodeMessageToUpload(message)));
-				}
-			break;
-			case MESSAGE_DELETED:
+                    else
+                        appUserModel()->sendFileToServer(message->media, nullptr, QString{}, chatsMediaSubDir(false), m_otherUserId);
+                }
 				if (use_ws)
-					appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId,
+					appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId, appUtils()->string_strings(
+									{QString::number(requestid), messageWorkSend, encodeMessageToUpload(message)}, exercises_separator));
+				else
+					appOnlineServices()->sendMessage(requestid, m_otherUserId, std::move(encodeMessageToUpload(message)));
+            }
+			break;
+        case MESSAGE_DELETED:
+			if (use_ws)
+				appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId,
 								appUtils()->string_strings({QString::number(requestid), messageWorkRemoved, msgid}, exercises_separator));
-				else {
-					if (message->own_message)
-						//Add message->id to the m_otherUserId/chats/this_user.removed file
-						appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkRemoved);
-					else
-						//Remove message->id from the m_otherUserId/chats/this_user.removed file
-						appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkRemoved);
-				}
+			else {
+				if (message->own_message)
+					//Add message->id to the m_otherUserId/chats/this_user.removed file
+					appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkRemoved);
+				else
+					//Remove message->id from the m_otherUserId/chats/this_user.removed file
+					appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkRemoved);
+			}
 			break;
-			case MESSAGE_RECEIVED:
-				if (use_ws)
-					appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId,
+		case MESSAGE_RECEIVED:
+			if (use_ws)
+				appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId,
 								appUtils()->string_strings({QString::number(requestid), messageWorkReceived, msgid}, exercises_separator));
-				else {
-					if (!message->own_message) {
-						//Remove message from the this_user/chats/m_otherUserId.msg file
-						appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkSend);
-						//Add message->id to the m_otherUserId/chats/this_user.received file
-						appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkReceived);
-					}
-					else
-						//Remove message->id from the m_otherUserId/chats/this_user.received file
-						appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkReceived);
+			else {
+				if (!message->own_message) {
+					//Remove message from the this_user/chats/m_otherUserId.msg file
+					appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkSend);
+					//Add message->id to the m_otherUserId/chats/this_user.received file
+					appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkReceived);
 				}
+				else
+					//Remove message->id from the m_otherUserId/chats/this_user.received file
+					appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkReceived);
+			}
 			break;
-			case MESSAGE_READ:
-				if (use_ws)
-					appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId,
+		case MESSAGE_READ:
+			if (use_ws)
+				appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId,
 									appUtils()->string_strings({QString::number(requestid), messageWorkRead, msgid}, exercises_separator));
-				else {
-					if (!message->own_message)
-						//Add message->id to the m_otherUserId/chats/this_user.read file
-						appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkRead);
-					else
-						//Remove message->id from the m_otherUserId/chats/this_user.read file
-						appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkRead);
-				}
+			else {
+				if (!message->own_message)
+					//Add message->id to the m_otherUserId/chats/this_user.read file
+					appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkRead);
+				else
+					//Remove message->id from the m_otherUserId/chats/this_user.read file
+					appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkRead);
+			}
 			break;
-			case MESSAGE_TEXT:
-			case MESSAGE_MEDIA:
-				if (use_ws)
-					appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId,
+		case MESSAGE_TEXT:
+		case MESSAGE_MEDIA:
+			if (use_ws)
+				appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId,
 									appUtils()->string_strings({QString::number(requestid), messageWorkEdited, msgid}, exercises_separator));
-				else {
-					if (!message->own_message)
-						appOnlineServices()->chatMessageWork(requestid, m_otherUserId, appUtils()->string_strings(
-							{msgid, QString::number(field - Qt::UserRole), data(index(msgid.toUInt()), field).toString()},
+			else {
+				if (!message->own_message)
+					appOnlineServices()->chatMessageWork(requestid, m_otherUserId, appUtils()->string_strings(
+						{msgid, QString::number(field - Qt::UserRole), data(index(msgid.toUInt()), field).toString()},
 							record_separator), messageWorkEdited);
-					else
-						appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkEdited);
-				}
-			default: break;
+				else
+					appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkEdited);
+			}
+		default: break;
 		}
 	}
 	else

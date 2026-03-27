@@ -40,6 +40,8 @@ Q_PROPERTY(bool workoutIsEditable READ workoutIsEditable WRITE setWorkoutIsEdita
 Q_PROPERTY(bool todaysWorkout READ todaysWorkout WRITE setTodaysWorkout NOTIFY workoutStatusChanged FINAL)
 
 public:
+	enum class workoutStatusFlags: uint;
+
 	explicit QmlWorkoutInterface(QObject *parent, DBMesocyclesModel *meso_model, const uint meso_idx, const QDate &date);
 	inline ~QmlWorkoutInterface() { cleanUp(); }
 	void cleanUp();
@@ -151,14 +153,14 @@ private:
 	int m_nExercisesToCreate;
 	QHash<uint,QString> m_prevWorkouts;
 	QDate m_date;
-	uint8_t m_workoutStatus{0};
+	workoutStatusFlags m_workoutStatus{0};
 	uint m_hour{0}, m_min{0}, m_sec{0};
 	bool m_importFromSplitPlan;
 	std::optional<bool> m_importFromPrevWorkout;
 	QString m_headerText, m_headerText_2;
 
-	bool checkWorkoutStatus(uint8_t flag) const;
-	bool changeWorkoutStatus(uint8_t flag, const bool set, const bool emit_signal = true);
+    bool checkWorkoutStatus(const workoutStatusFlags flag) const;
+    bool changeWorkoutStatus(workoutStatusFlags flag, const bool set, const bool emit_signal = true);
 	void createWorkoutPage();
 	void createWorkoutPage_part2();
 	void calculateWorkoutTime();

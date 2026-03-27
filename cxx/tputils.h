@@ -178,6 +178,7 @@ public:
 
 	Q_INVOKABLE inline QString monthName(const uint qml_month) const { return _months_names.at(qml_month); }
 	Q_INVOKABLE inline QString dayName(const uint week_day) const { return _days_names.at(week_day); }
+	Q_INVOKABLE inline QString shortDayName(const uint week_day) const { return _short_days_names.at(week_day); }
 	Q_INVOKABLE QString formatDate(const QDate &date, const DATE_FORMAT format = DF_QML_DISPLAY) const;
 	inline QString formatTodayDate(const DATE_FORMAT format = DF_QML_DISPLAY) const { return std::move(formatDate(QDate::currentDate())); }
 	QDate dateFromString(const QString &strdate, const DATE_FORMAT format = DF_QML_DISPLAY) const;
@@ -260,7 +261,8 @@ private:
 							  std::move(tr("September")), std::move(tr("October")), std::move(tr("November")), std::move(tr("December"))};
 	QStringList _days_names{std::move(tr("Sunday")), std::move(tr("Monday")), std::move(tr("Tuesday")), std::move(tr("Wednesday")),
 								std::move(tr("Thursday")), std::move(tr("Friday")), std::move(tr("Saturday"))};
-
+	QStringList _short_days_names{std::move(tr("Mon")), std::move(tr("Tue")), std::move(tr("Wed")), std::move(tr("Thu")), std::move(tr("Fri")),
+									std::move(tr("Sat")), std::move(tr("Sun"))};
 	static TPUtils *_app_utils;
 	friend TPUtils *appUtils();
 };
@@ -268,7 +270,7 @@ private:
 DECLARE_QML_NAMED_SINGLETON(TPUtils, AppUtils)
 
 template <typename T>
-inline void setBit(T &__restrict var, const unsigned char bit)
+constexpr void setBit(T &__restrict var, const unsigned char bit)
 {
 	if ((bit - 1) >= 0)
 		var |= (2 << (bit - 1));
@@ -277,13 +279,15 @@ inline void setBit(T &__restrict var, const unsigned char bit)
 }
 
 template <typename T>
-inline void unSetBit(T &__restrict var, const unsigned char bit)
+constexpr void unSetBit(T &__restrict var, const unsigned char bit)
 {
 	if ((bit - 1) >= 0)
 		var &= ~(2 << (bit - 1));
 	else
 		var &= ~1;
 }
+
+//enum class custom operators
 
 template <typename T>
 inline bool isBitSet(const T &__restrict var, const unsigned char bit)
@@ -292,6 +296,42 @@ inline bool isBitSet(const T &__restrict var, const unsigned char bit)
 		return static_cast<bool>(var & (2 << (bit - 1)));
 	else
 		return static_cast<bool>(var & 1);
+}
+
+template <typename T>
+constexpr bool operator&(T lhs, T rhs)
+{
+    // Cast to the underlying type, perform the operation, and cast back to the enum type
+    using U = std::underlying_type_t<T>;
+    return static_cast<U>(lhs) & static_cast<U>(rhs);
+}
+
+template <typename T>
+constexpr T operator~(T rhs)
+{
+    // Cast to the underlying type, perform the operation, and cast back to the enum type
+    using U = std::underlying_type_t<T>;
+    return static_cast<T>(static_cast<U>(~rhs));
+}
+
+template <typename T>
+constexpr T operator|=(T lhs, T rhs)
+{
+    // Cast to the underlying type, perform the operation, and cast back to the enum type
+    using U = std::underlying_type_t<T>;
+    U result{static_cast<U>(static_cast<U>(lhs) | static_cast<U>(lhs))};
+    lhs = static_cast<T>(result);
+    return lhs;
+}
+
+template <typename T>
+constexpr T operator&=(T lhs, T rhs)
+{
+    // Cast to the underlying type, perform the operation, and cast back to the enum type
+    using U = std::underlying_type_t<T>;
+    U result{static_cast<U>(static_cast<U>(lhs) & static_cast<U>(lhs))};
+    lhs = static_cast<T>(result);
+    return lhs;
 }
 
 inline TPUtils *appUtils() { return TPUtils::_app_utils; }

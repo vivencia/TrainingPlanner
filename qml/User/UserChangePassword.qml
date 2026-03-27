@@ -135,6 +135,6 @@ TPPopup {
 	function show(ypos: int): void {
 		const totalHeight = lblTitle.height + txtCurPassword.height + txtNewPassword.height + txtConfirmPassword.height;
 		_passwdDlg.height = btn1.height + totalHeight + 30;
-		_passwdDlg.show1(ypos);
+		_passwdDlg.showInWindow(ypos);
 	}
 }

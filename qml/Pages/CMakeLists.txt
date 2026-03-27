@@ -6,6 +6,7 @@ set( QML_PAGES
 	"HomePage.qml"
 	"HomePageElements/MesosList.qml"
 	"MesoCalendarPage.qml"
+	"MesoCalendarElements/CalendarEntry.qml"
 	"MesocyclePage.qml"
 	"MesocyclePageElements/MesoSplitSetup.qml"
 	"SettingsPage.qml"

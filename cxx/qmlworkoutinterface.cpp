@@ -16,7 +16,7 @@
 #include <QQuickItem>
 #include <QQuickWindow>
 
-enum workoutStatusFlags {
+enum class QmlWorkoutInterface::workoutStatusFlags: uint {
 	WS_IN_PROGRESS = 0x001,
 	WS_EDIT_MODE = 0X002,
 	WS_TODAY = 0X004,
@@ -161,7 +161,7 @@ bool QmlWorkoutInterface::workoutFinished() const
 void QmlWorkoutInterface::setWorkoutFinished(const bool finished)
 {
 	m_calendarModel->setCompleted(finished);
-	if (changeWorkoutStatus(WS_FINISHED, finished) && finished) {
+	if (changeWorkoutStatus(workoutStatusFlags::WS_FINISHED, finished) && finished) {
 		calculateWorkoutTime();
 		rollUpExercises();
 	}
@@ -169,12 +169,12 @@ void QmlWorkoutInterface::setWorkoutFinished(const bool finished)
 
 bool QmlWorkoutInterface::workoutInProgress() const
 {
-	return checkWorkoutStatus(WS_IN_PROGRESS);
+	return checkWorkoutStatus(workoutStatusFlags::WS_IN_PROGRESS);
 }
 
 void QmlWorkoutInterface::setWorkoutInProgress(const bool in_progress)
 {
-	if (changeWorkoutStatus(WS_IN_PROGRESS, in_progress)) {
+	if (changeWorkoutStatus(workoutStatusFlags::WS_IN_PROGRESS, in_progress)) {
 		if (in_progress) {
 			if (!m_workoutTimer) {
 				m_workoutTimer = new TPTimer(this);
@@ -198,32 +198,32 @@ void QmlWorkoutInterface::setWorkoutInProgress(const bool in_progress)
 
 bool QmlWorkoutInterface::editMode() const
 {
-	return checkWorkoutStatus(WS_EDIT_MODE);
+	return checkWorkoutStatus(workoutStatusFlags::WS_EDIT_MODE);
 }
 
 void QmlWorkoutInterface::setEditMode(const bool edit_mode)
 {
-	changeWorkoutStatus(WS_EDIT_MODE, edit_mode);
+	changeWorkoutStatus(workoutStatusFlags::WS_EDIT_MODE, edit_mode);
 }
 
 bool QmlWorkoutInterface::workoutIsEditable() const
 {
-	return checkWorkoutStatus(WS_EDITABLE);
+	return checkWorkoutStatus(workoutStatusFlags::WS_EDITABLE);
 }
 
 void QmlWorkoutInterface::setWorkoutIsEditable(const bool editable)
 {
-	changeWorkoutStatus(WS_EDITABLE, editable);
+	changeWorkoutStatus(workoutStatusFlags::WS_EDITABLE, editable);
 }
 
 bool QmlWorkoutInterface::todaysWorkout() const
 {
-	return checkWorkoutStatus(WS_TODAY);
+	return checkWorkoutStatus(workoutStatusFlags::WS_TODAY);
 }
 
 void QmlWorkoutInterface::setTodaysWorkout(const bool is_today)
 {
-	changeWorkoutStatus(WS_TODAY, is_today);
+	changeWorkoutStatus(workoutStatusFlags::WS_TODAY, is_today);
 }
 
 QStringList QmlWorkoutInterface::previousWorkoutsList_text() const
@@ -309,7 +309,7 @@ void QmlWorkoutInterface::loadExercisesFromCalendarDay(const uint calendar_day)
 		delete w_model;
 	};
 	if (w_model->exerciseCount() == 0)
-		connect(w_model, &DBSplitModel::exerciseCountChanged, this, [load] () { load(); });
+		connect(w_model, &DBWorkoutModel::exerciseCountChanged, this, [load] () { load(); });
 	else
 		load();
 }
@@ -420,43 +420,43 @@ void QmlWorkoutInterface::silenceTimeWarning()
 	m_workoutTimer->stopAlarmSound();
 }
 
-inline bool QmlWorkoutInterface::checkWorkoutStatus(uint8_t flag) const
+inline bool QmlWorkoutInterface::checkWorkoutStatus(const workoutStatusFlags flag) const
 {
 	return m_workoutStatus & flag;
 }
 
-bool QmlWorkoutInterface::changeWorkoutStatus(uint8_t flag, const bool set, const bool emit_signal)
+bool QmlWorkoutInterface::changeWorkoutStatus(workoutStatusFlags flag, const bool set, const bool emit_signal)
 {
 	bool ok{false};
 	switch (flag) {
-		case WS_IN_PROGRESS:
-			if ((ok = checkWorkoutStatus(WS_TODAY)))
-				changeWorkoutStatus(WS_EDITABLE, set, false);
+    case workoutStatusFlags::WS_IN_PROGRESS:
+        if ((ok = checkWorkoutStatus(workoutStatusFlags::WS_TODAY)))
+        	changeWorkoutStatus(workoutStatusFlags::WS_EDITABLE, set, false);
 		break;
-		case WS_EDIT_MODE:
-			if ((ok = checkWorkoutStatus(WS_FINISHED)) || (ok = !checkWorkoutStatus(WS_TODAY)))
-			{
-				changeWorkoutStatus(WS_EDITABLE, set, false);
-				changeWorkoutStatus(WS_FINISHED, !set, false);
-			}
+    case workoutStatusFlags::WS_EDIT_MODE:
+        if ((ok = checkWorkoutStatus(workoutStatusFlags::WS_FINISHED)) || (ok = !checkWorkoutStatus(workoutStatusFlags::WS_TODAY)))
+		{
+			changeWorkoutStatus(workoutStatusFlags::WS_EDITABLE, set, false);
+			changeWorkoutStatus(workoutStatusFlags::WS_FINISHED, !set, false);
+		}
 		break;
-		case WS_TODAY:
-			if ((ok = !checkWorkoutStatus(WS_FINISHED)))
-			{
-				changeWorkoutStatus(WS_EDITABLE, set, false);
-				changeWorkoutStatus(WS_IN_PROGRESS, !set, false);
-				changeWorkoutStatus(WS_FINISHED, !set, false);
-			}
+    case workoutStatusFlags::WS_TODAY:
+        if ((ok = !checkWorkoutStatus(workoutStatusFlags::WS_FINISHED)))
+		{
+			changeWorkoutStatus(workoutStatusFlags::WS_EDITABLE, set, false);
+			changeWorkoutStatus(workoutStatusFlags::WS_IN_PROGRESS, !set, false);
+			changeWorkoutStatus(workoutStatusFlags::WS_FINISHED, !set, false);
+		}
 		break;
-		case WS_EDITABLE:
-			ok = !checkWorkoutStatus(WS_IN_PROGRESS);
-		break;
-		case WS_FINISHED:
-			if ((ok = checkWorkoutStatus(WS_TODAY)))
-			{
-				changeWorkoutStatus(WS_IN_PROGRESS, !set, false);
-				changeWorkoutStatus(WS_EDITABLE, set, false);
-			}
+    case workoutStatusFlags::WS_EDITABLE:
+        ok = !checkWorkoutStatus(workoutStatusFlags::WS_IN_PROGRESS);
+        break;
+    case workoutStatusFlags::WS_FINISHED:
+        if ((ok = checkWorkoutStatus(workoutStatusFlags::WS_TODAY)))
+        {
+            changeWorkoutStatus(workoutStatusFlags::WS_IN_PROGRESS, !set, false);
+            changeWorkoutStatus(workoutStatusFlags::WS_EDITABLE, set, false);
+        }
 		break;
 	}
 	if (ok)
@@ -515,7 +515,7 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 	});
 
 	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field) {
-		if (meso_idx == m_mesoIdx  &&field == MESO_FIELD_SPLIT)
+		if (meso_idx == m_mesoIdx  &&field == DBMesocyclesModel::MESO_FIELD_SPLIT)
 			QMetaObject::invokeMethod(m_workoutPage, "changeComboModel", Q_ARG(QString, m_mesoModel->split(m_mesoIdx)));
 	});
 
@@ -525,15 +525,15 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 	});
 
 	connect(m_workoutModel, &DBExercisesModel::exerciseModified, this, [this]
-					(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint field) {
-		if (field == EXERCISES_FIELD_COMPLETED) {
+									(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint field) {
+		if (field == DBExercisesModel::EXERCISES_FIELD_COMPLETED) {
 			const bool all_exercises_completed{m_workoutModel->allSetsCompleted()};
 			if (all_exercises_completed != workoutFinished()) {
 				if (!all_exercises_completed || !m_workoutTimer->isActive())
 					setWorkoutFinished(all_exercises_completed);
 				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
 					appUtils()->string_strings({ tr("Workout"), workoutCompletedMessage(all_exercises_completed)}, record_separator),
-							"app_logo"_L1, m_workoutTimer->isActive() ? 0 : 5000);
+							Qt::AlignTop|Qt::AlignHCenter, "app_logo"_L1, m_workoutTimer->isActive() ? 0 : 5000);
 			}
 		}
 	});
@@ -542,12 +542,12 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 		connect(m_workoutPage, SIGNAL(silenceTimeWarning()), this, SLOT(silenceTimeWarning()));
 
 	auto createExercisesItem = [this] () -> void {
-		m_exercisesProperties["pageManager"] = QVariant::fromValue(this);
-		m_exercisesProperties["exercisesModel"] = QVariant::fromValue(m_workoutModel);
-		m_exercisesProperties["height"_L1] = appSettings()->pageHeight() - m_workoutPage->property("bottomBarHeight").toInt();
-		m_exercisesProperties["width"_L1] = appSettings()->pageWidth() - 10;
-		m_exercisesProperties["x"_L1] = 0;
-		m_exercisesProperties["y"_L1] = 0;
+		m_exercisesProperties["pageManager"] = std::move(QVariant::fromValue(this));
+		m_exercisesProperties["exercisesModel"] = std::move(QVariant::fromValue(m_workoutModel));
+		m_exercisesProperties["height"_L1] = std::move(QVariant{appSettings()->pageHeight() - m_workoutPage->property("bottomBarHeight").toInt()});
+		m_exercisesProperties["width"_L1] = std::move(QVariant{appSettings()->pageWidth() - 10});
+		m_exercisesProperties["x"_L1] = std::move(QVariant{0});
+		m_exercisesProperties["y"_L1] = std::move(QVariant{0});
 		m_exercisesItem = static_cast<QQuickItem*>(m_exercisesComponent->createWithInitialProperties(
 																		m_exercisesProperties, appQmlEngine()->rootContext()));
 		#ifndef QT_NO_DEBUG
@@ -628,7 +628,7 @@ void QmlWorkoutInterface::verifyWorkoutOptions()
 		auto conn{std::make_shared<QMetaObject::Connection>()};
 		if (split_model) {
 			*conn = connect(split_model->database(), &TPDatabaseTable::dbOperationsFinished, this, [this,conn,split_model]
-																				(const ThreadManager::StandardOps op, const bool success) {
+																		(const ThreadManager::StandardOps op, const bool success) {
 				if (op == ThreadManager::CustomOperation) {
 					disconnect(*conn);
 					setCanImportFromSplitPlan(success);
@@ -639,7 +639,8 @@ void QmlWorkoutInterface::verifyWorkoutOptions()
 			appThreadManager()->runAction(split_model->database(), ThreadManager::CustomOperation);
 		}
 		else {
-			*conn = connect(m_mesoModel, &DBMesocyclesModel::splitLoaded, this, [this,conn] (const uint meso_idx, const QChar &splitletter) {
+			*conn = connect(m_mesoModel, &DBMesocyclesModel::splitLoaded, this, [this,conn] (const uint meso_idx,
+																										const QChar &splitletter) {
 				if (meso_idx == m_mesoIdx && splitletter == m_workoutModel->splitLetter()) {
 					disconnect(*conn);
 					verifyWorkoutOptions();
@@ -655,7 +656,8 @@ void QmlWorkoutInterface::verifyWorkoutOptions()
 				if (op == ThreadManager::CustomOperation) {
 					disconnect(*conn2);
 					m_prevWorkouts.clear();
-					for (const auto &prev_calday : return_value2.toList()) {
+					const QList<QVariant> &return_value2_list{return_value2.toList()};
+					for (const auto &prev_calday : return_value2_list) {
 						const uint prev_calendar_day{prev_calday.toUInt()};
 						m_prevWorkouts.insert(prev_calendar_day, appUtils()->formatDate(m_calendarModel->date(prev_calendar_day)));
 					}

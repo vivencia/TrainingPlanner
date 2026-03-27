@@ -1,4 +1,4 @@
-pragma componentBahavior: Bound
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
@@ -81,11 +81,11 @@ TPPage {
 
 		Loader {
 			id: ownMesosListLoader
-			active: loadOwnMesos
+			active: homePage.loadOwnMesos
 			asynchronous: true
 
 			sourceComponent: MesosList {
-				mesoSubModel: mesoModel.ownMesos
+				mesoSubModel: homePage.mesoModel.ownMesos
 			}
 		}
 	} //SwipeView
@@ -97,16 +97,17 @@ TPPage {
 		visible: AppUserModel.mainUserConfigured && (AppUserModel.mainUserIsCoach && AppUserModel.mainUserIsClient)
 
 		delegate: Rectangle {
+			id: delegate
 			width: AppSettings.itemSmallHeight
 			height: width
 			radius: width / 2
-			opacity: index === indicator.currentIndex ? 0.95 : pressed ? 0.7 : 0.45
+			opacity: index === indicator.currentIndex ? 0.95 : 0.7
 			color: index === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2
 
 			required property int index
 
 			Text {
-				text: String(index + 1)
+				text: String(delegate.index + 1)
 				color: AppSettings.fontColor
 				anchors.centerIn: parent
 			}

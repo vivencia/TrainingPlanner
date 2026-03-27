@@ -121,7 +121,7 @@ private:
 	int8_t m_qml_control_extra_height{10};
 	TPUtils::FILE_TYPE m_filetype;
 	QString m_filename;
-	QHash<int,std::pair<QString,QString>> m_tpFileInfo;
+	QList<std::pair<QString,QString>> m_tpFileInfo;
 	bool m_fullscreen{false};
 	int m_mesoIdx{-1}, m_cursorPostion{-1};
 	uint  m_tpfileSections{0};

@@ -1,17 +1,11 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Window
-import QtQuick.Layouts
 import QtQuick.Pdf
-import QtMultimedia
 
 import TpQml
-
-import "ExercisesAndSets"
-import "Dialogs"
-import "Pages"
-import "TPWidgets"
-import "User"
+import TpQml.Pages
+import TpQml.Widgets
 
 ApplicationWindow {
 	id: mainwindow
@@ -20,22 +14,14 @@ ApplicationWindow {
 	objectName: "mainwindow"
 	width: AppSettings.windowWidth
 	height: AppSettings.windowHeight
-	flags: Qt.platform.os === "android" ? Qt.Window | Qt.FramelessWindowHint | Qt.WA_KeepScreenOn :
-				Qt.Window | Qt.CustomizeWindowHint & ~Qt.WindowMaximizeButtonHint
+	flags: Qt.platform.os === "android" ? Qt.Window | Qt.FramelessWindowHint : Qt.Window | Qt.CustomizeWindowHint & ~Qt.WindowMaximizeButtonHint
 
-	signal pageActivated_main(Item page);
-	signal pageDeActivated_main(Item page);
-	signal passwordDialogClosed(resultCode: int, password: string);
 	signal saveFileChosen(filepath: string);
-	signal saveFileRejected(filepath: string);
-	signal openFileChosen(filepath: string, content_type: int);
-	signal openFileRejected(filepath: string);
-
-	property PagesListModel appPagesModel
-	//Component.onCompleted: timePicker.show1();
+	signal generalMessagesPopupClicked(button: int);
+	signal tpFileOpenInquiryResult(do_import: bool);
 
 	Connections {
-		target: itemManager
+		target: ItemManager
 		function onCppDataForQMLReady() : void {
 			//lstWorkoutExercises.exercisesModel = itemManager.workoutModel();
 			//lstWorkoutExercises.currentIndex = itemManager.workoutModel().workingExercise;
@@ -132,16 +118,6 @@ ApplicationWindow {
 			x: 0
 			y: 0
 		}
-
-		/*PdfMultiPageView {
-			x: 0
-			y: 0
-			width: AppSettings.pageWidth
-			height: AppSettings.pageHeight
-			document: PdfDocument {
-				source: "file:///home/guilhermef/Documents/Atendimento_CIP_35.001.003.26.1170764.pdf"
-			}
-		}*/
 	}
 
 	TPBalloonTip {
@@ -151,10 +127,6 @@ ApplicationWindow {
 		button1Text: ""
 		button2Text: ""
 		parentPage: homePage
-	}
-
-	function showTextCopiedMessage(): void {
-		textCopiedInfo.showTimed(3000, 0);
 	}
 
 	TPBalloonTip {
@@ -177,30 +149,11 @@ ApplicationWindow {
 			generalMessagesPopup.button1Clicked.connect(function() { generalMessagesPopupClicked(2); });
 		}
 		if (msecs > 0)
-			generalMessagesPopup.showTimed(msecs, 0);
+			generalMessagesPopup.showTimed(msecs, Qt.AlignTop|Qt.AlignHCenter);
 		else
-			generalMessagesPopup.show(0);
+			generalMessagesPopup.showInWindow(Qt.AlignTop|Qt.AlignHCenter);
 	}
 
-	property PasswordDialog passwdDlg: null
-	function showPasswordDialog(title: string, message: string): void {
-		if (passwdDlg === null) {
-			function createPasswordDialog() {
-				let component = Qt.createComponent("qrc:/TpQml/qml/Dialogs/PasswordDialog.qml", Qt.Asynchronous);
-
-				function finishCreation() {
-					passwdDlg = component.createObject(contentItem, { parentPage: homePage, title: title, message: message });
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			createPasswordDialog();
-		}
-		passwdDlg.show(-1);
-	}
 
 	function canChangeSetMode(exercise_number: int, exercise_idx: int, set_number: int) : bool {
 		return false;

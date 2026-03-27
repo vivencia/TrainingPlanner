@@ -1,4 +1,4 @@
-pragma componentBehaviour: Bound
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
@@ -24,7 +24,7 @@ ColumnLayout {
 			checked: AppSettings.userLocaleIdx === index
 			image: _control.country_flags[index]
 			multiLine: true
-			buttonGroup: _control.languages_group
+			buttonGroup: languages_group
 			imageWidth: AppSettings.itemExtraLargeHeight
 			imageHeight: AppSettings.itemDefaultHeight
 			Layout.fillWidth: true

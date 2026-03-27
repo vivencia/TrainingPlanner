@@ -5,11 +5,10 @@ import QtQuick
 import QtQuick.Layouts
 
 import TpQml
-
-import "../../TPWidgets"
-import "../.."
+import TpQml.Widgets
 
 ColumnLayout {
+	id: _control
 	spacing: 0
 
 	property string topText: "20*"
@@ -19,7 +18,7 @@ ColumnLayout {
 
 	TPLabel {
 		id: lblTopText
-		text: topText
+		text: _control.topText
 		singleLine: false
 		horizontalAlignment: Text.AlignHCenter
 		Layout.fillWidth: true
@@ -27,18 +26,16 @@ ColumnLayout {
 	}
 
 	TPImage {
-		source: "weather/weather-" + weatherIcon + ".svg"
+		source: "weather/weather-" + _control.weatherIcon + ".svg"
 		smooth: true
-		width: parent.height * 0.3
-		height: width
-		Layout.preferredWidth: width
-		Layout.preferredHeight: height
+		Layout.preferredWidth: parent.height * 0.3
+		Layout.preferredHeight: parent.height * 0.3
 		Layout.alignment: Qt.AlignCenter
 	}
 
 	TPLabel {
 		id: lblBottomText
-		text: bottomText
+		text: _control.bottomText
 		font: AppGlobals.smallFont
 		horizontalAlignment: Text.AlignHCenter
 		singleLine: false
@@ -48,7 +45,7 @@ ColumnLayout {
 
 	TPLabel {
 		id: lblBottomBottomText
-		text: bottomBottomText
+		text: _control.bottomBottomText
 		font: AppGlobals.smallFont
 		horizontalAlignment: Text.AlignHCenter
 		singleLine: false

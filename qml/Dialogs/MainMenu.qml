@@ -1,38 +1,46 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import "../"
-import "../TPWidgets"
-import "../User"
-
 import TpQml
+import TpQml.Widgets
+import TpQml.User
+import TpQml.Pages
 
 Drawer {
-	id: mainMenu
-	height: mainwindow.height
-	implicitWidth: mainwindow.width * 0.7
+	id: _mainMenu
+	height: AppSettings.windowHeight
+	implicitWidth: AppSettings.windowWidth * 0.7
 	spacing: 0
 	padding: 0
 	edge: Qt.RightEdge
 
-	property PagesListModel pagesModel
-	required property Page rootPage
-
 	Connections {
-		target: userModel
+		target: AppUserModel
 		function onUserModified(row: int, field: int): void {
 			if (row === 0) {
 				switch (field) {
-					case 1: lblAvatar.text = userModel.userName(0); break;
-					case 20: imgAvatar.source = userModel.avatar(0, false); break;
-					default: break;
+				case 1: lblAvatar.text = AppUserModel.userName(0); break;
+				case 20: imgAvatar.source = AppUserModel.avatar(0, false); break;
+				default: return;
 				}
 			}
 		}
 		function onUserIdChanged(): void {
-			imgAvatar.source = userModel.avatar(0);
-			lblAvatar.text = userModel.userName(0);
+			imgAvatar.source = AppUserModel.avatar(0);
+			lblAvatar.text = AppUserModel.userName(0);
+		}
+	}
+
+	Connections {
+		target: ItemManager.AppPagesManager
+		function onAppSettingsButtonEnabled(enabled: string) : void {
+			btnSettings.enabled = enabled;
+		}
+		function onUserSettingsButtonEnabled(enabled: string) : void {
+			imgAvatar.enabled = enabled;
 		}
 	}
 
@@ -43,9 +51,9 @@ Drawer {
 
 	contentItem {
 		Keys.onPressed: (event) => {
-			if (event.key === mainwindow.backKey) {
+			if (event.key === ItemManager.AppPagesManager.backKey()) {
 				event.accepted = true;
-				close();
+				_mainMenu.close();
 			}
 		}
 	}
@@ -53,13 +61,13 @@ Drawer {
 	ColumnLayout {
 		id: drawerLayout
 		spacing: 5
-		opacity: parent.opacity
-		height: mainMenu.height * 0.65
+		opacity: _mainMenu.opacity
+		height: _mainMenu.height * 0.65
 
 		anchors {
-			left: parent.left
-			right: parent.right
-			top: parent.top
+			left: _mainMenu.contentItem.left
+			right: _mainMenu.contentItem.right
+			top: _mainMenu.contentItem.top
 			leftMargin: 5
 			rightMargin: 5
 			topMargin: 0
@@ -70,21 +78,19 @@ Drawer {
 			id: imgLogo
 			source: "app-icon"
 			dropShadow: false
-			width: parent.height * 0.25
-			height: width
 			Layout.alignment: Qt.AlignCenter
-			Layout.preferredWidth: width
-			Layout.preferredHeight: height
+			Layout.preferredWidth: _mainMenu.height * 0.25
+			Layout.preferredHeight: _mainMenu.height * 0.25
 
 			TPImage {
 				id: imgOnline
 				source: AppOsInterface.tpServerOK ? "online" : "offline"
 				width: AppSettings.itemLargeHeight
 				height: width
-				visible: userModel.onlineAccount
+				visible: AppUserModel.onlineAccount
 
 				anchors {
-					top: parent.top
+					top: imgLogo.top
 					horizontalCenter: btnSettings.horizontalCenter
 				}
 
@@ -94,7 +100,7 @@ Drawer {
 
 				MouseArea {
 					hoverEnabled: true
-					anchors.fill: parent
+					anchors.fill: imgOnline
 					onEntered: onlineInfo.show(AppOsInterface.connectionMessage, -1);
 					onExited: onlineInfo.hide();
 				}
@@ -105,20 +111,16 @@ Drawer {
 				imageSource: "settings"
 				width: AppSettings.itemExtraLargeHeight
 				height: width
-				enabled: { // Force the binding to re-evaluate so that the check is run each time the page changes.
-					stackView.currentItem
-					!stackView.find((item, index) => { return item.objectName === "settingsPage"; })
-				}
 
 				onClicked: {
-					itemManager.getSettingsPage();
-					close();
+					ItemManager.getSettingsPage();
+					_mainMenu.close();
 				}
 
 				anchors {
-					top: userModel.onlineAccount ? imgOnline.bottom : parent.top
-					left: parent.left
-					leftMargin: - (mainMenu.width - parent.width) / 2
+					top: AppUserModel.onlineAccount ? imgOnline.bottom : imgLogo.top
+					left: imgLogo.left
+					leftMargin: - (_mainMenu.width - imgLogo.width) / 2
 				}
 			}
 		}
@@ -135,42 +137,36 @@ Drawer {
 
 		TPImage {
 			id: imgAvatar
+			source: AppUserModel.avatar(0)
 			dropShadow: true
 			keepAspectRatio: true
 			imageSizeFollowControlSize: true
 			fullWindowView: false
-			source: userModel.avatar(0)
-			width: parent.height * 0.25
-			height: width
 			Layout.alignment: Qt.AlignCenter
-			Layout.preferredWidth: width
-			Layout.preferredHeight: height
+			Layout.preferredWidth: parent.height * 0.25
+			Layout.preferredHeight: parent.height * 0.25
 
 			MouseArea {
-				anchors.fill: parent
-				enabled: { // Force the binding to re-evaluate so that the check is run each time the page changes.
-					stackView.currentItem
-					!stackView.find((item, index) => { return item.objectName === "userPage"; })
-				}
+				anchors.fill: imgAvatar
 
 				onClicked: {
-					itemManager.getUserPage();
-					close();
+					ItemManager.getUserPage();
+					_mainMenu.close();
 				}
 			}
 
 			TPButton {
 				imageSource: "switch-user.png"
 				width: AppSettings.itemDefaultHeight
-				height: width
+				height: AppSettings.itemDefaultHeight
 				visible: { return Qt.platform.os !== "android"}
 
-				onClicked: showSwitchUserDialog();
+				onClicked: _mainMenu.showSwitchUserDialog();
 
 				anchors {
-					left: parent.right
+					left: imgAvatar.right
 					leftMargin: 10
-					bottom: parent.bottom
+					bottom: imgAvatar.bottom
 				}
 			}
 		}
@@ -178,32 +174,36 @@ Drawer {
 		TPLabel {
 			id: lblAvatar
 			elide: Text.ElideMiddle
-			text: userModel.userName(0);
+			text: AppUserModel.userName(0);
 			horizontalAlignment: Text.AlignHCenter
-			width: parent.width
+			Layout.preferredWidth: parent.width
 			Layout.alignment: Qt.AlignHCenter
 		}
 
 		Rectangle {
 			color: AppSettings.fontColor
-			height: 3
+			Layout.preferredHeight: 3
 			Layout.fillWidth: true
 		}
 
 		TPListView {
 			id: pagesList
-			model: pagesModel
+			model: ItemManager.AppPagesManager
 			Layout.fillWidth: true
-			Layout.minimumHeight: mainMenu.height * 0.35
+			Layout.minimumHeight: _mainMenu.height * 0.35
 
 			delegate: SwipeDelegate {
 				id: delegate
+				enabled: buttonEnabled
 				width: pagesList.width
 				height: AppSettings.itemLargeHeight
 
+				required property int index
+				required property string displayText
+				required property string buttonEnabled
+
 				contentItem: TPLabel {
-					id: listItem
-					text: displayText
+					text: delegate.displayText
 					elide: Text.ElideMiddle
 					wrapMode: Text.NoWrap
 					horizontalAlignment: Text.AlignHCenter
@@ -216,7 +216,7 @@ Drawer {
 					opacity: 1
 				}
 
-				onClicked: pagesModel.openMainMenuShortCut(index);
+				onClicked: ItemManager.AppPagesManager.openMainMenuShortCut(index);
 
 				swipe.right: Rectangle {
 					width: parent.width
@@ -239,7 +239,7 @@ Drawer {
 					}
 				} //swipe.right
 
-				swipe.onCompleted: pagesModel.closePage(index);
+				swipe.onCompleted: ItemManager.AppPagesManager.closePage(index);
 			} //delegate: SwipeDelegate
 		} //ListView
 	} //ColumnLayout
@@ -252,33 +252,30 @@ Drawer {
 		rounded: false
 
 		anchors {
-			left: parent.left
-			right: parent.right
-			bottom: parent.bottom
+			left: _mainMenu.contentItem.left
+			right: _mainMenu.contentItem.right
+			bottom: _mainMenu.contentItem.bottom
 		}
 
-		onClicked: itemManager.exitApp();
+		onClicked: ItemManager.exitApp();
 	}
 
-	property AllUsers allUsersDialog: null
-	function showSwitchUserDialog(): void {
-		userModel.getAllOnlineUsers();
+	Loader {
+		id: allUsersDialogLoader
+		asynchronous: true
+		active: false
 
-		if (allUsersDialog === null) {
-			function createDialog() {
-				let component = Qt.createComponent("qrc:/TpQml/qml/User/AllUsers.qml", Qt.Asynchronous);
-
-				function finishCreation() {
-					allUsersDialog = component.createObject(contentItem, { parentPage: mainMenu.rootPage });
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			createDialog();
+		property AllUsers _all_users
+		sourceComponent: AllUsers {
+			parentPage: ItemManager.AppPagesManager.homePage() as TPPage
+			onClosed: allUsersDialogLoader.active = false;
+			Component.onCompleted: allUsersDialogLoader._all_users = this;
 		}
-		allUsersDialog.show1(-1);
+
+		onLoaded: _all_users.showInWindow(-Qt.AlignCenter);
+	}
+	function showSwitchUserDialog(): void {
+		allUsersDialogLoader.active = true;
+		AppUserModel.getAllOnlineUsers();
 	}
 } //Drawer

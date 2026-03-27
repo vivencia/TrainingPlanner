@@ -15,8 +15,7 @@
 
 void QmlMesoSplitInterface::cleanUp()
 {
-	if (m_plannerComponent)
-	{
+	if (m_plannerComponent) {
 		delete m_plannerPage;
 		delete m_plannerComponent;
 		delete m_splitComponent;
@@ -28,7 +27,7 @@ void QmlMesoSplitInterface::getExercisesPlannerPage()
 {
 	if (!m_plannerPage) {
 		connect(this, &QmlMesoSplitInterface::plannerPageCreated, this,
-													&QmlMesoSplitInterface::createMesoSplitPages, Qt::SingleShotConnection);
+															&QmlMesoSplitInterface::createMesoSplitPages, Qt::SingleShotConnection);
 		createPlannerPage();
 	}
 	else
@@ -37,9 +36,9 @@ void QmlMesoSplitInterface::getExercisesPlannerPage()
 
 void QmlMesoSplitInterface::swapMesoPlans()
 {
-	DBSplitModel* tempSplit{currentSplitModel()};
+	DBSplitModel *tempSplit{currentSplitModel()};
 	m_mesoModel->splitModelsForMeso(m_mesoIdx).insert(currentSplitLetter(),
-										m_mesoModel->splitModelsForMeso(m_mesoIdx).value(currentSwappableLetter()));
+														m_mesoModel->splitModelsForMeso(m_mesoIdx).value(currentSwappableLetter()));
 	m_mesoModel->splitModelsForMeso(m_mesoIdx).insert(currentSwappableLetter(), tempSplit);
 }
 
@@ -62,7 +61,7 @@ void QmlMesoSplitInterface::loadSplitFromPreviousMeso()
 
 static void muscularGroupSimplified(QString &muscularGroup)
 {
-	muscularGroup = muscularGroup.replace(',', ' ').simplified();
+	muscularGroup = std::move(muscularGroup.replace(',', ' ').simplified());
 	const QStringList &words(muscularGroup.split(' '));
 	muscularGroup.clear();
 	for (const auto &word : words) {
@@ -89,9 +88,15 @@ QQuickItem* QmlMesoSplitInterface::setCurrentPage(const int index)
 	return m_currentSplitPage;
 }
 
-DBSplitModel *QmlMesoSplitInterface::currentSplitModel() const
+DBExercisesModel *QmlMesoSplitInterface::currentSplitModel() const
 {
 	return m_mesoModel->splitModel(m_mesoIdx, m_currentSplitLetter);
+}
+
+DBExercisesModel *QmlMesoSplitInterface::splitModel(const int index) const
+{
+	QChar split_letter{static_cast<char>(static_cast<int>('A') + index)};
+	return m_mesoModel->splitModel(m_mesoIdx, split_letter);
 }
 
 bool QmlMesoSplitInterface::haveExercises() const
@@ -101,35 +106,33 @@ bool QmlMesoSplitInterface::haveExercises() const
 
 void QmlMesoSplitInterface::createPlannerPage()
 {
-	m_plannerComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/Pages/ExercisesPlanner.qml"_L1}, QQmlComponent::Asynchronous};
-	m_plannerProperties["splitManager"_L1] = QVariant::fromValue(this);
+	m_plannerComponent = new QQmlComponent{appQmlEngine(), "TPQml.Pages"_L1, "ExercisesPlanner"_L1, QQmlComponent::Asynchronous};
+	m_plannerProperties["splitManager"_L1] = std::move(QVariant::fromValue(this));
 
-	switch (m_plannerComponent->status())
-	{
-		case QQmlComponent::Ready:
+	switch (m_plannerComponent->status()) {
+	case QQmlComponent::Ready:
+		createPlannerPage_part2();
+		break;
+	case QQmlComponent::Loading:
+		connect(m_plannerComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
 			createPlannerPage_part2();
+		}, Qt::SingleShotConnection);
 		break;
-		case QQmlComponent::Loading:
-			connect(m_plannerComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
-				createPlannerPage_part2();
-			}, Qt::SingleShotConnection);
+	#ifndef QT_NO_DEBUG
+	case QQmlComponent::Null:
+	case QQmlComponent::Error:
+		qDebug() << m_plannerComponent->errorString();
 		break;
-		#ifndef QT_NO_DEBUG
-		case QQmlComponent::Null:
-		case QQmlComponent::Error:
-			qDebug() << m_plannerComponent->errorString();
-		break;
-		#endif
+	#endif
 	}
 }
 
 void QmlMesoSplitInterface::createPlannerPage_part2()
 {
 	m_plannerPage = static_cast<QQuickItem*>(m_plannerComponent->createWithInitialProperties(
-															m_plannerProperties, appQmlEngine()->rootContext()));
+																				m_plannerProperties, appQmlEngine()->rootContext()));
 	#ifndef QT_NO_DEBUG
-	if (!m_plannerPage)
-	{
+	if (!m_plannerPage) {
 		qDebug() << m_plannerComponent->errorString();
 		return;
 	}
@@ -140,15 +143,15 @@ void QmlMesoSplitInterface::createPlannerPage_part2()
 	emit plannerPageCreated();
 
 	appPagesListModel()->openPage(m_plannerPage,
-			std::move(tr("Exercises Planner: ") + m_mesoModel->name(m_mesoIdx)), [this] () { cleanUp(); });
+										std::move(tr("Exercises Planner: ") + m_mesoModel->name(m_mesoIdx)), [this] () { cleanUp(); });
 	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field) {
-		if (meso_idx == m_mesoIdx)
-		{
-			if (field == MESO_FIELD_SPLIT)
+		if (meso_idx == m_mesoIdx) {
+			if (field == DBMesocyclesModel::MESO_FIELD_SPLIT)
 				syncSplitPagesWithMesoSplit();
 		}
 	});
-	connect(appItemManager(), &QmlItemManager::selectedExerciseFromSimpleExercisesList, [this] (QQuickItem *parentPage) {
+
+	connect(appItemManager(), &QmlItemManager::selectedExerciseFromSimpleExercisesList, this, [this] (QQuickItem *parentPage) {
 		if (parentPage == m_plannerPage)
 			currentSplitModel()->newExerciseFromExercisesList();
 	});
@@ -157,31 +160,30 @@ void QmlMesoSplitInterface::createPlannerPage_part2()
 void QmlMesoSplitInterface::createMesoSplitPages()
 {
 	if (m_splitComponent == nullptr)
-		m_splitComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/ExercisesAndSets/WorkoutOrSplitExercisesList.qml"_L1}, QQmlComponent::Asynchronous};
+		m_splitComponent = new QQmlComponent{appQmlEngine(), "TpQml.Exercises"_L1, "WorkoutOrSplitExercisesList"_L1, QQmlComponent::Asynchronous};
 
-	switch (m_splitComponent->status())
-	{
-		case QQmlComponent::Ready:
+	switch (m_splitComponent->status()) {
+	case QQmlComponent::Ready:
+		createMesoSplitPages_part2();
+		break;
+	case QQmlComponent::Loading:
+		connect(m_splitComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
 			createMesoSplitPages_part2();
+		}, Qt::SingleShotConnection);
 		break;
-		case QQmlComponent::Loading:
-			connect(m_splitComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
-				createMesoSplitPages_part2();
-			}, Qt::SingleShotConnection);
+	#ifndef QT_NO_DEBUG
+	case QQmlComponent::Null:
+	case QQmlComponent::Error:
+		qDebug() << m_splitComponent->errorString();
 		break;
-		#ifndef QT_NO_DEBUG
-		case QQmlComponent::Null:
-		case QQmlComponent::Error:
-			qDebug() << m_splitComponent->errorString();
-		break;
-		#endif
+	#endif
 	}
 }
 
 void QmlMesoSplitInterface::createMesoSplitPages_part2()
 {
-	m_splitProperties["pageManager"_L1] = QVariant::fromValue(this);
-	m_splitProperties["height"_L1] = m_plannerPage->property("splitPageHeight").toInt();
+	m_splitProperties["pageManager"_L1] = std::move(QVariant::fromValue(this));
+	m_splitProperties["height"_L1] = std::move(m_plannerPage->property("splitPageHeight").toInt());
 	const QString &split_letters{m_mesoModel->usedSplits(m_mesoIdx)};
 	for (const auto &split_letter : split_letters)
 		addPage(split_letter);
@@ -190,16 +192,13 @@ void QmlMesoSplitInterface::createMesoSplitPages_part2()
 void QmlMesoSplitInterface::setSplitPageProperties(DBSplitModel *split_model)
 {
 	auto prev_mesoid{m_mesoModel->getPreviousMesoId(m_mesoModel->client(m_mesoIdx), m_mesoModel->_id(m_mesoIdx))};
-	if (prev_mesoid >= 0)
-	{
+	if (prev_mesoid >= 0) {
 		m_prevMesoId = QString::number(prev_mesoid);
 
 		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(split_model->database(), &TPDatabaseTable::actionFinished, this, [this,conn,split_model]
-					(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2)
-		{
-			if (op == ThreadManager::CustomOperation)
-			{
+					(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2) {
+			if (op == ThreadManager::CustomOperation) {
 				disconnect(*conn);
 				const bool has_prevplan{return_value2.toBool()};
 				m_hasPreviousPlan.insert(split_model->splitLetter(), has_prevplan);
@@ -208,7 +207,8 @@ void QmlMesoSplitInterface::setSplitPageProperties(DBSplitModel *split_model)
 			}
 		});
 		auto x = [this,split_model] () -> std::pair<QVariant,QVariant> {
-							return split_model->database()->mesoHasAllSplitPlans(m_mesoModel->id(m_mesoIdx), m_mesoModel->usedSplits(m_mesoIdx)); };
+			return split_model->database()->mesoHasAllSplitPlans(m_mesoModel->id(m_mesoIdx), m_mesoModel->usedSplits(m_mesoIdx));
+		};
 		split_model->database()->setCustQueryFunction(x);
 		appThreadManager()->runAction(split_model->database(), ThreadManager::CustomOperation);
 	}
@@ -228,8 +228,7 @@ void QmlMesoSplitInterface::syncSplitPagesWithMesoSplit()
 			break;
 	} while (true);
 
-	for (const auto &split_letter : split_letters)
-	{
+	for (const auto &split_letter : split_letters) {
 		if (!m_splitPages.value(split_letter))
 			addPage(split_letter);
 	}
@@ -238,8 +237,7 @@ void QmlMesoSplitInterface::syncSplitPagesWithMesoSplit()
 void QmlMesoSplitInterface::removePage(const QChar &split_letter)
 {
 	QQuickItem *split_page{m_splitPages.value(split_letter)};
-	if (split_page)
-	{
+	if (split_page) {
 		delete split_page;
 		m_mesoModel->removeSplit(m_mesoIdx, split_letter);
 	}
@@ -248,13 +246,12 @@ void QmlMesoSplitInterface::removePage(const QChar &split_letter)
 void QmlMesoSplitInterface::addPage(const QChar &split_letter)
 {
 	DBSplitModel *split_model{m_mesoModel->splitModel(m_mesoIdx, split_letter)};
-	m_splitProperties["exercisesModel"_L1] = QVariant::fromValue(split_model);
+	m_splitProperties["exercisesModel"_L1] = std::move(QVariant::fromValue(split_model));
 	setSplitPageProperties(split_model);
 
 	QQuickItem *item{static_cast<QQuickItem*>(m_splitComponent->createWithInitialProperties(m_splitProperties, appQmlEngine()->rootContext()))};
 	#ifndef QT_NO_DEBUG
-	if (!item)
-	{
+	if (!item) {
 		qDebug() << m_splitComponent->errorString();
 		return;
 	}
@@ -269,10 +266,8 @@ QChar QmlMesoSplitInterface::findSwappableModel() const
 	QString muscularGroup1{std::move(currentSplitModel()->muscularGroup())};
 	muscularGroupSimplified(muscularGroup1);
 	const QString &split_letters{m_mesoModel->usedSplits(m_mesoIdx)};
-	for (const auto &split_letter : split_letters)
-	{
-		if (split_letter != m_currentSplitLetter)
-		{
+	for (const auto &split_letter : split_letters) {
+		if (split_letter != m_currentSplitLetter) {
 			QString muscularGroup2{std::move(m_mesoModel->muscularGroup(mesoIdx(), split_letter))};
 			muscularGroupSimplified(muscularGroup2);
 			if (appUtils()->similarityBetweenStrings(muscularGroup1, muscularGroup2) >= 0.8)

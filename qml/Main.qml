@@ -1,14 +1,13 @@
-pragma componentBehavior: Bound
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
 
-import TpQml 1.0
-import TpQml.Widgets 1.0
-import TpQml.Dialogs 1.0
-import TpQml.User 1.0
-import TpQml.Pages 1.0
+import TpQml
+import TpQml.Widgets
+import TpQml.Dialogs
+import TpQml.Pages
 
 ApplicationWindow {
 	id: mainwindow
@@ -17,57 +16,51 @@ ApplicationWindow {
 	height: AppSettings.windowHeight
 	visible: true
 	title: "Training Planner"
-	flags: Qt.platform.os === "android" ? Qt.Window | Qt.FramelessWindowHint | Qt.WA_KeepScreenOn :
-				Qt.Window | Qt.CustomizeWindowHint & ~Qt.WindowMaximizeButtonHint
-
-	property PagesListModel appPagesModel
+	flags: Qt.platform.os === "android" ? Qt.Window | Qt.FramelessWindowHint : Qt.Window | Qt.CustomizeWindowHint & ~Qt.WindowMaximizeButtonHint
 
 	signal saveFileChosen(filepath: string);
-	signal openFileChosen(filepath: string);
-	signal openFileRejected(filepath: string);
-	signal passwordDialogClosed(resultCode: int, password: string);
-	signal removeNoLongerAvailableUser(row: int, remove: bool);
-	signal unregisterUser(unregister: bool);
-	signal revokeCoachStatus(new_use_opt: int, revoke: bool);
-	signal revokeClientStatus(new_use_opt: int, revoke: bool);
 	signal generalMessagesPopupClicked(button: int);
-
 	signal tpFileOpenInquiryResult(do_import: bool);
 
 	header: Loader {
 		id: navBar
-		active: userModel.mainUserConfigured
+		active: AppUserModel.mainUserConfigured
 		asynchronous: true
 		sourceComponent: NavBar {
-			pagesModel: appPagesModel
+			pagesModel: ItemManager.AppPagesManager
 		}
 	}
 
 	Loader {
-		id: mainMenu
-		active: userModel.mainUserConfigured
+		id: mainMenuLoader
 		asynchronous: true
+		active: AppUserModel.mainUserConfigured
+
+		property MainMenu mainMenu
+
 		sourceComponent: MainMenu {
-			rootPage: homePage
-			pagesModel: appPagesModel
+			Component.onCompleted: mainMenuLoader.mainMenu = this;
 		}
+	}
+	function openMainMenu(): void {
+		if (!mainMenuLoader.mainMenu.visible)
+			mainMenuLoader.mainMenu.open();
+		else
+			mainMenuLoader.mainMenu.close();
 	}
 
 	Loader {
-		id: appMessagesWidget
-		active: userModel.mainUserConfigured && userModel.onlineAccount
+		id: messagesManagerLoader
 		asynchronous: true
+		active: AppUserModel.mainUserConfigured && AppUserModel.onlineAccount
+
+		property OnlineMessages onlineMessagesManager
+
 		sourceComponent: OnlineMessages {
 			parentPage: homePage
+			Component.onCompleted: messagesManagerLoader.onlineMessagesManager = this;
 		}
-		onLoaded: item.open();
-	}
-
-	function openMainMenu(): void {
-		if (!mainMenu.item.visible)
-			mainMenu.item.open();
-		else
-			mainMenu.item.close();
+		onLoaded: onlineMessagesManager.open();
 	}
 
 	HomePage {
@@ -104,8 +97,6 @@ ApplicationWindow {
 	function pushOntoStack(page: Item): void {
 		if (stackView.currentItem === page)
 			return;
-		if (emit_signals)
-			pageDeActivated_main(stackView.currentItem);
 		if (stackView.find((item, index) => { return item === page; }))
 			stackView.popToItem(page);
 		else
@@ -116,58 +107,25 @@ ApplicationWindow {
 		stackView.clear();
 	}
 
-	function goHome(): void {
-		pageDeActivated_main(stackView.currentItem);
-		stackView.pop(stackView.get(0));
-		pageActivated_main(stackView.currentItem);
-	}
-
-	function confirmImport(message: string): void {
-		importConfirmDialog.title = qsTr("Proceed with action?");
-		importConfirmDialog.message = message;
-		importConfirmDialog.show(-1);
-	}
-
-	/*FirstTimeDialog {
-		DBUserModel {
-			id: userModel
-		}
-		id: firstTimeDlgg
-		parentPage: homePage
-	}*/
-
-	Loader {
-		id: firstTimeDlgLoader
-		asynchronous: true
-		active: false
-
-		sourceComponent: FirstTimeDialog {
-			parentPage: mainwindow.homePage
-			onClosed: firstTimeDlgLoader.active = false;
-		}
-
-		onLoaded: item.open();
-	}
-	function showFirstTimeUseDialog(): void {
-		firstTimeDlgLoader.active = true;
-	}
-
 	Loader {
 		id: importLoader
 		asynchronous: true
 		active: false
 
+		property TPFileDialog _file_dialog
+
 		sourceComponent: TPFileDialog {
-			property bool includeTextFilter: true
+			includeTextFilter: true
 
 			onDialogClosed: (result) => {
 				if (result === 0)
-					appUtils.viewOrOpenFile(appUtils.getCorrectPath(currentFile));
+					AppUtils.viewOrOpenFile(AppUtils.getCorrectPath(currentFile));
 				importLoader.active = false;
 			}
+			Component.onCompleted: importLoader._file_dialog = this;
 		}
 
-		onLoaded: item.show();
+		onLoaded: _file_dialog.show();
 	}
 	function chooseFileToImport(): void {
 		importLoader.active = true;
@@ -179,6 +137,7 @@ ApplicationWindow {
 		active: false
 
 		property string suggestedFileName;
+		property TPFileDialog _file_dialog
 
 		sourceComponent: TPFileDialog {
 			saveDialog: true
@@ -187,16 +146,17 @@ ApplicationWindow {
 
 			onDialogClosed: (result) => {
 				if (result === 0)
-					saveFileChosen(appUtils.getCorrectPath(currentFile));
+					mainwindow.saveFileChosen(AppUtils.getCorrectPath(currentFile));
 				else
-					saveFileChosen("");
+					mainwindow.saveFileChosen("");
 				saveDialogLoader.active = false;
 			}
+			Component.onCompleted: saveDialogLoader._file_dialog = this;
 		}
 
 		onLoaded: {
-			item.suggestedName = suggestedFileName;
-			item.show();
+			_file_dialog.suggestedName = suggestedFileName;
+			_file_dialog.show();
 		}
 	}
 	function chooseFolderToSave(filename: string): void {
@@ -209,16 +169,9 @@ ApplicationWindow {
 		asynchronous: true
 		active: false
 
-		property string dlgTitle
-		property string dlgMessage
-		property string dlgImage
+		property TPBalloonTip _dialog
 
 		sourceComponent: TPBalloonTip {
-			title: tpFileLoader.dlgTitle
-			message: tpFileLoader.dlgMessage
-			imageSource: tpFileLoader.dlgImage
-			button1Text: qsTr("Yes")
-			button2Text: qsTr("No")
 			modal: true
 			keepAbove: true
 			parentPage: homePage
@@ -231,144 +184,16 @@ ApplicationWindow {
 				mainwindow.tpFileOpenInquiryResult(false);
 				tpFileLoader.active = false;
 			}
+			Component.onCompleted: tpFileLoader._dialog = this;
 		}
 
-		onLoaded: item.show();
+		onLoaded: _dialog.showInWindow(-Qt.AlignCenter);
 	}
 	function confirmTPFileOpening(type: string, details: string, image: string): void {
-		tpFileLoader.dlgTitle = qsTr("Import ") + type;
-		tpFileLoader.dlgMessage = details;
-		tpFileLoader.dlgImage = image;
+		tpFileLoader._dialog.title = qsTr("Import ") + type;
+		tpFileLoader._dialog.message = details;
+		tpFileLoader._dialog.imageSource = image;
 		tpFileLoader.active = true;
-	}
-
-	property PasswordDialog passwdDlg: null
-	function showPasswordDialog(title: string, message: string): void {
-		if (passwdDlg === null) {
-			function createPasswordDialog() {
-				let component = Qt.createComponent("qrc:/TpQml/qml/Dialogs/PasswordDialog.qml", Qt.Asynchronous);
-
-				function finishCreation() {
-					passwdDlg = component.createObject(contentItem, { parentPage: homePage, title: title, message: message });
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			createPasswordDialog();
-		}
-		passwdDlg.show(-1);
-	}
-
-	property TPBalloonTip userNoLongerAvailableDlg: null
-	function showUserNoLongerAvailable(row: int, title: string, message: string): void {
-		if (userNoLongerAvailableDlg === null) {
-			function createDialog() {
-				let component = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
-
-				function finishCreation() {
-					userNoLongerAvailableDlg = component.createObject(contentItem, { parentPage: homePage, title: title, message: message, keepAbove: true });
-					userNoLongerAvailableDlg.button1Clicked.connect(function () { removeNoLongerAvailableUser(row, true); });
-					userNoLongerAvailableDlg.button2Clicked.connect(function () { removeNoLongerAvailableUser(row, false); });
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			createDialog();
-		}
-		userNoLongerAvailableDlg.show(-1);
-	}
-
-	property TPBalloonTip exitPopUp: null
-	function showExitPopUp(): void {
-		if (exitPopUp === null) {
-			function createDialog() {
-				let component = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
-
-				function finishCreation() {
-					exitPopUp = component.createObject(contentItem, { parentPage: homePage, title: qsTr("Exit app?"), keepAbove: true });
-					exitPopUp.button1Clicked.connect(function () { close(); });
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			createDialog();
-		}
-		exitPopUp.show(-2);
-	}
-
-	property TPBalloonTip unregisterUserDlg: null
-	function showUnregisterUserDialog(title: string, message: string): void {
-		if (unregisterUserDlg === null) {
-			function createDialog() {
-				let component = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
-
-				function finishCreation() {
-					unregisterUserDlg = component.createObject(contentItem, { parentPage: homePage, title: title, message: message });
-					unregisterUserDlg.button1Clicked.connect(function () { unregisterUser(true); });
-					unregisterUserDlg.button2Clicked.connect(function () { unregisterUser(false); });
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			createDialog();
-		}
-		unregisterUserDlg.show(-1);
-	}
-
-	property TPBalloonTip revokeCoachStatusDlg: null
-	function showRevokeCoachStatus(new_use_opt: int, title: string, message: string): void {
-		if (revokeCoachStatusDlg === null) {
-			function createDialog() {
-				let component = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
-
-				function finishCreation() {
-					revokeCoachStatusDlg = component.createObject(contentItem, { parentPage: homePage, title: title, message: message });
-					revokeCoachStatusDlg.button1Clicked.connect(function () { revokeCoachStatus(new_use_opt, true); });
-					revokeCoachStatusDlg.button2Clicked.connect(function () { revokeCoachStatus(new_use_opt, false); });
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			createDialog();
-		}
-		revokeCoachStatusDlg.show(-1);
-	}
-
-	property TPBalloonTip revokeClientStatusDlg: null
-	function showRevokeClientStatus(new_use_opt: int, title: string, message: string): void {
-		if (revokeClientStatusDlg === null) {
-			function createDialog() {
-				let component = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
-
-				function finishCreation() {
-					revokeClientStatusDlg = component.createObject(contentItem, { parentPage: homePage, title:title, message:message });
-					revokeClientStatusDlg.button1Clicked.connect(function () { revokeClientStatus(new_use_opt, true); });
-					revokeClientStatusDlg.button2Clicked.connect(function () { revokeClientStatus(new_use_opt, false); });
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			createDialog();
-		}
-		revokeClientStatusDlg.show(-1);
 	}
 
 	TPBalloonTip {
@@ -378,42 +203,23 @@ ApplicationWindow {
 		button2Text: ""
 	}
 
-	function showAppMainMessageDialog(title: string, message: string, img_src: string, msecs: int, button1Text: string,
-																										button2Text: string): void {
+	function showAppMainMessageDialog(pos: int, title: string, message: string, img_src: string, msecs: int, button1Text: string,
+																											button2Text: string): void {
 		generalMessagesPopup.title = title;
 		generalMessagesPopup.message = message;
 		generalMessagesPopup.imageSource = img_src;
 		if (button1Text !== "") {
 			generalMessagesPopup.button1Text = button1Text;
 			generalMessagesPopup.button1Clicked.connect(function() { generalMessagesPopupClicked(1); });
+			generalMessagesPopup.closeActionExeced.connect(function() { generalMessagesPopupClicked(0); });
 		}
 		if (button2Text !== "") {
 			generalMessagesPopup.button2Text = button2Text;
-			generalMessagesPopup.button1Clicked.connect(function() { generalMessagesPopupClicked(2); });
+			generalMessagesPopup.button2Clicked.connect(function() { generalMessagesPopupClicked(2); });
 		}
 		if (msecs > 0)
-			generalMessagesPopup.showTimed(msecs, 0);
+			generalMessagesPopup.showTimed(msecs, pos);
 		else
-			generalMessagesPopup.show(0);
-	}
-
-	property ChatWindow chatDlg: null
-	function showChatWindow(chat_manager: ChatModel): void {
-		if (chatDlg === null) {
-			function createChatWindow() {
-				let component = Qt.createComponent("qrc:/TpQml/qml/User/ChatWindow.qml", Qt.Asynchronous);
-
-				function finishCreation() {
-					chatDlg = component.createObject(contentItem, { parentPage: homePage, chatManager: chat_manager });
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			createChatWindow();
-		}
-		chatDlg.show1(-1);
+			generalMessagesPopup.showInWindow(pos);
 	}
 } //ApplicationWindow

@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Controls
 
 import TpQml
 import TpQml.Widgets
@@ -18,7 +17,7 @@ TPToolBar {
 		hasDropShadow: false
 		width: AppSettings.itemLargeHeight
 		height: width
-		enabled: ItemManager.appPagesManager.currentIndex > 0
+		enabled: ItemManager.AppPagesManager.currentIndex > 0
 
 		anchors {
 			left: parent.left
@@ -26,7 +25,7 @@ TPToolBar {
 			verticalCenter: parent.verticalCenter
 		}
 
-		onClicked: ItemManager.appPagesManager.prevPage();
+		onClicked: ItemManager.AppPagesManager.prevPage();
 	}
 
 	TPButton {
@@ -35,14 +34,14 @@ TPToolBar {
 		hasDropShadow: false
 		width: AppSettings.itemLargeHeight
 		height: width
-		enabled: ItemManager.appPagesManager.currentIndex < ItemManager.appPagesManager.count - 1
+		enabled: ItemManager.AppPagesManager.currentIndex < ItemManager.AppPagesManager.count - 1
 
 		anchors {
 			left: btnBack.right
 			verticalCenter: parent.verticalCenter
 		}
 
-		onClicked: ItemManager.appPagesManager.nextPage();
+		onClicked: ItemManager.AppPagesManager.nextPage();
 	}
 
 	TPButton {
@@ -58,7 +57,7 @@ TPToolBar {
 			verticalCenter: parent.verticalCenter
 		}
 
-		onClicked: ItemManager.appPagesManager.goHome();
+		onClicked: ItemManager.AppPagesManager.goHome();
 	}
 
 	TPButton {
@@ -74,7 +73,7 @@ TPToolBar {
 			rightMargin: 5
 		}
 
-		onClicked: ItemManager.appPagesManager.openMainMenu();
+		onClicked: ItemManager.AppPagesManager.openMainMenu();
 	}
 
 	TPButton {
@@ -95,8 +94,8 @@ TPToolBar {
 				let component = Qt.createComponent("TpQml.Dialogs", CalendarDialog, Qt.Asynchronous);
 
 				function finishCreation() {
-					_navBar.mainCalendar = component.createObject(ItemManager.appMainWindow,
-						{ parentPage: ItemManager.appPagesManager.homePage(), showDate:new Date(), simpleCalendar:true,
+					_navBar.mainCalendar = component.createObject(ItemManager.AppMainWindow,
+						{ parentPage: ItemManager.AppPagesManager.homePage(), showDate:new Date(), simpleCalendar:true,
 																initDate: new Date(2000, 0, 1), finalDate: new Date(2030, 11, 31) });
 				}
 
@@ -127,8 +126,8 @@ TPToolBar {
 				let component = Qt.createComponent("TpQml.Dialogs", TimerDialog, Qt.Asynchronous);
 
 				function finishCreation() {
-					_navBar.mainTimer = component.createObject(ItemManager.appMainWindow,
-																			{ parentPage: ItemManager.appPagesManager.homePage() });
+					_navBar.mainTimer = component.createObject(ItemManager.AppMainWindow,
+																			{ parentPage: ItemManager.AppPagesManager.homePage() });
 				}
 
 				if (component.status === Component.Ready)

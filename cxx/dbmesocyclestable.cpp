@@ -2,7 +2,7 @@
 
 #include "dbmesocyclesmodel.h"
 
-constexpr int n_fields{MESO_TOTAL_FIELDS};
+constexpr int n_fields{DBMesocyclesModel::MESO_TOTAL_FIELDS};
 constexpr QLatin1StringView table_name{ "mesocycles_table"_L1 };
 constexpr QLatin1StringView field_names[n_fields][2] {
 	{"id"_L1,					"INTEGER PRIMARY KEY AUTOINCREMENT"_L1},
@@ -47,14 +47,11 @@ QString DBMesocyclesTable::dbFileName(const bool fullpath) const
 bool DBMesocyclesTable::getAllMesocycles(void *)
 {
 	bool success{false};
-	if (execReadOnlyQuery("SELECT * FROM %1 ORDER BY ROWID;"_L1.arg(table_name)))
-	{
-		if (m_workingQuery.first ())
-		{
-			do
-			{
-				QStringList meso_info{MESO_TOTAL_FIELDS};
-				for (uint i{MESO_FIELD_ID}; i < MESO_TOTAL_FIELDS; ++i)
+	if (execReadOnlyQuery("SELECT * FROM %1 ORDER BY ROWID;"_L1.arg(table_name))) {
+		if (m_workingQuery.first ()) {
+			do {
+				QStringList meso_info{DBMesocyclesModel::MESO_TOTAL_FIELDS};
+				for (uint i{DBMesocyclesModel::MESO_FIELD_ID}; i < DBMesocyclesModel::MESO_TOTAL_FIELDS; ++i)
 					meso_info[i] = std::move(m_workingQuery.value(i).toString());
 				emit mesocycleAcquired(meso_info, false);
 			} while (m_workingQuery.next());

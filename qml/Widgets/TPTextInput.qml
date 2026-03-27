@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 
-import "../"
+import TpQml
 
 TextField {
 	id: _control
@@ -22,6 +22,7 @@ TextField {
 	placeholderTextColor: "gray"
 	implicitHeight: suggestedHeight
 
+//public:
 	property bool showClearTextButton: false
 	property bool heightAdjustable: true
 	property bool textRemovedKeyPressed: false
@@ -31,19 +32,19 @@ TextField {
 	property string backgroundColor: AppSettings.primaryDarkColor
 	readonly property int defaultPadding: showClearTextButton ? (text.length > 0 ? btnClearText.width : 0) : 5
 
+	signal enterOrReturnKeyPressed(mod_key: int);
+	signal textCleared();
+
+//private:
 	readonly property FontMetrics currentFontMetrics: FontMetrics {
 		font.family: _control.font.family
 		font.pixelSize: _control.font.pixelSize
 		font.weight: _control.font.weight
 	}
 
-	signal enterOrReturnKeyPressed(mod_key: int)
-	signal textCleared()
-
 	onPressAndHold: (event) => {
 		event.accepted = true;
 		AppUtils.copyToClipboard(selectionStart === selectionEnd ? text : text.substr(selectionStart, selectionEnd));
-		ItemManager.showTextCopiedMessage();
 	}
 
 	background: Rectangle {

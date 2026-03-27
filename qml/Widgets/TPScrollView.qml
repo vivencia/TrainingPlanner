@@ -1,4 +1,4 @@
-pragma componentBahavior: Bound
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
@@ -61,13 +61,13 @@ ScrollView {
 		active: _control.contentHeight > _control.height
 
 		readonly property point coord: _control.parentPage.mapToItem(Overlay.overlay, _control.parentPage.x,
-																						_control.parentPage.y + _control.height);
+																									_control.parentPage.y + _control.height);
 		sourceComponent: TPPageScrollButtons {
-			ownerPage: control.parentPage
+			ownerPage: _control.parentPage
 			showUpButton: false
 			position: navButtonsLoader.coord
 			visible: _control.navButtonsVisible
-			onScrollTo: (pos) => setScrollBarPosition(pos);
+			onScrollTo: (pos) => _control.setScrollBarPosition(pos);
 			Component.onCompleted: _control._navButtons = this;
 		}
 	}

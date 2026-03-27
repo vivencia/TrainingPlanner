@@ -1,4 +1,4 @@
-pragma componentBehavior: Bound
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
@@ -41,24 +41,27 @@ Item {
 			height: itemVisible ? AppSettings.itemDefaultHeight : 0
 
 			required property int index
+			required property string name
+			required property bool selected
+			required property bool itemVisible
 
 			contentItem: TPLabel {
-				text: name
-				visible: itemVisible
+				text: delegate.name
+				visible: delegate.itemVisible
 				leftPadding: 5
 				bottomPadding: 2
 			}
 
 			background: Rectangle {
-				color: selected ? AppSettings.entrySelectedColor :
-								(index % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2)
-				opacity: selected ? 1 : 0.8
-				border.color: selected ? AppSettings.fontColor : "transparent"
+				color: delegate.selected ? AppSettings.entrySelectedColor :
+								(delegate.index % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2)
+				opacity: delegate.selected ? 1 : 0.8
+				border.color: delegate.selected ? AppSettings.fontColor : "transparent"
 
 				readonly property bool selected: delegate.index === listview.currentIndex
 			}
 
-			onClicked: selectItem(index);
+			onClicked: _control.selectItem(delegate.index);
 		} //ItemDelegate
 	}
 
@@ -80,18 +83,18 @@ Item {
 
 	Component.onCompleted: {
 		if (listClients && listCoaches)
-			workingModel = Qt.binding(function() { return userModel.currentCoachesAndClients; });
+			workingModel = Qt.binding(function() { return AppUserModel.currentCoachesAndClients; });
 		else if (listClients) {
 			if (!allowNotConfirmed)
-				workingModel = Qt.binding(function() { return userModel.currentClients; });
+				workingModel = Qt.binding(function() { return AppUserModel.currentClients; });
 			else
-				workingModel = Qt.binding(function() { return userModel.pendingClientsRequests; });
+				workingModel = Qt.binding(function() { return AppUserModel.pendingClientsRequests; });
 		}
 		else {
 			if (!allowNotConfirmed)
-				workingModel = Qt.binding(function() { return userModel.currentCoaches; });
+				workingModel = Qt.binding(function() { return AppUserModel.currentCoaches; });
 			else
-				workingModel = Qt.binding(function() { return userModel.pendingCoachesResponses; });
+				workingModel = Qt.binding(function() { return AppUserModel.pendingCoachesResponses; });
 		}
 		enabled = Qt.binding(function() { return workingModel ? workingModel.count > 0 : false });
 	}

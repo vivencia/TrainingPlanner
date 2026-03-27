@@ -1,4 +1,4 @@
-pragma componentBehavior: Bound
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
@@ -42,7 +42,7 @@ ComboBox {
 	delegate: ItemDelegate {
 		id: delegate
 		width: _control.width - 10
-		enabled: model.enabled
+		enabled: enabled
 		leftPadding: 5
 		rightPadding: 5
 		topPadding: 0
@@ -50,19 +50,21 @@ ComboBox {
 		spacing: 0
 		clip: true
 
-		required property var model
+		required property string text
+		required property string icon
+		required property bool enabled
 		required property int index
 
 		contentItem: TPLabel {
-			text: model.text
+			text: delegate.text
 			elide: Text.ElideRight
 			minimumPixelSize: AppSettings.smallFontSize * 0.8
 			leftPadding: _control.completeModel ? AppSettings.itemDefaultHeight + 5 : 5
-			enabled: model.enabled
+			enabled: delegate.enabled
 
 			TPImage {
 				id: lblImg
-				source: _control.completeModel ? model.icon : ""
+				source: _control.completeModel ? delegate.icon : ""
 				dropShadow: false
 				visible: _control.completeModel
 				width: AppSettings.itemSmallHeight
@@ -75,8 +77,8 @@ ComboBox {
 				}
 			}
 		}
-		highlighted: _control.highlightedIndex === index
-	}
+		highlighted: _control.highlightedIndex === delegate.index
+	} //ItemDelegate
 
 	indicator: Canvas {
 		id: canvas
@@ -113,7 +115,7 @@ ComboBox {
 
 	TPImage {
 		visible: _control.completeModel
-		source: _control.completeModel ? model.get(currentIndex).icon : ""
+		source: _control.completeModel ? _control.model.get(_control.currentIndex).icon : ""
 		dropShadow: false
 		width: AppSettings.itemSmallHeight
 		height: width
@@ -160,6 +162,7 @@ ComboBox {
 					color: AppSettings.primaryColor
 					radius: 8
 					y: ListView.view.currentItem ? ListView.view.currentItem.y + 2 : 2
+
 					Behavior on y {
 						SpringAnimation {
 							spring: 3

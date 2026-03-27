@@ -1,4 +1,4 @@
-pragma componentBahavior: Bound
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
@@ -94,7 +94,7 @@ TPPage {
 			Layout.fillHeight: true
 
 			onItemSelected: (userRow) => clientsPage.userRow = userRow;
-			onButtonClicked: showRemoveMessage(false);
+			onButtonClicked: clientsPage.showRemoveMessage(false);
 		} //TPCoachesAndClientsList: clientsList
 
 		Item {
@@ -127,7 +127,7 @@ TPPage {
 			RowLayout {
 				uniformCellSizes: true
 				height: AppSettings.itemDefaultHeight
-				enabled: clientsPage.userRow != 0 && pendingClientsList.enabled  && pendingClientsList.currentIndex !== -1
+				enabled: clientsPage.userRow != 0 && pendingClientsList.enabled  && pendingClientsList.currentRow !== -1
 
 				anchors {
 					top: pendingClientsList.bottom
@@ -143,7 +143,7 @@ TPPage {
 					Layout.alignment: Qt.AlignCenter
 
 					onClicked: {
-						AppUserModel.acceptUser(AppUserModel.pendingClientsRequests, pendingClientsList.currentIndex);
+						AppUserModel.acceptUser(AppUserModel.pendingClientsRequests, pendingClientsList.currentRow);
 						if (!pendingClientsList.enabled) {
 							if (clientsList.enabled)
 								tabbar.setCurrentIndex(0);
@@ -156,7 +156,7 @@ TPPage {
 					rounded: false
 					Layout.alignment: Qt.AlignCenter
 
-					onClicked: showRemoveMessage(true);
+					onClicked: clientsPage.showRemoveMessage(true);
 				}
 			}
 		}//Item
@@ -210,6 +210,7 @@ TPPage {
 		active: false
 
 		property bool decline
+		property TPBalloonTip _remove_dlg
 
 		sourceComponent: TPBalloonTip {
 			parentPage: clientsPage
@@ -219,16 +220,16 @@ TPPage {
 						 qsTr("The client will receive your reply, but might choose to send another request unless you block them") :
 						 qsTr("The client will be notified of your decision, but might still contact you unless you block them")
 			onButton1Clicked: clientsPage.removeOrDecline(removeUserDlgLoader.decline);
-			onClosed: removeuserDlgLoader.active = false;
+			onClosed: removeUserDlgLoader.active = false;
+			Component.onCompleted: removeUserDlgLoader._remove_dlg = this;
 		}
 
 		onLoaded: {
 			if (decline)
-				item.title = qsTr("Remove ") + AppUserModel.userName(clientsPage.userRow) + "?";
+				_remove_dlg.title = qsTr("Remove ") + AppUserModel.userName(clientsPage.userRow) + "?";
 			else
-				item.title = qsTr("Decline ") +
-								AppUserModel.pendingClientsRequests.display(AppUserModel.pendingClientsRequests.currentRow) + "?";
-			item.show(-1);
+				_remove_dlg.title = qsTr("Decline ") + AppUserModel.userName(AppUserModel.pendingClientsRequests.currentRow) + "?";
+			_remove_dlg.showInWindow(-Qt.AlignCenter);
 		}
 	}
 	function showRemoveMessage(decline: bool): void {
@@ -245,7 +246,7 @@ TPPage {
 			}
 		}
 		else {
-			AppUserModel.rejectUser(AppUserModel.pendingClientsRequests, pendingClientsList.currentIndex);
+			AppUserModel.rejectUser(AppUserModel.pendingClientsRequests, pendingClientsList.currentRow);
 			if (!pendingClientsList.enabled) {
 				if (clientsList.enabled)
 					tabbar.setCurrentIndex(0);

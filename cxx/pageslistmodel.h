@@ -14,14 +14,10 @@ class PagesListModel : public QAbstractListModel
 
 Q_OBJECT
 QML_VALUE_TYPE(PagesListModel)
+QML_UNCREATABLE("")
 
 Q_PROPERTY(uint count READ count NOTIFY countChanged)
 Q_PROPERTY(uint currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentIndexChanged FINAL)
-
-enum RoleNames {
-	displayTextRole = Qt::UserRole,
-	pageRole = Qt::UserRole+1
-};
 
 public:
 	explicit PagesListModel(QObject *parent = nullptr);
@@ -31,7 +27,7 @@ public:
 
 	inline uint count() const { return m_pagesData.count(); }
 	inline uint currentIndex() const { return m_pagesIndex; }
-	inline void setCurrentIndex(const uint new_index) { if (m_pagesIndex != new_index) { m_pagesIndex = new_index; emit currentIndexChanged(); } }
+	void setCurrentIndex(const uint new_index);
 
 	void removeEventFilter();
 	void reinstallEventFilter();
@@ -44,6 +40,7 @@ public:
 
 	Q_INVOKABLE QQuickItem *homePage() const { return m_pagesData.at(0)->page; }
 	Q_INVOKABLE void openMainMenu();
+	Q_INVOKABLE inline int backKey() const { return m_backKey; }
 	Q_INVOKABLE inline void goHome() { openMainMenuShortCut(0); }
 	Q_INVOKABLE inline void prevPage() { if (m_pagesIndex > 0) openMainMenuShortCut(m_pagesIndex - 1, false); }
 	Q_INVOKABLE inline void nextPage() { if (m_pagesIndex < m_pagesData.count() - 1) openMainMenuShortCut(m_pagesIndex + 1, false); }
@@ -61,6 +58,8 @@ public:
 signals:
 	void countChanged();
 	void currentIndexChanged();
+	void appSettingsButtonEnabled(const bool enabled);
+	void userSettingsButtonEnabled(const bool enabled);
 
 protected:
 	bool eventFilter(QObject *obj, QEvent *event) override;

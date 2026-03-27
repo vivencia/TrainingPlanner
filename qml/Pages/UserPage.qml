@@ -1,12 +1,9 @@
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 
-import "../"
-import "../TPWidgets"
-import "../User"
-
 import TpQml
+import TpQml.Widgets
+import TpQml.User
 
 TPPage {
 	id: userPage
@@ -20,10 +17,10 @@ TPPage {
 	property bool mainUserModified: false
 
 	Connections {
-		target: userModel
+		target: AppUserModel
 		function onUserModified(row: int, field: int) {
 			if (row === 0)
-				mainUserModified = true;
+				userPage.mainUserModified = true;
 		}
 	}
 
@@ -51,8 +48,8 @@ TPPage {
 
 			UserPersonalData {
 				id: usrData
-				userRow: 0
 				parentPage: userPage
+				userRow: 0
 				Layout.fillWidth: true
 				Layout.margins: 10
 			}
@@ -96,21 +93,21 @@ TPPage {
 			TPButton {
 				id: btnManageCoach
 				text: qsTr("Manage coach(es)/trainer(s)")
-				visible: userModel.mainUserIsClient
+				visible: AppUserModel.mainUserIsClient
 				Layout.alignment: Qt.AlignCenter
 				Layout.preferredWidth: parent.width - 20
 
-				onClicked: userManager.getCoachesPage();
+				onClicked: userPage.userManager.getCoachesPage();
 			}
 
 			TPButton {
 				id: btnManageClients
 				text: qsTr("Manage clients")
-				visible: userModel.mainUserIsCoach
+				visible: AppUserModel.mainUserIsCoach
 				Layout.alignment: Qt.AlignCenter
 				Layout.preferredWidth: parent.width - 20
 
-				onClicked: userManager.getClientsPage();
+				onClicked: userPage.userManager.getClientsPage();
 			}
 		}
 	}
@@ -121,7 +118,7 @@ TPPage {
 
 	function whenPageDeActivated(): void {
 		if (mainUserModified) {
-			userModel.setMainUserConfigurationFinished();
+			AppUserModel.setMainUserConfigurationFinished();
 			mainUserModified = false;
 		}
 	}

@@ -35,10 +35,8 @@ ColumnLayout {
 			enabled: _control.textControl.length > 0
 			width: AppSettings.itemDefaultHeight
 			height: width
-			onClicked: {
-				AppUtils.copyToClipboard(_control.getControlText(_control.textControl.selectionStart, _control.textControl.selectionEnd));
-				ItemManager.showTextCopiedMessage();
-			}
+			onClicked: AppUtils.copyToClipboard(_control.getControlText(_control.textControl.selectionStart,
+																								_control.textControl.selectionEnd));
 		}
 		TPButton {
 			imageSource: "paste_"

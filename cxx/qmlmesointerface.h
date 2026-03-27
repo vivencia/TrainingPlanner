@@ -55,6 +55,8 @@ public:
 	void cleanUp();
 	void updateInterface(); //Call when a meso is updated programatically, e.g. importing from an update file
 
+	[[nodiscard]] Q_INVOKABLE inline QQuickItem *qmlPage() const { return m_mesoPage; }
+
 	[[nodiscard]] bool mesoNameOK() const;
 	[[nodiscard]] bool startDateOK() const;
 	[[nodiscard]] bool endDateOK() const;
@@ -139,18 +141,18 @@ signals:
 	void notesChanged();
 
 private:
-	QQmlComponent *m_mesoComponent;
-	QQuickItem *m_mesoPage;
+	QQmlComponent *m_mesoComponent{nullptr};
+	QQuickItem *m_mesoPage{nullptr};
 	QVariantMap m_mesoProperties;
-	DBMesocyclesModel *m_mesoModel;
+	DBMesocyclesModel *m_mesoModel{nullptr};
 
 	uint m_mesoIdx;
 	QString m_strStartDate, m_strEndDate, m_nameError;
 	QDate m_minimumMesoStartDate, m_maximumMesoEndDate;
 
 	QHash<QDate,QmlWorkoutInterface*> m_workoutPages;
-	QmlMesoSplitInterface *m_splitsPage;
-	QmlMesoCalendarInterface *m_calendarPage;
+	QmlMesoSplitInterface *m_splitsPage{nullptr};
+	QmlMesoCalendarInterface *m_calendarPage{nullptr};
 
 	void createMesocyclePage(const bool new_meso);
 	void createMesocyclePage_part2();

@@ -1,7 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>sounds/timer-end.wav</file>
-        <file>translations/tplanner.pt_BR.qm</file>
         <file>images/avatars.png</file>
         <file>images/youtube.png</file>
         <file>images/instagram.png</file>
@@ -34,7 +33,6 @@
         <file>images/edit-clear.png</file>
         <file>images/manage-coaches.png</file>
         <file>images/manage-clients.png</file>
-        <file>translations/tplanner.de_DE.qm</file>
         <file>images/deutschland.png</file>
         <file>images/us.png</file>
         <file>images/brazil.png</file>
@@ -217,5 +215,11 @@
         <file>images/forward_gray.png</file>
         <file>images/forward_black.png</file>
         <file>images/image_preview.png</file>
+        <file>images/question_gray.png</file>
+        <file>images/question_light.png</file>
+        <file>images/question_dark.png</file>
+        <file>images/question_green.png</file>
+        <file>images/question_blue.png</file>
+        <file>images/question_red.png</file>
     </qresource>
 </RCC>

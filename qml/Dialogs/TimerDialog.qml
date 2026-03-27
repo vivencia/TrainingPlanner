@@ -14,17 +14,19 @@ TPPopup {
 	finalYPos: (AppSettings.pageHeight - height) / 2
 	backgroundRec: timerBackground
 
+//public:
 	property bool timePickerOnly: false
 	property bool bNegCountDown: false
 	property bool bTextChanged: false //The user changed the input values and clicked USE before starting the timer(if ever). So we use the values provided by he user
 	property string windowTitle
 	property string initialTime
 
+	signal useTime(string time)
+
+//private:
 	readonly property int rowWidth: width * 0.8
 	readonly property int txtWidth: rowWidth/3 - 20
 	readonly property int leftMarginValue: width * 0.05
-
-	signal useTime(string time)
 
 	onClosed: mainTimer.stopTimer();
 
@@ -33,11 +35,7 @@ TPPopup {
 	TPBackRec {
 		id: timerBackground
 		useImage: true
-		//widthScale: 1.2
-		//heightScale: 1.8
 		rotate_angle: 325
-		//x_translation: 40
-		//y_translation: 30
 		image_size: Qt.size(width, height)
 		border.color: "white"
 		sourceImage: ":/images/backgrounds/backimage-timer.png"

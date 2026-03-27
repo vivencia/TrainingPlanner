@@ -1,12 +1,11 @@
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 
-import "../"
-import "../TPWidgets"
+import TpQml
+import TpQml.Widgets
 
 ColumnLayout {
-	id: control
+	id: _control
 	spacing: 5
 
 	property alias info: lblMain.text
@@ -17,19 +16,19 @@ ColumnLayout {
 
 	Row {
 		Layout.fillWidth: true
-		height: appSettings.itemDefaultHeight
+		Layout.preferredHeight: AppSettings.itemDefaultHeight
 		spacing: 5
 
 		TPLabel {
 			id: lblMain
 			text: qsTr("Notes:")
-			width: control.width * 0.9
+			width: _control.width * 0.9
 		}
 
 		TPButton {
 			imageSource: setNotesArea.visible ? "fold-up.png" : "fold-down.png"
 			hasDropShadow: false
-			width: appSettings.itemSmallHeight
+			width: AppSettings.itemSmallHeight
 			height: width
 
 			onClicked: {
@@ -38,7 +37,7 @@ ColumnLayout {
 					setNotesArea.forceActiveFocus();
 				else {
 					if (setNotesArea.modified)
-						editFinished(setNotesArea.contentsText());
+						_control.editFinished(setNotesArea.contentsText());
 				}
 			}
 		}
@@ -49,6 +48,6 @@ ColumnLayout {
 		visible: false
 		Layout.fillWidth: true
 
-		onTextAltered: (_text) => editFinished(_text);
+		onTextAltered: (_text) => _control.editFinished(_text);
 	}
 }

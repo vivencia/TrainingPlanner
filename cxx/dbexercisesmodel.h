@@ -5,24 +5,6 @@
 #include <QAbstractListModel>
 #include <QQmlEngine>
 
-enum ExercisesSheetFields {
-	EXERCISES_FIELD_ID,
-	EXERCISES_FIELD_MESOID,
-	EXERCISES_FIELD_CALENDARDAY,
-	EXERCISES_FIELD_SPLITLETTER,
-	EXERCISES_FIELD_TRACKRESTTIMES,
-	EXERCISES_FIELD_AUTORESTTIMES,
-	EXERCISES_FIELD_EXERCISES,
-	EXERCISES_FIELD_NOTES,
-	EXERCISES_FIELD_COMPLETED,
-	EXERCISES_FIELD_SETTYPES,
-	EXERCISES_FIELD_RESTTIMES,
-	EXERCISES_FIELD_SUBSETS,
-	EXERCISES_FIELD_REPS,
-	EXERCISES_FIELD_WEIGHTS,
-	EXERCISES_TOTALCOLS
-};
-
 constexpr uint8_t EXERCISE_IGNORE_NOTIFY_IDX{255};
 
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
@@ -94,19 +76,40 @@ Q_PROPERTY(QString restTimeUntrackedLabel READ restTimeUntrackedLabel NOTIFY lab
 Q_PROPERTY(QString splitLabel READ splitLabel NOTIFY labelChanged FINAL)
 
 public:
+
+	static constexpr uint8_t UNSET_VALUE{255};
+
+	enum ExercisesSheetFields {
+		EXERCISES_FIELD_ID,
+		EXERCISES_FIELD_MESOID,
+		EXERCISES_FIELD_CALENDARDAY,
+		EXERCISES_FIELD_SPLITLETTER,
+		EXERCISES_FIELD_TRACKRESTTIMES,
+		EXERCISES_FIELD_AUTORESTTIMES,
+		EXERCISES_FIELD_EXERCISES,
+		EXERCISES_FIELD_NOTES,
+		EXERCISES_FIELD_COMPLETED,
+		EXERCISES_FIELD_SETTYPES,
+		EXERCISES_FIELD_RESTTIMES,
+		EXERCISES_FIELD_SUBSETS,
+		EXERCISES_FIELD_REPS,
+		EXERCISES_FIELD_WEIGHTS,
+		EXERCISES_N_FIELDS
+	};
+	Q_ENUM(ExercisesSheetFields)
+
 	//DBWorkoutModel
-	inline explicit DBExercisesModel(DBMesocyclesModel *meso_model, DBWorkoutsOrSplitsTable* db,
-																				const uint meso_idx, const int calendar_day)
-		: QAbstractListModel{reinterpret_cast<QObject*>(meso_model)}, m_mesoModel{meso_model}, m_db{db},
-			m_mesoIdx{meso_idx}, m_calendarDay{calendar_day}, m_splitLetter{'N'}, m_workingExercise{11111}, m_exercisesLoaded{false}
+	inline explicit DBExercisesModel(DBMesocyclesModel *meso_model, DBWorkoutsOrSplitsTable* db, const uint meso_idx, const int calendar_day)
+		: QAbstractListModel{reinterpret_cast<QObject*>(meso_model)}, m_mesoModel{meso_model}, m_db{db}, m_mesoIdx{meso_idx},
+																						m_calendarDay{calendar_day}, m_splitLetter{'N'}
 	{
 		commonConstructor(true);
 	}
 	//DBSplitModel, no need for a calendar manager
-	inline explicit DBExercisesModel(DBMesocyclesModel *meso_model, DBWorkoutsOrSplitsTable *db,
-														const uint meso_idx, const QChar &splitletter, const bool load_from_db)
-		: QAbstractListModel{reinterpret_cast<QObject*>(meso_model)}, m_db{db}, m_mesoModel{meso_model},
-			m_mesoIdx{meso_idx}, m_calendarDay{-1}, m_splitLetter{splitletter}, m_workingExercise{11111}
+	inline explicit DBExercisesModel(DBMesocyclesModel *meso_model, DBWorkoutsOrSplitsTable *db, const uint meso_idx,
+																							const QChar &splitletter, const bool load_from_db)
+		: QAbstractListModel{reinterpret_cast<QObject*>(meso_model)}, m_db{db}, m_mesoModel{meso_model}, m_mesoIdx{meso_idx},
+																								m_calendarDay{-1}, m_splitLetter{splitletter}
 	{
 		commonConstructor(load_from_db);
 	}
@@ -120,7 +123,7 @@ public:
 	Q_INVOKABLE void clearExercises(const bool from_qml = true);
 
 	[[nodiscard]] inline const bool exercisesLoaded() const { return m_exercisesLoaded; }
-	[[nodiscard]] inline const QString &id() const { return m_dbModelInterface->modelData().at(0).at(EXERCISES_FIELD_ID); }
+	[[nodiscard]] inline const QString &id() const { return m_dbModelInterface->modelData().at(0).at(DBExercisesModel::EXERCISES_FIELD_ID); }
 	[[nodiscard]] const QString &mesoId() const;
 	[[nodiscard]] inline const uint mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; }
@@ -257,15 +260,14 @@ signals:
 private:
 	DBMesocyclesModel *m_mesoModel;
 	QString m_identifierInFile;
-	uint m_mesoIdx, m_workingExercise;
+	uint m_mesoIdx, m_workingExercise{UNSET_VALUE};
 	int m_calendarDay;
-	bool m_importMode, m_exercisesLoaded;
+	bool m_importMode{false}, m_exercisesLoaded{false};
 	QChar m_splitLetter;
 	QList<exerciseEntry*> m_exerciseData;
 	QHash<int, QByteArray> m_roleNames;
-
-	DBWorkoutsOrSplitsTable *m_db;
-	DBModelInterfaceExercises *m_dbModelInterface;
+	DBWorkoutsOrSplitsTable *m_db{nullptr};
+	DBModelInterfaceExercises *m_dbModelInterface{nullptr};
 
 	void commonConstructor(const bool load_from_db);
 	TPSetTypes formatSetTypeToImport(const QString &fieldValue) const;

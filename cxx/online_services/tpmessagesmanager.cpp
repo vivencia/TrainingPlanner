@@ -19,17 +19,17 @@ TPMessagesManager *TPMessagesManager::_appMessagesManager{nullptr};
 
 enum RoleNames
 {
-	createRole(id,				TPMESSAGE_FIELD_ID)
-	createRole(labelText,		TPMESSAGE_FIELD_TEXT)
-	createRole(icon,			TPMESSAGE_FIELD_ICON)
-	createRole(file,			TPMESSAGE_FIELD_FILE)
-	createRole(extraInfoLabel,	TPMESSAGE_FIELD_EXTRA_INFO)
-	createRole(extraInfoIcon,	TPMESSAGE_FIELD_EXTRA_ICON)
-	createRole(date,			TPMESSAGE_FIELD_DATE)
-	createRole(time,			TPMESSAGE_FIELD_TIME)
-	createRole(actions,			TPMESSAGE_FIELD_ACTIONS)
-	createRole(sticky,			TPMESSAGE_FIELD_STICKY)
-	createRole(hasActions,		stickyRole + 1)
+	createRole(msgId,				TPMESSAGE_FIELD_ID)
+	createRole(msgLabelText,		TPMESSAGE_FIELD_TEXT)
+	createRole(msgIcon,				TPMESSAGE_FIELD_ICON)
+	createRole(msgFileName,			TPMESSAGE_FIELD_FILE)
+	createRole(msgExtraInfoLabel,	TPMESSAGE_FIELD_EXTRA_INFO)
+	createRole(msgExtraInfoIcon,	TPMESSAGE_FIELD_EXTRA_ICON)
+	createRole(msgDate,				TPMESSAGE_FIELD_DATE)
+	createRole(msgTime,				TPMESSAGE_FIELD_TIME)
+	createRole(msgActions,			TPMESSAGE_FIELD_ACTIONS)
+	createRole(msgSticky,			TPMESSAGE_FIELD_STICKY)
+	createRole(msgHasActions,		msgStickyRole + 1)
 };
 
 TPMessagesManager::TPMessagesManager(QObject *parent) : QAbstractListModel{parent}
@@ -37,17 +37,17 @@ TPMessagesManager::TPMessagesManager(QObject *parent) : QAbstractListModel{paren
 	_appMessagesManager = this;
 	REGISTER_QML_SINGLETON(TPMessagesManager, this);
 
-	m_roleNames[idRole]				= std::move("msgid");
-	m_roleNames[labelTextRole]		= std::move("labelText");
-	m_roleNames[iconRole]			= std::move("msgicon");
-	m_roleNames[fileRole]			= std::move("filename");
-	m_roleNames[extraInfoLabelRole]	= std::move("extraInfo");
-	m_roleNames[extraInfoIconRole]	= std::move("extraInfoIcon");
-	m_roleNames[dateRole]			= std::move("msgdate");
-	m_roleNames[timeRole]			= std::move("msgtime");
-	m_roleNames[actionsRole]		= std::move("actions");
-	m_roleNames[stickyRole]			= std::move("sticky");
-	m_roleNames[hasActionsRole]		= std::move("hasActions");
+	roleToString(msgId)
+	roleToString(msgLabelText)
+	roleToString(msgIcon)
+	roleToString(msgFileName)
+	roleToString(msgExtraInfoLabel)
+	roleToString(msgExtraInfoIcon)
+	roleToString(msgDate)
+	roleToString(msgTime)
+	roleToString(msgActions)
+	roleToString(msgSticky)
+	roleToString(msgHasActions)
 }
 
 void TPMessagesManager::readAllChats()
@@ -151,14 +151,14 @@ void TPMessagesManager::textMesssageReceived(const QString &msg, const QString &
 
 TPMessage *TPMessagesManager::createChatMessage(const QString &userid, const bool check_unread_messages)
 {
-	const int user_idx{appUserModel()->userIdxFromFieldValue(USER_COL_ID, userid)};
+	const int user_idx{appUserModel()->userIdxFromFieldValue(DBUserModel::USER_FIELD_ID, userid)};
 	QString user_name{std::move(user_idx != -1 ? appUserModel()->userName(user_idx) : tr("Unknown contact"))};
 	QString user_icon{std::move(user_idx != -1 ? appUserModel()->avatar(user_idx, false) : "unknown-user")};
 	return createChatMessage(userid, std::move(user_name), std::move(user_icon), check_unread_messages);
 }
 
 TPMessage *TPMessagesManager::createChatMessage(const QString &userid, QString &&display_text, QString &&icon_source,
-																						const bool check_unread_messages)
+																											const bool check_unread_messages)
 {
 	TPMessage *chat_message{new TPMessage{std::move(display_text), std::move(icon_source)}};
 	chat_message->setSticky(true);
@@ -191,10 +191,8 @@ void TPMessagesManager::openChatWindow(TPChat *chat_manager)
 {
 	QObject *chat_window{m_chatWindowList.value(chat_manager->otherUserId())};
 	if (!chat_window) {
-		if (!m_chatWindowComponent) {
-			m_chatWindowProperties.insert("parentPage"_L1, QVariant::fromValue(appItemManager()->appHomePage()));
-			m_chatWindowComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/User/ChatWindow.qml"_L1}, QQmlComponent::Asynchronous};
-		}
+		if (!m_chatWindowComponent)
+			m_chatWindowComponent = new QQmlComponent{appQmlEngine(), "TpQml.User"_L1, "ChatWindow"_L1, QQmlComponent::Asynchronous};
 		switch (m_chatWindowComponent->status()) {
 		case QQmlComponent::Ready:
 			chat_manager->loadChat();
@@ -214,12 +212,12 @@ void TPMessagesManager::openChatWindow(TPChat *chat_manager)
 		}
 	}
 	else
-		QMetaObject::invokeMethod(chat_window, "open");
+		QMetaObject::invokeMethod(chat_window, "openInWindow", Q_ARG(int, -Qt::AlignCenter));
 }
 
 void TPMessagesManager::openChat(const QString &username)
 {
-	const QString &userid{appUserModel()->userIdFromFieldValue(USER_COL_NAME, username)};
+	const QString &userid{appUserModel()->userIdFromFieldValue(DBUserModel::USER_FIELD_NAME, username)};
 	const qsizetype i_userid{userid.toLong()};
 
 	if (!message(i_userid))
@@ -240,7 +238,7 @@ void TPMessagesManager::startChatMessagesPolling(const QString &userid)
 	const QLatin1StringView seed{QString{userid + "check_messages"_L1}.toLatin1()};
 	const int requestid{appUtils()->generateUniqueId(seed)};
 	connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,requestid]
-																(const int request_id, const int ret_code, const QString &ret_string) {
+																	(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
 			if (ret_code == TP_RET_CODE_SUCCESS) {
 				if (ret_string.startsWith("file://"_L1))
@@ -267,17 +265,17 @@ QVariant TPMessagesManager::data(const QModelIndex &index, int role) const
 	const int row{index.row()};
 	if (row >= 0 && row < m_data.count()) {
 		switch (role) {
-		case idRole:				return m_data.at(row)->id();
-		case labelTextRole:			return m_data.at(row)->displayText();
-		case iconRole:				return m_data.at(row)->iconSource();
-		case fileRole:				return m_data.at(row)->fileName();
-		case extraInfoLabelRole:	return m_data.at(row)->extraInfoLabel();
-		case extraInfoIconRole:		return m_data.at(row)->extraInfoImage();
-		case dateRole:				return m_data.at(row)->date();
-		case timeRole:				return m_data.at(row)->time();
-		case actionsRole:			return m_data.at(row)->actions();
-		case stickyRole:			return m_data.at(row)->sticky();
-		case hasActionsRole:		return m_data.at(row)->hasActions();
+		case msgIdRole:				return m_data.at(row)->id();
+		case msgLabelTextRole:		return m_data.at(row)->displayText();
+		case msgIconRole:			return m_data.at(row)->iconSource();
+		case msgFileNameRole:		return m_data.at(row)->fileName();
+		case msgExtraInfoLabelRole:	return m_data.at(row)->extraInfoLabel();
+		case msgExtraInfoIconRole:	return m_data.at(row)->extraInfoImage();
+		case msgDateRole:			return m_data.at(row)->date();
+		case msgTimeRole:			return m_data.at(row)->time();
+		case msgActionsRole:		return m_data.at(row)->actions();
+		case msgStickyRole:			return m_data.at(row)->sticky();
+		case msgHasActionsRole:		return m_data.at(row)->hasActions();
 		}
 	}
 	return QVariant{};
@@ -340,7 +338,7 @@ void TPMessagesManager::parseTPMessage(const QString &encoded_message)
 {
 	QString sender_id{std::move(appUtils()->getCompositeValue(0, encoded_message, exercises_separator))};
 	sender_id.remove(0, "file://"_L1.length());
-	if (appUserModel()->userIdxFromFieldValue(USER_COL_ID, sender_id) > 0) {
+	if (appUserModel()->userIdxFromFieldValue(DBUserModel::USER_FIELD_ID, sender_id) > 0) {
 		uint msg_idx{1};
 		do {
 			QString file{std::move(appUtils()->getCompositeValue(msg_idx, encoded_message, exercises_separator))};
@@ -400,7 +398,8 @@ void TPMessagesManager::parseNewChatMessages(const QString &encoded_messages)
 
 void TPMessagesManager::createChatWindow_part2(TPChat *chat_manager)
 {
-	m_chatWindowProperties.insert("chatManager"_L1, QVariant::fromValue(chat_manager));
+	m_chatWindowProperties["parentPage"_L1] = std::move(QVariant::fromValue(appItemManager()->AppHomePage()));
+	m_chatWindowProperties["chatManager"_L1] = std::move(QVariant::fromValue(chat_manager));
 	QObject *chat_window{m_chatWindowComponent->createWithInitialProperties(m_chatWindowProperties, appQmlEngine()->rootContext())};
 	#ifndef QT_NO_DEBUG
 	if (!chat_window) {
@@ -409,8 +408,8 @@ void TPMessagesManager::createChatWindow_part2(TPChat *chat_manager)
 	}
 	#endif
 	appQmlEngine()->setObjectOwnership(chat_window, QQmlEngine::CppOwnership);
-	chat_window->setProperty("parent", QVariant::fromValue(appItemManager()->appHomePage()));
-	QMetaObject::invokeMethod(chat_window, "open");
+	chat_window->setProperty("parent", QVariant::fromValue(appItemManager()->AppHomePage()));
+	QMetaObject::invokeMethod(chat_window, "openInWindow", Q_ARG(int, -Qt::AlignCenter));
 	chat_manager->setChatWindow(chat_window);
 	m_chatWindowList.insert(chat_manager->otherUserId(), chat_window);
 }
@@ -418,8 +417,7 @@ void TPMessagesManager::createChatWindow_part2(TPChat *chat_manager)
 void TPMessagesManager::removeChatWindow(const QString &other_userid)
 {
 	QObject *chat_window{m_chatWindowList.value(other_userid)};
-	if (chat_window)
-	{
+	if (chat_window) {
 		delete chat_window;
 		m_chatWindowList.remove(other_userid);
 	}

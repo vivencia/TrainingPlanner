@@ -1,13 +1,14 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Effects
 import QtQuick.Layouts
 
 import TpQml
+import TpQml.Widgets
 
 import "./WeatherPageElements"
-import "../TPWidgets"
-import ".."
 
 TPPage {
 	id: weatherPage
@@ -85,16 +86,18 @@ TPPage {
 					width: scrollViewCities.width
 					height: AppSettings.itemDefaultHeight
 
+					required property int index
+
 					contentItem: TPLabel {
 						id: txtCity
-						text: weatherInfo.savedLocationName(index)
+						text: weatherInfo.savedLocationName(delegate.index)
 						leftPadding: 5
 					}
 
 					TPButton {
 						imageSource: "remove"
 						width: AppSettings.itemDefaultHeight
-						enabled: index == weatherInfo.currentlyViewedLocationIndex
+						enabled: delegate.index == weatherInfo.currentlyViewedLocationIndex
 
 						anchors {
 							right: txtCity.right
@@ -102,17 +105,18 @@ TPPage {
 							verticalCenter: parent.verticalCenter
 						}
 
-						onClicked: weatherInfo.removeWeatherLocation(index);
+						onClicked: weatherInfo.removeWeatherLocation(delegate.index);
 					}
 
 					background: Rectangle {
-						color: index === weatherInfo.currentlyViewedLocationIndex ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2
+						color: delegate.index === weatherInfo.currentlyViewedLocationIndex ?
+																		AppSettings.listEntryColor1 : AppSettings.listEntryColor2
 						border.color: AppSettings.fontColor
-						border.width: index === weatherInfo.currentlyViewedLocationIndex ? 1 : 0
+						border.width: delegate.index === weatherInfo.currentlyViewedLocationIndex ? 1 : 0
 						radius: 8
 					}
 
-					onClicked: weatherInfo.currentlyViewedLocationIndex = index;
+					onClicked: weatherInfo.currentlyViewedLocationIndex = delegate.index;
 				} //ItemDelegate
 			} //ListView
 
@@ -128,29 +132,24 @@ TPPage {
 
 				TPLabel {
 					text: qsTr("Search:")
-					width: 0.25 * parent.width
+					Layout.preferredWidth: 0.25 * parent.width
 					Layout.leftMargin: 5
-					Layout.preferredWidth: width
 				}
 
 				TPTextInput {
 					id: txtCities
-					width: 0.70 * parent.width
-					Layout.preferredWidth: width
+					Layout.preferredWidth: 0.70 * parent.width
 
 					onTextEdited: weatherInfo.searchForCities(text);
-					Component.onCompleted: weatherInfo.locationListChanged.connect(showLocationsList);
 				}
 			} //Row txtNewCity
 		} // Rectangle savedCities
 
 		TodayForecast {
 			id: current
-			height: 0.55 * mainLayout.height
-			width: parent.width
 			Layout.alignment: Qt.AlignHCenter
-			Layout.preferredHeight: height
-			Layout.preferredWidth: width
+			Layout.preferredHeight: 0.55 * mainLayout.height
+			Layout.preferredWidth: parent.width
 
 			topText: weatherInfo.city + "  " + weatherInfo.weather.coordinates + "\n" + weatherInfo.weather.temperature
 			weatherIcon: weatherInfo.weather.weatherIcon
@@ -159,9 +158,8 @@ TPPage {
 		}
 
 		Item {
-			height: 0.22 * mainLayout.height
 			Layout.alignment: Qt.AlignHCenter
-			Layout.preferredHeight: height
+			Layout.preferredHeight: 0.22 * mainLayout.height
 			Layout.fillWidth: true
 
 			Rectangle {
@@ -178,13 +176,13 @@ TPPage {
 					anchors.leftMargin: 20
 					padding: 0
 
-					property int daysCount: weatherInfo.forecast.length
-					property real iconWidth: (daysCount > 0) ? ((forecastFrame.width - 20) / daysCount) : forecastFrame.width
+					readonly property int daysCount: weatherInfo.forecast.length
+					readonly property real iconWidth: (daysCount > 0) ? ((forecastFrame.width - 20) / daysCount) : forecastFrame.width
 
 					Repeater {
 						model: weatherInfo.forecast
 
-						NextDaysForecast {
+						delegate: NextDaysForecast {
 							required property string dayOfWeek
 							required property string minMaxTemperatures
 							required property string weatherIcon
@@ -223,26 +221,15 @@ TPPage {
 	} //ColumnLayout mainLayout
 
 
-	property TPFloatingMenuBar locationsMenu: null
-	function showLocationsList(): void {
-		const list_len = weatherInfo.locationList.length;
-		if (list_len > 0) {
-			if (locationsMenu === null) {
-				let locationsMenuComponent = Qt.createComponent("qrc:/TpQml/qml/TPWidgets/TPFloatingMenuBar.qml");
-				locationsMenu = locationsMenuComponent.createObject(weatherPage, { parentPage: weatherPage,
-														titleHeader: qsTr("Places"), width: weatherPage.width*0.9 });
-				locationsMenu.menuEntrySelected.connect(function(id) {
-					weatherInfo.locationSelected(id);
-					txtCities.clear();
-				});
-			}
-			for(let i = 0; i < list_len; ++i)
-				locationsMenu.addEntry(weatherInfo.locationList[i], "", i, true);
-			locationsMenu.show2(savedCities, 3);
-		}
-		else {
-			if (locationsMenu)
-				locationsMenu.clear();
+	TPFloatingMenuBar {
+		id:	locationsMenu
+		parentPage: weatherPage
+		entriesList: weatherInfo.locationList
+		titleHeader: qsTr("Places")
+		width: weatherPage.width * 0.9
+		onMenuEntrySelected: (id) => {
+			weatherInfo.locationSelected(id);
+			txtCities.clear();
 		}
 	}
 }

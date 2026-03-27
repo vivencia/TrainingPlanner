@@ -1,4 +1,4 @@
-pragma componentBehavior: Bound
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
@@ -14,24 +14,16 @@ TPPopup {
 
 //public:
 	property string titleHeader
-	property list<QtObject> entriesList: []
+	property var entriesList: []
 
 	signal menuEntrySelected(id: int);
-
-	Component.onDestruction: clear();
 
 	ListModel {
 		id: entriesList
 
-		Repeater {
-			model: _control.entriesList.length
-			delegateModelAccess: DelegateModel.ReadOnly
-			ListElement {
-				label: _control.entriesList[index].label
-				image: _control.entriesList[index].image
-				clickId: _control.entriesList[index].id
-				visible: _control.entriesList[index].visible
-			}
+		Component.onCompleted: {
+			for (let i = 0; i < _control.entriesList.length; i++)
+				append(_control.entriesList[i]);
 		}
 	}
 

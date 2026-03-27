@@ -1,4 +1,4 @@
-pragma componentBahavior: Bound
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
@@ -7,15 +7,19 @@ import QtQuick.Layouts
 import TpQml
 import TpQml.Widgets
 
+import "./MesoCalendarElements"
+
 TPPage {
 	id: mesoCalendarPage
 	imageSource: ":/images/backgrounds/backimage-calendar.jpg"
 	backgroundOpacity: 0.6
 	objectName: "mesoCalendarPage"
 
+//public:
 	required property CalendarManager calendarManager
 	property DBCalendarModel calendarModel
 
+//private:
 	property date _today: new Date()
 
 	onPageActivated: calendar.positionViewAtIndex(mesoCalendarPage.calendarModel.getIndexFromDate(
@@ -65,10 +69,14 @@ TPPage {
 		}
 
 		delegate: Rectangle {
+			id: delegate
 			height: calendar.cellSize * 11
 			width: calendar.width - 10
 			color: AppSettings.primaryDarkColor
 			opacity: 0.7
+
+			required property int index
+			property alias month_index: delegate.index
 
 			Rectangle {
 				id: monthYearTitle
@@ -80,8 +88,9 @@ TPPage {
 
 				Text {
 					anchors.centerIn: parent
-					text: appUtils.monthName(mesoCalendarPage.calendarModel.month(index)) + " " + mesoCalendarPage.calendarModel.year(index);
-					font.pixelSize: AppSettings.extraLargeFontSize
+					text: AppUtils.monthName(mesoCalendarPage.calendarModel.month(delegate.month_index)) + " " +
+																				mesoCalendarPage.calendarModel.year(delegate.index);
+					font.pixelSize: 0
 					font.bold: true
 				}
 			}
@@ -94,128 +103,51 @@ TPPage {
 				width: parent.width
 
 				delegate: Text {
-					text: model.shortName
+					text: shortName
 					horizontalAlignment: Text.AlignHCenter
 					verticalAlignment: Text.AlignVCenter
 					color: AppSettings.fontColor
 					font.bold: true
 					font.pixelSize: AppSettings.fontSize
+
+					required property string shortName
 				}
 			}
 
 			MonthGrid {
 				id: monthGrid
 				locale: Qt.locale(AppSettings.userLocale)
-				month: mesoCalendarPage.calendarModel.month(index)
-				year: mesoCalendarPage.calendarModel.year(index)
+				month: mesoCalendarPage.calendarModel.month(delegate.month_index)
+				year: mesoCalendarPage.calendarModel.year(delegate.month_index)
 				spacing: 2
 				anchors.top: weekTitles.bottom
 				width: parent.width
 				height: calendar.cellSize * 8
 
-				property Rectangle selectedDay: null
+				property CalendarEntry selectedDay
 
-				delegate: Rectangle {
-					id: dayEntry
-					radius: width * 0.5
-					border.color: "green"
-					border.width: workoutFinished ? 2 : 0
-					opacity: workoutDay ? 1 : mesoDay ?  0.7 : 0.4
-					color: visibleDay ? AppSettings.primaryLightColor : "transparent"
+				delegate: CalendarEntry {
+					entryDay: day
+					entryMonth: month
+					entryYear: year
+					cellSize: calendar.cellSize
+					today: mesoCalendarPage._today
+					parentMonth: monthGrid.month
+					tpCalendarModel: mesoCalendarPage.calendarModel
 
-					function dateSelected(): void {
-						highlightDay(true);
-						monthGrid.selectedDay = this;
-						mesoCalendarPage.calendarModel.currentDate = month_day;
+					required property int day
+					required property int month
+					required property int year
+
+					onDateSelected: (day, is_workout) => {
+						mesoCalendarPage.calendarModel.currentDate = day;
 						optChangeOnlyThisDay.checked = optChangeAfterThisDay.checked = false;
 						optChangeOnlyThisDay.enabled = optChangeAfterThisDay.enabled = false;
-						btnViewWorkout.enabled = workoutDay;
+						btnViewWorkout.enabled = is_workout;
 						lblInfo.text = mesoCalendarPage.calendarManager.dayInfo();
 						cboSplitLetter.currentIndex = mesoCalendarPage.calendarModel.splitLetterToIndex();
 					}
-
-					readonly property date month_day: new Date(model.year, model.month, model.day);
-					readonly property bool todayDate: month_day.getUTCFullYear() === _today.getUTCFullYear() &&
-							month_day.getUTCMonth() === _today.getUTCMonth() && month_day.getUTCDate() === _today.getUTCDate()
-					readonly property bool visibleDay: model.month === monthGrid.month
-					readonly property bool mesoDay: mesoCalendarPage.calendarModel.isPartOfMeso(month_day)
-					readonly property bool workoutDay: mesoCalendarPage.calendarModel.isWorkoutDay(month_day)
-					readonly property bool workoutFinished: mesoCalendarPage.calendarModel.completed_by_date(month_day)
-
-					function highlightDay(highlighted: bool): void {
-						if (highlighted)
-							animExpand.start();
-						else
-							animShrink.start();
-					}
-
-					Component.onCompleted: {
-						if (todayDate)
-							dateSelected();
-					}
-
-					Connections {
-						enabled: mesoCalendarPage.calendarModel !== null
-						target: mesoCalendarPage.calendarModel
-						function onCompletedChanged(cal_date: date) : void {
-							if (cal_date === dayEntry.month_day)
-								workoutFinished = mesoCalendarPage.calendarModel.completed(cal_date);
-						}
-					}
-
-					TPLabel {
-						id: txtDay
-						anchors.centerIn: parent
-						text: mesoCalendarPage.calendarModel.dayEntryLabel(dayEntry.month_day)
-						font: AppGlobals.smallFont
-						visible: dayEntry.visibleDay
-						color: !dayEntry.todayDate ? (mesoDay ? AppSettings.fontColor : AppSettings.disabledFontColor) : "red"
-
-						Connections {
-							target: mesoCalendarPage.calendarModel
-							function onSplitLetterChanged(cal_date: date) : void {
-								if (cal_date === dayEntry.month_day)
-									txtDay.text = mesoCalendarPage.calendarModel.dayText(cal_date);
-							}
-						}
-					}
-
-					SequentialAnimation { // Expand the button
-						id: animExpand
-						alwaysRunToEnd: true
-
-						PropertyAnimation {
-							target: dayEntry
-							property: "scale"
-							to: 1.4
-							duration: 200
-							easing.type: Easing.InOutCubic
-						}
-					}
-					SequentialAnimation { // Shrink back to normal
-						id: animShrink
-						alwaysRunToEnd: true
-
-						PropertyAnimation {
-							target: dayEntry
-							property: "scale"
-							to: 1.0
-							duration: 200
-							easing.type: Easing.InOutCubic
-						}
-					}
-
-					MouseArea {
-						anchors.fill: parent
-						hoverEnabled: true
-
-						onClicked: {
-							if (monthGrid.selectedDay)
-								monthGrid.selectedDay.highlightDay(false);
-							dayEntry.dateSelected();
-						}
-					}
-				} //delegate: Rectangle
+				} //delegate
 			} //MonthGrid
 		} //delegate: Rectangle
 	} //ListView

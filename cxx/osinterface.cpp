@@ -494,7 +494,7 @@ void OSInterface::commandLocalServer(const QString &message, const QString &comm
 			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
 						{message, "Operation canceled by the user"_L1}, record_separator));
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-	appItemManager()->getPasswordDialog(message, "Your user password is required"_L1);
+	appUserModel()->requestPasswordFromUser(message, "Your user password is required"_L1);
 }
 
 void OSInterface::processArguments() const
@@ -728,8 +728,8 @@ void OSInterface::onlineServicesResponse(const uint online_status, const QString
 			message += additional_message;
 		setNetStatus(serverMessage, online, std::move(message));
 		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
-					{"Linux TP Server"_L1, connectionMessage()}, record_separator),
-					online_status == TP_RET_CODE_SUCCESS ? "set-completed" : "error");
+								{"Linux TP Server"_L1, connectionMessage()}, record_separator), Qt::AlignTop|Qt::AlignHCenter,
+																	online_status == TP_RET_CODE_SUCCESS ? "set-completed" : "error");
 	}
 	//When network is out, check more frequently)
 	m_checkConnectionTimer->start(online ? CONNECTION_CHECK_TIMEOUT : CONNECTION_ERR_TIMEOUT);

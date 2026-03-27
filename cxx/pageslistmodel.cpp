@@ -15,6 +15,12 @@ QHash<QString,PagesListModel*> PagesListModel::app_Pages_list_models{};
 PagesListModel *PagesListModel::app_Pages_list_model(nullptr);
 #endif
 
+enum RoleNames {
+	createRole(displayText, 0)
+	createRole(page, 1)
+	createRole(buttonEnabled, 2)
+};
+
 PagesListModel::PagesListModel(QObject *parent) : QAbstractListModel{parent}
 {
 	#ifndef Q_OS_ANDROID
@@ -28,15 +34,16 @@ PagesListModel::PagesListModel(QObject *parent) : QAbstractListModel{parent}
 		}
 	}
 	else
-		insertHomePage(appItemManager()->appHomePage());
+		insertHomePage(appItemManager()->AppHomePage());
 	m_backKey = Qt::Key_Left;
 	#else
 	app_Pages_list_model = this;
 	m_backKey = Qt::Key_Back;
-	insertHomePage(appItemManager()->appHomePage());
+	insertHomePage(appItemManager()->AppHomePage());
 	#endif
-	m_roleNames[displayTextRole] = std::move("displayText");
-	m_roleNames[pageRole] = std::move("page");
+	roleToString(displayText)
+	roleToString(page)
+	roleToString(buttonEnabled)
 }
 
 #ifndef Q_OS_ANDROID
@@ -44,13 +51,31 @@ void PagesListModel::userSwitchingActions()
 {
 	QMetaObject::invokeMethod(appMainWindow(), "clearWindowsStack");
 	for (const auto page_st : std::as_const(m_pagesData))
-		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, page_st->page), Q_ARG(bool, false));
+		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, page_st->page));
 	appUserModel()->actualMesoModel()->setCurrentMesosView(appUserModel()->actualMesoModel()->isOwnMeso(m_pagesMesoIdx.last()));
 	emit countChanged();
-	emit currentIndexChanged();
+	setCurrentIndex(m_pagesData.count() - 1);
 	emit dataChanged(index(0, 0), index(count() - 1, 0));
 }
 #endif
+
+void PagesListModel::setCurrentIndex(const uint new_index)
+{
+	if (m_pagesIndex != new_index) {
+		if (m_pagesData.at(m_pagesIndex)->page->objectName() == "settingsPage"_L1)
+			emit appSettingsButtonEnabled(true);
+		else if (m_pagesData.at(m_pagesIndex)->page->objectName() == "userPage"_L1)
+			emit userSettingsButtonEnabled(true);
+		emit dataChanged(QAbstractListModel::index(m_pagesIndex, 0), QAbstractListModel::index(m_pagesIndex, 0), { buttonEnabledRole });
+		m_pagesIndex = new_index;
+		emit dataChanged(QAbstractListModel::index(m_pagesIndex, 0), QAbstractListModel::index(m_pagesIndex, 0), { buttonEnabledRole });
+		if (m_pagesData.at(m_pagesIndex)->page->objectName() == "settingsPage"_L1)
+			emit appSettingsButtonEnabled(false);
+		else if (m_pagesData.at(m_pagesIndex)->page->objectName() == "userPage"_L1)
+			emit userSettingsButtonEnabled(false);
+		emit currentIndexChanged();
+	}
+}
 
 void PagesListModel::removeEventFilter()
 {
@@ -160,10 +185,9 @@ QVariant PagesListModel::data(const QModelIndex &index, int role) const
 	const int row{index.row()};
 	if (row >= 0 && row < m_pagesData.count()) {
 		switch (role) {
-			case displayTextRole:
-				return m_pagesData.at(row)->displayText;
-			case pageRole:
-				return QVariant::fromValue(m_pagesData.at(row)->page);
+		case displayTextRole: return m_pagesData.at(row)->displayText;
+		case pageRole: return QVariant::fromValue(m_pagesData.at(row)->page);
+		case buttonEnabledRole: return m_pagesIndex != row;
 		}
 	}
 	return QVariant{};
@@ -222,8 +246,17 @@ bool PagesListModel::eventFilter(QObject *obj, QEvent *event)
 			else {
 				if (currentIndex() != 0)
 					prevPage();
-				else
-					QMetaObject::invokeMethod(appMainWindow(), "showExitPopUp");
+				else {
+					std::shared_ptr<QMetaObject::Connection> conn;
+					conn = std::make_shared<QMetaObject::Connection>(connect(appItemManager(), &QmlItemManager::generalMessagesPopupClicked,
+																					this, [this,conn] (const uint8_t button_idx) {
+						disconnect(*conn);
+						if (button_idx == 1)
+							qApp->exit();
+					}));
+					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings( {tr("Exit"),
+						tr("Are you sure you want to leave?")}, record_separator), Qt::AlignCenter, "question_"_L1, 0, tr("Yes"), tr("No"));
+				}
 			}
 			return true; // Return true to stop the event from propagating
 		}
@@ -235,7 +268,8 @@ bool PagesListModel::eventFilter(QObject *obj, QEvent *event)
 
 void PagesListModel::openQMLPage(const uint index)
 {
-	QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_pagesData.at(index)->page));
+	QQuickItem *page{m_pagesData.at(index)->page};
+	QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, page));
 	if (index > 0)
 		appUserModel()->actualMesoModel()->setCurrentMesosView(appUserModel()->actualMesoModel()->isOwnMeso(m_pagesMesoIdx.at(index)));
 }

@@ -1,23 +1,26 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import "../"
-import "../TPWidgets"
+import TpQml
+import TpQml.Widgets
 
 TPPopup {
-	id: dlgMuscularGroup
+	id: _dlgMuscularGroup
 	keepAbove: true
-	width: AppSettings.pageWidth/2
+	width: AppSettings.pageWidth / 2
 	height: shown ? dlgHeight : AppSettings.itemDefaultHeight
 
+//public:
 	property string buttonLabel: qsTr("Filter")
+	signal muscularGroupsCreated(groups: string);
 
+//private:
 	property bool shown: true
 	readonly property string groupsSeparator: '|'
 	readonly property int dlgHeight: AppSettings.pageHeight * 0.5
-
-	signal muscularGroupsCreated(groups: string);
 
 	property ListModel groupsModel: ListModel {
 		ListElement { display: qsTr("Quadriceps"); value: ""; selected: false; }
@@ -48,20 +51,20 @@ TPPopup {
 
 	TPButton {
 		id: btnShowHideList
-		imageSource: dlgMuscularGroup.shown ? "fold-up.png" : "fold-down.png"
+		imageSource: _dlgMuscularGroup.shown ? "fold-up.png" : "fold-down.png"
 		hasDropShadow: false
-		width: btnClose.width
+		width: _dlgMuscularGroup.btnClose.width
 		height: width
 		z: 1
 
 		anchors {
-			top: parent.top
+			top: _dlgMuscularGroup.contentItem.top
 			topMargin: 2
-			left: parent.left
+			left: _dlgMuscularGroup.contentItem.left
 			leftMargin: 2
 		}
 
-		onClicked: dlgMuscularGroup.shown = !dlgMuscularGroup.shown;
+		onClicked: _dlgMuscularGroup.shown = !_dlgMuscularGroup.shown;
 	}
 
 	ScrollView {
@@ -70,9 +73,9 @@ TPPopup {
 		contentWidth: availableWidth
 
 		anchors {
-			top: titleBar.bottom
-			left: parent.left
-			right: parent.right
+			top: _dlgMuscularGroup.titleBar.bottom
+			left: _dlgMuscularGroup.contentItem.left
+			right: _dlgMuscularGroup.contentItem.right
 			bottom: btnMakeFilter.top
 			bottomMargin: 5
 		}
@@ -88,16 +91,20 @@ TPPopup {
 
 			Repeater {
 				id: groupsRepeater
-				model: groupsModel
+				model: _dlgMuscularGroup.groupsModel
 
 				delegate: TPRadioButtonOrCheckBox {
-					text: qsTr(model.display)
+					text: qsTr(display)
 					radio: false
-					checked: model.selected
+					checked: selected
 					width: itemsLayout.width
 					Layout.fillWidth: true
 
-					onCheckedChanged: { model.selected = checked; }
+					required property int index
+					required property string display
+					required property bool selected
+
+					onCheckedChanged: { selected = checked; }
 				}
 			} //Repeater
 		} //ColumnLayout
@@ -105,38 +112,38 @@ TPPopup {
 
 	TPButton {
 		id: btnMakeFilter
-		text: buttonLabel
+		text: _dlgMuscularGroup.buttonLabel
 		autoSize: true
-		visible: dlgMuscularGroup.shown
+		visible: _dlgMuscularGroup.shown
 
-		readonly property int margin: (parent.width - width)/2
+		readonly property int margin: (_dlgMuscularGroup.width - width)/2
 
 		anchors {
-			left: parent.left
+			left: _dlgMuscularGroup.contentItem.left
 			leftMargin: btnMakeFilter.margin
-			right: parent.right
+			right: _dlgMuscularGroup.contentItem.right
 			rightMargin: btnMakeFilter.margin
-			bottom: parent.bottom
+			bottom: _dlgMuscularGroup.contentItem.bottom
 		}
 
 		onClicked: {
 			let muscularGroups = "";
-			for (let i = 0; i < groupsModel.count; ++i) {
-				if (groupsModel.get(i).selected)
-					muscularGroups += qsTr(groupsModel.get(i).display) + groupsSeparator;
+			for (let i = 0; i < _dlgMuscularGroup.groupsModel.count; ++i) {
+				if (_dlgMuscularGroup.groupsModel.get(i).selected)
+					muscularGroups += qsTr(_dlgMuscularGroup.groupsModel.get(i).display) + _dlgMuscularGroup.groupsSeparator;
 			}
-			muscularGroupsCreated(muscularGroups);
+			_dlgMuscularGroup.muscularGroupsCreated(muscularGroups);
 		}
 	}
 
 	function show(targetItem: Item, pos: int): void {
 		selectInitialGroups();
 		shown = true;
-		show2(targetItem, pos);
+		showByWidget(targetItem, pos);
 	}
 
 	function selectInitialGroups(): void {
-		const groups = exercisesListModel.filter().split(groupsSeparator);
+		const groups = AppExercisesList.filter().split(groupsSeparator);
 		for (let x = 0; x < groupsModel.count; ++x) {
 			let included = false;
 			for (let i = 0; i < groups.length; ++i) {

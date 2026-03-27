@@ -1,12 +1,11 @@
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 
-import "../../TPWidgets"
 import TpQml
+import TpQml.Widgets
 
 TPPopup {
-	id: dialog
+	id: _dialog
 	parentPage: parentWorkoutPage
 	keepAbove: true
 	closeButtonVisible: false
@@ -15,20 +14,21 @@ TPPopup {
 	width: AppSettings.pageWidth * 0.8
 	height: mainLayout.height * 1.1
 
+//public:
 	required property DBExercisesModel workoutModel
 	required property WorkoutManager workoutManager
-	required property Page parentWorkoutPage
-	property ListModel prevWorkoutsList
-	property string selectedPrevWorkout
+	required property TPPage parentWorkoutPage
+	required property ListModel prevWorkoutsList
+	property int selectedPrevWorkoutDay: -1
 
 	signal selectedOption(int option);
 
 	TPLabel {
-		text: workoutManager.todaysWorkout ? qsTr("What do you want to do today?") : qsTr("Empty workout options")
+		text: _dialog.workoutManager.todaysWorkout ? qsTr("What do you want to do today?") : qsTr("Empty workout options")
 		horizontalAlignment: Text.AlignHCenter
 
 		anchors {
-			verticalCenter: titleBar.verticalCenter
+			verticalCenter: _dialog.titleBar.verticalCenter
 			left: parent.left
 			right: parent.right
 		}
@@ -37,7 +37,7 @@ TPPopup {
 	ColumnLayout {
 		id: mainLayout
 		anchors {
-			top: titleBar.bottom
+			top: _dialog.titleBar.bottom
 			left: parent.left
 			right: parent.right
 			margins: 5
@@ -50,33 +50,33 @@ TPPopup {
 
 		TPRadioButtonOrCheckBox {
 			id: optMesoPlan
-			text: qsTr("Use the standard exercises plan for the division ") + workoutModel.splitLetter + qsTr(" of the Mesocycle")
+			text: qsTr("Use the standard exercises plan for the division ") + _dialog.workoutModel.splitLetter + qsTr(" of the Mesocycle")
 			buttonGroup: intentGroup
 			multiLine: true
-			enabled: workoutManager.canImportFromSplitPlan
+			enabled: _dialog.workoutManager.canImportFromSplitPlan
 			Layout.fillWidth: true
 			Layout.maximumHeight: AppSettings.itemDefaultHeight * 3
 		}
 
 		TPRadioButtonOrCheckBox {
 			id: optPreviousDay
-			text: qsTr("Base this session off the one from the one the days in the list below")
+			text: qsTr("Base this session off a session from a previous day")
 			buttonGroup: intentGroup
 			multiLine: true
-			enabled: workoutManager.canImportFromPreviousWorkout
+			enabled: _dialog.workoutManager.canImportFromPreviousWorkout
 			Layout.fillWidth: true
 			Layout.maximumHeight: AppSettings.itemDefaultHeight * 2
 		}
 
 		TPComboBox {
 			id: cboPreviousTDaysDates
-			model: prevWorkoutsList
-			currentIndex: prevWorkoutsList ? 0 : -1
+			model: _dialog.prevWorkoutsList
+			currentIndex: _dialog.prevWorkoutsList ? 0 : -1
 			enabled: optPreviousDay.checked
-			width: parent.width * 0.7
+			Layout.preferredWidth: parent.width * 0.7
 			Layout.alignment: Qt.AlignCenter
 
-			onActivated: (index) => selectedPrevWorkout = currentText;
+			onActivated: (index) => _dialog.selectedPrevWorkoutDay = currentValue;
 		}
 
 		TPRadioButtonOrCheckBox {
@@ -88,7 +88,7 @@ TPPopup {
 
 		TPRadioButtonOrCheckBox {
 			id: optEmptySession
-			text: workoutManager.sessionLabel
+			text: _dialog.workoutManager.sessionLabel
 			multiLine: true
 			buttonGroup: intentGroup
 			Layout.fillWidth: true
@@ -101,8 +101,8 @@ TPPopup {
 			Layout.alignment: Qt.AlignCenter
 
 			onClicked: {
-				selectedOption(intentGroup.selectedOption);
-				dialog.closePopup();
+				_dialog.selectedOption(intentGroup.selectedOption);
+				_dialog.closePopup();
 			}
 		}
 	}

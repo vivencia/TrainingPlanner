@@ -1,4 +1,4 @@
-pragma componentBehaviour: Bound
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
@@ -30,7 +30,6 @@ TPPage {
 
 	ExercisesListView {
 		id: exercisesList
-		parentPage: exercisesPage
 		canDoMultipleSelection: exercisesPage._choose_button_enabled
 		height: exercisesPage.height * 0.5
 
@@ -218,24 +217,13 @@ TPPage {
 			width: toolbarExercises.buttonWidth
 			rounded: false
 
-			onClicked: exercisesPage.showInExMenu();
+			onClicked: exercisesPage.showImExMenu();
 		} // btnImExport
-
 	} // Row
 
 	function chooseExercise(): void {
 		exerciseChosen();
-		ItemManager.appPagesManager.prevPage();
-	}
-
-	property TPFloatingMenuBar imExportMenu: null
-	readonly property bool bExportEnabled: !exercisesPage._choose_button_enabled
-	onBExportEnabledChanged: {
-		if (imExportMenu) {
-			imExportMenu.enableMenuEntry(1, bExportEnabled);
-			if (Qt.platform.os === "android")
-				imExportMenu.enableMenuEntry(2, bExportEnabled);
-		}
+		ItemManager.AppPagesManager.prevPage();
 	}
 
 	Loader {
@@ -243,25 +231,15 @@ TPPage {
 		asynchronous: true
 		active: false
 
+		property TPFloatingMenuBar _menu_bar
+
 		sourceComponent: TPFloatingMenuBar {
 			parentPage: exercisesPage
-			entriesList: [ QtObject {
-					property string label: qsTr("Import");
-					property string image: "import.png";
-					property int id: 0;
-					property bool visible: true},
-
-				QtObject {
-					property string label: qsTr("Export");
-					property string image: "save-day.png";
-					property int id: 1;
-					property bool visible: !exercisesPage._choose_button_enabled},
-
-				QtObject {
-					property string label: qsTr("Share");
-					property string image: "export.png";
-					property int id: 2;
-					property bool visible: !exercisesPage._choose_button_enabled && Qt.platform.os === "android"} ]
+			entriesList: [
+				{ "label": qsTr("Import"), "image": "import.png", "id": 0, "visible": true },
+				{ "label": qsTr("Export"), "image": "save-day.png", "id": 1, "visible": !exercisesPage._choose_button_enabled },
+				{ "label": qsTr("Share"), "image": "export.png", "id": 2, "visible": !exercisesPage._choose_button_enabled && Qt.platform.os === "android"},
+			]
 
 			onMenuEntrySelected: (id) => {
 				switch (id) {
@@ -272,9 +250,13 @@ TPPage {
 			}
 
 			onClosed: inExMenuLoader.active = false;
+			Component.onCompleted: inExMenuLoader._menu_bar = this;
 		}
 
-		onLoaded: item.show2(btnImExport, 0);
+		onLoaded: _menu_bar.showByWidget(btnImExport, Qt.AlignTop);
+	}
+	function showImExMenu(): void {
+		inExMenuLoader.active = true;
 	}
 
 	Loader {
@@ -283,6 +265,7 @@ TPPage {
 		active: false
 
 		property bool share
+		property TPBalloonTip _export_dlg
 
 		sourceComponent: TPBalloonTip {
 			message: exportDlgLoader.share ? qsTr("Share custom exercises?") : qsTr("Export custom exercises to file?")
@@ -291,9 +274,10 @@ TPPage {
 			closeButtonVisible: true
 			onButton1Clicked: exercisesPage.exercisesManager.exportExercises(exportDlgLoader.share);
 			onClosed: exportDlgLoader.active = false;
+			Component.onCompleted: exportDlgLoader._export_dlg = this;
 		}
 
-		onLoaded: item.show(-1);
+		onLoaded: _export_dlg.showInWindow(-Qt.AlignCenter);
 	}
 	function showExportDlg(share: bool) : void {
 		exportDlgLoader.share = share;

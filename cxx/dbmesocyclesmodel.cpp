@@ -154,7 +154,7 @@ void DBMesocyclesModel::setCurrentMesosView(const bool own_mesos_view)
 		m_currentWorkingMeso = new_working_meso;
 		setWorkingCalendar(m_currentWorkingMeso);
 		int view_idx{-1};
-		QMetaObject::invokeMethod(appItemManager()->appHomePage(), "mesosViewIndex", qReturnArg(view_idx));
+		QMetaObject::invokeMethod(appItemManager()->AppHomePage(), "mesosViewIndex", qReturnArg(view_idx));
 		if (view_idx != -1)
 			appSettings()->setCustomValue(mesosViewIdxSetting, view_idx);
 	}
@@ -266,7 +266,7 @@ void DBMesocyclesModel::removeSplitsForMeso(const uint meso_idx)
 	if (split_model)
 	{
 		m_splitsDB->setDBModelInterface(split_model->dbModelInterface());
-		split_model->dbModelInterface()->setRemovalInfo(0, QList<uint>{1, EXERCISES_FIELD_MESOID});
+		split_model->dbModelInterface()->setRemovalInfo(0, QList<uint>{1, DBExercisesModel::EXERCISES_FIELD_MESOID});
 		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(m_splitsDB, &DBWorkoutsOrSplitsTable::dbOperationsFinished, this, [this,conn,meso_idx]
 																	(const ThreadManager::StandardOps op, const bool success) {
@@ -323,7 +323,7 @@ void DBMesocyclesModel::loadSplit(const uint meso_idx, const QChar& splitletter)
 void DBMesocyclesModel::removeSplit(const uint meso_idx, const QChar &split_letter)
 {
 	DBSplitModel *split_model{splitModel(meso_idx, split_letter)};
-	split_model->dbModelInterface()->setRemovalInfo(0, QList<uint>{2} << EXERCISES_FIELD_MESOID << EXERCISES_FIELD_SPLITLETTER);
+	split_model->dbModelInterface()->setRemovalInfo(0, QList<uint>{2} << DBExercisesModel::EXERCISES_FIELD_MESOID << DBExercisesModel::EXERCISES_FIELD_SPLITLETTER);
 	appThreadManager()->runAction(m_splitsDB, ThreadManager::DeleteRecords);
 	m_splitModels[meso_idx].remove(split_letter);
 }
@@ -901,7 +901,7 @@ void DBMesocyclesModel::getAllMesocycles()
 		else {
 			disconnect(*conn);
 			scanTemporaryMesocycles();
-			QMetaObject::invokeMethod(appItemManager()->appHomePage(), "setMesosViewIndex",
+			QMetaObject::invokeMethod(appItemManager()->AppHomePage(), "setMesosViewIndex",
 											Q_ARG(int, appSettings()->getCustomValue(mesosViewIdxSetting, 0).toInt()));
 			if (m_ownMesos) {
 				connect(m_ownMesos, &HomePageMesoModel::currentIndexChanged, this, [this] () {

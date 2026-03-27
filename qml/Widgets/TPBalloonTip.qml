@@ -202,7 +202,7 @@ TPPopup {
 			if (bCloseOnFinished)
 				_balloon.closePopup();
 			else
-				_balloon.show(ypos);
+				_balloon.showInWindow(ypos);
 		}
 
 		function delayedOpen(timeout: int, ypos: int): void {
@@ -216,12 +216,8 @@ TPPopup {
 			bCloseOnFinished = true;
 			interval = timeout;
 			start();
-			_balloon.show(ypos);
+			_balloon.showInWindow(ypos);
 		}
-	}
-
-	function show(ypos: int): void {
-		_balloon.show1(ypos);
 	}
 
 	function showTimed(timeout: int, ypos: int): void {

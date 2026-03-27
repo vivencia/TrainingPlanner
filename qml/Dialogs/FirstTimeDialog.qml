@@ -36,22 +36,27 @@ TPPopup {
 		}
 
 		UserLanguage {
+			id: language_module
 			Layout.fillWidth: true
 			Layout.preferredHeight: _firstTimeDlg.minimumHeight
 		}
 
 		UserWelcome {
+			id: welcome_module
 			Layout.fillWidth: true
 			Layout.preferredHeight: _firstTimeDlg.minimumHeight
 		}
 
 		UserExistingFromNet {
-			parentDialog: _firstTimeDlg
+			id: existing_user_module
 			Layout.fillWidth: true
 			Layout.minimumHeight: _firstTimeDlg.minimumHeight
+
+			onNetConfigurationResult: (success) => _firstTimeDlg.nextStartsTheApp = success;
 		}
 
 		UserPersonalData {
+			id: personal_module
 			userRow: 0
 			parentPage: _firstTimeDlg.parentPage
 			Layout.fillWidth: true
@@ -59,12 +64,14 @@ TPPopup {
 		}
 
 		UserContact {
+			id: contact_module
 			userRow: 0
 			Layout.fillWidth: true
 			Layout.minimumHeight: _firstTimeDlg.minimumHeight
 		}
 
 		UserCoach {
+			id: coach_module
 			userRow: 0
 			parentPage: _firstTimeDlg.parentPage
 			Layout.fillWidth: true
@@ -72,7 +79,7 @@ TPPopup {
 		}
 
 		UserProfile {
-			id: usrProfile
+			id: profile_module
 			userRow: 0
 			parentPage: _firstTimeDlg.parentPage
 			Layout.fillWidth: true
@@ -126,7 +133,7 @@ TPPopup {
 			imageSource: "next.png"
 			hasDropShadow: false
 			autoSize: true
-			enabled: stackLayout.currentIndex < stackLayout.count ? stackLayout.itemAt(stackLayout.currentIndex).bReady : false
+			enabled: stackLayout.currentIndex < stackLayout.count ? _firstTimeDlg.isModuleReady(stackLayout.currentIndex) : false
 
 			anchors {
 				right: parent.right
@@ -140,8 +147,7 @@ TPPopup {
 					_firstTimeDlg.finish();
 				else {
 					stackLayout.currentIndex++;
-					if (stackLayout.currentIndex >= 3 && stackLayout.currentIndex < stackLayout.count - 2)
-						stackLayout.itemAt(stackLayout.currentIndex).focusOnFirstField();
+					_firstTimeDlg.focusOnNextModuleFirstField(stackLayout.currentIndex);
 				}
 			}
 		}
@@ -150,5 +156,30 @@ TPPopup {
 	function finish(): void {
 		AppUserModel.setMainUserConfigurationFinished();
 		closePopup();
+	}
+
+	function isModuleReady(index: int): bool {
+		let ready = false;
+		switch (index) {
+		case 0: ready = language_module.bReady; break;
+		case 1: ready = welcome_module.bReady; break;
+		case 2: ready = existing_user_module.bReady; break;
+		case 3: ready = personal_module.bReady; break;
+		case 4: ready = contact_module.bReady; break;
+		case 5: ready = coach_module.bReady; break;
+		case 6: ready = profile_module.bReady; break;
+		default: break;
+		}
+		return ready;
+	}
+
+	function focusOnNextModuleFirstField(index: int): void {
+		switch (index) {
+		case 3: personal_module.focusOnFirstField(); break;
+		case 4: contact_module.focusOnFirstField(); break;
+		case 5: coach_module.focusOnFirstField(); break;
+		case 6: profile_module.focusOnFirstField(); break;
+		default: break;
+		}
 	}
 }

@@ -1,13 +1,12 @@
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 
-import "../"
-import "../TPWidgets"
+
 import TpQml
+import TpQml.Widgets
 
 TPPopup {
-	id: passwdDlg
+	id: _passwdDlg
 	keepAbove: true
 	width: AppSettings.pageWidth * 0.8
 	height: mainLayout.childrenRect.height * 1.1
@@ -15,10 +14,6 @@ TPPopup {
 	required property string title
 	required property string message
 
-	property int startYPosition: 0
-	property int finalXPos: 0
-
-	onClosed: mainwindow.passwordDialogClosed(1, "");
 	onOpened: {
 		txtPassword.clear();
 		txtPassword.forceActiveFocus();
@@ -27,19 +22,20 @@ TPPopup {
 	ColumnLayout {
 		id: mainLayout
 		spacing: 10
+
 		anchors {
-			top: parent.top
-			left: parent.left
-			right: parent.right
+			top: _passwdDlg.contentItem.top
+			left: _passwdDlg.contentItem.left
+			right: _passwdDlg.contentItem.right
 			margins: 5
 		}
 
 		TPLabel {
 			id: lblTitle
-			text: title
+			text: _passwdDlg.title
 			horizontalAlignment: Text.AlignHCenter
-			visible: title.length > 0
-			width: parent.width - 20
+			visible: _passwdDlg.title.length > 0
+			Layout.preferredWidth: parent.width - 20
 		}
 
 		RowLayout {
@@ -55,11 +51,11 @@ TPPopup {
 
 			TPLabel {
 				id: lblMessage
-				text: message
+				text: _passwdDlg.message
 				singleLine: false
 				horizontalAlignment: Text.AlignJustify
-				width: passwdDlg.width - imgElement.width - 10
-				visible: message.length > 0
+				visible: _passwdDlg.message.length > 0
+				Layout.preferredWidth: _passwdDlg.width - imgElement.width - 10
 				Layout.fillWidth: true
 			}
 		}
@@ -68,12 +64,12 @@ TPPopup {
 			id: txtPassword
 			Layout.fillWidth: true
 
-			onEnterOrReturnKeyPressed: acceptInput();
+			onEnterOrReturnKeyPressed: _passwdDlg.acceptInput();
 		}
 
 		RowLayout {
 			id: buttonsRow
-			spacing: (passwdDlg.width - btn1.width - btn2.width) / 2
+			spacing: (_passwdDlg.width - btn1.width - btn2.width) / 2
 			Layout.alignment: Qt.AlignHCenter
 
 			TPButton {
@@ -83,7 +79,7 @@ TPPopup {
 				enabled: txtPassword.text.length > 4
 				Layout.alignment: Qt.AlignHCenter
 
-				onClicked: acceptInput();
+				onClicked: _passwdDlg.acceptInput();
 			}
 
 			TPButton {
@@ -92,20 +88,13 @@ TPPopup {
 				autoSize: true
 				Layout.alignment: Qt.AlignHCenter
 
-				onClicked: {
-					mainwindow.passwordDialogClosed(1, "");
-					passwdDlg.closePopup();
-				}
+				onClicked: _passwdDlg.closePopup();
 			}
 		}
 	}
 
 	function acceptInput(): void {
-		mainwindow.passwordDialogClosed(0, txtPassword.text);
-		passwdDlg.closePopup();
-	}
-
-	function show(ypos: int): void {
-		show1(ypos);
+		AppUserModel.checkPassword(txtPassword.text);
+		_passwdDlg.closePopup();
 	}
 }

@@ -36,6 +36,7 @@ public:
 	{
 		return (m_curIndex >= 0 && m_curIndex < m_mesoModelRows.count()) ? m_mesoModelRows.at(m_curIndex) : -1;
 	}
+	Q_INVOKABLE inline DBMesocyclesModel *mesoModel() const { return m_mesoModel; }
 
 	void appendMesoIdx(const uint meso_idx);
 	void removeMesoIdx(const uint meso_idx);
@@ -53,7 +54,7 @@ private:
 	QList<uint> m_mesoModelRows;
 	QHash<int, QByteArray> m_roleNames;
 	DBMesocyclesModel *m_mesoModel;
-	int m_curIndex;
+	int m_curIndex{-1};
 	bool m_ownMesos;
 
 	inline int findLocalIdx(const uint meso_idx) const { return m_mesoModelRows.indexOf(meso_idx); }

@@ -49,13 +49,13 @@ void ChatWSServer::connectToPeer(QObject *local_peer, const WS_USES use, const Q
 {
 	if (isConnectionOK(userid)) {
 		if (!m_localPeers.value(userid).contains(local_peer))
-			m_localPeers.value(userid).append(local_peer);
+			m_localPeers[userid].append(local_peer);
 		return;
 	}
 	const QLatin1String seed{"connectToPeer" % userid.toLatin1()};
 	const int requestid{appUtils()->generateUniqueId(seed)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
-	*conn = connect(this, &ChatWSServer::gotPeerAddress, [=,this,&n_attempts] (const int request_id, const QString &address) {
+	*conn = connect(this, &ChatWSServer::gotPeerAddress, this, [=,this,&n_attempts] (const int request_id, const QString &address) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			if (address.contains("not logged"_L1)) {
@@ -64,10 +64,10 @@ void ChatWSServer::connectToPeer(QObject *local_peer, const WS_USES use, const Q
 			}
 			else {
 				QWebSocket *peer{new QWebSocket(m_id, QWebSocketProtocol::Version13, this)};
-				connect(peer, &QWebSocket::connected, [=,this] () {
+				connect(peer, &QWebSocket::connected, this, [=,this] () {
 					qDebug() << "****** WebSocket connected to " << userid;
-					connect(peer, &QWebSocket::textMessageReceived, [this] (const QString &message) { wsTextMessageReceived(message); });
-					connect(peer, &QWebSocket::binaryMessageReceived, [this] (const QByteArray &data) { wsBinaryMessageReceived(data); });
+					connect(peer, &QWebSocket::textMessageReceived, this, [this] (const QString &message) { wsTextMessageReceived(message); });
+					connect(peer, &QWebSocket::binaryMessageReceived, this, [this] (const QByteArray &data) { wsBinaryMessageReceived(data); });
 					connect(peer, &QWebSocket::disconnected, this, [this,peer,userid] () {
 						peer->disconnect();
 						peer->deleteLater();
@@ -81,7 +81,7 @@ void ChatWSServer::connectToPeer(QObject *local_peer, const WS_USES use, const Q
 					emit connectionAttemptResult(true, userid);
 				});
 				// Handle errors (e.g., server not found, connection refused)
-				QObject::connect(peer, &QWebSocket::errorOccurred, [=,this,&n_attempts] (QAbstractSocket::SocketError error) {
+				QObject::connect(peer, &QWebSocket::errorOccurred, this, [=,this,&n_attempts] (QAbstractSocket::SocketError error) {
 					auto err_func = [this,peer,userid,error] () -> void {
 						qDebug() << "****** WebSocket error: " << error << " " << peer->errorString() << " " << peer->peerAddress();
 					};

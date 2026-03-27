@@ -1,4 +1,4 @@
-pragma componentBahavior: Bound
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
@@ -6,6 +6,8 @@ import QtQuick.Layouts
 
 import TpQml
 import TpQml.Widgets
+
+import "./AllUsersElements"
 
 TPPopup {
 	id: dlgSwitchUser
@@ -23,8 +25,7 @@ TPPopup {
 			 clip: true
 		 }
 
-		Row
-		{
+		Row {
 			spacing: 0
 			padding: 0
 			Layout.fillWidth: true
@@ -53,7 +54,6 @@ TPPopup {
 				height: parent.height
 
 				property int rowWidth: 0
-				property int cur_row: -1
 
 				ScrollBar.vertical: ScrollBar {
 					policy: ScrollBar.AsNeeded
@@ -64,45 +64,12 @@ TPPopup {
 					active: true; visible: true
 				}
 
-				onCurrentRowChanged: {
-					let _item = itemAtIndex(index(currentRow, 0));
-					if (_item)
-						_item.setSelected(currentRow, true);
-					if (cur_row >= 0) {
-						_item = itemAtIndex(index(cur_row, 0));
-						if (_item)
-							_item.setSelected(cur_row, false);
-					}
-					cur_row = currentRow;
-					model.currentRow = currentRow;
-				}
-
-				delegate: Rectangle {
-					id: delegate
-					border.width: selected ? 2 : 1
-					color: selected ? AppSettings.entrySelectedColor : (index % 2 === 0 ? AppSettings.listEntryColor1 :
-																								AppSettings.listEntryColor2)
-					implicitWidth: lblData.contentWidth > 0 ? lblData.contentWidth * 1.2 : 25
-					implicitHeight: AppSettings.itemDefaultHeight
-
-					required property int index
-					required property bool selected
-
-					function setSelected(_row: int, _selected: bool): void {
-						AppUserModel.allUsers.setSelected(_row, _selected);
-					}
-
-					TPLabel {
-						id: lblData
-						text: allData
-						leftPadding: 5
-						bottomPadding: 2
-
-						Component.onCompleted: {
-							if (row === 0)
-								allUsersList.rowWidth += contentWidth * 1.2;
-						}
-					}
+				delegate: TableDelegate {
+					userData: allData
+					required property int row
+					required property int column
+					required property string allData
+					Component.onCompleted: allUsersList.rowWidth += cellWidth;
 				} //ItemDelegate
 			} //allUsersList
 		} //Row

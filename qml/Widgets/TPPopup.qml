@@ -31,10 +31,11 @@ Popup {
 	readonly property int titleBarHeight: AppSettings.itemDefaultHeight + 5
 	signal keyboardNumberPressed(int key1, int key2);
 	signal keyboardEnterPressed();
-	signal backKeyPressed();
+	signal closeActionExeced();
 
-	onOpened: if (ItemManager.appPagesManager) ItemManager.appPagesManager.popupOpened(this);
-	onClosed: if (ItemManager.appPagesManager) ItemManager.appPagesManager.popupClosed(this);
+
+	onOpened: if (ItemManager.AppPagesManager) ItemManager.AppPagesManager.popupOpened(this);
+	onClosed: if (ItemManager.AppPagesManager) ItemManager.AppPagesManager.popupClosed(this);
 
 	Component.onCompleted: {
 		if (!modal && keepAbove) {
@@ -154,7 +155,7 @@ Popup {
 		enabled: !_control.disableMouseHandling
 		movableWidget: _control
 		movingWidget: titlebar
-		onPressed: ItemManager.appPagesManager.raisePopup(_control);
+		onPressed: ItemManager.AppPagesManager.raisePopup(_control);
 	}
 
 	enter: Transition {
@@ -194,34 +195,42 @@ Popup {
 
 	function closePopup(): void {
 		bVisible = false;
+		closeActionExeced();
 		close();
 	}
 
-	function show1(ypos: int): void {
+	function showInWindow(pos: int): void {
 		if (visible)
 			return;
 
-		x = (AppSettings.pageWidth - width)/2;
-
-		if (ypos < 0) {
-			switch (ypos) {
-			case -1: ypos = (AppSettings.windowHeight - height)/2; break;
-			case -2: ypos = AppSettings.windowHeight - height; break;
-			case -3: ypos = y; break;
-			case -4: ypos = AppSettings.pageHeight - height; break;
-			}
+		let ypos = 0;
+		let xpos = 0;
+		if (pos < 0) {
+			pos *= -1;
+			if (pos & Qt.AlignTop)
+				ypos = 0;
+			else if (pos & Qt.AlignVCenter)
+				ypos = (AppSettings.windowHeight - height) / 2;
+			else if (pos & Qt.AlignBottom)
+				ypos = AppSettings.windowHeight - height;
+			if (pos & Qt.AlignHCenter)
+				xpos = (AppSettings.pageWidth - width) / 2;
+			else if (pos & Qt.AlignLeft)
+				xpos = 0;
+			else if (pos & Qt.AlignRight)
+				xpos = AppSettings.windowWidth - width;
 		}
 
 		finalYPos = ypos;
-		if (ypos <= AppSettings.pageHeight/2)
-			startYPos = -300;
+		if (ypos <= AppSettings.windowHeight / 2)
+			startYPos = -height;
 		else
-			startYPos = AppSettings.pageHeight + 300;
-
+			startYPos = AppSettings.windowHeight + height;
+		x = xpos;
 		open();
 	}
 
-	function show2(targetItem: Item, pos: int): void {
+	function showByWidget(targetItem: Item, pos: int): void {
 		if (visible) {
 			close();
 			return;
@@ -230,19 +239,19 @@ Popup {
 
 		var xpos, ypos;
 		switch (pos) {
-		case 0: //top
+		case Qt.AlignTop:
 			xpos = point.x;
 			ypos = point.y - height - 20;
 			break;
-		case 1: //left
+		case Qt.AlignLeft:
 			xpos = point.x - width - 20;
 			ypos = point.y;
 			break;
-		case 2: //right
+		case Qt.AlignRight:
 			xpos = point.x + targetItem.width;
 			ypos = point.y;
 			break;
-		case 3: //bottom
+		case Qt.AlignBottom:
 			xpos = point.x;
 			ypos = point.y + targetItem.height;
 			break;

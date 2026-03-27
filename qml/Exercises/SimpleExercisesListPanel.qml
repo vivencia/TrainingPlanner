@@ -1,19 +1,17 @@
 import QtQuick
-import QtQuick.Controls
-import QtQuick.Layouts
 
-import "../"
-import "../TPWidgets"
+import TpQml
+import TpQml.Widgets
 
 TPPopup {
-	id: dlgExercisesList
+	id: _control
 	keepAbove: true
-	width: appSettings.pageWidth
-	height: appSettings.pageHeight * 0.5
+	width: AppSettings.pageWidth
+	height: AppSettings.pageHeight * 0.5
 	x: 0
 
 	onShownChanged: {
-		dlgExercisesList.height = shown ? appSettings.pageHeight * 0.5 : titleBar.height;
+		_control.height = shown ? AppSettings.pageHeight * 0.5 : titleBar.height;
 		exercisesList.visible = shown;
 	}
 
@@ -28,42 +26,41 @@ TPPopup {
 	}
 
 	TPButton {
-		imageSource: dlgExercisesList.shown ? "fold-up.png" : "fold-down.png"
+		imageSource: _control.shown ? "fold-up.png" : "fold-down.png"
 		hasDropShadow: false
-		width: appSettings.itemDefaultHeight
+		width: AppSettings.itemDefaultHeight
 		height: width
 		z: 1
 
 		anchors {
-			left: titleBar.left
+			left: _control.titleBar.left
 			leftMargin: 5
-			verticalCenter: titleBar.verticalCenter
+			verticalCenter: _control.titleBar.verticalCenter
 		}
 
-		onClicked: dlgExercisesList.shown = !dlgExercisesList.shown;
+		onClicked: _control.shown = !_control.shown;
 	}
 
 	ExercisesListView {
 		id: exercisesList
-		parentPage: dlgExercisesList.parentPage
-		canDoMultipleSelection: bEnableMultipleSelection
+		canDoMultipleSelection: _control.bEnableMultipleSelection
 
 		anchors {
-			top: titleBar.bottom
-			left: parent.left
-			right: parent.right
-			bottom: parent.bottom
+			top: _control.titleBar.bottom
+			left: _control.contentItem.left
+			right: _control.contentItem.right
+			bottom: _control.contentItem.bottom
 		}
 
-		onExerciseEntrySelected: exerciseSelected(parentPage);
-		onItemDoubleClicked: closePopup();
+		onExerciseEntrySelected: _control.exerciseSelected(_control.parentPage);
+		onItemDoubleClicked: _control.closePopup();
 	}
 
 	function show(ypos: int): void {
 		shown = true;
 		exercisesList.canDoMultipleSelection = bEnableMultipleSelection;
 		exercisesList.setFocusToSearchField();
-		exercisesListModel.clearSelectedEntries();
+		AppExercisesList.clearSelectedEntries();
 		show1(ypos);
 	}
 }

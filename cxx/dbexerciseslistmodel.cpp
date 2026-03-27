@@ -166,10 +166,8 @@ void DBExercisesListModel::removeExercise(const uint index)
 //Do not use the helper functions in .h file to get values. Look directly into the data set
 void DBExercisesListModel::setFilter(const QString &filter)
 {
-	if (!filter.isEmpty())
-	{
-		if (m_muscularFilterApplied)
-		{
+	if (!filter.isEmpty()) {
+		if (m_muscularFilterApplied) {
 			if (m_filterString != filter)
 				setFilter(QString{});
 			else
@@ -178,16 +176,12 @@ void DBExercisesListModel::setFilter(const QString &filter)
 
 		QStringList words_list{std::move(filter.split(fancy_record_separator1, Qt::SkipEmptyParts, Qt::CaseInsensitive))};
 		const auto modelCount{m_searchFilterApplied ? m_searchFilteredIndices.count() : m_exercisesData.count()};
-		for (uint i{0}; i < modelCount; ++i)
-		{
+		for (uint i{0}; i < modelCount; ++i) {
 			const uint index{m_searchFilterApplied ? m_searchFilteredIndices.at(i) : i};
 			const QString &subject{m_exercisesData.at(index).at(EXERCISES_LIST_FIELD_MUSCULARGROUP)};
-			for (const auto &word : std::as_const(words_list))
-			{
-				if (subject.contains(word, Qt::CaseInsensitive))
-				{
-					if (!m_muscularFilterApplied)
-					{
+			for (const auto &word : std::as_const(words_list)) {
+				if (subject.contains(word, Qt::CaseInsensitive)) {
+					if (!m_muscularFilterApplied) {
 						beginResetModel();
 						clearSelectedEntries();
 						m_filterString = filter;
@@ -198,10 +192,8 @@ void DBExercisesListModel::setFilter(const QString &filter)
 				}
 			}
 		}
-		if (m_muscularFilterApplied)
-		{
-			if (m_searchFilterApplied)
-			{
+		if (m_muscularFilterApplied) {
+			if (m_searchFilterApplied) {
 				beginResetModel();
 				m_searchFilteredIndices.clear();
 				m_searchFilteredIndices = m_muscularFilteredIndices;
@@ -210,21 +202,17 @@ void DBExercisesListModel::setFilter(const QString &filter)
 			emit countChanged();
 		}
 	}
-	else
-	{
-		if (m_muscularFilterApplied)
-		{
+	else {
+		if (m_muscularFilterApplied) {
 			m_muscularFilterApplied = false;
 			m_muscularFilteredIndices.clear();
 			m_filterString.clear();
-			if (!m_searchFilterApplied)
-			{
+			if (!m_searchFilterApplied) {
 				beginResetModel();
 				endResetModel();
 				emit countChanged();
 			}
-			else
-			{
+			else {
 				const QString search_term{m_searchString};
 				resetSearchModel();
 				search(search_term);
@@ -237,29 +225,23 @@ void DBExercisesListModel::setFilter(const QString &filter)
 void DBExercisesListModel::search(const QString &search_term)
 {
 	bool found{false};
-	if (search_term.length() >= 3)
-	{
+	if (search_term.length() >= 3) {
 		qsizetype modelCount{count()};
 		const QStringList &words_list{appUtils()->stripDiacriticsFromString(search_term).split(' ', Qt::SkipEmptyParts)};
 		const bool look_in_searched_indices{(search_term.length() >= m_searchString.length()) && m_searchFilterApplied};
 
-		for (uint i{0}; i < static_cast<uint>(modelCount); ++i)
-		{
+		for (uint i{0}; i < static_cast<uint>(modelCount); ++i) {
 			const uint index{look_in_searched_indices ? m_searchFilteredIndices.at(i) :
-										(m_muscularFilterApplied ? m_muscularFilteredIndices.at(i) : i)};
+																			(m_muscularFilterApplied ? m_muscularFilteredIndices.at(i) : i)};
 			const QString &subject{m_exercisesData.at(index).at(EXERCISES_LIST_FIELD_MAINNAME) % ' ' %
-								m_exercisesData.at(index).at(EXERCISES_LIST_FIELD_SUBNAME)};
-			if (appUtils()->containsAllWords(subject, words_list, false))
-			{
+																				m_exercisesData.at(index).at(EXERCISES_LIST_FIELD_SUBNAME)};
+			if (appUtils()->containsAllWords(subject, words_list, false)) {
 				found = true;
-				if (search_term.length() < m_searchString.length())
-				{
+				if (search_term.length() < m_searchString.length()) {
 					const uint insert_idx{m_exercisesData.at(index).at(EXERCISES_LIST_FIELD_ACTUALINDEX).toUInt()};
-					if (m_searchFilteredIndices.indexOf(insert_idx) == -1)
-					{
+					if (m_searchFilteredIndices.indexOf(insert_idx) == -1) {
 						uint i{0};
-						for (; i < count(); ++i)
-						{
+						for (; i < count(); ++i) {
 							if (actualIndex(i) > insert_idx)
 								break;
 						}
@@ -271,24 +253,20 @@ void DBExercisesListModel::search(const QString &search_term)
 						break;
 				}
 				m_searchString = search_term;
-				if (!look_in_searched_indices)
-				{
+				if (!look_in_searched_indices) {
 					beginResetModel();
 					m_searchFilterApplied = true;
 					m_searchFilteredIndices.append(index);
 					endResetModel();
 					emit countChanged();
 				}
-				else
-				{
+				else {
 					if (m_searchFilteredIndices.indexOf(m_exercisesData.at(index).at(EXERCISES_LIST_FIELD_ACTUALINDEX).toUInt()) != -1)
 						continue;
 				}
 			}
-			else
-			{
-				if (look_in_searched_indices)
-				{
+			else{
+				if (look_in_searched_indices) {
 					beginRemoveRows(QModelIndex{}, i, i);
 					m_searchFilteredIndices.remove(i);
 					--modelCount;
@@ -320,8 +298,7 @@ bool DBExercisesListModel::manageSelectedEntries(const uint item_pos, const uint
 {
 	if (m_selectedEntries.contains(item_pos))
 		return false;
-	if (m_selectedEntries.count() == max_selected)
-	{
+	if (m_selectedEntries.count() == max_selected) {
 		setData(index(m_selectedEntries.at(m_selectedEntryToReplace)), false, selectedRole);
 		m_selectedEntries[m_selectedEntryToReplace] = item_pos;
 		if (++m_selectedEntryToReplace == max_selected)
@@ -366,8 +343,7 @@ void DBExercisesListModel::clear()
 
 int DBExercisesListModel::exportToFile(const QString &filename, QFile *out_file) const
 {
-	if (!out_file)
-	{
+	if (!out_file) {
 		out_file = appUtils()->openFile(filename, false, true, false, true);
 		if (!out_file)
 			return TP_RET_CODE_OPEN_WRITE_FAILED;
@@ -380,8 +356,7 @@ int DBExercisesListModel::exportToFile(const QString &filename, QFile *out_file)
 
 int DBExercisesListModel::exportToFormattedFile(const QString &filename, QFile *out_file) const
 {
-	if (!out_file)
-	{
+	if (!out_file) {
 		out_file = appUtils()->openFile(filename, false, true, false, true);
 		if (!out_file)
 			return TP_RET_CODE_OPEN_CREATE_FAILED;
@@ -414,17 +389,15 @@ int DBExercisesListModel::exportToFormattedFile(const QString &filename, QFile *
 
 int DBExercisesListModel::importFromFile(const QString& filename, QFile *in_file)
 {
-	if (!in_file)
-	{
+	if (!in_file) {
 		in_file = appUtils()->openFile(filename);
 		if (!in_file)
 			return TP_RET_CODE_OPEN_READ_FAILED;
 	}
 
 	beginInsertRows(QModelIndex{}, count(), count());
-	int ret{appUtils()->readDataFromFile(in_file, m_exercisesData, EXERCISES_TOTAL_COLS, appUtils()->exercisesListFileIdentifier)};
-	if (ret != TP_RET_CODE_WRONG_IMPORT_FILE_TYPE)
-	{
+	int ret{appUtils()->readDataFromFile(in_file, m_exercisesData, EXERCISES_LIST_N_FIELDS, appUtils()->exercisesListFileIdentifier)};
+	if (ret != TP_RET_CODE_WRONG_IMPORT_FILE_TYPE) {
 		emit countChanged();
 		ret = TP_RET_CODE_IMPORT_OK;
 	}
@@ -437,8 +410,7 @@ int DBExercisesListModel::importFromFile(const QString& filename, QFile *in_file
 
 int DBExercisesListModel::importFromFormattedFile(const QString &filename, QFile *in_file)
 {
-	if (!in_file)
-	{
+	if (!in_file) {
 		in_file = appUtils()->openFile(filename);
 		if (!in_file)
 			return TP_RET_CODE_OPEN_READ_FAILED;
@@ -454,11 +426,9 @@ int DBExercisesListModel::importFromFormattedFile(const QString &filename, QFile
 												nullptr)
 	};
 
-	if (ret > 0)
-	{
+	if (ret > 0) {
 		uint actual_index{first_imported_idx};
-		for (auto &&data : m_exercisesData | std::views::drop(first_imported_idx) )
-		{
+		for (auto &&data : m_exercisesData | std::views::drop(first_imported_idx) ) {
 			data[0] = std::move(QString::number(m_exercisesData.last().at(EXERCISES_LIST_FIELD_ID).toUInt() + 1));
 			data.append(std::move("(kg)"_L1));
 			data.append(std::move("0"_L1));
@@ -478,15 +448,13 @@ int DBExercisesListModel::importFromFormattedFile(const QString &filename, QFile
 int DBExercisesListModel::newExerciseFromFile(const QString &filename, const std::optional<bool> &file_formatted)
 {
 	int import_result{TP_RET_CODE_IMPORT_FAILED};
-	if (file_formatted.has_value())
-	{
+	if (file_formatted.has_value()) {
 		if (file_formatted.value())
 			import_result = importFromFormattedFile(filename);
 		else
 			import_result = importFromFile(filename);
 	}
-	else
-	{
+	else {
 		import_result = importFromFile(filename);
 		if (import_result == TP_RET_CODE_WRONG_IMPORT_FILE_TYPE)
 			import_result = importFromFormattedFile(filename);
@@ -497,36 +465,33 @@ int DBExercisesListModel::newExerciseFromFile(const QString &filename, const std
 QVariant DBExercisesListModel::data(const QModelIndex &index, int role) const
 {
 	const int row{index.row()};
-	if (row >= 0 && row < m_exercisesData.count())
-	{
+	if (row >= 0 && row < m_exercisesData.count()) {
 		switch (role) {
-			case exerciseIdRole:
-			case mainNameRole:
-			case subNameRole:
-			case muscularGroupRole:
-			case mediaPathRole:
-			case actualIndexRole:
-				if (m_searchFilterApplied)
-					return m_exercisesData.at(m_searchFilteredIndices.at(row)).at(role-Qt::UserRole);
+		case exerciseIdRole:
+		case mainNameRole:
+		case subNameRole:
+		case muscularGroupRole:
+		case mediaPathRole:
+		case actualIndexRole:
+			if (m_searchFilterApplied)
+				return m_exercisesData.at(m_searchFilteredIndices.at(row)).at(role-Qt::UserRole);
+			else {
+				if (m_muscularFilterApplied)
+					return m_exercisesData.at(m_muscularFilteredIndices.at(row)).at(role-Qt::UserRole);
 				else
-				{
-					if (m_muscularFilterApplied)
-						return m_exercisesData.at(m_muscularFilteredIndices.at(row)).at(role-Qt::UserRole);
-					else
-						return m_exercisesData.at(row).at(role-Qt::UserRole);
-				}
+					return m_exercisesData.at(row).at(role-Qt::UserRole);
+			}
 			break;
-			case fromListRole:
-			case selectedRole:
-				if (m_searchFilterApplied)
-					return m_exercisesData.at(m_searchFilteredIndices.at(row)).at(role-Qt::UserRole) == '1';
+		case fromListRole:
+		case selectedRole:
+			if (m_searchFilterApplied)
+				return m_exercisesData.at(m_searchFilteredIndices.at(row)).at(role-Qt::UserRole) == '1';
+			else {
+				if (m_muscularFilterApplied)
+					return m_exercisesData.at(m_muscularFilteredIndices.at(row)).at(role-Qt::UserRole) == '1';
 				else
-				{
-					if (m_muscularFilterApplied)
-						return m_exercisesData.at(m_muscularFilteredIndices.at(row)).at(role-Qt::UserRole) == '1';
-					else
-						return m_exercisesData.at(row).at(role-Qt::UserRole) == '1';
-				}
+					return m_exercisesData.at(row).at(role-Qt::UserRole) == '1';
+			}
 			break;
 		}
 	}
@@ -537,49 +502,43 @@ bool DBExercisesListModel::setData(const QModelIndex &index, const QVariant &val
 {
 	bool data_set{false};
 	int row{index.row()};
-	if (row >= 0)
-	{
+	if (row >= 0) {
 		const int field{role - Qt::UserRole};
-		switch (role)
-		{
-			case exerciseIdRole:
-			case mainNameRole:
-			case subNameRole:
-			case muscularGroupRole:
-			case mediaPathRole:
-			case actualIndexRole:
-				if (m_searchFilterApplied)
-					m_exercisesData[m_searchFilteredIndices.at(row)][field] = std::move(value.toString());
-				else
-				{
-					if (m_muscularFilterApplied)
-						m_exercisesData[m_muscularFilteredIndices.at(row)][field] = std::move(value.toString());
+		switch (role) {
+		case exerciseIdRole:
+		case mainNameRole:
+		case subNameRole:
+		case muscularGroupRole:
+		case mediaPathRole:
+		case actualIndexRole:
+			if (m_searchFilterApplied)
+				m_exercisesData[m_searchFilteredIndices.at(row)][field] = std::move(value.toString());
+			else {
+				if (m_muscularFilterApplied)
+					m_exercisesData[m_muscularFilteredIndices.at(row)][field] = std::move(value.toString());
 					else
-						m_exercisesData[row][field] = std::move(value.toString());
-				}
-				data_set = true;
+					m_exercisesData[row][field] = std::move(value.toString());
+			}
+			data_set = true;
 			break;
-			case fromListRole:
-			case selectedRole:
-				if (m_searchFilterApplied)
-					m_exercisesData[m_searchFilteredIndices.at(row)][field] = value.toBool() ? '1' : '0';
+		case fromListRole:
+		case selectedRole:
+			if (m_searchFilterApplied)
+				m_exercisesData[m_searchFilteredIndices.at(row)][field] = value.toBool() ? '1' : '0';
+			else {
+				if (m_muscularFilterApplied)
+					m_exercisesData[m_muscularFilteredIndices.at(row)][field] = value.toBool() ? '1' : '0';
 				else
-				{
-					if (m_muscularFilterApplied)
-						m_exercisesData[m_muscularFilteredIndices.at(row)][field] = value.toBool() ? '1' : '0';
-					else
-						m_exercisesData[row][field] = value.toBool() ? '1' : '0';
-				}
-				data_set = true;
+					m_exercisesData[row][field] = value.toBool() ? '1' : '0';
+			}
+			data_set = true;
 			break;
 		}
-		if (data_set)
-		{
+		if (data_set) {
 			emit dataChanged(index, index, QList<int>{role});
 			if (m_searchFilterApplied)
 				row = m_exercisesData.at(m_searchFilteredIndices.at(row)).at(EXERCISES_LIST_FIELD_ACTUALINDEX).toInt();
-			else
-			{
+			else {
 				if (m_muscularFilterApplied)
 					row = m_exercisesData.at(m_muscularFilteredIndices.at(row)).at(EXERCISES_LIST_FIELD_ACTUALINDEX).toInt();
 				else
@@ -597,18 +556,15 @@ void DBExercisesListModel::readExercisesList()
 	QFile *file{appUtils()->openFile(list_filename.arg(appSettings()->userLocale()))};
 	if (!file)
 		file = appUtils()->openFile(list_filename.arg("en_US"_L1));
-	if (file)
-	{
+	if (file) {
 		beginResetModel();
-		QString line{256, QChar{0}}, version{};
+		QString line{256, QChar{0}};
 		QTextStream stream{file};
 		stream.readLineInto(&line);
-		while (stream.readLineInto(&line))
-		{
-			QStringList fields{std::forward<QStringList>(line.split(';'))};
-			m_exercisesData.append(std::move(QStringList{} <<
-			std::move("-1"_L1) << std::move(fields[0]) << std::move(fields[1]) << std::move(fields[2]) << QString{} << std::move("1"_L1) <<
-				std::move(QString::number(m_exercisesData.count())) << std::move("0"_L1)));
+		while (stream.readLineInto(&line)) {
+			QStringList fields{std::move<QStringList>(line.split(';'))};
+			m_exercisesData.append({ std::move("-1"_L1), std::move(fields[0]), std::move(fields[1]),std::move(fields[2]), QString{},
+												std::move("1"_L1), std::move(QString::number(m_exercisesData.count())), std::move("0"_L1)});
 		}
 		m_exercisesListCount = m_exercisesData.count();
 		emit countChanged();

@@ -1,15 +1,13 @@
 import QtQuick
-import QtQuick.Controls
-import QtQuick.Layouts
 
-import "../"
-import "../TPWidgets/"
+import TpQml
+import TpQml.Widgets
 
 FocusScope {
-	id: control
+	id: _control
 	implicitWidth: availableWidth
 	width: availableWidth
-	implicitHeight: appSettings.itemDefaultHeight
+	implicitHeight: AppSettings.itemDefaultHeight
 	height: visible ? implicitHeight : 0
 
 	required property int type
@@ -20,12 +18,12 @@ FocusScope {
 	property bool showButtons: true
 	property bool clearInput: true
 	property bool editable: true
-	property color borderColor: appSettings.fontColor
-	property color labelColor: appSettings.fontColor
-	property color inputColor: appSettings.fontColor
-	property color backColor: appSettings.paneBackgroundColor
+	property string borderColor: AppSettings.fontColor
+	property string labelColor: AppSettings.fontColor
+	property string inputColor: AppSettings.fontColor
+	property string backColor: AppSettings.paneBackgroundColor
 
-	readonly property list<string> labelText: [ qsTr("Weight") + appSettings.weightUnit + ':', qsTr("Reps:"), qsTr("Rest time:"), qsTr("SubSets:") ]
+	readonly property list<string> labelText: [ qsTr("Weight") + AppSettings.weightUnit + ':', qsTr("Reps:"), qsTr("Rest time:"), qsTr("SubSets:") ]
 	readonly property list<QtObject> validatorType: [val_weigth, val_rep, val_time, val_set]
 	readonly property list<int> maxLen: [5,4,5,1]
 
@@ -45,7 +43,7 @@ FocusScope {
 		top: 999.99;
 		decimals: 2
 		notation: DoubleValidator.StandardNotation
-		locale: appSettings.userLocale
+		locale: AppSettings.userLocale
 	}
 
 	DoubleValidator {
@@ -54,7 +52,7 @@ FocusScope {
 		top: 99.99;
 		decimals: 2
 		notation: DoubleValidator.StandardNotation
-		locale: appSettings.userLocale
+		locale: AppSettings.userLocale
 	}
 
 	RegularExpressionValidator {
@@ -70,15 +68,15 @@ FocusScope {
 
 	Rectangle {
 		anchors.fill: parent
-		border.color: borderColor
+		border.color: _control.borderColor
 		radius: 6
-		color: control.enabled ? backColor : "transparent"
+		color: _control.enabled ? _control.backColor : "transparent"
 
 		TPLabel {
 			id: lblMain
-			text: labelText[type]
-			fontColor: labelColor
-			visible: showLabel
+			text: _control.labelText[_control.type]
+			fontColor: _control.labelColor
+			visible: _control.showLabel
 
 			anchors {
 				left: parent.left
@@ -91,21 +89,21 @@ FocusScope {
 			id: btnIncreaseMinutes
 			imageSource: "plus"
 			hasDropShadow: false
-			width: appSettings.itemSmallHeight
+			width: AppSettings.itemSmallHeight
 			height: width
-			visible: showButtons && type === SetInputField.Type.TimeType
-			enabled: editable
+			visible: _control.showButtons && _control.type === SetInputField.Type.TimeType
+			enabled: _control.editable
 
 			anchors {
-				left: showLabel ? lblMain.right : parent.left
+				left: _control.showLabel ? lblMain.right : parent.left
 				leftMargin: 1
 				rightMargin: 1
 				verticalCenter: parent.verticalCenter
 			}
 
 			onClicked: {
-				txtMain.text = appUtils.setTypeOperation(type, true, txtMain.text, false);
-				valueChanged(txtMain.text);
+				txtMain.text = AppUtils.setTypeOperation(_control.type, true, txtMain.text, false);
+				_control.valueChanged(txtMain.text);
 			}
 		}
 
@@ -113,69 +111,70 @@ FocusScope {
 			id: btnDecrease
 			imageSource: "minus"
 			hasDropShadow: false
-			width: appSettings.itemSmallHeight
+			width: AppSettings.itemSmallHeight
 			height: width
-			visible: showButtons
-			enabled: editable
+			visible: _control.showButtons
+			enabled: _control.editable
 
 			anchors {
-				left: btnIncreaseMinutes.visible ? btnIncreaseMinutes.right : showLabel ? lblMain.right : parent.left
+				left: btnIncreaseMinutes.visible ? btnIncreaseMinutes.right : _control.showLabel ? lblMain.right : parent.left
 				leftMargin: 1
 				rightMargin: 1
 				verticalCenter: parent.verticalCenter
 			}
 
 			onClicked: {
-				clearInput = false;
+				_control.clearInput = false;
 				const value = txtMain.text !== "" ? txtMain.text : txtMain.origText;
-				txtMain.text = appUtils.setTypeOperation(type, false, value, false);
-				valueChanged(txtMain.text);
+				txtMain.text = AppUtils.setTypeOperation(_control.type, false, value, false);
+				_control.valueChanged(txtMain.text);
 			}
 		}
 
 		TPTextInput {
 			id: txtMain
 			heightAdjustable: false
-			validator: validatorType[type]
-			inputMethodHints: type <= SetInputField.Type.RepType ? Qt.ImhFormattedNumbersOnly : Qt.ImhDigitsOnly
-			maximumLength: maxLen[type]
-			readOnly: !editable
+			validator: _control.validatorType[_control.type]
+			inputMethodHints: _control.type <= SetInputField.Type.RepType ? Qt.ImhFormattedNumbersOnly : Qt.ImhDigitsOnly
+			maximumLength: _control.maxLen[_control.type]
+			readOnly: !_control.editable
 			padding: 0
 			focus: true
 
 			property string origText
 
 			width: {
-				switch (type) {
-					case SetInputField.WeightType:
-						return Math.min(availableWidth*0.35, 2*height);
-					case SetInputField.RepType:
-						return Math.min(availableWidth*0.25, 1.5*height);
-					case SetInputField.Type.TimeType:
-						return Math.min(availableWidth*0.4, 3*height);
-					case SetInputField.SetType:
-						return Math.min(availableWidth*0.2, height);
+				switch (_control.type) {
+				case SetInputField.WeightType:
+					return Math.min(_control.availableWidth * 0.35, 2 * height);
+				case SetInputField.RepType:
+					return Math.min(_control.availableWidth * 0.25, 1.5 * height);
+				case SetInputField.Type.TimeType:
+					return Math.min(_control.availableWidth * 0.4, 3 * height);
+				case SetInputField.SetType:
+					return Math.min(_control.availableWidth * 0.2, height);
 				}
 			}
 
 			anchors {
-				left: showButtons ? btnDecrease.right : showLabel ? lblMain.right : parent.left
+				left: _control.showButtons ? btnDecrease.right : _control.showLabel ? lblMain.right : parent.left
 				leftMargin: 1
 				rightMargin: 1
 				verticalCenter: parent.verticalCenter
 			}
 
 			onEnterOrReturnKeyPressed: {
-				clearInput = true;
-				control.enterOrReturnKeyPressed();
+				_control.clearInput = true;
+				_control.enterOrReturnKeyPressed();
 			}
 
 			onActiveFocusChanged: {
 				if (activeFocus) {
-					if (clearInput && editable) {
+					if (_control.clearInput && _control.editable) {
 						origText = text;
 						txtMain.clear();
-						clearInput = false; //In case the window loose focus, when returning do not erase what was being written before the loosing of focus
+						//In case the window loose focus, when returning do not erase what was being written before the loosing of focus
+						_control.clearInput = false;
 					}
 				}
 				else {
@@ -185,23 +184,23 @@ FocusScope {
 			}
 
 			onTextEdited: {
-				if (type === SetInputField.Type.TimeType)
-					text = formatTime(text);
+				if (_control.type === SetInputField.Type.TimeType)
+					text = _control.formatTime(text);
 				else
-					text = sanitizeText(text);
-				valueChanged(text);
+					text = _control.sanitizeText(text);
+				_control.valueChanged(text);
 			}
-			onTextChanged: if (!activeFocus) clearInput = true;
+			onTextChanged: if (!activeFocus) _control.clearInput = true;
 		} //TextInput
 
 		TPButton {
 			id: btnIncrease
 			imageSource: "plus"
 			hasDropShadow: false
-			width: appSettings.itemSmallHeight
+			width: AppSettings.itemSmallHeight
 			height: width
-			visible: showButtons
-			enabled: editable
+			visible: _control.showButtons
+			enabled: _control.editable
 
 			anchors {
 				left: txtMain.right
@@ -211,10 +210,10 @@ FocusScope {
 			}
 
 			onClicked: {
-				clearInput = false;
+				_control.clearInput = false;
 				const value = txtMain.text !== "" ? txtMain.text : txtMain.origText;
-				txtMain.text = appUtils.setTypeOperation(type, true, value, true);
-				valueChanged(txtMain.text);
+				txtMain.text = AppUtils.setTypeOperation(_control.type, true, value, true);
+				_control.valueChanged(txtMain.text);
 			}
 		}
 
@@ -222,10 +221,10 @@ FocusScope {
 			id: btnDecreaseSeconds
 			imageSource: "minus"
 			hasDropShadow: false
-			width: appSettings.itemSmallHeight
+			width: AppSettings.itemSmallHeight
 			height: width
-			visible: showButtons && type === SetInputField.Type.TimeType
-			enabled: editable
+			visible: _control.showButtons && _control.type === SetInputField.Type.TimeType
+			enabled: _control.editable
 
 			anchors {
 				left: btnIncrease.right
@@ -235,8 +234,8 @@ FocusScope {
 			}
 
 			onClicked: {
-				txtMain.text = appUtils.setTypeOperation(type, false, txtMain.text, true);
-				valueChanged(txtMain.text);
+				txtMain.text = AppUtils.setTypeOperation(_control.type, false, txtMain.text, true);
+				_control.valueChanged(txtMain.text);
 			}
 		}
 	} //Rectangle
@@ -254,14 +253,14 @@ FocusScope {
 
 		// Format based on length
 		switch (digits.length) {
-			case 0: return ""; // Empty input shows nothing
-			case 1: return digits;
-			case 2:
-				if (digits === txtMain.text)
-					return digits + ":";
-				else
-					return digits;
-			default: return digits.substring(0, 2) + ":" + digits.substring(2);
+		case 0: return ""; // Empty input shows nothing
+		case 1: return digits;
+		case 2:
+			if (digits === txtMain.text)
+				return digits + ":";
+			else
+				return digits;
+		default: return digits.substring(0, 2) + ":" + digits.substring(2);
 		}
 	}
 } //FocusScope

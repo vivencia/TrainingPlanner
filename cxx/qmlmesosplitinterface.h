@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dbexercisesmodel.h"
+
 #include <QObject>
 #include <QVariantMap>
 #include <QQuickItem>
@@ -17,7 +18,7 @@ Q_OBJECT
 QML_VALUE_TYPE(SplitManager)
 QML_UNCREATABLE("")
 
-Q_PROPERTY(DBSplitModel* currentSplitModel READ currentSplitModel NOTIFY currentPageChanged FINAL)
+Q_PROPERTY(DBExercisesModel* currentSplitModel READ currentSplitModel NOTIFY currentPageChanged FINAL)
 Q_PROPERTY(QChar currentSplitLetter READ currentSplitLetter NOTIFY currentPageChanged FINAL)
 Q_PROPERTY(QChar currentSwappableLetter READ currentSwappableLetter NOTIFY currentPageChanged FINAL)
 Q_PROPERTY(bool haveExercises READ haveExercises NOTIFY currentPageChanged FINAL)
@@ -25,8 +26,7 @@ Q_PROPERTY(bool canSwapExercises READ canSwapExercises NOTIFY currentPageChanged
 
 public:
 	explicit inline QmlMesoSplitInterface(QObject *parent, DBMesocyclesModel* meso_model, const uint meso_idx)
-		: QObject{parent}, m_mesoModel{meso_model}, m_plannerPage{nullptr}, m_currentSplitPage{nullptr},
-								m_splitComponent{nullptr}, m_mesoIdx{meso_idx} {}
+		: QObject{parent}, m_mesoModel{meso_model}, m_mesoIdx{meso_idx} {}
 	inline ~QmlMesoSplitInterface() { cleanUp(); }
 	void cleanUp();
 
@@ -40,7 +40,8 @@ public:
 	Q_INVOKABLE QQuickItem *setCurrentPage(const int index);
 	Q_INVOKABLE inline QQuickItem *qmlPage() const { return m_plannerPage; }
 
-	DBSplitModel *currentSplitModel() const;
+	DBExercisesModel *currentSplitModel() const;
+	Q_INVOKABLE DBExercisesModel *splitModel(const int index) const;
 	inline QChar currentSplitLetter() const { return m_currentSplitLetter; }
 	inline QChar currentSwappableLetter() const { return m_currentSwappableLetter; }
 	bool haveExercises() const;
@@ -51,9 +52,9 @@ signals:
 	void currentPageChanged();
 
 private:
-	DBMesocyclesModel *m_mesoModel;
-	QQmlComponent* m_plannerComponent;
-	QQuickItem* m_plannerPage, *m_currentSplitPage, *m_swipeView;
+	DBMesocyclesModel *m_mesoModel{nullptr};
+	QQmlComponent *m_plannerComponent{nullptr};
+	QQuickItem *m_plannerPage{nullptr}, *m_currentSplitPage{nullptr}, *m_swipeView{nullptr};
 	QVariantMap m_plannerProperties;
 
 	QQmlComponent* m_splitComponent;

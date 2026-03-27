@@ -9,6 +9,7 @@ set( QML_DIALOGS
 	"TimePicker.qml"
 	"TimerDialog.qml"
 	"TPFileDialog.qml"
+	"TimePickerElements/ClockButton.qml"
 )
 
 qt_add_library(tp_dialogs_module STATIC)

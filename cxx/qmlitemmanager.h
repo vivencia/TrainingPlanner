@@ -6,6 +6,7 @@
 
 #include <QObject>
 #include <QVariantMap>
+#include <QQuickWindow>
 
 static inline int deferredActionId()
 {
@@ -17,33 +18,31 @@ QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(QmlExercisesDatabaseInterface)
 QT_FORWARD_DECLARE_CLASS(QmlWorkoutInterface)
 QT_FORWARD_DECLARE_CLASS(QmlUserInterface)
-QT_FORWARD_DECLARE_CLASS(TPChat)
-QT_FORWARD_DECLARE_CLASS(TPListModel)
 
 QT_FORWARD_DECLARE_CLASS(QQmlApplicationEngine)
 QT_FORWARD_DECLARE_CLASS(QQmlComponent)
 QT_FORWARD_DECLARE_CLASS(QQuickItem)
-QT_FORWARD_DECLARE_CLASS(QQuickWindow)
 
 class QmlItemManager : public QObject
 {
 
 Q_OBJECT
 
-Q_PROPERTY(QQuickWindow* appMainWindow READ appMainWindow CONSTANT FINAL)
-Q_PROPERTY(PagesListModel* appPagesManager READ appPagesManager CONSTANT FINAL)
+Q_PROPERTY(QQuickWindow* AppMainWindow READ AppMainWindow CONSTANT FINAL)
+Q_PROPERTY(PagesListModel* AppPagesManager READ AppPagesManager CONSTANT FINAL)
 
 public:
 	explicit QmlItemManager(QQmlApplicationEngine *qml_engine);
 
-	inline QQuickItem* appHomePage() const { return m_homePage; }
-	inline QQuickWindow *appMainWindow() const { return _appMainWindow; }
-	inline PagesListModel *appPagesManager() const { return appPagesListModel(); }
+	inline QQuickItem* AppHomePage() const { return m_homePage; }
+	inline QQuickWindow *AppMainWindow() const { return _appMainWindow; }
+	inline PagesListModel *AppPagesManager() const { return appPagesListModel(); }
 
 	Q_INVOKABLE void exitApp();
 	Q_INVOKABLE void chooseFileToImport();
 	Q_INVOKABLE void displayImportDialogMessageAfterMesoSelection(const int meso_idx);
 	Q_INVOKABLE void exportMeso(const uint meso_idx, const bool share);
+	Q_INVOKABLE void showFirstTimeDialog();
 	Q_INVOKABLE void getSettingsPage();
 	Q_INVOKABLE void getUserPage();
 	Q_INVOKABLE void getCoachesPage();
@@ -53,15 +52,14 @@ public:
 	Q_INVOKABLE void getWeatherPage();
 	Q_INVOKABLE void getStatisticsPage();
 	Q_INVOKABLE void displayMessageOnAppWindow(const int message_id, const QString &filename_or_message = QString{},
-														const QString &image_source = QString{}, const uint msecs = 5000) const;
+						QFlags<Qt::AlignmentFlag> postion = Qt::AlignTop|Qt::AlignHCenter, const QString &image_source = QString{},
+							const uint msecs = 4000, const QString& button1text = QString{}, const QString &button2text = QString{}) const;
 	Q_INVOKABLE inline void showTextCopiedMessage(const QString &message = QString{})
 	{
-		displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, message.isEmpty() ?
-																  tr("Text copied to the clipboard") : message, QString{}, 3000);
+		displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, message.isEmpty() ? tr("Text copied to the clipboard") : message);
 	}
 
 	void displayActivityResultMessage(const int requestCode, const int resultCode) const;
-	void getPasswordDialog(const QString &title, const QString &message) const;
 
 	Q_INVOKABLE DBExercisesModel *workoutModel() const { return m_workout_model; }
 	DBExercisesModel *m_workout_model;
@@ -71,6 +69,12 @@ signals:
 	void mesoForImportSelected();
 	void qmlPasswordDialogClosed(int resultCode, QString password);
 	void qmlImportDialogClose(bool result);
+	/**
+	 * @brief generalMessagesPopupClicked
+	 * @param button_idx: 0 (dialog was closed via close button or back_key() or something else; 1: button1; 2: button2
+	 */
+	void generalMessagesPopupClicked(const uint8_t button_idx = 0);
+
 #ifndef QT_NO_DEBUG
 	void cppDataForQMLReady();
 #endif
@@ -83,9 +87,10 @@ public slots:
 
 private:
 	QmlExercisesDatabaseInterface *m_exercisesListManager{nullptr};
-	QQmlComponent *m_simpleExercisesListComponent{nullptr}, *m_weatherComponent{nullptr}, *m_statisticsComponent{nullptr};
+	QQmlComponent *m_simpleExercisesListComponent{nullptr}, *m_weatherComponent{nullptr}, *m_statisticsComponent{nullptr},
+																									*m_firstTimeDlgComponent{nullptr};
 	QQuickItem *m_homePage{nullptr}, *m_weatherPage{nullptr}, *m_statisticsPage{nullptr};
-	QObject *m_simpleExercisesList{nullptr};
+	QObject *m_simpleExercisesList{nullptr}, *m_firstTimeDlg{nullptr};
 	QVariantMap m_simpleExercisesListProperties;
 
 #ifndef QT_NO_DEBUG
@@ -107,7 +112,6 @@ private:
 	void createStatisticsPage_part2();
 	QmlUserInterface *usersManager();
 };
-
 DECLARE_QML_NAMED_SINGLETON(QmlItemManager, ItemManager)
 
 inline QmlItemManager *appItemManager() { return QmlItemManager::_appItemManager; }

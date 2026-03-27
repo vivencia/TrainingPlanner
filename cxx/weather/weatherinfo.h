@@ -8,6 +8,8 @@
 #include <qqml.h>
 #include <QQmlListProperty>
 
+QT_FORWARD_DECLARE_CLASS(WeatherInfoPrivate)
+
 class WeatherData : public QObject
 {
 
@@ -52,8 +54,6 @@ private:
 	QString m_provider;
 };
 
-class WeatherInfoPrivate;
-
 class WeatherInfo : public QObject
 {
 
@@ -84,10 +84,8 @@ public:
 	WeatherData *weather() const;
 	QQmlListProperty<WeatherData> forecast() const;
 
-#ifdef Q_OS_ANDROID
-	Q_INVOKABLE void requestWeatherForGpsCity();
-#endif
 	void requestWeatherForSavedCity(const int index);
+	Q_INVOKABLE void requestWeatherForGpsCity();
 	Q_INVOKABLE void removeWeatherLocation(const uint index);
 	Q_INVOKABLE void refreshWeather();
 	Q_INVOKABLE void searchForCities(const QString &place);
@@ -124,8 +122,8 @@ private slots:
 private:
 	void addLocationToConfig(const QString &location, const QGeoCoordinate &coord);
 
-	WeatherInfoPrivate *d;
-	QList<st_LocationInfo> *m_foundLocations;
+	WeatherInfoPrivate *d{nullptr};
+	QList<st_LocationInfo> *m_foundLocations{nullptr};
 	st_LocationInfo m_gpsLocation;
 	QStringList m_locationList;
 	QString m_savedLocations;

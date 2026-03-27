@@ -1,4 +1,4 @@
-pragma componentBahavior: Bound
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
@@ -121,12 +121,12 @@ TPPage {
 
 				TPButton {
 					text: qsTr("Remove")
-					enabled: coachesPage.userRow != 0 && coachesList.enabled  && coachesList.currentIndex !== -1
+					enabled: coachesPage.userRow != 0 && coachesList.enabled  && coachesList.currentRow !== -1
 					rounded: false
 					autoSize: true
 					Layout.alignment: Qt.AlignCenter
 
-					onClicked: showRemoveMessage(false);
+					onClicked: coachesPage.showRemoveMessage(false);
 				}
 			}
 		} //Item
@@ -163,7 +163,7 @@ TPPage {
 			RowLayout {
 				uniformCellSizes: true
 				height: btnAccept.height
-				enabled: pendingCoachesList.enabled && pendingCoachesList.currentIndex !== -1
+				enabled: pendingCoachesList.enabled && pendingCoachesList.currentRow !== -1
 
 				anchors {
 					bottom: parent.bottom
@@ -179,7 +179,7 @@ TPPage {
 					Layout.alignment: Qt.AlignCenter
 
 					onClicked: {
-						AppUserModel.acceptUser(AppUserModel.pendingCoachesResponses, pendingCoachesList.currentIndex);
+						AppUserModel.acceptUser(AppUserModel.pendingCoachesResponses, pendingCoachesList.currentRow);
 						if (!pendingCoachesList.enabled) {
 							if (coachesList.enabled)
 								tabbar.setCurrentIndex(0);
@@ -192,7 +192,7 @@ TPPage {
 					rounded: false
 					Layout.alignment: Qt.AlignCenter
 
-					onClicked: showRemoveMessage(true);
+					onClicked: coachesPage.showRemoveMessage(true);
 				}
 			}
 		}//Item
@@ -205,7 +205,7 @@ TPPage {
 		rounded: false
 		enabled: AppUserModel.canConnectToServer
 
-		onClicked: displayOnlineCoachesDialog();
+		onClicked: coachesPage.displayOnlineCoachesDialog();
 
 		anchors {
 			top: listsLayout.bottom
@@ -218,7 +218,7 @@ TPPage {
 	}
 
 	TPScrollView {
-		parentPage: clientsPage
+		parentPage: coachesPage
 		navButtonsVisible: enabled
 		contentHeight: colMain.implicitHeight
 		enabled: coachesPage.userRow > 0
@@ -264,12 +264,14 @@ TPPage {
 		asynchronous: true
 		active: false
 
+		property UserCoachRequest _coaches_dialog
 		sourceComponent: UserCoachRequest {
 			parentPage: coachesPage
 			onClosed: onlineCoachesDialogLoader.active = false;
+			Component.onCompleted: onlineCoachesDialogLoader._coaches_dialog = this;
 		}
 
-		onLoaded: item.show1(-1);
+		onLoaded: _coaches_dialog.showInWindow(-Qt.AlignCenter);
 	}
 	function displayOnlineCoachesDialog(): void {
 		onlineCoachesDialogLoader.active = true;
@@ -281,25 +283,26 @@ TPPage {
 		active: false
 
 		property bool decline
+		property TPBalloonTip _remove_dialog
 
 		sourceComponent: TPBalloonTip {
-			parentPage: clientsPage
+			parentPage: coachesPage
 			imageSource: "remove"
 			keepAbove: true
 			message: removeUserDlgLoader.decline ?
 						 qsTr("The coach will receive your reply, but might choose to send another answer unless you block them") :
 						 qsTr("The coach will be notified of your decision, but might still contact you unless you block them")
-			onButton1Clicked: clientsPage.removeOrDecline(removeUserDlgLoader.decline);
-			onClosed: removeuserDlgLoader.active = false;
+			onButton1Clicked: coachesPage.removeOrDecline(removeUserDlgLoader.decline);
+			onClosed: removeUserDlgLoader.active = false;
+			Component.onCompleted: removeUserDlgLoader._remove_dialog = this;
 		}
 
 		onLoaded: {
 			if (decline)
-				item.title = qsTr("Remove ") + AppUserModel.userName(coachesPage.userRow) + "?";
+				_remove_dialog.title = qsTr("Remove ") + AppUserModel.userName(coachesPage.userRow) + "?";
 			else
-				item.title = qsTr("Decline ") +
-								AppUserModel.pendingCoachesResponses.display(AppUserModel.pendingCoachesResponses.currentRow) + "?";
-			item.show(-1);
+				_remove_dialog.title = qsTr("Decline ") + AppUserModel.userName(AppUserModel.pendingCoachesResponses.currentRow) + "?";
+			_remove_dialog.showInWindow(-Qt.AlignCenter);
 		}
 	}
 	function showRemoveMessage(decline: bool): void {
@@ -316,7 +319,7 @@ TPPage {
 			}
 		}
 		else {
-			AppUserModel.rejectUser(AppUserModel.pendingCoachesResponses, pendingCoachesList.currentIndex);
+			AppUserModel.rejectUser(AppUserModel.pendingCoachesResponses, pendingCoachesList.currentRow);
 			if (!pendingCoachesList.enabled) {
 				if (coachesList.enabled)
 					tabbar.setCurrentIndex(0);

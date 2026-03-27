@@ -10,13 +10,12 @@ ThreadManager *ThreadManager::app_thread_mngr{nullptr};
 struct ThreadManager::stQueuedOps
 {
 	StandardOps op;
-	void *extra_param;
+	void *extra_param{nullptr};
 	QTimer timer;
-	TPDatabaseTable *worker;
+	TPDatabaseTable *worker{nullptr};
 };
 
-ThreadManager::ThreadManager(QObject *parent)
-	: QObject{parent}
+ThreadManager::ThreadManager(QObject *parent) : QObject{parent}
 {
 	app_thread_mngr = this;
 	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(aboutToExit()));
@@ -25,8 +24,7 @@ ThreadManager::ThreadManager(QObject *parent)
 void ThreadManager::initThread(TPDatabaseTable *worker)
 {
 	QThread *thread{m_subThreadsList.value(worker->tableId())};
-	if (!thread)
-	{
+	if (!thread) {
 		thread = new QThread{};
 		worker->moveToThread(thread);
 		m_subThreadsList.insert(worker->tableId(), thread);
@@ -52,8 +50,7 @@ void ThreadManager::queueAction(TPDatabaseTable *worker, StandardOps operation, 
 {
 	initThread(worker);
 	ThreadManager::stQueuedOps* cur_ops{m_queuedOps.value(worker->uniqueId())};
-	if (!cur_ops)
-	{
+	if (!cur_ops) {
 		ThreadManager::stQueuedOps *new_op{new ThreadManager::stQueuedOps};
 		new_op->op = operation;
 		new_op->extra_param = extra_param;
@@ -66,49 +63,49 @@ void ThreadManager::queueAction(TPDatabaseTable *worker, StandardOps operation, 
 		return;
 	}
 
-	switch (operation)
-	{
-		case DeleteRecords:
-			if (cur_ops->op == DeleteRecords) //Sequential deletions can accumulate
-				break;
-		case CustomOperation:
-		case ClearTable:
-		case ReadAllRecords:
-			cur_ops->timer.stop();
+	switch (operation) {
+	case DeleteRecords:
+		if (cur_ops->op != DeleteRecords) {
+			cur_ops->timer.stop(); //resolve the current pending thread before attempting a deletion
 			emit newThreadedOperation(worker->uniqueId(), operation, extra_param);
-		default:
-			return;
+		}
+		break; //sequential deletions can accumulate
+	case CustomOperation:
+	case ClearTable:
+	case ReadAllRecords:
+		cur_ops->timer.stop();
+		emit newThreadedOperation(worker->uniqueId(), operation, extra_param);
 		break;
-		case UpdateOneField:
-			if (cur_ops->op == UpdateOneField) //accumulate more than one field
-				cur_ops->op = UpdateSeveralFields;
-			else if (cur_ops->op == InsertRecords) //an update and one or more insertions, use alter records that can deal with both
-				cur_ops->op = AlterRecords;
+	case UpdateOneField:
+		if (cur_ops->op == UpdateOneField) //accumulate more than one field
+			cur_ops->op = UpdateSeveralFields;
+		else if (cur_ops->op == InsertRecords) //an update and one or more insertions: use alter records that can deal with both
+			cur_ops->op = AlterRecords;
 		break;
-		case UpdateSeveralFields: //already an accumulation
-		case UpdateRecords:
-			if (cur_ops->op == InsertRecords) //updates and one or more insertions, use alter records that can deal with both
-				cur_ops->op = AlterRecords;
+	case UpdateSeveralFields: //already an accumulation
+	case UpdateRecords:
+		if (cur_ops->op == InsertRecords) //updates and one or more insertions: use alter records that can deal with both
+			cur_ops->op = AlterRecords;
 		break;
-		case InsertRecords:
-			if (cur_ops->op != InsertRecords) //updates and one or more insertions, use alter records that can deal with both
-				cur_ops->op = AlterRecords;
+	case InsertRecords:
+		if (cur_ops->op != InsertRecords) //updates and one or more insertions, use alter records that can deal with both
+			cur_ops->op = AlterRecords;
 		break;
+	default:
+		return;
 	}
 	cur_ops->timer.start(10000);
 }
 
 void ThreadManager::aboutToExit()
 {
-	if (!m_queuedOps.isEmpty())
-	{
+	if (!m_queuedOps.isEmpty()) {
 		for (const auto queued_op : std::as_const(m_queuedOps))
 			emit newThreadedOperation(queued_op->worker->uniqueId(), queued_op->op, queued_op->extra_param, &m_mutex);
 		::usleep(1000);
 	}
 	QMutexLocker locker{&m_mutex};
-	for (QThread *thread : std::as_const(m_subThreadsList))
-	{
+	for (QThread *thread : std::as_const(m_subThreadsList)) {
 		thread->quit();
 		thread->wait();
 	}

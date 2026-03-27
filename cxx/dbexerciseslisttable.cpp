@@ -2,7 +2,7 @@
 
 #include "dbexerciseslistmodel.h"
 
-constexpr int n_fields{EXERCISES_TOTAL_COLS};
+constexpr int n_fields{EXERCISES_LIST_N_FIELDS};
 constexpr QLatin1StringView table_name{ "exercises_table"_L1 };
 constexpr QLatin1StringView field_names[n_fields][2] {
 	{"id"_L1,				"INTEGER PRIMARY KEY AUTOINCREMENT"_L1},
@@ -37,13 +37,10 @@ QString DBExercisesListTable::dbFileName(const bool fullpath) const
 bool DBExercisesListTable::getAllExercises(void *)
 {
 	bool success{false};
-	if (execReadOnlyQuery("SELECT * FROM %1 ORDER BY ROWID;"_L1.arg(table_name)))
-	{
-		if (m_workingQuery.first())
-		{
-			do
-			{
-				QStringList data{EXERCISES_TOTAL_COLS};
+	if (execReadOnlyQuery("SELECT * FROM %1 ORDER BY ROWID;"_L1.arg(table_name))) {
+		if (m_workingQuery.first()) {
+			do {
+				QStringList data{EXERCISES_LIST_N_FIELDS};
 				for (uint i{EXERCISES_LIST_FIELD_ID}; i < EXERCISES_LIST_FIELD_ACTUALINDEX; ++i)
 					data[i] = std::move(m_workingQuery.value(static_cast<int>(i)).toString());
 				data[EXERCISES_LIST_FIELD_ACTUALINDEX] = std::move(QString::number(m_dbModelInterface->modelData().count()));

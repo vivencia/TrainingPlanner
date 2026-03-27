@@ -4,14 +4,14 @@ import QtQuick.Layouts
 
 import TpQml
 import TpQml.Widgets
-import TpQml.Dialogs
 
 ColumnLayout {
 	id: _control
 
-	required property FirstTimeDialog parentDialog
 	property bool bReady: false
 	property bool bImport: false
+
+	signal netConfigurationResult(bool success);
 
 	Connections {
 		target: AppUserModel
@@ -28,11 +28,11 @@ ColumnLayout {
 
 		function onUserOnlineImportFinished(result: bool): void {
 			_control.bReady = result;
+			_control.netConfigurationResult(result);
 			if (result) {
 				ItemManager.displayMessageOnAppWindow(qsTr("User configuration imported"), Qt.platform.os !== "android" ?
 																			qsTr("Click on Next to start using the app") :
 																			qsTr("Tap on Next to start using the app"), "", 10000);
-				_control.parentDialog.nextStartsTheApp = true;
 			}
 			else
 				ItemManager.displayMessageOnAppWindow(qsTr("User data not imported"),

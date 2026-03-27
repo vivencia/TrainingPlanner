@@ -6,28 +6,6 @@
 
 #include <QObject>
 
-enum MesoFields {
-	MESO_FIELD_ID,
-	MESO_FIELD_NAME,
-	MESO_FIELD_STARTDATE,
-	MESO_FIELD_ENDDATE,
-	MESO_FIELD_NOTE,
-	MESO_FIELD_WEEKS,
-	MESO_FIELD_SPLIT,
-	MESO_FIELD_SPLITA,
-	MESO_FIELD_SPLITB,
-	MESO_FIELD_SPLITC,
-	MESO_FIELD_SPLITD,
-	MESO_FIELD_SPLITE,
-	MESO_FIELD_SPLITF,
-	MESO_FIELD_COACH,
-	MESO_FIELD_CLIENT,
-	MESO_FIELD_FILE,
-	MESO_FIELD_TYPE,
-	MESO_FIELD_REALMESO,
-	MESO_TOTAL_FIELDS
-};
-
 QT_FORWARD_DECLARE_CLASS(DBCalendarModel)
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(DBMesoCalendarTable)
@@ -70,11 +48,33 @@ Q_PROPERTY(QString nonMesoLabel READ nonMesoLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString splitR READ splitR NOTIFY labelChanged FINAL)
 
 public:
+
+	enum MesoFields {
+		MESO_FIELD_ID,
+		MESO_FIELD_NAME,
+		MESO_FIELD_STARTDATE,
+		MESO_FIELD_ENDDATE,
+		MESO_FIELD_NOTE,
+		MESO_FIELD_WEEKS,
+		MESO_FIELD_SPLIT,
+		MESO_FIELD_SPLITA,
+		MESO_FIELD_SPLITB,
+		MESO_FIELD_SPLITC,
+		MESO_FIELD_SPLITD,
+		MESO_FIELD_SPLITE,
+		MESO_FIELD_SPLITF,
+		MESO_FIELD_COACH,
+		MESO_FIELD_CLIENT,
+		MESO_FIELD_FILE,
+		MESO_FIELD_TYPE,
+		MESO_FIELD_REALMESO,
+		MESO_TOTAL_FIELDS
+	};
 	Q_ENUM(MesoFields)
 
 	static constexpr uint8_t MESO_N_REQUIRED_FIELDS{4};
 	static constexpr uint8_t meso_required_fields[MESO_N_REQUIRED_FIELDS]
-					{MESO_FIELD_NAME, MESO_FIELD_STARTDATE, MESO_FIELD_ENDDATE, MESO_FIELD_SPLIT};
+															{MESO_FIELD_NAME, MESO_FIELD_STARTDATE, MESO_FIELD_ENDDATE, MESO_FIELD_SPLIT};
 
 	explicit DBMesocyclesModel(QObject *parent = nullptr);
 
@@ -325,7 +325,7 @@ public:
 	{
 		return m_splitModels.value(meso_idx).value(split_letter);
 	}
-	inline QMap<QChar,DBSplitModel*> splitModelsForMeso(const uint meso_idx) const { return m_splitModels.value(meso_idx); }
+	inline QMap<QChar,DBSplitModel*> &splitModelsForMeso(const uint meso_idx) { return m_splitModels[meso_idx]; }
 
 	bool isDateWithinMeso(const int meso_idx, const QDate &date) const;
 	int mesoPlanExists(const QString &mesoName, const QString &coach, const QString &client) const;

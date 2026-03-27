@@ -1,4 +1,4 @@
-pragma componentBahavior: Bound
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
@@ -26,10 +26,10 @@ ColumnLayout {
 	property bool bSexOK
 
 	Connections {
-		target: userModel
+		target: AppUserModel
 		function onUserModified(row: int, field: int): void {
 			if (row === userPersonalModule.userRow && field >= 100)
-				getUserInfo();
+				userPersonalModule.getUserInfo();
 		}
 	}
 
@@ -55,7 +55,7 @@ ColumnLayout {
 		onEnterOrReturnKeyPressed: passwordControl.forceActiveFocus();
 
 		onEditingFinished: {
-			if (bTextChanged && bNameOK) {
+			if (bTextChanged && userPersonalModule.bNameOK) {
 				AppUserModel.setUserName(userPersonalModule.userRow, text);
 				bTextChanged = false;
 			}
@@ -86,7 +86,7 @@ ColumnLayout {
 				verticalCenter: txtName.verticalCenter
 			}
 
-			onClicked: appMessages.openChat(AppUserModel.userName(userPersonalModule.userRow));
+			onClicked: AppMessages.openChat(AppUserModel.userName(userPersonalModule.userRow));
 		}
 	}
 
@@ -109,7 +109,7 @@ ColumnLayout {
 
 	TPPassword {
 		id: passwordControl
-		enabled: bNameOK
+		enabled: userPersonalModule.bNameOK
 		visible: userPersonalModule.userRow === 0 && !AppUserModel.mainUserConfigured
 		Layout.fillWidth: true
 		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : -5
@@ -125,11 +125,14 @@ ColumnLayout {
 		id: changePasswordLoader
 		active: false
 		asynchronous: true
+
+		property UserChangePassword _change_passwd
 		sourceComponent: UserChangePassword {
 			parentPage: userPersonalModule.parentPage
+			Component.onCompleted: changePasswordLoader._change_passwd
 		}
 
-		onLoaded: item.show(-1);
+		onLoaded: _change_passwd.show(-Qt.AlignCenter);
 	}
 
 	TPLabel {
@@ -148,7 +151,7 @@ ColumnLayout {
 
 		CalendarDialog {
 			id: caldlg
-			showDate: AppAppUserModel.birthDate(userPersonalModule.userRow)
+			showDate: AppUserModel.birthDate(userPersonalModule.userRow)
 			initDate: new Date(1940, 0, 1)
 			finalDate: new Date()
 			parentPage: userPersonalModule.parentPage
@@ -249,7 +252,7 @@ ColumnLayout {
 				leftMargin: -15
 			}
 
-			onClicked: showUserRegistrationDialog();
+			onClicked: userPersonalModule.showUserRegistrationDialog();
 		}
 	}
 
@@ -258,6 +261,7 @@ ColumnLayout {
 		asynchronous: true
 		active: false
 
+		property TPBalloonTip _registration_dlg
 		sourceComponent: TPBalloonTip {
 			parentPage: userPersonalModule.parentPage
 			title: qsTr("Online Registration")
@@ -269,9 +273,10 @@ ColumnLayout {
 						  But it's not required for the app to work.`)
 
 			onClosed: userRegistrationDlgLoader.active = false;
+			Component.onCompleted: userRegistrationDlgLoader._registration_dlg = this;
 		}
 
-		onLoaded: item.show(-1);
+		onLoaded: _registration_dlg.showInWindow(-Qt.AlignCenter);
 	}
 	function showUserRegistrationDialog(): void {
 		userRegistrationDlgLoader.active = true;
@@ -307,6 +312,6 @@ ColumnLayout {
 		else if (!bBirthDateOK)
 			caldlg.open();
 		else
-			frmSex.forceActiveFocus();
+			chkMale.forceActiveFocus();
 	}
 }

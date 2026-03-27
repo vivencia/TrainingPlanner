@@ -144,9 +144,9 @@ private:
 	QHash<int, QByteArray> m_roleNames;
 	QList<QStringList> m_modeldata;
 	QList<QStringList> m_extraInfo;
-	uint m_nselected, m_totalCols;
-	int m_currentRow;
-	bool m_selectEntireRow;
+	uint m_nselected{0}, m_totalCols;
+	int m_currentRow{-1};
+	bool m_selectEntireRow{false};
 
 	void setupExtraInfo(const uint row);
 };

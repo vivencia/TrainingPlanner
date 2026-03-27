@@ -1,4 +1,4 @@
-pragma componentBehavior: Bound
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
@@ -180,28 +180,28 @@ TPBackRec {
 			source: _button.imageSource
 			dropShadow: _button.hasDropShadow
 			opacity: _button.opacity
-			enabled: checkable ? !checked : _button.enabled
+			enabled: _button.checkable ? !_button.checked : _button.enabled
 		}
 
 		onLoaded: {
 			if (buttonText.text.length === 0) {
 				anchors.fill = parent;
 				anchors.margins = 2;
-				flat = true;
+				_button.flat = true;
 			}
 			else {
-				if (textUnderIcon) {
+				if (_button.textUnderIcon) {
 					width = AppSettings.itemDefaultHeight;
-					anchors.top = button.top;
+					anchors.top = _button.top;
 					anchors.topMargin = 5;
-					anchors.horizontalCenter = button.horizontalCenter;
+					anchors.horizontalCenter = _button.horizontalCenter;
 					anchors.bottomMargin = 10;
 				}
 				else {
 					width = AppSettings.itemDefaultHeight * 0.9;
-					anchors.verticalCenter = button.verticalCenter;
+					anchors.verticalCenter = _button.verticalCenter;
 					anchors.verticalCenterOffset = 2;
-					if (iconOnTheLeft) {
+					if (_button.iconOnTheLeft) {
 						buttonText.anchors.horizontalCenterOffset = width/2;
 						anchors.right = buttonText.left;
 					}

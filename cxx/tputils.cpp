@@ -1,5 +1,6 @@
 #include "tputils.h"
 
+#include "qmlitemmanager.h"
 #include "osinterface.h"
 #include "return_codes.h"
 #include "tpsettings.h"
@@ -690,6 +691,7 @@ QString TPUtils::binaryFileExtraFieldValue(const QByteArray &data, BINARY_FILE_I
 void TPUtils::copyToClipboard(const QString &text) const
 {
 	qApp->clipboard()->setText(text);
+	appItemManager()->showTextCopiedMessage();
 }
 
 QString TPUtils::pasteFromClipboard() const

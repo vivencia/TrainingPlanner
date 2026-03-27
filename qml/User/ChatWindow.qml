@@ -1,4 +1,4 @@
-pragma componentBehavior: Bround
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
@@ -188,7 +188,7 @@ TPPopup {
 			property int msgHeight: 10
 
 			readonly property bool inViewport: {
-				const view = messagesList.view;
+				const view = messagesList.ListView.view;
 				const top = view.contentY;
 				const bottom = top + view.height;
 				return (y + height > top) && (y < bottom)
@@ -196,18 +196,18 @@ TPPopup {
 
 			Rectangle {
 				id: messageRec
-				color: ownMessage ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2
+				color: messageItem.ownMessage ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2
 				border.color: AppSettings.fontColor
 				radius: 8
 				opacity: 1 + messageItem.swipe.position
 				width: mainLayout.childrenRect.width + 10
 				height: mainLayout.childrenRect.height + 20
-				visible: !msgDeleted
+				visible: !messageItem.msgDeleted
 				anchors.top: parent.top
 
 				states: [
 					State {
-						when: ownMessage
+						when: messageItem.ownMessage
 
 						AnchorChanges {
 							target: messageRec
@@ -219,7 +219,7 @@ TPPopup {
 						}
 					},
 					State {
-						when: !ownMessage
+						when: !messageItem.ownMessage
 
 						AnchorChanges {
 							target: messageRec
@@ -243,21 +243,26 @@ TPPopup {
 					}
 
 					Loader {
+						id: mediaLoader
 						asynchronous: true
 						active: messageItem.inViewport && messageItem.msgMedia.length > 0
 						Layout.alignment: Qt.AlignCenter
 						Layout.preferredWidth: active ? (messageItem.msgOpenExternally ?
-															 AppSettings.itemExtraLargeHeight : item.preferredWidth) + 10 : 0
+															 AppSettings.itemExtraLargeHeight : _file_viewer.preferredWidth) + 10 : 0
 						Layout.preferredHeight: active ? (messageItem.msgOpenExternally ?
-															  AppSettings.itemExtraLargeHeight : item.preferredHeight) + 10 : 0
+															  AppSettings.itemExtraLargeHeight : _file_viewer.preferredHeight) + 10 : 0
+
+						property TPFileViewer _file_viewer
 
 						sourceComponent: TPFileViewer {
-							mediaSource: msgMedia
+							mediaSource: messageItem.msgMedia
 
 							onImageSizeChanged: {
-								if (++nMedia === _chatWindow.chatManager.nMediaMessages())
+								if (++_chatWindow.nMedia === _chatWindow.chatManager.nMediaMessages())
 									waitTimer.start();
 							}
+
+							Component.onCompleted: mediaLoader._file_viewer = this;
 
 							Timer {
 								id: waitTimer
@@ -288,7 +293,6 @@ TPPopup {
 								family: Qt.fontFamilies()[0],
 								weight: Font.ExtraLight,
 								italic: true,
-								styleStrategy: Font.PreferAntialias,
 								hintingPreference: Font.PreferFullHinting,
 								pixelSize: AppSettings.smallFontSize * 0.7
 							})
@@ -339,7 +343,7 @@ TPPopup {
 										AppSettings.itemSmallHeight * 0.9 : AppSettings.itemDefaultHeight
 
 				Pane {
-					SwipeDelegate.onClicked: _chatWindow.chatManager.removeMessage(index, false);
+					SwipeDelegate.onClicked: _chatWindow.chatManager.removeMessage(messageItem.index, false);
 
 					background: Rectangle {
 						radius: 8
@@ -349,7 +353,7 @@ TPPopup {
 					anchors {
 						top: parent.top
 						left: parent.left
-						right: ownMessage ? parent.horizontalCenter : parent.right
+						right: messageItem.ownMessage ? parent.horizontalCenter : parent.right
 						bottom: parent.bottom
 					}
 
@@ -382,7 +386,7 @@ TPPopup {
 
 				Pane {
 					visible: messageItem.ownMessage
-					SwipeDelegate.onClicked: _chatWindow.chatManager.removeMessage(index, true);
+					SwipeDelegate.onClicked: _chatWindow.chatManager.removeMessage(messageItem.index, true);
 
 					background: Rectangle {
 						radius: 8
@@ -562,9 +566,9 @@ TPPopup {
 				onPositionChanged: (mouse) => {
 					if (canDrag) {
 						const deltaX = mouse.x - startX
-						normalWidth += deltaX;
+						_chatWindow.normalWidth += deltaX;
 						const deltaY = mouse.y - startY
-						normalHeight += deltaY;
+						_chatWindow.normalHeight += deltaY;
 					}
 				}
 			}
@@ -576,6 +580,7 @@ TPPopup {
 		asynchronous: true
 		active: false
 
+		property TPFileDialog _file_dialog
 		sourceComponent: TPFileDialog {
 			includeAllFilesFilter: true
 			onDialogClosed: (result) => {
@@ -583,9 +588,10 @@ TPPopup {
 					_chatWindow.sendMessage(selectedFile);
 				sendFileLoader.active = false;
 			}
+			Component.onCompleted: sendFileLoader._file_dialog = this;
 		}
 
-		onLoaded: item.show();
+		onLoaded: _file_dialog.show();
 	}
 
 	function sendFile(): void {

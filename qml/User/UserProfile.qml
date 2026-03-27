@@ -1,4 +1,4 @@
-pragma componenBahavior: Bound
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
@@ -29,7 +29,7 @@ ColumnLayout {
 				if (field === 20)
 					imgAvatar.source = AppUserModel.avatar(profileModule.userRow, false);
 				else
-					getUserInfo();
+					profileModule.getUserInfo();
 			}
 		}
 	}
@@ -193,7 +193,7 @@ ColumnLayout {
 
 	TPImage {
 		id: imgAvatar
-		enabled: bReady
+		enabled: profileModule.bReady
 		Layout.minimumWidth: side_size
 		Layout.maximumWidth: side_size
 		Layout.minimumHeight: side_size
@@ -206,7 +206,7 @@ ColumnLayout {
 		MouseArea {
 			enabled: profileModule.userRow === 0
 			anchors.fill: parent
-			onClicked: showAvatarsPopup();
+			onClicked: profileModule.showAvatarsPopup();
 		}
 	}
 
@@ -215,28 +215,23 @@ ColumnLayout {
 		asynchronous: true
 		active: false
 
+		property AvatarsPopup _popup
+
 		sourceComponent: AvatarsPopup {
 			userRow: profileModule.userRow
 			parentPage: profileModule.parentPage
-			callerWidget: profileModule
-
+			onAvatarSelected: (id, from_file) => {
+				AppUserModel.setAvatar(profileModule.userRow, !from_file ? "image://tpimageprovider/" + id : id);
+				imgAvatar.source = AppUserModel.avatar(profileModule.userRow);
+			}
 			onClosed: chooseAvatarDlgLoader.active = false;
+			Component.onCompleted: chooseAvatarDlgLoader._popup = this;
 		}
 
-		onLoaded: item.show(-1);
+		onLoaded: _popup.showInWindow(-Qt.AlignCenter);
 	}
 	function showAvatarsPopup(): void {
 		chooseAvatarDlgLoader.active = true;
-	}
-
-	function selectAvatar(id: string): void {
-		AppUserModel.setAvatar(profileModule.userRow, "image://tpimageprovider/" + id);
-		imgAvatar.source = AppUserModel.avatar(profileModule.userRow);
-	}
-
-	function selectExternalAvatar(filename: string): void {
-		AppUserModel.setAvatar(profileModule.userRow, filename);
-		imgAvatar.source = AppUserModel.avatar(profileModule.userRow);
 	}
 
 	function defaultAvatarChanged(row: int): void {
@@ -249,8 +244,8 @@ ColumnLayout {
 			return;
 		let idx;
 		const enabled = profileModule.userRow === 0;
-		profileModule._is_client = AppUserModel.profileModule._is_client(profileModule.userRow);
-		profileModule._is_coach = AppUserModel.profileModule._is_coach(profileModule.userRow);
+		profileModule._is_client = AppUserModel.isClient(profileModule.userRow);
+		profileModule._is_coach = AppUserModel.isCoach(profileModule.userRow);
 
 		if (profileModule._is_client) {
 			const client_role = AppUserModel.userRole(profileModule.userRow);
@@ -310,6 +305,6 @@ ColumnLayout {
 	}
 
 	function focusOnFirstField(): void {
-		return;
+		cboUserRole.forceActiveFocus();
 	}
 }

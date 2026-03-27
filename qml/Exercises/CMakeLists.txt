@@ -1,5 +1,6 @@
 set( QML_EXERCISES
 	"ExerciseNameField.qml"
+	"ExercisesListDelegate.qml"
 	"ExercisesListView.qml"
 	"SetInputField.qml"
 	"SetNotesField.qml"

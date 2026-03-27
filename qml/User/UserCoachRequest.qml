@@ -1,4 +1,4 @@
-pragma componenBehavior: Bound
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
@@ -20,11 +20,11 @@ TPPopup {
 		height: AppSettings.itemDefaultHeight
 
 		anchors {
-			top: dlgCoachRequest.top
+			top: dlgCoachRequest.contentItem.top
 			topMargin: 5
-			left: dlgCoachRequest.left
+			left: dlgCoachRequest.contentItem.left
 			leftMargin: 5
-			right: dlgCoachRequest.right
+			right: dlgCoachRequest.contentItem.right
 			rightMargin: dlgCoachRequest.btnClose.width
 		}
 	}
@@ -35,9 +35,9 @@ TPPopup {
 		anchors {
 			top: lblTitle.bottom
 			topMargin: 5
-			left: dlgCoachRequest.left
+			left: dlgCoachRequest.contentItem.left
 			leftMargin: 5
-			right: dlgCoachRequest.right
+			right: dlgCoachRequest.contentItem.right
 			rightMargin: 5
 			bottom: btnSendRequest.top
 			bottomMargin: 5
@@ -72,17 +72,17 @@ TPPopup {
 
 				TPRadioButtonOrCheckBox {
 					id: chkCoachName
-					text: extraName
+					text: delegate.extraName
 					radio: false
 					multiLine: true
-					checked: selected
+					checked: delegate.selected
 					width: parent.width * 0.65
 					x: 5
 					y: 0
 
 					onClicked: {
-						selected = checked;
-						AppUserModel.availableCoaches.setSelected(index, selected);
+						delegate.selected = checked;
+						AppUserModel.availableCoaches.setSelected(delegate.index, delegate.selected);
 					}
 				} //CheckBox
 
@@ -93,7 +93,7 @@ TPPopup {
 					height: delegate.height
 					x: delegate.width - width - 5
 					y: 0
-					onClicked: AppUserModel.viewResume(AppUserModel.availableCoaches, index);
+					onClicked: AppUserModel.viewResume(AppUserModel.availableCoaches, delegate.index);
 				}
 			} //delegate
 		} //ListView
@@ -107,11 +107,11 @@ TPPopup {
 		enabled: AppUserModel.availableCoaches ? AppUserModel.availableCoaches.anySelected : false
 
 		anchors {
-			left: dlgCoachRequest.left
+			left: dlgCoachRequest.contentItem.left
 			leftMargin: 5
-			right: dlgCoachRequest.right
+			right: dlgCoachRequest.contentItem.right
 			rightMargin: 5
-			bottom: dlgCoachRequest.bottom
+			bottom: dlgCoachRequest.contentItem.bottom
 			bottomMargin: 5
 		}
 

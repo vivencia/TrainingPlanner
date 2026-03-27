@@ -1,14 +1,12 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-import QtQuick.Dialogs
-import QtCore
-
-import "../"
-import "../TPWidgets"
-import "../ExercisesAndSets"
 
 import TpQml
+import TpQml.Widgets
+import TpQml.Exercises
 
 TPPage {
 	id: pagePlanner
@@ -16,12 +14,15 @@ TPPage {
 	backgroundOpacity: 0.6
 	objectName: "exercisesPlanner"
 
+//public:
 	required property SplitManager splitManager
 	property WorkoutOrSplitExercisesList currentSplitPage: null
+
+//private:
 	readonly property int splitPageHeight: AppSettings.pageHeight - topToolBar.height - bottomToolBar.height
 
 	Keys.onPressed: (event) => {
-		if (event.key === mainwindow.backKey) {
+		if (event.key === ItemManager.AppPagesManager.backKey()) {
 			if (swipeView.currentIndex !== 0) {
 				event.accepted = true;
 				swipeView.decrementCurrentIndex();
@@ -48,8 +49,8 @@ TPPage {
 
 				TPButton {
 					imageSource: "prev"
-					width: AppSettings.itemDefaultHeight
-					height: width
+					Layout.preferredWidth: AppSettings.itemDefaultHeight
+					Layout.preferredHeight: AppSettings.itemDefaultHeight
 
 					onClicked: {
 						if (swipeView.currentIndex > 0)
@@ -61,16 +62,17 @@ TPPage {
 
 				TPLabel {
 					id: lblMain
-					text: currentSplitPage && currentSplitPage.exercisesModel && qsTr("Training Division ") + currentSplitPage.exercisesModel.splitLetter
+					text: qsTr("Training Division ") + pagePlanner.currentSplitPage && pagePlanner.currentSplitPage.exercisesModel ?
+							  pagePlanner.currentSplitPage.exercisesModel.splitLetter : ""
 					font: AppGlobals.largeFont
-					width: parent.width - AppSettings.itemDefaultHeight * 2 - 5
 					horizontalAlignment: Text.AlignHCenter
+					Layout.preferredWidth: parent.width - AppSettings.itemDefaultHeight * 2 - 5
 				}
 
 				TPButton {
 					imageSource: "next"
-					width: AppSettings.itemDefaultHeight
-					height: width
+					Layout.preferredWidth: AppSettings.itemDefaultHeight
+					Layout.preferredHeight: AppSettings.itemDefaultHeight
 
 					onClicked: {
 						if (swipeView.currentIndex < swipeView.count - 1)
@@ -93,19 +95,20 @@ TPPage {
 			}
 
 			Row {
-				enabled: currentSplitPage && currentSplitPage.exercisesModel && currentSplitPage.exercisesModel.exerciseCount > 1
-				height: AppSettings.itemDefaultHeight
-				Layout.fillWidth: true
+				enabled: pagePlanner.currentSplitPage && pagePlanner.currentSplitPage.exercisesModel &&
+																pagePlanner.currentSplitPage.exercisesModel.exerciseCount > 1
 				spacing: 0
+				Layout.preferredHeight: AppSettings.itemDefaultHeight
+				Layout.fillWidth: true
 
 				TPLabel {
 					text: qsTr("Go to exercise: ")
-					width: parent.width * 0.4
+					Layout.preferredWidth: parent.width * 0.4
 				}
 
 				TPComboBox {
 					id: cboGoToExercise
-					width: parent.width * 0.6
+					Layout.preferredWidth: parent.width * 0.6
 
 					property int current_exercise
 
@@ -114,8 +117,8 @@ TPPage {
 					}
 
 					onActivated: (cboIndex) => {
-						currentSplitPage.positionViewAtIndex(cboIndex, ListView.Contain);
-						currentSplitPage.exercisesModel.workingExercise = cboIndex;
+						pagePlanner.currentSplitPage.positionViewAtIndex(cboIndex, ListView.Contain);
+						pagePlanner.currentSplitPage.exercisesModel.workingExercise = cboIndex;
 					}
 
 					function changeExercisename(exercise_number: int, new_name: string): void {
@@ -124,8 +127,11 @@ TPPage {
 					}
 
 					function addExerciseToCombo(exercise_number: int): void {
-						cboModel.append({ text: String(exercise_number+1) + ": " + currentSplitPage.exercisesModel.exerciseName(exercise_number, 0),
-							value: exercise_number, enabled: exercise_number !== currentSplitPage.exercisesModel.workingExercise});
+						cboModel.append({
+							"text": String(exercise_number+1) + ": " +
+												pagePlanner.currentSplitPage.exercisesModel.exerciseName(exercise_number, 0),
+							"value": exercise_number,
+							"enabled": exercise_number !== pagePlanner.currentSplitPage.exercisesModel.workingExercise});
 					}
 
 					function delExerciseFromCombo(exercise_number: int): void {
@@ -143,28 +149,29 @@ TPPage {
 					}
 
 					function populateComboModel(): void {
-						for (let i = 0; i < currentSplitPage.exercisesModel.exerciseCount; ++i)
+						for (let i = 0; i < pagePlanner.currentSplitPage.exercisesModel.exerciseCount; ++i)
 							addExerciseToCombo(i);
-						manageComboItems(currentSplitPage.exercisesModel.workingExercise);
+						manageComboItems(pagePlanner.currentSplitPage.exercisesModel.workingExercise);
 					}
 
 					Connections {
-						target: currentSplitPage ? currentSplitPage.exercisesModel : null
+						target: pagePlanner.currentSplitPage ? pagePlanner.currentSplitPage.exercisesModel : null
 
 						function onWorkingExerciseChanged(exercise_number: int): void {
 							cboGoToExercise.manageComboItems(exercise_number);
 						}
 
 						function onExerciseCountChanged(): void {
-							if (currentSplitPage.exercisesModel.exerciseCount > cboModel.count)
-								cboGoToExercise.addExerciseToCombo(currentSplitPage.exercisesModel.exerciseCount - 1);
-							else if (currentSplitPage.exercisesModel.exerciseCount < cboModel.count)
-								cboGoToExercise.delExerciseFromCombo(currentSplitPage.exercisesModel.workingExercise);
+							if (pagePlanner.currentSplitPage.exercisesModel.exerciseCount > cboModel.count)
+								cboGoToExercise.addExerciseToCombo(pagePlanner.currentSplitPage.exercisesModel.exerciseCount - 1);
+							else if (pagePlanner.currentSplitPage.exercisesModel.exerciseCount < cboModel.count)
+								cboGoToExercise.delExerciseFromCombo(pagePlanner.currentSplitPage.exercisesModel.workingExercise);
 						}
 
 						function onExerciseNameChanged(exercise_number: int, exercise_idx: int): void {
-								if (exercise_idx === 0)
-									cboGoToExercise.changeExercisename(exercise_number, currentSplitPage.exercisesModel.exerciseName(exercise_number, 0));
+							if (exercise_idx === 0)
+								cboGoToExercise.changeExercisename(exercise_number,
+														pagePlanner.currentSplitPage.exercisesModel.exerciseName(exercise_number, 0));
 						}
 					}
 				}
@@ -179,12 +186,10 @@ TPPage {
 		anchors.fill: parent
 
 		onCurrentIndexChanged: {
-			currentSplitPage = splitManager.setCurrentPage(currentIndex);
+			pagePlanner.currentSplitPage = pagePlanner.splitManager.setCurrentPage(currentIndex);
 			cboModel.clear();
-			cboGroups.fillMuscularGroupsModel(currentSplitPage.exercisesModel.muscularGroup);
+			cboGroups.fillMuscularGroupsModel(pagePlanner.currentSplitPage.exercisesModel.muscularGroup);
 			cboGoToExercise.populateComboModel();
-			if (!navButtons)
-				createNavButtons();
 		}
 	} //SwipeView
 
@@ -195,26 +200,27 @@ TPPage {
 		height: 20
 
 		delegate: Label {
-			text: swipeView.itemAt(index).exercisesModel.splitLetter
+			id: lblSplitLetter
+			text: pagePlanner.splitManager.splitModel(index)
 			color: AppSettings.fontColor
 			font.bold: true
 			fontSizeMode: Text.Fit
-			width: 25
-			height: 25
+			width: AppSettings.itemSmallHeight
+			height: AppSettings.itemSmallHeight
 			horizontalAlignment: Text.AlignHCenter
 			verticalAlignment: Text.AlignVCenter
 
 			required property int index
 
 			background: Rectangle {
-				radius: width/2
-				opacity: index === indicator.currentIndex ? 0.95 : pressed ? 0.7 : 0.45
+				radius: width / 2
+				opacity: lblSplitLetter.index === indicator.currentIndex ? 0.95 : 0.7
 				color: AppSettings.paneBackgroundColor
 			}
 
 			MouseArea {
 				anchors.fill: parent
-				onClicked: swipeView.setCurrentIndex(index);
+				onClicked: swipeView.setCurrentIndex(lblSplitLetter.index);
 			}
 
 			Behavior on opacity {
@@ -233,7 +239,7 @@ TPPage {
 
 	footer: TPToolBar {
 		id: bottomToolBar
-		height: footerHeight
+		height: pagePlanner.footerHeight
 
 		readonly property int buttonWidth: width * 0.22
 
@@ -258,7 +264,7 @@ TPPage {
 
 		TPButton {
 			id: btnSwapPlan
-			text: pagePlanner.splitManager.currentSplitLetter + " <-> " + splitManager.currentSwappableLetter
+			text: pagePlanner.splitManager.currentSplitLetter + " <-> " + pagePlanner.splitManager.currentSwappableLetter
 			imageSource: "swap.png"
 			textUnderIcon: true
 			visible: pagePlanner.splitManager.canSwapExercises
@@ -280,7 +286,7 @@ TPPage {
 			imageSource: "exercises-add.png"
 			textUnderIcon: true
 			rounded: false
-			width: bottomToolBar.buttonWidth*1.3
+			width: bottomToolBar.buttonWidth * 1.3
 			height: pagePlanner.footerHeight - 4
 
 			anchors {
@@ -295,42 +301,6 @@ TPPage {
 			}
 		}
 	}
-
-	property PageScrollButtons navButtons: null
-	function createNavButtons(): void {
-		let component = Qt.createComponent("qrc:/TpQml/qml/ExercisesAndSets/PageScrollButtons.qml", Qt.Asynchronous);
-
-		function finishCreation() {
-			navButtons = component.createObject(pagePlanner, { ownerPage: pagePlanner });
-			navButtons.scrollTo.connect(setScrollBarPosition);
-			navButtons.visible = Qt.binding(function() { return splitManager.currentSplitModel.exerciseCount > 1; });
-			navButtons.showUpButton = Qt.binding(function() { return !currentSplitPage.viewPositionAtBeginning; });
-			navButtons.showDownButton = Qt.binding(function() { return !currentSplitPage.viewPositionAtEnd; });
-		}
-
-		if (component.status === Component.Ready)
-			finishCreation();
-		else
-			component.statusChanged.connect(finishCreation);
-	}
-
-	function setScrollBarPosition(pos): void {
-		if (pos === 0)
-			currentSplitPage.positionViewAtBeginning();
-		else
-			currentSplitPage.positionViewAtEnd();
-	}
-
-	TPBalloonTip {
-		id: msgDlgImport
-		title: qsTr("Import Exercises Plan?")
-		message: qsTr("Import the exercises plan for training division <b>") + splitManager.currentSplitLetter +
-						 qsTr("</b> from <b>") + splitManager.prevMesoName() + "</b>?"
-		imageSource: "import"
-		parentPage: pagePlanner
-
-		onButton1Clicked: splitManager.loadSplitFromPreviousMeso();
-	} //TPBalloonTip
 
 	function getExerciseNameFieldYPos(): int {
 		return currentSplitPage.exerciseNameFieldYPosition();

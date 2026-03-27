@@ -3,9 +3,9 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
 
-import "../"
-import "../TPWidgets"
-import "../User"
+import TpQml
+import TpQml.Widgets
+import TpQml.User
 
 TPPage {
 	id: settingsPage
@@ -61,13 +61,13 @@ TPPage {
 
 //------------------------------------------------------LANGUAGE------------------------------------------------------
 			UserLanguage {
-				width: AppSettings.pageWidth - 20
+				Layout.preferredWidth: AppSettings.pageWidth - 20
 			}
 //------------------------------------------------------LANGUAGE------------------------------------------------------
 
 			Rectangle {
-				height: 3
 				color: AppSettings.fontColor
+				Layout.preferredHeight: 3
 				Layout.fillWidth: true
 				Layout.topMargin: 20
 				Layout.bottomMargin: 20
@@ -90,8 +90,8 @@ TPPage {
 //------------------------------------------------------APP BEHAVIOUR------------------------------------------------------
 
 			Rectangle {
-				height: 3
 				color: AppSettings.fontColor
+				Layout.preferredHeight: 3
 				Layout.fillWidth: true
 				Layout.topMargin: 20
 				Layout.bottomMargin: 20
@@ -107,7 +107,7 @@ TPPage {
 
 			RowLayout {
 				id: control
-				width: parent.width - 60
+				Layout.preferredWidth: parent.width - 60
 				Layout.alignment: Qt.AlignHCenter
 				Layout.leftMargin: 10
 				Layout.rightMargin: 10
@@ -127,7 +127,7 @@ TPPage {
 					from: 8
 					value: AppSettings.fontSize
 					to: 40
-					width: settingsPage.width - lblMin.width - lblMax.width - 20
+					Layout.preferredWidth: settingsPage.width - lblMin.width - lblMax.width - 20
 					onMoved: AppSettings.fontSize = value;
 				}
 
@@ -179,8 +179,8 @@ TPPage {
 //------------------------------------------------------FONTS------------------------------------------------------
 
 			Rectangle {
-				height: 3
 				color: AppSettings.fontColor
+				Layout.preferredHeight: 3
 				Layout.fillWidth: true
 				Layout.topMargin: 20
 				Layout.bottomMargin: 20
@@ -254,8 +254,8 @@ TPPage {
 //------------------------------------------------------THEME------------------------------------------------------
 
 			Rectangle {
-				height: 3
 				color: AppSettings.fontColor
+				Layout.preferredHeight: 3
 				Layout.fillWidth: true
 				Layout.topMargin: 20
 				Layout.bottomMargin: 20
@@ -272,7 +272,8 @@ TPPage {
 				id: colorSchemeRepeater
 				model: AppSettings.colorSchemes
 
-				Row {
+				delegate: Row {
+					id: delegate
 					spacing: 20
 					Layout.fillWidth: true
 					Layout.topMargin: 10
@@ -282,30 +283,34 @@ TPPage {
 					required property int index
 
 					TPRadioButtonOrCheckBox {
-						text: AppSettings.colorSchemes[index]
-						checked: AppSettings.colorScheme === index
-						multiLine: index === 0
-						width: parent.width*0.6
+						text: AppSettings.colorSchemes[delegate.index]
+						checked: AppSettings.colorScheme === delegate.index
+						multiLine: delegate.index === 0
+						width: parent.width * 0.6
 
-						onClicked: AppSettings.colorScheme = index;
-						Component.onCompleted: AppSettings.colorChanged.connect(function() { checked = AppSettings.colorScheme === index; });
+						onClicked: AppSettings.colorScheme = delegate.index;
+						Component.onCompleted: AppSettings.colorChanged.connect(function() {
+							checked = AppSettings.colorScheme === delegate.index;
+						});
 					}
 
 					TPColorRectangle {
-						midColor: AppSettings.colorForScheme(index)
-						lightColor: AppSettings.lightColorForScheme(index)
-						darkColor: AppSettings.darkColorForScheme(index)
-						clickable: index === 0
-						width: parent.width*0.3
+						midColor: AppSettings.colorForScheme(delegate.index)
+						lightColor: AppSettings.lightColorForScheme(delegate.index)
+						darkColor: AppSettings.darkColorForScheme(delegate.index)
+						clickable: delegate.index === 0
+						width: parent.width * 0.3
 					}
 				}
 			}
 //------------------------------------------------------COLORS------------------------------------------------------
 
 			Rectangle {
-				height: 3
 				color: AppSettings.fontColor
+				Layout.preferredHeight: 3
 				Layout.fillWidth: true
+				Layout.topMargin: 20
+				Layout.bottomMargin: 20
 			}
 
 //------------------------------------------------------FONT-COLORS------------------------------------------------------
@@ -387,7 +392,7 @@ TPPage {
 			}
 //------------------------------------------------------FONT-COLORS------------------------------------------------------
 			Item { //Empty item to clear space for the page swipe indicators
-				height: 30
+				Layout.minimumHeight: 30
 			}
 		} //ColumnLayout
 	} //ScrollView

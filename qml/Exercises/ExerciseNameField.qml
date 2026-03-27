@@ -1,13 +1,13 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Layouts
 
-import "../"
-import "../TPWidgets"
+import TpQml
+import TpQml.Widgets
 
 Item {
-	id: control
+	id: _control
 
+//public:
 	property alias text: txtField.text
 	property alias readOnly: txtField.readOnly
 	property bool showRemoveButton: true
@@ -25,8 +25,8 @@ Item {
 		id: txtField
 		font.weight: Font.Bold
 	    font.hintingPreference: Font.PreferFullHinting
-	    font.pixelSize: appSettings.fontSize
-		color: readOnly ? appSettings.fontColor : "black"
+	    font.pixelSize: AppSettings.fontSize
+		color: readOnly ? AppSettings.fontColor : "black"
 		readOnly: true
 		wrapMode: Text.WordWrap
 		topPadding: 5
@@ -37,28 +37,28 @@ Item {
 		leftInset: 0
 		rightInset: 0
 		bottomInset: 0
-		width: 0.75*control.width
-		height: control.height
+		width: 0.75*_control.width
+		height: _control.height
 
 		property bool text_edited: false
 
 		anchors {
-			top: control.top
-			left: control.left
-			bottom: control.bottom
+			top: _control.top
+			left: _control.left
+			bottom: _control.bottom
 		}
 
 		background: Rectangle {
-			color: control.readOnly ? "transparent" : "white"
-			border.color: control.readOnly ? "transparent" : appSettings.fontColor
+			color: _control.readOnly ? "transparent" : "white"
+			border.color: _control.readOnly ? "transparent" : AppSettings.fontColor
 			radius: 5
 		}
 
 		MouseArea {
 			enabled: txtField.enabled && txtField.readOnly
 			anchors.fill: txtField
-			onClicked: itemClicked();
-			onPressAndHold: itemPressed();
+			onClicked: _control.itemClicked();
+			onPressAndHold: _control.itemPressed();
 		}
 
 		Component.onCompleted: {
@@ -80,7 +80,7 @@ Item {
 		onEditingFinished: {
 			if (text_edited) {
 				text_edited = false;
-				exerciseChanged(text);
+				_control.exerciseChanged(text);
 			}
 		}
 
@@ -109,15 +109,15 @@ Item {
 	TPButton {
 		id: btnEditExercise
 		imageSource: "edit.png"
-		width: appSettings.itemDefaultHeight
+		width: AppSettings.itemDefaultHeight
 		height: width
-		visible: showEditButton
-		enabled: editable
+		visible: _control.showEditButton
+		enabled: _control.editable
 
 		anchors {
 			left: txtField.right
 			leftMargin: 5
-			verticalCenter: control.verticalCenter
+			verticalCenter: _control.verticalCenter
 		}
 
 		onClicked: {
@@ -130,35 +130,36 @@ Item {
 	TPButton {
 		id: btnShowList
 		imageSource: "list.png"
-		width: appSettings.itemDefaultHeight
+		width: AppSettings.itemDefaultHeight
 		height: width
-		visible: showExercisesListButton
-		enabled: editable
+		visible: _control.showExercisesListButton
+		enabled: _control.editable
 
 		anchors {
 			left: btnEditExercise.right
 			leftMargin: 5
-			verticalCenter: control.verticalCenter
+			verticalCenter: _control.verticalCenter
 		}
 
-		onClicked: showExercisesListButtonClicked();
+		onClicked: _control.showExercisesListButtonClicked();
 	}
 
 	TPButton {
 		id: btnRemoveExercise
 		imageSource: "remove"
-		width: appSettings.itemDefaultHeight
+		width: AppSettings.itemDefaultHeight
 		height: width
-		visible: showRemoveButton
-		enabled: editable
+		visible: _control.showRemoveButton
+		enabled: _control.editable
 
 		anchors {
-			left: showExercisesListButton ? btnShowList.right : (showEditButton ? btnEditExercise.right : txtField.right)
+			left: _control.showExercisesListButton ? btnShowList.right :
+																(_control.showEditButton ? btnEditExercise.right : txtField.right)
 			leftMargin: 5
-			verticalCenter: control.verticalCenter
+			verticalCenter: _control.verticalCenter
 		}
 
-		onClicked: removeButtonClicked();
+		onClicked: _control.removeButtonClicked();
 	} //btnRemoveExercise
 }
 

@@ -13,6 +13,7 @@ set( QML_USER
 	"UserProfile.qml"
 	"UserReady.qml"
 	"UserWelcome.qml"
+	"AllUsersElements/TableDelegate.qml"
 )
 
 qt_add_library(tp_user_module STATIC)

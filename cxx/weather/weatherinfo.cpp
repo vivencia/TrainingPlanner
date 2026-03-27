@@ -87,8 +87,7 @@ static void forecastClear(QQmlListProperty<WeatherData> *prop)
 	Q_UNUSED(prop);
 }
 
-WeatherInfo::WeatherInfo(QObject *parent)
-	: QObject{parent}, d{new WeatherInfoPrivate}
+WeatherInfo::WeatherInfo(QObject *parent) : QObject{parent}, d{new WeatherInfoPrivate}
 {
 	d->fcProp = new QQmlListProperty<WeatherData>{this, d, forecastAppend, forecastCount, forecastAt, forecastClear};
 	d->m_currentBackend = new OpenWeatherMapBackend{this};
@@ -102,32 +101,29 @@ WeatherInfo::WeatherInfo(QObject *parent)
 	connect(d->m_currentBackend, &OpenWeatherMapBackend::receivedCityFromCoordinates, this, &WeatherInfo::gotGPSLocation);
 
 	d->src = QGeoPositionInfoSource::createDefaultSource(this);
-	if (d->src)
-	{
+	if (d->src) {
 		QLocationPermission permission;
 		permission.setAccuracy(QLocationPermission::Precise);
 		permission.setAvailability(QLocationPermission::WhenInUse);
 
-		switch (qApp->checkPermission(permission))
-		{
-			case Qt::PermissionStatus::Undetermined:
-				qApp->requestPermission(permission, [this] (const QPermission &permission) {
-					if (permission.status() == Qt::PermissionStatus::Granted)
-						setCanUseGps(true);
-					else
-						positionError(QGeoPositionInfoSource::AccessError);
-				});
+		switch (qApp->checkPermission(permission)) {
+		case Qt::PermissionStatus::Undetermined:
+			qApp->requestPermission(permission, [this] (const QPermission &permission) {
+				if (permission.status() == Qt::PermissionStatus::Granted)
+					setCanUseGps(true);
+				else
+					positionError(QGeoPositionInfoSource::AccessError);
+			});
 			break;
-			case Qt::PermissionStatus::Denied:
-				positionError(QGeoPositionInfoSource::AccessError);
+		case Qt::PermissionStatus::Denied:
+			positionError(QGeoPositionInfoSource::AccessError);
 			break;
-			case Qt::PermissionStatus::Granted:
-				setCanUseGps(true);
+		case Qt::PermissionStatus::Granted:
+			setCanUseGps(true);
 			break;
 		}
 
-		if (d->canUseGPS)
-		{
+		if (d->canUseGPS) {
 			setGpsMessage(tr("Resquesting GPS info..."));
 			connect(d->src, &QGeoPositionInfoSource::positionUpdated, this, &WeatherInfo::positionUpdated);
 			connect(d->src, &QGeoPositionInfoSource::errorOccurred, this, &WeatherInfo::positionError);
@@ -160,23 +156,21 @@ void WeatherInfo::positionError(QGeoPositionInfoSource::Error e)
 {
 	QString str_error;
 	bool can_usegps{false};
-	switch (e)
-	{
-		case QGeoPositionInfoSource::AccessError:
-			str_error = std::move(tr("The connection setup to the remote positioning backend failed because "
-									 "the application lacked the required privileges"));
+	switch (e) {
+	case QGeoPositionInfoSource::AccessError:
+		str_error = std::move(tr("The connection setup to the remote positioning backend failed because the application lacked the required privileges"));
 		break;
-		case QGeoPositionInfoSource::ClosedError:
-			str_error = std::move(tr("Location(GPS) service is disabled. Enable it(turn it on) to use satelite location on this device"));
+	case QGeoPositionInfoSource::ClosedError:
+		str_error = std::move(tr("Location(GPS) service is disabled. Enable it(turn it on) to use satelite location on this device"));
 		break;
-		case QGeoPositionInfoSource::UnknownSourceError:
-			str_error = std::move(tr("An unidentified error occurred."));
+	case QGeoPositionInfoSource::UnknownSourceError:
+		str_error = std::move(tr("An unidentified error occurred."));
 		break;
-		case QGeoPositionInfoSource::NoError:
-			can_usegps = true;
+	case QGeoPositionInfoSource::NoError:
+		can_usegps = true;
 		break;
-		case QGeoPositionInfoSource::UpdateTimeoutError:
-			str_error = std::move(tr("If requestUpdate() was called, this error indicates that the current "
+	case QGeoPositionInfoSource::UpdateTimeoutError:
+		str_error = std::move(tr("If requestUpdate() was called, this error indicates that the current "
 				"position could not be retrieved within the specified timeout. If startUpdates() was called, "
 				"this error indicates that this QGeoPositionInfoSource subclass determined that it will not be "
 				"able to provide further regular updates. In the latter case the error would not be emitted again "
@@ -200,12 +194,10 @@ void WeatherInfo::gotGPSLocation(const QString &city, const QGeoCoordinate &coor
 
 void WeatherInfo::handleWeatherData(const st_LocationInfo &location, const QList<st_WeatherInfo> &weatherDetails)
 {
-	if (!weatherDetails.isEmpty())
-	{
+	if (!weatherDetails.isEmpty()) {
 		const st_WeatherInfo &w_info{weatherDetails.first()};
 		d->now.setWeatherInfo(w_info, &(weatherDetails.at(1)));
-		for(uint i{0}; i < 3; ++i)
-		{
+		for(uint i{0}; i < 3; ++i) {
 			if (weatherDetails.count() > i+2)
 				d->nextThreeDays[i].setWeatherInfo(weatherDetails.at(i+2));
 		}
@@ -230,13 +222,12 @@ void WeatherInfo::buildLocationsList(const QList<st_LocationInfo> *foundLocation
 void WeatherInfo::addLocationToConfig(const QString &location, const QGeoCoordinate &coord)
 {
 	const auto n{savedLocationsCount()};
-	for (uint i{0}; i < n; ++i)
-	{
+	for (uint i{0}; i < n; ++i) {
 		if (appUtils()->containsAllWords(savedLocationName(i), location.split(' '), true))
 			return;
 	}
 	QString new_location{std::move(appUtils()->string_strings(
-						{location, QString::number(coord.latitude()), QString::number(coord.longitude())}, set_separator))};
+										{location, QString::number(coord.latitude()), QString::number(coord.longitude())}, set_separator))};
 	appUtils()->setCompositeValue(-1, new_location, m_savedLocations, record_separator);
 	setCurrentlyViewedLocationIndex(savedLocationsCount() - 1, false);
 	appSettings()->setCustomValue(weatherLastViewedLocationSettings, currentlyViewedLocationIndex());
@@ -260,8 +251,7 @@ bool WeatherInfo::canUseGps() const
 
 void WeatherInfo::setCanUseGps(const bool can_usegps)
 {
-	if (can_usegps != d->canUseGPS)
-	{
+	if (can_usegps != d->canUseGPS) {
 		d->canUseGPS = can_usegps;
 		emit canUseGpsChanged();
 	}
@@ -274,8 +264,7 @@ QString WeatherInfo::city() const
 
 void WeatherInfo::setCity(const QString &value)
 {
-	if (value != d->city)
-	{
+	if (value != d->city) {
 		d->city = value;
 		emit cityChanged();
 	}
@@ -288,41 +277,37 @@ QString WeatherInfo::gpsMessage() const
 
 void WeatherInfo::setGpsMessage(const QString &message)
 {
-	if (message != d->gpsMessage)
-	{
+	if (message != d->gpsMessage) {
 		d->gpsMessage = message;
 		emit gpsMessageChanged();
 	}
 }
-
-#ifdef Q_OS_ANDROID
-void WeatherInfo::requestWeatherForGpsCity()
-{
-	d->m_currentBackend->requestWeatherInfo(m_gpsLocation.m_name, m_gpsLocation.m_coordinate);
-}
-#endif
 
 void WeatherInfo::requestWeatherForSavedCity(const int index)
 {
 	if (index < 0)
 		return;
 	const QString &location_info{appUtils()->getCompositeValue(index, m_savedLocations, record_separator)};
-	if (!location_info.isEmpty())
-	{
+	if (!location_info.isEmpty()) {
 		const QString &place{appUtils()->getCompositeValue(locationName, location_info, set_separator)};
-		const QGeoCoordinate coord{
-					appUtils()->getCompositeValue(latitude, location_info, set_separator).toDouble(),
-					appUtils()->getCompositeValue(longitude, location_info, set_separator).toDouble()};
+		const QGeoCoordinate coord{appUtils()->getCompositeValue(latitude, location_info, set_separator).toDouble(),
+													appUtils()->getCompositeValue(longitude, location_info, set_separator).toDouble()};
 		d->m_currentBackend->requestWeatherInfo(place, coord);
 		appSettings()->setCustomValue(weatherLastViewedLocationSettings, index);
 	}
 }
 
+void WeatherInfo::requestWeatherForGpsCity()
+{
+#ifdef Q_OS_ANDROID
+	d->m_currentBackend->requestWeatherInfo(m_gpsLocation.m_name, m_gpsLocation.m_coordinate);
+#endif
+}
+
 void WeatherInfo::removeWeatherLocation(const uint index)
 {
 	QString locations_info{std::move(appSettings()->getCustomValue(weatherLocationsSettingsName).toString())};
-	if (appUtils()->removeFieldFromCompositeValue(index, locations_info, record_separator))
-	{
+	if (appUtils()->removeFieldFromCompositeValue(index, locations_info, record_separator)) {
 		appSettings()->setCustomValue(weatherLocationsSettingsName, locations_info);
 		m_savedLocations.removeAt(index);
 		emit savedLocationsCountChanged();
