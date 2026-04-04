@@ -50,21 +50,19 @@ ComboBox {
 		spacing: 0
 		clip: true
 
-		required property string text
-		required property string icon
-		required property bool enabled
 		required property int index
+		required property var model
 
 		contentItem: TPLabel {
-			text: delegate.text
+			text: delegate.model.text
 			elide: Text.ElideRight
 			minimumPixelSize: AppSettings.smallFontSize * 0.8
 			leftPadding: _control.completeModel ? AppSettings.itemDefaultHeight + 5 : 5
-			enabled: delegate.enabled
+			enabled: delegate.model.enabled
 
 			TPImage {
 				id: lblImg
-				source: _control.completeModel ? delegate.icon : ""
+				source: _control.completeModel ? delegate.model.icon : ""
 				dropShadow: false
 				visible: _control.completeModel
 				width: AppSettings.itemSmallHeight

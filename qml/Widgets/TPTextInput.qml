@@ -28,6 +28,7 @@ TextField {
 	property bool textRemovedKeyPressed: false
 	property bool enableRegex: true
 	property int suggestedHeight: AppSettings.itemDefaultHeight
+	property real backgroundOpacity: 0.5
 	property string textColor: AppSettings.fontColor
 	property string backgroundColor: AppSettings.primaryDarkColor
 	readonly property int defaultPadding: showClearTextButton ? (text.length > 0 ? btnClearText.width : 0) : 5
@@ -52,7 +53,7 @@ TextField {
 		border.color: _control.textColor
 		color: _control.enabled ? _control.backgroundColor : "transparent"
 		radius: 6
-		opacity: 0.5
+		opacity: _control.backgroundOpacity
 	}
 
 	Keys.onPressed: (event) => {

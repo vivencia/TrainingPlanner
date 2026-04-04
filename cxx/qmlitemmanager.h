@@ -108,7 +108,6 @@ private:
 
 	void showSimpleExercisesList();
 	void createSimpleExercisesList(QQuickItem *parentPage);
-	void createWeatherPage_part2();
 	void createStatisticsPage_part2();
 	QmlUserInterface *usersManager();
 };

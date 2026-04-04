@@ -82,6 +82,10 @@ add_compile_options(
 	${CMAKE_CXX_FLAGS_INIT}
 )
 
+add_definitions(
+	-DLOCAL_TPSERVER=1
+)
+
 qt_standard_project_setup(
 	REQUIRES 6.9
 	I18N_SOURCE_LANGUAGE en_EN
@@ -146,7 +150,7 @@ set( CXX_SOURCES
 		cxx/statistics/tpstatistics.h cxx/statistics/tpstatistics.cpp
 
 		cxx/online_services/onlineuserinfo.h cxx/online_services/onlineuserinfo.cpp
-		#cxx/online_services/scan_network.h
+		cxx/online_services/scan_network.h
 		cxx/online_services/tpchatdb.h cxx/online_services/tpchatdb.cpp
 		cxx/online_services/tpmessage.h cxx/online_services/tpmessage.cpp
 		cxx/online_services/tponlineservices.h cxx/online_services/tponlineservices.cpp
@@ -252,12 +256,6 @@ qt_add_qml_module(TrainingPlanner
 		${RESOURCE_FILES}
 	RESOURCE_PREFIX
 		"/"
-	#DEPENDENCIES
-	#	tp_widgets_module
-	#	tp_pages_module
-	#	tp_user_module
-	#	tp_exercises_module
-	#	tp_dialogs_module
 )
 
 target_link_libraries(TrainingPlanner PRIVATE

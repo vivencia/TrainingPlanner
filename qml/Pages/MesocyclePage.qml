@@ -87,7 +87,7 @@ TPPage {
 		parentPage: mesoPage
 		navButtonsVisible: true
 		contentHeight: layoutMain.implicitHeight
-		anchors.fill: mesoPage
+		anchors.fill: parent
 
 		ColumnLayout {
 			id: layoutMain

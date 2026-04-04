@@ -1,6 +1,5 @@
 #include "tponlineservices.h"
 
-//#include "scan_network.h"
 #include "websocketserver.h"
 #include "../dbusermodel.h"
 #include "../osinterface.h"
@@ -20,23 +19,15 @@ using namespace Qt::StringLiterals;
 
 TPOnlineServices* TPOnlineServices::_appOnlineServices{nullptr};
 
-constexpr QLatin1StringView server_address{"http://%1:8080/trainingplanner/"_L1};
+constexpr QLatin1StringView server_address{"http://%1:%2/trainingplanner/"_L1};
 static const QString &root_user{"admin"_L1};
 static const QString &root_passwd{"admin"_L1};
 
-TPOnlineServices::TPOnlineServices(QObject *parent) : QObject{parent}, m_scanning{false}
+TPOnlineServices::TPOnlineServices(QObject *parent) : QObject{parent}, m_onlineStatus{TP_RET_CODE_SERVER_UNREACHABLE}
 {
 	_appOnlineServices = this;
 	m_networkManager = new QNetworkAccessManager{this};
 	connect(appKeyChain(), &TPKeyChain::keyStored, this, &TPOnlineServices::storeCredentials);
-	auto conn{std::make_shared<QMetaObject::Connection>()};
-	*conn = connect(appOsInterface(), &OSInterface::tpServerStatusChanged, this, [this,conn] (const bool online) {
-		if (online && !m_userid.isEmpty())
-		{
-			disconnect(*conn);
-			emit onlineServicesReady();
-		}
-	});
 }
 
 /*void TPOnlineServices::scanNetwork(const QString &last_working_address, const bool assume_working)
@@ -189,8 +180,10 @@ void TPOnlineServices::userLogin(const int requestid)
 
 void TPOnlineServices::userLogout(const int requestid)
 {
-	const QUrl &url{makeCommandURL(false, "logout"_L1)};
-	makeNetworkRequest(requestid, url);
+	if (appUserModel()->mainUserLoggedIn()) {
+		const QUrl &url{makeCommandURL(false, "logout"_L1)};
+		makeNetworkRequest(requestid, url);
+	}
 }
 
 void TPOnlineServices::registerUser(const int requestid)
@@ -362,7 +355,7 @@ void TPOnlineServices::sendFile(const int requestid, QFile *file, const QString 
 				}
 			}
 			const QUrl &url{makeCommandURL(false, "upload"_L1, subdir, "targetuser"_L1, targetUser.isEmpty() ?
-																								appUserModel()->userId(0) : targetUser)};
+																							appUserModel()->userId(0) : targetUser)};
 			uploadFile(requestid, url, file, b_internal_signal_only);
 		}
 	});
@@ -376,7 +369,7 @@ void TPOnlineServices::listFiles(const int requestid, const bool only_new,
 {
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
-																	(const int request_id, const int ret_code, const QString &ret_string) {
+															(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			QStringList new_files;
@@ -518,19 +511,20 @@ void TPOnlineServices::recheckNewMessages()
 
 void TPOnlineServices::storeCredentials()
 {
-	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this] (const QString &key, const QString &value) {
-		m_userid = key;
-		m_passwd = value;
-		if (appOsInterface()->tpServerOK())
-			emit onlineServicesReady();
-	}, Qt::SingleShotConnection);
-	appKeyChain()->readKey(appUserModel()->userId(0));
+	if (!m_hasCredentials) {
+		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this] (const QString &key, const QString &value) {
+			m_userid = key;
+			m_passwd = value;
+			m_hasCredentials = true;
+			if (m_onlineStatus == TP_RET_CODE_SUCCESS)
+				emit onlineServicesReady();
+		}, Qt::SingleShotConnection);
+		appKeyChain()->readKey(appUserModel()->userId(0));
+	}
 }
 
-QString TPOnlineServices::makeCommandURL(const bool admin,
-										const QLatin1StringView &option1, const QString &value1,
-										const QLatin1StringView &option2, const QString &value2,
-										const QLatin1StringView &option3, const QString &value3)
+QString TPOnlineServices::makeCommandURL(const bool admin, const QLatin1StringView &option1, const QString &value1,
+							const QLatin1StringView &option2, const QString &value2, const QLatin1StringView &option3, const QString &value3)
 {
 	const QString *userid, *password;
 	if (!admin) {
@@ -542,7 +536,7 @@ QString TPOnlineServices::makeCommandURL(const bool admin,
 		password = &root_passwd;
 	}
 
-	QString ret{std::move(server_address.arg(appSettings()->serverAddress()) % "?user="_L1 % *userid % "&password="_L1 % *password)};
+	QString ret{std::move(m_serverAddress % "?user="_L1 % *userid % "&password="_L1 % *password)};
 	if (!option1.isEmpty()) {
 		ret += std::move('&' % option1 % '=');
 		if (!value1.isEmpty())
@@ -614,8 +608,10 @@ void TPOnlineServices::handleServerRequestReply(const int requestid, QNetworkRep
 				reply_string = std::move(reply_string.trimmed());
 			}
 		}
-		else
+		else {
 			reply_string = std::move(tr("Http headers missing \"Content-Type\""));
+			checkServer();
+		}
 	}
 	else
 		reply_string = std::move(tr("No network reply"));
@@ -660,18 +656,38 @@ void TPOnlineServices::uploadFile(const int requestid, const QUrl &url, QFile *f
 	}
 }
 
-/*void TPOnlineServices::checkServerResponse(const int ret_code, const QString &ret_string, const QString &address)
+void TPOnlineServices::checkServer(const QString &address, const QString &port)
 {
-	#ifndef QT_NO_DEBUG
-	qDebug() << "checkServerResponse() ret_code = " << ret_code << " , ret_string = " << ret_string << " , address = " << address;
-	#endif
-	uint online_status{TP_RET_CODE_SERVER_UNREACHABLE};
-	if (ret_string.contains("Welcome to the TrainingPlanner"_L1))
-		online_status = TP_RET_CODE_SUCCESS;
-	else if (ret_string.contains("server paused"_L1))
-		online_status = TP_RET_CODE_SERVER_PAUSED;
-	emit _serverResponse(online_status, address);
-}*/
+	const int requestid{appUtils()->generateRandomNumber(1000, 2000)};
+	auto conn{std::make_shared<QMetaObject::Connection>()};
+	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid,address,port]
+														(const int request_id, const int ret_code, const QString &ret_string) {
+		if (request_id == requestid) {
+			disconnect(*conn);
+			uint8_t online_status{TP_RET_CODE_SERVER_UNREACHABLE};
+			if (ret_string.contains("Welcome to the TrainingPlanner"_L1)) {
+				online_status = TP_RET_CODE_SUCCESS;
+				m_serverAddress = std::move(server_address.arg(address, port));
+				if (m_hasCredentials)
+					emit onlineServicesReady();
+			}
+			else if (ret_string.contains("server paused"_L1))
+				online_status = TP_RET_CODE_SERVER_PAUSED;
+			bool emit_signal{m_onlineStatus != online_status};
+			if (appSettings()->serverAddress() != address) {
+				emit_signal = true;
+				appSettings()->setServerAddress(address);
+			}
+			if (appSettings()->serverPort() != port) {
+				emit_signal = true;
+				appSettings()->setServerPort(port);
+			}
+			if (emit_signal)
+				emit serverStatus(m_onlineStatus, address, port);
+		}
+	});
+	makeNetworkRequest(requestid, server_address.arg(address, port), true);
+}
 
 bool TPOnlineServices::remoteFileUpToDate(const QString &onlineDate, const QString &localFile) const
 {

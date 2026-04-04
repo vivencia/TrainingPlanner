@@ -22,6 +22,7 @@ enum GlobalSettingFields {
 	FONT_RATIO,
 	CURRENT_USER,
 	SERVER_ADDRESS,
+	SERVER_PORT,
 	APP_SETTINGS_FIELD_COUNT
 };
 //--------------------------------------------GLOBAL SETTINGS---------------------------------------------//
@@ -64,7 +65,6 @@ Q_PROPERTY(uint pageHeight READ pageHeight CONSTANT)
 Q_PROPERTY(double heightToWidthRatio READ heightToWidthRatio CONSTANT)
 Q_PROPERTY(QString appVersion READ appVersion CONSTANT)
 Q_PROPERTY(QString currentUser READ currentUser WRITE setCurrentUser NOTIFY currentUserChanged FINAL)
-Q_PROPERTY(QString serverAddress READ serverAddress WRITE setServerAddress NOTIFY serverAddressChanged FINAL)
 Q_PROPERTY(QStringList availableLanguages READ availableLanguages CONSTANT FINAL)
 //--------------------------------------------GLOBAL SETTINGS---------------------------------------------//
 
@@ -125,7 +125,9 @@ public:
 	inline QString currentUser() const { return getValue(GLOBAL_GROUP, CURRENT_USER, DEFAULT_USER).toString(); }
 	inline void setCurrentUser(const QString &new_value) { changeValue(GLOBAL_GROUP, CURRENT_USER, new_value); emit currentUserChanged(); }
 	inline QString serverAddress() const { return getValue(GLOBAL_GROUP, SERVER_ADDRESS).toString(); }
-	inline void setServerAddress(const QString &new_value) { changeValue(GLOBAL_GROUP, SERVER_ADDRESS, new_value); emit serverAddressChanged(); }
+	inline void setServerAddress(const QString &new_value) { changeValue(GLOBAL_GROUP, SERVER_ADDRESS, new_value); }
+	inline QString serverPort() const { return getValue(GLOBAL_GROUP, SERVER_PORT).toString(); }
+	inline void setServerPort(const QString &new_value) { changeValue(GLOBAL_GROUP, SERVER_PORT, new_value); }
 
 	Q_INVOKABLE QString availableLanguagesLabel(const uint language_idx) const;
 	QStringList availableLanguages() const;
@@ -137,7 +139,6 @@ public:
 
 signals:
 	void currentUserChanged();
-	void serverAddressChanged();
 
 private:
 	QMap<uint,QLatin1StringView> m_globalPropertyNames;

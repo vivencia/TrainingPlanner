@@ -48,8 +48,8 @@ int main(int argc, char *argv[])
 	TPSettings tpSettings{};
 	TPKeyChain tpKeyChain{};
 	TranslationClass appTranslations{};
-	OSInterface osInterface{};
 	TPOnlineServices appTOS{};
+	OSInterface osInterface{};
 	DBUserModel userModel{};
 	DBExercisesListModel exercisesModel{};
 	QQmlApplicationEngine qmlEngine;

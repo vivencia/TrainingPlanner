@@ -1,28 +1,25 @@
 pragma Singleton
-
-import QtCore
 import QtQuick
 
 QtObject {
+	id: _globals
 
 	readonly property font regularFont: Qt.font({
 	    family: Qt.fontFamilies()[0],
 	    weight: Font.Medium,
-	    styleStrategy: Font.PreferAntialias,
 	    hintingPreference: Font.PreferFullHinting,
 		pixelSize: AppSettings.fontSize
 	})
 
 	readonly property FontMetrics fontMetricsRegular: FontMetrics {
-		font.family: regularFont.family
-		font.pixelSize: regularFont.pixelSize
-		font.weight: regularFont.weight
+		font.family: _globals.regularFont.family
+		font.pixelSize: _globals.regularFont.pixelSize
+		font.weight: _globals.regularFont.weight
 	}
 
 	readonly property font smallFont: Qt.font({
 	    family: Qt.fontFamilies()[0],
 	    weight: Font.DemiBold,
-	    styleStrategy: Font.PreferAntialias,
 	    hintingPreference: Font.PreferFullHinting,
 		pixelSize: AppSettings.smallFontSize
 	})
@@ -30,7 +27,6 @@ QtObject {
 	readonly property font largeFont: Qt.font({
 	    family: Qt.fontFamilies()[0],
 	    weight: Font.DemiBold,
-	    styleStrategy: Font.PreferAntialias,
 	    hintingPreference: Font.PreferFullHinting,
 		pixelSize: AppSettings.largeFontSize
 	})
@@ -38,7 +34,6 @@ QtObject {
 	readonly property font extraLargeFont: Qt.font({
 	    family: Qt.fontFamilies()[0],
 	    weight: Font.Bold,
-	    styleStrategy: Font.PreferAntialias,
 	    hintingPreference: Font.PreferFullHinting,
 		pixelSize: AppSettings.extraLargeFontSize
 	})

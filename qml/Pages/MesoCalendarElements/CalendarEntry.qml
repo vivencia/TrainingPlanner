@@ -34,7 +34,7 @@ Rectangle {
 	readonly property bool _today_date: month_day.getUTCFullYear() === today.getUTCFullYear() && month_day.getUTCMonth() ===
 																		today.getUTCMonth() && month_day.getUTCDate() === today.getUTCDate()
 	readonly property bool _day_is_visible: entryMonth === parentMonth
-	readonly property bool _meso_day: tpCalendarModel ? tpCalendarModel.isPartOfMeso(month_day) : false
+	readonly property bool _meso_day: tpCalendarModel ? tpCalendarModel.isPartOfMeso(month_day) : true
 	readonly property bool _workout_day: tpCalendarModel ? tpCalendarModel.isWorkoutDay(month_day) : false
 	property bool workoutFinished: tpCalendarModel ? tpCalendarModel.completed_by_date(month_day) : false
 
@@ -47,7 +47,7 @@ Rectangle {
 
 	Component.onCompleted: {
 		if (_today_date)
-			dateSelected(_control.entryDay);
+			dateSelected(_control.entryDay, _workout_day);
 	}
 
 	Connections {

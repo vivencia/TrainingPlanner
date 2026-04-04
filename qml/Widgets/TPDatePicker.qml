@@ -221,20 +221,23 @@ Rectangle {
 		}
 
 		delegate: Rectangle {
+			id: cal_delegate
 			height: _control.cellSize * 7
 			width: _control.cellSize * 7
 
+			required property var model
+
 			Rectangle {
 				id: monthYearTitle
-				anchors.top: parent.top
 				height: _control.cellSize
 				width: parent.width
+				anchors.top: parent.top
 
 				Text {
-					anchors.centerIn: parent
+					text: AppUtils.monthName(cal_delegate.model.month) + " " + cal_delegate.model.year;
 					font.pixelSize: _control.fontSizePx * 1.2
 					font.bold: true
-					text: AppUtils.monthName(calendar.model.month) + " " + calendar.model.year;
+					anchors.centerIn: parent
 				}
 			}
 
@@ -246,19 +249,21 @@ Rectangle {
 				width: parent.width
 
 				delegate: Text {
-					text: calendar.model.shortName
+					text: model.shortName
 					horizontalAlignment: Text.AlignHCenter
 					verticalAlignment: Text.AlignVCenter
 					font.pixelSize: _control.fontSizePx
 					font.bold: true
+
+					required property var model
 				}
 			}
 
 
 			MonthGrid {
 				id: monthGrid
-				month: calendar.model.month
-				year: calendar.model.year
+				month: cal_delegate.model.month
+				year: cal_delegate.model.year
 				spacing: 0
 				locale: Qt.locale(AppSettings.userLocale)
 				width: _control.cellSize * 7
@@ -304,7 +309,7 @@ Rectangle {
 		}
 
 		delegate: TPBackRec {
-			id: delegate
+			id: years_delegate
 			useGradient: true
 			opacity: 0.8
 			width: yearsList.width
@@ -316,13 +321,13 @@ Rectangle {
 			Text {
 				anchors.centerIn: parent
 				font.pixelSize: _control.fontSizePx * 1.5
-				text: delegate.name
-				scale: delegate.index === yearsList.currentYear - yearsList.startYear ? 1.5 : 1
+				text: years_delegate.name
+				scale: years_delegate.index === yearsList.currentYear - yearsList.startYear ? 1.5 : 1
 				color: AppSettings.fontColor
 			}
 			MouseArea {
 				anchors.fill: parent
-				onClicked: _control.yearChosen(delegate.name);
+				onClicked: _control.yearChosen(years_delegate.name);
 			}
 		}
 
@@ -352,7 +357,7 @@ Rectangle {
 		}
 
 		delegate: TPBackRec {
-			id: delegate2
+			id: months_delegate
 			useGradient: true
 			width: monthsList.width
 			height: _control.cellSize * 1.5
@@ -364,13 +369,13 @@ Rectangle {
 			Text {
 				anchors.centerIn: parent
 				font.pixelSize: _control.fontSizePx * 1.5
-				text: delegate2.name
-				scale: delegate2.index === monthsList.currentMonth ? 1.5 : 1
+				text: months_delegate.name
+				scale: months_delegate.index === monthsList.currentMonth ? 1.5 : 1
 				color: AppSettings.fontColor
 
 				MouseArea {
 					anchors.fill: parent
-					onClicked: _control.monthChosen(delegate2.index);
+					onClicked: _control.monthChosen(months_delegate.index);
 				}
 			}
 		}

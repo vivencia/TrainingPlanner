@@ -79,7 +79,7 @@ TPPopup {
 			TPTextInput {
 				id: txtHours
 				text: mainTimer.strHours
-				focus: true
+				backgroundOpacity: 0.9
 				validator: IntValidator { bottom: 0; top: 99; }
 				inputMethodHints: Qt.ImhDigitsOnly
 				maximumLength: 2
@@ -152,7 +152,7 @@ TPPopup {
 			TPTextInput {
 				id: txtMinutes
 				text: mainTimer.strMinutes
-				focus: true
+				backgroundOpacity: 0.9
 				validator: IntValidator { bottom: 0; top: 59; }
 				inputMethodHints: Qt.ImhDigitsOnly
 				maximumLength: 2
@@ -213,7 +213,7 @@ TPPopup {
 			TPTextInput {
 				id: txtSecs
 				text: mainTimer.strSeconds
-				focus: true
+				backgroundOpacity: 0.9
 				enabled: !_dlg_timer.timePickerOnly
 				validator: IntValidator { bottom: 0; top: 59; }
 				inputMethodHints: Qt.ImhDigitsOnly

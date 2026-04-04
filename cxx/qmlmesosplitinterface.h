@@ -48,7 +48,6 @@ public:
 	inline bool canSwapExercises() const { return !m_currentSwappableLetter.isNull(); }
 
 signals:
-	void plannerPageCreated();
 	void currentPageChanged();
 
 private:
@@ -68,12 +67,10 @@ private:
 	QChar m_currentSplitLetter, m_currentSwappableLetter;
 
 	void createPlannerPage();
-	void createPlannerPage_part2();
-	void createMesoSplitPages();
-	void createMesoSplitPages_part2();
+	void loadMesoSplitComponent();
+	void addPage(const QChar &split_letter);
 	void setSplitPageProperties(DBSplitModel *split_model);
 	void syncSplitPagesWithMesoSplit();
-	void addPage(const QChar &split_letter);
 	void removePage(const QChar &split_letter);
 	QChar findSwappableModel() const;
 };

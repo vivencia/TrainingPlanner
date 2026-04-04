@@ -5,6 +5,9 @@
 #ifndef QT_NO_DEBUG
 #include "tputils.h"
 #endif
+#ifdef LOCAL_TPSERVER
+#include <QNetworkInterface>
+#endif
 
 #include <QObject>
 #include <QFile>
@@ -14,8 +17,6 @@
 #include <QDate>
 #include <QTime>
 #include <jni.h>
-
-using namespace Qt::Literals::StringLiterals;
 
 struct notificationData {
 	short id;
@@ -29,11 +30,15 @@ struct notificationData {
 	explicit inline notificationData(): id{0}, action{0}, resolved{false}, start_time{QDate::currentDate(), QTime::currentTime()} {}
 };
 #else
+#ifdef Q_OS_LINUX
+#ifdef LOCAL_TPSERVER
 #include <QProcess>
-#endif
+#define TPSERVER_MACHINE
+#endif //LOCAL_TPSERVER
+#endif //Q_OS_LINUX
+#endif //Q_OS_ANDROID
 
 QT_FORWARD_DECLARE_CLASS(TPListModel)
-QT_FORWARD_DECLARE_CLASS(QTimer);
 
 class OSInterface : public QObject
 {
@@ -41,7 +46,6 @@ class OSInterface : public QObject
 Q_OBJECT
 
 Q_PROPERTY(bool internetOK READ internetOK NOTIFY internetStatusChanged FINAL)
-Q_PROPERTY(bool tpServerOK READ tpServerOK NOTIFY tpServerStatusChanged FINAL)
 Q_PROPERTY(QString connectionMessage READ connectionMessage NOTIFY connectionMessageChanged FINAL)
 
 static constexpr short HAS_INTERFACE			{0};
@@ -53,12 +57,6 @@ static constexpr short SERVER_UNREACHABLE		{5};
 
 public:
 	explicit OSInterface(QObject *parent = nullptr);
-	inline ~OSInterface()
-	{
-	#ifdef Q_OS_ANDROID
-		delete m_AndroidNotification;
-	#endif
-	}
 
 	inline bool networkInterfaceOK() const
 	{
@@ -80,17 +78,7 @@ public:
 #endif
 	}
 
-	inline bool tpServerOK() const
-	{
-#ifndef QT_NO_DEBUG
-		const bool server_ok{isBitSet(m_networkStatus, SERVER_UP_AND_RUNNING)};
-		return server_ok;
-#else
-		return isBitSet(m_networkStatus, SERVER_UP_AND_RUNNING);
-#endif
-	}
 	QString connectionMessage() const { return m_connectionMessages.join('\n'); }
-
 	inline int networkStatus() const { return m_networkStatus; }
 
 	inline void initialCheck()
@@ -124,9 +112,6 @@ public:
 	void checkWorkouts();
 #else
 	#ifdef Q_OS_LINUX
-		void serverProcessFinished(QProcess *proc, const int exitCode, QProcess::ExitStatus exitStatus);
-		void checkLocalServer();
-		void commandLocalServer(const QString &message, const QString &command);
 		void processArguments() const;
 		Q_INVOKABLE void restartApp();
 	#endif
@@ -146,14 +131,11 @@ signals:
 	void appSuspended();
 	void appResumed();
 	void internetStatusChanged();
-	void tpServerStatusChanged(const bool online);
 	void connectionMessageChanged();
 
 private:
 	int m_networkStatus{0};
-	QTimer *m_checkConnectionTimer{nullptr};
 	QStringList m_connectionMessages;
-	QString m_localIPAddress;
 	std::optional<bool> m_currentNetworkStatus[3];
 
 #ifdef Q_OS_ANDROID
@@ -165,10 +147,26 @@ private:
 #endif
 
 	void setNetStatus(uint messages_index, bool success, QString &&message);
+	void checkServer(QString address = QString{}, QString port = QString{}
+#ifdef LOCAL_TPSERVER
+																			, QNetworkInterface interface = QNetworkInterface{}
+#endif
+																								);
+
+#ifdef LOCAL_TPSERVER
+	QNetworkInterface mNetworkInterface, mFailedInterface;
 	void checkNetworkInterfaces();
+
+#ifdef TPSERVER_MACHINE
+	void checkLocalServer();
+	void serverProcessFinished(QProcess *proc, const int exit_code, QProcess::ExitStatus exit_status);
+	void commandLocalServer(const QString &title, const QString &command);
+	void localServerProcessResult(const uint online_status, const QString &additional_message = QString{});
+#endif //TPSERVER_MACHINE
+#endif //LOCAL_TPSERVER
 	void checkInternetConnection();
 	void setConnectionMessage(int msg_idx, QString &&message);
-	void onlineServicesResponse(const uint online_status, const QString &additional_message = QString{});
+
 	static OSInterface *_app_os_interface;
 	friend OSInterface *appOsInterface();
 };

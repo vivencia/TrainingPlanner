@@ -113,8 +113,10 @@ void PagesListModel::openPage(QQuickItem *page, QString &&label, const std::func
 	}
 	beginInsertRows(QModelIndex{}, count(), count());
 	pageInfo *pageinfo{new pageInfo};
-	pageinfo->displayText = std::move(label);
-	pageinfo->cleanUpFunc = clean_up_func;
+	if (!label.isEmpty())
+		pageinfo->displayText = std::move(label);
+	if (clean_up_func)
+		pageinfo->cleanUpFunc = clean_up_func;
 	pageinfo->page = page;
 	m_pagesData.append(pageinfo);
 	m_pagesMesoIdx.append(appUserModel()->actualMesoModel()->currentWorkingMeso());
@@ -247,13 +249,13 @@ bool PagesListModel::eventFilter(QObject *obj, QEvent *event)
 				if (currentIndex() != 0)
 					prevPage();
 				else {
-					std::shared_ptr<QMetaObject::Connection> conn;
-					conn = std::make_shared<QMetaObject::Connection>(connect(appItemManager(), &QmlItemManager::generalMessagesPopupClicked,
-																					this, [this,conn] (const uint8_t button_idx) {
+					auto conn{std::make_shared<QMetaObject::Connection>()};
+					*conn = connect(appItemManager(), &QmlItemManager::generalMessagesPopupClicked, this, [this,conn]
+																												(const uint8_t button_idx) {
 						disconnect(*conn);
 						if (button_idx == 1)
 							qApp->exit();
-					}));
+					});
 					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings( {tr("Exit"),
 						tr("Are you sure you want to leave?")}, record_separator), Qt::AlignCenter, "question_"_L1, 0, tr("Yes"), tr("No"));
 				}

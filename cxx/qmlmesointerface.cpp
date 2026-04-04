@@ -307,24 +307,6 @@ void QMLMesoInterface::getWorkoutPage(const QDate &date)
 
 void QMLMesoInterface::getMesocyclePage(const bool new_meso)
 {
-	if (!m_mesoComponent)
-		createMesocyclePage(new_meso);
-	else
-		appPagesListModel()->openPage(m_mesoPage);
-}
-
-void QMLMesoInterface::sendMesocycleFileToClient()
-{
-	m_mesoModel->sendMesoToUser(m_mesoIdx);
-}
-
-void QMLMesoInterface::incorporateMeso()
-{
-	m_mesoModel->incorporateMeso(m_mesoIdx);
-}
-
-void QMLMesoInterface::createMesocyclePage(const bool new_meso)
-{
 	if (!m_mesoComponent) {
 		setMinimumMesoStartDate(m_mesoModel->getMesoMinimumStartDate(m_mesoModel->client(m_mesoIdx), m_mesoIdx));
 		setMaximumMesoEndDate(m_mesoModel->getMesoMaximumEndDate(m_mesoModel->client(m_mesoIdx), m_mesoIdx));
@@ -348,30 +330,43 @@ void QMLMesoInterface::createMesocyclePage(const bool new_meso)
 		m_mesoProperties["mesoManager"_L1] = std::move(QVariant::fromValue(this));
 		m_mesoProperties["mesoModel"_L1] = std::move(QVariant::fromValue(m_mesoModel));
 		m_mesoComponent = new QQmlComponent{appQmlEngine(), "TpQml.Pages", "MesocyclePage", QQmlComponent::Asynchronous};
-		connect(m_mesoComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
-			createMesocyclePage(false);
-		});
+		connect(m_mesoComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) { createMesocyclePage(); });
 	}
 	else {
-		switch (m_mesoComponent->status()) {
-		case QQmlComponent::Ready:
-			m_mesoComponent->disconnect();
-			createMesocyclePage_part2();
-			break;
+		if (!m_mesoPage) {
+			switch (m_mesoComponent->status()) {
+			case QQmlComponent::Ready:
+				m_mesoComponent->disconnect();
+				createMesocyclePage();
+				break;
 #ifndef QT_NO_DEBUG
-		case QQmlComponent::Loading:
-			qDebug() << "Uhh??  " << m_mesoComponent->errorString();
-			break;
-		case QQmlComponent::Null:
-		case QQmlComponent::Error:
-			qDebug() << m_mesoComponent->errorString();
-			break;
+			case QQmlComponent::Loading:
+				break;
+			case QQmlComponent::Null:
+			case QQmlComponent::Error:
+				qDebug() << m_mesoComponent->errorString();
+				break;
+#else
+			default: break;
 #endif
+			}
 		}
+		else
+			appPagesListModel()->openPage(m_mesoPage);
 	}
 }
 
-void QMLMesoInterface::createMesocyclePage_part2()
+void QMLMesoInterface::sendMesocycleFileToClient()
+{
+	m_mesoModel->sendMesoToUser(m_mesoIdx);
+}
+
+void QMLMesoInterface::incorporateMeso()
+{
+	m_mesoModel->incorporateMeso(m_mesoIdx);
+}
+
+void QMLMesoInterface::createMesocyclePage()
 {
 	m_mesoPage = static_cast<QQuickItem*>(m_mesoComponent->createWithInitialProperties(m_mesoProperties, appQmlEngine()->rootContext()));
 	#ifndef QT_NO_DEBUG
@@ -418,7 +413,6 @@ void QMLMesoInterface::verifyMesoRequiredFieldsStatus()
 				n_required_fields++;
 			}
 		}
-		QMetaObject::invokeMethod(m_mesoPage, "wrongFieldValueMessageHandler",
-															Q_ARG(int, n_required_fields), Q_ARG(int, first_required_field));
+		QMetaObject::invokeMethod(m_mesoPage, "wrongFieldValueMessageHandler", Q_ARG(int, n_required_fields), Q_ARG(int, first_required_field));
 	}
 }

@@ -4,6 +4,7 @@
 #include "qmlitemmanager.h"
 #include "tpsettings.h"
 #include "tputils.h"
+#include "online_services/scan_network.h"
 #include "online_services/tponlineservices.h"
 
 #ifdef Q_OS_ANDROID
@@ -24,9 +25,9 @@
 #define NOTIFY_START_WORKOUT 0x32
 #define USER_NOTIFICATION 0x3C
 
-#else
+#endif //Q_OS_ANDROID
 
-#ifdef Q_OS_LINUX
+#ifdef TPSERVER_MACHINE
 #include <QProcess>
 
 extern "C"
@@ -52,21 +53,19 @@ enum procExitCodes {
 	TPSERVER_PAUSED_FAILED,
 };
 
-#endif //Q_OS_LINUX
-#endif //Q_OS_ANDROID
+#endif //TPSERVER_MACHINE
 
 #include <QFileInfo>
 #include <QGuiApplication>
 #include <QNetworkInterface>
-#include <QProcess>
 #include <QSysInfo>
 #include <QTcpSocket>
 #include <QTimer>
 
 OSInterface *OSInterface::_app_os_interface{nullptr};
-#ifndef QT_NO_DEBUG
-//When testing, poll more frequently
-constexpr int CONNECTION_CHECK_TIMEOUT{60*1000};
+
+#ifdef LOCAL_TPSERVER
+constexpr int CONNECTION_CHECK_TIMEOUT{5*60*1000};
 constexpr int CONNECTION_ERR_TIMEOUT{10*1000};
 #else
 constexpr int CONNECTION_CHECK_TIMEOUT{10*60*1000};
@@ -85,12 +84,10 @@ OSInterface::OSInterface(QObject *parent) : QObject{parent}
 	REGISTER_QML_SINGLETON(OSInterface, this);
 
 	m_connectionMessages.resize(3);
-	m_checkConnectionTimer = new QTimer{this};
-	m_checkConnectionTimer->callOnTimeout([this] () { checkNetworkInterfaces(); });
 	connect(qApp, &QCoreApplication::aboutToQuit, this, [this] () {
 		appOnlineServices()->userLogout(111111);
 	});
-	checkNetworkInterfaces();
+	checkServer(appSettings()->serverAddress(), appSettings()->serverPort());
 
 #ifdef Q_OS_ANDROID
 	m_workoutDoneMessage = std::move(tr("Your training routine seems to go well. Workout for the day is concluded"));
@@ -432,71 +429,6 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_noti
 
 #else
 
-void OSInterface::serverProcessFinished(QProcess *proc, const int exitCode, QProcess::ExitStatus exitStatus)
-{
-	proc->deleteLater();
-	if (exitStatus != QProcess::NormalExit) {
-		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR, appUtils()->string_strings(
-				{"Linux TP Server"_L1, "Error executing init_script"_L1}, record_separator));
-		return;
-	}
-
-	switch (exitCode) {
-	case TPSERVER_OK:
-		//appOnlineServices()->scanNetwork(appSettings()->serverAddress());
-		onlineServicesResponse(TPSERVER_OK);
-		break;
-	case TPSERVER_OK_LOCALHOST:
-		appSettings()->setServerAddress("localhost"_L1);
-		onlineServicesResponse(TPSERVER_OK);
-		break;
-	case TPSERVER_ERROR:
-	case TPSERVER_NGINX_ERROR:
-	case TPSERVER_PAUSED_FAILED:
-		onlineServicesResponse(exitCode, proc->readAllStandardOutput() % "\nReturn code("_L1 % QString::number(exitCode) % ')');
-		break;
-	case TPSERVER_PHPFPM_ERROR:
-		commandLocalServer("Start server service?"_L1, "start"_L1);
-		break;
-	case TPSERVER_CONFIG_ERROR:
-		commandLocalServer("Setup server?"_L1, "setup"_L1);
-		break;
-	case TPSERVER_PAUSED:
-	case TPSERVER_PAUSED_LOCALHOST:
-		commandLocalServer("Unpause server?"_L1, "pause"_L1);
-		break;
-	}
-	proc->close();
-}
-
-void OSInterface::checkLocalServer()
-{
-	QProcess *check_server_proc{new QProcess{this}};
-	connect(check_server_proc, &QProcess::finished, this, [this,check_server_proc] (int exitCode, QProcess::ExitStatus exitStatus) {
-		serverProcessFinished(check_server_proc, exitCode, exitStatus);
-	});
-	check_server_proc->start(tp_server_config_script, {"status"_L1}, QIODeviceBase::ReadOnly);
-}
-
-void OSInterface::commandLocalServer(const QString &message, const QString &command)
-{
-	connect(appItemManager(), &QmlItemManager::qmlPasswordDialogClosed, this, [this,message,command]
-																					(int resultCode, const QString &password) {
-		if (resultCode == TP_RET_CODE_SUCCESS) {
-			QProcess *server_script_proc{new QProcess{this}};
-			connect(server_script_proc, &QProcess::finished, this, [this,server_script_proc]
-																			(int exitCode, QProcess::ExitStatus exitStatus) {
-				serverProcessFinished(server_script_proc, exitCode, exitStatus);
-			});
-			server_script_proc->start(tp_server_config_script , {command, "-p="_L1 + password}, QIODeviceBase::ReadOnly);
-		}
-		else
-			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
-						{message, "Operation canceled by the user"_L1}, record_separator));
-	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-	appUserModel()->requestPasswordFromUser(message, "Your user password is required"_L1);
-}
-
 void OSInterface::processArguments() const
 {
 	const QStringList &args{qApp->arguments()};
@@ -587,8 +519,8 @@ void OSInterface::sendMail(const QString &address, const QString &subject, const
 		std::move(QChar{'\''} % address % QChar{'\''})};
 	auto *__restrict proc{new QProcess};
 	proc->start("xdg-email"_L1, args);
-	connect(proc, &QProcess::finished, this, [&,proc,address,subject] (int exitCode, QProcess::ExitStatus) {
-		if (exitCode != 0) {
+	connect(proc, &QProcess::finished, this, [&,proc,address,subject] (int exit_code, QProcess::ExitStatus) {
+		if (exit_code != 0) {
 			if (appUserModel()->email(0).contains("gmail.com"_L1)) {
 				const QString &gmailURL{u"https://mail.google.com/mail/u/%1/?view=cm&to=%2&su=%3"_s.arg(
 																						appUserModel()->email(0), address, subject)};
@@ -617,8 +549,6 @@ void OSInterface::viewExternalFile(const QString &filename) const
 	#endif
 }
 
-
-
 void OSInterface::setNetStatus(uint messages_index, bool success, QString &&message)
 {
 	short on_bit{0}, off_bit{0};
@@ -640,53 +570,196 @@ void OSInterface::setNetStatus(uint messages_index, bool success, QString &&mess
 	unSetBit(m_networkStatus, off_bit);
 	m_currentNetworkStatus[messages_index] = success;
 	setConnectionMessage(messages_index, std::move(message));
-	emit tpServerStatusChanged(success);
 }
 
+void OSInterface::checkServer(QString address, QString port
+#ifdef LOCAL_TPSERVER
+															, QNetworkInterface interface
+																							)
+#endif
+{
+	if (address.isEmpty()) {
+		#ifdef LOCAL_TPSERVER
+			checkLocalServer();
+		#endif
+			checkInternetConnection();
+		return;
+	}
+
+	auto conn{std::make_shared<QMetaObject::Connection>()};
+	*conn = connect(appOnlineServices(), &TPOnlineServices::serverStatus, this, [this,conn,address,port,interface]
+									(const uint online_status, const QString &server_address, const QString &server_port) mutable {
+		disconnect(*conn);
+
+#ifndef LOCAL_TPSERVER
+		bool success{online_status = TP_RET_CODE_SUCCESS};
+#else
+		if (!interface.isValid() && !address.isEmpty()) // server_address gathered from tpserver's local init script
+			return;
+
+		address = std::move(interface.addressEntries().constFirst().ip().toString());
+		if (port.isEmpty())
+			port = std::move("8080"_L1);
+		bool success{false};
+		mFailedInterface = std::move(QNetworkInterface{});
+		mNetworkInterface = std::move(interface);
+		switch (online_status) {
+		case TP_RET_CODE_SUCCESS:
+			success = true;
+			break;
+		case TP_RET_CODE_SERVER_UNREACHABLE:
+			if (interface.isValid()) {
+				mFailedInterface = std::move(interface);
+				mNetworkInterface = std::move(QNetworkInterface{});
+			}
+			break;
+		case TP_RET_CODE_SERVER_PAUSED:
+			break;
+		}
+		if (!m_currentNetworkStatus[interfaceMessage].has_value() || m_currentNetworkStatus[interfaceMessage].value() != success) {
+			QString message{tr("Network interface: ")};
+			if (mNetworkInterface.isValid()) {
+				switch (mNetworkInterface.type()) {
+				case QNetworkInterface::Loopback:	message += "Loopback"_L1;	break;
+				case QNetworkInterface::Virtual:	message += "Virtual"_L1;	break;
+				case QNetworkInterface::Ethernet:	message += "Ethernet"_L1;	break;
+				case QNetworkInterface::Wifi:		message += "WiFi"_L1;		break;
+				default:							message += "Unknown"_L1;	break;
+				}
+				message += '(' % mNetworkInterface.name() % "@ "_L1 % server_address % ':' % server_port;
+				if (!success)
+					message += '\n' % tr("Server paused - Until it returns to the normal status, all online services will fail");
+			}
+			else
+				message += tr("Unable to access the local server: Attempting to use another interface");
+			setNetStatus(interfaceMessage, success, std::move(message));
+			if (!success)
+				checkNetworkInterfaces();
+		}
+#endif
+	});
+	appOnlineServices()->checkServer(address, port);
+}
+
+#ifdef LOCAL_TPSERVER
 void OSInterface::checkNetworkInterfaces()
 {
-	const QNetworkInterface *running_interface{nullptr};
+	QNetworkInterface running_interface, lo_interface;
 	const QList<QNetworkInterface> &interfaces{QNetworkInterface::allInterfaces()};
 	for (const auto &interface : interfaces) {
-		if (interface.flags() & QNetworkInterface::IsRunning) {
-			if (interface.name() == "lo"_L1) {
-				#ifndef Q_OS_ANDROID
-				running_interface = &interface;
-				#endif
-			}
-			else {
-				const QList<QNetworkAddressEntry> &addresses{interface.addressEntries()};
-				for (const auto &address : addresses) {
-					if (!address.ip().isNull()) {
-						running_interface = &interface;
+		if (interface.isValid() && interface.flags() & QNetworkInterface::IsRunning) {
+			const QList<QNetworkAddressEntry> &addresses{interface.addressEntries()};
+			for (const auto &address : addresses) {
+				if (!address.ip().isNull() && tpScanNetwork::ping(address.ip().toString())) {
+					if (interface.type() == QNetworkInterface::Loopback)
+						lo_interface = interface;
+					else {
+						running_interface = interface;
 						break;
 					}
 				}
 			}
+			if (running_interface.isValid() && running_interface.index() != mFailedInterface.index())
+				break;
 		}
 	}
-	const bool success{running_interface ? running_interface->isValid() : false};
-	if (!m_currentNetworkStatus[interfaceMessage].has_value() || m_currentNetworkStatus[interfaceMessage].value() != success) {
-		QString message{tr("Network interface: ")};
-		if (success) {
-			switch (running_interface->type()) {
-			case QNetworkInterface::Loopback:	message += "Loopback"_L1;	break;
-			case QNetworkInterface::Virtual:	message += "Virtual"_L1;	break;
-			case QNetworkInterface::Ethernet:	message += "Ethernet"_L1;	break;
-			case QNetworkInterface::Wifi:		message += "WiFi"_L1;		break;
-			default:							message += "Unknown"_L1;	break;
-			}
-			m_localIPAddress = std::move(running_interface->addressEntries().constFirst().ip().toString());
-			message += '(' % running_interface->name() % ')';
-			if (appSettings()->serverAddress() != m_localIPAddress)
-				appSettings()->setServerAddress(m_localIPAddress);
-		}
-		else
-			message += tr("This device does not have access to any network interface or the app does not have permission to access them");
-		setNetStatus(interfaceMessage, success, std::move(message));
-	}
-	checkInternetConnection();
+	if (!running_interface.isValid())
+		running_interface = std::move(lo_interface);
+
+	checkServer(QString{}, QString{}, running_interface);
 }
+
+#ifdef TPSERVER_MACHINE
+void OSInterface::checkLocalServer()
+{
+	QProcess *check_server_proc{new QProcess{this}};
+	connect(check_server_proc, &QProcess::finished, this, [this,check_server_proc] (int exit_code, QProcess::ExitStatus exit_status) {
+		serverProcessFinished(check_server_proc, exit_code, exit_status);
+	});
+	check_server_proc->start(tp_server_config_script, {"status"_L1}, QIODeviceBase::ReadOnly);
+}
+
+void OSInterface::serverProcessFinished(QProcess *proc, const int exit_code, QProcess::ExitStatus exit_status)
+{
+	proc->deleteLater();
+	if (exit_status != QProcess::NormalExit) {
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR, appUtils()->string_strings(
+													{"Linux TP Server"_L1, "Error executing init_script"_L1}, record_separator));
+		return;
+	}
+
+	switch (exit_code) {
+	case TPSERVER_ERROR:
+	case TPSERVER_NGINX_ERROR:
+	case TPSERVER_PAUSED_FAILED:
+		localServerProcessResult(TP_RET_CODE_SERVER_UNREACHABLE, proc->readAllStandardOutput() % "\nReturn code("_L1 % QUOTE(exit_code) % ')');
+		break;
+	case TPSERVER_PHPFPM_ERROR:
+		commandLocalServer("Start server service?"_L1, "start"_L1);
+		break;
+	case TPSERVER_CONFIG_ERROR:
+		commandLocalServer("Setup server?"_L1, "setup"_L1);
+		break;
+	case TPSERVER_PAUSED:
+	case TPSERVER_PAUSED_LOCALHOST:
+		commandLocalServer("Unpause server?"_L1, "pause"_L1);
+		break;
+	default: //TPSERVER_OK or TPSERVER_OK_LOCALHOST
+		{
+			const QString &address{proc->readAllStandardOutput()};
+			const auto address_start{address.indexOf('(')};
+			const auto address_end{address.indexOf(':', address_start + 1)};
+			const auto port_end{address.indexOf(')', address_end + 1)};
+			checkServer(address.sliced(address_start + 1, address_end - address_start - 1),
+												address.sliced(address_end + 1, port_end - address_end - 1), QNetworkInterface{});
+			localServerProcessResult(TP_RET_CODE_SUCCESS);
+		}
+		break;
+	}
+	proc->close();
+}
+
+void OSInterface::commandLocalServer(const QString &title, const QString &command)
+{
+	QLatin1StringView seed{command.toLatin1()};
+	const int requestid{appUtils()->generateUniqueId(seed)};
+	auto conn{std::make_shared<QMetaObject::Connection>()};
+	*conn = connect(appUserModel(), &DBUserModel::passwordAcquired, this, [=,this] (const bool proceed, const int id, const QString &passwd) {
+		if (id == requestid) {
+			disconnect(*conn);
+			if (proceed) {
+				QProcess *server_script_proc{new QProcess{this}};
+				connect(server_script_proc, &QProcess::finished, this, [this,server_script_proc] (int exit_code, QProcess::ExitStatus exit_status) {
+					serverProcessFinished(server_script_proc, exit_code, exit_status);
+				});
+				server_script_proc->start(tp_server_config_script , {command, "-p="_L1 % passwd}, QIODeviceBase::ReadOnly);
+			}
+			else
+				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
+																	{title, "Operation canceled by the user"_L1}, record_separator));
+		}
+	});
+	appUserModel()->requestPasswordFromUser(requestid, title, "Your system user password is required"_L1);
+}
+
+void OSInterface::localServerProcessResult(const uint online_status, const QString &additional_message)
+{
+	const bool online{online_status == TP_RET_CODE_SUCCESS};
+	if (!m_currentNetworkStatus[serverMessage].has_value() || m_currentNetworkStatus[serverMessage].value() != online) {
+		QString message{online ? tr("Connected to server ") : tr("Server unreachable")};
+		if (online)
+			message += std::move('(' + appSettings()->serverAddress() % ':' % appSettings()->serverPort() % ')' % additional_message);
+		else
+			message += additional_message;
+		setNetStatus(serverMessage, online, std::move(message));
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
+					{"Linux TP Server"_L1, connectionMessage()}, record_separator), Qt::AlignTop|Qt::AlignHCenter,
+														online_status == TP_RET_CODE_SUCCESS ? "set-completed" : "error");
+	}
+}
+
+#endif //TPSERVER_MACHINE
+#endif //LOCAL_TPSERVER
 
 void OSInterface::checkInternetConnection()
 {
@@ -704,33 +777,14 @@ void OSInterface::checkInternetConnection()
 		emit internetStatusChanged();
 	}
 
-	#ifndef Q_OS_ANDROID
-	checkLocalServer();
-	#else
-	appOnlineServices()->scanNetwork(appSettings()->serverAddress());
-	#endif
+#ifndef LOCAL_TPSERVER //TODO
+	if (is_connected)
+		checkServer(remote_server_address, remove_server_port);
+#endif
 }
 
 void OSInterface::setConnectionMessage(int msg_idx, QString &&message)
 {
 	m_connectionMessages[msg_idx] = std::move(message);
 	emit connectionMessageChanged();
-}
-
-void OSInterface::onlineServicesResponse(const uint online_status, const QString &additional_message)
-{
-	const bool online{online_status == TP_RET_CODE_SUCCESS};
-	if (!m_currentNetworkStatus[serverMessage].has_value() || m_currentNetworkStatus[serverMessage].value() != online) {
-		QString message{online ? tr("Connected to server ") : tr("Server unreachable")};
-		if (online)
-			message += '(' + appSettings()->serverAddress() % ')' % additional_message;
-		else
-			message += additional_message;
-		setNetStatus(serverMessage, online, std::move(message));
-		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
-								{"Linux TP Server"_L1, connectionMessage()}, record_separator), Qt::AlignTop|Qt::AlignHCenter,
-																	online_status == TP_RET_CODE_SUCCESS ? "set-completed" : "error");
-	}
-	//When network is out, check more frequently)
-	m_checkConnectionTimer->start(online ? CONNECTION_CHECK_TIMEOUT : CONNECTION_ERR_TIMEOUT);
 }

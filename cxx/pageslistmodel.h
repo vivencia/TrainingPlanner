@@ -68,7 +68,7 @@ private:
 	struct pageInfo {
 		QString displayText;
 		QQuickItem *page{nullptr};
-		std::function<void(void)> cleanUpFunc;
+		std::function<void(void)> cleanUpFunc{nullptr};
 	};
 
 	QList<pageInfo*> m_pagesData;

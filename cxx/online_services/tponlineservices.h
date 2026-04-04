@@ -20,6 +20,8 @@ public:
 	inline ~TPOnlineServices() { delete m_networkManager; }
 
 	//void scanNetwork(const QString &last_working_address, const bool assume_working = true);
+	void checkServer(const QString &address, const QString &port);
+
 #ifndef Q_OS_ANDROID
 	void getAllUsers(const int requestid);
 #endif
@@ -53,7 +55,7 @@ public:
 	void executeCommands(const int requestid, const QString &subdir, const bool delete_cmdfile = true);
 
 	void sendFile(const int requestid, QFile *file, const QString &subdir = QString{},
-									const QString &targetUser = QString{}, const bool b_internal_signal_only = false);
+										const QString &targetUser = QString{}, const bool b_internal_signal_only = false);
 	/**
 	 * @brief listFiles
 	 * @param requestid An unique integer value that will be emitted with the signal networkListReceived to stabilish a chain of calls
@@ -92,7 +94,7 @@ signals:
 	void networkListReceived(const int request_id, const int ret_code, const QStringList &ret_list);
 	void fileReceived(const int request_id, const int ret_code, const QString& filename, const QByteArray &contents);
 	//void serverOnline(const uint online_status);
-	void _serverResponse(const uint online_status, const QString &address);
+	void serverStatus(const uint online_status, const QString &server_address, const QString &server_port);
 
 private:
 	QString makeCommandURL(const bool admin,
@@ -102,13 +104,13 @@ private:
 	void makeNetworkRequest(const int requestid, const QUrl &url, const bool b_internal_signal_only = false);
 	void handleServerRequestReply(const int requestid, QNetworkReply *reply, const bool b_internal_signal_only = false);
 	void uploadFile(const int requestid, const QUrl &url, QFile *file, const bool b_internal_signal_only = false);
-	//void checkServerResponse(const int ret_code, const QString &ret_string, const QString &address);
 	bool remoteFileUpToDate(const QString &onlineDate, const QString &localFile) const;
 	bool localFileUpToDate(const QString &onlineDate, const QString &localFile) const;
 
-	QNetworkAccessManager *m_networkManager;
-	bool m_scanning;
-	QString m_userid, m_passwd;
+	QNetworkAccessManager *m_networkManager{nullptr};
+	bool m_hasCredentials{false};
+	uint8_t m_onlineStatus;
+	QString m_userid, m_passwd, m_serverAddress;
 	static TPOnlineServices* _appOnlineServices;
 	friend TPOnlineServices* appOnlineServices();
 };

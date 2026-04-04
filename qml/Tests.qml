@@ -108,7 +108,7 @@ ApplicationWindow {
 			}
 		}*/
 
-		TPFileViewer {
+		/*TPFileViewer {
 			//mediaSource: "/home/guilhermef/Documents/Atendimento_CIP_35.001.003.26.1170764.pdf"
 			//mediaSource: "/home/guilhermef/Videos/Premiação - Dança Cigana Solo 2.mp4"
 			//mediaSource: "/home/guilhermef/Pictures/CNH Rozângela Barbosa Fortunato.png"
@@ -117,41 +117,51 @@ ApplicationWindow {
 			height: 300
 			x: 0
 			y: 0
-		}
-	}
+		}*/
 
-	TPBalloonTip {
-		id: txextCopiedInfo
-		height: 40
-		message: qsTr("Text copied to the clipboard")
-		button1Text: ""
-		button2Text: ""
-		parentPage: homePage
+		TPComboBox {
+			id: cboMesoType
+			width: parent.width * 0.9
+			model: ListModel {
+				id: typeModel
+				ListElement { text: qsTr("Weigth Loss"); value: 0; enabled: true; }
+				ListElement { text: qsTr("Muscle Gain"); value: 1; enabled: true; }
+				ListElement { text: qsTr("Bulking"); value: 2; enabled: true; }
+				ListElement { text: qsTr("Pre-contest"); value: 3; enabled: true; }
+				ListElement { text: qsTr("Strength Build-up"); value: 4; enabled: true; }
+				ListElement { text: qsTr("Physical Recovery"); value: 5; enabled: true; }
+				ListElement { text: qsTr("Physical Maintenance"); value: 6; enabled: true; }
+				ListElement { text: qsTr("Other"); value: 7; enabled: true; }
+			}
+
+			onActivated: (index) => {
+				console.log(typeModel.get(index).text, typeModel.get(index).value);
+			}
+		}
 	}
 
 	TPBalloonTip {
 		id: generalMessagesPopup
 		parentPage: homePage
-		button1Text: ""
-		button2Text: ""
 	}
 
-	function showAppMainMessageDialog(title: string, message: string, img_src: string, msecs: int, button1Text: string, button2Text: string): void {
+	function showAppMainMessageDialog(pos: int, title: string, message: string, img_src: string, msecs: int, button1Text: string,
+																											button2Text: string): void {
 		generalMessagesPopup.title = title;
 		generalMessagesPopup.message = message;
 		generalMessagesPopup.imageSource = img_src;
+		generalMessagesPopup.button1Text = button1Text;
+		generalMessagesPopup.button2Text = button2Text;
 		if (button1Text !== "") {
-			generalMessagesPopup.button1Text = button1Text;
 			generalMessagesPopup.button1Clicked.connect(function() { generalMessagesPopupClicked(1); });
+			generalMessagesPopup.closeActionExeced.connect(function() { generalMessagesPopupClicked(0); });
 		}
-		if (button2Text !== "") {
-			generalMessagesPopup.button2Text = button2Text;
-			generalMessagesPopup.button1Clicked.connect(function() { generalMessagesPopupClicked(2); });
-		}
+		if (button2Text !== "")
+			generalMessagesPopup.button2Clicked.connect(function() { generalMessagesPopupClicked(2); });
 		if (msecs > 0)
-			generalMessagesPopup.showTimed(msecs, Qt.AlignTop|Qt.AlignHCenter);
+			generalMessagesPopup.showTimed(msecs, pos);
 		else
-			generalMessagesPopup.showInWindow(Qt.AlignTop|Qt.AlignHCenter);
+			generalMessagesPopup.showInWindow(pos);
 	}
 
 

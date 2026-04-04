@@ -84,7 +84,7 @@ Drawer {
 
 			TPImage {
 				id: imgOnline
-				source: AppOsInterface.tpServerOK ? "online" : "offline"
+				source: AppUserModel.canConnectToServer ? "online" : "offline"
 				width: AppSettings.itemLargeHeight
 				height: width
 				visible: AppUserModel.onlineAccount

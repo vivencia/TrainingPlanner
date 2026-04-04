@@ -12,35 +12,37 @@ Popup {
 	spacing: 0
 	padding: 0
 
+//public:
 	required property TPPage parentPage
 	property bool keepAbove: false
-	property bool bVisible: false
 	property bool closeButtonVisible: true
 	property bool disableMouseHandling: false
 	property bool showTitleBar: true
 	property bool enableEffects: true
 	property int finalYPos: 0
-	property int startYPos: 0
 	property double titleBarOpacity: 1
 	property alias btnClose: btnCloseWindow
 	property alias titleBar: titlebar
-	property int _key_pressed
 	property TPBackRec backgroundRec: _backRec
 	property string backGroundImage
 
-	readonly property int titleBarHeight: AppSettings.itemDefaultHeight + 5
 	signal keyboardNumberPressed(int key1, int key2);
 	signal keyboardEnterPressed();
 	signal closeActionExeced();
 
+//private:
+	property int _start_y_pos: 0
+	property int _key_pressed
+	property bool _visible: false
+	readonly property int titleBarHeight: AppSettings.itemDefaultHeight + 5
 
 	onOpened: if (ItemManager.AppPagesManager) ItemManager.AppPagesManager.popupOpened(this);
 	onClosed: if (ItemManager.AppPagesManager) ItemManager.AppPagesManager.popupClosed(this);
 
 	Component.onCompleted: {
 		if (!modal && keepAbove) {
-			_control.parentPage.pageDeActivated.connect(function() { _control.bVisible = _control.visible; _control.visible = false; });
-			_control.parentPage.pageActivated.connect(function() { if (_control.bVisible) _control.visible = true; });
+			_control.parentPage.pageDeActivated.connect(function() { _control._visible = _control.visible; _control.visible = false; });
+			_control.parentPage.pageActivated.connect(function() { if (_control._visible) _control.visible = true; });
 		}
 	}
 
@@ -49,8 +51,8 @@ Popup {
 			parentPage.pageDeActivated.disconnect();
 			parentPage.pageActivated.disconnect();
 			parentPage = parent_page;
-			parentPage.pageDeActivated.connect(function() { bVisible = _control.visible; _control.visible = false; });
-			parentPage.pageActivated.connect(function() { if (bVisible) _control.visible = true; });
+			parentPage.pageDeActivated.connect(function() { _visible = _control.visible; _control.visible = false; });
+			parentPage.pageActivated.connect(function() { if (_visible) _control.visible = true; });
 		}
 	}
 
@@ -161,7 +163,7 @@ Popup {
 	enter: Transition {
 		NumberAnimation {
 			property: "y"
-			from: _control.startYPos
+			from: _control._start_y_pos
 			to: _control.finalYPos
 			duration: 500
 			easing.type: Easing.InOutCubic
@@ -180,7 +182,7 @@ Popup {
 		NumberAnimation {
 			property: "y"
 			from: _control.finalYPos
-			to: _control.startYPos
+			to: _control._start_y_pos
 			duration: 500
 			easing.type: Easing.InOutCubic
 		}
@@ -194,7 +196,7 @@ Popup {
 	}
 
 	function closePopup(): void {
-		bVisible = false;
+		_visible = false;
 		closeActionExeced();
 		close();
 	}
@@ -223,9 +225,9 @@ Popup {
 
 		finalYPos = ypos;
 		if (ypos <= AppSettings.windowHeight / 2)
-			startYPos = -height;
+			_start_y_pos = -height;
 		else
-			startYPos = AppSettings.windowHeight + height;
+			_start_y_pos = AppSettings.windowHeight + height;
 		x = xpos;
 		open();
 	}
@@ -268,7 +270,7 @@ Popup {
 		x = xpos;
 		finalYPos = ypos;
 		if (ypos > AppSettings.pageHeight/2)
-			startYPos = AppSettings.pageHeight;
+			_start_y_pos = AppSettings.pageHeight;
 		open();
 	}
 }

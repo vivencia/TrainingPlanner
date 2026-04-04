@@ -26,20 +26,16 @@ static constexpr std::chrono::seconds MAX_WAIT_TIME{1};
 public:
 	explicit inline tpScanNetwork() : QObject{nullptr} {}
 
-	void scan(const QString &last_working_address)
-	{
-		for (int n{0}, server_id{0}; n <= 255; ++n)
-		{
-			if (!last_working_address.isEmpty())
-			{
+	void scan(const QString &last_working_address) {
+		for (int n{0}, server_id{0}; n <= 255; ++n) {
+			if (!last_working_address.isEmpty()) {
 				server_id = last_working_address.section('.', 4, 4).toInt();
 				if (server_id == 256)
 					server_id = 0;
 			}
 			const QString &ip{base_ip + QString::number(server_id++)};
 
-			if (QThread::currentThread()->isInterruptionRequested())
-			{
+			if (QThread::currentThread()->isInterruptionRequested()) {
 				QThread::currentThread()->quit();
 				return;
 			}
@@ -55,17 +51,13 @@ public:
 		QThread::currentThread()->quit();
 	}
 
-signals:
-	void addressReachable(const QString &ip);
-
-private:
-	bool ping(const QString &ip_addr) const
+	static bool ping(const QString &ip_addr)
 	{
 		bool ping_success{false};
 		const int sockfd{::socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP)};
-		if (sockfd >= 0)
-		{
+		if (sockfd >= 0) {
 			::sockaddr_in addr{};
+			addr.sin_port = 8080;
 			addr.sin_family = AF_INET;
 			addr.sin_addr.s_addr = ::inet_addr(ip_addr.toLatin1().constData());
 
@@ -86,8 +78,7 @@ private:
 			::memcpy(packetdata, &icmp_hdr, sizeof(icmp_hdr));
 			::memcpy(packetdata + sizeof(icmp_hdr), "12345", 5);
 
-			if (::sendto(sockfd, packetdata, sizeof(packetdata), 0, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) > 0)
-			{
+			if (::sendto(sockfd, packetdata, sizeof(packetdata), 0, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) > 0) {
 				if (::recvfrom(sockfd, packetdata, sizeof(packetdata), 0, nullptr, nullptr) > 0)
 					ping_success = true;
 			}
@@ -95,4 +86,8 @@ private:
 		}
 		return ping_success;
 	}
+
+signals:
+	void addressReachable(const QString &ip);
+
 };

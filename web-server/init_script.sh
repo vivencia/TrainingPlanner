@@ -98,7 +98,7 @@ test_tp_server() {
 				echo "TPSERVER up and running($1)."
 				return 0
 			else
-				echo "TPSERVER is running on localhost only."
+				echo "TPSERVER is running on localhost only($1)."
 				return 5
 			fi
 		;;

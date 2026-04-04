@@ -29,7 +29,10 @@ QQmlApplicationEngine *QmlItemManager::_appQmlEngine{nullptr};
 QQuickWindow *QmlItemManager::_appMainWindow{nullptr};
 
 enum MESSAGE_ICON {
-	MI_None = -1, MI_OK = 0, MI_Error = 1, MI_Warning = 2,
+	MI_None,
+	MI_OK,
+	MI_Error,
+	MI_Warning,
 };
 
 QmlItemManager::QmlItemManager(QQmlApplicationEngine *qml_engine) : QObject{nullptr}
@@ -54,7 +57,7 @@ QmlItemManager::QmlItemManager(QQmlApplicationEngine *qml_engine) : QObject{null
 			qDebug() << "*******************Mainwindow not loaded*******************";
 			qDebug() << objUrl;
 			#endif
-			QCoreApplication::exit(-1);
+			qApp->exit(-1);
 		}
 		else {
 			_appMainWindow = qobject_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));
@@ -246,27 +249,35 @@ void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QStri
 
 void QmlItemManager::getWeatherPage()
 {
-	if (!m_weatherPage) {
-		m_weatherComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/Pages/WeatherPage.qml"_L1}, QQmlComponent::Asynchronous};
-		switch (m_weatherComponent->status()) {
-			case QQmlComponent::Ready:
-				createWeatherPage_part2();
-			break;
-			case QQmlComponent::Loading:
-				connect(m_weatherComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
-					createWeatherPage_part2();
-				}, Qt::SingleShotConnection);
-			break;
-			case QQmlComponent::Null:
-			case QQmlComponent::Error:
-				#ifndef QT_NO_DEBUG
-				qDebug() << m_weatherComponent->errorString();
-				#endif
-			break;
-		}
+	if (!m_weatherComponent) {
+		m_weatherComponent = new QQmlComponent{appQmlEngine(), "TpQml.Pages"_L1, "WeatherPage"_L1, QQmlComponent::Asynchronous};
+		connect(m_weatherComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) { getWeatherPage(); });
 	}
-	else
-		appPagesListModel()->openPage(m_weatherPage);
+	else {
+		switch (m_weatherComponent->status()) {
+		case QQmlComponent::Ready:
+			m_weatherComponent->disconnect();
+			break;
+#ifndef QT_NO_DEBUG
+		case QQmlComponent::Loading:
+			return;
+		case QQmlComponent::Null:
+		case QQmlComponent::Error:
+			qDebug() << m_weatherComponent->errorString();
+			return;
+#else
+		default: return;
+#endif
+		}
+		if (!m_weatherPage) {
+			m_weatherPage = static_cast<QQuickItem*>(m_weatherComponent->create(appQmlEngine()->rootContext()));
+			appQmlEngine()->setObjectOwnership(m_weatherPage, QQmlEngine::CppOwnership);
+			m_weatherPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
+			appPagesListModel()->openPage(m_weatherPage, std::move(tr("Weather Forecast")));
+		}
+		else
+			appPagesListModel()->openPage(m_weatherPage);
+	}
 }
 
 void QmlItemManager::getStatisticsPage()
@@ -299,7 +310,7 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 								const QString &image_source, const uint msecs, const QString& button1text, const QString &button2text) const
 {
 	QString title, message;
-	int icon_to_use{MI_Error}; //Only applicable when image_source is an empty string
+	MESSAGE_ICON icon_to_use{MI_Error}; //Only applicable when image_source is an empty string
 	if (message_id < TP_RET_CODE_CUSTOM_ERROR) {
 		icon_to_use = MI_OK;
 		switch (message_id) {
@@ -529,14 +540,6 @@ void QmlItemManager::createSimpleExercisesList(QQuickItem *parentPage)
 	m_simpleExercisesList->setProperty("parent", QVariant::fromValue(parentPage));
 	connect(m_simpleExercisesList, SIGNAL(exerciseSelected(QQuickItem*)), this, SIGNAL(selectedExerciseFromSimpleExercisesList(QQuickItem*)));
 	showSimpleExercisesList();
-}
-
-void QmlItemManager::createWeatherPage_part2()
-{
-	m_weatherPage = static_cast<QQuickItem*>(m_weatherComponent->create(appQmlEngine()->rootContext()));
-	appQmlEngine()->setObjectOwnership(m_weatherPage, QQmlEngine::CppOwnership);
-	m_weatherPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
-	appPagesListModel()->openPage(m_weatherPage, std::move(tr("Weather Forecast")));
 }
 
 void QmlItemManager::createStatisticsPage_part2()

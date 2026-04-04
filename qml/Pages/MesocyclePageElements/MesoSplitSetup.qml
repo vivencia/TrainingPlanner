@@ -36,9 +36,9 @@ Pane {
 		id: mainLayout
 
 		anchors {
-			top: _control.top
-			left: _control.left
-			right: _control.right
+			top: parent.top
+			left: parent.left
+			right: parent.right
 		}
 
 		TPLabel {

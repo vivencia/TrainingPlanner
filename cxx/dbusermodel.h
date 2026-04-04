@@ -53,7 +53,7 @@ Q_PROPERTY(bool mainUserIsClient READ mainUserIsClient NOTIFY appUseModeChanged 
 Q_PROPERTY(bool mainUserIsCoach READ mainUserIsCoach NOTIFY appUseModeChanged FINAL)
 Q_PROPERTY(bool onlineAccount READ onlineAccount WRITE setOnlineAccount NOTIFY onlineUserChanged FINAL)
 Q_PROPERTY(bool mainUserConfigured READ mainUserConfigured NOTIFY mainUserConfigurationFinished FINAL)
-Q_PROPERTY(bool canConnectToServer READ canConnectToServer NOTIFY canConnectToServerChanged FINAL)
+Q_PROPERTY(bool canConnectToServer READ canConnectToServer WRITE setCanConnectToServer NOTIFY canConnectToServerChanged FINAL)
 
 #ifndef Q_OS_ANDROID
 Q_PROPERTY(OnlineUserInfo *allUsers READ allUsers NOTIFY allUsersChanged FINAL)
@@ -157,7 +157,10 @@ public:
 	int userIdxFromFieldValue(const uint field, const QString &value, const bool exact_match = true) const;
 	const QString &userIdFromFieldValue(const uint field, const QString &value) const;
 
-	inline const QString& userId(const int user_idx = 0) const { return m_usersData.at(user_idx).at(USER_FIELD_ID); }
+	inline QString userId(const int user_idx = 0) const
+	{
+		return user_idx >= 0 && user_idx < m_usersData.count() ? m_usersData.at(user_idx).at(USER_FIELD_ID) : QString{};
+	}
 	Q_INVOKABLE inline QString userId_QML(const int row) const { return userId(row); }
 	inline void setUserId(const uint user_idx, const QString &new_id) { m_usersData[user_idx][USER_FIELD_ID] = new_id; }
 
@@ -165,14 +168,13 @@ public:
 	inline const QString &_userName(const uint user_idx) const { return m_usersData.at(user_idx).at(USER_FIELD_NAME); }
 	Q_INVOKABLE inline void setUserName(const int user_idx, const QString &new_name)
 	{
-		if (new_name != _userName(user_idx))
-		{
+		if (new_name != _userName(user_idx)) {
 			m_usersData[user_idx][USER_FIELD_NAME] = new_name;
 			emit userModified(user_idx, USER_FIELD_NAME);
 		}
 	}
 
-	Q_INVOKABLE void requestPasswordFromUser(const QString &dialog_title, const QString &dialog_message);
+	Q_INVOKABLE void requestPasswordFromUser(const int id, const QString &dialog_title, const QString &dialog_message);
 	Q_INVOKABLE void checkPassword(const QString &password);
 	Q_INVOKABLE void setPassword(const QString &passwd);
 	Q_INVOKABLE void getPassword();
@@ -300,7 +302,13 @@ public:
 
 	int getTemporaryUserInfo(OnlineUserInfo *tempUser, const uint userInfouser_idx);
 	bool mainUserConfigured() const;
-	inline bool canConnectToServer() const { return mb_canConnectToServer.has_value() && mb_canConnectToServer.value(); }
+	inline bool canConnectToServer() const { return mb_canConnectToServer; }
+	inline void setCanConnectToServer(const bool can_connect) {
+		if (can_connect != mb_canConnectToServer) {
+			mb_canConnectToServer = can_connect;
+			emit canConnectToServerChanged();
+		}
+	}
 
 	Q_INVOKABLE void acceptUser(OnlineUserInfo *userInfo, const int userInfouser_idx);
 	Q_INVOKABLE void rejectUser(OnlineUserInfo *userInfo, const int userInfouser_idx);
@@ -354,6 +362,7 @@ public slots:
 signals:
 	void userModified(const uint user_idx, const uint field);
 	void labelsChanged();
+	void passwordAcquired(const bool proceed, const int id, const QString &passwd);
 	void appUseModeChanged();
 	void onlineUserChanged();
 	void pendingCoachesResponsesChanged();
@@ -392,10 +401,10 @@ private:
 	QList<QStringList> m_usersData, m_tempUserData;
 	int m_tempRow{-1}, n_devices{0};
 	QString m_onlineAccountId, m_password, m_defaultAvatar, m_emptyString, m_network_msg_title;
-	std::optional<bool> mb_canConnectToServer, mb_singleDevice, mb_userLoggedIn, mb_coachRegistered;
+	std::optional<bool> mb_singleDevice, mb_userLoggedIn, mb_coachRegistered;
 	OnlineUserInfo *m_availableCoaches{nullptr}, *m_pendingClientRequests{nullptr}, *m_pendingCoachesResponses{nullptr},
-						*m_tempUserInfo{nullptr}, *m_currentCoaches{nullptr}, *m_currentClients{nullptr}, *m_currentCoachesAndClients{nullptr};
-	bool mb_coachPublic, mb_MainUserInfoChanged;
+				*m_tempUserInfo{nullptr}, *m_currentCoaches{nullptr}, *m_currentClients{nullptr}, *m_currentCoachesAndClients{nullptr};
+	bool mb_canConnectToServer{false}, mb_coachPublic{false}, mb_MainUserInfoChanged{false};
 	QTimer *m_mainTimer{nullptr};
 
 	DBUserTable *m_db{nullptr};

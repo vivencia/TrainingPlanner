@@ -11,13 +11,19 @@ TPPopup {
 	width: AppSettings.pageWidth * 0.8
 	height: mainLayout.childrenRect.height * 1.1
 
+//public:
 	required property string title
 	required property string message
+	required property int id
+
+	signal passwordAcquired(bool proceed, int id, string passwd);
 
 	onOpened: {
 		txtPassword.clear();
 		txtPassword.forceActiveFocus();
 	}
+
+	onCloseActionExeced: passwordAcquired(false, -1, "");
 
 	ColumnLayout {
 		id: mainLayout
@@ -64,7 +70,7 @@ TPPopup {
 			id: txtPassword
 			Layout.fillWidth: true
 
-			onEnterOrReturnKeyPressed: _passwdDlg.acceptInput();
+			onEnterOrReturnKeyPressed: _passwdDlg.acceptInput(true);
 		}
 
 		RowLayout {
@@ -79,7 +85,7 @@ TPPopup {
 				enabled: txtPassword.text.length > 4
 				Layout.alignment: Qt.AlignHCenter
 
-				onClicked: _passwdDlg.acceptInput();
+				onClicked: _passwdDlg.acceptInput(true);
 			}
 
 			TPButton {
@@ -88,13 +94,13 @@ TPPopup {
 				autoSize: true
 				Layout.alignment: Qt.AlignHCenter
 
-				onClicked: _passwdDlg.closePopup();
+				onClicked: _passwdDlg.acceptInput(false);
 			}
 		}
 	}
 
-	function acceptInput(): void {
-		AppUserModel.checkPassword(txtPassword.text);
+	function acceptInput(proceed: bool): void {
+		passwordAcquired(proceed, _passwdDlg.id, txtPassword.text);
 		_passwdDlg.closePopup();
 	}
 }

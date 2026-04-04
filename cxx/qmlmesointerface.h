@@ -154,7 +154,6 @@ private:
 	QmlMesoSplitInterface *m_splitsPage{nullptr};
 	QmlMesoCalendarInterface *m_calendarPage{nullptr};
 
-	void createMesocyclePage(const bool new_meso);
-	void createMesocyclePage_part2();
+	void createMesocyclePage();
 	void verifyMesoRequiredFieldsStatus();
 };
