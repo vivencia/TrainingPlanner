@@ -41,7 +41,6 @@ public:
 	Q_INVOKABLE void exitApp();
 	Q_INVOKABLE void chooseFileToImport();
 	Q_INVOKABLE void displayImportDialogMessageAfterMesoSelection(const int meso_idx);
-	Q_INVOKABLE void exportMeso(const uint meso_idx, const bool share);
 	Q_INVOKABLE void showFirstTimeDialog();
 	Q_INVOKABLE void getSettingsPage();
 	Q_INVOKABLE void getUserPage();

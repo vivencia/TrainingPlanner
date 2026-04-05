@@ -3,6 +3,7 @@
 
 #include "openweathermapbackend.h"
 #include "../qmlitemmanager.h"
+#include "../osinterface.h"
 #include "../tpsettings.h"
 #include "../tputils.h"
 
@@ -234,13 +235,10 @@ void OpenWeatherMapBackend::getCityFromCoordinates(const QGeoCoordinate &coordin
 
 	QNetworkRequest net_request{url};
 	QNetworkReply *reply{m_networkManager->get(net_request)};
-	connect(reply, &QNetworkReply::finished, this, [this,reply,coordinate] ()
-	{
-		if (!reply->error())
-		{
+	connect(reply, &QNetworkReply::finished, this, [this,reply,coordinate] () {
+		if (!reply->error()) {
 			parseOpenWeatherReverseGeocodingReply(reply->readAll());
-			if (!m_citiesFromCoords.isEmpty())
-			{
+			if (!m_citiesFromCoords.isEmpty()) {
 				m_locationName = m_citiesFromCoords.count() == 2 ? m_citiesFromCoords.at(1) : m_citiesFromCoords.at(0);
 				emit receivedCityFromCoordinates(m_locationName, coordinate);
 			}
@@ -249,13 +247,13 @@ void OpenWeatherMapBackend::getCityFromCoordinates(const QGeoCoordinate &coordin
 				qDebug() << "OpenWeatherMapBackend::getCityFromCoordinates Could not parse network reply:  ", reply->readAll();
 			#endif
 		}
-		#ifndef QT_NO_DEBUG
-		else
+		else {
+			appOsInterface()->checkInternetConnection();
 			qDebug() << "OpenWeatherMapBackend::getCityFromCoordinates Network reply:  ", reply->errorString();
-		#endif
+		}
 	});
 	connect(reply, &QNetworkReply::errorOccurred, this, [=] (QNetworkReply::NetworkError code) {
-		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_UNKNOWN_ERROR, reply->errorString() + '(' + QString::number(code) + ')');
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_UNKNOWN_ERROR, reply->errorString() % '(' % QString::number(code) % ')');
 	});
 
 	#ifndef QT_NO_DEBUG
@@ -275,8 +273,7 @@ void OpenWeatherMapBackend::searchForCities(const QString &search_term)
 	url.setQuery(query);
 	QNetworkRequest net_request{url};
 	QNetworkReply *reply{m_networkManager->get(net_request)};
-	connect(reply, &QNetworkReply::finished, this, [this,reply] ()
-	{
+	connect(reply, &QNetworkReply::finished, this, [this,reply] () {
 		parseOpenWeatherGeocodingReply(reply->readAll());
 		if (!m_foundLocations.isEmpty())
 			emit receivedCitiesFromSearch(&m_foundLocations);
@@ -302,8 +299,7 @@ void OpenWeatherMapBackend::requestWeatherInfoFromNet(const QGeoCoordinate &coor
 
 void OpenWeatherMapBackend::requestWeatherInfo(const QString &city, const QGeoCoordinate &coordinate)
 {
-	if (!city.isEmpty())
-	{
+	if (!city.isEmpty()) {
 		m_locationName = city;
 		requestWeatherInfoFromNet(coordinate);
 	}
@@ -315,21 +311,19 @@ void OpenWeatherMapBackend::handleWeatherInfoRequestReply(QNetworkReply *reply, 
 		return;
 
 	bool parsed{false};
-	if (!reply->error())
-	{
+	if (!reply->error()) {
 		const parseOpenWeatherMapReply netData{QString::fromUtf8(reply->readAll())};
 		parsed = netData.parsedOK();
-		if (parsed)
-		{
+		if (parsed) {
 			st_LocationInfo currentLocation;
 			currentLocation.m_name = m_locationName;
 			currentLocation.m_coordinate = coordinate;
 
 			QList<st_WeatherInfo> weatherDetails;
-			for (uint i{0}; i < netData.forecastDays(); ++i)
-			{
+			for (uint i{0}; i < netData.forecastDays(); ++i) {
 				st_WeatherInfo weatherInfo;
-				weatherInfo.m_coordinates = '(' + std::move(QString::number(coordinate.latitude())) + ',' + std::move(QString::number(coordinate.longitude())) + ')';
+				weatherInfo.m_coordinates = std::move('(' % QString::number(coordinate.latitude()) % ',' %
+																					QString::number(coordinate.longitude()) % ')');
 				weatherInfo.m_dayOfWeek = std::move(netData.date(i));
 				weatherInfo.m_weatherIconId = std::move(netData.weather_icon(i));
 				weatherInfo.m_weatherDescription = std::move(netData.weather_description(i));
@@ -340,16 +334,15 @@ void OpenWeatherMapBackend::handleWeatherInfoRequestReply(QNetworkReply *reply, 
 				weatherInfo.m_sunrise = std::move(netData.sunrise(i));
 				weatherInfo.m_sunset = std::move(netData.sunset(i));
 
-				switch (i)
-				{
-					default:
-						weatherInfo.m_temp_max = std::move(netData.max_temperature(i));
-						weatherInfo.m_temp_min = std::move(netData.min_temperature(i));
+				switch (i) {
+				default:
+					weatherInfo.m_temp_max = std::move(netData.max_temperature(i));
+					weatherInfo.m_temp_min = std::move(netData.min_temperature(i));
 					break;
-					case 0:
-						weatherInfo.m_temperature = std::move(netData.temperature(0));
-						weatherInfo.m_temperature_feel = std::move(netData.feel_temperature(0));
-						weatherInfo.m_provider_name = std::move("www.openweathermap.org"_L1);
+				case 0:
+					weatherInfo.m_temperature = std::move(netData.temperature(0));
+					weatherInfo.m_temperature_feel = std::move(netData.feel_temperature(0));
+					weatherInfo.m_provider_name = std::move("www.openweathermap.org"_L1);
 					break;
 				}
 				weatherDetails.append(weatherInfo);
@@ -357,49 +350,44 @@ void OpenWeatherMapBackend::handleWeatherInfoRequestReply(QNetworkReply *reply, 
 			emit weatherInformation(currentLocation, weatherDetails);
 		}
 	}
-	#ifndef QT_NO_DEBUG
-	if (!parsed)
-	{
-		if (reply->error())
+	if (!parsed) {
+		if (reply->error()) {
+			appOsInterface()->checkInternetConnection();
 			qDebug() << "OpenWeatherMapBackend::handleWeatherInfoRequestReply Error: ", reply->errorString();
+		}
 		else
 			qDebug() << "OpenWeatherMapBackend::handleWeatherInfoRequestReply Failed to parse current weather JSON.", reply->readAll();
 	}
-	#endif
 	reply->deleteLater();
 }
 
 void OpenWeatherMapBackend::parseOpenWeatherReverseGeocodingReply(const QByteArray &replyData)
 {
-	if (replyData.length() > 50)
-	{
+	if (replyData.length() > 50) {
 		bool bCanInsert{true};
 		QString word;
-		for (const auto &chr : std::as_const(replyData))
-		{
+		for (const auto &chr : std::as_const(replyData)) {
 			if (QChar::isLetterOrNumber(chr))
 				word.append(chr);
-			else
-			{
-				switch (chr)
-				{
-					case ' ':
-						word.append(chr);
+			else {
+				switch (chr) {
+				case ' ':
+					word.append(chr);
 					break;
-					case ':':
-						bCanInsert = (word == appSettings()->userLocale().left(2));
-						word.clear();
+				case ':':
+					bCanInsert = (word == appSettings()->userLocale().left(2));
+					word.clear();
 					break;
-					case ',':
-						if (bCanInsert)
-						{
-							m_citiesFromCoords.append(std::move(word));
-							if (m_citiesFromCoords.count() == 2)
-								return;
-						}
-						word.clear();
-					default:
-						continue;
+				case ',':
+					if (bCanInsert) {
+						m_citiesFromCoords.append(std::move(word));
+						if (m_citiesFromCoords.count() == 2)
+							return;
+					}
+					word.clear();
+					break;
+				default:
+					continue;
 				}
 			}
 		}
@@ -421,74 +409,66 @@ void OpenWeatherMapBackend::parseOpenWeatherGeocodingReply(const QByteArray &rep
 	QString::const_iterator itr{data.constBegin()};
 	const QString::const_iterator itr_end{data.constEnd()};
 	do {
-		if (ignore_until_next_bracket)
-		{
+		if (ignore_until_next_bracket) {
 			if (*itr != '}')
 				continue;
 		}
-		if (((*itr).isLetterOrNumber()))
-		{
+		if (((*itr).isLetterOrNumber())) {
 			if (word_start == 0)
 				word_start = pos;
 			else
 				word_end = pos;
 		}
 		else {
-			switch ((*itr).cell())
-			{
+			switch ((*itr).cell()) {
 				case '-':
-					if ((*(itr-1)).cell() == ':')
-						word_start = pos;
+				if ((*(itr-1)).cell() == ':')
+					word_start = pos;
 				break;
-				case ':':
-					word = data.sliced(word_start, word_end-word_start+1);
-					if (word.contains("local_"_L1))
-						ignore_until_next_bracket = true;
-					else
-					{
-						if (word.contains("name"_L1))
-							strInfo = &(tempData.m_name);
-						else if (word.contains("lat"_L1))
-						{
-							tempData.m_coordinate.setLatitude(0);
-							strInfo = &(tempData.m_strCoordinate);
-						}
-						else if (word.contains("lon"_L1))
-							strInfo = &(tempData.m_strCoordinate);
-						else if (word.contains("cou"_L1))
-							strInfo = &(tempData.m_country);
-						else
-							strInfo = &(tempData.m_state);
+			case ':':
+				word = data.sliced(word_start, word_end-word_start+1);
+				if (word.contains("local_"_L1))
+					ignore_until_next_bracket = true;
+				else {
+					if (word.contains("name"_L1))
+						strInfo = &(tempData.m_name);
+					else if (word.contains("lat"_L1)) {
+						tempData.m_coordinate.setLatitude(0);
+						strInfo = &(tempData.m_strCoordinate);
 					}
-					word_start = word_end = 0;
+					else if (word.contains("lon"_L1))
+						strInfo = &(tempData.m_strCoordinate);
+					else if (word.contains("cou"_L1))
+						strInfo = &(tempData.m_country);
+					else
+						strInfo = &(tempData.m_state);
+				}
+				word_start = word_end = 0;
 				break;
 				case ',':
-					if (strInfo)
-					{
-						*strInfo = std::move(data.sliced(word_start, word_end-word_start+1));
-						bool ok{false};
-						strInfo->first(2).toInt(&ok);
-						if (ok)
-						{
-							if (tempData.m_coordinate.latitude() == 0)
-								tempData.m_coordinate.setLatitude(strInfo->toDouble());
-							else
-								tempData.m_coordinate.setLongitude(strInfo->toDouble());
-						}
-						strInfo = nullptr;
-						word_start = word_end = 0;
+				if (strInfo) {
+					*strInfo = std::move(data.sliced(word_start, word_end-word_start+1));
+					bool ok{false};
+					strInfo->first(2).toInt(&ok);
+					if (ok) {
+						if (tempData.m_coordinate.latitude() == 0)
+							tempData.m_coordinate.setLatitude(strInfo->toDouble());
+						else
+							tempData.m_coordinate.setLongitude(strInfo->toDouble());
 					}
-				break;
+					strInfo = nullptr;
+					word_start = word_end = 0;
+				}
+					break;
 				case '}':
-					if (ignore_until_next_bracket)
-						ignore_until_next_bracket = false;
-					else
-					{
-						*strInfo = std::move(data.sliced(word_start, word_end-word_start+1));
-						strInfo = nullptr;
-						m_foundLocations.append(tempData);
-						word_start = word_end = 0;
-					}
+				if (ignore_until_next_bracket)
+					ignore_until_next_bracket = false;
+				else {
+					*strInfo = std::move(data.sliced(word_start, word_end-word_start+1));
+					strInfo = nullptr;
+					m_foundLocations.append(tempData);
+					word_start = word_end = 0;
+				}
 				break;
 				default: continue;
 			}

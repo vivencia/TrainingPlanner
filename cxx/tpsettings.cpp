@@ -39,6 +39,7 @@ void TPSettings::globalSettingsInit()
 	m_globalPropertyNames.insert(APP_VERSION_INDEX, std::move("appVersion"_L1));
 	m_globalPropertyNames.insert(CURRENT_USER, std::move("currentUser"_L1));
 	m_globalPropertyNames.insert(SERVER_ADDRESS, std::move("serverAddress"_L1));
+	m_globalPropertyNames.insert(SERVER_PORT, std::move("serverPort"_L1));
 	getScreenMeasures();
 }
 

@@ -90,6 +90,120 @@ OSInterface::OSInterface(QObject *parent) : QObject{parent}
 	checkServer(appSettings()->serverAddress(), appSettings()->serverPort());
 
 #ifdef Q_OS_ANDROID
+	initAndroidInterface();
+#endif
+}
+
+void OSInterface::checkServer(QString address, QString port, QNetworkInterface interface)
+{
+	if (port.isEmpty())
+		port = std::move("8080"_L1);
+
+	if (address.isEmpty()) {
+#ifdef TPSERVER_MACHINE
+		checkLocalServer();
+#elif LOCAL_TPSERVER
+		if (interface.isValid()) {
+			address = std::move(interface.addressEntries().constFirst().ip().toString());
+			checkNetworkInterfaces();
+		}
+		else
+			qDebug() << "Error: OsInterface::checkServer() << inferface argument is not valid and address is empty"
+#else
+		checkInternetConnection();
+#endif
+		return;
+	}
+
+	auto conn{std::make_shared<QMetaObject::Connection>()};
+	*conn = connect(appOnlineServices(), &TPOnlineServices::serverStatus, this, [this,conn,address,port,interface]
+							(const uint online_status, const QString &server_address, const QString &server_port) mutable {
+		disconnect(*conn);
+		bool success{false};
+		if (interface.isValid()) {
+			mFailedInterface = std::move(QNetworkInterface{});
+			mNetworkInterface = std::move(interface);
+			switch (online_status) {
+			case TP_RET_CODE_SUCCESS:
+				success = true;
+				break;
+			case TP_RET_CODE_SERVER_UNREACHABLE:
+				if (interface.isValid()) {
+					mFailedInterface = std::move(interface);
+					mNetworkInterface = std::move(QNetworkInterface{});
+				}
+				break;
+			case TP_RET_CODE_SERVER_PAUSED:
+				break;
+			}
+			if (!m_currentNetworkStatus[interfaceMessage].has_value() || m_currentNetworkStatus[interfaceMessage].value() != success) {
+				QString message{tr("Network interface: ")};
+				if (mNetworkInterface.isValid()) {
+					switch (mNetworkInterface.type()) {
+					case QNetworkInterface::Loopback:	message += "Loopback"_L1;	break;
+					case QNetworkInterface::Virtual:	message += "Virtual"_L1;	break;
+					case QNetworkInterface::Ethernet:	message += "Ethernet"_L1;	break;
+					case QNetworkInterface::Wifi:		message += "WiFi"_L1;		break;
+					default:							message += "Unknown"_L1;	break;
+					}
+					message += '(' % mNetworkInterface.name() % "@ "_L1 % server_address % ':' % server_port;
+					if (!success)
+						message += '\n' % tr("Server paused - Until it returns to the normal status, all online services will fail");
+				}
+				else
+					message += tr("Unable to access the local server: Attempting to use another interface");
+				setNetStatus(interfaceMessage, success, std::move(message));
+			}
+		}
+		else {
+			switch (online_status) {
+			case TP_RET_CODE_SUCCESS:
+				success = true;
+				break;
+			case TP_RET_CODE_SERVER_UNREACHABLE:
+				break;
+			case TP_RET_CODE_SERVER_PAUSED:
+				break;
+			}
+			if (!success) {
+#ifdef TPSERVER_MACHINE
+				checkLocalServer();
+#elif LOCAL_TPSERVER
+				checkNetworkInterfaces();
+#else
+				checkInternetConnection();
+#endif
+			}
+		}
+	});
+	appOnlineServices()->checkServer(address, port);
+}
+
+void OSInterface::checkInternetConnection()
+{
+	bool is_connected{false};
+	if (networkInterfaceOK()) {
+		QTcpSocket checkConnectionSocket;
+		checkConnectionSocket.connectToHost("google.com"_L1, 443); // 443 for HTTPS or use Port 80 for HTTP
+		checkConnectionSocket.waitForConnected(2000);
+		is_connected = checkConnectionSocket.state() == QTcpSocket::ConnectedState;
+		checkConnectionSocket.close();
+	}
+	if (!m_currentNetworkStatus[internetMessage].has_value() || m_currentNetworkStatus[internetMessage].value() != is_connected) {
+		setNetStatus(internetMessage, is_connected, std::move(is_connected ?
+									tr("Device is connected to the internet") : tr("Device is not connected to the internet")));
+		emit internetStatusChanged();
+	}
+
+#ifndef LOCAL_TPSERVER //TODO
+	if (is_connected)
+		checkServer(remote_server_address, remove_server_port);
+#endif
+}
+
+#ifdef Q_OS_ANDROID
+void OSInterface::initAndroidInterface()
+{
 	m_workoutDoneMessage = std::move(tr("Your training routine seems to go well. Workout for the day is concluded"));
 	const QJniObject &context{QNativeInterface::QAndroidApplication::context()};
 
@@ -141,10 +255,74 @@ OSInterface::OSInterface(QObject *parent) : QObject{parent}
 	});
 
 	m_AndroidNotification = new TPAndroidNotification{this};
-#endif
 }
 
-#ifdef Q_OS_ANDROID
+void OSInterface::setFileUrlReceived(const QString &url) const
+{
+	const QString &androidUrl{appUtils()->getCorrectPath(url)};
+	if (QFileInfo::exists(androidUrl))
+		appItemManager()->openRequestedFile(androidUrl);
+	else
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_FILE_NOT_FOUND, url);
+}
+
+void OSInterface::setFileReceivedAndSaved(const QString &url) const
+{
+	const QString &androidUrl{appUtils()->getCorrectPath(url)};
+	if (QFileInfo::exists(androidUrl))
+		appItemManager()->openRequestedFile(androidUrl);
+	else
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_FILE_NOT_FOUND, url);
+}
+
+void OSInterface::onActivityResult(int requestCode, int resultCode)
+{
+	#ifndef QT_NO_DEBUG
+	// we're getting RESULT_OK only if edit is done
+	if (resultCode == -1)
+		qDebug() << "OSInterface::onActivityResult() -> Send Activity Result OK"_L1;
+	else if (resultCode == 0)
+		qDebug() << "OSInterface::onActivityResult() -> Send Activity Result Canceled"_L1;
+	else
+		qDebug() << "OSInterface::onActivityResult() -> Send Activity wrong result code: "_L1 <<
+															resultCode << " from request: "_L1 << requestCode;
+	#endif
+	emit activityFinishedResult(requestCode, resultCode);
+}
+
+void OSInterface::execNotification(const short action, const short id)
+{
+	for (qsizetype i{0}; i < m_notifications.count(); ++i) {
+		if (m_notifications.at(i)->id == id && !m_notifications.at(i)->resolved) {
+			switch (action) {
+			case NOTIFY_DO_NOTHING:
+				m_notifications.at(i)->resolved = true;
+				break;
+			case NOTIFY_START_WORKOUT:
+				appUserModel()->actualMesoModel()->startTodaysWorkout();
+				m_notifications.at(i)->resolved = true;
+				break;
+			}
+		}
+	}
+}
+
+void OSInterface::removeNotification(notificationData *data)
+{
+	m_AndroidNotification->cancelNotification(data->id);
+	if (data->action == NOTIFY_START_WORKOUT) {
+		if (data->resolved) { //Send a new notification with an innocuous greeting message.
+			data->resolved = false;
+			data->message = m_workoutDoneMessage;
+			data->action = NOTIFY_DO_NOTHING;
+			m_AndroidNotification->sendNotification(data);
+			return;
+		}
+	}
+	m_notifications.removeOne(data);
+	delete data;
+}
+
 void OSInterface::checkPendingIntents() const
 {
 	const QJniObject &activity{QNativeInterface::QAndroidApplication::context()};
@@ -157,9 +335,9 @@ void OSInterface::checkPendingIntents() const
 			activity.object());
 		return;
 	}
-	#ifndef QT_NO_DEBUG
+#ifndef QT_NO_DEBUG
 	qDebug() << "OSInterface::checkPendingIntents() -> Activity not valid"_L1;
-	#endif
+#endif
 }
 
 /*
@@ -170,70 +348,94 @@ void OSInterface::checkPendingIntents() const
   *If a requestId was set we want to get the Activity Result back (recommended)
   *We need the Request Id and Result Id to control our workflow
 */
-bool OSInterface::sendFile(const QString &filePath, const QString &title, const QString &mimeType, const int &requestId) const
+bool OSInterface::shareFile(const QString &filePath, const int requestId, const QString &title, const QString &mimeType) const
 {
-	const QJniObject &jsPath{QJniObject::fromString(filePath)};
-	const QJniObject &jsTitle{QJniObject::fromString(title)};
-	const QJniObject &jsMimeType{QJniObject::fromString(mimeType)};
-	const jboolean ok{QJniObject::callStaticMethod<jboolean>(
-								"org/vivenciasoftware/TrainingPlanner/QShareUtils",
-								"sendFile",
-								"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)Z",
-								jsPath.object<jstring>(), jsTitle.object<jstring>(), jsMimeType.object<jstring>(), requestId)};
+	/*setExportFileName("app_logo.png");
+	if (!QFile::exists(exportFileName())) {
+		QFile::copy(":/images/app_logo.png", exportFileName());
+		QFile::setPermissions(exportFileName(), QFileDevice::ReadUser|QFileDevice::WriteUser|QFileDevice::ReadGroup|QFileDevice::WriteGroup|QFileDevice::ReadOther|QFileDevice::WriteOther);
+	}
+	sendFile(exportFileName(), tr("Send file"), u"image/png"_s, 10);*/
 
-	#ifndef QT_NO_DEBUG
+	const QJniObject &jsPath{QJniObject::fromString(filePath)};
+	const QJniObject &jsTitle{QJniObject::fromString(title.isEmpty() ? tr("Send file") : title )};
+	const QJniObject &jsMimeType{QJniObject::fromString(mimeType.isEmpty() ? "text/plain"_L1 : mimeType)};
+	const jboolean ok{QJniObject::callStaticMethod<jboolean>(
+		"org/vivenciasoftware/TrainingPlanner/QShareUtils",
+		"sendFile",
+		"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)Z",
+		jsPath.object<jstring>(), jsTitle.object<jstring>(), jsMimeType.object<jstring>(), requestId)};
+
+#ifndef QT_NO_DEBUG
 	if (!ok)
 		qDebug() << "OSInterface::OSInterface::sendFile() -> Unable to resolve activity from Java"_L1;
-	#endif
+#endif
 	return ok;
 }
 
-void OSInterface::androidOpenURL(const QString &address) const
+void OSInterface::openURL(const QString &address) const
 {
-	QString url;
-	if (!address.startsWith("http"_L1))
-		url = std::move("https://"_L1 + address);
-	else
-		url = address;
+	if (!address.isEmpty()) {
+		QString url;
+		if (!address.startsWith("http"_L1))
+			url = std::move("https://"_L1 % address);
+		else
+			url = address;
 
-	const QJniObject &jsPath{QJniObject::fromString(url)};
-	const jboolean ok{QJniObject::callStaticMethod<jboolean>(
-													"org/vivenciasoftware/TrainingPlanner/QShareUtils",
-													"openURL",
-													"(Ljava/lang/String;)Z",
-													jsPath.object<jstring>())};
-	#ifndef QT_NO_DEBUG
-	if (!ok)
-		qDebug() << "OSInterface::OSInterface::androidOpenURL() -> Unable to open the address: "_L1 << address;
-	#endif
+		const QJniObject &jsPath{QJniObject::fromString(url)};
+		const jboolean ok{QJniObject::callStaticMethod<jboolean>(
+			"org/vivenciasoftware/TrainingPlanner/QShareUtils",
+			"openURL",
+			"(Ljava/lang/String;)Z",
+			jsPath.object<jstring>())};
+#ifndef QT_NO_DEBUG
+		if (!ok)
+			qDebug() << "OSInterface::OSInterface::androidOpenURL() -> Unable to open the address: "_L1 << address;
+#endif
+	}
 }
 
-bool OSInterface::androidSendMail(const QString &address, const QString &subject, const QString &attachment) const
+bool OSInterface::sendMail(const QString &address, const QString &subject, const QString &attachment) const
 {
 	const QString &attachment_file{attachment.isEmpty() ? QString() : "file://"_L1 + attachment};
 	const QJniObject &jsAddress{QJniObject::fromString(address)};
 	const QJniObject &jsSubject{QJniObject::fromString(subject)};
 	const QJniObject &jsAttach{QJniObject::fromString(attachment_file)};
 	const jboolean ok{QJniObject::callStaticMethod<jboolean>(
-										"org/vivenciasoftware/TrainingPlanner/QShareUtils",
-										"sendEmail",
-										"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z",
-										jsAddress.object<jstring>(), jsSubject.object<jstring>(), jsAttach.object<jstring>())};
+		"org/vivenciasoftware/TrainingPlanner/QShareUtils",
+		"sendEmail",
+		"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z",
+		jsAddress.object<jstring>(), jsSubject.object<jstring>(), jsAttach.object<jstring>())};
+
+	if (ok && appUserModel()->email(0).contains("gmail.com"_L1)) {
+		const QString &gmailURL(u"https://mail.google.com/mail/u/%1/?view=cm&to=%2&su=%3"_s.arg(appUserModel()->email(0), address, subject));
+		openURL(gmailURL);
+	}
 	return ok;
 }
 
-bool OSInterface::viewFile(const QString &filePath, const QString &title) const
+bool OSInterface::viewExternalFile(const QString &filePath) const
 {
-	const QJniObject &jsPath{QJniObject::fromString(filePath)};
-	const QJniObject &jsTitle{QJniObject::fromString(title)};
+	const QString &filename{appUtils()->getCorrectPath(filePath)};
+	if (!appUtils()->canReadFile(filename))
+		return false;
+	const QString &localFile{appSettings()->localAppFilesDir() + "tempfile"_L1 + filename.last(4)};
+	static_cast<void>(QFile::remove(localFile));
+	if (!appUtils()->copyFile(filename, localFile)) {
+		qDebug() << "could not copy:  " << filename << "    to   " << localFile;
+		return false;
+	}
+
+	const QJniObject &jsPath{QJniObject::fromString(localFile)};
+	const QJniObject &jsTitle{QJniObject::fromString(tr("View file with..."))};
 	const jboolean ok{QJniObject::callStaticMethod<jboolean>("org/vivenciasoftware/TrainingPlanner/QShareUtils",
-													"viewFile",
-													"(Ljava/lang/String;Ljava/lang/String;)Z",
-													jsPath.object<jstring>(), jsTitle.object<jstring>())};
-	#ifndef QT_NO_DEBUG
+															 "viewFile",
+															 "(Ljava/lang/String;Ljava/lang/String;)Z",
+															 jsPath.object<jstring>(), jsTitle.object<jstring>())};
+#ifndef QT_NO_DEBUG
 	if (!ok)
 		qDebug() << "OSInterface::OSInterface::androidOpenURL() -> Unable to resolve view activity from Java"_L1;
-	#endif
+#endif
 	return ok;
 }
 
@@ -319,72 +521,6 @@ void OSInterface::checkWorkouts()
 	}*/
 }
 
-void OSInterface::setFileUrlReceived(const QString &url) const
-{
-	const QString &androidUrl{appUtils()->getCorrectPath(url)};
-	if (QFileInfo::exists(androidUrl))
-		appItemManager()->openRequestedFile(androidUrl);
-	else
-		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_FILE_NOT_FOUND, url);
-}
-
-void OSInterface::setFileReceivedAndSaved(const QString &url) const
-{
-	const QString &androidUrl{appUtils()->getCorrectPath(url)};
-	if (QFileInfo::exists(androidUrl))
-		appItemManager()->openRequestedFile(androidUrl);
-	else
-		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_FILE_NOT_FOUND, url);
-}
-
-void OSInterface::onActivityResult(int requestCode, int resultCode)
-{
-	#ifndef QT_NO_DEBUG
-	// we're getting RESULT_OK only if edit is done
-	if (resultCode == -1)
-		qDebug() << "OSInterface::onActivityResult() -> Send Activity Result OK"_L1;
-	else if (resultCode == 0)
-		qDebug() << "OSInterface::onActivityResult() -> Send Activity Result Canceled"_L1;
-	else
-		qDebug() << "OSInterface::onActivityResult() -> Send Activity wrong result code: "_L1 <<
-															resultCode << " from request: "_L1 << requestCode;
-	#endif
-	emit activityFinishedResult(requestCode, resultCode);
-}
-
-void OSInterface::execNotification(const short action, const short id)
-{
-	for (qsizetype i{0}; i < m_notifications.count(); ++i) {
-		if (m_notifications.at(i)->id == id && !m_notifications.at(i)->resolved) {
-			switch (action) {
-			case NOTIFY_DO_NOTHING:
-				m_notifications.at(i)->resolved = true;
-				break;
-			case NOTIFY_START_WORKOUT:
-				appMesoModel()->todaysWorkout();
-				m_notifications.at(i)->resolved = true;
-				break;
-			}
-		}
-	}
-}
-
-void OSInterface::removeNotification(notificationData *data)
-{
-	m_AndroidNotification->cancelNotification(data->id);
-	if (data->action == NOTIFY_START_WORKOUT) {
-		if (data->resolved) { //Send a new notification with an innocuous greeting message.
-			data->resolved = false;
-			data->message = m_workoutDoneMessage;
-			data->action = NOTIFY_DO_NOTHING;
-			m_AndroidNotification->sendNotification(data);
-			return;
-		}
-	}
-	m_notifications.removeOne(data);
-	delete data;
-}
-
 extern "C"
 {
 
@@ -398,7 +534,7 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_setF
 }
 
 JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_setFileReceivedAndSaved(JNIEnv *env,
-																										jobject obj, jstring url)
+																									jobject obj, jstring url)
 {
 	const char *urlStr = env->GetStringUTFChars(url, NULL);
 	Q_UNUSED (obj)
@@ -408,7 +544,7 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_setF
 }
 
 JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_fireActivityResult(JNIEnv *env, jobject obj,
-																								jint requestCode, jint resultCode)
+																							   jint requestCode, jint resultCode)
 {
 	Q_UNUSED (obj)
 	Q_UNUSED (env)
@@ -417,7 +553,7 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_fire
 }
 
 JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_notificationActionReceived(JNIEnv *env,
-																								jobject obj, jint action, jint id)
+																									   jobject obj, jint action, jint id)
 {
 	Q_UNUSED (obj)
 	//const char *actionStr = env->GetStringUTFChars(action, NULL);
@@ -427,8 +563,10 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_noti
 }
 } //extern "C"
 
-#else
+#endif //Q_OS_ANDROID
 
+#ifndef Q_OS_ANDROID
+#ifdef Q_OS_LINUX
 void OSInterface::processArguments() const
 {
 	const QStringList &args{qApp->arguments()};
@@ -455,36 +593,48 @@ void OSInterface::restartApp()
 	// When the main event loop is not running, the above function does nothing, so we must actually exit, then
 	::exit(0);
 }
+
+void OSInterface::openURL(const QString &address) const
+{
+	if (!address.isEmpty()) {
+		auto *__restrict proc{new QProcess{}};
+		proc->startDetached("xdg-open"_L1, {address});
+		delete proc;
+	}
+}
+
+void OSInterface::sendMail(const QString &address, const QString &subject, const QString &attachment_file) const
+{
+	const QStringList &args{QStringList{6} << std::move("--utf8"_L1) << std::move("--subject"_L1) <<
+							std::move(QChar{'\''} % subject % QChar{'\''}) << std::move("--attach"_L1) << attachment_file <<
+							std::move(QChar{'\''} % address % QChar{'\''})};
+	auto *__restrict proc{new QProcess};
+	proc->start("xdg-email"_L1, args);
+	connect(proc, &QProcess::finished, this, [&,proc,address,subject] (int exit_code, QProcess::ExitStatus) {
+		if (exit_code != 0) {
+			if (appUserModel()->email(0).contains("gmail.com"_L1)) {
+				const QString &gmailURL{u"https://mail.google.com/mail/u/%1/?view=cm&to=%2&su=%3"_s.arg(
+					appUserModel()->email(0), address, subject)};
+				openURL(gmailURL);
+			}
+		}
+		proc->deleteLater();
+	});
+}
+
+void OSInterface::viewExternalFile(const QString &filename) const
+{
+	const QString &_filename{appUtils()->getCorrectPath(filename)};
+	if (!appUtils()->canReadFile(_filename))
+		return;
+	openURL(_filename);
+}
+#endif //Q_OS_LINUX
 #endif //Q_OS_ANDROID
 
 QString OSInterface::deviceID() const
 {
 	return QSysInfo::machineUniqueId();
-}
-
-void OSInterface::shareFile(const QString &fileName) const
-{
-	#ifdef Q_OS_ANDROID
-	/*setExportFileName("app_logo.png");
-	if (!QFile::exists(exportFileName())) {
-		QFile::copy(":/images/app_logo.png", exportFileName());
-		QFile::setPermissions(exportFileName(), QFileDevice::ReadUser|QFileDevice::WriteUser|QFileDevice::ReadGroup|QFileDevice::WriteGroup|QFileDevice::ReadOther|QFileDevice::WriteOther);
-	}
-	sendFile(exportFileName(), tr("Send file"), u"image/png"_s, 10);*/
-	sendFile(fileName, tr("Send file"), "text/plain"_L1, 10);
-	#endif
-}
-void OSInterface::openURL(const QString &address) const
-{
-	if (!address.isEmpty()) {
-		#ifdef Q_OS_ANDROID
-		androidOpenURL(address);
-		#else
-		auto *__restrict proc{new QProcess{}};
-		proc->startDetached("xdg-open"_L1, {address});
-		delete proc;
-		#endif
-	}
 }
 
 void OSInterface::startMessagingApp(const QString &phone, const QString &appname) const
@@ -498,55 +648,10 @@ void OSInterface::startMessagingApp(const QString &phone, const QString &appname
 	}
 	QString address;
 	if (appname.contains("Whats"_L1))
-		address = std::move("https://wa.me/"_L1 + phoneNumbers);
+		address = std::move("https://wa.me/"_L1 % phoneNumbers);
 	else
-		address = std::move("https://t.me/+"_L1 + phoneNumbers);
+		address = std::move("https://t.me/+"_L1 % phoneNumbers);
 	openURL(address);
-}
-
-void OSInterface::sendMail(const QString &address, const QString &subject, const QString &attachment_file) const
-{
-	#ifdef Q_OS_ANDROID
-	if (!androidSendMail(address, subject, attachment_file)) {
-		if (appUserModel()->email(0).contains("gmail.com"_L1)) {
-			const QString &gmailURL(u"https://mail.google.com/mail/u/%1/?view=cm&to=%2&su=%3"_s.arg(appUserModel()->email(0), address, subject));
-			openURL(gmailURL);
-		}
-	}
-	#else
-	const QStringList &args{QStringList{6} << std::move("--utf8"_L1) << std::move("--subject"_L1) <<
-		std::move(QChar{'\''} % subject % QChar{'\''}) << std::move("--attach"_L1) << attachment_file <<
-		std::move(QChar{'\''} % address % QChar{'\''})};
-	auto *__restrict proc{new QProcess};
-	proc->start("xdg-email"_L1, args);
-	connect(proc, &QProcess::finished, this, [&,proc,address,subject] (int exit_code, QProcess::ExitStatus) {
-		if (exit_code != 0) {
-			if (appUserModel()->email(0).contains("gmail.com"_L1)) {
-				const QString &gmailURL{u"https://mail.google.com/mail/u/%1/?view=cm&to=%2&su=%3"_s.arg(
-																						appUserModel()->email(0), address, subject)};
-				openURL(gmailURL);
-			}
-		}
-		proc->deleteLater();
-	});
-	#endif
-}
-
-void OSInterface::viewExternalFile(const QString &filename) const
-{
-	const QString &_filename{appUtils()->getCorrectPath(filename)};
-	if (!appUtils()->canReadFile(_filename))
-		return;
-	#ifdef Q_OS_ANDROID
-	const QString &localFile{appSettings()->localAppFilesDir() + "tempfile"_L1 + filename.last(4)};
-	static_cast<void>(QFile::remove(localFile));
-	if (appUtils()->copyFile(filename, localFile))
-		viewFile(localFile, tr("View file with..."));
-	else
-		qDebug() << "could not copy:  " << filename << "    to   " << localFile;
-	#else
-	openURL(_filename);
-	#endif
 }
 
 void OSInterface::setNetStatus(uint messages_index, bool success, QString &&message)
@@ -569,76 +674,10 @@ void OSInterface::setNetStatus(uint messages_index, bool success, QString &&mess
 	setBit(m_networkStatus, on_bit);
 	unSetBit(m_networkStatus, off_bit);
 	m_currentNetworkStatus[messages_index] = success;
-	setConnectionMessage(messages_index, std::move(message));
-}
-
-void OSInterface::checkServer(QString address, QString port
-#ifdef LOCAL_TPSERVER
-															, QNetworkInterface interface
-																							)
-#endif
-{
-	if (address.isEmpty()) {
-		#ifdef LOCAL_TPSERVER
-			checkLocalServer();
-		#endif
-			checkInternetConnection();
-		return;
-	}
-
-	auto conn{std::make_shared<QMetaObject::Connection>()};
-	*conn = connect(appOnlineServices(), &TPOnlineServices::serverStatus, this, [this,conn,address,port,interface]
-									(const uint online_status, const QString &server_address, const QString &server_port) mutable {
-		disconnect(*conn);
-
-#ifndef LOCAL_TPSERVER
-		bool success{online_status = TP_RET_CODE_SUCCESS};
-#else
-		if (!interface.isValid() && !address.isEmpty()) // server_address gathered from tpserver's local init script
-			return;
-
-		address = std::move(interface.addressEntries().constFirst().ip().toString());
-		if (port.isEmpty())
-			port = std::move("8080"_L1);
-		bool success{false};
-		mFailedInterface = std::move(QNetworkInterface{});
-		mNetworkInterface = std::move(interface);
-		switch (online_status) {
-		case TP_RET_CODE_SUCCESS:
-			success = true;
-			break;
-		case TP_RET_CODE_SERVER_UNREACHABLE:
-			if (interface.isValid()) {
-				mFailedInterface = std::move(interface);
-				mNetworkInterface = std::move(QNetworkInterface{});
-			}
-			break;
-		case TP_RET_CODE_SERVER_PAUSED:
-			break;
-		}
-		if (!m_currentNetworkStatus[interfaceMessage].has_value() || m_currentNetworkStatus[interfaceMessage].value() != success) {
-			QString message{tr("Network interface: ")};
-			if (mNetworkInterface.isValid()) {
-				switch (mNetworkInterface.type()) {
-				case QNetworkInterface::Loopback:	message += "Loopback"_L1;	break;
-				case QNetworkInterface::Virtual:	message += "Virtual"_L1;	break;
-				case QNetworkInterface::Ethernet:	message += "Ethernet"_L1;	break;
-				case QNetworkInterface::Wifi:		message += "WiFi"_L1;		break;
-				default:							message += "Unknown"_L1;	break;
-				}
-				message += '(' % mNetworkInterface.name() % "@ "_L1 % server_address % ':' % server_port;
-				if (!success)
-					message += '\n' % tr("Server paused - Until it returns to the normal status, all online services will fail");
-			}
-			else
-				message += tr("Unable to access the local server: Attempting to use another interface");
-			setNetStatus(interfaceMessage, success, std::move(message));
-			if (!success)
-				checkNetworkInterfaces();
-		}
-#endif
-	});
-	appOnlineServices()->checkServer(address, port);
+	m_connectionMessages[messages_index] = std::move(message);
+	emit connectionMessageChanged();
+	appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
+				{QString{}, message}, record_separator), Qt::AlignTop|Qt::AlignHCenter, success ? "set-completed" : "error");
 }
 
 #ifdef LOCAL_TPSERVER
@@ -711,7 +750,7 @@ void OSInterface::serverProcessFinished(QProcess *proc, const int exit_code, QPr
 			const auto address_end{address.indexOf(':', address_start + 1)};
 			const auto port_end{address.indexOf(')', address_end + 1)};
 			checkServer(address.sliced(address_start + 1, address_end - address_start - 1),
-												address.sliced(address_end + 1, port_end - address_end - 1), QNetworkInterface{});
+			address.sliced(address_end + 1, port_end - address_end - 1), QNetworkInterface{});
 			localServerProcessResult(TP_RET_CODE_SUCCESS);
 		}
 		break;
@@ -752,39 +791,8 @@ void OSInterface::localServerProcessResult(const uint online_status, const QStri
 		else
 			message += additional_message;
 		setNetStatus(serverMessage, online, std::move(message));
-		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
-					{"Linux TP Server"_L1, connectionMessage()}, record_separator), Qt::AlignTop|Qt::AlignHCenter,
-														online_status == TP_RET_CODE_SUCCESS ? "set-completed" : "error");
 	}
 }
 
 #endif //TPSERVER_MACHINE
 #endif //LOCAL_TPSERVER
-
-void OSInterface::checkInternetConnection()
-{
-	bool is_connected{false};
-	if (networkInterfaceOK()) {
-		QTcpSocket checkConnectionSocket;
-		checkConnectionSocket.connectToHost("google.com"_L1, 443); // 443 for HTTPS or use Port 80 for HTTP
-		checkConnectionSocket.waitForConnected(2000);
-		is_connected = checkConnectionSocket.state() == QTcpSocket::ConnectedState;
-		checkConnectionSocket.close();
-	}
-	if (!m_currentNetworkStatus[internetMessage].has_value() || m_currentNetworkStatus[internetMessage].value() != is_connected) {
-		setNetStatus(internetMessage, is_connected,
-			std::move(is_connected ? tr("Device is connected to the internet") : tr("Device is not connected to the internet")));
-		emit internetStatusChanged();
-	}
-
-#ifndef LOCAL_TPSERVER //TODO
-	if (is_connected)
-		checkServer(remote_server_address, remove_server_port);
-#endif
-}
-
-void OSInterface::setConnectionMessage(int msg_idx, QString &&message)
-{
-	m_connectionMessages[msg_idx] = std::move(message);
-	emit connectionMessageChanged();
-}

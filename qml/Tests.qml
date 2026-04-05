@@ -6,6 +6,7 @@ import QtQuick.Pdf
 import TpQml
 import TpQml.Pages
 import TpQml.Widgets
+import TpQml.Exercises
 
 ApplicationWindow {
 	id: mainwindow
@@ -119,23 +120,26 @@ ApplicationWindow {
 			y: 0
 		}*/
 
-		TPComboBox {
-			id: cboMesoType
-			width: parent.width * 0.9
-			model: ListModel {
-				id: typeModel
-				ListElement { text: qsTr("Weigth Loss"); value: 0; enabled: true; }
-				ListElement { text: qsTr("Muscle Gain"); value: 1; enabled: true; }
-				ListElement { text: qsTr("Bulking"); value: 2; enabled: true; }
-				ListElement { text: qsTr("Pre-contest"); value: 3; enabled: true; }
-				ListElement { text: qsTr("Strength Build-up"); value: 4; enabled: true; }
-				ListElement { text: qsTr("Physical Recovery"); value: 5; enabled: true; }
-				ListElement { text: qsTr("Physical Maintenance"); value: 6; enabled: true; }
-				ListElement { text: qsTr("Other"); value: 7; enabled: true; }
+		ExercisesListView {
+			id: exercisesList
+			canDoMultipleSelection: true
+			height: homePage.height * 0.5
+
+			anchors {
+				top: parent.top
+				topMargin: 5
+				left: parent.left
+				leftMargin: 5
+				right: parent.right
+				rightMargin: 5
 			}
 
-			onActivated: (index) => {
-				console.log(typeModel.get(index).text, typeModel.get(index).value);
+			onExerciseEntrySelected: (index) => {
+				console.log(AppExercisesList.mainName(index), AppExercisesList.subName(index), AppExercisesList.muscularGroup(index));
+			}
+
+			onItemDoubleClicked: {
+				console.log(AppExercisesList.currentRow);
 			}
 		}
 	}

@@ -15,12 +15,12 @@ TPPage {
 
 //public:
 	required property ExercisesListManager exercisesManager
+	property bool chooseButtonEnabled: true
 
 //private:
 	property bool _can_edit: false
 	property bool _new: false
 	property bool _editing: false
-	property bool _choose_button_enabled: true
 	property TPFileOps videoViewer: null
 
 	signal exerciseChosen();
@@ -30,15 +30,15 @@ TPPage {
 
 	ExercisesListView {
 		id: exercisesList
-		canDoMultipleSelection: exercisesPage._choose_button_enabled
+		canDoMultipleSelection: exercisesPage.chooseButtonEnabled
 		height: exercisesPage.height * 0.5
 
 		anchors {
-			top: exercisesPage.top
+			top: parent.top
 			topMargin: 5
-			left: exercisesPage.left
+			left: parent.left
 			leftMargin: 5
-			right: exercisesPage.right
+			right: parent.right
 			rightMargin: 5
 		}
 
@@ -67,17 +67,17 @@ TPPage {
 
 		anchors {
 			top: exercisesList.bottom
-			topMargin: -15
-			left: exercisesPage.left
+			topMargin: 5
+			left: parent.left
 			leftMargin: 5
-			right: exercisesPage.right
+			right: parent.right
 			rightMargin: 5
-			bottom: exercisesPage.bottom
+			bottom: parent.bottom
 		}
 
 		ColumnLayout {
 			id: layoutMain
-			anchors.fill: exercisesPage
+			anchors.fill: parent
 			anchors.topMargin: 10
 
 			TPLabel {
@@ -202,7 +202,7 @@ TPPage {
 
 		TPButton {
 			id: btnChooseExercise
-			enabled: exercisesPage._choose_button_enabled && !exercisesPage._can_edit && AppExercisesList.currentRow >= 0
+			enabled: exercisesPage.chooseButtonEnabled && !exercisesPage._can_edit && AppExercisesList.currentRow >= 0
 			text: qsTr("Choose")
 			width: toolbarExercises.buttonWidth
 			rounded: false
@@ -213,7 +213,7 @@ TPPage {
 		TPButton {
 			id: btnImExport
 			text: qsTr("In/Export")
-			visible: !exercisesPage._choose_button_enabled
+			visible: !exercisesPage.chooseButtonEnabled
 			width: toolbarExercises.buttonWidth
 			rounded: false
 
@@ -237,8 +237,8 @@ TPPage {
 			parentPage: exercisesPage
 			entriesList: [
 				{ "label": qsTr("Import"), "image": "import.png", "id": 0, "visible": true },
-				{ "label": qsTr("Export"), "image": "save-day.png", "id": 1, "visible": !exercisesPage._choose_button_enabled },
-				{ "label": qsTr("Share"), "image": "export.png", "id": 2, "visible": !exercisesPage._choose_button_enabled && Qt.platform.os === "android"},
+				{ "label": qsTr("Export"), "image": "save-day.png", "id": 1, "visible": !exercisesPage.chooseButtonEnabled },
+				{ "label": qsTr("Share"), "image": "export.png", "id": 2, "visible": !exercisesPage.chooseButtonEnabled && Qt.platform.os === "android"},
 			]
 
 			onMenuEntrySelected: (id) => {

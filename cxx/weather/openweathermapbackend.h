@@ -64,7 +64,7 @@ private slots:
 	void handleWeatherInfoRequestReply(QNetworkReply *reply, const QGeoCoordinate &coordinate);
 
 private:
-	QNetworkAccessManager *m_networkManager;
+	QNetworkAccessManager *m_networkManager{nullptr};
 	QString m_locationName;
 	QList<st_LocationInfo> m_foundLocations;
 	QStringList m_citiesFromCoords;

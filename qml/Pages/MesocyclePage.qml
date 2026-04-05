@@ -265,7 +265,7 @@ TPPage {
 						verticalCenter: parent.verticalCenter
 					}
 
-					onClicked: AppOsInterface.viewExternalFile(mesoPage.mesoManager.fileName);
+					onClicked: AppOsInterface.openURL(mesoPage.mesoManager.fileName);
 				}
 			}
 

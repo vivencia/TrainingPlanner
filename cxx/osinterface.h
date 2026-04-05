@@ -8,7 +8,6 @@
 #ifdef LOCAL_TPSERVER
 #include <QNetworkInterface>
 #endif
-
 #include <QObject>
 #include <QFile>
 
@@ -58,6 +57,9 @@ static constexpr short SERVER_UNREACHABLE		{5};
 public:
 	explicit OSInterface(QObject *parent = nullptr);
 
+	void checkServer(QString address = QString{}, QString port = QString{}, QNetworkInterface interface = QNetworkInterface{});
+	void checkInternetConnection();
+
 	inline bool networkInterfaceOK() const
 	{
 		#ifndef QT_NO_DEBUG
@@ -78,22 +80,36 @@ public:
 #endif
 	}
 
-	QString connectionMessage() const { return m_connectionMessages.join('\n'); }
+	Q_INVOKABLE inline QString connectionMessage() const { return m_connectionMessages.join('\n'); }
 	inline int networkStatus() const { return m_networkStatus; }
 
 	inline void initialCheck()
 	{
-		#ifdef Q_OS_ANDROID
-			checkPendingIntents();
-			startAppNotifications();
-		#else
-			#ifdef Q_OS_LINUX
-				processArguments();
-			#endif
-		#endif
+#ifdef Q_OS_ANDROID
+		checkPendingIntents();
+		startAppNotifications();
+#else
+	#ifdef Q_OS_LINUX
+		processArguments();
+	#endif
+#endif
 	}
 
+#ifndef Q_OS_ANDROID
+	#ifdef Q_OS_LINUX
+		void processArguments() const;
+		Q_INVOKABLE void restartApp();
+		Q_INVOKABLE void sendMail(const QString &address, const QString &subject, const QString &attachment_file) const;
+		Q_INVOKABLE void viewExternalFile(const QString &filename) const;
+		Q_INVOKABLE void openURL(const QString &address) const;
+	#endif
+#endif
+
+	QString deviceID() const;
+	Q_INVOKABLE void startMessagingApp(const QString &phone, const QString &appname) const;
+
 #ifdef Q_OS_ANDROID
+	void initAndroidInterface();
 	void setFileUrlReceived(const QString &url) const;
 	void setFileReceivedAndSaved(const QString &url) const;
 	bool checkFileExists(const QString &url) const;
@@ -102,27 +118,15 @@ public:
 	void removeNotification(notificationData *data);
 
 	void checkPendingIntents() const;
-	bool sendFile(const QString &filePath, const QString &title, const QString &mimeType, const int &requestId) const;
-	void androidOpenURL(const QString &address) const;
-	bool androidSendMail(const QString &address, const QString &subject, const QString &attachment) const;
-	bool viewFile(const QString &filePath, const QString &title) const;
+	bool shareFile(const QString &filePath, const int requestId, const QString &title = QString{}, const QString &mimeType = QString{}) const;
+	Q_INVOKABLE void openURL(const QString &address) const;
+	Q_INVOKABLE void sendMail(const QString &address, const QString &subject, const QString &attachment_file) const;
+	Q_INVOKABLE void viewExternalFile(const QString &filename) const;
 	QString readFileFromAndroidFileDialog(const QString &android_uri) const;
 	void startAppNotifications();
 	void checkNotificationsStatus();
 	void checkWorkouts();
-#else
-	#ifdef Q_OS_LINUX
-		void processArguments() const;
-		Q_INVOKABLE void restartApp();
-	#endif
 #endif
-
-	QString deviceID() const;
-	void shareFile(const QString &fileName) const;
-	Q_INVOKABLE void openURL(const QString &address) const;
-	Q_INVOKABLE void startMessagingApp(const QString &phone, const QString &appname) const;
-	Q_INVOKABLE void sendMail(const QString &address, const QString &subject, const QString &attachment_file) const;
-	Q_INVOKABLE void viewExternalFile(const QString &filename) const;
 
 signals:
 #ifdef Q_OS_ANDROID
@@ -147,11 +151,6 @@ private:
 #endif
 
 	void setNetStatus(uint messages_index, bool success, QString &&message);
-	void checkServer(QString address = QString{}, QString port = QString{}
-#ifdef LOCAL_TPSERVER
-																			, QNetworkInterface interface = QNetworkInterface{}
-#endif
-																								);
 
 #ifdef LOCAL_TPSERVER
 	QNetworkInterface mNetworkInterface, mFailedInterface;
@@ -164,8 +163,6 @@ private:
 	void localServerProcessResult(const uint online_status, const QString &additional_message = QString{});
 #endif //TPSERVER_MACHINE
 #endif //LOCAL_TPSERVER
-	void checkInternetConnection();
-	void setConnectionMessage(int msg_idx, QString &&message);
 
 	static OSInterface *_app_os_interface;
 	friend OSInterface *appOsInterface();

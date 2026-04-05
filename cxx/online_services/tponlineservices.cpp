@@ -572,7 +572,7 @@ void TPOnlineServices::handleServerRequestReply(const int requestid, QNetworkRep
 	QString reply_string;
 	QByteArray file_contents;
 
-	if (reply) {
+	if (reply || reply->error() == QNetworkReply::NoError) {
 		reply->deleteLater();
 		const QHttpHeaders &headers{reply->headers()};
 		if (headers.contains("Content-Type"_L1)) {
@@ -610,11 +610,15 @@ void TPOnlineServices::handleServerRequestReply(const int requestid, QNetworkRep
 		}
 		else {
 			reply_string = std::move(tr("Http headers missing \"Content-Type\""));
-			checkServer();
+			appOsInterface()->checkServer();
 		}
 	}
-	else
+	else {
 		reply_string = std::move(tr("No network reply"));
+		if (reply)
+			reply_string += " - "_L1 % reply->errorString();
+		appOsInterface()->checkServer();
+	}
 	if (!b_internal_signal_only) {
 		if (file_contents.isEmpty())
 			emit networkRequestProcessed(requestid, ret_code, reply_string);
@@ -673,17 +677,17 @@ void TPOnlineServices::checkServer(const QString &address, const QString &port)
 			}
 			else if (ret_string.contains("server paused"_L1))
 				online_status = TP_RET_CODE_SERVER_PAUSED;
-			bool emit_signal{m_onlineStatus != online_status};
-			if (appSettings()->serverAddress() != address) {
-				emit_signal = true;
-				appSettings()->setServerAddress(address);
+
+			if (online_status != TP_RET_CODE_SERVER_UNREACHABLE) {
+				if (appSettings()->serverAddress() != address)
+					appSettings()->setServerAddress(address);
+				if (appSettings()->serverPort() != port)
+					appSettings()->setServerPort(port);
 			}
-			if (appSettings()->serverPort() != port) {
-				emit_signal = true;
-				appSettings()->setServerPort(port);
-			}
-			if (emit_signal)
+			if (m_onlineStatus != online_status) {
+				m_onlineStatus = online_status;
 				emit serverStatus(m_onlineStatus, address, port);
+			}
 		}
 	});
 	makeNetworkRequest(requestid, server_address.arg(address, port), true);
