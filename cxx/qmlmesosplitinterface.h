@@ -56,7 +56,7 @@ private:
 	QQuickItem *m_plannerPage{nullptr}, *m_currentSplitPage{nullptr}, *m_swipeView{nullptr};
 	QVariantMap m_plannerProperties;
 
-	QQmlComponent* m_splitComponent;
+	QQmlComponent* m_splitComponent{nullptr};
 	QMap<QChar,QQuickItem*> m_splitPages;
 	QMap<QChar,bool> m_hasPreviousPlan;
 	QVariantMap m_splitProperties;

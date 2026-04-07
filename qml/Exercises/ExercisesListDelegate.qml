@@ -11,7 +11,7 @@ ItemDelegate {
 	id: delegate
 	spacing: 10
 	padding: 0
-	implicitWidth: parent.width
+	implicitWidth: parent ? parent.width : 0
 	implicitHeight: contentsLayout.implicitHeight * 1.1
 
 //public:
@@ -29,6 +29,8 @@ ItemDelegate {
 
 	signal gotoExercise(int exercise_number);
 	signal removeExerciseRequested();
+	signal quickQuestionRequested(string title, string message, string icon, string button1text, string button2text);
+	signal quickQuestionAnswered(button_clicked: int);
 
 	function exerciseFieldYPos(): int {
 		return delegate.mapToItem(ItemManager.AppPagesManager.homePage(), txtExerciseName.x, txtExerciseName.y).y;
@@ -253,7 +255,7 @@ ItemDelegate {
 				width: AppSettings.itemDefaultHeight
 				height: width
 				enabled: delegate.exerciseNumber === delegate.exercisesModel.workingExercise ? (
-															delegate.exerciseNumber < delegate.exercisesModel.exerciseCount - 1) : false
+														delegate.exerciseNumber < delegate.exercisesModel.exerciseCount - 1) : false
 
 				anchors {
 					right: parent.right
@@ -316,8 +318,9 @@ ItemDelegate {
 						onClicked: {
 							delegate.exercisesModel.workingSubExercise = index;
 							if (text.startsWith(qsTr("Choose")))
-								ItemManager.showSimpleExercisesList(delegate.workoutPageManager ? delegate.workoutPageManager.qmlPage() :
-																	delegate.splitPageManager.qmlPage(), delegate.exercisesModel.muscularGroup);
+								ItemManager.showSimpleExercisesList(delegate.workoutPageManager ?
+									delegate.workoutPageManager.qmlPage() : delegate.splitPageManager.qmlPage(),
+																				delegate.exercisesModel.muscularGroup);
 							else
 								ToolTip.show(text, 2000);
 						}
@@ -338,8 +341,19 @@ ItemDelegate {
 					verticalCenter: parent.verticalCenter
 				}
 
-				onClicked: delegate.exercisesModel.delSubExercise(delegate.exercisesModel.workingExercise,
-																					delegate.exercisesModel.workingSubExercise);
+				function questionAnswered(button_clicked: int) : void {
+					if (button_clicked === 1)
+						delegate.exercisesModel.delSubExercise(delegate.exercisesModel.workingExercise,
+																						delegate.exercisesModel.workingSubExercise);
+					delegate.quickQuestionAnswered.disconnect(questionAnswered);
+				}
+
+				onClicked: {
+					delegate.quickQuestionRequested(qsTr("Remove exercise?"), delegate.exercisesModel.exerciseName(
+									delegate.exercisesModel.workingExercise, delegate.exercisesModel.workingSubExercise),
+																								"remove", qsTr("Yes"), qsTr("No"));
+					delegate.quickQuestionAnswered.connect(questionAnswered);
+				}
 			}
 		} //Item
 
@@ -402,8 +416,7 @@ ItemDelegate {
 			Layout.maximumWidth: parent.width
 			Layout.minimumWidth: parent.width
 
-			property int nSets: delegate.exercisesModel.setsNumber(delegate.exerciseNumber,
-																					delegate.exercisesModel.workingSubExercise)
+			property int nSets: delegate.exercisesModel.setsNumber(delegate.exerciseNumber, delegate.exercisesModel.workingSubExercise)
 
 			onNSetsChanged: {
 				if (nSets === 0 && delegate.exercisesModel.workingSubExercise !== 0)
@@ -524,8 +537,18 @@ ItemDelegate {
 							topMargin: -AppSettings.itemDefaultHeight/4 - 5
 						}
 
-						onClicked: delegate.exercisesModel.delSet(delegate.exercisesModel.workingExercise,
-												delegate.exercisesModel.workingSubExercise, delegate.exercisesModel.workingSet);
+						function questionAnswered(button_clicked: int) : void {
+							if (button_clicked === 1)
+								delegate.exercisesModel.delSet(delegate.exercisesModel.workingExercise,
+											delegate.exercisesModel.workingSubExercise, delegate.exercisesModel.workingSet);
+							delegate.quickQuestionAnswered.disconnect(questionAnswered);
+						}
+
+						onClicked: {
+							delegate.quickQuestionRequested(qsTr("Remove set?"), qsTr("Exclude set number ") + parseInt(
+														delegate.exercisesModel.workingSet + 1), "remove", qsTr("Yes"), qsTr("No"));
+							delegate.quickQuestionAnswered.connect(questionAnswered);
+						}
 					}
 
 					TPButton {
@@ -542,14 +565,26 @@ ItemDelegate {
 							bottomMargin: -AppSettings.itemDefaultHeight/4
 						}
 
-						onClicked: delegate.exercisesModel.removeAllSets(delegate.exercisesModel.workingExercise,
-																					delegate.exercisesModel.workingSubExercise);
+						function questionAnswered(button_clicked: int) : void {
+							if (button_clicked === 1)
+								delegate.exercisesModel.removeAllSets(delegate.exercisesModel.workingExercise,
+																						delegate.exercisesModel.workingSubExercise);
+							delegate.quickQuestionAnswered.disconnect(questionAnswered);
+						}
+
+						onClicked: {
+							delegate.quickQuestionRequested(qsTr("Remove all sets?"), qsTr("Exclude all sets from ") +
+								delegate.exercisesModel.exerciseName( delegate.exercisesModel.workingExercise,
+												delegate.exercisesModel.workingSubExercise), "remove", qsTr("Yes"), qsTr("No"));
+							delegate.quickQuestionAnswered.connect(questionAnswered);
+						}
 					}
 				} //Item
 
 				RowLayout {
 					Layout.minimumWidth: listItem.width * 0.9
 					Layout.maximumWidth: listItem.width * 0.9
+					Layout.topMargin: 10
 					Layout.alignment: Qt.AlignCenter
 
 					TPLabel {

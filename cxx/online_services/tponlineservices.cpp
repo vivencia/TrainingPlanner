@@ -23,7 +23,7 @@ constexpr QLatin1StringView server_address{"http://%1:%2/trainingplanner/"_L1};
 static const QString &root_user{"admin"_L1};
 static const QString &root_passwd{"admin"_L1};
 
-TPOnlineServices::TPOnlineServices(QObject *parent) : QObject{parent}, m_onlineStatus{TP_RET_CODE_SERVER_UNREACHABLE}
+TPOnlineServices::TPOnlineServices(QObject *parent) : QObject{parent}, m_onlineStatus{TP_RET_CODE_UNKNOWN_ERROR}
 {
 	_appOnlineServices = this;
 	m_networkManager = new QNetworkAccessManager{this};

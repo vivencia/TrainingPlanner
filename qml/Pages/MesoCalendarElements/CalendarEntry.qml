@@ -25,9 +25,7 @@ Rectangle {
 	property DBCalendarModel tpCalendarModel
 	property CalendarModel qtCalendarModel
 
-	property CalendarEntry currentlySelectedEntry
-
-	signal dateSelected(int day, bool is_workout);
+	signal dateSelected(int day, int month, int year, bool is_workout);
 
 //private:
 	readonly property date month_day: new Date(entryYear, entryMonth, entryDay);
@@ -47,7 +45,7 @@ Rectangle {
 
 	Component.onCompleted: {
 		if (_today_date)
-			dateSelected(_control.entryDay, _workout_day);
+			dateSelected(_control.entryDay, _control.entryMonth, _control.entryYear, _workout_day);
 	}
 
 	Connections {
@@ -63,7 +61,7 @@ Rectangle {
 		id: txtDay
 		anchors.centerIn: parent
 		text: _control.tpCalendarModel ? _control.tpCalendarModel.dayEntryLabel(_control.month_day) : parseInt(_control.entryDay)
-		font: AppGlobals.smallFont
+		font: _control.tpCalendarModel ? AppGlobals.regularFont : AppGlobals.smallFont
 		visible: _control._day_is_visible
 		color: !_control._today_date ? (_control._meso_day ? AppSettings.fontColor : AppSettings.disabledFontColor) : "red"
 
@@ -106,10 +104,7 @@ Rectangle {
 		anchors.fill: parent
 		hoverEnabled: true
 
-		onClicked: {
-			if (_control.currentlySelectedEntry)
-				_control.currentlySelectedEntry.highlightDay(false);
-			_control.dateSelected(_control.entryDay, _control._workout_day);
-		}
+		onClicked:
+			_control.dateSelected(_control.entryDay, _control.entryMonth, _control.entryYear, _control._workout_day);
 	}
 }

@@ -50,7 +50,8 @@ void QmlMesoSplitInterface::getExercisesPlannerPage()
 			default: break;
 #endif
 		}
-		appPagesListModel()->openPage(m_plannerPage);
+		else
+			appPagesListModel()->openPage(m_plannerPage);
 	}
 }
 
@@ -58,7 +59,7 @@ void QmlMesoSplitInterface::swapMesoPlans()
 {
 	DBSplitModel *tempSplit{currentSplitModel()};
 	m_mesoModel->splitModelsForMeso(m_mesoIdx).insert(currentSplitLetter(),
-																m_mesoModel->splitModelsForMeso(m_mesoIdx).value(currentSwappableLetter()));
+														m_mesoModel->splitModelsForMeso(m_mesoIdx).value(currentSwappableLetter()));
 	m_mesoModel->splitModelsForMeso(m_mesoIdx).insert(currentSwappableLetter(), tempSplit);
 }
 
@@ -134,8 +135,8 @@ void QmlMesoSplitInterface::createPlannerPage()
 	}
 	#endif
 	appQmlEngine()->setObjectOwnership(m_plannerPage, QQmlEngine::CppOwnership);
-	m_plannerPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
-	m_swipeView = m_plannerPage->findChild<QQuickItem*>("swipeView");
+	m_plannerPage->setParentItem(appItemManager()->AppPagesVisualParent());
+	m_swipeView = qobject_cast<QQuickItem*>(m_plannerPage->findChild<QQuickItem*>("swipeView"));
 	loadMesoSplitComponent();
 
 	appPagesListModel()->openPage(m_plannerPage, std::move(tr("Exercises Planner: ") % m_mesoModel->name(m_mesoIdx)), [this] () { cleanUp(); });
@@ -156,7 +157,8 @@ void QmlMesoSplitInterface::loadMesoSplitComponent()
 {
 	if (!m_splitComponent) {
 		m_splitComponent = new QQmlComponent{appQmlEngine(), "TpQml.Exercises"_L1, "WorkoutOrSplitExercisesList"_L1, QQmlComponent::Asynchronous};
-		m_splitProperties["pageManager"_L1] = std::move(QVariant::fromValue(this));
+		m_splitProperties["splitPageManager"_L1] = std::move(QVariant::fromValue(this));
+		m_splitProperties["workoutPageManager"_L1] = std::move(QVariant::fromValue(nullptr));
 		m_splitProperties["height"_L1] = std::move(m_plannerPage->property("splitPageHeight").toInt());
 		connect(m_splitComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) { loadMesoSplitComponent(); });
 	}
@@ -196,21 +198,19 @@ void QmlMesoSplitInterface::addPage(const QChar &split_letter)
 		return;
 	}
 #endif
-	m_splitPages.insert(split_letter, item);
 	appQmlEngine()->setObjectOwnership(item, QQmlEngine::CppOwnership);
-	item->setParentItem(m_swipeView);
+	m_splitPages.insert(split_letter, item);
+	QMetaObject::invokeMethod(m_plannerPage, "addPage", Q_ARG(QQuickItem*, item));
 }
-
 
 void QmlMesoSplitInterface::setSplitPageProperties(DBSplitModel *split_model)
 {
 	auto prev_mesoid{m_mesoModel->getPreviousMesoId(m_mesoModel->client(m_mesoIdx), m_mesoModel->_id(m_mesoIdx))};
 	if (prev_mesoid >= 0) {
 		m_prevMesoId = QString::number(prev_mesoid);
-
 		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(split_model->database(), &TPDatabaseTable::actionFinished, this, [this,conn,split_model]
-									(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2) {
+								(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2) {
 			if (op == ThreadManager::CustomOperation) {
 				disconnect(*conn);
 				const bool has_prevplan{return_value2.toBool()};

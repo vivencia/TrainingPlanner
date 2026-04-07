@@ -16,10 +16,7 @@ ScrollView {
 //private:
 	property TPPageScrollButtons _navButtons
 
-	anchors {
-		fill: parent
-		margins: 5
-	}
+	anchors.margins: 5
 
 	ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 	ScrollBar.vertical: ScrollBar {

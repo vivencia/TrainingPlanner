@@ -200,7 +200,7 @@ Rectangle {
 		spacing: _control.cellSize
 		model: _control.calendarModel
 
-		Connections {
+		/*Connections {
 			target: _control.calendarModel ? _control.calendarModel : null
 			ignoreUnknownSignals: true
 
@@ -209,7 +209,7 @@ Rectangle {
 				calendar.positionViewAtIndex(calendar.currentIndex, ListView.SnapPosition);
 				_control.dateSelected(_control.selectedDate);
 			}
-		}
+		}*/
 
 		anchors {
 			top: titleOfDate.bottom
@@ -284,7 +284,7 @@ Rectangle {
 					required property int month
 					required property int year
 
-					onDateSelected: (day, is_workout) => {
+					onDateSelected: (day, month, year, is_workout) => {
 						_control.selectedDate = new Date(year, month, day);
 						_control.dateSelected(_control.selectedDate);
 					}

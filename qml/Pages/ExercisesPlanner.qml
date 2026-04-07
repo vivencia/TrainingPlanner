@@ -62,8 +62,8 @@ TPPage {
 
 				TPLabel {
 					id: lblMain
-					text: qsTr("Training Division ") + pagePlanner.currentSplitPage && pagePlanner.currentSplitPage.exercisesModel ?
-							  pagePlanner.currentSplitPage.exercisesModel.splitLetter : ""
+					text: pagePlanner.currentSplitPage ? qsTr("Training Division ") +
+																pagePlanner.currentSplitPage.exercisesModel.splitLetter : ""
 					font: AppGlobals.largeFont
 					horizontalAlignment: Text.AlignHCenter
 					Layout.preferredWidth: parent.width - AppSettings.itemDefaultHeight * 2 - 5
@@ -103,12 +103,12 @@ TPPage {
 
 				TPLabel {
 					text: qsTr("Go to exercise: ")
-					Layout.preferredWidth: parent.width * 0.4
+					Layout.preferredWidth: parent.width * 0.3
 				}
 
 				TPComboBox {
 					id: cboGoToExercise
-					Layout.preferredWidth: parent.width * 0.6
+					Layout.minimumWidth: parent.width * 0.7
 
 					property int current_exercise
 
@@ -187,11 +187,17 @@ TPPage {
 
 		onCurrentIndexChanged: {
 			pagePlanner.currentSplitPage = pagePlanner.splitManager.setCurrentPage(currentIndex);
-			cboModel.clear();
-			cboGroups.fillMuscularGroupsModel(pagePlanner.currentSplitPage.exercisesModel.muscularGroup);
-			cboGoToExercise.populateComboModel();
+			if (pagePlanner.currentSplitPage && pagePlanner.currentSplitPage.exercisesModel) {
+				cboModel.clear();
+				cboGroups.fillMuscularGroupsModel(pagePlanner.currentSplitPage.exercisesModel.muscularGroup);
+				cboGoToExercise.populateComboModel();
+			}
 		}
 	} //SwipeView
+
+	function addPage(page: Item) : void {
+		swipeView.addItem(page);
+	}
 
 	PageIndicator {
 		id: indicator
@@ -201,7 +207,7 @@ TPPage {
 
 		delegate: Label {
 			id: lblSplitLetter
-			text: pagePlanner.splitManager.splitModel(index)
+			text: String(pagePlanner.splitManager.splitModel(index).splitLetter)
 			color: AppSettings.fontColor
 			font.bold: true
 			fontSizeMode: Text.Fit

@@ -330,7 +330,7 @@ void QMLMesoInterface::getMesocyclePage(const bool new_meso)
 		m_mesoProperties["mesoManager"_L1] = std::move(QVariant::fromValue(this));
 		m_mesoProperties["mesoModel"_L1] = std::move(QVariant::fromValue(m_mesoModel));
 		m_mesoComponent = new QQmlComponent{appQmlEngine(), "TpQml.Pages", "MesocyclePage", QQmlComponent::Asynchronous};
-		connect(m_mesoComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) { createMesocyclePage(); });
+		connect(m_mesoComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) { getMesocyclePage(false); });
 	}
 	else {
 		if (!m_mesoPage) {
@@ -377,7 +377,7 @@ void QMLMesoInterface::createMesocyclePage()
 	#endif
 
 	appQmlEngine()->setObjectOwnership(m_mesoPage, QQmlEngine::CppOwnership);
-	m_mesoPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"_L1));
+	m_mesoPage->setParentItem(appItemManager()->AppPagesVisualParent());
 	verifyMesoRequiredFieldsStatus();
 	appPagesListModel()->openPage(m_mesoPage, std::move(tr("Program: ") + name()), [this] () { m_mesoModel->removeMesoManager(m_mesoIdx); });
 

@@ -40,13 +40,12 @@ signals:
 	void dateLabelChanged();
 
 private:
-	DBMesocyclesModel *m_mesoModel;
-	QQmlComponent *m_calComponent;
-	QQuickItem *m_calPage;
+	DBMesocyclesModel *m_mesoModel{nullptr};
+	QQmlComponent *m_calComponent{nullptr};
+	QQuickItem *m_calPage{nullptr};
 	QVariantMap m_calProperties;
-	DBCalendarModel *m_calendarModel;
+	DBCalendarModel *m_calendarModel{nullptr};
 	uint m_mesoIdx;
 
 	void createMesoCalendarPage();
-	void createMesoCalendarPage_part2();
 };

@@ -67,11 +67,8 @@ TPPage {
 
 		anchors {
 			top: exercisesList.bottom
-			topMargin: 5
 			left: parent.left
-			leftMargin: 5
 			right: parent.right
-			rightMargin: 5
 			bottom: parent.bottom
 		}
 

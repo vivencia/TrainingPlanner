@@ -34,7 +34,8 @@ Q_PROPERTY(PagesListModel* AppPagesManager READ AppPagesManager CONSTANT FINAL)
 public:
 	explicit QmlItemManager(QQmlApplicationEngine *qml_engine);
 
-	inline QQuickItem* AppHomePage() const { return m_homePage; }
+	inline QQuickItem *AppHomePage() const { return m_homePage; }
+	inline QQuickItem *AppPagesVisualParent() const { return m_appPagesVisualParent; }
 	inline QQuickWindow *AppMainWindow() const { return _appMainWindow; }
 	inline PagesListModel *AppPagesManager() const { return appPagesListModel(); }
 
@@ -88,7 +89,7 @@ private:
 	QmlExercisesDatabaseInterface *m_exercisesListManager{nullptr};
 	QQmlComponent *m_simpleExercisesListComponent{nullptr}, *m_weatherComponent{nullptr}, *m_statisticsComponent{nullptr},
 																									*m_firstTimeDlgComponent{nullptr};
-	QQuickItem *m_homePage{nullptr}, *m_weatherPage{nullptr}, *m_statisticsPage{nullptr};
+	QQuickItem *m_homePage{nullptr}, *m_appPagesVisualParent{nullptr}, *m_weatherPage{nullptr}, *m_statisticsPage{nullptr};
 	QObject *m_simpleExercisesList{nullptr}, *m_firstTimeDlg{nullptr};
 	QVariantMap m_simpleExercisesListProperties;
 

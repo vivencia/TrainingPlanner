@@ -364,15 +364,14 @@ public:
 
 	inline bool isFieldFormatSpecial (const uint field) const
 	{
-		switch (field)
-		{
-			case MESO_FIELD_STARTDATE:
-			case MESO_FIELD_ENDDATE:
-			case MESO_FIELD_COACH:
-			case MESO_FIELD_CLIENT:
-			case MESO_FIELD_REALMESO:
-				return true;
-			default: return false;
+		switch (field) {
+		case MESO_FIELD_STARTDATE:
+		case MESO_FIELD_ENDDATE:
+		case MESO_FIELD_COACH:
+		case MESO_FIELD_CLIENT:
+		case MESO_FIELD_REALMESO:
+			return true;
+		default: return false;
 		}
 	}
 
@@ -388,13 +387,12 @@ public:
 
 	inline bool isMesoNameOK(const int meso_idx = -1, const QString &meso_name = QString{}) const
 	{
-		switch (meso_name.length())
-		{
-			case 0: return meso_idx >= 0 ? (!name(meso_idx).isEmpty() ?
+		switch (meso_name.length()) {
+		case 0: return meso_idx >= 0 ? (!name(meso_idx).isEmpty() ?
 										mesoPlanExists(name(meso_idx), coach(meso_idx), client(meso_idx)) == meso_idx : false)
 										: false;
-			case 1: case 2: case 3: case 4: return false;
-			default: return mesoPlanExists(meso_name, coach(meso_idx), client(meso_idx)) == -1;
+		case 1: case 2: case 3: case 4: return false;
+		default: return mesoPlanExists(meso_name, coach(meso_idx), client(meso_idx)) == -1;
 		}
 
 	}
@@ -418,23 +416,16 @@ public:
 	{
 		bool ok{false};
 		const QString &_split{strsplit.isEmpty() ? split(meso_idx) : strsplit};
-		for (const auto &splitletter : _split)
-		{
-			switch (splitletter.toLatin1())
-			{
-				case 'A':
-				case 'B':
-				case 'C':
-				case 'D':
-				case 'E':
-				case 'F':
-					ok = !muscularGroup(meso_idx, splitletter).isEmpty();
+		for (const auto &splitletter : _split) {
+			switch (splitletter.toLatin1()) {
+			case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':
+			ok = !muscularGroup(meso_idx, splitletter).isEmpty();
 				break;
-				case 'R':
-					ok = true;
+			case 'R':
+				ok = true;
 				break;
-				default:
-					ok = false;
+			default:
+				ok = false;
 				break;
 			}
 			if (!ok)
@@ -463,18 +454,18 @@ private:
 	QHash<uint,DBCalendarModel*> m_calendars;
 	QMap<uint, QMap<QChar,DBSplitModel*>> m_splitModels;
 
-	HomePageMesoModel *m_ownMesos, *m_clientMesos;
+	HomePageMesoModel *m_ownMesos{nullptr}, *m_clientMesos{nullptr};
 	QList<int8_t> m_isMesoOK;
 	QList<bool> m_canExport;
 	QStringList m_usedSplits;
 	int m_importMesoIdx, m_currentWorkingMeso;
 
-	DBModelInterfaceMesocycle *m_dbModelInterface;
-	DBMesocyclesTable *m_db;
-	DBMesoCalendarTable *m_calendarDB;
-	DBWorkoutsOrSplitsTable *m_splitsDB, *m_workoutsDB;
+	DBModelInterfaceMesocycle *m_dbModelInterface{nullptr};
+	DBMesocyclesTable *m_db{nullptr};
+	DBMesoCalendarTable *m_calendarDB{nullptr};
+	DBWorkoutsOrSplitsTable *m_splitsDB{nullptr}, *m_workoutsDB{nullptr};
 	QHash<uint,DBExercisesModel*> m_workingWorkouts;
-	DBCalendarModel* m_workingCalendar;
+	DBCalendarModel* m_workingCalendar{nullptr};
 
 	friend class DBModelInterfaceMesocycle;
 

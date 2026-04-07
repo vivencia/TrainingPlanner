@@ -58,11 +58,13 @@ TPPage {
 		model: mesoCalendarPage.calendarModel
 		reuseItems: true
 		snapMode: ListView.SnapToItem
-		spacing: 2
+		spacing: cellSize
 		anchors.fill: parent
 
+		readonly property double _size_factor: 7
 		readonly property double mm: Screen.pixelDensity
 		readonly property double cellSize: mm * 7
+		readonly property int fontSizePx: cellSize * (_size_factor / 21) //0.32
 
 		ScrollBar.vertical: ScrollBar {
 			policy: ScrollBar.AsNeeded
@@ -76,7 +78,6 @@ TPPage {
 			opacity: 0.7
 
 			required property int index
-			property alias month_index: delegate.index
 
 			Rectangle {
 				id: monthYearTitle
@@ -88,9 +89,9 @@ TPPage {
 
 				Text {
 					anchors.centerIn: parent
-					text: AppUtils.monthName(mesoCalendarPage.calendarModel.month(delegate.month_index)) + " " +
+					text: AppUtils.monthName(mesoCalendarPage.calendarModel.month(delegate.index)) + " " +
 																				mesoCalendarPage.calendarModel.year(delegate.index);
-					font.pixelSize: 0
+					font.pixelSize: calendar.fontSizePx * 1.5
 					font.bold: true
 				}
 			}
@@ -108,7 +109,7 @@ TPPage {
 					verticalAlignment: Text.AlignVCenter
 					color: AppSettings.fontColor
 					font.bold: true
-					font.pixelSize: AppSettings.fontSize
+					font.pixelSize: calendar.fontSizePx* 1.3
 
 					required property string shortName
 				}
@@ -117,12 +118,12 @@ TPPage {
 			MonthGrid {
 				id: monthGrid
 				locale: Qt.locale(AppSettings.userLocale)
-				month: mesoCalendarPage.calendarModel.month(delegate.month_index)
-				year: mesoCalendarPage.calendarModel.year(delegate.month_index)
+				month: mesoCalendarPage.calendarModel.month(delegate.index)
+				year: mesoCalendarPage.calendarModel.year(delegate.index)
 				spacing: 2
 				anchors.top: weekTitles.bottom
-				width: parent.width
-				height: calendar.cellSize * 8
+				width: calendar.cellSize * 12
+				height: calendar.cellSize * 10
 
 				property CalendarEntry selectedDay
 
@@ -139,8 +140,12 @@ TPPage {
 					required property int month
 					required property int year
 
-					onDateSelected: (day, is_workout) => {
-						mesoCalendarPage.calendarModel.currentDate = day;
+					onDateSelected: (day, month, year, is_workout) => {
+						if (monthGrid.selectedDay)
+							monthGrid.selectedDay.highlightDay(false);
+						monthGrid.selectedDay = this;
+						highlightDay(true);
+						mesoCalendarPage.calendarModel.currentDate = new Date(year, month, day);
 						optChangeOnlyThisDay.checked = optChangeAfterThisDay.checked = false;
 						optChangeOnlyThisDay.enabled = optChangeAfterThisDay.enabled = false;
 						btnViewWorkout.enabled = is_workout;

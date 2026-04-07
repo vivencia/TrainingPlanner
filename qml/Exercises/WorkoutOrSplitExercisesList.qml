@@ -34,8 +34,13 @@ TPListView {
 
 	delegate: ExercisesListDelegate {
 		exercisesModel: _control.exercisesModel
+		exerciseNumber: index
 		onGotoExercise: (exercise_number) => _control.positionViewAtIndex(exercise_number, ListView.Contain);
 		onRemoveExerciseRequested: _control.showDeleteDialog();
+		onQuickQuestionRequested: (title, message, icon, button1text, button2text) =>
+													_control.quickQuestion(this, title, message, icon, button1text, button2text);
+
+		required property int index
 	}
 
 	function showDeleteDialog(exercise_number: int): void {
@@ -54,20 +59,66 @@ TPListView {
 		property string _exerciseName
 
 		sourceComponent: TPBalloonTip {
+			parentPage: _control.workoutPageManager ? _control.workoutPageManager.qmlPage() as TPPage :
+																					_control.splitPageManager.qmlPage() as TPPage
+			keepAbove: true
 			title: qsTr("Remove Exercise?")
 			message: delExerciseLoader._exerciseName + qsTr("\nThis action cannot be undone.")
 			imageSource: "remove"
-			keepAbove: true
 			onButton1Clicked: _control.exercisesModel.delExercise(_control.exercisesModel.workingExercise);
-			parentPage: _control.workoutPageManager ? _control.workoutPageManager.qmlPage() as TPPage : _control.splitPageManager.qmlPage() as TPPage
 			onClosed: delExerciseLoader.active = false;
 			Component.onCompleted: delExerciseLoader._balloon = this;
 		}
 
 		onLoaded: {
-			_exerciseName = _control.exercisesModel.exerciseName(_control.exercisesModel.workingExercise, _control.exercisesModel.allExerciseNames);
+			_exerciseName = _control.exercisesModel.exerciseName(_control.exercisesModel.workingExercise,
+																						_control.exercisesModel.allExerciseNames);
 			_balloon.showInWindow(-Qt.AlignCenter);
 		}
+	}
+
+	Loader {
+		id: quickQuestionLoader
+		asynchronous: true
+		active: false
+
+		property TPBalloonTip dialog
+		property ExercisesListDelegate delegate
+		property string title
+		property string message
+		property string icon
+		property string button1Text
+		property string button2Text
+
+		sourceComponent: TPBalloonTip {
+			parentPage: _control.workoutPageManager ? _control.workoutPageManager.qmlPage() as TPPage :
+																					_control.splitPageManager.qmlPage() as TPPage
+			keepAbove: true
+			title: quickQuestionLoader.title
+			message: quickQuestionLoader.message
+			imageSource: quickQuestionLoader.icon
+			button1Text: quickQuestionLoader.button1Text
+			button2Text: quickQuestionLoader.button2Text
+			onButton1Clicked: quickQuestionLoader.delegate.quickQuestionAnswered(1);
+			onButton2Clicked: quickQuestionLoader.delegate.quickQuestionAnswered(2);
+			onClosed: {
+				quickQuestionLoader.delegate.quickQuestionAnswered(0);
+				quickQuestionLoader.active = false
+			}
+			Component.onCompleted: quickQuestionLoader.dialog = this;
+		}
+
+		onLoaded: dialog.showInWindow(-Qt.AlignCenter);
+	}
+	function quickQuestion(delegate: ExercisesListDelegate, title: string, message: string, icon: string, button1text:
+																							string, button2text: string): void {
+		quickQuestionLoader.delegate = delegate;
+		quickQuestionLoader.title = title;
+		quickQuestionLoader.message = message;
+		quickQuestionLoader.icon = icon;
+		quickQuestionLoader.button1Text = button1text;
+		quickQuestionLoader.button2Text = button2text;
+		quickQuestionLoader.active = true;
 	}
 
 	Loader {

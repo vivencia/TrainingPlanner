@@ -503,7 +503,7 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 	}
 #endif
 	appQmlEngine()->setObjectOwnership(m_workoutPage, QQmlEngine::CppOwnership);
-	m_workoutPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
+	m_workoutPage->setParentItem(appItemManager()->AppPagesVisualParent());
 
 	appPagesListModel()->openPage(m_workoutPage, std::move(tr("Workout: ") + appUtils()->formatDate(m_date)), [this] () {
 		cleanUp();

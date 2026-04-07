@@ -9,7 +9,7 @@ enum RoleNames {
 };
 
 DBCalendarModel::DBCalendarModel(DBMesocyclesModel *parent, DBMesoCalendarTable* db, const uint meso_idx)
-	: QAbstractListModel{parent}, m_mesoModel{parent}, m_db{db}, m_mesoIdx(meso_idx), m_nMonths{-1}, m_curDay{-1}, m_nCaldays{-1}
+	: QAbstractListModel{parent}, m_mesoModel{parent}, m_db{db}, m_mesoIdx(meso_idx)
 {
 	roleToString(year)
 	roleToString(month)
@@ -23,7 +23,7 @@ DBCalendarModel::DBCalendarModel(DBMesocyclesModel *parent, DBMesoCalendarTable*
 			if (success) {
 				beginResetModel();
 				const QDate endDate{appUtils()->dateFromString(
-													m_dbmic->modelData().constLast().at(CALENDAR_DATABASE_DATE), TPUtils::DF_DATABASE)};
+												m_dbmic->modelData().constLast().at(CALENDAR_DATABASE_DATE), TPUtils::DF_DATABASE)};
 				m_nMonths = appUtils()->calculateNumberOfMonths(m_startDate, endDate);
 				emit nMonthsChanged();
 				m_nCaldays = m_startDate.daysTo(endDate) + 1;
@@ -184,8 +184,8 @@ QVariant DBCalendarModel::data(const QModelIndex &index, int role) const
 	const int row{index.row()};
 	if (row >= 0 && row < m_nMonths) {
 		switch (role) {
-			case yearRole: return firstDateOfEachMonth(row).year();
-			case monthRole: return firstDateOfEachMonth(row).month() - 1;
+		case yearRole: return firstDateOfEachMonth(row).year();
+		case monthRole: return firstDateOfEachMonth(row).month() - 1;
 		}
 	}
 	return QVariant{};

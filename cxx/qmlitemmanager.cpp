@@ -63,6 +63,7 @@ QmlItemManager::QmlItemManager(QQmlApplicationEngine *qml_engine) : QObject{null
 			_appMainWindow = qobject_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));
 			appQmlEngine()->rootContext()->setContextProperty("mainwindow"_L1, QVariant::fromValue(appMainWindow()));
 			m_homePage = appMainWindow()->findChild<QQuickItem*>("homePage");
+			m_appPagesVisualParent = appMainWindow()->findChild<QQuickItem*>("appStackView");
 
 			appUserModel()->initUserSession();
 			connect(AppHomePage(), SIGNAL(mesosViewChanged(bool)), this, SLOT(homePageViewChanged(bool)));
@@ -251,7 +252,7 @@ void QmlItemManager::getWeatherPage()
 		if (!m_weatherPage) {
 			m_weatherPage = static_cast<QQuickItem*>(m_weatherComponent->create(appQmlEngine()->rootContext()));
 			appQmlEngine()->setObjectOwnership(m_weatherPage, QQmlEngine::CppOwnership);
-			m_weatherPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
+			m_weatherPage->setParentItem(appItemManager()->AppPagesVisualParent());
 			appPagesListModel()->openPage(m_weatherPage, std::move(tr("Weather Forecast")));
 		}
 		else
@@ -525,7 +526,7 @@ void QmlItemManager::createStatisticsPage_part2()
 {
 	m_statisticsPage = static_cast<QQuickItem*>(m_statisticsComponent->create(appQmlEngine()->rootContext()));
 	appQmlEngine()->setObjectOwnership(m_statisticsPage, QQmlEngine::CppOwnership);
-	m_statisticsPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
+	m_statisticsPage->setParentItem(appItemManager()->AppPagesVisualParent());
 	appPagesListModel()->openPage(m_statisticsPage, std::move(tr("Statistics")));
 }
 

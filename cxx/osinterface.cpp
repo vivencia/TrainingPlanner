@@ -88,6 +88,9 @@ OSInterface::OSInterface(QObject *parent) : QObject{parent}
 		appOnlineServices()->userLogout(111111);
 	});
 	checkServer(appSettings()->serverAddress(), appSettings()->serverPort());
+#ifdef LOCAL_TPSERVER
+	checkInternetConnection();
+#endif
 
 #ifdef Q_OS_ANDROID
 	initAndroidInterface();
@@ -182,13 +185,11 @@ void OSInterface::checkServer(QString address, QString port, QNetworkInterface i
 void OSInterface::checkInternetConnection()
 {
 	bool is_connected{false};
-	if (networkInterfaceOK()) {
-		QTcpSocket checkConnectionSocket;
-		checkConnectionSocket.connectToHost("google.com"_L1, 443); // 443 for HTTPS or use Port 80 for HTTP
-		checkConnectionSocket.waitForConnected(2000);
-		is_connected = checkConnectionSocket.state() == QTcpSocket::ConnectedState;
-		checkConnectionSocket.close();
-	}
+	QTcpSocket checkConnectionSocket;
+	checkConnectionSocket.connectToHost("google.com"_L1, 443); // 443 for HTTPS or use Port 80 for HTTP
+	checkConnectionSocket.waitForConnected(2000);
+	is_connected = checkConnectionSocket.state() == QTcpSocket::ConnectedState;
+	checkConnectionSocket.close();
 	if (!m_currentNetworkStatus[internetMessage].has_value() || m_currentNetworkStatus[internetMessage].value() != is_connected) {
 		setNetStatus(internetMessage, is_connected, std::move(is_connected ?
 									tr("Device is connected to the internet") : tr("Device is not connected to the internet")));

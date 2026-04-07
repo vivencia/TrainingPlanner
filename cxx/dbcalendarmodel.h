@@ -68,8 +68,7 @@ public:
 	inline QDate currentDate() const { return m_curDate; }
 	inline void setCurrentDate(const QDate &new_date)
 	{
-		if (new_date != m_curDate)
-		{
+		if (new_date != m_curDate) {
 			m_curDate = new_date;
 			setCurrentDay(calendarDay(m_curDate));
 			emit currentDayChanged();
@@ -121,10 +120,10 @@ signals:
 private:
 	DBMesocyclesModel *m_mesoModel;
 	uint m_mesoIdx;
-	int m_nMonths, m_curDay, m_nCaldays;
+	int m_nMonths{-1}, m_curDay{-1}, m_nCaldays{-1};
 	QHash<int, QByteArray> m_roleNames;
-	DBMesoCalendarTable *m_db;
-	DBModelInterfaceCalendar *m_dbmic;
+	DBMesoCalendarTable *m_db{nullptr};
+	DBModelInterfaceCalendar *m_dbmic{nullptr};
 	QDate m_curDate, m_startDate;
 
 	inline QString dayInfo(const int calendar_day, const uint field) const;

@@ -559,8 +559,8 @@ uint DBExercisesModel::addExercise(int exercise_number, const bool from_qml)
 	m_exerciseData.append(new_exercise);
 	if (from_qml) {
 		endInsertRows();
-		emit exerciseCountChanged();
 		setWorkingExercise(exercise_number);
+		emit exerciseCountChanged();
 		emit dataChanged(index(exercise_number, 0), index(exercise_number, 0), QList<int>{exerciseNumberRole});
 
 		if (!reutilize_modeldata || exercise_number >= m_dbModelInterface->modelData().count()) {

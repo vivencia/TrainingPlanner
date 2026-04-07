@@ -155,20 +155,16 @@ void PagesListModel::closePage(const uint index)
 
 void PagesListModel::openMainMenuShortCut(const uint index, const bool change_order)
 {
-	if (index > 0) {
-		openQMLPage(index);
-		if (change_order) {
-			setCurrentIndex(m_pagesData.count() - 1);
-			if (index != currentIndex()) {
-				beginMoveRows(QModelIndex{}, index, index, QModelIndex{}, m_pagesIndex + 1);
-				m_pagesData.move(index, m_pagesIndex);
-				endMoveRows();
-			}
-			return;
+	openQMLPage(index);
+	if (change_order) {
+		setCurrentIndex(m_pagesData.count() - 1);
+		if (index != currentIndex()) {
+			beginMoveRows(QModelIndex{}, index, index, QModelIndex{}, m_pagesIndex + 1);
+			m_pagesData.move(index, m_pagesIndex);
+			endMoveRows();
 		}
+		return;
 	}
-	else
-		QMetaObject::invokeMethod(appMainWindow(), "goHome");
 	setCurrentIndex(index);
 }
 
