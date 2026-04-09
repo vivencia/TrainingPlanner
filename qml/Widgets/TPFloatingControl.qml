@@ -1,12 +1,9 @@
 import QtQuick
-import QtQuick.Controls
 
 import TpQml.Pages
 
 Rectangle {
 	id: _control
-	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
-	focus: false
 
 //public:
 	property TPPage parentPage
@@ -14,14 +11,6 @@ Rectangle {
 
 	signal clicked();
 	signal controlMoved(int x, int y);
-
-//private:
-	property bool _visible: false
-
-	Component.onCompleted: {
-		parentPage.pageDeActivated.connect(function() { _visible = _control.visible; _control.visible = false; });
-		parentPage.pageActivated.connect(function() { if (_visible) _control.visible = true; });
-	}
 
 	SequentialAnimation {
 		id: anim

@@ -189,8 +189,9 @@ message(STATUS "MY_LANGUAGE_TS_FILES: ${MY_LANGUAGE_TS_FILES}")
 #No .qm files needed from Qt 6.7 and up. CMake generates/updates them automatically(they are placed in the build directory)
 qt_add_translations(TrainingPlanner
     TS_FILE_DIR "translations"
-    RESOURCE_PREFIX "/"
     NO_GENERATE_PLURALS_TS_FILE
+	RESOURCE_PREFIX "/translations"
+	LUPDATE_OPTIONS -no-obsolete
 )
 
 set( SERVER_FILES
@@ -258,6 +259,8 @@ qt_add_qml_module(TrainingPlanner
 		"/"
 )
 
+add_dependencies(TrainingPlanner update_translations)
+
 target_link_libraries(TrainingPlanner PRIVATE
 	tp_widgets_module
 	tp_pages_module
@@ -267,6 +270,13 @@ target_link_libraries(TrainingPlanner PRIVATE
 )
 
 target_include_directories(TrainingPlanner PUBLIC cxx cxx/online_services cxx/tpkeychain cxx/weather)
+
+set_property(TARGET TrainingPlanner PROPERTY QT_EXCLUDE_SOURCES_FROM_TRANSLATION
+	${JAVA_SOURCES}
+	${SERVER_FILES}
+	${ANDROID_FIES}
+)
+#set_property(DIRECTORY build PROPERTY QT_EXCLUDE_FROM_TRANSLATION ON)
 
 if(NOT ANDROID)
 	pkg_check_modules(LIBSECRET REQUIRED libsecret-1)

@@ -45,10 +45,10 @@ void QmlMesoSplitInterface::getExercisesPlannerPage()
 			case QQmlComponent::Error:
 				qDebug() << m_plannerComponent->errorString();
 				break;
-			}
 #else
 			default: break;
 #endif
+			}
 		}
 		else
 			appPagesListModel()->openPage(m_plannerPage);

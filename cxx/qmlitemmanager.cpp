@@ -286,8 +286,8 @@ void QmlItemManager::getStatisticsPage()
 		appPagesListModel()->openPage(m_statisticsPage);
 }
 
-void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QString &filename_or_message, QFlags<Qt::AlignmentFlag> postion,
-								const QString &image_source, const uint msecs, const QString& button1text, const QString &button2text) const
+void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QString &filename_or_message,
+	QFlags<Qt::AlignmentFlag> postion,const QString &image_source, const int msecs, const QString& button1text, const QString &button2text) const
 {
 	QString title, message;
 	MESSAGE_ICON icon_to_use{MI_Error}; //Only applicable when image_source is an empty string
@@ -406,19 +406,13 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 
 	if (!button1text.isEmpty())
 		connect(appMainWindow(), SIGNAL(generalMessagesPopupClicked(int)), this, SLOT(generalMessagesPopupClicked(int)), Qt::SingleShotConnection);
-	QMetaObject::invokeMethod(appMainWindow(), "showAppMainMessageDialog", Q_ARG(int, -postion), Q_ARG(QString, title), Q_ARG(QString, message),
-				Q_ARG(QString, img_src), Q_ARG(int, static_cast<int>(msecs)), Q_ARG(QString, button1text), Q_ARG(QString, button2text));
+	QMetaObject::invokeMethod(appMainWindow(), "showAppMainMessageDialog", Q_ARG(int, -postion), Q_ARG(QString, title),
+		Q_ARG(QString, message), Q_ARG(QString, img_src), Q_ARG(int, msecs), Q_ARG(QString, button1text), Q_ARG(QString, button2text));
 }
 
-void QmlItemManager::displayActivityResultMessage(const int requestCode, const int resultCode) const
+void QmlItemManager::showOnlineMessagesManagerDialog(const bool show)
 {
-	int message_id(0);
-	switch (resultCode) {
-		case -1: message_id = TP_RET_CODE_SUCCESS; break;
-		case 0: message_id = TP_RET_CODE_SHARE_FAILED; break;
-		default: message_id = TP_RET_CODE_UNKNOWN_ERROR; break;
-	}
-	displayMessageOnAppWindow(message_id);
+	QMetaObject::invokeMethod(appMainWindow(), "showOnlineMessagesDialog", Q_ARG(bool, show));
 }
 //-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 

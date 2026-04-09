@@ -1393,3 +1393,11 @@ void TPUtils::setAppLocale(const QString &locale_str)
 	m_appLocale = new QLocale{language, territory};
 	m_appLocale->setNumberOptions(QLocale::IncludeTrailingZeroesAfterDot);
 }
+
+void TPUtils::findResource(const QString &prefix, const QString &suffix)
+{
+	const QDir dir{prefix};
+	const QFileInfoList &files{dir.entryInfoList(QStringList{} << suffix, QDir::Files)};
+	for (const QFileInfo &fileInfo : std::as_const(files))
+		qDebug() << "Resource: " << fileInfo.filePath();
+}

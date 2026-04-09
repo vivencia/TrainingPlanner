@@ -43,7 +43,8 @@ TPPopup {
 
 	ExercisesListView {
 		id: exercisesList
-		canDoMultipleSelection: _control.bEnableMultipleSelection
+		parentPage: _control.parentPage
+		enableMultipleSelection: _control.bEnableMultipleSelection
 
 		anchors {
 			top: _control.titleBar.bottom
@@ -58,7 +59,7 @@ TPPopup {
 
 	function show(ypos: int): void {
 		shown = true;
-		exercisesList.canDoMultipleSelection = bEnableMultipleSelection;
+		exercisesList.enableMultipleSelection = bEnableMultipleSelection;
 		exercisesList.setFocusToSearchField();
 		AppExercisesList.clearSelectedEntries();
 		show1(ypos);

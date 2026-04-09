@@ -44,6 +44,8 @@ int main(int argc, char *argv[])
 	app.setApplicationName("TrainingPlanner"_L1);
 
 	TPUtils tpUtils{};
+	//tpUtils.findResource();
+	//tpUtils.findResource(":/images");
 	ThreadManager threadManager{};
 	TPSettings tpSettings{};
 	TPKeyChain tpKeyChain{};

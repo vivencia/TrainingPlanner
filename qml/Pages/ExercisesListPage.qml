@@ -30,7 +30,8 @@ TPPage {
 
 	ExercisesListView {
 		id: exercisesList
-		canDoMultipleSelection: exercisesPage.chooseButtonEnabled
+		enableMultipleSelection: exercisesPage.chooseButtonEnabled
+		parentPage: exercisesPage as TPPage
 		height: exercisesPage.height * 0.5
 
 		anchors {

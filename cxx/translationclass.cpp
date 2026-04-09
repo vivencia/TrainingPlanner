@@ -45,7 +45,7 @@ void TranslationClass::switchToLanguage(const QString &language, const bool writ
 	}
 	if (language != "en_US"_L1) {
 		mTranslator = new QTranslator{this};
-		if (mTranslator->load("tplanner.%1.qm"_L1.arg(language), ":/translations/"_L1, "qm"_L1))
+		if (mTranslator->load("TrainingPlanner_%1.qm"_L1.arg(language), ":/translations/"_L1))
 			qApp->installTranslator(mTranslator);	
 	}
 	if (appQmlEngine())

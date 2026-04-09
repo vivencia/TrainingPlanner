@@ -250,6 +250,8 @@ public:
 	void setAppLocale(const QString &locale_str);
 	inline QString newDBTemporaryId() const { return QString::number(m_lowestTempId--); }
 
+	void findResource(const QString &prefix = ":/"_L1, const QString &suffix = "*.*"_L1);
+
 signals:
 	void tpFileOpenRequest(uint32_t tp_filetype, const QString &filename, const bool formatted = false, const QVariant &extra_info = QVariant{});
 

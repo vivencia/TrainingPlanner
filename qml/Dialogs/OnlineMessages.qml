@@ -14,21 +14,34 @@ TPPopup {
 	showTitleBar: false
 	closeButtonVisible: false
 	disableMouseHandling: true
-	x: AppSettings.pageWidth - 80
-	finalYPos: 180
-	width: mainIcon.width
-	height: mainIcon.height
+	x: savedPos.x
+	finalYPos: savedPos.y
+	width: savedSize.width
+	height: savedSize.height
 	backgroundRec.visible: fullDialogVisible
 	backGroundImage: ":/images/backgrounds/backimage-messages.jpg"
+	visible: AppSettings.showOnlineMessagesDialog
 
-	property bool fullDialogVisible: false
+//private
+	property bool fullDialogVisible: savedSize.width > mainIcon.width
 	property int mainIconUserDefinedX: x
 	property int mainIconUserDefinedY: y
 	readonly property int dlgMaxWidth: AppSettings.pageWidth * 0.8
 	readonly property int maxHeight: AppSettings.pageHeight * 0.5
+	readonly property size savedSize: AppSettings.getCustomValue("onlineMessagesDialogSize", Qt.size(mainIcon.width, mainIcon.height))
+	readonly property point savedPos: AppSettings.getCustomValue("onlineMessagesDialogPosition", Qt.point(AppSettings.pageWidth - 80, 180))
 
-	ParallelAnimation
-	{
+	function showAbove(show: bool): void {
+		visible = show;
+		AppSettings.showOnlineMessagesDialog = show;
+	}
+
+	function firstTimeShow(): void {
+		if (visible)
+			open();
+	}
+
+	ParallelAnimation {
 		id: shrink
 		alwaysRunToEnd: true
 
@@ -52,10 +65,11 @@ TPPopup {
 			onlineMsgsDlg.x = onlineMsgsDlg.mainIconUserDefinedX;
 			onlineMsgsDlg.y = onlineMsgsDlg.mainIconUserDefinedY;
 			onlineMsgsDlg.fullDialogVisible = false;
+			AppSettings.setCustomValue("onlineMessagesDialogSize", Qt.size(onlineMsgsDlg.width, onlineMsgsDlg.height));
+			AppSettings.setCustomValue("onlineMessagesDialogPosition", Qt.point(onlineMsgsDlg.x, onlineMsgsDlg.y));
 		}
 	}
-	ParallelAnimation
-	{
+	ParallelAnimation {
 		id: expand
 		alwaysRunToEnd: true
 
@@ -79,6 +93,8 @@ TPPopup {
 			if ((onlineMsgsDlg.x + onlineMsgsDlg.width) > AppSettings.pageWidth)
 				onlineMsgsDlg.x = AppSettings.pageWidth - onlineMsgsDlg.width - 10;
 			onlineMsgsDlg.fullDialogVisible = true;
+			AppSettings.setCustomValue("onlineMessagesDialogSize", Qt.size(onlineMsgsDlg.width, onlineMsgsDlg.height));
+			AppSettings.setCustomValue("onlineMessagesDialogPosition", Qt.point(onlineMsgsDlg.x, onlineMsgsDlg.y));
 		}
 	}
 
@@ -88,6 +104,7 @@ TPPopup {
 		width: AppSettings.itemExtraLargeHeight
 		height: width
 		visible: !onlineMsgsDlg.fullDialogVisible
+
 		anchors {
 			verticalCenter: parent.verticalCenter
 			horizontalCenter: parent.horizontalCenter
@@ -103,6 +120,7 @@ TPPopup {
 				onlineMsgsDlg.mainIconUserDefinedY = onlineMsgsDlg.y;
 				expand.start();
 			}
+			onMovingFinished: (x, y) => AppSettings.setCustomValue("onlineMessagesDialogPosition", Qt.point(x, y));
 		}
 	}
 
@@ -144,6 +162,7 @@ TPPopup {
 				else
 					ItemManager.AppPagesManager.raisePopup(onlineMsgsDlg);
 			}
+			onMovingFinished: (x, y) => AppSettings.setCustomValue("onlineMessagesDialogPosition", Qt.point(x, y));
 		}
 	}
 

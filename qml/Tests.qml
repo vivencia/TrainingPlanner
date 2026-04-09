@@ -122,7 +122,7 @@ ApplicationWindow {
 
 		ExercisesListView {
 			id: exercisesList
-			canDoMultipleSelection: true
+			enableMultipleSelection: true
 			height: homePage.height * 0.5
 
 			anchors {

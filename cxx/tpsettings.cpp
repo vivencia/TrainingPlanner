@@ -194,16 +194,16 @@ void TPSettings::userSettingsInit()
 	m_userPropertyNames.insert(FONT_SIZE_INDEX, std::move("fontPixelSize"_L1));
 	m_userPropertyNames.insert(WEIGHT_UNIT_INDEX, std::move("weightUnit"_L1));
 	m_userPropertyNames.insert(ASK_CONFIRMATION_INDEX, std::move("alwaysAskConfirmation"_L1));
+	m_userPropertyNames.insert(SHOW_MESSAGES_DIALOG, std::move("showOnlineMessagesDialog"_L1));
 
 	m_defaultValues.resize(USER_SETTINGS_FIELD_COUNT);
-	for(uint i{USER_LOCALE_INDEX}; i < USER_SETTINGS_FIELD_COUNT; ++i)
-	{
-		switch (i)
-		{
-			case THEME_STYLE_INDEX: m_defaultValues[i] = std::move("Material"_L1); break;
-			case WEIGHT_UNIT_INDEX: m_defaultValues[i] = std::move("(kg)"_L1); break;
-			case ASK_CONFIRMATION_INDEX: m_defaultValues[i] = std::move(QString{'1'}); break;
-			case COLOR_SCHEME_INDEX: m_defaultValues[i] = std::move(QString{'3'}); break;
+	for(uint i{USER_LOCALE_INDEX}; i < USER_SETTINGS_FIELD_COUNT; ++i) {
+		switch (i) {
+		case THEME_STYLE_INDEX:			m_defaultValues[i] = std::move("Material"_L1);	break;
+		case WEIGHT_UNIT_INDEX:			m_defaultValues[i] = std::move("(kg)"_L1);		break;
+		case COLOR_SCHEME_INDEX:		m_defaultValues[i] = std::move(QString{'3'});	break;
+		case ASK_CONFIRMATION_INDEX:	m_defaultValues[i] = std::move(QString{'1'});	break;
+		case SHOW_MESSAGES_DIALOG:		m_defaultValues[i] = std::move(QString{'1'});	break;
 		}
 	}
 
@@ -213,8 +213,7 @@ void TPSettings::userSettingsInit()
 					std::move(tr("Green")) << std::move(tr("Red")) << std::move(tr("Gray"));
 
 	const QFontInfo fi{QGuiApplication::font()};
-	setFontSize(getValue(currentUser(), FONT_SIZE_INDEX,
-								applyFontRatio(fi.pixelSize(), appSettings()->fontRatio())).toUInt(), false);
+	setFontSize(getValue(currentUser(), FONT_SIZE_INDEX, applyFontRatio(fi.pixelSize(), appSettings()->fontRatio())).toUInt(), false);
 	setColorScheme(getValue(currentUser(), COLOR_SCHEME_INDEX, m_defaultValues.at(COLOR_SCHEME_INDEX)).toUInt(), false);
 }
 

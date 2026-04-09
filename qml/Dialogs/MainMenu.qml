@@ -123,6 +123,23 @@ Drawer {
 					leftMargin: - (_mainMenu.width - imgLogo.width) / 2
 				}
 			}
+
+			TPButton {
+				id: btnMessages
+				imageSource: "messages"
+				visible: AppUserModel.onlineAccount
+				checkable: true
+				checked: !AppSettings.showOnlineMessagesDialog
+				width: AppSettings.itemLargeHeight
+				height: width
+
+				onCheck: ItemManager.showOnlineMessagesManagerDialog(!checked);
+
+				anchors {
+					top: btnSettings.bottom
+					horizontalCenter: btnSettings.horizontalCenter
+				}
+			}
 		}
 
 		TPLabel {

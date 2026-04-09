@@ -48,6 +48,7 @@ enum UserSettingFields {
 	COLOR_SCHEME_INDEX,
 	ITEM_DEFAULT_HEIGHT,
 	ASK_CONFIRMATION_INDEX,
+	SHOW_MESSAGES_DIALOG,
 	USER_SETTINGS_FIELD_COUNT
 };
 //--------------------------------------------USER   SETTINGS---------------------------------------------//
@@ -98,6 +99,7 @@ Q_PROPERTY(QString coachesBackground READ coachesBackground NOTIFY colorChanged 
 Q_PROPERTY(QString clientsBackground READ clientsBackground NOTIFY colorChanged FINAL)
 Q_PROPERTY(QString weatherBackground READ weatherBackground NOTIFY colorChanged FINAL)
 Q_PROPERTY(bool alwaysAskConfirmation READ alwaysAskConfirmation WRITE setAlwaysAskConfirmation NOTIFY alwaysAskConfirmationChanged)
+Q_PROPERTY(bool showOnlineMessagesDialog READ showOnlineMessagesDialog WRITE setShowOnlineMessagesDialog NOTIFY showOnlineMessagesDialogChanged FINAL)
 Q_PROPERTY(QStringList colorSchemes READ colorSchemes FINAL CONSTANT)
 //--------------------------------------------USER   SETTINGS---------------------------------------------//
 
@@ -281,12 +283,14 @@ enum ColorSchemes {
 
 	inline bool alwaysAskConfirmation() const { return getValue(currentUser(), ASK_CONFIRMATION_INDEX, m_defaultValues.at(ASK_CONFIRMATION_INDEX)).toBool(); }
 	inline void setAlwaysAskConfirmation(const bool new_value) { changeValue(currentUser(), ASK_CONFIRMATION_INDEX, QString::number(new_value)); emit alwaysAskConfirmationChanged(); }
+	inline bool showOnlineMessagesDialog() const { return getValue(currentUser(), SHOW_MESSAGES_DIALOG, m_defaultValues.at(SHOW_MESSAGES_DIALOG)).toBool(); }
+	inline void setShowOnlineMessagesDialog(const bool new_value) { changeValue(currentUser(), SHOW_MESSAGES_DIALOG, QString::number(new_value)); emit showOnlineMessagesDialogChanged(); }
 
-	inline QVariant getCustomValue(const QLatin1StringView &value_name, const QVariant &default_value = QVariant{}) const
+	Q_INVOKABLE inline QVariant getCustomValue(const QString &value_name, const QVariant &default_value = QVariant{}) const
 	{
 		return getValue(currentUser(), value_name, default_value);
 	}
-	inline void setCustomValue(const QLatin1StringView &value_name, const QVariant &value)
+	Q_INVOKABLE inline void setCustomValue(const QString &value_name, const QVariant &value)
 	{
 		changeValue(currentUser(), value_name, value);
 	}
@@ -301,6 +305,7 @@ signals:
 	void fontSizeChanged();
 	void lastViewedMesoIdxChanged();
 	void alwaysAskConfirmationChanged();
+	void showOnlineMessagesDialogChanged();
 
 private:
 	QHash<uint,QLatin1StringView> m_userPropertyNames;

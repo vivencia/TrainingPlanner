@@ -13,8 +13,28 @@ TPPopup {
 	width: AppSettings.pageWidth / 2
 	height: shown ? dlgHeight : AppSettings.itemDefaultHeight
 
+	onOpened: {
+		shown = true;
+		if (initialGroups !== "") {
+			const groups = initialGroups.split(groupsSeparator);
+			for (let x = 0; x < groupsModel.count; ++x) {
+				let included = false;
+				for (let i = 0; i < groups.length; ++i) {
+					if (groupsModel.get(x).display === groups[i]) {
+						included = true;
+						break;
+					}
+				}
+				groupsRepeater.itemAt(x).checked = included;
+			}
+			//groupsModel.set(x, {selected: groupsModel.get(x).display === groups[i]});
+			//groupsModel.setProperty(x, "selected", groupsModel.get(x).display === groups[i]);
+		}
+	}
+
 //public:
 	property string buttonLabel: qsTr("Filter")
+	property string initialGroups
 	signal muscularGroupsCreated(groups: string);
 
 //private:
@@ -23,24 +43,24 @@ TPPopup {
 	readonly property int dlgHeight: AppSettings.pageHeight * 0.5
 
 	property ListModel groupsModel: ListModel {
-		ListElement { display: qsTr("Quadriceps"); value: ""; selected: false; }
-		ListElement { display: qsTr("Hamstrings"); value: ""; selected: false; }
-		ListElement { display: qsTr("Calves"); value: ""; selected: false; }
-		ListElement { display: qsTr("Glutes"); value: ""; selected: false; }
-		ListElement	{ display: qsTr("Upper Back"); value: ""; selected: false; }
-		ListElement { display: qsTr("Middle Back"); value: ""; selected: false; }
-		ListElement { display: qsTr("Lower Back"); value: ""; selected: false; }
-		ListElement { display: qsTr("Biceps"); value: ""; selected: false; }
-		ListElement { display: qsTr("Triceps"); value: ""; selected: false; }
-		ListElement { display: qsTr("Forearms"); value: ""; selected: false; }
-		ListElement { display: qsTr("Upper Chest"); value: ""; selected: false; }
-		ListElement { display: qsTr("Middle Chest"); value: ""; selected: false; }
-		ListElement { display: qsTr("Lower Chest"); value: ""; selected: false; }
-		ListElement { display: qsTr("Front Delts"); value: ""; selected: false; }
-		ListElement { display: qsTr("Lateral Delts"); value: ""; selected: false; }
-		ListElement { display: qsTr("Rear Delts"); value: ""; selected: false; }
-		ListElement { display: qsTr("Traps"); value: ""; selected: false; }
-		ListElement { display: qsTr("Abs"); value: ""; selected: false; }
+		ListElement { display: qsTr("Quadriceps");		value: ""; selected: false; }
+		ListElement { display: qsTr("Hamstrings");		value: ""; selected: false; }
+		ListElement { display: qsTr("Calves");			value: ""; selected: false; }
+		ListElement { display: qsTr("Glutes");			value: ""; selected: false; }
+		ListElement	{ display: qsTr("Upper Back");		value: ""; selected: false; }
+		ListElement { display: qsTr("Middle Back");		value: ""; selected: false; }
+		ListElement { display: qsTr("Lower Back");		value: ""; selected: false; }
+		ListElement { display: qsTr("Biceps");			value: ""; selected: false; }
+		ListElement { display: qsTr("Triceps");			value: ""; selected: false; }
+		ListElement { display: qsTr("Forearms");		value: ""; selected: false; }
+		ListElement { display: qsTr("Upper Chest");		value: ""; selected: false; }
+		ListElement { display: qsTr("Middle Chest");	value: ""; selected: false; }
+		ListElement { display: qsTr("Lower Chest");		value: ""; selected: false; }
+		ListElement { display: qsTr("Front Delts");		value: ""; selected: false; }
+		ListElement { display: qsTr("Lateral Delts");	value: ""; selected: false; }
+		ListElement { display: qsTr("Rear Delts");		value: ""; selected: false; }
+		ListElement { display: qsTr("Traps");			value: ""; selected: false; }
+		ListElement { display: qsTr("Abs");				value: ""; selected: false; }
 	}
 
 	Behavior on height {
@@ -104,7 +124,7 @@ TPPopup {
 					required property string display
 					required property bool selected
 
-					onCheckedChanged: { selected = checked; }
+					onCheckedChanged: { _dlgMuscularGroup.groupsModel.set(index, { "selected": checked }); }
 				}
 			} //Repeater
 		} //ColumnLayout
@@ -114,7 +134,7 @@ TPPopup {
 		id: btnMakeFilter
 		text: _dlgMuscularGroup.buttonLabel
 		autoSize: true
-		visible: _dlgMuscularGroup.shown
+		//visible: _dlgMuscularGroup.shown
 
 		readonly property int margin: (_dlgMuscularGroup.width - width)/2
 
@@ -134,31 +154,5 @@ TPPopup {
 			}
 			_dlgMuscularGroup.muscularGroupsCreated(muscularGroups);
 		}
-	}
-
-	function show(targetItem: Item, pos: int): void {
-		selectInitialGroups();
-		shown = true;
-		showByWidget(targetItem, pos);
-	}
-
-	function selectInitialGroups(): void {
-		const groups = AppExercisesList.filter().split(groupsSeparator);
-		for (let x = 0; x < groupsModel.count; ++x) {
-			let included = false;
-			for (let i = 0; i < groups.length; ++i) {
-				if (qsTr(groupsModel.get(x).display) === groups[i]) {
-					included = true;
-					break;
-				}
-				else if (groupsModel.get(x).display === groups[i]) {
-					included = true;
-					break;
-				}
-			}
-			groupsRepeater.itemAt(x).checked = included;
-		}
-		//groupsModel.set(x, {selected: groupsModel.get(x).display === groups[i]});
-		//groupsModel.setProperty(x, "selected", groupsModel.get(x).display === groups[i]);
 	}
 }

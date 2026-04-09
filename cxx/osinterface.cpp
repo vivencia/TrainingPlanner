@@ -239,7 +239,13 @@ void OSInterface::initAndroidInterface()
 	// because App and UI weren't completely initialized. Workaround: QShareActivity remembers that an Intent is pending
 	connect(this, &OSInterface::appResumed, this, &OSInterface::checkPendingIntents);
 	connect(this, &OSInterface::activityFinishedResult, this, [&] (const int requestCode, const int resultCode) {
-		appItemManager()->displayActivityResultMessage(requestCode, resultCode);
+		int message_id(0);
+		switch (resultCode) {
+		case -1: message_id = TP_RET_CODE_SUCCESS; break;
+		case 0: message_id = TP_RET_CODE_SHARE_FAILED; break;
+		default: message_id = TP_RET_CODE_UNKNOWN_ERROR; break;
+		}
+		qDebug() << "Activity result: request code = " << requestCode << ", result code = " << resultCode;
 	});
 
 	connect(qApp, &QGuiApplication::applicationStateChanged, this, [&] (Qt::ApplicationState state) {

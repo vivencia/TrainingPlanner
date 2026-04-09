@@ -15,7 +15,7 @@ constexpr QLatin1StringView field_names[n_fields][2] {
 	{"selected"_L1			"INTEGER"_L1},
 };
 
-DBExercisesListTable::DBExercisesListTable(DBModelInterfaceExercisesList* dbmodel_interface)
+DBExercisesListTable::DBExercisesListTable(DBModelInterfaceExercisesList *dbmodel_interface)
 	: TPDatabaseTable{EXERCISES_TABLE_ID, dbmodel_interface}
 {
 	m_tableName = &table_name;

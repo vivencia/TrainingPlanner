@@ -30,6 +30,8 @@ ScrollView {
 		}
 
 		onPositionChanged: {
+			if (!_control._navButtons)
+				return;
 			if (vBar.position < 0.06) {
 				_control._navButtons.showUpButton = false;
 				_control._navButtons.showDownButton = true;
@@ -52,20 +54,18 @@ ScrollView {
 			vBar.setPosition(pos - vBar.size);
 	}
 
-	Loader {
-		id: navButtonsLoader
-		asynchronous: true
-		active: _control.contentHeight > _control.height
+	//Loader {
+	//	id: navButtonsLoader
+	//	asynchronous: true
+	//	active: true //_control.contentHeight > _control.height
 
-		readonly property point coord: _control.parentPage.mapToItem(Overlay.overlay, _control.parentPage.x,
-																									_control.parentPage.y + _control.height);
-		sourceComponent: TPPageScrollButtons {
-			ownerPage: _control.parentPage
+	//	sourceComponent:
+	TPPageScrollButtons {
+			parentPage: _control.parentPage
 			showUpButton: false
-			position: navButtonsLoader.coord
 			visible: _control.navButtonsVisible
 			onScrollTo: (pos) => _control.setScrollBarPosition(pos);
 			Component.onCompleted: _control._navButtons = this;
 		}
-	}
+	//}
 }

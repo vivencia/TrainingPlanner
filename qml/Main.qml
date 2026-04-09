@@ -21,6 +21,7 @@ ApplicationWindow {
 	signal saveFileChosen(filepath: string);
 	signal generalMessagesPopupClicked(button: int);
 	signal tpFileOpenInquiryResult(do_import: bool);
+	signal showOnlineMessagesDialog(show: bool);
 
 	header: Loader {
 		id: navBar
@@ -54,13 +55,13 @@ ApplicationWindow {
 		asynchronous: true
 		active: AppUserModel.mainUserConfigured && AppUserModel.onlineAccount
 
-		property OnlineMessages onlineMessagesManager
-
 		sourceComponent: OnlineMessages {
 			parentPage: homePage
-			Component.onCompleted: messagesManagerLoader.onlineMessagesManager = this;
+			Component.onCompleted: {
+				mainwindow.showOnlineMessagesDialog.connect(showAbove);
+				firstTimeShow();
+			}
 		}
-		onLoaded: onlineMessagesManager.open();
 	}
 
 	HomePage {

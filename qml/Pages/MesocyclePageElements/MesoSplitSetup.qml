@@ -227,12 +227,13 @@ Pane {
 		sourceComponent: MuscularGroupPicker {
 			parentPage: _control.mesoManager.qmlPage() as TPPage
 			buttonLabel: qsTr("Define")
-			onMuscularGroupsCreated: (group) => _control.setMuscularGroup(group);
+			initialGroups: _control.mesoManager.muscularGroup(mGDialogLoader._split)
+			onMuscularGroupsCreated: (groups) => _control.setMuscularGroup(groups);
 			onClosed: mGDialogLoader.active = false;
 			Component.onCompleted: mGDialogLoader._mg_picker = this;
 		}
 
-		onLoaded: _mg_picker.showByWidget(_control.mesoManager.muscularGroup(_split), _button, Qt.AlignRight);
+		onLoaded: _mg_picker.showByWidget(_button, Qt.AlignRight);
 	}
 
 	function showMGDialog(button: TPButton, split: string): void {

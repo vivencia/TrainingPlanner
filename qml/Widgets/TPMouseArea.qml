@@ -12,10 +12,12 @@ MouseArea {
 
 	signal mouseClicked();
 	signal moved(int x, int y);
+	signal movingFinished(int x, int y);
 
 //private:
 	property point _mouse_pos_within_widget
 	property bool _pressed: false
+	property bool _moved: false
 
 	onReleased: (mouse) => {
 		if (!_pressed) {
@@ -24,6 +26,10 @@ MouseArea {
 		}
 		else {
 			_pressed = false;
+			if (_moved) {
+				movingFinished(movableWidget.x, movableWidget.y);
+				_moved = false;
+			}
 			mouse.accepted = true;
 		}
 	}
@@ -39,6 +45,7 @@ MouseArea {
 			movableWidget.x += mouse.x - _mouse_pos_within_widget.x;
 			movableWidget.y += mouse.y - _mouse_pos_within_widget.y;
 			moved(movableWidget.x, movableWidget.y);
+			_moved = true;
 			mouse.accepted = true;
 		}
 		else

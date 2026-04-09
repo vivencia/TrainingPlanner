@@ -52,14 +52,13 @@ public:
 	Q_INVOKABLE void getWeatherPage();
 	Q_INVOKABLE void getStatisticsPage();
 	Q_INVOKABLE void displayMessageOnAppWindow(const int message_id, const QString &filename_or_message = QString{},
-						QFlags<Qt::AlignmentFlag> postion = Qt::AlignTop|Qt::AlignHCenter, const QString &image_source = QString{},
-							const uint msecs = 4000, const QString& button1text = QString{}, const QString &button2text = QString{}) const;
+					QFlags<Qt::AlignmentFlag> postion = Qt::AlignTop|Qt::AlignHCenter, const QString &image_source = QString{},
+						const int msecs = 4000, const QString& button1text = QString{}, const QString &button2text = QString{}) const;
+	Q_INVOKABLE void showOnlineMessagesManagerDialog(const bool show);
 	Q_INVOKABLE inline void showTextCopiedMessage(const QString &message = QString{})
 	{
 		displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, message.isEmpty() ? tr("Text copied to the clipboard") : message);
 	}
-
-	void displayActivityResultMessage(const int requestCode, const int resultCode) const;
 
 	Q_INVOKABLE DBExercisesModel *workoutModel() const { return m_workout_model; }
 	DBExercisesModel *m_workout_model;

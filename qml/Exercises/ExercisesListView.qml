@@ -7,27 +7,29 @@ import QtQuick.Layouts
 import TpQml
 import TpQml.Widgets
 import TpQml.Dialogs
+import TpQml.Pages
 
 ColumnLayout {
 	id: _control
 	spacing: 5
 
 //public:
-	property bool bMultipleSelection: false
-	property bool canDoMultipleSelection: false
+	property bool enableMultipleSelection: false
+	required property TPPage parentPage
 
 	signal exerciseEntrySelected(int idx);
 	signal itemDoubleClicked();
 
 //private:
+	property bool _multiple_sel: false
 	property int miliseconds
 
 	//When the list is shared among several objects, if a previous object requested multiple selection and the current
-	//does not, bMultipleSelection will be left however the previous caller might have left it. We must make sure
+	//does not, _multiple_sel will be left however the previous caller might have left it. We must make sure
 	//the new object does not encounter a list that is doing multiple selection but the button to control it is not visisble
-	onCanDoMultipleSelectionChanged: {
-		if (!canDoMultipleSelection) {
-			bMultipleSelection = false;
+	onEnableMultipleSelectionChanged: {
+		if (!enableMultipleSelection) {
+			_multiple_sel = false;
 			chkMultipleSelection.checked = false;
 		}
 	}
@@ -70,13 +72,13 @@ ColumnLayout {
 			id: chkMultipleSelection
 			text: qsTr("Multiple selection")
 			radio: false
-			visible: _control.canDoMultipleSelection
+			visible: _control.enableMultipleSelection
 			Layout.preferredWidth: _control.width * 0.6
 			Layout.alignment: Qt.AlignRight
 
 			onCheckedChanged: {
 				AppExercisesList.clearSelectedEntries();
-				_control.bMultipleSelection = checked;
+				_control._multiple_sel = checked;
 			}
 		}
 	}
@@ -197,7 +199,7 @@ ColumnLayout {
 	} //Rectangle
 
 	function itemClicked(idx: int, emit_signal: bool): void {
-		if (!bMultipleSelection) {
+		if (!_multiple_sel) {
 			if (AppExercisesList.manageSelectedEntries(idx, 1)) {
 				AppExercisesList.currentRow = idx;
 				if (emit_signal)
@@ -234,11 +236,14 @@ ColumnLayout {
 
 		property MuscularGroupPicker dialog
 		sourceComponent: MuscularGroupPicker {
+			initialGroups: AppExercisesList.filter()
+			parentPage: _control.parentPage
+			onMuscularGroupsCreated: (groups) => AppExercisesList.setFilter(groups);
 			onClosed: muscularGroupPickerLoader.active = false;
 			Component.onCompleted: muscularGroupPickerLoader.dialog = this;
 		}
 
-		onLoaded: dialog.show(btnChooseFilters, Qt.AlignBottom);
+		onLoaded: dialog.showByWidget(btnChooseFilters, Qt.AlignBottom);
 	}
 	function showFilterDialog(): void {
 		muscularGroupPickerLoader.active = true;
