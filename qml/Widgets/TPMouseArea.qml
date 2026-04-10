@@ -10,7 +10,7 @@ MouseArea {
 	required property var movingWidget
 	required property var movableWidget
 
-	signal mouseClicked();
+	signal mouseClicked(MouseEvent mouse);
 	signal moved(int x, int y);
 	signal movingFinished(int x, int y);
 
@@ -22,7 +22,7 @@ MouseArea {
 	onReleased: (mouse) => {
 		if (!_pressed) {
 			mouse.accepted = false;
-			mouseClicked();
+			mouseClicked(mouse);
 		}
 		else {
 			_pressed = false;

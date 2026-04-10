@@ -95,7 +95,7 @@ TPToolBar {
 
 				function finishCreation() {
 					_navBar.mainCalendar = component.createObject(ItemManager.AppMainWindow,
-						{ parentPage: ItemManager.AppPagesManager.homePage(), showDate:new Date(), simpleCalendar:true,
+						{ parentPage: ItemManager.AppPagesManager.homePage(), showDate: new Date(), simpleCalendar: true,
 																initDate: new Date(2000, 0, 1), finalDate: new Date(2030, 11, 31) });
 				}
 

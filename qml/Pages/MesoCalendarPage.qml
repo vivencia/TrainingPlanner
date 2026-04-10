@@ -7,8 +7,6 @@ import QtQuick.Layouts
 import TpQml
 import TpQml.Widgets
 
-import "./MesoCalendarElements"
-
 TPPage {
 	id: mesoCalendarPage
 	imageSource: ":/images/backgrounds/backimage-calendar.jpg"
@@ -125,9 +123,7 @@ TPPage {
 				width: calendar.cellSize * 12
 				height: calendar.cellSize * 10
 
-				property CalendarEntry selectedDay
-
-				delegate: CalendarEntry {
+				delegate: TPCalendarEntry {
 					entryDay: day
 					entryMonth: month
 					entryYear: year
@@ -141,10 +137,6 @@ TPPage {
 					required property int year
 
 					onDateSelected: (day, month, year, is_workout) => {
-						if (monthGrid.selectedDay)
-							monthGrid.selectedDay.highlightDay(false);
-						monthGrid.selectedDay = this;
-						highlightDay(true);
 						mesoCalendarPage.calendarModel.currentDate = new Date(year, month, day);
 						optChangeOnlyThisDay.checked = optChangeAfterThisDay.checked = false;
 						optChangeOnlyThisDay.enabled = optChangeAfterThisDay.enabled = false;

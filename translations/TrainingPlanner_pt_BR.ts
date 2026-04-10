@@ -1100,22 +1100,22 @@
 <context>
     <name>MesoCalendarPage</name>
     <message>
-        <location filename="../qml/Pages/MesoCalendarPage.qml" line="197"/>
+        <location filename="../qml/Pages/MesoCalendarPage.qml" line="189"/>
         <source>Change only this day</source>
         <translation>Modificar somente este dia</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCalendarPage.qml" line="208"/>
+        <location filename="../qml/Pages/MesoCalendarPage.qml" line="200"/>
         <source>Adjust calendar from this day on</source>
         <translation>Ajustar calendário a patir deste dia</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCalendarPage.qml" line="223"/>
+        <location filename="../qml/Pages/MesoCalendarPage.qml" line="215"/>
         <source>Change Calendar</source>
         <translation>Modificar calendário</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCalendarPage.qml" line="244"/>
+        <location filename="../qml/Pages/MesoCalendarPage.qml" line="236"/>
         <source>Workout</source>
         <translation>Treino</translation>
     </message>
@@ -1176,7 +1176,7 @@
         <translation>Novo programa incompleto</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="120"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="119"/>
         <source>Go to client&apos;s page</source>
         <translation>Ir para a página do cliente</translation>
     </message>
@@ -1201,62 +1201,62 @@
         <translation>Não</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="183"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="182"/>
         <source>Weigth Loss</source>
         <translation>Perder Peso</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="184"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="183"/>
         <source>Muscle Gain</source>
         <translation>Ganho muscular</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="185"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="184"/>
         <source>Bulking</source>
         <translation>Bulking</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="186"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="185"/>
         <source>Pre-contest</source>
         <translation>Pre-contest</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="187"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="186"/>
         <source>Strength Build-up</source>
         <translation>Ganhar força</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="188"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="187"/>
         <source>Physical Recovery</source>
         <translation>Recuperação física</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="189"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="188"/>
         <source>Physical Maintenance</source>
         <translation>Manutenção física</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="190"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="189"/>
         <source>Other</source>
         <translation>Outro</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="252"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="251"/>
         <source>Choose the instruction&apos;s file for this mesocycles</source>
         <translation>Escolha o arquivo de instruções para este mesociclo</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="322"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="321"/>
         <source>Mesocycle-style program</source>
         <translation>Programa tipo Mesociclo</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="342"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="340"/>
         <source>A Mesocycle is a short-term program, with defined starting and ending points and a specific goal in sight</source>
         <translation>Um Mesociclo é um programa de curto prazo, com início e término bem definidos, e um objectivo específico em vista</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="436"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="434"/>
         <source>Send to client</source>
         <translation>Enviar ao cliente</translation>
     </message>
@@ -2032,67 +2032,67 @@
         <translation>Reiniciar agora</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/SettingsPage.qml" line="55"/>
+        <location filename="../qml/Pages/SettingsPage.qml" line="54"/>
         <source>Application Settings</source>
         <translation>Configurações</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/SettingsPage.qml" line="80"/>
+        <location filename="../qml/Pages/SettingsPage.qml" line="79"/>
         <source>Always ask the user confirmation before starting any - potencially destructive - action</source>
         <translation>Sempre perguntar antes de realizar qualquer ação potencialmente destrutiva</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/SettingsPage.qml" line="102"/>
+        <location filename="../qml/Pages/SettingsPage.qml" line="101"/>
         <source>Fonts Sizes</source>
         <translation>Tamanho das fontes</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/SettingsPage.qml" line="144"/>
+        <location filename="../qml/Pages/SettingsPage.qml" line="143"/>
         <source>Extra large font</source>
         <translation>Fonte extra grande</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/SettingsPage.qml" line="153"/>
+        <location filename="../qml/Pages/SettingsPage.qml" line="152"/>
         <source>Large font</source>
         <translation>Fonte grande</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/SettingsPage.qml" line="162"/>
+        <location filename="../qml/Pages/SettingsPage.qml" line="161"/>
         <source>Normal font</source>
         <translation>Fonte normal</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/SettingsPage.qml" line="171"/>
+        <location filename="../qml/Pages/SettingsPage.qml" line="170"/>
         <source>Small font</source>
         <translation>Fonte pequena</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/SettingsPage.qml" line="191"/>
+        <location filename="../qml/Pages/SettingsPage.qml" line="190"/>
         <source>Application style</source>
         <translation>Estilo do aplicativo</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/SettingsPage.qml" line="266"/>
+        <location filename="../qml/Pages/SettingsPage.qml" line="265"/>
         <source>Color Scheme</source>
         <translation>Esquema de cores</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/SettingsPage.qml" line="318"/>
+        <location filename="../qml/Pages/SettingsPage.qml" line="317"/>
         <source>Font Color</source>
         <translation>Cor da Fonte</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/SettingsPage.qml" line="331"/>
+        <location filename="../qml/Pages/SettingsPage.qml" line="330"/>
         <source>Enabled text</source>
         <translation>Text normal</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/SettingsPage.qml" line="345"/>
+        <location filename="../qml/Pages/SettingsPage.qml" line="344"/>
         <source>Disabled text</source>
         <translation>Texto desabilitado</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/SettingsPage.qml" line="364"/>
+        <location filename="../qml/Pages/SettingsPage.qml" line="363"/>
         <source>Use selected colors</source>
         <translation>Usar as cores selecionadas</translation>
     </message>
@@ -2707,17 +2707,17 @@
 <context>
     <name>UserPage</name>
     <message>
-        <location filename="../qml/Pages/UserPage.qml" line="40"/>
+        <location filename="../qml/Pages/UserPage.qml" line="39"/>
         <source>User Settings</source>
         <translation>Configurações do usuário</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/UserPage.qml" line="95"/>
+        <location filename="../qml/Pages/UserPage.qml" line="94"/>
         <source>Manage coach(es)/trainer(s)</source>
         <translation>Gerenciar coach(s)/treinador(es)</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/UserPage.qml" line="105"/>
+        <location filename="../qml/Pages/UserPage.qml" line="104"/>
         <source>Manage clients</source>
         <translation>Gerenciar clientes</translation>
     </message>

@@ -120,28 +120,12 @@ ApplicationWindow {
 			y: 0
 		}*/
 
-		ExercisesListView {
-			id: exercisesList
-			enableMultipleSelection: true
-			height: homePage.height * 0.5
-
-			anchors {
-				top: parent.top
-				topMargin: 5
-				left: parent.left
-				leftMargin: 5
-				right: parent.right
-				rightMargin: 5
+		TPPageScrollButtons {
+				parentPage: homePage
+				showUpButton: true
+				visible: true
+				onScrollTo: (pos) => console.log(pos);
 			}
-
-			onExerciseEntrySelected: (index) => {
-				console.log(AppExercisesList.mainName(index), AppExercisesList.subName(index), AppExercisesList.muscularGroup(index));
-			}
-
-			onItemDoubleClicked: {
-				console.log(AppExercisesList.currentRow);
-			}
-		}
 	}
 
 	TPBalloonTip {

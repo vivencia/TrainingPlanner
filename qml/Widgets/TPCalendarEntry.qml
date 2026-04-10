@@ -24,29 +24,39 @@ Rectangle {
 
 	property DBCalendarModel tpCalendarModel
 	property CalendarModel qtCalendarModel
+	property date selectedDate
 
 	signal dateSelected(int day, int month, int year, bool is_workout);
 
 //private:
+	property bool selected_day: false
 	readonly property date month_day: new Date(entryYear, entryMonth, entryDay);
 	readonly property bool _today_date: month_day.getUTCFullYear() === today.getUTCFullYear() && month_day.getUTCMonth() ===
 																		today.getUTCMonth() && month_day.getUTCDate() === today.getUTCDate()
 	readonly property bool _day_is_visible: entryMonth === parentMonth
 	readonly property bool _meso_day: tpCalendarModel ? tpCalendarModel.isPartOfMeso(month_day) : true
-	readonly property bool _workout_day: tpCalendarModel ? tpCalendarModel.isWorkoutDay(month_day) : false
+	readonly property bool _workout_day: tpCalendarModel ? tpCalendarModel.isWorkoutDay(month_day) : true
 	property bool workoutFinished: tpCalendarModel ? tpCalendarModel.completed_by_date(month_day) : false
 
-	function highlightDay(highlighted: bool): void {
-		if (highlighted)
+	onSelectedDateChanged: {
+		const same_date = selectedDate.getUTCDate() === entryDay && selectedDate.getUTCMonth() === entryMonth && selectedDate.getUTCFullYear() == entryYear;
+		if (same_date !== selected_day) {
+			selected_day = same_date;
+			highlightDay(same_date);
+		}
+	}
+
+	function highlightDay(highlight: bool): void {
+		if (highlight)
 			animExpand.start();
 		else
 			animShrink.start();
 	}
 
-	Component.onCompleted: {
+	/*Component.onCompleted: {
 		if (_today_date)
 			dateSelected(_control.entryDay, _control.entryMonth, _control.entryYear, _workout_day);
-	}
+	}*/
 
 	Connections {
 		enabled: _control.tpCalendarModel !== null

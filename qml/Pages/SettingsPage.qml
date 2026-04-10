@@ -41,7 +41,6 @@ TPPage {
 
 	TPScrollView {
 		parentPage: settingsPage
-		navButtonsVisible: true
 		contentHeight: colMain.implicitHeight
 		anchors.fill: parent
 

@@ -85,7 +85,6 @@ TPPage {
 
 	TPScrollView {
 		parentPage: mesoPage
-		navButtonsVisible: true
 		contentHeight: layoutMain.implicitHeight
 		anchors.fill: parent
 
@@ -336,7 +335,6 @@ TPPage {
 					anchors {
 						verticalCenter: parent.verticalCenter
 						left: parent.right
-						leftMargin: -15
 					}
 
 					onClicked: ToolTip.show(qsTr("A Mesocycle is a short-term program, with defined starting and ending points and a specific goal in sight"), 5000);

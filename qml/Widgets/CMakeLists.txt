@@ -3,7 +3,7 @@ set( QML_WIDGETS
 	"TPBalloonTip.qml"
 	"TPButton.qml"
 	"TPButtonGroup.qml"
-	"TPFloatingControl.qml"
+	"TPCalendarEntry.qml"
 	"TPColorRectangle.qml"
 	"TPComboBox.qml"
 	"TPDatePicker.qml"

@@ -11,7 +11,7 @@ ScrollView {
 
 //public:
 	required property TPPage parentPage
-	property bool navButtonsVisible
+	property bool navButtonsVisible: true
 
 //private:
 	property TPPageScrollButtons _navButtons
@@ -54,18 +54,16 @@ ScrollView {
 			vBar.setPosition(pos - vBar.size);
 	}
 
-	//Loader {
-	//	id: navButtonsLoader
-	//	asynchronous: true
-	//	active: true //_control.contentHeight > _control.height
+	Loader {
+		id: navButtonsLoader
+		asynchronous: true
+		active: _control.contentHeight > _control.height
 
-	//	sourceComponent:
-	TPPageScrollButtons {
+		sourceComponent: TPPageScrollButtons {
 			parentPage: _control.parentPage
-			showUpButton: false
 			visible: _control.navButtonsVisible
 			onScrollTo: (pos) => _control.setScrollBarPosition(pos);
 			Component.onCompleted: _control._navButtons = this;
 		}
-	//}
+	}
 }

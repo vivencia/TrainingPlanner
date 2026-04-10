@@ -227,8 +227,8 @@ void QMLMesoInterface::setEndDate(const QDate &new_enddate)
 			emit endDateChanged();
 			emit weeksChanged();
 			verifyMesoRequiredFieldsStatus();
-			emit endDateOKChanged();
 		}
+		emit endDateOKChanged();
 	}
 }
 

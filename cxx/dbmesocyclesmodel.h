@@ -406,9 +406,9 @@ public:
 	inline bool isEndDateOK(const int meso_idx = -1, const QDate &date = QDate{}) const
 	{
 		if (date.isValid())
-			return date >= startDate(meso_idx).addDays(isRealMeso(meso_idx) ? 60 : 1);
+			return date >= startDate(meso_idx).addDays(isRealMeso(meso_idx) ? 30 : 1);
 		else
-			return meso_idx >= 0 ? (isRealMeso(meso_idx) ? !strEndDate(meso_idx).isEmpty() : true) : false;
+			return meso_idx >= 0 ? (isRealMeso(meso_idx) ? endDate(meso_idx) > startDate(meso_idx).addDays(30) : true) : false;
 	}
 	//static const QRegularExpression rgex{"(?=.*[ABCDEF])(?=.*[R])"_L1};
 	//return rgex.match(strsplit).hasMatch()

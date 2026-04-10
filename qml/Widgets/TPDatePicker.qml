@@ -5,8 +5,6 @@ import QtQuick.Controls
 
 import TpQml
 
-import "../Pages/MesoCalendarElements"
-
 Rectangle {
 	id: _control
 	clip: true
@@ -259,7 +257,6 @@ Rectangle {
 				}
 			}
 
-
 			MonthGrid {
 				id: monthGrid
 				month: cal_delegate.model.month
@@ -270,7 +267,7 @@ Rectangle {
 				height: _control.cellSize * 6
 				anchors.top: weekTitles.bottom
 
-				delegate: CalendarEntry {
+				delegate: TPCalendarEntry {
 					id: _delegate
 					entryDay: day
 					entryMonth: month
@@ -279,6 +276,7 @@ Rectangle {
 					today: _control.thisDay
 					parentMonth: monthGrid.month
 					qtCalendarModel: _control.calendarModel
+					selectedDate: _control.selectedDate
 
 					required property int day
 					required property int month
@@ -370,6 +368,7 @@ Rectangle {
 				anchors.centerIn: parent
 				font.pixelSize: _control.fontSizePx * 1.5
 				text: months_delegate.name
+				font.family: "FreeMono"
 				scale: months_delegate.index === monthsList.currentMonth ? 1.5 : 1
 				color: AppSettings.fontColor
 

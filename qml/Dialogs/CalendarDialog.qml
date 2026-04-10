@@ -76,21 +76,21 @@ TPPopup {
 				text: qsTr("Yesterday")
 				width: parent.buttonWidth
 
-				onClicked: datePickerControl.setDate2(AppUtils.yesterday());
+				onClicked: datePickerControl.setDate(AppUtils.yesterday());
 			}
 			TPButton {
 				id: btnToday
 				text: qsTr("Today")
 				width: parent.buttonWidth
 
-				onClicked: datePickerControl.setDate2(AppUtils.today());
+				onClicked: datePickerControl.setDate(AppUtils.today());
 			}
 			TPButton {
 				id: btnTomorrow
 				text: qsTr("Tomorrow")
 				width: parent.buttonWidth
 
-				onClicked: datePickerControl.setDate2(AppUtils.tomorrow());
+				onClicked: datePickerControl.setDate(AppUtils.tomorrow());
 			}
 		}
 

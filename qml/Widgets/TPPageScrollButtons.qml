@@ -5,88 +5,79 @@ import TpQml
 import TpQml.Pages
 
 Rectangle {
-	id: _button
-	height: btnUp.height + btnDown.height
-	width: btnUp.width
+	id: _control
+	height: 2 * _button_size
+	width: _button_size + 5
 	color: "transparent"
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	focus: false
-	x: _position.x
-	y: _position.y
+	x: _saved_pos.x
+	y: _saved_pos.y
 
 	signal scrollTo(int pos);
 
-	property bool showUpButton: true
+	property bool showUpButton: false
 	property bool showDownButton: true
 	property TPPage parentPage
 
 //private:
-	property point _position: Qt.point(parentPage.y + parentPage.height - height - 20, AppSettings.pageWidth - width - 20)
+	readonly property string _config_field_name: "navButton_" + parentPage.objectName
+	readonly property point _saved_pos: AppSettings.getCustomValue(_config_field_name,
+										Qt.point(AppSettings.pageWidth - width - 20, parentPage.y + parentPage.height - height - 20))
 	property bool _visible: false
 	readonly property int _button_size: AppSettings.itemLargeHeight
 
 	Component.onCompleted: {
-		parentPage.pageDeActivated.connect(function() { _visible = _button.visible; _button.visible = false; });
-		parentPage.pageActivated.connect(function() { if (_visible) _button.visible = true; });
+		parentPage.pageDeActivated.connect(function() { _visible = _control.visible; _control.visible = false; });
+		parentPage.pageActivated.connect(function() { if (_visible) _control.visible = true; });
 	}
 
-	TPFloatingControl {
+	TPMouseArea {
+		movingWidget: _control
+		movableWidget: _control
+		onMouseClicked: (mouse)=> {
+			if (mouse.y <= _control._button_size) {
+				btnUp._bPressed = true;
+				btnUp.onMouseReleased(mouse);
+			} else {
+				btnDown._bPressed = true;
+				btnDown.onMouseReleased(mouse);
+			}
+		}
+		onMovingFinished: (x, y) => AppSettings.setCustomValue(_control._config_field_name, Qt.point(x, y));
+	}
+
+	TPButton {
 		id: btnUp
-		parentPage: _button.parentPage
-		width: _button._button_size
-		height: _button._button_size
-		radius: _button._button_size
-		color: "transparent"
-		visible: _button.visible && _button.showUpButton
-		dragWidget: img1
+		imageSource: "upward"
+		visible: _control.visible && _control.showUpButton
+		focus: false
+		width: _control._button_size
+		height: _control._button_size
+		radius: _control._button_size
 
 		anchors {
 			top: parent.top
-			horizontalCenter: parent.horizontalCenter
+			left: parent.left
 		}
 
-		onControlMoved: (xpos, ypos) => {
-			_button.x = xpos;
-			_button.y = ypos;
-		}
-
-		TPImage {
-			id: img1
-			source: "upward"
-			dropShadow: false
-			anchors.fill: parent
-		}
-
-		onClicked: _button.scrollTo(0);
+		onClicked: _control.scrollTo(0);
 	}
 
-	TPFloatingControl {
+	TPButton {
 		id: btnDown
-		parentPage: _button.parentPage
-		width: _button._button_size
-		height: _button._button_size
-		radius: _button._button_size
-		visible: _button.visible && _button.showDownButton
-		color: "transparent"
-		dragWidget: img2
+		imageSource: "downward"
+		visible: _control.visible && _control.showDownButton
+		focus: false
+		width: _control._button_size
+		height: _control._button_size
+		radius: _control._button_size
 
 		anchors {
-			bottom: parent.bottom
-			horizontalCenter: parent.horizontalCenter
+			top: btnUp.bottom
+			left: parent.left
 		}
 
-		onControlMoved: (xpos, ypos) => {
-			_button.x = xpos;
-			_button.y = ypos;
-		}
-
-		TPImage {
-			id: img2
-			source: "downward"
-			dropShadow: false
-			anchors.fill: parent
-		}
-
-		onClicked: _button.scrollTo(1);
+		onClicked: _control.scrollTo(1);
 	}
 }
