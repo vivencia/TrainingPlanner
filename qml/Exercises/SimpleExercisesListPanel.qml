@@ -20,7 +20,7 @@ TPPopup {
 	signal exerciseSelected(Item parentPage);
 
 	Behavior on height {
-		NumberAnimation {
+		animation: NumberAnimation {
 			easing.type: Easing.InOutBack
 		}
 	}

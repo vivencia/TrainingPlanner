@@ -30,13 +30,6 @@ FocusScope {
 	signal valueChanged(string str)
 	signal enterOrReturnKeyPressed()
 
-	enum Type {
-		WeightType,
-		RepType,
-		TimeType,
-		SetType
-	}
-
 	DoubleValidator {
 		id: val_weigth
 		bottom: 0.00
@@ -91,7 +84,7 @@ FocusScope {
 			hasDropShadow: false
 			width: AppSettings.itemSmallHeight
 			height: width
-			visible: _control.showButtons && _control.type === SetInputField.Type.TimeType
+			visible: _control.showButtons && _control.type === DBExercisesModel.TimeType
 			enabled: _control.editable
 
 			anchors {
@@ -135,7 +128,7 @@ FocusScope {
 			id: txtMain
 			heightAdjustable: false
 			validator: _control.validatorType[_control.type]
-			inputMethodHints: _control.type <= SetInputField.Type.RepType ? Qt.ImhFormattedNumbersOnly : Qt.ImhDigitsOnly
+			inputMethodHints: _control.type <= DBExercisesModel.RepType ? Qt.ImhFormattedNumbersOnly : Qt.ImhDigitsOnly
 			maximumLength: _control.maxLen[_control.type]
 			readOnly: !_control.editable
 			padding: 0
@@ -149,7 +142,7 @@ FocusScope {
 					return Math.min(_control.availableWidth * 0.35, 2 * height);
 				case SetInputField.RepType:
 					return Math.min(_control.availableWidth * 0.25, 1.5 * height);
-				case SetInputField.Type.TimeType:
+				case DBExercisesModel.TimeType:
 					return Math.min(_control.availableWidth * 0.4, 3 * height);
 				case SetInputField.SetType:
 					return Math.min(_control.availableWidth * 0.2, height);
@@ -184,7 +177,7 @@ FocusScope {
 			}
 
 			onTextEdited: {
-				if (_control.type === SetInputField.Type.TimeType)
+				if (_control.type === DBExercisesModel.TimeType)
 					text = _control.formatTime(text);
 				else
 					text = _control.sanitizeText(text);
@@ -223,7 +216,7 @@ FocusScope {
 			hasDropShadow: false
 			width: AppSettings.itemSmallHeight
 			height: width
-			visible: _control.showButtons && _control.type === SetInputField.Type.TimeType
+			visible: _control.showButtons && _control.type === DBExercisesModel.TimeType
 			enabled: _control.editable
 
 			anchors {

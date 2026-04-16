@@ -65,7 +65,7 @@ Popup {
 		implicitHeight: height
 		implicitWidth: width
 		radius: 8
-		layer.enabled: true
+		layer.enabled: _control.enableEffects
 		visible: true
 	}
 
@@ -74,9 +74,9 @@ Popup {
 		active: _control.enableEffects
 
 		RectangularShadow {
-			x: _backRec.x
-			y: _backRec.y
-			width: _backRec.width
+			x: _control.backgroundRec.x
+			y: _control.backgroundRec.y
+			width: _control.backgroundRec.width
 			height: _control.backgroundRec.height
 			color: "#80000000" // Semi-transparent black
 			radius: 8
@@ -86,7 +86,7 @@ Popup {
 		}
 	}
 
-	background: _backRec
+	background: backgroundRec
 
 	Timer {
 		id: keyPressTimer
@@ -96,25 +96,22 @@ Popup {
 	contentItem {
 		Keys.onPressed: (event) => {
 			switch (event.key) {
-				case Qt.Key_Enter:
-				case Qt.Key_Return:
-					keyboardEnterPressed();
+			case Qt.Key_Enter:
+			case Qt.Key_Return:
+				keyboardEnterPressed();
 				break;
-				default:
-					if (event.key >= Qt.Key_0 && event.key <= Qt.Key_9)
-					{
-						if (keyPressTimer.running)
-						{
-							keyPressTimer.stop();
-							keyboardNumberPressed(event.key, _key_pressed);
-						}
-						else
-						{
-							_key_pressed = event.key;
-							keyboardNumberPressed(event.key, -1);
-							keyPressTimer.start();
-						}
+			default:
+				if (event.key >= Qt.Key_0 && event.key <= Qt.Key_9) {
+					if (keyPressTimer.running) {
+						keyPressTimer.stop();
+						keyboardNumberPressed(event.key, _key_pressed);
 					}
+					else {
+						_key_pressed = event.key;
+						keyboardNumberPressed(event.key, -1);
+						keyPressTimer.start();
+					}
+				}
 				break;
 			}
 		}
@@ -243,7 +240,7 @@ Popup {
 		switch (pos) {
 		case Qt.AlignTop:
 			xpos = point.x;
-			ypos = point.y - height - 20;
+			ypos = point.y - height;
 			break;
 		case Qt.AlignLeft:
 			xpos = point.x - width - 20;

@@ -74,12 +74,39 @@ TPPage {
 			missingFieldsTip.title = qsTr("New program setup incomplete");
 			missingFieldsTip.subImageLabel = String(wrong_field_counter);
 			switch (field) {
-			case MesocyclesModel.MESO_FIELD_NAME: missingFieldsTip.message = qsTr("Change and/or accept the program's name"); break; //MESO_FIELD_NAME
-			case MesocyclesModel.MESO_FIELD_STARTDATE: missingFieldsTip.message = qsTr("Change and/or accept the start date"); break; //MESO_FIELD_STARTDATE
-			case MesocyclesModel.MESO_FIELD_ENDDATE: missingFieldsTip.message = qsTr("Change and/or accept the end date"); break; //MESO_FIELD_ENDDATE
-			case MesocyclesModel.MESO_FIELD_SPLIT: missingFieldsTip.message = qsTr("Change and/or accept the split division"); break; //MESO_FIELD_SPLIT
+			case MesocyclesModel.MESO_FIELD_NAME: missingFieldsTip.message = qsTr("Change and/or accept the program's name"); break;
+			case MesocyclesModel.MESO_FIELD_STARTDATE: missingFieldsTip.message = qsTr("Change and/or accept the start date"); break;
+			case MesocyclesModel.MESO_FIELD_ENDDATE: missingFieldsTip.message = qsTr("Change and/or accept the end date"); break;
+			case MesocyclesModel.MESO_FIELD_SPLIT: missingFieldsTip.message = qsTr("Change and/or accept the split division"); break;
 			}
 			break;
+		}
+	}
+
+	FileOperations {
+		id: fileOps
+		fileType: AppUtils.FT_TP_PROGRAM
+		mesoIdx: mesoPage.mesoManager.mesoIdx
+	}
+
+	TPPageMenu {
+		parentPage: mesoPage
+		entriesListModel: ListModel {
+			ListElement { label: qsTr("Send to client"); image: "download_"; btn_id: TPFileOps.OT_Custom_1; }
+			ListElement { label: qsTr("Save as"); image: "download_"; btn_id: TPFileOps.OT_Download; }
+			ListElement { label: qsTr("Send to"); image: "attach_"; btn_id: TPFileOps.OT_Forward; }
+			ListElement { label: qsTr("Share"); image: "share_"; btn_id: TPFileOps.OT_Share; }
+			ListElement { label: qsTr("Exercises Planner"); image: "meso-splitplanner.png"; btn_id: TPFileOps.OT_Custom_2; }
+		}
+		entry_enabled: [ !mesoPage.mesoManager.ownMeso && mesoPage.mesoManager.canExport, mesoPage.mesoManager.canExport,
+										mesoPage.mesoManager.canExport, Qt.platform.os === "android", mesoPage.mesoManager.splitOK ]
+
+		onMenuEntrySelected: (btn_id) => {
+			switch (btn_id) {
+			case TPFileOps.OT_Custom_1: mesoPage.mesoManager.sendMesocycleFileToClient(); break;
+			case TPFileOps.OT_Custom_2: mesoPage.mesoManager.getExercisesPlannerPage(); break;
+			default: fileOps.doFileOperation(btn_id);
+			}
 		}
 	}
 
@@ -289,16 +316,27 @@ TPPage {
 				text: mesoPage.mesoManager.strStartDate
 				readOnly: true
 				Layout.fillWidth: false
-				Layout.minimumWidth: 0.5*parent.width
+				Layout.minimumWidth: 0.5 * parent.width
 
-				CalendarDialog {
-					id: caldlg
-					showDate: mesoPage.mesoManager.startDate
-					initDate: mesoPage.mesoManager.minimumMesoStartDate
-					finalDate: mesoPage.mesoManager.maximumMesoEndDate
-					parentPage: mesoPage
+				Loader {
+					id: startDateCalendarLoader
+					asynchronous: true
+					active: false
 
-					onDateSelected: (date) => mesoPage.mesoManager.startDate = date;
+					property CalendarDialog _dlg
+
+					sourceComponent: CalendarDialog {
+						id: caldlg
+						showDate: mesoPage.mesoManager.startDate
+						initDate: mesoPage.mesoManager.minimumStartDate
+						finalDate: AppUtils.createDate(0, 1, 0) //At most, allow to create a program in advance of one month from today
+						parentPage: mesoPage
+						onClosed: startDateCalendarLoader.active = false;
+						onDateSelected: (date) => mesoPage.mesoManager.startDate = date;
+						Component.onCompleted: startDateCalendarLoader._dlg = this;
+					}
+
+					onLoaded: _dlg.open();
 				}
 
 				TPButton {
@@ -313,7 +351,7 @@ TPPage {
 						verticalCenter: txtMesoStartDate.verticalCenter
 					}
 
-					onClicked: caldlg.open();
+					onClicked:startDateCalendarLoader.active = true;
 				}
 			}
 
@@ -366,17 +404,27 @@ TPPage {
 				Layout.fillWidth: false
 				Layout.minimumWidth: 0.5 * parent.width
 
-				CalendarDialog {
-					id: caldlg2
-					showDate: mesoPage.mesoManager.endDate
-					initDate: mesoPage.mesoManager.minimumMesoStartDate
-					finalDate: mesoPage.mesoManager.maximumMesoEndDate
-					parentPage: mesoPage
+				Loader {
+					id: endDateCalendarLoader
+					asynchronous: true
+					active: false
 
-					onDateSelected: (date) => {
-						mesoPage.mesoManager.endDate = date;
-						mesoSplitSetup.forcusOnFirstItem();
+					property CalendarDialog _dlg
+
+					sourceComponent: CalendarDialog {
+						showDate: mesoPage.mesoManager.endDate
+						initDate: mesoPage.mesoManager.minimumEndDate
+						finalDate: mesoPage.mesoManager.maximumEndDate
+						parentPage: mesoPage
+						onClosed: endDateCalendarLoader.active = false;
+						onDateSelected: (date) => {
+							mesoPage.mesoManager.endDate = date;
+							mesoSplitSetup.forcusOnFirstItem();
+						}
+						Component.onCompleted: endDateCalendarLoader._dlg = this;
 					}
+
+					onLoaded: _dlg.open();
 				}
 
 				TPButton {
@@ -391,7 +439,7 @@ TPPage {
 						verticalCenter: txtMesoEndDate.verticalCenter
 					}
 
-					onClicked: caldlg2.open();
+					onClicked: endDateCalendarLoader.active = true;
 				}
 			}
 
@@ -428,16 +476,6 @@ TPPage {
 				Layout.preferredHeight: AppSettings.pageHeight * 0.15
 				text: mesoPage.mesoManager.notes
 				onTextAltered: (_text) => mesoPage.mesoManager.notes = _text;
-			}
-
-			TPButton {
-				text: qsTr("Send to client")
-				autoSize: true
-				visible: !mesoPage.mesoManager.ownMeso
-				enabled: mesoPage.mesoManager.canExport
-				Layout.alignment: Qt.AlignCenter
-
-				onClicked: mesoPage.mesoManager.sendMesocycleFileToClient();
 			}
 		} //ColumnLayout
 	} //ScrollView

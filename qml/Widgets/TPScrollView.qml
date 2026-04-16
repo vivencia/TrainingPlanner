@@ -22,6 +22,7 @@ ScrollView {
 	ScrollBar.vertical: ScrollBar {
 		id: vBar
 		policy: ScrollBar.AsNeeded
+		interactive: false
 
 		anchors {
 			top: _control.top

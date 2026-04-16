@@ -120,12 +120,31 @@ ApplicationWindow {
 			y: 0
 		}*/
 
-		TPPageScrollButtons {
-				parentPage: homePage
-				showUpButton: true
-				visible: true
-				onScrollTo: (pos) => console.log(pos);
+		FileOperations {
+			id: fileOps
+			fileType: AppUtils.FT_TP_PROGRAM
+			mesoIdx: 0
+		}
+
+		TPPageMenu {
+			parentPage: homePage
+			entriesListModel: ListModel {
+				ListElement { label: qsTr("Send to client"); image: "download_"; btn_id: TPFileOps.OT_Custom_1; }
+				ListElement { label: qsTr("Save as"); image: "download_"; btn_id: TPFileOps.OT_Download; }
+				ListElement { label: qsTr("Send to"); image: "attach_"; btn_id: TPFileOps.OT_Forward; }
+				ListElement { label: qsTr("Share"); image: "share_"; btn_id: TPFileOps.OT_Share; }
+				ListElement { label: qsTr("Exercises Planner"); image: "meso-splitplanner.png"; btn_id: TPFileOps.OT_Custom_2; }
 			}
+			entry_enabled: [  true, true, true, Qt.platform.os === "android", true ]
+
+			onMenuEntrySelected: (btn_id) => {
+				switch (btn_id) {
+				case TPFileOps.OT_Custom_1: console.log("mesoPage.mesoManager.sendMesocycleFileToClient()"); break;
+				case TPFileOps.OT_Custom_2: console.log("mesoPage.mesoManager.getExercisesPlannerPage()"); break;
+				default: console.log("fileOps.doFileOperation(btn_id)");
+				}
+			}
+		}
 	}
 
 	TPBalloonTip {

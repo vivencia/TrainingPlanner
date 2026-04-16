@@ -732,7 +732,7 @@ QDate TPUtils::dateFromString(const QString &strdate, const DATE_FORMAT format) 
 
 	int day{0}, month{0}, year{0};
 	switch (format) {
-		case DF_QML_DISPLAY:
+	case DF_QML_DISPLAY:
 		{
 			const qsizetype spaceIdx{strdate.indexOf(' ')};
 			const qsizetype fSlashIdx{strdate.indexOf('/')};
@@ -742,21 +742,21 @@ QDate TPUtils::dateFromString(const QString &strdate, const DATE_FORMAT format) 
 			year = strdate.last(4).toInt();
 		}
 		break;
-		case DF_LOCALE:
-		//TODO
+	case DF_LOCALE: //TODO
+
 		break;
-		case DF_CATALOG:
-			year = strdate.first(4).toInt();
-			month = strdate.sliced(4, 2).toInt();
-			day = strdate.sliced(6, 2).toInt();
+	case DF_CATALOG:
+		year = strdate.first(4).toInt();
+		month = strdate.sliced(4, 2).toInt();
+		day = strdate.sliced(6, 2).toInt();
 		break;
-		case DF_DATABASE:
-			return QDate::fromJulianDay(strdate.toLongLong());
-		break;
-		case DF_ONLINE:
-			year = strdate.first(2).toInt() + 2000;
-			month = strdate.sliced(2, 2).toInt();
-			day = strdate.sliced(4, 2).toInt();
+	case DF_DATABASE:
+		return QDate::fromJulianDay(strdate.toLongLong());
+	break;
+	case DF_ONLINE:
+		year = strdate.first(2).toInt() + 2000;
+		month = strdate.sliced(2, 2).toInt();
+		day = strdate.sliced(4, 2).toInt();
 		break;
 	}
 	return QDate{year, month, day};
@@ -798,6 +798,14 @@ uint TPUtils::calculateNumberOfMonths(const QDate &date1, const QDate &date2) co
 	return n_months;
 }
 
+uint TPUtils::calculateNumberOfDays(const QDate &date1, const QDate &date2) const
+{
+	auto n_days{date1.toJulianDay() - date2.toJulianDay()};
+	if (n_days < 0)
+		n_days += -1;
+	return n_days;
+}
+
 QDate TPUtils::getNextSunday(const QDate &fromDate) const
 {
 	constexpr uint daysToNextSunday[7]{ 6, 5, 4, 3, 2, 1, 7 };
@@ -810,7 +818,7 @@ QDate TPUtils::getNextMonday(const QDate &fromDate) const
 	return fromDate.addDays(daysToNextMonday[fromDate.dayOfWeek()-1]);
 }
 
-QDate TPUtils::createDate(const QDate &fromDate, const int years, const int months, const int days) const
+QDate TPUtils::createDate(const int years, const int months, const int days, const QDate &fromDate) const
 {
 	QDate newDate{fromDate};
 	newDate = std::move(newDate.addDays(days));
@@ -822,53 +830,48 @@ QDate TPUtils::createDate(const QDate &fromDate, const int years, const int mont
 int TPUtils::daysInMonth(const int month, const int year) const
 {
 	switch (month) {
-		case 3: case 5: case 8: case 10: return 30;
-		case 1: return year % 4 == 0 ? 29 : 28;
-		default: return 31;
+	case 3: case 5: case 8: case 10: return 30;
+	case 1: return year % 4 == 0 ? 29 : 28;
+	default: return 31;
 	}
 }
 
 QString TPUtils::formatTime(const QTime &time, const TIME_FORMAT format) const
 {
 	switch (format) {
-		case TF_QML_DISPLAY_COMPLETE:
-			return time.isValid() ? time.toString("hh:mm:ss"_L1) : "00:00:00"_L1;
-		break;
-		case TF_QML_DISPLAY_NO_SEC:
-			return time.isValid() ? time.toString("hh:mm"_L1) : "00:00"_L1;
-		break;
-		case TF_QML_DISPLAY_NO_HOUR:
-			return time.isValid() ? time.toString("mm:ss"_L1) : "00:00"_L1;
-		break;
-		case TF_FANCY:
-		{
-			if (time.isValid()) {
-				QString strTime{std::move(time.toString("hh  mm"_L1))};
-				strTime.insert(6, "min"_L1);
-				strTime.insert(3, tr("and"));
-				strTime.insert(2, "hs"_L1);
-				return strTime;
-			}
-			else
-				return ("00 hs and 00 min"_L1);
+	case TF_QML_DISPLAY_COMPLETE:
+		return time.isValid() ? time.toString("hh:mm:ss"_L1) : "00:00:00"_L1;
+	case TF_QML_DISPLAY_NO_SEC:
+		return time.isValid() ? time.toString("hh:mm"_L1) : "00:00"_L1;
+	case TF_QML_DISPLAY_NO_HOUR:
+		return time.isValid() ? time.toString("mm:ss"_L1) : "00:00"_L1;
+	case TF_FANCY:
+	{
+		if (time.isValid()) {
+			QString strTime{std::move(time.toString("hh  mm"_L1))};
+			strTime.insert(6, "min"_L1);
+			strTime.insert(3, tr("and"));
+			strTime.insert(2, "hs"_L1);
+			return strTime;
 		}
-		case TF_FANCY_SECS:
-		{
-			if (time.isValid()) {
-				QString strTime{std::move(time.toString("hh, mm  ss"_L1))};
-				strTime.insert(10, "secs");
-				strTime.insert(7, tr("and"));
-				strTime.insert(6, "min"_L1);
-				strTime.insert(2, "hs"_L1);
-				return strTime;
-			}
-			else
-				return ("00 hs, 00 min and 00 secs"_L1);
+		else
+			return ("00 hs and 00 min"_L1);
+	}
+	case TF_FANCY_SECS:
+	{
+		if (time.isValid()) {
+			QString strTime{std::move(time.toString("hh, mm  ss"_L1))};
+			strTime.insert(10, "secs");
+			strTime.insert(7, tr("and"));
+			strTime.insert(6, "min"_L1);
+			strTime.insert(2, "hs"_L1);
+			return strTime;
 		}
-		break;
-		case TF_ONLINE:
-			return time.isValid() ? time.toString("hhmmss"_L1) : "000000"_L1;
-		break;
+		else
+			return ("00 hs, 00 min and 00 secs"_L1);
+	}
+	case TF_ONLINE:
+		return time.isValid() ? time.toString("hhmmss"_L1) : "000000"_L1;
 	}
 	return QString{};
 }
@@ -888,33 +891,33 @@ QTime TPUtils::timeFromString(const QString &strtime, const TIME_FORMAT format) 
 	int hour{0}, min{0}, sec{0};
 	if (strtime.length() >= 4) {
 		switch (format) {
-			case TF_QML_DISPLAY_COMPLETE:
-				hour = strtime.first(2).toInt();
-				min = strtime.sliced(3, 2).toInt();
-				sec = strtime.last(2).toInt();
-			break;
-			case TF_QML_DISPLAY_NO_SEC:
-				hour = strtime.first(2).toInt();
-				min = strtime.last(2).toInt();
-			break;
-			case TF_QML_DISPLAY_NO_HOUR:
-				min = strtime.first(2).toInt();
-				sec = strtime.last(2).toInt();
-			break;
-			case TF_FANCY:
-				hour = strtime.first(2).toInt();
-				min = strtime.sliced(6, 2).toInt();
-			break;
-			case TF_FANCY_SECS:
-				hour = strtime.first(2).toInt();
-				min = strtime.sliced(6, 2).toInt();
-				sec = strtime.sliced(strtime.length() - 6, 2).toInt();
-			break;
-			case TF_ONLINE:
-				hour = strtime.first(2).toInt();
-				min = strtime.sliced(2, 2).toInt();
-				sec = strtime.last(2).toInt();
-			break;
+		case TF_QML_DISPLAY_COMPLETE:
+			hour = strtime.first(2).toInt();
+			min = strtime.sliced(3, 2).toInt();
+			sec = strtime.last(2).toInt();
+		break;
+		case TF_QML_DISPLAY_NO_SEC:
+			hour = strtime.first(2).toInt();
+			min = strtime.last(2).toInt();
+		break;
+		case TF_QML_DISPLAY_NO_HOUR:
+			min = strtime.first(2).toInt();
+			sec = strtime.last(2).toInt();
+		break;
+		case TF_FANCY:
+			hour = strtime.first(2).toInt();
+			min = strtime.sliced(6, 2).toInt();
+		break;
+		case TF_FANCY_SECS:
+			hour = strtime.first(2).toInt();
+			min = strtime.sliced(6, 2).toInt();
+			sec = strtime.sliced(strtime.length() - 6, 2).toInt();
+		break;
+		case TF_ONLINE:
+			hour = strtime.first(2).toInt();
+			min = strtime.sliced(2, 2).toInt();
+			sec = strtime.last(2).toInt();
+		break;
 		}
 	}
 	return QTime{hour, min, sec};
@@ -942,22 +945,22 @@ QString TPUtils::addTimeToStrTime(const QString &strTime, const int addmins, con
 		secs = 0;
 	}
 	const QString &ret{(mins <= 9 ? '0' % QString::number(mins) : QString::number(mins)) + QChar(':') %
-																		(secs <= 9 ? '0' % QString::number(secs) : QString::number(secs))};
+															(secs <= 9 ? '0' % QString::number(secs) : QString::number(secs))};
 	return ret;
 }
 
 QString TPUtils::getHourFromStrTime(const QString &strTime, const TIME_FORMAT format) const
 {
 	switch (format) {
-		case TF_QML_DISPLAY_COMPLETE:
-		case TF_QML_DISPLAY_NO_SEC:
-		case TF_ONLINE:
-		case TF_FANCY:
-		case TF_FANCY_SECS:
-			return strTime.left(2);
-		break;
-		case TF_QML_DISPLAY_NO_HOUR:
-		break;
+	case TF_QML_DISPLAY_COMPLETE:
+	case TF_QML_DISPLAY_NO_SEC:
+	case TF_ONLINE:
+	case TF_FANCY:
+	case TF_FANCY_SECS:
+		return strTime.left(2);
+	break;
+	case TF_QML_DISPLAY_NO_HOUR:
+	break;
 	}
 	return QString{};
 }
@@ -965,18 +968,18 @@ QString TPUtils::getHourFromStrTime(const QString &strTime, const TIME_FORMAT fo
 QString TPUtils::getMinutesFromStrTime(const QString &strTime, const TIME_FORMAT format) const
 {
 	switch (format) {
-		case TF_QML_DISPLAY_COMPLETE:
-			return strTime.sliced(3, 2);
-		case TF_QML_DISPLAY_NO_SEC:
-			return strTime.right(2);
-		case TF_QML_DISPLAY_NO_HOUR:
-			return strTime.left(2);
-		case TF_ONLINE:
-			return strTime.sliced(2, 2);
-		case TF_FANCY:
-			return strTime.sliced(strTime.length()-5, 2);
-		case TF_FANCY_SECS:
-			return strTime.sliced(4, 2);
+	case TF_QML_DISPLAY_COMPLETE:
+		return strTime.sliced(3, 2);
+	case TF_QML_DISPLAY_NO_SEC:
+		return strTime.right(2);
+	case TF_QML_DISPLAY_NO_HOUR:
+		return strTime.left(2);
+	case TF_ONLINE:
+		return strTime.sliced(2, 2);
+	case TF_FANCY:
+		return strTime.sliced(strTime.length()-5, 2);
+	case TF_FANCY_SECS:
+		return strTime.sliced(4, 2);
 	}
 	return QString{};
 }
@@ -1217,153 +1220,6 @@ bool TPUtils::containsAllWords(const QString &mainString, const QStringList &wor
 			return false;
 	}
 	return true; // All words found in the main string
-}
-
-QString TPUtils::setTypeOperation(const uint settype, const bool increase, QString str_value, const bool seconds) const
-{
-	if (str_value.isEmpty())
-		str_value = "0"_L1;
-	else {
-		str_value.replace('.', ',');
-		str_value.replace('-', ""_L1);
-		str_value.replace('E', ""_L1);
-		str_value = str_value.trimmed();
-	}
-	const char rightmostDigit{str_value.at(str_value.length() - 1).toLatin1()};
-
-	float result{m_appLocale->toFloat(str_value)};
-	switch (settype) {
-		case 0: //SetInputField.Type.WeightType
-		{
-			if (str_value.contains('.') || str_value.contains(',')) {
-				if (increase)
-					result += rightmostDigit == '5' ? 2.5 : 5.0;
-				else
-					result -= rightmostDigit == '5' ? 2.5 : 5.0;
-			}
-			else {
-				if (result < 40) {
-					switch (rightmostDigit) {
-						case '0':
-						case '2':
-						case '6':
-						case '8':
-							increase ? result += 2 : result -= 2;
-						break;
-						case '1':
-						case '3':
-						case '4':
-						case '5':
-						case '7':
-						case '9':
-							increase ? ++result : --result;
-						break;
-					}
-				}
-				else {
-					int8_t paddingValue{0};
-					switch (rightmostDigit) {
-						case '0':
-							increase ? paddingValue = 5 : paddingValue = -5; break;
-						case '1':
-						case '6':
-							increase ? paddingValue = 4 : paddingValue = -1; break;
-						case '2':
-						case '7':
-							increase ? paddingValue = 3 : paddingValue = -2; break;
-						case '3':
-						case '8':
-							increase ? paddingValue = 2 : paddingValue = -3; break;
-						case '4':
-						case '9':
-							increase ? paddingValue = 1 : paddingValue = -4; break;
-						case '5':
-							increase ? paddingValue = 5 : paddingValue = -5; break;
-					}
-					result += paddingValue;
-				}
-			}
-			if (result > 999.99)
-				result = 999.99;
-			else if (result < 0)
-				result = 0;
-
-			str_value = std::move(QString::number(result, 'f', 2));
-			if (str_value.last(2) != "50"_L1)
-				str_value.chop(3);
-			return str_value;
-		} // 0: SetInputField.Type.WeightType
-		break;
-
-		case 1: //SetInputField.Type.RepType
-			if (str_value.contains('.') || str_value.contains(','))
-				increase ? result += 0.5 : result -= 0.5;
-			else
-				increase ? ++result : --result;
-
-			if (result > 100)
-				result = 100;
-			else if (result < 0)
-				result = 0;
-			return QString::number(static_cast<uint>(result));
-		break; //1: SetInputField.Type.RepType
-
-		case 2: //SetInputField.Type.TimeType
-		{
-			result = seconds ? str_value.last(2).toUInt() : str_value.first(2).toUInt();
-			if (increase) {
-				if (seconds) {
-					if (result >= 55) {
-						++result;
-						if (result >= 60)
-							result = 0;
-					}
-					else
-						result += 5;
-				}
-				else {
-					if (result < 59)
-						++result;
-				}
-			}
-			else {
-				if (seconds) {
-					if (result > 55)
-						--result;
-					else if (result <= 5)
-						--result;
-					else
-						result -= 5;
-					if (result < 0)
-						result = 0;
-				}
-				else {
-					if (result >= 1)
-						--result;
-				}
-			}
-			const QString &str_result{(result < 10 ? "0"_L1 : ""_L1) + QString::number(result)};
-			str_value = std::move(seconds ? str_value.replace(3, 2, str_result) : str_value.replace(0, 2, str_result));
-			return str_value;
-		} //2: SetInputField.Type.TimeType
-		break;
-
-		case 3: //SetInputField.Type.SetType
-			if (increase) {
-				++result;
-				if (result > 9)
-					result = 9;
-			}
-			else {
-				--result;
-				if (result < 0)
-					result = 0;
-			}
-			return QString::number(static_cast<uint>(result));
-		break; //3: SetInputField.Type.SetType
-
-		default: return QString{};
-	}
 }
 
 void TPUtils::setAppLocale(const QString &locale_str)

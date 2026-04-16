@@ -1,7 +1,10 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
+import QtQuick.Controls.Material
 
 import TpQml
 import TpQml.Widgets
@@ -15,28 +18,35 @@ TPPage {
 	implicitWidth: AppSettings.pageWidth
 	implicitHeight: AppSettings.pageHeight
 
-	property bool bNeedRestart: false
+	//Maybe TODO
+	//Material.theme: Material.Light
+	//Material.theme: Material.Dark
+	//Material.theme: Material.System
 
-	TPBalloonTip {
-		id: applyTip
-		message: qsTr("The App must be restarted in order to reflect the changes")
-		imageSource: "settings.png"
-		parentPage: settingsPage
+//private
+	property bool _need_restart: false
+	readonly property list<string> styles: ["Material","Basic", "Fusion","Imagine","macOS","iOS","Universal","Windows","FluentWinUI3"]
 
-		function init() {
-			if (Qt.platform.os !== "android") {
-				button1Text = qsTr("Restart now");
-				applyTip.button1Clicked.connect(function() { AppOsInterface.restartApp(); });
-			}
-			showTimed(4000, 0);
+	Loader {
+		id: restardLoader
+		asynchronous: true
+		active: settingsPage._need_restart && Qt.platform.os !== "android"
+
+		property TPBalloonTip _dlg
+
+		sourceComponent: TPBalloonTip {
+			id: applyTip
+			message: qsTr("The App must be restarted in order to reflect the changes")
+			imageSource: "settings.png"
+			parentPage: settingsPage
+			button1Text: qsTr("Restart now")
+			button2Text: qsTr("Later");
+			onButton1Clicked: AppOsInterface.restartApp();
+			onClosed: settingsPage._need_restart = false;
+			Component.onCompleted: restardLoader._dlg = this;
 		}
-	}
 
-	onBNeedRestartChanged: {
-		if (bNeedRestart) {
-			applyTip.init();
-			bNeedRestart = false;
-		}
+		onLoaded: _dlg.showTimed(10000, - Qt.AlignHCenter|Qt.AlignTop);
 	}
 
 	TPScrollView {
@@ -191,63 +201,28 @@ TPPage {
 				Layout.alignment: Qt.AlignCenter
 			}
 
-			TPRadioButtonOrCheckBox {
-				text: "Material"
-				checked: AppSettings.themeStyle === text;
-				Layout.fillWidth: true
-				Layout.leftMargin: 10
-
-				onClicked: {
-					settingsPage.bNeedRestart = true;
-					AppSettings.themeStyle = text;
-				}
+			TPButtonGroup {
+				id: stylesGroup
 			}
 
-			TPRadioButtonOrCheckBox {
-				text: "Basic"
-				checked: AppSettings.themeStyle === text;
-				Layout.fillWidth: true
-				Layout.leftMargin: 10
+			Repeater {
+				id: stylesRepeater
+				model: settingsPage.styles.length
+				delegateModelAccess: DelegateModel.ReadOnly
 
-				onClicked: {
-					settingsPage.bNeedRestart = true;
-					AppSettings.themeStyle = text;
-				}
-			}
+				delegate: TPRadioButtonOrCheckBox {
+					text: settingsPage.styles[index]
+					checked: AppSettings.themeStyle === text;
+					buttonGroup: stylesGroup
+					Layout.fillWidth: true
+					Layout.leftMargin: 10
 
-			TPRadioButtonOrCheckBox {
-				text: "Fusion"
-				checked: AppSettings.themeStyle === text;
-				Layout.fillWidth: true
-				Layout.leftMargin: 10
+					required property int index
 
-				onClicked: {
-					settingsPage.bNeedRestart = true;
-					AppSettings.themeStyle = text;
-				}
-			}
-
-			TPRadioButtonOrCheckBox {
-				text: "Imagine"
-				checked: AppSettings.themeStyle === text;
-				Layout.fillWidth: true
-				Layout.leftMargin: 10
-
-				onClicked: {
-					settingsPage.bNeedRestart = true;
-					AppSettings.themeStyle = text;
-				}
-			}
-
-			TPRadioButtonOrCheckBox {
-				text: "Universal"
-				checked: AppSettings.themeStyle === text;
-				Layout.fillWidth: true
-				Layout.leftMargin: 10
-
-				onClicked: {
-					settingsPage.bNeedRestart = true;
-					AppSettings.themeStyle = text;
+					onClicked: {
+						settingsPage._need_restart = true;
+						AppSettings.themeStyle = text;
+					}
 				}
 			}
 //------------------------------------------------------THEME------------------------------------------------------
@@ -286,6 +261,7 @@ TPPage {
 						checked: AppSettings.colorScheme === delegate.index
 						multiLine: delegate.index === 0
 						width: parent.width * 0.6
+						height: color_rec.height
 
 						onClicked: AppSettings.colorScheme = delegate.index;
 						Component.onCompleted: AppSettings.colorChanged.connect(function() {
@@ -294,6 +270,7 @@ TPPage {
 					}
 
 					TPColorRectangle {
+						id: color_rec
 						midColor: AppSettings.colorForScheme(delegate.index)
 						lightColor: AppSettings.lightColorForScheme(delegate.index)
 						darkColor: AppSettings.darkColorForScheme(delegate.index)
@@ -361,8 +338,8 @@ TPPage {
 			TPButton {
 				id: btnCustomFontColor
 				text: qsTr("Use selected colors")
-				autoSize: true
 				Layout.alignment: Qt.AlignCenter
+				Layout.preferredWidth: settingsPage.width * 0.9
 
 				onClicked: {
 					AppSettings.fontColor = lblEnabled.color;

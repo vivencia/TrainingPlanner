@@ -147,10 +147,9 @@ Item {
 					onClicked: _control.mesoSubModel.mesoModel().getExercisesPlannerPage(delegate.mesoIdx);
 				}
 
-				TPButton {
+				TPExportButton {
 					id: btnExport
-					text: qsTr("Export")
-					imageSource: "export.png"
+					parentPage: ItemManager.AppPagesManager.homePage() as TPPage
 					rounded: false
 					textUnderIcon: true
 					enabled: delegate.mesoExportable
@@ -164,8 +163,6 @@ Item {
 						left: btnMesoPlan.right
 						leftMargin: 5
 					}
-
-					onClicked: _control.showExportMenu(this);
 				}
 			} //swipe.left: Rectangle
 
@@ -340,36 +337,5 @@ Item {
 				onClicked: _control.mesoSubModel.mesoModel().startTodaysWorkout(_control.mesoSubModel.currentMesoIdx());
 			}
 		} //ColumnLayout
-	}
-
-	FileOperations {
-		id: fileOps
-		fileType: AppUtils.FT_TP_PROGRAM
-	}
-
-	Loader {
-		id: exportMenuLoader
-		asynchronous: true
-		active: false
-
-		property TPFloatingMenuBar _export_menu;
-		property TPButton exportButton
-
-		sourceComponent: TPFloatingMenuBar {
-			parentPage: ItemManager.AppPagesManager.homePage() as TPPage
-			titleHeader: qsTr("Export options")
-			entriesList: fileOps.operationsList
-			onMenuEntrySelected: (id) => fileOps.doFileOperation(id);
-			onClosed: exportMenuLoader.active = false;
-			Component.onCompleted: exportMenuLoader._export_menu = this;
-		}
-
-		onLoaded: _export_menu.showByWidget(exportButton, Qt.AlignTop);
-	}
-
-	property TPFloatingMenuBar exportMenu: null
-	function showExportMenu(button: TPButton): void {
-		exportMenuLoader.exportButton = button;
-		exportMenuLoader.active = true;
 	}
 } //ListView

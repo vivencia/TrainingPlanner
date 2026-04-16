@@ -118,7 +118,7 @@ signals:
 	void calendarLoaded(const bool success);
 
 private:
-	DBMesocyclesModel *m_mesoModel;
+	DBMesocyclesModel *m_mesoModel{nullptr};
 	uint m_mesoIdx;
 	int m_nMonths{-1}, m_curDay{-1}, m_nCaldays{-1};
 	QHash<int, QByteArray> m_roleNames;

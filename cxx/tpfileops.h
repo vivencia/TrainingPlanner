@@ -27,8 +27,6 @@ Q_PROPERTY(TPUtils::FILE_TYPE fileType READ fileType WRITE setFileType NOTIFY fi
 Q_PROPERTY(QString fileName READ fileName WRITE setFileName NOTIFY fileNameChanged FINAL)
 Q_PROPERTY(int mesoIdx READ mesoIdx WRITE setMesoIdx NOTIFY mesoIdxChanged FINAL)
 Q_PROPERTY(int tpFileSectionCount READ tpFileSectionCount NOTIFY tpFileSectionCountChanged FINAL)
-Q_PROPERTY(int operationsCount READ operationsCount CONSTANT FINAL)
-Q_PROPERTY(QStringList operationsList READ operationsList CONSTANT FINAL)
 
 public:
 
@@ -39,6 +37,8 @@ public:
 		OT_Forward,
 		OT_ViewExternally,
 		OT_Delete,
+		OT_Custom_1,
+		OT_Custom_2,
 		OT_TypeCount
 	};
 	Q_ENUM(OpType)
@@ -53,21 +53,6 @@ public:
 	inline int mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const int meso_idx) { m_mesoIdx = meso_idx; emit mesoIdxChanged(); }
 	inline int tpFileSectionCount() const { return m_tpfileSections; }
-	inline int operationsCount() const { return
-#ifdef Q_OS_ANDROID
-		4;
-#else
-		3;
-#endif
-	}
-	inline QStringList operationsList() const
-	{
-		return QStringList{} << tr("Save as") <<
-#ifdef Q_OS_ANDROID
-			   tr("Share") <<
-#endif
-			   tr("Send to") << tr("Open");
-	}
 
 	Q_INVOKABLE void setEnabled(TPFileOps::OpType type, const bool enabled, const bool call_update = true);
 	Q_INVOKABLE QString getFileTypeIcon(const QString &filename, const QSize &preferred_size = QSize{}, const bool thumbnail = true) const;
@@ -119,7 +104,7 @@ private:
 	QColor m_pressedColor;
 	int8_t m_qml_control_spacing{5};
 	int8_t m_qml_control_extra_height{10};
-	TPUtils::FILE_TYPE m_filetype;
+	TPUtils::FILE_TYPE m_filetype{TPUtils::FT_UNKNOWN};
 	QString m_filename;
 	QList<std::pair<QString,QString>> m_tpFileInfo;
 	bool m_fullscreen{false};

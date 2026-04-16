@@ -72,6 +72,8 @@ public:
 	};
 	Q_ENUM(MesoFields)
 
+	static constexpr uint8_t MESO_MINIMUM_DAYS{30};
+	static constexpr uint8_t MESO_MAXIMUM_DAYS{180};
 	static constexpr uint8_t MESO_N_REQUIRED_FIELDS{4};
 	static constexpr uint8_t meso_required_fields[MESO_N_REQUIRED_FIELDS]
 															{MESO_FIELD_NAME, MESO_FIELD_STARTDATE, MESO_FIELD_ENDDATE, MESO_FIELD_SPLIT};
@@ -331,7 +333,6 @@ public:
 	int mesoPlanExists(const QString &mesoName, const QString &coach, const QString &client) const;
 	int getPreviousMesoId(const QString &userid, const int current_mesoid) const;
 	QDate getMesoMinimumStartDate(const QString &userid, const uint exclude_idx) const;
-	QDate getMesoMaximumEndDate(const QString &userid, const uint exclude_idx) const;
 
 	void removeCalendarForMeso(const uint meso_idx, const bool remake_calendar);
 	void getCalendarForMeso(const uint meso_idx);
@@ -406,7 +407,7 @@ public:
 	inline bool isEndDateOK(const int meso_idx = -1, const QDate &date = QDate{}) const
 	{
 		if (date.isValid())
-			return date >= startDate(meso_idx).addDays(isRealMeso(meso_idx) ? 30 : 1);
+			return date >= startDate(meso_idx).addDays(isRealMeso(meso_idx) ? MESO_MINIMUM_DAYS : 1);
 		else
 			return meso_idx >= 0 ? (isRealMeso(meso_idx) ? endDate(meso_idx) > startDate(meso_idx).addDays(30) : true) : false;
 	}

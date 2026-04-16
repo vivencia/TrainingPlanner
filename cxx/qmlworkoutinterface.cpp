@@ -256,10 +256,11 @@ void QmlWorkoutInterface::setWorkingSetMode()
 		QTime rest_time{0, 0, 0};
 
 		switch (m_workoutModel->setMode(exercise_number, exercise_idx, set_number)) {
-		case SM_START_REST:
-			startRestTimer(exercise_number, m_workoutModel->setRestTime(exercise_number, m_workoutModel->workingSubExercise(), m_workoutModel->workingSet()));
+		case DBExercisesModel::SM_START_REST:
+			startRestTimer(exercise_number, m_workoutModel->setRestTime(exercise_number,
+																m_workoutModel->workingSubExercise(), m_workoutModel->workingSet()));
 			break;
-		case SM_START_EXERCISE:
+		case DBExercisesModel::SM_START_EXERCISE:
 			if (auto_time) {
 				if (set_number == 0) {
 					const std::optional<QTime> &time_in{m_calendarModel->timeIn()};
@@ -280,7 +281,7 @@ void QmlWorkoutInterface::setWorkingSetMode()
 		}
 	}
 	const uint next_mode{m_workoutModel->getSetNextMode(exercise_number, exercise_idx, set_number)};
-	if (next_mode == SM_COMPLETED)
+	if (next_mode == DBExercisesModel::SM_COMPLETED)
 		m_lastSetCompleted = std::move(QTime::currentTime());
 	m_workoutModel->setSetMode(exercise_number, exercise_idx, set_number, next_mode);
 }
@@ -337,7 +338,7 @@ void QmlWorkoutInterface::resetWorkout()
 
 void QmlWorkoutInterface::exportWorkout(const bool bShare)
 {
-	const QString &suggestedName{m_mesoModel->name(m_mesoIdx) + tr(" - Workout ") + m_workoutModel->splitLetter() + ".txt"_L1};
+	const QString &suggestedName{m_mesoModel->name(m_mesoIdx) % tr(" - Workout ") % m_workoutModel->splitLetter() % TPUtils::TP_FILE_EXTENSION};
 	//const QString &exportFileName{appItemManager()->setExportFileName(suggestedName)};
 	//appItemManager()->continueExport(m_workoutModel->exportToFile(exportFileName), bShare);
 }

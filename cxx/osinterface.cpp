@@ -684,7 +684,7 @@ void OSInterface::setNetStatus(uint messages_index, bool success, QString &&mess
 	m_connectionMessages[messages_index] = std::move(message);
 	emit connectionMessageChanged();
 	appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
-				{QString{}, message}, record_separator), Qt::AlignTop|Qt::AlignHCenter, success ? "set-completed" : "error");
+	{QString{}, m_connectionMessages.join('\n')}, record_separator), Qt::AlignTop|Qt::AlignHCenter, success ? "set-completed" : "error");
 }
 
 #ifdef LOCAL_TPSERVER

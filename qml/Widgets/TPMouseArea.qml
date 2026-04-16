@@ -9,6 +9,7 @@ MouseArea {
 //public:
 	required property var movingWidget
 	required property var movableWidget
+	property bool lockMovingToYAxis: false
 
 	signal mouseClicked(MouseEvent mouse);
 	signal moved(int x, int y);
@@ -42,7 +43,8 @@ MouseArea {
 
 	onPositionChanged: (mouse) => {
 		if (_pressed) {
-			movableWidget.x += mouse.x - _mouse_pos_within_widget.x;
+			if (!lockMovingToYAxis)
+				movableWidget.x += mouse.x - _mouse_pos_within_widget.x;
 			movableWidget.y += mouse.y - _mouse_pos_within_widget.y;
 			moved(movableWidget.x, movableWidget.y);
 			_moved = true;

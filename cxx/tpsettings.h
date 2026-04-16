@@ -165,11 +165,11 @@ private:
 	inline QVariant getValue(const QString &group, const QString &field_name, const QVariant &default_value = QVariant{}) const
 	{
 		if (!isGroupReadOnly(group))
-			return value(group + '/' + field_name, default_value);
+			return value(group % '/' % field_name, default_value);
 		else
 		{
-			const QVariant &read_only_value{m_readOnlyValues.value(group + '/' + field_name)};
-			return !read_only_value.isNull() ? read_only_value : value(group + '/' + field_name, default_value);
+			const QVariant &read_only_value{m_readOnlyValues.value(group % '/' % field_name)};
+			return !read_only_value.isNull() ? read_only_value : value(group % '/' % field_name, default_value);
 		}
 	}
 #endif

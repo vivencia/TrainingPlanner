@@ -21,7 +21,7 @@ inline DBModelInterfaceExercises::DBModelInterfaceExercises(DBExercisesModel *mo
 
 struct stSet {
 	uint set_number{0}, mode{0};
-	TPSetTypes type{Unkown};
+	DBExercisesModel::TPSetTypes type{DBExercisesModel::Unkown};
 	QTime restTime;
 	QString subsets{'0'}, reps, weight, notes{' '};
 	bool completed{false};
@@ -209,6 +209,146 @@ void DBExercisesModel::clearExercises(const bool from_qml)
 	if (from_qml) {
 		endResetModel();
 		emit exerciseCountChanged();
+	}
+}
+
+QString DBExercisesModel::setTypeOperation(const uint settype, const bool increase, QString str_value, const bool seconds) const
+{
+	if (str_value.isEmpty())
+		str_value = "0"_L1;
+	else {
+		str_value.replace('.', ',');
+		str_value.replace('-', ""_L1);
+		str_value.replace('E', ""_L1);
+		str_value = str_value.trimmed();
+	}
+	const char rightmostDigit{str_value.at(str_value.length() - 1).toLatin1()};
+
+	float result{appUtils()->appLocale()->toFloat(str_value)};
+	switch (settype) {
+	case WeightType:
+		if (str_value.contains('.') || str_value.contains(',')) {
+			if (increase)
+				result += rightmostDigit == '5' ? 2.5 : 5.0;
+			else
+				result -= rightmostDigit == '5' ? 2.5 : 5.0;
+		}
+		else {
+			if (result < 40) {
+				switch (rightmostDigit) {
+				case '0':
+				case '2':
+				case '6':
+				case '8':
+					increase ? result += 2 : result -= 2;
+					break;
+				case '1':
+				case '3':
+				case '4':
+				case '5':
+				case '7':
+				case '9':
+					increase ? ++result : --result;
+					break;
+				}
+			}
+			else {
+				int8_t paddingValue{0};
+				switch (rightmostDigit) {
+				case '0':
+					increase ? paddingValue = 5 : paddingValue = -5; break;
+				case '1':
+				case '6':
+					increase ? paddingValue = 4 : paddingValue = -1; break;
+				case '2':
+				case '7':
+					increase ? paddingValue = 3 : paddingValue = -2; break;
+				case '3':
+				case '8':
+					increase ? paddingValue = 2 : paddingValue = -3; break;
+				case '4':
+				case '9':
+					increase ? paddingValue = 1 : paddingValue = -4; break;
+				case '5':
+					increase ? paddingValue = 5 : paddingValue = -5; break;
+				}
+				result += paddingValue;
+			}
+		}
+		if (result > 999.99)
+			result = 999.99;
+		else if (result < 0)
+			result = 0;
+
+		str_value = std::move(QString::number(result, 'f', 2));
+		if (str_value.last(2) != "50"_L1)
+			str_value.chop(3);
+		return str_value; // 0: SetInputField.Type.WeightType
+
+	case RepType:
+		if (str_value.contains('.') || str_value.contains(','))
+			increase ? result += 0.5 : result -= 0.5;
+		else
+			increase ? ++result : --result;
+
+		if (result > 100)
+			result = 100;
+		else if (result < 0)
+			result = 0;
+		return QString::number(static_cast<uint>(result)); //1: SetInputField.Type.RepType
+
+	case TimeType:
+	{
+		result = seconds ? str_value.last(2).toUInt() : str_value.first(2).toUInt();
+		if (increase) {
+			if (seconds) {
+				if (result >= 55) {
+					++result;
+					if (result >= 60)
+						result = 0;
+				}
+				else
+					result += 5;
+			}
+			else {
+				if (result < 59)
+					++result;
+			}
+		}
+		else {
+			if (seconds) {
+				if (result > 55)
+					--result;
+				else if (result <= 5)
+					--result;
+				else
+					result -= 5;
+				if (result < 0)
+					result = 0;
+			}
+			else {
+				if (result >= 1)
+					--result;
+			}
+		}
+		const QString &str_result{(result < 10 ? "0"_L1 : ""_L1) + QString::number(result)};
+		str_value = std::move(seconds ? str_value.replace(3, 2, str_result) : str_value.replace(0, 2, str_result));
+		return str_value; //2: SetInputField.Type.TimeType
+	}
+	case SetType:
+		if (increase) {
+			++result;
+			if (result > 9)
+				result = 9;
+		}
+		else {
+			--result;
+			if (result < 0)
+				result = 0;
+		}
+		return QString::number(static_cast<uint>(result)); //3: SetInputField.Type.SetType
+	default:
+		Q_UNREACHABLE();
 	}
 }
 
@@ -1455,7 +1595,7 @@ void DBExercisesModel::commonConstructor(const bool load_from_db)
 	}
 }
 
-TPSetTypes DBExercisesModel::formatSetTypeToImport(const QString& fieldValue) const
+DBExercisesModel::TPSetTypes DBExercisesModel::formatSetTypeToImport(const QString& fieldValue) const
 {
 	if (fieldValue == tr("Pyramid"))
 		return Pyramid;

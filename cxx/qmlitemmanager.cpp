@@ -41,6 +41,7 @@ QmlItemManager::QmlItemManager(QQmlApplicationEngine *qml_engine) : QObject{null
 	REGISTER_QML_SINGLETON(QmlItemManager, this);
 	_appQmlEngine = qml_engine;
 
+	QQuickStyle::setFallbackStyle("Material"_L1);
 	QQuickStyle::setStyle(appSettings()->themeStyle());
 	QQuickWindow::setTextRenderType(QQuickWindow::NativeTextRendering);
 #ifndef QT_NO_DEBUG

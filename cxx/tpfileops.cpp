@@ -197,7 +197,7 @@ void TPFileOps::exportSlot(const QString &filePath)
 			break;
 		case TPUtils::FT_TP_PROGRAM:
 			if (QFile::exists(export_filename)) {
-				if (export_filename.endsWith(QString::number(TPUtils::FT_TP_PROGRAM) % ".txt"_L1)) {
+				if (export_filename.endsWith(QString::number(TPUtils::FT_TP_PROGRAM) % TPUtils::TP_FILE_EXTENSION)) {
 					ret_code = TP_RET_CODE_EXPORT_OK;
 					break;
 				}
@@ -333,6 +333,26 @@ bool TPFileOps::eventFilter(QObject *obj, QEvent *event)
 
 void TPFileOps::_doFileOperation(const OpType type)
 {
+	if (fileType() != TPUtils::FT_UNKNOWN && !QFile::exists(fileName())) {
+		const bool formatted{type == OT_Download || type == OT_Share || type == OT_Forward};
+		switch (fileType()) {
+		case TPUtils::FT_TP_PROGRAM:
+			m_filename = !formatted ? appUserModel()->actualMesoModel()->mesoFileName(m_mesoIdx) :
+					appSettings()->currentUserDir() % appUserModel()->actualMesoModel()->name(m_mesoIdx) % TPUtils::TP_FILE_EXTENSION;
+			emit fileNameChanged();
+			if (!QFile::exists(fileName())) {
+				if (!formatted)
+					appUserModel()->actualMesoModel()->exportToFile(m_mesoIdx, fileName());
+				else
+					appUserModel()->actualMesoModel()->exportToFormattedFile(m_mesoIdx, fileName());
+			}
+			break;
+		default:
+			qDebug() << "ERROR!!! File type set as " << fileType() <<
+														" but neither filename as given, nor a method provided to create the file";
+			return;
+		}
+	}
 	switch (type) {
 	case OT_FullScreen:			doFullScreen();	break;
 	case OT_Download:			saveFileAs();	break;
@@ -358,7 +378,7 @@ void TPFileOps::doFullScreen()
 	emit showFullScreen();
 }
 
-void::TPFileOps::removeFile(const bool bypass_confirmation)
+void TPFileOps::removeFile(const bool bypass_confirmation)
 {
 	if (!bypass_confirmation && appSettings()->alwaysAskConfirmation()) {
 		connect(appMainWindow(), SIGNAL(generalMessagesPopupClicked(int)), this, SLOT(removeFileAnswer(int)), Qt::SingleShotConnection);

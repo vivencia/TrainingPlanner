@@ -10,7 +10,7 @@ TPPopup {
 	keepAbove: false
 	closeButtonVisible: false
 	width: Math.max(lblTitle.width, mainLayout.childrenRect.width + 20)
-	height: mainLayout.childrenRect.height + lblTitle.height + 20
+	height: entriesRepeater.count * AppSettings.itemDefaultHeight + lblTitle.height + 20
 
 //public:
 	property string titleHeader
@@ -19,7 +19,7 @@ TPPopup {
 	signal menuEntrySelected(id: int);
 
 	ListModel {
-		id: entriesList
+		id: entriesListModel
 
 		Component.onCompleted: {
 			for (let i = 0; i < _control.entriesList.length; i++)
@@ -56,13 +56,13 @@ TPPopup {
 
 		Repeater {
 			id: entriesRepeater
-			model: entriesList.count
+			model: entriesListModel.count
 
-			TPButton {
-				text: entriesList.get(index).Label
-				imageSource: entriesList.get(index).Image
-				clickId: entriesList.get(index).ClickId
-				visible: entriesList.get(index).Visible
+			delegate: TPButton {
+				text: entriesListModel.get(index).label
+				imageSource: entriesListModel.get(index).image
+				clickId: entriesListModel.get(index).id
+				enabled: entriesListModel.get(index).visible
 				rounded: false
 				autoSize: true
 				Layout.alignment: Qt.AlignHCenter

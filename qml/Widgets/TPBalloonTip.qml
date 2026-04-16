@@ -99,7 +99,7 @@ TPPopup {
 				horizontalAlignment: Text.AlignHCenter
 				visible: _balloon.message.length > 0
 				Layout.fillWidth: true
-				Layout.maximumHeight: contentHeight
+				Layout.preferredHeight: Math.max(contentHeight, _balloon.imageSource.length > 0 ? imgElement.height : 0) + 10
 
 				Loader {
 					active: !_balloon.movable
@@ -131,20 +131,19 @@ TPPopup {
 			}
 		}
 
-		Row {
+		RowLayout {
 			visible: _balloon.button1Text.length > 0 || _balloon.button2Text.length > 0
 			spacing: empty_space
 			Layout.fillWidth: true
 			Layout.leftMargin: empty_space
-			Layout.preferredHeight: Math.max(Math.max(AppSettings.itemDefaultHeight, btn1.height), btn2.height);
 
 			readonly property int empty_space: (_balloon.width - btn1.width - btn2.width) / 3
 			TPButton {
 				id: btn1
 				text: _balloon.button1Text
-				autoSize: true
 				visible: _balloon.button1Text.length > 0
 				Layout.alignment: Qt.AlignCenter
+				Layout.preferredWidth: _balloon.availableWidth - btn2.width - 10
 
 				onClicked: {
 					_balloon.button1Clicked();
@@ -155,10 +154,9 @@ TPPopup {
 			TPButton {
 				id: btn2
 				text: _balloon.button2Text
-				autoSize: true
 				visible: _balloon.button2Text.length > 0
 				Layout.alignment: Qt.AlignCenter
-				Layout.maximumWidth: _balloon.availableWidth - btn1.width - 10
+				Layout.preferredWidth: Math.min(preferredWidth, _balloon.availableWidth / 2 - 10)
 
 				onClicked: {
 					_balloon.button2Clicked();

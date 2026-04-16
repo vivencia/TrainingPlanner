@@ -1,6 +1,5 @@
 #include "qmluserinterface.h"
 
-#include "dbusermodel.h"
 #include "pageslistmodel.h"
 #include "qmlitemmanager.h"
 
@@ -11,105 +10,124 @@
 
 void QmlUserInterface::getUserPage()
 {
-	if (m_userPage)
-		appPagesListModel()->openPage(m_userPage);
+	if (!m_userComponent) {
+		m_userProperties["userManager"_L1] = std::move(QVariant::fromValue(this));
+		m_userComponent = new QQmlComponent{appQmlEngine(), "TpQml.Pages"_L1, "UserPage"_L1, QQmlComponent::Asynchronous};
+		connect(m_userComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) { getUserPage(); });
+	}
 	else {
-		m_userProperties.insert("useMode"_L1, appUserModel()->appUseMode(0));
-		m_userProperties.insert("userManager"_L1, QVariant::fromValue(this));
-		m_userComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/Pages/UserPage.qml"_L1}, QQmlComponent::Asynchronous};
-		switch (m_userComponent->status()) {
+		if (!m_userPage) {
+			switch (m_userComponent->status()) {
 			case QQmlComponent::Ready:
+				m_userComponent->disconnect();
 				createUserPage();
-			break;
+				break;
+#ifndef QT_NO_DEBUG
 			case QQmlComponent::Loading:
-				connect(m_userComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
-					createUserPage();
-				}, Qt::SingleShotConnection);
-			break;
+				break;
 			case QQmlComponent::Null:
 			case QQmlComponent::Error:
-				#ifndef QT_NO_DEBUG
 				qDebug() << m_userComponent->errorString();
-				#endif
-			break;
+				break;
+#else
+			default: break;
+#endif
+			}
 		}
+		else
+			appPagesListModel()->openPage(m_userPage);
 	}
 }
 
 void QmlUserInterface::getSettingsPage()
 {
-	if (m_settingsPage)
-		appPagesListModel()->openPage(m_settingsPage);
+	if (!m_settingsComponent) {
+		m_settingsComponent = new QQmlComponent{appQmlEngine(), "TpQml.Pages"_L1, "SettingsPage"_L1, QQmlComponent::Asynchronous};
+		connect(m_settingsComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) { getSettingsPage(); });
+	}
 	else {
-		m_settingsComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/Pages/SettingsPage.qml"_L1}, QQmlComponent::Asynchronous};
-		switch (m_settingsComponent->status()) {
+		if (!m_settingsPage) {
+			switch (m_settingsComponent->status()) {
 			case QQmlComponent::Ready:
+				m_settingsComponent->disconnect();
 				createSettingsPage();
-			break;
+				break;
+#ifndef QT_NO_DEBUG
 			case QQmlComponent::Loading:
-				connect(m_settingsComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
-					createSettingsPage();
-				}, Qt::SingleShotConnection);
-			break;
+				break;
 			case QQmlComponent::Null:
 			case QQmlComponent::Error:
-				#ifndef QT_NO_DEBUG
 				qDebug() << m_settingsComponent->errorString();
-				#endif
-			break;
+				break;
+#else
+			default: break;
+#endif
+			}
 		}
+		else
+			appPagesListModel()->openPage(m_settingsPage);
 	}
 }
 
 void QmlUserInterface::getCoachesPage()
 {
-	if (m_coachesPage)
-		appPagesListModel()->openPage(m_coachesPage);
-	else {
+	if (!m_coachesComponent) {
 		m_coachesProperties.insert("userManager"_L1, QVariant::fromValue(this));
-		m_coachesComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/Pages/CoachesPage.qml"_L1}, QQmlComponent::Asynchronous};
-		switch (m_coachesComponent->status()) {
+		m_coachesComponent = new QQmlComponent{appQmlEngine(), "TpQml.Pages"_L1, "CoachesPage"_L1, QQmlComponent::Asynchronous};
+		connect(m_coachesComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) { getCoachesPage(); });
+	}
+	else {
+		if (!m_coachesPage) {
+			switch (m_coachesComponent->status()) {
 			case QQmlComponent::Ready:
+				m_coachesComponent->disconnect();
 				createCoachesPage();
-			break;
+				break;
+#ifndef QT_NO_DEBUG
 			case QQmlComponent::Loading:
-				connect(m_coachesComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
-					createCoachesPage();
-				}, Qt::SingleShotConnection);
-			break;
+				break;
 			case QQmlComponent::Null:
 			case QQmlComponent::Error:
-				#ifndef QT_NO_DEBUG
 				qDebug() << m_coachesComponent->errorString();
-				#endif
-			break;
+				break;
+#else
+			default: break;
+#endif
+			}
 		}
+		else
+			appPagesListModel()->openPage(m_coachesPage);
 	}
 }
 
 void QmlUserInterface::getClientsPage()
 {
-	if (m_clientsPage)
-		appPagesListModel()->openPage(m_clientsPage);
-	else {
+	if (!m_clientsComponent) {
 		m_clientsProperties.insert("userManager"_L1, QVariant::fromValue(this));
-		m_clientsComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/Pages/ClientsPage.qml"_L1}, QQmlComponent::Asynchronous};
-		switch (m_clientsComponent->status()) {
+		m_clientsComponent = new QQmlComponent{appQmlEngine(), "TpQml.Pages"_L1, "ClientsPage"_L1, QQmlComponent::Asynchronous};
+		connect(m_clientsComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) { getClientsPage(); });
+	}
+	else {
+		if (!m_clientsPage) {
+			switch (m_clientsComponent->status()) {
 			case QQmlComponent::Ready:
+				m_clientsComponent->disconnect();
 				createClientsPage();
-			break;
+				break;
+#ifndef QT_NO_DEBUG
 			case QQmlComponent::Loading:
-				connect(m_clientsComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
-					createClientsPage();
-				}, Qt::SingleShotConnection);
-			break;
+				break;
 			case QQmlComponent::Null:
 			case QQmlComponent::Error:
-				#ifndef QT_NO_DEBUG
 				qDebug() << m_clientsComponent->errorString();
-				#endif
-			break;
+				break;
+#else
+			default: break;
+#endif
+			}
 		}
+		else
+			appPagesListModel()->openPage(m_clientsPage);
 	}
 }
 
@@ -117,7 +135,7 @@ void QmlUserInterface::createUserPage()
 {
 	m_userPage = static_cast<QQuickItem*>(m_userComponent->createWithInitialProperties(m_userProperties, appQmlEngine()->rootContext()));
 	appQmlEngine()->setObjectOwnership(m_userPage, QQmlEngine::CppOwnership);
-	m_userPage->setParentItem(appMainWindow()->contentItem());
+	m_userPage->setParentItem(appItemManager()->AppPagesVisualParent());
 	appPagesListModel()->openPage(m_userPage, std::move(tr("User Settings")));
 }
 
@@ -125,7 +143,7 @@ void QmlUserInterface::createSettingsPage()
 {
 	m_settingsPage = static_cast<QQuickItem*>(m_settingsComponent->create(appQmlEngine()->rootContext()));
 	appQmlEngine()->setObjectOwnership(m_settingsPage, QQmlEngine::CppOwnership);
-	m_settingsPage->setParentItem(appMainWindow()->contentItem());
+	m_settingsPage->setParentItem(appItemManager()->AppPagesVisualParent());
 	appPagesListModel()->openPage(m_settingsPage, std::move(tr("Settings")));
 }
 
@@ -133,7 +151,7 @@ void QmlUserInterface::createCoachesPage()
 {
 	m_coachesPage = static_cast<QQuickItem*>(m_coachesComponent->createWithInitialProperties(m_coachesProperties, appQmlEngine()->rootContext()));
 	appQmlEngine()->setObjectOwnership(m_coachesPage, QQmlEngine::CppOwnership);
-	m_coachesPage->setParentItem(appMainWindow()->contentItem());
+	m_coachesPage->setParentItem(appItemManager()->AppPagesVisualParent());
 	appPagesListModel()->openPage(m_coachesPage, std::move(tr("Coaches")));
 }
 

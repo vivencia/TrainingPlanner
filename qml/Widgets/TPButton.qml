@@ -17,7 +17,8 @@ TPBackRec {
 	width: autoSize ? preferredWidth : undefined
 	useGradient: enabled && buttonText.text.length !== 0
 
-	readonly property int preferredWidth: buttonText.contentWidth + (textUnderIcon ? 0 : AppSettings.itemDefaultHeight) + (text.length > 0 ? 20 : 0)
+	readonly property int preferredWidth: buttonText.contentWidth + (textUnderIcon ? 0 :
+																		AppSettings.itemDefaultHeight) + (text.length > 0 ? 20 : 0)
 	property color textColor: AppSettings.fontColor
 	property alias font: buttonText.font
 	property alias text: buttonText.text

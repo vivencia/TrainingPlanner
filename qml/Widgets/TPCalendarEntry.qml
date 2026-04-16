@@ -53,11 +53,6 @@ Rectangle {
 			animShrink.start();
 	}
 
-	/*Component.onCompleted: {
-		if (_today_date)
-			dateSelected(_control.entryDay, _control.entryMonth, _control.entryYear, _workout_day);
-	}*/
-
 	Connections {
 		enabled: _control.tpCalendarModel !== null
 		target: _control.tpCalendarModel

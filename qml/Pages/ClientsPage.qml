@@ -14,6 +14,7 @@ TPPage {
 	imageSource: AppSettings.clientsBackground
 	backgroundOpacity: 0.6
 
+//private:
 	property int userRow
 
 	onPageActivated: {

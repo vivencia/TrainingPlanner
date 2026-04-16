@@ -26,7 +26,7 @@ void QmlExercisesDatabaseInterface::exportExercises(const bool bShare)
 {
 	int exportFileMessageId{0};
 	if (appExercisesList()->collectExportData()) {
-		const QString &exportFileName{appSettings()->localAppFilesDir() % tr("TrainingPlanner Exercises List") % ".txt"_L1};
+		const QString &exportFileName{appSettings()->localAppFilesDir() % tr("TrainingPlanner Exercises List") % TPUtils::TP_FILE_EXTENSION};
 		exportFileMessageId = appExercisesList()->exportToFile(exportFileName);
 		if (exportFileMessageId >= 0) {
 #ifdef Q_OS_ANDROID
@@ -105,7 +105,7 @@ void QmlExercisesDatabaseInterface::createExercisesPage(QmlWorkoutInterface *con
 	}
 #endif
 	appQmlEngine()->setObjectOwnership(m_exercisesPage, QQmlEngine::CppOwnership);
-	m_exercisesPage->setParentItem(appMainWindow()->contentItem());
+	m_exercisesPage->setParentItem(appItemManager()->AppPagesVisualParent());
 	appExercisesList()->clearSelectedEntries();
 	appPagesListModel()->openPage(m_exercisesPage, std::move(tr("Exercises Database")));
 	if (connect_page)

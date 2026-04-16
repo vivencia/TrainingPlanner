@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -9,7 +11,7 @@ TPPopup {
     id: _control
 	keepAbove: !simpleCalendar
 	width: datePickerControl.width
-	height: datePickerControl.height + buttonsLayout.childrenRect.height + btnOK.height + 15
+	height: mainLayout.childrenRect.height + 15
 	x: (AppSettings.pageWidth - width) / 2 // horizontally centered
 	finalYPos: (AppSettings.pageHeight - height) / 2 // vertically centered
 
@@ -45,13 +47,17 @@ TPPopup {
 		id: calModel
 		from: _control.initDate
 		to: _control.finalDate
-
-		readonly property bool ready: true //the c++ and qml models must have the same API to avoid warnings and errors
 	}
 
 	ColumnLayout {
-		anchors.fill: parent
+		id: mainLayout
 		spacing: 5
+
+		anchors {
+			top: parent.top
+			left: parent.left
+			right: parent.right
+		}
 
 		TPDatePicker {
 			id: datePickerControl
@@ -64,33 +70,38 @@ TPPopup {
 			Component.onCompleted: datePickerControl.setDate(_control.showDate);
 		}
 
-		Row {
-			id: buttonsLayout
-			spacing: 2
+		TPListView {
+			id: calMethodsList
+			model: CalendarMethods {
+				id: calendarMethods
+				date: _control.showDate
+			}
 			Layout.fillWidth: true
+			Layout.preferredHeight: 100
 
-			readonly property int buttonWidth: (parent.width - 5) / 3
+			delegate: ItemDelegate {
+				id: delegate
+				width: calMethodsList.width
+				height: AppSettings.itemLargeHeight
 
-			TPButton {
-				id: btnYesterday
-				text: qsTr("Yesterday")
-				width: parent.buttonWidth
+				required property int index
+				required property string label
 
-				onClicked: datePickerControl.setDate(AppUtils.yesterday());
-			}
-			TPButton {
-				id: btnToday
-				text: qsTr("Today")
-				width: parent.buttonWidth
+				contentItem: TPLabel {
+					text: delegate.label
+					elide: Text.ElideMiddle
+					wrapMode: Text.NoWrap
+					horizontalAlignment: Text.AlignHCenter
+				}
 
-				onClicked: datePickerControl.setDate(AppUtils.today());
-			}
-			TPButton {
-				id: btnTomorrow
-				text: qsTr("Tomorrow")
-				width: parent.buttonWidth
+				background: Rectangle {
+					id:	backgroundColor
+					color: AppSettings.primaryLightColor
+					radius: 6
+					opacity: 1
+				}
 
-				onClicked: datePickerControl.setDate(AppUtils.tomorrow());
+				onClicked: datePickerControl.setDate(calendarMethods.resultDate(index));
 			}
 		}
 

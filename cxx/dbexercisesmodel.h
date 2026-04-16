@@ -15,23 +15,6 @@ QT_FORWARD_DECLARE_STRUCT(exerciseEntry)
 QT_FORWARD_DECLARE_STRUCT(stSet)
 QT_FORWARD_DECLARE_CLASS(QFile)
 
-enum {
-	Unkown = -1,
-	Regular = 0,
-	Pyramid = 1,
-	ReversePyramid = 2,
-	Drop =  3,
-	Cluster = 4,
-	MyoReps = 5,
-} typedef TPSetTypes;
-
-enum SetMode {
-	SM_NOT_COMPLETED = 1,
-	SM_START_REST = 2,
-	SM_START_EXERCISE = 3,
-	SM_COMPLETED = 4,
-};
-
 class DBModelInterfaceExercises : public DBModelInterface
 {
 
@@ -98,16 +81,42 @@ public:
 	};
 	Q_ENUM(ExercisesSheetFields)
 
+	enum TPSetTypes {
+		Unkown = -1,
+		Regular = 0,
+		Pyramid = 1,
+		ReversePyramid = 2,
+		Drop =  3,
+		Cluster = 4,
+		MyoReps = 5,
+	};
+	Q_ENUM(TPSetTypes)
+
+	enum setInputType {
+		WeightType,
+		RepType,
+		TimeType,
+		SetType,
+	};
+	Q_ENUM(setInputType)
+
+	enum SetMode {
+		SM_NOT_COMPLETED = 1,
+		SM_START_REST = 2,
+		SM_START_EXERCISE = 3,
+		SM_COMPLETED = 4,
+	};
+
 	//DBWorkoutModel
 	inline explicit DBExercisesModel(DBMesocyclesModel *meso_model, DBWorkoutsOrSplitsTable* db, const uint meso_idx, const int calendar_day)
 		: QAbstractListModel{reinterpret_cast<QObject*>(meso_model)}, m_mesoModel{meso_model}, m_db{db}, m_mesoIdx{meso_idx},
-																						m_calendarDay{calendar_day}, m_splitLetter{'N'}
+																					m_calendarDay{calendar_day}, m_splitLetter{'N'}
 	{
 		commonConstructor(true);
 	}
 	//DBSplitModel, no need for a calendar manager
 	inline explicit DBExercisesModel(DBMesocyclesModel *meso_model, DBWorkoutsOrSplitsTable *db, const uint meso_idx,
-																							const QChar &splitletter, const bool load_from_db)
+																				const QChar &splitletter, const bool load_from_db)
 		: QAbstractListModel{reinterpret_cast<QObject*>(meso_model)}, m_db{db}, m_mesoModel{meso_model}, m_mesoIdx{meso_idx},
 																								m_calendarDay{-1}, m_splitLetter{splitletter}
 	{
@@ -121,6 +130,7 @@ public:
 	void operator=(DBExercisesModel *other_model);
 	bool fromDatabase(const bool db_data_ok);
 	Q_INVOKABLE void clearExercises(const bool from_qml = true);
+	Q_INVOKABLE QString setTypeOperation(const uint settype, const bool increase, QString str_value, const bool seconds) const;
 
 	[[nodiscard]] inline const bool exercisesLoaded() const { return m_exercisesLoaded; }
 	[[nodiscard]] inline const QString &id() const { return m_dbModelInterface->modelData().at(0).at(DBExercisesModel::EXERCISES_FIELD_ID); }

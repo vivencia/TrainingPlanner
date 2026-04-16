@@ -131,6 +131,7 @@ TPPage {
 					today: mesoCalendarPage._today
 					parentMonth: monthGrid.month
 					tpCalendarModel: mesoCalendarPage.calendarModel
+					selectedDate: mesoCalendarPage.calendarModel.currentDate
 
 					required property int day
 					required property int month

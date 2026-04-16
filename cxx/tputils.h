@@ -97,6 +97,7 @@ public:
 	const QString workoutFileIdentifier{QLiterals::operator""_L1("0x05", 4)};
 	const QString userFileIdentifier{QLiterals::operator""_L1("0x06", 4)};
 
+	static constexpr QLatin1StringView TP_FILE_EXTENSION{".txt"_L1};
 	static constexpr QLatin1StringView STR_START_EXPORT{"##%%"_L1};
 	static constexpr QLatin1StringView STR_START_FORMATTED_EXPORT{"####"_L1};
 	static constexpr QLatin1StringView STR_END_EXPORT{"##!!"_L1};
@@ -183,15 +184,16 @@ public:
 	inline QString formatTodayDate(const DATE_FORMAT format = DF_QML_DISPLAY) const { return std::move(formatDate(QDate::currentDate())); }
 	QDate dateFromString(const QString &strdate, const DATE_FORMAT format = DF_QML_DISPLAY) const;
 	uint calculateNumberOfWeeks(const QDate &date1, const QDate &date2) const;
-	//Returns the number of months in between the dates plus one(the starting month)
 	inline uint calculateNumberOfMonths(const QString &date1, const QString &date2) const
 	{
 		return calculateNumberOfMonths(dateFromString(date1, DF_DATABASE), dateFromString(date2, DF_DATABASE));
 	}
+	//Returns the number of months in between the dates plus one(the starting month)
 	uint calculateNumberOfMonths(const QDate &date1, const QDate &date2) const;
+	uint calculateNumberOfDays(const QDate &date1, const QDate &date2) const;
 	QDate getNextSunday(const QDate &fromDate) const;
 	QDate getNextMonday(const QDate &fromDate) const;
-	QDate createDate(const QDate &fromDate, const int years, const int months, const int days) const;
+	Q_INVOKABLE QDate createDate(const int years, const int months, const int days, const QDate &fromDate = QDate::currentDate()) const;
 	Q_INVOKABLE inline QDate getDayBefore(const QDate &date) const { return date.addDays(-1); }
 	Q_INVOKABLE inline QDate yesterday() const { return QDate::currentDate().addDays(-1); }
 	Q_INVOKABLE inline QDate tomorrow() const { return QDate::currentDate().addDays(1); }
@@ -243,8 +245,6 @@ public:
 	QString stripDiacriticsFromString(const QString &src) const;
 	Q_INVOKABLE QString stripInvalidCharacters(const QString &string) const;
 	bool containsAllWords(const QString &mainString, const QStringList &wordSet, const bool precise = false);
-
-	Q_INVOKABLE QString setTypeOperation(const uint settype, const bool increase, QString str_value, const bool seconds = false) const;
 
 	inline QLocale *appLocale() const { return m_appLocale; }
 	void setAppLocale(const QString &locale_str);

@@ -13,7 +13,10 @@ TPPage {
 	implicitWidth: AppSettings.pageWidth
 	implicitHeight: AppSettings.pageHeight
 
+//public:
 	property UserManager userManager
+
+//private:
 	property bool mainUserModified: false
 
 	Connections {

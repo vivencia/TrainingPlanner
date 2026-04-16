@@ -360,18 +360,7 @@ QDate DBMesocyclesModel::getMesoMinimumStartDate(const QString &userid, const ui
 					break;
 		}
 	}
-	return meso_idx >= 0 ? endDate(meso_idx) : appUtils()->createDate(QDate::currentDate(), 0, -6, 0);
-}
-
-QDate DBMesocyclesModel::getMesoMaximumEndDate(const QString &userid, const uint exclude_idx) const
-{
-	uint meso_idx{exclude_idx + 1};
-	for (; meso_idx < count(); ++meso_idx) {
-		if (client(meso_idx) == userid)
-			if (_id(meso_idx) >= 0 && isRealMeso(meso_idx))
-				break;
-	}
-	return meso_idx < count() ? endDate(meso_idx) : appUtils()->createDate(QDate::currentDate(), 0, 6, 0);
+	return meso_idx >= 0 ? endDate(meso_idx) : appUtils()->createDate(0, -3, 0);
 }
 
 void DBMesocyclesModel::removeCalendarForMeso(const uint meso_idx, const bool remake_calendar)
@@ -380,7 +369,7 @@ void DBMesocyclesModel::removeCalendarForMeso(const uint meso_idx, const bool re
 		if (remake_calendar) {
 			auto conn{std::make_shared<QMetaObject::Connection>()};
 			*conn = connect(m_calendarDB, &TPDatabaseTable::dbOperationsFinished, this, [this,meso_idx,remake_calendar,conn]
-																			(const ThreadManager::StandardOps op, const bool success) {
+																		(const ThreadManager::StandardOps op, const bool success) {
 				if (op == ThreadManager::CustomOperation && success) {
 					delete m_calendars.value(meso_idx);
 					m_calendars.remove(meso_idx);
@@ -400,7 +389,8 @@ void DBMesocyclesModel::removeCalendarForMeso(const uint meso_idx, const bool re
 					uint i{meso_idx};
 					for (const auto calendar : std::as_const(m_calendars) | std::views::drop(meso_idx)) {
 						calendar->setMesoIdx(i);
-						for (const auto workout: m_workouts.value(i))
+						const QMap<uint,DBExercisesModel*> &meso_workouts{m_workouts.value(i)};
+						for (DBExercisesModel *workout: std::as_const(meso_workouts))
 							workout->setMesoIdx(i);
 						i++;
 					}
@@ -688,29 +678,27 @@ int DBMesocyclesModel::importFromFormattedFile(const uint meso_idx, const QStrin
 
 QString DBMesocyclesModel::formatFieldToExport(const uint field, const QString &fieldValue) const
 {
-	switch (field)
-	{
-		case MESO_FIELD_STARTDATE:
-		case MESO_FIELD_ENDDATE:
-			return appUtils()->formatDate(QDate::fromJulianDay(fieldValue.toInt()));
-		case MESO_FIELD_COACH:
-		case MESO_FIELD_CLIENT:
-			return fieldValue;
-		case MESO_FIELD_REALMESO:
-			return fieldValue == '1' ? tr("Yes") : tr("No");
+	switch (field) {
+	case MESO_FIELD_STARTDATE:
+	case MESO_FIELD_ENDDATE:
+		return appUtils()->formatDate(QDate::fromJulianDay(fieldValue.toInt()));
+	case MESO_FIELD_COACH:
+	case MESO_FIELD_CLIENT:
+		return fieldValue;
+	case MESO_FIELD_REALMESO:
+		return fieldValue == '1' ? tr("Yes") : tr("No");
 	}
 	return fieldValue;
 }
 
 QString DBMesocyclesModel::formatFieldToImport(const uint field, const QString &fieldValue) const
 {
-	switch (field)
-	{
-		case MESO_FIELD_STARTDATE:
-		case MESO_FIELD_ENDDATE:
-			return QString::number(appUtils()->dateFromString(fieldValue).toJulianDay());
-		case MESO_FIELD_REALMESO:
-			return fieldValue == tr("Yes") ? "1"_L1 : "0"_L1;
+	switch (field) {
+	case MESO_FIELD_STARTDATE:
+	case MESO_FIELD_ENDDATE:
+		return QString::number(appUtils()->dateFromString(fieldValue).toJulianDay());
+	case MESO_FIELD_REALMESO:
+		return fieldValue == tr("Yes") ? "1"_L1 : "0"_L1;
 	}
 	return fieldValue;
 }
@@ -726,7 +714,7 @@ QString DBMesocyclesModel::mesoFileName(const uint meso_idx) const
 		else
 			userid = appUserModel()->userId(0);
 	}
-	return appUserModel()->userDir(userid) % mesos_subdir % name(meso_idx) % ".txt"_L1;
+	return appUserModel()->userDir(userid) % mesos_subdir % name(meso_idx) % TPUtils::TP_FILE_EXTENSION;
 }
 
 void DBMesocyclesModel::removeMesoFile(const uint meso_idx)

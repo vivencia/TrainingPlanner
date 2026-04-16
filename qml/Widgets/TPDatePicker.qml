@@ -198,17 +198,6 @@ Rectangle {
 		spacing: _control.cellSize
 		model: _control.calendarModel
 
-		/*Connections {
-			target: _control.calendarModel ? _control.calendarModel : null
-			ignoreUnknownSignals: true
-
-			function onReadyChanged() {
-				calendar.currentIndex = _control.calendarModel.indexOf(_control.selectedDate);
-				calendar.positionViewAtIndex(calendar.currentIndex, ListView.SnapPosition);
-				_control.dateSelected(_control.selectedDate);
-			}
-		}*/
-
 		anchors {
 			top: titleOfDate.bottom
 			bottom: parent.bottom
@@ -440,10 +429,12 @@ Rectangle {
 	}
 
 	function setDate(newDate): void {
+		//Postion the ListView in the correct view ahead of changing selectedDate. This way, the delegates are created first
+		//so they can respond to the change of the selectedDate property
+		calendar.currentIndex = calendarModel.indexOf(newDate);
+		calendar.positionViewAtIndex(calendar.currentIndex, ListView.SnapPosition);
 		selectedDate = newDate;
 		dateSelected(selectedDate);
-		calendar.currentIndex = calendarModel.indexOf(selectedDate);
-		calendar.positionViewAtIndex(calendar.currentIndex, ListView.SnapPosition);
 	}
 
 	function setDate2(newDate): void {

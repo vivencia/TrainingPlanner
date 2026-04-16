@@ -1,8 +1,11 @@
 import QtQuick
 
 QtObject {
+
+//public:
 	property int selectedOption: -1
 
+//private:
 	property list<Item> _buttons: []
 	property int _nbuttons: 0
 

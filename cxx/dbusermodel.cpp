@@ -1278,7 +1278,7 @@ void DBUserModel::sendUnsentCmdFiles(const QString &dir)
 
 inline QString DBUserModel::profileFileName(const QString &userid) const
 {
-	return userid % ".txt"_L1;
+	return userid % TPUtils::TP_FILE_EXTENSION;
 }
 
 inline QString DBUserModel::profileFilePath(const QString &userid) const

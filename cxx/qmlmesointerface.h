@@ -29,6 +29,8 @@ Q_PROPERTY(bool isTempMeso READ isTempMeso NOTIFY isTempMesoChanged FINAL)
 Q_PROPERTY(bool canExport READ canExport NOTIFY canExportChanged FINAL)
 Q_PROPERTY(bool coachIsMainUser READ coachIsMainUser CONSTANT FINAL)
 
+Q_PROPERTY(int mesoIdx READ mesoIdx WRITE setMesoIdx NOTIFY mesoIdxChanged FINAL)
+
 Q_PROPERTY(QString mesoNameErrorTooltip READ mesoNameErrorTooltip NOTIFY mesoNameOKChanged FINAL)
 Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged FINAL)
 Q_PROPERTY(QString coachName READ coachName CONSTANT FINAL)
@@ -44,8 +46,9 @@ Q_PROPERTY(QString notes READ notes WRITE setNotes NOTIFY notesChanged FINAL)
 
 Q_PROPERTY(QDate startDate READ startDate WRITE setStartDate NOTIFY startDateChanged FINAL)
 Q_PROPERTY(QDate endDate READ endDate WRITE setEndDate NOTIFY endDateChanged FINAL)
-Q_PROPERTY(QDate minimumMesoStartDate READ minimumMesoStartDate NOTIFY minimumStartDateChanged FINAL)
-Q_PROPERTY(QDate maximumMesoEndDate READ maximumMesoEndDate CONSTANT FINAL)
+Q_PROPERTY(QDate minimumStartDate READ minimumStartDate WRITE setMinimumStartDate NOTIFY minimumStartDateChanged FINAL)
+Q_PROPERTY(QDate minimumEndDate READ minimumEndDate NOTIFY minimumEndDateChanged FINAL)
+Q_PROPERTY(QDate maximumEndDate READ maximumEndDate NOTIFY maximumEndDateChanged FINAL)
 
 public:
 	explicit inline QMLMesoInterface(DBMesocyclesModel *meso_model, const uint meso_idx)
@@ -90,15 +93,15 @@ public:
 
 	[[nodiscard]] QDate startDate() const;
 	void setStartDate(const QDate &new_startdate);
-	[[nodiscard]] inline QDate minimumMesoStartDate() const { return m_minimumMesoStartDate; }
-	void setMinimumMesoStartDate(const QDate &new_value);
+	[[nodiscard]] inline QDate minimumStartDate() const { return m_minimumStartDate; }
+	void setMinimumStartDate(const QDate &new_value);
 	[[nodiscard]] inline QString strStartDate() const { return m_strStartDate; }
 
 	[[nodiscard]] QDate endDate() const;
 	void setEndDate(const QDate &new_enddate);
-	[[nodiscard]] inline QDate maximumMesoEndDate() const { return m_maximumMesoEndDate; }
-	void setMaximumMesoEndDate(const QDate &new_value);
 	[[nodiscard]] inline QString strEndDate() const { return m_strEndDate; }
+	[[nodiscard]] QDate minimumEndDate() const;
+	[[nodiscard]] QDate maximumEndDate() const;
 
 	[[nodiscard]] QString weeks() const;
 
@@ -127,6 +130,7 @@ signals:
 	void splitOKChanged();
 	void isTempMesoChanged();
 	void canExportChanged();
+	void mesoIdxChanged();
 	void labelsChanged();
 	void nameChanged();
 	void clientChanged();
@@ -136,6 +140,8 @@ signals:
 	void startDateChanged();
 	void endDateChanged();
 	void minimumStartDateChanged();
+	void minimumEndDateChanged();
+	void maximumEndDateChanged();
 	void weeksChanged();
 	void splitChanged();
 	void notesChanged();
@@ -148,7 +154,7 @@ private:
 
 	uint m_mesoIdx;
 	QString m_strStartDate, m_strEndDate, m_nameError;
-	QDate m_minimumMesoStartDate, m_maximumMesoEndDate;
+	QDate m_minimumStartDate;
 
 	QHash<QDate,QmlWorkoutInterface*> m_workoutPages;
 	QmlMesoSplitInterface *m_splitsPage{nullptr};

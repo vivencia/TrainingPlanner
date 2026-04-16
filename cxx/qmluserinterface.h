@@ -15,8 +15,7 @@ QML_VALUE_TYPE(UserManager)
 QML_UNCREATABLE("")
 
 public:
-	explicit inline QmlUserInterface(QObject *parent)
-		: QObject{parent}, m_userPage{nullptr}, m_settingsPage{nullptr}, m_coachesPage{nullptr}, m_clientsPage{nullptr} {}
+	explicit inline QmlUserInterface(QObject *parent) : QObject{parent} {}
 
 	void getUserPage();
 	void getSettingsPage();
@@ -24,8 +23,8 @@ public:
 	Q_INVOKABLE void getClientsPage();
 
 private:
-	QQuickItem *m_userPage, *m_settingsPage, *m_coachesPage, *m_clientsPage;
-	QQmlComponent *m_userComponent, *m_settingsComponent, *m_coachesComponent, *m_clientsComponent;
+	QQuickItem *m_userPage{nullptr}, *m_settingsPage{nullptr}, *m_coachesPage{nullptr}, *m_clientsPage{nullptr};
+	QQmlComponent *m_userComponent{nullptr}, *m_settingsComponent{nullptr}, *m_coachesComponent{nullptr}, *m_clientsComponent{nullptr};
 	QVariantMap m_userProperties, m_coachesProperties, m_clientsProperties;
 
 	void createUserPage();

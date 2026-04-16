@@ -130,9 +130,10 @@ set( CXX_SOURCES_QML_INTEGRATION
 )
 
 set( CXX_SOURCES
+		cxx/main.cpp
 		cxx/qml_singleton.h
 		cxx/return_codes.h
-		cxx/main.cpp
+		cxx/calendar_methods.h
 
 		cxx/thread_manager.h cxx/thread_manager.cpp
 		cxx/tpimageprovider.h cxx/tpimageprovider.cpp

@@ -266,8 +266,10 @@ bool PagesListModel::eventFilter(QObject *obj, QEvent *event)
 
 void PagesListModel::openQMLPage(const uint index)
 {
+	deActivateQmlPage(currentIndex());
 	QQuickItem *page{m_pagesData.at(index)->page};
 	QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, page));
+	activateQmlPage(index);
 	if (index > 0)
 		appUserModel()->actualMesoModel()->setCurrentMesosView(appUserModel()->actualMesoModel()->isOwnMeso(m_pagesMesoIdx.at(index)));
 }

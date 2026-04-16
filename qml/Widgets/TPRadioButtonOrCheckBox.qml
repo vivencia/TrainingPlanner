@@ -6,6 +6,7 @@ TPLabel {
 	id: _control
 	height: AppSettings.itemDefaultHeight + 10
 
+//public:
 	property alias image: img.source
 	property int imageHeight: AppSettings.itemDefaultHeight
 	property int imageWidth: imageHeight
