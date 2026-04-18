@@ -13,6 +13,7 @@ Rectangle {
 	property bool showBorder: false
 
 	property string sourceImage
+	property string backColor
 	property double widthScale: 1.0
 	property double heightScale: 1.0
 	property double overlayOpacity: 0
@@ -27,7 +28,7 @@ Rectangle {
 	property color paneColor: AppSettings.paneBackgroundColor
 
 	gradient: useGradient ? _gradient : null
-	color: AppSettings.paneBackgroundColor
+	color: backColor
 	border.color: showBorder ? AppSettings.fontColor : "transparent"
 
 	Loader {

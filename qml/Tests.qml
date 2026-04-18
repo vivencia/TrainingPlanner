@@ -128,19 +128,19 @@ ApplicationWindow {
 
 		TPPageMenu {
 			parentPage: homePage
-			entriesListModel: ListModel {
-				ListElement { label: qsTr("Send to client"); image: "download_"; btn_id: TPFileOps.OT_Custom_1; }
-				ListElement { label: qsTr("Save as"); image: "download_"; btn_id: TPFileOps.OT_Download; }
-				ListElement { label: qsTr("Send to"); image: "attach_"; btn_id: TPFileOps.OT_Forward; }
-				ListElement { label: qsTr("Share"); image: "share_"; btn_id: TPFileOps.OT_Share; }
-				ListElement { label: qsTr("Exercises Planner"); image: "meso-splitplanner.png"; btn_id: TPFileOps.OT_Custom_2; }
-			}
-			entry_enabled: [  true, true, true, Qt.platform.os === "android", true ]
+
+			entriesList: [
+				{ "label": qsTr("Send to client"), "image": "download_", "btn_id": TPFileOps.OT_Custom_1, "enabled": true },
+				{ "label": qsTr("Save as"), "image": "download_", "btn_id": TPFileOps.OT_Download, "enabled": true },
+				{ "label": qsTr("Send to"), "image": "attach_", "btn_id": TPFileOps.OT_Forward, "enabled": true },
+				{ "label": qsTr("Share"), "image": "share_", "btn_id": TPFileOps.OT_Share, "enabled": Qt.platform.os === "android" },
+				{ "label": qsTr("Exercises Planner"), "image": "meso-splitplanner.png", btn_id: TPFileOps.OT_Custom_2, "enabled": false },
+			]
 
 			onMenuEntrySelected: (btn_id) => {
 				switch (btn_id) {
-				case TPFileOps.OT_Custom_1: console.log("mesoPage.mesoManager.sendMesocycleFileToClient()"); break;
-				case TPFileOps.OT_Custom_2: console.log("mesoPage.mesoManager.getExercisesPlannerPage()"); break;
+				case TPFileOps.OT_Custom_1: enableEntry(4, true); break;
+				case TPFileOps.OT_Custom_2: enableEntry(0, false); break;
 				default: console.log("fileOps.doFileOperation(btn_id)");
 				}
 			}

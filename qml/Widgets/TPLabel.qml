@@ -27,6 +27,6 @@ Label {
 		id: itemBack
 		color: _control.enabled ? _control.backgroundColor : "transparent"
 		radius: 8
-		opacity: 0.5
+		opacity: 0.7
 	}
 }

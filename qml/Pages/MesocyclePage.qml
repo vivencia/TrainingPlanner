@@ -90,22 +90,42 @@ TPPage {
 	}
 
 	TPPageMenu {
+		id: pageMenu
 		parentPage: mesoPage
-		entriesListModel: ListModel {
-			ListElement { label: qsTr("Send to client"); image: "download_"; btn_id: TPFileOps.OT_Custom_1; }
-			ListElement { label: qsTr("Save as"); image: "download_"; btn_id: TPFileOps.OT_Download; }
-			ListElement { label: qsTr("Send to"); image: "attach_"; btn_id: TPFileOps.OT_Forward; }
-			ListElement { label: qsTr("Share"); image: "share_"; btn_id: TPFileOps.OT_Share; }
-			ListElement { label: qsTr("Exercises Planner"); image: "meso-splitplanner.png"; btn_id: TPFileOps.OT_Custom_2; }
-		}
-		entry_enabled: [ !mesoPage.mesoManager.ownMeso && mesoPage.mesoManager.canExport, mesoPage.mesoManager.canExport,
-										mesoPage.mesoManager.canExport, Qt.platform.os === "android", mesoPage.mesoManager.splitOK ]
+		entriesList: [
+			{ "label": qsTr("Send to client"), "image": "download_", "btn_id": TPFileOps.OT_Custom_1, "enabled": enabledCondition(0) },
+			{ "label": qsTr("Save as"), "image": "download_", "btn_id": TPFileOps.OT_Download, "enabled": enabledCondition(1) },
+			{ "label": qsTr("Send to"), "image": "attach_", "btn_id": TPFileOps.OT_Forward, "enabled": enabledCondition(2) },
+			{ "label": qsTr("Share"), "image": "share_", "btn_id": TPFileOps.OT_Share, "enabled": enabledCondition(3) },
+			{ "label": qsTr("Exercises Planner"), "image": "meso-splitplanner.png", btn_id: TPFileOps.OT_Custom_2, "enabled": enabledCondition(4) },
+		]
 
 		onMenuEntrySelected: (btn_id) => {
 			switch (btn_id) {
 			case TPFileOps.OT_Custom_1: mesoPage.mesoManager.sendMesocycleFileToClient(); break;
 			case TPFileOps.OT_Custom_2: mesoPage.mesoManager.getExercisesPlannerPage(); break;
-			default: fileOps.doFileOperation(btn_id);
+			default: fileOps.doFileOperation(btn_id); break;
+			}
+		}
+
+		function enabledCondition(menu_entry: int): bool {
+			switch (menu_entry) {
+			case 0: return !mesoPage.mesoManager.ownMeso && mesoPage.mesoManager.canExport;
+			case 1:
+			case 2: return mesoPage.mesoManager.canExport;
+			case 3: return mesoPage.mesoManager.canExport && Qt.platform.os === "android";
+			case 4: return mesoPage.mesoManager.splitOK;
+			}
+		}
+
+		Connections {
+			target: mesoPage.mesoManager
+			function onCanExportChanged(): void {
+				for (let i = 0; i <= 3; ++i)
+					pageMenu.enableEntry(i, pageMenu.enabledCondition(i));
+			}
+			function onSplitOKChanged(): void {
+				pageMenu.enableEntry(4, pageMenu.enabledCondition(4));
 			}
 		}
 	}

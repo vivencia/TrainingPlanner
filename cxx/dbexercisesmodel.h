@@ -39,6 +39,8 @@ Q_PROPERTY(uint exerciseCount READ exerciseCount NOTIFY exerciseCountChanged)
 Q_PROPERTY(int workingExercise READ workingExercise WRITE setWorkingExercise NOTIFY workingExerciseChanged)
 Q_PROPERTY(int workingSubExercise READ workingSubExercise WRITE setWorkingSubExercise NOTIFY workingSubExerciseChanged)
 Q_PROPERTY(int workingSet READ workingSet WRITE setWorkingSet NOTIFY workingSetChanged)
+Q_PROPERTY(int mesoIdx READ mesoIdx WRITE setMesoIdx NOTIFY mesoIdxChanged FINAL)
+Q_PROPERTY(int calendarDay READ calendarDay WRITE setCalendarDay NOTIFY calendarDayChanged FINAL)
 Q_PROPERTY(bool isWorkout READ isWorkout CONSTANT FINAL)
 
 Q_PROPERTY(QChar splitLetter READ splitLetter WRITE setSplitLetter NOTIFY splitLetterChanged FINAL)
@@ -118,7 +120,7 @@ public:
 	inline explicit DBExercisesModel(DBMesocyclesModel *meso_model, DBWorkoutsOrSplitsTable *db, const uint meso_idx,
 																				const QChar &splitletter, const bool load_from_db)
 		: QAbstractListModel{reinterpret_cast<QObject*>(meso_model)}, m_db{db}, m_mesoModel{meso_model}, m_mesoIdx{meso_idx},
-																								m_calendarDay{-1}, m_splitLetter{splitletter}
+																						m_calendarDay{-1}, m_splitLetter{splitletter}
 	{
 		commonConstructor(load_from_db);
 	}
@@ -136,12 +138,13 @@ public:
 	[[nodiscard]] inline const QString &id() const { return m_dbModelInterface->modelData().at(0).at(DBExercisesModel::EXERCISES_FIELD_ID); }
 	[[nodiscard]] const QString &mesoId() const;
 	[[nodiscard]] inline const uint mesoIdx() const { return m_mesoIdx; }
-	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; }
+	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; emit mesoIdxChanged(); }
 	[[nodiscard]] inline int calendarDay() const { return m_calendarDay; }
-	inline void setCalendarDay(const uint new_calendarday) { m_calendarDay = new_calendarday; }
+	inline void setCalendarDay(const uint new_calendarday) { m_calendarDay = new_calendarday; emit calendarDayChanged();}
 	[[nodiscard]] inline const QChar &splitLetter() const { return m_splitLetter; }
 	void setSplitLetter(const QChar &new_splitletter);
 	inline void setImportMode(const bool import_mode) { m_importMode = import_mode; }
+	[[nodiscard]] QString suggestedName(const bool formatted_file) const;
 
 	[[nodiscard]] inline const bool isWorkout() const { return m_calendarDay != -1; }
 	[[nodiscard]] int exportToFile(const QString &filename, QFile *out_file = nullptr) const;
@@ -252,6 +255,8 @@ public slots:
 signals:
 	void setModeChanged(const int exercise_number, const int exercise_idx, const int set_number, const int mode);
 	void splitLetterChanged();
+	void mesoIdxChanged();
+	void calendarDayChanged();
 	void muscularGroupChanged();
 	void exerciseNameChanged(const int exercise_number, const int exercise_idx);
 	void setsNumberChanged(const int exercise_number, const int exercise_idx);

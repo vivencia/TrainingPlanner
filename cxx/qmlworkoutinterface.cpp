@@ -336,13 +336,6 @@ void QmlWorkoutInterface::resetWorkout()
 	m_workoutTimer->prepareTimer();
 }
 
-void QmlWorkoutInterface::exportWorkout(const bool bShare)
-{
-	const QString &suggestedName{m_mesoModel->name(m_mesoIdx) % tr(" - Workout ") % m_workoutModel->splitLetter() % TPUtils::TP_FILE_EXTENSION};
-	//const QString &exportFileName{appItemManager()->setExportFileName(suggestedName)};
-	//appItemManager()->continueExport(m_workoutModel->exportToFile(exportFileName), bShare);
-}
-
 void QmlWorkoutInterface::importWorkout(const QString &filename)
 {
 	if (filename.isEmpty()) {

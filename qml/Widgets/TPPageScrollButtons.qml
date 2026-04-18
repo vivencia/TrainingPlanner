@@ -23,7 +23,7 @@ Rectangle {
 //private:
 	readonly property string _config_field_name: "navButton_" + parentPage.objectName
 	readonly property point _saved_pos: AppSettings.getCustomValue(_config_field_name,
-										Qt.point(AppSettings.pageWidth - width - 20, parentPage.y + parentPage.height - height - 20))
+													Qt.point(AppSettings.pageWidth - width - 20, parentPage.height - height - 20))
 	property bool _visible: false
 	readonly property int _button_size: AppSettings.itemLargeHeight
 

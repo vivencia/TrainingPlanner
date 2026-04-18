@@ -225,6 +225,14 @@ void TPMessagesManager::openChat(const QString &username)
 	openChatWindow(m_chatsList.value(userid));
 }
 
+void TPMessagesManager::sendFileTo(const QString &username, const QString &filename, const QString &message)
+{
+	const QString &userid{appUserModel()->userIdFromFieldValue(DBUserModel::USER_FIELD_NAME, username)};
+	const qsizetype i_userid{userid.toLong()};
+	openChat(username);
+	chatManager(userid)->createNewMessage(message, filename);
+}
+
 void TPMessagesManager::startChatMessagesPolling(const QString &userid)
 {
 	connect(appUserModel(), &DBUserModel::canConnectToServerChanged, this, [this] () {

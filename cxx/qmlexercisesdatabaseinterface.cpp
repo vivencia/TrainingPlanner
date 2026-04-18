@@ -22,29 +22,6 @@ const uint QmlExercisesDatabaseInterface::removeExercise(const uint row)
 	return row > 0 ? row - 1 : 0;
 }
 
-void QmlExercisesDatabaseInterface::exportExercises(const bool bShare)
-{
-	int exportFileMessageId{0};
-	if (appExercisesList()->collectExportData()) {
-		const QString &exportFileName{appSettings()->localAppFilesDir() % tr("TrainingPlanner Exercises List") % TPUtils::TP_FILE_EXTENSION};
-		exportFileMessageId = appExercisesList()->exportToFile(exportFileName);
-		if (exportFileMessageId >= 0) {
-#ifdef Q_OS_ANDROID
-			if (bShare) {
-				appOsInterface()->shareFile(exportFileName);
-				exportFileMessageId = TP_RET_CODE_SHARE_OK;
-			}
-			else
-#endif
-				QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, exportFileName));
-		}
-		appItemManager()->displayMessageOnAppWindow(exportFileMessageId, exportFileName);
-	}
-	else
-		exportFileMessageId = TP_RET_CODE_NOTHING_TO_EXPORT;
-	appItemManager()->displayMessageOnAppWindow(exportFileMessageId);
-}
-
 void QmlExercisesDatabaseInterface::importExercises(const QString &filename)
 {
 	if (filename.isEmpty())

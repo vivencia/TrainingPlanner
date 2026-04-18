@@ -49,6 +49,7 @@ public:
 	void openChatWindow(TPChat *chat_manager);
 	inline TPChat *chatManager(const QString &userid) const { return m_chatsList.value(userid); }
 	Q_INVOKABLE void openChat(const QString &username);
+	void sendFileTo(const QString &username, const QString &filename, const QString &message);
 	void startChatMessagesPolling(const QString &userid);
 
 	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }

@@ -10,7 +10,6 @@ set( QML_WIDGETS
 	"TPDigitalClock.qml"
 	"TPExportButton.qml"
 	"TPFileViewer.qml"
-	"TPFloatingMenuBar.qml"
 	"TPLabel.qml"
 	"TPListView.qml"
 	"TPMouseArea.qml"

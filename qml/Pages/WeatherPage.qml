@@ -220,16 +220,29 @@ TPPage {
 		} //Item
 	} //ColumnLayout mainLayout
 
-
-	TPFloatingMenuBar {
-		id:	locationsMenu
+	TPPageMenu {
+		id: locationsMenu
 		parentPage: weatherPage
 		entriesList: weatherInfo.locationList
-		titleHeader: qsTr("Places")
+		showIndicator: false
 		width: weatherPage.width * 0.9
 		onMenuEntrySelected: (id) => {
 			weatherInfo.locationSelected(id);
 			txtCities.clear();
+		}
+
+		Connections {
+			target: weatherInfo
+
+			function onLocationListChanged(): void {
+				locationsMenu.clearEntries();
+				if (weatherInfo.locationList.length === 0)
+					locationsMenu.close();
+				else {
+					locationsMenu.createEntries(weatherInfo.locationList, [], [], []);
+					locationsMenu.open();
+				}
+			}
 		}
 	}
 }

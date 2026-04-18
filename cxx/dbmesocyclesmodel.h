@@ -350,7 +350,7 @@ public:
 	}
 	void newWorkoutFromFile(const QString &filename, const bool formatted, const QVariant &workout_info);
 
-	[[nodiscard]] inline bool canExport(const uint meso_idx) const { return meso_idx < m_canExport.count() ? m_canExport.at(meso_idx) : false; }
+	inline bool canExport(const uint meso_idx) const { return meso_idx < m_canExport.count() ? m_canExport.at(meso_idx) : false; }
 	void checkIfCanExport(const uint meso_idx, const bool bEmitSignal = true);
 
 	//When importing a complete program: importIdx() will be set to -1 because we will be getting a new meso model. When other parts of the code
@@ -362,6 +362,7 @@ public:
 	void exportToFormattedFile(const uint meso_idx, const QString &filename);
 	int importFromFile(const uint meso_idx, const QString &filename);
 	int importFromFormattedFile(const uint meso_idx, const QString &filename);
+	QString suggestedName(const int meso_idx, const bool formatted_file) const;
 
 	inline bool isFieldFormatSpecial (const uint field) const
 	{

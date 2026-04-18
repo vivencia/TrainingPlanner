@@ -659,14 +659,11 @@ int DBMesocyclesModel::importFromFormattedFile(const uint meso_idx, const QStrin
 								appUtils()->mesoFileIdentifier,
 								[this] (const uint field, const QString &value) { return formatFieldToImport(field, value); })
 	};
-	if (ret == TP_RET_CODE_IMPORT_OK)
-	{
+	if (ret == TP_RET_CODE_IMPORT_OK) {
 		setId(meso_idx, appUtils()->newDBTemporaryId());
 		const QMap<QChar,DBSplitModel*> &split_models{m_splitModels.value(meso_idx)};
-		for (DBSplitModel *split_model : split_models)
-		{
-			if (split_model)
-			{
+		for (DBSplitModel *split_model : split_models) {
+			if (split_model) {
 				if ((ret = split_model->importFromFormattedFile(filename, in_file)) != TP_RET_CODE_IMPORT_OK)
 					break;
 			}
@@ -674,6 +671,12 @@ int DBMesocyclesModel::importFromFormattedFile(const uint meso_idx, const QStrin
 	}
 	in_file->close();
 	return ret;
+}
+
+QString DBMesocyclesModel::suggestedName(const int meso_idx, const bool formatted_file) const
+{
+	return formatted_file ? mesoFileName(meso_idx) :
+						appSettings()->currentUserDir() % QString::number(meso_idx) % "_meso"_L1 % TPUtils::TP_FILE_EXTENSION;
 }
 
 QString DBMesocyclesModel::formatFieldToExport(const uint field, const QString &fieldValue) const

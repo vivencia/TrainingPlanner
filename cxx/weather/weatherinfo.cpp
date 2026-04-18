@@ -215,7 +215,7 @@ void WeatherInfo::buildLocationsList(const QList<st_LocationInfo> *foundLocation
 	m_locationList.clear();
 	m_foundLocations = const_cast<QList<st_LocationInfo>*>(foundLocations);
 	for (const auto &location : std::as_const(*foundLocations))
-		m_locationList.append(location.m_name + " ("_L1 + location.m_state + ' ' +  location.m_country + ')');
+		m_locationList.append(location.m_name % " ("_L1 % location.m_state % ' ' % location.m_country % ')');
 	emit locationListChanged();
 }
 
@@ -227,7 +227,7 @@ void WeatherInfo::addLocationToConfig(const QString &location, const QGeoCoordin
 			return;
 	}
 	QString new_location{std::move(appUtils()->string_strings(
-										{location, QString::number(coord.latitude()), QString::number(coord.longitude())}, set_separator))};
+								{location, QString::number(coord.latitude()), QString::number(coord.longitude())}, set_separator))};
 	appUtils()->setCompositeValue(-1, new_location, m_savedLocations, record_separator);
 	setCurrentlyViewedLocationIndex(savedLocationsCount() - 1, false);
 	appSettings()->setCustomValue(weatherLastViewedLocationSettings, currentlyViewedLocationIndex());

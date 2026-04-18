@@ -316,179 +316,184 @@
 <context>
     <name>DBExercisesModel</name>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="226"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="229"/>
         <source>Number of sets: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="227"/>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="517"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="230"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="523"/>
         <source>Set #: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="228"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="231"/>
         <source>Exercise: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="229"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="232"/>
         <source>Track rest times: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="230"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="233"/>
         <source>Auto tracking: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="231"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="234"/>
         <source>Set type: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="232"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="235"/>
         <source>Rest time: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="233"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="236"/>
         <source>Number of subsets: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="234"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="237"/>
         <source>Repetitions: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="235"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="238"/>
         <source>Weight: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="236"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="239"/>
         <source>Notes/Instructions for the set: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="237"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="240"/>
         <source>Completed?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="238"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="241"/>
         <source>As needed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.h" line="239"/>
+        <location filename="../cxx/dbexercisesmodel.h" line="242"/>
         <source>Split: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="408"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="376"/>
+        <source> - Workout </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="414"/>
         <source>Workout</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="409"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="415"/>
         <source>Exercises Sheet</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="420"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="426"/>
         <source>Giant set with </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="420"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="426"/>
         <source> exercises</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="423"/>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="426"/>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="552"/>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="557"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="429"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="432"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="558"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="563"/>
         <source>Yes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="423"/>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="426"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="429"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="432"/>
         <source>No</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="640"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="646"/>
         <source>Regular</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="641"/>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="1600"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="647"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="1606"/>
         <source>Pyramid</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="642"/>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="1602"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="648"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="1608"/>
         <source>Reverse Pyramid</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="643"/>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="1604"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="649"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="1610"/>
         <source>Drop Set</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="644"/>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="1606"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="650"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="1612"/>
         <source>Cluster Set</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="645"/>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="1608"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="651"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="1614"/>
         <source>Myo Reps</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="655"/>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="1619"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="661"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="1625"/>
         <source> Workout #: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="880"/>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="892"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="886"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="898"/>
         <source>Choose exercise...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="1484"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="1490"/>
         <source>Mark as completed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="1485"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="1491"/>
         <source>Start rest time</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="1486"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="1492"/>
         <source>Start exercise</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="1487"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="1493"/>
         <source>Completed!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="1619"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="1625"/>
         <source> at </source>
         <translation type="unfinished"></translation>
     </message>
@@ -1041,33 +1046,23 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesListPage.qml" line="213"/>
-        <source>In/Export</source>
+        <location filename="../qml/Pages/ExercisesListPage.qml" line="227"/>
+        <source>Save as</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesListPage.qml" line="237"/>
+        <location filename="../qml/Pages/ExercisesListPage.qml" line="228"/>
+        <source>Send to</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/Pages/ExercisesListPage.qml" line="226"/>
         <source>Import</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesListPage.qml" line="238"/>
-        <source>Export</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../qml/Pages/ExercisesListPage.qml" line="239"/>
+        <location filename="../qml/Pages/ExercisesListPage.qml" line="229"/>
         <source>Share</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../qml/Pages/ExercisesListPage.qml" line="269"/>
-        <source>Share custom exercises?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../qml/Pages/ExercisesListPage.qml" line="269"/>
-        <source>Export custom exercises to file?</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1276,87 +1271,87 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="96"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="97"/>
         <source>Save as</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="97"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="98"/>
         <source>Send to</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="98"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="99"/>
         <source>Share</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="99"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="100"/>
         <source>Exercises Planner</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="146"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="166"/>
         <source>Go to client&apos;s page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="209"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="229"/>
         <source>Weigth Loss</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="210"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="230"/>
         <source>Muscle Gain</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="211"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="231"/>
         <source>Bulking</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="212"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="232"/>
         <source>Pre-contest</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="213"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="233"/>
         <source>Strength Build-up</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="214"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="234"/>
         <source>Physical Recovery</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="215"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="235"/>
         <source>Physical Maintenance</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="216"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="236"/>
         <source>Other</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="278"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="298"/>
         <source>Choose the instruction&apos;s file for this mesocycles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="359"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="379"/>
         <source>Mesocycle-style program</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="378"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="398"/>
         <source>A Mesocycle is a short-term program, with defined starting and ending points and a specific goal in sight</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="95"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="96"/>
         <source>Send to client</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1573,17 +1568,17 @@
 <context>
     <name>OnlineMessages</name>
     <message>
-        <location filename="../qml/Dialogs/OnlineMessages.qml" line="129"/>
+        <location filename="../qml/Dialogs/OnlineMessages.qml" line="130"/>
         <source>Messages</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OnlineMessages.qml" line="182"/>
+        <location filename="../qml/Dialogs/OnlineMessages.qml" line="183"/>
         <source>No messages</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OnlineMessages.qml" line="438"/>
+        <location filename="../qml/Dialogs/OnlineMessages.qml" line="439"/>
         <source>Chat with ...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2047,32 +2042,27 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlworkoutinterface.cpp" line="341"/>
-        <source> - Workout </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../cxx/qmlworkoutinterface.cpp" line="509"/>
+        <location filename="../cxx/qmlworkoutinterface.cpp" line="502"/>
         <source>Workout: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlworkoutinterface.cpp" line="536"/>
+        <location filename="../cxx/qmlworkoutinterface.cpp" line="529"/>
         <source>Workout</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlworkoutinterface.cpp" line="679"/>
+        <location filename="../cxx/qmlworkoutinterface.cpp" line="672"/>
         <source>All exercises finished</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlworkoutinterface.cpp" line="679"/>
+        <location filename="../cxx/qmlworkoutinterface.cpp" line="672"/>
         <source>Workout not yet finished</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlworkoutinterface.cpp" line="681"/>
+        <location filename="../cxx/qmlworkoutinterface.cpp" line="674"/>
         <source>You should press Finish to save your workout</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2281,27 +2271,32 @@
 <context>
     <name>TPFileOps</name>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="238"/>
+        <location filename="../cxx/tpfileops.cpp" line="239"/>
         <source>Could not save to: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="241"/>
+        <location filename="../cxx/tpfileops.cpp" line="242"/>
         <source>Operation canceled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="385"/>
+        <location filename="../cxx/tpfileops.cpp" line="409"/>
+        <source>New Exercises</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/tpfileops.cpp" line="469"/>
         <source>Remove file?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="388"/>
+        <location filename="../cxx/tpfileops.cpp" line="472"/>
         <source>Yes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="388"/>
+        <location filename="../cxx/tpfileops.cpp" line="472"/>
         <source>No</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2593,27 +2588,27 @@
 <context>
     <name>Tests</name>
     <message>
-        <location filename="../qml/Tests.qml" line="132"/>
+        <location filename="../qml/Tests.qml" line="133"/>
         <source>Send to client</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Tests.qml" line="133"/>
+        <location filename="../qml/Tests.qml" line="134"/>
         <source>Save as</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Tests.qml" line="134"/>
+        <location filename="../qml/Tests.qml" line="135"/>
         <source>Send to</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Tests.qml" line="135"/>
+        <location filename="../qml/Tests.qml" line="136"/>
         <source>Share</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Tests.qml" line="136"/>
+        <location filename="../qml/Tests.qml" line="137"/>
         <source>Exercises Planner</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3099,11 +3094,6 @@ Let&apos;s first setup the application by creating your profile.</source>
         <source>Search:</source>
         <translation type="unfinished"></translation>
     </message>
-    <message>
-        <location filename="../qml/Pages/WeatherPage.qml" line="228"/>
-        <source>Places</source>
-        <translation type="unfinished"></translation>
-    </message>
 </context>
 <context>
     <name>WorkoutOptionsDialog</name>
@@ -3235,98 +3225,93 @@ This action cannot be undone.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/WorkoutPage.qml" line="463"/>
+        <location filename="../qml/Pages/WorkoutPage.qml" line="444"/>
         <source>Add exercise</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/WorkoutPage.qml" line="536"/>
+        <location filename="../qml/Pages/WorkoutPage.qml" line="517"/>
         <source>Length of this training session</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/WorkoutPage.qml" line="562"/>
+        <location filename="../qml/Pages/WorkoutPage.qml" line="543"/>
         <source>Attention!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/WorkoutPage.qml" line="563"/>
+        <location filename="../qml/Pages/WorkoutPage.qml" line="544"/>
         <source> minutes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/WorkoutPage.qml" line="564"/>
+        <location filename="../qml/Pages/WorkoutPage.qml" line="545"/>
         <source> seconds</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/WorkoutPage.qml" line="564"/>
+        <location filename="../qml/Pages/WorkoutPage.qml" line="545"/>
         <source>&lt;/b&gt; until end of training session!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/WorkoutPage.qml" line="565"/>
+        <location filename="../qml/Pages/WorkoutPage.qml" line="546"/>
         <source>I&apos;m almost finished!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/WorkoutPage.qml" line="593"/>
+        <location filename="../qml/Pages/WorkoutPage.qml" line="577"/>
         <source>Import</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/WorkoutPage.qml" line="594"/>
-        <source>Export</source>
+        <location filename="../qml/Pages/WorkoutPage.qml" line="578"/>
+        <source>Save as</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/WorkoutPage.qml" line="595"/>
+        <location filename="../qml/Pages/WorkoutPage.qml" line="579"/>
+        <source>Send to</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/Pages/WorkoutPage.qml" line="580"/>
         <source>Share</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/WorkoutPage.qml" line="596"/>
+        <location filename="../qml/Pages/WorkoutPage.qml" line="581"/>
         <source>Use this workout exercises as the default exercises plan for the division </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/WorkoutPage.qml" line="597"/>
+        <location filename="../qml/Pages/WorkoutPage.qml" line="582"/>
         <source> of this mesocycle</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/WorkoutPage.qml" line="598"/>
-        <location filename="../qml/Pages/WorkoutPage.qml" line="617"/>
+        <location filename="../qml/Pages/WorkoutPage.qml" line="584"/>
+        <location filename="../qml/Pages/WorkoutPage.qml" line="594"/>
         <source>Edit workout</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/WorkoutPage.qml" line="599"/>
+        <location filename="../qml/Pages/WorkoutPage.qml" line="585"/>
         <source>Reset Workout</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/WorkoutPage.qml" line="617"/>
+        <location filename="../qml/Pages/WorkoutPage.qml" line="594"/>
         <source>Editing done</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/WorkoutPage.qml" line="645"/>
-        <source>Share workout?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../qml/Pages/WorkoutPage.qml" line="645"/>
-        <source>Export workout to file?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../qml/Pages/WorkoutPage.qml" line="673"/>
+        <location filename="../qml/Pages/WorkoutPage.qml" line="636"/>
         <source>Reset workout?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/WorkoutPage.qml" line="674"/>
+        <location filename="../qml/Pages/WorkoutPage.qml" line="637"/>
         <source>Exercises will not be afected</source>
         <translation type="unfinished"></translation>
     </message>

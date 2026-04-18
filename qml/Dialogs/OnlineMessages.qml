@@ -29,7 +29,8 @@ TPPopup {
 	readonly property int dlgMaxWidth: AppSettings.pageWidth * 0.8
 	readonly property int maxHeight: AppSettings.pageHeight * 0.5
 	readonly property size savedSize: AppSettings.getCustomValue("onlineMessagesDialogSize", Qt.size(mainIcon.width, mainIcon.height))
-	readonly property point savedPos: AppSettings.getCustomValue("onlineMessagesDialogPosition", Qt.point(AppSettings.pageWidth - 80, 180))
+	readonly property point savedPos: AppSettings.getCustomValue("onlineMessagesDialogPosition", Qt.point(AppSettings.pageWidth - 80,
+																													realPageY() + 180))
 
 	function showAbove(show: bool): void {
 		visible = show;

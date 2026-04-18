@@ -105,7 +105,6 @@ public:
 	Q_INVOKABLE void getExercisesFromSplitPlan();
 	Q_INVOKABLE void exportWorkoutToSplitPlan();
 	Q_INVOKABLE void resetWorkout();
-	Q_INVOKABLE void exportWorkout(const bool bShare);
 	Q_INVOKABLE void importWorkout(const QString &filename);
 	Q_INVOKABLE void prepareWorkOutTimer(const QString &strStartTime = QString{}, const QString &strEndTime = QString{});
 	Q_INVOKABLE void startWorkout();

@@ -207,16 +207,6 @@ TPPage {
 
 			onClicked: exercisesPage.chooseExercise();
 		} //btnChooseExercise
-
-		TPButton {
-			id: btnImExport
-			text: qsTr("In/Export")
-			visible: !exercisesPage.chooseButtonEnabled
-			width: toolbarExercises.buttonWidth
-			rounded: false
-
-			onClicked: exercisesPage.showImExMenu();
-		} // btnImExport
 	} // Row
 
 	function chooseExercise(): void {
@@ -224,61 +214,42 @@ TPPage {
 		ItemManager.AppPagesManager.prevPage();
 	}
 
-	Loader {
-		id: inExMenuLoader
-		asynchronous: true
-		active: false
+	FileOperations {
+		id: fileOps
+		fileType: AppUtils.FT_TP_EXERCISES
+	}
 
-		property TPFloatingMenuBar _menu_bar
-
-		sourceComponent: TPFloatingMenuBar {
-			parentPage: exercisesPage
-			entriesList: [
-				{ "label": qsTr("Import"), "image": "import.png", "id": 0, "visible": true },
-				{ "label": qsTr("Export"), "image": "save-day.png", "id": 1, "visible": !exercisesPage.chooseButtonEnabled },
-				{ "label": qsTr("Share"), "image": "export.png", "id": 2, "visible": !exercisesPage.chooseButtonEnabled && Qt.platform.os === "android"},
-			]
-
-			onMenuEntrySelected: (id) => {
-				switch (id) {
-				case 0: exercisesPage.exercisesManager.importExercises(); break;
-				case 1: exercisesPage.showExportDlg(false); break;
-				case 2: exercisesPage.showExportDlg(true); break;
-				}
+	TPPageMenu {
+		id: pageMenu
+		parentPage: exercisesPage
+		entriesList: [
+			{ "label": qsTr("Import"), "image": "download_", "btn_id": TPFileOps.OT_Custom_1, "enabled": enabledCondition(0) },
+			{ "label": qsTr("Save as"), "image": "download_", "btn_id": TPFileOps.OT_Download, "enabled": enabledCondition(1) },
+			{ "label": qsTr("Send to"), "image": "attach_", "btn_id": TPFileOps.OT_Forward, "enabled": enabledCondition(2) },
+			{ "label": qsTr("Share"), "image": "share_", "btn_id": TPFileOps.OT_Share, "enabled": enabledCondition(3) },
+		]
+		onMenuEntrySelected: (btn_id) => {
+			switch (btn_id) {
+			case TPFileOps.OT_Custom_1: exercisesPage.exercisesManager.importExercises(); break;
+			default: fileOps.doFileOperation(btn_id); break;
 			}
-
-			onClosed: inExMenuLoader.active = false;
-			Component.onCompleted: inExMenuLoader._menu_bar = this;
 		}
 
-		onLoaded: _menu_bar.showByWidget(btnImExport, Qt.AlignTop);
-	}
-	function showImExMenu(): void {
-		inExMenuLoader.active = true;
-	}
-
-	Loader {
-		id: exportDlgLoader
-		asynchronous: true
-		active: false
-
-		property bool share
-		property TPBalloonTip _export_dlg
-
-		sourceComponent: TPBalloonTip {
-			message: exportDlgLoader.share ? qsTr("Share custom exercises?") : qsTr("Export custom exercises to file?")
-			imageSource:  "export"
-			parentPage: exercisesPage
-			closeButtonVisible: true
-			onButton1Clicked: exercisesPage.exercisesManager.exportExercises(exportDlgLoader.share);
-			onClosed: exportDlgLoader.active = false;
-			Component.onCompleted: exportDlgLoader._export_dlg = this;
+		function enabledCondition(menu_entry: int): bool {
+			switch (menu_entry) {
+			case 0: return true;
+			case 1:
+			case 2: return !exercisesPage.chooseButtonEnabled;
+			case 3: return !exercisesPage.chooseButtonEnabled && Qt.platform.os === "android";
+			}
 		}
 
-		onLoaded: _export_dlg.showInWindow(-Qt.AlignCenter);
-	}
-	function showExportDlg(share: bool) : void {
-		exportDlgLoader.share = share;
-		exportDlgLoader.active = true;
+		Connections {
+			target: exercisesPage
+			function onChooseButtonEnabledChanged(): void {
+				for (let i = 1; i <= 3; ++i)
+					pageMenu.enableEntry(i, pageMenu.enabledCondition(i));
+			}
+		}
 	}
 } // Page

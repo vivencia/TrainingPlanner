@@ -371,6 +371,12 @@ void DBExercisesModel::setSplitLetter(const QChar &new_splitletter)
 	}
 }
 
+QString DBExercisesModel::suggestedName(const bool formatted_file) const
+{
+	return (formatted_file ? QString{m_mesoModel->name(m_mesoIdx) % tr(" - Workout ")} :
+								QString{QString::number(m_mesoIdx) % "_workout_"_L1}) % splitLetter() % TPUtils::TP_FILE_EXTENSION;
+}
+
 int DBExercisesModel::exportToFile(const QString &filename, QFile *out_file) const
 {
 	if (exerciseCount() == 0)

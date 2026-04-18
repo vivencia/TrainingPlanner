@@ -26,6 +26,7 @@ QML_VALUE_TYPE(FileOperations)
 Q_PROPERTY(TPUtils::FILE_TYPE fileType READ fileType WRITE setFileType NOTIFY fileTypeChanged FINAL)
 Q_PROPERTY(QString fileName READ fileName WRITE setFileName NOTIFY fileNameChanged FINAL)
 Q_PROPERTY(int mesoIdx READ mesoIdx WRITE setMesoIdx NOTIFY mesoIdxChanged FINAL)
+Q_PROPERTY(int workoutCalendarDay READ workoutCalendarDay WRITE setWorkoutCalendarDay NOTIFY workoutCalendarDayChanged FINAL)
 Q_PROPERTY(int tpFileSectionCount READ tpFileSectionCount NOTIFY tpFileSectionCountChanged FINAL)
 
 public:
@@ -39,6 +40,7 @@ public:
 		OT_Delete,
 		OT_Custom_1,
 		OT_Custom_2,
+		OT_Custom_X,
 		OT_TypeCount
 	};
 	Q_ENUM(OpType)
@@ -52,6 +54,8 @@ public:
 	void setFileName(const QString &filename);
 	inline int mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const int meso_idx) { m_mesoIdx = meso_idx; emit mesoIdxChanged(); }
+	inline int workoutCalendarDay() const { return m_workoutCalendarDay; }
+	inline void setWorkoutCalendarDay(const int workout_id) { m_workoutCalendarDay = workout_id; emit workoutCalendarDayChanged(); }
 	inline int tpFileSectionCount() const { return m_tpfileSections; }
 
 	Q_INVOKABLE void setEnabled(TPFileOps::OpType type, const bool enabled, const bool call_update = true);
@@ -59,7 +63,7 @@ public:
 	Q_INVOKABLE void doFileOperation(const int op);
 	Q_INVOKABLE void saveFileAs();
 	Q_INVOKABLE void shareFile();
-	Q_INVOKABLE void sendFileTo(QString userid = QString{});
+	Q_INVOKABLE void sendFileTo(const QString &message, QString userid = QString{});
 	Q_INVOKABLE void openFile();
 	Q_INVOKABLE inline QString tpFileSectionTitle(const int section) { return m_tpFileInfo.value(section).first; }
 	Q_INVOKABLE inline QString tpFileSection(const int section) { return m_tpFileInfo.value(section).second; }
@@ -78,9 +82,11 @@ signals:
 	void multimediaKeyReleased(const int key);
 	void fileRemovalRequested();
 	void mesoIdxChanged();
+	void workoutCalendarDayChanged();
 	void tpFileSectionCountChanged();
 	void setCursorPorsition(const int cursor_pos);
 	void insertString(const QString &ch, const int pos);
+	void _internalSignal(const int requestid, const int return_code);
 
 protected:
 	void mousePressEvent(QMouseEvent *event) override;
@@ -108,11 +114,12 @@ private:
 	QString m_filename;
 	QList<std::pair<QString,QString>> m_tpFileInfo;
 	bool m_fullscreen{false};
-	int m_mesoIdx{-1}, m_cursorPostion{-1};
+	int m_mesoIdx{-1}, m_workoutCalendarDay{-1}, m_cursorPostion{-1};
 	uint  m_tpfileSections{0};
 	QTextDocument *m_textDocument{nullptr};
 
 	void _doFileOperation(const OpType type);
+	int generateFileFromType(const OpType type);
 	void doFullScreen();
 	void removeFile(const bool bypass_confirmation = false);
 	void createControls();

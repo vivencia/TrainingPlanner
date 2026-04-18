@@ -255,7 +255,7 @@ void TPSettings::setColorScheme(const uint new_value, const bool bFromQml)
 		break;
 	default:
 		m_defaultValues[FONT_COLOR_INDEX] = std::move("#ffffff"_L1);
-		m_defaultValues[DISABLED_FONT_COLOR_INDEX] = std::move("#dcdcdc"_L1);
+		m_defaultValues[DISABLED_FONT_COLOR_INDEX] = std::move("#b4b4b4"_L1);
 	}
 
 	if (bFromQml) {

@@ -1,11 +1,13 @@
 #include "tpfileops.h"
 #include "dbexerciseslistmodel.h"
+#include "dbexercisesmodel.h"
 #include "dbmesocyclesmodel.h"
 #include "dbusermodel.h"
 #include "pageslistmodel.h"
 #include "qmlitemmanager.h"
 #include "tpimage.h"
 #include "tpsettings.h"
+#include "online_services/tpmessagesmanager.h"
 
 #ifdef Q_OS_ANDROID
 #include "osinterface.h"
@@ -139,7 +141,7 @@ void TPFileOps::doFileOperation(const int op)
 void TPFileOps::saveFileAs()
 {
 	connect(appMainWindow(), SIGNAL(saveFileChosen(QString)), this, SLOT(exportSlot(QString)), Qt::SingleShotConnection);
-	QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, appUtils()->getFileName(m_filename)));
+	QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, appUtils()->getFileName(fileName())));
 }
 
 void TPFileOps::shareFile()
@@ -151,12 +153,11 @@ void TPFileOps::shareFile()
 #endif
 }
 
-void TPFileOps::sendFileTo(QString userid)
+void TPFileOps::sendFileTo(const QString &message, QString userid)
 {
-	//TODO use TPMessagesManager
 	if (userid.isEmpty())
 		QMetaObject::invokeMethod(appMainWindow(), "getUsersList", Q_RETURN_ARG(QString, userid));
-	appUserModel()->sendFileToUser(userid, m_filename);
+	appMessagesManager()->sendFileTo(userid, fileName(), message);
 }
 
 void TPFileOps::openFile()
@@ -334,34 +335,116 @@ bool TPFileOps::eventFilter(QObject *obj, QEvent *event)
 void TPFileOps::_doFileOperation(const OpType type)
 {
 	if (fileType() != TPUtils::FT_UNKNOWN && !QFile::exists(fileName())) {
-		const bool formatted{type == OT_Download || type == OT_Share || type == OT_Forward};
-		switch (fileType()) {
-		case TPUtils::FT_TP_PROGRAM:
-			m_filename = !formatted ? appUserModel()->actualMesoModel()->mesoFileName(m_mesoIdx) :
-					appSettings()->currentUserDir() % appUserModel()->actualMesoModel()->name(m_mesoIdx) % TPUtils::TP_FILE_EXTENSION;
-			emit fileNameChanged();
-			if (!QFile::exists(fileName())) {
-				if (!formatted)
-					appUserModel()->actualMesoModel()->exportToFile(m_mesoIdx, fileName());
-				else
-					appUserModel()->actualMesoModel()->exportToFormattedFile(m_mesoIdx, fileName());
-			}
-			break;
+		auto displayError = [this] (const int return_code) -> void {
+			appItemManager()->displayMessageOnAppWindow(return_code);
+#ifndef QT_NO_DEBUG
+			qDebug() << "Failed to generate file " << fileName() << " from file type " << fileType();
+#endif
+		};
+
+		const auto ret{generateFileFromType(type)};
+		switch (ret) {
+		case TP_RET_CODE_EXPORT_OK: break;
+		case TP_RET_CODE_DEFERRED_ACTION:
+		{
+			std::shared_ptr<QMetaObject::Connection>conn{std::make_shared<QMetaObject::Connection>()};
+			*conn = connect(this, &TPFileOps::_internalSignal, this, [this,type,ret,conn,displayError] (const int requestid, const int return_code) {
+				if (requestid == ret) {
+					disconnect(*conn);
+					if (return_code == TP_RET_CODE_EXPORT_OK) {
+						//file will not be generated this time, but everything else that this method does must still be carried out
+						generateFileFromType(type);
+						_doFileOperation(type);
+					}
+					else
+						displayError(return_code);
+				}
+			});
+			return;
+		}
 		default:
-			qDebug() << "ERROR!!! File type set as " << fileType() <<
-														" but neither filename as given, nor a method provided to create the file";
+			displayError(ret);
 			return;
 		}
 	}
+
 	switch (type) {
-	case OT_FullScreen:			doFullScreen();	break;
-	case OT_Download:			saveFileAs();	break;
-	case OT_Share:				shareFile();	break;
-	case OT_Forward:			sendFileTo();	break;
-	case OT_ViewExternally:		openFile();		break;
-	case OT_Delete:				removeFile();	break;
+	case OT_FullScreen:			doFullScreen();											break;
+	case OT_Download:			saveFileAs();											break;
+	case OT_Share:				shareFile();											break;
+	case OT_Forward:			sendFileTo(appUtils()->getFileName(fileName(), true));	break;
+	case OT_ViewExternally:		openFile();												break;
+	case OT_Delete:				removeFile();											break;
 	default:					Q_UNREACHABLE();
 	}
+}
+
+int TPFileOps::generateFileFromType(const OpType type)
+{
+	int ret{TP_RET_CODE_EXPORT_FAILED};
+	const bool formatted{type == OT_Download || type == OT_Share || type == OT_Forward};
+	switch (fileType()) {
+	case TPUtils::FT_TP_PROGRAM:
+		m_filename = std::move(appUserModel()->actualMesoModel()->suggestedName(m_mesoIdx, formatted));
+		if (!QFile::exists(fileName())) {
+			ret = deferredActionId();
+			auto conn{std::make_shared<QMetaObject::Connection>()};
+			*conn = connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::mesoExported, this, [this,ret,conn]
+															(const uint meso_idx, const QString& filename, const int return_code) {
+				if (meso_idx == m_mesoIdx) {
+					disconnect(*conn);
+					emit _internalSignal(ret, return_code);
+				}
+			});
+			if (!formatted)
+				appUserModel()->actualMesoModel()->exportToFile(m_mesoIdx, fileName());
+			else
+				appUserModel()->actualMesoModel()->exportToFormattedFile(m_mesoIdx, fileName());
+		}
+		else
+			ret = TP_RET_CODE_EXPORT_OK;
+		break;
+	case TPUtils::FT_TP_EXERCISES:
+		m_filename = std::move(appExercisesList()->suggestedName(formatted));
+		if (!QFile::exists(fileName())) {
+			if (!formatted)
+				ret = appExercisesList()->exportToFile(fileName());
+			else
+				ret = appExercisesList()->exportToFormattedFile(fileName());
+		}
+		else
+			ret = TP_RET_CODE_EXPORT_OK;
+		break;
+	case TPUtils::FT_TP_WORKOUT_A:
+	case TPUtils::FT_TP_WORKOUT_B:
+	case TPUtils::FT_TP_WORKOUT_C:
+	case TPUtils::FT_TP_WORKOUT_D:
+	case TPUtils::FT_TP_WORKOUT_E:
+	case TPUtils::FT_TP_WORKOUT_F:
+		{
+			DBExercisesModel *model{appUserModel()->actualMesoModel()->workoutForDay(m_mesoIdx, m_workoutCalendarDay)};
+			if (model) {
+				m_filename = std::move(model->suggestedName(formatted));
+				if (!QFile::exists(fileName())) {
+					if (!formatted)
+						ret = model->exportToFile(fileName());
+					else
+						ret = model->exportToFormattedFile(fileName());
+				}
+				else
+					ret = TP_RET_CODE_EXPORT_OK;
+			}
+		}
+		break;
+	default:
+		qDebug() << "ERROR!!! File type set as " << fileType() << " but neither filename as given, nor a method provided to create the file";
+	}
+	if (ret == TP_RET_CODE_EXPORT_OK) {
+		if (formatted)
+			m_filetype |= TPUtils::FT_TP_FORMATTED;
+		emit fileNameChanged();
+	}
+	return ret;
 }
 
 void TPFileOps::doFullScreen()

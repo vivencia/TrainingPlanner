@@ -258,7 +258,7 @@ TPPage {
 								Component.onCompleted: timeInLoader._time_picker = this;
 							}
 
-							onLoaded: _time_picker.show1(-1);
+							onLoaded: _time_picker.showInWindow(-Qt.AlignCenter);
 						}
 					}
 
@@ -441,25 +441,6 @@ TPPage {
 		} //workoutLengthRow
 
 		TPButton {
-			id: btnOptions
-			imageSource: "menu.png"
-			rounded: false
-			backgroundColor: AppSettings.paneBackgroundColor
-			width: height * 0.6
-			height: dayInfoToolBar.buttonHeight
-			Layout.alignment: Qt.AlignRight
-
-			anchors {
-				left: parent.left
-				leftMargin: 5
-				bottom: parent.bottom
-				bottomMargin: 5
-			}
-
-			onClicked: workoutPage.showWorkoutOptionsMenu();
-		}
-
-		TPButton {
 			text: qsTr("Add exercise")
 			imageSource: "exercises-add.png"
 			multiline: true
@@ -539,7 +520,7 @@ TPPage {
 			Component.onCompleted: sessionLengthLoader._timer_dlg = this;
 		}
 
-		onLoaded: _timer_dlg.show1(-1);
+		onLoaded: _timer_dlg.showInWindow(-Qt.AlignCenter);
 	}
 
 	property TimerDialog dlgSessionLength: null
@@ -580,86 +561,68 @@ TPPage {
 		timeWarningDialogLoader.active = true;
 	}
 
-	Loader {
-		id: workoutOptionsLoader
-		asynchronous: true
-		active: false
+	FileOperations {
+		id: fileOps
+		fileType: {
+			return AppUtils.FT_TP_WORKOUT_A + (workoutPage.workoutModel.splitLetter - 'A');
+		}
+		mesoIdx: workoutPage.workoutModel.mesoIdx;
+		workoutCalendarDay: workoutPage.workoutModel.calendarDay
+	}
 
-		property TPFloatingMenuBar _menu_bar
+	TPPageMenu {
+		id: pageMenu
+		parentPage: workoutPage
+		entriesList: [
+			{ "label": qsTr("Import"), "image": "download_", "btn_id": TPFileOps.OT_Custom_1, "enabled": enabledCondition(0) },
+			{ "label": qsTr("Save as"), "image": "download_", "btn_id": TPFileOps.OT_Download, "enabled": enabledCondition(1) },
+			{ "label": qsTr("Send to"), "image": "attach_", "btn_id": TPFileOps.OT_Forward, "enabled": enabledCondition(2) },
+			{ "label": qsTr("Share"), "image": "share_", "btn_id": TPFileOps.OT_Share, "enabled": enabledCondition(3) },
+			{ "label": qsTr("Use this workout exercises as the default exercises plan for the division ") +
+				workoutPage.workoutModel.splitLetter + qsTr( " of this mesocycle"), "btn_id": TPFileOps.OT_Custom_X+0,
+																								"enabled": enabledCondition(4) },
+			{ "label": qsTr("Edit workout"), "image": "edit.png", "btn_id": TPFileOps.OT_Custom_X+1, "enabled": enabledCondition(5) },
+			{ "label": qsTr("Reset Workout"), "image": "reset.png", "btn_id": TPFileOps.OT_Custom_X+2, "enabled": enabledCondition(6) },
+		]
 
-		sourceComponent: TPFloatingMenuBar {
-			parentPage: workoutPage
-			entriesList: [
-				{ "label": qsTr("Import"), "image": "import.png", "id": 0, "visible": true },
-				{ "label": qsTr("Export"), "image": "save-day.png", "id": 1, "visible": workoutPage._can_export },
-				{ "label": qsTr("Share"), "image": "export.png", "id": 2, "visible": workoutPage._can_export && Qt.platform.os === "android"},
-				{ "label": qsTr("Use this workout exercises as the default exercises plan for the division ") +
-					workoutPage.workoutModel.splitLetter + qsTr( " of this mesocycle"), "id": 3, "visible": workoutPage._can_export },
-				{ "label": qsTr("Edit workout"), "image": "edit.png", "id": 4, "visible": workoutPage.workoutManager.workoutFinished && workoutPage.workoutManager.todaysWorkout },
-				{ "label": qsTr("Reset Workout"), "image": "reset.png", "id": 5, "visible": workoutPage.workoutManager.todaysWorkout },
-			]
-
-			onMenuEntrySelected: (id) => {
-				switch (id) {
-				case 0:
-					workoutPage.workoutManager.importWorkout();
-					break;
-				case 1:
-					workoutPage.showExportDlg(false);
-					break;
-				case 2:
-					workoutPage.showExportDlg(true);
-					break;
-				case 3: workoutPage.workoutManager.exportWorkoutToSplitPlan(); break;
-				case 4:
-					workoutPage.workoutManager.editMode = !workoutPage.workoutManager.editMode;
-					workoutOptionsLoader._menu_bar.entriesList.set(4).label = workoutPage.workoutManager.editMode ?
-																								qsTr("Editing done") : qsTr("Edit workout");
-					break;
-				case 5:
-					workoutPage.showResetWorkoutDialog();
-					break;
-				}
+		onMenuEntrySelected: (btn_id) => {
+			switch (btn_id) {
+			case TPFileOps.OT_Custom_1: workoutPage.workoutManager.importWorkout(); break;
+			case TPFileOps.OT_Custom_X+0: workoutPage.workoutManager.exportWorkoutToSplitPlan(); break;
+			case TPFileOps.OT_Custom_X+1:
+				workoutPage.workoutManager.editMode = !workoutPage.workoutManager.editMode;
+				changeEntryLabel(5, workoutPage.workoutManager.editMode ? qsTr("Editing done") : qsTr("Edit workout"));
+				break;
+			case TPFileOps.OT_Custom_X+2: workoutPage.showResetWorkoutDialog(); break;
+			default: fileOps.doFileOperation(btn_id); break;
 			}
-
-			onClosed: workoutOptionsLoader.active = false;
-			Component.onCompleted: workoutOptionsLoader._menu_bar = this;
 		}
 
-		onLoaded: _menu_bar.showByWidget(btnOptions, Qt.AlignTop);
-	}
-	function showWorkoutOptionsMenu(): void {
-		workoutOptionsLoader.active = true;
-	}
-
-	Loader {
-		id: exportDlgLoader
-		active: false
-		asynchronous: true
-
-		property bool share
-		property TPBalloonTip _export_dlg
-
-		sourceComponent: TPBalloonTip {
-			id: exportTypeTip
-			title: exportDlgLoader.share ? qsTr("Share workout?") : qsTr("Export workout to file?")
-			imageSource: "export.png"
-			parentPage: workoutPage
-			closeButtonVisible: true
-
-			onButton1Clicked: workoutPage.workoutManager.exportWorkout(exportDlgLoader.share);
-			onClosed: exportDlgLoader.active = false;
-			Component.onCompleted: exportDlgLoader._export_dlg = this;
+		function enabledCondition(menu_entry: int): bool {
+			switch (menu_entry) {
+			case 0: return true;
+			case 1:
+			case 2:
+			case 3:
+			case 4: return workoutPage._can_export;
+			case 5: return workoutPage.workoutManager.workoutFinished;
+			case 6: workoutPage.workoutManager.todaysWorkout;
+			}
 		}
 
-		onLoaded: {
-			if (status === Loader.Ready)
-				_export_dlg.showInWindow(-Qt.AlignCenter);
+		Connections {
+			target: workoutPage
+			function on_Can_exportChanged(): void {
+				for (let i = 1; i <= 4; ++i)
+					pageMenu.enableEntry(i, pageMenu.enabledCondition(i));
+			}
 		}
-	}
-	function showExportDlg(share: bool): void {
-		exportDlgLoader.share = share;
-		exportDlgLoader.active = true;
+		Connections {
+			target: workoutPage.workoutManager
+			function onWorkoutFinished(): void {
+				pageMenu.enableEntry(5, pageMenu.enabledCondition(5));
+			}
+		}
 	}
 
 	Loader {
@@ -678,7 +641,7 @@ TPPage {
 			Component.onCompleted: resetWorkoutDlgLoader._reset_dlg = this;
 		}
 
-		onLoaded: _reset_dlg.show(-1);
+		onLoaded: _reset_dlg.showInWindow(-Qt.AlignCenter);
 	}
 	function showResetWorkoutDialog(): void {
 		resetWorkoutDlgLoader.active = true;

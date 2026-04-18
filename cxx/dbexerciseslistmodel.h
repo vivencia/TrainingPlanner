@@ -44,6 +44,7 @@ public:
 	inline QString exerciseSpecificsLabel() const { return tr("Specifics: "); }
 	inline QString muscularGroupsLabel() const { return tr("Muscular Groups: "); }
 	inline QString mediaLabel() const { return tr("Descriptive media: "); }
+	QString suggestedName(const bool formatted_file) const;
 
 	inline const int _id(const uint index) const { return id(index).toUInt(); }
 	Q_INVOKABLE QString id(const uint index) const;

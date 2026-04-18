@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Effects
@@ -25,6 +27,7 @@ Popup {
 	property alias titleBar: titlebar
 	property TPBackRec backgroundRec: _backRec
 	property string backGroundImage
+	property string defaultBackgroundColor: AppSettings.paneBackgroundColor
 
 	signal keyboardNumberPressed(int key1, int key2);
 	signal keyboardEnterPressed();
@@ -38,8 +41,14 @@ Popup {
 
 	onOpened: if (ItemManager.AppPagesManager) ItemManager.AppPagesManager.popupOpened(this);
 	onClosed: if (ItemManager.AppPagesManager) ItemManager.AppPagesManager.popupClosed(this);
+	onBackgroundRecChanged: { //must have a background
+		if (!backgroundRec)
+			backgroundRec = _backRec;
+	}
 
-	Component.onCompleted: {
+	Component.onCompleted: makeConnections();
+
+	function makeConnections(): void {
 		if (!modal && keepAbove) {
 			_control.parentPage.pageDeActivated.connect(function() { _control._visible = _control.visible; _control.visible = false; });
 			_control.parentPage.pageActivated.connect(function() { if (_control._visible) _control.visible = true; });
@@ -51,8 +60,7 @@ Popup {
 			parentPage.pageDeActivated.disconnect();
 			parentPage.pageActivated.disconnect();
 			parentPage = parent_page;
-			parentPage.pageDeActivated.connect(function() { _visible = _control.visible; _control.visible = false; });
-			parentPage.pageActivated.connect(function() { if (_visible) _control.visible = true; });
+			makeConnections();
 		}
 	}
 
@@ -61,6 +69,7 @@ Popup {
 		useGradient: _control.backGroundImage.length === 0
 		useImage: _control.backGroundImage.length > 0
 		sourceImage: _control.backGroundImage
+		backColor: _control.defaultBackgroundColor
 		showBorder: true
 		implicitHeight: height
 		implicitWidth: width
@@ -73,7 +82,7 @@ Popup {
 		asynchronous: true
 		active: _control.enableEffects
 
-		RectangularShadow {
+		sourceComponent: RectangularShadow {
 			x: _control.backgroundRec.x
 			y: _control.backgroundRec.y
 			width: _control.backgroundRec.width
@@ -192,6 +201,10 @@ Popup {
 		}
 	}
 
+	function realPageY(): int {
+		return parentPage.mapToGlobal(Qt.point(parentPage.y, 0)).y;
+	}
+
 	function closePopup(): void {
 		_visible = false;
 		closeActionExeced();
@@ -207,7 +220,7 @@ Popup {
 		if (pos < 0) {
 			pos *= -1;
 			if (pos & Qt.AlignTop)
-				ypos = 0;
+				ypos = realPageY();
 			else if (pos & Qt.AlignVCenter)
 				ypos = (AppSettings.windowHeight - height) / 2;
 			else if (pos & Qt.AlignBottom)
