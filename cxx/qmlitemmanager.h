@@ -18,7 +18,7 @@ QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(QmlExercisesDatabaseInterface)
 QT_FORWARD_DECLARE_CLASS(QmlWorkoutInterface)
 QT_FORWARD_DECLARE_CLASS(QmlUserInterface)
-
+QT_FORWARD_DECLARE_STRUCT(st_generalMessage)
 QT_FORWARD_DECLARE_CLASS(QQmlApplicationEngine)
 QT_FORWARD_DECLARE_CLASS(QQmlComponent)
 QT_FORWARD_DECLARE_CLASS(QQuickItem)
@@ -32,9 +32,10 @@ Q_PROPERTY(QQuickWindow* AppMainWindow READ AppMainWindow CONSTANT FINAL)
 Q_PROPERTY(PagesListModel* AppPagesManager READ AppPagesManager CONSTANT FINAL)
 
 public:
-	explicit QmlItemManager(QQmlApplicationEngine *qml_engine);
+	explicit QmlItemManager();
+	void startQmlEngine(QQmlApplicationEngine *qml_engine);
 
-	inline QQuickItem *AppHomePage() const { return m_homePage; }
+	Q_INVOKABLE inline QQuickItem *AppHomePage() const { return m_homePage; }
 	inline QQuickItem *AppPagesVisualParent() const { return m_appPagesVisualParent; }
 	inline QQuickWindow *AppMainWindow() const { return _appMainWindow; }
 	inline PagesListModel *AppPagesManager() const { return appPagesListModel(); }
@@ -52,7 +53,7 @@ public:
 	Q_INVOKABLE void getWeatherPage();
 	Q_INVOKABLE void getStatisticsPage();
 	Q_INVOKABLE void displayMessageOnAppWindow(const int message_id, const QString &filename_or_message = QString{},
-					QFlags<Qt::AlignmentFlag> postion = Qt::AlignTop|Qt::AlignHCenter, const QString &image_source = QString{},
+					QFlags<Qt::AlignmentFlag> position = Qt::AlignTop|Qt::AlignHCenter, const QString &image_source = QString{},
 						const int msecs = 4000, const QString& button1text = QString{}, const QString &button2text = QString{}) const;
 	Q_INVOKABLE void showOnlineMessagesManagerDialog(const bool show);
 	Q_INVOKABLE inline void showTextCopiedMessage(const QString &message = QString{})
@@ -72,7 +73,7 @@ signals:
 	 * @brief generalMessagesPopupClicked
 	 * @param button_idx: 0 (dialog was closed via close button or back_key() or something else; 1: button1; 2: button2
 	 */
-	void generalMessagesPopupClicked(const uint8_t button_idx = 0);
+	void generalMessagesPopupClicked(const uint8_t button_idx);
 
 #ifndef QT_NO_DEBUG
 	void cppDataForQMLReady();
@@ -83,14 +84,20 @@ public slots:
 	void openTPFile(uint32_t tp_filetype, const QString &filename, const bool formatted, const QVariant &extra_info);
 	void homePageViewChanged(const bool own_mesos_view);
 	inline void qmlPasswordDialogClosed_slot(int resultCode, const QString &password) { emit qmlPasswordDialogClosed(resultCode, password); }
+	inline void generalMessagesNoButtonClicked() { emit generalMessagesPopupClicked(0); }
+	inline void generalMessagesButton1Clicked() { emit generalMessagesPopupClicked(1); }
+	inline void generalMessagesButton2Clicked() { emit generalMessagesPopupClicked(2); }
+	void generalMessagesPopupClosed(QObject * = nullptr);
 
 private:
 	QmlExercisesDatabaseInterface *m_exercisesListManager{nullptr};
 	QQmlComponent *m_simpleExercisesListComponent{nullptr}, *m_weatherComponent{nullptr}, *m_statisticsComponent{nullptr},
-																									*m_firstTimeDlgComponent{nullptr};
+														*m_firstTimeDlgComponent{nullptr}, *m_generalMessagesPopupComponent{nullptr};
 	QQuickItem *m_homePage{nullptr}, *m_appPagesVisualParent{nullptr}, *m_weatherPage{nullptr}, *m_statisticsPage{nullptr};
-	QObject *m_simpleExercisesList{nullptr}, *m_firstTimeDlg{nullptr};
-	QVariantMap m_simpleExercisesListProperties;
+	QObject *m_simpleExercisesList{nullptr}, *m_firstTimeDlg{nullptr}, *m_generalMessagesPopup{nullptr};
+	QVariantMap m_simpleExercisesListProperties, m_generalMessagesPopupProperties;
+	QList<st_generalMessage*> m_messagesQueue;
+	bool m_canDisplayMessage{false};
 
 #ifndef QT_NO_DEBUG
 	bool m_qml_testing{false};
@@ -105,7 +112,7 @@ private:
 	static QQuickWindow *_appMainWindow;
 	friend QQuickWindow *appMainWindow();
 
-	void showSimpleExercisesList();
+	void createGeneralMessagesPopup();
 	void createSimpleExercisesList(QQuickItem *parentPage);
 	void createStatisticsPage_part2();
 	QmlUserInterface *usersManager();

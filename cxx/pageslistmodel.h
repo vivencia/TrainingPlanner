@@ -44,8 +44,8 @@ public:
 	Q_INVOKABLE inline void goHome() { openMainMenuShortCut(0); }
 	Q_INVOKABLE inline void prevPage() { if (m_pagesIndex > 0) openMainMenuShortCut(m_pagesIndex - 1, false); }
 	Q_INVOKABLE inline void nextPage() { if (m_pagesIndex < m_pagesData.count() - 1) openMainMenuShortCut(m_pagesIndex + 1, false); }
-	Q_INVOKABLE void popupOpened(QObject *popup);
-	Q_INVOKABLE void popupClosed(QObject *popup);
+
+	Q_INVOKABLE void openPopup(QObject *popup, QQuickItem *parentPage, const int position = Qt::AlignCenter, QQuickItem *widget = nullptr);
 	Q_INVOKABLE void raisePopup(QObject *popup);
 	Q_INVOKABLE bool isPopupAboveAllOthers(QObject *popup) const;
 
@@ -54,6 +54,9 @@ public:
 	inline bool setData(const QModelIndex&, const QVariant &, int) override final { return false; }
 	// return the roles mapping to be used by QML
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
+
+public slots:
+	void popupClosed(QObject *popup);
 
 signals:
 	void countChanged();
@@ -69,15 +72,17 @@ private:
 		QString displayText;
 		QQuickItem *page{nullptr};
 		std::function<void(void)> cleanUpFunc{nullptr};
+		QList<QObject*> tpPopups;
 	};
 
 	QList<pageInfo*> m_pagesData;
 	QList<uint> m_pagesMesoIdx;
-	QList<QObject*> m_popupsOpen;
 	QHash<int, QByteArray> m_roleNames;
 	uint m_pagesIndex{0};
 	int m_backKey;
 
+	pageInfo *getPageInfo(QQuickItem *qml_page) const;
+	pageInfo *getPageInfo(QObject *tp_popup) const;
 	void openQMLPage(const uint index);
 	void activateQmlPage(const uint index);
 	void deActivateQmlPage(const uint index);

@@ -271,7 +271,7 @@ TPPage {
 			Component.onCompleted: onlineCoachesDialogLoader._coaches_dialog = this;
 		}
 
-		onLoaded: _coaches_dialog.showInWindow(-Qt.AlignCenter);
+		onLoaded: _coaches_dialog.tpOpen();
 	}
 	function displayOnlineCoachesDialog(): void {
 		onlineCoachesDialogLoader.active = true;
@@ -302,7 +302,7 @@ TPPage {
 				_remove_dialog.title = qsTr("Remove ") + AppUserModel.userName(coachesPage.userRow) + "?";
 			else
 				_remove_dialog.title = qsTr("Decline ") + AppUserModel.userName(AppUserModel.pendingCoachesResponses.currentRow) + "?";
-			_remove_dialog.showInWindow(-Qt.AlignCenter);
+			_remove_dialog.tpOpen();
 		}
 	}
 	function showRemoveMessage(decline: bool): void {

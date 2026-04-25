@@ -8,15 +8,18 @@ import TpQml.Widgets
 TPPopup {
 	id: _passwdDlg
 	keepAbove: true
+	dim: true
 	width: AppSettings.pageWidth * 0.8
 	height: mainLayout.childrenRect.height * 1.1
+	enableEffects: false
+	open_in_window: true
 
 //public:
-	required property string title
-	required property string message
-	required property int id
+	property string title
+	property string message
+	property int request_id
 
-	signal passwordAcquired(bool proceed, int id, string passwd);
+	signal passwordAcquired(bool proceed, int request_id, string passwd);
 
 	onOpened: {
 		txtPassword.clear();
@@ -41,7 +44,7 @@ TPPopup {
 			text: _passwdDlg.title
 			horizontalAlignment: Text.AlignHCenter
 			visible: _passwdDlg.title.length > 0
-			Layout.preferredWidth: parent.width - 20
+			Layout.preferredWidth: parent.width - _passwdDlg.btnClose.width - 5
 		}
 
 		RowLayout {
@@ -100,7 +103,7 @@ TPPopup {
 	}
 
 	function acceptInput(proceed: bool): void {
-		passwordAcquired(proceed, _passwdDlg.id, txtPassword.text);
+		passwordAcquired(proceed, _passwdDlg.request_id, txtPassword.text);
 		_passwdDlg.closePopup();
 	}
 }

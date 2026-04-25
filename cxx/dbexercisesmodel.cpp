@@ -283,7 +283,7 @@ QString DBExercisesModel::setTypeOperation(const uint settype, const bool increa
 		str_value = std::move(QString::number(result, 'f', 2));
 		if (str_value.last(2) != "50"_L1)
 			str_value.chop(3);
-		return str_value; // 0: SetInputField.Type.WeightType
+		return str_value; //WeightType
 
 	case RepType:
 		if (str_value.contains('.') || str_value.contains(','))
@@ -295,7 +295,7 @@ QString DBExercisesModel::setTypeOperation(const uint settype, const bool increa
 			result = 100;
 		else if (result < 0)
 			result = 0;
-		return QString::number(static_cast<uint>(result)); //1: SetInputField.Type.RepType
+		return QString::number(static_cast<uint>(result)); //RepType
 
 	case TimeType:
 	{
@@ -333,7 +333,7 @@ QString DBExercisesModel::setTypeOperation(const uint settype, const bool increa
 		}
 		const QString &str_result{(result < 10 ? "0"_L1 : ""_L1) + QString::number(result)};
 		str_value = std::move(seconds ? str_value.replace(3, 2, str_result) : str_value.replace(0, 2, str_result));
-		return str_value; //2: SetInputField.Type.TimeType
+		return str_value; //2TimeType
 	}
 	case SetType:
 		if (increase) {
@@ -346,7 +346,7 @@ QString DBExercisesModel::setTypeOperation(const uint settype, const bool increa
 			if (result < 0)
 				result = 0;
 		}
-		return QString::number(static_cast<uint>(result)); //3: SetInputField.Type.SetType
+		return QString::number(static_cast<uint>(result)); //SetType
 	default:
 		Q_UNREACHABLE();
 	}

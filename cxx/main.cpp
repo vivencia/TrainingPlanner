@@ -50,11 +50,12 @@ int main(int argc, char *argv[])
 	TPSettings tpSettings{};
 	TPKeyChain tpKeyChain{};
 	TranslationClass appTranslations{};
+	QmlItemManager rootQmlManager{};
 	TPOnlineServices appTOS{};
 	OSInterface osInterface{};
 	DBUserModel userModel{};
 	DBExercisesListModel exercisesModel{};
 	QQmlApplicationEngine qmlEngine;
-	QmlItemManager rootQmlManager{&qmlEngine};
+	rootQmlManager.startQmlEngine(&qmlEngine);
 	return app.exec();
 }

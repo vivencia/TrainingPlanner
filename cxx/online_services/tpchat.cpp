@@ -107,7 +107,7 @@ TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QO
 		if (user_idx == m_userIdx) {
 			switch (field) {
 			case DBUserModel::USER_FIELD_NAME: emit interlocutorNameChanged(); break;
-			case USER_FIELD_AVATAR: emit avatarIconChanged(); break;
+			case DBUserModel::USER_FIELD_AVATAR: emit avatarIconChanged(); break;
 			}
 		}
 		else if (user_idx == 0 && field == USER_MODIFIED_REMOVED)

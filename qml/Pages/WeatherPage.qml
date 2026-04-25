@@ -226,6 +226,9 @@ TPPage {
 		entriesList: weatherInfo.locationList
 		showIndicator: false
 		width: weatherPage.width * 0.9
+		reference_widget: txtCities
+		show_position: Qt.AlignBottom
+
 		onMenuEntrySelected: (id) => {
 			weatherInfo.locationSelected(id);
 			txtCities.clear();
@@ -240,7 +243,7 @@ TPPage {
 					locationsMenu.close();
 				else {
 					locationsMenu.createEntries(weatherInfo.locationList, [], [], []);
-					locationsMenu.open();
+					locationsMenu.tpOpen();
 				}
 			}
 		}

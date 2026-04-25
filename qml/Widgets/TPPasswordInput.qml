@@ -11,9 +11,6 @@ TPTextInput {
 	rightPadding: defaultPadding + btnShowHidePassword.width + 5
 	focus: true
 
-	property bool inputOK: false
-	property bool matchOK: true
-
 	TPButton {
 		id: btnShowHidePassword
 		imageSource: show ? "hide-password.png" : "show-password.png"

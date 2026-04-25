@@ -7,6 +7,7 @@ import TpQml
 import TpQml.Pages
 import TpQml.Widgets
 import TpQml.Exercises
+import TpQml.Dialogs
 
 ApplicationWindow {
 	id: mainwindow
@@ -18,7 +19,6 @@ ApplicationWindow {
 	flags: Qt.platform.os === "android" ? Qt.Window | Qt.FramelessWindowHint : Qt.Window | Qt.CustomizeWindowHint & ~Qt.WindowMaximizeButtonHint
 
 	signal saveFileChosen(filepath: string);
-	signal generalMessagesPopupClicked(button: int);
 	signal tpFileOpenInquiryResult(do_import: bool);
 
 	Connections {
@@ -32,6 +32,7 @@ ApplicationWindow {
 	TPPage {
 		id: homePage
 		objectName: "homePage"
+		imageSource: ":/images/backgrounds/backimage-home.jpg"
 		anchors.fill: parent
 		signal mesosViewChanged(bool own_mesos);
 
@@ -114,11 +115,67 @@ ApplicationWindow {
 			//mediaSource: "/home/guilhermef/Videos/Premiação - Dança Cigana Solo 2.mp4"
 			//mediaSource: "/home/guilhermef/Pictures/CNH Rozângela Barbosa Fortunato.png"
 			mediaSource: "/home/guilhermef/Documents/programa 2.txt"
-			width: 300
-			height: 300
+			width: 3000
+			height: 3000
 			x: 0
 			y: 0
 		}*/
+
+		PasswordDialog {
+			id: passwd
+			request_id: 40
+			title: "Root Password"
+			message: "Give me your root password"
+			parentPage: homePage
+		}
+
+		TPButton {
+			text: "Show menu"
+			autoSize: true
+			anchors.right: txtDummy.left
+			anchors.top: txtDummy.top
+			onClicked: {
+				//_control.showByWidget();
+				menu.reference_widget = txtDummy;
+				menu.showIndicator = false;
+				menu.tpOpen();
+				//balloon.show_position = Qt.AlignLeft
+				//balloon.tpOpen();
+			}
+		}
+		TPTextInput {
+			id: txtDummy
+			opacity: 1
+			width: 200
+			anchors.verticalCenter: parent.verticalCenter
+			anchors.horizontalCenter: parent.horizontalCenter
+		}
+		TPButton {
+			text: "Show page"
+			autoSize: true
+			anchors.left: txtDummy.right
+			anchors.top: txtDummy.top
+			onClicked: {
+				passwd.tpOpen();
+				//_control.showByWidget();
+				//menu.reference_widget = null;
+				//menu.showIndicator = true;
+				//menu.tpOpen();
+				//balloon.show_position = Qt.AlignLeft
+				//balloon.tpOpen();
+			}
+		}
+
+		TPBalloonTip {
+			id: balloon
+			parentPage: homePage
+			open_in_window: true
+			_use_burst_transition: false
+			message: "mgeprgpegpoeṕgégṕeǵ féwfpewkfṕew'fẃe,fẃe,f fed.fçdf,léw,f"
+			title: "feḱwéw,ld,çç"
+			button1Text: "fkweopfkpow"
+			button2Text: "nvcxpvci"
+		}
 
 		FileOperations {
 			id: fileOps
@@ -127,7 +184,10 @@ ApplicationWindow {
 		}
 
 		TPPageMenu {
+			id: menu
 			parentPage: homePage
+			showIndicator: true
+			_use_burst_transition: true
 
 			entriesList: [
 				{ "label": qsTr("Send to client"), "image": "download_", "btn_id": TPFileOps.OT_Custom_1, "enabled": true },
@@ -146,31 +206,6 @@ ApplicationWindow {
 			}
 		}
 	}
-
-	TPBalloonTip {
-		id: generalMessagesPopup
-		parentPage: homePage
-	}
-
-	function showAppMainMessageDialog(pos: int, title: string, message: string, img_src: string, msecs: int, button1Text: string,
-																											button2Text: string): void {
-		generalMessagesPopup.title = title;
-		generalMessagesPopup.message = message;
-		generalMessagesPopup.imageSource = img_src;
-		generalMessagesPopup.button1Text = button1Text;
-		generalMessagesPopup.button2Text = button2Text;
-		if (button1Text !== "") {
-			generalMessagesPopup.button1Clicked.connect(function() { generalMessagesPopupClicked(1); });
-			generalMessagesPopup.closeActionExeced.connect(function() { generalMessagesPopupClicked(0); });
-		}
-		if (button2Text !== "")
-			generalMessagesPopup.button2Clicked.connect(function() { generalMessagesPopupClicked(2); });
-		if (msecs > 0)
-			generalMessagesPopup.showTimed(msecs, pos);
-		else
-			generalMessagesPopup.showInWindow(pos);
-	}
-
 
 	function canChangeSetMode(exercise_number: int, exercise_idx: int, set_number: int) : bool {
 		return false;

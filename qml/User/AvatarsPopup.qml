@@ -10,10 +10,9 @@ TPPopup {
 	id: avatarsDlg
 	closeButtonVisible: false
 	showTitleBar: false
+	open_in_window: true
 	width: AppSettings.pageWidth
 	height: (repeater.bMale ? 2 * AppSettings.pageWidth / 5 : 3 * AppSettings.pageWidth/5) + 30
-	x: 0
-	finalYPos: (AppSettings.pageHeight-height) / 2;
 
 //public:
 	required property int userRow

@@ -14,16 +14,10 @@ TPPopup {
 	closeButtonVisible: false
 	width: AppSettings.pageWidth - 50
 	height: stackLayout.childrenRect.height
-	x: (AppSettings.pageWidth - width)/2 // horizontally centered
-	finalYPos: (AppSettings.pageHeight - height)/2 // vertically centered
 
 	readonly property int minimumHeight: AppSettings.windowHeight * 0.5
 	property bool nextStartsTheApp: false
-
-	onBackKeyPressed: {
-		if (stackLayout.currentIndex > 0)
-			stackLayout.currentIndex--;
-	}
+	property alias parentPage: _parent_page
 
 	StackLayout {
 		id: stackLayout
@@ -151,6 +145,11 @@ TPPopup {
 				}
 			}
 		}
+	}
+
+	function backKeyPressed(): void {
+		if (stackLayout.currentIndex > 0)
+			stackLayout.currentIndex--;
 	}
 
 	function finish(): void {

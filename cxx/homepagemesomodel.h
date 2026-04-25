@@ -2,6 +2,7 @@
 
 #include <QAbstractListModel>
 #include <QQmlEngine>
+#include <qquickitem.h>
 
 QT_FORWARD_DECLARE_CLASS(DBMesocyclesModel)
 
@@ -37,6 +38,7 @@ public:
 		return (m_curIndex >= 0 && m_curIndex < m_mesoModelRows.count()) ? m_mesoModelRows.at(m_curIndex) : -1;
 	}
 	Q_INVOKABLE inline DBMesocyclesModel *mesoModel() const { return m_mesoModel; }
+	Q_INVOKABLE void showOptionsMenu(QQuickItem* tpbutton, const int meso_idx);
 
 	void appendMesoIdx(const uint meso_idx);
 	void removeMesoIdx(const uint meso_idx);

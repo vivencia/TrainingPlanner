@@ -9,8 +9,6 @@ Page {
 	width: AppSettings.pageWidth
 	height: AppSettings.pageHeight
 
-	property color colorLight: AppSettings.primaryLightColor
-	property color colorDark: AppSettings.primaryDarkColor
 	property string imageSource
 	property double backgroundOpacity: 0
 	readonly property int headerHeight: 0.08 * height

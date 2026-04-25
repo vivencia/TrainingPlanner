@@ -377,6 +377,45 @@ void QMLMesoInterface::getMesocyclePage(const bool new_meso)
 	}
 }
 
+void QMLMesoInterface::showOptionsMenu(const bool show_indicator, QQuickItem *item)
+{
+	if (!m_optionsMenuComponent) {
+		m_optionsMenuProperties["parentPage"_L1] = std::move(QVariant::fromValue(m_mesoPage));
+		m_optionsMenuProperties["mesoManager"_L1] = std::move(QVariant::fromValue(this));
+		m_optionsMenuProperties["showIndicator"_L1] = std::move(QVariant{show_indicator});
+		if (item)
+			m_optionsMenuProperties["ownerItem"_L1] = std::move(QVariant::fromValue(item));
+		m_optionsMenuComponent = new QQmlComponent{appQmlEngine(), "TpQml.Pages", "MesoOptionsMenu", QQmlComponent::Asynchronous};
+		connect(m_optionsMenuComponent, &QQmlComponent::statusChanged, this, [this,show_indicator,item]
+														(QQmlComponent::Status status) { showOptionsMenu(show_indicator, item); });
+	}
+	else {
+		if (!m_optionsMenu) {
+			switch (m_optionsMenuComponent->status()) {
+			case QQmlComponent::Ready:
+				m_optionsMenuComponent->disconnect();
+				createOptionsMenu();
+				break;
+#ifndef QT_NO_DEBUG
+			case QQmlComponent::Loading:
+				break;
+			case QQmlComponent::Null:
+			case QQmlComponent::Error:
+				qDebug() << m_optionsMenuComponent->errorString();
+				break;
+#else
+			default: break;
+#endif
+			}
+		}
+		else {
+			if (m_optionsMenu->property("showIndicator").toBool() != show_indicator)
+				QMetaObject::invokeMethod(m_optionsMenu, "setVisible", Q_ARG(int, OPTION_EXERCISES_PLANNER), Q_ARG(bool, show_indicator));
+			appPagesListModel()->openPopup(m_optionsMenu, item ? appItemManager()->AppHomePage() : m_mesoPage, Qt::AlignBaseline, item);
+		}
+	}
+}
+
 void QMLMesoInterface::sendMesocycleFileToClient()
 {
 	m_mesoModel->sendMesoToUser(m_mesoIdx);
@@ -390,17 +429,17 @@ void QMLMesoInterface::incorporateMeso()
 void QMLMesoInterface::createMesocyclePage()
 {
 	m_mesoPage = static_cast<QQuickItem*>(m_mesoComponent->createWithInitialProperties(m_mesoProperties, appQmlEngine()->rootContext()));
-	#ifndef QT_NO_DEBUG
+#ifndef QT_NO_DEBUG
 	if (!m_mesoPage) {
 		qDebug() << m_mesoComponent->errorString();
 		return;
 	}
-	#endif
-
+#endif
 	appQmlEngine()->setObjectOwnership(m_mesoPage, QQmlEngine::CppOwnership);
 	m_mesoPage->setParentItem(appItemManager()->AppPagesVisualParent());
 	verifyMesoRequiredFieldsStatus();
 	appPagesListModel()->openPage(m_mesoPage, std::move(tr("Program: ") + name()), [this] () { m_mesoModel->removeMesoManager(m_mesoIdx); });
+	showOptionsMenu(true);
 
 	connect(m_mesoModel, &DBMesocyclesModel::mesoIdxChanged, this, [this] (const uint old_meso_idx, const uint new_meso_idx) {
 		if (old_meso_idx == m_mesoIdx) {
@@ -421,6 +460,23 @@ void QMLMesoInterface::createMesocyclePage()
 
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, &QMLMesoInterface::labelsChanged);
 	connect(this, &QMLMesoInterface::nameChanged, this, [this] () { appPagesListModel()->changeLabel(m_mesoPage, name()); });
+}
+
+void QMLMesoInterface::createOptionsMenu()
+{
+	m_optionsMenu = m_optionsMenuComponent->createWithInitialProperties(m_optionsMenuProperties, appQmlEngine()->rootContext());
+#ifndef QT_NO_DEBUG
+	if (!m_optionsMenu) {
+		qDebug() << m_optionsMenuComponent->errorString();
+		return;
+	}
+#endif
+	appQmlEngine()->setObjectOwnership(m_optionsMenu, QQmlEngine::CppOwnership);
+	m_optionsMenu->setProperty("parent", m_optionsMenuProperties.value("ownerItem").value<QQuickItem*>() ?
+										QVariant::fromValue(appItemManager()->AppHomePage()) : QVariant::fromValue(m_mesoPage));
+	QMetaObject::invokeMethod(m_optionsMenu, "setVisible", Q_ARG(int, OPTION_EXERCISES_PLANNER),
+															Q_ARG(bool, m_optionsMenuProperties.value("showIndicator").toBool()));
+	showOptionsMenu(true);
 }
 
 void QMLMesoInterface::verifyMesoRequiredFieldsStatus()

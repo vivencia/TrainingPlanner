@@ -5,8 +5,6 @@
 #include "tputils.h"
 #include "online_services/onlineuserinfo.h"
 
-#define USER_FIELD_AVATAR 20 //not in database, but used on model and GUI operations
-
 #define USER_MODIFIED_CREATED 100
 #define USER_MODIFIED_IMPORTED 101
 #define USER_MODIFIED_REMOVED 102
@@ -75,7 +73,8 @@ public:
 		USER_FIELD_COACHROLE,
 		USER_FIELD_GOAL,
 		USER_FIELD_APP_USE_MODE,
-		USER_N_FIELS
+		USER_N_FIELS,
+		USER_FIELD_AVATAR,
 	};
 	Q_ENUM(userFields)
 
@@ -362,7 +361,7 @@ public slots:
 signals:
 	void userModified(const uint user_idx, const uint field);
 	void labelsChanged();
-	void passwordAcquired(const bool proceed, const int id, const QString &passwd);
+	void passwordAcquired(const bool proceed, const int request_id, const QString &passwd);
 	void appUseModeChanged();
 	void onlineUserChanged();
 	void pendingCoachesResponsesChanged();
@@ -411,7 +410,6 @@ private:
 	DBModelInterfaceUser *m_dbModelInterface{nullptr};
 	QObject* m_passwordDialog{nullptr};
 	QQmlComponent *m_passwordDialogComponent{nullptr};
-	QVariantMap m_passwordDialogProperties;
 
 #ifndef Q_OS_ANDROID
 	OnlineUserInfo *m_allUsers{nullptr};

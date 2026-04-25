@@ -35,12 +35,21 @@ enum MESSAGE_ICON {
 	MI_Warning,
 };
 
-QmlItemManager::QmlItemManager(QQmlApplicationEngine *qml_engine) : QObject{nullptr}
+struct st_generalMessage {
+	int message_id, msecs;
+	QString filename_or_message, image_source, button1text, button2text;
+	QFlags<Qt::AlignmentFlag> position;
+};
+
+QmlItemManager::QmlItemManager() : QObject{nullptr}
 {
 	_appItemManager = this;
 	REGISTER_QML_SINGLETON(QmlItemManager, this);
-	_appQmlEngine = qml_engine;
+}
 
+void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
+{
+	_appQmlEngine = qml_engine;
 	QQuickStyle::setFallbackStyle("Material"_L1);
 	QQuickStyle::setStyle(appSettings()->themeStyle());
 	QQuickWindow::setTextRenderType(QQuickWindow::NativeTextRendering);
@@ -52,7 +61,7 @@ QmlItemManager::QmlItemManager(QQmlApplicationEngine *qml_engine) : QObject{null
 
 	QAnyStringView main_module{"Main"};
 	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(),
-																				[this] (const QObject *const obj, const QUrl &objUrl) {
+																			[this] (const QObject *const obj, const QUrl &objUrl) {
 		if (!obj) {
 			#ifndef QT_NO_DEBUG
 			qDebug() << "*******************Mainwindow not loaded*******************";
@@ -65,6 +74,7 @@ QmlItemManager::QmlItemManager(QQmlApplicationEngine *qml_engine) : QObject{null
 			appQmlEngine()->rootContext()->setContextProperty("mainwindow"_L1, QVariant::fromValue(appMainWindow()));
 			m_homePage = appMainWindow()->findChild<QQuickItem*>("homePage");
 			m_appPagesVisualParent = appMainWindow()->findChild<QQuickItem*>("appStackView");
+			createGeneralMessagesPopup();
 
 			appUserModel()->initUserSession();
 			connect(AppHomePage(), SIGNAL(mesosViewChanged(bool)), this, SLOT(homePageViewChanged(bool)));
@@ -108,11 +118,7 @@ QmlItemManager::QmlItemManager(QQmlApplicationEngine *qml_engine) : QObject{null
 				qDebug() << "Warning: Missing user id in the command line arguments"_L1;
 		}
 	}
-	#else
-		url = std::move("qrc:/TpQml/qml/main.qml"_L1);
 	#endif
-#else
-	url = std::move("qrc:/TpQml/qml/main.qml"_L1);
 #endif
 	appQmlEngine()->loadFromModule("TpQml", main_module);
 }
@@ -137,35 +143,36 @@ void QmlItemManager::showFirstTimeDialog()
 {
 	if (!m_firstTimeDlgComponent) {
 		m_firstTimeDlgComponent = new QQmlComponent{appQmlEngine(), "TpQml.Dialogs"_L1, "FirstTimeDialog"_L1, QQmlComponent::Asynchronous};
-		switch (m_firstTimeDlgComponent->status()) {
-		case QQmlComponent::Ready:
-			showFirstTimeDialog();
-			break;
-		case QQmlComponent::Loading:
-			connect(m_firstTimeDlgComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
-				showFirstTimeDialog();
-			}, Qt::SingleShotConnection);
-			break;
-		case QQmlComponent::Null:
-		case QQmlComponent::Error:
-#ifndef QT_NO_DEBUG
-			qDebug() << m_firstTimeDlgComponent->errorString();
-#endif
-			break;
-		}
+		connect(m_firstTimeDlgComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) { showFirstTimeDialog(); });
 	}
 	else {
 		if (!m_firstTimeDlg) {
-			m_firstTimeDlg = m_firstTimeDlgComponent->createWithInitialProperties(QVariantMap{
-										{std::pair<QLatin1StringView, QVariant>{"parentPage", QVariant::fromValue(m_homePage)}}},
-																											appQmlEngine()->rootContext());
+			switch (m_firstTimeDlgComponent->status()) {
+			case QQmlComponent::Ready:
+				m_firstTimeDlgComponent->disconnect();
+				m_firstTimeDlg = m_firstTimeDlgComponent->create(appQmlEngine()->rootContext());
 #ifndef QT_NO_DEBUG
-
+				if (!m_firstTimeDlg) {
+					qDebug() << m_firstTimeDlgComponent->errorString();
+					return;
+				}
 #endif
-			appQmlEngine()->setObjectOwnership(m_firstTimeDlg, QQmlEngine::CppOwnership);
-			m_firstTimeDlg->setProperty("parent", QVariant::fromValue(m_homePage));
+				appQmlEngine()->setObjectOwnership(m_firstTimeDlg, QQmlEngine::CppOwnership);
+				m_firstTimeDlg->setProperty("parent", QVariant::fromValue(m_homePage));
+				showFirstTimeDialog();
+				break;
+			case QQmlComponent::Loading:
+				return;
+			case QQmlComponent::Null:
+			case QQmlComponent::Error:
+	#ifndef QT_NO_DEBUG
+				qDebug() << m_firstTimeDlgComponent->errorString();
+	#endif
+				return;
+			}
 		}
-		QMetaObject::invokeMethod(m_firstTimeDlg, "showInWindow", Q_ARG(int, -Qt::AlignCenter));
+		else
+			AppPagesManager()->openPopup(m_firstTimeDlg, m_homePage);
 	}
 }
 
@@ -199,32 +206,38 @@ void QmlItemManager::getExercisesPage(QmlWorkoutInterface *connectPage)
 void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QString &filter)
 {
 	appExercisesList()->setFilter(filter);
-	if (!m_simpleExercisesList) {
-		m_simpleExercisesListProperties.insert("parentPage", QVariant::fromValue(parentPage));
-		m_simpleExercisesListComponent = new QQmlComponent{appQmlEngine(), "TpQml.Exercises"_L1, "SimpleExercisesListPanel"_L1, QQmlComponent::Asynchronous};
+	if (!m_simpleExercisesListComponent) {
+		m_simpleExercisesListComponent = new QQmlComponent{appQmlEngine(), "TpQml.Exercises"_L1, "SimpleExercisesListPanel"_L1,
+																									QQmlComponent::Asynchronous};
+		connect(m_simpleExercisesListComponent, &QQmlComponent::statusChanged, this, [this,parentPage,filter]
+													(QQmlComponent::Status status) { showSimpleExercisesList(parentPage, filter); });
 
-		switch (m_simpleExercisesListComponent->status()) {
-		case QQmlComponent::Ready:
-			createSimpleExercisesList(parentPage);
-			break;
-		case QQmlComponent::Loading:
-			connect(m_simpleExercisesListComponent, &QQmlComponent::statusChanged, this, [this,parentPage] (QQmlComponent::Status status) {
-				createSimpleExercisesList(parentPage);
-			}, Qt::SingleShotConnection);
-			break;
-		case QQmlComponent::Null:
-		case QQmlComponent::Error:
-			#ifndef QT_NO_DEBUG
-			qDebug() << m_simpleExercisesListComponent->errorString();
-			#endif
-			break;
-		}
 	}
 	else {
-		QQuickItem *cur_parent_page{m_simpleExercisesList->property("parentPage").value<QQuickItem*>()};
-		if (parentPage != cur_parent_page)
-			QMetaObject::invokeMethod(m_simpleExercisesList, "changeParentPage", Q_ARG(QQuickItem*, parentPage));
-		showSimpleExercisesList();
+		if (!m_simpleExercisesList) {
+			switch (m_simpleExercisesListComponent->status()) {
+			case QQmlComponent::Ready:
+				m_simpleExercisesListComponent->disconnect();
+				createSimpleExercisesList(parentPage);
+				showSimpleExercisesList(parentPage, filter);
+				break;
+			case QQmlComponent::Loading:
+				break;
+			case QQmlComponent::Null:
+			case QQmlComponent::Error:
+				#ifndef QT_NO_DEBUG
+				qDebug() << m_simpleExercisesListComponent->errorString();
+				#endif
+				break;
+			}
+		}
+		else {
+			appExercisesList()->setFilter(filter);
+			int name_field_ypos{0};
+			QMetaObject::invokeMethod(parentPage, "getExerciseNameFieldYPos", Q_RETURN_ARG(int, name_field_ypos));
+			appPagesListModel()->openPopup(m_simpleExercisesList, parentPage, name_field_ypos <= appSettings()->pageHeight() / 2 ?
+																									Qt::AlignTop : Qt::AlignBaseline);
+		}
 	}
 }
 
@@ -288,8 +301,20 @@ void QmlItemManager::getStatisticsPage()
 }
 
 void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QString &filename_or_message,
-	QFlags<Qt::AlignmentFlag> postion,const QString &image_source, const int msecs, const QString& button1text, const QString &button2text) const
+	QFlags<Qt::AlignmentFlag> position,const QString &image_source, const int msecs, const QString& button1text, const QString &button2text) const
 {
+	if (!m_canDisplayMessage) {
+		st_generalMessage *message{new st_generalMessage};
+		message->message_id = message_id;
+		message->filename_or_message = filename_or_message;
+		message->position = position;
+		message->image_source = image_source;
+		message->msecs = msecs;
+		message->button1text = button1text;
+		message->button2text = button2text;
+		const_cast<QmlItemManager*>(this)->m_messagesQueue.append(message);
+		return;
+	}
 	QString title, message;
 	MESSAGE_ICON icon_to_use{MI_Error}; //Only applicable when image_source is an empty string
 	if (message_id < TP_RET_CODE_CUSTOM_ERROR) {
@@ -405,10 +430,22 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 	else
 		img_src = image_source;
 
-	if (!button1text.isEmpty())
-		connect(appMainWindow(), SIGNAL(generalMessagesPopupClicked(int)), this, SLOT(generalMessagesPopupClicked(int)), Qt::SingleShotConnection);
-	QMetaObject::invokeMethod(appMainWindow(), "showAppMainMessageDialog", Q_ARG(int, -postion), Q_ARG(QString, title),
-		Q_ARG(QString, message), Q_ARG(QString, img_src), Q_ARG(int, msecs), Q_ARG(QString, button1text), Q_ARG(QString, button2text));
+	m_generalMessagesPopup->setProperty("show_position", std::move(QVariant{position}));
+	m_generalMessagesPopup->setProperty("title", std::move(QVariant{title}));
+	m_generalMessagesPopup->setProperty("message", std::move(QVariant{message}));
+	m_generalMessagesPopup->setProperty("imageSource", std::move(QVariant{img_src}));
+	if (!button1text.isEmpty()) {
+		m_generalMessagesPopup->setProperty("button1Text", std::move(QVariant{button1text}));
+		connect(m_generalMessagesPopup, SIGNAL(button1Clicked()), this, SLOT(generalMessagesButton1Clicked()), Qt::UniqueConnection);
+	}
+	if (!button2text.isEmpty()) {
+		m_generalMessagesPopup->setProperty("button2Text", std::move(QVariant{button2text}));
+		connect(m_generalMessagesPopup, SIGNAL(button2Clicked()), this, SLOT(generalMessagesButton2Clicked()), Qt::UniqueConnection);
+	}
+	if (msecs == 0)
+		QMetaObject::invokeMethod(m_generalMessagesPopup, "tpOpen");
+	else
+		QMetaObject::invokeMethod(m_generalMessagesPopup, "showTimed", Q_ARG(int, msecs));
 }
 
 void QmlItemManager::showOnlineMessagesManagerDialog(const bool show)
@@ -487,7 +524,7 @@ void QmlItemManager::openTPFile(uint32_t tp_filetype, const QString &filename, c
 		Q_UNREACHABLE();
 	}
 	QMetaObject::invokeMethod(appMainWindow(), "confirmTPFileOpening", Q_ARG(QString, str_type), Q_ARG(QString, str_details),
-																													Q_ARG(QString, str_image));
+																											Q_ARG(QString, str_image));
 }
 
 void QmlItemManager::mainWindowStarted() const
@@ -500,13 +537,58 @@ void QmlItemManager::homePageViewChanged(const bool own_mesos_view)
 	appUserModel()->actualMesoModel()->setCurrentMesosView(own_mesos_view);
 }
 
-void QmlItemManager::showSimpleExercisesList()
+void QmlItemManager::generalMessagesPopupClosed(QObject *)
 {
-	int name_field_ypos{0};
-	QQuickItem *parent_page{m_simpleExercisesList->property("parentPage").value<QQuickItem*>()};
-	QMetaObject::invokeMethod(parent_page, "getExerciseNameFieldYPos", Q_RETURN_ARG(int,name_field_ypos));
-	QMetaObject::invokeMethod(m_simpleExercisesList, "showInWindow", Q_ARG(int, name_field_ypos <= appSettings()->pageHeight() / 2 ? -2 : 0));
+	m_canDisplayMessage = m_messagesQueue.isEmpty();
+	if (!m_canDisplayMessage) {
+		st_generalMessage *message{m_messagesQueue.first()};
+		if (message) {
+			m_canDisplayMessage = true;
+			displayMessageOnAppWindow(message->message_id, message->filename_or_message, message->position, message->image_source,
+																		message->msecs, message->button1text, message->button2text);
+			m_canDisplayMessage = false;
+			delete message;
+			m_messagesQueue.removeFirst();
+		}
+	}
 }
+
+void QmlItemManager::createGeneralMessagesPopup()
+{
+	if (!m_generalMessagesPopupComponent) {
+		m_generalMessagesPopupProperties["button1Text"] = std::move(QVariant{QString{}});
+		m_generalMessagesPopupProperties["button2Text"] = std::move(QVariant{QString{}});
+		m_generalMessagesPopupComponent = new QQmlComponent{appQmlEngine(), "TpQml.Widgets"_L1, "TPBalloonTip"_L1,
+																								QQmlComponent::Asynchronous};
+		connect(m_generalMessagesPopupComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status)
+																								{ createGeneralMessagesPopup();});
+	}
+	else {
+		if (!m_generalMessagesPopup) {
+			switch (m_generalMessagesPopupComponent->status()) {
+			case QQmlComponent::Ready:
+				m_generalMessagesPopupComponent->disconnect();
+				m_generalMessagesPopup = m_generalMessagesPopupComponent->createWithInitialProperties(
+																m_generalMessagesPopupProperties, appQmlEngine()->rootContext());
+				appQmlEngine()->setObjectOwnership(m_generalMessagesPopup, QQmlEngine::CppOwnership);
+				m_generalMessagesPopup->setProperty("parent", std::move(QVariant::fromValue(m_homePage)));
+				connect(m_generalMessagesPopup, SIGNAL(popupClosed(QObject*)), this, SLOT(generalMessagesPopupClosed(QObject*)));
+				connect(m_generalMessagesPopup, SIGNAL(closeActionExeced()), this, SLOT(generalMessagesNoButtonClicked()));
+				generalMessagesPopupClosed();
+				break;
+			case QQmlComponent::Loading:
+				break;
+			case QQmlComponent::Null:
+			case QQmlComponent::Error:
+#ifndef QT_NO_DEBUG
+				qDebug() << m_generalMessagesPopupComponent->errorString();
+#endif
+				break;
+			}
+		}
+	}
+}
+
 void QmlItemManager::createSimpleExercisesList(QQuickItem *parentPage)
 {
 	m_simpleExercisesList = m_simpleExercisesListComponent->createWithInitialProperties(m_simpleExercisesListProperties,
@@ -514,7 +596,6 @@ void QmlItemManager::createSimpleExercisesList(QQuickItem *parentPage)
 	appQmlEngine()->setObjectOwnership(m_simpleExercisesList, QQmlEngine::CppOwnership);
 	m_simpleExercisesList->setProperty("parent", QVariant::fromValue(parentPage));
 	connect(m_simpleExercisesList, SIGNAL(exerciseSelected(QQuickItem*)), this, SIGNAL(selectedExerciseFromSimpleExercisesList(QQuickItem*)));
-	showSimpleExercisesList();
 }
 
 void QmlItemManager::createStatisticsPage_part2()

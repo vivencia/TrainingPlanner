@@ -19,7 +19,6 @@ ApplicationWindow {
 	flags: Qt.platform.os === "android" ? Qt.Window | Qt.FramelessWindowHint : Qt.Window | Qt.CustomizeWindowHint & ~Qt.WindowMaximizeButtonHint
 
 	signal saveFileChosen(filepath: string);
-	signal generalMessagesPopupClicked(button: int);
 	signal tpFileOpenInquiryResult(do_import: bool);
 	signal showOnlineMessagesDialog(show: bool);
 
@@ -57,10 +56,7 @@ ApplicationWindow {
 
 		sourceComponent: OnlineMessages {
 			parentPage: homePage
-			Component.onCompleted: {
-				mainwindow.showOnlineMessagesDialog.connect(showAbove);
-				firstTimeShow();
-			}
+			Component.onCompleted: mainwindow.showOnlineMessagesDialog.connect(showOrHide);
 		}
 	}
 
@@ -188,39 +184,12 @@ ApplicationWindow {
 			Component.onCompleted: tpFileLoader._dialog = this;
 		}
 
-		onLoaded: _dialog.showInWindow(-Qt.AlignCenter);
+		onLoaded: _dialog.tpOpen();
 	}
 	function confirmTPFileOpening(type: string, details: string, image: string): void {
 		tpFileLoader._dialog.title = qsTr("Import ") + type;
 		tpFileLoader._dialog.message = details;
 		tpFileLoader._dialog.imageSource = image;
 		tpFileLoader.active = true;
-	}
-
-	TPBalloonTip {
-		id: generalMessagesPopup
-		parentPage: homePage
-		button1Text: ""
-		button2Text: ""
-	}
-
-	function showAppMainMessageDialog(pos: int, title: string, message: string, img_src: string, msecs: int, button1Text: string,
-																											button2Text: string): void {
-		generalMessagesPopup.title = title;
-		generalMessagesPopup.message = message;
-		generalMessagesPopup.imageSource = img_src;
-		if (button1Text !== "") {
-			generalMessagesPopup.button1Text = button1Text;
-			generalMessagesPopup.button1Clicked.connect(function() { generalMessagesPopupClicked(1); });
-			generalMessagesPopup.closeActionExeced.connect(function() { generalMessagesPopupClicked(0); });
-		}
-		if (button2Text !== "") {
-			generalMessagesPopup.button2Text = button2Text;
-			generalMessagesPopup.button2Clicked.connect(function() { generalMessagesPopupClicked(2); });
-		}
-		if (msecs > 0)
-			generalMessagesPopup.showTimed(msecs, pos);
-		else
-			generalMessagesPopup.showInWindow(pos);
 	}
 } //ApplicationWindow

@@ -22,7 +22,7 @@ ScrollView {
 	ScrollBar.vertical: ScrollBar {
 		id: vBar
 		policy: ScrollBar.AsNeeded
-		interactive: false
+		interactive: Qt.platform.os !== "android"
 
 		anchors {
 			top: _control.top
@@ -64,7 +64,10 @@ ScrollView {
 			parentPage: _control.parentPage
 			visible: _control.navButtonsVisible
 			onScrollTo: (pos) => _control.setScrollBarPosition(pos);
-			Component.onCompleted: _control._navButtons = this;
+			Component.onCompleted: {
+				_control._navButtons = this;
+				tpOpen();
+			}
 		}
 	}
 }

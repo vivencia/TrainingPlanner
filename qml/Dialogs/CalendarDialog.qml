@@ -12,8 +12,7 @@ TPPopup {
 	keepAbove: !simpleCalendar
 	width: datePickerControl.width
 	height: mainLayout.childrenRect.height + 15
-	x: (AppSettings.pageWidth - width) / 2 // horizontally centered
-	finalYPos: (AppSettings.pageHeight - height) / 2 // vertically centered
+	open_in_window: true
 
 //public:
 	property date initDate

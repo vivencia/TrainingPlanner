@@ -233,7 +233,7 @@ Pane {
 			Component.onCompleted: mGDialogLoader._mg_picker = this;
 		}
 
-		onLoaded: _mg_picker.showByWidget(_button, Qt.AlignRight);
+		onLoaded: _mg_picker.showByWidget(Qt.AlignRight, _button);
 	}
 
 	function showMGDialog(button: TPButton, split: string): void {

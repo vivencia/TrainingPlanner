@@ -12,15 +12,13 @@ TPPopup {
 	id: onlineMsgsDlg
 	keepAbove: true
 	showTitleBar: false
-	closeButtonVisible: false
-	disableMouseHandling: true
-	x: savedPos.x
-	finalYPos: savedPos.y
 	width: savedSize.width
 	height: savedSize.height
-	backgroundRec.visible: fullDialogVisible
 	backGroundImage: ":/images/backgrounds/backimage-messages.jpg"
 	visible: AppSettings.showOnlineMessagesDialog
+	configFieldName: "onlineMessagesDialogPosition"
+	defaultCoordinates: Qt.point(AppSettings.pageWidth - 80, realPageY() + 180)
+	mouseItem: fullDialogVisible ? topBar : mainIcon
 
 //private
 	property bool fullDialogVisible: savedSize.width > mainIcon.width
@@ -29,17 +27,28 @@ TPPopup {
 	readonly property int dlgMaxWidth: AppSettings.pageWidth * 0.8
 	readonly property int maxHeight: AppSettings.pageHeight * 0.5
 	readonly property size savedSize: AppSettings.getCustomValue("onlineMessagesDialogSize", Qt.size(mainIcon.width, mainIcon.height))
-	readonly property point savedPos: AppSettings.getCustomValue("onlineMessagesDialogPosition", Qt.point(AppSettings.pageWidth - 80,
-																													realPageY() + 180))
 
-	function showAbove(show: bool): void {
-		visible = show;
-		AppSettings.showOnlineMessagesDialog = show;
+	function showOrHide(show: bool): void {
+		if (show)
+			tpOpen();
+		else
+			close();
 	}
 
-	function firstTimeShow(): void {
-		if (visible)
-			open();
+	onMouseItemClicked: (mouse) => {
+		if (fullDialogVisible) {
+			if (ItemManager.AppPagesManager.isPopupAboveAllOthers(onlineMsgsDlg)) {
+				onlineMsgsDlg.mainIconUserDefinedY = onlineMsgsDlg.y;
+				shrink.start();
+			}
+			else
+				ItemManager.AppPagesManager.raisePopup(onlineMsgsDlg);
+		}
+		else {
+			onlineMsgsDlg.mainIconUserDefinedX = onlineMsgsDlg.x;
+			onlineMsgsDlg.mainIconUserDefinedY = onlineMsgsDlg.y;
+			expand.start();
+		}
 	}
 
 	ParallelAnimation {
@@ -110,19 +119,6 @@ TPPopup {
 			verticalCenter: parent.verticalCenter
 			horizontalCenter: parent.horizontalCenter
 		}
-
-		TPMouseArea {
-			movingWidget: mainIcon
-			movableWidget: onlineMsgsDlg
-			enabled: !onlineMsgsDlg.fullDialogVisible
-
-			onMouseClicked: {
-				onlineMsgsDlg.mainIconUserDefinedX = onlineMsgsDlg.x;
-				onlineMsgsDlg.mainIconUserDefinedY = onlineMsgsDlg.y;
-				expand.start();
-			}
-			onMovingFinished: (x, y) => AppSettings.setCustomValue("onlineMessagesDialogPosition", Qt.point(x, y));
-		}
 	}
 
 	TPLabel {
@@ -149,21 +145,6 @@ TPPopup {
 				left: topBar.right
 				verticalCenter: topBar.verticalCenter;
 			}
-		}
-
-		TPMouseArea {
-			movingWidget: parent
-			movableWidget: onlineMsgsDlg
-
-			onMouseClicked: {
-				if (ItemManager.AppPagesManager.isPopupAboveAllOthers(onlineMsgsDlg)) {
-					onlineMsgsDlg.mainIconUserDefinedY = onlineMsgsDlg.y;
-					shrink.start();
-				}
-				else
-					ItemManager.AppPagesManager.raisePopup(onlineMsgsDlg);
-			}
-			onMovingFinished: (x, y) => AppSettings.setCustomValue("onlineMessagesDialogPosition", Qt.point(x, y));
 		}
 	}
 

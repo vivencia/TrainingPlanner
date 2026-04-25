@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Shapes
+import QtQuick.Effects
 
 import TpQml
 
@@ -11,6 +12,7 @@ Rectangle {
 	property bool useGradient: false
 	property bool useImage: false
 	property bool showBorder: false
+	property bool enableShadow: false
 
 	property string sourceImage
 	property string backColor
@@ -26,6 +28,8 @@ Rectangle {
 	property color darkColor: AppSettings.primaryDarkColor
 	property color midColor: AppSettings.primaryColor
 	property color paneColor: AppSettings.paneBackgroundColor
+
+	property Gradient _gradient
 
 	gradient: useGradient ? _gradient : null
 	color: backColor
@@ -99,12 +103,35 @@ Rectangle {
 		}
 	}
 
-	Gradient {
-		id: _gradient
-		orientation: Gradient.Horizontal
-		GradientStop { position: 0.0; color: _control.paneColor; }
-		GradientStop { position: 0.25; color: _control.lightColor; }
-		GradientStop { position: 0.50; color: _control.midColor; }
-		GradientStop { position: 0.75; color: _control.darkColor; }
+	Loader {
+		asynchronous: false
+		active: _control.enableShadow
+		anchors.fill: _control
+		anchors.leftMargin: -8
+		anchors.topMargin: -8
+
+		sourceComponent: RectangularShadow {
+			offset.x: 8
+			offset.y: 8
+			radius: _control.radius
+			spread: 8
+			color: Qt.darker(_control.color, 1.6)
+		}
+	}
+
+	Loader {
+		active: _control.useGradient
+		asynchronous: true
+
+		Gradient {
+			id: _gradient
+			orientation: Gradient.Horizontal
+			GradientStop { position: 0.0; color: _control.paneColor; }
+			GradientStop { position: 0.25; color: _control.lightColor; }
+			GradientStop { position: 0.50; color: _control.midColor; }
+			GradientStop { position: 0.75; color: _control.darkColor; }
+
+			Component.onCompleted: _control._gradient = this;
+		}
 	}
 }

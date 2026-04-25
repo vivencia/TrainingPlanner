@@ -9,12 +9,12 @@ import TpQml.Widgets
 import TpQml.Dialogs
 
 TPPopup {
+	objectName: "chatWindow"
 	id: _chatWindow
 	closePolicy: Popup.NoAutoClose
+	open_in_window: true
 	spacing: 0
 	padding: 0
-	x: normalX
-	finalYPos: normalY
 	width: normalWidth
 	height: normalHeight
 	backGroundImage: ":/images/backgrounds/backimage-chat.jpg"

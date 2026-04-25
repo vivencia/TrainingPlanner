@@ -625,7 +625,7 @@ ItemDelegate {
 
 						SetInputField {
 							text: subSetsLoader.subSetsNumber
-							type: SetInputField.Type.SetType
+							type: DBExercisesModel.SetType
 							availableWidth: listItem.width * 0.25
 							showLabel: false
 
@@ -638,7 +638,7 @@ ItemDelegate {
 
 				SetInputField {
 					id: txtRestTime
-					type: SetInputField.Type.TimeType
+					type: DBExercisesModel.TimeType
 					text: delegate.exercisesModel.setRestTime(delegate.exerciseNumber, delegate.exercisesModel.workingSubExercise,
 																								delegate.exercisesModel.workingSet)
 					availableWidth: listItem.width * 0.9
@@ -654,7 +654,7 @@ ItemDelegate {
 					id: txtNReps
 					text: delegate.exercisesModel.setReps(delegate.exerciseNumber, delegate.exercisesModel.workingSubExercise,
 																								delegate.exercisesModel.workingSet)
-					type: SetInputField.Type.RepType
+					type: DBExercisesModel.RepType
 					availableWidth: listItem.width * 0.9
 					enabled: setsGroup.nSets > 0 && cboSetType.currentIndex >= 0 && !delegate.setCompleted
 					Layout.alignment: Qt.AlignCenter
@@ -668,7 +668,7 @@ ItemDelegate {
 					id: txtNWeight
 					text: delegate.exercisesModel.setWeight(delegate.exerciseNumber, delegate.exercisesModel.workingSubExercise,
 																								delegate.exercisesModel.workingSet)
-					type: SetInputField.Type.WeightType
+					type: DBExercisesModel.WeightType
 					availableWidth: listItem.width * 0.9
 					enabled: setsGroup.nSets > 0 && cboSetType.currentIndex >= 0 && !delegate.setCompleted
 					Layout.alignment: Qt.AlignCenter

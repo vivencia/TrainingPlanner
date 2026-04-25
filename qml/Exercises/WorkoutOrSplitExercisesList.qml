@@ -73,7 +73,7 @@ TPListView {
 		onLoaded: {
 			_exerciseName = _control.exercisesModel.exerciseName(_control.exercisesModel.workingExercise,
 																						_control.exercisesModel.allExerciseNames);
-			_balloon.showInWindow(-Qt.AlignCenter);
+			_balloon.tpOpen();
 		}
 	}
 
@@ -108,7 +108,7 @@ TPListView {
 			Component.onCompleted: quickQuestionLoader.dialog = this;
 		}
 
-		onLoaded: dialog.showInWindow(-Qt.AlignCenter);
+		onLoaded: dialog.tpOpen();
 	}
 	function quickQuestion(delegate: ExercisesListDelegate, title: string, message: string, icon: string, button1text:
 																							string, button2text: string): void {
@@ -139,7 +139,7 @@ TPListView {
 			Component.onCompleted: clearExercisesLoader._balloon = this;
 		}
 
-		onLoaded: _balloon.showInWindow(-Qt.AlignCenter);
+		onLoaded: _balloon.tpOpen();
 	}
 	function showClearExercisesMessage(): void {
 		if (AppSettings.alwaysAskConfirmation)

@@ -133,7 +133,10 @@ Drawer {
 				width: AppSettings.itemLargeHeight
 				height: width
 
-				onCheck: ItemManager.showOnlineMessagesManagerDialog(!checked);
+				onCheck: {
+					ItemManager.showOnlineMessagesManagerDialog(!checked);
+					AppSettings.showOnlineMessagesDialog = !checked;
+				}
 
 				anchors {
 					top: btnSettings.bottom
@@ -289,7 +292,7 @@ Drawer {
 			Component.onCompleted: allUsersDialogLoader._all_users = this;
 		}
 
-		onLoaded: _all_users.showInWindow(-Qt.AlignCenter);
+		onLoaded: _all_users.tpOpen();
 	}
 	function showSwitchUserDialog(): void {
 		allUsersDialogLoader.active = true;

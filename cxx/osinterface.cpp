@@ -684,7 +684,8 @@ void OSInterface::setNetStatus(uint messages_index, bool success, QString &&mess
 	m_connectionMessages[messages_index] = std::move(message);
 	emit connectionMessageChanged();
 	appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
-	{QString{}, m_connectionMessages.join('\n')}, record_separator), Qt::AlignTop|Qt::AlignHCenter, success ? "set-completed" : "error");
+			{QString{}, m_connectionMessages.join('\n')}, record_separator), Qt::AlignTop|Qt::AlignHCenter, success ?
+																									"set-completed" : "error");
 }
 
 #ifdef LOCAL_TPSERVER
@@ -736,12 +737,14 @@ void OSInterface::serverProcessFinished(QProcess *proc, const int exit_code, QPr
 
 	switch (exit_code) {
 	case TPSERVER_ERROR:
-	case TPSERVER_NGINX_ERROR:
 	case TPSERVER_PAUSED_FAILED:
 		localServerProcessResult(TP_RET_CODE_SERVER_UNREACHABLE, proc->readAllStandardOutput() % "\nReturn code("_L1 % QUOTE(exit_code) % ')');
 		break;
-	case TPSERVER_PHPFPM_ERROR:
+	case TPSERVER_NGINX_ERROR:
 		commandLocalServer("Start server service?"_L1, "start"_L1);
+		break;
+	case TPSERVER_PHPFPM_ERROR:
+		commandLocalServer("Restart server service?"_L1, "restart"_L1);
 		break;
 	case TPSERVER_CONFIG_ERROR:
 		commandLocalServer("Setup server?"_L1, "setup"_L1);
@@ -770,8 +773,9 @@ void OSInterface::commandLocalServer(const QString &title, const QString &comman
 	QLatin1StringView seed{command.toLatin1()};
 	const int requestid{appUtils()->generateUniqueId(seed)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
-	*conn = connect(appUserModel(), &DBUserModel::passwordAcquired, this, [=,this] (const bool proceed, const int id, const QString &passwd) {
-		if (id == requestid) {
+	*conn = connect(appUserModel(), &DBUserModel::passwordAcquired, this, [=,this]
+															(const bool proceed, const int request_id, const QString &passwd) {
+		if (request_id == requestid) {
 			disconnect(*conn);
 			if (proceed) {
 				QProcess *server_script_proc{new QProcess{this}};

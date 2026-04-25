@@ -51,6 +51,16 @@ Q_PROPERTY(QDate minimumEndDate READ minimumEndDate NOTIFY minimumEndDateChanged
 Q_PROPERTY(QDate maximumEndDate READ maximumEndDate NOTIFY maximumEndDateChanged FINAL)
 
 public:
+
+	enum optionsMenuEntries {
+		OPTION_SEND_TO_CLIENT,
+		OPTION_SAVE_AS,
+		OPTION_SEND_TO,
+		OPTION_SHARE,
+		OPTION_EXERCISES_PLANNER,
+	};
+	Q_ENUM(optionsMenuEntries)
+
 	explicit inline QMLMesoInterface(DBMesocyclesModel *meso_model, const uint meso_idx)
 		: QObject{reinterpret_cast<QObject*>(meso_model)}, m_mesoModel{meso_model}, m_mesoComponent{nullptr},
 			m_mesoPage{nullptr}, m_mesoIdx{meso_idx}, m_splitsPage{nullptr}, m_calendarPage{nullptr} {}
@@ -119,6 +129,7 @@ public:
 	Q_INVOKABLE void getWorkoutPage(const QDate &date);
 
 	void getMesocyclePage(const bool new_meso);
+	void showOptionsMenu(const bool show_indicator, QQuickItem *item = nullptr);
 	Q_INVOKABLE void sendMesocycleFileToClient();
 	Q_INVOKABLE void incorporateMeso();
 
@@ -147,9 +158,10 @@ signals:
 	void notesChanged();
 
 private:
-	QQmlComponent *m_mesoComponent{nullptr};
+	QQmlComponent *m_mesoComponent{nullptr}, *m_optionsMenuComponent{nullptr};
 	QQuickItem *m_mesoPage{nullptr};
-	QVariantMap m_mesoProperties;
+	QObject *m_optionsMenu{nullptr};
+	QVariantMap m_mesoProperties, m_optionsMenuProperties;
 	DBMesocyclesModel *m_mesoModel{nullptr};
 
 	uint m_mesoIdx;
@@ -161,5 +173,6 @@ private:
 	QmlMesoCalendarInterface *m_calendarPage{nullptr};
 
 	void createMesocyclePage();
+	void createOptionsMenu();
 	void verifyMesoRequiredFieldsStatus();
 };

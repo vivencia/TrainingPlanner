@@ -311,7 +311,8 @@ std::pair<bool,bool> TPDatabaseTable::removeRecords()
 				m_strQuery += std::move(m_fieldNames[itr.key()][0] % '=' %  m_dbModelInterface->modelData().at(itr.key()).at(field));
 			}
 			else
-				m_strQuery += std::move(u" AND %1=%2;"_s).arg(m_fieldNames[itr.key()][0], m_dbModelInterface->modelData().at(itr.key()).at(field));
+				m_strQuery += std::move(u" AND %1=%2;"_s).arg(m_fieldNames[itr.key()][0],
+																			m_dbModelInterface->modelData().at(itr.key()).at(field));
 		}
 		if (++itr != itr_end)
 			del_statements.append(std::move(m_strQuery));

@@ -13,6 +13,7 @@ TPPopup {
 	id: dlgSwitchUser
 	width: AppSettings.pageWidth - 20
 	height: AppSettings.pageHeight / 2
+	open_in_window: true
 
 	ColumnLayout {
 		spacing: 10
@@ -66,8 +67,6 @@ TPPopup {
 
 				delegate: TableDelegate {
 					userData: allData
-					required property int row
-					required property int column
 					required property string allData
 					Component.onCompleted: allUsersList.rowWidth += cellWidth;
 				} //ItemDelegate

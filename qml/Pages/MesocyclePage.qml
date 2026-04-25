@@ -31,6 +31,7 @@ TPPage {
 		sourceComponent: TPBalloonTip {
 			parentPage: mesoPage
 			imageSource: "set-completed"
+			show_position: Qt.AlignBottom|Qt.AlignHCenter
 			button1Text: ""
 			button2Text: ""
 			keepAbove: true
@@ -41,13 +42,12 @@ TPPage {
 	}
 
 	function wrongFieldValueMessageHandler(wrong_field_counter: int, field: int): void {
-		if (!requiredFieldsMissingLoader.active)
-		{
+		if (!requiredFieldsMissingLoader.active) {
 			if (wrong_field_counter === 0)
 				return;
 			else if (wrong_field_counter >= 1) {
 				requiredFieldsMissingLoader.loaded.connect(function() {
-					missingFieldsTip.showInWindow(-Qt.AlignBottom|Qt.AlignHCenter);
+					missingFieldsTip.tpOpen();
 					wrongFieldValueMessageHandler(wrong_field_counter, field);
 				});
 				requiredFieldsMissingLoader.active = true;
@@ -80,53 +80,6 @@ TPPage {
 			case MesocyclesModel.MESO_FIELD_SPLIT: missingFieldsTip.message = qsTr("Change and/or accept the split division"); break;
 			}
 			break;
-		}
-	}
-
-	FileOperations {
-		id: fileOps
-		fileType: AppUtils.FT_TP_PROGRAM
-		mesoIdx: mesoPage.mesoManager.mesoIdx
-	}
-
-	TPPageMenu {
-		id: pageMenu
-		parentPage: mesoPage
-		entriesList: [
-			{ "label": qsTr("Send to client"), "image": "download_", "btn_id": TPFileOps.OT_Custom_1, "enabled": enabledCondition(0) },
-			{ "label": qsTr("Save as"), "image": "download_", "btn_id": TPFileOps.OT_Download, "enabled": enabledCondition(1) },
-			{ "label": qsTr("Send to"), "image": "attach_", "btn_id": TPFileOps.OT_Forward, "enabled": enabledCondition(2) },
-			{ "label": qsTr("Share"), "image": "share_", "btn_id": TPFileOps.OT_Share, "enabled": enabledCondition(3) },
-			{ "label": qsTr("Exercises Planner"), "image": "meso-splitplanner.png", btn_id: TPFileOps.OT_Custom_2, "enabled": enabledCondition(4) },
-		]
-
-		onMenuEntrySelected: (btn_id) => {
-			switch (btn_id) {
-			case TPFileOps.OT_Custom_1: mesoPage.mesoManager.sendMesocycleFileToClient(); break;
-			case TPFileOps.OT_Custom_2: mesoPage.mesoManager.getExercisesPlannerPage(); break;
-			default: fileOps.doFileOperation(btn_id); break;
-			}
-		}
-
-		function enabledCondition(menu_entry: int): bool {
-			switch (menu_entry) {
-			case 0: return !mesoPage.mesoManager.ownMeso && mesoPage.mesoManager.canExport;
-			case 1:
-			case 2: return mesoPage.mesoManager.canExport;
-			case 3: return mesoPage.mesoManager.canExport && Qt.platform.os === "android";
-			case 4: return mesoPage.mesoManager.splitOK;
-			}
-		}
-
-		Connections {
-			target: mesoPage.mesoManager
-			function onCanExportChanged(): void {
-				for (let i = 0; i <= 3; ++i)
-					pageMenu.enableEntry(i, pageMenu.enabledCondition(i));
-			}
-			function onSplitOKChanged(): void {
-				pageMenu.enableEntry(4, pageMenu.enabledCondition(4));
-			}
 		}
 	}
 

@@ -49,7 +49,7 @@ ColumnLayout {
 		onClicked: {
 			userCoachModule.bReady = checked;
 			if (checked)
-				AppUserModel.setAppUseMode(userCoachModule.userRow, chkHaveCoach.checked ?
+				AppUserModel.setAppUseMode(userCoachModule.userRow, optCoachUse.checked ?
 											   AppUserModel.USEMODE_SINGLE_USER_WITH_COACH : AppUserModel.USEMODE_SINGLE_USER);
 			optCoachUse.checked = false;
 		}
@@ -136,7 +136,7 @@ ColumnLayout {
 			Component.onCompleted: rescindCoachLoader._rescind_dlg = this;
 		}
 
-		onLoaded: _rescind_dlg.showInWindow(-Qt.AlignCenter);
+		onLoaded: _rescind_dlg.tpOpen();
 	}
 
 	Loader {

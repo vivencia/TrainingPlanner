@@ -129,10 +129,10 @@ ColumnLayout {
 		property UserChangePassword _change_passwd
 		sourceComponent: UserChangePassword {
 			parentPage: userPersonalModule.parentPage
-			Component.onCompleted: changePasswordLoader._change_passwd
+			Component.onCompleted: changePasswordLoader._change_passwd = this;
 		}
 
-		onLoaded: _change_passwd.show(-Qt.AlignCenter);
+		onLoaded: _change_passwd.tpOpen();
 	}
 
 	TPLabel {
@@ -276,7 +276,7 @@ ColumnLayout {
 			Component.onCompleted: userRegistrationDlgLoader._registration_dlg = this;
 		}
 
-		onLoaded: _registration_dlg.showInWindow(-Qt.AlignCenter);
+		onLoaded: _registration_dlg.tpOpen();
 	}
 	function showUserRegistrationDialog(): void {
 		userRegistrationDlgLoader.active = true;

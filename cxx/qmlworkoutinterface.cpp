@@ -51,7 +51,7 @@ void QmlWorkoutInterface::cleanUp()
 //----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 void QmlWorkoutInterface::changeSplitLetter(const QString &new_splitletter)
 {
-	if (m_workoutModel->splitLetter() != new_splitletter){
+	if (m_workoutModel->splitLetter() != new_splitletter) {
 		setWorkoutIsEditable(new_splitletter != "R"_L1);
 		m_workoutModel->setSplitLetter(new_splitletter.at(0));
 		m_calendarModel->setSplitLetter(new_splitletter);

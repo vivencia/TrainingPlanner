@@ -2,6 +2,7 @@
 
 #include "dbmesocyclesmodel.h"
 #include "dbusermodel.h"
+#include "qmlmesointerface.h"
 #include "tpsettings.h"
 #include "tputils.h"
 
@@ -39,6 +40,9 @@ HomePageMesoModel::HomePageMesoModel(DBMesocyclesModel *meso_model, const bool o
 	roleToString(mesoSplitsAvailable)
 	roleToString(haveCalendar)
 
+	connect(m_mesoModel, &DBMesocyclesModel::canExportChanged, this, [this] (const uint meso_idx, const bool can_export) {
+		emit dataChanged(index(meso_idx), index(meso_idx), QList<int>{mesoExportableRole});
+	});
 	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field) {
 		if (m_mesoModel->isOwnMeso(meso_idx) == m_ownMesos) {
 			const int row{findLocalIdx(meso_idx)};
@@ -88,6 +92,11 @@ void HomePageMesoModel::setCurrentIndex(const int new_index)
 	}
 }
 
+void HomePageMesoModel::showOptionsMenu(QQuickItem* tpbutton, const int meso_idx)
+{
+	m_mesoModel->mesoManager(meso_idx)->showOptionsMenu(false, tpbutton);
+}
+
 void HomePageMesoModel::appendMesoIdx(const uint meso_idx)
 {
 	if (!m_mesoModelRows.contains(meso_idx)) {
@@ -131,19 +140,19 @@ QVariant HomePageMesoModel::data(const QModelIndex &index, int role) const
 				m_mesoModel->name(meso_idx) : tr("Not set")) % (m_mesoModel->_id(meso_idx) < 0 ? tr(" (Temporary)") : QString{}) % "</b>"_L1};
 		case mesoStartDateRole:
 			return QVariant{m_mesoModel->startDateLabel() % "<b>"_L1 % (!m_mesoModel->strStartDate(meso_idx).isEmpty() ?
-													appUtils()->formatDate(m_mesoModel->startDate(meso_idx)) : tr("Not set")) % "</b>"_L1};
+											appUtils()->formatDate(m_mesoModel->startDate(meso_idx)) : tr("Not set")) % "</b>"_L1};
 		case mesoEndDateRole:
 			return QVariant{m_mesoModel->endDateLabel() % "<b>"_L1 % (!m_mesoModel->strEndDate(meso_idx).isEmpty() ?
-														appUtils()->formatDate(m_mesoModel->endDate(meso_idx)) : tr("Not set")) % "</b>"_L1};
+												appUtils()->formatDate(m_mesoModel->endDate(meso_idx)) : tr("Not set")) % "</b>"_L1};
 		case mesoSplitRole:
 			return QVariant{m_mesoModel->splitLabel() % "<b>"_L1 % (m_mesoModel->isSplitOK(meso_idx) ?
 																			m_mesoModel->split(meso_idx) : tr("Not set")) % "</b>"_L1};
 		case mesoCoachRole:
 			return QVariant{m_mesoModel->coachLabel() % "<b>"_L1 % (!m_mesoModel->coach(meso_idx).isEmpty() ?
-												appUserModel()->userNameFromId(m_mesoModel->coach(meso_idx)) : tr("Not set")) % "</b>"_L1};
+										appUserModel()->userNameFromId(m_mesoModel->coach(meso_idx)) : tr("Not set")) % "</b>"_L1};
 		case mesoClientRole:
 			return QVariant{m_mesoModel->clientLabel() % "<b>"_L1 % (!m_mesoModel->coach(meso_idx).isEmpty() ?
-												appUserModel()->userNameFromId(m_mesoModel->client(meso_idx)) : tr("Not set")) % "</b>"_L1};
+										appUserModel()->userNameFromId(m_mesoModel->client(meso_idx)) : tr("Not set")) % "</b>"_L1};
 		case mesoIdxRole:
 			return meso_idx;
 		case mesoExportableRole:

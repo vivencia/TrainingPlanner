@@ -147,9 +147,10 @@ Item {
 					onClicked: _control.mesoSubModel.mesoModel().getExercisesPlannerPage(delegate.mesoIdx);
 				}
 
-				TPExportButton {
+				TPButton {
 					id: btnExport
-					parentPage: ItemManager.AppPagesManager.homePage() as TPPage
+					text: qsTr("Export")
+					imageSource: "export.png"
 					rounded: false
 					textUnderIcon: true
 					enabled: delegate.mesoExportable
@@ -163,6 +164,8 @@ Item {
 						left: btnMesoPlan.right
 						leftMargin: 5
 					}
+
+					onClicked: _control.mesoSubModel.showOptionsMenu(btnExport, delegate.mesoIdx);
 				}
 			} //swipe.left: Rectangle
 
@@ -204,7 +207,7 @@ Item {
 
 					onClicked: {
 						msgDlg.meso_name = delegate.mesoName;
-						msgDlg.showInWindow(-Qt.AlignCenter);
+						msgDlg.tpOpen();
 					}
 				}
 

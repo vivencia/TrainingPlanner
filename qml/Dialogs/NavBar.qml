@@ -104,7 +104,7 @@ TPToolBar {
 				else
 					component.statusChanged.connect(finishCreation);
 			}
-			_navBar.mainCalendar.open();
+			_navBar.mainCalendar.tpOpen();
 		}
 	}
 
@@ -127,7 +127,7 @@ TPToolBar {
 
 				function finishCreation() {
 					_navBar.mainTimer = component.createObject(ItemManager.AppMainWindow,
-																			{ parentPage: ItemManager.AppPagesManager.homePage() });
+																	{ parentPage: ItemManager.AppPagesManager.homePage() });
 				}
 
 				if (component.status === Component.Ready)
@@ -135,7 +135,7 @@ TPToolBar {
 				else
 					component.statusChanged.connect(finishCreation);
 			}
-			_navBar.mainTimer.open();
+			_navBar.mainTimer.showInWindow();
 		}
 	}
 

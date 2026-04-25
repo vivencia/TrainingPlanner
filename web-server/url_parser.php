@@ -386,6 +386,11 @@ function set_online_visible($userid, $visible) {
 		$ip = $_SERVER['REMOTE_ADDR'];
 		fwrite($fh, $ip . "\n");
 		fclose($fh);
+
+		$iter = new APCUIterator(null, APC_ITER_KEY);
+		foreach ($iter as $key => $value) {
+			echo $value['key'] . "\n";
+		}
 	}
 	else {
 		unlink($visible_file);
@@ -825,11 +830,11 @@ function get_tpmessages($userid) {
 					if (str_contains($file, ".sqlite") || str_contains($file, ".cmd"))
 						continue;
 					//apcu_delete("$dir-$file");
-					$is_not_modified = apcu_fetch("$dir-$file");
+					$is_not_modified = apcu_fetch("$userid-$file");
 					if ($is_not_modified === true)
 						continue;
-					apcu_store("$dir-$file", false); //uncomment to force new messages checking during development
-					//apcu_store("$dir-$file", true);
+					//apcu_store("$dir-$file", false); //uncomment to force new messages checking during development
+					apcu_store("$userid-$file", true);
 					$content = $content . $file . "\034";
 				}
 				if ($content !== "")
@@ -881,18 +886,10 @@ function get_newmessages($userid) {
 
 
 function clear_apcu_cache($userid) {
-	global $rootdir;
-	$messages_dir = $rootdir . $userid . "/chats";
-	if (is_dir($messages_dir)) {
-		$files = array_values(array_diff(scandir($messages_dir), array('.', '..')));
-		if (count($files) > 0) {
-			$content = "";
-			foreach ($files as $file) {
-				if (str_contains($file, ".sqlite") || str_contains($file, ".cmd"))
-					continue;
-				apcu_store("$userid-$file", false); //force new messages checking during development
-			}
-		}
+	$iter = new APCUIterator(null, APC_ITER_KEY);
+	foreach ($iter as $key) {
+		if (str_starts_with($iter->key(), $userid))
+			apcu_delete($iter->key());
 	}
 }
 
@@ -1153,20 +1150,17 @@ if ($userid) {
 					exit;
 				}
 
-
 				if (isset($_GET['login'])) {
 					$port = $_GET['login'];
 					set_online_visible($userid, true);
-					$peer_addr = apcu_fetch($userid);
-					if ($peer_addr == false)
-						apcu_store($userid, $_SERVER['REMOTE_ADDR'] . ":" .$port);
-					clear_apcu_cache($userid); //only during development
+					clear_apcu_cache($userid);
+					apcu_store($userid, $_SERVER['REMOTE_ADDR'] . ":" .$port);
 					echo "0: User $userid logged in";
 					exit;
 				}
 				if (isset($_GET['logout'])) {
 					set_online_visible($userid, false);
-					apcu_delete($userid);
+					clear_apcu_cache($userid);
 					echo "0: User $userid logged out";
 					exit;
 				}

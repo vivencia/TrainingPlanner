@@ -243,7 +243,7 @@ ColumnLayout {
 			Component.onCompleted: muscularGroupPickerLoader.dialog = this;
 		}
 
-		onLoaded: dialog.showByWidget(btnChooseFilters, Qt.AlignBottom);
+		onLoaded: dialog.showByWidget(Qt.AlignBottom, btnChooseFilters);
 	}
 	function showFilterDialog(): void {
 		muscularGroupPickerLoader.active = true;

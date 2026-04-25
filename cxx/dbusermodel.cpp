@@ -118,6 +118,7 @@ void DBUserModel::initUserSession()
 			appItemManager()->showFirstTimeDialog();
 		else {
 			if (onlineAccount()) {
+				appItemManager()->showOnlineMessagesManagerDialog(appSettings()->showOnlineMessagesDialog());
 				if (!appWSServer())
 					new ChatWSServer{userId(0), this};
 				if (!appMessagesManager())
@@ -296,49 +297,46 @@ const QString &DBUserModel::userIdFromFieldValue(const uint field, const QString
 void DBUserModel::requestPasswordFromUser(const int id, const QString &dialog_title, const QString &dialog_message)
 {
 	if (!m_passwordDialogComponent) {
-		if (!m_passwordDialogComponent) {
-			m_passwordDialogProperties["parentPage"_L1] = std::move(QVariant::fromValue(appItemManager()->AppHomePage()));
-			m_passwordDialogProperties["id"_L1] = std::move(QVariant{id});
-			m_passwordDialogProperties["title"_L1] = std::move(QVariant{dialog_title});
-			m_passwordDialogProperties["message"_L1] = std::move(QVariant{dialog_message});
-			m_passwordDialogComponent = new QQmlComponent{appQmlEngine(), "TpQml.Dialogs"_L1, "PasswordDialog"_L1, QQmlComponent::PreferSynchronous};
-		}
-
-		switch (m_passwordDialogComponent->status()) {
-		case QQmlComponent::Ready:
-			break;
-		case QQmlComponent::Loading:
-			connect(m_passwordDialogComponent, &QQmlComponent::statusChanged, this, [=,this] (QQmlComponent::Status status) {
-					requestPasswordFromUser(id, dialog_title, dialog_message);
-			}, Qt::SingleShotConnection);
-			return;
-		case QQmlComponent::Null:
-		case QQmlComponent::Error:
-			#ifndef QT_NO_DEBUG
-			qDebug() << m_passwordDialogComponent->errorString();
-			#endif
-			return;
-		}
-	}
-	if (!m_passwordDialog) {
-		m_passwordDialog = m_passwordDialogComponent->createWithInitialProperties(m_passwordDialogProperties, appQmlEngine()->rootContext());
-		#ifndef QT_NO_DEBUG
-		if (!m_passwordDialog) {
-			qDebug() << m_passwordDialogComponent->errorString();
-			return;
-		}
-		#endif
-		appQmlEngine()->setObjectOwnership(m_passwordDialog, QQmlEngine::CppOwnership);
-		m_passwordDialog->setProperty("parent", QVariant::fromValue(appItemManager()->AppHomePage()));
-		connect(m_passwordDialog, SIGNAL(passwordAcquired(bool,int,QString)), this, SIGNAL(passwordAcquired(bool,int,QString)));
+		m_passwordDialogComponent = new QQmlComponent{appQmlEngine(), "TpQml.Dialogs"_L1, "PasswordDialog"_L1,
+																							QQmlComponent::Asynchronous};
+		connect(m_passwordDialogComponent, &QQmlComponent::statusChanged, this, [=,this] (QQmlComponent::Status status) {
+			requestPasswordFromUser(id, dialog_title, dialog_message);
+		});
 	}
 	else {
-		m_passwordDialog->setProperty("id", id);
-		m_passwordDialog->setProperty("title", dialog_title);
-		m_passwordDialog->setProperty("message", dialog_message);
+		if (!m_passwordDialog) {
+			switch (m_passwordDialogComponent->status()) {
+			case QQmlComponent::Ready:
+				m_passwordDialogComponent->disconnect();
+				m_passwordDialog = m_passwordDialogComponent->create(appQmlEngine()->rootContext());
+#ifndef QT_NO_DEBUG
+				if (!m_passwordDialog) {
+					qDebug() << m_passwordDialogComponent->errorString();
+					return;
+				}
+#endif
+				appQmlEngine()->setObjectOwnership(m_passwordDialog, QQmlEngine::CppOwnership);
+				m_passwordDialog->setProperty("parent", std::move(QVariant::fromValue(appItemManager()->AppHomePage())));
+				connect(m_passwordDialog, SIGNAL(passwordAcquired(bool,int,QString)), this, SIGNAL(passwordAcquired(bool,int,QString)));
+				requestPasswordFromUser(id, dialog_title, dialog_message);
+				break;
+			case QQmlComponent::Loading:
+				return;
+			case QQmlComponent::Null:
+			case QQmlComponent::Error:
+				#ifndef QT_NO_DEBUG
+				qDebug() << m_passwordDialogComponent->errorString();
+				#endif
+				return;
+			}
+		}
+		else {
+			m_passwordDialog->setProperty("id", std::move(QVariant{id}));
+			m_passwordDialog->setProperty("title", std::move(QVariant{dialog_title}));
+			m_passwordDialog->setProperty("message", std::move(QVariant{dialog_message}));
+			appPagesListModel()->openPopup(m_passwordDialog, appItemManager()->AppHomePage());
+		}
 	}
-	QMetaObject::invokeMethod(m_passwordDialog, "showInWindow", Q_ARG(int, -Qt::AlignCenter));
-
 }
 
 void DBUserModel::checkPassword(const QString &password)
@@ -895,7 +893,7 @@ void DBUserModel::sendFileToUser(const QString &userid, const QString &filename,
 }
 
 int DBUserModel::sendFileToServer(const QString &filename, QFile *upload_file, const QString &successMessage,
-																const QString &subdir, const QString &targetUser, const bool removeLocalFile)
+													const QString &subdir, const QString &targetUser, const bool removeLocalFile)
 {
 	if (!onlineAccount())
 		return -1;
@@ -949,7 +947,7 @@ int DBUserModel::sendFileToServer(const QString &filename, QFile *upload_file, c
 }
 
 int DBUserModel::downloadFileFromServer(const QString &filename, const QString &local_filename, const QString &successMessage,
-																						const QString &subdir, const QString &targetUser)
+																					const QString &subdir, const QString &targetUser)
 {
 	if (!canConnectToServer()) {
 		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_SERVER_UNREACHABLE);
@@ -1353,8 +1351,8 @@ void DBUserModel::loginUser()
 				break;
 			case TP_RET_CODE_WRONG_PASSWORD:
 				*conn = connect(this, &DBUserModel::passwordAcquired, this, [this,conn,requestid]
-																				(const bool proceed, const int id, const QString &passwd) {
-					if (id == requestid) {
+																(const bool proceed, const int request_id, const QString &passwd) {
+					if (request_id == requestid) {
 						disconnect(*conn);
 						if (proceed)
 							checkPassword(passwd);
@@ -1366,7 +1364,7 @@ void DBUserModel::loginUser()
 				{
 				auto conn2{std::make_shared<QMetaObject::Connection>()};
 				*conn2 = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this,
-											[this,conn2,requestid] (const int request_id, const int ret_code, const QString &ret_string) {
+									[this,conn2,requestid] (const int request_id, const int ret_code, const QString &ret_string) {
 					if (request_id == requestid) {
 						disconnect(*conn2);
 						if (ret_code == TP_RET_CODE_SUCCESS) {
@@ -1375,7 +1373,7 @@ void DBUserModel::loginUser()
 						}
 						appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
 											{m_network_msg_title, ret_string}, record_separator), Qt::AlignTop|Qt::AlignHCenter,
-																	ret_code == TP_RET_CODE_CUSTOM_SUCCESS ? "set_separator" : "error");
+																ret_code == TP_RET_CODE_CUSTOM_SUCCESS ? "set_separator" : "error");
 						}
 					});
 					appOnlineServices()->registerUser(requestid);

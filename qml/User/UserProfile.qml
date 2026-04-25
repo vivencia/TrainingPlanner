@@ -26,7 +26,7 @@ ColumnLayout {
 		target: AppUserModel
 		function onUserModified(row: int, field: int): void {
 			if (row === profileModule.userRow) {
-				if (field === 20)
+				if (field === AppUserModel.USER_FIELD_AVATAR)
 					imgAvatar.source = AppUserModel.avatar(profileModule.userRow, false);
 				else
 					profileModule.getUserInfo();
@@ -194,12 +194,12 @@ ColumnLayout {
 	TPImage {
 		id: imgAvatar
 		enabled: profileModule.bReady
-		Layout.minimumWidth: side_size
-		Layout.maximumWidth: side_size
-		Layout.minimumHeight: side_size
-		Layout.maximumHeight: side_size
+		imageSizeFollowControlSize: true
+		fullWindowView: false
+		keepAspectRatio: false
+		Layout.preferredWidth: side_size
+		Layout.preferredHeight: side_size
 		Layout.alignment: Qt.AlignCenter
-		Layout.topMargin: -lblAvatar.height
 
 		readonly property int side_size: AppSettings.itemDefaultHeight * 4
 
@@ -228,7 +228,7 @@ ColumnLayout {
 			Component.onCompleted: chooseAvatarDlgLoader._popup = this;
 		}
 
-		onLoaded: _popup.showInWindow(-Qt.AlignCenter);
+		onLoaded: _popup.tpOpen();
 	}
 	function showAvatarsPopup(): void {
 		chooseAvatarDlgLoader.active = true;

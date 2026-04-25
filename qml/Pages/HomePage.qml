@@ -63,8 +63,6 @@ TPPage {
 		onCurrentIndexChanged: {
 			if (homePage.modelsLoaded && currentIndex >= 0) {
 				const own_meso = currentIndex === 1;
-				homePage.colorLight = own_meso ? AppSettings.primaryColor : AppSettings.primaryDarkColor
-				homePage.colorDark = own_meso ? AppSettings.primaryLightColor : AppSettings.primaryColor
 				homePage.mesosViewChanged(own_meso);
 			}
 		}

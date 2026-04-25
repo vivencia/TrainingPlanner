@@ -10,14 +10,15 @@ TPPopup {
 	keepAbove: true
 	width: AppSettings.pageWidth * 0.75
 	height: AppSettings.pageHeight * 0.3
-	x: (AppSettings.pageWidth - width) / 2
-	finalYPos: (AppSettings.pageHeight - height) / 2
 	backgroundRec: timerBackground
+	configFieldName: "timerDialogPosition"
+	defaultCoordinates: Qt.point((AppSettings.pageWidth - width)/2, (AppSettings.pageHeight - height)/2)
 
 //public:
 	property bool timePickerOnly: false
 	property bool bNegCountDown: false
-	property bool bTextChanged: false //The user changed the input values and clicked USE before starting the timer(if ever). So we use the values provided by he user
+	//The user changed the input values and clicked USE before starting the timer(if ever). So we use the values provided by he user
+	property bool bTextChanged: false
 	property string windowTitle
 	property string initialTime
 
@@ -301,8 +302,7 @@ TPPopup {
 				id: btnStartPause
 				text: mainTimer.active ? qsTr("Pause") : mainTimer.paused ? qsTr("Continue") : qsTr("Start")
 				enabled: !_dlg_timer.timePickerOnly ? mainTimer.stopWatch ? true : mainTimer.totalSeconds > 0 : false
-				Layout.minimumWidth: btnsRow.btnWidth
-				Layout.maximumWidth: btnsRow.btnWidth
+				Layout.preferredWidth: btnsRow.btnWidth
 
 				onClicked: {
 					if (!mainTimer.active)
@@ -316,8 +316,7 @@ TPPopup {
 				id: btnReset
 				text: qsTr("Reset")
 				enabled: !_dlg_timer.timePickerOnly
-				Layout.minimumWidth: btnsRow.btnWidth
-				Layout.maximumWidth: btnsRow.btnWidth
+				Layout.preferredWidth: btnsRow.btnWidth
 
 				onClicked: mainTimer.resetTimer(mainTimer.active);
 			}
@@ -325,8 +324,7 @@ TPPopup {
 			TPButton {
 				id: btnClose
 				text: _dlg_timer.timePickerOnly ? qsTr("Done") : qsTr("Close")
-				Layout.minimumWidth: btnsRow.btnWidth
-				Layout.maximumWidth: btnsRow.btnWidth
+				Layout.preferredWidth: btnsRow.btnWidth
 
 				onClicked: {
 					if (_dlg_timer.timePickerOnly)
@@ -341,17 +339,17 @@ TPPopup {
 		switch (event.key) {
 			case Qt.Key_Enter:
 			case Qt.Key_Return:
-				if (!_dlg_timer.timePickerOnly) {
-					if (btnStartPause.enabled) {
-						btnStartPause.forceActiveFocus();
-						btnStartPause.clicked();
-					}
+			if (!_dlg_timer.timePickerOnly) {
+				if (btnStartPause.enabled) {
+					btnStartPause.forceActiveFocus();
+					btnStartPause.clicked();
 				}
-				else {
-					bTextChanged = true;
-					_dlg_timer.btnClose.forceActiveFocus();
-					_dlg_timer.btnClose.clicked();
-				}
+			}
+			else {
+				bTextChanged = true;
+				_dlg_timer.btnClose.forceActiveFocus();
+				_dlg_timer.btnClose.clicked();
+			}
 			break;
 		}
 	}

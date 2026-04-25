@@ -170,6 +170,7 @@ TPPage {
 					}
 
 					TPRadioButtonOrCheckBox {
+						id: optRestrictedTime
 						text: qsTr("By time of day")
 						buttonGroup: timeConstrainedSessionGroup
 						visible: optTimeConstrainedSession.checked
@@ -202,13 +203,14 @@ TPPage {
 							minutesDisplay: AppUtils.getMinutesFromCurrentTime()
 							bOnlyFutureTime: workoutPage.workoutManager.todaysWorkout ? workoutPage.workoutManager.editMode : false
 							parentPage: workoutPage
+							reference_widget: optRestrictedTime
 							onTimeSet: (hour, minutes) => workoutPage.workoutManager.prepareWorkOutTimer(
-																					AppUtils.getCurrentTimeString(), hour + ":" + minutes);
+																			AppUtils.getCurrentTimeString(), hour + ":" + minutes);
 							onClosed: restrictedTimeLoader.active = false;
 							Component.onCompleted: restrictedTimeLoader._time_picker = this;
 						}
 
-						onLoaded: _time_picker.showInWindow(-Qt.AlignCenter);
+						onLoaded: _time_picker.tpOpen();
 					}
 
 					Row {
@@ -253,12 +255,13 @@ TPPage {
 								hrsDisplay: AppUtils.getHourFromStrTime(txtInTime.text)
 								minutesDisplay: AppUtils.getMinutesFromStrTime(txtInTime.text)
 								parentPage: workoutPage
+								reference_widget: btnInTime
 								onTimeSet: (hour, minutes) => workoutPage.workoutManager.timeIn = hour + ":" + minutes;
 								onClosed: timeInLoader.active = false;
 								Component.onCompleted: timeInLoader._time_picker = this;
 							}
 
-							onLoaded: _time_picker.showInWindow(-Qt.AlignCenter);
+							onLoaded: _time_picker.tpOpen();
 						}
 					}
 
@@ -304,13 +307,14 @@ TPPage {
 								hrsDisplay: AppUtils.getHourFromStrTime(txtOutTime.text)
 								minutesDisplay: AppUtils.getMinutesFromStrTime(txtOutTime.text)
 								parentPage: workoutPage
+								reference_widget: btnOutTime
 								bOnlyFutureTime: workoutPage.workoutManager.todaysWorkout ? workoutPage.workoutManager.editMode : false
 								onTimeSet: (hour, minutes) => workoutPage.workoutManager.timeOut = hour + ":" + minutes;
 								onClosed: timeOutLoader.active = false;
 								Component.onCompleted: timeOutLoader._timer_picker = this;
 							}
 
-							onLoaded: _time_picker.showInWindow(-Qt.AlignCenter);
+							onLoaded: _time_picker.tpOpen();
 						}
 					}
 				} //ColumnLayout
@@ -500,7 +504,7 @@ TPPage {
 				for (let i = 0; i < texts.length; ++i)
 					_prev_workouts_list.append({ "text": texts[i], "value": values[i], "icon": "", "enabled": true });
 			}
-			_options_dlg.showInWindow(-Qt.AlignCenter);
+			_options_dlg.tpOpen();
 		}
 	}
 
@@ -520,7 +524,7 @@ TPPage {
 			Component.onCompleted: sessionLengthLoader._timer_dlg = this;
 		}
 
-		onLoaded: _timer_dlg.showInWindow(-Qt.AlignCenter);
+		onLoaded: _timer_dlg.tpOpen();
 	}
 
 	property TimerDialog dlgSessionLength: null
@@ -641,7 +645,7 @@ TPPage {
 			Component.onCompleted: resetWorkoutDlgLoader._reset_dlg = this;
 		}
 
-		onLoaded: _reset_dlg.showInWindow(-Qt.AlignCenter);
+		onLoaded: _reset_dlg.tpOpen();
 	}
 	function showResetWorkoutDialog(): void {
 		resetWorkoutDlgLoader.active = true;

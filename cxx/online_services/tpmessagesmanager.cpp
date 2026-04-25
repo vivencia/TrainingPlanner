@@ -406,20 +406,19 @@ void TPMessagesManager::parseNewChatMessages(const QString &encoded_messages)
 
 void TPMessagesManager::createChatWindow_part2(TPChat *chat_manager)
 {
-	m_chatWindowProperties["parentPage"_L1] = std::move(QVariant::fromValue(appItemManager()->AppHomePage()));
 	m_chatWindowProperties["chatManager"_L1] = std::move(QVariant::fromValue(chat_manager));
 	QObject *chat_window{m_chatWindowComponent->createWithInitialProperties(m_chatWindowProperties, appQmlEngine()->rootContext())};
-	#ifndef QT_NO_DEBUG
+#ifndef QT_NO_DEBUG
 	if (!chat_window) {
 		qDebug() << m_chatWindowComponent->errorString();
 		return;
 	}
-	#endif
+#endif
 	appQmlEngine()->setObjectOwnership(chat_window, QQmlEngine::CppOwnership);
 	chat_window->setProperty("parent", QVariant::fromValue(appItemManager()->AppHomePage()));
-	QMetaObject::invokeMethod(chat_window, "openInWindow", Q_ARG(int, -Qt::AlignCenter));
 	chat_manager->setChatWindow(chat_window);
 	m_chatWindowList.insert(chat_manager->otherUserId(), chat_window);
+	appPagesListModel()->openPopup(chat_window, appItemManager()->AppHomePage());
 }
 
 void TPMessagesManager::removeChatWindow(const QString &other_userid)

@@ -230,7 +230,7 @@ TPPage {
 				_remove_dlg.title = qsTr("Remove ") + AppUserModel.userName(clientsPage.userRow) + "?";
 			else
 				_remove_dlg.title = qsTr("Decline ") + AppUserModel.userName(AppUserModel.pendingClientsRequests.currentRow) + "?";
-			_remove_dlg.showInWindow(-Qt.AlignCenter);
+			_remove_dlg.tpOpen();
 		}
 	}
 	function showRemoveMessage(decline: bool): void {

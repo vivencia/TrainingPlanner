@@ -8,7 +8,7 @@ set( QML_WIDGETS
 	"TPComboBox.qml"
 	"TPDatePicker.qml"
 	"TPDigitalClock.qml"
-	"TPExportButton.qml"
+
 	"TPFileViewer.qml"
 	"TPLabel.qml"
 	"TPListView.qml"

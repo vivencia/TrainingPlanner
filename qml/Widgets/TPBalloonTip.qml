@@ -6,14 +6,17 @@ import QtQuick.Layouts
 import TpQml
 
 TPPopup {
+	objectName: "TPBalloonTip"
 	id: _balloon
 	keepAbove: false
-	closeButtonVisible: false
 	showTitleBar: false
 	focus: false
+	open_in_window: true
+	enableEffects: false
 	width: AppSettings.pageWidth * 0.8
-	height: mainLayout.childrenRect.height * 1.1
-	disableMouseHandling: !movable
+	height: mainLayout.childrenRect.height
+	mouseItem: movable ? contentItem : null
+	_use_burst_transition: false
 
 //public:
 	property string message: ""
@@ -34,26 +37,16 @@ TPPopup {
 //private:
 	property int finalXPos: 0
 
-	NumberAnimation {
-		id: alternateCloseTransition
-		target: _balloon
-		alwaysRunToEnd: true
-		running: false
-		property: "x"
-		from: _balloon.x
-		to: _balloon.finalXPos
-		duration: 500
-		easing.type: Easing.InOutCubic
-	}
-
 	ColumnLayout {
 		id: mainLayout
-		spacing: 10
+		spacing: 2
+
 		anchors {
 			top: parent.top
 			left: parent.left
 			right: parent.right
-			margins: 5
+			margins: 0
+			topMargin: -10
 		}
 
 		TPLabel {
@@ -62,7 +55,7 @@ TPPopup {
 			useBackground: true
 			horizontalAlignment: Text.AlignHCenter
 			visible: _balloon.title.length > 0
-			Layout.fillWidth: true
+			Layout.preferredWidth: _balloon.width - 10
 		}
 
 		RowLayout {
@@ -99,9 +92,9 @@ TPPopup {
 				horizontalAlignment: Text.AlignHCenter
 				visible: _balloon.message.length > 0
 				Layout.fillWidth: true
-				Layout.preferredHeight: Math.max(contentHeight, _balloon.imageSource.length > 0 ? imgElement.height : 0) + 10
+				Layout.preferredHeight: Math.max(contentHeight, imgElement.height) + 10
 
-				Loader {
+				/*Loader {
 					active: !_balloon.movable
 					asynchronous: true
 					anchors.fill: parent
@@ -127,17 +120,19 @@ TPPopup {
 							prevPos = { x: mouse.x, y: mouse.y };
 						}
 					}
-				} //Loader
+				} *///Loader
 			}
 		}
 
 		RowLayout {
-			visible: _balloon.button1Text.length > 0 || _balloon.button2Text.length > 0
+			visible: _balloon.button1Text.length > 0
 			spacing: empty_space
 			Layout.fillWidth: true
 			Layout.leftMargin: empty_space
+			Layout.preferredHeight: AppSettings.itemDefaultHeight
 
 			readonly property int empty_space: (_balloon.width - btn1.width - btn2.width) / 3
+
 			TPButton {
 				id: btn1
 				text: _balloon.button1Text
@@ -194,35 +189,33 @@ TPPopup {
 		repeat: false
 
 		property bool bCloseOnFinished
-		property int ypos
 
 		onTriggered: {
 			if (bCloseOnFinished)
 				_balloon.closePopup();
 			else
-				_balloon.showInWindow(ypos);
+				_balloon.tpOpen();
 		}
 
-		function delayedOpen(timeout: int, ypos: int): void {
+		function delayedOpen(timeout: int): void {
 			bCloseOnFinished = false;
 			interval = timeout;
-			hideTimer.ypos = ypos;
 			start();
 		}
 
-		function openTimed(timeout: int, ypos: int): void {
+		function openTimed(timeout: int): void {
 			bCloseOnFinished = true;
 			interval = timeout;
 			start();
-			_balloon.showInWindow(ypos);
+			_balloon.tpOpen();
 		}
 	}
 
-	function showTimed(timeout: int, ypos: int): void {
-		hideTimer.openTimed(timeout, ypos);
+	function showTimed(timeout: int): void {
+		hideTimer.openTimed(timeout);
 	}
 
-	function showLate(timeout: int, ypos: int): void {
-		hideTimer.delayedOpen(timeout, ypos);
+	function showLate(timeout: int): void {
+		hideTimer.delayedOpen(timeout);
 	}
 }

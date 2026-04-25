@@ -3,6 +3,7 @@
 SCRIPT_NAME=$(basename "$0")
 USER_NAME=$(whoami)
 NGINX="$(which nginx)"
+SUDO_PASSWORD=""
 
 get_return_code() {
 	LINE=""
@@ -37,12 +38,21 @@ get_passwd() {
             return 1
         fi
     fi
+    SUDO_PASSWORD=$PASSWORD
     return 0
 }
 
 run_as_sudo() {
     if get_passwd; then
         echo "$PASSWORD" | sudo -S "$@" | grep -q "root"
+        return 0
+    fi
+    exit 3
+}
+
+run_as_sudo_detached() {
+    if get_passwd; then
+        bash echo "$PASSWORD" | sudo -S "$@" | grep -q "root" > /dev/null 2>&1 &
         return 0
     fi
     exit 3

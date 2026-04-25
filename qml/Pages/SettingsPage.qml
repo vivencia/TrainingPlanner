@@ -46,7 +46,7 @@ TPPage {
 			Component.onCompleted: restardLoader._dlg = this;
 		}
 
-		onLoaded: _dlg.showTimed(10000, - Qt.AlignHCenter|Qt.AlignTop);
+		onLoaded: _dlg.showTimed(10000, Qt.AlignHCenter|Qt.AlignTop);
 	}
 
 	TPScrollView {

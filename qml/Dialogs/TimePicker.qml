@@ -12,10 +12,9 @@ import "./TimePickerElements"
 TPPopup {
 	id: _timePicker
 	keepAbove: true
+	open_in_window: false
 	width: AppSettings.pageWidth * 0.6
 	height: AppSettings.pageHeight * 0.5
-	x: (AppSettings.pageWidth - width) / 2
-	finalYPos: (AppSettings.pageHeight - height) / 2
 	padding: 0
 
 	onOpened: modified = false;

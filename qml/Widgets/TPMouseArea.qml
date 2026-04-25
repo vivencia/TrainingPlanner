@@ -11,9 +11,10 @@ MouseArea {
 	required property var movableWidget
 	property bool lockMovingToYAxis: false
 
-	signal mouseClicked(MouseEvent mouse);
-	signal moved(int x, int y);
-	signal movingFinished(int x, int y);
+	signal mouseClicked(mouse: MouseEvent)
+	signal mousePressed(mouse: MouseEvent)
+	signal moved(x: int, y: int)
+	signal movingFinished(x: int, y: int)
 
 //private:
 	property point _mouse_pos_within_widget
@@ -34,7 +35,10 @@ MouseArea {
 			mouse.accepted = true;
 		}
 	}
+
 	onClicked: (mouse) => mouse.accepted = false;
+	onPressed: (mouse) => mousePressed(mouse);
+
 	onPressAndHold: (mouse) => {
 		_pressed = true;
 		mouse.accepted = true;
