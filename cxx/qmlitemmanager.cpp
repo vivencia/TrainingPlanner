@@ -450,9 +450,51 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 
 void QmlItemManager::showOnlineMessagesManagerDialog(const bool show)
 {
-	QMetaObject::invokeMethod(appMainWindow(), "showOnlineMessagesDialog", Q_ARG(bool, show));
+	if (m_messagesManagerPopup) {
+		if (show)
+			appPagesListModel()->raisePopup(m_messagesManagerPopup);
+		else
+			appPagesListModel()->hidePopup(m_messagesManagerPopup);
+		appSettings()->setShowOnlineMessagesDialog(show);
+	}
 }
-//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
+
+void QmlItemManager::startMessagesManager()
+{
+	if (!m_messagesManagerComponent) {
+		m_messagesManagerComponent = new QQmlComponent{appQmlEngine(), "TpQml.Dialogs"_L1, "OnlineMessages"_L1, QQmlComponent::Asynchronous};
+		connect(m_messagesManagerComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) { startMessagesManager(); });
+	}
+	else {
+		if (!m_messagesManagerPopup) {
+			switch (m_messagesManagerComponent->status()) {
+			case QQmlComponent::Ready:
+				m_messagesManagerComponent->disconnect();
+				m_messagesManagerPopup = m_messagesManagerComponent->create(appQmlEngine()->rootContext());
+#ifndef QT_NO_DEBUG
+				if (!m_messagesManagerPopup) {
+					qDebug() << m_messagesManagerComponent->errorString();
+					return;
+				}
+#endif
+				appQmlEngine()->setObjectOwnership(m_messagesManagerPopup, QQmlEngine::CppOwnership);
+				m_messagesManagerPopup->setProperty("parent", QVariant::fromValue(m_homePage));
+				startMessagesManager();
+				break;
+			case QQmlComponent::Loading:
+				return;
+			case QQmlComponent::Null:
+			case QQmlComponent::Error:
+#ifndef QT_NO_DEBUG
+				qDebug() << m_messagesManagerComponent->errorString();
+#endif
+				return;
+			}
+		}
+		else
+			AppPagesManager()->openPopup(m_messagesManagerPopup, m_homePage, Qt::AlignBaseline);
+	}
+}
 
 //-----------------------------------------------------------SLOTS-----------------------------------------------------------
 void QmlItemManager::openTPFile(uint32_t tp_filetype, const QString &filename, const bool formatted, const QVariant &extra_info)

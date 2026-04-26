@@ -210,16 +210,24 @@ void PagesListModel::openPopup(QObject *popup, QQuickItem *parentPage, const int
 void PagesListModel::raisePopup(QObject* popup)
 {
 	pageInfo *page_info{getPageInfo(popup)};
-	if (page_info && page_info->tpPopups.count() > 1) {
-		const auto z_order{page_info->tpPopups.indexOf(popup)};
-		if (z_order >= 0 && z_order < page_info->tpPopups.count() - 1) {
-			auto i{-1};
-			for (const auto pop_up : std::as_const(page_info->tpPopups) | std::views::drop(z_order + 1))
-				pop_up->setProperty("z", z_order + ++i);
+	if (page_info) {
+		if (popup != page_info->tpPopups.constLast()) {
+			changePopupStackOrder(popup, page_info);
 			popup->setProperty("z", page_info->tpPopups.count() - 1);
+			const auto z_order{page_info->tpPopups.indexOf(popup)};
 			page_info->tpPopups.move(z_order, page_info->tpPopups.count() - 1);
+			popup->setProperty("visible", true);
 			QMetaObject::invokeMethod(popup, "forceActiveFocus");
 		}
+	}
+}
+
+void PagesListModel::hidePopup(QObject *popup)
+{
+	pageInfo *page_info{getPageInfo(popup)};
+	if (page_info) {
+		changePopupStackOrder(popup, page_info);
+		popup->setProperty("visible", false);
 	}
 }
 
@@ -251,12 +259,7 @@ void PagesListModel::popupClosed(QObject* popup)
 		pageInfo *page_info{getPageInfo(popup)};
 		if (page_info) {
 			page_info->tpPopups.removeOne(popup);
-			const int z_order{popup->property("z").toInt()};
-			if (z_order >= 0 && z_order < page_info->tpPopups.count() - 1) {
-				int i{-1};
-				for (const auto pop_up : std::as_const(page_info->tpPopups) | std::views::drop(z_order))
-					pop_up->setProperty("z", z_order + ++i);
-			}
+			changePopupStackOrder(popup, page_info);
 		}
 	}
 }
@@ -341,3 +344,14 @@ void PagesListModel::deActivateQmlPage(const uint index)
 		QMetaObject::invokeMethod(popup, "tpClose");
 	QMetaObject::invokeMethod(m_pagesData.at(index)->page, "pageDeActivated");
 }
+
+void PagesListModel::changePopupStackOrder(QObject *popup, pageInfo *page_info)
+{
+	const auto z_order{page_info->tpPopups.indexOf(popup)};
+	if (z_order >= 0 && z_order < page_info->tpPopups.count() - 1) {
+		int i{-1};
+		for (const auto pop_up : std::as_const(page_info->tpPopups) | std::views::drop(z_order + 1))
+			pop_up->setProperty("z", z_order + ++i);
+	}
+}
+

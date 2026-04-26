@@ -12,10 +12,11 @@ TPPopup {
 	showTitleBar: false
 	focus: false
 	open_in_window: true
-	enableEffects: false
 	width: AppSettings.pageWidth * 0.8
 	height: mainLayout.childrenRect.height
 	mouseItem: movable ? contentItem : null
+	canSlideToClose: true
+	useShape: true
 	_use_burst_transition: false
 
 //public:
@@ -29,7 +30,7 @@ TPPopup {
 	property string subImageLabel: ""
 	property bool highlightMessage: false
 	property bool imageEnabled: true
-	property bool movable: false
+	property bool movable: true
 
 	signal button1Clicked();
 	signal button2Clicked();

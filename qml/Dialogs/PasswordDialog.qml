@@ -11,8 +11,11 @@ TPPopup {
 	dim: true
 	width: AppSettings.pageWidth * 0.8
 	height: mainLayout.childrenRect.height * 1.1
-	enableEffects: false
+	useShape: true
+	showBorder: true
+	showTitleBar: true
 	open_in_window: true
+	canSlideToClose: true
 
 //public:
 	property string title

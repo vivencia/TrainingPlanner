@@ -17,18 +17,21 @@ Popup {
 //public:
 	property TPPage parentPage
 	property bool keepAbove: false
-	property bool closeButtonVisible: true
-	property bool showTitleBar: true
-	property bool enableEffects: true
+	property bool showTitleBar: false
+	property bool closeButtonVisible: showTitleBar
+	property bool enableEffects: false
 	property bool lockMovingToYAxis: false
-	property bool showBorder: !enableEffects
-	property bool useGradient: true
-	property double titleBarOpacity: 1
-	property TPBackRec backgroundRec: null
+	property bool showBorder: false
+	property bool useGradient: false
+	property bool useShape: false
+	property bool canSlideToClose: false
+	property bool useAlternateBackground: false
 	property string backGroundImage
 	property string configFieldName
-	property point defaultCoordinates
 	property string defaultBackgroundColor: AppSettings.paneBackgroundColor
+	property point defaultCoordinates
+	property double titleBarOpacity: 0.8
+	property TPBackRec backgroundRec
 	property Item mouseItem
 
 	signal popupClosed(popup: QtObject);
@@ -48,52 +51,16 @@ Popup {
 
 //private:
 	property bool _use_burst_transition: true
+	property bool _use_alternate_transition: false
 	property int _start_y_pos; property int _end_y_pos
 	property int _start_x_pos; property int _end_x_pos
 	property int _key_pressed
-	readonly property Transition _transition_in: _use_burst_transition ? burstOutTransition : slideInTransition
-	readonly property Transition _transition_out: _use_burst_transition ? burstInTransition : slideOutTransition
+	readonly property Transition _transition_in: !_use_alternate_transition ? (_use_burst_transition ? burstOutTransition : slideInTransition) : alternateCloseTransition
+	readonly property Transition _transition_out: !_use_alternate_transition ? (_use_burst_transition ? burstInTransition : slideOutTransition) : alternateCloseTransition
 	readonly property int titleBarHeight: AppSettings.itemDefaultHeight + 5
 
 	enter: _transition_in
 	exit: _transition_out
-
-	onClosed: {
-		if (modal || keepAbove)
-			popupClosed(this);
-	}
-
-	onParentPageChanged: global_popup = parentPage ? parentPage === ItemManager.AppHomePage() : false;
-
-	onMouseItemChanged: createMouseArea();
-	Component.onCompleted: createMouseArea();
-
-	Loader {
-		active: _control.backgroundRec === null
-		asynchronous: true
-
-		TPBackRec {
-			id: _backRec
-			useGradient: _control.useGradient
-			useImage: _control.backGroundImage.length > 0
-			sourceImage: _control.backGroundImage
-			backColor: _control.defaultBackgroundColor
-			showBorder: _control.showBorder
-			enableShadow: _control.enableEffects
-			implicitWidth: _control.width
-			implicitHeight: _control.height
-			radius: 8
-
-			Component.onCompleted: _control.backgroundRec = this;
-		}
-	}
-
-	background: backgroundRec
-
-	Timer {
-		id: keyPressTimer
-		interval: 800
-	}
 
 	contentItem {
 		Keys.onPressed: (event) => {
@@ -119,6 +86,43 @@ Popup {
 		}
 	}
 
+	onClosed: {
+		if (modal || keepAbove)
+			popupClosed(this);
+	}
+
+	onParentPageChanged: global_popup = parentPage ? parentPage === ItemManager.AppHomePage() : false;
+
+	onMouseItemChanged: createMouseArea();
+	Component.onCompleted: createMouseArea();
+
+	Loader {
+		active: !_control.useAlternateBackground
+		asynchronous: true
+
+		TPBackRec {
+			useGradient: _control.useGradient
+			useShape: _control.useShape
+			useImage: _control.backGroundImage.length > 0
+			sourceImage: _control.backGroundImage
+			backColor: _control.defaultBackgroundColor
+			showBorder: _control.showBorder
+			enableShadow: _control.enableEffects
+			implicitWidth: _control.width
+			implicitHeight: _control.height
+			radius: 8
+
+			Component.onCompleted: {_control.backgroundRec = this; console.log(_control.objectName)}
+		}
+	}
+
+	background: backgroundRec
+
+	Timer {
+		id: keyPressTimer
+		interval: 800
+	}
+
 	Loader {
 		id: titleBarLoader
 		asynchronous: false
@@ -126,6 +130,7 @@ Popup {
 
 		anchors {
 			top: parent.top
+			topMargin: 2
 			left: parent.left
 			right: parent.right
 		}
@@ -256,6 +261,21 @@ Popup {
 		}
 	}
 
+	Transition {
+		id: alternateCloseTransition
+		property int finalPos
+		property string property_name
+
+		NumberAnimation {
+			alwaysRunToEnd: true
+			running: false
+			property: alternateCloseTransition.property_name
+			to: alternateCloseTransition.finalPos
+			duration: 300
+			easing.type: Easing.OutQuad
+		}
+	}
+
 	function realPageY(): int {
 		return global_popup ? 0 : parentPage ? parentPage.mapToGlobal(Qt.point(parentPage.y, 0)).y : 0;
 	}
@@ -278,12 +298,14 @@ Popup {
 			let component = Qt.createComponent("TpQml.Widgets", TPMouseArea, Qt.Asynchronous);
 
 			function finishCreation() {
-				console.log(_control.objectName);
 				mouse_area = component.createObject(_control.mouseItem, { enabled: _control.enabled, movableWidget: _control,
-												movingWidget: _control.mouseItem, lockMovingToYAxis: _control.lockMovingToYAxis });
+														slideToClose: _control.canSlideToClose, movingWidget: _control.mouseItem,
+																					lockMovingToYAxis: _control.lockMovingToYAxis });
 				mouse_area.mousePressed.connect(mouseAreaPressed);
 				mouse_area.movingFinished.connect(mouseAreaMovingFinished);
 				mouse_area.mouseClicked.connect(mouseItemClicked);
+				if (canSlideToClose)
+					mouse_area.slideOutToSide.connect(mouseAreaSlide);
 				_control._creating = false;
 			}
 			function checkComponentStatus() {
@@ -319,6 +341,30 @@ Popup {
 
 	function mouseAreaPressed(mouse: MouseEvent): void {
 		ItemManager.AppPagesManager.raisePopup(_control);
+	}
+
+	function mouseAreaSlide(side: int): void {
+		_use_alternate_transition = true;
+		switch (side) {
+		case TPMouseArea.MA_LEFT:
+			alternateCloseTransition.finalPos = -width;
+			alternateCloseTransition.property_name = "x";
+			break;
+		case TPMouseArea.MA_RIGHT:
+			alternateCloseTransition.finalPos = AppSettings.windowWidth;
+			alternateCloseTransition.property_name = "x";
+			break;
+		case TPMouseArea.MA_TOP:
+			alternateCloseTransition.finalPos = 0;
+			alternateCloseTransition.property_name = "y";
+			break;
+		case TPMouseArea.MA_BOTTOM:
+			alternateCloseTransition.finalPos = AppSettings.windowHeight;
+			alternateCloseTransition.property_name = "y";
+			break;
+		}
+		closePopup();
+		_use_alternate_transition = false;
 	}
 
 	function tpopen__(): void {

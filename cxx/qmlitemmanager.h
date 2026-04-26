@@ -61,6 +61,8 @@ public:
 		displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, message.isEmpty() ? tr("Text copied to the clipboard") : message);
 	}
 
+	void startMessagesManager();
+
 	Q_INVOKABLE DBExercisesModel *workoutModel() const { return m_workout_model; }
 	DBExercisesModel *m_workout_model;
 
@@ -92,9 +94,9 @@ public slots:
 private:
 	QmlExercisesDatabaseInterface *m_exercisesListManager{nullptr};
 	QQmlComponent *m_simpleExercisesListComponent{nullptr}, *m_weatherComponent{nullptr}, *m_statisticsComponent{nullptr},
-														*m_firstTimeDlgComponent{nullptr}, *m_generalMessagesPopupComponent{nullptr};
+			*m_firstTimeDlgComponent{nullptr}, *m_generalMessagesPopupComponent{nullptr}, *m_messagesManagerComponent{nullptr};
 	QQuickItem *m_homePage{nullptr}, *m_appPagesVisualParent{nullptr}, *m_weatherPage{nullptr}, *m_statisticsPage{nullptr};
-	QObject *m_simpleExercisesList{nullptr}, *m_firstTimeDlg{nullptr}, *m_generalMessagesPopup{nullptr};
+	QObject *m_simpleExercisesList{nullptr}, *m_firstTimeDlg{nullptr}, *m_generalMessagesPopup{nullptr}, *m_messagesManagerPopup{nullptr};
 	QVariantMap m_simpleExercisesListProperties, m_generalMessagesPopupProperties;
 	QList<st_generalMessage*> m_messagesQueue;
 	bool m_canDisplayMessage{false};

@@ -156,7 +156,7 @@ ApplicationWindow {
 			anchors.left: txtDummy.right
 			anchors.top: txtDummy.top
 			onClicked: {
-				passwd.tpOpen();
+				ItemManager.AppPagesManager.openPopup(passwd, homePage);
 				//_control.showByWidget();
 				//menu.reference_widget = null;
 				//menu.showIndicator = true;

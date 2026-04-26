@@ -1120,17 +1120,17 @@
 <context>
     <name>FirstTimeDialog</name>
     <message>
-        <location filename="../qml/Dialogs/FirstTimeDialog.qml" line="108"/>
+        <location filename="../qml/Dialogs/FirstTimeDialog.qml" line="107"/>
         <source>Previous</source>
         <translation>Anterior</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/FirstTimeDialog.qml" line="126"/>
+        <location filename="../qml/Dialogs/FirstTimeDialog.qml" line="125"/>
         <source>Next</source>
         <translation>Próximo</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/FirstTimeDialog.qml" line="126"/>
+        <location filename="../qml/Dialogs/FirstTimeDialog.qml" line="125"/>
         <source>Conclude</source>
         <translation>Concluir</translation>
     </message>
@@ -1164,7 +1164,7 @@
 <context>
     <name>Main</name>
     <message>
-        <location filename="../qml/Main.qml" line="190"/>
+        <location filename="../qml/Main.qml" line="178"/>
         <source>Import </source>
         <translation>Importar </translation>
     </message>
@@ -1172,7 +1172,7 @@
 <context>
     <name>MainMenu</name>
     <message>
-        <location filename="../qml/Dialogs/MainMenu.qml" line="269"/>
+        <location filename="../qml/Dialogs/MainMenu.qml" line="266"/>
         <source>Exit</source>
         <translation>Sair</translation>
     </message>
@@ -1581,17 +1581,17 @@
 <context>
     <name>OnlineMessages</name>
     <message>
-        <location filename="../qml/Dialogs/OnlineMessages.qml" line="126"/>
+        <location filename="../qml/Dialogs/OnlineMessages.qml" line="127"/>
         <source>Messages</source>
         <translation>Mensagens</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OnlineMessages.qml" line="164"/>
+        <location filename="../qml/Dialogs/OnlineMessages.qml" line="165"/>
         <source>No messages</source>
         <translation>Nenhuma mensagem</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OnlineMessages.qml" line="420"/>
+        <location filename="../qml/Dialogs/OnlineMessages.qml" line="421"/>
         <source>Chat with ...</source>
         <translation>Conversar com ...</translation>
     </message>
@@ -1604,22 +1604,22 @@
         <translation>Página Inicial</translation>
     </message>
     <message>
-        <location filename="../cxx/pageslistmodel.cpp" line="288"/>
+        <location filename="../cxx/pageslistmodel.cpp" line="291"/>
         <source>Exit</source>
         <translation>Sair</translation>
     </message>
     <message>
-        <location filename="../cxx/pageslistmodel.cpp" line="289"/>
+        <location filename="../cxx/pageslistmodel.cpp" line="292"/>
         <source>Are you sure you want to leave?</source>
         <translation>Tem certeza de que deseja sair?</translation>
     </message>
     <message>
-        <location filename="../cxx/pageslistmodel.cpp" line="289"/>
+        <location filename="../cxx/pageslistmodel.cpp" line="292"/>
         <source>Yes</source>
         <translation>Sim</translation>
     </message>
     <message>
-        <location filename="../cxx/pageslistmodel.cpp" line="289"/>
+        <location filename="../cxx/pageslistmodel.cpp" line="292"/>
         <source>No</source>
         <translation>Não</translation>
     </message>
@@ -1627,7 +1627,7 @@
 <context>
     <name>PasswordDialog</name>
     <message>
-        <location filename="../qml/Dialogs/PasswordDialog.qml" line="96"/>
+        <location filename="../qml/Dialogs/PasswordDialog.qml" line="99"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>
@@ -1798,57 +1798,57 @@
         <translation>Previsão do Tempo</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="492"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="534"/>
         <source>data for a new coach</source>
         <translation>dados para um novo treinador</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="492"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="534"/>
         <source>data for a new client</source>
         <translation>dados para um novo cliente</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="498"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="540"/>
         <source>program</source>
         <translation>programa</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="499"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="541"/>
         <source>A complete exercises program from coach </source>
         <translation>Um programa de exercícios completos pelo treinador </translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="511"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="553"/>
         <source>workout</source>
         <translation>treino</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="512"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="554"/>
         <source>An extra workout from </source>
         <translation>Um treino extra de </translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="512"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="554"/>
         <source> for the program: </source>
         <translation> para o programa: </translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="513"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="555"/>
         <source> for the next time you train </source>
         <translation> para a próxima vez que você for treinar </translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="519"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="561"/>
         <source>Excercise Description</source>
         <translation>Descrição do Exercício</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="520"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="562"/>
         <source>A new exercise for the exercises database from </source>
         <translation>Um novo exercício para o bando de dados de </translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="606"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="648"/>
         <source>Statistics</source>
         <translation>Estatísticas</translation>
     </message>
@@ -2206,12 +2206,12 @@
 <context>
     <name>TPBalloonTip</name>
     <message>
-        <location filename="../qml/Widgets/TPBalloonTip.qml" line="24"/>
+        <location filename="../qml/Widgets/TPBalloonTip.qml" line="25"/>
         <source>Yes</source>
         <translation>Sim</translation>
     </message>
     <message>
-        <location filename="../qml/Widgets/TPBalloonTip.qml" line="25"/>
+        <location filename="../qml/Widgets/TPBalloonTip.qml" line="26"/>
         <source>No</source>
         <translation>Não</translation>
     </message>

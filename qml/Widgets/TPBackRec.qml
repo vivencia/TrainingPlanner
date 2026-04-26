@@ -79,6 +79,7 @@ Rectangle {
 		active: _control.useShape
 		asynchronous: true
 		anchors.fill: parent
+		anchors.margins: 2
 
 		sourceComponent: Shape {
 			id: _shape
@@ -107,14 +108,14 @@ Rectangle {
 		asynchronous: false
 		active: _control.enableShadow
 		anchors.fill: _control
-		anchors.leftMargin: -8
-		anchors.topMargin: -8
+		anchors.leftMargin: -5
+		anchors.topMargin: -5
 
 		sourceComponent: RectangularShadow {
-			offset.x: 8
-			offset.y: 8
+			offset.x: 5
+			offset.y: 5
 			radius: _control.radius
-			spread: 8
+			spread: 5
 			color: Qt.darker(_control.color, 1.6)
 		}
 	}

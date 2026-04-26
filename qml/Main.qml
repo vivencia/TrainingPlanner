@@ -20,7 +20,6 @@ ApplicationWindow {
 
 	signal saveFileChosen(filepath: string);
 	signal tpFileOpenInquiryResult(do_import: bool);
-	signal showOnlineMessagesDialog(show: bool);
 
 	header: Loader {
 		id: navBar
@@ -47,17 +46,6 @@ ApplicationWindow {
 			mainMenuLoader.mainMenu.open();
 		else
 			mainMenuLoader.mainMenu.close();
-	}
-
-	Loader {
-		id: messagesManagerLoader
-		asynchronous: true
-		active: AppUserModel.mainUserConfigured && AppUserModel.onlineAccount
-
-		sourceComponent: OnlineMessages {
-			parentPage: homePage
-			Component.onCompleted: mainwindow.showOnlineMessagesDialog.connect(showOrHide);
-		}
 	}
 
 	HomePage {

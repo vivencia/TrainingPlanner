@@ -118,7 +118,7 @@ void DBUserModel::initUserSession()
 			appItemManager()->showFirstTimeDialog();
 		else {
 			if (onlineAccount()) {
-				appItemManager()->showOnlineMessagesManagerDialog(appSettings()->showOnlineMessagesDialog());
+				appItemManager()->startMessagesManager();
 				if (!appWSServer())
 					new ChatWSServer{userId(0), this};
 				if (!appMessagesManager())

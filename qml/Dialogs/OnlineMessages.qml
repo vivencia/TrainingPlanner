@@ -9,9 +9,9 @@ import TpQml.Widgets
 import TpQml.User
 
 TPPopup {
+	objectName: "onlineMessages"
 	id: onlineMsgsDlg
 	keepAbove: true
-	showTitleBar: false
 	width: savedSize.width
 	height: savedSize.height
 	backGroundImage: ":/images/backgrounds/backimage-messages.jpg"
@@ -19,21 +19,16 @@ TPPopup {
 	configFieldName: "onlineMessagesDialogPosition"
 	defaultCoordinates: Qt.point(AppSettings.pageWidth - 80, realPageY() + 180)
 	mouseItem: fullDialogVisible ? topBar : mainIcon
+	useAlternateBackground: !fullDialogVisible
+	backgroundRec: fullDialogVisible ? null : transparentBackground
 
-//private
+//private:
 	property bool fullDialogVisible: savedSize.width > mainIcon.width
 	property int mainIconUserDefinedX: x
 	property int mainIconUserDefinedY: y
 	readonly property int dlgMaxWidth: AppSettings.pageWidth * 0.8
 	readonly property int maxHeight: AppSettings.pageHeight * 0.5
 	readonly property size savedSize: AppSettings.getCustomValue("onlineMessagesDialogSize", Qt.size(mainIcon.width, mainIcon.height))
-
-	function showOrHide(show: bool): void {
-		if (show)
-			tpOpen();
-		else
-			close();
-	}
 
 	onMouseItemClicked: (mouse) => {
 		if (fullDialogVisible) {
@@ -76,9 +71,10 @@ TPPopup {
 			onlineMsgsDlg.y = onlineMsgsDlg.mainIconUserDefinedY;
 			onlineMsgsDlg.fullDialogVisible = false;
 			AppSettings.setCustomValue("onlineMessagesDialogSize", Qt.size(onlineMsgsDlg.width, onlineMsgsDlg.height));
-			AppSettings.setCustomValue("onlineMessagesDialogPosition", Qt.point(onlineMsgsDlg.x, onlineMsgsDlg.y));
+			AppSettings.setCustomValue(onlineMsgsDlg.configFieldName, Qt.point(onlineMsgsDlg.x, onlineMsgsDlg.y));
 		}
 	}
+
 	ParallelAnimation {
 		id: expand
 		alwaysRunToEnd: true
@@ -88,7 +84,7 @@ TPPopup {
 			property: "width"
 			to: onlineMsgsDlg.dlgMaxWidth
 			duration: 200
-			easing.type: Easing.OutQuad
+			easing.type: Easing.InQuad
 		}
 
 		PropertyAnimation {
@@ -96,7 +92,7 @@ TPPopup {
 			property: "height"
 			to: topBar.height + mainLayout.height
 			duration: 200
-			easing.type: Easing.OutQuad
+			easing.type: Easing.InQuad
 		}
 
 		onFinished: {
@@ -104,8 +100,13 @@ TPPopup {
 				onlineMsgsDlg.x = AppSettings.pageWidth - onlineMsgsDlg.width - 10;
 			onlineMsgsDlg.fullDialogVisible = true;
 			AppSettings.setCustomValue("onlineMessagesDialogSize", Qt.size(onlineMsgsDlg.width, onlineMsgsDlg.height));
-			AppSettings.setCustomValue("onlineMessagesDialogPosition", Qt.point(onlineMsgsDlg.x, onlineMsgsDlg.y));
+			AppSettings.setCustomValue(onlineMsgsDlg.configFieldName, Qt.point(onlineMsgsDlg.x, onlineMsgsDlg.y));
 		}
+	}
+
+	TPBackRec {
+		id: transparentBackground
+		backColor: "transparent"
 	}
 
 	TPImage {

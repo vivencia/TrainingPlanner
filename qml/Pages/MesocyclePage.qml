@@ -35,7 +35,7 @@ TPPage {
 			button1Text: ""
 			button2Text: ""
 			keepAbove: true
-			movable: true
+			movable: false
 
 			onClosed: requiredFieldsMissingLoader.active = false;
 		}

@@ -17,7 +17,6 @@ TPPopup {
 
 	readonly property int minimumHeight: AppSettings.windowHeight * 0.5
 	property bool nextStartsTheApp: false
-	property alias parentPage: _parent_page
 
 	StackLayout {
 		id: stackLayout

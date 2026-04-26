@@ -47,6 +47,7 @@ public:
 
 	Q_INVOKABLE void openPopup(QObject *popup, QQuickItem *parentPage, const int position = Qt::AlignCenter, QQuickItem *widget = nullptr);
 	Q_INVOKABLE void raisePopup(QObject *popup);
+	Q_INVOKABLE void hidePopup(QObject *popup);
 	Q_INVOKABLE bool isPopupAboveAllOthers(QObject *popup) const;
 
 	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
@@ -86,6 +87,8 @@ private:
 	void openQMLPage(const uint index);
 	void activateQmlPage(const uint index);
 	void deActivateQmlPage(const uint index);
+	void changePopupStackOrder(QObject *popup, pageInfo *page_info);
+
 	#ifndef Q_OS_ANDROID
 	static QHash<QString,PagesListModel*> app_Pages_list_models;
 	#else
