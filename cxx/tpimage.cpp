@@ -77,19 +77,23 @@ void TPImage::setSource(const QString &source)
 				return;
 			}
 			else {
-				if (source.endsWith("png"_L1)) {
-					m_canColorize = true;
-					m_source = std::move(":/images/flat/"_L1 % source);
+				if (!source.contains('.')) {
+					if (source.endsWith('_'))
+						m_source = std::move(":/images/"_L1 % source % appSettings()->indexColorSchemeToColorSchemeName() % ".png"_L1);
+					else
+						m_source = std::move(":/images/"_L1 % source % ".png"_L1);
 				}
-				else if (source.endsWith("svg"_L1)) {
-					m_canColorize = true;
-					m_dropShadow = false;
-					m_source = std::move(":/images/"_L1 % source);
+				else {
+					if (source.endsWith("png"_L1)) {
+						m_canColorize = true;
+						m_source = std::move(":/images/flat/"_L1 % source);
+					}
+					else if (source.endsWith("svg"_L1)) {
+						m_canColorize = true;
+						m_dropShadow = false;
+						m_source = std::move(":/images/"_L1 % source);
+					}
 				}
-				else if (source.endsWith('_'))
-					m_source = std::move(":/images/"_L1 % source % appSettings()->indexColorSchemeToColorSchemeName() % ".png"_L1);
-				else
-					m_source = std::move(":/images/"_L1 % source % ".png"_L1);
 			}
 			if (m_image.load(m_source)) {
 				scaleImage();

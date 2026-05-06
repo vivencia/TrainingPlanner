@@ -10,6 +10,7 @@ Popup {
 	id: _control
 	closePolicy: keepAbove ? Popup.NoAutoClose : Popup.CloseOnPressOutside
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
+	visible: visibilityCondition
 	spacing: 0
 	topPadding: 0
 	topInset: 0
@@ -26,6 +27,7 @@ Popup {
 	property bool useShape: false
 	property bool canSlideToClose: false
 	property bool useAlternateBackground: false
+	property bool visibilityCondition: false
 	property string backGroundImage
 	property string configFieldName
 	property string defaultBackgroundColor: AppSettings.paneBackgroundColor
@@ -43,7 +45,7 @@ Popup {
 //protected:
 	property TPButton btnClose
 	property TPBackRec titleBar
-	property bool global_popup: false
+	property bool globalPopup: false
 	property bool open_in_window: false
 	property Item reference_widget: null
 	property int show_position: Qt.AlignCenter
@@ -52,6 +54,7 @@ Popup {
 //private:
 	property bool _use_burst_transition: true
 	property bool _use_alternate_transition: false
+	property bool _hidden: false
 	property int _start_y_pos; property int _end_y_pos
 	property int _start_x_pos; property int _end_x_pos
 	property int _key_pressed
@@ -87,11 +90,9 @@ Popup {
 	}
 
 	onClosed: {
-		if (modal || keepAbove)
+		if (!_hidden && (modal || keepAbove))
 			popupClosed(this);
 	}
-
-	onParentPageChanged: global_popup = parentPage ? parentPage === ItemManager.AppHomePage() : false;
 
 	onMouseItemChanged: createMouseArea();
 	Component.onCompleted: createMouseArea();
@@ -277,7 +278,7 @@ Popup {
 	}
 
 	function realPageY(): int {
-		return global_popup ? 0 : parentPage ? parentPage.mapToGlobal(Qt.point(parentPage.y, 0)).y : 0;
+		return parentPage === ItemManager.AppHomePage() ? 0 : parentPage ? parentPage.mapToGlobal(Qt.point(parentPage.y, 0)).y : 0;
 	}
 
 	function closePopup(): void {
@@ -378,8 +379,24 @@ Popup {
 		}
 	}
 
+	function tpQmlOpen(parent_page: TPPage): void {
+		ItemManager.AppPagesManager.openPopup(this, parent_page, show_position);
+	}
+
 	function tpOpen(): void {
 		tpopen__();
+	}
+
+	function hide(): void {
+		if (!globalPopup) {
+			_hidden = true;
+			visible = false;
+		}
+	}
+
+	function restore(): void {
+		_hidden = false;
+		visible = Qt.binding(function() { return _control.visibilityCondition; });
 	}
 
 	function showInWindow(): void {
@@ -423,7 +440,7 @@ Popup {
 	}
 
 	function showByWidget(): void {
-		const point = reference_widget.parent.mapToItem(parent, reference_widget.x, reference_widget.y);
+		const point = reference_widget.parent.mapToItem(parentPage, reference_widget.x, reference_widget.y);
 
 		switch (show_position) {
 		case Qt.AlignTop:

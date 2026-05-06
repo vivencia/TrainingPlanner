@@ -183,9 +183,9 @@ void DBUserModel::setOnlineAccount(const bool online_user, const uint user_idx)
 	if (user_idx == 0 && mainUserConfigured()) {
 		if (onlineAccount(user_idx) && !online_user) {
 			auto conn{std::make_shared<QMetaObject::Connection>()};
-			*conn = connect(appItemManager(), &QmlItemManager::generalMessagesPopupClicked, this, [this,conn] (const uint8_t button_idx) {
+			*conn = connect(appItemManager(), &QmlItemManager::generalMessagesPopupClicked, this, [this,conn] (const uint8_t button) {
 				disconnect(*conn);
-				if (button_idx == 1)
+				if (button == 1)
 					unregisterUser();
 			});
 			QString message{tr("If you remove your online account you'll not be able to log onto it anymore from any device.")};
@@ -418,9 +418,9 @@ void DBUserModel::setAppUseMode(const int user_idx, const int new_use_opt)
 				if (new_use_opt != USEMODE_SINGLE_COACH && new_use_opt != USEMODE_COACH_USER_WITH_COACH) {
 					auto conn{std::make_shared<QMetaObject::Connection>()};
 					*conn = connect(appItemManager(), &QmlItemManager::generalMessagesPopupClicked, this, [this,conn,new_use_opt]
-																												(const uint8_t button_idx) {
+																												(const uint8_t button) {
 						disconnect(*conn);
-						if (button_idx == 1)
+						if (button == 1)
 							revokeCoachStatus(new_use_opt);
 					});
 					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
@@ -433,9 +433,9 @@ void DBUserModel::setAppUseMode(const int user_idx, const int new_use_opt)
 				if (new_use_opt == USEMODE_SINGLE_COACH) {
 					auto conn{std::make_shared<QMetaObject::Connection>()};
 					*conn = connect(appItemManager(), &QmlItemManager::generalMessagesPopupClicked, this, [this,conn,new_use_opt]
-																												(const uint8_t button_idx) {
+																												(const uint8_t button) {
 						disconnect(*conn);
-						if (button_idx == 1)
+						if (button == 1)
 							revokeClientStatus(new_use_opt);
 					});
 					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
@@ -1871,9 +1871,9 @@ void DBUserModel::pollCurrentClients()
 						if (appUseMode(i) == USEMODE_PENDING_CLIENT)
 							continue;
 						*conn = connect(appItemManager(), &QmlItemManager::generalMessagesPopupClicked, this, [this,conn,i]
-																												(const uint8_t button_idx) {
+																												(const uint8_t button) {
 							disconnect(*conn);
-							if (button_idx == 1)
+							if (button == 1)
 								removeUser(i);
 						});
 						appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(

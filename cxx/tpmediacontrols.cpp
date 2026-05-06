@@ -7,6 +7,7 @@
 constexpr QLatin1StringView all_controls_source{":/images/media_controls.png"};
 constexpr int16_t src_control_image_width{323};
 constexpr int16_t src_control_image_height{323};
+constexpr int8_t buttons_padding{5};
 
 QImage TPMediaControls::img_all_controls{};
 
@@ -16,9 +17,9 @@ TPMediaControls::TPMediaControls(QQuickItem *parent) : QQuickPaintedItem{parent}
 		img_all_controls.load(all_controls_source);
 	setAcceptTouchEvents(true);
 	setAcceptedMouseButtons(Qt::LeftButton);
-	connect(this, &TPMediaControls::widthChanged, this, [this] { createControls(); });
-	connect(this, &TPMediaControls::heightChanged, this, [this] { createControls(); });
 	m_pressedColor.fromString(appSettings()->primaryColor());
+	m_buttonSize.rwidth() = appSettings()->itemDefaultHeight();
+	m_buttonSize.rheight() = appSettings()->itemDefaultHeight();
 	switch (appSettings()->colorScheme()) {
 	case TPSettings::Blue:
 		m_pressedColor.setRgb(0, 0, m_pressedColor.blue());
@@ -35,7 +36,7 @@ TPMediaControls::TPMediaControls(QQuickItem *parent) : QQuickPaintedItem{parent}
 
 void TPMediaControls::paint(QPainter *painter)
 {
-	if (painter->clipBoundingRect().width() == m_controlSize.width() && m_currentControl)
+	if (painter->clipBoundingRect().width() == m_buttonSize.width() && m_currentControl)
 		painter->drawImage(painter->clipBoundingRect(), *(m_currentControl->current_image));
 	else {
 		for (const auto &ci : std::as_const(m_controls))
@@ -49,11 +50,15 @@ void TPMediaControls::setFileOps(TPFileOps *fileops)
 	connect(fileops, &TPFileOps::multimediaKeyReleased, this, [this] (const int key) { releaseEvent(controlFromKey(key)); });
 }
 
-void TPMediaControls::controlReachedLimit(TPMediaControls::ControlType type)
+void TPMediaControls::controlLimitReached(TPMediaControls::ControlType type)
 {
 	controlInfo *ci{controlFromType(type)};
 	if (ci) {
 		switch (type) {
+		case CT_Play:
+			releaseEvent(controlFromType(CT_Stop));
+			_setEnabled(ci, false);
+			break;
 		case CT_Prev:
 		case CT_Next:
 			_setEnabled(ci, false);
@@ -69,6 +74,18 @@ void TPMediaControls::controlReachedLimit(TPMediaControls::ControlType type)
 		}
 		update();
 	}
+}
+
+void TPMediaControls::setAvailableControls(const QList<int> &types_list)
+{
+	m_types.clear();
+	m_types.reserve(types_list.count());
+	for (const auto type : types_list)
+		m_types.append(type);
+	emit availableControlsChanged();
+	setControlSize(QSize{static_cast<int>(m_types.count()) * (appSettings()->itemDefaultHeight() + buttons_padding) + buttons_padding,
+																			appSettings()->itemDefaultHeight() + (2 * buttons_padding)});
+	createControls();
 }
 
 void TPMediaControls::setEnabled(TPMediaControls::ControlType type, const bool enabled)
@@ -164,56 +181,40 @@ QImage TPMediaControls::getControlImageFromSource(ControlType type)
 {
 	const int x{(type % 3) * src_control_image_width};
 	const int y{(type <= 2 ? 0 : type <= 5 ? 1 :  type <= 8 ? 2 : 3) * src_control_image_width};
-	return std::move(img_all_controls.copy(QRect{x, y, src_control_image_width, src_control_image_height}));
+	return img_all_controls.copy(QRect{x, y, src_control_image_width, src_control_image_height});
 }
 
 void TPMediaControls::createControls()
 {
-	if (width() >= appSettings()->itemDefaultHeight() && height() >= appSettings()->itemDefaultHeight() && !m_types.isEmpty()) {
-		int new_height{static_cast<int>(height()) - m_qml_control_extra_height};
-		int new_width{qFloor((width() - 5 - (m_types.size() * m_qml_control_spacing)) / m_types.size())};
-		if (new_height < new_width) {
-			new_width = new_height;
-			m_qml_control_spacing = qFloor((width() - 5 - (m_types.size() * new_width)) / m_types.size());
+	const auto m_buttons{m_types.count()};
+	auto controls_count{m_controls.count()};
+	if (controls_count < m_buttons)
+		m_controls.reserve(m_buttons);
+	int button_x{buttons_padding};
+	for (const auto type : std::as_const(m_types)) {
+		controlInfo *ci{controlFromType(static_cast<ControlType>(type))};
+		if (!ci) {
+			ci = new controlInfo;
+			ci->type = static_cast<ControlType>(type);
+			ci->default_image = std::move(getControlImageFromSource(static_cast<ControlType>(type)));
+			_setEnabled(ci, ci->type == CT_Play);
+			m_controls.append(ci);
 		}
-		else if (new_height > new_width) {
-			new_width = new_height;
-			m_qml_control_extra_height = height() - new_height;
-		}
-		if (new_height != m_controlSize.height() || new_width != m_controlSize.width()) {
-			m_controlSize.rwidth() = new_width;
-			m_controlSize.rheight() = new_height;
-			auto controls_count{m_controls.count()};
-			if (controls_count < m_types.count())
-				m_controls.reserve(m_types.count());
-
-			int control_x{qCeil((width() - m_types.size() * (m_qml_control_spacing + new_width))/2) + qCeil(m_qml_control_spacing / 2)};
-			for (const auto type : std::as_const(m_types)) {
-				controlInfo *ci{controlFromType(static_cast<ControlType>(type))};
-				if (!ci) {
-					ci = new controlInfo;
-					ci->type = static_cast<ControlType>(type);
-					ci->default_image = std::move(getControlImageFromSource(static_cast<ControlType>(type)));
-					_setEnabled(ci, ci->type == CT_Play);
-					m_controls.append(ci);
-				}
-				ci->default_image = std::move(ci->default_image.scaled(m_controlSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-				ci->rect = QRect{control_x, m_qml_control_extra_height / 2, m_controlSize.width(), m_controlSize.height()};
-				control_x += m_controlSize.width() + m_qml_control_spacing;
+		ci->default_image = std::move(ci->default_image.scaled(m_buttonSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+		ci->rect = QRect{button_x, buttons_padding, m_buttonSize.width(), m_buttonSize.height()};
+		button_x += m_buttonSize.width() + buttons_padding;
+	}
+	if (controls_count > m_buttons) {
+		auto i{m_controls.count() - 1};
+		for (auto control : m_controls | std::views::reverse) {
+			if (!m_types.contains(control->type)) {
+				delete control;
+				m_controls.remove(i);
 			}
-			if (controls_count > m_types.count()) {
-				auto i{m_controls.count() - 1};
-				for (auto control : m_controls | std::views::reverse) {
-					if (!m_types.contains(control->type)) {
-						delete control;
-						m_controls.remove(i);
-					}
-					--i;
-				}
-			}
-			update();
+			--i;
 		}
 	}
+	update();
 }
 
 inline TPMediaControls::controlInfo *TPMediaControls::controlFromMouseClick(const QPointF& mouse_pos) const

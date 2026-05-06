@@ -216,56 +216,18 @@ TPPage {
 				onEnterOrReturnKeyPressed: txtMesoFile.forceActiveFocus();
 			}
 
-
 			TPLabel {
 				text: mesoPage.mesoModel.fileLabel
 			}
 
-			TPTextInput {
-				id: txtMesoFile
-				text: mesoPage.mesoManager.displayFileName
-				readOnly: true
-				showClearTextButton: true
-				ToolTip.text: mesoPage.mesoManager.fileName
-				Layout.minimumWidth: 0.8 * parent.width
-				Layout.maximumWidth: 0.8 * parent.width
-
-				onTextCleared: mesoPage.mesoManager.fileName = "";
-
-				TPButton {
-					id: btnChooseMesoFile
-					imageSource: "choose-file"
-					width: AppSettings.itemDefaultHeight
-					height: width
-
-					anchors {
-						left: parent.right
-						leftMargin: 5
-						verticalCenter: parent.verticalCenter
-					}
-
-					onClicked: fileDialog.show();
-
-					TPFileDialog {
-						id: fileDialog
-						title: qsTr("Choose the instruction's file for this mesocycles")
-
-						onAccepted: mesoPage.mesoManager.fileName = AppUtils.getCorrectPath(selectedFile);
-					}
-				}
-
-				TPButton {
-					id: btnOpenMesoFile
-					imageSource: txtMesoFile.text.indexOf("pdf") !== -1 ? "pdf-icon" : "doc-icon"
-					visible: AppUtils.canReadFile(mesoPage.mesoManager.fileName)
-
-					anchors {
-						left: btnChooseMesoFile.right
-						verticalCenter: parent.verticalCenter
-					}
-
-					onClicked: AppOsInterface.openURL(mesoPage.mesoManager.fileName);
-				}
+			TPFileViewer {
+				mediaSource: mesoPage.mesoModel.file();
+				canAddFile: true
+				Layout.preferredWidth: 0.5 * parent.width
+				Layout.preferredHeight: 4/3 * (0.5 * parent.width)
+				Layout.alignment: Qt.AlignCenter
+				onFileAdded: (filename) => mesoPage.mesoModel.setFile(filename);
+				onRemovalRequested: mesoPage.mesoModel.setFile("");
 			}
 
 			TPLabel {

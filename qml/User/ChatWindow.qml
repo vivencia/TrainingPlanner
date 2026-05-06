@@ -11,10 +11,10 @@ import TpQml.Dialogs
 TPPopup {
 	objectName: "chatWindow"
 	id: _chatWindow
-	closePolicy: Popup.NoAutoClose
+	keepAbove: true
+	showTitleBar: true
+	closeButtonVisible: true
 	open_in_window: true
-	spacing: 0
-	padding: 0
 	width: normalWidth
 	height: normalHeight
 	backGroundImage: ":/images/backgrounds/backimage-chat.jpg"
@@ -60,8 +60,9 @@ TPPopup {
 		height: width
 
 		anchors {
-			verticalCenter: _chatWindow.titleBar.verticalCenter
-			left: _chatWindow.titleBar.left
+			top: parent.top
+			topMargin: 2
+			left: parent.left
 			leftMargin: 2
 		}
 	}
@@ -71,7 +72,7 @@ TPPopup {
 		elide: Text.ElideRight
 
 		anchors {
-			verticalCenter: _chatWindow.titleBar.verticalCenter
+			verticalCenter: avatarImg.verticalCenter
 			left: avatarImg.right
 			leftMargin: 5
 			right: btnMinimizeWindow.left
@@ -82,15 +83,15 @@ TPPopup {
 		id: btnMaxRestoreWindow
 		imageSource: _chatWindow.maximized ? "restore.png" : "maximize.png"
 		hasDropShadow: false
-		width: AppSettings.itemDefaultHeight
+		width: AppSettings.itemSmallHeight
 		height: width
 		z: 2
 
 		anchors {
 			top: parent.top
-			topMargin: 2
-			right: _chatWindow.btnClose.left
-			rightMargin: 2
+			topMargin: 8
+			right: parent.right
+			rightMargin: AppSettings.itemDefaultHeight + 5
 		}
 
 		onClicked: _chatWindow.maximizeOrRestoresWindow();
@@ -122,13 +123,12 @@ TPPopup {
 		imageSource: "minimize.png"
 		hasDropShadow: false
 		enabled: !_chatWindow.minimized
-		width: AppSettings.itemDefaultHeight
+		width: AppSettings.itemSmallHeight
 		height: width
 		z: 2
 
 		anchors {
-			top: parent.top
-			topMargin: 2
+			verticalCenter: btnMaxRestoreWindow.verticalCenter
 			right: btnMaxRestoreWindow.left
 			rightMargin: 2
 		}
@@ -188,9 +188,8 @@ TPPopup {
 			property int msgHeight: 10
 
 			readonly property bool inViewport: {
-				const view = messagesList.ListView.view;
-				const top = view.contentY;
-				const bottom = top + view.height;
+				const top = ListView.view.contentY;
+				const bottom = top + ListView.view.height;
 				return (y + height > top) && (y < bottom)
 			}
 
@@ -210,12 +209,13 @@ TPPopup {
 						when: messageItem.ownMessage
 
 						AnchorChanges {
-							target: messageRec
 							anchors.right: parent.right
 						}
 						PropertyChanges {
 							explicit: true
-							anchors.rightMargin: 10
+							messageRec {
+								anchors.rightMargin: 10
+							}
 						}
 					},
 					State {
@@ -227,7 +227,9 @@ TPPopup {
 						}
 						PropertyChanges {
 							explicit: true
-							anchors.leftMargin: 10
+							messageRec {
+								anchors.leftMargin: 10
+							}
 						}
 					}
 				]

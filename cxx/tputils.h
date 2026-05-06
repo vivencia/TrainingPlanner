@@ -115,6 +115,8 @@ public:
 	Q_INVOKABLE QString getCorrectPath(const QUrl &url) const;
 	Q_INVOKABLE FILE_TYPE getFileType(QString filename) const;
 	TPUtils::FILE_TYPE getTPFileType(const QString &filename, std::optional<bool> &formatted) const;
+	Q_INVOKABLE QVariant fileExtension(TPUtils::FILE_TYPE filetype, const bool as_list, const bool description) const;
+	Q_INVOKABLE QString standardPathForFileType(TPUtils::FILE_TYPE filetype) const;
 	Q_INVOKABLE void viewOrOpenFile(const QString &filename, const QVariant &extra_info = QVariant{});
 	Q_INVOKABLE bool canReadFile(const QString &filename) const;
 	QString getFilePath(const QString &filename) const;
@@ -308,13 +310,13 @@ constexpr bool operator&(T lhs, T rhs)
     return static_cast<U>(lhs) & static_cast<U>(rhs);
 }
 
-template <typename T>
+/*template <typename T>
 constexpr T operator~(T rhs)
 {
     // Cast to the underlying type, perform the operation, and cast back to the enum type
     using U = std::underlying_type_t<T>;
     return static_cast<T>(static_cast<U>(~rhs));
-}
+}*/
 
 template <typename T>
 constexpr T operator|=(T lhs, T rhs)

@@ -57,11 +57,11 @@ TPPopup {
 		onItemDoubleClicked: _control.closePopup();
 	}
 
-	function show(ypos: int): void {
+	function tpOpen(): void {
 		shown = true;
 		exercisesList.enableMultipleSelection = bEnableMultipleSelection;
 		exercisesList.setFocusToSearchField();
 		AppExercisesList.clearSelectedEntries();
-		show1(ypos);
+		tpopen__();
 	}
 }

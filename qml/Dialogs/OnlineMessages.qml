@@ -14,13 +14,13 @@ TPPopup {
 	keepAbove: true
 	width: savedSize.width
 	height: savedSize.height
-	backGroundImage: ":/images/backgrounds/backimage-messages.jpg"
-	visible: AppSettings.showOnlineMessagesDialog
+	backGroundImage: fullDialogVisible ? ":/images/backgrounds/backimage-messages.jpg" : ""
 	configFieldName: "onlineMessagesDialogPosition"
 	defaultCoordinates: Qt.point(AppSettings.pageWidth - 80, realPageY() + 180)
 	mouseItem: fullDialogVisible ? topBar : mainIcon
 	useAlternateBackground: !fullDialogVisible
-	backgroundRec: fullDialogVisible ? null : transparentBackground
+	defaultBackgroundColor: "transparent"
+	globalPopup: AppSettings.showOnlineMessagesDialog
 
 //private:
 	property bool fullDialogVisible: savedSize.width > mainIcon.width
@@ -338,7 +338,7 @@ TPPopup {
 								model: delegateItem.msgActions
 
 								delegate: TPButton {
-									text: delegateItem.msgActions[delegateItem.index]
+									text: delegateItem.msgActions[index]
 									width: constrainSize ? _layout.maxButtonWidth : preferredWidth
 									autoSize: !constrainSize
 									rounded: false
@@ -346,16 +346,16 @@ TPPopup {
 									onClicked: AppMessages.execAction(_layout.msgIndex, index);
 
 									required property int index
-									property bool constrainSize: false
-									property int row: 0
-									property int col: 0
+									property bool constrainSize: true
+									property int row
+									property int col
 								}
 
 								//items are added in reverse order(from last to first) from TPMessages::insertAction call order
 								onItemAdded: (index, item) => {
 									if (index === 0) {
 										const n_items = actionsRepeater.model.count;
-										let row_width = 0, row  = 0, col = 0;
+										let row_width = 0, row = 0, col = 0;
 										for (let i = 0; i < n_items; ++i) {
 											row_width += itemAt(i).width;
 											if (col === 0 || (row_width < onlineMsgsDlg.dlgMaxWidth - 5)) {

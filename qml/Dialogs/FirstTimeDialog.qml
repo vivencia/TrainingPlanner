@@ -11,7 +11,6 @@ TPPopup {
 	modal: true
 	keepAbove: true
 	showTitleBar: false
-	closeButtonVisible: false
 	width: AppSettings.pageWidth - 50
 	height: stackLayout.childrenRect.height
 

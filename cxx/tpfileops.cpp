@@ -21,8 +21,9 @@
 #include <QTextDocument>
 
 // FNV-1a constants
-const uint32_t FNV_PRIME_32{0x01000193};
-const uint32_t FNV_OFFSET_BASIS_32{0x811c9dc5};
+constexpr uint32_t FNV_PRIME_32{0x01000193};
+constexpr uint32_t FNV_OFFSET_BASIS_32{0x811c9dc5};
+constexpr int8_t buttons_padding{5};
 
 inline uint32_t fnv1a_hash(const QString& s) {
 	uint32_t hash{FNV_OFFSET_BASIS_32};
@@ -42,8 +43,6 @@ TPFileOps::TPFileOps(QQuickItem *parent)
 		if (old_meso_idx == m_mesoIdx)
 			setMesoIdx(new_meso_idx);
 	});
-	connect(this, &TPFileOps::widthChanged, [this] { createControls(); });
-	connect(this, &TPFileOps::heightChanged, [this] { createControls(); });
 	m_pressedColor.fromString(appSettings()->primaryColor());
 	switch (appSettings()->colorScheme()) {
 	case TPSettings::Blue:
@@ -59,34 +58,70 @@ TPFileOps::TPFileOps(QQuickItem *parent)
 		Q_UNREACHABLE();
 	}
 	m_pressedColor.setAlpha(100);
+	m_buttonSize.rwidth() = appSettings()->itemDefaultHeight();
+	m_buttonSize.rheight() = appSettings()->itemDefaultHeight();
+	createControls();
 }
 
 void TPFileOps::paint(QPainter *painter)
 {
-	if (painter->clipBoundingRect().width() == m_controlSize.width() && m_currentControl)
+	if (painter->clipBoundingRect().width() == m_buttonSize.width() && m_currentControl)
 		painter->drawImage(painter->clipBoundingRect(), *(m_currentControl->current_image));
 	else {
 		for (const auto &ci : std::as_const(m_controls)) {
-			if (ci)
+			if (ci && ci->visible)
 				painter->drawImage(ci->rect, *(ci->current_image));
 		}
 	}
 }
 
+void TPFileOps::setFileType(TPUtils::FILE_TYPE new_type)
+{
+	if (m_filetype != new_type) {
+		m_filetype = new_type;
+		emit fileTypeChanged();
+		for (int i{OT_FullScreen}; i < OT_TypeCount; ++i) {
+			controlInfo *ci{m_controls[i]};
+			ci->visible = new_type != TPUtils::FT_UNKNOWN;
+			if (i == OT_ViewExternally)
+				_getDefaultImage(ci);
+		}
+		resizeControl();
+		recalculateButtonsRect();
+		update();
+	}
+}
+
 void TPFileOps::setFileName(const QString &filename)
 {
-	m_filename = filename;
-	emit fileNameChanged();
-	const TPUtils::FILE_TYPE file_type{appUtils()->getFileType(filename)};
-	setFileType(file_type);
-	if (file_type < TPUtils::FT_IMAGE) {
-		if (file_type & TPUtils::FT_TP_FORMATTED) {
-			m_tpfileSections = 0;
-			m_tpFileInfo.clear();
-			readTPFile();
+	if (filename.isEmpty() || !QFile::exists(filename))
+		setFileType(TPUtils::FT_UNKNOWN);
+	else {
+		m_filename = filename;
+		emit fileNameChanged();
+		const TPUtils::FILE_TYPE file_type{appUtils()->getFileType(filename)};
+		setFileType(file_type);
+		if (file_type < TPUtils::FT_IMAGE) {
+			if (file_type & TPUtils::FT_TP_FORMATTED) {
+				m_tpfileSections = 0;
+				m_tpFileInfo.clear();
+				readTPFile();
+			}
+			else
+				setEnabled(OT_FullScreen, false);
 		}
-		else
-			setEnabled(OT_FullScreen, false);
+	}
+}
+
+void TPFileOps::setCanAddFile(const bool can_add)
+{
+	if (can_add != m_canAddFile) {
+		m_canAddFile = can_add;
+		emit canAddFileChanged();
+		m_controls[OT_AddFile]->visible = canAddFile();
+		resizeControl();
+		recalculateButtonsRect();
+		update();
 	}
 }
 
@@ -121,48 +156,8 @@ QString TPFileOps::getFileTypeIcon(const QString &filename, const QSize &preferr
 	case TPUtils::FT_MS_DOCUMENT:		return "docx_preview"_L1;
 	case TPUtils::FT_OTHER:				return "generic_preview"_L1;
 	case TPUtils::FT_UNKNOWN:
-	default:							return "$error$"_L1;
+	default:							return "no-image"_L1;
 	}
-}
-
-void TPFileOps::doFileOperation(const int op)
-{
-	OpType type;
-	switch (op) {
-	case 0: type = OT_Download; break;
-	case 1: type = OT_Share; break;
-	case 2: type = OT_Forward; break;
-	case 3: type = OT_ViewExternally; break;
-	default: return;
-	}
-	_doFileOperation(type);
-}
-
-void TPFileOps::saveFileAs()
-{
-	connect(appMainWindow(), SIGNAL(saveFileChosen(QString)), this, SLOT(exportSlot(QString)), Qt::SingleShotConnection);
-	QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, appUtils()->getFileName(fileName())));
-}
-
-void TPFileOps::shareFile()
-{
-#ifdef Q_OS_ANDROID
-	appOsInterface()->shareFile(m_filename);
-#else
-	saveFileAs();
-#endif
-}
-
-void TPFileOps::sendFileTo(const QString &message, QString userid)
-{
-	if (userid.isEmpty())
-		QMetaObject::invokeMethod(appMainWindow(), "getUsersList", Q_RETURN_ARG(QString, userid));
-	appMessagesManager()->sendFileTo(userid, fileName(), message);
-}
-
-void TPFileOps::openFile()
-{
-	appUtils()->viewOrOpenFile(m_filename);
 }
 
 void TPFileOps::setWorkingDocumentCursorPosition(const int cursor_position)
@@ -181,11 +176,11 @@ inline bool fileStillInUse(const QString &filename)
 	return false;
 }
 
-void TPFileOps::exportSlot(const QString &filePath)
+void TPFileOps::exportSlot(const QString &filepath)
 {
 	int ret_code(TP_RET_CODE_EXPORT_FAILED);
 	QString export_filename{};
-	if (!filePath.isEmpty()) {
+	if (!filepath.isEmpty()) {
 		uint32_t ft{m_filetype & ~TPUtils::FT_TP_FORMATTED};
 		export_filename = std::move("%1export_file_%2.txt"_L1.arg(appSettings()->currentUserDir(), QString::number(ft)));
 		QFile export_file{export_filename};
@@ -205,9 +200,9 @@ void TPFileOps::exportSlot(const QString &filePath)
 				else
 					export_file.remove();
 			}
-			connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::mesoExported, this, [this,filePath]
+			connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::mesoExported, this, [this,filepath]
 															(const uint meso_idx, const QString& filename, const int return_code) {
-				exportSlot(return_code == TP_RET_CODE_EXPORT_OK ? filePath : QString{});
+				exportSlot(return_code == TP_RET_CODE_EXPORT_OK ? filepath : QString{});
 			}, Qt::SingleShotConnection);
 			appUserModel()->actualMesoModel()->exportToFormattedFile(m_mesoIdx, export_filename);
 			return;
@@ -229,24 +224,18 @@ void TPFileOps::exportSlot(const QString &filePath)
 			return;
 		}
 		if (ret_code == TP_RET_CODE_EXPORT_OK) {
-			QFile file{filePath};
-			if (!appUtils()->copyFile(export_filename, filePath, true, true))
+			QFile file{filepath};
+			if (!appUtils()->copyFile(export_filename, filepath, true, true))
 				ret_code = TP_RET_CODE_EXPORT_FAILED;
 		}
 		if (ret_code == TP_RET_CODE_EXPORT_OK)
-			export_filename = std::move(appUtils()->getFileName(filePath));
+			export_filename = std::move(appUtils()->getFileName(filepath));
 		else
-			export_filename = std::move(tr("Could not save to: ") % appUtils()->getFileName(filePath));
+			export_filename = std::move(tr("Could not save to: ") % appUtils()->getFileName(filepath));
 	}
 	else
 		export_filename = std::move(tr("Operation canceled"));
 	appItemManager()->displayMessageOnAppWindow(ret_code, export_filename);
-}
-
-void TPFileOps::removeFileAnswer(const int button)
-{
-	if (button == 1)
-		removeFile(false);
 }
 
 void TPFileOps::mousePressEvent(QMouseEvent *event)
@@ -254,7 +243,7 @@ void TPFileOps::mousePressEvent(QMouseEvent *event)
 	if (event->button() == acceptedMouseButtons()) {
 		event->setAccepted(true);
 		controlInfo* ci{controlFromMouseClick(event->position())};
-		if (ci && ci->enabled) {
+		if (ci) {
 			m_currentControl = ci;
 			if (!ci->pressed) {
 				if (ci->pressed_image.isNull()) {
@@ -369,13 +358,14 @@ void TPFileOps::_doFileOperation(const OpType type)
 	}
 
 	switch (type) {
+	case OT_AddFile:			addFile();												break;
 	case OT_FullScreen:			doFullScreen();											break;
 	case OT_Download:			saveFileAs();											break;
 	case OT_Share:				shareFile();											break;
 	case OT_Forward:			sendFileTo(appUtils()->getFileName(fileName(), true));	break;
 	case OT_ViewExternally:		openFile();												break;
 	case OT_Delete:				removeFile();											break;
-	default:					Q_UNREACHABLE();
+	default:																			break;
 	}
 }
 
@@ -461,14 +451,50 @@ void TPFileOps::doFullScreen()
 	emit showFullScreen();
 }
 
+void TPFileOps::addFile()
+{
+	connect(appMainWindow(), SIGNAL(fileDialogClosed(QString)), this, SLOT(importSlot(QString)), Qt::SingleShotConnection);
+	QMetaObject::invokeMethod(appMainWindow(), "chooseFileToOpen", Q_ARG(int, restrictedFileType() ? m_filetype : TPUtils::FT_OTHER));
+}
+
+void TPFileOps::saveFileAs()
+{
+	connect(appMainWindow(), SIGNAL(fileDialogClosed(QString)), this, SLOT(exportSlot(QString)), Qt::SingleShotConnection);
+	QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSaveFile", Q_ARG(int, m_filetype), Q_ARG(QString, appUtils()->getFileName(fileName())));
+}
+
+void TPFileOps::shareFile()
+{
+#ifdef Q_OS_ANDROID
+	appOsInterface()->shareFile(m_filename);
+#else
+	saveFileAs();
+#endif
+}
+
+void TPFileOps::sendFileTo(const QString &message, QString userid)
+{
+	if (userid.isEmpty())
+		QMetaObject::invokeMethod(appMainWindow(), "getUsersList", Q_RETURN_ARG(QString, userid));
+	appMessagesManager()->sendFileTo(userid, fileName(), message);
+}
+
+void TPFileOps::openFile()
+{
+	appUtils()->viewOrOpenFile(m_filename);
+}
+
 void TPFileOps::removeFile(const bool bypass_confirmation)
 {
-	if (!bypass_confirmation && appSettings()->alwaysAskConfirmation()) {
-		connect(appMainWindow(), SIGNAL(generalMessagesPopupClicked(int)), this, SLOT(removeFileAnswer(int)), Qt::SingleShotConnection);
-		QMetaObject::invokeMethod(appMainWindow(), "showAppMainMessageDialog", Q_ARG(QString, tr("Remove file?")),
-			Q_ARG(QString, m_filename), Q_ARG(QString, getFileTypeIcon(m_filename,
-			QSize{appSettings()->itemExtraLargeHeight(), appSettings()->itemExtraLargeHeight()})), Q_ARG(int, 0),
-																		Q_ARG(QString, tr("Yes")), Q_ARG(QString, tr("No")));
+	if (!bypass_confirmation || appSettings()->alwaysAskConfirmation()) {
+		connect(appItemManager(), &QmlItemManager::generalMessagesPopupClicked, this, [this] (const uint8_t button) {
+			if (button == 1)
+				removeFile(true);
+		}, Qt::SingleShotConnection);
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
+			appUtils()->string_strings({tr("Remove file?"), m_filename}, record_separator), Qt::AlignCenter,
+			getFileTypeIcon(m_filename, QSize{appSettings()->itemExtraLargeHeight(),
+														appSettings()->itemExtraLargeHeight()}), -1, tr("Yes"), tr("No"));
 		return;
 	}
 	QFile::remove(m_filename);
@@ -477,47 +503,52 @@ void TPFileOps::removeFile(const bool bypass_confirmation)
 
 void TPFileOps::createControls()
 {
-	if (width() > 0 && height() > 0) {
-		const int new_height{static_cast<int>(height()) - m_qml_control_extra_height};
-		if (new_height < 0 || new_height == m_controlSize.height())
-			return;
-		int new_width{qFloor((width() - 5 - static_cast<int>(OT_TypeCount) * m_qml_control_spacing) / static_cast<int>(OT_TypeCount))};
-		if (new_width < 0)
-			return;
-		if (new_height < new_width) {
-			new_width = new_height;
-			m_qml_control_spacing = qFloor((width() - 5 - (static_cast<int>(OT_TypeCount) * new_width)) / static_cast<int>(OT_TypeCount));
+	int button_x{buttons_padding};
+	for (int i{OT_AddFile}; i < OT_TypeCount; ++i) {
+		controlInfo *ci{m_controls[i]};
+		if (!m_controls[i]) {
+			ci = new controlInfo;
+			m_controls[i] = ci;
+			ci->type = static_cast<OpType>(i);
 		}
-		else if (new_height > new_width) {
-			new_width = new_height;
-			m_qml_control_extra_height = height() - new_height;
-		}
+		_getDefaultImage(ci);
+		ci->default_image = std::move(ci->default_image.scaled(m_buttonSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+		ci->current_image = &ci->default_image;
+		ci->rect = QRect{button_x, buttons_padding, m_buttonSize.width(), m_buttonSize.height()};
+		button_x += m_buttonSize.width() + buttons_padding;
+	}
+	resizeControl();
+	update();
+}
 
-		m_controlSize.rwidth() = new_width;
-		m_controlSize.rheight() = new_height;
-		int control_x{qCeil((width() - static_cast<int>(OT_TypeCount) * (m_qml_control_spacing + new_width))/2) + qCeil(m_qml_control_spacing / 2)};
-		for (int i{OT_FullScreen}; i < OT_TypeCount; ++i) {
-			controlInfo *ci{m_controls[i]};
-			if (!m_controls[i]) {
-				ci = new controlInfo;
-				m_controls[i] = ci;
-				ci->type = static_cast<OpType>(i);
-			}
+void TPFileOps::resizeControl()
+{
+	int n_visible_controls{0};
+	for (int i{OT_AddFile}; i < OT_TypeCount; ++i) {
+		controlInfo *ci{m_controls[i]};
+		if (ci->visible) ++n_visible_controls;
+	}
+	setControlSize(QSize{n_visible_controls * (appSettings()->itemDefaultHeight() + buttons_padding) + buttons_padding,
+						 appSettings()->itemDefaultHeight() + (2 * buttons_padding)});
+}
 
-			_getDefaultImage(ci);
-			ci->default_image = std::move(ci->default_image.scaled(m_controlSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-			ci->current_image = &ci->default_image;
-			ci->rect = QRect{control_x, m_qml_control_extra_height / 2, m_controlSize.width(), m_controlSize.height()};
-			control_x += m_controlSize.width() + m_qml_control_spacing;
+void TPFileOps::recalculateButtonsRect()
+{
+	int button_x{buttons_padding};
+	for (int i{OT_AddFile}; i < OT_TypeCount; ++i) {
+		controlInfo *ci{m_controls[i]};
+		if (ci->visible) {
+			ci->rect = QRect{button_x, buttons_padding, m_buttonSize.width(), m_buttonSize.height()};
+			button_x += m_buttonSize.width() + buttons_padding;
 		}
-		update();
 	}
 }
 
 inline TPFileOps::controlInfo *TPFileOps::controlFromMouseClick(const QPointF& mouse_pos) const
 {
 	for (const auto ci : std::as_const(m_controls)) {
-		if (static_cast<int>(mouse_pos.x() >= ci->rect.x()) && static_cast<int>(mouse_pos.x() <= ci->rect.x() + ci->rect.width()))
+		if (ci->visible && ci->enabled && static_cast<int>(mouse_pos.x() >= ci->rect.x()) &&
+																static_cast<int>(mouse_pos.x() <= ci->rect.x() + ci->rect.width()))
 			return ci;
 	}
 	return nullptr;
@@ -601,7 +632,6 @@ QString TPFileOps::getPDFPreviewFile(const QString &pdf_filename, QSize preferre
 		if (!QFile::exists(preview_filename)) {
 			QPdfDocument *pdf_doc{new QPdfDocument{}};
 			pdf_doc->load(pdf_filename);
-			//pdf_doc->pagePointSize(0);
 			QPdfDocumentRenderOptions pdf_opts;
 			pdf_opts.setRenderFlags(QPdfDocumentRenderOptions::RenderFlag::TextAliased | QPdfDocumentRenderOptions::RenderFlag::ImageAliased |
 									QPdfDocumentRenderOptions::RenderFlag::PathAliased | QPdfDocumentRenderOptions::RenderFlag::OptimizedForLcd);
@@ -631,13 +661,14 @@ void TPFileOps::_getDefaultImage(controlInfo *ci)
 {
 	const QString &str_image_source{":/images/%1_"_L1 % appSettings()->indexColorSchemeToColorSchemeName() % ".png"_L1};
 	switch (ci->type) {
+	case OT_AddFile: ci->default_image.load(str_image_source.arg("add-new")); break;
 	case OT_FullScreen: ci->default_image.load(str_image_source.arg("fullscreen")); break;
 	case OT_Download: ci->default_image.load(str_image_source.arg("download")); break;
 	case OT_Share: ci->default_image.load(str_image_source.arg("share")); break;
 	case OT_Forward: ci->default_image.load(str_image_source.arg("forward")); break;
-	case OT_ViewExternally: ci->default_image.load(":/images/" % getFileTypeIcon(m_filename, m_controlSize, false)); break;
+	case OT_ViewExternally: ci->default_image.load(":/images/" % getFileTypeIcon(m_filename, m_buttonSize, false)); break;
 	case OT_Delete: ci->default_image.load(":/images/remove.png"_L1); break;
-	default: Q_UNREACHABLE();
+	default: break;
 	}
 }
 

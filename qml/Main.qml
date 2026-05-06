@@ -18,7 +18,7 @@ ApplicationWindow {
 	title: "Training Planner"
 	flags: Qt.platform.os === "android" ? Qt.Window | Qt.FramelessWindowHint : Qt.Window | Qt.CustomizeWindowHint & ~Qt.WindowMaximizeButtonHint
 
-	signal saveFileChosen(filepath: string);
+	signal fileDialogClosed(filepath: string);
 	signal tpFileOpenInquiryResult(do_import: bool);
 
 	header: Loader {
@@ -93,27 +93,32 @@ ApplicationWindow {
 	}
 
 	Loader {
-		id: importLoader
+		id: openDialogLoader
 		asynchronous: true
 		active: false
 
+//public:
+		property int fileType
+
+//private:
 		property TPFileDialog _file_dialog
 
 		sourceComponent: TPFileDialog {
-			includeTextFilter: true
+			saveDialog: false
+			fileType: openDialogLoader.fileType
 
 			onDialogClosed: (result) => {
-				if (result === 0)
-					AppUtils.viewOrOpenFile(AppUtils.getCorrectPath(currentFile));
-				importLoader.active = false;
+				mainwindow.fileDialogClosed(result === 0 ? AppUtils.getCorrectPath(currentFile) : "");
+				openDialogLoader.active = false;
 			}
-			Component.onCompleted: importLoader._file_dialog = this;
+			Component.onCompleted: openDialogLoader._file_dialog = this;
 		}
 
-		onLoaded: _file_dialog.show();
+		onLoaded: _file_dialog.open();
 	}
-	function chooseFileToImport(): void {
-		importLoader.active = true;
+	function chooseFileToOpen(filetype: int): void {
+		openDialogLoader.fileType = filetype;
+		openDialogLoader.active = true;
 	}
 
 	Loader {
@@ -121,31 +126,30 @@ ApplicationWindow {
 		asynchronous: true
 		active: false
 
-		property string suggestedFileName;
+//public:
+		property int fileType
+		property string suggestedName
+
+//private:
 		property TPFileDialog _file_dialog
 
 		sourceComponent: TPFileDialog {
 			saveDialog: true
-			chooseDialog: false
-			includeTextFilter: true
+			fileType: saveDialogLoader.fileType
+			suggestedName: saveDialogLoader.suggestedName
 
 			onDialogClosed: (result) => {
-				if (result === 0)
-					mainwindow.saveFileChosen(AppUtils.getCorrectPath(currentFile));
-				else
-					mainwindow.saveFileChosen("");
+				mainwindow.fileDialogClosed(result === 0 ? AppUtils.getCorrectPath(currentFile) : "");
 				saveDialogLoader.active = false;
 			}
 			Component.onCompleted: saveDialogLoader._file_dialog = this;
 		}
 
-		onLoaded: {
-			_file_dialog.suggestedName = suggestedFileName;
-			_file_dialog.show();
-		}
+		onLoaded: _file_dialog.open();
 	}
-	function chooseFolderToSave(filename: string): void {
-		saveDialogLoader.suggestedFileName = filename;
+	function chooseFolderToSaveFile(filetype: int, filename: string): void {
+		saveDialogLoader.fileType = filetype;
+		saveDialogLoader.suggestedName = filename;
 		saveDialogLoader.active = true;
 	}
 

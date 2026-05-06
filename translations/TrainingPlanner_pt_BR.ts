@@ -166,12 +166,12 @@
 <context>
     <name>ChatWindow</name>
     <message>
-        <location filename="../qml/User/ChatWindow.qml" line="374"/>
+        <location filename="../qml/User/ChatWindow.qml" line="376"/>
         <source>Remove for myself only</source>
         <translation>Remover somente para mim</translation>
     </message>
     <message>
-        <location filename="../qml/User/ChatWindow.qml" line="432"/>
+        <location filename="../qml/User/ChatWindow.qml" line="434"/>
         <source>Remove as well for </source>
         <translation>Remover também para </translation>
     </message>
@@ -1120,17 +1120,17 @@
 <context>
     <name>FirstTimeDialog</name>
     <message>
-        <location filename="../qml/Dialogs/FirstTimeDialog.qml" line="107"/>
+        <location filename="../qml/Dialogs/FirstTimeDialog.qml" line="106"/>
         <source>Previous</source>
         <translation>Anterior</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/FirstTimeDialog.qml" line="125"/>
+        <location filename="../qml/Dialogs/FirstTimeDialog.qml" line="124"/>
         <source>Next</source>
         <translation>Próximo</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/FirstTimeDialog.qml" line="125"/>
+        <location filename="../qml/Dialogs/FirstTimeDialog.qml" line="124"/>
         <source>Conclude</source>
         <translation>Concluir</translation>
     </message>
@@ -1164,7 +1164,7 @@
 <context>
     <name>Main</name>
     <message>
-        <location filename="../qml/Main.qml" line="178"/>
+        <location filename="../qml/Main.qml" line="182"/>
         <source>Import </source>
         <translation>Importar </translation>
     </message>
@@ -1349,17 +1349,12 @@
         <translation type="unfinished">Outro</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="251"/>
-        <source>Choose the instruction&apos;s file for this mesocycles</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="332"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="294"/>
         <source>Mesocycle-style program</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="351"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="313"/>
         <source>A Mesocycle is a short-term program, with defined starting and ending points and a specific goal in sight</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1604,22 +1599,22 @@
         <translation>Página Inicial</translation>
     </message>
     <message>
-        <location filename="../cxx/pageslistmodel.cpp" line="291"/>
+        <location filename="../cxx/pageslistmodel.cpp" line="296"/>
         <source>Exit</source>
         <translation>Sair</translation>
     </message>
     <message>
-        <location filename="../cxx/pageslistmodel.cpp" line="292"/>
+        <location filename="../cxx/pageslistmodel.cpp" line="297"/>
         <source>Are you sure you want to leave?</source>
         <translation>Tem certeza de que deseja sair?</translation>
     </message>
     <message>
-        <location filename="../cxx/pageslistmodel.cpp" line="292"/>
+        <location filename="../cxx/pageslistmodel.cpp" line="297"/>
         <source>Yes</source>
         <translation>Sim</translation>
     </message>
     <message>
-        <location filename="../cxx/pageslistmodel.cpp" line="292"/>
+        <location filename="../cxx/pageslistmodel.cpp" line="297"/>
         <source>No</source>
         <translation>Não</translation>
     </message>
@@ -1747,7 +1742,7 @@
         <translation>Novo Programa</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlmesointerface.cpp" line="441"/>
+        <location filename="../cxx/qmlmesointerface.cpp" line="447"/>
         <source>Program: </source>
         <translation>Programa: </translation>
     </message>
@@ -2051,27 +2046,27 @@
         <translation>Iniciar uma nova sessão de treino</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlworkoutinterface.cpp" line="502"/>
+        <location filename="../cxx/qmlworkoutinterface.cpp" line="504"/>
         <source>Workout: </source>
         <translation>Treino: </translation>
     </message>
     <message>
-        <location filename="../cxx/qmlworkoutinterface.cpp" line="529"/>
+        <location filename="../cxx/qmlworkoutinterface.cpp" line="531"/>
         <source>Workout</source>
         <translation>Treino</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlworkoutinterface.cpp" line="672"/>
+        <location filename="../cxx/qmlworkoutinterface.cpp" line="674"/>
         <source>All exercises finished</source>
         <translation>Todos exercícios concluídos</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlworkoutinterface.cpp" line="672"/>
+        <location filename="../cxx/qmlworkoutinterface.cpp" line="674"/>
         <source>Workout not yet finished</source>
         <translation>Treino ainda não concluído</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlworkoutinterface.cpp" line="674"/>
+        <location filename="../cxx/qmlworkoutinterface.cpp" line="676"/>
         <source>You should press Finish to save your workout</source>
         <translation>Você deve tocar em Concluir para salvar seu treino</translation>
     </message>
@@ -2217,77 +2212,31 @@
     </message>
 </context>
 <context>
-    <name>TPFileDialog</name>
-    <message>
-        <location filename="../qml/Dialogs/TPFileDialog.qml" line="30"/>
-        <source>Any</source>
-        <translation>Qualquer tipo</translation>
-    </message>
-    <message>
-        <location filename="../qml/Dialogs/TPFileDialog.qml" line="33"/>
-        <source>Training Planner&apos;s files</source>
-        <translation>Arquivos TrainingPlanner</translation>
-    </message>
-    <message>
-        <location filename="../qml/Dialogs/TPFileDialog.qml" line="35"/>
-        <source>Documents</source>
-        <translation>Documentos</translation>
-    </message>
-    <message>
-        <location filename="../qml/Dialogs/TPFileDialog.qml" line="37"/>
-        <source>PDF Files</source>
-        <translation>Arquivos PDF</translation>
-    </message>
-    <message>
-        <location filename="../qml/Dialogs/TPFileDialog.qml" line="40"/>
-        <source>Videos</source>
-        <translation>Vídeos</translation>
-    </message>
-    <message>
-        <location filename="../qml/Dialogs/TPFileDialog.qml" line="44"/>
-        <source>Images</source>
-        <translation>Imagens</translation>
-    </message>
-</context>
-<context>
     <name>TPFileOps</name>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="239"/>
+        <location filename="../cxx/tpfileops.cpp" line="234"/>
         <source>Could not save to: </source>
         <translation>Não foi possível salvar em: </translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="242"/>
+        <location filename="../cxx/tpfileops.cpp" line="237"/>
         <source>Operation canceled</source>
         <translation>Operação cancelada</translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="468"/>
+        <location filename="../cxx/tpfileops.cpp" line="495"/>
         <source>Remove file?</source>
         <translation type="unfinished">Remove arquivo?</translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="471"/>
+        <location filename="../cxx/tpfileops.cpp" line="497"/>
         <source>Yes</source>
         <translation type="unfinished">Sim</translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="471"/>
+        <location filename="../cxx/tpfileops.cpp" line="497"/>
         <source>No</source>
         <translation type="unfinished">Não</translation>
-    </message>
-</context>
-<context>
-    <name>TPFileViewer</name>
-    <message>
-        <location filename="../qml/Widgets/TPFileViewer.qml" line="233"/>
-        <source>Muted</source>
-        <translation>Mudo</translation>
-    </message>
-    <message>
-        <location filename="../qml/Widgets/TPFileViewer.qml" line="272"/>
-        <source>Volume: </source>
-        <translation>Volume: </translation>
     </message>
 </context>
 <context>
@@ -2306,6 +2255,19 @@
         <location filename="../cxx/tpkeychain/tpkeychain.cpp" line="54"/>
         <source>Delete key failed: %1</source>
         <translation>Falha ao remover a chave: %1</translation>
+    </message>
+</context>
+<context>
+    <name>TPMediaPlayer</name>
+    <message>
+        <location filename="../qml/Widgets/TPMediaPlayer.qml" line="41"/>
+        <source>Muted</source>
+        <translation type="unfinished">Mudo</translation>
+    </message>
+    <message>
+        <location filename="../qml/Widgets/TPMediaPlayer.qml" line="62"/>
+        <source>Volume: </source>
+        <translation type="unfinished">Volume: </translation>
     </message>
 </context>
 <context>
@@ -2425,168 +2387,180 @@
 <context>
     <name>TPUtils</name>
     <message>
-        <location filename="../cxx/tputils.h" line="261"/>
+        <location filename="../cxx/tputils.h" line="263"/>
         <source>January</source>
         <translation>Janeiro</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="261"/>
+        <location filename="../cxx/tputils.h" line="263"/>
         <source>February</source>
         <translation>Fevereiro</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="261"/>
+        <location filename="../cxx/tputils.h" line="263"/>
         <source>March</source>
         <translation>Março</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="261"/>
+        <location filename="../cxx/tputils.h" line="263"/>
         <source>April</source>
         <translation>Abril</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="262"/>
+        <location filename="../cxx/tputils.h" line="264"/>
         <source>May</source>
         <translation>Maio</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="262"/>
+        <location filename="../cxx/tputils.h" line="264"/>
         <source>June</source>
         <translation>Junho</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="262"/>
+        <location filename="../cxx/tputils.h" line="264"/>
         <source>July</source>
         <translation>Julho</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="262"/>
+        <location filename="../cxx/tputils.h" line="264"/>
         <source>August</source>
         <translation>Agosto</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="263"/>
+        <location filename="../cxx/tputils.h" line="265"/>
         <source>September</source>
         <translation>Setembro</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="263"/>
+        <location filename="../cxx/tputils.h" line="265"/>
         <source>October</source>
         <translation>Outubro</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="263"/>
+        <location filename="../cxx/tputils.h" line="265"/>
         <source>November</source>
         <translation>Novembro</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="263"/>
+        <location filename="../cxx/tputils.h" line="265"/>
         <source>December</source>
         <translation>Dezembro</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="264"/>
+        <location filename="../cxx/tputils.h" line="266"/>
         <source>Sunday</source>
         <translation>Domingo</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="264"/>
+        <location filename="../cxx/tputils.h" line="266"/>
         <source>Monday</source>
         <translation>Segunda-feira</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="264"/>
+        <location filename="../cxx/tputils.h" line="266"/>
         <source>Tuesday</source>
         <translation>Terça-feira</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="264"/>
+        <location filename="../cxx/tputils.h" line="266"/>
         <source>Wednesday</source>
         <translation>Quarta-feira</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="265"/>
+        <location filename="../cxx/tputils.h" line="267"/>
         <source>Thursday</source>
         <translation>Quinta-feira</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="265"/>
+        <location filename="../cxx/tputils.h" line="267"/>
         <source>Friday</source>
         <translation>Sexta-feira</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="265"/>
+        <location filename="../cxx/tputils.h" line="267"/>
         <source>Saturday</source>
         <translation>Sábado</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="266"/>
+        <location filename="../cxx/tputils.h" line="268"/>
         <source>Mon</source>
         <translation>Seg</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="266"/>
+        <location filename="../cxx/tputils.h" line="268"/>
         <source>Tue</source>
         <translation>Ter</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="266"/>
+        <location filename="../cxx/tputils.h" line="268"/>
         <source>Wed</source>
         <translation>Qua</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="266"/>
+        <location filename="../cxx/tputils.h" line="268"/>
         <source>Thu</source>
         <translation>Qui</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="266"/>
+        <location filename="../cxx/tputils.h" line="268"/>
         <source>Fri</source>
         <translation>Sex</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="267"/>
+        <location filename="../cxx/tputils.h" line="269"/>
         <source>Sat</source>
         <translation>Sáb</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="267"/>
+        <location filename="../cxx/tputils.h" line="269"/>
         <source>Sun</source>
         <translation>Dom</translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.cpp" line="853"/>
-        <location filename="../cxx/tputils.cpp" line="865"/>
-        <source>and</source>
-        <translation>e</translation>
-    </message>
-</context>
-<context>
-    <name>Tests</name>
-    <message>
-        <location filename="../qml/Tests.qml" line="193"/>
-        <source>Send to client</source>
+        <location filename="../cxx/tputils.cpp" line="175"/>
+        <source>Training Planner&apos;s files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Tests.qml" line="194"/>
-        <source>Save as</source>
-        <translation type="unfinished">Salvar como</translation>
+        <location filename="../cxx/tputils.cpp" line="180"/>
+        <source>Images/Pictures</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Tests.qml" line="195"/>
-        <source>Send to</source>
-        <translation type="unfinished">Enviar para</translation>
+        <location filename="../cxx/tputils.cpp" line="185"/>
+        <source>Videos/Movies</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Tests.qml" line="196"/>
-        <source>Share</source>
-        <translation type="unfinished">Compartilhar</translation>
+        <location filename="../cxx/tputils.cpp" line="187"/>
+        <source>PDF files</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Tests.qml" line="197"/>
-        <source>Exercises Planner</source>
-        <translation type="unfinished">Programa de Exercícios</translation>
+        <location filename="../cxx/tputils.cpp" line="189"/>
+        <source>Text files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/tputils.cpp" line="194"/>
+        <source>Open Document(Libre Office)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/tputils.cpp" line="199"/>
+        <source>MS Office Documents</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/tputils.cpp" line="201"/>
+        <source>Any</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/tputils.cpp" line="910"/>
+        <location filename="../cxx/tputils.cpp" line="922"/>
+        <source>and</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

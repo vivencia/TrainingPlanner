@@ -8,16 +8,13 @@ TPPopup {
 	objectName: "TPPageMenu"
 	id: _menu
 	keepAbove: showIndicator
-	showTitleBar: false
-	closeButtonVisible: false
-	backgroundRec: null
-	width: backRec.width + smallWidth
-	height: Math.max(backRec.height, smallHeight)
+	width: entriesListView.width
+	height: entriesListView.height
 	configFieldName: "pageMenu_" + parentPage.objectName
 	defaultCoordinates: Qt.point(defaultX, realPageY() + 180)
 	lockMovingToYAxis: showIndicator
+	enableEffects: true
 	show_position: showIndicator ? Qt.AlignBaseline : Qt.AlignBottom
-	mouseItem: indicator
 
 //public:
 	required property var entriesList
@@ -28,15 +25,14 @@ TPPopup {
 //protected:
 	readonly property int smallWidth: AppSettings.itemSmallHeight
 	readonly property int smallHeight: 4 * AppSettings.itemSmallHeight
-	readonly property int defaultX: parentPage.width - smallWidth
-	property bool expanded: !showIndicator
-	property TPBackRec indicator
+	readonly property int defaultX: parentPage.width
+	property bool expanded: x < defaultX
 
 	signal _entryVisible(entry_idx: int, visibility: bool);
 
 	onMouseItemClicked: (mouse) => {
 		expanded = !expanded;
-		x = expanded ? defaultX - entriesListView.width : defaultX
+		x = expanded ? defaultX - width : defaultX
 	}
 
 	ListModel {
@@ -62,7 +58,8 @@ TPPopup {
 
 		anchors {
 			top: parent.top
-			left: parent.left
+			right: parent.left
+			rightMargin: 15
 		}
 
 		sourceComponent: TPBackRec {
@@ -116,127 +113,104 @@ TPPopup {
 				}
 			} //Canvas
 
-			Component.onCompleted: _menu.indicator = this;
+			Component.onCompleted: _menu.mouseItem = this;
 		} //indicator
 	} //Loader
 
-	TPBackRec {
-		id: backRec
-		enableShadow: true
+	ListView {
+		id: entriesListView
+		model: entriesListModel
+		spacing: 0
+		delegateModelAccess: DelegateModel.ReadOnly
+		reuseItems: true
+		clip: true
 		width: largest_entry_width
 		height: AppSettings.itemDefaultHeight * entriesListModel.visibleCount
-		backColor: AppSettings.paneBackgroundColor
-		radius: 8
+
+		anchors {
+			horizontalCenter: parent.horizontalCenter
+			verticalCenter: parent.verticalCenter
+		}
 
 		property int largest_entry_width: AppSettings.pageWidth * 0.6
 
-		states: [
-			State {
-				when: _menu.showIndicator
+		delegate: Item {
+			id: delegate
+			width: entriesListView.largest_entry_width
+			height: AppSettings.itemDefaultHeight
+			enabled: entriesListModel.get(index).enabled
 
-				AnchorChanges {
-					target: backRec
-					anchors.top: parent.top
-					anchors.left:indicatorLoader.right
-				}
-			},
-			State {
-				when: !_menu.showIndicator
+			required property int index
 
-				AnchorChanges {
-					target: backRec
-					anchors.horizontalCenter: parent.horizontalCenter;
-					anchors.verticalCenter: parent.verticalCenter;
+			Component.onCompleted: _menu._entryVisible.connect(setVisible);
+
+			function setVisible(entry_idx: int, visibility: bool): void {
+				if (entry_idx === delegate.index)
+					visible = visibility;
+			}
+
+			TPImage {
+				id: entry_img
+				source: entriesListModel.get(delegate.index).image
+				width: source !== "" ? AppSettings.itemDefaultHeight : 0
+				height: AppSettings.itemDefaultHeight
+
+				anchors {
+					left: parent.left
+					verticalCenter: parent.verticalCenter
 				}
 			}
-		]
 
-		ListView {
-			id: entriesListView
-			model: entriesListModel
-			spacing: 0
-			delegateModelAccess: DelegateModel.ReadOnly
-			reuseItems: true
-			clip: true
-			anchors.fill: parent
+			TPLabel {
+				text: entriesListModel.get(delegate.index).label
+				useBackground: true
+				backgroundColor: delegate.index % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2
 
-			delegate: Item {
-				id: delegate
-				width: backRec.largest_entry_width
-				height: AppSettings.itemDefaultHeight
-				enabled: entriesListModel.get(index).enabled
-
-				required property int index
-
-				Component.onCompleted: _menu._entryVisible.connect(setVisible);
-
-				function setVisible(entry_idx: int, visibility: bool): void {
-					if (entry_idx === delegate.index)
-						visible = visibility;
+				anchors {
+					left: entry_img.right
+					leftMargin: 5
+					right: parent.right
+					verticalCenter: parent.verticalCenter
 				}
 
-				TPImage {
-					id: entry_img
-					source: entriesListModel.get(delegate.index).image
-					width: source !== "" ? AppSettings.itemDefaultHeight : 0
-					height: AppSettings.itemDefaultHeight
-
-					anchors {
-						left: parent.left
-						verticalCenter: parent.verticalCenter
+				Component.onCompleted: {
+					if (contentWidth + entry_img.width > entriesListView.largest_entry_width) {
+						let entry_width = contentWidth + entry_img.width;
+						if (entry_width >= AppSettings.pageWidth * 0.8)
+							entry_width = AppSettings.pageWidth * 0.8;
+						entriesListView.largest_entry_width = entry_width;
 					}
 				}
+			}
 
-				TPLabel {
-					text: entriesListModel.get(delegate.index).label
-					useBackground: true
-					backgroundColor: delegate.index % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2
-
-					anchors {
-						left: entry_img.right
-						leftMargin: 5
-						right: parent.right
-						verticalCenter: parent.verticalCenter
-					}
-
-					Component.onCompleted: {
-						if (contentWidth + entry_img.width > backRec.largest_entry_width) {
-							let entry_width = contentWidth + entry_img.width;
-							if (entry_width >= AppSettings.pageWidth * 0.8)
-								entry_width = AppSettings.pageWidth * 0.8;
-							backRec.largest_entry_width = entry_width;
-						}
-					}
+			MouseArea {
+				enabled: delegate.enabled
+				anchors.fill: parent
+				onClicked: {
+					entriesListView.currentIndex = delegate.index;
+					springUp.start();
 				}
+			}
 
-				MouseArea {
-					enabled: delegate.enabled
-					anchors.fill: parent
-					onClicked: {
-						entriesListView.currentIndex = delegate.index;
-						springUp.start();
-					}
+			NumberAnimation {
+				id: springUp
+				target: delegate
+				property: "height"
+				from: delegate.height
+				to: delegate.height * 1.2
+				easing.type: Easing.InOutQuad
+
+				onFinished: {
+					_menu.menuEntrySelected(entriesListModel.get(delegate.index).btn_id);
+					_menu.expanded = false;
+					delegate.height = AppSettings.itemDefaultHeight
 				}
-
-				NumberAnimation {
-					id: springUp
-					target: delegate
-					property: "height"
-					from: delegate.height
-					to: delegate.height * 1.2
-					easing.type: Easing.InOutQuad
-
-					onFinished: {
-						_menu.menuEntrySelected(entriesListModel.get(delegate.index).btn_id);
-						_menu.expanded = false;
-						delegate.height = AppSettings.itemDefaultHeight
-					}
-				}
-			} //ItemDelegate
-		} //TPListView
-	} //TPBackRec
+			}
+		} //ItemDelegate
+	} //TPListView
 
 	function tpOpen(): void {
+		visibilityCondition = true;
 		if (showIndicator) {
 			open_in_window = true;
 			show_position = Qt.AlignBaseline;

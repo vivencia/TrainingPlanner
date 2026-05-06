@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Window
@@ -18,7 +20,7 @@ ApplicationWindow {
 	height: AppSettings.windowHeight
 	flags: Qt.platform.os === "android" ? Qt.Window | Qt.FramelessWindowHint : Qt.Window | Qt.CustomizeWindowHint & ~Qt.WindowMaximizeButtonHint
 
-	signal saveFileChosen(filepath: string);
+	signal fileDialogClosed(filepath: string);
 	signal tpFileOpenInquiryResult(do_import: bool);
 
 	Connections {
@@ -110,35 +112,44 @@ ApplicationWindow {
 			}
 		}*/
 
-		/*TPFileViewer {
+		TPFileViewer {
 			//mediaSource: "/home/guilhermef/Documents/Atendimento_CIP_35.001.003.26.1170764.pdf"
-			//mediaSource: "/home/guilhermef/Videos/Premiação - Dança Cigana Solo 2.mp4"
+			mediaSource: "/home/guilhermef/Videos/2026-crivania3-30fps.mp4"
+			//mediaSource: ""
+			canAddFile: true
 			//mediaSource: "/home/guilhermef/Pictures/CNH Rozângela Barbosa Fortunato.png"
-			mediaSource: "/home/guilhermef/Documents/programa 2.txt"
-			width: 3000
-			height: 3000
+			//mediaSource: "/home/guilhermef/Documents/programa 2.txt"
+			//mediaSource: "/home/guilhermef/.local/share/Vivencia Software/TrainingPlanner/1759256421787/chats/1759170252407/Ganho de capital 2025.pdf"
+			width: 350
+			height: 380
 			x: 0
 			y: 0
-		}*/
-
-		PasswordDialog {
-			id: passwd
-			request_id: 40
-			title: "Root Password"
-			message: "Give me your root password"
-			parentPage: homePage
 		}
+		/*Rectangle {
+			width: AppSettings.pageWidth
+			height: AppSettings.itemDefaultHeight
+			color: "green"
+			border.color: "white"
+			anchors.verticalCenter: parent.verticalCenter
+			anchors.left: parent.left
 
-		TPButton {
+		TPMediaPlayer {
+			id: _videoPlayer
+			anchors.fill:parent
+			mediaUrl: "/home/guilhermef/Videos/Premiação - Dança Cigana Solo 2.mp4"
+			windowState: TPFileViewer.WS_NORMAL
+			}
+		}*/
+		/*TPButton {
 			text: "Show menu"
 			autoSize: true
 			anchors.right: txtDummy.left
 			anchors.top: txtDummy.top
 			onClicked: {
-				//_control.showByWidget();
-				menu.reference_widget = txtDummy;
+				menu.reference_widget = txtDummy
 				menu.showIndicator = false;
-				menu.tpOpen();
+				menu.show_position = Qt.AlignBottom;
+				menu.tpQmlOpen(homePage);
 				//balloon.show_position = Qt.AlignLeft
 				//balloon.tpOpen();
 			}
@@ -156,25 +167,13 @@ ApplicationWindow {
 			anchors.left: txtDummy.right
 			anchors.top: txtDummy.top
 			onClicked: {
-				ItemManager.AppPagesManager.openPopup(passwd, homePage);
-				//_control.showByWidget();
-				//menu.reference_widget = null;
-				//menu.showIndicator = true;
-				//menu.tpOpen();
+				menu.reference_widget = null;
+				menu.showIndicator = true;
+				menu.show_position = Qt.AlignBaseline
+				menu.tpQmlOpen(homePage);
 				//balloon.show_position = Qt.AlignLeft
 				//balloon.tpOpen();
 			}
-		}
-
-		TPBalloonTip {
-			id: balloon
-			parentPage: homePage
-			open_in_window: true
-			_use_burst_transition: false
-			message: "mgeprgpegpoeṕgégṕeǵ féwfpewkfṕew'fẃe,fẃe,f fed.fçdf,léw,f"
-			title: "feḱwéw,ld,çç"
-			button1Text: "fkweopfkpow"
-			button2Text: "nvcxpvci"
 		}
 
 		FileOperations {
@@ -186,8 +185,6 @@ ApplicationWindow {
 		TPPageMenu {
 			id: menu
 			parentPage: homePage
-			showIndicator: true
-			_use_burst_transition: true
 
 			entriesList: [
 				{ "label": qsTr("Send to client"), "image": "download_", "btn_id": TPFileOps.OT_Custom_1, "enabled": true },
@@ -204,7 +201,36 @@ ApplicationWindow {
 				default: console.log("fileOps.doFileOperation(btn_id)");
 				}
 			}
+		}*/
+	}
+
+	Loader {
+		id: openDialogLoader
+		asynchronous: true
+		active: false
+
+//public:
+		property int fileType
+
+//private:
+		property TPFileDialog _file_dialog
+
+		sourceComponent: TPFileDialog {
+			saveDialog: false
+			fileType: openDialogLoader.fileType
+
+			onDialogClosed: (result) => {
+				mainwindow.fileDialogClosed(result === 0 ? AppUtils.getCorrectPath(currentFile) : "");
+				openDialogLoader.active = false;
+			}
+			Component.onCompleted: openDialogLoader._file_dialog = this;
 		}
+
+		onLoaded: _file_dialog.open();
+	}
+	function chooseFileToOpen(filetype: int): void {
+		openDialogLoader.fileType = filetype;
+		openDialogLoader.active = true;
 	}
 
 	function canChangeSetMode(exercise_number: int, exercise_idx: int, set_number: int) : bool {

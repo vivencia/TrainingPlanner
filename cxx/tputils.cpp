@@ -10,9 +10,15 @@
 #include <QGuiApplication>
 #include <QImage>
 #include <QLocale>
+#include <QStandardPaths>
 
 #include <ranges>
 #include <random>
+
+constexpr QLatin1StringView file_types_by_exension[6] {
+	" (*.jpg *.jpeg *.png *.gif)"_L1, " (*.mp4 *.mkv *.mov)"_L1, " (*.pdf)"_L1, " (*.txt)"_L1, " (*.odf *.ods)"_L1,
+																					" (*.doc *.docx *.xls *.xlsx)"_L1
+};
 
 TPUtils *TPUtils::_app_utils{nullptr};
 
@@ -84,25 +90,20 @@ TPUtils::FILE_TYPE TPUtils::getFileType(QString filename) const
 #endif
 	}
 
-	if (ext == "txt"_L1) {
-		std::optional<bool> formatted;
-		uint32_t type{getTPFileType(filename, formatted)};
-		if (formatted.value())
-			type |= FT_TP_FORMATTED;
-		return static_cast<FILE_TYPE>(type);
+	for (uint t{FT_IMAGE}, i{0}; t <= FT_MS_DOCUMENT; t *= 2, ++i ) {
+		if (file_types_by_exension[i].contains(ext)) {
+			if (i == FT_TEXT) {
+				std::optional<bool> formatted;
+				uint32_t type{getTPFileType(filename, formatted)};
+				if (formatted.value())
+					type |= FT_TP_FORMATTED;
+				return static_cast<FILE_TYPE>(type);
+			}
+			else
+				return static_cast<FILE_TYPE>(t);
+		}
 	}
-	else if (ext == "png"_L1 || ext == "jpg"_L1 || ext == "gif"_L1)
-		return FT_IMAGE;
-	else if (ext == "pdf")
-		return FT_PDF;
-	else if (ext == "mp4"_L1 || ext == "mkv"_L1)
-		return FT_VIDEO;
-	else if (ext.contains("od"_L1))
-		return FT_OPEN_DOCUMENT;
-	else if (ext.contains("doc"_L1) || ext.contains("xls"))
-		return FT_MS_DOCUMENT;
-	else
-		return FT_OTHER;
+	return FT_OTHER;
 }
 
 TPUtils::FILE_TYPE TPUtils::getTPFileType(const QString &filename, std::optional<bool> &formatted) const
@@ -156,6 +157,62 @@ TPUtils::FILE_TYPE TPUtils::getTPFileType(const QString &filename, std::optional
 	in_file->close();
 	delete in_file;
 	return static_cast<FILE_TYPE>(ret);
+}
+
+QVariant TPUtils::fileExtension(FILE_TYPE filetype, const bool as_list, const bool description) const
+{
+	filetype &= static_cast<FILE_TYPE>(static_cast<uint32_t>(~FT_TP_FORMATTED));
+	switch (filetype) {
+	case FT_TP_USER_PROFILE:
+	case FT_TP_PROGRAM:
+	case FT_TP_WORKOUT_A:
+	case FT_TP_WORKOUT_B:
+	case FT_TP_WORKOUT_C:
+	case FT_TP_WORKOUT_D:
+	case FT_TP_WORKOUT_E:
+	case FT_TP_WORKOUT_F:
+	case FT_TP_EXERCISES:
+		return description ? QString{tr("Training Planner's files") % file_types_by_exension[FT_TEXT-FT_IMAGE]} : "txt"_L1;
+	case FT_IMAGE:
+		if (as_list)
+			return QStringList{} << std::move("jpg"_L1) << std::move("jpeg"_L1) << std::move("png"_L1) << std::move("gif"_L1);
+		else
+			return description ? QString{tr("Images/Pictures") % file_types_by_exension[FT_IMAGE-FT_IMAGE]} : "jpg"_L1;
+	case FT_VIDEO:
+		if (as_list)
+			return QStringList{} << std::move("mp4"_L1) << std::move("mkv"_L1) << std::move("mov"_L1);
+		else
+			return description ? QString{tr("Videos/Movies") % file_types_by_exension[FT_VIDEO-FT_IMAGE]} : "mp4"_L1;
+	case FT_PDF:
+		return description ? QString{tr("PDF files") % file_types_by_exension[FT_PDF-FT_IMAGE]} : "pdf"_L1;
+	case FT_TEXT:
+		return description ? QString{tr("Text files") % file_types_by_exension[FT_TEXT-FT_IMAGE]} : "txt"_L1;
+	case FT_OPEN_DOCUMENT:
+		if (as_list)
+			return QStringList{} << std::move("odf"_L1) << std::move("ods"_L1);
+		else
+			return description ? QString{tr("Open Document(Libre Office)") % file_types_by_exension[FT_OPEN_DOCUMENT-FT_IMAGE]} : "odf"_L1;
+	case FT_MS_DOCUMENT:
+		if (as_list)
+			return QStringList{} << std::move("doc"_L1) << std::move("docx"_L1) << std::move("xls"_L1) << std::move("xlsx"_L1);
+		else
+			return description ? QString{tr("MS Office Documents") % file_types_by_exension[FT_MS_DOCUMENT-FT_IMAGE]} : "docx"_L1;
+	case FT_OTHER:
+		return description ? QString{tr("Any") % " (*.*)"_L1} : "*"_L1;
+	default:
+		break;
+	}
+	return QString{};
+}
+
+QString TPUtils::standardPathForFileType(TPUtils::FILE_TYPE filetype) const
+{
+	if (filetype == FT_IMAGE)
+		return QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
+	else if (filetype == FT_VIDEO)
+		return QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
+	else
+		return QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 }
 
 void TPUtils::viewOrOpenFile(const QString &filename, const QVariant &extra_info)

@@ -90,7 +90,6 @@
         <file>images/flat/workout.png</file>
         <file>images/flat/down.png</file>
         <file>images/flat/up.png</file>
-        <file>images/add-new.png</file>
         <file>images/password.png</file>
         <file>images/flat/hide-password.png</file>
         <file>images/flat/show-password.png</file>
@@ -145,7 +144,6 @@
         <file>images/chat_red.png</file>
         <file>images/chat_green.png</file>
         <file>images/chat_blue.png</file>
-        <file>images/no-image.jpg</file>
         <file>images/app-icon.png</file>
         <file>images/flat/switch-user.png</file>
         <file>images/backgrounds/backimage-timer.png</file>
@@ -221,5 +219,12 @@
         <file>images/question_green.png</file>
         <file>images/question_blue.png</file>
         <file>images/question_red.png</file>
+        <file>images/add-new_dark.png</file>
+        <file>images/add-new_light.png</file>
+        <file>images/add-new_gray.png</file>
+        <file>images/add-new_red.png</file>
+        <file>images/add-new_green.png</file>
+        <file>images/add-new_blue.png</file>
+        <file>images/no-image.png</file>
     </qresource>
 </RCC>

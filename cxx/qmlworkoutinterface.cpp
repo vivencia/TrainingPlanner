@@ -340,7 +340,7 @@ void QmlWorkoutInterface::importWorkout(const QString &filename)
 {
 	if (filename.isEmpty()) {
 		m_mesoModel->setImportIdx(m_mesoIdx);
-		QMetaObject::invokeMethod(appMainWindow(), "chooseFileToImport");
+		QMetaObject::invokeMethod(appMainWindow(), "chooseFileToOpen");
 	}
 }
 
@@ -419,6 +419,13 @@ inline bool QmlWorkoutInterface::checkWorkoutStatus(const workoutStatusFlags fla
 	return m_workoutStatus & flag;
 }
 
+constexpr QmlWorkoutInterface::workoutStatusFlags operator~(QmlWorkoutInterface::workoutStatusFlags rhs)
+{
+	// Cast to the underlying type, perform the operation, and cast back to the enum type
+	using U = std::underlying_type_t<QmlWorkoutInterface::workoutStatusFlags>;
+	return static_cast<QmlWorkoutInterface::workoutStatusFlags>(static_cast<QmlWorkoutInterface::workoutStatusFlags>(~rhs));
+}
+
 bool QmlWorkoutInterface::changeWorkoutStatus(workoutStatusFlags flag, const bool set, const bool emit_signal)
 {
 	bool ok{false};
@@ -428,15 +435,13 @@ bool QmlWorkoutInterface::changeWorkoutStatus(workoutStatusFlags flag, const boo
         	changeWorkoutStatus(workoutStatusFlags::WS_EDITABLE, set, false);
 		break;
     case workoutStatusFlags::WS_EDIT_MODE:
-        if ((ok = checkWorkoutStatus(workoutStatusFlags::WS_FINISHED)) || (ok = !checkWorkoutStatus(workoutStatusFlags::WS_TODAY)))
-		{
+        if ((ok = checkWorkoutStatus(workoutStatusFlags::WS_FINISHED)) || (ok = !checkWorkoutStatus(workoutStatusFlags::WS_TODAY))) {
 			changeWorkoutStatus(workoutStatusFlags::WS_EDITABLE, set, false);
 			changeWorkoutStatus(workoutStatusFlags::WS_FINISHED, !set, false);
 		}
 		break;
     case workoutStatusFlags::WS_TODAY:
-        if ((ok = !checkWorkoutStatus(workoutStatusFlags::WS_FINISHED)))
-		{
+        if ((ok = !checkWorkoutStatus(workoutStatusFlags::WS_FINISHED))) {
 			changeWorkoutStatus(workoutStatusFlags::WS_EDITABLE, set, false);
 			changeWorkoutStatus(workoutStatusFlags::WS_IN_PROGRESS, !set, false);
 			changeWorkoutStatus(workoutStatusFlags::WS_FINISHED, !set, false);
@@ -446,15 +451,13 @@ bool QmlWorkoutInterface::changeWorkoutStatus(workoutStatusFlags flag, const boo
         ok = !checkWorkoutStatus(workoutStatusFlags::WS_IN_PROGRESS);
         break;
     case workoutStatusFlags::WS_FINISHED:
-        if ((ok = checkWorkoutStatus(workoutStatusFlags::WS_TODAY)))
-        {
+        if ((ok = checkWorkoutStatus(workoutStatusFlags::WS_TODAY))) {
             changeWorkoutStatus(workoutStatusFlags::WS_IN_PROGRESS, !set, false);
             changeWorkoutStatus(workoutStatusFlags::WS_EDITABLE, set, false);
         }
 		break;
 	}
-	if (ok)
-	{
+	if (ok) {
 		set ? m_workoutStatus |= flag : m_workoutStatus &= ~flag;
 		if (emit_signal)
 			emit workoutStatusChanged();
@@ -465,8 +468,7 @@ bool QmlWorkoutInterface::changeWorkoutStatus(workoutStatusFlags flag, const boo
 void QmlWorkoutInterface::createWorkoutPage()
 {
 	m_workoutComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/Pages/WorkoutPage.qml"_L1}, QQmlComponent::Asynchronous};
-	switch (m_workoutComponent->status())
-	{
+	switch (m_workoutComponent->status()) {
 		case QQmlComponent::Ready:
 			createWorkoutPage_part2();
 		break;

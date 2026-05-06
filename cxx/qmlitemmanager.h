@@ -73,9 +73,9 @@ signals:
 	void qmlImportDialogClose(bool result);
 	/**
 	 * @brief generalMessagesPopupClicked
-	 * @param button_idx: 0 (dialog was closed via close button or back_key() or something else; 1: button1; 2: button2
+	 * @param button: 0 (dialog was closed via close button or back_key() or something else; 1: button1; 2: button2
 	 */
-	void generalMessagesPopupClicked(const uint8_t button_idx);
+	void generalMessagesPopupClicked(const uint8_t button);
 
 #ifndef QT_NO_DEBUG
 	void cppDataForQMLReady();

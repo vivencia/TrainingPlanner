@@ -130,7 +130,7 @@ void QmlItemManager::exitApp()
 
 void QmlItemManager::chooseFileToImport()
 {
-	QMetaObject::invokeMethod(appMainWindow(), "chooseFileToImport");
+	QMetaObject::invokeMethod(appMainWindow(), "chooseFileToOpen");
 }
 
 void QmlItemManager::displayImportDialogMessageAfterMesoSelection(const int meso_idx)

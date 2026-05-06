@@ -21,8 +21,9 @@ Q_OBJECT
 QML_ELEMENT
 QML_VALUE_TYPE(MediaControls)
 
+Q_PROPERTY(QSize controlSize READ controlSize WRITE setControlSize NOTIFY controlSizeChanged FINAL)
 Q_PROPERTY(QList<int> availableControls READ availableControls WRITE setAvailableControls NOTIFY availableControlsChanged FINAL)
-Q_PROPERTY(TPFileOps* fileOps READ fileOps WRITE setFileOps NOTIFY fileOpsChanged FINAL)
+Q_PROPERTY(TPFileOps *fileOps READ fileOps WRITE setFileOps NOTIFY fileOpsChanged FINAL)
 
 public:
 
@@ -44,21 +45,20 @@ public:
 	explicit TPMediaControls(QQuickItem *parent = nullptr);
 	void paint(QPainter *painter) override;
 
-	inline QList<int> availableControls() const { return m_types; }
-	inline void setAvailableControls(const QList<int> &types_list)
+	inline QSize controlSize() const { return m_controlSize; }
+	inline void setControlSize(const QSize &new_size)
 	{
-		m_types.clear();
-		m_types.reserve(types_list.count());
-		for (const auto type : types_list)
-			m_types.append(type);
-		emit availableControlsChanged();
-		createControls();
+		m_controlSize = new_size;
+		setWidth(new_size.width());
+		setHeight(new_size.height());
+		emit controlSizeChanged();
 	}
-
+	inline QList<int> availableControls() const { return m_types; }
+	void setAvailableControls(const QList<int> &types_list);
 	inline TPFileOps *fileOps() const { return m_fileOps; }
 	void setFileOps(TPFileOps *fileops);
 	Q_INVOKABLE void setEnabled(TPMediaControls::ControlType type, const bool enabled);
-	Q_INVOKABLE void controlReachedLimit(TPMediaControls::ControlType type);
+	Q_INVOKABLE void controlLimitReached(TPMediaControls::ControlType type);
 	Q_INVOKABLE inline void emulateControlClick(TPMediaControls::ControlType type)
 	{
 		controlInfo *ci{controlFromType(type)};
@@ -67,6 +67,7 @@ public:
 	}
 
 signals:
+	void controlSizeChanged();
 	void availableControlsChanged();
 	void controlClicked(TPMediaControls::ControlType type);
 	void controlPressed(TPMediaControls::ControlType type);
@@ -93,10 +94,8 @@ private:
 	QList<controlInfo*> m_controls;
 	controlInfo *m_currentControl{nullptr};
 	QList<int> m_types;
-	QSize m_controlSize;
+	QSize m_controlSize, m_buttonSize;
 	QColor m_pressedColor;
-	int8_t m_qml_control_spacing{5};
-	int8_t m_qml_control_extra_height{10};
 	TPFileOps *m_fileOps{nullptr};
 	static QImage img_all_controls;
 

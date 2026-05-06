@@ -143,6 +143,7 @@ void PagesListModel::closePage(const uint index)
 		beginRemoveRows(QModelIndex{}, index, index);
 		if (m_pagesData.at(index)->cleanUpFunc)
 			m_pagesData.at(index)->cleanUpFunc();
+		qDeleteAll(m_pagesData.at(index)->tpPopups);
 		delete m_pagesData.at(index);
 		m_pagesData.remove(index);
 		m_pagesMesoIdx.remove(index);
@@ -203,21 +204,25 @@ void PagesListModel::openPopup(QObject *popup, QQuickItem *parentPage, const int
 	popup->setProperty("parentPage", std::move(QVariant::fromValue(parentPage)));
 	popup->setProperty("show_position", std::move(QVariant{position}));
 	popup->setProperty("open_in_window", std::move(QVariant{widget == nullptr}));
-	popup->setProperty("reference_widget", std::move(QVariant::fromValue(widget)));
+	if (widget)
+		popup->setProperty("reference_widget", std::move(QVariant::fromValue(widget)));
 	QMetaObject::invokeMethod(popup, "tpOpen");
 }
 
 void PagesListModel::raisePopup(QObject* popup)
 {
-	pageInfo *page_info{getPageInfo(popup)};
-	if (page_info) {
-		if (popup != page_info->tpPopups.constLast()) {
-			changePopupStackOrder(popup, page_info);
-			popup->setProperty("z", page_info->tpPopups.count() - 1);
-			const auto z_order{page_info->tpPopups.indexOf(popup)};
-			page_info->tpPopups.move(z_order, page_info->tpPopups.count() - 1);
-			popup->setProperty("visible", true);
-			QMetaObject::invokeMethod(popup, "forceActiveFocus");
+	const QVariant &keepAbove{popup->property("keepAbove")};
+	if (keepAbove.isValid() && keepAbove.toBool()) {
+		pageInfo *page_info{getPageInfo(popup)};
+		if (page_info) {
+			if (popup != page_info->tpPopups.constLast()) {
+				changePopupStackOrder(popup, page_info);
+				popup->setProperty("z", page_info->tpPopups.count() - 1);
+				const auto z_order{page_info->tpPopups.indexOf(popup)};
+				page_info->tpPopups.move(z_order, page_info->tpPopups.count() - 1);
+				popup->setProperty("visible", true);
+				QMetaObject::invokeMethod(popup, "forceActiveFocus");
+			}
 		}
 	}
 }
@@ -275,7 +280,7 @@ bool PagesListModel::eventFilter(QObject *obj, QEvent *event)
 				if (popup->property("modal").toBool() || popup->property("keepAbove").toBool())
 					QMetaObject::invokeMethod(popup, "backKeyPressed");
 				else
-					QMetaObject::invokeMethod(popup, "tpClose");
+					QMetaObject::invokeMethod(popup, "close");
 			}
 			else {
 				if (currentIndex() != 0)
@@ -283,9 +288,9 @@ bool PagesListModel::eventFilter(QObject *obj, QEvent *event)
 				else {
 					auto conn{std::make_shared<QMetaObject::Connection>()};
 					*conn = connect(appItemManager(), &QmlItemManager::generalMessagesPopupClicked, this, [this,conn]
-																									(const uint8_t button_idx) {
+																								(const uint8_t button) {
 						disconnect(*conn);
-						if (button_idx == 1)
+						if (button == 1)
 							qApp->exit();
 					});
 					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings( {tr("Exit"),
@@ -334,14 +339,14 @@ void PagesListModel::activateQmlPage(const uint index)
 	pageInfo *page_info{m_pagesData.at(index)};
 	QMetaObject::invokeMethod(page_info->page, "pageActivated");
 	for (const auto popup: std::as_const(page_info->tpPopups))
-		QMetaObject::invokeMethod(popup, "tpOpen");
+		QMetaObject::invokeMethod(popup, "restore");
 }
 
 void PagesListModel::deActivateQmlPage(const uint index)
 {
 	pageInfo *page_info{m_pagesData.at(index)};
 	for (const auto popup: std::as_const(page_info->tpPopups))
-		QMetaObject::invokeMethod(popup, "tpClose");
+		QMetaObject::invokeMethod(popup, "hide");
 	QMetaObject::invokeMethod(m_pagesData.at(index)->page, "pageDeActivated");
 }
 

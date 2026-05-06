@@ -259,11 +259,11 @@ public:
 	Q_INVOKABLE bool isOwnMeso(const uint meso_idx) const;
 	void addSubMesoModel(const uint meso_idx, const bool own_meso);
 
-	inline const QString &file(const uint meso_idx) const
+	Q_INVOKABLE inline const QString &file(const uint meso_idx) const
 	{
 		return m_mesoData.at(meso_idx).at(MESO_FIELD_FILE);
 	}
-	inline void setFile(const uint meso_idx, const QString &new_file)
+	Q_INVOKABLE inline void setFile(const uint meso_idx, const QString &new_file)
 	{
 		m_mesoData[meso_idx][MESO_FIELD_FILE] = new_file;
 		setModified(meso_idx, MESO_FIELD_FILE);

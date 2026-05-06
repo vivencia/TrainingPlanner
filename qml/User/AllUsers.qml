@@ -110,7 +110,7 @@ TPPopup {
 			}
 
 			TPButton {
-				imageSource: "add-new"
+				imageSource: "add-new_"
 				text: qsTr("New user")
 				width: buttonsRow.buttonSize
 				height: AppSettings.itemDefaultHeight

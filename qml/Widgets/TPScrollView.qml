@@ -62,11 +62,11 @@ ScrollView {
 
 		sourceComponent: TPPageScrollButtons {
 			parentPage: _control.parentPage
-			visible: _control.navButtonsVisible
+			visibilityCondition: _control.navButtonsVisible
 			onScrollTo: (pos) => _control.setScrollBarPosition(pos);
 			Component.onCompleted: {
 				_control._navButtons = this;
-				tpOpen();
+				tpQmlOpen(_control.parentPage);
 			}
 		}
 	}
