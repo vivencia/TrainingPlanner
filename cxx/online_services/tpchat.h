@@ -70,6 +70,7 @@ public:
 	inline void setHasUnreadMessages(const bool has_unread) { if (!has_unread) markAllIncomingMessagesRead(); }
 	Q_INVOKABLE void markAllIncomingMessagesRead();
 	Q_INVOKABLE void createNewMessage(const QString &text, const QString &media = QString{});
+	Q_INVOKABLE void createNewMessageWithAttachment(const QString &text);
 	void incomingMessage(const QString &encoded_message);
 	void clearChat();
 	QVariant data(const ChatMessage *const message, const uint field, const bool format_output = false) const;
@@ -86,6 +87,7 @@ public:
 public slots:
 	void processWebSocketTextMessage(const QString &message);
 	void processWebSocketBinaryMessage(const QByteArray &data);
+	void attachFileToMessage(const QString &filepath);
 	Q_INVOKABLE void onChatWindowOpened();
 
 signals:
@@ -98,7 +100,7 @@ signals:
 	void chatLoadedStatusChanged();
 
 private:
-	QString m_otherUserId;
+	QString m_otherUserId, m_attachedMessage;
 	uint m_userIdx, m_nMedia;
 	QList<ChatMessage*> m_messages;
 	QHash<int, QByteArray> m_roleNames;

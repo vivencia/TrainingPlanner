@@ -146,7 +146,7 @@ void TPOnlineServices::getAllUsers(const int requestid)
 {
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid]
-																(const int request_id, const int ret_code, const QString &ret_string) {
+													(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			QStringList users;
@@ -217,7 +217,7 @@ void TPOnlineServices::getDevicesList(const int requestid)
 {
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
-																	(const int request_id, const int ret_code, const QString &ret_string) {
+													(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			QStringList devices_list;
@@ -341,21 +341,22 @@ void TPOnlineServices::executeCommands(const int requestid, const QString &subdi
 }
 
 void TPOnlineServices::sendFile(const int requestid, QFile *file, const QString &subdir, const QString &targetUser,
-																							const bool b_internal_signal_only)
+																						const bool b_internal_signal_only)
 {
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
-																	(const int request_id, const int ret_code, const QString &ret_string) {
+													(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			if (ret_code == TP_RET_CODE_SUCCESS) {
 				if (remoteFileUpToDate(ret_string, file->fileName())) { //remote file is up to date. Don't send anything
-					emit networkRequestProcessed(requestid, TP_RET_CODE_NO_CHANGES_SUCCESS, tr("File on the online server already up to date"));
+					emit networkRequestProcessed(requestid, TP_RET_CODE_NO_CHANGES_SUCCESS,
+																	tr("File on the online server already up to date"));
 					return;
 				}
 			}
 			const QUrl &url{makeCommandURL(false, "upload"_L1, subdir, "targetuser"_L1, targetUser.isEmpty() ?
-																							appUserModel()->userId(0) : targetUser)};
+																					appUserModel()->userId(0) : targetUser)};
 			uploadFile(requestid, url, file, b_internal_signal_only);
 		}
 	});
@@ -369,7 +370,7 @@ void TPOnlineServices::listFiles(const int requestid, const bool only_new,
 {
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
-															(const int request_id, const int ret_code, const QString &ret_string) {
+													(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			QStringList new_files;
@@ -421,8 +422,8 @@ void TPOnlineServices::removeFile(const int requestid, const QString &filename, 
 	makeNetworkRequest(requestid, url, true);
 }
 
-void TPOnlineServices::getFile(const int requestid, const QString &filename, const QString &subdir, const QString &targetUser,
-																												const QString &localFilePath)
+void TPOnlineServices::getFile(const int requestid, const QString &filename, const QString &subdir,
+																const QString &targetUser, const QString &localFilePath)
 {
 	bool check_ctime_first{false};
 	if (!localFilePath.isEmpty()) {
@@ -431,12 +432,11 @@ void TPOnlineServices::getFile(const int requestid, const QString &filename, con
 	}
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
-									(const int request_id, const int ret_code, const QString &ret_string, const QByteArray &contents) {
+						(const int request_id, const int ret_code, const QString &ret_string, const QByteArray &contents) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			if (ret_code == TP_RET_CODE_SUCCESS) {
-				if (check_ctime_first)
-				{
+				if (check_ctime_first) {
 					if (!localFileUpToDate(ret_string, localFilePath)) { //if local file is up to date, we 'll use it
 						getFile(requestid, filename, subdir, targetUser);
 						return;
@@ -665,7 +665,7 @@ void TPOnlineServices::checkServer(const QString &address, const QString &port)
 	const int requestid{appUtils()->generateRandomNumber(1000, 2000)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid,address,port]
-														(const int request_id, const int ret_code, const QString &ret_string) {
+													(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			uint8_t online_status{TP_RET_CODE_SERVER_UNREACHABLE};

@@ -2,23 +2,20 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Layouts
 import QtQuick.Pdf
 
 import TpQml
 
-TPImage {
+Item {
 	id: _control
-	smooth: false
-	source: _preview_source
-	dropShadow: false
-	keepAspectRatio: true
-	imageSizeFollowControlSize: _file_ops.fileType !== AppUtils.FT_IMAGE
-	fullWindowView: false
+	width: minimumWidth
+	height: minimumHeight
 
 //public:
 	required property string mediaSource
 	property bool canAddFile: false
+	readonly property int minimumWidth: _file_ops.controlSize.width
+	readonly property int minimumHeight: minimumWidth
 
 	signal removalRequested()
 	signal fileAdded(filepath: string)
@@ -26,7 +23,6 @@ TPImage {
 //private:
 	enum WindowStates { WS_UNDEFINED, WS_NORMAL, WS_FULLSCREEN }
 
-	readonly property string _media_url: "file://" + _control.mediaSource
 	property string _preview_source
 	property int _window_state: TPFileViewer.WindowStates.WS_UNDEFINED
 	property FileOperations _file_ops
@@ -65,6 +61,38 @@ TPImage {
 		}
 	]
 
+	Loader {
+		asynchronous: true
+		active: _control._file_ops.fileType === AppUtils.FT_TEXT
+		anchors.fill: parent
+
+		sourceComponent: Label {
+			text: _control._file_ops.getFileText(true);
+			font.pixelSize: 0.05 * _control.height
+			color: "black"
+			padding: 10
+			wrapMode: Text.Wrap
+
+			background: Rectangle { color: "white"; border.color: "black"; }
+		}
+	}
+
+	Loader {
+		asynchronous: true
+		active: _control._file_ops.fileType !== AppUtils.FT_TEXT
+		anchors.fill: parent
+
+		sourceComponent: TPImage {
+			id: _imagePreview
+			smooth: false
+			source: _control._preview_source
+			dropShadow: false
+			keepAspectRatio: true
+			imageSizeFollowControlSize: _control._file_ops.fileType !== AppUtils.FT_IMAGE
+			fullWindowView: false
+		}
+	}
+
 	Rectangle {
 		id: fileOpsRec
 		radius: 8
@@ -91,10 +119,7 @@ TPImage {
 				verticalCenter: parent.verticalCenter
 			}
 
-			Component.onCompleted: {
-				_control._file_ops = this;
-				//_control._preview_source = getFileTypeIcon(_control.mediaSource, Qt.size(0, 0), true);
-			}
+			Component.onCompleted: _control._file_ops = this;
 			onShowFullScreen: fullScreenLoader.showFullScreen();
 			onFileRemovalRequested: _control.removalRequested();
 			onFileNameChanged: if (canAddFile) _control.fileAdded(fileName);
@@ -109,7 +134,7 @@ TPImage {
 		anchors.fill: parent
 
 		sourceComponent: TPMediaPlayer {
-			mediaUrl: _control._media_url
+			mediaUrl: _control._file_ops.fileURL
 			fileOps: _control._file_ops
 			windowState: _control._window_state
 			Component.onCompleted: _control._media_player = this;
@@ -134,11 +159,13 @@ TPImage {
 			if (_control._window_state === TPFileViewer.WS_NORMAL) {
 				_window.showFullScreen();
 				_control._window_state = TPFileViewer.WS_FULLSCREEN;
+				_control._file_ops.repaintControls();
 			}
 			else {
 				_window.close();
 				fullScreenLoader.active = false;
 				_control._window_state = TPFileViewer.WindowStates.WS_NORMAL;
+				_control._file_ops.repaintControls();
 			}
 
 			if (_control._media_player)
@@ -182,7 +209,7 @@ TPImage {
 				sourceComponent: PdfMultiPageView {
 					id: pdfViewer
 					document: PdfDocument {
-						source: _control._file_ops.fileName
+						source: _control._file_ops.fileURL
 					}
 
 					Connections {
@@ -214,84 +241,31 @@ TPImage {
 				active: _control._file_ops.fileType < AppUtils.FT_IMAGE
 				anchors.fill: parent
 
-				sourceComponent: Item {
-					id: _tpFileItem
-					TabBar {
-						id: tabSections
-						height: AppSettings.itemLargeHeight
-						clip: true
-						currentIndex: sectionsLayout.currentIndex
+				sourceComponent: TPAppFileViewer {
+					fileOps: _control._file_ops;
+				}
+			} //Loader : TPAppFileViewer
 
-						anchors {
-							top: _tpFileItem.top
-							topMargin: 10
-							horizontalCenter: _tpFileItem.horizontalCenter
+			Loader {
+				asynchronous: true
+				active: _control._file_ops.fileType === AppUtils.FT_TEXT
+				anchors.fill: parent
+
+				sourceComponent: TPMultiLineEdit {
+					id: _edit
+					text: _control._file_ops.getFileText(false)
+					editable: false
+					maxHeight: -1
+					minHeight: height
+
+					Connections {
+						target: _control
+						function onFileAdded(filepath: string): void {
+							_edit.text = _control._file_ops.getFileText(false);
 						}
-
-						Repeater {
-							id: tabSectionsRepeater
-							model: _control._file_ops.tpFileSectionCount
-
-							delegate: TPTabButton {
-								text: _control._file_ops.tpFileSectionTitle(index);
-								parentTab: tabSections
-
-								required property int index
-
-								onClicked: sectionsLayout.currentIndex = index;
-							} //TPTabButton
-						} //Repeater: tabSectionsRepeater
-					} //TabBar: tabSections
-
-					StackLayout {
-						id: sectionsLayout
-
-						anchors {
-							fill: parent
-							topMargin: AppSettings.itemLargeHeight + 20
-						}
-
-						Repeater {
-							id: sectionsRepeater
-							model: _control._file_ops.tpFileSectionCount
-
-							delegate: TPMultiLineEdit {
-								id: _multiline_edit
-								text: _control._file_ops.tpFileSection(index);
-								maxHeight: -1
-								minHeight: height
-								width: sectionsLayout.width
-								height: sectionsLayout.height
-
-								required property int index
-
-								onTextControlChanged: {
-									textControl.cursorPositionChanged.connect(function () {
-													_control._file_ops.setWorkingDocumentCursorPosition(textControl.cursorPosition); });
-								}
-
-								Connections {
-									target: _control._file_ops
-									function onSetCursorPorsition(cursor_pos: int) : void {
-										if (sectionsLayout.currentIndex === _multiline_edit.index)
-											_multiline_edit.textControl.cursorPosition = cursor_pos;
-									}
-									function onInsertString(str: string, pos: int): void {
-										_multiline_edit.textControl.insert(pos, str);
-									}
-								}
-								Connections {
-									target: sectionsLayout
-									function onCurrentIndexChanged(): void {
-										if (sectionsLayout.currentIndex === _multiline_edit.index)
-											_control._file_ops.setWorkingTextDocument(_multiline_edit.textControl.textDocument);
-									}
-								}
-							} //TPMultiLineEdit
-						} //Repeater: tabSectionsRepeater
-					} //StackLayout: sectionsLayout
-				} //Item
-			} //Loader : TPMultiLineEdit
+					}
+				}
+			} //Loader : TPAppFileViewer
 		} //Window fullViewWindow
 	} //Loader fullScreenLoader
-} // TPImage
+} //Item

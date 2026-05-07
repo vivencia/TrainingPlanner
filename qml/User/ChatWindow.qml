@@ -15,6 +15,7 @@ TPPopup {
 	showTitleBar: true
 	closeButtonVisible: true
 	open_in_window: true
+	globalPopup: AppSettings.showOnlineMessagesDialog
 	width: normalWidth
 	height: normalHeight
 	backGroundImage: ":/images/backgrounds/backimage-chat.jpg"
@@ -249,22 +250,19 @@ TPPopup {
 						asynchronous: true
 						active: messageItem.inViewport && messageItem.msgMedia.length > 0
 						Layout.alignment: Qt.AlignCenter
-						Layout.preferredWidth: active ? (messageItem.msgOpenExternally ?
-															 AppSettings.itemExtraLargeHeight : _file_viewer.preferredWidth) + 10 : 0
-						Layout.preferredHeight: active ? (messageItem.msgOpenExternally ?
-															  AppSettings.itemExtraLargeHeight : _file_viewer.preferredHeight) + 10 : 0
+						Layout.preferredWidth: active ? _file_viewer.minimumWidth: 0
+						Layout.preferredHeight: active ? _file_viewer.minimumHeight: 0
 
 						property TPFileViewer _file_viewer
 
 						sourceComponent: TPFileViewer {
 							mediaSource: messageItem.msgMedia
 
-							onImageSizeChanged: {
+							Component.onCompleted: {
+								mediaLoader._file_viewer = this;
 								if (++_chatWindow.nMedia === _chatWindow.chatManager.nMediaMessages())
 									waitTimer.start();
 							}
-
-							Component.onCompleted: mediaLoader._file_viewer = this;
 
 							Timer {
 								id: waitTimer
@@ -500,7 +498,7 @@ TPPopup {
 
 			onEnterOrReturnKeyPressed: (mod_key) => {
 				if (mod_key === Qt.Key_Control)
-					_chatWindow.sendMessage();
+					_chatWindow.chatManager.createNewMessage(txtMessage.contentsText(), "");
 			}
 		}
 
@@ -516,7 +514,7 @@ TPPopup {
 				top: txtMessage.top
 			}
 
-			onClicked: _chatWindow.sendFile();
+			onClicked: _chatWindow.chatManager.createNewMessageWithAttachment(txtMessage.contentsText());
 		} //TPButton
 
 		TPButton {
@@ -532,7 +530,7 @@ TPPopup {
 				bottom: txtMessage.bottom
 			}
 
-			onClicked: _chatWindow.sendMessage("");
+			onClicked: _chatWindow.chatManager.createNewMessage(txtMessage.contentsText(), "");
 		} //TPButton
 
 		TPImage {
@@ -577,31 +575,7 @@ TPPopup {
 		} //MouseArea
 	} //Frame frmFooter
 
-	Loader {
-		id: sendFileLoader
-		asynchronous: true
-		active: false
-
-		property TPFileDialog _file_dialog
-		sourceComponent: TPFileDialog {
-			includeAllFilesFilter: true
-			onDialogClosed: (result) => {
-				if (result === 0)
-					_chatWindow.sendMessage(selectedFile);
-				sendFileLoader.active = false;
-			}
-			Component.onCompleted: sendFileLoader._file_dialog = this;
-		}
-
-		onLoaded: _file_dialog.show();
-	}
-
-	function sendFile(): void {
-		sendFileLoader.active = true;
-	}
-
-	function sendMessage(media_file: string): void {
-		_chatWindow.chatManager.createNewMessage(txtMessage.contentsText(), media_file);
+	function postSendingActions(): void {
 		messagesList.positionViewAtEnd();
 		txtMessage.clear();
 	}

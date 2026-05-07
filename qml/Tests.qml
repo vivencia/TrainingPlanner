@@ -38,170 +38,17 @@ ApplicationWindow {
 		anchors.fill: parent
 		signal mesosViewChanged(bool own_mesos);
 
-		/*property MesocyclesModel mesoModel: null
-
-		WorkoutOrSplitExercisesList {
-			id: lstWorkoutExercises
-			pageManager: homePage
-			anchors.fill: parent
-		}*/
-
-		/*MediaControls {
-			id: mediaControls
-			height: AppSettings.itemDefaultHeight
-			width: homePage.width * 0.8
-			availableControls: [ MediaControls.CT_Play, MediaControls.CT_Stop, MediaControls.CT_Prev, MediaControls.CT_Next,
-				MediaControls.CT_Equalizer, MediaControls.CT_Rewind, MediaControls.CT_FastForward, MediaControls.CT_VolumeUp,
-				MediaControls.CT_VolumeDown, MediaControls.CT_Mute ]
-			onControlPressed: (type) => {
-				switch (type) {
-					case MediaControls.CT_Play: console.log("Play - pressed"); break;
-					case MediaControls.CT_Pause: console.log("Pause - pressed"); break;
-					case MediaControls.CT_Stop: console.log("Stop - pressed"); break;
-					case MediaControls.CT_Prev: console.log("Prev - pressed"); break;
-					case MediaControls.CT_Next: console.log("Next - pressed"); break;
-					case MediaControls.CT_Equalizer: console.log("Equalizer - pressed"); break;
-					case MediaControls.CT_Rewind: console.log("Rewind - pressed"); break;
-					case MediaControls.CT_FastForward: console.log("Fast Forward - pressed"); break;
-					case MediaControls.CT_VolumeUp: console.log("Volume Up - pressed"); break;
-					case MediaControls.CT_VolumeDown: console.log("Volume Down - pressed"); break;
-					case MediaControls.CT_Mute: console.log("Mute - pressed"); break;
-				}
-			}
-			onControlClicked: (type) => {
-				switch (type) {
-					case MediaControls.CT_Play: console.log("Play - click"); break;
-					case MediaControls.CT_Pause: console.log("Pause - click"); break;
-					case MediaControls.CT_Stop: console.log("Stop - click"); break;
-					case MediaControls.CT_Prev: console.log("Prev - click"); break;
-					case MediaControls.CT_Next: console.log("Next - click"); break;
-					case MediaControls.CT_Equalizer: console.log("Equalizer - click"); break;
-					case MediaControls.CT_Rewind: console.log("Rewind - click"); break;
-					case MediaControls.CT_FastForward: console.log("Fast Forward - click"); break;
-					case MediaControls.CT_VolumeUp: console.log("Volume Up - click"); break;
-					case MediaControls.CT_VolumeDown: console.log("Volume Down - çlick"); break;
-					case MediaControls.CT_Mute: console.log("Mute - click"); break;
-				}
-			}
-			onControlReleased: (type) => {
-				switch (type) {
-					case MediaControls.CT_Play: console.log("Play - released"); break;
-					case MediaControls.CT_Pause: console.log("Pause - released"); break;
-					case MediaControls.CT_Stop: console.log("Stop - released"); break;
-					case MediaControls.CT_Prev: console.log("Prev - released"); break;
-					case MediaControls.CT_Next: console.log("Next - released"); break;
-					case MediaControls.CT_Equalizer: console.log("Equalizer - released"); break;
-					case MediaControls.CT_Rewind: console.log("Rewind - released"); break;
-					case MediaControls.CT_FastForward: console.log("Fast Forward - released"); break;
-					case MediaControls.CT_VolumeUp: console.log("Volume Up - released"); break;
-					case MediaControls.CT_VolumeDown: console.log("Volume Down - released"); break;
-					case MediaControls.CT_Mute: console.log("Mute - released"); break;
-				}
-			}
-
-			anchors {
-				horizontalCenter: parent.horizontalCenter
-				verticalCenter: parent.verticalCenter
-			}
-
-			Rectangle {
-				anchors.fill: parent
-				color: "transparent"
-				border.color: AppSettings.fontColor
-				radius: 8
-			}
-		}*/
-
 		TPFileViewer {
-			//mediaSource: "/home/guilhermef/Documents/Atendimento_CIP_35.001.003.26.1170764.pdf"
-			mediaSource: "/home/guilhermef/Videos/2026-crivania3-30fps.mp4"
+			mediaSource: "/home/guilhermef/Documents/Atendimento_CIP_35.001.003.26.1170764.pdf"
+			//mediaSource: "/home/guilhermef/Videos/2026-crivania3-30fps.mp4"
 			//mediaSource: ""
 			canAddFile: true
 			//mediaSource: "/home/guilhermef/Pictures/CNH Rozângela Barbosa Fortunato.png"
 			//mediaSource: "/home/guilhermef/Documents/programa 2.txt"
 			//mediaSource: "/home/guilhermef/.local/share/Vivencia Software/TrainingPlanner/1759256421787/chats/1759170252407/Ganho de capital 2025.pdf"
-			width: 350
-			height: 380
-			x: 0
-			y: 0
+			x: 50
+			y: 50
 		}
-		/*Rectangle {
-			width: AppSettings.pageWidth
-			height: AppSettings.itemDefaultHeight
-			color: "green"
-			border.color: "white"
-			anchors.verticalCenter: parent.verticalCenter
-			anchors.left: parent.left
-
-		TPMediaPlayer {
-			id: _videoPlayer
-			anchors.fill:parent
-			mediaUrl: "/home/guilhermef/Videos/Premiação - Dança Cigana Solo 2.mp4"
-			windowState: TPFileViewer.WS_NORMAL
-			}
-		}*/
-		/*TPButton {
-			text: "Show menu"
-			autoSize: true
-			anchors.right: txtDummy.left
-			anchors.top: txtDummy.top
-			onClicked: {
-				menu.reference_widget = txtDummy
-				menu.showIndicator = false;
-				menu.show_position = Qt.AlignBottom;
-				menu.tpQmlOpen(homePage);
-				//balloon.show_position = Qt.AlignLeft
-				//balloon.tpOpen();
-			}
-		}
-		TPTextInput {
-			id: txtDummy
-			opacity: 1
-			width: 200
-			anchors.verticalCenter: parent.verticalCenter
-			anchors.horizontalCenter: parent.horizontalCenter
-		}
-		TPButton {
-			text: "Show page"
-			autoSize: true
-			anchors.left: txtDummy.right
-			anchors.top: txtDummy.top
-			onClicked: {
-				menu.reference_widget = null;
-				menu.showIndicator = true;
-				menu.show_position = Qt.AlignBaseline
-				menu.tpQmlOpen(homePage);
-				//balloon.show_position = Qt.AlignLeft
-				//balloon.tpOpen();
-			}
-		}
-
-		FileOperations {
-			id: fileOps
-			fileType: AppUtils.FT_TP_PROGRAM
-			mesoIdx: 0
-		}
-
-		TPPageMenu {
-			id: menu
-			parentPage: homePage
-
-			entriesList: [
-				{ "label": qsTr("Send to client"), "image": "download_", "btn_id": TPFileOps.OT_Custom_1, "enabled": true },
-				{ "label": qsTr("Save as"), "image": "download_", "btn_id": TPFileOps.OT_Download, "enabled": true },
-				{ "label": qsTr("Send to"), "image": "attach_", "btn_id": TPFileOps.OT_Forward, "enabled": true },
-				{ "label": qsTr("Share"), "image": "share_", "btn_id": TPFileOps.OT_Share, "enabled": Qt.platform.os === "android" },
-				{ "label": qsTr("Exercises Planner"), "image": "meso-splitplanner.png", btn_id: TPFileOps.OT_Custom_2, "enabled": false },
-			]
-
-			onMenuEntrySelected: (btn_id) => {
-				switch (btn_id) {
-				case TPFileOps.OT_Custom_1: enableEntry(4, true); break;
-				case TPFileOps.OT_Custom_2: enableEntry(0, false); break;
-				default: console.log("fileOps.doFileOperation(btn_id)");
-				}
-			}
-		}*/
 	}
 
 	Loader {

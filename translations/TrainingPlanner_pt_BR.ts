@@ -166,12 +166,12 @@
 <context>
     <name>ChatWindow</name>
     <message>
-        <location filename="../qml/User/ChatWindow.qml" line="376"/>
+        <location filename="../qml/User/ChatWindow.qml" line="374"/>
         <source>Remove for myself only</source>
         <translation>Remover somente para mim</translation>
     </message>
     <message>
-        <location filename="../qml/User/ChatWindow.qml" line="434"/>
+        <location filename="../qml/User/ChatWindow.qml" line="432"/>
         <source>Remove as well for </source>
         <translation>Remover também para </translation>
     </message>
@@ -2214,27 +2214,27 @@
 <context>
     <name>TPFileOps</name>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="234"/>
+        <location filename="../cxx/tpfileops.cpp" line="272"/>
         <source>Could not save to: </source>
         <translation>Não foi possível salvar em: </translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="237"/>
+        <location filename="../cxx/tpfileops.cpp" line="275"/>
         <source>Operation canceled</source>
         <translation>Operação cancelada</translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="495"/>
+        <location filename="../cxx/tpfileops.cpp" line="533"/>
         <source>Remove file?</source>
         <translation type="unfinished">Remove arquivo?</translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="497"/>
+        <location filename="../cxx/tpfileops.cpp" line="535"/>
         <source>Yes</source>
         <translation type="unfinished">Sim</translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="497"/>
+        <location filename="../cxx/tpfileops.cpp" line="535"/>
         <source>No</source>
         <translation type="unfinished">Não</translation>
     </message>
@@ -2260,12 +2260,12 @@
 <context>
     <name>TPMediaPlayer</name>
     <message>
-        <location filename="../qml/Widgets/TPMediaPlayer.qml" line="41"/>
+        <location filename="../qml/Widgets/TPMediaPlayer.qml" line="40"/>
         <source>Muted</source>
         <translation type="unfinished">Mudo</translation>
     </message>
     <message>
-        <location filename="../qml/Widgets/TPMediaPlayer.qml" line="62"/>
+        <location filename="../qml/Widgets/TPMediaPlayer.qml" line="61"/>
         <source>Volume: </source>
         <translation type="unfinished">Volume: </translation>
     </message>
@@ -2305,7 +2305,7 @@
 <context>
     <name>TPOnlineServices</name>
     <message>
-        <location filename="../cxx/online_services/tponlineservices.cpp" line="353"/>
+        <location filename="../cxx/online_services/tponlineservices.cpp" line="354"/>
         <source>File on the online server already up to date</source>
         <translation>Arquivo online está atualizado</translation>
     </message>

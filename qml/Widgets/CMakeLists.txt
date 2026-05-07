@@ -1,4 +1,5 @@
 set( QML_WIDGETS
+	"TPAppFileViewer.qml"
 	"TPBackRec.qml"
 	"TPBalloonTip.qml"
 	"TPButton.qml"
@@ -11,7 +12,6 @@ set( QML_WIDGETS
 	"TPFileViewer.qml"
 	"TPLabel.qml"
 	"TPListView.qml"
-
 	"TPMediaPlayer.qml"
 	"TPMouseArea.qml"
 	"TPMultiLineEdit.qml"

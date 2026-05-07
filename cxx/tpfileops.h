@@ -25,6 +25,7 @@ QML_VALUE_TYPE(FileOperations)
 
 Q_PROPERTY(TPUtils::FILE_TYPE fileType READ fileType WRITE setFileType NOTIFY fileTypeChanged FINAL)
 Q_PROPERTY(QString fileName READ fileName WRITE setFileName NOTIFY fileNameChanged FINAL)
+Q_PROPERTY(QUrl fileURL READ fileURL WRITE setFileURL NOTIFY fileNameChanged FINAL)
 Q_PROPERTY(QSize controlSize READ controlSize WRITE setControlSize NOTIFY controlSizeChanged FINAL)
 Q_PROPERTY(int mesoIdx READ mesoIdx WRITE setMesoIdx NOTIFY mesoIdxChanged FINAL)
 Q_PROPERTY(int workoutCalendarDay READ workoutCalendarDay WRITE setWorkoutCalendarDay NOTIFY workoutCalendarDayChanged FINAL)
@@ -56,6 +57,9 @@ public:
 	void setFileType(TPUtils::FILE_TYPE new_type);
 	inline QString fileName() const { return m_filename; }
 	void setFileName(const QString &filename);
+	//TODO: Android URLs
+	inline QUrl fileURL() const { return QString{"file://"_L1 + m_filename}; }
+	void setFileURL(const QUrl &url);
 	inline QSize controlSize() const { return m_controlSize; }
 	inline void setControlSize(const QSize &new_size)
 	{
@@ -81,6 +85,8 @@ public:
 	Q_INVOKABLE inline QString tpFileSection(const int section) { return m_tpFileInfo.value(section).second; }
 	Q_INVOKABLE inline void setWorkingTextDocument(QQuickTextDocument *text_doc) { m_textDocument = text_doc->textDocument(); }
 	Q_INVOKABLE void setWorkingDocumentCursorPosition(const int cursor_position);
+	Q_INVOKABLE QString getFileText(const bool preview_text) const;
+	Q_INVOKABLE inline void repaintControls() { update(); }
 
 public slots:
 	inline void importSlot(const QString &filepath) { if (!filepath.isEmpty()) setFileName(filepath); }

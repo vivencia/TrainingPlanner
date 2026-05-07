@@ -226,5 +226,6 @@
         <file>images/add-new_green.png</file>
         <file>images/add-new_blue.png</file>
         <file>images/no-image.png</file>
+        <file>images/text_preview.png</file>
     </qresource>
 </RCC>

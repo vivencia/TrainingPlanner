@@ -83,8 +83,14 @@ void TPFileOps::setFileType(TPUtils::FILE_TYPE new_type)
 		for (int i{OT_FullScreen}; i < OT_TypeCount; ++i) {
 			controlInfo *ci{m_controls[i]};
 			ci->visible = new_type != TPUtils::FT_UNKNOWN;
-			if (i == OT_ViewExternally)
+			switch (i) {
+			case OT_FullScreen:
+				ci->visible = new_type <= TPUtils::FT_TEXT;
+				break;
+			case OT_ViewExternally:
 				_getDefaultImage(ci);
+				break;
+			}
 		}
 		resizeControl();
 		recalculateButtonsRect();
@@ -111,6 +117,11 @@ void TPFileOps::setFileName(const QString &filename)
 				setEnabled(OT_FullScreen, false);
 		}
 	}
+}
+
+void TPFileOps::setFileURL(const QUrl &url)
+{
+	setFileName(appUtils()->getCorrectPath(url));
 }
 
 void TPFileOps::setCanAddFile(const bool can_add)
@@ -151,7 +162,7 @@ QString TPFileOps::getFileTypeIcon(const QString &filename, const QSize &preferr
 	case TPUtils::FT_IMAGE:				return thumbnail ? getImagePreviewFile(filename, preferred_size) : "image_preview"_L1;
 	case TPUtils::FT_VIDEO:				return "video_preview"_L1;
 	case TPUtils::FT_PDF:				return thumbnail ? getPDFPreviewFile(filename, preferred_size) : "pdf_preview"_L1;;
-	case TPUtils::FT_TEXT:				return "genreric_preview"_L1;
+	case TPUtils::FT_TEXT:				return "text_preview"_L1;
 	case TPUtils::FT_OPEN_DOCUMENT:		return "odf_preview"_L1;
 	case TPUtils::FT_MS_DOCUMENT:		return "docx_preview"_L1;
 	case TPUtils::FT_OTHER:				return "generic_preview"_L1;
@@ -163,6 +174,33 @@ QString TPFileOps::getFileTypeIcon(const QString &filename, const QSize &preferr
 void TPFileOps::setWorkingDocumentCursorPosition(const int cursor_position)
 {
 	m_cursorPostion = cursor_position;
+}
+
+QString TPFileOps::getFileText(const bool preview_text) const
+{
+	if (m_filetype == TPUtils::FT_TEXT && QFile::exists(m_filename)) {
+		QFile *text_file{appUtils()->openFile(m_filename)};
+		if (text_file) {
+			QString text_line{1024, QChar{0}};
+			QTextStream stream{text_file};
+			std::pair<QString,QString> section_info;
+			const uint max_lines{preview_text ? 10: UINT_MAX};
+			uint line{0};
+			QString file_text;
+			while (stream.readLineInto(&text_line)) {
+				if (!text_line.isEmpty())
+					file_text += std::move(text_line + (preview_text ? QChar{'\n'} : QChar{0x2029}));
+				else
+					file_text += std::move(preview_text ? QChar{'\n'} : QChar{0x2029});
+				if (++line == max_lines)
+					break;
+			}
+			text_file->close();
+			delete text_file;
+			return file_text;
+		}
+	}
+	return QString{};
 }
 
 inline bool fileStillInUse(const QString &filename)

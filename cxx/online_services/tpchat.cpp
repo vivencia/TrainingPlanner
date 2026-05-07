@@ -6,6 +6,7 @@
 #include "../thread_manager.h"
 #include "../dbusermodel.h"
 #include "../pageslistmodel.h"
+#include "../qmlitemmanager.h"
 #include "../tputils.h"
 
 #include <QTimer>
@@ -292,6 +293,14 @@ void TPChat::createNewMessage(const QString &text, const QString &media)
 	endInsertRows();
 	encodeMessageToSave(message);
 	uploadAction(MESSAGE_ID, message);
+	QMetaObject::invokeMethod(m_chatWindow, "postSendingActions");
+}
+
+void TPChat::createNewMessageWithAttachment(const QString &text)
+{
+	connect(appMainWindow(), SIGNAL(fileDialogClosed(QString)), this, SLOT(attachFileToMessage(QString)), Qt::SingleShotConnection);
+	QMetaObject::invokeMethod(appMainWindow(), "chooseFileToOpen", Q_ARG(int, TPUtils::FT_OTHER));
+	m_attachedMessage = text;
 }
 
 void TPChat::incomingMessage(const QString &encoded_message)
@@ -469,6 +478,12 @@ void TPChat::processWebSocketBinaryMessage(const QByteArray &data)
 	appUtils()->writeBinaryFile(filename, data, true);
 }
 
+void TPChat::attachFileToMessage(const QString &filepath)
+{
+	if (!filepath.isEmpty())
+		createNewMessage(m_attachedMessage, appUtils()->getCorrectPath(filepath));
+}
+
 void TPChat::onChatWindowOpened()
 {
 	markAllIncomingMessagesRead();
@@ -526,14 +541,15 @@ void TPChat::uploadAction(const uint field, ChatMessage *const message)
 							//to select the meso and the split it belongs to
 						}, binary_file_separator)};
 						appWSServer()->sendBinaryMessage(ChatWSServer::WS_TPCHAT, m_otherUserId, appUtils()->readBinaryFile(
-																											message->media, extra_info));
+																								message->media, extra_info));
 					}
                     else
                         appUserModel()->sendFileToServer(message->media, nullptr, QString{}, chatsMediaSubDir(false), m_otherUserId);
                 }
 				if (use_ws)
-					appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId, appUtils()->string_strings(
-									{QString::number(requestid), messageWorkSend, encodeMessageToUpload(message)}, exercises_separator));
+					appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId,
+						appUtils()->string_strings({QString::number(requestid), messageWorkSend,
+																	encodeMessageToUpload(message)}, exercises_separator));
 				else
 					appOnlineServices()->sendMessage(requestid, m_otherUserId, std::move(encodeMessageToUpload(message)));
             }

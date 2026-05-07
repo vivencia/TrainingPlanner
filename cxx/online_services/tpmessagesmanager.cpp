@@ -90,7 +90,7 @@ void TPMessagesManager::removeMessage(TPMessage *msg)
 		const qsizetype row{m_data.indexOf(msg)};
 		if (row >= 0) {
 			appOnlineServices()->removeFile(appUtils()->generateUniqueId(), appUtils()->getFileName(msg->fileName()),
-																			appUtils()->getSubDir(msg->fileName()), msg->data(0).toString());
+															appUtils()->getSubDir(msg->fileName()), msg->data(0).toString());
 
 			beginRemoveRows(QModelIndex{}, row, row);
 			m_data.remove(row);
@@ -158,7 +158,7 @@ TPMessage *TPMessagesManager::createChatMessage(const QString &userid, const boo
 }
 
 TPMessage *TPMessagesManager::createChatMessage(const QString &userid, QString &&display_text, QString &&icon_source,
-																											const bool check_unread_messages)
+																						const bool check_unread_messages)
 {
 	TPMessage *chat_message{new TPMessage{std::move(display_text), std::move(icon_source)}};
 	chat_message->setSticky(true);
@@ -191,17 +191,20 @@ void TPMessagesManager::openChatWindow(TPChat *chat_manager)
 {
 	QObject *chat_window{m_chatWindowList.value(chat_manager->otherUserId())};
 	if (!chat_window) {
-		if (!m_chatWindowComponent)
+		if (!m_chatWindowComponent) {
 			m_chatWindowComponent = new QQmlComponent{appQmlEngine(), "TpQml.User"_L1, "ChatWindow"_L1, QQmlComponent::Asynchronous};
-		switch (m_chatWindowComponent->status()) {
-		case QQmlComponent::Ready:
-			chat_manager->loadChat();
-			createChatWindow_part2(chat_manager);
-			break;
-		case QQmlComponent::Loading:
 			connect(m_chatWindowComponent, &QQmlComponent::statusChanged, this, [this,chat_manager] (QQmlComponent::Status status) {
 				openChatWindow(chat_manager);
-			}, Qt::SingleShotConnection);
+			});
+		}
+		switch (m_chatWindowComponent->status()) {
+		case QQmlComponent::Ready:
+			m_chatWindowComponent->disconnect();
+			chat_manager->loadChat();
+			createChatWindow_part2(chat_manager);
+			openChatWindow(chat_manager);
+			break;
+		case QQmlComponent::Loading:
 			break;
 		case QQmlComponent::Null:
 		case QQmlComponent::Error:
@@ -212,7 +215,7 @@ void TPMessagesManager::openChatWindow(TPChat *chat_manager)
 		}
 	}
 	else
-		QMetaObject::invokeMethod(chat_window, "openInWindow", Q_ARG(int, -Qt::AlignCenter));
+		appPagesListModel()->openPopup(chat_window, appItemManager()->AppHomePage());
 }
 
 void TPMessagesManager::openChat(const QString &username)
@@ -353,9 +356,10 @@ void TPMessagesManager::parseTPMessage(const QString &encoded_message)
 			if (file.isEmpty())
 				break;
 
-			const QString &local_filename{appUserModel()->userDir(0) % appUserModel()->binary_files_subdir % sender_id % '/' % file};
+			const QString &local_filename{appUserModel()->userDir(0) % appUserModel()->binary_files_subdir %
+																									sender_id % '/' % file};
 			const auto request_id{appUserModel()->downloadFileFromServer(file, local_filename, QString{},
-																appUserModel()->binary_files_subdir % sender_id, appUserModel()->userId())};
+												appUserModel()->binary_files_subdir % sender_id, appUserModel()->userId())};
 			if (request_id == TP_RET_CODE_DOWNLOAD_FAILED)
 				continue;
 			else if (request_id == TP_RET_CODE_NO_CHANGES_SUCCESS) {
@@ -364,7 +368,7 @@ void TPMessagesManager::parseTPMessage(const QString &encoded_message)
 			}
 			auto conn{std::make_shared<QMetaObject::Connection>()};
 			*conn = connect(appUserModel(), &DBUserModel::fileDownloaded, this, [=,this]
-																(const bool success, const uint requestid, const QString &localFileName) {
+												(const bool success, const uint requestid, const QString &localFileName) {
 				if (request_id == requestid) {
 					disconnect(*conn);
 					if (success)
@@ -418,7 +422,6 @@ void TPMessagesManager::createChatWindow_part2(TPChat *chat_manager)
 	chat_window->setProperty("parent", QVariant::fromValue(appItemManager()->AppHomePage()));
 	chat_manager->setChatWindow(chat_window);
 	m_chatWindowList.insert(chat_manager->otherUserId(), chat_window);
-	appPagesListModel()->openPopup(chat_window, appItemManager()->AppHomePage());
 }
 
 void TPMessagesManager::removeChatWindow(const QString &other_userid)
