@@ -7,16 +7,16 @@ TPPageMenu {
 	id: _control
 
 	entriesList: [
-		{ "label": qsTr("Send to client"), "image": "download_", "btn_id": TPFileOps.OT_Custom_1,
-																	"enabled": enabledCondition(MesoManager.OPTION_SEND_TO_CLIENT) },
+		{ "label": qsTr("Send to client"), "image": "forward_", "btn_id": TPFileOps.OT_Custom_1,
+															"enabled": enabledCondition(MesoManager.OPTION_SEND_TO_CLIENT) },
 		{ "label": qsTr("Save as"), "image": "download_", "btn_id": TPFileOps.OT_Download,
-																	"enabled": enabledCondition(MesoManager.OPTION_SAVE_AS) },
+															"enabled": enabledCondition(MesoManager.OPTION_SAVE_AS) },
 		{ "label": qsTr("Send to"), "image": "attach_", "btn_id": TPFileOps.OT_Forward,
-																	"enabled": enabledCondition(MesoManager.OPTION_SEND_TO) },
+															"enabled": enabledCondition(MesoManager.OPTION_SEND_TO) },
 		{ "label": qsTr("Share"), "image": "share_", "btn_id": TPFileOps.OT_Share,
-																	"enabled": enabledCondition(MesoManager.OPTION_SHARE) },
+															"enabled": enabledCondition(MesoManager.OPTION_SHARE) },
 		{ "label": qsTr("Exercises Planner"), "image": "meso-splitplanner.png", btn_id: TPFileOps.OT_Custom_2,
-																	"enabled": enabledCondition(MesoManager.OPTION_EXERCISES_PLANNER) },
+															"enabled": enabledCondition(MesoManager.OPTION_EXERCISES_PLANNER) },
 	]
 
 	required property MesoManager mesoManager

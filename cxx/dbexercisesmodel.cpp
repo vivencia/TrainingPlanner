@@ -6,6 +6,7 @@
 #include "dbworkoutsorsplitstable.h"
 #include "pageslistmodel.h"
 #include "return_codes.h"
+#include "tpfilepath.h"
 #include "tputils.h"
 #include "translationclass.h"
 
@@ -16,6 +17,8 @@
 #include <ranges>
 
 QT_FORWARD_DECLARE_STRUCT(stExercise)
+
+constexpr QLatin1StringView workouts_subdir{"workouts/"};
 
 inline DBModelInterfaceExercises::DBModelInterfaceExercises(DBExercisesModel *model) : DBModelInterface{model} {}
 
@@ -236,18 +239,10 @@ QString DBExercisesModel::setTypeOperation(const uint settype, const bool increa
 		else {
 			if (result < 40) {
 				switch (rightmostDigit) {
-				case '0':
-				case '2':
-				case '6':
-				case '8':
+				case '0': case '2': case '6': case '8':
 					increase ? result += 2 : result -= 2;
 					break;
-				case '1':
-				case '3':
-				case '4':
-				case '5':
-				case '7':
-				case '9':
+				case '1': case '3': case '4': case '5': case '7': case '9':
 					increase ? ++result : --result;
 					break;
 				}
@@ -256,19 +251,20 @@ QString DBExercisesModel::setTypeOperation(const uint settype, const bool increa
 				int8_t paddingValue{0};
 				switch (rightmostDigit) {
 				case '0':
-					increase ? paddingValue = 5 : paddingValue = -5; break;
-				case '1':
-				case '6':
-					increase ? paddingValue = 4 : paddingValue = -1; break;
-				case '2':
-				case '7':
-					increase ? paddingValue = 3 : paddingValue = -2; break;
-				case '3':
-				case '8':
-					increase ? paddingValue = 2 : paddingValue = -3; break;
-				case '4':
-				case '9':
-					increase ? paddingValue = 1 : paddingValue = -4; break;
+					increase ? paddingValue = 5 : paddingValue = -5;
+					break;
+				case '1': case '6':
+					increase ? paddingValue = 4 : paddingValue = -1;
+					break;
+				case '2': case '7':
+					increase ? paddingValue = 3 : paddingValue = -2;
+					break;
+				case '3': case '8':
+					increase ? paddingValue = 2 : paddingValue = -3;
+					break;
+				case '4': case '9':
+					increase ? paddingValue = 1 : paddingValue = -4;
+					break;
 				case '5':
 					increase ? paddingValue = 5 : paddingValue = -5; break;
 				}
@@ -332,8 +328,7 @@ QString DBExercisesModel::setTypeOperation(const uint settype, const bool increa
 			}
 		}
 		const QString &str_result{(result < 10 ? "0"_L1 : ""_L1) + QString::number(result)};
-		str_value = std::move(seconds ? str_value.replace(3, 2, str_result) : str_value.replace(0, 2, str_result));
-		return str_value; //2TimeType
+		return seconds ? str_value.replace(3, 2, str_result) : str_value.replace(0, 2, str_result); //TimeType
 	}
 	case SetType:
 		if (increase) {
@@ -371,20 +366,20 @@ void DBExercisesModel::setSplitLetter(const QChar &new_splitletter)
 	}
 }
 
-QString DBExercisesModel::suggestedName(const bool formatted_file) const
+TPFilePathPtr DBExercisesModel::suggestedName(const bool formatted_file) const
 {
-	return (formatted_file ? QString{m_mesoModel->name(m_mesoIdx) % tr(" - Workout ")} :
-								QString{QString::number(m_mesoIdx) % "_workout_"_L1}) % splitLetter() % TPUtils::TP_FILE_EXTENSION;
+	return TPFilePath::newTPFilePath(QString{m_mesoModel->name(m_mesoIdx) % tr(" - Workout ")} % splitLetter() %
+																			TPUtils::TP_FILE_EXTENSION, {workouts_subdir});
 }
 
-int DBExercisesModel::exportToFile(const QString &filename, QFile *out_file) const
+int DBExercisesModel::exportToFile(const TPFilePathPtr &filename, QFile *out_file) const
 {
 	if (exerciseCount() == 0)
 		return TP_RET_CODE_NOTHING_TO_EXPORT;
 
 	bool close_file{false};
 	if (!out_file) {
-		out_file = appUtils()->openFile(filename, false, true, false, true);
+		out_file = appUtils()->openFile(filename->toString(), false, true, false, true);
 		if (!out_file)
 			return TP_RET_CODE_OPEN_WRITE_FAILED;
 		close_file = true;
@@ -396,13 +391,13 @@ int DBExercisesModel::exportToFile(const QString &filename, QFile *out_file) con
 	return ret ? TP_RET_CODE_EXPORT_OK : TP_RET_CODE_EXPORT_FAILED;
 }
 
-int DBExercisesModel::exportToFormattedFile(const QString &filename, QFile *out_file) const
+int DBExercisesModel::exportToFormattedFile(const TPFilePathPtr &filename, QFile *out_file) const
 {
 	if (exerciseCount() == 0)
 		return TP_RET_CODE_NOTHING_TO_EXPORT;
 
 	if (!out_file) {
-		out_file = appUtils()->openFile(filename, false, true, false, true);
+		out_file = appUtils()->openFile(filename->toString(), false, true, false, true);
 		if (!out_file)
 			return TP_RET_CODE_OPEN_CREATE_FAILED;
 	}
@@ -466,10 +461,10 @@ int DBExercisesModel::exportToFormattedFile(const QString &filename, QFile *out_
 	return TP_RET_CODE_EXPORT_OK;
 }
 
-int DBExercisesModel::importFromFile(const QString& filename, QFile *in_file)
+int DBExercisesModel::importFromFile(const TPFilePathPtr &filename, QFile *in_file)
 {
 	if (!in_file) {
-		in_file = appUtils()->openFile(filename);
+		in_file = appUtils()->openFile(filename->toString());
 		if (!in_file)
 			return TP_RET_CODE_OPEN_READ_FAILED;
 	}
@@ -495,11 +490,10 @@ int DBExercisesModel::importFromFile(const QString& filename, QFile *in_file)
 	return ret;
 }
 
-int DBExercisesModel::importFromFormattedFile(const QString& filename, QFile *in_file)
+int DBExercisesModel::importFromFormattedFile(const TPFilePathPtr &filename, QFile *in_file)
 {
-	if (!in_file)
-	{
-		in_file = appUtils()->openFile(filename);
+	if (!in_file) {
+		in_file = appUtils()->openFile(filename->toString());
 		if (!in_file)
 			return TP_RET_CODE_OPEN_READ_FAILED;
 	}
@@ -526,8 +520,7 @@ int DBExercisesModel::importFromFormattedFile(const QString& filename, QFile *in
 
 	while ((lineLength = in_file->readLine(buf, sizeof(buf))) != -1) {
 		if (strstr(buf, appUtils()->STR_END_FORMATTED_EXPORT.latin1()) == NULL) {
-			if (lineLength > 10)
-			{
+			if (lineLength > 10) {
 				if (!found_table_id)
 					found_table_id = strstr(buf, identifier_in_file) != NULL;
 				else {
@@ -623,7 +616,7 @@ int DBExercisesModel::importFromFormattedFile(const QString& filename, QFile *in
 	return exerciseCount() > 0 ? TP_RET_CODE_IMPORT_OK : TP_RET_CODE_IMPORT_FAILED;
 }
 
-int DBExercisesModel::newExercisesFromFile(const QString &filename, const std::optional<bool> &file_formatted)
+int DBExercisesModel::newExercisesFromFile(const TPFilePathPtr &filename, const std::optional<bool> &file_formatted)
 {
 	int import_result{TP_RET_CODE_IMPORT_FAILED};
 	if (file_formatted.has_value()) {
@@ -821,44 +814,36 @@ void DBExercisesModel::saveExercises(const int exercise_number, const int exerci
 		stSet *set_info{m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)};
 		QString str_setinfo{std::move(appUtils()->getCompositeValue(exercise_idx,
 											m_dbModelInterface->modelData().at(exercise_number).at(field), comp_exercises_separator))};
+		QString *str_value, str_temp;
 		switch (field) {
 		case DBExercisesModel::EXERCISES_FIELD_NOTES:
-			appUtils()->setCompositeValue(set_number, set_info->notes, str_setinfo, set_separator);
-			appUtils()->setCompositeValue(exercise_idx, str_setinfo,
-				m_dbModelInterface->modelData()[exercise_number][DBExercisesModel::EXERCISES_FIELD_NOTES], comp_exercises_separator);
+			str_value = &set_info->notes;
 			break;
 		case DBExercisesModel::EXERCISES_FIELD_COMPLETED:
-			appUtils()->setCompositeValue(set_number, set_info->completed ? "1"_L1 : "0"_L1, str_setinfo, set_separator);
-			appUtils()->setCompositeValue(exercise_idx, str_setinfo,
-				m_dbModelInterface->modelData()[exercise_number][DBExercisesModel::EXERCISES_FIELD_COMPLETED], comp_exercises_separator);
+			str_temp = std::move(set_info->completed ? "1"_L1 : "0"_L1);
+			str_value = &str_temp;
 			break;
 		case DBExercisesModel::EXERCISES_FIELD_SETTYPES:
-			appUtils()->setCompositeValue(set_number, QString::number(set_info->type), str_setinfo, set_separator);
-			appUtils()->setCompositeValue(exercise_idx, str_setinfo,
-				m_dbModelInterface->modelData()[exercise_number][DBExercisesModel::EXERCISES_FIELD_SETTYPES], comp_exercises_separator);
+			str_temp = std::move(QString::number(set_info->type));
+			str_value = &str_temp;
 			break;
 		case DBExercisesModel::EXERCISES_FIELD_RESTTIMES:
-			appUtils()->setCompositeValue(set_number, appUtils()->formatTime(set_info->restTime,
-												TPUtils::TF_QML_DISPLAY_NO_HOUR), str_setinfo, set_separator);
-			appUtils()->setCompositeValue(exercise_idx, str_setinfo,
-				m_dbModelInterface->modelData()[exercise_number][DBExercisesModel::EXERCISES_FIELD_RESTTIMES], comp_exercises_separator);
+			str_temp = std::move(appUtils()->formatTime(set_info->restTime,TPUtils::TF_QML_DISPLAY_NO_HOUR));
+			str_value = &str_temp;
 			break;
 		case DBExercisesModel::EXERCISES_FIELD_SUBSETS:
-			appUtils()->setCompositeValue(set_number, set_info->subsets, str_setinfo, set_separator);
-			appUtils()->setCompositeValue(exercise_idx, str_setinfo,
-				m_dbModelInterface->modelData()[exercise_number][DBExercisesModel::EXERCISES_FIELD_SUBSETS], comp_exercises_separator);
+			str_value = &set_info->subsets;
 			break;
 		case DBExercisesModel::EXERCISES_FIELD_REPS:
-			appUtils()->setCompositeValue(set_number, set_info->reps, str_setinfo, set_separator);
-			appUtils()->setCompositeValue(exercise_idx, str_setinfo,
-				m_dbModelInterface->modelData()[exercise_number][DBExercisesModel::EXERCISES_FIELD_REPS], comp_exercises_separator);
+			str_value = &set_info->reps;
 			break;
 		case DBExercisesModel::EXERCISES_FIELD_WEIGHTS:
-			appUtils()->setCompositeValue(set_number, set_info->weight, str_setinfo, set_separator);
-			appUtils()->setCompositeValue(exercise_idx, str_setinfo,
-				m_dbModelInterface->modelData()[exercise_number][DBExercisesModel::EXERCISES_FIELD_WEIGHTS], comp_exercises_separator);
+			str_value = &set_info->weight;
 			break;
 		}
+		appUtils()->setCompositeValue(set_number, *str_value, str_setinfo, set_separator);
+		appUtils()->setCompositeValue(exercise_idx, str_setinfo, m_dbModelInterface->modelData()[exercise_number][field], comp_exercises_separator);
+
 	}
 	m_dbModelInterface->setModified(exercise_number, field);
 	appThreadManager()->queueAction(m_db, ThreadManager::UpdateOneField);
@@ -1590,8 +1575,9 @@ void DBExercisesModel::commonConstructor(const bool load_from_db)
 	if (load_from_db) {
 		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(m_db, &DBWorkoutsOrSplitsTable::exercisesLoaded, this, [this,conn]
-																(const uint meso_idx, const bool success, const QVariant &extra_info) {
-			if (meso_idx == m_mesoIdx && m_calendarDay != -1 ? extra_info.toInt() == m_calendarDay : extra_info.toChar() == m_splitLetter) {
+													(const uint meso_idx, const bool success, const QVariant &extra_info) {
+			if (meso_idx == m_mesoIdx &&
+						m_calendarDay != -1 ? extra_info.toInt() == m_calendarDay : extra_info.toChar() == m_splitLetter) {
 				disconnect(*conn);
 				static_cast<void>(fromDatabase(success));
 			}
@@ -1620,10 +1606,10 @@ DBExercisesModel::TPSetTypes DBExercisesModel::formatSetTypeToImport(const QStri
 const QString DBExercisesModel::exportExtraInfo() const
 {
 	QString extra_info{std::move(splitLabel() % splitLetter() % " ("_L1 % m_mesoModel->muscularGroup(m_mesoIdx,
-																									 splitLetter()).chopped(1) % ')')};
+																						 splitLetter()).chopped(1) % ')')};
 	if (m_calendarDay >= 0)
 		extra_info += tr(" Workout #: ") % QString::number(m_calendarDay) % tr(" at ") % appUtils()->formatDate(
-																		m_mesoModel->calendar(m_mesoIdx)->date(m_calendarDay));
+																	m_mesoModel->calendar(m_mesoIdx)->date(m_calendarDay));
 	return extra_info;
 }
 
@@ -1721,16 +1707,14 @@ QString DBExercisesModel::increaseStringTimeBy(const QString &strtime, const uin
 {
 	uint secs{QStringView{strtime}.sliced(3, 2).toUInt()};
 	uint mins{QStringView{strtime}.first(2).toUInt()};
-
 	secs += add_secs;
 	if (secs > 59) {
 		secs -= 60;
 		mins++;
 	}
 	mins += add_mins;
-	const QString &ret{(mins <= 9 ? "0"_L1 + QString::number(mins) : QString::number(mins)) + QChar(':') +
-		(secs <= 9 ? "0"_L1 + QString::number(secs) : QString::number(secs))};
-	return ret;
+	return (mins <= 9 ? "0"_L1 % QString::number(mins) : QString::number(mins)) % QChar(':') %
+												(secs <= 9 ? "0"_L1 % QString::number(secs) : QString::number(secs));
 }
 
 QString DBExercisesModel::dropSetReps(const QString &reps, const uint from_subset) const
@@ -1745,7 +1729,6 @@ QString DBExercisesModel::dropSetReps(const QString &reps, const uint from_subse
 		QString res{std::move(appUtils()->appLocale()->toString(qCeil(value)))};
 		appUtils()->setCompositeValue(subset, res, new_drop_reps, record_separator);
 	}
-
 	return new_drop_reps;
 }
 
@@ -1775,7 +1758,6 @@ QString DBExercisesModel::dropSetWeight(const QString& weight, const uint from_s
 		value *= 0.5;
 		appUtils()->setCompositeValue(subset, QString::number(qCeil(value)), new_drop_weight, record_separator);
 	}
-
 	return new_drop_weight;
 }
 

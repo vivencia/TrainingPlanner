@@ -8,23 +8,31 @@ import TpQml.Widgets
 
 Item {
 	id: _control
+	enabled: workingModel.count > 0
 
 //public:
 	property string buttonString: ""
 	property bool allowNotConfirmed: false
 	property bool listClients: true
 	property bool listCoaches: false
-	property alias currentRow: listview.currentIndex
-	property OnlineUserInfo workingModel: null
+	property alias currentRow: workingModel.currentRow
+	property alias selectedUserIdx: workingModel.currentUserIdx
 
-	signal itemSelected(userRow: int)
+	signal itemSelected(userIdx: int)
 	signal buttonClicked
+
+	UserInfoModel {
+		id: workingModel
+		showClients: _control.listClients
+		showCoaches: _control.listCoaches
+		showPending: _control.allowNotConfirmed
+	}
 
 	TPListView {
 		id: listview
-		currentIndex: model ? model.currentRow : -1
+		currentIndex: workingModel.currentRow
 		height: button.visible ? _control.height - button.height - 5 : _control.height
-		model: _control.workingModel
+		model: workingModel
 		enabled: _control.enabled
 
 		anchors {
@@ -81,33 +89,12 @@ Item {
 		}
 	}
 
-	Component.onCompleted: {
-		if (listClients && listCoaches)
-			workingModel = Qt.binding(function() { return AppUserModel.currentCoachesAndClients; });
-		else if (listClients) {
-			if (!allowNotConfirmed)
-				workingModel = Qt.binding(function() { return AppUserModel.currentClients; });
-			else
-				workingModel = Qt.binding(function() { return AppUserModel.pendingClientsRequests; });
-		}
-		else {
-			if (!allowNotConfirmed)
-				workingModel = Qt.binding(function() { return AppUserModel.currentCoaches; });
-			else
-				workingModel = Qt.binding(function() { return AppUserModel.pendingCoachesResponses; });
-		}
-		enabled = Qt.binding(function() { return workingModel ? workingModel.count > 0 : false });
-	}
-
 	function selectItem(index: int): void {
-		const userrow = workingModel.getUserIdx(index, !(listClients && listCoaches));
-		if (userrow > 0) {
-			listview.currentIndex = index;
-			itemSelected(userrow);
-		}
+		workingModel.currentRow = index;
+		itemSelected(workingModel.currentUserIdx);
 	}
 
 	function applyFilter(filter: string): void {
-		workingModel.applyFilter(filter);
+		workingModel.applyFilter(filter, AppUserModel.USER_FIELD_NAME);
 	}
 }

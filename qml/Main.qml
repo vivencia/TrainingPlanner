@@ -93,67 +93,6 @@ ApplicationWindow {
 	}
 
 	Loader {
-		id: openDialogLoader
-		asynchronous: true
-		active: false
-
-//public:
-		property int fileType
-
-//private:
-		property TPFileDialog _file_dialog
-
-		sourceComponent: TPFileDialog {
-			saveDialog: false
-			fileType: openDialogLoader.fileType
-
-			onDialogClosed: (result) => {
-				mainwindow.fileDialogClosed(result === 0 ? AppUtils.getCorrectPath(currentFile) : "");
-				openDialogLoader.active = false;
-			}
-			Component.onCompleted: openDialogLoader._file_dialog = this;
-		}
-
-		onLoaded: _file_dialog.open();
-	}
-	function chooseFileToOpen(filetype: int): void {
-		openDialogLoader.fileType = filetype;
-		openDialogLoader.active = true;
-	}
-
-	Loader {
-		id: saveDialogLoader
-		asynchronous: true
-		active: false
-
-//public:
-		property int fileType
-		property string suggestedName
-
-//private:
-		property TPFileDialog _file_dialog
-
-		sourceComponent: TPFileDialog {
-			saveDialog: true
-			fileType: saveDialogLoader.fileType
-			suggestedName: saveDialogLoader.suggestedName
-
-			onDialogClosed: (result) => {
-				mainwindow.fileDialogClosed(result === 0 ? AppUtils.getCorrectPath(currentFile) : "");
-				saveDialogLoader.active = false;
-			}
-			Component.onCompleted: saveDialogLoader._file_dialog = this;
-		}
-
-		onLoaded: _file_dialog.open();
-	}
-	function chooseFolderToSaveFile(filetype: int, filename: string): void {
-		saveDialogLoader.fileType = filetype;
-		saveDialogLoader.suggestedName = filename;
-		saveDialogLoader.active = true;
-	}
-
-	Loader {
 		id: tpFileLoader
 		asynchronous: true
 		active: false

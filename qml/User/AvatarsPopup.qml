@@ -15,7 +15,7 @@ TPPopup {
 	height: (repeater.bMale ? 2 * AppSettings.pageWidth / 5 : 3 * AppSettings.pageWidth/5) + 30
 
 //public:
-	required property int userRow
+	required property int userIdx
 
 	signal avatarSelected(string id, bool from_file);
 
@@ -64,7 +64,7 @@ TPPopup {
 		id: repeater
 		model: bMale ? 10 : 15
 
-		readonly property bool bMale: AppUserModel.sex(avatarsDlg.userRow) === 0
+		readonly property bool bMale: AppUserModel.sex(avatarsDlg.userIdx) === 0
 		readonly property string strSex: bMale ? "m" : "f"
 
 		delegate: Rectangle {
@@ -109,7 +109,7 @@ TPPopup {
 		sourceComponent: TPFileDialog {
 			id: fileDialog
 			title: qsTr("Choose an image to be used as the avatar for the profile")
-			includeImageFilter: true
+			fileType: AppUtils.FT_IMAGE
 
 			onAccepted: {
 				avatarsDlg.avatarSelected(AppUtils.getCorrectPath(currentFile), true);
@@ -120,6 +120,6 @@ TPPopup {
 			Component.onCompleted: fileDialogLoader._file_dialog = this;
 		}
 
-		onLoaded: _file_dialog.show();
+		onLoaded: _file_dialog.open();
 	}
 }

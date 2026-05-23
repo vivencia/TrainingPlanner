@@ -48,7 +48,7 @@ ItemDelegate {
 		id: listItem
 		border.color: "transparent"
 		color: delegate.workingExercise === delegate.exerciseNumber ? AppSettings.primaryColor :
-								(delegate.exerciseNumber % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2)
+							(delegate.exerciseNumber % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2)
 		radius: 8
 	}
 
@@ -132,7 +132,7 @@ ItemDelegate {
 				txtRestTime.text = delegate.exercisesModel.setRestTime(exercise_number, exercise_idx, set_number);
 				if (subSetsLoader.active && subSetsLoader.status === Loader.Ready)
 					subSetsLoader.item.subSetsNumber = delegate.exercisesModel.setSubSets(
-																					exercise_number, exercise_idx, set_number);
+																				exercise_number, exercise_idx, set_number);
 				txtNWeight.text = delegate.exercisesModel.setWeight(exercise_number, exercise_idx, set_number);
 				txtNReps.text = delegate.exercisesModel.setReps(exercise_number, exercise_idx, set_number);
 			}
@@ -237,7 +237,8 @@ ItemDelegate {
 				hasDropShadow: false
 				width: AppSettings.itemDefaultHeight
 				height: width
-				enabled: delegate.exerciseNumber === delegate.exercisesModel.workingExercise ? (delegate.exerciseNumber >= 1) : false
+				enabled: delegate.exerciseNumber === delegate.exercisesModel.workingExercise ?
+																					(delegate.exerciseNumber >= 1) : false
 
 				anchors {
 					right: btnMoveExerciseDown.left
@@ -344,14 +345,14 @@ ItemDelegate {
 				function questionAnswered(button_clicked: int) : void {
 					if (button_clicked === 1)
 						delegate.exercisesModel.delSubExercise(delegate.exercisesModel.workingExercise,
-																						delegate.exercisesModel.workingSubExercise);
+																				delegate.exercisesModel.workingSubExercise);
 					delegate.quickQuestionAnswered.disconnect(questionAnswered);
 				}
 
 				onClicked: {
 					delegate.quickQuestionRequested(qsTr("Remove exercise?"), delegate.exercisesModel.exerciseName(
 									delegate.exercisesModel.workingExercise, delegate.exercisesModel.workingSubExercise),
-																								"remove", qsTr("Yes"), qsTr("No"));
+																							"remove", qsTr("Yes"), qsTr("No"));
 					delegate.quickQuestionAnswered.connect(questionAnswered);
 				}
 			}
@@ -478,7 +479,7 @@ ItemDelegate {
 								text: qsTr(" <<-- Add some sets")
 								horizontalAlignment: Text.AlignHCenter
 								visible: subExercisesTabBar.currentIndex === 0 || delegate.exercisesModel.syncGiantSets(
-											delegate.exercisesModel.workingExercise, delegate.exercisesModel.workingSubExercise)
+										delegate.exercisesModel.workingExercise, delegate.exercisesModel.workingSubExercise)
 								width: parent.width
 							}
 							TPRadioButtonOrCheckBox {
@@ -568,7 +569,7 @@ ItemDelegate {
 						function questionAnswered(button_clicked: int) : void {
 							if (button_clicked === 1)
 								delegate.exercisesModel.removeAllSets(delegate.exercisesModel.workingExercise,
-																						delegate.exercisesModel.workingSubExercise);
+																				delegate.exercisesModel.workingSubExercise);
 							delegate.quickQuestionAnswered.disconnect(questionAnswered);
 						}
 
@@ -613,7 +614,7 @@ ItemDelegate {
 					Layout.preferredWidth: listItem.width * 0.9
 
 					property string subSetsNumber: delegate.exercisesModel.setSubSets(delegate.exerciseNumber,
-												delegate.exercisesModel.workingSubExercise, delegate.exercisesModel.workingSet)
+											delegate.exercisesModel.workingSubExercise, delegate.exercisesModel.workingSet)
 
 					sourceComponent: RowLayout {
 						enabled: !delegate.setCompleted
@@ -625,12 +626,13 @@ ItemDelegate {
 
 						SetInputField {
 							text: subSetsLoader.subSetsNumber
+							exercisesModel: delegate.exercisesModel
 							type: DBExercisesModel.SetType
 							availableWidth: listItem.width * 0.25
 							showLabel: false
 
 							onValueChanged: (str) => delegate.exercisesModel.setSetSubSets(delegate.exercisesModel.workingExercise,
-											delegate.exercisesModel.workingSubExercise, delegate.exercisesModel.workingSet, str);
+										delegate.exercisesModel.workingSubExercise, delegate.exercisesModel.workingSet, str);
 							onEnterOrReturnKeyPressed: txtNReps.forceActiveFocus();
 						}
 					}
@@ -638,43 +640,46 @@ ItemDelegate {
 
 				SetInputField {
 					id: txtRestTime
+					exercisesModel: delegate.exercisesModel
 					type: DBExercisesModel.TimeType
-					text: delegate.exercisesModel.setRestTime(delegate.exerciseNumber, delegate.exercisesModel.workingSubExercise,
-																								delegate.exercisesModel.workingSet)
+					text: delegate.exercisesModel.setRestTime(delegate.exerciseNumber,
+											delegate.exercisesModel.workingSubExercise, delegate.exercisesModel.workingSet)
 					availableWidth: listItem.width * 0.9
 					editable: delegate.restTimeEditable
 					enabled: setsGroup.nSets > 0 && cboSetType.currentIndex >= 0 && !delegate.setCompleted
 					Layout.alignment: Qt.AlignCenter
 
 					onValueChanged: (str) => delegate.exercisesModel.setSetRestTime(delegate.exercisesModel.workingExercise,
-											delegate.exercisesModel.workingSubExercise, delegate.exercisesModel.workingSet, str);
+										delegate.exercisesModel.workingSubExercise, delegate.exercisesModel.workingSet, str);
 				}
 
 				SetInputField {
 					id: txtNReps
-					text: delegate.exercisesModel.setReps(delegate.exerciseNumber, delegate.exercisesModel.workingSubExercise,
-																								delegate.exercisesModel.workingSet)
+					exercisesModel: delegate.exercisesModel
+					text: delegate.exercisesModel.setReps(delegate.exerciseNumber,
+												delegate.exercisesModel.workingSubExercise, delegate.exercisesModel.workingSet)
 					type: DBExercisesModel.RepType
 					availableWidth: listItem.width * 0.9
 					enabled: setsGroup.nSets > 0 && cboSetType.currentIndex >= 0 && !delegate.setCompleted
 					Layout.alignment: Qt.AlignCenter
 
 					onValueChanged: (str) => delegate.exercisesModel.setSetReps(delegate.exercisesModel.workingExercise,
-											delegate.exercisesModel.workingSubExercise, delegate.exercisesModel.workingSet, str);
+										delegate.exercisesModel.workingSubExercise, delegate.exercisesModel.workingSet, str);
 					onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
 				} //txtNReps
 
 				SetInputField {
 					id: txtNWeight
-					text: delegate.exercisesModel.setWeight(delegate.exerciseNumber, delegate.exercisesModel.workingSubExercise,
-																								delegate.exercisesModel.workingSet)
+					exercisesModel: delegate.exercisesModel
+					text: delegate.exercisesModel.setWeight(delegate.exerciseNumber,
+												delegate.exercisesModel.workingSubExercise, delegate.exercisesModel.workingSet)
 					type: DBExercisesModel.WeightType
 					availableWidth: listItem.width * 0.9
 					enabled: setsGroup.nSets > 0 && cboSetType.currentIndex >= 0 && !delegate.setCompleted
 					Layout.alignment: Qt.AlignCenter
 
 					onValueChanged: (str) => delegate.exercisesModel.setSetWeight(delegate.exercisesModel.workingExercise,
-											delegate.exercisesModel.workingSubExercise, delegate.exercisesModel.workingSet, str);
+										delegate.exercisesModel.workingSubExercise, delegate.exercisesModel.workingSet, str);
 				} //txtNWeight
 
 				SetNotesField {

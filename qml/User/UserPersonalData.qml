@@ -16,7 +16,7 @@ ColumnLayout {
 
 //public:
 	required property TPPage parentPage
-	required property int userRow
+	required property int userIdx
 	property bool bReady: bNameOK && bPasswordOK && bBirthDateOK && bSexOK
 
 //private:
@@ -28,12 +28,12 @@ ColumnLayout {
 	Connections {
 		target: AppUserModel
 		function onUserModified(row: int, field: int): void {
-			if (row === userPersonalModule.userRow && field >= 100)
+			if (row === userPersonalModule.userIdx && field >= 100)
 				userPersonalModule.getUserInfo();
 		}
 	}
 
-	onUserRowChanged: getUserInfo();
+	onUserIdxChanged: getUserInfo();
 	Component.onCompleted: getUserInfo();
 
 	TPLabel {
@@ -45,7 +45,7 @@ ColumnLayout {
 
 	TPTextInput {
 		id: txtName
-		readOnly: userPersonalModule.userRow !== 0
+		readOnly: userPersonalModule.userIdx !== 0
 		heightAdjustable: false
 		ToolTip.text: qsTr("The name is too short")
 		Layout.preferredWidth: parent.width * 0.9
@@ -56,7 +56,7 @@ ColumnLayout {
 
 		onEditingFinished: {
 			if (bTextChanged && userPersonalModule.bNameOK) {
-				AppUserModel.setUserName(userPersonalModule.userRow, text);
+				AppUserModel.setUserName(userPersonalModule.userIdx, text);
 				bTextChanged = false;
 			}
 		}
@@ -77,7 +77,7 @@ ColumnLayout {
 			imageSource: "chat_"
 			width: AppSettings.itemDefaultHeight
 			height: width
-			visible: userPersonalModule.userRow != 0 && AppUserModel.onlineAccount
+			visible: userPersonalModule.userIdx != 0 && AppUserModel.onlineAccount
 			enabled: userPersonalModule.bNameOK
 
 			anchors {
@@ -86,7 +86,7 @@ ColumnLayout {
 				verticalCenter: txtName.verticalCenter
 			}
 
-			onClicked: AppMessages.openChat(AppUserModel.userName(userPersonalModule.userRow));
+			onClicked: AppMessages.openChat(userPersonalModule.userIdx);
 		}
 	}
 
@@ -99,7 +99,7 @@ ColumnLayout {
 			text: qsTr("Change password")
 			rounded: false
 			imageSource: "password"
-			visible: userPersonalModule.userRow === 0 && AppUserModel.mainUserConfigured
+			visible: userPersonalModule.userIdx === 0 && AppUserModel.mainUserConfigured
 			autoSize: true
 			anchors.horizontalCenter: parent.horizontalCenter
 
@@ -110,7 +110,7 @@ ColumnLayout {
 	TPPassword {
 		id: passwordControl
 		enabled: userPersonalModule.bNameOK
-		visible: userPersonalModule.userRow === 0 && !AppUserModel.mainUserConfigured
+		visible: userPersonalModule.userIdx === 0 && !AppUserModel.mainUserConfigured
 		Layout.fillWidth: true
 		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : -5
 
@@ -151,14 +151,14 @@ ColumnLayout {
 
 		CalendarDialog {
 			id: caldlg
-			showDate: AppUserModel.birthDate(userPersonalModule.userRow)
+			showDate: AppUserModel.birthDate(userPersonalModule.userIdx)
 			initDate: new Date(1940, 0, 1)
 			finalDate: new Date()
 			parentPage: userPersonalModule.parentPage
 
 			onDateSelected: (date) => {
-				AppUserModel.setBirthDate(userPersonalModule.userRow, date);
-				txtBirthdate.text = AppUserModel.birthDateFancy(userPersonalModule.userRow);
+				AppUserModel.setBirthDate(userPersonalModule.userIdx, date);
+				txtBirthdate.text = AppUserModel.birthDateFancy(userPersonalModule.userIdx);
 				userPersonalModule.bBirthDateOK = true;
 				if (txtName.text.length === 0)
 					txtName.forceActiveFocus();
@@ -170,7 +170,7 @@ ColumnLayout {
 			imageSource: "calendar.png"
 			width: AppSettings.itemDefaultHeight
 			height: width
-			enabled: userPersonalModule.bPasswordOK && userPersonalModule.userRow === 0
+			enabled: userPersonalModule.bPasswordOK && userPersonalModule.userIdx === 0
 
 			anchors {
 				left: txtBirthdate.right
@@ -193,8 +193,8 @@ ColumnLayout {
 		TPRadioButtonOrCheckBox {
 			id: chkMale
 			text: qsTr("Male")
-			actionable: userPersonalModule.userRow === 0
-			checked: AppUserModel.sex(userPersonalModule.userRow) === 0
+			actionable: userPersonalModule.userIdx === 0
+			checked: AppUserModel.sex(userPersonalModule.userIdx) === 0
 			buttonGroup: sexGroup
 			width: parent.width/2
 
@@ -204,8 +204,8 @@ ColumnLayout {
 			}
 
 			onClicked: {
-				if (AppUserModel.sex(userPersonalModule.userRow) !== 0)
-					AppUserModel.setSex(userPersonalModule.userRow, true);
+				if (AppUserModel.sex(userPersonalModule.userIdx) !== 0)
+					AppUserModel.setSex(userPersonalModule.userIdx, true);
 				userPersonalModule.bSexOK = true;
 			}
 		}
@@ -213,14 +213,14 @@ ColumnLayout {
 		TPRadioButtonOrCheckBox {
 			id: chkFemale
 			text: qsTr("Female")
-			actionable: userPersonalModule.userRow === 0
-			checked: AppUserModel.sex(userPersonalModule.userRow) === 1
+			actionable: userPersonalModule.userIdx === 0
+			checked: AppUserModel.sex(userPersonalModule.userIdx) === 1
 			buttonGroup: sexGroup
 			width: parent.width / 2
 
 			onClicked: {
-				if (AppUserModel.sex(userPersonalModule.userRow) !== 1)
-					AppUserModel.setSex(userPersonalModule.userRow, false);
+				if (AppUserModel.sex(userPersonalModule.userIdx) !== 1)
+					AppUserModel.setSex(userPersonalModule.userIdx, false);
 				userPersonalModule.bSexOK = true;
 			}
 
@@ -234,7 +234,7 @@ ColumnLayout {
 	TPRadioButtonOrCheckBox {
 		id: chkOnlineUser
 		text: AppUserModel.onlineAccountUserLabel
-		actionable: userPersonalModule.userRow === 0
+		actionable: userPersonalModule.userIdx === 0
 		radio: false
 		checked: AppUserModel.onlineAccount
 		Layout.maximumWidth: userPersonalModule.width * 0.7
@@ -283,13 +283,11 @@ ColumnLayout {
 	}
 
 	function getUserInfo(): void {
-		if (userPersonalModule.userRow === -1)
-			return;
-		txtName.text = AppUserModel.userName(userPersonalModule.userRow);
+		txtName.text = AppUserModel.userName(userPersonalModule.userIdx);
 		bNameOK = txtName.text.length >= 5;
-		txtBirthdate.text = AppUserModel.birthDateFancy(userPersonalModule.userRow);
-		bBirthDateOK = AppUserModel.birthYear(userPersonalModule.userRow) >= 1940;
-		const sex = AppUserModel.sex(userPersonalModule.userRow);
+		txtBirthdate.text = AppUserModel.birthDateFancy(userPersonalModule.userIdx);
+		bBirthDateOK = AppUserModel.birthYear(userPersonalModule.userIdx) >= 1940;
+		const sex = AppUserModel.sex(userPersonalModule.userIdx);
 		chkMale.checked = sex === 0;
 		chkFemale.checked = sex === 1;
 		bSexOK = sex <= 1;

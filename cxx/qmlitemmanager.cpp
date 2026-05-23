@@ -18,7 +18,7 @@
 #include "tpsettings.h"
 #include "tputils.h"
 
-#include <QFile>
+#include <QFileDialog>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickItem>
@@ -61,7 +61,7 @@ void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
 
 	QAnyStringView main_module{"Main"};
 	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(),
-																			[this] (const QObject *const obj, const QUrl &objUrl) {
+																	[this] (const QObject *const obj, const QUrl &objUrl) {
 		if (!obj) {
 			#ifndef QT_NO_DEBUG
 			qDebug() << "*******************Mainwindow not loaded*******************";
@@ -106,6 +106,10 @@ void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
 	const QStringList &args{qApp->arguments()};
 	if (args.count() > 1) {
 		if (args.at(1) == "-test"_L1) {
+			runTests();
+			::exit(0);
+		}
+		else if (args.at(1) == "-testqml"_L1) {
 			m_qml_testing = true;
 			main_module = "Tests";
 		}
@@ -126,11 +130,6 @@ void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
 void QmlItemManager::exitApp()
 {
 	qApp->quit();
-}
-
-void QmlItemManager::chooseFileToImport()
-{
-	QMetaObject::invokeMethod(appMainWindow(), "chooseFileToOpen");
 }
 
 void QmlItemManager::displayImportDialogMessageAfterMesoSelection(const int meso_idx)
@@ -248,26 +247,26 @@ void QmlItemManager::getWeatherPage()
 		connect(m_weatherComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) { getWeatherPage(); });
 	}
 	else {
-		switch (m_weatherComponent->status()) {
-		case QQmlComponent::Ready:
-			m_weatherComponent->disconnect();
-			break;
-#ifndef QT_NO_DEBUG
-		case QQmlComponent::Loading:
-			return;
-		case QQmlComponent::Null:
-		case QQmlComponent::Error:
-			qDebug() << m_weatherComponent->errorString();
-			return;
-#else
-		default: return;
-#endif
-		}
 		if (!m_weatherPage) {
-			m_weatherPage = static_cast<QQuickItem*>(m_weatherComponent->create(appQmlEngine()->rootContext()));
-			appQmlEngine()->setObjectOwnership(m_weatherPage, QQmlEngine::CppOwnership);
-			m_weatherPage->setParentItem(appItemManager()->AppPagesVisualParent());
-			appPagesListModel()->openPage(m_weatherPage, std::move(tr("Weather Forecast")));
+			switch (m_weatherComponent->status()) {
+			case QQmlComponent::Ready:
+				m_weatherComponent->disconnect();
+				m_weatherPage = static_cast<QQuickItem*>(m_weatherComponent->create(appQmlEngine()->rootContext()));
+				appQmlEngine()->setObjectOwnership(m_weatherPage, QQmlEngine::CppOwnership);
+				m_weatherPage->setParentItem(appItemManager()->AppPagesVisualParent());
+				appPagesListModel()->openPage(m_weatherPage, std::move(tr("Weather Forecast")));
+				break;
+	#ifndef QT_NO_DEBUG
+			case QQmlComponent::Loading:
+				return;
+			case QQmlComponent::Null:
+			case QQmlComponent::Error:
+				qDebug() << m_weatherComponent->errorString();
+				return;
+	#else
+			default: return;
+	#endif
+			}
 		}
 		else
 			appPagesListModel()->openPage(m_weatherPage);
@@ -276,11 +275,9 @@ void QmlItemManager::getWeatherPage()
 
 void QmlItemManager::getStatisticsPage()
 {
-	if (!m_statisticsPage)
-	{
+	if (!m_statisticsPage) {
 		m_statisticsComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/TpQml/qml/Pages/StatisticsPage.qml"_L1}, QQmlComponent::Asynchronous};
-		if (m_statisticsComponent->status() != QQmlComponent::Ready)
-		{
+		if (m_statisticsComponent->status() != QQmlComponent::Ready) {
 			connect(m_statisticsComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
 				if (status == QQmlComponent::Ready)
 					createStatisticsPage_part2();
@@ -301,7 +298,8 @@ void QmlItemManager::getStatisticsPage()
 }
 
 void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QString &filename_or_message,
-	QFlags<Qt::AlignmentFlag> position,const QString &image_source, const int msecs, const QString& button1text, const QString &button2text) const
+								QFlags<Qt::AlignmentFlag> position,const QString &image_source, const int msecs,
+													   const QString& button1text, const QString &button2text) const
 {
 	if (!m_canDisplayMessage) {
 		st_generalMessage *message{new st_generalMessage};
@@ -446,6 +444,21 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 		QMetaObject::invokeMethod(m_generalMessagesPopup, "tpOpen");
 	else
 		QMetaObject::invokeMethod(m_generalMessagesPopup, "showTimed", Q_ARG(int, msecs));
+}
+
+QString QmlItemManager::openFileDialog(const int file_type, const QString &suggested_save_name)
+{
+	if (!m_fileDialog)
+		m_fileDialog = new QFileDialog{nullptr, Qt::Dialog};
+	const TPUtils::FILE_TYPE f_type{static_cast<TPUtils::FILE_TYPE>(file_type)};
+	const bool open_dialog{suggested_save_name.isEmpty()};
+	m_fileDialog->setDirectory(appUtils()->standardPathForFileType(f_type));
+	m_fileDialog->setNameFilters(appUtils()->extensionsListForType(f_type));
+	m_fileDialog->setAcceptMode(open_dialog ? QFileDialog::AcceptOpen : QFileDialog::AcceptSave);
+	m_fileDialog->setFileMode(open_dialog ? QFileDialog::AnyFile : QFileDialog::Directory);
+	if (!open_dialog)
+		m_fileDialog->selectFile(suggested_save_name);
+	return m_fileDialog->exec() == QDialog::Accepted ? m_fileDialog->selectedFiles().at(0) : QString{};
 }
 
 void QmlItemManager::showOnlineMessagesManagerDialog(const bool show)
@@ -595,6 +608,36 @@ void QmlItemManager::generalMessagesPopupClosed(QObject *)
 	}
 }
 
+#ifndef Q_OS_ANDROID
+#ifndef QT_NO_DEBUG
+#include "tpfilepath.h"
+void QmlItemManager::runTests()
+{
+	QString str{" file:///home/guilhermef//.local/share/Vivencia Software///TrainingPlanner/1759170252407///1759256421787/exchange_files/1759170252407/mesocycles/Novo Programa 1.txt "};
+	TPFilePath file{str};
+	qDebug() << file();
+	qDebug() << file.ownerUser();
+	qDebug() << file.targetUser();
+	qDebug() << file.subdirs();
+	qDebug() << file.fileName();
+	/*QString str("/dir1/dir2/dir3/dir4/file.txt");
+	qDebug() << appUtils()->getNthDirInPath(str, -2);
+	qDebug() << appUtils()->getNthDirInPath(str, -1);
+	qDebug() << appUtils()->getNthDirInPath(str, 0);
+	qDebug() << appUtils()->getNthDirInPath(str, 1);
+	qDebug() << appUtils()->getNthDirInPath(str, 2);
+	return;*/
+	/*QString str2{"/home/guilhermef/.local/share/Vivencia Software/TrainingPlanner/1759170252407/1759256421787/exchange_files/1759170252407/mesocycles/Novo Programa 1.txt"};
+	qDebug() << str2;
+	QString tp_str = appUtils()->tpFilePath("Novo Programa 1.txt", "1759256421787", { "exchange_files", "1759170252407", "mesocycles"});
+	qDebug() << tp_str;
+	qDebug() << appUtils()->tpFilePath_subDirsOnly(tp_str);
+	qDebug() << appUtils()->tpFilePath_subDirsOnly(tp_str, -1);
+	qDebug() << appUtils()->tpFilePath_subDirsOnly(tp_str, 1);*/
+}
+#endif
+#endif
+
 void QmlItemManager::createGeneralMessagesPopup()
 {
 	if (!m_generalMessagesPopupComponent) {
@@ -603,7 +646,7 @@ void QmlItemManager::createGeneralMessagesPopup()
 		m_generalMessagesPopupComponent = new QQmlComponent{appQmlEngine(), "TpQml.Widgets"_L1, "TPBalloonTip"_L1,
 																								QQmlComponent::Asynchronous};
 		connect(m_generalMessagesPopupComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status)
-																								{ createGeneralMessagesPopup();});
+																							{ createGeneralMessagesPopup();});
 	}
 	else {
 		if (!m_generalMessagesPopup) {
@@ -611,7 +654,7 @@ void QmlItemManager::createGeneralMessagesPopup()
 			case QQmlComponent::Ready:
 				m_generalMessagesPopupComponent->disconnect();
 				m_generalMessagesPopup = m_generalMessagesPopupComponent->createWithInitialProperties(
-																m_generalMessagesPopupProperties, appQmlEngine()->rootContext());
+															m_generalMessagesPopupProperties, appQmlEngine()->rootContext());
 				appQmlEngine()->setObjectOwnership(m_generalMessagesPopup, QQmlEngine::CppOwnership);
 				m_generalMessagesPopup->setProperty("parent", std::move(QVariant::fromValue(m_homePage)));
 				connect(m_generalMessagesPopup, SIGNAL(popupClosed(QObject*)), this, SLOT(generalMessagesPopupClosed(QObject*)));
@@ -634,7 +677,7 @@ void QmlItemManager::createGeneralMessagesPopup()
 void QmlItemManager::createSimpleExercisesList(QQuickItem *parentPage)
 {
 	m_simpleExercisesList = m_simpleExercisesListComponent->createWithInitialProperties(m_simpleExercisesListProperties,
-																								appQmlEngine()->rootContext());
+																							appQmlEngine()->rootContext());
 	appQmlEngine()->setObjectOwnership(m_simpleExercisesList, QQmlEngine::CppOwnership);
 	m_simpleExercisesList->setProperty("parent", QVariant::fromValue(parentPage));
 	connect(m_simpleExercisesList, SIGNAL(exerciseSelected(QQuickItem*)), this, SIGNAL(selectedExerciseFromSimpleExercisesList(QQuickItem*)));

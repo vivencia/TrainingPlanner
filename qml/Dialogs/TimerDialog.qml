@@ -11,8 +11,8 @@ TPPopup {
 	width: AppSettings.pageWidth * 0.75
 	height: AppSettings.pageHeight * 0.3
 	backgroundRec: timerBackground
+	useAlternateBackground: true
 	configFieldName: "timerDialogPosition"
-	defaultCoordinates: Qt.point((AppSettings.pageWidth - width)/2, (AppSettings.pageHeight - height)/2)
 
 //public:
 	property bool timePickerOnly: false
@@ -41,7 +41,6 @@ TPPopup {
 		border.color: "white"
 		sourceImage: ":/images/backgrounds/backimage-timer.png"
 		radius: 8
-		anchors.fill: parent
 		clip: true
 	}
 

@@ -266,6 +266,7 @@ void TPMediaControls::_controlClicked(controlInfo *ci)
 		setEnabled(CT_Stop, true);
 		setEnabled(CT_Rewind, true);
 		setEnabled(CT_FastForward, true);
+		setEnabled(CT_Mute, true);
 		bool vol_keys_enabled{false};
 		controlInfo *ci{controlFromType(CT_Mute)};
 		if (ci)

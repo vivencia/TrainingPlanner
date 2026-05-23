@@ -136,6 +136,7 @@ set( CXX_SOURCES
 		cxx/calendar_methods.h
 
 		cxx/thread_manager.h cxx/thread_manager.cpp
+		cxx/tpfilepath.h cxx/tpfilepath.cpp
 		cxx/tpimageprovider.h cxx/tpimageprovider.cpp
 		cxx/tpandroidnotification.h cxx/tpandroidnotification.cpp
 

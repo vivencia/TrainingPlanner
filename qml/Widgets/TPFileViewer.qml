@@ -12,9 +12,11 @@ Item {
 	height: minimumHeight
 
 //public:
-	required property string mediaSource
+	required property string fileName
 	property bool canAddFile: false
-	readonly property int minimumWidth: _file_ops.controlSize.width
+	property bool useBackground: false
+	property bool attemptToGetFile: true //means: attempt to download, copy or generate fileName
+	readonly property int minimumWidth: file_ops.controlSize.width
 	readonly property int minimumHeight: minimumWidth
 
 	signal removalRequested()
@@ -24,15 +26,9 @@ Item {
 	enum WindowStates { WS_UNDEFINED, WS_NORMAL, WS_FULLSCREEN }
 
 	property string _preview_source
-	property int _window_state: TPFileViewer.WindowStates.WS_UNDEFINED
-	property FileOperations _file_ops
+	property int _window_state: TPFileViewer.WindowStates.WS_NORMAL
 	property TPMediaPlayer _media_player
 	property Item _full_screen_widget
-
-	Component.onCompleted: {
-		mediaSource = AppUtils.getCorrectPath(mediaSource);
-		_window_state = TPFileViewer.WindowStates.WS_NORMAL;
-	}
 
 	states: [
 		State {
@@ -61,13 +57,25 @@ Item {
 		}
 	]
 
+	TPBackRec {
+		visible: _control.useBackground
+		backColor: AppSettings.paneBackgroundColor
+		showBorder: true
+		opacity: 0.8
+		radius: 8
+		anchors {
+			fill: parent
+			margins: -2
+		}
+	}
+
 	Loader {
 		asynchronous: true
-		active: _control._file_ops.fileType === AppUtils.FT_TEXT
+		active: file_ops.fileType === AppUtils.FT_TEXT
 		anchors.fill: parent
 
 		sourceComponent: Label {
-			text: _control._file_ops.getFileText(true);
+			text: file_ops.getFileText(true);
 			font.pixelSize: 0.05 * _control.height
 			color: "black"
 			padding: 10
@@ -79,8 +87,10 @@ Item {
 
 	Loader {
 		asynchronous: true
-		active: _control._file_ops.fileType !== AppUtils.FT_TEXT
-		anchors.fill: parent
+		active: file_ops.fileType !== AppUtils.FT_TEXT
+		anchors.centerIn: parent
+		width: parent.width
+		height: parent.height
 
 		sourceComponent: TPImage {
 			id: _imagePreview
@@ -88,7 +98,7 @@ Item {
 			source: _control._preview_source
 			dropShadow: false
 			keepAspectRatio: true
-			imageSizeFollowControlSize: _control._file_ops.fileType !== AppUtils.FT_IMAGE
+			imageSizeFollowControlSize: file_ops.fileType !== AppUtils.FT_IMAGE
 			fullWindowView: false
 		}
 	}
@@ -111,18 +121,19 @@ Item {
 
 		FileOperations {
 			id: file_ops
-			fileName: _control.mediaSource
+			fileName: _control.fileName
 			canAddFile: _control.canAddFile
+			canDownloadOrGenerate: _control.attemptToGetFile
+			useControls: true
 
 			anchors {
 				horizontalCenter: parent.horizontalCenter
 				verticalCenter: parent.verticalCenter
 			}
 
-			Component.onCompleted: _control._file_ops = this;
 			onShowFullScreen: fullScreenLoader.showFullScreen();
 			onFileRemovalRequested: _control.removalRequested();
-			onFileNameChanged: if (canAddFile) _control.fileAdded(fileName);
+			onFileAdded: (filepath) => _control.fileAdded(fileName);
 			onFileTypeChanged: _control._preview_source = getFileTypeIcon(fileName, Qt.size(0, 0), true);
 		}
 	}
@@ -130,15 +141,14 @@ Item {
 	Loader {
 		id: mediaPlayerLoader
 		asynchronous: true
-		active: _control._file_ops.fileType === AppUtils.FT_VIDEO
+		active: file_ops.fileType === AppUtils.FT_VIDEO
 		anchors.fill: parent
 
 		sourceComponent: TPMediaPlayer {
-			mediaUrl: _control._file_ops.fileURL
-			fileOps: _control._file_ops
+			mediaUrl: file_ops.fileURL
+			fileOps: file_ops
 			windowState: _control._window_state
 			Component.onCompleted: _control._media_player = this;
-
 		} //sourceCompoent: TPMediaPlayer
 	} //mediaPlayerLoader
 
@@ -159,13 +169,13 @@ Item {
 			if (_control._window_state === TPFileViewer.WS_NORMAL) {
 				_window.showFullScreen();
 				_control._window_state = TPFileViewer.WS_FULLSCREEN;
-				_control._file_ops.repaintControls();
+				file_ops.repaintControls();
 			}
 			else {
 				_window.close();
 				fullScreenLoader.active = false;
 				_control._window_state = TPFileViewer.WindowStates.WS_NORMAL;
-				_control._file_ops.repaintControls();
+				file_ops.repaintControls();
 			}
 
 			if (_control._media_player)
@@ -188,11 +198,11 @@ Item {
 
 			Loader {
 				asynchronous: true
-				active: _control._file_ops.fileType === AppUtils.FT_IMAGE
+				active: file_ops.fileType === AppUtils.FT_IMAGE
 				anchors.fill: parent
 
 				sourceComponent: TPImage {
-					source: _control.mediaSource
+					source: _control.fileName
 					dropShadow: false
 					antialiasing: true
 					imageSizeFollowControlSize: false
@@ -203,17 +213,17 @@ Item {
 
 			Loader {
 				asynchronous: true
-				active: _control._file_ops.fileType === AppUtils.FT_PDF
+				active: file_ops.fileType === AppUtils.FT_PDF
 				anchors.fill: parent
 
 				sourceComponent: PdfMultiPageView {
 					id: pdfViewer
 					document: PdfDocument {
-						source: _control._file_ops.fileURL
+						source: file_ops.fileURL
 					}
 
 					Connections {
-						target: _control._file_ops
+						target: file_ops
 						function onMultimediaKeyPressed(key: int): void {
 							switch (key) {
 							case Qt.Key_Left:
@@ -238,22 +248,22 @@ Item {
 
 			Loader {
 				asynchronous: true
-				active: _control._file_ops.fileType < AppUtils.FT_IMAGE
+				active: file_ops.fileType < AppUtils.FT_IMAGE
 				anchors.fill: parent
 
 				sourceComponent: TPAppFileViewer {
-					fileOps: _control._file_ops;
+					fileOps: file_ops;
 				}
 			} //Loader : TPAppFileViewer
 
 			Loader {
 				asynchronous: true
-				active: _control._file_ops.fileType === AppUtils.FT_TEXT
+				active: file_ops.fileType === AppUtils.FT_TEXT
 				anchors.fill: parent
 
 				sourceComponent: TPMultiLineEdit {
 					id: _edit
-					text: _control._file_ops.getFileText(false)
+					text: file_ops.getFileText(false)
 					editable: false
 					maxHeight: -1
 					minHeight: height
@@ -261,7 +271,7 @@ Item {
 					Connections {
 						target: _control
 						function onFileAdded(filepath: string): void {
-							_edit.text = _control._file_ops.getFileText(false);
+							_edit.text = file_ops.getFileText(false);
 						}
 					}
 				}

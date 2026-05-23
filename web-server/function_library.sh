@@ -4,6 +4,16 @@ SCRIPT_NAME=$(basename "$0")
 USER_NAME=$(whoami)
 NGINX="$(which nginx)"
 SUDO_PASSWORD=""
+ENABLE_DEBUG=0
+LOG_FILE=""
+
+print() {
+	if [ $ENABLE_DEBUG -eq 1 ]; then
+		echo "${@}" | tee -a $LOG_FILE
+	else
+		echo "${@}"
+	fi
+}
 
 get_return_code() {
 	LINE=""
@@ -28,13 +38,13 @@ get_passwd() {
         read -p "Sudo's password: " -sr
         PASSWORD=$REPLY
         if ! echo "$PASSWORD" | sudo -S whoami | grep -q "root"; then
-            echo "Wrong sudo password. Exiting..."
+            print "Wrong sudo password. Exiting..."
             return 1
         fi
         echo
     else
         if ! echo "$PASSWORD" | sudo -S whoami | grep -q "root"; then
-            echo "Wrong sudo password. Exiting..."
+            print "Wrong sudo password. Exiting..."
             return 1
         fi
     fi
@@ -82,19 +92,19 @@ find_local_ip() {
 start_nginx() {
     if [ -f "$NGINX" ]; then
         if pgrep -fl "$NGINX" &>/dev/null; then
-            echo "The NGINX service is already running."
+            print "The NGINX service is already running."
         else
-            echo "Starting NGINX..."
+            print "Starting NGINX..."
             if ! run_as_sudo systemctl start nginx; then
-                echo "Error starting nginx service."
+                print "Error starting nginx service."
                 return 4
             else
-                echo "The NGINX service started successfully."
+                print "The NGINX service started successfully."
             fi
         fi
         return 0;
     else
-        echo "Please install NGINX."
+        print "Please install NGINX."
         return 4
     fi
     return 0
@@ -103,19 +113,19 @@ start_nginx() {
 stop_nginx() {
 	if [ -f "$NGINX" ]; then
 		if pgrep -fl "$NGINX" &>/dev/null; then
-			echo "Stopping the NGINX service..."
+			print "Stopping the NGINX service..."
 			if ! run_as_sudo systemctl stop nginx; then
-				echo "Error starting the NGINX service."
+				print "Error starting the NGINX service."
 				return 2
 			else
-				echo "The NGINX service started successfully."
+				print "The NGINX service started successfully."
 			fi
 		else
-			echo "The NGINX service is not running."
+			print "The NGINX service is not running."
 		fi
 		return 0
 	else
-		echo "Please install NGINX."
+		print "Please install NGINX."
 		return 2
 	fi
 }

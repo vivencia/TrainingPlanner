@@ -16,12 +16,14 @@ TPPopup {
 	closeButtonVisible: true
 	open_in_window: true
 	globalPopup: AppSettings.showOnlineMessagesDialog
+	backGroundImage: ":/images/backgrounds/backimage-chat.jpg"
 	width: normalWidth
 	height: normalHeight
-	backGroundImage: ":/images/backgrounds/backimage-chat.jpg"
 
 //public:
 	required property ChatModel chatManager
+
+	signal stopMedia()
 
 //private:
 	readonly property int defaultWidth: AppSettings.pageWidth * 0.8
@@ -43,6 +45,8 @@ TPPopup {
 	onActiveFocusChanged: {
 		if (activeFocus)
 			_chatWindow.chatManager.markAllIncomingMessagesRead();
+		else
+			stopMedia();
 	}
 
 	Connections {
@@ -152,6 +156,7 @@ TPPopup {
 		contentWidth: _chatWindow.availableWidth
 		spacing: 15
 		clip: true
+		reuseItems: false
 		model: _chatWindow.chatManager
 
 		anchors {
@@ -194,6 +199,9 @@ TPPopup {
 				return (y + height > top) && (y < bottom)
 			}
 
+			TableView.onPooled: console.log("pooled: ", index);
+			TableView.onReused: console.log("reused: ", index)
+
 			Rectangle {
 				id: messageRec
 				color: messageItem.ownMessage ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2
@@ -205,35 +213,15 @@ TPPopup {
 				visible: !messageItem.msgDeleted
 				anchors.top: parent.top
 
-				states: [
-					State {
-						when: messageItem.ownMessage
-
-						AnchorChanges {
-							anchors.right: parent.right
-						}
-						PropertyChanges {
-							explicit: true
-							messageRec {
-								anchors.rightMargin: 10
-							}
-						}
-					},
-					State {
-						when: !messageItem.ownMessage
-
-						AnchorChanges {
-							target: messageRec
-							anchors.left: parent.left
-						}
-						PropertyChanges {
-							explicit: true
-							messageRec {
-								anchors.leftMargin: 10
-							}
-						}
+				Component.onCompleted: {
+					if (messageItem.ownMessage) {
+						anchors.right = parent.right;
+						anchors.rightMargin = 10;
+					} else {
+						anchors.left = parent.left;
+						anchors.leftMargin = 10;
 					}
-				]
+				}
 
 				ColumnLayout {
 					id: mainLayout
@@ -247,28 +235,37 @@ TPPopup {
 
 					Loader {
 						id: mediaLoader
-						asynchronous: true
-						active: messageItem.inViewport && messageItem.msgMedia.length > 0
+						asynchronous: false
+						active: messageItem.msgMedia.length > 0
 						Layout.alignment: Qt.AlignCenter
-						Layout.preferredWidth: active ? _file_viewer.minimumWidth: 0
-						Layout.preferredHeight: active ? _file_viewer.minimumHeight: 0
+						Layout.preferredWidth: _file_viewer ? _file_viewer.minimumWidth : 0
+						Layout.preferredHeight: _file_viewer ? _file_viewer.minimumHeight : 0
 
-						property TPFileViewer _file_viewer
+						property TPFileViewer _file_viewer: null
 
 						sourceComponent: TPFileViewer {
 							mediaSource: messageItem.msgMedia
 
+							//onImageSizeChanged: {
+							//	if (++_chatWindow.nMedia === _chatWindow.chatManager.nMediaMessages())
+							//		waitTimer.start();
+							//}
+
 							Component.onCompleted: {
 								mediaLoader._file_viewer = this;
-								if (++_chatWindow.nMedia === _chatWindow.chatManager.nMediaMessages())
-									waitTimer.start();
+								_chatWindow.stopMedia.connect(stop_media);
 							}
 
-							Timer {
+							function stop_media(): void {
+								if (_media_player)
+									_media_player.stop(true);
+							}
+
+							/*Timer {
 								id: waitTimer
 								interval: 100
 								onTriggered: messagesList.positionViewAtEnd();
-							}
+							}*/
 						}
 					}
 
@@ -288,7 +285,7 @@ TPPopup {
 						TPLabel {
 							id: lblExtraInfo
 							text: messageItem.ownMessage ? messageItem.msgSentDate + "  " + messageItem.msgSentTime :
-																	messageItem.msgReceivedDate + "  " + messageItem.msgReceivedTime
+															messageItem.msgReceivedDate + "  " + messageItem.msgReceivedTime
 							font: Qt.font({
 								family: Qt.fontFamilies()[0],
 								weight: Font.ExtraLight,

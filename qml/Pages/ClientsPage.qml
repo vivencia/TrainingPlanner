@@ -15,7 +15,7 @@ TPPage {
 	backgroundOpacity: 0.6
 
 //private:
-	property int userRow
+	property int userIdx
 
 	onPageActivated: {
 		if (clientsList.enabled) {
@@ -51,15 +51,13 @@ TPPage {
 		TPTabButton {
 			text: qsTr("Clients")
 			enabled: clientsList.enabled
-
-			onClicked: clientsPage.userRow = AppUserModel.currentClients.getUserIdx();
+			onClicked: clientsPage.userIdx = clientsList.selectedUserIdx;
 		}
 
 		TPTabButton {
 			text: qsTr("Pending requests")
 			enabled: pendingClientsList.enabled
-
-			onClicked: clientsPage.userRow = AppUserModel.pendingClientsRequests.getUserIdx();
+			onClicked: clientsPage.userIdx = pendingClientsList.selectedUserIdx;
 		}
 
 		anchors {
@@ -94,7 +92,7 @@ TPPage {
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 
-			onItemSelected: (userRow) => clientsPage.userRow = userRow;
+			onItemSelected: (userIdx) => clientsPage.userIdx = userIdx;
 			onButtonClicked: clientsPage.showRemoveMessage(false);
 		} //TPCoachesAndClientsList: clientsList
 
@@ -118,17 +116,17 @@ TPPage {
 				}
 
 				//Temporary users(not confirmed) will always have the same index: AppUserModel.count() - 1, so we need
-				//to reset the clientsPage.userRow property in order for it to get a onChanged signal
-				onItemSelected: (userRow) => {
-					clientsPage.userRow = -1;
-					clientsPage.userRow = userRow;
+				//to reset the clientsPage.userIdx property in order for it to get a onChanged signal
+				onItemSelected: (userIdx) => {
+					clientsPage.userIdx = -1;
+					clientsPage.userIdx = userIdx;
 				}
 			} //TPCoachesAndClientsList: pendingClientsList
 
 			RowLayout {
 				uniformCellSizes: true
 				height: AppSettings.itemDefaultHeight
-				enabled: clientsPage.userRow != 0 && pendingClientsList.enabled  && pendingClientsList.currentRow !== -1
+				enabled: clientsPage.userIdx != 0 && pendingClientsList.enabled  && pendingClientsList.currentRow !== -1
 
 				anchors {
 					top: pendingClientsList.bottom
@@ -144,7 +142,7 @@ TPPage {
 					Layout.alignment: Qt.AlignCenter
 
 					onClicked: {
-						AppUserModel.acceptUser(AppUserModel.pendingClientsRequests, pendingClientsList.currentRow);
+						AppUserModel.acceptUser(pendingClientsList.selectedUserIdx);
 						if (!pendingClientsList.enabled) {
 							if (clientsList.enabled)
 								tabbar.setCurrentIndex(0);
@@ -167,7 +165,7 @@ TPPage {
 		parentPage: clientsPage
 		navButtonsVisible: enabled
 		contentHeight: colMain.implicitHeight
-		enabled: clientsPage.userRow > 0
+		enabled: clientsPage.userIdx > 0
 
 		anchors {
 			top: listsLayout.bottom
@@ -185,20 +183,20 @@ TPPage {
 
 			UserPersonalData {
 				id: usrData
-				userRow: clientsPage.userRow
+				userIdx: clientsPage.userIdx
 				parentPage: clientsPage
 				Layout.preferredWidth: AppSettings.pageWidth - 20
 			}
 
 			UserContact {
 				id: usrContact
-				userRow: clientsPage.userRow
+				userIdx: clientsPage.userIdx
 				Layout.preferredWidth: AppSettings.pageWidth - 20
 			}
 
 			UserProfile {
 				id: usrProfile
-				userRow: clientsPage.userRow
+				userIdx: clientsPage.userIdx
 				parentPage: clientsPage
 				Layout.preferredWidth: AppSettings.pageWidth - 20
 			}
@@ -218,8 +216,8 @@ TPPage {
 			imageSource: "remove"
 			keepAbove: true
 			message: removeUserDlgLoader.decline ?
-						 qsTr("The client will receive your reply, but might choose to send another request unless you block them") :
-						 qsTr("The client will be notified of your decision, but might still contact you unless you block them")
+				 qsTr("The client will receive your reply, but might choose to send another request unless you block them") :
+				qsTr("The client will be notified of your decision, but might still contact you unless you block them")
 			onButton1Clicked: clientsPage.removeOrDecline(removeUserDlgLoader.decline);
 			onClosed: removeUserDlgLoader.active = false;
 			Component.onCompleted: removeUserDlgLoader._remove_dlg = this;
@@ -227,9 +225,9 @@ TPPage {
 
 		onLoaded: {
 			if (decline)
-				_remove_dlg.title = qsTr("Remove ") + AppUserModel.userName(clientsPage.userRow) + "?";
+				_remove_dlg.title = qsTr("Decline ") + AppUserModel.userName(pendingClientsList.selectedUserIdx) + "?";
 			else
-				_remove_dlg.title = qsTr("Decline ") + AppUserModel.userName(AppUserModel.pendingClientsRequests.currentRow) + "?";
+				_remove_dlg.title = qsTr("Remove ") + AppUserModel.userName(clientsList.selectedUserIdx) + "?";
 			_remove_dlg.tpOpen();
 		}
 	}
@@ -240,14 +238,14 @@ TPPage {
 
 	function removeOrDecline(decline: bool) {
 		if (!decline) {
-			AppUserModel.removeUser(clientsPage.userRow);
+			AppUserModel.removeUser(clientsPage.userIdx);
 			if (!clientsList.enabled)
 				if (pendingClientsList.enabled) {
 					tabbar.setCurrentIndex(1);
 			}
 		}
 		else {
-			AppUserModel.rejectUser(AppUserModel.pendingClientsRequests, pendingClientsList.currentRow);
+			AppUserModel.rejectUser(pendingClientsList.selectedUserIdx);
 			if (!pendingClientsList.enabled) {
 				if (clientsList.enabled)
 					tabbar.setCurrentIndex(0);

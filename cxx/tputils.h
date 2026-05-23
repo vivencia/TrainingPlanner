@@ -9,6 +9,8 @@
 #include <QSize>
 #include <QUrl>
 
+QT_FORWARD_DECLARE_CLASS(TPFilePath)
+
 namespace QLiterals = Qt::Literals::StringLiterals;
 using namespace QLiterals;
 
@@ -22,6 +24,19 @@ constexpr QLatin1Char binary_file_separator{set_separator};
 constexpr QLatin1Char fancy_record_separator1{'|'};
 constexpr QLatin1Char fancy_record_separator2{';'};
 constexpr QLatin1StringView comp_exercise_fancy_separator{" + "_L1};
+
+// FNV-1a constants
+constexpr uint32_t FNV_PRIME_32{0x01000193};
+constexpr uint32_t FNV_OFFSET_BASIS_32{0x811c9dc5};
+
+inline uint32_t fnv1a_hash(const QString& s) {
+	uint32_t hash{FNV_OFFSET_BASIS_32};
+	for (const auto c : s.toStdU16String()) {
+		hash ^= static_cast<uint8_t>(c);
+		hash *= FNV_PRIME_32;
+	}
+	return hash;
+}
 
 // Helper macros for token pasting
 #define PASTE_HELPER(a, b) a##b
@@ -76,17 +91,18 @@ public:
 		FT_TEXT				= 1U << 13,
 		FT_OPEN_DOCUMENT	= 1U << 14,
 		FT_MS_DOCUMENT		= 1U << 15,
+		FT_ANY_TYPE			= 0x7FFF,
 		FT_OTHER			= 1U << 30,
 		FT_UNKNOWN			= 1U << 31,
 	};
 	Q_ENUM(FILE_TYPE)
 
 	enum BINARY_FILE_INFO_FIELDS {
-		BFIF_LOCAL_HANDLER_ID,
-		BFIF_SUBDIR_PLUS_FILENAME,
+		BFIF_HANDLE,
 		BFIF_SENDERID,
 		BFIF_RECEIVERID,
-		BFIF_MESONAME,
+		BFIF_FILEPATH,
+		BFIF_EXTRAINFO,
 		BFIF_SPLITLETTER,
 		BFIF_TOTAL_FIELDS
 	};
@@ -97,12 +113,11 @@ public:
 	const QString workoutFileIdentifier{QLiterals::operator""_L1("0x05", 4)};
 	const QString userFileIdentifier{QLiterals::operator""_L1("0x06", 4)};
 
-	static constexpr QLatin1StringView TP_FILE_EXTENSION{".txt"_L1};
-	static constexpr QLatin1StringView STR_START_EXPORT{"##%%"_L1};
-	static constexpr QLatin1StringView STR_START_FORMATTED_EXPORT{"####"_L1};
-	static constexpr QLatin1StringView STR_END_EXPORT{"##!!"_L1};
-	static constexpr QLatin1StringView STR_END_FORMATTED_EXPORT{"##$$"_L1};
-
+	static constexpr QLatin1StringView TP_FILE_EXTENSION{".txt"};
+	static constexpr QLatin1StringView STR_START_EXPORT{"##%%"};
+	static constexpr QLatin1StringView STR_START_FORMATTED_EXPORT{"####"};
+	static constexpr QLatin1StringView STR_END_EXPORT{"##!!"};
+	static constexpr QLatin1StringView STR_END_FORMATTED_EXPORT{"##$$"};
 	static constexpr QLatin1StringView previewImagesSubDir{"temp-img/"};
 
 	explicit TPUtils(QObject *parent = nullptr);
@@ -115,31 +130,29 @@ public:
 	Q_INVOKABLE QString getCorrectPath(const QUrl &url) const;
 	Q_INVOKABLE FILE_TYPE getFileType(QString filename) const;
 	TPUtils::FILE_TYPE getTPFileType(const QString &filename, std::optional<bool> &formatted) const;
-	Q_INVOKABLE QVariant fileExtension(TPUtils::FILE_TYPE filetype, const bool as_list, const bool description) const;
+	Q_INVOKABLE QStringList extensionsListForType(TPUtils::FILE_TYPE filetype, const bool description = true) const;
 	Q_INVOKABLE QString standardPathForFileType(TPUtils::FILE_TYPE filetype) const;
 	Q_INVOKABLE void viewOrOpenFile(const QString &filename, const QVariant &extra_info = QVariant{});
 	Q_INVOKABLE bool canReadFile(const QString &filename) const;
-	QString getFilePath(const QString &filename) const;
-	QString getNthDirInPath(const QString &filename, int nth_dir = -1, int n_dirs = 1) const;
-	void removeNthDirFromPath(QString &path, int nth_dir);
+	QString getFilePath(const QString &filename, const bool needs_to_exist) const;
+	QString getNthDirInPath(const QString &filename, int nth_dir = -1) const;
+	QString removeNthDirFromPath(const QString &path, int nth_dir);
 	//Returns the filename or the last directory in path if path does not include a file
-	QString getFileName(const QString &filename, const bool without_extension = false) const;
+	QString getFileName(const QString &filepath, const bool without_extension = false, const bool needs_to_exist = false) const;
 	QString getFileExtension(const QString &filename, const bool include_dot = false, const QString &default_ext = QString{}) const;
-	//Only for files stored in the app's private directory
-	QString getSubDir(const QString &filename) const;
-
+	QString sanitizePath(const QString &filepath) const;
 	/**
 	 * @brief fileRecentlyModified
 	 * @param filename Local filename(including path)
 	 * @param threshold: Number of minutes past from now since filename was last modified to be considered borderline for recentness.
 	 * @return false if the file was modified more than threshold minutes; less or equal to threshold, true
 	 */
-	bool fileRecentlyModified(const QString &filename, const int threshold = 30) const;
+	bool fileRecentlyModified(const QString &filename, const int minute_threshold = 30) const;
 
 	bool mkdir(const QString &fileOrDir) const;
 	bool rename(const QString &source_file_or_dir, const QString &dest_file_or_dir, const bool overwrite) const;
-	bool copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath = true, const bool remove_source = false,
-																										const bool overwrite = true) const;
+	bool copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath = true,
+														const bool remove_source = false, const bool overwrite = true) const;
 	QFile *openFile(const QString &filename, const bool read = true, const bool write = false, const bool append = false,
 							const bool overwrite = false, const bool text = true) const;
 	void scanDir(const QString &path, QFileInfoList &results, const QString &match = QString{}, const bool follow_tree = false) const;
@@ -172,7 +185,8 @@ public:
 								  const std::function<QString(const uint field, const QString &value)> &formatToImport = nullptr) const;
 
 	QByteArray readBinaryFile(const QString &filename, const QString &extra_info = QString{}) const &;
-	void writeBinaryFile(const QString &filename, const QByteArray &data, const bool strip_extra_info) const;
+	void writeBinaryFile(const QString &destination_path, const QString &source_path, const bool strip_extra_info) const;
+	void writeBinaryFile(const QString &destination_path, const QByteArray &data, const bool strip_extra_info) const;
 	void insertOrModifyBinaryFileField(QByteArray &data, BINARY_FILE_INFO_FIELDS field, const QString &info) const;
 	QString binaryFileExtraFieldValue(const QByteArray &data, BINARY_FILE_INFO_FIELDS field) const;
 

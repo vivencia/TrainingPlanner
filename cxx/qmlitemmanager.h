@@ -19,6 +19,7 @@ QT_FORWARD_DECLARE_CLASS(QmlExercisesDatabaseInterface)
 QT_FORWARD_DECLARE_CLASS(QmlWorkoutInterface)
 QT_FORWARD_DECLARE_CLASS(QmlUserInterface)
 QT_FORWARD_DECLARE_STRUCT(st_generalMessage)
+QT_FORWARD_DECLARE_CLASS(QFileDialog)
 QT_FORWARD_DECLARE_CLASS(QQmlApplicationEngine)
 QT_FORWARD_DECLARE_CLASS(QQmlComponent)
 QT_FORWARD_DECLARE_CLASS(QQuickItem)
@@ -41,7 +42,6 @@ public:
 	inline PagesListModel *AppPagesManager() const { return appPagesListModel(); }
 
 	Q_INVOKABLE void exitApp();
-	Q_INVOKABLE void chooseFileToImport();
 	Q_INVOKABLE void displayImportDialogMessageAfterMesoSelection(const int meso_idx);
 	Q_INVOKABLE void showFirstTimeDialog();
 	Q_INVOKABLE void getSettingsPage();
@@ -56,6 +56,7 @@ public:
 					QFlags<Qt::AlignmentFlag> position = Qt::AlignTop|Qt::AlignHCenter, const QString &image_source = QString{},
 						const int msecs = 4000, const QString& button1text = QString{}, const QString &button2text = QString{}) const;
 	Q_INVOKABLE void showOnlineMessagesManagerDialog(const bool show);
+	Q_INVOKABLE QString openFileDialog(const int file_type, const QString &suggested_save_name = QString{});
 	Q_INVOKABLE inline void showTextCopiedMessage(const QString &message = QString{})
 	{
 		displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, message.isEmpty() ? tr("Text copied to the clipboard") : message);
@@ -97,12 +98,16 @@ private:
 			*m_firstTimeDlgComponent{nullptr}, *m_generalMessagesPopupComponent{nullptr}, *m_messagesManagerComponent{nullptr};
 	QQuickItem *m_homePage{nullptr}, *m_appPagesVisualParent{nullptr}, *m_weatherPage{nullptr}, *m_statisticsPage{nullptr};
 	QObject *m_simpleExercisesList{nullptr}, *m_firstTimeDlg{nullptr}, *m_generalMessagesPopup{nullptr}, *m_messagesManagerPopup{nullptr};
+	QFileDialog *m_fileDialog{nullptr};
 	QVariantMap m_simpleExercisesListProperties, m_generalMessagesPopupProperties;
 	QList<st_generalMessage*> m_messagesQueue;
 	bool m_canDisplayMessage{false};
 
-#ifndef QT_NO_DEBUG
+#ifndef Q_OS_ANDROID
+	#ifndef QT_NO_DEBUG
 	bool m_qml_testing{false};
+	void runTests();
+	#endif
 #endif
 
 	static QmlItemManager *_appItemManager;

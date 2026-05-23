@@ -3,7 +3,7 @@
 #include "qmlitemmanager.h"
 #include "osinterface.h"
 #include "return_codes.h"
-#include "tpsettings.h"
+#include "tpfilepath.h"
 
 #include <QClipboard>
 #include <QDir>
@@ -159,50 +159,56 @@ TPUtils::FILE_TYPE TPUtils::getTPFileType(const QString &filename, std::optional
 	return static_cast<FILE_TYPE>(ret);
 }
 
-QVariant TPUtils::fileExtension(FILE_TYPE filetype, const bool as_list, const bool description) const
+QStringList TPUtils::extensionsListForType(FILE_TYPE filetype, const bool description) const
 {
-	filetype &= static_cast<FILE_TYPE>(static_cast<uint32_t>(~FT_TP_FORMATTED));
-	switch (filetype) {
-	case FT_TP_USER_PROFILE:
-	case FT_TP_PROGRAM:
-	case FT_TP_WORKOUT_A:
-	case FT_TP_WORKOUT_B:
-	case FT_TP_WORKOUT_C:
-	case FT_TP_WORKOUT_D:
-	case FT_TP_WORKOUT_E:
-	case FT_TP_WORKOUT_F:
-	case FT_TP_EXERCISES:
-		return description ? QString{tr("Training Planner's files") % file_types_by_exension[FT_TEXT-FT_IMAGE]} : "txt"_L1;
-	case FT_IMAGE:
-		if (as_list)
-			return QStringList{} << std::move("jpg"_L1) << std::move("jpeg"_L1) << std::move("png"_L1) << std::move("gif"_L1);
-		else
-			return description ? QString{tr("Images/Pictures") % file_types_by_exension[FT_IMAGE-FT_IMAGE]} : "jpg"_L1;
-	case FT_VIDEO:
-		if (as_list)
-			return QStringList{} << std::move("mp4"_L1) << std::move("mkv"_L1) << std::move("mov"_L1);
-		else
-			return description ? QString{tr("Videos/Movies") % file_types_by_exension[FT_VIDEO-FT_IMAGE]} : "mp4"_L1;
-	case FT_PDF:
-		return description ? QString{tr("PDF files") % file_types_by_exension[FT_PDF-FT_IMAGE]} : "pdf"_L1;
-	case FT_TEXT:
-		return description ? QString{tr("Text files") % file_types_by_exension[FT_TEXT-FT_IMAGE]} : "txt"_L1;
-	case FT_OPEN_DOCUMENT:
-		if (as_list)
-			return QStringList{} << std::move("odf"_L1) << std::move("ods"_L1);
-		else
-			return description ? QString{tr("Open Document(Libre Office)") % file_types_by_exension[FT_OPEN_DOCUMENT-FT_IMAGE]} : "odf"_L1;
-	case FT_MS_DOCUMENT:
-		if (as_list)
-			return QStringList{} << std::move("doc"_L1) << std::move("docx"_L1) << std::move("xls"_L1) << std::move("xlsx"_L1);
-		else
-			return description ? QString{tr("MS Office Documents") % file_types_by_exension[FT_MS_DOCUMENT-FT_IMAGE]} : "docx"_L1;
-	case FT_OTHER:
-		return description ? QString{tr("Any") % " (*.*)"_L1} : "*"_L1;
-	default:
-		break;
+	const uint f_type{static_cast<uint>(filetype)};
+	if (f_type >= FT_OTHER)
+		return QStringList{} << (description ? QString{tr("Any file")} : QString{}) % " (*.*)"_L1;
+
+	QStringList ret;
+	for (uint i{FT_TP_USER_PROFILE}; i <= FT_MS_DOCUMENT; ++i) {
+		if (!(f_type & i)) continue;
+		switch (i) {
+			case FT_TP_USER_PROFILE:
+			case FT_TP_PROGRAM:
+			case FT_TP_WORKOUT_A:
+			case FT_TP_WORKOUT_B:
+			case FT_TP_WORKOUT_C:
+			case FT_TP_WORKOUT_D:
+			case FT_TP_WORKOUT_E:
+			case FT_TP_WORKOUT_F:
+			case FT_TP_EXERCISES:
+				ret.append(std::move((description ? QString{tr("Training Planner's files")} : QString{}) %
+																				file_types_by_exension[FT_TEXT-FT_IMAGE]));
+				break;
+			case FT_IMAGE:
+				ret.append(std::move((description ? QString{tr("Images/Pictures")} : QString{}) %
+																				file_types_by_exension[FT_IMAGE-FT_IMAGE]));
+				break;
+			case FT_VIDEO:
+				ret.append(std::move((description ? QString{tr("Videos/Movies")} : QString{}) %
+																				file_types_by_exension[FT_VIDEO-FT_IMAGE]));
+				break;
+			case FT_PDF:
+				ret.append(std::move((description ? QString{tr("PDF Files")} : QString{}) %
+																				file_types_by_exension[FT_PDF-FT_IMAGE]));
+				break;
+			case FT_TEXT:
+				ret.append(std::move((description ? QString{tr("Text Files")} : QString{}) %
+																				file_types_by_exension[FT_TEXT-FT_IMAGE]));
+				break;
+			case FT_OPEN_DOCUMENT:
+				ret.append(std::move((description ? QString{tr("Open Documents(Libre Office)")} : QString{}) %
+																		file_types_by_exension[FT_OPEN_DOCUMENT-FT_IMAGE]));
+				break;
+			case FT_MS_DOCUMENT:
+				ret.append(std::move((description ? QString{tr("MS Office Documents")} : QString{}) %
+																		file_types_by_exension[FT_MS_DOCUMENT-FT_IMAGE]));
+			default:
+			break;
+		}
 	}
-	return QString{};
+	return ret;
 }
 
 QString TPUtils::standardPathForFileType(TPUtils::FILE_TYPE filetype) const
@@ -235,103 +241,123 @@ bool TPUtils::canReadFile(const QString &filename) const
 	return false;
 }
 
-QString TPUtils::getFilePath(const QString &filename) const
+QString TPUtils::getFilePath(const QString &filename, const bool needs_to_exist) const
 {
-	const qsizetype slash_idx{filename.lastIndexOf('/')};
-	if (slash_idx > 0)
-		return filename.left(slash_idx + 1); //include the trainling '/'
-	return filename;
+	const QString sane_filename{sanitizePath(filename)};
+	if (!needs_to_exist) {
+		const qsizetype slash_idx{sane_filename.lastIndexOf('/')};
+		if (slash_idx < sane_filename.length() - 1) {
+			if (sane_filename.right(sane_filename.length() - slash_idx).contains('.'))
+				return sane_filename.left(slash_idx + 1); //include the trailing '/'
+			else
+				return sane_filename % '/';
+		}
+	}
+	else {
+		const QFileInfo fi{sane_filename};
+		if (fi.exists()) {
+			if (fi.isFile()) {
+				const qsizetype slash_idx{sane_filename.lastIndexOf('/')};
+				if (slash_idx > 0)
+					return sane_filename.left(slash_idx + 1); //include the trailing '/'
+			}
+			return sane_filename.endsWith('/') ? sane_filename : sane_filename % '/';
+		}
+	}
+	return sane_filename;
 }
 
-QString TPUtils::getNthDirInPath(const QString &filename, int nth_dir, int n_dirs) const
+QString TPUtils::getNthDirInPath(const QString &filename, int nth_dir) const
 {
-	const QString &filepath{getFilePath(filename)};
-	QString ret;
+	const QString &filepath{getFilePath(filename, false)};
+	if (nth_dir == 0)
+		return filepath;
 	const auto n_chars{filepath.length()};
+	QString ret;
 	ret.reserve(n_chars);
-	bool reverse_searh{false};
 	if (nth_dir < 0) {
-		reverse_searh = true;
 		nth_dir *= -1;
-	}
-	if (reverse_searh) {
-		for (const auto &chr : filepath | std::views::reverse) {
-			if (chr != '/')
-				ret.insert(0, chr);
+		for (const QChar &chr : filepath | std::views::reverse) {
+			if (chr != '/') {
+				if (nth_dir == 0)
+					ret.insert(0, chr);
+			}
 			else {
-				if (--nth_dir == 0 || --n_dirs == 0)
+				if (--nth_dir < 0)
 					break;
-				ret.insert(0, chr);
 			}
 		}
 	}
 	else {
-		for (const auto &chr : filepath | std::views::take(n_chars)) {
-			if (chr != '/')
-				ret.insert(0, chr);
+		for (const QChar &chr : filepath | std::views::take(n_chars)) {
+			if (chr != '/') {
+				if (nth_dir == 0)
+					ret.append(chr);
+			}
 			else {
-				if (--nth_dir == 0 || --n_dirs == 0)
+				if (--nth_dir < 0)
 					break;
-				ret.insert(0, chr);
 			}
 		}
 	}
+	if (ret.last(1) != '/')
+		ret.append('/');
 	return ret;
 }
 
-void TPUtils::removeNthDirFromPath(QString &path, int nth_dir)
+QString TPUtils::removeNthDirFromPath(const QString &path, int nth_dir)
 {
-	int i{0}, first_slash{0};
-	bool reverse_searh{false};
+	int i{0}, cut_start{0}, cut_end{0};
+	const QString &path_only{getFilePath(path, false)};
 	if (nth_dir < 0) {
-		reverse_searh = true;
 		nth_dir *= -1;
-		i = path.length() - 1;
-	}
-	if (reverse_searh) {
-		for (; i >=0; --i) {
-			if (path.at(i) == '/') {
-				if (--nth_dir == 0)
-					first_slash = i;
-				else if (nth_dir == -1) {
-					auto temp_idx{i};
-					i = first_slash;
-					first_slash = temp_idx;
+		i = path_only.length() - (path_only.endsWith('/') ? 2 : 1);
+		cut_end = path_only.length() - 1;
+		for (; i >= 0; --i) {
+			if (path_only.at(i) == '/') {
+				if (--nth_dir == 0) {
+					cut_start = i;
 					break;
 				}
+				cut_end = i;
 			}
 		}
 	}
 	else {
-		if (!path.startsWith('/'))
-			--nth_dir;
-		for (; i < path.length(); ++i) {
-			if (path.at(i) == '/') {
-				if (--nth_dir == -1)
+		if (path_only.startsWith('/'))
+			++i;
+		for (; i < path_only.length(); ++i) {
+			if (path_only.at(i) == '/') {
+				if (--nth_dir < 0) {
+					cut_end = i;
 					break;
+				}
+				cut_start = i;
 			}
 		}
 	}
-	static_cast<void>(path.remove(first_slash, i - first_slash));
+	return path_only.left(cut_start) % path_only.sliced(cut_end, path_only.length() - cut_end) % getFileName(path);
 }
 
-QString TPUtils::getFileName(const QString &filename, const bool without_extension) const
+QString TPUtils::getFileName(const QString &filepath, const bool without_extension, const bool needs_to_exist) const
 {
-	QString f_name;
-	qsizetype slash_idx{filename.lastIndexOf('/')};
-	if (slash_idx == filename.length() - 1)
-		slash_idx = filename.lastIndexOf('/', -2);
-	if (slash_idx > 0)
-		f_name = std::move(filename.right(filename.length() - slash_idx - 1));
-
-	if (without_extension)
-	{
-		const qsizetype dot_idx{slash_idx > 0 ? f_name.lastIndexOf('.') : filename.lastIndexOf('.')};
-		if (dot_idx > 0)
-			return slash_idx > 0 ? f_name.left(dot_idx) : filename.left(dot_idx);
+	if (needs_to_exist) {
+		const QFileInfo fi{filepath};
+		if (!fi.exists() || !fi.isFile())
+			return QString{};
 	}
 
-	return slash_idx > 0 ? f_name : filename;
+	const qsizetype slash_idx{filepath.lastIndexOf('/')};
+	QString filename;
+	if (slash_idx < filepath.length() - 1) {
+		filename = std::move(filepath.right(filepath.length() - slash_idx - 1));
+		if (without_extension) {
+			const qsizetype dot_idx{filename.indexOf('.')};
+			if (dot_idx > 0)
+				filename = std::move(filename.left(dot_idx));
+		}
+	}
+	return filename;
 }
 
 QString TPUtils::getFileExtension(const QString &filename, const bool include_dot, const QString &default_ext) const
@@ -340,24 +366,35 @@ QString TPUtils::getFileExtension(const QString &filename, const bool include_do
 	return dot_idx > 0 ? filename.last(filename.length() - dot_idx - (include_dot ? 0 : 1)) : default_ext;
 }
 
-QString TPUtils::getSubDir(const QString &filename) const
+QString TPUtils::sanitizePath(const QString &filepath) const
 {
-	const auto start_pos{appSettings()->currentUserDir().length()};
-	const auto end_pos{filename.length() - getFileName(filename).length()};
-	return filename.sliced(start_pos, end_pos - start_pos);
+	QString sane_path;
+	sane_path.reserve(filepath.length());
+	QString::const_iterator itr{filepath.constBegin()};
+	const QString::const_iterator itr_end{filepath.constEnd()};
+	sane_path.append(*itr);
+	while (++itr != itr_end) {
+		if (*itr == '/') {
+			if (*(itr - 1) == '/')
+				continue;
+		}
+		sane_path.append(*itr);
+	}
+	sane_path = std::move(sane_path.trimmed());
+	if (sane_path.startsWith("file:"_L1))
+		sane_path.remove(0, 5);
+	return sane_path;
 }
 
-bool TPUtils::fileRecentlyModified(const QString &filename, const int threshold) const
+bool TPUtils::fileRecentlyModified(const QString &filename, const int minute_threshold) const
 {
 	QFileInfo fi{filename};
-	if (fi.exists())
-	{
+	if (fi.exists()) {
 		const QDateTime &changed_datetime{fi.lastModified()};
-		if (changed_datetime.date() == QDate::currentDate())
-		{
+		if (changed_datetime.date() == QDate::currentDate()) {
 			const qsizetype secs_diff{changed_datetime.secsTo(QDateTime::currentDateTime())};
 			const qsizetype min_diff{secs_diff / 60};
-			return min_diff <= threshold;
+			return min_diff <= minute_threshold;
 		}
 	}
 	return false;
@@ -366,7 +403,7 @@ bool TPUtils::fileRecentlyModified(const QString &filename, const int threshold)
 bool TPUtils::mkdir(const QString &fileOrDir) const
 {
 	const QFileInfo fi{fileOrDir};
-	const QString &path{(!fi.exists() || fi.isFile()) ? getFilePath(fileOrDir) : fileOrDir};
+	const QString &path{(!fi.exists() || fi.isFile()) ? getFilePath(fileOrDir, fi.exists()) : fileOrDir};
 	QDir fs_dir{path};
 	if (!fs_dir.exists())
 		return fs_dir.mkpath(path);
@@ -422,7 +459,7 @@ bool TPUtils::rename(const QString &source_file_or_dir, const QString &dest_file
 				ok = QFile::rename(source_file_or_dir, dest_file_or_dir);
 			}
 			else
-				ok = QFile::rename(source_file_or_dir, getFilePath(source_file_or_dir) + getFileName(dest_file_or_dir));
+				ok = QFile::rename(source_file_or_dir, getFilePath(source_file_or_dir, true) % getFileName(dest_file_or_dir));
 		}
 		return ok;
 	}
@@ -430,12 +467,12 @@ bool TPUtils::rename(const QString &source_file_or_dir, const QString &dest_file
 		return fi_dest.exists();
 }
 
-bool TPUtils::copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath, const bool remove_source,
-																												const bool overwrite) const
+bool TPUtils::copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath,
+																	const bool remove_source, const bool overwrite) const
 {
 	if (QFile::exists(srcFile)) {
 		if (createPath) {
-			const QString &filepath{getFilePath(dstFileOrDir)};
+			const QString &filepath{getFilePath(dstFileOrDir, true)};
 			if (!mkdir(filepath))
 				return false;
 		}
@@ -452,8 +489,8 @@ bool TPUtils::copyFile(const QString &srcFile, const QString &dstFileOrDir, cons
 	return false;
 }
 
-QFile *TPUtils::openFile(const QString &filename, const bool read, const bool write, const bool append, const bool overwrite,
-							const bool text) const
+QFile *TPUtils::openFile(const QString &filename, const bool read, const bool write, const bool append,
+																				const bool overwrite, const bool text) const
 {
 	QIODeviceBase::OpenMode flags{QIODeviceBase::NotOpen};
 	if (write) {
@@ -711,14 +748,27 @@ QByteArray TPUtils::readBinaryFile(const QString &filename, const QString &extra
 	return QByteArray{};
 }
 
-void TPUtils::writeBinaryFile(const QString &filename, const QByteArray &data, const bool strip_extra_info) const
+void TPUtils::writeBinaryFile(const QString &destination_path, const QString &source_path, const bool strip_extra_info) const
 {
-	QFile *file{openFile(filename, false, true, false, true, false)};
+	if (QFile::exists(source_path)) {
+		QFile *in_file{openFile(source_path, true, false, false, false, false)};
+		if (in_file) {
+			const QByteArray &data{in_file->readAll()};
+			writeBinaryFile(destination_path, data, strip_extra_info);
+			in_file->close();
+			delete in_file;
+		}
+	}
+}
+
+void TPUtils::writeBinaryFile(const QString &destination_path, const QByteArray &data, const bool strip_extra_info) const
+{
+	QFile *file{openFile(destination_path, false, true, false, true, false)};
 	if (file) {
 		if (!strip_extra_info)
 			file->write(data);
 		else
-			file->write(data.chopped(data.length() - data.lastIndexOf(binary_file_initial_separator.toLatin1(), -1)));
+			file->write(data.chopped(data.length() - data.lastIndexOf(binary_file_initial_separator.toLatin1())));
 		file->close();
 		delete file;
 	}
@@ -726,7 +776,7 @@ void TPUtils::writeBinaryFile(const QString &filename, const QByteArray &data, c
 
 void TPUtils::insertOrModifyBinaryFileField(QByteArray &data, BINARY_FILE_INFO_FIELDS field, const QString &info) const
 {
-	const auto extra_fields_pos{data.lastIndexOf(binary_file_initial_separator.toLatin1(), -1)};
+	const auto extra_fields_pos{data.lastIndexOf(binary_file_initial_separator.toLatin1())};
 	if (extra_fields_pos > 0) {
 		QString extra_info{data.last(data.length() - extra_fields_pos - 1)};
 		setCompositeValue(field, info, extra_info, binary_file_separator);

@@ -12,12 +12,6 @@ ChatWSServer *ChatWSServer::app_ws_server{nullptr};
 
 using namespace QLiterals;
 
-enum messageUseSortingFields {
-	MUSF_USE_TYPE,
-	MUSF_LOCAL_USERID,
-	MUSF_REMOTE_USERID,
-};
-
 static inline QString getIdentifier(QWebSocket *peer)
 {
 	return peer->peerAddress().toString() % ':' % QString::number(peer->peerPort());
@@ -116,36 +110,46 @@ bool ChatWSServer::sendTextMessage(const WS_USES use, const QString &sender_id, 
 {
 	QWebSocket *peer{m_peersSockets.value(receiver_id)};
 	if (peer && peer->isValid())
-		return peer->sendTextMessage(appUtils()->string_strings({QString::number(use), sender_id, receiver_id, message},
-																							comp_exercises_separator)) > message.length();
+		return peer->sendTextMessage(appUtils()->string_strings({QString::number(use), sender_id, receiver_id,
+											QString{}, message, QString{}}, comp_exercises_separator)) > message.length();
 	return false;
 }
 
-bool ChatWSServer::sendBinaryMessage(const WS_USES use, const QString &receiver_id, const QByteArray &data)
+bool ChatWSServer::sendBinaryMessage(const WS_USES use, const QString &sender_id, const QString &receiver_id,
+																	const QString &extra_info, const QString &filename)
 {
+	const QString &info_fields{appUtils()->string_strings({
+			QString::number(use), sender_id, receiver_id, filename, extra_info}, binary_file_separator)};
+	QByteArray data{std::move(appUtils()->readBinaryFile(filename, info_fields))};
 	QWebSocket *peer{m_peersSockets.value(receiver_id)};
-	return peer && peer->isValid() ? peer->sendBinaryMessage(data) == data.size() : false;
+	return peer && peer->isValid() ? peer->sendBinaryMessage(data) == data.size() + info_fields.size() : false;
 }
 
 void ChatWSServer::wsTextMessageReceived(QString message)
 {
 	bool ok{false};
-	const WS_USES use{static_cast<WS_USES>(appUtils()->getCompositeValue(MUSF_USE_TYPE, message, comp_exercises_separator).toUInt(&ok))};
+	const WS_USES use{static_cast<WS_USES>(appUtils()->getCompositeValue(TPUtils::BFIF_HANDLE, message, comp_exercises_separator).toUInt(&ok))};
 	if (ok) {
-		const QString &remote_user{appUtils()->getCompositeValue(MUSF_LOCAL_USERID, message, comp_exercises_separator)};
-		const QList<QObject*> local_peers{m_localPeers.value(remote_user)};
+		const QString &local_user{appUtils()->getCompositeValue(TPUtils::BFIF_RECEIVERID, message, comp_exercises_separator)};
+		const QList<QObject*> local_peers{m_localPeers.value(local_user)};
+		const QString &remote_user{appUtils()->getCompositeValue(TPUtils::BFIF_SENDERID, message, comp_exercises_separator)};
 		if (!local_peers.isEmpty()) {
 			QObject *local_peer{local_peers.at(use)};
 			if (local_peer) {
-				message.remove(0, (remote_user.length() * 2) + 4); // use = 1 char, separators = 3 chars(3 fields)
 				switch (use) {
-					case WS_TPCHAT:
-						qobject_cast<TPChat*>(local_peer)->processWebSocketTextMessage(message);
+				case WS_TPCHAT:
+					qobject_cast<TPChat*>(local_peer)->processWebSocketTextMessage(message);
 					break;
-					case WS_TPMESSAGESMANAGER:
-						qobject_cast<TPMessagesManager*>(local_peer)->textMesssageReceived(message, remote_user);
+				case WS_TPMESSAGESMANAGER: {
+					qobject_cast<TPMessagesManager*>(local_peer)->textMesssageReceived(message, remote_user);
 					break;
-					default: return;
+				}
+				case WS_FILETRANSFER: {
+					const QString &filename{appUtils()->getCompositeValue(TPUtils::BFIF_FILEPATH, message, comp_exercises_separator)};
+					sendBinaryMessage(ChatWSServer::WS_FILETRANSFER, remote_user, local_user, QString{}, filename);
+					break;
+				}
+				default: return;
 				}
 			}
 		}
@@ -155,21 +159,25 @@ void ChatWSServer::wsTextMessageReceived(QString message)
 void ChatWSServer::wsBinaryMessageReceived(QByteArray data)
 {
 	bool ok{false};
-	const WS_USES use{static_cast<WS_USES>(appUtils()->getCompositeValue(MUSF_USE_TYPE, data, comp_exercises_separator).toUInt(&ok))};
+	const WS_USES use{static_cast<WS_USES>(appUtils()->getCompositeValue(TPUtils::BFIF_HANDLE, data, comp_exercises_separator).toUInt(&ok))};
 	if (ok) {
-		const QString &remote_user{appUtils()->getCompositeValue(MUSF_LOCAL_USERID, data, comp_exercises_separator)};
-		const QList<QObject*> local_peers{m_localPeers.value(remote_user)};
+		const QString &local_user{appUtils()->getCompositeValue(TPUtils::BFIF_RECEIVERID, data, comp_exercises_separator)};
+		const QList<QObject*> local_peers{m_localPeers.value(local_user)};
 		if (!local_peers.isEmpty()) {
 			QObject *local_peer{local_peers.at(use)};
 			if (local_peer) {
 				switch (use) {
-					case WS_TPCHAT:
-						qobject_cast<TPChat*>(local_peer)->processWebSocketBinaryMessage(data);
+				case WS_TPCHAT:
+					qobject_cast<TPChat*>(local_peer)->processWebSocketBinaryMessage(data);
 					break;
-					case WS_TPMESSAGESMANAGER:
-                        qobject_cast<TPMessagesManager*>(local_peer)->binaryFileReceived(data, remote_user);
+				case WS_TPMESSAGESMANAGER:
+					qobject_cast<TPMessagesManager*>(local_peer)->binaryFileReceived(data,
+									appUtils()->getCompositeValue(TPUtils::BFIF_SENDERID, data, comp_exercises_separator));
 					break;
-					default: return;
+				case WS_FILETRANSFER:
+					emit fileReceived(data);
+					break;
+				default: return;
 				}
 			}
 		}
@@ -203,7 +211,7 @@ void ChatWSServer::queryPeerAddress(const int requestid, const QString &userid)
 {
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid]
-														(const int request_id, const int ret_code, const QString &ret_string) {
+													(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			emit gotPeerAddress(requestid, ret_string);
@@ -220,7 +228,7 @@ void ChatWSServer::setupWSServer()
 	if (m_pWebSocketServer->listen(QHostAddress{appSettings()->serverAddress()}, m_port.toUShort())) {
 		#ifndef QT_NO_DEBUG
 		qDebug() << "--------------  WebSocket Chat Server listening on : " <<
-						m_pWebSocketServer->serverAddress().toString() + ':' + QString::number(m_pWebSocketServer->serverPort());
+					m_pWebSocketServer->serverAddress().toString() + ':' + QString::number(m_pWebSocketServer->serverPort());
 		#endif
 		emit wsServerStatusChanged(true);
 		connect(m_pWebSocketServer, &QWebSocketServer::newConnection, this, &ChatWSServer::onNewConnection);

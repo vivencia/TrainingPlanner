@@ -3,10 +3,11 @@
 #include "tpchatdb.h"
 #include "tponlineservices.h"
 #include "websocketserver.h"
-#include "../thread_manager.h"
 #include "../dbusermodel.h"
 #include "../pageslistmodel.h"
 #include "../qmlitemmanager.h"
+#include "../tpfilepath.h"
+#include "../thread_manager.h"
 #include "../tputils.h"
 
 #include <QTimer>
@@ -198,7 +199,7 @@ QString TPChat::interlocutorName() const
 
 QString TPChat::avatarIcon() const
 {
-	return appUserModel()->avatar(m_userIdx, false);
+	return appUserModel()->avatar(m_userIdx);
 }
 
 void TPChat::processTPServerMessage(const QString &work, const QString &messages)
@@ -278,14 +279,7 @@ void TPChat::createNewMessage(const QString &text, const QString &media)
 	message->sdate = std::move(QDate::currentDate());
 	message->stime = std::move(QTime::currentTime());
 	message->text = text;
-	if (!media.isEmpty()) {
-		if (appUtils()->copyFile(appUtils()->getCorrectPath(media), chatsMediaSubDir(true), true))
-			message->media = std::move(chatsMediaSubDir(true) % appUtils()->getFileName(media));
-		else {
-			delete message;
-			return;
-		}
-	}
+	message->media = media;
 	message->own_message = true;
 	beginInsertRows(QModelIndex{}, count(), count());
 	m_messages.append(message);
@@ -298,9 +292,9 @@ void TPChat::createNewMessage(const QString &text, const QString &media)
 
 void TPChat::createNewMessageWithAttachment(const QString &text)
 {
-	connect(appMainWindow(), SIGNAL(fileDialogClosed(QString)), this, SLOT(attachFileToMessage(QString)), Qt::SingleShotConnection);
-	QMetaObject::invokeMethod(appMainWindow(), "chooseFileToOpen", Q_ARG(int, TPUtils::FT_OTHER));
-	m_attachedMessage = text;
+	QString filepath{std::move(appItemManager()->openFileDialog(TPUtils::FT_ANY_TYPE))};
+	if (!filepath.isEmpty())
+		createNewMessage(text, filepath);
 }
 
 void TPChat::incomingMessage(const QString &encoded_message)
@@ -474,14 +468,8 @@ void TPChat::processWebSocketTextMessage(const QString &message)
 
 void TPChat::processWebSocketBinaryMessage(const QByteArray &data)
 {
-	const QString &filename{appUserModel()->userDir() % appUtils()->binaryFileExtraFieldValue(data, TPUtils::BFIF_SUBDIR_PLUS_FILENAME)};
+	const QString &filename{appUtils()->binaryFileExtraFieldValue(data, TPUtils::BFIF_FILEPATH)};
 	appUtils()->writeBinaryFile(filename, data, true);
-}
-
-void TPChat::attachFileToMessage(const QString &filepath)
-{
-	if (!filepath.isEmpty())
-		createNewMessage(m_attachedMessage, appUtils()->getCorrectPath(filepath));
 }
 
 void TPChat::onChatWindowOpened()
@@ -531,18 +519,9 @@ void TPChat::uploadAction(const uint field, ChatMessage *const message)
 			if (message->own_message) {
 				setData(index(message->id), true, sentRole);
 				if (!message->media.isEmpty()) {
-					if (use_ws) {
-						QString extra_info{appUtils()->string_strings({
-							QString::number(ChatWSServer::WS_TPCHAT),
-							chatsMediaSubDir(false) % appUtils()->getFileName(message->media),
-							appUserModel()->userId(0),
-							m_otherUserId
-							//Meso name, split letter missing. TODO: identify that included media is a tp workout file and popup a dialog
-							//to select the meso and the split it belongs to
-						}, binary_file_separator)};
-						appWSServer()->sendBinaryMessage(ChatWSServer::WS_TPCHAT, m_otherUserId, appUtils()->readBinaryFile(
-																								message->media, extra_info));
-					}
+					if (use_ws)
+						appWSServer()->sendBinaryMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(0), m_otherUserId,
+																									QString{}, message->media);
                     else
                         appUserModel()->sendFileToServer(message->media, nullptr, QString{}, chatsMediaSubDir(false), m_otherUserId);
                 }
@@ -745,7 +724,7 @@ void TPChat::setUnreadMessages(const QString &unread_ids, const bool add)
 		emit unreadMessagesChanged();
 }
 
-inline QString TPChat::chatsMediaSubDir(const bool fullpath) const
+inline QString TPChat::chatsMediaSubDir() const
 {
-	return (fullpath ? appUserModel()->userDir() : QString{}) % chatsSubDir % QLatin1StringView{m_otherUserId.toLatin1().constData()} % '/';
+	return chatsSubDir % QLatin1StringView{m_otherUserId.toLatin1().constData()} % '/';
 }

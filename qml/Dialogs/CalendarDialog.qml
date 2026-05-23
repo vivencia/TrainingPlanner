@@ -11,7 +11,7 @@ TPPopup {
     id: _control
 	keepAbove: !simpleCalendar
 	width: datePickerControl.width
-	height: mainLayout.childrenRect.height + 15
+	height: mainLayout.childrenRect.height
 	open_in_window: true
 
 //public:
@@ -95,7 +95,7 @@ TPPopup {
 
 				background: Rectangle {
 					id:	backgroundColor
-					color: AppSettings.primaryLightColor
+					color: delegate.index % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2
 					radius: 6
 					opacity: 1
 				}

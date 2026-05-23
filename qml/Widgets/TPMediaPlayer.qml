@@ -1,4 +1,4 @@
-//pragma ComponentBehavior: Bound
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtMultimedia
@@ -14,8 +14,8 @@ VideoOutput {
 	required property string mediaUrl
 	property int windowState: TPFileViewer.WS_NORMAL
 	property FileOperations fileOps
-	readonly property MediaPlayer mediaPlayer: _mediaPlayer
-	readonly property AudioOutput audioOutput: _audioOutput
+	property MediaPlayer mediaPlayer
+	property AudioOutput audioOutput
 
 	property list<int> previewControls: [MediaControls.CT_Play, MediaControls.CT_Stop, MediaControls.CT_Mute]
 	property list<int> fullScreenControls: [MediaControls.CT_Play, MediaControls.CT_Stop, MediaControls.CT_Rewind,
@@ -25,28 +25,39 @@ VideoOutput {
 	property string _media_volume
 	property bool _media_playing
 
-	MediaPlayer {
-		id: _mediaPlayer
-		videoOutput: _control
-		source: _control.mediaUrl
+	Loader {
+		id: mediaPlayerLoader
+		asynchronous: true
+		active: false
 
-		audioOutput: AudioOutput {
-			id: _audioOutput
-			volume: 0.5
-			muted: true
-
+		sourceComponent: MediaPlayer {
+			id: _mp
+			videoOutput: _control
+			source: _control.mediaUrl
 			Component.onCompleted: {
-				_control._media_volume = Qt.binding(function() { return _audioOutput.muted ?
-																qsTr("Muted") : parseInt(_audioOutput.volume * 100, 10); });
+				_control.mediaPlayer = this;
+				_control.play(false);
 			}
-		}
 
-		onMediaStatusChanged: {
-			if (mediaStatus === MediaPlayer.EndOfMedia)
-				mediaControls.controlLimitReached(MediaControls.CT_Play);
-		}
-		onPositionChanged: lblTime.text = AppUtils.formatTime(duration - _mediaPlayer.position);
-	} //MediaPlayer
+			audioOutput: AudioOutput {
+				id: _audioOutput
+				volume: 0.5
+				muted: true
+
+				Component.onCompleted: {
+					_control.audioOutput = this;
+					_control._media_volume = Qt.binding(function() { return _audioOutput.muted ?
+																	qsTr("Muted") : parseInt(_audioOutput.volume * 100, 10); });
+				}
+			}
+
+			onMediaStatusChanged: {
+				if (mediaStatus === MediaPlayer.EndOfMedia)
+					mediaControls.controlLimitReached(MediaControls.CT_Play);
+			}
+			onPositionChanged: lblTime.text = AppUtils.formatTime(duration - _mp.position);
+		} //MediaPlayer
+	}
 
 	TPLabel {
 		id: lblTime
@@ -94,8 +105,10 @@ VideoOutput {
 			onControlClicked: (type) => {
 				switch (type) {
 				case MediaControls.CT_Play:
-					_control.play(false);
-					setEnabled(MediaControls.CT_Mute, true);
+					if (!mediaPlayerLoader.active)
+						mediaPlayerLoader.active = true;
+					else
+						_control.play(false);
 					break;
 				case MediaControls.CT_Stop:
 					_control.stop(false);
@@ -125,10 +138,12 @@ VideoOutput {
 	}
 
 	function stop(emulate_click: bool): void {
-		if (emulate_click)
-			mediaControls.emulateControlClick(MediaControls.CT_Stop);
-		else
-			mediaPlayer.stop();
+		if (mediaPlayer) {
+			if (emulate_click)
+				mediaControls.emulateControlClick(MediaControls.CT_Stop);
+			else
+				mediaPlayer.stop();
+		}
 	}
 
 	function mute(): void {
@@ -181,7 +196,7 @@ VideoOutput {
 
 	function changeState(window_state: int): void {
 		windowState = window_state;
-		_media_playing = _mediaPlayer.playing;
+		_media_playing = mediaPlayer.playing;
 		if (_media_playing)
 			play(true);
 		if (windowState === TPFileViewer.WS_NORMAL) {

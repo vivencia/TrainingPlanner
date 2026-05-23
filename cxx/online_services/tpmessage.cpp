@@ -1,7 +1,56 @@
 #include "tpmessage.h"
 
 #include "tpmessagesmanager.h"
+#include "../tpfilepath.h"
 #include "../tputils.h"
+
+#include <QTimer>
+
+TPMessage::~TPMessage()
+{
+	if (m_tpFilePath)
+		delete m_tpFilePath;
+	QObject::~QObject();
+}
+
+void TPMessage::setFileName(const TPFilePath &tpfilepath)
+{
+	if (m_tpFilePath)
+		delete m_tpFilePath;
+	m_tpFilePath = new TPFilePath{tpfilepath};
+	emit dataChanged(TPMESSAGE_FIELD_FILE);
+}
+
+void TPMessage::setFileName(const QString &filename)
+{
+	if (m_tpFilePath)
+		delete m_tpFilePath;
+	m_tpFilePath = new TPFilePath{filename};
+	emit dataChanged(TPMESSAGE_FIELD_FILE);
+}
+
+void TPMessage::setExpiration(const uint secs)
+{
+	if (secs > 0) {
+		m_timedExpiration = true;
+		if (!m_timer) {
+			m_timer = new QTimer{this};
+			m_timer->setSingleShot(true);
+			m_timer->callOnTimeout([this] () { emit killMessage(this); } );
+		}
+		else
+			m_timer->stop();
+		m_timer->setInterval(secs * 1000);
+		m_timer->start();
+	}
+	else {
+		if (m_timer) {
+			m_timer->stop();
+			delete m_timer;
+			m_timedExpiration = false;
+		}
+	}
+}
 
 QString TPMessage::date() const
 {

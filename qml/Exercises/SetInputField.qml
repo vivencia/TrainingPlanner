@@ -10,6 +10,7 @@ FocusScope {
 	implicitHeight: AppSettings.itemDefaultHeight
 	height: visible ? implicitHeight : 0
 
+	required property DBExercisesModel exercisesModel
 	required property int type
 	required property int availableWidth
 
@@ -95,7 +96,7 @@ FocusScope {
 			}
 
 			onClicked: {
-				txtMain.text = AppUtils.setTypeOperation(_control.type, true, txtMain.text, false);
+				txtMain.text = _control.exercisesModel.setTypeOperation(_control.type, true, txtMain.text, false);
 				_control.valueChanged(txtMain.text);
 			}
 		}
@@ -119,7 +120,7 @@ FocusScope {
 			onClicked: {
 				_control.clearInput = false;
 				const value = txtMain.text !== "" ? txtMain.text : txtMain.origText;
-				txtMain.text = AppUtils.setTypeOperation(_control.type, false, value, false);
+				txtMain.text = _control.exercisesModel.setTypeOperation(_control.type, false, value, false);
 				_control.valueChanged(txtMain.text);
 			}
 		}
@@ -138,13 +139,13 @@ FocusScope {
 
 			width: {
 				switch (_control.type) {
-				case SetInputField.WeightType:
+				case DBExercisesModel.WeightType:
 					return Math.min(_control.availableWidth * 0.35, 2 * height);
-				case SetInputField.RepType:
+				case DBExercisesModel.RepType:
 					return Math.min(_control.availableWidth * 0.25, 1.5 * height);
 				case DBExercisesModel.TimeType:
 					return Math.min(_control.availableWidth * 0.4, 3 * height);
-				case SetInputField.SetType:
+				case DBExercisesModel.SetType:
 					return Math.min(_control.availableWidth * 0.2, height);
 				}
 			}
@@ -205,7 +206,7 @@ FocusScope {
 			onClicked: {
 				_control.clearInput = false;
 				const value = txtMain.text !== "" ? txtMain.text : txtMain.origText;
-				txtMain.text = AppUtils.setTypeOperation(_control.type, true, value, true);
+				txtMain.text = _control.exercisesModel.setTypeOperation(_control.type, true, value, true);
 				_control.valueChanged(txtMain.text);
 			}
 		}
@@ -227,7 +228,7 @@ FocusScope {
 			}
 
 			onClicked: {
-				txtMain.text = AppUtils.setTypeOperation(_control.type, false, txtMain.text, true);
+				txtMain.text = _control.exercisesModel.setTypeOperation(_control.type, false, txtMain.text, true);
 				_control.valueChanged(txtMain.text);
 			}
 		}

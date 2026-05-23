@@ -5,14 +5,20 @@
 #to spell check shell scripts and make them more robust
 
 PHP_FPM_SERVICE="php-fpm"
-
 BASE_SERVER_DIR="/var/www/html"
 TP_DIR=$BASE_SERVER_DIR"/trainingplanner"
 SCRIPTS_DIR="$TP_DIR/scripts"
 source "$SCRIPTS_DIR/function_library.sh"
 
+ENABLE_DEBUG=1
+if [ $ENABLE_DEBUG -eq 1 ]; then
+	NOW="$(date +%F-%H:%M)"
+	LOG_FILE="/DATA/trainingplanner-log/tp-$NOW.txt"
+	touch $LOG_FILE
+fi
+
 print_usage() {
-	echo "Usage: $SCRIPT_NAME {setup|status|start|stop|restart|pause|createdb}" >&2
+	print "Usage: $SCRIPT_NAME {setup|status|start|stop|restart|pause|createdb}"
 }
 
 for i in "$@"; do
@@ -26,7 +32,7 @@ for i in "$@"; do
 			exit 0
 		;;
 		--*|-*)
-			echo "Unknown option $i"
+			print "Unknown option $i"
 			exit 1
 		;;
 		*)
@@ -49,13 +55,13 @@ create_admin_user() {
 	PASS_FILE=$ADMIN_DIR/.passwds
 	HTPASSWD=$(which htpasswd)
 	if "$HTPASSWD" -bv $PASS_FILE $ADMIN $ADMIN; then
-		echo "Creating the main app user"
+		print "Creating the main app user"
 		#always use the -B option for htpasswd to create bcrypt hashes compatible with PHP's password_verify()
 		if run_as_sudo "$HTPASSWD" -cbB $PASS_FILE $ADMIN $ADMIN; then
 			run_as_sudo mkdir -m 774 $ADMIN_DIR
 			run_as_sudo cp -f "$SOURCES_DIR/user.fields" $ADMIN_DIR
 			run_as_sudo chown -R $NGINX_USER:$NGINX_USER $ADMIN_DIR
-			echo "Main app user created successfully"
+			print "Main app user created successfully"
 			return 0
 		fi
 	fi
@@ -67,10 +73,10 @@ create_users_db() {
 	if sqlite3 -line ${USERS_DB} 'CREATE TABLE IF NOT EXISTS users_table (userid INTEGER PRIMARY KEY, inserttime INTEGER, onlineaccount INTEGER, name TEXT, birthday INTEGER, sex INTEGER, phone TEXT, email TEXT, social TEXT, role TEXT, coach_role TEXT, goal TEXT, use_mode INTEGER, password TEXT);' &>/dev/null; then
 		run_as_sudo chown -R $NGINX_USER:$NGINX_USER $USERS_DB
 		run_as_sudo chmod 664 $USERS_DB
-		echo "Users database created"
+		print "Users database created"
 		return 0
 	else
-		echo "Failed to create users database: " $USERS_DB
+		print "Failed to create users database: " $USERS_DB
 		return 1
 	fi
 }
@@ -95,23 +101,23 @@ test_tp_server() {
 	case "$?" in
 		0)
 			if [ "$2" == "lan" ]; then
-				echo "TPSERVER up and running($1)."
+				print "TPSERVER up and running($1)."
 				return 0
 			else
-				echo "TPSERVER is running on localhost only($1)."
+				print "TPSERVER is running on localhost only($1)."
 				return 5
 			fi
 		;;
 		1)
-			echo "TPSERVER is not reachable."
+			print "TPSERVER is not reachable."
 			return 1
 		;;
 		2)
 			if [ $2 == "lan" ]; then
-				echo "TPSERVER paused."
+				print "TPSERVER paused."
 				return 6
 			else
-				echo "TPSERVER paused on localhost only."
+				print "TPSERVER paused on localhost only."
 				return 7
 			fi
 		;;
@@ -120,17 +126,17 @@ test_tp_server() {
 
 start_phpfpm() {
 	if pgrep -fl $PHP_FPM_SERVICE &>/dev/null; then
-		echo "The PHP-FPM service is already running."
+		print "The PHP-FPM service is already running."
 	else
-		echo "Starting PHP-FPM..."
+		print "Starting PHP-FPM..."
 		if [ ! -f "/run/php" ]; then
 			run_as_sudo mkdir "/run/php"
 		fi
 		if ! run_as_sudo systemctl start $PHP_FPM_SERVICE; then
-			echo "Error starting the PHP-FPM service."
+			print "Error starting the PHP-FPM service."
 			return 3
 		else
-			echo "The PHP-FPM service started successfully."
+			print "The PHP-FPM service started successfully."
 		fi
 	fi
 	return 0
@@ -138,15 +144,15 @@ start_phpfpm() {
 
 stop_phpfpm() {
 	if pgrep -fl $PHP_FPM_SERVICE &>/dev/null; then
-		echo "Stopping PHP-FPM..."
+		print "Stopping PHP-FPM..."
 		if ! run_as_sudo systemctl stop $PHP_FPM_SERVICE; then
-			echo "PHP FPM service failed to stop"
+			print "PHP FPM service failed to stop"
 			return 3
 		else
-			echo "PHP FPM service stopped successfully."
+			print "PHP FPM service stopped successfully."
 		fi
 	else
-		echo "Service php-fpm is not running."
+		print "Service php-fpm is not running."
 	fi
 	return 0
 }
@@ -167,7 +173,7 @@ start_server() {
 			EXIT_STATUS=$?
 		fi
 	else
-		echo "TPSERVER not running because PHP-FPM failed to start"
+		print "TPSERVER not running because PHP-FPM failed to start"
 	fi
 	return $EXIT_STATUS
 }
@@ -180,27 +186,27 @@ stop_server() {
 		EXIT_STATUS=$?
 	fi
 	if [ "$EXIT_STATUS" == 0 ]; then
-		echo "Local TP server stopped!"
+		print "Local TP server stopped!"
 	else
-		echo "Local TP server failed to stop"
+		print "Local TP server failed to stop"
 	fi
 	return $EXIT_STATUS
 }
 
 pause_server() {
 	echo "1" > $PAUSE_FILE
-	echo "TPSERVER paused"
+	print "TPSERVER paused"
 }
 
 unpause_server() {
 	echo "0" > $PAUSE_FILE
-	echo "TPSERVER running"
+	print "TPSERVER running"
 }
 
 setup_tpserver() {
-	echo "Beginning TP Server configuration..."
+	print "Beginning TP Server configuration..."
 	if [ ! -d "$TP_DIR" ]; then
-		echo "Preparing the firesystem layout and copying configuration files to their respective locations..."
+		print "Preparing the firesystem layout and copying configuration files to their respective locations..."
 
 		run_as_sudo groupadd $NGINX_USER
 		run_as_sudo useradd -r $NGINX_USER -g $NGINX_USER -G network,sys
@@ -228,9 +234,9 @@ setup_tpserver() {
 
 		if ! /usr/bin/id -nG "$USER_NAME" | grep -qw $NGINX_USER; then
 			run_as_sudo usermod -a -G $NGINX_USER "$(whoami)"
-			echo "Filesystem directories and files setup."
+			print "Filesystem directories and files setup."
 		else
-			echo "Filesystem directories and files setup. Log out and in again in order for the changes to work."
+			print "Filesystem directories and files setup. Log out and in again in order for the changes to work."
 			return 0
 		fi
 	else
@@ -270,11 +276,11 @@ get_tpserver_status() {
 				TEST_RESULT=3
 				MESSAGE="$MESSAGE PHP-FPM service is not running."
 			fi
-			echo $MESSAGE
+			print $MESSAGE
 		fi
 	else
 		TEST_RESULT=4
-		echo "TPSERVER needs to be setup. Run" $SCRIPT_NAME "with the setup option."
+		print "TPSERVER needs to be setup. Run" $SCRIPT_NAME "with the setup option."
 	fi
 
 	return $TEST_RESULT
@@ -318,7 +324,7 @@ case "$COMMAND" in
 			fi
 			exit $?
 		else
-			echo "Cannot pause TPSERVER because it's not running."
+			print "Cannot pause TPSERVER because it's not running."
 			exit 8
 		fi
 	;;
@@ -329,7 +335,7 @@ case "$COMMAND" in
 		exit $?
 	;;
 	*)
-		echo "Unknown option"
+		print "Unknown option"
 		print_usage
 		exit 11
 	;;

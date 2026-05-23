@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Window
 import QtQuick.Pdf
+import QtQuick.Layouts
 
 import TpQml
 import TpQml.Pages
@@ -38,7 +39,20 @@ ApplicationWindow {
 		anchors.fill: parent
 		signal mesosViewChanged(bool own_mesos);
 
-		TPFileViewer {
+
+		ColumnLayout {
+			anchors.fill: parent
+
+			TPFileViewer {
+				id: file_viewer
+				mediaSource: "/home/guilhermef/.local/share/Vivencia Software/TrainingPlanner/1759256421787/1759170252407/mesocycles/Novo Programa 1.txt"
+				Layout.preferredWidth: Math.max(100, minimumWidth)
+				Layout.preferredHeight: Math.max(100, minimumHeight)
+				Layout.alignment: Qt.AlignCenter
+			}
+		}
+
+		/*TPFileViewer {
 			mediaSource: "/home/guilhermef/Documents/Atendimento_CIP_35.001.003.26.1170764.pdf"
 			//mediaSource: "/home/guilhermef/Videos/2026-crivania3-30fps.mp4"
 			//mediaSource: ""
@@ -48,36 +62,7 @@ ApplicationWindow {
 			//mediaSource: "/home/guilhermef/.local/share/Vivencia Software/TrainingPlanner/1759256421787/chats/1759170252407/Ganho de capital 2025.pdf"
 			x: 50
 			y: 50
-		}
-	}
-
-	Loader {
-		id: openDialogLoader
-		asynchronous: true
-		active: false
-
-//public:
-		property int fileType
-
-//private:
-		property TPFileDialog _file_dialog
-
-		sourceComponent: TPFileDialog {
-			saveDialog: false
-			fileType: openDialogLoader.fileType
-
-			onDialogClosed: (result) => {
-				mainwindow.fileDialogClosed(result === 0 ? AppUtils.getCorrectPath(currentFile) : "");
-				openDialogLoader.active = false;
-			}
-			Component.onCompleted: openDialogLoader._file_dialog = this;
-		}
-
-		onLoaded: _file_dialog.open();
-	}
-	function chooseFileToOpen(filetype: int): void {
-		openDialogLoader.fileType = filetype;
-		openDialogLoader.active = true;
+		}*/
 	}
 
 	function canChangeSetMode(exercise_number: int, exercise_idx: int, set_number: int) : bool {

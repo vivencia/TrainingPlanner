@@ -17,6 +17,7 @@ public:
 	enum WS_USES {
 		WS_TPCHAT,
 		WS_TPMESSAGESMANAGER,
+		WS_FILETRANSFER,
 		WS_TOTALUSES
 	};
 
@@ -29,8 +30,11 @@ public:
 	inline const QString &port() const { return m_port; }
 	inline bool hasPeers() const { return !m_peersSockets.isEmpty(); }
 
+	//A binary message will make use TPUtils::BINARY_FILE_INFO_FIELDS, but also a text message, i.e. the final transmitted message
+	//will contain a data string made of the same enum fields to carry all the information it needs
 	bool sendTextMessage(const WS_USES use, const QString &sender_id, const QString &receiver_id, const QString &message);
-	bool sendBinaryMessage(const WS_USES use, const QString &receiver_id, const QByteArray &data);
+	bool sendBinaryMessage(const WS_USES use, const QString &sender_id, const QString &receiver_id,
+																	const QString &extra_info, const QString& filename);
 
 signals:
 	void connectionAttemptResult(const bool established, const QString &userid);
@@ -38,6 +42,7 @@ signals:
 	void gotPeerAddress(const int request_id, const QString &address);
 	void textMessageReceived(const uint use, const QString &userid, const QString &message);
 	void binaryMessageReceived(const uint use, const QString &userid, const QByteArray &data);
+	void fileReceived(const QByteArray &data);
 
 private slots:
 	void wsTextMessageReceived(QString message);

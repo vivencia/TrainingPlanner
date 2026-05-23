@@ -1,294 +1,168 @@
 #include "onlineuserinfo.h"
 
-#include "../return_codes.h"
 #include "../dbusermodel.h"
 #include "../tputils.h"
 
 constexpr uint totalExtraFields{4};
 
+enum extraFields {
+	EF_AVATAR = DBUserModel::USER_FIELD_AVATAR,
+	EF_USERIDX,
+	EF_SELECTED,
+	EF_VISIBLE,
+	EF_ISCOACH,
+	EF_ISCLIENT,
+	EF_ISCONFIRMED,
+	EF_ISAVAILABLE,
+	EF_N_FIELDS = 8
+};
+
 enum RoleNames {
 	createRole(id,				DBUserModel::USER_FIELD_ID)
+	createRole(insertTime,		DBUserModel::USER_FIELD_INSERTTIME)
+	createRole(onlineAccount,	DBUserModel::USER_FIELD_ONLINEACCOUNT)
 	createRole(name,			DBUserModel::USER_FIELD_NAME)
 	createRole(birthday,		DBUserModel::USER_FIELD_BIRTHDAY)
 	createRole(sex,				DBUserModel::USER_FIELD_SEX)
 	createRole(phone,			DBUserModel::USER_FIELD_PHONE)
 	createRole(email,			DBUserModel::USER_FIELD_EMAIL)
 	createRole(socialMedia,		DBUserModel::USER_FIELD_SOCIALMEDIA)
-	createRole(userrole,		DBUserModel::USER_FIELD_USERROLE)
+	createRole(userRole,		DBUserModel::USER_FIELD_USERROLE)
 	createRole(coachrole,		DBUserModel::USER_FIELD_COACHROLE)
 	createRole(goal,			DBUserModel::USER_FIELD_GOAL)
-	createRole(useMode,			DBUserModel::USER_FIELD_APP_USE_MODE)
-	createRole(extraName,		useModeRole + 1)
-	createRole(selected,		extraNameRole + 1)
-	createRole(isCoach,			selectedRole + 1)
-	createRole(allData,			isCoachRole + 1)
-	createRole(itemVisible,		allDataRole + 1)
+	createRole(category,		DBUserModel::USER_FIELD_USER_CATEGORY)
+	createRole(avatar,			EF_AVATAR)
+	createRole(userIdx,			EF_USERIDX)
+	createRole(selected,		EF_SELECTED)
+	createRole(itemVisible,		EF_VISIBLE)
+	createRole(isCoach,			EF_ISCOACH)
+	createRole(isClient,		EF_ISCLIENT)
+	createRole(isConfirmed,		EF_ISCONFIRMED)
+	createRole(isAvailable,		EF_ISAVAILABLE)
 };
 
 OnlineUserInfo::OnlineUserInfo(QObject *parent) : QAbstractListModel{parent}, m_totalCols{DBUserModel::USER_N_FIELS}
 {
 	roleToString(id)
+	roleToString(insertTime)
+	roleToString(onlineAccount)
 	roleToString(name)
 	roleToString(birthday)
 	roleToString(sex)
 	roleToString(phone)
 	roleToString(email)
 	roleToString(socialMedia)
-	roleToString(userrole)
+	roleToString(userRole)
 	roleToString(coachrole)
 	roleToString(goal)
-	roleToString(useMode)
-	roleToString(extraName)
+	roleToString(category)
+	roleToString(avatar)
+	roleToString(userIdx)
 	roleToString(selected)
-	roleToString(isCoach)
-	roleToString(allData)
 	roleToString(itemVisible)
+	roleToString(isCoach)
+	roleToString(isClient)
+	roleToString(isConfirmed)
+	roleToString(isAvailable)
+
+	gatherAllUsersInfo();
+	connect(appUserModel(), &DBUserModel::userModified, this, &OnlineUserInfo::userModified);
+}
+
+int OnlineUserInfo::currentUserIdx(const int row) const
+{
+	return m_extraInfo.at(rowFromVisibleRow(row == -1 ? m_currentRow : row)).at(EF_USERIDX).toInt();
 }
 
 bool OnlineUserInfo::isSelected(const uint row, const int column) const
 {
 	Q_ASSERT_X(row < count(), "OnlineUserInfo::setSelected", "row out of range");
-	return appUtils()->getCompositeValue(column, m_extraInfo.at(row).at(USER_EXTRA_SELECTED), fancy_record_separator1) == '1';
+	return appUtils()->getCompositeValue(column, m_extraInfo.at(row).at(EF_SELECTED).toString(), fancy_record_separator1) == '1';
 }
 
 void OnlineUserInfo::setSelected(const uint row, const bool selected, const int column)
 {
 	if (row < count()) {
 		const bool item_already_selected{isSelected(row, column)};
+		QString str_selected{std::move(m_extraInfo.at(row).at(EF_SELECTED).toString())};
 		if (m_selectEntireRow) {
 			for (uint i {0}; i < m_totalCols; ++i)
-				appUtils()->setCompositeValue(i, selected ? "1"_L1 : "0"_L1, m_extraInfo[row][USER_EXTRA_SELECTED], fancy_record_separator1);
+				appUtils()->setCompositeValue(i, selected ? "1"_L1 : "0"_L1, str_selected, fancy_record_separator1);
+			m_extraInfo[row][EF_SELECTED] = std::move(QVariant{str_selected});
 			emit dataChanged(index(row, 0), index(row, m_totalCols), QList<int>{selectedRole});
 		}
 		else {
-			appUtils()->setCompositeValue(column, selected ? "1"_L1 : "0"_L1, m_extraInfo[row][USER_EXTRA_SELECTED], fancy_record_separator1);
+			appUtils()->setCompositeValue(column, selected ? "1"_L1 : "0"_L1, str_selected, fancy_record_separator1);
+			m_extraInfo[row][EF_SELECTED] = std::move(QVariant{str_selected});
 			emit dataChanged(index(row, column), index(row, column), QList<int>{selectedRole});
 		}
 		if (item_already_selected && !selected)
-			--m_nselected;
+			--m_nSelected;
 		else if (!item_already_selected && selected)
-			++m_nselected;
+			++m_nSelected;
 		emit selectedChanged();
 	}
 }
 
-void OnlineUserInfo::setExtraName(const uint row, const QString &extra_name)
+void OnlineUserInfo::applyFilter(const QString &filter, int field)
 {
-	if (row < count()) {
-		m_extraInfo[row][USER_EXTRA_NAME] = extra_name;
-		emit dataChanged(index(row), index(row), QList<int>{extraNameRole});
+	if (filter != m_filter || field != m_fieldFilter) {
+		if (field >= -1 && field < DBUserModel::USER_N_FIELS) {
+			m_filter = filter;
+			m_fieldFilter = field;
+			changeVisibilityAsPerCategory();
+		}
 	}
 }
 
-void OnlineUserInfo::setIsCoach(const uint row, bool coach)
+#ifndef Q_OS_ANDROID
+bool OnlineUserInfo::dataFromString(const QString &users_data)
 {
-	if (row < count()) {
-		m_extraInfo[row][USER_EXTRA_ISCOACH] = coach ? '1' : '0';
-		emit dataChanged(index(row), index(row), QList<int>{isCoachRole});
-	}
-}
-
-void OnlineUserInfo::setVisible(const uint row, bool visible, const int column)
-{
-	if (row < count()) {
-		m_extraInfo[row][USER_EXTRA_VISIBLE] = visible ? '1' : '0';
-		emit dataChanged(index(row, column), index(row, column), QList<int>{itemVisibleRole});
-	}
-}
-
-bool OnlineUserInfo::dataFromFileSource(const QString &filename)
-{
-	bool imported{appUserModel()->importFromFile(filename) == TP_RET_CODE_IMPORT_OK};
-	if (imported) {
-		beginInsertRows(QModelIndex{}, count(), count());
-		const qsizetype row{m_modeldata.count()};
-		m_modeldata.append(std::move(appUserModel()->tempUserData()));
-		setupExtraInfo(row);
-		emit countChanged();
-		setCurrentRow(row);
-		endInsertRows();
-	}
-	return imported;
-}
-
-bool OnlineUserInfo::dataFromString(const QString &user_data)
-{
-	QStringList tempmodeldata{std::move(user_data.split('\n'))};
+	QStringList tempmodeldata{std::move(users_data.split('\n'))};
 	if (tempmodeldata.count() < DBUserModel::USER_N_FIELS)
 		return false;
 	if (tempmodeldata.count() > DBUserModel::USER_N_FIELS)
 		tempmodeldata.removeLast(); //remove the password field
-	beginInsertRows(QModelIndex{}, count(), count());
-	const qsizetype row{m_modeldata.count()};
-	m_modeldata.append(std::move(tempmodeldata));
-	emit countChanged();
-	setupExtraInfo(row);
-	setCurrentRow(row);
-	endInsertRows();
+	m_allUsersData.append(std::move(tempmodeldata));
 	return true;
 }
-
-void OnlineUserInfo::dataFromUserModel(const uint user_idx)
-{
-	beginInsertRows(QModelIndex{}, count(), count());
-	const qsizetype row{m_modeldata.count()};
-	m_modeldata.append(appUserModel()->m_usersData.at(user_idx));
-	m_extraInfo.append(std::move(QStringList{totalExtraFields}));
-	emit countChanged();
-	setupExtraInfo(row);
-	setCurrentRow(row);
-	endInsertRows();
-}
-
-void OnlineUserInfo::dataFromOnlineUserInfo(const OnlineUserInfo *other_userinfo, const int other_row)
-{
-	const uint first_row{other_row != -1 ? static_cast<uint>(other_row) : 0};
-	const uint last_row{other_row != -1 ? static_cast<uint>(other_row) : other_userinfo->count() - 1};
-	beginInsertRows(QModelIndex{}, count(), count());
-	for (uint row{first_row}; row <= last_row; ++row) {
-		m_modeldata.append(other_userinfo->m_modeldata.at(row));
-		m_extraInfo.append(other_userinfo->m_extraInfo.at(row));
-	}
-	emit countChanged();
-	endInsertRows();
-}
-
-void OnlineUserInfo::removeUserInfo(const uint row)
-{
-	if (row < count()) {
-		beginRemoveRows(QModelIndex{}, row, row);
-		m_modeldata.remove(row);
-		m_extraInfo.remove(row);
-
-		if (m_currentRow >= row) {
-			m_currentRow--;
-			if (m_currentRow < 0 && count() > 0)
-				m_currentRow = 0;
-		}
-		emit countChanged();
-		endRemoveRows();
-	}
-}
-
-bool OnlineUserInfo::sanitize(const QStringList &user_list, const uint field)
-{
-	const qsizetype n{count()};
-	qsizetype i{n};
-	while (--i >= 0) {
-		const QString fieldValue{m_modeldata.at(i).at(field)};
-		const auto &it{std::find_if(user_list.cbegin(), user_list.cend(), [fieldValue] (const auto user)
-		{
-			return user.startsWith(fieldValue);
-		})};
-		if (it == user_list.cend())
-			removeUserInfo(i);
-	}
-	return n != count();
-}
-
-void OnlineUserInfo::clear()
-{
-	if (count() > 0) {
-		beginResetModel();
-		beginRemoveRows(QModelIndex{}, 0, count() - 1);
-		m_modeldata.clear();
-		m_extraInfo.clear();
-		m_currentRow = -1;
-		emit countChanged();
-		endRemoveRows();
-		endResetModel();
-	}
-}
-
-void OnlineUserInfo::makeUserDefault(const uint row)
-{
-	if (row < count()) {
-		if (isUserDefault(row))
-			setExtraName(row, m_modeldata.last().at(DBUserModel::USER_FIELD_NAME));
-		m_extraInfo.swapItemsAt(0, row);
-		m_modeldata.swapItemsAt(0, row);
-		setExtraName(0, '*' + m_modeldata.last().at(DBUserModel::USER_FIELD_NAME));
-	}
-}
-
-int OnlineUserInfo::getRowFromUserIdx(const uint user_idx) const
-{
-	if (user_idx < appUserModel()->userCount()) {
-		const QString &user_id{appUserModel()->userId(user_idx)};
-		uint row{0};
-		for (const auto &userdata : m_modeldata) {
-			if (userdata.at(DBUserModel::USER_FIELD_ID) == user_id)
-				return row;
-			++row;
-		}
-	}
-	return -1;
-}
-
-int OnlineUserInfo::getUserIdx(int row, const bool exact_match) const
-{
-	int user_idx{-1};
-	if (row == -1)
-		row = currentRow();
-	if (row >= 0 && row < count()) {
-		user_idx = appUserModel()->userIdxFromFieldValue(DBUserModel::USER_FIELD_ID, m_modeldata.at(row).at(DBUserModel::USER_FIELD_ID), exact_match);
-		if (user_idx == -1) //temporary online user
-			user_idx = appUserModel()->getTemporaryUserInfo(const_cast<OnlineUserInfo*>(this), row);
-	}
-	return user_idx;
-}
-
-bool OnlineUserInfo::containsUser(const QString &userid) const
-{
-	for (const auto &it: m_modeldata) {
-		if (it.at(DBUserModel::USER_FIELD_ID) == userid)
-			return true;
-	}
-	return false;
-}
-
-void OnlineUserInfo::applyFilter(const QString &filter, int field)
-{
-	if (field == -1)
-		field = DBUserModel::USER_FIELD_NAME;
-	for (uint i {0}; i < m_modeldata.count(); ++i) {
-		const bool visible{m_modeldata.at(i).at(field).contains(filter, Qt::CaseInsensitive)};
-		setVisible(i, visible);
-	}
-}
-
-QString OnlineUserInfo::fieldValueFromAnotherFieldValue(const uint target_field, const uint needle_field,
-															const QString &needle) const
-{
-	const auto &user{std::find_if(m_modeldata.cbegin(), m_modeldata.cend(), [needle_field,needle] (const auto &user_info) {
-		return user_info.at(needle_field) == needle;
-	})};
-	if (user != m_modeldata.cend())
-		return user->at(target_field);
-	return QString{};
-}
+#endif
 
 QVariant OnlineUserInfo::data(const QModelIndex &index, int role) const
 {
 	const int row{index.row()};
-	if (row >= 0 && row < m_modeldata.count()) {
-		switch (role) {
-		case idRole: return m_modeldata.at(row).at(DBUserModel::USER_FIELD_ID);
-		case nameRole: return m_modeldata.at(row).at(DBUserModel::USER_FIELD_NAME);
-		case birthdayRole: return m_modeldata.at(row).at(DBUserModel::USER_FIELD_BIRTHDAY);
-		case sexRole: return m_modeldata.at(row).at(DBUserModel::USER_FIELD_SEX);
-		case phoneRole: return m_modeldata.at(row).at(DBUserModel::USER_FIELD_PHONE);
-		case emailRole: return m_modeldata.at(row).at(DBUserModel::USER_FIELD_EMAIL);
-		case socialMediaRole: return m_modeldata.at(row).at(DBUserModel::USER_FIELD_SOCIALMEDIA);
-		case userroleRole: return m_modeldata.at(row).at(DBUserModel::USER_FIELD_USERROLE);
-		case coachroleRole: return m_modeldata.at(row).at(DBUserModel::USER_FIELD_COACHROLE);
-		case goalRole: return m_modeldata.at(row).at(DBUserModel::USER_FIELD_GOAL);
-		case useModeRole: return m_modeldata.at(row).at(DBUserModel::USER_FIELD_APP_USE_MODE);
-		case extraNameRole: return extraName(row);
-		case selectedRole: return isSelected(row, index.column());
-		case isCoachRole: return isCoach(row);
-		case allDataRole: return m_modeldata.at(row).at(index.column());
-		case itemVisibleRole: return visible(row);
+	if (row >= 0 && row < count()) {
+		const int user_idx{currentUserIdx(row)};
+		if (user_idx >= 0) {
+#ifndef Q_OS_ANDROID
+			if (m_allUsers)
+				return allUsersData(role, row, index.column());
+#endif
+			switch (role) {
+				case idRole: return appUserModel()->userId(user_idx);
+				case insertTimeRole: return QDateTime::fromMSecsSinceEpoch(appUserModel()->m_usersData.at(user_idx).at(
+																DBUserModel::USER_FIELD_INSERTTIME).toLongLong()).toString();
+				case onlineAccountRole: return appUserModel()->onlineAccount();
+				case nameRole: return appUserModel()->userName(user_idx);
+				case birthdayRole: return appUserModel()->birthDateFancy(user_idx);
+				case sexRole: return appUserModel()->sex(user_idx);
+				case phoneRole: return appUserModel()->phoneNumber(user_idx);
+				case emailRole: return appUserModel()->email(user_idx);
+				case socialMediaRole: return appUserModel()->_socialMedia(user_idx);
+				case userRoleRole: return appUserModel()->userRole(user_idx);
+				case coachroleRole: return appUserModel()->coachRole(user_idx);
+				case goalRole: return appUserModel()->goal(user_idx);
+				case categoryRole: return appUserModel()->userCategory(user_idx);
+				case avatarRole: return appUserModel()->avatar(user_idx);
+				case userIdxRole: return user_idx;
+				case selectedRole: return isSelected(rowFromVisibleRow(row), index.column());
+				case itemVisibleRole: return rowVisible(rowFromVisibleRow(row));
+				case isCoachRole: return appUserModel()->isCoach(user_idx);
+				case isClientRole: return appUserModel()->isClient(user_idx);
+				case isConfirmedRole: return appUserModel()->isConfirmed(user_idx);
+				case isAvailableRole: return appUserModel()->isAvailable(user_idx);
+				default: break;
+			}
 		}
 	}
 	return QVariant{};
@@ -297,37 +171,36 @@ QVariant OnlineUserInfo::data(const QModelIndex &index, int role) const
 bool OnlineUserInfo::setData(const QModelIndex &index, const QVariant &value, int role)
 {
 	const int row{index.row()};
-	if (row >= 0 && row < m_modeldata.count()) {
-		switch (role) {
-		case idRole:
-		case nameRole:
-		case birthdayRole:
-		case sexRole:
-		case phoneRole:
-		case emailRole:
-		case socialMediaRole:
-		case userroleRole:
-		case coachroleRole:
-		case goalRole:
-		case useModeRole:
-			setData(row, role-Qt::UserRole, std::move(value.toString()));
-			break;
-		case extraNameRole:
-			setExtraName(row, value.toString());
-			break;
-		case selectedRole:
-			setSelected(row, value.toBool(), index.column());
-			break;
-		case isCoachRole:
-			setIsCoach(row, value.toBool());
-			break;
-		case itemVisibleRole:
-			setVisible(row, value.toBool());
-			break;
-		default:
-			return false;
+	if (row >= 0 && row < count()) {
+		const int user_idx{currentUserIdx(row)};
+		if (user_idx >= 0) {
+#ifndef Q_OS_ANDROID
+			if (m_allUsers)
+				return setAllUsersData(user_idx, row, index.column(), role, value);
+#endif
+			switch (role) {
+			case onlineAccountRole: appUserModel()->setOnlineAccount(value.toBool(), user_idx); break;
+			case nameRole: appUserModel()->setUserName(user_idx, value.toString()); break;
+			case birthdayRole: appUserModel()->setBirthDate(user_idx, value.toDate()); break;
+			case sexRole: appUserModel()->setSex(user_idx, value.toBool()); break;
+			case phoneRole: appUserModel()->setPhone(user_idx, value.toString()); break;
+			case emailRole: appUserModel()->setEmail(user_idx, value.toString()); break;
+			case socialMediaRole: appUserModel()->setSocialMedia(user_idx, value.toString()); break;
+			case userRoleRole: appUserModel()->setUserRole(user_idx, value.toString()); break;
+			case coachroleRole: appUserModel()->setCoachRole(user_idx, value.toString()); break;
+			case goalRole: appUserModel()->setGoal(user_idx, value.toString()); break;
+			case avatarRole: appUserModel()->setAvatar(user_idx, value.toString()); break;
+			case selectedRole: setSelected(rowFromVisibleRow(row),value.toBool(), index.column()); break;
+			case itemVisibleRole: setRowVisible(rowFromVisibleRow(row), value.toBool(), index.column()); break;
+			case isCoachRole: appUserModel()->setIsCoach(user_idx, value.toBool()); break;
+			case isClientRole: appUserModel()->setIsClient(user_idx, value.toBool()); break;
+			case isConfirmedRole: appUserModel()->setIsConfirmed(user_idx, value.toBool()); break;
+			case isAvailableRole: appUserModel()->setIsAvailable(user_idx, value.toBool()); break;
+			default: return false;
+			}
+			emit dataChanged(index, index, QList<int>{} << role);
+			return true;
 		}
-		return true;
 	}
 	return false;
 }
@@ -337,31 +210,223 @@ QVariant OnlineUserInfo::headerData(int section, Qt::Orientation orientation, in
 	if (header_role == Qt::DisplayRole) {
 		if (orientation == Qt::Vertical)
 			return section;
-		else{
+		else {
 			switch (section) {
-			case DBUserModel::USER_FIELD_ID:				return appUserModel()->idLabel().section(':', 0, 0);
-			case DBUserModel::USER_FIELD_INSERTTIME:		return QString{};
+			case DBUserModel::USER_FIELD_ID:			return appUserModel()->idLabel().section(':', 0, 0);
+			case DBUserModel::USER_FIELD_INSERTTIME:	return tr("Insert Time: ");
 			case DBUserModel::USER_FIELD_ONLINEACCOUNT:	return appUserModel()->onlineAccountUserLabel().section(':', 0, 0);
-			case DBUserModel::USER_FIELD_NAME:				return appUserModel()->nameLabel().section(':', 0, 0);
-			case DBUserModel::USER_FIELD_BIRTHDAY:			return appUserModel()->birthdayLabel().section(':', 0, 0);
-			case DBUserModel::USER_FIELD_SEX:				return appUserModel()->sexLabel().section(':', 0, 0);
+			case DBUserModel::USER_FIELD_NAME:			return appUserModel()->nameLabel().section(':', 0, 0);
+			case DBUserModel::USER_FIELD_BIRTHDAY:		return appUserModel()->birthdayLabel().section(':', 0, 0);
+			case DBUserModel::USER_FIELD_SEX:			return appUserModel()->sexLabel().section(':', 0, 0);
 			case DBUserModel::USER_FIELD_PHONE:			return appUserModel()->phoneLabel().section(':', 0, 0);
 			case DBUserModel::USER_FIELD_EMAIL:			return appUserModel()->emailLabel().section(':', 0, 0);
-			case DBUserModel::USER_FIELD_SOCIALMEDIA:		return appUserModel()->socialMediaLabel().section(':', 0, 0);
-			case DBUserModel::USER_FIELD_USERROLE:			return appUserModel()->userRoleLabel().section(':', 0, 0);
+			case DBUserModel::USER_FIELD_SOCIALMEDIA:	return appUserModel()->socialMediaLabel().section(':', 0, 0);
+			case DBUserModel::USER_FIELD_USERROLE:		return appUserModel()->userRoleLabel().section(':', 0, 0);
 			case DBUserModel::USER_FIELD_COACHROLE:		return appUserModel()->coachRoleLabel().section(':', 0, 0);
-			case DBUserModel::USER_FIELD_GOAL:				return appUserModel()->goalLabel().section(':', 0, 0);
-			case DBUserModel::USER_FIELD_APP_USE_MODE:		return appUserModel()->appUseModelLabel().section(':', 0, 0);
+			case DBUserModel::USER_FIELD_GOAL:			return appUserModel()->goalLabel().section(':', 0, 0);
+			case DBUserModel::USER_FIELD_USER_CATEGORY:	return appUserModel()->categoryLabel().section(':', 0, 0);
 			}
 		}
 	}
 	return QVariant{};
 }
 
-void OnlineUserInfo::setupExtraInfo(const uint row)
+#ifndef Q_OS_ANDROID
+void OnlineUserInfo::clear()
 {
-	m_extraInfo.append(std::move(QStringList{totalExtraFields}));
-	setExtraName(row, m_modeldata.last().at(DBUserModel::USER_FIELD_NAME));
-	setSelected(row, false);
-	setVisible(row, true);
+	m_allUsersData.clear();
+	m_extraInfo.clear();
+	m_filter.clear();
+	m_nSelected = 0;
+	m_currentRow = -1;
+	m_fieldFilter = -1;
+}
+
+QVariant OnlineUserInfo::allUsersData(int role, int row, const int column) const
+{
+	if (row == -1)
+		row = m_currentRow;
+	const int app_usermodel_useridx{appUserModel()->userIdxFromFieldValue(DBUserModel::USER_FIELD_ID,
+																  m_allUsersData.at(row).at(DBUserModel::USER_FIELD_ID))};
+	switch (role) {
+		case avatarRole: return appUserModel()->avatar(app_usermodel_useridx);
+		case userIdxRole: return row;
+		case selectedRole: return isSelected(rowFromVisibleRow(row), column);
+		case itemVisibleRole: return rowVisible(rowFromVisibleRow(row));
+		case isCoachRole: return appUserModel()->isCoach(app_usermodel_useridx);
+		case isClientRole: return appUserModel()->isClient(app_usermodel_useridx);
+		case isConfirmedRole: return appUserModel()->isConfirmed(app_usermodel_useridx);
+		case isAvailableRole: return appUserModel()->isAvailable(app_usermodel_useridx);
+		default: return m_allUsersData.at(row).at(role - Qt::UserRole);
+	}
+	return QVariant{};
+}
+
+bool OnlineUserInfo::setAllUsersData(const uint user_idx, const int row, const int column, int role, const QVariant &value)
+{
+	const int app_usermodel_useridx{appUserModel()->userIdxFromFieldValue(DBUserModel::USER_FIELD_ID,
+																  m_allUsersData.at(row).at(DBUserModel::USER_FIELD_ID))};
+	switch (role) {
+		case avatarRole: appUserModel()->setAvatar(app_usermodel_useridx, value.toString()); break;
+		case userIdxRole: return false;
+		case selectedRole: setSelected(rowFromVisibleRow(row),value.toBool(), column); break;
+		case itemVisibleRole: setRowVisible(rowFromVisibleRow(row), value.toBool(), column); break;
+		case isCoachRole: appUserModel()->setIsCoach(app_usermodel_useridx, value.toBool()); break;
+		case isClientRole: appUserModel()->setIsClient(app_usermodel_useridx, value.toBool()); break;
+		case isConfirmedRole: appUserModel()->setIsConfirmed(app_usermodel_useridx, value.toBool()); break;
+		case isAvailableRole: appUserModel()->setIsAvailable(app_usermodel_useridx, value.toBool()); break;
+		default: m_allUsersData[row][role - Qt::UserRole] = std::move(value.toString()); break;
+	}
+	emit dataChanged(QAbstractListModel::index(row, column), QAbstractListModel::index(row, column), QList<int>{} << role);
+	return true;
+}
+
+void OnlineUserInfo::removeUserInfo(const int row)
+{
+	beginRemoveRows(QModelIndex{}, row, row);
+	m_extraInfo.removeAt(row);
+	m_allUsersData.removeAt(row);
+	endRemoveRows();
+}
+#endif
+
+void OnlineUserInfo::userModified(const uint user_idx, const uint field)
+{
+	const int row{findRow(user_idx)};
+	switch (field) {
+#ifndef Q_OS_ANDROID
+	case USER_MODIFIED_SWITCHING:
+		clear();
+		gatherAllUsersInfo();
+		break;
+#endif
+	case USER_MODIFIED_CREATED:
+	case USER_MODIFIED_IMPORTED:
+		beginInsertRows(QModelIndex{}, row, row);
+		insertUserInfo(user_idx);
+		endInsertRows();
+		break;
+	case USER_MODIFIED_REMOVED:
+		beginRemoveRows(QModelIndex{}, row, row);
+		m_extraInfo.removeAt(user_idx);
+		endRemoveRows();
+		break;
+	case DBUserModel::USER_FIELD_AVATAR:
+		m_extraInfo[user_idx][EF_AVATAR] = std::move(appUserModel()->avatar(user_idx));
+		break;
+	case DBUserModel::USER_FIELD_USER_CATEGORY:
+		m_extraInfo[user_idx][EF_ISCOACH] = std::move(appUserModel()->isCoach(user_idx));
+		emit dataChanged(index(row, 0), index(row, 0), QList<int>{isCoachRole});
+		m_extraInfo[user_idx][EF_ISCLIENT] = std::move(appUserModel()->isClient(user_idx));
+		emit dataChanged(index(row, 0), index(row, 0), QList<int>{isClientRole});
+		m_extraInfo[user_idx][EF_ISCONFIRMED] = std::move(appUserModel()->isConfirmed(user_idx));
+		emit dataChanged(index(row, 0), index(row, 0), QList<int>{isConfirmedRole});
+		m_extraInfo[user_idx][EF_ISAVAILABLE] = std::move(appUserModel()->isAvailable(user_idx));
+		emit dataChanged(index(row, 0), index(row, 0), QList<int>{isAvailableRole});
+		changeVisibilityAsPerCategory();
+		break;
+	default: break;
+	}
+}
+
+void OnlineUserInfo::removeUserInfo(const uint user_idx)
+{
+	m_extraInfo.removeAt(user_idx);
+	for (auto idx{user_idx}; idx < m_extraInfo.count(); ++idx)
+		m_extraInfo[idx][EF_USERIDX] = std::move(QVariant{idx});
+	emit countChanged();
+}
+
+void OnlineUserInfo::insertUserInfo(const uint user_idx)
+{
+	QVariantList extra_infolist;
+	extra_infolist.append(std::move(appUserModel()->avatar(user_idx)));
+	extra_infolist.append(std::move(user_idx));
+	extra_infolist.append(std::move(false));
+	extra_infolist.append(std::move(QString{}));
+	extra_infolist.append(std::move(true));
+	extra_infolist.append(std::move(appUserModel()->isCoach(user_idx)));
+	extra_infolist.append(std::move(appUserModel()->isClient(user_idx)));
+	extra_infolist.append(std::move(appUserModel()->isConfirmed(user_idx)));
+	m_extraInfo.append(std::move(extra_infolist));
+}
+
+inline const bool OnlineUserInfo::rowVisible(const uint row) const
+{
+	return m_extraInfo.at(row).at(EF_VISIBLE).toBool();
+}
+
+void OnlineUserInfo::setRowVisible(const uint row, bool visible, const int column)
+{
+	if (row < count()) {
+		const bool current_visibility{rowVisible(row)};
+		if (current_visibility != visible) {
+			if (visible && row > m_currentRow)
+				setCurrentRow(row);
+			else if (!visible && row <= m_currentRow) {
+				if (m_currentRow < 0 && count() > 0)
+					m_currentRow = 0;
+			}
+			m_extraInfo[row][EF_VISIBLE] = std::move(visible);
+			emit dataChanged(index(row, column), index(row, column), QList<int>{itemVisibleRole});
+		}
+	}
+}
+
+void OnlineUserInfo::changeVisibilityAsPerCategory()
+{
+	for (auto i{0}; i < m_extraInfo.count(); ++i) {
+		bool _visible{m_showCoaches && m_extraInfo.at(i).at(EF_ISCOACH).toBool()};
+		if (!_visible)
+			_visible &= m_showClients && m_extraInfo.at(i).at(EF_ISCLIENT).toBool();
+		if (_visible) {
+			if (!m_showPending || m_showPending && m_extraInfo.at(i).at(EF_ISCONFIRMED).toBool())
+				_visible = false;
+			else {
+				if (!m_showAvailable || m_showAvailable && !m_extraInfo.at(i).at(EF_ISAVAILABLE).toBool())
+					_visible = false;
+				else {
+					if (m_fieldFilter != -1) {
+						if (!m_filter.isEmpty())
+							_visible = appUserModel()->m_usersData.at(i).at(m_fieldFilter).contains(m_filter);
+					}
+				}
+			}
+		}
+		setRowVisible(i, _visible);
+	}
+}
+
+int OnlineUserInfo::findRow(const uint user_idx) const
+{
+	int row{-1};
+	for(int i{0}; i < m_extraInfo.count(); ++i) {
+		if (m_extraInfo.at(i).at(EF_VISIBLE).toBool()) {
+			++row;
+			if (m_extraInfo.at(i).at(EF_USERIDX).toUInt() == user_idx)
+				break;
+		}
+	}
+	return row;
+}
+
+inline int OnlineUserInfo::rowFromVisibleRow(const uint visible_row) const
+{
+	int row{0};
+	for(int i{0}; i < m_extraInfo.count(); ++i) {
+		if (rowVisible(i)) {
+			if (row == visible_row)
+				break;
+			++row;
+		}
+	}
+	return row;
+}
+
+void OnlineUserInfo::gatherAllUsersInfo()
+{
+	const auto n_users{appUserModel()->m_usersData.count()};
+	m_extraInfo.reserve(n_users);
+	for (auto user_idx{0}; user_idx < n_users; ++user_idx)
+		insertUserInfo(user_idx);
 }

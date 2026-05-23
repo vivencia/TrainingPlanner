@@ -12,7 +12,7 @@ Popup {
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	visible: visibilityCondition
 	spacing: 0
-	topPadding: 0
+	padding: showBorder ? 2 : 0
 	topInset: 0
 
 //public:
@@ -32,7 +32,6 @@ Popup {
 	property string configFieldName
 	property string defaultBackgroundColor: AppSettings.paneBackgroundColor
 	property point defaultCoordinates
-	property double titleBarOpacity: 0.8
 	property TPBackRec backgroundRec
 	property Item mouseItem
 
@@ -113,7 +112,7 @@ Popup {
 			implicitHeight: _control.height
 			radius: 8
 
-			Component.onCompleted: {_control.backgroundRec = this; console.log(_control.objectName)}
+			Component.onCompleted: {_control.backgroundRec = this; }
 		}
 	}
 
@@ -139,7 +138,7 @@ Popup {
 		sourceComponent: TPBackRec {
 			radius: 8
 			backColor: AppSettings.paneBackgroundColor
-			opacity: _control.titleBarOpacity
+			opacity: 0.8
 			height: _control.titleBarHeight
 			visible: _control.showTitleBar
 

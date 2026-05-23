@@ -2,6 +2,7 @@
 
 #include "dbexerciseslisttable.h"
 #include "return_codes.h"
+#include "tpfilepath.h"
 #include "tpsettings.h"
 #include "tputils.h"
 #include "translationclass.h"
@@ -56,9 +57,9 @@ void DBExercisesListModel::initExercisesList()
 	appThreadManager()->runAction(m_db, ThreadManager::ReadAllRecords);
 }
 
-QString DBExercisesListModel::suggestedName(const bool formatted_file) const
+TPFilePathPtr DBExercisesListModel::suggestedName() const
 {
-	return QString{(!formatted_file ? "new_exerciseslist"_L1 : tr("New Exercises")) % TPUtils::TP_FILE_EXTENSION};
+	return TPFilePath::newTPFilePath(tr("New Exercises") % TPUtils::TP_FILE_EXTENSION, appSettings()->currentUser());
 }
 
 QString DBExercisesListModel::id(const uint index) const
@@ -346,26 +347,21 @@ void DBExercisesListModel::clear()
 	endResetModel();
 }
 
-int DBExercisesListModel::exportToFile(const QString &filename, QFile *out_file) const
+int DBExercisesListModel::exportToFile(const TPFilePathPtr &filename) const
 {
-	if (!out_file) {
-		out_file = appUtils()->openFile(filename, false, true, false, true);
-		if (!out_file)
-			return TP_RET_CODE_OPEN_WRITE_FAILED;
-	}
-
+	QFile *out_file{appUtils()->openFile(filename->toString(), false, true, false, true)};
+	if (!out_file)
+		return TP_RET_CODE_OPEN_WRITE_FAILED;
 	const bool ret{appUtils()->writeDataToFile(out_file, appUtils()->exercisesListFileIdentifier, m_exercisesData, m_exportRows)};
 	out_file->close();
 	return ret ? TP_RET_CODE_EXPORT_OK : TP_RET_CODE_EXPORT_FAILED;
 }
 
-int DBExercisesListModel::exportToFormattedFile(const QString &filename, QFile *out_file) const
+int DBExercisesListModel::exportToFormattedFile(const TPFilePathPtr &filename) const
 {
-	if (!out_file) {
-		out_file = appUtils()->openFile(filename, false, true, false, true);
-		if (!out_file)
-			return TP_RET_CODE_OPEN_CREATE_FAILED;
-	}
+	QFile *out_file{appUtils()->openFile(filename->toString(), false, true, false, true)};
+	if (!out_file)
+		return TP_RET_CODE_OPEN_CREATE_FAILED;
 
 	QList<std::function<QString(void)>> field_description{QList<std::function<QString(void)>>{} <<
 											nullptr <<
@@ -392,13 +388,11 @@ int DBExercisesListModel::exportToFormattedFile(const QString &filename, QFile *
 	return ret;
 }
 
-int DBExercisesListModel::importFromFile(const QString& filename, QFile *in_file)
+int DBExercisesListModel::importFromFile(const TPFilePathPtr& filename)
 {
-	if (!in_file) {
-		in_file = appUtils()->openFile(filename);
-		if (!in_file)
-			return TP_RET_CODE_OPEN_READ_FAILED;
-	}
+	QFile *in_file{appUtils()->openFile(filename->toString())};
+	if (!in_file)
+		return TP_RET_CODE_OPEN_READ_FAILED;
 
 	beginInsertRows(QModelIndex{}, count(), count());
 	int ret{appUtils()->readDataFromFile(in_file, m_exercisesData, EXERCISES_LIST_N_FIELDS, appUtils()->exercisesListFileIdentifier)};
@@ -413,16 +407,13 @@ int DBExercisesListModel::importFromFile(const QString& filename, QFile *in_file
 	return ret;
 }
 
-int DBExercisesListModel::importFromFormattedFile(const QString &filename, QFile *in_file)
+int DBExercisesListModel::importFromFormattedFile(const TPFilePathPtr &filename)
 {
-	if (!in_file) {
-		in_file = appUtils()->openFile(filename);
-		if (!in_file)
-			return TP_RET_CODE_OPEN_READ_FAILED;
-	}
+	QFile *in_file{appUtils()->openFile(filename->toString())};
+	if (!in_file)
+		return TP_RET_CODE_OPEN_READ_FAILED;
 
 	const uint first_imported_idx{count()};
-
 	beginInsertRows(QModelIndex{}, count(), count());
 	int ret{appUtils()->readDataFromFormattedFile(in_file,
 												m_exercisesData,
@@ -450,7 +441,7 @@ int DBExercisesListModel::importFromFormattedFile(const QString &filename, QFile
 	return ret;
 }
 
-int DBExercisesListModel::newExerciseFromFile(const QString &filename, const std::optional<bool> &file_formatted)
+int DBExercisesListModel::newExerciseFromFile(const TPFilePathPtr &filename, const std::optional<bool> &file_formatted)
 {
 	int import_result{TP_RET_CODE_IMPORT_FAILED};
 	if (file_formatted.has_value()) {

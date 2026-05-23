@@ -11,7 +11,7 @@ ColumnLayout {
 	id: profileModule
 
 //public:
-	required property int userRow
+	required property int userIdx
 	required property TPPage parentPage
 	property bool bReady: _clientrole_ok && _coachrole_ok && _goal_ok
 
@@ -25,16 +25,16 @@ ColumnLayout {
 	Connections {
 		target: AppUserModel
 		function onUserModified(row: int, field: int): void {
-			if (row === profileModule.userRow) {
+			if (row === profileModule.userIdx) {
 				if (field === AppUserModel.USER_FIELD_AVATAR)
-					imgAvatar.source = AppUserModel.avatar(profileModule.userRow, false);
+					imgAvatar.source = AppUserModel.avatar(profileModule.userIdx, false);
 				else
 					profileModule.getUserInfo();
 			}
 		}
 	}
 
-	onUserRowChanged: getUserInfo();
+	onUserIdxChanged: getUserInfo();
 	Component.onCompleted: getUserInfo();
 
 	ListModel {
@@ -83,7 +83,7 @@ ColumnLayout {
 
 		onActivated: (index) => {
 			if (index < userRoleModel.count - 1) {
-				AppUserModel.setUserRole(profileModule.userRow, textAt(index));
+				AppUserModel.setUserRole(profileModule.userIdx, textAt(index));
 				profileModule._clientrole_ok = true;
 			}
 			else {
@@ -97,13 +97,13 @@ ColumnLayout {
 		id: txtUserRole
 		visible: profileModule._is_client && cboUserRole.currentIndex === userRoleModel.count - 1
 		heightAdjustable: false
-		readOnly: profileModule.userRow !== 0
+		readOnly: profileModule.userIdx !== 0
 		Layout.fillWidth: true
 
 		onTextEdited: profileModule._clientrole_ok = text.length > 1
 		onEditingFinished: {
 			if (profileModule._clientrole_ok)
-				AppUserModel.setUserRole(profileModule.userRow, text);
+				AppUserModel.setUserRole(profileModule.userIdx, text);
 		}
 	}
 
@@ -122,7 +122,7 @@ ColumnLayout {
 
 		onActivated: (index) => {
 			if (index < userGoalModel.count - 1) {
-				AppUserModel.setGoal(profileModule.userRow, textAt(index));
+				AppUserModel.setGoal(profileModule.userIdx, textAt(index));
 				profileModule._goal_ok = true;
 			}
 			else {
@@ -136,13 +136,13 @@ ColumnLayout {
 		id: txtUserGoal
 		visible: profileModule._is_client && cboGoal.currentIndex === userGoalModel.count - 1
 		heightAdjustable: false
-		readOnly: profileModule.userRow !== 0
+		readOnly: profileModule.userIdx !== 0
 		Layout.fillWidth: true
 
 		onTextEdited: profileModule._goal_ok = text.length > 1
 		onEditingFinished: {
 			if (profileModule._goal_ok)
-				AppUserModel.setGoal(profileModule.userRow, text);
+				AppUserModel.setGoal(profileModule.userIdx, text);
 		}
 	}
 
@@ -161,7 +161,7 @@ ColumnLayout {
 
 		onActivated: (index) => {
 			if (index < coachRoleModel.count - 1) {
-				AppUserModel.setCoachRole(profileModule.userRow, textAt(index));
+				AppUserModel.setCoachRole(profileModule.userIdx, textAt(index));
 				profileModule._coachrole_ok = true;
 			}
 			else {
@@ -175,13 +175,13 @@ ColumnLayout {
 		id: txtCoachRole
 		visible: profileModule._is_coach && cboCoachRole.currentIndex === coachRoleModel.count - 1
 		heightAdjustable: false
-		readOnly: profileModule.userRow !== 0
+		readOnly: profileModule.userIdx !== 0
 		Layout.fillWidth: true
 
 		onTextEdited: profileModule._coachrole_ok = text.length > 1
 		onEditingFinished: {
 			if (profileModule._coachrole_ok)
-				AppUserModel.setCoachRole(profileModule.userRow, text);
+				AppUserModel.setCoachRole(profileModule.userIdx, text);
 		}
 	}
 
@@ -204,7 +204,7 @@ ColumnLayout {
 		readonly property int side_size: AppSettings.itemDefaultHeight * 4
 
 		MouseArea {
-			enabled: profileModule.userRow === 0
+			enabled: profileModule.userIdx === 0
 			anchors.fill: parent
 			onClicked: profileModule.showAvatarsPopup();
 		}
@@ -218,11 +218,11 @@ ColumnLayout {
 		property AvatarsPopup _popup
 
 		sourceComponent: AvatarsPopup {
-			userRow: profileModule.userRow
+			userIdx: profileModule.userIdx
 			parentPage: profileModule.parentPage
 			onAvatarSelected: (id, from_file) => {
-				AppUserModel.setAvatar(profileModule.userRow, !from_file ? "image://tpimageprovider/" + id : id);
-				imgAvatar.source = AppUserModel.avatar(profileModule.userRow);
+				AppUserModel.setAvatar(profileModule.userIdx, !from_file ? "image://tpimageprovider/" + id : id);
+				imgAvatar.source = AppUserModel.avatar(profileModule.userIdx);
 			}
 			onClosed: chooseAvatarDlgLoader.active = false;
 			Component.onCompleted: chooseAvatarDlgLoader._popup = this;
@@ -235,20 +235,18 @@ ColumnLayout {
 	}
 
 	function defaultAvatarChanged(row: int): void {
-		if (row === profileModule.userRow)
-			imgAvatar.source = AppUserModel.avatar(profileModule.userRow);
+		if (row === profileModule.userIdx)
+			imgAvatar.source = AppUserModel.avatar(profileModule.userIdx);
 	}
 
 	function getUserInfo(): void {
-		if (profileModule.userRow === -1)
-			return;
 		let idx;
-		const enabled = profileModule.userRow === 0;
-		profileModule._is_client = AppUserModel.isClient(profileModule.userRow);
-		profileModule._is_coach = AppUserModel.isCoach(profileModule.userRow);
+		const enabled = profileModule.userIdx === 0;
+		profileModule._is_client = AppUserModel.isClient(profileModule.userIdx);
+		profileModule._is_coach = AppUserModel.isCoach(profileModule.userIdx);
 
 		if (profileModule._is_client) {
-			const client_role = AppUserModel.userRole(profileModule.userRow);
+			const client_role = AppUserModel.userRole(profileModule.userIdx);
 			profileModule._clientrole_ok = client_role.length > 1;
 			if (!profileModule._clientrole_ok)
 				cboUserRole.currentIndex = -1;
@@ -261,7 +259,7 @@ ColumnLayout {
 				cboUserRole.currentIndex = idx;
 			}
 
-			const user_goal = AppUserModel.goal(profileModule.userRow);
+			const user_goal = AppUserModel.goal(profileModule.userIdx);
 			profileModule._goal_ok = user_goal.length > 1;
 			if (!profileModule._goal_ok)
 				cboGoal.currentIndex = -1;
@@ -283,7 +281,7 @@ ColumnLayout {
 			profileModule._goal_ok = profileModule._clientrole_ok = true;
 
 		if (profileModule._is_coach) {
-			const coach_role = AppUserModel.coachRole(profileModule.userRow);
+			const coach_role = AppUserModel.coachRole(profileModule.userIdx);
 			profileModule._coachrole_ok = coach_role.length > 1;
 			if (!profileModule._coachrole_ok)
 				cboCoachRole.currentIndex = -1;
@@ -301,7 +299,7 @@ ColumnLayout {
 		else
 			profileModule._coachrole_ok = true;
 
-		imgAvatar.source = AppUserModel.avatar(profileModule.userRow);
+		imgAvatar.source = AppUserModel.avatar(profileModule.userIdx);
 	}
 
 	function focusOnFirstField(): void {

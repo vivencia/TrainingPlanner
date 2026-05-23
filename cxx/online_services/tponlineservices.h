@@ -21,6 +21,7 @@ public:
 
 	//void scanNetwork(const QString &last_working_address, const bool assume_working = true);
 	void checkServer(const QString &address, const QString &port);
+	inline uint8_t serverStatus() const { return m_onlineStatus; }
 
 #ifndef Q_OS_ANDROID
 	void getAllUsers(const int requestid);
@@ -94,7 +95,7 @@ signals:
 	void networkListReceived(const int request_id, const int ret_code, const QStringList &ret_list);
 	void fileReceived(const int request_id, const int ret_code, const QString& filename, const QByteArray &contents);
 	//void serverOnline(const uint online_status);
-	void serverStatus(const uint online_status, const QString &server_address, const QString &server_port);
+	void serverStatusChanged(const uint online_status, const QString &server_address, const QString &server_port);
 
 private:
 	QString makeCommandURL(const bool admin,
@@ -109,7 +110,7 @@ private:
 
 	QNetworkAccessManager *m_networkManager{nullptr};
 	bool m_hasCredentials{false};
-	uint8_t m_onlineStatus;
+	uint8_t m_onlineStatus{255};
 	QString m_userid, m_passwd, m_serverAddress;
 	static TPOnlineServices* _appOnlineServices;
 	friend TPOnlineServices* appOnlineServices();

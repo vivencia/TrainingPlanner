@@ -9,7 +9,7 @@ ColumnLayout {
 	id: userContactModule
 
 //public:
-	required property int userRow
+	required property int userIdx
 	property bool bReady: bPhoneOK & bEmailOK & bSocialOK
 
 //private:
@@ -20,14 +20,14 @@ ColumnLayout {
 	Connections {
 		target: AppUserModel
 		function onUserModified(row: int, field: int): void {
-			if (row === userContactModule.userRow) {
+			if (row === userContactModule.userIdx) {
 				if (field === 6 || field >= 100)
 				userContactModule.getUserInfo();
 			}
 		}
 	}
 
-	onUserRowChanged: getUserInfo();
+	onUserIdxChanged: getUserInfo();
 	Component.onCompleted: getUserInfo();
 
 	TPLabel {
@@ -44,7 +44,7 @@ ColumnLayout {
 		TPPhoneNumberInput {
 			id: txtPhoneCountryPrefix
 			countryPrefix: true
-			readOnly: userContactModule.userRow !== 0
+			readOnly: userContactModule.userIdx !== 0
 			width: parent.width * 0.2
 
 			onPhoneNumberOKChanged: userContactModule.bPhoneOK = phoneNumberOK;
@@ -53,11 +53,11 @@ ColumnLayout {
 
 		TPPhoneNumberInput {
 			id: txtPhone
-			readOnly: userContactModule.userRow !== 0
+			readOnly: userContactModule.userIdx !== 0
 			width: parent.width * 0.5
 
 			onPhoneNumberOKChanged: userContactModule.bPhoneOK = phoneNumberOK;
-			onEditingFinished: AppUserModel.setPhone(userContactModule.userRow, txtPhoneCountryPrefix.text, text);
+			onEditingFinished: AppUserModel.setPhone(userContactModule.userIdx, txtPhoneCountryPrefix.text, text);
 			onEnterOrReturnKeyPressed: {
 				if (userContactModule.bPhoneOK)
 					txtEmail.forceActiveFocus();
@@ -67,21 +67,21 @@ ColumnLayout {
 		TPButton {
 			id: btnWhatsApp
 			imageSource: "whatsapp"
-			enabled: userContactModule.userRow !== 0 && userContactModule.bPhoneOK
+			enabled: userContactModule.userIdx !== 0 && userContactModule.bPhoneOK
 			width: AppSettings.itemDefaultHeight
 			height: width
 
-			onClicked: AppOsInterface.startMessagingApp(AppUserModel.phoneNumber(userContactModule.userRow), "WhatsApp");
+			onClicked: AppOsInterface.startMessagingApp(AppUserModel.phoneNumber(userContactModule.userIdx), "WhatsApp");
 		}
 
 		TPButton {
 			id: btnTelegram
 			imageSource: "telegram"
-			enabled: userContactModule.userRow !== 0 && userContactModule.bPhoneOK
+			enabled: userContactModule.userIdx !== 0 && userContactModule.bPhoneOK
 			width: AppSettings.itemDefaultHeight
 			height: width
 
-			onClicked: AppOsInterface.startMessagingApp(AppUserModel.phoneNumber(userContactModule.userRow), "Telegram");
+			onClicked: AppOsInterface.startMessagingApp(AppUserModel.phoneNumber(userContactModule.userIdx), "Telegram");
 		}
 	}
 
@@ -97,13 +97,13 @@ ColumnLayout {
 		inputMethodHints: Qt.ImhLowercaseOnly|Qt.ImhEmailCharactersOnly|Qt.ImhNoAutoUppercase
 		heightAdjustable: false
 		enabled: userContactModule.bPhoneOK
-		readOnly: userContactModule.userRow !== 0
+		readOnly: userContactModule.userIdx !== 0
 		ToolTip.text: AppUserModel.invalidEmailLabel
 		Layout.preferredWidth: userContactModule.width - AppSettings.itemDefaultHeight
 
 		onEditingFinished: {
 			if (userContactModule.bEmailOK)
-				AppUserModel.setEmail(userContactModule.userRow, text);
+				AppUserModel.setEmail(userContactModule.userIdx, text);
 		}
 
 		onTextEdited: {
@@ -125,7 +125,7 @@ ColumnLayout {
 
 		TPButton {
 			imageSource: "email"
-			enabled: userContactModule.userRow !== 0 && userContactModule.bEmailOK
+			enabled: userContactModule.userIdx !== 0 && userContactModule.bEmailOK
 			width: AppSettings.itemDefaultHeight
 			height: width
 
@@ -161,7 +161,7 @@ ColumnLayout {
 		}
 
 		onActivated: (index) => {
-			txtSocial.text = AppUserModel.socialMedia(userContactModule.userRow, index);
+			txtSocial.text = AppUserModel.socialMedia(userContactModule.userIdx, index);
 			txtSocial.forceActiveFocus();
 		}
 	}
@@ -169,12 +169,12 @@ ColumnLayout {
 	TPTextInput {
 		id: txtSocial
 		enabled: userContactModule.bEmailOK
-		readOnly: userContactModule.userRow !== 0
+		readOnly: userContactModule.userIdx !== 0
 		heightAdjustable: false
 		ToolTip.text: qsTr("Social media address is invalid")
 		Layout.preferredWidth: userContactModule.width - AppSettings.itemDefaultHeight
 
-		onEditingFinished: AppUserModel.setSocialMedia(userContactModule.userRow, cboSocial.currentIndex, text);
+		onEditingFinished: AppUserModel.setSocialMedia(userContactModule.userIdx, cboSocial.currentIndex, text);
 		onTextEdited: checkSocial()
 		onTextChanged: checkSocial();
 
@@ -200,16 +200,14 @@ ColumnLayout {
 	} //txtSocial
 
 	function getUserInfo(): void {
-		if (userContactModule.userRow === -1)
-			return;
-		txtPhoneCountryPrefix.text = AppUserModel.phoneCountryPrefix(userContactModule.userRow);
-		txtPhone.text = AppUserModel.phoneNumber(userContactModule.userRow);
-		bPhoneOK = AppUserModel.phoneCountryPrefix(userContactModule.userRow).length >= 3 && AppUserModel.phoneNumber(userContactModule.userRow).length === 15
-		const email = AppUserModel.email(userContactModule.userRow);
+		txtPhoneCountryPrefix.text = AppUserModel.phoneCountryPrefix(userContactModule.userIdx);
+		txtPhone.text = AppUserModel.phoneNumber(userContactModule.userIdx);
+		bPhoneOK = AppUserModel.phoneCountryPrefix(userContactModule.userIdx).length >= 3 && AppUserModel.phoneNumber(userContactModule.userIdx).length === 15
+		const email = AppUserModel.email(userContactModule.userIdx);
 		txtEmail.text = email;
 		bEmailOK = !AppUserModel.onlineAccount || email.indexOf("@") !== -1 && email.indexOf(".") !== -1;
 		cboSocial.currentIndex = 0;
-		txtSocial.text = AppUserModel.socialMedia(userContactModule.userRow, 0);
+		txtSocial.text = AppUserModel.socialMedia(userContactModule.userIdx, 0);
 	}
 
 	function focusOnFirstField() {

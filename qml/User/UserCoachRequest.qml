@@ -9,6 +9,9 @@ import TpQml.Widgets
 TPPopup {
 	id: dlgCoachRequest
 	keepAbove: true
+	showTitleBar: true
+	closeButtonVisible: true
+	open_in_window: true
 	width: AppSettings.pageWidth - 20
 	height: AppSettings.pageHeight * 0.4
 
@@ -20,11 +23,10 @@ TPPopup {
 		height: AppSettings.itemDefaultHeight
 
 		anchors {
-			top: dlgCoachRequest.contentItem.top
-			topMargin: 5
-			left: dlgCoachRequest.contentItem.left
-			leftMargin: 5
-			right: dlgCoachRequest.contentItem.right
+			top: dlgCoachRequest.titleBar.top
+			left: dlgCoachRequest.titleBar.left
+			right: dlgCoachRequest.titleBar.right
+			margins: 5
 			rightMargin: dlgCoachRequest.btnClose.width
 		}
 	}
@@ -34,13 +36,10 @@ TPPopup {
 
 		anchors {
 			top: lblTitle.bottom
-			topMargin: 5
 			left: dlgCoachRequest.contentItem.left
-			leftMargin: 5
 			right: dlgCoachRequest.contentItem.right
-			rightMargin: 5
 			bottom: btnSendRequest.top
-			bottomMargin: 5
+			margins: 5
 		}
 
 		TPLabel {
@@ -85,6 +84,10 @@ TPPopup {
 						AppUserModel.availableCoaches.setSelected(delegate.index, delegate.selected);
 					}
 				} //CheckBox
+
+				TPFileViewer {
+					mediaSource
+				}
 
 				TPButton {
 					text: qsTr("Résumé")

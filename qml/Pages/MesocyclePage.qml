@@ -213,7 +213,6 @@ TPPage {
 				Layout.fillWidth: true
 
 				onEditingFinished: mesoPage.mesoManager.type = text;
-				onEnterOrReturnKeyPressed: txtMesoFile.forceActiveFocus();
 			}
 
 			TPLabel {
@@ -221,13 +220,14 @@ TPPage {
 			}
 
 			TPFileViewer {
-				mediaSource: mesoPage.mesoModel.file();
+				mediaSource: mesoPage.mesoModel.file(mesoPage.mesoManager.mesoIdx);
 				canAddFile: true
+				useBackground: true
 				Layout.preferredWidth: 0.5 * parent.width
 				Layout.preferredHeight: 4/3 * (0.5 * parent.width)
 				Layout.alignment: Qt.AlignCenter
-				onFileAdded: (filename) => mesoPage.mesoModel.setFile(filename);
-				onRemovalRequested: mesoPage.mesoModel.setFile("");
+				onFileAdded: (filename) => mesoPage.mesoModel.setFile(mesoPage.mesoManager.mesoIdx, filename);
+				onRemovalRequested: mesoPage.mesoModel.setFile(mesoPage.mesoManager.mesoIdx, "");
 			}
 
 			TPLabel {

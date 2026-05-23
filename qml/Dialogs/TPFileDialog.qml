@@ -10,7 +10,7 @@ FileDialog {
 	currentFolder: AppUtils.standardPathForFileType(fileType)
 	selectedFile: saveDialog ? suggestedName: ""
 
-	property bool saveDialog
+	property bool saveDialog: false
 	property int fileType
 	property string suggestedName
 

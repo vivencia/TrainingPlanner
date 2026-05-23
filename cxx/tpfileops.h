@@ -1,5 +1,6 @@
 #pragma once
 
+#include "tpfilepath.h"
 #include "tputils.h"
 
 #include <QColor>
@@ -12,6 +13,7 @@
 #include <QRect>
 #include <QSize>
 
+QT_FORWARD_DECLARE_CLASS(TPFilePath)
 QT_FORWARD_DECLARE_CLASS(QGraphicsEffect)
 QT_FORWARD_DECLARE_CLASS(QPainter)
 QT_FORWARD_DECLARE_CLASS(QTextDocument)
@@ -30,8 +32,10 @@ Q_PROPERTY(QSize controlSize READ controlSize WRITE setControlSize NOTIFY contro
 Q_PROPERTY(int mesoIdx READ mesoIdx WRITE setMesoIdx NOTIFY mesoIdxChanged FINAL)
 Q_PROPERTY(int workoutCalendarDay READ workoutCalendarDay WRITE setWorkoutCalendarDay NOTIFY workoutCalendarDayChanged FINAL)
 Q_PROPERTY(int tpFileSectionCount READ tpFileSectionCount NOTIFY tpFileSectionCountChanged FINAL)
+Q_PROPERTY(bool canDownloadOrGenerate READ canDownloadOrGenerate WRITE setCanDownloadOrGenerate NOTIFY canDownloadOrGenerateChanged FINAL)
 Q_PROPERTY(bool canAddFile READ canAddFile WRITE setCanAddFile NOTIFY canAddFileChanged FINAL)
 Q_PROPERTY(bool restrictedFileType READ restrictedFileType WRITE setRestrictedFileType NOTIFY restrictedFileTypeChanged FINAL)
+Q_PROPERTY(bool useControls READ useControls WRITE setUseControls NOTIFY useControlsChanged FINAL)
 
 public:
 
@@ -55,10 +59,10 @@ public:
 
 	inline TPUtils::FILE_TYPE fileType() const { return m_filetype; }
 	void setFileType(TPUtils::FILE_TYPE new_type);
-	inline QString fileName() const { return m_filename; }
-	void setFileName(const QString &filename);
+	inline const TPFilePath &fileName() const { return m_filename; }
+	void setFileName(const QString &filename, const bool file_added = false);
 	//TODO: Android URLs
-	inline QUrl fileURL() const { return QString{"file://"_L1 + m_filename}; }
+	inline QUrl fileURL() const { return QString{"file://"_L1 % m_filename.toString()}; }
 	void setFileURL(const QUrl &url);
 	inline QSize controlSize() const { return m_controlSize; }
 	inline void setControlSize(const QSize &new_size)
@@ -73,11 +77,25 @@ public:
 	inline int workoutCalendarDay() const { return m_workoutCalendarDay; }
 	inline void setWorkoutCalendarDay(const int workout_id) { m_workoutCalendarDay = workout_id; emit workoutCalendarDayChanged(); }
 	inline int tpFileSectionCount() const { return m_tpfileSections; }
-	inline bool canAddFile() const { return m_canAddFile || (m_filetype != TPUtils::FT_UNKNOWN && m_filename.isEmpty()); }
+	inline bool canDownloadOrGenerate() const { return m_downloadOrGenerate; }
+	void setCanDownloadOrGenerate(const bool can_do);
+	inline bool canAddFile() const { return m_canAddFile; }
 	void setCanAddFile(const bool can_add);
 	inline bool restrictedFileType() const { return m_restrictedFileType; }
 	inline void setRestrictedFileType(const bool restricted) { m_restrictedFileType = restricted; emit restrictedFileTypeChanged(); }
+	inline bool useControls() const { return m_useControls; }
+	inline void setUseControls(const  bool use_controls) {
+		if (use_controls != m_useControls) {
+			if (use_controls && !m_controls[OT_FullScreen])
+				createControls();
+			else if (!use_controls && m_controls[OT_FullScreen])
+				clearControls();
+			m_useControls = use_controls;
+			emit useControlsChanged();
+		}
+	}
 
+	Q_INVOKABLE void attemptToCreateOrGetFile();
 	Q_INVOKABLE void setEnabled(TPFileOps::OpType type, const bool enabled, const bool call_update = true);
 	Q_INVOKABLE QString getFileTypeIcon(const QString &filename, const QSize &preferred_size = QSize{}, const bool thumbnail = true) const;
 	Q_INVOKABLE inline void doFileOperation(const int op) { _doFileOperation(static_cast<OpType>(op)); }
@@ -89,8 +107,7 @@ public:
 	Q_INVOKABLE inline void repaintControls() { update(); }
 
 public slots:
-	inline void importSlot(const QString &filepath) { if (!filepath.isEmpty()) setFileName(filepath); }
-	void exportSlot(const QString &filepath = QString{});
+	void exportSlot(const std::shared_ptr<TPFilePath>& tp_filename);
 
 signals:
 	void fileTypeChanged();
@@ -98,13 +115,17 @@ signals:
 	void showFullScreen();
 	void multimediaKeyPressed(const int key);
 	void multimediaKeyReleased(const int key);
+	void fileAdded(const QString &filepath);
+	void fileAcquired(const int ret_code);
 	void fileRemovalRequested();
 	void mesoIdxChanged();
 	void controlSizeChanged();
 	void workoutCalendarDayChanged();
 	void tpFileSectionCountChanged();
+	void canDownloadOrGenerateChanged();
 	void canAddFileChanged();
 	void restrictedFileTypeChanged();
+	void useControlsChanged();
 	void setCursorPorsition(const int cursor_pos);
 	void insertString(const QString &ch, const int pos);
 	void _internalSignal(const int requestid, const int return_code);
@@ -130,23 +151,25 @@ private:
 	QSize m_controlSize, m_buttonSize;
 	QColor m_pressedColor;
 	TPUtils::FILE_TYPE m_filetype;
-	QString m_filename;
 	QList<std::pair<QString,QString>> m_tpFileInfo;
-	bool m_fullscreen{false}, m_canAddFile{false}, m_restrictedFileType{false};
+	bool m_fullscreen{false}, m_canAddFile{false}, m_downloadOrGenerate{false}, m_restrictedFileType{false}, m_useControls{false};
 	int m_mesoIdx{-1}, m_workoutCalendarDay{-1}, m_cursorPostion{-1};
 	uint  m_tpfileSections{0};
 	QTextDocument *m_textDocument{nullptr};
+	TPFilePath m_filename;
 
 	void _doFileOperation(const OpType type);
-	int generateFileFromType(const OpType type);
+	int generateFileFromType(const bool formatted);
 	void doFullScreen();
 	void addFile();
 	void saveFileAs();
 	void shareFile();
+	void downloadOrCopyFile();
 	void sendFileTo(const QString &message, QString userid = QString{});
 	void openFile();
 	void removeFile(const bool bypass_confirmation = false);
 	void createControls();
+	void clearControls();
 	void resizeControl();
 	void recalculateButtonsRect();
 	void colorizeImage(QImage &image);
@@ -155,6 +178,7 @@ private:
 	controlInfo *controlFromType(const OpType type) const;
 	QString getImagePreviewFile(const QString &image_filename, QSize preferred_size = QSize{}) const;
 	QString getPDFPreviewFile(const QString &pdf_filename, QSize preferred_size = QSize{}) const;
+	QString getSubDir() const;
 	void _setEnabled(controlInfo *ci, const bool enabled);
 	void _getDefaultImage(controlInfo *ci);
 	void readTPFile();

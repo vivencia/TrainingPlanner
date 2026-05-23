@@ -119,7 +119,7 @@ void OSInterface::checkServer(QString address, QString port, QNetworkInterface i
 	}
 
 	auto conn{std::make_shared<QMetaObject::Connection>()};
-	*conn = connect(appOnlineServices(), &TPOnlineServices::serverStatus, this, [this,conn,address,port,interface]
+	*conn = connect(appOnlineServices(), &TPOnlineServices::serverStatusChanged, this, [this,conn,address,port,interface]
 							(const uint online_status, const QString &server_address, const QString &server_port) mutable {
 		disconnect(*conn);
 		bool success{false};
@@ -774,7 +774,7 @@ void OSInterface::commandLocalServer(const QString &title, const QString &comman
 	const int requestid{appUtils()->generateUniqueId(seed)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(appUserModel(), &DBUserModel::passwordAcquired, this, [=,this]
-															(const bool proceed, const int request_id, const QString &passwd) {
+														(const bool proceed, const int request_id, const QString &passwd) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			if (proceed) {
@@ -786,7 +786,7 @@ void OSInterface::commandLocalServer(const QString &title, const QString &comman
 			}
 			else
 				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
-																	{title, "Operation canceled by the user"_L1}, record_separator));
+															{title, "Operation canceled by the user"_L1}, record_separator));
 		}
 	});
 	appUserModel()->requestPasswordFromUser(requestid, title, "Your system user password is required"_L1);

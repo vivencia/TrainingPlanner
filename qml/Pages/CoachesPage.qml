@@ -14,7 +14,7 @@ TPPage {
 	imageSource: AppSettings.coachesBackground
 	backgroundOpacity: 0.6
 
-	property int userRow
+	property int userIdx
 
 	onPageActivated: {
 		if (coachesList.enabled) {
@@ -51,14 +51,14 @@ TPPage {
 			text: qsTr("Coaches or Trainers")
 			enabled: coachesList.enabled
 
-			onClicked: coachesPage.userRow = AppUserModel.currentCoaches.getUserIdx();
+			onClicked: coachesPage.userIdx = AppUserModel.currentCoaches.getUserIdx();
 		}
 
 		TPTabButton {
 			text: qsTr("Pending answers")
 			enabled: pendingCoachesList.enabled
 
-			onClicked: coachesPage.userRow = AppUserModel.pendingCoachesResponses.getUserIdx();
+			onClicked: coachesPage.userIdx = AppUserModel.pendingCoachesResponses.getUserIdx();
 		}
 
 		anchors {
@@ -104,8 +104,8 @@ TPPage {
 					rightMargin: 5
 				}
 
-				onItemSelected: (userRow) => coachesPage.userRow = userRow;
-				onButtonClicked: AppUserModel.viewResume(coachesPage.userRow);
+				onItemSelected: (userIdx) => coachesPage.userIdx = userIdx;
+				onButtonClicked: AppUserModel.viewResume(coachesPage.userIdx);
 			} //TPCoachesAndClientsList: coachesList
 
 			RowLayout {
@@ -121,7 +121,7 @@ TPPage {
 
 				TPButton {
 					text: qsTr("Remove")
-					enabled: coachesPage.userRow != 0 && coachesList.enabled  && coachesList.currentRow !== -1
+					enabled: coachesPage.userIdx != 0 && coachesList.enabled  && coachesList.currentRow !== -1
 					rounded: false
 					autoSize: true
 					Layout.alignment: Qt.AlignCenter
@@ -152,12 +152,12 @@ TPPage {
 				}
 
 				//Temporary users(not confirmed) will always have the same index: AppUserModel.count() - 1, so we need
-				//to reset the userRow property in order for it to get a onChanged signal
-				onItemSelected: (userRow) => {
-					coachesPage.userRow = -1;
-					coachesPage.userRow = userRow;
+				//to reset the userIdx property in order for it to get a onChanged signal
+				onItemSelected: (userIdx) => {
+					coachesPage.userIdx = -1;
+					coachesPage.userIdx = userIdx;
 				}
-				onButtonClicked: AppUserModel.viewResume(coachesPage.userRow);
+				onButtonClicked: AppUserModel.viewResume(coachesPage.userIdx);
 			} //TPCoachesAndClientsList: pendingCoachesList
 
 			RowLayout {
@@ -179,7 +179,7 @@ TPPage {
 					Layout.alignment: Qt.AlignCenter
 
 					onClicked: {
-						AppUserModel.acceptUser(AppUserModel.pendingCoachesResponses, pendingCoachesList.currentRow);
+						AppUserModel.acceptUser(pendingCoachesList.selectedUserIdx);
 						if (!pendingCoachesList.enabled) {
 							if (coachesList.enabled)
 								tabbar.setCurrentIndex(0);
@@ -221,7 +221,7 @@ TPPage {
 		parentPage: coachesPage
 		navButtonsVisible: enabled
 		contentHeight: colMain.implicitHeight
-		enabled: coachesPage.userRow > 0
+		enabled: coachesPage.userIdx > 0
 
 		anchors {
 			top: btnFindCoachOnline.bottom
@@ -239,20 +239,20 @@ TPPage {
 
 			UserPersonalData {
 				id: usrData
-				userRow: coachesPage.userRow
+				userIdx: coachesPage.userIdx
 				parentPage: coachesPage
 				Layout.preferredWidth: AppSettings.pageWidth - 20
 			}
 
 			UserContact {
 				id: usrContact
-				userRow: coachesPage.userRow
+				userIdx: coachesPage.userIdx
 				Layout.preferredWidth: AppSettings.pageWidth - 20
 			}
 
 			UserProfile {
 				id: usrProfile
-				userRow: coachesPage.userRow
+				userIdx: coachesPage.userIdx
 				parentPage: coachesPage
 				Layout.preferredWidth: AppSettings.pageWidth - 20
 			}
@@ -290,8 +290,8 @@ TPPage {
 			imageSource: "remove"
 			keepAbove: true
 			message: removeUserDlgLoader.decline ?
-						 qsTr("The coach will receive your reply, but might choose to send another answer unless you block them") :
-						 qsTr("The coach will be notified of your decision, but might still contact you unless you block them")
+				qsTr("The coach will receive your reply, but might choose to send another answer unless you block them") :
+				qsTr("The coach will be notified of your decision, but might still contact you unless you block them")
 			onButton1Clicked: coachesPage.removeOrDecline(removeUserDlgLoader.decline);
 			onClosed: removeUserDlgLoader.active = false;
 			Component.onCompleted: removeUserDlgLoader._remove_dialog = this;
@@ -299,9 +299,9 @@ TPPage {
 
 		onLoaded: {
 			if (decline)
-				_remove_dialog.title = qsTr("Remove ") + AppUserModel.userName(coachesPage.userRow) + "?";
+				_remove_dialog.title = qsTr("Decline ") + AppUserModel.userName(pendingCoachesList.selectedUserIdx) + "?";
 			else
-				_remove_dialog.title = qsTr("Decline ") + AppUserModel.userName(AppUserModel.pendingCoachesResponses.currentRow) + "?";
+				_remove_dialog.title = qsTr("Remove ") + AppUserModel.userName(coachesList.selectedUserIdx) + "?";
 			_remove_dialog.tpOpen();
 		}
 	}
@@ -312,14 +312,14 @@ TPPage {
 
 	function removeOrDecline(decline: bool) {
 		if (!decline) {
-			AppUserModel.removeUser(coachesPage.userRow);
+			AppUserModel.removeUser(coachesPage.userIdx);
 			if (!coachesList.enabled)
 				if (pendingCoachesList.enabled) {
 					tabbar.setCurrentIndex(1);
 			}
 		}
 		else {
-			AppUserModel.rejectUser(AppUserModel.pendingCoachesResponses, pendingCoachesList.currentRow);
+			AppUserModel.rejectUser(ApendingCoachesList.selectedUserIdx);
 			if (!pendingCoachesList.enabled) {
 				if (coachesList.enabled)
 					tabbar.setCurrentIndex(0);

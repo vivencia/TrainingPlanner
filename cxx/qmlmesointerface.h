@@ -36,8 +36,6 @@ Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged FINAL)
 Q_PROPERTY(QString coachName READ coachName CONSTANT FINAL)
 Q_PROPERTY(QString client READ client WRITE setClient NOTIFY clientChanged FINAL)
 Q_PROPERTY(QString type READ type WRITE setType NOTIFY typeChanged FINAL)
-Q_PROPERTY(QString displayFileName READ displayFileName NOTIFY displayFileNameChanged FINAL)
-Q_PROPERTY(QString fileName READ fileName WRITE setFileName NOTIFY fileNameChanged FINAL)
 Q_PROPERTY(QString strStartDate READ strStartDate NOTIFY startDateChanged FINAL)
 Q_PROPERTY(QString strEndDate READ strEndDate NOTIFY endDateChanged FINAL)
 Q_PROPERTY(QString weeks READ weeks NOTIFY weeksChanged FINAL)
@@ -97,10 +95,6 @@ public:
 	[[nodiscard]] QString type() const;
 	void setType(const QString &new_value);
 
-	[[nodiscard]] QString displayFileName() const;
-	[[nodiscard]] QString fileName() const;
-	void setFileName(const QString &new_filename);
-
 	[[nodiscard]] QDate startDate() const;
 	void setStartDate(const QDate &new_startdate);
 	[[nodiscard]] inline QDate minimumStartDate() const { return m_minimumStartDate; }
@@ -146,8 +140,6 @@ signals:
 	void nameChanged();
 	void clientChanged();
 	void typeChanged();
-	void displayFileNameChanged();
-	void fileNameChanged();
 	void startDateChanged();
 	void endDateChanged();
 	void minimumStartDateChanged();

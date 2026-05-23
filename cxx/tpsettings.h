@@ -253,7 +253,7 @@ enum ColorSchemes {
 	inline int itemDefaultHeight() const { return m_defaultValues.at(ITEM_DEFAULT_HEIGHT).toInt(); }
 	inline int itemSmallHeight() const { return qFloor(static_cast<float>(m_defaultValues.at(ITEM_DEFAULT_HEIGHT).toInt()) * 0.8); }
 	inline int itemLargeHeight() const { return qFloor(static_cast<float>(m_defaultValues.at(ITEM_DEFAULT_HEIGHT).toInt()) * 1.2); }
-	inline int itemExtraLargeHeight() const { return qFloor(static_cast<float>(m_defaultValues.at(ITEM_DEFAULT_HEIGHT).toInt()) * 1.5); }
+	inline int itemExtraLargeHeight() const { return qFloor(static_cast<float>(m_defaultValues.at(ITEM_DEFAULT_HEIGHT).toInt()) * 1.6); }
 
 	inline QString weightUnit() const { return getValue(currentUser(), WEIGHT_UNIT_INDEX, m_defaultValues.at(WEIGHT_UNIT_INDEX)).toString(); }
 	inline void setWeightUnit(const QString &new_value) { changeValue(currentUser(), WEIGHT_UNIT_INDEX, new_value); emit weightUnitChanged(); }

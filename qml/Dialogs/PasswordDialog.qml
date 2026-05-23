@@ -107,6 +107,6 @@ TPPopup {
 
 	function acceptInput(proceed: bool): void {
 		passwordAcquired(proceed, _passwdDlg.request_id, txtPassword.text);
-		_passwdDlg.closePopup();
+		_passwdDlg.close();
 	}
 }

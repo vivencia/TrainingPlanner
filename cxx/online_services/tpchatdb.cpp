@@ -54,13 +54,10 @@ QString TPChatDB::dbFileName(const bool fullpath) const
 bool TPChatDB::loadChat(void *)
 {
 	bool success{false};
-	if (execReadOnlyQuery("SELECT * FROM "_L1 + table_name))
-	{
-		if (m_workingQuery.first ())
-		{
+	if (execReadOnlyQuery("SELECT * FROM "_L1 + table_name)) {
+		if (m_workingQuery.first ()) {
 
-			do
-			{
+			do {
 				QStringList message_info{TP_CHAT_TOTAL_MESSAGE_FIELDS};
 				for (uint i{0}; i < TP_CHAT_TOTAL_MESSAGE_FIELDS; ++i)
 					message_info[i] = std::move(m_workingQuery.value(i).toString());
@@ -81,10 +78,8 @@ std::pair<QVariant,QVariant> TPChatDB::getNumberOfUnreadMessages()
 			field_names[MESSAGE_ID][0], table_name,
 			field_names[MESSAGE_READ][0], "0"_L1,
 			field_names[MESSAGE_RECEIVER][0], m_userId));
-	if (execReadOnlyQuery(m_strQuery))
-	{
-		if (m_workingQuery.first())
-		{
+	if (execReadOnlyQuery(m_strQuery)) {
+		if (m_workingQuery.first()) {
 			success = true;
 			do {
 				unread_ids.append(m_workingQuery.value(0).toString() % set_separator);

@@ -13,6 +13,7 @@ QT_FORWARD_DECLARE_CLASS(DBWorkoutsOrSplitsTable)
 QT_FORWARD_DECLARE_CLASS(DBMesoCalendarManager)
 QT_FORWARD_DECLARE_STRUCT(exerciseEntry)
 QT_FORWARD_DECLARE_STRUCT(stSet)
+QT_FORWARD_DECLARE_CLASS(TPFilePath)
 QT_FORWARD_DECLARE_CLASS(QFile)
 
 class DBModelInterfaceExercises : public DBModelInterface
@@ -110,17 +111,18 @@ public:
 	};
 
 	//DBWorkoutModel
-	inline explicit DBExercisesModel(DBMesocyclesModel *meso_model, DBWorkoutsOrSplitsTable* db, const uint meso_idx, const int calendar_day)
+	inline explicit DBExercisesModel(DBMesocyclesModel *meso_model, DBWorkoutsOrSplitsTable* db,
+																				const uint meso_idx, const int calendar_day)
 		: QAbstractListModel{reinterpret_cast<QObject*>(meso_model)}, m_mesoModel{meso_model}, m_db{db}, m_mesoIdx{meso_idx},
-																					m_calendarDay{calendar_day}, m_splitLetter{'N'}
+																				m_calendarDay{calendar_day}, m_splitLetter{'N'}
 	{
 		commonConstructor(true);
 	}
 	//DBSplitModel, no need for a calendar manager
 	inline explicit DBExercisesModel(DBMesocyclesModel *meso_model, DBWorkoutsOrSplitsTable *db, const uint meso_idx,
-																				const QChar &splitletter, const bool load_from_db)
+																		const QChar &splitletter, const bool load_from_db)
 		: QAbstractListModel{reinterpret_cast<QObject*>(meso_model)}, m_db{db}, m_mesoModel{meso_model}, m_mesoIdx{meso_idx},
-																						m_calendarDay{-1}, m_splitLetter{splitletter}
+																				m_calendarDay{-1}, m_splitLetter{splitletter}
 	{
 		commonConstructor(load_from_db);
 	}
@@ -144,14 +146,14 @@ public:
 	[[nodiscard]] inline const QChar &splitLetter() const { return m_splitLetter; }
 	void setSplitLetter(const QChar &new_splitletter);
 	inline void setImportMode(const bool import_mode) { m_importMode = import_mode; }
-	[[nodiscard]] QString suggestedName(const bool formatted_file) const;
+	[[nodiscard]] std::shared_ptr<TPFilePath> suggestedName(const bool formatted_file) const;
 
 	[[nodiscard]] inline const bool isWorkout() const { return m_calendarDay != -1; }
-	[[nodiscard]] int exportToFile(const QString &filename, QFile *out_file = nullptr) const;
-	[[nodiscard]] int exportToFormattedFile(const QString &filename, QFile *out_file = nullptr) const;
-	[[nodiscard]] int importFromFile(const QString &filename, QFile *in_file = nullptr);
-	[[nodiscard]] int importFromFormattedFile(const QString &filename, QFile *in_file = nullptr);
-	[[maybe_unused]] int newExercisesFromFile(const QString &filename, const std::optional<bool> &file_formatted = std::nullopt);
+	[[nodiscard]] int exportToFile(const std::shared_ptr<TPFilePath> &filename, QFile *out_file = nullptr) const;
+	[[nodiscard]] int exportToFormattedFile(const std::shared_ptr<TPFilePath> &filename, QFile *out_file = nullptr) const;
+	[[nodiscard]] int importFromFile(const std::shared_ptr<TPFilePath> &filename, QFile *in_file = nullptr);
+	[[nodiscard]] int importFromFormattedFile(const std::shared_ptr<TPFilePath> &filename, QFile *in_file = nullptr);
+	[[maybe_unused]] int newExercisesFromFile(const std::shared_ptr<TPFilePath> &filename, const std::optional<bool> &file_formatted = std::nullopt);
 	[[nodiscard]] inline const QString &identifierInFile() const { return m_identifierInFile; }
 	[[nodiscard]] const QString formatSetTypeToExport(const uint type) const;
 	[[nodiscard]] static bool importExtraInfo(const QString &maybe_extra_info, int &calendar_day, QChar &split_letter);

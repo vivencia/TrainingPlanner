@@ -6,6 +6,7 @@
 #include <QQmlEngine>
 
 QT_FORWARD_DECLARE_CLASS(TPChat)
+QT_FORWARD_DECLARE_CLASS(TPFilePath)
 QT_FORWARD_DECLARE_CLASS(TPMessage)
 QT_FORWARD_DECLARE_CLASS(QTimer)
 
@@ -33,7 +34,6 @@ public:
 	Q_INVOKABLE inline void removeMessage(const qsizetype message_id) { removeMessage(message(message_id)); }
 	void removeMessage(TPMessage *msg);
 	Q_INVOKABLE void execAction(const int message_index, const uint action_id);
-	Q_INVOKABLE void itemClicked(const qsizetype message_id);
 
 	void binaryFileReceived(const QByteArray &data, const QString &userid);
 	void textMesssageReceived(const QString &msg, const QString &userid);
@@ -45,11 +45,11 @@ public:
 	 * @param icon_source should use the user's avatar
 	 * @return Returns the newly created message
 	 */
-	TPMessage *createChatMessage(const QString &userid, QString &&display_text, QString &&icon_source, const bool check_unread_messages);
+	TPMessage *createChatMessage(const QString &userid, QString &&user_name, QString &&icon_source, const bool check_unread_messages);
 	void openChatWindow(TPChat *chat_manager);
 	inline TPChat *chatManager(const QString &userid) const { return m_chatsList.value(userid); }
-	Q_INVOKABLE void openChat(const QString &username);
-	void sendFileTo(const QString &username, const QString &filename, const QString &message);
+	Q_INVOKABLE void openChat(const uint user_idx);
+	void sendFileChatMessage(const std::shared_ptr<TPFilePath> &filename, const QString &message);
 	void startChatMessagesPolling(const QString &userid);
 
 	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }

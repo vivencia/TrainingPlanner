@@ -360,8 +360,8 @@ void TPOnlineServices::sendFile(const int requestid, QFile *file, const QString 
 			uploadFile(requestid, url, file, b_internal_signal_only);
 		}
 	});
-	const QUrl &url{makeCommandURL(false, "checkfilectime"_L1, appUtils()->getFileName(file->fileName()), "subdir"_L1, subdir,
-																												"fromuser"_L1, targetUser)};
+	const QUrl &url{makeCommandURL(false, "checkfilectime"_L1, appUtils()->getFileName(file->fileName()),
+																	"subdir"_L1, subdir, "fromuser"_L1, targetUser)};
 	makeNetworkRequest(requestid, url, true);
 }
 
@@ -375,7 +375,7 @@ void TPOnlineServices::listFiles(const int requestid, const bool only_new,
 			disconnect(*conn);
 			QStringList new_files;
 			if (ret_code == TP_RET_CODE_SUCCESS) {
-				const QString &localDir{appSettings()->localAppFilesDir() + targetUser + '/' + subdir + '/'};
+				const QString &localDir{appSettings()->localAppFilesDir() % targetUser % '/' % subdir % '/'};
 				const QStringList &remote_files_list{ret_string.split(fancy_record_separator1, Qt::SkipEmptyParts)};
 				for (uint i{0}; i < remote_files_list.count(); i += 2) {
 					QString filename{std::move(remote_files_list.at(i))};
@@ -401,7 +401,7 @@ void TPOnlineServices::listDirs(const int requestid, const QString &pattern,
 {
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
-																	(const int request_id, const int ret_code, const QString &ret_string) {
+													(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			QStringList directories;
@@ -686,7 +686,7 @@ void TPOnlineServices::checkServer(const QString &address, const QString &port)
 			}
 			if (m_onlineStatus != online_status) {
 				m_onlineStatus = online_status;
-				emit serverStatus(m_onlineStatus, address, port);
+				emit serverStatusChanged(m_onlineStatus, address, port);
 			}
 		}
 	});

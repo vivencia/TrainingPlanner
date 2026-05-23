@@ -10,7 +10,7 @@ TPPopup {
 	keepAbove: showIndicator
 	width: entriesListView.width
 	height: entriesListView.height
-	configFieldName: "pageMenu_" + parentPage.objectName
+	configFieldName: parentPage ? "pageMenu_" + parentPage.objectName : ""
 	defaultCoordinates: Qt.point(defaultX, realPageY() + 180)
 	lockMovingToYAxis: showIndicator
 	enableEffects: true
@@ -25,10 +25,18 @@ TPPopup {
 //protected:
 	readonly property int smallWidth: AppSettings.itemSmallHeight
 	readonly property int smallHeight: 4 * AppSettings.itemSmallHeight
-	readonly property int defaultX: parentPage.width
+	readonly property int defaultX: parentPage ? parentPage.width : 0
 	property bool expanded: x < defaultX
 
 	signal _entryVisible(entry_idx: int, visibility: bool);
+
+	Behavior on x {
+		enabled: _menu.showIndicator
+		animation: NumberAnimation {
+			duration: 500
+			easing.type: Easing.InOutBack
+		}
+	}
 
 	onMouseItemClicked: (mouse) => {
 		expanded = !expanded;
@@ -59,7 +67,6 @@ TPPopup {
 		anchors {
 			top: parent.top
 			right: parent.left
-			rightMargin: 15
 		}
 
 		sourceComponent: TPBackRec {

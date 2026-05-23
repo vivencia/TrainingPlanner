@@ -20,7 +20,7 @@ enum ExerciseListFields {
 
 QT_FORWARD_DECLARE_CLASS(DBExercisesListTable)
 QT_FORWARD_DECLARE_CLASS(DBModelInterfaceExercisesList);
-QT_FORWARD_DECLARE_CLASS(QFile)
+QT_FORWARD_DECLARE_CLASS(TPFilePath)
 
 class DBExercisesListModel : public QAbstractListModel
 {
@@ -44,7 +44,7 @@ public:
 	inline QString exerciseSpecificsLabel() const { return tr("Specifics: "); }
 	inline QString muscularGroupsLabel() const { return tr("Muscular Groups: "); }
 	inline QString mediaLabel() const { return tr("Descriptive media: "); }
-	QString suggestedName(const bool formatted_file) const;
+	std::shared_ptr<TPFilePath> suggestedName() const;
 
 	inline const int _id(const uint index) const { return id(index).toUInt(); }
 	Q_INVOKABLE QString id(const uint index) const;
@@ -113,11 +113,11 @@ public:
 	void appendList(const QStringList &list);
 	void clear();
 
-	int exportToFile(const QString &filename, QFile *out_file = nullptr) const;
-	int exportToFormattedFile(const QString &filename, QFile *out_file = nullptr) const;
-	int importFromFile(const QString &filename, QFile *in_file = nullptr);
-	int importFromFormattedFile(const QString &filename, QFile *in_file = nullptr);
-	int newExerciseFromFile(const QString &filename, const std::optional<bool> &file_formatted = std::nullopt);
+	int exportToFile(const std::shared_ptr<TPFilePath> &filename) const;
+	int exportToFormattedFile(const std::shared_ptr<TPFilePath> &filename) const;
+	int importFromFile(const std::shared_ptr<TPFilePath> &filename);
+	int importFromFormattedFile(const std::shared_ptr<TPFilePath> &filename);
+	int newExerciseFromFile(const std::shared_ptr<TPFilePath> &filename, const std::optional<bool> &file_formatted = std::nullopt);
 
 	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
 	QVariant data(const QModelIndex &index, int role) const override final;

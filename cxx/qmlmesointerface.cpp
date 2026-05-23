@@ -35,8 +35,6 @@ void QMLMesoInterface::updateInterface()
 	emit realMesoChanged();
 	emit canExportChanged();
 	emit typeChanged();
-	emit displayFileNameChanged();
-	emit fileNameChanged();
 	emit startDateChanged();
 	emit endDateChanged();
 	emit minimumStartDateChanged();
@@ -160,30 +158,6 @@ void QMLMesoInterface::setType(const QString &new_value)
 	if (m_mesoModel->type(m_mesoIdx) != new_value) {
 		m_mesoModel->setType(m_mesoIdx, new_value);
 		emit typeChanged();
-	}
-}
-
-QString QMLMesoInterface::displayFileName() const
-{
-	return appUtils()->getFileName(m_mesoModel->file(m_mesoIdx));
-}
-
-QString QMLMesoInterface::fileName() const
-{
-	return m_mesoModel->file(m_mesoIdx);
-}
-
-void QMLMesoInterface::setFileName(const QString &new_filename)
-{
-	if (m_mesoModel->file(m_mesoIdx) != new_filename) {
-		const QString &good_filepath{appUtils()->getCorrectPath(new_filename)};
-		if (!good_filepath.isEmpty()) {
-			if (!appUtils()->canReadFile(good_filepath))
-				return;
-		}
-		m_mesoModel->setFile(m_mesoIdx, good_filepath);
-		emit fileNameChanged();
-		emit displayFileNameChanged();
 	}
 }
 
@@ -384,7 +358,7 @@ void QMLMesoInterface::showOptionsMenu(const bool show_indicator, QQuickItem *it
 		m_optionsMenuProperties["mesoManager"_L1] = std::move(QVariant::fromValue(this));
 		m_optionsMenuComponent = new QQmlComponent{appQmlEngine(), "TpQml.Pages", "MesoOptionsMenu", QQmlComponent::Asynchronous};
 		connect(m_optionsMenuComponent, &QQmlComponent::statusChanged, this, [this,show_indicator,item]
-														(QQmlComponent::Status status) { showOptionsMenu(show_indicator, item); });
+												(QQmlComponent::Status status) { showOptionsMenu(show_indicator, item); });
 	}
 	else {
 		if (!m_optionsMenu) {

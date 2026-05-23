@@ -32,6 +32,7 @@ constexpr QLatin1StringView messageWorkEdited{".4edited"};
 QT_FORWARD_DECLARE_CLASS(DBModelInterfaceChat)
 QT_FORWARD_DECLARE_STRUCT(ChatMessage)
 QT_FORWARD_DECLARE_CLASS(TPChatDB)
+QT_FORWARD_DECLARE_CLASS(TPFilePath)
 QT_FORWARD_DECLARE_CLASS(QTimer)
 
 class TPChat : public QAbstractListModel
@@ -87,7 +88,6 @@ public:
 public slots:
 	void processWebSocketTextMessage(const QString &message);
 	void processWebSocketBinaryMessage(const QByteArray &data);
-	void attachFileToMessage(const QString &filepath);
 	Q_INVOKABLE void onChatWindowOpened();
 
 signals:
@@ -100,7 +100,7 @@ signals:
 	void chatLoadedStatusChanged();
 
 private:
-	QString m_otherUserId, m_attachedMessage;
+	QString m_otherUserId;
 	uint m_userIdx, m_nMedia;
 	QList<ChatMessage*> m_messages;
 	QHash<int, QByteArray> m_roleNames;
@@ -124,7 +124,7 @@ private:
 	ChatMessage* decodeDownloadedMessage(const QString &encoded_message);
 	void getNewMessagesNumber(const QString &encoded_messages);
 	void setUnreadMessages(const QString &unread_ids, const bool add = true);
-	QString chatsMediaSubDir(const bool fullpath) const;
+	QString chatsMediaSubDir() const;
 
 	friend class TPMessagesManager;
 	Q_DISABLE_COPY(TPChat)
