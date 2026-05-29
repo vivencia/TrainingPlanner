@@ -88,16 +88,11 @@ public:
 #ifdef Q_OS_ANDROID
 		checkPendingIntents();
 		startAppNotifications();
-#else
-	#ifdef Q_OS_LINUX
-		processArguments();
-	#endif
 #endif
 	}
 
 #ifndef Q_OS_ANDROID
 	#ifdef Q_OS_LINUX
-		void processArguments() const;
 		Q_INVOKABLE void restartApp();
 		Q_INVOKABLE void sendMail(const QString &address, const QString &subject, const QString &attachment_file) const;
 		Q_INVOKABLE void viewExternalFile(const QString &filename) const;

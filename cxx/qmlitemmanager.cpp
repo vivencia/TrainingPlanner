@@ -18,7 +18,6 @@
 #include "tpsettings.h"
 #include "tputils.h"
 
-#include <QFileDialog>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickItem>
@@ -78,7 +77,6 @@ void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
 
 			appUserModel()->initUserSession();
 			connect(AppHomePage(), SIGNAL(mesosViewChanged(bool)), this, SLOT(homePageViewChanged(bool)));
-			connect(appUtils(), &TPUtils::tpFileOpenRequest, this, &QmlItemManager::openTPFile);
 			if (m_qml_testing) {
 				connect(appUserModel(), &DBUserModel::mainUserConfigurationFinished, this, [this] () {
 					connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::mesoDataLoaded, this, [this] () {
@@ -446,21 +444,6 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 		QMetaObject::invokeMethod(m_generalMessagesPopup, "showTimed", Q_ARG(int, msecs));
 }
 
-QString QmlItemManager::openFileDialog(const int file_type, const QString &suggested_save_name)
-{
-	if (!m_fileDialog)
-		m_fileDialog = new QFileDialog{nullptr, Qt::Dialog};
-	const TPUtils::FILE_TYPE f_type{static_cast<TPUtils::FILE_TYPE>(file_type)};
-	const bool open_dialog{suggested_save_name.isEmpty()};
-	m_fileDialog->setDirectory(appUtils()->standardPathForFileType(f_type));
-	m_fileDialog->setNameFilters(appUtils()->extensionsListForType(f_type));
-	m_fileDialog->setAcceptMode(open_dialog ? QFileDialog::AcceptOpen : QFileDialog::AcceptSave);
-	m_fileDialog->setFileMode(open_dialog ? QFileDialog::AnyFile : QFileDialog::Directory);
-	if (!open_dialog)
-		m_fileDialog->selectFile(suggested_save_name);
-	return m_fileDialog->exec() == QDialog::Accepted ? m_fileDialog->selectedFiles().at(0) : QString{};
-}
-
 void QmlItemManager::showOnlineMessagesManagerDialog(const bool show)
 {
 	if (m_messagesManagerPopup) {
@@ -510,78 +493,6 @@ void QmlItemManager::startMessagesManager()
 }
 
 //-----------------------------------------------------------SLOTS-----------------------------------------------------------
-void QmlItemManager::openTPFile(uint32_t tp_filetype, const QString &filename, const bool formatted, const QVariant &extra_info)
-{
-	std::shared_ptr<QMetaObject::Connection> conn{std::make_shared<QMetaObject::Connection>()};
-	*conn = connect(this, &QmlItemManager::qmlImportDialogClose, this, [=,this] (bool result) -> void {
-		disconnect(*conn);
-		switch (tp_filetype) {
-		case TPUtils::FT_TP_USER_PROFILE:
-			appUserModel()->newUserFromFile(filename, formatted);
-			break;
-		case TPUtils::FT_TP_PROGRAM:
-			appUserModel()->actualMesoModel()->newMesoFromFile(filename, false, formatted);
-			break;
-		case TPUtils::FT_TP_WORKOUT_A:
-		case TPUtils::FT_TP_WORKOUT_B:
-		case TPUtils::FT_TP_WORKOUT_C:
-		case TPUtils::FT_TP_WORKOUT_D:
-		case TPUtils::FT_TP_WORKOUT_E:
-		case TPUtils::FT_TP_WORKOUT_F:
-			appUserModel()->actualMesoModel()->newWorkoutFromFile(filename, formatted, extra_info);
-			break;
-		case TPUtils::FT_TP_EXERCISES:
-			appExercisesList()->newExerciseFromFile(filename, formatted);
-			break;
-		}
-	});
-	connect(appMainWindow(), SIGNAL(tpFileOpenInquiryResult(bool)), appItemManager(), SLOT(qmlImportDialogClose(bool)), Qt::SingleShotConnection);
-	QString str_type, str_details, str_image;
-	const QString &str_extra_info{extra_info.toString()};
-	const QString &coach{appUserModel()->userNameFromId(appUtils()->getCompositeValue(0, str_extra_info, record_separator))};
-
-	switch (tp_filetype) {
-	case TPUtils::FT_TP_USER_PROFILE:
-	{
-		const bool is_coach{appUtils()->getCompositeValue(1, str_extra_info, record_separator) == "1"_L1};
-		str_type = std::move(is_coach ? tr("data for a new coach") : tr("data for a new client"));
-		str_details = coach;
-		str_image = std::move(is_coach ? "manage-coaches"_L1 : "manage-clients"_L1);
-	}
-	break;
-	case TPUtils::FT_TP_PROGRAM:
-		str_type = std::move(tr("program"));
-		str_details = std::move(tr("A complete exercises program from coach ") % coach);
-		str_image = std::move("meso_preview"_L1);
-		break;
-	case TPUtils::FT_TP_WORKOUT_A:
-	case TPUtils::FT_TP_WORKOUT_B:
-	case TPUtils::FT_TP_WORKOUT_C:
-	case TPUtils::FT_TP_WORKOUT_D:
-	case TPUtils::FT_TP_WORKOUT_E:
-	case TPUtils::FT_TP_WORKOUT_F:
-	{
-		const uint meso_idx{appUtils()->getCompositeValue(1, str_extra_info, record_separator).toUInt()};
-		const QChar &splitletter{appUtils()->getCompositeValue(2, str_extra_info, record_separator).at(0)};
-		str_type = std::move(tr("workout"));
-		str_details = std::move(tr("An extra workout from ") % coach % tr(" for the program: ") %
-								appUserModel()->actualMesoModel()->name(meso_idx) % tr(" for the next time you train ") %
-								appUserModel()->actualMesoModel()->muscularGroup(meso_idx, splitletter));
-		str_image = std::move("workout_preview"_L1);
-	}
-	break;
-	case TPUtils::FT_TP_EXERCISES:
-		str_type = std::move(tr("Excercise Description"));
-		str_details = std::move(tr("A new exercise for the exercises database from ") % coach);
-		str_image = std::move("exerciselist_preview"_L1);
-		break;
-	default:
-		Q_UNREACHABLE();
-	}
-	QMetaObject::invokeMethod(appMainWindow(), "confirmTPFileOpening", Q_ARG(QString, str_type), Q_ARG(QString, str_details),
-																											Q_ARG(QString, str_image));
-}
-
 void QmlItemManager::mainWindowStarted() const
 {
 	appOsInterface()->initialCheck();
@@ -615,7 +526,6 @@ void QmlItemManager::runTests()
 {
 	QString str{" file:///home/guilhermef//.local/share/Vivencia Software///TrainingPlanner/1759170252407///1759256421787/exchange_files/1759170252407/mesocycles/Novo Programa 1.txt "};
 	TPFilePath file{str};
-	qDebug() << file();
 	qDebug() << file.ownerUser();
 	qDebug() << file.targetUser();
 	qDebug() << file.subdirs();

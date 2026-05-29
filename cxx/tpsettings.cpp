@@ -1,6 +1,7 @@
 #include "tpsettings.h"
 
 #include "dbusermodel.h"
+#include "tpfilepath.h"
 #include "tputils.h"
 
 #include <QColor>
@@ -14,8 +15,8 @@ TPSettings *TPSettings::app_settings{nullptr};
 constexpr QLatin1StringView white {"#ffffff"};
 constexpr QLatin1StringView black {"#000000"};
 
-TPSettings::TPSettings(QObject *parent)
-	: QSettings{parent}, m_localAppFilesDir{std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)) % QLatin1Char('/')}
+TPSettings::TPSettings(QObject *parent) : QSettings{parent}, m_configFilePath{new TPFilePath{"config.ini"_L1}},
+	m_localAppFilesDir{std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)) % QLatin1Char('/')}
 {
 	TPSettings::app_settings = this;
 	REGISTER_QML_SINGLETON(TPSettings, this);
@@ -24,7 +25,7 @@ TPSettings::TPSettings(QObject *parent)
 		m_appExiting = true;
 		sync();
 		if (exportToUserConfig(currentUser()))
-			appUserModel()->sendFileToServer(userConfigFileName(true, currentUser()), nullptr, QString{}, QString{}, currentUser());
+			appUserModel()->sendFileToServer(*m_configFilePath);
 		m_timer.stop();
 	};
 	connect(qApp, &QCoreApplication::aboutToQuit, this, save_config);
@@ -43,18 +44,10 @@ void TPSettings::globalSettingsInit()
 	getScreenMeasures();
 }
 
-QString TPSettings::userConfigFileName(const bool fullpath, const QString &userid) const
-{
-	const QString &configfile{"config.ini"_L1};
-	if (!fullpath)
-		return configfile;
-	else
-		return appUserModel()->userDir(userid) % configfile;
-}
-
 void TPSettings::importFromUserConfig(const QString &userid)
 {
-	QFile *cfg_file{appUtils()->openFile(userConfigFileName(true, userid))};
+	m_configFilePath->setOwnerUser(userid);
+	QFile *cfg_file{appUtils()->openFile(m_configFilePath->toString())};
 	if (cfg_file) {
 		QString line{512, QChar{0}};
 		QTextStream stream{cfg_file};
@@ -73,7 +66,8 @@ void TPSettings::importFromUserConfig(const QString &userid)
 
 bool TPSettings::exportToUserConfig(const QString &userid)
 {
-	QFile *cfg_file{appUtils()->openFile(userConfigFileName(true, userid), false, true, false, true)};
+	m_configFilePath->setOwnerUser(userid);
+	QFile *cfg_file{appUtils()->openFile(m_configFilePath->toString(), false, true, false, true)};
 	if (cfg_file) {
 		QTextStream stream{cfg_file};
 		uint i{0};

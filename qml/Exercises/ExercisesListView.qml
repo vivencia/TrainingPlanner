@@ -71,7 +71,7 @@ ColumnLayout {
 		TPRadioButtonOrCheckBox {
 			id: chkMultipleSelection
 			text: qsTr("Multiple selection")
-			radio: false
+			boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
 			visible: _control.enableMultipleSelection
 			Layout.preferredWidth: _control.width * 0.6
 			Layout.alignment: Qt.AlignRight

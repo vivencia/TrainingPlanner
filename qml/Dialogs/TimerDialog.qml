@@ -60,7 +60,7 @@ TPPopup {
 		TPRadioButtonOrCheckBox {
 			id: chkStopWatch
 			text: qsTr("Stopwatch")
-			radio: false
+			boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
 			checked: false
 			enabled: !_dlg_timer.timePickerOnly
 			Layout.leftMargin: 10

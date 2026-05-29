@@ -21,6 +21,9 @@ Q_PROPERTY(uint count READ count NOTIFY countChanged FINAL)
 public:
 	explicit TPMessagesManager(QObject *parent = nullptr);
 
+	static constexpr QLatin1StringView tpmessages_subdir{"exchange_files/"};
+	static constexpr QLatin1StringView tptextmessage_extension{".tpt"};
+
 	inline uint count() const { return m_data.count(); }
 	void readAllChats();
 
@@ -34,9 +37,8 @@ public:
 	Q_INVOKABLE inline void removeMessage(const qsizetype message_id) { removeMessage(message(message_id)); }
 	void removeMessage(TPMessage *msg);
 	Q_INVOKABLE void execAction(const int message_index, const uint action_id);
-
-	void binaryFileReceived(const QByteArray &data, const QString &userid);
-	void textMesssageReceived(const QString &msg, const QString &userid);
+	void binaryFileReceived(const QByteArray &data, const QString &meta_info);
+	void textMesssageReceived(const QString &msg, const TPFilePath &filename);
 
 	TPMessage *createChatMessage(const QString &userid, const bool check_unread_messages);
 	/**
@@ -49,7 +51,7 @@ public:
 	void openChatWindow(TPChat *chat_manager);
 	inline TPChat *chatManager(const QString &userid) const { return m_chatsList.value(userid); }
 	Q_INVOKABLE void openChat(const uint user_idx);
-	void sendFileChatMessage(const std::shared_ptr<TPFilePath> &filename, const QString &message);
+	void sendFileChatMessage(const TPFilePath &filename, const QString &message);
 	void startChatMessagesPolling(const QString &userid);
 
 	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
@@ -71,7 +73,9 @@ private:
 	QVariantMap m_chatWindowProperties;
 
 	int newMessagesCheckingInterval() const;
-	void parseTPMessage(const QString &encoded_message);
+	void scanLocalMessages();
+	void receivedTPMessages(const QStringList &files);
+	void parseTextMessage(const TPFilePath &filename);
 	void parseNewChatMessages(const QString &encoded_messages);
 	void createChatWindow_part2(TPChat *chat_manager);
 	void removeChatWindow(const QString &other_userid);

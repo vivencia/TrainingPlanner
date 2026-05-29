@@ -124,7 +124,6 @@ public:
 
 	void getMesocyclePage(const bool new_meso);
 	void showOptionsMenu(const bool show_indicator, QQuickItem *item = nullptr);
-	Q_INVOKABLE void sendMesocycleFileToClient();
 	Q_INVOKABLE void incorporateMeso();
 
 signals:

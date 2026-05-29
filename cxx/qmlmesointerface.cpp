@@ -396,11 +396,6 @@ void QMLMesoInterface::showOptionsMenu(const bool show_indicator, QQuickItem *it
 	}
 }
 
-void QMLMesoInterface::sendMesocycleFileToClient()
-{
-	m_mesoModel->sendMesoToUser(m_mesoIdx);
-}
-
 void QMLMesoInterface::incorporateMeso()
 {
 	m_mesoModel->incorporateMeso(m_mesoIdx);
@@ -418,7 +413,9 @@ void QMLMesoInterface::createMesocyclePage()
 	appQmlEngine()->setObjectOwnership(m_mesoPage, QQmlEngine::CppOwnership);
 	m_mesoPage->setParentItem(appItemManager()->AppPagesVisualParent());
 	verifyMesoRequiredFieldsStatus();
-	appPagesListModel()->openPage(m_mesoPage, std::move(tr("Program: ") + name()), [this] () { m_mesoModel->removeMesoManager(m_mesoIdx); });
+	appPagesListModel()->openPage(m_mesoPage, std::move(tr("Program: ") % name()), [this] () {
+		m_mesoModel->removeMesoManager(m_mesoIdx);
+	});
 	showOptionsMenu(true);
 
 	connect(m_mesoModel, &DBMesocyclesModel::mesoIdxChanged, this, [this] (const uint old_meso_idx, const uint new_meso_idx) {

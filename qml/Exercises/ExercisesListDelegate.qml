@@ -383,7 +383,7 @@ ItemDelegate {
 			TPRadioButtonOrCheckBox {
 				id: chkTrackRestTime
 				text: delegate.exercisesModel.trackRestTimeLabel
-				radio: false
+				boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
 				multiLine: true
 				checked: delegate.exercisesModel.trackRestTime(delegate.exerciseNumber)
 				width: listItem.width * 0.5
@@ -400,7 +400,7 @@ ItemDelegate {
 			TPRadioButtonOrCheckBox {
 				id: chkAutoRestTime
 				text: delegate.exercisesModel.autoRestTimeLabel
-				radio: false
+				boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
 				multiLine: true
 				checked: delegate.exercisesModel.autoRestTime(delegate.exerciseNumber)
 				width: listItem.width * 0.5
@@ -485,7 +485,7 @@ ItemDelegate {
 							TPRadioButtonOrCheckBox {
 								id: chkSyncGiantSets
 								text: qsTr("Follow first exercise sets")
-								radio: false
+								boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
 								checked: delegate.exercisesModel.syncGiantSets(delegate.exercisesModel.workingExercise,
 																					delegate.exercisesModel.workingSubExercise)
 								visible: subExercisesTabBar.currentIndex !== 0 && setsGroup.nSets === 0

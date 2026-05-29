@@ -36,9 +36,9 @@ TPPopup {
 
 		anchors {
 			top: lblTitle.bottom
-			left: dlgCoachRequest.contentItem.left
-			right: dlgCoachRequest.contentItem.right
-			bottom: btnSendRequest.top
+			left: parent.left
+			right: parent.right
+			bottom: parent.bottom
 			margins: 5
 		}
 
@@ -46,78 +46,44 @@ TPPopup {
 			text: qsTr("No coaches available")
 			font: AppGlobals.largeFont
 			horizontalAlignment: Text.AlignHCenter
-			visible: AppUserModel.availableCoaches ? AppUserModel.availableCoaches.count === 0 : false
+			visible: !availableCoachesList.visible
 			Layout.maximumWidth: parent.width - 10
 		}
 
-		TPListView {
+		TPCoachesAndClientsList {
 			id: availableCoachesList
-			model: AppUserModel.availableCoaches
-			visible: AppUserModel.availableCoaches.count > 0
+			listAvailable: true
+			listCoaches: true
+			multipleSelection: true
+			buttonString: qsTr("Send request to the selected coaches")
+			visible: model.count > 0
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 
-			delegate: Rectangle {
-				id: delegate
-				height: AppSettings.itemDefaultHeight
-				width: parent.width
-				enabled: !AppUserModel.availableCoaches.isUserDefault(index)
-				color: index === availableCoachesList.currentIndex ? AppSettings.entrySelectedColor :
-					(index % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2)
+			onButtonClicked: AppUserModel.sendRequestToCoaches();
+			onItemButtonClicked: (userIdx) => viewResumeLoader
 
-				required property int index
-				required property string extraName
-				required property bool selected
+			Loader {
+				id: viewResumeLoader
+				active: false
+				asynchronous: true
+				property TPFileViewer _file_viewer
 
-				TPRadioButtonOrCheckBox {
-					id: chkCoachName
-					text: delegate.extraName
-					radio: false
-					multiLine: true
-					checked: delegate.selected
-					width: parent.width * 0.65
-					x: 5
-					y: 0
-
-					onClicked: {
-						delegate.selected = checked;
-						AppUserModel.availableCoaches.setSelected(delegate.index, delegate.selected);
+				sourceComponent: TPFileViewer {
+					missingFileInfo: qsTr(`The coach's resumè file could not be found.
+						You can try to download it by pressing the second button from the left on the bottom of the screen`)
+					attemptToGetFile: true
+					onWindowStateChanged: (window_state) => {
+						if (window_state === TPFileViewer.WS_NORMAL)
+							viewResumeLoader.active = false;
 					}
-				} //CheckBox
-
-				TPFileViewer {
-					mediaSource
+					Component.onCompleted: viewResumeLoader._file_viewer = this;
 				}
-
-				TPButton {
-					text: qsTr("Résumé")
-					rounded: false
-					width: delegate.width * 0.3
-					height: delegate.height
-					x: delegate.width - width - 5
-					y: 0
-					onClicked: AppUserModel.viewResume(AppUserModel.availableCoaches, delegate.index);
-				}
-			} //delegate
+			}
+			function viewResume(user_idx: int): void {
+				viewResumeLoader._file_viewer.fileName = AppUserModel.resume(user_idx);
+				viewResumeLoader._file_viewer.startFullScreen();
+			}
 		} //ListView
 	} //ColumnLayout
-
-	TPButton {
-		id: btnSendRequest
-		text: qsTr("Send request to the selected coaches")
-		multiline: true
-		visible: AppUserModel.availableCoaches ? AppUserModel.availableCoaches.count > 0 : false
-		enabled: AppUserModel.availableCoaches ? AppUserModel.availableCoaches.anySelected : false
-
-		anchors {
-			left: dlgCoachRequest.contentItem.left
-			leftMargin: 5
-			right: dlgCoachRequest.contentItem.right
-			rightMargin: 5
-			bottom: dlgCoachRequest.contentItem.bottom
-			bottomMargin: 5
-		}
-
-		onClicked: AppUserModel.sendRequestToCoaches();
-	}
 }

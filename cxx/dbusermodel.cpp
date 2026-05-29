@@ -12,7 +12,6 @@
 #include "tpsettings.h"
 #include "tputils.h"
 #include "translationclass.h"
-#include "online_services/onlineuserinfo.h"
 #include "online_services/tpchat.h"
 #include "online_services/tpmessagesmanager.h"
 #include "online_services/tponlineservices.h"
@@ -99,7 +98,7 @@ void DBUserModel::initUserSession()
 			}
 			else {
 #ifndef Q_OS_ANDROID
-				//Sync all the views(OnlineUserInfo) relying on DBUserModel with the new data
+				//Sync all the views(UserInfoListModel) relying on DBUserModel with the new data
 				emit userModified(0, USER_MODIFIED_SWITCHING);
 #endif
 				initUserSession();
@@ -460,7 +459,7 @@ void DBUserModel::getAllOnlineUsers()
 			if (request_id == requestid) {
 				disconnect(*conn);
 				if (!m_allUsers) {
-					m_allUsers = new OnlineUserInfo{this};
+					m_allUsers = new UserInfoListModel{this};
 					m_allUsers->setSelectEntireRow(true);
 				}
 				else
@@ -647,14 +646,22 @@ void DBUserModel::setCoachPublicStatus(const bool bPublic)
 	}
 }
 
-void DBUserModel::uploadResume(const QString &filename)
+QString DBUserModel::resume(const uint user_idx) const
 {
-	TPFilePathPtr local_resumefile{TPFilePath::newTPFilePath()};
-	local_resumefile->setFileName("resume"_L1 % appUtils()->getFileExtension(filename), true);
-	local_resumefile->setBothUsers(userId());
-	if (appUtils()->copyFile(appUtils()->getCorrectPath(filename), local_resumefile->toString()))
-		sendFileToServer(local_resumefile, tr("Résumé uploaded successfully!"), true);
+	TPFilePath tp_filename{};
+	tp_filename.setOwnerUser(userId(0));
+	tp_filename.setTargetUser(userId(user_idx));
+	const QDir &localFilesDir{tp_filename.filePath()};
+	const QFileInfoList &files{localFilesDir.entryInfoList(QDir::Files|QDir::NoDotAndDotDot|QDir::NoSymLinks)};
+	for (const auto &it: files) {
+		if (it.fileName().startsWith("resume."_L1)) {
+			tp_filename.setFileName(it.filePath(), true);
+			break;
+		}
+	}
+	return tp_filename.toString();
 }
+
 
 void DBUserModel::setMainUserConfigurationFinished()
 {
@@ -672,7 +679,7 @@ void DBUserModel::setMainUserConfigurationFinished()
 	emit mainUserConfigurationFinished();
 }
 
-void DBUserModel::sendRequestToCoaches(OnlineUserInfo *users_list)
+void DBUserModel::sendRequestToCoaches(UserInfoListModel *users_list)
 {
 	for (auto i{0}; i < users_list->count(); ++i) {
 		if (users_list->isSelected(i)) {
@@ -684,7 +691,7 @@ void DBUserModel::sendRequestToCoaches(OnlineUserInfo *users_list)
 				if (request_id == requestid) {
 					disconnect(*conn);
 					if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS) {
-						const int user_idx{users_list->currentUserIdx(i)};
+						const int user_idx{users_list->userIdx(i)};
 						setIsConfirmed(user_idx, true);
 						setIsAvailable(user_idx, false);
 						appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_SUCCESS,
@@ -733,28 +740,7 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 	}
 }
 
-void DBUserModel::sendFileToUser(const TPFilePathPtr &tp_filename, const QVariant &extra_info,
-																const QString &success_message, const bool first_attempt)
-{
-	const bool use_ws{appWSServer()->isConnectionOK(tp_filename->targetUser())};
-	if (!use_ws && first_attempt) {
-		QTimer::singleShot(5000, this, [this,tp_filename,extra_info,success_message] () {
-			sendFileToUser(tp_filename, extra_info, success_message, false);
-		});
-		appWSServer()->connectToPeer(this, ChatWSServer::WS_TPMESSAGESMANAGER, tp_filename->targetUser());
-		return;
-	}
-
-	if (use_ws)
-		appWSServer()->sendBinaryMessage(ChatWSServer::WS_TPMESSAGESMANAGER, tp_filename->ownerUser(),
-								tp_filename->targetUser(), extra_info.toString(), tp_filename->toString());
-	else {
-		appUtils()->writeBinaryFile(tp_filename->toString(), tp_filename->toString(true), false);
-		sendFileToServer(tp_filename, success_message, true);
-	}
-}
-
-int DBUserModel::sendFileToServer(const TPFilePathPtr &tp_filename, const QString &successMessage, const bool removeLocalFile)
+int DBUserModel::sendFileToServer(const TPFilePath &tp_filename, const QString &successMessage, const bool remove_local_file)
 {
 	if (!canConnectToServer()) {
 		if (!successMessage.isEmpty())
@@ -766,16 +752,16 @@ int DBUserModel::sendFileToServer(const TPFilePathPtr &tp_filename, const QStrin
 			return TP_RET_CODE_UPLOAD_FAILED;
 	}
 
-	QFileInfo fi{tp_filename->toString()};
+	QFileInfo fi{tp_filename.toString()};
 	if (fi.size() > file_upload_max_size) {
 		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR,
 			appUtils()->string_strings({ tr("Cannot upload file"), tr("Maximum file size allowed: 8MB")}, record_separator));
 		return TP_RET_CODE_UPLOAD_FAILED;
 	}
 
-	const int requestid{tp_filename->generateUniqueId()};
+	const int requestid{tp_filename.generateUniqueId()};
 
-	QFile *upload_file{appUtils()->openFile(tp_filename->toString(), true, false, false, false, false)};
+	QFile *upload_file{appUtils()->openFile(tp_filename.toString(), true, false, false, false, false)};
 	if (upload_file) {
 		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [=,this]
@@ -783,7 +769,7 @@ int DBUserModel::sendFileToServer(const TPFilePathPtr &tp_filename, const QStrin
 			if (request_id == requestid) {
 				disconnect(*conn);
 				upload_file->close();
-				if (removeLocalFile)
+				if (remove_local_file)
 					QFile::remove(upload_file->fileName());
 				if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS) {
 					if (!successMessage.isEmpty())
@@ -796,12 +782,12 @@ int DBUserModel::sendFileToServer(const TPFilePathPtr &tp_filename, const QStrin
 				emit fileUploaded(ret_code == TP_RET_CODE_SUCCESS, requestid);
 			}
 		});
-		appOnlineServices()->sendFile(requestid, upload_file, tp_filename->subdirs(), tp_filename->targetUser());
+		appOnlineServices()->sendFile(requestid, upload_file, tp_filename.subdirs(), tp_filename.targetUser());
 	}
 	return requestid;
 }
 
-int DBUserModel::downloadFileFromServer(const std::shared_ptr<TPFilePath> &tp_filename, const QString &successMessage)
+int DBUserModel::downloadFileFromServer(const TPFilePath &tp_filename, const QString &successMessage)
 {
 	if (!canConnectToServer()) {
 		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_SERVER_UNREACHABLE);
@@ -811,21 +797,21 @@ int DBUserModel::downloadFileFromServer(const std::shared_ptr<TPFilePath> &tp_fi
 		if (!mainUserLoggedIn())
 			return TP_RET_CODE_DOWNLOAD_FAILED;
 	}
-	if (appUtils()->fileRecentlyModified(tp_filename->toString(), 30))
+	if (appUtils()->fileRecentlyModified(tp_filename.toString(), 30))
 		return TP_RET_CODE_NO_CHANGES_SUCCESS;
 
-	const int requestid{tp_filename->generateUniqueId()};
+	const int requestid{tp_filename.generateUniqueId()};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [=,this]
 						(const int request_id, const int ret_code, const QString &filename, const QByteArray &contents) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			bool success{!contents.isEmpty()};
-			static_cast<void>(appUtils()->mkdir(tp_filename->toString()));
+			static_cast<void>(appUtils()->mkdir(tp_filename.toString()));
 			switch (ret_code) {
 			case TP_RET_CODE_SUCCESS: //file downloaded
 				if (success) {
-					QFile *local_file{new QFile{tp_filename->toString(), this}};
+					QFile *local_file{new QFile{tp_filename.toString(), this}};
 					if (!local_file->exists() || local_file->remove()) {
 						if (local_file->open(QIODeviceBase::WriteOnly)) {
 							local_file->write(contents);
@@ -850,17 +836,17 @@ int DBUserModel::downloadFileFromServer(const std::shared_ptr<TPFilePath> &tp_fi
 			emit fileDownloaded(success, requestid, tp_filename);
 		}
 	});
-	appOnlineServices()->getFile(requestid, tp_filename->fileName(), tp_filename->subdirs(), tp_filename->targetUser(),
-																									tp_filename->toString());
+	appOnlineServices()->getFile(requestid, tp_filename.fileName(), tp_filename.subdirs(), tp_filename.targetUser(),
+																									tp_filename.toString());
 	return requestid;
 }
 
-void DBUserModel::removeFileFromServer(const std::shared_ptr<TPFilePath> &tp_filename)
+void DBUserModel::removeFileFromServer(const TPFilePath &tp_filename)
 {
 	if (!mainUserLoggedIn())
 		return;
-	const int requestid{tp_filename->generateUniqueId()};
-	appOnlineServices()->removeFile(requestid, tp_filename->fileName(), tp_filename->subdirs(), tp_filename->targetUser());
+	const int requestid{tp_filename.generateUniqueId()};
+	appOnlineServices()->removeFile(requestid, tp_filename.fileName(), tp_filename.subdirs(), tp_filename.targetUser());
 }
 
 int DBUserModel::listFilesFromServer(const QString &subdir, const QString &targetUser, const QString &filter)
@@ -875,14 +861,14 @@ int DBUserModel::listFilesFromServer(const QString &subdir, const QString &targe
 			emit filesListReceived(ret_code == TP_RET_CODE_SUCCESS, requestid, ret_list);
 		}
 	});
-	appOnlineServices()->listFiles(requestid, true, false, filter, subdir, targetUser);
+	appOnlineServices()->listFiles(requestid, filter, subdir, targetUser);
 	return requestid;
 }
 
 void DBUserModel::sendCmdFileToServer(const QString &cmd_filename)
 {
 	TPFilePathPtr tp_filename{TPFilePath::newTPFilePath(cmd_filename)};
-	const int request_id{sendFileToServer(tp_filename, QString{}, true)};
+	const int request_id{sendFileToServer(*tp_filename, QString{}, true)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &DBUserModel::fileUploaded, this, [this,request_id,conn,tp_filename] (const bool success, const uint requestid) {
 		if (request_id == requestid) {
@@ -911,7 +897,7 @@ void DBUserModel::downloadCmdFilesFromServer(const QString &subdir)
 				tp_filename.setSubdirs(subdir, true);
 				for (const auto &file : std::as_const(files_list)) {
 					tp_filename.setFileName(file, true);
-					const int requestid2{downloadFileFromServer(TPFilePath::newTPFilePath(tp_filename))};
+					const int requestid2{downloadFileFromServer(tp_filename)};
 					auto parseCmd = [this] (const QString &cmd_file) {
 						m_db->parseCmdFile(cmd_file);
 						QFile::remove(cmd_file);
@@ -924,11 +910,11 @@ void DBUserModel::downloadCmdFilesFromServer(const QString &subdir)
 					}
 					auto conn2{std::make_shared<QMetaObject::Connection>()};
 					*conn2 = connect(this, &DBUserModel::fileDownloaded, this, [this,conn2,requestid2,parseCmd]
-												(const bool success, const uint requestid, const QString &local_file_name) {
+											(const bool success, const uint requestid, const TPFilePath &local_file_name) {
 						if (requestid == requestid2) {
 							disconnect(*conn2);
 							if (success)
-								parseCmd(local_file_name);
+								parseCmd(local_file_name.toString());
 						}
 					});
 				}
@@ -937,9 +923,9 @@ void DBUserModel::downloadCmdFilesFromServer(const QString &subdir)
 	}
 }
 
-int DBUserModel::exportToFile(const uint user_idx, const TPFilePathPtr &tp_filename, const bool write_header) const
+int DBUserModel::exportToFile(const uint user_idx, const TPFilePath &tp_filename, const bool write_header) const
 {
-	QFile *out_file{appUtils()->openFile(tp_filename->toString(), false, true, false, true)};
+	QFile *out_file{appUtils()->openFile(tp_filename.toString(), false, true, false, true)};
 	if (!out_file)
 		return TP_RET_CODE_OPEN_WRITE_FAILED;
 
@@ -949,9 +935,9 @@ int DBUserModel::exportToFile(const uint user_idx, const TPFilePathPtr &tp_filen
 	return ret ? TP_RET_CODE_EXPORT_OK : TP_RET_CODE_EXPORT_FAILED;
 }
 
-int DBUserModel::exportToFormattedFile(const uint user_idx, const TPFilePathPtr &tp_filename) const
+int DBUserModel::exportToFormattedFile(const uint user_idx, const TPFilePath &tp_filename) const
 {
-	QFile *out_file{appUtils()->openFile(tp_filename->toString(), false, true, false, true)};
+	QFile *out_file{appUtils()->openFile(tp_filename.toString(), false, true, false, true)};
 	if (!out_file)
 		return TP_RET_CODE_OPEN_CREATE_FAILED;
 	const QList<uint> &export_user_idx{QList<uint>{} << user_idx};
@@ -982,9 +968,9 @@ int DBUserModel::exportToFormattedFile(const uint user_idx, const TPFilePathPtr 
 	return ret;
 }
 
-int DBUserModel::importFromFile(const TPFilePathPtr &tp_filename)
+int DBUserModel::importFromFile(const TPFilePath &tp_filename)
 {
-	QFile *in_file{appUtils()->openFile(tp_filename->toString())};
+	QFile *in_file{appUtils()->openFile(tp_filename.toString())};
 	if (!in_file)
 		return TP_RET_CODE_OPEN_READ_FAILED;
 
@@ -995,9 +981,9 @@ int DBUserModel::importFromFile(const TPFilePathPtr &tp_filename)
 	return ret;
 }
 
-int DBUserModel::importFromFormattedFile(const std::shared_ptr<TPFilePath> &tp_filename)
+int DBUserModel::importFromFormattedFile(const TPFilePath &tp_filename)
 {
-	QFile *in_file{appUtils()->openFile(tp_filename->toString())};
+	QFile *in_file{appUtils()->openFile(tp_filename.toString())};
 	if (!in_file)
 		return TP_RET_CODE_OPEN_READ_FAILED;
 
@@ -1026,7 +1012,7 @@ bool DBUserModel::importFromString(const QString &user_data)
 	return true;
 }
 
-int DBUserModel::newUserFromFile(const TPFilePathPtr &tp_filename, const std::optional<bool> &file_formatted, uint category)
+int DBUserModel::newUserFromFile(const TPFilePath &tp_filename, const std::optional<bool> &file_formatted, uint category)
 {
 	int import_result{TP_RET_CODE_IMPORT_FAILED};
 	if (file_formatted.has_value()) {
@@ -1332,7 +1318,7 @@ void DBUserModel::downloadAllUserFiles(const QString &userid)
 						tp_filename.setSubdirs(dest_dir, true);
 						for (const auto &file : std::as_const(files_list)) {
 							tp_filename.setFileName(file, true);
-							const int requestid3{downloadFileFromServer(TPFilePath::newTPFilePath(tp_filename))};
+							const int requestid3{downloadFileFromServer(tp_filename)};
 							if (requestid3 == TP_RET_CODE_DOWNLOAD_FAILED)
 								continue;
 							else if (requestid3 == TP_RET_CODE_NO_CHANGES_SUCCESS) {
@@ -1342,7 +1328,7 @@ void DBUserModel::downloadAllUserFiles(const QString &userid)
 							}
 							auto conn3{std::make_shared<QMetaObject::Connection>()};
 							*conn3 = connect(this, &DBUserModel::fileDownloaded, this, [this,conn3,requestid3]
-												(const bool success, const uint requestid, const QString &local_file_name) mutable {
+									(const bool success, const uint requestid, const TPFilePath &local_file_name) mutable {
 								if (requestid == requestid3) {
 									disconnect(*conn3);
 									if (--total_files <= 0)
@@ -1371,7 +1357,7 @@ void DBUserModel::checkIfCoachRegisteredOnline()
 void DBUserModel::getUserOnlineProfile(const QString &userid)
 {
 	TPFilePathPtr tp_filename{TPFilePath::newTPFilePath(userid % TPUtils::TP_FILE_EXTENSION, userId(), userid)};
-	const int request_id{downloadFileFromServer(tp_filename)};
+	const int request_id{downloadFileFromServer(*tp_filename)};
 	if (request_id == TP_RET_CODE_DOWNLOAD_FAILED)
 		return;
 	else if (request_id == TP_RET_CODE_NO_CHANGES_SUCCESS) {
@@ -1380,7 +1366,7 @@ void DBUserModel::getUserOnlineProfile(const QString &userid)
 	}
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &DBUserModel::fileDownloaded, this, [=,this]
-							(const bool success, const uint requestid, const std::shared_ptr<TPFilePath> &tp_filepath) {
+												(const bool success, const uint requestid, const TPFilePath &tp_filepath) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			emit userProfileAcquired(userid, success);
@@ -1390,21 +1376,21 @@ void DBUserModel::getUserOnlineProfile(const QString &userid)
 
 void DBUserModel::sendProfileToServer()
 {
-	auto tp_filename{TPFilePath::newTPFilePath(userId() % TPUtils::TP_FILE_EXTENSION, userId(), userId())};
+	TPFilePath tp_filename{userId() % TPUtils::TP_FILE_EXTENSION, userId(), userId(), {}};
 	if (exportToFile(0, tp_filename, true) == TP_RET_CODE_EXPORT_OK)
 		static_cast<void>(sendFileToServer(tp_filename));
 }
 
 void DBUserModel::sendUserDataToServerDatabase()
 {
-	auto tp_filename{TPFilePath::newTPFilePath(local_user_data_file, userId(), userId())};
+	TPFilePath tp_filename{local_user_data_file, userId(), userId(), {}};
 	if (exportToFile(0, tp_filename, false) == TP_RET_CODE_EXPORT_OK)
 		static_cast<void>(sendFileToServer(tp_filename, tr("Online user information updated"), true));
 }
 
 void DBUserModel::sendAvatarToServer()
 {
-	sendFileToServer(TPFilePath::newTPFilePath(avatar(0)));
+	sendFileToServer(*TPFilePath::newTPFilePath(avatar(0)));
 }
 
 QString DBUserModel::findAvatar(const QString &base_dir) const
@@ -1417,23 +1403,12 @@ QString DBUserModel::findAvatar(const QString &base_dir) const
 	return it != images.cend() ? it->filePath() : QString{};
 }
 
-QString DBUserModel::findResume(const QString &base_dir) const
-{
-	const QDir &localFilesDir{base_dir};
-	const QFileInfoList &files{localFilesDir.entryInfoList(QDir::Files|QDir::NoDotAndDotDot|QDir::NoSymLinks)};
-	for (const auto &it: files) {
-		if (it.fileName().startsWith("resume."_L1))
-			return it.filePath();
-	}
-	return QString{};
-}
-
 void DBUserModel::downloadAvatarFromServer(const uint user_idx)
 {
 	QString avatar_file{std::move(findAvatar(userDir(user_idx)))};
 	auto tp_filename{TPFilePath::newTPFilePath(avatar_file)};
 	tp_filename->setUseFileExtension(false);
-	const int request_id{downloadFileFromServer(tp_filename)};
+	const int request_id{downloadFileFromServer(*tp_filename)};
 	if (request_id == TP_RET_CODE_DOWNLOAD_FAILED)
 		return;
 	else if (request_id == TP_RET_CODE_NO_CHANGES_SUCCESS) {
@@ -1442,49 +1417,15 @@ void DBUserModel::downloadAvatarFromServer(const uint user_idx)
 	}
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &DBUserModel::fileDownloaded, this, [=,this]
-								(const bool success, const uint requestid, const std::shared_ptr<TPFilePath> &tp_filepath) {
+												(const bool success, const uint requestid, const TPFilePath &tp_filepath) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			if (success) {
 				static_cast<void>(QFile::remove(avatar_file));
-				setAvatar(user_idx, tp_filepath->toString(), true, false);
+				setAvatar(user_idx, tp_filepath.toString(), true, false);
 			}
 		}
 	});
-}
-
-void DBUserModel::downloadResumeFromServer(const uint user_idx)
-{
-	const QString &resume_file{findResume(userDir(user_idx))};
-	auto tp_filename{TPFilePath::newTPFilePath(resume_file)};
-	tp_filename->setUseFileExtension(false);
-	const int request_id{downloadFileFromServer(tp_filename)};
-	if (request_id == TP_RET_CODE_DOWNLOAD_FAILED)
-		return;
-	else if (request_id == TP_RET_CODE_NO_CHANGES_SUCCESS) {
-		openResume(resume_file);
-		return;
-	}
-	auto conn{std::make_shared<QMetaObject::Connection>()};
-	*conn = connect(this, &DBUserModel::fileDownloaded, this, [=,this]
-								(const bool success, const uint requestid, const std::shared_ptr<TPFilePath> &tp_filepath) {
-		if (request_id == requestid) {
-			disconnect(*conn);
-			tp_filename->setUseFileExtension(true);
-			if (tp_filepath->toString() != resume_file)
-				static_cast<void>(QFile::remove(resume_file));
-			openResume(success ? tp_filepath->toString() : QString{});
-		}
-	});
-}
-
-void DBUserModel::openResume(const QString &filename) const
-{
-	if (!filename.isEmpty())
-		appOsInterface()->openURL(filename);
-	else
-		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR,
-				appUtils()->string_strings({tr("Error"), tr("No resumé file provided by the coach")}, record_separator));
 }
 
 void DBUserModel::startServerPolling()
@@ -1562,7 +1503,7 @@ void DBUserModel::pollClientsRequests()
 void DBUserModel::addAvailableClient(const QString &user_id)
 {
 	if (findUserById(user_id) == -1) {
-		TPFilePathPtr tp_filename{TPFilePath::newTPFilePath(user_id % TPUtils::TP_FILE_EXTENSION, userId(), user_id)};
+		TPFilePath tp_filename{user_id % TPUtils::TP_FILE_EXTENSION, userId(), user_id, {}};
 		static_cast<void>(newUserFromFile(tp_filename, false, UC_CLIENT & UC_YET_AVAILABLE));
 	}
 }
@@ -1600,7 +1541,7 @@ void DBUserModel::pollCoachesAnswers()
 void DBUserModel::addAvailableCoach(const QString &user_id)
 {
 	if (findUserById(user_id) == -1) {
-		TPFilePathPtr tp_filename{TPFilePath::newTPFilePath(user_id % TPUtils::TP_FILE_EXTENSION, userId(), user_id)};
+		TPFilePath tp_filename{user_id % TPUtils::TP_FILE_EXTENSION, userId(), user_id, {}};
 		if (newUserFromFile(tp_filename, false, UC_YET_AVAILABLE) == TP_RET_CODE_IMPORT_OK)
 			emit availableCoachesChanged();
 	}
@@ -1645,7 +1586,7 @@ void DBUserModel::pollCurrentCoaches()
 	const int requestid{appUtils()->generateUniqueId("pollCurrentCoaches"_L1)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid]
-															(const int request_id, const int ret_code, const QString &ret_string) {
+													(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			if (ret_code == TP_RET_CODE_SUCCESS) {
@@ -1689,12 +1630,12 @@ void DBUserModel::unregisterUser()
 	const int requestid{appUtils()->generateUniqueId("unregisterUserOnline"_L1)};
 	auto conn = std::make_shared<QMetaObject::Connection>();
 	*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid]
-															(const int request_id, const int ret_code, const QString &ret_string) {
+													(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			auto conn2{std::make_shared<QMetaObject::Connection>()};
 			*conn2 = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn2,requestid]
-															(const int request_id, const int ret_code, const QString &ret_string) {
+													(const int request_id, const int ret_code, const QString &ret_string) {
 				if (request_id == requestid) {
 					disconnect(*conn2);
 					if (ret_code == TP_RET_CODE_SUCCESS) {
@@ -1804,11 +1745,10 @@ QString DBUserModel::formatFieldToImport(const uint field, const QString &fieldV
 		return QString::number(appUtils()->dateFromString(fieldValue).toJulianDay());
 	case USER_FIELD_SEX:
 		return fieldValue == tr("Male") ? "0"_L1 : "1"_L1;
-	case USER_FIELD_SOCIALMEDIA:
-		{
+	case USER_FIELD_SOCIALMEDIA: {
 		QString strSocial{fieldValue};
 		return strSocial.replace(fancy_record_separator1, record_separator);
-		}
+	}
 	case USER_FIELD_USER_CATEGORY:
 		if (fieldValue == tr("User"))
 			return "1"_L1;

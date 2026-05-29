@@ -1,9 +1,7 @@
 #include "tputils.h"
 
 #include "qmlitemmanager.h"
-#include "osinterface.h"
 #include "return_codes.h"
-#include "tpfilepath.h"
 
 #include <QClipboard>
 #include <QDir>
@@ -219,18 +217,6 @@ QString TPUtils::standardPathForFileType(TPUtils::FILE_TYPE filetype) const
 		return QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
 	else
 		return QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-}
-
-void TPUtils::viewOrOpenFile(const QString &filename, const QVariant &extra_info)
-{
-	uint32_t ft{getFileType(filename)};
-	if (ft >= FT_IMAGE)
-		appOsInterface()->viewExternalFile(filename);
-	else {
-		const bool formatted{(ft & FT_TP_FORMATTED) == FT_TP_FORMATTED};
-		ft &= static_cast<uint32_t>(~FT_TP_FORMATTED);
-		emit tpFileOpenRequest(ft, filename, formatted, extra_info);
-	}
 }
 
 bool TPUtils::canReadFile(const QString &filename) const
@@ -525,7 +511,7 @@ void TPUtils::scanDir(const QString &path, QFileInfoList &results, const QString
 		if (follow_tree) {
 			const QStringList &subdirs{dir.entryList(QDir::Dirs|QDir::NoDotAndDotDot)};
 			for (const auto &subdir: subdirs)
-				scanDir(path + subdir, results, match, true);
+				scanDir(path % subdir, results, match, true);
 		}
 	}
 }
@@ -774,25 +760,11 @@ void TPUtils::writeBinaryFile(const QString &destination_path, const QByteArray 
 	}
 }
 
-void TPUtils::insertOrModifyBinaryFileField(QByteArray &data, BINARY_FILE_INFO_FIELDS field, const QString &info) const
-{
-	const auto extra_fields_pos{data.lastIndexOf(binary_file_initial_separator.toLatin1())};
-	if (extra_fields_pos > 0) {
-		QString extra_info{data.last(data.length() - extra_fields_pos - 1)};
-		setCompositeValue(field, info, extra_info, binary_file_separator);
-		data.chop(data.length() - extra_fields_pos);
-		data.append(extra_info.toLocal8Bit());
-	}
-}
 
-QString TPUtils::binaryFileExtraFieldValue(const QByteArray &data, BINARY_FILE_INFO_FIELDS field) const
+QString TPUtils::binaryFileMetaInfoFieldValue(const QByteArray &data, BINARY_FILE_INFO_FIELDS field) const
 {
-	const auto extra_fields_pos{data.lastIndexOf(binary_file_initial_separator.toLatin1(), -1)};
-	if (extra_fields_pos > 0) {
-		const QString &extra_info{data.last(data.length() - extra_fields_pos - 1)};
-		return getCompositeValue(field, extra_info, binary_file_separator);
-	}
-	return QString{};
+	const QString &extra_info{getBinaryFileMetaInfo(data)};
+	return getCompositeValue(field, extra_info, binary_file_separator);
 }
 
 void TPUtils::copyToClipboard(const QString &text) const

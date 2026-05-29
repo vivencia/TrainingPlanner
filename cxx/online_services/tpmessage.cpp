@@ -15,17 +15,10 @@ TPMessage::~TPMessage()
 
 void TPMessage::setFileName(const TPFilePath &tpfilepath)
 {
-	if (m_tpFilePath)
-		delete m_tpFilePath;
-	m_tpFilePath = new TPFilePath{tpfilepath};
-	emit dataChanged(TPMESSAGE_FIELD_FILE);
-}
-
-void TPMessage::setFileName(const QString &filename)
-{
-	if (m_tpFilePath)
-		delete m_tpFilePath;
-	m_tpFilePath = new TPFilePath{filename};
+	if (!m_tpFilePath)
+		m_tpFilePath = new TPFilePath{tpfilepath};
+	else
+		*m_tpFilePath = tpfilepath;
 	emit dataChanged(TPMESSAGE_FIELD_FILE);
 }
 
@@ -90,8 +83,7 @@ void TPMessage::removeAction(const int action_id)
 
 void TPMessage::execAction(const int action_id)
 {
-	if (action_id >= 0 && action_id < m_actions.count())
-	{
+	if (action_id >= 0 && action_id < m_actions.count()) {
 		const QChar &lastChar{m_actions.at(action_id).last(1).at(0)};
 		if (m_actionFuncs.at(action_id) != nullptr)
 			m_actionFuncs.at(action_id)(action_id < m_data.count() ? m_data.at(action_id) : m_data);
@@ -101,13 +93,11 @@ void TPMessage::execAction(const int action_id)
 
 uint TPMessage::insertData(const QVariant &data, const int action_id)
 {
-	if (action_id < 0)
-	{
+	if (action_id < 0) {
 		m_data.append(data);
 		return m_data.count() - 1;
 	}
-	else if (action_id >= m_data.count())
-	{
+	else if (action_id >= m_data.count()) {
 		for (auto i{m_data.count()}; i <= action_id ; ++i)
 			m_data.append(QVariant{});
 	}

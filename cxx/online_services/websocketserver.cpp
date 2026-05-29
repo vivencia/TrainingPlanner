@@ -39,7 +39,7 @@ void ChatWSServer::setServerStatus(const bool enabled)
 		setupWSServer();
 }
 
-void ChatWSServer::connectToPeer(QObject *local_peer, const WS_USES use, const QString &userid, int n_attempts)
+void ChatWSServer::connectToPeer(QObject *local_peer, const int handle, const QString &userid, int n_attempts)
 {
 	if (isConnectionOK(userid)) {
 		if (!m_localPeers.value(userid).contains(local_peer))
@@ -69,8 +69,8 @@ void ChatWSServer::connectToPeer(QObject *local_peer, const WS_USES use, const Q
 						m_localPeers.remove(userid);
 					});
 					m_peersSockets.insert(userid, peer);
-					QList<QObject*> local_peers{WS_TOTALUSES, nullptr};
-					local_peers[use] = local_peer;
+					QList<QObject*> local_peers{TPUtils::SFM_TOTAL_NUMBER_OF_METHODS, nullptr};
+					local_peers[handle] = local_peer;
 					m_localPeers.insert(userid, local_peers);
 					emit connectionAttemptResult(true, userid);
 				});
@@ -84,7 +84,7 @@ void ChatWSServer::connectToPeer(QObject *local_peer, const WS_USES use, const Q
 						case QAbstractSocket::RemoteHostClosedError:
 							peer->close();
 							if (--n_attempts > 0)
-								connectToPeer(local_peer, use, userid, n_attempts);
+								connectToPeer(local_peer, handle, userid, n_attempts);
 							else
 								err_func();
 						break;
@@ -106,49 +106,61 @@ bool ChatWSServer::isConnectionOK(const QString &userid) const
 	return peer && peer->isValid();
 }
 
-bool ChatWSServer::sendTextMessage(const WS_USES use, const QString &sender_id, const QString &receiver_id, const QString &message)
+bool ChatWSServer::sendTextMessage(const int handle, const QString &sender_id, const QString &receiver_id,
+																		const QString &message, const TPFilePath &filename)
 {
 	QWebSocket *peer{m_peersSockets.value(receiver_id)};
 	if (peer && peer->isValid())
-		return peer->sendTextMessage(appUtils()->string_strings({QString::number(use), sender_id, receiver_id,
-											QString{}, message, QString{}}, comp_exercises_separator)) > message.length();
+		return peer->sendTextMessage(appUtils()->makeBinaryFileMetaInfo(
+			handle, sender_id, receiver_id, filename.subdirs(), filename.fileName(), QChar{}, message)) > message.length();
 	return false;
 }
 
-bool ChatWSServer::sendBinaryMessage(const WS_USES use, const QString &sender_id, const QString &receiver_id,
-																	const QString &extra_info, const QString &filename)
+bool ChatWSServer::sendBinaryMessage(const int handle, const TPFilePath &filename, const QString &extra_info,
+																							const bool remove_local_file)
 {
-	const QString &info_fields{appUtils()->string_strings({
-			QString::number(use), sender_id, receiver_id, filename, extra_info}, binary_file_separator)};
-	QByteArray data{std::move(appUtils()->readBinaryFile(filename, info_fields))};
+	const QString &receiver_id{filename.targetUser()};
+	const QString &info_fields{appUtils()->makeBinaryFileMetaInfo(handle, filename.ownerUser(), receiver_id,
+															filename.subdirs(), filename.fileName(), QChar{}, extra_info)};
+	QByteArray data{std::move(appUtils()->readBinaryFile(filename.toString(), info_fields))};
 	QWebSocket *peer{m_peersSockets.value(receiver_id)};
-	return peer && peer->isValid() ? peer->sendBinaryMessage(data) == data.size() + info_fields.size() : false;
+	if (peer && peer->isValid()) {
+		if (peer->sendBinaryMessage(data) == data.size() + info_fields.size()) {
+			if (remove_local_file)
+				QFile::remove(filename.fileName());
+			return true;
+		}
+	}
+	return false;
 }
 
 void ChatWSServer::wsTextMessageReceived(QString message)
 {
 	bool ok{false};
-	const WS_USES use{static_cast<WS_USES>(appUtils()->getCompositeValue(TPUtils::BFIF_HANDLE, message, comp_exercises_separator).toUInt(&ok))};
+	const TPUtils::SEND_FILE_METHOD use{static_cast<TPUtils::SEND_FILE_METHOD>(appUtils()->binaryFileMetaInfoFieldValue(
+																			message, TPUtils::BFIF_HANDLE).toUInt(&ok))};
 	if (ok) {
-		const QString &local_user{appUtils()->getCompositeValue(TPUtils::BFIF_RECEIVERID, message, comp_exercises_separator)};
+		const QString &local_user{appUtils()->binaryFileMetaInfoFieldValue(message, TPUtils::BFIF_RECEIVERID)};
 		const QList<QObject*> local_peers{m_localPeers.value(local_user)};
-		const QString &remote_user{appUtils()->getCompositeValue(TPUtils::BFIF_SENDERID, message, comp_exercises_separator)};
+		const QString &remote_user{appUtils()->binaryFileMetaInfoFieldValue(message, TPUtils::BFIF_SENDERID)};
 		if (!local_peers.isEmpty()) {
 			QObject *local_peer{local_peers.at(use)};
+			TPFilePath filename{appUtils()->binaryFileMetaInfoFieldValue(message, TPUtils::BFIF_FILEPATH)};
 			if (local_peer) {
 				switch (use) {
-				case WS_TPCHAT:
+				case TPUtils::SFM_TPCHAT:
 					qobject_cast<TPChat*>(local_peer)->processWebSocketTextMessage(message);
 					break;
-				case WS_TPMESSAGESMANAGER: {
-					qobject_cast<TPMessagesManager*>(local_peer)->textMesssageReceived(message, remote_user);
+				case TPUtils::SFM_TPMESSAGESMANAGER: {
+					qobject_cast<TPMessagesManager*>(local_peer)->textMesssageReceived(
+								appUtils()->binaryFileMetaInfoFieldValue(message, TPUtils::BFIF_EXTRAINFO), filename);
 					break;
 				}
-				case WS_FILETRANSFER: {
-					const QString &filename{appUtils()->getCompositeValue(TPUtils::BFIF_FILEPATH, message, comp_exercises_separator)};
-					sendBinaryMessage(ChatWSServer::WS_FILETRANSFER, remote_user, local_user, QString{}, filename);
+				case TPUtils::SFM_FILETRANSFER:
+					filename.setOwnerUser(local_user);
+					filename.setTargetUser(remote_user);
+					sendBinaryMessage(TPUtils::SFM_FILETRANSFER, filename);
 					break;
-				}
 				default: return;
 				}
 			}
@@ -158,23 +170,28 @@ void ChatWSServer::wsTextMessageReceived(QString message)
 
 void ChatWSServer::wsBinaryMessageReceived(QByteArray data)
 {
+	const QString &data_meta_info{appUtils()->getBinaryFileMetaInfo(data)};
+	if (data_meta_info.isEmpty()) {
+		emit fileReceived(QByteArray{});
+		return;
+	}
 	bool ok{false};
-	const WS_USES use{static_cast<WS_USES>(appUtils()->getCompositeValue(TPUtils::BFIF_HANDLE, data, comp_exercises_separator).toUInt(&ok))};
+	const TPUtils::SEND_FILE_METHOD use{static_cast<TPUtils::SEND_FILE_METHOD>(appUtils()->binaryFileMetaInfoFieldValue(
+																		data_meta_info, TPUtils::BFIF_HANDLE).toUInt(&ok))};
 	if (ok) {
-		const QString &local_user{appUtils()->getCompositeValue(TPUtils::BFIF_RECEIVERID, data, comp_exercises_separator)};
+		const QString &local_user{appUtils()->binaryFileMetaInfoFieldValue(data_meta_info, TPUtils::BFIF_RECEIVERID)};
 		const QList<QObject*> local_peers{m_localPeers.value(local_user)};
 		if (!local_peers.isEmpty()) {
 			QObject *local_peer{local_peers.at(use)};
 			if (local_peer) {
 				switch (use) {
-				case WS_TPCHAT:
-					qobject_cast<TPChat*>(local_peer)->processWebSocketBinaryMessage(data);
+				case TPUtils::SFM_TPCHAT:
+					qobject_cast<TPChat*>(local_peer)->processWebSocketBinaryMessage(data, data_meta_info);
 					break;
-				case WS_TPMESSAGESMANAGER:
-					qobject_cast<TPMessagesManager*>(local_peer)->binaryFileReceived(data,
-									appUtils()->getCompositeValue(TPUtils::BFIF_SENDERID, data, comp_exercises_separator));
+				case TPUtils::SFM_TPMESSAGESMANAGER:
+					qobject_cast<TPMessagesManager*>(local_peer)->binaryFileReceived(data, data_meta_info);
 					break;
-				case WS_FILETRANSFER:
+				case TPUtils::SFM_FILETRANSFER:
 					emit fileReceived(data);
 					break;
 				default: return;

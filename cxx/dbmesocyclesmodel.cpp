@@ -23,9 +23,9 @@ constexpr QLatin1StringView mesosViewIdxSetting{"mesosViewIdx"};
 DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
 	: QObject{parent}, m_currentWorkingMeso{-1}, m_ownMesos{nullptr}, m_clientMesos{nullptr}
 {
-	if (appUserModel()->mainUserIsClient())
+	if (appUserModel()->isClient(0))
 		m_ownMesos = new HomePageMesoModel{this, true};
-	if (appUserModel()->mainUserIsCoach())
+	if (appUserModel()->isCoach(0))
 		m_clientMesos = new HomePageMesoModel{this, false};
 
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, &DBMesocyclesModel::labelChanged);
@@ -44,7 +44,7 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
 				checkIfCanExport(meso_idx);
 		}
 		else
-			exportToFile(meso_idx, suggestedName(meso_idx), false); //temporary new mesocycles
+			exportToFile(meso_idx, *suggestedName(meso_idx), false); //temporary new mesocycles
 	});
 	getAllMesocycles();
 }
@@ -87,9 +87,9 @@ void DBMesocyclesModel::getMesocyclePage(const uint meso_idx, const bool new_mes
 
 void DBMesocyclesModel::startNewMesocycle(const bool own_meso)
 {
-	const uint meso_idx{newMesoData(std::move(QStringList{std::move(appUtils()->newDBTemporaryId()), QString{}, QString{}, QString{},
-		QString{}, QString{}, std::move("RRRRRRR"_L1), QString{}, QString{}, QString{}, QString{}, QString{}, QString{},
-		appUserModel()->userId(0), (own_meso ? appUserModel()->userId(0) : appUserModel()->mostRecentClientId()), QString{},
+	const uint meso_idx{newMesoData(std::move(QStringList{std::move(appUtils()->newDBTemporaryId()), QString{}, QString{},
+				QString{}, QString{}, QString{}, std::move("RRRRRRR"_L1), QString{}, QString{}, QString{}, QString{},
+				QString{}, QString{}, appUserModel()->userId(0), (own_meso ? appUserModel()->userId(0) : QString{}), QString{},
 		QString{}, std::move("1"_L1)}))};
 
 	addSubMesoModel(meso_idx, own_meso);
@@ -171,14 +171,27 @@ void DBMesocyclesModel::setModified(const uint meso_idx, const uint field)
 	emit mesoChanged(meso_idx, field);
 }
 
-int DBMesocyclesModel::idxFromId(const QString &meso_id) const
+int DBMesocyclesModel::idxFromFieldValue(const QString &field_value, const int field) const
 {
 	uint meso_idx{0};
-	const auto &meso = std::find_if(m_mesoData.cbegin(), m_mesoData.cend(), [meso_id,&meso_idx] (const auto &meso_info) {
-		++meso_idx;
-		return meso_info.at(MESO_FIELD_ID) == meso_id;
-	});
-	return meso != m_mesoData.cend() ? meso_idx : -1;
+	if (field >= 0) {
+		for (const QStringList &meso_data : m_mesoData) {
+			if (meso_data.at(field) == field_value)
+				return meso_idx;
+			++meso_idx;
+		}
+	}
+	else {
+		for (const QStringList &meso_data : m_mesoData) {
+			const auto &meso_itr = std::find_if(meso_data.cbegin(), meso_data.cend(), [field_value] (const QString &meso_value) {
+				return meso_value == field_value;
+			});
+			if (meso_itr != meso_data.cend())
+				return meso_idx;
+			++meso_idx;
+		}
+	}
+	return -1;
 }
 
 void DBMesocyclesModel::setName(const uint meso_idx, const QString &new_name)
@@ -233,14 +246,16 @@ void DBMesocyclesModel::setClient(const uint meso_idx, const QString &new_client
 	setModified(meso_idx, MESO_FIELD_CLIENT);
 }
 
-bool DBMesocyclesModel::isOwnMeso(const uint meso_idx) const
+DBMesocyclesModel::st_MesoType DBMesocyclesModel::mesoType(const uint meso_idx) const
 {
-	if (meso_idx < m_mesoData.count()) {
-		const QString &_client{m_mesoData.at(meso_idx).at(MESO_FIELD_CLIENT)};
-		if (!_client.isEmpty())
-			return m_mesoData.at(meso_idx).at(MESO_FIELD_CLIENT) == appUserModel()->userId(0);
+	if (client(meso_idx) != appUserModel()->userId(0)) //meso for a client
+		return MT_MESO_FOR_CLIENT;
+	else {
+		if (coach(meso_idx) != appUserModel()->userId(0)) //meso from a coach
+			return MT_MESO_FROM_COACH;
+		else
+			return MT_MESO_FOR_SELF;
 	}
-	return false;
 }
 
 void DBMesocyclesModel::addSubMesoModel(const uint meso_idx, const bool own_meso)
@@ -499,11 +514,9 @@ DBExercisesModel *DBMesocyclesModel::workoutForDay(const uint meso_idx, const in
 	return w_model;
 }
 
-void DBMesocyclesModel::newWorkoutFromFile(const TPFilePathPtr &filename, const bool formatted, const QVariant &workout_info)
+void DBMesocyclesModel::newWorkoutFromFile(const TPFilePath &filename, const bool formatted, const uint meso_idx,
+																								const QChar &splitletter)
 {
-	const QString &str_workout_info{workout_info.toString()};
-	const uint meso_idx{appUtils()->getCompositeValue(1, str_workout_info, record_separator).toUInt()};
-	const QChar &splitletter{appUtils()->getCompositeValue(2, str_workout_info, record_separator).at(0)};
 	DBCalendarModel *cal{calendar(meso_idx)};
 	if (cal) {
 		int cal_day{cal->calendarDay(QDate::currentDate())};
@@ -551,9 +564,9 @@ void DBMesocyclesModel::checkIfCanExport(const uint meso_idx, const bool emit_si
 	}
 }
 
-void DBMesocyclesModel::exportToFile(const uint meso_idx, const TPFilePathPtr &filename, const bool export_splits)
+void DBMesocyclesModel::exportToFile(const uint meso_idx, const TPFilePath &filename, const bool export_splits)
 {
-	QFile *meso_file{appUtils()->openFile(filename->toString(), false, true, false, true)};
+	QFile *meso_file{appUtils()->openFile(filename.toString(), false, true, false, true)};
 	if (!meso_file) {
 		emit mesoExported(meso_idx, filename, TP_RET_CODE_OPEN_CREATE_FAILED);
 		return;
@@ -569,15 +582,15 @@ void DBMesocyclesModel::exportToFile(const uint meso_idx, const TPFilePathPtr &f
 		ret = TP_RET_CODE_EXPORT_OK;
 	}
 	else
-		static_cast<void>(QFile::remove(filename->toString()));
+		static_cast<void>(QFile::remove(filename.toString()));
 	emit mesoExported(meso_idx, filename, ret);
 	meso_file->close();
 	delete meso_file;
 }
 
-void DBMesocyclesModel::exportToFormattedFile(const uint meso_idx, const TPFilePathPtr &filename)
+void DBMesocyclesModel::exportToFormattedFile(const uint meso_idx, const TPFilePath &filename)
 {
-	QFile *out_file{appUtils()->openFile(filename->toString(), false, true, false, true)};
+	QFile *out_file{appUtils()->openFile(filename.toString(), false, true, false, true)};
 	if (!out_file) {
 		emit mesoExported(meso_idx, filename, TP_RET_CODE_OPEN_CREATE_FAILED);
 		return;
@@ -620,9 +633,9 @@ void DBMesocyclesModel::exportToFormattedFile(const uint meso_idx, const TPFileP
 	exportToFile_splitData(meso_idx, out_file, filename, true);
 }
 
-int DBMesocyclesModel::importFromFile(const uint meso_idx, const TPFilePathPtr &filename)
+int DBMesocyclesModel::importFromFile(const uint meso_idx, const TPFilePath &filename)
 {
-	QFile *in_file{appUtils()->openFile(filename->toString())};
+	QFile *in_file{appUtils()->openFile(filename.toString())};
 	if (!in_file)
 		return  TP_RET_CODE_OPEN_READ_FAILED;
 
@@ -643,9 +656,9 @@ int DBMesocyclesModel::importFromFile(const uint meso_idx, const TPFilePathPtr &
 	return ret;
 }
 
-int DBMesocyclesModel::importFromFormattedFile(const uint meso_idx, const TPFilePathPtr &filename)
+int DBMesocyclesModel::importFromFormattedFile(const uint meso_idx, const TPFilePath &filename)
 {
-	QFile *in_file{appUtils()->openFile(filename->toString())};
+	QFile *in_file{appUtils()->openFile(filename.toString())};
 	if (!in_file)
 		return  TP_RET_CODE_OPEN_READ_FAILED;
 
@@ -673,17 +686,13 @@ int DBMesocyclesModel::importFromFormattedFile(const uint meso_idx, const TPFile
 TPFilePathPtr DBMesocyclesModel::suggestedName(const int meso_idx) const
 {
 	QString userid;
-	if (client(meso_idx) != appUserModel()->userId(0)) //meso for a client
-		userid = client(meso_idx);
-	else {
-		if (coach(meso_idx) != appUserModel()->userId(0)) //meso from a coach
-			userid = coach(meso_idx);
-		else
-			userid = appUserModel()->userId(0); //meso for self
+	const st_MesoType mt{mesoType(meso_idx)};
+	switch (mt) {
+		case MT_MESO_FOR_CLIENT:	userid = std::move(client(meso_idx)); break;
+		case MT_MESO_FROM_COACH:	userid = std::move(coach(meso_idx)); break;
+		case MT_MESO_FOR_SELF:		userid = appUserModel()->userId(0); break;
 	}
-	TPFilePathPtr meso_file{TPFilePath::newTPFilePath(name(meso_idx) % TPUtils::TP_FILE_EXTENSION,
-																		appUserModel()->userId(0), userid, {mesos_subdir})};
-	return meso_file;
+	return TPFilePath::newTPFilePath(name(meso_idx) % TPUtils::TP_FILE_EXTENSION, appUserModel()->userId(0), userid, {mesos_subdir});
 }
 
 QString DBMesocyclesModel::formatFieldToExport(const uint field, const QString &fieldValue) const
@@ -716,23 +725,11 @@ QString DBMesocyclesModel::formatFieldToImport(const uint field, const QString &
 void DBMesocyclesModel::removeMesoFile(const uint meso_idx)
 {
 	auto meso_filename{suggestedName(meso_idx)};
-	appUserModel()->removeFileFromServer(meso_filename->fileName(), meso_filename->subdirs(), meso_filename->targetUser());
+	appUserModel()->removeFileFromServer(*meso_filename);
 	static_cast<void>(QFile::remove(meso_filename->toString()));
 }
 
-void DBMesocyclesModel::sendMesoToUser(const uint meso_idx)
-{
-	if (!isMesoOK(meso_idx))
-		return;
-	auto meso_filename{suggestedName(meso_idx)};
-	connect(this, &DBMesocyclesModel::mesoExported, this, [this] (const uint meso_idx, const TPFilePathPtr& filename, const int return_code) {
-		if (return_code == TP_RET_CODE_EXPORT_OK)
-			appUserModel()->sendFileToUser(client(meso_idx), filename, name(meso_idx), tr("Exercises Program sent to client"));
-	}, Qt::SingleShotConnection);
-	exportToFile(meso_idx, meso_filename);
-}
-
-int DBMesocyclesModel::newMesoFromFile(const TPFilePathPtr &filename, const bool own_meso, const std::optional<bool> &file_formatted)
+int DBMesocyclesModel::newMesoFromFile(const TPFilePath &filename, const bool own_meso, const std::optional<bool> &file_formatted)
 {
 	uint meso_idx{newMesoData(std::move(QStringList{MESO_TOTAL_FIELDS}))};
 	int import_result{TP_RET_CODE_IMPORT_FAILED};
@@ -782,38 +779,8 @@ int DBMesocyclesModel::newMesoFromFile(const TPFilePathPtr &filename, const bool
 	return import_result;
 }
 
-void DBMesocyclesModel::viewOnlineMeso(const QString &coach, const TPFilePathPtr &filename)
-{
-	const int request_id{appUserModel()->downloadFileFromServer(filename, appUserModel()->userDir(coach) % mesos_subdir,
-								QString{}, mesos_subdir + coach, appUserModel()->userId(0))};
-
-	auto getPage = [this] (const TPFilePathPtr &meso_file_name) ->void {
-		const int meso_idx{newMesoFromFile(meso_file_name, false, true)};
-		if (meso_idx >= 0)
-			getMesocyclePage(meso_idx, false);
-	};
-
-	if (request_id == TP_RET_CODE_DOWNLOAD_FAILED)
-		return;
-	else if (request_id == TP_RET_CODE_NO_CHANGES_SUCCESS) {
-		getPage(filename);
-		return;
-	}
-
-	auto conn{std::make_shared<QMetaObject::Connection>()};
-	*conn = connect(appUserModel(), &DBUserModel::fileDownloaded, this, [this,conn,request_id,getPage]
-											(const bool success, const uint requestid, const TPFilePathPtr &localFileName) {
-		if (request_id == requestid) {
-			disconnect(*conn);
-			if (success)
-				getPage(localFileName);
-		}
-	});
-}
-
 void DBMesocyclesModel::scanTemporaryMesocycles()
 {
-	//Get clients' or coaches' temporary mesos
 	std::pair<QList<bool>,QFileInfoList> mesos;
 	appUserModel()->scanUsersSubDirs(mesos, mesos_subdir, '*' % TPUtils::TP_FILE_EXTENSION);
 	if (!mesos.first.isEmpty()) {
@@ -823,8 +790,7 @@ void DBMesocyclesModel::scanTemporaryMesocycles()
 			if (mesoPlanExists(appUtils()->getFileName(mesofile.fileName(), true),
 									mesos.first.at(idx) ? user_id : appUserModel()->userId(0),
 									mesos.first.at(idx) ? appUserModel()->userId(0) : user_id) == -1) {
-				TPFilePathPtr tp_mesofile{TPFilePath::newTPFilePath(mesofile.fileName(), appUserModel()->userId(0),
-																								user_id, {mesos_subdir})};
+				TPFilePath tp_mesofile{mesofile.fileName(), appUserModel()->userId(0), user_id, {mesos_subdir}};
 				static_cast<void>(newMesoFromFile(tp_mesofile, mesos.first.at(idx), false));
 			}
 			else
@@ -886,8 +852,8 @@ void DBMesocyclesModel::getAllMesocycles()
 	appThreadManager()->runAction(m_workoutsDB, ThreadManager::CreateTable);
 }
 
-void DBMesocyclesModel::exportToFile_splitData(const uint meso_idx, QFile *meso_file, const TPFilePathPtr &filename,
-																									const bool formatted)
+void DBMesocyclesModel::exportToFile_splitData(const uint meso_idx, QFile *meso_file, const TPFilePath &filename,
+																										const bool formatted)
 {
 	auto n_conns{usedSplits(meso_idx).length()};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
@@ -904,7 +870,7 @@ void DBMesocyclesModel::exportToFile_splitData(const uint meso_idx, QFile *meso_
 			meso_file->close();
 			emit mesoExported(meso_idx, filename, ret);
 			if (ret != TP_RET_CODE_EXPORT_OK)
-				static_cast<void>(QFile::remove(filename->toString()));
+				static_cast<void>(QFile::remove(filename.toString()));
 			delete meso_file;
 		}
 	});

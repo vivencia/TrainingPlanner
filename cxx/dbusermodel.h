@@ -3,7 +3,7 @@
 #include "dbmodelinterface.h"
 #include "qml_singleton.h"
 #include "tputils.h"
-#include "online_services/onlineuserinfo.h"
+#include "userinfolistmodel.h"
 
 #define USER_MODIFIED_CREATED 100
 #define USER_MODIFIED_IMPORTED 101
@@ -42,14 +42,13 @@ Q_PROPERTY(QString invalidEmailLabel READ invalidEmailLabel NOTIFY labelsChanged
 Q_PROPERTY(QString invalidPasswordLabel READ invalidPasswordLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString checkEmailLabel READ checkEmailLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString importUserLabel READ importUserLabel NOTIFY labelsChanged FINAL)
-Q_PROPERTY(OnlineUserInfo *availableCoaches READ availableCoaches NOTIFY availableCoachesChanged FINAL)
-Q_PROPERTY(OnlineUserInfo *allUsersList READ allUsersList NOTIFY allUsersListChanged FINAL)
+Q_PROPERTY(UserInfoListModel *allUsersList READ allUsersList NOTIFY allUsersListChanged FINAL)
 Q_PROPERTY(bool onlineAccount READ onlineAccount WRITE setOnlineAccount NOTIFY onlineUserChanged FINAL)
 Q_PROPERTY(bool mainUserConfigured READ mainUserConfigured NOTIFY mainUserConfigurationFinished FINAL)
 Q_PROPERTY(bool canConnectToServer READ canConnectToServer WRITE setCanConnectToServer NOTIFY canConnectToServerChanged FINAL)
 
 #ifndef Q_OS_ANDROID
-Q_PROPERTY(OnlineUserInfo *allUsers READ allUsers NOTIFY allUsersChanged FINAL)
+Q_PROPERTY(UserInfoListModel *allUsers READ allUsers NOTIFY allUsersChanged FINAL)
 #endif
 
 public:
@@ -82,8 +81,6 @@ public:
 		UC_PENDING_STATUS	=	1U << 5,
 	};
 	Q_ENUM(st_userCategory)
-
-	static constexpr QLatin1StringView binary_files_subdir{"exchange_files/" };
 
 	explicit DBUserModel(QObject *parent = nullptr, const bool bMainUserModel = true);
 
@@ -265,7 +262,7 @@ public:
 	inline const QString &_userCategory(const uint user_idx) const { return m_usersData.at(user_idx).at(USER_FIELD_USER_CATEGORY); }
 	void setUserCategory(const int user_idx, const int new_category, const bool add);
 
-	inline OnlineUserInfo *allUsersList() const { return m_allUsersInfo; }
+	inline UserInfoListModel *allUsersList() const { return m_allUsersInfo; }
 	const QString currentCoachName(const uint user_idx) const;
 	void checkCoachesReponses();
 
@@ -276,7 +273,7 @@ public:
 	Q_INVOKABLE inline void createNewUser() { userSwitchingActions(true, std::move(generateUniqueUserId())); }
 	Q_INVOKABLE void removeOtherUser();
 	void userSwitchingActions(const bool create, QString &&userid);
-	inline OnlineUserInfo *allUsers() const { return m_allUsers; }
+	inline UserInfoListModel *allUsers() const { return m_allUsers; }
 #else
 	inline DBMesocyclesModel *actualMesoModel() const { return m_mesoModel; }
 #endif
@@ -298,8 +295,7 @@ public:
 	Q_INVOKABLE void importFromOnlineServer();
 	Q_INVOKABLE inline bool mainUserLoggedIn() const { return mb_userLoggedIn.has_value() && mb_userLoggedIn.value(); }
 	Q_INVOKABLE void setCoachPublicStatus(const bool bPublic);
-	Q_INVOKABLE inline void viewResume(const uint user_idx) { downloadResumeFromServer(user_idx); }
-	Q_INVOKABLE void uploadResume(const QString &filename);
+	Q_INVOKABLE QString resume(const uint user_idx) const;
 	Q_INVOKABLE void setMainUserConfigurationFinished();
 	Q_INVOKABLE inline bool isCoachRegistered()
 	{
@@ -307,26 +303,24 @@ public:
 			return (mb_coachPublic = true);
 		return false;
 	}
-	Q_INVOKABLE void sendRequestToCoaches(OnlineUserInfo *users_list);
+	Q_INVOKABLE void sendRequestToCoaches(UserInfoListModel *users_list);
 	Q_INVOKABLE void getOnlineCoachesList(const bool get_list_only = false);
 
-	void sendFileToUser(const std::shared_ptr<TPFilePath> &tp_filename, const QVariant &extra_info = QVariant{},
-										const QString &success_message = QString{}, const bool first_attempt = true);
-	int sendFileToServer(const std::shared_ptr<TPFilePath> &tp_filename, const QString &successMessage = QString{},
-																					const bool removeLocalFile = false);
-	int downloadFileFromServer(const std::shared_ptr<TPFilePath> &tp_filename, const QString &successMessage = QString{});
-	void removeFileFromServer(const std::shared_ptr<TPFilePath>& tp_filename);
+	int sendFileToServer(const TPFilePath &tp_filename, const QString &successMessage = QString{},
+																				const bool removeremove_local_file = false);
+	int downloadFileFromServer(const TPFilePath &tp_filename, const QString &successMessage = QString{});
+	void removeFileFromServer(const TPFilePath &tp_filename);
 	int listFilesFromServer(const QString &subdir, const QString &targetUser, const QString &filter = QString{});
 	void sendCmdFileToServer(const QString &cmd_filename);
 	void downloadCmdFilesFromServer(const QString &subdir);
 
-	int exportToFile(const uint user_idx, const std::shared_ptr<TPFilePath> &tp_filename, const bool write_header) const;
-	int exportToFormattedFile(const uint user_idx, const std::shared_ptr<TPFilePath> &tp_filename) const;
-	int importFromFile(const std::shared_ptr<TPFilePath> &tp_filename);
-	int importFromFormattedFile(const std::shared_ptr<TPFilePath> &tp_filename);
+	int exportToFile(const uint user_idx, const TPFilePath &tp_filename, const bool write_header) const;
+	int exportToFormattedFile(const uint user_idx, const TPFilePath &tp_filename) const;
+	int importFromFile(const TPFilePath &tp_filename);
+	int importFromFormattedFile(const TPFilePath &tp_filename);
 	bool importFromString(const QString &user_data);
-	int newUserFromFile(const std::shared_ptr<TPFilePath> &tp_filename,
-										const std::optional<bool> &file_formatted = std::nullopt, uint category = 0);
+	int newUserFromFile(const TPFilePath &tp_filename, const std::optional<bool> &file_formatted = std::nullopt,
+																										uint category = 0);
 
 public slots:	
 	void saveUserInfo(const uint user_idx, const uint field);
@@ -353,7 +347,7 @@ signals:
 	void coachOnlineStatus(bool registered);
 	void userProfileAcquired(const QString &userid, const bool success);
 	void userPasswordAvailable(const QString &password);
-	void fileDownloaded(const bool success, const uint requestid, const std::shared_ptr<TPFilePath> &tp_filepath);
+	void fileDownloaded(const bool success, const uint requestid, const TPFilePath &tp_filepath);
 	void fileUploaded(const bool success, const uint requestid);
 	void filesListReceived(const bool success, const uint requestid, const QStringList& files_list);
 	void onlineDevicesListReceived();
@@ -372,7 +366,7 @@ private:
 	int n_devices{0};
 	QString m_onlineAccountId, m_password, m_defaultAvatar, m_emptyString, m_network_msg_title;
 	std::optional<bool> mb_singleDevice, mb_userLoggedIn, mb_coachRegistered;
-	OnlineUserInfo *m_allUsersInfo{nullptr};
+	UserInfoListModel *m_allUsersInfo{nullptr};
 	bool mb_canConnectToServer{false}, mb_coachPublic{false}, mb_MainUserInfoChanged{false};
 	QTimer *m_mainTimer{nullptr};
 
@@ -383,7 +377,7 @@ private:
 
 #ifndef Q_OS_ANDROID
 	QHash<QString,DBMesocyclesModel*> m_mesoModels;
-	OnlineUserInfo *m_allUsers{nullptr};
+	UserInfoListModel *m_allUsers{nullptr};
 #else
 	DBMesocDBMesocyclesModel *m_mesoModel{nullptr};
 #endif
@@ -407,10 +401,7 @@ private:
 		return sex(user_idx) == 0 ? "image://tpimageprovider/m0"_L1 : "image://tpimageprovider/f1"_L1;
 	}
 	QString findAvatar(const QString &base_dir) const;
-	QString findResume(const QString &base_dir) const;
 	void downloadAvatarFromServer(const uint user_idx);
-	void downloadResumeFromServer(const uint user_idx);
-	void openResume(const QString &filename) const;
 	void startServerPolling();
 	void pollServer();
 	void pollClientsRequests();
@@ -419,7 +410,7 @@ private:
 	void addAvailableCoach(const QString &user_id);
 	void pollCurrentClients();
 	void pollCurrentCoaches();
-	void addIntoCoachesAndClients(OnlineUserInfo* other_userinfo, const uint row);
+	void addIntoCoachesAndClients(UserInfoListModel* other_userinfo, const uint row);
 	void revokeCoachStatus();
 	void revokeClientStatus();
 	void unregisterUser();
@@ -432,7 +423,7 @@ private:
 
 	static DBUserModel *_appUserModel;
 	friend DBUserModel *appUserModel();
-	friend class OnlineUserInfo;
+	friend class UserInfoListModel;
 	friend class DBModelInterfaceUser;
 };
 

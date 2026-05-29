@@ -101,11 +101,19 @@ public:
 		BFIF_HANDLE,
 		BFIF_SENDERID,
 		BFIF_RECEIVERID,
-		BFIF_FILEPATH,
-		BFIF_EXTRAINFO,
+		BFIF_FILEPATH, //subdirs + filename with extension
 		BFIF_SPLITLETTER,
+		BFIF_EXTRAINFO,
 		BFIF_TOTAL_FIELDS
 	};
+
+	enum SEND_FILE_METHOD {
+		SFM_TPCHAT,
+		SFM_TPMESSAGESMANAGER,
+		SFM_FILETRANSFER,
+		SFM_TOTAL_NUMBER_OF_METHODS
+	};
+	Q_ENUM(SEND_FILE_METHOD)
 
 	const QString exercisesListFileIdentifier{QLiterals::operator""_L1("0x01", 4)};
 	const QString mesoFileIdentifier{QLiterals::operator""_L1("0x02", 4)};
@@ -132,7 +140,6 @@ public:
 	TPUtils::FILE_TYPE getTPFileType(const QString &filename, std::optional<bool> &formatted) const;
 	Q_INVOKABLE QStringList extensionsListForType(TPUtils::FILE_TYPE filetype, const bool description = true) const;
 	Q_INVOKABLE QString standardPathForFileType(TPUtils::FILE_TYPE filetype) const;
-	Q_INVOKABLE void viewOrOpenFile(const QString &filename, const QVariant &extra_info = QVariant{});
 	Q_INVOKABLE bool canReadFile(const QString &filename) const;
 	QString getFilePath(const QString &filename, const bool needs_to_exist) const;
 	QString getNthDirInPath(const QString &filename, int nth_dir = -1) const;
@@ -187,8 +194,23 @@ public:
 	QByteArray readBinaryFile(const QString &filename, const QString &extra_info = QString{}) const &;
 	void writeBinaryFile(const QString &destination_path, const QString &source_path, const bool strip_extra_info) const;
 	void writeBinaryFile(const QString &destination_path, const QByteArray &data, const bool strip_extra_info) const;
-	void insertOrModifyBinaryFileField(QByteArray &data, BINARY_FILE_INFO_FIELDS field, const QString &info) const;
-	QString binaryFileExtraFieldValue(const QByteArray &data, BINARY_FILE_INFO_FIELDS field) const;
+	inline QString makeBinaryFileMetaInfo(const int handle, const QString &sender_id, const QString &receiver_id,
+		const QString &subdirs, const QString &filename, const QChar &split_letter = QChar{}, const QString &extra_info = QString{}) const
+	{
+		return string_strings({QString::number(handle), sender_id, receiver_id, subdirs % filename, split_letter, extra_info}, binary_file_separator);
+	}
+	inline QString getBinaryFileMetaInfo(const QByteArray &data) const
+	{
+		const auto extra_fields_pos{data.lastIndexOf(binary_file_initial_separator.toLatin1(), -1)};
+		if (extra_fields_pos > 0)
+			return data.last(data.length() - extra_fields_pos - 1);
+		return QString{};
+	}
+	QString binaryFileMetaInfoFieldValue(const QByteArray &data, BINARY_FILE_INFO_FIELDS field) const;
+	inline QString binaryFileMetaInfoFieldValue(const QString &meta_info, BINARY_FILE_INFO_FIELDS field) const
+	{
+		return getCompositeValue(static_cast<uint>(field), meta_info, binary_file_separator);
+	}
 
 	Q_INVOKABLE void copyToClipboard(const QString &text) const;
 	Q_INVOKABLE QString pasteFromClipboard() const;

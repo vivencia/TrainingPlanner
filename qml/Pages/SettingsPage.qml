@@ -88,7 +88,7 @@ TPPage {
 				id: chkAskConfirmation
 				text: qsTr("Always ask the user confirmation before starting any - potencially destructive - action")
 				multiLine: true
-				radio: false
+				boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
 				checked: AppSettings.alwaysAskConfirmation
 				Layout.fillWidth: true
 				Layout.leftMargin: 10

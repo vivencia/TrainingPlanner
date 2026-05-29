@@ -74,11 +74,6 @@ public:
 		return *this;
 	}
 
-	inline QString operator()() const
-	{
-		return toString();
-	}
-
 	inline QString toString(const bool use_temp_filename = false) const
 	{
 		if (!m_fullPathOK) {
@@ -87,6 +82,10 @@ public:
 			const_cast<TPFilePath*>(this)->m_fullPathOK = true;
 		}
 		return !use_temp_filename ? m_fullPath : m_fullPath % ".tmp"_L1;
+	}
+	inline QString filePath() const
+	{
+		return appUtils()->getFilePath(toString(), false);
 	}
 
 	inline bool isOK() const { return m_pathOK; }
@@ -126,6 +125,11 @@ public:
 	inline void setSubdirs(const std::initializer_list<QString> &subdirs)
 	{
 		setSubdirs(appUtils()->string_strings(subdirs, QLatin1Char{'/'}), true);
+	}
+	inline void setSubDirsPlusFilename(const QString &str)
+	{
+		setFileName(appUtils()->getFileName(str), true);
+		setSubdirs(appUtils()->getFilePath(str, false), true);
 	}
 
 	inline int generateUniqueId() const

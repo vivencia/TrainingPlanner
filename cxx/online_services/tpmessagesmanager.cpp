@@ -6,6 +6,7 @@
 #include "../dbusermodel.h"
 #include "../qmlitemmanager.h"
 #include "../tpfilepath.h"
+#include "../tpfileops.h"
 #include "../tputils.h"
 
 #include <QQmlApplicationEngine>
@@ -17,6 +18,17 @@
 #include <ranges>
 
 TPMessagesManager *TPMessagesManager::_appMessagesManager{nullptr};
+
+static inline QString userIdFromExchangeFile(const QString &filename)
+{
+	const auto subdir_len{TPMessagesManager::tpmessages_subdir.length()};
+	const auto slash1_idx{filename.indexOf(TPMessagesManager::tpmessages_subdir) + subdir_len};
+	if (slash1_idx >= subdir_len) {
+		const auto slash2_idx{filename.indexOf('/', slash1_idx + subdir_len + 1)};
+		return filename.sliced(slash1_idx, slash2_idx - slash1_idx - 1);
+	}
+	return QString{};
+}
 
 enum RoleNames
 {
@@ -118,32 +130,35 @@ void TPMessagesManager::execAction(const int message_index, const uint action_id
 	}
 }
 
-void TPMessagesManager::binaryFileReceived(const QByteArray &data, const QString &userid)
+void TPMessagesManager::binaryFileReceived(const QByteArray &data, const QString &meta_info)
 {
-	const QString &full_filename{appUtils()->binaryFileExtraFieldValue(data, TPUtils::BFIF_FILEPATH)};
-	const int id{appUtils()->idFromString(full_filename)};
+	const QString &filename{appUtils()->binaryFileMetaInfoFieldValue(meta_info, TPUtils::BFIF_FILEPATH)};
+	auto tp_filename{TPFilePath::newTPFilePath(filename, appUserModel()->userId(0),
+											   appUtils()->binaryFileMetaInfoFieldValue(meta_info, TPUtils::BFIF_SENDERID))};
+	const int id{tp_filename->generateUniqueId()};
 
 	if (message(id) == nullptr) {
 		TPMessage *new_message{new TPMessage{}};
 		new_message->setId(id);
-		new_message->setTitle(std::move(appUserModel()->userNameFromId(userid) % tr(" has sent you a file: ")));
-		new_message->setIconSource(std::move(appUserModel()->avatarFromId(userid)));
-		new_message->setFileName(full_filename);
-		new_message->insertData(userid);
+		new_message->setTitle(std::move(appUserModel()->userNameFromId(tp_filename->targetUser()) % tr(" has sent you a file: ")));
+		new_message->setIconSource(std::move(appUserModel()->avatarFromId(tp_filename->targetUser())));
+		new_message->setFileName(*tp_filename);
+		new_message->insertData(meta_info);
 		new_message->setSticky(false);
 		new_message->plug();
 	}
 }
 
-void TPMessagesManager::textMesssageReceived(const QString &msg, const QString &userid)
+void TPMessagesManager::textMesssageReceived(const QString &msg, const TPFilePath &filename)
 {
 	QString msg__{msg};
 	const int id{appUtils()->idFromString(msg__.length() <= 30 ? msg__ : msg__.sliced(5, 25))};
 	if (message(id) == nullptr) {
 		TPMessage *new_message{new TPMessage{}};
 		new_message->setId(id);
-		new_message->setTitle(std::move(tr("Message from ") % appUserModel()->userNameFromId(userid)));
+		new_message->setTitle(std::move(tr("Message from ") % appUserModel()->userNameFromId(filename.targetUser())));
 		new_message->setIconSource(std::move("send-message"_L1));
+		new_message->setFileName(filename);
 		new_message->setText(std::move(msg__));
 		new_message->setSticky(false);
 		new_message->insertAction(tr("Delete"), [this,new_message] (const QVariant &) { new_message->unplug(); });
@@ -234,15 +249,16 @@ void TPMessagesManager::openChat(const uint user_idx)
 	openChatWindow(m_chatsList.value(userid));
 }
 
-void TPMessagesManager::sendFileChatMessage(const TPFilePathPtr &filename, const QString &message)
+void TPMessagesManager::sendFileChatMessage(const TPFilePath &filename, const QString &message)
 {
-	const qsizetype i_userid{filename->targetUser().toLong()};
-	openChat(appUserModel()->findUserById(filename->targetUser()));
-	chatManager(filename->targetUser())->createNewMessage(message, filename);
+	const qsizetype i_userid{filename.targetUser().toLong()};
+	openChat(appUserModel()->findUserById(filename.targetUser()));
+	chatManager(filename.targetUser())->createNewMessage(message, filename.toString());
 }
 
 void TPMessagesManager::startChatMessagesPolling(const QString &userid)
 {
+	scanLocalMessages();
 	connect(appUserModel(), &DBUserModel::canConnectToServerChanged, this, [this] () {
 		if (!appUserModel()->canConnectToServer())
 			m_newChatMessagesTimer->stop();
@@ -251,21 +267,22 @@ void TPMessagesManager::startChatMessagesPolling(const QString &userid)
 	});
 
 	m_newChatMessagesTimer = new QTimer{this};
-	const QLatin1StringView seed{QString{userid + "check_messages"_L1}.toLatin1()};
+	const QLatin1StringView seed{QString{userid + "check_chat_messages"_L1}.toLatin1()};
 	const int requestid{appUtils()->generateUniqueId(seed)};
 	connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,requestid]
-																	(const int request_id, const int ret_code, const QString &ret_string) {
+													(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
-			if (ret_code == TP_RET_CODE_SUCCESS) {
-				if (ret_string.startsWith("file://"_L1))
-					parseTPMessage(ret_string);
-				else
-					parseNewChatMessages(ret_string);
-			}
-			#ifndef QT_NO_DEBUG
-			else
-				qDebug() << ret_string;
-			#endif
+			if (ret_code == TP_RET_CODE_SUCCESS)
+				parseNewChatMessages(ret_string);
+		}
+	});
+	const QLatin1StringView seed2{QString{userid + "check_tp_messages"_L1}.toLatin1()};
+	const int requestid2{appUtils()->generateUniqueId(seed2)};
+	connect(appOnlineServices(), &TPOnlineServices::networkListReceived, this, [this,requestid2]
+												(const int request_id, const int ret_code, const QStringList &ret_list) {
+		if (request_id == requestid2) {
+			if (ret_code == TP_RET_CODE_SUCCESS)
+				receivedTPMessages(ret_list);
 		}
 	});
 	m_newChatMessagesTimer->callOnTimeout( [this,requestid] () {
@@ -351,35 +368,50 @@ int TPMessagesManager::newMessagesCheckingInterval() const
 	return msecs;
 }
 
-void TPMessagesManager::parseTPMessage(const QString &encoded_message)
+void TPMessagesManager::scanLocalMessages()
 {
-	QString sender_id{std::move(appUtils()->getCompositeValue(0, encoded_message, exercises_separator))};
-	sender_id.remove(0, "file://"_L1.length());
-	if (appUserModel()->userIdxFromFieldValue(DBUserModel::USER_FIELD_ID, sender_id) > 0) {
-		uint msg_idx{1};
-		do {
-			QString file{std::move(appUtils()->getCompositeValue(msg_idx, encoded_message, exercises_separator))};
-			if (file.isEmpty())
-				break;
+	TPFilePath tp_filepath{QString{}, appUserModel()->userId(0), QString{}, {tpmessages_subdir}};
+	QFileInfoList files;
+	appUtils()->scanDir(tp_filepath.toString(), files, QString{}, true);
+	for (const auto &file : std::as_const(files)) {
+		tp_filepath.setTargetUser(userIdFromExchangeFile(file.filePath()));
+		tp_filepath.setFileName(file.fileName(), true);
+		if (appUtils()->getFileExtension(file.fileName(), true) == tptextmessage_extension)
+			parseTextMessage(tp_filepath);
+		else {
+			QByteArray data{appUtils()->readBinaryFile(tp_filepath.toString())};
+			const QString &data_meta_info{appUtils()->getBinaryFileMetaInfo(data)};
+			binaryFileReceived(data, data_meta_info);
+		}
+	}
+}
 
-			auto tp_filename{TPFilePath::newTPFilePath(file)};
-			const auto request_id{appUserModel()->downloadFileFromServer(tp_filename)};
-			if (request_id == TP_RET_CODE_DOWNLOAD_FAILED)
-				continue;
-			else if (request_id == TP_RET_CODE_NO_CHANGES_SUCCESS) {
-				binaryFileReceived(appUtils()->readBinaryFile(tp_filename), sender_id);
-				return;
-			}
-			auto conn{std::make_shared<QMetaObject::Connection>()};
-			*conn = connect(appUserModel(), &DBUserModel::fileDownloaded, this, [=,this]
-								(const bool success, const uint requestid, const std::shared_ptr<TPFilePath> &tp_filepath) {
-				if (request_id == requestid) {
-					disconnect(*conn);
-					if (success)
-						binaryFileReceived(appUtils()->readBinaryFile(tp_filepath), sender_id);
-				}
+void TPMessagesManager::parseTextMessage(const TPFilePath &filename)
+{
+	QFile *exchange_file{appUtils()->openFile(filename.toString())};
+	if (exchange_file) {
+		textMesssageReceived(exchange_file->readAll(), filename);
+		exchange_file->close();
+		delete exchange_file;
+	}
+}
+
+void TPMessagesManager::receivedTPMessages(const QStringList &files)
+{
+	TPFilePath local_file;
+	local_file.setOwnerUser(appUserModel()->userId(0));
+	for (const auto &file : files) {
+		local_file.setSubDirsPlusFilename(file);
+		if (!QFile::exists(local_file.toString())) {
+			auto file_ops{std::make_shared<TPFileOps>()};
+			file_ops->setCanDownloadOrGenerate(true);
+			file_ops->setFileName(local_file.toString());
+			connect(&(*file_ops), &TPFileOps::fileAcquired, this, [this,file_ops] (const int ret_code) {
+				if (ret_code == TP_RET_CODE_SUCCESS)
+					file_ops->removeFile(true, false, true);
 			});
-		} while (++msg_idx);
+			file_ops->doFileOperation(TPFileOps::OT_Download);
+		}
 	}
 }
 

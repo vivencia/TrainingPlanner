@@ -574,20 +574,6 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_noti
 
 #ifndef Q_OS_ANDROID
 #ifdef Q_OS_LINUX
-void OSInterface::processArguments() const
-{
-	const QStringList &args{qApp->arguments()};
-	if (args.count() > 1) {
-		QString filename;
-		for (const auto &arg : args)
-			filename += arg % ' ';
-		filename.chop(1);
-		const QFileInfo file{filename};
-		if (file.isFile())
-			appUtils()->viewOrOpenFile(filename);
-	}
-}
-
 void OSInterface::restartApp()
 {
 	char *args[2] = {nullptr, nullptr};

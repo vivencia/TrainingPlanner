@@ -210,13 +210,13 @@ void QmlMesoSplitInterface::setSplitPageProperties(DBSplitModel *split_model)
 		m_prevMesoId = QString::number(prev_mesoid);
 		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(split_model->database(), &TPDatabaseTable::actionFinished, this, [this,conn,split_model]
-								(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2) {
+						(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2) {
 			if (op == ThreadManager::CustomOperation) {
 				disconnect(*conn);
 				const bool has_prevplan{return_value2.toBool()};
 				m_hasPreviousPlan.insert(split_model->splitLetter(), has_prevplan);
 				if (has_prevplan)
-					m_prevMesoName = m_mesoModel->name(m_mesoModel->idxFromId(m_prevMesoId));
+					m_prevMesoName = m_mesoModel->name(m_mesoModel->idxFromFieldValue(m_prevMesoId, DBMesocyclesModel::MESO_FIELD_ID));
 			}
 		});
 		auto x = [this,split_model] () -> std::pair<QVariant,QVariant> {

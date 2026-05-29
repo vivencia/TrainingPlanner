@@ -7,10 +7,14 @@
 TPFilePath::TPFilePath(const QString &filename, const QString &owner_user, const QString &target_user,
 																			const std::initializer_list<QString> &subdirs)
 {
-	setFileName(filename, false);
 	setOwnerUser(owner_user);
 	setTargetUser(target_user);
-	setSubdirs(subdirs);
+	if (!filename.contains('/')) {
+		setFileName(filename, false);
+		setSubdirs(subdirs);
+	}
+	else //when transfering files between users and/or the server, filename will contain the subdirs(see TPUtils::BFIF_FILEPATH)
+		setSubDirsPlusFilename(filename);
 }
 
 //TPFilePath accepts any filepath/name in the system so the same object can be used by other classes(like TPFileOps)

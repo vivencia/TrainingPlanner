@@ -12,15 +12,17 @@ Item {
 	height: minimumHeight
 
 //public:
-	required property string fileName
+	property string fileName
+	property string missingFileInfo
 	property bool canAddFile: false
 	property bool useBackground: false
-	property bool attemptToGetFile: true //means: attempt to download, copy or generate fileName
+	property bool attemptToGetFile: true //means: can attempt to download, copy or generate fileName
 	readonly property int minimumWidth: file_ops.controlSize.width
 	readonly property int minimumHeight: minimumWidth
 
 	signal removalRequested()
-	signal fileAdded(filepath: string)
+	signal fileAdded(string filepath)
+	signal windowStateChanged(int window_state)
 
 //private:
 	enum WindowStates { WS_UNDEFINED, WS_NORMAL, WS_FULLSCREEN }
@@ -42,6 +44,10 @@ Item {
 				target: mediaPlayerLoader
 				parent: _control._full_screen_widget
 			}
+			ParentChange {
+				target: missingFileLoader
+				parent: _control._full_screen_widget
+			}
 		},
 		State {
 			when: _control._window_state === TPFileViewer.WindowStates.WS_NORMAL
@@ -52,6 +58,10 @@ Item {
 			}
 			ParentChange {
 				target: mediaPlayerLoader
+				parent: _control
+			}
+			ParentChange {
+				target: missingFileLoader
 				parent: _control
 			}
 		}
@@ -82,6 +92,20 @@ Item {
 			wrapMode: Text.Wrap
 
 			background: Rectangle { color: "white"; border.color: "black"; }
+		}
+	}
+
+	Loader {
+		id: missingFileLoader
+		active: file_ops.fileType === AppUtils.FT_UNKNOWN
+		asynchronous: true
+		anchors.fill: parent
+
+		sourceComponent: TPLabel {
+			text: _control.missingFileInfo
+			singleLine: false
+			font: AppGlobals.extraLargeFont
+			horizontalAlignment: Text.AlignHCenter
 		}
 	}
 
@@ -180,6 +204,7 @@ Item {
 
 			if (_control._media_player)
 				_control._media_player.changeState(_control._window_state);
+			_control.windowStateChanged(_control._window_state);
 		}
 
 		sourceComponent: Window {
@@ -278,4 +303,8 @@ Item {
 			} //Loader : TPAppFileViewer
 		} //Window fullViewWindow
 	} //Loader fullScreenLoader
+
+	function startFullScreen(): void {
+		fullScreenLoader.showFullScreen();
+	}
 } //Item

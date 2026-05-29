@@ -5,9 +5,9 @@
 #include "websocketserver.h"
 #include "../dbusermodel.h"
 #include "../pageslistmodel.h"
-#include "../qmlitemmanager.h"
 #include "../tpfilepath.h"
 #include "../thread_manager.h"
+#include "../tpfileops.h"
 #include "../tputils.h"
 
 #include <QTimer>
@@ -292,7 +292,7 @@ void TPChat::createNewMessage(const QString &text, const QString &media)
 
 void TPChat::createNewMessageWithAttachment(const QString &text)
 {
-	QString filepath{std::move(appItemManager()->openFileDialog(TPUtils::FT_ANY_TYPE))};
+	QString filepath{std::move(TPFileOps::chooseFileDialog())};
 	if (!filepath.isEmpty())
 		createNewMessage(text, filepath);
 }
@@ -306,15 +306,8 @@ void TPChat::incomingMessage(const QString &encoded_message)
 	message->rtime = std::move(QTime::currentTime());
 	message->own_message = false;
 	message->received = true;
-	if (!message->media.isEmpty()) {
-		//If file is inexistent, the message was probably delivered via server, so we use the server to retrieve it.
-		//If it fails, hopefully message was sent via the web socket interface, but for some reason it is late to arrive.
-		if (!QFile::exists(message->media)) {
-			const QString &media_filename{appUtils()->getFileName(message->media)};
-			appUserModel()->downloadFileFromServer(media_filename, chatsMediaSubDir(true) % media_filename, QString{}, chatsMediaSubDir(false));
-		}
+	if (!message->media.isEmpty())
 		++m_nMedia;
-	}
 
 	if (m_chatWindow) {
 		beginInsertRows(QModelIndex{}, count(), count());
@@ -466,16 +459,18 @@ void TPChat::processWebSocketTextMessage(const QString &message)
 	}
 }
 
-void TPChat::processWebSocketBinaryMessage(const QByteArray &data)
+void TPChat::processWebSocketBinaryMessage(const QByteArray &data, const QString &meta_info)
 {
-	const QString &filename{appUtils()->binaryFileExtraFieldValue(data, TPUtils::BFIF_FILEPATH)};
-	appUtils()->writeBinaryFile(filename, data, true);
+	auto tp_file{TPFilePath::newTPFilePath(appUtils()->binaryFileMetaInfoFieldValue(meta_info, TPUtils::BFIF_FILEPATH),
+		appUtils()->binaryFileMetaInfoFieldValue(meta_info, TPUtils::BFIF_RECEIVERID),
+		appUtils()->binaryFileMetaInfoFieldValue(meta_info, TPUtils::BFIF_SENDERID))};
+	appUtils()->writeBinaryFile(tp_file->toString(), data, true);
 }
 
 void TPChat::onChatWindowOpened()
 {
 	markAllIncomingMessagesRead();
-	appWSServer()->connectToPeer(this, ChatWSServer::WS_TPCHAT, m_otherUserId);
+	appWSServer()->connectToPeer(this, TPUtils::SFM_TPCHAT, m_otherUserId);
 }
 
 inline void TPChat::setChatLoadedStatus(uint8_t status)
@@ -519,24 +514,26 @@ void TPChat::uploadAction(const uint field, ChatMessage *const message)
 			if (message->own_message) {
 				setData(index(message->id), true, sentRole);
 				if (!message->media.isEmpty()) {
+					auto tp_filepath{TPFilePath::newTPFilePath( appUserModel()->userId(0), m_otherUserId, message->media,
+																									{chatsMediaSubDir()})};
+
 					if (use_ws)
-						appWSServer()->sendBinaryMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(0), m_otherUserId,
-																									QString{}, message->media);
+						appWSServer()->sendBinaryMessage(TPUtils::SFM_TPCHAT, *tp_filepath);
                     else
-                        appUserModel()->sendFileToServer(message->media, nullptr, QString{}, chatsMediaSubDir(false), m_otherUserId);
+                        appUserModel()->sendFileToServer(*tp_filepath);
                 }
 				if (use_ws)
-					appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId,
+					appWSServer()->sendTextMessage(TPUtils::SFM_TPCHAT, appUserModel()->userId(), m_otherUserId,
 						appUtils()->string_strings({QString::number(requestid), messageWorkSend,
-																	encodeMessageToUpload(message)}, exercises_separator));
+																encodeMessageToUpload(message)}, exercises_separator));
 				else
 					appOnlineServices()->sendMessage(requestid, m_otherUserId, std::move(encodeMessageToUpload(message)));
             }
 			break;
         case MESSAGE_DELETED:
 			if (use_ws)
-				appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId,
-								appUtils()->string_strings({QString::number(requestid), messageWorkRemoved, msgid}, exercises_separator));
+				appWSServer()->sendTextMessage(TPUtils::SFM_TPCHAT, appUserModel()->userId(), m_otherUserId,
+					appUtils()->string_strings({QString::number(requestid), messageWorkRemoved, msgid}, exercises_separator));
 			else {
 				if (message->own_message)
 					//Add message->id to the m_otherUserId/chats/this_user.removed file
@@ -548,7 +545,7 @@ void TPChat::uploadAction(const uint field, ChatMessage *const message)
 			break;
 		case MESSAGE_RECEIVED:
 			if (use_ws)
-				appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId,
+				appWSServer()->sendTextMessage(TPUtils::SFM_TPCHAT, appUserModel()->userId(), m_otherUserId,
 								appUtils()->string_strings({QString::number(requestid), messageWorkReceived, msgid}, exercises_separator));
 			else {
 				if (!message->own_message) {
@@ -564,7 +561,7 @@ void TPChat::uploadAction(const uint field, ChatMessage *const message)
 			break;
 		case MESSAGE_READ:
 			if (use_ws)
-				appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId,
+				appWSServer()->sendTextMessage(TPUtils::SFM_TPCHAT, appUserModel()->userId(), m_otherUserId,
 									appUtils()->string_strings({QString::number(requestid), messageWorkRead, msgid}, exercises_separator));
 			else {
 				if (!message->own_message)
@@ -578,7 +575,7 @@ void TPChat::uploadAction(const uint field, ChatMessage *const message)
 		case MESSAGE_TEXT:
 		case MESSAGE_MEDIA:
 			if (use_ws)
-				appWSServer()->sendTextMessage(ChatWSServer::WS_TPCHAT, appUserModel()->userId(), m_otherUserId,
+				appWSServer()->sendTextMessage(TPUtils::SFM_TPCHAT, appUserModel()->userId(), m_otherUserId,
 									appUtils()->string_strings({QString::number(requestid), messageWorkEdited, msgid}, exercises_separator));
 			else {
 				if (!message->own_message)

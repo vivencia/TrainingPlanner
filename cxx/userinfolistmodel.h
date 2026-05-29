@@ -3,7 +3,7 @@
 #include <QAbstractListModel>
 #include <QQmlEngine>
 
-class OnlineUserInfo : public QAbstractListModel
+class UserInfoListModel : public QAbstractListModel
 {
 
 Q_OBJECT
@@ -27,10 +27,11 @@ Q_PROPERTY(bool allUsersList READ allUsersList WRITE setAllUsersList NOTIFY allU
 #endif
 
 public:
-	explicit OnlineUserInfo(QObject *parent);
+	explicit UserInfoListModel(QObject *parent);
 	inline uint count() const { return m_extraInfo.count(); }
 
-	int currentUserIdx(const int row = -1) const;
+	inline int currentUserIdx() const { return userIdx(m_currentRow); }
+	Q_INVOKABLE int userIdx(const uint row) const;
 	inline int currentRow() const { return m_currentRow; }
 	inline void setCurrentRow(const int new_row)
 	{
@@ -39,8 +40,17 @@ public:
 			emit currentRowChanged();
 		}
 	}
-	bool isSelected(const uint row, const int column = 0) const;
+
+	Q_INVOKABLE inline void clearSelection()
+	{
+		for(int i{0}; i < m_extraInfo.count(); ++i) {
+			if (rowVisible(i))
+				setSelected(i, false);
+		}
+	}
+	Q_INVOKABLE bool isSelected(const uint row, const int column = 0) const;
 	Q_INVOKABLE void setSelected(const uint row, const bool selected, const int column = 0);
+	Q_INVOKABLE QStringList selectedUsers() const; //Only from visible rows
 	inline uint nSelected() const { return m_nSelected; }
 	inline bool allSelected() const { return m_nSelected == count(); }
 	inline bool anySelected() const { return m_nSelected > 0; }

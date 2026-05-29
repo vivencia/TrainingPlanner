@@ -19,7 +19,6 @@ QT_FORWARD_DECLARE_CLASS(QmlExercisesDatabaseInterface)
 QT_FORWARD_DECLARE_CLASS(QmlWorkoutInterface)
 QT_FORWARD_DECLARE_CLASS(QmlUserInterface)
 QT_FORWARD_DECLARE_STRUCT(st_generalMessage)
-QT_FORWARD_DECLARE_CLASS(QFileDialog)
 QT_FORWARD_DECLARE_CLASS(QQmlApplicationEngine)
 QT_FORWARD_DECLARE_CLASS(QQmlComponent)
 QT_FORWARD_DECLARE_CLASS(QQuickItem)
@@ -56,7 +55,6 @@ public:
 					QFlags<Qt::AlignmentFlag> position = Qt::AlignTop|Qt::AlignHCenter, const QString &image_source = QString{},
 						const int msecs = 4000, const QString& button1text = QString{}, const QString &button2text = QString{}) const;
 	Q_INVOKABLE void showOnlineMessagesManagerDialog(const bool show);
-	Q_INVOKABLE QString openFileDialog(const int file_type, const QString &suggested_save_name = QString{});
 	Q_INVOKABLE inline void showTextCopiedMessage(const QString &message = QString{})
 	{
 		displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, message.isEmpty() ? tr("Text copied to the clipboard") : message);
@@ -71,7 +69,6 @@ signals:
 	void selectedExerciseFromSimpleExercisesList(QQuickItem *parentPage);
 	void mesoForImportSelected();
 	void qmlPasswordDialogClosed(int resultCode, QString password);
-	void qmlImportDialogClose(bool result);
 	/**
 	 * @brief generalMessagesPopupClicked
 	 * @param button: 0 (dialog was closed via close button or back_key() or something else; 1: button1; 2: button2
@@ -84,7 +81,6 @@ signals:
 
 public slots:
 	void mainWindowStarted() const;
-	void openTPFile(uint32_t tp_filetype, const QString &filename, const bool formatted, const QVariant &extra_info);
 	void homePageViewChanged(const bool own_mesos_view);
 	inline void qmlPasswordDialogClosed_slot(int resultCode, const QString &password) { emit qmlPasswordDialogClosed(resultCode, password); }
 	inline void generalMessagesNoButtonClicked() { emit generalMessagesPopupClicked(0); }
@@ -98,7 +94,6 @@ private:
 			*m_firstTimeDlgComponent{nullptr}, *m_generalMessagesPopupComponent{nullptr}, *m_messagesManagerComponent{nullptr};
 	QQuickItem *m_homePage{nullptr}, *m_appPagesVisualParent{nullptr}, *m_weatherPage{nullptr}, *m_statisticsPage{nullptr};
 	QObject *m_simpleExercisesList{nullptr}, *m_firstTimeDlg{nullptr}, *m_generalMessagesPopup{nullptr}, *m_messagesManagerPopup{nullptr};
-	QFileDialog *m_fileDialog{nullptr};
 	QVariantMap m_simpleExercisesListProperties, m_generalMessagesPopupProperties;
 	QList<st_generalMessage*> m_messagesQueue;
 	bool m_canDisplayMessage{false};

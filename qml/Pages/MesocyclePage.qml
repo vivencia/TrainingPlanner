@@ -292,7 +292,7 @@ TPPage {
 
 			TPRadioButtonOrCheckBox {
 				text: qsTr("Mesocycle-style program")
-				radio: false
+				boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
 				checked: mesoPage.mesoManager.realMeso
 				Layout.preferredWidth: 0.9 * parent.width
 				Layout.topMargin: 15

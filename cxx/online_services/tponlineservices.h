@@ -67,8 +67,8 @@ public:
 	 * @param subdir
 	 * @param targetUser
 	 */
-	void listFiles(const int requestid, const bool only_new = true, const bool include_ctime = false,
-					const QString &pattern = QString{}, const QString &subdir = QString{}, const QString &targetUser = QString{});
+	void listFiles(const int requestid, const QString &pattern = QString{}, const QString &subdir = QString{},
+																				const QString &targetUser = QString{});
 	void listDirs(const int requestid, const QString &pattern = QString{}, const QString &subdir = QString{},
 												const QString &targetUser = QString{}, const bool include_dot_dir = false);
 	void removeFile(const int requestid, const QString &filename, const QString &subdir = QString{},
@@ -105,6 +105,7 @@ private:
 	void makeNetworkRequest(const int requestid, const QUrl &url, const bool b_internal_signal_only = false);
 	void handleServerRequestReply(const int requestid, QNetworkReply *reply, const bool b_internal_signal_only = false);
 	void uploadFile(const int requestid, const QUrl &url, QFile *file, const bool b_internal_signal_only = false);
+	void parseReceivedFilesList(const QString &ret_string, const QString &subdir, const QString &targetUser);
 	bool remoteFileUpToDate(const QString &onlineDate, const QString &localFile) const;
 	bool localFileUpToDate(const QString &onlineDate, const QString &localFile) const;
 

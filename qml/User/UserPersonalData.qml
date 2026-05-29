@@ -235,7 +235,7 @@ ColumnLayout {
 		id: chkOnlineUser
 		text: AppUserModel.onlineAccountUserLabel
 		actionable: userPersonalModule.userIdx === 0
-		radio: false
+		boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
 		checked: AppUserModel.onlineAccount
 		Layout.maximumWidth: userPersonalModule.width * 0.7
 

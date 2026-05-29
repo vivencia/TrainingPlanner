@@ -365,31 +365,17 @@ void TPOnlineServices::sendFile(const int requestid, QFile *file, const QString 
 	makeNetworkRequest(requestid, url, true);
 }
 
-void TPOnlineServices::listFiles(const int requestid, const bool only_new,
-						const bool include_ctime, const QString &pattern, const QString &subdir, const QString &targetUser)
+void TPOnlineServices::listFiles(const int requestid, const QString &pattern, const QString &subdir, const QString &targetUser)
 {
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
 													(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
 			disconnect(*conn);
-			QStringList new_files;
-			if (ret_code == TP_RET_CODE_SUCCESS) {
-				const QString &localDir{appSettings()->localAppFilesDir() % targetUser % '/' % subdir % '/'};
-				const QStringList &remote_files_list{ret_string.split(fancy_record_separator1, Qt::SkipEmptyParts)};
-				for (uint i{0}; i < remote_files_list.count(); i += 2) {
-					QString filename{std::move(remote_files_list.at(i))};
-					QString online_date{std::move(remote_files_list.at(i+1))};
-					if (only_new) {
-						if (localFileUpToDate(online_date, localDir + filename))
-							continue;
-					}
-					new_files.append(std::move(filename));
-					if (include_ctime)
-						new_files.append(std::move(online_date));
-				}
-			}
-			emit networkListReceived(request_id, ret_code, new_files);
+			if (ret_code == TP_RET_CODE_SUCCESS)
+				parseReceivedFilesList(ret_string, subdir, targetUser);
+			else
+				emit networkListReceived(request_id, ret_code, QStringList{});
 		}
 	});
 	const QUrl &url{makeCommandURL(false, "listfiles"_L1, subdir, "fromuser"_L1, targetUser, "pattern"_L1, pattern)};
@@ -472,8 +458,20 @@ void TPOnlineServices::getCmdFile(const int requestid, const QString &filename, 
 
 void TPOnlineServices::checkTPMessages(const int requestid)
 {
+	auto conn{std::make_shared<QMetaObject::Connection>()};
+	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
+												(const int request_id, const int ret_code, const QString &ret_string) {
+		if (request_id == requestid) {
+			disconnect(*conn);
+			if (ret_code == TP_RET_CODE_SUCCESS)
+				parseReceivedFilesList(ret_string, QString{}, QString{});
+			else
+				emit networkListReceived(request_id, ret_code, QStringList{});
+		}
+	});
+
 	const QUrl &url{makeCommandURL(false, "gettpmessages"_L1)};
-	makeNetworkRequest(requestid, url);
+	makeNetworkRequest(requestid, url, true);
 }
 
 void TPOnlineServices::checkMessages(const int requestid)
@@ -691,6 +689,26 @@ void TPOnlineServices::checkServer(const QString &address, const QString &port)
 		}
 	});
 	makeNetworkRequest(requestid, server_address.arg(address, port), true);
+}
+
+void TPOnlineServices::parseReceivedFilesList(const QString &ret_string, const QString &subdir, const QString &targetUser)
+{
+	QStringList new_files;
+	TPFilePath local_file;
+	local_file.setOwnerUser(appUserModel()->userId(0));
+	if (!targetUser.isEmpty())
+		local_file.setTargetUser(targetUser);
+	if (!subdir.isEmpty())
+		local_file.setSubdirs({subdir});
+	const QStringList &remote_files_list{ret_string.split(fancy_record_separator1, Qt::SkipEmptyParts)};
+	for (uint i{0}; i < remote_files_list.count(); i += 2) {
+		QString filename{std::move(remote_files_list.at(i))};
+		const QString &online_date{remote_files_list.at(i + 1)};
+		local_file.setFileName(filename, true);
+		if (localFileUpToDate(online_date, local_file.toString()))
+			continue;
+		new_files.append(std::move(filename));
+	}
 }
 
 bool TPOnlineServices::remoteFileUpToDate(const QString &onlineDate, const QString &localFile) const

@@ -196,29 +196,31 @@ function check_file_ctime($filename) {
 		echo get_return_code("file not found") . ": " . $filename . " not found **check_file_ctime**";
 }
 
-function scan_dir($path, $pattern, $only_dirs, $only_files, $get_c_time) {
+function scan_dir($path, $pattern, $only_dirs, $only_files, $get_c_time, $recursive) {
 	$output = "";
 	if (is_dir($path)) {
 		$files = array_values(array_diff(scandir($path), array('.', '..')));
 		if (count($files) > 0) {
-			echo "0: ";
 			foreach ($files as &$file) {
+				if ($recursive && is_dir($path.$file))
+					$output .= scan_dir($path.$file . '/', $pattern, $only_dirs, $only_files, $get_c_time, $recursive);
+
 				if (strlen($pattern) > 0) {
 					if (!str_contains($file, $pattern))
 						continue;
 				}
-				if ($only_dirs && !is_dir($path . $file))
-					continue;
-				if ($only_files && !is_file($path . $file))
-					continue;
-				if ($get_c_time)
-					$output .= $file . "|" . date('Hisymd', filectime($path.$file)) . "|";
-				else
-					$output .= $file . "|";
+				$skip = $only_files && !is_file($path.$file);
+				if ($skip !== true) {
+					$skip = $only_dirs && !is_dir($path.$file);
+					if ($skip !== true) {
+						if ($get_c_time)
+							$output .= $file . "|" . date('Hisymd', filectime($path.$file)) . "|";
+						else
+							$output .= $path.$file."|";
+					}
+				}
 			}
 		}
-		else
-			$output = get_return_code("directory empty") . ": " . $path . " is empty **scan_dir**";
 	}
 	else
 		$output = get_return_code("directory not found") . ": " . $path . " does not exist **scan_dir**";
@@ -819,37 +821,14 @@ function get_tpmessages($userid) {
 	if (!create_dir($exchangefiles_dir))
 		die(get_return_code("directory not writable") . ": Unable to create messages dir " .$exchangefiles_dir);
 
-	$dirs = array_values(array_diff(scandir($exchangefiles_dir), array('.', '..')));
-	if (count($dirs) > 0) {
-		$all_messages = "";
-		foreach ($dirs as $dir) {
-			$files = array_values(array_diff(scandir($exchangefiles_dir . $dir), array('.', '..')));
-			if (count($files) > 0) {
-				$content = "";
-				foreach ($files as $file) {
-					if (str_contains($file, ".sqlite") || str_contains($file, ".cmd"))
-						continue;
-					//apcu_delete("$dir-$file");
-					$is_not_modified = apcu_fetch("$userid-$file");
-					if ($is_not_modified === true)
-						continue;
-					//apcu_store("$dir-$file", false); //uncomment to force new messages checking during development
-					apcu_store("$userid-$file", true);
-					$content = $content . $file . "\034";
-				}
-				if ($content !== "")
-					$all_messages = $all_messages . $dir . "\034" . $content;
-			}
-		}
-		if ($all_messages !== "") {
-			echo "0: file://" . $all_messages;
-			return;
-		}
-	}
-	echo get_return_code("directory empty") . ": No new messages";
+	$files = scan_dir($exchangefiles_dir, "", false, true, true, true);
+	if (strlen($files) > 2)
+		echo "0: file://" . str_replace($exchangefiles_dir, "", $files);
+	else
+		echo get_return_code("file not found") . ": No tp messages";
 }
 
-/*
+/**
 	record_separator(oct 036, dec 30) separates the message fields
 	set_separator (oct 037, dec 31) separates messages of the same sender
 	exercises_separator (oct 034 dec 28) separates the senders (the even number are the messages content and the odd numbers are the sender file names)
@@ -1114,8 +1093,8 @@ if ($userid) {
 						$targetuser = $userid;
 					$filedir = $rootdir . $targetuser . $subdir;
 					$pattern = isset($_GET['pattern']) ? $_GET['pattern'] : '';
-					$files = scan_dir($filedir, $pattern, false, true, true);
-					echo $files;
+					$files = scan_dir($filedir, $pattern, false, true, true, false);
+					echo "0: ".$files;
 					exit;
 				}
 				if (isset($_GET['listdirs'])) {
@@ -1125,8 +1104,8 @@ if ($userid) {
 						$targetuser = $userid;
 					$filedir = $rootdir . $targetuser . $subdir;
 					$pattern = isset($_GET['pattern']) ? $_GET['pattern'] : '';
-					$files = scan_dir($filedir, $pattern, true, false, false);
-					echo $files;
+					$files = scan_dir($filedir, $pattern, true, false, false, false);
+					echo "0: ".$files;
 					exit;
 				}
 
@@ -1408,10 +1387,10 @@ if ($userid) {
 				}
 
 				if (isset($_GET['allusers'])) {
-					$users = scan_dir($rootdir, "", true, false, false);
+					$users = scan_dir($rootdir, "", true, false, false, false);
 					$new_users = remove_from_string($users, "admin|");
 					$new_users = remove_from_string($new_users, "scripts|");
-					echo $new_users;
+					echo "0: ".$new_users;
 					exit;
 				}
 

@@ -14,9 +14,7 @@ MouseArea {
 	property bool lockMovingToYAxis: false
 	property bool slideToClose: false
 
-	enum SlideToSide {
-		MA_TOP, MA_BOTTOM, MA_LEFT, MA_RIGHT
-	}
+	enum SlideToSide { MA_TOP, MA_BOTTOM, MA_LEFT, MA_RIGHT }
 
 	signal mouseClicked(mouse: MouseEvent)
 	signal mousePressed(mouse: MouseEvent)

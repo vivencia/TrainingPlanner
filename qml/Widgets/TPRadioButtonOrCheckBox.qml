@@ -5,6 +5,11 @@ import TpQml
 TPLabel {
 	id: _control
 	height: AppSettings.itemDefaultHeight + 10
+	singleLine: !multiLine
+	topPadding: 0
+	rightPadding: 0
+	bottomPadding: 5
+	leftPadding: indicator.width + 10 + (image.length > 0 ? img.width : 0)
 
 //public:
 	property alias image: img.source
@@ -13,25 +18,21 @@ TPLabel {
 	property bool checked: false
 	property bool multiLine: false
 	property bool actionable: enabled
-	property bool radio: true
+	property int boxType: TPRadioButtonOrCheckBox.TP_RADIOBOX
 	property TPButtonGroup buttonGroup: null
 
+	enum BoxType{ TP_RADIOBOX, TP_CHECKBOX, TP_NONE }
 	signal clicked();
 	signal pressAndHold();
 
-	singleLine: !multiLine
-	topPadding: 0
-	rightPadding: 0
-	bottomPadding: 5
-	leftPadding: indicator.width + 10 + (image.length > 0 ? img.width : 0)
-
 	Rectangle {
 		id: indicator
-		implicitWidth: AppSettings.itemSmallHeight
+		implicitWidth: _control.boxType !== TPRadioButtonOrCheckBox.TP_NONE ? AppSettings.itemSmallHeight : 0
 		implicitHeight: implicitWidth
-		radius: _control.radio ? implicitWidth / 2 : 4
+		radius: _control.boxType === TPRadioButtonOrCheckBox.TP_RADIOBOX ? implicitWidth / 2 : 4
 		color: "transparent"
 		border.color: _control.enabled ? _control.color : AppSettings.disabledFontColor
+		visible: _control.boxType !== TPRadioButtonOrCheckBox.TP_NONE
 
 		anchors {
 			left: _control.left
@@ -43,7 +44,7 @@ TPLabel {
 			id: recChecked
 			width: indicator.height * 0.5
 			height: width
-			radius: _control.radio ? width * 0.5 : indicator.radius / 2
+			radius: _control.boxType !== TPRadioButtonOrCheckBox.TP_RADIOBOX ? width * 0.5 : indicator.radius / 2
 			x: (indicator.implicitWidth - width) * 0.5
 			y: x
 			border.color: _control.enabled ? _control.color : AppSettings.disabledFontColor
@@ -70,9 +71,9 @@ TPLabel {
 		anchors.fill: _control
 
 		onClicked: {
-			if (!_control.radio)
+			if (_control.boxType === TPRadioButtonOrCheckBox.TP_CHECKBOX)
 				_control.checked = !_control.checked;
-			else {
+			else if (_control.boxType === TPRadioButtonOrCheckBox.TP_RADIOBOX) {
 				if (_control.checked)
 					return;
 				if (!_control.buttonGroup)
@@ -87,12 +88,12 @@ TPLabel {
 	}
 
 	Component.onCompleted: {
-		if (_control.radio && _control.buttonGroup)
+		if (_control.boxType === TPRadioButtonOrCheckBox.TP_RADIOBOX && _control.buttonGroup)
 			_control.buttonGroup.addButton(this);
 	}
 
 	Component.onDestruction: {
-		if (_control.radio && _control.buttonGroup)
+		if (_control.boxType === TPRadioButtonOrCheckBox.TP_RADIOBOX && _control.buttonGroup)
 			_control.buttonGroup.removeButton(this);
 	}
 }

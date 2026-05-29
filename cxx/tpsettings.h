@@ -5,6 +5,8 @@
 #include <QSettings>
 #include <QTimer>
 
+QT_FORWARD_DECLARE_CLASS(TPFilePath)
+
 //--------------------------------------------GLOBAL SETTINGS---------------------------------------------//
 using namespace Qt::Literals::StringLiterals;
 
@@ -108,7 +110,6 @@ public:
 
 //--------------------------------------------GLOBAL SETTINGS---------------------------------------------//
 	void globalSettingsInit();
-	QString userConfigFileName(const bool fullpath, const QString &userid = QString{}) const;
 	void importFromUserConfig(const QString &userid);
 	bool exportToUserConfig(const QString &userid);
 #ifndef QT_NO_QDEBUG
@@ -312,6 +313,7 @@ private:
 	QStringList m_defaultValues;
 	QStringList m_colorSchemes;
 	QString m_userId;
+	TPFilePath *m_configFilePath{nullptr};
 	int m_languageIdx, m_prevColorScheme;
 //--------------------------------------------USER   SETTINGS---------------------------------------------//
 };

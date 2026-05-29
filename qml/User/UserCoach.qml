@@ -51,8 +51,8 @@ ColumnLayout {
 	TPRadioButtonOrCheckBox {
 		id: chkOnlineCoach
 		text: qsTr("Make myself available online for TP users to contact me")
-		radio: false
-		checked: AppUserModel.isCoachRegistered();
+		boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
+		checked: AppUserModel.isCoachRegistered()
 		multiLine: true
 		enabled: AppUserModel.mainUserConfigured && AppUserModel.onlineAccount && optCoachUse.checked && userCoachModule.userIdx === 0
 		Layout.fillWidth: true

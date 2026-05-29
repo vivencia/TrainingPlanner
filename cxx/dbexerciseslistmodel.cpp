@@ -347,9 +347,9 @@ void DBExercisesListModel::clear()
 	endResetModel();
 }
 
-int DBExercisesListModel::exportToFile(const TPFilePathPtr &filename) const
+int DBExercisesListModel::exportToFile(const TPFilePath &filename) const
 {
-	QFile *out_file{appUtils()->openFile(filename->toString(), false, true, false, true)};
+	QFile *out_file{appUtils()->openFile(filename.toString(), false, true, false, true)};
 	if (!out_file)
 		return TP_RET_CODE_OPEN_WRITE_FAILED;
 	const bool ret{appUtils()->writeDataToFile(out_file, appUtils()->exercisesListFileIdentifier, m_exercisesData, m_exportRows)};
@@ -357,9 +357,9 @@ int DBExercisesListModel::exportToFile(const TPFilePathPtr &filename) const
 	return ret ? TP_RET_CODE_EXPORT_OK : TP_RET_CODE_EXPORT_FAILED;
 }
 
-int DBExercisesListModel::exportToFormattedFile(const TPFilePathPtr &filename) const
+int DBExercisesListModel::exportToFormattedFile(const TPFilePath &filename) const
 {
-	QFile *out_file{appUtils()->openFile(filename->toString(), false, true, false, true)};
+	QFile *out_file{appUtils()->openFile(filename.toString(), false, true, false, true)};
 	if (!out_file)
 		return TP_RET_CODE_OPEN_CREATE_FAILED;
 
@@ -388,9 +388,9 @@ int DBExercisesListModel::exportToFormattedFile(const TPFilePathPtr &filename) c
 	return ret;
 }
 
-int DBExercisesListModel::importFromFile(const TPFilePathPtr& filename)
+int DBExercisesListModel::importFromFile(const TPFilePath& filename)
 {
-	QFile *in_file{appUtils()->openFile(filename->toString())};
+	QFile *in_file{appUtils()->openFile(filename.toString())};
 	if (!in_file)
 		return TP_RET_CODE_OPEN_READ_FAILED;
 
@@ -407,9 +407,9 @@ int DBExercisesListModel::importFromFile(const TPFilePathPtr& filename)
 	return ret;
 }
 
-int DBExercisesListModel::importFromFormattedFile(const TPFilePathPtr &filename)
+int DBExercisesListModel::importFromFormattedFile(const TPFilePath &filename)
 {
-	QFile *in_file{appUtils()->openFile(filename->toString())};
+	QFile *in_file{appUtils()->openFile(filename.toString())};
 	if (!in_file)
 		return TP_RET_CODE_OPEN_READ_FAILED;
 
@@ -441,7 +441,7 @@ int DBExercisesListModel::importFromFormattedFile(const TPFilePathPtr &filename)
 	return ret;
 }
 
-int DBExercisesListModel::newExerciseFromFile(const TPFilePathPtr &filename, const std::optional<bool> &file_formatted)
+int DBExercisesListModel::newExerciseFromFile(const TPFilePath &filename, const std::optional<bool> &file_formatted)
 {
 	int import_result{TP_RET_CODE_IMPORT_FAILED};
 	if (file_formatted.has_value()) {

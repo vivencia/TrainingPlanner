@@ -146,14 +146,17 @@ public:
 	[[nodiscard]] inline const QChar &splitLetter() const { return m_splitLetter; }
 	void setSplitLetter(const QChar &new_splitletter);
 	inline void setImportMode(const bool import_mode) { m_importMode = import_mode; }
+
+	[[nodiscard]] static QString workoutFileName_mesoName(const TPFilePath &tp_filename);
+	[[nodiscard]] static QChar workoutFileName_splitLetter(const TPFilePath &tp_filename);
 	[[nodiscard]] std::shared_ptr<TPFilePath> suggestedName(const bool formatted_file) const;
 
 	[[nodiscard]] inline const bool isWorkout() const { return m_calendarDay != -1; }
-	[[nodiscard]] int exportToFile(const std::shared_ptr<TPFilePath> &filename, QFile *out_file = nullptr) const;
-	[[nodiscard]] int exportToFormattedFile(const std::shared_ptr<TPFilePath> &filename, QFile *out_file = nullptr) const;
-	[[nodiscard]] int importFromFile(const std::shared_ptr<TPFilePath> &filename, QFile *in_file = nullptr);
-	[[nodiscard]] int importFromFormattedFile(const std::shared_ptr<TPFilePath> &filename, QFile *in_file = nullptr);
-	[[maybe_unused]] int newExercisesFromFile(const std::shared_ptr<TPFilePath> &filename, const std::optional<bool> &file_formatted = std::nullopt);
+	[[nodiscard]] int exportToFile(const TPFilePath &filename, QFile *out_file = nullptr) const;
+	[[nodiscard]] int exportToFormattedFile(const TPFilePath &filename, QFile *out_file = nullptr) const;
+	[[nodiscard]] int importFromFile(const TPFilePath &filename, QFile *in_file = nullptr);
+	[[nodiscard]] int importFromFormattedFile(const TPFilePath &filename, QFile *in_file = nullptr);
+	[[maybe_unused]] int newExercisesFromFile(const TPFilePath &filename, const std::optional<bool> &file_formatted = std::nullopt);
 	[[nodiscard]] inline const QString &identifierInFile() const { return m_identifierInFile; }
 	[[nodiscard]] const QString formatSetTypeToExport(const uint type) const;
 	[[nodiscard]] static bool importExtraInfo(const QString &maybe_extra_info, int &calendar_day, QChar &split_letter);

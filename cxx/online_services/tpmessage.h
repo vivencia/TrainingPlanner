@@ -41,7 +41,6 @@ public:
 	inline void setIconSource(QString &&new_icon) { m_icon = std::forward<QString>(new_icon); emit dataChanged(TPMESSAGE_FIELD_ICON); }
 	inline TPFilePath *fileName() const { return m_tpFilePath; }
 	void setFileName(const TPFilePath &tpfilepath);
-	void setFileName(const QString &filename);
 	inline const QString &extraInfoText() const { return m_extraInfoText; }
 	inline void setExtraInfoText(const QString &new_label) { m_extraInfoText = new_label; emit dataChanged(TPMESSAGE_FIELD_EXTRA_INFO); }
 	inline const QString &extraInfoImage() const { return m_extraInfoImage; }

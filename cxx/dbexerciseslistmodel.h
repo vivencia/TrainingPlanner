@@ -113,11 +113,11 @@ public:
 	void appendList(const QStringList &list);
 	void clear();
 
-	int exportToFile(const std::shared_ptr<TPFilePath> &filename) const;
-	int exportToFormattedFile(const std::shared_ptr<TPFilePath> &filename) const;
-	int importFromFile(const std::shared_ptr<TPFilePath> &filename);
-	int importFromFormattedFile(const std::shared_ptr<TPFilePath> &filename);
-	int newExerciseFromFile(const std::shared_ptr<TPFilePath> &filename, const std::optional<bool> &file_formatted = std::nullopt);
+	int exportToFile(const TPFilePath &filename) const;
+	int exportToFormattedFile(const TPFilePath &filename) const;
+	int importFromFile(const TPFilePath &filename);
+	int importFromFormattedFile(const TPFilePath &filename);
+	int newExerciseFromFile(const TPFilePath &filename, const std::optional<bool> &file_formatted = std::nullopt);
 
 	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
 	QVariant data(const QModelIndex &index, int role) const override final;

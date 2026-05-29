@@ -6,6 +6,7 @@ set( QML_DIALOGS
 	"NavBar.qml"
 	"OnlineMessages.qml"
 	"PasswordDialog.qml"
+	"SendFileToDialog.qml"
 	"TimePicker.qml"
 	"TimerDialog.qml"
 	"TPFileDialog.qml"

@@ -3,6 +3,7 @@
 #include "dbmodelinterface.h"
 //Must include the header files of properties of custom types
 #include "homepagemesomodel.h"
+#include "tpfilepath.h"
 
 #include <QObject>
 
@@ -12,7 +13,6 @@ QT_FORWARD_DECLARE_CLASS(DBMesoCalendarTable)
 QT_FORWARD_DECLARE_CLASS(DBMesocyclesTable)
 QT_FORWARD_DECLARE_CLASS(DBModelInterfaceMesocycle)
 QT_FORWARD_DECLARE_CLASS(DBWorkoutsOrSplitsTable)
-QT_FORWARD_DECLARE_CLASS(TPFilePath)
 QT_FORWARD_DECLARE_CLASS(QMLMesoInterface)
 
 using DBSplitModel = DBExercisesModel;
@@ -72,6 +72,12 @@ public:
 	};
 	Q_ENUM(MesoFields)
 
+	enum st_MesoType {
+		MT_MESO_FOR_CLIENT,
+		MT_MESO_FROM_COACH,
+		MT_MESO_FOR_SELF,
+	};
+
 	static constexpr uint8_t MESO_MINIMUM_DAYS{30};
 	static constexpr uint8_t MESO_MAXIMUM_DAYS{180};
 	static constexpr uint8_t MESO_N_REQUIRED_FIELDS{4};
@@ -104,7 +110,7 @@ public:
 	bool isRequiredFieldWrong(const uint meso_idx, const uint field) const;
 	void setModified(const uint meso_idx, const uint field);
 
-	int idxFromId(const QString &meso_id) const;
+	int idxFromFieldValue(const QString &field_value, const int field = -1) const;
 	inline const QString &id(const uint meso_idx) const
 	{
 		return m_mesoData.at(meso_idx).at(MESO_FIELD_ID);
@@ -256,7 +262,8 @@ public:
 	void setClient(const uint meso_idx, const QString &new_client);
 	Q_INVOKABLE QString mesoClient(const uint meso_idx) const { return meso_idx < m_mesoData.count() ? client(meso_idx) : QString {}; }
 
-	Q_INVOKABLE bool isOwnMeso(const uint meso_idx) const;
+	st_MesoType mesoType(const uint meso_idx) const;
+	Q_INVOKABLE inline bool isOwnMeso(const uint meso_idx) const { return mesoType(meso_idx) == MT_MESO_FOR_SELF; }
 	void addSubMesoModel(const uint meso_idx, const bool own_meso);
 
 	Q_INVOKABLE inline QString file(const uint meso_idx) const
@@ -348,7 +355,7 @@ public:
 	{
 		return workoutForDay(meso_idx, static_cast<int>(startDate(meso_idx).daysTo(date)));
 	}
-	void newWorkoutFromFile(const std::shared_ptr<TPFilePath> &filename, const bool formatted, const QVariant &workout_info);
+	void newWorkoutFromFile(const TPFilePath &filename, const bool formatted, const uint meso_idx, const QChar &splitletter);
 
 	inline bool canExport(const uint meso_idx) const { return meso_idx < m_canExport.count() ? m_canExport.at(meso_idx) : false; }
 	void checkIfCanExport(const uint meso_idx, const bool bEmitSignal = true);
@@ -358,10 +365,10 @@ public:
 	//and incorporated, any other model that depends on a meso_idx can query mesoIdx() which will now reflect the recently added meso
 	inline int importIdx() const { return m_importMesoIdx; }
 	inline void setImportIdx(const int new_import_idx) { m_importMesoIdx = new_import_idx; }
-	void exportToFile(const uint meso_idx, const std::shared_ptr<TPFilePath> &filename, const bool export_splits = true);
-	void exportToFormattedFile(const uint meso_idx, const std::shared_ptr<TPFilePath> &filename);
-	int importFromFile(const uint meso_idx, const std::shared_ptr<TPFilePath> &filename);
-	int importFromFormattedFile(const uint meso_idx, const std::shared_ptr<TPFilePath> &filename);
+	void exportToFile(const uint meso_idx, const TPFilePath &filename, const bool export_splits = true);
+	void exportToFormattedFile(const uint meso_idx, const TPFilePath &filename);
+	int importFromFile(const uint meso_idx, const TPFilePath &filename);
+	int importFromFormattedFile(const uint meso_idx, const TPFilePath &filename);
 	std::shared_ptr<TPFilePath> suggestedName(const int meso_idx) const;
 
 	inline bool isFieldFormatSpecial (const uint field) const
@@ -381,9 +388,7 @@ public:
 	QString formatFieldToImport(const uint field, const QString &fieldValue) const;
 
 	void removeMesoFile(const uint meso_idx);
-	Q_INVOKABLE void sendMesoToUser(const uint meso_idx);
-	int newMesoFromFile(const std::shared_ptr<TPFilePath> &filename, const bool own_meso, const std::optional<bool> &file_formatted = std::nullopt);
-	void viewOnlineMeso(const QString &coach, const std::shared_ptr<TPFilePath> &filename);
+	int newMesoFromFile(const TPFilePath &filename, const bool own_meso, const std::optional<bool> &file_formatted = std::nullopt);
 	void scanTemporaryMesocycles();
 
 	inline bool isMesoNameOK(const int meso_idx = -1, const QString &meso_name = QString{}) const
@@ -433,7 +438,7 @@ signals:
 	void mesoIdxChanged(const uint old_meso_idx, const uint new_meso_idx);
 	void labelChanged();
 	void canExportChanged(const uint meso_idx, const bool can_export);
-	void mesoExported(const uint meso_idx, const std::shared_ptr<TPFilePath> &filename, const int return_code);
+	void mesoExported(const uint meso_idx, const TPFilePath &filename, const int return_code);
 	void mesoChanged(const uint meso_idx, const uint field);
 	void todaysWorkoutFinished();
 	void usedSplitsChanged(const uint meso_idx);
@@ -467,8 +472,7 @@ private:
 	inline bool isMesoTemporary(const uint meso_idx) const { return _id(meso_idx) < 0; }
 	const uint newMesoData(QStringList &&infolist);
 	void getAllMesocycles();
-	void exportToFile_splitData(const uint meso_idx, QFile *meso_file, const std::shared_ptr<TPFilePath> &filename,
-																									const bool formatted);
+	void exportToFile_splitData(const uint meso_idx, QFile *meso_file, const TPFilePath &filename, const bool formatted);
 
 signals:
 	void calendarReady(const uint meso_idx);

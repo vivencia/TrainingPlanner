@@ -87,7 +87,7 @@ public:
 
 public slots:
 	void processWebSocketTextMessage(const QString &message);
-	void processWebSocketBinaryMessage(const QByteArray &data);
+	void processWebSocketBinaryMessage(const QByteArray &data, const QString &meta_info);
 	Q_INVOKABLE void onChatWindowOpened();
 
 signals:

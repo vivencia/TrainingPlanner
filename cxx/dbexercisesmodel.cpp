@@ -3,6 +3,7 @@
 #include "dbcalendarmodel.h"
 #include "dbexerciseslistmodel.h"
 #include "dbmesocyclesmodel.h"
+#include "dbusermodel.h"
 #include "dbworkoutsorsplitstable.h"
 #include "pageslistmodel.h"
 #include "return_codes.h"
@@ -366,20 +367,42 @@ void DBExercisesModel::setSplitLetter(const QChar &new_splitletter)
 	}
 }
 
-TPFilePathPtr DBExercisesModel::suggestedName(const bool formatted_file) const
+QString DBExercisesModel::workoutFileName_mesoName(const TPFilePath &tp_filename)
 {
-	return TPFilePath::newTPFilePath(QString{m_mesoModel->name(m_mesoIdx) % tr(" - Workout ")} % splitLetter() %
-																			TPUtils::TP_FILE_EXTENSION, {workouts_subdir});
+	const QString &filename{tp_filename.fileName()};
+	const auto sep_idx{filename.indexOf(tr(" - Workout"))};
+	return sep_idx > 0 ? filename.left(sep_idx) : QString{};
 }
 
-int DBExercisesModel::exportToFile(const TPFilePathPtr &filename, QFile *out_file) const
+QChar DBExercisesModel::workoutFileName_splitLetter(const TPFilePath &tp_filename)
+{
+	const QString &filename{tp_filename.fileName()};
+	const QString &workout_part{tr(" - Workout ")};
+	const auto sep_idx{filename.indexOf(workout_part)};
+	return sep_idx > 0 ? filename.at(sep_idx + workout_part.length()) : QChar{};
+}
+
+TPFilePathPtr DBExercisesModel::suggestedName(const bool formatted_file) const
+{
+	QString receiverid;
+	const DBMesocyclesModel::st_MesoType mt{appUserModel()->actualMesoModel()->mesoType(m_mesoIdx)};
+	switch (mt) {
+		case DBMesocyclesModel::MT_MESO_FOR_CLIENT:	receiverid = std::move(appUserModel()->actualMesoModel()->client(m_mesoIdx)); break;
+		case DBMesocyclesModel::MT_MESO_FROM_COACH:	receiverid = std::move(appUserModel()->actualMesoModel()->coach(m_mesoIdx)); break;
+		case DBMesocyclesModel::MT_MESO_FOR_SELF:	receiverid = appUserModel()->userId(0); break;
+	}
+	return TPFilePath::newTPFilePath(m_mesoModel->name(m_mesoIdx) % tr(" - Workout ") % splitLetter() %
+									TPUtils::TP_FILE_EXTENSION, appUserModel()->userId(0), receiverid, {workouts_subdir});
+}
+
+int DBExercisesModel::exportToFile(const TPFilePath &filename, QFile *out_file) const
 {
 	if (exerciseCount() == 0)
 		return TP_RET_CODE_NOTHING_TO_EXPORT;
 
 	bool close_file{false};
 	if (!out_file) {
-		out_file = appUtils()->openFile(filename->toString(), false, true, false, true);
+		out_file = appUtils()->openFile(filename.toString(), false, true, false, true);
 		if (!out_file)
 			return TP_RET_CODE_OPEN_WRITE_FAILED;
 		close_file = true;
@@ -391,13 +414,13 @@ int DBExercisesModel::exportToFile(const TPFilePathPtr &filename, QFile *out_fil
 	return ret ? TP_RET_CODE_EXPORT_OK : TP_RET_CODE_EXPORT_FAILED;
 }
 
-int DBExercisesModel::exportToFormattedFile(const TPFilePathPtr &filename, QFile *out_file) const
+int DBExercisesModel::exportToFormattedFile(const TPFilePath &filename, QFile *out_file) const
 {
 	if (exerciseCount() == 0)
 		return TP_RET_CODE_NOTHING_TO_EXPORT;
 
 	if (!out_file) {
-		out_file = appUtils()->openFile(filename->toString(), false, true, false, true);
+		out_file = appUtils()->openFile(filename.toString(), false, true, false, true);
 		if (!out_file)
 			return TP_RET_CODE_OPEN_CREATE_FAILED;
 	}
@@ -461,10 +484,10 @@ int DBExercisesModel::exportToFormattedFile(const TPFilePathPtr &filename, QFile
 	return TP_RET_CODE_EXPORT_OK;
 }
 
-int DBExercisesModel::importFromFile(const TPFilePathPtr &filename, QFile *in_file)
+int DBExercisesModel::importFromFile(const TPFilePath &filename, QFile *in_file)
 {
 	if (!in_file) {
-		in_file = appUtils()->openFile(filename->toString());
+		in_file = appUtils()->openFile(filename.toString());
 		if (!in_file)
 			return TP_RET_CODE_OPEN_READ_FAILED;
 	}
@@ -490,10 +513,10 @@ int DBExercisesModel::importFromFile(const TPFilePathPtr &filename, QFile *in_fi
 	return ret;
 }
 
-int DBExercisesModel::importFromFormattedFile(const TPFilePathPtr &filename, QFile *in_file)
+int DBExercisesModel::importFromFormattedFile(const TPFilePath &filename, QFile *in_file)
 {
 	if (!in_file) {
-		in_file = appUtils()->openFile(filename->toString());
+		in_file = appUtils()->openFile(filename.toString());
 		if (!in_file)
 			return TP_RET_CODE_OPEN_READ_FAILED;
 	}
@@ -616,7 +639,7 @@ int DBExercisesModel::importFromFormattedFile(const TPFilePathPtr &filename, QFi
 	return exerciseCount() > 0 ? TP_RET_CODE_IMPORT_OK : TP_RET_CODE_IMPORT_FAILED;
 }
 
-int DBExercisesModel::newExercisesFromFile(const TPFilePathPtr &filename, const std::optional<bool> &file_formatted)
+int DBExercisesModel::newExercisesFromFile(const TPFilePath &filename, const std::optional<bool> &file_formatted)
 {
 	int import_result{TP_RET_CODE_IMPORT_FAILED};
 	if (file_formatted.has_value()) {

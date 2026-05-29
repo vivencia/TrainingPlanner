@@ -120,6 +120,7 @@ set( CXX_SOURCES_QML_INTEGRATION
 		cxx/dbcalendarmodel.h cxx/dbcalendarmodel.cpp
 		cxx/dbusermodel.h cxx/dbusermodel.cpp
 		cxx/pageslistmodel.h cxx/pageslistmodel.cpp
+		cxx/userinfolistmodel.h cxx/userinfolistmodel.cpp
 
 		cxx/qmluserinterface.h cxx/qmluserinterface.cpp
 		cxx/qmlexercisesdatabaseinterface.h cxx/qmlexercisesdatabaseinterface.cpp
@@ -151,7 +152,6 @@ set( CXX_SOURCES
 		cxx/weather/openweathermapbackend.h cxx/weather/openweathermapbackend.cpp
 		cxx/statistics/tpstatistics.h cxx/statistics/tpstatistics.cpp
 
-		cxx/online_services/onlineuserinfo.h cxx/online_services/onlineuserinfo.cpp
 		cxx/online_services/scan_network.h
 		cxx/online_services/tpchatdb.h cxx/online_services/tpchatdb.cpp
 		cxx/online_services/tpmessage.h cxx/online_services/tpmessage.cpp

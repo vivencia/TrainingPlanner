@@ -123,4 +123,26 @@ ApplicationWindow {
 		tpFileLoader._dialog.imageSource = image;
 		tpFileLoader.active = true;
 	}
+
+	Loader {
+		id: sendFileDialogLoader
+		asynchronous: true
+		active: false
+
+		property SendFileToDialog _dialog
+
+		sourceComponent: SendFileToDialog {
+			modal: true
+			keepAbove: true
+			parentPage: homePage
+			onClosed: sendFileDialogLoader.active = false;
+			Component.onCompleted: tpFileLoader._dialog = this;
+		}
+
+		onLoaded: _dialog.tpQmlOpen(homePage);
+	}
+	function openSendFileDialog(handle: int): void {
+		SendFileToDialog.handle = handle;
+		tpFileLoader.active = true;
+	}
 } //ApplicationWindow

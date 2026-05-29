@@ -1,7 +1,7 @@
-#include "onlineuserinfo.h"
+#include "userinfolistmodel.h"
 
-#include "../dbusermodel.h"
-#include "../tputils.h"
+#include "dbusermodel.h"
+#include "tputils.h"
 
 constexpr uint totalExtraFields{4};
 
@@ -41,7 +41,7 @@ enum RoleNames {
 	createRole(isAvailable,		EF_ISAVAILABLE)
 };
 
-OnlineUserInfo::OnlineUserInfo(QObject *parent) : QAbstractListModel{parent}, m_totalCols{DBUserModel::USER_N_FIELS}
+UserInfoListModel::UserInfoListModel(QObject *parent) : QAbstractListModel{parent}, m_totalCols{DBUserModel::USER_N_FIELS}
 {
 	roleToString(id)
 	roleToString(insertTime)
@@ -66,21 +66,21 @@ OnlineUserInfo::OnlineUserInfo(QObject *parent) : QAbstractListModel{parent}, m_
 	roleToString(isAvailable)
 
 	gatherAllUsersInfo();
-	connect(appUserModel(), &DBUserModel::userModified, this, &OnlineUserInfo::userModified);
+	connect(appUserModel(), &DBUserModel::userModified, this, &UserInfoListModel::userModified);
 }
 
-int OnlineUserInfo::currentUserIdx(const int row) const
+int UserInfoListModel::userIdx(const uint row) const
 {
-	return m_extraInfo.at(rowFromVisibleRow(row == -1 ? m_currentRow : row)).at(EF_USERIDX).toInt();
+	return m_extraInfo.at(rowFromVisibleRow(row)).at(EF_USERIDX).toInt();
 }
 
-bool OnlineUserInfo::isSelected(const uint row, const int column) const
+bool UserInfoListModel::isSelected(const uint row, const int column) const
 {
-	Q_ASSERT_X(row < count(), "OnlineUserInfo::setSelected", "row out of range");
-	return appUtils()->getCompositeValue(column, m_extraInfo.at(row).at(EF_SELECTED).toString(), fancy_record_separator1) == '1';
+	Q_ASSERT_X(row < count(), "UserInfoListModel::setSelected", "row out of range");
+	return appUtils()->getCompositeValue(column, m_extraInfo.at(rowFromVisibleRow(row)).at(EF_SELECTED).toString(), fancy_record_separator1) == '1';
 }
 
-void OnlineUserInfo::setSelected(const uint row, const bool selected, const int column)
+void UserInfoListModel::setSelected(const uint row, const bool selected, const int column)
 {
 	if (row < count()) {
 		const bool item_already_selected{isSelected(row, column)};
@@ -88,12 +88,12 @@ void OnlineUserInfo::setSelected(const uint row, const bool selected, const int 
 		if (m_selectEntireRow) {
 			for (uint i {0}; i < m_totalCols; ++i)
 				appUtils()->setCompositeValue(i, selected ? "1"_L1 : "0"_L1, str_selected, fancy_record_separator1);
-			m_extraInfo[row][EF_SELECTED] = std::move(QVariant{str_selected});
+			m_extraInfo[rowFromVisibleRow(row)][EF_SELECTED] = std::move(QVariant{str_selected});
 			emit dataChanged(index(row, 0), index(row, m_totalCols), QList<int>{selectedRole});
 		}
 		else {
 			appUtils()->setCompositeValue(column, selected ? "1"_L1 : "0"_L1, str_selected, fancy_record_separator1);
-			m_extraInfo[row][EF_SELECTED] = std::move(QVariant{str_selected});
+			m_extraInfo[rowFromVisibleRow(row)][EF_SELECTED] = std::move(QVariant{str_selected});
 			emit dataChanged(index(row, column), index(row, column), QList<int>{selectedRole});
 		}
 		if (item_already_selected && !selected)
@@ -104,7 +104,19 @@ void OnlineUserInfo::setSelected(const uint row, const bool selected, const int 
 	}
 }
 
-void OnlineUserInfo::applyFilter(const QString &filter, int field)
+QStringList UserInfoListModel::selectedUsers() const
+{
+	QStringList selected;
+	for(int i{0}; i < m_extraInfo.count(); ++i) {
+		if (rowVisible(i)) {
+			if (appUtils()->getCompositeValue(0, m_extraInfo.at(i).at(EF_SELECTED).toString(), fancy_record_separator1) == '1')
+				selected.append(data(DBUserModel::USER_FIELD_ID, i));
+		}
+	}
+	return selected;
+}
+
+void UserInfoListModel::applyFilter(const QString &filter, int field)
 {
 	if (filter != m_filter || field != m_fieldFilter) {
 		if (field >= -1 && field < DBUserModel::USER_N_FIELS) {
@@ -116,7 +128,7 @@ void OnlineUserInfo::applyFilter(const QString &filter, int field)
 }
 
 #ifndef Q_OS_ANDROID
-bool OnlineUserInfo::dataFromString(const QString &users_data)
+bool UserInfoListModel::dataFromString(const QString &users_data)
 {
 	QStringList tempmodeldata{std::move(users_data.split('\n'))};
 	if (tempmodeldata.count() < DBUserModel::USER_N_FIELS)
@@ -128,11 +140,11 @@ bool OnlineUserInfo::dataFromString(const QString &users_data)
 }
 #endif
 
-QVariant OnlineUserInfo::data(const QModelIndex &index, int role) const
+QVariant UserInfoListModel::data(const QModelIndex &index, int role) const
 {
-	const int row{index.row()};
+	const int row{rowFromVisibleRow(index.row())};
 	if (row >= 0 && row < count()) {
-		const int user_idx{currentUserIdx(row)};
+		const int user_idx{userIdx(row)};
 		if (user_idx >= 0) {
 #ifndef Q_OS_ANDROID
 			if (m_allUsers)
@@ -168,11 +180,11 @@ QVariant OnlineUserInfo::data(const QModelIndex &index, int role) const
 	return QVariant{};
 }
 
-bool OnlineUserInfo::setData(const QModelIndex &index, const QVariant &value, int role)
+bool UserInfoListModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
 	const int row{index.row()};
 	if (row >= 0 && row < count()) {
-		const int user_idx{currentUserIdx(row)};
+		const int user_idx{userIdx(row)};
 		if (user_idx >= 0) {
 #ifndef Q_OS_ANDROID
 			if (m_allUsers)
@@ -205,7 +217,7 @@ bool OnlineUserInfo::setData(const QModelIndex &index, const QVariant &value, in
 	return false;
 }
 
-QVariant OnlineUserInfo::headerData(int section, Qt::Orientation orientation, int header_role) const
+QVariant UserInfoListModel::headerData(int section, Qt::Orientation orientation, int header_role) const
 {
 	if (header_role == Qt::DisplayRole) {
 		if (orientation == Qt::Vertical)
@@ -232,7 +244,7 @@ QVariant OnlineUserInfo::headerData(int section, Qt::Orientation orientation, in
 }
 
 #ifndef Q_OS_ANDROID
-void OnlineUserInfo::clear()
+void UserInfoListModel::clear()
 {
 	m_allUsersData.clear();
 	m_extraInfo.clear();
@@ -242,7 +254,7 @@ void OnlineUserInfo::clear()
 	m_fieldFilter = -1;
 }
 
-QVariant OnlineUserInfo::allUsersData(int role, int row, const int column) const
+QVariant UserInfoListModel::allUsersData(int role, int row, const int column) const
 {
 	if (row == -1)
 		row = m_currentRow;
@@ -262,7 +274,7 @@ QVariant OnlineUserInfo::allUsersData(int role, int row, const int column) const
 	return QVariant{};
 }
 
-bool OnlineUserInfo::setAllUsersData(const uint user_idx, const int row, const int column, int role, const QVariant &value)
+bool UserInfoListModel::setAllUsersData(const uint user_idx, const int row, const int column, int role, const QVariant &value)
 {
 	const int app_usermodel_useridx{appUserModel()->userIdxFromFieldValue(DBUserModel::USER_FIELD_ID,
 																  m_allUsersData.at(row).at(DBUserModel::USER_FIELD_ID))};
@@ -281,7 +293,7 @@ bool OnlineUserInfo::setAllUsersData(const uint user_idx, const int row, const i
 	return true;
 }
 
-void OnlineUserInfo::removeUserInfo(const int row)
+void UserInfoListModel::removeUserInfo(const int row)
 {
 	beginRemoveRows(QModelIndex{}, row, row);
 	m_extraInfo.removeAt(row);
@@ -290,7 +302,7 @@ void OnlineUserInfo::removeUserInfo(const int row)
 }
 #endif
 
-void OnlineUserInfo::userModified(const uint user_idx, const uint field)
+void UserInfoListModel::userModified(const uint user_idx, const uint field)
 {
 	const int row{findRow(user_idx)};
 	switch (field) {
@@ -329,7 +341,7 @@ void OnlineUserInfo::userModified(const uint user_idx, const uint field)
 	}
 }
 
-void OnlineUserInfo::removeUserInfo(const uint user_idx)
+void UserInfoListModel::removeUserInfo(const uint user_idx)
 {
 	m_extraInfo.removeAt(user_idx);
 	for (auto idx{user_idx}; idx < m_extraInfo.count(); ++idx)
@@ -337,7 +349,7 @@ void OnlineUserInfo::removeUserInfo(const uint user_idx)
 	emit countChanged();
 }
 
-void OnlineUserInfo::insertUserInfo(const uint user_idx)
+void UserInfoListModel::insertUserInfo(const uint user_idx)
 {
 	QVariantList extra_infolist;
 	extra_infolist.append(std::move(appUserModel()->avatar(user_idx)));
@@ -351,12 +363,12 @@ void OnlineUserInfo::insertUserInfo(const uint user_idx)
 	m_extraInfo.append(std::move(extra_infolist));
 }
 
-inline const bool OnlineUserInfo::rowVisible(const uint row) const
+inline const bool UserInfoListModel::rowVisible(const uint row) const
 {
 	return m_extraInfo.at(row).at(EF_VISIBLE).toBool();
 }
 
-void OnlineUserInfo::setRowVisible(const uint row, bool visible, const int column)
+void UserInfoListModel::setRowVisible(const uint row, bool visible, const int column)
 {
 	if (row < count()) {
 		const bool current_visibility{rowVisible(row)};
@@ -373,7 +385,7 @@ void OnlineUserInfo::setRowVisible(const uint row, bool visible, const int colum
 	}
 }
 
-void OnlineUserInfo::changeVisibilityAsPerCategory()
+void UserInfoListModel::changeVisibilityAsPerCategory()
 {
 	for (auto i{0}; i < m_extraInfo.count(); ++i) {
 		bool _visible{m_showCoaches && m_extraInfo.at(i).at(EF_ISCOACH).toBool()};
@@ -397,7 +409,7 @@ void OnlineUserInfo::changeVisibilityAsPerCategory()
 	}
 }
 
-int OnlineUserInfo::findRow(const uint user_idx) const
+int UserInfoListModel::findRow(const uint user_idx) const
 {
 	int row{-1};
 	for(int i{0}; i < m_extraInfo.count(); ++i) {
@@ -410,7 +422,7 @@ int OnlineUserInfo::findRow(const uint user_idx) const
 	return row;
 }
 
-inline int OnlineUserInfo::rowFromVisibleRow(const uint visible_row) const
+inline int UserInfoListModel::rowFromVisibleRow(const uint visible_row) const
 {
 	int row{0};
 	for(int i{0}; i < m_extraInfo.count(); ++i) {
@@ -423,7 +435,7 @@ inline int OnlineUserInfo::rowFromVisibleRow(const uint visible_row) const
 	return row;
 }
 
-void OnlineUserInfo::gatherAllUsersInfo()
+void UserInfoListModel::gatherAllUsersInfo()
 {
 	const auto n_users{appUserModel()->m_usersData.count()};
 	m_extraInfo.reserve(n_users);

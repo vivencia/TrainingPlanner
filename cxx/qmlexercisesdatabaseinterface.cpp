@@ -4,7 +4,6 @@
 #include "pageslistmodel.h"
 #include "qmlitemmanager.h"
 #include "qmlworkoutinterface.h"
-#include "tputils.h"
 
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -20,14 +19,6 @@ const uint QmlExercisesDatabaseInterface::removeExercise(const uint row)
 {
 	appExercisesList()->removeExercise(row);
 	return row > 0 ? row - 1 : 0;
-}
-
-void QmlExercisesDatabaseInterface::importExercises(const QString &filename)
-{
-	if (filename.isEmpty())
-		appItemManager()->chooseFileToImport();
-	else
-		appUtils()->viewOrOpenFile(filename, TPUtils::FT_TP_EXERCISES);
 }
 
 void QmlExercisesDatabaseInterface::getExercisesPage(QmlWorkoutInterface *connect_page)

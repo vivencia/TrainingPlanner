@@ -115,7 +115,7 @@ TPPopup {
 
 				delegate: TPRadioButtonOrCheckBox {
 					text: qsTr(display)
-					radio: false
+					boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
 					checked: selected
 					width: itemsLayout.width
 					Layout.fillWidth: true

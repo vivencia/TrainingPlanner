@@ -244,7 +244,7 @@ TPPopup {
 						property TPFileViewer _file_viewer: null
 
 						sourceComponent: TPFileViewer {
-							mediaSource: messageItem.msgMedia
+							fileName: messageItem.msgMedia
 
 							//onImageSizeChanged: {
 							//	if (++_chatWindow.nMedia === _chatWindow.chatManager.nMediaMessages())
