@@ -512,119 +512,119 @@
 <context>
     <name>DBMesocyclesModel</name>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="246"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="245"/>
         <source>Rest day</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="303"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="302"/>
         <source>Program&apos;s name: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="304"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="303"/>
         <source>Start date: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="305"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="304"/>
         <source>End date: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="306"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="305"/>
         <source>Program&apos;s considerations: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="307"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="306"/>
         <source>Number of weeks: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="308"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="307"/>
         <source>Weekly training division: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="309"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="308"/>
         <source>Muscular groups for division A: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="310"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="309"/>
         <source>Muscular groups for division B: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="311"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="310"/>
         <source>Muscular groups for division C: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="312"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="311"/>
         <source>Muscular groups for division D: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="313"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="312"/>
         <source>Muscular groups for division E: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="314"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="313"/>
         <source>Muscular groups for division F: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="315"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="314"/>
         <source>Coach/Trainer: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="316"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="315"/>
         <source>Client: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="317"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="316"/>
         <source>Instructions file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="318"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="317"/>
         <source>Type: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="318"/>
         <location filename="../cxx/dbmesocyclesmodel.h" line="319"/>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="320"/>
         <source>Mesocycle-style program: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="535"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="533"/>
         <source>Success!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="536"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="534"/>
         <source>Extra workout is set to happen on </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="628"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="626"/>
         <source>Exercises Program</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="708"/>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="720"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="706"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="718"/>
         <source>Yes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="708"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="706"/>
         <source>No</source>
         <translation type="unfinished"></translation>
     </message>
@@ -632,92 +632,92 @@
 <context>
     <name>DBUserModel</name>
     <message>
-        <location filename="../cxx/dbusermodel.h" line="91"/>
+        <location filename="../cxx/dbusermodel.h" line="88"/>
         <source>Create online account: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.h" line="92"/>
+        <location filename="../cxx/dbusermodel.h" line="89"/>
         <source>Name: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.h" line="93"/>
+        <location filename="../cxx/dbusermodel.h" line="90"/>
         <source>Birthday: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.h" line="94"/>
+        <location filename="../cxx/dbusermodel.h" line="91"/>
         <source>Sex: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.h" line="95"/>
+        <location filename="../cxx/dbusermodel.h" line="92"/>
         <source>Phone: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.h" line="97"/>
+        <location filename="../cxx/dbusermodel.h" line="94"/>
         <source>Social Media: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.h" line="98"/>
+        <location filename="../cxx/dbusermodel.h" line="95"/>
         <source>Your are: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.h" line="99"/>
+        <location filename="../cxx/dbusermodel.h" line="96"/>
         <source>Training Job: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.h" line="100"/>
+        <location filename="../cxx/dbusermodel.h" line="97"/>
         <source>Goal: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.h" line="102"/>
+        <location filename="../cxx/dbusermodel.h" line="99"/>
         <source>User category: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.h" line="103"/>
+        <location filename="../cxx/dbusermodel.h" line="100"/>
         <source>Password:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.h" line="106"/>
+        <location filename="../cxx/dbusermodel.h" line="103"/>
         <source>Continue Setup</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.h" line="106"/>
+        <location filename="../cxx/dbusermodel.h" line="103"/>
         <source>Create a new user</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.h" line="108"/>
+        <location filename="../cxx/dbusermodel.h" line="105"/>
         <source>User already registered</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.h" line="109"/>
+        <location filename="../cxx/dbusermodel.h" line="106"/>
         <source>Invalid email address</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.h" line="110"/>
+        <location filename="../cxx/dbusermodel.h" line="107"/>
         <source>Password must have 6 characters or more</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.h" line="111"/>
+        <location filename="../cxx/dbusermodel.h" line="108"/>
         <source>Check</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.h" line="112"/>
+        <location filename="../cxx/dbusermodel.h" line="109"/>
         <source>Import</source>
         <translation type="unfinished"></translation>
     </message>
@@ -753,196 +753,196 @@
     </message>
     <message>
         <location filename="../cxx/dbusermodel.cpp" line="190"/>
-        <location filename="../cxx/dbusermodel.cpp" line="428"/>
-        <location filename="../cxx/dbusermodel.cpp" line="443"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1576"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1606"/>
+        <location filename="../cxx/dbusermodel.cpp" line="414"/>
+        <location filename="../cxx/dbusermodel.cpp" line="429"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1556"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1586"/>
         <source>No</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="427"/>
+        <location filename="../cxx/dbusermodel.cpp" line="413"/>
         <source>Revoke coach status?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="427"/>
+        <location filename="../cxx/dbusermodel.cpp" line="413"/>
         <source>All your clients will be removed and cannot be automatically retrieved</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="428"/>
-        <location filename="../cxx/dbusermodel.cpp" line="443"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1576"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1606"/>
+        <location filename="../cxx/dbusermodel.cpp" line="414"/>
+        <location filename="../cxx/dbusermodel.cpp" line="429"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1556"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1586"/>
         <source>Revoke</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="442"/>
+        <location filename="../cxx/dbusermodel.cpp" line="428"/>
         <source>Revoke client status?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="442"/>
+        <location filename="../cxx/dbusermodel.cpp" line="428"/>
         <source>All your coaches will be removed and cannot be automatically retrieved</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1662"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1642"/>
         <source>New coach!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1662"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1693"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1642"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1673"/>
         <source>Now that </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1663"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1643"/>
         <source> is your coach, you can send them messages using the Star Button on the Home screen</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="511"/>
+        <location filename="../cxx/dbusermodel.cpp" line="497"/>
         <source>User removal</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="528"/>
+        <location filename="../cxx/dbusermodel.cpp" line="514"/>
         <source>New user</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="639"/>
+        <location filename="../cxx/dbusermodel.cpp" line="625"/>
         <source>Coach registration</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="758"/>
+        <location filename="../cxx/dbusermodel.cpp" line="744"/>
         <source>Cannot upload file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="758"/>
+        <location filename="../cxx/dbusermodel.cpp" line="744"/>
         <source>Maximum file size allowed: 8MB</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="698"/>
+        <location filename="../cxx/dbusermodel.cpp" line="684"/>
         <source>Coach contacting</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="698"/>
+        <location filename="../cxx/dbusermodel.cpp" line="684"/>
         <source>Online coach contacted </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="965"/>
+        <location filename="../cxx/dbusermodel.cpp" line="951"/>
         <source>Coach Information</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="965"/>
+        <location filename="../cxx/dbusermodel.cpp" line="951"/>
         <source>Client Information</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1154"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1140"/>
         <source>Login failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1154"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1140"/>
         <source>Please, type in your TraininPlanner user password</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1245"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1251"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1225"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1231"/>
         <source>User switching error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1246"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1251"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1226"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1231"/>
         <source>Could not download files for user </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1388"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1368"/>
         <source>Online user information updated</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1574"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1604"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1554"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1584"/>
         <source> - unavailable</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1574"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1554"/>
         <source>The user is no longer available as your client. If you need to know more about this, contact them to find out the reason. Remove the user from your list of clients?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1604"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1584"/>
         <source>The user is no longer available as your coach. If you need to know more about this, contact them to find out the reason. Remove the user from your list of coaches?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1647"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1627"/>
         <source>Online account removed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1647"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1627"/>
         <source>Failed to remove online account</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1693"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1673"/>
         <source>New client!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1694"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1674"/>
         <source> is your client, you can send them messages using the Star Button on the Home screen</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1724"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1747"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1704"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1727"/>
         <source>Male</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1724"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1704"/>
         <source>Female</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1732"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1753"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1712"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1733"/>
         <source>User</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1733"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1755"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1713"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1735"/>
         <source>Coach</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1734"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1757"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1714"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1737"/>
         <source>Client</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1735"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1715"/>
         <source>Coach and Client</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1892,7 +1892,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="601"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="597"/>
         <source>Statistics</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2180,7 +2180,32 @@
 <context>
     <name>TPCoachesAndClientsList</name>
     <message>
-        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="77"/>
+        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="56"/>
+        <source>No clients pending confirmation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="58"/>
+        <source>No current clients</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="62"/>
+        <source>No coaches pending confirmation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="64"/>
+        <source>No available coaches</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="66"/>
+        <source>No current coaches</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="111"/>
         <source>Résumé</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2383,37 +2408,37 @@
 <context>
     <name>TPSettings</name>
     <message>
-        <location filename="../cxx/tpsettings.cpp" line="205"/>
+        <location filename="../cxx/tpsettings.cpp" line="204"/>
         <source>Custom(click on the regions of the rectangle on the right to change colors)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpsettings.cpp" line="206"/>
+        <location filename="../cxx/tpsettings.cpp" line="205"/>
         <source>Dark</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpsettings.cpp" line="206"/>
+        <location filename="../cxx/tpsettings.cpp" line="205"/>
         <source>Light</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpsettings.cpp" line="206"/>
+        <location filename="../cxx/tpsettings.cpp" line="205"/>
         <source>Blue</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpsettings.cpp" line="207"/>
+        <location filename="../cxx/tpsettings.cpp" line="206"/>
         <source>Green</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpsettings.cpp" line="207"/>
+        <location filename="../cxx/tpsettings.cpp" line="206"/>
         <source>Red</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpsettings.cpp" line="207"/>
+        <location filename="../cxx/tpsettings.cpp" line="206"/>
         <source>Gray</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2421,132 +2446,132 @@
 <context>
     <name>TPUtils</name>
     <message>
-        <location filename="../cxx/tputils.h" line="299"/>
+        <location filename="../cxx/tputils.h" line="300"/>
         <source>January</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="299"/>
+        <location filename="../cxx/tputils.h" line="300"/>
         <source>February</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="299"/>
+        <location filename="../cxx/tputils.h" line="300"/>
         <source>March</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="299"/>
+        <location filename="../cxx/tputils.h" line="300"/>
         <source>April</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="300"/>
+        <location filename="../cxx/tputils.h" line="301"/>
         <source>May</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="300"/>
+        <location filename="../cxx/tputils.h" line="301"/>
         <source>June</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="300"/>
+        <location filename="../cxx/tputils.h" line="301"/>
         <source>July</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="300"/>
+        <location filename="../cxx/tputils.h" line="301"/>
         <source>August</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="301"/>
+        <location filename="../cxx/tputils.h" line="302"/>
         <source>September</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="301"/>
+        <location filename="../cxx/tputils.h" line="302"/>
         <source>October</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="301"/>
+        <location filename="../cxx/tputils.h" line="302"/>
         <source>November</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="301"/>
+        <location filename="../cxx/tputils.h" line="302"/>
         <source>December</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="302"/>
+        <location filename="../cxx/tputils.h" line="303"/>
         <source>Sunday</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="302"/>
+        <location filename="../cxx/tputils.h" line="303"/>
         <source>Monday</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="302"/>
+        <location filename="../cxx/tputils.h" line="303"/>
         <source>Tuesday</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="302"/>
+        <location filename="../cxx/tputils.h" line="303"/>
         <source>Wednesday</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="303"/>
+        <location filename="../cxx/tputils.h" line="304"/>
         <source>Thursday</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="303"/>
+        <location filename="../cxx/tputils.h" line="304"/>
         <source>Friday</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="303"/>
+        <location filename="../cxx/tputils.h" line="304"/>
         <source>Saturday</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="304"/>
+        <location filename="../cxx/tputils.h" line="305"/>
         <source>Mon</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="304"/>
+        <location filename="../cxx/tputils.h" line="305"/>
         <source>Tue</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="304"/>
+        <location filename="../cxx/tputils.h" line="305"/>
         <source>Wed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="304"/>
+        <location filename="../cxx/tputils.h" line="305"/>
         <source>Thu</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="304"/>
+        <location filename="../cxx/tputils.h" line="305"/>
         <source>Fri</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="305"/>
+        <location filename="../cxx/tputils.h" line="306"/>
         <source>Sat</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="305"/>
+        <location filename="../cxx/tputils.h" line="306"/>
         <source>Sun</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2591,8 +2616,8 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.cpp" line="932"/>
-        <location filename="../cxx/tputils.cpp" line="944"/>
+        <location filename="../cxx/tputils.cpp" line="937"/>
+        <location filename="../cxx/tputils.cpp" line="949"/>
         <source>and</source>
         <translation type="unfinished"></translation>
     </message>

@@ -135,9 +135,6 @@ public:
 	Q_INVOKABLE QString availableLanguagesLabel(const uint language_idx) const;
 	QStringList availableLanguages() const;
 
-	inline const QString &localAppFilesDir() const { return m_localAppFilesDir; }
-	inline QString currentUserDir() const { return m_localAppFilesDir % currentUser() % '/'; }
-
 	inline bool appExiting() const { return m_appExiting; }
 
 signals:
@@ -145,7 +142,6 @@ signals:
 
 private:
 	QMap<uint,QLatin1StringView> m_globalPropertyNames;
-	QString m_localAppFilesDir;
 	QTimer m_timer;
 	qreal m_ratioFont;
 	uint m_windowWidth, m_windowHeight, m_qmlPageHeight;

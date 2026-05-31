@@ -100,7 +100,7 @@ TPPage {
 			}
 
 			Loader {
-				active: !mesoPage.mesoManager.ownMeso && AppUserModel.currentClients.count > 0
+				active: !mesoPage.mesoManager.ownMeso
 				asynchronous: true
 				Layout.fillWidth: true
 
@@ -128,14 +128,14 @@ TPPage {
 					TPLabel {
 						id: lblCoachName
 						text: mesoPage.mesoModel.coachLabel
-						visible: !mesoPage.mesoManager.coachIsMainUser
+						visible: !mesoPage.mesoManager.mesoForClient
 					}
 
 					TPTextInput {
 						id: txtCoachName
 						text: mesoPage.mesoManager.coachName
 						readOnly: true
-						visible: !mesoPage.mesoManager.coachIsMainUser
+						visible: !mesoPage.mesoManager.mesoForClient
 
 						Layout.fillWidth: true
 					}
@@ -220,8 +220,8 @@ TPPage {
 			}
 
 			TPFileViewer {
-				mediaSource: mesoPage.mesoModel.file(mesoPage.mesoManager.mesoIdx);
-				canAddFile: true
+				fileName: mesoPage.mesoModel.file(mesoPage.mesoManager.mesoIdx);
+				canAddFile: mesoPage.mesoManager.ownMeso || mesoPage.mesoManager.mesoForClient
 				useBackground: true
 				Layout.preferredWidth: 0.5 * parent.width
 				Layout.preferredHeight: 4/3 * (0.5 * parent.width)

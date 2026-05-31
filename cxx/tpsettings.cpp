@@ -15,8 +15,7 @@ TPSettings *TPSettings::app_settings{nullptr};
 constexpr QLatin1StringView white {"#ffffff"};
 constexpr QLatin1StringView black {"#000000"};
 
-TPSettings::TPSettings(QObject *parent) : QSettings{parent}, m_configFilePath{new TPFilePath{"config.ini"_L1}},
-	m_localAppFilesDir{std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)) % QLatin1Char('/')}
+TPSettings::TPSettings(QObject *parent) : QSettings{parent}, m_configFilePath{new TPFilePath{"config.ini"_L1}}
 {
 	TPSettings::app_settings = this;
 	REGISTER_QML_SINGLETON(TPSettings, this);
@@ -305,7 +304,7 @@ QString TPSettings::colorForScheme(const uint scheme) const
 	switch (scheme) {
 	case Custom:
 		return getValue(currentUser(), COLOR_INDEX, m_prevColorScheme != Custom ?
-																			colorForScheme(m_prevColorScheme) : QString{}).toString();
+																colorForScheme(m_prevColorScheme) : QString{}).toString();
 	case Dark:	return "#959595"_L1; break;
 	case Light:	return "#b8bec1"_L1; break;
 	case Blue:	return "#5c83a6"_L1; break;
@@ -321,7 +320,7 @@ QString TPSettings::lightColorForScheme(const uint scheme) const
 	switch (scheme){
 	case Custom:
 		return getValue(currentUser(), LIGHT_COLOR_INDEX, m_prevColorScheme != Custom ?
-																		lightColorForScheme(m_prevColorScheme) : QString{}).toString();
+															lightColorForScheme(m_prevColorScheme) : QString{}).toString();
 	case Dark:	return "#adadad"_L1; break;
 	case Light:	return "#b1acac"_L1; break;
 	case Blue:	return "#76b0e1"_L1; break;
@@ -337,7 +336,7 @@ QString TPSettings::darkColorForScheme(const uint scheme) const
 	switch (scheme) {
 		case Custom:
 			return getValue(currentUser(), DARK_COLOR_INDEX, m_prevColorScheme != Custom ?
-																		darkColorForScheme(m_prevColorScheme) : QString{}).toString();
+															darkColorForScheme(m_prevColorScheme) : QString{}).toString();
 		case Dark:	return "#4f4f4f"_L1; break;
 		case Light:	return "#e9e9ea"_L1; break;
 		case Blue:	return "#1e344a"_L1; break;

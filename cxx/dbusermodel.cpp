@@ -78,11 +78,6 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel) : QObject{p
 	}, Qt::SingleShotConnection);
 }
 
-QString DBUserModel::userDir(const QString &userid) const
-{
-	return appSettings()->currentUserDir() % userid % '/';
-}
-
 void DBUserModel::initUserSession()
 {
 	if (!m_db) {
@@ -171,6 +166,11 @@ void DBUserModel::initUserSession()
 	mb_userLoggedIn = std::nullopt;
 }
 
+QString DBUserModel::mainUserDir() const
+{
+	return TPFilePath::localAppFilesDir() % userId(0) % '/';
+}
+
 void DBUserModel::setOnlineAccount(const bool online_user, const uint user_idx)
 {
 	if (user_idx == 0 && mainUserConfigured()) {
@@ -204,9 +204,9 @@ void DBUserModel::createMainUser(const QString &userid, const QString &name)
 		m_usersData.insert(0, std::move(QStringList{} << (userid.isEmpty() ? std::move(generateUniqueUserId()) : userid) <<
 			QString{} << std::move("0"_L1) << name << std::move("2429630"_L1) << std::move("2"_L1) << QString{} <<
 			QString{} << QString{} << QString{} << QString{} << QString{} << std::move("0"_L1)));
-		static_cast<void>(appUtils()->mkdir(userDir(0)));
+		static_cast<void>(appUtils()->mkdir(appUserModel()->mainUserDir()));
 		setPhoneBasedOnLocale();
-		appUtils()->mkdir(appSettings()->currentUserDir() % TPUtils::previewImagesSubDir);
+		appUtils()->mkdir(appUserModel()->mainUserDir() % TPUtils::previewImagesSubDir);
 		emit userModified(0, USER_MODIFIED_CREATED);
 	}
 }
@@ -235,20 +235,6 @@ void DBUserModel::removeUser(const int user_idx, const bool remove_local, const 
 			delClient(user_idx);
 		m_usersData.remove(user_idx);
 		emit userModified(user_idx, USER_MODIFIED_REMOVED);
-	}
-}
-
-void DBUserModel::scanUsersSubDirs(std::pair<QList<bool>,QFileInfoList> &results, const QString &subdir, const QString &match)
-{
-	QDir user_dir{userDir(0)};
-	const QStringList &all_dirs{user_dir.entryList(QDir::AllDirs|QDir::NoDotAndDotDot)};
-	auto n_results{results.second.count()};
-	for (const auto &dir: all_dirs) {
-		if (dir.at(0).isDigit()) {
-			appUtils()->scanDir(userDir(0) % dir % '/' % subdir, results.second, match);
-			for (; n_results < results.second.count(); ++n_results)
-				results.first.append(isCoach(userIdxFromFieldValue(USER_FIELD_ID, dir)));
-		}
 	}
 }
 
@@ -1184,13 +1170,11 @@ void DBUserModel::loginUser()
 
 void DBUserModel::onlineCheckinActions()
 {
-	if (!mb_singleDevice.has_value())
-	{
-		connect(this, &DBUserModel::onlineDevicesListReceived, this, [this] ()
-		{
+	if (!mb_singleDevice.has_value()) {
+		connect(this, &DBUserModel::onlineDevicesListReceived, this, [this] () {
 			if (!mb_singleDevice.value())
 				downloadCmdFilesFromServer(m_db->subDir());
-			sendUnsentCmdFiles(userDir() + m_db->subDir());
+			sendUnsentCmdFiles(mainUserDir() % m_db->subDir());
 		}, Qt::SingleShotConnection);
 		getOnlineDevicesList();
 	}
@@ -1201,10 +1185,8 @@ void DBUserModel::getOnlineDevicesList()
 	const int requestid{appUtils()->generateUniqueId("getOnlineDevicesList"_L1)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(appOnlineServices(), &TPOnlineServices::networkListReceived, this, [this,conn,requestid]
-					(const int request_id, const int ret_code, const QStringList &ret_list)
-	{
-		if (request_id == requestid)
-		{
+											(const int request_id, const int ret_code, const QStringList &ret_list) {
+		if (request_id == requestid) {
 			disconnect(*conn);
 			bool device_registered{false};
 			n_devices = 0;
@@ -1216,14 +1198,12 @@ void DBUserModel::getOnlineDevicesList()
 					mb_singleDevice = true;
 				else if (ret_list.count() == 1)
 					mb_singleDevice = device_registered;
-				else
-				{
+				else {
 					mb_singleDevice = false;
 					n_devices = ret_list.count();
 				}
 			}
-			if (!device_registered)
-			{
+			if (!device_registered) {
 				appOnlineServices()->addDevice(requestid, appOsInterface()->deviceID());
 				++n_devices;
 			}

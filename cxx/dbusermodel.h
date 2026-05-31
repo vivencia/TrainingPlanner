@@ -84,9 +84,6 @@ public:
 
 	explicit DBUserModel(QObject *parent = nullptr, const bool bMainUserModel = true);
 
-	inline QString userDir(const int user_idx = 0) const { return userDir(userId(user_idx)); }
-	QString userDir(const QString &userid) const;
-
 	inline QString idLabel() const { return "Id: "_L1; }
 	inline QString onlineAccountUserLabel() const { return tr("Create online account: "); }
 	inline QString nameLabel() const { return tr("Name: "); }
@@ -113,6 +110,9 @@ public:
 
 	void initUserSession();
 
+	QString mainUserDir() const;
+	inline QString userDir(const QString &userid) const { return mainUserDir() % userid % '/'; }
+	inline QString userDir(const uint user_idx) const { return user_idx > 0 ? userDir(userId(user_idx)) : mainUserDir(); }
 	inline uint userCount() const { return m_usersData.count(); }
 	inline const QString _onlineAccount(const uint user_idx) const
 	{
@@ -134,8 +134,6 @@ public:
 	inline bool isAvailable(const uint user_idx) const { return (userCategory(user_idx) & UC_YET_AVAILABLE) == UC_YET_AVAILABLE; }
 	inline void setIsAvailable(const uint user_idx, const bool available) { setUserCategory(user_idx, UC_YET_AVAILABLE, available); }
 
-	//the first() method of results indicates whether the file belongs to a main user's coach(or not)
-	void scanUsersSubDirs(std::pair<QList<bool>, QFileInfoList> &results, const QString &subdir = QString{}, const QString &match = QString{});
 	Q_INVOKABLE inline int findUserById(const QString &userid, const bool exact_match = true) const
 	{
 		return userIdxFromFieldValue(USER_FIELD_NAME, userid, exact_match);

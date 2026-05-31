@@ -27,7 +27,7 @@ Q_PROPERTY(bool realMeso READ realMeso WRITE setRealMeso NOTIFY realMesoChanged 
 Q_PROPERTY(bool ownMeso READ ownMeso CONSTANT FINAL)
 Q_PROPERTY(bool isTempMeso READ isTempMeso NOTIFY isTempMesoChanged FINAL)
 Q_PROPERTY(bool canExport READ canExport NOTIFY canExportChanged FINAL)
-Q_PROPERTY(bool coachIsMainUser READ coachIsMainUser CONSTANT FINAL)
+Q_PROPERTY(bool mesoForClient READ mesoForClient CONSTANT FINAL)
 
 Q_PROPERTY(int mesoIdx READ mesoIdx WRITE setMesoIdx NOTIFY mesoIdxChanged FINAL)
 
@@ -81,7 +81,7 @@ public:
 	[[nodiscard]] bool ownMeso() const;
 	[[nodiscard]] bool isTempMeso() const;
 	[[nodiscard]] bool canExport() const;
-	[[nodiscard]] bool coachIsMainUser() const;
+	[[nodiscard]] bool mesoForClient() const;
 
 	inline QString mesoNameErrorTooltip() const { return m_nameError; }
 	[[nodiscard]] QString name() const;

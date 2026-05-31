@@ -4,6 +4,7 @@
 #include "dbusermodel.h"
 #include "osinterface.h"
 #include "qmlitemmanager.h"
+#include "tpfilepath.h"
 #include "tpsettings.h"
 #include "tputils.h"
 #include "translationclass.h"
@@ -42,6 +43,7 @@ int main(int argc, char *argv[])
 	app.setOrganizationName("Vivencia Software"_L1);
 	app.setOrganizationDomain("org.vivenciasoftware"_L1);
 	app.setApplicationName("TrainingPlanner"_L1);
+	TPFilePath::setLocalAppFilesDir();
 
 	TPUtils tpUtils{};
 	//tpUtils.findResource();

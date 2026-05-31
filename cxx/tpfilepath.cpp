@@ -3,6 +3,16 @@
 #include "tputils.h"
 
 #include <QDir>
+#include <QStandardPaths>
+
+QString TPFilePath::_localAppFilesDir{};
+
+void TPFilePath::setLocalAppFilesDir()
+{
+	if (TPFilePath::_localAppFilesDir.isEmpty())
+		TPFilePath::_localAppFilesDir = std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation))
+																									% QLatin1Char('/');
+}
 
 TPFilePath::TPFilePath(const QString &filename, const QString &owner_user, const QString &target_user,
 																			const std::initializer_list<QString> &subdirs)
@@ -43,29 +53,35 @@ void TPFilePath::setOwnerUser(const QString &userid)
 
 void TPFilePath::fromString(const QString &filepath)
 {
-	QString sane_path{std::move(appUtils()->sanitizePath(filepath))};
-	m_pathOK = filepath.startsWith(appSettings()->localAppFilesDir());
+	QString good_path{std::move(appUtils()->sanitizePath(filepath))};
+	m_pathOK = good_path.startsWith(_localAppFilesDir);
 	if (m_pathOK) {
-		m_fileName = std::move(appUtils()->getFileName(sane_path));
-		auto start_pos{appSettings()->localAppFilesDir().length()};
-		QString partial_path{std::move(sane_path.right(sane_path.length() - start_pos))};
-		m_ownerUser = std::move(appUtils()->getNthDirInPath(partial_path, 1));
-		bool owner_ok{false};
-		static_cast<void>(m_ownerUser.toLongLong(&owner_ok));
-		if (owner_ok) {
-			m_targetUser = std::move(appUtils()->getNthDirInPath(partial_path, 2));
-			bool has_target_user{true};
-			static_cast<void>(m_targetUser.left(5).toUInt(&has_target_user));
-			if (has_target_user) {
-				start_pos = partial_path.indexOf('/', start_pos + 1);
-				partial_path = partial_path.sliced(start_pos, partial_path.length() - start_pos - 1);
-			}
-			m_subDirs = std::move(appUtils()->getNthDirInPath(partial_path));
+		good_path.remove(0, _localAppFilesDir.length());
+		m_fileName = std::move(appUtils()->getFileName(good_path));
+		good_path = std::move(good_path.chopped(m_fileName.length()));
+		m_ownerUser = std::move(appUtils()->getNthDirInPath(good_path, 1).chopped(1));
+		bool user_ok{false};
+		static_cast<void>(m_ownerUser.toLongLong(&user_ok));
+		if (user_ok) {
+			good_path.remove(0, m_ownerUser.length() + 1);
+			m_targetUser = std::move(appUtils()->getNthDirInPath(good_path, 1).chopped(1));
+			static_cast<void>(m_targetUser.left(5).toUInt(&user_ok));
+			if (user_ok)
+				good_path.remove(0, m_targetUser.length() + 1);
+			else
+				m_targetUser.clear();
+			m_subDirs = std::move(good_path);
 			m_fullPathOK = false;
 		}
 		else
 			m_pathOK = false;
 		return;
 	}
-	setExternalFileName(sane_path);
+	else {
+		if (good_path.contains('/'))
+			setSubDirsPlusFilename(good_path);
+		else
+			m_fileName = std::move(good_path);
+	}
+	setExternalFileName(good_path);
 }

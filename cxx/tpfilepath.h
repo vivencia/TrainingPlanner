@@ -1,6 +1,5 @@
 #pragma once
 
-#include "tpsettings.h"
 #include "tputils.h"
 
 QT_FORWARD_DECLARE_CLASS(TPFilePath)
@@ -42,6 +41,8 @@ public:
 
 	inline TPFilePath &operator=(const QString &filepath)
 	{
+		setBothUsers(QString{});
+		setSubdirs(QString{}, true);
 		fromString(filepath);
 		return *this;
 	}
@@ -78,7 +79,7 @@ public:
 	{
 		if (!m_fullPathOK) {
 			const_cast<TPFilePath*>(this)->m_fullPath =
-								std::move(appSettings()->localAppFilesDir() % m_ownerUser % '/' % m_subDirs % m_fileName);
+								std::move(_localAppFilesDir % m_ownerUser % '/' % m_subDirs % m_fileName);
 			const_cast<TPFilePath*>(this)->m_fullPathOK = true;
 		}
 		return !use_temp_filename ? m_fullPath : m_fullPath % ".tmp"_L1;
@@ -89,6 +90,9 @@ public:
 	}
 
 	inline bool isOK() const { return m_pathOK; }
+
+	static void setLocalAppFilesDir();
+	static inline const QString &localAppFilesDir() { return _localAppFilesDir; }
 	inline bool useFileExtension() const { return m_useFileExtension; }
 	inline void setUseFileExtension(const bool extension) { m_useFileExtension = extension; }
 	inline const QString &fileName() const
@@ -140,6 +144,7 @@ public:
 private:
 	QString m_fileName, m_ownerUser, m_targetUser, m_subDirs, m_fullPath, m_externalFileName;
 	mutable QString m_tempString;
+	static QString _localAppFilesDir;
 	bool m_pathOK{false}, m_fullPathOK{false}, m_useFileExtension{true};
 
 	void fromString(const QString &filepath);

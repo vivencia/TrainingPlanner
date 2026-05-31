@@ -275,6 +275,8 @@ QString TPUtils::getNthDirInPath(const QString &filename, int nth_dir) const
 		}
 	}
 	else {
+		if (filepath.at(0) != '/')
+			--nth_dir;
 		for (const QChar &chr : filepath | std::views::take(n_chars)) {
 			if (chr != '/') {
 				if (nth_dir == 0)
@@ -503,15 +505,18 @@ QFile *TPUtils::openFile(const QString &filename, const bool read, const bool wr
 	return nullptr;
 }
 
-void TPUtils::scanDir(const QString &path, QFileInfoList &results, const QString &match, const bool follow_tree) const
+void TPUtils::scanDir(const QString &path, QFileInfoList &results, const QString &file_match, const QString &dir_match,
+																							const bool follow_tree) const
 {
 	QDir dir{path};
 	if (dir.isReadable()) {
-		results.append(std::move(dir.entryInfoList(QStringList{match}, QDir::Files|QDir::NoDotAndDotDot)));
+		const bool get_files{dir_match.isEmpty() || path.contains(dir_match)};
+		if (get_files)
+			results.append(std::move(dir.entryInfoList(QStringList{file_match}, QDir::Files|QDir::NoDotAndDotDot)));
 		if (follow_tree) {
 			const QStringList &subdirs{dir.entryList(QDir::Dirs|QDir::NoDotAndDotDot)};
 			for (const auto &subdir: subdirs)
-				scanDir(path % subdir, results, match, true);
+				scanDir(path % subdir, results, file_match, dir_match, true);
 		}
 	}
 }

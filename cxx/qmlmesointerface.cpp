@@ -103,9 +103,9 @@ bool QMLMesoInterface::canExport() const
 	return m_mesoModel->canExport(m_mesoIdx);
 }
 
-bool QMLMesoInterface::coachIsMainUser() const
+bool QMLMesoInterface::mesoForClient() const
 {
-	return appUserModel()->userId(0) == m_mesoModel->coach(m_mesoIdx);
+	return appUserModel()->isCoach(0) && (appUserModel()->userId(0) == m_mesoModel->coach(m_mesoIdx));
 }
 
 QString QMLMesoInterface::name() const

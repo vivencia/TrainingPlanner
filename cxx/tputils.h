@@ -162,7 +162,8 @@ public:
 														const bool remove_source = false, const bool overwrite = true) const;
 	QFile *openFile(const QString &filename, const bool read = true, const bool write = false, const bool append = false,
 							const bool overwrite = false, const bool text = true) const;
-	void scanDir(const QString &path, QFileInfoList &results, const QString &match = QString{}, const bool follow_tree = false) const;
+	void scanDir(const QString &path, QFileInfoList &results, const QString &file_match = QString{},
+									const QString &dir_match = QString{}, const bool follow_tree = false) const;
 	void rmDir(const QString &path) const;
 
 	bool writeDataToFile(QFile *out_file,

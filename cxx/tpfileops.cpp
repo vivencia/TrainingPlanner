@@ -824,7 +824,7 @@ TPFileOps::controlInfo *TPFileOps::controlFromType(const OpType type) const
 static inline QString previewFilename(const QString &source_filename, const QSize &preview_size)
 {
 	constexpr QLatin1StringView size_template{"_%1x%2"};
-	return appSettings()->currentUserDir() % TPUtils::previewImagesSubDir % QString::number(fnv1a_hash(source_filename)) %
+	return appUserModel()->mainUserDir() % TPUtils::previewImagesSubDir % QString::number(fnv1a_hash(source_filename)) %
 		   size_template.arg(QString::number(preview_size.width()), QString::number(preview_size.height())) % ".jpg"_L1;
 }
 

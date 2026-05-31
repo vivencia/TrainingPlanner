@@ -530,20 +530,16 @@ void QmlItemManager::runTests()
 	qDebug() << file.targetUser();
 	qDebug() << file.subdirs();
 	qDebug() << file.fileName();
-	/*QString str("/dir1/dir2/dir3/dir4/file.txt");
-	qDebug() << appUtils()->getNthDirInPath(str, -2);
-	qDebug() << appUtils()->getNthDirInPath(str, -1);
-	qDebug() << appUtils()->getNthDirInPath(str, 0);
-	qDebug() << appUtils()->getNthDirInPath(str, 1);
-	qDebug() << appUtils()->getNthDirInPath(str, 2);
-	return;*/
-	/*QString str2{"/home/guilhermef/.local/share/Vivencia Software/TrainingPlanner/1759170252407/1759256421787/exchange_files/1759170252407/mesocycles/Novo Programa 1.txt"};
-	qDebug() << str2;
-	QString tp_str = appUtils()->tpFilePath("Novo Programa 1.txt", "1759256421787", { "exchange_files", "1759170252407", "mesocycles"});
-	qDebug() << tp_str;
-	qDebug() << appUtils()->tpFilePath_subDirsOnly(tp_str);
-	qDebug() << appUtils()->tpFilePath_subDirsOnly(tp_str, -1);
-	qDebug() << appUtils()->tpFilePath_subDirsOnly(tp_str, 1);*/
+	file = "config.ini";
+	qDebug() << file.ownerUser();
+	qDebug() << file.targetUser();
+	qDebug() << file.subdirs();
+	qDebug() << file.fileName();
+	file = "exchange_files/1759170252407/mesocycles/Novo Programa 1.txt";
+	qDebug() << file.ownerUser();
+	qDebug() << file.targetUser();
+	qDebug() << file.subdirs();
+	qDebug() << file.fileName();
 }
 #endif
 #endif

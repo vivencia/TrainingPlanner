@@ -30,9 +30,9 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
 
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, &DBMesocyclesModel::labelChanged);
 	connect(this, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field) {
+		m_dbModelInterface->setModified(meso_idx, field);
+		appThreadManager()->runAction(m_db, ThreadManager::UpdateOneField);
 		if (isMesoOK(meso_idx)) {
-			m_dbModelInterface->setModified(meso_idx, field);
-			appThreadManager()->runAction(m_db, ThreadManager::UpdateOneField);
 			switch (field) {
 			case MESO_FIELD_STARTDATE:
 			case MESO_FIELD_ENDDATE:
@@ -43,8 +43,6 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
 			if (field >= MESO_FIELD_SPLIT && field <= MESO_FIELD_SPLITF)
 				checkIfCanExport(meso_idx);
 		}
-		else
-			exportToFile(meso_idx, *suggestedName(meso_idx), false); //temporary new mesocycles
 	});
 	getAllMesocycles();
 }
@@ -779,26 +777,6 @@ int DBMesocyclesModel::newMesoFromFile(const TPFilePath &filename, const bool ow
 	return import_result;
 }
 
-void DBMesocyclesModel::scanTemporaryMesocycles()
-{
-	std::pair<QList<bool>,QFileInfoList> mesos;
-	appUserModel()->scanUsersSubDirs(mesos, mesos_subdir, '*' % TPUtils::TP_FILE_EXTENSION);
-	if (!mesos.first.isEmpty()) {
-		uint idx{0};
-		for(const auto &mesofile : std::as_const(mesos.second)) {
-			const QString &user_id{appUtils()->getNthDirInPath(mesofile.filePath())};
-			if (mesoPlanExists(appUtils()->getFileName(mesofile.fileName(), true),
-									mesos.first.at(idx) ? user_id : appUserModel()->userId(0),
-									mesos.first.at(idx) ? appUserModel()->userId(0) : user_id) == -1) {
-				TPFilePath tp_mesofile{mesofile.fileName(), appUserModel()->userId(0), user_id, {mesos_subdir}};
-				static_cast<void>(newMesoFromFile(tp_mesofile, mesos.first.at(idx), false));
-			}
-			else
-				static_cast<void>(QFile::remove(mesofile.filePath()));
-		}
-	}
-}
-
 const uint DBMesocyclesModel::newMesoData(QStringList &&infolist)
 {
 	const uint meso_idx{count()};
@@ -824,7 +802,6 @@ void DBMesocyclesModel::getAllMesocycles()
 		}
 		else {
 			disconnect(*conn);
-			scanTemporaryMesocycles();
 			QMetaObject::invokeMethod(appItemManager()->AppHomePage(), "setMesosViewIndex",
 											Q_ARG(int, appSettings()->getCustomValue(mesosViewIdxSetting, 0).toInt()));
 			if (m_ownMesos) {

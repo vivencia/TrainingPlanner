@@ -104,7 +104,6 @@ Item {
 		sourceComponent: TPLabel {
 			text: _control.missingFileInfo
 			singleLine: false
-			font: AppGlobals.extraLargeFont
 			horizontalAlignment: Text.AlignHCenter
 		}
 	}

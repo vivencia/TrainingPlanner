@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls
 
 import TpQml
 import TpQml.Widgets
@@ -33,6 +32,40 @@ Item {
 		showCoaches: _control.listCoaches
 		showPending: _control.listUnconfirmed
 		showAvailable: _control.listAvailable
+		onCountChanged: {
+			if (count === 0)
+				lblEmptyList.text = lblEmptyList.updateText();
+		}
+	}
+
+	TPLabel {
+		id: lblEmptyList
+		text: updateText();
+		horizontalAlignment: Text.AlignHCenter
+		visible: workingModel.count === 0
+
+		anchors {
+			top: _control.top
+			left: _control.left
+			right: _control.right
+		}
+
+		function updateText(): string {
+			if (_control.listClients) {
+				if (_control.listUnconfirmed)
+					return qsTr("No clients pending confirmation");
+				else
+					return qsTr("No current clients");
+			}
+			else if (_control.listCoaches) {
+				if (_control.listUnconfirmed)
+					return qsTr("No coaches pending confirmation");
+				else if (_control.listAvailable)
+					return qsTr("No available coaches");
+				else
+					return qsTr("No current coaches");
+			}
+		}
 	}
 
 	TPListView {
@@ -41,6 +74,7 @@ Item {
 		height: button.visible ? _control.height - button.height - 5 : _control.height
 		model: workingModel
 		enabled: _control.enabled
+		visible: workingModel.count > 0
 
 		anchors {
 			top: _control.top

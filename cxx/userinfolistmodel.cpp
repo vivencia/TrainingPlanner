@@ -76,13 +76,13 @@ int UserInfoListModel::userIdx(const uint row) const
 
 bool UserInfoListModel::isSelected(const uint row, const int column) const
 {
-	Q_ASSERT_X(row < count(), "UserInfoListModel::setSelected", "row out of range");
+	Q_ASSERT_X(row < m_extraInfo.count(), "UserInfoListModel::setSelected", "row out of range");
 	return appUtils()->getCompositeValue(column, m_extraInfo.at(rowFromVisibleRow(row)).at(EF_SELECTED).toString(), fancy_record_separator1) == '1';
 }
 
 void UserInfoListModel::setSelected(const uint row, const bool selected, const int column)
 {
-	if (row < count()) {
+	if (row < m_extraInfo.count()) {
 		const bool item_already_selected{isSelected(row, column)};
 		QString str_selected{std::move(m_extraInfo.at(row).at(EF_SELECTED).toString())};
 		if (m_selectEntireRow) {
@@ -346,21 +346,28 @@ void UserInfoListModel::removeUserInfo(const uint user_idx)
 	m_extraInfo.removeAt(user_idx);
 	for (auto idx{user_idx}; idx < m_extraInfo.count(); ++idx)
 		m_extraInfo[idx][EF_USERIDX] = std::move(QVariant{idx});
+	changeNumberOfVisibleRows(false);
+}
+
+void UserInfoListModel::changeNumberOfVisibleRows(const bool add)
+{
+	m_nVisibleRows += add ? 1 : -1;
 	emit countChanged();
 }
 
 void UserInfoListModel::insertUserInfo(const uint user_idx)
 {
 	QVariantList extra_infolist;
-	extra_infolist.append(std::move(appUserModel()->avatar(user_idx)));
-	extra_infolist.append(std::move(user_idx));
-	extra_infolist.append(std::move(false));
-	extra_infolist.append(std::move(QString{}));
-	extra_infolist.append(std::move(true));
-	extra_infolist.append(std::move(appUserModel()->isCoach(user_idx)));
-	extra_infolist.append(std::move(appUserModel()->isClient(user_idx)));
-	extra_infolist.append(std::move(appUserModel()->isConfirmed(user_idx)));
+	extra_infolist.append(std::move(appUserModel()->avatar(user_idx))); //EF_AVATAR
+	extra_infolist.append(std::move(user_idx)); //EF_USERIDX
+	extra_infolist.append(std::move(false)); //EF_SELECTED
+	extra_infolist.append(std::move(true)); //EF_VISIBLE
+	extra_infolist.append(std::move(appUserModel()->isCoach(user_idx))); //EF_ISCOACH
+	extra_infolist.append(std::move(appUserModel()->isClient(user_idx))); //EF_ISCLIENT
+	extra_infolist.append(std::move(appUserModel()->isConfirmed(user_idx))); //EF_ISCONFIRMED
+	extra_infolist.append(std::move(appUserModel()->isAvailable(user_idx))); //EF_ISAVAILABLE
 	m_extraInfo.append(std::move(extra_infolist));
+	changeNumberOfVisibleRows(true);
 }
 
 inline const bool UserInfoListModel::rowVisible(const uint row) const
@@ -370,17 +377,16 @@ inline const bool UserInfoListModel::rowVisible(const uint row) const
 
 void UserInfoListModel::setRowVisible(const uint row, bool visible, const int column)
 {
-	if (row < count()) {
-		const bool current_visibility{rowVisible(row)};
-		if (current_visibility != visible) {
-			if (visible && row > m_currentRow)
-				setCurrentRow(row);
-			else if (!visible && row <= m_currentRow) {
-				if (m_currentRow < 0 && count() > 0)
-					m_currentRow = 0;
-			}
-			m_extraInfo[row][EF_VISIBLE] = std::move(visible);
-			emit dataChanged(index(row, column), index(row, column), QList<int>{itemVisibleRole});
+	const bool current_visibility{rowVisible(row)};
+	if (current_visibility != visible) {
+		m_extraInfo[row][EF_VISIBLE] = std::move(visible);
+		emit dataChanged(index(row, column), index(row, column), QList<int>{itemVisibleRole});
+		changeNumberOfVisibleRows(visible);
+		if (visible && row > m_currentRow)
+			setCurrentRow(row);
+		else if (!visible && row <= m_currentRow) {
+			if (m_currentRow < 0 && count() > 0)
+				m_currentRow = 0;
 		}
 	}
 }

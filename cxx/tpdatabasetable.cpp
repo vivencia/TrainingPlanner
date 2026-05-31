@@ -93,7 +93,7 @@ void TPDatabaseTable::startAction(const int unique_id, ThreadManager::StandardOp
 
 QString TPDatabaseTable::dbFilePath() const
 {
-	return appSettings()->currentUserDir() + subDir();
+	return appUserModel()->mainUserDir() % subDir();
 }
 
 std::pair<bool, bool> TPDatabaseTable::createTable()

@@ -93,7 +93,6 @@ public:
 	void incorporateMeso(const uint meso_idx);
 
 	Q_INVOKABLE void startNewMesocycle(const bool own_meso);
-
 	Q_INVOKABLE void getMesocyclePage(const uint meso_idx, const bool new_meso);
 	Q_INVOKABLE void removeMesocycle(const uint meso_idx);
 	Q_INVOKABLE void getExercisesPlannerPage(const uint meso_idx);
@@ -389,7 +388,6 @@ public:
 
 	void removeMesoFile(const uint meso_idx);
 	int newMesoFromFile(const TPFilePath &filename, const bool own_meso, const std::optional<bool> &file_formatted = std::nullopt);
-	void scanTemporaryMesocycles();
 
 	inline bool isMesoNameOK(const int meso_idx = -1, const QString &meso_name = QString{}) const
 	{

@@ -68,7 +68,7 @@ TPMessagesManager::TPMessagesManager(QObject *parent) : QAbstractListModel{paren
 void TPMessagesManager::readAllChats()
 {
 	QFileInfoList chat_dbs;
-	appUtils()->scanDir(appUserModel()->userDir() + TPChat::chatsSubDir, chat_dbs, "*.db.sqlite"_L1);
+	appUtils()->scanDir(appUserModel()->mainUserDir() + TPChat::chatsSubDir, chat_dbs, "*.db.sqlite"_L1);
 	for (const auto &db_file : std::as_const(chat_dbs)) {
 		if (!message(db_file.baseName().toLong()))
 			static_cast<void>(createChatMessage(db_file.baseName(), true));
@@ -372,7 +372,7 @@ void TPMessagesManager::scanLocalMessages()
 {
 	TPFilePath tp_filepath{QString{}, appUserModel()->userId(0), QString{}, {tpmessages_subdir}};
 	QFileInfoList files;
-	appUtils()->scanDir(tp_filepath.toString(), files, QString{}, true);
+	appUtils()->scanDir(tp_filepath.toString(), files, QString{}, QString{}, true);
 	for (const auto &file : std::as_const(files)) {
 		tp_filepath.setTargetUser(userIdFromExchangeFile(file.filePath()));
 		tp_filepath.setFileName(file.fileName(), true);

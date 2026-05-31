@@ -27,8 +27,8 @@ Q_PROPERTY(bool allUsersList READ allUsersList WRITE setAllUsersList NOTIFY allU
 #endif
 
 public:
-	explicit UserInfoListModel(QObject *parent);
-	inline uint count() const { return m_extraInfo.count(); }
+	explicit UserInfoListModel(QObject *parent = nullptr);
+	inline uint count() const { return m_nVisibleRows; }
 
 	inline int currentUserIdx() const { return userIdx(m_currentRow); }
 	Q_INVOKABLE int userIdx(const uint row) const;
@@ -144,7 +144,7 @@ private:
 	QHash<int, QByteArray> m_roleNames;
 	QList<QVariantList> m_extraInfo;
 	QString m_filter;
-	uint m_nSelected{0}, m_totalCols;
+	uint m_nSelected{0}, m_totalCols{0}, m_nVisibleRows{0};
 	int m_currentRow{-1}, m_fieldFilter{-1};
 	bool m_selectEntireRow{false}, m_showClients{true}, m_showCoaches{true}, m_showPending{false}, m_showAvailable{false};
 #ifndef Q_OS_ANDROID
@@ -152,6 +152,7 @@ private:
 	QList<QStringList> m_allUsersData;
 #endif
 
+	void changeNumberOfVisibleRows(const bool add);
 	void insertUserInfo(const uint user_idx);
 	void removeUserInfo(const uint user_idx);
 	const bool rowVisible(const uint row) const;

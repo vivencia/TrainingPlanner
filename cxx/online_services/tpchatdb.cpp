@@ -42,13 +42,13 @@ QString TPChatDB::subDir() const
 
 QString TPChatDB::dbFilePath() const
 {
-	return appUserModel()->userDir(m_userId) + subDir();
+	return appUserModel()->mainUserDir() % subDir();
 }
 
 QString TPChatDB::dbFileName(const bool fullpath) const
 {
-	const QString &filename{std::move(m_otherUserId + dbfile_extension)};
-	return fullpath ? dbFilePath() + filename : filename;
+	const QString &filename{std::move(m_otherUserId % dbfile_extension)};
+	return fullpath ? dbFilePath() % filename : filename;
 }
 
 bool TPChatDB::loadChat(void *)
@@ -56,7 +56,6 @@ bool TPChatDB::loadChat(void *)
 	bool success{false};
 	if (execReadOnlyQuery("SELECT * FROM "_L1 + table_name)) {
 		if (m_workingQuery.first ()) {
-
 			do {
 				QStringList message_info{TP_CHAT_TOTAL_MESSAGE_FIELDS};
 				for (uint i{0}; i < TP_CHAT_TOTAL_MESSAGE_FIELDS; ++i)
