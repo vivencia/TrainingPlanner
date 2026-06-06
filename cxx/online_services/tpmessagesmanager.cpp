@@ -302,7 +302,7 @@ QVariant TPMessagesManager::data(const QModelIndex &index, int role) const
 		case msgTitleRole:			return m_data.at(row)->title();
 		case msgTextRole:			return m_data.at(row)->text();
 		case msgIconRole:			return m_data.at(row)->iconSource();
-		case msgFileNameRole:		return m_data.at(row)->fileName()->toString();
+		case msgFileNameRole:		return m_data.at(row)->fileName() ? m_data.at(row)->fileName()->toString() : QString{};
 		case msgExtraInfoTextRole:	return m_data.at(row)->extraInfoText();
 		case msgExtraInfoIconRole:	return m_data.at(row)->extraInfoImage();
 		case msgDateRole:			return m_data.at(row)->date();

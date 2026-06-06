@@ -6,7 +6,7 @@
 constexpr uint totalExtraFields{4};
 
 enum extraFields {
-	EF_AVATAR = DBUserModel::USER_FIELD_AVATAR,
+	EF_AVATAR,
 	EF_USERIDX,
 	EF_SELECTED,
 	EF_VISIBLE,
@@ -14,7 +14,7 @@ enum extraFields {
 	EF_ISCLIENT,
 	EF_ISCONFIRMED,
 	EF_ISAVAILABLE,
-	EF_N_FIELDS = 8
+	EF_N_FIELDS
 };
 
 enum RoleNames {
@@ -31,17 +31,17 @@ enum RoleNames {
 	createRole(coachrole,		DBUserModel::USER_FIELD_COACHROLE)
 	createRole(goal,			DBUserModel::USER_FIELD_GOAL)
 	createRole(category,		DBUserModel::USER_FIELD_USER_CATEGORY)
-	createRole(avatar,			EF_AVATAR)
-	createRole(userIdx,			EF_USERIDX)
-	createRole(selected,		EF_SELECTED)
-	createRole(itemVisible,		EF_VISIBLE)
-	createRole(isCoach,			EF_ISCOACH)
-	createRole(isClient,		EF_ISCLIENT)
-	createRole(isConfirmed,		EF_ISCONFIRMED)
-	createRole(isAvailable,		EF_ISAVAILABLE)
+	createRole(avatar,			DBUserModel::USER_FIELD_AVATAR)
+	createRole(userIdx,			avatarRole + EF_USERIDX)
+	createRole(selected,		avatarRole + EF_SELECTED)
+	createRole(itemVisible,		avatarRole + EF_VISIBLE)
+	createRole(isCoach,			avatarRole + EF_ISCOACH)
+	createRole(isClient,		avatarRole + EF_ISCLIENT)
+	createRole(isConfirmed,		avatarRole + EF_ISCONFIRMED)
+	createRole(isAvailable,		avatarRole + EF_ISAVAILABLE)
 };
 
-UserInfoListModel::UserInfoListModel(QObject *parent) : QAbstractListModel{parent}, m_totalCols{DBUserModel::USER_N_FIELS}
+UserInfoListModel::UserInfoListModel(QObject *parent) : QAbstractListModel{parent}, m_totalCols{DBUserModel::USER_N_FIELDS}
 {
 	roleToString(id)
 	roleToString(insertTime)
@@ -71,13 +71,14 @@ UserInfoListModel::UserInfoListModel(QObject *parent) : QAbstractListModel{paren
 
 int UserInfoListModel::userIdx(const uint row) const
 {
-	return m_extraInfo.at(rowFromVisibleRow(row)).at(EF_USERIDX).toInt();
+	return m_extraInfo.at(row).at(EF_USERIDX).toInt();
 }
 
-bool UserInfoListModel::isSelected(const uint row, const int column) const
+bool UserInfoListModel::isSelected(const int row, const int column) const
 {
-	Q_ASSERT_X(row < m_extraInfo.count(), "UserInfoListModel::setSelected", "row out of range");
-	return appUtils()->getCompositeValue(column, m_extraInfo.at(rowFromVisibleRow(row)).at(EF_SELECTED).toString(), fancy_record_separator1) == '1';
+	if (row >= 0 && row < m_extraInfo.count())
+		return appUtils()->getCompositeValue(column, m_extraInfo.at(row).at(EF_SELECTED).toString(), fancy_record_separator1) == '1';
+	return false;
 }
 
 void UserInfoListModel::setSelected(const uint row, const bool selected, const int column)
@@ -119,7 +120,7 @@ QStringList UserInfoListModel::selectedUsers() const
 void UserInfoListModel::applyFilter(const QString &filter, int field)
 {
 	if (filter != m_filter || field != m_fieldFilter) {
-		if (field >= -1 && field < DBUserModel::USER_N_FIELS) {
+		if (field >= -1 && field < DBUserModel::USER_N_FIELDS) {
 			m_filter = filter;
 			m_fieldFilter = field;
 			changeVisibilityAsPerCategory();
@@ -131,9 +132,9 @@ void UserInfoListModel::applyFilter(const QString &filter, int field)
 bool UserInfoListModel::dataFromString(const QString &users_data)
 {
 	QStringList tempmodeldata{std::move(users_data.split('\n'))};
-	if (tempmodeldata.count() < DBUserModel::USER_N_FIELS)
+	if (tempmodeldata.count() < DBUserModel::USER_N_FIELDS)
 		return false;
-	if (tempmodeldata.count() > DBUserModel::USER_N_FIELS)
+	if (tempmodeldata.count() > DBUserModel::USER_N_FIELDS)
 		tempmodeldata.removeLast(); //remove the password field
 	m_allUsersData.append(std::move(tempmodeldata));
 	return true;
@@ -143,7 +144,7 @@ bool UserInfoListModel::dataFromString(const QString &users_data)
 QVariant UserInfoListModel::data(const QModelIndex &index, int role) const
 {
 	const int row{rowFromVisibleRow(index.row())};
-	if (row >= 0 && row < count()) {
+	if (row >= 0 && row < m_extraInfo.count()) {
 		const int user_idx{userIdx(row)};
 		if (user_idx >= 0) {
 #ifndef Q_OS_ANDROID
@@ -182,8 +183,8 @@ QVariant UserInfoListModel::data(const QModelIndex &index, int role) const
 
 bool UserInfoListModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-	const int row{index.row()};
-	if (row >= 0 && row < count()) {
+	const int row{rowFromVisibleRow(index.row())};
+	if (row >= 0 && row < m_extraInfo.count()) {
 		const int user_idx{userIdx(row)};
 		if (user_idx >= 0) {
 #ifndef Q_OS_ANDROID
@@ -202,8 +203,8 @@ bool UserInfoListModel::setData(const QModelIndex &index, const QVariant &value,
 			case coachroleRole: appUserModel()->setCoachRole(user_idx, value.toString()); break;
 			case goalRole: appUserModel()->setGoal(user_idx, value.toString()); break;
 			case avatarRole: appUserModel()->setAvatar(user_idx, value.toString()); break;
-			case selectedRole: setSelected(rowFromVisibleRow(row),value.toBool(), index.column()); break;
-			case itemVisibleRole: setRowVisible(rowFromVisibleRow(row), value.toBool(), index.column()); break;
+			case selectedRole: setSelected(row,value.toBool(), index.column()); break;
+			case itemVisibleRole: setRowVisible(row, value.toBool(), index.column()); break;
 			case isCoachRole: appUserModel()->setIsCoach(user_idx, value.toBool()); break;
 			case isClientRole: appUserModel()->setIsClient(user_idx, value.toBool()); break;
 			case isConfirmedRole: appUserModel()->setIsConfirmed(user_idx, value.toBool()); break;
@@ -370,9 +371,11 @@ void UserInfoListModel::insertUserInfo(const uint user_idx)
 	changeNumberOfVisibleRows(true);
 }
 
-inline const bool UserInfoListModel::rowVisible(const uint row) const
+inline const bool UserInfoListModel::rowVisible(const int row) const
 {
-	return m_extraInfo.at(row).at(EF_VISIBLE).toBool();
+	if (row >= 0 && row < m_extraInfo.count())
+		return m_extraInfo.at(row).at(EF_VISIBLE).toBool();
+	return false;
 }
 
 void UserInfoListModel::setRowVisible(const uint row, bool visible, const int column)
@@ -396,17 +399,17 @@ void UserInfoListModel::changeVisibilityAsPerCategory()
 	for (auto i{0}; i < m_extraInfo.count(); ++i) {
 		bool _visible{m_showCoaches && m_extraInfo.at(i).at(EF_ISCOACH).toBool()};
 		if (!_visible)
-			_visible &= m_showClients && m_extraInfo.at(i).at(EF_ISCLIENT).toBool();
+			_visible = m_showClients && m_extraInfo.at(i).at(EF_ISCLIENT).toBool();
 		if (_visible) {
-			if (!m_showPending || m_showPending && m_extraInfo.at(i).at(EF_ISCONFIRMED).toBool())
-				_visible = false;
-			else {
-				if (!m_showAvailable || m_showAvailable && !m_extraInfo.at(i).at(EF_ISAVAILABLE).toBool())
-					_visible = false;
-				else {
-					if (m_fieldFilter != -1) {
-						if (!m_filter.isEmpty())
-							_visible = appUserModel()->m_usersData.at(i).at(m_fieldFilter).contains(m_filter);
+			_visible = (m_showConfirmed == m_extraInfo.at(i).at(EF_ISCONFIRMED).toBool());
+			if (_visible)
+				_visible = (m_showAvailable == m_extraInfo.at(i).at(EF_ISAVAILABLE).toBool());
+			if (_visible) {
+				if (m_fieldFilter != -1) {
+					if (!m_filter.isEmpty()) {
+						const QStringList &words_list{appUtils()->stripDiacriticsFromString(m_filter).split(' ', Qt::SkipEmptyParts)};
+						_visible = appUtils()->containsAllWords(appUserModel()->m_usersData.at(
+											m_extraInfo.at(i).at(EF_USERIDX).toUInt()).at(m_fieldFilter), words_list, false);
 					}
 				}
 			}
@@ -434,17 +437,17 @@ inline int UserInfoListModel::rowFromVisibleRow(const uint visible_row) const
 	for(int i{0}; i < m_extraInfo.count(); ++i) {
 		if (rowVisible(i)) {
 			if (row == visible_row)
-				break;
+				return i;
 			++row;
 		}
 	}
-	return row;
+	return -1;
 }
 
 void UserInfoListModel::gatherAllUsersInfo()
 {
-	const auto n_users{appUserModel()->m_usersData.count()};
+	const auto n_users{appUserModel()->m_usersData.count() - 1};
 	m_extraInfo.reserve(n_users);
-	for (auto user_idx{0}; user_idx < n_users; ++user_idx)
+	for (auto user_idx{1}; user_idx <= n_users; ++user_idx)
 		insertUserInfo(user_idx);
 }

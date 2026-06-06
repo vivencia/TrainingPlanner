@@ -32,11 +32,13 @@ TPFileOps::TPFileOps(QQuickItem *parent)
 {
 	setAcceptTouchEvents(true);
 	setAcceptedMouseButtons(Qt::LeftButton);
-	connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::mesoIdxChanged, this, [this]
+	if (appUserModel()->actualMesoModel()) {
+		connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::mesoIdxChanged, this, [this]
 																		(const uint old_meso_idx, const uint new_meso_idx) {
-		if (old_meso_idx == m_mesoIdx)
-			setMesoIdx(new_meso_idx);
-	});
+			if (old_meso_idx == m_mesoIdx)
+				setMesoIdx(new_meso_idx);
+		});
+	}
 	m_pressedColor.fromString(appSettings()->primaryColor());
 	switch (appSettings()->colorScheme()) {
 	case TPSettings::Blue:
@@ -75,21 +77,13 @@ void TPFileOps::setFileType(TPUtils::FILE_TYPE new_type)
 		m_filetype = new_type;
 		emit fileTypeChanged();
 		if (m_useControls) {
-			for (int i{OT_FullScreen}; i < OT_TypeCount; ++i) {
-				controlInfo *ci{m_controls[i]};
-				ci->visible = new_type != TPUtils::FT_UNKNOWN;
-				switch (i) {
-				case OT_FullScreen:
-					ci->visible = new_type <= TPUtils::FT_TEXT;
-					break;
-				case OT_ViewExternally:
-					_getDefaultImage(ci);
-					break;
-				}
+			if (m_controls[0]) {
+				for (int i{OT_FullScreen}; i <= OT_TypeCount - 2; ++i)
+					setButtonCondition(static_cast<OpType>(i));
+				setButtonCondition(static_cast<OpType>(OT_TypeCount - 1), std::nullopt, true);
 			}
-			resizeControl();
-			recalculateButtonsRect();
-			update();
+			else
+				createControls();
 		}
 	}
 }
@@ -97,27 +91,13 @@ void TPFileOps::setFileType(TPUtils::FILE_TYPE new_type)
 void TPFileOps::setFileName(const QString &filename, const bool file_added)
 {
 	if (!canDownloadOrGenerate() && (filename.isEmpty() || !QFile::exists(filename))) {
-		m_filename = "";
+		m_filename = std::move(TPFilePath{});
 		setFileType(TPUtils::FT_UNKNOWN);
 		setFileIsOK(false);
 	}
 	else {
 		m_filename = filename;
-		emit fileNameChanged();
-		if (file_added)
-			emit fileAdded(filename);
-		const TPUtils::FILE_TYPE file_type{appUtils()->getFileType(filename)};
-		setFileType(file_type);
-		if (file_type < TPUtils::FT_IMAGE) {
-			if (file_type & TPUtils::FT_TP_FORMATTED) {
-				m_tpfileSections = 0;
-				m_tpFileInfo.clear();
-				readTPFile();
-			}
-			else
-				setEnabled(OT_FullScreen, false);
-		}
-		setFileIsOK(QFile::exists(filename));
+		setFileName(file_added);
 	}
 }
 
@@ -131,8 +111,7 @@ void TPFileOps::setCanDownloadOrGenerate(const bool can_do)
 	if (can_do != m_downloadOrGenerate) {
 		m_downloadOrGenerate = can_do;
 		emit canDownloadOrGenerateChanged();
-		if (can_do)
-			attemptToCreateOrGetFile();
+		setButtonCondition(OT_Download, m_downloadOrGenerate, true);
 	}
 }
 
@@ -141,11 +120,17 @@ void TPFileOps::setCanAddFile(const bool can_add)
 	if (can_add != m_canAddFile) {
 		m_canAddFile = can_add;
 		emit canAddFileChanged();
-		m_controls[OT_AddFile]->visible = canAddFile();
-		resizeControl();
-		recalculateButtonsRect();
-		update();
+		setButtonCondition(OT_AddFile, m_canAddFile, true);
 	}
+}
+
+void TPFileOps::renameFile(const QString &new_name)
+{
+ 	const QString &correct_new_name{appUtils()->getFileName(new_name, true) %
+																appUtils()->getFileExtension(m_filename.fileName(), true)};
+	if (fileIsOK())
+		QFile::rename(m_filename.toString(), m_filename.filePath() % correct_new_name);
+	m_filename.setFileName(correct_new_name, true);
 }
 
 void TPFileOps::removeFile(const bool bypass_confirmation, const bool remove_local, const bool remove_remote)
@@ -156,9 +141,9 @@ void TPFileOps::removeFile(const bool bypass_confirmation, const bool remove_loc
 				removeFile(true, remove_local, remove_remote);
 		}, Qt::SingleShotConnection);
 		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
-			appUtils()->string_strings({tr("Remove file?"), m_filename.toString()}, record_separator), Qt::AlignCenter,
-										getFileTypeIcon(m_filename.toString(), QSize{appSettings()->itemExtraLargeHeight(),
-															appSettings()->itemExtraLargeHeight()}), -1, tr("Yes"), tr("No"));
+			appUtils()->string_strings({tr("Remove file?"), m_filename.toString()}, record_separator),
+									Qt::AlignCenter, getFileTypeIcon(QSize{appSettings()->itemExtraLargeHeight(),
+														appSettings()->itemExtraLargeHeight()}), -1, tr("Yes"), tr("No"));
 		return;
 	}
 	if (remove_local)
@@ -173,6 +158,50 @@ QString TPFileOps::chooseFileDialog(const int file_type)
 	const TPUtils::FILE_TYPE f_type{static_cast<TPUtils::FILE_TYPE>(file_type)};
 	return QFileDialog::getOpenFileName(nullptr, tr("Select file"), appUtils()->standardPathForFileType(f_type),
 															appUtils()->extensionsListForType(f_type).join(";;"_L1));
+}
+
+void TPFileOps::exportTPFile(const TPFilePath &tp_filename)
+{
+	int ret_code(TP_RET_CODE_EXPORT_FAILED);
+	QString message;
+	if (tp_filename.isOK()) {
+		uint32_t ft{static_cast<uint>(m_filetype) & static_cast<uint>(~TPUtils::FT_TP_FORMATTED)};
+		switch (ft) {
+		case TPUtils::FT_TP_USER_PROFILE:
+			ret_code = appUserModel()->exportToFormattedFile(0, tp_filename);
+			break;
+		case TPUtils::FT_TP_PROGRAM:
+			connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::mesoExported, this, [this]
+					(const uint meso_idx, const TPFilePath &filename, const int return_code) {
+						exportTPFile(return_code == TP_RET_CODE_EXPORT_OK ? filename : TPFilePath{});
+					}, Qt::SingleShotConnection);
+			appUserModel()->actualMesoModel()->exportToFormattedFile(m_mesoIdx, tp_filename);
+			return;
+		case TPUtils::FT_TP_WORKOUT_A:
+		case TPUtils::FT_TP_WORKOUT_B:
+		case TPUtils::FT_TP_WORKOUT_C:
+		case TPUtils::FT_TP_WORKOUT_D:
+		case TPUtils::FT_TP_WORKOUT_E:
+		case TPUtils::FT_TP_WORKOUT_F:
+			//TODO
+			break;
+		case TPUtils::FT_TP_EXERCISES:
+			ret_code = appExercisesList()->exportToFormattedFile(tp_filename);
+			break;
+		default:
+#ifndef QT_NO_DEBUG
+			qDebug() << "Error! Trying to save/export a not TPApp file - TPFileOps::exportSlot(" << m_filename.toString() << ")";
+#endif
+			return;
+		}
+		if (ret_code == TP_RET_CODE_EXPORT_OK)
+			message = std::move(tp_filename.fileName());
+		else
+			message = std::move(tr("Could not save to: ") % tp_filename.fileName());
+	}
+	else
+		message = std::move(tr("Operation canceled"));
+	appItemManager()->displayMessageOnAppWindow(ret_code, message);
 }
 
 QString TPFileOps::openFileDialog(const int file_type, const QString &suggested_save_name)
@@ -192,7 +221,7 @@ QString TPFileOps::openFileDialog(const int file_type, const QString &suggested_
 
 void TPFileOps::attemptToCreateOrGetFile()
 {
-	if (QFile::exists(m_filename.toString())) {
+	if (fileIsOK()) {
 		emit fileAcquired(TP_RET_CODE_NO_CHANGES_SUCCESS);
 		return;
 	}
@@ -214,13 +243,13 @@ void TPFileOps::attemptToCreateOrGetFile()
 		const auto ret{generateFileFromType(true)};
 		switch (ret) {
 		case TP_RET_CODE_EXPORT_OK: break;
-		case TP_RET_CODE_DEFERRED_ACTION:
-		{
+		case TP_RET_CODE_DEFERRED_ACTION: {
 			std::shared_ptr<QMetaObject::Connection>conn{std::make_shared<QMetaObject::Connection>()};
 			*conn = connect(this, &TPFileOps::_internalSignal, this, [this,ret,conn,displayError] (const int requestid, const int return_code) {
 				if (requestid == ret) {
 					disconnect(*conn);
-					if (return_code == TP_RET_CODE_EXPORT_OK)
+					setFileIsOK(return_code == TP_RET_CODE_EXPORT_OK);
+					if (fileIsOK())
 						emit fileAcquired(TP_RET_CODE_SUCCESS);
 					else
 						displayError(return_code);
@@ -247,9 +276,9 @@ void TPFileOps::setEnabled(TPFileOps::OpType type, const bool enabled, const boo
 	}
 }
 
-QString TPFileOps::getFileTypeIcon(const QString &filename, const QSize &preferred_size, const bool thumbnail) const
+QString TPFileOps::getFileTypeIcon(const QSize &preferred_size, const bool thumbnail) const
 {
-	uint32_t ft{m_filetype & ~TPUtils::FT_TP_FORMATTED};
+	uint32_t ft{static_cast<uint>(m_filetype) & static_cast<uint>(~TPUtils::FT_TP_FORMATTED)};
 	switch (ft) {
 	case TPUtils::FT_TP_USER_PROFILE:	return "user_preview"_L1;
 	case TPUtils::FT_TP_PROGRAM:		return "meso_preview"_L1;
@@ -260,9 +289,9 @@ QString TPFileOps::getFileTypeIcon(const QString &filename, const QSize &preferr
 	case TPUtils::FT_TP_WORKOUT_E:
 	case TPUtils::FT_TP_WORKOUT_F:		return "workout_preview"_L1;
 	case TPUtils::FT_TP_EXERCISES:		return "exerciselist_preview"_L1;
-	case TPUtils::FT_IMAGE:				return thumbnail ? getImagePreviewFile(filename, preferred_size) : "image_preview"_L1;
+	case TPUtils::FT_IMAGE:				return thumbnail ? getImagePreviewFile(preferred_size) : "image_preview"_L1;
 	case TPUtils::FT_VIDEO:				return "video_preview"_L1;
-	case TPUtils::FT_PDF:				return thumbnail ? getPDFPreviewFile(filename, preferred_size) : "pdf_preview"_L1;;
+	case TPUtils::FT_PDF:				return thumbnail ? getPDFPreviewFile(preferred_size) : "pdf_preview"_L1;;
 	case TPUtils::FT_TEXT:				return "text_preview"_L1;
 	case TPUtils::FT_OPEN_DOCUMENT:		return "odf_preview"_L1;
 	case TPUtils::FT_MS_DOCUMENT:		return "docx_preview"_L1;
@@ -313,50 +342,6 @@ inline bool fileStillInUse(const QString &filename)
 			return appUtils()->calculateTimeDifferenceInSecs(f_time.time(), QTime::currentTime()) <= 6;
 	}
 	return false;
-}
-
-void TPFileOps::exportSlot(const TPFilePath &tp_filename)
-{
-	int ret_code(TP_RET_CODE_EXPORT_FAILED);
-	QString message;
-	if (tp_filename.isOK()) {
-		uint32_t ft{m_filetype & ~TPUtils::FT_TP_FORMATTED};
-		switch (ft) {
-		case TPUtils::FT_TP_USER_PROFILE:
-			ret_code = appUserModel()->exportToFormattedFile(0, tp_filename);
-			break;
-		case TPUtils::FT_TP_PROGRAM:
-			connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::mesoExported, this, [this]
-											(const uint meso_idx, const TPFilePath &filename, const int return_code) {
-				exportSlot(return_code == TP_RET_CODE_EXPORT_OK ? filename : TPFilePath{});
-			}, Qt::SingleShotConnection);
-			appUserModel()->actualMesoModel()->exportToFormattedFile(m_mesoIdx, tp_filename);
-			return;
-		case TPUtils::FT_TP_WORKOUT_A:
-		case TPUtils::FT_TP_WORKOUT_B:
-		case TPUtils::FT_TP_WORKOUT_C:
-		case TPUtils::FT_TP_WORKOUT_D:
-		case TPUtils::FT_TP_WORKOUT_E:
-		case TPUtils::FT_TP_WORKOUT_F:
-			//TODO
-			break;
-		case TPUtils::FT_TP_EXERCISES:
-			ret_code = appExercisesList()->exportToFormattedFile(tp_filename);
-			break;
-		default:
-#ifndef QT_NO_DEBUG
-			qDebug() << "Error! Trying to save/export a not TPApp file - TPFileOps::exportSlot(" << m_filename.toString() << ")";
-#endif
-			return;
-		}
-		if (ret_code == TP_RET_CODE_EXPORT_OK)
-			message = std::move(tp_filename.fileName());
-		else
-			message = std::move(tr("Could not save to: ") % tp_filename.fileName());
-	}
-	else
-		message = std::move(tr("Operation canceled"));
-	appItemManager()->displayMessageOnAppWindow(ret_code, message);
 }
 
 void TPFileOps::importSlot(const bool accepted)
@@ -503,6 +488,25 @@ bool TPFileOps::eventFilter(QObject *obj, QEvent *event)
 		return QObject::eventFilter(obj, event);
 }
 
+void TPFileOps::setFileName(const bool file_added)
+{
+	emit fileNameChanged();
+	setFileIsOK(QFile::exists(m_filename.toString()));
+	if (file_added)
+		emit fileAdded(m_filename.toString());
+	const TPUtils::FILE_TYPE file_type{appUtils()->getFileType(m_filename.toString())};
+	setFileType(file_type);
+	if (fileIsOK() && isTPFile()) {
+		if (file_type & TPUtils::FT_TP_FORMATTED) {
+			m_tpfileSections = 0;
+			m_tpFileInfo.clear();
+			readTPFile();
+		}
+		else
+			setEnabled(OT_FullScreen, false);
+	}
+}
+
 void TPFileOps::_doFileOperation(const OpType type)
 {
 	switch (type) {
@@ -597,6 +601,7 @@ int TPFileOps::generateFileFromType(const bool formatted)
 			m_filetype |= TPUtils::FT_TP_FORMATTED;
 		emit fileNameChanged();
 	}
+	setFileIsOK(ret == TP_RET_CODE_SUCCESS);
 	return ret;
 }
 
@@ -616,11 +621,25 @@ void TPFileOps::doFullScreen()
 
 void TPFileOps::addFile()
 {
-	if (m_restrictedFileType && m_filetype == TPUtils::FT_UNKNOWN)
-		m_filetype = TPUtils::FT_ANY_TYPE;
-	QString filepath{std::move(openFileDialog(m_restrictedFileType ? m_filetype : TPUtils::FT_ANY_TYPE))};
-	if (!filepath.isEmpty())
-		setFileName(filepath, true);
+	QString filepath{std::move(openFileDialog(m_restrictedFileType ? m_filetype : (m_addFileFilters > 0 ?
+					m_addFileFilters : (m_filetype == TPUtils::FT_UNKNOWN ? TPUtils::FT_ANY_TYPE : m_filetype))))};
+	if (!filepath.isEmpty()) {
+		if (!m_filename.isOK()) {
+			if (m_suggestNameFunc) {
+				m_filename = std::move(*m_suggestNameFunc());
+				if (appUtils()->getFileExtension(m_filename.toString()).isEmpty())
+					m_filename.filename().append(appUtils()->getFileExtension(filepath, true));
+				if (appUtils()->copyFile(filepath, m_filename.toString(), true))
+					setFileName(true);
+			}
+			else {
+				qDebug() << "Error! Cannot add a file to TPFileOps that does not have a local filename set or suggested."_L1;
+				return;
+			}
+		}
+		else
+			static_cast<void>(appUtils()->copyFile(filepath, m_filename.toString(), true));
+	}
 }
 
 void TPFileOps::saveFileAs()
@@ -643,9 +662,11 @@ void TPFileOps::shareFile()
 
 void TPFileOps::downloadOrCopyFile()
 {
-	if (!QFile::exists(m_filename.toString())) {
-		if (m_filename.externalFilename().isEmpty()) {
-			if (canDownloadOrGenerate()) {
+	if (!fileIsOK()) {
+		if (canDownloadOrGenerate()) {
+			if (m_suggestNameFunc)
+				m_filename = std::move(*m_suggestNameFunc());
+			if (m_filename.isOK()) {
 				if (appUserModel()->canConnectToServer()) {
 					auto conn{std::make_shared<QMetaObject::Connection>()};
 					const int request_id{appUserModel()->downloadFileFromServer(m_filename)};
@@ -653,17 +674,15 @@ void TPFileOps::downloadOrCopyFile()
 							(const bool success, const uint requestid, const TPFilePath &tp_filepath) {
 						if (requestid == request_id) {
 							disconnect(*conn);
+							setFileIsOK(success);
 							emit fileAcquired(success ? TP_RET_CODE_SUCCESS : TP_RET_CODE_DOWNLOAD_FAILED);
 						}
 					});
+					return;
 				}
 			}
-			emit fileAcquired(TP_RET_CODE_INVALID_REQUEST_METHOD);
 		}
-		else {
-			const bool copied{appUtils()->copyFile(m_filename.externalFilename(), m_filename.toString(), true)};
-			emit fileAcquired(copied ? TP_RET_CODE_SUCCESS : TP_RET_CODE_WRITE_FAILED);
-		}
+		emit fileAcquired(TP_RET_CODE_INVALID_REQUEST_METHOD);
 	}
 	else
 		emit fileAcquired(TP_RET_CODE_NO_CHANGES_SUCCESS);
@@ -734,10 +753,45 @@ void TPFileOps::sendFileToUsers(const QStringList &users, const QString &message
 
 void TPFileOps::openFile()
 {
-	if (m_filetype >= TPUtils::FT_IMAGE)
-		appOsInterface()->viewExternalFile(m_filename.toString());
-	else
+	if (isTPFile())
 		openTPFile();
+	else if (isOpenedExternally())
+		appOsInterface()->viewExternalFile(m_filename.toString());
+}
+
+void TPFileOps::setButtonCondition(const OpType type, std::optional<bool> visible, bool do_update)
+{
+	controlInfo *ci{m_controls[type]};
+	if (!visible.has_value()) {
+		switch (type) {
+		case OT_AddFile:
+			visible = canAddFile();
+			break;
+		case OT_FullScreen:
+			visible = isViewableFile();
+			break;
+		case OT_Download:
+			visible = canDownloadOrGenerate();
+			ci->enabled = !fileIsOK();
+			break;
+		case OT_Share:
+			visible = isKnownFile();
+			ci->enabled = fileIsOK();
+			break;
+		case OT_ViewExternally:
+			if ((visible = fileIsOK()))
+				_getDefaultImage(ci);
+			break;
+		default:
+			visible = isKnownFile();
+		}
+	}
+	ci->visible = visible.value();
+	if (do_update) {
+		resizeControl();
+		recalculateButtonsRect();
+		update();
+	}
 }
 
 void TPFileOps::createControls()
@@ -749,10 +803,7 @@ void TPFileOps::createControls()
 			ci = new controlInfo;
 			m_controls[i] = ci;
 			ci->type = static_cast<OpType>(i);
-			if (i != OT_AddFile)
-				ci->visible = m_filetype <= TPUtils::FT_TEXT;
-			else
-				ci->visible = m_canAddFile;
+			setButtonCondition(ci->type);
 		}
 		_getDefaultImage(ci);
 		ci->default_image = std::move(ci->default_image.scaled(m_buttonSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
@@ -806,7 +857,7 @@ inline TPFileOps::controlInfo *TPFileOps::controlFromMouseClick(const QPointF& m
 {
 	for (const auto ci : std::as_const(m_controls)) {
 		if (ci->visible && ci->enabled && static_cast<int>(mouse_pos.x() >= ci->rect.x()) &&
-																static_cast<int>(mouse_pos.x() <= ci->rect.x() + ci->rect.width()))
+														static_cast<int>(mouse_pos.x() <= ci->rect.x() + ci->rect.width()))
 			return ci;
 	}
 	return nullptr;
@@ -828,14 +879,14 @@ static inline QString previewFilename(const QString &source_filename, const QSiz
 		   size_template.arg(QString::number(preview_size.width()), QString::number(preview_size.height())) % ".jpg"_L1;
 }
 
-QString TPFileOps::getImagePreviewFile(const QString &image_filename, QSize preferred_size) const
+QString TPFileOps::getImagePreviewFile(QSize preferred_size) const
 {
-	if (!QFile::exists(image_filename))
+	if (!fileIsOK())
 		return QString{};
 
 	QImage thumbnail;
 	if (preferred_size.isNull()) {
-		thumbnail.load(image_filename);
+		thumbnail.load(m_filename.toString());
 		const QSize &img_size{thumbnail.size()};
 		const int page_img_width_ratio{qFloor(img_size.width() / appSettings()->pageWidth())};
 		if (page_img_width_ratio >= 1)
@@ -845,10 +896,10 @@ QString TPFileOps::getImagePreviewFile(const QString &image_filename, QSize pref
 		const auto ratio{static_cast<float>(img_size.height()) / img_size.width()};
 		preferred_size.setHeight(preferred_size.width() * ratio);
 	}
-	const QString &preview_filename{previewFilename(image_filename, preferred_size)};
+	const QString &preview_filename{previewFilename(m_filename.toString(), preferred_size)};
 	if (!QFile::exists(preview_filename)) {
 		if (thumbnail.isNull())
-			thumbnail.load(image_filename);
+			thumbnail.load(m_filename.toString());
 		thumbnail = std::move(thumbnail.scaled(preferred_size));
 		thumbnail.save(preview_filename, "JPG", 10);
 	}
@@ -878,17 +929,17 @@ static QImage composeImages(const QImage& image1, const QImage& image2, const QP
 }
 
 
-QString TPFileOps::getPDFPreviewFile(const QString &pdf_filename, QSize preferred_size) const
+QString TPFileOps::getPDFPreviewFile(QSize preferred_size) const
 {
-	if (QFile::exists(pdf_filename)) {
+	if (fileIsOK()) {
 		if (preferred_size.isNull()) {
 			preferred_size.setWidth(appSettings()->pageWidth());
 			preferred_size.setHeight(appSettings()->pageHeight());
 		}
-		const QString &preview_filename{previewFilename(pdf_filename, preferred_size)};
+		const QString &preview_filename{previewFilename(m_filename.toString(), preferred_size)};
 		if (!QFile::exists(preview_filename)) {
 			QPdfDocument *pdf_doc{new QPdfDocument{}};
-			pdf_doc->load(pdf_filename);
+			pdf_doc->load(m_filename.toString());
 			QPdfDocumentRenderOptions pdf_opts;
 			pdf_opts.setRenderFlags(QPdfDocumentRenderOptions::RenderFlag::TextAliased | QPdfDocumentRenderOptions::RenderFlag::ImageAliased |
 									QPdfDocumentRenderOptions::RenderFlag::PathAliased | QPdfDocumentRenderOptions::RenderFlag::OptimizedForLcd);
@@ -902,36 +953,6 @@ QString TPFileOps::getPDFPreviewFile(const QString &pdf_filename, QSize preferre
 		return preview_filename;
 	}
 	return QString{};
-}
-
-QString TPFileOps::getSubDir() const
-{
-	uint32_t ft{m_filetype & ~TPUtils::FT_TP_FORMATTED};
-	switch (ft) {
-	case TPUtils::FT_TP_USER_PROFILE:
-	case TPUtils::FT_TP_EXERCISES:
-	default:
-		return QString{};
-	case TPUtils::FT_TP_PROGRAM:
-		return "mesocycles/";
-	case TPUtils::FT_TP_WORKOUT_A:
-	case TPUtils::FT_TP_WORKOUT_B:
-	case TPUtils::FT_TP_WORKOUT_C:
-	case TPUtils::FT_TP_WORKOUT_D:
-	case TPUtils::FT_TP_WORKOUT_E:
-	case TPUtils::FT_TP_WORKOUT_F:
-		return "workouts/"_L1;
-	case TPUtils::FT_IMAGE:
-	case TPUtils::FT_VIDEO:
-		return "media/"_L1;
-	case TPUtils::FT_PDF:
-	case TPUtils::FT_TEXT:
-	case TPUtils::FT_OPEN_DOCUMENT:
-	case TPUtils::FT_MS_DOCUMENT:
-		return "docs/"_L1;
-	case TPUtils::FT_OTHER:
-		return "tmp/"_L1;
-	}
 }
 
 void TPFileOps::_setEnabled(controlInfo *ci, const bool enabled)
@@ -953,7 +974,7 @@ void TPFileOps::_getDefaultImage(controlInfo *ci)
 	case OT_Download: ci->default_image.load(str_image_source.arg("download")); break;
 	case OT_Share: ci->default_image.load(str_image_source.arg("share")); break;
 	case OT_Forward: ci->default_image.load(str_image_source.arg("forward")); break;
-	case OT_ViewExternally: ci->default_image.load(":/images/" % getFileTypeIcon(m_filename.toString(), m_buttonSize, false)); break;
+	case OT_ViewExternally: ci->default_image.load(":/images/" % getFileTypeIcon(m_buttonSize, false)); break;
 	case OT_Delete: ci->default_image.load(":/images/remove.png"_L1); break;
 	default: break;
 	}
@@ -968,7 +989,7 @@ void TPFileOps::readTPFile()
 	const QString *identifier{nullptr};
 	QString extra_identifier;
 
-	const uint32_t ft{m_filetype & ~TPUtils::FT_TP_FORMATTED};
+	const uint32_t ft{static_cast<uint>(m_filetype) & static_cast<uint>(~TPUtils::FT_TP_FORMATTED)};
 	switch (ft) {
 	case TPUtils::FT_TP_USER_PROFILE:
 		identifier = &appUtils()->userFileIdentifier;
@@ -1042,7 +1063,7 @@ void TPFileOps::openTPFile()
 	const int user_idx{appUserModel()->userIdxFromFieldValue(DBUserModel::USER_FIELD_ID, sender_client)};
 	const bool is_coach{appUserModel()->isCoach(user_idx)};
 	const QString &client_name{appUserModel()->userName(user_idx)};
-	const uint32_t ft{m_filetype & ~TPUtils::FT_TP_FORMATTED};
+	const uint32_t ft{static_cast<uint>(m_filetype) & static_cast<uint>(~TPUtils::FT_TP_FORMATTED)};
 	switch (ft) {
 	case TPUtils::FT_TP_USER_PROFILE:
 		str_type = std::move(is_coach ? tr("data for a new coach") : tr("data for a new client"));

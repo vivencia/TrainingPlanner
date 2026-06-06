@@ -12,13 +12,18 @@ Item {
 	height: minimumHeight
 
 //public:
-	property string fileName
 	property string missingFileInfo
-	property bool canAddFile: false
 	property bool useBackground: false
-	property bool attemptToGetFile: true //means: can attempt to download, copy or generate fileName
+	property alias fileName: file_ops.fileName
+	property alias fileType: file_ops.fileType
+	property alias restrictedFileType: file_ops.restrictedFileType
+	property alias canAddFile: file_ops.canAddFile
+	property alias canDownloadOrGenerate: file_ops.canDownloadOrGenerate
+	property alias parentPage: file_ops.parentPage
+	property alias addFileFilters: file_ops.addFileFilters
 	readonly property int minimumWidth: file_ops.controlSize.width
 	readonly property int minimumHeight: minimumWidth
+	property FileOperations fileOps: file_ops
 
 	signal removalRequested()
 	signal fileAdded(string filepath)
@@ -96,19 +101,6 @@ Item {
 	}
 
 	Loader {
-		id: missingFileLoader
-		active: file_ops.fileType === AppUtils.FT_UNKNOWN
-		asynchronous: true
-		anchors.fill: parent
-
-		sourceComponent: TPLabel {
-			text: _control.missingFileInfo
-			singleLine: false
-			horizontalAlignment: Text.AlignHCenter
-		}
-	}
-
-	Loader {
 		asynchronous: true
 		active: file_ops.fileType !== AppUtils.FT_TEXT
 		anchors.centerIn: parent
@@ -123,6 +115,20 @@ Item {
 			keepAspectRatio: true
 			imageSizeFollowControlSize: file_ops.fileType !== AppUtils.FT_IMAGE
 			fullWindowView: false
+		}
+	}
+
+	Loader {
+		id: missingFileLoader
+		active: !file_ops.isKnownFile
+		asynchronous: true
+		z: 1
+		anchors.fill: parent
+
+		sourceComponent: TPLabel {
+			text: _control.missingFileInfo
+			singleLine: false
+			horizontalAlignment: Text.AlignHCenter
 		}
 	}
 
@@ -144,9 +150,6 @@ Item {
 
 		FileOperations {
 			id: file_ops
-			fileName: _control.fileName
-			canAddFile: _control.canAddFile
-			canDownloadOrGenerate: _control.attemptToGetFile
 			useControls: true
 
 			anchors {
@@ -157,7 +160,7 @@ Item {
 			onShowFullScreen: fullScreenLoader.showFullScreen();
 			onFileRemovalRequested: _control.removalRequested();
 			onFileAdded: (filepath) => _control.fileAdded(fileName);
-			onFileTypeChanged: _control._preview_source = getFileTypeIcon(fileName, Qt.size(0, 0), true);
+			onFileTypeChanged: _control._preview_source = getFileTypeIcon(Qt.size(0, 0), true);
 		}
 	}
 
@@ -272,7 +275,7 @@ Item {
 
 			Loader {
 				asynchronous: true
-				active: file_ops.fileType < AppUtils.FT_IMAGE
+				active: file_ops.isTPFile
 				anchors.fill: parent
 
 				sourceComponent: TPAppFileViewer {

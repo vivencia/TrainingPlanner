@@ -100,8 +100,14 @@ private:
 
 #ifndef Q_OS_ANDROID
 	#ifndef QT_NO_DEBUG
-	bool m_qml_testing{false};
-	void runTests();
+	enum testType {
+		TT_NO_TEST = 0,
+		TT_CORE = 1,
+		TT_QML = 2,
+	};
+
+	uint m_testType{TT_NO_TEST};
+	bool runTests();
 	#endif
 #endif
 

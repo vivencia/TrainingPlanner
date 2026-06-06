@@ -68,6 +68,7 @@ public:
 
 	[[nodiscard]] Q_INVOKABLE inline QQuickItem *qmlPage() const { return m_mesoPage; }
 
+	Q_INVOKABLE void checkMesoName(const QString &name);
 	[[nodiscard]] bool mesoNameOK() const;
 	[[nodiscard]] bool startDateOK() const;
 	[[nodiscard]] bool endDateOK() const;
@@ -155,6 +156,7 @@ private:
 	QVariantMap m_mesoProperties, m_optionsMenuProperties;
 	DBMesocyclesModel *m_mesoModel{nullptr};
 
+	bool m_mesoNameOK{false};
 	uint m_mesoIdx;
 	QString m_strStartDate, m_strEndDate, m_nameError;
 	QDate m_minimumStartDate;

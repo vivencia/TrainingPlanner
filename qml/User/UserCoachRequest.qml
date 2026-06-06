@@ -23,9 +23,9 @@ TPPopup {
 		height: AppSettings.itemDefaultHeight
 
 		anchors {
-			top: dlgCoachRequest.titleBar.top
-			left: dlgCoachRequest.titleBar.left
-			right: dlgCoachRequest.titleBar.right
+			top: parent.top
+			left: parent.left
+			right: parent.right
 			margins: 5
 			rightMargin: dlgCoachRequest.btnClose.width
 		}
@@ -55,13 +55,14 @@ TPPopup {
 			listAvailable: true
 			listCoaches: true
 			multipleSelection: true
+			perItemButtonString: qsTr("Resumè");
 			buttonString: qsTr("Send request to the selected coaches")
 			visible: model.count > 0
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 
 			onButtonClicked: AppUserModel.sendRequestToCoaches();
-			onItemButtonClicked: (userIdx) => viewResumeLoader
+			onItemButtonClicked: (userIdx) => viewResume(userIdx);
 
 			Loader {
 				id: viewResumeLoader
@@ -72,7 +73,7 @@ TPPopup {
 				sourceComponent: TPFileViewer {
 					missingFileInfo: qsTr(`The coach's resumè file could not be found.
 						You can try to download it by pressing the second button from the left on the bottom of the screen`)
-					attemptToGetFile: true
+					canDownloadOrGenerate: true
 					onWindowStateChanged: (window_state) => {
 						if (window_state === TPFileViewer.WS_NORMAL)
 							viewResumeLoader.active = false;
@@ -83,6 +84,7 @@ TPPopup {
 			function viewResume(user_idx: int): void {
 				viewResumeLoader._file_viewer.fileName = AppUserModel.resume(user_idx);
 				viewResumeLoader._file_viewer.startFullScreen();
+				viewResumeLoader.active = true;
 			}
 		} //ListView
 	} //ColumnLayout

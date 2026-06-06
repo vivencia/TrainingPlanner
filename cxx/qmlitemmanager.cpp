@@ -62,10 +62,10 @@ void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
 	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(),
 																	[this] (const QObject *const obj, const QUrl &objUrl) {
 		if (!obj) {
-			#ifndef QT_NO_DEBUG
+#ifndef QT_NO_DEBUG
 			qDebug() << "*******************Mainwindow not loaded*******************";
 			qDebug() << objUrl;
-			#endif
+#endif
 			qApp->exit(-1);
 		}
 		else {
@@ -77,7 +77,11 @@ void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
 
 			appUserModel()->initUserSession();
 			connect(AppHomePage(), SIGNAL(mesosViewChanged(bool)), this, SLOT(homePageViewChanged(bool)));
-			if (m_qml_testing) {
+#ifndef Q_OS_ANDROID
+	#ifndef QT_NO_DEBUG
+			if (m_testType & TT_CORE)
+				runTests();
+			else if (m_testType & TT_QML) {
 				connect(appUserModel(), &DBUserModel::mainUserConfigurationFinished, this, [this] () {
 					connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::mesoDataLoaded, this, [this] () {
 						//showSimpleExercisesList(AppHomePage(), QString{});
@@ -95,20 +99,20 @@ void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
 					}, Qt::SingleShotConnection);
 				}, Qt::SingleShotConnection);
 			}
+	#endif
+#endif
 		}
 	});
 
 #ifndef Q_OS_ANDROID
 	#ifndef QT_NO_DEBUG
-	m_qml_testing = false;
 	const QStringList &args{qApp->arguments()};
 	if (args.count() > 1) {
 		if (args.at(1) == "-test"_L1) {
-			runTests();
-			::exit(0);
+			m_testType |= TT_CORE;
 		}
 		else if (args.at(1) == "-testqml"_L1) {
-			m_qml_testing = true;
+			m_testType |= TT_QML;
 			main_module = "Tests";
 		}
 		else if (args.at(1) == "-user"_L1) {
@@ -118,6 +122,10 @@ void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
 			}
 			else
 				qDebug() << "Warning: Missing user id in the command line arguments"_L1;
+		}
+		if (m_testType & TT_CORE && !(m_testType & TT_QML)) { //test with no GUI
+			if (runTests())
+				::exit(0);
 		}
 	}
 	#endif
@@ -205,9 +213,9 @@ void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QStri
 	appExercisesList()->setFilter(filter);
 	if (!m_simpleExercisesListComponent) {
 		m_simpleExercisesListComponent = new QQmlComponent{appQmlEngine(), "TpQml.Exercises"_L1, "SimpleExercisesListPanel"_L1,
-																									QQmlComponent::Asynchronous};
+																								QQmlComponent::Asynchronous};
 		connect(m_simpleExercisesListComponent, &QQmlComponent::statusChanged, this, [this,parentPage,filter]
-													(QQmlComponent::Status status) { showSimpleExercisesList(parentPage, filter); });
+											(QQmlComponent::Status status) { showSimpleExercisesList(parentPage, filter); });
 
 	}
 	else {
@@ -510,8 +518,8 @@ void QmlItemManager::generalMessagesPopupClosed(QObject *)
 		st_generalMessage *message{m_messagesQueue.first()};
 		if (message) {
 			m_canDisplayMessage = true;
-			displayMessageOnAppWindow(message->message_id, message->filename_or_message, message->position, message->image_source,
-																		message->msecs, message->button1text, message->button2text);
+			displayMessageOnAppWindow(message->message_id, message->filename_or_message, message->position,
+									  message->image_source, message->msecs, message->button1text, message->button2text);
 			m_canDisplayMessage = false;
 			delete message;
 			m_messagesQueue.removeFirst();
@@ -521,25 +529,60 @@ void QmlItemManager::generalMessagesPopupClosed(QObject *)
 
 #ifndef Q_OS_ANDROID
 #ifndef QT_NO_DEBUG
-#include "tpfilepath.h"
-void QmlItemManager::runTests()
+//Return: true for exiting the app upon return; false for letting this function call ::exit() when appropriate
+bool QmlItemManager::runTests()
 {
-	QString str{" file:///home/guilhermef//.local/share/Vivencia Software///TrainingPlanner/1759170252407///1759256421787/exchange_files/1759170252407/mesocycles/Novo Programa 1.txt "};
-	TPFilePath file{str};
-	qDebug() << file.ownerUser();
-	qDebug() << file.targetUser();
-	qDebug() << file.subdirs();
-	qDebug() << file.fileName();
-	file = "config.ini";
-	qDebug() << file.ownerUser();
-	qDebug() << file.targetUser();
-	qDebug() << file.subdirs();
-	qDebug() << file.fileName();
-	file = "exchange_files/1759170252407/mesocycles/Novo Programa 1.txt";
-	qDebug() << file.ownerUser();
-	qDebug() << file.targetUser();
-	qDebug() << file.subdirs();
-	qDebug() << file.fileName();
+	connect(appUserModel(), &DBUserModel::userIdChanged, this, [this] {
+		UserInfoListModel *user_list = new UserInfoListModel;
+		user_list->setShowClients(true);
+		for (auto i{0}; i < user_list->count(); ++i)
+			qDebug() << "UnConfirmed Client: " <<user_list->data(DBUserModel::USER_FIELD_NAME, i);
+		user_list->setShowCoaches(true);
+		for (auto i{0}; i < user_list->count(); ++i)
+			qDebug() << "UnConfirmed Coach or client: "  << user_list->data(DBUserModel::USER_FIELD_NAME, i);
+		user_list->setShowClients(false);
+		for (auto i{0}; i < user_list->count(); ++i)
+			qDebug() << "UnConfirmed Coach: "  << user_list->data(DBUserModel::USER_FIELD_NAME, i);
+		user_list->setShowConfirmed(true);
+		user_list->setShowClients(true);
+		user_list->setShowCoaches(false);
+		for (auto i{0}; i < user_list->count(); ++i)
+			qDebug() << "Confirmed Client: "  << user_list->data(DBUserModel::USER_FIELD_NAME, i);
+		user_list->setShowCoaches(true);
+		for (auto i{0}; i < user_list->count(); ++i)
+			qDebug() << "Confirmed Coach or Client: "  << user_list->data(DBUserModel::USER_FIELD_NAME, i);
+		user_list->setShowClients(false);
+		for (auto i{0}; i < user_list->count(); ++i)
+			qDebug() << "Confirmed Coach: "  << user_list->data(DBUserModel::USER_FIELD_NAME, i);
+		user_list->setShowAvailable(true);
+		user_list->setShowConfirmed(false);
+		user_list->setShowClients(true);
+		user_list->setShowCoaches(false);
+		for (auto i{0}; i < user_list->count(); ++i)
+			qDebug() << "Available Client: "  << user_list->data(DBUserModel::USER_FIELD_NAME, i);
+		user_list->setShowCoaches(true);
+		for (auto i{0}; i < user_list->count(); ++i)
+			qDebug() << "Available Coach or Client: "  << user_list->data(DBUserModel::USER_FIELD_NAME, i);
+		user_list->setShowClients(false);
+		for (auto i{0}; i < user_list->count(); ++i)
+			qDebug() << "Available Coach: "  << user_list->data(DBUserModel::USER_FIELD_NAME, i);
+		user_list->setShowClients(true);
+		user_list->setShowCoaches(false);
+		user_list->setShowAvailable(false);
+		user_list->setShowConfirmed(true);
+		user_list->applyFilter("gErA", DBUserModel::USER_FIELD_NAME);
+		for (auto i{0}; i < user_list->count(); ++i)
+			qDebug() << "Confirmed client gErA: "  << user_list->data(DBUserModel::USER_FIELD_NAME, i);
+		user_list->applyFilter("rívia", DBUserModel::USER_FIELD_NAME);
+		for (auto i{0}; i < user_list->count(); ++i)
+			qDebug() << "Confirmed client rívia: "  << user_list->data(DBUserModel::USER_FIELD_NAME, i);
+		user_list->applyFilter("blablabla", DBUserModel::USER_FIELD_NAME);
+		for (auto i{0}; i < user_list->count(); ++i)
+			qDebug() << "Confirmed client blablabla: "  << user_list->data(DBUserModel::USER_FIELD_NAME, i);
+		::exit(0);
+	});
+	appUserModel()->initUserSession();
+	return false;
 }
 #endif
 #endif

@@ -9,7 +9,6 @@ class UserInfoListModel : public QAbstractListModel
 Q_OBJECT
 QML_ELEMENT
 QML_VALUE_TYPE(UserInfoModel)
-//QML_UNCREATABLE("")
 
 Q_PROPERTY(int currentUserIdx READ currentUserIdx NOTIFY currentUserIdxChanged FINAL)
 Q_PROPERTY(int currentRow READ currentRow WRITE setCurrentRow NOTIFY currentRowChanged FINAL)
@@ -19,7 +18,7 @@ Q_PROPERTY(bool allSelected READ allSelected NOTIFY selectedChanged FINAL)
 Q_PROPERTY(bool noneSelected READ noneSelected NOTIFY selectedChanged FINAL)
 Q_PROPERTY(bool showClients READ showClients WRITE setShowClients NOTIFY showClientsChanged FINAL)
 Q_PROPERTY(bool showCoaches READ showCoaches WRITE setShowCoaches NOTIFY showCoachesChanged FINAL)
-Q_PROPERTY(bool showPending READ showPending WRITE setShowPending NOTIFY showPendingChanged FINAL)
+Q_PROPERTY(bool showConfirmed READ showConfirmed WRITE setShowConfirmed NOTIFY showConfirmedChanged FINAL)
 Q_PROPERTY(bool showAvailable READ showAvailable WRITE setShowAvailable NOTIFY showAvailableChanged FINAL)
 
 #ifndef Q_OS_ANDROID
@@ -48,7 +47,7 @@ public:
 				setSelected(i, false);
 		}
 	}
-	Q_INVOKABLE bool isSelected(const uint row, const int column = 0) const;
+	Q_INVOKABLE bool isSelected(const int row, const int column = 0) const;
 	Q_INVOKABLE void setSelected(const uint row, const bool selected, const int column = 0);
 	Q_INVOKABLE QStringList selectedUsers() const; //Only from visible rows
 	inline uint nSelected() const { return m_nSelected; }
@@ -62,8 +61,8 @@ public:
 	inline void setShowClients(const bool show)
 	{
 		if (show != m_showClients) {
-			changeVisibilityAsPerCategory();
 			m_showClients = show;
+			changeVisibilityAsPerCategory();
 			emit showClientsChanged();
 		}
 	}
@@ -71,26 +70,26 @@ public:
 	inline void setShowCoaches(const bool show)
 	{
 		if (show != m_showCoaches) {
-			changeVisibilityAsPerCategory();
 			m_showCoaches = show;
+			changeVisibilityAsPerCategory();
 			emit showCoachesChanged();
 		}
 	}
-	inline const bool showPending() const { return m_showPending; }
-	inline void setShowPending(const bool show)
+	inline const bool showConfirmed() const { return m_showConfirmed; }
+	inline void setShowConfirmed(const bool show)
 	{
-		if (show != m_showPending) {
+		if (show != m_showConfirmed) {
+			m_showConfirmed = show;
 			changeVisibilityAsPerCategory();
-			m_showPending = show;
-			emit showPendingChanged();
+			emit showConfirmedChanged();
 		}
 	}
 	inline const bool showAvailable() const { return m_showAvailable; }
 	inline void setShowAvailable(const bool show)
 	{
 		if (show != m_showAvailable) {
-			changeVisibilityAsPerCategory();
 			m_showAvailable = show;
+			changeVisibilityAsPerCategory();
 			emit showAvailableChanged();
 		}
 	}
@@ -134,7 +133,7 @@ signals:
 	void visibleChanged();
 	void showClientsChanged();
 	void showCoachesChanged();
-	void showPendingChanged();
+	void showConfirmedChanged();
 	void showAvailableChanged();
 #ifndef Q_OS_ANDROID
 	void allUsersListChanged();
@@ -146,7 +145,7 @@ private:
 	QString m_filter;
 	uint m_nSelected{0}, m_totalCols{0}, m_nVisibleRows{0};
 	int m_currentRow{-1}, m_fieldFilter{-1};
-	bool m_selectEntireRow{false}, m_showClients{true}, m_showCoaches{true}, m_showPending{false}, m_showAvailable{false};
+	bool m_selectEntireRow{false}, m_showClients{false}, m_showCoaches{false}, m_showConfirmed{false}, m_showAvailable{false};
 #ifndef Q_OS_ANDROID
 	bool m_allUsers{false};
 	QList<QStringList> m_allUsersData;
@@ -155,7 +154,7 @@ private:
 	void changeNumberOfVisibleRows(const bool add);
 	void insertUserInfo(const uint user_idx);
 	void removeUserInfo(const uint user_idx);
-	const bool rowVisible(const uint row) const;
+	const bool rowVisible(const int row) const;
 	void setRowVisible(const uint row, bool visible, const int column = 0);
 	void changeVisibilityAsPerCategory();
 	int findRow(const uint user_idx) const;

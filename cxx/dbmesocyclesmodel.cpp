@@ -113,6 +113,7 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 	m_isMesoOK.remove(meso_idx);
 	m_canExport.remove(meso_idx);
 	removeMesoFile(meso_idx);
+	static_cast<void>(QFile::remove(file(meso_idx)));
 	if (isOwnMeso(meso_idx))
 		m_ownMesos->removeMesoIdx(meso_idx);
 	else
@@ -242,6 +243,15 @@ void DBMesocyclesModel::setClient(const uint meso_idx, const QString &new_client
 {
 	m_mesoData[meso_idx][MESO_FIELD_CLIENT] = new_client;
 	setModified(meso_idx, MESO_FIELD_CLIENT);
+}
+
+void DBMesocyclesModel::setFile(const uint meso_idx, const QString &new_file)
+{
+	if (m_mesoData.at(meso_idx).at(MESO_FIELD_FILE) != new_file) {
+		static_cast<void>(QFile::remove(m_mesoData.at(meso_idx).at(MESO_FIELD_FILE)));
+		m_mesoData[meso_idx][MESO_FIELD_FILE] = new_file;
+		setModified(meso_idx, MESO_FIELD_FILE);
+	}
 }
 
 DBMesocyclesModel::st_MesoType DBMesocyclesModel::mesoType(const uint meso_idx) const
@@ -681,7 +691,7 @@ int DBMesocyclesModel::importFromFormattedFile(const uint meso_idx, const TPFile
 	return ret;
 }
 
-TPFilePathPtr DBMesocyclesModel::suggestedName(const int meso_idx) const
+TPFilePathPtr DBMesocyclesModel::suggestedName(const int meso_idx, const bool external_filename) const
 {
 	QString userid;
 	const st_MesoType mt{mesoType(meso_idx)};
@@ -690,7 +700,8 @@ TPFilePathPtr DBMesocyclesModel::suggestedName(const int meso_idx) const
 		case MT_MESO_FROM_COACH:	userid = std::move(coach(meso_idx)); break;
 		case MT_MESO_FOR_SELF:		userid = appUserModel()->userId(0); break;
 	}
-	return TPFilePath::newTPFilePath(name(meso_idx) % TPUtils::TP_FILE_EXTENSION, appUserModel()->userId(0), userid, {mesos_subdir});
+	return TPFilePath::newTPFilePath(name(meso_idx) % (!external_filename ? TPUtils::TP_FILE_EXTENSION : QString{}),
+																			appUserModel()->userId(0), userid, {mesos_subdir});
 }
 
 QString DBMesocyclesModel::formatFieldToExport(const uint field, const QString &fieldValue) const

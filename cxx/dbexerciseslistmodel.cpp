@@ -98,7 +98,7 @@ QString DBExercisesListModel::muscularGroup(const int index) const
 		return QString{};
 
 	return m_exercisesData.at(m_searchFilterApplied ? m_searchFilteredIndices.at(index) :
-							(m_muscularFilterApplied ? m_muscularFilteredIndices.at(index) : index)).at(EXERCISES_LIST_FIELD_MUSCULARGROUP);
+			(m_muscularFilterApplied ? m_muscularFilteredIndices.at(index) : index)).at(EXERCISES_LIST_FIELD_MUSCULARGROUP);
 }
 
 void DBExercisesListModel::setMuscularGroup(const uint index, const QString &new_group)
@@ -238,9 +238,9 @@ void DBExercisesListModel::search(const QString &search_term)
 
 		for (uint i{0}; i < static_cast<uint>(modelCount); ++i) {
 			const uint index{look_in_searched_indices ? m_searchFilteredIndices.at(i) :
-																	(m_muscularFilterApplied ? m_muscularFilteredIndices.at(i) : i)};
+															(m_muscularFilterApplied ? m_muscularFilteredIndices.at(i) : i)};
 			const QString &subject{m_exercisesData.at(index).at(EXERCISES_LIST_FIELD_MAINNAME) % ' ' %
-																		m_exercisesData.at(index).at(EXERCISES_LIST_FIELD_SUBNAME)};
+																m_exercisesData.at(index).at(EXERCISES_LIST_FIELD_SUBNAME)};
 			if (appUtils()->containsAllWords(subject, words_list, false)) {
 				found = true;
 				if (search_term.length() < m_searchString.length()) {

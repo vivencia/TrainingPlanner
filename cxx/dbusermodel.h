@@ -45,6 +45,8 @@ Q_PROPERTY(QString importUserLabel READ importUserLabel NOTIFY labelsChanged FIN
 Q_PROPERTY(UserInfoListModel *allUsersList READ allUsersList NOTIFY allUsersListChanged FINAL)
 Q_PROPERTY(bool onlineAccount READ onlineAccount WRITE setOnlineAccount NOTIFY onlineUserChanged FINAL)
 Q_PROPERTY(bool mainUserConfigured READ mainUserConfigured NOTIFY mainUserConfigurationFinished FINAL)
+Q_PROPERTY(bool mainUserIsCoach READ mainUserIsCoach NOTIFY mainUserConfigurationFinished FINAL)
+Q_PROPERTY(bool mainUserIsClient READ mainUserIsClient NOTIFY mainUserConfigurationFinished FINAL)
 Q_PROPERTY(bool canConnectToServer READ canConnectToServer WRITE setCanConnectToServer NOTIFY canConnectToServerChanged FINAL)
 
 #ifndef Q_OS_ANDROID
@@ -67,7 +69,7 @@ public:
 		USER_FIELD_COACHROLE,
 		USER_FIELD_GOAL,
 		USER_FIELD_USER_CATEGORY,
-		USER_N_FIELS,
+		USER_N_FIELDS,
 		USER_FIELD_AVATAR,
 	};
 	Q_ENUM(userFields)
@@ -78,7 +80,7 @@ public:
 		UC_HAS_COACH		=	1U << 2,
 		UC_HAS_CLIENT		=	1U << 3,
 		UC_YET_AVAILABLE	=	1U << 4,
-		UC_PENDING_STATUS	=	1U << 5,
+		UC_CONFIRMED		=	1U << 5,
 	};
 	Q_ENUM(st_userCategory)
 
@@ -127,10 +129,12 @@ public:
 
 	Q_INVOKABLE inline bool isCoach(const uint user_idx) const { return userCategory(user_idx) & UC_COACH; }
 	Q_INVOKABLE inline void setIsCoach(const uint user_idx, const bool coach) { setUserCategory(user_idx, UC_COACH, coach); }
+	bool mainUserIsCoach() const { return isCoach(0); }
 	Q_INVOKABLE inline bool isClient(const uint user_idx) const { return userCategory(user_idx) & UC_CLIENT; }
 	Q_INVOKABLE inline void setIsClient(const uint user_idx, const bool client) { setUserCategory(user_idx, UC_CLIENT, client); }
-	inline bool isConfirmed(const uint user_idx) const { return (userCategory(user_idx) & UC_PENDING_STATUS) == 0; }
-	inline void setIsConfirmed(const uint user_idx, const bool confirmed) { setUserCategory(user_idx, UC_PENDING_STATUS, !confirmed); }
+	bool mainUserIsClient() const { return isClient(0); }
+	inline bool isConfirmed(const uint user_idx) const { return (userCategory(user_idx) & UC_CONFIRMED); }
+	inline void setIsConfirmed(const uint user_idx, const bool confirmed) { setUserCategory(user_idx, UC_CONFIRMED, confirmed); }
 	inline bool isAvailable(const uint user_idx) const { return (userCategory(user_idx) & UC_YET_AVAILABLE) == UC_YET_AVAILABLE; }
 	inline void setIsAvailable(const uint user_idx, const bool available) { setUserCategory(user_idx, UC_YET_AVAILABLE, available); }
 
@@ -265,7 +269,7 @@ public:
 	void checkCoachesReponses();
 
 #ifndef Q_OS_ANDROID
-	inline DBMesocyclesModel *actualMesoModel() const { return m_mesoModels.value(userId(0)); }
+	inline DBMesocyclesModel *actualMesoModel() const { return !m_mesoModels.isEmpty() ? m_mesoModels.value(userId(0)) : nullptr; }
 	Q_INVOKABLE void getAllOnlineUsers();
 	Q_INVOKABLE void switchUser();
 	Q_INVOKABLE inline void createNewUser() { userSwitchingActions(true, std::move(generateUniqueUserId())); }

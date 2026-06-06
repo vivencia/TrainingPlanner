@@ -44,8 +44,8 @@ TPLabel {
 			id: recChecked
 			width: indicator.height * 0.5
 			height: width
-			radius: _control.boxType !== TPRadioButtonOrCheckBox.TP_RADIOBOX ? width * 0.5 : indicator.radius / 2
-			x: (indicator.implicitWidth - width) * 0.5
+			radius: _control.boxType === TPRadioButtonOrCheckBox.TP_RADIOBOX ? width / 2 : indicator.radius / 2
+			x: (indicator.implicitWidth - width) / 2
 			y: x
 			border.color: _control.enabled ? _control.color : AppSettings.disabledFontColor
 			visible: _control.checked

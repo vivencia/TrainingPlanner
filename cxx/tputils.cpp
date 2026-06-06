@@ -14,7 +14,7 @@
 #include <random>
 
 constexpr QLatin1StringView file_types_by_exension[6] {
-	" (*.jpg *.jpeg *.png *.gif)"_L1, " (*.mp4 *.mkv *.mov)"_L1, " (*.pdf)"_L1, " (*.txt)"_L1, " (*.odf *.ods)"_L1,
+	" (*.jpg *.jpeg *.png *.gif)"_L1, " (*.mp4 *.mkv *.mov)"_L1, " (*.pdf)"_L1, " (*.txt *.ini)"_L1, " (*.odf *.ods)"_L1,
 																					" (*.doc *.docx *.xls *.xlsx)"_L1
 };
 
@@ -75,11 +75,11 @@ QString TPUtils::getCorrectPath(const QUrl &url) const
 
 TPUtils::FILE_TYPE TPUtils::getFileType(QString filename) const
 {
-	filename = std::move(appUtils()->getCorrectPath(filename));
-	if (!QFile::exists(filename))
+	if (filename.isEmpty())
 		return FT_UNKNOWN;
 
-	const QString &ext{appUtils()->getFileExtension(filename).toLower()};
+	filename = std::move(getCorrectPath(filename));
+	const QString &ext{getFileExtension(filename).toLower()};
 	if (ext.isEmpty()) {
 #ifdef Q_OS_ANDROID
 		return filename.contains("video%"_L1) ? 1 : (filename.contains("image%"_L1) ? 0 : -1);
@@ -90,27 +90,23 @@ TPUtils::FILE_TYPE TPUtils::getFileType(QString filename) const
 
 	for (uint t{FT_IMAGE}, i{0}; t <= FT_MS_DOCUMENT; t *= 2, ++i ) {
 		if (file_types_by_exension[i].contains(ext)) {
-			if (i == FT_TEXT) {
-				std::optional<bool> formatted;
-				uint32_t type{getTPFileType(filename, formatted)};
-				if (formatted.value())
-					type |= FT_TP_FORMATTED;
-				return static_cast<FILE_TYPE>(type);
+			if (t == FT_TEXT) {
+				bool formatted{false};
+				t = getTPFileType(filename, formatted);
+				if (formatted)
+					t |= FT_TP_FORMATTED;
 			}
-			else
-				return static_cast<FILE_TYPE>(t);
+			return static_cast<FILE_TYPE>(t);
 		}
 	}
 	return FT_OTHER;
 }
 
-TPUtils::FILE_TYPE TPUtils::getTPFileType(const QString &filename, std::optional<bool> &formatted) const
+TPUtils::FILE_TYPE TPUtils::getTPFileType(const QString &filename, bool &formatted) const
 {
 	QFile *in_file{appUtils()->openFile(filename)};
 	if (!in_file)
 		return FT_OTHER;
-
-	formatted = std::nullopt;
 
 	QString line{64, QChar{0}};
 	QTextStream stream{in_file};
@@ -122,7 +118,7 @@ TPUtils::FILE_TYPE TPUtils::getTPFileType(const QString &filename, std::optional
 				formatted = false;
 			else if (line.startsWith(TPUtils::STR_START_FORMATTED_EXPORT))
 				formatted = true;
-			if (!formatted.has_value())
+			else
 				continue;
 			if (line.contains(appUtils()->userFileIdentifier)) {
 				ret = FT_TP_USER_PROFILE;
@@ -176,34 +172,28 @@ QStringList TPUtils::extensionsListForType(FILE_TYPE filetype, const bool descri
 			case FT_TP_WORKOUT_E:
 			case FT_TP_WORKOUT_F:
 			case FT_TP_EXERCISES:
-				ret.append(std::move((description ? QString{tr("Training Planner's files")} : QString{}) %
-																				file_types_by_exension[FT_TEXT-FT_IMAGE]));
+				ret.append(std::move((description ? tr("Training Planner's files") : QString{}) % file_types_by_exension[3]));
+				i = FT_TP_FORMATTED; //skip all the way to FT_IMAGE(after ++i) as not to include the same filter again and again, possibly
 				break;
 			case FT_IMAGE:
-				ret.append(std::move((description ? QString{tr("Images/Pictures")} : QString{}) %
-																				file_types_by_exension[FT_IMAGE-FT_IMAGE]));
+				ret.append(std::move((description ? tr("Images/Pictures") : QString{}) % file_types_by_exension[0]));
 				break;
 			case FT_VIDEO:
-				ret.append(std::move((description ? QString{tr("Videos/Movies")} : QString{}) %
-																				file_types_by_exension[FT_VIDEO-FT_IMAGE]));
+				ret.append(std::move((description ? tr("Videos/Movies") : QString{}) % file_types_by_exension[1]));
 				break;
 			case FT_PDF:
-				ret.append(std::move((description ? QString{tr("PDF Files")} : QString{}) %
-																				file_types_by_exension[FT_PDF-FT_IMAGE]));
+				ret.append(std::move((description ? tr("PDF Files") : QString{}) % file_types_by_exension[2]));
 				break;
 			case FT_TEXT:
-				ret.append(std::move((description ? QString{tr("Text Files")} : QString{}) %
-																				file_types_by_exension[FT_TEXT-FT_IMAGE]));
+				ret.append(std::move((description ? tr("Text Files") : QString{}) % file_types_by_exension[3]));
 				break;
 			case FT_OPEN_DOCUMENT:
-				ret.append(std::move((description ? QString{tr("Open Documents(Libre Office)")} : QString{}) %
-																		file_types_by_exension[FT_OPEN_DOCUMENT-FT_IMAGE]));
+				ret.append(std::move((description ? tr("Open Documents(Libre Office)") : QString{}) % file_types_by_exension[4]));
 				break;
 			case FT_MS_DOCUMENT:
-				ret.append(std::move((description ? QString{tr("MS Office Documents")} : QString{}) %
-																		file_types_by_exension[FT_MS_DOCUMENT-FT_IMAGE]));
+				ret.append(std::move((description ? tr("MS Office Documents") : QString{}) % file_types_by_exension[5]));
 			default:
-			break;
+				break;
 		}
 	}
 	return ret;
@@ -256,7 +246,7 @@ QString TPUtils::getFilePath(const QString &filename, const bool needs_to_exist)
 QString TPUtils::getNthDirInPath(const QString &filename, int nth_dir) const
 {
 	const QString &filepath{getFilePath(filename, false)};
-	if (nth_dir == 0)
+	if (nth_dir == 0 || filepath.isEmpty())
 		return filepath;
 	const auto n_chars{filepath.length()};
 	QString ret;
@@ -350,27 +340,30 @@ QString TPUtils::getFileName(const QString &filepath, const bool without_extensi
 
 QString TPUtils::getFileExtension(const QString &filename, const bool include_dot, const QString &default_ext) const
 {
-	const qsizetype dot_idx{filename.lastIndexOf('.')};
-	return dot_idx > 0 ? filename.last(filename.length() - dot_idx - (include_dot ? 0 : 1)) : default_ext;
+	const QString &_filename{getFileName(filename)};
+	const qsizetype dot_idx{_filename.lastIndexOf('.')};
+	return dot_idx > 0 ? _filename.last(_filename.length() - dot_idx - (include_dot ? 0 : 1)) : default_ext;
 }
 
 QString TPUtils::sanitizePath(const QString &filepath) const
 {
 	QString sane_path;
-	sane_path.reserve(filepath.length());
-	QString::const_iterator itr{filepath.constBegin()};
-	const QString::const_iterator itr_end{filepath.constEnd()};
-	sane_path.append(*itr);
-	while (++itr != itr_end) {
-		if (*itr == '/') {
-			if (*(itr - 1) == '/')
-				continue;
-		}
+	if (!filepath.isEmpty()) {
+		sane_path.reserve(filepath.length());
+		QString::const_iterator itr{filepath.constBegin()};
+		const QString::const_iterator itr_end{filepath.constEnd()};
 		sane_path.append(*itr);
+		while (++itr != itr_end) {
+			if (*itr == '/') {
+				if (*(itr - 1) == '/')
+					continue;
+			}
+			sane_path.append(*itr);
+		}
+		sane_path = std::move(sane_path.trimmed());
+		if (sane_path.startsWith("file:"_L1))
+			sane_path.remove(0, 5);
 	}
-	sane_path = std::move(sane_path.trimmed());
-	if (sane_path.startsWith("file:"_L1))
-		sane_path.remove(0, 5);
 	return sane_path;
 }
 
@@ -1289,7 +1282,7 @@ QString TPUtils::stripInvalidCharacters(const QString &string) const
 bool TPUtils::containsAllWords(const QString &mainString, const QStringList &wordSet, const bool precise)
 {
 	const QStringList &searched_words{precise ? mainString.split(' ', Qt::SkipEmptyParts) :
-																	stripDiacriticsFromString(mainString).split(' ', Qt::SkipEmptyParts)};
+													stripDiacriticsFromString(mainString).split(' ', Qt::SkipEmptyParts)};
 	QStringList::const_iterator haystack{searched_words.constBegin()};
 	const QStringList::const_iterator haystack_end{searched_words.constEnd()};
 	for (const auto &needle : std::as_const(wordSet)) {
@@ -1334,6 +1327,7 @@ void TPUtils::setAppLocale(const QString &locale_str)
 	m_appLocale->setNumberOptions(QLocale::IncludeTrailingZeroesAfterDot);
 }
 
+#ifndef QT_NO_DEBUG
 void TPUtils::findResource(const QString &prefix, const QString &suffix)
 {
 	const QDir dir{prefix};
@@ -1341,3 +1335,4 @@ void TPUtils::findResource(const QString &prefix, const QString &suffix)
 	for (const QFileInfo &fileInfo : std::as_const(files))
 		qDebug() << "Resource: " << fileInfo.filePath();
 }
+#endif

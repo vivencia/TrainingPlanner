@@ -168,7 +168,7 @@ void DBUserModel::initUserSession()
 
 QString DBUserModel::mainUserDir() const
 {
-	return TPFilePath::localAppFilesDir() % userId(0) % '/';
+	return TPFilePath::localAppFilesDir() % appSettings()->currentUser() % '/';
 }
 
 void DBUserModel::setOnlineAccount(const bool online_user, const uint user_idx)
@@ -537,8 +537,6 @@ void DBUserModel::acceptUser(const uint user_idx)
 			appOnlineServices()->acceptCoachAnswer(0, userId(user_idx));
 	}
 	else {
-		//Make user a pending client, i.e. now main user, the coach, is only awaiting confirmation from them that he can be their coach
-		setUserCategory(user_idx, UC_PENDING_STATUS, true);
 		setUserCategory(user_idx, UC_YET_AVAILABLE, false);
 		if (canConnectToServer())
 			appOnlineServices()->acceptClientRequest(0, userId(user_idx));
@@ -707,6 +705,11 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 					if (get_list_only) {
 						emit coachesListReceived(coaches);
 						return;
+					}
+					for (const auto &user_info : std::as_const(m_usersData)) {
+						const auto idx{coaches.indexOf(user_info.at(USER_FIELD_ID))};
+						if (idx >= 0)
+							coaches.removeAt(idx);
 					}
 					qsizetype n_connections{coaches.count()};
 					auto conn{std::make_shared<QMetaObject::Connection>()};
@@ -960,7 +963,7 @@ int DBUserModel::importFromFile(const TPFilePath &tp_filename)
 	if (!in_file)
 		return TP_RET_CODE_OPEN_READ_FAILED;
 
-	int ret{appUtils()->readDataFromFile(in_file, m_usersData, USER_N_FIELS, appUtils()->userFileIdentifier)};
+	int ret{appUtils()->readDataFromFile(in_file, m_usersData, USER_N_FIELDS, appUtils()->userFileIdentifier)};
 	if (ret != TP_RET_CODE_WRONG_IMPORT_FILE_TYPE)
 		ret = TP_RET_CODE_IMPORT_OK;
 	in_file->close();
@@ -976,7 +979,7 @@ int DBUserModel::importFromFormattedFile(const TPFilePath &tp_filename)
 	int ret{appUtils()->readDataFromFormattedFile(
 							in_file,
 							m_usersData,
-							USER_N_FIELS,
+							USER_N_FIELDS,
 							appUtils()->userFileIdentifier,
 							[this] (const uint field, const QString &value) { return formatFieldToImport(field, value); })
 	};
@@ -989,10 +992,10 @@ int DBUserModel::importFromFormattedFile(const TPFilePath &tp_filename)
 bool DBUserModel::importFromString(const QString &user_data)
 {
 	QStringList modeldata{std::move(user_data.split('\n'))};
-	if (modeldata.count() < USER_N_FIELS)
+	if (modeldata.count() < USER_N_FIELDS)
 		return false;
-	if (modeldata.count() > USER_N_FIELS)
-		modeldata.resize(USER_N_FIELS); //remove the password field and anything else that does not belong
+	if (modeldata.count() > USER_N_FIELDS)
+		modeldata.resize(USER_N_FIELDS); //remove the password field and anything else that does not belong
 	m_usersData.append(std::move(modeldata));
 	emit userModified(m_usersData.count() - 1, USER_MODIFIED_IMPORTED);
 	return true;
@@ -1029,7 +1032,7 @@ int DBUserModel::newUserFromFile(const TPFilePath &tp_filename, const std::optio
 
 void DBUserModel::saveUserInfo(const uint user_idx, const uint field)
 {
-	if (field < USER_N_FIELS) {
+	if (field < USER_N_FIELDS) {
 		if (user_idx == 0) {
 			mb_MainUserInfoChanged = true;
 			if (field == USER_FIELD_USER_CATEGORY)
@@ -1624,8 +1627,8 @@ void DBUserModel::unregisterUser()
 					}
 					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
 						appUtils()->string_strings({m_network_msg_title, ret_code == TP_RET_CODE_SUCCESS ?
-									tr("Online account removed") : tr("Failed to remove online account")}, record_separator),
-												Qt::AlignTop|Qt::AlignHCenter, ret_code == TP_RET_CODE_SUCCESS ? "set-completed" : "error");
+							tr("Online account removed") : tr("Failed to remove online account")}, record_separator),
+								Qt::AlignTop|Qt::AlignHCenter, ret_code == TP_RET_CODE_SUCCESS ? "set-completed" : "error");
 				}
 			});
 			appOnlineServices()->removeUser(requestid, userId(0));
@@ -1635,7 +1638,7 @@ void DBUserModel::unregisterUser()
 
 void DBUserModel::addCoach(const uint user_idx, const bool notify)
 {
-	setUserCategory(user_idx, UC_PENDING_STATUS, false);
+	setUserCategory(user_idx, UC_CONFIRMED, true);
 	setUserCategory(0, UC_HAS_COACH, true);
 	if (notify) {
 		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
@@ -1666,7 +1669,7 @@ void DBUserModel::delCoach(const uint user_idx)
 
 void DBUserModel::addClient(const uint user_idx, const bool notify)
 {
-	setUserCategory(user_idx, UC_PENDING_STATUS, false);
+	setUserCategory(user_idx, UC_CONFIRMED, true);
 	setUserCategory(0, UC_HAS_CLIENT, true);
 	if (notify) {
 		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,

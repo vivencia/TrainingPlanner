@@ -12,13 +12,12 @@ TPBackRec {
 	radius: rounded ? height : 8
 	opacity: checked ? 0.9 : 1
 	color: backgroundColor
-	height: autoSize ? buttonText.contentHeight : (text.length > 0 ? AppSettings.itemDefaultHeight * buttonText.lineCount : 0) +
-							(textUnderIcon ? imageLoader.width : 0)
+	height: autoSize ? buttonText.contentHeight : (text.length > 0 ?
+						AppSettings.itemDefaultHeight * buttonText.lineCount : 0) + (textUnderIcon ? imageLoader.width : 0)
 	width: autoSize ? preferredWidth : undefined
-	useGradient: enabled && buttonText.text.length !== 0
+	useGradient: enabled && text.length !== 0
 
-	readonly property int preferredWidth: buttonText.contentWidth + (textUnderIcon ? 0 :
-																		AppSettings.itemDefaultHeight) + (text.length > 0 ? 20 : 0)
+//public:
 	property color textColor: AppSettings.fontColor
 	property alias font: buttonText.font
 	property alias text: buttonText.text
@@ -26,7 +25,6 @@ TPBackRec {
 	property string imageSource
 	property bool autoSize: false
 	property bool textUnderIcon: false
-	property bool highlighted: false
 	property bool flat: false
 	property bool iconOnTheLeft: false
 	property bool rounded: true
@@ -36,50 +34,31 @@ TPBackRec {
 	property bool multiline: false
 	property int clickId: -1
 
-	//Local variables. Do not use outside this file
+	signal clicked(int clickid)
+	signal check(int clickid)
+
+//private:
+	readonly property int preferredWidth: buttonText.contentWidth + (textUnderIcon ? 0 :
+																AppSettings.itemDefaultHeight) + (text.length > 0 ? 20 : 0)
 	property bool _bPressed: false
+	property bool _do_text_layout: false
+	property bool _do_image_layout: false
+	property bool _first_layout_done: false
 
-	signal clicked(int clickid);
-	signal check(int clickid);
-
-	onHighlightedChanged:
-		if (highlighted)
-			highlightTimer.start();
-		else
-			highlightTimer.stop();
-
-	Timer {
-		id: highlightTimer
-		running: false
-		repeat: true
-		interval: 50
-
-		property int iteration: 4
-
-		onRunningChanged: {
-			if (!running) {
-				iteration = 4;
-				_button.paneColor = AppSettings.paneBackgroundColor;
-				_button.lightColor = AppSettings.primaryLightColor;
-				_button.midColor = AppSettings.primaryColor;
-				_button.darkColor = AppSettings.primaryDarkColor;
-			}
-		}
-
-		onTriggered: {
-			switch (iteration) {
-			case 4: _button.paneColor = AppSettings.primaryLightColor; break;
-			case 3: _button.paneColor = AppSettings.paneBackgroundColor; break;
-			case 2: _button.midColor = AppSettings.primaryLightColor; break;
-			case 1:
-				_button.midColor = AppSettings.primaryColor;
-				_button.darkColor = AppSettings.primaryLightColor;
-				break;
-			case 0: highlightTimer.stop(); return;
-			}
-			--iteration;
-		}
+	Component.onCompleted: {
+		_button.manageLayout(_do_text_layout, _do_image_layout);
+		_first_layout_done = true;
 	}
+
+	onImageSourceChanged: {
+		if (_first_layout_done)
+			manageLayout(text.length > 0, imageSource.length > 0);
+		else
+			_do_image_layout = imageSource.length > 0;
+	}
+
+	onWidthChanged: if (_button._first_layout_done)
+						_button.manageLayout(buttonText.text.length > 0, _button.imageSource.length > 0);
 
 	Label {
 		id: buttonText
@@ -98,24 +77,12 @@ TPBackRec {
 		opacity: _button.opacity
 		verticalAlignment: Text.AlignVCenter
 		horizontalAlignment: Text.AlignHCenter
-
-		Component.onCompleted: {
-			if (_button.textUnderIcon) {
-				anchors.bottom = _button.bottom;
-				anchors.bottomMargin = 5;
-				anchors.left = _button.left;
-				anchors.right = _button.right;
-			}
-			else {
-				if (_button.imageSource.length > 0) {
-					width = _button.width - AppSettings.itemDefaultHeight - 5;
-					height = _button.height - 5;
-					anchors.horizontalCenter = _button.horizontalCenter;
-					anchors.verticalCenter = _button.verticalCenter;
-				}
-				else
-					anchors.fill = _button;
-			}
+		onTextChanged: {
+			//if the previous text was null, the image control will be anchored to fill the entire button. So we break those anchors
+			if (_button._first_layout_done)
+				imageLoader.anchors.fill = undefined;
+			else
+				_button._do_text_layout = buttonText.text.length > 0;
 		}
 	}
 
@@ -141,11 +108,8 @@ TPBackRec {
 		hoverEnabled: _button.text.length > 0
 		anchors.fill: _button
 		enabled: _button.enabled
-
 		onPressed: (mouse) => _button.onMousePressed(mouse);
 		onReleased: (mouse) => { if (containsMouse) _button.onMouseReleased(mouse); }
-		onEntered: if (_button.text.length > 0) _button.highlighted = true;
-		onExited: if (_button.text.length > 0) _button.highlighted = false;
 	}
 
 	SequentialAnimation {
@@ -177,42 +141,56 @@ TPBackRec {
 		id: imageLoader
 		active: _button.imageSource.length > 0
 		asynchronous: true
+		width: AppSettings.itemDefaultHeight
+		height: width
 		sourceComponent: TPImage {
 			source: _button.imageSource
 			dropShadow: _button.hasDropShadow
 			opacity: _button.opacity
 			enabled: _button.checkable ? !_button.checked : _button.enabled
 		}
+	} //imageLoader
 
-		onLoaded: {
-			if (buttonText.text.length === 0) {
-				anchors.fill = parent;
-				anchors.margins = 2;
-				_button.flat = true;
+	function manageLayout(has_text: bool, has_image: bool): void {
+		if (!has_text && !has_image)
+			return;
+		if (has_image && !has_text) {
+			imageLoader.anchors.fill = _button;
+			imageLoader.anchors.margins = 2;
+			_button.flat = true;
+		}
+		else if (has_text && !has_image)
+			buttonText.anchors.fill = _button;
+		else {
+			_button.flat = false;
+			if (_button.textUnderIcon) {
+				buttonText.anchors.bottom = _button.bottom;
+				buttonText.anchors.bottomMargin = 5;
+				buttonText.anchors.left = _button.left;
+				buttonText.anchors.right = _button.right;
+				imageLoader.width = AppSettings.itemDefaultHeight;
+				imageLoader.anchors.top = _button.top;
+				imageLoader.anchors.topMargin = 5;
+				imageLoader.anchors.horizontalCenter = _button.horizontalCenter;
+				imageLoader.anchors.bottomMargin = 10;
 			}
 			else {
-				if (_button.textUnderIcon) {
-					width = AppSettings.itemDefaultHeight;
-					anchors.top = _button.top;
-					anchors.topMargin = 5;
-					anchors.horizontalCenter = _button.horizontalCenter;
-					anchors.bottomMargin = 10;
+				imageLoader.width = AppSettings.itemDefaultHeight * 0.9;
+				imageLoader.anchors.verticalCenter = _button.verticalCenter;
+				imageLoader.anchors.verticalCenterOffset = 2;
+				buttonText.width = _button.width - imageLoader.width - 5;
+				buttonText.height = _button.height - 5;
+				buttonText.anchors.horizontalCenter = _button.horizontalCenter;
+				buttonText.anchors.verticalCenter = _button.verticalCenter;
+				if (_button.iconOnTheLeft) {
+					buttonText.anchors.horizontalCenterOffset = imageLoader.width/2;
+					imageLoader.anchors.right = buttonText.left;
 				}
 				else {
-					width = AppSettings.itemDefaultHeight * 0.9;
-					anchors.verticalCenter = _button.verticalCenter;
-					anchors.verticalCenterOffset = 2;
-					if (_button.iconOnTheLeft) {
-						buttonText.anchors.horizontalCenterOffset = width/2;
-						anchors.right = buttonText.left;
-					}
-					else {
-						buttonText.anchors.horizontalCenterOffset = -width/2;
-						anchors.left = buttonText.right;
-					}
+					buttonText.anchors.horizontalCenterOffset = -imageLoader.width/2;
+					imageLoader.anchors.left = buttonText.right;
 				}
-				height = width;
 			}
 		}
-	} //Loader
+	}
 } //Rectangle

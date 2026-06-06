@@ -36,10 +36,10 @@ TPPage {
 		horizontalAlignment: Text.AlignHCenter
 
 		anchors {
-			top: clientsPage.top
+			top: parent.top
 			topMargin: 20
-			left: clientsPage.left
-			right: clientsPage.right
+			left: parent.left
+			right: parent.right
 		}
 	}
 
@@ -88,6 +88,7 @@ TPPage {
 			id: clientsList
 			listClients: true
 			listCoaches: false
+			listConfirmed: true
 			buttonString: qsTr("Remove")
 			Layout.fillWidth: true
 			Layout.fillHeight: true
@@ -102,9 +103,7 @@ TPPage {
 
 			TPCoachesAndClientsList {
 				id: pendingClientsList
-				allowNotConfirmed: true
 				listClients: true
-				listCoaches: false
 				height: parent.height - AppSettings.itemDefaultHeight - 5
 
 				anchors {

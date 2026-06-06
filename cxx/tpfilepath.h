@@ -32,12 +32,10 @@ public:
 	inline explicit TPFilePath(const QString &filepath) { fromString(filepath); }
 	inline TPFilePath(const TPFilePath &other)
 		: m_fileName{other.m_fileName}, m_ownerUser{other.m_ownerUser}, m_targetUser{other.m_targetUser},
-					m_subDirs{other.m_subDirs}, m_pathOK{other.m_pathOK}, m_fullPathOK{ other.m_fullPathOK},
-																	m_useFileExtension{other.m_useFileExtension} {}
+				m_subDirs{other.m_subDirs}, m_fullPathOK{ other.m_fullPathOK}, m_useFileExtension{other.m_useFileExtension} {}
 	inline TPFilePath(TPFilePath &&other) noexcept
 		: m_fileName{other.m_fileName}, m_ownerUser{other.m_ownerUser}, m_targetUser{other.m_targetUser},
-					m_subDirs{other.m_subDirs}, m_pathOK{other.m_pathOK}, m_fullPathOK{ other.m_fullPathOK},
-																	m_useFileExtension{other.m_useFileExtension} {}
+				m_subDirs{other.m_subDirs}, m_fullPathOK{ other.m_fullPathOK}, m_useFileExtension{other.m_useFileExtension} {}
 
 	inline TPFilePath &operator=(const QString &filepath)
 	{
@@ -54,7 +52,6 @@ public:
 			m_ownerUser = other.m_ownerUser;
 			m_targetUser = other.m_targetUser;
 			m_subDirs = other.m_subDirs;
-			m_pathOK = other.m_pathOK;
 			m_fullPathOK = other.m_fullPathOK;
 			m_useFileExtension = other.m_useFileExtension;
 		}
@@ -68,7 +65,6 @@ public:
 			m_ownerUser = other.m_ownerUser;
 			m_targetUser = other.m_targetUser;
 			m_subDirs = other.m_subDirs;
-			m_pathOK = other.m_pathOK;
 			m_fullPathOK = other.m_fullPathOK;
 			m_useFileExtension = other.m_useFileExtension;
 		}
@@ -78,8 +74,8 @@ public:
 	inline QString toString(const bool use_temp_filename = false) const
 	{
 		if (!m_fullPathOK) {
-			const_cast<TPFilePath*>(this)->m_fullPath =
-								std::move(_localAppFilesDir % m_ownerUser % '/' % m_subDirs % m_fileName);
+			const_cast<TPFilePath*>(this)->m_fullPath = std::move(appUtils()->sanitizePath(
+							std::move(_localAppFilesDir % m_ownerUser % '/' % m_targetUser % '/' % m_subDirs % m_fileName)));
 			const_cast<TPFilePath*>(this)->m_fullPathOK = true;
 		}
 		return !use_temp_filename ? m_fullPath : m_fullPath % ".tmp"_L1;
@@ -89,15 +85,19 @@ public:
 		return appUtils()->getFilePath(toString(), false);
 	}
 
-	inline bool isOK() const { return m_pathOK; }
-
 	static void setLocalAppFilesDir();
 	static inline const QString &localAppFilesDir() { return _localAppFilesDir; }
 	inline bool useFileExtension() const { return m_useFileExtension; }
 	inline void setUseFileExtension(const bool extension) { m_useFileExtension = extension; }
+
 	inline const QString &fileName() const
 	{
 		return m_useFileExtension ? m_fileName : m_tempString = std::move(appUtils()->getFileName(m_fileName, true));
+	}
+	inline QString &filename() & { m_fullPathOK = false; return m_fileName; }
+	inline void setFilename(QString &&filename)
+	{
+		m_fileName = std::forward<QString>(filename);
 	}
 	inline void setFileName(const QString &filename, const bool sanitized)
 	{
@@ -106,8 +106,7 @@ public:
 			m_fileName = std::move(m_fileName.trimmed().remove('/'));
 		m_fullPathOK = false;
 	}
-	inline const QString &externalFilename() const { return m_externalFileName; }
-	void setExternalFileName(const QString &filename);
+
 	inline const QString &ownerUser() const { return m_ownerUser; }
 	void setOwnerUser(const QString &userid);
 	inline const QString &targetUser() const { return m_targetUser; }
@@ -118,7 +117,7 @@ public:
 		m_targetUser = userid;
 		m_fullPathOK = false;
 	}
-	const QString &subdirs() const { return m_subDirs; }
+	inline const QString &subdirs() const { return m_subDirs; }
 	inline void setSubdirs(const QString &subdirs, const bool sanitized)
 	{
 		m_subDirs = subdirs;
@@ -141,11 +140,13 @@ public:
 		return fnv1a_hash(m_subDirs % m_fileName);
 	}
 
+	inline bool isOK() const { return !m_fileName.isEmpty() && !m_ownerUser.isEmpty(); }
+
 private:
-	QString m_fileName, m_ownerUser, m_targetUser, m_subDirs, m_fullPath, m_externalFileName;
+	QString m_fileName, m_ownerUser, m_targetUser, m_subDirs, m_fullPath;
 	mutable QString m_tempString;
 	static QString _localAppFilesDir;
-	bool m_pathOK{false}, m_fullPathOK{false}, m_useFileExtension{true};
+	bool m_fullPathOK{false}, m_useFileExtension{true};
 
 	void fromString(const QString &filepath);
 };

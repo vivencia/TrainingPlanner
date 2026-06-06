@@ -75,6 +75,7 @@ public:
 	};
 
 	enum FILE_TYPE {
+		FT_UNKNOWN			= 0,
 		FT_TP_USER_PROFILE	= 1U << 0,
 		FT_TP_PROGRAM		= 1U << 1,
 		FT_TP_WORKOUT_A		= 1U << 2,
@@ -91,9 +92,15 @@ public:
 		FT_TEXT				= 1U << 13,
 		FT_OPEN_DOCUMENT	= 1U << 14,
 		FT_MS_DOCUMENT		= 1U << 15,
-		FT_ANY_TYPE			= 0x7FFF,
 		FT_OTHER			= 1U << 30,
-		FT_UNKNOWN			= 1U << 31,
+
+		FT_NO_TYPE_SET		= 1U << 31,
+		FT_ANY_TYPE			= 0xFFFF,
+		FT_ANY_TPFILE		= 0x3FF,
+		FT_DOCUMENTS		= 0xD000,
+		FT_MEDIA			= 0xC00,
+		FT_VIEWBLE_FILE		= 0x3FFF,
+		FT_VIEWABLE_OUTSIDE	= 0xFC00,
 	};
 	Q_ENUM(FILE_TYPE)
 
@@ -137,7 +144,7 @@ public:
 
 	Q_INVOKABLE QString getCorrectPath(const QUrl &url) const;
 	Q_INVOKABLE FILE_TYPE getFileType(QString filename) const;
-	TPUtils::FILE_TYPE getTPFileType(const QString &filename, std::optional<bool> &formatted) const;
+	TPUtils::FILE_TYPE getTPFileType(const QString &filename, bool &formatted) const;
 	Q_INVOKABLE QStringList extensionsListForType(TPUtils::FILE_TYPE filetype, const bool description = true) const;
 	Q_INVOKABLE QString standardPathForFileType(TPUtils::FILE_TYPE filetype) const;
 	Q_INVOKABLE bool canReadFile(const QString &filename) const;
@@ -289,7 +296,9 @@ public:
 	void setAppLocale(const QString &locale_str);
 	inline QString newDBTemporaryId() const { return QString::number(m_lowestTempId--); }
 
+#ifndef QT_NO_DEBUG
 	void findResource(const QString &prefix = ":/"_L1, const QString &suffix = "*.*"_L1);
+#endif
 
 signals:
 	void tpFileOpenRequest(uint32_t tp_filetype, const QString &filename, const bool formatted = false, const QVariant &extra_info = QVariant{});
@@ -328,8 +337,6 @@ constexpr void unSetBit(T &__restrict var, const unsigned char bit)
 		var &= ~1;
 }
 
-//enum class custom operators
-
 template <typename T>
 inline bool isBitSet(const T &__restrict var, const unsigned char bit)
 {
@@ -339,6 +346,7 @@ inline bool isBitSet(const T &__restrict var, const unsigned char bit)
 		return static_cast<bool>(var & 1);
 }
 
+//enum class custom operators
 template <typename T>
 constexpr bool operator&(T lhs, T rhs)
 {

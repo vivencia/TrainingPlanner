@@ -314,7 +314,7 @@ TPPopup {
 
 						property TPFileViewer _file_viewer
 						sourceComponent: TPFileViewer {
-							mediaSource: delegateItem.msgFileName
+							fileName: delegateItem.msgFileName
 							onRemovalRequested: AppMessages.removeMessage(delegateItem.msgId);
 							Component.onCompleted: fileViewerLoader._file_viewer = this;
 						}
@@ -441,6 +441,7 @@ TPPopup {
 				id: chatList
 				listClients: true
 				listCoaches: true
+				listConfirmed: true
 				Layout.preferredHeight: onlineMsgsDlg.maxHeight - 2 * (AppSettings.itemDefaultHeight + 10)
 				Layout.preferredWidth: parent.width
 				Layout.fillWidth: true

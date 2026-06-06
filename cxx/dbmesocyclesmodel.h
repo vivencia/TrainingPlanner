@@ -259,21 +259,20 @@ public:
 		return m_mesoData.at(meso_idx).at(MESO_FIELD_CLIENT);
 	}
 	void setClient(const uint meso_idx, const QString &new_client);
-	Q_INVOKABLE QString mesoClient(const uint meso_idx) const { return meso_idx < m_mesoData.count() ? client(meso_idx) : QString {}; }
-
-	st_MesoType mesoType(const uint meso_idx) const;
-	Q_INVOKABLE inline bool isOwnMeso(const uint meso_idx) const { return mesoType(meso_idx) == MT_MESO_FOR_SELF; }
-	void addSubMesoModel(const uint meso_idx, const bool own_meso);
+	Q_INVOKABLE inline QString mesoClient(const uint meso_idx) const
+	{
+		return meso_idx < m_mesoData.count() ? client(meso_idx) : QString {};
+	}
 
 	Q_INVOKABLE inline QString file(const uint meso_idx) const
 	{
 		return m_mesoData.at(meso_idx).at(MESO_FIELD_FILE);
 	}
-	Q_INVOKABLE inline void setFile(const uint meso_idx, const QString &new_file)
-	{
-		m_mesoData[meso_idx][MESO_FIELD_FILE] = new_file;
-		setModified(meso_idx, MESO_FIELD_FILE);
-	}
+	Q_INVOKABLE void setFile(const uint meso_idx, const QString &new_file);
+
+	st_MesoType mesoType(const uint meso_idx) const;
+	Q_INVOKABLE inline bool isOwnMeso(const uint meso_idx) const { return mesoType(meso_idx) == MT_MESO_FOR_SELF; }
+	void addSubMesoModel(const uint meso_idx, const bool own_meso);
 
 	inline const QString &type(const uint meso_idx) const
 	{
@@ -368,7 +367,7 @@ public:
 	void exportToFormattedFile(const uint meso_idx, const TPFilePath &filename);
 	int importFromFile(const uint meso_idx, const TPFilePath &filename);
 	int importFromFormattedFile(const uint meso_idx, const TPFilePath &filename);
-	std::shared_ptr<TPFilePath> suggestedName(const int meso_idx) const;
+	std::shared_ptr<TPFilePath> suggestedName(const int meso_idx, const bool external_filename = false) const;
 
 	inline bool isFieldFormatSpecial (const uint field) const
 	{

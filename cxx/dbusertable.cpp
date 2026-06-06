@@ -2,7 +2,7 @@
 
 #include "dbusermodel.h"
 
-constexpr int n_fields{DBUserModel::USER_N_FIELS};
+constexpr int n_fields{DBUserModel::USER_N_FIELDS};
 constexpr QLatin1StringView table_name{ "users_table"_L1 };
 constexpr QLatin1StringView field_names[n_fields][2] {
 	{"userid"_L1,			"INTEGER PRIMARY KEY"_L1},
@@ -45,8 +45,8 @@ bool DBUserTable::getAllUsers(void *)
 	if (execReadOnlyQuery("SELECT * FROM users_table ORDER BY inserttime ASC;"_L1)) {
 		if (m_workingQuery.first()) {
 			do {
-				QStringList user_info{DBUserModel::USER_N_FIELS};
-				for (uint i{DBUserModel::USER_FIELD_ID}; i < DBUserModel::USER_N_FIELS; ++i)
+				QStringList user_info{DBUserModel::USER_N_FIELDS};
+				for (uint i{DBUserModel::USER_FIELD_ID}; i < DBUserModel::USER_N_FIELDS; ++i)
 					user_info[i] = std::move(m_workingQuery.value(i).toString());
 				emit userInfoAcquired(user_info);
 			} while (m_workingQuery.next());

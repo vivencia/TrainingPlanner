@@ -35,11 +35,16 @@ Q_PROPERTY(QQuickItem* parentPage READ parentPage WRITE setParentPage NOTIFY par
 Q_PROPERTY(int mesoIdx READ mesoIdx WRITE setMesoIdx NOTIFY mesoIdxChanged FINAL)
 Q_PROPERTY(int workoutCalendarDay READ workoutCalendarDay WRITE setWorkoutCalendarDay NOTIFY workoutCalendarDayChanged FINAL)
 Q_PROPERTY(int tpFileSectionCount READ tpFileSectionCount NOTIFY tpFileSectionCountChanged FINAL)
+Q_PROPERTY(int addFileFilters READ addFileFilters WRITE setAddFileFilters NOTIFY addFileFiltersChanged FINAL)
 Q_PROPERTY(bool canDownloadOrGenerate READ canDownloadOrGenerate WRITE setCanDownloadOrGenerate NOTIFY canDownloadOrGenerateChanged FINAL)
 Q_PROPERTY(bool canAddFile READ canAddFile WRITE setCanAddFile NOTIFY canAddFileChanged FINAL)
 Q_PROPERTY(bool restrictedFileType READ restrictedFileType WRITE setRestrictedFileType NOTIFY restrictedFileTypeChanged FINAL)
 Q_PROPERTY(bool useControls READ useControls WRITE setUseControls NOTIFY useControlsChanged FINAL)
 Q_PROPERTY(bool fileIsOK READ fileIsOK NOTIFY fileIsOKChanged FINAL)
+Q_PROPERTY(bool isTPFile READ isTPFile NOTIFY fileTypeChanged FINAL)
+Q_PROPERTY(bool isMediaFile READ isMediaFile NOTIFY fileTypeChanged FINAL)
+Q_PROPERTY(bool isKnownFile READ isKnownFile NOTIFY fileTypeChanged FINAL)
+Q_PROPERTY(bool isDocumentFile READ isDocumentFile NOTIFY fileTypeChanged FINAL)
 
 public:
 
@@ -63,12 +68,14 @@ public:
 
 	inline TPUtils::FILE_TYPE fileType() const { return m_filetype; }
 	void setFileType(TPUtils::FILE_TYPE new_type);
-	QString fileName() const { return m_filename.toString(); }
+	inline QString fileName() const { return m_filename.toString(); }
 	inline const TPFilePath &tpFileName() const { return m_filename; }
 	void setFileName(const QString &filename, const bool file_added = false);
 	//TODO: Android URLs
 	inline QUrl fileURL() const { return QString{"file://"_L1 % m_filename.toString()}; }
 	void setFileURL(const QUrl &url);
+	inline void setSuggestedFileNameGenerator(const std::function<TPFilePathPtr()> &func) { m_suggestNameFunc = func; }
+
 	inline QSize controlSize() const { return m_controlSize; }
 	inline void setControlSize(const QSize &new_size)
 	{
@@ -84,6 +91,8 @@ public:
 	inline int workoutCalendarDay() const { return m_workoutCalendarDay; }
 	inline void setWorkoutCalendarDay(const int workout_id) { m_workoutCalendarDay = workout_id; emit workoutCalendarDayChanged(); }
 	inline int tpFileSectionCount() const { return m_tpfileSections; }
+	inline int addFileFilters() const { return m_addFileFilters; }
+	inline void setAddFileFilters(const int filters ) { m_addFileFilters = filters; emit addFileFiltersChanged(); }
 	inline bool canDownloadOrGenerate() const { return m_downloadOrGenerate; }
 	void setCanDownloadOrGenerate(const bool can_do);
 	inline bool canAddFile() const { return m_canAddFile; }
@@ -93,10 +102,12 @@ public:
 	inline bool useControls() const { return m_useControls; }
 	inline void setUseControls(const  bool use_controls) {
 		if (use_controls != m_useControls) {
-			if (use_controls && !m_controls[OT_FullScreen])
-				createControls();
-			else if (!use_controls && m_controls[OT_FullScreen])
-				clearControls();
+			if (m_filetype != TPUtils::FT_NO_TYPE_SET) {
+				if (use_controls && !m_controls[OT_FullScreen])
+					createControls();
+				else if (!use_controls && m_controls[OT_FullScreen])
+					clearControls();
+			}
 			m_useControls = use_controls;
 			emit useControlsChanged();
 		}
@@ -110,12 +121,22 @@ public:
 		}
 	}
 
+	inline bool isTPFile() const { return m_filetype & TPUtils::FT_ANY_TPFILE; }
+	inline bool isMediaFile() const { return m_filetype & TPUtils::FT_MEDIA; }
+	inline bool isKnownFile() const { return m_filetype > TPUtils::FT_UNKNOWN && m_filetype < TPUtils::FT_OTHER; }
+	inline bool isDocumentFile() const { return m_filetype & TPUtils::FT_DOCUMENTS; }
+	inline bool isViewableFile() const { return m_filetype & TPUtils::FT_VIEWBLE_FILE; }
+	inline bool isOpenedExternally() const { return m_filetype & TPUtils::FT_VIEWABLE_OUTSIDE || m_filetype == TPUtils::FT_OTHER; }
+
+	//Only changes the filename(both internally and of the actual file if it exists). It does not change paths or moves the file
+	void renameFile(const QString &new_name);
 	void removeFile(const bool bypass_confirmation, const bool remove_local, const bool remove_remote);
 	static QString chooseFileDialog(const int file_type = TPUtils::FT_ANY_TYPE);
+	void exportTPFile(const TPFilePath &tp_filename);
 	Q_INVOKABLE QString openFileDialog(const int file_type, const QString &suggested_save_name = QString{});
 	Q_INVOKABLE void attemptToCreateOrGetFile();
 	Q_INVOKABLE void setEnabled(TPFileOps::OpType type, const bool enabled, const bool call_update = true);
-	Q_INVOKABLE QString getFileTypeIcon(const QString &filename, const QSize &preferred_size = QSize{}, const bool thumbnail = true) const;
+	Q_INVOKABLE QString getFileTypeIcon(const QSize &preferred_size = QSize{}, const bool thumbnail = true) const;
 	Q_INVOKABLE inline void doFileOperation(const int op) { _doFileOperation(static_cast<OpType>(op)); }
 	Q_INVOKABLE inline QString tpFileSectionTitle(const int section) { return m_tpFileInfo.value(section).first; }
 	Q_INVOKABLE inline QString tpFileSection(const int section) { return m_tpFileInfo.value(section).second; }
@@ -125,7 +146,6 @@ public:
 	Q_INVOKABLE inline void repaintControls() { update(); }
 
 public slots:
-	void exportSlot(const TPFilePath &tp_filename);
 	void importSlot(const bool accepted);
 	void sendFileTo(const int handle = 1, const QStringList &userids = QStringList{}, const QString &message = QString{});
 
@@ -143,6 +163,7 @@ signals:
 	void parentPageChanged();
 	void workoutCalendarDayChanged();
 	void tpFileSectionCountChanged();
+	void addFileFiltersChanged();
 	void canDownloadOrGenerateChanged();
 	void canAddFileChanged();
 	void restrictedFileTypeChanged();
@@ -172,19 +193,21 @@ private:
 	controlInfo *m_currentControl{nullptr};
 	QSize m_controlSize, m_buttonSize;
 	QColor m_pressedColor;
-	TPUtils::FILE_TYPE m_filetype;
+	TPUtils::FILE_TYPE m_filetype{TPUtils::FT_NO_TYPE_SET};
 	QList<std::pair<QString,QString>> m_tpFileInfo;
 	bool m_fullscreen{false}, m_canAddFile{false}, m_downloadOrGenerate{false}, m_restrictedFileType{false},
 																			m_fileIsOK{false}, m_useControls{false};
 	int m_mesoIdx{-1}, m_workoutCalendarDay{-1}, m_cursorPostion{-1};
-	uint  m_tpfileSections{0};
+	uint  m_tpfileSections{0}, m_addFileFilters{0};
 	QTextDocument *m_textDocument{nullptr};
 	TPFilePath m_filename;
 	QFileDialog *m_fileDialog{nullptr};
 	QQmlComponent *m_sendFileDialogComponent{nullptr};
 	QObject *m_sendFileDialog{nullptr};
 	QQuickItem *m_parentPage{nullptr};
+	std::function<TPFilePathPtr()> m_suggestNameFunc{nullptr};
 
+	void setFileName(const bool file_added);
 	void _doFileOperation(const OpType type);
 	int generateFileFromType(const bool formatted);
 	void doFullScreen();
@@ -194,6 +217,7 @@ private:
 	void downloadOrCopyFile();
 	void sendFileToUsers(const QStringList &users, const QString &message);
 	void openFile();
+	void setButtonCondition(const OpType type, std::optional<bool> visible = std::nullopt, bool do_update = false);
 	void createControls();
 	void clearControls();
 	void resizeControl();
@@ -202,9 +226,8 @@ private:
 	void disableImage(QImage &image);
 	controlInfo *controlFromMouseClick(const QPointF& mouse_pos) const;
 	controlInfo *controlFromType(const OpType type) const;
-	QString getImagePreviewFile(const QString &image_filename, QSize preferred_size = QSize{}) const;
-	QString getPDFPreviewFile(const QString &pdf_filename, QSize preferred_size = QSize{}) const;
-	QString getSubDir() const;
+	QString getImagePreviewFile(QSize preferred_size = QSize{}) const;
+	QString getPDFPreviewFile(QSize preferred_size = QSize{}) const;
 	void _setEnabled(controlInfo *ci, const bool enabled);
 	void _getDefaultImage(controlInfo *ci);
 	void readTPFile();

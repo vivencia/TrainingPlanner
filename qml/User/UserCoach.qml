@@ -17,7 +17,6 @@ ColumnLayout {
 
 //private:
 	property bool bChooseResume: false
-	property bool bRescindCoach: false
 	property bool bResumeSent: false
 	readonly property int userIdx: 0
 
@@ -64,14 +63,7 @@ ColumnLayout {
 			function onCoachOnlineStatus(registered: bool): void { chkOnlineCoach.checked = registered; }
 		}
 
-		onClicked: {
-			if (!checked && AppUserModel.isCoachRegistered()) {
-				if (AppUserModel.currentClients.count > 0)
-					userCoachModule.bRescindCoach = true;
-			}
-			else
-				AppUserModel.setCoachPublicStatus(checked);
-		}
+		onClicked: AppUserModel.setCoachPublicStatus(checked);
 	}
 
 	TPButton {
@@ -83,33 +75,6 @@ ColumnLayout {
 		Layout.alignment: Qt.AlignCenter
 
 		onClicked: userCoachModule.bChooseResume = true;
-	}
-
-	Loader {
-		id: rescindCoachLoader
-		active: userCoachModule.bRescindCoach
-		asynchronous: true
-
-		property TPBalloonTip _rescind_dlg
-
-		sourceComponent: TPBalloonTip {
-			title: qsTr("Rescind from coaching?")
-			message: qsTr("You currently have clients that will no longer be your clients if you continue")
-			imageSource: "warning"
-
-			onButton1Clicked: {
-				AppUserModel.setCoachPublicStatus(false);
-				userCoachModule.bRescindCoach = false;
-			}
-			onButton2Clicked: {
-				chkOnlineCoach.checked = true;
-				userCoachModule.bRescindCoach = false;
-			}
-
-			Component.onCompleted: rescindCoachLoader._rescind_dlg = this;
-		}
-
-		onLoaded: _rescind_dlg.tpOpen();
 	}
 
 	Loader {

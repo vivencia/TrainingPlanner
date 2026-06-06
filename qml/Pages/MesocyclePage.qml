@@ -20,6 +20,7 @@ TPPage {
 	required property MesoManager mesoManager
 	required property MesocyclesModel mesoModel
 	property TPBalloonTip missingFieldsTip: requiredFieldsMissingLoader.item as TPBalloonTip
+	property FileOperations fileOps: _meso_file_viewer.fileOps
 
 	Loader {
 		id: requiredFieldsMissingLoader
@@ -115,6 +116,8 @@ TPPage {
 
 					TPCoachesAndClientsList {
 						id: clientsList
+						listClients: true
+						listConfirmed: true
 						currentRow: AppUserModel.findUserById(mesoPage.mesoManager.client)
 						buttonString: qsTr("Go to client's page")
 						Layout.preferredHeight: 0.2 * mesoPage.height
@@ -144,13 +147,23 @@ TPPage {
 
 			TPLabel {
 				text: mesoPage.mesoModel.mesoNameLabel
-				Layout.topMargin: 10
+				Layout.maximumWidth: parent.width / 2 - 10
 
-				TPImage {
-					source: "set-completed"
+				TPButton {
+					id: btnNameOK
+					imageSource: "set-completed"
 					enabled: mesoPage.mesoManager.mesoNameOK
-					width: AppSettings.itemDefaultHeight
-					height: width
+					width: text.length > 0 ? parent.width: AppSettings.itemDefaultHeight
+					height: AppSettings.itemDefaultHeight
+
+					property bool name_changed: false
+					onName_changedChanged: {
+						if (name_changed)
+							text = qsTr("Set new name");
+						else
+							text = "";
+					}
+					onClicked: mesoPage.mesoManager.name = txtMesoName.text;
 
 					anchors {
 						left: parent.right
@@ -166,7 +179,10 @@ TPPage {
 				ToolTip.visible: !mesoPage.mesoManager.mesoNameOK
 				Layout.fillWidth: true
 
-				onEditingFinished: mesoPage.mesoManager.name = text;
+				onTextEdited: {
+					mesoPage.mesoManager.checkMesoName(text);
+					btnNameOK.name_changed = true;
+				}
 				onEnterOrReturnKeyPressed: cboMesoType.forceActiveFocus();
 			}
 
@@ -220,11 +236,15 @@ TPPage {
 			}
 
 			TPFileViewer {
+				id: _meso_file_viewer
 				fileName: mesoPage.mesoModel.file(mesoPage.mesoManager.mesoIdx);
 				canAddFile: mesoPage.mesoManager.ownMeso || mesoPage.mesoManager.mesoForClient
+				canDownloadOrGenerate: !mesoPage.mesoManager.ownMeso && !mesoPage.mesoManager.mesoForClient
 				useBackground: true
-				Layout.preferredWidth: 0.5 * parent.width
-				Layout.preferredHeight: 4/3 * (0.5 * parent.width)
+				missingFileInfo: qsTr("No instructions file added")
+				addFileFilters: AppUtils.FT_DOCUMENTS
+				Layout.preferredWidth: (fileType === AppUtils.FT_PDF ? 0.5 : 0.3) * AppSettings.pageWidth
+				Layout.preferredHeight: width * 1.4
 				Layout.alignment: Qt.AlignCenter
 				onFileAdded: (filename) => mesoPage.mesoModel.setFile(mesoPage.mesoManager.mesoIdx, filename);
 				onRemovalRequested: mesoPage.mesoModel.setFile(mesoPage.mesoManager.mesoIdx, "");

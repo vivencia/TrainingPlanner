@@ -51,21 +51,20 @@ TPPage {
 			UserPersonalData {
 				id: usrData
 				parentPage: userPage
-				userRow: 0
+				userIdx: 0
 				Layout.fillWidth: true
 				Layout.margins: 10
 			}
 
 			UserContact {
 				id: usrContact
-				userRow: 0
+				userIdx: 0
 				Layout.fillWidth: true
 				Layout.margins: 10
 			}
 
 			UserCoach {
 				id: usrCoach
-				userRow: 0
 				parentPage: userPage
 				Layout.fillWidth: true
 				Layout.margins: 10
@@ -73,7 +72,7 @@ TPPage {
 
 			UserProfile {
 				id: usrProfile
-				userRow: 0
+				userIdx: 0
 				parentPage: userPage
 				Layout.fillWidth: true
 				Layout.margins: 10

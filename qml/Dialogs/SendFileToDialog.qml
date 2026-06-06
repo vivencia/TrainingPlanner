@@ -39,6 +39,7 @@ TPPopup {
 			id: usersList
 			listClients: true
 			listCoaches: true
+			listConfirmed: true
 			Layout.fillWidth: true
 			Layout.preferredHeight: parent.height - txtMessage.height - (2 * buttonsRow.height) - 10
 		}

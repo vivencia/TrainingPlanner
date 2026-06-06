@@ -16,17 +16,6 @@ TPPage {
 
 	property int userIdx
 
-	onPageActivated: {
-		if (coachesList.enabled) {
-			tabbar.setCurrentIndex(0);
-			coachesList.selectItem(coachesList.currentRow !== -1 ? coachesList.currentRow : 0);
-		}
-		else if (pendingCoachesList.enabled) {
-			tabbar.setCurrentIndex(1);
-			pendingCoachesList.selectItem(pendingCoachesList.currentRow !== -1 ? pendingCoachesList.currentRow : 0);
-		}
-	}
-
 	TPLabel {
 		id: lblMain
 		text: qsTr("Coaches or Trainers");
@@ -35,10 +24,10 @@ TPPage {
 		horizontalAlignment: Text.AlignHCenter
 
 		anchors {
-			top: coachesPage.top
-			topMargin: 20
-			left: coachesPage.left
-			right: coachesPage.right
+			top: parent.top
+			topMargin: 10
+			left: parent.left
+			right: parent.right
 		}
 	}
 
@@ -50,23 +39,21 @@ TPPage {
 		TPTabButton {
 			text: qsTr("Coaches or Trainers")
 			enabled: coachesList.enabled
-
-			onClicked: coachesPage.userIdx = AppUserModel.currentCoaches.getUserIdx();
+			onClicked: coachesPage.userIdx = coachesList.selectedUserIdx;
 		}
 
 		TPTabButton {
 			text: qsTr("Pending answers")
 			enabled: pendingCoachesList.enabled
-
-			onClicked: coachesPage.userIdx = AppUserModel.pendingCoachesResponses.getUserIdx();
+			onClicked: coachesPage.userIdx = pendingCoachesList.selectedUserIdx;
 		}
 
 		anchors {
 			top: lblMain.bottom
 			topMargin: 5
-			left: coachesPage.left
+			left: parent.left
 			leftMargin: 5
-			right: coachesPage.right
+			right: parent.right
 			rightMargin: 5
 		}
 	}
@@ -79,9 +66,9 @@ TPPage {
 		anchors {
 			top: tabbar.bottom
 			topMargin: 5
-			left: coachesPage.left
+			left: parent.left
 			leftMargin: 5
-			right: coachesPage.right
+			right: parent.right
 			rightMargin: 5
 		}
 
@@ -91,9 +78,9 @@ TPPage {
 
 			TPCoachesAndClientsList {
 				id: coachesList
-				listClients: false
 				listCoaches: true
-				buttonString: qsTr("Résumé")
+				listConfirmed: true
+				perItemButtonString: qsTr("Resumè");
 				height: parent.height - AppSettings.itemDefaultHeight - 5
 
 				anchors {
@@ -105,7 +92,7 @@ TPPage {
 				}
 
 				onItemSelected: (userIdx) => coachesPage.userIdx = userIdx;
-				onButtonClicked: AppUserModel.viewResume(coachesPage.userIdx);
+				onItemButtonClicked: (userIdx) => coachesPage.viewResume(userIdx);
 			} //TPCoachesAndClientsList: coachesList
 
 			RowLayout {
@@ -137,10 +124,8 @@ TPPage {
 
 			TPCoachesAndClientsList {
 				id: pendingCoachesList
-				allowNotConfirmed: true
-				listClients: false
 				listCoaches: true
-				buttonString: qsTr("Résumé")
+				perItemButtonString: qsTr("Résumé")
 				height: parent.height - btnAccept.height - 10
 
 				anchors {
@@ -151,19 +136,14 @@ TPPage {
 					rightMargin: 5
 				}
 
-				//Temporary users(not confirmed) will always have the same index: AppUserModel.count() - 1, so we need
-				//to reset the userIdx property in order for it to get a onChanged signal
-				onItemSelected: (userIdx) => {
-					coachesPage.userIdx = -1;
-					coachesPage.userIdx = userIdx;
-				}
-				onButtonClicked: AppUserModel.viewResume(coachesPage.userIdx);
+				onItemSelected: (userIdx) => coachesPage.userIdx = userIdx;
+				onItemButtonClicked: (userIdx) => coachesPage.viewResume(userIdx);
 			} //TPCoachesAndClientsList: pendingCoachesList
 
 			RowLayout {
 				uniformCellSizes: true
 				height: btnAccept.height
-				enabled: pendingCoachesList.enabled && pendingCoachesList.currentRow !== -1
+				enabled: pendingCoachesList.currentRow !== -1
 
 				anchors {
 					bottom: parent.bottom
@@ -210,9 +190,9 @@ TPPage {
 		anchors {
 			top: listsLayout.bottom
 			topMargin: 20
-			left: coachesPage.left
+			left: parent.left
 			leftMargin: 10
-			right: coachesPage.right
+			right: parent.right
 			rightMargin: 10
 		}
 	}
@@ -226,9 +206,9 @@ TPPage {
 		anchors {
 			top: btnFindCoachOnline.bottom
 			topMargin: 10
-			left: coachesPage.left
-			right: coachesPage.right
-			bottom: coachesPage.bottom
+			left: parent.left
+			right: parent.right
+			bottom: parent.bottom
 		}
 
 		ColumnLayout {
@@ -319,11 +299,34 @@ TPPage {
 			}
 		}
 		else {
-			AppUserModel.rejectUser(ApendingCoachesList.selectedUserIdx);
+			AppUserModel.rejectUser(pendingCoachesList.selectedUserIdx);
 			if (!pendingCoachesList.enabled) {
 				if (coachesList.enabled)
 					tabbar.setCurrentIndex(0);
 			}
 		}
+	}
+
+	Loader {
+		id: viewResumeLoader
+		active: false
+		asynchronous: true
+		property TPFileViewer _file_viewer
+
+		sourceComponent: TPFileViewer {
+			missingFileInfo: qsTr(`The coach's resumè file could not be found.
+				You can try to download it by pressing the second button from the left on the bottom of the screen`)
+			canDownloadOrGenerate: true
+			onWindowStateChanged: (window_state) => {
+				if (window_state === TPFileViewer.WS_NORMAL)
+					viewResumeLoader.active = false;
+			}
+			Component.onCompleted: viewResumeLoader._file_viewer = this;
+		}
+	}
+	function viewResume(user_idx: int): void {
+		viewResumeLoader._file_viewer.fileName = AppUserModel.resume(user_idx);
+		viewResumeLoader._file_viewer.startFullScreen();
+		viewResumeLoader.active = true;
 	}
 }

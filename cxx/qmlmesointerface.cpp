@@ -7,6 +7,7 @@
 #include "qmlmesosplitinterface.h"
 #include "qmlmesocalendarinterface.h"
 #include "qmlworkoutinterface.h"
+#include "tpfileops.h"
 #include "tputils.h"
 #include "translationclass.h"
 
@@ -43,9 +44,18 @@ void QMLMesoInterface::updateInterface()
 	emit notesChanged();
 }
 
+void QMLMesoInterface::checkMesoName(const QString &name)
+{
+	if ((m_mesoNameOK = name != m_mesoModel->name(m_mesoIdx)))
+		m_mesoNameOK = m_mesoModel->isMesoNameOK(m_mesoIdx, name);
+	if (!m_mesoNameOK)
+		m_nameError = name.length() < 5 ? std::move(tr("Error: name too short")): std::move(tr("Error: Name already in use."));
+	emit mesoNameOKChanged();
+}
+
 bool QMLMesoInterface::mesoNameOK() const
 {
-	return !m_mesoModel->isRequiredFieldWrong(m_mesoIdx, DBMesocyclesModel::MESO_FIELD_NAME);
+	return m_mesoNameOK && !m_mesoModel->isRequiredFieldWrong(m_mesoIdx, DBMesocyclesModel::MESO_FIELD_NAME);
 }
 
 bool QMLMesoInterface::startDateOK() const
@@ -115,17 +125,10 @@ QString QMLMesoInterface::name() const
 
 void QMLMesoInterface::setName(const QString &new_name)
 {
-	if (new_name != m_mesoModel->name(m_mesoIdx)) {
-		if (m_mesoModel->isMesoNameOK(m_mesoIdx, new_name)) {
-			m_mesoModel->removeMesoFile(m_mesoIdx); //remove a -possible- meso file with the previous name
-			m_mesoModel->setName(m_mesoIdx, new_name);
-			emit nameChanged();
-			verifyMesoRequiredFieldsStatus();
-			emit mesoNameOKChanged();
-		}
-		else
-			m_nameError = new_name.length() < 5 ? std::move(tr("Error: name too short")): std::move(tr("Error: Name already in use."));
-	}
+	m_mesoModel->removeMesoFile(m_mesoIdx); //remove a -possible- meso file with the previous name
+	m_mesoModel->setName(m_mesoIdx, new_name);
+	emit nameChanged();
+	verifyMesoRequiredFieldsStatus();
 }
 
 QString QMLMesoInterface::coachName() const
@@ -312,8 +315,11 @@ void QMLMesoInterface::getMesocyclePage(const bool new_meso)
 			do {
 				meso_name = std::move(tr("New Program") + " %1"_L1.arg(QString::number(i++)));
 			} while (!m_mesoModel->isMesoNameOK(m_mesoIdx, meso_name));
+			m_mesoNameOK = true;
 			setName(meso_name);
 		}
+		else
+			m_mesoNameOK = true;
 		if (!startDateOK())
 			setStartDate(appUtils()->getNextMonday(QDate::currentDate()));
 		else
@@ -417,6 +423,19 @@ void QMLMesoInterface::createMesocyclePage()
 		m_mesoModel->removeMesoManager(m_mesoIdx);
 	});
 	showOptionsMenu(true);
+
+	TPFileOps *meso_viewer_fileops{m_mesoPage->property("fileOps").value<TPFileOps*>()};
+	if (meso_viewer_fileops) {
+		meso_viewer_fileops->setSuggestedFileNameGenerator([this] () -> TPFilePathPtr {
+			return m_mesoModel->suggestedName(m_mesoIdx, true);
+		});
+		connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this,meso_viewer_fileops] (const uint meso_idx, const uint field) {
+			if (meso_idx == m_mesoIdx && field == DBMesocyclesModel::MESO_FIELD_NAME) {
+				meso_viewer_fileops->renameFile(m_mesoModel->name(m_mesoIdx));
+				m_mesoModel->setFile(m_mesoIdx, meso_viewer_fileops->fileName());
+			}
+		});
+	}
 
 	connect(m_mesoModel, &DBMesocyclesModel::mesoIdxChanged, this, [this] (const uint old_meso_idx, const uint new_meso_idx) {
 		if (old_meso_idx == m_mesoIdx) {

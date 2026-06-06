@@ -15,7 +15,7 @@ TPSettings *TPSettings::app_settings{nullptr};
 constexpr QLatin1StringView white {"#ffffff"};
 constexpr QLatin1StringView black {"#000000"};
 
-TPSettings::TPSettings(QObject *parent) : QSettings{parent}, m_configFilePath{new TPFilePath{"config.ini"_L1}}
+TPSettings::TPSettings(QObject *parent) : QSettings{parent}
 {
 	TPSettings::app_settings = this;
 	REGISTER_QML_SINGLETON(TPSettings, this);
@@ -31,6 +31,7 @@ TPSettings::TPSettings(QObject *parent) : QSettings{parent}, m_configFilePath{ne
 	m_timer.callOnTimeout(save_config);
 	globalSettingsInit();
 	userSettingsInit();
+	m_configFilePath = new TPFilePath{"config.ini"_L1};
 }
 
 //--------------------------------------------GLOBAL SETTINGS---------------------------------------------//

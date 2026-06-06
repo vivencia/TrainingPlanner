@@ -7,14 +7,13 @@ import TpQml.Widgets
 
 Item {
 	id: _control
-	enabled: workingModel.count > 0
 
 //public:
 	property string buttonString: ""
 	property string perItemButtonString: ""
-	property bool listUnconfirmed: false
+	property bool listConfirmed: false
 	property bool listAvailable: false
-	property bool listClients: true
+	property bool listClients: false
 	property bool listCoaches: false
 	property bool multipleSelection: false
 	property alias model: workingModel
@@ -30,7 +29,7 @@ Item {
 		id: workingModel
 		showClients: _control.listClients
 		showCoaches: _control.listCoaches
-		showPending: _control.listUnconfirmed
+		showConfirmed: _control.listConfirmed
 		showAvailable: _control.listAvailable
 		onCountChanged: {
 			if (count === 0)
@@ -52,18 +51,18 @@ Item {
 
 		function updateText(): string {
 			if (_control.listClients) {
-				if (_control.listUnconfirmed)
-					return qsTr("No clients pending confirmation");
-				else
+				if (_control.listConfirmed)
 					return qsTr("No current clients");
+				else
+					return qsTr("No clients pending confirmation");
 			}
 			else if (_control.listCoaches) {
-				if (_control.listUnconfirmed)
-					return qsTr("No coaches pending confirmation");
+				if (_control.listConfirmed)
+					return qsTr("No current coaches");
 				else if (_control.listAvailable)
 					return qsTr("No available coaches");
 				else
-					return qsTr("No current coaches");
+					return qsTr("No coaches pending confirmation");
 			}
 		}
 	}
