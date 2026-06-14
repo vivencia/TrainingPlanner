@@ -46,8 +46,10 @@ QmlItemManager::QmlItemManager() : QObject{nullptr}
 	REGISTER_QML_SINGLETON(QmlItemManager, this);
 }
 
+#include <QThread>
 void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
 {
+	qDebug() << "QmlItemManager::startQmlEngine running on thread: " << thread()->isMainThread();
 	_appQmlEngine = qml_engine;
 	QQuickStyle::setFallbackStyle("Material"_L1);
 	QQuickStyle::setStyle(appSettings()->themeStyle());
@@ -501,11 +503,6 @@ void QmlItemManager::startMessagesManager()
 }
 
 //-----------------------------------------------------------SLOTS-----------------------------------------------------------
-void QmlItemManager::mainWindowStarted() const
-{
-	appOsInterface()->initialCheck();
-}
-
 void QmlItemManager::homePageViewChanged(const bool own_mesos_view)
 {
 	appUserModel()->actualMesoModel()->setCurrentMesosView(own_mesos_view);
@@ -534,51 +531,9 @@ bool QmlItemManager::runTests()
 {
 	connect(appUserModel(), &DBUserModel::userIdChanged, this, [this] {
 		UserInfoListModel *user_list = new UserInfoListModel;
-		user_list->setShowClients(true);
-		for (auto i{0}; i < user_list->count(); ++i)
-			qDebug() << "UnConfirmed Client: " <<user_list->data(DBUserModel::USER_FIELD_NAME, i);
 		user_list->setShowCoaches(true);
 		for (auto i{0}; i < user_list->count(); ++i)
-			qDebug() << "UnConfirmed Coach or client: "  << user_list->data(DBUserModel::USER_FIELD_NAME, i);
-		user_list->setShowClients(false);
-		for (auto i{0}; i < user_list->count(); ++i)
-			qDebug() << "UnConfirmed Coach: "  << user_list->data(DBUserModel::USER_FIELD_NAME, i);
-		user_list->setShowConfirmed(true);
-		user_list->setShowClients(true);
-		user_list->setShowCoaches(false);
-		for (auto i{0}; i < user_list->count(); ++i)
-			qDebug() << "Confirmed Client: "  << user_list->data(DBUserModel::USER_FIELD_NAME, i);
-		user_list->setShowCoaches(true);
-		for (auto i{0}; i < user_list->count(); ++i)
-			qDebug() << "Confirmed Coach or Client: "  << user_list->data(DBUserModel::USER_FIELD_NAME, i);
-		user_list->setShowClients(false);
-		for (auto i{0}; i < user_list->count(); ++i)
-			qDebug() << "Confirmed Coach: "  << user_list->data(DBUserModel::USER_FIELD_NAME, i);
-		user_list->setShowAvailable(true);
-		user_list->setShowConfirmed(false);
-		user_list->setShowClients(true);
-		user_list->setShowCoaches(false);
-		for (auto i{0}; i < user_list->count(); ++i)
-			qDebug() << "Available Client: "  << user_list->data(DBUserModel::USER_FIELD_NAME, i);
-		user_list->setShowCoaches(true);
-		for (auto i{0}; i < user_list->count(); ++i)
-			qDebug() << "Available Coach or Client: "  << user_list->data(DBUserModel::USER_FIELD_NAME, i);
-		user_list->setShowClients(false);
-		for (auto i{0}; i < user_list->count(); ++i)
-			qDebug() << "Available Coach: "  << user_list->data(DBUserModel::USER_FIELD_NAME, i);
-		user_list->setShowClients(true);
-		user_list->setShowCoaches(false);
-		user_list->setShowAvailable(false);
-		user_list->setShowConfirmed(true);
-		user_list->applyFilter("gErA", DBUserModel::USER_FIELD_NAME);
-		for (auto i{0}; i < user_list->count(); ++i)
-			qDebug() << "Confirmed client gErA: "  << user_list->data(DBUserModel::USER_FIELD_NAME, i);
-		user_list->applyFilter("rívia", DBUserModel::USER_FIELD_NAME);
-		for (auto i{0}; i < user_list->count(); ++i)
-			qDebug() << "Confirmed client rívia: "  << user_list->data(DBUserModel::USER_FIELD_NAME, i);
-		user_list->applyFilter("blablabla", DBUserModel::USER_FIELD_NAME);
-		for (auto i{0}; i < user_list->count(); ++i)
-			qDebug() << "Confirmed client blablabla: "  << user_list->data(DBUserModel::USER_FIELD_NAME, i);
+			qDebug() << "UnConfirmed Coach: " <<user_list->data(DBUserModel::USER_FIELD_NAME, i);
 		::exit(0);
 	});
 	appUserModel()->initUserSession();

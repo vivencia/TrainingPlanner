@@ -32,7 +32,6 @@ void ThreadManager::initThread(TPDatabaseTable *worker)
 		// Connect the thread's finished signal to delete both the thread and the worker
 		QObject::connect(thread, &QThread::finished, worker, &TPDatabaseTable::deleteLater);
 		QObject::connect(thread, &QThread::finished, thread, &QThread::deleteLater);
-
 		connect(this, &ThreadManager::newThreadedOperation, worker, &TPDatabaseTable::startAction, Qt::QueuedConnection);
 
 		//Enters the thread's event loop, which waits for queued signal deliveries. and sleeps when idle
@@ -95,6 +94,17 @@ void ThreadManager::queueAction(TPDatabaseTable *worker, StandardOps operation, 
 		return;
 	}
 	cur_ops->timer.start(10000);
+}
+
+void ThreadManager::startUnManagedThread(QObject *worker)
+{
+	QThread *thread{new QThread{}};
+	worker->moveToThread(thread);
+	// Connect the thread's finished signal to delete both the thread and the worker
+	QObject::connect(thread, &QThread::finished, worker, &TPDatabaseTable::deleteLater);
+	QObject::connect(thread, &QThread::finished, thread, &QThread::deleteLater);
+	//Enters the thread's event loop, which waits for signal deliveries. and sleeps when idle
+	thread->start();
 }
 
 void ThreadManager::aboutToExit()

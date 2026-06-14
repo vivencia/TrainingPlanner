@@ -9,14 +9,14 @@ QT_FORWARD_DECLARE_CLASS(TPMessagesManager)
 QT_FORWARD_DECLARE_CLASS(QWebSocketServer)
 QT_FORWARD_DECLARE_CLASS(QWebSocket)
 
-class ChatWSServer : public QObject
+class WSServer : public QObject
 {
 
 Q_OBJECT
 
 public:
-	explicit ChatWSServer(const QString &id, QObject *parent = nullptr);
-	~ChatWSServer() override;
+	explicit WSServer(const QString &id, QObject *parent = nullptr);
+	~WSServer() override;
 	void setServerStatus(const bool enabled);
 
 	void connectToPeer(QObject *local_peer, const int handle, const QString &userid, int n_attempts = 5);
@@ -53,8 +53,8 @@ private:
 	void queryPeerAddress(const int requestid, const QString &userid);
 	void setupWSServer();
 
-	static ChatWSServer *app_ws_server;
-	friend ChatWSServer *appWSServer();
+	static WSServer *app_ws_server;
+	friend WSServer *appWSServer();
 };
 
-inline ChatWSServer *appWSServer() { return ChatWSServer::app_ws_server; }
+inline WSServer *appWSServer() { return WSServer::app_ws_server; }

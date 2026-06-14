@@ -69,40 +69,37 @@ UserInfoListModel::UserInfoListModel(QObject *parent) : QAbstractListModel{paren
 	connect(appUserModel(), &DBUserModel::userModified, this, &UserInfoListModel::userModified);
 }
 
-int UserInfoListModel::userIdx(const uint row) const
+bool UserInfoListModel::isSelected(const int visible_row, const int column) const
 {
-	return m_extraInfo.at(row).at(EF_USERIDX).toInt();
+	if (visible_row < 0 || visible_row >= count())
+		return false;
+	return appUtils()->getCompositeValue(column,
+					m_extraInfo.at(rowFromVisibleRow(visible_row)).at(EF_SELECTED).toString(), fancy_record_separator1) == '1';
 }
 
-bool UserInfoListModel::isSelected(const int row, const int column) const
+void UserInfoListModel::setSelected(const int visible_row, const bool selected, const int column)
 {
-	if (row >= 0 && row < m_extraInfo.count())
-		return appUtils()->getCompositeValue(column, m_extraInfo.at(row).at(EF_SELECTED).toString(), fancy_record_separator1) == '1';
-	return false;
-}
-
-void UserInfoListModel::setSelected(const uint row, const bool selected, const int column)
-{
-	if (row < m_extraInfo.count()) {
-		const bool item_already_selected{isSelected(row, column)};
-		QString str_selected{std::move(m_extraInfo.at(row).at(EF_SELECTED).toString())};
-		if (m_selectEntireRow) {
-			for (uint i {0}; i < m_totalCols; ++i)
-				appUtils()->setCompositeValue(i, selected ? "1"_L1 : "0"_L1, str_selected, fancy_record_separator1);
-			m_extraInfo[rowFromVisibleRow(row)][EF_SELECTED] = std::move(QVariant{str_selected});
-			emit dataChanged(index(row, 0), index(row, m_totalCols), QList<int>{selectedRole});
-		}
-		else {
-			appUtils()->setCompositeValue(column, selected ? "1"_L1 : "0"_L1, str_selected, fancy_record_separator1);
-			m_extraInfo[rowFromVisibleRow(row)][EF_SELECTED] = std::move(QVariant{str_selected});
-			emit dataChanged(index(row, column), index(row, column), QList<int>{selectedRole});
-		}
-		if (item_already_selected && !selected)
-			--m_nSelected;
-		else if (!item_already_selected && selected)
-			++m_nSelected;
-		emit selectedChanged();
+	if (visible_row < 0 || visible_row >= count())
+		return;
+	const auto row{rowFromVisibleRow(visible_row)};
+	const bool item_already_selected{isSelected(row, column)};
+	QString str_selected{std::move(m_extraInfo.at(row).at(EF_SELECTED).toString())};
+	if (m_selectEntireRow) {
+		for (uint i {0}; i < m_totalCols; ++i)
+			appUtils()->setCompositeValue(i, selected ? "1"_L1 : "0"_L1, str_selected, fancy_record_separator1);
+		m_extraInfo[row][EF_SELECTED] = std::move(QVariant{str_selected});
+		emit dataChanged(index(visible_row, 0), index(visible_row, m_totalCols), QList<int>{selectedRole});
 	}
+	else {
+		appUtils()->setCompositeValue(column, selected ? "1"_L1 : "0"_L1, str_selected, fancy_record_separator1);
+		m_extraInfo[row][EF_SELECTED] = std::move(QVariant{str_selected});
+		emit dataChanged(index(visible_row, column), index(visible_row, column), QList<int>{selectedRole});
+	}
+	if (item_already_selected && !selected)
+		--m_nSelected;
+	else if (!item_already_selected && selected)
+		++m_nSelected;
+	emit selectedChanged();
 }
 
 QStringList UserInfoListModel::selectedUsers() const
@@ -144,8 +141,8 @@ bool UserInfoListModel::dataFromString(const QString &users_data)
 QVariant UserInfoListModel::data(const QModelIndex &index, int role) const
 {
 	const int row{rowFromVisibleRow(index.row())};
-	if (row >= 0 && row < m_extraInfo.count()) {
-		const int user_idx{userIdx(row)};
+	if (row >= 0) {
+		const int user_idx{_userIdx(row)};
 		if (user_idx >= 0) {
 #ifndef Q_OS_ANDROID
 			if (m_allUsers)
@@ -168,8 +165,8 @@ QVariant UserInfoListModel::data(const QModelIndex &index, int role) const
 				case categoryRole: return appUserModel()->userCategory(user_idx);
 				case avatarRole: return appUserModel()->avatar(user_idx);
 				case userIdxRole: return user_idx;
-				case selectedRole: return isSelected(rowFromVisibleRow(row), index.column());
-				case itemVisibleRole: return rowVisible(rowFromVisibleRow(row));
+				case selectedRole: return isSelected(index.row(), index.column());
+				case itemVisibleRole: return rowVisible(row);
 				case isCoachRole: return appUserModel()->isCoach(user_idx);
 				case isClientRole: return appUserModel()->isClient(user_idx);
 				case isConfirmedRole: return appUserModel()->isConfirmed(user_idx);
@@ -184,8 +181,8 @@ QVariant UserInfoListModel::data(const QModelIndex &index, int role) const
 bool UserInfoListModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
 	const int row{rowFromVisibleRow(index.row())};
-	if (row >= 0 && row < m_extraInfo.count()) {
-		const int user_idx{userIdx(row)};
+	if (row >= 0) {
+		const int user_idx{_userIdx(row)};
 		if (user_idx >= 0) {
 #ifndef Q_OS_ANDROID
 			if (m_allUsers)
@@ -203,7 +200,7 @@ bool UserInfoListModel::setData(const QModelIndex &index, const QVariant &value,
 			case coachroleRole: appUserModel()->setCoachRole(user_idx, value.toString()); break;
 			case goalRole: appUserModel()->setGoal(user_idx, value.toString()); break;
 			case avatarRole: appUserModel()->setAvatar(user_idx, value.toString()); break;
-			case selectedRole: setSelected(row,value.toBool(), index.column()); break;
+			case selectedRole: setSelected(row, value.toBool(), index.column()); break;
 			case itemVisibleRole: setRowVisible(row, value.toBool(), index.column()); break;
 			case isCoachRole: appUserModel()->setIsCoach(user_idx, value.toBool()); break;
 			case isClientRole: appUserModel()->setIsClient(user_idx, value.toBool()); break;
@@ -350,6 +347,11 @@ void UserInfoListModel::removeUserInfo(const uint user_idx)
 	changeNumberOfVisibleRows(false);
 }
 
+int UserInfoListModel::_userIdx(const uint row) const
+{
+	return m_extraInfo.at(row).at(EF_USERIDX).toInt();
+}
+
 void UserInfoListModel::changeNumberOfVisibleRows(const bool add)
 {
 	m_nVisibleRows += add ? 1 : -1;
@@ -359,14 +361,14 @@ void UserInfoListModel::changeNumberOfVisibleRows(const bool add)
 void UserInfoListModel::insertUserInfo(const uint user_idx)
 {
 	QVariantList extra_infolist;
-	extra_infolist.append(std::move(appUserModel()->avatar(user_idx))); //EF_AVATAR
-	extra_infolist.append(std::move(user_idx)); //EF_USERIDX
-	extra_infolist.append(std::move(false)); //EF_SELECTED
-	extra_infolist.append(std::move(true)); //EF_VISIBLE
-	extra_infolist.append(std::move(appUserModel()->isCoach(user_idx))); //EF_ISCOACH
-	extra_infolist.append(std::move(appUserModel()->isClient(user_idx))); //EF_ISCLIENT
-	extra_infolist.append(std::move(appUserModel()->isConfirmed(user_idx))); //EF_ISCONFIRMED
-	extra_infolist.append(std::move(appUserModel()->isAvailable(user_idx))); //EF_ISAVAILABLE
+	extra_infolist.append(std::move(QVariant{appUserModel()->avatar(user_idx)})); //EF_AVATAR
+	extra_infolist.append(std::move(QVariant{user_idx})); //EF_USERIDX
+	extra_infolist.append(std::move(QVariant{"0"_L1 % fancy_record_separator1})); //EF_SELECTED
+	extra_infolist.append(std::move(QVariant{true})); //EF_VISIBLE
+	extra_infolist.append(std::move(QVariant{appUserModel()->isCoach(user_idx)})); //EF_ISCOACH
+	extra_infolist.append(std::move(QVariant{appUserModel()->isClient(user_idx)})); //EF_ISCLIENT
+	extra_infolist.append(std::move(QVariant{appUserModel()->isConfirmed(user_idx)})); //EF_ISCONFIRMED
+	extra_infolist.append(std::move(QVariant{appUserModel()->isAvailable(user_idx)})); //EF_ISAVAILABLE
 	m_extraInfo.append(std::move(extra_infolist));
 	changeNumberOfVisibleRows(true);
 }
@@ -385,11 +387,13 @@ void UserInfoListModel::setRowVisible(const uint row, bool visible, const int co
 		m_extraInfo[row][EF_VISIBLE] = std::move(visible);
 		emit dataChanged(index(row, column), index(row, column), QList<int>{itemVisibleRole});
 		changeNumberOfVisibleRows(visible);
-		if (visible && row > m_currentRow)
-			setCurrentRow(row);
-		else if (!visible && row <= m_currentRow) {
-			if (m_currentRow < 0 && count() > 0)
-				m_currentRow = 0;
+		if (m_currentRow >= 0) {
+			if (visible && row > m_currentRow)
+				setCurrentRow(row);
+			else if (!visible && row <= m_currentRow) {
+				if (m_currentRow < 0 && count() > 0)
+					setCurrentRow(0);
+			}
 		}
 	}
 }

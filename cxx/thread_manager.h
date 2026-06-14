@@ -37,6 +37,8 @@ public:
 	void runAction(TPDatabaseTable *worker, StandardOps operation, void *extra_param = nullptr);
 	void queueAction(TPDatabaseTable *worker, StandardOps operation, void *extra_param = nullptr);
 
+	void startUnManagedThread(QObject *worker);
+
 signals:
 	void newThreadedOperation(const int unique_id, ThreadManager::StandardOps operation, void *extra_param, QMutex *mutex = nullptr);
 

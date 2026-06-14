@@ -5,9 +5,6 @@
 #ifndef QT_NO_DEBUG
 #include "tputils.h"
 #endif
-#ifdef LOCAL_TPSERVER
-#include <QNetworkInterface>
-#endif
 #include <QObject>
 #include <QFile>
 
@@ -32,7 +29,7 @@ struct notificationData {
 #ifdef Q_OS_LINUX
 #ifdef LOCAL_TPSERVER
 #include <QProcess>
-#define TPSERVER_MACHINE
+#define TPSERVER_MACHINE //comment to test/debug android scenarios on the development machine
 #endif //LOCAL_TPSERVER
 #endif //Q_OS_LINUX
 #endif //Q_OS_ANDROID
@@ -45,7 +42,7 @@ class OSInterface : public QObject
 Q_OBJECT
 
 Q_PROPERTY(bool internetOK READ internetOK NOTIFY internetStatusChanged FINAL)
-Q_PROPERTY(QString connectionMessage READ connectionMessage NOTIFY connectionMessageChanged FINAL)
+Q_PROPERTY(QString connectionMessage READ connectionMessage NOTIFY connectionStatusChanged FINAL)
 
 static constexpr short HAS_INTERFACE			{0};
 static constexpr short NO_INTERFACE_RUNNING		{1};
@@ -57,8 +54,14 @@ static constexpr short SERVER_UNREACHABLE		{5};
 public:
 	explicit OSInterface(QObject *parent = nullptr);
 
-	void checkServer(QString address = QString{}, QString port = QString{}, QNetworkInterface interface = QNetworkInterface{});
 	void checkInternetConnection();
+#ifdef LOCAL_TPSERVER
+	void getAvailableAddresses();
+	void setWorkingNetInterface(const int interface_index);
+#ifdef TPSERVER_MACHINE
+	void checkLocalServer();
+#endif
+#endif
 
 	inline bool networkInterfaceOK() const
 	{
@@ -130,7 +133,10 @@ signals:
 	void appSuspended();
 	void appResumed();
 	void internetStatusChanged();
-	void connectionMessageChanged();
+	void connectionStatusChanged();
+#ifdef LOCAL_TPSERVER
+	void serverAddressesFetched(const QHash<int,QString> &addresses);
+#endif
 
 private:
 	int m_networkStatus{0};
@@ -146,18 +152,12 @@ private:
 #endif
 
 	void setNetStatus(uint messages_index, bool success, QString &&message);
-
-#ifdef LOCAL_TPSERVER
-	QNetworkInterface mNetworkInterface, mFailedInterface;
-	void checkNetworkInterfaces();
+	void localServerProcessResult(const uint online_status, const QString &additional_message = QString{});
 
 #ifdef TPSERVER_MACHINE
-	void checkLocalServer();
 	void serverProcessFinished(QProcess *proc, const int exit_code, QProcess::ExitStatus exit_status);
 	void commandLocalServer(const QString &title, const QString &command);
-	void localServerProcessResult(const uint online_status, const QString &additional_message = QString{});
 #endif //TPSERVER_MACHINE
-#endif //LOCAL_TPSERVER
 
 	static OSInterface *_app_os_interface;
 	friend OSInterface *appOsInterface();

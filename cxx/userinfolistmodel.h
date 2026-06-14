@@ -30,7 +30,10 @@ public:
 	inline uint count() const { return m_nVisibleRows; }
 
 	inline int currentUserIdx() const { return userIdx(m_currentRow); }
-	Q_INVOKABLE int userIdx(const uint row) const;
+	Q_INVOKABLE inline int userIdx(const int row) const
+	{
+		return row >= 0 && row < count() ? _userIdx(rowFromVisibleRow(row)) : -1;
+	}
 	inline int currentRow() const { return m_currentRow; }
 	inline void setCurrentRow(const int new_row)
 	{
@@ -47,8 +50,8 @@ public:
 				setSelected(i, false);
 		}
 	}
-	Q_INVOKABLE bool isSelected(const int row, const int column = 0) const;
-	Q_INVOKABLE void setSelected(const uint row, const bool selected, const int column = 0);
+	Q_INVOKABLE bool isSelected(const int visible_row, const int column = 0) const;
+	Q_INVOKABLE void setSelected(const int visible_row, const bool selected, const int column = 0);
 	Q_INVOKABLE QStringList selectedUsers() const; //Only from visible rows
 	inline uint nSelected() const { return m_nSelected; }
 	inline bool allSelected() const { return m_nSelected == count(); }
@@ -151,6 +154,7 @@ private:
 	QList<QStringList> m_allUsersData;
 #endif
 
+	int _userIdx(const uint row) const;
 	void changeNumberOfVisibleRows(const bool add);
 	void insertUserInfo(const uint user_idx);
 	void removeUserInfo(const uint user_idx);

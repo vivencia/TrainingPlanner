@@ -6,6 +6,7 @@
 #include <QVariantMap>
 
 QT_FORWARD_DECLARE_CLASS(DBMesocyclesModel)
+QT_FORWARD_DECLARE_CLASS(TPFileOps)
 QT_FORWARD_DECLARE_CLASS(QmlWorkoutInterface)
 QT_FORWARD_DECLARE_CLASS(QmlMesoSplitInterface)
 QT_FORWARD_DECLARE_CLASS(QmlMesoCalendarInterface)
@@ -28,9 +29,9 @@ Q_PROPERTY(bool ownMeso READ ownMeso CONSTANT FINAL)
 Q_PROPERTY(bool isTempMeso READ isTempMeso NOTIFY isTempMesoChanged FINAL)
 Q_PROPERTY(bool canExport READ canExport NOTIFY canExportChanged FINAL)
 Q_PROPERTY(bool mesoForClient READ mesoForClient CONSTANT FINAL)
-
+Q_PROPERTY(bool mesoOK READ mesoOK NOTIFY mesoOKChanged FINAL)
 Q_PROPERTY(int mesoIdx READ mesoIdx WRITE setMesoIdx NOTIFY mesoIdxChanged FINAL)
-
+Q_PROPERTY(int wrongFieldsCounter READ wrongFieldsCounter NOTIFY wrongFieldsCounterChanged FINAL)
 Q_PROPERTY(QString mesoNameErrorTooltip READ mesoNameErrorTooltip NOTIFY mesoNameOKChanged FINAL)
 Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged FINAL)
 Q_PROPERTY(QString coachName READ coachName CONSTANT FINAL)
@@ -41,7 +42,6 @@ Q_PROPERTY(QString strEndDate READ strEndDate NOTIFY endDateChanged FINAL)
 Q_PROPERTY(QString weeks READ weeks NOTIFY weeksChanged FINAL)
 Q_PROPERTY(QString split READ split WRITE setSplit NOTIFY splitChanged FINAL)
 Q_PROPERTY(QString notes READ notes WRITE setNotes NOTIFY notesChanged FINAL)
-
 Q_PROPERTY(QDate startDate READ startDate WRITE setStartDate NOTIFY startDateChanged FINAL)
 Q_PROPERTY(QDate endDate READ endDate WRITE setEndDate NOTIFY endDateChanged FINAL)
 Q_PROPERTY(QDate minimumStartDate READ minimumStartDate WRITE setMinimumStartDate NOTIFY minimumStartDateChanged FINAL)
@@ -60,8 +60,7 @@ public:
 	Q_ENUM(optionsMenuEntries)
 
 	explicit inline QMLMesoInterface(DBMesocyclesModel *meso_model, const uint meso_idx)
-		: QObject{reinterpret_cast<QObject*>(meso_model)}, m_mesoModel{meso_model}, m_mesoComponent{nullptr},
-			m_mesoPage{nullptr}, m_mesoIdx{meso_idx}, m_splitsPage{nullptr}, m_calendarPage{nullptr} {}
+		: QObject{reinterpret_cast<QObject*>(meso_model)}, m_mesoModel{meso_model}, m_mesoIdx{meso_idx} {}
 	inline ~QMLMesoInterface() { cleanUp(); }
 	void cleanUp();
 	void updateInterface(); //Call when a meso is updated programatically, e.g. importing from an update file
@@ -76,6 +75,17 @@ public:
 
 	[[nodiscard]] inline const uint mesoIdx() const { return m_mesoIdx; }
 	void setMesoIdx(const uint new_value);
+	[[nodiscard]] inline const uint wrongFieldsCounter() { return m_wrongFieldsCounter; }
+	void increaseWrongFieldsCounter();
+	inline void decreaseWrongFieldsCounter()
+	{
+		if (m_wrongFieldsCounter > 0) {
+			--m_wrongFieldsCounter;
+			emit wrongFieldsCounterChanged();
+			if (m_wrongFieldsCounter == 0)
+				emit mesoOKChanged();
+		}
+	}
 
 	[[nodiscard]] bool realMeso() const;
 	void setRealMeso(const bool new_value);
@@ -83,6 +93,7 @@ public:
 	[[nodiscard]] bool isTempMeso() const;
 	[[nodiscard]] bool canExport() const;
 	[[nodiscard]] bool mesoForClient() const;
+	[[nodiscard]] bool mesoOK() const;
 
 	inline QString mesoNameErrorTooltip() const { return m_nameError; }
 	[[nodiscard]] QString name() const;
@@ -119,13 +130,13 @@ public:
 	[[nodiscard]] Q_INVOKABLE QString muscularGroup(const QString &split) const;
 	Q_INVOKABLE void setMuscularGroup(const QString &split, const QString &new_value);
 
+	Q_INVOKABLE void sendMesocycleFileToClient();
 	Q_INVOKABLE void getCalendarPage();
 	Q_INVOKABLE void getExercisesPlannerPage();
 	Q_INVOKABLE void getWorkoutPage(const QDate &date);
 
 	void getMesocyclePage(const bool new_meso);
 	void showOptionsMenu(const bool show_indicator, QQuickItem *item = nullptr);
-	Q_INVOKABLE void incorporateMeso();
 
 signals:
 	void mesoNameOKChanged();
@@ -135,7 +146,9 @@ signals:
 	void splitOKChanged();
 	void isTempMesoChanged();
 	void canExportChanged();
+	void mesoOKChanged();
 	void mesoIdxChanged();
+	void wrongFieldsCounterChanged();
 	void labelsChanged();
 	void nameChanged();
 	void clientChanged();
@@ -155,9 +168,9 @@ private:
 	QObject *m_optionsMenu{nullptr};
 	QVariantMap m_mesoProperties, m_optionsMenuProperties;
 	DBMesocyclesModel *m_mesoModel{nullptr};
+	TPFileOps *m_mesoFileOps{nullptr};
 
-	bool m_mesoNameOK{false};
-	uint m_mesoIdx;
+	uint m_mesoIdx, m_wrongFieldsCounter{0};
 	QString m_strStartDate, m_strEndDate, m_nameError;
 	QDate m_minimumStartDate;
 
@@ -167,5 +180,4 @@ private:
 
 	void createMesocyclePage();
 	void createOptionsMenu();
-	void verifyMesoRequiredFieldsStatus();
 };

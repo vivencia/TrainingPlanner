@@ -19,9 +19,8 @@ public:
 	explicit TPOnlineServices(QObject *parent = nullptr);
 	inline ~TPOnlineServices() { delete m_networkManager; }
 
-	//void scanNetwork(const QString &last_working_address, const bool assume_working = true);
-	void checkServer(const QString &address, const QString &port);
 	inline uint8_t serverStatus() const { return m_onlineStatus; }
+	void connectToServer();
 
 #ifndef Q_OS_ANDROID
 	void getAllUsers(const int requestid);
@@ -95,9 +94,12 @@ signals:
 	void networkListReceived(const int request_id, const int ret_code, const QStringList &ret_list);
 	void fileReceived(const int request_id, const int ret_code, const QString& filename, const QByteArray &contents);
 	//void serverOnline(const uint online_status);
-	void serverStatusChanged(const uint online_status, const QString &server_address, const QString &server_port);
+	void serverStatusChanged(const uint online_status, const QString &server_address, const int request_id);
 
 private:
+#ifdef LOCAL_TPSERVER
+	void testServerConnection(const QString &address, const QString &port, const int requestid = -1);
+#endif
 	QString makeCommandURL(const bool admin,
 						   const QLatin1StringView &option1 = QLatin1StringView{}, const QString &value1 = QString{},
 						   const QLatin1StringView &option2 = QLatin1StringView{}, const QString &value2 = QString{},

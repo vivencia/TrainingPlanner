@@ -14,6 +14,7 @@ TPPage {
 	imageSource: AppSettings.coachesBackground
 	backgroundOpacity: 0.6
 
+//private:
 	property int userIdx
 
 	TPLabel {
@@ -38,14 +39,12 @@ TPPage {
 
 		TPTabButton {
 			text: qsTr("Coaches or Trainers")
-			enabled: coachesList.enabled
-			onClicked: coachesPage.userIdx = coachesList.selectedUserIdx;
+			onClicked: coachesList.selectItem(coachesList.currentRow >= 0 ? coachesList.currentRow : 0);
 		}
 
 		TPTabButton {
 			text: qsTr("Pending answers")
-			enabled: pendingCoachesList.enabled
-			onClicked: coachesPage.userIdx = pendingCoachesList.selectedUserIdx;
+			onClicked: pendingCoachesList.selectItem(pendingCoachesList.currentRow >= 0 ? pendingCoachesList.currentRow : 0);
 		}
 
 		anchors {
@@ -56,6 +55,8 @@ TPPage {
 			right: parent.right
 			rightMargin: 5
 		}
+
+		Component.onCompleted: coachesList.selectItem(coachesList.currentRow);
 	}
 
 	StackLayout {
@@ -72,61 +73,29 @@ TPPage {
 			rightMargin: 5
 		}
 
-		Item {
+		TPCoachesAndClientsList {
+			id: coachesList
+			listCoaches: true
+			listConfirmed: true
+			perItemButtonString: qsTr("Resumè");
+			buttonString: qsTr("Remove")
 			Layout.fillWidth: true
-			Layout.fillHeight: true
+			Layout.preferredHeight: parent.height * 0.3
 
-			TPCoachesAndClientsList {
-				id: coachesList
-				listCoaches: true
-				listConfirmed: true
-				perItemButtonString: qsTr("Resumè");
-				height: parent.height - AppSettings.itemDefaultHeight - 5
-
-				anchors {
-					top: parent.top
-					left: parent.left
-					leftMargin: 5
-					right: parent.right
-					rightMargin: 5
-				}
-
-				onItemSelected: (userIdx) => coachesPage.userIdx = userIdx;
-				onItemButtonClicked: (userIdx) => coachesPage.viewResume(userIdx);
-			} //TPCoachesAndClientsList: coachesList
-
-			RowLayout {
-				uniformCellSizes: true
-				height: AppSettings.itemDefaultHeight
-
-				anchors {
-					top: coachesList.bottom
-					topMargin: 5
-					left: parent.left
-					right: parent.right
-				}
-
-				TPButton {
-					text: qsTr("Remove")
-					enabled: coachesPage.userIdx != 0 && coachesList.enabled  && coachesList.currentRow !== -1
-					rounded: false
-					autoSize: true
-					Layout.alignment: Qt.AlignCenter
-
-					onClicked: coachesPage.showRemoveMessage(false);
-				}
-			}
-		} //Item
+			onItemSelected: (userIdx) => coachesPage.userIdx = userIdx;
+			onButtonClicked: coachesPage.showRemoveMessage(false);
+			onItemButtonClicked: (userIdx) => coachesPage.viewResume(userIdx);
+		} //TPCoachesAndClientsList: coachesList
 
 		Item {
 			Layout.fillWidth: true
-			Layout.fillHeight: true
+			Layout.preferredHeight: parent.height * 0.3
 
 			TPCoachesAndClientsList {
 				id: pendingCoachesList
 				listCoaches: true
 				perItemButtonString: qsTr("Résumé")
-				height: parent.height - btnAccept.height - 10
+				height: parent.height - AppSettings.itemDefaultHeight - 10
 
 				anchors {
 					top: parent.top
@@ -142,7 +111,7 @@ TPPage {
 
 			RowLayout {
 				uniformCellSizes: true
-				height: btnAccept.height
+				height: AppSettings.itemDefaultHeight
 				enabled: pendingCoachesList.currentRow !== -1
 
 				anchors {
@@ -152,19 +121,12 @@ TPPage {
 				}
 
 				TPButton {
-					id: btnAccept
 					text: qsTr("Accept")
 					autoSize: true
 					rounded: false
 					Layout.alignment: Qt.AlignCenter
 
-					onClicked: {
-						AppUserModel.acceptUser(pendingCoachesList.selectedUserIdx);
-						if (!pendingCoachesList.enabled) {
-							if (coachesList.enabled)
-								tabbar.setCurrentIndex(0);
-						}
-					}
+					onClicked: AppUserModel.acceptUser(pendingCoachesList.selectedUserIdx);
 				}
 				TPButton {
 					text: qsTr("Decline")
@@ -291,20 +253,10 @@ TPPage {
 	}
 
 	function removeOrDecline(decline: bool) {
-		if (!decline) {
+		if (!decline)
 			AppUserModel.removeUser(coachesPage.userIdx);
-			if (!coachesList.enabled)
-				if (pendingCoachesList.enabled) {
-					tabbar.setCurrentIndex(1);
-			}
-		}
-		else {
+		else
 			AppUserModel.rejectUser(pendingCoachesList.selectedUserIdx);
-			if (!pendingCoachesList.enabled) {
-				if (coachesList.enabled)
-					tabbar.setCurrentIndex(0);
-			}
-		}
 	}
 
 	Loader {

@@ -27,6 +27,17 @@
 
 constexpr int8_t buttons_padding{5};
 
+#include <filesystem>
+namespace fs = std::filesystem;
+
+inline bool _isFileOk(const QString &file)
+{
+	std::error_code ec;
+	// Non-throwing usage
+	const std::uintmax_t size{fs::file_size(file.toStdString(), ec)};
+	return !ec && size > 0;
+}
+
 TPFileOps::TPFileOps(QQuickItem *parent)
 	: QQuickPaintedItem{parent}
 {
@@ -97,7 +108,15 @@ void TPFileOps::setFileName(const QString &filename, const bool file_added)
 	}
 	else {
 		m_filename = filename;
-		setFileName(file_added);
+		_setFileName(file_added);
+	}
+}
+
+void TPFileOps::setFileName(TPFilePath &&tp_filename)
+{
+	if (tp_filename.isOK()) {
+		m_filename = std::forward<TPFilePath>(tp_filename);
+		_setFileName(false);
 	}
 }
 
@@ -230,38 +249,11 @@ void TPFileOps::attemptToCreateOrGetFile()
 		return;
 	}
 
-
-	if (fileType() < TPUtils::FT_IMAGE) {
-		auto displayError = [this] (const int return_code) -> void {
-			emit fileAcquired(TP_RET_CODE_EXPORT_FAILED);
-			appItemManager()->displayMessageOnAppWindow(return_code);
-#ifndef QT_NO_DEBUG
-			qDebug() << "Failed to generate file " << m_filename.toString() << " from file type " << fileType();
-#endif
-		};
-
-		const auto ret{generateFileFromType(true)};
-		switch (ret) {
-		case TP_RET_CODE_EXPORT_OK: break;
-		case TP_RET_CODE_DEFERRED_ACTION: {
-			std::shared_ptr<QMetaObject::Connection>conn{std::make_shared<QMetaObject::Connection>()};
-			*conn = connect(this, &TPFileOps::_internalSignal, this, [this,ret,conn,displayError] (const int requestid, const int return_code) {
-				if (requestid == ret) {
-					disconnect(*conn);
-					setFileIsOK(return_code == TP_RET_CODE_EXPORT_OK);
-					if (fileIsOK())
-						emit fileAcquired(TP_RET_CODE_SUCCESS);
-					else
-						displayError(return_code);
-				}
-			});
-			return;
-		}
-		default:
-			displayError(ret);
-			return;
-		}
-	}
+	connect(this, &TPFileOps::fileAcquired, this, [this] (const int ret_code) {
+		appItemManager()->displayMessageOnAppWindow(ret_code);
+	}, Qt::SingleShotConnection);
+	if (isTPFile())
+		generateFileFromType(true);
 	else
 		downloadOrCopyFile();
 }
@@ -488,10 +480,10 @@ bool TPFileOps::eventFilter(QObject *obj, QEvent *event)
 		return QObject::eventFilter(obj, event);
 }
 
-void TPFileOps::setFileName(const bool file_added)
+void TPFileOps::_setFileName(const bool file_added)
 {
 	emit fileNameChanged();
-	setFileIsOK(QFile::exists(m_filename.toString()));
+	setFileIsOK(_isFileOk(m_filename.toString()));
 	if (file_added)
 		emit fileAdded(m_filename.toString());
 	const TPUtils::FILE_TYPE file_type{appUtils()->getFileType(m_filename.toString())};
@@ -535,42 +527,34 @@ void TPFileOps::_doFileOperation(const OpType type)
 	}
 }
 
-int TPFileOps::generateFileFromType(const bool formatted)
+void TPFileOps::generateFileFromType(const bool formatted)
 {
-	int ret{TP_RET_CODE_EXPORT_FAILED};
+	int ret{TP_RET_CODE_UNKNOWN_ERROR};
 	switch (fileType()) {
-	case TPUtils::FT_TP_PROGRAM:
-		if (!m_filename.isOK())
-			m_filename = std::move(*(appUserModel()->actualMesoModel()->suggestedName(m_mesoIdx)));
-		if (!QFile::exists(m_filename.toString())) {
-			ret = deferredActionId();
-			auto conn{std::make_shared<QMetaObject::Connection>()};
-			*conn = connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::mesoExported, this, [this,ret,conn]
-													(const uint meso_idx, const TPFilePath& filename, const int return_code) {
-				if (meso_idx == m_mesoIdx) {
-					disconnect(*conn);
-					emit _internalSignal(ret, return_code);
+	case TPUtils::FT_TP_PROGRAM: {
+		auto conn{std::make_shared<QMetaObject::Connection>()};
+		*conn = connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::mesoExported, this, [this,conn]
+												(const uint meso_idx, const TPFilePath& filename, const int return_code) {
+			if (meso_idx == m_mesoIdx) {
+				disconnect(*conn);
+				if (return_code == TP_RET_CODE_EXPORT_OK) {
+					m_filetype |= TPUtils::FT_TP_FORMATTED;
+					setFileIsOK(true);
 				}
-			});
-			if (!formatted)
-				appUserModel()->actualMesoModel()->exportToFile(m_mesoIdx, m_filename);
-			else
-				appUserModel()->actualMesoModel()->exportToFormattedFile(m_mesoIdx, m_filename);
-		}
+				emit fileAcquired(return_code);
+			}
+		});
+		if (!formatted)
+			appUserModel()->actualMesoModel()->exportToFile(m_mesoIdx, m_filename);
 		else
-			ret = TP_RET_CODE_EXPORT_OK;
+			appUserModel()->actualMesoModel()->exportToFormattedFile(m_mesoIdx, m_filename);
+		}
 		break;
 	case TPUtils::FT_TP_EXERCISES:
-		if (!m_filename.isOK())
-			m_filename = std::move(*appExercisesList()->suggestedName());
-		if (!QFile::exists(m_filename.toString())) {
-			if (!formatted)
-				ret = appExercisesList()->exportToFile(m_filename);
-			else
-				ret = appExercisesList()->exportToFormattedFile(m_filename);
-		}
+		if (!formatted)
+			ret = appExercisesList()->exportToFile(m_filename);
 		else
-			ret = TP_RET_CODE_EXPORT_OK;
+			ret = appExercisesList()->exportToFormattedFile(m_filename);
 		break;
 	case TPUtils::FT_TP_WORKOUT_A:
 	case TPUtils::FT_TP_WORKOUT_B:
@@ -580,16 +564,10 @@ int TPFileOps::generateFileFromType(const bool formatted)
 	case TPUtils::FT_TP_WORKOUT_F: {
 			DBExercisesModel *model{appUserModel()->actualMesoModel()->workoutForDay(m_mesoIdx, m_workoutCalendarDay)};
 			if (model) {
-				if (!m_filename.isOK())
-					m_filename = std::move(*(model->suggestedName(formatted)));
-				if (!QFile::exists(m_filename.toString())) {
-					if (!formatted)
-						ret = model->exportToFile(m_filename);
-					else
-						ret = model->exportToFormattedFile(m_filename);
-				}
+				if (!formatted)
+					ret = model->exportToFile(m_filename);
 				else
-					ret = TP_RET_CODE_EXPORT_OK;
+					ret = model->exportToFormattedFile(m_filename);
 			}
 		}
 		break;
@@ -597,12 +575,10 @@ int TPFileOps::generateFileFromType(const bool formatted)
 		qDebug() << "ERROR!!! File type set as " << fileType() << " but neither filename as given, nor a method provided to create the file";
 	}
 	if (ret == TP_RET_CODE_EXPORT_OK) {
-		if (formatted)
-			m_filetype |= TPUtils::FT_TP_FORMATTED;
-		emit fileNameChanged();
+		m_filetype |= TPUtils::FT_TP_FORMATTED;
+		setFileIsOK(true);
 	}
-	setFileIsOK(ret == TP_RET_CODE_SUCCESS);
-	return ret;
+	emit fileAcquired(ret);
 }
 
 void TPFileOps::doFullScreen()
@@ -630,7 +606,7 @@ void TPFileOps::addFile()
 				if (appUtils()->getFileExtension(m_filename.toString()).isEmpty())
 					m_filename.filename().append(appUtils()->getFileExtension(filepath, true));
 				if (appUtils()->copyFile(filepath, m_filename.toString(), true))
-					setFileName(true);
+					_setFileName(true);
 			}
 			else {
 				qDebug() << "Error! Cannot add a file to TPFileOps that does not have a local filename set or suggested."_L1;
@@ -734,19 +710,43 @@ void TPFileOps::sendFileToUsers(const QStringList &users, const QString &message
 						m_filename.ownerUser(), m_filename.targetUser(), {m_filename.subdirs()}));
 		else {
 			auto conn{std::make_shared<QMetaObject::Connection>()};
-			*conn = connect(appWSServer(), &ChatWSServer::connectionAttemptResult, this, [this,conn,user,message]
+			*conn = connect(appWSServer(), &WSServer::connectionAttemptResult, this, [this,conn,user,message]
 																		(const bool established, const QString &userid) {
 				if (userid == user) {
 					disconnect(*conn);
-					auto exchange_file{TPFilePath::newTPFilePath(m_filename)};
-					exchange_file->setSubdirs({TPMessagesManager::tpmessages_subdir, m_filename.subdirs()});
-					appUtils()->writeBinaryFile(m_filename.toString(), exchange_file->toString(), false);
+					int request_id{-1};
+					bool ws_sentok{false};
+					if (!isTPFile()) {
+						if (established)
+							ws_sentok = appWSServer()->sendBinaryMessage(TPUtils::SFM_TPMESSAGESMANAGER, m_filename);
+						else {
+							const QString &info_fields{appUtils()->makeBinaryFileMetaInfo(TPUtils::SFM_TPMESSAGESMANAGER,
+								m_filename.ownerUser(), m_filename.targetUser(), m_filename.subdirs(), m_filename.fileName())};
+							appUtils()->readBinaryFile(m_filename.toString(), info_fields);
+							request_id = appUserModel()->sendFileToServer(m_filename, message, true);
+						}
+					}
+					else {
+						if (established)
+							ws_sentok = appWSServer()->sendTextMessage(TPUtils::SFM_TPMESSAGESMANAGER, m_filename.ownerUser(),
+																				m_filename.targetUser(), message, m_filename);
+						else
+							request_id = appUserModel()->sendFileToServer(m_filename, message);
+					}
 					if (established)
-						appWSServer()->sendBinaryMessage(TPUtils::SFM_TPMESSAGESMANAGER, *exchange_file);
-					else
-						appUserModel()->sendFileToServer(*exchange_file, message, true);
+						emit fileSent(ws_sentok);
+					else {
+						*conn = connect(appUserModel(), &DBUserModel::fileUploaded, this, [this,request_id,conn]
+																				(const bool success, const uint requestid) {
+							if (requestid == request_id) {
+								disconnect(*conn);
+								emit fileSent(success);
+							}
+						});
+					}
 				}
 			});
+			appWSServer()->connectToPeer(appMessagesManager(), TPUtils::SFM_TPMESSAGESMANAGER, user);
 		}
 	}
 }
@@ -762,6 +762,8 @@ void TPFileOps::openFile()
 void TPFileOps::setButtonCondition(const OpType type, std::optional<bool> visible, bool do_update)
 {
 	controlInfo *ci{m_controls[type]};
+	if (!ci)
+		return;
 	if (!visible.has_value()) {
 		switch (type) {
 		case OT_AddFile:

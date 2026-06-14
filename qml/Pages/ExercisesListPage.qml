@@ -70,7 +70,7 @@ TPPage {
 			top: exercisesList.bottom
 			left: parent.left
 			right: parent.right
-			bottom: parent.bottom
+			bottom: toolbarExercises.top
 		}
 
 		ColumnLayout {
@@ -130,16 +130,14 @@ TPPage {
 
 	Row {
 		id: toolbarExercises
-		spacing: 0
+		spacing: 5
 		height: AppSettings.itemDefaultHeight
 
 		anchors {
 			left: parent.left
-			leftMargin: 5
 			right: parent.right
-			rightMargin: 5
 			bottom: parent.bottom
-			bottomMargin: 10
+			margins: 5
 		}
 		readonly property int buttonWidth: (parent.width - 10) * 0.25
 

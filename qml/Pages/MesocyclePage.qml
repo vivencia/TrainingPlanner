@@ -19,68 +19,63 @@ TPPage {
 
 	required property MesoManager mesoManager
 	required property MesocyclesModel mesoModel
-	property TPBalloonTip missingFieldsTip: requiredFieldsMissingLoader.item as TPBalloonTip
+	property TPBalloonTip wrongFieldsPopup: requiredFieldsMissingLoader.item as TPBalloonTip
 	property FileOperations fileOps: _meso_file_viewer.fileOps
+
+	Component.onCompleted: {
+		if (!mesoManager.mesoOK)
+			requiredFieldsMissingLoader.active = true;
+	}
 
 	Loader {
 		id: requiredFieldsMissingLoader
-		active: false
 		asynchronous: true
-
-		property int start_field: -1
+		active: false
 
 		sourceComponent: TPBalloonTip {
 			parentPage: mesoPage
 			imageSource: "set-completed"
 			show_position: Qt.AlignBottom|Qt.AlignHCenter
-			button1Text: ""
+			title: mesoPage.mesoManager.wrongFieldsCounter > 0 ? qsTr("New program setup incomplete") : qsTr("New program setup complete!");
+			message: mesoPage.wrongFieldsMessage()
+			subImageLabel: mesoPage.mesoManager.wrongFieldsCounter > 0 ? String(mesoPage.mesoManager.wrongFieldsCounter) : "OK";
+			button1Text: mesoPage.mesoManager.wrongFieldsCounter > 0 ? "" : qsTr("Close")
 			button2Text: ""
 			keepAbove: true
-			movable: false
+			movable: true
+			onButton1Clicked: requiredFieldsMissingLoader.active = false;
+		}
 
-			onClosed: requiredFieldsMissingLoader.active = false;
+		onLoaded: mesoPage.wrongFieldsPopup.tpQmlOpen(mesoPage);
+	}
+
+	Connections {
+		target: mesoPage.mesoManager
+		function onWrongFieldsCounterChanged(): void {
+			if (mesoPage.mesoManager.wrongFieldsCounter == 1) {
+				if (!requiredFieldsMissingLoader.active) {
+					requiredFieldsMissingLoader.active = true;
+					return;
+				}
+			}
+			mesoPage.wrongFieldsPopup.message = mesoPage.wrongFieldsMessage();
 		}
 	}
 
-	function wrongFieldValueMessageHandler(wrong_field_counter: int, field: int): void {
-		if (!requiredFieldsMissingLoader.active) {
-			if (wrong_field_counter === 0)
-				return;
-			else if (wrong_field_counter >= 1) {
-				requiredFieldsMissingLoader.loaded.connect(function() {
-					missingFieldsTip.tpOpen();
-					wrongFieldValueMessageHandler(wrong_field_counter, field);
-				});
-				requiredFieldsMissingLoader.active = true;
-				return;
-			}
-		}
-
-		switch (field) {
-		case -1:
-			missingFieldsTip.subImageLabel = "OK";
-			missingFieldsTip.title = qsTr("New program setup complete!");
-			missingFieldsTip.message = qsTr("Required fields setup");
-			missingFieldsTip.showTimed(5000, Qt.AlignBottom|Qt.AlignHCenter);
-			break;
-		case 8:
-			missingFieldsTip.subImageLabel = "?";
-			missingFieldsTip.title = qsTr("Accept program from coach?");
-			missingFieldsTip.message = qsTr("Until you accept this program you can only view it");
-			missingFieldsTip.button1Text = qsTr("Yes");
-			missingFieldsTip.button2Text = qsTr("No");
-			missingFieldsTip.button1Clicked.connect(function() { mesoPage.mesoManager.incorporateMeso(); });
-			break;
-		default:
-			missingFieldsTip.title = qsTr("New program setup incomplete");
-			missingFieldsTip.subImageLabel = String(wrong_field_counter);
-			switch (field) {
-			case MesocyclesModel.MESO_FIELD_NAME: missingFieldsTip.message = qsTr("Change and/or accept the program's name"); break;
-			case MesocyclesModel.MESO_FIELD_STARTDATE: missingFieldsTip.message = qsTr("Change and/or accept the start date"); break;
-			case MesocyclesModel.MESO_FIELD_ENDDATE: missingFieldsTip.message = qsTr("Change and/or accept the end date"); break;
-			case MesocyclesModel.MESO_FIELD_SPLIT: missingFieldsTip.message = qsTr("Change and/or accept the split division"); break;
-			}
-			break;
+	function wrongFieldsMessage(): string {
+		if (mesoManager.wrongFieldsCounter === 0)
+			return qsTr("Required fields setup");
+		else {
+			let message = "";
+			if (!mesoManager.mesoNameOK)
+				message = qsTr("Change and/or accept the program's name");
+			if (!mesoManager.startDateOK)
+				message += '\n' +  qsTr("Change and/or accept the start date");
+			if (!mesoManager.endDateOK)
+				message += '\n' + qsTr("Change and/or accept the end date");
+			if (!mesoManager.splitOK)
+				message += '\n' + qsTr("Change and/or accept the split division");
+			return message;
 		}
 	}
 
@@ -97,7 +92,7 @@ TPPage {
 				leftMargin: 5
 				rightMargin: 5
 				topMargin: 0
-				bottomMargin: requiredFieldsMissingLoader.active ? mesoPage.missingFieldsTip.height + 20 : 10
+				bottomMargin: 10
 			}
 
 			Loader {

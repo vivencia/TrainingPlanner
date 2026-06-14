@@ -4,15 +4,11 @@ void DBModelInterface::clearData(const QList<uint> &excluded_fields)
 {
 	if (excluded_fields.isEmpty())
 		modelData().clear();
-	else
-	{
+	else {
 		uint modified_row{0};
-		for (auto &data : modelData())
-		{
-			for (uint field{0}; field < data.count(); ++field)
-			{
-				if (!excluded_fields.contains(field))
-				{
+		for (auto &data : modelData()) {
+			for (uint field{0}; field < data.count(); ++field) {
+				if (!excluded_fields.contains(field)) {
 					data[field].clear();
 					setModified(modified_row, field);
 				}
@@ -34,8 +30,7 @@ void DBModelInterface::setAllFieldsModified(uint row, const uint n_fields)
 void DBModelInterface::setModified(uint row, const int field)
 {
 	QList<int> fields{m_modifiedIndices.value(row)};
-	if (!fields.contains(field))
-	{
+	if (!fields.contains(field)) {
 		fields.append(field);
 		m_modifiedIndices[row] = std::move(fields);
 	}
@@ -45,10 +40,8 @@ void DBModelInterface::setModified(uint row, const QList<int> &more_fields)
 {
 	bool has_alterations{false};
 	QList<int> fields{std::move(m_modifiedIndices.value(row))};
-	for (const auto field : std::as_const(more_fields))
-	{
-		if (!fields.contains(field))
-		{
+	for (const auto field : std::as_const(more_fields)) {
+		if (!fields.contains(field)) {
 			has_alterations = true;
 			fields.append(field);
 		}

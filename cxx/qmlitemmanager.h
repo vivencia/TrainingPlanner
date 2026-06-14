@@ -80,7 +80,6 @@ signals:
 #endif
 
 public slots:
-	void mainWindowStarted() const;
 	void homePageViewChanged(const bool own_mesos_view);
 	inline void qmlPasswordDialogClosed_slot(int resultCode, const QString &password) { emit qmlPasswordDialogClosed(resultCode, password); }
 	inline void generalMessagesNoButtonClicked() { emit generalMessagesPopupClicked(0); }

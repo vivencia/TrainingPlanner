@@ -17,17 +17,6 @@ TPPage {
 //private:
 	property int userIdx
 
-	onPageActivated: {
-		if (clientsList.enabled) {
-			tabbar.setCurrentIndex(0);
-			clientsList.selectItem(clientsList.currentRow !== -1 ? clientsList.currentRow : 0);
-		}
-		else if (pendingClientsList.enabled) {
-			tabbar.setCurrentIndex(1);
-			pendingClientsList.selectItem(pendingClientsList.currentRow !== -1 ? pendingClientsList.currentRow : 0);
-		}
-	}
-
 	TPLabel {
 		id: lblMain
 		text: qsTr("Clients");
@@ -50,14 +39,12 @@ TPPage {
 
 		TPTabButton {
 			text: qsTr("Clients")
-			enabled: clientsList.enabled
-			onClicked: clientsPage.userIdx = clientsList.selectedUserIdx;
+			onClicked: clientsList.selectItem(clientsList.currentRow >= 0 ? clientsList.currentRow : 0);
 		}
 
 		TPTabButton {
 			text: qsTr("Pending requests")
-			enabled: pendingClientsList.enabled
-			onClicked: clientsPage.userIdx = pendingClientsList.selectedUserIdx;
+			onClicked: pendingClientsList.selectItem(pendingClientsList.currentRow >= 0 ? pendingClientsList.currentRow : 0);
 		}
 
 		anchors {
@@ -68,6 +55,8 @@ TPPage {
 			right: parent.right
 			rightMargin: 5
 		}
+
+		Component.onCompleted: clientsList.selectItem(clientsList.currentRow);
 	}
 
 	StackLayout {
@@ -91,7 +80,7 @@ TPPage {
 			listConfirmed: true
 			buttonString: qsTr("Remove")
 			Layout.fillWidth: true
-			Layout.fillHeight: true
+			Layout.preferredHeight: parent.height * 0.3
 
 			onItemSelected: (userIdx) => clientsPage.userIdx = userIdx;
 			onButtonClicked: clientsPage.showRemoveMessage(false);
@@ -99,7 +88,7 @@ TPPage {
 
 		Item {
 			Layout.fillWidth: true
-			Layout.fillHeight: true
+			Layout.preferredHeight: parent.height * 0.3
 
 			TPCoachesAndClientsList {
 				id: pendingClientsList
@@ -114,22 +103,16 @@ TPPage {
 					rightMargin: 5
 				}
 
-				//Temporary users(not confirmed) will always have the same index: AppUserModel.count() - 1, so we need
-				//to reset the clientsPage.userIdx property in order for it to get a onChanged signal
-				onItemSelected: (userIdx) => {
-					clientsPage.userIdx = -1;
-					clientsPage.userIdx = userIdx;
-				}
+				onItemSelected: (userIdx) => clientsPage.userIdx = userIdx;
 			} //TPCoachesAndClientsList: pendingClientsList
 
 			RowLayout {
 				uniformCellSizes: true
 				height: AppSettings.itemDefaultHeight
-				enabled: clientsPage.userIdx != 0 && pendingClientsList.enabled  && pendingClientsList.currentRow !== -1
+				enabled: pendingClientsList.currentRow !== -1
 
 				anchors {
 					top: pendingClientsList.bottom
-					topMargin: 5
 					left: parent.left
 					right: parent.right
 				}
@@ -140,13 +123,7 @@ TPPage {
 					rounded: false
 					Layout.alignment: Qt.AlignCenter
 
-					onClicked: {
-						AppUserModel.acceptUser(pendingClientsList.selectedUserIdx);
-						if (!pendingClientsList.enabled) {
-							if (clientsList.enabled)
-								tabbar.setCurrentIndex(0);
-						}
-					}
+					onClicked: AppUserModel.acceptUser(pendingClientsList.selectedUserIdx);
 				}
 				TPButton {
 					text: qsTr("Decline")
@@ -236,19 +213,9 @@ TPPage {
 	}
 
 	function removeOrDecline(decline: bool) {
-		if (!decline) {
+		if (!decline)
 			AppUserModel.removeUser(clientsPage.userIdx);
-			if (!clientsList.enabled)
-				if (pendingClientsList.enabled) {
-					tabbar.setCurrentIndex(1);
-			}
-		}
-		else {
+		else
 			AppUserModel.rejectUser(pendingClientsList.selectedUserIdx);
-			if (!pendingClientsList.enabled) {
-				if (clientsList.enabled)
-					tabbar.setCurrentIndex(0);
-			}
-		}
 	}
 }

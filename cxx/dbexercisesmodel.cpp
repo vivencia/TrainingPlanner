@@ -385,7 +385,7 @@ QChar DBExercisesModel::workoutFileName_splitLetter(const TPFilePath &tp_filenam
 TPFilePathPtr DBExercisesModel::suggestedName(const bool formatted_file) const
 {
 	QString receiverid;
-	const DBMesocyclesModel::st_MesoType mt{appUserModel()->actualMesoModel()->mesoType(m_mesoIdx)};
+	const DBMesocyclesModel::MesoType mt{appUserModel()->actualMesoModel()->mesoType(m_mesoIdx)};
 	switch (mt) {
 		case DBMesocyclesModel::MT_MESO_FOR_CLIENT:	receiverid = std::move(appUserModel()->actualMesoModel()->client(m_mesoIdx)); break;
 		case DBMesocyclesModel::MT_MESO_FROM_COACH:	receiverid = std::move(appUserModel()->actualMesoModel()->coach(m_mesoIdx)); break;
@@ -1584,7 +1584,7 @@ void DBExercisesModel::commonConstructor(const bool load_from_db)
 		m_identifierInFile = appUtils()->splitFileIdentifier;
 	m_identifierInFile += m_splitLetter;
 
-	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field) {
+	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const DBMesocyclesModel::MesoFields field) {
 		if (meso_idx == m_mesoIdx) {
 			if (field >= DBMesocyclesModel::MESO_FIELD_SPLITA && field <= DBMesocyclesModel::MESO_FIELD_SPLITF) {
 				if (static_cast<int>(m_splitLetter.cell()) - static_cast<int>('A') == field - DBMesocyclesModel::MESO_FIELD_SPLITA)

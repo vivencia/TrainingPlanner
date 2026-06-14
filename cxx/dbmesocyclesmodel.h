@@ -43,7 +43,7 @@ Q_PROPERTY(QString coachLabel READ coachLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString clientLabel READ clientLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString fileLabel READ fileLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString typeLabel READ typeLabel NOTIFY labelChanged FINAL)
-Q_PROPERTY(QString realMesoLabel READ realMesoLabel NOTIFY labelChanged FINAL)
+Q_PROPERTY(QString metadataLabel READ metadataLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString nonMesoLabel READ nonMesoLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString splitR READ splitR NOTIFY labelChanged FINAL)
 
@@ -67,22 +67,32 @@ public:
 		MESO_FIELD_CLIENT,
 		MESO_FIELD_FILE,
 		MESO_FIELD_TYPE,
-		MESO_FIELD_REALMESO,
+		MESO_FIELD_METADATA,
 		MESO_TOTAL_FIELDS
 	};
 	Q_ENUM(MesoFields)
 
-	enum st_MesoType {
+	enum MesoType {
 		MT_MESO_FOR_CLIENT,
 		MT_MESO_FROM_COACH,
 		MT_MESO_FOR_SELF,
 	};
 
+	enum MetaData {
+		MD_REAL_MESO,
+		MD_PROGRAM_SENT,
+		MD_CAN_EXPORT,
+		MD_NAME_OK,
+		MD_STARTDATE_OK,
+		MD_ENDDATE_OK,
+		MD_SPLIT_OK,
+
+		MD_UNUSED,
+	};
+
 	static constexpr uint8_t MESO_MINIMUM_DAYS{30};
 	static constexpr uint8_t MESO_MAXIMUM_DAYS{180};
-	static constexpr uint8_t MESO_N_REQUIRED_FIELDS{4};
-	static constexpr uint8_t meso_required_fields[MESO_N_REQUIRED_FIELDS]
-															{MESO_FIELD_NAME, MESO_FIELD_STARTDATE, MESO_FIELD_ENDDATE, MESO_FIELD_SPLIT};
+	static constexpr uint8_t MESO_WRONG_FIELDS_COUNT{4};
 
 	explicit DBMesocyclesModel(QObject *parent = nullptr);
 
@@ -90,7 +100,6 @@ public:
 	inline uint count() const { return m_mesoData.count(); }
 	QMLMesoInterface *mesoManager(const uint meso_idx);
 	void removeMesoManager(const uint meso_idx);
-	void incorporateMeso(const uint meso_idx);
 
 	Q_INVOKABLE void startNewMesocycle(const bool own_meso);
 	Q_INVOKABLE void getMesocyclePage(const uint meso_idx, const bool new_meso);
@@ -105,9 +114,15 @@ public:
 	void setCurrentMesosView(const bool own_mesos_view);
 	inline int currentWorkingMeso() const { return m_currentWorkingMeso; }
 
-	inline bool isMesoOK(const uint meso_idx) const { return meso_idx <= m_isMesoOK.count() ? m_isMesoOK.at(meso_idx) == 0 : false; }
-	bool isRequiredFieldWrong(const uint meso_idx, const uint field) const;
-	void setModified(const uint meso_idx, const uint field);
+	bool isMesoOK(const int meso_idx) const;
+	inline bool isNameOK(const uint meso_idx) const { return isBitSet(m_metadata.at(meso_idx), MD_NAME_OK); }
+	inline bool isStartDateOK(const uint meso_idx) const { return isBitSet(m_metadata.at(meso_idx), MD_STARTDATE_OK); }
+	inline bool isEndDateOK(const uint meso_idx) const { return isBitSet(m_metadata.at(meso_idx), MD_ENDDATE_OK); }
+	inline bool isSplitOK(const uint meso_idx) const { return isBitSet(m_metadata.at(meso_idx), MD_SPLIT_OK); }
+	inline bool isRealMeso(const uint meso_idx) const { return isBitSet(m_metadata.at(meso_idx), MD_REAL_MESO); }
+	inline bool isProgramSent(const uint meso_idx) const { return isBitSet(m_metadata.at(meso_idx), MD_PROGRAM_SENT); }
+
+	void setModified(const uint meso_idx, const MesoFields field);
 
 	int idxFromFieldValue(const QString &field_value, const int field = -1) const;
 	inline const QString &id(const uint meso_idx) const
@@ -149,8 +164,8 @@ public:
 	}
 	Q_INVOKABLE inline QDate endDate(const int meso_idx) const
 	{
-		return isRealMeso(meso_idx) ? QDate::fromJulianDay(m_mesoData.at(meso_idx).at(MESO_FIELD_ENDDATE).toULong()) :
-				QDate::currentDate().addDays(730);
+		return isRealMeso(meso_idx) ? QDate::fromJulianDay(m_mesoData.at(meso_idx).at(MESO_FIELD_ENDDATE)
+																			.toULong()) : QDate::currentDate().addDays(730);
 	}
 	void setEndDate(const uint meso_idx, const QDate &new_date);
 
@@ -270,8 +285,11 @@ public:
 	}
 	Q_INVOKABLE void setFile(const uint meso_idx, const QString &new_file);
 
-	st_MesoType mesoType(const uint meso_idx) const;
-	Q_INVOKABLE inline bool isOwnMeso(const uint meso_idx) const { return mesoType(meso_idx) == MT_MESO_FOR_SELF; }
+	MesoType mesoType(const uint meso_idx) const;
+	Q_INVOKABLE inline bool isOwnMeso(const int meso_idx) const
+	{
+		return meso_idx >= 0 && meso_idx < m_mesoData.count() ? mesoType(meso_idx) == MT_MESO_FOR_SELF : false;
+	}
 	void addSubMesoModel(const uint meso_idx, const bool own_meso);
 
 	inline const QString &type(const uint meso_idx) const
@@ -284,18 +302,24 @@ public:
 		setModified(meso_idx, MESO_FIELD_TYPE);
 	}
 
-	inline const QString &realMeso(const uint meso_idx) const
+	inline const QString &metadata(const uint meso_idx) const
 	{
-		return m_mesoData.at(meso_idx).at(MESO_FIELD_REALMESO);
+		return m_mesoData.at(meso_idx).at(MESO_FIELD_METADATA);
 	}
-	inline bool isRealMeso(const int meso_idx) const
+
+	inline void setMetaData(const uint meso_idx, const MetaData md_field, const bool set_modified = true)
 	{
-		return meso_idx >= 0 ? realMeso(meso_idx) == '1' : false;
+		setBit(m_metadata[meso_idx], md_field);
+		if (set_modified)
+			setModified(meso_idx, MESO_FIELD_METADATA);
+		emit metaDataChanged(meso_idx, md_field);
 	}
-	inline void setIsRealMeso(const uint meso_idx, const bool bRealMeso)
+	inline void unsetMetaData(const uint meso_idx, const MetaData md_field, const bool set_modified = true)
 	{
-		m_mesoData[meso_idx][MESO_FIELD_REALMESO] = bRealMeso ? '1' : '0';
-		setModified(meso_idx, MESO_FIELD_REALMESO);
+		unSetBit(m_metadata[meso_idx], md_field);
+		if (set_modified)
+			setModified(meso_idx, MESO_FIELD_METADATA);
+		emit metaDataChanged(meso_idx, md_field);
 	}
 
 	inline const QString mesoNameLabel() const { return tr("Program's name: "); }
@@ -314,7 +338,7 @@ public:
 	inline const QString clientLabel() const { return tr("Client: "); }
 	inline const QString fileLabel() const { return tr("Instructions file"); }
 	inline const QString typeLabel() const { return tr("Type: "); }
-	inline const QString realMesoLabel() const { return tr("Mesocycle-style program: "); }
+	inline const QString metadataLabel() const { return tr("Metadata: "); }
 	inline const QString nonMesoLabel() const { return tr("Mesocycle-style program: "); }
 
 	inline QString splitLetter(const uint meso_idx, const uint day_of_week) const
@@ -355,7 +379,7 @@ public:
 	}
 	void newWorkoutFromFile(const TPFilePath &filename, const bool formatted, const uint meso_idx, const QChar &splitletter);
 
-	inline bool canExport(const uint meso_idx) const { return meso_idx < m_canExport.count() ? m_canExport.at(meso_idx) : false; }
+	inline bool canExport(const uint meso_idx) const { return isBitSet(m_metadata.at(meso_idx), MD_CAN_EXPORT); }
 	void checkIfCanExport(const uint meso_idx, const bool bEmitSignal = true);
 
 	//When importing a complete program: importIdx() will be set to -1 because we will be getting a new meso model. When other parts of the code
@@ -376,7 +400,6 @@ public:
 		case MESO_FIELD_ENDDATE:
 		case MESO_FIELD_COACH:
 		case MESO_FIELD_CLIENT:
-		case MESO_FIELD_REALMESO:
 			return true;
 		default: return false;
 		}
@@ -385,10 +408,10 @@ public:
 	QString formatFieldToExport(const uint field, const QString &fieldValue) const;
 	QString formatFieldToImport(const uint field, const QString &fieldValue) const;
 
-	void removeMesoFile(const uint meso_idx);
+	void removeMesoFiles(const uint meso_idx);
 	int newMesoFromFile(const TPFilePath &filename, const bool own_meso, const std::optional<bool> &file_formatted = std::nullopt);
 
-	inline bool isMesoNameOK(const int meso_idx = -1, const QString &meso_name = QString{}) const
+	inline bool checkName(const int meso_idx = -1, const QString &meso_name = QString{}) const
 	{
 		switch (meso_name.length()) {
 		case 0: return meso_idx >= 0 ? (!name(meso_idx).isEmpty() ?
@@ -399,14 +422,14 @@ public:
 		}
 
 	}
-	inline bool isStartDateOK(const int meso_idx = -1, const QDate &date = QDate{}) const
+	inline bool checkStartDate(const int meso_idx = -1, const QDate &date = QDate{}) const
 	{
 		if (date.isValid())
 			return date >= getMesoMinimumStartDate(client(meso_idx), 99999);
 		else
 			return meso_idx >= 0 ? !strStartDate(meso_idx).isEmpty() : false;
 	}
-	inline bool isEndDateOK(const int meso_idx = -1, const QDate &date = QDate{}) const
+	inline bool checkEndDate(const int meso_idx = -1, const QDate &date = QDate{}) const
 	{
 		if (date.isValid())
 			return date >= startDate(meso_idx).addDays(isRealMeso(meso_idx) ? MESO_MINIMUM_DAYS : 1);
@@ -415,7 +438,7 @@ public:
 	}
 	//static const QRegularExpression rgex{"(?=.*[ABCDEF])(?=.*[R])"_L1};
 	//return rgex.match(strsplit).hasMatch()
-	bool isSplitOK(const uint meso_idx, const QString &strsplit = QString{}) const
+	bool checkSplit(const uint meso_idx, const QString &strsplit = QString{}) const
 	{
 		bool ok{false};
 		const QString &_split{strsplit.isEmpty() ? split(meso_idx) : strsplit};
@@ -436,7 +459,8 @@ signals:
 	void labelChanged();
 	void canExportChanged(const uint meso_idx, const bool can_export);
 	void mesoExported(const uint meso_idx, const TPFilePath &filename, const int return_code);
-	void mesoChanged(const uint meso_idx, const uint field);
+	void mesoChanged(const uint meso_idx, const DBMesocyclesModel::MesoFields field);
+	void metaDataChanged(const uint meso_idx, const DBMesocyclesModel::MetaData md_field);
 	void todaysWorkoutFinished();
 	void usedSplitsChanged(const uint meso_idx);
 	void splitLoaded(const uint meso_idx, const QChar &splitletter);
@@ -452,8 +476,7 @@ private:
 	QMap<uint, QMap<QChar,DBSplitModel*>> m_splitModels;
 
 	HomePageMesoModel *m_ownMesos{nullptr}, *m_clientMesos{nullptr};
-	QList<int8_t> m_isMesoOK;
-	QList<bool> m_canExport;
+	QList<uint> m_metadata;
 	QStringList m_usedSplits;
 	int m_importMesoIdx, m_currentWorkingMeso;
 
@@ -466,6 +489,16 @@ private:
 
 	friend class DBModelInterfaceMesocycle;
 
+	inline MetaData mesoFieldToMetadataField(const MesoFields field) const
+	{
+		switch (field) {
+		case MESO_FIELD_NAME: return MD_NAME_OK;
+		case MESO_FIELD_STARTDATE: return MD_STARTDATE_OK;
+		case MESO_FIELD_ENDDATE: return MD_ENDDATE_OK;
+		case MESO_FIELD_SPLIT: return MD_SPLIT_OK;
+		default: return MD_UNUSED;
+		}
+	}
 	inline bool isMesoTemporary(const uint meso_idx) const { return _id(meso_idx) < 0; }
 	const uint newMesoData(QStringList &&infolist);
 	void getAllMesocycles();

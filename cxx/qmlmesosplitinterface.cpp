@@ -140,7 +140,7 @@ void QmlMesoSplitInterface::createPlannerPage()
 	loadMesoSplitComponent();
 
 	appPagesListModel()->openPage(m_plannerPage, std::move(tr("Exercises Planner: ") % m_mesoModel->name(m_mesoIdx)), [this] () { cleanUp(); });
-	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field) {
+	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const DBMesocyclesModel::MesoFields field) {
 		if (meso_idx == m_mesoIdx) {
 			if (field == DBMesocyclesModel::MESO_FIELD_SPLIT)
 				syncSplitPagesWithMesoSplit();

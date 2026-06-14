@@ -25,7 +25,7 @@ public:
 private:
 	QQuickItem *m_userPage{nullptr}, *m_settingsPage{nullptr}, *m_coachesPage{nullptr}, *m_clientsPage{nullptr};
 	QQmlComponent *m_userComponent{nullptr}, *m_settingsComponent{nullptr}, *m_coachesComponent{nullptr}, *m_clientsComponent{nullptr};
-	QVariantMap m_userProperties, m_coachesProperties, m_clientsProperties;
+	QVariantMap m_userProperties;
 
 	void createUserPage();
 	void createSettingsPage();

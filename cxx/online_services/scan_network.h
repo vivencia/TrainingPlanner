@@ -89,5 +89,4 @@ public:
 
 signals:
 	void addressReachable(const QString &ip);
-
 };

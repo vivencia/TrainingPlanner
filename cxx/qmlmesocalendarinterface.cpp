@@ -15,7 +15,7 @@ QmlMesoCalendarInterface::QmlMesoCalendarInterface(QObject *parent, DBMesocycles
 																			DBCalendarModel* calendar_model, const uint meso_idx)
 	: QObject{parent}, m_mesoModel{meso_model}, m_mesoIdx{meso_idx}, m_calendarModel{calendar_model}
 {
-	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field) {
+	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const DBMesocyclesModel::MesoFields field) {
 		if (meso_idx == m_mesoIdx) {
 			switch (field) {
 			case DBMesocyclesModel::MESO_FIELD_NAME: emit nameLabelChanged(); break;
@@ -112,7 +112,7 @@ void QmlMesoCalendarInterface::createMesoCalendarPage()
 	m_calPage->setParentItem(appItemManager()->AppPagesVisualParent());
 	appPagesListModel()->openPage(m_calPage, std::move(tr("Calendar: ") + m_mesoModel->name(m_mesoIdx)), [this] () { cleanUp(); });
 
-	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field) {
+	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const DBMesocyclesModel::MesoFields field) {
 		switch (field) {
 		case DBMesocyclesModel::MESO_FIELD_NAME:
 			emit nameLabelChanged();

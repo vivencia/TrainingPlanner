@@ -76,6 +76,7 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel) : QObject{p
 			appItemManager()->AppHomePage()->setProperty("loadOwnMesos", mainUserConfigured() && isClient(0));
 		}
 	}, Qt::SingleShotConnection);
+	qDebug() << "DBUserModel::DBUserModel running on thread: " << thread()->isMainThread();
 }
 
 void DBUserModel::initUserSession()
@@ -108,9 +109,10 @@ void DBUserModel::initUserSession()
 			if (onlineAccount()) {
 				appItemManager()->startMessagesManager();
 				if (!appWSServer())
-					new ChatWSServer{userId(0), this};
+					new WSServer{userId(0), this};
 				if (!appMessagesManager())
 					new TPMessagesManager{this};
+				appOnlineServices()->connectToServer();
 				const bool server_up{appOnlineServices()->serverStatus() == TP_RET_CODE_SUCCESS};
 				appWSServer()->setServerStatus(server_up);
 				setCanConnectToServer(server_up);
@@ -359,28 +361,33 @@ void DBUserModel::setPhone(const int user_idx, QString new_phone_prefix, const Q
 	emit userModified(user_idx, USER_FIELD_PHONE);
 }
 
-QString DBUserModel::avatar(const uint user_idx)
+QString DBUserModel::avatar(const int user_idx)
 {
-	QString avatar_file{std::move(findAvatar(userDir(user_idx)))};
-	if (avatar_file.isEmpty())
-		avatar_file = std::move(defaultAvatar(user_idx));
-	if (onlineAccount() && user_idx > 0)
-		downloadAvatarFromServer(user_idx);
-	return avatar_file;
+	if (user_idx >= 0 && user_idx < m_usersData.count()) {
+		QString avatar_file{std::move(findAvatar(userDir(user_idx)))};
+		if (avatar_file.isEmpty())
+			avatar_file = std::move(defaultAvatar(user_idx));
+		if (onlineAccount() && user_idx > 0)
+			downloadAvatarFromServer(user_idx);
+		return avatar_file;
+	}
+	return QString{};
 }
 
 void DBUserModel::setAvatar(const int user_idx, const QString &new_avatar, const bool saveToDisk, const bool upload)
 {
-	if (saveToDisk) {
-		TPImage img{nullptr};
-		img.setSource(new_avatar);
-		const QString &local_avatar{userDir(user_idx) % "avatar"_L1 % appUtils()->getFileExtension(img.source(), true, ".png"_L1)};
-		static_cast<void>(QFile::remove(local_avatar));
-		img.saveToDisk(local_avatar);
+	if (user_idx >= 0 && user_idx < m_usersData.count()) {
+		if (saveToDisk) {
+			TPImage img{nullptr};
+			img.setSource(new_avatar);
+			const QString &local_avatar{userDir(user_idx) % "avatar"_L1 % appUtils()->getFileExtension(img.source(), true, ".png"_L1)};
+			static_cast<void>(QFile::remove(local_avatar));
+			img.saveToDisk(local_avatar);
+		}
+		emit userModified(user_idx, USER_FIELD_AVATAR);
+		if (onlineAccount() && user_idx == 0 && upload)
+			sendAvatarToServer();
 	}
-	emit userModified(user_idx, USER_FIELD_AVATAR);
-	if (onlineAccount() && user_idx == 0 && upload)
-		sendAvatarToServer();
 }
 
 void DBUserModel::setUserCategory(const int user_idx, const int new_category, const bool add)
@@ -771,7 +778,8 @@ int DBUserModel::sendFileToServer(const TPFilePath &tp_filename, const QString &
 				emit fileUploaded(ret_code == TP_RET_CODE_SUCCESS, requestid);
 			}
 		});
-		appOnlineServices()->sendFile(requestid, upload_file, tp_filename.subdirs(), tp_filename.targetUser());
+		appOnlineServices()->sendFile(requestid, upload_file, (tp_filename.ownerUser() == userId(0) ?
+						QString{} : tp_filename.ownerUser()) % '/' % tp_filename.subdirs(), tp_filename.targetUser());
 	}
 	return requestid;
 }
@@ -825,8 +833,8 @@ int DBUserModel::downloadFileFromServer(const TPFilePath &tp_filename, const QSt
 			emit fileDownloaded(success, requestid, tp_filename);
 		}
 	});
-	appOnlineServices()->getFile(requestid, tp_filename.fileName(), tp_filename.subdirs(), tp_filename.targetUser(),
-																									tp_filename.toString());
+	appOnlineServices()->getFile(requestid, tp_filename.fileName(), (tp_filename.ownerUser() == userId(0) ?
+		QString{} : tp_filename.ownerUser()) % '/' % tp_filename.subdirs(), tp_filename.targetUser(), tp_filename.toString());
 	return requestid;
 }
 
@@ -835,7 +843,8 @@ void DBUserModel::removeFileFromServer(const TPFilePath &tp_filename)
 	if (!mainUserLoggedIn())
 		return;
 	const int requestid{tp_filename.generateUniqueId()};
-	appOnlineServices()->removeFile(requestid, tp_filename.fileName(), tp_filename.subdirs(), tp_filename.targetUser());
+	appOnlineServices()->removeFile(requestid, tp_filename.fileName(), (tp_filename.ownerUser() == userId(0) ?
+								QString{} : tp_filename.ownerUser()) % '/' % tp_filename.subdirs(), tp_filename.targetUser());
 }
 
 int DBUserModel::listFilesFromServer(const QString &subdir, const QString &targetUser, const QString &filter)

@@ -3,7 +3,6 @@
 #include "dbmodelinterface.h"
 #include "dbusermodel.h"
 #include "osinterface.h"
-#include "tpsettings.h"
 #include "tputils.h"
 
 #include <QFile>
@@ -62,7 +61,7 @@ TPDatabaseTable::TPDatabaseTable(const uint table_id, DBModelInterface *dbmodel_
 	});
 
 	connect(this, &TPDatabaseTable::actionFinished, this, [this]
-								(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2) {
+						(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2) {
 		if (op != ThreadManager::ReadAllRecords) {
 			if (!m_sqlLiteDB.connectOptions().contains("READONLY"_L1)) {
 				if (return_value2.toBool()) {

@@ -64,6 +64,7 @@ public:
 	Q_ENUM(OpType)
 
 	explicit TPFileOps(QQuickItem *parent = nullptr);
+	~TPFileOps() { qDebug() << "~TPFileOps()" + m_filename.fileName(); }
 	void paint(QPainter *painter) override;
 
 	inline TPUtils::FILE_TYPE fileType() const { return m_filetype; }
@@ -71,6 +72,7 @@ public:
 	inline QString fileName() const { return m_filename.toString(); }
 	inline const TPFilePath &tpFileName() const { return m_filename; }
 	void setFileName(const QString &filename, const bool file_added = false);
+	void setFileName(TPFilePath &&tp_filename);
 	//TODO: Android URLs
 	inline QUrl fileURL() const { return QString{"file://"_L1 % m_filename.toString()}; }
 	void setFileURL(const QUrl &url);
@@ -157,6 +159,7 @@ signals:
 	void multimediaKeyReleased(const int key);
 	void fileAdded(const QString &filepath);
 	void fileAcquired(const int ret_code);
+	void fileSent(const int success);
 	void fileRemovalRequested();
 	void mesoIdxChanged();
 	void controlSizeChanged();
@@ -171,7 +174,6 @@ signals:
 	void fileIsOKChanged();
 	void setCursorPorsition(const int cursor_pos);
 	void insertString(const QString &ch, const int pos);
-	void _internalSignal(const int requestid, const int return_code);
 
 protected:
 	void mousePressEvent(QMouseEvent *event) override;
@@ -207,9 +209,9 @@ private:
 	QQuickItem *m_parentPage{nullptr};
 	std::function<TPFilePathPtr()> m_suggestNameFunc{nullptr};
 
-	void setFileName(const bool file_added);
+	void _setFileName(const bool file_added);
 	void _doFileOperation(const OpType type);
-	int generateFileFromType(const bool formatted);
+	void generateFileFromType(const bool formatted);
 	void doFullScreen();
 	void addFile();
 	void saveFileAs();

@@ -179,48 +179,48 @@
 <context>
     <name>ClientsPage</name>
     <message>
-        <location filename="../qml/Pages/ClientsPage.qml" line="33"/>
-        <location filename="../qml/Pages/ClientsPage.qml" line="52"/>
+        <location filename="../qml/Pages/ClientsPage.qml" line="22"/>
+        <location filename="../qml/Pages/ClientsPage.qml" line="41"/>
         <source>Clients</source>
         <translation>Clientes</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ClientsPage.qml" line="58"/>
+        <location filename="../qml/Pages/ClientsPage.qml" line="46"/>
         <source>Pending requests</source>
         <translation>Requisições pendentes</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ClientsPage.qml" line="92"/>
+        <location filename="../qml/Pages/ClientsPage.qml" line="81"/>
         <source>Remove</source>
         <translation>Remover</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ClientsPage.qml" line="219"/>
+        <location filename="../qml/Pages/ClientsPage.qml" line="196"/>
         <source>The client will be notified of your decision, but might still contact you unless you block them</source>
         <translation>O cliente será notificado da sua decisão, mas ainda poderá contactá-lo a menos que você o bloqueie</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ClientsPage.qml" line="138"/>
+        <location filename="../qml/Pages/ClientsPage.qml" line="121"/>
         <source>Accept</source>
         <translation>Aceitar</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ClientsPage.qml" line="152"/>
+        <location filename="../qml/Pages/ClientsPage.qml" line="129"/>
         <source>Decline</source>
         <translation>Declinar</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ClientsPage.qml" line="227"/>
+        <location filename="../qml/Pages/ClientsPage.qml" line="204"/>
         <source>Decline </source>
         <translation>Rejeitar </translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ClientsPage.qml" line="218"/>
+        <location filename="../qml/Pages/ClientsPage.qml" line="195"/>
         <source>The client will receive your reply, but might choose to send another request unless you block them</source>
         <translation>O cliente receberá sua resposta, mas poderá enviar-lhe outra requisição a menos que você o bloqueie</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ClientsPage.qml" line="229"/>
+        <location filename="../qml/Pages/ClientsPage.qml" line="206"/>
         <source>Remove </source>
         <translation>Remover </translation>
     </message>
@@ -228,8 +228,8 @@
 <context>
     <name>CoachesPage</name>
     <message>
-        <location filename="../qml/Pages/CoachesPage.qml" line="21"/>
-        <location filename="../qml/Pages/CoachesPage.qml" line="40"/>
+        <location filename="../qml/Pages/CoachesPage.qml" line="22"/>
+        <location filename="../qml/Pages/CoachesPage.qml" line="41"/>
         <source>Coaches or Trainers</source>
         <translation>Coaches ou Treinadores</translation>
     </message>
@@ -239,58 +239,58 @@
         <translation>Respostas pendentes</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/CoachesPage.qml" line="83"/>
+        <location filename="../qml/Pages/CoachesPage.qml" line="80"/>
         <source>Resumè</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/CoachesPage.qml" line="128"/>
+        <location filename="../qml/Pages/CoachesPage.qml" line="97"/>
         <source>Résumé</source>
         <translation>Currículo</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/CoachesPage.qml" line="317"/>
+        <location filename="../qml/Pages/CoachesPage.qml" line="269"/>
         <source>The coach&apos;s resumè file could not be found.
 				You can try to download it by pressing the second button from the left on the bottom of the screen</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/CoachesPage.qml" line="110"/>
+        <location filename="../qml/Pages/CoachesPage.qml" line="81"/>
         <source>Remove</source>
         <translation>Remover</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/CoachesPage.qml" line="274"/>
+        <location filename="../qml/Pages/CoachesPage.qml" line="236"/>
         <source>The coach will be notified of your decision, but might still contact you unless you block them</source>
         <translation>O treinador será notificado da sua decisão, mas ainda poderá contactá-lo a menos que você o bloqueie</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/CoachesPage.qml" line="156"/>
+        <location filename="../qml/Pages/CoachesPage.qml" line="124"/>
         <source>Accept</source>
         <translation>Aceitar</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/CoachesPage.qml" line="170"/>
+        <location filename="../qml/Pages/CoachesPage.qml" line="132"/>
         <source>Decline</source>
         <translation>Declinar</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/CoachesPage.qml" line="282"/>
+        <location filename="../qml/Pages/CoachesPage.qml" line="244"/>
         <source>Decline </source>
         <translation>Rejeitar </translation>
     </message>
     <message>
-        <location filename="../qml/Pages/CoachesPage.qml" line="273"/>
+        <location filename="../qml/Pages/CoachesPage.qml" line="235"/>
         <source>The coach will receive your reply, but might choose to send another answer unless you block them</source>
         <translation>O treinador receberá sua resposta mas poderá enviar-lhe outra resposta a menos que você o bloqueie</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/CoachesPage.qml" line="183"/>
+        <location filename="../qml/Pages/CoachesPage.qml" line="145"/>
         <source>Look online for available coaches</source>
         <translation>Procurar treinadores diponíveis online</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/CoachesPage.qml" line="284"/>
+        <location filename="../qml/Pages/CoachesPage.qml" line="246"/>
         <source>Remove </source>
         <translation>Remover </translation>
     </message>
@@ -298,12 +298,12 @@
 <context>
     <name>DBExercisesListModel</name>
     <message>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="62"/>
+        <location filename="../cxx/dbexerciseslistmodel.cpp" line="64"/>
         <source>New Exercises</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbexerciseslistmodel.cpp" line="385"/>
+        <location filename="../cxx/dbexerciseslistmodel.cpp" line="387"/>
         <source>Exercises List</source>
         <translation>Lista de Exercícios</translation>
     </message>
@@ -522,119 +522,112 @@
 <context>
     <name>DBMesocyclesModel</name>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="245"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="260"/>
         <source>Rest day</source>
         <translation>Recesso</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="302"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="324"/>
         <source>Start date: </source>
         <translation>Início: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="303"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="325"/>
         <source>End date: </source>
         <translation>Término: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="305"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="327"/>
         <source>Number of weeks: </source>
         <translation>Número de semanas: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="301"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="323"/>
         <source>Program&apos;s name: </source>
         <translation>Nome do programa: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="304"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="326"/>
         <source>Program&apos;s considerations: </source>
         <translation>Considerações sobre o programa: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="306"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="328"/>
         <source>Weekly training division: </source>
         <translation>Divisão semanal de treinos: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="307"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="329"/>
         <source>Muscular groups for division A: </source>
         <translation>Grupos musculares para divisão A: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="308"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="330"/>
         <source>Muscular groups for division B: </source>
         <translation>Grupos musculares para divisão B: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="309"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="331"/>
         <source>Muscular groups for division C: </source>
         <translation>Grupos musculares para divisão C: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="310"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="332"/>
         <source>Muscular groups for division D: </source>
         <translation>Grupos musculares para divisão D: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="311"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="333"/>
         <source>Muscular groups for division E: </source>
         <translation>Grupos musculares para divisão E: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="312"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="334"/>
         <source>Muscular groups for division F: </source>
         <translation>Grupos musculares para divisão F: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="315"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="337"/>
         <source>Instructions file</source>
         <translation>Arquivo de instruções</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="317"/>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="318"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="339"/>
+        <source>Metadata: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="340"/>
         <source>Mesocycle-style program: </source>
         <translation>Programa do tipo Mesociclo: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="314"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="336"/>
         <source>Client: </source>
         <translation>Cliente: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="313"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="335"/>
         <source>Coach/Trainer: </source>
         <translation>Coach/Treinador: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="543"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="545"/>
         <source>Success!</source>
         <translation>Sucesso!</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="544"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="546"/>
         <source>Extra workout is set to happen on </source>
         <translation>Treino extra está marcado para acontecer em </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="636"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="641"/>
         <source>Exercises Program</source>
         <translation>Programa de Exercícios</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="717"/>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="729"/>
-        <source>Yes</source>
-        <translation>Sim</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="717"/>
-        <source>No</source>
-        <translation>Não</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbmesocyclesmodel.h" line="316"/>
+        <location filename="../cxx/dbmesocyclesmodel.h" line="338"/>
         <source>Type: </source>
         <translation>Tipo: </translation>
     </message>
@@ -722,54 +715,54 @@
         <translation>Importar</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="413"/>
+        <location filename="../cxx/dbusermodel.cpp" line="420"/>
         <source>All your clients will be removed and cannot be automatically retrieved</source>
         <translation>Todos seus clientes serão removidos e não poderão ser automaticamente recuperados</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="514"/>
+        <location filename="../cxx/dbusermodel.cpp" line="521"/>
         <source>New user</source>
         <translation>Novo usuário</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="623"/>
+        <location filename="../cxx/dbusermodel.cpp" line="630"/>
         <source>Coach registration</source>
         <translation>Registro de treinador</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="747"/>
+        <location filename="../cxx/dbusermodel.cpp" line="754"/>
         <source>Cannot upload file</source>
         <translation>Não foi possível enviar o arquivo</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="747"/>
+        <location filename="../cxx/dbusermodel.cpp" line="754"/>
         <source>Maximum file size allowed: 8MB</source>
         <translation>Tamanho máximo permitido: 8MB</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1630"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1637"/>
         <source>Online account removed</source>
         <translation>Conta online removida</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1630"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1637"/>
         <source>Failed to remove online account</source>
         <translation>Falha ao remover conta online</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1228"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1234"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1235"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1241"/>
         <source>User switching error</source>
         <translation>Erro ao alternar usuário</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1229"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1234"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1236"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1241"/>
         <source>Could not download files for user </source>
         <translation>Não foi possível baixar os arquivos do usuário </translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="682"/>
+        <location filename="../cxx/dbusermodel.cpp" line="689"/>
         <source>Coach contacting</source>
         <translation>Contato com o treinador</translation>
     </message>
@@ -779,170 +772,170 @@
         <translation>Rede TP</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="190"/>
+        <location filename="../cxx/dbusermodel.cpp" line="192"/>
         <source>Yes</source>
         <translation>Sim</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="190"/>
-        <location filename="../cxx/dbusermodel.cpp" line="414"/>
-        <location filename="../cxx/dbusermodel.cpp" line="429"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1559"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1589"/>
+        <location filename="../cxx/dbusermodel.cpp" line="192"/>
+        <location filename="../cxx/dbusermodel.cpp" line="421"/>
+        <location filename="../cxx/dbusermodel.cpp" line="436"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1566"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1596"/>
         <source>No</source>
         <translation>Não</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="413"/>
+        <location filename="../cxx/dbusermodel.cpp" line="420"/>
         <source>Revoke coach status?</source>
         <translation>Rescindir condição de treinador?</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="414"/>
-        <location filename="../cxx/dbusermodel.cpp" line="429"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1559"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1589"/>
+        <location filename="../cxx/dbusermodel.cpp" line="421"/>
+        <location filename="../cxx/dbusermodel.cpp" line="436"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1566"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1596"/>
         <source>Revoke</source>
         <translation>Rescindir</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="428"/>
+        <location filename="../cxx/dbusermodel.cpp" line="435"/>
         <source>Revoke client status?</source>
         <translation>Rescindir condição de cliente?</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="428"/>
+        <location filename="../cxx/dbusermodel.cpp" line="435"/>
         <source>All your coaches will be removed and cannot be automatically retrieved</source>
         <translation>Todos os seus treinadores serão removidos e não poderão ser automaticamente re-incluídos</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1645"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1652"/>
         <source>New coach!</source>
         <translation>Novo treinador!</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1645"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1676"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1652"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1683"/>
         <source>Now that </source>
         <translation>Agora que </translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1646"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1653"/>
         <source> is your coach, you can send them messages using the Star Button on the Home screen</source>
         <translation> é seu(sua) treinador(a), você pode enviar-lhe mensagens utilizando o botão Estrela na página inicial</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="497"/>
+        <location filename="../cxx/dbusermodel.cpp" line="504"/>
         <source>User removal</source>
         <translation>Remoção de usuário</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="682"/>
+        <location filename="../cxx/dbusermodel.cpp" line="689"/>
         <source>Online coach contacted </source>
         <translation>Treinador contactado </translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="954"/>
+        <location filename="../cxx/dbusermodel.cpp" line="961"/>
         <source>Coach Information</source>
         <translation>Informação do Treinador</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="954"/>
+        <location filename="../cxx/dbusermodel.cpp" line="961"/>
         <source>Client Information</source>
         <translation>Informação do Cliente</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1143"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1150"/>
         <source>Login failed</source>
         <translation>Login falhou</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1143"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1150"/>
         <source>Please, type in your TraininPlanner user password</source>
         <translation>Por favor, digite sua senha do aplicativo TrainingPlanner</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1676"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1683"/>
         <source>New client!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1677"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1684"/>
         <source> is your client, you can send them messages using the Star Button on the Home screen</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1707"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1730"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1714"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1737"/>
         <source>Male</source>
         <translation>Homen</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1707"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1714"/>
         <source>Female</source>
         <translation>Mulher</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1715"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1736"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1722"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1743"/>
         <source>User</source>
         <translation>Usuário</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1716"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1738"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1723"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1745"/>
         <source>Coach</source>
         <translation>Treinador</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1717"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1740"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1724"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1747"/>
         <source>Client</source>
         <translation>Cliente</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1718"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1725"/>
         <source>Coach and Client</source>
         <translation>Treinador e Cliente</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="184"/>
+        <location filename="../cxx/dbusermodel.cpp" line="186"/>
         <source>If you remove your online account you&apos;ll not be able to log onto it anymore from any device.</source>
         <translation>Se você remover sua conta online, você não poderá entrar nela por mais nenhum outro aparelho.</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="186"/>
+        <location filename="../cxx/dbusermodel.cpp" line="188"/>
         <source>You&apos;ll not have access to your online client(s) anymore.</source>
         <translation>Você não mais terá acesso ao(s) seu(s) cliente(s) online.</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="188"/>
+        <location filename="../cxx/dbusermodel.cpp" line="190"/>
         <source>You&apos;ll not have access to your online coache(s) anymore.</source>
         <translation>Você não mais terá acesso ao(s) seu(s) coach(es) online.</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="190"/>
+        <location filename="../cxx/dbusermodel.cpp" line="192"/>
         <source>Remove online account?</source>
         <translation>Remover conta online?</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1371"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1378"/>
         <source>Online user information updated</source>
         <translation>Informações remotas do usuário atualizadas</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1557"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1587"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1564"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1594"/>
         <source> - unavailable</source>
         <translation> - indisponível</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1557"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1564"/>
         <source>The user is no longer available as your client. If you need to know more about this, contact them to find out the reason. Remove the user from your list of clients?</source>
         <translation>O usuário não está mais disponível como seu cliente. Se deseja saber mais sobre isso, contacte-o para obter uma resposta. Remover o usuário da sua lista de clientes?</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1587"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1594"/>
         <source>The user is no longer available as your coach. If you need to know more about this, contact them to find out the reason. Remove the user from your list of coaches?</source>
         <translation>O usuário não está mais disponível como seu treinador. Se deseja saber mais sobre isso, contacte-o para obter uma resposta. Remover o usuário da sua lista de treinadores?</translation>
     </message>
@@ -1032,45 +1025,45 @@
 <context>
     <name>ExercisesListPage</name>
     <message>
-        <location filename="../qml/Pages/ExercisesListPage.qml" line="148"/>
-        <location filename="../qml/Pages/ExercisesListPage.qml" line="171"/>
+        <location filename="../qml/Pages/ExercisesListPage.qml" line="146"/>
+        <location filename="../qml/Pages/ExercisesListPage.qml" line="169"/>
         <source>New</source>
         <translation>Novo</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesListPage.qml" line="163"/>
-        <location filename="../qml/Pages/ExercisesListPage.qml" line="190"/>
+        <location filename="../qml/Pages/ExercisesListPage.qml" line="161"/>
+        <location filename="../qml/Pages/ExercisesListPage.qml" line="188"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesListPage.qml" line="178"/>
-        <location filename="../qml/Pages/ExercisesListPage.qml" line="196"/>
+        <location filename="../qml/Pages/ExercisesListPage.qml" line="176"/>
+        <location filename="../qml/Pages/ExercisesListPage.qml" line="194"/>
         <source>Edit</source>
         <translation>Editar</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesListPage.qml" line="227"/>
+        <location filename="../qml/Pages/ExercisesListPage.qml" line="225"/>
         <source>Save as</source>
         <translation type="unfinished">Salvar como</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesListPage.qml" line="228"/>
+        <location filename="../qml/Pages/ExercisesListPage.qml" line="226"/>
         <source>Send to</source>
         <translation type="unfinished">Enviar para</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesListPage.qml" line="204"/>
+        <location filename="../qml/Pages/ExercisesListPage.qml" line="202"/>
         <source>Choose</source>
         <translation>Escolher</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesListPage.qml" line="226"/>
+        <location filename="../qml/Pages/ExercisesListPage.qml" line="224"/>
         <source>Import</source>
         <translation>Importar</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesListPage.qml" line="229"/>
+        <location filename="../qml/Pages/ExercisesListPage.qml" line="227"/>
         <source>Share</source>
         <translation>Compartilhar</translation>
     </message>
@@ -1253,122 +1246,107 @@
 <context>
     <name>MesocyclePage</name>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="62"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="39"/>
         <source>New program setup complete!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="63"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="67"/>
         <source>Required fields setup</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="68"/>
-        <source>Accept program from coach?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="69"/>
-        <source>Until you accept this program you can only view it</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="70"/>
-        <source>Yes</source>
-        <translation type="unfinished">Sim</translation>
-    </message>
-    <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="71"/>
-        <source>No</source>
-        <translation type="unfinished">Não</translation>
-    </message>
-    <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="75"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="39"/>
         <source>New program setup incomplete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="78"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="42"/>
+        <source>Close</source>
+        <translation type="unfinished">Fechar</translation>
+    </message>
+    <message>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="71"/>
         <source>Change and/or accept the program&apos;s name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="79"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="73"/>
         <source>Change and/or accept the start date</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="80"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="75"/>
         <source>Change and/or accept the end date</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="81"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="77"/>
         <source>Change and/or accept the split division</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="122"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="117"/>
         <source>Go to client&apos;s page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="162"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="157"/>
         <source>Set new name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="198"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="193"/>
         <source>Weigth Loss</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="199"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="194"/>
         <source>Muscle Gain</source>
         <translation type="unfinished">Ganho muscular</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="200"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="195"/>
         <source>Bulking</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="201"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="196"/>
         <source>Pre-contest</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="202"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="197"/>
         <source>Strength Build-up</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="203"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="198"/>
         <source>Physical Recovery</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="204"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="199"/>
         <source>Physical Maintenance</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="205"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="200"/>
         <source>Other</source>
         <translation type="unfinished">Outro</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="244"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="239"/>
         <source>No instructions file added</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="314"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="309"/>
         <source>Mesocycle-style program</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="333"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="328"/>
         <source>A Mesocycle is a short-term program, with defined starting and ending points and a specific goal in sight</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1537,52 +1515,47 @@
 <context>
     <name>OSInterface</name>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="208"/>
+        <location filename="../cxx/osinterface.cpp" line="125"/>
         <source>Your training routine seems to go well. Workout for the day is concluded</source>
         <translation>Sua rotina de treinos parece estar indo bem. Treino do dia concluído</translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="368"/>
+        <location filename="../cxx/osinterface.cpp" line="285"/>
         <source>Send file</source>
         <translation>Enviar arquivo</translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="437"/>
+        <location filename="../cxx/osinterface.cpp" line="354"/>
         <source>View file with...</source>
         <translation>Visualizar arquivo com...</translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="143"/>
+        <location filename="../cxx/osinterface.cpp" line="628"/>
         <source>Network interface: </source>
         <translation>Interface de rede: </translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="154"/>
-        <source>Server paused - Until it returns to the normal status, all online services will fail</source>
-        <translation>Servidor pausado - Até que o servidor volte às operações normais, todos os serviços online deixarão de funcionar</translation>
-    </message>
-    <message>
-        <location filename="../cxx/osinterface.cpp" line="157"/>
-        <source>Unable to access the local server: Attempting to use another interface</source>
-        <translation>Não foi possível accessar o servidor local: buscando uma outra interface de rede</translation>
-    </message>
-    <message>
-        <location filename="../cxx/osinterface.cpp" line="195"/>
+        <location filename="../cxx/osinterface.cpp" line="112"/>
         <source>Device is connected to the internet</source>
         <translation>Aparelho conectado à internet</translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="195"/>
+        <location filename="../cxx/osinterface.cpp" line="112"/>
         <source>Device is not connected to the internet</source>
         <translation>Aparelho não conectado à internet</translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="785"/>
+        <location filename="../cxx/osinterface.cpp" line="654"/>
+        <source>Error: cannot reach the TP Server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/osinterface.cpp" line="598"/>
         <source>Connected to server </source>
         <translation>Conectado ao servidor </translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="785"/>
+        <location filename="../cxx/osinterface.cpp" line="598"/>
         <source>Server unreachable</source>
         <translation>Servidor inacessível</translation>
     </message>
@@ -1741,22 +1714,27 @@
 <context>
     <name>QMLMesoInterface</name>
     <message>
-        <location filename="../cxx/qmlmesointerface.cpp" line="52"/>
+        <location filename="../cxx/qmlmesointerface.cpp" line="54"/>
         <source>Error: name too short</source>
         <translation>Erro: nome muito curto</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlmesointerface.cpp" line="52"/>
+        <location filename="../cxx/qmlmesointerface.cpp" line="54"/>
         <source>Error: Name already in use.</source>
         <translation>Erro: Nome em uso.</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlmesointerface.cpp" line="316"/>
+        <location filename="../cxx/qmlmesointerface.cpp" line="309"/>
+        <source>Exercises Program</source>
+        <translation type="unfinished">Programa de Exercícios</translation>
+    </message>
+    <message>
+        <location filename="../cxx/qmlmesointerface.cpp" line="351"/>
         <source>New Program</source>
         <translation>Novo Programa</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlmesointerface.cpp" line="422"/>
+        <location filename="../cxx/qmlmesointerface.cpp" line="448"/>
         <source>Program: </source>
         <translation>Programa: </translation>
     </message>
@@ -1780,135 +1758,135 @@
 <context>
     <name>QmlItemManager</name>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="370"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="372"/>
         <source>
  is formatted wrongly or corrupted</source>
         <translation>
  está formado errôneamente ou está corrompido</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="389"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="391"/>
         <source>Online server unavailable</source>
         <translation>Servidor indisponível</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="390"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="392"/>
         <source>Try it again later</source>
         <translation>Tente novamente mais tarde</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="414"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="416"/>
         <source>Warning</source>
         <translation>Atenção</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="263"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="265"/>
         <source>Weather Forecast</source>
         <translation>Previsão do Tempo</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="640"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="595"/>
         <source>Statistics</source>
         <translation>Estatísticas</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="398"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="400"/>
         <source>Warning! </source>
         <translation>Atenção! </translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="332"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="334"/>
         <source>Succesfully exported</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="336"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="338"/>
         <source>Succesfully shared</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="340"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="342"/>
         <source>Successfully imported</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="353"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="355"/>
         <source>Unknown Error</source>
         <translation>Erro desconhecido</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="357"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="359"/>
         <source>File not found!</source>
         <translation>Arquivo não encontrado!</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="361"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="363"/>
         <source>Failed to open file</source>
         <translation>Falha ao abrir o arquivo</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="365"/>
-        <location filename="../cxx/qmlitemmanager.cpp" line="369"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="367"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="371"/>
         <source>Error</source>
         <translation>Error</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="366"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="368"/>
         <source>File type not recognized</source>
         <translation>Tipo de arquivo não reconhecido</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="402"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="404"/>
         <source>Nothing to be done</source>
         <translation>Nada a ser feito</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="403"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="405"/>
         <source>File had already been imported</source>
         <translation>Arquivo já havia sido importado antes</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="406"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="408"/>
         <source>No program to import into</source>
         <translation>Nenhum programa de treinos para importar os dados</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="407"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="409"/>
         <source>Either create a new training plan or import from a complete program file</source>
         <translation>Crie um novo programa ou importe um programa completo de um arquivo</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="410"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="412"/>
         <source>Nothing to export</source>
         <translation>Nada para exportar</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="411"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="413"/>
         <source>Only exercises that do not come by default with the app can be exported</source>
         <translation>Somente exercícios adicionados - que não vieram pré incluídos no programa - podem ser exportados ou compartilhados</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="373"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="375"/>
         <source>Sharing failed</source>
         <translation>Falha ao compartilhar</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="377"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="379"/>
         <source>Export failed</source>
         <translation>Falha ao exportar</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="415"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="417"/>
         <source>Operation canceled</source>
         <translation>Operação cancelada</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="381"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="383"/>
         <source>Import from file failed</source>
         <translation>Importar do arquivo falhour</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="385"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="387"/>
         <source>Could not open file for exporting</source>
         <translation>Não foi possível abrir arquivo para exportar</translation>
     </message>
@@ -1967,22 +1945,22 @@
 <context>
     <name>QmlUserInterface</name>
     <message>
-        <location filename="../cxx/qmluserinterface.cpp" line="139"/>
+        <location filename="../cxx/qmluserinterface.cpp" line="137"/>
         <source>User Settings</source>
         <translation>Configurações do usuário</translation>
     </message>
     <message>
-        <location filename="../cxx/qmluserinterface.cpp" line="147"/>
+        <location filename="../cxx/qmluserinterface.cpp" line="145"/>
         <source>Settings</source>
         <translation>Configurações</translation>
     </message>
     <message>
-        <location filename="../cxx/qmluserinterface.cpp" line="155"/>
+        <location filename="../cxx/qmluserinterface.cpp" line="153"/>
         <source>Coaches</source>
         <translation>Treinadores</translation>
     </message>
     <message>
-        <location filename="../cxx/qmluserinterface.cpp" line="163"/>
+        <location filename="../cxx/qmluserinterface.cpp" line="161"/>
         <source>Clients</source>
         <translation>Clientes</translation>
     </message>
@@ -2201,115 +2179,110 @@
 <context>
     <name>TPCoachesAndClientsList</name>
     <message>
-        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="57"/>
+        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="58"/>
         <source>No clients pending confirmation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="55"/>
+        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="56"/>
         <source>No current clients</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="65"/>
+        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="66"/>
         <source>No coaches pending confirmation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="63"/>
+        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="64"/>
         <source>No available coaches</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="61"/>
+        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="62"/>
         <source>No current coaches</source>
         <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="110"/>
-        <source>Résumé</source>
-        <translation type="unfinished">Currículo</translation>
     </message>
 </context>
 <context>
     <name>TPFileOps</name>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="159"/>
+        <location filename="../cxx/tpfileops.cpp" line="178"/>
         <source>Select file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="200"/>
+        <location filename="../cxx/tpfileops.cpp" line="219"/>
         <source>Could not save to: </source>
         <translation>Não foi possível salvar em: </translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="203"/>
+        <location filename="../cxx/tpfileops.cpp" line="222"/>
         <source>Operation canceled</source>
         <translation>Operação cancelada</translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="144"/>
+        <location filename="../cxx/tpfileops.cpp" line="163"/>
         <source>Remove file?</source>
         <translation type="unfinished">Remove arquivo?</translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="146"/>
+        <location filename="../cxx/tpfileops.cpp" line="165"/>
         <source>Yes</source>
         <translation type="unfinished">Sim</translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="146"/>
+        <location filename="../cxx/tpfileops.cpp" line="165"/>
         <source>No</source>
         <translation type="unfinished">Não</translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1069"/>
+        <location filename="../cxx/tpfileops.cpp" line="1071"/>
         <source>data for a new coach</source>
         <translation type="unfinished">dados para um novo treinador</translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1069"/>
+        <location filename="../cxx/tpfileops.cpp" line="1071"/>
         <source>data for a new client</source>
         <translation type="unfinished">dados para um novo cliente</translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1074"/>
+        <location filename="../cxx/tpfileops.cpp" line="1076"/>
         <source>program</source>
         <translation type="unfinished">programa</translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1075"/>
+        <location filename="../cxx/tpfileops.cpp" line="1077"/>
         <source>A complete exercises program from coach </source>
         <translation type="unfinished">Um programa de exercícios completos pelo treinador </translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1088"/>
+        <location filename="../cxx/tpfileops.cpp" line="1090"/>
         <source>workout</source>
         <translation type="unfinished">treino</translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1089"/>
+        <location filename="../cxx/tpfileops.cpp" line="1091"/>
         <source>An extra workout from </source>
         <translation type="unfinished">Um treino extra de </translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1089"/>
+        <location filename="../cxx/tpfileops.cpp" line="1091"/>
         <source> for the program: </source>
         <translation type="unfinished"> para o programa: </translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1090"/>
+        <location filename="../cxx/tpfileops.cpp" line="1092"/>
         <source> for the next time you train </source>
         <translation type="unfinished"> para a próxima vez que você for treinar </translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1096"/>
+        <location filename="../cxx/tpfileops.cpp" line="1098"/>
         <source>Excercise Description</source>
         <translation type="unfinished">Descrição do Exercício</translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1097"/>
+        <location filename="../cxx/tpfileops.cpp" line="1099"/>
         <source>A new exercise for the exercises database from </source>
         <translation type="unfinished">Um novo exercício para o bando de dados de </translation>
     </message>
@@ -2385,22 +2358,22 @@
 <context>
     <name>TPOnlineServices</name>
     <message>
-        <location filename="../cxx/online_services/tponlineservices.cpp" line="354"/>
+        <location filename="../cxx/online_services/tponlineservices.cpp" line="328"/>
         <source>File on the online server already up to date</source>
         <translation>Arquivo online está atualizado</translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tponlineservices.cpp" line="587"/>
+        <location filename="../cxx/online_services/tponlineservices.cpp" line="561"/>
         <source>Error downloading file</source>
         <translation>Erro ao baixar arquivo</translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tponlineservices.cpp" line="610"/>
+        <location filename="../cxx/online_services/tponlineservices.cpp" line="584"/>
         <source>Http headers missing &quot;Content-Type&quot;</source>
         <translation>Cabeçalho http não possui &quot;Content-Type&quot;</translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tponlineservices.cpp" line="615"/>
+        <location filename="../cxx/online_services/tponlineservices.cpp" line="589"/>
         <source>No network reply</source>
         <translation>Sem resposta da rede</translation>
     </message>
@@ -2873,7 +2846,7 @@
 <context>
     <name>UserInfoListModel</name>
     <message>
-        <location filename="../cxx/userinfolistmodel.cpp" line="229"/>
+        <location filename="../cxx/userinfolistmodel.cpp" line="226"/>
         <source>Insert Time: </source>
         <translation type="unfinished"></translation>
     </message>

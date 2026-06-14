@@ -129,12 +129,11 @@ public:
 	inline void setCurrentUser(const QString &new_value) { changeValue(GLOBAL_GROUP, CURRENT_USER, new_value); emit currentUserChanged(); }
 	inline QString serverAddress() const { return getValue(GLOBAL_GROUP, SERVER_ADDRESS).toString(); }
 	inline void setServerAddress(const QString &new_value) { changeValue(GLOBAL_GROUP, SERVER_ADDRESS, new_value); }
-	inline QString serverPort() const { return getValue(GLOBAL_GROUP, SERVER_PORT).toString(); }
+	inline QString serverPort() const { return getValue(GLOBAL_GROUP, SERVER_PORT, "8080"_L1).toString(); }
 	inline void setServerPort(const QString &new_value) { changeValue(GLOBAL_GROUP, SERVER_PORT, new_value); }
 
 	Q_INVOKABLE QString availableLanguagesLabel(const uint language_idx) const;
 	QStringList availableLanguages() const;
-
 	inline bool appExiting() const { return m_appExiting; }
 
 signals:

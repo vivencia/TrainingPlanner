@@ -117,6 +117,14 @@ public:
 		m_targetUser = userid;
 		m_fullPathOK = false;
 	}
+	inline void swapUsers()
+	{
+		QString owner_user{std::move(m_ownerUser)};
+		m_ownerUser = std::move(m_targetUser);
+		m_targetUser = std::move(owner_user);
+		m_fullPathOK = false;
+	}
+
 	inline const QString &subdirs() const { return m_subDirs; }
 	inline void setSubdirs(const QString &subdirs, const bool sanitized)
 	{

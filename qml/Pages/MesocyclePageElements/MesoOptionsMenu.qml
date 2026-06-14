@@ -48,7 +48,7 @@ TPPageMenu {
 
 	function enabledCondition(menu_entry: int): bool {
 		switch (menu_entry) {
-			case MesoManager.OPTION_SEND_TO_CLIENT: return !mesoManager.ownMeso && mesoManager.canExport;
+			case MesoManager.OPTION_SEND_TO_CLIENT: return mesoManager.canExport;
 			case MesoManager.OPTION_SAVE_AS:
 			case MesoManager.OPTION_SEND_TO: return mesoManager.canExport;
 			case MesoManager.OPTION_SHARE: return mesoManager.canExport && Qt.platform.os === "android";

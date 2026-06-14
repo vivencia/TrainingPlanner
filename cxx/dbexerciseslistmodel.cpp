@@ -26,8 +26,10 @@ enum RoleNames {
 	createRole(selected, EXERCISES_LIST_FIELD_SELECTED)
 };
 
+#include <QThread>
 DBExercisesListModel::DBExercisesListModel(QObject *parent) : QAbstractListModel{parent}
 {
+	qDebug() << "DBExercisesListModel::DBExercisesListModel running on thread: " << thread()->isMainThread();
 	_app_exercises_list = this;
 	REGISTER_QML_SINGLETON(DBExercisesListModel, this);
 

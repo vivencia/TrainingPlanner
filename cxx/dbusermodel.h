@@ -114,7 +114,7 @@ public:
 
 	QString mainUserDir() const;
 	inline QString userDir(const QString &userid) const { return mainUserDir() % userid % '/'; }
-	inline QString userDir(const uint user_idx) const { return user_idx > 0 ? userDir(userId(user_idx)) : mainUserDir(); }
+	inline QString userDir(const int user_idx) const { return user_idx > 0 ? userDir(userId(user_idx)) : mainUserDir(); }
 	inline uint userCount() const { return m_usersData.count(); }
 	inline const QString _onlineAccount(const uint user_idx) const
 	{
@@ -257,7 +257,7 @@ public:
 	}
 
 	Q_INVOKABLE inline QString avatarFromId(const QString &userid) { return avatar(userIdxFromFieldValue(USER_FIELD_ID, userid)); }
-	Q_INVOKABLE QString avatar(const uint user_idx);
+	Q_INVOKABLE QString avatar(const int user_idx);
 	Q_INVOKABLE void setAvatar(const int user_idx, const QString &new_avatar, const bool saveToDisk = true, const bool upload = true);
 
 	Q_INVOKABLE inline uint userCategory(const int user_idx) const { return user_idx >= 0 && user_idx < m_usersData.count() ? _userCategory(user_idx).toUInt() : 0; }

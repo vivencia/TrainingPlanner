@@ -72,7 +72,6 @@ void QmlUserInterface::getSettingsPage()
 void QmlUserInterface::getCoachesPage()
 {
 	if (!m_coachesComponent) {
-		m_coachesProperties.insert("userManager"_L1, QVariant::fromValue(this));
 		m_coachesComponent = new QQmlComponent{appQmlEngine(), "TpQml.Pages"_L1, "CoachesPage"_L1, QQmlComponent::Asynchronous};
 		connect(m_coachesComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) { getCoachesPage(); });
 	}
@@ -103,7 +102,6 @@ void QmlUserInterface::getCoachesPage()
 void QmlUserInterface::getClientsPage()
 {
 	if (!m_clientsComponent) {
-		m_clientsProperties.insert("userManager"_L1, QVariant::fromValue(this));
 		m_clientsComponent = new QQmlComponent{appQmlEngine(), "TpQml.Pages"_L1, "ClientsPage"_L1, QQmlComponent::Asynchronous};
 		connect(m_clientsComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) { getClientsPage(); });
 	}
@@ -149,7 +147,7 @@ void QmlUserInterface::createSettingsPage()
 
 void QmlUserInterface::createCoachesPage()
 {
-	m_coachesPage = static_cast<QQuickItem*>(m_coachesComponent->createWithInitialProperties(m_coachesProperties, appQmlEngine()->rootContext()));
+	m_coachesPage = static_cast<QQuickItem*>(m_coachesComponent->create(appQmlEngine()->rootContext()));
 	appQmlEngine()->setObjectOwnership(m_coachesPage, QQmlEngine::CppOwnership);
 	m_coachesPage->setParentItem(appItemManager()->AppPagesVisualParent());
 	appPagesListModel()->openPage(m_coachesPage, std::move(tr("Coaches")));
@@ -157,7 +155,7 @@ void QmlUserInterface::createCoachesPage()
 
 void QmlUserInterface::createClientsPage()
 {
-	m_clientsPage = static_cast<QQuickItem*>(m_clientsComponent->createWithInitialProperties( m_clientsProperties, appQmlEngine()->rootContext()));
+	m_clientsPage = static_cast<QQuickItem*>(m_clientsComponent->create(appQmlEngine()->rootContext()));
 	appQmlEngine()->setObjectOwnership(m_clientsPage, QQmlEngine::CppOwnership);
 	m_clientsPage->setParentItem(appMainWindow()->contentItem());
 	appPagesListModel()->openPage(m_clientsPage, std::move(tr("Clients")));

@@ -20,6 +20,7 @@ Item {
 	property alias anySelected: workingModel.anySelected
 	property alias currentRow: workingModel.currentRow
 	property alias selectedUserIdx: workingModel.currentUserIdx
+	property alias count: workingModel.count
 
 	signal itemSelected(int userIdx)
 	signal buttonClicked()
@@ -101,22 +102,25 @@ Item {
 				border.color: delegate.selected ? AppSettings.fontColor : "transparent"
 			}
 
+			onClicked: _control.selectItem(delegate.index);
+
 			Loader {
 				id: itemButtonLoader
-				active: delegate.selected
+				active: _control.perItemButtonString.length > 0 && delegate.selected
 				asynchronous: true
+				width: delegate.width * 0.3
+				height: AppSettings.itemDefaultHeight * 0.9
+				anchors {
+					verticalCenter: parent.verticalCenter
+					right: parent.right
+				}
 
 				sourceComponent: TPButton {
-					text: qsTr("Résumé")
+					text: _control.perItemButtonString
 					rounded: false
-					width: delegate.width * 0.3
-					x: delegate.width - width - 5
-					y: 0
 					onClicked: _control.itemButtonClicked(workingModel.userIdx(delegate.index));
 				}
 			}
-
-			onClicked: _control.selectItem(delegate.index);
 		} //ItemDelegate
 	}
 
@@ -125,8 +129,8 @@ Item {
 		text: _control.buttonString
 		autoSize: true
 		rounded: false
-		enabled: listview.currentIndex >= 0
-		visible: listview.enabled && _control.buttonString.length > 0
+		enabled: workingModel.currentRow >= 0
+		visible: _control.buttonString.length > 0
 
 		onClicked: _control.buttonClicked();
 
@@ -137,16 +141,21 @@ Item {
 	}
 
 	function selectItem(index: int): void {
-		if (!multipleSelection) {
-			const is_selected = workingModel.isSelected(index);
-			workingModel.setSelected(index, !is_selected);
+		if (index >= 0 && index < workingModel.count) {
+			if (multipleSelection) {
+				const is_selected = workingModel.isSelected(index);
+				workingModel.setSelected(index, !is_selected);
+				workingModel.currentRow = index;
+			}
+			else {
+				workingModel.setSelected(workingModel.currentRow, false);
+				workingModel.setSelected(index, true);
+				workingModel.currentRow = index;
+				itemSelected(workingModel.currentUserIdx);
+			}
 		}
-		else {
-			workingModel.setSelected(workingModel.currentRow, false);
-			workingModel.setSelected(index, true);
-			itemSelected(workingModel.currentUserIdx);
-		}
-		workingModel.currentRow = index;
+		else
+			itemSelected(-1);
 	}
 
 	function applyFilter(filter: string): void {

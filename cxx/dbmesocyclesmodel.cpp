@@ -29,21 +29,6 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
 		m_clientMesos = new HomePageMesoModel{this, false};
 
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, &DBMesocyclesModel::labelChanged);
-	connect(this, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field) {
-		m_dbModelInterface->setModified(meso_idx, field);
-		appThreadManager()->runAction(m_db, ThreadManager::UpdateOneField);
-		if (isMesoOK(meso_idx)) {
-			switch (field) {
-			case MESO_FIELD_STARTDATE:
-			case MESO_FIELD_ENDDATE:
-			case MESO_FIELD_SPLIT:
-				removeCalendarForMeso(meso_idx, true);
-				break;
-			}
-			if (field >= MESO_FIELD_SPLIT && field <= MESO_FIELD_SPLITF)
-				checkIfCanExport(meso_idx);
-		}
-	});
 	getAllMesocycles();
 }
 
@@ -68,14 +53,6 @@ void DBMesocyclesModel::removeMesoManager(const uint meso_idx)
 	}
 }
 
-void DBMesocyclesModel::incorporateMeso(const uint meso_idx)
-{
-	m_dbModelInterface->setModified(meso_idx, -1);
-	appThreadManager()->runAction(m_db, ThreadManager::InsertRecords);
-	getCalendarForMeso(meso_idx);
-	removeMesoFile(meso_idx);
-}
-
 void DBMesocyclesModel::getMesocyclePage(const uint meso_idx, const bool new_meso)
 {
 	isOwnMeso(meso_idx) ? m_ownMesos->setCurrentIndexViaMesoIdx(meso_idx) : m_clientMesos->setCurrentIndexViaMesoIdx(meso_idx);
@@ -89,11 +66,7 @@ void DBMesocyclesModel::startNewMesocycle(const bool own_meso)
 				QString{}, QString{}, QString{}, std::move("RRRRRRR"_L1), QString{}, QString{}, QString{}, QString{},
 				QString{}, QString{}, appUserModel()->userId(0), (own_meso ? appUserModel()->userId(0) : QString{}), QString{},
 		QString{}, std::move("1"_L1)}))};
-
 	addSubMesoModel(meso_idx, own_meso);
-	for (uint8_t i{0}; i < MESO_N_REQUIRED_FIELDS; ++i)
-		setBit(m_isMesoOK[meso_idx], meso_required_fields[i]);
-
 	static_cast<void>(mesoManager(meso_idx));
 	getMesocyclePage(meso_idx, true);
 }
@@ -110,9 +83,8 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 	removeCalendarForMeso(meso_idx, false);
 	removeMesoManager(meso_idx);
 
-	m_isMesoOK.remove(meso_idx);
-	m_canExport.remove(meso_idx);
-	removeMesoFile(meso_idx);
+	m_metadata.remove(meso_idx);
+	removeMesoFiles(meso_idx);
 	static_cast<void>(QFile::remove(file(meso_idx)));
 	if (isOwnMeso(meso_idx))
 		m_ownMesos->removeMesoIdx(meso_idx);
@@ -135,14 +107,16 @@ void DBMesocyclesModel::getMesoCalendarPage(const uint meso_idx)
 
 void DBMesocyclesModel::openSpecificWorkout(const uint meso_idx, const QDate &date)
 {
-	connect(this, &DBMesocyclesModel::calendarReady, [this,date] (const uint meso_idx) { mesoManager(meso_idx)->getWorkoutPage(date); });
+	connect(this, &DBMesocyclesModel::calendarReady, [this,date] (const uint meso_idx) {
+		mesoManager(meso_idx)->getWorkoutPage(date);
+	});
 	getCalendarForMeso(meso_idx);
 }
 
 void DBMesocyclesModel::setCurrentMesosView(const bool own_mesos_view)
 {
 	int new_working_meso{own_mesos_view ? (m_ownMesos ? m_ownMesos->currentMesoIdx() : -1) :
-																		(m_clientMesos ? m_clientMesos->currentMesoIdx() : -1)};
+																	(m_clientMesos ? m_clientMesos->currentMesoIdx() : -1)};
 	if (new_working_meso != m_currentWorkingMeso) {
 		m_currentWorkingMeso = new_working_meso;
 		setWorkingCalendar(m_currentWorkingMeso);
@@ -153,21 +127,46 @@ void DBMesocyclesModel::setCurrentMesosView(const bool own_mesos_view)
 	}
 }
 
-bool DBMesocyclesModel::isRequiredFieldWrong(const uint meso_idx, const uint field) const
+bool DBMesocyclesModel::isMesoOK(const int meso_idx) const
 {
-	return isBitSet(m_isMesoOK.at(meso_idx), field);
+	if (meso_idx >= 0 && meso_idx < m_metadata.count()) {
+		const uint ok_flags{(2 ^ MD_NAME_OK) | (2 ^ MD_STARTDATE_OK) | (2 ^ MD_ENDDATE_OK) | (2 ^ MD_SPLIT_OK)};
+		return (m_metadata.at(meso_idx) & ok_flags) == ok_flags;
+	}
+	return false;
 }
 
-void DBMesocyclesModel::setModified(const uint meso_idx, const uint field)
+void DBMesocyclesModel::setModified(const uint meso_idx, const MesoFields field)
 {
-	if (!isMesoOK(meso_idx)) {
-		unSetBit(m_isMesoOK[meso_idx], field);
-		if (isMesoOK(meso_idx)) {
-			incorporateMeso(meso_idx);
+	emit mesoChanged(meso_idx, field);
+	if (field != MESO_FIELD_METADATA) {
+		if (isProgramSent(meso_idx)) //any modification after the program has been sent to the client marks the program sendable again
+			unsetMetaData(meso_idx, MD_PROGRAM_SENT, false);
+	}
+	if (isMesoOK(meso_idx)) {
+		switch (field) {
+		case MESO_FIELD_STARTDATE:
+		case MESO_FIELD_ENDDATE:
+		case MESO_FIELD_SPLIT:
+			removeCalendarForMeso(meso_idx, true);
+		default:
+			break;
+		}
+		if (field >= MESO_FIELD_SPLIT && field <= MESO_FIELD_SPLITF)
+			checkIfCanExport(meso_idx);
+	}
+	else {
+		MetaData md_field{mesoFieldToMetadataField(field)};
+		if (md_field != MD_UNUSED)
+			setMetaData(meso_idx, md_field, false);
+		if (_id(meso_idx) < 0) {
+			m_dbModelInterface->setModified(meso_idx, -1);
+			appThreadManager()->runAction(m_db, ThreadManager::InsertRecords);
 			return;
 		}
 	}
-	emit mesoChanged(meso_idx, field);
+	m_dbModelInterface->setModified(meso_idx, field);
+	appThreadManager()->runAction(m_db, ThreadManager::UpdateOneField);
 }
 
 int DBMesocyclesModel::idxFromFieldValue(const QString &field_value, const int field) const
@@ -230,7 +229,7 @@ void DBMesocyclesModel::setMuscularGroup(const uint meso_idx, const QChar &split
 {
 	const int split_col{MESO_FIELD_SPLITA + static_cast<int>(splitLetter.cell()) - static_cast<int>('A')};
 	m_mesoData[meso_idx][split_col] = newSplitValue;
-	setModified(meso_idx, split_col);
+	setModified(meso_idx, static_cast<MesoFields>(split_col));
 }
 
 void DBMesocyclesModel::setCoach(const uint meso_idx, const QString &new_coach)
@@ -254,7 +253,7 @@ void DBMesocyclesModel::setFile(const uint meso_idx, const QString &new_file)
 	}
 }
 
-DBMesocyclesModel::st_MesoType DBMesocyclesModel::mesoType(const uint meso_idx) const
+DBMesocyclesModel::MesoType DBMesocyclesModel::mesoType(const uint meso_idx) const
 {
 	if (client(meso_idx) != appUserModel()->userId(0)) //meso for a client
 		return MT_MESO_FOR_CLIENT;
@@ -558,8 +557,11 @@ void DBMesocyclesModel::checkIfCanExport(const uint meso_idx, const bool emit_si
 			if (op == ThreadManager::CustomOperation) {
 				disconnect(*conn);
 				const bool can_export{return_value2.toBool()};
-				if (m_canExport.at(meso_idx) != can_export) {
-					m_canExport[meso_idx] = can_export;
+				if (canExport(meso_idx) != can_export) {
+					if (can_export)
+						setMetaData(meso_idx, MD_CAN_EXPORT);
+					else
+						unsetMetaData(meso_idx, MD_CAN_EXPORT);
 					if (emit_signal)
 						emit canExportChanged(meso_idx, can_export);
 				}
@@ -624,7 +626,7 @@ void DBMesocyclesModel::exportToFormattedFile(const uint meso_idx, const TPFileP
 										std::move([this] () { return clientLabel(); }),
 										std::move([this] () { return fileLabel(); }),
 										std::move([this] () { return typeLabel(); }),
-										std::move([this] () { return realMesoLabel(); })
+										std::move([this] () { return metadataLabel(); })
 	};
 
 	if (!appUtils()->writeDataToFormattedFile(out_file,
@@ -694,7 +696,7 @@ int DBMesocyclesModel::importFromFormattedFile(const uint meso_idx, const TPFile
 TPFilePathPtr DBMesocyclesModel::suggestedName(const int meso_idx, const bool external_filename) const
 {
 	QString userid;
-	const st_MesoType mt{mesoType(meso_idx)};
+	const MesoType mt{mesoType(meso_idx)};
 	switch (mt) {
 		case MT_MESO_FOR_CLIENT:	userid = std::move(client(meso_idx)); break;
 		case MT_MESO_FROM_COACH:	userid = std::move(coach(meso_idx)); break;
@@ -713,8 +715,6 @@ QString DBMesocyclesModel::formatFieldToExport(const uint field, const QString &
 	case MESO_FIELD_COACH:
 	case MESO_FIELD_CLIENT:
 		return fieldValue;
-	case MESO_FIELD_REALMESO:
-		return fieldValue == '1' ? tr("Yes") : tr("No");
 	}
 	return fieldValue;
 }
@@ -725,17 +725,16 @@ QString DBMesocyclesModel::formatFieldToImport(const uint field, const QString &
 	case MESO_FIELD_STARTDATE:
 	case MESO_FIELD_ENDDATE:
 		return QString::number(appUtils()->dateFromString(fieldValue).toJulianDay());
-	case MESO_FIELD_REALMESO:
-		return fieldValue == tr("Yes") ? "1"_L1 : "0"_L1;
 	}
 	return fieldValue;
 }
 
-void DBMesocyclesModel::removeMesoFile(const uint meso_idx)
+void DBMesocyclesModel::removeMesoFiles(const uint meso_idx)
 {
 	auto meso_filename{suggestedName(meso_idx)};
 	appUserModel()->removeFileFromServer(*meso_filename);
 	static_cast<void>(QFile::remove(meso_filename->toString()));
+	static_cast<void>(QFile::remove(file(meso_idx)));
 }
 
 int DBMesocyclesModel::newMesoFromFile(const TPFilePath &filename, const bool own_meso, const std::optional<bool> &file_formatted)
@@ -765,20 +764,6 @@ int DBMesocyclesModel::newMesoFromFile(const TPFilePath &filename, const bool ow
 			m_dbModelInterface->setModified(meso_idx, -1);
 			appThreadManager()->runAction(m_db, ThreadManager::UpdateSeveralFields);
 		}
-
-		uint8_t meso_required_fields{0};
-		if (!isMesoNameOK(meso_idx))
-			setBit(meso_required_fields, MESO_FIELD_NAME);
-		if (!isStartDateOK(meso_idx))
-			setBit(meso_required_fields, MESO_FIELD_STARTDATE);
-		if (!isEndDateOK(meso_idx))
-			setBit(meso_required_fields, MESO_FIELD_ENDDATE);
-		if (!isSplitOK(meso_idx))
-			setBit(meso_required_fields, MESO_FIELD_SPLIT);
-		m_isMesoOK[meso_idx] = meso_required_fields;
-		if (!existing_meso && isMesoOK(meso_idx))
-			setBit(meso_required_fields, 8); //the incorporate bit
-
 		makeUsedSplits(meso_idx);
 		addSubMesoModel(meso_idx, own_meso);
 		QMLMesoInterface *mesomanager{m_mesoManagerList.value(meso_idx)};
@@ -792,10 +777,9 @@ const uint DBMesocyclesModel::newMesoData(QStringList &&infolist)
 {
 	const uint meso_idx{count()};
 	m_mesoData.append(std::move(infolist));
-	m_canExport.append(false);
+	m_metadata.append(0);
 	m_usedSplits.append(QString{});
 	makeUsedSplits(meso_idx);
-	m_isMesoOK.append(0);
 	return meso_idx;
 }
 

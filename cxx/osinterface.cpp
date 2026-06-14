@@ -27,7 +27,10 @@
 
 #endif //Q_OS_ANDROID
 
+#ifdef LOCAL_TPSERVER
+#include <QNetworkInterface>
 #ifdef TPSERVER_MACHINE
+#include <QHash>
 #include <QProcess>
 
 extern "C"
@@ -54,6 +57,7 @@ enum procExitCodes {
 };
 
 #endif //TPSERVER_MACHINE
+#endif //LOCAL_TPSERVER
 
 #include <QFileInfo>
 #include <QGuiApplication>
@@ -73,113 +77,26 @@ constexpr int CONNECTION_ERR_TIMEOUT{20*1000};
 #endif
 
 enum connectMessagesIndex {
-	interfaceMessage,
 	internetMessage,
 	serverMessage,
+	interfaceMessage,
 };
 
 OSInterface::OSInterface(QObject *parent) : QObject{parent}
 {
 	_app_os_interface = this;
 	REGISTER_QML_SINGLETON(OSInterface, this);
-
 	m_connectionMessages.resize(3);
 	connect(qApp, &QCoreApplication::aboutToQuit, this, [this] () {
 		appOnlineServices()->userLogout(111111);
 	});
-	checkServer(appSettings()->serverAddress(), appSettings()->serverPort());
-#ifdef LOCAL_TPSERVER
-	checkInternetConnection();
-#endif
-
+	connect(appOnlineServices(), &TPOnlineServices::serverStatusChanged, this, [this]
+										(const uint online_status, const QString &server_address, const int request_id) {
+		localServerProcessResult(online_status);
+	}, Qt::QueuedConnection);
 #ifdef Q_OS_ANDROID
 	initAndroidInterface();
 #endif
-}
-
-void OSInterface::checkServer(QString address, QString port, QNetworkInterface interface)
-{
-	if (port.isEmpty())
-		port = std::move("8080"_L1);
-
-	if (address.isEmpty()) {
-#ifdef TPSERVER_MACHINE
-		checkLocalServer();
-#elif LOCAL_TPSERVER
-		if (interface.isValid()) {
-			address = std::move(interface.addressEntries().constFirst().ip().toString());
-			checkNetworkInterfaces();
-		}
-		else
-			qDebug() << "Error: OsInterface::checkServer() << inferface argument is not valid and address is empty"
-#else
-		checkInternetConnection();
-#endif
-		return;
-	}
-
-	auto conn{std::make_shared<QMetaObject::Connection>()};
-	*conn = connect(appOnlineServices(), &TPOnlineServices::serverStatusChanged, this, [this,conn,address,port,interface]
-							(const uint online_status, const QString &server_address, const QString &server_port) mutable {
-		disconnect(*conn);
-		bool success{false};
-		if (interface.isValid()) {
-			mFailedInterface = std::move(QNetworkInterface{});
-			mNetworkInterface = std::move(interface);
-			switch (online_status) {
-			case TP_RET_CODE_SUCCESS:
-				success = true;
-				break;
-			case TP_RET_CODE_SERVER_UNREACHABLE:
-				if (interface.isValid()) {
-					mFailedInterface = std::move(interface);
-					mNetworkInterface = std::move(QNetworkInterface{});
-				}
-				break;
-			case TP_RET_CODE_SERVER_PAUSED:
-				break;
-			}
-			if (!m_currentNetworkStatus[interfaceMessage].has_value() || m_currentNetworkStatus[interfaceMessage].value() != success) {
-				QString message{tr("Network interface: ")};
-				if (mNetworkInterface.isValid()) {
-					switch (mNetworkInterface.type()) {
-					case QNetworkInterface::Loopback:	message += "Loopback"_L1;	break;
-					case QNetworkInterface::Virtual:	message += "Virtual"_L1;	break;
-					case QNetworkInterface::Ethernet:	message += "Ethernet"_L1;	break;
-					case QNetworkInterface::Wifi:		message += "WiFi"_L1;		break;
-					default:							message += "Unknown"_L1;	break;
-					}
-					message += '(' % mNetworkInterface.name() % "@ "_L1 % server_address % ':' % server_port;
-					if (!success)
-						message += '\n' % tr("Server paused - Until it returns to the normal status, all online services will fail");
-				}
-				else
-					message += tr("Unable to access the local server: Attempting to use another interface");
-				setNetStatus(interfaceMessage, success, std::move(message));
-			}
-		}
-		else {
-			switch (online_status) {
-			case TP_RET_CODE_SUCCESS:
-				success = true;
-				break;
-			case TP_RET_CODE_SERVER_UNREACHABLE:
-				break;
-			case TP_RET_CODE_SERVER_PAUSED:
-				break;
-			}
-			if (!success) {
-#ifdef TPSERVER_MACHINE
-				checkLocalServer();
-#elif LOCAL_TPSERVER
-				checkNetworkInterfaces();
-#else
-				checkInternetConnection();
-#endif
-			}
-		}
-	});
-	appOnlineServices()->checkServer(address, port);
 }
 
 void OSInterface::checkInternetConnection()
@@ -192,7 +109,7 @@ void OSInterface::checkInternetConnection()
 	checkConnectionSocket.close();
 	if (!m_currentNetworkStatus[internetMessage].has_value() || m_currentNetworkStatus[internetMessage].value() != is_connected) {
 		setNetStatus(internetMessage, is_connected, std::move(is_connected ?
-									tr("Device is connected to the internet") : tr("Device is not connected to the internet")));
+								tr("Device is connected to the internet") : tr("Device is not connected to the internet")));
 		emit internetStatusChanged();
 	}
 
@@ -667,39 +584,75 @@ void OSInterface::setNetStatus(uint messages_index, bool success, QString &&mess
 	setBit(m_networkStatus, on_bit);
 	unSetBit(m_networkStatus, off_bit);
 	m_currentNetworkStatus[messages_index] = success;
-	m_connectionMessages[messages_index] = std::move(message);
-	emit connectionMessageChanged();
+	m_connectionMessages[messages_index] = std::forward<QString>(message);
+	emit connectionStatusChanged();
 	appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
 			{QString{}, m_connectionMessages.join('\n')}, record_separator), Qt::AlignTop|Qt::AlignHCenter, success ?
-																									"set-completed" : "error");
+																								"set-completed" : "error");
+}
+
+void OSInterface::localServerProcessResult(const uint online_status, const QString &additional_message)
+{
+	const bool online{online_status == TP_RET_CODE_SUCCESS};
+	if (!m_currentNetworkStatus[serverMessage].has_value() || m_currentNetworkStatus[serverMessage].value() != online) {
+		QString message{online ? tr("Connected to server ") : tr("Server unreachable")};
+		if (online)
+			message += std::move('(' + appSettings()->serverAddress() % ':' % appSettings()->serverPort() % ')' % additional_message);
+		else
+			message += additional_message;
+		setNetStatus(serverMessage, online, std::move(message));
+	}
 }
 
 #ifdef LOCAL_TPSERVER
-void OSInterface::checkNetworkInterfaces()
+void OSInterface::getAvailableAddresses()
 {
-	QNetworkInterface running_interface, lo_interface;
+	QHash<int,QString> interface_addresses;
 	const QList<QNetworkInterface> &interfaces{QNetworkInterface::allInterfaces()};
 	for (const auto &interface : interfaces) {
 		if (interface.isValid() && interface.flags() & QNetworkInterface::IsRunning) {
 			const QList<QNetworkAddressEntry> &addresses{interface.addressEntries()};
 			for (const auto &address : addresses) {
 				if (!address.ip().isNull() && tpScanNetwork::ping(address.ip().toString())) {
-					if (interface.type() == QNetworkInterface::Loopback)
-						lo_interface = interface;
-					else {
-						running_interface = interface;
-						break;
-					}
+					if (interface.type() != QNetworkInterface::Loopback)
+						interface_addresses.insert(interface.index(), address.ip().toString() % ':' % appSettings()->serverPort());
 				}
 			}
-			if (running_interface.isValid() && running_interface.index() != mFailedInterface.index())
-				break;
 		}
 	}
-	if (!running_interface.isValid())
-		running_interface = std::move(lo_interface);
+	emit serverAddressesFetched(interface_addresses);
+}
 
-	checkServer(QString{}, QString{}, running_interface);
+void OSInterface::setWorkingNetInterface(const int interface_index)
+{
+	QString message{tr("Network interface: ")};
+	if (interface_index != 0) {
+		bool correct_interface{false};
+		const QList<QNetworkInterface> &interfaces{QNetworkInterface::allInterfaces()};
+		for (const auto &interface : interfaces) {
+			correct_interface = interface.index() == interface_index;
+			if (!correct_interface) {
+				const QList<QNetworkAddressEntry> &addresses{interface.addressEntries()};
+				for (const auto &address : addresses) {
+					if ((correct_interface = !address.ip().isNull() && address.ip().toString() == appSettings()->serverAddress()))
+						break;
+				}
+			}
+			if (correct_interface) {
+				switch (interface.type()) {
+				case QNetworkInterface::Loopback:	message += "Loopback"_L1;	break;
+				case QNetworkInterface::Virtual:	message += "Virtual"_L1;	break;
+				case QNetworkInterface::Ethernet:	message += "Ethernet"_L1;	break;
+				case QNetworkInterface::Wifi:		message += "WiFi"_L1;		break;
+				default:							message += "Unknown"_L1;	break;
+				}
+				message += '(' % interface.name() % "@ "_L1 % appSettings()->serverAddress() % ':' % appSettings()->serverPort();
+			}
+		}
+	}
+	else
+		message += tr("Error: cannot reach the TP Server");
+	setNetStatus(interfaceMessage, interface_index > 0, std::move(message));
 }
 
 #ifdef TPSERVER_MACHINE
@@ -717,7 +670,7 @@ void OSInterface::serverProcessFinished(QProcess *proc, const int exit_code, QPr
 	proc->deleteLater();
 	if (exit_status != QProcess::NormalExit) {
 		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR, appUtils()->string_strings(
-													{"Linux TP Server"_L1, "Error executing init_script"_L1}, record_separator));
+												{"Linux TP Server"_L1, "Error executing init_script"_L1}, record_separator));
 		return;
 	}
 
@@ -739,15 +692,12 @@ void OSInterface::serverProcessFinished(QProcess *proc, const int exit_code, QPr
 	case TPSERVER_PAUSED_LOCALHOST:
 		commandLocalServer("Unpause server?"_L1, "pause"_L1);
 		break;
-	default: //TPSERVER_OK or TPSERVER_OK_LOCALHOST
-		{
-			const QString &address{proc->readAllStandardOutput()};
-			const auto address_start{address.indexOf('(')};
-			const auto address_end{address.indexOf(':', address_start + 1)};
-			const auto port_end{address.indexOf(')', address_end + 1)};
-			checkServer(address.sliced(address_start + 1, address_end - address_start - 1),
-			address.sliced(address_end + 1, port_end - address_end - 1), QNetworkInterface{});
-			localServerProcessResult(TP_RET_CODE_SUCCESS);
+	default: { //TPSERVER_OK or TPSERVER_OK_LOCALHOST
+		QString address{std::move(proc->readAllStandardOutput())};
+		const auto address_start{address.indexOf('(') + 1};
+		const auto port_end{address.indexOf(')', address_start + 1) - 1};
+		address.slice(address_start, port_end - address_start + 1);
+		emit serverAddressesFetched(QHash<int,QString>{std::pair<int,QString>{-1, address}});
 		}
 		break;
 	}
@@ -777,19 +727,5 @@ void OSInterface::commandLocalServer(const QString &title, const QString &comman
 	});
 	appUserModel()->requestPasswordFromUser(requestid, title, "Your system user password is required"_L1);
 }
-
-void OSInterface::localServerProcessResult(const uint online_status, const QString &additional_message)
-{
-	const bool online{online_status == TP_RET_CODE_SUCCESS};
-	if (!m_currentNetworkStatus[serverMessage].has_value() || m_currentNetworkStatus[serverMessage].value() != online) {
-		QString message{online ? tr("Connected to server ") : tr("Server unreachable")};
-		if (online)
-			message += std::move('(' + appSettings()->serverAddress() % ':' % appSettings()->serverPort() % ')' % additional_message);
-		else
-			message += additional_message;
-		setNetStatus(serverMessage, online, std::move(message));
-	}
-}
-
 #endif //TPSERVER_MACHINE
 #endif //LOCAL_TPSERVER
