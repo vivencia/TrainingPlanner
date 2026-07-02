@@ -29,7 +29,7 @@ constexpr QLatin1StringView comp_exercise_fancy_separator{" + "_L1};
 constexpr uint32_t FNV_PRIME_32{0x01000193};
 constexpr uint32_t FNV_OFFSET_BASIS_32{0x811c9dc5};
 
-inline uint32_t fnv1a_hash(const QString& s) {
+inline uint32_t fnv1a_hash(const QString &s) {
 	uint32_t hash{FNV_OFFSET_BASIS_32};
 	for (const auto c : s.toStdU16String()) {
 		hash ^= static_cast<uint8_t>(c);
@@ -58,20 +58,28 @@ Q_OBJECT
 
 public:
 	enum DATE_FORMAT {
-		DF_QML_DISPLAY,
-		DF_LOCALE,
-		DF_CATALOG,
-		DF_DATABASE,
-		DF_ONLINE
+		DF_QML_DISPLAY	= 1U << 0,
+		DF_LOCALE		= 1U << 1,
+		DF_CATALOG		= 1U << 2,
+		DF_DATABASE		= 1U << 3,
+		DF_ONLINE		= 1U << 4,
 	};
 
 	enum TIME_FORMAT {
-		TF_QML_DISPLAY_COMPLETE,
-		TF_QML_DISPLAY_NO_SEC,
-		TF_QML_DISPLAY_NO_HOUR,
-		TF_FANCY,
-		TF_FANCY_SECS,
-		TF_ONLINE
+		TF_QML_DISPLAY_COMPLETE	= 1U << 5,
+		TF_QML_DISPLAY_NO_SEC	= 1U << 6,
+		TF_QML_DISPLAY_NO_HOUR	= 1U << 7,
+		TF_LOCALE				= 1U << 8,
+		TF_FANCY				= 1U << 9,
+		TF_FANCY_SECS			= 1U << 10,
+		TF_DATABASE				= 1U << 11,
+		TF_ONLINE				= 1U << 12,
+	};
+
+	enum DATE_TIME_FORMAT {
+		DTF_DISPLAY = static_cast<int>(DF_QML_DISPLAY) | static_cast<int>(TF_QML_DISPLAY_COMPLETE),
+		DTF_LOCALE = static_cast<int>(DF_LOCALE) | static_cast<int>(TF_LOCALE),
+		DTF_DATABASE = static_cast<int>(DF_DATABASE) | static_cast<int>(TF_DATABASE),
 	};
 
 	enum FILE_TYPE {
@@ -104,29 +112,34 @@ public:
 	};
 	Q_ENUM(FILE_TYPE)
 
-	enum BINARY_FILE_INFO_FIELDS {
-		BFIF_HANDLE,
-		BFIF_SENDERID,
-		BFIF_RECEIVERID,
-		BFIF_FILEPATH, //subdirs + filename with extension
-		BFIF_SPLITLETTER,
-		BFIF_EXTRAINFO,
-		BFIF_TOTAL_FIELDS
+	enum EncodedMessageFields {
+		EF_HANDLER_ID,
+		EF_SENDER,
+		EF_RECEIVER,
+		EF_CTIME,
+		EF_EXP_TIME,
+		EF_TEXT,
+		EF_REL_FILEPATH,
+		EF_EXTRA,
 	};
 
-	enum SEND_FILE_METHOD {
-		SFM_TPCHAT,
-		SFM_TPMESSAGESMANAGER,
-		SFM_FILETRANSFER,
-		SFM_TOTAL_NUMBER_OF_METHODS
+	enum MessageHandlers {
+		MH_TPMESSAGES_MANAGER,
+		MH_TPCHAT,
+		MH_DIRECT_FILE_TRANSFER,
+		MH_UNKOWN
 	};
-	Q_ENUM(SEND_FILE_METHOD)
+	Q_ENUM(MessageHandlers)
 
 	const QString exercisesListFileIdentifier{QLiterals::operator""_L1("0x01", 4)};
 	const QString mesoFileIdentifier{QLiterals::operator""_L1("0x02", 4)};
 	const QString splitFileIdentifier{QLiterals::operator""_L1("0x03", 4)};
 	const QString workoutFileIdentifier{QLiterals::operator""_L1("0x05", 4)};
 	const QString userFileIdentifier{QLiterals::operator""_L1("0x06", 4)};
+
+	static constexpr QLatin1StringView tpmessage_prefix{"tp://"};
+	static constexpr QLatin1StringView chatmessage_prefix{"chat://"};
+	static constexpr QLatin1StringView filetransfer_prefix{"ftp://"}; //used to request a file without an accompanying message.
 
 	static constexpr QLatin1StringView TP_FILE_EXTENSION{".txt"};
 	static constexpr QLatin1StringView STR_START_EXPORT{"##%%"};
@@ -199,26 +212,21 @@ public:
 								  const QString &identifier,
 								  const std::function<QString(const uint field, const QString &value)> &formatToImport = nullptr) const;
 
-	QByteArray readBinaryFile(const QString &filename, const QString &extra_info = QString{}) const &;
-	void writeBinaryFile(const QString &destination_path, const QString &source_path, const bool strip_extra_info) const;
-	void writeBinaryFile(const QString &destination_path, const QByteArray &data, const bool strip_extra_info) const;
-	inline QString makeBinaryFileMetaInfo(const int handle, const QString &sender_id, const QString &receiver_id,
-		const QString &subdirs, const QString &filename, const QChar &split_letter = QChar{}, const QString &extra_info = QString{}) const
+	QByteArray readBinaryFile(const QString &filename) const;
+	qint64 writeBinaryFile(const QString &destination_path, const QString &source_path) const;
+	qint64 writeBinaryFile(const QString &destination_path, const QByteArray &data) const;
+
+	inline QString encodedMessageFieldValue(const QString &encoded_message, const EncodedMessageFields field) const
 	{
-		return string_strings({QString::number(handle), sender_id, receiver_id, subdirs % filename, split_letter, extra_info}, binary_file_separator);
+		return getCompositeValue(static_cast<uint>(field), encoded_message, record_separator);
 	}
-	inline QString getBinaryFileMetaInfo(const QByteArray &data) const
+	inline QString makeEncodedMessage(const QLatin1StringView &type, const QString &sender_id, const QString &receiver_id,
+		const QString &c_time, const QString &exp_time, const QString &text, const QString &rel_filepath,
+																				const QString &extra = QString{}) const
 	{
-		const auto extra_fields_pos{data.lastIndexOf(binary_file_initial_separator.toLatin1(), -1)};
-		if (extra_fields_pos > 0)
-			return data.last(data.length() - extra_fields_pos - 1);
-		return QString{};
+		return string_strings({type, sender_id, receiver_id, c_time, exp_time, text, rel_filepath, extra}, record_separator);
 	}
-	QString binaryFileMetaInfoFieldValue(const QByteArray &data, BINARY_FILE_INFO_FIELDS field) const;
-	inline QString binaryFileMetaInfoFieldValue(const QString &meta_info, BINARY_FILE_INFO_FIELDS field) const
-	{
-		return getCompositeValue(static_cast<uint>(field), meta_info, binary_file_separator);
-	}
+	MessageHandlers messagePrefixToMessageHandler(const QString &encoded_message) const;
 
 	Q_INVOKABLE void copyToClipboard(const QString &text) const;
 	Q_INVOKABLE QString pasteFromClipboard() const;
@@ -266,11 +274,14 @@ public:
 	{
 		return formatTime(calculateTimeDifference(strTimeInit, strTimeFinal), TF_QML_DISPLAY_COMPLETE);
 	}
-
 	int calculateTimeDifferenceInSecs(const QTime &start_time, const QTime &end_time) const;
 	QTime calculateTimeDifference(const QTime &start_time, const QTime &end_time) const;
 	QTime calculateTimeDifference(const QString &strTimeInit, const QString &strTimeFinal) const;
 	QDateTime getDateTimeFromOnlineString(const QString &datetime) const;
+
+	QString formatDateTime(const QDateTime &date_time, const int format = DTF_DATABASE,
+																const QLatin1Char &separator = record_separator) const;
+	QDateTime dateTimeFromString(const QString &strdate_time, const int format = DTF_DATABASE) const;
 
 	QString makeCompositeValue(const QString &defaultValue, const uint n_fields, const QLatin1Char &chr_sep) const;
 	QString getCompositeValue(const uint idx, const QString &compositeString, const QLatin1Char &chr_sep) const;

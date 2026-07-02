@@ -3,9 +3,9 @@
 #include "tpchat.h"
 #include "../dbusermodel.h"
 
-constexpr int n_fields{TP_CHAT_TOTAL_MESSAGE_FIELDS};
+constexpr int n_fields{TPChat::TPCHAT_N_FIELDS};
 constexpr QLatin1StringView table_name{ "chat_table"_L1 };
-constexpr QLatin1StringView field_names[TP_CHAT_TOTAL_MESSAGE_FIELDS][2] {
+constexpr QLatin1StringView field_names[TPChat::TPCHAT_N_FIELDS][2] {
 	{"msgid"_L1,	"INTEGER PRIMARY KEY"_L1},
 	{"sender"_L1,	"INTEGER"_L1},
 	{"receiver"_L1,	"INTEGER"_L1},
@@ -22,8 +22,9 @@ constexpr QLatin1StringView field_names[TP_CHAT_TOTAL_MESSAGE_FIELDS][2] {
 	{"queued"_L1,	"TEXT"_L1},
 };
 
-TPChatDB::TPChatDB(const QString &user_id, const QString &otheruser_id, DBModelInterfaceChat *dbmodel_interface)
-	: TPDatabaseTable{user_id.last(5).toUInt(), dbmodel_interface}, m_userId{user_id}, m_otherUserId{otheruser_id}
+TPChatDB::TPChatDB(TPChat *chat)
+	: TPDatabaseTable{chat->userId().last(5).toUInt(), chat->m_dbModelInterface}
+	, m_chat{chat}
 {
 	m_tableName = &table_name;
 	m_fieldNames = field_names;
@@ -37,7 +38,7 @@ TPChatDB::TPChatDB(const QString &user_id, const QString &otheruser_id, DBModelI
 
 QString TPChatDB::subDir() const
 {
-	return TPChat::chatsSubDir;
+	return m_chat->chatSubDir();
 }
 
 QString TPChatDB::dbFilePath() const
@@ -47,7 +48,7 @@ QString TPChatDB::dbFilePath() const
 
 QString TPChatDB::dbFileName(const bool fullpath) const
 {
-	const QString &filename{std::move(m_otherUserId % dbfile_extension)};
+	const QString &filename{"chat"_L1 % dbfile_extension};
 	return fullpath ? dbFilePath() % filename : filename;
 }
 
@@ -57,8 +58,8 @@ bool TPChatDB::loadChat(void *)
 	if (execReadOnlyQuery("SELECT * FROM "_L1 + table_name)) {
 		if (m_workingQuery.first ()) {
 			do {
-				QStringList message_info{TP_CHAT_TOTAL_MESSAGE_FIELDS};
-				for (uint i{0}; i < TP_CHAT_TOTAL_MESSAGE_FIELDS; ++i)
+				QStringList message_info{TPChat::TPCHAT_N_FIELDS};
+				for (uint i{0}; i < TPChat::TPCHAT_N_FIELDS; ++i)
 					message_info[i] = std::move(m_workingQuery.value(i).toString());
 				m_dbModelInterface->modelData().append(std::move(message_info));
 			} while (m_workingQuery.next());
@@ -74,9 +75,9 @@ std::pair<QVariant,QVariant> TPChatDB::getNumberOfUnreadMessages()
 	bool success{false};
 	QString unread_ids;
 	m_strQuery = std::move("SELECT %1 FROM %2 WHERE %3=%4 AND %5=\'%6\';"_L1.arg(
-			field_names[MESSAGE_ID][0], table_name,
-			field_names[MESSAGE_READ][0], "0"_L1,
-			field_names[MESSAGE_RECEIVER][0], m_userId));
+			field_names[TPChat::ID][0], table_name,
+			field_names[TPChat::READ][0], "0"_L1,
+			field_names[TPChat::RECEIVER][0], m_chat->userId()));
 	if (execReadOnlyQuery(m_strQuery)) {
 		if (m_workingQuery.first()) {
 			success = true;

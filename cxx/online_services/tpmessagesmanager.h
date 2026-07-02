@@ -2,7 +2,7 @@
 
 #include "qml_singleton.h"
 
-#include <QAbstractListModel>
+#include <QAbstractItemModel>
 #include <QQmlEngine>
 
 QT_FORWARD_DECLARE_CLASS(TPChat)
@@ -10,75 +10,68 @@ QT_FORWARD_DECLARE_CLASS(TPFilePath)
 QT_FORWARD_DECLARE_CLASS(TPMessage)
 QT_FORWARD_DECLARE_CLASS(QTimer)
 
-class TPMessagesManager : public QAbstractListModel
+class TPMessagesManager : public QAbstractItemModel
 {
 
 Q_OBJECT
 QML_UNCREATABLE("")
 
-Q_PROPERTY(uint count READ count NOTIFY countChanged FINAL)
-
 public:
+	Q_DISABLE_COPY_MOVE(TPMessagesManager)
+	static constexpr QLatin1StringView tpmessages_subdir{"exchange_files/"};
+	static constexpr QLatin1StringView tpsystem_userid{"TPApp"};
+
 	explicit TPMessagesManager(QObject *parent = nullptr);
 
-	static constexpr QLatin1StringView tpmessages_subdir{"exchange_files/"};
-	static constexpr QLatin1StringView tptextmessage_extension{".tpt"};
-
-	inline uint count() const { return m_data.count(); }
-	void readAllChats();
-
-	TPMessage *message(const qsizetype message_id) const;
-	/**
-	 * @brief Add a message to be displayed to the user based on online data received
-	 * @return message_id
-	 * @see removeMessage
-	 */
+	TPMessage *topLevelMessage(const QString &user_id) const;
+	TPMessage *createTopLevelMessage(const QString &userid);
+	TPMessage *message(const TPMessage * const parent_message, const uint id) const;
 	void addMessage(TPMessage *msg);
-	Q_INVOKABLE inline void removeMessage(const qsizetype message_id) { removeMessage(message(message_id)); }
 	void removeMessage(TPMessage *msg);
-	Q_INVOKABLE void execAction(const int message_index, const uint action_id);
-	void binaryFileReceived(const QByteArray &data, const QString &meta_info);
-	void textMesssageReceived(const QString &msg, const TPFilePath &filename);
 
-	TPMessage *createChatMessage(const QString &userid, const bool check_unread_messages);
-	/**
-	 * @brief Creates a chat entry in the messages window. Therefore, the message created will be added to the messages list
-	 * @param display_text should reflect the user name
-	 * @param icon_source should use the user's avatar
-	 * @return Returns the newly created message
-	 */
-	TPMessage *createChatMessage(const QString &userid, QString &&user_name, QString &&icon_source, const bool check_unread_messages);
+	Q_INVOKABLE void execAction(const QString &user_id, const int index, const int action_id, const QVariant &data);
+	Q_INVOKABLE void enableAction(const QString &user_id, const int index, const int action_id, const bool enable);
+	void sendTPMessage(const QString &target_user, const QString &encoded_message, const int request_id = -1);
+	void textMessageReceived(const QString &encoded_message);
+	void openNewMessageDialog(const QString &userid);
+
+	void readAllChats();
+	TPChat *createChatMessage(QString &&userid, const bool check_unread_messages);
 	void openChatWindow(TPChat *chat_manager);
-	inline TPChat *chatManager(const QString &userid) const { return m_chatsList.value(userid); }
+	inline TPChat *chatManager(const QString &userid) const { return m_chatsList.value(userid)->chat; }
 	Q_INVOKABLE void openChat(const uint user_idx);
-	void sendFileChatMessage(const TPFilePath &filename, const QString &message);
-	void startChatMessagesPolling(const QString &userid);
+	void startMessagesPolling(const QString &userid);
 
-	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
-	QVariant data(const QModelIndex &index, int role) const override final;
-	bool setData(const QModelIndex &index, const QVariant &value, int role) override final { return false; }
-	// return the roles mapping to be used by QML
+	QVariant data(const QModelIndex &index, int role) const override;
+	inline bool setData(const QModelIndex &index, const QVariant &value, int role) override final { return false; }
+	Qt::ItemFlags flags(const QModelIndex &index) const override;
+	QModelIndex index(int row, int column, const QModelIndex &parent = {}) const override;
+	QModelIndex parent(const QModelIndex &index) const override;
+	int rowCount(const QModelIndex &parent = {}) const override;
+	inline int columnCount(const QModelIndex &parent = {}) const override { return 0; }
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
 
 signals:
-	void countChanged();
+	void TPMessageSent(const int requestid, const bool success);
 
 private:
-	QList<TPMessage*> m_data;
+	struct st_Chat {
+		TPChat *chat{nullptr};
+		QObject *dialog{nullptr};
+	};
+	QHash<QString,st_Chat*> m_chatsList;
 	QHash<int, QByteArray> m_roleNames;
-	QHash<QString,TPChat*> m_chatsList;
-	QHash<QString,QObject*> m_chatWindowList;
-	QTimer *m_newChatMessagesTimer{nullptr};
+	std::unique_ptr<TPMessage> m_rootMessage;
+	QTimer *m_checkMessagesTimer{nullptr};
 	QQmlComponent *m_chatWindowComponent{nullptr};
 	QVariantMap m_chatWindowProperties;
 
 	int newMessagesCheckingInterval() const;
-	void scanLocalMessages();
-	void receivedTPMessages(const QStringList &files);
-	void parseTextMessage(const TPFilePath &filename);
+	void clearTopLevelMessage(TPMessage *tlm, const bool clear_chat);
+	void receivedTPMessages(const QStringList &messages);
+	void binaryFileReceived(const QString &filename, QString &&text_message);
 	void parseNewChatMessages(const QString &encoded_messages);
 	void createChatWindow_part2(TPChat *chat_manager);
-	void removeChatWindow(const QString &other_userid);
 
 	static TPMessagesManager *_appMessagesManager;
 	friend TPMessagesManager *appMessagesManager();

@@ -13,7 +13,6 @@
 #include "qmluserinterface.h"
 
 #include "pageslistmodel.h"
-#include "osinterface.h"
 #include "tpimageprovider.h"
 #include "tpsettings.h"
 #include "tputils.h"
@@ -22,6 +21,13 @@
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickStyle>
+
+//Test includes
+#ifndef Q_OS_ANDROID
+#ifndef QT_NO_DEBUG
+#include "online_services/tpmessagesmanager.h"
+#endif
+#endif
 
 QmlItemManager *QmlItemManager::_appItemManager{nullptr};
 QQmlApplicationEngine *QmlItemManager::_appQmlEngine{nullptr};
@@ -84,22 +90,16 @@ void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
 			if (m_testType & TT_CORE)
 				runTests();
 			else if (m_testType & TT_QML) {
-				connect(appUserModel(), &DBUserModel::mainUserConfigurationFinished, this, [this] () {
-					connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::mesoDataLoaded, this, [this] () {
-						//showSimpleExercisesList(AppHomePage(), QString{});
-						/*connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::calendarReady, this, [this] (const uint meso_idx) {
-							const int cal_day{appUserModel()->actualMesoModel()->calendar(0)->calendarDay(QDate::currentDate())};
-							m_workout_model = appUserModel()->actualMesoModel()->workoutForDay(meso_idx, cal_day);
-							if (!m_workout_model->exercisesLoaded())
-							{
-								connect(m_workout_model, &DBWorkoutModel::exerciseCountChanged, this, [this] () {
-									emit cppDataForQMLReady();
-								}, Qt::SingleShotConnection);
-							}
-						}, Qt::SingleShotConnection);
-						appUserModel()->actualMesoModel()->getCalendarForMeso(0);*/
-					}, Qt::SingleShotConnection);
-				}, Qt::SingleShotConnection);
+				connect(appUserModel(), &DBUserModel::userLoggedIn, this, [this] (const bool first_checkin) {
+					connect(appMessagesManager(), &TPMessagesManager::TPMessageSent, this, [this] (const int requestid, const bool success) {
+						if (requestid == 1111) {
+							qDebug() << (success ? "Message sent" : "Message not sent");
+							QMetaObject::invokeMethod(_appMainWindow, "openDialog");
+						}
+					});
+					//appMessagesManager()->sendTPMessage("1759256421787", appUtils()->string_strings({TPMessagesManager::tpbinarymessage_prefix,
+					//	"1759256421787/1759170252407/mesocycles//Hipertrofia 1.txt", "A simple message"}, record_separator), 1111);
+				  });
 			}
 	#endif
 #endif
@@ -215,9 +215,9 @@ void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QStri
 	appExercisesList()->setFilter(filter);
 	if (!m_simpleExercisesListComponent) {
 		m_simpleExercisesListComponent = new QQmlComponent{appQmlEngine(), "TpQml.Exercises"_L1, "SimpleExercisesListPanel"_L1,
-																								QQmlComponent::Asynchronous};
+																							QQmlComponent::Asynchronous};
 		connect(m_simpleExercisesListComponent, &QQmlComponent::statusChanged, this, [this,parentPage,filter]
-											(QQmlComponent::Status status) { showSimpleExercisesList(parentPage, filter); });
+										(QQmlComponent::Status status) { showSimpleExercisesList(parentPage, filter); });
 
 	}
 	else {
@@ -529,14 +529,6 @@ void QmlItemManager::generalMessagesPopupClosed(QObject *)
 //Return: true for exiting the app upon return; false for letting this function call ::exit() when appropriate
 bool QmlItemManager::runTests()
 {
-	connect(appUserModel(), &DBUserModel::userIdChanged, this, [this] {
-		UserInfoListModel *user_list = new UserInfoListModel;
-		user_list->setShowCoaches(true);
-		for (auto i{0}; i < user_list->count(); ++i)
-			qDebug() << "UnConfirmed Coach: " <<user_list->data(DBUserModel::USER_FIELD_NAME, i);
-		::exit(0);
-	});
-	appUserModel()->initUserSession();
 	return false;
 }
 #endif

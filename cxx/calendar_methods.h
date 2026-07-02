@@ -3,7 +3,7 @@
 #include "tputils.h"
 
 #include <QAbstractListModel>
-#include <qqml.h>
+#include <QtQml/qqml.h>
 
 class CalendarMethods : public QAbstractListModel
 {
@@ -90,11 +90,11 @@ private:
 	{
 		m_calMethods = std::move(QList<st_methodData>{
 			st_methodData{m_date == QDate::currentDate() ? tr("Today") :
-									appUtils()->formatDate(m_date, TPUtils::DF_LOCALE), [this] () -> QDate { return m_date; }},
+								appUtils()->formatDate(m_date, TPUtils::DF_LOCALE), [this] () -> QDate { return m_date; }},
 			st_methodData{m_date == QDate::currentDate() ? tr("Tomorrow"): tr("The next day"),
-																				[this] () -> QDate { return m_date.addDays(1); }},
+																		[this] () -> QDate { return m_date.addDays(1); }},
 			st_methodData{m_date == QDate::currentDate() ? tr("Yesterday") : tr("The previous days"),
-																				[this] () -> QDate { return m_date.addDays(-1); }},
+																		[this] () -> QDate { return m_date.addDays(-1); }},
 			st_methodData{tr("Next week"), [this] () -> QDate { return m_date.addDays(7); }},
 			st_methodData{tr("Previous week"), [this] () -> QDate { return m_date.addDays(-7); }},
 			st_methodData{tr("Two weeks ahead"), [this] () -> QDate { return m_date.addDays(14); }},

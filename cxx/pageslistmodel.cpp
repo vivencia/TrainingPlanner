@@ -191,7 +191,7 @@ void PagesListModel::openPopup(QObject *popup, QQuickItem *parentPage, const int
 		pageInfo *page_info{getPageInfo(parentPage)};
 		if (page_info) {
 			const QList<QObject*>::const_iterator _popup{std::find_if(page_info->tpPopups.cbegin(), page_info->tpPopups.cend(),
-																								[popup] (const QObject *tppopup) {
+																							[popup] (const QObject *tppopup) {
 				return tppopup == popup;
 			})};
 			if (_popup == page_info->tpPopups.cend()) {
@@ -201,6 +201,7 @@ void PagesListModel::openPopup(QObject *popup, QQuickItem *parentPage, const int
 			}
 		}
 	}
+	popup->setProperty("parent", std::move(QVariant::fromValue(parentPage)));
 	popup->setProperty("parentPage", std::move(QVariant::fromValue(parentPage)));
 	popup->setProperty("show_position", std::move(QVariant{position}));
 	popup->setProperty("open_in_window", std::move(QVariant{widget == nullptr}));
@@ -330,8 +331,6 @@ void PagesListModel::openQMLPage(const uint index)
 	QQuickItem *page{m_pagesData.at(index)->page};
 	QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, page));
 	activateQmlPage(index);
-	//if (index > 0)
-	//	appUserModel()->actualMesoModel()->setCurrentMesosView(appUserModel()->actualMesoModel()->isOwnMeso(m_pagesMesoIdx.at(index)));
 }
 
 void PagesListModel::activateQmlPage(const uint index)

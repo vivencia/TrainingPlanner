@@ -170,55 +170,93 @@ TPPopup {
 			Layout.fillWidth: true
 		}
 
-		TPListView {
+		TreeView {
 			id: messagesList
 			model: AppMessages
+			clip: true
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 
-			delegate: SwipeDelegate {
+			selectionModel: ItemSelectionModel {}
+
+			delegate: TreeViewDelegate {
 				id: delegateItem
-				swipe.enabled: msgSticky
-				clip: true
-				padding: 0
-				spacing: 5
-				width: messagesList.width
 
-				required property int index
-				required property int msgId
-				required property string msgTitle
-				required property string msgText
-				required property string msgIcon
-				required property string msgFileName
-				required property string msgExtraInfoText
-				required property string msgExtraInfoIcon
-				required property string msgDate
-				required property string msgTime
-				required property list<string> msgActions
-				required property bool msgSticky
-				required property bool msgHasActions
-
+				readonly property real _padding: 5
+				readonly property real szHeight: contentItem.implicitHeight * 2.5
+				required property TPMessage message
 				property bool expanded: false
 
-				background: Rectangle {
+				background: Rectangle { // Background rectangle enabled to show the alternative row colors
+					id: background
 					opacity: 0.8
-					color: delegateItem.index % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2
+
+					color: {
+						if (delegateItem.model.row === delegateItem.treeView.currentRow) {
+							return Qt.lighter(palette.highlight, 1.2)
+						} else {
+							if (delegateItem.treeView.alternatingRows && delegateItem.model.row % 2 !== 0) {
+								return (Application.styleHints.colorScheme === Qt.Light) ?
+										 Qt.darker(palette.alternateBase, 1.25) :
+										 Qt.lighter(palette.alternateBase, 2.)
+							} else {
+							   return palette.base
+							}
+						}
+					}
+					Rectangle { // The selection indicator shown on the left side of the highlighted row
+						width: delegateItem._padding
+						height: parent.height
+						visible: !delegateItem.model.column
+						color: {
+							if (delegateItem.model.row === delegateItem.treeView.currentRow) {
+								return (Application.styleHints.colorScheme === Qt.Light) ?
+										 Qt.darker(palette.highlight, 1.25) :
+										 Qt.lighter(palette.highlight, 2.)
+							} else {
+								return "transparent"
+							}
+						}
+					}
+				}
+
+				indicator: Item {
+					x: delegateItem._padding + delegateItem.depth * delegateItem.indentation
+					implicitWidth: delegateItem.szHeight
+					implicitHeight: delegateItem.szHeight
+					visible: delegateItem.isTreeNode && delegateItem.hasChildren
+					rotation: delegateItem.expanded ? 90 : 0
+
+					TapHandler {
+						onSingleTapped: {
+							const index = delegateItem.treeView.index(delegateItem.model.row, delegateItem.model.column)
+							delegateItem.treeView.selectionModel.setCurrentIndex(index, ItemSelectionModel.NoUpdate)
+							delegateItem.treeView.toggleExpanded(delegateItem.model.row)
+						}
+					}
+					TPImage {
+						source: "arrow_icon.png"
+						width: parent.width / 3
+						height: parent.height / 3
+						anchors.centerIn: parent
+					}
 				}
 
 				contentItem: ColumnLayout {
 					id: messageLayout
 					spacing: 5
-					opacity: 1 + delegateItem.swipe.position
+					x: delegateItem._padding + (delegateItem.depth + 1 * delegateItem.indentation)
+					width: parent.width - delegateItem._padding - x
 
 					Item {
-						Layout.preferredWidth: delegateItem.width - 10
+						Layout.preferredWidth: parent.width - 10
 						Layout.preferredHeight: AppSettings.itemExtraLargeHeight
 						Layout.leftMargin: 5
 						Layout.rightMargin: 5
 
 						TPImage {
 							id: msgImage
-							source: delegateItem.msgIcon
+							source: delegateItem.message.icon
 							imageSizeFollowControlSize: true
 							keepAspectRatio: true
 							fullWindowView: false
@@ -232,10 +270,9 @@ TPPopup {
 							}
 						}
 
-
 						TPLabel {
 							id: lblTitle
-							text: delegateItem.msgTitle + "<br>" + delegateItem.msgDate + "  " + delegateItem.msgTime
+							text: delegateItem.message.title + "<br>" + delegateItem.message.dateTime
 							font: AppGlobals.smallFont
 							singleLine: false
 							verticalAlignment: Label.AlignTop
@@ -250,8 +287,8 @@ TPPopup {
 
 						TPImage {
 							id: extraInfoImg
-							source: delegateItem.msgExtraInfoIcon
-							visible: delegateItem.msgExtraInfoText.length > 0
+							source: delegateItem.message.extraImage
+							visible: delegateItem.message.extraImage.length > 0
 							width: visible ? AppSettings.itemSmallHeight : 0
 							height: visible ? AppSettings.itemSmallHeight : 0
 
@@ -261,7 +298,7 @@ TPPopup {
 							}
 
 							TPLabel {
-								text: delegateItem.msgExtraInfoText
+								text: delegateItem.message.extraInfo
 								minimumPixelSize: AppSettings.smallFontSize * 0.7
 								z: 1
 								width: parent.width * 0.5
@@ -284,38 +321,30 @@ TPPopup {
 						}
 					}
 
-					Loader {
-						id: msgTextLoader
-						asynchronous: true
-						active: delegateItem.msgText !== ""
+					TPLabel {
+						id: lblMessage
+						text: delegateItem.message.text
+						font: AppGlobals.smallFont
 						visible: delegateItem.expanded
+						singleLine: false
 						Layout.fillWidth: true
-						Layout.preferredHeight: active ? _label.contentHeight : 0
 						Layout.leftMargin: 10
 						Layout.rightMargin: 10
-
-						property TPLabel _label
-						sourceComponent: TPLabel {
-							id: lblMessage
-							text: delegateItem.msgText
-							font: AppGlobals.smallFont
-							singleLine: false
-							Component.onCompleted: msgTextLoader._label = this;
-						}
+						Component.onCompleted: msgTextLoader._label = this;
 					}
 
 					Loader {
 						id: fileViewerLoader
 						asynchronous: true
-						active: delegateItem.msgFileName.length > 0
+						active: delegateItem.message.fileOps !== null
 						visible: delegateItem.expanded
-						Layout.preferredWidth: active ? Math.max(100, _file_viewer.minimumWidth) : 0
-						Layout.preferredHeight: active ? Math.max(100, _file_viewer.minimumHeight) : 0
+						Layout.preferredWidth: active ? Math.max(200, _file_viewer.minimumWidth) : 0
+						Layout.preferredHeight: active ? Math.max(200, _file_viewer.minimumHeight) : 0
+						Layout.alignment: Qt.AlignHCenter
 
 						property TPFileViewer _file_viewer
 						sourceComponent: TPFileViewer {
-							fileName: delegateItem.msgFileName
-							onRemovalRequested: AppMessages.removeMessage(delegateItem.msgId);
+							fileOps: delegateItem.message.fileOps
 							Component.onCompleted: fileViewerLoader._file_viewer = this;
 						}
 					}
@@ -323,100 +352,80 @@ TPPopup {
 					Loader {
 						id: actionsLoader
 						asynchronous: true
-						active: delegateItem.msgActions.length > 0
+						active: delegateItem.message.actionCount > 0
 						visible: delegateItem.expanded
 						Layout.fillWidth: true
+						Layout.leftMargin: 5
+						Layout.rightMargin: 5
 						Layout.preferredHeight: active ? _layout.childrenRect.height : 0
 
 						property GridLayout _layout
 
+						onActiveChanged: {
+							if (active) {
+								for (let i = 0; i < delegateItem.message.actionCount; ++i) {
+									let component, item;
+									switch (delegateItem.message.actionType()) {
+									case TPMessage.AT_BUTTON:
+										component = Qt.createComponent("TpQml.Widgets", TPButton, { text:
+																		   delegateItem.message.actionLabel(index) });
+										item = component.createObject(actionsLayout, {});
+										break;
+									case TPMessage.AT_CHECKBOX:
+										component = Qt.createComponent("TpQml.Widgets", TPRadioButtonOrCheckBox, { text:
+											delegateItem.message.actionLabel(index), boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX});
+										item = component.createObject(actionsLayout, {});
+										break;
+									case TPMessage.AT_RADIO:
+										component = Qt.createComponent("TpQml.Widgets", TPRadioButtonOrCheckBox, { text:
+											delegateItem.message.actionLabel(index), boxType: TPRadioButtonOrCheckBox.TP_RADIOBOX});
+										item = component.createObject(actionsLayout, {});
+										break;
+									case TPMessage.AT_NONE:
+										continue;
+									}
+									if (item)
+										actionsLayout.addItem(item, index);
+								}
+							}
+						}
+
 						sourceComponent: GridLayout {
-							id: _layout
+							id: actionsLayout
 							columns: 2
 							columnSpacing: 2
 							rowSpacing: 5
 
-							readonly property int maxButtonWidth: (onlineMsgsDlg.dlgMaxWidth - 25)/3
-							readonly property int msgIndex: delegateItem.index
+							property int _row: 0
+							property int _col: 0
+							property list<int> _row_width: [0]
+							readonly property int _max_row_width: width - 10
 
-							Repeater {
-								id: actionsRepeater
-								model: delegateItem.msgActions
-
-								delegate: TPButton {
-									text: delegateItem.msgActions[index]
-									width: constrainSize ? _layout.maxButtonWidth : preferredWidth
-									autoSize: !constrainSize
-									rounded: false
-									Layout.alignment: Qt.AlignCenter
-									onClicked: AppMessages.execAction(_layout.msgIndex, index);
-
-									required property int index
-									property bool constrainSize: true
-									property int row
-									property int col
-								}
-
-								//items are added in reverse order(from last to first) from TPMessages::insertAction call order
-								onItemAdded: (index, item) => {
-									if (index === 0) {
-										const n_items = actionsRepeater.model.count;
-										let row_width = 0, row = 0, col = 0;
-										for (let i = 0; i < n_items; ++i) {
-											row_width += itemAt(i).width;
-											if (col === 0 || (row_width < onlineMsgsDlg.dlgMaxWidth - 5)) {
-												itemAt(i).Layout.column = col;
-												itemAt(1).Layout.row = row;
-												col++
-											}
-											else {
-												if (itemAt(i).width >= itemAt(i-1).width)
-													itemAt(i).constrainSize = true;
-												else
-													itemAt(i-1).constrainSize = true;
-												if (itemAt(i).width + itemAt(i-1).width >= onlineMsgsDlg.dlgMaxWidth - 5) {
-													itemAt(i).Layout.column = col = 0;
-													itemAt(i).Layout.row = ++row;
-													itemAt(i-1).constrainSize = false;
-												}
-												else {
-													itemAt(i).Layout.column = col;
-													itemAt(1).Layout.row = row;
-													col++
-												}
-											}
-										}
+							function addItem(item: Item, index: int): void {
+								item.Layout.column = _col;
+								item.Layout.row = _row;
+								if (item.width >= _max_row_width * 0.8) { //too big to shrink
+									_row_width.push(0);
+									++_row
+									_col = 0;
+								} else {
+									if (item.width > _max_row_width * 0.5) //big, but shrinkable
+										item.width = _max_row_width * 0.5
+									_row_width[_row] += item.width;
+									++_col;
+									if (_row_width[_row] >= _max_row_width * 0.9) {
+										_row_width.push(0);
+										++_row
+										_col = 0;
 									}
-								} //onItemAdded
-							} //Repeater
+								}
+							}
 
 							Component.onCompleted: actionsLoader._layout = this;
 						} //sourceComponent: GridLayout
-					} //Loader
-				} //contentItem: Column
-
-				onClicked: delegateItem.expanded = !delegateItem.expanded;
-
-				swipe.right: Rectangle {
-					id: removeBackground
-					enabled: !delegateItem.msgSticky
-					color: SwipeDelegate.pressed ? Qt.darker("tomato", 1.1) : "tomato"
-					opacity: delegateItem.swipe.complete ? 0.8 : 0-delegateItem.swipe.position
-					anchors.fill: parent
-
-					TPImage {
-						source: "remove"
-						width: 50
-						height: 50
-
-						anchors {
-							horizontalCenter: parent.horizontalCenter
-							verticalCenter: parent.verticalCenter
-						}
-					}
-				} //swipe.right
-				swipe.onCompleted: AppMessages.removeMessage(index);
-			} //delegate: SwipeDelegate
+					} //Loader: actionsLoader
+				} //contentItem: ColumnLayout
+			} //delegate: TreeViewDelegate
 		} // TPListView: messagesList
 
 		ColumnLayout {

@@ -10,11 +10,6 @@
 #include <QQuickItem>
 #include <QQuickWindow>
 
-void QmlExercisesDatabaseInterface::saveExercise()
-{
-
-}
-
 const uint QmlExercisesDatabaseInterface::removeExercise(const uint row)
 {
 	appExercisesList()->removeExercise(row);
@@ -65,7 +60,7 @@ void QmlExercisesDatabaseInterface::getExercisesPage(QmlWorkoutInterface *connec
 void QmlExercisesDatabaseInterface::createExercisesPage(QmlWorkoutInterface *connect_page)
 {
 	m_exercisesPage = static_cast<QQuickItem*>(m_exercisesComponent->createWithInitialProperties(m_exercisesProperties,
-																								  appQmlEngine()->rootContext()));
+																						appQmlEngine()->rootContext()));
 #ifndef QT_NO_DEBUG
 	if (!m_exercisesPage) {
 		m_exercisesComponent->errorString();

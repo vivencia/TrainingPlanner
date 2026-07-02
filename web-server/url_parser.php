@@ -26,6 +26,14 @@ function print_r2($val){
 		echo  '</pre>';
 }
 
+function clear_apcu_cache($target_user) {
+	$iter = new APCUIterator(null, APC_ITER_KEY);
+	foreach ($iter as $key) {
+		if (str_starts_with($iter->key(), $target_user))
+			apcu_delete($iter->key());
+	}
+}
+
 function get_return_code(string $desc): int {
 	global $scriptsdir;
 	$codes_file = $scriptsdir . "return_codes.h";
@@ -74,18 +82,18 @@ function chper($file) {
 }
 
 // Function to verify credentials against .htpasswd file
-function verify_credentials($userid, $password, $htpasswd_file): bool {
+function verify_credentials($target_user, $password, $htpasswd_file): bool {
 	if (!file_exists($htpasswd_file)) {
 		die("htpasswd file not found");
 	}
-	#print_r2("Authenticating " . $userid . " with password " . $password);
+	#print_r2("Authenticating " . $target_user . " with password " . $password);
 	// Read the .htpasswd file line by line
 	$lines = file($htpasswd_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 	foreach ($lines as $line) {
 		// Each line is in format: username:hashed_password
 		list($storedUser, $storedHash) = explode(':', $line, 2);
 
-		if ($storedUser === $userid) {
+		if ($storedUser === $target_user) {
 			// Check password against stored hash
 			if (password_verify($password, $storedHash) || crypt($password, $storedHash) === $storedHash) {
 				return true;
@@ -197,6 +205,7 @@ function check_file_ctime($filename) {
 }
 
 function scan_dir($path, $pattern, $only_dirs, $only_files, $get_c_time, $recursive) {
+	$path = $path . '/';
 	$output = "";
 	if (is_dir($path)) {
 		$files = array_values(array_diff(scandir($path), array('.', '..')));
@@ -238,9 +247,9 @@ function remove_from_string($bigstr, $smallstr) {
 		return $bigstr;
 }
 
-function run_commands($userid, $subdir, $delete_cmdfile) {
+function run_commands($target_user, $subdir, $delete_cmdfile) {
 	global $rootdir;
-	$path = $rootdir.$userid.'/'.$subdir.'/';
+	$path = $rootdir.$target_user.'/'.$subdir.'/';
 	if (is_dir($path)) {
 		$files = array_values(array_diff(scandir($path), array('.', '..')));
 		if (count($files) > 0) {
@@ -250,9 +259,9 @@ function run_commands($userid, $subdir, $delete_cmdfile) {
 			foreach ($files as &$file) {
 				if (!str_ends_with($file, ".cmd"))
 					continue;
-				//passthru("$script $userid $subdir $file", $return_var);
-				//echo "$script $userid $subdir $file";
-				$return_var = shell_exec("$script $userid $subdir $file");
+				//passthru("$script $target_user $subdir $file", $return_var);
+				//echo "$script $target_user $subdir $file";
+				$return_var = shell_exec("$script $target_user $subdir $file");
 				if (is_null($return_var))
 					echo "an error occured or the command produced no output";
 				elseif (!$return_var)
@@ -274,7 +283,7 @@ function run_commands($userid, $subdir, $delete_cmdfile) {
 	return false;
 }
 
-function cmd_downloaded($userid, $deviceid, $cmd_file) {
+function cmd_downloaded($target_user, $deviceid, $cmd_file) {
 	$cmds = file($cmd_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 	$new_cmds="";
 	$n_downloads=1;
@@ -286,13 +295,13 @@ function cmd_downloaded($userid, $deviceid, $cmd_file) {
 		}
 		else if (str_contains($cmd, "#Downloads")) {
 			$n_downloads = substr($cmd, -1);
-			++$n_downloads;
+			$n_downloads++;
 			$new_cmds = $new_cmds . "#Downloads " . $n_downloads . "";
 		}
 		else
 			$new_cmds = $new_cmds . $cmd . "";
 	}
-	$n_devices = get_number_of_devices($userid);
+	$n_devices = get_number_of_devices($target_user);
 
 	if ($n_downloads >= $n_devices)
 		unlink($cmd_file);
@@ -306,7 +315,7 @@ function cmd_downloaded($userid, $deviceid, $cmd_file) {
 	}
 }
 
-function run_test_function($userid, $password) {
+function run_test_function($target_user, $password) {
 
 }
 
@@ -380,9 +389,9 @@ function terminate_websocket_connection($id) {
 	}
 }
 
-function set_online_visible($userid, $visible) {
+function set_online_visible($target_user, $visible) {
 	global $rootdir;
-	$visible_file = $rootdir . $userid . "/visible";
+	$visible_file = $rootdir . $target_user . "/visible";
 	if ($visible) {
 		$fh = fopen($visible_file, "c");
 		$ip = $_SERVER['REMOTE_ADDR'];
@@ -399,10 +408,10 @@ function set_online_visible($userid, $visible) {
 	}
 }
 
-function add_device($userid, $device_id) {
+function add_device($target_user, $device_id) {
 	global $fileMode;
 	global $rootdir;
-	$devices_file = $rootdir . $userid . "/devices.txt";
+	$devices_file = $rootdir . $target_user . "/devices.txt";
 	if (!file_exists($devices_file)) {
 		$fh = fopen($devices_file, "w") or die(get_return_code("open write failed") . ": Unable to create user's devices file " . $devices_file);
 		chper($devices_file);
@@ -422,9 +431,9 @@ function add_device($userid, $device_id) {
 	echo "0: Device added to the user's devices file.";
 }
 
-function del_device($userid, $device_id) {
+function del_device($target_user, $device_id) {
 	global $rootdir;
-	$devices_file = $rootdir . $userid . "/devices.txt";
+	$devices_file = $rootdir . $target_user . "/devices.txt";
 	if (file_exists($devices_file)) {
 		$devices = file($devices_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 		foreach ($devices as $line) {
@@ -440,9 +449,9 @@ function del_device($userid, $device_id) {
 		echo get_return_code("file not found") . ": User's devices file does not exist";
 }
 
-function get_number_of_devices($userid) {
+function get_number_of_devices($target_user) {
 	global $rootdir;
-	$devices_file = $rootdir . $userid . "/devices.txt";
+	$devices_file = $rootdir . $target_user . "/devices.txt";
 	$n_devices = 0;
 	if (file_exists($devices_file)) {
 		$devices = file($devices_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -452,9 +461,9 @@ function get_number_of_devices($userid) {
 	return $n_devices;
 }
 
-function get_devices_list($userid) {
+function get_devices_list($target_user) {
 	global $rootdir;
-	$devices_file = $rootdir . $userid . "/devices.txt";
+	$devices_file = $rootdir . $target_user . "/devices.txt";
 	if (file_exists($devices_file)) {
 		echo "0: ";
 		$devices = file($devices_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -466,9 +475,9 @@ function get_devices_list($userid) {
 		echo get_return_code("file not found") . ": User's device file does not exist";
 }
 
-function is_device_listed($userid, $device_id) {
+function is_device_listed($target_user, $device_id) {
 	global $rootdir;
-	$devices_file = $rootdir . $userid . "/devices.txt";
+	$devices_file = $rootdir . $target_user . "/devices.txt";
 	if (file_exists($devices_file)) {
 		$devices = file($devices_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 		foreach ($devices as $device) {
@@ -530,7 +539,7 @@ function get_online_coaches() {
 		echo get_return_code("file not found") . ": Public coaches file does not exist";
 }
 
-function request_coach($userid, $coach) {
+function request_coach($target_user, $coach) {
 	global $rootdir;
 	$requests_file = $rootdir . $coach . "/requests.txt";
 	if (!file_exists($requests_file)) {
@@ -540,14 +549,14 @@ function request_coach($userid, $coach) {
 	else {
 		$clients = file($requests_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 		foreach ($clients as $line) {
-			if ($line == $userid) {
+			if ($line == $target_user) {
 				echo get_return_code("no changes success") . ": Client's request had already been placed";
 				return;
 			}
 		}
 		$fh = fopen($requests_file, "a+") or die(get_return_code("open write failed") . ": Unable to open requests file to append new request " .$requests_file);
 	}
-	fwrite($fh, $userid . "\n");
+	fwrite($fh, $target_user . "\n");
 	fclose($fh);
 	echo "0: Client's request to coach OK";
 }
@@ -815,17 +824,74 @@ function remove_coach_from_coaches($client, $coach) {
 	}
 }
 
-function get_tpmessages($userid) {
+function get_tpmessages($owner_user) {
 	global $rootdir;
-	$exchangefiles_dir = $rootdir . $userid . "/exchange_files/";
-	if (!create_dir($exchangefiles_dir))
-		die(get_return_code("directory not writable") . ": Unable to create messages dir " .$exchangefiles_dir);
-
-	$files = scan_dir($exchangefiles_dir, "", false, true, true, true);
-	if (strlen($files) > 2)
-		echo "0: file://" . str_replace($exchangefiles_dir, "", $files);
+	$tpmessages_file = $rootdir . $owner_user . "/tpmessages.txt";
+	if (file_exists($tpmessages_file)) {
+		$has_new_messages = apcu_fetch($owner_user."tpmessages");
+		if ($has_new_messages === false) {
+			echo get_return_code("no new messages") . ": No New TP messages";
+			return;
+		}
+		echo "0: ";
+		$messages = file($tpmessages_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+		foreach ($messages as $message)
+			echo $message . "\n";
+		apcu_store($owner_user."tpmessages", false); //$has_new_messages = false
+	}
 	else
-		echo get_return_code("file not found") . ": No tp messages";
+		echo get_return_code("no messages") . ": No TP messages";
+}
+
+function send_tpmessage($target_user, $message) {
+	global $rootdir;
+	$tpmessages_file = $rootdir . $target_user . "/tpmessages.txt";
+	if (!file_exists($tpmessages_file)) {
+		$fh = fopen($tpmessages_file, "w") or die(get_return_code("open write failed") . ": Unable to create TP messages file " . $tpmessages_file);
+		chper($tpmessages_file);
+	}
+	else {
+		$existing_messages = file($tpmessages_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+		foreach ($existing_messages as $existing_message) {
+			if ($existing_message == $message) {
+				echo get_return_code("no change success") . ": Message had already been sent";
+				return;
+			}
+		}
+		$fh = fopen($tpmessages_file, "a+") or die(get_return_code("open write failed") . ": Unable to append to to TP messages file " . $tpmessages_file);
+	}
+	fwrite($fh, $message."\n");
+	fclose($fh);
+	apcu_store($target_user."tpmessages", true); //$has_new_messages = true
+	echo "0: TP Message Sent!";
+}
+
+function remove_tpmessage($target_user, $message) {
+	global $rootdir;
+	$tpmessages_file = $rootdir . $target_user . "/tpmessages.txt";
+	$tpmessages_arr = file($tpmessages_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+	$kept_messages = [];
+	$n_removed = 0;
+	$n_kept = 0;
+	foreach ($messages_arr as $stored_message) {
+		if ($stored_message !== $message) {
+			$kept_messages[] = $stored_message;
+			$n_kept++;
+		}
+		else
+			$n_removed++;
+	}
+	if ($n_removed > 0) {
+		$fh = fopen($tpmessages_file, "w");
+		if (count($kept_messages) > 0)
+			fwrite($fh, implode($kept_messages));
+		else
+			fwrite($fh, "");
+		fclose($fh);
+		echo "0: Message removed: " . $message;
+	}
+	else
+		echo get_return_code("no changes success") . ": Cannot remove message because it was not found " . $message;
 }
 
 /**
@@ -834,25 +900,24 @@ function get_tpmessages($userid) {
 	exercises_separator (oct 034 dec 28) separates the senders (the even number are the messages content and the odd numbers are the sender file names)
 */
 
-function get_newmessages($userid) {
+function get_newchatmessages($owner_user) {
 	global $rootdir;
-	$messages_dir = $rootdir . $userid . "/chats";
-	if (!create_dir($messages_dir))
-		die(get_return_code("directory not writable") . ": Unable to create messages dir " .$messages_dir);
-
-	$files = array_values(array_diff(scandir($messages_dir), array('.', '..')));
+	$owner_user_dir = $rootdir . $owner_user;
+	if (!create_dir($owner_user_dir))
+		die(get_return_code("directory not writable") . ": Unable to create dir: " . $owner_user_dir);
+	$files_str = scan_dir($owner_user_dir, "new-messages.chat", false, true, false, true);
+	$files = explode('|', $files_str);
 	if (count($files) > 0) {
 		$content = "";
 		foreach ($files as $file) {
-			if (str_contains($file, ".sqlite") || str_contains($file, ".cmd"))
+			if ($file === "")
 				continue;
-			//apcu_store("$userid-$file", false); //uncomment to force new messages checking during development
-			$is_not_modified = apcu_fetch("$userid-$file");
-			if ($is_not_modified === true)
+			//apcu_store("$owner_user-$file", true); //uncomment to force new messages checking during development
+			$is_modified = apcu_fetch("$owner_user-$file");
+			if ($is_modified === false)
 				continue;
-			apcu_store("$userid-$file", true);
-			$content = $content . file_get_contents($messages_dir.'/'.$file);
-			$content = $content . "\034" . $file . "\034";
+			apcu_store("$owner_user-$file", false);
+			$content = $content . file_get_contents($file);
 		}
 		if ($content != "") {
 			echo "0: ";
@@ -860,24 +925,15 @@ function get_newmessages($userid) {
 			return;
 		}
 	}
-	echo get_return_code("directory empty") . ": No new messages";
+	echo get_return_code("no messages") . ": No new chat messages";
 }
 
-
-function clear_apcu_cache($userid) {
-	$iter = new APCUIterator(null, APC_ITER_KEY);
-	foreach ($iter as $key) {
-		if (str_starts_with($iter->key(), $userid))
-			apcu_delete($iter->key());
-	}
-}
-
-function send_message($userid, $receiver, $message) {
+function send_chatmessage($sender, $receiver, $message) {
 	global $rootdir;
-	$messages_dir = $rootdir . $receiver . "/chats/";
+	$messages_dir = $rootdir . $receiver . '/' . $sender . "/chat/";
 	if (!create_dir($messages_dir))
 		die(get_return_code("directory not writable") . ": Unable to create messages dir " .$messages_dir);
-	$messages_file = $messages_dir . $userid . ".0msg";
+	$messages_file = $messages_dir . "new-messages.chat";
 
 	if (!file_exists($messages_file)) {
 		$fh = fopen($messages_file, "w") or die(get_return_code("open write failed") . ": Unable to create messages file " . $messages_file);
@@ -887,107 +943,27 @@ function send_message($userid, $receiver, $message) {
 		$fh = fopen($messages_file, "a+") or die(get_return_code("open write failed") . ": Unable to append to to messages file " . $messages_file);
 	fwrite($fh, $message . "\037");
 	fclose($fh);
-	apcu_store("$receiver-$userid.0msg", false);
+	apcu_store("$receiver-$message_file", true); //set $is_modified = true
 	echo "0: Message Sent!";
 }
 
-function remove_received_message($sender, $recipient, $messageid)
-{
+function remove_chat_message($sender, $recipient, $message) {
 	global $rootdir;
-	$messages_dir = $rootdir . $recipient . "/chats/";
-	$messages_file = $messages_dir . $sender . ".0msg";
-	$messages_arr = file($messages_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-	$sep_idx1 = 0;
-	$sep_idx2 = 0;
+	$messages_dir = $rootdir . $receiver . '/' . $sender . "/chat/";
+	$messages_file = $messages_dir . "new-messages.chat";
+	$messages_str = file_get_contents($messages_file);
+	$messages = explode("\037", $messages_str);
 	$kept_messages = [];
-	$msgid = (int)$messageid;
-	foreach ($messages_arr as $messages) {
-		do {
-			$sep_idx2 = strpos($messages, "\037", $sep_idx1);
-			if ($sep_idx2) {
-				$message = substr($messages, $sep_idx1, $sep_idx2 - $sep_idx1);
-				$message_id = substr($message, 0, strpos($message, "\036", 0));
-				$id = (int)$message_id;
-				if ($id !== $msgid)
-					$kept_messages[] = $message . "\037";
-				$sep_idx1 = $sep_idx2 + 1;
-			}
-		} while ($sep_idx2);
+	foreach ($messages as $_message) {
+		if ($_message !== $message)
+			$kept_messages[] = $message;
 	}
 	$fh = fopen($messages_file, "w");
-	fwrite($fh, implode($kept_messages));
-	fclose($fh);
-	apcu_store("$recipient-$sender.0msg", false);
-}
-
-function message_worker($sender, $recipient, $messageid, $argument) {
-	if ($argument == ".0msg") {
-		remove_received_message($recipient, $sender, $messageid);
-		return true;
-	}
-	global $rootdir;
-	$messages_dir = $rootdir . $recipient . "/chats/";
-	if (!create_dir($messages_dir)) {
-		echo get_return_code("directory not writable") . ": Unable to create messages dir " .$messages_dir;
-		return false;
-	}
-	$messages_file = $messages_dir . $sender . $argument;
-	if (!file_exists($messages_file)) {
-		$fh = fopen($messages_file, "w");
-		if (!$fh) {
-			echo get_return_code("open write failed") . ": Unable to create " . $messages_file;
-			return false;
-		}
-		chper($messages_file);
-	}
-	else {
-		$msgids_arr = file($messages_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-		foreach ($msgids_arr as $msgids) {
-			if (str_contains($msgids, $messageid . "\037")) {
-				echo get_return_code("no changes success") . ": Message " . $argument . "!";
-				return true;
-			}
-		}
-		$fh = fopen($messages_file, "a+");
-		if (!$fh) {
-			echo get_return_code("open write failed") . ": Unable to append to " . $messages_file;
-			return false;
-		}
-	}
-	fwrite($fh, $messageid . "\037");
-	fclose($fh);
-	apcu_store("$recipient-$sender.$argument", false);
-	echo "0: Message " . $argument . "!";
-	return true;
-}
-
-function message_worked($sender, $recipient, $messageid, $work) {
-	global $rootdir;
-	$messages_dir = $rootdir . $sender . "/chats/";
-	$ids_file = $messages_dir . $recipient . $work;
-	$ids_arr = file($ids_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-	$sep_idx1 = 0;
-	$sep_idx2 = 0;
-	$kept_ids = [];
-	$msgid = (int)$messageid;
-	foreach ($ids_arr as $ids) {
-		do {
-			$sep_idx2 = strpos($ids, "\037", $sep_idx1);
-			if ($sep_idx2) {
-				$message_id = substr($ids, $sep_idx1, $sep_idx2);
-				$id = (int)$message_id;
-				if ($id !== $msgid)
-					$kept_ids[] = $message_id . "\037";
-				$sep_idx1 = $sep_idx2 + 1;
-			}
-		} while ($sep_idx2);
-	}
-	$fh = fopen($ids_file, "w");
-	// fwrite($fh, implode($kept_ids));
+	fwrite($fh, implode("\037", $kept_messages));
 	fclose($fh);
 }
 
-function run_htpasswd($cmd_args, $userid, $password) {
+function run_htpasswd($cmd_args, $target_user, $password) {
 	global $htpasswd;
 	global $htpasswd_file;
 
@@ -995,12 +971,12 @@ function run_htpasswd($cmd_args, $userid, $password) {
 		$cmd_args = $cmd_args . "c";
 	$return_var = 0;
 	$output = [];
-	exec("$htpasswd $cmd_args $htpasswd_file $userid $password", $output, $return_var);
+	exec("$htpasswd $cmd_args $htpasswd_file $target_user $password", $output, $return_var);
 	return $return_var;
 }
 
-function user_exists($userid, $user_password) {
-	return run_htpasswd("-bv", $userid, $user_password);
+function user_exists($target_user, $user_password) {
+	return run_htpasswd("-bv", $target_user, $user_password);
 }
 
 function user_exists_return_message($return_var) {
@@ -1013,7 +989,7 @@ function user_exists_return_message($return_var) {
 	return $error_string;
 }
 
-function update_datafile_with_password($userid) {
+function update_datafile_with_password($target_user) {
 	global $rootdir;
 	global $htpasswd_file;
 
@@ -1021,14 +997,14 @@ function update_datafile_with_password($userid) {
 	$password="";
 	foreach ($users as $user) {
 		$sep=strpos($user, ':');
-		$userid=substr($user, 0, $sep);
-		if ($userid == $userid) {
+		$target_user=substr($user, 0, $sep);
+		if ($target_user == $target_user) {
 			$password=substr($user, $sep+1, strlen($user)-$sep);
 			break;
 		}
 	}
 	if ($password != "") {
-		$userdatafile = $rootdir . $userid . "/user.data";
+		$userdatafile = $rootdir . $target_user . "/user.data";
 		if (file_exists($userdatafile)) {
 			$fh = fopen($userdatafile, 'a')  or die(get_return_code("open write failed") . ": Unable to open " .$userdatafile);
 			fwrite($fh, $password);
@@ -1039,15 +1015,15 @@ function update_datafile_with_password($userid) {
 	return false;
 }
 
-function run_dbscript($cmd, $cmd_opt, $userid, $print_output) {
+function run_dbscript($cmd, $cmd_opt, $target_user, $print_output) {
 	global $scriptsdir;
 	$dbscript=$scriptsdir . "usersdb.sh";
 	ob_start();
-	if ($userid) {
+	if ($target_user) {
 		if ($cmd_opt)
-			passthru("$dbscript $userid $cmd $cmd_opt", $return_var);
+			passthru("$dbscript $target_user $cmd $cmd_opt", $return_var);
 		else
-			passthru("$dbscript $userid $cmd", $return_var);
+			passthru("$dbscript $target_user $cmd", $return_var);
 	}
 	else {
 		if ($cmd_opt)
@@ -1069,28 +1045,28 @@ if (file_exists($pause_file)) {
 	}
 }
 
-$userid = isset($_GET['user']) ? $_GET['user'] : '';
+$target_user = isset($_GET['user']) ? $_GET['user'] : '';
 
-if ($userid) {
+if ($target_user) {
 	$password = isset($_GET['password']) ? $_GET['password'] : '';
 	if (!$password)
 		die(get_return_code("password missing") . ": Missing password");
 	else {
-		if (verify_credentials($userid, $password, $htpasswd_file)) {
+		if (verify_credentials($target_user, $password, $htpasswd_file)) {
 			// Authentication successful
 
 			if (isset($_GET['test'])) {
-				run_test_function($userid, $password);
+				run_test_function($target_user, $password);
 				exit;
 			}
 
-			if ($userid != "admin") {
+			if ($target_user != "admin") {
 
 				if (isset($_GET['listfiles'])) {
 					$subdir = isset($_GET['listfiles']) ? $_GET['listfiles'] . "/" : '';
-					$targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $userid;
+					$targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $target_user;
 					if ($targetuser == "")
-						$targetuser = $userid;
+						$targetuser = $target_user;
 					$filedir = $rootdir . $targetuser . $subdir;
 					$pattern = isset($_GET['pattern']) ? $_GET['pattern'] : '';
 					$files = scan_dir($filedir, $pattern, false, true, true, false);
@@ -1099,9 +1075,9 @@ if ($userid) {
 				}
 				if (isset($_GET['listdirs'])) {
 					$subdir = isset($_GET['listdirs']) ? $_GET['listdirs'] . "/" : '';
-					$targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $userid;
+					$targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $target_user;
 					if ($targetuser == "")
-						$targetuser = $userid;
+						$targetuser = $target_user;
 					$filedir = $rootdir . $targetuser . $subdir;
 					$pattern = isset($_GET['pattern']) ? $_GET['pattern'] : '';
 					$files = scan_dir($filedir, $pattern, true, false, false, false);
@@ -1112,35 +1088,36 @@ if ($userid) {
 				if (isset($_GET['runcmds'])) {
 					$subdir = $_GET['runcmds'];
 					$delete_cmdfile = isset($_GET['delete']) ? $_GET['delete'] : 0;
-					run_commands($userid, $subdir, $delete_cmdfile);
+					run_commands($target_user, $subdir, $delete_cmdfile);
 					exit;
 				}
 
 				if (isset($_GET['downloadcmd'])) {
 					$subdir = isset($_GET['subdir']) ? $_GET['subdir'] . "/" : '';
-					$filedir = $rootdir . $userid . "/" . $subdir;
+					$filedir = $rootdir . $target_user . "/" . $subdir;
 					$device_id = $_GET['deviceid'];
 					if ($device_id == "")
 						die(get_return_code("no device id") . ": Missing device id argument");
-					else if (!is_device_listed($userid, $device_id))
+					else if (!is_device_listed($target_user, $device_id))
 						die(get_return_code("deviceid not registered") . ": Device id not registered");
 					if (download_file($_GET['downloadcmd'], $filedir))
-						cmd_downloaded($userid, $device_id, $filedir . $_GET['downloadcmd']);
+						cmd_downloaded($target_user, $device_id, $filedir . $_GET['downloadcmd']);
 					exit;
 				}
 
 				if (isset($_GET['login'])) {
 					$port = $_GET['login'];
-					set_online_visible($userid, true);
-					clear_apcu_cache($userid);
-					apcu_store($userid, $_SERVER['REMOTE_ADDR'] . ":" .$port);
-					echo "0: User $userid logged in";
+					set_online_visible($target_user, true);
+					clear_apcu_cache($target_user);
+					apcu_store($target_user."tpmessages", true); //$has_new_messages = true
+					apcu_store($target_user, $_SERVER['REMOTE_ADDR'] . ":" .$port);
+					echo "0: User $target_user logged in";
 					exit;
 				}
 				if (isset($_GET['logout'])) {
-					set_online_visible($userid, false);
-					clear_apcu_cache($userid);
-					echo "0: User $userid logged out";
+					set_online_visible($target_user, false);
+					clear_apcu_cache($target_user);
+					echo "0: User $target_user logged out";
 					exit;
 				}
 
@@ -1156,22 +1133,22 @@ if ($userid) {
 
 				if (isset($_GET['adddevice'])) {
 					$device_id = $_GET['adddevice'];
-					add_device($userid, $device_id);
+					add_device($target_user, $device_id);
 					exit;
 				}
 				if (isset($_GET['deldevice'])) {
 					$device_id = $_GET['deldevice'];
-					del_device($userid, $device_id);
+					del_device($target_user, $device_id);
 					exit;
 				}
 				if (isset($_GET['getdeviceslist'])) {
-					get_devices_list($userid);
+					get_devices_list($target_user);
 					exit;
 				}
 
 				if (isset($_GET['changepassword'])) {
 					$old_password = $_GET['changepassword'];
-					$return_var = user_exists($userid, $old_password);
+					$return_var = user_exists($target_user, $old_password);
 					if ($return_var !== 0) {
 						echo user_exists_return_message($return_var);
 						exit;
@@ -1179,20 +1156,20 @@ if ($userid) {
 					$new_password = $_GET['newpassword'];
 					if ($new_password == "")
 						die(get_return_code("argument missing") . ": no new passord given **changecredentials**");
-					$ok = run_htpasswd("-bB", $userid, $new_password);
+					$ok = run_htpasswd("-bB", $target_user, $new_password);
 					if ($ok == 0)
-						echo "0: " . $userid . "  password successfully modified";
+						echo "0: " . $target_user . "  password successfully modified";
 					else
-						echo get_return_code("unknown error") . ": " . $userid . " password modification failed";
+						echo get_return_code("unknown error") . ": " . $target_user . " password modification failed";
 					exit;
 				}
 
 				if (isset($_GET['addcoach'])) {
-					add_coach($userid);
+					add_coach($target_user);
 					exit;
 				}
 				if (isset($_GET['delcoach'])) {
-					del_coach($userid);
+					del_coach($target_user);
 					exit;
 				}
 
@@ -1203,117 +1180,117 @@ if ($userid) {
 				if (isset($_GET['requestcoach'])) {
 					$coach = $_GET['requestcoach'];
 					if ($coach)
-						request_coach($userid, $coach);
+						request_coach($target_user, $coach);
 					exit;
 				}
 				if (isset($_GET['deleteclientrequest'])) {
 					$client = $_GET['deleteclientrequest'];
 					if ($client)
-						delete_client_request($userid, $client);
+						delete_client_request($target_user, $client);
 					exit;
 				}
 				if (isset($_GET['listclientsrequests'])) {
-					list_clients_requests($userid);
+					list_clients_requests($target_user);
 					exit;
 				}
 				if (isset($_GET['acceptclientrequest'])) {
 					$client = $_GET['acceptclientrequest'];
 					if ($client)
-						accept_client_request($userid, $client);
+						accept_client_request($target_user, $client);
 					exit;
 				}
 				if (isset($_GET['rejectclientrequest'])) {
 					$client = $_GET['rejecttclientrequest'];
 					if ($client)
-						reject_client_request($userid, $client);
+						reject_client_request($target_user, $client);
 					exit;
 				}
 
 				if (isset($_GET['deletecoachanswer'])) {
 					$coach = $_GET['deletecoachanswer'];
 					if ($coach)
-						delete_coach_answer($userid, $coach);
+						delete_coach_answer($target_user, $coach);
 					exit;
 				}
 				if (isset($_GET['listcoachesanswers'])) {
-					list_coaches_answers($userid);
+					list_coaches_answers($target_user);
 					exit;
 				}
 				if (isset($_GET['acceptcoachanswer'])) {
 					$coach = $_GET['acceptcoachanswer'];
 					if ($coach)
-						accept_coach_answer($userid, $coach);
+						accept_coach_answer($target_user, $coach);
 					exit;
 				}
 				if (isset($_GET['rejectcoachanswer'])) {
 					$coach = $_GET['rejectcoachanswer'];
 					if ($coach)
-						reject_coach_answer($userid, $coach);
+						reject_coach_answer($target_user, $coach);
 					exit;
 				}
 
 				if (isset($_GET['getclients'])) {
-					get_clients_list($userid);
+					get_clients_list($target_user);
 					exit;
 				}
 				if (isset($_GET['removecurclient'])) {
 					$client = $_GET['removecurclient'];
 					if ($client)
-						remove_client_from_clients($userid, $client);
+						remove_client_from_clients($target_user, $client);
 					exit;
 				}
 
 				if (isset($_GET['getcoaches'])) {
-					get_coaches_list($userid);
+					get_coaches_list($target_user);
 					exit;
 				}
 				if (isset($_GET['removecurcoach'])) {
 					$coach = $_GET['removecurcoach'];
 					if ($coach)
-						remove_coach_from_coaches($userid, $coach);
-					exit;
-				}
-
-				if (isset($_GET['getnewmessages'])) {
-					get_newmessages($userid);
+						remove_coach_from_coaches($target_user, $coach);
 					exit;
 				}
 
 				if (isset($_GET['gettpmessages'])) {
-					get_tpmessages($userid);
+					get_tpmessages($target_user);
+					exit;
+				}
+				if (isset($_GET['sendtpmessage'])) {
+					$receiver = $_GET['sendtpmessage'];
+					$message = $_GET['message'];
+					$message != "" or die(get_return_code("argument missing") . ": No message argument **sendtpmessage**");
+					send_tpmessage($receiver, $message);
+					exit;
+				}
+				if (isset($_GET['removetpmessage'])) {
+					$message = $_GET['removetpmessage'];
+					$message != "" or die(get_return_code("argument missing") . ": No message argument **removetpmessage**");
+					remove_tpmessage($target_user, $message);
 					exit;
 				}
 
-				if (isset($_GET['sendmessage'])) {
-					$receiver=$_GET['sendmessage'];
-					$receiver != "" or die(get_return_code("argument missing") . ": No receiver argument **sendmessage**");
+				if (isset($_GET['getnewchatmessages'])) {
+					get_newchatmessages($target_user);
+					exit;
+				}
+				if (isset($_GET['sendchatmessage'])) {
+					$receiver=$_GET['sendchatmessage'];
+					$receiver != "" or die(get_return_code("argument missing") . ": No receiver argument **sendchatmessage**");
 					$message = $_GET['message'];
-					$message != "" or die(get_return_code("argument missing") . ": No message argument **sendmessage**");
-					send_message($userid, $receiver, $message);
+					$message != "" or die(get_return_code("argument missing") . ": No message argument **sendchatmessage**");
+					send_chatmessage($target_user, $receiver, $message);
 					exit;
 				}
-				if (isset($_GET['workmessage'])) {
-					$recipient=$_GET['workmessage'];
-					$recipient != "" or die(get_return_code("argument missing") . ": No sender argument **workmessage**");
-					$messageid = $_GET['messageid'];
-					$messageid != "" or die(get_return_code("argument missing") . ": No message id argument **workmessage**");
-					$work = $_GET['work'];
-					$work != "" or die(get_return_code("argument missing") . ": No work identifier argument **workmessage**");
-					message_worker($userid, $recipient, $messageid, $work);
-					exit;
-				}
-				if (isset($_GET['messageworked'])) {
-					$recipient=$_GET['messageworked'];
-					$recipient != "" or die(get_return_code("argument missing") . ": No sender argument **messageworked**");
-					$messageid = $_GET['messageid'];
-					$messageid != "" or die(get_return_code("argument missing") . ": No message id argument **messageworked**");
-					$work = $_GET['work'];
-					$work != "" or die(get_return_code("argument missing") . ": No work identifier argument **messageworked**");
-					message_worked($userid, $recipient, $messageid, $work);
+				if (isset($_GET['removechatmessage'])) {
+					$receiver=$_GET['removechatmessage'];
+					$receiver != "" or die(get_return_code("argument missing") . ": No receiver argument **removechatmessage**");
+					$message = $_GET['message'];
+					$message != "" or die(get_return_code("argument missing") . ": No message argument **removechatmessage**");
+					remove_chat_message($target_user, $receiver, $message);
 					exit;
 				}
 				if (isset($_GET['forcegetnewmessages'])) {
-					clear_apcu_cache($userid);
+					clear_apcu_cache($target_user);
 					exit;
 				}
 
@@ -1322,7 +1299,7 @@ if ($userid) {
 					if ($targetuser)
 						$fileDir = $rootdir . $targetuser;
 					else
-						$fileDir = $rootdir . $userid;
+						$fileDir = $rootdir . $target_user;
 					$subdir = $_GET['upload'];
 					if ($subdir)
 						$fileDir = $fileDir . "/" . $subdir;
@@ -1331,9 +1308,9 @@ if ($userid) {
 				}
 				if (isset($_GET['file'])) {
 					$subdir = isset($_GET['subdir']) ? $_GET['subdir'] . "/" : '';
-					$targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $userid;
+					$targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $target_user;
 					if ($targetuser == "")
-						$targetuser = $userid;
+						$targetuser = $target_user;
 					$filedir=$rootdir . $targetuser . $subdir;
 					download_file($_GET['file'], $filedir);
 					exit;
@@ -1342,9 +1319,9 @@ if ($userid) {
 					$binfile = $_GET['getbinfile'];
 					if ($binfile) {
 						$subdir = isset($_GET['subdir']) ? $_GET['subdir'] . "/" : '';
-						$targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $userid;
+						$targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $target_user;
 						if ($targetuser == "")
-							$targetuser = $userid;
+							$targetuser = $target_user;
 						$filedir = $rootdir . $targetuser . $subdir;
 						get_binfile($binfile, $filedir);
 						exit;
@@ -1352,10 +1329,10 @@ if ($userid) {
 				}
 				if (isset($_GET['delfile'])) {
 					$subdir = isset($_GET['subdir']) ? $_GET['subdir'] . "/" : '';
-					$targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $userid;
+					$targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] ."/" : $target_user;
 					if ($targetuser == "")
-						$targetuser = $userid;
-					$file = $rootdir . $userid  . "/" . $subdir . $targetuser . $_GET['delfile'];
+						$targetuser = $target_user;
+					$file = $rootdir . $target_user  . "/" . $subdir . $targetuser . $_GET['delfile'];
 					if (is_file($file))
 						unlink($file);
 					exit;
@@ -1365,9 +1342,9 @@ if ($userid) {
 				if (isset($_GET['checkfilectime'])) {
 					$file = $_GET['checkfilectime'];
 					if ($file) {
-						$targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] : $userid;
+						$targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] : $target_user;
 						if ($targetuser == "")
-							$targetuser = $userid;
+							$targetuser = $target_user;
 						$subdir = isset($_GET['subdir']) ? $_GET['subdir'] . "/" : '';
 						$filename=$rootdir . $targetuser . "/" . $subdir . $file;
 						check_file_ctime($filename);
@@ -1461,7 +1438,7 @@ if ($userid) {
 		else {
 			// Authentication failed
 			header('HTTP/1.1 401 Unauthorized');
-			$return_var = user_exists($userid, $password);
+			$return_var = user_exists($target_user, $password);
 			echo user_exists_return_message($return_var);
 		}
 	}

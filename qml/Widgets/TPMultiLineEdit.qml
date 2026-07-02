@@ -15,7 +15,8 @@ ColumnLayout {
 	property TextArea textControl
 	property alias text: _textControl.text
 	property alias modified: _textControl.modified
-	signal textAltered(_text: string);
+	signal textEdited();
+	signal editingFinished(_text: string);
 	signal enterOrReturnKeyPressed(mod_key: int);
 
 //private:
@@ -26,6 +27,7 @@ ColumnLayout {
 		id: toolBoxLayout
 		visible: _control._show_toolbox
 		spacing: 5
+		z: 2
 		Layout.fillWidth: true
 		Layout.preferredHeight: _control._show_toolbox ? AppSettings.itemDefaultHeight : 0
 
@@ -179,11 +181,14 @@ ColumnLayout {
 
 				onReadOnlyChanged: positionCaret();
 				onLineCountChanged: if (_control.maxHeight > 0) scrollArea.calculateHeight();
-				onTextEdited: modified = true;
+				onTextEdited: {
+					modified = true;
+					_control.textEdited();
+				}
 				onEditingFinished: {
 					if (modified) {
 						modified = false;
-						_control.textAltered(_control.contentsText());
+						_control.editingFinished(_control.contentsText());
 					}
 				}
 				onActiveFocusChanged: {

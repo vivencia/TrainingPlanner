@@ -40,7 +40,13 @@ Q_PROPERTY(bool workoutIsEditable READ workoutIsEditable WRITE setWorkoutIsEdita
 Q_PROPERTY(bool todaysWorkout READ todaysWorkout WRITE setTodaysWorkout NOTIFY workoutStatusChanged FINAL)
 
 public:
-	enum class workoutStatusFlags: uint;
+	enum class workoutStatusFlags: uint {
+		WS_IN_PROGRESS = 0x001,
+		WS_EDIT_MODE = 0X002,
+		WS_TODAY = 0X004,
+		WS_EDITABLE = 0x008,
+		WS_FINISHED = 0x010,
+	};
 
 	explicit QmlWorkoutInterface(QObject *parent, DBMesocyclesModel *meso_model, const uint meso_idx, const QDate &date);
 	inline ~QmlWorkoutInterface() { cleanUp(); }

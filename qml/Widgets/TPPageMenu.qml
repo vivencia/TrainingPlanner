@@ -27,11 +27,10 @@ TPPopup {
 	readonly property int smallHeight: 4 * AppSettings.itemSmallHeight
 	readonly property int defaultX: parentPage ? parentPage.width : 0
 	property bool expanded: x < defaultX
-
-	signal _entryVisible(entry_idx: int, visibility: bool);
+	property bool behaviour_enabled
 
 	Behavior on x {
-		enabled: _menu.showIndicator
+		enabled: _menu.behaviour_enabled && _menu.showIndicator
 		animation: NumberAnimation {
 			duration: 500
 			easing.type: Easing.InOutBack
@@ -39,6 +38,7 @@ TPPopup {
 	}
 
 	onMouseItemClicked: (mouse) => {
+		_menu.behaviour_enabled = true;
 		expanded = !expanded;
 		x = expanded ? defaultX - width : defaultX
 	}
@@ -46,14 +46,11 @@ TPPopup {
 	ListModel {
 		id: entriesListModel
 
-		property int visibleCount
-		property list<bool> entryVisible
-
 		Component.onCompleted: {
-			visibleCount = _menu.entriesList.length;
-			for (let i = 0; i < visibleCount; i++) {
-				entriesListModel.append(_menu.entriesList[i]);
-				entryVisible[i] = true;
+			const total_entries = _menu.entriesList.length;
+			for (let i = 0; i < total_entries; i++) {
+				if (_menu.entriesList[i].visible)
+					entriesListModel.append(_menu.entriesList[i]);
 			}
 		}
 	}
@@ -132,7 +129,7 @@ TPPopup {
 		reuseItems: true
 		clip: true
 		width: largest_entry_width
-		height: AppSettings.itemDefaultHeight * entriesListModel.visibleCount
+		height: AppSettings.itemDefaultHeight * entriesListModel.count
 
 		anchors {
 			horizontalCenter: parent.horizontalCenter
@@ -145,20 +142,13 @@ TPPopup {
 			id: delegate
 			width: entriesListView.largest_entry_width
 			height: AppSettings.itemDefaultHeight
-			enabled: entriesListModel.get(index).enabled
+			enabled: index >= 0 ? entriesListModel.get(index).enabled : false
 
 			required property int index
 
-			Component.onCompleted: _menu._entryVisible.connect(setVisible);
-
-			function setVisible(entry_idx: int, visibility: bool): void {
-				if (entry_idx === delegate.index)
-					visible = visibility;
-			}
-
 			TPImage {
 				id: entry_img
-				source: entriesListModel.get(delegate.index).image
+				source: delegate.index >= 0 ? entriesListModel.get(delegate.index).image : ""
 				width: source !== "" ? AppSettings.itemDefaultHeight : 0
 				height: AppSettings.itemDefaultHeight
 
@@ -169,7 +159,7 @@ TPPopup {
 			}
 
 			TPLabel {
-				text: entriesListModel.get(delegate.index).label
+				text: delegate.index >= 0 ? entriesListModel.get(delegate.index).label : ""
 				useBackground: true
 				backgroundColor: delegate.index % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2
 
@@ -233,15 +223,15 @@ TPPopup {
 		entriesListModel.clear();
 	}
 
-	function createEntry(label: string, image: string, btn_id: int, enabled: bool): void {
+	function insertEntry(index: int, label: string, image: string, btn_id: int, enabled: bool): void {
 		let entry = {
 			"label": label,
 			"image": image,
 			"btn_id": btn_id,
-			"enabled": enabled
+			"enabled": enabled,
+			"visible": true
 		}
-		entriesListModel.append(entry);
-		entriesListModel.entryVisible.push(true);
+		entriesListModel.insert(index, entry);
 	}
 
 	function createEntries(labels: list<string>, images: list<string>, btn_ids: list<int>, enableds: list<bool>) {
@@ -250,23 +240,16 @@ TPPopup {
 				"label": labels[i],
 				"image": i < images.length ? images[i] : "",
 				"btn_id": i < btn_ids.length ? btn_ids[i] : i,
-				"enabled": i <  enableds.length ? enableds[i] : true
+				"enabled": i <  enableds.length ? enableds[i] : true,
+				"visible": true
 			}
 			entriesListModel.append(entry);
-			entriesListModel.entryVisible.push(true);
 		}
 	}
 
 	function removeEntry(entry_idx: int): void {
-		if (entry_idx < entriesListModel.count) {
+		if (entry_idx < entriesListModel.count)
 			entriesListModel.remove(entry_idx);
-			let new_entry_visible = [];
-			for (let i = 0; i < entriesListModel.count; ++i) {
-				if (i !== entry_idx)
-					new_entry_visible.push(entriesListModel.entryVisible[i]);
-			}
-			entriesListModel.entryVisible = new_entry_visible;
-		}
 	}
 	function removeEntryById(btn_id: int): void {
 		for (let i = 0; i < entriesListModel.count; ++i) {
@@ -304,20 +287,37 @@ TPPopup {
 		}
 	}
 
-	function setVisible(entry_idx: int, visibility: bool): void {
-		if (entry_idx < entriesListModel.count) {
-			if (entriesListModel.entryVisible[entry_idx] !== visibility) {
-				_entryVisible(entry_idx, visibility);
-				entriesListModel.entryVisible[entry_idx] = visibility;
-				entriesListModel.visibleCount += visibility ? 1 : -1;
-			}
+	function getModelIndexFromId(btn_id: int): int {
+		for (let i = 0; i < entriesListModel.count; ++i) {
+			if (entriesListModel.get(i).btn_id === btn_id)
+				return i;
 		}
+		return -1;
 	}
 
-	function setVisibleById(btn_id: int, visibility: bool): void {
-		for (let i = 0; i < entriesListModel.count; ++i) {
-			if (entriesListModel.get(i).btn_id === btn_id) {
-				setVisible(i, visibility);
+	function changeEntryVisibilityById(btn_id: int, visibility: bool): void {
+		for (let i = 0; i < entriesList.length; ++i) {
+			if (entriesList[i].btn_id === btn_id) {
+				if (entriesList[i].visible !== visibility) {
+					entriesList[i].visible = visibility;
+					if (!visibility)
+						entriesListModel.remove(getModelIndexFromId(entriesList[i].btn_id));
+					else {
+						if (i === 0)
+							entriesListModel.insert(0, entriesList[0]);
+						else {
+							let x = i - 1;
+							while (!entriesList[x].visible) {
+								if (--x < 0) {
+									x = 0;
+									break;
+								}
+							}
+							let above_btn_id = entriesList[x].btn_id;
+							entriesListModel.insert(getModelIndexFromId(above_btn_id) + 1, entriesList[i]);
+						}
+					}
+				}
 				break;
 			}
 		}

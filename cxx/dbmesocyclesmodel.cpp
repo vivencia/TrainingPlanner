@@ -16,7 +16,9 @@
 
 #include <QQuickItem>
 
+#include <chrono>
 #include <ranges>
+#include <thread>
 
 constexpr QLatin1StringView mesosViewIdxSetting{"mesosViewIdx"};
 
@@ -130,7 +132,10 @@ void DBMesocyclesModel::setCurrentMesosView(const bool own_mesos_view)
 bool DBMesocyclesModel::isMesoOK(const int meso_idx) const
 {
 	if (meso_idx >= 0 && meso_idx < m_metadata.count()) {
-		const uint ok_flags{(2 ^ MD_NAME_OK) | (2 ^ MD_STARTDATE_OK) | (2 ^ MD_ENDDATE_OK) | (2 ^ MD_SPLIT_OK)};
+		const uint ok_flags{static_cast<uint>(std::pow(2, static_cast<int>(MD_NAME_OK))) |
+			static_cast<uint>(std::pow(2, static_cast<int>(MD_STARTDATE_OK))) |
+			static_cast<uint>(std::pow(2, static_cast<int>(MD_ENDDATE_OK))) |
+			static_cast<uint>(std::pow(2, static_cast<int>(MD_SPLIT_OK)))};
 		return (m_metadata.at(meso_idx) & ok_flags) == ok_flags;
 	}
 	return false;
@@ -140,8 +145,10 @@ void DBMesocyclesModel::setModified(const uint meso_idx, const MesoFields field)
 {
 	emit mesoChanged(meso_idx, field);
 	if (field != MESO_FIELD_METADATA) {
-		if (isProgramSent(meso_idx)) //any modification after the program has been sent to the client marks the program sendable again
+		if (isProgramSent(meso_idx)) { //any modification after the program has been sent to the client marks the program sendable again
 			unsetMetaData(meso_idx, MD_PROGRAM_SENT, false);
+			m_dbModelInterface->setModified(meso_idx, MESO_FIELD_METADATA);
+		}
 	}
 	if (isMesoOK(meso_idx)) {
 		switch (field) {
@@ -166,7 +173,8 @@ void DBMesocyclesModel::setModified(const uint meso_idx, const MesoFields field)
 		}
 	}
 	m_dbModelInterface->setModified(meso_idx, field);
-	appThreadManager()->runAction(m_db, ThreadManager::UpdateOneField);
+	appThreadManager()->runAction(m_db, m_dbModelInterface->isModified(meso_idx, MESO_FIELD_METADATA) ?
+												ThreadManager::UpdateSeveralFields : ThreadManager::UpdateOneField);
 }
 
 int DBMesocyclesModel::idxFromFieldValue(const QString &field_value, const int field) const
@@ -312,7 +320,7 @@ void DBMesocyclesModel::loadSplits(const uint meso_idx)
 {
 	for (const auto &split_letter : m_usedSplits.at(meso_idx)) {
 		loadSplit(meso_idx, split_letter);
-		::usleep(1000);
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
 }
 
@@ -777,7 +785,7 @@ const uint DBMesocyclesModel::newMesoData(QStringList &&infolist)
 {
 	const uint meso_idx{count()};
 	m_mesoData.append(std::move(infolist));
-	m_metadata.append(0);
+	m_metadata.append(metadata(meso_idx).toUInt());
 	m_usedSplits.append(QString{});
 	makeUsedSplits(meso_idx);
 	return meso_idx;

@@ -417,16 +417,47 @@ TPPage {
 
 			TPLabel {
 				text: mesoPage.mesoModel.notesLabel
-				Layout.topMargin: 10
-				Layout.fillWidth: true
+				Layout.maximumWidth: parent.width * 0.7
+
+				TPButton {
+					id: btnNotesOK
+					imageSource: "set-completed"
+					enabled: notes_changed
+					width: text.length > 0 ? parent.width * 0.3 : AppSettings.itemDefaultHeight
+					height: AppSettings.itemDefaultHeight
+
+					property bool notes_changed: false
+					onNotes_changedChanged: {
+						if (notes_changed)
+							text = qsTr("Save");
+						else
+							text = "";
+					}
+					onClicked: mesoPage.saveNotes();
+
+					anchors {
+						left: parent.right
+						verticalCenter: parent.verticalCenter
+					}
+				}
 			}
 
 			TPMultiLineEdit {
+				id: txtNotes
 				Layout.fillWidth: true
-				Layout.preferredHeight: AppSettings.pageHeight * 0.15
+				Layout.preferredHeight: minHeight
 				text: mesoPage.mesoManager.notes
-				onTextAltered: (_text) => mesoPage.mesoManager.notes = _text;
+				minHeight: AppSettings.itemDefaultHeight * 5
+				onTextEdited: if (!btnNotesOK.notes_changed) btnNotesOK.notes_changed = true;
+				onEditingFinished: (_text) => mesoPage.saveNotes();
 			}
 		} //ColumnLayout
 	} //ScrollView
+
+	function saveNotes(): void {
+		if (btnNotesOK.notes_changed) {
+			btnNotesOK.notes_changed = false;
+			mesoPage.mesoManager.notes = txtNotes.contentsText();
+		}
+	}
 } //Page

@@ -77,11 +77,13 @@ public:
 	void getCmdFile(const int requestid, const QString &filename, const QString &subdir = QString{});
 
 	void checkTPMessages(const int requestid);
-	void checkMessages(const int requestid);
-	void sendMessage(const int requestid, const QString &receiver, const QString &encoded_message);
-	void chatMessageWork(const int requestid, const QString &recipient, const QString &msgid, const QLatin1StringView &work);
-	void chatMessageWorkAcknowledged(const int requestid, const QString &recipient, const QString &msgid, const QLatin1StringView &work);
-	void recheckNewMessages();
+	void sendTPMessage(const int requestid, const QString &message, const QString &target_user);
+	void removeTPMessage(const int requestid, const QString &message);
+
+	void checkChatMessages(const int requestid);
+	void sendChatMessage(const int requestid, const QString &receiver, const QString &encoded_message);
+	void removeChatMessage(const int requestid, const QString &receiver, const QString &encoded_message);
+	void recheckNewChatMessages();
 
 public slots:
 	void storeCredentials();
@@ -107,7 +109,7 @@ private:
 	void makeNetworkRequest(const int requestid, const QUrl &url, const bool b_internal_signal_only = false);
 	void handleServerRequestReply(const int requestid, QNetworkReply *reply, const bool b_internal_signal_only = false);
 	void uploadFile(const int requestid, const QUrl &url, QFile *file, const bool b_internal_signal_only = false);
-	void parseReceivedFilesList(const QString &ret_string, const QString &subdir, const QString &targetUser);
+	void parseReceivedFilesList(QStringList &new_files, const QString &ret_string, const QString &subdir, const QString &targetUser);
 	bool remoteFileUpToDate(const QString &onlineDate, const QString &localFile) const;
 	bool localFileUpToDate(const QString &onlineDate, const QString &localFile) const;
 

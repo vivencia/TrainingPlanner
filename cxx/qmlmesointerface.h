@@ -26,8 +26,8 @@ Q_PROPERTY(bool endDateOK READ endDateOK NOTIFY endDateOKChanged FINAL)
 Q_PROPERTY(bool splitOK READ splitOK NOTIFY splitOKChanged FINAL)
 Q_PROPERTY(bool realMeso READ realMeso WRITE setRealMeso NOTIFY realMesoChanged FINAL)
 Q_PROPERTY(bool ownMeso READ ownMeso CONSTANT FINAL)
-Q_PROPERTY(bool isTempMeso READ isTempMeso NOTIFY isTempMesoChanged FINAL)
 Q_PROPERTY(bool canExport READ canExport NOTIFY canExportChanged FINAL)
+Q_PROPERTY(bool canSendToClient READ canSendToClient NOTIFY canSendToClientChanged FINAL)
 Q_PROPERTY(bool mesoForClient READ mesoForClient CONSTANT FINAL)
 Q_PROPERTY(bool mesoOK READ mesoOK NOTIFY mesoOKChanged FINAL)
 Q_PROPERTY(int mesoIdx READ mesoIdx WRITE setMesoIdx NOTIFY mesoIdxChanged FINAL)
@@ -90,8 +90,8 @@ public:
 	[[nodiscard]] bool realMeso() const;
 	void setRealMeso(const bool new_value);
 	[[nodiscard]] bool ownMeso() const;
-	[[nodiscard]] bool isTempMeso() const;
 	[[nodiscard]] bool canExport() const;
+	[[nodiscard]] bool canSendToClient() const;
 	[[nodiscard]] bool mesoForClient() const;
 	[[nodiscard]] bool mesoOK() const;
 
@@ -144,8 +144,8 @@ signals:
 	void endDateOKChanged();
 	void realMesoChanged();
 	void splitOKChanged();
-	void isTempMesoChanged();
 	void canExportChanged();
+	void canSendToClientChanged();
 	void mesoOKChanged();
 	void mesoIdxChanged();
 	void wrongFieldsCounterChanged();

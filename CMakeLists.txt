@@ -29,7 +29,7 @@ set(QML_IMPORT_PATH "${CMAKE_BINARY_DIR}/qml" CACHE STRING "Import paths for Qt 
 if (ANDROID)
 
 	find_package(
-		Qt6 REQUIRED COMPONENTS
+		Qt6 6.10 REQUIRED COMPONENTS
 		Charts
 		Core
 		CorePrivate
@@ -54,7 +54,7 @@ if (ANDROID)
 else()
 
 	find_package(
-		Qt6 REQUIRED COMPONENTS
+		Qt6 6.10 REQUIRED COMPONENTS
 		Charts
 		Core
 		Gui
@@ -87,7 +87,7 @@ add_definitions(
 )
 
 qt_standard_project_setup(
-	REQUIRES 6.9
+	REQUIRES 6.10
 	I18N_SOURCE_LANGUAGE en_EN
 	I18N_TRANSLATED_LANGUAGES pt_BR de_DE
 )

@@ -16,14 +16,6 @@
 #include <QQuickItem>
 #include <QQuickWindow>
 
-enum class QmlWorkoutInterface::workoutStatusFlags: uint {
-	WS_IN_PROGRESS = 0x001,
-	WS_EDIT_MODE = 0X002,
-	WS_TODAY = 0X004,
-	WS_EDITABLE = 0x008,
-	WS_FINISHED = 0x010,
-};
-
 QmlWorkoutInterface::QmlWorkoutInterface(QObject *parent,DBMesocyclesModel *meso_model, const uint meso_idx, const QDate &date)
 	: QObject{parent}, m_mesoModel{meso_model}
 {

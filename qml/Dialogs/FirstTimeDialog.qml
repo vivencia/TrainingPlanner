@@ -49,7 +49,7 @@ TPPopup {
 
 		UserPersonalData {
 			id: personal_module
-			userRow: 0
+			userIdx: 0
 			parentPage: _firstTimeDlg.parentPage
 			Layout.fillWidth: true
 			Layout.minimumHeight: _firstTimeDlg.minimumHeight
@@ -57,14 +57,13 @@ TPPopup {
 
 		UserContact {
 			id: contact_module
-			userRow: 0
+			userIdx: 0
 			Layout.fillWidth: true
 			Layout.minimumHeight: _firstTimeDlg.minimumHeight
 		}
 
 		UserCoach {
 			id: coach_module
-			userRow: 0
 			parentPage: _firstTimeDlg.parentPage
 			Layout.fillWidth: true
 			Layout.minimumHeight: _firstTimeDlg.minimumHeight
@@ -72,7 +71,7 @@ TPPopup {
 
 		UserProfile {
 			id: profile_module
-			userRow: 0
+			userIdx: 0
 			parentPage: _firstTimeDlg.parentPage
 			Layout.fillWidth: true
 			Layout.minimumHeight: _firstTimeDlg.minimumHeight

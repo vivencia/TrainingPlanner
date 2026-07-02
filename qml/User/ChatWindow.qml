@@ -190,6 +190,7 @@ TPPopup {
 			required property string msgSentTime
 			required property string msgReceivedDate
 			required property string msgReceivedTime
+			required property FileOperations fileOps
 
 			property int msgHeight: 10
 
@@ -235,38 +236,27 @@ TPPopup {
 
 					Loader {
 						id: mediaLoader
-						asynchronous: false
-						active: messageItem.msgMedia.length > 0
+						asynchronous: true
+						active: false
 						Layout.alignment: Qt.AlignCenter
 						Layout.preferredWidth: _file_viewer ? _file_viewer.minimumWidth : 0
 						Layout.preferredHeight: _file_viewer ? _file_viewer.minimumHeight : 0
 
-						property TPFileViewer _file_viewer: null
-
 						sourceComponent: TPFileViewer {
-							fileName: messageItem.msgMedia
+							fileOps: messageItem.fileOps
+						}
 
-							//onImageSizeChanged: {
-							//	if (++_chatWindow.nMedia === _chatWindow.chatManager.nMediaMessages())
-							//		waitTimer.start();
-							//}
-
-							Component.onCompleted: {
-								mediaLoader._file_viewer = this;
-								_chatWindow.stopMedia.connect(stop_media);
+							/*onImageSizeChanged: {
+								if (++_chatWindow.nMedia === _chatWindow.chatManager.nMediaMessages())
+									waitTimer.start();
 							}
 
-							function stop_media(): void {
-								if (_media_player)
-									_media_player.stop(true);
-							}
-
-							/*Timer {
+							Timer {
 								id: waitTimer
 								interval: 100
 								onTriggered: messagesList.positionViewAtEnd();
 							}*/
-						}
+						//}
 					}
 
 					TPLabel {

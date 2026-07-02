@@ -60,8 +60,7 @@ void TPImage::setSource(const QString &source)
 				if (m_imageFollowControl.has_value() && m_fullWindowView.has_value() && m_aspectRatioMode.has_value())
 					scaleImage();
 			}
-		}
-		else {
+		} else {
 			m_aspectRatioMode = Qt::KeepAspectRatio;
 			m_imageFollowControl = true;
 			m_fullWindowView = false;
@@ -75,20 +74,17 @@ void TPImage::setSource(const QString &source)
 					emit sourceChanged();
 				}
 				return;
-			}
-			else {
+			} else {
 				if (!source.contains('.')) {
 					if (source.endsWith('_'))
 						m_source = std::move(":/images/"_L1 % source % appSettings()->indexColorSchemeToColorSchemeName() % ".png"_L1);
 					else
 						m_source = std::move(":/images/"_L1 % source % ".png"_L1);
-				}
-				else {
+				} else {
 					if (source.endsWith("png"_L1)) {
 						m_canColorize = true;
 						m_source = std::move(":/images/flat/"_L1 % source);
-					}
-					else if (source.endsWith("svg"_L1)) {
+					} else if (source.endsWith("svg"_L1)) {
 						m_canColorize = true;
 						m_dropShadow = false;
 						m_source = std::move(":/images/"_L1 % source);
@@ -169,8 +165,7 @@ void TPImage::saveToDisk(const QString &filename)
 	if (m_image.isNull())
 		return;
 	QFileInfo img_info{filename};
-	if (img_info.exists())
-	{
+	if (img_info.exists()) {
 		if (!QFile::remove(filename))
 			return;
 	}
@@ -200,11 +195,10 @@ void TPImage::scaleImage()
 		m_image = std::move(m_image.scaled(m_imageSize, m_aspectRatioMode.value(), Qt::SmoothTransformation));
 		m_paintOrigin.setX((width() - m_image.width()) / 2);
 		m_paintOrigin.setY((height() - m_image.height()) / 2);
-	}
-	else {
-		if (!fullWindowView())
+	} else {
+		if (!fullWindowView()) {
 			m_imageSize = QSize{m_image.width(), m_image.height()};
-		else {
+		} else {
 			const QScreen *screen{QGuiApplication::primaryScreen()};
 			const QRect &screenGeometry{screen->availableGeometry()};
 			const int s_width{screenGeometry.width()};
@@ -237,15 +231,14 @@ void TPImage::checkEnabled()
 	if (isEnabled()) {
 		if (m_canColorize)
 			colorize(m_image, m_image, appSettings()->fontColor());
-		if (!m_dropShadow)
+		if (!m_dropShadow) {
 			m_imageToPaint = &m_image;
-		else {
+		} else {
 			if (m_imageShadow.isNull())
 				createDropShadowImage(m_image, m_imageShadow);
 			m_imageToPaint = &m_imageShadow;
 		}
-	}
-	else {
+	} else {
 		if (m_imageDisabled.isNull())
 			convertToGrayScale();
 		m_imageToPaint = &m_imageDisabled;
@@ -317,73 +310,3 @@ void TPImage::colorize(const QImage &source_img, QImage &dest_img, const QColor&
 		applyEffectToImage(source_img, dest_img, colorEffect, source_img.size());
 	}
 }
-
-/*void TPImage::blurred(QImage &dstImg, const QImage &srcImg, const QRect& rect, const int radius, const bool alphaOnly)
-{
-	dstImg = srcImg.convertToFormat(QImage::Format_ARGB32_Premultiplied);
-
-	const uint tab[] = { 14, 10, 8, 6, 5, 5, 4, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2 };
-	const uint alpha((radius < 1)  ? 16 : (radius > 17) ? 1 : tab[radius-1]);
-	const uint r1(rect.top());
-	const uint r2(rect.bottom());
-	const uint c1(rect.left());
-	const uint c2(rect.right());
-	const uint bpl(dstImg.bytesPerLine());
-
-	uint rgba[4];
-	unsigned char* p(nullptr);
-	uint i1(0);
-	uint i2(3);
-	uint row(0), col(0), i(0), j(0);
-
-	if (alphaOnly)
-		i1 = i2 = (QSysInfo::ByteOrder == QSysInfo::BigEndian ? 0 : 3);
-
-	for (col = c1; col <= c2; col++)
-	{
-		p = dstImg.scanLine(r1) + col * 4;
-		for (i = i1; i <= i2; i++)
-			rgba[i] = p[i] << 4;
-
-		p += bpl;
-		for (j = r1; j < r2; j++, p += bpl)
-			for (i = i1; i <= i2; i++)
-				p[i] = (rgba[i] += ((p[i] << 4) - rgba[i]) * alpha / 16) >> 4;
-	}
-
-	for (row = r1; row <= r2; row++)
-	{
-		p = dstImg.scanLine(row) + c1 * 4;
-		for (i = i1; i <= i2; i++)
-			rgba[i] = p[i] << 4;
-
-		p += 4;
-		for (j = c1; j < c2; j++, p += 4)
-			for (i = i1; i <= i2; i++)
-				p[i] = (rgba[i] += ((p[i] << 4) - rgba[i]) * alpha / 16) >> 4;
-	}
-
-	for (col = c1; col <= c2; col++)
-	{
-		p = dstImg.scanLine(r2) + col * 4;
-		for (i = i1; i <= i2; i++)
-			rgba[i] = p[i] << 4;
-
-		p -= bpl;
-		for (j = r1; j < r2; j++, p -= bpl)
-			for (i = i1; i <= i2; i++)
-				p[i] = (rgba[i] += ((p[i] << 4) - rgba[i]) * alpha / 16) >> 4;
-	}
-
-	for (row = r1; row <= r2; row++)
-	{
-		p = dstImg.scanLine(row) + c2 * 4;
-		for (i = i1; i <= i2; i++)
-			rgba[i] = p[i] << 4;
-
-		p -= 4;
-		for (j = c1; j < c2; j++, p -= 4)
-			for (i = i1; i <= i2; i++)
-				p[i] = (rgba[i] += ((p[i] << 4) - rgba[i]) * alpha / 16) >> 4;
-	}
-}*/

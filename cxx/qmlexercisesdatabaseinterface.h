@@ -4,10 +4,9 @@
 #include <qqml.h>
 #include <QVariantMap>
 
-class QmlWorkoutInterface;
-
-class QQmlComponent;
-class QQuickItem;
+QT_FORWARD_DECLARE_CLASS(QmlWorkoutInterface)
+QT_FORWARD_DECLARE_CLASS(QQmlComponent)
+QT_FORWARD_DECLARE_CLASS(QQuickItem)
 
 class QmlExercisesDatabaseInterface : public QObject
 {
@@ -19,7 +18,6 @@ QML_UNCREATABLE("")
 public:
 	inline explicit QmlExercisesDatabaseInterface(QObject *parent) : QObject{parent} {}
 
-	Q_INVOKABLE void saveExercise();
 	Q_INVOKABLE const uint removeExercise(const uint row);
 	void getExercisesPage(QmlWorkoutInterface *connect_page = nullptr);
 

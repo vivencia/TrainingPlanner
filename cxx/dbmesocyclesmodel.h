@@ -309,17 +309,23 @@ public:
 
 	inline void setMetaData(const uint meso_idx, const MetaData md_field, const bool set_modified = true)
 	{
-		setBit(m_metadata[meso_idx], md_field);
-		if (set_modified)
-			setModified(meso_idx, MESO_FIELD_METADATA);
-		emit metaDataChanged(meso_idx, md_field);
+		if (!isBitSet(m_metadata.at(meso_idx), md_field)) {
+			setBit(m_metadata[meso_idx], md_field);
+			m_mesoData[meso_idx][MESO_FIELD_METADATA] = std::move(QString::number(m_metadata.at(meso_idx)));
+			if (set_modified)
+				setModified(meso_idx, MESO_FIELD_METADATA);
+			emit metaDataChanged(meso_idx, md_field);
+		}
 	}
 	inline void unsetMetaData(const uint meso_idx, const MetaData md_field, const bool set_modified = true)
 	{
-		unSetBit(m_metadata[meso_idx], md_field);
-		if (set_modified)
-			setModified(meso_idx, MESO_FIELD_METADATA);
-		emit metaDataChanged(meso_idx, md_field);
+		if (isBitSet(m_metadata.at(meso_idx), md_field)) {
+			unSetBit(m_metadata[meso_idx], md_field);
+			m_mesoData[meso_idx][MESO_FIELD_METADATA] = std::move(QString::number(m_metadata.at(meso_idx)));
+			if (set_modified)
+				setModified(meso_idx, MESO_FIELD_METADATA);
+			emit metaDataChanged(meso_idx, md_field);
+		}
 	}
 
 	inline const QString mesoNameLabel() const { return tr("Program's name: "); }

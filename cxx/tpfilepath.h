@@ -29,13 +29,13 @@ public:
 	inline TPFilePath() {}
 	TPFilePath(const QString &filename, const QString &owner_user, const QString &target_user,
 																	const std::initializer_list<QString> &subdirs);
-	inline explicit TPFilePath(const QString &filepath) { fromString(filepath); }
+	inline TPFilePath(const QString &filepath) { fromString(filepath); }
 	inline TPFilePath(const TPFilePath &other)
 		: m_fileName{other.m_fileName}, m_ownerUser{other.m_ownerUser}, m_targetUser{other.m_targetUser},
-				m_subDirs{other.m_subDirs}, m_fullPathOK{ other.m_fullPathOK}, m_useFileExtension{other.m_useFileExtension} {}
+			m_subDirs{other.m_subDirs}, m_fullPathOK{ other.m_fullPathOK}, m_useFileExtension{other.m_useFileExtension} {}
 	inline TPFilePath(TPFilePath &&other) noexcept
 		: m_fileName{other.m_fileName}, m_ownerUser{other.m_ownerUser}, m_targetUser{other.m_targetUser},
-				m_subDirs{other.m_subDirs}, m_fullPathOK{ other.m_fullPathOK}, m_useFileExtension{other.m_useFileExtension} {}
+			m_subDirs{other.m_subDirs}, m_fullPathOK{ other.m_fullPathOK}, m_useFileExtension{other.m_useFileExtension} {}
 
 	inline TPFilePath &operator=(const QString &filepath)
 	{
@@ -75,7 +75,7 @@ public:
 	{
 		if (!m_fullPathOK) {
 			const_cast<TPFilePath*>(this)->m_fullPath = std::move(appUtils()->sanitizePath(
-							std::move(_localAppFilesDir % m_ownerUser % '/' % m_targetUser % '/' % m_subDirs % m_fileName)));
+						std::move(_localAppFilesDir % m_ownerUser % '/' % m_targetUser % '/' % m_subDirs % m_fileName)));
 			const_cast<TPFilePath*>(this)->m_fullPathOK = true;
 		}
 		return !use_temp_filename ? m_fullPath : m_fullPath % ".tmp"_L1;
@@ -83,6 +83,9 @@ public:
 	inline QString filePath() const
 	{
 		return appUtils()->getFilePath(toString(), false);
+	}
+	inline QString relativeFilePath() const {
+		return m_ownerUser % '/' % m_targetUser % '/' % m_subDirs % m_fileName;
 	}
 
 	static void setLocalAppFilesDir();

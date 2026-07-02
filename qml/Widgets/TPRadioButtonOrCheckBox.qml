@@ -10,11 +10,12 @@ TPLabel {
 	rightPadding: 0
 	bottomPadding: 5
 	leftPadding: indicator.width + 10 + (image.length > 0 ? img.width : 0)
+	width: (lineCount <= 1 ? contentWidth : contentWidth/lineCount) + indicator.width + imgHeight
 
 //public:
 	property alias image: img.source
 	property int imageHeight: AppSettings.itemDefaultHeight
-	property int imageWidth: imageHeight
+	property int imageWidth: image.length > 0 ? imageHeight : 0
 	property bool checked: false
 	property bool multiLine: false
 	property bool actionable: enabled
@@ -27,8 +28,8 @@ TPLabel {
 
 	Rectangle {
 		id: indicator
-		implicitWidth: _control.boxType !== TPRadioButtonOrCheckBox.TP_NONE ? AppSettings.itemSmallHeight : 0
-		implicitHeight: implicitWidth
+		width: _control.boxType !== TPRadioButtonOrCheckBox.TP_NONE ? AppSettings.itemSmallHeight : 0
+		height: width
 		radius: _control.boxType === TPRadioButtonOrCheckBox.TP_RADIOBOX ? implicitWidth / 2 : 4
 		color: "transparent"
 		border.color: _control.enabled ? _control.color : AppSettings.disabledFontColor

@@ -115,19 +115,19 @@ bool QMLMesoInterface::ownMeso() const
 	return m_mesoModel->isOwnMeso(m_mesoIdx);
 }
 
-bool QMLMesoInterface::isTempMeso() const
-{
-	return m_mesoModel->_id(m_mesoIdx) < 0;
-}
-
 bool QMLMesoInterface::canExport() const
 {
-	return m_mesoModel->isOwnMeso(m_mesoIdx) && m_mesoModel->canExport(m_mesoIdx) && !m_mesoModel->isProgramSent(m_mesoIdx);
+	return m_mesoModel->canExport(m_mesoIdx);
+}
+
+bool QMLMesoInterface::canSendToClient() const
+{
+	return mesoForClient() && !m_mesoModel->isProgramSent(m_mesoIdx);
 }
 
 bool QMLMesoInterface::mesoForClient() const
 {
-	return appUserModel()->isCoach(0) && (appUserModel()->userId(0) == m_mesoModel->coach(m_mesoIdx));
+	return m_mesoModel->type(m_mesoIdx).toUInt() == DBMesocyclesModel::MT_MESO_FOR_CLIENT;
 }
 
 bool QMLMesoInterface::mesoOK() const
@@ -294,18 +294,18 @@ void QMLMesoInterface::sendMesocycleFileToClient()
 		m_mesoFileOps = new TPFileOps;
 		m_mesoFileOps->setCanDownloadOrGenerate(true);
 		m_mesoFileOps->setMesoIdx(m_mesoIdx);
+		m_mesoFileOps->setParentPage(m_mesoPage);
 	}
 	m_mesoFileOps->setFileName(std::move(*m_mesoModel->suggestedName(m_mesoIdx)));
 	m_mesoFileOps->setFileType(TPUtils::FT_TP_PROGRAM);
 	connect(m_mesoFileOps, &TPFileOps::fileAcquired, this, [this] (const int ret_code) mutable {
 		if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS) {
 			connect(m_mesoFileOps, &TPFileOps::fileSent, this, [this] (const bool success) {
-				m_mesoFileOps->disconnect();
-				if (success)
-					m_mesoModel->setMetaData(m_mesoIdx, DBMesocyclesModel::MD_PROGRAM_SENT);
-			});
-			m_mesoFileOps->sendFileTo(TPUtils::SFM_TPMESSAGESMANAGER, QStringList{} <<
-														m_mesoFileOps->tpFileName().targetUser(), tr("Exercises Program"));
+				//if (success)
+				//	m_mesoModel->setMetaData(m_mesoIdx, DBMesocyclesModel::MD_PROGRAM_SENT);
+			}, Qt::SingleShotConnection);
+			m_mesoFileOps->sendFileTo(TPUtils::MH_TPMESSAGES_MANAGER, QStringList{} <<
+											m_mesoFileOps->tpFileName().targetUser(), tr("Exercises Program"), true);
 		}
 	}, Qt::SingleShotConnection);
 	m_mesoFileOps->attemptToCreateOrGetFile();
@@ -350,15 +350,11 @@ void QMLMesoInterface::getMesocyclePage(const bool new_meso)
 				meso_name = std::move(tr("New Program") + " %1"_L1.arg(QString::number(i++)));
 			} while (!m_mesoModel->checkName(m_mesoIdx, meso_name));
 			setName(meso_name);
-		}
-		if (!startDateOK())
 			setStartDate(appUtils()->getNextMonday(QDate::currentDate()));
-		else
-			m_strStartDate = std::move(appUtils()->formatDate(m_mesoModel->startDate(m_mesoIdx)));
-		if (!endDateOK())
 			setEndDate(appUtils()->getNextSunday(m_mesoModel->startDate(m_mesoIdx).addDays(60)));
-		else
-			m_strEndDate = std::move(appUtils()->formatDate(m_mesoModel->endDate(m_mesoIdx)));
+		}
+		m_strStartDate = std::move(appUtils()->formatDate(m_mesoModel->startDate(m_mesoIdx)));
+		m_strEndDate = std::move(appUtils()->formatDate(m_mesoModel->endDate(m_mesoIdx)));
 		m_mesoProperties["mesoManager"_L1] = std::move(QVariant::fromValue(this));
 		m_mesoProperties["mesoModel"_L1] = std::move(QVariant::fromValue(m_mesoModel));
 		m_mesoComponent = new QQmlComponent{appQmlEngine(), "TpQml.Pages", "MesocyclePage", QQmlComponent::Asynchronous};
@@ -383,8 +379,10 @@ void QMLMesoInterface::getMesocyclePage(const bool new_meso)
 #endif
 			}
 		}
-		else
+		else {
 			appPagesListModel()->openPage(m_mesoPage);
+			showOptionsMenu(true);
+		}
 	}
 }
 
@@ -426,8 +424,11 @@ void QMLMesoInterface::showOptionsMenu(const bool show_indicator, QQuickItem *it
 			}
 		}
 		else {
+			//change visibility before changing the showIndicator property because the visibility is bound its value in TPPageMenu.entriesList
+			QMetaObject::invokeMethod(m_optionsMenu, "changeEntryVisibilityById", Q_ARG(int, TPFileOps::OT_Custom_2), Q_ARG(bool, show_indicator));
 			m_optionsMenu->setProperty("showIndicator", std::move(QVariant{show_indicator}));
-			QMetaObject::invokeMethod(m_optionsMenu, "setVisible", Q_ARG(int, OPTION_EXERCISES_PLANNER), Q_ARG(bool, show_indicator));
+			if (show_indicator)
+				m_optionsMenu->setProperty("behaviour_enabled", std::move(QVariant{false}));
 			appPagesListModel()->openPopup(m_optionsMenu, item ? appItemManager()->AppHomePage() : m_mesoPage, Qt::AlignBaseline, item);
 		}
 	}
@@ -451,11 +452,11 @@ void QMLMesoInterface::createMesocyclePage()
 
 	TPFileOps *meso_viewer_fileops{m_mesoPage->property("fileOps").value<TPFileOps*>()};
 	if (meso_viewer_fileops) {
-		meso_viewer_fileops->setSuggestedFileNameGenerator([this] () -> TPFilePathPtr {
+		meso_viewer_fileops->setSuggestedFileNameGenerator([this] (const QString &) -> TPFilePathPtr {
 			return m_mesoModel->suggestedName(m_mesoIdx, true);
 		});
 		connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this,meso_viewer_fileops]
-														(const uint meso_idx, const DBMesocyclesModel::MesoFields field) {
+													(const uint meso_idx, const DBMesocyclesModel::MesoFields field) {
 			if (meso_idx == m_mesoIdx && field == DBMesocyclesModel::MESO_FIELD_NAME) {
 				meso_viewer_fileops->renameFile(m_mesoModel->name(m_mesoIdx));
 				m_mesoModel->setFile(m_mesoIdx, meso_viewer_fileops->fileName());
@@ -468,7 +469,7 @@ void QMLMesoInterface::createMesocyclePage()
 			emit mesoOKChanged();
 			switch (md_field) {
 			case DBMesocyclesModel::MD_REAL_MESO: emit realMesoChanged(); break;
-			case DBMesocyclesModel::MD_PROGRAM_SENT:
+			case DBMesocyclesModel::MD_PROGRAM_SENT: emit canSendToClientChanged(); break;
 			case DBMesocyclesModel::MD_CAN_EXPORT: emit canExportChanged(); break;
 			case DBMesocyclesModel::MD_NAME_OK:
 				if (mesoNameOK())

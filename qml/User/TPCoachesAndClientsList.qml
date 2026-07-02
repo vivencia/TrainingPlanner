@@ -5,8 +5,11 @@ import QtQuick
 import TpQml
 import TpQml.Widgets
 
-Item {
+Rectangle {
 	id: _control
+	border.color: AppSettings.fontColor
+	color: "transparent"
+	radius: 8
 
 //public:
 	property string buttonString: ""
@@ -35,6 +38,8 @@ Item {
 		onCountChanged: {
 			if (count === 0)
 				lblEmptyList.text = lblEmptyList.updateText();
+			lblEmptyList.visible = count === 0;
+			listView.visible = count >= 1;
 		}
 	}
 
@@ -51,35 +56,41 @@ Item {
 		}
 
 		function updateText(): string {
+			let text = "";
 			if (_control.listClients) {
 				if (_control.listConfirmed)
-					return qsTr("No current clients");
+					text = qsTr("No current clients");
 				else
-					return qsTr("No clients pending confirmation");
+					text = qsTr("No clients pending confirmation");
 			}
-			else if (_control.listCoaches) {
+			if (_control.listCoaches) {
+				text +=	"<br>";
 				if (_control.listConfirmed)
-					return qsTr("No current coaches");
+					text +=	qsTr("No current coaches");
 				else if (_control.listAvailable)
-					return qsTr("No available coaches");
+					text +=	qsTr("No available coaches");
 				else
-					return qsTr("No coaches pending confirmation");
+					text +=	qsTr("No coaches pending confirmation");
 			}
+			return text;
 		}
 	}
 
 	TPListView {
-		id: listview
+		id: listView
 		currentIndex: workingModel.currentRow
 		height: button.visible ? _control.height - button.height - 5 : _control.height
 		model: workingModel
 		enabled: _control.enabled
 		visible: workingModel.count > 0
 
+		onEnabledChanged: console.log("##########################", enabled);
+		Component.onCompleted: console.log("%%%%%%%%%%%%%%%%%%%%%%%", enabled);
 		anchors {
 			top: _control.top
 			left: _control.left
 			right: _control.right
+			margins: 2
 		}
 
 		delegate: TPRadioButtonOrCheckBox {
@@ -87,7 +98,7 @@ Item {
 			text: name
 			boxType: _control.multipleSelection ? TPRadioButtonOrCheckBox.TP_CHECKBOX : TPRadioButtonOrCheckBox.TP_NONE
 			visible: itemVisible
-			width: listview.width
+			width: listView.width
 			height: itemVisible ? AppSettings.itemDefaultHeight : 0
 
 			required property int index
@@ -100,6 +111,7 @@ Item {
 								(delegate.index % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2)
 				opacity: delegate.selected ? 1 : 0.8
 				border.color: delegate.selected ? AppSettings.fontColor : "transparent"
+				radius: 8
 			}
 
 			onClicked: _control.selectItem(delegate.index);
@@ -136,6 +148,7 @@ Item {
 
 		anchors {
 			bottom: _control.bottom
+			bottomMargin: 5
 			horizontalCenter: _control.horizontalCenter
 		}
 	}
@@ -164,6 +177,10 @@ Item {
 
 	function selectedUsers(): list<string> {
 		return workingModel.selectedUsers();
+	}
+
+	function setSelectedUsers(users: list<string>): void {
+		workingModel.setSelectedUsers(users);
 	}
 
 	function reset(): void {

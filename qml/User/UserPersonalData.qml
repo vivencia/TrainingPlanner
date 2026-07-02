@@ -194,7 +194,7 @@ ColumnLayout {
 			id: chkMale
 			text: qsTr("Male")
 			actionable: userPersonalModule.userIdx === 0
-			checked: AppUserModel.sex(userPersonalModule.userIdx) === 0
+			checked: AppUserModel.sex(userPersonalModule.userIdx) === 'M'
 			buttonGroup: sexGroup
 			width: parent.width/2
 
@@ -204,7 +204,7 @@ ColumnLayout {
 			}
 
 			onClicked: {
-				if (AppUserModel.sex(userPersonalModule.userIdx) !== 0)
+				if (AppUserModel.sex(userPersonalModule.userIdx) !== 'M')
 					AppUserModel.setSex(userPersonalModule.userIdx, true);
 				userPersonalModule.bSexOK = true;
 			}
@@ -214,12 +214,12 @@ ColumnLayout {
 			id: chkFemale
 			text: qsTr("Female")
 			actionable: userPersonalModule.userIdx === 0
-			checked: AppUserModel.sex(userPersonalModule.userIdx) === 1
+			checked: AppUserModel.sex(userPersonalModule.userIdx) === 'F'
 			buttonGroup: sexGroup
 			width: parent.width / 2
 
 			onClicked: {
-				if (AppUserModel.sex(userPersonalModule.userIdx) !== 1)
+				if (AppUserModel.sex(userPersonalModule.userIdx) !== 'F')
 					AppUserModel.setSex(userPersonalModule.userIdx, false);
 				userPersonalModule.bSexOK = true;
 			}

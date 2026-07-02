@@ -40,7 +40,7 @@ constexpr QLatin1StringView cmd_file_extension{".cmd"};
 constexpr uint file_upload_max_size{8*1024*1024};
 
 #ifndef QT_NO_DEBUG
-#define POLLING_INTERVAL 60*1000 //When testing, poll more frequently
+#define POLLING_INTERVAL 5*60*1000 //When testing, poll according to the current debugging needs(more or less frequently, that is)
 #else
 #define POLLING_INTERVAL 2*60*1000
 #endif
@@ -404,7 +404,7 @@ void DBUserModel::setUserCategory(const int user_idx, const int new_category, co
 	};
 
 	if (!has_category && add)
-		change_category(category |= new_category);
+		change_category(category | new_category);
 	else {
 		if (new_category == UC_COACH && isCoach(0) && (category & UC_HAS_CLIENT)) {
 			auto conn{std::make_shared<QMetaObject::Connection>()};
@@ -437,7 +437,7 @@ void DBUserModel::setUserCategory(const int user_idx, const int new_category, co
 			return;
 		}
 		else
-			change_category(category &= ~new_category);
+			change_category(category & ~new_category);
 	}
 }
 
@@ -520,7 +520,6 @@ void DBUserModel::userSwitchingActions(const bool create, QString &&userid)
 	if (create)
 		createMainUser(appSettings()->currentUser(), tr("New user"));
 	initUserSession();
-
 	appPagesListModel()->userSwitchingActions();
 }
 #endif
@@ -736,27 +735,23 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 	}
 }
 
-int DBUserModel::sendFileToServer(const TPFilePath &tp_filename, const QString &successMessage, const bool remove_local_file)
+int DBUserModel::sendFileToServer(const TPFilePath &tp_filename, const bool remove_local_file)
 {
-	if (!canConnectToServer()) {
-		if (!successMessage.isEmpty())
-			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_SERVER_UNREACHABLE);
-		return TP_RET_CODE_UPLOAD_FAILED;
-	}
+	if (!canConnectToServer())
+		return TP_RET_CODE_SERVER_UNREACHABLE;
 	else {
 		if (!mainUserLoggedIn())
-			return TP_RET_CODE_UPLOAD_FAILED;
+			return TP_RET_CODE_USER_OFFLINE;
 	}
 
 	QFileInfo fi{tp_filename.toString()};
 	if (fi.size() > file_upload_max_size) {
 		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR,
 			appUtils()->string_strings({ tr("Cannot upload file"), tr("Maximum file size allowed: 8MB")}, record_separator));
-		return TP_RET_CODE_UPLOAD_FAILED;
+		return TP_RET_CODE_FILE_TOO_BIG;
 	}
 
 	const int requestid{tp_filename.generateUniqueId()};
-
 	QFile *upload_file{appUtils()->openFile(tp_filename.toString(), true, false, false, false, false)};
 	if (upload_file) {
 		auto conn{std::make_shared<QMetaObject::Connection>()};
@@ -767,19 +762,13 @@ int DBUserModel::sendFileToServer(const TPFilePath &tp_filename, const QString &
 				upload_file->close();
 				if (remove_local_file)
 					QFile::remove(upload_file->fileName());
-				if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS) {
-					if (!successMessage.isEmpty())
-						appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_SUCCESS,
-									appUtils()->string_strings({m_network_msg_title, successMessage}, record_separator));
-				}
-				else
-					appItemManager()->displayMessageOnAppWindow(ret_code, ret_string);
+				const bool success{ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS};
+				emit fileUploaded(success, requestid, ret_code);
 				delete upload_file;
-				emit fileUploaded(ret_code == TP_RET_CODE_SUCCESS, requestid);
 			}
 		});
-		appOnlineServices()->sendFile(requestid, upload_file, (tp_filename.ownerUser() == userId(0) ?
-						QString{} : tp_filename.ownerUser()) % '/' % tp_filename.subdirs(), tp_filename.targetUser());
+		appOnlineServices()->sendFile(requestid, upload_file, (tp_filename.targetUser().isEmpty() ?
+						QString{} : tp_filename.ownerUser()) % u'/' % tp_filename.subdirs(), tp_filename.targetUser());
 	}
 	return requestid;
 }
@@ -866,7 +855,7 @@ int DBUserModel::listFilesFromServer(const QString &subdir, const QString &targe
 void DBUserModel::sendCmdFileToServer(const QString &cmd_filename)
 {
 	TPFilePathPtr tp_filename{TPFilePath::newTPFilePath(cmd_filename)};
-	const int request_id{sendFileToServer(*tp_filename, QString{}, true)};
+	const int request_id{sendFileToServer(*tp_filename, true)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &DBUserModel::fileUploaded, this, [this,request_id,conn,tp_filename] (const bool success, const uint requestid) {
 		if (request_id == requestid) {
@@ -1377,7 +1366,7 @@ void DBUserModel::sendUserDataToServerDatabase()
 {
 	TPFilePath tp_filename{local_user_data_file, userId(), userId(), {}};
 	if (exportToFile(0, tp_filename, false) == TP_RET_CODE_EXPORT_OK)
-		static_cast<void>(sendFileToServer(tp_filename, tr("Online user information updated"), true));
+		static_cast<void>(sendFileToServer(tp_filename, true));
 }
 
 void DBUserModel::sendAvatarToServer()
@@ -1428,7 +1417,7 @@ void DBUserModel::startServerPolling()
 		m_mainTimer->callOnTimeout([this] () { pollServer(); });
 		m_mainTimer->start();
 		pollServer();
-		appMessagesManager()->startChatMessagesPolling(userId(0));
+		appMessagesManager()->startMessagesPolling(userId(0));
 		//checkWorkouts();
 	}
 	else {

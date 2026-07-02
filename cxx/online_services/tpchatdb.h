@@ -4,7 +4,7 @@
 
 #include <QObject>
 
-QT_FORWARD_DECLARE_CLASS(DBModelInterfaceChat)
+QT_FORWARD_DECLARE_CLASS(TPChat)
 
 class TPChatDB final: public TPDatabaseTable
 {
@@ -12,7 +12,7 @@ class TPChatDB final: public TPDatabaseTable
 Q_OBJECT
 
 public:
-	explicit TPChatDB(const QString &user_id, const QString &otheruser_id, DBModelInterfaceChat *dbmodel_interface);
+	explicit TPChatDB(TPChat *chat);
 
 	QString subDir() const override final;
 	QString dbFilePath() const override final;
@@ -25,6 +25,6 @@ signals:
 	void chatLoaded(const bool success);
 
 private:
-	QString m_userId, m_otherUserId;
+	TPChat *m_chat;
 };
 

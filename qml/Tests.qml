@@ -11,6 +11,7 @@ import TpQml.Pages
 import TpQml.Widgets
 import TpQml.Exercises
 import TpQml.Dialogs
+import TpQml.User
 
 ApplicationWindow {
 	id: mainwindow
@@ -43,26 +44,28 @@ ApplicationWindow {
 		ColumnLayout {
 			anchors.fill: parent
 
-			TPFileViewer {
-				id: file_viewer
-				mediaSource: "/home/guilhermef/.local/share/Vivencia Software/TrainingPlanner/1759256421787/1759170252407/mesocycles/Novo Programa 1.txt"
-				Layout.preferredWidth: Math.max(100, minimumWidth)
-				Layout.preferredHeight: Math.max(100, minimumHeight)
-				Layout.alignment: Qt.AlignCenter
+			TPCoachesAndClientsList {
+				id: usersList
+				listClients: true
+				listCoaches: true
+				listConfirmed: true
+				enabled: selectedUsers.length === 0
+				Layout.fillWidth: true
+				Layout.preferredHeight: 300
 			}
-		}
 
-		/*TPFileViewer {
-			mediaSource: "/home/guilhermef/Documents/Atendimento_CIP_35.001.003.26.1170764.pdf"
-			//mediaSource: "/home/guilhermef/Videos/2026-crivania3-30fps.mp4"
-			//mediaSource: ""
-			canAddFile: true
-			//mediaSource: "/home/guilhermef/Pictures/CNH Rozângela Barbosa Fortunato.png"
-			//mediaSource: "/home/guilhermef/Documents/programa 2.txt"
-			//mediaSource: "/home/guilhermef/.local/share/Vivencia Software/TrainingPlanner/1759256421787/chats/1759170252407/Ganho de capital 2025.pdf"
-			x: 50
-			y: 50
-		}*/
+			TPButton {
+				text: "Info"
+				autoSize: true
+				onClicked: console.log(usersList.model.data(AppUserModel.USER_FIELD_NAME, 0, 0));
+			}
+
+			/*SendFileToDialog {
+				id: dlg
+				handle: -1
+				message: "Test message"
+			}*/
+		}
 	}
 
 	function canChangeSetMode(exercise_number: int, exercise_idx: int, set_number: int) : bool {
@@ -75,5 +78,9 @@ ApplicationWindow {
 
 	function setMesosViewIndex(index: int) {
 		return;
+	}
+
+	function openDialog(): void {
+		//dlg.open();
 	}
 }

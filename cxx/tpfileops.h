@@ -29,6 +29,7 @@ QML_VALUE_TYPE(FileOperations)
 
 Q_PROPERTY(TPUtils::FILE_TYPE fileType READ fileType WRITE setFileType NOTIFY fileTypeChanged FINAL)
 Q_PROPERTY(QString fileName READ fileName WRITE setFileName NOTIFY fileNameChanged FINAL)
+Q_PROPERTY(QString subdirForAddedFile READ subdirForAddedFile WRITE setSubdirForAddedFile NOTIFY subdirForAddedFileChanged FINAL)
 Q_PROPERTY(QUrl fileURL READ fileURL WRITE setFileURL NOTIFY fileNameChanged FINAL)
 Q_PROPERTY(QSize controlSize READ controlSize WRITE setControlSize NOTIFY controlSizeChanged FINAL)
 Q_PROPERTY(QQuickItem* parentPage READ parentPage WRITE setParentPage NOTIFY parentPageChanged FINAL)
@@ -63,7 +64,7 @@ public:
 	};
 	Q_ENUM(OpType)
 
-	explicit TPFileOps(QQuickItem *parent = nullptr);
+	explicit TPFileOps(QQuickItem *visual_parent = nullptr);
 	~TPFileOps() { qDebug() << "~TPFileOps()" + m_filename.fileName(); }
 	void paint(QPainter *painter) override;
 
@@ -73,10 +74,16 @@ public:
 	inline const TPFilePath &tpFileName() const { return m_filename; }
 	void setFileName(const QString &filename, const bool file_added = false);
 	void setFileName(TPFilePath &&tp_filename);
+	const QString &subdirForAddedFile() const { return m_subdir; }
+	//subdir here is TPFilePath::targetUser + / + TPFilePath::subdir. addFile() will split subdir into those two parts
+	void setSubdirForAddedFile(const QString &subdir) { m_subdir = subdir; emit subdirForAddedFileChanged(); }
 	//TODO: Android URLs
 	inline QUrl fileURL() const { return QString{"file://"_L1 % m_filename.toString()}; }
 	void setFileURL(const QUrl &url);
-	inline void setSuggestedFileNameGenerator(const std::function<TPFilePathPtr()> &func) { m_suggestNameFunc = func; }
+	inline void setSuggestedFileNameGenerator(const std::function<TPFilePathPtr(const QString&)> &func)
+	{
+		m_suggestNameFunc = func;
+	}
 
 	inline QSize controlSize() const { return m_controlSize; }
 	inline void setControlSize(const QSize &new_size)
@@ -133,7 +140,6 @@ public:
 	//Only changes the filename(both internally and of the actual file if it exists). It does not change paths or moves the file
 	void renameFile(const QString &new_name);
 	void removeFile(const bool bypass_confirmation, const bool remove_local, const bool remove_remote);
-	static QString chooseFileDialog(const int file_type = TPUtils::FT_ANY_TYPE);
 	void exportTPFile(const TPFilePath &tp_filename);
 	Q_INVOKABLE QString openFileDialog(const int file_type, const QString &suggested_save_name = QString{});
 	Q_INVOKABLE void attemptToCreateOrGetFile();
@@ -149,11 +155,13 @@ public:
 
 public slots:
 	void importSlot(const bool accepted);
-	void sendFileTo(const int handle = 1, const QStringList &userids = QStringList{}, const QString &message = QString{});
+	void sendFileTo(const int handle = 1, const QStringList &userids = QStringList{}, const QString &message = QString{},
+																						const bool present_dialog = false);
 
 signals:
 	void fileTypeChanged();
 	void fileNameChanged();
+	void subdirForAddedFileChanged();
 	void showFullScreen();
 	void multimediaKeyPressed(const int key);
 	void multimediaKeyReleased(const int key);
@@ -174,6 +182,7 @@ signals:
 	void fileIsOKChanged();
 	void setCursorPorsition(const int cursor_pos);
 	void insertString(const QString &ch, const int pos);
+	void _sendFileDialogCreated();
 
 protected:
 	void mousePressEvent(QMouseEvent *event) override;
@@ -198,16 +207,17 @@ private:
 	TPUtils::FILE_TYPE m_filetype{TPUtils::FT_NO_TYPE_SET};
 	QList<std::pair<QString,QString>> m_tpFileInfo;
 	bool m_fullscreen{false}, m_canAddFile{false}, m_downloadOrGenerate{false}, m_restrictedFileType{false},
-																			m_fileIsOK{false}, m_useControls{false};
+															m_fileIsOK{false}, m_useControls{false}, m_usews{false};
 	int m_mesoIdx{-1}, m_workoutCalendarDay{-1}, m_cursorPostion{-1};
 	uint  m_tpfileSections{0}, m_addFileFilters{0};
 	QTextDocument *m_textDocument{nullptr};
 	TPFilePath m_filename;
+	QString m_subdir;
 	QFileDialog *m_fileDialog{nullptr};
 	QQmlComponent *m_sendFileDialogComponent{nullptr};
 	QObject *m_sendFileDialog{nullptr};
 	QQuickItem *m_parentPage{nullptr};
-	std::function<TPFilePathPtr()> m_suggestNameFunc{nullptr};
+	std::function<TPFilePathPtr(const QString&)> m_suggestNameFunc{nullptr};
 
 	void _setFileName(const bool file_added);
 	void _doFileOperation(const OpType type);
@@ -218,6 +228,7 @@ private:
 	void shareFile();
 	void downloadOrCopyFile();
 	void sendFileToUsers(const QStringList &users, const QString &message);
+	void sendFileDirectly(const QStringList &users);
 	void openFile();
 	void setButtonCondition(const OpType type, std::optional<bool> visible = std::nullopt, bool do_update = false);
 	void createControls();
@@ -235,7 +246,7 @@ private:
 	void readTPFile();
 	void openTPFile();
 	void textDocumentKeyNavigation(const int key);
-	void createSendFileDialog(const int handle, const QStringList &userids, const QString &message);
+	void createSendFileDialog();
 
 	Q_DISABLE_COPY(TPFileOps)
 };

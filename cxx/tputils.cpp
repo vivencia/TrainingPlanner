@@ -2,6 +2,7 @@
 
 #include "qmlitemmanager.h"
 #include "return_codes.h"
+#include "tpfilepath.h"
 
 #include <QClipboard>
 #include <QDir>
@@ -514,8 +515,11 @@ void TPUtils::scanDir(const QString &path, QFileInfoList &results, const QString
 	}
 }
 
+//Can only remove files/dirs inside the app data dir
 void TPUtils::rmDir(const QString &path) const
 {
+	if (!path.startsWith(TPFilePath::localAppFilesDir()))
+		return;
 	QDir directory{path};
 	const QFileInfoList &user_files{directory.entryInfoList(QStringList{} << std::move("*.*"_L1),
 															QDir::AllEntries|QDir::System|QDir::NoDotAndDotDot)};
@@ -718,51 +722,58 @@ int TPUtils::readDataFromFormattedFile(QFile *in_file,
 	return identifier_found ? (field > 1 ? TP_RET_CODE_IMPORT_OK : TP_RET_CODE_IMPORT_FAILED) : TP_RET_CODE_WRONG_IMPORT_FILE_TYPE;
 }
 
-QByteArray TPUtils::readBinaryFile(const QString &filename, const QString &extra_info) const &
+QByteArray TPUtils::readBinaryFile(const QString &filename) const
 {
 	QFile *file{openFile(filename, true, false, false, false, false)};
 	if (file) {
 		QByteArray data{std::move(file->readAll())};
 		file->close();
 		delete file;
-		if (!extra_info.isEmpty())
-			data.append(QString{binary_file_initial_separator % extra_info}.toLocal8Bit());
 		return data;
 	}
 	return QByteArray{};
 }
 
-void TPUtils::writeBinaryFile(const QString &destination_path, const QString &source_path, const bool strip_extra_info) const
+qint64 TPUtils::writeBinaryFile(const QString &destination_path, const QString &source_path) const
 {
 	if (QFile::exists(source_path)) {
 		QFile *in_file{openFile(source_path, true, false, false, false, false)};
 		if (in_file) {
 			const QByteArray &data{in_file->readAll()};
-			writeBinaryFile(destination_path, data, strip_extra_info);
 			in_file->close();
 			delete in_file;
+			return writeBinaryFile(destination_path, data);
 		}
 	}
+	return -1;
 }
 
-void TPUtils::writeBinaryFile(const QString &destination_path, const QByteArray &data, const bool strip_extra_info) const
+qint64 TPUtils::writeBinaryFile(const QString &destination_path, const QByteArray &data) const
 {
+	qint64 ret{-1};
 	QFile *file{openFile(destination_path, false, true, false, true, false)};
 	if (file) {
-		if (!strip_extra_info)
-			file->write(data);
-		else
-			file->write(data.chopped(data.length() - data.lastIndexOf(binary_file_initial_separator.toLatin1())));
+		ret = file->write(data);
 		file->close();
 		delete file;
 	}
+	return ret;
 }
 
-
-QString TPUtils::binaryFileMetaInfoFieldValue(const QByteArray &data, BINARY_FILE_INFO_FIELDS field) const
+TPUtils::MessageHandlers TPUtils::messagePrefixToMessageHandler(const QString &encoded_message) const
 {
-	const QString &extra_info{getBinaryFileMetaInfo(data)};
-	return getCompositeValue(field, extra_info, binary_file_separator);
+	MessageHandlers ret{MH_UNKOWN};
+	const auto id_idx{encoded_message.indexOf("://"_L1)};
+	if (id_idx >= 2) {
+		const QString &prefix{encoded_message.first(id_idx)};
+		if (prefix == tpmessage_prefix)
+			ret = MH_TPMESSAGES_MANAGER;
+		else if (prefix == chatmessage_prefix)
+			ret = MH_TPCHAT;
+		else if (prefix == filetransfer_prefix)
+			ret = MH_DIRECT_FILE_TRANSFER;
+	}
+	return ret;
 }
 
 void TPUtils::copyToClipboard(const QString &text) const
@@ -802,6 +813,28 @@ QString TPUtils::formatDate(const QDate &date, const DATE_FORMAT format) const
 	return QString{};
 }
 
+QString TPUtils::formatDateTime(const QDateTime &date_time, const int format, const QLatin1Char &separator) const
+{
+	QString str_datetime;
+	const DATE_FORMAT date_format{static_cast<DATE_FORMAT>(format & 0b11111)};
+	str_datetime = std::move(formatDate(date_time.date(), date_format));
+	str_datetime.append(separator);
+	const TIME_FORMAT time_format{static_cast<TIME_FORMAT>(format & 0b1111111100000)};
+	str_datetime = std::move(formatTime(date_time.time(), time_format));
+	str_datetime.append(separator);
+	return str_datetime;
+}
+
+QDateTime TPUtils::dateTimeFromString(const QString &strdate_time, const int format) const
+{
+	QDateTime date_time;
+	const DATE_FORMAT date_format{static_cast<DATE_FORMAT>(format & 0b11111)};
+	date_time.setDate(dateFromString(getCompositeValue(0, strdate_time, record_separator), date_format));
+	const TIME_FORMAT time_format{static_cast<TIME_FORMAT>(format & 0b1111111100000)};
+	date_time.setTime(timeFromString(getCompositeValue(1, strdate_time, record_separator), time_format));
+	return date_time;
+}
+
 QDate TPUtils::dateFromString(const QString &strdate, const DATE_FORMAT format) const
 {
 	if (strdate.length() < 6)
@@ -809,18 +842,16 @@ QDate TPUtils::dateFromString(const QString &strdate, const DATE_FORMAT format) 
 
 	int day{0}, month{0}, year{0};
 	switch (format) {
-	case DF_QML_DISPLAY:
-		{
-			const qsizetype spaceIdx{strdate.indexOf(' ')};
-			const qsizetype fSlashIdx{strdate.indexOf('/')};
-			const qsizetype fSlashIdx2{strdate.indexOf('/', fSlashIdx + 1)};
-			day = strdate.sliced(spaceIdx + 1, fSlashIdx-spaceIdx - 1).toInt();
-			month = strdate.sliced(fSlashIdx + 1, fSlashIdx2-fSlashIdx - 1).toInt();
-			year = strdate.last(4).toInt();
+	case DF_QML_DISPLAY: {
+		const qsizetype spaceIdx{strdate.indexOf(' ')};
+		const qsizetype fSlashIdx{strdate.indexOf('/')};
+		const qsizetype fSlashIdx2{strdate.indexOf('/', fSlashIdx + 1)};
+		day = strdate.sliced(spaceIdx + 1, fSlashIdx-spaceIdx - 1).toInt();
+		month = strdate.sliced(fSlashIdx + 1, fSlashIdx2-fSlashIdx - 1).toInt();
+		year = strdate.last(4).toInt();
 		}
 		break;
 	case DF_LOCALE: //TODO
-
 		break;
 	case DF_CATALOG:
 		year = strdate.first(4).toInt();
@@ -916,14 +947,11 @@ int TPUtils::daysInMonth(const int month, const int year) const
 QString TPUtils::formatTime(const QTime &time, const TIME_FORMAT format) const
 {
 	switch (format) {
-	case TF_QML_DISPLAY_COMPLETE:
-		return time.isValid() ? time.toString("hh:mm:ss"_L1) : "00:00:00"_L1;
-	case TF_QML_DISPLAY_NO_SEC:
-		return time.isValid() ? time.toString("hh:mm"_L1) : "00:00"_L1;
-	case TF_QML_DISPLAY_NO_HOUR:
-		return time.isValid() ? time.toString("mm:ss"_L1) : "00:00"_L1;
-	case TF_FANCY:
-	{
+	case TF_QML_DISPLAY_COMPLETE: return time.isValid() ? time.toString("hh:mm:ss"_L1) : "00:00:00"_L1;
+	case TF_QML_DISPLAY_NO_SEC: return time.isValid() ? time.toString("hh:mm"_L1) : "00:00"_L1;
+	case TF_QML_DISPLAY_NO_HOUR: return time.isValid() ? time.toString("mm:ss"_L1) : "00:00"_L1;
+	case TF_LOCALE: return m_appLocale->toString(time.isValid() ? time : QTime{0, 0, 0}, QLocale::ShortFormat);
+	case TF_FANCY: {
 		if (time.isValid()) {
 			QString strTime{std::move(time.toString("hh  mm"_L1))};
 			strTime.insert(6, "min"_L1);
@@ -934,8 +962,7 @@ QString TPUtils::formatTime(const QTime &time, const TIME_FORMAT format) const
 		else
 			return ("00 hs and 00 min"_L1);
 	}
-	case TF_FANCY_SECS:
-	{
+	case TF_FANCY_SECS: {
 		if (time.isValid()) {
 			QString strTime{std::move(time.toString("hh, mm  ss"_L1))};
 			strTime.insert(10, "secs");
@@ -947,8 +974,8 @@ QString TPUtils::formatTime(const QTime &time, const TIME_FORMAT format) const
 		else
 			return ("00 hs, 00 min and 00 secs"_L1);
 	}
-	case TF_ONLINE:
-		return time.isValid() ? time.toString("hhmmss"_L1) : "000000"_L1;
+	case TF_DATABASE: return time.isValid() ? QString::number(time.msecsSinceStartOfDay()) : "0"_L1;
+	case TF_ONLINE: return time.isValid() ? time.toString("hhmmss"_L1) : "000000"_L1;
 	}
 	return QString{};
 }
@@ -981,6 +1008,8 @@ QTime TPUtils::timeFromString(const QString &strtime, const TIME_FORMAT format) 
 			min = strtime.first(2).toInt();
 			sec = strtime.last(2).toInt();
 		break;
+		case TF_LOCALE:
+		break;
 		case TF_FANCY:
 			hour = strtime.first(2).toInt();
 			min = strtime.sliced(6, 2).toInt();
@@ -989,6 +1018,15 @@ QTime TPUtils::timeFromString(const QString &strtime, const TIME_FORMAT format) 
 			hour = strtime.first(2).toInt();
 			min = strtime.sliced(6, 2).toInt();
 			sec = strtime.sliced(strtime.length() - 6, 2).toInt();
+		break;
+		case TF_DATABASE: {
+			int msecs{strtime.toInt()};
+			sec = msecs/1000;
+			min = qFloor(sec/60);
+			hour = qFloor(min/60);
+			min -= hour * 60;
+			sec -= min * 60;
+		}
 		break;
 		case TF_ONLINE:
 			hour = strtime.first(2).toInt();
@@ -1028,37 +1066,14 @@ QString TPUtils::addTimeToStrTime(const QString &strTime, const int addmins, con
 
 QString TPUtils::getHourFromStrTime(const QString &strTime, const TIME_FORMAT format) const
 {
-	switch (format) {
-	case TF_QML_DISPLAY_COMPLETE:
-	case TF_QML_DISPLAY_NO_SEC:
-	case TF_ONLINE:
-	case TF_FANCY:
-	case TF_FANCY_SECS:
-		return strTime.left(2);
-	break;
-	case TF_QML_DISPLAY_NO_HOUR:
-	break;
-	}
-	return QString{};
+	QTime time{timeFromString(strTime, format)};
+	return time.hour() < 10 ? u'0' % QString::number(time.hour()) : QString::number(time.hour());
 }
 
 QString TPUtils::getMinutesFromStrTime(const QString &strTime, const TIME_FORMAT format) const
 {
-	switch (format) {
-	case TF_QML_DISPLAY_COMPLETE:
-		return strTime.sliced(3, 2);
-	case TF_QML_DISPLAY_NO_SEC:
-		return strTime.right(2);
-	case TF_QML_DISPLAY_NO_HOUR:
-		return strTime.left(2);
-	case TF_ONLINE:
-		return strTime.sliced(2, 2);
-	case TF_FANCY:
-		return strTime.sliced(strTime.length()-5, 2);
-	case TF_FANCY_SECS:
-		return strTime.sliced(4, 2);
-	}
-	return QString{};
+	QTime time{timeFromString(strTime, format)};
+	return time.minute() < 10 ? u'0' % QString::number(time.minute()) : QString::number(time.minute());
 }
 
 int TPUtils::calculateTimeDifferenceInSecs(const QTime &start_time, const QTime &end_time) const
@@ -1230,7 +1245,6 @@ QString TPUtils::subSetOfCompositeValue(const QString &value, const uint from, c
 	int chr_pos{0};
 	uint last_sep_pos{0};
 	QString ret;
-
 	for (const auto &chr : value) {
 		if (chr.toLatin1() == chr_sep) {
 			if (n_seps <= from)
@@ -1282,7 +1296,7 @@ QString TPUtils::stripInvalidCharacters(const QString &string) const
 bool TPUtils::containsAllWords(const QString &mainString, const QStringList &wordSet, const bool precise)
 {
 	const QStringList &searched_words{precise ? mainString.split(' ', Qt::SkipEmptyParts) :
-													stripDiacriticsFromString(mainString).split(' ', Qt::SkipEmptyParts)};
+												stripDiacriticsFromString(mainString).split(' ', Qt::SkipEmptyParts)};
 	QStringList::const_iterator haystack{searched_words.constBegin()};
 	const QStringList::const_iterator haystack_end{searched_words.constEnd()};
 	for (const auto &needle : std::as_const(wordSet)) {

@@ -53,6 +53,7 @@ public:
 	Q_INVOKABLE bool isSelected(const int visible_row, const int column = 0) const;
 	Q_INVOKABLE void setSelected(const int visible_row, const bool selected, const int column = 0);
 	Q_INVOKABLE QStringList selectedUsers() const; //Only from visible rows
+	Q_INVOKABLE void setSelectedUsers(const QStringList &users);
 	inline uint nSelected() const { return m_nSelected; }
 	inline bool allSelected() const { return m_nSelected == count(); }
 	inline bool anySelected() const { return m_nSelected > 0; }
@@ -98,7 +99,7 @@ public:
 	}
 
 	Q_INVOKABLE void applyFilter(const QString &filter, int field = -1);
-	inline QString data(const uint field, const uint row, const int column = 0) const
+	Q_INVOKABLE inline QString data(const uint field, const uint row, const int column = 0) const
 	{
 		return data(index(row, column), Qt::UserRole + field).toString();
 	}
@@ -157,7 +158,6 @@ private:
 	int _userIdx(const uint row) const;
 	void changeNumberOfVisibleRows(const bool add);
 	void insertUserInfo(const uint user_idx);
-	void removeUserInfo(const uint user_idx);
 	const bool rowVisible(const int row) const;
 	void setRowVisible(const uint row, bool visible, const int column = 0);
 	void changeVisibilityAsPerCategory();

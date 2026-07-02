@@ -1,124 +1,196 @@
 #pragma once
 
+#include "tpfileops.h"
+
 #include <QDateTime>
 #include <QObject>
 #include <QVariant>
+#include <QtQml/qqml.h>
 
-enum TPMessageFields {
-	TPMESSAGE_FIELD_ID,
-	TPMESSAGE_FIELD_TITLE,
-	TPMESSAGE_FIELD_TEXT,
-	TPMESSAGE_FIELD_ICON,
-	TPMESSAGE_FIELD_DATE,
-	TPMESSAGE_FIELD_TIME,
-	TPMESSAGE_FIELD_FILE,
-	TPMESSAGE_FIELD_EXTRA_INFO,
-	TPMESSAGE_FIELD_EXTRA_ICON,
-	TPMESSAGE_FIELD_ACTIONS,
-	TPMESSAGE_FIELD_EXPIRATION,
-	TPMESSAGE_FIELD_STICKY,
-};
-
-QT_FORWARD_DECLARE_CLASS(TPFilePath)
 QT_FORWARD_DECLARE_CLASS(QTimer)
 
 class TPMessage : public QObject
 {
 
 Q_OBJECT
+QML_ELEMENT
+QML_VALUE_TYPE(TPMessage)
+
+Q_PROPERTY(int id READ id CONSTANT FINAL)
+Q_PROPERTY(QString title READ title WRITE setTitle NOTIFY titleChanged BINDABLE bindableTitle FINAL)
+Q_PROPERTY(QString text READ text CONSTANT FINAL)
+Q_PROPERTY(QString icon READ icon WRITE setIcon NOTIFY iconChanged BINDABLE bindableIcon FINAL)
+Q_PROPERTY(QString dateTime READ dateTime CONSTANT FINAL)
+Q_PROPERTY(QString extraInfo READ extraInfo WRITE setExtraInfo NOTIFY extraInfoChanged BINDABLE bindableExtraInfo FINAL)
+Q_PROPERTY(QString extraImage READ extraImage CONSTANT FINAL)
+Q_PROPERTY(TPFileOps* fileOps READ fileOps CONSTANT FINAL)
+Q_PROPERTY(bool sticky READ sticky CONSTANT FINAL)
+Q_PROPERTY(int actionCount READ actionCount CONSTANT FINAL)
 
 public:
-	inline explicit TPMessage() : QObject{nullptr} {}
+	enum TPMessageFields {
+		FIELD_ID,
+		FIELD_ROW,
+		FIELD_USERID,
+		FIELD_TYPE,
+		FIELD_TITLE,
+		FIELD_TEXT,
+		FIELD_ICON,
+		FIELD_DATETIME,
+		FIELD_FILE,
+		FIELD_EXTRA_INFO,
+		FIELD_EXTRA_ICON,
+		FIELD_ACTIONS,
+		FIELD_EXPIRATION,
+		FIELD_STICKY,
+	};
+
+	enum ActionType {
+		AT_NONE,
+		AT_BUTTON,
+		AT_RADIO,
+		AT_CHECKBOX,
+	};
+	Q_ENUM(ActionType);
+
+	inline explicit TPMessage(TPMessage *parent_message = nullptr)
+		: QObject{nullptr}
+		, m_parentMessage{parent_message}
+		{}
 	~TPMessage();
-	inline qsizetype id() const { return m_id; }
-	inline void setId(const qsizetype id) { m_id = id; emit dataChanged(TPMESSAGE_FIELD_ID); }
+
+	inline const int8_t depth() const { return m_depth; }
+	inline const uint childCount() const { return m_children.count(); }
+	inline TPMessage *child(const int row) { return row >= 0 && row < m_children.count() ? m_children.at(row) : this; }
+	inline const QList<TPMessage*> &children() const { return m_children; }
+	inline const TPMessage *parent() const { return m_parentMessage; }
+	inline TPMessage *parent() { return m_parentMessage; }
+	TPMessage *findChild(const QVariant &value, const TPMessageFields field) const;
+	void insertChild(TPMessage *child, int row = - 1);
+	void removeChild(TPMessage *child);
+	void remove(const QLatin1StringView &exclude_type = QLatin1StringView{}, const bool remove_self_if_no_children = true);
+
+	inline const uint id() const { return m_id; }
+	inline void setId(const uint id) { m_id = id; }
+
+	inline const uint16_t row() const { return m_row; }
+	inline void setRow(uint16_t row) { m_row = row; }
+
+	inline const QString &userid() const { return m_userid; }
+	inline void setUserId(QString &&userid) { m_userid = std::forward<QString>(userid);  }
+
+	inline const QLatin1StringView type() const { return m_type; }
+	inline void setType(const QLatin1StringView &type) { m_type = type; }
+
+	inline void setDateTime(QDateTime &&ctime) { m_dateTime = std::forward<QDateTime>(ctime); }
+	QString dateTime() const;
 
 	inline const QString &title() const { return m_title; }
-	inline void setTitle(QString &&new_title) { m_title = std::forward<QString>(new_title); emit dataChanged(TPMESSAGE_FIELD_TITLE); }
+	QBindable<int> bindableTitle() { return &m_title; }
+	inline void setTitle(QString &&new_title) { m_title = std::forward<QString>(new_title); }
+
 	inline const QString &text() const { return m_text; }
-	inline void setText(QString &&new_text) { m_text = std::forward<QString>(new_text); emit dataChanged(TPMESSAGE_FIELD_TEXT); }
-	inline const QString &iconSource() const { return m_icon; }
-	inline void setIconSource(QString &&new_icon) { m_icon = std::forward<QString>(new_icon); emit dataChanged(TPMESSAGE_FIELD_ICON); }
-	inline TPFilePath *fileName() const { return m_tpFilePath; }
-	void setFileName(const TPFilePath &tpfilepath);
-	inline const QString &extraInfoText() const { return m_extraInfoText; }
-	inline void setExtraInfoText(const QString &new_label) { m_extraInfoText = new_label; emit dataChanged(TPMESSAGE_FIELD_EXTRA_INFO); }
-	inline const QString &extraInfoImage() const { return m_extraInfoImage; }
-	inline void setExtraInfoImage(const QString &new_image) { m_extraInfoImage = new_image; emit dataChanged(TPMESSAGE_FIELD_EXTRA_ICON); }
-	inline const bool &isExpirable() const { return m_timedExpiration; }
-	void setExpiration(const uint secs = 0);
+	inline void setText(QString &&new_text) { m_text = std::forward<QString>(new_text); }
 
-	QString date() const;
-	QString time() const;
+	inline QString icon() const { return m_icon; }
+	QBindable<int> bindableIcon() { return &m_icon; }
+	inline void setIcon(QString &&new_icon) { m_icon = std::forward<QString>(new_icon); }
 
-	inline const bool plugged() const { return m_plugged; }
-	void plug();
-	void unplug() { emit killMessage(this);}
+	inline TPFileOps *fileOps() const { return m_fileOps; }
+	void setFileName(const QString &filename);
+
+	inline const QString &extraInfo() const { return m_extraInfo; }
+	QBindable<int> bindableExtraInfo() { return &m_extraInfo; }
+	inline void setExtraInfo(QString &&extra_info) { m_extraInfo = std::forward<QString>(extra_info); }
+
+	inline QString extraImage() const { return m_extraImage; }
+	inline void setExtraImage(QString &&new_image) { m_extraImage = std::forward<QString>(new_image); }
+
+	inline const QString &encodedMessage() const { return m_encodedMessage; }
+	inline void setEncodedMessage(QString &&encoded_message) { m_encodedMessage = std::forward<QString>(encoded_message); }
+
+	const QDateTime &expiration() const { return m_expirationTime; }
+	void setExpiration(QDateTime &&date_time = QDateTime{});
+	inline const bool isExpirable() const { return m_expirationTime.isValid(); }
 
 	inline const bool sticky() const { return m_sticky; }
-	inline void setSticky(const bool sticky) { m_sticky = sticky; emit dataChanged(TPMESSAGE_FIELD_STICKY); }
+	inline void setSticky(const bool sticky) { m_sticky = sticky; }
 
-	//When m_tpfilepath is set, OnlineMessages sets up a TPFileViewer which counts as a action
-	inline const bool hasActions() const { return m_tpFilePath || !m_actions.isEmpty(); }
-
-	/**
-	  *@param message_id
-	  *@param action_name
-	  *@param remove if Specified, overrides sticky
-	  *@return action_id
-	 */
-	int insertAction(const QString& actionLabel, const std::function<void(const QVariant &var)> &actionFunc = nullptr);
-	inline const QString &_action(const uint action_id) const
+	inline decltype(auto) actionCount() const { return m_actions.count(); }
+	int insertAction(QString &&label, const ActionType action_type, const std::function<QVariant(const QVariant &)> &func = nullptr);
+	Q_INVOKABLE inline QString actionLabel(const uint action_id) const
 	{
-		Q_ASSERT_X(action_id < m_actions.count(), "TPMessage::_action", "action_id out of range");
-		return m_actions.at(action_id);
+		return action_id >= 0 && action_id < m_actions.count() ? m_actions.at(action_id).label : QString{};
 	}
-	inline QString action(const int action_id) const
+	Q_INVOKABLE inline const TPMessage::ActionType actionType(const int action_id) const
+	{
+		return action_id >= 0 && action_id < m_actions.count() ? m_actions.at(action_id).type : AT_NONE;
+	}
+	Q_INVOKABLE const bool actionEnabled(const int action_id) const
+	{
+		return action_id >= 0 && action_id < m_actions.count() ? m_actions.at(action_id).enabled : false;
+	}
+	Q_INVOKABLE void setActionEnabled(const int action_id, const bool enabled)
 	{
 		if (action_id >= 0 && action_id < m_actions.count()) {
-			const QString &actionText{m_actions.at(action_id)};
-			return static_cast<int>(actionText.at(actionText.length()-1).toLatin1()) > 31 ? actionText : actionText.chopped(1);
+			if (m_actions.at(action_id).enabled != enabled) {
+				m_actions[action_id].enabled = enabled;
+				emit actionEnabledChanged(action_id, enabled);
+			}
 		}
-		return QString{};
 	}
-	inline QStringList actions() const { return m_actions; }
-	void removeAction(const int action_id);
-	Q_INVOKABLE void execAction(const int action_id);
+	void removeAction(const int action_id)
+	{
+		if (action_id >= 0 && action_id < m_actions.count())
+			m_actions.remove(action_id);
+	}
+	void execAction(const int action_id, const QVariant &data)
+	{
+		if (action_id >= 0 && action_id < m_actions.count())
+			emit actionTriggered(action_id, m_actions.at(action_id).func(data));
+	}
 
-	/**
-	  *@brief Used to store information across classes
-	  *@param data Anything that QVariant can handle
-	  *@param action_id Associate data with an action or not
-	  *@return The index of the inserted data(which will be equal to action_id if it's not -1)
-	 */
-	uint insertData(const QVariant &data, const int action_id = -1);
-	inline const QVariant &_data(const uint data_id) const
-	{
-		Q_ASSERT_X(data_id < m_data.count(), "TPMessage::_data", "data_id out of range");
-		return m_data.at(data_id);
-	}
-	inline QVariant data(const int data_id) const
-	{
-		if (data_id >= 0 && data_id < m_data.count())
-			return m_data.at(data_id);
-		return QVariant{};
-	}
-	void removeData(const int data_id);
+	QVariant generalPurposeData() && { return m_generalPurposeData; }
+	const QVariant &generalPurposeData() const & { return m_generalPurposeData; }
+	void setGeneralPurposeData(QVariant &&gpd) { m_generalPurposeData = std::forward<QVariant>(gpd); }
+
+public slots:
+	inline void setTitle(const QString &new_title) { m_title = new_title; }
+	inline void setIcon(const QString &new_icon) { m_icon = new_icon; }
+	inline void setExtraInfo(const QString &extra_info) { m_extraInfo = extra_info; }
 
 signals:
-	void actionTriggered(const int action_id);
-	void dataChanged(const uint field);
+	void actionTriggered(const int action_id, const QVariant &return_value);
+	void actionEnabledChanged(const int action_id, const bool enabled);
 	void killMessage(TPMessage *message);
 
+	void titleChanged();
+	void iconChanged();
+	void extraInfoChanged();
+
 private:
-	qsizetype m_id{-1};
-	bool m_plugged{false}, m_sticky{false}, m_timedExpiration{false};
-	QString m_title, m_text, m_icon, m_extraInfoText, m_extraInfoImage;
-	TPFilePath *m_tpFilePath{nullptr};
-	QStringList m_actions;
-	QVariantList m_data;
-	QDateTime m_ctime;
+	Q_OBJECT_BINDABLE_PROPERTY(TPMessage, QString, m_title, &TPMessage::titleChanged)
+	Q_OBJECT_BINDABLE_PROPERTY(TPMessage, QString, m_icon, &TPMessage::iconChanged)
+	Q_OBJECT_BINDABLE_PROPERTY(TPMessage, QString, m_extraInfo, &TPMessage::extraInfoChanged)
+
+	QList<TPMessage*> m_children;
+	TPMessage *m_parentMessage{nullptr};
+	uint m_id{0};
+	int16_t m_row{-1};
+	int8_t m_depth{0};
+	QLatin1StringView m_type;
+	QString m_userid, m_encodedMessage, m_text, m_extraImage;
+	QDateTime m_dateTime, m_expirationTime;
+	TPFileOps *m_fileOps{nullptr};
+	bool m_sticky{false};
 	QTimer *m_timer{nullptr};
-	QList<std::function<void(const QVariant &var)>> m_actionFuncs;
+	struct st_Action {
+		QString label;
+		ActionType type{AT_BUTTON};
+		std::function<QVariant(const QVariant &data)> func{nullptr};
+		bool enabled{true};
+	};
+	QList<st_Action> m_actions;
+	QVariant m_generalPurposeData;
 };
 

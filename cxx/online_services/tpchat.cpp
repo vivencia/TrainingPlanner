@@ -6,8 +6,8 @@
 #include "../dbusermodel.h"
 #include "../pageslistmodel.h"
 #include "../tpfilepath.h"
-#include "../thread_manager.h"
 #include "../tpfileops.h"
+#include "../thread_manager.h"
 #include "../tputils.h"
 
 #include <QTimer>
@@ -27,83 +27,97 @@ enum ChatLoadedStatus {
 	Loaded
 };
 
-//These fields are not saved in the database, they are meant for use during the session only
-enum ChatMessageFields_Extra {
-	MESSAGE_MEDIA_PREVIEW = TP_CHAT_TOTAL_MESSAGE_FIELDS,
-	MESSAGE_MEDIA_OPEN_EXTERNALLY,
-	MESSAGE_MEDIA_FILENAME,
-	MESSAGE_OWN_MESSAGE,
+enum ChatWork {
+	CW_SEND,
+	CW_RECEIVED,
+	CW_READ,
+	CW_REMOVED,
+	CW_EDITED,
+	CW_N_WORKS
+};
+
+//The first two fields must match TPUtils::EF_HANDLER_ID and TPUtils::EF_SENDER respectively to be sorted out by
+//WSServer::wsTextMessageReceived
+enum WorkDataFields {
+	WDF_HANDLE_PREFIX,
+	WDF_SENDER,
+	WDF_CHAT_WORK,
+	WDF_MSGID,
+	WDF_MSG_FIELD,
+	WDF_WORK_VALUE
+};
+
+auto workDataFieldValue = [] (const QString &work_data, const WorkDataFields work_field) -> QString {
+	return appUtils()->getCompositeValue(work_field, work_data, exercises_separator);
 };
 
 enum ChatRoleNames {
-	createRole(id, MESSAGE_ID)
-	createRole(sender, MESSAGE_SENDER)
-	createRole(receiver, MESSAGE_RECEIVER)
-	createRole(sDate, MESSAGE_SDATE)
-	createRole(sTime, MESSAGE_STIME)
-	createRole(rDate, MESSAGE_RDATE)
-	createRole(rTime, MESSAGE_RTIME)
-	createRole(deleted, MESSAGE_DELETED)
-	createRole(sent, MESSAGE_SENT)
-	createRole(received, MESSAGE_RECEIVED)
-	createRole(read, MESSAGE_READ)
-	createRole(text, MESSAGE_TEXT)
-	createRole(media, MESSAGE_MEDIA)
-	createRole(mediaPreview, MESSAGE_MEDIA_PREVIEW)
-	createRole(mediaOpenExternal, MESSAGE_MEDIA_OPEN_EXTERNALLY)
-	createRole(mediaFileName, MESSAGE_MEDIA_FILENAME)
-	createRole(ownMessage, MESSAGE_OWN_MESSAGE)
+	createRole(msgId, TPChat::ID)
+	createRole(msgSender, TPChat::SENDER)
+	createRole(msgReceiver, TPChat::RECEIVER)
+	createRole(msgSDate, TPChat::SDATE)
+	createRole(msgSTime, TPChat::STIME)
+	createRole(msgRDate, TPChat::RDATE)
+	createRole(msgRTime, TPChat::RTIME)
+	createRole(msgDeleted, TPChat::DELETED)
+	createRole(msgSent, TPChat::SENT)
+	createRole(msgReceived, TPChat::RECEIVED)
+	createRole(msgRead, TPChat::READ)
+	createRole(msgText, TPChat::TEXT)
+	createRole(msgMedia, TPChat::MEDIA)
+	createRole(ownMessage, TPChat::OWN_MESSAGE)
+	createRole(mediaViewer, TPChat::MEDIA_VIEWER)
 };
 
 struct ChatMessage {
 	uint id;
-	QString sender;
-	QString receiver;
+	QString sender, receiver;
 	QDate sdate, rdate;
 	QTime stime, rtime;
 	bool deleted{false};
 	bool sent{false};
 	bool received{false};
 	bool read{false};
-	QString text;
-	QString media;
-	QString queued;
+	QString text, media;
 
-	QString preview_media;
-	bool external_media{false}, own_message{false};
+	TPFileOps *media_viewer{nullptr};
+	QString queued;
+	bool own_message{false};
 };
 
 TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QObject *parent)
 	: QAbstractListModel{parent}, m_otherUserId{otheruser_id}, m_chatLoaded{Unloaded}
 {
-	m_roleNames[idRole]					=	std::move("msgId");
-	m_roleNames[senderRole]				=	std::move("msgSender");
-	m_roleNames[receiverRole]			=	std::move("msgReceiver");
-	m_roleNames[sDateRole]				=	std::move("msgSentDate");
-	m_roleNames[sTimeRole]				=	std::move("msgSentTime");
-	m_roleNames[rDateRole]				=	std::move("msgReceivedDate");
-	m_roleNames[rTimeRole]				=	std::move("msgReceivedTime");
-	m_roleNames[deletedRole]			=	std::move("msgDeleted");
-	m_roleNames[sentRole]				=	std::move("msgSent");
-	m_roleNames[receivedRole]			=	std::move("msgReceived");
-	m_roleNames[readRole]				=	std::move("msgRead");
-	m_roleNames[textRole]				=	std::move("msgText");
-	m_roleNames[mediaRole]				=	std::move("msgMedia");
-	m_roleNames[mediaPreviewRole]		=	std::move("msgMediaPreview");
-	m_roleNames[mediaOpenExternalRole]	=	std::move("msgOpenExternally");
-	m_roleNames[mediaFileNameRole]		=	std::move("msgMediaFileName");
-	m_roleNames[ownMessageRole]			=	std::move("ownMessage");
+	roleToString(msgId)
+	roleToString(msgSender)
+	roleToString(msgReceiver)
+	roleToString(msgSDate)
+	roleToString(msgSTime)
+	roleToString(msgRDate)
+	roleToString(msgRTime)
+	roleToString(msgDeleted)
+	roleToString(msgSent)
+	roleToString(msgReceived)
+	roleToString(msgRead)
+	roleToString(msgText)
+	roleToString(msgMedia)
+	roleToString(ownMessage)
+	roleToString(mediaViewer)
 
 	m_userIdx = appUserModel()->userIdxFromFieldValue(DBUserModel::USER_FIELD_ID, m_otherUserId);
 	m_dbModelInterface = new DBModelInterfaceChat{this};
-	m_db = new TPChatDB{appUserModel()->userId(0), m_otherUserId, m_dbModelInterface};
+	m_db = new TPChatDB{this};
 	appThreadManager()->runAction(m_db, ThreadManager::CreateTable);
 
-	m_workFuncs.insert(messageWorkSend, [this] (const QString &data) -> void { incomingMessage(data); });
-	m_workFuncs.insert(messageWorkReceived, [this] (const QString &data) -> void { setData(index(data.toUInt()), true, receivedRole); });
-	m_workFuncs.insert(messageWorkRead, [this] (const QString &data) -> void { setData(index(data.toUInt()), true, readRole); });
-	m_workFuncs.insert(messageWorkRemoved, [this] (const QString &data) -> void { removeMessage(data.toUInt(), false); });
-	m_workFuncs.insert(messageWorkEdited, [this] (const QString &data) -> void { editMessage(data); });
+	m_workFuncs.insert(CW_SEND, [this] (const QString &work_data) -> void {
+													incomingMessage(workDataFieldValue(work_data, WDF_MSG_FIELD)); });
+	m_workFuncs.insert(CW_RECEIVED, [this] (const QString &work_data) -> void {
+					setData(index(workDataFieldValue(work_data, WDF_MSGID).toInt()), true, msgReceivedRole); });
+	m_workFuncs.insert(CW_READ, [this] (const QString &work_data) -> void {
+					setData(index(workDataFieldValue(work_data, WDF_MSGID).toInt()), true, msgReadRole); });
+	m_workFuncs.insert(CW_REMOVED, [this] (const QString &work_data) -> void {
+					removeMessage(workDataFieldValue(work_data, WDF_MSGID).toInt(), false); });
+	m_workFuncs.insert(CW_EDITED, [this] (const QString &work_data) -> void { editMessage(work_data); });
 
 	connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_idx, const uint field) {
 		if (user_idx == m_userIdx) {
@@ -128,7 +142,7 @@ TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QO
 	if (check_unread_messages) {
 		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(m_db, &TPDatabaseTable::actionFinished, this, [this,conn]
-									(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2) {
+					(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2) {
 			if (op == ThreadManager::CustomOperation) {
 				disconnect(*conn);
 				if (return_value1.toBool())
@@ -139,6 +153,11 @@ TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QO
 		m_db->setCustQueryFunction(x);
 		appThreadManager()->runAction(m_db, ThreadManager::CustomOperation);
 	}
+}
+
+const QString &TPChat::userId() const
+{
+	return appUserModel()->userId(0);
 }
 
 void TPChat::loadChat()
@@ -152,27 +171,27 @@ void TPChat::loadChat()
 			beginInsertRows(QModelIndex{}, 0, m_dbModelInterface->modelData().count() - 1);
 			for (const auto &str_message : std::as_const(m_dbModelInterface->modelData())) {
 				ChatMessage *message = new ChatMessage;
-				message->id = str_message.at(MESSAGE_ID).toUInt();
-				message->sender = str_message.at(MESSAGE_SENDER);
-				message->receiver = str_message.at(MESSAGE_RECEIVER);
-				message->sdate = std::move(appUtils()->dateFromString(str_message.at(MESSAGE_SDATE), TPUtils::DF_ONLINE));
-				message->stime = std::move(appUtils()->timeFromString(str_message.at(MESSAGE_STIME), TPUtils::TF_ONLINE));
-				message->rdate = std::move(appUtils()->dateFromString(str_message.at(MESSAGE_RDATE), TPUtils::DF_ONLINE));
-				message->rtime = std::move(appUtils()->timeFromString(str_message.at(MESSAGE_RTIME), TPUtils::TF_ONLINE));
-				message->deleted = str_message.at(MESSAGE_DELETED).toUInt() == 1;
-				message->sent = str_message.at(MESSAGE_SENT).toUInt() == 1;
-				message->received = str_message.at(MESSAGE_RECEIVED).toUInt() == 1;
-				message->read = str_message.at(MESSAGE_READ).toUInt() == 1;
-				message->text = str_message.at(MESSAGE_TEXT);
-				message->media = str_message.at(MESSAGE_MEDIA);
+				message->id = str_message.at(ID).toUInt();
+				message->sender = str_message.at(SENDER);
+				message->receiver = str_message.at(RECEIVER);
+				message->sdate = std::move(appUtils()->dateFromString(str_message.at(SDATE), TPUtils::DF_ONLINE));
+				message->stime = std::move(appUtils()->timeFromString(str_message.at(STIME), TPUtils::TF_ONLINE));
+				message->rdate = std::move(appUtils()->dateFromString(str_message.at(RDATE), TPUtils::DF_ONLINE));
+				message->rtime = std::move(appUtils()->timeFromString(str_message.at(RTIME), TPUtils::TF_ONLINE));
+				message->deleted = str_message.at(DELETED).toUInt() == 1;
+				message->sent = str_message.at(SENT).toUInt() == 1;
+				message->received = str_message.at(RECEIVED).toUInt() == 1;
+				message->read = str_message.at(READ).toUInt() == 1;
+				message->text = str_message.at(TEXT);
+				message->media = str_message.at(MEDIA);
 				if (!message->media.isEmpty())
-					++m_nMedia;
+					createMediaViewer(message, false);
 				message->own_message = message->sender == appUserModel()->userId(0);
 				m_messages.append(message);
 			};
 			if (m_messageWorksQueued) {
 				setChatLoadedStatus(Waiting);
-				appOnlineServices()->recheckNewMessages();
+				appOnlineServices()->recheckNewChatMessages();
 			}
 			else
 				setChatLoadedStatus(Loaded);
@@ -202,30 +221,6 @@ QString TPChat::avatarIcon() const
 	return appUserModel()->avatar(m_userIdx);
 }
 
-void TPChat::processTPServerMessage(const QString &work, const QString &messages)
-{
-	if (m_chatLoaded == Unloaded) {
-		m_messageWorksQueued = true;
-		if (work == messageWorkSend)
-			getNewMessagesNumber(messages);
-	}
-	else {
-		uint msg_idx{0};
-		do {
-			const QString &message{appUtils()->getCompositeValue(msg_idx, messages, set_separator)};
-			if (message.isEmpty())
-				break;
-			if (m_workFuncs.contains(work))
-				m_workFuncs.value(work)(message);
-		} while (++msg_idx);
-		if (m_chatLoaded == Waiting) {
-			if (!hasUnreadMessages() || work == messageWorkSend)
-				setChatLoadedStatus(Loaded);
-		}
-		m_messageWorksQueued = false;
-	}
-}
-
 //When called from ChatWindow: deletes the message locally and, if it is a sent message, insctruct the other party to have
 //this message that they received removed. If it is a received message, keep the alteration local only
 //When called from appMessagesManager(), message->sender will be equal to m_otherUserId, so it will be a received message:
@@ -234,28 +229,29 @@ void TPChat::removeMessage(const uint msgid, const bool remove_for_interlocutor)
 {
 	if (msgid >= m_messages.count() || m_messages.at(msgid)->deleted)
 		return;
-	if (remove_for_interlocutor)
-		setData(index(msgid), "1"_L1, deletedRole);
-	else { //Remove locally only. Do not call setData() because it will, in turn, call uploadAction()
-		m_messages.at(msgid)->deleted = true;
-		emit dataChanged(index(msgid), index(msgid), QList<int>{deletedRole});
-		updateFieldToSave(msgid, MESSAGE_DELETED, "1"_L1);
+	setData(index(msgid), "1"_L1, msgDeletedRole);
+	setData(index(msgid), QString{}, msgTextRole);
+	setData(index(msgid), QString{}, msgMediaRole);
+	ChatMessage *message{m_messages.at(msgid)};
+	if (message->media_viewer) {
+		message->media_viewer->removeFile(true, true, false);
+		delete message->media_viewer;
+		message->media_viewer = nullptr;
 	}
-	setData(index(msgid), QString{}, textRole);
-	setData(index(msgid), QString{}, mediaRole);
+	if (message->own_message && remove_for_interlocutor)
+		doChatWork(CW_REMOVED, m_messages.at(msgid));
 }
 
-void TPChat::editMessage(const QString &encoded_data)
+void TPChat::editMessage(const QString &work_data)
 {
-	bool ok{false};
-	const uint msgid{appUtils()->getCompositeValue(0, encoded_data, set_separator).toUInt(&ok)};
-	if (ok) {
+	const uint msgid{workDataFieldValue(work_data, WDF_MSGID).toUInt()};
+	if (msgid < m_messages.count()) {
 		ChatMessage *message{m_messages.at(msgid)};
 		if (message) {
 			if (!message->deleted) {
-				const uint field{appUtils()->getCompositeValue(1, encoded_data, set_separator).toUInt() + Qt::UserRole};
-				if (field >= textRole && field <= mediaRole)
-					setData(index(msgid), appUtils()->getCompositeValue(2, encoded_data, set_separator), field);
+				const uint field{workDataFieldValue(work_data, WDF_MSG_FIELD).toUInt()};
+				if (field >= ID && field < QUEUED)
+					setData(index(msgid), workDataFieldValue(work_data, WDF_WORK_VALUE).toUInt(), Qt::UserRole + field);
 			}
 		}
 	}
@@ -266,11 +262,11 @@ void TPChat::markAllIncomingMessagesRead()
 	for (const auto message : std::as_const(m_messages) | std::views::reverse) {
 		if (message->read || message->own_message)
 			break;
-		setData(index(message->id), true, readRole);
+		setData(index(message->id), true, msgReadRole);
 	}
 }
 
-void TPChat::createNewMessage(const QString &text, const QString &media)
+void TPChat::createNewMessage(const QString &text, const bool attach_file)
 {
 	ChatMessage *message{new ChatMessage};
 	message->id = m_messages.count();
@@ -279,22 +275,15 @@ void TPChat::createNewMessage(const QString &text, const QString &media)
 	message->sdate = std::move(QDate::currentDate());
 	message->stime = std::move(QTime::currentTime());
 	message->text = text;
-	message->media = media;
 	message->own_message = true;
 	beginInsertRows(QModelIndex{}, count(), count());
 	m_messages.append(message);
 	emit countChanged();
 	endInsertRows();
-	encodeMessageToSave(message);
-	uploadAction(MESSAGE_ID, message);
-	QMetaObject::invokeMethod(m_chatWindow, "postSendingActions");
-}
-
-void TPChat::createNewMessageWithAttachment(const QString &text)
-{
-	QString filepath{std::move(TPFileOps::chooseFileDialog())};
-	if (!filepath.isEmpty())
-		createNewMessage(text, filepath);
+	if (attach_file)
+		createMediaViewer(message, true);
+	else
+		sendMessage(message);
 }
 
 void TPChat::incomingMessage(const QString &encoded_message)
@@ -307,7 +296,7 @@ void TPChat::incomingMessage(const QString &encoded_message)
 	message->own_message = false;
 	message->received = true;
 	if (!message->media.isEmpty())
-		++m_nMedia;
+		createMediaViewer(message, false);
 
 	if (m_chatWindow) {
 		beginInsertRows(QModelIndex{}, count(), count());
@@ -325,39 +314,46 @@ void TPChat::incomingMessage(const QString &encoded_message)
 		emit messageReceived();
 	}
 	encodeMessageToSave(message);
-	uploadAction(MESSAGE_RECEIVED, message);
 	if (message->read)
-		uploadAction(MESSAGE_READ, message);
+		doChatWork(CW_READ, message);
+	else
+		doChatWork(CW_RECEIVED, message);
 }
 
 void TPChat::clearChat()
 {
 	void beginResetModel();
 	m_db->clearTable();
-	qDeleteAll(m_messages);
+	for (auto message : std::as_const(m_messages)) {
+		if (message->media_viewer) {
+			message->media_viewer->removeFile(true, true, false);
+			delete message->media_viewer;
+		}
+		delete message;
+	}
+	m_messages.clear();
+	appUtils()->rmDir(appUserModel()->mainUserDir() % chatSubDir());
 	void endResetModel();
 }
 
 QVariant TPChat::data(const ChatMessage *const message, const uint field, const bool format_output) const
 {
 	switch (field) {
-	case MESSAGE_ID: return message->id;
-    case MESSAGE_SENDER: return message->sender;
-    case MESSAGE_RECEIVER: return message->receiver;
-	case MESSAGE_SDATE: return format_output ? QVariant{appUtils()->formatDate(message->sdate)} : QVariant{message->sdate};
-	case MESSAGE_STIME: return format_output ? QVariant{appUtils()->formatTime(message->stime)} : QVariant{message->stime};
-	case MESSAGE_RDATE: return format_output ? QVariant{appUtils()->formatDate(message->rdate)} : QVariant{message->rdate};
-	case MESSAGE_RTIME: return format_output ? QVariant{appUtils()->formatTime(message->rtime)} : QVariant{message->rtime};
-	case MESSAGE_DELETED: return static_cast<bool>(message->deleted);
-	case MESSAGE_SENT: return static_cast<bool>(message->sent);
-	case MESSAGE_RECEIVED: return static_cast<bool>(message->received);
-	case MESSAGE_READ: return static_cast<bool>(message->read);
-	case MESSAGE_TEXT: return message->text;
-	case MESSAGE_MEDIA: return message->media;
-	case MESSAGE_MEDIA_PREVIEW: return message->preview_media;
-	case MESSAGE_MEDIA_OPEN_EXTERNALLY: return static_cast<bool>(message->external_media);
-	case MESSAGE_MEDIA_FILENAME: return appUtils()->getFileName(message->media, true);
-	case MESSAGE_OWN_MESSAGE: return static_cast<bool>(message->own_message);
+	case ID: return message->id;
+    case SENDER: return message->sender;
+    case RECEIVER: return message->receiver;
+	case SDATE: return format_output ? QVariant{appUtils()->formatDate(message->sdate)} : QVariant{message->sdate};
+	case STIME: return format_output ? QVariant{appUtils()->formatTime(message->stime)} : QVariant{message->stime};
+	case RDATE: return format_output ? QVariant{appUtils()->formatDate(message->rdate)} : QVariant{message->rdate};
+	case RTIME: return format_output ? QVariant{appUtils()->formatTime(message->rtime)} : QVariant{message->rtime};
+	case DELETED: return static_cast<bool>(message->deleted);
+	case SENT: return static_cast<bool>(message->sent);
+	case RECEIVED: return static_cast<bool>(message->received);
+	case READ: return static_cast<bool>(message->read);
+	case TEXT: return message->text;
+	case MEDIA: return message->media;
+	case OWN_MESSAGE: return static_cast<bool>(message->own_message);
+	case MEDIA_VIEWER: return QVariant::fromValue(message->media_viewer);
 	}
 	return QVariant{};
 }
@@ -385,50 +381,43 @@ bool TPChat::setData(const QModelIndex &index, const QVariant &value, int role)
 	const int row{index.row()};
 	if (row >= 0 && row < m_messages.count()) {
 		ChatMessage *const message{m_messages.at(row)};
-		const bool respond{!canUseWebSocket()}; //when not using WebSockets, a response to the server is needed
-
 		switch (role) {
-		case rDateRole:
+		case msgRDateRole:
 			message->rdate = std::move(value.toDate());
 			break;
-		case rTimeRole:
+		case msgRTimeRole:
 			message->rtime = std::move(value.toTime());
 			break;
-		case deletedRole:
-			if (message->deleted == value.toBool())
-				return false;
+		case msgDeletedRole:
 			message->deleted = value.toBool();
-			uploadAction(MESSAGE_DELETED, message);
 			break;
-		case sentRole:
+		case msgSentRole:
 			if (message->sent == value.toBool())
 				return false;
 			message->sent = value.toBool();
 			break;
-		case receivedRole:
-			if (message->received == value.toBool())
-				return false;
+		case msgReceivedRole:
 			message->received = value.toBool();
-			if (respond)
-				uploadAction(MESSAGE_RECEIVED, message);
+			if (!message->own_message)
+				doChatWork(CW_RECEIVED, message);
 			break;
-		case readRole:
-			if (message->read == value.toBool())
-				return false;
-			message->read = value.toBool();
-			setUnreadMessages(QString::number(message->id), !message->read);
-			if (respond || !message->own_message)
-				uploadAction(MESSAGE_READ, message);
+		case msgReadRole:
+			if ((message->read = value.toBool()))
+				setData(index, true, msgReceivedRole);
+			if (message->own_message) {
+				setUnreadMessages(QString::number(message->id), !message->read);
+				doChatWork(CW_READ, message);
+			}
 			break;
-		case textRole:
+		case msgTextRole:
 			message->text = std::move(value.toString());
-			if (respond && !message->deleted)
-				uploadAction(MESSAGE_TEXT, message);
+			if (message->own_message)
+				doChatWork(CW_EDITED, message);
 			break;
-		case mediaRole:
+		case msgMediaRole:
 			message->media = std::move(value.toString());
-			if (respond && !message->deleted)
-				uploadAction(MESSAGE_MEDIA, message);
+			if (message->own_message)
+				doChatWork(CW_EDITED, message);
 			break;
 		default: return false;
 		}
@@ -440,37 +429,25 @@ bool TPChat::setData(const QModelIndex &index, const QVariant &value, int role)
 	return false;
 }
 
-void TPChat::processWebSocketTextMessage(const QString &message)
+void TPChat::processChatMessage(const QString &encoded_message)
 {
-	bool ok{false};
-	static_cast<void>(appUtils()->getCompositeValue(0, message, exercises_separator).toInt(&ok));
-	if (ok) {
-		if (m_chatLoaded == Unloaded) {
-			connect(this, &TPChat::chatLoadedStatusChanged, this, [this,&message] () {
-				if (m_chatLoaded == Loaded)
-					processWebSocketTextMessage(message);
-			});
-			loadChat();
-			return;
-		}
-		const QString &action{appUtils()->getCompositeValue(1, message, exercises_separator)};
-		const QString &value{appUtils()->getCompositeValue(2, message, exercises_separator)};
-		m_workFuncs.value(action)(value);
+	if (m_chatLoaded == Unloaded) {
+		connect(this, &TPChat::chatLoadedStatusChanged, this, [this,&encoded_message] () {
+			if (m_chatLoaded == Loaded)
+				processChatMessage(encoded_message);
+		});
+		loadChat();
+		return;
 	}
-}
-
-void TPChat::processWebSocketBinaryMessage(const QByteArray &data, const QString &meta_info)
-{
-	auto tp_file{TPFilePath::newTPFilePath(appUtils()->binaryFileMetaInfoFieldValue(meta_info, TPUtils::BFIF_FILEPATH),
-		appUtils()->binaryFileMetaInfoFieldValue(meta_info, TPUtils::BFIF_RECEIVERID),
-		appUtils()->binaryFileMetaInfoFieldValue(meta_info, TPUtils::BFIF_SENDERID))};
-	appUtils()->writeBinaryFile(tp_file->toString(), data, true);
+	const auto work{workDataFieldValue(encoded_message, WDF_WORK_VALUE).toUInt()};
+	if (work >= CW_SEND && work <= CW_EDITED)
+		m_workFuncs.at(work)(encoded_message);
 }
 
 void TPChat::onChatWindowOpened()
 {
 	markAllIncomingMessagesRead();
-	appWSServer()->connectToPeer(this, TPUtils::SFM_TPCHAT, m_otherUserId);
+	appWSServer()->connectToPeer(this, TPUtils::MH_TPCHAT, m_otherUserId);
 }
 
 inline void TPChat::setChatLoadedStatus(uint8_t status)
@@ -494,108 +471,49 @@ inline short TPChat::checkConnectionOptions() const
 void TPChat::unqueueMessage(ChatMessage* const message)
 {
 	const QString &msgid{QString::number(message->id)};
-	for (uint i{0}; i <= MESSAGE_MEDIA; ++i) {
+	for (uint i{0}; i <= MEDIA; ++i) {
 		const QString &field_value{appUtils()->getCompositeValue(i, message->queued, record_separator)};
 		if (field_value == "1"_L1)
-			uploadAction(i, message);
+			doChatWork(i, message);
 	}
 	message->queued.clear();
 }
 
-void TPChat::uploadAction(const uint field, ChatMessage *const message)
+void TPChat::doChatWork(const uint work, ChatMessage *const message, const int field)
 {
 	const bool use_ws{canUseWebSocket()};
 	if (use_ws || canUseServer()) {
 		const QString &msgid{QString::number(message->id)};
-		const QLatin1StringView seed{QString{message->text % QString::number(field)}.toLatin1()};
+		const QLatin1StringView seed{QString{message->text % QString::number(work)}.toLatin1()};
 		const int requestid{appUtils()->generateUniqueId(seed)};
-		switch (field) {
-		case MESSAGE_ID:
+		switch (work) {
+		case CW_SEND:
 			if (message->own_message) {
-				setData(index(message->id), true, sentRole);
-				if (!message->media.isEmpty()) {
-					auto tp_filepath{TPFilePath::newTPFilePath( appUserModel()->userId(0), m_otherUserId, message->media,
-																									{chatsMediaSubDir()})};
-
+				setData(index(message->id), true, msgSentRole);
+				const QString &encoded_message{encodeWorkMessage(message, CW_SEND, TPCHAT_N_FIELDS)};
+				if (!message->media.isEmpty())
+					message->media_viewer->sendFileTo(TPUtils::MH_TPCHAT, {m_otherUserId}, encoded_message);
+				else {
 					if (use_ws)
-						appWSServer()->sendBinaryMessage(TPUtils::SFM_TPCHAT, *tp_filepath);
-                    else
-                        appUserModel()->sendFileToServer(*tp_filepath);
-                }
-				if (use_ws)
-					appWSServer()->sendTextMessage(TPUtils::SFM_TPCHAT, appUserModel()->userId(), m_otherUserId,
-						appUtils()->string_strings({QString::number(requestid), messageWorkSend,
-																encodeMessageToUpload(message)}, exercises_separator));
-				else
-					appOnlineServices()->sendMessage(requestid, m_otherUserId, std::move(encodeMessageToUpload(message)));
-            }
-			break;
-        case MESSAGE_DELETED:
-			if (use_ws)
-				appWSServer()->sendTextMessage(TPUtils::SFM_TPCHAT, appUserModel()->userId(), m_otherUserId,
-					appUtils()->string_strings({QString::number(requestid), messageWorkRemoved, msgid}, exercises_separator));
-			else {
-				if (message->own_message)
-					//Add message->id to the m_otherUserId/chats/this_user.removed file
-					appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkRemoved);
-				else
-					//Remove message->id from the m_otherUserId/chats/this_user.removed file
-					appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkRemoved);
-			}
-			break;
-		case MESSAGE_RECEIVED:
-			if (use_ws)
-				appWSServer()->sendTextMessage(TPUtils::SFM_TPCHAT, appUserModel()->userId(), m_otherUserId,
-								appUtils()->string_strings({QString::number(requestid), messageWorkReceived, msgid}, exercises_separator));
-			else {
-				if (!message->own_message) {
-					//Remove message from the this_user/chats/m_otherUserId.msg file
-					appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkSend);
-					//Add message->id to the m_otherUserId/chats/this_user.received file
-					appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkReceived);
+						appWSServer()->sendTextMessage(encoded_message);
+					else
+						appOnlineServices()->sendChatMessage(requestid, m_otherUserId, encoded_message);
 				}
-				else
-					//Remove message->id from the m_otherUserId/chats/this_user.received file
-					appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkReceived);
 			}
 			break;
-		case MESSAGE_READ:
+		case CW_RECEIVED:
+		case CW_READ:
+		case CW_REMOVED:
+		case CW_EDITED:
 			if (use_ws)
-				appWSServer()->sendTextMessage(TPUtils::SFM_TPCHAT, appUserModel()->userId(), m_otherUserId,
-									appUtils()->string_strings({QString::number(requestid), messageWorkRead, msgid}, exercises_separator));
-			else {
-				if (!message->own_message)
-					//Add message->id to the m_otherUserId/chats/this_user.read file
-					appOnlineServices()->chatMessageWork(requestid, m_otherUserId, msgid, messageWorkRead);
-				else
-					//Remove message->id from the m_otherUserId/chats/this_user.read file
-					appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkRead);
-			}
-			break;
-		case MESSAGE_TEXT:
-		case MESSAGE_MEDIA:
-			if (use_ws)
-				appWSServer()->sendTextMessage(TPUtils::SFM_TPCHAT, appUserModel()->userId(), m_otherUserId,
-									appUtils()->string_strings({QString::number(requestid), messageWorkEdited, msgid}, exercises_separator));
-			else {
-				if (!message->own_message)
-					appOnlineServices()->chatMessageWork(requestid, m_otherUserId, appUtils()->string_strings(
-						{msgid, QString::number(field - Qt::UserRole), data(index(msgid.toUInt()), field).toString()},
-							record_separator), messageWorkEdited);
-				else
-					appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, msgid, messageWorkEdited);
-			}
+				appWSServer()->sendTextMessage(encodeWorkMessage(message, work, field));
+			else
+				appOnlineServices()->sendChatMessage(requestid, m_otherUserId, encodeWorkMessage(message, work, field));
 		default: break;
 		}
 	}
 	else
-		appUtils()->setCompositeValue(field, "1"_L1, message->queued, record_separator);
-}
-
-void TPChat::acknowledgeMessageWorked(const uint msgid, const QLatin1StringView &work)
-{
-	const int requestid{appUtils()->generateRandomNumber(0, 5000)};
-	appOnlineServices()->chatMessageWorkAcknowledged(requestid, m_otherUserId, QString::number(msgid), work);
+		appUtils()->setCompositeValue(work, "1"_L1, message->queued, record_separator);
 }
 
 void TPChat::encodeMessageToSave(const ChatMessage* const message)
@@ -614,7 +532,7 @@ void TPChat::encodeMessageToSave(const ChatMessage* const message)
 					std::move(message->received ? "1"_L1 : "0"_L1),
 					std::move(message->read ? "1"_L1 : "0"_L1),
 					message->text,
-					message->media,
+					message->media_viewer ? message->media_viewer->fileName() : QString{},
 					message->queued
 	}));
 	updateFieldToSave(modified_row, -1, QString{});
@@ -635,25 +553,47 @@ void TPChat::updateFieldToSave(const uint msg_id, const int field, const QString
 QString TPChat::encodeMessageToUpload(const ChatMessage* const message) const
 {
 	return appUtils()->string_strings({
-					QString::number(message->id),
-					message->sender,
-					message->receiver,
-					appUtils()->formatDate(message->sdate, TPUtils::DF_ONLINE),
-					appUtils()->formatTime(message->stime, TPUtils::TF_ONLINE),
-					QString{},
-					QString{},
-					"0"_L1,
-					"1"_L1,
-					"0"_L1,
-					"0"_L1,
-					message->text,
-					message->media
+				QString::number(message->id),
+				message->sender,
+				message->receiver,
+				appUtils()->formatDate(message->sdate, TPUtils::DF_ONLINE),
+				appUtils()->formatTime(message->stime, TPUtils::TF_ONLINE),
+				QString{},
+				QString{},
+				"0"_L1,
+				"1"_L1,
+				"0"_L1,
+				"0"_L1,
+				message->text,
+				message->media_viewer ? message->media_viewer->fileName() : QString{}
 	}, record_separator);
+}
+
+QString TPChat::encodeWorkMessage(const ChatMessage *const message, const int work, const int field) const
+{
+	QString encoded_work{std::move(TPUtils::chatmessage_prefix % exercises_separator % message->sender
+											   % exercises_separator % QString::number(work) % exercises_separator)};
+	switch (work) {
+	case CW_SEND:
+		encoded_work += std::move(encodeMessageToUpload(message) % exercises_separator);
+		break;
+	case CW_RECEIVED:
+	case CW_READ:
+	case CW_REMOVED:
+		encoded_work += std::move(QString::number(message->id) % exercises_separator);
+		break;
+	case CW_EDITED:
+		encoded_work += std::move(appUtils()->string_strings({QString::number(message->id), QString::number(field),
+															  data(message, field).toString() }, exercises_separator ));
+		break;
+	default: Q_UNREACHABLE();
+	}
+	return encoded_work;
 }
 
 ChatMessage* TPChat::decodeDownloadedMessage(const QString &encoded_message)
 {
-	uint id{appUtils()->getCompositeValue(MESSAGE_ID, encoded_message, record_separator).toUInt()};
+	uint id{appUtils()->getCompositeValue(ID, encoded_message, record_separator).toUInt()};
 	const auto &itr{std::find_if(m_messages.cbegin(), m_messages.cend(), [id] (const ChatMessage *message) {
 		return message->id == id;
 	})};
@@ -662,22 +602,22 @@ ChatMessage* TPChat::decodeDownloadedMessage(const QString &encoded_message)
 
 	ChatMessage *new_message{new ChatMessage};
 	new_message->id = id;
-	new_message->sender = std::move(appUtils()->getCompositeValue(MESSAGE_SENDER, encoded_message, record_separator));
-	new_message->receiver = std::move(appUtils()->getCompositeValue(MESSAGE_RECEIVER, encoded_message, record_separator));
+	new_message->sender = std::move(appUtils()->getCompositeValue(SENDER, encoded_message, record_separator));
+	new_message->receiver = std::move(appUtils()->getCompositeValue(RECEIVER, encoded_message, record_separator));
 	new_message->sdate = std::move(appUtils()->dateFromString(
-							appUtils()->getCompositeValue(MESSAGE_SDATE, encoded_message, record_separator), TPUtils::DF_ONLINE));
+							appUtils()->getCompositeValue(SDATE, encoded_message, record_separator), TPUtils::DF_ONLINE));
 	new_message->rdate = std::move(appUtils()->dateFromString(
-							appUtils()->getCompositeValue(MESSAGE_RDATE, encoded_message, record_separator), TPUtils::DF_ONLINE));
+							appUtils()->getCompositeValue(RDATE, encoded_message, record_separator), TPUtils::DF_ONLINE));
 	new_message->stime = std::move(appUtils()->timeFromString(
-							appUtils()->getCompositeValue(MESSAGE_STIME, encoded_message, record_separator), TPUtils::TF_ONLINE));
+							appUtils()->getCompositeValue(STIME, encoded_message, record_separator), TPUtils::TF_ONLINE));
 	new_message->rtime = std::move(appUtils()->timeFromString(
-							appUtils()->getCompositeValue(MESSAGE_RTIME, encoded_message, record_separator), TPUtils::TF_ONLINE));
-	new_message->deleted = appUtils()->getCompositeValue(MESSAGE_DELETED, encoded_message, record_separator) == "1"_L1;
-	new_message->sent = appUtils()->getCompositeValue(MESSAGE_SENT, encoded_message, record_separator) == "1"_L1;
-	new_message->received = appUtils()->getCompositeValue(MESSAGE_RECEIVED, encoded_message, record_separator) == "1"_L1;
-	new_message->read = appUtils()->getCompositeValue(MESSAGE_READ, encoded_message, record_separator) == "1"_L1;
-	new_message->text = std::move(appUtils()->getCompositeValue(MESSAGE_TEXT, encoded_message, record_separator));
-	new_message->media = std::move(appUtils()->getCompositeValue(MESSAGE_MEDIA, encoded_message, record_separator));
+							appUtils()->getCompositeValue(RTIME, encoded_message, record_separator), TPUtils::TF_ONLINE));
+	new_message->deleted = appUtils()->getCompositeValue(DELETED, encoded_message, record_separator) == "1"_L1;
+	new_message->sent = appUtils()->getCompositeValue(SENT, encoded_message, record_separator) == "1"_L1;
+	new_message->received = appUtils()->getCompositeValue(RECEIVED, encoded_message, record_separator) == "1"_L1;
+	new_message->read = appUtils()->getCompositeValue(READ, encoded_message, record_separator) == "1"_L1;
+	new_message->text = std::move(appUtils()->getCompositeValue(TEXT, encoded_message, record_separator));
+	new_message->media = std::move(appUtils()->getCompositeValue(MEDIA, encoded_message, record_separator));
 	return new_message;
 }
 
@@ -689,7 +629,7 @@ void TPChat::getNewMessagesNumber(const QString &encoded_messages)
 		const QString &encoded_message{appUtils()->getCompositeValue(msg_idx, encoded_messages, set_separator)};
 		if (encoded_message.isEmpty())
 			break;
-		unread_ids.append(appUtils()->getCompositeValue(MESSAGE_ID, encoded_message, record_separator) % set_separator);
+		unread_ids.append(appUtils()->getCompositeValue(ID, encoded_message, record_separator) % set_separator);
 	} while (++msg_idx);
 	setUnreadMessages(unread_ids);
 }
@@ -721,7 +661,32 @@ void TPChat::setUnreadMessages(const QString &unread_ids, const bool add)
 		emit unreadMessagesChanged();
 }
 
-inline QString TPChat::chatsMediaSubDir() const
+void TPChat::createMediaViewer(ChatMessage *message, const bool add_file)
 {
-	return chatsSubDir % QLatin1StringView{m_otherUserId.toLatin1().constData()} % '/';
+	++m_nMedia;
+	TPFileOps *media_viewer{new TPFileOps{}};
+	media_viewer->setUseControls(true);
+	media_viewer->setCanAddFile(true);
+	media_viewer->setSuggestedFileNameGenerator([this] (const QString &selected_filename) -> TPFilePathPtr {
+		return TPFilePath::newTPFilePath(selected_filename, userId(), m_otherUserId, {chatSubDir(), "media/"_L1});
+	});
+	connect(media_viewer, &TPFileOps::fileAdded, this, [this,message] (const QString &filepath) {
+		if (message->media.isEmpty())
+			sendMessage(message);
+		else
+			setData(index(message->id), filepath, msgMediaRole);
+	});
+	message->media_viewer = media_viewer;
+	emit dataChanged(index(message->id), index(message->id), QList<int>{mediaViewerRole});
+	if (add_file)
+		media_viewer->doFileOperation(TPFileOps::OT_AddFile);
+	else
+		media_viewer->setFileName(message->media);
+}
+
+inline void TPChat::sendMessage(ChatMessage *message)
+{
+	encodeMessageToSave(message);
+	doChatWork(CW_SEND, message);
+	QMetaObject::invokeMethod(m_chatWindow, "postSendingActions");
 }

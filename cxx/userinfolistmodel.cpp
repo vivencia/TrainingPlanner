@@ -114,6 +114,16 @@ QStringList UserInfoListModel::selectedUsers() const
 	return selected;
 }
 
+void UserInfoListModel::setSelectedUsers(const QStringList &users)
+{
+	for(int i{0}; i < m_extraInfo.count(); ++i) {
+		if (rowVisible(i)) {
+			if (users.contains(data(DBUserModel::USER_FIELD_ID, i)))
+				setSelected(i, true);
+		}
+	}
+}
+
 void UserInfoListModel::applyFilter(const QString &filter, int field)
 {
 	if (filter != m_filter || field != m_fieldFilter) {
@@ -153,7 +163,7 @@ QVariant UserInfoListModel::data(const QModelIndex &index, int role) const
 				case insertTimeRole: return QDateTime::fromMSecsSinceEpoch(appUserModel()->m_usersData.at(user_idx).at(
 																DBUserModel::USER_FIELD_INSERTTIME).toLongLong()).toString();
 				case onlineAccountRole: return appUserModel()->onlineAccount();
-				case nameRole: return appUserModel()->userName(user_idx);
+				case nameRole: return appUserModel()->_userName(user_idx);
 				case birthdayRole: return appUserModel()->birthDateFancy(user_idx);
 				case sexRole: return appUserModel()->sex(user_idx);
 				case phoneRole: return appUserModel()->phoneNumber(user_idx);
@@ -295,7 +305,10 @@ void UserInfoListModel::removeUserInfo(const int row)
 {
 	beginRemoveRows(QModelIndex{}, row, row);
 	m_extraInfo.removeAt(row);
+#ifndef Q_OS_ANDROID
 	m_allUsersData.removeAt(row);
+#endif
+	changeNumberOfVisibleRows(false);
 	endRemoveRows();
 }
 #endif
@@ -339,14 +352,6 @@ void UserInfoListModel::userModified(const uint user_idx, const uint field)
 	}
 }
 
-void UserInfoListModel::removeUserInfo(const uint user_idx)
-{
-	m_extraInfo.removeAt(user_idx);
-	for (auto idx{user_idx}; idx < m_extraInfo.count(); ++idx)
-		m_extraInfo[idx][EF_USERIDX] = std::move(QVariant{idx});
-	changeNumberOfVisibleRows(false);
-}
-
 int UserInfoListModel::_userIdx(const uint row) const
 {
 	return m_extraInfo.at(row).at(EF_USERIDX).toInt();
@@ -370,7 +375,7 @@ void UserInfoListModel::insertUserInfo(const uint user_idx)
 	extra_infolist.append(std::move(QVariant{appUserModel()->isConfirmed(user_idx)})); //EF_ISCONFIRMED
 	extra_infolist.append(std::move(QVariant{appUserModel()->isAvailable(user_idx)})); //EF_ISAVAILABLE
 	m_extraInfo.append(std::move(extra_infolist));
-	changeNumberOfVisibleRows(true);
+	++m_nVisibleRows;
 }
 
 inline const bool UserInfoListModel::rowVisible(const int row) const
@@ -413,7 +418,7 @@ void UserInfoListModel::changeVisibilityAsPerCategory()
 					if (!m_filter.isEmpty()) {
 						const QStringList &words_list{appUtils()->stripDiacriticsFromString(m_filter).split(' ', Qt::SkipEmptyParts)};
 						_visible = appUtils()->containsAllWords(appUserModel()->m_usersData.at(
-											m_extraInfo.at(i).at(EF_USERIDX).toUInt()).at(m_fieldFilter), words_list, false);
+										m_extraInfo.at(i).at(EF_USERIDX).toUInt()).at(m_fieldFilter), words_list, false);
 					}
 				}
 			}

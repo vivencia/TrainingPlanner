@@ -5,34 +5,9 @@
 #include <QAbstractListModel>
 #include <QQmlEngine>
 
-enum ChatMessageFields {
-	MESSAGE_ID,
-	MESSAGE_SENDER,
-	MESSAGE_RECEIVER,
-	MESSAGE_SDATE,
-	MESSAGE_STIME,
-	MESSAGE_RDATE,
-	MESSAGE_RTIME,
-	MESSAGE_DELETED,
-	MESSAGE_SENT,
-	MESSAGE_RECEIVED,
-	MESSAGE_READ,
-	MESSAGE_TEXT,
-	MESSAGE_MEDIA,
-	MESSAGE_QUEUED,
-	TP_CHAT_TOTAL_MESSAGE_FIELDS
-};
-
-constexpr QLatin1StringView messageWorkSend{".0msg"};
-constexpr QLatin1StringView messageWorkReceived{".1received"};
-constexpr QLatin1StringView messageWorkRead{".2read"};
-constexpr QLatin1StringView messageWorkRemoved{".3removed"};
-constexpr QLatin1StringView messageWorkEdited{".4edited"};
-
 QT_FORWARD_DECLARE_CLASS(DBModelInterfaceChat)
 QT_FORWARD_DECLARE_STRUCT(ChatMessage)
 QT_FORWARD_DECLARE_CLASS(TPChatDB)
-QT_FORWARD_DECLARE_CLASS(TPFilePath)
 QT_FORWARD_DECLARE_CLASS(QTimer)
 
 class TPChat : public QAbstractListModel
@@ -49,29 +24,47 @@ Q_PROPERTY(QString avatarIcon READ avatarIcon NOTIFY avatarIconChanged FINAL)
 Q_PROPERTY(bool hasUnreadMessages READ hasUnreadMessages WRITE setHasUnreadMessages NOTIFY unreadMessagesChanged FINAL)
 
 public:
-	static constexpr QLatin1StringView chatsSubDir{"chats/"};
+	enum ChatMessageFields {
+		ID,
+		SENDER,
+		RECEIVER,
+		SDATE,
+		STIME,
+		RDATE,
+		RTIME,
+		DELETED,
+		SENT,
+		RECEIVED,
+		READ,
+		TEXT,
+		MEDIA,
+		QUEUED,
+		TPCHAT_N_FIELDS,
+		OWN_MESSAGE,
+		MEDIA_VIEWER,
+	};
 
 	explicit TPChat(const QString &otheruser_id, const bool check_unread_messages, QObject *parent = nullptr);
+	inline QString chatSubDir() const { return m_otherUserId % Qt::StringLiterals::operator""_L1("/chat/", 6); }
 
+	const QString &userId() const;
+	inline const QString &otherUserId() const { return m_otherUserId; }
 	void loadChat();
 	inline void setChatWindow(QObject *chat_window) { m_chatWindow = chat_window; }
 	inline QObject *chatWindow() const { return m_chatWindow; }
 	Q_INVOKABLE inline uint count() const { return m_messages.count(); }
-	inline const QString &otherUserId() const { return m_otherUserId; }
 
 	QString interlocutorName() const;
 	QString avatarIcon() const;
 	inline uint userIdx() const { return m_userIdx; }
 
-	void processTPServerMessage(const QString &work, const QString &messages);
 	Q_INVOKABLE void removeMessage(const uint msgid, const bool remove_for_interlocutor);
-	void editMessage(const QString &encoded_data);
+	void editMessage(const QString &work_data);
 	inline uint unreadMessages() const { return m_unreadIds.count(); }
 	inline bool hasUnreadMessages() const { return unreadMessages() > 0; }
 	inline void setHasUnreadMessages(const bool has_unread) { if (!has_unread) markAllIncomingMessagesRead(); }
 	Q_INVOKABLE void markAllIncomingMessagesRead();
-	Q_INVOKABLE void createNewMessage(const QString &text, const QString &media = QString{});
-	Q_INVOKABLE void createNewMessageWithAttachment(const QString &text);
+	Q_INVOKABLE void createNewMessage(const QString &text, const bool attach_file);
 	void incomingMessage(const QString &encoded_message);
 	void clearChat();
 	QVariant data(const ChatMessage *const message, const uint field, const bool format_output = false) const;
@@ -86,8 +79,7 @@ public:
 	inline virtual int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
 
 public slots:
-	void processWebSocketTextMessage(const QString &message);
-	void processWebSocketBinaryMessage(const QByteArray &data, const QString &meta_info);
+	void processChatMessage(const QString &encoded_message);
 	Q_INVOKABLE void onChatWindowOpened();
 
 signals:
@@ -103,30 +95,32 @@ private:
 	QString m_otherUserId;
 	uint m_userIdx, m_nMedia;
 	QList<ChatMessage*> m_messages;
+	QList<std::function<void(const QString&)>> m_workFuncs;
 	QHash<int, QByteArray> m_roleNames;
 	QObject *m_chatWindow{nullptr};
 	DBModelInterfaceChat *m_dbModelInterface{nullptr};
 	TPChatDB *m_db{nullptr};
 	QTimer *m_sendMessageTimer{nullptr};
 	uint8_t m_chatLoaded;
-	QHash<QString,std::function<void(const QString&)>> m_workFuncs;
 	QStringList m_unreadIds;
 	bool m_messageWorksQueued{false};
 
 	void setChatLoadedStatus(uint8_t status);
 	short checkConnectionOptions() const;
 	void unqueueMessage(ChatMessage *const message);
-	void uploadAction(const uint field, ChatMessage *const message);
-	void acknowledgeMessageWorked(const uint msgid, const QLatin1StringView &work);
+	void doChatWork(const uint work, ChatMessage *const message, const int field = -1);
 	QString encodeMessageToUpload(const ChatMessage *const message) const;
+	QString encodeWorkMessage(const ChatMessage *const message, const int work, const int field = -1) const;
 	void encodeMessageToSave(const ChatMessage *const message);
 	void updateFieldToSave(const uint msg_id, const int field, const QString &value) const;
 	ChatMessage* decodeDownloadedMessage(const QString &encoded_message);
 	void getNewMessagesNumber(const QString &encoded_messages);
 	void setUnreadMessages(const QString &unread_ids, const bool add = true);
-	QString chatsMediaSubDir() const;
+	void createMediaViewer(ChatMessage *message, const bool add_file);
+	void sendMessage(ChatMessage *message);
 
 	friend class TPMessagesManager;
+	friend class TPChatDB;
 	Q_DISABLE_COPY(TPChat)
 };
 

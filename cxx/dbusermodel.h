@@ -180,11 +180,11 @@ public:
 		}
 	}
 
-	Q_INVOKABLE inline uint sex(const int user_idx) const { return user_idx >= 0 && user_idx < m_usersData.count() ? _sex(user_idx).toUInt() : 2; }
+	Q_INVOKABLE inline QChar sex(const int user_idx) const { return user_idx >= 0 && user_idx < m_usersData.count() ? _sex(user_idx).at(0) : 'N'; }
 	inline const QString &_sex(const uint user_idx) const { return m_usersData.at(user_idx).at(USER_FIELD_SEX); }
 	Q_INVOKABLE void setSex(const int user_idx, const bool male)
 	{
-		m_usersData[user_idx][USER_FIELD_SEX] = male ? '0' : '1';
+		m_usersData[user_idx][USER_FIELD_SEX] = male ? 'M' : 'F';
 		setAvatar(user_idx, (male ? "image://tpimageprovider/m0"_L1 : "image://tpimageprovider/f1"_L1));
 		emit userModified(user_idx, USER_FIELD_SEX);
 	}
@@ -308,8 +308,7 @@ public:
 	Q_INVOKABLE void sendRequestToCoaches(UserInfoListModel *users_list);
 	Q_INVOKABLE void getOnlineCoachesList(const bool get_list_only = false);
 
-	int sendFileToServer(const TPFilePath &tp_filename, const QString &successMessage = QString{},
-																				const bool removeremove_local_file = false);
+	int sendFileToServer(const TPFilePath &tp_filename, const bool removeremove_local_file = false);
 	int downloadFileFromServer(const TPFilePath &tp_filename, const QString &successMessage = QString{});
 	void removeFileFromServer(const TPFilePath &tp_filename);
 	int listFilesFromServer(const QString &subdir, const QString &targetUser, const QString &filter = QString{});
@@ -350,7 +349,7 @@ signals:
 	void userProfileAcquired(const QString &userid, const bool success);
 	void userPasswordAvailable(const QString &password);
 	void fileDownloaded(const bool success, const uint requestid, const TPFilePath &tp_filepath);
-	void fileUploaded(const bool success, const uint requestid);
+	void fileUploaded(const bool success, const uint requestid, const int ret_code);
 	void filesListReceived(const bool success, const uint requestid, const QStringList& files_list);
 	void onlineDevicesListReceived();
 	void cmdFileCreated(const QString &dir);

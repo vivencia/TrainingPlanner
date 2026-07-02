@@ -21,9 +21,10 @@ Item {
 	property alias canDownloadOrGenerate: file_ops.canDownloadOrGenerate
 	property alias parentPage: file_ops.parentPage
 	property alias addFileFilters: file_ops.addFileFilters
+	property alias subdirForAddedFile: file_ops.subdirForAddedFile
 	readonly property int minimumWidth: file_ops.controlSize.width
 	readonly property int minimumHeight: minimumWidth
-	property FileOperations fileOps: file_ops
+	property FileOperations fileOps
 
 	signal removalRequested()
 	signal fileAdded(string filepath)
@@ -72,6 +73,17 @@ Item {
 		}
 	]
 
+	onFileOpsChanged: fileOps.parent = fileOpsRec;
+
+	Connections {
+		target: _control.fileOps
+		enabled: _control.fileOps !== null
+		function onShowFullScreen () { fullScreenLoader.showFullScreen(); }
+		function onFileRemovalRequested () { _control.removalRequested(); }
+		function onFileAdded(filepath) { _control.fileAdded(fileName); }
+		function onFileTypeChanged() { _control._preview_source = _control.fileOps.getFileTypeIcon(Qt.size(0, 0), true); }
+	}
+
 	TPBackRec {
 		visible: _control.useBackground
 		backColor: AppSettings.paneBackgroundColor
@@ -105,7 +117,7 @@ Item {
 		active: file_ops.fileType !== AppUtils.FT_TEXT
 		anchors.centerIn: parent
 		width: parent.width
-		height: parent.height
+		height: parent.height - fileOpsRec.height
 
 		sourceComponent: TPImage {
 			id: _imagePreview
@@ -148,19 +160,19 @@ Item {
 			bottomMargin: 10
 		}
 
-		FileOperations {
-			id: file_ops
-			useControls: true
+		Loader {
+			active: _control.fileOps === null || _control.fileOps !== item as FileOperations
+			asynchronous: true
 
 			anchors {
 				horizontalCenter: parent.horizontalCenter
 				verticalCenter: parent.verticalCenter
 			}
 
-			onShowFullScreen: fullScreenLoader.showFullScreen();
-			onFileRemovalRequested: _control.removalRequested();
-			onFileAdded: (filepath) => _control.fileAdded(fileName);
-			onFileTypeChanged: _control._preview_source = getFileTypeIcon(Qt.size(0, 0), true);
+			sourceComponent: FileOperations {
+				useControls: true
+				Component.onCompleted: _control.fileOps = this;
+			}
 		}
 	}
 

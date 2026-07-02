@@ -112,7 +112,7 @@ void ThreadManager::aboutToExit()
 	if (!m_queuedOps.isEmpty()) {
 		for (const auto queued_op : std::as_const(m_queuedOps))
 			emit newThreadedOperation(queued_op->worker->uniqueId(), queued_op->op, queued_op->extra_param, &m_mutex);
-		::usleep(1000);
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	}
 	QMutexLocker locker{&m_mutex};
 	for (QThread *thread : std::as_const(m_subThreadsList)) {

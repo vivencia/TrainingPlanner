@@ -9,6 +9,7 @@
 #include "tpfilepath.h"
 #include "tpimage.h"
 #include "tpsettings.h"
+#include "online_services/tponlineservices.h"
 #include "online_services/tpmessagesmanager.h"
 #include "online_services/websocketserver.h"
 
@@ -38,14 +39,14 @@ inline bool _isFileOk(const QString &file)
 	return !ec && size > 0;
 }
 
-TPFileOps::TPFileOps(QQuickItem *parent)
-	: QQuickPaintedItem{parent}
+TPFileOps::TPFileOps(QQuickItem *visual_parent)
+	: QQuickPaintedItem{visual_parent}
 {
 	setAcceptTouchEvents(true);
 	setAcceptedMouseButtons(Qt::LeftButton);
 	if (appUserModel()->actualMesoModel()) {
 		connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::mesoIdxChanged, this, [this]
-																		(const uint old_meso_idx, const uint new_meso_idx) {
+																	(const uint old_meso_idx, const uint new_meso_idx) {
 			if (old_meso_idx == m_mesoIdx)
 				setMesoIdx(new_meso_idx);
 		});
@@ -72,9 +73,9 @@ TPFileOps::TPFileOps(QQuickItem *parent)
 
 void TPFileOps::paint(QPainter *painter)
 {
-	if (painter->clipBoundingRect().width() == m_buttonSize.width() && m_currentControl)
+	if (painter->clipBoundingRect().width() == m_buttonSize.width() && m_currentControl) {
 		painter->drawImage(painter->clipBoundingRect(), *(m_currentControl->current_image));
-	else {
+	} else {
 		for (const auto &ci : std::as_const(m_controls)) {
 			if (ci && ci->visible)
 				painter->drawImage(ci->rect, *(ci->current_image));
@@ -92,22 +93,21 @@ void TPFileOps::setFileType(TPUtils::FILE_TYPE new_type)
 				for (int i{OT_FullScreen}; i <= OT_TypeCount - 2; ++i)
 					setButtonCondition(static_cast<OpType>(i));
 				setButtonCondition(static_cast<OpType>(OT_TypeCount - 1), std::nullopt, true);
-			}
-			else
+			} else {
 				createControls();
+			}
 		}
 	}
 }
 
 void TPFileOps::setFileName(const QString &filename, const bool file_added)
 {
-	if (!canDownloadOrGenerate() && (filename.isEmpty() || !QFile::exists(filename))) {
+	m_filename = filename;
+	if (!QFile::exists(m_filename.toString()) && !canDownloadOrGenerate()) {
 		m_filename = std::move(TPFilePath{});
 		setFileType(TPUtils::FT_UNKNOWN);
 		setFileIsOK(false);
-	}
-	else {
-		m_filename = filename;
+	} else {
 		_setFileName(file_added);
 	}
 }
@@ -162,7 +162,7 @@ void TPFileOps::removeFile(const bool bypass_confirmation, const bool remove_loc
 		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
 			appUtils()->string_strings({tr("Remove file?"), m_filename.toString()}, record_separator),
 									Qt::AlignCenter, getFileTypeIcon(QSize{appSettings()->itemExtraLargeHeight(),
-														appSettings()->itemExtraLargeHeight()}), -1, tr("Yes"), tr("No"));
+													appSettings()->itemExtraLargeHeight()}), -1, tr("Yes"), tr("No"));
 		return;
 	}
 	if (remove_local)
@@ -170,13 +170,6 @@ void TPFileOps::removeFile(const bool bypass_confirmation, const bool remove_loc
 	if (remove_remote)
 		appUserModel()->removeFileFromServer(m_filename);
 	emit fileRemovalRequested();
-}
-
-QString TPFileOps::chooseFileDialog(const int file_type)
-{
-	const TPUtils::FILE_TYPE f_type{static_cast<TPUtils::FILE_TYPE>(file_type)};
-	return QFileDialog::getOpenFileName(nullptr, tr("Select file"), appUtils()->standardPathForFileType(f_type),
-															appUtils()->extensionsListForType(f_type).join(";;"_L1));
 }
 
 void TPFileOps::exportTPFile(const TPFilePath &tp_filename)
@@ -243,14 +236,17 @@ void TPFileOps::attemptToCreateOrGetFile()
 	if (fileIsOK()) {
 		emit fileAcquired(TP_RET_CODE_NO_CHANGES_SUCCESS);
 		return;
-	}
-	else if (!canDownloadOrGenerate()) {
+	} else if (!canDownloadOrGenerate()) {
 		emit fileAcquired(TP_RET_CODE_INVALID_REQUEST_METHOD);
 		return;
 	}
 
 	connect(this, &TPFileOps::fileAcquired, this, [this] (const int ret_code) {
 		appItemManager()->displayMessageOnAppWindow(ret_code);
+		if (fileIsOK() && isTPFile()) {
+			if (m_filetype & TPUtils::FT_TP_FORMATTED)
+				readTPFile();
+		}
 	}, Qt::SingleShotConnection);
 	if (isTPFile())
 		generateFileFromType(true);
@@ -368,28 +364,32 @@ void TPFileOps::importSlot(const bool accepted)
 	}
 }
 
-void TPFileOps::sendFileTo(const int handle, const QStringList& userids, const QString &message)
+void TPFileOps::sendFileTo(const int handle, const QStringList& userids, const QString &message, const bool present_dialog)
 {
-	if (userids.isEmpty()) {
+	if (userids.isEmpty() || present_dialog) {
 		if (!m_sendFileDialog) {
-			createSendFileDialog(handle, userids, message);
+			connect(this, &TPFileOps::_sendFileDialogCreated, this, [=,this] { sendFileTo(handle, userids, message, present_dialog); });
+			createSendFileDialog();
 			return;
 		}
 		m_sendFileDialog->setProperty("handle", std::move(QVariant{handle}));
 		m_sendFileDialog->setProperty("message", std::move(QVariant{message}));
+		m_sendFileDialog->setProperty("selectedUsers", std::move(QVariant{userids}));
 		appPagesListModel()->openPopup(m_sendFileDialog, m_parentPage);
-	}
-	else {
+	} else {
 		switch (handle) {
-		case TPUtils::SFM_TPCHAT:
-			appMessagesManager()->sendFileChatMessage(tpFileName(), message);
+		case TPUtils::MH_TPCHAT:
+			sendFileDirectly(userids);
+			if (m_usews)
+				appWSServer()->sendTextMessage(message);
+			else
+				appOnlineServices()->sendChatMessage(-1, userids.at(0), message);
 			break;
-		case TPUtils::SFM_TPMESSAGESMANAGER:
+		case TPUtils::MH_TPMESSAGES_MANAGER:
 			sendFileToUsers(userids, message);
 			break;
-		case TPUtils::SFM_FILETRANSFER:
-			appWSServer()->sendBinaryMessage(TPUtils::SFM_TPMESSAGESMANAGER, *TPFilePath::newTPFilePath(
-				m_filename.fileName(), m_filename.ownerUser(), m_filename.targetUser(), {m_filename.subdirs()}), message);
+		case TPUtils::MH_DIRECT_FILE_TRANSFER:
+			sendFileDirectly(userids);
 			break;
 		default: //Cancel or dialog closed
 			break;
@@ -402,7 +402,7 @@ void TPFileOps::mousePressEvent(QMouseEvent *event)
 	if (event->button() == acceptedMouseButtons()) {
 		event->setAccepted(true);
 		controlInfo* ci{controlFromMouseClick(event->position())};
-		if (ci) {
+        if (Q_LIKELY(ci)) {
 			m_currentControl = ci;
 			if (!ci->pressed) {
 				if (ci->pressed_image.isNull()) {
@@ -411,8 +411,7 @@ void TPFileOps::mousePressEvent(QMouseEvent *event)
 				}
 				ci->current_image = &ci->pressed_image;
 				ci->pressed = true;
-			}
-			else {
+			} else {
 				ci->current_image = &ci->default_image;
 				ci->pressed = false;
 			}
@@ -427,7 +426,7 @@ void TPFileOps::mouseReleaseEvent(QMouseEvent *event)
 		return;
 
 	controlInfo* ci{controlFromMouseClick(event->position())};
-	if (ci == m_currentControl) {
+    if (Q_LIKELY(ci == m_currentControl)) {
 		ci->current_image = &ci->default_image;
 		ci->pressed = false;
 		update(ci->rect);
@@ -454,8 +453,7 @@ bool TPFileOps::eventFilter(QObject *obj, QEvent *event)
 			return false;
 		}
 		return true; // Return true to stop the event from propagating
-	}
-	else if (event->type() == QEvent::KeyRelease) {
+	} else if (event->type() == QEvent::KeyRelease) {
 		QKeyEvent *key_event{static_cast<QKeyEvent*>(event)};
 		switch (key_event->key()) {
 		case Qt::Key_Space:
@@ -475,9 +473,9 @@ bool TPFileOps::eventFilter(QObject *obj, QEvent *event)
 			return false;
 		}
 		return true; // Return true to stop the event from propagating
-	}
-	else
+	} else {
 		return QObject::eventFilter(obj, event);
+	}
 }
 
 void TPFileOps::_setFileName(const bool file_added)
@@ -489,11 +487,8 @@ void TPFileOps::_setFileName(const bool file_added)
 	const TPUtils::FILE_TYPE file_type{appUtils()->getFileType(m_filename.toString())};
 	setFileType(file_type);
 	if (fileIsOK() && isTPFile()) {
-		if (file_type & TPUtils::FT_TP_FORMATTED) {
-			m_tpfileSections = 0;
-			m_tpFileInfo.clear();
+		if (file_type & TPUtils::FT_TP_FORMATTED)
 			readTPFile();
-		}
 		else
 			setEnabled(OT_FullScreen, false);
 	}
@@ -517,8 +512,7 @@ void TPFileOps::_doFileOperation(const OpType type)
 		default:													break;
 		}
 		return;
-	}
-	else {
+	} else {
 		connect(this, &TPFileOps::fileAcquired, this, [this,type] (const int ret_code) {
 			if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS)
 				_doFileOperation(type);
@@ -587,8 +581,7 @@ void TPFileOps::doFullScreen()
 	if (m_fullscreen) {
 		appPagesListModel()->removeEventFilter();
 		qApp->installEventFilter(this);
-	}
-	else {
+	} else {
 		qApp->removeEventFilter(this);
 		appPagesListModel()->reinstallEventFilter();
 	}
@@ -602,19 +595,20 @@ void TPFileOps::addFile()
 	if (!filepath.isEmpty()) {
 		if (!m_filename.isOK()) {
 			if (m_suggestNameFunc) {
-				m_filename = std::move(*m_suggestNameFunc());
+				m_filename = std::move(*m_suggestNameFunc(appUtils()->getFileName(filepath)));
 				if (appUtils()->getFileExtension(m_filename.toString()).isEmpty())
 					m_filename.filename().append(appUtils()->getFileExtension(filepath, true));
-				if (appUtils()->copyFile(filepath, m_filename.toString(), true))
-					_setFileName(true);
-			}
-			else {
+			} else if (!m_subdir.isEmpty()) {
+				m_filename = appUserModel()->userId(0) % '/' % m_subdir % appUtils()->getFileName(filepath);
+			} else {
 				qDebug() << "Error! Cannot add a file to TPFileOps that does not have a local filename set or suggested."_L1;
 				return;
 			}
-		}
-		else
+			if (appUtils()->copyFile(filepath, m_filename.toString(), true))
+				_setFileName(true);
+		} else {
 			static_cast<void>(appUtils()->copyFile(filepath, m_filename.toString(), true));
+		}
 	}
 }
 
@@ -641,7 +635,7 @@ void TPFileOps::downloadOrCopyFile()
 	if (!fileIsOK()) {
 		if (canDownloadOrGenerate()) {
 			if (m_suggestNameFunc)
-				m_filename = std::move(*m_suggestNameFunc());
+				m_filename = std::move(*m_suggestNameFunc(QString{}));
 			if (m_filename.isOK()) {
 				if (appUserModel()->canConnectToServer()) {
 					auto conn{std::make_shared<QMetaObject::Connection>()};
@@ -659,20 +653,19 @@ void TPFileOps::downloadOrCopyFile()
 			}
 		}
 		emit fileAcquired(TP_RET_CODE_INVALID_REQUEST_METHOD);
-	}
-	else
+	} else {
 		emit fileAcquired(TP_RET_CODE_NO_CHANGES_SUCCESS);
+	}
 }
 
-void TPFileOps::createSendFileDialog(const int handle, const QStringList &userids, const QString &message)
+void TPFileOps::createSendFileDialog()
 {
 	if (!m_sendFileDialogComponent) {
 		m_sendFileDialogComponent = new QQmlComponent{appQmlEngine(), "TpQml.Dialogs"_L1, "SendFileToDialog"_L1, QQmlComponent::Asynchronous};
-		connect(m_sendFileDialogComponent, &QQmlComponent::statusChanged, this, [&,this] (QQmlComponent::Status status) {
-			createSendFileDialog(handle, userids, message);
+		connect(m_sendFileDialogComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
+			createSendFileDialog();
 		});
-	}
-	else {
+	} else {
 		if (!m_sendFileDialog) {
 			switch (m_sendFileDialogComponent->status()) {
 			case QQmlComponent::Ready:
@@ -686,8 +679,8 @@ void TPFileOps::createSendFileDialog(const int handle, const QStringList &userid
 #endif
 				appQmlEngine()->setObjectOwnership(m_sendFileDialog, QQmlEngine::CppOwnership);
 				m_sendFileDialog->setProperty("parent", QVariant::fromValue(appItemManager()->AppHomePage()));
-				connect(m_sendFileDialog, SIGNAL(selectedOptions(int,QStringList,QString)), this, SLOT(sendFileTo(int,QStringList,QString)));
-				sendFileTo(handle, userids, message);
+				connect(m_sendFileDialog, SIGNAL(selectedOptions(int,QStringList,QString,bool)), this, SLOT(sendFileTo(int,QStringList,QString,bool)));
+				emit _sendFileDialogCreated();
 				break;
 			case QQmlComponent::Loading:
 				return;
@@ -704,50 +697,114 @@ void TPFileOps::createSendFileDialog(const int handle, const QStringList &userid
 
 void TPFileOps::sendFileToUsers(const QStringList &users, const QString &message)
 {
+	const auto ws_send_func = [this] (const TPFilePath &new_tppath, const QString &message) -> void {
+		bool ws_sentok{appWSServer()->sendBinaryMessage(m_filename, new_tppath)};
+		if (ws_sentok)
+			ws_sentok = appWSServer()->sendTextMessage(message);
+		emit fileSent(ws_sentok);
+	};
+	TPFilePath new_path{std::as_const(m_filename)};
+	new_path.swapUsers();
+	const QString &str_ctime{appUtils()->formatDateTime(QDateTime::currentDateTime())};
 	for (const auto &user : users) {
-		if (appWSServer()->isConnectionOK(user))
-			appWSServer()->sendBinaryMessage(TPUtils::SFM_TPMESSAGESMANAGER, *TPFilePath::newTPFilePath(m_filename.fileName(),
-						m_filename.ownerUser(), m_filename.targetUser(), {m_filename.subdirs()}));
-		else {
-			auto conn{std::make_shared<QMetaObject::Connection>()};
-			*conn = connect(appWSServer(), &WSServer::connectionAttemptResult, this, [this,conn,user,message]
-																		(const bool established, const QString &userid) {
-				if (userid == user) {
-					disconnect(*conn);
-					int request_id{-1};
-					bool ws_sentok{false};
-					if (!isTPFile()) {
-						if (established)
-							ws_sentok = appWSServer()->sendBinaryMessage(TPUtils::SFM_TPMESSAGESMANAGER, m_filename);
-						else {
-							const QString &info_fields{appUtils()->makeBinaryFileMetaInfo(TPUtils::SFM_TPMESSAGESMANAGER,
-								m_filename.ownerUser(), m_filename.targetUser(), m_filename.subdirs(), m_filename.fileName())};
-							appUtils()->readBinaryFile(m_filename.toString(), info_fields);
-							request_id = appUserModel()->sendFileToServer(m_filename, message, true);
+		new_path.setOwnerUser(user);
+		const QString &encoded_message{appUtils()->makeEncodedMessage(TPUtils::tpmessage_prefix, m_filename.ownerUser(),
+													user, str_ctime, QString{}, message, new_path.relativeFilePath())};
+		if ((m_usews = appWSServer()->isConnectionOK(user, true))) {
+			ws_send_func(new_path, encoded_message);
+			return;
+		}
+		auto conn{std::make_shared<QMetaObject::Connection>()};
+		*conn = connect(appWSServer(), &WSServer::connectionAttemptResult, this, [=,this]
+																	(const bool established, const QString &userid) {
+			if (userid == user) {
+				disconnect(*conn);
+				m_usews = established;
+				if (established) {
+					ws_send_func(new_path, encoded_message);
+					return;
+				}
+				std::function<void(int)> failureMsg = [this] (const int ret_code) -> void {
+					appItemManager()->displayMessageOnAppWindow(ret_code, m_filename.fileName());
+					emit fileSent(false);
+				};
+				const auto request_id{appUserModel()->sendFileToServer(m_filename)};
+				if (request_id < TP_RET_CODE_CUSTOM_WARNING) {
+					failureMsg(request_id);
+					return;
+				}
+				*conn = connect(appUserModel(), &DBUserModel::fileUploaded, this,
+									[=,this] (const bool success, const uint requestid, const int ret_code) {
+					if (requestid == request_id) {
+						disconnect(*conn);
+						if (!success) {
+							failureMsg(ret_code);
+							return;
 						}
-					}
-					else {
-						if (established)
-							ws_sentok = appWSServer()->sendTextMessage(TPUtils::SFM_TPMESSAGESMANAGER, m_filename.ownerUser(),
-																				m_filename.targetUser(), message, m_filename);
-						else
-							request_id = appUserModel()->sendFileToServer(m_filename, message);
-					}
-					if (established)
-						emit fileSent(ws_sentok);
-					else {
-						*conn = connect(appUserModel(), &DBUserModel::fileUploaded, this, [this,request_id,conn]
-																				(const bool success, const uint requestid) {
-							if (requestid == request_id) {
+						*conn = connect(appMessagesManager(), &TPMessagesManager::TPMessageSent, this,
+							[this,request_id,conn] (const int requestid, const bool success) {
+							if (request_id == requestid) {
 								disconnect(*conn);
+								if (success)
+									appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_SUCCESS,
+									appUtils()->string_strings({tr("File sent!"), m_filename.fileName() % " -> "_L1 %
+									appUserModel()->userNameFromId(m_filename.targetUser())}, record_separator));
 								emit fileSent(success);
 							}
 						});
+						appMessagesManager()->sendTPMessage(user, encoded_message, request_id);
 					}
-				}
-			});
-			appWSServer()->connectToPeer(appMessagesManager(), TPUtils::SFM_TPMESSAGESMANAGER, user);
+				});
+			}
+		});
+	}
+}
+
+void TPFileOps::sendFileDirectly(const QStringList &users)
+{
+	const auto ws_send_func = [this] (const TPFilePath &target_filename) -> void {
+		const bool ws_sentok{appWSServer()->sendBinaryMessage(m_filename, target_filename)};
+		emit fileSent(ws_sentok);
+	};
+	TPFilePath sent_filepath{m_filename.fileName(), QString{}, m_filename.ownerUser(), {m_filename.subdirs()}};
+
+	for (const auto &user : users) {
+		sent_filepath.setOwnerUser(user);
+		if (appWSServer()->isConnectionOK(user, true)) {
+			ws_send_func(sent_filepath);
+			return;
 		}
+		auto conn{std::make_shared<QMetaObject::Connection>()};
+		*conn = connect(appWSServer(), &WSServer::connectionAttemptResult, this, [=,this]
+																(const bool established, const QString &userid) {
+			if (userid == user) {
+				disconnect(*conn);
+				m_usews = established;
+				if (established) {
+					ws_send_func(sent_filepath);
+					return;
+				}
+				std::function<void(int)> failureMsg = [this] (const int ret_code) -> void {
+					qDebug() << "Error sending file ("_L1 << ret_code << "): "_L1 << m_filename.fileName();
+					emit fileSent(false);
+				};
+				const auto request_id{appUserModel()->sendFileToServer(m_filename)};
+				if (request_id < TP_RET_CODE_CUSTOM_WARNING) {
+					failureMsg(request_id);
+					return;
+				}
+				*conn = connect(appUserModel(), &DBUserModel::fileUploaded, this,
+										[=,this] (const bool success, const uint requestid, const int ret_code) {
+						if (requestid == request_id) {
+							disconnect(*conn);
+							if (!success)
+								failureMsg(ret_code);
+							else
+								emit fileSent(true);
+						}
+				});
+			}
+		});
 	}
 }
 
@@ -837,8 +894,8 @@ void TPFileOps::resizeControl()
 		if (ci->visible) ++n_visible_controls;
 	}
 	if (n_visible_controls >= 1)
-		setControlSize(QSize{n_visible_controls * (appSettings()->itemDefaultHeight() + buttons_padding) + buttons_padding,
-																 appSettings()->itemDefaultHeight() + (2 * buttons_padding)});
+		setControlSize(QSize{n_visible_controls * (appSettings()->itemDefaultHeight() + buttons_padding)
+								 + buttons_padding, appSettings()->itemDefaultHeight() + (2 * buttons_padding)});
 	else
 		setControlSize(QSize{0,0});
 }
@@ -859,7 +916,7 @@ inline TPFileOps::controlInfo *TPFileOps::controlFromMouseClick(const QPointF& m
 {
 	for (const auto ci : std::as_const(m_controls)) {
 		if (ci->visible && ci->enabled && static_cast<int>(mouse_pos.x() >= ci->rect.x()) &&
-														static_cast<int>(mouse_pos.x() <= ci->rect.x() + ci->rect.width()))
+													static_cast<int>(mouse_pos.x() <= ci->rect.x() + ci->rect.width()))
 			return ci;
 	}
 	return nullptr;
@@ -1032,6 +1089,8 @@ void TPFileOps::readTPFile()
 	QString line{64, QChar{0}};
 	QTextStream stream{in_file};
 	std::pair<QString,QString> section_info;
+	m_tpfileSections = 0;
+	m_tpFileInfo.clear();
 
 	while (stream.readLineInto(&line)) {
 		if (line.isEmpty())
@@ -1039,18 +1098,17 @@ void TPFileOps::readTPFile()
 		if (line.contains("##"_L1)) {
 			if (line.contains(*identifier)) {
 				section_info.first = std::move(line.right(line.length() - identifier->length() -
-																		TPUtils::STR_START_FORMATTED_EXPORT.length() - 1));
+																	TPUtils::STR_START_FORMATTED_EXPORT.length() - 1));
 				section_info.second.clear();
-			}
-			else if (line.startsWith(TPUtils::STR_END_FORMATTED_EXPORT)) {
+			} else if (line.startsWith(TPUtils::STR_END_FORMATTED_EXPORT)) {
 				m_tpFileInfo.insert(m_tpfileSections, section_info);
 				++m_tpfileSections;
 				if (identifier == &appUtils()->mesoFileIdentifier)
 					identifier =  &appUtils()->splitFileIdentifier;
 			}
-		}
-		else
+		} else {
 			section_info.second.append(line % QChar{0x2029});
+		}
 	}
 	if (!m_tpFileInfo.isEmpty())
 		emit tpFileSectionCountChanged();
@@ -1103,8 +1161,8 @@ void TPFileOps::openTPFile()
 		Q_UNREACHABLE();
 	}
 	connect(appMainWindow(), SIGNAL(tpFileOpenInquiryResult(bool)), this, SLOT(importSlot(bool)), Qt::SingleShotConnection);
-	QMetaObject::invokeMethod(appMainWindow(), "confirmTPFileOpening", Q_ARG(QString, str_type), Q_ARG(QString, str_details),
-																								Q_ARG(QString, str_image));
+	QMetaObject::invokeMethod(appMainWindow(), "confirmTPFileOpening", Q_ARG(QString, str_type),
+														Q_ARG(QString, str_details), Q_ARG(QString, str_image));
 }
 
 void TPFileOps::textDocumentKeyNavigation(const int key)
@@ -1120,9 +1178,9 @@ void TPFileOps::textDocumentKeyNavigation(const int key)
 	const QTextBlock &tb{m_textDocument->findBlock(m_cursorPostion)};
 	const auto pos_in_line{m_cursorPostion - tb.position()};
 	const QTextBlock &tb2{m_textDocument->findBlockByNumber(tb.blockNumber() + other_line)};
-	if (pos_in_line >= tb.position() + tb.length())
+	if (pos_in_line >= tb.position() + tb.length()) {
 		emit setCursorPorsition(tb2.position() + tb2.length());
-	else {
+	} else {
 		auto line_length2{tb2.length()};
 		if (line_length2 >= pos_in_line)
 			emit setCursorPorsition(tb2.position() + pos_in_line);

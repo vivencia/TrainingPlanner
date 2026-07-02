@@ -346,10 +346,10 @@ void TPOnlineServices::listFiles(const int requestid, const QString &pattern, co
 													(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
 			disconnect(*conn);
+			QStringList files_list;
 			if (ret_code == TP_RET_CODE_SUCCESS)
-				parseReceivedFilesList(ret_string, subdir, targetUser);
-			else
-				emit networkListReceived(request_id, ret_code, QStringList{});
+				parseReceivedFilesList(files_list, ret_string, subdir, targetUser);
+			emit networkListReceived(request_id, ret_code, files_list);
 		}
 	});
 	const QUrl &url{makeCommandURL(false, "listfiles"_L1, subdir, "fromuser"_L1, targetUser, "pattern"_L1, pattern)};
@@ -414,7 +414,7 @@ void TPOnlineServices::getFile(const int requestid, const QString &filename, con
 	QUrl url{};
 	if (check_ctime_first) {
 		url = std::move(makeCommandURL(false, "checkfilectime"_L1, filename.lastIndexOf('.') > 0 ?
-						filename : appUtils()->getFileName(localFilePath), "subdir"_L1, subdir, "fromuser"_L1, targetUser));
+					filename : appUtils()->getFileName(localFilePath), "subdir"_L1, subdir, "fromuser"_L1, targetUser));
 	}
 	else {
 		url = std::move(makeCommandURL(false, filename.lastIndexOf('.') > 0 ?
@@ -437,45 +437,45 @@ void TPOnlineServices::checkTPMessages(const int requestid)
 												(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
 			disconnect(*conn);
-			if (ret_code == TP_RET_CODE_SUCCESS)
-				parseReceivedFilesList(ret_string, QString{}, QString{});
-			else
-				emit networkListReceived(request_id, ret_code, QStringList{});
+			const QStringList &messages{ret_string.split('\n')};
+			emit networkListReceived(request_id, ret_code, messages);
 		}
 	});
-
 	const QUrl &url{makeCommandURL(false, "gettpmessages"_L1)};
 	makeNetworkRequest(requestid, url, true);
 }
 
-void TPOnlineServices::checkMessages(const int requestid)
+void TPOnlineServices::sendTPMessage(const int requestid, const QString &message, const QString &target_user)
 {
-	const QUrl &url{makeCommandURL(false, "getnewmessages"_L1)};
+	const QUrl &url{makeCommandURL(false, "sendtpmessage"_L1, target_user, "message"_L1, message)};
 	makeNetworkRequest(requestid, url);
 }
 
-void TPOnlineServices::sendMessage(const int requestid,
-										const QString &receiver, const QString &encoded_message)
+void TPOnlineServices::removeTPMessage(const int requestid, const QString &message)
 {
-	const QUrl &url{makeCommandURL(false, "sendmessage"_L1, receiver, "message"_L1, encoded_message)};
+	const QUrl &url{makeCommandURL(false, "removetpmessage"_L1, message)};
 	makeNetworkRequest(requestid, url);
 }
 
-void TPOnlineServices::chatMessageWork(const int requestid,
-											const QString &recipient, const QString &msgid, const QLatin1StringView &work)
+void TPOnlineServices::checkChatMessages(const int requestid)
 {
-	const QUrl &url{makeCommandURL(false, "workmessage"_L1, recipient, "messageid"_L1, msgid, "work"_L1, work)};
+	const QUrl &url{makeCommandURL(false, "getnewchatmessages"_L1)};
 	makeNetworkRequest(requestid, url);
 }
 
-void TPOnlineServices::chatMessageWorkAcknowledged(const int requestid, const QString &recipient, const QString &msgid,
-																								const QLatin1StringView &work)
+void TPOnlineServices::sendChatMessage(const int requestid, const QString &receiver, const QString &encoded_message)
 {
-	const QUrl &url{makeCommandURL(false, "messageworked"_L1, recipient, "messageid"_L1, msgid, "work"_L1, work)};
+	const QUrl &url{makeCommandURL(false, "sendchatmessage"_L1, receiver, "message"_L1, encoded_message)};
 	makeNetworkRequest(requestid, url);
 }
 
-void TPOnlineServices::recheckNewMessages()
+void TPOnlineServices::removeChatMessage(const int requestid, const QString &receiver, const QString &encoded_message)
+{
+	const QUrl &url{makeCommandURL(false, "removechatmessage"_L1, receiver, "message"_L1, encoded_message)};
+	makeNetworkRequest(requestid, url);
+}
+
+void TPOnlineServices::recheckNewChatMessages()
 {
 	const QUrl &url{makeCommandURL(false, "forcegetnewmessages"_L1)};
 	static_cast<void>(m_networkManager->get(QNetworkRequest{url}));
@@ -496,7 +496,7 @@ void TPOnlineServices::storeCredentials()
 }
 
 QString TPOnlineServices::makeCommandURL(const bool admin, const QLatin1StringView &option1, const QString &value1,
-							const QLatin1StringView &option2, const QString &value2, const QLatin1StringView &option3, const QString &value3)
+		const QLatin1StringView &option2, const QString &value2, const QLatin1StringView &option3, const QString &value3)
 {
 	const QString *userid, *password;
 	if (!admin) {
@@ -544,7 +544,7 @@ void TPOnlineServices::handleServerRequestReply(const int requestid, QNetworkRep
 	QString reply_string;
 	QByteArray file_contents;
 
-	if (reply || reply->error() == QNetworkReply::NoError) {
+	if (reply && reply->error() == QNetworkReply::NoError) {
 		reply->deleteLater();
 		const QHttpHeaders &headers{reply->headers()};
 		if (headers.contains("Content-Type"_L1)) {
@@ -625,14 +625,13 @@ void TPOnlineServices::uploadFile(const int requestid, const QUrl &url, QFile *f
 		QNetworkReply *reply{m_networkManager->post(request, multiPart)};
 		connect(reply, &QNetworkReply::finished, this, [this,requestid,reply,b_internal_signal_only]() {
 			handleServerRequestReply(requestid, reply, b_internal_signal_only);
-		});
+		}, Qt::SingleShotConnection);
 		multiPart->setParent(reply); // Let the reply manage the multipart's lifecycle
 	}
 }
 
-void TPOnlineServices::parseReceivedFilesList(const QString &ret_string, const QString &subdir, const QString &targetUser)
+void TPOnlineServices::parseReceivedFilesList(QStringList &new_files, const QString &ret_string, const QString &subdir, const QString &targetUser)
 {
-	QStringList new_files;
 	TPFilePath local_file;
 	local_file.setOwnerUser(appUserModel()->userId(0));
 	if (!targetUser.isEmpty())

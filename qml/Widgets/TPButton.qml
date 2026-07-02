@@ -13,8 +13,8 @@ TPBackRec {
 	opacity: checked ? 0.9 : 1
 	color: backgroundColor
 	height: autoSize ? buttonText.contentHeight : (text.length > 0 ?
-						AppSettings.itemDefaultHeight * buttonText.lineCount : 0) + (textUnderIcon ? imageLoader.width : 0)
-	width: autoSize ? preferredWidth : undefined
+					AppSettings.itemDefaultHeight * buttonText.lineCount : 0) + (textUnderIcon ? imageLoader.width : 0)
+	implicitWidth: preferredWidth
 	useGradient: enabled && text.length !== 0
 
 //public:
@@ -39,7 +39,7 @@ TPBackRec {
 
 //private:
 	readonly property int preferredWidth: buttonText.contentWidth + (textUnderIcon ? 0 :
-																AppSettings.itemDefaultHeight) + (text.length > 0 ? 20 : 0)
+															AppSettings.itemDefaultHeight) + (text.length > 0 ? 20 : 0)
 	property bool _bPressed: false
 	property bool _do_text_layout: false
 	property bool _do_image_layout: false
