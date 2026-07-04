@@ -184,9 +184,11 @@ public:
 	inline const QString &_sex(const uint user_idx) const { return m_usersData.at(user_idx).at(USER_FIELD_SEX); }
 	Q_INVOKABLE void setSex(const int user_idx, const bool male)
 	{
-		m_usersData[user_idx][USER_FIELD_SEX] = male ? 'M' : 'F';
-		setAvatar(user_idx, (male ? "image://tpimageprovider/m0"_L1 : "image://tpimageprovider/f1"_L1));
-		emit userModified(user_idx, USER_FIELD_SEX);
+		if (sex(user_idx) != (male ? 'M' : 'F')) {
+			m_usersData[user_idx][USER_FIELD_SEX] = male ? 'M' : 'F';
+			setAvatar(user_idx, (male ? "image://tpimageprovider/m0"_L1 : "image://tpimageprovider/f1"_L1));
+			emit userModified(user_idx, USER_FIELD_SEX);
+		}
 	}
 
 	Q_INVOKABLE inline QString phoneCountryPrefix(const uint user_idx) const
@@ -309,7 +311,7 @@ public:
 	Q_INVOKABLE void getOnlineCoachesList(const bool get_list_only = false);
 
 	int sendFileToServer(const TPFilePath &tp_filename, const bool removeremove_local_file = false);
-	int downloadFileFromServer(const TPFilePath &tp_filename, const QString &successMessage = QString{});
+	int downloadFileFromServer(const TPFilePath &tp_filename);
 	void removeFileFromServer(const TPFilePath &tp_filename);
 	int listFilesFromServer(const QString &subdir, const QString &targetUser, const QString &filter = QString{});
 	void sendCmdFileToServer(const QString &cmd_filename);
@@ -346,9 +348,9 @@ signals:
 	void userLoggedIn(const bool first_checkin = false);
 	void userLoggedOut();
 	void coachOnlineStatus(bool registered);
-	void userProfileAcquired(const QString &userid, const bool success);
+	void userProfileAcquired(const QString &userid, const int ret_code);
 	void userPasswordAvailable(const QString &password);
-	void fileDownloaded(const bool success, const uint requestid, const TPFilePath &tp_filepath);
+	void fileDownloaded(const int ret_code, const uint requestid, const TPFilePath &tp_filepath);
 	void fileUploaded(const bool success, const uint requestid, const int ret_code);
 	void filesListReceived(const bool success, const uint requestid, const QStringList& files_list);
 	void onlineDevicesListReceived();
@@ -401,7 +403,6 @@ private:
 	{
 		return sex(user_idx) == 0 ? "image://tpimageprovider/m0"_L1 : "image://tpimageprovider/f1"_L1;
 	}
-	QString findAvatar(const QString &base_dir) const;
 	void downloadAvatarFromServer(const uint user_idx);
 	void startServerPolling();
 	void pollServer();

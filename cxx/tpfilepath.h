@@ -71,14 +71,14 @@ public:
 		return *this;
 	}
 
-	inline QString toString(const bool use_temp_filename = false) const
+	inline QString toString() const
 	{
-		if (!m_fullPathOK) {
+		if (!m_fullPathOK || m_fullPath.isEmpty()) {
 			const_cast<TPFilePath*>(this)->m_fullPath = std::move(appUtils()->sanitizePath(
 						std::move(_localAppFilesDir % m_ownerUser % '/' % m_targetUser % '/' % m_subDirs % m_fileName)));
 			const_cast<TPFilePath*>(this)->m_fullPathOK = true;
 		}
-		return !use_temp_filename ? m_fullPath : m_fullPath % ".tmp"_L1;
+		return m_fullPath;
 	}
 	inline QString filePath() const
 	{

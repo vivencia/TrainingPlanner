@@ -133,8 +133,9 @@ set( CXX_SOURCES_QML_INTEGRATION
 set( CXX_SOURCES
 		cxx/main.cpp
 		cxx/qml_singleton.h
-		cxx/return_codes.h
 		cxx/calendar_methods.h
+		cxx/return_codes.h
+		cxx/tpbool.h
 
 		cxx/thread_manager.h cxx/thread_manager.cpp
 		cxx/tpfilepath.h cxx/tpfilepath.cpp

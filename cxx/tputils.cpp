@@ -30,9 +30,9 @@ TPUtils::TPUtils(QObject *parent)
 
 int TPUtils::generateUniqueId(const QLatin1StringView &seed) const
 {
-	if (seed.isEmpty())
+	if (seed.isEmpty()) {
 		return generateRandomNumber(0, 5000);
-	else {
+	} else {
 		int n{0};
 		int shift{2};
 		int pos{0};
@@ -124,18 +124,15 @@ TPUtils::FILE_TYPE TPUtils::getTPFileType(const QString &filename, bool &formatt
 			if (line.contains(appUtils()->userFileIdentifier)) {
 				ret = FT_TP_USER_PROFILE;
 				break;
-			}
-			else if (line.contains(appUtils()->mesoFileIdentifier))
+			} else if (line.contains(appUtils()->mesoFileIdentifier)) {
 				ret = FT_OTHER;
-			else if (line.contains(appUtils()->splitFileIdentifier) && ret == FT_OTHER) {
+			} else if (line.contains(appUtils()->splitFileIdentifier) && ret == FT_OTHER) {
 				ret = FT_TP_PROGRAM;
 				break;
-			}
-			else if (line.contains(appUtils()->exercisesListFileIdentifier)) {
+			} else if (line.contains(appUtils()->exercisesListFileIdentifier)) {
 				ret = FT_TP_EXERCISES;
 				break;
-			}
-			else if (line.contains(appUtils()->workoutFileIdentifier)) {
+			} else if (line.contains(appUtils()->workoutFileIdentifier)) {
 				switch (line.at(line.length() -1).cell()) {
 				case 'A': ret = FT_TP_WORKOUT_A; break;
 				case 'B': ret = FT_TP_WORKOUT_B; break;
@@ -229,8 +226,7 @@ QString TPUtils::getFilePath(const QString &filename, const bool needs_to_exist)
 			else
 				return sane_filename % '/';
 		}
-	}
-	else {
+	} else {
 		const QFileInfo fi{sane_filename};
 		if (fi.exists()) {
 			if (fi.isFile()) {
@@ -258,22 +254,19 @@ QString TPUtils::getNthDirInPath(const QString &filename, int nth_dir) const
 			if (chr != '/') {
 				if (nth_dir == 0)
 					ret.insert(0, chr);
-			}
-			else {
+			} else {
 				if (--nth_dir < 0)
 					break;
 			}
 		}
-	}
-	else {
+	} else {
 		if (filepath.at(0) != '/')
 			--nth_dir;
 		for (const QChar &chr : filepath | std::views::take(n_chars)) {
 			if (chr != '/') {
 				if (nth_dir == 0)
 					ret.append(chr);
-			}
-			else {
+			} else {
 				if (--nth_dir < 0)
 					break;
 			}
@@ -301,8 +294,7 @@ QString TPUtils::removeNthDirFromPath(const QString &path, int nth_dir)
 				cut_end = i;
 			}
 		}
-	}
-	else {
+	} else {
 		if (path_only.startsWith('/'))
 			++i;
 		for (; i < path_only.length(); ++i) {
@@ -407,20 +399,18 @@ bool TPUtils::rename(const QString &source_file_or_dir, const QString &dest_file
 						QFile::remove(dest_file_or_dir);
 					else
 						return false;
-				}
-				else {
+				} else {
 					if (overwrite) {
 						dest_dir.setPath(dest_file_or_dir);
 						if (!dest_dir.removeRecursively())
 							return false;
-					}
-					else
+					} else {
 						return false;
+					}
 				}
 			}
 			ok = dest_dir.rename(source_file_or_dir, dest_file_or_dir);
-		}
-		else {
+		} else {
 			QFile dest_file;
 			if (fi_dest.exists()) {
 				if (!fi_dest.isFile()) { //dest_file_or_dir is a dir
@@ -428,29 +418,28 @@ bool TPUtils::rename(const QString &source_file_or_dir, const QString &dest_file
 						QDir dest_dir{dest_file_or_dir};
 						if (!dest_dir.removeRecursively())
 							return false;
-					}
-					else
+					} else {
 						return false;
-				}
-				else {
+					}
+				} else {
 					if (overwrite)
 						QFile::remove(dest_file_or_dir);
 					else
 						return false;
 				}
 				ok = QFile::rename(source_file_or_dir, dest_file_or_dir);
-			}
-			else
+			} else {
 				ok = QFile::rename(source_file_or_dir, getFilePath(source_file_or_dir, true) % getFileName(dest_file_or_dir));
+			}
 		}
 		return ok;
-	}
-	else
+	} else {
 		return fi_dest.exists();
+	}
 }
 
 bool TPUtils::copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath,
-																	const bool remove_source, const bool overwrite) const
+																const bool remove_source, const bool overwrite) const
 {
 	if (QFile::exists(srcFile)) {
 		if (createPath) {
@@ -558,14 +547,12 @@ bool TPUtils::writeDataToFile(QFile *out_file,
 			if (!identifier.isEmpty())
 				out_file->write(STR_END_EXPORT.toUtf8().constData());
 		}
-	}
-	else
-	{
+	} else {
 		for (const auto row : export_rows) {
 			for (const auto &modeldata : std::as_const(data.at(row))) {
-				if (!use_real_id && row == export_rows.constFirst())
+				if (!use_real_id && row == export_rows.constFirst()) {
 					out_file->write("-1\n", 3);
-				else {
+				} else {
 					out_file->write(modeldata.toUtf8().constData());
 					out_file->write("\n", 1);
 				}
@@ -609,8 +596,7 @@ bool TPUtils::writeDataToFormattedFile(QFile *out_file,
 			}
 			out_file->write(STR_END_FORMATTED_EXPORT.toUtf8().constData());
 		}
-	}
-	else {
+	} else {
 		for (uint x{0}; x < export_rows.count(); ++x) {
 			const QStringList &rowdata{data.at(export_rows.at(x))};
 			uint i{0};
@@ -656,8 +642,7 @@ int TPUtils::readDataFromFile(QFile *in_file,
 				in_file->seek(in_file->pos()-line.length());
 				break;
 			}
-		}
-		else {
+		} else {
 			if (line.contains(STR_END_EXPORT)) {
 				if (data_read.count() >= field_count) {
 					if (data_read.count() > field_count)
@@ -668,9 +653,9 @@ int TPUtils::readDataFromFile(QFile *in_file,
 						data.replace(row, std::move(data_read));
 					data_found = true;
 				}
-			}
-			else
+			} else {
 				*itr++ = std::move(line);
+			}
 		}
 	}
 	return identifier_found ? (data_found ? TP_RET_CODE_IMPORT_OK : TP_RET_CODE_IMPORT_FAILED) : TP_RET_CODE_WRONG_IMPORT_FILE_TYPE;
@@ -701,8 +686,7 @@ int TPUtils::readDataFromFormattedFile(QFile *in_file,
 				in_file->seek(in_file->pos()-line.length());
 				break;
 			}
-		}
-		else {
+		} else {
 			if (line.contains(STR_END_FORMATTED_EXPORT)) {
 				data.append(std::move(data_read));
 				field = 1;
@@ -879,10 +863,10 @@ uint TPUtils::calculateNumberOfWeeks(const QDate &date1, const QDate &date2) con
 	if (week2 < week1) {
 		const int totalWeeksInYear{QDate::currentDate().year() != 2026 ? 52 : 53};
 		n = (totalWeeksInYear - week1) + week2;
-	}
-	else
+	} else {
 		n = week2 - week1;
-	return n+1; //+1 include current week
+	}
+	return n + 1; //+1 include current week
 }
 
 uint TPUtils::calculateNumberOfMonths(const QDate &date1, const QDate &date2) const
@@ -892,8 +876,7 @@ uint TPUtils::calculateNumberOfMonths(const QDate &date1, const QDate &date2) co
 		n_months = date2.month() - date1.month() + 1;
 		if (n_months < 0)
 			n_months *= -1;
-	}
-	else {
+	} else {
 		if (date2.year() > date1.year()) {
 			n_months = date2.month();
 			n_months += 12 - date1.month() + 1;
@@ -958,9 +941,9 @@ QString TPUtils::formatTime(const QTime &time, const TIME_FORMAT format) const
 			strTime.insert(3, tr("and"));
 			strTime.insert(2, "hs"_L1);
 			return strTime;
-		}
-		else
+		} else {
 			return ("00 hs and 00 min"_L1);
+		}
 	}
 	case TF_FANCY_SECS: {
 		if (time.isValid()) {
@@ -970,9 +953,9 @@ QString TPUtils::formatTime(const QTime &time, const TIME_FORMAT format) const
 			strTime.insert(6, "min"_L1);
 			strTime.insert(2, "hs"_L1);
 			return strTime;
-		}
-		else
+		} else {
 			return ("00 hs, 00 min and 00 secs"_L1);
+		}
 	}
 	case TF_DATABASE: return time.isValid() ? QString::number(time.msecsSinceStartOfDay()) : "0"_L1;
 	case TF_ONLINE: return time.isValid() ? time.toString("hhmmss"_L1) : "000000"_L1;
@@ -1049,8 +1032,7 @@ QString TPUtils::addTimeToStrTime(const QString &strTime, const int addmins, con
 	if (secs > 59) {
 		secs -= 60;
 		mins++;
-	}
-	else if (secs < 0) {
+	} else if (secs < 0) {
 		secs += 60;
 		mins--;
 	}
@@ -1060,7 +1042,7 @@ QString TPUtils::addTimeToStrTime(const QString &strTime, const int addmins, con
 		secs = 0;
 	}
 	const QString &ret{(mins <= 9 ? '0' % QString::number(mins) : QString::number(mins)) + QChar(':') %
-															(secs <= 9 ? '0' % QString::number(secs) : QString::number(secs))};
+													(secs <= 9 ? '0' % QString::number(secs) : QString::number(secs))};
 	return ret;
 }
 
@@ -1167,9 +1149,9 @@ void TPUtils::setCompositeValue(const int idx, const QString &newValue, QString 
 	qsizetype n_seps{-1};
 
 	if (sep_pos == -1) {
-		if (idx == 0)
+		if (idx == 0) {
 			compositeString = newValue;
-		else {
+		} else {
 			while (++n_seps < idx)
 				compositeString.append(chr_sep);
 			compositeString.append(newValue % chr_sep);

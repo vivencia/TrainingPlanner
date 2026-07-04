@@ -48,6 +48,7 @@ Q_PROPERTY(bool isKnownFile READ isKnownFile NOTIFY fileTypeChanged FINAL)
 Q_PROPERTY(bool isDocumentFile READ isDocumentFile NOTIFY fileTypeChanged FINAL)
 
 public:
+	Q_DISABLE_COPY_MOVE(TPFileOps)
 
 	enum OpType {
 		OT_AddFile,
@@ -57,10 +58,7 @@ public:
 		OT_Forward,
 		OT_ViewExternally,
 		OT_Delete,
-		OT_TypeCount,
-		OT_Custom_1,
-		OT_Custom_2,
-		OT_Custom_X,
+		OT_TypeCount
 	};
 	Q_ENUM(OpType)
 
@@ -247,6 +245,4 @@ private:
 	void openTPFile();
 	void textDocumentKeyNavigation(const int key);
 	void createSendFileDialog();
-
-	Q_DISABLE_COPY(TPFileOps)
 };

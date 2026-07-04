@@ -10,7 +10,6 @@ TPLabel {
 	rightPadding: 0
 	bottomPadding: 5
 	leftPadding: indicator.width + 10 + (image.length > 0 ? img.width : 0)
-	width: (lineCount <= 1 ? contentWidth : contentWidth/lineCount) + indicator.width + imgHeight
 
 //public:
 	property alias image: img.source
@@ -21,6 +20,7 @@ TPLabel {
 	property bool actionable: enabled
 	property int boxType: TPRadioButtonOrCheckBox.TP_RADIOBOX
 	property TPButtonGroup buttonGroup: null
+	readonly property int preferredWidth: (lineCount <= 1 ? contentWidth : contentWidth/lineCount) + indicator.width + imageHeight
 
 	enum BoxType{ TP_RADIOBOX, TP_CHECKBOX, TP_NONE }
 	signal clicked();
@@ -46,7 +46,7 @@ TPLabel {
 			width: indicator.height * 0.5
 			height: width
 			radius: _control.boxType === TPRadioButtonOrCheckBox.TP_RADIOBOX ? width / 2 : indicator.radius / 2
-			x: (indicator.implicitWidth - width) / 2
+			x: (indicator.width - width) / 2
 			y: x
 			border.color: _control.enabled ? _control.color : AppSettings.disabledFontColor
 			visible: _control.checked

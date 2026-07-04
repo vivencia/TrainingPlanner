@@ -84,8 +84,6 @@ Rectangle {
 		enabled: _control.enabled
 		visible: workingModel.count > 0
 
-		onEnabledChanged: console.log("##########################", enabled);
-		Component.onCompleted: console.log("%%%%%%%%%%%%%%%%%%%%%%%", enabled);
 		anchors {
 			top: _control.top
 			left: _control.left
@@ -97,12 +95,14 @@ Rectangle {
 			id: delegate
 			text: name
 			boxType: _control.multipleSelection ? TPRadioButtonOrCheckBox.TP_CHECKBOX : TPRadioButtonOrCheckBox.TP_NONE
+			image: avatar
 			visible: itemVisible
 			width: listView.width
 			height: itemVisible ? AppSettings.itemDefaultHeight : 0
 
 			required property int index
 			required property string name
+			required property string avatar
 			required property bool selected
 			required property bool itemVisible
 

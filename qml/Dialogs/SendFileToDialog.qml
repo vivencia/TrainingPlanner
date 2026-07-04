@@ -78,7 +78,7 @@ TPPopup {
 
 			states: [
 				State {
-					when: _dialog.handle == -1
+					when: _dialog.handle === -1
 					AnchorChanges {
 						target: btn1
 						anchors.horizontalCenter: undefined
@@ -91,7 +91,7 @@ TPPopup {
 					}
 				},
 				State {
-					when: _dialog.handle == AppUtils.MH_TPMESSAGES_MANAGER
+					when: _dialog.handle === AppUtils.MH_TPMESSAGES_MANAGER
 					AnchorChanges {
 						target: btn1
 						anchors.horizontalCenter: parent.horizontalCenter
@@ -99,7 +99,7 @@ TPPopup {
 					}
 				},
 				State {
-					when: _dialog.handle == AppUtils.MH_TPCHAT
+					when: _dialog.handle === AppUtils.MH_TPCHAT
 					AnchorChanges {
 						target: btn2
 						anchors.horizontalCenter: parent.horizontalCenter
@@ -113,7 +113,7 @@ TPPopup {
 				id: btn1
 				text: qsTr("Send directly")
 				enabled: usersList.anySelected
-				visible: _dialog.handle == -1 || _dialog.handle == AppUtils.MH_TPMESSAGES_MANAGER
+				visible: _dialog.handle === -1 || _dialog.handle === AppUtils.MH_TPMESSAGES_MANAGER
 				width: _dialog._button_size
 				height: AppSettings.itemDefaultHeight
 				anchors {
@@ -122,7 +122,8 @@ TPPopup {
 				}
 
 				onClicked: {
-					_dialog.selectedOptions(usersList.selectedUsers(), AppUtils.SFM_TPMESSAGESMANAGER, txtMessage.text, false);
+					_dialog.selectedOptions(AppUtils.MH_TPMESSAGES_MANAGER, usersList.selectedUsers(),
+																							txtMessage.text, false);
 					_dialog.close();
 				}
 			}
@@ -131,7 +132,7 @@ TPPopup {
 				id: btn2
 				text: qsTr("Send via chat")
 				enabled: usersList.anySelected
-				visible: _dialog.handle == -1 || _dialog.handle == AppUtils.SFM_TPCHAT
+				visible: _dialog.handle === -1 || _dialog.handle === AppUtils.SFM_TPCHAT
 				width: _dialog._button_size
 				height: AppSettings.itemDefaultHeight
 				anchors {
@@ -140,7 +141,7 @@ TPPopup {
 				}
 
 				onClicked: {
-					_dialog.selectedOptions(usersList.selectedUsers(), AppUtils.SFM_TPCHAT, txtMessage.text, false);
+					_dialog.selectedOptions(AppUtils.MH_TPCHAT, usersList.selectedUsers(), txtMessage.text, false);
 					_dialog.close();
 				}
 			}

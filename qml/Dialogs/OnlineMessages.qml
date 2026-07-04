@@ -185,7 +185,7 @@ TPPopup {
 				readonly property real _padding: 5
 				readonly property real szHeight: contentItem.implicitHeight * 2.5
 				required property TPMessage message
-				property bool expanded: false
+				property bool collapsed: false
 
 				background: Rectangle { // Background rectangle enabled to show the alternative row colors
 					id: background
@@ -309,7 +309,7 @@ TPPopup {
 
 						TPImage {
 							id: btnFoldIcon
-							source: delegateItem.expanded ? "fold-up.png" : "fold-down.png"
+							source: delegateItem.collapsed ? "fold-up.png" : "fold-down.png"
 							dropShadow: false
 							width: AppSettings.itemSmallHeight
 							height: AppSettings.itemSmallHeight
@@ -319,13 +319,18 @@ TPPopup {
 								left: lblTitle.right
 							}
 						}
+
+						MouseArea {
+							anchors.fill: parent
+							onClicked: delegateItem.collapsed = !delegateItem.collapsed;
+						}
 					}
 
 					TPLabel {
 						id: lblMessage
 						text: delegateItem.message.text
 						font: AppGlobals.smallFont
-						visible: delegateItem.expanded
+						visible: delegateItem.collapsed
 						singleLine: false
 						Layout.fillWidth: true
 						Layout.leftMargin: 10
@@ -337,7 +342,7 @@ TPPopup {
 						id: fileViewerLoader
 						asynchronous: true
 						active: delegateItem.message.fileOps !== null
-						visible: delegateItem.expanded
+						visible: delegateItem.collapsed
 						Layout.preferredWidth: active ? Math.max(200, _file_viewer.minimumWidth) : 0
 						Layout.preferredHeight: active ? Math.max(200, _file_viewer.minimumHeight) : 0
 						Layout.alignment: Qt.AlignHCenter
@@ -353,7 +358,7 @@ TPPopup {
 						id: actionsLoader
 						asynchronous: true
 						active: delegateItem.message.actionCount > 0
-						visible: delegateItem.expanded
+						visible: delegateItem.collapsed
 						Layout.fillWidth: true
 						Layout.leftMargin: 5
 						Layout.rightMargin: 5

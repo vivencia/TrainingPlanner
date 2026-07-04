@@ -5,6 +5,7 @@ import QtQuick.Controls
 import QtQuick.Pdf
 
 import TpQml
+import TpQml.Pages
 
 Item {
 	id: _control
@@ -12,19 +13,12 @@ Item {
 	height: minimumHeight
 
 //public:
+	required property FileOperations fileOps
 	property string missingFileInfo
+	property bool externalFileOps: false
 	property bool useBackground: false
-	property alias fileName: file_ops.fileName
-	property alias fileType: file_ops.fileType
-	property alias restrictedFileType: file_ops.restrictedFileType
-	property alias canAddFile: file_ops.canAddFile
-	property alias canDownloadOrGenerate: file_ops.canDownloadOrGenerate
-	property alias parentPage: file_ops.parentPage
-	property alias addFileFilters: file_ops.addFileFilters
-	property alias subdirForAddedFile: file_ops.subdirForAddedFile
-	readonly property int minimumWidth: file_ops.controlSize.width
+	readonly property int minimumWidth: fileOps.controlSize.width
 	readonly property int minimumHeight: minimumWidth
-	property FileOperations fileOps
 
 	signal removalRequested()
 	signal fileAdded(string filepath)
@@ -33,10 +27,15 @@ Item {
 //private:
 	enum WindowStates { WS_UNDEFINED, WS_NORMAL, WS_FULLSCREEN }
 
-	property string _preview_source
+	property string _preview_source: fileOps.getFileTypeIcon(Qt.size(0,0), true);
 	property int _window_state: TPFileViewer.WindowStates.WS_NORMAL
 	property TPMediaPlayer _media_player
 	property Item _full_screen_widget
+
+	onFileOpsChanged: {
+		fileOps.parent = fileOpsRec;
+		fileOps.anchors.fill = fileOpsRec;
+	}
 
 	states: [
 		State {
@@ -73,8 +72,6 @@ Item {
 		}
 	]
 
-	onFileOpsChanged: fileOps.parent = fileOpsRec;
-
 	Connections {
 		target: _control.fileOps
 		enabled: _control.fileOps !== null
@@ -98,11 +95,11 @@ Item {
 
 	Loader {
 		asynchronous: true
-		active: file_ops.fileType === AppUtils.FT_TEXT
+		active: _control.fileOps.fileType === AppUtils.FT_TEXT
 		anchors.fill: parent
 
 		sourceComponent: Label {
-			text: file_ops.getFileText(true);
+			text: _control.fileOps.getFileText(true);
 			font.pixelSize: 0.05 * _control.height
 			color: "black"
 			padding: 10
@@ -114,7 +111,7 @@ Item {
 
 	Loader {
 		asynchronous: true
-		active: file_ops.fileType !== AppUtils.FT_TEXT
+		active: _control.fileOps.fileType !== AppUtils.FT_TEXT
 		anchors.centerIn: parent
 		width: parent.width
 		height: parent.height - fileOpsRec.height
@@ -125,14 +122,14 @@ Item {
 			source: _control._preview_source
 			dropShadow: false
 			keepAspectRatio: true
-			imageSizeFollowControlSize: file_ops.fileType !== AppUtils.FT_IMAGE
+			imageSizeFollowControlSize: _control.fileOps.fileType !== AppUtils.FT_IMAGE
 			fullWindowView: false
 		}
 	}
 
 	Loader {
 		id: missingFileLoader
-		active: !file_ops.isKnownFile
+		active: !_control.fileOps.isKnownFile
 		asynchronous: true
 		z: 1
 		anchors.fill: parent
@@ -150,8 +147,8 @@ Item {
 		color: AppSettings.paneBackgroundColor
 		border.color: AppSettings.fontColor
 		opacity: 0.8
-		width: file_ops.controlSize.width
-		height: file_ops.controlSize.height
+		width: _control.fileOps.controlSize.width
+		height: _control.fileOps.controlSize.height
 		z: 1
 
 		anchors {
@@ -159,32 +156,17 @@ Item {
 			bottom: parent.bottom
 			bottomMargin: 10
 		}
-
-		Loader {
-			active: _control.fileOps === null || _control.fileOps !== item as FileOperations
-			asynchronous: true
-
-			anchors {
-				horizontalCenter: parent.horizontalCenter
-				verticalCenter: parent.verticalCenter
-			}
-
-			sourceComponent: FileOperations {
-				useControls: true
-				Component.onCompleted: _control.fileOps = this;
-			}
-		}
 	}
 
 	Loader {
 		id: mediaPlayerLoader
 		asynchronous: true
-		active: file_ops.fileType === AppUtils.FT_VIDEO
+		active: _control.fileOps.fileType === AppUtils.FT_VIDEO
 		anchors.fill: parent
 
 		sourceComponent: TPMediaPlayer {
-			mediaUrl: file_ops.fileURL
-			fileOps: file_ops
+			mediaUrl: _control.fileOps.fileURL
+			fileOps: _control.fileOps
 			windowState: _control._window_state
 			Component.onCompleted: _control._media_player = this;
 		} //sourceCompoent: TPMediaPlayer
@@ -207,13 +189,13 @@ Item {
 			if (_control._window_state === TPFileViewer.WS_NORMAL) {
 				_window.showFullScreen();
 				_control._window_state = TPFileViewer.WS_FULLSCREEN;
-				file_ops.repaintControls();
+				_control.fileOps.repaintControls();
 			}
 			else {
 				_window.close();
 				fullScreenLoader.active = false;
 				_control._window_state = TPFileViewer.WindowStates.WS_NORMAL;
-				file_ops.repaintControls();
+				_control.fileOps.repaintControls();
 			}
 
 			if (_control._media_player)
@@ -237,7 +219,7 @@ Item {
 
 			Loader {
 				asynchronous: true
-				active: file_ops.fileType === AppUtils.FT_IMAGE
+				active: _control.fileOps.fileType === AppUtils.FT_IMAGE
 				anchors.fill: parent
 
 				sourceComponent: TPImage {
@@ -252,17 +234,17 @@ Item {
 
 			Loader {
 				asynchronous: true
-				active: file_ops.fileType === AppUtils.FT_PDF
+				active: _control.fileOps.fileType === AppUtils.FT_PDF
 				anchors.fill: parent
 
 				sourceComponent: PdfMultiPageView {
 					id: pdfViewer
 					document: PdfDocument {
-						source: file_ops.fileURL
+						source: _control.fileOps.fileURL
 					}
 
 					Connections {
-						target: file_ops
+						target: _control.fileOps
 						function onMultimediaKeyPressed(key: int): void {
 							switch (key) {
 							case Qt.Key_Left:
@@ -287,22 +269,22 @@ Item {
 
 			Loader {
 				asynchronous: true
-				active: file_ops.isTPFile
+				active: _control.fileOps.isTPFile
 				anchors.fill: parent
 
 				sourceComponent: TPAppFileViewer {
-					fileOps: file_ops;
+					fileOps: _control.fileOps;
 				}
 			} //Loader : TPAppFileViewer
 
 			Loader {
 				asynchronous: true
-				active: file_ops.fileType === AppUtils.FT_TEXT
+				active: _control.fileOps.fileType === AppUtils.FT_TEXT
 				anchors.fill: parent
 
 				sourceComponent: TPMultiLineEdit {
 					id: _edit
-					text: file_ops.getFileText(false)
+					text: _control.fileOps.getFileText(false)
 					editable: false
 					maxHeight: -1
 					minHeight: height
@@ -310,7 +292,7 @@ Item {
 					Connections {
 						target: _control
 						function onFileAdded(filepath: string): void {
-							_edit.text = file_ops.getFileText(false);
+							_edit.text = _control.fileOps.getFileText(false);
 						}
 					}
 				}

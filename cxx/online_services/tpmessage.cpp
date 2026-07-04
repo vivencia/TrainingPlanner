@@ -11,7 +11,6 @@ TPMessage::~TPMessage()
 {
 	if (m_fileOps)
 		delete m_fileOps;
-	QObject::~QObject();
 }
 
 TPMessage *TPMessage::findChild(const QVariant &value, const TPMessageFields field) const

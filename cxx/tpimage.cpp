@@ -57,8 +57,7 @@ void TPImage::setSource(const QString &source)
 				m_canColorize = false;
 				m_dropShadow = false;
 				emit sourceChanged();
-				if (m_imageFollowControl.has_value() && m_fullWindowView.has_value() && m_aspectRatioMode.has_value())
-					scaleImage();
+				scaleImage();
 			}
 		} else {
 			m_aspectRatioMode = Qt::KeepAspectRatio;
@@ -108,26 +107,29 @@ void TPImage::setDropShadow(const bool drop_shadow)
 
 void TPImage::setKeepAspectRatio(const bool keep_ar)
 {
-	m_aspectRatioMode = (keep_ar ? Qt::KeepAspectRatio : Qt::IgnoreAspectRatio);
-	emit keepAspectRatioChanged();
-	if (m_fullWindowView.has_value() && m_imageFollowControl && !m_image.isNull())
+	if (m_aspectRatioMode != keep_ar) {
+		m_aspectRatioMode = (keep_ar ? Qt::KeepAspectRatio : Qt::IgnoreAspectRatio);
+		emit keepAspectRatioChanged();
 		scaleImage();
+	}
 }
 
 void TPImage::setImageSizeFollowControlSize(const bool follow)
 {
-	m_imageFollowControl = follow;
-	emit imageSizeFollowControlSizeChanged();
-	if (m_fullWindowView.has_value() && m_aspectRatioMode.has_value() && !m_image.isNull())
+	if (m_imageFollowControl != follow) {
+		m_imageFollowControl = follow;
+		emit imageSizeFollowControlSizeChanged();
 		scaleImage();
+	}
 }
 
 void TPImage::setFullWindowView(const bool fullview)
 {
-	m_fullWindowView = fullview;
-	emit fullWindowViewChanged();
-	if (m_imageFollowControl.has_value() && m_aspectRatioMode.has_value() && !m_image.isNull())
+	if (m_fullWindowView != fullview) {
+		m_fullWindowView = fullview;
+		emit fullWindowViewChanged();
 		scaleImage();
+	}
 }
 
 double TPImage::preferredWidth() const
@@ -180,6 +182,8 @@ void TPImage::paint(QPainter *painter)
 
 void TPImage::scaleImage()
 {
+	if (m_image.isNull())
+		return;
 	if (imageSizeFollowControlSize()) {
 		if (height() <= 0 || width() <= 0)
 			return;
@@ -192,7 +196,7 @@ void TPImage::scaleImage()
 			m_imageSize.rwidth() *= m_wscale;
 		if (hScale() != 1.0)
 			m_imageSize.rheight() *= m_hscale;
-		m_image = std::move(m_image.scaled(m_imageSize, m_aspectRatioMode.value(), Qt::SmoothTransformation));
+		m_image = std::move(m_image.scaled(m_imageSize, m_aspectRatioMode, Qt::SmoothTransformation));
 		m_paintOrigin.setX((width() - m_image.width()) / 2);
 		m_paintOrigin.setY((height() - m_image.height()) / 2);
 	} else {
@@ -208,7 +212,7 @@ void TPImage::scaleImage()
 					m_image = std::move(QImage{m_source}.transformed(QTransform{}.rotate(-270), Qt::SmoothTransformation));
 			}
 			m_imageSize = QSize{s_width, s_height};
-			m_image = std::move(m_image.scaled(m_imageSize, m_aspectRatioMode.value(), Qt::SmoothTransformation));
+			m_image = std::move(m_image.scaled(m_imageSize, m_aspectRatioMode, Qt::SmoothTransformation));
 			m_imageToPaint = &m_image;
 			setWidth(s_width);
 			setHeight(s_height);

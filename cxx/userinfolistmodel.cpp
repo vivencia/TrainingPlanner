@@ -74,7 +74,7 @@ bool UserInfoListModel::isSelected(const int visible_row, const int column) cons
 	if (visible_row < 0 || visible_row >= count())
 		return false;
 	return appUtils()->getCompositeValue(column,
-					m_extraInfo.at(rowFromVisibleRow(visible_row)).at(EF_SELECTED).toString(), fancy_record_separator1) == '1';
+			m_extraInfo.at(rowFromVisibleRow(visible_row)).at(EF_SELECTED).toString(), fancy_record_separator1) == '1';
 }
 
 void UserInfoListModel::setSelected(const int visible_row, const bool selected, const int column)
@@ -89,8 +89,7 @@ void UserInfoListModel::setSelected(const int visible_row, const bool selected, 
 			appUtils()->setCompositeValue(i, selected ? "1"_L1 : "0"_L1, str_selected, fancy_record_separator1);
 		m_extraInfo[row][EF_SELECTED] = std::move(QVariant{str_selected});
 		emit dataChanged(index(visible_row, 0), index(visible_row, m_totalCols), QList<int>{selectedRole});
-	}
-	else {
+	} else {
 		appUtils()->setCompositeValue(column, selected ? "1"_L1 : "0"_L1, str_selected, fancy_record_separator1);
 		m_extraInfo[row][EF_SELECTED] = std::move(QVariant{str_selected});
 		emit dataChanged(index(visible_row, column), index(visible_row, column), QList<int>{selectedRole});
@@ -117,10 +116,8 @@ QStringList UserInfoListModel::selectedUsers() const
 void UserInfoListModel::setSelectedUsers(const QStringList &users)
 {
 	for(int i{0}; i < m_extraInfo.count(); ++i) {
-		if (rowVisible(i)) {
-			if (users.contains(data(DBUserModel::USER_FIELD_ID, i)))
-				setSelected(i, true);
-		}
+		if (rowVisible(i))
+			setSelected(i, users.contains(data(DBUserModel::USER_FIELD_ID, i)));
 	}
 }
 
@@ -159,29 +156,29 @@ QVariant UserInfoListModel::data(const QModelIndex &index, int role) const
 				return allUsersData(role, row, index.column());
 #endif
 			switch (role) {
-				case idRole: return appUserModel()->userId(user_idx);
-				case insertTimeRole: return QDateTime::fromMSecsSinceEpoch(appUserModel()->m_usersData.at(user_idx).at(
-																DBUserModel::USER_FIELD_INSERTTIME).toLongLong()).toString();
-				case onlineAccountRole: return appUserModel()->onlineAccount();
-				case nameRole: return appUserModel()->_userName(user_idx);
-				case birthdayRole: return appUserModel()->birthDateFancy(user_idx);
-				case sexRole: return appUserModel()->sex(user_idx);
-				case phoneRole: return appUserModel()->phoneNumber(user_idx);
-				case emailRole: return appUserModel()->email(user_idx);
-				case socialMediaRole: return appUserModel()->_socialMedia(user_idx);
-				case userRoleRole: return appUserModel()->userRole(user_idx);
-				case coachroleRole: return appUserModel()->coachRole(user_idx);
-				case goalRole: return appUserModel()->goal(user_idx);
-				case categoryRole: return appUserModel()->userCategory(user_idx);
-				case avatarRole: return appUserModel()->avatar(user_idx);
-				case userIdxRole: return user_idx;
-				case selectedRole: return isSelected(index.row(), index.column());
-				case itemVisibleRole: return rowVisible(row);
-				case isCoachRole: return appUserModel()->isCoach(user_idx);
-				case isClientRole: return appUserModel()->isClient(user_idx);
-				case isConfirmedRole: return appUserModel()->isConfirmed(user_idx);
-				case isAvailableRole: return appUserModel()->isAvailable(user_idx);
-				default: break;
+			case idRole: return appUserModel()->userId(user_idx);
+			case insertTimeRole: return QDateTime::fromMSecsSinceEpoch(appUserModel()->m_usersData.at(user_idx).at(
+															DBUserModel::USER_FIELD_INSERTTIME).toLongLong()).toString();
+			case onlineAccountRole: return appUserModel()->onlineAccount();
+			case nameRole: return appUserModel()->_userName(user_idx);
+			case birthdayRole: return appUserModel()->birthDateFancy(user_idx);
+			case sexRole: return appUserModel()->sex(user_idx);
+			case phoneRole: return appUserModel()->phoneNumber(user_idx);
+			case emailRole: return appUserModel()->email(user_idx);
+			case socialMediaRole: return appUserModel()->_socialMedia(user_idx);
+			case userRoleRole: return appUserModel()->userRole(user_idx);
+			case coachroleRole: return appUserModel()->coachRole(user_idx);
+			case goalRole: return appUserModel()->goal(user_idx);
+			case categoryRole: return appUserModel()->userCategory(user_idx);
+			case avatarRole: return appUserModel()->avatar(user_idx);
+			case userIdxRole: return user_idx;
+			case selectedRole: return isSelected(index.row(), index.column());
+			case itemVisibleRole: return rowVisible(row);
+			case isCoachRole: return appUserModel()->isCoach(user_idx);
+			case isClientRole: return appUserModel()->isClient(user_idx);
+			case isConfirmedRole: return appUserModel()->isConfirmed(user_idx);
+			case isAvailableRole: return appUserModel()->isAvailable(user_idx);
+			default: break;
 			}
 		}
 	}
@@ -228,9 +225,9 @@ bool UserInfoListModel::setData(const QModelIndex &index, const QVariant &value,
 QVariant UserInfoListModel::headerData(int section, Qt::Orientation orientation, int header_role) const
 {
 	if (header_role == Qt::DisplayRole) {
-		if (orientation == Qt::Vertical)
+		if (orientation == Qt::Vertical) {
 			return section;
-		else {
+		} else {
 			switch (section) {
 			case DBUserModel::USER_FIELD_ID:			return appUserModel()->idLabel().section(':', 0, 0);
 			case DBUserModel::USER_FIELD_INSERTTIME:	return tr("Insert Time: ");
@@ -269,15 +266,15 @@ QVariant UserInfoListModel::allUsersData(int role, int row, const int column) co
 	const int app_usermodel_useridx{appUserModel()->userIdxFromFieldValue(DBUserModel::USER_FIELD_ID,
 																  m_allUsersData.at(row).at(DBUserModel::USER_FIELD_ID))};
 	switch (role) {
-		case avatarRole: return appUserModel()->avatar(app_usermodel_useridx);
-		case userIdxRole: return row;
-		case selectedRole: return isSelected(rowFromVisibleRow(row), column);
-		case itemVisibleRole: return rowVisible(rowFromVisibleRow(row));
-		case isCoachRole: return appUserModel()->isCoach(app_usermodel_useridx);
-		case isClientRole: return appUserModel()->isClient(app_usermodel_useridx);
-		case isConfirmedRole: return appUserModel()->isConfirmed(app_usermodel_useridx);
-		case isAvailableRole: return appUserModel()->isAvailable(app_usermodel_useridx);
-		default: return m_allUsersData.at(row).at(role - Qt::UserRole);
+	case avatarRole: return appUserModel()->avatar(app_usermodel_useridx);
+	case userIdxRole: return row;
+	case selectedRole: return isSelected(rowFromVisibleRow(row), column);
+	case itemVisibleRole: return rowVisible(rowFromVisibleRow(row));
+	case isCoachRole: return appUserModel()->isCoach(app_usermodel_useridx);
+	case isClientRole: return appUserModel()->isClient(app_usermodel_useridx);
+	case isConfirmedRole: return appUserModel()->isConfirmed(app_usermodel_useridx);
+	case isAvailableRole: return appUserModel()->isAvailable(app_usermodel_useridx);
+	default: return m_allUsersData.at(row).at(role - Qt::UserRole);
 	}
 	return QVariant{};
 }
@@ -287,15 +284,15 @@ bool UserInfoListModel::setAllUsersData(const uint user_idx, const int row, cons
 	const int app_usermodel_useridx{appUserModel()->userIdxFromFieldValue(DBUserModel::USER_FIELD_ID,
 																  m_allUsersData.at(row).at(DBUserModel::USER_FIELD_ID))};
 	switch (role) {
-		case avatarRole: appUserModel()->setAvatar(app_usermodel_useridx, value.toString()); break;
-		case userIdxRole: return false;
-		case selectedRole: setSelected(rowFromVisibleRow(row),value.toBool(), column); break;
-		case itemVisibleRole: setRowVisible(rowFromVisibleRow(row), value.toBool(), column); break;
-		case isCoachRole: appUserModel()->setIsCoach(app_usermodel_useridx, value.toBool()); break;
-		case isClientRole: appUserModel()->setIsClient(app_usermodel_useridx, value.toBool()); break;
-		case isConfirmedRole: appUserModel()->setIsConfirmed(app_usermodel_useridx, value.toBool()); break;
-		case isAvailableRole: appUserModel()->setIsAvailable(app_usermodel_useridx, value.toBool()); break;
-		default: m_allUsersData[row][role - Qt::UserRole] = std::move(value.toString()); break;
+	case avatarRole: appUserModel()->setAvatar(app_usermodel_useridx, value.toString()); break;
+	case userIdxRole: return false;
+	case selectedRole: setSelected(rowFromVisibleRow(row),value.toBool(), column); break;
+	case itemVisibleRole: setRowVisible(rowFromVisibleRow(row), value.toBool(), column); break;
+	case isCoachRole: appUserModel()->setIsCoach(app_usermodel_useridx, value.toBool()); break;
+	case isClientRole: appUserModel()->setIsClient(app_usermodel_useridx, value.toBool()); break;
+	case isConfirmedRole: appUserModel()->setIsConfirmed(app_usermodel_useridx, value.toBool()); break;
+	case isAvailableRole: appUserModel()->setIsAvailable(app_usermodel_useridx, value.toBool()); break;
+	default: m_allUsersData[row][role - Qt::UserRole] = std::move(value.toString()); break;
 	}
 	emit dataChanged(QAbstractListModel::index(row, column), QAbstractListModel::index(row, column), QList<int>{} << role);
 	return true;
@@ -326,25 +323,26 @@ void UserInfoListModel::userModified(const uint user_idx, const uint field)
 	case USER_MODIFIED_CREATED:
 	case USER_MODIFIED_IMPORTED:
 		beginInsertRows(QModelIndex{}, row, row);
-		insertUserInfo(user_idx);
+		insertUserInfo(row);
 		endInsertRows();
 		break;
 	case USER_MODIFIED_REMOVED:
 		beginRemoveRows(QModelIndex{}, row, row);
-		m_extraInfo.removeAt(user_idx);
+		m_extraInfo.removeAt(row);
 		endRemoveRows();
 		break;
 	case DBUserModel::USER_FIELD_AVATAR:
-		m_extraInfo[user_idx][EF_AVATAR] = std::move(appUserModel()->avatar(user_idx));
+		m_extraInfo[row][EF_AVATAR] = std::move(appUserModel()->avatar(user_idx));
+		emit dataChanged(index(row, 0), index(row, 0), QList<int>{avatarRole});
 		break;
 	case DBUserModel::USER_FIELD_USER_CATEGORY:
-		m_extraInfo[user_idx][EF_ISCOACH] = std::move(appUserModel()->isCoach(user_idx));
+		m_extraInfo[row][EF_ISCOACH] = std::move(appUserModel()->isCoach(user_idx));
 		emit dataChanged(index(row, 0), index(row, 0), QList<int>{isCoachRole});
-		m_extraInfo[user_idx][EF_ISCLIENT] = std::move(appUserModel()->isClient(user_idx));
+		m_extraInfo[row][EF_ISCLIENT] = std::move(appUserModel()->isClient(user_idx));
 		emit dataChanged(index(row, 0), index(row, 0), QList<int>{isClientRole});
-		m_extraInfo[user_idx][EF_ISCONFIRMED] = std::move(appUserModel()->isConfirmed(user_idx));
+		m_extraInfo[row][EF_ISCONFIRMED] = std::move(appUserModel()->isConfirmed(user_idx));
 		emit dataChanged(index(row, 0), index(row, 0), QList<int>{isConfirmedRole});
-		m_extraInfo[user_idx][EF_ISAVAILABLE] = std::move(appUserModel()->isAvailable(user_idx));
+		m_extraInfo[row][EF_ISAVAILABLE] = std::move(appUserModel()->isAvailable(user_idx));
 		emit dataChanged(index(row, 0), index(row, 0), QList<int>{isAvailableRole});
 		changeVisibilityAsPerCategory();
 		break;
@@ -393,9 +391,9 @@ void UserInfoListModel::setRowVisible(const uint row, bool visible, const int co
 		emit dataChanged(index(row, column), index(row, column), QList<int>{itemVisibleRole});
 		changeNumberOfVisibleRows(visible);
 		if (m_currentRow >= 0) {
-			if (visible && row > m_currentRow)
+			if (visible && row > m_currentRow) {
 				setCurrentRow(row);
-			else if (!visible && row <= m_currentRow) {
+			} else if (!visible && row <= m_currentRow) {
 				if (m_currentRow < 0 && count() > 0)
 					setCurrentRow(0);
 			}

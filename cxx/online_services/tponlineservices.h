@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../tpbool.h"
+
 #include <QObject>
 #include <QNetworkAccessManager>
 
@@ -112,11 +114,21 @@ private:
 	void parseReceivedFilesList(QStringList &new_files, const QString &ret_string, const QString &subdir, const QString &targetUser);
 	bool remoteFileUpToDate(const QString &onlineDate, const QString &localFile) const;
 	bool localFileUpToDate(const QString &onlineDate, const QString &localFile) const;
+	inline bool checkRequestPool(const int requestid) const
+	{
+#ifndef QT_NO_QDEBUG
+		if (m_requestsPool.value(requestid))
+			qDebug() << Qt::StringLiterals::operator""_L1("ATENTION! Request Id already in use: ", 37) << requestid;
+#endif
+		return m_requestsPool.value(requestid);
+	}
+	inline void setRequestToPool(const int requestid, const bool in_use) { m_requestsPool[requestid] = in_use; }
 
 	QNetworkAccessManager *m_networkManager{nullptr};
 	bool m_hasCredentials{false};
 	uint8_t m_onlineStatus{255};
 	QString m_userid, m_passwd, m_serverAddress;
+	QHash<int,TPBool> m_requestsPool;
 	static TPOnlineServices* _appOnlineServices;
 	friend TPOnlineServices* appOnlineServices();
 };

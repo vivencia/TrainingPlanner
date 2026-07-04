@@ -17,10 +17,12 @@ TPPage {
 	backgroundOpacity: 0.6
 	objectName: "mesoPage"
 
+//public:
 	required property MesoManager mesoManager
 	required property MesocyclesModel mesoModel
+
+//private:
 	property TPBalloonTip wrongFieldsPopup: requiredFieldsMissingLoader.item as TPBalloonTip
-	property FileOperations fileOps: _meso_file_viewer.fileOps
 
 	Component.onCompleted: {
 		if (!mesoManager.mesoOK)
@@ -52,7 +54,7 @@ TPPage {
 	Connections {
 		target: mesoPage.mesoManager
 		function onWrongFieldsCounterChanged(): void {
-			if (mesoPage.mesoManager.wrongFieldsCounter == 1) {
+			if (mesoPage.mesoManager.wrongFieldsCounter === 1) {
 				if (!requiredFieldsMissingLoader.active) {
 					requiredFieldsMissingLoader.active = true;
 					return;
@@ -232,17 +234,12 @@ TPPage {
 
 			TPFileViewer {
 				id: _meso_file_viewer
-				fileName: mesoPage.mesoModel.file(mesoPage.mesoManager.mesoIdx);
-				canAddFile: mesoPage.mesoManager.ownMeso || mesoPage.mesoManager.mesoForClient
-				canDownloadOrGenerate: !mesoPage.mesoManager.ownMeso && !mesoPage.mesoManager.mesoForClient
+				fileOps: mesoPage.mesoManager.instructionsFileViewer()
 				useBackground: true
 				missingFileInfo: qsTr("No instructions file added")
-				addFileFilters: AppUtils.FT_DOCUMENTS
-				Layout.preferredWidth: (fileType === AppUtils.FT_PDF ? 0.5 : 0.3) * AppSettings.pageWidth
+				Layout.preferredWidth: mesoPage.mesoManager.instructionsFileViewer().controlSize.width
 				Layout.preferredHeight: width * 1.4
 				Layout.alignment: Qt.AlignCenter
-				onFileAdded: (filename) => mesoPage.mesoModel.setFile(mesoPage.mesoManager.mesoIdx, filename);
-				onRemovalRequested: mesoPage.mesoModel.setFile(mesoPage.mesoManager.mesoIdx, "");
 			}
 
 			TPLabel {

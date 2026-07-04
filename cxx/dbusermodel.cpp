@@ -363,25 +363,36 @@ void DBUserModel::setPhone(const int user_idx, QString new_phone_prefix, const Q
 
 QString DBUserModel::avatar(const int user_idx)
 {
+	QString local_avatar;
 	if (user_idx >= 0 && user_idx < m_usersData.count()) {
-		QString avatar_file{std::move(findAvatar(userDir(user_idx)))};
-		if (avatar_file.isEmpty())
-			avatar_file = std::move(defaultAvatar(user_idx));
-		if (onlineAccount() && user_idx > 0)
-			downloadAvatarFromServer(user_idx);
-		return avatar_file;
+		local_avatar = std::move(userDir(user_idx) % "avatar.png"_L1);
+		if (user_idx > 0) {
+			bool query_avatar_from_server{false};
+			if (!QFile::exists(local_avatar)) {
+				local_avatar = std::move(defaultAvatar(user_idx));
+				query_avatar_from_server = true;
+			}
+			else {
+				QFileInfo fi{local_avatar};
+				const QDateTime &c_time{fi.lastModified()};
+				query_avatar_from_server = c_time.daysTo(QDateTime::currentDateTime()) >= 1;
+			}
+			if (query_avatar_from_server)
+				downloadAvatarFromServer(user_idx);
+		}
 	}
-	return QString{};
+	return local_avatar;
 }
 
 void DBUserModel::setAvatar(const int user_idx, const QString &new_avatar, const bool saveToDisk, const bool upload)
 {
 	if (user_idx >= 0 && user_idx < m_usersData.count()) {
-		if (saveToDisk) {
+		if (saveToDisk && !new_avatar.isEmpty()) {
 			TPImage img{nullptr};
 			img.setSource(new_avatar);
-			const QString &local_avatar{userDir(user_idx) % "avatar"_L1 % appUtils()->getFileExtension(img.source(), true, ".png"_L1)};
-			static_cast<void>(QFile::remove(local_avatar));
+			img.setHeight(256);
+			img.setWidth(256);
+			const QString &local_avatar{userDir(user_idx) % "avatar.png"_L1};
 			img.saveToDisk(local_avatar);
 		}
 		emit userModified(user_idx, USER_FIELD_AVATAR);
@@ -720,10 +731,10 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 					qsizetype n_connections{coaches.count()};
 					auto conn{std::make_shared<QMetaObject::Connection>()};
 					*conn = connect(this, &DBUserModel::userProfileAcquired, this, [this,conn,coaches,n_connections]
-																	(const QString &userid, const bool success) mutable {
+																(const QString &userid, const int ret_code) mutable {
 						if (--n_connections == 0)
 							disconnect(*conn);
-						if (success)
+						if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS)
 							addAvailableCoach(userid);
 					});
 					for (const auto &coach_id : std::as_const(coaches))
@@ -773,15 +784,15 @@ int DBUserModel::sendFileToServer(const TPFilePath &tp_filename, const bool remo
 	return requestid;
 }
 
-int DBUserModel::downloadFileFromServer(const TPFilePath &tp_filename, const QString &successMessage)
+int DBUserModel::downloadFileFromServer(const TPFilePath &tp_filename)
 {
 	if (!canConnectToServer()) {
 		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_SERVER_UNREACHABLE);
-		return TP_RET_CODE_DOWNLOAD_FAILED;
+		return TP_RET_CODE_SERVER_UNREACHABLE;
 	}
 	else {
 		if (!mainUserLoggedIn())
-			return TP_RET_CODE_DOWNLOAD_FAILED;
+			return TP_RET_CODE_USER_OFFLINE;
 	}
 	if (appUtils()->fileRecentlyModified(tp_filename.toString(), 30))
 		return TP_RET_CODE_NO_CHANGES_SUCCESS;
@@ -789,13 +800,13 @@ int DBUserModel::downloadFileFromServer(const TPFilePath &tp_filename, const QSt
 	const int requestid{tp_filename.generateUniqueId()};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [=,this]
-						(const int request_id, const int ret_code, const QString &filename, const QByteArray &contents) {
+					(const int request_id, const int ret_code, const QString &filename, const QByteArray &contents) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			bool success{!contents.isEmpty()};
 			static_cast<void>(appUtils()->mkdir(tp_filename.toString()));
 			switch (ret_code) {
-			case TP_RET_CODE_SUCCESS: //file downloaded
+			case TP_RET_CODE_SUCCESS:
 				if (success) {
 					QFile *local_file{new QFile{tp_filename.toString(), this}};
 					if (!local_file->exists() || local_file->remove()) {
@@ -805,9 +816,6 @@ int DBUserModel::downloadFileFromServer(const TPFilePath &tp_filename, const QSt
 						}
 					}
 					delete local_file;
-					if (!successMessage.isEmpty())
-						appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_SUCCESS, appUtils()->string_strings(
-																{m_network_msg_title, successMessage}, record_separator));
 				}
 				break;
 			case TP_RET_CODE_NO_CHANGES_SUCCESS: //online file and local file are the same
@@ -816,10 +824,10 @@ int DBUserModel::downloadFileFromServer(const TPFilePath &tp_filename, const QSt
 			default: //some error
 				success = false;
 			}
-			if (!success && !successMessage.isEmpty())
+			if (!success)
 				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR, appUtils()->string_strings(
-																				{filename + contents}, record_separator));
-			emit fileDownloaded(success, requestid, tp_filename);
+								{filename, '(' % QString::number(ret_code) % ") "_L1 % contents}, record_separator));
+			emit fileDownloaded(ret_code, requestid, tp_filename);
 		}
 	});
 	appOnlineServices()->getFile(requestid, tp_filename.fileName(), (tp_filename.ownerUser() == userId(0) ?
@@ -833,7 +841,7 @@ void DBUserModel::removeFileFromServer(const TPFilePath &tp_filename)
 		return;
 	const int requestid{tp_filename.generateUniqueId()};
 	appOnlineServices()->removeFile(requestid, tp_filename.fileName(), (tp_filename.ownerUser() == userId(0) ?
-								QString{} : tp_filename.ownerUser()) % '/' % tp_filename.subdirs(), tp_filename.targetUser());
+						QString{} : tp_filename.ownerUser()) % '/' % tp_filename.subdirs(), tp_filename.targetUser());
 }
 
 int DBUserModel::listFilesFromServer(const QString &subdir, const QString &targetUser, const QString &filter)
@@ -873,7 +881,7 @@ void DBUserModel::downloadCmdFilesFromServer(const QString &subdir)
 		const int request_id{listFilesFromServer(subdir, userId(0), cmd_file_extension)};
 		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(this, &DBUserModel::filesListReceived, this, [this,conn,request_id,subdir]
-												(const bool success, const int requestid, const QStringList &files_list) {
+											(const bool success, const int requestid, const QStringList &files_list) {
 			if (requestid == request_id) {
 				disconnect(*conn);
 				if (!success || files_list.isEmpty())
@@ -897,10 +905,10 @@ void DBUserModel::downloadCmdFilesFromServer(const QString &subdir)
 					}
 					auto conn2{std::make_shared<QMetaObject::Connection>()};
 					*conn2 = connect(this, &DBUserModel::fileDownloaded, this, [this,conn2,requestid2,parseCmd]
-											(const bool success, const uint requestid, const TPFilePath &local_file_name) {
+										(const int ret_code, const uint requestid, const TPFilePath &local_file_name) {
 						if (requestid == requestid2) {
 							disconnect(*conn2);
-							if (success)
+							if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS)
 								parseCmd(local_file_name.toString());
 						}
 					});
@@ -1309,7 +1317,7 @@ void DBUserModel::downloadAllUserFiles(const QString &userid)
 							}
 							auto conn3{std::make_shared<QMetaObject::Connection>()};
 							*conn3 = connect(this, &DBUserModel::fileDownloaded, this, [this,conn3,requestid3]
-									(const bool success, const uint requestid, const TPFilePath &local_file_name) mutable {
+								(const int ret_code, const uint requestid, const TPFilePath &local_file_name) mutable {
 								if (requestid == requestid3) {
 									disconnect(*conn3);
 									if (--total_files <= 0)
@@ -1339,18 +1347,21 @@ void DBUserModel::getUserOnlineProfile(const QString &userid)
 {
 	TPFilePathPtr tp_filename{TPFilePath::newTPFilePath(userid % TPUtils::TP_FILE_EXTENSION, userId(), userid)};
 	const int request_id{downloadFileFromServer(*tp_filename)};
-	if (request_id == TP_RET_CODE_DOWNLOAD_FAILED)
+	switch (request_id) {
+	case TP_RET_CODE_SERVER_UNREACHABLE:
+	case TP_RET_CODE_USER_OFFLINE:
 		return;
-	else if (request_id == TP_RET_CODE_NO_CHANGES_SUCCESS) {
-		emit userProfileAcquired(userid, true);
+	case TP_RET_CODE_NO_CHANGES_SUCCESS:
+		emit userProfileAcquired(userid, TP_RET_CODE_NO_CHANGES_SUCCESS);
 		return;
+	default: break;
 	}
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &DBUserModel::fileDownloaded, this, [=,this]
-												(const bool success, const uint requestid, const TPFilePath &tp_filepath) {
+										(const int ret_code, const uint requestid, const TPFilePath &tp_filepath) {
 		if (request_id == requestid) {
 			disconnect(*conn);
-			emit userProfileAcquired(userid, success);
+			emit userProfileAcquired(userid, ret_code);
 		}
 	});
 }
@@ -1374,37 +1385,26 @@ void DBUserModel::sendAvatarToServer()
 	sendFileToServer(*TPFilePath::newTPFilePath(avatar(0)));
 }
 
-QString DBUserModel::findAvatar(const QString &base_dir) const
-{
-	const QDir &localFilesDir{base_dir};
-	const QFileInfoList &images{localFilesDir.entryInfoList(QDir::Files|QDir::NoDotAndDotDot|QDir::NoSymLinks)};
-	const auto &it = std::find_if(images.cbegin(), images.cend(), [] (const auto &image_fi) {
-		return image_fi.fileName().contains("avatar."_L1);
-	});
-	return it != images.cend() ? it->filePath() : QString{};
-}
-
 void DBUserModel::downloadAvatarFromServer(const uint user_idx)
 {
-	QString avatar_file{std::move(findAvatar(userDir(user_idx)))};
-	auto tp_filename{TPFilePath::newTPFilePath(avatar_file)};
-	tp_filename->setUseFileExtension(false);
+	auto tp_filename{TPFilePath::newTPFilePath("avatar.png"_L1, userId(0), userId(user_idx))};
 	const int request_id{downloadFileFromServer(*tp_filename)};
-	if (request_id == TP_RET_CODE_DOWNLOAD_FAILED)
+	switch (request_id) {
+	case TP_RET_CODE_SERVER_UNREACHABLE:
+	case TP_RET_CODE_USER_OFFLINE:
 		return;
-	else if (request_id == TP_RET_CODE_NO_CHANGES_SUCCESS) {
-		setAvatar(user_idx, avatar_file, true, false);
+	case TP_RET_CODE_NO_CHANGES_SUCCESS:
+		setAvatar(user_idx, tp_filename->toString(), true, false);
 		return;
+	default: break;
 	}
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &DBUserModel::fileDownloaded, this, [=,this]
-												(const bool success, const uint requestid, const TPFilePath &tp_filepath) {
+										(const int ret_code, const uint requestid, const TPFilePath &tp_filepath) {
 		if (request_id == requestid) {
 			disconnect(*conn);
-			if (success) {
-				static_cast<void>(QFile::remove(avatar_file));
-				setAvatar(user_idx, tp_filepath.toString(), true, false);
-			}
+			if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS)
+				setAvatar(user_idx, tp_filepath.toString(), ret_code != TP_RET_CODE_NO_CHANGES_SUCCESS, false);
 		}
 	});
 }
@@ -1457,7 +1457,7 @@ void DBUserModel::pollClientsRequests()
 	const int requestid{appUtils()->generateUniqueId("pollClientsRequests"_L1)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid]
-																(const int request_id, const int ret_code, const QString &ret_string) {
+												(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			if (ret_code == TP_RET_CODE_SUCCESS) {
@@ -1465,12 +1465,12 @@ void DBUserModel::pollClientsRequests()
 				qsizetype n_connections{requests_list.count()};
 				auto conn2{std::make_shared<QMetaObject::Connection>()};
 				*conn2 = connect(this, &DBUserModel::userProfileAcquired, this, [this,conn2,requests_list,n_connections]
-																		(const QString &userid, const bool success) mutable {
+														(const QString &userid, const int ret_code) mutable {
 					if (requests_list.contains(userid)) {
 						if (--n_connections == TP_RET_CODE_SUCCESS)
 							disconnect(*conn2);
-						if (success)
-							addAvailableClient(userid); //User asked main user to be their coach. User is now available as a potential client
+						if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS)
+							addAvailableClient(userid);//User asked main user to be their coach. User is now available as a potential client
 					}
 				});
 				for (const auto &clientid : std::as_const(requests_list))

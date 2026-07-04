@@ -146,7 +146,7 @@ void TPFileOps::setCanAddFile(const bool can_add)
 void TPFileOps::renameFile(const QString &new_name)
 {
  	const QString &correct_new_name{appUtils()->getFileName(new_name, true) %
-																appUtils()->getFileExtension(m_filename.fileName(), true)};
+															appUtils()->getFileExtension(m_filename.fileName(), true)};
 	if (fileIsOK())
 		QFile::rename(m_filename.toString(), m_filename.filePath() % correct_new_name);
 	m_filename.setFileName(correct_new_name, true);
@@ -729,10 +729,15 @@ void TPFileOps::sendFileToUsers(const QStringList &users, const QString &message
 					emit fileSent(false);
 				};
 				const auto request_id{appUserModel()->sendFileToServer(m_filename)};
-				if (request_id < TP_RET_CODE_CUSTOM_WARNING) {
+				switch (request_id) {
+				case TP_RET_CODE_SERVER_UNREACHABLE:
+				case TP_RET_CODE_USER_OFFLINE:
+				case TP_RET_CODE_FILE_TOO_BIG:
 					failureMsg(request_id);
 					return;
+				default: break;
 				}
+
 				*conn = connect(appUserModel(), &DBUserModel::fileUploaded, this,
 									[=,this] (const bool success, const uint requestid, const int ret_code) {
 					if (requestid == request_id) {
@@ -867,8 +872,10 @@ void TPFileOps::createControls()
 		_getDefaultImage(ci);
 		ci->default_image = std::move(ci->default_image.scaled(m_buttonSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
 		ci->current_image = &ci->default_image;
-		ci->rect = QRect{button_x, buttons_padding, m_buttonSize.width(), m_buttonSize.height()};
-		button_x += m_buttonSize.width() + buttons_padding;
+		if (ci->visible) {
+			ci->rect = QRect{button_x, buttons_padding, m_buttonSize.width(), m_buttonSize.height()};
+			button_x += m_buttonSize.width() + buttons_padding;
+		}
 	}
 	resizeControl();
 	update();
@@ -943,22 +950,13 @@ QString TPFileOps::getImagePreviewFile(QSize preferred_size) const
 	if (!fileIsOK())
 		return QString{};
 
-	QImage thumbnail;
 	if (preferred_size.isNull()) {
-		thumbnail.load(m_filename.toString());
-		const QSize &img_size{thumbnail.size()};
-		const int page_img_width_ratio{qFloor(img_size.width() / appSettings()->pageWidth())};
-		if (page_img_width_ratio >= 1)
-			preferred_size.setWidth(appSettings()->pageWidth() * 0.8);
-		else
-			preferred_size.setWidth(img_size.width());
-		const auto ratio{static_cast<float>(img_size.height()) / img_size.width()};
-		preferred_size.setHeight(preferred_size.width() * ratio);
+		preferred_size.rwidth() = m_controlSize.width();
+		preferred_size.rheight() = m_controlSize.width() * 1.4;
 	}
-	const QString &preview_filename{previewFilename(m_filename.toString(), preferred_size)};
+	const QString &preview_filename{previewFilename(m_filename.fileName(), preferred_size)};
 	if (!QFile::exists(preview_filename)) {
-		if (thumbnail.isNull())
-			thumbnail.load(m_filename.toString());
+		QImage thumbnail{m_filename.toString()};
 		thumbnail = std::move(thumbnail.scaled(preferred_size));
 		thumbnail.save(preview_filename, "JPG", 10);
 	}
@@ -992,8 +990,8 @@ QString TPFileOps::getPDFPreviewFile(QSize preferred_size) const
 {
 	if (fileIsOK()) {
 		if (preferred_size.isNull()) {
-			preferred_size.setWidth(appSettings()->pageWidth());
-			preferred_size.setHeight(appSettings()->pageHeight());
+			preferred_size.rwidth() = m_controlSize.width();
+			preferred_size.rheight() = m_controlSize.width() * 1.4;
 		}
 		const QString &preview_filename{previewFilename(m_filename.toString(), preferred_size)};
 		if (!QFile::exists(preview_filename)) {
@@ -1047,8 +1045,8 @@ void TPFileOps::readTPFile()
 
 	const QString *identifier{nullptr};
 	QString extra_identifier;
-
 	const uint32_t ft{static_cast<uint>(m_filetype) & static_cast<uint>(~TPUtils::FT_TP_FORMATTED)};
+
 	switch (ft) {
 	case TPUtils::FT_TP_USER_PROFILE:
 		identifier = &appUtils()->userFileIdentifier;

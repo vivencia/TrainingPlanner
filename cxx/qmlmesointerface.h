@@ -127,6 +127,9 @@ public:
 	[[nodiscard]] QString notes() const;
 	void setNotes(const QString &new_value);
 
+	Q_INVOKABLE TPFileOps *instructionsFileViewer() const { return m_instructionsFileOps; }
+	Q_INVOKABLE TPFileOps *mesoFileOperations() const { return m_mesoFileOps; }
+
 	[[nodiscard]] Q_INVOKABLE QString muscularGroup(const QString &split) const;
 	Q_INVOKABLE void setMuscularGroup(const QString &split, const QString &new_value);
 
@@ -168,7 +171,7 @@ private:
 	QObject *m_optionsMenu{nullptr};
 	QVariantMap m_mesoProperties, m_optionsMenuProperties;
 	DBMesocyclesModel *m_mesoModel{nullptr};
-	TPFileOps *m_mesoFileOps{nullptr};
+	TPFileOps *m_mesoFileOps{nullptr}, *m_instructionsFileOps{nullptr};
 
 	uint m_mesoIdx, m_wrongFieldsCounter{0};
 	QString m_strStartDate, m_strEndDate, m_nameError;
@@ -178,6 +181,7 @@ private:
 	QmlMesoSplitInterface *m_splitsPage{nullptr};
 	QmlMesoCalendarInterface *m_calendarPage{nullptr};
 
+	void createFileOps();
 	void createMesocyclePage();
 	void createOptionsMenu();
 };

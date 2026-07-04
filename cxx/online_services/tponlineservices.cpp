@@ -34,6 +34,8 @@ TPOnlineServices::TPOnlineServices(QObject *parent) : QObject{parent}, m_onlineS
 
 void TPOnlineServices::testServerConnection(const QString &address, const QString &port, const int requestid)
 {
+	if (checkRequestPool(requestid))
+		return;
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid,address,port]
 												(const int request_id, const int ret_code, const QString &ret_string) {
@@ -47,29 +49,28 @@ void TPOnlineServices::testServerConnection(const QString &address, const QStrin
 
 			if (m_onlineStatus != online_status) {
 				switch (online_status) {
-					case TP_RET_CODE_SUCCESS:
-						if (appSettings()->serverAddress() != address)
-							appSettings()->setServerAddress(address);
-						if (appSettings()->serverPort() != port)
-							appSettings()->setServerPort(port);
-						m_serverAddress = std::move(server_address.arg(address, port));
-						if (m_hasCredentials)
-							emit onlineServicesReady();
-						break;
-					case TP_RET_CODE_SERVER_PAUSED:
-						break;
-					case TP_RET_CODE_SERVER_UNREACHABLE:
-						if (request_id == -1) {
-							appSettings()->setServerAddress(QString{});
-							QTimer::singleShot(5000, this, [this] () -> void { connectToServer(); });
-						}
-						else {
-							//when searching for a viable interface address, ignore unsuccessfull tests after a successfull one
-							if (m_onlineStatus == TP_RET_CODE_SUCCESS && request_id >= 100)
-								return;
-						}
-						break;
-					default: Q_UNREACHABLE();
+				case TP_RET_CODE_SUCCESS:
+					if (appSettings()->serverAddress() != address)
+						appSettings()->setServerAddress(address);
+					if (appSettings()->serverPort() != port)
+						appSettings()->setServerPort(port);
+					m_serverAddress = std::move(server_address.arg(address, port));
+					if (m_hasCredentials)
+						emit onlineServicesReady();
+					break;
+				case TP_RET_CODE_SERVER_PAUSED:
+					break;
+				case TP_RET_CODE_SERVER_UNREACHABLE:
+					if (request_id == -1) {
+						appSettings()->setServerAddress(QString{});
+						QTimer::singleShot(5000, this, [this] () -> void { connectToServer(); });
+					} else {
+						//when searching for a viable interface address, ignore unsuccessfull tests after a successfull one
+						if (m_onlineStatus == TP_RET_CODE_SUCCESS && request_id >= 100)
+							return;
+					}
+					break;
+				default: Q_UNREACHABLE();
 				}
 				appOsInterface()->setWorkingNetInterface(online_status == TP_RET_CODE_SUCCESS ? request_id > 0 ? request_id - 100 : -1 : 0);
 				m_onlineStatus = online_status;
@@ -101,11 +102,10 @@ void TPOnlineServices::connectToServer()
 		appOsInterface()->getAvailableAddresses();
 #endif
 		return;
-	}
-	else {
-		if (tpScanNetwork::ping(address))
+	} else {
+		if (tpScanNetwork::ping(address)) {
 			testServerConnection(address, appSettings()->serverPort());
-		else {
+		} else {
 			appSettings()->setServerAddress(QString{});
 			connectToServer();
 		}
@@ -118,9 +118,11 @@ void TPOnlineServices::connectToServer()
 #ifndef Q_OS_ANDROID
 void TPOnlineServices::getAllUsers(const int requestid)
 {
+	if (checkRequestPool(requestid))
+		return;
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid]
-													(const int request_id, const int ret_code, const QString &ret_string) {
+												(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			QStringList users;
@@ -189,6 +191,8 @@ void TPOnlineServices::addDevice(const int requestid, const QString &device_id)
 
 void TPOnlineServices::getDevicesList(const int requestid)
 {
+	if (checkRequestPool(requestid))
+		return;
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
 													(const int request_id, const int ret_code, const QString &ret_string) {
@@ -317,9 +321,11 @@ void TPOnlineServices::executeCommands(const int requestid, const QString &subdi
 void TPOnlineServices::sendFile(const int requestid, QFile *file, const QString &subdir, const QString &targetUser,
 																						const bool b_internal_signal_only)
 {
+	if (checkRequestPool(requestid))
+		return;
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
-													(const int request_id, const int ret_code, const QString &ret_string) {
+												(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			if (ret_code == TP_RET_CODE_SUCCESS) {
@@ -330,7 +336,7 @@ void TPOnlineServices::sendFile(const int requestid, QFile *file, const QString 
 				}
 			}
 			const QUrl &url{makeCommandURL(false, "upload"_L1, subdir, "targetuser"_L1, targetUser.isEmpty() ?
-																					appUserModel()->userId(0) : targetUser)};
+																			appUserModel()->userId(0) : targetUser)};
 			uploadFile(requestid, url, file, b_internal_signal_only);
 		}
 	});
@@ -341,9 +347,11 @@ void TPOnlineServices::sendFile(const int requestid, QFile *file, const QString 
 
 void TPOnlineServices::listFiles(const int requestid, const QString &pattern, const QString &subdir, const QString &targetUser)
 {
+	if (checkRequestPool(requestid))
+		return;
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
-													(const int request_id, const int ret_code, const QString &ret_string) {
+												(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			QStringList files_list;
@@ -357,11 +365,13 @@ void TPOnlineServices::listFiles(const int requestid, const QString &pattern, co
 }
 
 void TPOnlineServices::listDirs(const int requestid, const QString &pattern,
-								const QString &subdir, const QString &targetUser, const bool include_dot_dir)
+									const QString &subdir, const QString &targetUser, const bool include_dot_dir)
 {
+	if (checkRequestPool(requestid))
+		return;
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
-													(const int request_id, const int ret_code, const QString &ret_string) {
+												(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			QStringList directories;
@@ -385,6 +395,8 @@ void TPOnlineServices::removeFile(const int requestid, const QString &filename, 
 void TPOnlineServices::getFile(const int requestid, const QString &filename, const QString &subdir,
 																const QString &targetUser, const QString &localFilePath)
 {
+	if (checkRequestPool(requestid))
+		return;
 	bool check_ctime_first{false};
 	if (!localFilePath.isEmpty()) {
 		QFileInfo fi{localFilePath};
@@ -415,8 +427,7 @@ void TPOnlineServices::getFile(const int requestid, const QString &filename, con
 	if (check_ctime_first) {
 		url = std::move(makeCommandURL(false, "checkfilectime"_L1, filename.lastIndexOf('.') > 0 ?
 					filename : appUtils()->getFileName(localFilePath), "subdir"_L1, subdir, "fromuser"_L1, targetUser));
-	}
-	else {
+	} else {
 		url = std::move(makeCommandURL(false, filename.lastIndexOf('.') > 0 ?
 				(filename.endsWith(".txt"_L1) || filename.endsWith(".ini"_L1) ? "file"_L1 :
 				"getbinfile"_L1) : "getbinfile"_L1, filename, "subdir"_L1, subdir, "fromuser"_L1, targetUser));
@@ -432,6 +443,8 @@ void TPOnlineServices::getCmdFile(const int requestid, const QString &filename, 
 
 void TPOnlineServices::checkTPMessages(const int requestid)
 {
+	if (checkRequestPool(requestid))
+		return;
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
 												(const int request_id, const int ret_code, const QString &ret_string) {
@@ -502,8 +515,7 @@ QString TPOnlineServices::makeCommandURL(const bool admin, const QLatin1StringVi
 	if (!admin) {
 		userid = &m_userid;
 		password = &m_passwd;
-	}
-	else {
+	} else {
 		userid = &root_user;
 		password = &root_passwd;
 	}
@@ -529,9 +541,12 @@ QString TPOnlineServices::makeCommandURL(const bool admin, const QLatin1StringVi
 
 void TPOnlineServices::makeNetworkRequest(const int requestid, const QUrl &url, const bool b_internal_signal_only)
 {
+	if (checkRequestPool(requestid))
+		return;
 	#ifndef QT_NO_DEBUG
 	qDebug() << url.toDisplayString() << " * "_L1  << QString::number(requestid);
 	#endif
+	setRequestToPool(requestid, true);
 	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{url})};
 	connect(reply, &QNetworkReply::finished, this, [this,requestid,reply,b_internal_signal_only]() {
 		handleServerRequestReply(requestid, reply, b_internal_signal_only);
@@ -549,20 +564,18 @@ void TPOnlineServices::handleServerRequestReply(const int requestid, QNetworkRep
 		const QHttpHeaders &headers{reply->headers()};
 		if (headers.contains("Content-Type"_L1)) {
 			const QString &fileType{headers.value("Content-Type"_L1).toByteArray()};
-			if (fileType.contains("application/octet-stream"_L1) || fileType.contains("text/plain"_L1)) {
+			if (fileType.contains("application/octet-stream"_L1) || fileType.contains("text/plain"_L1)) { //file download replies
 				file_contents = std::move(reply->readAll());
 				const qsizetype filename_sep_idx{file_contents.indexOf("^^"_L1)};
 				if (filename_sep_idx >= 2) {
 					reply_string = std::move(file_contents.sliced(0, filename_sep_idx));
 					static_cast<void>(file_contents.slice(filename_sep_idx + 2, file_contents.size() - filename_sep_idx - 2));
 					ret_code = TP_RET_CODE_SUCCESS;
-				}
-				else {
+				} else {
 					reply_string = std::move(tr("Error downloading file"));
 					ret_code = TP_RET_CODE_DOWNLOAD_FAILED;
 				}
-			}
-			else { //Only text replies, including text files
+			} else { //Only-text replies
 				reply_string = std::move(QString::fromUtf8(reply->readAll()));
 				if (reply->error())
 					reply_string += " ***** "_L1 + std::move(reply->errorString());
@@ -574,31 +587,30 @@ void TPOnlineServices::handleServerRequestReply(const int requestid, QNetworkRep
 				if (ret_code_idx >= 1) {
 					ret_code = reply_string.sliced(0, ret_code_idx).toInt();
 					static_cast<void>(reply_string.remove(0, ret_code_idx + 1));
-				}
-				else
+				} else {
 					ret_code = TP_RET_CODE_INVALID_REQUEST_METHOD;
+				}
 				reply_string = std::move(reply_string.trimmed());
 			}
-		}
-		else {
+		} else {
 			reply_string = std::move(tr("Http headers missing \"Content-Type\""));
 			connectToServer(); //disconnected from server? why? Ttry to reconnect
 		}
-	}
-	else {
+	} else {
 		reply_string = std::move(tr("No network reply"));
 		if (reply)
 			reply_string += " - "_L1 % reply->errorString();
 		connectToServer(); //disconnected from server? why? Ttry to reconnect
 	}
+	setRequestToPool(requestid, false);
 	if (!b_internal_signal_only) {
 		if (file_contents.isEmpty())
 			emit networkRequestProcessed(requestid, ret_code, reply_string);
 		else
 			emit fileReceived(requestid, ret_code, reply_string, file_contents);
-	}
-	else
+	} else {
 		emit _networkRequestProcessed(requestid, ret_code, reply_string, file_contents);
+	}
 }
 
 //curl -X POST -F file=@/home/guilherme/Documents/Fase_de_transição_-_Completo.txt "http://127.0.0.1/trainingplanner/?user=uc_guilherme_fortunato&upload&password=Guilherme_Fortunato"

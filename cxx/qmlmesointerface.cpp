@@ -26,9 +26,6 @@ void QMLMesoInterface::cleanUp()
 		delete m_splitsPage;
 	if (m_calendarPage)
 		delete m_calendarPage;
-	if (m_mesoFileOps)
-		delete m_mesoFileOps;
-
 	qDeleteAll(m_workoutPages);
 }
 
@@ -290,24 +287,6 @@ void QMLMesoInterface::sendMesocycleFileToClient()
 {
 	if (m_mesoModel->isProgramSent(m_mesoIdx))
 		return;
-	if (!m_mesoFileOps) {
-		m_mesoFileOps = new TPFileOps;
-		m_mesoFileOps->setCanDownloadOrGenerate(true);
-		m_mesoFileOps->setMesoIdx(m_mesoIdx);
-		m_mesoFileOps->setParentPage(m_mesoPage);
-	}
-	m_mesoFileOps->setFileName(std::move(*m_mesoModel->suggestedName(m_mesoIdx)));
-	m_mesoFileOps->setFileType(TPUtils::FT_TP_PROGRAM);
-	connect(m_mesoFileOps, &TPFileOps::fileAcquired, this, [this] (const int ret_code) mutable {
-		if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS) {
-			connect(m_mesoFileOps, &TPFileOps::fileSent, this, [this] (const bool success) {
-				//if (success)
-				//	m_mesoModel->setMetaData(m_mesoIdx, DBMesocyclesModel::MD_PROGRAM_SENT);
-			}, Qt::SingleShotConnection);
-			m_mesoFileOps->sendFileTo(TPUtils::MH_TPMESSAGES_MANAGER, QStringList{} <<
-											m_mesoFileOps->tpFileName().targetUser(), tr("Exercises Program"), true);
-		}
-	}, Qt::SingleShotConnection);
 	m_mesoFileOps->attemptToCreateOrGetFile();
 }
 
@@ -341,6 +320,7 @@ void QMLMesoInterface::getWorkoutPage(const QDate &date)
 void QMLMesoInterface::getMesocyclePage(const bool new_meso)
 {
 	if (!m_mesoComponent) {
+		createFileOps();
 		setMinimumStartDate(m_mesoModel->getMesoMinimumStartDate(m_mesoModel->client(m_mesoIdx), m_mesoIdx));
 
 		if (new_meso) {
@@ -359,8 +339,7 @@ void QMLMesoInterface::getMesocyclePage(const bool new_meso)
 		m_mesoProperties["mesoModel"_L1] = std::move(QVariant::fromValue(m_mesoModel));
 		m_mesoComponent = new QQmlComponent{appQmlEngine(), "TpQml.Pages", "MesocyclePage", QQmlComponent::Asynchronous};
 		connect(m_mesoComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) { getMesocyclePage(false); });
-	}
-	else {
+	} else {
 		if (!m_mesoPage) {
 			switch (m_mesoComponent->status()) {
 			case QQmlComponent::Ready:
@@ -378,8 +357,7 @@ void QMLMesoInterface::getMesocyclePage(const bool new_meso)
 			default: break;
 #endif
 			}
-		}
-		else {
+		} else {
 			appPagesListModel()->openPage(m_mesoPage);
 			showOptionsMenu(true);
 		}
@@ -393,9 +371,8 @@ void QMLMesoInterface::showOptionsMenu(const bool show_indicator, QQuickItem *it
 		m_optionsMenuProperties["mesoManager"_L1] = std::move(QVariant::fromValue(this));
 		m_optionsMenuComponent = new QQmlComponent{appQmlEngine(), "TpQml.Pages", "MesoOptionsMenu", QQmlComponent::Asynchronous};
 		connect(m_optionsMenuComponent, &QQmlComponent::statusChanged, this, [this,show_indicator,item]
-												(QQmlComponent::Status status) { showOptionsMenu(show_indicator, item); });
-	}
-	else {
+											(QQmlComponent::Status status) { showOptionsMenu(show_indicator, item); });
+	} else {
 		if (!m_optionsMenu) {
 			switch (m_optionsMenuComponent->status()) {
 			case QQmlComponent::Ready:
@@ -422,16 +399,62 @@ void QMLMesoInterface::showOptionsMenu(const bool show_indicator, QQuickItem *it
 			default: break;
 #endif
 			}
-		}
-		else {
+		} else {
 			//change visibility before changing the showIndicator property because the visibility is bound its value in TPPageMenu.entriesList
-			QMetaObject::invokeMethod(m_optionsMenu, "changeEntryVisibilityById", Q_ARG(int, TPFileOps::OT_Custom_2), Q_ARG(bool, show_indicator));
+			QMetaObject::invokeMethod(m_optionsMenu, "changeEntryVisibilityById", Q_ARG(int, OPTION_EXERCISES_PLANNER), Q_ARG(bool, show_indicator));
 			m_optionsMenu->setProperty("showIndicator", std::move(QVariant{show_indicator}));
 			if (show_indicator)
 				m_optionsMenu->setProperty("behaviour_enabled", std::move(QVariant{false}));
 			appPagesListModel()->openPopup(m_optionsMenu, item ? appItemManager()->AppHomePage() : m_mesoPage, Qt::AlignBaseline, item);
 		}
 	}
+}
+
+void QMLMesoInterface::createFileOps()
+{
+	m_mesoFileOps = new TPFileOps{};
+	m_mesoFileOps->setMesoIdx(m_mesoIdx);
+	m_mesoFileOps->setFileName(std::move(*m_mesoModel->suggestedName(m_mesoIdx)));
+	m_mesoFileOps->setCanDownloadOrGenerate(true);
+	m_mesoFileOps->setFileType(TPUtils::FT_TP_PROGRAM);
+	if (mesoForClient()) {
+		connect(m_mesoFileOps, &TPFileOps::fileAcquired, this, [this] (const int ret_code) mutable {
+			if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS) {
+				connect(m_mesoFileOps, &TPFileOps::fileSent, this, [this] (const bool success) {
+					//if (success)
+					//	m_mesoModel->setMetaData(m_mesoIdx, DBMesocyclesModel::MD_PROGRAM_SENT);
+				}, Qt::SingleShotConnection);
+				m_mesoFileOps->sendFileTo(TPUtils::MH_TPMESSAGES_MANAGER, QStringList{} <<
+											  m_mesoFileOps->tpFileName().targetUser(), tr("Exercises Program"), true);
+			}
+		});
+	}
+
+	m_instructionsFileOps = new TPFileOps{};
+	m_instructionsFileOps->setUseControls(true);
+	m_instructionsFileOps->setFileName(m_mesoModel->file(m_mesoIdx));
+	m_instructionsFileOps->setCanAddFile(ownMeso() || mesoForClient());
+	m_instructionsFileOps->setCanDownloadOrGenerate(!ownMeso() && !mesoForClient());
+	m_instructionsFileOps->setAddFileFilters(TPUtils::FT_DOCUMENTS);
+	if (m_instructionsFileOps->canAddFile()) {
+		m_instructionsFileOps->setSuggestedFileNameGenerator([this] (const QString &) -> TPFilePathPtr {
+			return m_mesoModel->suggestedName(m_mesoIdx, true);
+		});
+		connect(m_instructionsFileOps, &TPFileOps::fileAdded, this, [this] (const QString &filepath) {
+			m_mesoModel->setFile(m_mesoIdx, filepath);
+		});
+	}
+	connect(m_instructionsFileOps, &TPFileOps::fileRemovalRequested, this, [this] () {
+		m_mesoModel->setFile(m_mesoIdx, QString{});
+	});
+
+	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const DBMesocyclesModel::MesoFields field) {
+		if (meso_idx == m_mesoIdx && field == DBMesocyclesModel::MESO_FIELD_NAME) {
+			m_instructionsFileOps->renameFile(m_mesoModel->name(m_mesoIdx));
+			m_mesoModel->setFile(m_mesoIdx, m_instructionsFileOps->fileName());
+			m_mesoFileOps->setFileName(std::move(*m_mesoModel->suggestedName(m_mesoIdx)));
+		}
+	});
 }
 
 void QMLMesoInterface::createMesocyclePage()
@@ -448,21 +471,9 @@ void QMLMesoInterface::createMesocyclePage()
 	appPagesListModel()->openPage(m_mesoPage, std::move(tr("Program: ") % name()), [this] () {
 		m_mesoModel->removeMesoManager(m_mesoIdx);
 	});
+	m_instructionsFileOps->setParentPage(m_mesoPage);
+	m_mesoFileOps->setParentPage(m_mesoPage);
 	showOptionsMenu(true);
-
-	TPFileOps *meso_viewer_fileops{m_mesoPage->property("fileOps").value<TPFileOps*>()};
-	if (meso_viewer_fileops) {
-		meso_viewer_fileops->setSuggestedFileNameGenerator([this] (const QString &) -> TPFilePathPtr {
-			return m_mesoModel->suggestedName(m_mesoIdx, true);
-		});
-		connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this,meso_viewer_fileops]
-													(const uint meso_idx, const DBMesocyclesModel::MesoFields field) {
-			if (meso_idx == m_mesoIdx && field == DBMesocyclesModel::MESO_FIELD_NAME) {
-				meso_viewer_fileops->renameFile(m_mesoModel->name(m_mesoIdx));
-				m_mesoModel->setFile(m_mesoIdx, meso_viewer_fileops->fileName());
-			}
-		});
-	}
 
 	connect(m_mesoModel, &DBMesocyclesModel::metaDataChanged, this, [this] (const uint meso_idx, const DBMesocyclesModel::MetaData md_field) {
 		if (meso_idx == m_mesoIdx) {
@@ -523,6 +534,6 @@ void QMLMesoInterface::createMesocyclePage()
 void QMLMesoInterface::createOptionsMenu()
 {
 	QMetaObject::invokeMethod(m_optionsMenu, "setVisible", Q_ARG(int, OPTION_EXERCISES_PLANNER),
-														Q_ARG(bool, m_optionsMenuProperties.value("showIndicator").toBool()));
+												Q_ARG(bool, m_optionsMenuProperties.value("showIndicator").toBool()));
 	showOptionsMenu(true);
 }

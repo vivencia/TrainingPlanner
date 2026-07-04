@@ -37,9 +37,9 @@ public:
 	void setDropShadow(const bool drop_shadow);
 	inline bool keepAspectRatio() const { return m_aspectRatioMode == Qt::KeepAspectRatio; }
 	void setKeepAspectRatio(const bool keep_ar);
-	inline bool imageSizeFollowControlSize() const { return m_imageFollowControl.has_value() ? m_imageFollowControl.value() : false; }
+	inline bool imageSizeFollowControlSize() const { return m_imageFollowControl; }
 	void setImageSizeFollowControlSize(const bool follow);
-	inline bool fullWindowView() const { return m_fullWindowView.has_value() ? m_fullWindowView.value() : false; }
+	inline bool fullWindowView() const { return m_fullWindowView; }
 	void setFullWindowView(const bool fullview);
 	inline bool colorize() const { return m_canColorize; }
 	inline void setColorize(const bool colorize) { m_canColorize = colorize; }
@@ -76,9 +76,8 @@ private:
 	QImage m_image, m_imageDisabled, m_imageShadow;
 	QImage *m_imageToPaint{nullptr};
 	QSize m_imageSize;
-	bool m_dropShadow, m_canColorize;
-	std::optional<bool> m_imageFollowControl, m_fullWindowView;
-	std::optional<Qt::AspectRatioMode> m_aspectRatioMode;
+	bool m_dropShadow{false}, m_canColorize{false}, m_imageFollowControl{true}, m_fullWindowView{false};
+	Qt::AspectRatioMode m_aspectRatioMode{Qt::KeepAspectRatio};
 	double m_wscale{1.0}, m_hscale{1.0};
 	QPoint m_paintOrigin;
 
