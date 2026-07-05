@@ -33,7 +33,7 @@ ItemDelegate {
 	signal quickQuestionAnswered(button_clicked: int);
 
 	function exerciseFieldYPos(): int {
-		return delegate.mapToItem(ItemManager.AppPagesManager.homePage(), txtExerciseName.x, txtExerciseName.y).y;
+		return delegate.mapToItem(ItemManager.appPagesManager.homePage(), txtExerciseName.x, txtExerciseName.y).y;
 	}
 
 //private:

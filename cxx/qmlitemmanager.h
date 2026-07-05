@@ -28,17 +28,17 @@ class QmlItemManager : public QObject
 
 Q_OBJECT
 
-Q_PROPERTY(QQuickWindow* AppMainWindow READ AppMainWindow CONSTANT FINAL)
-Q_PROPERTY(PagesListModel* AppPagesManager READ AppPagesManager CONSTANT FINAL)
+Q_PROPERTY(QQuickWindow* appMainWindow READ appMainWindow CONSTANT FINAL)
+Q_PROPERTY(PagesListModel* appPagesManager READ appPagesManager CONSTANT FINAL)
 
 public:
 	explicit QmlItemManager();
 	void startQmlEngine(QQmlApplicationEngine *qml_engine);
 
-	Q_INVOKABLE inline QQuickItem *AppHomePage() const { return m_homePage; }
-	inline QQuickItem *AppPagesVisualParent() const { return m_appPagesVisualParent; }
-	inline QQuickWindow *AppMainWindow() const { return _appMainWindow; }
-	inline PagesListModel *AppPagesManager() const { return appPagesListModel(); }
+	Q_INVOKABLE inline QQuickItem *appHomePage() const { return m_homePage; }
+	inline QQuickItem *appPagesVisualParent() const { return m_appPagesVisualParent; }
+	inline QQuickWindow *appMainWindow() const { return _appMainWindow; }
+	inline PagesListModel *appPagesManager() const { return appPagesListModel(); }
 
 	Q_INVOKABLE void exitApp();
 	Q_INVOKABLE void displayImportDialogMessageAfterMesoSelection(const int meso_idx);

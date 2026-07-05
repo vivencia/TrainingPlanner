@@ -678,7 +678,7 @@ void TPFileOps::createSendFileDialog()
 				}
 #endif
 				appQmlEngine()->setObjectOwnership(m_sendFileDialog, QQmlEngine::CppOwnership);
-				m_sendFileDialog->setProperty("parent", QVariant::fromValue(appItemManager()->AppHomePage()));
+				m_sendFileDialog->setProperty("parent", QVariant::fromValue(appItemManager()->appHomePage()));
 				connect(m_sendFileDialog, SIGNAL(selectedOptions(int,QStringList,QString,bool)), this, SLOT(sendFileTo(int,QStringList,QString,bool)));
 				emit _sendFileDialogCreated();
 				break;

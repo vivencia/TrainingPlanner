@@ -209,7 +209,7 @@ TPPage {
 
 	function chooseExercise(): void {
 		exerciseChosen();
-		ItemManager.AppPagesManager.prevPage();
+		ItemManager.appPagesManager.prevPage();
 	}
 
 	FileOperations {

@@ -34,12 +34,12 @@ PagesListModel::PagesListModel(QObject *parent) : QAbstractListModel{parent}
 		}
 	}
 	else
-		insertHomePage(appItemManager()->AppHomePage());
+		insertHomePage(appItemManager()->appHomePage());
 	m_backKey = Qt::Key_Left;
 	#else
 	app_Pages_list_model = this;
 	m_backKey = Qt::Key_Back;
-	insertHomePage(appItemManager()->AppHomePage());
+	insertHomePage(appItemManager()->appHomePage());
 	#endif
 	roleToString(displayText)
 	roleToString(page)
@@ -190,8 +190,8 @@ void PagesListModel::openPopup(QObject *popup, QQuickItem *parentPage, const int
 	if (keepAbove.isValid() && keepAbove.toBool()) {
 		pageInfo *page_info{getPageInfo(parentPage)};
 		if (page_info) {
-			const QList<QObject*>::const_iterator _popup{std::find_if(page_info->tpPopups.cbegin(), page_info->tpPopups.cend(),
-																							[popup] (const QObject *tppopup) {
+			const QList<QObject*>::const_iterator _popup{std::find_if(page_info->tpPopups.cbegin(),
+														page_info->tpPopups.cend(), [popup] (const QObject *tppopup) {
 				return tppopup == popup;
 			})};
 			if (_popup == page_info->tpPopups.cend()) {

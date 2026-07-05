@@ -287,7 +287,7 @@ void TPMessagesManager::openChatWindow(TPChat *chat_manager)
 		}
 	}
 	else
-		appPagesListModel()->openPopup(chat_dialog, appItemManager()->AppHomePage());
+		appPagesListModel()->openPopup(chat_dialog, appItemManager()->appHomePage());
 }
 
 void TPMessagesManager::openChat(const uint user_idx)
@@ -472,7 +472,7 @@ void TPMessagesManager::createChatWindow_part2(TPChat *chat_manager)
 	}
 #endif
 	appQmlEngine()->setObjectOwnership(chat_dialog, QQmlEngine::CppOwnership);
-	chat_dialog->setProperty("parent", QVariant::fromValue(appItemManager()->AppHomePage()));
+	chat_dialog->setProperty("parent", QVariant::fromValue(appItemManager()->appHomePage()));
 	chat_manager->setChatWindow(chat_dialog);
 	m_chatsList.value(chat_manager->otherUserId())->dialog = chat_dialog;
 }

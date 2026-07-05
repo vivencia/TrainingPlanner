@@ -3,6 +3,7 @@ import QtQuick
 import TpQml
 
 MouseArea {
+	id: _control
 	propagateComposedEvents: true
 	pressAndHoldInterval: slideToClose ? 100 : 300
 	z: 1
@@ -27,6 +28,20 @@ MouseArea {
 	property bool _pressed: false
 	property bool _moved: false
 
+	//Used to propagate clicks to movingWidget as we want to keep the moving functionality working. Without this hack,
+	//itis either-or. Cannot be used if slideToClose is set to true because the interval of 100ms is too small to
+	//the trigger() event: it will receive stop() before emitting trigger();
+	Timer {
+		id: pressTimer
+		interval: _control.pressAndHoldInterval + 50
+		onTriggered: _control.mousePressed(_mouse);
+		property MouseEvent _mouse
+		function startTimer(mouse: MouseEvent): void {
+			_mouse = mouse;
+			start();
+		}
+	}
+
 	onReleased: (mouse) => {
 		if (!_pressed) {
 			mouse.accepted = false;
@@ -38,19 +53,19 @@ MouseArea {
 				movingFinished(movableWidget.x, movableWidget.y);
 				_moved = false;
 			}
-			mouse.accepted = true;
 		}
 	}
 
 	onClicked: (mouse) => mouse.accepted = false;
-	onPressed: (mouse) => mousePressed(mouse);
+	onPressed: (mouse) => pressTimer.startTimer();
 
 	onPressAndHold: (mouse) => {
+		pressTimer.stop();
 		_pressed = true;
 		mouse.accepted = true;
 		_mouse_pos_within_widget = movingWidget.mapToItem(movingWidget, mouse.x, mouse.y);
 		if (slideToClose)
-			_last_moving_pos = movingWidget.mapToItem(ItemManager.AppHomePage(), mouse.x, mouse.y);
+			_last_moving_pos = movingWidget.mapToItem(ItemManager.appHomePage(), mouse.x, mouse.y);
 	}
 
 	onPositionChanged: (mouse) => {
@@ -61,7 +76,7 @@ MouseArea {
 			_moved = true;
 			mouse.accepted = true;
 			if (slideToClose) {
-				const mouse_pos = movingWidget.mapToItem(ItemManager.AppHomePage(), mouse.x, mouse.y);
+				const mouse_pos = movingWidget.mapToItem(ItemManager.appHomePage(), mouse.x, mouse.y);
 				const x_delta = _last_moving_pos.x - mouse_pos.x;
 				if (Math.abs(x_delta) >= 20) {
 					if ( x_delta > 0)
@@ -70,8 +85,7 @@ MouseArea {
 						slideOutToSide(TPMouseArea.MA_RIGHT);
 					_pressed = false;
 					return;
-				}
-				else {
+				} else {
 				   const y_delta = _last_moving_pos.y - mouse_pos.y;
 				   if (Math.abs(y_delta) >= 20) {
 					   if ( y_delta > 0)
@@ -84,8 +98,8 @@ MouseArea {
 				}
 				_last_moving_pos = mouse_pos;
 			}
-		}
-		else
+		} else {
 			mouse.accepted = false;
+		}
 	}
 }

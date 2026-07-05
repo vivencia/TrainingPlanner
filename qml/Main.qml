@@ -26,7 +26,7 @@ ApplicationWindow {
 		active: AppUserModel.mainUserConfigured
 		asynchronous: true
 		sourceComponent: NavBar {
-			pagesModel: ItemManager.AppPagesManager
+			pagesModel: ItemManager.appPagesManager
 		}
 	}
 

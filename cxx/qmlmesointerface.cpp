@@ -367,7 +367,7 @@ void QMLMesoInterface::getMesocyclePage(const bool new_meso)
 void QMLMesoInterface::showOptionsMenu(const bool show_indicator, QQuickItem *item)
 {
 	if (!m_optionsMenuComponent) {
-		m_optionsMenuProperties["parentPage"_L1] = std::move(QVariant::fromValue(item ? appItemManager()->AppHomePage() : m_mesoPage));
+		m_optionsMenuProperties["parentPage"_L1] = std::move(QVariant::fromValue(item ? appItemManager()->appHomePage() : m_mesoPage));
 		m_optionsMenuProperties["mesoManager"_L1] = std::move(QVariant::fromValue(this));
 		m_optionsMenuComponent = new QQmlComponent{appQmlEngine(), "TpQml.Pages", "MesoOptionsMenu", QQmlComponent::Asynchronous};
 		connect(m_optionsMenuComponent, &QQmlComponent::statusChanged, this, [this,show_indicator,item]
@@ -385,7 +385,7 @@ void QMLMesoInterface::showOptionsMenu(const bool show_indicator, QQuickItem *it
 				}
 #endif
 				appQmlEngine()->setObjectOwnership(m_optionsMenu, QQmlEngine::CppOwnership);
-				m_optionsMenu->setProperty("parent", std::move(QVariant::fromValue(item ? appItemManager()->AppHomePage() : m_mesoPage)));
+				m_optionsMenu->setProperty("parent", std::move(QVariant::fromValue(item ? appItemManager()->appHomePage() : m_mesoPage)));
 				showOptionsMenu(show_indicator, item);
 				break;
 #ifndef QT_NO_DEBUG
@@ -405,7 +405,7 @@ void QMLMesoInterface::showOptionsMenu(const bool show_indicator, QQuickItem *it
 			m_optionsMenu->setProperty("showIndicator", std::move(QVariant{show_indicator}));
 			if (show_indicator)
 				m_optionsMenu->setProperty("behaviour_enabled", std::move(QVariant{false}));
-			appPagesListModel()->openPopup(m_optionsMenu, item ? appItemManager()->AppHomePage() : m_mesoPage, Qt::AlignBaseline, item);
+			appPagesListModel()->openPopup(m_optionsMenu, item ? appItemManager()->appHomePage() : m_mesoPage, Qt::AlignBaseline, item);
 		}
 	}
 }
@@ -467,7 +467,7 @@ void QMLMesoInterface::createMesocyclePage()
 	}
 #endif
 	appQmlEngine()->setObjectOwnership(m_mesoPage, QQmlEngine::CppOwnership);
-	m_mesoPage->setParentItem(appItemManager()->AppPagesVisualParent());
+	m_mesoPage->setParentItem(appItemManager()->appPagesVisualParent());
 	appPagesListModel()->openPage(m_mesoPage, std::move(tr("Program: ") % name()), [this] () {
 		m_mesoModel->removeMesoManager(m_mesoIdx);
 	});

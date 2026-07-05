@@ -32,12 +32,12 @@ TPPopup {
 
 	onMouseItemClicked: (mouse) => {
 		if (fullDialogVisible) {
-			if (ItemManager.AppPagesManager.isPopupAboveAllOthers(onlineMsgsDlg)) {
+			if (ItemManager.appPagesManager.isPopupAboveAllOthers(onlineMsgsDlg)) {
 				onlineMsgsDlg.mainIconUserDefinedY = onlineMsgsDlg.y;
 				shrink.start();
 			}
 			else
-				ItemManager.AppPagesManager.raisePopup(onlineMsgsDlg);
+				ItemManager.appPagesManager.raisePopup(onlineMsgsDlg);
 		}
 		else {
 			onlineMsgsDlg.mainIconUserDefinedX = onlineMsgsDlg.x;

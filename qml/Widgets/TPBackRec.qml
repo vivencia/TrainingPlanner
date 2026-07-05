@@ -22,7 +22,6 @@ Rectangle {
 	property int rotate_angle: 0
 	property int x_translation: 0
 	property int y_translation: 0
-	property size image_size: Qt.size(0, 0)
 
 	property color lightColor: AppSettings.primaryLightColor
 	property color darkColor: AppSettings.primaryDarkColor
@@ -33,6 +32,7 @@ Rectangle {
 
 	gradient: useGradient ? _gradient : null
 	color: backColor
+	clip: true
 	border.color: showBorder ? AppSettings.fontColor : "transparent"
 
 	Loader {

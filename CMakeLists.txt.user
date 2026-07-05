@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 20.0.0, 2026-07-04T15:27:18. -->
+<!-- Written by QtCreator 20.0.0, 2026-07-05T17:23:49. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -168,6 +168,7 @@
      <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">TrainingPlanner</value>
      <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">true</value>
      <value type="QString" key="ProjectExplorer.RunConfiguration.UniqueId"></value>
+     <value type="QString" key="RunConfiguration.Arguments">-user 1759256421787</value>
      <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
      <value type="int" key="RunConfiguration.UsePythonDebugger">1</value>
      <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
@@ -201,6 +202,7 @@
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">TrainingPlanner</value>
     <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">true</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.UniqueId"></value>
+    <value type="QString" key="RunConfiguration.Arguments">-user 1759256421787</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="int" key="RunConfiguration.UsePythonDebugger">1</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>

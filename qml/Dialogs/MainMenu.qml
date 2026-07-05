@@ -35,7 +35,7 @@ Drawer {
 	}
 
 	Connections {
-		target: ItemManager.AppPagesManager
+		target: ItemManager.appPagesManager
 		function onAppSettingsButtonEnabled(enabled: string) : void {
 			btnSettings.enabled = enabled;
 		}
@@ -51,7 +51,7 @@ Drawer {
 
 	contentItem {
 		Keys.onPressed: (event) => {
-			if (event.key === ItemManager.AppPagesManager.backKey()) {
+			if (event.key === ItemManager.appPagesManager.backKey()) {
 				event.accepted = true;
 				_mainMenu.close();
 			}
@@ -205,7 +205,7 @@ Drawer {
 
 		TPListView {
 			id: pagesList
-			model: ItemManager.AppPagesManager
+			model: ItemManager.appPagesManager
 			Layout.fillWidth: true
 			Layout.minimumHeight: _mainMenu.height * 0.35
 
@@ -233,7 +233,7 @@ Drawer {
 					opacity: 1
 				}
 
-				onClicked: ItemManager.AppPagesManager.openMainMenuShortCut(index);
+				onClicked: ItemManager.appPagesManager.openMainMenuShortCut(index);
 
 				swipe.right: Rectangle {
 					width: parent.width
@@ -256,7 +256,7 @@ Drawer {
 					}
 				} //swipe.right
 
-				swipe.onCompleted: ItemManager.AppPagesManager.closePage(index);
+				swipe.onCompleted: ItemManager.appPagesManager.closePage(index);
 			} //delegate: SwipeDelegate
 		} //ListView
 	} //ColumnLayout
@@ -284,7 +284,7 @@ Drawer {
 
 		property AllUsers _all_users
 		sourceComponent: AllUsers {
-			parentPage: ItemManager.AppPagesManager.homePage() as TPPage
+			parentPage: ItemManager.appPagesManager.homePage() as TPPage
 			onClosed: allUsersDialogLoader.active = false;
 			Component.onCompleted: allUsersDialogLoader._all_users = this;
 		}

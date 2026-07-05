@@ -135,7 +135,7 @@ void QmlMesoSplitInterface::createPlannerPage()
 	}
 	#endif
 	appQmlEngine()->setObjectOwnership(m_plannerPage, QQmlEngine::CppOwnership);
-	m_plannerPage->setParentItem(appItemManager()->AppPagesVisualParent());
+	m_plannerPage->setParentItem(appItemManager()->appPagesVisualParent());
 	m_swipeView = qobject_cast<QQuickItem*>(m_plannerPage->findChild<QQuickItem*>("swipeView"));
 	loadMesoSplitComponent();
 

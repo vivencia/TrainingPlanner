@@ -71,9 +71,9 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel) : QObject{p
 	connect(this, &DBUserModel::userModified, this, &DBUserModel::saveUserInfo);
 	connect(this, &DBUserModel::mainUserConfigurationFinished, this, [this] () {
 		appOsInterface()->initialCheck();
-		if (appItemManager()->AppHomePage()) { //When -test cml is used, AppHomePage() will be nullptr
-			appItemManager()->AppHomePage()->setProperty("loadClientMesos", mainUserConfigured() && isCoach(0));
-			appItemManager()->AppHomePage()->setProperty("loadOwnMesos", mainUserConfigured() && isClient(0));
+		if (appItemManager()->appHomePage()) { //When -test cml is used, appHomePage() will be nullptr
+			appItemManager()->appHomePage()->setProperty("loadClientMesos", mainUserConfigured() && isCoach(0));
+			appItemManager()->appHomePage()->setProperty("loadOwnMesos", mainUserConfigured() && isClient(0));
 		}
 	}, Qt::SingleShotConnection);
 	qDebug() << "DBUserModel::DBUserModel running on thread: " << thread()->isMainThread();
@@ -149,8 +149,8 @@ void DBUserModel::initUserSession()
 				m_mesoModel = new DBMesocyclesModel{this};
 				new PagesListModel{this};
 			#endif
-			if (appItemManager()->AppHomePage())
-				appItemManager()->AppHomePage()->setProperty("mesoModel", QVariant::fromValue(meso_model));
+			if (appItemManager()->appHomePage())
+				appItemManager()->appHomePage()->setProperty("mesoModel", QVariant::fromValue(meso_model));
 			appMainWindow()->setProperty("appPagesModel", QVariant::fromValue(appPagesListModel()));
 
 			appExercisesList()->initExercisesList();
@@ -297,7 +297,7 @@ void DBUserModel::requestPasswordFromUser(const int id, const QString &dialog_ti
 				}
 #endif
 				appQmlEngine()->setObjectOwnership(m_passwordDialog, QQmlEngine::CppOwnership);
-				m_passwordDialog->setProperty("parent", std::move(QVariant::fromValue(appItemManager()->AppHomePage())));
+				m_passwordDialog->setProperty("parent", std::move(QVariant::fromValue(appItemManager()->appHomePage())));
 				connect(m_passwordDialog, SIGNAL(passwordAcquired(bool,int,QString)), this, SIGNAL(passwordAcquired(bool,int,QString)));
 				requestPasswordFromUser(id, dialog_title, dialog_message);
 				break;
@@ -315,7 +315,7 @@ void DBUserModel::requestPasswordFromUser(const int id, const QString &dialog_ti
 			m_passwordDialog->setProperty("request_id", std::move(QVariant{id}));
 			m_passwordDialog->setProperty("title", std::move(QVariant{dialog_title}));
 			m_passwordDialog->setProperty("message", std::move(QVariant{dialog_message}));
-			appPagesListModel()->openPopup(m_passwordDialog, appItemManager()->AppHomePage());
+			appPagesListModel()->openPopup(m_passwordDialog, appItemManager()->appHomePage());
 		}
 	}
 }
@@ -1392,9 +1392,7 @@ void DBUserModel::downloadAvatarFromServer(const uint user_idx)
 	switch (request_id) {
 	case TP_RET_CODE_SERVER_UNREACHABLE:
 	case TP_RET_CODE_USER_OFFLINE:
-		return;
 	case TP_RET_CODE_NO_CHANGES_SUCCESS:
-		setAvatar(user_idx, tp_filename->toString(), true, false);
 		return;
 	default: break;
 	}

@@ -28,6 +28,7 @@ Popup {
 	property bool canSlideToClose: false
 	property bool useAlternateBackground: false
 	property bool visibilityCondition: false
+	property int backgroundRotation: 0
 	property string backGroundImage
 	property string configFieldName
 	property string defaultBackgroundColor: AppSettings.paneBackgroundColor
@@ -108,10 +109,10 @@ Popup {
 			backColor: _control.defaultBackgroundColor
 			showBorder: _control.showBorder
 			enableShadow: _control.enableEffects
+			rotate_angle: _control.backgroundRotation
 			implicitWidth: _control.width
 			implicitHeight: _control.height
 			radius: 8
-
 			Component.onCompleted: {_control.backgroundRec = this; }
 		}
 	}
@@ -144,7 +145,8 @@ Popup {
 
 			Component.onCompleted: {
 				_control.titleBar = this;
-				_control.mouseItem = this;
+				if (!_control.mouseItem)
+					_control.mouseItem = this;
 			}
 
 			TPButton {
@@ -277,7 +279,7 @@ Popup {
 	}
 
 	function realPageY(): int {
-		return parentPage === ItemManager.AppHomePage() ? 0 : parentPage ? parentPage.mapToGlobal(Qt.point(parentPage.y, 0)).y : 0;
+		return parentPage === ItemManager.appHomePage() ? 0 : parentPage ? parentPage.mapToGlobal(Qt.point(parentPage.y, 0)).y : 0;
 	}
 
 	function closePopup(): void {
@@ -298,9 +300,9 @@ Popup {
 			let component = Qt.createComponent("TpQml.Widgets", TPMouseArea, Qt.Asynchronous);
 
 			function finishCreation() {
-				mouse_area = component.createObject(_control.mouseItem, { enabled: _control.enabled, movableWidget: _control,
-														slideToClose: _control.canSlideToClose, movingWidget: _control.mouseItem,
-																					lockMovingToYAxis: _control.lockMovingToYAxis });
+				mouse_area = component.createObject(_control.mouseItem, { enabled: _control.enabled,
+					movableWidget: _control, slideToClose: _control.canSlideToClose, movingWidget: _control.mouseItem,
+																		lockMovingToYAxis: _control.lockMovingToYAxis });
 				mouse_area.mousePressed.connect(mouseAreaPressed);
 				mouse_area.movingFinished.connect(mouseAreaMovingFinished);
 				mouse_area.mouseClicked.connect(mouseItemClicked);
@@ -310,17 +312,17 @@ Popup {
 			}
 			function checkComponentStatus() {
 				switch (component.status) {
-					case Component.Ready:
-						component.statusChanged.disconnect(checkComponentStatus);
-						finishCreation();
-						break;
-					case Component.Loading:
-						break;
-					case Component.Null:
-					case Component.Error:
-						component.statusChanged.disconnect(checkComponentStatus);
-						console.log(component.errorString());
-						break;
+				case Component.Ready:
+					component.statusChanged.disconnect(checkComponentStatus);
+					finishCreation();
+					break;
+				case Component.Loading:
+					break;
+				case Component.Null:
+				case Component.Error:
+					component.statusChanged.disconnect(checkComponentStatus);
+					console.log(component.errorString());
+					break;
 				}
 			}
 			if (component.status === Component.Ready)
@@ -340,7 +342,8 @@ Popup {
 	}
 
 	function mouseAreaPressed(mouse: MouseEvent): void {
-		ItemManager.AppPagesManager.raisePopup(_control);
+		ItemManager.appPagesManager.raisePopup(_control);
+		_control.mouseItemClicked(mouse);
 	}
 
 	function mouseAreaSlide(side: int): void {
@@ -379,7 +382,7 @@ Popup {
 	}
 
 	function tpQmlOpen(parent_page: TPPage): void {
-		ItemManager.AppPagesManager.openPopup(this, parent_page, show_position);
+		ItemManager.appPagesManager.openPopup(this, parent_page, show_position);
 	}
 
 	function tpOpen(): void {

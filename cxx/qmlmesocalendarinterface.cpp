@@ -109,7 +109,7 @@ void QmlMesoCalendarInterface::createMesoCalendarPage()
 {
 	m_calPage = qobject_cast<QQuickItem*>(m_calComponent->createWithInitialProperties(m_calProperties, appQmlEngine()->rootContext()));
 	appQmlEngine()->setObjectOwnership(m_calPage, QQmlEngine::CppOwnership);
-	m_calPage->setParentItem(appItemManager()->AppPagesVisualParent());
+	m_calPage->setParentItem(appItemManager()->appPagesVisualParent());
 	appPagesListModel()->openPage(m_calPage, std::move(tr("Calendar: ") + m_mesoModel->name(m_mesoIdx)), [this] () { cleanUp(); });
 
 	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const DBMesocyclesModel::MesoFields field) {

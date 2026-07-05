@@ -133,7 +133,7 @@ void QmlUserInterface::createUserPage()
 {
 	m_userPage = static_cast<QQuickItem*>(m_userComponent->createWithInitialProperties(m_userProperties, appQmlEngine()->rootContext()));
 	appQmlEngine()->setObjectOwnership(m_userPage, QQmlEngine::CppOwnership);
-	m_userPage->setParentItem(appItemManager()->AppPagesVisualParent());
+	m_userPage->setParentItem(appItemManager()->appPagesVisualParent());
 	appPagesListModel()->openPage(m_userPage, std::move(tr("User Settings")));
 }
 
@@ -141,7 +141,7 @@ void QmlUserInterface::createSettingsPage()
 {
 	m_settingsPage = static_cast<QQuickItem*>(m_settingsComponent->create(appQmlEngine()->rootContext()));
 	appQmlEngine()->setObjectOwnership(m_settingsPage, QQmlEngine::CppOwnership);
-	m_settingsPage->setParentItem(appItemManager()->AppPagesVisualParent());
+	m_settingsPage->setParentItem(appItemManager()->appPagesVisualParent());
 	appPagesListModel()->openPage(m_settingsPage, std::move(tr("Settings")));
 }
 
@@ -149,7 +149,7 @@ void QmlUserInterface::createCoachesPage()
 {
 	m_coachesPage = static_cast<QQuickItem*>(m_coachesComponent->create(appQmlEngine()->rootContext()));
 	appQmlEngine()->setObjectOwnership(m_coachesPage, QQmlEngine::CppOwnership);
-	m_coachesPage->setParentItem(appItemManager()->AppPagesVisualParent());
+	m_coachesPage->setParentItem(appItemManager()->appPagesVisualParent());
 	appPagesListModel()->openPage(m_coachesPage, std::move(tr("Coaches")));
 }
 

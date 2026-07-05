@@ -758,8 +758,8 @@
         <location filename="../cxx/dbusermodel.cpp" line="192"/>
         <location filename="../cxx/dbusermodel.cpp" line="432"/>
         <location filename="../cxx/dbusermodel.cpp" line="447"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1557"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1587"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1555"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1585"/>
         <source>No</source>
         <translation type="unfinished"></translation>
     </message>
@@ -776,8 +776,8 @@
     <message>
         <location filename="../cxx/dbusermodel.cpp" line="432"/>
         <location filename="../cxx/dbusermodel.cpp" line="447"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1557"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1587"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1555"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1585"/>
         <source>Revoke</source>
         <translation type="unfinished"></translation>
     </message>
@@ -792,18 +792,18 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1643"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1641"/>
         <source>New coach!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1643"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1674"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1641"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1672"/>
         <source>Now that </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1644"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1642"/>
         <source> is your coach, you can send them messages using the Star Button on the Home screen</source>
         <translation type="unfinished"></translation>
     </message>
@@ -875,72 +875,72 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1555"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1585"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1553"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1583"/>
         <source> - unavailable</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1555"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1553"/>
         <source>The user is no longer available as your client. If you need to know more about this, contact them to find out the reason. Remove the user from your list of clients?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1585"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1583"/>
         <source>The user is no longer available as your coach. If you need to know more about this, contact them to find out the reason. Remove the user from your list of coaches?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1628"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1626"/>
         <source>Online account removed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1628"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1626"/>
         <source>Failed to remove online account</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1674"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1672"/>
         <source>New client!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1675"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1673"/>
         <source> is your client, you can send them messages using the Star Button on the Home screen</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1705"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1728"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1703"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1726"/>
         <source>Male</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1705"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1703"/>
         <source>Female</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1713"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1734"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1711"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1732"/>
         <source>User</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1714"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1736"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1712"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1734"/>
         <source>Coach</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1715"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1738"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1713"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1736"/>
         <source>Client</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1716"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1714"/>
         <source>Coach and Client</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1515,47 +1515,47 @@
 <context>
     <name>OSInterface</name>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="628"/>
+        <location filename="../cxx/osinterface.cpp" line="629"/>
         <source>Network interface: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="112"/>
+        <location filename="../cxx/osinterface.cpp" line="113"/>
         <source>Device is connected to the internet</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="112"/>
+        <location filename="../cxx/osinterface.cpp" line="113"/>
         <source>Device is not connected to the internet</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="125"/>
+        <location filename="../cxx/osinterface.cpp" line="126"/>
         <source>Your training routine seems to go well. Workout for the day is concluded</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="285"/>
+        <location filename="../cxx/osinterface.cpp" line="286"/>
         <source>Send file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="354"/>
+        <location filename="../cxx/osinterface.cpp" line="355"/>
         <source>View file with...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="654"/>
+        <location filename="../cxx/osinterface.cpp" line="655"/>
         <source>Error: cannot reach the TP Server</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="598"/>
+        <location filename="../cxx/osinterface.cpp" line="599"/>
         <source>Connected to server </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="598"/>
+        <location filename="../cxx/osinterface.cpp" line="599"/>
         <source>Server unreachable</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2680,53 +2680,48 @@
 <context>
     <name>TimerDialog</name>
     <message>
-        <location filename="../qml/Dialogs/TimerDialog.qml" line="62"/>
+        <location filename="../qml/Dialogs/TimerDialog.qml" line="57"/>
         <source>Stopwatch</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TimerDialog.qml" line="132"/>
+        <location filename="../qml/Dialogs/TimerDialog.qml" line="127"/>
         <source>Hours</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TimerDialog.qml" line="193"/>
+        <location filename="../qml/Dialogs/TimerDialog.qml" line="188"/>
         <source>Minutes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TimerDialog.qml" line="249"/>
+        <location filename="../qml/Dialogs/TimerDialog.qml" line="244"/>
         <source>Seconds</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TimerDialog.qml" line="302"/>
+        <location filename="../qml/Dialogs/TimerDialog.qml" line="297"/>
         <source>Start</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TimerDialog.qml" line="302"/>
+        <location filename="../qml/Dialogs/TimerDialog.qml" line="297"/>
         <source>Pause</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TimerDialog.qml" line="302"/>
+        <location filename="../qml/Dialogs/TimerDialog.qml" line="297"/>
         <source>Continue</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TimerDialog.qml" line="316"/>
+        <location filename="../qml/Dialogs/TimerDialog.qml" line="312"/>
         <source>Reset</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TimerDialog.qml" line="325"/>
+        <location filename="../qml/Dialogs/TimerDialog.qml" line="322"/>
         <source>Done</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../qml/Dialogs/TimerDialog.qml" line="325"/>
-        <source>Close</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

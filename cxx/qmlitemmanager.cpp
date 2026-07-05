@@ -84,7 +84,7 @@ void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
 			createGeneralMessagesPopup();
 
 			appUserModel()->initUserSession();
-			connect(AppHomePage(), SIGNAL(mesosViewChanged(bool)), this, SLOT(homePageViewChanged(bool)));
+			connect(appHomePage(), SIGNAL(mesosViewChanged(bool)), this, SLOT(homePageViewChanged(bool)));
 #ifndef Q_OS_ANDROID
 	#ifndef QT_NO_DEBUG
 			if (m_testType & TT_CORE)
@@ -179,7 +179,7 @@ void QmlItemManager::showFirstTimeDialog()
 			}
 		}
 		else
-			AppPagesManager()->openPopup(m_firstTimeDlg, m_homePage);
+			appPagesManager()->openPopup(m_firstTimeDlg, m_homePage);
 	}
 }
 
@@ -261,7 +261,7 @@ void QmlItemManager::getWeatherPage()
 				m_weatherComponent->disconnect();
 				m_weatherPage = static_cast<QQuickItem*>(m_weatherComponent->create(appQmlEngine()->rootContext()));
 				appQmlEngine()->setObjectOwnership(m_weatherPage, QQmlEngine::CppOwnership);
-				m_weatherPage->setParentItem(appItemManager()->AppPagesVisualParent());
+				m_weatherPage->setParentItem(appItemManager()->appPagesVisualParent());
 				appPagesListModel()->openPage(m_weatherPage, std::move(tr("Weather Forecast")));
 				break;
 	#ifndef QT_NO_DEBUG
@@ -498,7 +498,7 @@ void QmlItemManager::startMessagesManager()
 			}
 		}
 		else
-			AppPagesManager()->openPopup(m_messagesManagerPopup, m_homePage, Qt::AlignBaseline);
+			appPagesManager()->openPopup(m_messagesManagerPopup, m_homePage, Qt::AlignBaseline);
 	}
 }
 
@@ -583,7 +583,7 @@ void QmlItemManager::createStatisticsPage_part2()
 {
 	m_statisticsPage = static_cast<QQuickItem*>(m_statisticsComponent->create(appQmlEngine()->rootContext()));
 	appQmlEngine()->setObjectOwnership(m_statisticsPage, QQmlEngine::CppOwnership);
-	m_statisticsPage->setParentItem(appItemManager()->AppPagesVisualParent());
+	m_statisticsPage->setParentItem(appItemManager()->appPagesVisualParent());
 	appPagesListModel()->openPage(m_statisticsPage, std::move(tr("Statistics")));
 }
 

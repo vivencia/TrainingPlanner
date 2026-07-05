@@ -123,7 +123,7 @@ void DBMesocyclesModel::setCurrentMesosView(const bool own_mesos_view)
 		m_currentWorkingMeso = new_working_meso;
 		setWorkingCalendar(m_currentWorkingMeso);
 		int view_idx{-1};
-		QMetaObject::invokeMethod(appItemManager()->AppHomePage(), "mesosViewIndex", qReturnArg(view_idx));
+		QMetaObject::invokeMethod(appItemManager()->appHomePage(), "mesosViewIndex", qReturnArg(view_idx));
 		if (view_idx != -1)
 			appSettings()->setCustomValue(mesosViewIdxSetting, view_idx);
 	}
@@ -805,7 +805,7 @@ void DBMesocyclesModel::getAllMesocycles()
 		}
 		else {
 			disconnect(*conn);
-			QMetaObject::invokeMethod(appItemManager()->AppHomePage(), "setMesosViewIndex",
+			QMetaObject::invokeMethod(appItemManager()->appHomePage(), "setMesosViewIndex",
 											Q_ARG(int, appSettings()->getCustomValue(mesosViewIdxSetting, 0).toInt()));
 			if (m_ownMesos) {
 				connect(m_ownMesos, &HomePageMesoModel::currentIndexChanged, this, [this] () {

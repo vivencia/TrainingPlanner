@@ -68,7 +68,7 @@ void QmlExercisesDatabaseInterface::createExercisesPage(QmlWorkoutInterface *con
 	}
 #endif
 	appQmlEngine()->setObjectOwnership(m_exercisesPage, QQmlEngine::CppOwnership);
-	m_exercisesPage->setParentItem(appItemManager()->AppPagesVisualParent());
+	m_exercisesPage->setParentItem(appItemManager()->appPagesVisualParent());
 	appExercisesList()->clearSelectedEntries();
 	appPagesListModel()->openPage(m_exercisesPage, std::move(tr("Exercises Database")));
 	if (connect_page)

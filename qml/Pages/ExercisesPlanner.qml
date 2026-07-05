@@ -22,7 +22,7 @@ TPPage {
 	readonly property int splitPageHeight: AppSettings.pageHeight - topToolBar.height - bottomToolBar.height
 
 	Keys.onPressed: (event) => {
-		if (event.key === ItemManager.AppPagesManager.backKey()) {
+		if (event.key === ItemManager.appPagesManager.backKey()) {
 			if (swipeView.currentIndex !== 0) {
 				event.accepted = true;
 				swipeView.decrementCurrentIndex();

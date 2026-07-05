@@ -24,7 +24,6 @@ TPLabel {
 
 	enum BoxType{ TP_RADIOBOX, TP_CHECKBOX, TP_NONE }
 	signal clicked();
-	signal pressAndHold();
 
 	Rectangle {
 		id: indicator
@@ -70,22 +69,7 @@ TPLabel {
 	MouseArea {
 		enabled: _control.actionable
 		anchors.fill: _control
-
-		onClicked: {
-			if (_control.boxType === TPRadioButtonOrCheckBox.TP_CHECKBOX)
-				_control.checked = !_control.checked;
-			else if (_control.boxType === TPRadioButtonOrCheckBox.TP_RADIOBOX) {
-				if (_control.checked)
-					return;
-				if (!_control.buttonGroup)
-					_control.checked = true;
-				else
-					_control.buttonGroup.setChecked(_control, true)
-			}
-			_control.clicked();
-		}
-
-		onPressAndHold: _control.pressAndHold();
+		onClicked: _control.mouseClicked();
 	}
 
 	Component.onCompleted: {
@@ -96,5 +80,19 @@ TPLabel {
 	Component.onDestruction: {
 		if (_control.boxType === TPRadioButtonOrCheckBox.TP_RADIOBOX && _control.buttonGroup)
 			_control.buttonGroup.removeButton(this);
+	}
+
+	function mouseClicked(): void {
+		if (_control.boxType === TPRadioButtonOrCheckBox.TP_CHECKBOX)
+			_control.checked = !_control.checked;
+		else if (_control.boxType === TPRadioButtonOrCheckBox.TP_RADIOBOX) {
+			if (_control.checked)
+				return;
+			if (!_control.buttonGroup)
+				_control.checked = true;
+			else
+				_control.buttonGroup.setChecked(_control, true)
+		}
+		_control.clicked();
 	}
 }

@@ -87,11 +87,12 @@ OSInterface::OSInterface(QObject *parent) : QObject{parent}
 	_app_os_interface = this;
 	REGISTER_QML_SINGLETON(OSInterface, this);
 	m_connectionMessages.resize(3);
+	checkInternetConnection();
 	connect(qApp, &QCoreApplication::aboutToQuit, this, [this] () {
 		appOnlineServices()->userLogout(111111);
 	});
 	connect(appOnlineServices(), &TPOnlineServices::serverStatusChanged, this, [this]
-										(const uint online_status, const QString &server_address, const int request_id) {
+									(const uint online_status, const QString &server_address, const int request_id) {
 		localServerProcessResult(online_status);
 	}, Qt::QueuedConnection);
 #ifdef Q_OS_ANDROID
@@ -588,7 +589,7 @@ void OSInterface::setNetStatus(uint messages_index, bool success, QString &&mess
 	emit connectionStatusChanged();
 	appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
 			{QString{}, m_connectionMessages.join('\n')}, record_separator), Qt::AlignTop|Qt::AlignHCenter, success ?
-																								"set-completed" : "error");
+																							"set-completed" : "error");
 }
 
 void OSInterface::localServerProcessResult(const uint online_status, const QString &additional_message)

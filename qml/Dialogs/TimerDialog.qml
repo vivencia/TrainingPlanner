@@ -10,9 +10,14 @@ TPPopup {
 	keepAbove: true
 	width: AppSettings.pageWidth * 0.75
 	height: AppSettings.pageHeight * 0.3
-	backgroundRec: timerBackground
-	useAlternateBackground: true
+	backGroundImage: ":/images/backgrounds/backimage-timer.png"
+	backgroundRotation: 325
 	configFieldName: "timerDialogPosition"
+	showBorder: true
+	showTitleBar: true
+	show_position: Qt.AlignBaseline
+	mouseItem: chkStopWatch
+	defaultCoordinates: Qt.point((AppSettings.pageWidth - width)/2, (AppSettings.pageHeight - height)/2)
 
 //public:
 	property bool timePickerOnly: false
@@ -32,17 +37,7 @@ TPPopup {
 	onClosed: mainTimer.stopTimer();
 
 	onInitialTimeChanged: mainTimer.prepareTimer(initialTime);
-
-	TPBackRec {
-		id: timerBackground
-		useImage: true
-		rotate_angle: 325
-		image_size: Qt.size(width, height)
-		border.color: "white"
-		sourceImage: ":/images/backgrounds/backimage-timer.png"
-		radius: 8
-		clip: true
-	}
+	onMouseItemClicked: (mouse) => chkStopWatch.mouseClicked();
 
 	TPTimer {
 		id: mainTimer
@@ -63,9 +58,9 @@ TPPopup {
 			boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
 			checked: false
 			enabled: !_dlg_timer.timePickerOnly
-			Layout.leftMargin: 10
-			Layout.rightMargin: btnClose.width
 			Layout.topMargin: -5
+			Layout.leftMargin: 5
+			Layout.rightMargin: btnClose.width
 			Layout.fillWidth: true
 
 			onClicked: mainTimer.stopWatch = checked;
@@ -292,7 +287,7 @@ TPPopup {
 		RowLayout {
 			id: btnsRow
 			spacing: 5
-			Layout.leftMargin: 5
+			Layout.leftMargin: !_dlg_timer.timePickerOnly ? btnWidth / 2 : 5
 			Layout.preferredWidth: _dlg_timer.rowWidth
 
 			readonly property int btnWidth: _dlg_timer.width / 3 - 5
@@ -300,7 +295,8 @@ TPPopup {
 			TPButton {
 				id: btnStartPause
 				text: mainTimer.active ? qsTr("Pause") : mainTimer.paused ? qsTr("Continue") : qsTr("Start")
-				enabled: !_dlg_timer.timePickerOnly ? mainTimer.stopWatch ? true : mainTimer.totalSeconds > 0 : false
+				visible: !_dlg_timer.timePickerOnly
+				enabled: mainTimer.stopWatch ? true : mainTimer.totalSeconds > 0
 				Layout.preferredWidth: btnsRow.btnWidth
 
 				onClicked: {
@@ -316,14 +312,17 @@ TPPopup {
 				text: qsTr("Reset")
 				enabled: !_dlg_timer.timePickerOnly
 				Layout.preferredWidth: btnsRow.btnWidth
+				Layout.alignment: Qt.AlignHCenter
 
 				onClicked: mainTimer.resetTimer(mainTimer.active);
 			}
 
 			TPButton {
-				id: btnClose
-				text: _dlg_timer.timePickerOnly ? qsTr("Done") : qsTr("Close")
-				Layout.preferredWidth: btnsRow.btnWidth
+				id: btnDone
+				text: qsTr("Done")
+				visible: _dlg_timer.timePickerOnly
+				autoSize: true
+				Layout.alignment: Qt.AlignHCenter
 
 				onClicked: {
 					if (_dlg_timer.timePickerOnly)
@@ -336,8 +335,8 @@ TPPopup {
 
 	function processKeyEvents(event) {
 		switch (event.key) {
-			case Qt.Key_Enter:
-			case Qt.Key_Return:
+		case Qt.Key_Enter:
+		case Qt.Key_Return:
 			if (!_dlg_timer.timePickerOnly) {
 				if (btnStartPause.enabled) {
 					btnStartPause.forceActiveFocus();

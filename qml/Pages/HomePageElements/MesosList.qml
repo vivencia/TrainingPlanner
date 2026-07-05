@@ -217,7 +217,7 @@ Item {
 					message: qsTr("This action cannot be undone.")
 					imageSource: "remove"
 					keepAbove: true
-					parentPage: ItemManager.AppPagesManager.homePage() as TPPage
+					parentPage: ItemManager.appPagesManager.homePage() as TPPage
 
 					property string meso_name
 					onButton1Clicked: _control.mesoSubModel.mesoModel().removeMesocycle(delegate.mesoIdx);
