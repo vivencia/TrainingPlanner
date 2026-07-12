@@ -51,6 +51,13 @@ inline uint32_t fnv1a_hash(const QString &s) {
 #define roleToString(roleName) \
 	m_roleNames[PASTE(roleName, Role)] = std::move(QUOTE(roleName));
 
+#define ENABLE_TPMESSAGES_MANAGER
+#define ENABLE_GENERAL_MESSAGES_POPUP
+#ifndef QT_NO_DEBUG
+//#undef ENABLE_TPMESSAGES_MANAGER
+//#undef ENABLE_GENERAL_MESSAGES_POPUP
+#endif
+
 class TPUtils : public QObject
 {
 
@@ -148,6 +155,7 @@ public:
 	static constexpr QLatin1StringView STR_END_FORMATTED_EXPORT{"##$$"};
 	static constexpr QLatin1StringView previewImagesSubDir{"temp-img/"};
 
+	Q_DISABLE_COPY_MOVE(TPUtils)
 	explicit TPUtils(QObject *parent = nullptr);
 	inline ~TPUtils() { delete m_appLocale; }
 
@@ -280,8 +288,9 @@ public:
 	QDateTime getDateTimeFromOnlineString(const QString &datetime) const;
 
 	QString formatDateTime(const QDateTime &date_time, const int format = DTF_DATABASE,
-																const QLatin1Char &separator = record_separator) const;
-	QDateTime dateTimeFromString(const QString &strdate_time, const int format = DTF_DATABASE) const;
+																const QLatin1Char &separator = set_separator) const;
+	QDateTime dateTimeFromString(const QString &strdate_time, const int format = DTF_DATABASE,
+																const QLatin1Char &separator = set_separator) const;
 
 	QString makeCompositeValue(const QString &defaultValue, const uint n_fields, const QLatin1Char &chr_sep) const;
 	QString getCompositeValue(const uint idx, const QString &compositeString, const QLatin1Char &chr_sep) const;

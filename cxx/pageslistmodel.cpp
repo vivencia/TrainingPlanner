@@ -216,13 +216,15 @@ void PagesListModel::raisePopup(QObject* popup)
 	if (keepAbove.isValid() && keepAbove.toBool()) {
 		pageInfo *page_info{getPageInfo(popup)};
 		if (page_info) {
-			if (popup != page_info->tpPopups.constLast()) {
-				changePopupStackOrder(popup, page_info);
-				popup->setProperty("z", page_info->tpPopups.count() - 1);
-				const auto z_order{page_info->tpPopups.indexOf(popup)};
-				page_info->tpPopups.move(z_order, page_info->tpPopups.count() - 1);
-				popup->setProperty("visible", true);
-				QMetaObject::invokeMethod(popup, "forceActiveFocus");
+			if (!page_info->tpPopups.isEmpty()) {
+				if (popup != page_info->tpPopups.constLast()) {
+					changePopupStackOrder(popup, page_info);
+					popup->setProperty("z", page_info->tpPopups.count() - 1);
+					const auto z_order{page_info->tpPopups.indexOf(popup)};
+					page_info->tpPopups.move(z_order, page_info->tpPopups.count() - 1);
+					popup->setProperty("visible", true);
+					QMetaObject::invokeMethod(popup, "forceActiveFocus");
+				}
 			}
 		}
 	}

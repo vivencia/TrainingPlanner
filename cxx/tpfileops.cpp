@@ -708,8 +708,16 @@ void TPFileOps::sendFileToUsers(const QStringList &users, const QString &message
 	const QString &str_ctime{appUtils()->formatDateTime(QDateTime::currentDateTime())};
 	for (const auto &user : users) {
 		new_path.setOwnerUser(user);
-		const QString &encoded_message{appUtils()->makeEncodedMessage(TPUtils::tpmessage_prefix, m_filename.ownerUser(),
-													user, str_ctime, QString{}, message, new_path.relativeFilePath())};
+		const QString &encoded_message{appUtils()->makeEncodedMessage(
+				TPUtils::tpmessage_prefix,		//TPUtils::EF_HANDLER_ID
+				m_filename.ownerUser(),			//TPUtils::EF_SENDER
+				user,							//TPUtils::EF_RECEIVER
+				str_ctime,						//TPUtils::EF_CTIME
+				QString{},						//TPUtils::EF_EXP_TIME
+				message,						//TPUtils::EF_TEXT
+				new_path.relativeFilePath(),	//TPUtils::EF_REL_FILEPATH
+				QString{}						//TPUtils::EF_EXTRA
+		)};
 		if ((m_usews = appWSServer()->isConnectionOK(user, true))) {
 			ws_send_func(new_path, encoded_message);
 			return;

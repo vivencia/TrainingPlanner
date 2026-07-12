@@ -25,14 +25,6 @@ ApplicationWindow {
 	signal fileDialogClosed(filepath: string);
 	signal tpFileOpenInquiryResult(do_import: bool);
 
-	Connections {
-		target: ItemManager
-		function onCppDataForQMLReady() : void {
-			//lstWorkoutExercises.exercisesModel = itemManager.workoutModel();
-			//lstWorkoutExercises.currentIndex = itemManager.workoutModel().workingExercise;
-		}
-	}
-
 	TPPage {
 		id: homePage
 		objectName: "homePage"
@@ -40,31 +32,51 @@ ApplicationWindow {
 		anchors.fill: parent
 		signal mesosViewChanged(bool own_mesos);
 
+		property MesoManager mesoManager: null
 
-		ColumnLayout {
-			anchors.fill: parent
+		Connections {
+			target: ItemManager
+			function onCppDataForQMLReady() : void {
+			}
+		}
 
-			TPCoachesAndClientsList {
-				id: usersList
-				listClients: true
-				listCoaches: true
-				listConfirmed: true
-				enabled: selectedUsers.length === 0
-				Layout.fillWidth: true
-				Layout.preferredHeight: 300
+		Loader {
+			active: homePage.mesoManager !== null
+
+
+		sourceComponent: TPPageMenu {
+			id: _control
+			objectName: "pageMenuTest"
+			parentPage: homePage
+
+			entriesList: [
+				{ "label": qsTr("Send to client"), "image": "forward_", "btn_id": MesoManager.OPTION_SEND_TO_CLIENT,
+							"enabled": enabledCondition(MesoManager.OPTION_SEND_TO_CLIENT), "visible": true },
+				{ "label": qsTr("Save as"), "image": "download_", "btn_id": MesoManager.OPTION_SAVE_AS,
+							"enabled": enabledCondition(MesoManager.OPTION_SAVE_AS), "visible": true },
+				{ "label": qsTr("Send to"), "image": "attach_", "btn_id": MesoManager.OPTION_SEND_TO,
+							"enabled": enabledCondition(MesoManager.OPTION_SEND_TO), "visible": true },
+				{ "label": qsTr("Share"), "image": "share_", "btn_id": MesoManager.OPTION_SHARE,
+							"enabled": enabledCondition(MesoManager.OPTION_SHARE), "visible": Qt.platform.os === "android" },
+				{ "label": qsTr("Exercises Planner"), "image": "meso-splitplanner.png", btn_id: MesoManager.OPTION_EXERCISES_PLANNER,
+							"enabled": enabledCondition(MesoManager.OPTION_EXERCISES_PLANNER), "visible": showIndicator},
+			]
+
+			Component.onCompleted: tpOpen();
+			onMenuEntrySelected: (btn_id) => {
+				switch (btn_id) {
+				case MesoManager.OPTION_SEND_TO_CLIENT: homePage.mesoManager.sendMesocycleFileToClient(); break;
+				case MesoManager.OPTION_SAVE_AS: homePage.mesoManager.mesoFileOperations().doFileOperation(FileOperations.OT_Download); break;
+				case MesoManager.OPTION_SEND_TO: homePage.mesoManager.mesoFileOperations().doFileOperation(FileOperations.OT_Forward); break;
+				case MesoManager.OPTION_SHARE: homePage.mesoManager.mesoFileOperations().doFileOperation(FileOperations.OT_Share); break;
+				case MesoManager.OPTION_EXERCISES_PLANNE: homePage.mesoManager.getExercisesPlannerPage(); break;
+				}
 			}
 
-			TPButton {
-				text: "Info"
-				autoSize: true
-				onClicked: console.log(usersList.model.data(AppUserModel.USER_FIELD_NAME, 0, 0));
+			function enabledCondition(menu_entry: int): bool {
+				return true;
 			}
-
-			/*SendFileToDialog {
-				id: dlg
-				handle: -1
-				message: "Test message"
-			}*/
+		}
 		}
 	}
 

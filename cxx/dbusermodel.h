@@ -271,7 +271,10 @@ public:
 	void checkCoachesReponses();
 
 #ifndef Q_OS_ANDROID
-	inline DBMesocyclesModel *actualMesoModel() const { return !m_mesoModels.isEmpty() ? m_mesoModels.value(userId(0)) : nullptr; }
+	Q_INVOKABLE inline DBMesocyclesModel *actualMesoModel() const
+	{
+		return !m_mesoModels.isEmpty() ? m_mesoModels.value(userId(0)) : nullptr;
+	}
 	Q_INVOKABLE void getAllOnlineUsers();
 	Q_INVOKABLE void switchUser();
 	Q_INVOKABLE inline void createNewUser() { userSwitchingActions(true, std::move(generateUniqueUserId())); }
@@ -279,7 +282,7 @@ public:
 	void userSwitchingActions(const bool create, QString &&userid);
 	inline UserInfoListModel *allUsers() const { return m_allUsers; }
 #else
-	inline DBMesocyclesModel *actualMesoModel() const { return m_mesoModel; }
+	Q_INVOKABLE inline DBMesocyclesModel *actualMesoModel() const { return m_mesoModel; }
 #endif
 
 	bool mainUserConfigured() const;

@@ -78,6 +78,7 @@ public:
 
 	inline const QString &userid() const { return m_userid; }
 	inline void setUserId(QString &&userid) { m_userid = std::forward<QString>(userid);  }
+	inline void setUserId(const QString &userid) { m_userid = userid; }
 
 	inline const QLatin1StringView type() const { return m_type; }
 	inline void setType(const QLatin1StringView &type) { m_type = type; }

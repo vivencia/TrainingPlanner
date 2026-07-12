@@ -14,6 +14,7 @@ MouseArea {
 	required property var movableWidget
 	property bool lockMovingToYAxis: false
 	property bool slideToClose: false
+	property bool propagateClickEvent: false
 
 	enum SlideToSide { MA_TOP, MA_BOTTOM, MA_LEFT, MA_RIGHT }
 
@@ -29,7 +30,7 @@ MouseArea {
 	property bool _moved: false
 
 	//Used to propagate clicks to movingWidget as we want to keep the moving functionality working. Without this hack,
-	//itis either-or. Cannot be used if slideToClose is set to true because the interval of 100ms is too small to
+	//it's either-or. Cannot be used if slideToClose is set to true because the interval of 100ms is too small to
 	//the trigger() event: it will receive stop() before emitting trigger();
 	Timer {
 		id: pressTimer
@@ -57,10 +58,17 @@ MouseArea {
 	}
 
 	onClicked: (mouse) => mouse.accepted = false;
-	onPressed: (mouse) => pressTimer.startTimer();
+
+	onPressed: (mouse) => {
+		if (propagateClickEvent)
+			pressTimer.startTimer();
+		else
+			mousePressed(mouse);
+	}
 
 	onPressAndHold: (mouse) => {
-		pressTimer.stop();
+		if (propagateClickEvent)
+			pressTimer.stop();
 		_pressed = true;
 		mouse.accepted = true;
 		_mouse_pos_within_widget = movingWidget.mapToItem(movingWidget, mouse.x, mouse.y);

@@ -287,6 +287,8 @@ void QMLMesoInterface::sendMesocycleFileToClient()
 {
 	if (m_mesoModel->isProgramSent(m_mesoIdx))
 		return;
+	if (!m_mesoFileOps)
+		createFileOps();
 	m_mesoFileOps->attemptToCreateOrGetFile();
 }
 
@@ -405,6 +407,8 @@ void QMLMesoInterface::showOptionsMenu(const bool show_indicator, QQuickItem *it
 			m_optionsMenu->setProperty("showIndicator", std::move(QVariant{show_indicator}));
 			if (show_indicator)
 				m_optionsMenu->setProperty("behaviour_enabled", std::move(QVariant{false}));
+			if (m_mesoFileOps)
+				m_mesoFileOps->setParentPage(item ? appItemManager()->appHomePage() : m_mesoPage);
 			appPagesListModel()->openPopup(m_optionsMenu, item ? appItemManager()->appHomePage() : m_mesoPage, Qt::AlignBaseline, item);
 		}
 	}
@@ -412,7 +416,10 @@ void QMLMesoInterface::showOptionsMenu(const bool show_indicator, QQuickItem *it
 
 void QMLMesoInterface::createFileOps()
 {
+	if (m_mesoFileOps)
+		return;
 	m_mesoFileOps = new TPFileOps{};
+	m_mesoFileOps->setParentPage(m_mesoPage ? m_mesoPage : appItemManager()->appHomePage());
 	m_mesoFileOps->setMesoIdx(m_mesoIdx);
 	m_mesoFileOps->setFileName(std::move(*m_mesoModel->suggestedName(m_mesoIdx)));
 	m_mesoFileOps->setCanDownloadOrGenerate(true);
@@ -472,7 +479,6 @@ void QMLMesoInterface::createMesocyclePage()
 		m_mesoModel->removeMesoManager(m_mesoIdx);
 	});
 	m_instructionsFileOps->setParentPage(m_mesoPage);
-	m_mesoFileOps->setParentPage(m_mesoPage);
 	showOptionsMenu(true);
 
 	connect(m_mesoModel, &DBMesocyclesModel::metaDataChanged, this, [this] (const uint meso_idx, const DBMesocyclesModel::MetaData md_field) {

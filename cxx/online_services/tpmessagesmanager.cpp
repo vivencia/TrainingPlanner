@@ -53,24 +53,29 @@ TPMessage *TPMessagesManager::createTopLevelMessage(const QString &userid)
 	if (!top_level_msg) {
 		const int user_idx{appUserModel()->userIdxFromFieldValue(DBUserModel::USER_FIELD_ID, userid)};
 		top_level_msg = new TPMessage{m_rootMessage.get()};
+		top_level_msg->setUserId(userid);
+		top_level_msg->setType("topLevel"_L1);
 		top_level_msg->setTitle(std::move(user_idx != -1 ? appUserModel()->userName(user_idx) : tr("Unknown contact")));
 		top_level_msg->setIcon(std::move(user_idx != -1 ? appUserModel()->avatar(user_idx) : "unknown-user"));
+		addMessage(top_level_msg);
 		if (userid != tpsystem_userid) {
 			top_level_msg->insertAction(std::move(tr("Send Message")), TPMessage::AT_BUTTON,
-										[this,top_level_msg,userid] (const QVariant &data) -> QVariant {
-											openNewMessageDialog(userid);
-											return QVariant{};
-										});
+					[this,top_level_msg,userid] (const QVariant &data) -> QVariant {
+						openNewMessageDialog(userid);
+						return QVariant{};
+					});
 			top_level_msg->insertAction(std::move(tr("Clear")), TPMessage::AT_BUTTON,
-				[this,userid,top_level_msg] (const QVariant &data) -> QVariant {
-					top_level_msg->remove(top_level_msg->generalPurposeData().toBool() ? QLatin1StringView{} : TPUtils::chatmessage_prefix);
+					[this,userid,top_level_msg] (const QVariant &data) -> QVariant {
+						top_level_msg->remove(top_level_msg->generalPurposeData().toBool()
+										  ? QLatin1StringView{}
+										  : TPUtils::chatmessage_prefix);
 					return QVariant{};
 				});
 			top_level_msg->insertAction(tr("Include chat"), TPMessage::AT_CHECKBOX,
-										[this,userid,top_level_msg] (const QVariant &data) -> QVariant {
-											top_level_msg->setGeneralPurposeData(data.toBool());
-											return QVariant{};
-										});
+					[this,userid,top_level_msg] (const QVariant &data) -> QVariant {
+						top_level_msg->setGeneralPurposeData(data.toBool());
+						return QVariant{};
+					});
 		}
 	}
 	return top_level_msg;
@@ -151,8 +156,8 @@ void TPMessagesManager::sendTPMessage(const QString &target_user, const QString 
 	}
 	else {
 		auto conn{std::make_shared<QMetaObject::Connection>()};
-		*conn = connect(appWSServer(), &WSServer::connectionAttemptResult, this,
-						[this,conn,target_user,encoded_message,send_result,request_id] (const bool established, const QString &userid) {
+		*conn = connect(appWSServer(), &WSServer::connectionAttemptResult, this, [=,this]
+																	(const bool established, const QString &userid) {
 			if (userid == target_user) {
 				disconnect(*conn);
 				bool message_sent{false};
@@ -187,6 +192,7 @@ void TPMessagesManager::textMessageReceived(const QString &encoded_message)
 		TPMessage *new_message{new TPMessage{top_level_msg}};
 		new_message->setId(msg_id);
 		new_message->setUserId(std::move(userid));
+		new_message->setType(TPUtils::tpmessage_prefix);
 		new_message->setDateTime(std::move(appUtils()->dateTimeFromString(c_time)));
 		new_message->setExpiration(std::move(appUtils()->dateTimeFromString(
 										appUtils()->encodedMessageFieldValue(encoded_message, TPUtils::EF_EXP_TIME))));
@@ -199,6 +205,7 @@ void TPMessagesManager::textMessageReceived(const QString &encoded_message)
 			emit new_message->killMessage(new_message);
 			return QVariant{};
 		});
+		addMessage(new_message);
 	}
 }
 
@@ -222,11 +229,12 @@ TPChat *TPMessagesManager::createChatMessage(QString &&userid, const bool check_
 	if (!message(top_level_msg, msg_id)) {
 		TPMessage *chat_message{new TPMessage{top_level_msg}};
 		chat_message->setId(msg_id);
+		chat_message->setUserId(std::forward<QString>(userid));
+		chat_message->setType(TPUtils::chatmessage_prefix);
 		chat_message->setDateTime(std::move(QDateTime::currentDateTime()));
 		chat_message->setTitle(std::move(tr("Chat")));
 		chat_message->setIcon(std::move("chat_"_L1));
 		chat_message->setSticky(true);
-		chat_message->setUserId(std::forward<QString>(userid));
 		chat_message->setExtraImage(std::move("new-messages"_L1));
 		chat_message->insertAction(tr("Open chat"), TPMessage::AT_BUTTON, [this,chat_message] (const QVariant &) -> QVariant {
 			openChatWindow(m_chatsList.value(chat_message->userid())->chat);
@@ -253,6 +261,7 @@ TPChat *TPMessagesManager::createChatMessage(QString &&userid, const bool check_
 		});
 		st_Chat chat_data{new_chat, nullptr};
 		m_chatsList.insert(userid, &chat_data);
+		addMessage(chat_message);
 		return new_chat;
 	}
 	return nullptr;

@@ -802,20 +802,20 @@ QString TPUtils::formatDateTime(const QDateTime &date_time, const int format, co
 	QString str_datetime;
 	const DATE_FORMAT date_format{static_cast<DATE_FORMAT>(format & 0b11111)};
 	str_datetime = std::move(formatDate(date_time.date(), date_format));
-	str_datetime.append(separator);
+	str_datetime += separator;
 	const TIME_FORMAT time_format{static_cast<TIME_FORMAT>(format & 0b1111111100000)};
-	str_datetime = std::move(formatTime(date_time.time(), time_format));
-	str_datetime.append(separator);
+	str_datetime += formatTime(date_time.time(), time_format);
+	str_datetime += separator;
 	return str_datetime;
 }
 
-QDateTime TPUtils::dateTimeFromString(const QString &strdate_time, const int format) const
+QDateTime TPUtils::dateTimeFromString(const QString &strdate_time, const int format, const QLatin1Char &separator) const
 {
 	QDateTime date_time;
 	const DATE_FORMAT date_format{static_cast<DATE_FORMAT>(format & 0b11111)};
-	date_time.setDate(dateFromString(getCompositeValue(0, strdate_time, record_separator), date_format));
+	date_time.setDate(dateFromString(getCompositeValue(0, strdate_time, separator), date_format));
 	const TIME_FORMAT time_format{static_cast<TIME_FORMAT>(format & 0b1111111100000)};
-	date_time.setTime(timeFromString(getCompositeValue(1, strdate_time, record_separator), time_format));
+	date_time.setTime(timeFromString(getCompositeValue(1, strdate_time, separator), time_format));
 	return date_time;
 }
 

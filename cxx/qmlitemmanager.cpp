@@ -23,9 +23,10 @@
 #include <QQuickStyle>
 
 //Test includes
+
 #ifndef Q_OS_ANDROID
 #ifndef QT_NO_DEBUG
-#include "online_services/tpmessagesmanager.h"
+//#include "online_services/tpmessagesmanager.h"
 #endif
 #endif
 
@@ -75,28 +76,30 @@ void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
 			qDebug() << objUrl;
 #endif
 			qApp->exit(-1);
-		}
-		else {
+		} else {
 			_appMainWindow = qobject_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));
 			appQmlEngine()->rootContext()->setContextProperty("mainwindow"_L1, QVariant::fromValue(appMainWindow()));
 			m_homePage = appMainWindow()->findChild<QQuickItem*>("homePage");
 			m_appPagesVisualParent = appMainWindow()->findChild<QQuickItem*>("appStackView");
+#ifdef ENABLE_GENERAL_MESSAGES_POPUP
 			createGeneralMessagesPopup();
-
+#endif
 			appUserModel()->initUserSession();
 			connect(appHomePage(), SIGNAL(mesosViewChanged(bool)), this, SLOT(homePageViewChanged(bool)));
 #ifndef Q_OS_ANDROID
 	#ifndef QT_NO_DEBUG
-			if (m_testType & TT_CORE)
+			if (m_testType & TT_CORE) {
 				runTests();
-			else if (m_testType & TT_QML) {
+			} else if (m_testType & TT_QML) {
 				connect(appUserModel(), &DBUserModel::userLoggedIn, this, [this] (const bool first_checkin) {
-					connect(appMessagesManager(), &TPMessagesManager::TPMessageSent, this, [this] (const int requestid, const bool success) {
+					//emit cppDataForQMLReady();
+					m_homePage->setProperty("mesoManager", std::move(QVariant::fromValue(appUserModel()->actualMesoModel()->mesoManager(0))));
+					/*connect(appMessagesManager(), &TPMessagesManager::TPMessageSent, this, [this] (const int requestid, const bool success) {
 						if (requestid == 1111) {
 							qDebug() << (success ? "Message sent" : "Message not sent");
 							QMetaObject::invokeMethod(_appMainWindow, "openDialog");
 						}
-					});
+					});*/
 					//appMessagesManager()->sendTPMessage("1759256421787", appUtils()->string_strings({TPMessagesManager::tpbinarymessage_prefix,
 					//	"1759256421787/1759170252407/mesocycles//Hipertrofia 1.txt", "A simple message"}, record_separator), 1111);
 				  });
@@ -112,18 +115,16 @@ void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
 	if (args.count() > 1) {
 		if (args.at(1) == "-test"_L1) {
 			m_testType |= TT_CORE;
-		}
-		else if (args.at(1) == "-testqml"_L1) {
+		} else if (args.at(1) == "-testqml"_L1) {
 			m_testType |= TT_QML;
 			main_module = "Tests";
-		}
-		else if (args.at(1) == "-user"_L1) {
+		} else if (args.at(1) == "-user"_L1) {
 			if (!args.at(2).isEmpty()) {
 				appSettings()->setReadOnlyGroup(GLOBAL_GROUP, true);
 				appSettings()->setCurrentUser(args.at(2));
-			}
-			else
+			} else {
 				qDebug() << "Warning: Missing user id in the command line arguments"_L1;
+			}
 		}
 		if (m_testType & TT_CORE && !(m_testType & TT_QML)) { //test with no GUI
 			if (runTests())
@@ -151,8 +152,7 @@ void QmlItemManager::showFirstTimeDialog()
 	if (!m_firstTimeDlgComponent) {
 		m_firstTimeDlgComponent = new QQmlComponent{appQmlEngine(), "TpQml.Dialogs"_L1, "FirstTimeDialog"_L1, QQmlComponent::Asynchronous};
 		connect(m_firstTimeDlgComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) { showFirstTimeDialog(); });
-	}
-	else {
+	} else {
 		if (!m_firstTimeDlg) {
 			switch (m_firstTimeDlgComponent->status()) {
 			case QQmlComponent::Ready:
@@ -177,9 +177,9 @@ void QmlItemManager::showFirstTimeDialog()
 	#endif
 				return;
 			}
-		}
-		else
+		} else {
 			appPagesManager()->openPopup(m_firstTimeDlg, m_homePage);
+		}
 	}
 }
 
@@ -219,8 +219,7 @@ void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QStri
 		connect(m_simpleExercisesListComponent, &QQmlComponent::statusChanged, this, [this,parentPage,filter]
 										(QQmlComponent::Status status) { showSimpleExercisesList(parentPage, filter); });
 
-	}
-	else {
+	} else {
 		if (!m_simpleExercisesList) {
 			switch (m_simpleExercisesListComponent->status()) {
 			case QQmlComponent::Ready:
@@ -237,13 +236,12 @@ void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QStri
 				#endif
 				break;
 			}
-		}
-		else {
+		} else {
 			appExercisesList()->setFilter(filter);
 			int name_field_ypos{0};
 			QMetaObject::invokeMethod(parentPage, "getExerciseNameFieldYPos", Q_RETURN_ARG(int, name_field_ypos));
-			appPagesListModel()->openPopup(m_simpleExercisesList, parentPage, name_field_ypos <= appSettings()->pageHeight() / 2 ?
-																									Qt::AlignTop : Qt::AlignBaseline);
+			appPagesListModel()->openPopup(m_simpleExercisesList, parentPage,
+								name_field_ypos <= appSettings()->pageHeight() / 2 ? Qt::AlignTop : Qt::AlignBaseline);
 		}
 	}
 }
@@ -253,8 +251,7 @@ void QmlItemManager::getWeatherPage()
 	if (!m_weatherComponent) {
 		m_weatherComponent = new QQmlComponent{appQmlEngine(), "TpQml.Pages"_L1, "WeatherPage"_L1, QQmlComponent::Asynchronous};
 		connect(m_weatherComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) { getWeatherPage(); });
-	}
-	else {
+	} else {
 		if (!m_weatherPage) {
 			switch (m_weatherComponent->status()) {
 			case QQmlComponent::Ready:
@@ -275,9 +272,9 @@ void QmlItemManager::getWeatherPage()
 			default: return;
 	#endif
 			}
-		}
-		else
+		} else {
 			appPagesListModel()->openPage(m_weatherPage);
+		}
 	}
 }
 
@@ -309,6 +306,11 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 								QFlags<Qt::AlignmentFlag> position,const QString &image_source, const int msecs,
 													   const QString& button1text, const QString &button2text) const
 {
+#ifndef ENABLE_GENERAL_MESSAGES_POPUP
+	return;
+#endif
+	if (filename_or_message.isEmpty()) return;
+
 	if (!m_canDisplayMessage) {
 		st_generalMessage *message{new st_generalMessage};
 		message->message_id = message_id;
@@ -343,8 +345,7 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 			message = std::move(appUtils()->getFileName(filename_or_message));
 			break;
 		}
-	}
-	else if (message_id < TP_RET_CODE_CUSTOM_WARNING) {
+	} else if (message_id < TP_RET_CODE_CUSTOM_WARNING) {
 		icon_to_use = MI_Error;
 		switch (message_id) {
 		case TP_RET_CODE_CUSTOM_ERROR:
@@ -392,8 +393,7 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 			message = std::move(tr("Try it again later"));
 			break;
 		}
-	}
-	else if (message_id < TP_RET_CODE_CUSTOM_MESSAGE) {
+	} else if (message_id < TP_RET_CODE_CUSTOM_MESSAGE) {
 		icon_to_use = MI_Warning;
 		switch (message_id) {
 		case TP_RET_CODE_CUSTOM_WARNING:
@@ -417,8 +417,7 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 			message = std::move(tr("Operation canceled"));
 			break;
 		}
-	}
-	else {
+	} else {
 		icon_to_use = MI_None;
 		title = std::move(appUtils()->getCompositeValue(0, filename_or_message, record_separator));
 		message = std::move(appUtils()->getCompositeValue(1, filename_or_message, record_separator));
@@ -432,9 +431,9 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 		case MI_OK:			img_src = std::move("set-completed");	break;
 		case MI_None:												break;
 		}
-	}
-	else
+	} else {
 		img_src = image_source;
+	}
 
 	m_generalMessagesPopup->setProperty("show_position", std::move(QVariant{position}));
 	m_generalMessagesPopup->setProperty("title", std::move(QVariant{title}));
@@ -470,14 +469,14 @@ void QmlItemManager::startMessagesManager()
 	if (!m_messagesManagerComponent) {
 		m_messagesManagerComponent = new QQmlComponent{appQmlEngine(), "TpQml.Dialogs"_L1, "OnlineMessages"_L1, QQmlComponent::Asynchronous};
 		connect(m_messagesManagerComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) { startMessagesManager(); });
-	}
-	else {
+	} else {
 		if (!m_messagesManagerPopup) {
 			switch (m_messagesManagerComponent->status()) {
 			case QQmlComponent::Ready:
 				m_messagesManagerComponent->disconnect();
 				m_messagesManagerPopup = m_messagesManagerComponent->create(appQmlEngine()->rootContext());
 #ifndef QT_NO_DEBUG
+				m_messagesManagerPopup->setProperty("objectName", std::move(QVariant{"onlineMessages"}));
 				if (!m_messagesManagerPopup) {
 					qDebug() << m_messagesManagerComponent->errorString();
 					return;
@@ -496,9 +495,9 @@ void QmlItemManager::startMessagesManager()
 #endif
 				return;
 			}
-		}
-		else
+		} else {
 			appPagesManager()->openPopup(m_messagesManagerPopup, m_homePage, Qt::AlignBaseline);
+		}
 	}
 }
 
@@ -508,7 +507,7 @@ void QmlItemManager::homePageViewChanged(const bool own_mesos_view)
 	appUserModel()->actualMesoModel()->setCurrentMesosView(own_mesos_view);
 }
 
-void QmlItemManager::generalMessagesPopupClosed(QObject *)
+void QmlItemManager::generalMessagesPopupClosed()
 {
 	m_canDisplayMessage = m_messagesQueue.isEmpty();
 	if (!m_canDisplayMessage) {
@@ -537,24 +536,28 @@ bool QmlItemManager::runTests()
 void QmlItemManager::createGeneralMessagesPopup()
 {
 	if (!m_generalMessagesPopupComponent) {
+#ifndef QT_NO_DEBUG
+		m_generalMessagesPopupProperties["objectName"] = std::move(QVariant{"generalMessages"});
+#endif
 		m_generalMessagesPopupProperties["button1Text"] = std::move(QVariant{QString{}});
 		m_generalMessagesPopupProperties["button2Text"] = std::move(QVariant{QString{}});
 		m_generalMessagesPopupComponent = new QQmlComponent{appQmlEngine(), "TpQml.Widgets"_L1, "TPBalloonTip"_L1,
-																								QQmlComponent::Asynchronous};
-		connect(m_generalMessagesPopupComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status)
-																							{ createGeneralMessagesPopup();});
-	}
-	else {
+																							QQmlComponent::Asynchronous};
+		connect(m_generalMessagesPopupComponent, &QQmlComponent::statusChanged, this, [this]
+																					(QQmlComponent::Status status) {
+			createGeneralMessagesPopup();
+		});
+	} else {
 		if (!m_generalMessagesPopup) {
 			switch (m_generalMessagesPopupComponent->status()) {
 			case QQmlComponent::Ready:
 				m_generalMessagesPopupComponent->disconnect();
 				m_generalMessagesPopup = m_generalMessagesPopupComponent->createWithInitialProperties(
-															m_generalMessagesPopupProperties, appQmlEngine()->rootContext());
+														m_generalMessagesPopupProperties, appQmlEngine()->rootContext());
 				appQmlEngine()->setObjectOwnership(m_generalMessagesPopup, QQmlEngine::CppOwnership);
 				m_generalMessagesPopup->setProperty("parent", std::move(QVariant::fromValue(m_homePage)));
-				connect(m_generalMessagesPopup, SIGNAL(popupClosed(QObject*)), this, SLOT(generalMessagesPopupClosed(QObject*)));
-				connect(m_generalMessagesPopup, SIGNAL(closeActionExeced()), this, SLOT(generalMessagesNoButtonClicked()));
+				connect(m_generalMessagesPopup, SIGNAL(popupClosed(QObject*)), this, SLOT(generalMessagesNoButtonClicked(QObject*)));
+				connect(m_generalMessagesPopup, SIGNAL(closeActionExeced()), this, SLOT(generalMessagesPopupClosed()));
 				generalMessagesPopupClosed();
 				break;
 			case QQmlComponent::Loading:

@@ -148,7 +148,7 @@ public:
 
 	inline int generateUniqueId() const
 	{
-		return fnv1a_hash(m_subDirs % m_fileName);
+		return fnv1a_hash(m_fullPath);
 	}
 
 	inline bool isOK() const { return !m_fileName.isEmpty() && !m_ownerUser.isEmpty(); }

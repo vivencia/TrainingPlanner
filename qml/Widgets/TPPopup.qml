@@ -48,7 +48,7 @@ Popup {
 	property bool globalPopup: false
 	property bool open_in_window: false
 	property Item reference_widget: null
-	property int show_position: Qt.AlignCenter
+	property int show_position: Qt.AlignCenter //Use Qt.AlignBaseline when position(x,y) is retrieved from a config file
 	property TPMouseArea mouse_area: null
 
 //private:
@@ -95,7 +95,7 @@ Popup {
 	}
 
 	onMouseItemChanged: createMouseArea();
-	Component.onCompleted: createMouseArea();
+	//Component.onCompleted: createMouseArea();
 
 	Loader {
 		active: !_control.useAlternateBackground
@@ -283,32 +283,29 @@ Popup {
 	}
 
 	function closePopup(): void {
-		closeActionExeced();
 		close();
+		closeActionExeced();
 	}
 
 	function backKeyPressed(): void {
 		closePopup();
 	}
 
-	property bool _creating: false
 	function createMouseArea(): void {
-		if (_control._creating)
-			return;
 		if (mouseItem && !mouse_area) {
-			_control._creating = true;
 			let component = Qt.createComponent("TpQml.Widgets", TPMouseArea, Qt.Asynchronous);
 
+			//Concerning TPMouseArea.propagateClickEvent: so far, there is no need to create a separate property
+			//(in TPPopup) for it. It's only used for the titleBar so it can have clickable widgets on it
 			function finishCreation() {
 				mouse_area = component.createObject(_control.mouseItem, { enabled: _control.enabled,
 					movableWidget: _control, slideToClose: _control.canSlideToClose, movingWidget: _control.mouseItem,
-																		lockMovingToYAxis: _control.lockMovingToYAxis });
+							propagateClickEvent: _control.showTitleBar, lockMovingToYAxis: _control.lockMovingToYAxis });
 				mouse_area.mousePressed.connect(mouseAreaPressed);
 				mouse_area.movingFinished.connect(mouseAreaMovingFinished);
 				mouse_area.mouseClicked.connect(mouseItemClicked);
 				if (canSlideToClose)
 					mouse_area.slideOutToSide.connect(mouseAreaSlide);
-				_control._creating = false;
 			}
 			function checkComponentStatus() {
 				switch (component.status) {
@@ -329,15 +326,16 @@ Popup {
 				finishCreation();
 			else
 				component.statusChanged.connect(checkComponentStatus);
-		}
-		else if (mouseItem && mouse_area) {
-			mouse_area.parent = mouseItem;
-			mouse_area.movingWidget = mouseItem;
+		} else if (mouseItem && mouse_area) {
+			if (mouse_area.movingWidget !== mouseItem) {
+				mouse_area.parent = mouseItem;
+				mouse_area.movingWidget = mouseItem;
+			}
 		}
 	}
 
 	function mouseAreaMovingFinished(x: int, y: int): void {
-		if (_control.configFieldName !== "")
+		if (_control.configFieldName.length > 0)
 			AppSettings.setCustomValue(_control.configFieldName, Qt.point(x, y));
 	}
 
@@ -371,9 +369,9 @@ Popup {
 	}
 
 	function tpopen__(): void {
-		if (show_position === Qt.AlignBaseline)
+		if (show_position === Qt.AlignBaseline) {
 			showInWindow();
-		else {
+		} else {
 			if (open_in_window)
 				showAlignedInWindow();
 			else
@@ -413,22 +411,20 @@ Popup {
 			_start_y_pos = -height;
 			_end_y_pos = realPageY();
 			_start_x_pos = _end_x_pos = (AppSettings.pageWidth - width) / 2;
-		}
-		else if (show_position & Qt.AlignVCenter)
+		} else if (show_position & Qt.AlignVCenter) {
 			_start_y_pos = _end_y_pos = (AppSettings.windowHeight - height) / 2;
-		else if (show_position & Qt.AlignBottom) {
+		} else if (show_position & Qt.AlignBottom) {
 			_start_y_pos = AppSettings.windowHeight + height;
 			_end_y_pos = realPageY() + parentPage.height - height;
 			_start_x_pos = _end_x_pos = (AppSettings.pageWidth - width) / 2;
 		}
-		if (show_position & Qt.AlignHCenter)
+		if (show_position & Qt.AlignHCenter) {
 			_start_x_pos = _end_x_pos = (AppSettings.pageWidth - width) / 2;
-		else if (show_position & Qt.AlignLeft) {
+		} else if (show_position & Qt.AlignLeft) {
 			_start_x_pos = -width;
 			_end_x_pos = 0;
 			_start_y_pos = _end_y_pos = (AppSettings.windowHeight - height) / 2;
-		}
-		else if (show_position & Qt.AlignRight) {
+		} else if (show_position & Qt.AlignRight) {
 			_start_x_pos = AppSettings.windowWidth;
 			_end_x_pos = AppSettings.windowWidth - width;
 			_start_y_pos = _end_y_pos = (AppSettings.windowHeight - height) / 2;

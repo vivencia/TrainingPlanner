@@ -83,10 +83,10 @@ signals:
 public slots:
 	void homePageViewChanged(const bool own_mesos_view);
 	inline void qmlPasswordDialogClosed_slot(int resultCode, const QString &password) { emit qmlPasswordDialogClosed(resultCode, password); }
-	inline void generalMessagesNoButtonClicked() { emit generalMessagesPopupClicked(0); }
+	inline void generalMessagesNoButtonClicked(QObject *) { emit generalMessagesPopupClicked(0); }
 	inline void generalMessagesButton1Clicked() { emit generalMessagesPopupClicked(1); }
 	inline void generalMessagesButton2Clicked() { emit generalMessagesPopupClicked(2); }
-	void generalMessagesPopupClosed(QObject * = nullptr);
+	void generalMessagesPopupClosed();
 
 private:
 	QmlExercisesDatabaseInterface *m_exercisesListManager{nullptr};

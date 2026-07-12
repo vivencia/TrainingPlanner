@@ -6,7 +6,6 @@ import QtQuick.Layouts
 import TpQml
 
 TPPopup {
-	objectName: "TPBalloonTip"
 	id: _balloon
 	keepAbove: false
 	showTitleBar: false
@@ -37,6 +36,7 @@ TPPopup {
 
 //private:
 	property int finalXPos: 0
+	property bool _close_on_timer_finished
 
 	ColumnLayout {
 		id: mainLayout
@@ -46,8 +46,7 @@ TPPopup {
 			top: parent.top
 			left: parent.left
 			right: parent.right
-			margins: 0
-			topMargin: -10
+			margins: 2
 		}
 
 		TPLabel {
@@ -94,34 +93,6 @@ TPPopup {
 				visible: _balloon.message.length > 0
 				Layout.fillWidth: true
 				Layout.preferredHeight: Math.max(contentHeight, imgElement.height) + 10
-
-				/*Loader {
-					active: !_balloon.movable
-					asynchronous: true
-					anchors.fill: parent
-
-					sourceComponent:  TPMouseArea {
-						movingWidget: parent
-						movableWidget: _balloon
-
-						property point prevPos
-
-						onPressed: (mouse) => prevPos = { x: mouse.x, y: mouse.y };
-						onPositionChanged: (mouse) => {
-							const deltaX = mouse.x - prevPos.x;
-							if (Math.abs(deltaX) >= 10) {
-								x += deltaX;
-								if (deltaX > 0)
-									_balloon.finalXPos = AppSettings.pageWidth + 300;
-								else
-									_balloon.finalXPos = -300;
-								alternateCloseTransition.start();
-								_balloon.closePopup();
-							}
-							prevPos = { x: mouse.x, y: mouse.y };
-						}
-					}
-				} *///Loader
 			}
 		}
 
@@ -189,34 +160,24 @@ TPPopup {
 		running: false
 		repeat: false
 
-		property bool bCloseOnFinished
-
 		onTriggered: {
-			if (bCloseOnFinished)
+			if (_balloon._close_on_timer_finished)
 				_balloon.closePopup();
 			else
 				_balloon.tpOpen();
 		}
-
-		function delayedOpen(timeout: int): void {
-			bCloseOnFinished = false;
-			interval = timeout;
-			start();
-		}
-
-		function openTimed(timeout: int): void {
-			bCloseOnFinished = true;
-			interval = timeout;
-			start();
-			_balloon.tpOpen();
-		}
 	}
 
 	function showTimed(timeout: int): void {
-		hideTimer.openTimed(timeout);
+		_balloon.tpOpen();
+		_close_on_timer_finished = true;
+		hideTimer.interval = timeout;
+		hideTimer.start();
 	}
 
 	function showLate(timeout: int): void {
-		hideTimer.delayedOpen(timeout);
+		_close_on_timer_finished = false;
+		hideTimer.interval = timeout;
+		hideTimer.start();
 	}
 }

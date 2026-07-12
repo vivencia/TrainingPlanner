@@ -588,8 +588,8 @@ void OSInterface::setNetStatus(uint messages_index, bool success, QString &&mess
 	m_connectionMessages[messages_index] = std::forward<QString>(message);
 	emit connectionStatusChanged();
 	appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
-			{QString{}, m_connectionMessages.join('\n')}, record_separator), Qt::AlignTop|Qt::AlignHCenter, success ?
-																							"set-completed" : "error");
+		{QString{}, m_connectionMessages.at(messages_index)}, record_separator), Qt::AlignTop|Qt::AlignHCenter, success
+																							? "set-completed" : "error");
 }
 
 void OSInterface::localServerProcessResult(const uint online_status, const QString &additional_message)
@@ -711,7 +711,7 @@ void OSInterface::commandLocalServer(const QString &title, const QString &comman
 	const int requestid{appUtils()->generateUniqueId(seed)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(appUserModel(), &DBUserModel::passwordAcquired, this, [=,this]
-														(const bool proceed, const int request_id, const QString &passwd) {
+													(const bool proceed, const int request_id, const QString &passwd) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			if (proceed) {
@@ -720,10 +720,10 @@ void OSInterface::commandLocalServer(const QString &title, const QString &comman
 					serverProcessFinished(server_script_proc, exit_code, exit_status);
 				});
 				server_script_proc->start(tp_server_config_script , {command, "-p="_L1 % passwd}, QIODeviceBase::ReadOnly);
-			}
-			else
+			} else {
 				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
-															{title, "Operation canceled by the user"_L1}, record_separator));
+														{title, "Operation canceled by the user"_L1}, record_separator));
+			}
 		}
 	});
 	appUserModel()->requestPasswordFromUser(requestid, title, "Your system user password is required"_L1);

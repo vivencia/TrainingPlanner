@@ -32,7 +32,6 @@ Rectangle {
 
 	gradient: useGradient ? _gradient : null
 	color: backColor
-	clip: true
 	border.color: showBorder ? AppSettings.fontColor : "transparent"
 
 	Loader {

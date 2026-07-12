@@ -313,6 +313,8 @@ void UserInfoListModel::removeUserInfo(const int row)
 void UserInfoListModel::userModified(const uint user_idx, const uint field)
 {
 	const int row{findRow(user_idx)};
+	if (row < 0) return;
+
 	switch (field) {
 #ifndef Q_OS_ANDROID
 	case USER_MODIFIED_SWITCHING:

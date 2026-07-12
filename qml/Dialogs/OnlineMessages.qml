@@ -9,7 +9,6 @@ import TpQml.Widgets
 import TpQml.User
 
 TPPopup {
-	objectName: "onlineMessages"
 	id: onlineMsgsDlg
 	keepAbove: true
 	backGroundImage: fullDialogVisible ? ":/images/backgrounds/backimage-messages.jpg" : ""
