@@ -30,6 +30,8 @@ Q_OBJECT
 
 public:
 	static constexpr QLatin1StringView sqliteApp{"sqlite3"_L1};
+	static constexpr QLatin1StringView cmdsSubDir{"cmds.dir/"_L1};
+	static constexpr QLatin1StringView cmd_file_extension{".cmd"};
 
 	TPDatabaseTable(const TPDatabaseTable &other) = delete;
 	TPDatabaseTable& operator() (const TPDatabaseTable &other) = delete;
@@ -56,9 +58,9 @@ public:
 	std::pair<bool,bool> clearTable();
 	std::pair<bool,bool> removeTemporaries();
 
-	void parseCmdFile(const QString &filename);
+	static QString cmdsFilePath();
+	static void parseCmdFile(const QString &filename);
 
-	inline const QStringList &databaseFilenamesPool() const { return m_databaseFilenamesPool;}
 	bool execReadOnlyQuery(const QString &str_query);
 	bool execSingleWriteQuery(const QString &str_query);
 	bool execMultipleWritesQuery(const QStringList &queries);
@@ -89,7 +91,6 @@ protected:
 	QSqlDatabase m_sqlLiteDB;
 	QSqlQuery m_workingQuery;
 	QString m_strQuery;
-	QStringList m_databaseFilenamesPool;
 	const QLatin1StringView *m_tableName{nullptr};
 	const QLatin1StringView (*m_fieldNames)[2]{nullptr};
 	int m_uniqueID, m_fieldCount;
@@ -100,9 +101,10 @@ protected:
 
 	explicit TPDatabaseTable(const uint table_id, DBModelInterface* dbmodel_interface = nullptr);
 
+	static QStringList databaseFilenamesPool;
 	static constexpr QLatin1StringView dbfile_extension{ ".db.sqlite"_L1 };
 	void setUpConnection();
-	bool createServerCmdFile(const QString &dir, const std::initializer_list<QString> &command_parts, const bool overwrite = false) const;
+	bool createServerCmdFile(const std::initializer_list<QString> &command_parts, const bool overwrite = false) const;
 
 private:
 	QHash<ThreadManager::StandardOps, std::function<void(void *param)>> m_threadedFunctions;

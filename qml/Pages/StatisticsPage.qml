@@ -4,10 +4,8 @@ import QtCharts
 import QtQuick.Layouts
 
 import TpQml
-
-import "../TPWidgets"
-import "../Dialogs"
-import ".."
+import TpQml.Widgets
+import TpQml.Dialogs
 
 TPPage {
 	id: statisticsPage
@@ -158,7 +156,6 @@ TPPage {
 								imageSource: "calendar.png"
 								width: 30
 								height: 30
-								fixedSize: true
 
 								anchors {
 									left: txtStartDate.right
@@ -194,7 +191,6 @@ TPPage {
 								imageSource: "calendar.png"
 								width: 30
 								height: 30
-								fixedSize: true
 
 								anchors {
 									left: txtEndDate.right
@@ -260,7 +256,7 @@ TPPage {
 						}
 
 
-						TPCheckBox {
+						TPRadioButtonOrCheckBox {
 							Layout.fillWidth: true
 							text: exercisesModel.count > 0 ? exercisesModel.get(index).text : ""
 							checked: appStatistics ? appStatistics.exerciseIncluded(index) : false

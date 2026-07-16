@@ -3,6 +3,7 @@
 #include "dbusermodel.h"
 #include "tpfilepath.h"
 #include "tputils.h"
+#include "online_services/tponlineservices.h"
 
 #include <QColor>
 #include <QFontInfo>
@@ -23,8 +24,8 @@ TPSettings::TPSettings(QObject *parent) : QSettings{parent}
 	auto save_config = [this] () -> void {
 		m_appExiting = true;
 		sync();
-		if (exportToUserConfig(currentUser()))
-			appUserModel()->sendFileToServer(*m_configFilePath);
+		if (appUserModel()->onlineAccount(0) && exportToUserConfig(currentUser()))
+			appOnlineServices()->sendFileToServer(*m_configFilePath);
 		m_timer.stop();
 	};
 	connect(qApp, &QCoreApplication::aboutToQuit, this, save_config);

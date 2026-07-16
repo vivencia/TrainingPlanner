@@ -228,5 +228,6 @@
         <file>images/no-image.png</file>
         <file>images/text_preview.png</file>
         <file>images/flat/arrow-icon.png</file>
+        <file>images/flat/search.png</file>
     </qresource>
 </RCC>

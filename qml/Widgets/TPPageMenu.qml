@@ -68,8 +68,8 @@ TPPopup {
 
 		sourceComponent: TPBackRec {
 			showBorder: true
-			backColor: AppSettings.primaryDarkColor
 			radius: 8
+			enableShadow: true
 
 			Canvas {
 				id: canvas
@@ -82,16 +82,6 @@ TPPopup {
 				anchors {
 					horizontalCenter: parent.horizontalCenter
 					verticalCenter: parent.verticalCenter
-				}
-
-				Connections {
-					target: _menu
-					function onEnabledChanged() { canvas.requestPaint(); }
-					function onExpandedChanged() { canvas.requestPaint(); }
-					function onVisibleChanged() {
-						if (_menu.visible)
-							canvas.requestPaint();
-					}
 				}
 
 				onPaint: {
@@ -115,10 +105,20 @@ TPPopup {
 					_context.fillStyle = _menu.enabled ? AppSettings.fontColor : AppSettings.disabledFontColor
 					_context.fill();
 				}
+
+				Connections {
+					target: _menu
+					function onEnabledChanged() { canvas.requestPaint(); }
+					function onExpandedChanged() { canvas.requestPaint(); }
+					function onVisibleChanged() {
+						if (_menu.visible)
+							canvas.requestPaint();
+					}
+				}
 			} //Canvas
 
 			Component.onCompleted: _menu.mouseItem = this;
-		} //indicator
+		} //TPBackRec(indicator)
 	} //Loader
 
 	ListView {

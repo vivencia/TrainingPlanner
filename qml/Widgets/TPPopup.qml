@@ -138,7 +138,6 @@ Popup {
 
 		sourceComponent: TPBackRec {
 			radius: 8
-			backColor: AppSettings.paneBackgroundColor
 			opacity: 0.8
 			height: _control.titleBarHeight
 			visible: _control.showTitleBar

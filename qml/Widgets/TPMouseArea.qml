@@ -15,6 +15,7 @@ MouseArea {
 	property bool lockMovingToYAxis: false
 	property bool slideToClose: false
 	property bool propagateClickEvent: false
+	property Item viewPort: ItemManager.appHomePage()
 
 	enum SlideToSide { MA_TOP, MA_BOTTOM, MA_LEFT, MA_RIGHT }
 
@@ -73,7 +74,7 @@ MouseArea {
 		mouse.accepted = true;
 		_mouse_pos_within_widget = movingWidget.mapToItem(movingWidget, mouse.x, mouse.y);
 		if (slideToClose)
-			_last_moving_pos = movingWidget.mapToItem(ItemManager.appHomePage(), mouse.x, mouse.y);
+			_last_moving_pos = movingWidget.mapToItem(viewPort, mouse.x, mouse.y);
 	}
 
 	onPositionChanged: (mouse) => {
@@ -84,7 +85,7 @@ MouseArea {
 			_moved = true;
 			mouse.accepted = true;
 			if (slideToClose) {
-				const mouse_pos = movingWidget.mapToItem(ItemManager.appHomePage(), mouse.x, mouse.y);
+				const mouse_pos = movingWidget.mapToItem(viewPort, mouse.x, mouse.y);
 				const x_delta = _last_moving_pos.x - mouse_pos.x;
 				if (Math.abs(x_delta) >= 20) {
 					if ( x_delta > 0)

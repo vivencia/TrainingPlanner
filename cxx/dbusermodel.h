@@ -313,13 +313,6 @@ public:
 	Q_INVOKABLE void sendRequestToCoaches(UserInfoListModel *users_list);
 	Q_INVOKABLE void getOnlineCoachesList(const bool get_list_only = false);
 
-	int sendFileToServer(const TPFilePath &tp_filename, const bool removeremove_local_file = false);
-	int downloadFileFromServer(const TPFilePath &tp_filename);
-	void removeFileFromServer(const TPFilePath &tp_filename);
-	int listFilesFromServer(const QString &subdir, const QString &targetUser, const QString &filter = QString{});
-	void sendCmdFileToServer(const QString &cmd_filename);
-	void downloadCmdFilesFromServer(const QString &subdir);
-
 	int exportToFile(const uint user_idx, const TPFilePath &tp_filename, const bool write_header) const;
 	int exportToFormattedFile(const uint user_idx, const TPFilePath &tp_filename) const;
 	int importFromFile(const TPFilePath &tp_filename);
@@ -353,9 +346,6 @@ signals:
 	void coachOnlineStatus(bool registered);
 	void userProfileAcquired(const QString &userid, const int ret_code);
 	void userPasswordAvailable(const QString &password);
-	void fileDownloaded(const int ret_code, const uint requestid, const TPFilePath &tp_filepath);
-	void fileUploaded(const bool success, const uint requestid, const int ret_code);
-	void filesListReceived(const bool success, const uint requestid, const QStringList& files_list);
 	void onlineDevicesListReceived();
 	void cmdFileCreated(const QString &dir);
 	//Only used in desktop for development purposes, but must be here so that the QML parser does not complain
@@ -371,7 +361,7 @@ private:
 	QList<QStringList> m_usersData;
 	int n_devices{0};
 	QString m_onlineAccountId, m_password, m_defaultAvatar, m_emptyString, m_network_msg_title;
-	std::optional<bool> mb_singleDevice, mb_userLoggedIn, mb_coachRegistered;
+	std::optional<bool> mb_userLoggedIn, mb_coachRegistered;
 	UserInfoListModel *m_allUsersInfo{nullptr};
 	bool mb_canConnectToServer{false}, mb_coachPublic{false}, mb_MainUserInfoChanged{false};
 	QTimer *m_mainTimer{nullptr};
@@ -393,8 +383,6 @@ private:
 	QString generateUniqueUserId() const;
 	void onlineCheckIn();
 	void loginUser();
-	void onlineCheckinActions();
-	void getOnlineDevicesList();
 	void switchToUser(const QString &new_userid, const QString &test_username = QString{});
 	void downloadAllUserFiles(const QString &userid);
 	void checkIfCoachRegisteredOnline();

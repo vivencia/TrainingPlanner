@@ -64,7 +64,7 @@ std::pair<QVariant,QVariant> DBMesoCalendarTable::removeMesoCalendar(const QStri
 	if (success)
 	{
 		m_strQuery.prepend("PRAGMA busy_timeout = 5000;"_L1);
-		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
+		cmd_ok = createServerCmdFile({sqliteApp, dbFileName(false), m_strQuery});
 	}
 	return std::pair<QVariant,QVariant>{success, cmd_ok};
 }

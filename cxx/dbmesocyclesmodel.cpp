@@ -13,6 +13,7 @@
 #include "tpfilepath.h"
 #include "tpsettings.h"
 #include "translationclass.h"
+#include "online_services/tponlineservices.h"
 
 #include <QQuickItem>
 
@@ -740,7 +741,7 @@ QString DBMesocyclesModel::formatFieldToImport(const uint field, const QString &
 void DBMesocyclesModel::removeMesoFiles(const uint meso_idx)
 {
 	auto meso_filename{suggestedName(meso_idx)};
-	appUserModel()->removeFileFromServer(*meso_filename);
+	appOnlineServices()->removeFileFromServer(*meso_filename);
 	static_cast<void>(QFile::remove(meso_filename->toString()));
 	static_cast<void>(QFile::remove(file(meso_idx)));
 }

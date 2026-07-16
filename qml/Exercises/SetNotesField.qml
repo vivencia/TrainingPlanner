@@ -48,6 +48,6 @@ ColumnLayout {
 		visible: false
 		Layout.fillWidth: true
 
-		onTextAltered: (_text) => _control.editFinished(_text);
+		textEdited: _control.editFinished(text);
 	}
 }

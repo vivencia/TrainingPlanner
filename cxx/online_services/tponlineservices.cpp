@@ -3,7 +3,10 @@
 #include "scan_network.h"
 #include "websocketserver.h"
 #include "../dbusermodel.h"
+#include "../qmlitemmanager.h"
 #include "../osinterface.h"
+#include "../tpdatabasetable.h"
+#include "../tpfilepath.h"
 #include "../tpsettings.h"
 #include "../tputils.h"
 #include "../return_codes.h"
@@ -18,9 +21,9 @@
 #include <QThread>
 
 using namespace Qt::StringLiterals;
-
 TPOnlineServices* TPOnlineServices::_appOnlineServices{nullptr};
 
+constexpr uint file_upload_max_size{8*1024*1024};
 constexpr QLatin1StringView server_address{"http://%1:%2/trainingplanner/"_L1};
 static const QString &root_user{"admin"_L1};
 static const QString &root_passwd{"admin"_L1};
@@ -34,7 +37,7 @@ TPOnlineServices::TPOnlineServices(QObject *parent) : QObject{parent}, m_onlineS
 
 void TPOnlineServices::testServerConnection(const QString &address, const QString &port, const int requestid)
 {
-	if (checkRequestPool(requestid))
+	if (checkRequestPool(requestid, "testServerConnection()"_L1))
 		return;
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid,address,port]
@@ -118,7 +121,7 @@ void TPOnlineServices::connectToServer()
 #ifndef Q_OS_ANDROID
 void TPOnlineServices::getAllUsers(const int requestid)
 {
-	if (checkRequestPool(requestid))
+	if (checkRequestPool(requestid, "getAllUsers()"_L1))
 		return;
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,conn,requestid]
@@ -131,33 +134,33 @@ void TPOnlineServices::getAllUsers(const int requestid)
 			emit networkListReceived(request_id, ret_code, users);
 		}
 	});
-	const QUrl &url{makeCommandURL(true, "allusers"_L1)};
+	const QUrl url{makeCommandURL(true, "allusers"_L1)};
 	makeNetworkRequest(requestid, url, true);
 }
 #endif
 
 void TPOnlineServices::checkUserAccount(const int requestid, const QString &query, const QString &passwd)
 {
-	const QUrl &url{makeCommandURL(true, "checkaccount"_L1, query, "userpassword"_L1, passwd)};
+	const QUrl url{makeCommandURL(true, "checkaccount"_L1, query, "userpassword"_L1, passwd)};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::getOnlineUserData(const int requestid, const QString &user_id)
 {
-	const QUrl &url{makeCommandURL(true, "onlinedata"_L1, user_id)};
+	const QUrl url{makeCommandURL(true, "onlinedata"_L1, user_id)};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::userLogin(const int requestid)
 {
-	const QUrl &url{makeCommandURL(false, "login"_L1, appWSServer()->port())};
+	const QUrl url{makeCommandURL(false, "login"_L1, appWSServer()->port(), "device"_L1, appOsInterface()->deviceID())};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::userLogout(const int requestid)
 {
 	if (appUserModel()->mainUserLoggedIn()) {
-		const QUrl &url{makeCommandURL(false, "logout"_L1)};
+		const QUrl url{makeCommandURL(false, "logout"_L1, QString{}, "device"_L1, appOsInterface()->deviceID())};
 		makeNetworkRequest(requestid, url);
 	}
 }
@@ -165,7 +168,7 @@ void TPOnlineServices::userLogout(const int requestid)
 void TPOnlineServices::registerUser(const int requestid)
 {
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,requestid] (const QString &key, const QString &value) {
-		const QUrl &url{makeCommandURL(true, "adduser"_L1, key, "userpassword"_L1, value)};
+		const QUrl url{makeCommandURL(true, "adduser"_L1, key, "userpassword"_L1, value)};
 		makeNetworkRequest(requestid, url);
 	}, Qt::SingleShotConnection);
 	appKeyChain()->readKey(appUserModel()->userId(0));
@@ -173,29 +176,23 @@ void TPOnlineServices::registerUser(const int requestid)
 
 void TPOnlineServices::removeUser(const int requestid, const QString &userid)
 {
-	const QUrl &url{makeCommandURL(true, "deluser"_L1, userid)};
+	const QUrl url{makeCommandURL(true, "deluser"_L1, userid)};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::getPeerAddress(const int requestid, const QString &userid)
 {
-	const QUrl &url{makeCommandURL(false, "getpeeraddress"_L1, userid)};
-	makeNetworkRequest(requestid, url);
-}
-
-void TPOnlineServices::addDevice(const int requestid, const QString &device_id)
-{
-	const QUrl &url{makeCommandURL(false, "adddevice"_L1, device_id)};
+	const QUrl url{makeCommandURL(false, "getpeeraddress"_L1, userid)};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::getDevicesList(const int requestid)
 {
-	if (checkRequestPool(requestid))
+	if (checkRequestPool(requestid, "getDevicesList()"_L1))
 		return;
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
-													(const int request_id, const int ret_code, const QString &ret_string) {
+												(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			QStringList devices_list;
@@ -204,170 +201,288 @@ void TPOnlineServices::getDevicesList(const int requestid)
 			emit networkListReceived(request_id, ret_code, devices_list);
 		}
 	});
-	const QUrl &url{makeCommandURL(false, "getdeviceslist"_L1)};
+	const QUrl url{makeCommandURL(false, "getdeviceslist"_L1)};
 	makeNetworkRequest(requestid, url, true);
-}
-
-void TPOnlineServices::delDevice(const int requestid, const QString &device_id)
-{
-	const QUrl &url{makeCommandURL(false, "deldevice"_L1, device_id)};
-	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::addOrRemoveCoach(const int requestid, const bool bAdd)
 {
-	const QUrl &url{makeCommandURL(false, bAdd ? "addcoach"_L1 : "delcoach"_L1)};
+	const QUrl url{makeCommandURL(false, bAdd ? "addcoach"_L1 : "delcoach"_L1)};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::changePassword(const int requestid, const QString &old_passwd, const QString &new_passwd)
 {
-	const QUrl &url{makeCommandURL(false, "changepassword"_L1, old_passwd, "newpassword"_L1, new_passwd)};
+	const QUrl url{makeCommandURL(false, "changepassword"_L1, old_passwd, "newpassword"_L1, new_passwd)};
 	makeNetworkRequest(requestid, url, false);
 }
 
 void TPOnlineServices::getOnlineCoachesList(const int requestid)
 {
-	const QUrl &url{makeCommandURL(false, "getonlinecoaches"_L1)};
+	const QUrl url{makeCommandURL(false, "getonlinecoaches"_L1)};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::sendRequestToCoach(const int requestid, const QString& coach_net_name)
 {
-	const QUrl &url{makeCommandURL(false, "requestcoach"_L1, coach_net_name)};
+	const QUrl url{makeCommandURL(false, "requestcoach"_L1, coach_net_name)};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::checkClientsRequests(const int requestid)
 {
-	const QUrl &url{makeCommandURL(false, "listclientsrequests"_L1)};
+	const QUrl url{makeCommandURL(false, "listclientsrequests"_L1)};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::removeClientRequest(const int requestid, const QString &client)
 {
-	const QUrl &url{makeCommandURL(false, "deleteclientrequest"_L1, client)};
+	const QUrl url{makeCommandURL(false, "deleteclientrequest"_L1, client)};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::acceptClientRequest(const int requestid, const QString &client)
 {
-	const QUrl &url{makeCommandURL(false, "acceptclientrequest"_L1, client)};
+	const QUrl url{makeCommandURL(false, "acceptclientrequest"_L1, client)};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::rejectClientRequest(const int requestid, const QString &client)
 {
-	const QUrl &url{makeCommandURL(false, "rejectclientrequest"_L1, client)};
+	const QUrl url{makeCommandURL(false, "rejectclientrequest"_L1, client)};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::checkCoachesAnswers(const int requestid)
 {
-	const QUrl &url{makeCommandURL(false, "listcoachesanswers"_L1)};
+	const QUrl url{makeCommandURL(false, "listcoachesanswers"_L1)};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::removeCoachAnwers(const int requestid, const QString &coach)
 {
-	const QUrl &url{makeCommandURL(false, "deletecoachanswer"_L1, coach)};
+	const QUrl url{makeCommandURL(false, "deletecoachanswer"_L1, coach)};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::acceptCoachAnswer(const int requestid, const QString &coach)
 {
-	const QUrl &url{makeCommandURL(false, "acceptcoachanswer"_L1, coach)};
+	const QUrl url{makeCommandURL(false, "acceptcoachanswer"_L1, coach)};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::rejectCoachAnswer(const int requestid, const QString &coach)
 {
-	const QUrl &url{makeCommandURL(false, "rejectcoachanswer"_L1, coach)};
+	const QUrl url{makeCommandURL(false, "rejectcoachanswer"_L1, coach)};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::checkCurrentClients(const int requestid)
 {
-	const QUrl &url{makeCommandURL(false, "getclients"_L1)};
+	const QUrl url{makeCommandURL(false, "getclients"_L1)};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::removeClientFromCoach(const int requestid,
 												const QString &client)
 {
-	const QUrl &url{makeCommandURL(false, "removecurclient"_L1, client)};
+	const QUrl url{makeCommandURL(false, "removecurclient"_L1, client)};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::checkCurrentCoaches(const int requestid)
 {
-	const QUrl &url{makeCommandURL(false, "getcoaches"_L1)};
+	const QUrl url{makeCommandURL(false, "getcoaches"_L1)};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::removeCoachFromClient(const int requestid,
 												const QString &coach)
 {
-	const QUrl &url{makeCommandURL(false, "removecurcoach"_L1, coach)};
+	const QUrl url{makeCommandURL(false, "removecurcoach"_L1, coach)};
 	makeNetworkRequest(requestid, url);
 }
 
-void TPOnlineServices::executeCommands(const int requestid, const QString &subdir, const bool delete_cmdfile)
+int TPOnlineServices::sendFileToServer(const TPFilePath &tp_filename, const bool remove_local_file)
 {
-	const QUrl &url{makeCommandURL(false, "runcmds"_L1, subdir, "delete"_L1, delete_cmdfile ? "1"_L1 : "0"_L1)};
-	makeNetworkRequest(requestid, url);
-}
-
-void TPOnlineServices::sendFile(const int requestid, QFile *file, const QString &subdir, const QString &targetUser,
-																						const bool b_internal_signal_only)
-{
-	if (checkRequestPool(requestid))
-		return;
-	auto conn{std::make_shared<QMetaObject::Connection>()};
-	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
+	QFileInfo fi{tp_filename.toString()};
+	if (fi.size() > file_upload_max_size) {
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR,
+			appUtils()->string_strings({ tr("Cannot upload file"), tr("Maximum file size allowed: 8MB")}, record_separator));
+		return TP_RET_CODE_FILE_TOO_BIG;
+	}
+	int requestid{serverCommandStarter(tp_filename.generateUniqueId(), tr("File upload: ") % tp_filename.fileName())};
+	if (requestid < 0 || requestid > (TP_RET_CODE_DEFERRED_ACTION + 100)) {
+		QFile *upload_file{appUtils()->openFile(tp_filename.toString(), true, false, false, false, false)};
+		if (upload_file) {
+			auto conn{std::make_shared<QMetaObject::Connection>()};
+			*conn = connect(this, &TPOnlineServices::networkRequestProcessed, this, [=,this]
 												(const int request_id, const int ret_code, const QString &ret_string) {
-		if (request_id == requestid) {
-			disconnect(*conn);
-			if (ret_code == TP_RET_CODE_SUCCESS) {
-				if (remoteFileUpToDate(ret_string, file->fileName())) { //remote file is up to date. Don't send anything
-					emit networkRequestProcessed(requestid, TP_RET_CODE_NO_CHANGES_SUCCESS,
-																	tr("File on the online server already up to date"));
+				if (request_id == requestid) {
+					disconnect(*conn);
+					emit fileUploaded(requestid, ret_code);
+					upload_file->close();
+					if (remove_local_file)
+						QFile::remove(upload_file->fileName());
+					delete upload_file;
+				}
+			});
+			sendFile(requestid, tp_filename, upload_file);
+		}
+		else
+			requestid = TP_RET_CODE_OPEN_CREATE_FAILED;
+	}
+	return requestid;
+}
+
+/*tp_filename must be OK and point to a *local* file path(existing or not), i.e. the destination file path of the
+ * downloaded file. ownerUser() will be prepended to subDir(), and targetUser() is the $target_user argument in
+ * url_parser.h, that is, the "owner user" in the server's app directory
+*/
+int TPOnlineServices::downloadFileFromServer(const TPFilePath &tp_filename)
+{
+	if (appUtils()->fileRecentlyModified(tp_filename.toString(), 30))
+		return TP_RET_CODE_NO_CHANGES_SUCCESS;
+	const int requestid{serverCommandStarter(tp_filename.generateUniqueId(), tr("File download: ") % tp_filename.fileName())};
+	if (requestid < 0 || requestid > (TP_RET_CODE_DEFERRED_ACTION + 100)) {
+		auto conn{std::make_shared<QMetaObject::Connection>()};
+		*conn = connect(this, &TPOnlineServices::fileReceived, this, [=,this]
+					(const int request_id, const int ret_code, const QString &filename, const QByteArray &contents) {
+			if (request_id == requestid) {
+				disconnect(*conn);
+				bool success{!contents.isEmpty()};
+				static_cast<void>(appUtils()->mkdir(tp_filename.toString()));
+				switch (ret_code) {
+				case TP_RET_CODE_SUCCESS:
+					if (success) {
+						QFile *local_file{new QFile{tp_filename.toString(), this}};
+						if (!local_file->exists() || local_file->remove()) {
+							if (local_file->open(QIODeviceBase::WriteOnly)) {
+								local_file->write(contents);
+								local_file->close();
+							}
+						}
+						delete local_file;
+					}
+					break;
+				case TP_RET_CODE_NO_CHANGES_SUCCESS: //online file and local file are the same
+					success = true;
+					break;
+				default: //some error
+					success = false;
+				}
+				if (!success)
+					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR, appUtils()->string_strings(
+									{filename, '(' % QString::number(ret_code) % ") "_L1 % contents}, record_separator));
+				emit fileDownloaded(requestid, ret_code, tp_filename);
+			}
+		});
+		getFile(requestid, tp_filename);
+	}
+	return requestid;
+}
+
+void TPOnlineServices::removeFileFromServer(const TPFilePath &tp_filename)
+{
+	const int requestid{serverCommandStarter(tp_filename.generateUniqueId(), tr("File removal: ") % tp_filename.fileName())};
+	if (requestid < 0 || requestid > (TP_RET_CODE_DEFERRED_ACTION + 100))
+		removeFile(requestid, tp_filename);
+}
+
+int TPOnlineServices::listFilesFromServer(const QString &subdir, const QString &targetUser, const QString &filter)
+{
+	QLatin1StringView v{QString{targetUser + subdir}.toLatin1().constData()};
+	const int requestid{serverCommandStarter(appUtils()->generateUniqueId(v), tr("Get list: ") % subdir % filter)};
+	if (requestid < 0 || requestid > (TP_RET_CODE_DEFERRED_ACTION + 100)) {
+		auto conn{std::make_shared<QMetaObject::Connection>()};
+		*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
+										(const int request_id, const int ret_code, const QString &ret_string) {
+			if (request_id == requestid) {
+				disconnect(*conn);
+				QStringList files_list;
+				if (ret_code == TP_RET_CODE_SUCCESS)
+					parseReceivedFilesList(files_list, ret_string, subdir, targetUser);
+				emit networkListReceived(request_id, ret_code, files_list);
+			}
+		});
+		const QUrl url{makeCommandURL(false, "listfiles"_L1, subdir, "fromuser"_L1, targetUser, "pattern"_L1, filter)};
+		makeNetworkRequest(requestid, url, true);
+	}
+	return requestid;
+}
+
+void TPOnlineServices::sendCmdFileToServer(const QString &cmd_filename)
+{
+	TPFilePathPtr tp_filename{TPFilePath::newTPFilePath(cmd_filename)};
+	const int request_id{sendFileToServer(*tp_filename, true)};
+	if (request_id < 0 || request_id > (TP_RET_CODE_DEFERRED_ACTION + 100)) {
+		auto conn{std::make_shared<QMetaObject::Connection>()};
+		*conn = connect(this, &TPOnlineServices::fileUploaded, this, [=,this] (const uint requestid, const int ret_code) {
+			if (request_id == requestid) {
+				disconnect(*conn);
+				if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS)
+					executeCommands(requestid, tp_filename->subdirs());
+			}
+		});
+	}
+}
+
+void TPOnlineServices::downloadCmdFilesFromServer()
+{
+	if (canConnectToServer()) {
+		const int request_id{listFilesFromServer(TPDatabaseTable::cmdsSubDir, appUserModel()->userId(0),
+																				TPDatabaseTable::cmd_file_extension)};
+		if (request_id >= 0 && request_id <= (TP_RET_CODE_DEFERRED_ACTION + 100))
+			return;
+		auto conn{std::make_shared<QMetaObject::Connection>()};
+		*conn = connect(this, &TPOnlineServices::networkListReceived, this, [this,conn,request_id]
+										(const int requestid, const int ret_code, const QStringList &files_list) {
+			if (requestid == request_id) {
+				disconnect(*conn);
+				if (files_list.isEmpty())
 					return;
+
+				TPFilePath tp_filename;
+				tp_filename.setOwnerUser(appUserModel()->userId(0));
+				tp_filename.setSubdirs(TPDatabaseTable::cmdsSubDir, true);
+				for (const auto &file : std::as_const(files_list)) {
+					tp_filename.setFileName(file, true);
+					const int requestid2{downloadFileFromServer(tp_filename)};
+					auto parseCmd = [this] (const QString &cmd_file) {
+						TPDatabaseTable::parseCmdFile(cmd_file);
+						QFile::remove(cmd_file);
+					};
+					if (requestid2 == TP_RET_CODE_DOWNLOAD_FAILED) {
+						continue;
+					} else if (requestid2 == TP_RET_CODE_NO_CHANGES_SUCCESS) {
+						parseCmd(tp_filename.toString());
+						continue;
+					}
+					auto conn2{std::make_shared<QMetaObject::Connection>()};
+					*conn2 = connect(this, &TPOnlineServices::fileDownloaded, this, [this,conn2,requestid2,parseCmd]
+										(const int ret_code, const uint requestid, const TPFilePath &local_file_name) {
+						if (requestid == requestid2) {
+							disconnect(*conn2);
+							if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS)
+								parseCmd(local_file_name.toString());
+						}
+					});
 				}
 			}
-			const QUrl &url{makeCommandURL(false, "upload"_L1, subdir, "targetuser"_L1, targetUser.isEmpty() ?
-																			appUserModel()->userId(0) : targetUser)};
-			uploadFile(requestid, url, file, b_internal_signal_only);
-		}
-	});
-	const QUrl &url{makeCommandURL(false, "checkfilectime"_L1, appUtils()->getFileName(file->fileName()),
-																	"subdir"_L1, subdir, "fromuser"_L1, targetUser)};
-	makeNetworkRequest(requestid, url, true);
+		});
+	}
 }
 
-void TPOnlineServices::listFiles(const int requestid, const QString &pattern, const QString &subdir, const QString &targetUser)
+void TPOnlineServices::executeCommands(const int requestid, const QString &subdir)
 {
-	if (checkRequestPool(requestid))
-		return;
-	auto conn{std::make_shared<QMetaObject::Connection>()};
-	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
-												(const int request_id, const int ret_code, const QString &ret_string) {
-		if (request_id == requestid) {
-			disconnect(*conn);
-			QStringList files_list;
-			if (ret_code == TP_RET_CODE_SUCCESS)
-				parseReceivedFilesList(files_list, ret_string, subdir, targetUser);
-			emit networkListReceived(request_id, ret_code, files_list);
-		}
-	});
-	const QUrl &url{makeCommandURL(false, "listfiles"_L1, subdir, "fromuser"_L1, targetUser, "pattern"_L1, pattern)};
-	makeNetworkRequest(requestid, url, true);
+	const QUrl url{makeCommandURL(false, "runcmds"_L1, subdir)};
+	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::listDirs(const int requestid, const QString &pattern,
 									const QString &subdir, const QString &targetUser, const bool include_dot_dir)
 {
-	if (checkRequestPool(requestid))
+	if (checkRequestPool(requestid, "listDirs()"_L1))
 		return;
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
@@ -382,68 +497,13 @@ void TPOnlineServices::listDirs(const int requestid, const QString &pattern,
 			emit networkListReceived(request_id, ret_code, directories);
 		}
 	});
-	const QUrl &url{makeCommandURL(false, "listdirs"_L1, subdir, "fromuser"_L1, targetUser, "pattern"_L1, pattern)};
-	makeNetworkRequest(requestid, url, true);
-}
-
-void TPOnlineServices::removeFile(const int requestid, const QString &filename, const QString &subdir, const QString &targetUser)
-{
-	const QUrl &url{makeCommandURL(false, "delfile"_L1, filename, "subdir"_L1, subdir, "fromuser"_L1, targetUser)};
-	makeNetworkRequest(requestid, url, true);
-}
-
-void TPOnlineServices::getFile(const int requestid, const QString &filename, const QString &subdir,
-																const QString &targetUser, const QString &localFilePath)
-{
-	if (checkRequestPool(requestid))
-		return;
-	bool check_ctime_first{false};
-	if (!localFilePath.isEmpty()) {
-		QFileInfo fi{localFilePath};
-		check_ctime_first = (fi.isFile() && fi.isWritable());
-	}
-	auto conn{std::make_shared<QMetaObject::Connection>()};
-	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
-						(const int request_id, const int ret_code, const QString &ret_string, const QByteArray &contents) {
-		if (request_id == requestid) {
-			disconnect(*conn);
-			if (ret_code == TP_RET_CODE_SUCCESS) {
-				if (check_ctime_first) {
-					if (!localFileUpToDate(ret_string, localFilePath)) { //if local file is up to date, we 'll use it
-						getFile(requestid, filename, subdir, targetUser);
-						return;
-					}
-					else {
-						emit fileReceived(request_id, TP_RET_CODE_NO_CHANGES_SUCCESS, ret_string, contents);
-						return;
-					}
-				}
-			}
-			emit fileReceived(request_id, ret_code, ret_string, contents);
-		}
-	});
-
-	QUrl url{};
-	if (check_ctime_first) {
-		url = std::move(makeCommandURL(false, "checkfilectime"_L1, filename.lastIndexOf('.') > 0 ?
-					filename : appUtils()->getFileName(localFilePath), "subdir"_L1, subdir, "fromuser"_L1, targetUser));
-	} else {
-		url = std::move(makeCommandURL(false, filename.lastIndexOf('.') > 0 ?
-				(filename.endsWith(".txt"_L1) || filename.endsWith(".ini"_L1) ? "file"_L1 :
-				"getbinfile"_L1) : "getbinfile"_L1, filename, "subdir"_L1, subdir, "fromuser"_L1, targetUser));
-	}
-	makeNetworkRequest(requestid, url, true);
-}
-
-void TPOnlineServices::getCmdFile(const int requestid, const QString &filename, const QString &subdir)
-{
-	const QUrl &url{makeCommandURL(false, "downloadcmd"_L1, filename, "subdir"_L1, subdir, "deviceid"_L1, appOsInterface()->deviceID())};
+	const QUrl url{makeCommandURL(false, "listdirs"_L1, subdir, "fromuser"_L1, targetUser, "pattern"_L1, pattern)};
 	makeNetworkRequest(requestid, url, true);
 }
 
 void TPOnlineServices::checkTPMessages(const int requestid)
 {
-	if (checkRequestPool(requestid))
+	if (checkRequestPool(requestid, "checkTPMessages()"_L1))
 		return;
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
@@ -454,43 +514,43 @@ void TPOnlineServices::checkTPMessages(const int requestid)
 			emit networkListReceived(request_id, ret_code, messages);
 		}
 	});
-	const QUrl &url{makeCommandURL(false, "gettpmessages"_L1)};
+	const QUrl url{makeCommandURL(false, "gettpmessages"_L1)};
 	makeNetworkRequest(requestid, url, true);
 }
 
 void TPOnlineServices::sendTPMessage(const int requestid, const QString &message, const QString &target_user)
 {
-	const QUrl &url{makeCommandURL(false, "sendtpmessage"_L1, target_user, "message"_L1, message)};
+	const QUrl url{makeCommandURL(false, "sendtpmessage"_L1, target_user, "message"_L1, message)};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::removeTPMessage(const int requestid, const QString &message)
 {
-	const QUrl &url{makeCommandURL(false, "removetpmessage"_L1, message)};
+	const QUrl url{makeCommandURL(false, "removetpmessage"_L1, message)};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::checkChatMessages(const int requestid)
 {
-	const QUrl &url{makeCommandURL(false, "getnewchatmessages"_L1)};
+	const QUrl url{makeCommandURL(false, "getnewchatmessages"_L1)};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::sendChatMessage(const int requestid, const QString &receiver, const QString &encoded_message)
 {
-	const QUrl &url{makeCommandURL(false, "sendchatmessage"_L1, receiver, "message"_L1, encoded_message)};
+	const QUrl url{makeCommandURL(false, "sendchatmessage"_L1, receiver, "message"_L1, encoded_message)};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::removeChatMessage(const int requestid, const QString &receiver, const QString &encoded_message)
 {
-	const QUrl &url{makeCommandURL(false, "removechatmessage"_L1, receiver, "message"_L1, encoded_message)};
+	const QUrl url{makeCommandURL(false, "removechatmessage"_L1, receiver, "message"_L1, encoded_message)};
 	makeNetworkRequest(requestid, url);
 }
 
 void TPOnlineServices::recheckNewChatMessages()
 {
-	const QUrl &url{makeCommandURL(false, "forcegetnewmessages"_L1)};
+	const QUrl url{makeCommandURL(false, "forcegetnewmessages"_L1)};
 	static_cast<void>(m_networkManager->get(QNetworkRequest{url}));
 }
 
@@ -508,8 +568,23 @@ void TPOnlineServices::storeCredentials()
 	}
 }
 
-QString TPOnlineServices::makeCommandURL(const bool admin, const QLatin1StringView &option1, const QString &value1,
-		const QLatin1StringView &option2, const QString &value2, const QLatin1StringView &option3, const QString &value3)
+inline bool TPOnlineServices::canConnectToServer() const { return m_onlineStatus == TP_RET_CODE_SUCCESS; }
+
+int TPOnlineServices::serverCommandStarter(int requestid, const QString &command_description) const
+{
+	if (!canConnectToServer()) {
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_SERVER_UNREACHABLE, command_description);
+		requestid = TP_RET_CODE_SERVER_UNREACHABLE;
+	} else {
+		if (!appUserModel()->mainUserLoggedIn())
+			requestid = TP_RET_CODE_USER_OFFLINE;
+	}
+	if (checkRequestPool(requestid, QLatin1StringView{command_description.toLocal8Bit().data()}))
+		requestid = TP_RET_CODE_REQUESTID_IN_USE;
+	return requestid;
+}
+
+QString TPOnlineServices::makeCommandURL(const bool admin, auto && ... args)
 {
 	const QString *userid, *password;
 	if (!admin) {
@@ -520,28 +595,37 @@ QString TPOnlineServices::makeCommandURL(const bool admin, const QLatin1StringVi
 		password = &root_passwd;
 	}
 
-	QString ret{std::move(m_serverAddress % "?user="_L1 % *userid % "&password="_L1 % *password)};
-	if (!option1.isEmpty()) {
-		ret += std::move('&' % option1 % '=');
-		if (!value1.isEmpty())
-			ret += std::move(value1);
-	}
-	if (!option2.isEmpty()) {
-		ret += std::move('&' % option2 % '=');
-		if (!value2.isEmpty())
-			ret += std::move(value2);
-	}
-	if (!option3.isEmpty()) {
-		ret += std::move('&' % option3 % '=');
-		if (!value3.isEmpty())
-			ret += std::move(value3);
-	}
-	return ret;
+	/*if constexpr(1 > (sizeof... (args))) {
+		return{};
+	}*/
+	// transform arguments parameter pack to tuple
+	auto tup_list = std::make_tuple( args ... );
+	// the type of the whole tuple instance as an added bonus
+	using arg_list_type = decltype(tup_list);
+	// how many elements in the tuple(should be the same as sizeof...(args)
+	//constexpr std::size_t tuple_size_v{std::tuple_size<arg_list_type>::value};
+	QString url{std::move(m_serverAddress % "?user="_L1 % *userid % "&password="_L1 % *password)};
+	auto tup_value = [&url]<std::size_t... I>(arg_list_type&& tup, std::index_sequence<I...>) {
+		( [&] {
+			const auto &arg{std::get<I>(tup)};
+			//typeid(arg).name();
+			if (!arg.isEmpty()) {
+				if (url.endsWith('='))
+					url += arg;
+				else
+					url += '&' % arg % '=';
+			}
+		}(), ...);
+	};
+	tup_value(std::forward<arg_list_type>(tup_list),
+			  std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<arg_list_type>>>{});
+	return url;
 }
 
 void TPOnlineServices::makeNetworkRequest(const int requestid, const QUrl &url, const bool b_internal_signal_only)
 {
-	if (checkRequestPool(requestid))
+	if (checkRequestPool(requestid, QLatin1StringView{QString{"makeNetworkRequest("_L1 % url.toString() % ')'}
+																							.toLocal8Bit().data()}))
 		return;
 	#ifndef QT_NO_DEBUG
 	qDebug() << url.toDisplayString() << " * "_L1  << QString::number(requestid);
@@ -613,6 +697,93 @@ void TPOnlineServices::handleServerRequestReply(const int requestid, QNetworkRep
 	}
 }
 
+void TPOnlineServices::sendFile(const int requestid, const TPFilePath &tp_filename, QFile *file)
+{
+	if (checkRequestPool(requestid, QLatin1StringView{QString{"sendFile("_L1 % tp_filename.fileName() % ')'}
+																						.toLocal8Bit().data()}))
+		return;
+	auto conn{std::make_shared<QMetaObject::Connection>()};
+	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
+										(const int request_id, const int ret_code, const QString &ret_string) {
+		if (request_id == requestid) {
+			disconnect(*conn);
+			if (ret_code == TP_RET_CODE_SUCCESS) {
+				if (remoteFileUpToDate(ret_string, file->fileName())) { //remote file is up to date. Don't send anything
+					emit networkRequestProcessed(requestid, TP_RET_CODE_NO_CHANGES_SUCCESS,
+												 tr("File on the online server already up to date"));
+					return;
+				}
+			}
+			const QUrl url{makeCommandURL(false,
+										   "upload"_L1, tp_filename.fileName(),
+										   "owner"_L1, tp_filename.targetUser(),
+										   "target"_L1, tp_filename.ownerUser(),
+										   "subdirs"_L1, tp_filename.subdirs())};
+			uploadFile(requestid, url, file, true);
+		}
+	});
+	//(tp_filename.targetUser().isEmpty() ?
+	//	 QString{} : tp_filename.ownerUser()) % u'/' % tp_filename.subdirs(), tp_filename.targetUser()
+
+	const QUrl url{makeCommandURL(false,
+									"checkfilectime"_L1, tp_filename.fileName(),
+									"owner"_L1, tp_filename.targetUser(),
+									"target"_L1, tp_filename.ownerUser(),
+									"subdirs"_L1, tp_filename.subdirs())};
+	makeNetworkRequest(requestid, url, true);
+}
+
+void TPOnlineServices::getFile(const int requestid, const TPFilePath &tp_filename, bool check_ctime_first)
+{
+	if (checkRequestPool(requestid, QLatin1StringView{QString{"getFile("_L1 % tp_filename.fileName() % ')'}
+																						.toLocal8Bit().data()}))
+		return;
+	if (check_ctime_first) {
+		QFileInfo fi{tp_filename.toString()};
+		check_ctime_first = (fi.isFile() && fi.isWritable());
+	}
+	auto conn{std::make_shared<QMetaObject::Connection>()};
+	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
+					(const int request_id, const int ret_code, const QString &ret_string, const QByteArray &contents) {
+		if (request_id == requestid) {
+			disconnect(*conn);
+			if (ret_code == TP_RET_CODE_SUCCESS) {
+				if (check_ctime_first) {
+					if (!localFileUpToDate(ret_string, tp_filename.toString())) {
+						getFile(requestid, tp_filename, false);
+						return;
+					} else { //if local file is up to date, we'll use it
+						emit fileReceived(request_id, TP_RET_CODE_NO_CHANGES_SUCCESS, ret_string, contents);
+						return;
+					}
+				}
+			}
+			emit fileReceived(request_id, ret_code, ret_string, contents);
+		}
+	});
+	const QUrl url{makeCommandURL(false,
+									check_ctime_first ? "get_file"_L1 : "checkfilectime"_L1, tp_filename.fileName(),
+									"owner"_L1, tp_filename.targetUser(),
+									"target"_L1, tp_filename.ownerUser(),
+									"subdirs"_L1, tp_filename.subdirs())};
+	makeNetworkRequest(requestid, url, true);
+}
+
+void TPOnlineServices::removeFile(const int requestid, const TPFilePath &tp_filename)
+{
+	const QUrl url{makeCommandURL(false, "delfile"_L1, tp_filename.fileName(),
+								   "owner"_L1, tp_filename.targetUser(),
+								   "target"_L1, tp_filename.ownerUser(),
+								   "subdirs"_L1, tp_filename.subdirs())};
+	makeNetworkRequest(requestid, url, true);
+}
+
+void TPOnlineServices::getCmdFile(const int requestid, const QString &filename, const QString &subdir)
+{
+	const QUrl url{makeCommandURL(false, "downloadcmd"_L1, filename, "subdir"_L1, subdir, "deviceid"_L1, appOsInterface()->deviceID())};
+	makeNetworkRequest(requestid, url, true);
+}
+
 //curl -X POST -F file=@/home/guilherme/Documents/Fase_de_transição_-_Completo.txt "http://127.0.0.1/trainingplanner/?user=uc_guilherme_fortunato&upload&password=Guilherme_Fortunato"
 void TPOnlineServices::uploadFile(const int requestid, const QUrl &url, QFile *file, const bool b_internal_signal_only)
 {
@@ -621,7 +792,7 @@ void TPOnlineServices::uploadFile(const int requestid, const QUrl &url, QFile *f
 		// Add the file as a part
 		QHttpPart filePart;
 		filePart.setHeader(QNetworkRequest::ContentDispositionHeader,
-							QVariant("multipart/form-data; name=\"file\"; filename=\""_L1 % file->fileName() % "\""_L1));
+							QVariant{"multipart/form-data; name=\"file\"; filename=\""_L1 % file->fileName() % "\""_L1});
         filePart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/octet-stream"_L1));
         filePart.setHeader(QNetworkRequest::ContentLengthHeader, file->size());
         filePart.setBodyDevice(file);
@@ -642,7 +813,8 @@ void TPOnlineServices::uploadFile(const int requestid, const QUrl &url, QFile *f
 	}
 }
 
-void TPOnlineServices::parseReceivedFilesList(QStringList &new_files, const QString &ret_string, const QString &subdir, const QString &targetUser)
+void TPOnlineServices::parseReceivedFilesList(QStringList &new_files, const QString &ret_string,
+																const QString &subdir, const QString &targetUser)
 {
 	TPFilePath local_file;
 	local_file.setOwnerUser(appUserModel()->userId(0));

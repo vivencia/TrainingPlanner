@@ -38,7 +38,7 @@ ColumnLayout {
 			width: AppSettings.itemDefaultHeight
 			height: width
 			onClicked: AppUtils.copyToClipboard(_control.getControlText(_control.textControl.selectionStart,
-																								_control.textControl.selectionEnd));
+																					_control.textControl.selectionEnd));
 		}
 		TPButton {
 			imageSource: "paste_"
@@ -156,22 +156,21 @@ ColumnLayout {
 				Keys.onPressed: (event) => {
 					switch (event.key) {
 					case Qt.Key_Enter:
-					case Qt.Key_Return:
-						{
-							let mod_key = 0;
-							if (event.modifiers) {
-								if (event.modifiers & Qt.ControlModifier)
-									mod_key = Qt.Key_Control;
-								else if (event.modifiers & Qt.AltModifier)
-									mod_key = Qt.Key_Alt;
-								else if (event.modifiers & Qt.ShiftModifier)
-									mod_key = Qt.Key_Shift;
-							}
-							if (mod_key !== 0)
-								event.accepted = true;
-							_control.enterOrReturnKeyPressed(mod_key);
+					case Qt.Key_Return: {
+						let mod_key = 0;
+						if (event.modifiers) {
+							if (event.modifiers & Qt.ControlModifier)
+								mod_key = Qt.Key_Control;
+							else if (event.modifiers & Qt.AltModifier)
+								mod_key = Qt.Key_Alt;
+							else if (event.modifiers & Qt.ShiftModifier)
+								mod_key = Qt.Key_Shift;
 						}
-						break;
+						if (mod_key !== 0)
+							event.accepted = true;
+						_control.enterOrReturnKeyPressed(mod_key);
+					}
+					break;
 					case Qt.Key_Left:
 						event.accepted = true;
 						break;
@@ -215,9 +214,9 @@ ColumnLayout {
 						height = implicitHeight = 2 * AppSettings.itemDefaultHeight;
 					else
 						height = implicitHeight = new_height;
-				}
-				else
+				} else {
 					height = implicitHeight = _control.maxHeight;
+				}
 			}
 		} //ScrollView
 
@@ -270,9 +269,9 @@ ColumnLayout {
 	}
 
 	function formatChanged(added_format: bool) : void {
-		if (added_format)
+		if (added_format) {
 			_nFormatting++;
-		else {
+		} else {
 			_nFormatting--;
 			if (_nFormatting < 0)
 				_nFormatting = 0;

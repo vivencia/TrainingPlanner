@@ -168,7 +168,7 @@ void TPFileOps::removeFile(const bool bypass_confirmation, const bool remove_loc
 	if (remove_local)
 		QFile::remove(m_filename.toString());
 	if (remove_remote)
-		appUserModel()->removeFileFromServer(m_filename);
+		appOnlineServices()->removeFileFromServer(m_filename);
 	emit fileRemovalRequested();
 }
 
@@ -639,13 +639,13 @@ void TPFileOps::downloadOrCopyFile()
 			if (m_filename.isOK()) {
 				if (appUserModel()->canConnectToServer()) {
 					auto conn{std::make_shared<QMetaObject::Connection>()};
-					const int request_id{appUserModel()->downloadFileFromServer(m_filename)};
-					*conn = connect(appUserModel(), &DBUserModel::fileDownloaded, this, [this,conn,request_id]
-							(const bool success, const uint requestid, const TPFilePath &tp_filepath) {
+					const int request_id{appOnlineServices()->downloadFileFromServer(m_filename)};
+					*conn = connect(appOnlineServices(), &TPOnlineServices::fileDownloaded, this, [this,conn,request_id]
+											(const uint requestid, const int ret_code, const TPFilePath &tp_filepath) {
 						if (requestid == request_id) {
 							disconnect(*conn);
-							setFileIsOK(success);
-							emit fileAcquired(success ? TP_RET_CODE_SUCCESS : TP_RET_CODE_DOWNLOAD_FAILED);
+							setFileIsOK(ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS);
+							emit fileAcquired(ret_code);
 						}
 					});
 					return;
@@ -736,21 +736,17 @@ void TPFileOps::sendFileToUsers(const QStringList &users, const QString &message
 					appItemManager()->displayMessageOnAppWindow(ret_code, m_filename.fileName());
 					emit fileSent(false);
 				};
-				const auto request_id{appUserModel()->sendFileToServer(m_filename)};
-				switch (request_id) {
-				case TP_RET_CODE_SERVER_UNREACHABLE:
-				case TP_RET_CODE_USER_OFFLINE:
-				case TP_RET_CODE_FILE_TOO_BIG:
+				const auto request_id{appOnlineServices()->sendFileToServer(m_filename)};
+				if (request_id >= 0 && request_id <= (TP_RET_CODE_DEFERRED_ACTION + 100)) {
 					failureMsg(request_id);
 					return;
-				default: break;
 				}
 
-				*conn = connect(appUserModel(), &DBUserModel::fileUploaded, this,
-									[=,this] (const bool success, const uint requestid, const int ret_code) {
+				*conn = connect(appOnlineServices(), &TPOnlineServices::fileUploaded, this,
+													[=,this] (const uint requestid, const int ret_code) {
 					if (requestid == request_id) {
 						disconnect(*conn);
-						if (!success) {
+						if (ret_code != TP_RET_CODE_SUCCESS || ret_code != TP_RET_CODE_NO_CHANGES_SUCCESS) {
 							failureMsg(ret_code);
 							return;
 						}
@@ -801,16 +797,16 @@ void TPFileOps::sendFileDirectly(const QStringList &users)
 					qDebug() << "Error sending file ("_L1 << ret_code << "): "_L1 << m_filename.fileName();
 					emit fileSent(false);
 				};
-				const auto request_id{appUserModel()->sendFileToServer(m_filename)};
+				const auto request_id{appOnlineServices()->sendFileToServer(m_filename)};
 				if (request_id < TP_RET_CODE_CUSTOM_WARNING) {
 					failureMsg(request_id);
 					return;
 				}
-				*conn = connect(appUserModel(), &DBUserModel::fileUploaded, this,
-										[=,this] (const bool success, const uint requestid, const int ret_code) {
+				*conn = connect(appOnlineServices(), &TPOnlineServices::fileUploaded, this,
+										[=,this] (const uint requestid, const int ret_code) {
 						if (requestid == request_id) {
 							disconnect(*conn);
-							if (!success)
+							if (ret_code != TP_RET_CODE_SUCCESS || ret_code != TP_RET_CODE_NO_CHANGES_SUCCESS)
 								failureMsg(ret_code);
 							else
 								emit fileSent(true);

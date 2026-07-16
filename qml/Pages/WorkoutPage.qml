@@ -610,7 +610,7 @@ TPPage {
 			case 3:
 			case 4: return workoutPage._can_export;
 			case 5: return workoutPage.workoutManager.workoutFinished;
-			case 6: workoutPage.workoutManager.todaysWorkout;
+			case 6: return workoutPage.workoutManager.todaysWorkout;
 			}
 		}
 

@@ -73,7 +73,10 @@ TPPopup {
 				sourceComponent: TPFileViewer {
 					missingFileInfo: qsTr(`The coach's resumè file could not be found.
 						You can try to download it by pressing the second button from the left on the bottom of the screen`)
-					canDownloadOrGenerate: true
+					fileOps: TPFileOps {
+						canDownloadOrGenerate: true
+					}
+
 					onWindowStateChanged: (window_state) => {
 						if (window_state === TPFileViewer.WS_NORMAL)
 							viewResumeLoader.active = false;

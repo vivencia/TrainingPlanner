@@ -114,7 +114,7 @@ std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::mesoHasSplitPlan()
 			field_names[DBExercisesModel::EXERCISES_FIELD_SETTYPES][0], table_name_splits,
 			field_names[DBExercisesModel::EXERCISES_FIELD_MESOID][0], model->mesoId(),
 			field_names[DBExercisesModel::EXERCISES_FIELD_SPLITLETTER][0], model->splitLetter()));
-	if (execReadOnlyQuery(m_strQuery)) {
+	if (execReadOnlyQuery(m_strQuery)) [[likely]] {
 		if (m_workingQuery.first()) {
 			success = true;
 			m_workingQuery.value(0).toUInt(&yes);
@@ -132,7 +132,7 @@ std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::getPreviousWorkoutsIds()
 					field_names[DBExercisesModel::EXERCISES_FIELD_MESOID][0], model->mesoId(),
 					field_names[DBExercisesModel::EXERCISES_FIELD_SPLITLETTER][0], model->splitLetter(),
 					field_names[DBExercisesModel::EXERCISES_FIELD_CALENDARDAY][0], QString::number(model->calendarDay())));
-	if (execReadOnlyQuery(m_strQuery)) {
+	if (execReadOnlyQuery(m_strQuery)) [[likely]] {
 		if (m_workingQuery.first()) {
 			QVariantList ids;
 			do {
@@ -149,9 +149,9 @@ std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::removeAllMesoWorkouts(cons
 	m_strQuery = std::move("DELETE FROM %1 WHERE %3=%4;"_L1.arg(table_name_workouts, field_names[DBExercisesModel::EXERCISES_FIELD_MESOID][0], mesoid));
 	bool cmd_ok{false};
 	const bool success{execSingleWriteQuery(m_strQuery)};
-	if (success) {
+	if (success) [[likely]] {
 		m_strQuery.prepend("PRAGMA busy_timeout = 5000;"_L1);
-		cmd_ok = createServerCmdFile(dbFilePath(), {sqliteApp, dbFileName(false), m_strQuery});
+		cmd_ok = createServerCmdFile({sqliteApp, dbFileName(false), m_strQuery});
 	}
 	return std::pair<QVariant,QVariant>{success, cmd_ok};
 }

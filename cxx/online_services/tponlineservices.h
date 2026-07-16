@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QNetworkAccessManager>
 
+QT_FORWARD_DECLARE_CLASS(TPFilePath)
 QT_FORWARD_DECLARE_CLASS(QNetworkReply)
 QT_FORWARD_DECLARE_CLASS(QFile)
 
@@ -35,8 +36,6 @@ public:
 	void removeUser(const int requestid, const QString &userid);
 
 	void getPeerAddress(const int requestid, const QString &userid);
-	void addDevice(const int requestid, const QString &device_id);
-	void delDevice(const int requestid, const QString &device_id);
 	void getDevicesList(const int requestid);
 	void changePassword(const int requestid, const QString &old_passwd, const QString &new_passwd);
 	void addOrRemoveCoach(const int requestid, const bool bAdd);
@@ -54,10 +53,15 @@ public:
 	void removeClientFromCoach(const int requestid, const QString &client);
 	void checkCurrentCoaches(const int requestid);
 	void removeCoachFromClient(const int requestid, const QString &coach);
-	void executeCommands(const int requestid, const QString &subdir, const bool delete_cmdfile = true);
 
-	void sendFile(const int requestid, QFile *file, const QString &subdir = QString{},
-										const QString &targetUser = QString{}, const bool b_internal_signal_only = false);
+	int sendFileToServer(const TPFilePath &tp_filename, const bool remove_local_file = false);
+	int downloadFileFromServer(const TPFilePath &tp_filename);
+	void removeFileFromServer(const TPFilePath &tp_filename);
+	int listFilesFromServer(const QString &subdir, const QString &targetUser, const QString &filter = QString{});
+	void sendCmdFileToServer(const QString &cmd_filename);
+	void downloadCmdFilesFromServer();
+	void executeCommands(const int requestid, const QString &subdir);
+
 	/**
 	 * @brief listFiles
 	 * @param requestid An unique integer value that will be emitted with the signal networkListReceived to stabilish a chain of calls
@@ -68,15 +72,8 @@ public:
 	 * @param subdir
 	 * @param targetUser
 	 */
-	void listFiles(const int requestid, const QString &pattern = QString{}, const QString &subdir = QString{},
-																				const QString &targetUser = QString{});
 	void listDirs(const int requestid, const QString &pattern = QString{}, const QString &subdir = QString{},
 												const QString &targetUser = QString{}, const bool include_dot_dir = false);
-	void removeFile(const int requestid, const QString &filename, const QString &subdir = QString{},
-																					const QString &targetUser = QString{});
-	void getFile(const int requestid, const QString &filename, const QString &subdir = {}, const QString &targetUser = QString{},
-																						const QString &localFilePath = QString{});
-	void getCmdFile(const int requestid, const QString &filename, const QString &subdir = QString{});
 
 	void checkTPMessages(const int requestid);
 	void sendTPMessage(const int requestid, const QString &message, const QString &target_user);
@@ -92,33 +89,40 @@ public slots:
 
 signals:
 	void onlineServicesReady();
-	void networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string);
-	void _networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string,
-									const QByteArray &contents = QByteArray{});
+	void fileDownloaded(const uint requestid, const int ret_code, const TPFilePath &tp_filepath);
+	void fileUploaded(const uint requestid, const int ret_code);
 	void networkListReceived(const int request_id, const int ret_code, const QStringList &ret_list);
-	void fileReceived(const int request_id, const int ret_code, const QString& filename, const QByteArray &contents);
-	//void serverOnline(const uint online_status);
 	void serverStatusChanged(const uint online_status, const QString &server_address, const int request_id);
+	void networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string);
+
+	void _networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string,
+																	const QByteArray &contents = QByteArray{});
+	void fileReceived(const int request_id, const int ret_code, const QString& filename, const QByteArray &contents);
 
 private:
+	bool canConnectToServer() const;
+	int serverCommandStarter(int requestid, const QString &command_description = QString{}) const;
 #ifdef LOCAL_TPSERVER
 	void testServerConnection(const QString &address, const QString &port, const int requestid = -1);
 #endif
-	QString makeCommandURL(const bool admin,
-						   const QLatin1StringView &option1 = QLatin1StringView{}, const QString &value1 = QString{},
-						   const QLatin1StringView &option2 = QLatin1StringView{}, const QString &value2 = QString{},
-						   const QLatin1StringView &option3 = QLatin1StringView{}, const QString &value3 = QString{});
+	QString makeCommandURL(const bool admin, auto && ... args);
 	void makeNetworkRequest(const int requestid, const QUrl &url, const bool b_internal_signal_only = false);
 	void handleServerRequestReply(const int requestid, QNetworkReply *reply, const bool b_internal_signal_only = false);
+	void sendFile(const int requestid, const TPFilePath &tp_filename, QFile *file);
+	void getFile(const int requestid, const TPFilePath &tp_filename, bool check_ctime_first = true);
+	void removeFile(const int requestid, const TPFilePath &tp_filename);
+	void getCmdFile(const int requestid, const QString &filename, const QString &subdir = QString{});
 	void uploadFile(const int requestid, const QUrl &url, QFile *file, const bool b_internal_signal_only = false);
 	void parseReceivedFilesList(QStringList &new_files, const QString &ret_string, const QString &subdir, const QString &targetUser);
 	bool remoteFileUpToDate(const QString &onlineDate, const QString &localFile) const;
 	bool localFileUpToDate(const QString &onlineDate, const QString &localFile) const;
-	inline bool checkRequestPool(const int requestid) const
+	inline bool checkRequestPool(const int requestid, const QLatin1StringView &method) const
 	{
+		if (requestid == -1)
+			return false;
 #ifndef QT_NO_QDEBUG
 		if (m_requestsPool.value(requestid))
-			qDebug() << Qt::StringLiterals::operator""_L1("ATENTION! Request Id already in use: ", 37) << requestid;
+			qDebug() << method << Qt::StringLiterals::operator""_L1(": ATENTION! Request Id already in use: ", 37) << requestid;
 #endif
 		return m_requestsPool.value(requestid);
 	}

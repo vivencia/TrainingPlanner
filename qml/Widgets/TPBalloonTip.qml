@@ -24,7 +24,7 @@ TPPopup {
 	property string button1Text: qsTr("Yes")
 	property string button2Text: qsTr("No")
 	property string imageSource: ""
-	property string backColor: AppSettings.primaryColor
+	//property string backColor: AppSettings.primaryColor
 	property string textColor: AppSettings.fontColor
 	property string subImageLabel: ""
 	property bool highlightMessage: false

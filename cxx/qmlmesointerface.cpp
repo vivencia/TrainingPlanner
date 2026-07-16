@@ -289,6 +289,8 @@ void QMLMesoInterface::sendMesocycleFileToClient()
 		return;
 	if (!m_mesoFileOps)
 		createFileOps();
+	//Creates the meso file. The signal generated(TPFileOps::fileAcquired) will be caught up by an anonymous lambda
+	//setup in createFileOps() and that lambda will call the code(TPFileOps::sendFileTo) to send the file properly
 	m_mesoFileOps->attemptToCreateOrGetFile();
 }
 

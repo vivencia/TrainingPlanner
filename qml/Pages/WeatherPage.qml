@@ -97,7 +97,7 @@ TPPage {
 					TPButton {
 						imageSource: "remove"
 						width: AppSettings.itemDefaultHeight
-						enabled: delegate.index == weatherInfo.currentlyViewedLocationIndex
+						enabled: delegate.index === weatherInfo.currentlyViewedLocationIndex
 
 						anchors {
 							right: txtCity.right

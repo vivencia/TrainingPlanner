@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Pdf
 
 import TpQml
 import TpQml.Pages
@@ -83,7 +82,7 @@ Item {
 
 	TPBackRec {
 		visible: _control.useBackground
-		backColor: AppSettings.paneBackgroundColor
+		//backColor: AppSettings.paneBackgroundColor
 		showBorder: true
 		opacity: 0.8
 		radius: 8
@@ -237,34 +236,7 @@ Item {
 				active: _control.fileOps.fileType === AppUtils.FT_PDF
 				anchors.fill: parent
 
-				sourceComponent: PdfMultiPageView {
-					id: pdfViewer
-					document: PdfDocument {
-						source: _control.fileOps.fileURL
-					}
-
-					Connections {
-						target: _control.fileOps
-						function onMultimediaKeyPressed(key: int): void {
-							switch (key) {
-							case Qt.Key_Left:
-								if (pdfViewer.forwardEnabled)
-									pdfViewer.forward();
-								break;
-							case Qt.Key_Right:
-								if (pdfViewer.backEnabled)
-									pdfViewer.back();
-								break;
-							case Qt.Key_Up:
-								pdfViewer.goToPage(0);
-								break;
-							case Qt.Key_Down:
-								pdfViewer.goToPage(pdfViewer.document.pageCount - 1);
-								break;
-							}
-						}
-					}
-				}
+				sourceComponent: TPPdfViewer {}
 			} //Loader : PdfMultiPageView
 
 			Loader {

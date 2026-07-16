@@ -370,7 +370,7 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 			break;
 		case TP_RET_CODE_CORRUPT_FILE:
 			title = std::move(tr("Error"));
-			message = std::move(appUtils()->getFileName(filename_or_message) +  tr("\n is formatted wrongly or corrupted"));
+			message = std::move(appUtils()->getFileName(filename_or_message) % tr("\n is wrongly formatted or corrupted"));
 			break;
 		case TP_RET_CODE_SHARE_FAILED:
 			title = std::move(tr("Sharing failed"));
@@ -389,8 +389,8 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 			message = std::move(appUtils()->getFileName(filename_or_message));
 			break;
 		case TP_RET_CODE_SERVER_UNREACHABLE:
-			title = std::move(tr("Online server unavailable"));
-			message = std::move(tr("Try it again later"));
+			title = std::move(tr("Can't connect to server"));
+			message = filename_or_message;
 			break;
 		}
 	} else if (message_id < TP_RET_CODE_CUSTOM_MESSAGE) {
@@ -525,10 +525,10 @@ void QmlItemManager::generalMessagesPopupClosed()
 
 #ifndef Q_OS_ANDROID
 #ifndef QT_NO_DEBUG
-//Return: true for exiting the app upon return; false for letting this function call ::exit() when appropriate
+//Return: true for exiting the app upon return; false for letting some other function call ::exit() when appropriate
 bool QmlItemManager::runTests()
 {
-	return false;
+	return true;
 }
 #endif
 #endif
