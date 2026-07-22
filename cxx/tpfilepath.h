@@ -97,7 +97,7 @@ public:
 	{
 		return m_useFileExtension ? m_fileName : m_tempString = std::move(appUtils()->getFileName(m_fileName, true));
 	}
-	inline QString &filename() & { m_fullPathOK = false; return m_fileName; }
+	inline QString filename() & { return QString{m_fileName}; }
 	inline void setFilename(QString &&filename)
 	{
 		m_fileName = std::forward<QString>(filename);

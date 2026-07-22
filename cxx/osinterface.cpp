@@ -184,20 +184,20 @@ void OSInterface::initAndroidInterface()
 
 void OSInterface::setFileUrlReceived(const QString &url) const
 {
-	const QString &androidUrl{appUtils()->getCorrectPath(url)};
+	QString androidUrl{std::move(appUtils()->getCorrectPath(url))};
 	if (QFileInfo::exists(androidUrl))
 		appItemManager()->openRequestedFile(androidUrl);
 	else
-		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_FILE_NOT_FOUND, url);
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_FILE_NOT_FOUND, std::move(androidUrl));
 }
 
 void OSInterface::setFileReceivedAndSaved(const QString &url) const
 {
-	const QString &androidUrl{appUtils()->getCorrectPath(url)};
+	QString androidUrl{std::move(appUtils()->getCorrectPath(url))};
 	if (QFileInfo::exists(androidUrl))
 		appItemManager()->openRequestedFile(androidUrl);
 	else
-		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_FILE_NOT_FOUND, url);
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_FILE_NOT_FOUND, std::move(androidUrl));
 }
 
 void OSInterface::onActivityResult(int requestCode, int resultCode)
@@ -587,9 +587,9 @@ void OSInterface::setNetStatus(uint messages_index, bool success, QString &&mess
 	m_currentNetworkStatus[messages_index] = success;
 	m_connectionMessages[messages_index] = std::forward<QString>(message);
 	emit connectionStatusChanged();
-	appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
-		{QString{}, m_connectionMessages.at(messages_index)}, record_separator), Qt::AlignTop|Qt::AlignHCenter, success
-																							? "set-completed" : "error");
+	appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, std::move(appUtils()->string_strings(
+			{QString{}, m_connectionMessages.at(messages_index)}, record_separator)), Qt::AlignTop|Qt::AlignHCenter,
+																std::move(success ? "set-completed"_L1 : "error"_L1));
 }
 
 void OSInterface::localServerProcessResult(const uint online_status, const QString &additional_message)
@@ -650,9 +650,37 @@ void OSInterface::setWorkingNetInterface(const int interface_index)
 				message += '(' % interface.name() % "@ "_L1 % appSettings()->serverAddress() % ':' % appSettings()->serverPort();
 			}
 		}
+	} else {
+		switch (appOnlineServices()->serverStatus()) {
+		case TP_RET_CODE_SERVER_NOT_RUNNING:
+#ifdef LOCAL_TPSERVER
+#ifdef TPSERVER_MACHINE
+			return; //nginx is not yet initialized. Ignore serverStatus for now
+#else
+			if (internetOK()) {//probably nginx is not yet initialized, just print a message on console for debugging purposes
+				qDebug() << "Querying the server returned Bad Gateway, which might indicate that nginx is not running,"
+							"since we have internet"_L1;
+				return;
+			} else {
+				message += tr("Error: cannot reach the TP Server because we don't have internet access");
+			}
+#endif
+#else
+			if (internetOK())
+				message += tr("Error: The TP Server is unreachable at the moment");
+			else
+				message += tr("Error: cannot reach the TP Server because we don't have internet access");
+#endif
+			break;
+		case TP_RET_CODE_SERVER_PAUSED:
+			message += tr("Error: The TP Server is currently under maintenance");
+			break;
+		case TP_RET_CODE_SERVER_UNREACHABLE: //Some other error. Report only on the console if there is internet
+			if (internetOK())
+				qDebug() << "Could not communicate with the server. Unkown error."_L1;
+			return;
+		}
 	}
-	else
-		message += tr("Error: cannot reach the TP Server");
 	setNetStatus(interfaceMessage, interface_index > 0, std::move(message));
 }
 
@@ -670,8 +698,8 @@ void OSInterface::serverProcessFinished(QProcess *proc, const int exit_code, QPr
 {
 	proc->deleteLater();
 	if (exit_status != QProcess::NormalExit) {
-		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR, appUtils()->string_strings(
-												{"Linux TP Server"_L1, "Error executing init_script"_L1}, record_separator));
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR, std::move(appUtils()->string_strings(
+										{"Linux TP Server"_L1, "Error executing init_script"_L1}, record_separator)));
 		return;
 	}
 
@@ -721,8 +749,8 @@ void OSInterface::commandLocalServer(const QString &title, const QString &comman
 				});
 				server_script_proc->start(tp_server_config_script , {command, "-p="_L1 % passwd}, QIODeviceBase::ReadOnly);
 			} else {
-				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
-														{title, "Operation canceled by the user"_L1}, record_separator));
+				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, std::move(
+							appUtils()->string_strings({title, "Operation canceled by the user"_L1}, record_separator)));
 			}
 		}
 	});

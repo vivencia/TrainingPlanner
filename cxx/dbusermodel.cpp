@@ -186,8 +186,9 @@ void DBUserModel::setOnlineAccount(const bool online_user, const uint user_idx)
 				message = std::move(tr("You'll not have access to your online client(s) anymore."));
 			if (isClient(0))
 				message += std::move(tr("You'll not have access to your online coache(s) anymore."));
-			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
-						{tr("Remove online account?"), message}, record_separator), Qt::AlignCenter, "question_"_L1, 0, tr("Yes"), tr("No"));
+			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, std::move(
+			appUtils()->string_strings({tr("Remove online account?"), message}, record_separator)), Qt::AlignCenter
+			, std::move("question_"_L1), 0, std::move(tr("Yes")), std::move(tr("No")));
 			setCoachPublicStatus(false);
 		} else if (!onlineAccount(user_idx) && online_user) {
 			onlineCheckIn();
@@ -434,24 +435,25 @@ void DBUserModel::setUserCategory(const int user_idx, const int new_category, co
 					revokeCoachStatus();
 				}
 			});
-			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
-				{tr("Revoke coach status?"), tr("All your clients will be removed and cannot be automatically retrieved")},
-				record_separator), Qt::AlignCenter, "question_"_L1, 0, tr("Revoke"), tr("No"));
+			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, std::move(appUtils()->string_strings(
+				{tr("Revoke coach status?"), tr("All your clients will be removed and cannot be automatically retrieved")}
+				, record_separator)), Qt::AlignCenter, std::move("question_"_L1), 0, std::move(tr("Revoke")), std::move(tr("No")));
 			return;
 		}
 		else if (new_category == UC_CLIENT && isClient(0) && (category & UC_HAS_COACH)) {
 			auto conn{std::make_shared<QMetaObject::Connection>()};
 			*conn = connect(appItemManager(), &QmlItemManager::generalMessagesPopupClicked, this,
-													[this,conn,category,change_category] (const uint8_t button) mutable {
+												[this,conn,category,change_category] (const uint8_t button) mutable {
 				disconnect(*conn);
 				if (button == 1) {
 					change_category(category &= ~UC_CLIENT);
 					revokeClientStatus();
 				}
 			});
-			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
-				{tr("Revoke client status?"), tr("All your coaches will be removed and cannot be automatically retrieved")},
-				record_separator), Qt::AlignCenter, "question_"_L1, 0, tr("Revoke"), tr("No"));
+			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, std::move(
+				appUtils()->string_strings({tr("Revoke client status?"), tr("All your coaches will be removed and "
+				"cannot be automatically retrieved")}, record_separator)), Qt::AlignCenter, std::move("question_"_L1)
+				, 0, std::move(tr("Revoke")), std::move(tr("No")));
 			return;
 		}
 		else
@@ -472,9 +474,9 @@ void DBUserModel::getAllOnlineUsers()
 				if (!m_allUsers) {
 					m_allUsers = new UserInfoListModel{this};
 					m_allUsers->setSelectEntireRow(true);
-				}
-				else
+				} else {
 					m_allUsers->clear();
+				}
 				for (const auto &userid : std::as_const(ret_list)) {
 					const int requestid2{static_cast<int>(userid.toLong())};
 					auto conn2{std::make_shared<QMetaObject::Connection>()};
@@ -518,10 +520,10 @@ void DBUserModel::removeOtherUser()
 													(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
 			disconnect(*conn);
-			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
-				appUtils()->string_strings({tr("User removal"), m_allUsers->allUsersData(USER_FIELD_NAME).toString() %
-														ret_string}, record_separator), Qt::AlignTop|Qt::AlignHCenter,
-															ret_code == TP_RET_CODE_SUCCESS ? "set-completed" : "error");
+			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, std::move(
+				appUtils()->string_strings({tr("User removal"), m_allUsers->allUsersData(USER_FIELD_NAME).toString()
+				% ret_string}, record_separator)), Qt::AlignTop|Qt::AlignHCenter, std::move(
+														ret_code == TP_RET_CODE_SUCCESS ? "set-completed" : "error"));
 			if (ret_code == TP_RET_CODE_SUCCESS) {
 				appUtils()->rmDir(userDir(userid));
 				m_allUsers->removeUserInfo(m_allUsers->currentRow());
@@ -601,7 +603,7 @@ void DBUserModel::changePassword(const QString &old_password, const QString &new
 				setPassword(new_password);
 			}
 			else
-				appItemManager()->displayMessageOnAppWindow(ret_code, ret_string);
+				appItemManager()->displayMessageOnAppWindow(ret_code, std::move(QString{ret_string}));
 		}
 	});
 	appOnlineServices()->changePassword(requestid, old_password, new_password);
@@ -643,8 +645,8 @@ void DBUserModel::setCoachPublicStatus(const bool bPublic)
 			if (request_id == requestid) {
 				disconnect(*conn);
 				if (ret_code == TP_RET_CODE_SUCCESS) {
-					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_SUCCESS,
-								appUtils()->string_strings({tr("Coach registration"), ret_string}, record_separator));
+					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_SUCCESS, std::move(
+								appUtils()->string_strings({tr("Coach registration"), ret_string}, record_separator)));
 				}
 				mb_coachRegistered = mb_coachPublic && (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS);
 				emit coachOnlineStatus(mb_coachRegistered.value());
@@ -702,11 +704,11 @@ void DBUserModel::sendRequestToCoaches(UserInfoListModel *users_list)
 						const int user_idx{users_list->userIdx(i)};
 						setIsConfirmed(user_idx, true);
 						setIsAvailable(user_idx, false);
-						appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_SUCCESS,
-									appUtils()->string_strings({tr("Coach contacting"), tr("Online coach contacted ") %
-																users_list->data(i, USER_FIELD_NAME)}, record_separator));
+						appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_SUCCESS, std::move(
+							appUtils()->string_strings({tr("Coach contacting"), tr("Online coach contacted ")
+							% users_list->data(i, USER_FIELD_NAME)}, record_separator)));
 					} else {
-						appItemManager()->displayMessageOnAppWindow(ret_code, ret_string);
+						appItemManager()->displayMessageOnAppWindow(ret_code, std::move(QString{ret_string}));
 					}
 				}
 			});
@@ -991,16 +993,17 @@ void DBUserModel::loginUser()
 							mb_userLoggedIn = true;
 							emit userLoggedIn(true);
 						}
-						appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
-									{m_network_msg_title, ret_string}, record_separator), Qt::AlignTop|Qt::AlignHCenter,
-													ret_code == TP_RET_CODE_CUSTOM_SUCCESS ? "set_separator" : "error");
+						appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, std::move(
+							appUtils()->string_strings({m_network_msg_title, ret_string}, record_separator))
+							, Qt::AlignTop|Qt::AlignHCenter, std::move(ret_code == TP_RET_CODE_CUSTOM_SUCCESS
+							? "set_separator"_L1 : "error"_L1));
 						}
 					});
 					appOnlineServices()->registerUser(requestid);
 				}
 				break;
 			default:
-				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_UNKNOWN_ERROR, ret_string);
+				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_UNKNOWN_ERROR, std::move(QString{ret_string}));
 				mb_userLoggedIn = false;
 				break;
 			}
@@ -1017,13 +1020,14 @@ void DBUserModel::switchToUser(const QString &new_userid, const QString &test_us
 		if (!success) {
 			#ifndef Q_OS_ANDROID
 			if (!test_username.isEmpty()) {
-				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR,
-										appUtils()->string_strings({ tr("User switching error"),
-											tr("Could not download files for user ") % test_username}, record_separator));
+				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR, std::move(
+					appUtils()->string_strings({ tr("User switching error"), tr("Could not download files for user ")
+					% test_username}, record_separator)));
 			} else
 			#endif
-				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR, appUtils()->string_strings({
-					tr("User switching error"), tr("Could not download files for user ") % m_onlineAccountId}, record_separator));
+				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR, std::move(
+					appUtils()->string_strings({tr("User switching error"), tr("Could not download files for user ")
+					% m_onlineAccountId}, record_separator)));
 		} else {
 			if (test_username.isEmpty()) {
 				appSettings()->importFromUserConfig(new_userid);
@@ -1055,67 +1059,40 @@ void DBUserModel::downloadAllUserFiles(const QString &userid)
 	static int total_files{0};
 	appUtils()->mkdir(userDir(userid));
 	total_dirs = total_files = 0;
-	const int requestid{static_cast<int>(userid.toLong())};
+	auto res{appOnlineServices()->listFilesOrDirs(true, true, true, userid, QString{}, QString{}, true)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
-	*conn = connect(appOnlineServices(), &TPOnlineServices::networkListReceived, this, [this,conn,userid,requestid]
+	*conn = connect(appOnlineServices(), &TPOnlineServices::networkListReceived, this, [this,conn,userid,res]
 											(const int request_id, const int ret_code, const QStringList &ret_list) {
-		if (request_id == requestid) {
+		if (res.first == request_id) {
 			disconnect(*conn);
-			total_dirs = ret_list.count();
-			for (const auto &dir : std::as_const(ret_list)) {
-				if (ret_code != TP_RET_CODE_SUCCESS)
-					return;
-				QString dest_dir{std::move(userDir(userid))};
-				if (dir != '.') {
-					dest_dir += dir % '/';
-					appUtils()->mkdir(dest_dir);
-				}
-				const QLatin1StringView seed{dir.toLatin1().constData()};
-				const int requestid2{appOnlineServices()->listFilesFromServer(dir, userid)};
-				auto conn2{std::make_shared<QMetaObject::Connection>()};
-				*conn2 = connect(appOnlineServices(), &TPOnlineServices::networkListReceived, this, [=,this]
-											(const int request_id, const int ret_code, const QStringList &files_list) {
-					if (request_id == requestid2) {
-						if (--total_dirs <= 0)
-							disconnect(*conn2);
-						if (ret_code != TP_RET_CODE_SUCCESS)
-							return;
-						if (files_list.isEmpty()) { //All files up to date, no need to download them
-							if (total_files == 0 && total_dirs == 0)
-								emit allUserFilesDownloaded(true);
-							return;
-						}
-						total_files += files_list.count();
-						TPFilePath tp_filename;
-						tp_filename.setOwnerUser(userId());
-						tp_filename.setTargetUser(userid);
-						tp_filename.setSubdirs(dest_dir, true);
-						for (const auto &file : std::as_const(files_list)) {
-							tp_filename.setFileName(file, true);
-							const int requestid3{appOnlineServices()->downloadFileFromServer(tp_filename)};
-							if (requestid3 == TP_RET_CODE_NO_CHANGES_SUCCESS) {
+			if (ret_code != TP_RET_CODE_SUCCESS)
+				return;
+
+			TPFilePath tp_filename;
+			int total_files{0};
+			for (const auto &filename : std::as_const(ret_list)) {
+				tp_filename = filename;
+				if (tp_filename.fileName().isEmpty()) { //directory
+					if (!appUtils()->mkdir(tp_filename.filePath()))
+						qDebug() << "Failed to create dir "_L1 << tp_filename.filePath();
+				} else { //file
+					const int request_id{appOnlineServices()->downloadFileFromServer(tp_filename)};
+					if (request_id != TP_RET_CODE_NO_CHANGES_SUCCESS && request_id != TP_RET_CODE_CANNOT_RUN_ACTION) {
+						++total_files;
+						auto conn2{std::make_shared<QMetaObject::Connection>()};
+						*conn2 = connect(appOnlineServices(), &TPOnlineServices::fileDownloaded, this, [this,conn2,request_id,&total_files]
+							(const int ret_code, const uint requestid, const TPFilePath &local_file_name) mutable {
+							if (request_id == requestid) {
+								disconnect(*conn2);
 								if (--total_files <= 0)
 									emit allUserFilesDownloaded(true);
-								continue;
-							} else if (requestid3 != TP_RET_CODE_SUCCESS) {
-								continue;
 							}
-							auto conn3{std::make_shared<QMetaObject::Connection>()};
-							*conn3 = connect(appOnlineServices(), &TPOnlineServices::fileDownloaded, this, [this,conn3,requestid3]
-								(const int ret_code, const uint requestid, const TPFilePath &local_file_name) mutable {
-								if (requestid == requestid3) {
-									disconnect(*conn3);
-									if (--total_files <= 0)
-										emit allUserFilesDownloaded(true);
-								}
-							});
-						}
+						});
 					}
-				});
+				}
 			}
 		}
 	});
-	appOnlineServices()->listDirs(requestid, QString{}, QString{}, userid, true);
 }
 
 //Only applicable to the main user that is a coach
@@ -1332,10 +1309,11 @@ void DBUserModel::pollCurrentClients()
 							if (button == 1)
 								removeUser(i);
 					});
-					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
-						{userId(i) + tr(" - unavailable"), tr("The user is no longer available as your client. If you need to know "
-						"more about this, contact them to find out the reason. Remove the user from your list of clients?")},
-						record_separator), Qt::AlignCenter, "question_"_L1, 0, tr("Revoke"), tr("No"));
+					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, std::move(
+						appUtils()->string_strings( {userId(i) % tr(" - unavailable"), tr("The user is no longer "
+						"available as your client. If you need to know more about this, contact them to find out the "
+						"reason. Remove the user from your list of clients?")}, record_separator)), Qt::AlignCenter
+						, std::move("question_"_L1), 0, std::move(tr("Revoke")), std::move(tr("No")));
 				}
 			}
 		}
@@ -1362,10 +1340,12 @@ void DBUserModel::pollCurrentCoaches()
 										if (button == 1)
 											removeUser(i);
 									});
-					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
-						{userId(i) + tr(" - unavailable"), tr("The user is no longer available as your coach. If you need to know "
-						 "more about this, contact them to find out the reason. Remove the user from your list of coaches?")},
-						record_separator), Qt::AlignCenter, "question_"_L1, 0, tr("Revoke"), tr("No"));
+					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, std::move(
+						appUtils()->string_strings({userId(i) + tr(" - unavailable")
+						, tr("The user is no longer available as your coach. If you need to know more about this, "
+						"contact them to find out the reason. Remove the user from your list of coaches?")}
+						, record_separator)), Qt::AlignCenter, std::move("question_"_L1), 0, std::move(tr("Revoke"))
+						, std::move(tr("No")));
 				}
 			}
 		}
@@ -1404,10 +1384,11 @@ void DBUserModel::unregisterUser()
 						mb_userLoggedIn = false;
 						emit userLoggedOut();
 					}
-					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
-						appUtils()->string_strings({m_network_msg_title, ret_code == TP_RET_CODE_SUCCESS ?
-							tr("Online account removed") : tr("Failed to remove online account")}, record_separator),
-								Qt::AlignTop|Qt::AlignHCenter, ret_code == TP_RET_CODE_SUCCESS ? "set-completed" : "error");
+					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, std::move(
+						appUtils()->string_strings({m_network_msg_title, ret_code == TP_RET_CODE_SUCCESS
+							? tr("Online account removed") : tr("Failed to remove online account")}, record_separator))
+							, Qt::AlignTop|Qt::AlignHCenter, std::move(ret_code == TP_RET_CODE_SUCCESS
+							? "set-completed"_L1 : "error"_L1));
 				}
 			});
 			appOnlineServices()->removeUser(requestid, userId(0));
@@ -1421,8 +1402,8 @@ void DBUserModel::addCoach(const uint user_idx, const bool notify)
 	setUserCategory(0, UC_HAS_COACH, true);
 	if (notify) {
 		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
-			appUtils()->string_strings({tr("New coach!"), tr("Now that ") % userName(user_idx) %
-			tr(" is your coach, you can send them messages using the Star Button on the Home screen") }, record_separator),
+			std::move(appUtils()->string_strings({tr("New coach!"), tr("Now that ") % userName(user_idx) %
+			tr(" is your coach, you can send them messages using the Star Button on the Home screen") }, record_separator)),
 			Qt::AlignTop|Qt::AlignHCenter, avatar(user_idx), 10000);
 	}
 }
@@ -1451,9 +1432,9 @@ void DBUserModel::addClient(const uint user_idx, const bool notify)
 	setUserCategory(user_idx, UC_CONFIRMED, true);
 	setUserCategory(0, UC_HAS_CLIENT, true);
 	if (notify) {
-		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, std::move(
 			appUtils()->string_strings({tr("New client!"), tr("Now that ") % userName(user_idx) %
-			tr(" is your client, you can send them messages using the Star Button on the Home screen") }, record_separator),
+			tr(" is your client, you can send them messages using the Star Button on the Home screen")}, record_separator)),
 			Qt::AlignTop|Qt::AlignHCenter, avatar(user_idx), 10000);
 	}
 }

@@ -612,7 +612,7 @@
         <translation>Coach/Treinador: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="551"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="552"/>
         <source>Success!</source>
         <translation>Sucesso!</translation>
     </message>
@@ -622,7 +622,7 @@
         <translation>Treino extra está marcado para acontecer em </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="647"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="648"/>
         <source>Exercises Program</source>
         <translation>Programa de Exercícios</translation>
     </message>
@@ -715,44 +715,44 @@
         <translation>Importar</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="438"/>
+        <location filename="../cxx/dbusermodel.cpp" line="439"/>
         <source>All your clients will be removed and cannot be automatically retrieved</source>
         <translation>Todos seus clientes serão removidos e não poderão ser automaticamente recuperados</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="539"/>
+        <location filename="../cxx/dbusermodel.cpp" line="541"/>
         <source>New user</source>
         <translation>Novo usuário</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="647"/>
+        <location filename="../cxx/dbusermodel.cpp" line="649"/>
         <source>Coach registration</source>
         <translation>Registro de treinador</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1409"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1389"/>
         <source>Online account removed</source>
         <translation>Conta online removida</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1409"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1389"/>
         <source>Failed to remove online account</source>
         <translation>Falha ao remover conta online</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1021"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1026"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1024"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1029"/>
         <source>User switching error</source>
         <translation>Erro ao alternar usuário</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1022"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1026"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1024"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1029"/>
         <source>Could not download files for user </source>
         <translation>Não foi possível baixar os arquivos do usuário </translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="706"/>
+        <location filename="../cxx/dbusermodel.cpp" line="708"/>
         <source>Coach contacting</source>
         <translation>Contato com o treinador</translation>
     </message>
@@ -762,129 +762,129 @@
         <translation>Rede TP</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="190"/>
+        <location filename="../cxx/dbusermodel.cpp" line="191"/>
         <source>Yes</source>
         <translation>Sim</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="190"/>
-        <location filename="../cxx/dbusermodel.cpp" line="439"/>
-        <location filename="../cxx/dbusermodel.cpp" line="454"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1338"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1368"/>
+        <location filename="../cxx/dbusermodel.cpp" line="191"/>
+        <location filename="../cxx/dbusermodel.cpp" line="440"/>
+        <location filename="../cxx/dbusermodel.cpp" line="456"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1316"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1348"/>
         <source>No</source>
         <translation>Não</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="438"/>
+        <location filename="../cxx/dbusermodel.cpp" line="439"/>
         <source>Revoke coach status?</source>
         <translation>Rescindir condição de treinador?</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="439"/>
-        <location filename="../cxx/dbusermodel.cpp" line="454"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1338"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1368"/>
+        <location filename="../cxx/dbusermodel.cpp" line="440"/>
+        <location filename="../cxx/dbusermodel.cpp" line="456"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1316"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1347"/>
         <source>Revoke</source>
         <translation>Rescindir</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="453"/>
+        <location filename="../cxx/dbusermodel.cpp" line="454"/>
         <source>Revoke client status?</source>
         <translation>Rescindir condição de cliente?</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="453"/>
+        <location filename="../cxx/dbusermodel.cpp" line="454"/>
         <source>All your coaches will be removed and cannot be automatically retrieved</source>
         <translation>Todos os seus treinadores serão removidos e não poderão ser automaticamente re-incluídos</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1424"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1405"/>
         <source>New coach!</source>
         <translation>Novo treinador!</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1424"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1455"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1405"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1436"/>
         <source>Now that </source>
         <translation>Agora que </translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1425"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1406"/>
         <source> is your coach, you can send them messages using the Star Button on the Home screen</source>
         <translation> é seu(sua) treinador(a), você pode enviar-lhe mensagens utilizando o botão Estrela na página inicial</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="522"/>
+        <location filename="../cxx/dbusermodel.cpp" line="524"/>
         <source>User removal</source>
         <translation>Remoção de usuário</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="706"/>
+        <location filename="../cxx/dbusermodel.cpp" line="708"/>
         <source>Online coach contacted </source>
         <translation>Treinador contactado </translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="795"/>
+        <location filename="../cxx/dbusermodel.cpp" line="797"/>
         <source>Coach Information</source>
         <translation>Informação do Treinador</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="795"/>
+        <location filename="../cxx/dbusermodel.cpp" line="797"/>
         <source>Client Information</source>
         <translation>Informação do Cliente</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="982"/>
+        <location filename="../cxx/dbusermodel.cpp" line="984"/>
         <source>Login failed</source>
         <translation>Login falhou</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="982"/>
+        <location filename="../cxx/dbusermodel.cpp" line="984"/>
         <source>Please, type in your TraininPlanner user password</source>
         <translation>Por favor, digite sua senha do aplicativo TrainingPlanner</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1455"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1436"/>
         <source>New client!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1456"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1437"/>
         <source> is your client, you can send them messages using the Star Button on the Home screen</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1486"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1509"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1467"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1490"/>
         <source>Male</source>
         <translation>Homen</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1486"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1467"/>
         <source>Female</source>
         <translation>Mulher</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1494"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1515"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1475"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1496"/>
         <source>User</source>
         <translation>Usuário</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1495"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1517"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1476"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1498"/>
         <source>Coach</source>
         <translation>Treinador</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1496"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1519"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1477"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1500"/>
         <source>Client</source>
         <translation>Cliente</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1497"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1478"/>
         <source>Coach and Client</source>
         <translation>Treinador e Cliente</translation>
     </message>
@@ -909,18 +909,18 @@
         <translation>Remover conta online?</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1336"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1366"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1313"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1344"/>
         <source> - unavailable</source>
         <translation> - indisponível</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1336"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1313"/>
         <source>The user is no longer available as your client. If you need to know more about this, contact them to find out the reason. Remove the user from your list of clients?</source>
         <translation>O usuário não está mais disponível como seu cliente. Se deseja saber mais sobre isso, contacte-o para obter uma resposta. Remover o usuário da sua lista de clientes?</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1366"/>
+        <location filename="../cxx/dbusermodel.cpp" line="1345"/>
         <source>The user is no longer available as your coach. If you need to know more about this, contact them to find out the reason. Remove the user from your list of coaches?</source>
         <translation>O usuário não está mais disponível como seu treinador. Se deseja saber mais sobre isso, contacte-o para obter uma resposta. Remover o usuário da sua lista de treinadores?</translation>
     </message>
@@ -1525,6 +1525,22 @@
         <translation>Interface de rede: </translation>
     </message>
     <message>
+        <location filename="../cxx/osinterface.cpp" line="665"/>
+        <location filename="../cxx/osinterface.cpp" line="672"/>
+        <source>Error: cannot reach the TP Server because we don&apos;t have internet access</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/osinterface.cpp" line="670"/>
+        <source>Error: The TP Server is unreachable at the moment</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/osinterface.cpp" line="676"/>
+        <source>Error: The TP Server is currently under maintenance</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../cxx/osinterface.cpp" line="113"/>
         <source>Device is connected to the internet</source>
         <translation>Aparelho conectado à internet</translation>
@@ -1533,11 +1549,6 @@
         <location filename="../cxx/osinterface.cpp" line="113"/>
         <source>Device is not connected to the internet</source>
         <translation>Aparelho não conectado à internet</translation>
-    </message>
-    <message>
-        <location filename="../cxx/osinterface.cpp" line="655"/>
-        <source>Error: cannot reach the TP Server</source>
-        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../cxx/osinterface.cpp" line="599"/>
@@ -1569,6 +1580,14 @@
     </message>
 </context>
 <context>
+    <name>OpenWeatherMapBackend</name>
+    <message>
+        <location filename="../cxx/weather/openweathermapbackend.cpp" line="244"/>
+        <source>Network Error</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>PagesListModel</name>
     <message>
         <location filename="../cxx/pageslistmodel.cpp" line="93"/>
@@ -1576,7 +1595,7 @@
         <translation>Página Inicial</translation>
     </message>
     <message>
-        <location filename="../cxx/pageslistmodel.cpp" line="299"/>
+        <location filename="../cxx/pageslistmodel.cpp" line="300"/>
         <source>Exit</source>
         <translation>Sair</translation>
     </message>
@@ -1586,12 +1605,12 @@
         <translation>Tem certeza de que deseja sair?</translation>
     </message>
     <message>
-        <location filename="../cxx/pageslistmodel.cpp" line="300"/>
+        <location filename="../cxx/pageslistmodel.cpp" line="301"/>
         <source>Yes</source>
         <translation>Sim</translation>
     </message>
     <message>
-        <location filename="../cxx/pageslistmodel.cpp" line="300"/>
+        <location filename="../cxx/pageslistmodel.cpp" line="301"/>
         <source>No</source>
         <translation>Não</translation>
     </message>
@@ -1748,7 +1767,7 @@
 <context>
     <name>QmlItemManager</name>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="416"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="447"/>
         <source>Warning</source>
         <translation>Atenção</translation>
     </message>
@@ -1758,126 +1777,164 @@
         <translation>Previsão do Tempo</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="624"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="612"/>
         <source>Statistics</source>
         <translation>Estatísticas</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="400"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="431"/>
         <source>Warning! </source>
         <translation>Atenção! </translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="336"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="351"/>
         <source>Succesfully exported</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="340"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="354"/>
         <source>Succesfully shared</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="344"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="358"/>
+        <source>User configuration imported</source>
+        <translation type="unfinished">Configuração do usuário importada</translation>
+    </message>
+    <message>
+        <location filename="../cxx/qmlitemmanager.cpp" line="360"/>
+        <source>Click on Next to start using the app</source>
+        <translation type="unfinished">Clique em Próximo para começar a utilizar o app</translation>
+    </message>
+    <message>
+        <location filename="../cxx/qmlitemmanager.cpp" line="362"/>
+        <source>Tap on Next to start using the app</source>
+        <translation type="unfinished">Toque em Próximo para começar a utilizar o app</translation>
+    </message>
+    <message>
+        <location filename="../cxx/qmlitemmanager.cpp" line="365"/>
         <source>Successfully imported</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="356"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="369"/>
+        <source>Existing user account found</source>
+        <translation type="unfinished">Encontrada conta de usuário existente</translation>
+    </message>
+    <message>
+        <location filename="../cxx/qmlitemmanager.cpp" line="372"/>
+        <source>You can click on the Import button to download all the data for the user</source>
+        <translation type="unfinished">Você pode clicar no botão Importar para baixar todos os dados do usuário</translation>
+    </message>
+    <message>
+        <location filename="../cxx/qmlitemmanager.cpp" line="374"/>
+        <source>You can tap on the Import button to download all the data for the user</source>
+        <translation type="unfinished">Você pode tocar no botão Importar para baixar todos os dados do usuário</translation>
+    </message>
+    <message>
+        <location filename="../cxx/qmlitemmanager.cpp" line="387"/>
         <source>Unknown Error</source>
         <translation>Erro desconhecido</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="360"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="390"/>
         <source>File not found!</source>
         <translation>Arquivo não encontrado!</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="364"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="393"/>
         <source>Failed to open file</source>
         <translation>Falha ao abrir o arquivo</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="368"/>
-        <location filename="../cxx/qmlitemmanager.cpp" line="372"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="396"/>
         <source>Error</source>
         <translation>Error</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="369"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="398"/>
         <source>File type not recognized</source>
         <translation>Tipo de arquivo não reconhecido</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="373"/>
-        <source>
- is wrongly formatted or corrupted</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="392"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="424"/>
         <source>Can&apos;t connect to server</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="404"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="435"/>
         <source>Nothing to be done</source>
         <translation>Nada a ser feito</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="405"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="436"/>
         <source>File had already been imported</source>
         <translation>Arquivo já havia sido importado antes</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="408"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="439"/>
         <source>No program to import into</source>
         <translation>Nenhum programa de treinos para importar os dados</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="409"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="440"/>
         <source>Either create a new training plan or import from a complete program file</source>
         <translation>Crie um novo programa ou importe um programa completo de um arquivo</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="412"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="443"/>
         <source>Nothing to export</source>
         <translation>Nada para exportar</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="413"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="444"/>
         <source>Only exercises that do not come by default with the app can be exported</source>
         <translation>Somente exercícios adicionados - que não vieram pré incluídos no programa - podem ser exportados ou compartilhados</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="376"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="404"/>
         <source>Sharing failed</source>
         <translation>Falha ao compartilhar</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="380"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="401"/>
+        <source>Error! File format not recognized</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/qmlitemmanager.cpp" line="407"/>
         <source>Export failed</source>
         <translation>Falha ao exportar</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="417"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="411"/>
+        <source>User data not imported</source>
+        <translation type="unfinished">Dados do usuário não importados</translation>
+    </message>
+    <message>
+        <location filename="../cxx/qmlitemmanager.cpp" line="412"/>
+        <source>Could not retrieve the data from the server</source>
+        <translation type="unfinished">Não foi possível baixar os dados do servidor</translation>
+    </message>
+    <message>
+        <location filename="../cxx/qmlitemmanager.cpp" line="421"/>
+        <source>User account not found</source>
+        <translation type="unfinished">Conta de usuário não encontrada</translation>
+    </message>
+    <message>
+        <location filename="../cxx/qmlitemmanager.cpp" line="448"/>
         <source>Operation canceled</source>
         <translation>Operação cancelada</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="384"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="414"/>
         <source>Import from file failed</source>
         <translation>Importar do arquivo falhour</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="388"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="418"/>
         <source>Could not open file for exporting</source>
         <translation>Não foi possível abrir arquivo para exportar</translation>
-    </message>
-    <message>
-        <location filename="../cxx/qmlitemmanager.h" line="61"/>
-        <source>Text copied to the clipboard</source>
-        <translation>Texto copiado para a área de transferência</translation>
     </message>
 </context>
 <context>
@@ -1982,17 +2039,17 @@
         <translation>Treino</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlworkoutinterface.cpp" line="666"/>
+        <location filename="../cxx/qmlworkoutinterface.cpp" line="667"/>
         <source>All exercises finished</source>
         <translation>Todos exercícios concluídos</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlworkoutinterface.cpp" line="666"/>
+        <location filename="../cxx/qmlworkoutinterface.cpp" line="667"/>
         <source>Workout not yet finished</source>
         <translation>Treino ainda não concluído</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlworkoutinterface.cpp" line="668"/>
+        <location filename="../cxx/qmlworkoutinterface.cpp" line="669"/>
         <source>You should press Finish to save your workout</source>
         <translation>Você deve tocar em Concluir para salvar seu treino</translation>
     </message>
@@ -2340,27 +2397,27 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="200"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="201"/>
         <source>You have received a file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="200"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="201"/>
         <source>You have a message</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="204"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="205"/>
         <source>Dismiss</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="239"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="240"/>
         <source>Open chat</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="243"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="244"/>
         <source>Clear chat</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2370,7 +2427,7 @@
         <translation>Contato desconhecido</translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="235"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="236"/>
         <source>Chat</source>
         <translation>Conversar</translation>
     </message>
@@ -2386,32 +2443,32 @@
 <context>
     <name>TPOnlineServices</name>
     <message>
-        <location filename="../cxx/online_services/tponlineservices.cpp" line="712"/>
+        <location filename="../cxx/online_services/tponlineservices.cpp" line="702"/>
         <source>File on the online server already up to date</source>
         <translation>Arquivo online está atualizado</translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tponlineservices.cpp" line="658"/>
+        <location filename="../cxx/online_services/tponlineservices.cpp" line="648"/>
         <source>Error downloading file</source>
         <translation>Erro ao baixar arquivo</translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tponlineservices.cpp" line="311"/>
+        <location filename="../cxx/online_services/tponlineservices.cpp" line="314"/>
         <source>Cannot upload file</source>
         <translation type="unfinished">Não foi possível enviar o arquivo</translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tponlineservices.cpp" line="311"/>
+        <location filename="../cxx/online_services/tponlineservices.cpp" line="314"/>
         <source>Maximum file size allowed: 8MB</source>
         <translation type="unfinished">Tamanho máximo permitido: 8MB</translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tponlineservices.cpp" line="314"/>
+        <location filename="../cxx/online_services/tponlineservices.cpp" line="317"/>
         <source>File upload: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tponlineservices.cpp" line="346"/>
+        <location filename="../cxx/online_services/tponlineservices.cpp" line="349"/>
         <source>File download: </source>
         <translation type="unfinished"></translation>
     </message>
@@ -2421,17 +2478,17 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tponlineservices.cpp" line="401"/>
+        <location filename="../cxx/online_services/tponlineservices.cpp" line="400"/>
         <source>Get list: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tponlineservices.cpp" line="679"/>
+        <location filename="../cxx/online_services/tponlineservices.cpp" line="669"/>
         <source>Http headers missing &quot;Content-Type&quot;</source>
         <translation>Cabeçalho http não possui &quot;Content-Type&quot;</translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tponlineservices.cpp" line="683"/>
+        <location filename="../cxx/online_services/tponlineservices.cpp" line="673"/>
         <source>No network reply</source>
         <translation>Sem resposta da rede</translation>
     </message>
@@ -2668,6 +2725,11 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../cxx/tputils.cpp" line="766"/>
+        <source>Text copied to the clipboard</source>
+        <translation type="unfinished">Texto copiado para a área de transferência</translation>
+    </message>
+    <message>
         <location filename="../cxx/tputils.cpp" line="941"/>
         <location filename="../cxx/tputils.cpp" line="952"/>
         <source>and</source>
@@ -2869,59 +2931,6 @@
         <location filename="../qml/User/UserContact.qml" line="174"/>
         <source>Social media address is invalid</source>
         <translation>O endereço da mídia social é inválido</translation>
-    </message>
-</context>
-<context>
-    <name>UserExistingFromNet</name>
-    <message>
-        <location filename="../qml/User/UserExistingFromNet.qml" line="21"/>
-        <source>Existing user account found</source>
-        <translation>Encontrada conta de usuário existente</translation>
-    </message>
-    <message>
-        <location filename="../qml/User/UserExistingFromNet.qml" line="22"/>
-        <source>You can click on the Import button to download all the data for the user</source>
-        <translation>Você pode clicar no botão Importar para baixar todos os dados do usuário</translation>
-    </message>
-    <message>
-        <location filename="../qml/User/UserExistingFromNet.qml" line="23"/>
-        <source>You can tap on the Import button to download all the data for the user</source>
-        <translation>Você pode tocar no botão Importar para baixar todos os dados do usuário</translation>
-    </message>
-    <message>
-        <location filename="../qml/User/UserExistingFromNet.qml" line="25"/>
-        <source>User account not found</source>
-        <translation>Conta de usuário não encontrada</translation>
-    </message>
-    <message>
-        <location filename="../qml/User/UserExistingFromNet.qml" line="26"/>
-        <source>E-mail has not been registered before or the password is wrong</source>
-        <translation>O e-mail não está registrado ou a senha está incorreta</translation>
-    </message>
-    <message>
-        <location filename="../qml/User/UserExistingFromNet.qml" line="33"/>
-        <source>User configuration imported</source>
-        <translation>Configuração do usuário importada</translation>
-    </message>
-    <message>
-        <location filename="../qml/User/UserExistingFromNet.qml" line="34"/>
-        <source>Click on Next to start using the app</source>
-        <translation>Clique em Próximo para começar a utilizar o app</translation>
-    </message>
-    <message>
-        <location filename="../qml/User/UserExistingFromNet.qml" line="35"/>
-        <source>Tap on Next to start using the app</source>
-        <translation>Toque em Próximo para começar a utilizar o app</translation>
-    </message>
-    <message>
-        <location filename="../qml/User/UserExistingFromNet.qml" line="38"/>
-        <source>User data not imported</source>
-        <translation>Dados do usuário não importados</translation>
-    </message>
-    <message>
-        <location filename="../qml/User/UserExistingFromNet.qml" line="39"/>
-        <source>Could not retrieve the data from the server</source>
-        <translation>Não foi possível baixar os dados do servidor</translation>
     </message>
 </context>
 <context>

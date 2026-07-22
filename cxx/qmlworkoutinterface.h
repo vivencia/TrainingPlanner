@@ -141,10 +141,6 @@ signals:
 	void haveExercisesChanged();
 	void updateRestTime(const int exercise_number, const QString &rest_time);
 
-	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
-	void displayMessageOnAppWindow(const int message_id, const QString &filename = QString{});
-	void requestMesoSplitModel(const QChar &splitletter);
-
 private:
 	DBMesocyclesModel *m_mesoModel{nullptr};
 	DBWorkoutModel *m_workoutModel{nullptr};

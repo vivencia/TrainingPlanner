@@ -146,9 +146,10 @@ void TPMessagesManager::sendTPMessage(const QString &target_user, const QString 
 {
 	auto send_result = [this,target_user] (const int requestid, const bool sent) -> void {
 		emit TPMessageSent(requestid, sent);
-		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings(
-		{sent ? tr("Success!") : tr("Error!"), sent ? tr("Message sent to") : tr("Try again. Could not sent message to ") %
-		appUserModel()->userNameFromId(target_user)}, record_separator), Qt::AlignCenter, sent ? "set-completed"_L1 : "error"_L1);
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, std::move(appUtils()->string_strings(
+		{sent ? tr("Success!") : tr("Error!"), sent ? tr("Message sent to") : tr("Try again. Could not sent message to ")
+		% appUserModel()->userNameFromId(target_user)}, record_separator)), Qt::AlignCenter, std::move(
+		sent ? "set-completed"_L1 : "error"_L1));
 	};
 	if (appWSServer()->isConnectionOK(target_user, true)) {
 		const bool sent{appWSServer()->sendTextMessage(encoded_message)};

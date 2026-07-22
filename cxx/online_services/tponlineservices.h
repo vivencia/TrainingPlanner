@@ -57,23 +57,12 @@ public:
 	int sendFileToServer(const TPFilePath &tp_filename, const bool remove_local_file = false);
 	int downloadFileFromServer(const TPFilePath &tp_filename);
 	void removeFileFromServer(const TPFilePath &tp_filename);
-	int listFilesFromServer(const QString &subdir, const QString &targetUser, const QString &filter = QString{});
+	std::pair<TPBool,int> listFilesOrDirs(const bool files = true, const bool dirs = false, const bool admin = false,
+						const QString &target_user = QString{}, const QString &subdir = QString{},
+						const QString &pattern = QString{}, const bool recursive = false);
 	void sendCmdFileToServer(const QString &cmd_filename);
 	void downloadCmdFilesFromServer();
 	void executeCommands(const int requestid, const QString &subdir);
-
-	/**
-	 * @brief listFiles
-	 * @param requestid An unique integer value that will be emitted with the signal networkListReceived to stabilish a chain of calls
-	 * @param username
-	 * @param passwd
-	 * @param only_new If true, will compare the modification time stamps of both the local and the remote file that matches pattern and only include the file if the remote file is newer than the local file
-	 * @param pattern If not set, matches all files within username/subdir or targetUser/subdir
-	 * @param subdir
-	 * @param targetUser
-	 */
-	void listDirs(const int requestid, const QString &pattern = QString{}, const QString &subdir = QString{},
-												const QString &targetUser = QString{}, const bool include_dot_dir = false);
 
 	void checkTPMessages(const int requestid);
 	void sendTPMessage(const int requestid, const QString &message, const QString &target_user);
@@ -101,7 +90,7 @@ signals:
 
 private:
 	bool canConnectToServer() const;
-	int serverCommandStarter(int requestid, const QString &command_description = QString{}) const;
+	int serverCommandStarter(int requestid, QString &&command_description = QString{}) const;
 #ifdef LOCAL_TPSERVER
 	void testServerConnection(const QString &address, const QString &port, const int requestid = -1);
 #endif
@@ -113,7 +102,7 @@ private:
 	void removeFile(const int requestid, const TPFilePath &tp_filename);
 	void getCmdFile(const int requestid, const QString &filename, const QString &subdir = QString{});
 	void uploadFile(const int requestid, const QUrl &url, QFile *file, const bool b_internal_signal_only = false);
-	void parseReceivedFilesList(QStringList &new_files, const QString &ret_string, const QString &subdir, const QString &targetUser);
+	void parseReceivedFilesList(QStringList &files, const QString &ret_string);
 	bool remoteFileUpToDate(const QString &onlineDate, const QString &localFile) const;
 	bool localFileUpToDate(const QString &onlineDate, const QString &localFile) const;
 	inline bool checkRequestPool(const int requestid, const QLatin1StringView &method) const

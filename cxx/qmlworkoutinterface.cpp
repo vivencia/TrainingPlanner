@@ -519,9 +519,10 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 			if (all_exercises_completed != workoutFinished()) {
 				if (!all_exercises_completed || !m_workoutTimer->isActive())
 					setWorkoutFinished(all_exercises_completed);
-				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
-					appUtils()->string_strings({ tr("Workout"), workoutCompletedMessage(all_exercises_completed)}, record_separator),
-							Qt::AlignTop|Qt::AlignHCenter, "app_logo"_L1, m_workoutTimer->isActive() ? 0 : 5000);
+				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, std::move(
+					appUtils()->string_strings({tr("Workout"), workoutCompletedMessage(all_exercises_completed)}
+					, record_separator)), Qt::AlignTop|Qt::AlignHCenter, std::move("app_logo"_L1)
+																			, m_workoutTimer->isActive() ? 0 : 5000);
 			}
 		}
 	});

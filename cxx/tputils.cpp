@@ -763,7 +763,7 @@ TPUtils::MessageHandlers TPUtils::messagePrefixToMessageHandler(const QString &e
 void TPUtils::copyToClipboard(const QString &text) const
 {
 	qApp->clipboard()->setText(text);
-	appItemManager()->showTextCopiedMessage();
+	appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, std::move(tr("Text copied to the clipboard")));
 }
 
 QString TPUtils::pasteFromClipboard() const

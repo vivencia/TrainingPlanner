@@ -540,7 +540,7 @@ void DBMesocyclesModel::newWorkoutFromFile(const TPFilePath &filename, const boo
 			DBExercisesModel *workout{nullptr};
 			for (const auto &cal_info : std::as_const(cal->dbModelInterface()->modelData()) | std::views::drop(cal_day)) {
 				if (splitletter == appUtils()->getCompositeValue(
-								 CALENDAR_FIELD_SPLITLETTER, cal_info.at(CALENDAR_DATABASE_DATA), record_separator).at(0)) {
+							CALENDAR_FIELD_SPLITLETTER, cal_info.at(CALENDAR_DATABASE_DATA), record_separator).at(0)) {
 					workout = workoutForDay(meso_idx, cal_day);
 					break;
 				}
@@ -548,11 +548,12 @@ void DBMesocyclesModel::newWorkoutFromFile(const TPFilePath &filename, const boo
 			}
 			if (workout) {
 				workout->newExercisesFromFile(filename, formatted);
-				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_SUCCESS, appUtils()->string_strings({tr("Success!"),
-					tr("Extra workout is set to happen on ") % appUtils()->formatDate(cal->date(cal_day))}, record_separator));
+				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_SUCCESS,
+						std::move(appUtils()->string_strings({tr("Success!"), tr("Extra workout is set to happen on ")
+														% appUtils()->formatDate(cal->date(cal_day))}, record_separator)));
+			} else {
+				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_IMPORT_FAILED, std::move(QString{filename.fileName()}));
 			}
-			else
-				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_IMPORT_FAILED);
 		}
 	}
 }
@@ -599,9 +600,9 @@ void DBMesocyclesModel::exportToFile(const uint meso_idx, const TPFilePath &file
 			return;
 		}
 		ret = TP_RET_CODE_EXPORT_OK;
-	}
-	else
+	} else {
 		static_cast<void>(QFile::remove(filename.toString()));
+	}
 	emit mesoExported(meso_idx, filename, ret);
 	meso_file->close();
 	delete meso_file;

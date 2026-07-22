@@ -17,26 +17,19 @@ ColumnLayout {
 		target: AppUserModel
 		function onUserOnlineCheckResult(registered: bool): void {
 			_control.bImport = registered;
-			if (registered)
-				ItemManager.displayMessageOnAppWindow(qsTr("Existing user account found"), Qt.platform.os !== "android" ?
-					qsTr("You can click on the Import button to download all the data for the user") :
-					qsTr("You can tap on the Import button to download all the data for the user"), "", 8000);
-			else
-				ItemManager.displayMessageOnAppWindow(qsTr("User account not found"),
-												qsTr("E-mail has not been registered before or the password is wrong"), "", 5000);
+			if (registered) // 5 TP_RET_CODE_USER_OK
+				ItemManager.displayWindowMessage(5, 5000);
+			else // 120: TP_RET_CODE_USER_DOES_NOT_EXIST
+				ItemManager.displayWindowMessage(120, 5000);
 		}
 
 		function onUserOnlineImportFinished(result: bool): void {
 			_control.bReady = result;
 			_control.netConfigurationResult(result);
-			if (result) {
-				ItemManager.displayMessageOnAppWindow(qsTr("User configuration imported"), Qt.platform.os !== "android" ?
-																			qsTr("Click on Next to start using the app") :
-																			qsTr("Tap on Next to start using the app"), "", 10000);
-			}
+			if (result)
+				ItemManager.displayWindowMessage(4, 5000); // 4: TP_RET_CODE_IMPORT_OK
 			else
-				ItemManager.displayMessageOnAppWindow(qsTr("User data not imported"),
-																		qsTr("Could not retrieve the data from the server"),"", 5000);
+				ItemManager.displayWindowMessage(134, 5000); //134: TP_RET_CODE_IMPORT_FAILED
 		}
 	}
 

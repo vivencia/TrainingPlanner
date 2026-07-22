@@ -296,8 +296,9 @@ bool PagesListModel::eventFilter(QObject *obj, QEvent *event)
 						if (button == 1)
 							qApp->exit();
 					});
-					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, appUtils()->string_strings( {tr("Exit"),
-					tr("Are you sure you want to leave?")}, record_separator), Qt::AlignCenter, "question_"_L1, 0, tr("Yes"), tr("No"));
+					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, std::move(
+					appUtils()->string_strings( {tr("Exit"), tr("Are you sure you want to leave?")}, record_separator))
+					, Qt::AlignCenter, std::move("question_"_L1), 0, std::move(tr("Yes")), std::move(tr("No")));
 				}
 			}
 			return true; // Return true to stop the event from propagating

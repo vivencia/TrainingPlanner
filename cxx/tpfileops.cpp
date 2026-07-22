@@ -159,10 +159,10 @@ void TPFileOps::removeFile(const bool bypass_confirmation, const bool remove_loc
 			if (button == 1)
 				removeFile(true, remove_local, remove_remote);
 		}, Qt::SingleShotConnection);
-		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE,
-			appUtils()->string_strings({tr("Remove file?"), m_filename.toString()}, record_separator),
-									Qt::AlignCenter, getFileTypeIcon(QSize{appSettings()->itemExtraLargeHeight(),
-													appSettings()->itemExtraLargeHeight()}), -1, tr("Yes"), tr("No"));
+		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, std::move(
+			appUtils()->string_strings({tr("Remove file?"), m_filename.toString()}, record_separator))
+			, Qt::AlignCenter, std::move(getFileTypeIcon(QSize{appSettings()->itemExtraLargeHeight()
+			, appSettings()->itemExtraLargeHeight()})), -1, std::move(tr("Yes")), std::move(tr("No")));
 		return;
 	}
 	if (remove_local)
@@ -213,7 +213,7 @@ void TPFileOps::exportTPFile(const TPFilePath &tp_filename)
 	}
 	else
 		message = std::move(tr("Operation canceled"));
-	appItemManager()->displayMessageOnAppWindow(ret_code, message);
+	appItemManager()->displayMessageOnAppWindow(ret_code, std::move(message));
 }
 
 QString TPFileOps::openFileDialog(const int file_type, const QString &suggested_save_name)
@@ -242,7 +242,7 @@ void TPFileOps::attemptToCreateOrGetFile()
 	}
 
 	connect(this, &TPFileOps::fileAcquired, this, [this] (const int ret_code) {
-		appItemManager()->displayMessageOnAppWindow(ret_code);
+		appItemManager()->displayMessageOnAppWindow(ret_code, std::move(m_filename.filename()));
 		if (fileIsOK() && isTPFile()) {
 			if (m_filetype & TPUtils::FT_TP_FORMATTED)
 				readTPFile();
@@ -733,7 +733,7 @@ void TPFileOps::sendFileToUsers(const QStringList &users, const QString &message
 					return;
 				}
 				std::function<void(int)> failureMsg = [this] (const int ret_code) -> void {
-					appItemManager()->displayMessageOnAppWindow(ret_code, m_filename.fileName());
+					appItemManager()->displayMessageOnAppWindow(ret_code, std::move(m_filename.filename()));
 					emit fileSent(false);
 				};
 				const auto request_id{appOnlineServices()->sendFileToServer(m_filename)};
@@ -755,9 +755,9 @@ void TPFileOps::sendFileToUsers(const QStringList &users, const QString &message
 							if (request_id == requestid) {
 								disconnect(*conn);
 								if (success)
-									appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_SUCCESS,
-									appUtils()->string_strings({tr("File sent!"), m_filename.fileName() % " -> "_L1 %
-									appUserModel()->userNameFromId(m_filename.targetUser())}, record_separator));
+									appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_SUCCESS, std::move(
+									appUtils()->string_strings({tr("File sent!"), m_filename.fileName() % " -> "_L1
+									% appUserModel()->userNameFromId(m_filename.targetUser())}, record_separator)));
 								emit fileSent(success);
 							}
 						});

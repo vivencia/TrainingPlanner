@@ -43,7 +43,7 @@ enum MESSAGE_ICON {
 
 struct st_generalMessage {
 	int message_id, msecs;
-	QString filename_or_message, image_source, button1text, button2text;
+	QString message, image_source, button1text, button2text;
 	QFlags<Qt::AlignmentFlag> position;
 };
 
@@ -302,125 +302,156 @@ void QmlItemManager::getStatisticsPage()
 		appPagesListModel()->openPage(m_statisticsPage);
 }
 
-void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QString &filename_or_message,
-								QFlags<Qt::AlignmentFlag> position,const QString &image_source, const int msecs,
-													   const QString& button1text, const QString &button2text) const
+void QmlItemManager::showOnlineMessagesManagerDialog(const bool show)
 {
-#ifndef ENABLE_GENERAL_MESSAGES_POPUP
-	return;
-#endif
-	if (filename_or_message.isEmpty()) return;
+	if (m_messagesManagerPopup) {
+		if (show)
+			appPagesListModel()->raisePopup(m_messagesManagerPopup);
+		else
+			appPagesListModel()->hidePopup(m_messagesManagerPopup);
+		appSettings()->setShowOnlineMessagesDialog(show);
+	}
+}
 
+void QmlItemManager::displayWindowMessage(const int message_id, const int msecs, QFlags<Qt::AlignmentFlag> position,
+																			const QString &title, const QString &message)
+{
+	displayMessageOnAppWindow(message_id, std::move(appUtils()->string_strings({title, message}, record_separator)),
+																							position, QString{}, msecs);
+}
+
+void QmlItemManager::displayMessageOnAppWindow(const int message_id, QString &&message, QFlags<Qt::AlignmentFlag> position,
+											   QString &&image_source, const int msecs, QString &&button1text,
+											   QString &&button2text) const
+{
+#ifdef ENABLE_GENERAL_MESSAGES_POPUP
 	if (!m_canDisplayMessage) {
-		st_generalMessage *message{new st_generalMessage};
-		message->message_id = message_id;
-		message->filename_or_message = filename_or_message;
-		message->position = position;
-		message->image_source = image_source;
-		message->msecs = msecs;
-		message->button1text = button1text;
-		message->button2text = button2text;
-		const_cast<QmlItemManager*>(this)->m_messagesQueue.append(message);
+		st_generalMessage *g_message{new st_generalMessage};
+		g_message->message_id = message_id;
+		g_message->message = std::forward<QString>(message);
+		g_message->position = position;
+		g_message->image_source = std::forward<QString>(image_source);
+		g_message->msecs = msecs;
+		g_message->button1text = std::forward<QString>(button1text);
+		g_message->button2text = std::forward<QString>(button2text);
+		const_cast<QmlItemManager*>(this)->m_messagesQueue.append(g_message);
 		return;
 	}
-	QString title, message;
+
+	QString title;
 	MESSAGE_ICON icon_to_use{MI_Error}; //Only applicable when image_source is an empty string
 	if (message_id < TP_RET_CODE_CUSTOM_ERROR) {
 		icon_to_use = MI_OK;
 		switch (message_id) {
 		case TP_RET_CODE_CUSTOM_SUCCESS:
-			title = std::move(appUtils()->getCompositeValue(0, filename_or_message, record_separator));
-			message = std::move(appUtils()->getCompositeValue(1, filename_or_message, record_separator));
+			title = std::move(appUtils()->getCompositeValue(0, message, record_separator));
+			message = std::move(appUtils()->getCompositeValue(1, message, record_separator));
 			break;
 		case TP_RET_CODE_EXPORT_OK:
 			title = std::move(tr("Succesfully exported"));
-			message = std::move(filename_or_message);
 			break;
 		case TP_RET_CODE_SHARE_OK:
 			title = std::move(tr("Succesfully shared"));
-			message = std::move(filename_or_message);
 			break;
 		case TP_RET_CODE_IMPORT_OK:
-			title = std::move(tr("Successfully imported"));
-			message = std::move(appUtils()->getFileName(filename_or_message));
+			if (message.isEmpty()) { //from QML
+				title = std::move(tr("User configuration imported"));
+#ifndef Q_OS_ANDROID
+				message = std::move(tr("Click on Next to start using the app"));
+#else
+				message = std::move(tr("Tap on Next to start using the app"));
+#endif
+			} else {
+				title = std::move(tr("Successfully imported"));
+			}
+			break;
+		case TP_RET_CODE_USER_OK:
+			title = std::move(tr("Existing user account found"));
+			if (message.isEmpty()) {
+#ifndef Q_OS_ANDROID
+				message = std::move(tr("You can click on the Import button to download all the data for the user"));
+#else
+				message = std::move(tr("You can tap on the Import button to download all the data for the user"));
+#endif
+			}
 			break;
 		}
 	} else if (message_id < TP_RET_CODE_CUSTOM_WARNING) {
 		icon_to_use = MI_Error;
 		switch (message_id) {
 		case TP_RET_CODE_CUSTOM_ERROR:
-			title = std::move(appUtils()->getCompositeValue(0, filename_or_message, record_separator));
-			message = std::move(appUtils()->getCompositeValue(1, filename_or_message, record_separator));
+			title = std::move(appUtils()->getCompositeValue(0, message, record_separator));
+			message = std::move(appUtils()->getCompositeValue(1, message, record_separator));
 			break;
 		case TP_RET_CODE_UNKNOWN_ERROR:
 			title = std::move(tr("Unknown Error"));
-			message = filename_or_message;
 			break;
 		case TP_RET_CODE_FILE_NOT_FOUND:
 			title = std::move(tr("File not found!"));
-			message = filename_or_message;
 			break;
 		case TP_RET_CODE_OPEN_READ_FAILED:
 			title = std::move(tr("Failed to open file"));
-			message = std::move(appUtils()->getFileName(filename_or_message));
 			break;
 		case TP_RET_CODE_WRONG_IMPORT_FILE_TYPE:
 			title = std::move(tr("Error"));
-			message = std::move(tr("File type not recognized"));
+			if (message.isEmpty())
+				message = std::move(tr("File type not recognized"));
 			break;
 		case TP_RET_CODE_CORRUPT_FILE:
-			title = std::move(tr("Error"));
-			message = std::move(appUtils()->getFileName(filename_or_message) % tr("\n is wrongly formatted or corrupted"));
+			title = std::move(tr("Error! File format not recognized"));
 			break;
 		case TP_RET_CODE_SHARE_FAILED:
 			title = std::move(tr("Sharing failed"));
-			message = std::move(appUtils()->getFileName(filename_or_message));
 			break;
 		case TP_RET_CODE_EXPORT_FAILED:
 			title = std::move(tr("Export failed"));
-			message = filename_or_message;
 			break;
 		case TP_RET_CODE_IMPORT_FAILED:
-			title = std::move(tr("Import from file failed"));
-			message = std::move(appUtils()->getFileName(filename_or_message));
+			if (message.isEmpty()) { //from QML
+				title = std::move(tr("User data not imported"));
+				message = std::move(tr("Could not retrieve the data from the server"));
+			} else {
+				title = std::move(tr("Import from file failed"));
+			}
 			break;
 		case TP_RET_CODE_OPEN_CREATE_FAILED:
 			title = std::move(tr("Could not open file for exporting"));
-			message = std::move(appUtils()->getFileName(filename_or_message));
+			break;
+		case TP_RET_CODE_USER_DOES_NOT_EXIST:
+			title = std::move(tr("User account not found"));
 			break;
 		case TP_RET_CODE_SERVER_UNREACHABLE:
 			title = std::move(tr("Can't connect to server"));
-			message = filename_or_message;
 			break;
 		}
 	} else if (message_id < TP_RET_CODE_CUSTOM_MESSAGE) {
 		icon_to_use = MI_Warning;
 		switch (message_id) {
 		case TP_RET_CODE_CUSTOM_WARNING:
-			title = std::move(tr("Warning! ") + appUtils()->getCompositeValue(0, filename_or_message, record_separator));
-			message = std::move(appUtils()->getCompositeValue(1, filename_or_message, record_separator));
+			title = std::move(tr("Warning! ") % appUtils()->getCompositeValue(0, message, record_separator));
+			message = std::move(appUtils()->getCompositeValue(1, message, record_separator));
 			break;
 		case TP_RET_CODE_NOTHING_TODO:
 			title = std::move(tr("Nothing to be done"));
-			message = std::move(tr("File had already been imported"));
+			message += std::move(tr("File had already been imported"));
 			break;
 		case TP_RET_CODE_NO_MESO:
 			title = std::move(tr("No program to import into"));
-			message = std::move(tr("Either create a new training plan or import from a complete program file"));
+			message += std::move(tr("Either create a new training plan or import from a complete program file"));
 			break;
 		case TP_RET_CODE_NOTHING_TO_EXPORT:
 			title = std::move(tr("Nothing to export"));
-			message = std::move(tr("Only exercises that do not come by default with the app can be exported"));
+			message += std::move(tr("Only exercises that do not come by default with the app can be exported"));
 			break;
 		case TP_RET_CODE_OPERATION_CANCELED:
 			title = std::move(tr("Warning"));
-			message = std::move(tr("Operation canceled"));
+			message += std::move(tr("Operation canceled"));
 			break;
 		}
 	} else {
 		icon_to_use = MI_None;
-		title = std::move(appUtils()->getCompositeValue(0, filename_or_message, record_separator));
-		message = std::move(appUtils()->getCompositeValue(1, filename_or_message, record_separator));
+		title = std::move(appUtils()->getCompositeValue(0, message, record_separator));
+		message = std::move(appUtils()->getCompositeValue(1, message, record_separator));
 	}
 
 	QString img_src;
@@ -451,17 +482,7 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 		QMetaObject::invokeMethod(m_generalMessagesPopup, "tpOpen");
 	else
 		QMetaObject::invokeMethod(m_generalMessagesPopup, "showTimed", Q_ARG(int, msecs));
-}
-
-void QmlItemManager::showOnlineMessagesManagerDialog(const bool show)
-{
-	if (m_messagesManagerPopup) {
-		if (show)
-			appPagesListModel()->raisePopup(m_messagesManagerPopup);
-		else
-			appPagesListModel()->hidePopup(m_messagesManagerPopup);
-		appSettings()->setShowOnlineMessagesDialog(show);
-	}
+#endif //ENABLE_GENERAL_MESSAGES_POPUP
 }
 
 void QmlItemManager::startMessagesManager()
@@ -511,13 +532,14 @@ void QmlItemManager::generalMessagesPopupClosed()
 {
 	m_canDisplayMessage = m_messagesQueue.isEmpty();
 	if (!m_canDisplayMessage) {
-		st_generalMessage *message{m_messagesQueue.first()};
-		if (message) {
+		st_generalMessage *g_message{m_messagesQueue.first()};
+		if (g_message) {
 			m_canDisplayMessage = true;
-			displayMessageOnAppWindow(message->message_id, message->filename_or_message, message->position,
-									  message->image_source, message->msecs, message->button1text, message->button2text);
+			displayMessageOnAppWindow(g_message->message_id, std::move(g_message->message), g_message->position,
+										std::move(g_message->image_source), g_message->msecs,
+										std::move(g_message->button1text), std::move(g_message->button2text));
 			m_canDisplayMessage = false;
-			delete message;
+			delete g_message;
 			m_messagesQueue.removeFirst();
 		}
 	}

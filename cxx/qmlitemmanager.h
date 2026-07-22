@@ -51,15 +51,16 @@ public:
 	Q_INVOKABLE void showSimpleExercisesList(QQuickItem *parentPage, const QString &filter);
 	Q_INVOKABLE void getWeatherPage();
 	Q_INVOKABLE void getStatisticsPage();
-	Q_INVOKABLE void displayMessageOnAppWindow(const int message_id, const QString &filename_or_message = QString{},
-			QFlags<Qt::AlignmentFlag> position = Qt::AlignTop|Qt::AlignHCenter, const QString &image_source = QString{},
-			const int msecs = 4000, const QString& button1text = QString{}, const QString &button2text = QString{}) const;
 	Q_INVOKABLE void showOnlineMessagesManagerDialog(const bool show);
-	Q_INVOKABLE inline void showTextCopiedMessage(const QString &message = QString{})
-	{
-		displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, message.isEmpty()
-																	? tr("Text copied to the clipboard") : message);
-	}
+
+	Q_INVOKABLE void displayWindowMessage(const int message_id, const int msecs,
+												QFlags<Qt::AlignmentFlag> position = Qt::AlignTop|Qt::AlignHCenter,
+												const QString &title = QString{}, const QString &message = QString{});
+
+	void displayMessageOnAppWindow(const int message_id, QString &&message = QString{},
+											QFlags<Qt::AlignmentFlag> position = Qt::AlignTop|Qt::AlignHCenter,
+											QString &&image_source = QString{}, const int msecs = 4000,
+											QString &&button1text = QString{}, QString &&button2text = QString{}) const;
 
 	void startMessagesManager();
 

@@ -1,5 +1,4 @@
-#ifndef TPBOOL_H
-#define TPBOOL_H
+#pragma once
 
 class TPBool
 {
@@ -13,5 +12,3 @@ public:
 private:
 	bool m_value{false};
 };
-
-#endif // TPBOOL_H
