@@ -327,7 +327,7 @@ TPPopup {
 				onClicked: {
 					if (_dlg_timer.timePickerOnly)
 						_dlg_timer.useTime(mainTimer.strHours + ":" + mainTimer.strMinutes);
-					_dlg_timer.closePopup();
+					_dlg_timer.closePopup(0);
 				} //btnClose
 			}
 		} //Row

@@ -24,8 +24,7 @@ using namespace QKeychain;
 
 void ReadPasswordJobPrivate::scheduledStart()
 {
-	if (!LibSecretKeyring::findPassword(key, q->service(), this))
-	{
+	if (!LibSecretKeyring::findPassword(key, q->service(), this)) {
 		#ifndef QT_NO_DEBUG
 		qDebug() << "keychain_unix::ReadPasswordJobPrivate::scheduledStart" << "Read password failed. Using fallback()";
 		#endif
@@ -36,11 +35,9 @@ void ReadPasswordJobPrivate::scheduledStart()
 void ReadPasswordJobPrivate::fallbackOnError()
 {
 	PlainTextStore plainTextStore{q->service(), q->settings()};
-	if (q->insecureFallback() && plainTextStore.contains(key))
-	{
+	if (q->insecureFallback() && plainTextStore.contains(key)) {
         mode = plainTextStore.readMode(key);
         data = plainTextStore.readData(key);
-
         if (plainTextStore.error() != NoError)
             q->emitFinishedWithError(plainTextStore.error(), plainTextStore.errorString());
         else
@@ -50,8 +47,7 @@ void ReadPasswordJobPrivate::fallbackOnError()
 
 void WritePasswordJobPrivate::scheduledStart()
 {
-	if (!LibSecretKeyring::writePassword(service, key, service, mode, data, this))
-	{
+	if (!LibSecretKeyring::writePassword(service, key, service, mode, data, this)) {
 		#ifndef QT_NO_DEBUG
 		qDebug() << "keychain_unix::WritePasswordJobPrivate::scheduledStart() " << "Write password failed. Using fallback()";
 		#endif
@@ -72,8 +68,7 @@ void WritePasswordJobPrivate::fallbackOnError()
 
 void DeletePasswordJobPrivate::scheduledStart()
 {
-	if (!LibSecretKeyring::deletePassword(key, q->service(), this))
-	{
+	if (!LibSecretKeyring::deletePassword(key, q->service(), this)) {
 		#ifndef QT_NO_DEBUG
 		qDebug() << "keychain_unix::DeletePasswordJobPrivate::scheduledStart()" << "Delete password failed. Using fallback()";
 		#endif

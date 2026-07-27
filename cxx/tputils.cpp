@@ -76,79 +76,80 @@ QString TPUtils::getCorrectPath(const QUrl &url) const
 
 TPUtils::FILE_TYPE TPUtils::getFileType(QString filename) const
 {
-	if (filename.isEmpty())
-		return FT_UNKNOWN;
-
-	filename = std::move(getCorrectPath(filename));
-	const QString &ext{getFileExtension(filename).toLower()};
-	if (ext.isEmpty()) {
+	FILE_TYPE type{FT_NO_TYPE_SET};
+	if (!filename.isEmpty()) {
+		filename = std::move(getCorrectPath(filename));
+		const QString &ext{getFileExtension(filename).toLower()};
+		if (ext.isEmpty()) {
 #ifdef Q_OS_ANDROID
-		return filename.contains("video%"_L1) ? 1 : (filename.contains("image%"_L1) ? 0 : -1);
+			type = filename.contains("video%"_L1) ? 1 : (filename.contains("image%"_L1) ? 0 : -1);
 #else
-		return FT_OTHER;
+			type = FT_UNKNOWN;
 #endif
-	}
-
-	for (uint t{FT_IMAGE}, i{0}; t <= FT_MS_DOCUMENT; t *= 2, ++i ) {
-		if (file_types_by_exension[i].contains(ext)) {
-			if (t == FT_TEXT) {
-				bool formatted{false};
-				t = getTPFileType(filename, formatted);
-				if (formatted)
-					t |= FT_TP_FORMATTED;
-			}
-			return static_cast<FILE_TYPE>(t);
-		}
-	}
-	return FT_OTHER;
-}
-
-TPUtils::FILE_TYPE TPUtils::getTPFileType(const QString &filename, bool &formatted) const
-{
-	QFile *in_file{appUtils()->openFile(filename)};
-	if (!in_file)
-		return FT_OTHER;
-
-	QString line{64, QChar{0}};
-	QTextStream stream{in_file};
-	uint32_t ret{FT_TEXT};
-
-	while (stream.readLineInto(&line)) {
-		if (line.contains("##"_L1)) {
-			if (line.startsWith(TPUtils::STR_START_EXPORT))
-				formatted = false;
-			else if (line.startsWith(TPUtils::STR_START_FORMATTED_EXPORT))
-				formatted = true;
-			else
-				continue;
-			if (line.contains(appUtils()->userFileIdentifier)) {
-				ret = FT_TP_USER_PROFILE;
-				break;
-			} else if (line.contains(appUtils()->mesoFileIdentifier)) {
-				ret = FT_OTHER;
-			} else if (line.contains(appUtils()->splitFileIdentifier) && ret == FT_OTHER) {
-				ret = FT_TP_PROGRAM;
-				break;
-			} else if (line.contains(appUtils()->exercisesListFileIdentifier)) {
-				ret = FT_TP_EXERCISES;
-				break;
-			} else if (line.contains(appUtils()->workoutFileIdentifier)) {
-				switch (line.at(line.length() -1).cell()) {
-				case 'A': ret = FT_TP_WORKOUT_A; break;
-				case 'B': ret = FT_TP_WORKOUT_B; break;
-				case 'C': ret = FT_TP_WORKOUT_C; break;
-				case 'D': ret = FT_TP_WORKOUT_D; break;
-				case 'E': ret = FT_TP_WORKOUT_E; break;
-				case 'F': ret = FT_TP_WORKOUT_F; break;
+		} else {
+			type = FT_OTHER;
+			for (uint t{FT_IMAGE}, i{0}; t <= FT_MS_DOCUMENT; t *= 2, ++i ) {
+				if (file_types_by_exension[i].contains(ext)) {
+					if (t == FT_TEXT) {
+						bool formatted{false};
+						t = getTPFileType(filename, formatted);
+						if (formatted)
+							t |= FT_TP_FORMATTED;
+					}
+					type = static_cast<FILE_TYPE>(t);
+					break;
 				}
 			}
 		}
 	}
-	if (formatted)
-		ret |= FT_TP_FORMATTED;
-	in_file->close();
-	delete in_file;
-	return static_cast<FILE_TYPE>(ret);
+	return type;
+}
+
+TPUtils::FILE_TYPE TPUtils::getTPFileType(const QString &filename, bool &formatted) const
+{
+	FILE_TYPE tp_type{FT_TEXT};
+	QFile *in_file{appUtils()->openFile(filename)};
+	if (in_file) {
+		QString line{64, QChar{0}};
+		QTextStream stream{in_file};
+
+		while (stream.readLineInto(&line)) {
+			if (line.contains("##"_L1)) {
+				if (line.startsWith(TPUtils::STR_START_EXPORT))
+					formatted = false;
+				else if (line.startsWith(TPUtils::STR_START_FORMATTED_EXPORT))
+					formatted = true;
+				else
+					continue;
+				if (line.contains(appUtils()->userFileIdentifier)) {
+					tp_type = FT_TP_USER_PROFILE;
+					break;
+				} else if (line.contains(appUtils()->mesoFileIdentifier)) {
+					tp_type = FT_OTHER;
+				} else if (line.contains(appUtils()->splitFileIdentifier) && tp_type == FT_TEXT) {
+					tp_type = FT_TP_PROGRAM;
+					break;
+				} else if (line.contains(appUtils()->exercisesListFileIdentifier)) {
+					tp_type = FT_TP_EXERCISES;
+					break;
+				} else if (line.contains(appUtils()->workoutFileIdentifier)) {
+					switch (line.at(line.length() -1).cell()) {
+					case 'A': tp_type = FT_TP_WORKOUT_A; break;
+					case 'B': tp_type = FT_TP_WORKOUT_B; break;
+					case 'C': tp_type = FT_TP_WORKOUT_C; break;
+					case 'D': tp_type = FT_TP_WORKOUT_D; break;
+					case 'E': tp_type = FT_TP_WORKOUT_E; break;
+					case 'F': tp_type = FT_TP_WORKOUT_F; break;
+					}
+				}
+			}
+		}
+		if (formatted)
+			tp_type |= FT_TP_FORMATTED;
+		in_file->close();
+		delete in_file;
+	}
+	return tp_type;
 }
 
 QStringList TPUtils::extensionsListForType(FILE_TYPE filetype, const bool description) const
@@ -362,16 +363,17 @@ QString TPUtils::sanitizePath(const QString &filepath) const
 
 bool TPUtils::fileRecentlyModified(const QString &filename, const int minute_threshold) const
 {
+	bool ret{false};
 	QFileInfo fi{filename};
 	if (fi.exists()) {
 		const QDateTime &changed_datetime{fi.lastModified()};
 		if (changed_datetime.date() == QDate::currentDate()) {
 			const qsizetype secs_diff{changed_datetime.secsTo(QDateTime::currentDateTime())};
 			const qsizetype min_diff{secs_diff / 60};
-			return min_diff <= minute_threshold;
+			ret = min_diff <= minute_threshold;
 		}
 	}
-	return false;
+	return ret;
 }
 
 bool TPUtils::mkdir(const QString &fileOrDir) const
@@ -379,89 +381,99 @@ bool TPUtils::mkdir(const QString &fileOrDir) const
 	const QFileInfo fi{fileOrDir};
 	const QString &path{(!fi.exists() || fi.isFile()) ? getFilePath(fileOrDir, fi.exists()) : fileOrDir};
 	QDir fs_dir{path};
-	if (!fs_dir.exists())
-		return fs_dir.mkpath(path);
-	return true;
+	bool ret{fs_dir.exists()};
+	if (!ret)
+		ret = fs_dir.mkpath(path);
+	return ret;
 }
 
 bool TPUtils::rename(const QString &source_file_or_dir, const QString &dest_file_or_dir, const bool overwrite) const
 {
 	const QFileInfo fi_src{source_file_or_dir};
 	const QFileInfo fi_dest{dest_file_or_dir};
+	bool proceed{fi_src.exists()};
 
-	if (fi_src.exists()) {
-		bool ok{false};
+	if (proceed) {
 		if (fi_src.isDir()) {
 			QDir dest_dir;
-			if (fi_dest.exists()) {
+			proceed = !fi_dest.exists() || overwrite;
+			if (proceed) {
 				if (!fi_dest.isDir()) { //dest_file_or_dir is a file
-					if (overwrite)
-						QFile::remove(dest_file_or_dir);
-					else
-						return false;
+					proceed = QFile::remove(dest_file_or_dir);
 				} else {
-					if (overwrite) {
-						dest_dir.setPath(dest_file_or_dir);
-						if (!dest_dir.removeRecursively())
-							return false;
-					} else {
-						return false;
-					}
+					dest_dir.setPath(dest_file_or_dir);
+					proceed = dest_dir.removeRecursively();
 				}
 			}
-			ok = dest_dir.rename(source_file_or_dir, dest_file_or_dir);
+			if (proceed)
+				proceed = dest_dir.rename(source_file_or_dir, dest_file_or_dir);
 		} else {
 			QFile dest_file;
 			if (fi_dest.exists()) {
-				if (!fi_dest.isFile()) { //dest_file_or_dir is a dir
-					if (overwrite) {
+				if (overwrite) {
+					if (!fi_dest.isFile()) { //dest_file_or_dir is a dir
 						QDir dest_dir{dest_file_or_dir};
-						if (!dest_dir.removeRecursively())
-							return false;
+						proceed = dest_dir.removeRecursively();
 					} else {
-						return false;
+						proceed = QFile::remove(dest_file_or_dir);
 					}
+					if (proceed)
+						proceed = QFile::rename(source_file_or_dir, dest_file_or_dir);
 				} else {
-					if (overwrite)
-						QFile::remove(dest_file_or_dir);
-					else
-						return false;
+					proceed = false;
 				}
-				ok = QFile::rename(source_file_or_dir, dest_file_or_dir);
 			} else {
-				ok = QFile::rename(source_file_or_dir, getFilePath(source_file_or_dir, true) % getFileName(dest_file_or_dir));
+				proceed = QFile::rename(source_file_or_dir, getFilePath(source_file_or_dir, true) % getFileName(dest_file_or_dir));
 			}
 		}
-		return ok;
 	} else {
-		return fi_dest.exists();
+		proceed = fi_dest.exists();
 	}
+	return proceed;
 }
 
-bool TPUtils::copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath,
-																const bool remove_source, const bool overwrite) const
+bool TPUtils::copyOrLinkFile(const QString &source, const QString &destination, const bool copy,
+							 const bool create_path, const bool overwrite, const bool follow_symlink) const
 {
-	if (QFile::exists(srcFile)) {
-		if (createPath) {
-			const QString &filepath{getFilePath(dstFileOrDir, true)};
-			if (!mkdir(filepath))
-				return false;
+	const QFileInfo src_fi{source};
+	const QString &source_file{src_fi.isSymbolicLink() ? (follow_symlink ? src_fi.symLinkTarget() : source): source};
+	bool proceed{QFile::exists(source_file)};
+	if (proceed) {
+		if (create_path) {
+			const QString &filepath{getFilePath(destination, true)};
+			proceed = mkdir(filepath);
 		}
-		const QFileInfo fi{dstFileOrDir};
-		if (fi.isFile() && overwrite)
-			QFile::remove(dstFileOrDir);
-		const QString &dstFile{fi.isDir() ? dstFileOrDir + getFileName(srcFile) : dstFileOrDir};
-		if (QFile::copy(srcFile, dstFile)) {
-			if (remove_source)
-				QFile::remove(srcFile);
-			return true;
+		if (proceed) {
+			const QFileInfo fi{destination};
+			QString dst_file;
+			proceed = !fi.exists() || overwrite;
+			if (proceed) {
+				if (!fi.isDir()) { //destination is an existing file or symlink
+					if (fi.isSymbolicLink()) {
+						if (follow_symlink) //remove both the link and the source
+							QFile::remove(fi.symLinkTarget()); //first, the source
+					}
+					if ((proceed = QFile::remove(destination))) //remove a link or a regular file
+						dst_file = destination; //destination = dstDir + dst_file(i.e. dst_fileOrDir)
+				} else { //destination is a directory that exists
+					dst_file += destination % getFileName(source); //destination = dstDir + source filename
+					if (QFile::exists(dst_file))
+						proceed = QFile::remove(dst_file);
+				}
+				if (proceed) {
+					if (copy)
+						proceed = QFile::copy(source_file, dst_file);
+					else
+						proceed = QFile::link(source_file, dst_file);
+				}
+			}
 		}
 	}
-	return false;
+	return proceed;
 }
 
 QFile *TPUtils::openFile(const QString &filename, const bool read, const bool write, const bool append,
-																				const bool overwrite, const bool text) const
+																		const bool overwrite, const bool text) const
 {
 	QIODeviceBase::OpenMode flags{QIODeviceBase::NotOpen};
 	if (write) {

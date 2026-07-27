@@ -237,8 +237,8 @@ TPPage {
 				fileOps: mesoPage.mesoManager.instructionsFileViewer()
 				useBackground: true
 				missingFileInfo: qsTr("No instructions file added")
-				Layout.preferredWidth: mesoPage.mesoManager.instructionsFileViewer().controlSize.width
-				Layout.preferredHeight: width * 1.4
+				Layout.preferredWidth: minimumWidth
+				Layout.preferredHeight: minimumHeight
 				Layout.alignment: Qt.AlignCenter
 			}
 

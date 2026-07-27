@@ -65,7 +65,7 @@ public:
 		MESO_FIELD_SPLITF,
 		MESO_FIELD_COACH,
 		MESO_FIELD_CLIENT,
-		MESO_FIELD_FILE,
+		MESO_FIELD_INSTRUCTIONS_FILE,
 		MESO_FIELD_TYPE,
 		MESO_FIELD_METADATA,
 		MESO_TOTAL_FIELDS
@@ -279,11 +279,11 @@ public:
 		return meso_idx < m_mesoData.count() ? client(meso_idx) : QString {};
 	}
 
-	Q_INVOKABLE inline QString file(const uint meso_idx) const
+	Q_INVOKABLE inline QString instructionsFile(const uint meso_idx) const
 	{
-		return m_mesoData.at(meso_idx).at(MESO_FIELD_FILE);
+		return m_mesoData.at(meso_idx).at(MESO_FIELD_INSTRUCTIONS_FILE);
 	}
-	Q_INVOKABLE void setFile(const uint meso_idx, const QString &new_file);
+	Q_INVOKABLE void setInstructionsFile(const uint meso_idx, const QString &new_file);
 
 	MesoType mesoType(const uint meso_idx) const;
 	Q_INVOKABLE inline bool isOwnMeso(const int meso_idx) const

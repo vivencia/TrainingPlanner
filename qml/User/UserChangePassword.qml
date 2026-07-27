@@ -94,7 +94,7 @@ TPPopup {
 
 				onClicked: {
 					AppUserModel.changePassword(txtCurPassword.getPassword(), txtNewPassword.getPassword());
-					_passwdDlg.closePopup();
+					_passwdDlg.closePopup(0);
 					enabled = false;
 				}
 			}
@@ -106,7 +106,7 @@ TPPopup {
 				Layout.alignment: Qt.AlignCenter
 				Layout.maximumWidth: _passwdDlg.availableWidth - btn1.width - 10
 
-				onClicked: _passwdDlg.closePopup();
+				onClicked: _passwdDlg.closePopup(-1);
 			}
 		}
 	}//ColumnLayout

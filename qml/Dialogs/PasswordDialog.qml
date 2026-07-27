@@ -21,16 +21,22 @@ TPPopup {
 	property string title
 	property string message
 	property int request_id
+	property bool store_password
+	property bool show_store_option
 
-	signal passwordAcquired(bool proceed, int request_id, string passwd);
+	signal passwordAcquired(bool proceed, int request_id, string passwd, bool store);
 
 	onOpened: {
 		txtPassword.clear();
 		txtPassword.forceActiveFocus();
 	}
 
-	onCloseActionExeced: passwordAcquired(false, -1, "");
-
+	onCloseActionExeced: (btn_id) => {
+		if (btn_id === 0)
+			passwordAcquired(true, _passwdDlg.request_id, txtPassword.text, chkStorePassword.checked);
+		else
+			passwordAcquired(false, -1, "", false);
+	}
 	ColumnLayout {
 		id: mainLayout
 		spacing: 10
@@ -76,7 +82,17 @@ TPPopup {
 			id: txtPassword
 			Layout.fillWidth: true
 
-			onEnterOrReturnKeyPressed: _passwdDlg.acceptInput(true);
+			onEnterOrReturnKeyPressed: btn1.clicked(0);
+		}
+
+		TPRadioButtonOrCheckBox {
+			id: chkStorePassword
+			boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
+			text: qsTr("Save password")
+			checked: _passwdDlg.store_password
+			visible: _passwdDlg.show_store_option
+			Layout.fillWidth: true
+			onClicked: _passwdDlg.store_password = !_passwdDlg.store_password;
 		}
 
 		RowLayout {
@@ -91,7 +107,7 @@ TPPopup {
 				enabled: txtPassword.text.length > 4
 				Layout.alignment: Qt.AlignHCenter
 
-				onClicked: _passwdDlg.acceptInput(true);
+				onClicked: _passwdDlg.closePopup(0);
 			}
 
 			TPButton {
@@ -100,13 +116,8 @@ TPPopup {
 				autoSize: true
 				Layout.alignment: Qt.AlignHCenter
 
-				onClicked: _passwdDlg.acceptInput(false);
+				onClicked: _passwdDlg.closePopup(-1);
 			}
 		}
-	}
-
-	function acceptInput(proceed: bool): void {
-		passwordAcquired(proceed, _passwdDlg.request_id, txtPassword.text);
-		_passwdDlg.close();
 	}
 }

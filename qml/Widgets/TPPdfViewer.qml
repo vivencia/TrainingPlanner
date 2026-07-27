@@ -6,6 +6,8 @@ import TpQml
 Item {
 	id: _viewPort
 
+	property QtObject pdfDoc
+
 	PdfMultiPageView {
 		id: pdfViewer
 		searchModel.searchString: search_term
@@ -19,6 +21,7 @@ Item {
 
 		document: PdfDocument {
 			source: _control.fileOps.fileURL
+			password: _viewPort.pdfDoc ? _viewPort.pdfDoc.password : ""
 		}
 
 		Component.onCompleted: {

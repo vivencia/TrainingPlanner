@@ -12,12 +12,14 @@
 #include <QQuickTextDocument>
 #include <QRect>
 #include <QSize>
+#include <QtPdf/QPdfDocument>
 
 QT_FORWARD_DECLARE_CLASS(QFileDialog)
 QT_FORWARD_DECLARE_CLASS(QGraphicsEffect)
 QT_FORWARD_DECLARE_CLASS(QPainter)
 QT_FORWARD_DECLARE_CLASS(QQmlComponent)
 QT_FORWARD_DECLARE_CLASS(QQuickItem)
+QT_FORWARD_DECLARE_CLASS(QPdfDocument)
 QT_FORWARD_DECLARE_CLASS(QTextDocument)
 
 class TPFileOps : public QQuickPaintedItem
@@ -29,10 +31,11 @@ QML_VALUE_TYPE(FileOperations)
 
 Q_PROPERTY(TPUtils::FILE_TYPE fileType READ fileType WRITE setFileType NOTIFY fileTypeChanged FINAL)
 Q_PROPERTY(QString fileName READ fileName WRITE setFileName NOTIFY fileNameChanged FINAL)
-Q_PROPERTY(QString subdirForAddedFile READ subdirForAddedFile WRITE setSubdirForAddedFile NOTIFY subdirForAddedFileChanged FINAL)
 Q_PROPERTY(QUrl fileURL READ fileURL WRITE setFileURL NOTIFY fileNameChanged FINAL)
-Q_PROPERTY(QSize controlSize READ controlSize WRITE setControlSize NOTIFY controlSizeChanged FINAL)
+Q_PROPERTY(QSize controlSize READ controlSize NOTIFY controlSizeChanged FINAL)
+Q_PROPERTY(QSize previewSize READ previewSize WRITE setPreviewSize NOTIFY previewSizeChanged FINAL)
 Q_PROPERTY(QQuickItem* parentPage READ parentPage WRITE setParentPage NOTIFY parentPageChanged FINAL)
+Q_PROPERTY(QPdfDocument* pdfDocument READ pdfDocument NOTIFY pdfDocumentChanged FINAL)
 Q_PROPERTY(int mesoIdx READ mesoIdx WRITE setMesoIdx NOTIFY mesoIdxChanged FINAL)
 Q_PROPERTY(int workoutCalendarDay READ workoutCalendarDay WRITE setWorkoutCalendarDay NOTIFY workoutCalendarDayChanged FINAL)
 Q_PROPERTY(int tpFileSectionCount READ tpFileSectionCount NOTIFY tpFileSectionCountChanged FINAL)
@@ -63,7 +66,7 @@ public:
 	Q_ENUM(OpType)
 
 	explicit TPFileOps(QQuickItem *visual_parent = nullptr);
-	~TPFileOps() { qDebug() << "~TPFileOps()" + m_filename.fileName(); }
+	~TPFileOps();
 	void paint(QPainter *painter) override;
 
 	inline TPUtils::FILE_TYPE fileType() const { return m_filetype; }
@@ -72,9 +75,6 @@ public:
 	inline const TPFilePath &tpFileName() const { return m_filename; }
 	void setFileName(const QString &filename, const bool file_added = false);
 	void setFileName(TPFilePath &&tp_filename);
-	const QString &subdirForAddedFile() const { return m_subdir; }
-	//subdir here is TPFilePath::targetUser + / + TPFilePath::subdir. addFile() will split subdir into those two parts
-	void setSubdirForAddedFile(const QString &subdir) { m_subdir = subdir; emit subdirForAddedFileChanged(); }
 	//TODO: Android URLs
 	inline QUrl fileURL() const { return QString{"file://"_L1 % m_filename.toString()}; }
 	void setFileURL(const QUrl &url);
@@ -91,8 +91,11 @@ public:
 		setHeight(new_size.height());
 		emit controlSizeChanged();
 	}
+	inline QSize previewSize() const { return m_previewSize; }
+	void setPreviewSize(const QSize &size);
 	inline QQuickItem *parentPage() const { return m_parentPage; }
 	inline void setParentPage(QQuickItem *page) { m_parentPage = page; emit parentPageChanged(); }
+	inline QPdfDocument* pdfDocument() const { return m_pdfDocument; }
 	inline int mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const int meso_idx) { m_mesoIdx = meso_idx; emit mesoIdxChanged(); }
 	inline int workoutCalendarDay() const { return m_workoutCalendarDay; }
@@ -169,7 +172,9 @@ signals:
 	void fileRemovalRequested();
 	void mesoIdxChanged();
 	void controlSizeChanged();
+	void previewSizeChanged();
 	void parentPageChanged();
+	void pdfDocumentChanged();
 	void workoutCalendarDayChanged();
 	void tpFileSectionCountChanged();
 	void addFileFiltersChanged();
@@ -200,21 +205,22 @@ private:
 
 	controlInfo *m_controls[OT_TypeCount]{nullptr};
 	controlInfo *m_currentControl{nullptr};
-	QSize m_controlSize, m_buttonSize;
+	QSize m_controlSize, m_buttonSize, m_previewSize{0, 0};
 	QColor m_pressedColor;
 	TPUtils::FILE_TYPE m_filetype{TPUtils::FT_NO_TYPE_SET};
 	QList<std::pair<QString,QString>> m_tpFileInfo;
 	bool m_fullscreen{false}, m_canAddFile{false}, m_downloadOrGenerate{false}, m_restrictedFileType{false},
-															m_fileIsOK{false}, m_useControls{false}, m_usews{false};
+										m_fileIsOK{false}, m_useControls{false}, m_usews{false}, m_pdfOK{false};
 	int m_mesoIdx{-1}, m_workoutCalendarDay{-1}, m_cursorPostion{-1};
 	uint  m_tpfileSections{0}, m_addFileFilters{0};
 	QTextDocument *m_textDocument{nullptr};
 	TPFilePath m_filename;
-	QString m_subdir;
+	QString m_encodedName;
 	QFileDialog *m_fileDialog{nullptr};
 	QQmlComponent *m_sendFileDialogComponent{nullptr};
 	QObject *m_sendFileDialog{nullptr};
 	QQuickItem *m_parentPage{nullptr};
+	QPdfDocument* m_pdfDocument{nullptr};
 	std::function<TPFilePathPtr(const QString&)> m_suggestNameFunc{nullptr};
 
 	void _setFileName(const bool file_added);
@@ -237,6 +243,8 @@ private:
 	void disableImage(QImage &image);
 	controlInfo *controlFromMouseClick(const QPointF& mouse_pos) const;
 	controlInfo *controlFromType(const OpType type) const;
+	void loadPdf(const QString &password = QString{}, const bool store_passwd = true);
+	QString previewFilename(const QSize &preview_size) const;
 	QString getImagePreviewFile(QSize preferred_size = QSize{}) const;
 	QString getPDFPreviewFile(QSize preferred_size = QSize{}) const;
 	void _setEnabled(controlInfo *ci, const bool enabled);
@@ -244,5 +252,5 @@ private:
 	void readTPFile();
 	void openTPFile();
 	void textDocumentKeyNavigation(const int key);
-	void createSendFileDialog();
+	void createSendFileDialog();	
 };

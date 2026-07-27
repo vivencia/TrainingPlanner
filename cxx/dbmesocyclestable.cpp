@@ -40,8 +40,8 @@ DBMesocyclesTable::DBMesocyclesTable(DBModelInterfaceMesocycle *dbmodel_interfac
 
 QString DBMesocyclesTable::dbFileName(const bool fullpath) const
 {
-	const QString &filename{std::move("Mesocycles"_L1 + dbfile_extension)};
-	return fullpath ? dbFilePath() + filename : filename;
+	const QString &filename{"Mesocycles"_L1 % dbfile_extension};
+	return fullpath ? dbFilePath() % filename : filename;
 }
 
 bool DBMesocyclesTable::getAllMesocycles(void *)
@@ -58,6 +58,6 @@ bool DBMesocyclesTable::getAllMesocycles(void *)
 			success = true;
 		}
 	}
-	emit mesocycleAcquired(QStringList{}, true);
+	emit mesocycleAcquired(QStringList{}, true); //final signal: all mesocycles read
 	return success;
 }

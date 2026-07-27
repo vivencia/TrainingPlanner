@@ -14,10 +14,9 @@ Item {
 //public:
 	required property FileOperations fileOps
 	property string missingFileInfo
-	property bool externalFileOps: false
 	property bool useBackground: false
-	readonly property int minimumWidth: fileOps.controlSize.width
-	readonly property int minimumHeight: minimumWidth
+	readonly property int minimumWidth: Math.max(200, fileOps.controlSize.width)
+	readonly property int minimumHeight: minimumWidth * 1.4
 
 	signal removalRequested()
 	signal fileAdded(string filepath)
@@ -34,6 +33,19 @@ Item {
 	onFileOpsChanged: {
 		fileOps.parent = fileOpsRec;
 		fileOps.anchors.fill = fileOpsRec;
+		fileOps.previewSize = Qt.binding(function() { return Qt.size(width, height); });
+		fileOps.showFullScreen.connect(fullScreenLoader.showFullScreen);
+		fileOps.fileRemovalRequested.connect(_control.removalRequested);
+		fileOps.fileAdded.connect(function(filepath) { _control.fileAdded(filepath); });
+		fileOps.fileTypeChanged.connect(function() {
+			_control._preview_source = _control.fileOps.getFileTypeIcon(Qt.size(_control.width, _control.height), true);
+		});
+		fileOps.previewSizeChanged.connect(function () {
+			_control._preview_source = _control.fileOps.getFileTypeIcon(Qt.size(_control.width, _control.height), true);
+		});
+		fileOps.pdfDocumentChanged.connect(function () {
+			_control._preview_source = _control.fileOps.getFileTypeIcon(Qt.size(_control.width, _control.height), true);
+		});
 	}
 
 	states: [
@@ -70,15 +82,6 @@ Item {
 			}
 		}
 	]
-
-	Connections {
-		target: _control.fileOps
-		enabled: _control.fileOps !== null
-		function onShowFullScreen () { fullScreenLoader.showFullScreen(); }
-		function onFileRemovalRequested () { _control.removalRequested(); }
-		function onFileAdded(filepath) { _control.fileAdded(fileName); }
-		function onFileTypeChanged() { _control._preview_source = _control.fileOps.getFileTypeIcon(Qt.size(0, 0), true); }
-	}
 
 	TPBackRec {
 		visible: _control.useBackground
@@ -236,7 +239,9 @@ Item {
 				active: _control.fileOps.fileType === AppUtils.FT_PDF
 				anchors.fill: parent
 
-				sourceComponent: TPPdfViewer {}
+				sourceComponent: TPPdfViewer {
+					pdfDoc: _control.fileOps.pdfDocument
+				}
 			} //Loader : PdfMultiPageView
 
 			Loader {

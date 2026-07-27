@@ -114,7 +114,7 @@ TPPopup {
 
 				onClicked: {
 					_balloon.button1Clicked();
-					_balloon.closePopup();
+					_balloon.closePopup(0);
 				}
 			}
 
@@ -127,7 +127,7 @@ TPPopup {
 
 				onClicked: {
 					_balloon.button2Clicked();
-					_balloon.closePopup();
+					_balloon.closePopup(1);
 				}
 			}
 		}
@@ -162,7 +162,7 @@ TPPopup {
 
 		onTriggered: {
 			if (_balloon._close_on_timer_finished)
-				_balloon.closePopup();
+				_balloon.closePopup(-2); //close as if it were swiped away
 			else
 				_balloon.tpOpen();
 		}

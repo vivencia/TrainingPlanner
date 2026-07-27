@@ -118,6 +118,6 @@ TPPopup {
 
 	function selectDate(): void {
 		dateSelected(datePickerControl.selectedDate)
-		_control.closePopup();
+		_control.closePopup(0);
 	}
 }

@@ -179,7 +179,9 @@ class ReadPasswordJobPrivate;
  */
 class QKEYCHAIN_EXPORT ReadPasswordJob : public Job
 {
-	Q_OBJECT
+
+Q_OBJECT
+
 public:
 	/**
 	 * Create a new ReadPasswordJob.

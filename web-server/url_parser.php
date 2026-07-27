@@ -27,10 +27,14 @@ function parseFileQuery($userid): array {
 	if (isset($_GET['target'])) {
 		$target_user = $_GET['target'];
 		$filedir .= $target_user;
+	} else {
+		$target_user = "";
 	}
 	if (isset($_GET['subdir'])) {
 		$subdir = $_GET['subdir'];
 		$filedir .= $subdir;
+	} else {
+		$subdir = "";
 	}
 
 	if (isset($_GET['listfiles']) || isset($_GET['listdirs'])) {
@@ -48,6 +52,7 @@ function parseFileQuery($userid): array {
 	} elseif (isset($_GET['upload'])) {
 		//When uploading a file to another user, set $targetuser. The sender can only send files to its subdirectory within $targetuser
 		if ($userid != "admin") {
+			$backupdir = "";
 			if ($target_user) {
 				if ($target_user !== $userid)
 					return array(false, get_return_code("no privilege") . ": $userid can only send files to itself or *target* must be set to $userid");

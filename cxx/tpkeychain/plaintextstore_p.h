@@ -8,8 +8,7 @@
  * details, check the accompanying file 'COPYING'.                            *
  *****************************************************************************/
 
-#ifndef QTKEYCHAIN_PLAINTEXTSTORE_P_H
-#define QTKEYCHAIN_PLAINTEXTSTORE_P_H
+#pragma once
 
 #include "keychain_p.h"
 
@@ -44,5 +43,3 @@ private:
 };
 
 } // namespace QKeychain
-
-#endif // QTKEYCHAIN_PLAINTEXTSTORE_P_H

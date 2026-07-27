@@ -54,7 +54,7 @@ TPPopup {
 		}
 
 		onExerciseEntrySelected: _control.exerciseSelected(_control.parentPage);
-		onItemDoubleClicked: _control.closePopup();
+		onItemDoubleClicked: _control.closePopup(0);
 	}
 
 	function tpOpen(): void {

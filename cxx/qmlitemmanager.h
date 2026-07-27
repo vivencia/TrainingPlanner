@@ -19,6 +19,7 @@ QT_FORWARD_DECLARE_CLASS(QmlExercisesDatabaseInterface)
 QT_FORWARD_DECLARE_CLASS(QmlWorkoutInterface)
 QT_FORWARD_DECLARE_CLASS(QmlUserInterface)
 QT_FORWARD_DECLARE_STRUCT(st_generalMessage)
+QT_FORWARD_DECLARE_STRUCT(st_qmlPropertyChangesBuffer)
 QT_FORWARD_DECLARE_CLASS(QQmlApplicationEngine)
 QT_FORWARD_DECLARE_CLASS(QQmlComponent)
 QT_FORWARD_DECLARE_CLASS(QQuickItem)
@@ -54,14 +55,16 @@ public:
 	Q_INVOKABLE void showOnlineMessagesManagerDialog(const bool show);
 
 	Q_INVOKABLE void displayWindowMessage(const int message_id, const int msecs,
-												QFlags<Qt::AlignmentFlag> position = Qt::AlignTop|Qt::AlignHCenter,
-												const QString &title = QString{}, const QString &message = QString{});
+										QFlags<Qt::AlignmentFlag> position = Qt::AlignTop|Qt::AlignHCenter,
+										const QString &title = QString{}, const QString &message = QString{});
 
 	void displayMessageOnAppWindow(const int message_id, QString &&message = QString{},
-											QFlags<Qt::AlignmentFlag> position = Qt::AlignTop|Qt::AlignHCenter,
-											QString &&image_source = QString{}, const int msecs = 4000,
-											QString &&button1text = QString{}, QString &&button2text = QString{}) const;
+										QFlags<Qt::AlignmentFlag> position = Qt::AlignTop|Qt::AlignHCenter,
+										QString &&image_source = QString{}, const int msecs = 4000,
+										QString &&button1text = QString{}, QString &&button2text = QString{}) const;
 
+	void showPasswordDialog(const int request_id, QQuickItem *parent_page, const QString &title,
+							const QString &message, const std::optional<bool> store_passwd = std::nullopt);
 	void startMessagesManager();
 
 	Q_INVOKABLE DBExercisesModel *workoutModel() const { return m_workout_model; }
@@ -71,6 +74,7 @@ signals:
 	void selectedExerciseFromSimpleExercisesList(QQuickItem *parentPage);
 	void mesoForImportSelected();
 	void qmlPasswordDialogClosed(int resultCode, QString password);
+	void passwordAcquired(const bool proceed, const int request_id, const QString &passwd, const bool store);
 	/**
 	 * @brief generalMessagesPopupClicked
 	 * @param button: 0 (dialog was closed via close button or back_key() or something else; 1: button1; 2: button2
@@ -84,19 +88,20 @@ signals:
 public slots:
 	void homePageViewChanged(const bool own_mesos_view);
 	inline void qmlPasswordDialogClosed_slot(int resultCode, const QString &password) { emit qmlPasswordDialogClosed(resultCode, password); }
-	inline void generalMessagesNoButtonClicked(QObject *) { emit generalMessagesPopupClicked(0); }
-	inline void generalMessagesButton1Clicked() { emit generalMessagesPopupClicked(1); }
-	inline void generalMessagesButton2Clicked() { emit generalMessagesPopupClicked(2); }
-	void generalMessagesPopupClosed();
+	void generalMessagesPopupClosed(const int btn_id);
 
 private:
 	QmlExercisesDatabaseInterface *m_exercisesListManager{nullptr};
-	QQmlComponent *m_simpleExercisesListComponent{nullptr}, *m_weatherComponent{nullptr}, *m_statisticsComponent{nullptr},
-			*m_firstTimeDlgComponent{nullptr}, *m_generalMessagesPopupComponent{nullptr}, *m_messagesManagerComponent{nullptr};
-	QQuickItem *m_homePage{nullptr}, *m_appPagesVisualParent{nullptr}, *m_weatherPage{nullptr}, *m_statisticsPage{nullptr};
-	QObject *m_simpleExercisesList{nullptr}, *m_firstTimeDlg{nullptr}, *m_generalMessagesPopup{nullptr}, *m_messagesManagerPopup{nullptr};
+	QQmlComponent *m_simpleExercisesListComponent{nullptr}, *m_weatherComponent{nullptr},
+		*m_statisticsComponent{nullptr}, *m_firstTimeDlgComponent{nullptr}, *m_generalMessagesPopupComponent{nullptr},
+								*m_messagesManagerComponent{nullptr}, *m_passwordDialogComponent{nullptr};
+	QQuickItem *m_homePage{nullptr}, *m_appPagesVisualParent{nullptr}, *m_weatherPage{nullptr},
+																				*m_statisticsPage{nullptr};
+	QObject *m_simpleExercisesList{nullptr}, *m_firstTimeDlg{nullptr}, *m_generalMessagesPopup{nullptr},
+												*m_messagesManagerPopup{nullptr}, *m_passwordDialog{nullptr};
 	QVariantMap m_simpleExercisesListProperties, m_generalMessagesPopupProperties;
 	QList<st_generalMessage*> m_messagesQueue;
+	QList<uint16_t> m_bufferProperties;
 	bool m_canDisplayMessage{false};
 
 #ifndef Q_OS_ANDROID

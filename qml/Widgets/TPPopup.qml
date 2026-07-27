@@ -39,7 +39,7 @@ Popup {
 	signal popupClosed(popup: QtObject);
 	signal keyboardNumberPressed(key1: int, key2: int);
 	signal keyboardEnterPressed();
-	signal closeActionExeced();
+	signal closeActionExeced(btn_id: int);
 	signal mouseItemClicked(mouse: MouseEvent);
 
 //protected:
@@ -55,6 +55,8 @@ Popup {
 	property bool _use_burst_transition: true
 	property bool _use_alternate_transition: false
 	property bool _hidden: false
+	property bool _reopen: false
+	property bool _can_reopen: false
 	property int _start_y_pos; property int _end_y_pos
 	property int _start_x_pos; property int _end_x_pos
 	property int _key_pressed
@@ -90,7 +92,7 @@ Popup {
 	}
 
 	onClosed: {
-		if (!_hidden && (modal || keepAbove))
+		if (!_hidden && modal || keepAbove)
 			popupClosed(this);
 	}
 
@@ -162,7 +164,7 @@ Popup {
 					rightMargin: 5
 				}
 
-				onClicked: _control.closePopup();
+				onClicked: _control.closePopup(-1);
 				Component.onCompleted: _control.btnClose = this;
 			}
 		}
@@ -281,15 +283,6 @@ Popup {
 		return parentPage === ItemManager.appHomePage() ? 0 : parentPage ? parentPage.mapToGlobal(Qt.point(parentPage.y, 0)).y : 0;
 	}
 
-	function closePopup(): void {
-		close();
-		closeActionExeced();
-	}
-
-	function backKeyPressed(): void {
-		closePopup();
-	}
-
 	function createMouseArea(): void {
 		if (mouseItem && !mouse_area) {
 			let component = Qt.createComponent("TpQml.Widgets", TPMouseArea, Qt.Asynchronous);
@@ -298,8 +291,9 @@ Popup {
 			//(in TPPopup) for it. It's only used for the titleBar so it can have clickable widgets on it
 			function finishCreation() {
 				mouse_area = component.createObject(_control.mouseItem, { enabled: _control.enabled,
-					movableWidget: _control, slideToClose: _control.canSlideToClose, movingWidget: _control.mouseItem,
-							propagateClickEvent: _control.showTitleBar, lockMovingToYAxis: _control.lockMovingToYAxis });
+								movableWidget: _control, slideToClose: _control.canSlideToClose,
+								movingWidget: _control.mouseItem, propagateClickEvent: _control.showTitleBar,
+								lockMovingToYAxis: _control.lockMovingToYAxis });
 				mouse_area.mousePressed.connect(mouseAreaPressed);
 				mouse_area.movingFinished.connect(mouseAreaMovingFinished);
 				mouse_area.mouseClicked.connect(mouseItemClicked);
@@ -363,39 +357,8 @@ Popup {
 			alternateCloseTransition.property_name = "y";
 			break;
 		}
-		closePopup();
+		closePopup(-2);
 		_use_alternate_transition = false;
-	}
-
-	function tpopen__(): void {
-		if (show_position === Qt.AlignBaseline) {
-			showInWindow();
-		} else {
-			if (open_in_window)
-				showAlignedInWindow();
-			else
-				showByWidget();
-		}
-	}
-
-	function tpQmlOpen(parent_page: TPPage): void {
-		ItemManager.appPagesManager.openPopup(this, parent_page, show_position);
-	}
-
-	function tpOpen(): void {
-		tpopen__();
-	}
-
-	function hide(): void {
-		if (!globalPopup) {
-			_hidden = true;
-			visible = false;
-		}
-	}
-
-	function restore(): void {
-		_hidden = false;
-		visible = Qt.binding(function() { return _control.visibilityCondition; });
 	}
 
 	function showInWindow(): void {
@@ -478,5 +441,50 @@ Popup {
 			y = _end_y_pos;
 		}
 		open();
+	}
+
+	function tpopen__(): void {
+		_can_reopen = false;
+		if (show_position === Qt.AlignBaseline) {
+			showInWindow();
+		} else {
+			if (open_in_window)
+				showAlignedInWindow();
+			else
+				showByWidget();
+		}
+	}
+
+	function tpQmlOpen(parent_page: TPPage): void {
+		ItemManager.appPagesManager.openPopup(this, parent_page, show_position);
+	}
+
+	function tpOpen(): void {
+		tpopen__();
+	}
+
+	function closePopup(btn_id: int): void {
+		close();
+		closeActionExeced(btn_id);
+		//when a action button is clicked, the dialog maybe reopened for a follow up. When it's closed
+		//via btnClose or swipe or backkey (btn_id = -1 and -2 and -3 respectively), no
+		_can_reopen = btn_id >= 0;
+	}
+
+	//This function can be overridden in a derived QML object to perform other actions
+	function backKeyPressed(): void {
+		closePopup(-3);
+	}
+
+	function hide(): void {
+		if (!globalPopup) {
+			_hidden = true;
+			visible = false;
+		}
+	}
+
+	function restore(): void {
+		_hidden = false;
+		visible = Qt.binding(function() { return _control.visibilityCondition; });
 	}
 }

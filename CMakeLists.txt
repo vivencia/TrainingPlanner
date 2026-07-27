@@ -136,6 +136,7 @@ set( CXX_SOURCES
 		cxx/calendar_methods.h
 		cxx/return_codes.h
 		cxx/tpbool.h
+		cxx/property_buffer.tpp
 
 		cxx/thread_manager.h cxx/thread_manager.cpp
 		cxx/tpfilepath.h cxx/tpfilepath.cpp

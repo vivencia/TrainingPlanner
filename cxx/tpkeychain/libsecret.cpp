@@ -61,12 +61,9 @@ static QKeychain::Error gerrorToCode(const GError *error)
 		return QKeychain::OtherError;
 
 	switch (error->code) {
-		case SECRET_ERROR_NO_SUCH_OBJECT:
-			return QKeychain::EntryNotFound;
-		case SECRET_ERROR_IS_LOCKED:
-			return QKeychain::AccessDenied;
-		default:
-			return QKeychain::OtherError;
+	case SECRET_ERROR_NO_SUCH_OBJECT:	return QKeychain::EntryNotFound;
+	case SECRET_ERROR_IS_LOCKED:		return QKeychain::AccessDenied;
+	default:							return QKeychain::OtherError;
 	}
 }
 
@@ -77,20 +74,14 @@ static void on_password_lookup(GObject *source, GAsyncResult *result, gpointer i
 	gchar *password{secret_password_lookup_finish_fn(result, &error)};
 	Q_UNUSED(source);
 
-	if (arg)
-	{
-		if (error)
-		{
+	if (arg) {
+		if (error) {
 			QKeychain::Error code{gerrorToCode(error)};
 			arg->self->q->emitFinishedWithError(code, QString::fromUtf8(error->message));
-		}
-		else
-		{
-			if (password)
-			{
+		} else {
+			if (password) {
 				QByteArray raw{QByteArray{password}};
-				switch (arg->self->mode)
-				{
+				switch (arg->self->mode) {
 					case QKeychain::JobPrivate::Binary:
 						arg->self->data = std::move(QByteArray::fromBase64(raw));
 					break;
@@ -99,18 +90,16 @@ static void on_password_lookup(GObject *source, GAsyncResult *result, gpointer i
 						arg->self->data = std::move(raw);
 				}
 				arg->self->q->emitFinished();
-			}
-			else if (arg->self->mode == QKeychain::JobPrivate::Text)
-			{
+			} else if (arg->self->mode == QKeychain::JobPrivate::Text) {
 				arg->self->mode = QKeychain::JobPrivate::Binary;
 				secret_password_lookup_fn(qtkeychainSchema(), nullptr, on_password_lookup, arg,
 										  "user", arg->user.toUtf8().constData(), "server",
 										  arg->server.toUtf8().constData(), "type", "base64",
 										  nullptr);
 				return;
-			}
-			else
+			} else {
 				arg->self->q->emitFinishedWithError(QKeychain::EntryNotFound, QObject::tr("Entry not found"));
+			}
 		}
 		delete arg;
 	}
@@ -129,8 +118,7 @@ static void on_password_stored(GObject *source, GAsyncResult *result, gpointer i
 
 	secret_password_store_finish_fn(result, &error);
 
-	if (self)
-	{
+	if (self) {
 		if (error)
 			self->q->emitFinishedWithError(gerrorToCode(error), QString::fromUtf8(error->message));
 		else
@@ -147,11 +135,10 @@ static void on_password_cleared(GObject *source, GAsyncResult *result, gpointer 
 	//gboolean removed{secret_password_clear_finish_fn(result, &error)};
 	Q_UNUSED(source);
 
-	if (self)
-	{
-		if (error)
+	if (self) {
+		if (error) {
 			self->q->emitFinishedWithError(gerrorToCode(error), QString::fromUtf8(error->message));
-		else {
+		} else {
 			//Q_UNUSED(removed);
 			self->q->emitFinished();
 		}
@@ -162,12 +149,11 @@ static void on_password_cleared(GObject *source, GAsyncResult *result, gpointer 
 
 static QString modeToString(QKeychain::JobPrivate::Mode mode)
 {
-	switch (mode)
-	{
-		case QKeychain::JobPrivate::Binary:
-			return Qt::StringLiterals::operator""_L1("base64", 6);
-		default:
-			return Qt::StringLiterals::operator""_L1("plaintext", 9);
+	switch (mode) {
+	case QKeychain::JobPrivate::Binary:
+		return Qt::StringLiterals::operator""_L1("base64", 6);
+	default:
+		return Qt::StringLiterals::operator""_L1("plaintext", 9);
 	}
 }
 
@@ -225,14 +211,13 @@ bool LibSecretKeyring::writePassword(const QString &display_name, const QString 
 
 	const QString &type{modeToString(mode)};
 	QByteArray pwd;
-	switch (mode)
-	{
-		case QKeychain::JobPrivate::Binary:
-			pwd = std::move(password.toBase64());
-		break;
-		default:
-			pwd = password;
-		break;
+	switch (mode) {
+	case QKeychain::JobPrivate::Binary:
+		pwd = std::move(password.toBase64());
+	break;
+	default:
+		pwd = password;
+	break;
 	}
 
 	secret_password_store_fn(
@@ -256,8 +241,7 @@ bool LibSecretKeyring::deletePassword(const QString &key, const QString &service
 LibSecretKeyring::LibSecretKeyring()
 	: QLibrary{Qt::StringLiterals::operator""_L1("secret-1", 8), 0}
 {
-	if (load())
-	{
+	if (load()) {
 		secret_password_lookup_fn = (secret_password_lookup_t)resolve("secret_password_lookup");
 		secret_password_lookup_finish_fn = (secret_password_lookup_finish_t)resolve("secret_password_lookup_finish");
 		secret_password_store_fn = (secret_password_store_t)resolve("secret_password_store");

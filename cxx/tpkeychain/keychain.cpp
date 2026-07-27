@@ -161,8 +161,7 @@ void JobExecutor::startNextIfNoneRunning()
 	QPointer<Job> next;
 	while (!next && !m_queue.isEmpty())
 		next = m_queue.dequeue();
-	if (next)
-	{
+	if (next) {
 		connect(next, &Job::finished, this, &JobExecutor::jobFinished);
 		connect(next, &Job::destroyed, this, &JobExecutor::jobDestroyed);
 		m_jobRunning = true;
@@ -191,12 +190,11 @@ JobExecutor *JobExecutor::s_instance{nullptr};
 
 QString JobPrivate::modeToString(Mode m)
 {
-	switch (m)
-	{
-		case Text:
-			return "Text"_L1;
-		case Binary:
-			return "Binary"_L1;
+	switch (m) {
+	case Text:
+		return "Text"_L1;
+	case Binary:
+		return "Binary"_L1;
 	}
 	Q_ASSERT_X(false, Q_FUNC_INFO, "Unhandled Mode value");
 	return QString{};

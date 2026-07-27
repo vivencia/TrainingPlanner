@@ -17,11 +17,11 @@ namespace {
 
 inline QString dataKey(const QString &key)
 {
-	return key + "/data"_L1;
+	return key % "/data"_L1;
 }
 inline QString typeKey(const QString &key)
 {
-	return key + "/type"_L1;
+	return key % "/type"_L1;
 }
 
 } // namespace
@@ -95,7 +95,6 @@ void PlainTextStore::setError(Error error, const QString &errorString)
 QVariant PlainTextStore::read(const QString &key)
 {
 	const QVariant &value{m_actualSettings->value(key)};
-
 	if (value.isNull())
         setError(EntryNotFound, tr("Entry not found"));
 	else

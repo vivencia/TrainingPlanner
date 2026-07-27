@@ -32,10 +32,10 @@ public:
 	inline TPFilePath(const QString &filepath) { fromString(filepath); }
 	inline TPFilePath(const TPFilePath &other)
 		: m_fileName{other.m_fileName}, m_ownerUser{other.m_ownerUser}, m_targetUser{other.m_targetUser},
-			m_subDirs{other.m_subDirs}, m_fullPathOK{ other.m_fullPathOK}, m_useFileExtension{other.m_useFileExtension} {}
+			m_subDirs{other.m_subDirs}, m_fullPathOK{ other.m_fullPathOK} {}
 	inline TPFilePath(TPFilePath &&other) noexcept
 		: m_fileName{other.m_fileName}, m_ownerUser{other.m_ownerUser}, m_targetUser{other.m_targetUser},
-			m_subDirs{other.m_subDirs}, m_fullPathOK{ other.m_fullPathOK}, m_useFileExtension{other.m_useFileExtension} {}
+			m_subDirs{other.m_subDirs}, m_fullPathOK{ other.m_fullPathOK} {}
 
 	inline TPFilePath &operator=(const QString &filepath)
 	{
@@ -53,7 +53,6 @@ public:
 			m_targetUser = other.m_targetUser;
 			m_subDirs = other.m_subDirs;
 			m_fullPathOK = other.m_fullPathOK;
-			m_useFileExtension = other.m_useFileExtension;
 		}
 		return *this;
 	}
@@ -66,7 +65,6 @@ public:
 			m_targetUser = other.m_targetUser;
 			m_subDirs = other.m_subDirs;
 			m_fullPathOK = other.m_fullPathOK;
-			m_useFileExtension = other.m_useFileExtension;
 		}
 		return *this;
 	}
@@ -90,24 +88,24 @@ public:
 
 	static void setLocalAppFilesDir();
 	static inline const QString &localAppFilesDir() { return _localAppFilesDir; }
-	inline bool useFileExtension() const { return m_useFileExtension; }
-	inline void setUseFileExtension(const bool extension) { m_useFileExtension = extension; }
-
-	inline const QString &fileName() const
+	inline const QString &fileName(const bool include_extension = true) const
 	{
-		return m_useFileExtension ? m_fileName : m_tempString = std::move(appUtils()->getFileName(m_fileName, true));
+		return include_extension ? m_fileName : m_tempString = std::move(appUtils()->getFileName(m_fileName, true));
 	}
-	inline QString filename() & { return QString{m_fileName}; }
+	inline QString filename(const bool include_extension = true) & { return QString{fileName(include_extension)}; }
 	inline void setFilename(QString &&filename)
 	{
 		m_fileName = std::forward<QString>(filename);
+		m_fullPathOK = false;
 	}
 	inline void setFileName(const QString &filename, const bool sanitized)
 	{
-		m_fileName = filename;
-		if (!sanitized)
-			m_fileName = std::move(m_fileName.trimmed().remove('/'));
-		m_fullPathOK = false;
+		if (sanitized) {
+			m_fileName = filename;
+			m_fullPathOK = false;
+		} else {
+			setFilename(std::move(filename.trimmed().remove('/')));
+		}
 	}
 
 	inline const QString &ownerUser() const { return m_ownerUser; }
@@ -157,7 +155,7 @@ private:
 	QString m_fileName, m_ownerUser, m_targetUser, m_subDirs, m_fullPath;
 	mutable QString m_tempString;
 	static QString _localAppFilesDir;
-	bool m_fullPathOK{false}, m_useFileExtension{true};
+	bool m_fullPathOK{false};
 
 	void fromString(const QString &filepath);
 };

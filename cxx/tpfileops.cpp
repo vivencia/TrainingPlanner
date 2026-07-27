@@ -5,6 +5,7 @@
 #include "dbusermodel.h"
 #include "osinterface.h"
 #include "pageslistmodel.h"
+#include "property_buffer.tpp"
 #include "qmlitemmanager.h"
 #include "tpfilepath.h"
 #include "tpimage.h"
@@ -12,6 +13,7 @@
 #include "online_services/tponlineservices.h"
 #include "online_services/tpmessagesmanager.h"
 #include "online_services/websocketserver.h"
+#include "tpkeychain/tpkeychain.h"
 
 #ifdef Q_OS_ANDROID
 #include "osinterface.h"
@@ -19,17 +21,16 @@
 
 #include <QPainter>
 #include <QFileDialog>
-#include <QtPdf/QPdfDocument>
 #include <QQmlApplicationEngine>
 #include <QQuickTextDocument>
 #include <QQuickWindow>
 #include <QTextBlock>
 #include <QTextDocument>
 
-constexpr int8_t buttons_padding{5};
-
 #include <filesystem>
 namespace fs = std::filesystem;
+
+constexpr int8_t buttons_padding{5};
 
 inline bool _isFileOk(const QString &file)
 {
@@ -69,6 +70,22 @@ TPFileOps::TPFileOps(QQuickItem *visual_parent)
 	m_pressedColor.setAlpha(100);
 	m_buttonSize.rwidth() = appSettings()->itemDefaultHeight();
 	m_buttonSize.rheight() = appSettings()->itemDefaultHeight();
+}
+
+TPFileOps::~TPFileOps()
+{
+	if (m_fileDialog)
+		delete m_fileDialog;
+	if (m_sendFileDialog) {
+		delete m_sendFileDialog;
+		delete m_sendFileDialogComponent;
+	}
+	if (m_pdfDocument)
+		delete m_pdfDocument;
+	if (m_controls[0]) {
+		for (uint i{0}; i < OT_TypeCount; ++i)
+			delete m_controls[i];
+	}
 }
 
 void TPFileOps::paint(QPainter *painter)
@@ -125,6 +142,18 @@ void TPFileOps::setFileURL(const QUrl &url)
 	setFileName(appUtils()->getCorrectPath(url));
 }
 
+void TPFileOps::setPreviewSize(const QSize &size)
+{
+	if (size != m_previewSize) {
+		if (size.width() > 0 && size.height() > 0) {
+			m_previewSize = size;
+			bufferProperty<QSize>("TPFOpsPS", m_previewSize, [this] (const QSize &final_size) {
+				emit this->previewSizeChanged();
+			});
+		}
+	}
+}
+
 void TPFileOps::setCanDownloadOrGenerate(const bool can_do)
 {
 	if (can_do != m_downloadOrGenerate) {
@@ -165,8 +194,12 @@ void TPFileOps::removeFile(const bool bypass_confirmation, const bool remove_loc
 			, appSettings()->itemExtraLargeHeight()})), -1, std::move(tr("Yes")), std::move(tr("No")));
 		return;
 	}
-	if (remove_local)
+	if (remove_local) {
+		QFileInfo fi{m_filename.toString()};
+		if (fi.isSymbolicLink())
+			QFile::remove(fi.symLinkTarget());
 		QFile::remove(m_filename.toString());
+	}
 	if (remove_remote)
 		appOnlineServices()->removeFileFromServer(m_filename);
 	emit fileRemovalRequested();
@@ -202,7 +235,7 @@ void TPFileOps::exportTPFile(const TPFilePath &tp_filename)
 			break;
 		default:
 #ifndef QT_NO_DEBUG
-			qDebug() << "Error! Trying to save/export a not TPApp file - TPFileOps::exportSlot(" << m_filename.toString() << ")";
+			qWarning() << "Error! Trying to save/export a not TPApp file - TPFileOps::exportSlot("_L1 << m_filename.toString() << ")"_L1;
 #endif
 			return;
 		}
@@ -284,7 +317,6 @@ QString TPFileOps::getFileTypeIcon(const QSize &preferred_size, const bool thumb
 	case TPUtils::FT_OPEN_DOCUMENT:		return "odf_preview"_L1;
 	case TPUtils::FT_MS_DOCUMENT:		return "docx_preview"_L1;
 	case TPUtils::FT_OTHER:				return "generic_preview"_L1;
-	case TPUtils::FT_UNKNOWN:
 	default:							return "no-image"_L1;
 	}
 }
@@ -482,15 +514,27 @@ void TPFileOps::_setFileName(const bool file_added)
 {
 	emit fileNameChanged();
 	setFileIsOK(_isFileOk(m_filename.toString()));
-	if (file_added)
-		emit fileAdded(m_filename.toString());
 	const TPUtils::FILE_TYPE file_type{appUtils()->getFileType(m_filename.toString())};
 	setFileType(file_type);
-	if (fileIsOK() && isTPFile()) {
-		if (file_type & TPUtils::FT_TP_FORMATTED)
-			readTPFile();
-		else
-			setEnabled(OT_FullScreen, false);
+	if (fileIsOK()) {
+		if (file_added)
+			emit fileAdded(m_filename.toString());
+		else {
+			QFileInfo fi{m_filename.toString()};
+			m_encodedName = std::move(QString::number(fnv1a_hash(fi.isSymbolicLink()
+							? appUtils()->getFileName(fi.symLinkTarget())
+							: m_filename.fileName())));
+			if (m_filetype == TPUtils::FT_PDF) {
+				loadPdf();
+			} else {
+				if (isTPFile()) {
+					if (file_type & TPUtils::FT_TP_FORMATTED)
+						readTPFile();
+					else
+						setEnabled(OT_FullScreen, false);
+				}
+			}
+		}
 	}
 }
 
@@ -511,7 +555,6 @@ void TPFileOps::_doFileOperation(const OpType type)
 		case OT_Delete:			removeFile(false, true, true);		break;
 		default:													break;
 		}
-		return;
 	} else {
 		connect(this, &TPFileOps::fileAcquired, this, [this,type] (const int ret_code) {
 			if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS)
@@ -566,7 +609,7 @@ void TPFileOps::generateFileFromType(const bool formatted)
 		}
 		break;
 	default:
-		qDebug() << "ERROR!!! File type set as " << fileType() << " but neither filename as given, nor a method provided to create the file";
+		qWarning() << "ERROR!!! File type set as "_L1 << fileType() << " but neither filename was given, nor a method provided to create the file"_L1;
 	}
 	if (ret == TP_RET_CODE_EXPORT_OK) {
 		m_filetype |= TPUtils::FT_TP_FORMATTED;
@@ -590,24 +633,39 @@ void TPFileOps::doFullScreen()
 
 void TPFileOps::addFile()
 {
-	QString filepath{std::move(openFileDialog(m_restrictedFileType ? m_filetype : (m_addFileFilters > 0 ?
-					m_addFileFilters : (m_filetype == TPUtils::FT_UNKNOWN ? TPUtils::FT_ANY_TYPE : m_filetype))))};
-	if (!filepath.isEmpty()) {
+	const QString &chosen_file{openFileDialog(m_restrictedFileType ? m_filetype : (m_addFileFilters > 0 ?
+					m_addFileFilters : (m_filetype == TPUtils::FT_UNKNOWN ? TPUtils::FT_ANY_TYPE : m_filetype)))};
+	if (!chosen_file.isEmpty()) {
 		if (!m_filename.isOK()) {
 			if (m_suggestNameFunc) {
-				m_filename = std::move(*m_suggestNameFunc(appUtils()->getFileName(filepath)));
-				if (appUtils()->getFileExtension(m_filename.toString()).isEmpty())
-					m_filename.filename().append(appUtils()->getFileExtension(filepath, true));
-			} else if (!m_subdir.isEmpty()) {
-				m_filename = appUserModel()->userId(0) % '/' % m_subdir % appUtils()->getFileName(filepath);
+				m_filename = std::move(*m_suggestNameFunc(appUtils()->getFileName(chosen_file)));
 			} else {
-				qDebug() << "Error! Cannot add a file to TPFileOps that does not have a local filename set or suggested."_L1;
+				qWarning() << "Error! Cannot add a file to TPFileOps that does not have a local filename set or suggested."_L1;
 				return;
 			}
-			if (appUtils()->copyFile(filepath, m_filename.toString(), true))
+		}
+		const QString &local_ext{appUtils()->getFileExtension(m_filename.fileName(), true)};
+		const QString &new_ext{appUtils()->getFileExtension(chosen_file, true)};
+		//1 - Some files used in the app have a fixed name with varying types(file extensions). When a filename without
+		//a file extension is passed to TPFileOps or when adding a file of a different type(file extension),
+		//use the file extension from the copied file
+		if (local_ext.isEmpty() || local_ext != new_ext)
+			m_filename.setFilename(std::move(m_filename.fileName(false) % new_ext));
+		//2 - Copy the existing file from anywhere in the device to the user's dir in the app's local directory
+		if (appUtils()->copyOrLinkFile(chosen_file, m_filename.filePath(), true, true, true, true)) {
+			const QString &chosen_filename{appUtils()->getFileName(chosen_file)};
+			//3 - Link the copied file with its original filename to the name actually expected by the user of TPFileOps
+			if (appUtils()->copyOrLinkFile(m_filename.filePath() % chosen_filename, m_filename.toString(), false, false, true, true)) {
+				//4 - By keeping the file with the original filename, miniature previews can be better managed since the
+				//expected filename will not vary but the contents of the file will. The original name will, therefore, yield
+				//much less probability of name collision using a hash function to generate the preview files
+				m_encodedName = std::move(QString::number(fnv1a_hash(chosen_filename)));
+				if (appUtils()->getFileType(chosen_filename) == TPUtils::FT_PDF) {
+					m_pdfOK = false;
+					loadPdf();
+				}
 				_setFileName(true);
-		} else {
-			static_cast<void>(appUtils()->copyFile(filepath, m_filename.toString(), true));
+			}
 		}
 	}
 }
@@ -639,16 +697,18 @@ void TPFileOps::downloadOrCopyFile()
 			if (m_filename.isOK()) {
 				if (appUserModel()->canConnectToServer()) {
 					auto conn{std::make_shared<QMetaObject::Connection>()};
-					const int request_id{appOnlineServices()->downloadFileFromServer(m_filename)};
-					*conn = connect(appOnlineServices(), &TPOnlineServices::fileDownloaded, this, [this,conn,request_id]
+					const auto res{appOnlineServices()->downloadFileFromServer(m_filename)};
+					if (res.first) {
+						*conn = connect(appOnlineServices(), &TPOnlineServices::fileDownloaded, this, [this,conn,res]
 											(const uint requestid, const int ret_code, const TPFilePath &tp_filepath) {
-						if (requestid == request_id) {
-							disconnect(*conn);
-							setFileIsOK(ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS);
-							emit fileAcquired(ret_code);
-						}
-					});
-					return;
+							if (res.second == requestid) {
+								disconnect(*conn);
+								setFileIsOK(ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS);
+								emit fileAcquired(ret_code);
+							}
+						});
+						return;
+					}
 				}
 			}
 		}
@@ -673,7 +733,7 @@ void TPFileOps::createSendFileDialog()
 				m_sendFileDialog = m_sendFileDialogComponent->create(appQmlEngine()->rootContext());
 #ifndef QT_NO_DEBUG
 				if (!m_sendFileDialog) {
-					qDebug() << m_sendFileDialogComponent->errorString();
+					qCritical() << m_sendFileDialogComponent->errorString();
 					return;
 				}
 #endif
@@ -687,7 +747,7 @@ void TPFileOps::createSendFileDialog()
 			case QQmlComponent::Null:
 			case QQmlComponent::Error:
 #ifndef QT_NO_DEBUG
-				qDebug() << m_sendFileDialogComponent->errorString();
+				qCritical() << m_sendFileDialogComponent->errorString();
 #endif
 				return;
 			}
@@ -736,23 +796,22 @@ void TPFileOps::sendFileToUsers(const QStringList &users, const QString &message
 					appItemManager()->displayMessageOnAppWindow(ret_code, std::move(m_filename.filename()));
 					emit fileSent(false);
 				};
-				const auto request_id{appOnlineServices()->sendFileToServer(m_filename)};
-				if (request_id >= 0 && request_id <= (TP_RET_CODE_DEFERRED_ACTION + 100)) {
-					failureMsg(request_id);
+				const auto res{appOnlineServices()->sendFileToServer(m_filename)};
+				if (!res.first) {
+					failureMsg(res.second);
 					return;
 				}
-
 				*conn = connect(appOnlineServices(), &TPOnlineServices::fileUploaded, this,
-													[=,this] (const uint requestid, const int ret_code) {
-					if (requestid == request_id) {
+															[=,this] (const uint requestid, const int ret_code) {
+					if (res.second == requestid) {
 						disconnect(*conn);
 						if (ret_code != TP_RET_CODE_SUCCESS || ret_code != TP_RET_CODE_NO_CHANGES_SUCCESS) {
 							failureMsg(ret_code);
 							return;
 						}
 						*conn = connect(appMessagesManager(), &TPMessagesManager::TPMessageSent, this,
-							[this,request_id,conn] (const int requestid, const bool success) {
-							if (request_id == requestid) {
+															[this,res,conn] (const int requestid, const bool success) {
+							if (res.second == requestid) {
 								disconnect(*conn);
 								if (success)
 									appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_SUCCESS, std::move(
@@ -761,7 +820,7 @@ void TPFileOps::sendFileToUsers(const QStringList &users, const QString &message
 								emit fileSent(success);
 							}
 						});
-						appMessagesManager()->sendTPMessage(user, encoded_message, request_id);
+						appMessagesManager()->sendTPMessage(user, encoded_message, res.second);
 					}
 				});
 			}
@@ -794,23 +853,23 @@ void TPFileOps::sendFileDirectly(const QStringList &users)
 					return;
 				}
 				std::function<void(int)> failureMsg = [this] (const int ret_code) -> void {
-					qDebug() << "Error sending file ("_L1 << ret_code << "): "_L1 << m_filename.fileName();
+					qWarning() << "Error sending file ("_L1 << ret_code << "): "_L1 << m_filename.fileName();
 					emit fileSent(false);
 				};
-				const auto request_id{appOnlineServices()->sendFileToServer(m_filename)};
-				if (request_id < TP_RET_CODE_CUSTOM_WARNING) {
-					failureMsg(request_id);
+				const auto res{appOnlineServices()->sendFileToServer(m_filename)};
+				if (!res.first) {
+					failureMsg(res.second);
 					return;
 				}
-				*conn = connect(appOnlineServices(), &TPOnlineServices::fileUploaded, this,
-										[=,this] (const uint requestid, const int ret_code) {
-						if (requestid == request_id) {
-							disconnect(*conn);
-							if (ret_code != TP_RET_CODE_SUCCESS || ret_code != TP_RET_CODE_NO_CHANGES_SUCCESS)
-								failureMsg(ret_code);
-							else
-								emit fileSent(true);
-						}
+				*conn = connect(appOnlineServices(), &TPOnlineServices::fileUploaded, this, [this,res,conn,failureMsg]
+																			(const uint requestid, const int ret_code) {
+					if (res.second == requestid) {
+						disconnect(*conn);
+						if (ret_code != TP_RET_CODE_SUCCESS || ret_code != TP_RET_CODE_NO_CHANGES_SUCCESS)
+							failureMsg(ret_code);
+						else
+							emit fileSent(true);
+					}
 				});
 			}
 		});
@@ -927,7 +986,7 @@ inline TPFileOps::controlInfo *TPFileOps::controlFromMouseClick(const QPointF& m
 {
 	for (const auto ci : std::as_const(m_controls)) {
 		if (ci->visible && ci->enabled && static_cast<int>(mouse_pos.x() >= ci->rect.x()) &&
-													static_cast<int>(mouse_pos.x() <= ci->rect.x() + ci->rect.width()))
+										static_cast<int>(mouse_pos.x() <= ci->rect.x() + ci->rect.width()))
 			return ci;
 	}
 	return nullptr;
@@ -942,23 +1001,87 @@ TPFileOps::controlInfo *TPFileOps::controlFromType(const OpType type) const
 	return nullptr;
 }
 
-static inline QString previewFilename(const QString &source_filename, const QSize &preview_size)
+void TPFileOps::loadPdf(const QString &password, const bool store_passwd)
+{
+	if (m_pdfOK) return;
+	if (!m_pdfDocument)
+		m_pdfDocument = new QPdfDocument{};
+	else {
+		if (m_pdfDocument->status() == QPdfDocument::Status::Ready)
+			m_pdfDocument->close();
+	}
+	if (password.length() > 0 && password != "key_not_found"_L1)
+		m_pdfDocument->setPassword(password);
+	auto ret{m_pdfDocument->load(m_filename.toString())};
+
+	switch (ret) {
+	case QPdfDocument::Error::None:
+		m_pdfOK = true;
+		if (password.length() > 0 && store_passwd)
+			appKeyChain()->writeKey(m_encodedName, password);
+		emit pdfDocumentChanged();
+		break;
+	case QPdfDocument::Error::IncorrectPassword: { //PDF is password protected
+		//To show the password dialog, parentPage is needed. When this class is instantiated from QML,
+		//this function might be called ahead(via setFileName()) of setParentPage()
+		if (!m_parentPage) {
+			connect(this, &TPFileOps::parentPageChanged, this, [this,password,store_passwd] () { loadPdf(password, store_passwd); });
+			return;
+		}
+		if (password.isEmpty()) { //Try to get a -possibly- stored password
+			auto conn{std::make_shared<QMetaObject::Connection>()};
+			*conn = connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,conn,store_passwd]
+											(const bool ok, const QString &key, const QString &value) {
+				if (key == m_encodedName) {
+					disconnect(*conn);
+					loadPdf(ok ? value: "key_not_found"_L1, store_passwd);
+				}
+			}, Qt::SingleShotConnection);
+			appKeyChain()->readKey(m_encodedName);
+			return;
+		} else { //prompt the user for a password as many times as needed
+			const auto requestid{fnv1a_hash(m_filename.fileName())};
+			auto conn{std::make_shared<QMetaObject::Connection>()};
+			*conn = connect(appItemManager(), &QmlItemManager::passwordAcquired, this, [this,requestid,conn]
+						(const bool proceed, const int request_id, const QString &passwd, const bool store) {
+				if (requestid == request_id) {
+					disconnect(*conn);
+					if (proceed)
+						loadPdf(passwd, store);
+					else
+						m_pdfOK = false;
+				}
+			});
+			appItemManager()->showPasswordDialog(requestid, m_parentPage
+										, tr("Password required"), password == "key_not_found"
+										? tr("To open the file:<br> ") % m_filename.fileName(false)
+										: tr("Password provided is incorrect. Try again?"), store_passwd);
+		}
+		break;
+	}
+	default:
+		qWarning() << "Error( "_L1 << ret << ") loading PDF: "_L1 << m_filename.toString();
+		break;
+	}
+}
+
+inline QString TPFileOps::previewFilename(const QSize &preview_size) const
 {
 	constexpr QLatin1StringView size_template{"_%1x%2"};
-	return appUserModel()->mainUserDir() % TPUtils::previewImagesSubDir % QString::number(fnv1a_hash(source_filename)) %
-		   size_template.arg(QString::number(preview_size.width()), QString::number(preview_size.height())) % ".jpg"_L1;
+	return appUserModel()->mainUserDir() % TPUtils::previewImagesSubDir % m_encodedName %
+		size_template.arg(QString::number(preview_size.width()), QString::number(preview_size.height())) % ".jpg"_L1;
 }
 
 QString TPFileOps::getImagePreviewFile(QSize preferred_size) const
 {
 	if (!fileIsOK())
 		return QString{};
+	if (preferred_size.isNull())
+		preferred_size = m_previewSize;
+	if (preferred_size.isEmpty())
+		return QString{};
 
-	if (preferred_size.isNull()) {
-		preferred_size.rwidth() = m_controlSize.width();
-		preferred_size.rheight() = m_controlSize.width() * 1.4;
-	}
-	const QString &preview_filename{previewFilename(m_filename.fileName(), preferred_size)};
+	const QString &preview_filename{previewFilename(preferred_size)};
 	if (!QFile::exists(preview_filename)) {
 		QImage thumbnail{m_filename.toString()};
 		thumbnail = std::move(thumbnail.scaled(preferred_size));
@@ -967,7 +1090,7 @@ QString TPFileOps::getImagePreviewFile(QSize preferred_size) const
 	return preview_filename;
 }
 
-static QImage composeImages(const QImage& image1, const QImage& image2, const QPoint& position = QPoint(0, 0))
+static QImage composeImages(const QImage &image1, const QImage &image2, const QPoint &position = QPoint{0, 0})
 {
 	// 1. Create a destination QImage (ensure it has an alpha channel for blending)
 	QImage resultImage(image1.size(), QImage::Format_ARGB32_Premultiplied);
@@ -992,28 +1115,29 @@ static QImage composeImages(const QImage& image1, const QImage& image2, const QP
 
 QString TPFileOps::getPDFPreviewFile(QSize preferred_size) const
 {
-	if (fileIsOK()) {
-		if (preferred_size.isNull()) {
-			preferred_size.rwidth() = m_controlSize.width();
-			preferred_size.rheight() = m_controlSize.width() * 1.4;
-		}
-		const QString &preview_filename{previewFilename(m_filename.toString(), preferred_size)};
+	if (m_pdfOK) {
+		if (preferred_size.isNull())
+			preferred_size = m_previewSize;
+		if (preferred_size.isEmpty())
+			return QString{};
+
+		const QString &preview_filename{previewFilename(preferred_size)};
 		if (!QFile::exists(preview_filename)) {
-			QPdfDocument *pdf_doc{new QPdfDocument{}};
-			pdf_doc->load(m_filename.toString());
 			QPdfDocumentRenderOptions pdf_opts;
 			pdf_opts.setRenderFlags(QPdfDocumentRenderOptions::RenderFlag::TextAliased | QPdfDocumentRenderOptions::RenderFlag::ImageAliased |
 									QPdfDocumentRenderOptions::RenderFlag::PathAliased | QPdfDocumentRenderOptions::RenderFlag::OptimizedForLcd);
 			QImage background_image{preferred_size, QImage::Format_ARGB32_Premultiplied};
 			background_image.fill(Qt::white);
-			const QImage &pdf_image{composeImages(background_image, pdf_doc->render(0, preferred_size, pdf_opts))};
-			if (!pdf_image.isNull())
-				pdf_image.save(preview_filename, "JPG", 10);
-			pdf_doc->deleteLater();
+			const QImage &pdf_image{composeImages(background_image, m_pdfDocument->render(0, preferred_size, pdf_opts))};
+			if (!pdf_image.isNull()) {
+				if (pdf_image.save(preview_filename, "JPG", 10))
+					return preview_filename;
+			}
+		} else {
+			return preview_filename;
 		}
-		return preview_filename;
 	}
-	return QString{};
+	return "no-image"_L1;
 }
 
 void TPFileOps::_setEnabled(controlInfo *ci, const bool enabled)
@@ -1028,7 +1152,8 @@ void TPFileOps::_setEnabled(controlInfo *ci, const bool enabled)
 
 void TPFileOps::_getDefaultImage(controlInfo *ci)
 {
-	const QString &str_image_source{":/images/%1_"_L1 % appSettings()->indexColorSchemeToColorSchemeName() % ".png"_L1};
+	const QString &str_image_source{":/images/%1_"_L1 % appSettings()->indexColorSchemeToColorSchemeName()
+																								% ".png"_L1};
 	switch (ci->type) {
 	case OT_AddFile: ci->default_image.load(str_image_source.arg("add-new")); break;
 	case OT_FullScreen: ci->default_image.load(str_image_source.arg("fullscreen")); break;
@@ -1100,7 +1225,7 @@ void TPFileOps::readTPFile()
 		if (line.contains("##"_L1)) {
 			if (line.contains(*identifier)) {
 				section_info.first = std::move(line.right(line.length() - identifier->length() -
-																	TPUtils::STR_START_FORMATTED_EXPORT.length() - 1));
+														TPUtils::STR_START_FORMATTED_EXPORT.length() - 1));
 				section_info.second.clear();
 			} else if (line.startsWith(TPUtils::STR_END_FORMATTED_EXPORT)) {
 				m_tpFileInfo.insert(m_tpfileSections, section_info);
@@ -1164,7 +1289,7 @@ void TPFileOps::openTPFile()
 	}
 	connect(appMainWindow(), SIGNAL(tpFileOpenInquiryResult(bool)), this, SLOT(importSlot(bool)), Qt::SingleShotConnection);
 	QMetaObject::invokeMethod(appMainWindow(), "confirmTPFileOpening", Q_ARG(QString, str_type),
-														Q_ARG(QString, str_details), Q_ARG(QString, str_image));
+												Q_ARG(QString, str_details), Q_ARG(QString, str_image));
 }
 
 void TPFileOps::textDocumentKeyNavigation(const int key)

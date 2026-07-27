@@ -22,8 +22,7 @@ TPFilePath::TPFilePath(const QString &filename, const QString &owner_user, const
 	if (!filename.contains('/')) {
 		setFileName(filename, false);
 		setSubdirs(subdirs);
-	}
-	else //when transfering files between users and/or the server, filename will contain the subdirs(see TPUtils::BFIF_FILEPATH)
+	} else //when transfering files between users and/or the server, filename will contain the subdirs(see TPUtils::BFIF_FILEPATH)
 		setSubDirsPlusFilename(filename);
 }
 

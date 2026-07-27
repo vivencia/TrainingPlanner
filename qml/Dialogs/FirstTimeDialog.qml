@@ -151,7 +151,7 @@ TPPopup {
 
 	function finish(): void {
 		AppUserModel.setMainUserConfigurationFinished();
-		closePopup();
+		closePopup(0);
 	}
 
 	function isModuleReady(index: int): bool {

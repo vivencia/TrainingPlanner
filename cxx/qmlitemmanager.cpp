@@ -470,19 +470,61 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, QString &&m
 	m_generalMessagesPopup->setProperty("title", std::move(QVariant{title}));
 	m_generalMessagesPopup->setProperty("message", std::move(QVariant{message}));
 	m_generalMessagesPopup->setProperty("imageSource", std::move(QVariant{img_src}));
-	if (!button1text.isEmpty()) {
+	if (!button1text.isEmpty())
 		m_generalMessagesPopup->setProperty("button1Text", std::move(QVariant{button1text}));
-		connect(m_generalMessagesPopup, SIGNAL(button1Clicked()), this, SLOT(generalMessagesButton1Clicked()), Qt::UniqueConnection);
-	}
-	if (!button2text.isEmpty()) {
+	if (!button2text.isEmpty())
 		m_generalMessagesPopup->setProperty("button2Text", std::move(QVariant{button2text}));
-		connect(m_generalMessagesPopup, SIGNAL(button2Clicked()), this, SLOT(generalMessagesButton2Clicked()), Qt::UniqueConnection);
-	}
 	if (msecs == 0)
 		QMetaObject::invokeMethod(m_generalMessagesPopup, "tpOpen");
 	else
 		QMetaObject::invokeMethod(m_generalMessagesPopup, "showTimed", Q_ARG(int, msecs));
 #endif //ENABLE_GENERAL_MESSAGES_POPUP
+}
+
+void QmlItemManager::showPasswordDialog(const int request_id, QQuickItem *parent_page, const QString &title,
+											const QString &message, const std::optional<bool> store_passwd)
+{
+	if (!m_passwordDialogComponent) {
+		m_passwordDialogComponent = new QQmlComponent{appQmlEngine(), "TpQml.Dialogs"_L1, "PasswordDialog"_L1,
+																						QQmlComponent::Asynchronous};
+		connect(m_passwordDialogComponent, &QQmlComponent::statusChanged, this, [=,this] (QQmlComponent::Status status) {
+			showPasswordDialog(request_id, parent_page, title, message, store_passwd);
+		});
+	} else {
+		if (!m_passwordDialog) {
+			switch (m_passwordDialogComponent->status()) {
+			case QQmlComponent::Ready:
+				m_passwordDialogComponent->disconnect();
+				m_passwordDialog = m_passwordDialogComponent->create(appQmlEngine()->rootContext());
+#ifndef QT_NO_DEBUG
+				if (!m_passwordDialog) {
+					qDebug() << m_passwordDialogComponent->errorString();
+					return;
+				}
+#endif
+				appQmlEngine()->setObjectOwnership(m_passwordDialog, QQmlEngine::CppOwnership);
+				m_passwordDialog->setProperty("parent", std::move(QVariant::fromValue(appItemManager()->appHomePage())));
+				connect(m_passwordDialog, SIGNAL(passwordAcquired(bool,int,QString,bool)), this,
+														SIGNAL(passwordAcquired(bool,int,QString,bool)));
+				break;
+			case QQmlComponent::Loading:
+				return;
+			case QQmlComponent::Null:
+			case QQmlComponent::Error:
+#ifndef QT_NO_DEBUG
+				qDebug() << m_passwordDialogComponent->errorString();
+#endif
+				return;
+			}
+		}
+		m_passwordDialog->setProperty("request_id", std::move(QVariant{request_id}));
+		m_passwordDialog->setProperty("title", std::move(QVariant{title}));
+		m_passwordDialog->setProperty("message", std::move(QVariant{message}));
+		m_passwordDialog->setProperty("show_store_option", std::move(QVariant{store_passwd.has_value()}));
+		if (store_passwd.has_value())
+			m_passwordDialog->setProperty("store_password", std::move(QVariant{store_passwd.value()}));
+		appPagesListModel()->openPopup(m_passwordDialog, parent_page);
+	}
 }
 
 void QmlItemManager::startMessagesManager()
@@ -528,9 +570,10 @@ void QmlItemManager::homePageViewChanged(const bool own_mesos_view)
 	appUserModel()->actualMesoModel()->setCurrentMesosView(own_mesos_view);
 }
 
-void QmlItemManager::generalMessagesPopupClosed()
+void QmlItemManager::generalMessagesPopupClosed(const int btn_id)
 {
 	m_canDisplayMessage = m_messagesQueue.isEmpty();
+	emit generalMessagesPopupClicked(btn_id);
 	if (!m_canDisplayMessage) {
 		st_generalMessage *g_message{m_messagesQueue.first()};
 		if (g_message) {
@@ -578,9 +621,8 @@ void QmlItemManager::createGeneralMessagesPopup()
 														m_generalMessagesPopupProperties, appQmlEngine()->rootContext());
 				appQmlEngine()->setObjectOwnership(m_generalMessagesPopup, QQmlEngine::CppOwnership);
 				m_generalMessagesPopup->setProperty("parent", std::move(QVariant::fromValue(m_homePage)));
-				connect(m_generalMessagesPopup, SIGNAL(popupClosed(QObject*)), this, SLOT(generalMessagesNoButtonClicked(QObject*)));
-				connect(m_generalMessagesPopup, SIGNAL(closeActionExeced()), this, SLOT(generalMessagesPopupClosed()));
-				generalMessagesPopupClosed();
+				connect(m_generalMessagesPopup, SIGNAL(closeActionExeced(int)), this, SLOT(generalMessagesPopupClosed(int)));
+				generalMessagesPopupClosed(-1);
 				break;
 			case QQmlComponent::Loading:
 				break;

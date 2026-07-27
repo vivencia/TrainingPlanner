@@ -24,6 +24,7 @@ public:
 
 	inline uint8_t serverStatus() const { return m_onlineStatus; }
 	void connectToServer();
+	void storeCredentials();
 
 #ifndef Q_OS_ANDROID
 	void getAllUsers(const int requestid);
@@ -54,8 +55,8 @@ public:
 	void checkCurrentCoaches(const int requestid);
 	void removeCoachFromClient(const int requestid, const QString &coach);
 
-	int sendFileToServer(const TPFilePath &tp_filename, const bool remove_local_file = false);
-	int downloadFileFromServer(const TPFilePath &tp_filename);
+	std::pair<TPBool,int> sendFileToServer(const TPFilePath &tp_filename, const bool remove_local_file = false);
+	std::pair<TPBool,int> downloadFileFromServer(const TPFilePath &tp_filename);
 	void removeFileFromServer(const TPFilePath &tp_filename);
 	std::pair<TPBool,int> listFilesOrDirs(const bool files = true, const bool dirs = false, const bool admin = false,
 						const QString &target_user = QString{}, const QString &subdir = QString{},
@@ -72,9 +73,6 @@ public:
 	void sendChatMessage(const int requestid, const QString &receiver, const QString &encoded_message);
 	void removeChatMessage(const int requestid, const QString &receiver, const QString &encoded_message);
 	void recheckNewChatMessages();
-
-public slots:
-	void storeCredentials();
 
 signals:
 	void onlineServicesReady();

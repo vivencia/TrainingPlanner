@@ -160,9 +160,7 @@ public:
 		}
 	}
 
-	Q_INVOKABLE void requestPasswordFromUser(const int id, const QString &dialog_title, const QString &dialog_message);
-	Q_INVOKABLE void checkPassword(const QString &password);
-	Q_INVOKABLE void setPassword(const QString &passwd);
+	void setPassword(const QString &passwd);
 	Q_INVOKABLE void getPassword();
 
 	Q_INVOKABLE inline QDate birthDate(const int user_idx) const
@@ -328,7 +326,6 @@ public slots:
 signals:
 	void userModified(const uint user_idx, const uint field);
 	void labelsChanged();
-	void passwordAcquired(const bool proceed, const int request_id, const QString &passwd);
 	void userCategoryChanged(const uint user_idx);
 	void onlineUserChanged();
 
@@ -368,8 +365,6 @@ private:
 
 	DBUserTable *m_db{nullptr};
 	DBModelInterfaceUser *m_dbModelInterface{nullptr};
-	QObject* m_passwordDialog{nullptr};
-	QQmlComponent *m_passwordDialogComponent{nullptr};
 
 #ifndef Q_OS_ANDROID
 	QHash<QString,DBMesocyclesModel*> m_mesoModels;

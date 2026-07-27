@@ -21,9 +21,6 @@
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
-#include <QQmlComponent>
-#include <QQmlApplicationEngine>
-#include <QQuickWindow>
 #include <QTimer>
 
 #ifndef Q_OS_ANDROID
@@ -271,67 +268,33 @@ const QString &DBUserModel::userIdFromFieldValue(const uint field, const QString
 	return m_emptyString;
 }
 
-void DBUserModel::requestPasswordFromUser(const int id, const QString &dialog_title, const QString &dialog_message)
-{
-	if (!m_passwordDialogComponent) {
-		m_passwordDialogComponent = new QQmlComponent{appQmlEngine(), "TpQml.Dialogs"_L1, "PasswordDialog"_L1,
-																							QQmlComponent::Asynchronous};
-		connect(m_passwordDialogComponent, &QQmlComponent::statusChanged, this, [=,this] (QQmlComponent::Status status) {
-			requestPasswordFromUser(id, dialog_title, dialog_message);
-		});
-	} else {
-		if (!m_passwordDialog) {
-			switch (m_passwordDialogComponent->status()) {
-			case QQmlComponent::Ready:
-				m_passwordDialogComponent->disconnect();
-				m_passwordDialog = m_passwordDialogComponent->create(appQmlEngine()->rootContext());
-#ifndef QT_NO_DEBUG
-				if (!m_passwordDialog) {
-					qDebug() << m_passwordDialogComponent->errorString();
-					return;
-				}
-#endif
-				appQmlEngine()->setObjectOwnership(m_passwordDialog, QQmlEngine::CppOwnership);
-				m_passwordDialog->setProperty("parent", std::move(QVariant::fromValue(appItemManager()->appHomePage())));
-				connect(m_passwordDialog, SIGNAL(passwordAcquired(bool,int,QString)), this, SIGNAL(passwordAcquired(bool,int,QString)));
-				requestPasswordFromUser(id, dialog_title, dialog_message);
-				break;
-			case QQmlComponent::Loading:
-				return;
-			case QQmlComponent::Null:
-			case QQmlComponent::Error:
-#ifndef QT_NO_DEBUG
-				qDebug() << m_passwordDialogComponent->errorString();
-#endif
-				return;
-			}
-		} else {
-			m_passwordDialog->setProperty("request_id", std::move(QVariant{id}));
-			m_passwordDialog->setProperty("title", std::move(QVariant{dialog_title}));
-			m_passwordDialog->setProperty("message", std::move(QVariant{dialog_message}));
-			appPagesListModel()->openPopup(m_passwordDialog, appItemManager()->appHomePage());
-		}
-	}
-}
-
-void DBUserModel::checkPassword(const QString &password)
-{
-	setPassword(password);
-	if (onlineAccount())
-		loginUser();
-}
-
 void DBUserModel::setPassword(const QString &password)
 {
+	auto conn{std::make_shared<QMetaObject::Connection>()};
+	*conn =  connect(appKeyChain(), &TPKeyChain::keyStored, this, [this,conn] (const bool ok, const QString &key) {
+		if (userId(0) == key) {
+			disconnect(*conn);
+			if (ok) {
+				appOnlineServices()->storeCredentials();
+				if (onlineAccount() && !mb_userLoggedIn)
+					loginUser();
+			}
+		}
+	});
 	appKeyChain()->writeKey(userId(0), password);
 }
 
 void DBUserModel::getPassword()
 {
 	if (!m_usersData.isEmpty()) {
-		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this] (const QString &key, const QString &value) {
-			emit userPasswordAvailable(value);
-		}, Qt::SingleShotConnection);
+		auto conn{std::make_shared<QMetaObject::Connection>()};
+		*conn = connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,conn]
+										(const bool ok, const QString &key, const QString &value) {
+			if (userId(0) == key) {
+				disconnect(*conn);
+				emit userPasswordAvailable(value);
+			}
+		});
 		appKeyChain()->readKey(userId(0));
 	}
 }
@@ -599,11 +562,19 @@ void DBUserModel::changePassword(const QString &old_password, const QString &new
 		if (request_id == requestid) {
 			disconnect(*conn);
 			if (ret_code == TP_RET_CODE_SUCCESS) {
+				auto conn{std::make_shared<QMetaObject::Connection>()};
+				*conn =  connect(appKeyChain(), &TPKeyChain::keyStored, this, [this,new_password,conn]
+																	(const bool ok, const QString &key) {
+					if (userId(0) == key) {
+						disconnect(*conn);
+						if (ok)
+							setPassword(new_password);
+					}
+				});
 				appKeyChain()->deleteKey(userId(0));
-				setPassword(new_password);
-			}
-			else
+			} else {
 				appItemManager()->displayMessageOnAppWindow(ret_code, std::move(QString{ret_string}));
+			}
 		}
 	});
 	appOnlineServices()->changePassword(requestid, old_password, new_password);
@@ -973,15 +944,16 @@ void DBUserModel::loginUser()
 				emit userLoggedIn();
 				break;
 			case TP_RET_CODE_WRONG_PASSWORD:
-				*conn = connect(this, &DBUserModel::passwordAcquired, this, [this,conn,requestid]
-													(const bool proceed, const int request_id, const QString &passwd) {
+				*conn = connect(appItemManager(), &QmlItemManager::passwordAcquired, this, [this,conn,requestid]
+					(const bool proceed, const int request_id, const QString &passwd, const bool store) {
 					if (request_id == requestid) {
 						disconnect(*conn);
 						if (proceed)
-							checkPassword(passwd);
+							setPassword(passwd);
 					}
 				});
-				requestPasswordFromUser(requestid, tr("Login failed"), tr("Please, type in your TraininPlanner user password"));
+				appItemManager()->showPasswordDialog(requestid, appItemManager()->appHomePage(),
+						tr("Login failed"), tr("Please, type in your TraininPlanner user password"));
 				break;
 			case TP_RET_CODE_USER_DOES_NOT_EXIST: { //User does not exist in the online database
 				auto conn2{std::make_shared<QMetaObject::Connection>()};
@@ -1062,7 +1034,7 @@ void DBUserModel::downloadAllUserFiles(const QString &userid)
 	auto res{appOnlineServices()->listFilesOrDirs(true, true, true, userid, QString{}, QString{}, true)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(appOnlineServices(), &TPOnlineServices::networkListReceived, this, [this,conn,userid,res]
-											(const int request_id, const int ret_code, const QStringList &ret_list) {
+										(const int request_id, const int ret_code, const QStringList &ret_list) mutable {
 		if (res.first == request_id) {
 			disconnect(*conn);
 			if (ret_code != TP_RET_CODE_SUCCESS)
@@ -1076,13 +1048,13 @@ void DBUserModel::downloadAllUserFiles(const QString &userid)
 					if (!appUtils()->mkdir(tp_filename.filePath()))
 						qDebug() << "Failed to create dir "_L1 << tp_filename.filePath();
 				} else { //file
-					const int request_id{appOnlineServices()->downloadFileFromServer(tp_filename)};
-					if (request_id != TP_RET_CODE_NO_CHANGES_SUCCESS && request_id != TP_RET_CODE_CANNOT_RUN_ACTION) {
+					res = appOnlineServices()->downloadFileFromServer(tp_filename);
+					if (res.first) {
 						++total_files;
 						auto conn2{std::make_shared<QMetaObject::Connection>()};
-						*conn2 = connect(appOnlineServices(), &TPOnlineServices::fileDownloaded, this, [this,conn2,request_id,&total_files]
-							(const int ret_code, const uint requestid, const TPFilePath &local_file_name) mutable {
-							if (request_id == requestid) {
+						*conn2 = connect(appOnlineServices(), &TPOnlineServices::fileDownloaded, this, [this,conn2,res,&total_files]
+										(const int ret_code, const uint requestid, const TPFilePath &local_file_name) mutable {
+							if (res.second == requestid) {
 								disconnect(*conn2);
 								if (--total_files <= 0)
 									emit allUserFilesDownloaded(true);
@@ -1108,24 +1080,21 @@ void DBUserModel::checkIfCoachRegisteredOnline()
 void DBUserModel::getUserOnlineProfile(const QString &userid)
 {
 	TPFilePathPtr tp_filename{TPFilePath::newTPFilePath(userid % TPUtils::TP_FILE_EXTENSION, userId(), userid)};
-	const int request_id{appOnlineServices()->downloadFileFromServer(*tp_filename)};
-	switch (request_id) {
-	case TP_RET_CODE_SUCCESS:
-		break;
-	case TP_RET_CODE_NO_CHANGES_SUCCESS:
-		emit userProfileAcquired(userid, TP_RET_CODE_NO_CHANGES_SUCCESS);
-		return;
-	default:
-		return;
-	}
-	auto conn{std::make_shared<QMetaObject::Connection>()};
-	*conn = connect(appOnlineServices(), &TPOnlineServices::fileDownloaded, this, [=,this]
-										(const int ret_code, const uint requestid, const TPFilePath &tp_filepath) {
-		if (request_id == requestid) {
-			disconnect(*conn);
-			emit userProfileAcquired(userid, ret_code);
+	const auto res{appOnlineServices()->downloadFileFromServer(*tp_filename)};
+	if (res.first) {
+		if (res.second == TP_RET_CODE_NO_CHANGES_SUCCESS) {
+			emit userProfileAcquired(userid, TP_RET_CODE_NO_CHANGES_SUCCESS);
+		} else {
+			auto conn{std::make_shared<QMetaObject::Connection>()};
+			*conn = connect(appOnlineServices(), &TPOnlineServices::fileDownloaded, this, [=,this]
+											(const int ret_code, const uint requestid, const TPFilePath &tp_filepath) {
+				if (res.second == requestid) {
+					disconnect(*conn);
+					emit userProfileAcquired(userid, ret_code);
+				}
+			});
 		}
-	});
+	}
 }
 
 void DBUserModel::sendProfileToServer()
@@ -1144,25 +1113,25 @@ void DBUserModel::sendUserDataToServerDatabase()
 
 void DBUserModel::sendAvatarToServer()
 {
-	appOnlineServices()->sendFileToServer(*TPFilePath::newTPFilePath(avatar(0)));
+	static_cast<void>(appOnlineServices()->sendFileToServer(*TPFilePath::newTPFilePath(avatar(0))));
 }
 
 //user_idx must always be > 0 and < total users
 void DBUserModel::downloadAvatarFromServer(const uint user_idx)
 {
 	auto tp_filename{TPFilePath::newTPFilePath("avatar.png"_L1, userId(0), userId(user_idx))};
-	const int request_id{appOnlineServices()->downloadFileFromServer(*tp_filename)};
-	if (request_id != TP_RET_CODE_SUCCESS)
-		return;
-	auto conn{std::make_shared<QMetaObject::Connection>()};
-	*conn = connect(appOnlineServices(), &TPOnlineServices::fileDownloaded, this, [this,user_idx,request_id,conn]
+	const auto res{appOnlineServices()->downloadFileFromServer(*tp_filename)};
+	if (res.first) {
+		auto conn{std::make_shared<QMetaObject::Connection>()};
+		*conn = connect(appOnlineServices(), &TPOnlineServices::fileDownloaded, this, [=,this]
 										(const int ret_code, const uint requestid, const TPFilePath &tp_filepath) {
-		if (request_id == requestid) {
-			disconnect(*conn);
-			if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS)
-				setAvatar(user_idx, tp_filepath.toString(), ret_code != TP_RET_CODE_NO_CHANGES_SUCCESS, false);
-		}
-	});
+			if (res.second == requestid) {
+				disconnect(*conn);
+				if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS)
+					setAvatar(user_idx, tp_filepath.toString(), ret_code != TP_RET_CODE_NO_CHANGES_SUCCESS, false);
+			}
+		});
+	}
 }
 
 void DBUserModel::startServerPolling()

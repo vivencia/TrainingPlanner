@@ -88,7 +88,7 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 
 	m_metadata.remove(meso_idx);
 	removeMesoFiles(meso_idx);
-	static_cast<void>(QFile::remove(file(meso_idx)));
+	static_cast<void>(QFile::remove(instructionsFile(meso_idx)));
 	if (isOwnMeso(meso_idx))
 		m_ownMesos->removeMesoIdx(meso_idx);
 	else
@@ -253,25 +253,21 @@ void DBMesocyclesModel::setClient(const uint meso_idx, const QString &new_client
 	setModified(meso_idx, MESO_FIELD_CLIENT);
 }
 
-void DBMesocyclesModel::setFile(const uint meso_idx, const QString &new_file)
+void DBMesocyclesModel::setInstructionsFile(const uint meso_idx, const QString &new_file)
 {
-	if (m_mesoData.at(meso_idx).at(MESO_FIELD_FILE) != new_file) {
-		static_cast<void>(QFile::remove(m_mesoData.at(meso_idx).at(MESO_FIELD_FILE)));
-		m_mesoData[meso_idx][MESO_FIELD_FILE] = new_file;
-		setModified(meso_idx, MESO_FIELD_FILE);
+	if (m_mesoData.at(meso_idx).at(MESO_FIELD_INSTRUCTIONS_FILE) != new_file) {
+		static_cast<void>(QFile::remove(m_mesoData.at(meso_idx).at(MESO_FIELD_INSTRUCTIONS_FILE)));
+		m_mesoData[meso_idx][MESO_FIELD_INSTRUCTIONS_FILE] = new_file;
+		setModified(meso_idx, MESO_FIELD_INSTRUCTIONS_FILE);
 	}
 }
 
 DBMesocyclesModel::MesoType DBMesocyclesModel::mesoType(const uint meso_idx) const
 {
-	if (client(meso_idx) != appUserModel()->userId(0)) //meso for a client
+	if (client(meso_idx) != appUserModel()->userId(0))
 		return MT_MESO_FOR_CLIENT;
-	else {
-		if (coach(meso_idx) != appUserModel()->userId(0)) //meso from a coach
-			return MT_MESO_FROM_COACH;
-		else
-			return MT_MESO_FOR_SELF;
-	}
+	else
+		return coach(meso_idx) != appUserModel()->userId(0) ? MT_MESO_FROM_COACH : MT_MESO_FOR_SELF;
 }
 
 void DBMesocyclesModel::addSubMesoModel(const uint meso_idx, const bool own_meso)
@@ -744,7 +740,7 @@ void DBMesocyclesModel::removeMesoFiles(const uint meso_idx)
 	auto meso_filename{suggestedName(meso_idx)};
 	appOnlineServices()->removeFileFromServer(*meso_filename);
 	static_cast<void>(QFile::remove(meso_filename->toString()));
-	static_cast<void>(QFile::remove(file(meso_idx)));
+	static_cast<void>(QFile::remove(instructionsFile(meso_idx)));
 }
 
 int DBMesocyclesModel::newMesoFromFile(const TPFilePath &filename, const bool own_meso, const std::optional<bool> &file_formatted)

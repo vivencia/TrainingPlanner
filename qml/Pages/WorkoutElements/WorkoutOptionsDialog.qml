@@ -102,7 +102,7 @@ TPPopup {
 
 			onClicked: {
 				_dialog.selectedOption(intentGroup.selectedOption);
-				_dialog.closePopup();
+				_dialog.closePopup(0);
 			}
 		}
 	}

@@ -201,13 +201,20 @@ void PagesListModel::openPopup(QObject *popup, QQuickItem *parentPage, const int
 			}
 		}
 	}
-	popup->setProperty("parent", std::move(QVariant::fromValue(parentPage)));
-	popup->setProperty("parentPage", std::move(QVariant::fromValue(parentPage)));
+	if (popup->property("parent").value<QQuickItem*>() != parentPage) {
+		popup->setProperty("parent", std::move(QVariant::fromValue(parentPage)));
+		popup->setProperty("parentPage", std::move(QVariant::fromValue(parentPage)));
+	}
 	popup->setProperty("show_position", std::move(QVariant{position}));
 	popup->setProperty("open_in_window", std::move(QVariant{widget == nullptr}));
 	if (widget)
 		popup->setProperty("reference_widget", std::move(QVariant::fromValue(widget)));
-	QMetaObject::invokeMethod(popup, "tpOpen");
+
+	//if a signal to open the popup arrived before the popupClose() signal from QML, there is no point in opening it now
+	if (!popup->property("visible").toBool())
+		QMetaObject::invokeMethod(popup, "tpOpen");
+	else
+		popup->setProperty("_reopen", std::move(QVariant{true}));
 }
 
 void PagesListModel::raisePopup(QObject* popup)
@@ -264,10 +271,15 @@ void PagesListModel::popupClosed(QObject* popup)
 {
 	const QVariant &keepAbove{popup->property("keepAbove")};
 	if (keepAbove.isValid() && keepAbove.toBool()) {
-		pageInfo *page_info{getPageInfo(popup)};
-		if (page_info) {
-			page_info->tpPopups.removeOne(popup);
-			changePopupStackOrder(popup, page_info);
+		if (popup->property("_reopen").toBool() && popup->property("_can_reopen").toBool()) {
+			popup->setProperty("_reopen", std::move(QVariant{false}));
+			QMetaObject::invokeMethod(popup, "tpOpen");
+		} else {
+			pageInfo *page_info{getPageInfo(popup)};
+			if (page_info) {
+				page_info->tpPopups.removeOne(popup);
+				changePopupStackOrder(popup, page_info);
+			}
 		}
 	}
 }
@@ -283,7 +295,7 @@ bool PagesListModel::eventFilter(QObject *obj, QEvent *event)
 				if (popup->property("modal").toBool() || popup->property("keepAbove").toBool())
 					QMetaObject::invokeMethod(popup, "backKeyPressed");
 				else
-					QMetaObject::invokeMethod(popup, "close");
+					QMetaObject::invokeMethod(popup, "closePopup", Q_ARG(int, -3));
 			}
 			else {
 				if (currentIndex() != 0)

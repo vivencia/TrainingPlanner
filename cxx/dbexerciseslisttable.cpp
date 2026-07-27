@@ -30,7 +30,7 @@ DBExercisesListTable::DBExercisesListTable(DBModelInterfaceExercisesList *dbmode
 
 QString DBExercisesListTable::dbFileName(const bool fullpath) const
 {
-	const QString &filename{std::move("ExercisesList"_L1 % dbfile_extension)};
+	const QString &filename{"ExercisesList"_L1 % dbfile_extension};
 	return fullpath ? dbFilePath() % filename : filename;
 }
 

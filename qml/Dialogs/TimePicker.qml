@@ -490,7 +490,7 @@ TPPopup {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: _timePicker.closePopup();
+			onClicked: _timePicker.closePopup(-1);
 		}
 
 		TPButton {
@@ -507,7 +507,7 @@ TPPopup {
 
 			onClicked: {
 				_timePicker.timeSet(_timePicker.hrsDisplay, _timePicker.minutesDisplay);
-				_timePicker.closePopup();
+				_timePicker.closePopup(0);
 			}
 		}
 	} // footer pane

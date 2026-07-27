@@ -34,24 +34,18 @@ public:
 	static QString modeToString(Mode m);
 	static Mode stringToMode(const QString &s);
 
-	Job *const q;
-	Mode mode;
+	Job *const q{nullptr};
+	Mode mode{Binary};
 	QByteArray data;
 
 protected:
-	inline JobPrivate(const QString &service_, Job *q)
-		:	q{q},
-			mode{Binary},
-			error{NoError},
-			service{service_},
-			autoDelete{true},
-			insecureFallback{false} {}
+	inline JobPrivate(const QString &service_, Job *q) : q{q}, service{service_} {}
 
-	QKeychain::Error error;
+	QKeychain::Error error{NoError};
 	QString errorString;
 	QString service;
-	bool autoDelete;
-	bool insecureFallback;
+	bool autoDelete{true};
+	bool insecureFallback{false};
 	QPointer<QSettings> settings;
 	QString key;
 

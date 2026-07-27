@@ -1028,10 +1028,13 @@ function get_newchatmessages($owner_user): array {
 		if ($content != "") {
 			$res = true;
 			$msg = "0: $content";
+		} else {
+			$msg = get_return_code("no new messages") . ": No new chat messages";
 		}
+	} else {
+		$msg = get_return_code("no messages") . ": No chat messages";
 	}
-	if ($res == false)
-		$msg = get_return_code("no messages") . ": No new chat messages";
+	return array($res, $msg);
 }
 
 function send_chatmessage($sender, $receiver, $message): array {

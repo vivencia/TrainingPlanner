@@ -441,7 +441,7 @@ void QMLMesoInterface::createFileOps()
 
 	m_instructionsFileOps = new TPFileOps{};
 	m_instructionsFileOps->setUseControls(true);
-	m_instructionsFileOps->setFileName(m_mesoModel->file(m_mesoIdx));
+	m_instructionsFileOps->setFileName(m_mesoModel->instructionsFile(m_mesoIdx));
 	m_instructionsFileOps->setCanAddFile(ownMeso() || mesoForClient());
 	m_instructionsFileOps->setCanDownloadOrGenerate(!ownMeso() && !mesoForClient());
 	m_instructionsFileOps->setAddFileFilters(TPUtils::FT_DOCUMENTS);
@@ -450,17 +450,17 @@ void QMLMesoInterface::createFileOps()
 			return m_mesoModel->suggestedName(m_mesoIdx, true);
 		});
 		connect(m_instructionsFileOps, &TPFileOps::fileAdded, this, [this] (const QString &filepath) {
-			m_mesoModel->setFile(m_mesoIdx, filepath);
+			m_mesoModel->setInstructionsFile(m_mesoIdx, filepath);
 		});
 	}
 	connect(m_instructionsFileOps, &TPFileOps::fileRemovalRequested, this, [this] () {
-		m_mesoModel->setFile(m_mesoIdx, QString{});
+		m_mesoModel->setInstructionsFile(m_mesoIdx, QString{});
 	});
 
 	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const DBMesocyclesModel::MesoFields field) {
 		if (meso_idx == m_mesoIdx && field == DBMesocyclesModel::MESO_FIELD_NAME) {
 			m_instructionsFileOps->renameFile(m_mesoModel->name(m_mesoIdx));
-			m_mesoModel->setFile(m_mesoIdx, m_instructionsFileOps->fileName());
+			m_mesoModel->setInstructionsFile(m_mesoIdx, m_instructionsFileOps->fileName());
 			m_mesoFileOps->setFileName(std::move(*m_mesoModel->suggestedName(m_mesoIdx)));
 		}
 	});

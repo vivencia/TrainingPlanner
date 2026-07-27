@@ -186,8 +186,8 @@ public:
 
 	bool mkdir(const QString &fileOrDir) const;
 	bool rename(const QString &source_file_or_dir, const QString &dest_file_or_dir, const bool overwrite) const;
-	bool copyFile(const QString &srcFile, const QString &dstFileOrDir, const bool createPath = true,
-														const bool remove_source = false, const bool overwrite = true) const;
+	bool copyOrLinkFile(const QString &source, const QString &destination, const bool copy = true,
+					const bool create_path = true, const bool overwrite = true, const bool follow_symlink = false) const;
 	QFile *openFile(const QString &filename, const bool read = true, const bool write = false, const bool append = false,
 							const bool overwrite = false, const bool text = true) const;
 	void scanDir(const QString &path, QFileInfoList &results, const QString &file_match = QString{},
@@ -374,14 +374,6 @@ constexpr bool operator&(T lhs, T rhs)
     using U = std::underlying_type_t<T>;
     return static_cast<U>(lhs) & static_cast<U>(rhs);
 }
-
-/*template <typename T>
-constexpr T operator~(T rhs)
-{
-    // Cast to the underlying type, perform the operation, and cast back to the enum type
-    using U = std::underlying_type_t<T>;
-    return static_cast<T>(static_cast<U>(~rhs));
-}*/
 
 template <typename T>
 constexpr T operator|=(T lhs, T rhs)

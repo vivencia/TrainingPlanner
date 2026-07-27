@@ -15,10 +15,9 @@ public:
     Q_INVOKABLE void deleteKey(const QString &key);
 
 signals:
-    void keyStored(const QString &key);
-    void keyRestored(const QString &key, const QString &value);
-    void keyDeleted(const QString &key);
-    void error(const QString &errorText);
+    void keyStored(const bool ok, const QString &key);
+    void keyRestored(const bool ok, const QString &key, const QString &value);
+    void keyDeleted(const bool ok, const QString &key);
 
 private:
     static TPKeyChain *_appKeyChain;

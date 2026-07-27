@@ -738,7 +738,7 @@ void OSInterface::commandLocalServer(const QString &title, const QString &comman
 	QLatin1StringView seed{command.toLatin1()};
 	const int requestid{appUtils()->generateUniqueId(seed)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
-	*conn = connect(appUserModel(), &DBUserModel::passwordAcquired, this, [=,this]
+	*conn = connect(appItemManager(), &QmlItemManager::passwordAcquired, this, [=,this]
 													(const bool proceed, const int request_id, const QString &passwd) {
 		if (request_id == requestid) {
 			disconnect(*conn);
@@ -750,11 +750,12 @@ void OSInterface::commandLocalServer(const QString &title, const QString &comman
 				server_script_proc->start(tp_server_config_script , {command, "-p="_L1 % passwd}, QIODeviceBase::ReadOnly);
 			} else {
 				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, std::move(
-							appUtils()->string_strings({title, "Operation canceled by the user"_L1}, record_separator)));
+				appUtils()->string_strings({title, "Operation canceled by the user"_L1}, record_separator)));
 			}
 		}
 	});
-	appUserModel()->requestPasswordFromUser(requestid, title, "Your system user password is required"_L1);
+	appItemManager()->showPasswordDialog(requestid, appItemManager()->appHomePage(), title,
+														"Your system user password is required"_L1);
 }
 #endif //TPSERVER_MACHINE
 #endif //LOCAL_TPSERVER
