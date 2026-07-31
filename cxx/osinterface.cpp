@@ -685,41 +685,54 @@ void OSInterface::setWorkingNetInterface(const int interface_index)
 }
 
 #ifdef TPSERVER_MACHINE
-void OSInterface::checkLocalServer()
+void OSInterface::startLocalServerProcess()
 {
-	QProcess *check_server_proc{new QProcess{this}};
-	connect(check_server_proc, &QProcess::finished, this, [this,check_server_proc] (int exit_code, QProcess::ExitStatus exit_status) {
-		serverProcessFinished(check_server_proc, exit_code, exit_status);
-	});
-	check_server_proc->start(tp_server_config_script, {"status"_L1}, QIODeviceBase::ReadOnly);
+	if (!m_severScriptProc) {
+		m_severScriptProc = new QProcess{this};
+		connect(m_severScriptProc, &QProcess::finished, this, [this] (int exit_code, QProcess::ExitStatus exit_status) {
+			if (exit_status != QProcess::NormalExit) {
+				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR, std::move(
+					appUtils()->string_strings({"Linux TP Server"_L1, "Error executing init_script("_L1
+													% QString::number(exit_code) % ')'}, record_separator)));
+			} else {
+				serverProcessFinished(m_severScriptProc, exit_code);
+			}
+			m_severScriptProc->close();
+			m_commandQueue.removeFirst();
+			if (!m_commandQueue.isEmpty()) {
+				startLocalServerProcess();
+			} else {
+				delete m_severScriptProc;
+				m_severScriptProc = nullptr;
+			}
+		});
+	} else {
+		if (m_severScriptProc->state() != QProcess::NotRunning)
+			return;
+	}
+	m_severScriptProc->start(tp_server_config_script, m_commandQueue.constFirst(), QIODeviceBase::ReadOnly);
 }
 
-void OSInterface::serverProcessFinished(QProcess *proc, const int exit_code, QProcess::ExitStatus exit_status)
+void OSInterface::serverProcessFinished(QProcess *proc, const int exit_code)
 {
-	proc->deleteLater();
-	if (exit_status != QProcess::NormalExit) {
-		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR, std::move(appUtils()->string_strings(
-										{"Linux TP Server"_L1, "Error executing init_script"_L1}, record_separator)));
-		return;
-	}
-
 	switch (exit_code) {
 	case TPSERVER_ERROR:
 	case TPSERVER_PAUSED_FAILED:
-		localServerProcessResult(TP_RET_CODE_SERVER_UNREACHABLE, proc->readAllStandardOutput() % "\nReturn code("_L1 % QUOTE(exit_code) % ')');
+		localServerProcessResult(TP_RET_CODE_SERVER_UNREACHABLE, proc->readAllStandardOutput()
+															% "\nReturn code("_L1 % QUOTE(exit_code) % ')');
 		break;
 	case TPSERVER_NGINX_ERROR:
-		commandLocalServer("Start server service?"_L1, "start"_L1);
+		commandLocalServer("start"_L1, true, "Start server service?"_L1);
 		break;
 	case TPSERVER_PHPFPM_ERROR:
-		commandLocalServer("Restart server service?"_L1, "restart"_L1);
+		commandLocalServer("restart"_L1, true, "Restart server service?"_L1);
 		break;
 	case TPSERVER_CONFIG_ERROR:
-		commandLocalServer("Setup server?"_L1, "setup"_L1);
+		commandLocalServer("setup"_L1, true, "Setup server?"_L1);
 		break;
 	case TPSERVER_PAUSED:
 	case TPSERVER_PAUSED_LOCALHOST:
-		commandLocalServer("Unpause server?"_L1, "pause"_L1);
+		commandLocalServer("pause"_L1, true, "Unpause server?"_L1);
 		break;
 	default: { //TPSERVER_OK or TPSERVER_OK_LOCALHOST
 		QString address{std::move(proc->readAllStandardOutput())};
@@ -730,32 +743,49 @@ void OSInterface::serverProcessFinished(QProcess *proc, const int exit_code, QPr
 		}
 		break;
 	}
-	proc->close();
 }
 
-void OSInterface::commandLocalServer(const QString &title, const QString &command)
+OSInterface::clsRetCode OSInterface::commandLocalServer(const QString &command, const bool as_su,
+																					const QString &title)
 {
-	QLatin1StringView seed{command.toLatin1()};
-	const int requestid{appUtils()->generateUniqueId(seed)};
-	auto conn{std::make_shared<QMetaObject::Connection>()};
-	*conn = connect(appItemManager(), &QmlItemManager::passwordAcquired, this, [=,this]
-													(const bool proceed, const int request_id, const QString &passwd) {
-		if (request_id == requestid) {
-			disconnect(*conn);
-			if (proceed) {
-				QProcess *server_script_proc{new QProcess{this}};
-				connect(server_script_proc, &QProcess::finished, this, [this,server_script_proc] (int exit_code, QProcess::ExitStatus exit_status) {
-					serverProcessFinished(server_script_proc, exit_code, exit_status);
-				});
-				server_script_proc->start(tp_server_config_script , {command, "-p="_L1 % passwd}, QIODeviceBase::ReadOnly);
-			} else {
-				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, std::move(
-				appUtils()->string_strings({title, "Operation canceled by the user"_L1}, record_separator)));
+	if (std::find_if(m_commandQueue.cbegin(), m_commandQueue.cend(), [command] (const QStringList &args) {
+			return command == args.constFirst();
+	}) != m_commandQueue.cend())
+		return CLS_ERROR_ALREADY_QUEUED;
+	if (as_su) {
+		static bool waiting_for_password{false};
+		QLatin1StringView seed{command.toLatin1()};
+		const int requestid{appUtils()->generateUniqueId(seed)};
+		auto conn{std::make_shared<QMetaObject::Connection>()};
+		*conn = connect(appItemManager(), &QmlItemManager::passwordAcquired, this, [=,this]
+								(const bool proceed, const int request_id, const QString &passwd) mutable {
+			qDebug() << "######  OSInterface::passwordAcquired, proceed = " << proceed << ", request_id = "
+					 << request_id << ", requestid = " << requestid << ", passwd = " << passwd;
+			if (request_id == requestid) {
+				disconnect(*conn);
+				if (proceed) {
+					m_commandQueue.append({command, "-p="_L1 % passwd});
+					startLocalServerProcess();
+				} else {
+					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, std::move(
+					appUtils()->string_strings({title, "Operation canceled by the user"_L1}, record_separator)));
+				}
+				waiting_for_password = false;
 			}
+		});
+		if (!waiting_for_password) {
+			waiting_for_password = true;
+			appItemManager()->showPasswordDialog(requestid, appItemManager()->appHomePage(), title,
+													"Your system user password is required"_L1);
+			return CLS_OK_WAITING_FOR_PASSWORD;
+		} else {
+			return CLS_ERROR_WAITING_FOR_PASSWORD;
 		}
-	});
-	appItemManager()->showPasswordDialog(requestid, appItemManager()->appHomePage(), title,
-														"Your system user password is required"_L1);
+	} else {
+		m_commandQueue.append({command});
+		startLocalServerProcess();
+		return m_commandQueue.count() == 1 ? CLS_OK_STARTED : CLS_OK_QUEUED;
+	}
 }
 #endif //TPSERVER_MACHINE
 #endif //LOCAL_TPSERVER

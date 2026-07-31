@@ -35,9 +35,7 @@ TPPopup {
 	readonly property int leftMarginValue: width * 0.05
 
 	onClosed: mainTimer.stopTimer();
-
 	onInitialTimeChanged: mainTimer.prepareTimer(initialTime);
-	onMouseItemClicked: (mouse) => chkStopWatch.mouseClicked();
 
 	TPTimer {
 		id: mainTimer

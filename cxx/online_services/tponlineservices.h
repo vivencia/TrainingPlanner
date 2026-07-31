@@ -81,10 +81,8 @@ signals:
 	void networkListReceived(const int request_id, const int ret_code, const QStringList &ret_list);
 	void serverStatusChanged(const uint online_status, const QString &server_address, const int request_id);
 	void networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string);
-
-	void _networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string,
-																	const QByteArray &contents = QByteArray{});
-	void fileReceived(const int request_id, const int ret_code, const QString& filename, const QByteArray &contents);
+	void _networkRequestProcessed(const int request_id, const int ret_code, const QString &ret_string);
+	void _fileReceived(const int request_id, const int ret_code, const QByteArray &contents);
 
 private:
 	bool canConnectToServer() const;
@@ -99,11 +97,11 @@ private:
 	void getFile(const int requestid, const TPFilePath &tp_filename, bool check_ctime_first = true);
 	void removeFile(const int requestid, const TPFilePath &tp_filename);
 	void getCmdFile(const int requestid, const QString &filename, const QString &subdir = QString{});
-	void uploadFile(const int requestid, const QUrl &url, QFile *file, const bool b_internal_signal_only = false);
+	void uploadFile(const int requestid, const QUrl &url, QFile *file);
 	void parseReceivedFilesList(QStringList &files, const QString &ret_string);
 	bool remoteFileUpToDate(const QString &onlineDate, const QString &localFile) const;
 	bool localFileUpToDate(const QString &onlineDate, const QString &localFile) const;
-	inline bool checkRequestPool(const int requestid, const QLatin1StringView &method) const
+	inline bool isRequestIDInUse(const int requestid, const char *method) const
 	{
 		if (requestid == -1)
 			return false;

@@ -2,10 +2,11 @@
 
 #define TP_RET_CODE_SUCCESS						0
 #define TP_RET_CODE_NO_CHANGES_SUCCESS			1
-#define TP_RET_CODE_EXPORT_OK					2
-#define TP_RET_CODE_SHARE_OK					3
-#define TP_RET_CODE_IMPORT_OK					4
-#define TP_RET_CODE_USER_OK						5
+#define TP_RET_CODE_SEND_OK						2
+#define TP_RET_CODE_EXPORT_OK					3
+#define TP_RET_CODE_SHARE_OK					4
+#define TP_RET_CODE_IMPORT_OK					5
+#define TP_RET_CODE_USER_OK						6
 #define TP_RET_CODE_CUSTOM_SUCCESS				10
 
 #define TP_RET_CODE_CUSTOM_ERROR				100

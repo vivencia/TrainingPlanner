@@ -9,8 +9,7 @@ import TpQml.Pages
 Popup {
 	id: _control
 	closePolicy: keepAbove ? Popup.NoAutoClose : Popup.CloseOnPressOutside
-	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
-	visible: visibilityCondition
+	parent: ItemManager.popupsVisualParent
 	spacing: 0
 	padding: showBorder ? 2 : 0
 	topInset: 0
@@ -27,7 +26,8 @@ Popup {
 	property bool useShape: false
 	property bool canSlideToClose: false
 	property bool useAlternateBackground: false
-	property bool visibilityCondition: false
+	property bool visibilityCondition: true
+	property int showBehavior: TPPopup.PARENT_PAGE_ACTIVE
 	property int backgroundRotation: 0
 	property string backGroundImage
 	property string configFieldName
@@ -45,11 +45,12 @@ Popup {
 //protected:
 	property TPButton btnClose
 	property TPBackRec titleBar
-	property bool globalPopup: false
 	property bool open_in_window: false
 	property Item reference_widget: null
 	property int show_position: Qt.AlignCenter //Use Qt.AlignBaseline when position(x,y) is retrieved from a config file
 	property TPMouseArea mouse_area: null
+
+	enum ShowBehavior { PARENT_PAGE_ACTIVE, ALWAYS_VISIBLE }
 
 //private:
 	property bool _use_burst_transition: true
@@ -66,6 +67,25 @@ Popup {
 
 	enter: _transition_in
 	exit: _transition_out
+
+	onClosed: {
+		if (!_hidden && (modal || keepAbove))
+			popupClosed(this);
+	}
+
+	onMouseItemChanged: createMouseArea();
+	onVisibilityConditionChanged: {
+		if (visible !== visibilityCondition) {
+			if (keepAbove) {
+				if (visibilityCondition)
+					tpQmlOpen(parentPage);
+				else
+					close();
+			} else {
+				visible = visibilityCondition;
+			}
+		}
+	}
 
 	contentItem {
 		Keys.onPressed: (event) => {
@@ -90,14 +110,6 @@ Popup {
 			}
 		}
 	}
-
-	onClosed: {
-		if (!_hidden && modal || keepAbove)
-			popupClosed(this);
-	}
-
-	onMouseItemChanged: createMouseArea();
-	//Component.onCompleted: createMouseArea();
 
 	Loader {
 		active: !_control.useAlternateBackground
@@ -279,21 +291,13 @@ Popup {
 		}
 	}
 
-	function realPageY(): int {
-		return parentPage === ItemManager.appHomePage() ? 0 : parentPage ? parentPage.mapToGlobal(Qt.point(parentPage.y, 0)).y : 0;
-	}
-
 	function createMouseArea(): void {
 		if (mouseItem && !mouse_area) {
 			let component = Qt.createComponent("TpQml.Widgets", TPMouseArea, Qt.Asynchronous);
-
-			//Concerning TPMouseArea.propagateClickEvent: so far, there is no need to create a separate property
-			//(in TPPopup) for it. It's only used for the titleBar so it can have clickable widgets on it
 			function finishCreation() {
 				mouse_area = component.createObject(_control.mouseItem, { enabled: _control.enabled,
-								movableWidget: _control, slideToClose: _control.canSlideToClose,
-								movingWidget: _control.mouseItem, propagateClickEvent: _control.showTitleBar,
-								lockMovingToYAxis: _control.lockMovingToYAxis });
+						movableWidget: _control, slideToClose: _control.canSlideToClose,
+						movingWidget: _control.mouseItem, lockMovingToYAxis: _control.lockMovingToYAxis });
 				mouse_area.mousePressed.connect(mouseAreaPressed);
 				mouse_area.movingFinished.connect(mouseAreaMovingFinished);
 				mouse_area.mouseClicked.connect(mouseItemClicked);
@@ -311,7 +315,7 @@ Popup {
 				case Component.Null:
 				case Component.Error:
 					component.statusChanged.disconnect(checkComponentStatus);
-					console.log(component.errorString());
+					console.error(component.errorString());
 					break;
 				}
 			}
@@ -334,7 +338,6 @@ Popup {
 
 	function mouseAreaPressed(mouse: MouseEvent): void {
 		ItemManager.appPagesManager.raisePopup(_control);
-		_control.mouseItemClicked(mouse);
 	}
 
 	function mouseAreaSlide(side: int): void {
@@ -371,13 +374,13 @@ Popup {
 	function showAlignedInWindow(): void {
 		if (show_position & Qt.AlignTop) {
 			_start_y_pos = -height;
-			_end_y_pos = realPageY();
+			_end_y_pos = 0;
 			_start_x_pos = _end_x_pos = (AppSettings.pageWidth - width) / 2;
 		} else if (show_position & Qt.AlignVCenter) {
-			_start_y_pos = _end_y_pos = (AppSettings.windowHeight - height) / 2;
+			_start_y_pos = _end_y_pos = (AppSettings.windowHeight - height) / 2 - AppSettings.itemDefaultHeight;
 		} else if (show_position & Qt.AlignBottom) {
 			_start_y_pos = AppSettings.windowHeight + height;
-			_end_y_pos = realPageY() + parentPage.height - height;
+			_end_y_pos = 0 + parentPage.height - height;
 			_start_x_pos = _end_x_pos = (AppSettings.pageWidth - width) / 2;
 		}
 		if (show_position & Qt.AlignHCenter) {
@@ -433,8 +436,8 @@ Popup {
 			_end_x_pos = AppSettings.pageWidth - width;
 		if (_end_y_pos < 0)
 			_end_y_pos = 0;
-		else if (_end_y_pos + height > realPageY() + parentPage.height)
-			_end_y_pos = realPageY() + parentPage.height - height;
+		else if (_end_y_pos + height > 0 + parentPage.height)
+			_end_y_pos = 0 + parentPage.height - height;
 
 		if (_use_burst_transition) {
 			x = _end_x_pos;
@@ -466,8 +469,8 @@ Popup {
 	function closePopup(btn_id: int): void {
 		close();
 		closeActionExeced(btn_id);
-		//when a action button is clicked, the dialog maybe reopened for a follow up. When it's closed
-		//via btnClose or swipe or backkey (btn_id = -1 and -2 and -3 respectively), no
+		//when a action button is clicked, the dialog maybe immediately reopened for a follow up.
+		//When it's closed via btnClose or swipe or backkey (btn_id = -1, and -2, and -3 respectively), no
 		_can_reopen = btn_id >= 0;
 	}
 
@@ -477,14 +480,16 @@ Popup {
 	}
 
 	function hide(): void {
-		if (!globalPopup) {
+		if (showBehavior === TPPopup.PARENT_PAGE_ACTIVE) {
 			_hidden = true;
 			visible = false;
 		}
 	}
 
 	function restore(): void {
-		_hidden = false;
-		visible = Qt.binding(function() { return _control.visibilityCondition; });
+		if (showBehavior === TPPopup.PARENT_PAGE_ACTIVE) {
+			_hidden = false;
+			visible = true;
+		}
 	}
 }

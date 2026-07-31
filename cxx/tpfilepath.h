@@ -136,12 +136,7 @@ public:
 	}
 	inline void setSubdirs(const std::initializer_list<QString> &subdirs)
 	{
-		setSubdirs(appUtils()->string_strings(subdirs, QLatin1Char{'/'}), true);
-	}
-	inline void setSubDirsPlusFilename(const QString &str)
-	{
-		setFileName(appUtils()->getFileName(str), true);
-		setSubdirs(appUtils()->getFilePath(str, false), true);
+		setSubdirs(appUtils()->string_strings(subdirs, QLatin1Char{'/'}), false);
 	}
 
 	inline int generateUniqueId() const

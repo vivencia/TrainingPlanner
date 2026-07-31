@@ -81,6 +81,7 @@ void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
 			appQmlEngine()->rootContext()->setContextProperty("mainwindow"_L1, QVariant::fromValue(appMainWindow()));
 			m_homePage = appMainWindow()->findChild<QQuickItem*>("homePage");
 			m_appPagesVisualParent = appMainWindow()->findChild<QQuickItem*>("appStackView");
+			m_popupsVisualParent = appMainWindow()->contentItem();
 #ifdef ENABLE_GENERAL_MESSAGES_POPUP
 			createGeneralMessagesPopup();
 #endif
@@ -160,12 +161,11 @@ void QmlItemManager::showFirstTimeDialog()
 				m_firstTimeDlg = m_firstTimeDlgComponent->create(appQmlEngine()->rootContext());
 #ifndef QT_NO_DEBUG
 				if (!m_firstTimeDlg) {
-					qDebug() << m_firstTimeDlgComponent->errorString();
+					qCritical() << m_firstTimeDlgComponent->errorString();
 					return;
 				}
 #endif
 				appQmlEngine()->setObjectOwnership(m_firstTimeDlg, QQmlEngine::CppOwnership);
-				m_firstTimeDlg->setProperty("parent", QVariant::fromValue(m_homePage));
 				showFirstTimeDialog();
 				break;
 			case QQmlComponent::Loading:
@@ -224,7 +224,10 @@ void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QStri
 			switch (m_simpleExercisesListComponent->status()) {
 			case QQmlComponent::Ready:
 				m_simpleExercisesListComponent->disconnect();
-				createSimpleExercisesList(parentPage);
+				m_simpleExercisesList = m_simpleExercisesListComponent->createWithInitialProperties(
+										m_simpleExercisesListProperties, appQmlEngine()->rootContext());
+				appQmlEngine()->setObjectOwnership(m_simpleExercisesList, QQmlEngine::CppOwnership);
+				connect(m_simpleExercisesList, SIGNAL(exerciseSelected(QQuickItem*)), this, SIGNAL(selectedExerciseFromSimpleExercisesList(QQuickItem*)));
 				showSimpleExercisesList(parentPage, filter);
 				break;
 			case QQmlComponent::Loading:
@@ -241,7 +244,7 @@ void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QStri
 			int name_field_ypos{0};
 			QMetaObject::invokeMethod(parentPage, "getExerciseNameFieldYPos", Q_RETURN_ARG(int, name_field_ypos));
 			appPagesListModel()->openPopup(m_simpleExercisesList, parentPage,
-								name_field_ypos <= appSettings()->pageHeight() / 2 ? Qt::AlignTop : Qt::AlignBaseline);
+					name_field_ypos <= appSettings()->pageHeight() / 2 ? Qt::AlignTop : Qt::AlignBaseline);
 		}
 	}
 }
@@ -346,6 +349,9 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, QString &&m
 		case TP_RET_CODE_CUSTOM_SUCCESS:
 			title = std::move(appUtils()->getCompositeValue(0, message, record_separator));
 			message = std::move(appUtils()->getCompositeValue(1, message, record_separator));
+			break;
+		case TP_RET_CODE_SEND_OK:
+			title = std::move(tr("Succesfully sent"));
 			break;
 		case TP_RET_CODE_EXPORT_OK:
 			title = std::move(tr("Succesfully exported"));
@@ -498,12 +504,11 @@ void QmlItemManager::showPasswordDialog(const int request_id, QQuickItem *parent
 				m_passwordDialog = m_passwordDialogComponent->create(appQmlEngine()->rootContext());
 #ifndef QT_NO_DEBUG
 				if (!m_passwordDialog) {
-					qDebug() << m_passwordDialogComponent->errorString();
+					qCritical() << m_passwordDialogComponent->errorString();
 					return;
 				}
 #endif
 				appQmlEngine()->setObjectOwnership(m_passwordDialog, QQmlEngine::CppOwnership);
-				m_passwordDialog->setProperty("parent", std::move(QVariant::fromValue(appItemManager()->appHomePage())));
 				connect(m_passwordDialog, SIGNAL(passwordAcquired(bool,int,QString,bool)), this,
 														SIGNAL(passwordAcquired(bool,int,QString,bool)));
 				break;
@@ -517,6 +522,8 @@ void QmlItemManager::showPasswordDialog(const int request_id, QQuickItem *parent
 				return;
 			}
 		}
+		qDebug() << "######  showPasswordDialog, title = " << title << ", request_id = "
+				 << request_id << ", parent_page = " << parent_page->objectName();
 		m_passwordDialog->setProperty("request_id", std::move(QVariant{request_id}));
 		m_passwordDialog->setProperty("title", std::move(QVariant{title}));
 		m_passwordDialog->setProperty("message", std::move(QVariant{message}));
@@ -541,12 +548,11 @@ void QmlItemManager::startMessagesManager()
 #ifndef QT_NO_DEBUG
 				m_messagesManagerPopup->setProperty("objectName", std::move(QVariant{"onlineMessages"}));
 				if (!m_messagesManagerPopup) {
-					qDebug() << m_messagesManagerComponent->errorString();
+					qCritical() << m_messagesManagerComponent->errorString();
 					return;
 				}
 #endif
 				appQmlEngine()->setObjectOwnership(m_messagesManagerPopup, QQmlEngine::CppOwnership);
-				m_messagesManagerPopup->setProperty("parent", QVariant::fromValue(m_homePage));
 				startMessagesManager();
 				break;
 			case QQmlComponent::Loading:
@@ -609,7 +615,7 @@ void QmlItemManager::createGeneralMessagesPopup()
 		m_generalMessagesPopupComponent = new QQmlComponent{appQmlEngine(), "TpQml.Widgets"_L1, "TPBalloonTip"_L1,
 																							QQmlComponent::Asynchronous};
 		connect(m_generalMessagesPopupComponent, &QQmlComponent::statusChanged, this, [this]
-																					(QQmlComponent::Status status) {
+																			(QQmlComponent::Status status) {
 			createGeneralMessagesPopup();
 		});
 	} else {
@@ -620,7 +626,6 @@ void QmlItemManager::createGeneralMessagesPopup()
 				m_generalMessagesPopup = m_generalMessagesPopupComponent->createWithInitialProperties(
 														m_generalMessagesPopupProperties, appQmlEngine()->rootContext());
 				appQmlEngine()->setObjectOwnership(m_generalMessagesPopup, QQmlEngine::CppOwnership);
-				m_generalMessagesPopup->setProperty("parent", std::move(QVariant::fromValue(m_homePage)));
 				connect(m_generalMessagesPopup, SIGNAL(closeActionExeced(int)), this, SLOT(generalMessagesPopupClosed(int)));
 				generalMessagesPopupClosed(-1);
 				break;
@@ -629,21 +634,12 @@ void QmlItemManager::createGeneralMessagesPopup()
 			case QQmlComponent::Null:
 			case QQmlComponent::Error:
 #ifndef QT_NO_DEBUG
-				qDebug() << m_generalMessagesPopupComponent->errorString();
+				qCritical() << m_generalMessagesPopupComponent->errorString();
 #endif
 				break;
 			}
 		}
 	}
-}
-
-void QmlItemManager::createSimpleExercisesList(QQuickItem *parentPage)
-{
-	m_simpleExercisesList = m_simpleExercisesListComponent->createWithInitialProperties(m_simpleExercisesListProperties,
-																							appQmlEngine()->rootContext());
-	appQmlEngine()->setObjectOwnership(m_simpleExercisesList, QQmlEngine::CppOwnership);
-	m_simpleExercisesList->setProperty("parent", QVariant::fromValue(parentPage));
-	connect(m_simpleExercisesList, SIGNAL(exerciseSelected(QQuickItem*)), this, SIGNAL(selectedExerciseFromSimpleExercisesList(QQuickItem*)));
 }
 
 void QmlItemManager::createStatisticsPage_part2()

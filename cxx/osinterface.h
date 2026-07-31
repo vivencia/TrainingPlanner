@@ -59,7 +59,14 @@ public:
 	void getAvailableAddresses();
 	void setWorkingNetInterface(const int interface_index);
 #ifdef TPSERVER_MACHINE
-	void checkLocalServer();
+	enum clsRetCode {
+		CLS_OK_STARTED, //command will start immediately
+		CLS_OK_QUEUED, //command will start as soon as the previous command finishes
+		CLS_OK_WAITING_FOR_PASSWORD, //command will start or enter queue after the user enters their password
+		CLS_ERROR_ALREADY_QUEUED, //command will not start because the first argument is already executing or queued
+		CLS_ERROR_WAITING_FOR_PASSWORD, //it may be a different command, but as long as we are waiting for the password, nothing will be done
+	};
+	clsRetCode commandLocalServer(const QString &command, const bool as_su = false, const QString &title = QString{});
 #endif
 #endif
 
@@ -155,8 +162,10 @@ private:
 	void localServerProcessResult(const uint online_status, const QString &additional_message = QString{});
 
 #ifdef TPSERVER_MACHINE
-	void serverProcessFinished(QProcess *proc, const int exit_code, QProcess::ExitStatus exit_status);
-	void commandLocalServer(const QString &title, const QString &command);
+	QProcess *m_severScriptProc{nullptr};
+	QList<QStringList> m_commandQueue;
+	void startLocalServerProcess();
+	void serverProcessFinished(QProcess *proc, const int exit_code);
 #endif //TPSERVER_MACHINE
 
 	static OSInterface *_app_os_interface;

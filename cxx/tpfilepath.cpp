@@ -10,20 +10,17 @@ QString TPFilePath::_localAppFilesDir{};
 void TPFilePath::setLocalAppFilesDir()
 {
 	if (TPFilePath::_localAppFilesDir.isEmpty())
-		TPFilePath::_localAppFilesDir = std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation))
-																										% QLatin1Char('/');
+		TPFilePath::_localAppFilesDir = std::move(QStandardPaths::writableLocation(
+													QStandardPaths::AppDataLocation)) % QLatin1Char('/');
 }
 
 TPFilePath::TPFilePath(const QString &filename, const QString &owner_user, const QString &target_user,
-																			const std::initializer_list<QString> &subdirs)
+															const std::initializer_list<QString> &subdirs)
 {
 	setOwnerUser(owner_user);
 	setTargetUser(target_user);
-	if (!filename.contains('/')) {
-		setFileName(filename, false);
-		setSubdirs(subdirs);
-	} else //when transfering files between users and/or the server, filename will contain the subdirs(see TPUtils::BFIF_FILEPATH)
-		setSubDirsPlusFilename(filename);
+	setFileName(filename, false);
+	setSubdirs(subdirs);
 }
 
 void TPFilePath::setOwnerUser(const QString &userid)

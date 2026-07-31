@@ -125,14 +125,15 @@ TPUtils::FILE_TYPE TPUtils::getTPFileType(const QString &filename, bool &formatt
 					tp_type = FT_TP_USER_PROFILE;
 					break;
 				} else if (line.contains(appUtils()->mesoFileIdentifier)) {
-					tp_type = FT_OTHER;
-				} else if (line.contains(appUtils()->splitFileIdentifier) && tp_type == FT_TEXT) {
 					tp_type = FT_TP_PROGRAM;
+					break;
+				} else if (line.contains(appUtils()->splitFileIdentifier) && tp_type == FT_TEXT) {
+					tp_type = FT_TP_SPLIT;
 					break;
 				} else if (line.contains(appUtils()->exercisesListFileIdentifier)) {
 					tp_type = FT_TP_EXERCISES;
 					break;
-				} else if (line.contains(appUtils()->workoutFileIdentifier)) {
+				} else if (line.contains(appUtils()->workoutFileIdentifierA.chopped(1))) {
 					switch (line.at(line.length() -1).cell()) {
 					case 'A': tp_type = FT_TP_WORKOUT_A; break;
 					case 'B': tp_type = FT_TP_WORKOUT_B; break;

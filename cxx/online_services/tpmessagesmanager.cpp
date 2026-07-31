@@ -154,11 +154,10 @@ void TPMessagesManager::sendTPMessage(const QString &target_user, const QString 
 	if (appWSServer()->isConnectionOK(target_user, true)) {
 		const bool sent{appWSServer()->sendTextMessage(encoded_message)};
 		send_result(request_id, sent);
-	}
-	else {
+	} else {
 		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(appWSServer(), &WSServer::connectionAttemptResult, this, [=,this]
-																	(const bool established, const QString &userid) {
+															(const bool established, const QString &userid) {
 			if (userid == target_user) {
 				disconnect(*conn);
 				bool message_sent{false};
@@ -196,7 +195,7 @@ void TPMessagesManager::textMessageReceived(const QString &encoded_message)
 		new_message->setType(TPUtils::tpmessage_prefix);
 		new_message->setDateTime(std::move(appUtils()->dateTimeFromString(c_time)));
 		new_message->setExpiration(std::move(appUtils()->dateTimeFromString(
-										appUtils()->encodedMessageFieldValue(encoded_message, TPUtils::EF_EXP_TIME))));
+							appUtils()->encodedMessageFieldValue(encoded_message, TPUtils::EF_EXP_TIME))));
 		new_message->setFileName(appUtils()->encodedMessageFieldValue(encoded_message, TPUtils::EF_REL_FILEPATH));
 		new_message->setTitle(std::move(new_message->fileOps() ? tr("You have received a file") : tr("You have a message")));
 		new_message->setIcon(std::move("send-message"_L1));
@@ -280,12 +279,24 @@ void TPMessagesManager::openChatWindow(TPChat *chat_manager)
 			});
 		}
 		switch (m_chatWindowComponent->status()) {
-		case QQmlComponent::Ready:
+		case QQmlComponent::Ready: {
 			m_chatWindowComponent->disconnect();
 			chat_manager->loadChat();
-			createChatWindow_part2(chat_manager);
+			m_chatWindowProperties["chatManager"_L1] = std::move(QVariant::fromValue(chat_manager));
+			QObject *chat_dialog{m_chatWindowComponent->createWithInitialProperties(
+												m_chatWindowProperties, appQmlEngine()->rootContext())};
+#ifndef QT_NO_DEBUG
+			if (!chat_dialog) {
+				qCritical() << m_chatWindowComponent->errorString();
+				return;
+			}
+#endif
+			appQmlEngine()->setObjectOwnership(chat_dialog, QQmlEngine::CppOwnership);
+			chat_manager->setChatWindow(chat_dialog);
+			m_chatsList.value(chat_manager->otherUserId())->dialog = chat_dialog;
 			openChatWindow(chat_manager);
 			break;
+		}
 		case QQmlComponent::Loading:
 			break;
 		case QQmlComponent::Null:
@@ -322,7 +333,7 @@ void TPMessagesManager::startMessagesPolling(const QString &userid)
 	const QLatin1StringView seed{QString{userid + "check_chat_messages"_L1}.toLatin1()};
 	const int requestid{appUtils()->generateUniqueId(seed)};
 	connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,requestid]
-													(const int request_id, const int ret_code, const QString &ret_string) {
+									(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
 			if (ret_code == TP_RET_CODE_SUCCESS)
 				parseNewChatMessages(ret_string);
@@ -331,7 +342,7 @@ void TPMessagesManager::startMessagesPolling(const QString &userid)
 	const QLatin1StringView seed2{QString{userid + "check_tp_messages"_L1}.toLatin1()};
 	const int requestid2{appUtils()->generateUniqueId(seed2)};
 	connect(appOnlineServices(), &TPOnlineServices::networkListReceived, this, [this,requestid2]
-												(const int request_id, const int ret_code, const QStringList &ret_list) {
+								(const int request_id, const int ret_code, const QStringList &ret_list) {
 		if (request_id == requestid2) {
 			if (ret_code == TP_RET_CODE_SUCCESS)
 				receivedTPMessages(ret_list);
@@ -469,20 +480,4 @@ void TPMessagesManager::parseNewChatMessages(const QString &encoded_messages)
 			chat_mngr = chatManager(sender_id);
 		chat_mngr->processChatMessage(encoded_message);
 	}
-}
-
-void TPMessagesManager::createChatWindow_part2(TPChat *chat_manager)
-{
-	m_chatWindowProperties["chatManager"_L1] = std::move(QVariant::fromValue(chat_manager));
-	QObject *chat_dialog{m_chatWindowComponent->createWithInitialProperties(m_chatWindowProperties, appQmlEngine()->rootContext())};
-#ifndef QT_NO_DEBUG
-	if (!chat_dialog) {
-		qDebug() << m_chatWindowComponent->errorString();
-		return;
-	}
-#endif
-	appQmlEngine()->setObjectOwnership(chat_dialog, QQmlEngine::CppOwnership);
-	chat_dialog->setProperty("parent", QVariant::fromValue(appItemManager()->appHomePage()));
-	chat_manager->setChatWindow(chat_dialog);
-	m_chatsList.value(chat_manager->otherUserId())->dialog = chat_dialog;
 }

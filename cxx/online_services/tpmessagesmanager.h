@@ -14,7 +14,7 @@ class TPMessagesManager : public QAbstractItemModel
 {
 
 Q_OBJECT
-QML_UNCREATABLE("")
+QML_UNCREATABLE("Created only once via c++")
 
 public:
 	Q_DISABLE_COPY_MOVE(TPMessagesManager)
@@ -25,7 +25,7 @@ public:
 
 	TPMessage *topLevelMessage(const QString &user_id) const;
 	TPMessage *createTopLevelMessage(const QString &userid);
-	TPMessage *message(const TPMessage * const parent_message, const uint id) const;
+	TPMessage *message(const TPMessage *const parent_message, const uint id) const;
 	void addMessage(TPMessage *msg);
 	void removeMessage(TPMessage *msg);
 
@@ -71,7 +71,6 @@ private:
 	void receivedTPMessages(const QStringList &messages);
 	void binaryFileReceived(const QString &filename, QString &&text_message);
 	void parseNewChatMessages(const QString &encoded_messages);
-	void createChatWindow_part2(TPChat *chat_manager);
 
 	static TPMessagesManager *_appMessagesManager;
 	friend TPMessagesManager *appMessagesManager();

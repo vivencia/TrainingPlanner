@@ -191,7 +191,7 @@ void PagesListModel::openPopup(QObject *popup, QQuickItem *parentPage, const int
 		pageInfo *page_info{getPageInfo(parentPage)};
 		if (page_info) {
 			const QList<QObject*>::const_iterator _popup{std::find_if(page_info->tpPopups.cbegin(),
-														page_info->tpPopups.cend(), [popup] (const QObject *tppopup) {
+											page_info->tpPopups.cend(), [popup] (const QObject *tppopup) {
 				return tppopup == popup;
 			})};
 			if (_popup == page_info->tpPopups.cend()) {
@@ -201,20 +201,21 @@ void PagesListModel::openPopup(QObject *popup, QQuickItem *parentPage, const int
 			}
 		}
 	}
-	if (popup->property("parent").value<QQuickItem*>() != parentPage) {
-		popup->setProperty("parent", std::move(QVariant::fromValue(parentPage)));
+	if (popup->property("parentPage").value<QQuickItem*>() != parentPage)
 		popup->setProperty("parentPage", std::move(QVariant::fromValue(parentPage)));
-	}
-	popup->setProperty("show_position", std::move(QVariant{position}));
-	popup->setProperty("open_in_window", std::move(QVariant{widget == nullptr}));
 	if (widget)
 		popup->setProperty("reference_widget", std::move(QVariant::fromValue(widget)));
+	popup->setProperty("show_position", std::move(QVariant{position}));
+	popup->setProperty("open_in_window", std::move(QVariant{widget == nullptr}));
 
-	//if a signal to open the popup arrived before the popupClose() signal from QML, there is no point in opening it now
-	if (!popup->property("visible").toBool())
-		QMetaObject::invokeMethod(popup, "tpOpen");
-	else
-		popup->setProperty("_reopen", std::move(QVariant{true}));
+	//Open only if it's meant to be shown
+	if (popup->property("visibilityCondition").toBool()) {
+		//if a signal to open the popup arrived before the popupClose() signal from QML, there is no point in opening it now
+		if (!popup->property("visible").toBool())
+			QMetaObject::invokeMethod(popup, "tpOpen");
+		else
+			popup->setProperty("_reopen", std::move(QVariant{true}));
+	}
 }
 
 void PagesListModel::raisePopup(QObject* popup)

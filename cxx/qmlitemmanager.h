@@ -6,6 +6,7 @@
 
 #include <QObject>
 #include <QVariantMap>
+#include <QQuickItem>
 #include <QQuickWindow>
 
 static inline int deferredActionId()
@@ -14,15 +15,12 @@ static inline int deferredActionId()
 	return da_id++;
 }
 
-QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(QmlExercisesDatabaseInterface)
 QT_FORWARD_DECLARE_CLASS(QmlWorkoutInterface)
 QT_FORWARD_DECLARE_CLASS(QmlUserInterface)
 QT_FORWARD_DECLARE_STRUCT(st_generalMessage)
 QT_FORWARD_DECLARE_STRUCT(st_qmlPropertyChangesBuffer)
 QT_FORWARD_DECLARE_CLASS(QQmlApplicationEngine)
-QT_FORWARD_DECLARE_CLASS(QQmlComponent)
-QT_FORWARD_DECLARE_CLASS(QQuickItem)
 
 class QmlItemManager : public QObject
 {
@@ -31,8 +29,10 @@ Q_OBJECT
 
 Q_PROPERTY(QQuickWindow* appMainWindow READ appMainWindow CONSTANT FINAL)
 Q_PROPERTY(PagesListModel* appPagesManager READ appPagesManager CONSTANT FINAL)
+Q_PROPERTY(QQuickItem* popupsVisualParent READ popupsVisualParent CONSTANT FINAL)
 
 public:
+	Q_DISABLE_COPY_MOVE(QmlItemManager)
 	explicit QmlItemManager();
 	void startQmlEngine(QQmlApplicationEngine *qml_engine);
 
@@ -40,6 +40,7 @@ public:
 	inline QQuickItem *appPagesVisualParent() const { return m_appPagesVisualParent; }
 	inline QQuickWindow *appMainWindow() const { return _appMainWindow; }
 	inline PagesListModel *appPagesManager() const { return appPagesListModel(); }
+	inline QQuickItem *popupsVisualParent() const { return m_popupsVisualParent; }
 
 	Q_INVOKABLE void exitApp();
 	Q_INVOKABLE void displayImportDialogMessageAfterMesoSelection(const int meso_idx);
@@ -67,9 +68,6 @@ public:
 							const QString &message, const std::optional<bool> store_passwd = std::nullopt);
 	void startMessagesManager();
 
-	Q_INVOKABLE DBExercisesModel *workoutModel() const { return m_workout_model; }
-	DBExercisesModel *m_workout_model;
-
 signals:
 	void selectedExerciseFromSimpleExercisesList(QQuickItem *parentPage);
 	void mesoForImportSelected();
@@ -95,8 +93,8 @@ private:
 	QQmlComponent *m_simpleExercisesListComponent{nullptr}, *m_weatherComponent{nullptr},
 		*m_statisticsComponent{nullptr}, *m_firstTimeDlgComponent{nullptr}, *m_generalMessagesPopupComponent{nullptr},
 								*m_messagesManagerComponent{nullptr}, *m_passwordDialogComponent{nullptr};
-	QQuickItem *m_homePage{nullptr}, *m_appPagesVisualParent{nullptr}, *m_weatherPage{nullptr},
-																				*m_statisticsPage{nullptr};
+	QQuickItem *m_homePage{nullptr}, *m_appPagesVisualParent{nullptr}, *m_popupsVisualParent{nullptr},
+														*m_weatherPage{nullptr}, *m_statisticsPage{nullptr};
 	QObject *m_simpleExercisesList{nullptr}, *m_firstTimeDlg{nullptr}, *m_generalMessagesPopup{nullptr},
 												*m_messagesManagerPopup{nullptr}, *m_passwordDialog{nullptr};
 	QVariantMap m_simpleExercisesListProperties, m_generalMessagesPopupProperties;
@@ -127,7 +125,6 @@ private:
 	friend QQuickWindow *appMainWindow();
 
 	void createGeneralMessagesPopup();
-	void createSimpleExercisesList(QQuickItem *parentPage);
 	void createStatisticsPage_part2();
 	QmlUserInterface *usersManager();
 };

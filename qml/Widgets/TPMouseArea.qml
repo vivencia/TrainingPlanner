@@ -13,9 +13,9 @@ MouseArea {
 	required property var movingWidget
 	required property var movableWidget
 	property bool lockMovingToYAxis: false
+	property bool lockMovingToXAxis: false
 	property bool slideToClose: false
-	property bool propagateClickEvent: false
-	property Item viewPort: ItemManager.appHomePage()
+	property Item viewPort: ItemManager.popupsVisualParent
 
 	enum SlideToSide { MA_TOP, MA_BOTTOM, MA_LEFT, MA_RIGHT }
 
@@ -28,49 +28,46 @@ MouseArea {
 	property point _mouse_pos_within_widget
 	property point _last_moving_pos
 	property bool _pressed: false
+	property bool _pressed_and_held: false
 	property bool _moved: false
 
-	//Used to propagate clicks to movingWidget as we want to keep the moving functionality working. Without this hack,
-	//it's either-or. Cannot be used if slideToClose is set to true because the interval of 100ms is too small to
-	//the trigger() event: it will receive stop() before emitting trigger();
-	Timer {
-		id: pressTimer
-		interval: _control.pressAndHoldInterval + 50
-		onTriggered: _control.mousePressed(_mouse);
-		property MouseEvent _mouse
-		function startTimer(mouse: MouseEvent): void {
-			_mouse = mouse;
-			start();
-		}
-	}
-
 	onReleased: (mouse) => {
-		if (!_pressed) {
-			mouse.accepted = false;
-			mouseClicked(mouse);
-		}
-		else {
-			_pressed = false;
+		if (_pressed_and_held) {
+			_pressed_and_held = false;
+			mouse.accepted = true;
 			if (_moved) {
+				//Prevent the control from going out sight
+				if (!lockMovingToYAxis) {
+					if (movableWidget.x < 0)
+						movableWidget.x = 0;
+					else if (movableWidget.x + movableWidget.width > AppSettings.windowWidth)
+						movableWidget.x = AppSettings.pageWidth - movableWidget.width;
+				}
+				if (!lockMovingToXAxis) {
+					if (movableWidget.y < 0)
+						movableWidget.y = 0;
+					else if (movableWidget.y + movableWidget.height > AppSettings.windowHeight)
+						movableWidget.y = AppSettings.windowHeight - movableWidget.height;
+				}
 				movingFinished(movableWidget.x, movableWidget.y);
 				_moved = false;
 			}
+		} else if (_pressed) {
+			_pressed = false;
+			mouse.accepted = true;
+			mouseClicked(mouse);
 		}
 	}
 
-	onClicked: (mouse) => mouse.accepted = false;
-
 	onPressed: (mouse) => {
-		if (propagateClickEvent)
-			pressTimer.startTimer();
-		else
-			mousePressed(mouse);
+		_pressed = true;
+		mouse.accepted = true;
+		mousePressed(mouse);
 	}
 
 	onPressAndHold: (mouse) => {
-		if (propagateClickEvent)
-			pressTimer.stop();
-		_pressed = true;
+		_pressed_and_held = true;
+		_pressed = false;
 		mouse.accepted = true;
 		_mouse_pos_within_widget = movingWidget.mapToItem(movingWidget, mouse.x, mouse.y);
 		if (slideToClose)
@@ -78,10 +75,11 @@ MouseArea {
 	}
 
 	onPositionChanged: (mouse) => {
-		if (_pressed) {
+		if (_pressed_and_held) {
 			if (!lockMovingToYAxis)
 				movableWidget.x += mouse.x - _mouse_pos_within_widget.x;
-			movableWidget.y += mouse.y - _mouse_pos_within_widget.y;
+			if (!lockMovingToXAxis)
+				movableWidget.y += mouse.y - _mouse_pos_within_widget.y;
 			_moved = true;
 			mouse.accepted = true;
 			if (slideToClose) {
@@ -92,7 +90,7 @@ MouseArea {
 						slideOutToSide(TPMouseArea.MA_LEFT);
 					else
 						slideOutToSide(TPMouseArea.MA_RIGHT);
-					_pressed = false;
+					_pressed_and_held = false;
 					return;
 				} else {
 				   const y_delta = _last_moving_pos.y - mouse_pos.y;
@@ -101,7 +99,7 @@ MouseArea {
 						   slideOutToSide(TPMouseArea.MA_TOP);
 					   else
 						   slideOutToSide(TPMouseArea.MA_BOTTOM);
-						_pressed = false;
+						_pressed_and_held = false;
 						return;
 					}
 				}

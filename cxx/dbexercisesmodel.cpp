@@ -218,9 +218,9 @@ void DBExercisesModel::clearExercises(const bool from_qml)
 
 QString DBExercisesModel::setTypeOperation(const uint settype, const bool increase, QString str_value, const bool seconds) const
 {
-	if (str_value.isEmpty())
+	if (str_value.isEmpty()) {
 		str_value = "0"_L1;
-	else {
+	} else {
 		str_value.replace('.', ',');
 		str_value.replace('-', ""_L1);
 		str_value.replace('E', ""_L1);
@@ -236,8 +236,7 @@ QString DBExercisesModel::setTypeOperation(const uint settype, const bool increa
 				result += rightmostDigit == '5' ? 2.5 : 5.0;
 			else
 				result -= rightmostDigit == '5' ? 2.5 : 5.0;
-		}
-		else {
+		} else {
 			if (result < 40) {
 				switch (rightmostDigit) {
 				case '0': case '2': case '6': case '8':
@@ -247,27 +246,15 @@ QString DBExercisesModel::setTypeOperation(const uint settype, const bool increa
 					increase ? ++result : --result;
 					break;
 				}
-			}
-			else {
+			} else {
 				int8_t paddingValue{0};
 				switch (rightmostDigit) {
-				case '0':
-					increase ? paddingValue = 5 : paddingValue = -5;
-					break;
-				case '1': case '6':
-					increase ? paddingValue = 4 : paddingValue = -1;
-					break;
-				case '2': case '7':
-					increase ? paddingValue = 3 : paddingValue = -2;
-					break;
-				case '3': case '8':
-					increase ? paddingValue = 2 : paddingValue = -3;
-					break;
-				case '4': case '9':
-					increase ? paddingValue = 1 : paddingValue = -4;
-					break;
-				case '5':
-					increase ? paddingValue = 5 : paddingValue = -5; break;
+				case '0': increase ? paddingValue = 5 : paddingValue = -5; break;
+				case '5': increase ? paddingValue = 5 : paddingValue = -5; break;
+				case '1': case '6': increase ? paddingValue = 4 : paddingValue = -1; break;
+				case '2': case '7': increase ? paddingValue = 3 : paddingValue = -2; break;
+				case '3': case '8': increase ? paddingValue = 2 : paddingValue = -3; break;
+				case '4': case '9': increase ? paddingValue = 1 : paddingValue = -4; break;
 				}
 				result += paddingValue;
 			}
@@ -294,8 +281,7 @@ QString DBExercisesModel::setTypeOperation(const uint settype, const bool increa
 			result = 0;
 		return QString::number(static_cast<uint>(result)); //RepType
 
-	case TimeType:
-	{
+	case TimeType: {
 		result = seconds ? str_value.last(2).toUInt() : str_value.first(2).toUInt();
 		if (increase) {
 			if (seconds) {
@@ -303,16 +289,14 @@ QString DBExercisesModel::setTypeOperation(const uint settype, const bool increa
 					++result;
 					if (result >= 60)
 						result = 0;
-				}
-				else
+				} else {
 					result += 5;
-			}
-			else {
+				}
+			} else {
 				if (result < 59)
 					++result;
 			}
-		}
-		else {
+		} else {
 			if (seconds) {
 				if (result > 55)
 					--result;
@@ -322,13 +306,12 @@ QString DBExercisesModel::setTypeOperation(const uint settype, const bool increa
 					result -= 5;
 				if (result < 0)
 					result = 0;
-			}
-			else {
+			} else {
 				if (result >= 1)
 					--result;
 			}
 		}
-		const QString &str_result{(result < 10 ? "0"_L1 : ""_L1) + QString::number(result)};
+		const QString &str_result{(result < 10 ? "0"_L1 : ""_L1) % QString::number(result)};
 		return seconds ? str_value.replace(3, 2, str_result) : str_value.replace(0, 2, str_result); //TimeType
 	}
 	case SetType:
@@ -336,8 +319,7 @@ QString DBExercisesModel::setTypeOperation(const uint settype, const bool increa
 			++result;
 			if (result > 9)
 				result = 9;
-		}
-		else {
+		} else {
 			--result;
 			if (result < 0)
 				result = 0;
@@ -544,12 +526,12 @@ int DBExercisesModel::importFromFormattedFile(const TPFilePath &filename, QFile 
 	while ((lineLength = in_file->readLine(buf, sizeof(buf))) != -1) {
 		if (strstr(buf, appUtils()->STR_END_FORMATTED_EXPORT.latin1()) == NULL) {
 			if (lineLength > 10) {
-				if (!found_table_id)
+				if (!found_table_id) {
 					found_table_id = strstr(buf, identifier_in_file) != NULL;
-				else {
-					if (!found_extra_info)
+				} else {
+					if (!found_extra_info) {
 						found_extra_info = importExtraInfo(QString{buf}.simplified());
-					else {
+					} else {
 						if(strncmp(buf, exercise_delim, exercise_delim_len) == 0) {
 							const uint exercise_number{addExercise(-1, false)};
 							uint exercise_idx{0};
@@ -680,9 +662,9 @@ bool DBExercisesModel::importExtraInfo(const QString &maybe_extra_info, int &cal
 				bool ok;
 				calendar_day = maybe_extra_info.sliced(cal_day_idx, maybe_extra_info.indexOf(' ', cal_day_idx + 1)).toUInt(&ok);
 				return ok;
-			}
-			else //splitModel
+			} else { //splitModel
 				return true;
+			}
 		}
 	}
 	return false;
@@ -783,8 +765,7 @@ void DBExercisesModel::moveExercise(const uint from, const uint to)
 				m_dbModelInterface->setAllFieldsModified(i, DBExercisesModel::EXERCISES_N_FIELDS);
 				m_dbModelInterface->setAllFieldsModified(i + 1, DBExercisesModel::EXERCISES_N_FIELDS);
 			}
-		}
-		else {
+		} else {
 			for(uint i{from}; i > to; --i) {
 				m_exerciseData[i] = std::move(m_exerciseData[i - 1]);
 				m_exerciseData.at(i)->exercise_number++;
@@ -819,24 +800,23 @@ void DBExercisesModel::saveExercises(const int exercise_number, const int exerci
 	if (exercise_idx == EXERCISE_IGNORE_NOTIFY_IDX) {
 		switch (field) {
 		case DBExercisesModel::EXERCISES_FIELD_TRACKRESTTIMES:
-			m_dbModelInterface->modelData()[exercise_number][DBExercisesModel::EXERCISES_FIELD_TRACKRESTTIMES] = std::move(
-																m_exerciseData.at(exercise_number)->track_rest_time ? "1"_L1 : "0"_L1);
+			m_dbModelInterface->modelData()[exercise_number][DBExercisesModel::EXERCISES_FIELD_TRACKRESTTIMES]
+				= std::move(m_exerciseData.at(exercise_number)->track_rest_time ? "1"_L1 : "0"_L1);
 			break;
 		case DBExercisesModel::EXERCISES_FIELD_AUTORESTTIMES:
-			m_dbModelInterface->modelData()[exercise_number][DBExercisesModel::EXERCISES_FIELD_AUTORESTTIMES] = std::move(
-																m_exerciseData.at(exercise_number)->track_rest_time ? "1"_L1 : "0"_L1);
+			m_dbModelInterface->modelData()[exercise_number][DBExercisesModel::EXERCISES_FIELD_AUTORESTTIMES]
+				= std::move(m_exerciseData.at(exercise_number)->track_rest_time ? "1"_L1 : "0"_L1);
 			break;
 		}
 	}
-	else if (set_number == EXERCISE_IGNORE_NOTIFY_IDX) {
+	if (set_number == EXERCISE_IGNORE_NOTIFY_IDX) {
 		if (field == DBExercisesModel::EXERCISES_FIELD_EXERCISES)
 			appUtils()->setCompositeValue(exercise_idx, m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->name,
 								m_dbModelInterface->modelData()[exercise_number][DBExercisesModel::EXERCISES_FIELD_EXERCISES], comp_exercises_separator);
-	}
-	else {
+	} else {
 		stSet *set_info{m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)};
 		QString str_setinfo{std::move(appUtils()->getCompositeValue(exercise_idx,
-											m_dbModelInterface->modelData().at(exercise_number).at(field), comp_exercises_separator))};
+				m_dbModelInterface->modelData().at(exercise_number).at(field), comp_exercises_separator))};
 		QString *str_value, str_temp;
 		switch (field) {
 		case DBExercisesModel::EXERCISES_FIELD_NOTES:
@@ -902,9 +882,9 @@ void DBExercisesModel::delSubExercise(const uint exercise_number, const uint exe
 	stExercise* sub_exercise{exercise->m_exercises.at(exercise_idx)};
 	qDeleteAll(sub_exercise->sets);
 
-	if (exercise_idx == 0)
+	if (exercise_idx == 0) {
 		setExerciseName(exercise_number, exercise_idx, tr("Choose exercise..."));
-	else {
+	} else {
 		for (const auto sub_exercise : exercise->m_exercises | std::views::drop(exercise_idx + 1))
 			sub_exercise->exercise_idx--;
 		exercise->m_exercises.remove(exercise_idx);
@@ -1376,8 +1356,8 @@ void DBExercisesModel::setSetWeight(const uint exercise_number, const uint exerc
 	if (m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->type < Drop)
 		m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->weight = new_weight;
 	else
-		appUtils()->setCompositeValue(subset, new_weight,
-			m_exerciseData.at(exercise_number)->m_exercises.at(exercise_idx)->sets.at(set_number)->weight, record_separator);
+		appUtils()->setCompositeValue(subset, new_weight, m_exerciseData.at(exercise_number)
+						->m_exercises.at(exercise_idx)->sets.at(set_number)->weight, record_separator);
 	emit exerciseModified(exercise_number, exercise_idx, set_number, DBExercisesModel::EXERCISES_FIELD_WEIGHTS);
 }
 
@@ -1578,7 +1558,18 @@ void DBExercisesModel::commonConstructor(const bool load_from_db)
 
 	if (m_calendarDay >= 0) {
 		m_splitLetter = m_mesoModel->calendar(m_mesoIdx)->splitLetter().at(0);
-		m_identifierInFile = appUtils()->workoutFileIdentifier;
+		auto identifier = [] (const QChar &splitletter) -> QLatin1StringView{
+			switch (splitletter.cell()) {
+			case 'A': return appUtils()->workoutFileIdentifierA;
+			case 'B': return appUtils()->workoutFileIdentifierB;
+			case 'C': return appUtils()->workoutFileIdentifierC;
+			case 'D': return appUtils()->workoutFileIdentifierD;
+			case 'E': return appUtils()->workoutFileIdentifierE;
+			case 'F': return appUtils()->workoutFileIdentifierF;
+			}
+			Q_UNREACHABLE_RETURN(QLatin1StringView{});
+		};
+		m_identifierInFile = identifier(m_splitLetter);
 	}
 	else
 		m_identifierInFile = appUtils()->splitFileIdentifier;
@@ -1628,11 +1619,11 @@ DBExercisesModel::TPSetTypes DBExercisesModel::formatSetTypeToImport(const QStri
 
 const QString DBExercisesModel::exportExtraInfo() const
 {
-	QString extra_info{std::move(splitLabel() % splitLetter() % " ("_L1 % m_mesoModel->muscularGroup(m_mesoIdx,
-																						 splitLetter()).chopped(1) % ')')};
+	QString extra_info{std::move(splitLabel() % splitLetter() % " ("_L1
+							 % m_mesoModel->muscularGroup(m_mesoIdx, splitLetter()).chopped(1) % ')')};
 	if (m_calendarDay >= 0)
-		extra_info += tr(" Workout #: ") % QString::number(m_calendarDay) % tr(" at ") % appUtils()->formatDate(
-																	m_mesoModel->calendar(m_mesoIdx)->date(m_calendarDay));
+		extra_info += tr(" Workout #: ") % QString::number(m_calendarDay) % tr(" at ")
+							% appUtils()->formatDate(m_mesoModel->calendar(m_mesoIdx)->date(m_calendarDay));
 	return extra_info;
 }
 

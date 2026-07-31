@@ -15,7 +15,7 @@ TPPopup {
 	showTitleBar: true
 	closeButtonVisible: true
 	open_in_window: true
-	globalPopup: AppSettings.showOnlineMessagesDialog
+	keepOpenOnPageDeactivation: AppSettings.showOnlineMessagesDialog
 	backGroundImage: ":/images/backgrounds/backimage-chat.jpg"
 	width: normalWidth
 	height: normalHeight

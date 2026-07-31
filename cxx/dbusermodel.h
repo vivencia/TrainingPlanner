@@ -21,6 +21,7 @@ class DBUserModel : public QObject
 {
 
 Q_OBJECT
+QML_UNCREATABLE("")
 
 Q_PROPERTY(QString userId READ userId NOTIFY userIdChanged FINAL)
 Q_PROPERTY(QString onlineAccountUserLabel READ onlineAccountUserLabel NOTIFY labelsChanged FINAL)
@@ -84,6 +85,7 @@ public:
 	};
 	Q_ENUM(st_userCategory)
 
+	Q_DISABLE_COPY_MOVE(DBUserModel)
 	explicit DBUserModel(QObject *parent = nullptr, const bool bMainUserModel = true);
 
 	inline QString idLabel() const { return "Id: "_L1; }

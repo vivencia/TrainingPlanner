@@ -18,7 +18,7 @@ struct Type##QmlSingleton\
 		s_instance = instance;\
 		QJSEngine::setObjectOwnership(s_instance, QJSEngine::CppOwnership);\
 	}\
-	static Type *create(QQmlEngine*, QJSEngine* engine)\
+	static Type *create(QQmlEngine *, QJSEngine *engine)\
 	{\
 		/* The instance has to exist before it is used. */\
 		Q_ASSERT(s_instance);\

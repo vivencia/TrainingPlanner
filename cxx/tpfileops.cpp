@@ -275,7 +275,14 @@ void TPFileOps::attemptToCreateOrGetFile()
 	}
 
 	connect(this, &TPFileOps::fileAcquired, this, [this] (const int ret_code) {
-		appItemManager()->displayMessageOnAppWindow(ret_code, std::move(m_filename.filename()));
+		if (ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS) {
+		} else if (ret_code == TP_RET_CODE_SUCCESS) {
+			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_SUCCESS, appUtils()->string_strings({
+				tr("File downloaded"), m_filename.fileName()}, record_separator));
+		}
+		else {
+			appItemManager()->displayMessageOnAppWindow(ret_code, std::move(m_filename.filename()));
+		}
 		if (fileIsOK() && isTPFile()) {
 			if (m_filetype & TPUtils::FT_TP_FORMATTED)
 				readTPFile();
@@ -700,7 +707,7 @@ void TPFileOps::downloadOrCopyFile()
 					const auto res{appOnlineServices()->downloadFileFromServer(m_filename)};
 					if (res.first) {
 						*conn = connect(appOnlineServices(), &TPOnlineServices::fileDownloaded, this, [this,conn,res]
-											(const uint requestid, const int ret_code, const TPFilePath &tp_filepath) {
+								(const uint requestid, const int ret_code, const TPFilePath &tp_filepath) {
 							if (res.second == requestid) {
 								disconnect(*conn);
 								setFileIsOK(ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS);
@@ -738,8 +745,8 @@ void TPFileOps::createSendFileDialog()
 				}
 #endif
 				appQmlEngine()->setObjectOwnership(m_sendFileDialog, QQmlEngine::CppOwnership);
-				m_sendFileDialog->setProperty("parent", QVariant::fromValue(appItemManager()->appHomePage()));
-				connect(m_sendFileDialog, SIGNAL(selectedOptions(int,QStringList,QString,bool)), this, SLOT(sendFileTo(int,QStringList,QString,bool)));
+				connect(m_sendFileDialog, SIGNAL(selectedOptions(int,QStringList,QString,bool)), this,
+															SLOT(sendFileTo(int,QStringList,QString,bool)));
 				emit _sendFileDialogCreated();
 				break;
 			case QQmlComponent::Loading:
@@ -802,10 +809,10 @@ void TPFileOps::sendFileToUsers(const QStringList &users, const QString &message
 					return;
 				}
 				*conn = connect(appOnlineServices(), &TPOnlineServices::fileUploaded, this,
-															[=,this] (const uint requestid, const int ret_code) {
+													[=,this] (const uint requestid, const int ret_code) {
 					if (res.second == requestid) {
 						disconnect(*conn);
-						if (ret_code != TP_RET_CODE_SUCCESS || ret_code != TP_RET_CODE_NO_CHANGES_SUCCESS) {
+						if (ret_code != TP_RET_CODE_SUCCESS && ret_code != TP_RET_CODE_NO_CHANGES_SUCCESS) {
 							failureMsg(ret_code);
 							return;
 						}
@@ -1172,45 +1179,20 @@ void TPFileOps::readTPFile()
 	if (!in_file)
 		return;
 
-	const QString *identifier{nullptr};
-	QString extra_identifier;
+	const QLatin1StringView *identifier{nullptr};
 	const uint32_t ft{static_cast<uint>(m_filetype) & static_cast<uint>(~TPUtils::FT_TP_FORMATTED)};
 
 	switch (ft) {
-	case TPUtils::FT_TP_USER_PROFILE:
-		identifier = &appUtils()->userFileIdentifier;
-		break;
-	case TPUtils::FT_TP_PROGRAM:
-		identifier = &appUtils()->mesoFileIdentifier;
-		break;
-	case TPUtils::FT_TP_WORKOUT_A:
-		extra_identifier = appUtils()->workoutFileIdentifier % "A"_L1;
-		identifier = &extra_identifier;
-		break;
-	case TPUtils::FT_TP_WORKOUT_B:
-		extra_identifier = appUtils()->workoutFileIdentifier % "B"_L1;
-		identifier = &extra_identifier;
-		break;
-	case TPUtils::FT_TP_WORKOUT_C:
-		extra_identifier = appUtils()->workoutFileIdentifier % "C"_L1;
-		identifier = &extra_identifier;
-		break;
-	case TPUtils::FT_TP_WORKOUT_D:
-		extra_identifier = appUtils()->workoutFileIdentifier % "D"_L1;
-		identifier = &extra_identifier;
-		break;
-	case TPUtils::FT_TP_WORKOUT_E:
-		extra_identifier = appUtils()->workoutFileIdentifier % "E"_L1;
-		identifier = &extra_identifier;
-		break;
-	case TPUtils::FT_TP_WORKOUT_F:
-		extra_identifier = appUtils()->workoutFileIdentifier % "F"_L1;
-		identifier = &extra_identifier;
-		break;
-	case TPUtils::FT_TP_EXERCISES:
-		identifier = &appUtils()->exercisesListFileIdentifier;
-		break;
-		default: Q_UNREACHABLE();
+	case TPUtils::FT_TP_USER_PROFILE:	identifier = &appUtils()->userFileIdentifier; break;
+	case TPUtils::FT_TP_PROGRAM:		identifier = &appUtils()->mesoFileIdentifier; break;
+	case TPUtils::FT_TP_WORKOUT_A:		identifier = &appUtils()->workoutFileIdentifierA; break;
+	case TPUtils::FT_TP_WORKOUT_B:		identifier = &appUtils()->workoutFileIdentifierB; break;
+	case TPUtils::FT_TP_WORKOUT_C:		identifier = &appUtils()->workoutFileIdentifierC; break;
+	case TPUtils::FT_TP_WORKOUT_D:		identifier = &appUtils()->workoutFileIdentifierD; break;
+	case TPUtils::FT_TP_WORKOUT_E:		identifier = &appUtils()->workoutFileIdentifierE; break;
+	case TPUtils::FT_TP_WORKOUT_F:		identifier = &appUtils()->workoutFileIdentifierF; break;
+	case TPUtils::FT_TP_EXERCISES:		identifier = &appUtils()->exercisesListFileIdentifier; break;
+	default: Q_UNREACHABLE();
 	}
 
 	QString line{64, QChar{0}};
@@ -1262,6 +1244,11 @@ void TPFileOps::openTPFile()
 		str_details = std::move(tr("A complete exercises program from coach ") % client_name);
 		str_image = std::move("meso_preview"_L1);
 		break;
+	case TPUtils::FT_TP_SPLIT:
+		str_type = std::move(tr("split"));
+		str_details = std::move(tr("Updated exercises sheet from coach ") % client_name);
+		str_image = std::move("exerciselist_preview"_L1);
+		break;
 	case TPUtils::FT_TP_WORKOUT_A:
 	case TPUtils::FT_TP_WORKOUT_B:
 	case TPUtils::FT_TP_WORKOUT_C:
@@ -1269,13 +1256,13 @@ void TPFileOps::openTPFile()
 	case TPUtils::FT_TP_WORKOUT_E:
 	case TPUtils::FT_TP_WORKOUT_F: {
 		const int meso_idx{appUserModel()->actualMesoModel()->idxFromFieldValue(
-						DBExercisesModel::workoutFileName_mesoName(m_filename), DBMesocyclesModel::MESO_FIELD_NAME)};
+				DBExercisesModel::workoutFileName_mesoName(m_filename), DBMesocyclesModel::MESO_FIELD_NAME)};
 		if (meso_idx < 0) return;
 		const QChar &splitletter{DBExercisesModel::workoutFileName_splitLetter(m_filename)};
 		str_type = std::move(tr("workout"));
 		str_details = std::move(tr("An extra workout from ") % client_name % tr(" for the program: ") %
-								appUserModel()->actualMesoModel()->name(meso_idx) % tr(" for the next time you train ") %
-								appUserModel()->actualMesoModel()->muscularGroup(meso_idx, splitletter));
+				appUserModel()->actualMesoModel()->name(meso_idx) % tr(" for the next time you train ") %
+									appUserModel()->actualMesoModel()->muscularGroup(meso_idx, splitletter));
 		str_image = std::move("workout_preview"_L1);
 		}
 		break;

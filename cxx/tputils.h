@@ -93,20 +93,21 @@ public:
 		FT_UNKNOWN			= 0,
 		FT_TP_USER_PROFILE	= 1U << 0,
 		FT_TP_PROGRAM		= 1U << 1,
-		FT_TP_WORKOUT_A		= 1U << 2,
-		FT_TP_WORKOUT_B		= 1U << 3,
-		FT_TP_WORKOUT_C		= 1U << 4,
-		FT_TP_WORKOUT_D		= 1U << 5,
-		FT_TP_WORKOUT_E		= 1U << 6,
-		FT_TP_WORKOUT_F		= 1U << 7,
-		FT_TP_EXERCISES		= 1U << 8,
-		FT_TP_FORMATTED		= 1U << 9,
-		FT_IMAGE			= 1U << 10,
-		FT_VIDEO			= 1U << 11,
-		FT_PDF				= 1U << 12,
-		FT_TEXT				= 1U << 13,
-		FT_OPEN_DOCUMENT	= 1U << 14,
-		FT_MS_DOCUMENT		= 1U << 15,
+		FT_TP_SPLIT			= 1U << 2,
+		FT_TP_WORKOUT_A		= 1U << 3,
+		FT_TP_WORKOUT_B		= 1U << 4,
+		FT_TP_WORKOUT_C		= 1U << 5,
+		FT_TP_WORKOUT_D		= 1U << 6,
+		FT_TP_WORKOUT_E		= 1U << 7,
+		FT_TP_WORKOUT_F		= 1U << 8,
+		FT_TP_EXERCISES		= 1U << 9,
+		FT_TP_FORMATTED		= 1U << 10,
+		FT_IMAGE			= 1U << 11,
+		FT_VIDEO			= 1U << 12,
+		FT_PDF				= 1U << 13,
+		FT_TEXT				= 1U << 14,
+		FT_OPEN_DOCUMENT	= 1U << 15,
+		FT_MS_DOCUMENT		= 1U << 16,
 		FT_OTHER			= 1U << 30,
 
 		FT_NO_TYPE_SET		= 1U << 31,
@@ -138,17 +139,20 @@ public:
 	};
 	Q_ENUM(MessageHandlers)
 
-	const QString exercisesListFileIdentifier{QLiterals::operator""_L1("0x01", 4)};
-	const QString mesoFileIdentifier{QLiterals::operator""_L1("0x02", 4)};
-	const QString splitFileIdentifier{QLiterals::operator""_L1("0x03", 4)};
-	const QString workoutFileIdentifier{QLiterals::operator""_L1("0x05", 4)};
-	const QString userFileIdentifier{QLiterals::operator""_L1("0x06", 4)};
-
 	static constexpr QLatin1StringView tpmessage_prefix{"tp://"};
 	static constexpr QLatin1StringView chatmessage_prefix{"chat://"};
 	static constexpr QLatin1StringView filetransfer_prefix{"ftp://"}; //used to request a file without an accompanying message.
-
 	static constexpr QLatin1StringView TP_FILE_EXTENSION{".txt"};
+	static constexpr QLatin1StringView exercisesListFileIdentifier{"0x01"};
+	static constexpr QLatin1StringView mesoFileIdentifier{"0x02"};
+	static constexpr QLatin1StringView splitFileIdentifier{"0x03"};
+	static constexpr QLatin1StringView workoutFileIdentifierA{"0x05A"};
+	static constexpr QLatin1StringView workoutFileIdentifierB{"0x05B"};
+	static constexpr QLatin1StringView workoutFileIdentifierC{"0x05C"};
+	static constexpr QLatin1StringView workoutFileIdentifierD{"0x05D"};
+	static constexpr QLatin1StringView workoutFileIdentifierE{"0x05E"};
+	static constexpr QLatin1StringView workoutFileIdentifierF{"0x05F"};
+	static constexpr QLatin1StringView userFileIdentifier{"0x06"};
 	static constexpr QLatin1StringView STR_START_EXPORT{"##%%"};
 	static constexpr QLatin1StringView STR_START_FORMATTED_EXPORT{"####"};
 	static constexpr QLatin1StringView STR_END_EXPORT{"##!!"};

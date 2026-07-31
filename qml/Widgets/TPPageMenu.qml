@@ -11,7 +11,7 @@ TPPopup {
 	width: entriesListView.width
 	height: entriesListView.height
 	configFieldName: parentPage ? "pageMenu_" + parentPage.objectName : ""
-	defaultCoordinates: Qt.point(defaultX, realPageY() + 180)
+	defaultCoordinates: Qt.point(defaultX, 180)
 	lockMovingToYAxis: showIndicator
 	enableEffects: true
 	show_position: showIndicator ? Qt.AlignBaseline : Qt.AlignBottom
@@ -26,7 +26,7 @@ TPPopup {
 	readonly property int smallWidth: AppSettings.itemSmallHeight
 	readonly property int smallHeight: 4 * AppSettings.itemSmallHeight
 	readonly property int defaultX: parentPage ? parentPage.width : 0
-	property bool expanded: x < defaultX
+	property bool expanded: false
 	property bool behaviour_enabled
 
 	Behavior on x {
@@ -207,7 +207,6 @@ TPPopup {
 	} //TPListView
 
 	function tpOpen(): void {
-		visibilityCondition = true;
 		if (showIndicator) {
 			open_in_window = true;
 			show_position = Qt.AlignBaseline;

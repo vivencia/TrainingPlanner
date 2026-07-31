@@ -389,7 +389,6 @@ void QMLMesoInterface::showOptionsMenu(const bool show_indicator, QQuickItem *it
 				}
 #endif
 				appQmlEngine()->setObjectOwnership(m_optionsMenu, QQmlEngine::CppOwnership);
-				m_optionsMenu->setProperty("parent", std::move(QVariant::fromValue(item ? appItemManager()->appHomePage() : m_mesoPage)));
 				showOptionsMenu(show_indicator, item);
 				break;
 #ifndef QT_NO_DEBUG
@@ -411,7 +410,8 @@ void QMLMesoInterface::showOptionsMenu(const bool show_indicator, QQuickItem *it
 				m_optionsMenu->setProperty("behaviour_enabled", std::move(QVariant{false}));
 			if (m_mesoFileOps)
 				m_mesoFileOps->setParentPage(item ? appItemManager()->appHomePage() : m_mesoPage);
-			appPagesListModel()->openPopup(m_optionsMenu, item ? appItemManager()->appHomePage() : m_mesoPage, Qt::AlignBaseline, item);
+			appPagesListModel()->openPopup(m_optionsMenu, item
+									? appItemManager()->appHomePage() : m_mesoPage, Qt::AlignBaseline, item);
 		}
 	}
 }
@@ -431,10 +431,10 @@ void QMLMesoInterface::createFileOps()
 			if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS) {
 				connect(m_mesoFileOps, &TPFileOps::fileSent, this, [this] (const bool success) {
 					//if (success)
-					//	m_mesoModel->setMetaData(m_mesoIdx, DBMesocyclesModel::MD_PROGRAM_SENT);
+						//	m_mesoModel->setMetaData(m_mesoIdx, DBMesocyclesModel::MD_PROGRAM_SENT);
 				}, Qt::SingleShotConnection);
 				m_mesoFileOps->sendFileTo(TPUtils::MH_TPMESSAGES_MANAGER, QStringList{} <<
-											  m_mesoFileOps->tpFileName().targetUser(), tr("Exercises Program"), true);
+									m_mesoFileOps->tpFileName().targetUser(), tr("Exercises Program"), true);
 			}
 		});
 	}
@@ -456,7 +456,6 @@ void QMLMesoInterface::createFileOps()
 	connect(m_instructionsFileOps, &TPFileOps::fileRemovalRequested, this, [this] () {
 		m_mesoModel->setInstructionsFile(m_mesoIdx, QString{});
 	});
-
 	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const DBMesocyclesModel::MesoFields field) {
 		if (meso_idx == m_mesoIdx && field == DBMesocyclesModel::MESO_FIELD_NAME) {
 			m_instructionsFileOps->renameFile(m_mesoModel->name(m_mesoIdx));
@@ -522,7 +521,6 @@ void QMLMesoInterface::createMesocyclePage()
 			}
 		}
 	});
-
 	connect(m_mesoModel, &DBMesocyclesModel::mesoIdxChanged, this, [this] (const uint old_meso_idx, const uint new_meso_idx) {
 		if (old_meso_idx == m_mesoIdx) {
 			m_mesoIdx = new_meso_idx;
@@ -534,7 +532,6 @@ void QMLMesoInterface::createMesocyclePage()
 				m_calendarPage->setMesoIdx(m_mesoIdx);
 		}
 	});
-
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, &QMLMesoInterface::labelsChanged);
 	connect(this, &QMLMesoInterface::nameChanged, this, [this] () { appPagesListModel()->changeLabel(m_mesoPage, name()); });
 }
@@ -542,6 +539,6 @@ void QMLMesoInterface::createMesocyclePage()
 void QMLMesoInterface::createOptionsMenu()
 {
 	QMetaObject::invokeMethod(m_optionsMenu, "setVisible", Q_ARG(int, OPTION_EXERCISES_PLANNER),
-												Q_ARG(bool, m_optionsMenuProperties.value("showIndicator").toBool()));
+									Q_ARG(bool, m_optionsMenuProperties.value("showIndicator").toBool()));
 	showOptionsMenu(true);
 }

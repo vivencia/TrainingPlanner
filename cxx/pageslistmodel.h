@@ -14,7 +14,6 @@ class PagesListModel : public QAbstractListModel
 
 Q_OBJECT
 QML_VALUE_TYPE(PagesListModel)
-QML_UNCREATABLE("")
 
 Q_PROPERTY(uint count READ count NOTIFY countChanged)
 Q_PROPERTY(uint currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentIndexChanged FINAL)

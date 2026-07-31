@@ -12,8 +12,6 @@ QT_FORWARD_DECLARE_CLASS(TPTimer)
 QT_FORWARD_DECLARE_CLASS(QQmlComponent)
 QT_FORWARD_DECLARE_CLASS(QQuickItem)
 
-using DBWorkoutModel = DBExercisesModel;
-
 class QmlWorkoutInterface : public QObject
 {
 
@@ -48,8 +46,9 @@ public:
 		WS_FINISHED = 0x010,
 	};
 
+	Q_DISABLE_COPY_MOVE(QmlWorkoutInterface)
 	explicit QmlWorkoutInterface(QObject *parent, DBMesocyclesModel *meso_model, const uint meso_idx, const QDate &date);
-	inline ~QmlWorkoutInterface() { cleanUp(); }
+	~QmlWorkoutInterface() { cleanUp(); }
 	void cleanUp();
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
@@ -117,7 +116,7 @@ public:
 	Q_INVOKABLE void stopWorkout();
 	Q_INVOKABLE bool canChangeSetMode(const uint exercise_number, const uint exercise_idx, const uint set_number) const;
 
-	inline DBWorkoutModel *workoutModel() const { return m_workoutModel; }
+	inline DBExercisesModel *workoutModel() const { return m_workoutModel; }
 	Q_INVOKABLE inline QQuickItem *qmlPage() const { return m_workoutPage; }
 
 	void gotoNextExercise();
@@ -143,7 +142,7 @@ signals:
 
 private:
 	DBMesocyclesModel *m_mesoModel{nullptr};
-	DBWorkoutModel *m_workoutModel{nullptr};
+	DBExercisesModel *m_workoutModel{nullptr};
 	DBCalendarModel *m_calendarModel{nullptr};
 	QQmlComponent *m_workoutComponent{nullptr}, *m_exercisesComponent{nullptr};
 	QVariantMap m_workoutProperties, m_exercisesProperties;

@@ -13,11 +13,11 @@ TPPopup {
 	keepAbove: true
 	backGroundImage: fullDialogVisible ? ":/images/backgrounds/backimage-messages.jpg" : ""
 	configFieldName: "onlineMessagesDialogPosition"
-	defaultCoordinates: Qt.point(AppSettings.pageWidth - 80, realPageY() + 180)
+	defaultCoordinates: Qt.point(AppSettings.pageWidth - 80, 180)
 	mouseItem: fullDialogVisible ? topBar : mainIcon
 	useAlternateBackground: !fullDialogVisible
 	defaultBackgroundColor: "transparent"
-	globalPopup: AppSettings.showOnlineMessagesDialog
+	showBehavior: AppSettings.showOnlineMessagesDialog ? TPPopup.ALWAYS_VISIBLE : TPPopup.PARENT_PAGE_ACTIVE
 	width: savedSize.width
 	height: savedSize.height
 
