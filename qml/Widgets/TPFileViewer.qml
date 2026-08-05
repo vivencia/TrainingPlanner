@@ -8,14 +8,14 @@ import TpQml.Pages
 
 Item {
 	id: _control
-	width: minimumWidth
-	height: minimumHeight
+	implicitWidth: minimumWidth
+	implicitHeight: minimumHeight
 
 //public:
 	required property FileOperations fileOps
 	property string missingFileInfo
-	property bool useBackground: false
-	readonly property int minimumWidth: Math.max(200, fileOps.controlSize.width)
+	property bool useBackground: true
+	readonly property int minimumWidth: fileOps ? Math.min(200, fileOps.controlSize.width) : 0
 	readonly property int minimumHeight: minimumWidth * 1.4
 
 	signal removalRequested()
@@ -25,12 +25,14 @@ Item {
 //private:
 	enum WindowStates { WS_UNDEFINED, WS_NORMAL, WS_FULLSCREEN }
 
-	property string _preview_source: fileOps.getFileTypeIcon(Qt.size(0,0), true);
+	property string _preview_source: fileOps ? fileOps.getFileTypeIcon(Qt.size(0,0), true) : "";
 	property int _window_state: TPFileViewer.WindowStates.WS_NORMAL
 	property TPMediaPlayer _media_player
 	property Item _full_screen_widget
 
 	onFileOpsChanged: {
+		if (!fileOps)
+			return;
 		fileOps.parent = fileOpsRec;
 		fileOps.anchors.fill = fileOpsRec;
 		fileOps.previewSize = Qt.binding(function() { return Qt.size(width, height); });
@@ -97,7 +99,7 @@ Item {
 
 	Loader {
 		asynchronous: true
-		active: _control.fileOps.fileType === AppUtils.FT_TEXT
+		active: _control.fileOps && _control.fileOps.fileType === AppUtils.FT_TEXT
 		anchors.fill: parent
 
 		sourceComponent: Label {
@@ -113,8 +115,8 @@ Item {
 
 	Loader {
 		asynchronous: true
-		active: _control.fileOps.fileType !== AppUtils.FT_TEXT
-		anchors.centerIn: parent
+		active: _control.fileOps && _control.fileOps.fileType !== AppUtils.FT_TEXT
+		anchors.fill: parent
 		width: parent.width
 		height: parent.height - fileOpsRec.height
 
@@ -131,7 +133,7 @@ Item {
 
 	Loader {
 		id: missingFileLoader
-		active: !_control.fileOps.isKnownFile
+		active: !_control.fileOps || !_control.fileOps.isKnownFile
 		asynchronous: true
 		z: 1
 		anchors.fill: parent
@@ -149,8 +151,8 @@ Item {
 		color: AppSettings.paneBackgroundColor
 		border.color: AppSettings.fontColor
 		opacity: 0.8
-		width: _control.fileOps.controlSize.width
-		height: _control.fileOps.controlSize.height
+		width: _control.fileOps ? _control.fileOps.controlSize.width : 0
+		height: _control.fileOps ? _control.fileOps.controlSize.height : 0
 		z: 1
 
 		anchors {
@@ -163,7 +165,7 @@ Item {
 	Loader {
 		id: mediaPlayerLoader
 		asynchronous: true
-		active: _control.fileOps.fileType === AppUtils.FT_VIDEO
+		active: _control.fileOps && _control.fileOps.fileType === AppUtils.FT_VIDEO
 		anchors.fill: parent
 
 		sourceComponent: TPMediaPlayer {
@@ -221,7 +223,7 @@ Item {
 
 			Loader {
 				asynchronous: true
-				active: _control.fileOps.fileType === AppUtils.FT_IMAGE
+				active: _control.fileOps && _control.fileOps.fileType === AppUtils.FT_IMAGE
 				anchors.fill: parent
 
 				sourceComponent: TPImage {
@@ -236,7 +238,7 @@ Item {
 
 			Loader {
 				asynchronous: true
-				active: _control.fileOps.fileType === AppUtils.FT_PDF
+				active: _control.fileOps && _control.fileOps.fileType === AppUtils.FT_PDF
 				anchors.fill: parent
 
 				sourceComponent: TPPdfViewer {
@@ -246,7 +248,7 @@ Item {
 
 			Loader {
 				asynchronous: true
-				active: _control.fileOps.isTPFile
+				active: _control.fileOps && _control.fileOps.isTPFile
 				anchors.fill: parent
 
 				sourceComponent: TPAppFileViewer {
@@ -256,7 +258,7 @@ Item {
 
 			Loader {
 				asynchronous: true
-				active: _control.fileOps.fileType === AppUtils.FT_TEXT
+				active: _control.fileOps && _control.fileOps.fileType === AppUtils.FT_TEXT
 				anchors.fill: parent
 
 				sourceComponent: TPMultiLineEdit {

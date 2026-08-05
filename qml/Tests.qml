@@ -40,59 +40,85 @@ ApplicationWindow {
 			}
 		}
 
-		Loader {
-			active: homePage.mesoManager !== null
+		TreeView {
+			id: treeView
+			anchors.fill: parent
+			anchors.margins: 10
+			clip: true
 
+			model: AppMessages.messagesModel
 
-		sourceComponent: TPPageMenu {
-			id: _control
-			objectName: "pageMenuTest"
-			parentPage: homePage
+			// Built-in styled delegate (recommended)
+			//delegate: TreeViewDelegate {
+				// You can customize text, icons, etc. here
+			//}
 
-			entriesList: [
-				{ "label": qsTr("Send to client"), "image": "forward_", "btn_id": MesoManager.OPTION_SEND_TO_CLIENT,
-							"enabled": enabledCondition(MesoManager.OPTION_SEND_TO_CLIENT), "visible": true },
-				{ "label": qsTr("Save as"), "image": "download_", "btn_id": MesoManager.OPTION_SAVE_AS,
-							"enabled": enabledCondition(MesoManager.OPTION_SAVE_AS), "visible": true },
-				{ "label": qsTr("Send to"), "image": "attach_", "btn_id": MesoManager.OPTION_SEND_TO,
-							"enabled": enabledCondition(MesoManager.OPTION_SEND_TO), "visible": true },
-				{ "label": qsTr("Share"), "image": "share_", "btn_id": MesoManager.OPTION_SHARE,
-							"enabled": enabledCondition(MesoManager.OPTION_SHARE), "visible": Qt.platform.os === "android" },
-				{ "label": qsTr("Exercises Planner"), "image": "meso-splitplanner.png", btn_id: MesoManager.OPTION_EXERCISES_PLANNER,
-							"enabled": enabledCondition(MesoManager.OPTION_EXERCISES_PLANNER), "visible": showIndicator},
-			]
+			// Alternative: fully custom delegate
+			delegate: Item {
+				implicitWidth: padding + label.x + label.implicitWidth + padding
+				implicitHeight: label.implicitHeight * 1.5
 
-			Component.onCompleted: tpOpen();
-			onMenuEntrySelected: (btn_id) => {
-				switch (btn_id) {
-				case MesoManager.OPTION_SEND_TO_CLIENT: homePage.mesoManager.sendMesocycleFileToClient(); break;
-				case MesoManager.OPTION_SAVE_AS: homePage.mesoManager.mesoFileOperations().doFileOperation(FileOperations.OT_Download); break;
-				case MesoManager.OPTION_SEND_TO: homePage.mesoManager.mesoFileOperations().doFileOperation(FileOperations.OT_Forward); break;
-				case MesoManager.OPTION_SHARE: homePage.mesoManager.mesoFileOperations().doFileOperation(FileOperations.OT_Share); break;
-				case MesoManager.OPTION_EXERCISES_PLANNE: homePage.mesoManager.getExercisesPlannerPage(); break;
+				required property TPMessage tpMessage
+				required property TreeView treeView
+				required property bool isTreeNode
+				required property bool expanded
+				required property bool hasChildren
+				required property int depth
+				required property int row
+				required property bool current
+
+				readonly property real indentation: 20
+				readonly property real padding: 5
+
+				Rectangle { // Background rectangle enabled to show the alternative row colors
+					id: background
+					opacity: 0.8
+					anchors.fill: parent
+
+					color: {
+						if (delegateItem.model.row === delegateItem.treeView.currentRow) {
+							return Qt.lighter(palette.highlight, 1.2)
+						} else {
+							if (delegateItem.treeView.alternatingRows && delegateItem.model.row % 2 !== 0) {
+								return (Application.styleHints.colorScheme === Qt.Light) ?
+										 Qt.darker(palette.alternateBase, 1.25) :
+										 Qt.lighter(palette.alternateBase, 2.)
+							} else {
+							   return palette.base
+							}
+						}
+					}
+					Rectangle { // The selection indicator shown on the left side of the highlighted row
+						width: delegateItem.padding
+						height: parent.height
+						visible: !delegateItem.model.column
+						color: {
+							if (delegateItem.model.row === delegateItem.treeView.currentRow) {
+								return (Application.styleHints.colorScheme === Qt.Light) ?
+										 Qt.darker(palette.highlight, 1.25) :
+										 Qt.lighter(palette.highlight, 2.)
+							} else {
+								return "transparent"
+							}
+						}
+					}
+				}
+
+				Label {
+					id: indicator
+					x: padding + (depth * indentation)
+					anchors.verticalCenter: parent.verticalCenter
+					text: hasChildren ? (expanded ? "▼" : "▶") : ""
+					visible: isTreeNode && hasChildren
+				}
+
+				Label {
+					id: label
+					x: padding + (isTreeNode ? (depth + 1) * indentation : 0)
+					anchors.verticalCenter: parent.verticalCenter
+					text: tpMessage.text
 				}
 			}
-
-			function enabledCondition(menu_entry: int): bool {
-				return true;
-			}
 		}
-		}
-	}
-
-	function canChangeSetMode(exercise_number: int, exercise_idx: int, set_number: int) : bool {
-		return false;
-	}
-
-	function mesosViewIndex(): int {
-		return 0;
-	}
-
-	function setMesosViewIndex(index: int) {
-		return;
-	}
-
-	function openDialog(): void {
-		//dlg.open();
 	}
 }

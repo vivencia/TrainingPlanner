@@ -47,7 +47,7 @@ TPFileOps::TPFileOps(QQuickItem *visual_parent)
 	setAcceptedMouseButtons(Qt::LeftButton);
 	if (appUserModel()->actualMesoModel()) {
 		connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::mesoIdxChanged, this, [this]
-																	(const uint old_meso_idx, const uint new_meso_idx) {
+													(const uint old_meso_idx, const uint new_meso_idx) {
 			if (old_meso_idx == m_mesoIdx)
 				setMesoIdx(new_meso_idx);
 		});
@@ -175,7 +175,7 @@ void TPFileOps::setCanAddFile(const bool can_add)
 void TPFileOps::renameFile(const QString &new_name)
 {
  	const QString &correct_new_name{appUtils()->getFileName(new_name, true) %
-															appUtils()->getFileExtension(m_filename.fileName(), true)};
+												appUtils()->getFileExtension(m_filename.fileName(), true)};
 	if (fileIsOK())
 		QFile::rename(m_filename.toString(), m_filename.filePath() % correct_new_name);
 	m_filename.setFileName(correct_new_name, true);
@@ -279,8 +279,7 @@ void TPFileOps::attemptToCreateOrGetFile()
 		} else if (ret_code == TP_RET_CODE_SUCCESS) {
 			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_SUCCESS, appUtils()->string_strings({
 				tr("File downloaded"), m_filename.fileName()}, record_separator));
-		}
-		else {
+		} else {
 			appItemManager()->displayMessageOnAppWindow(ret_code, std::move(m_filename.filename()));
 		}
 		if (fileIsOK() && isTPFile()) {

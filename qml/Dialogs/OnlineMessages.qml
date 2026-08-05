@@ -151,13 +151,13 @@ TPPopup {
 	StackLayout {
 		id: mainLayout
 		visible: onlineMsgsDlg.fullDialogVisible
-		currentIndex: AppMessages ? AppMessages.count > 0 ? 1 : 0 : 0
-		height: childrenRect.height
+		currentIndex: AppMessages.messagesModel.hasMessage ? 1 : 0
 
 		anchors {
 			top: topBar.bottom
 			left: parent.left
 			right: parent.right
+			bottom: parent.bottom
 		}
 
 		TPLabel {
@@ -171,7 +171,7 @@ TPPopup {
 
 		TreeView {
 			id: messagesList
-			model: AppMessages
+			model: AppMessages.messagesModel
 			clip: true
 			Layout.fillWidth: true
 			Layout.fillHeight: true
@@ -180,98 +180,80 @@ TPPopup {
 
 			delegate: TreeViewDelegate {
 				id: delegateItem
+				implicitWidth: onlineMsgsDlg.width
+				implicitHeight: messageLayout.childrenRect.height * 1.1
+				indentation: 10
 
-				readonly property real _padding: 5
-				readonly property real szHeight: contentItem.implicitHeight * 2.5
-				required property TPMessage message
+				required property TPMessage tpMessage
 				property bool collapsed: false
+
+				TapHandler {
+					target: delegateItem
+					parent: delegateItem
+
+					onSingleTapped: {
+						const index = messagesList.index(delegateItem.model.row, delegateItem.model.column);
+						messagesList.selectionModel.setCurrentIndex(index, ItemSelectionModel.NoUpdate);
+						messagesList.toggleExpanded(delegateItem.model.row);
+					}
+				}
 
 				background: Rectangle { // Background rectangle enabled to show the alternative row colors
 					id: background
 					opacity: 0.8
-
+					anchors.fill: parent
 					color: {
-						if (delegateItem.model.row === delegateItem.treeView.currentRow) {
-							return Qt.lighter(palette.highlight, 1.2)
-						} else {
-							if (delegateItem.treeView.alternatingRows && delegateItem.model.row % 2 !== 0) {
-								return (Application.styleHints.colorScheme === Qt.Light) ?
-										 Qt.darker(palette.alternateBase, 1.25) :
-										 Qt.lighter(palette.alternateBase, 2.)
-							} else {
-							   return palette.base
-							}
-						}
-					}
-					Rectangle { // The selection indicator shown on the left side of the highlighted row
-						width: delegateItem._padding
-						height: parent.height
-						visible: !delegateItem.model.column
-						color: {
-							if (delegateItem.model.row === delegateItem.treeView.currentRow) {
-								return (Application.styleHints.colorScheme === Qt.Light) ?
-										 Qt.darker(palette.highlight, 1.25) :
-										 Qt.lighter(palette.highlight, 2.)
-							} else {
-								return "transparent"
-							}
-						}
+						let _color = delegateItem.model.row % 2 !== 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2;
+						if (delegateItem.model.row === messagesList.currentRow)
+							_color = Qt.darker(_color, 1.2);
+						return _color;
 					}
 				}
 
-				indicator: Item {
-					x: delegateItem._padding + delegateItem.depth * delegateItem.indentation
-					implicitWidth: delegateItem.szHeight
-					implicitHeight: delegateItem.szHeight
+				indicator: Item {}
+				TPLabel {
+					id: indicator
+					anchors {
+						left: parent.left
+						leftMargin: delegateItem.padding + ((delegateItem.depth + 1) * delegateItem.indentation)
+						verticalCenter: parent.verticalCenter
+					}
+					text: delegateItem.expanded ? "▼" : "▶"
 					visible: delegateItem.isTreeNode && delegateItem.hasChildren
-					rotation: delegateItem.expanded ? 90 : 0
-
-					TapHandler {
-						onSingleTapped: {
-							const index = delegateItem.treeView.index(delegateItem.model.row, delegateItem.model.column)
-							delegateItem.treeView.selectionModel.setCurrentIndex(index, ItemSelectionModel.NoUpdate)
-							delegateItem.treeView.toggleExpanded(delegateItem.model.row)
-						}
-					}
-					TPImage {
-						source: "arrow_icon.png"
-						width: parent.width / 3
-						height: parent.height / 3
-						anchors.centerIn: parent
-					}
 				}
 
-				contentItem: ColumnLayout {
+				contentItem: Item {}
+				ColumnLayout {
 					id: messageLayout
 					spacing: 5
-					x: delegateItem._padding + (delegateItem.depth + 1 * delegateItem.indentation)
-					width: parent.width - delegateItem._padding - x
+					x: indicator.x + indicator.width + delegateItem.padding
+					width: delegateItem.width - delegateItem.padding - x
 
 					Item {
-						Layout.preferredWidth: parent.width - 10
+						Layout.fillWidth: true
 						Layout.preferredHeight: AppSettings.itemExtraLargeHeight
 						Layout.leftMargin: 5
 						Layout.rightMargin: 5
 
 						TPImage {
 							id: msgImage
-							source: delegateItem.message.icon
+							source: delegateItem.tpMessage.icon
 							imageSizeFollowControlSize: true
 							keepAspectRatio: true
 							fullWindowView: false
 							dropShadow: false
-							visible: delegateItem.msgIcon.length > 0
+							visible: delegateItem.tpMessage.hasIcon
 							width: AppSettings.itemExtraLargeHeight
 							height: AppSettings.itemExtraLargeHeight
 							anchors {
-								top: parent.top
+								verticalCenter: parent.verticalCenter
 								left: parent.left
 							}
 						}
 
 						TPLabel {
 							id: lblTitle
-							text: delegateItem.message.title + "<br>" + delegateItem.message.dateTime
+							text: delegateItem.tpMessage.title + "<br>" + delegateItem.tpMessage.dateTime
 							font: AppGlobals.smallFont
 							singleLine: false
 							verticalAlignment: Label.AlignTop
@@ -279,15 +261,18 @@ TPPopup {
 							width: parent.width - msgImage.width - extraInfoImg.width - btnFoldIcon.width
 
 							anchors {
-								left: msgImage.right
 								top: parent.top
+								left: msgImage.right
+								right: delegateItem.tpMessage.hasExtraImage
+																	? extraInfoImg.left : btnFoldIcon.left
+								margins: 3
 							}
 						}
 
 						TPImage {
 							id: extraInfoImg
-							source: delegateItem.message.extraImage
-							visible: delegateItem.message.extraImage.length > 0
+							source: delegateItem.tpMessage.extraImage
+							visible: delegateItem.tpMessage.hasExtraImage
 							width: visible ? AppSettings.itemSmallHeight : 0
 							height: visible ? AppSettings.itemSmallHeight : 0
 
@@ -297,7 +282,7 @@ TPPopup {
 							}
 
 							TPLabel {
-								text: delegateItem.message.extraInfo
+								text: delegateItem.tpMessage.extraInfo
 								minimumPixelSize: AppSettings.smallFontSize * 0.7
 								z: 1
 								width: parent.width * 0.5
@@ -309,13 +294,13 @@ TPPopup {
 						TPImage {
 							id: btnFoldIcon
 							source: delegateItem.collapsed ? "fold-up.png" : "fold-down.png"
-							dropShadow: false
+							visible: delegateItem.tpMessage.text.length > 0
 							width: AppSettings.itemSmallHeight
 							height: AppSettings.itemSmallHeight
 
 							anchors {
-								verticalCenter: parent.verticalCenter
-								left: lblTitle.right
+								top: parent.top
+								right: parent.right
 							}
 						}
 
@@ -327,28 +312,27 @@ TPPopup {
 
 					TPLabel {
 						id: lblMessage
-						text: delegateItem.message.text
+						text: delegateItem.tpMessage.text
 						font: AppGlobals.smallFont
 						visible: delegateItem.collapsed
 						singleLine: false
 						Layout.fillWidth: true
 						Layout.leftMargin: 10
 						Layout.rightMargin: 10
-						Component.onCompleted: msgTextLoader._label = this;
 					}
 
 					Loader {
 						id: fileViewerLoader
 						asynchronous: true
-						active: delegateItem.message.fileOps !== null
-						visible: delegateItem.collapsed
-						Layout.preferredWidth: active ? Math.max(200, _file_viewer.minimumWidth) : 0
-						Layout.preferredHeight: active ? Math.max(200, _file_viewer.minimumHeight) : 0
+						active: delegateItem.tpMessage.fileOps !== null
+						visible: delegateItem.collapsed && _file_viewer
 						Layout.alignment: Qt.AlignHCenter
+						Layout.preferredWidth: _file_viewer ? _file_viewer.minimumWidth : parent.width
+						Layout.preferredHeight: _file_viewer ? _file_viewer.minimumHeight : AppSettings.itemDefaultHeight
 
-						property TPFileViewer _file_viewer
+						property TPFileViewer _file_viewer: null
 						sourceComponent: TPFileViewer {
-							fileOps: delegateItem.message.fileOps
+							fileOps: delegateItem.tpMessage.fileOps
 							Component.onCompleted: fileViewerLoader._file_viewer = this;
 						}
 					}
@@ -356,7 +340,7 @@ TPPopup {
 					Loader {
 						id: actionsLoader
 						asynchronous: true
-						active: delegateItem.message.actionCount > 0
+						active: delegateItem.tpMessage.actionCount > 0
 						visible: delegateItem.collapsed
 						Layout.fillWidth: true
 						Layout.leftMargin: 5
@@ -367,22 +351,22 @@ TPPopup {
 
 						onActiveChanged: {
 							if (active) {
-								for (let i = 0; i < delegateItem.message.actionCount; ++i) {
+								for (let i = 0; i < delegateItem.tpMessage.actionCount; ++i) {
 									let component, item;
-									switch (delegateItem.message.actionType()) {
+									switch (delegateItem.tpMessage.actionType()) {
 									case TPMessage.AT_BUTTON:
 										component = Qt.createComponent("TpQml.Widgets", TPButton, { text:
-																		   delegateItem.message.actionLabel(index) });
+																delegateItem.tpMessage.actionLabel(index) });
 										item = component.createObject(actionsLayout, {});
 										break;
 									case TPMessage.AT_CHECKBOX:
 										component = Qt.createComponent("TpQml.Widgets", TPRadioButtonOrCheckBox, { text:
-											delegateItem.message.actionLabel(index), boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX});
+											delegateItem.tpMessage.actionLabel(index), boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX});
 										item = component.createObject(actionsLayout, {});
 										break;
 									case TPMessage.AT_RADIO:
 										component = Qt.createComponent("TpQml.Widgets", TPRadioButtonOrCheckBox, { text:
-											delegateItem.message.actionLabel(index), boxType: TPRadioButtonOrCheckBox.TP_RADIOBOX});
+											delegateItem.tpMessage.actionLabel(index), boxType: TPRadioButtonOrCheckBox.TP_RADIOBOX});
 										item = component.createObject(actionsLayout, {});
 										break;
 									case TPMessage.AT_NONE:
@@ -432,59 +416,96 @@ TPPopup {
 			} //delegate: TreeViewDelegate
 		} // TPListView: messagesList
 
-		ColumnLayout {
-			spacing: 10
-			Layout.preferredHeight: childrenRect.height
+		Item {
+			id: newChatOrMessagePane
+			Layout.fillHeight: true
 			Layout.fillWidth: true
 
-			TPLabel {
-				text: qsTr("Chat with ...")
-				font: AppGlobals.smallFont
-				Layout.fillWidth: true
-			}
-
-			TPTextInput {
-				id: txtSearch
-				showClearTextButton: true
-				Layout.fillWidth: true
-				onTextChanged: chatList.applyFilter(text);
-			}
+			property int _useridx: -1
 
 			TPCoachesAndClientsList {
 				id: chatList
 				listClients: true
 				listCoaches: true
 				listConfirmed: true
-				Layout.preferredHeight: onlineMsgsDlg.maxHeight - 2 * (AppSettings.itemDefaultHeight + 10)
-				Layout.preferredWidth: parent.width
-				Layout.fillWidth: true
+
+				anchors {
+					top: parent.top
+					left: parent.left
+					right: parent.right
+					bottom: buttonsLayout.top
+					margins: 5
+				}
 
 				onItemSelected: (userIdx) => {
 					txtSearch.text = AppUserModel.userName(userIdx);
-					onlineMsgsDlg.openChat(userIdx);
+					newChatOrMessagePane._useridx = userIdx;
 				}
 			} //TPCoachesAndClientsList
+
+			RowLayout {
+				id: buttonsLayout
+				spacing: 10
+
+				anchors {
+					left: parent.left
+					right: parent.right
+					bottom: parent.bottom
+					margins: 5
+				}
+
+				TPButton {
+					text: qsTr("Chat")
+					sourceImage: "chat.png"
+					enabled: newChatOrMessagePane._useridx > 0
+					Layout.preferredWidth: preferredWidth
+					Layout.maximumWidth: parent.width / 2
+					onClicked: onlineMsgsDlg.openChat(newChatOrMessagePane._useridx);
+				}
+				TPButton {
+					text: qsTr("Send message")
+					sourceImage: "send-message.png"
+					enabled: newChatOrMessagePane._useridx > 0
+					Layout.preferredWidth: preferredWidth
+					Layout.maximumWidth: parent.width / 2
+					onClicked: onlineMsgsDlg.newMessage(newChatOrMessagePane._useridx);
+				}
+			}
 		}
 	} //StackLayout
 
-	TPButton {
-		imageSource: "chat.png"
-		width: AppSettings.itemDefaultHeight
+	Rectangle {
+		color: AppSettings.primaryColor
+		opacity: 0.6
+		width: AppSettings.itemLargeHeight
 		height: width
-		visible: mainLayout.visible && mainLayout.currentIndex !== 2
+		radius: width / 2
 
 		anchors {
 			bottom: mainLayout.bottom
-			bottomMargin: 10
+			bottomMargin: mainLayout.currentIndex !== 2 ? 10 : AppSettings.itemDefaultHeight + 15
 			right: mainLayout.right
 			rightMargin: 10
 		}
 
-		onClicked: mainLayout.currentIndex = 2;
+		TPButton {
+			imageSource: mainLayout.currentIndex !== 2 ? "add-new.png" : "revert.png"
+			width: AppSettings.itemDefaultHeight
+			height: width
+			visible: onlineMsgsDlg.fullDialogVisible
+			anchors.centerIn: parent
+			onClicked: mainLayout.currentIndex = mainLayout.currentIndex !== 2
+														? 2 : (AppMessages.messagesModel.hasMessage ? 1 : 0);
+		}
 	}
 
-	function openChat(user_name: string): void {
-		AppMessages.openChat(user_name);
-		mainLayout.currentIndex = AppMessages.count > 0 ? 1 : 0;
+	function openChat(user_idx: int): void {
+		AppMessages.openChat(user_idx);
+		mainLayout.currentIndex = 1;
+	}
+
+	function newMessage(user_idx: int): void {
+		AppMessage.openNewMessageDialog(user_idx);
+		mainLayout.currentIndex = 1;
 	}
 }

@@ -19,6 +19,7 @@ Rectangle {
 	property bool listClients: false
 	property bool listCoaches: false
 	property bool multipleSelection: false
+	property bool showFilterInput: false
 	property alias model: workingModel
 	property alias anySelected: workingModel.anySelected
 	property alias currentRow: workingModel.currentRow
@@ -76,6 +77,20 @@ Rectangle {
 		}
 	}
 
+	TPTextInput {
+		id: txtFilter
+		showClearTextButton: true
+		visible: _control.showFilterInput
+		onTextChanged: listView.applyFilter(text);
+
+		anchors {
+			top: _control.top
+			left: _control.left
+			right: _control.right
+			margins: 2
+		}
+	}
+
 	TPListView {
 		id: listView
 		currentIndex: workingModel.currentRow
@@ -85,7 +100,7 @@ Rectangle {
 		visible: workingModel.count > 0
 
 		anchors {
-			top: _control.top
+			top: _control.showFilterInput ? txtFilter.bottom : _control.top
 			left: _control.left
 			right: _control.right
 			margins: 2

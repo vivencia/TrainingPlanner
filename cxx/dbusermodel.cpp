@@ -117,7 +117,7 @@ void DBUserModel::initUserSession()
 						onlineCheckIn();
 				});
 				connect(appOnlineServices(), &TPOnlineServices::serverStatusChanged, this, [this]
-																	(const uint online_status, const QString &address) {
+														(const uint online_status, const QString &address) {
 					appWSServer()->setServerStatus(online_status != TP_RET_CODE_SERVER_UNREACHABLE);
 					setCanConnectToServer(online_status == TP_RET_CODE_SUCCESS);
 					if (m_mainTimer) {

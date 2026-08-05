@@ -109,8 +109,9 @@ set( CXX_SOURCES_QML_INTEGRATION
 		cxx/tputils.cpp cxx/tputils.h
 		cxx/translationclass.cpp cxx/translationclass.h
 
-		cxx/online_services/tpmessagesmanager.h cxx/online_services/tpmessagesmanager.cpp
 		cxx/online_services/tpchat.h cxx/online_services/tpchat.cpp
+		cxx/online_services/tpmessagesmanager.h cxx/online_services/tpmessagesmanager.cpp
+		cxx/online_services/tpmessagesmodel.h cxx/online_services/tpmessagesmodel.cpp
 		cxx/weather/weatherinfo.h cxx/weather/weatherinfo.cpp
 
 		cxx/dbexerciseslistmodel.h cxx/dbexerciseslistmodel.cpp

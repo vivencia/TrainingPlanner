@@ -1,6 +1,6 @@
 #pragma once
 
-class	TPBool
+class TPBool
 {
 public:
 	inline TPBool() {}

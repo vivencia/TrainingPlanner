@@ -1574,8 +1574,13 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OnlineMessages.qml" line="441"/>
-        <source>Chat with ...</source>
+        <location filename="../qml/Dialogs/OnlineMessages.qml" line="458"/>
+        <source>Chat</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/OnlineMessages.qml" line="466"/>
+        <source>Send message</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2230,27 +2235,27 @@
 <context>
     <name>TPCoachesAndClientsList</name>
     <message>
-        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="64"/>
+        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="65"/>
         <source>No clients pending confirmation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="62"/>
+        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="63"/>
         <source>No current clients</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="73"/>
+        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="74"/>
         <source>No coaches pending confirmation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="71"/>
+        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="72"/>
         <source>No available coaches</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="69"/>
+        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="70"/>
         <source>No current coaches</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2288,82 +2293,82 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="825"/>
+        <location filename="../cxx/tpfileops.cpp" line="824"/>
         <source>File sent!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1063"/>
+        <location filename="../cxx/tpfileops.cpp" line="1062"/>
         <source>Password required</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1064"/>
+        <location filename="../cxx/tpfileops.cpp" line="1063"/>
         <source>To open the file:&lt;br&gt; </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1065"/>
+        <location filename="../cxx/tpfileops.cpp" line="1064"/>
         <source>Password provided is incorrect. Try again?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1238"/>
+        <location filename="../cxx/tpfileops.cpp" line="1237"/>
         <source>data for a new coach</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1238"/>
+        <location filename="../cxx/tpfileops.cpp" line="1237"/>
         <source>data for a new client</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1243"/>
+        <location filename="../cxx/tpfileops.cpp" line="1242"/>
         <source>program</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1244"/>
+        <location filename="../cxx/tpfileops.cpp" line="1243"/>
         <source>A complete exercises program from coach </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1248"/>
+        <location filename="../cxx/tpfileops.cpp" line="1247"/>
         <source>split</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1249"/>
+        <location filename="../cxx/tpfileops.cpp" line="1248"/>
         <source>Updated exercises sheet from coach </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1262"/>
+        <location filename="../cxx/tpfileops.cpp" line="1261"/>
         <source>workout</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1263"/>
+        <location filename="../cxx/tpfileops.cpp" line="1262"/>
         <source>An extra workout from </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1263"/>
+        <location filename="../cxx/tpfileops.cpp" line="1262"/>
         <source> for the program: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1264"/>
+        <location filename="../cxx/tpfileops.cpp" line="1263"/>
         <source> for the next time you train </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1270"/>
+        <location filename="../cxx/tpfileops.cpp" line="1269"/>
         <source>Excercise Description</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tpfileops.cpp" line="1271"/>
+        <location filename="../cxx/tpfileops.cpp" line="1270"/>
         <source>A new exercise for the exercises database from </source>
         <translation type="unfinished"></translation>
     </message>
@@ -2384,72 +2389,72 @@
 <context>
     <name>TPMessagesManager</name>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="150"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="100"/>
         <source>Success!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="150"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="100"/>
         <source>Error!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="150"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="101"/>
         <source>Message sent to</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="150"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="101"/>
         <source>Try again. Could not sent message to </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="204"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="86"/>
         <source>Dismiss</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="239"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="272"/>
         <source>Open chat</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="243"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="276"/>
         <source>Clear chat</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="58"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="210"/>
         <source>Unknown contact</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="62"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="213"/>
         <source>Send Message</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="67"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="218"/>
         <source>Clear</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="74"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="225"/>
         <source>Include chat</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="200"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="82"/>
         <source>You have received a file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="200"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="82"/>
         <source>You have a message</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="235"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="268"/>
         <source>Chat</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2750,34 +2755,6 @@
         <location filename="../cxx/tputils.cpp" line="954"/>
         <location filename="../cxx/tputils.cpp" line="965"/>
         <source>and</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>Tests</name>
-    <message>
-        <location filename="../qml/Tests.qml" line="53"/>
-        <source>Send to client</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../qml/Tests.qml" line="55"/>
-        <source>Save as</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../qml/Tests.qml" line="57"/>
-        <source>Send to</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../qml/Tests.qml" line="59"/>
-        <source>Share</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../qml/Tests.qml" line="61"/>
-        <source>Exercises Planner</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

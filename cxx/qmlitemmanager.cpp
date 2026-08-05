@@ -124,7 +124,7 @@ void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
 				appSettings()->setReadOnlyGroup(GLOBAL_GROUP, true);
 				appSettings()->setCurrentUser(args.at(2));
 			} else {
-				qDebug() << "Warning: Missing user id in the command line arguments"_L1;
+				qWarning() << "Warning: Missing user id in the command line arguments"_L1;
 			}
 		}
 		if (m_testType & TT_CORE && !(m_testType & TT_QML)) { //test with no GUI
