@@ -8,14 +8,6 @@ import TpQml.Pages
 ScrollView {
 	id: _control
 	contentWidth: availableWidth //stops bouncing to the sides
-
-//public:
-	required property TPPage parentPage
-	property bool navButtonsVisible: true
-
-//private:
-	property TPPageScrollButtons _navButtons
-
 	anchors.margins: 5
 
 	ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
@@ -48,12 +40,12 @@ ScrollView {
 		}
 	}
 
-	function setScrollBarPosition(pos: int): void {
-		if (pos === 0)
-			vBar.setPosition(0);
-		else
-			vBar.setPosition(pos - vBar.size);
-	}
+	//public:
+		required property TPPage parentPage
+		property bool navButtonsVisible: true
+
+	//private:
+		property TPPageScrollButtons _navButtons
 
 	Loader {
 		id: navButtonsLoader
@@ -69,5 +61,12 @@ ScrollView {
 				tpQmlOpen(_control.parentPage);
 			}
 		}
+	}
+
+	function setScrollBarPosition(pos: int): void {
+		if (pos === 0)
+			vBar.setPosition(0);
+		else
+			vBar.setPosition(pos - vBar.size);
 	}
 }

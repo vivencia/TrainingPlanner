@@ -27,7 +27,7 @@ TPPopup {
 			left: parent.left
 			right: parent.right
 			margins: 5
-			rightMargin: dlgCoachRequest.btnClose.width
+			rightMargin: dlgCoachRequest.titleBar.width
 		}
 	}
 

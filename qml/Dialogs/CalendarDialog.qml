@@ -5,6 +5,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import TpQml
+import TpQml.Dialogs
 import TpQml.Widgets
 
 TPPopup {

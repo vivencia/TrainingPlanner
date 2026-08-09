@@ -73,7 +73,7 @@ TPPopup {
 		id: btnShowHideList
 		imageSource: _dlgMuscularGroup.shown ? "fold-up.png" : "fold-down.png"
 		hasDropShadow: false
-		width: _dlgMuscularGroup.btnClose.width
+		width: AppSettings.itemDefaultHeight
 		height: width
 		z: 1
 

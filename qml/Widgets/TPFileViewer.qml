@@ -15,7 +15,7 @@ Item {
 	required property FileOperations fileOps
 	property string missingFileInfo
 	property bool useBackground: true
-	readonly property int minimumWidth: fileOps ? Math.min(200, fileOps.controlSize.width) : 0
+	readonly property int minimumWidth: fileOps ? Math.min(100, fileOps.controlSize.width) : 0
 	readonly property int minimumHeight: minimumWidth * 1.4
 
 	signal removalRequested()
@@ -25,7 +25,7 @@ Item {
 //private:
 	enum WindowStates { WS_UNDEFINED, WS_NORMAL, WS_FULLSCREEN }
 
-	property string _preview_source: fileOps ? fileOps.getFileTypeIcon(Qt.size(0,0), true) : "";
+	property string _preview_source: fileOps ? fileOps.getFileTypeIcon(Qt.size(0,0), true) : ""
 	property int _window_state: TPFileViewer.WindowStates.WS_NORMAL
 	property TPMediaPlayer _media_player
 	property Item _full_screen_widget

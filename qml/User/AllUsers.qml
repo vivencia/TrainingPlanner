@@ -5,6 +5,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import TpQml
+import TpQml.Dialogs
 import TpQml.Widgets
 
 import "./AllUsersElements"
@@ -14,11 +15,12 @@ TPPopup {
 	width: AppSettings.pageWidth - 20
 	height: AppSettings.pageHeight / 2
 	open_in_window: true
+	showTitleBar: true
 
 	ColumnLayout {
 		spacing: 10
 		anchors.fill: parent
-		anchors.topMargin: dlgSwitchUser.btnClose.height + 10
+		anchors.topMargin: dlgSwitchUser.titleBar.height
 
 		 HorizontalHeaderView {
 			 id: horizontalHeader

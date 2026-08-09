@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 
 import TpQml
+import TpQml.Dialogs
 
 TPPopup {
 	id: _balloon

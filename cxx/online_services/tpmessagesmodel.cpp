@@ -7,18 +7,24 @@ enum RoleNames {
 };
 
 TPMessagesModel::TPMessagesModel(QObject *parent)
-	: QAbstractItemModel{parent}, m_rootMessage{std::make_unique<TPMessage>(nullptr)}
+	: QAbstractItemModel{parent}
+	, m_rootMessage{std::make_unique<TPMessage>(nullptr)}
+	, m_phantonMessage{std::make_unique<TPMessage>(m_rootMessage.get())}
 {
 	m_rootMessage->setObjectName("Root message");
+	m_phantonMessage->setType(TPMessage::MT_PHANTON);
+	const QModelIndex &parent_index{indexFromItem(m_rootMessage.get())};
+	m_rootMessage->insertChild(m_phantonMessage.get(), 0);
+	static_cast<void>(insertRow(0, parent_index));
 	roleToString(tpMessage)
 }
 
-TPMessage *TPMessagesModel::findMessage(int field, const QVariant &field_value, const QLatin1StringView &type) const
+TPMessage *TPMessagesModel::findMessage(int field, const QVariant &field_value, const int type) const
 {
 	TPMessage *found_message{nullptr};
 	const std::vector<std::unique_ptr<TPMessage>> &messages{m_rootMessage->children()};
 	for (const auto &message : messages) {
-		if (message->type() == type) {
+		if (isBitSet(message->type(), type)) {
 			found_message = message->findChild(field_value, static_cast<TPMessage::TPMessageFields>(field));
 			if (found_message) break;
 		}
@@ -26,12 +32,12 @@ TPMessage *TPMessagesModel::findMessage(int field, const QVariant &field_value, 
 	return found_message;
 }
 
-QList<TPMessage*> TPMessagesModel::findMessages(int field, const QVariant &field_value, const QLatin1StringView& type) const
+QList<TPMessage*> TPMessagesModel::findMessages(int field, const QVariant &field_value, const int type) const
 {
 	QList<TPMessage*> found_messages;
 	const std::vector<std::unique_ptr<TPMessage>> &messages{m_rootMessage->children()};
 	for (const auto &message : messages) {
-		if (message->type() == type)
+		if (isBitSet(message->type(), type))
 			found_messages.append(message.get());
 	}
 	return found_messages;
@@ -42,17 +48,22 @@ void TPMessagesModel::insertMessage(TPMessage *message, int row)
 	const QModelIndex &parent_index{indexFromItem(message->parentMessage())};
 	if (row == -1)
 		row = message->parentMessage()->childCount();
+	//insert a top level message before the phanton item
+	if (message->parentMessage() == m_rootMessage.get())
+		--row;
 	message->parentMessage()->insertChild(message, row);
-	connect(message, &TPMessage::killMessage, this, [this,message] () { removeMessage(message); });
 	static_cast<void>(insertRow(row, parent_index));
 }
 
 void TPMessagesModel::removeMessage(TPMessage *message)
 {
 	const QModelIndex &parent_index{createIndex(message->parentMessage()->row(), 0, message->parent())};
-	beginRemoveRows(parent_index, message->row(), message->row());
-	removeRow(message->row(), parent_index);
+	const auto row{message->row()};
+	beginRemoveRows(parent_index, row, row);
+	removeRow(row, parent_index);
 	message->parentMessage()->removeChild(message);
+	for (const auto &msg : message->children() | std::views::drop(row))
+		emit msg->rowChanged();
 	endRemoveRows();
 }
 
@@ -64,7 +75,7 @@ bool TPMessagesModel::insertRows(int row, int count, const QModelIndex &parent)
 	beginInsertRows(parent, row, row + count - 1);
 	endInsertRows();
 	if (parent_item == m_rootMessage.get()) {
-		if (rowCount(parent) == 1)
+		if (rowCount(parent) == 2)
 			emit hasMessageChanged();
 	}
 	return true;
@@ -145,5 +156,5 @@ inline QModelIndex TPMessagesModel::indexFromItem(TPMessage *message) const
 
 inline TPMessage *TPMessagesModel::itemFromIndex(const QModelIndex &index) const
 {
-	return getItem(index);   // your existing helper
+	return getItem(index);
 }

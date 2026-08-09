@@ -5,9 +5,10 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import TpQml
+import TpQml.Dialogs
 import TpQml.Widgets
 
-import "./TimePickerElements"
+import "./TimePickerComponents"
 
 TPPopup {
 	id: _timePicker
@@ -46,15 +47,15 @@ TPPopup {
 	// data model used to display labels on picker circles
 	readonly property var _timePickerModel: [
 		{ "c1": "12", "c2": "00", "d": "12", "n": "00", "m": "00", "q": true },
-		{ "c1": "1", "c2": "13", "d": "13", "n": "1", "m": "05", "q": false },
-		{ "c1": "2", "c2": "14", "d": "14", "n": "2", "m": "10", "q": false },
-		{ "c1": "3", "c2": "15", "d": "15", "n": "3", "m": "15", "q": true },
-		{ "c1": "4", "c2": "16", "d": "16", "n": "4", "m": "20", "q": false },
-		{ "c1": "5", "c2": "17", "d": "17", "n": "5", "m": "25", "q": false },
-		{ "c1": "6", "c2": "18", "d": "18", "n": "6", "m": "30", "q": true },
-		{ "c1": "7", "c2": "19", "d": "7", "n": "19", "m": "35", "q": false },
-		{ "c1": "8", "c2": "20", "d": "8", "n": "20", "m": "40", "q": false },
-		{ "c1": "9", "c2": "21", "d": "9", "n": "21", "m": "45", "q": true },
+		{ "c1":  "1", "c2": "13", "d": "13", "n":  "1", "m": "05", "q": false },
+		{ "c1":  "2", "c2": "14", "d": "14", "n":  "2", "m": "10", "q": false },
+		{ "c1":  "3", "c2": "15", "d": "15", "n":  "3", "m": "15", "q": true },
+		{ "c1":  "4", "c2": "16", "d": "16", "n":  "4", "m": "20", "q": false },
+		{ "c1":  "5", "c2": "17", "d": "17", "n":  "5", "m": "25", "q": false },
+		{ "c1":  "6", "c2": "18", "d": "18", "n":  "6", "m": "30", "q": true },
+		{ "c1":  "7", "c2": "19", "d":  "7", "n": "19", "m": "35", "q": false },
+		{ "c1":  "8", "c2": "20", "d":  "8", "n": "20", "m": "40", "q": false },
+		{ "c1":  "9", "c2": "21", "d":  "9", "n": "21", "m": "45", "q": true },
 		{ "c1": "10", "c2": "22", "d": "10", "n": "22", "m": "50", "q": false },
 		{ "c1": "11", "c2": "23", "d": "11", "n": "23", "m": "55", "q": false }
 	]

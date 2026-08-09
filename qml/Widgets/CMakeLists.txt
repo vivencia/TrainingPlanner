@@ -21,7 +21,6 @@ set( QML_WIDGETS
 	"TPPassword.qml"
 	"TPPasswordInput.qml"
 	"TPPdfViewer.qml"
-	"TPPopup.qml"
 	"TPPhoneNumberInput.qml"
 	"TPRadioButtonOrCheckBox.qml"
 	"TPScrollView.qml"

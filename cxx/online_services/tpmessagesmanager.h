@@ -22,7 +22,6 @@ public:
 	Q_DISABLE_COPY_MOVE(TPMessagesManager)
 	static constexpr QLatin1StringView tpmessages_subdir{"exchange_files/"};
 	static constexpr QLatin1StringView tpsystem_userid{"TPApp"};
-	static constexpr QLatin1StringView tp_toplevel_message{"topLevel"};
 
 	explicit TPMessagesManager(QObject *parent = nullptr);
 	TPMessagesModel *messagesModel() const { return m_messagesModel; }
@@ -56,9 +55,10 @@ private:
 	void receivedTPMessages(const QStringList &messages);
 	void parseNewChatMessages(const QString &encoded_messages);
 	TPChat *createChatMessage(QString &&userid, const bool check_unread_messages);
-	void removeChildrenMessages(TPMessage *msg, const QLatin1StringView &exclude_type);
+	void removeChildrenMessages(TPMessage *msg, const int exclude_type);
 	void removeMessage(TPMessage *msg);
 	int newMessagesCheckingInterval() const;
+	void setTotalNewMessages(TPMessage *top_level_msg, const int key, const int new_messages);
 
 	static TPMessagesManager *_appMessagesManager;
 	friend TPMessagesManager *appMessagesManager();

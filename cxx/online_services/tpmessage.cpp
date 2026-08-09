@@ -58,6 +58,7 @@ void TPMessage::insertChild(TPMessage *child, const uint row)
 			auto itr{find_itr(this, m_children.at(row).get())};
 			static_cast<void>(m_children.emplace(itr, std::move(std::unique_ptr<TPMessage>{child})));
 		}
+		emit childCountChanged();
 	}
 }
 
@@ -76,6 +77,7 @@ void TPMessage::removeAllChildren()
 		child->removeAllChildren();
 		m_children.erase(std::remove(m_children.begin(), m_children.end(), child), m_children.end());
 	}
+	emit childCountChanged();
 }
 
 int TPMessage::row() const

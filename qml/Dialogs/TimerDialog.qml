@@ -3,20 +3,20 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import TpQml
+import TpQml.Dialogs
 import TpQml.Widgets
 
 TPPopup {
 	id: _dlg_timer
 	keepAbove: true
-	width: AppSettings.pageWidth * 0.75
-	height: AppSettings.pageHeight * 0.3
 	backGroundImage: ":/images/backgrounds/backimage-timer.png"
 	backgroundRotation: 325
 	configFieldName: "timerDialogPosition"
 	showBorder: true
 	showTitleBar: true
+	savePopupState: true
 	show_position: Qt.AlignBaseline
-	mouseItem: chkStopWatch
+	normal_size: Qt.size(AppSettings.pageWidth * 0.75, AppSettings.pageHeight * 0.3)
 	defaultCoordinates: Qt.point((AppSettings.pageWidth - width)/2, (AppSettings.pageHeight - height)/2)
 
 //public:
@@ -36,6 +36,7 @@ TPPopup {
 
 	onClosed: mainTimer.stopTimer();
 	onInitialTimeChanged: mainTimer.prepareTimer(initialTime);
+	onMouseItemClicked: chkStopWatch.checked = !chkStopWatch.checked;
 
 	TPTimer {
 		id: mainTimer
@@ -58,10 +59,10 @@ TPPopup {
 			enabled: !_dlg_timer.timePickerOnly
 			Layout.topMargin: -5
 			Layout.leftMargin: 5
-			Layout.rightMargin: btnClose.width
+			Layout.rightMargin: titleBar.width
 			Layout.fillWidth: true
 
-			onClicked: mainTimer.stopWatch = checked;
+			onCheckedChanged: mainTimer.stopWatch = checked;
 		}
 
 		RowLayout {
@@ -84,9 +85,9 @@ TPPopup {
 				Keys.onPressed: (event) => _dlg_timer.processKeyEvents(event);
 
 				onActiveFocusChanged: {
-					if (activeFocus)
+					if (activeFocus) {
 						txtHours.clear();
-					else {
+					} else {
 						if (acceptableInput)
 							mainTimer.strHours = text;
 						else
@@ -157,9 +158,9 @@ TPPopup {
 				Keys.onPressed: (event) => _dlg_timer.processKeyEvents(event);
 
 				onActiveFocusChanged: {
-					if (activeFocus)
+					if (activeFocus) {
 						txtMinutes.clear();
-					else {
+					} else {
 						if (acceptableInput)
 							mainTimer.strMinutes = text;
 						else
@@ -175,8 +176,6 @@ TPPopup {
 								txtSecs.focus = true;
 								txtSecs.forceActiveFocus();
 							}
-							else
-								btnClose.forceActiveFocus();
 						}
 					}
 				}
@@ -219,9 +218,9 @@ TPPopup {
 				Keys.onPressed: (event) => _dlg_timer.processKeyEvents(event);
 
 				onActiveFocusChanged: {
-					if (activeFocus)
+					if (activeFocus) {
 						txtSecs.clear();
-					else {
+					} else {
 						if (acceptableInput)
 							mainTimer.strSeconds = text;
 						else
@@ -340,11 +339,9 @@ TPPopup {
 					btnStartPause.forceActiveFocus();
 					btnStartPause.clicked();
 				}
-			}
-			else {
+			} else {
 				bTextChanged = true;
-				_dlg_timer.btnClose.forceActiveFocus();
-				_dlg_timer.btnClose.clicked();
+				_dlg_timer.closePopup(-1);
 			}
 			break;
 		}

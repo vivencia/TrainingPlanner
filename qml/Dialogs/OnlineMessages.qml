@@ -10,98 +10,32 @@ import TpQml.User
 
 TPPopup {
 	id: onlineMsgsDlg
+	objectName: "onlineMsgsDlg"
 	keepAbove: true
-	backGroundImage: fullDialogVisible ? ":/images/backgrounds/backimage-messages.jpg" : ""
-	configFieldName: "onlineMessagesDialogPosition"
-	defaultCoordinates: Qt.point(AppSettings.pageWidth - 80, 180)
-	mouseItem: fullDialogVisible ? topBar : mainIcon
-	useAlternateBackground: !fullDialogVisible
+	backGroundImage: _minimized ? "" : ":/images/backgrounds/backimage-messages.jpg"
+	useAlternateBackground: !_minimized
 	defaultBackgroundColor: "transparent"
+	mouseItem: _minimized ? mainIcon : titleBar
 	showBehavior: AppSettings.showOnlineMessagesDialog ? TPPopup.ALWAYS_VISIBLE : TPPopup.PARENT_PAGE_ACTIVE
-	width: savedSize.width
-	height: savedSize.height
-
-//private:
-	property bool fullDialogVisible: savedSize.width > mainIcon.width
-	property int mainIconUserDefinedX: x
-	property int mainIconUserDefinedY: y
-	readonly property int dlgMaxWidth: AppSettings.pageWidth * 0.8
-	readonly property int maxHeight: AppSettings.pageHeight * 0.5
-	readonly property size savedSize: AppSettings.getCustomValue("onlineMessagesDialogSize", Qt.size(mainIcon.width, mainIcon.height))
+	defaultCoordinates: Qt.point(80, 180)
+	normal_size: Qt.size(AppSettings.pageWidth * 0.8, AppSettings.pageWidth * 0.8)
+	minimized_size: Qt.size(mainIcon.width, mainIcon.height)
+	resizeable: true
+	savePopupState: true
+	show_minimize_button: false
 
 	onMouseItemClicked: (mouse) => {
-		if (fullDialogVisible) {
-			if (ItemManager.appPagesManager.isPopupAboveAllOthers(onlineMsgsDlg)) {
-				onlineMsgsDlg.mainIconUserDefinedY = onlineMsgsDlg.y;
-				shrink.start();
-			}
-			else
-				ItemManager.appPagesManager.raisePopup(onlineMsgsDlg);
-		}
-		else {
-			onlineMsgsDlg.mainIconUserDefinedX = onlineMsgsDlg.x;
-			onlineMsgsDlg.mainIconUserDefinedY = onlineMsgsDlg.y;
-			expand.start();
-		}
+		if (_minimized)
+			titleBar.restore();
+		else
+			titleBar.minimize();
 	}
 
-	ParallelAnimation {
-		id: shrink
-		alwaysRunToEnd: true
-
-		PropertyAnimation {
-			target: onlineMsgsDlg
-			property: "width"
-			to: mainIcon.width
-			duration: 200
-			easing.type: Easing.OutQuad
-		}
-
-		PropertyAnimation {
-			target: onlineMsgsDlg
-			property: "height"
-			to: mainIcon.height
-			duration: 200
-			easing.type: Easing.OutQuad
-		}
-
-		onFinished: {
-			onlineMsgsDlg.x = onlineMsgsDlg.mainIconUserDefinedX;
-			onlineMsgsDlg.y = onlineMsgsDlg.mainIconUserDefinedY;
-			onlineMsgsDlg.fullDialogVisible = false;
-			AppSettings.setCustomValue("onlineMessagesDialogSize", Qt.size(onlineMsgsDlg.width, onlineMsgsDlg.height));
-			AppSettings.setCustomValue(onlineMsgsDlg.configFieldName, Qt.point(onlineMsgsDlg.x, onlineMsgsDlg.y));
-		}
+	on_MinimizedChanged: {
+		if (titleBar != null)
+			titleBar.visible = !_minimized;
 	}
-
-	ParallelAnimation {
-		id: expand
-		alwaysRunToEnd: true
-
-		PropertyAnimation {
-			target: onlineMsgsDlg
-			property: "width"
-			to: onlineMsgsDlg.dlgMaxWidth
-			duration: 200
-			easing.type: Easing.InQuad
-		}
-
-		PropertyAnimation {
-			target: onlineMsgsDlg
-			property: "height"
-			to: topBar.height + mainLayout.height
-			duration: 200
-			easing.type: Easing.InQuad
-		}
-
-		onFinished: {
-			if ((onlineMsgsDlg.x + onlineMsgsDlg.width) > AppSettings.pageWidth)
-				onlineMsgsDlg.x = AppSettings.pageWidth - onlineMsgsDlg.width - 10;
-			onlineMsgsDlg.fullDialogVisible = true;
-			AppSettings.setCustomValue("onlineMessagesDialogSize", Qt.size(onlineMsgsDlg.width, onlineMsgsDlg.height));
-			AppSettings.setCustomValue(onlineMsgsDlg.configFieldName, Qt.point(onlineMsgsDlg.x, onlineMsgsDlg.y));
-		}
-	}
+	onOpened: titleBar.visible = !_minimized;
 
 	TPBackRec {
 		id: transparentBackground
@@ -113,7 +47,7 @@ TPPopup {
 		source: "messages"
 		width: AppSettings.itemExtraLargeHeight
 		height: width
-		visible: !onlineMsgsDlg.fullDialogVisible
+		visible: onlineMsgsDlg._minimized
 
 		anchors {
 			verticalCenter: parent.verticalCenter
@@ -121,40 +55,43 @@ TPPopup {
 		}
 	}
 
-	TPLabel {
-		id: topBar
-		text: qsTr("Messages")
-		visible: onlineMsgsDlg.fullDialogVisible
-		height: AppSettings.itemLargeHeight
-		horizontalAlignment: Text.AlignHCenter
+	TPImage {
+		id: smallIcon
+		source: "messages"
+		dropShadow: false
+		visible: !onlineMsgsDlg._minimized
+		width: AppSettings.itemDefaultHeight
+		height: width
 
 		anchors {
 			top: parent.top
-			horizontalCenter: parent.horizontalCenter;
-			horizontalCenterOffset: 0 - smallIcon.width/2
+			left: parent.left
+			leftMargin: 10
 		}
+	}
 
-		TPImage {
-			id: smallIcon
-			source: "messages"
-			dropShadow: false
-			width: AppSettings.itemDefaultHeight
-			height: width
+	TPLabel {
+		id: topBar
+		text: qsTr("Messages")
+		visible: !onlineMsgsDlg._minimized
+		horizontalAlignment: Text.AlignHCenter
 
-			anchors {
-				left: topBar.right
-				verticalCenter: topBar.verticalCenter;
-			}
+		anchors {
+			left: smallIcon.right
+			leftMargin: 10
+			verticalCenter: smallIcon.verticalCenter
 		}
 	}
 
 	StackLayout {
 		id: mainLayout
-		visible: onlineMsgsDlg.fullDialogVisible
+		visible: !onlineMsgsDlg._minimized
 		currentIndex: AppMessages.messagesModel.hasMessage ? 1 : 0
 
 		anchors {
-			top: topBar.bottom
+			margins: 0
+			topMargin: onlineMsgsDlg.titleBarHeight
+			top: parent.top
 			left: parent.left
 			right: parent.right
 			bottom: parent.bottom
@@ -172,68 +109,81 @@ TPPopup {
 		TreeView {
 			id: messagesList
 			model: AppMessages.messagesModel
+			contentHeight: onlineMsgsDlg.availableHeight * 1.1
+			contentWidth: onlineMsgsDlg.availableWidth
+			reuseItems: false
 			clip: true
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 
 			selectionModel: ItemSelectionModel {}
 
-			delegate: TreeViewDelegate {
+			ScrollBar.vertical: ScrollBar {
+				policy: ScrollBar.AsNeeded
+				active: true
+			}
+
+			delegate: Item {
 				id: delegateItem
 				implicitWidth: onlineMsgsDlg.width
-				implicitHeight: messageLayout.childrenRect.height * 1.1
-				indentation: 10
+				implicitHeight: headerWidget.height
 
 				required property TPMessage tpMessage
+				required property bool expanded
+				required property int index
+				readonly property bool hasChildren: tpMessage.childCount > 0
+				readonly property int indentation: -10 + tpMessage.depth * 12
+				readonly property int widthAvailable: width - indentation - 5
 				property bool collapsed: false
+				property int delegateHeight: 0
 
-				TapHandler {
-					target: delegateItem
-					parent: delegateItem
-
-					onSingleTapped: {
-						const index = messagesList.index(delegateItem.model.row, delegateItem.model.column);
-						messagesList.selectionModel.setCurrentIndex(index, ItemSelectionModel.NoUpdate);
-						messagesList.toggleExpanded(delegateItem.model.row);
-					}
+				onCollapsedChanged: {
+					implicitHeight = (collapsed ? delegateHeight + headerWidget.height : headerWidget.height);
+					messagesList.forceLayout(); //force a repositioning of all the visible items
 				}
 
-				background: Rectangle { // Background rectangle enabled to show the alternative row colors
-					id: background
+				TPBackRec {
+					radius: 8
 					opacity: 0.8
-					anchors.fill: parent
-					color: {
-						let _color = delegateItem.model.row % 2 !== 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2;
-						if (delegateItem.model.row === messagesList.currentRow)
-							_color = Qt.darker(_color, 1.2);
+					enableShadow: true
+					backColor: {
+						if (tpMessage.type === TPMessage.MT_PHANTON) return "transparent";
+						let _color = tpMessage.row % 2 !== 0 ? AppSettings.primaryDarkColor : AppSettings.primaryColor;
+						if (tpMessage.depth > 0)
+							_color = Qt.lighter(_color, tpMessage.depth * 1.2 + (tpMessage.depth * 0.1));
 						return _color;
 					}
-				}
-
-				indicator: Item {}
-				TPLabel {
-					id: indicator
 					anchors {
-						left: parent.left
-						leftMargin: delegateItem.padding + ((delegateItem.depth + 1) * delegateItem.indentation)
-						verticalCenter: parent.verticalCenter
+						fill: parent
+						margins: 2
+						leftMargin: delegateItem.indentation
 					}
-					text: delegateItem.expanded ? "▼" : "▶"
-					visible: delegateItem.isTreeNode && delegateItem.hasChildren
-				}
 
-				contentItem: Item {}
-				ColumnLayout {
-					id: messageLayout
-					spacing: 5
-					x: indicator.x + indicator.width + delegateItem.padding
-					width: delegateItem.width - delegateItem.padding - x
+					Frame {
+						id: headerWidget
+						width: messagesList.width
+						height: AppSettings.itemExtraLargeHeight + 5
+						anchors {
+							top: parent.top
+							left: parent.left
+						}
 
-					Item {
-						Layout.fillWidth: true
-						Layout.preferredHeight: AppSettings.itemExtraLargeHeight
-						Layout.leftMargin: 5
-						Layout.rightMargin: 5
+						background: Rectangle {
+							color: "transparent"
+							border.color: "transparent"
+						}
+
+						TPLabel {
+							id: indicator
+							text: delegateItem.expanded ? "▼" : "▶"
+							width: AppSettings.itemSmallHeight
+							visible: delegateItem.hasChildren
+							anchors {
+								margins: 0
+								left: parent.left
+								verticalCenter: parent.verticalCenter
+							}
+						}
 
 						TPImage {
 							id: msgImage
@@ -247,7 +197,7 @@ TPPopup {
 							height: AppSettings.itemExtraLargeHeight
 							anchors {
 								verticalCenter: parent.verticalCenter
-								left: parent.left
+								left: indicator.visible ? indicator.right : parent.left
 							}
 						}
 
@@ -258,14 +208,13 @@ TPPopup {
 							singleLine: false
 							verticalAlignment: Label.AlignTop
 							height: AppSettings.itemExtraLargeHeight
-							width: parent.width - msgImage.width - extraInfoImg.width - btnFoldIcon.width
 
 							anchors {
-								top: parent.top
+								verticalCenter: parent.verticalCenter
 								left: msgImage.right
-								right: delegateItem.tpMessage.hasExtraImage
-																	? extraInfoImg.left : btnFoldIcon.left
-								margins: 3
+								right: delegateItem.tpMessage.hasExtraImage ? extraInfoImg.left : btnFoldIcon.left
+								margins: 0
+								leftMargin: 5
 							}
 						}
 
@@ -273,12 +222,13 @@ TPPopup {
 							id: extraInfoImg
 							source: delegateItem.tpMessage.extraImage
 							visible: delegateItem.tpMessage.hasExtraImage
-							width: visible ? AppSettings.itemSmallHeight : 0
-							height: visible ? AppSettings.itemSmallHeight : 0
+							width: AppSettings.itemSmallHeight
+							height: width
 
 							anchors {
 								verticalCenter: parent.verticalCenter
-								left: lblTitle.right
+								right: btnFoldIcon.left
+								margins: 0
 							}
 
 							TPLabel {
@@ -294,47 +244,50 @@ TPPopup {
 						TPImage {
 							id: btnFoldIcon
 							source: delegateItem.collapsed ? "fold-up.png" : "fold-down.png"
-							visible: delegateItem.tpMessage.text.length > 0
+							visible: delegateItem.tpMessage.text.length > 0 || delegateItem.tpMessage.actionCount > 0
 							width: AppSettings.itemSmallHeight
 							height: AppSettings.itemSmallHeight
 
 							anchors {
 								top: parent.top
 								right: parent.right
+								margins: Qt.platform.os !== "android" ? 10 : 4
 							}
 						}
 
 						MouseArea {
 							anchors.fill: parent
-							onClicked: delegateItem.collapsed = !delegateItem.collapsed;
+							enabled: btnFoldIcon.enabled
+							onClicked: (mouse) => {
+								let _mouse_pos_within_widget = parent.mapToItem(parent, mouse.x, mouse.y);
+								if (_mouse_pos_within_widget.x >= msgImage.x)
+									delegateItem.collapsed = !delegateItem.collapsed;
+								else
+									messagesList.toggleExpanded(delegateItem.tpMessage.row);
+							}
 						}
-					}
+					} //headerWidget
 
 					TPLabel {
 						id: lblMessage
 						text: delegateItem.tpMessage.text
 						font: AppGlobals.smallFont
-						visible: delegateItem.collapsed
+						visible: delegateItem.collapsed && text.length > 0
 						singleLine: false
-						Layout.fillWidth: true
-						Layout.leftMargin: 10
-						Layout.rightMargin: 10
-					}
+						width: delegateItem.widthAvailable
 
-					Loader {
-						id: fileViewerLoader
-						asynchronous: true
-						active: delegateItem.tpMessage.fileOps !== null
-						visible: delegateItem.collapsed && _file_viewer
-						Layout.alignment: Qt.AlignHCenter
-						Layout.preferredWidth: _file_viewer ? _file_viewer.minimumWidth : parent.width
-						Layout.preferredHeight: _file_viewer ? _file_viewer.minimumHeight : AppSettings.itemDefaultHeight
-
-						property TPFileViewer _file_viewer: null
-						sourceComponent: TPFileViewer {
-							fileOps: delegateItem.tpMessage.fileOps
-							Component.onCompleted: fileViewerLoader._file_viewer = this;
+						anchors {
+							top: headerWidget.bottom
+							left: parent.left
+							leftMargin: delegateItem.indentation
 						}
+						property bool _text_changed: false
+						onTextChanged: {
+							if (_text_changed)
+								delegateItem.delegateHeight += height;
+							_text_changed = true;
+						}
+						Component.onCompleted: delegateItem.delegateHeight += height;
 					}
 
 					Loader {
@@ -342,77 +295,188 @@ TPPopup {
 						asynchronous: true
 						active: delegateItem.tpMessage.actionCount > 0
 						visible: delegateItem.collapsed
-						Layout.fillWidth: true
-						Layout.leftMargin: 5
-						Layout.rightMargin: 5
-						Layout.preferredHeight: active ? _layout.childrenRect.height : 0
+						width: delegateItem.widthAvailable
+						height: _place_holder_item !== null ? _place_holder_item._height : 0
 
-						property GridLayout _layout
+						anchors {
+							top: lblMessage.bottom
+							topMargin: lblMessage.visible ? lblMessage.contentHeight : - AppSettings.itemSmallHeight
+							leftMargin: delegateItem.indentation
+						}
 
-						onActiveChanged: {
-							if (active) {
+						property Item _place_holder_item: null
+
+						sourceComponent: Item {
+							id: actionsPlaceHolder
+
+							property int _height: 0
+							property int _row: 0
+							property list<int> _row_width: [0]
+							property list<Item> _items
+
+							function addItem(item: Item, index: int, total_items: int): void {
+								if (index === total_items - 1 && _row_width[_row] === 0) {
+									item.anchors.horizontalCenter = horizontalCenter;
+									if (index === 0)
+										item.anchors.verticalCenter = verticalCenter;
+									else
+										item.anchors.top = _items[index-1].bottom;
+									return;
+								}
+								if (item.width >= delegateItem.widthAvailable * 0.8) { //too big to shrink
+									_row_width.push(0);
+									++_row
+									_height += item.height;
+									if (index > 0)
+										item.anchors.top = _items[index-1].bottom;
+									else
+										item.anchors.top = top;
+									item.anchors.horizontalCenter = horizontalCenter;
+								} else {
+									if (item.width + _row_width[_row] <= delegateItem.widthAvailable * 0.9) { //this item fits on the current row
+										if (_row_width[_row] === 0) {
+											item.anchors.left = left;
+											item.anchors.leftMargin = indicator.width;
+											_height += item.height + 10;
+											if (index > 0)
+												item.anchors.top = _items[index-1].bottom;
+											else
+												item.anchors.top = top;
+										} else {
+											if (index > 0) {
+												item.anchors.left = _items[index-1].right;
+												item.anchors.top = _items[index-1].top;
+											} else {
+												item.anchors.verticalCenter = verticalCenter;
+											}
+										}
+										_row_width[_row] = item.width;
+									} else { //resize one or more items until they fit on row
+										let row_width = 0;
+										const prev_widget_width = index > 0 ? _items[index-1].width : 0;
+										let shrink_prev = false;
+										do { //resize either of the items at a time
+											row_width = _row_width[_row];
+											if (!shrink_prev) {
+												if (item.width > delegateItem.widthAvailable * 0.5) //big, but shrinkable
+													item.width *= 0.9; //shrink 10%
+												shrink_prev = index > 0;
+											} else { //shrink previous item
+												row_width -= prev_widget_width;
+												_items[index-1].width *= 0.9;
+												row_width += _items[index-1].width;
+												shrink_prev = false;
+											}
+											row_width += item.width;
+										} while (row_width > delegateItem.widthAvailable * 0.95);
+										_row_width[_row] = Math.ceil(row_width);
+										if (index > 0) {
+											item.anchors.left = _items[index-1].right;
+											item.anchors.top = _items[index-1].top;
+										} else {
+											item.anchors.verticalCenter = verticalCenter;
+										}
+
+										if (_row_width[_row] >= delegateItem.widthAvailable * 0.9) {
+											_row_width.push(0);
+											++_row;
+											_height += item.height;
+										}
+									}
+								}
+								item.anchors.margins = 5;
+							}
+
+							function setupActions(): void {
 								for (let i = 0; i < delegateItem.tpMessage.actionCount; ++i) {
 									let component, item;
-									switch (delegateItem.tpMessage.actionType()) {
+									switch (delegateItem.tpMessage.actionType(i)) {
 									case TPMessage.AT_BUTTON:
-										component = Qt.createComponent("TpQml.Widgets", TPButton, { text:
-																delegateItem.tpMessage.actionLabel(index) });
-										item = component.createObject(actionsLayout, {});
+										component = Qt.createComponent("TpQml.Widgets", TPButton);
+										item = component.createObject(actionsPlaceHolder, { text:
+																	delegateItem.tpMessage.actionLabel(i) });
 										break;
 									case TPMessage.AT_CHECKBOX:
-										component = Qt.createComponent("TpQml.Widgets", TPRadioButtonOrCheckBox, { text:
-											delegateItem.tpMessage.actionLabel(index), boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX});
-										item = component.createObject(actionsLayout, {});
+										component = Qt.createComponent("TpQml.Widgets", TPRadioButtonOrCheckBox);
+										item = component.createObject(actionsPlaceHolder, { text:
+											delegateItem.tpMessage.actionLabel(i), boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX});
 										break;
 									case TPMessage.AT_RADIO:
-										component = Qt.createComponent("TpQml.Widgets", TPRadioButtonOrCheckBox, { text:
-											delegateItem.tpMessage.actionLabel(index), boxType: TPRadioButtonOrCheckBox.TP_RADIOBOX});
-										item = component.createObject(actionsLayout, {});
+										component = Qt.createComponent("TpQml.Widgets", TPRadioButtonOrCheckBox);
+										item = component.createObject(actionsPlaceHolder, { text:
+											delegateItem.tpMessage.actionLabel(i), boxType: TPRadioButtonOrCheckBox.TP_RADIOBOX});
 										break;
 									case TPMessage.AT_NONE:
 										continue;
 									}
-									if (item)
-										actionsLayout.addItem(item, index);
-								}
-							}
-						}
-
-						sourceComponent: GridLayout {
-							id: actionsLayout
-							columns: 2
-							columnSpacing: 2
-							rowSpacing: 5
-
-							property int _row: 0
-							property int _col: 0
-							property list<int> _row_width: [0]
-							readonly property int _max_row_width: width - 10
-
-							function addItem(item: Item, index: int): void {
-								item.Layout.column = _col;
-								item.Layout.row = _row;
-								if (item.width >= _max_row_width * 0.8) { //too big to shrink
-									_row_width.push(0);
-									++_row
-									_col = 0;
-								} else {
-									if (item.width > _max_row_width * 0.5) //big, but shrinkable
-										item.width = _max_row_width * 0.5
-									_row_width[_row] += item.width;
-									++_col;
-									if (_row_width[_row] >= _max_row_width * 0.9) {
-										_row_width.push(0);
-										++_row
-										_col = 0;
+									if (item) {
+										_items.push(item);
+										actionsPlaceHolder.addItem(item, i, delegateItem.tpMessage.actionCount);
 									}
 								}
+								delegateItem.delegateHeight += _height;
 							}
 
-							Component.onCompleted: actionsLoader._layout = this;
+							function clearActions(): void {
+								for (let i = _items.length - 1; i >= 0; --i) {
+									_items[i].destroy();
+									_items.pop();
+								}
+								actionsPlaceHolder.children = 0;
+								delegateItem.delegateHeight -= _height;
+								_height = 0;
+							}
+
+							Connections {
+								target: delegateItem.tpMessage
+								function onActionsChanged(): void {
+									actionsPlaceHolder.clearActions();
+									actionsPlaceHolder.setupActions();
+								}
+								function onActionChanged(action_id: int): void {
+									actionsPlaceHolder.childAt(action_id).text = delegateItem.tpMessage.actionLabel(action_id);
+								}
+							}
+							Connections {
+								target: onlineMsgsDlg
+								function onPopupSizeChanged(w_ratio: real, h_ratio: real): void {
+									for (let i = 0; i < _items.length; ++i)
+										_items[i].width *= w_ratio;
+								}
+							}
+
+							Component.onCompleted: {
+								setupActions();
+								actionsLoader._place_holder_item = this;
+							}
 						} //sourceComponent: GridLayout
 					} //Loader: actionsLoader
-				} //contentItem: ColumnLayout
+
+					Loader {
+					id: fileViewerLoader
+					asynchronous: true
+					visible: delegateItem.collapsed
+					active: delegateItem.tpMessage.fileOps !== null
+					width: _file_viewer !== null ? _file_viewer.minimumWidth : 0
+					height: _file_viewer !== null ? _file_viewer.minimumHeight : 0
+
+					anchors {
+						top: delegateItem.tpMessage.actionCount > 0 ? actionsLoader.bottom : lblMessage.bottom
+						topMargin: AppSettings.itemDefaultHeight
+						horizontalCenter: parent.horizontalCenter
+					}
+
+					property TPFileViewer _file_viewer: null
+
+					sourceComponent: TPFileViewer {
+						fileOps: delegateItem.tpMessage.fileOps
+						Component.onCompleted: {
+							fileViewerLoader._file_viewer = this;
+							delegateItem.delegateHeight += minimumHeight + (2 * AppSettings.itemDefaultHeight);
+						}
+					}
+				}
+			} //Rectangle: delegate's background
 			} //delegate: TreeViewDelegate
 		} // TPListView: messagesList
 
@@ -477,6 +541,7 @@ TPPopup {
 	Rectangle {
 		color: AppSettings.primaryColor
 		opacity: 0.6
+		visible: !onlineMsgsDlg._minimized
 		width: AppSettings.itemLargeHeight
 		height: width
 		radius: width / 2
@@ -492,12 +557,12 @@ TPPopup {
 			imageSource: mainLayout.currentIndex !== 2 ? "add-new.png" : "revert.png"
 			width: AppSettings.itemDefaultHeight
 			height: width
-			visible: onlineMsgsDlg.fullDialogVisible
+			visible: !onlineMsgsDlg._minimized
 			anchors.centerIn: parent
 			onClicked: mainLayout.currentIndex = mainLayout.currentIndex !== 2
 														? 2 : (AppMessages.messagesModel.hasMessage ? 1 : 0);
 		}
-	}
+	} //Rectangle
 
 	function openChat(user_idx: int): void {
 		AppMessages.openChat(user_idx);

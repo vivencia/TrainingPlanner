@@ -1,8 +1,9 @@
 import QtQuick
 
 import TpQml
-import TpQml.Widgets
+import TpQml.Dialogs
 import TpQml.User
+import TpQml.Widgets
 
 TPPopup {
 	id: _dialog

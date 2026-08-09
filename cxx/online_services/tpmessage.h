@@ -17,6 +17,14 @@ QML_ELEMENT
 QML_VALUE_TYPE(TPMessage)
 
 Q_PROPERTY(int id READ id CONSTANT FINAL)
+Q_PROPERTY(int actionCount READ actionCount NOTIFY actionsChanged FINAL)
+Q_PROPERTY(int childCount READ childCount NOTIFY childCountChanged FINAL)
+Q_PROPERTY(int row READ row NOTIFY rowChanged FINAL)
+Q_PROPERTY(uint depth READ depth CONSTANT FINAL)
+Q_PROPERTY(bool sticky READ sticky WRITE setSticky NOTIFY stickyChanged BINDABLE bindableSticky FINAL)
+Q_PROPERTY(bool hasIcon READ hasIcon NOTIFY hasIconChanged BINDABLE bindableHasIcon FINAL)
+Q_PROPERTY(bool hasExtraImage READ hasExtraImage NOTIFY hasExtraImageChanged BINDABLE bindableHasExtraImage FINAL)
+Q_PROPERTY(TPMessage::MessageType type READ type CONSTANT FINAL)
 Q_PROPERTY(QString title READ title NOTIFY titleChanged BINDABLE bindableTitle FINAL)
 Q_PROPERTY(QString text READ text NOTIFY textChanged BINDABLE bindableText FINAL)
 Q_PROPERTY(QString icon READ icon NOTIFY iconChanged BINDABLE bindableIcon FINAL)
@@ -24,10 +32,7 @@ Q_PROPERTY(QString dateTime READ dateTime NOTIFY dateTimeChanged BINDABLE bindab
 Q_PROPERTY(QString extraInfo READ extraInfo NOTIFY extraInfoChanged BINDABLE bindableExtraInfo FINAL)
 Q_PROPERTY(QString extraImage READ extraImage NOTIFY extraImageChanged BINDABLE bindableExtraImage FINAL)
 Q_PROPERTY(TPFileOps* fileOps READ fileOps CONSTANT FINAL)
-Q_PROPERTY(bool sticky READ sticky WRITE setSticky NOTIFY stickyChanged BINDABLE bindableSticky FINAL)
-Q_PROPERTY(bool hasIcon READ hasIcon NOTIFY hasIconChanged BINDABLE bindableHasIcon FINAL)
-Q_PROPERTY(bool hasExtraImage READ hasExtraImage NOTIFY hasExtraImageChanged BINDABLE bindableHasExtraImage FINAL)
-Q_PROPERTY(int actionCount READ actionCount NOTIFY actionsChanged FINAL)
+Q_PROPERTY(TPMessage* parentMessage READ parentMessage CONSTANT FINAL)
 
 public:
 	enum TPMessageFields {
@@ -53,9 +58,18 @@ public:
 		AT_RADIO,
 		AT_CHECKBOX,
 	};
-	Q_ENUM(ActionType);
+	Q_ENUM(ActionType)
 
-	inline explicit TPMessage(TPMessage *parent_message = nullptr) : QObject{nullptr}, m_parentMessage{parent_message} {}
+	enum MessageType {
+		MT_PHANTON		= 1U << 0,
+		MT_TOPLEVEL		= 1U << 1,
+		MT_CHAT			= 1U << 2,
+		MT_TPMESSAGE	= 1U << 3,
+	};
+	Q_ENUM(MessageType)
+
+	inline explicit TPMessage(TPMessage *parent_message = nullptr)
+		: QObject{nullptr}, m_parentMessage{parent_message}, m_depth{parent_message ? parent_message->depth() + 1 : 0} {}
 	~TPMessage();
 
 	inline const uint childCount() const { return m_children.size(); }
@@ -72,12 +86,14 @@ public:
 	inline void setId(const uint id) { m_id = id; setObjectName(QString::number(id));}
 
 	int row() const;
+	inline uint depth() const { return m_depth; }
+
 	inline const QString &userid() const { return m_userid; }
 	inline void setUserId(QString &&userid) { m_userid = std::forward<QString>(userid);  }
 	inline void setUserId(const QString &userid) { m_userid = userid; }
 
-	inline const QLatin1StringView type() const { return m_type; }
-	inline void setType(const QLatin1StringView &type) { m_type = type; }
+	inline const MessageType type() const { return m_type; }
+	inline void setType(const MessageType type) { m_type = type; }
 
 	inline const QString &title() const { return m_title.value(); }
 	inline QBindable<QString> bindableTitle() { return &m_title; }
@@ -133,7 +149,16 @@ public:
 	int insertAction(QString &&label, const ActionType action_type, const std::function<QVariant(const QVariant &)> &func = nullptr);
 	Q_INVOKABLE inline QString actionLabel(const uint action_id) const
 	{
-		return action_id >= 0 && action_id < m_actions.count() ? m_actions.at(action_id).label : QString{};
+		return action_id < m_actions.count() ? m_actions.at(action_id).label : QString{};
+	}
+	inline void changeActionLabel(const uint action_id, QString &&new_label)
+	{
+		if (action_id < m_actions.count()) {
+			if (new_label != m_actions.at(action_id).label) {
+				m_actions[action_id].label = std::forward<QString>(new_label);
+				emit actionChanged(action_id);
+			}
+		}
 	}
 	Q_INVOKABLE inline const TPMessage::ActionType actionType(const int action_id) const
 	{
@@ -165,15 +190,20 @@ public:
 			emit actionTriggered(action_id, m_actions.at(action_id).func(data));
 	}
 
-	QVariant generalPurposeData() && { return m_generalPurposeData; }
-	const QVariant &generalPurposeData() const & { return m_generalPurposeData; }
-	void setGeneralPurposeData(QVariant &&gpd) { m_generalPurposeData = std::forward<QVariant>(gpd); }
+	inline QVariant generalPurposeData(const int key) const { return m_generalPurposeData.value(key); }
+	inline void setGeneralPurposeData(const int key, QVariant &&gpd)
+	{
+		m_generalPurposeData.insert(key, std::forward<QVariant>(gpd));
+	}
 
 signals:
 	void actionTriggered(const int action_id, const QVariant &return_value);
 	void actionEnabledChanged(const int action_id, const bool enabled);
 	void killMessage();
-
+	void actionsChanged();
+	void actionChanged(const uint action_id);
+	void childCountChanged();
+	void rowChanged();
 	void titleChanged();
 	void iconChanged();
 	void hasIconChanged();
@@ -183,7 +213,6 @@ signals:
 	void hasExtraImageChanged();
 	void dateTimeChanged();
 	void stickyChanged();
-	void actionsChanged();
 
 private:
 	Q_OBJECT_BINDABLE_PROPERTY(TPMessage, QString, m_title, &TPMessage::titleChanged)
@@ -198,8 +227,8 @@ private:
 
 	std::vector<std::unique_ptr<TPMessage>> m_children;
 	TPMessage *m_parentMessage{nullptr};
-	uint m_id{0};
-	QLatin1StringView m_type;
+	uint m_id{0}, m_depth{0};
+	MessageType m_type;
 	QString m_userid, m_encodedMessage;
 	QDateTime m_expirationTime;
 	TPFileOps *m_fileOps{nullptr};
@@ -212,6 +241,6 @@ private:
 		bool enabled{true};
 	};
 	QList<st_Action> m_actions;
-	QVariant m_generalPurposeData;
+	QHash<int,QVariant> m_generalPurposeData;
 	bool isChild(TPMessage *msg) const;
 };

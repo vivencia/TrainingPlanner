@@ -2,11 +2,13 @@ import QtQuick
 import QtQuick.Layouts
 
 import TpQml
-import TpQml.Widgets
+import TpQml.Dialogs
 
 TPPopup {
 	id: _passwdDlg
 	keepAbove: true
+	showTitleBar: true
+	showCloseButton: true
 	dim: true
 	width: AppSettings.pageWidth * 0.8
 	height: mainLayout.childrenRect.height * 1.1 + titleBar.height
@@ -25,8 +27,8 @@ TPPopup {
 
 		anchors {
 			fill: _passwdDlg.titleBar
-			leftMargin: _passwdDlg.btnClose.width
-			rightMargin: _passwdDlg.btnClose.width
+			leftMargin: _passwdDlg.titleBar.width
+			rightMargin: _passwdDlg.titleBar.width
 		}
 	}
 

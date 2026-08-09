@@ -92,7 +92,7 @@ OSInterface::OSInterface(QObject *parent) : QObject{parent}
 		appOnlineServices()->userLogout(111111);
 	});
 	connect(appOnlineServices(), &TPOnlineServices::serverStatusChanged, this, [this]
-									(const uint online_status, const QString &server_address, const int request_id) {
+							(const uint online_status, const QString &server_address, const int request_id) {
 		localServerProcessResult(online_status);
 	}, Qt::QueuedConnection);
 #ifdef Q_OS_ANDROID
@@ -694,9 +694,8 @@ void OSInterface::startLocalServerProcess()
 				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR, std::move(
 					appUtils()->string_strings({"Linux TP Server"_L1, "Error executing init_script("_L1
 													% QString::number(exit_code) % ')'}, record_separator)));
-			} else {
-				serverProcessFinished(m_severScriptProc, exit_code);
 			}
+			serverProcessFinished(m_severScriptProc, exit_code);
 			m_severScriptProc->close();
 			m_commandQueue.removeFirst();
 			if (!m_commandQueue.isEmpty()) {

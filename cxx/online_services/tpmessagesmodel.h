@@ -16,8 +16,8 @@ public:
 	explicit TPMessagesModel(QObject *parent = nullptr);
 
 	inline TPMessage *rootMessage() const { return m_rootMessage.get(); }
-	TPMessage *findMessage(int field, const QVariant &field_value, const QLatin1StringView& type) const;
-	QList<TPMessage*> findMessages(int field, const QVariant &field_value, const QLatin1StringView& type) const;
+	TPMessage *findMessage(int field, const QVariant &field_value, const int type) const;
+	QList<TPMessage*> findMessages(int field, const QVariant &field_value, const int type) const;
 	void insertMessage(TPMessage *message, int row = -1);
 	void removeMessage(TPMessage *message);
 
@@ -39,7 +39,7 @@ signals:
 
 private:
 	QHash<int, QByteArray> m_roleNames;
-	std::unique_ptr<TPMessage> m_rootMessage;
+	std::unique_ptr<TPMessage> m_rootMessage, m_phantonMessage;
 
 	TPMessage *getItem(const QModelIndex &index) const;
 	QModelIndex indexFromItem(TPMessage *message) const;

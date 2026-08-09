@@ -342,7 +342,7 @@ std::pair<TPBool,int> TPOnlineServices::sendFileToServer(const TPFilePath &tp_fi
 		QFile *upload_file{appUtils()->openFile(tp_filename.toString(), true, false, false, false, false)};
 		if (upload_file) {
 			auto conn{std::make_shared<QMetaObject::Connection>()};
-			*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
+			*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,upload_file,requestid,conn,remove_local_file]
 									(const int request_id, const int ret_code, const QString &ret_string) {
 				if (request_id == requestid) {
 					disconnect(*conn);
@@ -690,7 +690,7 @@ void TPOnlineServices::sendFile(const int requestid, const TPFilePath &tp_filena
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
 									(const int request_id, const int ret_code, const QString &ret_string) {
-		if (request_id == requestid) {
+		if (request_id == requestid * -1) {
 			disconnect(*conn);
 			if (ret_code == TP_RET_CODE_SUCCESS) {
 				if (remoteFileUpToDate(ret_string, file->fileName())) { //remote file is up to date. Don't send anything
@@ -712,7 +712,7 @@ void TPOnlineServices::sendFile(const int requestid, const TPFilePath &tp_filena
 		"owner"_L1, tp_filename.targetUser().isEmpty() ? tp_filename.ownerUser() : tp_filename.targetUser(),
 		"target"_L1, tp_filename.targetUser().isEmpty() ? QString{} : tp_filename.ownerUser(),
 		"subdir"_L1, tp_filename.subdirs())};
-	makeNetworkRequest(requestid, url, true);
+	makeNetworkRequest(requestid * -1, url, true);
 }
 
 void TPOnlineServices::getFile(const int requestid, const TPFilePath &tp_filename, bool check_ctime_first)

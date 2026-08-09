@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import TpQml
+import TpQml.Dialogs
 import TpQml.User
 import TpQml.Widgets
 

@@ -4,7 +4,10 @@ import QtQuick
 import QtQuick.Controls
 
 import TpQml
+import TpQml.Widgets
 import TpQml.Pages
+
+import "./TPPopupComponents"
 
 Popup {
 	id: _control
@@ -17,8 +20,18 @@ Popup {
 //public:
 	property TPPage parentPage
 	property bool keepAbove: false
+
+	signal popupClosed(popup: QtObject);
+	signal keyboardNumberPressed(key1: int, key2: int);
+	signal keyboardEnterPressed();
+	signal closeActionExeced(btn_id: int);
+	signal mouseItemClicked(mouse: MouseEvent);
+	signal popupSizeChanged(w_ratio: real, h_ratio: real);
+
+//protected:
 	property bool showTitleBar: false
-	property bool closeButtonVisible: showTitleBar
+	property bool showCloseButton: showTitleBar
+	property bool resizeable: false
 	property bool enableEffects: false
 	property bool lockMovingToYAxis: false
 	property bool showBorder: false
@@ -27,27 +40,23 @@ Popup {
 	property bool canSlideToClose: false
 	property bool useAlternateBackground: false
 	property bool visibilityCondition: true
+	property bool savePopupState: false
+	property bool open_in_window: false
+	property bool show_minimize_button: true
+	property bool show_maximize_button: true
 	property int showBehavior: TPPopup.PARENT_PAGE_ACTIVE
 	property int backgroundRotation: 0
-	property string backGroundImage
-	property string configFieldName
-	property string defaultBackgroundColor: AppSettings.paneBackgroundColor
-	property point defaultCoordinates
-	property TPBackRec backgroundRec
-	property Item mouseItem
-
-	signal popupClosed(popup: QtObject);
-	signal keyboardNumberPressed(key1: int, key2: int);
-	signal keyboardEnterPressed();
-	signal closeActionExeced(btn_id: int);
-	signal mouseItemClicked(mouse: MouseEvent);
-
-//protected:
-	property TPButton btnClose
-	property TPBackRec titleBar
-	property bool open_in_window: false
-	property Item reference_widget: null
 	property int show_position: Qt.AlignCenter //Use Qt.AlignBaseline when position(x,y) is retrieved from a config file
+	property point defaultCoordinates
+	property size minimized_size: Qt.size(titleBar !== null ? titleBar.width : AppSettings.itemDefaultHeight, titleBarHeight)
+	property size normal_size
+	property string backGroundImage
+	property string defaultBackgroundColor: AppSettings.paneBackgroundColor
+	property string configFieldName: objectName
+	property Item mouseItem
+	property Item reference_widget: null
+	property TPBackRec backgroundRec
+	property TPBackRec titleBar: null
 	property TPMouseArea mouse_area: null
 
 	enum ShowBehavior { PARENT_PAGE_ACTIVE, ALWAYS_VISIBLE }
@@ -58,9 +67,16 @@ Popup {
 	property bool _hidden: false
 	property bool _reopen: false
 	property bool _can_reopen: false
+	//not maximized is de default state, i. e. normal widget size. The default is also not minimized. Popup's
+	//width and height are uninitialized until open() is called
+	readonly property bool _maximized: height >= AppSettings.pageHeight && width >= AppSettings.pageWidth
+	readonly property bool _minimized: height <= minimized_size.height || width <= minimized_size.width
 	property int _start_y_pos; property int _end_y_pos
 	property int _start_x_pos; property int _end_x_pos
 	property int _key_pressed
+	property int _normal_width: 0
+	property int _normal_height: 0
+
 	readonly property Transition _transition_in: !_use_alternate_transition ? (_use_burst_transition ? burstOutTransition : slideInTransition) : alternateCloseTransition
 	readonly property Transition _transition_out: !_use_alternate_transition ? (_use_burst_transition ? burstInTransition : slideOutTransition) : alternateCloseTransition
 	readonly property int titleBarHeight: AppSettings.itemDefaultHeight + 5
@@ -71,6 +87,12 @@ Popup {
 	onClosed: {
 		if (!_hidden && (modal || keepAbove))
 			popupClosed(this);
+	}
+
+	onResizeableChanged: {
+		if (showTitleBar !== resizeable)
+			showTitleBar = resizeable;
+		showCloseButton = resizeable;
 	}
 
 	onMouseItemChanged: createMouseArea();
@@ -99,8 +121,7 @@ Popup {
 					if (keyPressTimer.running) {
 						keyPressTimer.stop();
 						keyboardNumberPressed(event.key, _key_pressed);
-					}
-					else {
+					} else {
 						_key_pressed = event.key;
 						keyboardNumberPressed(event.key, -1);
 						keyPressTimer.start();
@@ -150,34 +171,12 @@ Popup {
 			right: parent.right
 		}
 
-		sourceComponent: TPBackRec {
-			radius: 8
-			opacity: 0.8
-			height: _control.titleBarHeight
-			visible: _control.showTitleBar
-
+		sourceComponent: TitleBar {
+			parentPopup: _control
 			Component.onCompleted: {
 				_control.titleBar = this;
 				if (!_control.mouseItem)
 					_control.mouseItem = this;
-			}
-
-			TPButton {
-				imageSource: "close.png"
-				hasDropShadow: false
-				visible: _control.closeButtonVisible
-				width: AppSettings.itemDefaultHeight
-				height: width
-				z: 2
-
-				anchors {
-					verticalCenter: parent.verticalCenter
-					right: parent.right
-					rightMargin: 5
-				}
-
-				onClicked: _control.closePopup(-1);
-				Component.onCompleted: _control.btnClose = this;
 			}
 		}
 	} //titleBarLoader
@@ -332,8 +331,8 @@ Popup {
 	}
 
 	function mouseAreaMovingFinished(x: int, y: int): void {
-		if (_control.configFieldName.length > 0)
-			AppSettings.setCustomValue(_control.configFieldName, Qt.point(x, y));
+		if (savePopupState > 0)
+			AppSettings.setCustomValue(configFieldName + ".pos", Qt.point(x, y));
 	}
 
 	function mouseAreaPressed(mouse: MouseEvent): void {
@@ -365,9 +364,14 @@ Popup {
 	}
 
 	function showInWindow(): void {
-		const saved_pos = AppSettings.getCustomValue(configFieldName, defaultCoordinates);
-		x = saved_pos.x;
-		y = saved_pos.y;
+		if (savePopupState) {
+			const saved_pos = AppSettings.getCustomValue(configFieldName + ".pos", defaultCoordinates);
+			x = _end_x_pos = saved_pos.x;
+			y = _end_y_pos = saved_pos.y;
+		} else {
+			x = _end_x_pos = defaultCoordinates.x;
+			y = _end_y_pos = defaultCoordinates.y;
+		}
 		open();
 	}
 
@@ -447,6 +451,18 @@ Popup {
 	}
 
 	function tpopen__(): void {
+		if (savePopupState) {
+			let saved_size = AppSettings.getCustomValue(configFieldName + ".size", normal_size);
+			width = saved_size.width;
+			height = saved_size.height;
+			if (!_minimized && !_maximized) {
+				_normal_width = width;
+				_normal_height = height;
+			} else {
+				_normal_width = normal_size.width;
+				_normal_height = normal_size.height;
+			}
+		}
 		_can_reopen = false;
 		if (show_position === Qt.AlignBaseline) {
 			showInWindow();

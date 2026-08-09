@@ -4,17 +4,17 @@
 <context>
     <name>AllUsers</name>
     <message>
-        <location filename="../qml/User/AllUsers.qml" line="88"/>
+        <location filename="../qml/User/AllUsers.qml" line="90"/>
         <source>Switch</source>
         <translation>Alternar</translation>
     </message>
     <message>
-        <location filename="../qml/User/AllUsers.qml" line="101"/>
+        <location filename="../qml/User/AllUsers.qml" line="103"/>
         <source>Remove</source>
         <translation>Remover</translation>
     </message>
     <message>
-        <location filename="../qml/User/AllUsers.qml" line="114"/>
+        <location filename="../qml/User/AllUsers.qml" line="116"/>
         <source>New user</source>
         <translation>Novo usuário</translation>
     </message>
@@ -166,12 +166,12 @@
 <context>
     <name>ChatWindow</name>
     <message>
-        <location filename="../qml/User/ChatWindow.qml" line="361"/>
+        <location filename="../qml/User/ChatWindow.qml" line="286"/>
         <source>Remove for myself only</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/User/ChatWindow.qml" line="419"/>
+        <location filename="../qml/User/ChatWindow.qml" line="344"/>
         <source>Remove as well for </source>
         <translation type="unfinished"></translation>
     </message>
@@ -1102,17 +1102,17 @@
 <context>
     <name>FirstTimeDialog</name>
     <message>
-        <location filename="../qml/Dialogs/FirstTimeDialog.qml" line="105"/>
+        <location filename="../qml/Dialogs/FirstTimeDialog.qml" line="106"/>
         <source>Previous</source>
         <translation>Anterior</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/FirstTimeDialog.qml" line="123"/>
+        <location filename="../qml/Dialogs/FirstTimeDialog.qml" line="124"/>
         <source>Next</source>
         <translation>Próximo</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/FirstTimeDialog.qml" line="123"/>
+        <location filename="../qml/Dialogs/FirstTimeDialog.qml" line="124"/>
         <source>Conclude</source>
         <translation>Concluir</translation>
     </message>
@@ -1564,22 +1564,22 @@
 <context>
     <name>OnlineMessages</name>
     <message>
-        <location filename="../qml/Dialogs/OnlineMessages.qml" line="126"/>
+        <location filename="../qml/Dialogs/OnlineMessages.qml" line="75"/>
         <source>Messages</source>
-        <translation>Mensagens</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OnlineMessages.qml" line="164"/>
+        <location filename="../qml/Dialogs/OnlineMessages.qml" line="101"/>
         <source>No messages</source>
-        <translation>Nenhuma mensagem</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OnlineMessages.qml" line="458"/>
+        <location filename="../qml/Dialogs/OnlineMessages.qml" line="522"/>
         <source>Chat</source>
         <translation type="unfinished">Conversar</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OnlineMessages.qml" line="466"/>
+        <location filename="../qml/Dialogs/OnlineMessages.qml" line="530"/>
         <source>Send message</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1623,12 +1623,12 @@
 <context>
     <name>PasswordDialog</name>
     <message>
-        <location filename="../qml/Dialogs/PasswordDialog.qml" line="91"/>
+        <location filename="../qml/Dialogs/PasswordDialog.qml" line="92"/>
         <source>Save password</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PasswordDialog.qml" line="115"/>
+        <location filename="../qml/Dialogs/PasswordDialog.qml" line="116"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>
@@ -2072,22 +2072,22 @@
 <context>
     <name>SendFileToDialog</name>
     <message>
-        <location filename="../qml/Dialogs/SendFileToDialog.qml" line="46"/>
+        <location filename="../qml/Dialogs/SendFileToDialog.qml" line="47"/>
         <source>Send file to...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/SendFileToDialog.qml" line="63"/>
+        <location filename="../qml/Dialogs/SendFileToDialog.qml" line="64"/>
         <source>Message:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/SendFileToDialog.qml" line="114"/>
+        <location filename="../qml/Dialogs/SendFileToDialog.qml" line="115"/>
         <source>Send directly</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/SendFileToDialog.qml" line="133"/>
+        <location filename="../qml/Dialogs/SendFileToDialog.qml" line="134"/>
         <source>Send via chat</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2222,12 +2222,12 @@
 <context>
     <name>TPBalloonTip</name>
     <message>
-        <location filename="../qml/Widgets/TPBalloonTip.qml" line="24"/>
+        <location filename="../qml/Widgets/TPBalloonTip.qml" line="25"/>
         <source>Yes</source>
         <translation>Sim</translation>
     </message>
     <message>
-        <location filename="../qml/Widgets/TPBalloonTip.qml" line="25"/>
+        <location filename="../qml/Widgets/TPBalloonTip.qml" line="26"/>
         <source>No</source>
         <translation>Não</translation>
     </message>
@@ -2389,72 +2389,73 @@
 <context>
     <name>TPMessagesManager</name>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="213"/>
-        <source>Send Message</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="218"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="246"/>
         <source>Clear</source>
         <translation type="unfinished">Limpar</translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="225"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="252"/>
         <source>Include chat</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="100"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="111"/>
         <source>Success!</source>
         <translation type="unfinished">Sucesso!</translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="100"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="111"/>
         <source>Error!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="101"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="112"/>
         <source>Message sent to</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="101"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="112"/>
         <source>Try again. Could not sent message to </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="82"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="88"/>
         <source>You have received a file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="82"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="88"/>
         <source>You have a message</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="86"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="94"/>
         <source>Dismiss</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="272"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="235"/>
+        <source>New message</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="240"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="299"/>
         <source>Open chat</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="276"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="303"/>
         <source>Clear chat</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="210"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="221"/>
         <source>Unknown contact</source>
         <translation>Contato desconhecido</translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="268"/>
+        <location filename="../cxx/online_services/tpmessagesmanager.cpp" line="295"/>
         <source>Chat</source>
         <translation>Conversar</translation>
     </message>
@@ -2761,17 +2762,17 @@
 <context>
     <name>TimePicker</name>
     <message>
-        <location filename="../qml/Dialogs/TimePicker.qml" line="266"/>
+        <location filename="../qml/Dialogs/TimePicker.qml" line="267"/>
         <source>Now</source>
         <translation>Agora</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TimePicker.qml" line="484"/>
+        <location filename="../qml/Dialogs/TimePicker.qml" line="485"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TimePicker.qml" line="498"/>
+        <location filename="../qml/Dialogs/TimePicker.qml" line="499"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
@@ -2779,47 +2780,47 @@
 <context>
     <name>TimerDialog</name>
     <message>
-        <location filename="../qml/Dialogs/TimerDialog.qml" line="125"/>
+        <location filename="../qml/Dialogs/TimerDialog.qml" line="126"/>
         <source>Hours</source>
         <translation>Horas</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TimerDialog.qml" line="186"/>
+        <location filename="../qml/Dialogs/TimerDialog.qml" line="185"/>
         <source>Minutes</source>
         <translation>Minutos</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TimerDialog.qml" line="242"/>
+        <location filename="../qml/Dialogs/TimerDialog.qml" line="241"/>
         <source>Seconds</source>
         <translation>Segundos</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TimerDialog.qml" line="55"/>
+        <location filename="../qml/Dialogs/TimerDialog.qml" line="56"/>
         <source>Stopwatch</source>
         <translation>Cronômetro</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TimerDialog.qml" line="295"/>
+        <location filename="../qml/Dialogs/TimerDialog.qml" line="294"/>
         <source>Start</source>
         <translation>Iniciar</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TimerDialog.qml" line="295"/>
+        <location filename="../qml/Dialogs/TimerDialog.qml" line="294"/>
         <source>Pause</source>
         <translation>Pausar</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TimerDialog.qml" line="295"/>
+        <location filename="../qml/Dialogs/TimerDialog.qml" line="294"/>
         <source>Continue</source>
         <translation>Continuar</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TimerDialog.qml" line="310"/>
+        <location filename="../qml/Dialogs/TimerDialog.qml" line="309"/>
         <source>Reset</source>
         <translation>Reiniciar</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TimerDialog.qml" line="320"/>
+        <location filename="../qml/Dialogs/TimerDialog.qml" line="319"/>
         <source>Done</source>
         <translation>Feito</translation>
     </message>
@@ -2827,32 +2828,32 @@
 <context>
     <name>UserChangePassword</name>
     <message>
-        <location filename="../qml/User/UserChangePassword.qml" line="23"/>
+        <location filename="../qml/User/UserChangePassword.qml" line="25"/>
         <source>Change password</source>
         <translation>Mudar senha</translation>
     </message>
     <message>
-        <location filename="../qml/User/UserChangePassword.qml" line="47"/>
+        <location filename="../qml/User/UserChangePassword.qml" line="49"/>
         <source>Current password: </source>
         <translation>Senha atual: </translation>
     </message>
     <message>
-        <location filename="../qml/User/UserChangePassword.qml" line="61"/>
+        <location filename="../qml/User/UserChangePassword.qml" line="63"/>
         <source>New password: </source>
         <translation>Nova senha: </translation>
     </message>
     <message>
-        <location filename="../qml/User/UserChangePassword.qml" line="75"/>
+        <location filename="../qml/User/UserChangePassword.qml" line="77"/>
         <source>Confirm new password: </source>
         <translation>Confirme a nova senha: </translation>
     </message>
     <message>
-        <location filename="../qml/User/UserChangePassword.qml" line="90"/>
+        <location filename="../qml/User/UserChangePassword.qml" line="92"/>
         <source>Change</source>
         <translation>Mudar</translation>
     </message>
     <message>
-        <location filename="../qml/User/UserChangePassword.qml" line="104"/>
+        <location filename="../qml/User/UserChangePassword.qml" line="106"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>

@@ -12,13 +12,12 @@ TPPopup {
 	objectName: "chatWindow"
 	id: _chatWindow
 	keepAbove: true
-	showTitleBar: true
-	closeButtonVisible: true
 	open_in_window: true
-	keepOpenOnPageDeactivation: AppSettings.showOnlineMessagesDialog
+	showBehavior: AppSettings.showOnlineMessagesDialog
 	backGroundImage: ":/images/backgrounds/backimage-chat.jpg"
-	width: normalWidth
-	height: normalHeight
+	defaultSize: Qt.size(AppSettings.pageWidth * 0.8, AppSettings.pageWidth * 0.8)
+	resizeable: true
+	savePopupState: true
 
 //public:
 	required property ChatModel chatManager
@@ -26,15 +25,7 @@ TPPopup {
 	signal stopMedia()
 
 //private:
-	readonly property int defaultWidth: AppSettings.pageWidth * 0.8
 	readonly property bool canViewNewMessages: messagesList.vBar.position + messagesList.vBar.size >= 1
-
-	property bool maximized: false
-	property bool minimized: false
-	property int normalWidth: defaultWidth
-	property int normalHeight: AppSettings.pageHeight * 0.5
-	property int normalX: (AppSettings.pageWidth - width) / 2
-	property int normalY: (AppSettings.pageHeight - height) / 2
 	property int nMedia: 0
 
 	onOpened: {
@@ -82,72 +73,6 @@ TPPopup {
 			leftMargin: 5
 			right: btnMinimizeWindow.left
 		}
-	}
-
-	TPButton {
-		id: btnMaxRestoreWindow
-		imageSource: _chatWindow.maximized ? "restore.png" : "maximize.png"
-		hasDropShadow: false
-		width: AppSettings.itemSmallHeight
-		height: width
-		z: 2
-
-		anchors {
-			top: parent.top
-			topMargin: 8
-			right: parent.right
-			rightMargin: AppSettings.itemDefaultHeight + 5
-		}
-
-		onClicked: _chatWindow.maximizeOrRestoresWindow();
-	}
-
-	function  maximizeOrRestoresWindow(): void {
-		if (minimized || maximized) {
-			_chatWindow.x = normalX;
-			_chatWindow.y = normalY;
-			_chatWindow.width = normalWidth;
-			_chatWindow.height = normalHeight;
-			minimized = maximized = false;
-		}
-		else {
-			normalX = _chatWindow.x;
-			normalY = _chatWindow.y;
-			normalWidth = _chatWindow.width;
-			normalHeight = _chatWindow.height;
-			_chatWindow.x = 0;
-			_chatWindow.y = 0;
-			_chatWindow.width = AppSettings.pageWidth;
-			_chatWindow.height = AppSettings.pageHeight;
-			maximized = true;
-		}
-	}
-
-	TPButton {
-		id: btnMinimizeWindow
-		imageSource: "minimize.png"
-		hasDropShadow: false
-		enabled: !_chatWindow.minimized
-		width: AppSettings.itemSmallHeight
-		height: width
-		z: 2
-
-		anchors {
-			verticalCenter: btnMaxRestoreWindow.verticalCenter
-			right: btnMaxRestoreWindow.left
-			rightMargin: 2
-		}
-
-		onClicked: _chatWindow.minimizeWindow();
-	}
-
-	function minimizeWindow(): void {
-		normalWidth = maximized ? _chatWindow.width - 10 : _chatWindow.width;
-		normalHeight = maximized ? _chatWindow.height - 10 : _chatWindow.height;
-		_chatWindow.width = defaultWidth;
-		_chatWindow.height = titleBar.height;
-		minimized = true;
-		maximized = false;
 	}
 
 	TPListView {
@@ -519,47 +444,6 @@ TPPopup {
 
 			onClicked: _chatWindow.chatManager.createNewMessage(txtMessage.contentsText(), "");
 		} //TPButton
-
-		TPImage {
-			id: imgResize
-			source: "resize-window.png"
-			dropShadow: false
-			width: AppSettings.itemSmallHeight * 0.6
-			height: width
-			visible: !_chatWindow.maximized && !_chatWindow.minimized
-			z: 1
-
-			anchors {
-				right: parent.right
-				rightMargin: -5
-				bottom: parent.bottom
-				bottomMargin: -10
-			}
-
-			MouseArea {
-				enabled: parent.visible
-				anchors.fill: parent
-
-				property bool canDrag: false
-				property int startX
-				property int startY
-
-				onPressed: (mouse) => {
-					canDrag = true;
-					startX = mouse.x;
-					startY = mouse.y;
-				}
-				onReleased: canDrag = false;
-				onPositionChanged: (mouse) => {
-					if (canDrag) {
-						const deltaX = mouse.x - startX
-						_chatWindow.normalWidth += deltaX;
-						const deltaY = mouse.y - startY
-						_chatWindow.normalHeight += deltaY;
-					}
-				}
-			}
-		} //MouseArea
 	} //Frame frmFooter
 
 	function postSendingActions(): void {

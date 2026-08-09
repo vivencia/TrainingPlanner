@@ -124,9 +124,10 @@ TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QO
 			switch (field) {
 			case DBUserModel::USER_FIELD_NAME: emit interlocutorNameChanged(); break;
 			case DBUserModel::USER_FIELD_AVATAR: emit avatarIconChanged(); break;
+			case USER_MODIFIED_REMOVED: m_userIdx = -1; break; //TODO interlocutor removed
 			}
 		}
-		else if (user_idx == 0 && field == USER_MODIFIED_REMOVED)
+		else if (user_idx < m_userIdx && field == USER_MODIFIED_REMOVED) //just update member to the new user idx
 			m_userIdx = appUserModel()->userIdxFromFieldValue(DBUserModel::USER_FIELD_ID, m_otherUserId);
 	});
 

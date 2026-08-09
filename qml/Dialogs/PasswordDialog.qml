@@ -1,8 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
 
-
 import TpQml
+import TpQml.Dialogs
 import TpQml.Widgets
 
 TPPopup {
@@ -37,6 +37,7 @@ TPPopup {
 		else
 			passwordAcquired(false, -1, "", false);
 	}
+
 	ColumnLayout {
 		id: mainLayout
 		spacing: 10
@@ -53,7 +54,7 @@ TPPopup {
 			text: _passwdDlg.title
 			horizontalAlignment: Text.AlignHCenter
 			visible: _passwdDlg.title.length > 0
-			Layout.preferredWidth: parent.width - _passwdDlg.btnClose.width - 5
+			Layout.preferredWidth: parent.width - _passwdDlg.titleBar.titleBarButtons.width
 		}
 
 		RowLayout {

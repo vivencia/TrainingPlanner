@@ -15,6 +15,12 @@
 #include <QQuickWindow>
 #include <QTimer>
 
+enum MessageExtraData {
+	MED_NEW_TPMESSAGES,
+	MED_NEW_CHATMESSAGES,
+	MED_CLEAR_CHAT,
+};
+
 TPMessagesManager *TPMessagesManager::_appMessagesManager{nullptr};
 
 inline decltype(auto) chatID(const QString &userid)
@@ -68,13 +74,13 @@ void TPMessagesManager::startMessagesPolling(const QString &userid)
 void TPMessagesManager::newTextMessage(const QString &encoded_message)
 {
 	QString userid{std::move(appUtils()->encodedMessageFieldValue(encoded_message, TPUtils::EF_SENDER))};
-	TPMessage *text_msg{m_messagesModel->findMessage(TPMessage::FIELD_USERID, userid, TPUtils::tpmessage_prefix)};
+	TPMessage *text_msg{m_messagesModel->findMessage(TPMessage::FIELD_USERID, userid, TPMessage::MT_TPMESSAGE)};
 	if (!text_msg) {
 		const QString &c_time{appUtils()->encodedMessageFieldValue(encoded_message, TPUtils::EF_CTIME)};
 		text_msg = new TPMessage{topLevelUserMessage(userid)};
 		text_msg->setId(fnv1a_hash(userid % c_time));
 		text_msg->setUserId(std::move(userid));
-		text_msg->setType(TPUtils::tpmessage_prefix);
+		text_msg->setType(TPMessage::MT_TPMESSAGE);
 		text_msg->setDateTime(std::move(appUtils()->dateTimeFromString(c_time)));
 		text_msg->setExpiration(std::move(appUtils()->dateTimeFromString(
 			appUtils()->encodedMessageFieldValue(encoded_message, TPUtils::EF_EXP_TIME))));
@@ -83,10 +89,15 @@ void TPMessagesManager::newTextMessage(const QString &encoded_message)
 		text_msg->setIcon(std::move("send-message"_L1));
 		text_msg->setText(std::move(appUtils()->encodedMessageFieldValue(encoded_message, TPUtils::EF_TEXT)));
 		text_msg->setSticky(false);
+		setTotalNewMessages(text_msg->parentMessage(), MED_NEW_TPMESSAGES,
+							text_msg->parentMessage()->generalPurposeData(MED_NEW_TPMESSAGES).toInt() + 1);
 		text_msg->insertAction(tr("Dismiss"), TPMessage::AT_BUTTON, [this,text_msg] (const QVariant &) -> QVariant {
 			removeMessage(text_msg);
 			return QVariant{};
 		});
+		//killMessage is emitted either when the message expires or when the delete button on the
+		//message's TPFileOps is triggered
+		connect(text_msg, &TPMessage::killMessage, this, [this,text_msg] () { removeMessage(text_msg); });
 		m_messagesModel->insertMessage(text_msg);
 		emit messagesModelChanged();
 	}
@@ -187,7 +198,7 @@ void TPMessagesManager::openChatWindow(TPChat *chat_manager)
 void TPMessagesManager::openChat(const uint user_idx)
 {
 	QString userid{appUserModel()->userId(user_idx)};
-	TPMessage *chat_msg{m_messagesModel->findMessage(TPMessage::FIELD_USERID, userid, TPUtils::chatmessage_prefix)};
+	TPMessage *chat_msg{m_messagesModel->findMessage(TPMessage::FIELD_USERID, userid, TPMessage::MT_CHAT)};
 	if (!chat_msg)
 		createChatMessage(std::move(userid), false);
 	openChatWindow(m_chatsList.value(userid)->chat);
@@ -200,31 +211,47 @@ void TPMessagesManager::openNewMessageDialog(const uint user_idx)
 
 TPMessage *TPMessagesManager::topLevelUserMessage(const QString &userid)
 {
-	TPMessage *top_level_msg{m_messagesModel->findMessage(TPMessage::FIELD_USERID, userid, tp_toplevel_message)};
+	TPMessage *top_level_msg{m_messagesModel->findMessage(TPMessage::FIELD_USERID, userid, TPMessage::MT_TOPLEVEL)};
 	if (!top_level_msg) {
-		const int user_idx{appUserModel()->userIdxFromFieldValue(DBUserModel::USER_FIELD_ID, userid)};
+		const int useridx{appUserModel()->userIdxFromFieldValue(DBUserModel::USER_FIELD_ID, userid)};
 		top_level_msg = new TPMessage{m_messagesModel->rootMessage()};
 		top_level_msg->setUserId(userid);
-		top_level_msg->setObjectName("Top level for user " + userid);
-		top_level_msg->setType("topLevel"_L1);
-		top_level_msg->setTitle(std::move(user_idx != -1 ? appUserModel()->userName(user_idx) : tr("Unknown contact")));
-		top_level_msg->setIcon(std::move(user_idx != -1 ? appUserModel()->avatar(user_idx) : "unknown-user"));
+		//top_level_msg->setObjectName("Top level for user " + userid);
+		top_level_msg->setType(TPMessage::MT_TOPLEVEL);
+		top_level_msg->setTitle(std::move(useridx != -1 ? appUserModel()->userName(useridx) : tr("Unknown contact")));
+		top_level_msg->setIcon(std::move(useridx != -1 ? appUserModel()->avatar(useridx) : "unknown-user"));
+		top_level_msg->setExtraImage(std::move("new-messages"_L1));
+		top_level_msg->setExtraInfo(std::move("0"_L1));
 		if (userid != tpsystem_userid) {
-			top_level_msg->insertAction(std::move(tr("Send Message")), TPMessage::AT_BUTTON,
-					[this,top_level_msg,user_idx] (const QVariant &data) -> QVariant {
-						openNewMessageDialog(user_idx);
+			connect(appUserModel(), &DBUserModel::userModified, this, [this,useridx,top_level_msg]
+																(const uint user_idx, const uint field) {
+				if (user_idx == useridx) {
+					if (field == DBUserModel::USER_FIELD_AVATAR)
+						top_level_msg->setIcon(appUserModel()->avatar(useridx));
+					else if (field == DBUserModel::USER_FIELD_NAME)
+						top_level_msg->setTitle(appUserModel()->userName(useridx));
+				}
+			});
+			top_level_msg->insertAction(std::move(tr("New message")), TPMessage::AT_BUTTON,
+					[this,top_level_msg,useridx] (const QVariant &data) -> QVariant {
+						openNewMessageDialog(useridx);
 						return QVariant{};
 					});
+			top_level_msg->insertAction(std::move(tr("Open chat")), TPMessage::AT_BUTTON,
+					[this,top_level_msg,useridx] (const QVariant &data) -> QVariant {
+						openChat(useridx);
+						return QVariant{};
+					});
+			//Clear only *clears* the view, it does not empty a chat, nor removes messages from the server nor deletes files
 			top_level_msg->insertAction(std::move(tr("Clear")), TPMessage::AT_BUTTON,
 					[this,userid,top_level_msg] (const QVariant &data) -> QVariant {
-						removeChildrenMessages(top_level_msg, top_level_msg->generalPurposeData().toBool()
-									   ? QLatin1StringView{}
-									   : TPUtils::chatmessage_prefix);
+						removeChildrenMessages(top_level_msg, top_level_msg->generalPurposeData(MED_CLEAR_CHAT).toBool()
+														? TPMessage::MT_TOPLEVEL : TPMessage::MT_TPMESSAGE);
 						return QVariant{};
 					});
 			top_level_msg->insertAction(tr("Include chat"), TPMessage::AT_CHECKBOX,
 					[this,userid,top_level_msg] (const QVariant &data) -> QVariant {
-						top_level_msg->setGeneralPurposeData(data.toBool());
+						top_level_msg->setGeneralPurposeData(MED_CLEAR_CHAT, data.toBool());
 						return QVariant{};
 					});
 		}
@@ -258,12 +285,12 @@ void TPMessagesManager::parseNewChatMessages(const QString &encoded_messages)
 
 TPChat *TPMessagesManager::createChatMessage(QString &&userid, const bool check_unread_messages)
 {
-	TPMessage *chat_msg{m_messagesModel->findMessage(TPMessage::FIELD_USERID, userid, TPUtils::chatmessage_prefix)};
+	TPMessage *chat_msg{m_messagesModel->findMessage(TPMessage::FIELD_USERID, userid, TPMessage::MT_CHAT)};
 	if (!chat_msg) {
 		TPMessage *chat_message{new TPMessage{topLevelUserMessage(userid)}};
 		chat_message->setId(chatID(userid));
 		chat_message->setUserId(std::forward<QString>(userid));
-		chat_message->setType(TPUtils::chatmessage_prefix);
+		chat_message->setType(TPMessage::MT_CHAT);
 		chat_message->setDateTime(std::move(QDateTime::currentDateTime()));
 		chat_message->setTitle(std::move(tr("Chat")));
 		chat_message->setIcon(std::move("chat_"_L1));
@@ -283,37 +310,37 @@ TPChat *TPMessagesManager::createChatMessage(QString &&userid, const bool check_
 		});
 
 		TPChat *new_chat{new TPChat{userid, check_unread_messages, this}};
-		connect(new_chat, &TPChat::interlocutorNameChanged, this, [this,chat_message,new_chat] () {
-			chat_message->setTitle(std::move(new_chat->interlocutorName()));
-		});
-		connect(new_chat, &TPChat::avatarIconChanged, this, [this,chat_message,new_chat] () {
-			chat_message->setIcon(std::move(new_chat->avatarIcon()));
-		});
 		connect(new_chat, &TPChat::unreadMessagesChanged, this, [this,chat_message,new_chat] () {
+			setTotalNewMessages(chat_message->parentMessage(), MED_NEW_CHATMESSAGES, new_chat->unreadMessages());
 			chat_message->setExtraInfo(std::move(QString::number(new_chat->unreadMessages())));
 		});
 		st_Chat chat_data{new_chat, nullptr};
-		m_chatsList.emplace(userid, &chat_data);
-		m_messagesModel->insertMessage(chat_message);
+		static_cast<void>(m_chatsList.emplace(userid, &chat_data));
+		m_messagesModel->insertMessage(chat_message, 0);
 		return new_chat;
 	} else {
 		return chatManager(userid);
 	}
 }
 
-void TPMessagesManager::removeChildrenMessages(TPMessage *msg, const QLatin1StringView &exclude_type)
+void TPMessagesManager::removeChildrenMessages(TPMessage *msg, const int exclude_type)
 {
 	if (appUserModel()->canConnectToServer()) {
-		const QList<TPMessage*> &messages{m_messagesModel->findMessages(TPMessage::FIELD_USERID, msg->userid(),
-			exclude_type == TPUtils::tpmessage_prefix ? TPUtils::chatmessage_prefix : TPUtils::tpmessage_prefix)};
+		int _type{TPMessage::MT_TPMESSAGE|TPMessage::MT_CHAT};
+		unSetBit(_type, exclude_type);
+		const QList<TPMessage*> &messages{m_messagesModel->findMessages(TPMessage::FIELD_USERID,
+																				msg->userid(), _type)};
 		for (const auto message : std::as_const(messages)) {
 			auto conn{std::make_shared<QMetaObject::Connection>()};
 			*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [=,this]
 									(const int request_id, const int ret_code, const QString &ret_string) {
 				if (request_id == message->id()) {
 					disconnect(*conn);
-					if (ret_code == TP_RET_CODE_SUCCESS)
-						msg->removeChild(message);
+					if (ret_code == TP_RET_CODE_SUCCESS) {
+						setTotalNewMessages(message->parentMessage(), MED_NEW_TPMESSAGES,
+							message->parentMessage()->generalPurposeData(MED_NEW_TPMESSAGES).toInt() - 1);
+						m_messagesModel->removeMessage(message);
+					}
 				}
 			});
 			appOnlineServices()->removeTPMessage(message->id(), message->encodedMessage());
@@ -387,4 +414,12 @@ int TPMessagesManager::newMessagesCheckingInterval() const
 		}
 	}
 	return msecs;
+}
+
+void TPMessagesManager::setTotalNewMessages(TPMessage *top_level_msg, const int key, const int new_messages)
+{
+	const int total{new_messages + (key == MED_NEW_CHATMESSAGES
+										? top_level_msg->generalPurposeData(MED_NEW_TPMESSAGES).toInt()
+										: top_level_msg->generalPurposeData(MED_NEW_CHATMESSAGES).toInt())};
+	top_level_msg->setExtraInfo(std::move(QString::number(total)));
 }
