@@ -1574,12 +1574,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OnlineMessages.qml" line="522"/>
+        <location filename="../qml/Dialogs/OnlineMessages.qml" line="425"/>
         <source>Chat</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OnlineMessages.qml" line="530"/>
+        <location filename="../qml/Dialogs/OnlineMessages.qml" line="436"/>
         <source>Send message</source>
         <translation type="unfinished"></translation>
     </message>

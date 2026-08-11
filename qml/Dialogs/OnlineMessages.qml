@@ -102,7 +102,7 @@ TPPopup {
 			useBackground: true
 			horizontalAlignment: Qt.AlignHCenter
 			font: AppGlobals.largeFont
-			Layout.preferredHeight: onlineMsgsDlg.maxHeight / 2
+			Layout.fillHeight: true
 			Layout.fillWidth: true
 		}
 
@@ -126,7 +126,10 @@ TPPopup {
 			delegate: Item {
 				id: delegateItem
 				implicitWidth: onlineMsgsDlg.width
-				implicitHeight: headerWidget.height
+				implicitHeight: 1.1 * headerWidget.height + (tpMessage.collapsed ? tpMessage.delegateHeight : 0)
+				//forces an update of contentItem or, in this case, TPBackRec. Otherwise, the delegate gets its new size,
+				//but the background does not follow it
+				height: implicitHeight
 
 				required property TPMessage tpMessage
 				required property bool expanded
@@ -134,23 +137,31 @@ TPPopup {
 				readonly property bool hasChildren: tpMessage.childCount > 0
 				readonly property int indentation: -10 + tpMessage.depth * 12
 				readonly property int widthAvailable: width - indentation - 5
-				property bool collapsed: false
 				property int delegateHeight: 0
 
-				onCollapsedChanged: {
-					implicitHeight = (collapsed ? delegateHeight + headerWidget.height : headerWidget.height);
-					messagesList.forceLayout(); //force a repositioning of all the visible items
+				//Because of messagesList.forceLayout(), some delegate properties must be kept on tpMessage. forceLayout()
+				//destroys all the delegates and, therefore, all of its properties are reset to the defaults, loosing the
+				//current values. TreeView keeps record only of the initial delegate's implicitHeight, without forceLayout(),
+				//once the view is updated with a new message or some message is collapsed changed, the items might get clobbered or
+				//a gap the size of the collapsed part appears
+				Connections {
+					target: delegateItem.tpMessage
+					function onCollapsedChanged(): void {
+						messagesList.forceLayout(); //force a repositioning of all the visible items
+					}
 				}
+
+				onExpandedChanged: messagesList.forceLayout(); //force a repositioning of all the visible items
 
 				TPBackRec {
 					radius: 8
 					opacity: 0.8
 					enableShadow: true
 					backColor: {
-						if (tpMessage.type === TPMessage.MT_PHANTON) return "transparent";
-						let _color = tpMessage.row % 2 !== 0 ? AppSettings.primaryDarkColor : AppSettings.primaryColor;
-						if (tpMessage.depth > 0)
-							_color = Qt.lighter(_color, tpMessage.depth * 1.2 + (tpMessage.depth * 0.1));
+						if (delegateItem.tpMessage.type === TPMessage.MT_PHANTON) return "transparent";
+						let _color = delegateItem.tpMessage.row % 2 !== 0 ? AppSettings.primaryDarkColor : AppSettings.primaryColor;
+						if (delegateItem.tpMessage.depth > 0)
+							_color = Qt.lighter(_color, delegateItem.tpMessage.depth * 1.2 + (delegateItem.tpMessage.depth * 0.1));
 						return _color;
 					}
 					anchors {
@@ -163,6 +174,7 @@ TPPopup {
 						id: headerWidget
 						width: messagesList.width
 						height: AppSettings.itemExtraLargeHeight + 5
+
 						anchors {
 							top: parent.top
 							left: parent.left
@@ -243,7 +255,7 @@ TPPopup {
 
 						TPImage {
 							id: btnFoldIcon
-							source: delegateItem.collapsed ? "fold-up.png" : "fold-down.png"
+							source: delegateItem.tpMessage.collapsed ? "fold-up.png" : "fold-down.png"
 							visible: delegateItem.tpMessage.text.length > 0 || delegateItem.tpMessage.actionCount > 0
 							width: AppSettings.itemSmallHeight
 							height: AppSettings.itemSmallHeight
@@ -261,7 +273,7 @@ TPPopup {
 							onClicked: (mouse) => {
 								let _mouse_pos_within_widget = parent.mapToItem(parent, mouse.x, mouse.y);
 								if (_mouse_pos_within_widget.x >= msgImage.x)
-									delegateItem.collapsed = !delegateItem.collapsed;
+									delegateItem.tpMessage.collapsed = !delegateItem.tpMessage.collapsed;
 								else
 									messagesList.toggleExpanded(delegateItem.tpMessage.row);
 							}
@@ -272,7 +284,7 @@ TPPopup {
 						id: lblMessage
 						text: delegateItem.tpMessage.text
 						font: AppGlobals.smallFont
-						visible: delegateItem.collapsed && text.length > 0
+						visible: delegateItem.tpMessage.collapsed && text.length > 0
 						singleLine: false
 						width: delegateItem.widthAvailable
 
@@ -281,111 +293,28 @@ TPPopup {
 							left: parent.left
 							leftMargin: delegateItem.indentation
 						}
-						property bool _text_changed: false
-						onTextChanged: {
-							if (_text_changed)
-								delegateItem.delegateHeight += height;
-							_text_changed = true;
+						Component.onCompleted: {
+							if (text.length > 0)
+								delegateItem.tpMessage.setMessageComponentHeight(TPMessage.MC_TEXT, height);
 						}
-						Component.onCompleted: delegateItem.delegateHeight += height;
 					}
 
 					Loader {
 						id: actionsLoader
 						asynchronous: true
 						active: delegateItem.tpMessage.actionCount > 0
-						visible: delegateItem.collapsed
 						width: delegateItem.widthAvailable
-						height: _place_holder_item !== null ? _place_holder_item._height : 0
 
 						anchors {
 							top: lblMessage.bottom
-							topMargin: lblMessage.visible ? lblMessage.contentHeight : - AppSettings.itemSmallHeight
+							topMargin: lblMessage.visible ? lblMessage.contentHeight : -20
 							leftMargin: delegateItem.indentation
 						}
 
-						property Item _place_holder_item: null
-
-						sourceComponent: Item {
+						sourceComponent: TPLayout {
 							id: actionsPlaceHolder
-
-							property int _height: 0
-							property int _row: 0
-							property list<int> _row_width: [0]
-							property list<Item> _items
-
-							function addItem(item: Item, index: int, total_items: int): void {
-								if (index === total_items - 1 && _row_width[_row] === 0) {
-									item.anchors.horizontalCenter = horizontalCenter;
-									if (index === 0)
-										item.anchors.verticalCenter = verticalCenter;
-									else
-										item.anchors.top = _items[index-1].bottom;
-									return;
-								}
-								if (item.width >= delegateItem.widthAvailable * 0.8) { //too big to shrink
-									_row_width.push(0);
-									++_row
-									_height += item.height;
-									if (index > 0)
-										item.anchors.top = _items[index-1].bottom;
-									else
-										item.anchors.top = top;
-									item.anchors.horizontalCenter = horizontalCenter;
-								} else {
-									if (item.width + _row_width[_row] <= delegateItem.widthAvailable * 0.9) { //this item fits on the current row
-										if (_row_width[_row] === 0) {
-											item.anchors.left = left;
-											item.anchors.leftMargin = indicator.width;
-											_height += item.height + 10;
-											if (index > 0)
-												item.anchors.top = _items[index-1].bottom;
-											else
-												item.anchors.top = top;
-										} else {
-											if (index > 0) {
-												item.anchors.left = _items[index-1].right;
-												item.anchors.top = _items[index-1].top;
-											} else {
-												item.anchors.verticalCenter = verticalCenter;
-											}
-										}
-										_row_width[_row] = item.width;
-									} else { //resize one or more items until they fit on row
-										let row_width = 0;
-										const prev_widget_width = index > 0 ? _items[index-1].width : 0;
-										let shrink_prev = false;
-										do { //resize either of the items at a time
-											row_width = _row_width[_row];
-											if (!shrink_prev) {
-												if (item.width > delegateItem.widthAvailable * 0.5) //big, but shrinkable
-													item.width *= 0.9; //shrink 10%
-												shrink_prev = index > 0;
-											} else { //shrink previous item
-												row_width -= prev_widget_width;
-												_items[index-1].width *= 0.9;
-												row_width += _items[index-1].width;
-												shrink_prev = false;
-											}
-											row_width += item.width;
-										} while (row_width > delegateItem.widthAvailable * 0.95);
-										_row_width[_row] = Math.ceil(row_width);
-										if (index > 0) {
-											item.anchors.left = _items[index-1].right;
-											item.anchors.top = _items[index-1].top;
-										} else {
-											item.anchors.verticalCenter = verticalCenter;
-										}
-
-										if (_row_width[_row] >= delegateItem.widthAvailable * 0.9) {
-											_row_width.push(0);
-											++_row;
-											_height += item.height;
-										}
-									}
-								}
-								item.anchors.margins = 5;
-							}
+							parentPopup: onlineMsgsDlg
+							visible: delegateItem.tpMessage.collapsed
 
 							function setupActions(): void {
 								for (let i = 0; i < delegateItem.tpMessage.actionCount; ++i) {
@@ -409,22 +338,15 @@ TPPopup {
 									case TPMessage.AT_NONE:
 										continue;
 									}
-									if (item) {
-										_items.push(item);
-										actionsPlaceHolder.addItem(item, i, delegateItem.tpMessage.actionCount);
-									}
+									if (item)
+										addItem(item, i, delegateItem.tpMessage.actionCount);
 								}
-								delegateItem.delegateHeight += _height;
+								delegateItem.tpMessage.setMessageComponentHeight(TPMessage.MC_ACTIONS, preferredHeight);
 							}
 
 							function clearActions(): void {
-								for (let i = _items.length - 1; i >= 0; --i) {
-									_items[i].destroy();
-									_items.pop();
-								}
+								clearItems();
 								actionsPlaceHolder.children = 0;
-								delegateItem.delegateHeight -= _height;
-								_height = 0;
 							}
 
 							Connections {
@@ -434,49 +356,33 @@ TPPopup {
 									actionsPlaceHolder.setupActions();
 								}
 								function onActionChanged(action_id: int): void {
-									actionsPlaceHolder.childAt(action_id).text = delegateItem.tpMessage.actionLabel(action_id);
-								}
-							}
-							Connections {
-								target: onlineMsgsDlg
-								function onPopupSizeChanged(w_ratio: real, h_ratio: real): void {
-									for (let i = 0; i < _items.length; ++i)
-										_items[i].width *= w_ratio;
+									actionsPlaceHolder.items[action_id].text = delegateItem.tpMessage.actionLabel(action_id);
 								}
 							}
 
-							Component.onCompleted: {
-								setupActions();
-								actionsLoader._place_holder_item = this;
-							}
+							Component.onCompleted: setupActions();
 						} //sourceComponent: GridLayout
 					} //Loader: actionsLoader
 
 					Loader {
-					id: fileViewerLoader
-					asynchronous: true
-					visible: delegateItem.collapsed
-					active: delegateItem.tpMessage.fileOps !== null
-					width: _file_viewer !== null ? _file_viewer.minimumWidth : 0
-					height: _file_viewer !== null ? _file_viewer.minimumHeight : 0
+						id: fileViewerLoader
+						asynchronous: true
+						active: delegateItem.tpMessage.fileOps !== null
 
-					anchors {
-						top: delegateItem.tpMessage.actionCount > 0 ? actionsLoader.bottom : lblMessage.bottom
-						topMargin: AppSettings.itemDefaultHeight
-						horizontalCenter: parent.horizontalCenter
-					}
+						anchors {
+							top: delegateItem.tpMessage.actionCount > 0 ? actionsLoader.bottom : lblMessage.bottom
+							topMargin: AppSettings.itemDefaultHeight
+							horizontalCenter: parent.horizontalCenter
+						}
 
-					property TPFileViewer _file_viewer: null
-
-					sourceComponent: TPFileViewer {
-						fileOps: delegateItem.tpMessage.fileOps
-						Component.onCompleted: {
-							fileViewerLoader._file_viewer = this;
-							delegateItem.delegateHeight += minimumHeight + (2 * AppSettings.itemDefaultHeight);
+						sourceComponent: TPFileViewer {
+							fileOps: delegateItem.tpMessage.fileOps
+							visible: delegateItem.tpMessage.collapsed
+							Component.onCompleted: delegateItem.tpMessage.setMessageComponentHeight(TPMessage.MC_FILEOPS,
+																	minimumHeight + (2 * AppSettings.itemDefaultHeight));
 						}
 					}
-				}
-			} //Rectangle: delegate's background
+				} //Rectangle: delegate's background
 			} //delegate: TreeViewDelegate
 		} // TPListView: messagesList
 
@@ -501,10 +407,7 @@ TPPopup {
 					margins: 5
 				}
 
-				onItemSelected: (userIdx) => {
-					txtSearch.text = AppUserModel.userName(userIdx);
-					newChatOrMessagePane._useridx = userIdx;
-				}
+				onItemSelected: (userIdx) => newChatOrMessagePane._useridx = userIdx;
 			} //TPCoachesAndClientsList
 
 			RowLayout {
@@ -524,7 +427,10 @@ TPPopup {
 					enabled: newChatOrMessagePane._useridx > 0
 					Layout.preferredWidth: preferredWidth
 					Layout.maximumWidth: parent.width / 2
-					onClicked: onlineMsgsDlg.openChat(newChatOrMessagePane._useridx);
+					onClicked: {
+						AppMessages.openChat(newChatOrMessagePane._useridx);
+						mainLayout.currentIndex = 1;
+					}
 				}
 				TPButton {
 					text: qsTr("Send message")
@@ -532,7 +438,10 @@ TPPopup {
 					enabled: newChatOrMessagePane._useridx > 0
 					Layout.preferredWidth: preferredWidth
 					Layout.maximumWidth: parent.width / 2
-					onClicked: onlineMsgsDlg.newMessage(newChatOrMessagePane._useridx);
+					onClicked: {
+						AppMessages.openNewMessageDialog(newChatOrMessagePane._useridx);
+						mainLayout.currentIndex = 1;
+					}
 				}
 			}
 		}
@@ -563,14 +472,4 @@ TPPopup {
 														? 2 : (AppMessages.messagesModel.hasMessage ? 1 : 0);
 		}
 	} //Rectangle
-
-	function openChat(user_idx: int): void {
-		AppMessages.openChat(user_idx);
-		mainLayout.currentIndex = 1;
-	}
-
-	function newMessage(user_idx: int): void {
-		AppMessage.openNewMessageDialog(user_idx);
-		mainLayout.currentIndex = 1;
-	}
 }

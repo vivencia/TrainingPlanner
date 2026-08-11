@@ -2,6 +2,7 @@
 
 class TPBool
 {
+
 public:
 	inline TPBool() {}
 	inline explicit TPBool(bool val) : m_value{val} {}

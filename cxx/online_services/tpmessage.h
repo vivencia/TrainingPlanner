@@ -21,9 +21,11 @@ Q_PROPERTY(int actionCount READ actionCount NOTIFY actionsChanged FINAL)
 Q_PROPERTY(int childCount READ childCount NOTIFY childCountChanged FINAL)
 Q_PROPERTY(int row READ row NOTIFY rowChanged FINAL)
 Q_PROPERTY(uint depth READ depth CONSTANT FINAL)
+Q_PROPERTY(uint delegateHeight READ delegateHeight NOTIFY delegateHeightChanged FINAL)
 Q_PROPERTY(bool sticky READ sticky WRITE setSticky NOTIFY stickyChanged BINDABLE bindableSticky FINAL)
 Q_PROPERTY(bool hasIcon READ hasIcon NOTIFY hasIconChanged BINDABLE bindableHasIcon FINAL)
 Q_PROPERTY(bool hasExtraImage READ hasExtraImage NOTIFY hasExtraImageChanged BINDABLE bindableHasExtraImage FINAL)
+Q_PROPERTY(bool collapsed READ collapsed WRITE setCollapsed NOTIFY collapsedChanged BINDABLE bindableCollapsed FINAL)
 Q_PROPERTY(TPMessage::MessageType type READ type CONSTANT FINAL)
 Q_PROPERTY(QString title READ title NOTIFY titleChanged BINDABLE bindableTitle FINAL)
 Q_PROPERTY(QString text READ text NOTIFY textChanged BINDABLE bindableText FINAL)
@@ -68,8 +70,18 @@ public:
 	};
 	Q_ENUM(MessageType)
 
+	enum MessageComponent {
+		MC_TEXT,
+		MC_ACTIONS,
+		MC_FILEOPS,
+		MC_COUNT
+	};
+	Q_ENUM(MessageComponent)
+
 	inline explicit TPMessage(TPMessage *parent_message = nullptr)
-		: QObject{nullptr}, m_parentMessage{parent_message}, m_depth{parent_message ? parent_message->depth() + 1 : 0} {}
+		: QObject{nullptr}
+		, m_parentMessage{parent_message}, m_depth{parent_message ? parent_message->depth() + 1 : 0}
+		, m_collapsed{false} {}
 	~TPMessage();
 
 	inline const uint childCount() const { return m_children.size(); }
@@ -101,7 +113,12 @@ public:
 
 	inline const QString &text() const { return m_text.value(); }
 	inline QBindable<QString> bindableText() const { return &m_text; }
-	inline void setText(QString &&new_text) { m_text = std::forward<QString>(new_text); }
+	inline void setText(QString &&new_text)
+	{
+		m_text = std::forward<QString>(new_text);
+		m_componentHeight[MC_TEXT] = 0;
+		emit delegateHeightChanged();
+	}
 
 	inline QString icon() const { return m_icon.value(); }
 	inline QBindable<QString> bindableIcon() { return &m_icon; }
@@ -141,9 +158,21 @@ public:
 	void setExpiration(QDateTime &&date_time = QDateTime{});
 	inline const bool isExpirable() const { return m_expirationTime.isValid(); }
 
+	inline const uint delegateHeight() const
+	{
+		uint d_height{0};
+		for (uint i{0}; i < MC_COUNT; ++i)
+			d_height += m_componentHeight[i];
+		return d_height;
+	}
+
 	inline const bool sticky() const { return m_sticky.value(); }
 	inline QBindable<bool> bindableSticky() { return &m_sticky; }
 	inline void setSticky(const bool sticky) { m_sticky = sticky; }
+
+	inline const bool collapsed() const { return m_collapsed.value(); }
+	inline QBindable<bool> bindableCollapsed() { return &m_collapsed; }
+	inline void setCollapsed(const bool collapsed) { m_collapsed = collapsed; emit delegateHeightChanged(); }
 
 	inline decltype(auto) actionCount() const { return m_actions.count(); }
 	int insertAction(QString &&label, const ActionType action_type, const std::function<QVariant(const QVariant &)> &func = nullptr);
@@ -181,6 +210,8 @@ public:
 	{
 		if (action_id >= 0 && action_id < m_actions.count()) {
 			m_actions.remove(action_id);
+			m_componentHeight[MC_ACTIONS] = 0;
+			emit delegateHeightChanged();
 			emit actionsChanged();
 		}
 	}
@@ -196,6 +227,19 @@ public:
 		m_generalPurposeData.insert(key, std::forward<QVariant>(gpd));
 	}
 
+	Q_INVOKABLE inline void setMessageComponentHeight(const MessageComponent component, const uint new_height)
+	{
+		if (m_componentHeight[component] == 0 && new_height != 0) {
+			m_componentHeight[component] = new_height;
+			if ((m_text.value().length() > 0) == (m_componentHeight[MC_TEXT] != 0)) {
+				if ((actionCount() > 0) == (m_componentHeight[MC_ACTIONS] != 0)) {
+					if ((m_fileOps != nullptr) == (m_componentHeight[MC_FILEOPS] != 0))
+						emit delegateHeightChanged();
+				}
+			}
+		}
+	}
+
 signals:
 	void actionTriggered(const int action_id, const QVariant &return_value);
 	void actionEnabledChanged(const int action_id, const bool enabled);
@@ -204,6 +248,7 @@ signals:
 	void actionChanged(const uint action_id);
 	void childCountChanged();
 	void rowChanged();
+	void delegateHeightChanged();
 	void titleChanged();
 	void iconChanged();
 	void hasIconChanged();
@@ -213,6 +258,7 @@ signals:
 	void hasExtraImageChanged();
 	void dateTimeChanged();
 	void stickyChanged();
+	void collapsedChanged();
 
 private:
 	Q_OBJECT_BINDABLE_PROPERTY(TPMessage, QString, m_title, &TPMessage::titleChanged)
@@ -224,10 +270,11 @@ private:
 	Q_OBJECT_BINDABLE_PROPERTY(TPMessage, bool, m_hasIcon, &TPMessage::iconChanged)
 	Q_OBJECT_BINDABLE_PROPERTY(TPMessage, bool, m_hasExtraImage, &TPMessage::hasExtraImageChanged)
 	Q_OBJECT_BINDABLE_PROPERTY(TPMessage, bool, m_sticky, &TPMessage::stickyChanged)
+	Q_OBJECT_BINDABLE_PROPERTY(TPMessage, bool, m_collapsed, &TPMessage::collapsedChanged)
 
 	std::vector<std::unique_ptr<TPMessage>> m_children;
 	TPMessage *m_parentMessage{nullptr};
-	uint m_id{0}, m_depth{0};
+	uint m_id{0}, m_depth{0}, m_componentHeight[MC_COUNT]{0};
 	MessageType m_type;
 	QString m_userid, m_encodedMessage;
 	QDateTime m_expirationTime;

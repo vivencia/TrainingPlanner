@@ -11,6 +11,7 @@ set( QML_WIDGETS
 	"TPDigitalClock.qml"
 	"TPFileViewer.qml"
 	"TPLabel.qml"
+	"TPLayout.qml"
 	"TPListView.qml"
 	"TPMediaPlayer.qml"
 	"TPMouseArea.qml"

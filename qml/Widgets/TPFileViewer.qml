@@ -227,7 +227,7 @@ Item {
 				anchors.fill: parent
 
 				sourceComponent: TPImage {
-					source: _control.fileName
+					source: _control.fileOps.fileName
 					dropShadow: false
 					antialiasing: true
 					imageSizeFollowControlSize: false
@@ -275,7 +275,7 @@ Item {
 						}
 					}
 				}
-			} //Loader : TPAppFileViewer
+			} //Loader: TPMultiLineEdit
 		} //Window fullViewWindow
 	} //Loader fullScreenLoader
 

@@ -56,10 +56,11 @@ Popup {
 	property Item mouseItem
 	property Item reference_widget: null
 	property TPBackRec backgroundRec
-	property TPBackRec titleBar: null
+	property TitleBar titleBar: null
 	property TPMouseArea mouse_area: null
 
 	enum ShowBehavior { PARENT_PAGE_ACTIVE, ALWAYS_VISIBLE }
+	readonly property int realY: parentPage ? parentPage.mapToGlobal(parentPage.x, parentPage.y).y : 0;
 
 //private:
 	property bool _use_burst_transition: true
@@ -384,7 +385,7 @@ Popup {
 			_start_y_pos = _end_y_pos = (AppSettings.windowHeight - height) / 2 - AppSettings.itemDefaultHeight;
 		} else if (show_position & Qt.AlignBottom) {
 			_start_y_pos = AppSettings.windowHeight + height;
-			_end_y_pos = 0 + parentPage.height - height;
+			_end_y_pos = parentPage.height - height;
 			_start_x_pos = _end_x_pos = (AppSettings.pageWidth - width) / 2;
 		}
 		if (show_position & Qt.AlignHCenter) {
@@ -438,10 +439,10 @@ Popup {
 			_end_x_pos = 0;
 		else if (_end_x_pos + width > AppSettings.windowWidth)
 			_end_x_pos = AppSettings.pageWidth - width;
-		if (_end_y_pos < 0)
-			_end_y_pos = 0;
+		if (_end_y_pos < realY)
+			_end_y_pos = realY;
 		else if (_end_y_pos + height > 0 + parentPage.height)
-			_end_y_pos = 0 + parentPage.height - height;
+			_end_y_pos = parentPage.height - height;
 
 		if (_use_burst_transition) {
 			x = _end_x_pos;

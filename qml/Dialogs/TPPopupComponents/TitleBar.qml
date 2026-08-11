@@ -1,5 +1,6 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
-import QtQuick.Controls
 
 import TpQml
 import TpQml.Widgets
@@ -27,7 +28,7 @@ TPBackRec {
 		id: btnClose
 		imageSource: "close.png"
 		hasDropShadow: false
-		visible: parentPopup.showCloseButton
+		visible: _control.parentPopup.showCloseButton
 		width: AppSettings.itemSmallHeight
 		height: width
 		z: 2
@@ -124,7 +125,7 @@ TPBackRec {
 													&& _titleBarButtons.finalWidth >= AppSettings.pageWidth;
 					if (is_maximized) {
 						_control.parentPopup.x = 0;
-						_control.parentPopup.y = 0;
+						_control.parentPopup.y = _control.parentPopup.realY;
 					} else {
 						_control.parentPopup.x = _control.parentPopup._end_x_pos;
 						_control.parentPopup.y = _control.parentPopup._end_y_pos;
@@ -166,7 +167,7 @@ TPBackRec {
 					right: btnMaxRestoreWindow.left
 				}
 
-				onClicked: minimize();
+				onClicked: _control.minimize();
 			}
 
 			TPImage {
@@ -270,9 +271,9 @@ TPBackRec {
 			_control.parentPopup.popupSizeChanged(_w_ratio, _h_ratio);
 		if (_control.parentPopup.savePopupState) {
 			AppSettings.setCustomValue(_control.parentPopup.configFieldName + ".size",
-								Qt.size(_control.parentPopup.width, _control.parentPopup.height));
+													Qt.size(_control.parentPopup.width, _control.parentPopup.height));
 			AppSettings.setCustomValue(_control.parentPopup.configFieldName + ".pos",
-								Qt.point(_control.parentPopup.x, _control.parentPopup.y));
+													Qt.point(_control.parentPopup.x, _control.parentPopup.y));
 		}
 	}
 } //ToolBar

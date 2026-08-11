@@ -88,7 +88,7 @@ void TPMessagesManager::newTextMessage(const QString &encoded_message)
 		text_msg->setTitle(std::move(text_msg->fileOps() ? tr("You have received a file") : tr("You have a message")));
 		text_msg->setIcon(std::move("send-message"_L1));
 		text_msg->setText(std::move(appUtils()->encodedMessageFieldValue(encoded_message, TPUtils::EF_TEXT)));
-		text_msg->setSticky(false);
+		text_msg->setSticky(static_cast<TPBool>(false));
 		setTotalNewMessages(text_msg->parentMessage(), MED_NEW_TPMESSAGES,
 							text_msg->parentMessage()->generalPurposeData(MED_NEW_TPMESSAGES).toInt() + 1);
 		text_msg->insertAction(tr("Dismiss"), TPMessage::AT_BUTTON, [this,text_msg] (const QVariant &) -> QVariant {
@@ -294,7 +294,7 @@ TPChat *TPMessagesManager::createChatMessage(QString &&userid, const bool check_
 		chat_message->setDateTime(std::move(QDateTime::currentDateTime()));
 		chat_message->setTitle(std::move(tr("Chat")));
 		chat_message->setIcon(std::move("chat_"_L1));
-		chat_message->setSticky(true);
+		chat_message->setSticky(static_cast<TPBool>(true));
 		chat_message->setExtraImage(std::move("new-messages"_L1));
 		chat_message->insertAction(tr("Open chat"), TPMessage::AT_BUTTON, [this,chat_message] (const QVariant &) -> QVariant {
 			openChatWindow(m_chatsList.value(chat_message->userid())->chat);

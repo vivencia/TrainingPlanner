@@ -10,6 +10,7 @@ Rectangle {
 	color: darkColor
 	z: 0
 
+//public:
 	property string darkColor
 	property string midColor
 	property string lightColor
@@ -17,7 +18,7 @@ Rectangle {
 
 	Rectangle {
 		id: midRec
-		width: darkRec.width*0.6
+		width: darkRec.width * 0.6
 		height: width
 		border.color: "transparent"
 		color: darkRec.midColor
@@ -34,7 +35,7 @@ Rectangle {
 
 		Rectangle {
 			id: lightRec
-			width: midRec.width* 0.5
+			width: midRec.width * 0.5
 			height: width
 			border.color: "transparent"
 			color: darkRec.lightColor
@@ -45,7 +46,6 @@ Rectangle {
 			MouseArea {
 				enabled: darkRec.clickable
 				anchors.fill: parent
-
 				onClicked: colorDlg.show(1, darkRec.lightColor);
 			}
 		}
@@ -54,7 +54,6 @@ Rectangle {
 	MouseArea {
 		enabled: darkRec.clickable
 		anchors.fill: parent
-
 		onClicked: colorDlg.show(2, darkRec.darkColor);
 	}
 
@@ -65,17 +64,17 @@ Rectangle {
 
 		onAccepted: {
 			switch (_colorIdx) {
-				case 0:
-					darkRec.midColor = selectedColor;
-					AppSettings.primaryColor = selectedColor;
+			case 0:
+				darkRec.midColor = selectedColor;
+				AppSettings.primaryColor = selectedColor;
 				break;
-				case 1:
-					darkRec.lightColor = selectedColor;
-					AppSettings.primaryLightColor = selectedColor;
+			case 1:
+				darkRec.lightColor = selectedColor;
+				AppSettings.primaryLightColor = selectedColor;
 				break;
-				case 2:
-					darkRec.darkColor = selectedColor;
-					AppSettings.primaryDarkColor = selectedColor;
+			case 2:
+				darkRec.darkColor = selectedColor;
+				AppSettings.primaryDarkColor = selectedColor;
 				break;
 			}
 		}
