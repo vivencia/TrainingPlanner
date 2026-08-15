@@ -91,10 +91,10 @@ void TPMessagesManager::newTextMessage(const QString &encoded_message)
 		text_msg->setSticky(static_cast<TPBool>(false));
 		setTotalNewMessages(text_msg->parentMessage(), MED_NEW_TPMESSAGES,
 							text_msg->parentMessage()->generalPurposeData(MED_NEW_TPMESSAGES).toInt() + 1);
-		text_msg->insertAction(tr("Dismiss"), TPMessage::AT_BUTTON, [this,text_msg] (const QVariant &) -> QVariant {
+		text_msg->insertAction(tr("Dismiss"), TPMessage::AT_BUTTON, -1, [this,text_msg] (const QVariant &) -> QVariant {
 			removeMessage(text_msg);
 			return QVariant{};
-		});
+		}, true);
 		//killMessage is emitted either when the message expires or when the delete button on the
 		//message's TPFileOps is triggered
 		connect(text_msg, &TPMessage::killMessage, this, [this,text_msg] () { removeMessage(text_msg); });
@@ -232,28 +232,28 @@ TPMessage *TPMessagesManager::topLevelUserMessage(const QString &userid)
 						top_level_msg->setTitle(appUserModel()->userName(useridx));
 				}
 			});
-			top_level_msg->insertAction(std::move(tr("New message")), TPMessage::AT_BUTTON,
+			top_level_msg->insertAction(std::move(tr("New message")), TPMessage::AT_BUTTON, -1,
 					[this,top_level_msg,useridx] (const QVariant &data) -> QVariant {
 						openNewMessageDialog(useridx);
 						return QVariant{};
 					});
-			top_level_msg->insertAction(std::move(tr("Open chat")), TPMessage::AT_BUTTON,
+			top_level_msg->insertAction(std::move(tr("Open chat")), TPMessage::AT_BUTTON, -1,
 					[this,top_level_msg,useridx] (const QVariant &data) -> QVariant {
 						openChat(useridx);
 						return QVariant{};
 					});
 			//Clear only *clears* the view, it does not empty a chat, nor removes messages from the server nor deletes files
-			top_level_msg->insertAction(std::move(tr("Clear")), TPMessage::AT_BUTTON,
+			top_level_msg->insertAction(std::move(tr("Clear")), TPMessage::AT_BUTTON, -1,
 					[this,userid,top_level_msg] (const QVariant &data) -> QVariant {
 						removeChildrenMessages(top_level_msg, top_level_msg->generalPurposeData(MED_CLEAR_CHAT).toBool()
 														? TPMessage::MT_TOPLEVEL : TPMessage::MT_TPMESSAGE);
 						return QVariant{};
 					});
-			top_level_msg->insertAction(tr("Include chat"), TPMessage::AT_CHECKBOX,
+			top_level_msg->insertAction(tr("Include chat"), TPMessage::AT_CHECKBOX, -1,
 					[this,userid,top_level_msg] (const QVariant &data) -> QVariant {
 						top_level_msg->setGeneralPurposeData(MED_CLEAR_CHAT, data.toBool());
 						return QVariant{};
-					});
+					}, true);
 		}
 		m_messagesModel->insertMessage(top_level_msg);
 		emit messagesModelChanged();
@@ -296,18 +296,20 @@ TPChat *TPMessagesManager::createChatMessage(QString &&userid, const bool check_
 		chat_message->setIcon(std::move("chat_"_L1));
 		chat_message->setSticky(static_cast<TPBool>(true));
 		chat_message->setExtraImage(std::move("new-messages"_L1));
-		chat_message->insertAction(tr("Open chat"), TPMessage::AT_BUTTON, [this,chat_message] (const QVariant &) -> QVariant {
+		chat_message->insertAction(tr("Open chat"), TPMessage::AT_BUTTON, -1,
+																	[this,chat_message] (const QVariant &) -> QVariant {
 			openChatWindow(m_chatsList.value(chat_message->userid())->chat);
 			return QVariant{};
 		});
-		chat_message->insertAction(tr("Clear chat"), TPMessage::AT_BUTTON, [this,chat_message] (const QVariant &) -> QVariant {
+		chat_message->insertAction(tr("Clear chat"), TPMessage::AT_BUTTON, -1,
+																	[this,chat_message] (const QVariant &) -> QVariant {
 			m_chatsList.value(chat_message->userid())->chat->clearChat();
 			delete m_chatsList.value(chat_message->userid())->dialog;
 			delete m_chatsList.value(chat_message->userid())->chat;
 			m_chatsList.remove(chat_message->userid());
 			removeMessage(chat_message);
 			return QVariant{};
-		});
+		}, true);
 
 		TPChat *new_chat{new TPChat{userid, check_unread_messages, this}};
 		connect(new_chat, &TPChat::unreadMessagesChanged, this, [this,chat_message,new_chat] () {

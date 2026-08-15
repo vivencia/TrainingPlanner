@@ -669,7 +669,7 @@ void TPChat::createMediaViewer(ChatMessage *message, const bool add_file)
 	media_viewer->setUseControls(true);
 	media_viewer->setCanAddFile(true);
 	media_viewer->setSuggestedFileNameGenerator([this] (const QString &selected_filename) -> TPFilePathPtr {
-		return TPFilePath::newTPFilePath(selected_filename, userId(), m_otherUserId, {chatSubDir(), "media/"_L1});
+		return TPFilePath::newTPFilePath(selected_filename, userId(), m_otherUserId, {chatSubDir(), "media"_L1});
 	});
 	connect(media_viewer, &TPFileOps::fileAdded, this, [this,message] (const QString &filepath) {
 		if (message->media.isEmpty())

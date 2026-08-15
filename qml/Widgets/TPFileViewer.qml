@@ -4,7 +4,6 @@ import QtQuick
 import QtQuick.Controls
 
 import TpQml
-import TpQml.Pages
 
 Item {
 	id: _control
@@ -15,8 +14,8 @@ Item {
 	required property FileOperations fileOps
 	property string missingFileInfo
 	property bool useBackground: true
-	readonly property int minimumWidth: fileOps ? Math.min(100, fileOps.controlSize.width) : 0
-	readonly property int minimumHeight: minimumWidth * 1.4
+	readonly property int minimumWidth: fileOps ? fileOps.previewSize.width : 0
+	readonly property int minimumHeight: fileOps ? fileOps.previewSize.height : 0
 
 	signal removalRequested()
 	signal fileAdded(string filepath)
@@ -34,8 +33,7 @@ Item {
 		if (!fileOps)
 			return;
 		fileOps.parent = fileOpsRec;
-		fileOps.anchors.fill = fileOpsRec;
-		fileOps.previewSize = Qt.binding(function() { return Qt.size(width, height); });
+		fileOps.anchors.centerIn = fileOpsRec;
 		fileOps.showFullScreen.connect(fullScreenLoader.showFullScreen);
 		fileOps.fileRemovalRequested.connect(_control.removalRequested);
 		fileOps.fileAdded.connect(function(filepath) { _control.fileAdded(filepath); });
@@ -169,7 +167,6 @@ Item {
 		anchors.fill: parent
 
 		sourceComponent: TPMediaPlayer {
-			mediaUrl: _control.fileOps.fileURL
 			fileOps: _control.fileOps
 			windowState: _control._window_state
 			Component.onCompleted: _control._media_player = this;
@@ -242,7 +239,7 @@ Item {
 				anchors.fill: parent
 
 				sourceComponent: TPPdfViewer {
-					pdfDoc: _control.fileOps.pdfDocument
+					fileOps: _control.fileOps
 				}
 			} //Loader : PdfMultiPageView
 
@@ -252,7 +249,7 @@ Item {
 				anchors.fill: parent
 
 				sourceComponent: TPAppFileViewer {
-					fileOps: _control.fileOps;
+					fileOps: _control.fileOps
 				}
 			} //Loader : TPAppFileViewer
 
@@ -265,8 +262,6 @@ Item {
 					id: _edit
 					text: _control.fileOps.getFileText(false)
 					editable: false
-					maxHeight: -1
-					minHeight: height
 
 					Connections {
 						target: _control
@@ -281,5 +276,10 @@ Item {
 
 	function startFullScreen(): void {
 		fullScreenLoader.showFullScreen();
+	}
+
+	function anchorToParent(): void {
+		anchors.centerIn = parent;
+		anchors.verticalCenterOffset = -20;
 	}
 } //Item

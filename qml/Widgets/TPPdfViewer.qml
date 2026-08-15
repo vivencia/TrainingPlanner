@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Pdf
 
@@ -6,7 +8,7 @@ import TpQml
 Item {
 	id: _viewPort
 
-	property QtObject pdfDoc
+	required property FileOperations fileOps
 
 	PdfMultiPageView {
 		id: pdfViewer
@@ -20,8 +22,8 @@ Item {
 		property PdfStyle style
 
 		document: PdfDocument {
-			source: _control.fileOps.fileURL
-			password: _viewPort.pdfDoc ? _viewPort.pdfDoc.password : ""
+			source: _viewPort.fileOps.fileURL
+			password: _viewPort.fileOps.pdfDocument ? _viewPort.fileOps.pdfDocument.password : ""
 		}
 
 		Component.onCompleted: {
@@ -34,7 +36,7 @@ Item {
 		}
 
 		Connections {
-			target: _control.fileOps
+			target: _viewPort.fileOps
 			function onMultimediaKeyPressed(key: int): void {
 				switch (key) {
 				case Qt.Key_Left:
@@ -74,7 +76,7 @@ Item {
 				pinch.target: pdfViewer
 				onPinchUpdated: (pinch) => {
 					pinch.accepted = true;
-					pdfViewer.zoom(pinch.scale > pinch.previewScale ? 1 : -1);
+					pdfViewer.zoom(pinch.scale > pinch.previousScale ? 1 : -1);
 				}
 			}
 		}

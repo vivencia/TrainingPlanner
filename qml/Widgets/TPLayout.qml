@@ -1,44 +1,52 @@
 import QtQuick
 
-import TpQml.Dialogs
+import TpQml
+import TpQml.Widgets
 
 Item {
 	id: _control
-
-//public:
-	required property TPPopup parentPopup
-
-//protected:
-	property list<Item> items
-	property int preferredHeight: 0
 
 //private:
 	property int _row: 0
 	property list<int> _row_width: [0]
 
-	Connections {
-		target: _control.parentPopup
-		function onPopupSizeChanged(w_ratio: real, h_ratio: real): void {
-			for (let i = 0; i < _control.items.length; ++i)
-				_control.items[i].width *= w_ratio;
+//public:
+	function createItem(type: int, label: string): Item {
+		let _component;
+		let _item;
+		switch (type) {
+		case TPMessage.AT_BUTTON:
+			_component = Qt.createComponent("TpQml.Widgets", TPButton);
+			_item = _component.createObject(_control, { text: label });
+			break;
+		case TPMessage.AT_CHECKBOX:
+			_component = Qt.createComponent("TpQml.Widgets", TPRadioButtonOrCheckBox);
+			_item = _component.createObject(_control, { text: label, boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX});
+			break;
+		case TPMessage.AT_RADIO:
+			_component = Qt.createComponent("TpQml.Widgets", TPRadioButtonOrCheckBox);
+			_item = _component.createObject(_control, { text: label, boxType: TPRadioButtonOrCheckBox.TP_RADIOBOX});
+			break;
+		case TPMessage.AT_NONE:
+			_item = null;
+			break;
 		}
+		return _item;
 	}
 
-//public:
-	function addItem(item: Item, index: int, total_items: int): void {
-		items.push(item);
+	function placeItem(item: Item, prev_item: Item, index: int, total_items: int): void {
 		if (index === total_items - 1 && _row_width[_row] === 0) {
 			item.anchors.horizontalCenter = horizontalCenter;
 			if (index === 0)
 				item.anchors.verticalCenter = verticalCenter;
 			else
-				item.anchors.top = items[index-1].bottom;
-			preferredHeight += item.height;
+				item.anchors.top = prev_item.bottom;
+			height += item.height;
 			return;
 		}
 		if (item.width >= width * 0.8) { //too big to shrink
 			if (index > 0)
-				item.anchors.top = items[index-1].bottom;
+				item.anchors.top = prev_item.bottom;
 			else
 				item.anchors.top = top;
 			item.anchors.horizontalCenter = horizontalCenter;
@@ -48,17 +56,17 @@ Item {
 				if (_row_width[_row] === 0) { //current row is empty
 					item.anchors.left = left;
 					if (index > 0)
-						item.anchors.top = items[index-1].bottom;
+						item.anchors.top = prev_item.bottom;
 					else
 						item.anchors.top = top;
 				} else { //current row has some item(s)
-					item.anchors.left = items[index-1].right;
-					item.anchors.verticalCenter = items[index-1].verticalCenter;
+					item.anchors.left = prev_item.right;
+					item.anchors.verticalCenter = prev_item.verticalCenter;
 				}
 				_row_width[_row] += item.width;
 			} else { //resize one or more items until they fit on row. There are, at least, two items now
 				let row_width = 0;
-				const prev_widget_width = items[index-1].width;
+				const prev_widget_width = prev_item.width;
 				let shrink_prev = false;
 				do { //resize either of the items at a time
 					row_width = _row_width[_row];
@@ -68,34 +76,27 @@ Item {
 						shrink_prev = true;
 					} else { //shrink previous item
 						row_width -= prev_widget_width;
-						items[index-1].width *= 0.9; //shrink 10%
-						row_width += items[index-1].width;
+						prev_item.width *= 0.9; //shrink 10%
+						row_width += prev_item.width;
 						shrink_prev = false;
 					}
 					row_width += item.width;
 				} while (row_width > width * 0.95);
 				_row_width[_row] = Math.ceil(row_width);
-				item.anchors.left = items[index-1].right;
-				item.anchors.verticalCenter = items[index-1].verticalCenter;
+				item.anchors.left = prev_item.right;
+				item.anchors.verticalCenter = prev_item.verticalCenter;
 			}
 		}
 		if (_row_width[_row] >= width * 0.8) {
 			_row_width.push(0);
 			++_row;
 			if (index < total_items)
-				preferredHeight += item.height;
+				height += item.height;
 		}
 		item.anchors.margins = 5;
 	} //function addItem
 
-	function clearItems(): void {
-		for (let i = items.length - 1; i >= 0; --i) {
-			items[i].destroy();
-			items.pop();
-		}
-		items = 0;
-		preferredHeight = 0;
-		_row_width = 0;
-		_row = 0;
+	function reLayoutLastRow(): void {
+		//TODO
 	}
 } //TPLayout

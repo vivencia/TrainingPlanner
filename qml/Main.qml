@@ -93,38 +93,6 @@ ApplicationWindow {
 	}
 
 	Loader {
-		id: tpFileLoader
-		asynchronous: true
-		active: false
-
-		property TPBalloonTip _dialog
-
-		sourceComponent: TPBalloonTip {
-			modal: true
-			keepAbove: true
-			parentPage: homePage
-
-			onButton1Clicked: {
-				mainwindow.tpFileOpenInquiryResult(true);
-				tpFileLoader.active = false;
-			}
-			onButton2Clicked: {
-				mainwindow.tpFileOpenInquiryResult(false);
-				tpFileLoader.active = false;
-			}
-			Component.onCompleted: tpFileLoader._dialog = this;
-		}
-
-		onLoaded: _dialog.tpOpen();
-	}
-	function confirmTPFileOpening(type: string, details: string, image: string): void {
-		tpFileLoader._dialog.title = qsTr("Import ") + type;
-		tpFileLoader._dialog.message = details;
-		tpFileLoader._dialog.imageSource = image;
-		tpFileLoader.active = true;
-	}
-
-	Loader {
 		id: sendFileDialogLoader
 		asynchronous: true
 		active: false

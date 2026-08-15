@@ -685,11 +685,12 @@ ItemDelegate {
 				SetNotesField {
 					id: txtNotes
 					info: delegate.exercisesModel.setNotesLabel
-					text: delegate.exercisesModel.setNotes(delegate.exerciseNumber, delegate.exercisesModel.workingSubExercise,
-																							delegate.exercisesModel.workingSet)
+					text: delegate.exercisesModel.setNotes(delegate.exerciseNumber,
+										delegate.exercisesModel.workingSubExercise, delegate.exercisesModel.workingSet)
 					enabled: cboSetType.currentIndex >= 0 && !delegate.setCompleted
 					Layout.minimumWidth: txtNWeight.width
 					Layout.maximumWidth: txtNWeight.width
+					Layout.preferredHeight: preferredHeight
 					Layout.alignment: Qt.AlignCenter
 
 					onEditFinished: (new_text) => delegate.exercisesModel.setSetNotes(delegate.exercisesModel.workingExercise,

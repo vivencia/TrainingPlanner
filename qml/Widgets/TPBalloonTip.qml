@@ -13,8 +13,8 @@ TPPopup {
 	focus: false
 	open_in_window: true
 	width: AppSettings.pageWidth * 0.8
-	height: mainLayout.childrenRect.height
-	mouseItem: movable ? contentItem : null
+	height: mainLayout.childrenRect.height * 1.1
+	mouseItem: showTitleBar ? titleBar : (movable ? contentItem : null)
 	canSlideToClose: true
 	useShape: true
 	_use_burst_transition: false
@@ -25,7 +25,6 @@ TPPopup {
 	property string button1Text: qsTr("Yes")
 	property string button2Text: qsTr("No")
 	property string imageSource: ""
-	//property string backColor: AppSettings.primaryColor
 	property string textColor: AppSettings.fontColor
 	property string subImageLabel: ""
 	property bool highlightMessage: false
@@ -47,13 +46,13 @@ TPPopup {
 			top: parent.top
 			left: parent.left
 			right: parent.right
-			margins: 2
+			margins: 5
 		}
 
 		TPLabel {
 			id: lblTitle
 			text: _balloon.title
-			useBackground: true
+			useBackground: !showTitleBar
 			horizontalAlignment: Text.AlignHCenter
 			visible: _balloon.title.length > 0
 			Layout.preferredWidth: _balloon.width - 10
@@ -93,6 +92,7 @@ TPPopup {
 				horizontalAlignment: Text.AlignHCenter
 				visible: _balloon.message.length > 0
 				Layout.fillWidth: true
+				Layout.margins: 5
 				Layout.preferredHeight: Math.max(contentHeight, imgElement.height) + 10
 			}
 		}
@@ -111,7 +111,7 @@ TPPopup {
 				text: _balloon.button1Text
 				visible: _balloon.button1Text.length > 0
 				Layout.alignment: Qt.AlignCenter
-				Layout.preferredWidth: _balloon.availableWidth - btn2.width - 10
+				Layout.preferredWidth: Math.min(_balloon.availableWidth - btn2.width - 10, preferredWidth)
 
 				onClicked: {
 					_balloon.button1Clicked();

@@ -17,11 +17,11 @@ QML_ELEMENT
 QML_VALUE_TYPE(TPMessage)
 
 Q_PROPERTY(int id READ id CONSTANT FINAL)
-Q_PROPERTY(int actionCount READ actionCount NOTIFY actionsChanged FINAL)
 Q_PROPERTY(int childCount READ childCount NOTIFY childCountChanged FINAL)
 Q_PROPERTY(int row READ row NOTIFY rowChanged FINAL)
 Q_PROPERTY(uint depth READ depth CONSTANT FINAL)
-Q_PROPERTY(uint delegateHeight READ delegateHeight NOTIFY delegateHeightChanged FINAL)
+Q_PROPERTY(uint actionCount READ actionCount NOTIFY actionCountChanged FINAL)
+Q_PROPERTY(qreal delegateHeight READ delegateHeight NOTIFY delegateHeightChanged FINAL)
 Q_PROPERTY(bool sticky READ sticky WRITE setSticky NOTIFY stickyChanged BINDABLE bindableSticky FINAL)
 Q_PROPERTY(bool hasIcon READ hasIcon NOTIFY hasIconChanged BINDABLE bindableHasIcon FINAL)
 Q_PROPERTY(bool hasExtraImage READ hasExtraImage NOTIFY hasExtraImageChanged BINDABLE bindableHasExtraImage FINAL)
@@ -35,6 +35,8 @@ Q_PROPERTY(QString extraInfo READ extraInfo NOTIFY extraInfoChanged BINDABLE bin
 Q_PROPERTY(QString extraImage READ extraImage NOTIFY extraImageChanged BINDABLE bindableExtraImage FINAL)
 Q_PROPERTY(TPFileOps* fileOps READ fileOps CONSTANT FINAL)
 Q_PROPERTY(TPMessage* parentMessage READ parentMessage CONSTANT FINAL)
+Q_PROPERTY(QQuickItem* actionsLayout READ actionsLayout NOTIFY actionsLayoutChanged FINAL)
+Q_PROPERTY(QQuickItem* fileViewer READ fileViewer NOTIFY fileViewerChanged FINAL)
 
 public:
 	enum TPMessageFields {
@@ -116,7 +118,7 @@ public:
 	inline void setText(QString &&new_text)
 	{
 		m_text = std::forward<QString>(new_text);
-		m_componentHeight[MC_TEXT] = 0;
+		m_componentHeight[MC_TEXT] = 0.0;
 		emit delegateHeightChanged();
 	}
 
@@ -158,9 +160,9 @@ public:
 	void setExpiration(QDateTime &&date_time = QDateTime{});
 	inline const bool isExpirable() const { return m_expirationTime.isValid(); }
 
-	inline const uint delegateHeight() const
+	inline const qreal delegateHeight() const
 	{
-		uint d_height{0};
+		qreal d_height{0};
 		for (uint i{0}; i < MC_COUNT; ++i)
 			d_height += m_componentHeight[i];
 		return d_height;
@@ -172,10 +174,19 @@ public:
 
 	inline const bool collapsed() const { return m_collapsed.value(); }
 	inline QBindable<bool> bindableCollapsed() { return &m_collapsed; }
-	inline void setCollapsed(const bool collapsed) { m_collapsed = collapsed; emit delegateHeightChanged(); }
+	inline void setCollapsed(const bool collapsed)
+	{
+		m_collapsed = collapsed;
+		if (m_actionsLayout)
+			m_actionsLayout->setProperty("visible", collapsed);
+		if (m_fileViewer)
+			m_fileViewer->setProperty("visible", collapsed);
+		emit delegateHeightChanged();
+	}
 
 	inline decltype(auto) actionCount() const { return m_actions.count(); }
-	int insertAction(QString &&label, const ActionType action_type, const std::function<QVariant(const QVariant &)> &func = nullptr);
+	int insertAction(QString &&label, const ActionType action_type, int index = -1,
+					const std::function<QVariant(const QVariant &)> &func = nullptr, const bool setup_actions = false);
 	Q_INVOKABLE inline QString actionLabel(const uint action_id) const
 	{
 		return action_id < m_actions.count() ? m_actions.at(action_id).label : QString{};
@@ -209,10 +220,9 @@ public:
 	void removeAction(const int action_id)
 	{
 		if (action_id >= 0 && action_id < m_actions.count()) {
+			setupActionsLayout(false, action_id == m_actions.count(), action_id < m_actions.count());
 			m_actions.remove(action_id);
-			m_componentHeight[MC_ACTIONS] = 0;
-			emit delegateHeightChanged();
-			emit actionsChanged();
+			emit actionCountChanged();
 		}
 	}
 	void execAction(const int action_id, const QVariant &data)
@@ -227,7 +237,7 @@ public:
 		m_generalPurposeData.insert(key, std::forward<QVariant>(gpd));
 	}
 
-	Q_INVOKABLE inline void setMessageComponentHeight(const MessageComponent component, const uint new_height)
+	Q_INVOKABLE inline void setMessageComponentHeight(const MessageComponent component, const qreal new_height)
 	{
 		if (m_componentHeight[component] == 0 && new_height != 0) {
 			m_componentHeight[component] = new_height;
@@ -240,14 +250,39 @@ public:
 		}
 	}
 
+	Q_INVOKABLE inline void setActionsLayoutParent(QQuickItem *parent)
+	{
+		if (parent != m_actionsLayoutParent) {
+			m_actionsLayoutParent = parent;
+			if (m_actionsLayout) {
+				m_actionsLayout->setParentItem(parent);
+				m_actionsLayoutParent->setHeight(m_actionsLayout->height());
+			}
+		}
+	}
+	Q_INVOKABLE inline void setFileViewerParent(QQuickItem *parent)
+	{
+		if (parent != m_fileViewerParent) {
+			m_fileViewerParent = parent;
+			if (m_fileViewer) {
+				m_fileViewer->setParentItem(parent);
+				m_fileViewerParent->setHeight(m_fileViewer->property("minimumHeight").toReal());
+				QMetaObject::invokeMethod(m_fileViewer, "anchorToParent");
+			}
+		}
+	}
+
+	inline QQuickItem *actionsLayout() const { return m_actionsLayout; }
+	inline QQuickItem *fileViewer() const { return m_fileViewer; }
+
 signals:
 	void actionTriggered(const int action_id, const QVariant &return_value);
 	void actionEnabledChanged(const int action_id, const bool enabled);
 	void killMessage();
-	void actionsChanged();
 	void actionChanged(const uint action_id);
 	void childCountChanged();
 	void rowChanged();
+	void actionCountChanged();
 	void delegateHeightChanged();
 	void titleChanged();
 	void iconChanged();
@@ -259,6 +294,11 @@ signals:
 	void dateTimeChanged();
 	void stickyChanged();
 	void collapsedChanged();
+	void actionsLayoutChanged();
+	void fileViewerChanged();
+
+public slots:
+	void popupSizeChanged(const qreal w_ratio, const qreal h_ratio);
 
 private:
 	Q_OBJECT_BINDABLE_PROPERTY(TPMessage, QString, m_title, &TPMessage::titleChanged)
@@ -274,7 +314,8 @@ private:
 
 	std::vector<std::unique_ptr<TPMessage>> m_children;
 	TPMessage *m_parentMessage{nullptr};
-	uint m_id{0}, m_depth{0}, m_componentHeight[MC_COUNT]{0};
+	uint m_id{0}, m_depth{0};
+	qreal m_componentHeight[MC_COUNT]{0.0};
 	MessageType m_type;
 	QString m_userid, m_encodedMessage;
 	QDateTime m_expirationTime;
@@ -286,8 +327,16 @@ private:
 		ActionType type{AT_BUTTON};
 		std::function<QVariant(const QVariant &data)> func{nullptr};
 		bool enabled{true};
+		QQuickItem *qml_item{nullptr};
 	};
 	QList<st_Action> m_actions;
 	QHash<int,QVariant> m_generalPurposeData;
+	QQuickItem *m_actionsLayout{nullptr}, *m_fileViewer{nullptr}, *m_actionsLayoutParent{nullptr}, *m_fileViewerParent{nullptr};
+	QVariantMap m_fileViewerProperties;
+
+	static QQmlComponent *_actionsLayoutComponent, *_fileViewerComponent;
 	bool isChild(TPMessage *msg) const;
+	void createActionsLayout();
+	void setupActionsLayout(const bool append = true, const bool remove_last = false, const bool reset = false);
+	void createFileViewer();
 };

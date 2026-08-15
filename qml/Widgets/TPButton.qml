@@ -8,7 +8,7 @@ import TpQml
 TPBackRec {
 	id: _button
 	focus: true
-	border.color: flat ? "transparent" : buttonText.color
+	showBorder: !flat
 	radius: rounded ? height : 8
 	opacity: checked ? 0.9 : 1
 	color: backgroundColor
@@ -97,9 +97,9 @@ TPBackRec {
 			if (checkable) {
 				checked = !checked;
 				check(clickId);
-			}
-			else
+			} else {
 				anim.start();
+			}
 			_bPressed = false;
 		}
 	}
@@ -158,10 +158,9 @@ TPBackRec {
 			imageLoader.anchors.fill = _button;
 			imageLoader.anchors.margins = 2;
 			_button.flat = true;
-		}
-		else if (has_text && !has_image)
+		} else if (has_text && !has_image) {
 			buttonText.anchors.fill = _button;
-		else {
+		} else {
 			_button.flat = false;
 			if (_button.textUnderIcon) {
 				buttonText.anchors.bottom = _button.bottom;
@@ -173,8 +172,7 @@ TPBackRec {
 				imageLoader.anchors.topMargin = 5;
 				imageLoader.anchors.horizontalCenter = _button.horizontalCenter;
 				imageLoader.anchors.bottomMargin = 10;
-			}
-			else {
+			} else {
 				imageLoader.width = AppSettings.itemDefaultHeight * 0.9;
 				imageLoader.anchors.verticalCenter = _button.verticalCenter;
 				imageLoader.anchors.verticalCenterOffset = 2;
@@ -185,8 +183,7 @@ TPBackRec {
 				if (_button.iconOnTheLeft) {
 					buttonText.anchors.horizontalCenterOffset = imageLoader.width/2;
 					imageLoader.anchors.right = buttonText.left;
-				}
-				else {
+				} else {
 					buttonText.anchors.horizontalCenterOffset = -imageLoader.width/2;
 					imageLoader.anchors.left = buttonText.right;
 				}

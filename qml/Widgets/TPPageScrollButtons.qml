@@ -1,22 +1,20 @@
 import QtQuick
 
 import TpQml
+import TpQml.Dialogs
 
 TPPopup {
 	objectName: "scrollButtons"
 	id: _control
-	height: 2 * _button_size
-	width: _button_size + 5
 	keepAbove: true
-	closeButtonVisible: false
-	showTitleBar: false
 	enableEffects: false
 	showBorder: false
 	useGradient: false
 	focus: false
 	show_position: Qt.AlignBaseline
-	configFieldName: "navButton_" + parentPage.objectName
+	normal_size: Qt.size(_button_size + 5, 2 * _button_size)
 	defaultCoordinates: Qt.point(AppSettings.pageWidth - width - 20, parentPage.height - height - 20)
+	savePopupState: true
 	defaultBackgroundColor: "transparent"
 	mouseItem: contentItem
 

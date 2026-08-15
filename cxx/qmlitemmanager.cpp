@@ -522,8 +522,6 @@ void QmlItemManager::showPasswordDialog(const int request_id, QQuickItem *parent
 				return;
 			}
 		}
-		qDebug() << "######  showPasswordDialog, title = " << title << ", request_id = "
-				 << request_id << ", parent_page = " << parent_page->objectName();
 		m_passwordDialog->setProperty("request_id", std::move(QVariant{request_id}));
 		m_passwordDialog->setProperty("title", std::move(QVariant{title}));
 		m_passwordDialog->setProperty("message", std::move(QVariant{message}));
@@ -531,6 +529,52 @@ void QmlItemManager::showPasswordDialog(const int request_id, QQuickItem *parent
 		if (store_passwd.has_value())
 			m_passwordDialog->setProperty("store_password", std::move(QVariant{store_passwd.value()}));
 		appPagesListModel()->openPopup(m_passwordDialog, parent_page);
+	}
+}
+
+void QmlItemManager::showImportConfirmationDialog(QQuickItem *parent_page, const QString &title, const QString &message,
+																									const QString &image)
+{
+	if (!m_importDialogComponent) {
+		m_importDialogComponent = new QQmlComponent{appQmlEngine(), "TpQml.Widgets"_L1, "TPBalloonTip"_L1,
+													  QQmlComponent::Asynchronous};
+		connect(m_importDialogComponent, &QQmlComponent::statusChanged, this, [=,this] (QQmlComponent::Status status) {
+			showImportConfirmationDialog(parent_page, title, message, image);
+		});
+	} else {
+		if (!m_importDialog) {
+			switch (m_importDialogComponent->status()) {
+			case QQmlComponent::Ready:
+				m_importDialogComponent->disconnect();
+				m_importDialogProperties["keepAbove"] = std::move(QVariant{true});
+				m_importDialogProperties["showTitleBar"] = std::move(QVariant{true});
+				m_importDialogProperties["dim"] = std::move(QVariant{true});
+				m_importDialogProperties["showBorder"] = std::move(QVariant{true});
+				m_importDialog = m_importDialogComponent->createWithInitialProperties(m_importDialogProperties, appQmlEngine()->rootContext());
+#ifndef QT_NO_DEBUG
+				if (!m_importDialog) {
+					qCritical() << m_importDialogComponent->errorString();
+					return;
+				}
+#endif
+				appQmlEngine()->setObjectOwnership(m_importDialog, QQmlEngine::CppOwnership);
+				connect(m_importDialog, SIGNAL(closeActionExeced(int)), this, SIGNAL(continueWithImport(int)));
+				break;
+			case QQmlComponent::Loading:
+				return;
+			case QQmlComponent::Null:
+			case QQmlComponent::Error:
+#ifndef QT_NO_DEBUG
+				qDebug() << m_importDialogComponent->errorString();
+#endif
+				return;
+			}
+		}
+		m_importDialog->setProperty("parentPage", std::move(QVariant::fromValue(parent_page)));
+		m_importDialog->setProperty("title", std::move(QVariant{tr("Import ") % title % '?'}));
+		m_importDialog->setProperty("message", std::move(QVariant{message}));
+		m_importDialog->setProperty("imageSource", std::move(QVariant{image}));
+		appPagesListModel()->openPopup(m_importDialog, parent_page);
 	}
 }
 

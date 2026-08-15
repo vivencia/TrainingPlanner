@@ -1,9 +1,17 @@
 #include "tpmessage.h"
 
 #include "tpmessagesmanager.h"
+#include "../qmlitemmanager.h"
+#include "../tpsettings.h"
 #include "../tputils.h"
 
+#include <QQmlApplicationEngine>
+#include <QQmlComponent>
+#include <QQuickItem>
 #include <QTimer>
+
+QQmlComponent *TPMessage::_actionsLayoutComponent{nullptr};
+QQmlComponent *TPMessage::_fileViewerComponent{nullptr};
 
 auto find_itr_const = [] (const TPMessage *const parent, const TPMessage *const child) {
 	return std::find_if(parent->children().cbegin(), parent->children().cend(), [child] (const auto &_child) {
@@ -20,6 +28,14 @@ TPMessage::~TPMessage()
 {
 	if (m_fileOps)
 		delete m_fileOps;
+	if (m_actionsLayout) {
+		delete _actionsLayoutComponent;
+		delete m_actionsLayout;
+	}
+	if (m_fileViewer) {
+		delete _fileViewerComponent;
+		delete m_fileViewer;
+	}
 }
 
 TPMessage *TPMessage::findChild(const QVariant &value, const TPMessageFields field) const
@@ -100,6 +116,8 @@ void TPMessage::setFileName(const QString &filename)
 	m_fileOps->setUseControls(true);
 	m_fileOps->setCanDownloadOrGenerate(true);
 	m_fileOps->setFileName(filename);
+	if (!m_fileViewer)
+		createFileViewer();
 	m_fileOps->attemptToCreateOrGetFile();
 	connect(m_fileOps, &TPFileOps::fileRemovalRequested, this, [this] () { emit killMessage(); });
 }
@@ -146,15 +164,33 @@ void TPMessage::setDateTime(const QDateTime &ctime)
 		static_cast<int>(TPUtils::DF_LOCALE)|static_cast<int>(TPUtils::TF_QML_DISPLAY_NO_SEC), QLatin1Char{' '}));
 }
 
-int TPMessage::insertAction(QString &&label, const ActionType type, const std::function<QVariant(const QVariant &)> &func)
+int TPMessage::insertAction(QString &&label, const ActionType type, int index,
+									const std::function<QVariant(const QVariant &)> &func, const bool setup_actions)
 {
 	st_Action new_action;
 	new_action.label = std::forward<QString>(label);
 	new_action.type = type;
 	new_action.func = func;
-	m_actions.append(std::move(new_action));
-	emit actionsChanged();
+	if (index == -1)
+		m_actions.append(std::move(new_action));
+	else
+		m_actions.insert(index, std::move(new_action));
+	if (setup_actions) {
+		if (!m_actionsLayout)
+			createActionsLayout();
+		else
+			setupActionsLayout(index == -1, false, index >= 0);
+	}
+	emit actionCountChanged();
 	return m_actions.count() - 1;
+}
+
+void TPMessage::popupSizeChanged(const qreal w_ratio, const qreal h_ratio)
+{
+	for (auto &action : std::as_const(m_actions)) {
+		auto width{action.qml_item->property("width").toReal()};
+		action.qml_item->setProperty("width", width * w_ratio);
+	}
 }
 
 inline bool TPMessage::isChild(TPMessage *msg) const
@@ -163,4 +199,99 @@ inline bool TPMessage::isChild(TPMessage *msg) const
 		return msg == child.get();
 	})};
 	return itr != m_children.cend();
+}
+
+void TPMessage::createActionsLayout()
+{
+	if (!_actionsLayoutComponent) {
+		_actionsLayoutComponent = new QQmlComponent{appQmlEngine(), "TpQml.Widgets"_L1, "TPLayout"_L1, QQmlComponent::PreferSynchronous};
+		if (!_actionsLayoutComponent || _actionsLayoutComponent->isError()) {
+			qDebug() << _actionsLayoutComponent->errorString();
+			return;
+		}
+	}
+	m_actionsLayout = qobject_cast<QQuickItem*>(_actionsLayoutComponent->create(appQmlEngine()->rootContext()));
+	m_actionsLayout->setParentItem(m_actionsLayoutParent);
+#ifndef QT_NO_DEBUG
+	if (!m_actionsLayout) {
+		qCritical() << _actionsLayoutComponent->errorString();
+		return;
+	}
+#endif
+	appQmlEngine()->setObjectOwnership(m_actionsLayout, QQmlEngine::CppOwnership);
+	m_actionsLayout->setWidth(appSettings()->getCustomValue(appItemManager()->messagesManagerPopup()->objectName()
+					% ".size"_L1, appItemManager()->messagesManagerPopup()->property("normal_size").toSize()).toSize().width());
+
+	setupActionsLayout(false, false, false);
+	connect(appItemManager()->messagesManagerPopup(), SIGNAL(popupSizeChanged(qreal,qreal)), this,
+																				SLOT(popupSizeChanged(qreal,qreal)));
+}
+
+void TPMessage::setupActionsLayout(const bool append, const bool remove_last, const bool reset)
+{
+	if (append) {
+		QMetaObject::invokeMethod(m_actionsLayout, "createItem",
+								  Q_RETURN_ARG(QQuickItem*, m_actions.last().qml_item),
+								  Q_ARG(int, m_actions.constLast().type), Q_ARG(QString, m_actions.constLast().label));
+		QMetaObject::invokeMethod(m_actionsLayout, "placeItem", Q_ARG(QQuickItem*, m_actions.constLast().qml_item),
+								  Q_ARG(QQuickItem*, m_actions.at(m_actions.count() - 2).qml_item),
+								  Q_ARG(int, m_actions.count() - 1), Q_ARG(int, m_actions.count()));
+	} else if (remove_last) {
+		QVariantList row_width_list{m_actionsLayout->property("_row_width").toList()};
+		qreal last_row_width{row_width_list.last().toReal()};
+		last_row_width -= m_actions.constLast().qml_item->width();
+		row_width_list.replace(row_width_list.count() - 1, std::move(last_row_width));
+		delete m_actions.last().qml_item;
+		m_actions.last().qml_item = nullptr;
+		const auto new_last{m_actions.count() - 2};
+		//TODO
+		QMetaObject::invokeMethod(m_actionsLayout, "reLayoutLastRow", Q_ARG(QQuickItem*, m_actions.at(new_last).qml_item),
+			last_row_width > m_actions.at(new_last).qml_item->width() ? m_actions.at(new_last-1).qml_item : nullptr);
+	} else {
+		if (reset) {
+			m_actionsLayout->setHeight(0.0);
+			m_actionsLayout->setProperty("_row_width", std::move(QVariantList{1, 0.0}));
+			for (const auto &action : std::as_const(m_actions))
+				delete action.qml_item;
+		}
+		for (int i{0}; i < m_actions.size(); ++i) {
+			QMetaObject::invokeMethod(m_actionsLayout, "createItem",
+									  Q_RETURN_ARG(QQuickItem*, m_actions[i].qml_item),
+									  Q_ARG(int, m_actions.at(i).type), Q_ARG(QString, m_actions.at(i).label));
+			QMetaObject::invokeMethod(m_actionsLayout, "placeItem", Q_ARG(QQuickItem*, m_actions.at(i).qml_item),
+									  Q_ARG(QQuickItem*, (i > 0 ? m_actions.at(i - 1).qml_item : nullptr)),
+									  Q_ARG(int, i), Q_ARG(int, m_actions.count()));
+		}
+	}
+	if (m_actionsLayoutParent)
+		m_actionsLayoutParent->setHeight(m_actionsLayout->height());
+	setMessageComponentHeight(MC_ACTIONS, m_actionsLayout->height());
+}
+
+void TPMessage::createFileViewer()
+{
+	if (!_fileViewerComponent) {
+		_fileViewerComponent = new QQmlComponent{appQmlEngine(), "TpQml.Widgets"_L1, "TPFileViewer"_L1, QQmlComponent::PreferSynchronous};
+		if (!_fileViewerComponent || _fileViewerComponent->isError()) {
+			qDebug() << _fileViewerComponent->errorString();
+			return;
+		};
+	}
+	m_fileViewerProperties["fileOps"_L1] = std::move(QVariant::fromValue(m_fileOps));
+	m_fileViewer =static_cast<QQuickItem*>(_fileViewerComponent->createWithInitialProperties(
+																m_fileViewerProperties, appQmlEngine()->rootContext()));
+#ifndef QT_NO_DEBUG
+	if (!m_fileViewer) {
+		qCritical() << _fileViewerComponent->errorString();
+		return;
+	}
+#endif
+	appQmlEngine()->setObjectOwnership(m_fileViewer, QQmlEngine::CppOwnership);
+	m_fileViewer->setParentItem(m_fileViewerParent);
+	const qreal viewer_height{m_fileViewer->property("minimumHeight").toReal()};
+	if (m_fileViewerParent) {
+		m_fileViewerParent->setHeight(viewer_height);
+		QMetaObject::invokeMethod(m_fileViewer, "anchorToParent");
+	}
+	setMessageComponentHeight(MC_FILEOPS, viewer_height + appSettings()->itemLargeHeight());
 }

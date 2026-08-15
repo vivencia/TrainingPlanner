@@ -359,7 +359,7 @@ TPPopup {
 
 	Frame {
 		id: frmFooter
-		height: txtMessage.height + 12
+		height: txtMessage.height + 10
 		visible: !_chatWindow.minimized
 		padding: 5
 
@@ -402,6 +402,7 @@ TPPopup {
 		TPMultiLineEdit {
 			id: txtMessage
 			width: parent.width * 0.88
+			height: Math.min(preferredHeight + 10, _chatWindow.height * 0.25)
 
 			anchors {
 				left: parent.left

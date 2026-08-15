@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtMultimedia
-import QtQuick.Pdf
 
 import TpQml
 
@@ -11,7 +10,6 @@ VideoOutput {
 	clip: true
 
 //public:
-	required property string mediaUrl
 	property int windowState: TPFileViewer.WS_NORMAL
 	property FileOperations fileOps
 	property MediaPlayer mediaPlayer
@@ -19,7 +17,7 @@ VideoOutput {
 
 	property list<int> previewControls: [MediaControls.CT_Play, MediaControls.CT_Stop, MediaControls.CT_Mute]
 	property list<int> fullScreenControls: [MediaControls.CT_Play, MediaControls.CT_Stop, MediaControls.CT_Rewind,
-						MediaControls.CT_FastForward, MediaControls.CT_VolumeUp, MediaControls.CT_VolumeDown, MediaControls.CT_Mute]
+			MediaControls.CT_FastForward, MediaControls.CT_VolumeUp, MediaControls.CT_VolumeDown, MediaControls.CT_Mute]
 
 //private:
 	property string _media_volume
@@ -33,7 +31,7 @@ VideoOutput {
 		sourceComponent: MediaPlayer {
 			id: _mp
 			videoOutput: _control
-			source: _control.mediaUrl
+			source: _control.fileOps.fileURL
 			Component.onCompleted: {
 				_control.mediaPlayer = this;
 				_control.play(false);
@@ -100,7 +98,8 @@ VideoOutput {
 		MediaControls {
 			id: mediaControls
 			fileOps: _control.fileOps
-			availableControls: _control.windowState === TPFileViewer.WS_NORMAL ? _control.previewControls : _control.fullScreenControls
+			availableControls: _control.windowState === TPFileViewer.WS_NORMAL
+															? _control.previewControls : _control.fullScreenControls
 
 			onControlClicked: (type) => {
 				switch (type) {
@@ -127,9 +126,9 @@ VideoOutput {
 	}
 
 	function play(emulate_click: bool): void {
-		if (emulate_click)
+		if (emulate_click) {
 			mediaControls.emulateControlClick(MediaControls.CT_Play);
-		else {
+		} else {
 			if (!mediaPlayer.playing)
 				mediaPlayer.play();
 			else
@@ -153,42 +152,41 @@ VideoOutput {
 	function pressedOperations(op: int, begin: bool) : void {
 		let pressed_function;
 		switch (op) {
-			case MediaControls.CT_FastForward:
-				pressed_function = function () {
-					mediaPlayer.position += 5000;
-					if (mediaPlayer.position >= mediaPlayer.duration)
-						mediaControls.controlLimitReached(MediaControls.CT_FastForward);
-				};
+		case MediaControls.CT_FastForward:
+			pressed_function = function () {
+				mediaPlayer.position += 5000;
+				if (mediaPlayer.position >= mediaPlayer.duration)
+					mediaControls.controlLimitReached(MediaControls.CT_FastForward);
+			};
 			break;
-			case MediaControls.CT_Rewind:
-				pressed_function = function () {
-					mediaPlayer.position -= 5000;
-					if (mediaPlayer.position <= 0)
-						mediaControls.controlLimitReached(MediaControls.CT_Rewind);
-				};
+		case MediaControls.CT_Rewind:
+			pressed_function = function () {
+				mediaPlayer.position -= 5000;
+				if (mediaPlayer.position <= 0)
+					mediaControls.controlLimitReached(MediaControls.CT_Rewind);
+			};
 			break;
-			case MediaControls.CT_VolumeUp:
-				pressed_function = function () {
-					audioOutput.volume += 0.1;
-					if (audioOutput.volume >= 1.0)
-						mediaControls.controlLimitReached(MediaControls.CT_VolumeUp);
-				};
+		case MediaControls.CT_VolumeUp:
+			pressed_function = function () {
+				audioOutput.volume += 0.1;
+				if (audioOutput.volume >= 1.0)
+					mediaControls.controlLimitReached(MediaControls.CT_VolumeUp);
+			};
 			break;
-			case MediaControls.CT_VolumeDown:
-				pressed_function = function () {
-					audioOutput.volume -= 0.1;
-					if (audioOutput.volume === 0.0)
-						mediaControls.controlLimitReached(MediaControls.CT_VolumeDown);
-				};
+		case MediaControls.CT_VolumeDown:
+			pressed_function = function () {
+				audioOutput.volume -= 0.1;
+				if (audioOutput.volume === 0.0)
+					mediaControls.controlLimitReached(MediaControls.CT_VolumeDown);
+			};
 			break;
-			default: return;
+		default: return;
 		}
 
 		if (begin) {
 			pressedTimer.triggered.connect(pressed_function);
 			pressedTimer.start();
-		}
-		else {
+		} else {
 			pressedTimer.stop();
 			pressedTimer.triggered.disconnect(pressed_function);
 		}
@@ -204,8 +202,7 @@ VideoOutput {
 			lblTime.height = AppSettings.itemDefaultHeight;
 			fillMode = VideoOutput.Stretch
 			mediaControls.availableControls = previewControls;
-		}
-		else {
+		} else {
 			lblTime.font = AppGlobals.largeFont;
 			lblTime.height = AppSettings.itemLargeHeight;
 			fillMode = VideoOutput.PreserveAspectFit;

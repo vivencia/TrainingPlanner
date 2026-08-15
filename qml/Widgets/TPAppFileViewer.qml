@@ -33,7 +33,7 @@ Item {
 
 				required property int index
 
-				onClicked: sectionsLayout.currentIndex = index;
+				onClicked: { sectionsLayout.currentIndex = index; }
 			} //TPTabButton
 		} //Repeater: tabSectionsRepeater
 	} //TabBar: tabSections
@@ -46,6 +46,8 @@ Item {
 			topMargin: AppSettings.itemLargeHeight + 20
 		}
 
+		property bool initialized: false
+
 		Repeater {
 			id: sectionsRepeater
 			model: _control.fileOps.tpFileSectionCount
@@ -53,8 +55,6 @@ Item {
 			delegate: TPMultiLineEdit {
 				id: _multiline_edit
 				text: _control.fileOps.tpFileSection(index);
-				maxHeight: -1
-				minHeight: height
 				width: sectionsLayout.width
 				height: sectionsLayout.height
 
@@ -63,6 +63,10 @@ Item {
 				onTextControlChanged: {
 					textControl.cursorPositionChanged.connect(function () {
 									_control.fileOps.setWorkingDocumentCursorPosition(textControl.cursorPosition); });
+					if (index === 0) {
+						sectionsLayout.initialized = true;
+						sectionsLayout.currentIndex = 0;
+					}
 				}
 
 				Connections {
@@ -77,6 +81,7 @@ Item {
 				}
 				Connections {
 					target: sectionsLayout
+					enabled: sectionsLayout.initialized
 					function onCurrentIndexChanged(): void {
 						if (sectionsLayout.currentIndex === _multiline_edit.index)
 							_control.fileOps.setWorkingTextDocument(_multiline_edit.textControl.textDocument);

@@ -442,9 +442,8 @@ TPPage {
 			TPMultiLineEdit {
 				id: txtNotes
 				Layout.fillWidth: true
-				Layout.preferredHeight: minHeight
+				Layout.preferredHeight: 3 * AppSettings.itemExtraLargeHeight
 				text: mesoPage.mesoManager.notes
-				minHeight: AppSettings.itemDefaultHeight * 5
 				onTextEdited: if (!btnNotesOK.notes_changed) btnNotesOK.notes_changed = true;
 				onEditingFinished: (_text) => mesoPage.saveNotes();
 			}

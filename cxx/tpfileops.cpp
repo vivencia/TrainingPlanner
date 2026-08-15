@@ -37,6 +37,10 @@ inline bool _isFileOk(const QString &file)
 	std::error_code ec;
 	// Non-throwing usage
 	const std::uintmax_t size{fs::file_size(file.toStdString(), ec)};
+#ifndef QT_NO_DEBUG
+	if (static_cast<bool>(ec))
+		qDebug() << ec.value() << ec.message();
+#endif
 	return !ec && size > 0;
 }
 
@@ -106,7 +110,7 @@ void TPFileOps::setFileType(TPUtils::FILE_TYPE new_type)
 		m_filetype = new_type;
 		emit fileTypeChanged();
 		if (m_useControls) {
-			if (m_controls[0]) {
+			if (m_controls[OT_FullScreen]) {
 				for (int i{OT_FullScreen}; i <= OT_TypeCount - 2; ++i)
 					setButtonCondition(static_cast<OpType>(i));
 				setButtonCondition(static_cast<OpType>(OT_TypeCount - 1), std::nullopt, true);
@@ -142,6 +146,17 @@ void TPFileOps::setFileURL(const QUrl &url)
 	setFileName(appUtils()->getCorrectPath(url));
 }
 
+void TPFileOps::setControlSize(const QSize &new_size)
+{
+	m_controlSize = new_size;
+	setWidth(m_controlSize.width());
+	setHeight(m_controlSize.height());
+	emit controlSizeChanged();
+	const auto new_preview_width{m_controlSize.width() > m_buttonSize.width() + 2 * buttons_padding ? m_controlSize.width() :
+							   2 * (m_buttonSize.width() + buttons_padding)};
+	setPreviewSize(QSize{new_preview_width, qFloor(new_preview_width * 1.4)});
+}
+
 void TPFileOps::setPreviewSize(const QSize &size)
 {
 	if (size != m_previewSize) {
@@ -159,7 +174,8 @@ void TPFileOps::setCanDownloadOrGenerate(const bool can_do)
 	if (can_do != m_downloadOrGenerate) {
 		m_downloadOrGenerate = can_do;
 		emit canDownloadOrGenerateChanged();
-		setButtonCondition(OT_Download, m_downloadOrGenerate, true);
+		if (useControls() && m_filename.isOK())
+			setButtonCondition(OT_Download, m_downloadOrGenerate, true);
 	}
 }
 
@@ -168,14 +184,15 @@ void TPFileOps::setCanAddFile(const bool can_add)
 	if (can_add != m_canAddFile) {
 		m_canAddFile = can_add;
 		emit canAddFileChanged();
-		setButtonCondition(OT_AddFile, m_canAddFile, true);
+		if (useControls())
+			setButtonCondition(OT_AddFile, m_canAddFile, true);
 	}
 }
 
 void TPFileOps::renameFile(const QString &new_name)
 {
  	const QString &correct_new_name{appUtils()->getFileName(new_name, true) %
-												appUtils()->getFileExtension(m_filename.fileName(), true)};
+														appUtils()->getFileExtension(m_filename.fileName(), true)};
 	if (fileIsOK())
 		QFile::rename(m_filename.toString(), m_filename.filePath() % correct_new_name);
 	m_filename.setFileName(correct_new_name, true);
@@ -266,14 +283,6 @@ QString TPFileOps::openFileDialog(const int file_type, const QString &suggested_
 
 void TPFileOps::attemptToCreateOrGetFile()
 {
-	if (fileIsOK()) {
-		emit fileAcquired(TP_RET_CODE_NO_CHANGES_SUCCESS);
-		return;
-	} else if (!canDownloadOrGenerate()) {
-		emit fileAcquired(TP_RET_CODE_INVALID_REQUEST_METHOD);
-		return;
-	}
-
 	connect(this, &TPFileOps::fileAcquired, this, [this] (const int ret_code) {
 		if (ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS) {
 		} else if (ret_code == TP_RET_CODE_SUCCESS) {
@@ -286,14 +295,28 @@ void TPFileOps::attemptToCreateOrGetFile()
 			if (m_filetype & TPUtils::FT_TP_FORMATTED)
 				readTPFile();
 		}
+		if (useControls()) {
+			for (int i{OT_FullScreen}; i <= OT_TypeCount - 2; ++i)
+				setButtonCondition(static_cast<OpType>(i));
+			setButtonCondition(static_cast<OpType>(OT_TypeCount - 1), std::nullopt, true);
+		}
 	}, Qt::SingleShotConnection);
+
+	if (fileIsOK()) {
+		emit fileAcquired(TP_RET_CODE_NO_CHANGES_SUCCESS);
+		return;
+	} else if (!canDownloadOrGenerate()) {
+		emit fileAcquired(TP_RET_CODE_INVALID_REQUEST_METHOD);
+		return;
+	}
+
 	if (isTPFile())
 		generateFileFromType(true);
 	else
 		downloadOrCopyFile();
 }
 
-void TPFileOps::setEnabled(TPFileOps::OpType type, const bool enabled, const bool call_update)
+/*void TPFileOps::setEnabled(TPFileOps::OpType type, const bool enabled, const bool call_update)
 {
 	controlInfo *ci{controlFromType(type)};
 	if (ci && ci->enabled != enabled) {
@@ -301,7 +324,7 @@ void TPFileOps::setEnabled(TPFileOps::OpType type, const bool enabled, const boo
 		if (call_update)
 			update(ci->rect);
 	}
-}
+}*/
 
 QString TPFileOps::getFileTypeIcon(const QSize &preferred_size, const bool thumbnail) const
 {
@@ -368,38 +391,6 @@ inline bool fileStillInUse(const QString &filename)
 			return appUtils()->calculateTimeDifferenceInSecs(f_time.time(), QTime::currentTime()) <= 6;
 	}
 	return false;
-}
-
-void TPFileOps::importSlot(const bool accepted)
-{
-	if (!accepted)
-		return;
-	uint32_t ft{m_filetype};
-	const bool formatted{(ft & TPUtils::FT_TP_FORMATTED) == TPUtils::FT_TP_FORMATTED};
-	if (formatted)
-		ft &= ~TPUtils::FT_TP_FORMATTED;
-
-	switch (ft) {
-	case TPUtils::FT_TP_USER_PROFILE:
-		appUserModel()->newUserFromFile(m_filename, formatted);
-		break;
-	case TPUtils::FT_TP_PROGRAM:
-		appUserModel()->actualMesoModel()->newMesoFromFile(m_filename, false, formatted);
-		break;
-	case TPUtils::FT_TP_WORKOUT_A:
-	case TPUtils::FT_TP_WORKOUT_B:
-	case TPUtils::FT_TP_WORKOUT_C:
-	case TPUtils::FT_TP_WORKOUT_D:
-	case TPUtils::FT_TP_WORKOUT_E:
-	case TPUtils::FT_TP_WORKOUT_F:
-		appUserModel()->actualMesoModel()->newWorkoutFromFile(m_filename, formatted,
-			appUserModel()->actualMesoModel()->idxFromFieldValue(DBExercisesModel::workoutFileName_mesoName(m_filename),
-							DBMesocyclesModel::MESO_FIELD_NAME), DBExercisesModel::workoutFileName_splitLetter(m_filename));
-		break;
-	case TPUtils::FT_TP_EXERCISES:
-		appExercisesList()->newExerciseFromFile(m_filename, formatted);
-		break;
-	}
 }
 
 void TPFileOps::sendFileTo(const int handle, const QStringList& userids, const QString &message, const bool present_dialog)
@@ -536,8 +527,6 @@ void TPFileOps::_setFileName(const bool file_added)
 				if (isTPFile()) {
 					if (file_type & TPUtils::FT_TP_FORMATTED)
 						readTPFile();
-					else
-						setEnabled(OT_FullScreen, false);
 				}
 			}
 		}
@@ -890,36 +879,62 @@ void TPFileOps::openFile()
 		appOsInterface()->viewExternalFile(m_filename.toString());
 }
 
+void TPFileOps::importTPFile()
+{
+	uint32_t ft{m_filetype};
+	const bool formatted{(ft & TPUtils::FT_TP_FORMATTED) == TPUtils::FT_TP_FORMATTED};
+	if (formatted)
+		ft &= ~TPUtils::FT_TP_FORMATTED;
+
+	switch (ft) {
+	case TPUtils::FT_TP_USER_PROFILE:
+		appUserModel()->newUserFromFile(m_filename, formatted);
+		break;
+	case TPUtils::FT_TP_PROGRAM:
+		appUserModel()->actualMesoModel()->newMesoFromFile(m_filename, false, formatted);
+		break;
+	case TPUtils::FT_TP_WORKOUT_A:
+	case TPUtils::FT_TP_WORKOUT_B:
+	case TPUtils::FT_TP_WORKOUT_C:
+	case TPUtils::FT_TP_WORKOUT_D:
+	case TPUtils::FT_TP_WORKOUT_E:
+	case TPUtils::FT_TP_WORKOUT_F:
+		appUserModel()->actualMesoModel()->newWorkoutFromFile(m_filename, formatted,
+			appUserModel()->actualMesoModel()->idxFromFieldValue(DBExercisesModel::workoutFileName_mesoName(m_filename),
+						DBMesocyclesModel::MESO_FIELD_NAME), DBExercisesModel::workoutFileName_splitLetter(m_filename));
+		break;
+	case TPUtils::FT_TP_EXERCISES:
+		appExercisesList()->newExerciseFromFile(m_filename, formatted);
+		break;
+	}
+}
+
 void TPFileOps::setButtonCondition(const OpType type, std::optional<bool> visible, bool do_update)
 {
 	controlInfo *ci{m_controls[type]};
 	if (!ci)
 		return;
-	if (!visible.has_value()) {
-		switch (type) {
-		case OT_AddFile:
-			visible = canAddFile();
-			break;
-		case OT_FullScreen:
-			visible = isViewableFile();
-			break;
-		case OT_Download:
-			visible = canDownloadOrGenerate();
-			ci->enabled = !fileIsOK();
-			break;
-		case OT_Share:
-			visible = isKnownFile();
-			ci->enabled = fileIsOK();
-			break;
-		case OT_ViewExternally:
-			if ((visible = fileIsOK()))
-				_getDefaultImage(ci);
-			break;
-		default:
-			visible = isKnownFile();
-		}
+
+	switch (type) {
+	case OT_AddFile:
+		ci->visible = !visible.has_value() ? canAddFile() : visible.value();
+		break;
+	case OT_FullScreen:
+		if ((ci->visible = !visible.has_value() ? isViewableFile() : visible.value()))
+			_setEnabled(ci, fileIsOK());
+		break;
+	case OT_Download:
+		if ((ci->visible = !visible.has_value() ? canDownloadOrGenerate() : visible.value()))
+			_setEnabled(ci, !fileIsOK());
+		break;
+	case OT_ViewExternally:
+		if ((ci->visible = !visible.has_value() ? isOpenedExternally() : visible.value()))
+			_setEnabled(ci, fileIsOK());
+		break;
+	default:
+		if ((ci->visible = !visible.has_value() ? isKnownFile() : visible.value()))
+			_setEnabled(ci, fileIsOK());
 	}
-	ci->visible = visible.value();
 	if (do_update) {
 		resizeControl();
 		recalculateButtonsRect();
@@ -931,23 +946,11 @@ void TPFileOps::createControls()
 {
 	int button_x{buttons_padding};
 	for (int i{OT_AddFile}; i < OT_TypeCount; ++i) {
-		controlInfo *ci{m_controls[i]};
-		if (!m_controls[i]) {
-			ci = new controlInfo;
-			m_controls[i] = ci;
-			ci->type = static_cast<OpType>(i);
-			setButtonCondition(ci->type);
-		}
-		_getDefaultImage(ci);
-		ci->default_image = std::move(ci->default_image.scaled(m_buttonSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-		ci->current_image = &ci->default_image;
-		if (ci->visible) {
-			ci->rect = QRect{button_x, buttons_padding, m_buttonSize.width(), m_buttonSize.height()};
-			button_x += m_buttonSize.width() + buttons_padding;
-		}
+		controlInfo *ci{new controlInfo};
+		m_controls[i] = ci;
+		ci->type = static_cast<OpType>(i);
+		setButtonCondition(ci->type, std::nullopt, i == OT_TypeCount - 1);
 	}
-	resizeControl();
-	update();
 }
 
 void TPFileOps::clearControls()
@@ -1148,18 +1151,18 @@ QString TPFileOps::getPDFPreviewFile(QSize preferred_size) const
 
 void TPFileOps::_setEnabled(controlInfo *ci, const bool enabled)
 {
-	ci->enabled = enabled;
-	if (enabled)
+	if (ci->enabled != enabled || ci->default_image.isNull()) {
+		ci->enabled = enabled;
 		_getDefaultImage(ci);
-	else
-		TPImage::grayScale(ci->default_image, ci->default_image);
-	ci->current_image = &ci->default_image;
+		if (!enabled)
+			TPImage::grayScale(ci->default_image, ci->default_image);
+		ci->current_image = &ci->default_image;
+	}
 }
 
 void TPFileOps::_getDefaultImage(controlInfo *ci)
 {
-	const QString &str_image_source{":/images/%1_"_L1 % appSettings()->indexColorSchemeToColorSchemeName()
-																								% ".png"_L1};
+	const QString &str_image_source{":/images/%1_"_L1 % appSettings()->indexColorSchemeToColorSchemeName() % ".png"_L1};
 	switch (ci->type) {
 	case OT_AddFile: ci->default_image.load(str_image_source.arg("add-new")); break;
 	case OT_FullScreen: ci->default_image.load(str_image_source.arg("fullscreen")); break;
@@ -1170,6 +1173,7 @@ void TPFileOps::_getDefaultImage(controlInfo *ci)
 	case OT_Delete: ci->default_image.load(":/images/remove.png"_L1); break;
 	default: break;
 	}
+	ci->default_image = std::move(ci->default_image.scaled(m_buttonSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
 }
 
 void TPFileOps::readTPFile()
@@ -1206,7 +1210,7 @@ void TPFileOps::readTPFile()
 		if (line.contains("##"_L1)) {
 			if (line.contains(*identifier)) {
 				section_info.first = std::move(line.right(line.length() - identifier->length() -
-														TPUtils::STR_START_FORMATTED_EXPORT.length() - 1));
+																TPUtils::STR_START_FORMATTED_EXPORT.length() - 1));
 				section_info.second.clear();
 			} else if (line.startsWith(TPUtils::STR_END_FORMATTED_EXPORT)) {
 				m_tpFileInfo.insert(m_tpfileSections, section_info);
@@ -1273,9 +1277,12 @@ void TPFileOps::openTPFile()
 	default:
 		Q_UNREACHABLE();
 	}
-	connect(appMainWindow(), SIGNAL(tpFileOpenInquiryResult(bool)), this, SLOT(importSlot(bool)), Qt::SingleShotConnection);
-	QMetaObject::invokeMethod(appMainWindow(), "confirmTPFileOpening", Q_ARG(QString, str_type),
-												Q_ARG(QString, str_details), Q_ARG(QString, str_image));
+
+	connect(appItemManager(), &QmlItemManager::continueWithImport, this, [this] (const int button) {
+		if (button == 0)
+			importTPFile();
+	}, Qt::SingleShotConnection);
+	appItemManager()->showImportConfirmationDialog(m_parentPage, str_type, str_details, str_image);
 }
 
 void TPFileOps::textDocumentKeyNavigation(const int key)

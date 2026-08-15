@@ -126,7 +126,7 @@ TPPopup {
 			delegate: Item {
 				id: delegateItem
 				implicitWidth: onlineMsgsDlg.width
-				implicitHeight: 1.1 * headerWidget.height + (tpMessage.collapsed ? tpMessage.delegateHeight : 0)
+				implicitHeight: 1.1 * headerWidget.height + (tpMessage.collapsed ? tpMessage.delegateHeight : 0.0)
 				//forces an update of contentItem or, in this case, TPBackRec. Otherwise, the delegate gets its new size,
 				//but the background does not follow it
 				height: implicitHeight
@@ -137,21 +137,21 @@ TPPopup {
 				readonly property bool hasChildren: tpMessage.childCount > 0
 				readonly property int indentation: -10 + tpMessage.depth * 12
 				readonly property int widthAvailable: width - indentation - 5
-				property int delegateHeight: 0
+				property real delegateHeight: 0.0
 
-				//Because of messagesList.forceLayout(), some delegate properties must be kept on tpMessage. forceLayout()
-				//destroys all the delegates and, therefore, all of its properties are reset to the defaults, loosing the
-				//current values. TreeView keeps record only of the initial delegate's implicitHeight, without forceLayout(),
-				//once the view is updated with a new message or some message is collapsed changed, the items might get clobbered or
-				//a gap the size of the collapsed part appears
+				/**	Because of messagesList.forceLayout(), some delegate properties must be kept on tpMessage. forceLayout()
+					destroys all the delegates and, therefore, all of its properties are reset to the defaults, loosing the
+					current values. TreeView keeps record only of the initial delegate's implicitHeight, without forceLayout(),
+					once the view is updated with a new message or some message is collapsed changed, the items might get clobbered or
+					a gap the size of the collapsed part appears. Also, to speed the creation of delegates, several parts
+					are managed on c++ and created only once when needed. TreeView is very limited indeed.
+				**/
 				Connections {
 					target: delegateItem.tpMessage
 					function onCollapsedChanged(): void {
 						messagesList.forceLayout(); //force a repositioning of all the visible items
 					}
 				}
-
-				onExpandedChanged: messagesList.forceLayout(); //force a repositioning of all the visible items
 
 				TPBackRec {
 					radius: 8
@@ -299,88 +299,32 @@ TPPopup {
 						}
 					}
 
-					Loader {
-						id: actionsLoader
-						asynchronous: true
-						active: delegateItem.tpMessage.actionCount > 0
+					Item {
+						id: actionsPlaceHolder
 						width: delegateItem.widthAvailable
+						visible: delegateItem.tpMessage.collapsed
 
 						anchors {
 							top: lblMessage.bottom
 							topMargin: lblMessage.visible ? lblMessage.contentHeight : -20
 							leftMargin: delegateItem.indentation
+							left: parent.left
+							right: parent.right
 						}
+						Component.onCompleted: delegateItem.tpMessage.setActionsLayoutParent(this);
+					}
 
-						sourceComponent: TPLayout {
-							id: actionsPlaceHolder
-							parentPopup: onlineMsgsDlg
-							visible: delegateItem.tpMessage.collapsed
-
-							function setupActions(): void {
-								for (let i = 0; i < delegateItem.tpMessage.actionCount; ++i) {
-									let component, item;
-									switch (delegateItem.tpMessage.actionType(i)) {
-									case TPMessage.AT_BUTTON:
-										component = Qt.createComponent("TpQml.Widgets", TPButton);
-										item = component.createObject(actionsPlaceHolder, { text:
-																	delegateItem.tpMessage.actionLabel(i) });
-										break;
-									case TPMessage.AT_CHECKBOX:
-										component = Qt.createComponent("TpQml.Widgets", TPRadioButtonOrCheckBox);
-										item = component.createObject(actionsPlaceHolder, { text:
-											delegateItem.tpMessage.actionLabel(i), boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX});
-										break;
-									case TPMessage.AT_RADIO:
-										component = Qt.createComponent("TpQml.Widgets", TPRadioButtonOrCheckBox);
-										item = component.createObject(actionsPlaceHolder, { text:
-											delegateItem.tpMessage.actionLabel(i), boxType: TPRadioButtonOrCheckBox.TP_RADIOBOX});
-										break;
-									case TPMessage.AT_NONE:
-										continue;
-									}
-									if (item)
-										addItem(item, i, delegateItem.tpMessage.actionCount);
-								}
-								delegateItem.tpMessage.setMessageComponentHeight(TPMessage.MC_ACTIONS, preferredHeight);
-							}
-
-							function clearActions(): void {
-								clearItems();
-								actionsPlaceHolder.children = 0;
-							}
-
-							Connections {
-								target: delegateItem.tpMessage
-								function onActionsChanged(): void {
-									actionsPlaceHolder.clearActions();
-									actionsPlaceHolder.setupActions();
-								}
-								function onActionChanged(action_id: int): void {
-									actionsPlaceHolder.items[action_id].text = delegateItem.tpMessage.actionLabel(action_id);
-								}
-							}
-
-							Component.onCompleted: setupActions();
-						} //sourceComponent: GridLayout
-					} //Loader: actionsLoader
-
-					Loader {
-						id: fileViewerLoader
-						asynchronous: true
-						active: delegateItem.tpMessage.fileOps !== null
+					Item {
+						visible: delegateItem.tpMessage.collapsed
 
 						anchors {
-							top: delegateItem.tpMessage.actionCount > 0 ? actionsLoader.bottom : lblMessage.bottom
+							top: actionsPlaceHolder.bottom
 							topMargin: AppSettings.itemDefaultHeight
-							horizontalCenter: parent.horizontalCenter
+							left: parent.left
+							leftMargin: delegateItem.indentation
+							right: parent.right
 						}
-
-						sourceComponent: TPFileViewer {
-							fileOps: delegateItem.tpMessage.fileOps
-							visible: delegateItem.tpMessage.collapsed
-							Component.onCompleted: delegateItem.tpMessage.setMessageComponentHeight(TPMessage.MC_FILEOPS,
-																	minimumHeight + (2 * AppSettings.itemDefaultHeight));
-						}
+						Component.onCompleted: delegateItem.tpMessage.setFileViewerParent(this);
 					}
 				} //Rectangle: delegate's background
 			} //delegate: TreeViewDelegate

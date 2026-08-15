@@ -3,17 +3,17 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 import TpQml
+import TpQml.Dialogs
 
 TPPopup {
-	objectName: "TPPageMenu"
+	objectName: parentPage ? "pageMenu_" + parentPage.objectName : "TPPageMenu"
 	id: _menu
 	keepAbove: showIndicator
-	width: entriesListView.width
-	height: entriesListView.height
-	configFieldName: parentPage ? "pageMenu_" + parentPage.objectName : ""
 	defaultCoordinates: Qt.point(defaultX, 180)
 	lockMovingToYAxis: showIndicator
 	enableEffects: true
+	normal_size: Qt.size(entriesListView.width, entriesListView.height)
+	savePopupState: true
 	show_position: showIndicator ? Qt.AlignBaseline : Qt.AlignBottom
 
 //public:

@@ -4,20 +4,26 @@ import QtQuick.Layouts
 import TpQml
 import TpQml.Widgets
 
-ColumnLayout {
+Item {
 	id: _control
-	spacing: 5
 
 	property alias info: lblMain.text
 	property alias text: setNotesArea.text
 	property alias editable: setNotesArea.editable
+	property alias preferredHeight: setNotesArea.preferredHeight
 
 	signal editFinished(string new_text);
 
 	Row {
-		Layout.fillWidth: true
-		Layout.preferredHeight: AppSettings.itemDefaultHeight
+		id: topBar
+		height: AppSettings.itemDefaultHeight
 		spacing: 5
+
+		anchors {
+			top: parent.top
+			left: parent.left
+			right: parent.right
+		}
 
 		TPLabel {
 			id: lblMain
@@ -33,9 +39,9 @@ ColumnLayout {
 
 			onClicked: {
 				setNotesArea.visible = !setNotesArea.visible;
-				if (setNotesArea.visible)
+				if (setNotesArea.visible) {
 					setNotesArea.forceActiveFocus();
-				else {
+				} else {
 					if (setNotesArea.modified)
 						_control.editFinished(setNotesArea.contentsText());
 				}
@@ -46,7 +52,12 @@ ColumnLayout {
 	TPMultiLineEdit {
 		id: setNotesArea
 		visible: false
-		Layout.fillWidth: true
+
+		anchors {
+			fill: parent
+			margins: 5
+			topMargin: topBar.height + 5
+		}
 
 		textEdited: _control.editFinished(text);
 	}

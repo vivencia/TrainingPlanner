@@ -4,32 +4,37 @@ import QtQuick.Layouts
 
 import TpQml
 
-ColumnLayout {
+Item {
 	id: _control
-	spacing: 0
 
 //public:
 	property bool editable: true
-	property int minHeight: 2 * AppSettings.itemDefaultHeight
-	property int maxHeight: AppSettings.pageHeight / 3
-	property TextArea textControl
-	property alias text: _textControl.text
-	property alias modified: _textControl.modified
-	signal textEdited();
-	signal editingFinished(_text: string);
-	signal enterOrReturnKeyPressed(mod_key: int);
+	property string text
+	readonly property int preferredHeight: toolBoxLayout.height + 4 * _margins + textControl.contentHeight
+	readonly property TextArea textControl: _textControl
+
+	signal textEdited()
+	signal editingFinished(_text: string)
+	signal enterOrReturnKeyPressed(mod_key: int)
 
 //private:
 	property bool _show_toolbox: false
 	property int _nFormatting: 0
+	property bool _modified
+	property int _margins: 2
 
 	Row {
 		id: toolBoxLayout
 		visible: _control._show_toolbox
 		spacing: 5
-		z: 2
-		Layout.fillWidth: true
-		Layout.preferredHeight: _control._show_toolbox ? AppSettings.itemDefaultHeight : 0
+		height: _control._show_toolbox ? AppSettings.itemDefaultHeight : 0
+
+		anchors {
+			top: parent.top
+			left: parent.left
+			right: parent.right
+			margins: _control._margins
+		}
 
 		TPButton {
 			imageSource: "copy_"
@@ -104,164 +109,143 @@ ColumnLayout {
 				_control.textControl.cursorSelection.font.capitalization = checked ? Font.AllUppercase : Font.MixedCase;
 			}
 		}
+	} //toolBoxLayout
+
+	Flickable {
+		id: scrollArea
+		clip: true
+
+		anchors {
+			top: toolBoxLayout.bottom
+			left: parent.left
+			right: parent.right
+			bottom: parent.bottom
+			margins: _control._margins
+		}
+
+		ScrollBar.vertical: ScrollBar { id: vBar }
+
+		TextArea.flickable: TextArea {
+			id: _textControl
+			text: _control.text
+			readOnly: !_control.editable
+			wrapMode: TextEdit.Wrap
+			textFormat: TextEdit.RichText
+			renderType: TextEdit.QtRendering
+			color: AppSettings.fontColor
+			font.pixelSize: AppSettings.fontSize
+			font.preferShaping: false
+			focus: true
+			persistentSelection: true
+			topPadding: 6
+			leftPadding: 6
+			rightPadding: btnClearText.width
+			bottomPadding: 6
+			leftInset: 0
+			rightInset: 0
+			topInset: 0
+			bottomInset: 0
+
+			background: Rectangle {
+				color: AppSettings.paneBackgroundColor
+				radius: 8
+				border.color: AppSettings.fontColor
+			}
+
+			property bool formatted: false
+
+			cursorSelection.onFontChanged: {
+				btnItalic.checked = cursorSelection.font.italic;
+				btnUnderline.checked = cursorSelection.font.underline;
+				btnCase.checked = cursorSelection.font.capitalization === Font.AllUppercase;
+			}
+
+			Keys.onPressed: (event) => {
+				switch (event.key) {
+				case Qt.Key_Enter:
+				case Qt.Key_Return: {
+					let mod_key = 0;
+					if (event.modifiers) {
+						if (event.modifiers & Qt.ControlModifier)
+							mod_key = Qt.Key_Control;
+						else if (event.modifiers & Qt.AltModifier)
+							mod_key = Qt.Key_Alt;
+						else if (event.modifiers & Qt.ShiftModifier)
+							mod_key = Qt.Key_Shift;
+					}
+					if (mod_key !== 0)
+						event.accepted = true;
+					_control.enterOrReturnKeyPressed(mod_key);
+				}
+				break;
+				case Qt.Key_Left:
+					event.accepted = true;
+					break;
+				default: return;
+				}
+			}
+
+			onTextEdited: {
+				_control._modified = true;
+				_control.textEdited();
+			}
+			onEditingFinished: {
+				if (_control._modified) {
+					_control._modified = false;
+					_control.editingFinished(_control.contentsText());
+				}
+			}
+			onActiveFocusChanged: {
+				if (activeFocus)
+					positionCaret();
+			}
+			onReadOnlyChanged: positionCaret();
+
+			function positionCaret(): void {
+				if (readOnly) {
+					vBar.setPosition(0);
+					cursorPosition = 0;
+				} else {
+					vBar.setPosition(Math.floor(cursorPosition/length));
+				}
+			}
+		} //TextArea
+	} //ScrollView
+
+	TPButton {
+		id: btnClearText
+		imageSource: "edit-clear"
+		enabled: _control.textControl.length > 0
+		width: AppSettings.itemDefaultHeight
+		height: width
+
+		anchors {
+			right: scrollArea.right
+			bottom: scrollArea.bottom
+			margins: 10
+		}
+
+		onClicked: {
+			_control.clear();
+			_control.textControl.forceActiveFocus();
+		}
 	}
 
-	Row {
-		Layout.fillWidth: true
-		spacing: 5
+	TPButton {
+		id: btnShowToolBox
+		imageSource: "toolbox_"
+		checkable: true
+		width: AppSettings.itemDefaultHeight
+		height: width
 
-		Flickable {
-			id: scrollArea
-			clip: true
-			height: _control.minHeight - toolBoxLayout.height
-			width: parent.width - AppSettings.itemDefaultHeight - 5
+		anchors {
+			right: btnClearText.left
+			bottom: scrollArea.bottom
+			margins: 10
+		}
 
-			ScrollBar.vertical: ScrollBar { id: vBar }
-
-			TextArea.flickable: TextArea {
-				id: _textControl
-				readOnly: !_control.editable
-				wrapMode: TextEdit.Wrap
-				textFormat: TextEdit.RichText
-				renderType: TextEdit.QtRendering
-				color: AppSettings.fontColor
-				font.pixelSize: AppSettings.fontSize
-				font.preferShaping: false
-				focus: true
-				persistentSelection: true
-				topPadding: 6
-				leftPadding: 6
-				rightPadding: btnClearText.width
-				bottomPadding: 6
-				leftInset: 0
-				rightInset: 0
-				topInset: 0
-				bottomInset: 0
-
-				background: Rectangle {
-					color: AppSettings.paneBackgroundColor
-					radius: 8
-					border.color: AppSettings.fontColor
-				}
-
-				property bool modified: false
-				property bool formatted: false
-
-				cursorSelection.onFontChanged: {
-					btnItalic.checked = cursorSelection.font.italic;
-					btnUnderline.checked = cursorSelection.font.underline;
-					btnCase.checked = cursorSelection.font.capitalization === Font.AllUppercase;
-				}
-
-				Keys.onPressed: (event) => {
-					switch (event.key) {
-					case Qt.Key_Enter:
-					case Qt.Key_Return: {
-						let mod_key = 0;
-						if (event.modifiers) {
-							if (event.modifiers & Qt.ControlModifier)
-								mod_key = Qt.Key_Control;
-							else if (event.modifiers & Qt.AltModifier)
-								mod_key = Qt.Key_Alt;
-							else if (event.modifiers & Qt.ShiftModifier)
-								mod_key = Qt.Key_Shift;
-						}
-						if (mod_key !== 0)
-							event.accepted = true;
-						_control.enterOrReturnKeyPressed(mod_key);
-					}
-					break;
-					case Qt.Key_Left:
-						event.accepted = true;
-						break;
-					default: return;
-					}
-				}
-
-				onReadOnlyChanged: positionCaret();
-				onLineCountChanged: if (_control.maxHeight > 0) scrollArea.calculateHeight();
-				onTextEdited: {
-					modified = true;
-					_control.textEdited();
-				}
-				onEditingFinished: {
-					if (modified) {
-						modified = false;
-						_control.editingFinished(_control.contentsText());
-					}
-				}
-				onActiveFocusChanged: {
-					if (activeFocus)
-						positionCaret();
-				}
-
-				Component.onCompleted: _control.textControl = this;
-
-				function positionCaret(): void {
-					if (readOnly) {
-						vBar.setPosition(0);
-						cursorPosition = 0;
-					}
-					else
-						vBar.setPosition(Math.floor(cursorPosition/length));
-				}
-			} //TextArea
-
-			function calculateHeight(): void {
-				const new_height = (_control.textControl.lineCount * AppSettings.itemDefaultHeight) + 10;
-				if (new_height <= _control.maxHeight) {
-					if (new_height < (2 * AppSettings.itemDefaultHeight))
-						height = implicitHeight = 2 * AppSettings.itemDefaultHeight;
-					else
-						height = implicitHeight = new_height;
-				} else {
-					height = implicitHeight = _control.maxHeight;
-				}
-			}
-		} //ScrollView
-
-		Item {
-			enabled: _control.editable
-			width: AppSettings.itemDefaultHeight
-			height: scrollArea.height
-
-			TPButton {
-				id: btnShowToolBox
-				imageSource: "toolbox_"
-				checkable: true
-				width: AppSettings.itemDefaultHeight
-				height: width
-
-				anchors {
-					verticalCenter: parent.verticalCenter
-					verticalCenterOffset: -(height / 2)
-					horizontalCenter: parent.horizontalCenter
-				}
-
-				onCheck: _control._show_toolbox = checked;
-			}
-
-			TPButton {
-				id: btnClearText
-				imageSource: "edit-clear"
-				hasDropShadow: false
-				enabled: _control.textControl.length > 0
-				width: AppSettings.itemDefaultHeight
-				height: width
-
-				anchors {
-					verticalCenter: parent.verticalCenter
-					verticalCenterOffset: (height / 2)
-					horizontalCenter: parent.horizontalCenter
-				}
-
-				onClicked: {
-					_control.clear();
-					_control.textControl.forceActiveFocus();
-				}
-			}
-		} //Item
-	} //Row
+		onCheck: _control._show_toolbox = checked;
+	}
 
 	function clear() : void {
 		_control.textControl.clear();
@@ -276,7 +260,7 @@ ColumnLayout {
 			if (_nFormatting < 0)
 				_nFormatting = 0;
 		}
-		_control.textControl.modified = true;
+		_control._modified = true;
 	}
 
 	function contentsText() : string {
@@ -289,4 +273,4 @@ ColumnLayout {
 		else
 			return AppUtils.stripInvalidCharacters(start === end ? _control.textControl.text : _control.textControl.selectedText);
 	}
-} //ColumnLayout
+} //Item

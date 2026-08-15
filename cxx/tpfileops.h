@@ -19,7 +19,6 @@ QT_FORWARD_DECLARE_CLASS(QGraphicsEffect)
 QT_FORWARD_DECLARE_CLASS(QPainter)
 QT_FORWARD_DECLARE_CLASS(QQmlComponent)
 QT_FORWARD_DECLARE_CLASS(QQuickItem)
-QT_FORWARD_DECLARE_CLASS(QPdfDocument)
 QT_FORWARD_DECLARE_CLASS(QTextDocument)
 
 class TPFileOps : public QQuickPaintedItem
@@ -84,13 +83,7 @@ public:
 	}
 
 	inline QSize controlSize() const { return m_controlSize; }
-	inline void setControlSize(const QSize &new_size)
-	{
-		m_controlSize = new_size;
-		setWidth(new_size.width());
-		setHeight(new_size.height());
-		emit controlSizeChanged();
-	}
+	void setControlSize(const QSize &new_size);
 	inline QSize previewSize() const { return m_previewSize; }
 	void setPreviewSize(const QSize &size);
 	inline QQuickItem *parentPage() const { return m_parentPage; }
@@ -112,12 +105,10 @@ public:
 	inline bool useControls() const { return m_useControls; }
 	inline void setUseControls(const  bool use_controls) {
 		if (use_controls != m_useControls) {
-			if (m_filetype != TPUtils::FT_NO_TYPE_SET) {
-				if (use_controls && !m_controls[OT_FullScreen])
-					createControls();
-				else if (!use_controls && m_controls[OT_FullScreen])
-					clearControls();
-			}
+			if (use_controls && !m_controls[OT_FullScreen])
+				createControls();
+			else if (!use_controls && m_controls[OT_FullScreen])
+				clearControls();
 			m_useControls = use_controls;
 			emit useControlsChanged();
 		}
@@ -144,7 +135,7 @@ public:
 	void exportTPFile(const TPFilePath &tp_filename);
 	Q_INVOKABLE QString openFileDialog(const int file_type, const QString &suggested_save_name = QString{});
 	Q_INVOKABLE void attemptToCreateOrGetFile();
-	Q_INVOKABLE void setEnabled(TPFileOps::OpType type, const bool enabled, const bool call_update = true);
+	//Q_INVOKABLE void setEnabled(TPFileOps::OpType type, const bool enabled, const bool call_update = true);
 	Q_INVOKABLE QString getFileTypeIcon(const QSize &preferred_size = QSize{}, const bool thumbnail = true) const;
 	Q_INVOKABLE inline void doFileOperation(const int op) { _doFileOperation(static_cast<OpType>(op)); }
 	Q_INVOKABLE inline QString tpFileSectionTitle(const int section) { return m_tpFileInfo.value(section).first; }
@@ -155,9 +146,7 @@ public:
 	Q_INVOKABLE inline void repaintControls() { update(); }
 
 public slots:
-	void importSlot(const bool accepted);
-	void sendFileTo(const int handle = 1, const QStringList &userids = QStringList{}, const QString &message = QString{},
-																						const bool present_dialog = false);
+	void sendFileTo(const int handle = 1, const QStringList &userids = QStringList{}, const QString &message = QString{},																			const bool present_dialog = false);
 
 signals:
 	void fileTypeChanged();
@@ -234,6 +223,7 @@ private:
 	void sendFileToUsers(const QStringList &users, const QString &message);
 	void sendFileDirectly(const QStringList &users);
 	void openFile();
+	void importTPFile();
 	void setButtonCondition(const OpType type, std::optional<bool> visible = std::nullopt, bool do_update = false);
 	void createControls();
 	void clearControls();

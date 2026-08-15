@@ -41,6 +41,7 @@ public:
 	inline QQuickWindow *appMainWindow() const { return _appMainWindow; }
 	inline PagesListModel *appPagesManager() const { return appPagesListModel(); }
 	inline QQuickItem *popupsVisualParent() const { return m_popupsVisualParent; }
+	inline QObject *messagesManagerPopup() const { return m_messagesManagerPopup; }
 
 	Q_INVOKABLE void exitApp();
 	Q_INVOKABLE void displayImportDialogMessageAfterMesoSelection(const int meso_idx);
@@ -65,7 +66,9 @@ public:
 										QString &&button1text = QString{}, QString &&button2text = QString{}) const;
 
 	void showPasswordDialog(const int request_id, QQuickItem *parent_page, const QString &title,
-							const QString &message, const std::optional<bool> store_passwd = std::nullopt);
+								const QString &message, const std::optional<bool> store_passwd = std::nullopt);
+	void showImportConfirmationDialog(QQuickItem *parent_page, const QString &title, const QString &message,
+																								const QString &image);
 	void startMessagesManager();
 
 signals:
@@ -73,6 +76,7 @@ signals:
 	void mesoForImportSelected();
 	void qmlPasswordDialogClosed(int resultCode, QString password);
 	void passwordAcquired(const bool proceed, const int request_id, const QString &passwd, const bool store);
+	void continueWithImport(const int button);
 	/**
 	 * @brief generalMessagesPopupClicked
 	 * @param button: 0 (dialog was closed via close button or back_key() or something else; 1: button1; 2: button2
@@ -92,12 +96,12 @@ private:
 	QmlExercisesDatabaseInterface *m_exercisesListManager{nullptr};
 	QQmlComponent *m_simpleExercisesListComponent{nullptr}, *m_weatherComponent{nullptr},
 		*m_statisticsComponent{nullptr}, *m_firstTimeDlgComponent{nullptr}, *m_generalMessagesPopupComponent{nullptr},
-								*m_messagesManagerComponent{nullptr}, *m_passwordDialogComponent{nullptr};
+		*m_messagesManagerComponent{nullptr}, *m_passwordDialogComponent{nullptr}, *m_importDialogComponent{nullptr};
 	QQuickItem *m_homePage{nullptr}, *m_appPagesVisualParent{nullptr}, *m_popupsVisualParent{nullptr},
-														*m_weatherPage{nullptr}, *m_statisticsPage{nullptr};
+																	*m_weatherPage{nullptr}, *m_statisticsPage{nullptr};
 	QObject *m_simpleExercisesList{nullptr}, *m_firstTimeDlg{nullptr}, *m_generalMessagesPopup{nullptr},
-												*m_messagesManagerPopup{nullptr}, *m_passwordDialog{nullptr};
-	QVariantMap m_simpleExercisesListProperties, m_generalMessagesPopupProperties;
+								*m_messagesManagerPopup{nullptr}, *m_passwordDialog{nullptr}, *m_importDialog{nullptr};
+	QVariantMap m_simpleExercisesListProperties, m_generalMessagesPopupProperties, m_importDialogProperties;
 	QList<st_generalMessage*> m_messagesQueue;
 	QList<uint16_t> m_bufferProperties;
 	bool m_canDisplayMessage{false};

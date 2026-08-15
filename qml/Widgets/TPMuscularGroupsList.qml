@@ -19,8 +19,8 @@ TPComboBox {
 			}
 			displayText = display_text.substring(0, display_text.length - 2);
 			currentIndex = 0;
-		}
-		else
+		} else {
 			displayText = qsTr("<- Choose muscle groups...");
+		}
 	}
 }

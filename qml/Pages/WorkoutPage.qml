@@ -326,6 +326,7 @@ TPPage {
 				editable: workoutPage.workoutManager.workoutIsEditable
 				visible: workoutPage.workoutModel.splitLetter !== "R"
 				Layout.fillWidth: true
+				Layout.preferredHeight: preferredHeight
 
 				onEditFinished: (new_text) => workoutPage.workoutManager.setNotes(new_text);
 			}
