@@ -338,7 +338,7 @@ std::pair<TPBool,int> TPOnlineServices::sendFileToServer(const TPFilePath &tp_fi
 		return {TPBool{}, TP_RET_CODE_FILE_TOO_BIG};
 	}
 	int requestid{serverCommandStarter(tp_filename.generateUniqueId(), std::move(tr("File upload: ") % tp_filename.fileName()))};
-	if (requestid < 0 || requestid > (TP_RET_CODE_DEFERRED_ACTION + 100)) {
+	if (requestid < 0 || requestid > TP_RET_CODE_LAST_CUSTOM_CODE) {
 		QFile *upload_file{appUtils()->openFile(tp_filename.toString(), true, false, false, false, false)};
 		if (upload_file) {
 			auto conn{std::make_shared<QMetaObject::Connection>()};
@@ -371,7 +371,7 @@ std::pair<TPBool,int> TPOnlineServices::downloadFileFromServer(const TPFilePath 
 	if (appUtils()->fileRecentlyModified(tp_filename.toString(), 30))
 		return {TPBool{true}, TP_RET_CODE_NO_CHANGES_SUCCESS};
 	const int requestid{serverCommandStarter(tp_filename.generateUniqueId(), std::move(tr("File download: ") % tp_filename.fileName()))};
-	if (requestid < 0 || requestid > (TP_RET_CODE_DEFERRED_ACTION + 100)) {
+	if (requestid < 0 || requestid > TP_RET_CODE_LAST_CUSTOM_CODE) {
 		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(this, &TPOnlineServices::_fileReceived, this, [=,this]
 							(const int request_id, const int ret_code, const QByteArray &contents) {
@@ -415,7 +415,7 @@ void TPOnlineServices::removeFileFromServer(const TPFilePath &tp_filename)
 {
 	const int requestid{serverCommandStarter(tp_filename.generateUniqueId(),
 											 std::move(tr("File removal: ") % tp_filename.fileName()))};
-	if (requestid < 0 || requestid > (TP_RET_CODE_DEFERRED_ACTION + 100))
+	if (requestid < 0 || requestid > TP_RET_CODE_LAST_CUSTOM_CODE)
 		removeFile(requestid, tp_filename);
 }
 
@@ -424,7 +424,7 @@ std::pair<TPBool,int> TPOnlineServices::listFilesOrDirs(const bool files, const 
 {
 	QLatin1StringView v{QString{(files ? "listfiles"_L1 : "listdirs"_L1) % (admin ? root_user : m_userid)}.toLatin1().constData()};
 	const int requestid{serverCommandStarter(appUtils()->generateUniqueId(v), std::move(tr("Get list: ") % subdir))};
-	if (requestid < 0 || requestid > (TP_RET_CODE_DEFERRED_ACTION + 100)) {
+	if (requestid < 0 || requestid > TP_RET_CODE_LAST_CUSTOM_CODE) {
 		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(this, &TPOnlineServices::_networkRequestProcessed, this, [=,this]
 									(const int request_id, const int ret_code, const QString &ret_string) {

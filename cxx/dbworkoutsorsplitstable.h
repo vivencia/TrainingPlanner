@@ -12,15 +12,15 @@ class DBWorkoutsOrSplitsTable final : public TPDatabaseTable
 Q_OBJECT
 
 public:
-	explicit DBWorkoutsOrSplitsTable(const uint tableid);
+explicit DBWorkoutsOrSplitsTable(const uint tableid);
 
 	QString dbFileName(const bool fullpath = true) const override final;
 	void updateTable() override final {}
 
 	bool getExercises(DBModelInterfaceExercises *dbmi);
 	std::pair<QVariant,QVariant> mesoHasAllSplitPlans(const QString &meso_id, const QString &split);
-	std::pair<QVariant,QVariant> mesoHasSplitPlan();
-	std::pair<QVariant,QVariant> getPreviousWorkoutsIds();
+	std::pair<QVariant,QVariant> mesoHasSplitPlan(DBModelInterfaceExercises *data);
+	std::pair<QVariant,QVariant> getPreviousWorkoutsIds(DBModelInterfaceExercises *data);
 	std::pair<QVariant,QVariant> removeAllMesoWorkouts(const QString &mesoid);
 
 signals:

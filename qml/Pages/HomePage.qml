@@ -14,7 +14,6 @@ TPPage {
 
 	property bool loadOwnMesos: false
 	property bool loadClientMesos: false
-	property bool modelsLoaded: false
 	property date minimumStartDate
 	property MesocyclesModel mesoModel: null
 
@@ -62,7 +61,7 @@ TPPage {
 		anchors.fill: parent
 
 		onCurrentIndexChanged: {
-			if (homePage.modelsLoaded && currentIndex >= 0) {
+			if (currentIndex >= 0) {
 				const own_meso = currentIndex === 1;
 				homePage.mesosViewChanged(own_meso);
 			}
@@ -124,8 +123,6 @@ TPPage {
 	}
 
 	function setMesosViewIndex(index: int) {
-		mesosView.currentIndex = -1;
-		modelsLoaded = true;
 		mesosView.currentIndex = index;
 	}
 } //Page

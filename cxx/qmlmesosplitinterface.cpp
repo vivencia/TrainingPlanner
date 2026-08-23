@@ -103,7 +103,6 @@ QQuickItem* QmlMesoSplitInterface::setCurrentPage(const int index)
 {
 	m_currentSplitPage = m_splitPages.value(QChar(static_cast<char>(static_cast<int>('A') + index)));
 	m_currentSplitLetter = m_currentSplitPage ? std::move(m_splitPages.key(m_currentSplitPage)) : 'A';
-	m_mesoModel->splitModel(m_mesoIdx, m_currentSplitLetter)->plugDBModelInterfaceIntoDatabase();
 	m_currentSwappableLetter = std::move(findSwappableModel());
 	emit currentPageChanged();
 	return m_currentSplitPage;
@@ -219,10 +218,10 @@ void QmlMesoSplitInterface::setSplitPageProperties(DBSplitModel *split_model)
 					m_prevMesoName = m_mesoModel->name(m_mesoModel->idxFromFieldValue(m_prevMesoId, DBMesocyclesModel::MESO_FIELD_ID));
 			}
 		});
-		auto x = [this,split_model] () -> std::pair<QVariant,QVariant> {
+		auto x = [this,split_model] (DBModelInterface*) -> std::pair<QVariant,QVariant> {
 			return split_model->database()->mesoHasAllSplitPlans(m_mesoModel->id(m_mesoIdx), m_mesoModel->usedSplits(m_mesoIdx));
 		};
-		split_model->database()->setCustQueryFunction(x);
+		split_model->database()->setCustomQueryFunction(x);
 		appThreadManager()->runAction(split_model->database(), ThreadManager::CustomOperation);
 	}
 }

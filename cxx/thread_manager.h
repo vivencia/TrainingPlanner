@@ -1,10 +1,10 @@
 #pragma once
 
 #include <QHash>
-#include <QMutex>
 #include <QObject>
 #include <QTimer>
 
+QT_FORWARD_DECLARE_CLASS(DBModelInterface)
 QT_FORWARD_DECLARE_CLASS(TPDatabaseTable)
 
 class ThreadManager : public QObject
@@ -34,13 +34,12 @@ public:
 	inline ThreadManager &operator()(const ThreadManager &other) = delete;
 	inline ~ThreadManager() {}
 
-	void runAction(TPDatabaseTable *worker, StandardOps operation, void *extra_param = nullptr);
-	void queueAction(TPDatabaseTable *worker, StandardOps operation, void *extra_param = nullptr);
+	void runAction(TPDatabaseTable *worker, StandardOps operation, DBModelInterface *data = nullptr);
 
 	void startUnManagedThread(QObject *worker);
 
 signals:
-	void newThreadedOperation(const int unique_id, ThreadManager::StandardOps operation, void *extra_param, QMutex *mutex = nullptr);
+	void newThreadedOperation(const int unique_id, ThreadManager::StandardOps operation, DBModelInterface *data);
 
 public slots:
 	void aboutToExit();
@@ -49,7 +48,6 @@ private:
 	QT_FORWARD_DECLARE_STRUCT(stQueuedOps)
 	QHash<int,QThread*> m_subThreadsList;
 	QHash<int,ThreadManager::stQueuedOps*> m_queuedOps;
-	QMutex m_mutex;
 	static ThreadManager *app_thread_mngr;
 	friend ThreadManager *appThreadManager();
 

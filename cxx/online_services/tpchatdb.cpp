@@ -23,7 +23,7 @@ constexpr QLatin1StringView field_names[TPChat::TPCHAT_N_FIELDS][2] {
 };
 
 TPChatDB::TPChatDB(TPChat *chat)
-	: TPDatabaseTable{chat->userId().last(5).toUInt(), chat->m_dbModelInterface}
+	: TPDatabaseTable{chat->userId().last(5).toUInt()}
 	, m_chat{chat}
 {
 	m_tableName = &table_name;
@@ -33,7 +33,7 @@ TPChatDB::TPChatDB(TPChat *chat)
 	#ifndef QT_NOT_DEBUG
 	setObjectName("ChatTable");
 	#endif
-	setReadAllRecordsFunc<void>([this] (void *param) { return loadChat(param); });
+	setReadAllRecordsFunc([this] (DBModelInterface*) { return loadChat(); });
 }
 
 QString TPChatDB::subDir() const
@@ -52,7 +52,7 @@ QString TPChatDB::dbFileName(const bool fullpath) const
 	return fullpath ? dbFilePath() % filename : filename;
 }
 
-bool TPChatDB::loadChat(void *)
+bool TPChatDB::loadChat()
 {
 	bool success{false};
 	if (execReadOnlyQuery("SELECT * FROM "_L1 + table_name)) {
@@ -61,7 +61,7 @@ bool TPChatDB::loadChat(void *)
 				QStringList message_info{TPChat::TPCHAT_N_FIELDS};
 				for (uint i{0}; i < TPChat::TPCHAT_N_FIELDS; ++i)
 					message_info[i] = std::move(m_workingQuery.value(i).toString());
-				m_dbModelInterface->modelData().append(std::move(message_info));
+				m_chat->m_dbModelInterface->modelData().append(std::move(message_info));
 			} while (m_workingQuery.next());
 			success = true;
 		}

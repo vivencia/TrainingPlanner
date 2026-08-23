@@ -111,12 +111,13 @@ TPPopup {
 			title: qsTr("Choose an image to be used as the avatar for the profile")
 			fileType: AppUtils.FT_IMAGE
 
-			onAccepted: {
-				avatarsDlg.avatarSelected(AppUtils.getCorrectPath(currentFile), true);
+			onDialogClosed: (result) => {
+				if (result) {
+					avatarsDlg.avatarSelected(AppUtils.getCorrectPath(currentFile), true);
+					avatarsDlg.close();
+				}
 				fileDialogLoader.active = false;
-				avatarsDlg.close();
 			}
-			onRejected: fileDialogLoader.active = false;
 			Component.onCompleted: fileDialogLoader._file_dialog = this;
 		}
 

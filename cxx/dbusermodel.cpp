@@ -5,6 +5,7 @@
 #include "dbusertable.h"
 #include "qmlitemmanager.h"
 #include "osinterface.h"
+#include "return_codes.h"
 #include "thread_manager.h"
 #include "tpdatabasetable.h"
 #include "tpfilepath.h"
@@ -78,7 +79,7 @@ void DBUserModel::initUserSession()
 {
 	if (!m_db) {
 		m_dbModelInterface = new DBModelInterfaceUser;
-		m_db = new DBUserTable{m_dbModelInterface};
+		m_db = new DBUserTable{};
 		appThreadManager()->runAction(m_db, ThreadManager::CreateTable);
 		connect(m_db, &DBUserTable::userInfoAcquired, this, [this] (QStringList user_info, const bool all_info_acquired) {
 			if (!all_info_acquired) {
@@ -101,9 +102,10 @@ void DBUserModel::initUserSession()
 		} else {
 			if (onlineAccount()) {
 #ifdef ENABLE_TPMESSAGES_MANAGER
-				appItemManager()->startMessagesManager();
-				if (!appMessagesManager())
+				if (!appMessagesManager()) {
 					new TPMessagesManager{this};
+					appMessagesManager()->startMessagesManager();
+				}
 				appMessagesManager()->readAllChats();
 #endif
 				if (!appWSServer())
@@ -728,23 +730,15 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 
 int DBUserModel::exportToFile(const uint user_idx, const TPFilePath &tp_filename, const bool write_header) const
 {
-	QFile *out_file{appUtils()->openFile(tp_filename.toString(), false, true, false, true)};
-	if (!out_file)
-		return TP_RET_CODE_OPEN_WRITE_FAILED;
-
 	const QList<uint> &export_user_idx{QList<uint>{} << user_idx};
-	const bool ret{appUtils()->writeDataToFile(out_file, write_header ? appUtils()->userFileIdentifier : QString{}, m_usersData)};
-	out_file->close();
-	return ret ? TP_RET_CODE_EXPORT_OK : TP_RET_CODE_EXPORT_FAILED;
+	const auto ret{appUtils()->writeDataToFile(tp_filename.toString(), write_header ? appUtils()->userFileIdentifier : QString{}, m_usersData)};
+	return ret;
 }
 
 int DBUserModel::exportToFormattedFile(const uint user_idx, const TPFilePath &tp_filename) const
 {
-	QFile *out_file{appUtils()->openFile(tp_filename.toString(), false, true, false, true)};
-	if (!out_file)
-		return TP_RET_CODE_OPEN_CREATE_FAILED;
 	const QList<uint> &export_user_idx{QList<uint>{} << user_idx};
-	QList<std::function<QString(void)>> field_description{QList<std::function<QString(void)>>{} <<
+	const QList<std::function<QString(void)>> &field_description{QList<std::function<QString(void)>>{} <<
 											[this] () { return idLabel(); } <<
 											[this] () { return nameLabel(); } <<
 											[this] () { return birthdayLabel(); } <<
@@ -758,48 +752,33 @@ int DBUserModel::exportToFormattedFile(const uint user_idx, const TPFilePath &tp
 											nullptr
 	};
 
-	int ret{TP_RET_CODE_EXPORT_FAILED};
-	if (appUtils()->writeDataToFormattedFile(out_file,
+	const auto ret{appUtils()->writeDataToFormattedFile(tp_filename.toString(),
 					appUtils()->userFileIdentifier,
 					m_usersData,
 					field_description,
 					[this] (const uint field, const QString &value) { return formatFieldToExport(field, value); },
 					export_user_idx,
 					QString{isCoach(user_idx) ? tr("Coach Information") : tr("Client Information") % "\n\n"_L1})
-	)
-		ret = TP_RET_CODE_EXPORT_OK;
+	};
 	return ret;
 }
 
 int DBUserModel::importFromFile(const TPFilePath &tp_filename)
 {
-	QFile *in_file{appUtils()->openFile(tp_filename.toString())};
-	if (!in_file)
-		return TP_RET_CODE_OPEN_READ_FAILED;
-
-	int ret{appUtils()->readDataFromFile(in_file, m_usersData, USER_N_FIELDS, appUtils()->userFileIdentifier)};
-	if (ret != TP_RET_CODE_WRONG_IMPORT_FILE_TYPE)
-		ret = TP_RET_CODE_IMPORT_OK;
-	in_file->close();
+	const auto ret{appUtils()->readDataFromFile(tp_filename.toString(), m_usersData, USER_N_FIELDS,
+																						appUtils()->userFileIdentifier)};
 	return ret;
 }
 
 int DBUserModel::importFromFormattedFile(const TPFilePath &tp_filename)
 {
-	QFile *in_file{appUtils()->openFile(tp_filename.toString())};
-	if (!in_file)
-		return TP_RET_CODE_OPEN_READ_FAILED;
-
-	int ret{appUtils()->readDataFromFormattedFile(
-							in_file,
+	const auto ret{appUtils()->readDataFromFormattedFile(
+							tp_filename.toString(),
 							m_usersData,
 							USER_N_FIELDS,
 							appUtils()->userFileIdentifier,
 							[this] (const uint field, const QString &value) { return formatFieldToImport(field, value); })
 	};
-	if (ret > 0)
-		ret = TP_RET_CODE_IMPORT_OK;
-	in_file->close();
 	return ret;
 }
 

@@ -2,19 +2,14 @@
 
 #include "pageslistmodel.h"
 #include "qml_singleton.h"
-#include "return_codes.h"
 
 #include <QObject>
 #include <QVariantMap>
 #include <QQuickItem>
 #include <QQuickWindow>
 
-static inline int deferredActionId()
-{
-	static uint da_id{TP_RET_CODE_DEFERRED_ACTION};
-	return da_id++;
-}
-
+QT_FORWARD_DECLARE_CLASS(DBCalendarModel)
+QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(QmlExercisesDatabaseInterface)
 QT_FORWARD_DECLARE_CLASS(QmlWorkoutInterface)
 QT_FORWARD_DECLARE_CLASS(QmlUserInterface)
@@ -41,10 +36,8 @@ public:
 	inline QQuickWindow *appMainWindow() const { return _appMainWindow; }
 	inline PagesListModel *appPagesManager() const { return appPagesListModel(); }
 	inline QQuickItem *popupsVisualParent() const { return m_popupsVisualParent; }
-	inline QObject *messagesManagerPopup() const { return m_messagesManagerPopup; }
 
 	Q_INVOKABLE void exitApp();
-	Q_INVOKABLE void displayImportDialogMessageAfterMesoSelection(const int meso_idx);
 	Q_INVOKABLE void showFirstTimeDialog();
 	Q_INVOKABLE void getSettingsPage();
 	Q_INVOKABLE void getUserPage();
@@ -54,7 +47,6 @@ public:
 	Q_INVOKABLE void showSimpleExercisesList(QQuickItem *parentPage, const QString &filter);
 	Q_INVOKABLE void getWeatherPage();
 	Q_INVOKABLE void getStatisticsPage();
-	Q_INVOKABLE void showOnlineMessagesManagerDialog(const bool show);
 
 	Q_INVOKABLE void displayWindowMessage(const int message_id, const int msecs,
 										QFlags<Qt::AlignmentFlag> position = Qt::AlignTop|Qt::AlignHCenter,
@@ -67,16 +59,14 @@ public:
 
 	void showPasswordDialog(const int request_id, QQuickItem *parent_page, const QString &title,
 								const QString &message, const std::optional<bool> store_passwd = std::nullopt);
-	void showImportConfirmationDialog(QQuickItem *parent_page, const QString &title, const QString &message,
-																								const QString &image);
-	void startMessagesManager();
+	void showImportWorkoutDialog(DBExercisesModel *new_workout, QQuickItem *parent_page, DBCalendarModel *cal_model,
+																							const QChar &split_letter);
 
 signals:
 	void selectedExerciseFromSimpleExercisesList(QQuickItem *parentPage);
 	void mesoForImportSelected();
 	void qmlPasswordDialogClosed(int resultCode, QString password);
 	void passwordAcquired(const bool proceed, const int request_id, const QString &passwd, const bool store);
-	void continueWithImport(const int button);
 	/**
 	 * @brief generalMessagesPopupClicked
 	 * @param button: 0 (dialog was closed via close button or back_key() or something else; 1: button1; 2: button2
@@ -96,12 +86,12 @@ private:
 	QmlExercisesDatabaseInterface *m_exercisesListManager{nullptr};
 	QQmlComponent *m_simpleExercisesListComponent{nullptr}, *m_weatherComponent{nullptr},
 		*m_statisticsComponent{nullptr}, *m_firstTimeDlgComponent{nullptr}, *m_generalMessagesPopupComponent{nullptr},
-		*m_messagesManagerComponent{nullptr}, *m_passwordDialogComponent{nullptr}, *m_importDialogComponent{nullptr};
+												*m_passwordDialogComponent{nullptr}, *m_importWorkoutComponent{nullptr};
 	QQuickItem *m_homePage{nullptr}, *m_appPagesVisualParent{nullptr}, *m_popupsVisualParent{nullptr},
-																	*m_weatherPage{nullptr}, *m_statisticsPage{nullptr};
+															*m_weatherPage{nullptr}, *m_statisticsPage{nullptr};
 	QObject *m_simpleExercisesList{nullptr}, *m_firstTimeDlg{nullptr}, *m_generalMessagesPopup{nullptr},
-								*m_messagesManagerPopup{nullptr}, *m_passwordDialog{nullptr}, *m_importDialog{nullptr};
-	QVariantMap m_simpleExercisesListProperties, m_generalMessagesPopupProperties, m_importDialogProperties;
+													*m_passwordDialog{nullptr}, *m_importWorkoutDialog{nullptr};
+	QVariantMap m_simpleExercisesListProperties, m_generalMessagesPopupProperties;
 	QList<st_generalMessage*> m_messagesQueue;
 	QList<uint16_t> m_bufferProperties;
 	bool m_canDisplayMessage{false};

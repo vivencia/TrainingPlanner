@@ -2,7 +2,7 @@
 
 #include "dbcalendarmodel.h"
 
-constexpr int n_fields{CALENDAR_DATABASE_TOTAL_FIELDS};
+constexpr int n_fields{DBMesoCalendarTable::CALDB_TOTAL_FIELDS};
 constexpr QLatin1StringView table_name{ "mesocycles_calendar_table"_L1 };
 constexpr QLatin1StringView field_names[n_fields][2] {
 	{"id"_L1,		"INTEGER PRIMARY KEY AUTOINCREMENT"_L1},
@@ -21,9 +21,6 @@ DBMesoCalendarTable::DBMesoCalendarTable()
 	#ifndef QT_NO_QDEBUG
 	setObjectName("MesoCalendarTable");
 	#endif
-	setReadAllRecordsFunc<DBModelInterfaceCalendar>([this] (void *param) {
-		return getMesoCalendar(static_cast<DBModelInterfaceCalendar*>(param));
-	});
 }
 
 QString DBMesoCalendarTable::dbFileName(const bool fullpath) const
@@ -36,25 +33,23 @@ bool DBMesoCalendarTable::getMesoCalendar(DBModelInterfaceCalendar *dbmi)
 {
 	bool success{false};
 	int mesoidx{-1};
-	if (dbmi) {
 		auto model{dbmi->model<DBCalendarModel>()};
 		if (model) {
-			if (execReadOnlyQuery("SELECT * FROM %1 WHERE %2=%3;"_L1.arg(
-									table_name, field_names[CALENDAR_DATABASE_MESOID][0], model->mesoId()))) {
+			if (execReadOnlyQuery("SELECT * FROM %1 WHERE %2=%3;"_L1.arg(table_name, field_names[CALDB_MESOID][0],
+																									model->mesoId()))) {
 				if (m_workingQuery.first()) {
 					do {
 						QStringList calendar_day{n_fields, QString{}};
-						calendar_day[CALENDAR_DATABASE_ID] = std::move(m_workingQuery.value(CALENDAR_DATABASE_ID).toString());
-						calendar_day[CALENDAR_DATABASE_MESOID] = model->mesoId();
-						calendar_day[CALENDAR_DATABASE_DATE] = std::move(m_workingQuery.value(CALENDAR_DATABASE_DATE).toString());
-						calendar_day[CALENDAR_DATABASE_DATA] = std::move(m_workingQuery.value(CALENDAR_DATABASE_DATA).toString());
+						calendar_day[CALDB_ID] = std::move(m_workingQuery.value(CALDB_ID).toString());
+						calendar_day[CALDB_MESOID] = model->mesoId();
+						calendar_day[CALDB_DATE] = std::move(m_workingQuery.value(CALDB_DATE).toString());
+						calendar_day[CALDB_DATA] = std::move(m_workingQuery.value(CALDB_DATA).toString());
 						dbmi->modelData().append(std::move(calendar_day));
 					} while (m_workingQuery.next());
 					success = true;
 					mesoidx = model->mesoIdx();
 				}
 			}
-		}
 	}
 	emit calendarLoaded(mesoidx, success);
 	return success;
@@ -62,7 +57,7 @@ bool DBMesoCalendarTable::getMesoCalendar(DBModelInterfaceCalendar *dbmi)
 
 std::pair<QVariant,QVariant> DBMesoCalendarTable::removeMesoCalendar(const QString &mesoid)
 {
-	m_strQuery = std::move("DELETE FROM %1 WHERE %3=%4;"_L1.arg(table_name, field_names[CALENDAR_DATABASE_MESOID][0], mesoid));
+	m_strQuery = std::move("DELETE FROM %1 WHERE %3=%4;"_L1.arg(table_name, field_names[CALDB_MESOID][0], mesoid));
 	bool cmd_ok{false};
 	const bool success{execSingleWriteQuery(m_strQuery)};
 	if (success) {

@@ -7,6 +7,7 @@
 
 constexpr uint8_t EXERCISE_IGNORE_NOTIFY_IDX{255};
 
+QT_FORWARD_DECLARE_CLASS(DBCalendarModel)
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(DBMesocyclesModel)
 QT_FORWARD_DECLARE_CLASS(DBWorkoutsOrSplitsTable)
@@ -15,6 +16,7 @@ QT_FORWARD_DECLARE_STRUCT(exerciseEntry)
 QT_FORWARD_DECLARE_STRUCT(stSet)
 QT_FORWARD_DECLARE_CLASS(TPFilePath)
 QT_FORWARD_DECLARE_CLASS(QFile)
+QT_FORWARD_DECLARE_CLASS(QQuickItem)
 
 class DBModelInterfaceExercises : public DBModelInterface
 {
@@ -112,51 +114,51 @@ public:
 
 	//DBWorkoutModel
 	inline explicit DBExercisesModel(DBMesocyclesModel *meso_model, DBWorkoutsOrSplitsTable* db,
-																				const uint meso_idx, const int calendar_day)
-		: QAbstractListModel{reinterpret_cast<QObject*>(meso_model)}, m_mesoModel{meso_model}, m_db{db}, m_mesoIdx{meso_idx},
-																				m_calendarDay{calendar_day}, m_splitLetter{'N'}
+																			const uint meso_idx, const int calendar_day)
+		: QAbstractListModel{reinterpret_cast<QObject*>(meso_model)}
+		, m_mesoModel{meso_model}, m_db{db}, m_mesoIdx{meso_idx}, m_splitLetter{'N'}
 	{
-		commonConstructor(true);
+		commonConstructor(calendar_day, true);
 	}
 	//DBSplitModel, no need for a calendar manager
 	inline explicit DBExercisesModel(DBMesocyclesModel *meso_model, DBWorkoutsOrSplitsTable *db, const uint meso_idx,
 																		const QChar &splitletter, const bool load_from_db)
-		: QAbstractListModel{reinterpret_cast<QObject*>(meso_model)}, m_db{db}, m_mesoModel{meso_model}, m_mesoIdx{meso_idx},
-																				m_calendarDay{-1}, m_splitLetter{splitletter}
+		: QAbstractListModel{reinterpret_cast<QObject*>(meso_model)}
+		, m_db{db}, m_mesoModel{meso_model}, m_mesoIdx{meso_idx}, m_splitLetter{splitletter}
 	{
-		commonConstructor(load_from_db);
+		commonConstructor(-1, load_from_db);
 	}
 	~DBExercisesModel() { clearExercises(false); }
 	inline DBModelInterfaceExercises *dbModelInterface() const { return m_dbModelInterface; }
-	DBWorkoutsOrSplitsTable *database() const;
-	void plugDBModelInterfaceIntoDatabase();
+	inline DBWorkoutsOrSplitsTable *database() const { return m_db; }
 
 	void operator=(DBExercisesModel *other_model);
-	bool fromDatabase(const bool db_data_ok);
+	bool fromDatabase();
+	void toDatabase();
+	void incorporateIntoCalendar(DBCalendarModel *cal, QQuickItem *parent_page);
 	Q_INVOKABLE void clearExercises(const bool from_qml = true);
 	Q_INVOKABLE QString setTypeOperation(const uint settype, const bool increase, QString str_value, const bool seconds) const;
 
-	[[nodiscard]] inline const bool exercisesLoaded() const { return m_exercisesLoaded; }
 	[[nodiscard]] inline const QString &id() const { return m_dbModelInterface->modelData().at(0).at(DBExercisesModel::EXERCISES_FIELD_ID); }
 	[[nodiscard]] const QString &mesoId() const;
+	void setMesoId(const QString &mesoid);
 	[[nodiscard]] inline const uint mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; emit mesoIdxChanged(); }
 	[[nodiscard]] inline int calendarDay() const { return m_calendarDay; }
-	inline void setCalendarDay(const uint new_calendarday) { m_calendarDay = new_calendarday; emit calendarDayChanged();}
+	void setCalendarDay(const int new_calendarday);
 	[[nodiscard]] inline const QChar &splitLetter() const { return m_splitLetter; }
 	void setSplitLetter(const QChar &new_splitletter);
-	inline void setImportMode(const bool import_mode) { m_importMode = import_mode; }
 
 	[[nodiscard]] static QString workoutFileName_mesoName(const TPFilePath &tp_filename);
 	[[nodiscard]] static QChar workoutFileName_splitLetter(const TPFilePath &tp_filename);
 	[[nodiscard]] std::shared_ptr<TPFilePath> suggestedName(const bool formatted_file) const;
 
 	[[nodiscard]] inline const bool isWorkout() const { return m_calendarDay != -1; }
-	[[nodiscard]] int exportToFile(const TPFilePath &filename, QFile *out_file = nullptr) const;
-	[[nodiscard]] int exportToFormattedFile(const TPFilePath &filename, QFile *out_file = nullptr) const;
-	[[nodiscard]] int importFromFile(const TPFilePath &filename, QFile *in_file = nullptr);
-	[[nodiscard]] int importFromFormattedFile(const TPFilePath &filename, QFile *in_file = nullptr);
-	[[maybe_unused]] int newExercisesFromFile(const TPFilePath &filename, const std::optional<bool> &file_formatted = std::nullopt);
+	[[nodiscard]] int exportToFile(const TPFilePath &filename) const;
+	[[nodiscard]] int exportToFormattedFile(const TPFilePath &filename) const;
+
+	[[maybe_unused]] int importFromFile(const TPFilePath &filename);
+	[[maybe_unused]] int importFromFormattedFile(const TPFilePath &filename, const bool save_into_db);
 	[[nodiscard]] inline const QString &identifierInFile() const { return m_identifierInFile; }
 	[[nodiscard]] const QString formatSetTypeToExport(const uint type) const;
 	[[nodiscard]] static bool importExtraInfo(const QString &maybe_extra_info, int &calendar_day, QChar &split_letter);
@@ -169,7 +171,7 @@ public:
 	[[maybe_unused]] Q_INVOKABLE uint addExercise(int exercise_number = -1, const bool from_qml = true);
 	Q_INVOKABLE void delExercise(const uint exercise_number, const bool from_qml = true);
 	Q_INVOKABLE void moveExercise(const uint from, const uint to);
-	[[maybe_unused]] Q_INVOKABLE void addSubExercise(const uint exercise_number, const bool from_qml = true);
+	[[maybe_unused]] Q_INVOKABLE uint addSubExercise(const uint exercise_number, const bool from_qml = true);
 	Q_INVOKABLE void delSubExercise(const uint exercise_number, const uint exercise_idx, const bool from_qml = true);
 	[[maybe_unused]] Q_INVOKABLE uint addSet(const uint exercise_number, const uint exercise_idx, const bool from_qml = true);
 	Q_INVOKABLE void delSet(const uint exercise_number, const uint exercise_idx, const uint set_number, const bool from_qml = true);
@@ -245,6 +247,10 @@ public:
 	inline QString setCompletedLabel() const { return tr("Completed?"); }
 	inline QString restTimeUntrackedLabel() const { return tr("As needed"); }
 	static inline QString splitLabel() { return tr("Split: "); }
+	Q_INVOKABLE inline QString subExerciseNameLabel(const uint exercise_idx) const
+	{
+		return tr("Multi-exercise %1: ").arg(QString::number(exercise_idx + 1));
+	}
 
 	QVariant data(const QModelIndex &index, int role) const override final;
 	[[maybe_unused]] bool setData(const QModelIndex &index, const QVariant &value, int role) override final;
@@ -256,6 +262,7 @@ public slots:
 	void newExerciseChosen();
 	void newExerciseFromExercisesList();
 	void saveExercises(const int exercise_number, const int exercise_idx, const int set_number, const int field);
+	void incorporateIntoCalendar_part2(const QDate &date, DBCalendarModel *cal_model);
 
 signals:
 	void setModeChanged(const int exercise_number, const int exercise_idx, const int set_number, const int mode);
@@ -276,21 +283,21 @@ signals:
 	void exerciseModified(const int exercise_number, const int exercise_idx, const int set_number, const int field);
 	void startRestTimer(const uint exercise_number, const uint exercise_idx, const uint set_number);
 	void stopRestTimer();
+	void workoutIncorporated(const bool success);
 
 private:
 	DBMesocyclesModel *m_mesoModel;
 	QString m_identifierInFile;
 	uint m_mesoIdx, m_workingExercise{UNSET_VALUE};
-	int m_calendarDay;
-	bool m_importMode{false}, m_exercisesLoaded{false};
+	int m_calendarDay{-9999};
 	QChar m_splitLetter;
 	QList<exerciseEntry*> m_exerciseData;
 	QHash<int, QByteArray> m_roleNames;
 	DBWorkoutsOrSplitsTable *m_db{nullptr};
 	DBModelInterfaceExercises *m_dbModelInterface{nullptr};
 
-	void commonConstructor(const bool load_from_db);
-	TPSetTypes formatSetTypeToImport(const QString &fieldValue) const;
+	void commonConstructor(const int calendar_day, const bool load_from_db);
+	uint setTypeFromString(const QString &str_set_type) const;
 	const QString exportExtraInfo() const;
 	inline bool importExtraInfo(const QString &maybe_extra_info);
 	void setSetMode(stSet *set, const uint mode);
@@ -300,8 +307,8 @@ private:
 	void _setTrackRestTime(const uint exercise_number, const bool track_resttime);
 	void _setAutoRestTime(const uint exercise_number, const bool auto_resttime);
 	void _setSetType(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint new_type);
-	void _setSetRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number, const QTime &time);
-	void _setSetSubSets(const uint exercise_number, const uint exercise_idx, const uint set_number, const QString &new_subsets);
+	void _setSetRestTime(const uint exercise_number, const uint exercise_idx, const uint set_number, QTime &&time);
+	void _setSetSubSets(const uint exercise_number, const uint exercise_idx, const uint set_number, QString &&new_subsets);
 	void _setSetReps(const uint exercise_number, const uint exercise_idx, const uint set_number, QString &&new_reps);
 	void _setSetWeight(const uint exercise_number, const uint exercise_idx, const uint set_number, QString &&new_weight);
 	void _setSetNotes(const uint exercise_number, const uint exercise_idx, const uint set_number, QString &&new_notes);

@@ -4,6 +4,7 @@
 #include "openweathermapbackend.h"
 #include "../qmlitemmanager.h"
 #include "../osinterface.h"
+#include "../return_codes.h"
 #include "../tpsettings.h"
 #include "../tputils.h"
 
@@ -126,12 +127,10 @@ private:
 parseOpenWeatherMapReply::parseOpenWeatherMapReply(const QString &net_response)
 	: m_usedKeys(nullptr)
 {
-	if (!net_response.isEmpty())
-	{
+	if (!net_response.isEmpty()) {
 		QString word, key;
 		bool have_key{false}, inside_field{false};
-		for (const auto &chr : std::as_const(net_response))
-		{
+		for (const auto &chr : std::as_const(net_response)) {
 			if (chr.isLetterOrNumber()) {
 				word.append(chr);
 			} else {

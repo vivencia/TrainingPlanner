@@ -13,6 +13,7 @@
 #include "qmluserinterface.h"
 
 #include "pageslistmodel.h"
+#include "return_codes.h"
 #include "tpimageprovider.h"
 #include "tpsettings.h"
 #include "tputils.h"
@@ -140,12 +141,6 @@ void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
 void QmlItemManager::exitApp()
 {
 	qApp->quit();
-}
-
-void QmlItemManager::displayImportDialogMessageAfterMesoSelection(const int meso_idx)
-{
-	appUserModel()->actualMesoModel()->setImportIdx(meso_idx);
-	emit mesoForImportSelected();
 }
 
 void QmlItemManager::showFirstTimeDialog()
@@ -303,17 +298,6 @@ void QmlItemManager::getStatisticsPage()
 	}
 	else
 		appPagesListModel()->openPage(m_statisticsPage);
-}
-
-void QmlItemManager::showOnlineMessagesManagerDialog(const bool show)
-{
-	if (m_messagesManagerPopup) {
-		if (show)
-			appPagesListModel()->raisePopup(m_messagesManagerPopup);
-		else
-			appPagesListModel()->hidePopup(m_messagesManagerPopup);
-		appSettings()->setShowOnlineMessagesDialog(show);
-	}
 }
 
 void QmlItemManager::displayWindowMessage(const int message_id, const int msecs, QFlags<Qt::AlignmentFlag> position,
@@ -510,7 +494,7 @@ void QmlItemManager::showPasswordDialog(const int request_id, QQuickItem *parent
 #endif
 				appQmlEngine()->setObjectOwnership(m_passwordDialog, QQmlEngine::CppOwnership);
 				connect(m_passwordDialog, SIGNAL(passwordAcquired(bool,int,QString,bool)), this,
-														SIGNAL(passwordAcquired(bool,int,QString,bool)));
+																SIGNAL(passwordAcquired(bool,int,QString,bool)));
 				break;
 			case QQmlComponent::Loading:
 				return;
@@ -532,85 +516,46 @@ void QmlItemManager::showPasswordDialog(const int request_id, QQuickItem *parent
 	}
 }
 
-void QmlItemManager::showImportConfirmationDialog(QQuickItem *parent_page, const QString &title, const QString &message,
-																									const QString &image)
+void QmlItemManager::showImportWorkoutDialog(DBExercisesModel *new_workout, QQuickItem *parent_page,
+																DBCalendarModel *cal_model, const QChar &split_letter)
 {
-	if (!m_importDialogComponent) {
-		m_importDialogComponent = new QQmlComponent{appQmlEngine(), "TpQml.Widgets"_L1, "TPBalloonTip"_L1,
-													  QQmlComponent::Asynchronous};
-		connect(m_importDialogComponent, &QQmlComponent::statusChanged, this, [=,this] (QQmlComponent::Status status) {
-			showImportConfirmationDialog(parent_page, title, message, image);
+	if (!m_importWorkoutComponent) {
+		m_importWorkoutComponent = new QQmlComponent{appQmlEngine(), "TpQml.Exercises"_L1, "NewWorkoutDialog"_L1,
+																							QQmlComponent::Asynchronous};
+		connect(m_importWorkoutComponent, &QQmlComponent::statusChanged, this, [=,this] (QQmlComponent::Status status) {
+			showImportWorkoutDialog(new_workout, parent_page, cal_model, split_letter);
 		});
 	} else {
-		if (!m_importDialog) {
-			switch (m_importDialogComponent->status()) {
+		if (!m_importWorkoutDialog) {
+			switch (m_importWorkoutComponent->status()) {
 			case QQmlComponent::Ready:
-				m_importDialogComponent->disconnect();
-				m_importDialogProperties["keepAbove"] = std::move(QVariant{true});
-				m_importDialogProperties["showTitleBar"] = std::move(QVariant{true});
-				m_importDialogProperties["dim"] = std::move(QVariant{true});
-				m_importDialogProperties["showBorder"] = std::move(QVariant{true});
-				m_importDialog = m_importDialogComponent->createWithInitialProperties(m_importDialogProperties, appQmlEngine()->rootContext());
+				m_importWorkoutComponent->disconnect();
+				m_importWorkoutDialog = m_importWorkoutComponent->createWithInitialProperties(
+					QVariantMap{{"calendarModel"_L1, QVariant::fromValue(cal_model)}, {"workoutSplit"_L1,split_letter}},
+																						appQmlEngine()->rootContext());
 #ifndef QT_NO_DEBUG
-				if (!m_importDialog) {
-					qCritical() << m_importDialogComponent->errorString();
+				if (!m_importWorkoutDialog) {
+					qCritical() << m_importWorkoutComponent->errorString();
 					return;
 				}
 #endif
-				appQmlEngine()->setObjectOwnership(m_importDialog, QQmlEngine::CppOwnership);
-				connect(m_importDialog, SIGNAL(closeActionExeced(int)), this, SIGNAL(continueWithImport(int)));
+				appQmlEngine()->setObjectOwnership(m_importWorkoutDialog, QQmlEngine::CppOwnership);
+				connect(m_importWorkoutDialog, SIGNAL(selectionCalendarChanged(bool)), cal_model,
+																				SIGNAL(changeSelectableDates(bool)));
+				connect(m_importWorkoutDialog, SIGNAL(dateSelected(QDate,DBCalendarModel)), new_workout,
+														SIGNAL(incorporateIntoCalendar_part2(QDate,DBCalendarModel)));
 				break;
 			case QQmlComponent::Loading:
 				return;
 			case QQmlComponent::Null:
 			case QQmlComponent::Error:
 #ifndef QT_NO_DEBUG
-				qDebug() << m_importDialogComponent->errorString();
+				qDebug() << m_importWorkoutComponent->errorString();
 #endif
 				return;
 			}
 		}
-		m_importDialog->setProperty("parentPage", std::move(QVariant::fromValue(parent_page)));
-		m_importDialog->setProperty("title", std::move(QVariant{tr("Import ") % title % '?'}));
-		m_importDialog->setProperty("message", std::move(QVariant{message}));
-		m_importDialog->setProperty("imageSource", std::move(QVariant{image}));
-		appPagesListModel()->openPopup(m_importDialog, parent_page);
-	}
-}
-
-void QmlItemManager::startMessagesManager()
-{
-	if (!m_messagesManagerComponent) {
-		m_messagesManagerComponent = new QQmlComponent{appQmlEngine(), "TpQml.Dialogs"_L1, "OnlineMessages"_L1, QQmlComponent::Asynchronous};
-		connect(m_messagesManagerComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) { startMessagesManager(); });
-	} else {
-		if (!m_messagesManagerPopup) {
-			switch (m_messagesManagerComponent->status()) {
-			case QQmlComponent::Ready:
-				m_messagesManagerComponent->disconnect();
-				m_messagesManagerPopup = m_messagesManagerComponent->create(appQmlEngine()->rootContext());
-#ifndef QT_NO_DEBUG
-				m_messagesManagerPopup->setProperty("objectName", std::move(QVariant{"onlineMessages"}));
-				if (!m_messagesManagerPopup) {
-					qCritical() << m_messagesManagerComponent->errorString();
-					return;
-				}
-#endif
-				appQmlEngine()->setObjectOwnership(m_messagesManagerPopup, QQmlEngine::CppOwnership);
-				startMessagesManager();
-				break;
-			case QQmlComponent::Loading:
-				return;
-			case QQmlComponent::Null:
-			case QQmlComponent::Error:
-#ifndef QT_NO_DEBUG
-				qDebug() << m_messagesManagerComponent->errorString();
-#endif
-				return;
-			}
-		} else {
-			appPagesManager()->openPopup(m_messagesManagerPopup, m_homePage, Qt::AlignBaseline);
-		}
+		appPagesListModel()->openPopup(m_importWorkoutDialog, parent_page);
 	}
 }
 

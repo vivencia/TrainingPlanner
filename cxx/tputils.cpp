@@ -45,7 +45,7 @@ int TPUtils::generateUniqueId(const QLatin1StringView &seed) const
 			}
 		}
 		//Avoid collision with the values defined in return_codes.h
-		if (n >= 0 && n <= (TP_RET_CODE_DEFERRED_ACTION + 100))
+		if (n >= 0 && n <= TP_RET_CODE_LAST_CUSTOM_CODE)
 			n += 1000;
 		return n;
 	}
@@ -534,51 +534,36 @@ void TPUtils::rmDir(const QString &path) const
 	static_cast<void>(directory.rmdir(path));
 }
 
-bool TPUtils::writeDataToFile(QFile *out_file,
+int TPUtils::writeDataToFile(const QString &filename,
 								const QString &identifier,
 								const QList<QStringList> &data,
 								const QList<uint> &export_rows,
 								const bool use_real_id) const
 {
-	if (!out_file || !out_file->isWritable())
-		return false;
-
+	QFile *out_file{appUtils()->openFile(filename, false, true, false, true)};
+	if (!out_file)
+		return TP_RET_CODE_OPEN_CREATE_FAILED;
 	if (!identifier.isEmpty())
 		out_file->write(QString{STR_START_EXPORT % identifier % '\n'}.toUtf8().constData());
 
-	if (export_rows.isEmpty()) {
-		for (const auto &modeldata : std::as_const(data)) {
-			uint i{0};
-			if (!use_real_id) {
+	for (const auto row : export_rows) {
+		for (const auto &modeldata : std::as_const(data.at(row))) {
+			if (!use_real_id && row == export_rows.constFirst()) {
 				out_file->write("-1\n", 3);
-				i = 1;
-			}
-			for (; i < modeldata.count(); ++i) {
-				out_file->write(modeldata.at(i).toUtf8().constData());
+			} else {
+				out_file->write(modeldata.toUtf8().constData());
 				out_file->write("\n", 1);
 			}
-			if (!identifier.isEmpty())
-				out_file->write(STR_END_EXPORT.toUtf8().constData());
 		}
-	} else {
-		for (const auto row : export_rows) {
-			for (const auto &modeldata : std::as_const(data.at(row))) {
-				if (!use_real_id && row == export_rows.constFirst()) {
-					out_file->write("-1\n", 3);
-				} else {
-					out_file->write(modeldata.toUtf8().constData());
-					out_file->write("\n", 1);
-				}
-			}
-			if (!identifier.isEmpty())
-				out_file->write((STR_END_EXPORT % '\n').toUtf8().constData());
-		}
+		if (!identifier.isEmpty())
+			out_file->write((STR_END_EXPORT % '\n').toUtf8().constData());
 	}
-	out_file->flush();
-	return true;
+	out_file->close();
+	delete out_file;
+	return TP_RET_CODE_EXPORT_OK;
 }
 
-bool TPUtils::writeDataToFormattedFile(QFile *out_file,
+int TPUtils::writeDataToFormattedFile(const QString &filename,
 								const QString &identifier,
 								const QList<QStringList> &data,
 								const QList<std::function<QString(void)>> &field_description,
@@ -586,8 +571,9 @@ bool TPUtils::writeDataToFormattedFile(QFile *out_file,
 								const QList<uint> &export_rows,
 								const QString &header) const
 {
-	if (!out_file || !out_file->isWritable())
-		return false;
+	QFile *out_file{appUtils()->openFile(filename, false, true, false, true)};
+	if (!out_file)
+		return TP_RET_CODE_OPEN_CREATE_FAILED;
 
 	QString first_line{std::move(STR_START_FORMATTED_EXPORT + identifier)};
 	if (!header.isEmpty())
@@ -595,50 +581,33 @@ bool TPUtils::writeDataToFormattedFile(QFile *out_file,
 	first_line += std::move<QString>(std::move("\n\n"_L1));
 	out_file->write(first_line.toUtf8().constData());
 
-	if (export_rows.isEmpty()) {
-		for (const auto &modeldata : data) {
-			for (uint i{0}; i < modeldata.count(); ++i) {
-				if (field_description.at(i) != nullptr) {
-					out_file->write(field_description.at(i)().toUtf8().constData());
-					if (formatToExport == nullptr)
-						out_file->write(modeldata.at(i).toUtf8().constData());
-					else
-						out_file->write(formatToExport(i, modeldata.at(i)).toUtf8().constData());
-					out_file->write("\n", 1);
-				}
+	for (uint x{0}; x < export_rows.count(); ++x) {
+		const QStringList &rowdata{data.at(export_rows.at(x))};
+		uint i{0};
+		for (const QString &modeldata : rowdata) {
+			if (field_description.at(i) != nullptr) {
+				out_file->write(field_description.at(i)().toUtf8().constData());
+				if (formatToExport == nullptr)
+					out_file->write(modeldata.toUtf8().constData());
+				else
+					out_file->write(formatToExport(i, modeldata).toUtf8().constData());
+				out_file->write("\n", 1);
 			}
-			out_file->write(STR_END_FORMATTED_EXPORT.toUtf8().constData());
+			++i;
 		}
-	} else {
-		for (uint x{0}; x < export_rows.count(); ++x) {
-			const QStringList &rowdata{data.at(export_rows.at(x))};
-			uint i{0};
-			for (const QString &modeldata : rowdata) {
-				if (field_description.at(i) != nullptr) {
-					out_file->write(field_description.at(i)().toUtf8().constData());
-					if (formatToExport == nullptr)
-						out_file->write(modeldata.toUtf8().constData());
-					else
-						out_file->write(formatToExport(i, modeldata).toUtf8().constData());
-					out_file->write("\n", 1);
-				}
-				++i;
-			}
-			out_file->write(STR_END_FORMATTED_EXPORT.toUtf8().constData());
-			out_file->write("\n\n", 2);
-		}
+		out_file->write(STR_END_FORMATTED_EXPORT.toUtf8().constData());
+		out_file->write("\n\n", 2);
 	}
-	out_file->flush();
-	return true;
+	out_file->close();
+	delete out_file;
+	return TP_RET_CODE_EXPORT_OK;
 }
 
-int TPUtils::readDataFromFile(QFile *in_file,
-								QList<QStringList> &data,
-								const uint field_count,
-								const QString &identifier,
-								const int row) const
+int TPUtils::readDataFromFile(const QString &filename, QList<QStringList> &data, const uint field_count,
+																	const QString &identifier, const int row) const
 {
-	if (!in_file || !in_file->isOpen())
+	QFile *in_file{appUtils()->openFile(filename)};
+	if (!in_file)
 		return TP_RET_CODE_OPEN_READ_FAILED;
 
 	QStringList data_read{field_count};
@@ -651,10 +620,6 @@ int TPUtils::readDataFromFile(QFile *in_file,
 		if (!identifier_found) {
 			if (line.contains(STR_START_EXPORT))
 				identifier_found = line.contains(identifier);
-			if (!identifier_found) { //Found the beginning of another data set of a different type, rewind and return
-				in_file->seek(in_file->pos()-line.length());
-				break;
-			}
 		} else {
 			if (line.contains(STR_END_EXPORT)) {
 				if (data_read.count() >= field_count) {
@@ -671,52 +636,55 @@ int TPUtils::readDataFromFile(QFile *in_file,
 			}
 		}
 	}
+	in_file->close();
+	delete in_file;
 	return identifier_found ? (data_found ? TP_RET_CODE_IMPORT_OK : TP_RET_CODE_IMPORT_FAILED) : TP_RET_CODE_WRONG_IMPORT_FILE_TYPE;
 }
 
-int TPUtils::readDataFromFormattedFile(QFile *in_file,
-										QList<QStringList> &data,
-										const uint field_count,
-										const QString &identifier,
-										const std::function<QString(const uint field, const QString &value)> &formatToImport) const
+int TPUtils::readDataFromFormattedFile(const QString &filename, QList<QStringList> &data, const uint field_count,
+	const QString &identifier, const std::function<QString(const uint field, const QString &value)> &formatToImport) const
 {
-	if (!in_file || !in_file->isOpen())
-		return -1;
+	QFile *in_file{appUtils()->openFile(filename)};
+	if (!in_file)
+		return TP_RET_CODE_OPEN_READ_FAILED;
 
+	const auto data_initial_size{data.size()};
 	bool identifier_found{false};
 	uint field{1}; //skip ID
 	QStringList data_read{field_count};
 	QString line{2048, QChar{0}};
 	QTextStream stream{in_file};
+	//std::invoke_result_t<decltype(&QFile::pos), QFile> _pos{0};
 
 	while (stream.readLineInto(&line)) {
-		if (line.length() < 5)
+		if (line.length() < 5) {
+			if (line.contains(STR_END_FORMATTED_EXPORT)) {
+				if (identifier_found) {
+					data.append(std::move(data_read));
+					break;
+				}
+			}
 			continue;
+		}
 		if (!identifier_found) {
 			if (line.contains(STR_START_FORMATTED_EXPORT))
 				identifier_found = line.contains(identifier);
-			if (!identifier_found) { //Found the beginning of another data set of a different type, rewind and return
-				in_file->seek(in_file->pos()-line.length());
-				break;
-			}
 		} else {
-			if (line.contains(STR_END_FORMATTED_EXPORT)) {
-				data.append(std::move(data_read));
-				field = 1;
-			}
-			else {
-				if (field < field_count) {
-					line = std::move(line.remove(0, line.indexOf(':') + 2).simplified());
-					if (formatToImport == nullptr)
-						data_read[field] = std::move(line);
-					else
-						data_read[field] = std::move(formatToImport(field, line));
-					++field;
-				}
+			if (field < field_count) {
+				line = std::move(line.remove(0, line.indexOf(':') + 2).simplified());
+				if (formatToImport == nullptr)
+					data_read[field] = std::move(line);
+				else
+					data_read[field] = std::move(formatToImport(field, line));
+				++field;
 			}
 		}
 	}
-	return identifier_found ? (field > 1 ? TP_RET_CODE_IMPORT_OK : TP_RET_CODE_IMPORT_FAILED) : TP_RET_CODE_WRONG_IMPORT_FILE_TYPE;
+	in_file->close();
+	delete in_file;
+	return (data.size() - data_initial_size == 1
+				? (field == field_count ? TP_RET_CODE_IMPORT_OK : TP_RET_CODE_IMPORT_FAILED)
+				: TP_RET_CODE_WRONG_IMPORT_FILE_TYPE);
 }
 
 QByteArray TPUtils::readBinaryFile(const QString &filename) const

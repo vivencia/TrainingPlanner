@@ -65,7 +65,7 @@ TPPopup {
 			startDate: _control.initDate
 			selectedDate: _control.showDate
 			endDate: _control.finalDate
-			calendarModel: calModel
+			qtCalendarModel: calModel
 
 			Component.onCompleted: datePickerControl.setDate(_control.showDate);
 		}

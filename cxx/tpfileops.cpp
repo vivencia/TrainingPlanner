@@ -7,6 +7,7 @@
 #include "pageslistmodel.h"
 #include "property_buffer.tpp"
 #include "qmlitemmanager.h"
+#include "return_codes.h"
 #include "tpfilepath.h"
 #include "tpimage.h"
 #include "tpsettings.h"
@@ -84,6 +85,10 @@ TPFileOps::~TPFileOps()
 		delete m_sendFileDialog;
 		delete m_sendFileDialogComponent;
 	}
+	if (m_importDialog) {
+		delete m_importDialog;
+		delete m_importDialogComponent;
+	}
 	if (m_pdfDocument)
 		delete m_pdfDocument;
 	if (m_controls[0]) {
@@ -152,9 +157,9 @@ void TPFileOps::setControlSize(const QSize &new_size)
 	setWidth(m_controlSize.width());
 	setHeight(m_controlSize.height());
 	emit controlSizeChanged();
-	const auto new_preview_width{m_controlSize.width() > m_buttonSize.width() + 2 * buttons_padding ? m_controlSize.width() :
-							   2 * (m_buttonSize.width() + buttons_padding)};
-	setPreviewSize(QSize{new_preview_width, qFloor(new_preview_width * 1.4)});
+	const auto min_width{appSettings()->pageWidth() / 3};
+	const auto new_preview_width{m_controlSize.width() > min_width ? m_controlSize.width() : min_width};
+	setPreviewSize(QSize{qCeil(new_preview_width), qCeil(new_preview_width * 1.4)});
 }
 
 void TPFileOps::setPreviewSize(const QSize &size)
@@ -291,10 +296,8 @@ void TPFileOps::attemptToCreateOrGetFile()
 		} else {
 			appItemManager()->displayMessageOnAppWindow(ret_code, std::move(m_filename.filename()));
 		}
-		if (fileIsOK() && isTPFile()) {
-			if (m_filetype & TPUtils::FT_TP_FORMATTED)
-				readTPFile();
-		}
+		if (fileIsOK())
+			_setFileName(false); //update internal data such as miniatures, pdf passwords, tp files properties
 		if (useControls()) {
 			for (int i{OT_FullScreen}; i <= OT_TypeCount - 2; ++i)
 				setButtonCondition(static_cast<OpType>(i));
@@ -316,7 +319,7 @@ void TPFileOps::attemptToCreateOrGetFile()
 		downloadOrCopyFile();
 }
 
-/*void TPFileOps::setEnabled(TPFileOps::OpType type, const bool enabled, const bool call_update)
+void TPFileOps::setEnabled(TPFileOps::OpType type, const bool enabled, const bool call_update)
 {
 	controlInfo *ci{controlFromType(type)};
 	if (ci && ci->enabled != enabled) {
@@ -324,7 +327,7 @@ void TPFileOps::attemptToCreateOrGetFile()
 		if (call_update)
 			update(ci->rect);
 	}
-}*/
+}
 
 QString TPFileOps::getFileTypeIcon(const QSize &preferred_size, const bool thumbnail) const
 {
@@ -594,13 +597,11 @@ void TPFileOps::generateFileFromType(const bool formatted)
 	case TPUtils::FT_TP_WORKOUT_D:
 	case TPUtils::FT_TP_WORKOUT_E:
 	case TPUtils::FT_TP_WORKOUT_F: {
-			DBExercisesModel *model{appUserModel()->actualMesoModel()->workoutForDay(m_mesoIdx, m_workoutCalendarDay)};
-			if (model) {
-				if (!formatted)
-					ret = model->exportToFile(m_filename);
-				else
-					ret = model->exportToFormattedFile(m_filename);
-			}
+			DBExercisesModel *model{appUserModel()->actualMesoModel()->workoutForDay(nullptr, m_mesoIdx, m_workoutCalendarDay)};
+			if (!formatted)
+				ret = model->exportToFile(m_filename);
+			else
+				ret = model->exportToFormattedFile(m_filename);
 		}
 		break;
 	default:
@@ -879,6 +880,51 @@ void TPFileOps::openFile()
 		appOsInterface()->viewExternalFile(m_filename.toString());
 }
 
+void TPFileOps::showImportConfirmationDialog(const QString &title, const QString &message, const QString &image)
+{
+	if (!m_importDialogComponent) {
+		m_importDialogComponent = new QQmlComponent{appQmlEngine(), "TpQml.Widgets"_L1, "TPBalloonTip"_L1,
+													QQmlComponent::Asynchronous};
+		connect(m_importDialogComponent, &QQmlComponent::statusChanged, this, [=,this] (QQmlComponent::Status status) {
+			showImportConfirmationDialog(title, message, image);
+		});
+	} else {
+		if (!m_importDialog) {
+			QVariantMap dlg_properties;
+			switch (m_importDialogComponent->status()) {
+			case QQmlComponent::Ready:
+				m_importDialogComponent->disconnect();
+				dlg_properties["keepAbove"] = std::move(QVariant{true});
+				dlg_properties["showTitleBar"] = std::move(QVariant{true});
+				dlg_properties["dim"] = std::move(QVariant{true});
+				dlg_properties["showBorder"] = std::move(QVariant{true});
+				m_importDialog = m_importDialogComponent->createWithInitialProperties(dlg_properties, appQmlEngine()->rootContext());
+#ifndef QT_NO_DEBUG
+				if (!m_importDialog) {
+					qCritical() << m_importDialogComponent->errorString();
+					return;
+				}
+#endif
+				appQmlEngine()->setObjectOwnership(m_importDialog, QQmlEngine::CppOwnership);
+				connect(m_importDialog, SIGNAL(closeActionExeced(int)), this, SIGNAL(continueWithImport(int)));
+				break;
+			case QQmlComponent::Loading:
+				return;
+			case QQmlComponent::Null:
+			case QQmlComponent::Error:
+#ifndef QT_NO_DEBUG
+				qDebug() << m_importDialogComponent->errorString();
+#endif
+				return;
+			}
+		}
+		m_importDialog->setProperty("title", std::move(QVariant{tr("Import ") % title % '?'}));
+		m_importDialog->setProperty("message", std::move(QVariant{message}));
+		m_importDialog->setProperty("imageSource", std::move(QVariant{image}));
+		appPagesListModel()->openPopup(m_importDialog, m_parentPage);
+	}
+}
+
 void TPFileOps::importTPFile()
 {
 	uint32_t ft{m_filetype};
@@ -888,10 +934,15 @@ void TPFileOps::importTPFile()
 
 	switch (ft) {
 	case TPUtils::FT_TP_USER_PROFILE:
-		appUserModel()->newUserFromFile(m_filename, formatted);
+		appItemManager()->displayMessageOnAppWindow(appUserModel()->newUserFromFile(m_filename, formatted));
 		break;
 	case TPUtils::FT_TP_PROGRAM:
-		appUserModel()->actualMesoModel()->newMesoFromFile(m_filename, false, formatted);
+		connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::mesoImported, this,
+																	[this] (const int ret_code, const QString &msg) {
+			appItemManager()->displayMessageOnAppWindow(ret_code, std::move(QString{msg}));
+			emit tpFileImported(ret_code == TP_RET_CODE_IMPORT_OK);
+		}, Qt::SingleShotConnection);
+		appUserModel()->actualMesoModel()->newMesoFromFile(m_filename, true, formatted);
 		break;
 	case TPUtils::FT_TP_WORKOUT_A:
 	case TPUtils::FT_TP_WORKOUT_B:
@@ -899,12 +950,16 @@ void TPFileOps::importTPFile()
 	case TPUtils::FT_TP_WORKOUT_D:
 	case TPUtils::FT_TP_WORKOUT_E:
 	case TPUtils::FT_TP_WORKOUT_F:
+		connect(appUserModel()->actualMesoModel(), &DBMesocyclesModel::workoutImported, this,
+																[this] (const int ret_code, const QString &msg) {
+			appItemManager()->displayMessageOnAppWindow(ret_code, std::move(QString{msg}));
+		}, Qt::SingleShotConnection);
 		appUserModel()->actualMesoModel()->newWorkoutFromFile(m_filename, formatted,
 			appUserModel()->actualMesoModel()->idxFromFieldValue(DBExercisesModel::workoutFileName_mesoName(m_filename),
-						DBMesocyclesModel::MESO_FIELD_NAME), DBExercisesModel::workoutFileName_splitLetter(m_filename));
+					DBMesocyclesModel::MESO_FIELD_NAME), -1, DBExercisesModel::workoutFileName_splitLetter(m_filename));
 		break;
 	case TPUtils::FT_TP_EXERCISES:
-		appExercisesList()->newExerciseFromFile(m_filename, formatted);
+		appItemManager()->displayMessageOnAppWindow(appExercisesList()->newExerciseFromFile(m_filename, formatted));
 		break;
 	}
 }
@@ -917,7 +972,8 @@ void TPFileOps::setButtonCondition(const OpType type, std::optional<bool> visibl
 
 	switch (type) {
 	case OT_AddFile:
-		ci->visible = !visible.has_value() ? canAddFile() : visible.value();
+		if ((ci->visible = !visible.has_value() ? canAddFile() : visible.value()))
+			_setEnabled(ci, true);
 		break;
 	case OT_FullScreen:
 		if ((ci->visible = !visible.has_value() ? isViewableFile() : visible.value()))
@@ -1003,8 +1059,9 @@ inline TPFileOps::controlInfo *TPFileOps::controlFromMouseClick(const QPointF& m
 
 TPFileOps::controlInfo *TPFileOps::controlFromType(const OpType type) const
 {
-	for (controlInfo *ci{m_controls[0]}; ci != nullptr; ++ci) {
-		if (ci->type == type)
+	for (int i{OT_AddFile}; i < OT_TypeCount; ++i) {
+		controlInfo *ci{m_controls[i]};
+		if (ci && ci->type == type)
 			return ci;
 	};
 	return nullptr;
@@ -1278,11 +1335,13 @@ void TPFileOps::openTPFile()
 		Q_UNREACHABLE();
 	}
 
-	connect(appItemManager(), &QmlItemManager::continueWithImport, this, [this] (const int button) {
-		if (button == 0)
+	connect(this, &TPFileOps::continueWithImport, this, [this] (const int button) {
+		if (button == 0) {
+			setEnabled(OT_ViewExternally, false, true);
 			importTPFile();
+		}
 	}, Qt::SingleShotConnection);
-	appItemManager()->showImportConfirmationDialog(m_parentPage, str_type, str_details, str_image);
+	showImportConfirmationDialog(str_type, str_details, str_image);
 }
 
 void TPFileOps::textDocumentKeyNavigation(const int key)

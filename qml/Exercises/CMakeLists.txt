@@ -2,6 +2,7 @@ set( QML_EXERCISES
 	"ExerciseNameField.qml"
 	"ExercisesListDelegate.qml"
 	"ExercisesListView.qml"
+	"NewWorkoutDialog.qml"
 	"SetInputField.qml"
 	"SetNotesField.qml"
 	"SimpleExercisesListPanel.qml"

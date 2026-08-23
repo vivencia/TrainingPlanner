@@ -6,6 +6,7 @@
 #include "qmlmesosplitinterface.h"
 #include "qmlmesocalendarinterface.h"
 #include "qmlworkoutinterface.h"
+#include "return_codes.h"
 #include "tpfileops.h"
 #include "tputils.h"
 #include "translationclass.h"
@@ -317,7 +318,8 @@ void QMLMesoInterface::getWorkoutPage(const QDate &date)
 		workoutPage = new QmlWorkoutInterface{this, m_mesoModel, m_mesoIdx, date};
 		m_workoutPages.insert(date, workoutPage);
 	}
-	m_mesoModel->setWorkingWorkout(m_mesoIdx, m_mesoModel->workoutForDay(m_mesoIdx, date));
+	DBExercisesModel *w_model{m_mesoModel->workoutForDay(nullptr, m_mesoIdx, workoutPage->calendarDay())};
+	m_mesoModel->setWorkingWorkout(m_mesoIdx, w_model);
 	workoutPage->getWorkoutPage();
 }
 

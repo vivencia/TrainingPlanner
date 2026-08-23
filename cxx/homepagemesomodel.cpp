@@ -105,6 +105,7 @@ void HomePageMesoModel::appendMesoIdx(const uint meso_idx)
 		emit countChanged();
 		setCurrentIndex(m_mesoModelRows.count() - 1);
 		endInsertRows();
+		emit dataChanged(index(meso_idx), index(meso_idx));
 	}
 	#ifndef QT_NO_DEBUG
 	else

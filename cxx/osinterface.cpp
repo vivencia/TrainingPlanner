@@ -2,6 +2,7 @@
 
 #include "dbusermodel.h"
 #include "qmlitemmanager.h"
+#include "return_codes.h"
 #include "tpsettings.h"
 #include "tputils.h"
 #include "online_services/scan_network.h"

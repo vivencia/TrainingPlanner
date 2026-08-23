@@ -15,8 +15,8 @@ constexpr QLatin1StringView field_names[n_fields][2] {
 	{"selected"_L1			"INTEGER"_L1},
 };
 
-DBExercisesListTable::DBExercisesListTable(DBModelInterfaceExercisesList *dbmodel_interface)
-	: TPDatabaseTable{EXERCISES_TABLE_ID, dbmodel_interface}
+DBExercisesListTable::DBExercisesListTable(DBModelInterfaceExercisesList *dbmi)
+	: TPDatabaseTable{EXERCISES_TABLE_ID}
 {
 	m_tableName = &table_name;
 	m_fieldNames = field_names;
@@ -25,7 +25,7 @@ DBExercisesListTable::DBExercisesListTable(DBModelInterfaceExercisesList *dbmode
 	#ifndef QT_NO_DEBUG
 	setObjectName("ExercisesListTable");
 	#endif
-	setReadAllRecordsFunc<void>([this] (void *param) { return getAllExercises(param); });
+	setReadAllRecordsFunc([this,dbmi] (DBModelInterface*) { return getAllExercises(dbmi); });
 }
 
 QString DBExercisesListTable::dbFileName(const bool fullpath) const
@@ -34,18 +34,19 @@ QString DBExercisesListTable::dbFileName(const bool fullpath) const
 	return fullpath ? dbFilePath() % filename : filename;
 }
 
-bool DBExercisesListTable::getAllExercises(void *)
+bool DBExercisesListTable::getAllExercises(void *data)
 {
 	bool success{false};
 	if (execReadOnlyQuery("SELECT * FROM %1 ORDER BY ROWID;"_L1.arg(table_name))) {
 		if (m_workingQuery.first()) {
+			DBModelInterfaceExercisesList *dbmi{static_cast<DBModelInterfaceExercisesList*>(data)};
 			do {
 				QStringList data{EXERCISES_LIST_N_FIELDS};
 				for (uint i{EXERCISES_LIST_FIELD_ID}; i < EXERCISES_LIST_FIELD_ACTUALINDEX; ++i)
 					data[i] = std::move(m_workingQuery.value(static_cast<int>(i)).toString());
-				data[EXERCISES_LIST_FIELD_ACTUALINDEX] = std::move(QString::number(m_dbModelInterface->modelData().count()));
+				data[EXERCISES_LIST_FIELD_ACTUALINDEX] = std::move(QString::number(dbmi->modelData().count()));
 				data[EXERCISES_LIST_FIELD_SELECTED] = std::move("0"_L1);
-				m_dbModelInterface->modelData().append(std::move(data));
+				dbmi->modelData().append(std::move(data));
 			} while (m_workingQuery.next ());
 			success = true;
 		}

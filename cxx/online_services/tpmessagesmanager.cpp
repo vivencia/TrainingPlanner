@@ -5,7 +5,9 @@
 #include "tponlineservices.h"
 #include "websocketserver.h"
 #include "../dbusermodel.h"
+#include "../pageslistmodel.h"
 #include "../qmlitemmanager.h"
+#include "../return_codes.h"
 #include "../tpfileops.h"
 #include "../tputils.h"
 
@@ -95,8 +97,7 @@ void TPMessagesManager::newTextMessage(const QString &encoded_message)
 			removeMessage(text_msg);
 			return QVariant{};
 		}, true);
-		//killMessage is emitted either when the message expires or when the delete button on the
-		//message's TPFileOps is triggered
+		//killMessage is emitted either when the message expires or by the message's TPFileOps
 		connect(text_msg, &TPMessage::killMessage, this, [this,text_msg] () { removeMessage(text_msg); });
 		m_messagesModel->insertMessage(text_msg);
 		emit messagesModelChanged();
@@ -206,7 +207,109 @@ void TPMessagesManager::openChat(const uint user_idx)
 
 void TPMessagesManager::openNewMessageDialog(const uint user_idx)
 {
-	//TODO
+	if (!m_newTPMessageComponent) {
+		m_newTPMessageComponent = new QQmlComponent{appQmlEngine(), "TpQml.Dialogs"_L1, "NewTPMessageDialog"_L1, QQmlComponent::Asynchronous};
+		connect(m_newTPMessageComponent, &QQmlComponent::statusChanged, this, [this,user_idx] (QQmlComponent::Status status) {
+			openNewMessageDialog(user_idx);
+		});
+	} else {
+		if (!m_newTPMessageDialog) {
+			switch (m_newTPMessageComponent->status()) {
+			case QQmlComponent::Ready:
+				m_newTPMessageComponent->disconnect();
+				m_newTPMessageDialog = m_newTPMessageComponent->createWithInitialProperties(QVariantMap{
+						{"selectedUsers", appUserModel()->userName(user_idx)}}, appQmlEngine()->rootContext());
+#ifndef QT_NO_DEBUG
+				if (!m_newTPMessageDialog) {
+					qCritical() << m_newTPMessageComponent->errorString();
+					return;
+				}
+#endif
+				appQmlEngine()->setObjectOwnership(m_newTPMessageDialog, QQmlEngine::CppOwnership);
+				connect(m_newTPMessageDialog, SIGNAL(sendMessage(QStringList,QString,QString)), this, SLOT(sendTPMessage(QStringList,QString,QString)));
+				openNewMessageDialog(user_idx);
+				break;
+			case QQmlComponent::Loading:
+				return;
+			case QQmlComponent::Null:
+			case QQmlComponent::Error:
+#ifndef QT_NO_DEBUG
+				qDebug() << m_newTPMessageComponent->errorString();
+#endif
+				return;
+			}
+		} else {
+			appItemManager()->appPagesManager()->openPopup(m_newTPMessageDialog, appItemManager()->appHomePage(),
+																									Qt::AlignBaseline);
+		}
+	}
+}
+
+void TPMessagesManager::showOnlineMessagesManagerDialog(const bool show)
+{
+	if (m_messagesManagerDialog) {
+		appSettings()->setShowOnlineMessagesDialog(show);
+		if (show)
+			appPagesListModel()->raisePopup(m_messagesManagerDialog);
+		else
+			appPagesListModel()->hidePopup(m_messagesManagerDialog);
+	}
+}
+
+void TPMessagesManager::startMessagesManager()
+{
+	if (!m_messagesManagerComponent) {
+		m_messagesManagerComponent = new QQmlComponent{appQmlEngine(), "TpQml.Dialogs"_L1, "OnlineMessages"_L1, QQmlComponent::Asynchronous};
+		connect(m_messagesManagerComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) {
+			startMessagesManager();
+		});
+	} else {
+		if (!m_messagesManagerDialog) {
+			switch (m_messagesManagerComponent->status()) {
+			case QQmlComponent::Ready:
+				m_messagesManagerComponent->disconnect();
+				m_messagesManagerDialog = m_messagesManagerComponent->create(appQmlEngine()->rootContext());
+#ifndef QT_NO_DEBUG
+				m_messagesManagerDialog->setProperty("objectName", std::move(QVariant{"onlineMessages"}));
+				if (!m_messagesManagerDialog) {
+					qCritical() << m_messagesManagerComponent->errorString();
+					return;
+				}
+#endif
+				appQmlEngine()->setObjectOwnership(m_messagesManagerDialog, QQmlEngine::CppOwnership);
+				startMessagesManager();
+				break;
+			case QQmlComponent::Loading:
+				return;
+			case QQmlComponent::Null:
+			case QQmlComponent::Error:
+#ifndef QT_NO_DEBUG
+				qDebug() << m_messagesManagerComponent->errorString();
+#endif
+				return;
+			}
+		} else {
+			appItemManager()->appPagesManager()->openPopup(m_messagesManagerDialog, appItemManager()->appHomePage(),
+																									Qt::AlignBaseline);
+		}
+	}
+}
+
+void TPMessagesManager::sendTPMessage(const QStringList &users, const QString &message, const QString &filename)
+{
+	for (const auto &user : users) {
+		const QString &encoded_message{appUtils()->makeEncodedMessage(
+			TPUtils::tpmessage_prefix,
+			appUserModel()->userId(0),
+			user,
+			appUtils()->formatDateTime(QDateTime::currentDateTime()),
+			QString{},
+			message,
+			filename,
+			QString{}
+		)};
+		sendTPMessage(user, encoded_message);
+	}
 }
 
 TPMessage *TPMessagesManager::topLevelUserMessage(const QString &userid)
@@ -268,6 +371,7 @@ void TPMessagesManager::receivedTPMessages(const QStringList &messages)
 			newTextMessage(message);
 	}
 }
+
 
 /*	record_separator(oct 036, dec 30) separates the message fields
 	set_separator (oct 037, dec 31) separates messages of the same sender

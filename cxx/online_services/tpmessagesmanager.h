@@ -25,6 +25,7 @@ public:
 
 	explicit TPMessagesManager(QObject *parent = nullptr);
 	TPMessagesModel *messagesModel() const { return m_messagesModel; }
+	inline QObject *messagesManagerDialog() const { return m_messagesManagerDialog; }
 
 	void startMessagesPolling(const QString &userid);
 	void newTextMessage(const QString &encoded_message);
@@ -34,6 +35,11 @@ public:
 	inline TPChat *chatManager(const QString &userid) const { return m_chatsList.value(userid)->chat; }
 	Q_INVOKABLE void openChat(const uint user_idx);
 	Q_INVOKABLE void openNewMessageDialog(const uint user_idx);
+	Q_INVOKABLE void showOnlineMessagesManagerDialog(const bool show);
+	void startMessagesManager();
+
+public slots:
+	void sendTPMessage(const QStringList &users, const QString &message, const QString &filename);
 
 signals:
 	void messagesModelChanged();
@@ -47,12 +53,14 @@ private:
 	QHash<QString,st_Chat*> m_chatsList;
 
 	QTimer *m_checkMessagesTimer{nullptr};
-	QQmlComponent *m_chatWindowComponent{nullptr};
+	QQmlComponent *m_chatWindowComponent{nullptr}, *m_messagesManagerComponent{nullptr}, *m_newTPMessageComponent{nullptr};
+	QObject *m_messagesManagerDialog{nullptr}, *m_newTPMessageDialog{nullptr};
 	QVariantMap m_chatWindowProperties;
 	TPMessagesModel *m_messagesModel{nullptr};
 
 	TPMessage *topLevelUserMessage(const QString &userid);
 	void receivedTPMessages(const QStringList &messages);
+	void createGeneralMessagesPopup();
 	void parseNewChatMessages(const QString &encoded_messages);
 	TPChat *createChatMessage(QString &&userid, const bool check_unread_messages);
 	void removeChildrenMessages(TPMessage *msg, const int exclude_type);

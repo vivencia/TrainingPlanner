@@ -73,8 +73,11 @@ TPLabel {
 	}
 
 	Component.onCompleted: {
-		if (_control.boxType === TPRadioButtonOrCheckBox.TP_RADIOBOX && _control.buttonGroup)
+		if (_control.boxType === TPRadioButtonOrCheckBox.TP_RADIOBOX && _control.buttonGroup) {
 			_control.buttonGroup.addButton(this);
+			if (checked)
+				_control.buttonGroup.setChecked(this, true);
+		}
 	}
 
 	Component.onDestruction: {

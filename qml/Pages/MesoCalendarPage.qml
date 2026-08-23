@@ -21,7 +21,7 @@ TPPage {
 	property date _today: new Date()
 
 	onPageActivated: calendar.positionViewAtIndex(mesoCalendarPage.calendarModel.getIndexFromDate(
-																	mesoCalendarPage.calendarModel.currentDate), ListView.Contain);
+														mesoCalendarPage.calendarModel.currentDate), ListView.Contain);
 
 	header: TPToolBar {
 		height: AppSettings.pageHeight * 0.1

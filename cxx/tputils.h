@@ -198,13 +198,14 @@ public:
 									const QString &dir_match = QString{}, const bool follow_tree = false) const;
 	void rmDir(const QString &path) const;
 
-	bool writeDataToFile(QFile *out_file,
-							const QString &identifier,
-							const QList<QStringList> &data,
-							const QList<uint> &export_rows = QList<uint>{},
-							const bool use_real_id = true) const;
+	//The write functions will not fail if filename exists: it will be overwritten
+	int writeDataToFile(const QString &filename,
+						 const QString &identifier,
+						 const QList<QStringList> &data,
+						 const QList<uint> &export_rows = QList<uint>{},
+						 const bool use_real_id = true) const;
 
-	bool writeDataToFormattedFile(QFile *out_file,
+	int writeDataToFormattedFile(const QString &filename,
 								  const QString &identifier,
 								  const QList<QStringList> &data,
 								  const QList<std::function<QString(void)>> &field_description,
@@ -212,13 +213,13 @@ public:
 								  const QList<uint> &export_rows = QList<uint>{},
 								  const QString &header = QString{} ) const;
 
-	int readDataFromFile(QFile *in_file,
+	int readDataFromFile(const QString &filename,
 							QList<QStringList> &data,
 							const uint field_count,
 							const QString &identifier,
 							const int row = -1) const;
 
-	int readDataFromFormattedFile(QFile *in_file,
+	int readDataFromFormattedFile(const QString &filename,
 								  QList<QStringList> &data,
 								  const uint field_count,
 								  const QString &identifier,

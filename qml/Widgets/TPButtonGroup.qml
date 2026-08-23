@@ -36,9 +36,9 @@ QtObject {
 			if (_buttons[i] === button) {
 				_buttons[i].checked = true;
 				selectedOption = Math.abs(_buttons.length - i - 1);
-			}
-			else
+			} else {
 				_buttons[i].checked = false;
+			}
 		}	
 	}
 }

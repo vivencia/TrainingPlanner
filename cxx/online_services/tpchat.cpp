@@ -150,8 +150,8 @@ TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QO
 					setUnreadMessages(return_value2.toString());
 			}
 		});
-		auto x = [this] () -> std::pair<QVariant,QVariant> { return m_db->getNumberOfUnreadMessages(); };
-		m_db->setCustQueryFunction(x);
+		auto x = [this] (DBModelInterface*) -> std::pair<QVariant,QVariant> { return m_db->getNumberOfUnreadMessages(); };
+		m_db->setCustomQueryFunction(x);
 		appThreadManager()->runAction(m_db, ThreadManager::CustomOperation);
 	}
 }

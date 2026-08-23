@@ -1,8 +1,9 @@
 #include "pageslistmodel.h"
 
 #include "dbmesocyclesmodel.h"
-#include "qmlitemmanager.h"
 #include "dbusermodel.h"
+#include "qmlitemmanager.h"
+#include "return_codes.h"
 
 #include <QQuickItem>
 #include <QQuickWindow>
@@ -230,7 +231,8 @@ void PagesListModel::raisePopup(QObject* popup)
 					popup->setProperty("z", page_info->tpPopups.count() - 1);
 					const auto z_order{page_info->tpPopups.indexOf(popup)};
 					page_info->tpPopups.move(z_order, page_info->tpPopups.count() - 1);
-					popup->setProperty("visible", true);
+					if (popup->property("_hidden").toBool())
+						QMetaObject::invokeMethod(popup, "restore");
 					QMetaObject::invokeMethod(popup, "forceActiveFocus");
 				}
 			}
@@ -243,7 +245,7 @@ void PagesListModel::hidePopup(QObject *popup)
 	pageInfo *page_info{getPageInfo(popup)};
 	if (page_info) {
 		changePopupStackOrder(popup, page_info);
-		popup->setProperty("visible", false);
+		QMetaObject::invokeMethod(popup, "hide");
 	}
 }
 

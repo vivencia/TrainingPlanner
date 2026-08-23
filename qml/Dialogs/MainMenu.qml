@@ -133,7 +133,7 @@ Drawer {
 				width: AppSettings.itemLargeHeight
 				height: width
 
-				onCheck: ItemManager.showOnlineMessagesManagerDialog(!checked);
+				onCheck: AppMessages.showOnlineMessagesManagerDialog(!checked);
 
 				anchors {
 					top: btnSettings.bottom

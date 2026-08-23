@@ -101,7 +101,7 @@ int TPMessage::row() const
 	if (m_parentMessage == nullptr)
 		return 0;
 	const auto it{std::find_if(m_parentMessage->m_children.cbegin(), m_parentMessage->m_children.cend(),
-														[this](const std::unique_ptr<TPMessage> &message) {
+																[this](const std::unique_ptr<TPMessage> &message) {
 		return message.get() == this;
 	})};
 	if (it != m_parentMessage->m_children.cend())
@@ -112,14 +112,21 @@ int TPMessage::row() const
 
 void TPMessage::setFileName(const QString &filename)
 {
-	m_fileOps = new TPFileOps;
-	m_fileOps->setUseControls(true);
-	m_fileOps->setCanDownloadOrGenerate(true);
-	m_fileOps->setFileName(filename);
-	if (!m_fileViewer)
-		createFileViewer();
-	m_fileOps->attemptToCreateOrGetFile();
-	connect(m_fileOps, &TPFileOps::fileRemovalRequested, this, [this] () { emit killMessage(); });
+	if (!filename.isEmpty()) {
+		m_fileOps = new TPFileOps;
+		m_fileOps->setUseControls(true);
+		m_fileOps->setCanDownloadOrGenerate(true);
+		m_fileOps->setFileName(filename);
+		if (!m_fileViewer)
+			createFileViewer();
+		m_fileOps->attemptToCreateOrGetFile();
+		connect(m_fileOps, &TPFileOps::fileRemovalRequested, this, [this] () { emit killMessage(); });
+		connect(m_fileOps, &TPFileOps::tpFileImported, this, [this] (const bool success) {
+			if (success)
+				qDebug() << "ulalá";
+			//	emit killMessage();
+		});
+	}
 }
 
 void TPMessage::setExpiration(QDateTime &&date_time)
@@ -219,11 +226,10 @@ void TPMessage::createActionsLayout()
 	}
 #endif
 	appQmlEngine()->setObjectOwnership(m_actionsLayout, QQmlEngine::CppOwnership);
-	m_actionsLayout->setWidth(appSettings()->getCustomValue(appItemManager()->messagesManagerPopup()->objectName()
-					% ".size"_L1, appItemManager()->messagesManagerPopup()->property("normal_size").toSize()).toSize().width());
-
+	m_actionsLayout->setWidth(appSettings()->getCustomValue(appMessagesManager()->messagesManagerDialog()->objectName()
+		% ".size"_L1, appMessagesManager()->messagesManagerDialog()->property("normal_size").toSize()).toSize().width());
 	setupActionsLayout(false, false, false);
-	connect(appItemManager()->messagesManagerPopup(), SIGNAL(popupSizeChanged(qreal,qreal)), this,
+	connect(appMessagesManager()->messagesManagerDialog(), SIGNAL(popupSizeChanged(qreal,qreal)), this,
 																				SLOT(popupSizeChanged(qreal,qreal)));
 }
 

@@ -135,7 +135,7 @@ public:
 	void exportTPFile(const TPFilePath &tp_filename);
 	Q_INVOKABLE QString openFileDialog(const int file_type, const QString &suggested_save_name = QString{});
 	Q_INVOKABLE void attemptToCreateOrGetFile();
-	//Q_INVOKABLE void setEnabled(TPFileOps::OpType type, const bool enabled, const bool call_update = true);
+	Q_INVOKABLE void setEnabled(TPFileOps::OpType type, const bool enabled, const bool call_update = true);
 	Q_INVOKABLE QString getFileTypeIcon(const QSize &preferred_size = QSize{}, const bool thumbnail = true) const;
 	Q_INVOKABLE inline void doFileOperation(const int op) { _doFileOperation(static_cast<OpType>(op)); }
 	Q_INVOKABLE inline QString tpFileSectionTitle(const int section) { return m_tpFileInfo.value(section).first; }
@@ -158,6 +158,8 @@ signals:
 	void fileAdded(const QString &filepath);
 	void fileAcquired(const int ret_code);
 	void fileSent(const int success);
+	void tpFileImported(const int success);
+	void continueWithImport(const int button);
 	void fileRemovalRequested();
 	void mesoIdxChanged();
 	void controlSizeChanged();
@@ -188,7 +190,8 @@ private:
 		QImage default_image;
 		QImage pressed_image;
 		QImage *current_image{nullptr};
-		bool visible{true}, pressed{false}, enabled{true};
+		bool visible{true}, pressed{false};
+		std::optional<bool> enabled{std::nullopt};
 		QRect rect;
 	};
 
@@ -206,8 +209,8 @@ private:
 	TPFilePath m_filename;
 	QString m_encodedName;
 	QFileDialog *m_fileDialog{nullptr};
-	QQmlComponent *m_sendFileDialogComponent{nullptr};
-	QObject *m_sendFileDialog{nullptr};
+	QQmlComponent *m_sendFileDialogComponent{nullptr}, *m_importDialogComponent{nullptr};
+	QObject *m_sendFileDialog{nullptr}, *m_importDialog{nullptr};
 	QQuickItem *m_parentPage{nullptr};
 	QPdfDocument* m_pdfDocument{nullptr};
 	std::function<TPFilePathPtr(const QString&)> m_suggestNameFunc{nullptr};
@@ -223,6 +226,7 @@ private:
 	void sendFileToUsers(const QStringList &users, const QString &message);
 	void sendFileDirectly(const QStringList &users);
 	void openFile();
+	void showImportConfirmationDialog(const QString &title, const QString &message, const QString &image);
 	void importTPFile();
 	void setButtonCondition(const OpType type, std::optional<bool> visible = std::nullopt, bool do_update = false);
 	void createControls();

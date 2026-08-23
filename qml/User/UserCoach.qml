@@ -89,12 +89,13 @@ ColumnLayout {
 			title: qsTr("Choose the file to import from")
 			fileType: AppUtils.FT_PDF|AppUtils.FT_OPEN_DOCUMENT|AppUtils.FT_MS_DOCUMENT
 
-			onAccepted: {
-				AppUserModel.uploadResume(currentFile);
+			onDialogClosed: (result) => {
+				if (result) {
+					AppUserModel.uploadResume(currentFile);
+					userCoachModule.bResumeSent = true;
+				}
 				userCoachModule.bChooseResume = false;
-				userCoachModule.bResumeSent = true;
 			}
-			onRejected: userCoachModule.bChooseResume = false;
 			Component.onCompleted: chooseResumeLoader._file_dialog = this
 		}
 

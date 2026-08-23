@@ -11,11 +11,11 @@ FileDialog {
 	selectedFile: saveDialog ? suggestedName: ""
 
 	property bool saveDialog: false
-	property int fileType
+	property int fileType: AppUtils.FT_ANY_TYPE
 	property string suggestedName
 
-	signal dialogClosed(int result);
+	signal dialogClosed(bool accepted);
 
-	onAccepted: dialogClosed(0);
-	onRejected: dialogClosed(1);
+	onAccepted: dialogClosed(true);
+	onRejected: dialogClosed(false);
 }

@@ -50,8 +50,8 @@ public:
 	explicit QmlWorkoutInterface(QObject *parent, DBMesocyclesModel *meso_model, const uint meso_idx, const QDate &date);
 	~QmlWorkoutInterface() { cleanUp(); }
 	void cleanUp();
+	inline int calendarDay() const { return m_calendarDay; }
 
-	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	inline uint timerHour() const { return m_hour; }
 	inline void setTimerHour(const uint new_value) { m_hour = new_value; emit timerHourChanged(); }
 
@@ -101,7 +101,6 @@ public:
 	Q_INVOKABLE void setWorkingSetMode();
 	Q_INVOKABLE QStringList previousWorkoutsList_text() const;
 	Q_INVOKABLE QList<uint> previousWorkoutsList_value() const;
-	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
 	void setMesoIdx(const uint new_meso_idx);
 	void getWorkoutPage();
@@ -127,7 +126,6 @@ public slots:
 	void silenceTimeWarning();
 
 signals:
-	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	void haveNewWorkoutOptionsChanged();
 	void timerHourChanged();
 	void timerMinuteChanged();

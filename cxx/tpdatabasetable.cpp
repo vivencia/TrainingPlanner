@@ -14,56 +14,56 @@ using namespace QLiterals;
 
 QStringList TPDatabaseTable::databaseFilenamesPool{};
 
-TPDatabaseTable::TPDatabaseTable(const uint table_id, DBModelInterface *dbmodel_interface)
-	: QObject{nullptr}, m_tableId{table_id}, m_dbModelInterface{dbmodel_interface}
+TPDatabaseTable::TPDatabaseTable(const uint table_id)
+	: QObject{nullptr}, m_tableId{table_id}
 {
-	m_threadedFunctions.insert(ThreadManager::CustomOperation, [this] (void*) {
+	m_threadedFunctions.insert(ThreadManager::CustomOperation, [this] (DBModelInterface *data) {
 		if (m_customQueryFunc) {
-			auto result{m_customQueryFunc()};
+			auto result{m_customQueryFunc(data)};
 			emit actionFinished(ThreadManager::CustomOperation, result.first, result.second);
 		} else {
 			emit actionFinished(ThreadManager::CustomOperation, QVariant{}, QVariant{});
 		}
 	});
-	m_threadedFunctions.insert(ThreadManager::CreateTable, [this] (void*) {
+	m_threadedFunctions.insert(ThreadManager::CreateTable, [this] (DBModelInterface *) {
 		auto result{createTable()};
 		emit actionFinished(ThreadManager::CreateTable, result.first, result.second);
 	});
-	m_threadedFunctions.insert(ThreadManager::InsertRecords, [this] (void*) {
-		auto result{insertRecord()};
+	m_threadedFunctions.insert(ThreadManager::InsertRecords, [this] (DBModelInterface *data) {
+		auto result{insertRecord(data)};
 		emit actionFinished(ThreadManager::InsertRecords, result.first, result.second);
 	});
-	m_threadedFunctions.insert(ThreadManager::AlterRecords, [this] (void*) {
-		auto result{AlterRecords()};
+	m_threadedFunctions.insert(ThreadManager::AlterRecords, [this] (DBModelInterface *data) {
+		auto result{alterRecords(data)};
 		emit actionFinished(ThreadManager::AlterRecords, result.first, result.second);
 	});
-	m_threadedFunctions.insert(ThreadManager::UpdateOneField, [this] (void*) {
-		auto result{updateRecord()};
+	m_threadedFunctions.insert(ThreadManager::UpdateOneField, [this] (DBModelInterface *data) {
+		auto result{updateRecord(data)};
 		emit actionFinished(ThreadManager::UpdateOneField, result.first, result.second);
 	});
-	m_threadedFunctions.insert(ThreadManager::UpdateSeveralFields, [this] (void*) {
-		auto result{updateFieldsOfRecord()};
+	m_threadedFunctions.insert(ThreadManager::UpdateSeveralFields, [this] (DBModelInterface *data) {
+		auto result{updateFieldsOfRecord(data)};
 		emit actionFinished(ThreadManager::UpdateSeveralFields, result.first, result.second);
 	});
-	m_threadedFunctions.insert(ThreadManager::UpdateRecords, [this] (void*) {
-		auto result{updateRecords()};
+	m_threadedFunctions.insert(ThreadManager::UpdateRecords, [this] (DBModelInterface *data) {
+		auto result{updateRecords(data)};
 		emit actionFinished(ThreadManager::UpdateRecords, result.first, result.second);
 	});
-	m_threadedFunctions.insert(ThreadManager::DeleteRecords, [this] (void*) {
-		auto result{removeRecords()};
+	m_threadedFunctions.insert(ThreadManager::DeleteRecords, [this] (DBModelInterface *data) {
+		auto result{removeRecords(data)};
 		emit actionFinished(ThreadManager::DeleteRecords, result.first, result.second);
 	});
-	m_threadedFunctions.insert(ThreadManager::RemoveTemporaries, [this] (void*) {
+	m_threadedFunctions.insert(ThreadManager::RemoveTemporaries, [this] (DBModelInterface *) {
 		auto result{removeTemporaries()};
 		emit actionFinished(ThreadManager::RemoveTemporaries, result.first, result.second);
 	});
-	m_threadedFunctions.insert(ThreadManager::ClearTable, [this] (void*) {
+	m_threadedFunctions.insert(ThreadManager::ClearTable, [this] (DBModelInterface *) {
 		auto result{clearTable()};
 		emit actionFinished(ThreadManager::ClearTable, result.first, result.second);
 	});
 
 	connect(this, &TPDatabaseTable::actionFinished, this, [this]
-						(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2) {
+				(const ThreadManager::StandardOps op, const QVariant &return_value1, const QVariant &return_value2) {
 		if (op != ThreadManager::ReadAllRecords) {
 			if (!m_sqlLiteDB.connectOptions().contains("READONLY"_L1)) {
 				if (return_value2.toBool()) {
@@ -77,13 +77,12 @@ TPDatabaseTable::TPDatabaseTable(const uint table_id, DBModelInterface *dbmodel_
 	});
 }
 
-void TPDatabaseTable::startAction(const int unique_id, ThreadManager::StandardOps operation, void *extra_param, QMutex *mutex)
+void TPDatabaseTable::startAction(const int unique_id, ThreadManager::StandardOps operation, DBModelInterface *data)
 {
 	if (unique_id == uniqueId()) {
-		if (mutex)
-			QMutexLocker locker{mutex};
+		QMutexLocker locker{&m_mutex};
 		if (m_threadedFunctions.contains(operation))
-			m_threadedFunctions.value(operation)(extra_param);
+			m_threadedFunctions.value(operation)(data);
 		#ifndef QT_NO_DEBUG
 		else
 			qDebug() << "Cannot start action: " << operation << " for table: " << unique_id <<
@@ -115,7 +114,7 @@ std::pair<bool, bool> TPDatabaseTable::createTable()
 	return std::pair<bool,bool>{success, cmd_ok};
 }
 
-std::pair<bool, bool> TPDatabaseTable::insertRecord()
+std::pair<bool, bool> TPDatabaseTable::insertRecord(DBModelInterface *data)
 {
 	bool success{false}, cmd_ok{false};
 	const bool auto_increment{m_fieldNames[0][1].contains("AUTOINCREMENT"_L1)};
@@ -126,13 +125,13 @@ std::pair<bool, bool> TPDatabaseTable::insertRecord()
 	m_strQuery.chop(1);
 	m_strQuery += std::move(") VALUES ("_L1);
 
-	QMap<uint, QList<int>>::const_iterator itr{m_dbModelInterface->modifiedIndices().constBegin()};
-	const QMap<uint, QList<int>>::const_iterator itr_end{m_dbModelInterface->modifiedIndices().constEnd()};
+	QMap<uint, QList<int>>::const_iterator itr{data->modifiedIndices().constBegin()};
+	const QMap<uint, QList<int>>::const_iterator itr_end{data->modifiedIndices().constEnd()};
 	while (itr != itr_end) {
 		auto modified_row{itr.key()};
 		uint field{0};
 
-		for (const auto &data : std::as_const(m_dbModelInterface->modelData().at(modified_row))) {
+		for (const auto &data : std::as_const(data->modelData().at(modified_row))) {
 			if (field != 0 || !auto_increment)
 				m_strQuery += std::move((m_fieldNames[field][1] == "TEXT"_L1 ? QString{'\'' % data % '\''} : data) % ',');
 			++field;
@@ -147,8 +146,8 @@ std::pair<bool, bool> TPDatabaseTable::insertRecord()
 	if (execSingleWriteQuery(m_strQuery)) [[likely]] {
 		if (auto_increment) {
 			int last_id{m_workingQuery.lastInsertId().toInt()};
-			auto n{m_dbModelInterface->modifiedIndices().count()};
-			for (auto &data : m_dbModelInterface->modelData() | std::views::reverse) {
+			auto n{data->modifiedIndices().count()};
+			for (auto &data : data->modelData() | std::views::reverse) {
 				data[0] = std::move(QString::number(last_id--));
 				if (--n == 0)
 					break;
@@ -157,11 +156,11 @@ std::pair<bool, bool> TPDatabaseTable::insertRecord()
 		success = true;
 		cmd_ok = createServerCmdFile({sqliteApp, dbFileName(false), m_strQuery});
 	}
-	m_dbModelInterface->clearRemovalIndices();
+	data->clearRemovalIndices();
 	return std::pair<bool,bool>{success, cmd_ok};
 }
 
-std::pair<bool,bool> TPDatabaseTable::AlterRecords()
+std::pair<bool,bool> TPDatabaseTable::alterRecords(DBModelInterface *data)
 {
 	bool success{false}, cmd_ok{false};
 	bool has_insert{false};
@@ -175,15 +174,15 @@ std::pair<bool,bool> TPDatabaseTable::AlterRecords()
 	insert_cmd.chop(1);
 	insert_cmd += std::move(") VALUES ("_L1);
 
-	QMap<uint, QList<int>>::const_iterator itr{m_dbModelInterface->modifiedIndices().constBegin()};
-	const QMap<uint, QList<int>>::const_iterator itr_end{m_dbModelInterface->modifiedIndices().constEnd()};
+	QMap<uint, QList<int>>::const_iterator itr{data->modifiedIndices().constBegin()};
+	const QMap<uint, QList<int>>::const_iterator itr_end{data->modifiedIndices().constEnd()};
 	while (itr != itr_end) {
 		auto modified_row{itr.key()};
 		if (itr.value().at(0) < 0) { //insert record
 			int field{0};
 			has_insert = true;
 			str_query = insert_cmd;
-			for (const auto &data : std::as_const(m_dbModelInterface->modelData().at(modified_row))) {
+			for (const auto &data : std::as_const(data->modelData().at(modified_row))) {
 				if (field != 0 || !auto_increment)
 					str_query += std::move((m_fieldNames[field][1] == "TEXT"_L1 ? QString{'\'' % data % '\''} : data) % ',');
 				++field;
@@ -194,23 +193,23 @@ std::pair<bool,bool> TPDatabaseTable::AlterRecords()
 			str_query = update_cmd;
 			for (const auto field : std::as_const(itr.value())) {
 				str_query += std::move(m_fieldNames[field][0] % '=' % (m_fieldNames[field][1] == "TEXT"_L1 ?
-						'\'' % m_dbModelInterface->modelData().at(modified_row).at(field) % '\'' :
-									m_dbModelInterface->modelData().at(modified_row).at(field)) % ',');
+						'\'' % data->modelData().at(modified_row).at(field) % '\'' :
+									data->modelData().at(modified_row).at(field)) % ',');
 			}
 			str_query.chop(1);
-			const QString &id{m_dbModelInterface->modelData().at(modified_row).at(0)};
+			const QString &id{data->modelData().at(modified_row).at(0)};
 			str_query += std::move(" WHERE %1=%2;"_L1.arg(m_fieldNames[0][0], id));
 		}
 		++itr;
 		queries.append(std::move(str_query));
 	}
-	m_dbModelInterface->clearModifiedIndices();
+	data->clearModifiedIndices();
 
 	const bool query_id_back{has_insert && auto_increment};
 	if (execMultipleWritesQuery(queries)) [[likely]] {
 		if (query_id_back) {
 			int last_insert_id{m_workingQuery.lastInsertId().toInt()};
-			for (auto &data : m_dbModelInterface->modelData() | std::views::reverse) {
+			for (auto &data : data->modelData() | std::views::reverse) {
 				if (data.at(0).toInt() < 0)
 					data[0] = std::move(QString::number(last_insert_id--));
 			}
@@ -223,13 +222,13 @@ std::pair<bool,bool> TPDatabaseTable::AlterRecords()
 	return std::pair<bool,bool>{success, cmd_ok};
 }
 
-std::pair<bool,bool> TPDatabaseTable::updateRecord()
+std::pair<bool,bool> TPDatabaseTable::updateRecord(DBModelInterface *data)
 {
 	bool success{false}, cmd_ok{false};
-	const uint modified_row{m_dbModelInterface->modifiedIndices().cbegin().key()};
-	const QString &id{m_dbModelInterface->modelData().at(modified_row).at(0)};
-	const int modified_field{m_dbModelInterface->modifiedIndices().cbegin().value().first()};
-	const QString &new_value{m_dbModelInterface->modelData().at(modified_row).at(modified_field)};
+	const uint modified_row{data->modifiedIndices().cbegin().key()};
+	const QString &id{data->modelData().at(modified_row).at(0)};
+	const int modified_field{data->modifiedIndices().cbegin().value().first()};
+	const QString &new_value{data->modelData().at(modified_row).at(modified_field)};
 
 	m_strQuery = std::move("UPDATE "_L1 % *m_tableName % u" SET %1=%2 WHERE %3=%4;"_s.arg(
 		m_fieldNames[modified_field][0], m_fieldNames[modified_field][1] == "TEXT"_L1 ?
@@ -238,22 +237,22 @@ std::pair<bool,bool> TPDatabaseTable::updateRecord()
 	if (success) [[likely]]
 		cmd_ok = createServerCmdFile({sqliteApp, dbFileName(false), m_strQuery});
 
-	m_dbModelInterface->removeModifiedIndex(modified_row);
+	data->removeModifiedIndex(modified_row);
 	return std::pair<bool,bool>{success, cmd_ok};
 }
 
-std::pair<bool,bool> TPDatabaseTable::updateFieldsOfRecord()
+std::pair<bool,bool> TPDatabaseTable::updateFieldsOfRecord(DBModelInterface *data)
 {
 	bool success{false}, cmd_ok{false};
-	const uint modified_row{m_dbModelInterface->modifiedIndices().cbegin().key()};
-	const QString &id{m_dbModelInterface->modelData().at(modified_row).at(0)};
-	const QList<int> &fields{m_dbModelInterface->modifiedIndices().value(modified_row)};
+	const uint modified_row{data->modifiedIndices().cbegin().key()};
+	const QString &id{data->modelData().at(modified_row).at(0)};
+	const QList<int> &fields{data->modifiedIndices().value(modified_row)};
 
 	m_strQuery = std::move("UPDATE "_L1 % *m_tableName % " SET "_L1);
 	for (const auto field : fields) {
-		m_strQuery += std::move(m_fieldNames[field][0] % '=' % (m_fieldNames[field][1] == "TEXT"_L1 ?
-									'\'' % m_dbModelInterface->modelData().at(modified_row).at(field) % '\'' :
-													m_dbModelInterface->modelData().at(modified_row).at(field)) % ',');
+		m_strQuery += std::move(m_fieldNames[field][0] % '=' % (m_fieldNames[field][1] == "TEXT"_L1
+														? '\'' % data->modelData().at(modified_row).at(field) % '\''
+														: data->modelData().at(modified_row).at(field)) % ',');
 	}
 	m_strQuery.chop(1);
 	m_strQuery += std::move(" WHERE %1=%2;"_L1.arg(m_fieldNames[0][0], id));
@@ -261,30 +260,30 @@ std::pair<bool,bool> TPDatabaseTable::updateFieldsOfRecord()
 	if (success) [[likely]]
 		cmd_ok = createServerCmdFile({sqliteApp, dbFileName(false), m_strQuery});
 
-	m_dbModelInterface->removeModifiedIndex(modified_row);
+	data->removeModifiedIndex(modified_row);
 	return std::pair<bool,bool>{success, cmd_ok};
 }
 
-std::pair<bool,bool> TPDatabaseTable::updateRecords()
+std::pair<bool,bool> TPDatabaseTable::updateRecords(DBModelInterface *data)
 {
 	bool success{false}, cmd_ok{false};
 	const QString &query_cmd{"UPDATE "_L1 % *m_tableName % " SET "_L1};
 	QString str_query;
 	uint modified_row{0};
 	QStringList queries;
-	for (const auto &fields : m_dbModelInterface->modifiedIndices()) {
+	for (const auto &fields : data->modifiedIndices()) {
 		str_query = query_cmd;
 		for (const auto field : fields) {
-			str_query += std::move(m_fieldNames[field][0] % '=' % (m_fieldNames[field][1] == "TEXT"_L1 ?
-										'\'' % m_dbModelInterface->modelData().at(modified_row).at(field) % '\'' :
-															m_dbModelInterface->modelData().at(modified_row).at(field)));
+			str_query += std::move(m_fieldNames[field][0] % '=' % (m_fieldNames[field][1] == "TEXT"_L1
+											? '\'' % data->modelData().at(modified_row).at(field) % '\''
+											: data->modelData().at(modified_row).at(field)));
 		}
-		const QString &id{m_dbModelInterface->modelData().at(modified_row).at(0)};
+		const QString &id{data->modelData().at(modified_row).at(0)};
 		str_query += std::move(" WHERE %1=%2;"_L1.arg(m_fieldNames[0][0], id));
 		queries.append(std::move(str_query));
 		++modified_row;
 	}
-	m_dbModelInterface->clearModifiedIndices();
+	data->clearModifiedIndices();
 
 	if (execMultipleWritesQuery(queries)) [[likely]] {
 		success = true;
@@ -296,22 +295,22 @@ std::pair<bool,bool> TPDatabaseTable::updateRecords()
 	return std::pair<bool,bool>{success, cmd_ok};
 }
 
-std::pair<bool,bool> TPDatabaseTable::removeRecords()
+std::pair<bool,bool> TPDatabaseTable::removeRecords(DBModelInterface *data)
 {
 	bool success{false}, cmd_ok{false};
 	QStringList del_statements;
 	do {
 		m_strQuery = std::move("DELETE FROM "_L1 % *m_tableName % " WHERE "_L1);
 		uint n_fields{0};
-		QMap<uint, QList<uint>>::const_iterator itr{m_dbModelInterface->removalInfo().cbegin()};
-		const QMap<uint, QList<uint>>::const_iterator itr_end{m_dbModelInterface->removalInfo().cend()};
+		QMap<uint, QList<uint>>::const_iterator itr{data->removalInfo().cbegin()};
+		const QMap<uint, QList<uint>>::const_iterator itr_end{data->removalInfo().cend()};
 		for (const auto field : itr.value()) {
 			if (n_fields == 0) {
 				++n_fields;
-				m_strQuery += std::move(m_fieldNames[itr.key()][0] % '=' % m_dbModelInterface->modelData().at(itr.key()).at(field));
+				m_strQuery += std::move(m_fieldNames[itr.key()][0] % '=' % data->modelData().at(itr.key()).at(field));
 			} else {
 				m_strQuery += std::move(u" AND %1=%2;"_s).arg(m_fieldNames[itr.key()][0],
-																m_dbModelInterface->modelData().at(itr.key()).at(field));
+																	data->modelData().at(itr.key()).at(field));
 			}
 		}
 		if (++itr != itr_end)
@@ -327,7 +326,7 @@ std::pair<bool,bool> TPDatabaseTable::removeRecords()
 	if (success)
 		cmd_ok = createServerCmdFile({sqliteApp, dbFileName(false), m_strQuery});
 
-	m_dbModelInterface->clearRemovalIndices();
+	data->clearRemovalIndices();
 	return std::pair<bool,bool>{success, cmd_ok};
 }
 
@@ -475,18 +474,12 @@ bool TPDatabaseTable::execMultipleWritesQuery(const QStringList &queries)
 				break;
 			}
 		}
-
 		if (ok) {
 			if ((ok = m_sqlLiteDB.commit()))
 				optimizeTable();
 		}
 	}
 	return ok;
-}
-
-void TPDatabaseTable::setDBModelInterface(DBModelInterface *dbmodel_interface)
-{
-	m_dbModelInterface = dbmodel_interface;
 }
 
 void TPDatabaseTable::setUpConnection()

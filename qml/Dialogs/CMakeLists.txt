@@ -4,6 +4,7 @@ set( QML_DIALOGS
 	"MainMenu.qml"
 	"MuscularGroupPicker.qml"
 	"NavBar.qml"
+	"NewTPMessageDialog.qml"
 	"OnlineMessages.qml"
 	"PasswordDialog.qml"
 	"SendFileToDialog.qml"

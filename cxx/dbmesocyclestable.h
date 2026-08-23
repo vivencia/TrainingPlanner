@@ -12,11 +12,10 @@ class DBMesocyclesTable final : public TPDatabaseTable
 Q_OBJECT
 
 public:
-	explicit DBMesocyclesTable(DBModelInterfaceMesocycle *dbmodel_interface);
-
+	explicit DBMesocyclesTable();
 	QString dbFileName(const bool fullpath = true) const override final;
 	void updateTable() override final {}
-	bool getAllMesocycles(void *);
+	bool getAllMesocycles();
 
 signals:
 	void mesocycleAcquired(QStringList meso_info, const bool last_meso);

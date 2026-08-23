@@ -3,6 +3,7 @@
 #include "thread_manager.h"
 
 #include <QHash>
+#include <QMutex>
 #include <QObject>
 #include <QVariant>
 #include <QStringList>
@@ -49,12 +50,12 @@ public:
 	inline bool deleteAfterThreadFinished() const { return m_deleteAfterFinished; }
 
 	std::pair<bool,bool> createTable();
-	std::pair<bool,bool> insertRecord();
-	std::pair<bool,bool> AlterRecords();
-	std::pair<bool,bool> updateRecord();
-	std::pair<bool,bool> updateFieldsOfRecord();
-	std::pair<bool,bool> updateRecords();
-	std::pair<bool,bool> removeRecords();
+	std::pair<bool,bool> insertRecord(DBModelInterface *data);
+	std::pair<bool,bool> alterRecords(DBModelInterface *data);
+	std::pair<bool,bool> updateRecord(DBModelInterface *data);
+	std::pair<bool,bool> updateFieldsOfRecord(DBModelInterface *data);
+	std::pair<bool,bool> updateRecords(DBModelInterface *data);
+	std::pair<bool,bool> removeRecords(DBModelInterface *data);
 	std::pair<bool,bool> clearTable();
 	std::pair<bool,bool> removeTemporaries();
 
@@ -65,21 +66,19 @@ public:
 	bool execSingleWriteQuery(const QString &str_query);
 	bool execMultipleWritesQuery(const QStringList &queries);
 
-	void setDBModelInterface(DBModelInterface *dbmodel_interface);
-	template<typename T> inline void setReadAllRecordsFunc(const std::function<bool (void *param)> &func)
+	inline void setReadAllRecordsFunc(const std::function<bool (DBModelInterface *data)> &func)
 	{
-		m_threadedFunctions.insert(ThreadManager::ReadAllRecords, [this,func] (void *param) {
-			const bool result{func(static_cast<T*>(param))};
+		m_threadedFunctions.insert(ThreadManager::ReadAllRecords, [this,func] (DBModelInterface *data) {
+			const bool result{func(data)};
 			emit actionFinished(ThreadManager::ReadAllRecords, QVariant{result}, QVariant{false});
 		});
 	}
-
-	inline std::function<void(void *)> threadedFunction(ThreadManager::StandardOps op) const { return m_threadedFunctions.value(op); }
-	inline std::function<std::pair<QVariant,QVariant>()> &customQueryFunc() { return m_customQueryFunc; }
-	inline void setCustQueryFunction(const std::function<std::pair<QVariant,QVariant>()> &func) { m_customQueryFunc = func; }
+	inline std::function<void(DBModelInterface*)> threadedFunction(ThreadManager::StandardOps op) const { return m_threadedFunctions.value(op); }
+	inline std::function<std::pair<QVariant,QVariant>(DBModelInterface*)> &customQueryFunc() { return m_customQueryFunc; }
+	inline void setCustomQueryFunction(const std::function<std::pair<QVariant,QVariant>(DBModelInterface*)> &func) { m_customQueryFunc = func; }
 
 public slots:
-	void startAction(const int unique_id, ThreadManager::StandardOps operation, void *extra_param, QMutex *mutex = nullptr);
+	void startAction(const int unique_id, ThreadManager::StandardOps operation, DBModelInterface *data);
 
 signals:
 	//Should be only used internally, unless op == CustomOperation and return_value1 and/or return_value2 is/are not bool
@@ -97,9 +96,7 @@ protected:
 	uint m_tableId;
 	bool m_deleteAfterFinished{false};
 
-	DBModelInterface *m_dbModelInterface;
-
-	explicit TPDatabaseTable(const uint table_id, DBModelInterface* dbmodel_interface = nullptr);
+	explicit TPDatabaseTable(const uint table_id);
 
 	static QStringList databaseFilenamesPool;
 	static constexpr QLatin1StringView dbfile_extension{ ".db.sqlite"_L1 };
@@ -107,7 +104,8 @@ protected:
 	bool createServerCmdFile(const std::initializer_list<QString> &command_parts, const bool overwrite = false) const;
 
 private:
-	QHash<ThreadManager::StandardOps, std::function<void(void *param)>> m_threadedFunctions;
-	std::function<std::pair<QVariant,QVariant>()> m_customQueryFunc;
+	QHash<ThreadManager::StandardOps, std::function<void(DBModelInterface *data)>> m_threadedFunctions;
+	std::function<std::pair<QVariant,QVariant>(DBModelInterface*)> m_customQueryFunc;
+	QMutex m_mutex;
 };
 

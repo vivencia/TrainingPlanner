@@ -31,15 +31,18 @@ Rectangle {
 //private:
 	property bool selected_day: false
 	readonly property date month_day: new Date(entryYear, entryMonth, entryDay);
-	readonly property bool _today_date: month_day.getUTCFullYear() === today.getUTCFullYear() && month_day.getUTCMonth() ===
-																		today.getUTCMonth() && month_day.getUTCDate() === today.getUTCDate()
+	readonly property bool _today_date: month_day.getUTCFullYear() === today.getUTCFullYear() && month_day.getUTCMonth()
+												=== today.getUTCMonth() && month_day.getUTCDate() === today.getUTCDate()
 	readonly property bool _day_is_visible: entryMonth === parentMonth
-	readonly property bool _meso_day: tpCalendarModel ? tpCalendarModel.isPartOfMeso(month_day) : true
-	readonly property bool _workout_day: tpCalendarModel ? tpCalendarModel.isWorkoutDay(month_day) : true
+	readonly property bool _meso_day: tpCalendarModel
+									  ? tpCalendarModel.selectable(month_day) && tpCalendarModel.isPartOfMeso(month_day) : true
+	readonly property bool _workout_day: tpCalendarModel
+										 ? tpCalendarModel.selectable(month_day) && tpCalendarModel.isWorkoutDay(month_day) : true
 	property bool workoutFinished: tpCalendarModel ? tpCalendarModel.completed_by_date(month_day) : false
 
 	onSelectedDateChanged: {
-		const same_date = selectedDate.getUTCDate() === entryDay && selectedDate.getUTCMonth() === entryMonth && selectedDate.getUTCFullYear() == entryYear;
+		const same_date = selectedDate.getUTCDate() === entryDay && selectedDate.getUTCMonth() === entryMonth
+																		&& selectedDate.getUTCFullYear() == entryYear;
 		if (same_date !== selected_day) {
 			selected_day = same_date;
 			highlightDay(same_date);
@@ -109,7 +112,9 @@ Rectangle {
 		anchors.fill: parent
 		hoverEnabled: true
 
-		onClicked:
-			_control.dateSelected(_control.entryDay, _control.entryMonth, _control.entryYear, _control._workout_day);
+		onClicked: {
+			if (_control._meso_day)
+				_control.dateSelected(_control.entryDay, _control.entryMonth, _control.entryYear, _control._workout_day);
+		}
 	}
 }

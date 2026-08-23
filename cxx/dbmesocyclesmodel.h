@@ -288,7 +288,7 @@ public:
 	MesoType mesoType(const uint meso_idx) const;
 	Q_INVOKABLE inline bool isOwnMeso(const int meso_idx) const
 	{
-		return meso_idx >= 0 && meso_idx < m_mesoData.count() ? mesoType(meso_idx) == MT_MESO_FOR_SELF : false;
+		return meso_idx >= 0 && meso_idx < m_mesoData.count() ? mesoType(meso_idx) != MT_MESO_FOR_CLIENT : false;
 	}
 	void addSubMesoModel(const uint meso_idx, const bool own_meso);
 
@@ -378,12 +378,8 @@ public:
 	inline DBExercisesModel *workingWorkout(const uint meso_idx) const { return m_workingWorkouts.value(meso_idx); }
 	DBExercisesModel *workingWorkout() const;
 	void setWorkingWorkout(const uint meso_idx, DBExercisesModel* model);
-	DBExercisesModel *workoutForDay(const uint meso_idx, const int calendar_day);
-	Q_INVOKABLE inline DBExercisesModel *workoutForDay(const uint meso_idx, const QDate &date)
-	{
-		return workoutForDay(meso_idx, static_cast<int>(startDate(meso_idx).daysTo(date)));
-	}
-	void newWorkoutFromFile(const TPFilePath &filename, const bool formatted, const uint meso_idx, const QChar &splitletter);
+	DBExercisesModel *workoutForDay(DBExercisesModel *w_model, const uint meso_idx, const int calendar_day);
+	void newWorkoutFromFile(const TPFilePath &filename, const bool formatted, const uint meso_idx, const int calendar_day, const QChar &splitletter);
 
 	inline bool canExport(const uint meso_idx) const { return isBitSet(m_metadata.at(meso_idx), MD_CAN_EXPORT); }
 	void checkIfCanExport(const uint meso_idx, const bool bEmitSignal = true);
@@ -393,10 +389,9 @@ public:
 	//and incorporated, any other model that depends on a meso_idx can query mesoIdx() which will now reflect the recently added meso
 	inline int importIdx() const { return m_importMesoIdx; }
 	inline void setImportIdx(const int new_import_idx) { m_importMesoIdx = new_import_idx; }
-	void exportToFile(const uint meso_idx, const TPFilePath &filename, const bool export_splits = true);
+	void exportToFile(const uint meso_idx, const TPFilePath &filename);
 	void exportToFormattedFile(const uint meso_idx, const TPFilePath &filename);
-	int importFromFile(const uint meso_idx, const TPFilePath &filename);
-	int importFromFormattedFile(const uint meso_idx, const TPFilePath &filename);
+	int importFromFile(const uint meso_idx, const TPFilePath &filename, const bool formatted);
 	std::shared_ptr<TPFilePath> suggestedName(const int meso_idx, const bool external_filename = false) const;
 
 	inline bool isFieldFormatSpecial (const uint field) const
@@ -415,14 +410,14 @@ public:
 	QString formatFieldToImport(const uint field, const QString &fieldValue) const;
 
 	void removeMesoFiles(const uint meso_idx);
-	int newMesoFromFile(const TPFilePath &filename, const bool own_meso, const std::optional<bool> &file_formatted = std::nullopt);
+	void newMesoFromFile(const TPFilePath &filename, const bool own_meso, const std::optional<bool> &file_formatted = std::nullopt);
 
 	inline bool checkName(const int meso_idx = -1, const QString &meso_name = QString{}) const
 	{
 		switch (meso_name.length()) {
-		case 0: return meso_idx >= 0 ? (!name(meso_idx).isEmpty() ?
-										mesoPlanExists(name(meso_idx), coach(meso_idx), client(meso_idx)) == meso_idx : false)
-										: false;
+		case 0: return meso_idx >= 0 ? (!name(meso_idx).isEmpty()
+								? mesoPlanExists(name(meso_idx), coach(meso_idx), client(meso_idx)) == meso_idx : false)
+								: false;
 		case 1: case 2: case 3: case 4: return false;
 		default: return mesoPlanExists(meso_name, coach(meso_idx), client(meso_idx)) == -1;
 		}
@@ -470,6 +465,10 @@ signals:
 	void todaysWorkoutFinished();
 	void usedSplitsChanged(const uint meso_idx);
 	void splitLoaded(const uint meso_idx, const QChar &splitletter);
+	void splitsImported(const uint meso_idx, const int ret_code);
+	void mesoImported(const int ret_code, const QString &msg = QString{});
+	void workoutImported(const int ret_code, const QString &msg = QString{});
+
 #ifndef QT_NO_DEBUG
 	void mesoDataLoaded();
 #endif
@@ -508,7 +507,7 @@ private:
 	inline bool isMesoTemporary(const uint meso_idx) const { return _id(meso_idx) < 0; }
 	const uint newMesoData(QStringList &&infolist);
 	void getAllMesocycles();
-	void exportToFile_splitData(const uint meso_idx, QFile *meso_file, const TPFilePath &filename, const bool formatted);
+	void exportToFile_splitData(const uint meso_idx, const TPFilePath &filename, const bool formatted);
 
 signals:
 	void calendarReady(const uint meso_idx);

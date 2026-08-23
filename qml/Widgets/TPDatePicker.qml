@@ -8,12 +8,13 @@ import TpQml
 Rectangle {
 	id: _control
 	clip: true
-	height: _control.cellSize * 10.5
-	width: _control.cellSize * 8
+	height: cellSize * 10.5
+	width: cellSize * 8
 	radius: 10
 
 //public:
-	required property CalendarModel calendarModel
+	property CalendarModel qtCalendarModel
+	property DBCalendarModel tpCalendarModel
 	property date startDate
 	property date endDate
 	property date selectedDate
@@ -196,7 +197,7 @@ Rectangle {
 		reuseItems: true
 		orientation: ListView.Horizontal
 		spacing: _control.cellSize
-		model: _control.calendarModel
+		model: _control.tpCalendarModel ? _control.tpCalendarModel : _control.qtCalendarModel
 
 		anchors {
 			top: titleOfDate.bottom
@@ -264,7 +265,8 @@ Rectangle {
 					cellSize: _control.cellSize
 					today: _control.thisDay
 					parentMonth: monthGrid.month
-					qtCalendarModel: _control.calendarModel
+					qtCalendarModel: _control.qtCalendarModel
+					tpCalendarModel: _control.tpCalendarModel
 					selectedDate: _control.selectedDate
 
 					required property int day
@@ -431,7 +433,7 @@ Rectangle {
 	function setDate(newDate): void {
 		//Postion the ListView in the correct view ahead of changing selectedDate. This way, the delegates are created first
 		//so they can respond to the change of the selectedDate property
-		calendar.currentIndex = calendarModel.indexOf(newDate);
+		calendar.currentIndex = tpCalendarModel ? tpCalendarModel.getIndexFromDate(newDate) : qtCalendarModel.indexOf(newDate);
 		calendar.positionViewAtIndex(calendar.currentIndex, ListView.SnapPosition);
 		selectedDate = newDate;
 		dateSelected(selectedDate);

@@ -6,6 +6,7 @@
 #include "dbworkoutsorsplitstable.h"
 #include "pageslistmodel.h"
 #include "qmlitemmanager.h"
+#include "return_codes.h"
 #include "thread_manager.h"
 #include "tptimer.h"
 #include "tpsettings.h"
@@ -17,12 +18,12 @@
 #include <QQuickWindow>
 
 QmlWorkoutInterface::QmlWorkoutInterface(QObject *parent,DBMesocyclesModel *meso_model, const uint meso_idx,
-																							const QDate &date)
+																										const QDate &date)
 	: QObject{parent}, m_mesoModel{meso_model}
 {
 	m_calendarModel = m_mesoModel->calendar(m_mesoIdx);
 	m_calendarDay = m_calendarModel->calendarDay(m_date);
-	m_workoutModel = m_mesoModel->workoutForDay(m_mesoIdx, m_calendarDay);
+	static_cast<void>(m_mesoModel->workoutForDay(m_workoutModel, m_mesoIdx, m_calendarDay));
 	connect(m_workoutModel, &DBExercisesModel::exerciseCountChanged, this, [this] () {
 		if (m_workoutModel->exerciseCount() == 0)
 			verifyWorkoutOptions();
@@ -293,7 +294,7 @@ void QmlWorkoutInterface::getWorkoutPage()
 
 void QmlWorkoutInterface::loadExercisesFromCalendarDay(const uint calendar_day)
 {
-	DBExercisesModel *w_model{m_mesoModel->workoutForDay(m_mesoIdx, calendar_day)};
+	DBExercisesModel *w_model{m_mesoModel->workoutForDay(nullptr, m_mesoIdx, calendar_day)};
 	auto load = [this,w_model] () -> void {
 		*m_workoutModel = w_model;
 		m_workoutModel->setAllSetsCompleted(false);
@@ -490,17 +491,15 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 	appQmlEngine()->setObjectOwnership(m_workoutPage, QQmlEngine::CppOwnership);
 	m_workoutPage->setParentItem(appItemManager()->appPagesVisualParent());
 
-	appPagesListModel()->openPage(m_workoutPage, std::move(tr("Workout: ") + appUtils()->formatDate(m_date)), [this] () {
+	appPagesListModel()->openPage(m_workoutPage, std::move(tr("Workout: ") % appUtils()->formatDate(m_date)), [this] () {
 		cleanUp();
 	});
 	setHeaderText();
 
-	connect(m_workoutModel, &DBExercisesModel::muscularGroupChanged, this, [this] () {
-		setHeaderText();
-	});
+	connect(m_workoutModel, &DBExercisesModel::muscularGroupChanged, this, [this] () { setHeaderText(); });
 
 	connect(m_mesoModel, &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const DBMesocyclesModel::MesoFields field) {
-		if (meso_idx == m_mesoIdx  &&field == DBMesocyclesModel::MESO_FIELD_SPLIT)
+		if (meso_idx == m_mesoIdx && field == DBMesocyclesModel::MESO_FIELD_SPLIT)
 			QMetaObject::invokeMethod(m_workoutPage, "changeComboModel", Q_ARG(QString, m_mesoModel->split(m_mesoIdx)));
 	});
 
@@ -510,7 +509,7 @@ void QmlWorkoutInterface::createWorkoutPage_part2()
 	});
 
 	connect(m_workoutModel, &DBExercisesModel::exerciseModified, this, [this]
-									(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint field) {
+						(const uint exercise_number, const uint exercise_idx, const uint set_number, const uint field) {
 		if (field == DBExercisesModel::EXERCISES_FIELD_COMPLETED) {
 			const bool all_exercises_completed{m_workoutModel->allSetsCompleted()};
 			if (all_exercises_completed != workoutFinished()) {
@@ -621,8 +620,10 @@ void QmlWorkoutInterface::verifyWorkoutOptions()
 					setCanImportFromSplitPlan(success);
 				}
 			});
-			auto x = [this,split_model] () -> std::pair<QVariant,QVariant> { return split_model->database()->mesoHasSplitPlan(); };
-			split_model->database()->setCustQueryFunction(x);
+			auto x = [this,split_model] (DBModelInterface*) -> std::pair<QVariant,QVariant> {
+				return split_model->database()->mesoHasSplitPlan(split_model->dbModelInterface());
+			};
+			split_model->database()->setCustomQueryFunction(x);
 			appThreadManager()->runAction(split_model->database(), ThreadManager::CustomOperation);
 		} else {
 			*conn = connect(m_mesoModel, &DBMesocyclesModel::splitLoaded, this,
@@ -650,10 +651,10 @@ void QmlWorkoutInterface::verifyWorkoutOptions()
 					setCanImportFromPreviousWorkout(return_value1.toBool());
 				}
 			});
-			auto y = [this,split_model] () -> std::pair<QVariant,QVariant> {
-				return m_workoutModel->database()->getPreviousWorkoutsIds();
+			auto y = [this,split_model] (DBModelInterface*) -> std::pair<QVariant,QVariant> {
+				return m_workoutModel->database()->getPreviousWorkoutsIds(split_model->dbModelInterface());
 			};
-			m_workoutModel->database()->setCustQueryFunction(y);
+			m_workoutModel->database()->setCustomQueryFunction(y);
 			appThreadManager()->runAction(m_workoutModel->database(), ThreadManager::CustomOperation);
 		}
 	}
@@ -663,6 +664,6 @@ QString QmlWorkoutInterface::workoutCompletedMessage(const bool completed) const
 {
 	QString message{completed ? std::move(tr("All exercises finished")) : std::move(tr("Workout not yet finished"))};
 	if (!completed && m_workoutTimer->isActive())
-		message += std::move("<br>"_L1 + tr("You should press Finish to save your workout"));
+		message += std::move("<br>"_L1 % tr("You should press Finish to save your workout"));
 	return message;
 }

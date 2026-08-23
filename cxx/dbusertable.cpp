@@ -20,8 +20,8 @@ constexpr QLatin1StringView field_names[n_fields][2] {
 	{"use_mode"_L1,			"INTEGER"_L1},
 };
 
-DBUserTable::DBUserTable(DBModelInterfaceUser *dbmodel_interface)
-	: TPDatabaseTable{USERS_TABLE_ID, dbmodel_interface}
+DBUserTable::DBUserTable()
+	: TPDatabaseTable{USERS_TABLE_ID}
 {
 	m_tableName = &table_name;
 	m_fieldNames = field_names;
@@ -30,7 +30,7 @@ DBUserTable::DBUserTable(DBModelInterfaceUser *dbmodel_interface)
 	#ifndef QT_NOT_DEBUG
 	setObjectName("UsersTable");
 	#endif
-	setReadAllRecordsFunc<void>([this] (void *param) { return getAllUsers(param); });
+	setReadAllRecordsFunc([this] (DBModelInterface*) { return getAllUsers(); });
 }
 
 QString DBUserTable::dbFileName(const bool fullpath) const
@@ -39,7 +39,7 @@ QString DBUserTable::dbFileName(const bool fullpath) const
 	return fullpath ? dbFilePath() % filename : filename;
 }
 
-bool DBUserTable::getAllUsers(void *)
+bool DBUserTable::getAllUsers()
 {
 	bool success{false};
 	if (execReadOnlyQuery("SELECT * FROM users_table ORDER BY inserttime ASC;"_L1)) {

@@ -5,14 +5,6 @@
 #include <QDate>
 #include <QObject>
 
-enum MesoCalendarDatabaseFields {
-	CALENDAR_DATABASE_ID,
-	CALENDAR_DATABASE_MESOID,
-	CALENDAR_DATABASE_DATE,
-	CALENDAR_DATABASE_DATA,
-	CALENDAR_DATABASE_TOTAL_FIELDS
-};
-
 QT_FORWARD_DECLARE_CLASS(DBModelInterfaceCalendar)
 
 class DBMesoCalendarTable final : public TPDatabaseTable
@@ -21,6 +13,15 @@ class DBMesoCalendarTable final : public TPDatabaseTable
 Q_OBJECT
 
 public:
+
+	enum MesoCalendarDatabaseFields {
+		CALDB_ID,
+		CALDB_MESOID,
+		CALDB_DATE,
+		CALDB_DATA,
+		CALDB_TOTAL_FIELDS
+	};
+
 	explicit DBMesoCalendarTable();
 	QString dbFileName(const bool fullpath = true) const override final;
 	void updateTable() override final {}

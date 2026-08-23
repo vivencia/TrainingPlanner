@@ -13,12 +13,11 @@ Q_OBJECT
 
 public:
 	explicit TPChatDB(TPChat *chat);
-
 	QString subDir() const override final;
 	QString dbFilePath() const override final;
 	QString dbFileName(const bool fullpath = true) const override final;
 	void updateTable() override final {}
-	bool loadChat(void *);
+	bool loadChat();
 	std::pair<QVariant,QVariant> getNumberOfUnreadMessages();
 
 signals:

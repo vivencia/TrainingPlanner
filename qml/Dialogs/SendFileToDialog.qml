@@ -1,7 +1,6 @@
 import QtQuick
 
 import TpQml
-import TpQml.Dialogs
 import TpQml.User
 import TpQml.Widgets
 
@@ -124,7 +123,7 @@ TPPopup {
 
 				onClicked: {
 					_dialog.selectedOptions(AppUtils.MH_TPMESSAGES_MANAGER, usersList.selectedUsers(),
-																							txtMessage.text, false);
+																								txtMessage.text, false);
 					_dialog.close();
 				}
 			}

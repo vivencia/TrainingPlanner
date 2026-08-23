@@ -25,8 +25,8 @@ constexpr QLatin1StringView field_names[n_fields][2] {
 	{"metadata"_L1,				"INTEGER"_L1},
 };
 
-DBMesocyclesTable::DBMesocyclesTable(DBModelInterfaceMesocycle *dbmodel_interface)
-	: TPDatabaseTable{MESOCYCLES_TABLE_ID, dbmodel_interface}
+DBMesocyclesTable::DBMesocyclesTable()
+	: TPDatabaseTable{MESOCYCLES_TABLE_ID}
 {
 	m_tableName = &table_name;
 	m_fieldNames = field_names;
@@ -35,7 +35,7 @@ DBMesocyclesTable::DBMesocyclesTable(DBModelInterfaceMesocycle *dbmodel_interfac
 	#ifndef QT_NO_DEBUG
 	setObjectName("MesocyclesTable");
 	#endif
-	setReadAllRecordsFunc<void>([this] (void *param) { return getAllMesocycles(param); });
+	setReadAllRecordsFunc([this] (DBModelInterface*) { return getAllMesocycles(); });
 }
 
 QString DBMesocyclesTable::dbFileName(const bool fullpath) const
@@ -44,7 +44,7 @@ QString DBMesocyclesTable::dbFileName(const bool fullpath) const
 	return fullpath ? dbFilePath() % filename : filename;
 }
 
-bool DBMesocyclesTable::getAllMesocycles(void *)
+bool DBMesocyclesTable::getAllMesocycles()
 {
 	bool success{false};
 	if (execReadOnlyQuery("SELECT * FROM %1 ORDER BY ROWID;"_L1.arg(table_name))) {

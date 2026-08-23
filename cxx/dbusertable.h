@@ -12,11 +12,10 @@ class DBUserTable final: public TPDatabaseTable
 Q_OBJECT
 
 public:
-	explicit DBUserTable(DBModelInterfaceUser *dbmodel_interface);
-
+	explicit DBUserTable();
 	QString dbFileName(const bool fullpath = true) const override final;
 	void updateTable() override final {}
-	bool getAllUsers(void *);
+	bool getAllUsers();
 
 signals:
 	void userInfoAcquired(QStringList user_info, const bool all_info_acquired = false);

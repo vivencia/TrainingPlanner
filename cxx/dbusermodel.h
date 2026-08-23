@@ -55,7 +55,6 @@ Q_PROPERTY(UserInfoListModel *allUsers READ allUsers NOTIFY allUsersChanged FINA
 #endif
 
 public:
-
 	enum userFields {
 		USER_FIELD_ID,
 		USER_FIELD_INSERTTIME,
@@ -330,7 +329,6 @@ signals:
 	void labelsChanged();
 	void userCategoryChanged(const uint user_idx);
 	void onlineUserChanged();
-
 	void coachesListReceived(const QStringList &coaches_list);
 	void clientsListReceived(const QStringList &clients_list);
 	void availableCoachesChanged();

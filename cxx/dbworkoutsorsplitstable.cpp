@@ -34,9 +34,6 @@ DBWorkoutsOrSplitsTable::DBWorkoutsOrSplitsTable(const uint tableid)
 	#ifndef QT_NO_DEBUG
 	setObjectName(tableId() == WORKOUT_TABLE_ID ? "WorkoutsTable"_L1 : "SplitTable"_L1);
 	#endif
-	setReadAllRecordsFunc<DBModelInterfaceExercises>([this] (void *param) {
-		return getExercises(static_cast<DBModelInterfaceExercises*>(param));
-	});
 }
 
 QString DBWorkoutsOrSplitsTable::dbFileName(const bool fullpath) const
@@ -47,29 +44,27 @@ QString DBWorkoutsOrSplitsTable::dbFileName(const bool fullpath) const
 
 bool DBWorkoutsOrSplitsTable::getExercises(DBModelInterfaceExercises *dbmi)
 {
-	if (dbmi) {
-		auto model{dbmi->model<DBExercisesModel>()};
-		if (model) {
-			m_strQuery = std::move(tableId() == WORKOUT_TABLE_ID ?
-				"SELECT * FROM %1 WHERE %2=%3 AND %4=%5;"_L1.arg(
-				table_name_workouts, field_names[DBExercisesModel::EXERCISES_FIELD_MESOID][0], model->mesoId(),
-				field_names[DBExercisesModel::EXERCISES_FIELD_CALENDARDAY][0], QString::number(model->calendarDay())) :
-				"SELECT * FROM %1 WHERE %2=%3 AND %4=\'%5\';"_L1.arg(
-				table_name_splits, field_names[DBExercisesModel::EXERCISES_FIELD_MESOID][0], model->mesoId(),
-				field_names[DBExercisesModel::EXERCISES_FIELD_SPLITLETTER][0], model->splitLetter())
-			);
-			if (execReadOnlyQuery(m_strQuery)) {
-				if (m_workingQuery.first()) {
-					do {
-						QStringList exercises{DBExercisesModel::EXERCISES_N_FIELDS};
-						for (uint i{DBExercisesModel::EXERCISES_FIELD_ID}; i < DBExercisesModel::EXERCISES_N_FIELDS; ++i)
-							exercises[i] = std::move(m_workingQuery.value(i).toString());
-						dbmi->modelData().append(std::move(exercises));
-					} while (m_workingQuery.next());
-					emit exercisesLoaded(model->mesoIdx(), true,
-						tableId() == WORKOUT_TABLE_ID ? QVariant{model->calendarDay()} : QVariant{model->splitLetter()});
-					return true;
-				}
+	auto model{dbmi->model<DBExercisesModel>()};
+	if (model) {
+		m_strQuery = std::move(tableId() == WORKOUT_TABLE_ID ?
+			"SELECT * FROM %1 WHERE %2=%3 AND %4=%5;"_L1.arg(
+			table_name_workouts, field_names[DBExercisesModel::EXERCISES_FIELD_MESOID][0], model->mesoId(),
+			field_names[DBExercisesModel::EXERCISES_FIELD_CALENDARDAY][0], QString::number(model->calendarDay())) :
+			"SELECT * FROM %1 WHERE %2=%3 AND %4=\'%5\';"_L1.arg(
+			table_name_splits, field_names[DBExercisesModel::EXERCISES_FIELD_MESOID][0], model->mesoId(),
+			field_names[DBExercisesModel::EXERCISES_FIELD_SPLITLETTER][0], model->splitLetter())
+		);
+		if (execReadOnlyQuery(m_strQuery)) {
+			if (m_workingQuery.first()) {
+				do {
+					QStringList exercises{DBExercisesModel::EXERCISES_N_FIELDS};
+					for (uint i{DBExercisesModel::EXERCISES_FIELD_ID}; i < DBExercisesModel::EXERCISES_N_FIELDS; ++i)
+						exercises[i] = std::move(m_workingQuery.value(i).toString());
+					dbmi->modelData().append(std::move(exercises));
+				} while (m_workingQuery.next());
+				emit exercisesLoaded(model->mesoIdx(), true,
+					tableId() == WORKOUT_TABLE_ID ? QVariant{model->calendarDay()} : QVariant{model->splitLetter()});
+				return true;
 			}
 		}
 	}
@@ -77,8 +72,7 @@ bool DBWorkoutsOrSplitsTable::getExercises(DBModelInterfaceExercises *dbmi)
 	return false;
 }
 
-std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::mesoHasAllSplitPlans(const QString &meso_id,
-																					const QString &split)
+std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::mesoHasAllSplitPlans(const QString &meso_id, const QString &split)
 {
 	bool success{false}, yes{false};
 	m_strQuery = std::move("SELECT %1 FROM %2 WHERE %3=%4 AND %5=\'%6\';"_L1.arg(
@@ -104,10 +98,10 @@ std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::mesoHasAllSplitPlans(const
 	return std::pair<QVariant,QVariant>{success, yes};
 }
 
-std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::mesoHasSplitPlan()
+std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::mesoHasSplitPlan(DBModelInterfaceExercises *data)
 {
 	bool success{false}, yes{false};
-	auto model{m_dbModelInterface->model<DBExercisesModel>()};
+	auto model{data->model<DBExercisesModel>()};
 	m_strQuery = std::move("SELECT %1 FROM %2 WHERE %3=%4 AND %5=\'%6\';"_L1.arg(
 			field_names[DBExercisesModel::EXERCISES_FIELD_SETTYPES][0], table_name_splits,
 			field_names[DBExercisesModel::EXERCISES_FIELD_MESOID][0], model->mesoId(),
@@ -121,9 +115,9 @@ std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::mesoHasSplitPlan()
 	return std::pair<QVariant,QVariant>{success, yes};
 }
 
-std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::getPreviousWorkoutsIds()
+std::pair<QVariant,QVariant> DBWorkoutsOrSplitsTable::getPreviousWorkoutsIds(DBModelInterfaceExercises *data)
 {
-	auto model{m_dbModelInterface->model<DBExercisesModel>()};
+	auto model{data->model<DBExercisesModel>()};
 	m_strQuery = std::move("SELECT %1 FROM %2 WHERE %3=%4 AND %5=\'%6\' "
 		"AND %7<%8 ORDER BY %1 DESC LIMIT 5;"_L1.arg(
 		field_names[DBExercisesModel::EXERCISES_FIELD_CALENDARDAY][0], table_name_workouts,

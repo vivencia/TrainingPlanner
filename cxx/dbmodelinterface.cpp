@@ -2,9 +2,9 @@
 
 void DBModelInterface::clearData(const QList<uint> &excluded_fields)
 {
-	if (excluded_fields.isEmpty())
+	if (excluded_fields.isEmpty()) {
 		modelData().clear();
-	else {
+	} else {
 		uint modified_row{0};
 		for (auto &data : modelData()) {
 			for (uint field{0}; field < data.count(); ++field) {
