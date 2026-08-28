@@ -113,25 +113,24 @@ void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
 
 #ifndef Q_OS_ANDROID
 	#ifndef QT_NO_DEBUG
+	bool get_user{false};
 	const QStringList &args{qApp->arguments()};
-	if (args.count() > 1) {
-		if (args.at(1) == "-test"_L1) {
+	for (const auto &arg : std::as_const(args)) {
+		if (arg == "-test"_L1) {
 			m_testType |= TT_CORE;
-		} else if (args.at(1) == "-testqml"_L1) {
+		} else if (arg == "-testqml"_L1) {
 			m_testType |= TT_QML;
 			main_module = "Tests";
-		} else if (args.at(1) == "-user"_L1) {
-			if (!args.at(2).isEmpty()) {
-				appSettings()->setReadOnlyGroup(GLOBAL_GROUP, true);
-				appSettings()->setCurrentUser(args.at(2));
-			} else {
-				qWarning() << "Warning: Missing user id in the command line arguments"_L1;
-			}
+		} else if (arg == "-user"_L1) {
+			get_user = true;
+		} else if (get_user) {
+			appSettings()->setReadOnlyGroup(GLOBAL_GROUP, true);
+			appSettings()->setCurrentUser(arg);
 		}
-		if (m_testType & TT_CORE && !(m_testType & TT_QML)) { //test with no GUI
-			if (runTests())
-				::exit(0);
-		}
+	}
+	if (m_testType & TT_CORE && !(m_testType & TT_QML)) { //test with no GUI
+		if (runTests())
+			::exit(0);
 	}
 	#endif
 #endif
@@ -376,6 +375,9 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, QString &&m
 		case TP_RET_CODE_UNKNOWN_ERROR:
 			title = std::move(tr("Unknown Error"));
 			break;
+		case TP_RET_CODE_WRONG_PASSWORD:
+			title = std::move(tr("Wrong password"));
+			break;
 		case TP_RET_CODE_FILE_NOT_FOUND:
 			title = std::move(tr("File not found!"));
 			break;
@@ -464,21 +466,26 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, QString &&m
 		m_generalMessagesPopup->setProperty("button1Text", std::move(QVariant{button1text}));
 	if (!button2text.isEmpty())
 		m_generalMessagesPopup->setProperty("button2Text", std::move(QVariant{button2text}));
-	if (msecs == 0)
+	if (msecs == 0) {
 		QMetaObject::invokeMethod(m_generalMessagesPopup, "tpOpen");
-	else
+	} else if (msecs == -1) {
+		m_generalMessagesPopup->setProperty("keepAbove", std::move(QVariant{true}));
+		m_generalMessagesPopup->setProperty("dim", std::move(QVariant{true}));
+		connect(m_generalMessagesPopup, SIGNAL(closed(void)), this, SLOT(generalMessagesPopupModallyClosed(void)), Qt::SingleShotConnection);
+	} else {
 		QMetaObject::invokeMethod(m_generalMessagesPopup, "showTimed", Q_ARG(int, msecs));
+	}
 #endif //ENABLE_GENERAL_MESSAGES_POPUP
 }
 
 void QmlItemManager::showPasswordDialog(const int request_id, QQuickItem *parent_page, const QString &title,
-											const QString &message, const std::optional<bool> store_passwd)
+					const QString &message, const PASSWORD_DIALOG_MODE mode, const std::optional<bool> store_passwd)
 {
 	if (!m_passwordDialogComponent) {
 		m_passwordDialogComponent = new QQmlComponent{appQmlEngine(), "TpQml.Dialogs"_L1, "PasswordDialog"_L1,
 																						QQmlComponent::Asynchronous};
 		connect(m_passwordDialogComponent, &QQmlComponent::statusChanged, this, [=,this] (QQmlComponent::Status status) {
-			showPasswordDialog(request_id, parent_page, title, message, store_passwd);
+			showPasswordDialog(request_id, parent_page, title, message, mode, store_passwd);
 		});
 	} else {
 		if (!m_passwordDialog) {
@@ -495,6 +502,10 @@ void QmlItemManager::showPasswordDialog(const int request_id, QQuickItem *parent
 				appQmlEngine()->setObjectOwnership(m_passwordDialog, QQmlEngine::CppOwnership);
 				connect(m_passwordDialog, SIGNAL(passwordAcquired(bool,int,QString,bool)), this,
 																SIGNAL(passwordAcquired(bool,int,QString,bool)));
+				connect(m_passwordDialog, SIGNAL(passwordCreated(bool,int,QString,bool)), this,
+																SIGNAL(passwordCreated(bool,int,QString,bool)));
+				connect(m_passwordDialog, SIGNAL(passwordChanged(bool,int,QString,QString,bool)), this,
+																SIGNAL(passwordChanged(bool,int,QString,QString,bool)));
 				break;
 			case QQmlComponent::Loading:
 				return;
@@ -506,6 +517,7 @@ void QmlItemManager::showPasswordDialog(const int request_id, QQuickItem *parent
 				return;
 			}
 		}
+		m_passwordDialog->setProperty("mode", std::move(QVariant{mode}));
 		m_passwordDialog->setProperty("request_id", std::move(QVariant{request_id}));
 		m_passwordDialog->setProperty("title", std::move(QVariant{title}));
 		m_passwordDialog->setProperty("message", std::move(QVariant{message}));
@@ -581,6 +593,13 @@ void QmlItemManager::generalMessagesPopupClosed(const int btn_id)
 			m_messagesQueue.removeFirst();
 		}
 	}
+}
+
+//Restore properties to the default
+void QmlItemManager::generalMessagesPopupModallyClosed()
+{
+	m_generalMessagesPopup->setProperty("keepAbove", std::move(QVariant{false}));
+	m_generalMessagesPopup->setProperty("dim", std::move(QVariant{false}));
 }
 
 #ifndef Q_OS_ANDROID

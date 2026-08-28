@@ -22,7 +22,7 @@ TPMessagesModel::TPMessagesModel(QObject *parent)
 TPMessage *TPMessagesModel::findMessage(int field, const QVariant &field_value, const int type) const
 {
 	TPMessage *found_message{nullptr};
-	const std::vector<std::unique_ptr<TPMessage>> &messages{m_rootMessage->children()};
+	const QList<TPMessage*> &messages{m_rootMessage->children()};
 	for (const auto &message : messages) {
 		if (isBitSet(message->type(), type)) {
 			found_message = message->findChild(field_value, static_cast<TPMessage::TPMessageFields>(field));
@@ -35,10 +35,10 @@ TPMessage *TPMessagesModel::findMessage(int field, const QVariant &field_value, 
 QList<TPMessage*> TPMessagesModel::findMessages(int field, const QVariant &field_value, const int type) const
 {
 	QList<TPMessage*> found_messages;
-	const std::vector<std::unique_ptr<TPMessage>> &messages{m_rootMessage->children()};
+	const QList<TPMessage*> &messages{m_rootMessage->children()};
 	for (const auto &message : messages) {
 		if (isBitSet(message->type(), type))
-			found_messages.append(message.get());
+			found_messages.append(message);
 	}
 	return found_messages;
 }
@@ -57,14 +57,13 @@ void TPMessagesModel::insertMessage(TPMessage *message, int row)
 
 void TPMessagesModel::removeMessage(TPMessage *message)
 {
-	const QModelIndex &parent_index{createIndex(message->parentMessage()->row(), 0, message->parent())};
+	const QModelIndex &parent_index{createIndex(message->parentMessage()->row(), 0, message->parentMessage())};
 	const auto row{message->row()};
-	beginRemoveRows(parent_index, row, row);
 	removeRow(row, parent_index);
-	message->parentMessage()->removeChild(message);
-	for (const auto &msg : message->children() | std::views::drop(row))
+	TPMessage *parent_message{message->parentMessage()};
+	parent_message->removeChild(message);
+	for (const auto &msg : parent_message->children() | std::views::drop(row))
 		emit msg->rowChanged();
-	endRemoveRows();
 }
 
 bool TPMessagesModel::insertRows(int row, int count, const QModelIndex &parent)

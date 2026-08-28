@@ -13,24 +13,16 @@
 QQmlComponent *TPMessage::_actionsLayoutComponent{nullptr};
 QQmlComponent *TPMessage::_fileViewerComponent{nullptr};
 
-auto find_itr_const = [] (const TPMessage *const parent, const TPMessage *const child) {
-	return std::find_if(parent->children().cbegin(), parent->children().cend(), [child] (const auto &_child) {
-		return child == _child.get();
-	});
-};
-auto find_itr = [] (TPMessage *parent, TPMessage *child) {
-	return std::find_if(parent->children().begin(), parent->children().end(), [child] (const auto &_child) {
-		return child == _child.get();
-	});
-};
-
 TPMessage::~TPMessage()
 {
 	if (m_fileOps)
 		delete m_fileOps;
-	if (m_actionsLayout) {
-		delete _actionsLayoutComponent;
-		delete m_actionsLayout;
+	if (!m_actions.isEmpty()) {
+		m_actions.clear();
+		if (m_actionsLayout) {
+			delete _actionsLayoutComponent;
+			delete m_actionsLayout;
+		}
 	}
 	if (m_fileViewer) {
 		delete _fileViewerComponent;
@@ -41,7 +33,7 @@ TPMessage::~TPMessage()
 TPMessage *TPMessage::findChild(const QVariant &value, const TPMessageFields field) const
 {
 	if (m_children.size() > 0) {
-		for (const auto &child : std::as_const(m_children)) {
+		for (const auto child : std::as_const(m_children)) {
 			bool match{false};
 			switch (field) {
 			case FIELD_ID: match = value == child->m_id; break;
@@ -59,7 +51,7 @@ TPMessage *TPMessage::findChild(const QVariant &value, const TPMessageFields fie
 			default: break;
 			}
 			if (match)
-				return child.get();
+				return child;
 		}
 	}
 	return nullptr;
@@ -68,12 +60,10 @@ TPMessage *TPMessage::findChild(const QVariant &value, const TPMessageFields fie
 void TPMessage::insertChild(TPMessage *child, const uint row)
 {
 	if (!isChild(child)) {
-		if (row == childCount()) {
-			m_children.push_back(std::move(std::unique_ptr<TPMessage>{child}));
-		} else {
-			auto itr{find_itr(this, m_children.at(row).get())};
-			static_cast<void>(m_children.emplace(itr, std::move(std::unique_ptr<TPMessage>{child})));
-		}
+		if (row == childCount())
+			m_children.append(child);
+		else
+			m_children.insert(row, child);
 		emit childCountChanged();
 	}
 }
@@ -82,17 +72,15 @@ void TPMessage::removeChild(TPMessage *child)
 {
 	if (isChild(child)) {
 		child->removeAllChildren();
-		m_children.erase(std::remove(m_children.begin(), m_children.end(),
-															*find_itr_const(this, child)), m_children.end());
+		m_children.remove(child->row());
+		child->deleteLater();
 	}
 }
 
 void TPMessage::removeAllChildren()
 {
-	for(auto &child : std::as_const(m_children)) {
-		child->removeAllChildren();
-		m_children.erase(std::remove(m_children.begin(), m_children.end(), child), m_children.end());
-	}
+	for(auto child : std::as_const(m_children))
+		removeChild(child);
 	emit childCountChanged();
 }
 
@@ -101,8 +89,8 @@ int TPMessage::row() const
 	if (m_parentMessage == nullptr)
 		return 0;
 	const auto it{std::find_if(m_parentMessage->m_children.cbegin(), m_parentMessage->m_children.cend(),
-																[this](const std::unique_ptr<TPMessage> &message) {
-		return message.get() == this;
+																						[this] (TPMessage *message) {
+		return message == this;
 	})};
 	if (it != m_parentMessage->m_children.cend())
 		return std::distance(m_parentMessage->m_children.cbegin(), it);
@@ -123,8 +111,7 @@ void TPMessage::setFileName(const QString &filename)
 		connect(m_fileOps, &TPFileOps::fileRemovalRequested, this, [this] () { emit killMessage(); });
 		connect(m_fileOps, &TPFileOps::tpFileImported, this, [this] (const bool success) {
 			if (success)
-				qDebug() << "ulalá";
-			//	emit killMessage();
+				emit killMessage();
 		});
 	}
 }
@@ -202,8 +189,8 @@ void TPMessage::popupSizeChanged(const qreal w_ratio, const qreal h_ratio)
 
 inline bool TPMessage::isChild(TPMessage *msg) const
 {
-	auto itr{std::find_if(m_children.cbegin(), m_children.cend(), [msg] (const auto &child) {
-		return msg == child.get();
+	auto itr{std::find_if(m_children.cbegin(), m_children.cend(), [msg] (auto child) {
+		return msg == child;
 	})};
 	return itr != m_children.cend();
 }
@@ -218,13 +205,14 @@ void TPMessage::createActionsLayout()
 		}
 	}
 	m_actionsLayout = qobject_cast<QQuickItem*>(_actionsLayoutComponent->create(appQmlEngine()->rootContext()));
-	m_actionsLayout->setParentItem(m_actionsLayoutParent);
 #ifndef QT_NO_DEBUG
 	if (!m_actionsLayout) {
 		qCritical() << _actionsLayoutComponent->errorString();
 		return;
 	}
 #endif
+	m_actionsLayout->setParentItem(m_actionsLayoutParent);
+	connect(m_actionsLayout, SIGNAL(execAction(int,QVariant)), this, SLOT(execAction(int,QVariant)));
 	appQmlEngine()->setObjectOwnership(m_actionsLayout, QQmlEngine::CppOwnership);
 	m_actionsLayout->setWidth(appSettings()->getCustomValue(appMessagesManager()->messagesManagerDialog()->objectName()
 		% ".size"_L1, appMessagesManager()->messagesManagerDialog()->property("normal_size").toSize()).toSize().width());
@@ -236,12 +224,7 @@ void TPMessage::createActionsLayout()
 void TPMessage::setupActionsLayout(const bool append, const bool remove_last, const bool reset)
 {
 	if (append) {
-		QMetaObject::invokeMethod(m_actionsLayout, "createItem",
-								  Q_RETURN_ARG(QQuickItem*, m_actions.last().qml_item),
-								  Q_ARG(int, m_actions.constLast().type), Q_ARG(QString, m_actions.constLast().label));
-		QMetaObject::invokeMethod(m_actionsLayout, "placeItem", Q_ARG(QQuickItem*, m_actions.constLast().qml_item),
-								  Q_ARG(QQuickItem*, m_actions.at(m_actions.count() - 2).qml_item),
-								  Q_ARG(int, m_actions.count() - 1), Q_ARG(int, m_actions.count()));
+		createActionItem(m_actions.count() - 1);
 	} else if (remove_last) {
 		QVariantList row_width_list{m_actionsLayout->property("_row_width").toList()};
 		qreal last_row_width{row_width_list.last().toReal()};
@@ -250,7 +233,6 @@ void TPMessage::setupActionsLayout(const bool append, const bool remove_last, co
 		delete m_actions.last().qml_item;
 		m_actions.last().qml_item = nullptr;
 		const auto new_last{m_actions.count() - 2};
-		//TODO
 		QMetaObject::invokeMethod(m_actionsLayout, "reLayoutLastRow", Q_ARG(QQuickItem*, m_actions.at(new_last).qml_item),
 			last_row_width > m_actions.at(new_last).qml_item->width() ? m_actions.at(new_last-1).qml_item : nullptr);
 	} else {
@@ -260,18 +242,23 @@ void TPMessage::setupActionsLayout(const bool append, const bool remove_last, co
 			for (const auto &action : std::as_const(m_actions))
 				delete action.qml_item;
 		}
-		for (int i{0}; i < m_actions.size(); ++i) {
-			QMetaObject::invokeMethod(m_actionsLayout, "createItem",
-									  Q_RETURN_ARG(QQuickItem*, m_actions[i].qml_item),
-									  Q_ARG(int, m_actions.at(i).type), Q_ARG(QString, m_actions.at(i).label));
-			QMetaObject::invokeMethod(m_actionsLayout, "placeItem", Q_ARG(QQuickItem*, m_actions.at(i).qml_item),
-									  Q_ARG(QQuickItem*, (i > 0 ? m_actions.at(i - 1).qml_item : nullptr)),
-									  Q_ARG(int, i), Q_ARG(int, m_actions.count()));
-		}
+		for (int i{0}; i < m_actions.size(); ++i)
+			createActionItem(i);
 	}
 	if (m_actionsLayoutParent)
 		m_actionsLayoutParent->setHeight(m_actionsLayout->height());
 	setMessageComponentHeight(MC_ACTIONS, m_actionsLayout->height());
+}
+
+void TPMessage::createActionItem(const uint action_index)
+{
+	st_Action *action{&m_actions[action_index]};
+	QMetaObject::invokeMethod(m_actionsLayout, "createItem",
+							  Q_RETURN_ARG(QQuickItem*, action->qml_item),
+							  Q_ARG(int, action->type), Q_ARG(QString, action->label), Q_ARG(int, action_index));
+	QMetaObject::invokeMethod(m_actionsLayout, "placeItem", Q_ARG(QQuickItem*, action->qml_item),
+							  Q_ARG(QQuickItem*, action_index > 0 ? m_actions.at(action_index - 1).qml_item : nullptr),
+							  Q_ARG(int, action_index), Q_ARG(int, m_actions.count()));
 }
 
 void TPMessage::createFileViewer()

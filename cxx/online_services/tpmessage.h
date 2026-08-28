@@ -87,8 +87,8 @@ public:
 	~TPMessage();
 
 	inline const uint childCount() const { return m_children.size(); }
-	inline TPMessage *child(const int row) { return row >= 0 && row < m_children.size() ? m_children.at(row).get() : this; }
-	inline const std::vector<std::unique_ptr<TPMessage>> &children() const { return m_children; }
+	inline TPMessage *child(const int row) { return row >= 0 && row < m_children.size() ? m_children.at(row) : this; }
+	inline const QList<TPMessage*> &children() const { return m_children; }
 	inline const TPMessage *parentMessage() const { return m_parentMessage; }
 	inline TPMessage *parentMessage() { return m_parentMessage; }
 	TPMessage *findChild(const QVariant &value, const TPMessageFields field) const;
@@ -225,11 +225,6 @@ public:
 			emit actionCountChanged();
 		}
 	}
-	void execAction(const int action_id, const QVariant &data)
-	{
-		if (action_id >= 0 && action_id < m_actions.count())
-			emit actionTriggered(action_id, m_actions.at(action_id).func(data));
-	}
 
 	inline QVariant generalPurposeData(const int key) const { return m_generalPurposeData.value(key); }
 	inline void setGeneralPurposeData(const int key, QVariant &&gpd)
@@ -276,7 +271,6 @@ public:
 	inline QQuickItem *fileViewer() const { return m_fileViewer; }
 
 signals:
-	void actionTriggered(const int action_id, const QVariant &return_value);
 	void actionEnabledChanged(const int action_id, const bool enabled);
 	void killMessage();
 	void actionChanged(const uint action_id);
@@ -299,6 +293,11 @@ signals:
 
 public slots:
 	void popupSizeChanged(const qreal w_ratio, const qreal h_ratio);
+	inline void execAction(const int action_id, const QVariant &data)
+	{
+		if (action_id >= 0 && action_id < m_actions.count())
+			m_actions.at(action_id).func(data);
+	}
 
 private:
 	Q_OBJECT_BINDABLE_PROPERTY(TPMessage, QString, m_title, &TPMessage::titleChanged)
@@ -312,7 +311,7 @@ private:
 	Q_OBJECT_BINDABLE_PROPERTY(TPMessage, bool, m_sticky, &TPMessage::stickyChanged)
 	Q_OBJECT_BINDABLE_PROPERTY(TPMessage, bool, m_collapsed, &TPMessage::collapsedChanged)
 
-	std::vector<std::unique_ptr<TPMessage>> m_children;
+	QList<TPMessage*> m_children;
 	TPMessage *m_parentMessage{nullptr};
 	uint m_id{0}, m_depth{0};
 	qreal m_componentHeight[MC_COUNT]{0.0};
@@ -338,5 +337,6 @@ private:
 	bool isChild(TPMessage *msg) const;
 	void createActionsLayout();
 	void setupActionsLayout(const bool append = true, const bool remove_last = false, const bool reset = false);
+	void createActionItem(const uint action_index);
 	void createFileViewer();
 };

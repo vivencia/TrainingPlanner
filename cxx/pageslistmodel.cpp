@@ -299,11 +299,10 @@ bool PagesListModel::eventFilter(QObject *obj, QEvent *event)
 					QMetaObject::invokeMethod(popup, "backKeyPressed");
 				else
 					QMetaObject::invokeMethod(popup, "closePopup", Q_ARG(int, -3));
-			}
-			else {
-				if (currentIndex() != 0)
+			} else {
+				if (currentIndex() != 0) {
 					prevPage();
-				else {
+				} else {
 					auto conn{std::make_shared<QMetaObject::Connection>()};
 					*conn = connect(appItemManager(), &QmlItemManager::generalMessagesPopupClicked, this, [this,conn]
 																								(const uint8_t button) {
@@ -317,9 +316,9 @@ bool PagesListModel::eventFilter(QObject *obj, QEvent *event)
 				}
 			}
 			return true; // Return true to stop the event from propagating
-		}
-		else
+		} else {
 			return false;
+		}
 	}
 	return QObject::eventFilter(obj, event);
 }

@@ -155,7 +155,7 @@ void WSServer::wsTextMessageReceived(const QString &message)
 			if (handler) {
 				switch (handler_id) {
 				case TPUtils::MH_DIRECT_FILE_TRANSFER:
-					appMessagesManager()->newTextMessage(message);
+					appMessagesManager()->newTextMessage(std::move(QString{message}));
 					break;
 				case TPUtils::MH_TPCHAT:
 					qobject_cast<TPChat*>(handler)->processChatMessage(message);

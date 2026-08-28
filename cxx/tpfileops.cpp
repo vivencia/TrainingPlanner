@@ -1119,9 +1119,9 @@ void TPFileOps::loadPdf(const QString &password, const bool store_passwd)
 				}
 			});
 			appItemManager()->showPasswordDialog(requestid, m_parentPage
-										, tr("Password required"), password == "key_not_found"
-										? tr("To open the file:<br> ") % m_filename.fileName(false)
-										: tr("Password provided is incorrect. Try again?"), store_passwd);
+					, tr("Password required"), password == "key_not_found"
+					? tr("To open the file:<br> ") % m_filename.fileName(false)
+					: tr("Password provided is incorrect. Try again?"), QmlItemManager::DM_GET_PASSWORD, store_passwd);
 		}
 		break;
 	}

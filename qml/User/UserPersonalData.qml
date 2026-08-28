@@ -34,7 +34,10 @@ ColumnLayout {
 	}
 
 	onUserIdxChanged: getUserInfo();
-	Component.onCompleted: getUserInfo();
+	Component.onCompleted: {
+		AppUserModel.userPasswordOK.connect(userPasswordOK);
+		getUserInfo();
+	}
 
 	TPLabel {
 		id: lblName
@@ -90,49 +93,16 @@ ColumnLayout {
 		}
 	}
 
-	Item {
-		Layout.fillWidth: true
-		Layout.minimumHeight: btnChangePassword.height
+	TPButton {
+		id: btnChangePassword
+		text: AppUserModel.mainUserConfigured ? qsTr("Change password") : qsTr("Set password")
+		rounded: false
+		imageSource: "password"
+		visible: userPersonalModule.userIdx === 0
+		autoSize: true
+		Layout.alignment: Qt.AlignHCenter
 
-		TPButton {
-			id: btnChangePassword
-			text: qsTr("Change password")
-			rounded: false
-			imageSource: "password"
-			visible: userPersonalModule.userIdx === 0 && AppUserModel.mainUserConfigured
-			autoSize: true
-			anchors.horizontalCenter: parent.horizontalCenter
-
-			onClicked: changePasswordLoader.active = true;
-		}
-	}
-
-	TPPassword {
-		id: passwordControl
-		enabled: userPersonalModule.bNameOK
-		visible: userPersonalModule.userIdx === 0 && !AppUserModel.mainUserConfigured
-		Layout.fillWidth: true
-		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : -5
-
-		onPasswordUnacceptable: userPersonalModule.bPasswordOK = false;
-		onPasswordAccepted: {
-			userPersonalModule.bPasswordOK = true;
-			AppUserModel.setPassword(getPassword());
-		}
-	}
-
-	Loader {
-		id: changePasswordLoader
-		active: false
-		asynchronous: true
-
-		property UserChangePassword _change_passwd
-		sourceComponent: UserChangePassword {
-			parentPage: userPersonalModule.parentPage
-			Component.onCompleted: changePasswordLoader._change_passwd = this;
-		}
-
-		onLoaded: _change_passwd.tpOpen();
+		onClicked: AppUserModel.showPasswordDialogForMainUser(ItemManager.DM_CHANGE_PASSWORD, parentPage);
 	}
 
 	TPLabel {
@@ -292,14 +262,10 @@ ColumnLayout {
 		chkFemale.checked = sex === 1;
 		bSexOK = sex <= 1;
 		chkOnlineUser.checked = AppUserModel.onlineAccount
-		AppUserModel.userPasswordAvailable.connect(getUserPassword);
-		AppUserModel.getPassword();
 	}
 
-	function getUserPassword(password: string): void {
-		passwordControl.setPasswordText(password);
-		bPasswordOK = password.length >= 6;
-		AppUserModel.userPasswordAvailable.disconnect(getUserPassword);
+	function userPasswordOK(password_ok: bool): void {
+		bPasswordOK = password_ok;
 	}
 
 	function focusOnFirstField(): void {

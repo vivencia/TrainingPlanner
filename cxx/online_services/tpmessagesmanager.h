@@ -28,7 +28,7 @@ public:
 	inline QObject *messagesManagerDialog() const { return m_messagesManagerDialog; }
 
 	void startMessagesPolling(const QString &userid);
-	void newTextMessage(const QString &encoded_message);
+	void newTextMessage(QString &&encoded_message);
 	void sendTPMessage(const QString &target_user, const QString &encoded_message, const int request_id = -1);
 	void readAllChats();
 	void openChatWindow(TPChat *chat_manager);

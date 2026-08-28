@@ -44,8 +44,7 @@ TPPopup {
 			id: existing_user_module
 			Layout.fillWidth: true
 			Layout.minimumHeight: _firstTimeDlg.minimumHeight
-
-			onNetConfigurationResult: (success) => _firstTimeDlg.nextStartsTheApp = success;
+			Component.completed: _firstTimeDlg.nextStartsTheApp = bReady;
 		}
 
 		UserPersonalData {
@@ -110,13 +109,26 @@ TPPopup {
 			autoSize: true
 			enabled: stackLayout.currentIndex > 0
 
+			property var conn
+
 			anchors {
 				right: btnNext.left
 				rightMargin: 20
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: stackLayout.currentIndex--;
+			onClicked: {
+				if (!_firstTimeDlg.nextStartsTheApp) {
+					stackLayout.currentIndex--;
+				} else {
+					conn = AppUserModel.mainUserRemoved.connect(function(removed) {
+						if (removed)
+							stackLayout.currentIndex--;
+						AppUserModel.mainUserRemoved.disconnect(btnPrev.conn);
+					});
+					AppUserModel.removeMainUser(true);
+				}
+			}
 		}
 
 		TPButton {

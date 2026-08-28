@@ -4,7 +4,7 @@ import TpQml
 
 TPLabel {
 	id: _control
-	height: AppSettings.itemDefaultHeight + 10
+	height: defaultHeight
 	singleLine: !multiLine
 	topPadding: 0
 	rightPadding: 0
@@ -21,6 +21,7 @@ TPLabel {
 	property int boxType: TPRadioButtonOrCheckBox.TP_RADIOBOX
 	property TPButtonGroup buttonGroup: null
 	readonly property int preferredWidth: (lineCount <= 1 ? contentWidth : contentWidth/lineCount) + indicator.width + imageHeight
+	readonly property int defaultHeight: AppSettings.itemDefaultHeight + 10
 
 	enum BoxType{ TP_RADIOBOX, TP_CHECKBOX, TP_NONE }
 	signal clicked();

@@ -124,7 +124,7 @@ void TPOnlineServices::storeCredentials()
 {
 	auto conn{std::make_shared<QMetaObject::Connection>()};
 	*conn = connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,conn]
-										(const bool ok, const QString &key, const QString &value) {
+								(const bool ok, const QString &key, const QString &value, const QString &error_string) {
 		if (key == appUserModel()->userId(0)) {
 			disconnect(*conn);
 			if (ok) {
@@ -133,6 +133,8 @@ void TPOnlineServices::storeCredentials()
 				m_hasCredentials = true;
 				if (m_onlineStatus == TP_RET_CODE_SUCCESS)
 					emit onlineServicesReady();
+			} else {
+				qWarning() << error_string;
 			}
 		}
 	});

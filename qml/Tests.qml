@@ -39,28 +39,5 @@ ApplicationWindow {
 			function onCppDataForQMLReady() : void {
 			}
 		}
-
-		TPFileViewer {
-			id: viewer
-			property alias url: fileops.fileName
-			anchors.centerIn: parent
-			fileOps: FileOperations {
-				id: fileops
-				parentPage: homePage
-				//fileName: "/home/guilhermef/.local/share/Vivencia Software/TrainingPlanner/1759256421787/1759170252407/mesocycles/Hipertrofia 1.txt"
-				//fileName: "/home/guilhermef/.local/share/Vivencia Software/TrainingPlanner/1759170252407/1759256421787/mesocycles/Hipertrofia 1.pdf"
-				fileName: "user.ini"
-				useControls: true
-				canAddFile: false
-				canDownloadOrGenerate: true
-			}
-		}
-
-		TPButton {
-			anchors.bottom: parent.bottom
-			anchors.horizontalCenter: parent.horizontalCenter
-			text: "Set Filename"
-			onClicked: viewer.url = "/home/guilhermef/.local/share/Vivencia Software/TrainingPlanner/1759256421787/1759170252407/mesocycles/Hipertrofia 1.txt";
-		}
 	}
 }

@@ -599,7 +599,7 @@ void OSInterface::localServerProcessResult(const uint online_status, const QStri
 	if (!m_currentNetworkStatus[serverMessage].has_value() || m_currentNetworkStatus[serverMessage].value() != online) {
 		QString message{online ? tr("Connected to server ") : tr("Server unreachable")};
 		if (online)
-			message += std::move('(' + appSettings()->serverAddress() % ':' % appSettings()->serverPort() % ')' % additional_message);
+			message += std::move('(' % appSettings()->serverAddress() % ':' % appSettings()->serverPort() % ')' % additional_message);
 		else
 			message += additional_message;
 		setNetStatus(serverMessage, online, std::move(message));
@@ -759,8 +759,6 @@ OSInterface::clsRetCode OSInterface::commandLocalServer(const QString &command, 
 		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(appItemManager(), &QmlItemManager::passwordAcquired, this, [=,this]
 								(const bool proceed, const int request_id, const QString &passwd) mutable {
-			qDebug() << "######  OSInterface::passwordAcquired, proceed = " << proceed << ", request_id = "
-					 << request_id << ", requestid = " << requestid << ", passwd = " << passwd;
 			if (request_id == requestid) {
 				disconnect(*conn);
 				if (proceed) {
@@ -776,7 +774,7 @@ OSInterface::clsRetCode OSInterface::commandLocalServer(const QString &command, 
 		if (!waiting_for_password) {
 			waiting_for_password = true;
 			appItemManager()->showPasswordDialog(requestid, appItemManager()->appHomePage(), title,
-													"Your system user password is required"_L1);
+																		"Your system user password is required"_L1);
 			return CLS_OK_WAITING_FOR_PASSWORD;
 		} else {
 			return CLS_ERROR_WAITING_FOR_PASSWORD;

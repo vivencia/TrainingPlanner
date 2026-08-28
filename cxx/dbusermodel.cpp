@@ -211,10 +211,22 @@ void DBUserModel::createMainUser(const QString &userid, const QString &name)
 	}
 }
 
-void DBUserModel::removeMainUser()
+void DBUserModel::removeMainUser(const bool confirm)
 {
-	if (!m_usersData.isEmpty())
-		m_usersData.removeFirst();
+	if (!m_usersData.isEmpty()) {
+		if (!confirm) {
+			m_usersData.removeFirst();
+		} else {
+			connect(appItemManager(), &QmlItemManager::generalMessagesPopupClicked, this, [this] (const uint8_t button) {
+				if (button == 0)
+					m_usersData.removeFirst();
+				emit mainUserRemoved(button == 0);
+			}, Qt::SingleShotConnection);
+			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_WARNING, std::move(appUtils()->string_strings(
+				{tr("Remove user?"), tr("All the data for %1 will be deleted").arg(userName(0))}, record_separator)),
+				Qt::AlignCenter, std::move(QString{}), -1, std::move(tr("Yes")), std::move(tr("No")));
+		}
+	}
 }
 
 void DBUserModel::removeUser(const int user_idx, const bool remove_local, const bool remove_online)
@@ -270,35 +282,129 @@ const QString &DBUserModel::userIdFromFieldValue(const uint field, const QString
 	return m_emptyString;
 }
 
-void DBUserModel::setPassword(const QString &password)
+void DBUserModel::showPasswordDialogForMainUser(const int mode, QQuickItem *parent_page)
 {
-	auto conn{std::make_shared<QMetaObject::Connection>()};
-	*conn =  connect(appKeyChain(), &TPKeyChain::keyStored, this, [this,conn] (const bool ok, const QString &key) {
-		if (userId(0) == key) {
-			disconnect(*conn);
-			if (ok) {
-				appOnlineServices()->storeCredentials();
-				if (onlineAccount() && !mb_userLoggedIn)
-					loginUser();
-			}
-		}
-	});
-	appKeyChain()->writeKey(userId(0), password);
+	const int requestid{appUtils()->idFromString(userId(0) % "showPasswordDialog"_L1)};
+	QString title;
+	switch (mode) {
+	case QmlItemManager::DM_GET_PASSWORD:
+		title = std::move(tr("TP app password"));
+		connect(appItemManager(), &QmlItemManager::passwordAcquired, this, &DBUserModel::checkPassword, Qt::SingleShotConnection);
+		break;
+	case QmlItemManager::DM_NEW_PASSWORD:
+		title = std::move(tr("New password"));
+		connect(appItemManager(), &QmlItemManager::passwordCreated, this, &DBUserModel::setNewPassword, Qt::SingleShotConnection);
+		break;
+	case QmlItemManager::DM_CHANGE_PASSWORD:
+		title = std::move(tr("Change password"));
+		connect(appItemManager(), &QmlItemManager::passwordChanged, this, &DBUserModel::checkChangedPassword, Qt::SingleShotConnection);
+		break;
+	default:
+		Q_UNREACHABLE();
+	}
+	appItemManager()->showPasswordDialog(requestid, parent_page, title, tr(""), static_cast<QmlItemManager::PASSWORD_DIALOG_MODE>(mode));
 }
 
-void DBUserModel::getPassword()
+//Set requestid to -1 when this function is in the middle of a chain of calls and not the initiator of the chain
+void DBUserModel::checkPassword(const bool proceed, const int requestid, const QString &password)
 {
-	if (!m_usersData.isEmpty()) {
+	if (!proceed) {
+		disconnect(appItemManager(), &QmlItemManager::passwordAcquired, this, nullptr);
+	} else {
 		auto conn{std::make_shared<QMetaObject::Connection>()};
-		*conn = connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,conn]
-										(const bool ok, const QString &key, const QString &value) {
+		*conn = connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,requestid,conn,password]
+													(const bool ok, const QString &key, const QString &value) {
 			if (userId(0) == key) {
-				disconnect(*conn);
-				emit userPasswordAvailable(value);
+				if (requestid == -1) //other functions are connected to userPasswordOK
+					disconnect(*conn);
+				if (ok) {
+					disconnect(appItemManager(), &QmlItemManager::passwordAcquired, this, nullptr);
+					emit userPasswordOK(password == value);
+				} else {
+					emit userPasswordOK(false);
+					if (requestid != -1) {
+						//The first request in the function chain is to get the password, so
+						//display password dialog again, until user desists or operation is successfull
+						appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_WRONG_PASSWORD,
+												std::move(tr("The provided password is not your TP App password")));
+						showPasswordDialogForMainUser(QmlItemManager::DM_GET_PASSWORD);
+					}
+				}
 			}
 		});
 		appKeyChain()->readKey(userId(0));
 	}
+}
+
+void DBUserModel::setNewPassword(const bool proceed, const int requestid, const QString &new_password)
+{
+	disconnect(appItemManager(), &QmlItemManager::passwordCreated, this, nullptr);
+	auto conn{std::make_shared<QMetaObject::Connection>()};
+	*conn =  connect(appKeyChain(), &TPKeyChain::keyStored, this, [this,requestid,conn,new_password]
+											(const bool ok, const QString &key, const QString &error_string) {
+		if (userId(0) == key) {
+			disconnect(*conn);
+			emit userPasswordOK(ok);
+			if (ok) {
+				appOnlineServices()->storeCredentials();
+				if (onlineAccount() && !mb_userLoggedIn) {
+					loginUser();
+					if (requestid != -1)
+						appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_SUCCESS, std::move(
+							appUtils()->string_strings({tr("Success!"), tr("New user password saved")}, record_separator)));
+				}
+			} else if (requestid != -1) {
+				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR, std::move(
+					appUtils()->string_strings({tr("Error! Password not set"), error_string}, record_separator)));
+			}
+		}
+	});
+	appKeyChain()->writeKey(userId(0), new_password);
+}
+
+void DBUserModel::checkChangedPassword(const bool proceed, const int requestid, const QString &old_passwd, const QString &new_passwd)
+{
+	if (!proceed) {
+		disconnect(appItemManager(), &QmlItemManager::passwordChanged, this, nullptr);
+		return;
+	}
+	connect(this, &DBUserModel::userPasswordOK, this, [=,this] (const bool password_ok) {
+		if (!password_ok) {
+			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_WRONG_PASSWORD, std::move(tr("Unable to change "
+															"password because the current password entered is wrong")));
+			showPasswordDialogForMainUser(QmlItemManager::DM_CHANGE_PASSWORD); //display password dialog again, until user desists or operation is successfull
+			return;
+		}
+		auto conn{std::make_shared<QMetaObject::Connection>()};
+		*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [=,this]
+											(const int request_id, const int ret_code, const QString &ret_string) {
+			if (request_id == requestid) {
+				disconnect(*conn);
+				disconnect(appItemManager(), &QmlItemManager::passwordChanged, this, nullptr); //password dialog connection
+				if (ret_code == TP_RET_CODE_SUCCESS) {
+					auto conn{std::make_shared<QMetaObject::Connection>()};
+					*conn =  connect(appKeyChain(), &TPKeyChain::keyDeleted, this, [this,new_passwd,conn]
+												(const bool ok, const QString &key, const QString &error_string) {
+						if (userId(0) == key) {
+							disconnect(*conn);
+							if (ok) {
+								setNewPassword(true, -1, new_passwd);
+							} else {
+								appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR, std::move(
+								appUtils()->string_strings({tr("Error! Password not changed"), error_string}, record_separator)));
+							}
+						}
+					});
+					appKeyChain()->deleteKey(userId(0));
+				} else {
+					appItemManager()->displayMessageOnAppWindow(ret_code, std::move(QString{ret_string}));
+					showPasswordDialogForMainUser(QmlItemManager::DM_CHANGE_PASSWORD); //display password dialog again, until user desists or operation is successfull
+				}
+			}
+		});
+		appOnlineServices()->changePassword(requestid, old_passwd, new_passwd);
+	}, Qt::SingleShotConnection);
+	checkPassword(true, -1, old_passwd);
 }
 
 void DBUserModel::setPhone(const int user_idx, QString new_phone_prefix, const QString &new_phone)
@@ -541,69 +647,44 @@ void DBUserModel::checkExistingAccount(const QString &email, const QString &pass
 		const int requestid{appUtils()->generateUniqueId("checkExistingAccount"_L1)};
 		auto conn{std::make_shared<QMetaObject::Connection>()};
 		*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid,password]
-													(const int request_id, const int ret_code, const QString &ret_string) {
+												(const int request_id, const int ret_code, const QString &ret_string) {
 			if (request_id == requestid) {
 				disconnect(*conn);
-				if (ret_code == TP_RET_CODE_SUCCESS) { //Password matches server's. Store it for the session
-					m_onlineAccountId = ret_string;
-					m_password = password;
+				if (ret_code == TP_RET_CODE_SUCCESS) {
+					emit userImportFromServerStatus(true, false, tr("Attempting to import user data"));
+					importUserDataFromServer(ret_string, password);
 				}
-				emit userOnlineCheckResult(ret_code == TP_RET_CODE_SUCCESS);
+				else {
+					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_USER_DOES_NOT_EXIST);
+					emit userImportFromServerStatus(false, false, ret_string);
+				}
 			}
 		});
 		appOnlineServices()->checkUserAccount(requestid, "email="_L1 + email, password);
 	}
 }
 
-void DBUserModel::changePassword(const QString &old_password, const QString &new_password)
-{
-	const int requestid{appUtils()->generateUniqueId("changePassword"_L1)};
-	auto conn{std::make_shared<QMetaObject::Connection>()};
-	*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid,new_password]
-							(const int request_id, const int ret_code, const QString &ret_string) {
-		if (request_id == requestid) {
-			disconnect(*conn);
-			if (ret_code == TP_RET_CODE_SUCCESS) {
-				auto conn{std::make_shared<QMetaObject::Connection>()};
-				*conn =  connect(appKeyChain(), &TPKeyChain::keyStored, this, [this,new_password,conn]
-																	(const bool ok, const QString &key) {
-					if (userId(0) == key) {
-						disconnect(*conn);
-						if (ok)
-							setPassword(new_password);
-					}
-				});
-				appKeyChain()->deleteKey(userId(0));
-			} else {
-				appItemManager()->displayMessageOnAppWindow(ret_code, std::move(QString{ret_string}));
-			}
-		}
-	});
-	appOnlineServices()->changePassword(requestid, old_password, new_password);
-}
-
-void DBUserModel::importFromOnlineServer()
+void DBUserModel::importUserDataFromServer(const QString &userid, const QString &password)
 {
 	if (canConnectToServer()) {
 		const int requestid{appUtils()->generateUniqueId("importFromOnlineServer"_L1)};
 		auto conn{std::make_shared<QMetaObject::Connection>()};
-		*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn,requestid]
+		*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [=,this]
 												(const int request_id, const int ret_code, const QString &ret_string) {
 			if (request_id == requestid) {
 				disconnect(*conn);
 				if (ret_code == TP_RET_CODE_SUCCESS) {
-					removeMainUser();
+					removeMainUser(false);
 					if (importFromString(ret_string)) {
 						mb_userLoggedIn = true;
-						setPassword(m_password);
-						switchToUser(m_onlineAccountId);
+						setNewPassword(true, -1, password);
+						switchToUser(userid);
 					}
 				}
-				else
-					emit userOnlineImportFinished(false);
+				emit userImportFromServerStatus(true, ret_code == TP_RET_CODE_SUCCESS, ret_string);
 			}
 		});
-		appOnlineServices()->getOnlineUserData(requestid, m_onlineAccountId);
+		appOnlineServices()->getOnlineUserData(requestid, userid);
 	}
 }
 
@@ -923,16 +1004,9 @@ void DBUserModel::loginUser()
 				emit userLoggedIn();
 				break;
 			case TP_RET_CODE_WRONG_PASSWORD:
-				*conn = connect(appItemManager(), &QmlItemManager::passwordAcquired, this, [this,conn,requestid]
-					(const bool proceed, const int request_id, const QString &passwd, const bool store) {
-					if (request_id == requestid) {
-						disconnect(*conn);
-						if (proceed)
-							setPassword(passwd);
-					}
-				});
-				appItemManager()->showPasswordDialog(requestid, appItemManager()->appHomePage(),
-						tr("Login failed"), tr("Please, type in your TraininPlanner user password"));
+				showPasswordDialogForMainUser(QmlItemManager::DM_GET_PASSWORD);
+				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR, std::move(appUtils()->string_strings(
+					{tr("Login failed"), tr("Please, type in your TraininPlanner user password")}, record_separator)));
 				break;
 			case TP_RET_CODE_USER_DOES_NOT_EXIST: { //User does not exist in the online database
 				auto conn2{std::make_shared<QMetaObject::Connection>()};
@@ -978,20 +1052,16 @@ void DBUserModel::switchToUser(const QString &new_userid, const QString &test_us
 			#endif
 				appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_ERROR, std::move(
 					appUtils()->string_strings({tr("User switching error"), tr("Could not download files for user ")
-					% m_onlineAccountId}, record_separator)));
+					% new_userid}, record_separator)));
 		} else {
 			if (test_username.isEmpty()) {
 				appSettings()->importFromUserConfig(new_userid);
 				initUserSession();
 			}
 		}
-		if (test_username.isEmpty())
-			emit userOnlineImportFinished(success);
 		#ifndef Q_OS_ANDROID
-		else
-			emit userSwitchPhase1Finished(success);
+		emit userSwitchPhase1Finished(success);
 		#endif
-
 	}, Qt::SingleShotConnection);
 	if (canConnectToServer()) {
 		download_timeout->callOnTimeout([this] () { emit allUserFilesDownloaded(false); });
@@ -1032,7 +1102,7 @@ void DBUserModel::downloadAllUserFiles(const QString &userid)
 						++total_files;
 						auto conn2{std::make_shared<QMetaObject::Connection>()};
 						*conn2 = connect(appOnlineServices(), &TPOnlineServices::fileDownloaded, this, [this,conn2,res,&total_files]
-										(const int ret_code, const uint requestid, const TPFilePath &local_file_name) mutable {
+								(const int ret_code, const uint requestid, const TPFilePath &local_file_name) mutable {
 							if (res.second == requestid) {
 								disconnect(*conn2);
 								if (--total_files <= 0)

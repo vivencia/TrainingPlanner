@@ -5,26 +5,26 @@ import TpQml
 
 FocusScope {
 	id: _control
-	height: 2 * AppSettings.itemDefaultHeight
+	height: defaultHeight
 	implicitHeight: height
 
-	property string customLabel: ""
+	property string label
 	property string matchAgainst: ""
-	property bool includeNotAllowableChars: true
-	property bool showAcceptButton: true
-	property bool passwordOK: false
+	property bool showNotAllowableChars: false
+	readonly property bool passwordOK: txtPassword.input_ok && txtPassword.match_oK
+	readonly property int defaultHeight: 2 * AppSettings.itemDefaultHeight
 
+	signal passwordEntered()
+
+//private:
 	readonly property string notAllowableChars: "# &?=\'\""
-
-	signal passwordAccepted();
-	signal passwordUnacceptable();
 
 	TPLabel {
 		id: lblPassword
-		text: (_control.customLabel.length === 0 ? AppUserModel.passwordLabel : _control.customLabel) +
-							(_control.includeNotAllowableChars ? "(" + _control.notAllowableChars + qsTr(" not allowed)") : "")
-		singleLine: true
-		height: AppSettings.itemDefaultHeight
+		text: _control.label + (_control.showNotAllowableChars
+													? "(" + _control.notAllowableChars + qsTr(" not allowed)") : "")
+		visible: _control.label.length > 0 || _control.showNotAllowableChars
+		height: visible ? AppSettings.itemDefaultHeight : 0
 
 		anchors {
 			top: parent.top
@@ -37,77 +37,38 @@ FocusScope {
 	TPPasswordInput {
 		id: txtPassword
 		validator: RegularExpressionValidator { regularExpression: /^[^# &?="']*$/ }
+		ToolTip.visible: !input_ok || !match_oK
+		ToolTip.text: !input_ok ? AppUserModel.invalidPasswordLabel : !match_oK
+																	? ToolTip.text = qsTr("Passwords do not match") : ""
 
-		property bool inputOK: false
-		property bool matchOK: true
+		property bool match_oK: _control.matchAgainst.length === 0
+		readonly property bool input_ok: text.length >= 6
 
-		onEnterOrReturnKeyPressed: {
-			_control.passwordOK = inputOK && matchOK;
-			if (_control.passwordOK)
-				_control.passwordAccepted();
+		anchors {
+			top: lblPassword.bottom
+			left: parent.left
+			right: parent.right
+			margins: 5
 		}
 
-		onTextChanged: {
-			_control.passwordOK = matchOK = inputOK = text.length >= 6;
-			ToolTip.visible = !inputOK;
+		onEnterOrReturnKeyPressed: {
+			if (_control.passwordOK)
+				_control.passwordEntered();
 		}
 
 		onTextEdited: {
 			if (acceptableInput) {
-				if (text.length < 6) {
-					matchOK = inputOK = false;
-					_control.passwordOK = false;
-					_control.passwordUnacceptable();
-					ToolTip.text = AppUserModel.invalidPasswordLabel
-					ToolTip.visible = true;
-				}
-				else {
-					inputOK = true;
-					ToolTip.visible = false;
-					if (_control.matchAgainst.length > 0) {
-						matchOK = text === _control.matchAgainst;
-						if (matchOK) {
-							_control.passwordOK = true;
-							_control.passwordAccepted();
-						}
-						else {
-							_control.passwordOK = false;
-							_control.passwordUnacceptable();
-							ToolTip.text = qsTr("Passwords do not match")
-							ToolTip.visible = true;
-						}
-					}
-					else {
-						_control.passwordOK = true;
-						_control.passwordAccepted();
-					}
+				if (text.length >= 6) {
+					if (_control.matchAgainst.length > 0)
+						txtPassword.match_oK = (text === _control.matchAgainst);
 				}
 			}
 		}
-
-		anchors {
-			top: lblPassword.bottom
-			topMargin: 5
-			left: parent.left
-			right: parent.right
-			rightMargin: _control.showAcceptButton ? AppSettings.itemDefaultHeight + 5 : 5
-		}
 	}
 
-	TPButton {
-		id: btnAccept
-		imageSource: "set-completed"
-		width: AppSettings.itemDefaultHeight
-		height: width
-		enabled: txtPassword.inputOK && txtPassword.matchOK
-		visible: _control.showAcceptButton
-
-		anchors {
-			verticalCenter: txtPassword.verticalCenter
-			left: txtPassword.right
-		}
-
-		onClicked: _control.passwordAccepted();
+	function reset(): void {
+		txtPassword.clear();
+		txtPassword.match_oK = Qt.binding(function() { return _control.matchAgainst.length === 0; });
 	}
 
 	function setPasswordText(passwd: string): void {
@@ -116,6 +77,6 @@ FocusScope {
 	}
 
 	function getPassword(): string {
-		return txtPassword.inputOK ? txtPassword.text.trim() : "";
+		return passwordOK ? txtPassword.text.trim() : "";
 	}
 }

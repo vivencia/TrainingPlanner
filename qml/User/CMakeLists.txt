@@ -2,7 +2,6 @@ set( QML_USER
 	"AllUsers.qml"
 	"AvatarsPopup.qml"
 	"ChatWindow.qml"
-	"UserChangePassword.qml"
 	"TPCoachesAndClientsList.qml"
 	"UserCoachRequest.qml"
 	"UserCoach.qml"

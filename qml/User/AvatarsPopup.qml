@@ -8,7 +8,6 @@ import TpQml.Dialogs
 
 TPPopup {
 	id: avatarsDlg
-	closeButtonVisible: false
 	showTitleBar: false
 	open_in_window: true
 	width: AppSettings.pageWidth

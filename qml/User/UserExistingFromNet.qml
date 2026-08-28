@@ -7,40 +7,30 @@ import TpQml.Widgets
 
 ColumnLayout {
 	id: _control
+	spacing: 10
 
+//public:
 	property bool bReady: false
-	property bool bImport: false
-
 	signal netConfigurationResult(bool success);
+
+//private:
+	property string _message
 
 	Connections {
 		target: AppUserModel
-		function onUserOnlineCheckResult(registered: bool): void {
-			_control.bImport = registered;
-			if (registered) // 5 TP_RET_CODE_USER_OK
-				ItemManager.displayWindowMessage(5, 5000);
-			else // 120: TP_RET_CODE_USER_DOES_NOT_EXIST
-				ItemManager.displayWindowMessage(120, 5000);
-		}
 
-		function onUserOnlineImportFinished(result: bool): void {
-			_control.bReady = result;
-			_control.netConfigurationResult(result);
-			if (result)
-				ItemManager.displayWindowMessage(4, 5000); // 4: TP_RET_CODE_IMPORT_OK
-			else
-				ItemManager.displayWindowMessage(134, 5000); //134: TP_RET_CODE_IMPORT_FAILED
+		function onUserImportFromServerStatus(can_import: bool, is_imported: bool, message: string): void {
+			_control.bReady = is_imported;
+			btnCheckEMail._can_click = !can_import && !is_imported;
+			_message = message;
 		}
 	}
-
-	Component.onCompleted: spacing = (Qt.platform.os !== "android") ? 10 : 0
 
 	TPRadioButtonOrCheckBox {
 		id: optNewUser
 		text: AppUserModel.newUserLabel
 		multiLine: true
 		Layout.fillWidth: true
-		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : 0
 
 		onClicked: {
 			_control.bReady = checked;
@@ -62,8 +52,6 @@ ColumnLayout {
 			if (checked)
 				txtEmail.forceActiveFocus();
 		}
-
-		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : -5
 	}
 
 	TPLabel {
@@ -99,39 +87,31 @@ ColumnLayout {
 
 	TPPassword {
 		id: passwordControl
+		label: AppUserModel.passwordLabel
 		enabled: txtEmail.inputOK
 		Layout.fillWidth: true
-		onPasswordUnacceptable: btnCheckEMail.enabled = false;
-		onPasswordAccepted: btnCheckEMail.enabled = txtEmail.inputOK;
-		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : 0
 	}
 
-	RowLayout {
+	TPButton {
+		id: btnCheckEMail
+		text: AppUserModel.checkEmailLabel
+		enabled: _can_click && txtEmail.inputOK && passwordControl.passwordOK
+		autoSize: true
 		Layout.alignment: Qt.AlignCenter
-		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 10 : -5
 
-		TPButton {
-			id: btnCheckEMail
-			text: AppUserModel.checkEmailLabel
-			enabled: false
-			autoSize: true
+		property bool _can_click: true
 
-			onClicked: {
-				AppUserModel.checkExistingAccount(txtEmail.text.trim(), passwordControl.getPassword());
-				enabled = false;
-			}
+		onClicked: {
+			AppUserModel.checkExistingAccount(txtEmail.text.trim(), passwordControl.getPassword());
+			_can_click = false;
 		}
+	}
 
-		TPButton {
-			id: btnImport
-			text: AppUserModel.importUserLabel
-			enabled: _control.bImport
-			autoSize: true
-
-			onClicked: {
-				AppUserModel.importFromOnlineServer();
-				_control.bImport = false;
-			}
-		}
+	TPLabel {
+		text: _control._message
+		visible: _control._message.length > 0
+		singleLine: false
+		useBackground: true
+		Layout.fillWidth: true
 	}
 }

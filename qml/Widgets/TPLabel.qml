@@ -11,6 +11,7 @@ Label {
 	minimumPixelSize: AppSettings.smallFontSize * 0.5
 	fontSizeMode: Text.Fit
 	verticalAlignment: Text.AlignVCenter
+	horizontalAlignment: Text.AlignLeft
 	background: useBackground ? itemBack : null
 	topInset: 0
 	bottomInset: 0

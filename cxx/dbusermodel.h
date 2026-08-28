@@ -15,6 +15,7 @@ QT_FORWARD_DECLARE_CLASS(DBUserTable)
 QT_FORWARD_DECLARE_CLASS(DBModelInterfaceUser)
 QT_FORWARD_DECLARE_CLASS(DBMesocyclesModel)
 QT_FORWARD_DECLARE_CLASS(TPFilePath)
+QT_FORWARD_DECLARE_CLASS(QQuickItem)
 QT_FORWARD_DECLARE_CLASS(QTimer)
 
 class DBUserModel : public QObject
@@ -125,7 +126,7 @@ public:
 	void setOnlineAccount(const bool online_user, const uint user_idx = 0);
 
 	Q_INVOKABLE void createMainUser(const QString &userid = QString{}, const QString &name = QString{});
-	void removeMainUser();
+	Q_INVOKABLE void removeMainUser(const bool confirm = true);
 	Q_INVOKABLE void removeUser(const int user_idx, const bool remove_local = true, const bool remove_online = true);
 
 	Q_INVOKABLE inline bool isCoach(const uint user_idx) const { return userCategory(user_idx) & UC_COACH; }
@@ -161,8 +162,7 @@ public:
 		}
 	}
 
-	void setPassword(const QString &passwd);
-	Q_INVOKABLE void getPassword();
+	Q_INVOKABLE void showPasswordDialogForMainUser(const int mode, QQuickItem *parent_page = nullptr);
 
 	Q_INVOKABLE inline QDate birthDate(const int user_idx) const
 	{
@@ -297,8 +297,6 @@ public:
 	Q_INVOKABLE inline void rejectUser(const uint user_idx) { removeUser(user_idx); }
 
 	Q_INVOKABLE void checkExistingAccount(const QString &email, const QString &password);
-	Q_INVOKABLE void changePassword(const QString &old_password, const QString &new_password);
-	Q_INVOKABLE void importFromOnlineServer();
 	Q_INVOKABLE inline bool mainUserLoggedIn() const { return mb_userLoggedIn.has_value() && mb_userLoggedIn.value(); }
 	Q_INVOKABLE void setCoachPublicStatus(const bool bPublic);
 	Q_INVOKABLE QString resume(const uint user_idx) const;
@@ -323,6 +321,9 @@ public:
 public slots:	
 	void saveUserInfo(const uint user_idx, const uint field);
 	void sendUnsentCmdFiles(const QString &dir);
+	void checkPassword(const bool proceed, const int requestid, const QString &password);
+	void setNewPassword(const bool proceed, const int requestid, const QString &new_password);
+	void checkChangedPassword(const bool proceed, const int requestid, const QString &old_passwd, const QString &new_passwd);
 
 signals:
 	void userModified(const uint user_idx, const uint field);
@@ -333,16 +334,16 @@ signals:
 	void clientsListReceived(const QStringList &clients_list);
 	void availableCoachesChanged();
 	void allUsersListChanged();
-	void userOnlineCheckResult(const bool registered);
-	void userOnlineImportFinished(const bool result);
+	void userImportFromServerStatus(const bool can_import, const bool is_imported, const QString &message);
 	void allUserFilesDownloaded(const bool success);
 	void mainUserConfigurationFinished();
+	void mainUserRemoved(const bool removed);
 	void canConnectToServerChanged();
 	void userLoggedIn(const bool first_checkin = false);
 	void userLoggedOut();
 	void coachOnlineStatus(bool registered);
 	void userProfileAcquired(const QString &userid, const int ret_code);
-	void userPasswordAvailable(const QString &password);
+	void userPasswordOK(const bool password_ok);
 	void onlineDevicesListReceived();
 	void cmdFileCreated(const QString &dir);
 	//Only used in desktop for development purposes, but must be here so that the QML parser does not complain
@@ -357,7 +358,7 @@ signals:
 private:
 	QList<QStringList> m_usersData;
 	int n_devices{0};
-	QString m_onlineAccountId, m_password, m_defaultAvatar, m_emptyString, m_network_msg_title;
+	QString m_defaultAvatar, m_emptyString, m_network_msg_title;
 	std::optional<bool> mb_userLoggedIn, mb_coachRegistered;
 	UserInfoListModel *m_allUsersInfo{nullptr};
 	bool mb_canConnectToServer{false}, mb_coachPublic{false}, mb_MainUserInfoChanged{false};
@@ -376,6 +377,7 @@ private:
 	QString getPhonePart(const QString &str_phone, const bool prefix) const;
 	void setPhoneBasedOnLocale();
 	QString generateUniqueUserId() const;
+	void importUserDataFromServer(const QString &userid, const QString &password);
 	void onlineCheckIn();
 	void loginUser();
 	void switchToUser(const QString &new_userid, const QString &test_username = QString{});
