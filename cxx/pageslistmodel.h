@@ -76,7 +76,6 @@ private:
 	};
 
 	QList<pageInfo*> m_pagesData;
-	QList<uint> m_pagesMesoIdx;
 	QHash<int, QByteArray> m_roleNames;
 	uint m_pagesIndex{0};
 	int m_backKey;

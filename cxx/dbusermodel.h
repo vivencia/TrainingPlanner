@@ -270,7 +270,7 @@ public:
 	void checkCoachesReponses();
 
 #ifndef Q_OS_ANDROID
-	Q_INVOKABLE inline DBMesocyclesModel *actualMesoModel() const
+	inline DBMesocyclesModel *actualMesoModel() const
 	{
 		return !m_mesoModels.isEmpty() ? m_mesoModels.value(userId(0)) : nullptr;
 	}

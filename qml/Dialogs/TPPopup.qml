@@ -93,7 +93,6 @@ Popup {
 	onResizeableChanged: {
 		if (showTitleBar !== resizeable)
 			showTitleBar = resizeable;
-		showCloseButton = resizeable;
 	}
 
 	onMouseItemChanged: createMouseArea();
@@ -296,7 +295,7 @@ Popup {
 			let component = Qt.createComponent("TpQml.Widgets", TPMouseArea, Qt.Asynchronous);
 			function finishCreation() {
 				mouse_area = component.createObject(_control.mouseItem, { enabled: _control.enabled,
-						movableWidget: _control, slideToClose: _control.canSlideToClose,
+						movableWidget: _control, canSlide: _control.canSlideToClose,
 						movingWidget: _control.mouseItem, lockMovingToYAxis: _control.lockMovingToYAxis });
 				mouse_area.mousePressed.connect(mouseAreaPressed);
 				mouse_area.movingFinished.connect(mouseAreaMovingFinished);
@@ -342,6 +341,7 @@ Popup {
 
 	function mouseAreaSlide(side: int): void {
 		_use_alternate_transition = true;
+		console.log(side);
 		switch (side) {
 		case TPMouseArea.MA_LEFT:
 			alternateCloseTransition.finalPos = -width;

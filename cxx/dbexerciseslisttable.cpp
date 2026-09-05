@@ -11,7 +11,7 @@ constexpr QLatin1StringView field_names[n_fields][2] {
 	{"muscular_group"_L1,	"TEXT"_L1},
 	{"media_path"_L1,		"TEXT"_L1},
 	{"from_list"_L1,		"INTEGER"_L1},
-	{"actual_index"			"INTEGER"_L1},
+	{"actual_index"_L1,		"INTEGER"_L1},
 	{"selected"_L1			"INTEGER"_L1},
 };
 

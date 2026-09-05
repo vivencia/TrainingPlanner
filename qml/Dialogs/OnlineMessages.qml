@@ -23,6 +23,7 @@ TPPopup {
 	resizeable: true
 	savePopupState: true
 	show_minimize_button: false
+	showCloseButton: false
 
 	onMouseItemClicked: (mouse) => {
 		if (_minimized)

@@ -25,7 +25,7 @@ TPPage {
 
 //private
 	property bool _need_restart: false
-	readonly property list<string> styles: ["Material","Basic", "Fusion","Imagine","macOS","iOS","Universal","Windows","FluentWinUI3"]
+	readonly property list<string> styles: ["Material","Basic","Fusion","Imagine","macOS","iOS","Universal","Windows","FluentWinUI3"]
 
 	Loader {
 		id: restardLoader

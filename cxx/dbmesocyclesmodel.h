@@ -1,11 +1,12 @@
 #pragma once
 
 #include "dbmodelinterface.h"
-//Must include the header files of properties of custom types
-#include "homepagemesomodel.h"
 #include "tpfilepath.h"
 
 #include <QObject>
+//any type that is used by MOC must be fully defined at the time they appear in a declaration unit. MOC is used
+//by slots, signals, properties, Q_INVOKABLE, and possibly other QML/c++ interface macros
+Q_MOC_INCLUDE("homepagemesomodel.h")
 
 QT_FORWARD_DECLARE_CLASS(DBCalendarModel)
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
@@ -13,6 +14,7 @@ QT_FORWARD_DECLARE_CLASS(DBMesoCalendarTable)
 QT_FORWARD_DECLARE_CLASS(DBMesocyclesTable)
 QT_FORWARD_DECLARE_CLASS(DBModelInterfaceMesocycle)
 QT_FORWARD_DECLARE_CLASS(DBWorkoutsOrSplitsTable)
+QT_FORWARD_DECLARE_CLASS(HomePageMesoModel)
 QT_FORWARD_DECLARE_CLASS(QMLMesoInterface)
 
 using DBSplitModel = DBExercisesModel;
@@ -25,8 +27,6 @@ class DBMesocyclesModel : public QObject
 Q_OBJECT
 QML_VALUE_TYPE(MesocyclesModel)
 
-Q_PROPERTY(HomePageMesoModel* ownMesos READ ownMesos CONSTANT FINAL)
-Q_PROPERTY(HomePageMesoModel* clientMesos READ clientMesos CONSTANT FINAL)
 Q_PROPERTY(QString mesoNameLabel READ mesoNameLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString startDateLabel READ startDateLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString endDateLabel READ endDateLabel NOTIFY labelChanged FINAL)
@@ -42,13 +42,13 @@ Q_PROPERTY(QString splitLabelF READ splitLabelA NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString coachLabel READ coachLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString clientLabel READ clientLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString fileLabel READ fileLabel NOTIFY labelChanged FINAL)
-Q_PROPERTY(QString typeLabel READ typeLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString metadataLabel READ metadataLabel NOTIFY labelChanged FINAL)
+Q_PROPERTY(QString typeLabel READ typeLabel NOTIFY labelChanged FINAL)
+Q_PROPERTY(QString objectiveLabel READ objectiveLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString nonMesoLabel READ nonMesoLabel NOTIFY labelChanged FINAL)
 Q_PROPERTY(QString splitR READ splitR NOTIFY labelChanged FINAL)
 
 public:
-
 	enum MesoFields {
 		MESO_FIELD_ID,
 		MESO_FIELD_NAME,
@@ -66,17 +66,11 @@ public:
 		MESO_FIELD_COACH,
 		MESO_FIELD_CLIENT,
 		MESO_FIELD_INSTRUCTIONS_FILE,
-		MESO_FIELD_TYPE,
 		MESO_FIELD_METADATA,
+		MESO_FIELD_DESCRIPTION,
 		MESO_TOTAL_FIELDS
 	};
 	Q_ENUM(MesoFields)
-
-	enum MesoType {
-		MT_MESO_FOR_CLIENT,
-		MT_MESO_FROM_COACH,
-		MT_MESO_FOR_SELF,
-	};
 
 	enum MetaData {
 		MD_REAL_MESO,
@@ -86,9 +80,16 @@ public:
 		MD_STARTDATE_OK,
 		MD_ENDDATE_OK,
 		MD_SPLIT_OK,
-
 		MD_UNUSED,
 	};
+
+	enum MesoType {
+		MT_MESO_FROM_COACH,
+		MT_MESO_FOR_SELF,
+		MT_MESO_FOR_CLIENT,
+		MT_TYPE_COUNT
+	};
+	Q_ENUM(MesoType)
 
 	static constexpr uint8_t MESO_MINIMUM_DAYS{30};
 	static constexpr uint8_t MESO_MAXIMUM_DAYS{180};
@@ -101,18 +102,16 @@ public:
 	QMLMesoInterface *mesoManager(const uint meso_idx);
 	void removeMesoManager(const uint meso_idx);
 
-	Q_INVOKABLE void startNewMesocycle(const bool own_meso);
+	Q_INVOKABLE void startNewMesocycle(const MesoType type);
 	Q_INVOKABLE void getMesocyclePage(const uint meso_idx, const bool new_meso);
 	Q_INVOKABLE void removeMesocycle(const uint meso_idx);
 	Q_INVOKABLE void getExercisesPlannerPage(const uint meso_idx);
 	Q_INVOKABLE void getMesoCalendarPage(const uint meso_idx);
 	Q_INVOKABLE inline void startTodaysWorkout(const uint meso_idx) { openSpecificWorkout(meso_idx, QDate::currentDate()); }
-	void openSpecificWorkout(const uint meso_idx, const QDate &date);
-
-	inline HomePageMesoModel *ownMesos() const { return m_ownMesos; }
-	inline HomePageMesoModel *clientMesos() const { return m_clientMesos; }
-	void setCurrentMesosView(const bool own_mesos_view);
-	inline int currentWorkingMeso() const { return m_currentWorkingMeso; }
+	Q_INVOKABLE inline HomePageMesoModel *homePageViewModel(const int type) const { return m_mesosHomePageModel[type]; }
+	Q_INVOKABLE HomePageMesoModel *homePageViewModelViaIndex(const int view_index) const;
+	Q_INVOKABLE int currentMesosView() const;
+	Q_INVOKABLE void setCurrentMesosView(const int view_index);
 
 	bool isMesoOK(const int meso_idx) const;
 	inline bool isNameOK(const uint meso_idx) const { return isBitSet(m_metadata.at(meso_idx), MD_NAME_OK); }
@@ -142,17 +141,13 @@ public:
 	{
 		return m_mesoData.at(meso_idx).at(MESO_FIELD_NAME);
 	}
-	Q_INVOKABLE inline QString name_QML(const uint meso_idx) const
-	{
-		return name(meso_idx);
-	}
 	void setName(const uint meso_idx, const QString &new_name);
 
 	inline const QString &strStartDate(const uint meso_idx) const
 	{
 		return m_mesoData.at(meso_idx).at(MESO_FIELD_STARTDATE);
 	}
-	Q_INVOKABLE inline QDate startDate(const int meso_idx) const
+	inline QDate startDate(const int meso_idx) const
 	{
 		return QDate::fromJulianDay(m_mesoData.at(meso_idx).at(MESO_FIELD_STARTDATE).toULong());
 	}
@@ -162,7 +157,7 @@ public:
 	{
 		return m_mesoData.at(meso_idx).at(MESO_FIELD_ENDDATE);
 	}
-	Q_INVOKABLE inline QDate endDate(const int meso_idx) const
+	inline QDate endDate(const int meso_idx) const
 	{
 		return isRealMeso(meso_idx) ? QDate::fromJulianDay(m_mesoData.at(meso_idx).at(MESO_FIELD_ENDDATE)
 																			.toULong()) : QDate::currentDate().addDays(730);
@@ -260,7 +255,7 @@ public:
 		return std::move(tr("Rest day"));
 	}
 
-	Q_INVOKABLE QString muscularGroup(const uint meso_idx, const QChar &splitLetter) const;
+	QString muscularGroup(const uint meso_idx, const QChar &splitLetter) const;
 	void setMuscularGroup(const uint meso_idx, const QChar &splitLetter, const QString &newSplitValue);
 
 	inline const QString &coach(const uint meso_idx) const
@@ -274,33 +269,12 @@ public:
 		return m_mesoData.at(meso_idx).at(MESO_FIELD_CLIENT);
 	}
 	void setClient(const uint meso_idx, const QString &new_client);
-	Q_INVOKABLE inline QString mesoClient(const uint meso_idx) const
-	{
-		return meso_idx < m_mesoData.count() ? client(meso_idx) : QString {};
-	}
 
-	Q_INVOKABLE inline QString instructionsFile(const uint meso_idx) const
+	inline QString instructionsFile(const uint meso_idx) const
 	{
 		return m_mesoData.at(meso_idx).at(MESO_FIELD_INSTRUCTIONS_FILE);
 	}
-	Q_INVOKABLE void setInstructionsFile(const uint meso_idx, const QString &new_file);
-
-	MesoType mesoType(const uint meso_idx) const;
-	Q_INVOKABLE inline bool isOwnMeso(const int meso_idx) const
-	{
-		return meso_idx >= 0 && meso_idx < m_mesoData.count() ? mesoType(meso_idx) != MT_MESO_FOR_CLIENT : false;
-	}
-	void addSubMesoModel(const uint meso_idx, const bool own_meso);
-
-	inline const QString &type(const uint meso_idx) const
-	{
-		return m_mesoData.at(meso_idx).at(MESO_FIELD_TYPE);
-	}
-	inline void setType(const uint meso_idx, const QString &new_type)
-	{
-		m_mesoData[meso_idx][MESO_FIELD_TYPE] = new_type;
-		setModified(meso_idx, MESO_FIELD_TYPE);
-	}
+	void setInstructionsFile(const uint meso_idx, const QString &new_file);
 
 	inline const QString &metadata(const uint meso_idx) const
 	{
@@ -328,6 +302,13 @@ public:
 		}
 	}
 
+	//When using the default field value(-1) the returned description will be a composite string of record_sepator strings
+	QString description(const uint meso_idx, const int field = -1) const;
+	//When using the default field value(-1) the field_info must be a composite string of record_sepator strings
+	void setDescription(const uint meso_idx, const QString &field_info, const int field = -1);
+
+	MesoType mesoType(const uint meso_idx) const;
+
 	inline const QString mesoNameLabel() const { return tr("Program's name: "); }
 	inline const QString startDateLabel() const { return tr("Start date: "); }
 	inline const QString endDateLabel() const { return tr("End date: "); }
@@ -343,8 +324,9 @@ public:
 	inline const QString coachLabel() const { return tr("Coach/Trainer: "); }
 	inline const QString clientLabel() const { return tr("Client: "); }
 	inline const QString fileLabel() const { return tr("Instructions file"); }
-	inline const QString typeLabel() const { return tr("Type: "); }
 	inline const QString metadataLabel() const { return tr("Metadata: "); }
+	inline const QString typeLabel() const { return tr("Type: "); }
+	inline const QString objectiveLabel() const { return tr("Objective: "); }
 	inline const QString nonMesoLabel() const { return tr("Mesocycle-style program: "); }
 
 	inline QString splitLetter(const uint meso_idx, const uint day_of_week) const
@@ -352,7 +334,7 @@ public:
 		return day_of_week <= 6 ? split(meso_idx).at(day_of_week) : QString{};
 	}
 
-	Q_INVOKABLE inline QString usedSplits(const uint meso_idx) const { return m_usedSplits.at(meso_idx); }
+	inline QString usedSplits(const uint meso_idx) const { return m_usedSplits.at(meso_idx); }
 	void removeSplitsForMeso(const uint meso_idx);
 	void makeUsedSplits(const uint meso_idx);
 	void loadSplits(const uint meso_idx);
@@ -375,20 +357,15 @@ public:
 	inline DBCalendarModel *calendar(const uint meso_idx) const { return m_calendars.value(meso_idx); }
 	inline DBCalendarModel *workingCalendar() const { return m_workingCalendar; }
 	void setWorkingCalendar(const uint meso_idx);
+
 	inline DBExercisesModel *workingWorkout(const uint meso_idx) const { return m_workingWorkouts.value(meso_idx); }
 	DBExercisesModel *workingWorkout() const;
+	void openSpecificWorkout(const uint meso_idx, const QDate &date);
 	void setWorkingWorkout(const uint meso_idx, DBExercisesModel* model);
 	DBExercisesModel *workoutForDay(DBExercisesModel *w_model, const uint meso_idx, const int calendar_day);
 	void newWorkoutFromFile(const TPFilePath &filename, const bool formatted, const uint meso_idx, const int calendar_day, const QChar &splitletter);
-
 	inline bool canExport(const uint meso_idx) const { return isBitSet(m_metadata.at(meso_idx), MD_CAN_EXPORT); }
 	void checkIfCanExport(const uint meso_idx, const bool bEmitSignal = true);
-
-	//When importing a complete program: importIdx() will be set to -1 because we will be getting a new meso model. When other parts of the code
-	//check importIdx() and get a -1, they will act in accordance with whole program import. After the meso model has been succesfully imported
-	//and incorporated, any other model that depends on a meso_idx can query mesoIdx() which will now reflect the recently added meso
-	inline int importIdx() const { return m_importMesoIdx; }
-	inline void setImportIdx(const int new_import_idx) { m_importMesoIdx = new_import_idx; }
 	void exportToFile(const uint meso_idx, const TPFilePath &filename);
 	void exportToFormattedFile(const uint meso_idx, const TPFilePath &filename);
 	int importFromFile(const uint meso_idx, const TPFilePath &filename, const bool formatted);
@@ -410,7 +387,7 @@ public:
 	QString formatFieldToImport(const uint field, const QString &fieldValue) const;
 
 	void removeMesoFiles(const uint meso_idx);
-	void newMesoFromFile(const TPFilePath &filename, const bool own_meso, const std::optional<bool> &file_formatted = std::nullopt);
+	void newMesoFromFile(const TPFilePath &filename, const std::optional<bool> &file_formatted = std::nullopt);
 
 	inline bool checkName(const int meso_idx = -1, const QString &meso_name = QString{}) const
 	{
@@ -480,10 +457,9 @@ private:
 	QHash<uint,DBCalendarModel*> m_calendars;
 	QMap<uint, QMap<QChar,DBSplitModel*>> m_splitModels;
 
-	HomePageMesoModel *m_ownMesos{nullptr}, *m_clientMesos{nullptr};
+	HomePageMesoModel *m_mesosHomePageModel[MT_TYPE_COUNT]{nullptr};
 	QList<uint> m_metadata;
 	QStringList m_usedSplits;
-	int m_importMesoIdx, m_currentWorkingMeso;
 
 	DBModelInterfaceMesocycle *m_dbModelInterface{nullptr};
 	DBMesocyclesTable *m_db{nullptr};
@@ -505,6 +481,7 @@ private:
 		}
 	}
 	inline bool isMesoTemporary(const uint meso_idx) const { return _id(meso_idx) < 0; }
+	void addSubMesoModel(const uint meso_idx);
 	const uint newMesoData(QStringList &&infolist);
 	void getAllMesocycles();
 	void exportToFile_splitData(const uint meso_idx, const TPFilePath &filename, const bool formatted);

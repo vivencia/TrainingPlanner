@@ -60,7 +60,6 @@ Item {
 		TPMouseArea {
 			movableWidget: pdfViewer
 			movingWidget: pdfViewer
-			viewPort: _viewPort
 			onWheel: (wheel) => {
 				wheel.accepted = true;
 				pdfViewer.zoom(wheel.angleDelta.y > 0 ? 1 : -1);

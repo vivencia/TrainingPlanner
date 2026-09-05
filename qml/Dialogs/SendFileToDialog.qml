@@ -28,7 +28,7 @@ TPPopup {
 		usersList.reset();
 		usersList.setSelectedUsers(selectedUsers);
 	}
-	onCloseActionExeced: selectedOptions(-1, ["no selection"], "", false);
+	onCloseActionExeced: selectedOptions(AppUtils.MH_UNKOWN, ["no selection"], "", false);
 
 	Column {
 		id: mainLayout
@@ -113,7 +113,7 @@ TPPopup {
 				id: btn1
 				text: qsTr("Send directly")
 				enabled: usersList.anySelected
-				visible: _dialog.handle === -1 || _dialog.handle === AppUtils.MH_TPMESSAGES_MANAGER
+				visible: _dialog.handle === AppUtils.MH_UNKOWN || _dialog.handle === AppUtils.MH_TPMESSAGES_MANAGER
 				width: _dialog._button_size
 				height: AppSettings.itemDefaultHeight
 				anchors {
@@ -132,7 +132,7 @@ TPPopup {
 				id: btn2
 				text: qsTr("Send via chat")
 				enabled: usersList.anySelected
-				visible: _dialog.handle === -1 || _dialog.handle === AppUtils.SFM_TPCHAT
+				visible: _dialog.handle === AppUtils.MH_UNKOWN || _dialog.handle === AppUtils.SFM_TPCHAT
 				width: _dialog._button_size
 				height: AppSettings.itemDefaultHeight
 				anchors {

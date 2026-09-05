@@ -98,7 +98,7 @@ TPPage {
 			}
 
 			Loader {
-				active: !mesoPage.mesoManager.ownMeso
+				active: mesoPage.mesoManager.mesoForClient
 				asynchronous: true
 				Layout.fillWidth: true
 
@@ -124,23 +124,22 @@ TPPage {
 						onItemSelected: (userRow) => mesoPage.mesoManager.client = AppUserModel.userId_QML(userRow);
 						onButtonClicked: ItemManager.getClientsPage();
 					} //TPCoachesAndClientsList
-
-					TPLabel {
-						id: lblCoachName
-						text: mesoPage.mesoModel.coachLabel
-						visible: !mesoPage.mesoManager.mesoForClient
-					}
-
-					TPTextInput {
-						id: txtCoachName
-						text: mesoPage.mesoManager.coachName
-						readOnly: true
-						visible: !mesoPage.mesoManager.mesoForClient
-
-						Layout.fillWidth: true
-					}
 				} //ColumnLayout: Loader sourceComponent
 			} //Loader
+
+			TPLabel {
+				id: lblCoachName
+				text: mesoPage.mesoModel.coachLabel
+				visible: mesoPage.mesoManager.mesoFromCoach
+			}
+
+			TPTextInput {
+				id: txtCoachName
+				text: mesoPage.mesoManager.coachName
+				readOnly: true
+				visible: mesoPage.mesoManager.mesoFromCoach
+				Layout.fillWidth: true
+			}
 
 			TPLabel {
 				text: mesoPage.mesoModel.mesoNameLabel
@@ -192,19 +191,23 @@ TPPage {
 				Layout.fillWidth: true
 				model: ListModel {
 					id: typeModel
-					ListElement { text: qsTr("Weigth Loss"); value: 0; enabled: true; }
-					ListElement { text: qsTr("Muscle Gain"); value: 1; enabled: true; }
-					ListElement { text: qsTr("Bulking"); value: 2; enabled: true; }
-					ListElement { text: qsTr("Pre-contest"); value: 3; enabled: true; }
-					ListElement { text: qsTr("Strength Build-up"); value: 4; enabled: true; }
-					ListElement { text: qsTr("Physical Recovery"); value: 5; enabled: true; }
-					ListElement { text: qsTr("Physical Maintenance"); value: 6; enabled: true; }
-					ListElement { text: qsTr("Other"); value: 7; enabled: true; }
+					ListElement { text: qsTr("Regular Gym sessions"); value: 0; enabled: true; }
+					ListElement { text: qsTr("Crossfit sessions"); value: 1; enabled: true; }
+					ListElement { text: qsTr("Gym X Crossfit mix"); value: 2; enabled: true; }
+					ListElement { text: qsTr("Bodyweight HIIT"); value: 3; enabled: true; }
+					ListElement { text: qsTr("Pure Calisthenics"); value: 4; enabled: true; }
+					ListElement { text: qsTr("Calishtenics + Gym sessions"); value: 5; enabled: true; }
+					ListElement { text: qsTr("Powerlifting Specialization Phase"); value: 6; enabled: true; }
+					ListElement { text: qsTr("Swimming sessions"); value: 7; enabled: true; }
+					ListElement { text: qsTr("Outdoor biking"); value: 8; enabled: true; }
+					ListElement { text: qsTr("Sprinting + Gym sessions"); value: 9; enabled: true; }
+					ListElement { text: qsTr("Obstacle Sport sessions"); value: 10; enabled: true; }
+					ListElement { text: qsTr("Other"); value: 11; enabled: true; }
 				}
 
 				onActivated: (index) => {
 					if (index < (typeModel.count - 1))
-						mesoPage.mesoManager.type = textAt(index);
+						mesoPage.mesoManager.objective = textAt(index);
 					else
 						txtMesoTypeOther.forceActiveFocus();
 					currentIndex = index;
@@ -220,12 +223,62 @@ TPPage {
 
 			TPTextInput {
 				id: txtMesoTypeOther
-				text: mesoPage.mesoManager.type
+				text: mesoPage.mesoManager.objective
 				showClearTextButton: !readOnly
 				visible: cboMesoType.currentIndex === typeModel.count - 1
 				Layout.fillWidth: true
 
-				onEditingFinished: mesoPage.mesoManager.type = text;
+				onEditingFinished: mesoPage.mesoManager.objective = text;
+				onEnterOrReturnKeyPressed: cboMesoObjective.forceActiveFocus();
+			}
+
+			TPLabel {
+				text: mesoPage.mesoModel.objectiveLabel
+			}
+
+			TPComboBox {
+				id: cboMesoObjective
+				Layout.fillWidth: true
+				model: ListModel {
+					id: objectiveModel
+					ListElement { text: qsTr("Weigth Loss"); value: 0; enabled: true; }
+					ListElement { text: qsTr("Muscle Gain"); value: 1; enabled: true; }
+					ListElement { text: qsTr("Bulking"); value: 2; enabled: true; }
+					ListElement { text: qsTr("Pre-contest"); value: 3; enabled: true; }
+					ListElement { text: qsTr("Strength Build-up"); value: 4; enabled: true; }
+					ListElement { text: qsTr("Physical Recovery"); value: 5; enabled: true; }
+					ListElement { text: qsTr("Physical Maintenance"); value: 6; enabled: true; }
+					ListElement { text: qsTr("Conditioning improvements"); value: 7; enabled: true; }
+					ListElement { text: qsTr("Volume resistence"); value: 8; enabled: true; }
+					ListElement { text: qsTr("Post-surgery recovery"); value: 9; enabled: true; }
+					ListElement { text: qsTr("Pre-surgery strenghtening"); value: 10; enabled: true; }
+					ListElement { text: qsTr("Other"); value: 11; enabled: true; }
+				}
+
+				onActivated: (index) => {
+					if (index < (typeModel.count - 1))
+						mesoPage.mesoManager.objective = textAt(index);
+					else
+						txtMesoObjectiveOther.forceActiveFocus();
+					currentIndex = index;
+				}
+
+				Component.onCompleted: {
+					let cboidx = find(mesoPage.mesoManager.objective);
+					if (cboidx === -1)
+						cboidx = objectiveModel.count - 1;
+					currentIndex = cboidx;
+				}
+			}
+
+			TPTextInput {
+				id: txtMesoObjectiveOther
+				text: mesoPage.mesoManager.objective
+				showClearTextButton: !readOnly
+				visible: cboMesoObjective.currentIndex === typeModel.count - 1
+				Layout.fillWidth: true
+
+				onEditingFinished: mesoPage.mesoManager.objective = text;
 			}
 
 			TPLabel {
@@ -236,7 +289,8 @@ TPPage {
 				id: _meso_file_viewer
 				fileOps: mesoPage.mesoManager.instructionsFileViewer()
 				useBackground: true
-				missingFileInfo: qsTr("No instructions file added")
+				missingFileInfo: mesoPage.mesoManager.mesoFromCoach
+					? qsTr("The coach hasn't yet sent you the instructions file") : qsTr("No instructions file added")
 				Layout.preferredWidth: minimumWidth
 				Layout.preferredHeight: minimumHeight
 				Layout.alignment: Qt.AlignCenter

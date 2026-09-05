@@ -26,9 +26,10 @@ Q_PROPERTY(bool endDateOK READ endDateOK NOTIFY endDateOKChanged FINAL)
 Q_PROPERTY(bool splitOK READ splitOK NOTIFY splitOKChanged FINAL)
 Q_PROPERTY(bool realMeso READ realMeso WRITE setRealMeso NOTIFY realMesoChanged FINAL)
 Q_PROPERTY(bool ownMeso READ ownMeso CONSTANT FINAL)
+Q_PROPERTY(bool mesoForClient READ mesoForClient CONSTANT FINAL)
+Q_PROPERTY(bool mesoFromCoach READ mesoFromCoach CONSTANT FINAL)
 Q_PROPERTY(bool canExport READ canExport NOTIFY canExportChanged FINAL)
 Q_PROPERTY(bool canSendToClient READ canSendToClient NOTIFY canSendToClientChanged FINAL)
-Q_PROPERTY(bool mesoForClient READ mesoForClient CONSTANT FINAL)
 Q_PROPERTY(bool mesoOK READ mesoOK NOTIFY mesoOKChanged FINAL)
 Q_PROPERTY(int mesoIdx READ mesoIdx WRITE setMesoIdx NOTIFY mesoIdxChanged FINAL)
 Q_PROPERTY(int wrongFieldsCounter READ wrongFieldsCounter NOTIFY wrongFieldsCounterChanged FINAL)
@@ -36,12 +37,13 @@ Q_PROPERTY(QString mesoNameErrorTooltip READ mesoNameErrorTooltip NOTIFY mesoNam
 Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged FINAL)
 Q_PROPERTY(QString coachName READ coachName CONSTANT FINAL)
 Q_PROPERTY(QString client READ client WRITE setClient NOTIFY clientChanged FINAL)
-Q_PROPERTY(QString type READ type WRITE setType NOTIFY typeChanged FINAL)
 Q_PROPERTY(QString strStartDate READ strStartDate NOTIFY startDateChanged FINAL)
 Q_PROPERTY(QString strEndDate READ strEndDate NOTIFY endDateChanged FINAL)
 Q_PROPERTY(QString weeks READ weeks NOTIFY weeksChanged FINAL)
 Q_PROPERTY(QString split READ split WRITE setSplit NOTIFY splitChanged FINAL)
 Q_PROPERTY(QString notes READ notes WRITE setNotes NOTIFY notesChanged FINAL)
+Q_PROPERTY(QString type READ type WRITE setType NOTIFY typeChanged FINAL)
+Q_PROPERTY(QString objective READ objective WRITE setObjective NOTIFY objectiveChanged FINAL)
 Q_PROPERTY(QDate startDate READ startDate WRITE setStartDate NOTIFY startDateChanged FINAL)
 Q_PROPERTY(QDate endDate READ endDate WRITE setEndDate NOTIFY endDateChanged FINAL)
 Q_PROPERTY(QDate minimumStartDate READ minimumStartDate WRITE setMinimumStartDate NOTIFY minimumStartDateChanged FINAL)
@@ -90,9 +92,10 @@ public:
 	[[nodiscard]] bool realMeso() const;
 	void setRealMeso(const bool new_value);
 	[[nodiscard]] bool ownMeso() const;
+	[[nodiscard]] bool mesoForClient() const;
+	[[nodiscard]] bool mesoFromCoach() const;
 	[[nodiscard]] bool canExport() const;
 	[[nodiscard]] bool canSendToClient() const;
-	[[nodiscard]] bool mesoForClient() const;
 	[[nodiscard]] bool mesoOK() const;
 
 	inline QString mesoNameErrorTooltip() const { return m_nameError; }
@@ -103,9 +106,6 @@ public:
 
 	[[nodiscard]] QString client() const;
 	void setClient(const QString &new_value);
-
-	[[nodiscard]] QString type() const;
-	void setType(const QString &new_value);
 
 	[[nodiscard]] QDate startDate() const;
 	void setStartDate(const QDate &new_startdate);
@@ -126,6 +126,12 @@ public:
 
 	[[nodiscard]] QString notes() const;
 	void setNotes(const QString &new_value);
+
+	[[nodiscard]] QString type() const;
+	void setType(const QString &new_type);
+
+	[[nodiscard]] QString objective() const;
+	void setObjective(const QString &new_objective);
 
 	Q_INVOKABLE TPFileOps *instructionsFileViewer() const { return m_instructionsFileOps; }
 	Q_INVOKABLE TPFileOps *mesoFileOperations() const { return m_mesoFileOps; }
@@ -155,7 +161,6 @@ signals:
 	void labelsChanged();
 	void nameChanged();
 	void clientChanged();
-	void typeChanged();
 	void startDateChanged();
 	void endDateChanged();
 	void minimumStartDateChanged();
@@ -164,6 +169,8 @@ signals:
 	void weeksChanged();
 	void splitChanged();
 	void notesChanged();
+	void typeChanged();
+	void objectiveChanged();
 
 private:
 	QQmlComponent *m_mesoComponent{nullptr}, *m_optionsMenuComponent{nullptr};

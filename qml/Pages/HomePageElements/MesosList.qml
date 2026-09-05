@@ -11,13 +11,16 @@ import TpQml.Widgets
 Item {
 	id: _control
 
+//public:
 	required property HomePageMesoModel mesoSubModel
+	property int index
+	readonly property int bottomBarHeight: height * (Qt.platform.os !== "android" ? 0.2 : 0.25)
 
 	TPLabel {
 		id: lblTitle
-		text: _control.mesoSubModel.ownMesosModel ? qsTr("My Programs") : qsTr("Clients' Programs")
+		text: _control.mesoSubModel.viewTitle
 		useBackground: true
-		backgroundColor: _control.mesoSubModel.ownMesosModel ? AppSettings.primaryLightColor : AppSettings.primaryColor
+		backgroundColor: _control.mesoSubModel.backgroundColor
 
 		anchors {
 			top: parent.top
@@ -31,7 +34,7 @@ Item {
 		model: _control.mesoSubModel
 		spacing: 10
 		width: _control.width
-		height: _control.height * 0.8 - lblTitle.height - 10
+		height: calculatePreferredHeight()
 
 		anchors {
 			top: lblTitle.bottom
@@ -40,16 +43,55 @@ Item {
 			margins: 5
 		}
 
+		readonly property int maxHeight: _control.height * 0.8 - lblTitle.height - 10
+
+		/** When homePage is loaded, mesoSubModel is probably loaded so no countChanged signal. When mesosListView is
+		  * completed, the delegates are not. So, the only way to resize the list upon start up is to wait for the appropriate
+		  * delegates to load (itemAtIndex() will not be null) before calculating the height. All of this is that so TPSwipeView
+		  * (or, indeed SwipeView for that matter) will have more space to swipe (other than the title label and the left/right
+		  * margins) when the list is not accupying the entire screen;
+		  **/
+		Timer {
+			id: waitForDelegatesTimer
+			interval: 100
+			onTriggered: mesosListView.height = mesosListView.calculatePreferredHeight();
+		}
+
+		Connections {
+			target: _control.mesoSubModel
+			function onCountChanged(): void {
+				mesosListView.height = mesosListView.calculatePreferredHeight();
+			}
+		}
+
+		function calculatePreferredHeight(): int {
+			if (_control.mesoSubModel.count > 0) {
+				let children_height = 0;
+				for (let i = 0; i < _control.mesoSubModel.count; ++i) {
+					let _item = itemAtIndex(i);
+					if (!_item) { //we know there has to be a delegate(model.count > 0), so we wait for it
+						waitForDelegatesTimer.start();
+						return 0;
+					} else {
+						if (children_height + _item.implicitHeight > maxHeight) {
+							children_height = maxHeight;
+							break;
+						} else {
+							children_height += _item.implicitHeight + 10;
+						}
+					}
+				}
+				return children_height;
+			}
+			return 0;
+		}
+
 		delegate: SwipeDelegate {
 			id: delegate
 			width: parent.width
-
 			onClicked: _control.mesoSubModel.mesoModel().getMesocyclePage(mesoIdx, false);
-			onPressAndHold: _control.mesoSubModel.currentIndex = index;
-			swipe.onCompleted: _control.mesoSubModel.currentIndex = index;
 
 			required property int index
-
 			required property string mesoName
 			required property string mesoStartDate
 			required property string mesoEndDate
@@ -264,13 +306,13 @@ Item {
 					text: delegate.mesoCoach
 					fontColor: AppSettings.fontColor
 					Layout.maximumWidth: parent.width
-					visible: _control.mesoSubModel.ownMesosModel
+					visible: _control.mesoSubModel.type === MesocyclesModel.MT_MESO_FOR_CLIENT
 				}
 				TPLabel {
 					text: delegate.mesoClient
 					fontColor: AppSettings.fontColor
 					Layout.maximumWidth: parent.width
-					visible: !_control.mesoSubModel.ownMesosModel
+					visible: _control.mesoSubModel.type === MesocyclesModel.MT_MESO_FOR_CLIENT
 				}
 				TPLabel {
 					text: delegate.mesoStartDate
@@ -290,7 +332,7 @@ Item {
 	} //ListView
 
 	TPToolBar {
-		height: parent.height * (Qt.platform.os !== "android" ? 0.2 : 0.25)
+		height: _control.bottomBarHeight
 
 		anchors {
 			left: parent.left
@@ -307,6 +349,7 @@ Item {
 				id: btnAddMeso
 				text: qsTr("New Training Program")
 				imageSource: "mesocycle-add.png"
+				visible: _control.mesoSubModel.type !== MesocyclesModel.MT_MESO_FOR_CLIENT
 				Layout.preferredWidth: preferredWidth
 				Layout.maximumWidth: parent.width
 				Layout.maximumHeight: AppSettings.itemDefaultHeight
@@ -331,7 +374,6 @@ Item {
 				id: btnWorkout
 				text: qsTr("Today's workout")
 				imageSource: "workout.png"
-				visible: _control.mesoSubModel.ownMesosModel
 				enabled: _control.mesoSubModel.canHaveTodaysWorkout
 				Layout.preferredWidth: preferredWidth
 				Layout.maximumHeight: AppSettings.itemDefaultHeight

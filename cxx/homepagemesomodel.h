@@ -2,9 +2,9 @@
 
 #include <QAbstractListModel>
 #include <QQmlEngine>
-#include <qquickitem.h>
+#include <QQuickItem>
 
-QT_FORWARD_DECLARE_CLASS(DBMesocyclesModel)
+#include "dbmesocyclesmodel.h"
 
 class HomePageMesoModel : public QAbstractListModel
 {
@@ -15,17 +15,22 @@ QML_VALUE_TYPE(HomePageMesoModel)
 QML_UNCREATABLE("")
 
 Q_PROPERTY(uint count READ count NOTIFY countChanged)
-Q_PROPERTY(bool ownMesosModel READ ownMesosModel CONSTANT FINAL)
+Q_PROPERTY(uint viewIndex READ viewIndex CONSTANT FINAL)
+Q_PROPERTY(QString viewTitle READ viewTitle CONSTANT FINAL)
+Q_PROPERTY(QString backgroundColor READ backgroundColor CONSTANT FINAL)
+Q_PROPERTY(int type READ type CONSTANT FINAL)
 Q_PROPERTY(bool canHaveTodaysWorkout READ canHaveTodaysWorkout NOTIFY canHaveTodaysWorkoutChanged FINAL)
 Q_PROPERTY(int currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentIndexChanged FINAL)
 
 public:
-	explicit HomePageMesoModel(DBMesocyclesModel *meso_model, const bool own_mesos);
+	Q_DISABLE_COPY_MOVE(HomePageMesoModel)
+	explicit HomePageMesoModel(DBMesocyclesModel *meso_model, const DBMesocyclesModel::MesoType type, const uint view_index);
 	#ifndef Q_OS_ANDROID
 	void userSwitchingActions();
 	#endif
 	inline uint count() const { return m_mesoModelRows.count(); }
-	inline bool ownMesosModel() const { return m_ownMesos; }
+	inline uint viewIndex() const { return m_viewIndex; }
+	inline int type() const { return static_cast<int>(m_type); }
 	bool canHaveTodaysWorkout() const;
 	inline int currentIndex() const { return m_curIndex; }
 	void setCurrentIndex(const int new_index);
@@ -37,8 +42,19 @@ public:
 	{
 		return (m_curIndex >= 0 && m_curIndex < m_mesoModelRows.count()) ? m_mesoModelRows.at(m_curIndex) : -1;
 	}
+
+	QString viewTitle() const {
+		switch (m_type) {
+		case DBMesocyclesModel::MT_MESO_FROM_COACH: return tr("My Coaches's Programs");
+		case DBMesocyclesModel::MT_MESO_FOR_SELF: return tr("My Own Programs");
+		case DBMesocyclesModel::MT_MESO_FOR_CLIENT: return tr("My Clients' Programs");
+		default: Q_UNREACHABLE();
+		}
+	}
+	QString backgroundColor() const;
+
 	Q_INVOKABLE inline DBMesocyclesModel *mesoModel() const { return m_mesoModel; }
-	Q_INVOKABLE void showOptionsMenu(QQuickItem* tpbutton, const int meso_idx);
+	Q_INVOKABLE void showOptionsMenu(QQuickItem *tpbutton, const int meso_idx);
 
 	void appendMesoIdx(const uint meso_idx);
 	void removeMesoIdx(const uint meso_idx);
@@ -57,7 +73,8 @@ private:
 	QHash<int, QByteArray> m_roleNames;
 	DBMesocyclesModel *m_mesoModel;
 	int m_curIndex{-1};
-	bool m_ownMesos;
+	uint m_viewIndex;
+	DBMesocyclesModel::MesoType m_type;
 
 	inline int findLocalIdx(const uint meso_idx) const { return m_mesoModelRows.indexOf(meso_idx); }
 };

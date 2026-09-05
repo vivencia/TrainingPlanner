@@ -53,7 +53,7 @@ TPBackRec {
 		z: 2
 		anchors {
 			verticalCenter: parent.verticalCenter
-			right: btnClose.left
+			right: btnClose.visible ? btnClose.left : parent.right
 		}
 
 		sourceComponent: Item {
@@ -115,6 +115,22 @@ TPBackRec {
 					easing.type: Easing.InQuad
 				}
 
+				PropertyAnimation {
+					target: _control.parentPopup
+					property: "x"
+					to: _control.parentPopup._end_x_pos
+					duration: 200
+					easing.type: Easing.InQuad
+				}
+
+				PropertyAnimation {
+					target: _control.parentPopup
+					property: "y"
+					to: _control.parentPopup._end_y_pos
+					duration: 200
+					easing.type: Easing.InQuad
+				}
+
 				onFinished: {
 					const size_changed = !_control.parentPopup._minimized;
 					if (size_changed) {
@@ -126,10 +142,10 @@ TPBackRec {
 					if (is_maximized) {
 						_control.parentPopup.x = 0;
 						_control.parentPopup.y = _control.parentPopup.realY;
-					} else {
-						_control.parentPopup.x = _control.parentPopup._end_x_pos;
-						_control.parentPopup.y = _control.parentPopup._end_y_pos;
-					}
+					} //else {
+					//	_control.parentPopup.x = _control.parentPopup._end_x_pos;
+					//	_control.parentPopup.y = _control.parentPopup._end_y_pos;
+					//}
 					_control.afterResize(size_changed);
 				}
 			}
@@ -245,8 +261,26 @@ TPBackRec {
 	} //windowBarControlsLoader
 
 	function restore(): void {
-		if (parentPopup._minimized || parentPopup._maximized) {
-			//Restore popup state to previous values
+		if (parentPopup._maximized) { //Restore popup state to previous values
+			_control.titleBarButtons.finalWidth = parentPopup._normal_width;
+			_control.titleBarButtons.finalHeight = parentPopup._normal_height;
+		} else if (parentPopup._minimized) { //Restore popup state to previous values
+			if (parentPopup._normal_width + parentPopup.x > AppSettings.pageWidth) {
+				//reverse expand so that popup ends up inside the page
+				parentPopup._end_x_pos = parentPopup.x - parentPopup._normal_width;
+				if (parentPopup._end_x_pos < 0)
+					parentPopup._end_x_pos = 0;
+			} else {
+				parentPopup._end_x_pos = parentPopup.x; //popup, lengthwise, after expansion will be is inside page, do nothing
+			}
+			if (parentPopup._normal_height + parentPopup.y > AppSettings.pageHeight) {
+				//reverse expand so that popup ends up inside the page
+				parentPopup._end_y_pos = parentPopup.y - parentPopup._normal_height;
+				if (parentPopup._end_y_pos < 0)
+					parentPopup._end_y_pos = 0;
+			} else {
+				parentPopup._end_y_pos = parentPopup.y; //popup, heightwise, after expansion will be is inside page, do nothing
+			}
 			_control.titleBarButtons.finalWidth = parentPopup._normal_width;
 			_control.titleBarButtons.finalHeight = parentPopup._normal_height;
 		} else {

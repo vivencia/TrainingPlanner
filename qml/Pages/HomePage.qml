@@ -12,12 +12,10 @@ TPPage {
 	objectName: "homePage"
 	imageSource: ":/images/backgrounds/backimage-home.jpg"
 
-	property bool loadOwnMesos: false
-	property bool loadClientMesos: false
-	property date minimumStartDate
+	property bool loadMesosFromCoaches: false
+	property bool loadMesosForSelf: false
+	property bool loadMesosForClients: false
 	property MesocyclesModel mesoModel: null
-
-	signal mesosViewChanged(bool own_mesos);
 
 	header: TPToolBar {
 		bottomPadding: 20
@@ -54,75 +52,54 @@ TPPage {
 		}
 	}
 
-	SwipeView {
+	TPSwipeView {
 		id: mesosView
-		currentIndex: AppUserModel.mainUserConfigured ? (AppUserModel.mainUserIsCoach ? 0 : 1) : -1
+		currentIndex: homePage.mesoModel.currentMesosView()
 		interactive: AppUserModel.mainUserIsCoach && AppUserModel.mainUserIsClient
+		indicatorsColors: [homePage.mesoModel.homePageViewModelViaIndex(0).backgroundColor,
+										homePage.mesoModel.homePageViewModelViaIndex(1).backgroundColor,
+										homePage.mesoModel.homePageViewModelViaIndex(2).backgroundColor]
+		indicatorBottomMargin: height * (Qt.platform.os !== "android" ? 0.2 : 0.25)
 		anchors.fill: parent
+		onCurrentIndexChanged: homePage.mesoModel.setCurrentMesosView(currentIndex);
 
-		onCurrentIndexChanged: {
-			if (currentIndex >= 0) {
-				const own_meso = currentIndex === 1;
-				homePage.mesosViewChanged(own_meso);
+		Loader {
+			id: mesosFromCoachesLoader
+			active: homePage.loadMesosFromCoaches
+			asynchronous: true
+
+			property int index
+
+			sourceComponent: MesosList {
+				mesoSubModel: homePage.mesoModel.homePageViewModel(MesocyclesModel.MT_MESO_FROM_COACH)
+				index: mesosFromCoachesLoader.index
 			}
 		}
 
 		Loader {
-			id: clientsMesosListLoader
-			active: homePage.loadClientMesos
+			id: mesosForSelfLoader
+			active: homePage.loadMesosForSelf
 			asynchronous: true
 
+			property int index
+
 			sourceComponent: MesosList {
-				mesoSubModel: homePage.mesoModel.clientMesos
+				mesoSubModel: homePage.mesoModel.homePageViewModel(MesocyclesModel.MT_MESO_FOR_SELF)
+				index: mesosForSelfLoader.index
 			}
 		}
 
 		Loader {
-			id: ownMesosListLoader
-			active: homePage.loadOwnMesos
+			id: mesosForClientsLoader
+			active: homePage.loadMesosForClients
 			asynchronous: true
 
+			property int index
+
 			sourceComponent: MesosList {
-				mesoSubModel: homePage.mesoModel.ownMesos
+				mesoSubModel: homePage.mesoModel.homePageViewModel(MesocyclesModel.MT_MESO_FOR_CLIENT)
+				index: mesosForClientsLoader.index
 			}
 		}
-	} //SwipeView
-
-	PageIndicator {
-		id: indicator
-		count: mesosView.count
-		currentIndex: mesosView.currentIndex
-		visible: AppUserModel.mainUserConfigured && (AppUserModel.mainUserIsCoach && AppUserModel.mainUserIsClient)
-
-		delegate: Rectangle {
-			id: delegate
-			width: AppSettings.itemSmallHeight
-			height: width
-			radius: width / 2
-			opacity: index === indicator.currentIndex ? 0.95 : 0.7
-			color: index === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2
-
-			required property int index
-
-			Text {
-				text: String(delegate.index + 1)
-				color: AppSettings.fontColor
-				anchors.centerIn: parent
-			}
-		}
-
-		anchors {
-			bottom: parent.bottom
-			bottomMargin: ownMesosListLoader.height * (Qt.platform.os !== "android" ? 0.22 : 0.28)
-			horizontalCenter: mesosView.horizontalCenter
-		}
-	}
-
-	function mesosViewIndex(): int {
-		return mesosView.currentIndex;
-	}
-
-	function setMesosViewIndex(index: int) {
-		mesosView.currentIndex = index;
-	}
+	} //TPSwipeView
 } //Page

@@ -43,7 +43,7 @@ TPPopup {
 
 	TPDatePicker {
 		id: datePickerControl
-		calendarModel: _control.calendarModel
+		tpCalendarModel: _control.calendarModel
 		anchors {
 			bottom: lblTitle.bottom
 			left: _control.contentItem.left

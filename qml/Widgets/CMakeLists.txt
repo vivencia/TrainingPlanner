@@ -25,6 +25,7 @@ set( QML_WIDGETS
 	"TPPhoneNumberInput.qml"
 	"TPRadioButtonOrCheckBox.qml"
 	"TPScrollView.qml"
+	"TPSwipeView.qml"
 	"TPTabButton.qml"
 	"TPTextInput.qml"
 	"TPToolBar.qml"

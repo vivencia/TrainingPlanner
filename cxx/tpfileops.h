@@ -35,6 +35,7 @@ Q_PROPERTY(QSize controlSize READ controlSize NOTIFY controlSizeChanged FINAL)
 Q_PROPERTY(QSize previewSize READ previewSize WRITE setPreviewSize NOTIFY previewSizeChanged FINAL)
 Q_PROPERTY(QQuickItem* parentPage READ parentPage WRITE setParentPage NOTIFY parentPageChanged FINAL)
 Q_PROPERTY(QPdfDocument* pdfDocument READ pdfDocument NOTIFY pdfDocumentChanged FINAL)
+Q_PROPERTY(TPUtils::MessageHandlers defaultSendMethod READ defaultSendMethod WRITE setDefaultSendMethod NOTIFY defaultSendMethodChanged FINAL)
 Q_PROPERTY(int mesoIdx READ mesoIdx WRITE setMesoIdx NOTIFY mesoIdxChanged FINAL)
 Q_PROPERTY(int workoutCalendarDay READ workoutCalendarDay WRITE setWorkoutCalendarDay NOTIFY workoutCalendarDayChanged FINAL)
 Q_PROPERTY(int tpFileSectionCount READ tpFileSectionCount NOTIFY tpFileSectionCountChanged FINAL)
@@ -89,6 +90,8 @@ public:
 	inline QQuickItem *parentPage() const { return m_parentPage; }
 	inline void setParentPage(QQuickItem *page) { m_parentPage = page; emit parentPageChanged(); }
 	inline QPdfDocument* pdfDocument() const { return m_pdfDocument; }
+	inline TPUtils::MessageHandlers defaultSendMethod() const { return m_defaultHandler; }
+	inline void setDefaultSendMethod(const TPUtils::MessageHandlers handler) { m_defaultHandler = handler; emit defaultSendMethodChanged(); }
 	inline int mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const int meso_idx) { m_mesoIdx = meso_idx; emit mesoIdxChanged(); }
 	inline int workoutCalendarDay() const { return m_workoutCalendarDay; }
@@ -146,7 +149,7 @@ public:
 	Q_INVOKABLE inline void repaintControls() { update(); }
 
 public slots:
-	void sendFileTo(const int handle = 1, const QStringList &userids = QStringList{}, const QString &message = QString{},																			const bool present_dialog = false);
+	void sendFileTo(const int handle = TPUtils::MH_UNKOWN, const QStringList &userids = QStringList{}, const QString &message = QString{}, const bool present_dialog = false);
 
 signals:
 	void fileTypeChanged();
@@ -166,6 +169,7 @@ signals:
 	void previewSizeChanged();
 	void parentPageChanged();
 	void pdfDocumentChanged();
+	void defaultSendMethodChanged();
 	void workoutCalendarDayChanged();
 	void tpFileSectionCountChanged();
 	void addFileFiltersChanged();
@@ -202,7 +206,7 @@ private:
 	TPUtils::FILE_TYPE m_filetype{TPUtils::FT_NO_TYPE_SET};
 	QList<std::pair<QString,QString>> m_tpFileInfo;
 	bool m_fullscreen{false}, m_canAddFile{false}, m_downloadOrGenerate{false}, m_restrictedFileType{false},
-										m_fileIsOK{false}, m_useControls{false}, m_usews{false}, m_pdfOK{false};
+											m_fileIsOK{false}, m_useControls{false}, m_usews{false}, m_pdfOK{false};
 	int m_mesoIdx{-1}, m_workoutCalendarDay{-1}, m_cursorPostion{-1};
 	uint  m_tpfileSections{0}, m_addFileFilters{0};
 	QTextDocument *m_textDocument{nullptr};
@@ -213,6 +217,7 @@ private:
 	QObject *m_sendFileDialog{nullptr}, *m_importDialog{nullptr};
 	QQuickItem *m_parentPage{nullptr};
 	QPdfDocument* m_pdfDocument{nullptr};
+	TPUtils::MessageHandlers m_defaultHandler{TPUtils::MH_UNKOWN};
 	std::function<TPFilePathPtr(const QString&)> m_suggestNameFunc{nullptr};
 
 	void _setFileName(const bool file_added);

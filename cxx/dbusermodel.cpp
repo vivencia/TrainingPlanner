@@ -67,11 +67,12 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel) : QObject{p
 	connect(this, &DBUserModel::userModified, this, &DBUserModel::saveUserInfo);
 	connect(this, &DBUserModel::mainUserConfigurationFinished, this, [this] () {
 		appOsInterface()->initialCheck();
-		if (appItemManager()->appHomePage()) { //When -test cml is used, appHomePage() will be nullptr
-			appItemManager()->appHomePage()->setProperty("loadClientMesos", mainUserConfigured() && isCoach(0));
-			appItemManager()->appHomePage()->setProperty("loadOwnMesos", mainUserConfigured() && isClient(0));
+		if (appItemManager()->appHomePage()) { //When -test is used, appHomePage() will be nullptr
+			appItemManager()->appHomePage()->setProperty("loadMesosFromCoaches", isClient(0));
+			appItemManager()->appHomePage()->setProperty("loadMesosForSelf", isClient(0));
+			appItemManager()->appHomePage()->setProperty("loadMesosForClients", isCoach(0));
 		}
-	}, Qt::SingleShotConnection);
+	});
 	qDebug() << "DBUserModel::DBUserModel running on thread: " << thread()->isMainThread();
 }
 

@@ -70,7 +70,7 @@ void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
 
 	QAnyStringView main_module{"Main"};
 	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(),
-																	[this] (const QObject *const obj, const QUrl &objUrl) {
+																[this] (const QObject *const obj, const QUrl &objUrl) {
 		if (!obj) {
 #ifndef QT_NO_DEBUG
 			qDebug() << "*******************Mainwindow not loaded*******************";
@@ -87,7 +87,6 @@ void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
 			createGeneralMessagesPopup();
 #endif
 			appUserModel()->initUserSession();
-			connect(appHomePage(), SIGNAL(mesosViewChanged(bool)), this, SLOT(homePageViewChanged(bool)));
 #ifndef Q_OS_ANDROID
 	#ifndef QT_NO_DEBUG
 			if (m_testType & TT_CORE) {
@@ -471,7 +470,7 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, QString &&m
 	} else if (msecs == -1) {
 		m_generalMessagesPopup->setProperty("keepAbove", std::move(QVariant{true}));
 		m_generalMessagesPopup->setProperty("dim", std::move(QVariant{true}));
-		connect(m_generalMessagesPopup, SIGNAL(closed(void)), this, SLOT(generalMessagesPopupModallyClosed(void)), Qt::SingleShotConnection);
+		connect(m_generalMessagesPopup, SIGNAL(closed()), this, SLOT(generalMessagesPopupModallyClosed()), Qt::SingleShotConnection);
 	} else {
 		QMetaObject::invokeMethod(m_generalMessagesPopup, "showTimed", Q_ARG(int, msecs));
 	}
@@ -569,12 +568,6 @@ void QmlItemManager::showImportWorkoutDialog(DBExercisesModel *new_workout, QQui
 		}
 		appPagesListModel()->openPopup(m_importWorkoutDialog, parent_page);
 	}
-}
-
-//-----------------------------------------------------------SLOTS-----------------------------------------------------------
-void QmlItemManager::homePageViewChanged(const bool own_mesos_view)
-{
-	appUserModel()->actualMesoModel()->setCurrentMesosView(own_mesos_view);
 }
 
 void QmlItemManager::generalMessagesPopupClosed(const int btn_id)

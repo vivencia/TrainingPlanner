@@ -39,5 +39,13 @@ ApplicationWindow {
 			function onCppDataForQMLReady() : void {
 			}
 		}
+
+		property bool loadMesosFromCoaches: false
+		property bool loadMesosForSelf: false
+		property bool loadMesosForClients: false
+		property MesocyclesModel mesoModel: null
+
+		function setMesosViewIndex(index: int) {
+		}
 	}
 }

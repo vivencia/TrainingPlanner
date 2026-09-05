@@ -110,7 +110,17 @@ void QMLMesoInterface::setRealMeso(const bool new_value)
 
 bool QMLMesoInterface::ownMeso() const
 {
-	return m_mesoModel->isOwnMeso(m_mesoIdx);
+	return m_mesoModel->mesoType(m_mesoIdx) == DBMesocyclesModel::MT_MESO_FOR_SELF;
+}
+
+bool QMLMesoInterface::mesoForClient() const
+{
+	return m_mesoModel->mesoType(m_mesoIdx) == DBMesocyclesModel::MT_MESO_FOR_CLIENT;
+}
+
+bool QMLMesoInterface::mesoFromCoach() const
+{
+	return m_mesoModel->mesoType(m_mesoIdx) == DBMesocyclesModel::MT_MESO_FROM_COACH;
 }
 
 bool QMLMesoInterface::canExport() const
@@ -121,11 +131,6 @@ bool QMLMesoInterface::canExport() const
 bool QMLMesoInterface::canSendToClient() const
 {
 	return mesoForClient() && !m_mesoModel->isProgramSent(m_mesoIdx);
-}
-
-bool QMLMesoInterface::mesoForClient() const
-{
-	return m_mesoModel->type(m_mesoIdx).toUInt() == DBMesocyclesModel::MT_MESO_FOR_CLIENT;
 }
 
 bool QMLMesoInterface::mesoOK() const
@@ -161,19 +166,6 @@ void QMLMesoInterface::setClient(const QString &new_value)
 		emit clientChanged();
 		setMinimumStartDate(m_mesoModel->getMesoMinimumStartDate(new_value, m_mesoIdx));
 		setStartDate(m_minimumStartDate);
-	}
-}
-
-QString QMLMesoInterface::type() const
-{
-	return m_mesoModel->type(m_mesoIdx);
-}
-
-void QMLMesoInterface::setType(const QString &new_value)
-{
-	if (m_mesoModel->type(m_mesoIdx) != new_value) {
-		m_mesoModel->setType(m_mesoIdx, new_value);
-		emit typeChanged();
 	}
 }
 
@@ -272,6 +264,28 @@ void QMLMesoInterface::setNotes(const QString &new_value)
 {
 	m_mesoModel->setNotes(m_mesoIdx, new_value);
 	emit notesChanged();
+}
+
+QString QMLMesoInterface::type() const
+{
+	return m_mesoModel->description(m_mesoIdx, 0);
+}
+
+void QMLMesoInterface::setType(const QString &new_type)
+{
+	m_mesoModel->setDescription(m_mesoIdx, new_type, 0);
+	emit typeChanged();
+}
+
+QString QMLMesoInterface::objective() const
+{
+	return m_mesoModel->description(m_mesoIdx, 1);
+}
+
+void QMLMesoInterface::setObjective(const QString &new_objective)
+{
+	m_mesoModel->setDescription(m_mesoIdx, new_objective, 1);
+	emit objectiveChanged();
 }
 
 QString QMLMesoInterface::muscularGroup(const QString &split) const
@@ -432,11 +446,11 @@ void QMLMesoInterface::createFileOps()
 		connect(m_mesoFileOps, &TPFileOps::fileAcquired, this, [this] (const int ret_code) mutable {
 			if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS) {
 				connect(m_mesoFileOps, &TPFileOps::fileSent, this, [this] (const bool success) {
-					//if (success)
-						//	m_mesoModel->setMetaData(m_mesoIdx, DBMesocyclesModel::MD_PROGRAM_SENT);
+					if (success)
+						m_mesoModel->setMetaData(m_mesoIdx, DBMesocyclesModel::MD_PROGRAM_SENT);
 				}, Qt::SingleShotConnection);
 				m_mesoFileOps->sendFileTo(TPUtils::MH_TPMESSAGES_MANAGER, QStringList{} <<
-									m_mesoFileOps->tpFileName().targetUser(), tr("Exercises Program"), true);
+									m_mesoFileOps->tpFileName().targetUser(), tr("Exercises Program"));
 			}
 		});
 	}
@@ -444,9 +458,10 @@ void QMLMesoInterface::createFileOps()
 	m_instructionsFileOps = new TPFileOps{};
 	m_instructionsFileOps->setUseControls(true);
 	m_instructionsFileOps->setFileName(m_mesoModel->instructionsFile(m_mesoIdx));
-	m_instructionsFileOps->setCanAddFile(ownMeso() || mesoForClient());
-	m_instructionsFileOps->setCanDownloadOrGenerate(!ownMeso() && !mesoForClient());
+	m_instructionsFileOps->setCanAddFile(m_mesoModel->mesoType(m_mesoIdx) != DBMesocyclesModel::MT_MESO_FROM_COACH);
+	m_instructionsFileOps->setCanDownloadOrGenerate(m_mesoModel->mesoType(m_mesoIdx) == DBMesocyclesModel::MT_MESO_FROM_COACH);
 	m_instructionsFileOps->setAddFileFilters(TPUtils::FT_DOCUMENTS);
+	m_instructionsFileOps->setDefaultSendMethod(TPUtils::MH_DIRECT_FILE_TRANSFER); //triggered when the send button on the controls is clicked
 	if (m_instructionsFileOps->canAddFile()) {
 		m_instructionsFileOps->setSuggestedFileNameGenerator([this] (const QString &) -> TPFilePathPtr {
 			return m_mesoModel->suggestedName(m_mesoIdx, true);

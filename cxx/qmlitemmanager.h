@@ -8,6 +8,8 @@
 #include <QQuickItem>
 #include <QQuickWindow>
 
+Q_MOC_INCLUDE("qmlworkoutinterface.h")
+
 QT_FORWARD_DECLARE_CLASS(DBCalendarModel)
 QT_FORWARD_DECLARE_CLASS(DBExercisesModel)
 QT_FORWARD_DECLARE_CLASS(QmlExercisesDatabaseInterface)
@@ -88,7 +90,6 @@ signals:
 #endif
 
 public slots:
-	void homePageViewChanged(const bool own_mesos_view);
 	inline void qmlPasswordDialogClosed_slot(int resultCode, const QString &password) { emit qmlPasswordDialogClosed(resultCode, password); }
 	void generalMessagesPopupClosed(const int btn_id);
 	void generalMessagesPopupModallyClosed();

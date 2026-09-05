@@ -21,8 +21,8 @@ constexpr QLatin1StringView field_names[n_fields][2] {
 	{"meso_coach"_L1,			"INTEGER"_L1},
 	{"meso_client"_L1,			"INTEGER"_L1},
 	{"meso_program_file"_L1,	"TEXT"_L1},
-	{"meso_type"_L1,			"TEXT"_L1},
 	{"metadata"_L1,				"INTEGER"_L1},
+	{"description"_L1,			"TEXT"_L1},
 };
 
 DBMesocyclesTable::DBMesocyclesTable()

@@ -327,14 +327,6 @@ void QmlWorkoutInterface::resetWorkout()
 	m_workoutTimer->prepareTimer();
 }
 
-void QmlWorkoutInterface::importWorkout(const QString &filename)
-{
-	if (filename.isEmpty()) {
-		m_mesoModel->setImportIdx(m_mesoIdx);
-		QMetaObject::invokeMethod(appMainWindow(), "chooseFileToOpen");
-	}
-}
-
 void QmlWorkoutInterface::prepareWorkOutTimer(const QString &strStartTime, const QString &strEndTime)
 {
 	if (!m_workoutTimer)

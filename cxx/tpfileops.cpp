@@ -398,7 +398,7 @@ inline bool fileStillInUse(const QString &filename)
 
 void TPFileOps::sendFileTo(const int handle, const QStringList& userids, const QString &message, const bool present_dialog)
 {
-	if (userids.isEmpty() || present_dialog) {
+	if (handle == TPUtils::MH_UNKOWN || present_dialog) {
 		if (!m_sendFileDialog) {
 			connect(this, &TPFileOps::_sendFileDialogCreated, this, [=,this] { sendFileTo(handle, userids, message, present_dialog); });
 			createSendFileDialog();
@@ -423,7 +423,7 @@ void TPFileOps::sendFileTo(const int handle, const QStringList& userids, const Q
 		case TPUtils::MH_DIRECT_FILE_TRANSFER:
 			sendFileDirectly(userids);
 			break;
-		default: //Cancel or dialog closed
+		default: //dialog closed without an action
 			break;
 		}
 	}
@@ -547,11 +547,11 @@ void TPFileOps::_doFileOperation(const OpType type)
 
 	if (QFile::exists(m_filename.toString())) {
 		switch (type) {
-		case OT_Share:			shareFile();						break;
-		case OT_Forward:		sendFileTo();						break;
-		case OT_ViewExternally:	openFile();							break;
-		case OT_Delete:			removeFile(false, true, true);		break;
-		default:													break;
+		case OT_Share:			shareFile();												break;
+		case OT_Forward:		sendFileTo(m_defaultHandler, {m_filename.targetUser()});	break;
+		case OT_ViewExternally:	openFile();													break;
+		case OT_Delete:			removeFile(false, true, true);								break;
+		default:																			break;
 		}
 	} else {
 		connect(this, &TPFileOps::fileAcquired, this, [this,type] (const int ret_code) {
@@ -942,7 +942,7 @@ void TPFileOps::importTPFile()
 			appItemManager()->displayMessageOnAppWindow(ret_code, std::move(QString{msg}));
 			emit tpFileImported(ret_code == TP_RET_CODE_IMPORT_OK);
 		}, Qt::SingleShotConnection);
-		appUserModel()->actualMesoModel()->newMesoFromFile(m_filename, true, formatted);
+		appUserModel()->actualMesoModel()->newMesoFromFile(m_filename, formatted);
 		break;
 	case TPUtils::FT_TP_WORKOUT_A:
 	case TPUtils::FT_TP_WORKOUT_B:
