@@ -109,8 +109,12 @@ Rectangle {
 		delegate: TPRadioButtonOrCheckBox {
 			id: delegate
 			text: name
-			boxType: _control.multipleSelection ? TPRadioButtonOrCheckBox.TP_CHECKBOX : TPRadioButtonOrCheckBox.TP_NONE
+			boxType: _control.multipleSelection ? TPRadioButtonOrCheckBox.TP_CHECKBOX : TPRadioButtonOrCheckBox.TP_NONEBOX
 			image: avatar
+			backColor: delegate.selected ? AppSettings.entrySelectedColor :
+							(delegate.index % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2)
+			opacity: delegate.selected ? 1 : 0.8
+			border.color: delegate.selected ? AppSettings.fontColor : "transparent"
 			visible: itemVisible
 			width: listView.width
 			height: itemVisible ? AppSettings.itemDefaultHeight : 0
@@ -120,14 +124,6 @@ Rectangle {
 			required property string avatar
 			required property bool selected
 			required property bool itemVisible
-
-			background: Rectangle {
-				color: delegate.selected ? AppSettings.entrySelectedColor :
-								(delegate.index % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2)
-				opacity: delegate.selected ? 1 : 0.8
-				border.color: delegate.selected ? AppSettings.fontColor : "transparent"
-				radius: 8
-			}
 
 			onClicked: _control.selectItem(delegate.index);
 

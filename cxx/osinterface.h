@@ -66,7 +66,7 @@ public:
 		CLS_ERROR_ALREADY_QUEUED, //command will not start because the first argument is already executing or queued
 		CLS_ERROR_WAITING_FOR_PASSWORD, //it may be a different command, but as long as we are waiting for the password, nothing will be done
 	};
-	clsRetCode commandLocalServer(const QString &command, const bool as_su = false, const QString &title = QString{});
+	clsRetCode commandLocalServer(const QString &command, const bool as_su = false, const QString &message = QString{});
 #endif
 #endif
 
@@ -165,7 +165,7 @@ private:
 	QProcess *m_severScriptProc{nullptr};
 	QList<QStringList> m_commandQueue;
 	void startLocalServerProcess();
-	void serverProcessFinished(QProcess *proc, const int exit_code);
+	void serverProcessFinished(const int exit_code, const QString &output = QString{});
 #endif //TPSERVER_MACHINE
 
 	static OSInterface *_app_os_interface;

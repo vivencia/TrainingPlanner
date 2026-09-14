@@ -50,6 +50,7 @@ Popup {
 	property point defaultCoordinates
 	property size minimized_size: Qt.size(titleBar !== null ? titleBar.width : AppSettings.itemDefaultHeight, titleBarHeight)
 	property size normal_size
+	property size minimum_size: Qt.size(normal_size.width / 2, normal_size.height / 2)
 	property string backGroundImage
 	property string defaultBackgroundColor: AppSettings.paneBackgroundColor
 	property string configFieldName: objectName
@@ -71,7 +72,7 @@ Popup {
 	//not maximized is de default state, i. e. normal widget size. The default is also not minimized. Popup's
 	//width and height are uninitialized until open() is called
 	readonly property bool _maximized: height >= AppSettings.pageHeight && width >= AppSettings.pageWidth
-	readonly property bool _minimized: height <= minimized_size.height || width <= minimized_size.width
+	readonly property bool _minimized: height <= minimized_size.height && width <= minimized_size.width
 	property int _start_y_pos; property int _end_y_pos
 	property int _start_x_pos; property int _end_x_pos
 	property int _key_pressed
@@ -341,7 +342,6 @@ Popup {
 
 	function mouseAreaSlide(side: int): void {
 		_use_alternate_transition = true;
-		console.log(side);
 		switch (side) {
 		case TPMouseArea.MA_LEFT:
 			alternateCloseTransition.finalPos = -width;

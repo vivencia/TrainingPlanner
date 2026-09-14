@@ -1235,9 +1235,32 @@
     </message>
 </context>
 <context>
+    <name>LogsDialog</name>
+    <message>
+        <location filename="../qml/Dialogs/LogsDialog.qml" line="23"/>
+        <source>Application Logs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/LogsDialog.qml" line="44"/>
+        <source>Messages</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/LogsDialog.qml" line="57"/>
+        <source>Core</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/LogsDialog.qml" line="70"/>
+        <source>Debug</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>MainMenu</name>
     <message>
-        <location filename="../qml/Dialogs/MainMenu.qml" line="266"/>
+        <location filename="../qml/Dialogs/MainMenu.qml" line="280"/>
         <source>Exit</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1692,58 +1715,68 @@
 <context>
     <name>OSInterface</name>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="630"/>
+        <location filename="../cxx/osinterface.cpp" line="618"/>
         <source>Network interface: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="114"/>
+        <location filename="../cxx/osinterface.cpp" line="102"/>
         <source>Device is connected to the internet</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="114"/>
+        <location filename="../cxx/osinterface.cpp" line="102"/>
         <source>Device is not connected to the internet</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="127"/>
+        <location filename="../cxx/osinterface.cpp" line="115"/>
         <source>Your training routine seems to go well. Workout for the day is concluded</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="287"/>
+        <location filename="../cxx/osinterface.cpp" line="275"/>
         <source>Send file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="356"/>
+        <location filename="../cxx/osinterface.cpp" line="344"/>
         <source>View file with...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="666"/>
-        <location filename="../cxx/osinterface.cpp" line="673"/>
+        <location filename="../cxx/osinterface.cpp" line="580"/>
+        <source>Network Status</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/osinterface.cpp" line="655"/>
+        <location filename="../cxx/osinterface.cpp" line="662"/>
         <source>Error: cannot reach the TP Server because we don&apos;t have internet access</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="671"/>
+        <location filename="../cxx/osinterface.cpp" line="660"/>
         <source>Error: The TP Server is unreachable at the moment</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="677"/>
+        <location filename="../cxx/osinterface.cpp" line="666"/>
         <source>Error: The TP Server is currently under maintenance</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="600"/>
+        <location filename="../cxx/osinterface.cpp" line="771"/>
+        <source>System password required</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/osinterface.cpp" line="588"/>
         <source>Connected to server </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="600"/>
+        <location filename="../cxx/osinterface.cpp" line="588"/>
         <source>Server unreachable</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1810,27 +1843,27 @@
 <context>
     <name>PasswordDialog</name>
     <message>
-        <location filename="../qml/Dialogs/PasswordDialog.qml" line="140"/>
+        <location filename="../qml/Dialogs/PasswordDialog.qml" line="141"/>
         <source>New password: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PasswordDialog.qml" line="155"/>
+        <location filename="../qml/Dialogs/PasswordDialog.qml" line="156"/>
         <source>Confirm new password: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PasswordDialog.qml" line="174"/>
+        <location filename="../qml/Dialogs/PasswordDialog.qml" line="175"/>
         <source>Current password: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PasswordDialog.qml" line="193"/>
+        <location filename="../qml/Dialogs/PasswordDialog.qml" line="194"/>
         <source>Save password</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PasswordDialog.qml" line="232"/>
+        <location filename="../qml/Dialogs/PasswordDialog.qml" line="233"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1979,182 +2012,202 @@
 <context>
     <name>QmlItemManager</name>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="258"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="267"/>
         <source>Weather Forecast</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="336"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="381"/>
         <source>Succesfully sent</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="339"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="384"/>
         <source>Succesfully exported</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="342"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="387"/>
         <source>Succesfully shared</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="346"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="391"/>
         <source>User configuration imported</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="348"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="393"/>
         <source>Click on Next to start using the app</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="350"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="395"/>
         <source>Tap on Next to start using the app</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="353"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="398"/>
         <source>Successfully imported</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="357"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="402"/>
         <source>Existing user account found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="360"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="405"/>
         <source>You can click on the Import button to download all the data for the user</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="362"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="407"/>
         <source>You can tap on the Import button to download all the data for the user</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="375"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="420"/>
         <source>Unknown Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="378"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="423"/>
         <source>Wrong password</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="381"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="426"/>
         <source>File not found!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="384"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="429"/>
         <source>Failed to open file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="387"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="432"/>
         <source>Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="389"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="434"/>
         <source>File type not recognized</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="392"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="437"/>
         <source>Error! File format not recognized</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="395"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="440"/>
         <source>Sharing failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="398"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="443"/>
         <source>Export failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="402"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="447"/>
         <source>User data not imported</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="403"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="448"/>
         <source>Could not retrieve the data from the server</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="405"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="450"/>
         <source>Import from file failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="409"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="454"/>
         <source>Could not open file for exporting</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="412"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="457"/>
         <source>User account not found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="415"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="460"/>
         <source>Can&apos;t connect to server</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="422"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="467"/>
         <source>Warning! </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="426"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="471"/>
         <source>Nothing to be done</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="427"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="472"/>
         <source>File had already been imported</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="430"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="475"/>
         <source>No program to import into</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="431"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="476"/>
         <source>Either create a new training plan or import from a complete program file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="434"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="479"/>
         <source>Nothing to export</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="435"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="480"/>
         <source>Only exercises that do not come by default with the app can be exported</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="438"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="483"/>
         <source>Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="439"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="484"/>
         <source>Operation canceled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="651"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="523"/>
+        <source>General Messages</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/qmlitemmanager.cpp" line="657"/>
+        <source>Application Messages</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/qmlitemmanager.cpp" line="658"/>
+        <source>Core Messages</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/qmlitemmanager.cpp" line="660"/>
+        <source>Debug Messages</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/qmlitemmanager.cpp" line="712"/>
         <source>Statistics</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2683,47 +2736,47 @@
 <context>
     <name>TPOnlineServices</name>
     <message>
-        <location filename="../cxx/online_services/tponlineservices.cpp" line="700"/>
+        <location filename="../cxx/online_services/tponlineservices.cpp" line="725"/>
         <source>File on the online server already up to date</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tponlineservices.cpp" line="339"/>
+        <location filename="../cxx/online_services/tponlineservices.cpp" line="348"/>
         <source>Cannot upload file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tponlineservices.cpp" line="339"/>
+        <location filename="../cxx/online_services/tponlineservices.cpp" line="348"/>
         <source>Maximum file size allowed: 8MB</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tponlineservices.cpp" line="342"/>
+        <location filename="../cxx/online_services/tponlineservices.cpp" line="351"/>
         <source>File upload: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tponlineservices.cpp" line="375"/>
+        <location filename="../cxx/online_services/tponlineservices.cpp" line="384"/>
         <source>File download: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tponlineservices.cpp" line="419"/>
+        <location filename="../cxx/online_services/tponlineservices.cpp" line="428"/>
         <source>File removal: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tponlineservices.cpp" line="428"/>
+        <location filename="../cxx/online_services/tponlineservices.cpp" line="437"/>
         <source>Get list: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tponlineservices.cpp" line="673"/>
+        <location filename="../cxx/online_services/tponlineservices.cpp" line="698"/>
         <source>Http headers missing &quot;Content-Type&quot;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/online_services/tponlineservices.cpp" line="677"/>
+        <location filename="../cxx/online_services/tponlineservices.cpp" line="702"/>
         <source>No network reply</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2790,132 +2843,132 @@
 <context>
     <name>TPUtils</name>
     <message>
-        <location filename="../cxx/tputils.h" line="334"/>
+        <location filename="../cxx/tputils.h" line="336"/>
         <source>January</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="334"/>
+        <location filename="../cxx/tputils.h" line="336"/>
         <source>February</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="334"/>
+        <location filename="../cxx/tputils.h" line="336"/>
         <source>March</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="334"/>
+        <location filename="../cxx/tputils.h" line="336"/>
         <source>April</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="335"/>
+        <location filename="../cxx/tputils.h" line="337"/>
         <source>May</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="335"/>
+        <location filename="../cxx/tputils.h" line="337"/>
         <source>June</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="335"/>
+        <location filename="../cxx/tputils.h" line="337"/>
         <source>July</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="335"/>
+        <location filename="../cxx/tputils.h" line="337"/>
         <source>August</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="336"/>
+        <location filename="../cxx/tputils.h" line="338"/>
         <source>September</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="336"/>
+        <location filename="../cxx/tputils.h" line="338"/>
         <source>October</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="336"/>
+        <location filename="../cxx/tputils.h" line="338"/>
         <source>November</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="336"/>
+        <location filename="../cxx/tputils.h" line="338"/>
         <source>December</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="337"/>
+        <location filename="../cxx/tputils.h" line="339"/>
         <source>Sunday</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="337"/>
+        <location filename="../cxx/tputils.h" line="339"/>
         <source>Monday</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="337"/>
+        <location filename="../cxx/tputils.h" line="339"/>
         <source>Tuesday</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="337"/>
+        <location filename="../cxx/tputils.h" line="339"/>
         <source>Wednesday</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="338"/>
+        <location filename="../cxx/tputils.h" line="340"/>
         <source>Thursday</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="338"/>
+        <location filename="../cxx/tputils.h" line="340"/>
         <source>Friday</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="338"/>
+        <location filename="../cxx/tputils.h" line="340"/>
         <source>Saturday</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="339"/>
+        <location filename="../cxx/tputils.h" line="341"/>
         <source>Mon</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="339"/>
+        <location filename="../cxx/tputils.h" line="341"/>
         <source>Tue</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="339"/>
+        <location filename="../cxx/tputils.h" line="341"/>
         <source>Wed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="339"/>
+        <location filename="../cxx/tputils.h" line="341"/>
         <source>Thu</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="339"/>
+        <location filename="../cxx/tputils.h" line="341"/>
         <source>Fri</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="340"/>
+        <location filename="../cxx/tputils.h" line="342"/>
         <source>Sat</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.h" line="340"/>
+        <location filename="../cxx/tputils.h" line="342"/>
         <source>Sun</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2960,13 +3013,13 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.cpp" line="747"/>
+        <location filename="../cxx/tputils.cpp" line="748"/>
         <source>Text copied to the clipboard</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tputils.cpp" line="922"/>
-        <location filename="../cxx/tputils.cpp" line="933"/>
+        <location filename="../cxx/tputils.cpp" line="928"/>
+        <location filename="../cxx/tputils.cpp" line="939"/>
         <source>and</source>
         <translation type="unfinished"></translation>
     </message>

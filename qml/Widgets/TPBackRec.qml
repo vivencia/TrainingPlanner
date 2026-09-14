@@ -34,6 +34,7 @@ Rectangle {
 	color: backColor
 	border.color: showBorder ? AppSettings.fontColor : "transparent"
 	clip: useImage
+	radius: 8
 
 	Loader {
 		active: _control.useImage

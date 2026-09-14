@@ -19,6 +19,7 @@ set( QML_WIDGETS
 	"TPMuscularGroupsList.qml"
 	"TPPageMenu.qml"
 	"TPPageScrollButtons.qml"
+	"TPPane.qml"
 	"TPPassword.qml"
 	"TPPasswordInput.qml"
 	"TPPdfViewer.qml"

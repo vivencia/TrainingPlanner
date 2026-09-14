@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/sec">
+        <file>security/nginx.key</file>
+        <file>security/nginx.crt</file>
+    </qresource>
+</RCC>

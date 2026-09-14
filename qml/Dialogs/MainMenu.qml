@@ -140,6 +140,20 @@ Drawer {
 					horizontalCenter: btnSettings.horizontalCenter
 				}
 			}
+
+			TPButton {
+				id: btnMessagesLog
+				imageSource: "logs_"
+				width: AppSettings.itemLargeHeight
+				height: width
+
+				onClicked: ItemManager.showLogs();
+
+				anchors {
+					top: btnMessages.bottom
+					horizontalCenter: btnSettings.horizontalCenter
+				}
+			}
 		}
 
 		TPLabel {

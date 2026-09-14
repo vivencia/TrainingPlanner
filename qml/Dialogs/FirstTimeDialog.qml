@@ -44,7 +44,7 @@ TPPopup {
 			id: existing_user_module
 			Layout.fillWidth: true
 			Layout.minimumHeight: _firstTimeDlg.minimumHeight
-			Component.completed: _firstTimeDlg.nextStartsTheApp = bReady;
+			Component.onCompleted: _firstTimeDlg.nextStartsTheApp = bReady;
 		}
 
 		UserPersonalData {

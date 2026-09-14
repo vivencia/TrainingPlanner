@@ -23,6 +23,8 @@ TPBackRec {
 	property real _h_ratio
 	property int _start_width
 	property int _start_height
+	readonly property int _min_width: _control.parentPopup.minimum_size.width
+	readonly property int _min_height: _control.parentPopup.minimum_size.height
 
 	TPButton {
 		id: btnClose
@@ -142,10 +144,7 @@ TPBackRec {
 					if (is_maximized) {
 						_control.parentPopup.x = 0;
 						_control.parentPopup.y = _control.parentPopup.realY;
-					} //else {
-					//	_control.parentPopup.x = _control.parentPopup._end_x_pos;
-					//	_control.parentPopup.y = _control.parentPopup._end_y_pos;
-					//}
+					}
 					_control.afterResize(size_changed);
 				}
 			}
@@ -232,15 +231,19 @@ TPBackRec {
 						if (_can_resize) {
 							const deltaX = mouse.x - _start_x;
 							let new_width = _control.parentPopup.width + deltaX;
-							if (new_width >= AppSettings.pageWidth - 10)
-								new_width = AppSettings.pageWidth - 10;
-							_control.parentPopup.width = new_width;
+							if (new_width >= _control._min_width) {
+								if (new_width >= AppSettings.pageWidth - 10)
+									new_width = AppSettings.pageWidth - 10;
+								_control.parentPopup.width = new_width;
+							}
 
 							const deltaY = mouse.y - _start_y;
 							let new_height = _control.parentPopup.height + deltaY;
-							if (new_height >= AppSettings.pageHeight - 10)
-								new_height = AppSettings.pageHeight - 10;
-							_control.parentPopup.height = new_height;
+							if (new_height >= _control._min_height) {
+								if (new_height >= AppSettings.pageHeight - 10)
+									new_height = AppSettings.pageHeight - 10;
+								_control.parentPopup.height = new_height;
+							}
 						}
 					}
 				} //MouseArea

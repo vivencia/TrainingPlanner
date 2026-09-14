@@ -19,6 +19,7 @@ Page {
 
 	background: TPBackRec {
 		useImage: _page.imageSource.length > 0
+		useShape: _page.imageSource.length === 0
 		sourceImage: _page.imageSource
 		overlayOpacity: _page.backgroundOpacity
 	}

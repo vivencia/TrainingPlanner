@@ -10,6 +10,9 @@ ScrollView {
 	contentWidth: availableWidth //stops bouncing to the sides
 	anchors.margins: 5
 
+//public:
+	property bool enableNavButtons: true
+
 	ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 	ScrollBar.vertical: ScrollBar {
 		id: vBar
@@ -50,7 +53,7 @@ ScrollView {
 	Loader {
 		id: navButtonsLoader
 		asynchronous: true
-		active: _control.contentHeight > _control.height
+		active: _control.enableNavButtons && _control.contentHeight > _control.height
 
 		sourceComponent: TPPageScrollButtons {
 			parentPage: _control.parentPage

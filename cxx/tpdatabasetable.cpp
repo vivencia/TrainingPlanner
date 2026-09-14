@@ -2,6 +2,7 @@
 
 #include "dbmodelinterface.h"
 #include "dbusermodel.h"
+#include "qmlitemmanager.h"
 #include "osinterface.h"
 #include "tputils.h"
 
@@ -11,6 +12,10 @@
 #include <ranges>
 
 using namespace QLiterals;
+
+#ifndef QT_NO_DEBUG
+constexpr QLatin1StringView logOriginName{"Database"};
+#endif
 
 QStringList TPDatabaseTable::databaseFilenamesPool{};
 
@@ -423,10 +428,8 @@ bool TPDatabaseTable::execReadOnlyQuery(const QString &str_query)
 		ok = m_workingQuery.exec(str_query);
 		#ifndef QT_NO_DEBUG
 		if (!ok) [[unlikely]] {
-			qDebug() << "****** ERROR ******";
-			qDebug() << str_query;
-			qDebug() << m_sqlLiteDB.lastError().text();
-			qDebug();
+			appItemManager()->log(TPLogs::LT_DEBUG, logOriginName,
+				std::move("TPDatabaseTable::execReadOnlyQuery -> ERROR"_L1), std::move(m_sqlLiteDB.lastError().text()));
 		}
 		#endif
 	}
@@ -440,13 +443,9 @@ bool TPDatabaseTable::execSingleWriteQuery(const QString &str_query)
 	if (m_sqlLiteDB.open()) {
 		prepareQuery(false);
 		ok = m_workingQuery.exec(str_query);
-		#ifndef QT_NO_DEBUG
-		qDebug() << (ok ? "****** OK ******" : "****** ERROR ******");
-		qDebug() << str_query;
-		if (!ok)
-			qDebug() << m_sqlLiteDB.lastError().text();
-		qDebug();
-		#endif
+		appItemManager()->log(TPLogs::LT_DEBUG, logOriginName,
+			std::move("TPDatabaseTable::execSingleWriteQuery -> "_L1 % (ok ? "OK"_L1 : "ERROR"_L1)),
+																	std::move(m_sqlLiteDB.lastError().text()));
 		if (ok)
 			optimizeTable();
 	}
@@ -464,12 +463,8 @@ bool TPDatabaseTable::execMultipleWritesQuery(const QStringList &queries)
 		prepareQuery(false);
 		for (const QString &str_query : std::as_const(queries)) {
 			if (!m_workingQuery.exec(str_query)) [[unlikely]] {
-				#ifndef QT_NO_DEBUG
-				qDebug() << "****** ERROR ******";
-				qDebug() << str_query;
-				qDebug() << m_sqlLiteDB.lastError().text();
-				qDebug();
-				#endif
+				appItemManager()->log(TPLogs::LT_DEBUG, logOriginName,
+					std::move("TPDatabaseTable::execMultipleWritesQuery -> ERROR"_L1), std::move(m_sqlLiteDB.lastError().text()));
 				ok = false;
 				break;
 			}

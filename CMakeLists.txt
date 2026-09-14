@@ -96,6 +96,7 @@ message(STATUS "QT_I18N_TRANSLATED_LANGUAGES: ${QT_I18N_TRANSLATED_LANGUAGES}")
 
 set( RESOURCE_FILES
 		app_resources.qrc
+		security.qrc
 )
 
 set( CXX_SOURCES_QML_INTEGRATION
@@ -103,6 +104,7 @@ set( CXX_SOURCES_QML_INTEGRATION
 		cxx/osinterface.h cxx/osinterface.cpp
 		cxx/tpfileops.h cxx/tpfileops.cpp
 		cxx/tpimage.h cxx/tpimage.cpp
+		cxx/tplogs.h cxx/tplogs.cpp
 		cxx/tpmediacontrols.h cxx/tpmediacontrols.cpp
 		cxx/tpsettings.h cxx/tpsettings.cpp
 		cxx/tptimer.h cxx/tptimer.cpp
@@ -110,6 +112,7 @@ set( CXX_SOURCES_QML_INTEGRATION
 		cxx/translationclass.cpp cxx/translationclass.h
 
 		cxx/online_services/tpchat.h cxx/online_services/tpchat.cpp
+		cxx/online_services/tpmessage.h cxx/online_services/tpmessage.cpp
 		cxx/online_services/tpmessagesmanager.h cxx/online_services/tpmessagesmanager.cpp
 		cxx/online_services/tpmessagesmodel.h cxx/online_services/tpmessagesmodel.cpp
 		cxx/weather/weatherinfo.h cxx/weather/weatherinfo.cpp
@@ -157,7 +160,6 @@ set( CXX_SOURCES
 
 		cxx/online_services/scan_network.h
 		cxx/online_services/tpchatdb.h cxx/online_services/tpchatdb.cpp
-		cxx/online_services/tpmessage.h cxx/online_services/tpmessage.cpp
 		cxx/online_services/tponlineservices.h cxx/online_services/tponlineservices.cpp
 		cxx/online_services/websocketserver.h cxx/online_services/websocketserver.cpp
 
@@ -205,6 +207,8 @@ set( SERVER_FILES
 		web-server/nginx.conf
 		web-server/php.ini
 		web-server/runcmds.sh
+		web-server/ssl_cert.sh
+		web-server/tp_functions.php
 		web-server/tpserver.conf
 		web-server/url_parser.php
 		web-server/user.fields

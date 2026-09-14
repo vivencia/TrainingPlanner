@@ -2,6 +2,7 @@
 
 #include "pageslistmodel.h"
 #include "qml_singleton.h"
+#include "tplogs.h"
 
 #include <QObject>
 #include <QVariantMap>
@@ -27,6 +28,9 @@ Q_OBJECT
 Q_PROPERTY(QQuickWindow* appMainWindow READ appMainWindow CONSTANT FINAL)
 Q_PROPERTY(PagesListModel* appPagesManager READ appPagesManager CONSTANT FINAL)
 Q_PROPERTY(QQuickItem* popupsVisualParent READ popupsVisualParent CONSTANT FINAL)
+Q_PROPERTY(TPLogs* messagesLog READ messagesLog CONSTANT FINAL)
+Q_PROPERTY(TPLogs* coreLog READ coreLog CONSTANT FINAL)
+Q_PROPERTY(TPLogs* debugLog READ debugLog CONSTANT FINAL)
 
 public:
 	enum PASSWORD_DIALOG_MODE {
@@ -35,6 +39,8 @@ public:
 		DM_CHANGE_PASSWORD,
 	};
 	Q_ENUM(PASSWORD_DIALOG_MODE)
+
+	static constexpr QLatin1StringView logOriginQmlEngine{"QML Engine"};
 
 	Q_DISABLE_COPY_MOVE(QmlItemManager)
 	explicit QmlItemManager();
@@ -46,6 +52,13 @@ public:
 	inline PagesListModel *appPagesManager() const { return appPagesListModel(); }
 	inline QQuickItem *popupsVisualParent() const { return m_popupsVisualParent; }
 
+	inline TPLogs *messagesLog() const { return m_messagesLog; }
+	inline TPLogs *coreLog() const { return m_coreLog; }
+	inline TPLogs *debugLog() const { return m_debugLog; }
+	void log(TPLogs::LogType type, const QString &origin, QString &&title, QString &&message) const;
+	//Allow/disallow logging of messages. It's the responsability of the caller to revert the option after changing it
+	inline void setDoLogMessages(const bool do_log) { m_doLog = do_log; }
+
 	Q_INVOKABLE void exitApp();
 	Q_INVOKABLE void showFirstTimeDialog();
 	Q_INVOKABLE void getSettingsPage();
@@ -55,6 +68,7 @@ public:
 	Q_INVOKABLE void getExercisesPage(QmlWorkoutInterface *connectPage = nullptr);
 	Q_INVOKABLE void showSimpleExercisesList(QQuickItem *parentPage, const QString &filter);
 	Q_INVOKABLE void getWeatherPage();
+	Q_INVOKABLE void showLogs();
 	Q_INVOKABLE void getStatisticsPage();
 
 	Q_INVOKABLE void displayWindowMessage(const int message_id, const int msecs,
@@ -75,6 +89,7 @@ signals:
 	void selectedExerciseFromSimpleExercisesList(QQuickItem *parentPage);
 	void mesoForImportSelected();
 	void qmlPasswordDialogClosed(int resultCode, QString password);
+	void logsChanged();
 	void passwordAcquired(const bool proceed, const int request_id, const QString &passwd, const bool store);
 	void passwordCreated(const bool proceed, const int request_id, const QString &passwd, const bool store);
 	void passwordChanged(const bool proceed, const int request_id, const QString &old_passwd, const QString &new_passwd,
@@ -98,15 +113,16 @@ private:
 	QmlExercisesDatabaseInterface *m_exercisesListManager{nullptr};
 	QQmlComponent *m_simpleExercisesListComponent{nullptr}, *m_weatherComponent{nullptr},
 		*m_statisticsComponent{nullptr}, *m_firstTimeDlgComponent{nullptr}, *m_generalMessagesPopupComponent{nullptr},
-												*m_passwordDialogComponent{nullptr}, *m_importWorkoutComponent{nullptr};
+		*m_passwordDialogComponent{nullptr}, *m_importWorkoutComponent{nullptr}, *m_logsDialogComponent{nullptr};
 	QQuickItem *m_homePage{nullptr}, *m_appPagesVisualParent{nullptr}, *m_popupsVisualParent{nullptr},
 															*m_weatherPage{nullptr}, *m_statisticsPage{nullptr};
 	QObject *m_simpleExercisesList{nullptr}, *m_firstTimeDlg{nullptr}, *m_generalMessagesPopup{nullptr},
-													*m_passwordDialog{nullptr}, *m_importWorkoutDialog{nullptr};
+							*m_passwordDialog{nullptr}, *m_importWorkoutDialog{nullptr}, *m_logsDialog{nullptr};
 	QVariantMap m_simpleExercisesListProperties, m_generalMessagesPopupProperties;
 	QList<st_generalMessage*> m_messagesQueue;
 	QList<uint16_t> m_bufferProperties;
-	bool m_canDisplayMessage{false};
+	bool m_canDisplayMessage{false}, m_doLog{true};
+	TPLogs *m_messagesLog{nullptr}, *m_coreLog{nullptr}, *m_debugLog{nullptr};
 
 #ifndef Q_OS_ANDROID
 	#ifndef QT_NO_DEBUG
@@ -130,7 +146,9 @@ private:
 	static QQuickWindow *_appMainWindow;
 	friend QQuickWindow *appMainWindow();
 
+	void startLogs();
 	void createGeneralMessagesPopup();
+	void createLogsDialog();
 	void createStatisticsPage_part2();
 	QmlUserInterface *usersManager();
 };

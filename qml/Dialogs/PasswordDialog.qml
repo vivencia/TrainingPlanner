@@ -98,6 +98,7 @@ TPPopup {
 			left: _passwdDlg.contentItem.left
 			right: _passwdDlg.contentItem.right
 			margins: 5
+			topMargin: 10
 		}
 
 		TPImage {

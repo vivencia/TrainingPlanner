@@ -18,13 +18,15 @@
 #include <QHttpPart>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QSslCertificate>
 #include <QThread>
 
 using namespace Qt::StringLiterals;
 TPOnlineServices* TPOnlineServices::_appOnlineServices{nullptr};
 
 constexpr uint file_upload_max_size{8*1024*1024};
-constexpr QLatin1StringView server_address{"http://%1:%2/trainingplanner/"_L1};
+constexpr QLatin1StringView server_address{"https://%1:%2/trainingplanner/"};
+constexpr QLatin1StringView logOriginName{"OnlineServices"};
 static const QString &root_user{"admin"_L1};
 static const QString &root_passwd{"admin"_L1};
 
@@ -32,6 +34,12 @@ TPOnlineServices::TPOnlineServices(QObject *parent) : QObject{parent}, m_onlineS
 {
 	_appOnlineServices = this;
 	m_networkManager = new QNetworkAccessManager{this};
+	QFile *cert_file = appUtils()->openFile(":/sec/security/nginx.crt"_L1, true, false, false, false, false);
+	if (cert_file) {
+		m_sslCert = new QSslCertificate(cert_file->readAll(), QSsl::Pem);
+		cert_file->close();
+		cert_file->deleteLater();
+	}
 }
 
 void TPOnlineServices::testServerConnection(const QString &address, const QString &port, const int requestid)
@@ -43,13 +51,13 @@ void TPOnlineServices::testServerConnection(const QString &address, const QStrin
 									(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
 			disconnect(*conn);
-			uint8_t online_status{TP_RET_CODE_SERVER_UNREACHABLE};
+			uint8_t online_status{};
 			if (ret_string.contains("Welcome to the TrainingPlanner"_L1))
 				online_status = TP_RET_CODE_SUCCESS;
 			else if (ret_string.contains("server paused"_L1, Qt::CaseInsensitive))
-				online_status = TP_RET_CODE_SERVER_PAUSED;
+				online_status = TPSERVER_PAUSED;
 			else if (ret_string.contains("bad gateway"_L1, Qt::CaseInsensitive))
-				online_status = TP_RET_CODE_SERVER_NOT_RUNNING;
+				online_status = TPSERVER_NOT_REACHABLE;
 
 			if (m_onlineStatus != online_status) {
 				switch (online_status) {
@@ -62,10 +70,9 @@ void TPOnlineServices::testServerConnection(const QString &address, const QStrin
 					if (m_hasCredentials)
 						emit onlineServicesReady();
 					break;
-				case TP_RET_CODE_SERVER_PAUSED:
+				case TPSERVER_PAUSED:
 					break;
-				case TP_RET_CODE_SERVER_UNREACHABLE:
-				case TP_RET_CODE_SERVER_NOT_RUNNING:
+				case TPSERVER_NOT_REACHABLE:
 					if (request_id == -1) {
 						appSettings()->setServerAddress(QString{});
 						QTimer::singleShot(5000, this, [this] () -> void { connectToServer(); });
@@ -95,14 +102,16 @@ void TPOnlineServices::connectToServer()
 			QHash<int,QString>::const_iterator itr{addresses.constBegin()};
 			const QHash<int,QString>::const_iterator itr_end{addresses.constEnd()};
 			while (itr != itr_end) {
-				const int requestid{itr.key() == -1 ? -1 : 100 + itr.key()};
-				const int port_sep(itr.value().indexOf(':'));
-				testServerConnection(itr.value().first(port_sep), itr.value().last(itr.value().length() - port_sep - 1), requestid);
+				if (!itr.value().isEmpty()) {
+					const int requestid{itr.key() == -1 ? -1 : 100 + itr.key()};
+					const int port_sep(itr.value().indexOf(':'));
+					testServerConnection(itr.value().first(port_sep), itr.value().last(itr.value().length() - port_sep - 1), requestid);
+				}
 				++itr;
 			}
 		});
 #ifdef TPSERVER_MACHINE
-		static_cast<void>(appOsInterface()->commandLocalServer("status"_L1));
+		static_cast<void>(appOsInterface()->commandLocalServer("-q"_L1));
 #else
 		appOsInterface()->getAvailableAddresses();
 #endif
@@ -566,7 +575,7 @@ void TPOnlineServices::removeChatMessage(const int requestid, const QString &rec
 void TPOnlineServices::recheckNewChatMessages()
 {
 	const QUrl url{makeCommandURL(false, "forcegetnewmessages"_L1)};
-	static_cast<void>(m_networkManager->get(QNetworkRequest{url}));
+	makeNetworkRequest(-1, url);
 }
 
 inline bool TPOnlineServices::canConnectToServer() const { return m_onlineStatus == TP_RET_CODE_SUCCESS; }
@@ -574,8 +583,8 @@ inline bool TPOnlineServices::canConnectToServer() const { return m_onlineStatus
 int TPOnlineServices::serverCommandStarter(int requestid, QString &&command_description) const
 {
 	if (!canConnectToServer()) {
-		appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_SERVER_UNREACHABLE, std::forward<QString>(command_description));
-		requestid = TP_RET_CODE_SERVER_UNREACHABLE;
+		appItemManager()->displayMessageOnAppWindow(TPSERVER_NOT_REACHABLE, std::forward<QString>(command_description));
+		requestid = TPSERVER_NOT_REACHABLE;
 	} else {
 		if (!appUserModel()->mainUserLoggedIn())
 			requestid = TP_RET_CODE_USER_OFFLINE;
@@ -627,14 +636,29 @@ void TPOnlineServices::makeNetworkRequest(const int requestid, const QUrl &url, 
 {
 	if (isRequestIDInUse(requestid, qPrintable(QString{"makeNetworkRequest(%1)"_L1}.arg(url.toString()))))
 		return;
-	#ifndef QT_NO_DEBUG
-	qInfo() << url.toDisplayString() << " * "_L1  << QString::number(requestid);
-	#endif
+	appItemManager()->log(TPLogs::LT_INFO, logOriginName, std::move("makeNetworkRequest()"_L1),
+													url.toDisplayString() % '(' % QString::number(requestid) % ')');
 	setRequestToPool(requestid, true);
-	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{url})};
+
+	QNetworkRequest request({url});
+	QSslConfiguration config = request.sslConfiguration();
+	//config.setProtocol(QSsl::TlsV1_3OrLater); // Enforce TLS 1.3 or higher
+	QList caList{std::move(config.caCertificates())};
+	caList.append(*m_sslCert);
+	config.setCaCertificates(caList);
+	request.setSslConfiguration(config);
+	QNetworkReply *reply{m_networkManager->get(request)};
 	connect(reply, &QNetworkReply::finished, this, [this,requestid,reply,b_internal_signal_only]() {
 		handleServerRequestReply(requestid, reply, b_internal_signal_only);
 	}, Qt::SingleShotConnection);
+	connect(reply, &QNetworkReply::sslErrors, reply, qOverload<>(&QNetworkReply::ignoreSslErrors));
+	/*connect(reply, &QNetworkReply::sslErrors, this, [reply] (const QList<QSslError> &errors) {
+		for (const auto &error : errors)
+			qDebug() << error;
+#ifndef QT_NO_DEBUG
+		reply->ignoreSslErrors(); //in developtment, learn the errors, but instruct Qt to ignore then
+#endif
+	}, Qt::SingleShotConnection);*/
 }
 
 void TPOnlineServices::handleServerRequestReply(const int requestid, QNetworkReply *reply, const bool b_internal_signal_only)
@@ -650,15 +674,16 @@ void TPOnlineServices::handleServerRequestReply(const int requestid, QNetworkRep
 			const QString &fileType{headers.value("Content-Type"_L1).toByteArray()};
 			if (fileType.contains("application/octet-stream"_L1) || fileType.contains("text/plain"_L1)) { //file download replies
 				QByteArray file_contents{std::move(reply->readAll())};
-				qDebug() << reply->errorString();
+				appItemManager()->log(TPLogs::LT_INFO, logOriginName,
+					std::move("TPOnlineServices::handleServerRequestReply() -> Download file"_L1), std::move(reply->errorString()));
 				emit _fileReceived(requestid, !file_contents.isEmpty()
 									? TP_RET_CODE_SUCCESS : TP_RET_CODE_DOWNLOAD_FAILED, file_contents);
 				return;
 			} else { //Only-text replies
 				reply_string = std::move(QString::fromUtf8(reply->readAll()));
-				if (reply->error())
-					reply_string += " ***** "_L1 + std::move(reply->errorString());
-				qInfo() << reply_string << " * "_L1 << QString::number(requestid);
+				appItemManager()->log(TPLogs::LT_INFO, logOriginName,
+					std::move("TPOnlineServices::handleServerRequestReply() -> Request"_L1), reply_string % " * ("_L1 %
+												QString::number(requestid) % ") * "_L1 % std::move(reply->errorString()));
 				//Slice off "Return code: "
 				const qsizetype ret_code_idx{reply_string.indexOf(':')};
 				if (ret_code_idx >= 1) {
@@ -779,9 +804,8 @@ void TPOnlineServices::uploadFile(const int requestid, const QUrl &url, QFile *f
 		QHttpMultiPart *multiPart{new QHttpMultiPart{QHttpMultiPart::FormDataType, this}};
 		multiPart->append(filePart);
 		//file->setParent(multiPart); // MultiPart will manage file deletion
-		#ifndef QT_NO_QDEBUG
-		qInfo() << url.toDisplayString() << " * "_L1 << QString::number(requestid);
-		#endif
+		appItemManager()->log(TPLogs::LT_INFO, logOriginName, std::move("TPOnlineServices::uploadFile()"_L1),
+			url.toDisplayString() % '(' % QString::number(requestid) % ')');
 		// Send the request
 		QNetworkReply *reply{m_networkManager->post(request, multiPart)};
 		connect(reply, &QNetworkReply::finished, this, [this,requestid,reply]() {

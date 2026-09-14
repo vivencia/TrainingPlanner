@@ -744,7 +744,9 @@ TPUtils::MessageHandlers TPUtils::messagePrefixToMessageHandler(const QString &e
 void TPUtils::copyToClipboard(const QString &text) const
 {
 	qApp->clipboard()->setText(text);
+	appItemManager()->setDoLogMessages(false);
 	appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, std::move(tr("Text copied to the clipboard")));
+	appItemManager()->setDoLogMessages(true);
 }
 
 QString TPUtils::pasteFromClipboard() const
@@ -774,6 +776,7 @@ QString TPUtils::formatDate(const QDate &date, const DATE_FORMAT format) const
 				QString{std::move(date.month() <= 9 ? QString{'0' % QString::number(date.month())} : QString::number(date.month()))} +
 				QString{std::move(date.day() <= 9 ? QString{'0' % QString::number(date.day())} : QString::number(date.day()))};
 		break;
+		default: break;
 	}
 	return QString{};
 }
@@ -782,10 +785,12 @@ QString TPUtils::formatDateTime(const QDateTime &date_time, const int format, co
 {
 	QString str_datetime;
 	const DATE_FORMAT date_format{static_cast<DATE_FORMAT>(format & 0b11111)};
-	str_datetime = std::move(formatDate(date_time.date(), date_format));
+	if (date_format != DF_NONE)
+		str_datetime = std::move(formatDate(date_time.date(), date_format));
 	str_datetime += separator;
 	const TIME_FORMAT time_format{static_cast<TIME_FORMAT>(format & 0b1111111100000)};
-	str_datetime += formatTime(date_time.time(), time_format);
+	if (time_format != TF_NONE)
+		str_datetime += formatTime(date_time.time(), time_format);
 	str_datetime += separator;
 	return str_datetime;
 }
@@ -831,6 +836,7 @@ QDate TPUtils::dateFromString(const QString &strdate, const DATE_FORMAT format) 
 		month = strdate.sliced(2, 2).toInt();
 		day = strdate.sliced(4, 2).toInt();
 		break;
+	default: break;
 	}
 	return QDate{year, month, day};
 }
@@ -940,6 +946,7 @@ QString TPUtils::formatTime(const QTime &time, const TIME_FORMAT format) const
 	}
 	case TF_DATABASE: return time.isValid() ? QString::number(time.msecsSinceStartOfDay()) : "0"_L1;
 	case TF_ONLINE: return time.isValid() ? time.toString("hhmmss"_L1) : "000000"_L1;
+	default: break;
 	}
 	return QString{};
 }
@@ -997,6 +1004,7 @@ QTime TPUtils::timeFromString(const QString &strtime, const TIME_FORMAT format) 
 			min = strtime.sliced(2, 2).toInt();
 			sec = strtime.last(2).toInt();
 		break;
+		default: break;
 		}
 	}
 	return QTime{hour, min, sec};

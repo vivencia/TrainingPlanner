@@ -4,42 +4,74 @@
 #https://www.shellcheck.net/
 #to spell check shell scripts and make them more robust
 
-PHP_FPM_SERVICE="php-fpm"
+VERSION="20260910-A"
+SERVER_PORT="8443"
+SCRIPT_NAME=$(basename "$0")
 BASE_SERVER_DIR="/var/www/html"
 TP_DIR=$BASE_SERVER_DIR"/trainingplanner"
 SCRIPTS_DIR="$TP_DIR/scripts"
-source "$SCRIPTS_DIR/function_library.sh"
+TPSERVER="TPServer"
+EXIT_STATUS="0"
 
-ENABLE_DEBUG=1
+source "$SCRIPTS_DIR/function_library.sh"
+ENABLE_DEBUG=0
+
+CODES_FILE="$SCRIPTS_DIR/return_codes.h"
+
 if [ $ENABLE_DEBUG -eq 1 ]; then
 	NOW="$(date +%F-%H:%M)"
 	LOG_FILE="/DATA/trainingplanner-log/tp-$NOW.txt"
-	touch $LOG_FILE
+	touch "$LOG_FILE"
 fi
 
 print_usage() {
-	print "Usage: $SCRIPT_NAME {setup|status|start|stop|restart|pause|createdb}"
+	print "Usage: $SCRIPT_NAME <COMMAND> <OPTION>
+	Commands:
+		-s,--setup
+		-q,--status
+		-i,--start
+		-t,--stop
+		-r,--restart
+		-p,--pause
+		-c, --createdb
+		-h,--help
+		-v,--version
+
+	Options:
+		$$TPSERVER,$NGINX,$PHP_FPM"
+	exit 0
 }
 
-for i in "$@"; do
-	case $i in
-		-p=*|--password=*)
-			PASSWORD="${i#*=}"
-			shift # past argument=value
-		;;
-		-h|--help)
-			print_usage
-			exit 0
-		;;
-		--*|-*)
-			print "Unknown option $i"
-			exit 1
-		;;
-		*)
-			COMMAND="${i}"
-		;;
+print_version() {
+	case $1 in
+		"$NGINX") $NGINX_BIN -V;;
+		"$PHP_FPM") $PHP_FPM_BIN -v;;
+		*) echo "TrainingPlanner App Server Management Script version $VERSION";;
 	esac
-done
+	exit 0
+}
+
+if [ "$1" != "" ]; then
+	for i in "$@"; do
+		case $i in
+			-p=*|--password=*)
+				PASSWORD="${i#*=}"
+				shift # past argument=value
+			;;
+			-h|--help)
+				print_usage
+			;;
+			--*|-*)
+				COMMAND="${i}"
+			;;
+			*)
+				OPTION="${i}"
+			;;
+		esac
+	done
+else
+	print_usage
+fi
 
 SOURCES_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd ) #the directory of this script
 NGINX_CONFIG_DIR="/etc/nginx"
@@ -61,11 +93,11 @@ create_admin_user() {
 			run_as_sudo mkdir -m 774 $ADMIN_DIR
 			run_as_sudo cp -f "$SOURCES_DIR/user.fields" $ADMIN_DIR
 			run_as_sudo chown -R $NGINX_USER:$NGINX_USER $ADMIN_DIR
-			print "Main app user created successfully"
-			return 0
+			print "Administrator user \"admin\" created successfully"
+			echo "0"
 		fi
 	fi
-	return 1
+	echo "1"
 }
 
 create_users_db() {
@@ -74,10 +106,10 @@ create_users_db() {
 		run_as_sudo chown -R $NGINX_USER:$NGINX_USER $USERS_DB
 		run_as_sudo chmod 664 $USERS_DB
 		print "Users database created"
-		return 0
+		echo "0"
 	else
-		print "Failed to create users database: " $USERS_DB
-		return 1
+		print "Failed to create users database: $USERS_DB"
+		echo "1"
 	fi
 }
 
@@ -93,7 +125,7 @@ query_address() {
 			fi
 		fi
 	fi
-	return $RESULT
+	return "$RESULT"
 }
 
 test_tp_server() {
@@ -101,106 +133,105 @@ test_tp_server() {
 	case "$?" in
 		0)
 			if [ "$2" == "lan" ]; then
-				print "TPSERVER up and running($1)."
-				return 0
+				MESSAGE="$MESSAGE\n$TPSERVER up and running($1)."
 			else
-				print "TPSERVER is running on localhost only($1)."
-				return 5
+				MESSAGE="$MESSAGE\n$TPSERVER is running on localhost only($1)."
 			fi
 		;;
 		1)
-			print "TPSERVER is not reachable."
-			return 1
+			MESSAGE="$MESSAGE\n$TPSERVER is not reachable."
+			EXIT_STATUS=$(get_return_code "tpserver not reachable")
 		;;
 		2)
-			if [ $2 == "lan" ]; then
-				print "TPSERVER paused."
-				return 6
+			if [ "$2" == "lan" ]; then
+				MESSAGE="$MESSAGE\n$TPSERVER paused."
 			else
-				print "TPSERVER paused on localhost only."
-				return 7
+				MESSAGE="$MESSAGE\n$TPSERVER paused on localhost only."
 			fi
+			EXIT_STATUS=$(get_return_code "tpserver paused")
 		;;
 	esac
 }
 
-start_phpfpm() {
-	if pgrep -fl $PHP_FPM_SERVICE &>/dev/null; then
-		print "The PHP-FPM service is already running."
-	else
-		print "Starting PHP-FPM..."
-		if [ ! -f "/run/php" ]; then
-			run_as_sudo mkdir "/run/php"
-		fi
-		if ! run_as_sudo systemctl start $PHP_FPM_SERVICE; then
-			print "Error starting the PHP-FPM service."
-			return 3
-		else
-			print "The PHP-FPM service started successfully."
-		fi
-	fi
-	return 0
-}
-
-stop_phpfpm() {
-	if pgrep -fl $PHP_FPM_SERVICE &>/dev/null; then
-		print "Stopping PHP-FPM..."
-		if ! run_as_sudo systemctl stop $PHP_FPM_SERVICE; then
-			print "PHP FPM service failed to stop"
-			return 3
-		else
-			print "PHP FPM service stopped successfully."
-		fi
-	else
-		print "Service php-fpm is not running."
-	fi
-	return 0
-}
-
 start_server() {
-	start_nginx
-	EXIT_STATUS=$?
-	if [ "$EXIT_STATUS" == 0 ]; then
-		start_phpfpm
-		EXIT_STATUS=$?
-	fi
-	if [ "$EXIT_STATUS" == 0 ]; then
-		if find_local_ip; then
-			test_tp_server "$SERVER_IP:8080" "lan"
-			EXIT_STATUS=$?
-		else
-			test_tp_server "localhost:8080" "lan"
-			EXIT_STATUS=$?
+	OK=0
+	if [[ "$1" == "$NGINX" || "$1" != "$PHP_FPM" ]]; then
+		start_nginx
+		if [ $? != 0 ]; then
+			OK=$?
+			if [ $OK == 1 ]; then
+				if [ "$1" != "$NGINX" ]; then
+					MESSAGE="$TPSERVER not starting because $NGINX is not installed"
+				fi
+			else
+				if [ "$1" != "$NGINX" ]; then
+					MESSAGE="$TPSERVER not starting because $NGINX failed to start"
+				fi
+			fi
 		fi
-	else
-		print "TPSERVER not running because PHP-FPM failed to start"
 	fi
-	return $EXIT_STATUS
+	if [[ $OK == 0 && "$1" == "$PHP_FPM" || "$1" != "$NGINX" ]]; then
+		start_phpfpm
+		if [ $? == 0 ]; then
+			MESSAGE="Checking $TPSERVER..."
+			if find_local_ip; then
+				test_tp_server "$SERVER_IP:$SERVER_PORT" "lan"
+			else
+				test_tp_server "localhost:$SERVER_PORT" "lan"
+			fi
+		else
+			if [ $? == 1 ]; then
+				if [ "$1" != "$PHP_FPM" ]; then
+					MESSAGE="$TPSERVER not starting because $PHP_FPM is not installed"
+				fi
+			else
+				if [ "$1" != "$PHP_FPM" ]; then
+					MESSAGE="$TPSERVER not starting because $PHP_FPM failed to start"
+				fi
+			fi
+		fi
+	fi
+	if [ "$MESSAGE" != "" ]; then
+		print "$MESSAGE"
+	fi
 }
 
 stop_server() {
-	stop_nginx
-	EXIT_STATUS=$?
-	if [ "$EXIT_STATUS" == 0 ]; then
-		stop_phpfpm
-		EXIT_STATUS=$?
-	fi
-	if [ "$EXIT_STATUS" == 0 ]; then
-		print "Local TP server stopped!"
-	else
-		print "Local TP server failed to stop"
-	fi
-	return $EXIT_STATUS
+	case "$1" in
+		"$NGINX")
+			EXIT_STATUS="101"
+			print "TP software depends on $NGINX but will not stop the service because other applications might be using it"
+			;;
+		*)
+			stop_phpfpm
+			case $? in
+				0)
+					EXIT_STATUS="0"
+					print "$TPSERVER stopped!"
+					;;
+				1)
+					if [ "$1" != "$PHP_FPM" ]; then
+						MESSAGE="$TPSERVER not stopping because $PHP_FPM is not installed"
+					fi
+					;;
+				2)
+					if [ "$1" != "$PHP_FPM" ]; then
+						print "$TPSERVER is likely still running because $PHP_FPM did not stop"
+					fi
+					;;
+			esac
+		;;
+	esac
 }
 
 pause_server() {
 	echo "1" > $PAUSE_FILE
-	print "TPSERVER paused"
+	print "$TPSERVER paused"
 }
 
 unpause_server() {
 	echo "0" > $PAUSE_FILE
-	print "TPSERVER running"
+	print "$TPSERVER running"
 }
 
 setup_tpserver() {
@@ -215,10 +246,12 @@ setup_tpserver() {
 		run_as_sudo chmod -R 770 $TP_DIR
 		run_as_sudo chmod -R 770 $SCRIPTS_DIR
 		run_as_sudo cp "$SOURCES_DIR/$SCRIPT_NAME" $SCRIPTS_DIR #copy this file to the scripts dir
-		run_as_sudo cp "$SOURCES_DIR/url_parser.php" $SCRIPTS_DIR
-		run_as_sudo cp "$SOURCES_DIR/return_codes.h" $SCRIPTS_DIR
+		run_as_sudo cp "$SOURCES_DIR/function_library.sh" $SCRIPTS_DIR
 		run_as_sudo cp "$SOURCES_DIR/run_cmds.sh" $SCRIPTS_DIR
 		run_as_sudo cp "$SOURCES_DIR/usersdb.sh" $SCRIPTS_DIR
+		run_as_sudo cp "$SOURCES_DIR/url_parser.php" $SCRIPTS_DIR
+		run_as_sudo cp "$SOURCES_DIR/tp_functions.php" $SCRIPTS_DIR
+		run_as_sudo cp "$SOURCES_DIR/return_codes.h" $SCRIPTS_DIR
 		run_as_sudo chown -R $NGINX_USER:$NGINX_USER $TP_DIR
 
 		run_as_sudo cp -f "$SOURCES_DIR/nginx.conf" $NGINX_CONFIG_DIR
@@ -237,82 +270,94 @@ setup_tpserver() {
 			print "Filesystem directories and files setup."
 		else
 			print "Filesystem directories and files setup. Log out and in again in order for the changes to work."
-			return 0
+			echo "0"
 		fi
 	else
-		start_server
-		return $?
+		start_server "$TPSERVER"
 	fi
 }
 
 get_tpserver_status() {
-	if [ -d "$TP_DIR" ]; then
-		systemctl status nginx 1&> /dev/null
-		NGINX_SETUP=$?
-		PHP_FPM_SETUP=1
-		TEST_RESULT=1
-		if [ $NGINX_SETUP == 0 ]; then
-			systemctl status $PHP_FPM_SERVICE 1&> /dev/null
-			PHP_FPM_SETUP=$?
-			if find_local_ip; then
-				test_tp_server "$SERVER_IP:8080" "lan"
-				TEST_RESULT=$?
-			else
-				test_tp_server "localhost:8080" "lo"
-				TEST_RESULT=$?
-			fi
-		fi
+	case $1 in
+		"$NGINX"|"$PHP_FPM")
+			systemctl status "$1"
+		;;
+		*)
+			if [ -d "$TP_DIR" ]; then
+				if pgrep --quiet "$NGINX"; then
+					MESSAGE="$NGINX is running."
+				else
+					EXIT_STATUS=$(get_return_code "nginx not running")
+					MESSAGE="$NGINX is not running."
+				fi
+				if pgrep --quiet "$PHP_FPM"; then
+					MESSAGE="$MESSAGE $PHP_FPM is running."
+					if [ $EXIT_STATUS != "0" ]; then
+						MESSAGE="$MESSAGE\n$TPSERVER not running because $NGINX is not running."
+					fi
+				else
+					MESSAGE="$MESSAGE $PHP_FPM is not running."
+					if [ $EXIT_STATUS != "0" ]; then
+						MESSAGE="$MESSAGE\n$TPSERVER not running because $NGINX and $PHP_FPM are not running."
+					else
+						MESSAGE="$MESSAGE\n$TPSERVER not running because $PHP_FPM is not running."
+					fi
+					EXIT_STATUS=$(get_return_code "phpfpm not running")
 
-		if [ "$TEST_RESULT" == 1 ]; then
-			if [ $NGINX_SETUP == 0 ]; then
-				MESSAGE="$MESSAGE NGINX service is up and running."
-			else
-				TEST_RESULT=2
-				MESSAGE="$MESSAGE NGINX service is not running."
-			fi
-			if [ $PHP_FPM_SETUP == 0 ]; then
-				MESSAGE="$MESSAGE PHP-FPM service is up and running."
-			else
-				TEST_RESULT=3
-				MESSAGE="$MESSAGE PHP-FPM service is not running."
-			fi
-			print $MESSAGE
-		fi
-	else
-		TEST_RESULT=4
-		print "TPSERVER needs to be setup. Run" $SCRIPT_NAME "with the setup option."
-	fi
+				fi
 
-	return $TEST_RESULT
+				if [[ $EXIT_STATUS == "0" ]]; then
+					if find_local_ip; then
+						test_tp_server "$SERVER_IP:$SERVER_PORT" "lan"
+					else
+						test_tp_server "localhost:$SERVER_PORT" "lo"
+					fi
+				fi
+			else
+				EXIT_STATUS=$(get_return_code "tpserver not configured")
+				MESSAGE="$TPSERVER needs to be setup. Run" $SCRIPT_NAME "with the --setup command."
+			fi
+		;;
+	esac
 }
 
 case "$COMMAND" in
-	status)
-		get_tpserver_status
-		exit $?
-	;;
-	setup)
-		setup_tpserver
-		exit $?
-	;;
-	start)
-		start_server
-		exit $?
-	;;
-	stop)
-		stop_server
-		exit $?
-	;;
-	restart)
-		stop_server
-		if [ $? == 0 ]; then
-			start_server
+	-q|--status) #do not log status querying
+		if [ ! -f "$NGINX_BIN" ]; then
+			EXIT_STATUS=$(get_return_code "nginx not installed")
+			MESSAGE="Please install $NGINX."
+		else
+			if [ ! -f "$PHP_FPM_BIN" ]; then
+				EXIT_STATUS=$(get_return_code "phpfpm not installed")
+				MESSAGE="Please install $PHP_FPM."
+			else
+				get_tpserver_status "$OPTION"
+			fi
+		fi
+		if [ "$MESSAGE" != "" ]; then
+			echo -e "$MESSAGE"
 		fi
 	;;
-	pause)
-		get_tpserver_status
-		if [[ $? == 0 || $? == 6 ]]; then
-			if [ ! -f $PAUSE_FILE ]; then
+	-s|--setup)
+		setup_tpserver
+	;;
+	-i|--start)
+		start_server "$OPTION"
+	;;
+	-t|--stop)
+		stop_server "$OPTION"
+	;;
+	-r|--restart)
+		stop_server "$OPTION"
+		if [ $EXIT_STATUS == 0 ]; then
+			start_server "$OPTION"
+			EXIT_STATUS=$?
+		fi
+	;;
+	-p|--pause)
+		get_tpserver_status "$TPSERVER"
+		if [[ "$EXIT_STATUS" == "0" ]]; then
+			if [ ! -f "$PAUSE_FILE" ]; then
 				pause_server
 			else
 				PAUSE=$(head -n 1 "$PAUSE_FILE")
@@ -322,21 +367,23 @@ case "$COMMAND" in
 					pause_server
 				fi
 			fi
-			exit $?
 		else
-			print "Cannot pause TPSERVER because it's not running."
-			exit 8
+			print "Cannot pause $TPSERVER because it's not running."
 		fi
 	;;
-	createdb)
-		if create_admin_user; then
-			create_users_db
+	-c|--createdb)
+		EXIT_STATUS=$(create_admin_user)
+		if [ $EXIT_STATUS == 0 ]; then
+			EXIT_STATUS=$(create_users_db)
 		fi
-		exit $?
+	;;
+	-v|--version)
+		print_version "$OPTION"
 	;;
 	*)
-		print "Unknown option"
+		print "Unknown command($COMMAND)"
 		print_usage
-		exit 11
 	;;
 esac
+
+exit $EXIT_STATUS

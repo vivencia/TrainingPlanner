@@ -6,12 +6,12 @@ import TpQml
 Label {
 	id: _control
 	color: enabled ? fontColor : AppSettings.disabledFontColor
-	wrapMode: singleLine ? Text.NoWrap : Text.WordWrap
+	wrapMode: singleLine ? Label.NoWrap : Label.WrapAtWordBoundaryOrAnywhere
 	font: AppGlobals.regularFont
 	minimumPixelSize: AppSettings.smallFontSize * 0.5
-	fontSizeMode: Text.Fit
-	verticalAlignment: Text.AlignVCenter
-	horizontalAlignment: Text.AlignLeft
+	fontSizeMode: singleLine ? Label.Fit : Label.VerticalFit
+	verticalAlignment: Label.AlignVCenter
+	horizontalAlignment: Label.AlignLeft
 	background: useBackground ? itemBack : null
 	topInset: 0
 	bottomInset: 0

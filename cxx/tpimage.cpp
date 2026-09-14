@@ -49,6 +49,7 @@ void TPImage::operator=(const QImage &other)
 
 void TPImage::setSource(const QString &source)
 {
+	setOK(false);
 	if (!source.isEmpty()) {
 		QFileInfo img_file{source};
 		if (img_file.isFile() && img_file.isReadable()) {
@@ -220,10 +221,12 @@ void TPImage::scaleImage()
 			m_paintOrigin.setY((s_height - m_image.height()) / 2);
 			update();
 			emit imageSizeChanged();
+			setOK(true);
 			return;
 
 		}
 	}
+	setOK(true);
 	emit imageSizeChanged();
 	m_imageDisabled = std::move(QImage{});
 	m_imageShadow = std::move(QImage{});

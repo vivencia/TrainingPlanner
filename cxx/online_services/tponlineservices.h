@@ -118,6 +118,7 @@ private:
 	uint8_t m_onlineStatus{255};
 	QString m_userid, m_passwd, m_serverAddress;
 	QHash<int,TPBool> m_requestsPool;
+	QSslCertificate *m_sslCert{nullptr};
 	static TPOnlineServices* _appOnlineServices;
 	friend TPOnlineServices* appOnlineServices();
 };

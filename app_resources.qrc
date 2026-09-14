@@ -229,5 +229,18 @@
         <file>images/text_preview.png</file>
         <file>images/flat/arrow-icon.png</file>
         <file>images/flat/search.png</file>
+        <file>security.qrc</file>
+        <file>images/info_red.png</file>
+        <file>images/info_green.png</file>
+        <file>images/info_dark.png</file>
+        <file>images/info_light.png</file>
+        <file>images/info_gray.png</file>
+        <file>images/info_blue.png</file>
+        <file>images/logs_dark.png</file>
+        <file>images/logs_light.png</file>
+        <file>images/logs_gray.png</file>
+        <file>images/logs_red.png</file>
+        <file>images/logs_green.png</file>
+        <file>images/logs_blue.png</file>
     </qresource>
 </RCC>

@@ -57,6 +57,7 @@ QmlItemManager::QmlItemManager() : QObject{nullptr}
 #include <QThread>
 void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
 {
+	startLogs();
 	qDebug() << "QmlItemManager::startQmlEngine running on thread: " << thread()->isMainThread();
 	_appQmlEngine = qml_engine;
 	QQuickStyle::setFallbackStyle("Material"_L1);
@@ -95,15 +96,7 @@ void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
 				connect(appUserModel(), &DBUserModel::userLoggedIn, this, [this] (const bool first_checkin) {
 					//emit cppDataForQMLReady();
 					m_homePage->setProperty("mesoManager", std::move(QVariant::fromValue(appUserModel()->actualMesoModel()->mesoManager(0))));
-					/*connect(appMessagesManager(), &TPMessagesManager::TPMessageSent, this, [this] (const int requestid, const bool success) {
-						if (requestid == 1111) {
-							qDebug() << (success ? "Message sent" : "Message not sent");
-							QMetaObject::invokeMethod(_appMainWindow, "openDialog");
-						}
-					});*/
-					//appMessagesManager()->sendTPMessage("1759256421787", appUtils()->string_strings({TPMessagesManager::tpbinarymessage_prefix,
-					//	"1759256421787/1759170252407/mesocycles//Hipertrofia 1.txt", "A simple message"}, record_separator), 1111);
-				  });
+				});
 			}
 	#endif
 #endif
@@ -134,6 +127,22 @@ void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
 	#endif
 #endif
 	appQmlEngine()->loadFromModule("TpQml", main_module);
+}
+
+void QmlItemManager::log(TPLogs::LogType type, const QString &origin, QString &&title, QString &&message) const
+{
+	TPLogs *tplog{nullptr};
+	switch (type) {
+	case TPLogs::LT_MESSAGES: tplog = m_messagesLog; break;
+	case TPLogs::LT_INFO: tplog = m_coreLog; break;
+	case TPLogs::LT_DEBUG: tplog = m_debugLog; break;
+	}
+	if (tplog) {
+		tplog->appendLog(origin, std::forward<QString>(title), std::forward<QString>(message));
+#ifndef QT_NO_DEBUG
+		qDebug() << tplog->condensedLog(tplog->lastEntry());
+#endif
+	}
 }
 
 void QmlItemManager::exitApp()
@@ -270,6 +279,42 @@ void QmlItemManager::getWeatherPage()
 			}
 		} else {
 			appPagesListModel()->openPage(m_weatherPage);
+		}
+	}
+}
+
+void QmlItemManager::showLogs()
+{
+	if (!m_logsDialogComponent) {
+		m_logsDialogComponent = new QQmlComponent{appQmlEngine(), "TpQml.Dialogs"_L1, "LogsDialog"_L1, QQmlComponent::Asynchronous};
+		connect(m_logsDialogComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status status) { showLogs(); });
+	} else {
+		if (!m_logsDialog) {
+			switch (m_logsDialogComponent->status()) {
+			case QQmlComponent::Ready:
+				m_logsDialogComponent->disconnect();
+				m_logsDialog = m_logsDialogComponent->create(appQmlEngine()->rootContext());
+#ifndef QT_NO_DEBUG
+				if (!m_logsDialog) {
+					log(TPLogs::LT_DEBUG, logOriginQmlEngine,
+						std::move("Component creation failed"_L1), std::move(m_logsDialogComponent->errorString()));
+					return;
+				}
+#endif
+				appQmlEngine()->setObjectOwnership(m_logsDialog, QQmlEngine::CppOwnership);
+				showLogs();
+				break;
+			case QQmlComponent::Loading:
+				return;
+			case QQmlComponent::Null:
+			case QQmlComponent::Error:
+#ifndef QT_NO_DEBUG
+				qDebug() << m_logsDialogComponent->errorString();
+#endif
+				return;
+			}
+		} else {
+			appPagesManager()->openPopup(m_logsDialog, m_homePage);
 		}
 	}
 }
@@ -411,7 +456,7 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, QString &&m
 		case TP_RET_CODE_USER_DOES_NOT_EXIST:
 			title = std::move(tr("User account not found"));
 			break;
-		case TP_RET_CODE_SERVER_UNREACHABLE:
+		case TPSERVER_NOT_REACHABLE:
 			title = std::move(tr("Can't connect to server"));
 			break;
 		}
@@ -474,6 +519,8 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, QString &&m
 	} else {
 		QMetaObject::invokeMethod(m_generalMessagesPopup, "showTimed", Q_ARG(int, msecs));
 	}
+	if (m_doLog)
+		log(TPLogs::LT_MESSAGES, tr("General Messages"), std::move(title), std::move(message));
 #endif //ENABLE_GENERAL_MESSAGES_POPUP
 }
 
@@ -605,6 +652,15 @@ bool QmlItemManager::runTests()
 #endif
 #endif
 
+void QmlItemManager::startLogs()
+{
+	m_messagesLog = new TPLogs(TPLogs::LT_MESSAGES, tr("Application Messages"));
+	m_coreLog = new TPLogs(TPLogs::LT_INFO, tr("Core Messages"));
+#ifndef QT_NO_DEBUG
+	m_debugLog = new TPLogs(TPLogs::LT_DEBUG, tr("Debug Messages"));
+#endif
+}
+
 void QmlItemManager::createGeneralMessagesPopup()
 {
 	if (!m_generalMessagesPopupComponent) {
@@ -641,6 +697,11 @@ void QmlItemManager::createGeneralMessagesPopup()
 			}
 		}
 	}
+}
+
+void QmlItemManager::createLogsDialog()
+{
+
 }
 
 void QmlItemManager::createStatisticsPage_part2()

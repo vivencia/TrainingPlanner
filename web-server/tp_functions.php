@@ -46,6 +46,7 @@ function get_return_code(string $desc): int {
 				break;
 		}
 	}
+	echo "Unknown return code string: $desc";
 	return 101; //Unknown error code
 }
 
@@ -112,6 +113,7 @@ function upload_file($uploadDir, $backupDir): array {
 	#print_r2($_REQUEST);
 	#print_r2(getallheaders());
 	$res = false;
+	//print_r2("Uploading to: " . $uploadDir . " and backing up to: " . $backupDir);
 	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		// Check if the file was uploaded
 		if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
@@ -125,8 +127,10 @@ function upload_file($uploadDir, $backupDir): array {
 				// Move the uploaded file to the upload directory
 				if (move_uploaded_file($fileTmpPath, $uploadFilePath)) {
 					chper($uploadFilePath);
-					if ($backupDir)
-						copy($uploadFilePath, $backupDir . '/' . basename($fileName));
+					if ($backupDir) {
+						if (create_dir($backupDir))
+							copy($uploadFilePath, $backupDir . '/' . basename($fileName));
+					}
 					$msg = "0: File uploaded successfully: " . htmlspecialchars($fileName);
 					$res = true;
 				} else {
@@ -147,7 +151,6 @@ function download_file($file, $downloadDir): array {
 	$res = false;
 	$msg = "";
 	if (is_dir($downloadDir)) {
-		echo ("isDir($downloadDir)");
 		global $fileMode;
 		ignore_user_abort(true);
 		$files = array_values(array_diff(scandir($downloadDir), array('.', '..')));
@@ -206,7 +209,6 @@ function download_file($file, $downloadDir): array {
 }
 
 function check_file_ctime($filename): array {
-	print_r2($filename);
 	if (is_file($filename)) {
 		$res = true;
 		$msg = "0: " . date('Hisymd', filectime($filename));
@@ -935,15 +937,19 @@ function get_tpmessages($owner_user): array {
 
 function send_tpmessage($target_user, $message): array {
 	global $rootdir;
-	$res = false;
 	$tpmessages_file = "$rootdir$target_user/tpmessages.txt";
-	if (!file_exists($tpmessages_file)) {
+	$res = file_exists($tpmessages_file);
+	if ($res === false) {
 		$fh = fopen($tpmessages_file, "w");
-		if ($fh)
+		if ($fh) {
 			chper($tpmessages_file);
-		else
+			$res = true;
+		} else {
 			 $msg = get_return_code("open write failed") . ": Unable to create TP messages file $tpmessages_file";
-	} else {
+		}
+	}
+	if ($res === true) {
+		$res = false;
 		$existing_messages = file($tpmessages_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 		foreach ($existing_messages as $existing_message) {
 			if ($existing_message == $message) {
@@ -961,7 +967,6 @@ function send_tpmessage($target_user, $message): array {
 			fwrite($fh, "$message\n");
 			fclose($fh);
 			apcu_store($target_user."tpmessages", true); //$has_new_messages === true
-			$res = true;
 			$msg = "0: TP Message Sent!";
 		}
 	}
@@ -969,32 +974,37 @@ function send_tpmessage($target_user, $message): array {
 }
 
 function remove_tpmessage($target_user, $message): array {
-	global $rootdir;
-	$tpmessages_file = "$rootdir$target_user./tpmessages.txt";
-	$tpmessages_arr = file($tpmessages_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-	$kept_messages = [];
-	$n_removed = 0;
-	$n_kept = 0;
-	foreach ($messages_arr as $stored_message) {
-		if ($stored_message !== $message) {
-			$kept_messages[] = $stored_message;
-			$n_kept++;
-		} else {
-			$n_removed++;
+	if (strlen($message) > 52) {
+		global $rootdir;
+		$tpmessages_file = "$rootdir$target_user/tpmessages.txt";
+		$tpmessages_arr = file($tpmessages_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+		$kept_messages = [];
+		$n_removed = 0;
+		$n_kept = 0;
+		foreach ($tpmessages_arr as $stored_message) {
+			if ($stored_message !== $message) {
+				$kept_messages[] = $stored_message;
+				$n_kept++;
+			} else {
+				$n_removed++;
+			}
 		}
-	}
-	if ($n_removed > 0) {
-		$fh = fopen($tpmessages_file, "w");
-		if (count($kept_messages) > 0)
-			fwrite($fh, implode($kept_messages));
-		else
-			fwrite($fh, "");
-		fclose($fh);
-		$res = true;
-		$msg = "0: Message removed: $message";
+		if ($n_removed > 0) {
+			$fh = fopen($tpmessages_file, "w");
+			if (count($kept_messages) > 0)
+				fwrite($fh, implode($kept_messages));
+			else
+				fwrite($fh, "");
+			fclose($fh);
+			$res = true;
+			$msg = "0: Message removed: $message";
+		} else {
+			$res = false;
+			$msg = get_return_code("no changes success") . ": Cannot remove message because it was not found $message";
+		}
 	} else {
 		$res = false;
-		$msg = get_return_code("no changes success") . ": Cannot remove message because it was not found $message";
+		$msg = get_return_code("argument missing") . ": Cannot remove message - $message - because it is not correctly formatted";
 	}
 	return array($res, $msg);
 }

@@ -26,7 +26,7 @@ function parseFileQuery($userid): array {
 	$filedir = "$rootdir$owner_user/";
 	if (isset($_GET['target'])) {
 		$target_user = $_GET['target'];
-		$filedir .= $target_user;
+		$filedir .= "$target_user/";
 	} else {
 		$target_user = "";
 	}
@@ -57,22 +57,22 @@ function parseFileQuery($userid): array {
 				if ($target_user !== $userid)
 					return array(false, get_return_code("no privilege") . ": $userid can only send files to itself or *target* must be set to $userid");
 				else //make a copy of the sent file in the user's directory for recovery and/or syncing
-					$backupdir = "$rootdir$userid/$target_user/$subdir";
+					$backupdir = "$rootdir$userid/$owner_user/$subdir";
 			}
 		}
 		return upload_file($filedir, $backupdir);
 	} elseif (isset($_GET['checkfilectime'])) {
 		return check_file_ctime($filedir . '/' . $_GET['checkfilectime']);
 	} else {
+		$res = false;
 		//A user can only get/delete files from within their base directory. Admin can get/delete any file
 		if ($userid != "admin") {
 			if ($owner_user !== $userid)
 				return array(false, get_return_code("no privilege") . ": $userid can only get/delete files in its own directory");
 		}
-		if (isset($_GET['file'])) {
-			return download_file($_GET['file'], $filedir);
+		if (isset($_GET['get_file'])) {
+			return download_file($_GET['get_file'], $filedir);
 		} elseif (isset($_GET['delfile'])) {
-			$res = false;
 			$file = $filedir . '/' . $_GET['delfile'];
 			if (is_file($file)) {
 				$res = unlink($file);
@@ -322,7 +322,8 @@ function main(): void {
 		$result[0] = true;
 		$result[1] = "Welcome to the TrainingPlanner app server!";
 	}
-	echo $result[1];
+	if ($result[1] !== "") //do not print anything if there is nothing to print(an empty echo() will print something)
+		echo $result[1];
 	exit($result[0]);
 }
 

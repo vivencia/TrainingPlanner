@@ -28,7 +28,7 @@ ApplicationWindow {
 	TPPage {
 		id: homePage
 		objectName: "homePage"
-		imageSource: ":/images/backgrounds/backimage-home.jpg"
+
 		anchors.fill: parent
 		signal mesosViewChanged(bool own_mesos);
 
@@ -38,14 +38,6 @@ ApplicationWindow {
 			target: ItemManager
 			function onCppDataForQMLReady() : void {
 			}
-		}
-
-		property bool loadMesosFromCoaches: false
-		property bool loadMesosForSelf: false
-		property bool loadMesosForClients: false
-		property MesocyclesModel mesoModel: null
-
-		function setMesosViewIndex(index: int) {
 		}
 	}
 }

@@ -14,6 +14,7 @@ set( QML_DIALOGS
 	"TPPopup.qml"
 	"TimePickerComponents/ClockButton.qml"
 	"TPPopupComponents/TitleBar.qml"
+	"LogsDialogComponents/LogsPane.qml"
 )
 
 qt_add_library(tp_dialogs_module STATIC)
@@ -24,4 +25,5 @@ qt_add_qml_module(tp_dialogs_module
 		${QML_DIALOGS}
 	RESOURCE_PREFIX
 		"/"
+		QML_FILES LogsDialog.qml
 )

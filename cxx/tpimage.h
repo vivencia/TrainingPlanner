@@ -19,6 +19,7 @@ Q_PROPERTY(bool dropShadow READ dropShadow WRITE setDropShadow NOTIFY dropShadow
 Q_PROPERTY(bool keepAspectRatio READ keepAspectRatio WRITE setKeepAspectRatio NOTIFY keepAspectRatioChanged FINAL)
 Q_PROPERTY(bool imageSizeFollowControlSize READ imageSizeFollowControlSize WRITE setImageSizeFollowControlSize NOTIFY imageSizeFollowControlSizeChanged FINAL)
 Q_PROPERTY(bool fullWindowView READ fullWindowView WRITE setFullWindowView NOTIFY fullWindowViewChanged FINAL)
+Q_PROPERTY(bool OK READ OK NOTIFY OKChanged FINAL)
 Q_PROPERTY(double preferredWidth READ preferredWidth CONSTANT FINAL)
 Q_PROPERTY(double preferredHeight READ preferredHeight CONSTANT FINAL)
 Q_PROPERTY(int imageWidth READ imageWidth NOTIFY imageSizeChanged FINAL)
@@ -41,6 +42,14 @@ public:
 	void setImageSizeFollowControlSize(const bool follow);
 	inline bool fullWindowView() const { return m_fullWindowView; }
 	void setFullWindowView(const bool fullview);
+	inline bool OK() const { return m_ok; }
+	inline void setOK(const bool ok)
+	{
+		if (m_ok != ok) {
+			m_ok = ok;
+			emit OKChanged();
+		}
+	}
 	inline bool colorize() const { return m_canColorize; }
 	inline void setColorize(const bool colorize) { m_canColorize = colorize; }
 
@@ -70,13 +79,14 @@ signals:
 	void fullWindowViewChanged();
 	void imageScaleChanged();
 	void imageSizeChanged();
+	void OKChanged();
 
 private:
 	QString m_source;
 	QImage m_image, m_imageDisabled, m_imageShadow;
 	QImage *m_imageToPaint{nullptr};
 	QSize m_imageSize;
-	bool m_dropShadow{false}, m_canColorize{false}, m_imageFollowControl{true}, m_fullWindowView{false};
+	bool m_dropShadow{false}, m_canColorize{false}, m_imageFollowControl{true}, m_fullWindowView{false}, m_ok{false};
 	Qt::AspectRatioMode m_aspectRatioMode{Qt::KeepAspectRatio};
 	double m_wscale{1.0}, m_hscale{1.0};
 	QPoint m_paintOrigin;

@@ -47,7 +47,7 @@ inline uint32_t fnv1a_hash(const QString &s) {
 
 #define STRINGIFY(x) #x
 // Macro to wrap the parameter with quotes
-#define QUOTE(x) STRINGIFY(x)
+#define QUOTE(x) #x
 #define roleToString(roleName) \
 	m_roleNames[PASTE(roleName, Role)] = std::move(QUOTE(roleName));
 
@@ -65,6 +65,7 @@ Q_OBJECT
 
 public:
 	enum DATE_FORMAT {
+		DF_NONE			= 0,
 		DF_QML_DISPLAY	= 1U << 0,
 		DF_LOCALE		= 1U << 1,
 		DF_CATALOG		= 1U << 2,
@@ -73,6 +74,7 @@ public:
 	};
 
 	enum TIME_FORMAT {
+		TF_NONE					= DF_ONLINE,
 		TF_QML_DISPLAY_COMPLETE	= 1U << 5,
 		TF_QML_DISPLAY_NO_SEC	= 1U << 6,
 		TF_QML_DISPLAY_NO_HOUR	= 1U << 7,

@@ -45,18 +45,6 @@ extern "C"
 
 static const QString &tp_server_config_script{"/var/www/html/trainingplanner/scripts/init_script.sh"_L1};
 
-enum procExitCodes {
-	TPSERVER_OK,
-	TPSERVER_ERROR,
-	TPSERVER_NGINX_ERROR,
-	TPSERVER_PHPFPM_ERROR,
-	TPSERVER_CONFIG_ERROR,
-	TPSERVER_OK_LOCALHOST,
-	TPSERVER_PAUSED,
-	TPSERVER_PAUSED_LOCALHOST,
-	TPSERVER_PAUSED_FAILED,
-};
-
 #endif //TPSERVER_MACHINE
 #endif //LOCAL_TPSERVER
 
@@ -460,7 +448,7 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_setF
 }
 
 JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_setFileReceivedAndSaved(JNIEnv *env,
-																									jobject obj, jstring url)
+																							jobject obj, jstring url)
 {
 	const char *urlStr = env->GetStringUTFChars(url, NULL);
 	Q_UNUSED (obj)
@@ -469,8 +457,8 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_setF
 	return;
 }
 
-JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_fireActivityResult(JNIEnv *env, jobject obj,
-																							   jint requestCode, jint resultCode)
+JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_fireActivityResult(JNIEnv *env,
+																		jobject obj, jint requestCode, jint resultCode)
 {
 	Q_UNUSED (obj)
 	Q_UNUSED (env)
@@ -479,7 +467,7 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_fire
 }
 
 JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_notificationActionReceived(JNIEnv *env,
-																									   jobject obj, jint action, jint id)
+																					jobject obj, jint action, jint id)
 {
 	Q_UNUSED (obj)
 	//const char *actionStr = env->GetStringUTFChars(action, NULL);
@@ -517,7 +505,7 @@ void OSInterface::openURL(const QString &address) const
 
 void OSInterface::sendMail(const QString &address, const QString &subject, const QString &attachment_file) const
 {
-	const QStringList &args{QStringList{6} << std::move("--utf8"_L1) << std::move("--subject"_L1) <<
+	const QStringList &args{QStringList{} << std::move("--utf8"_L1) << std::move("--subject"_L1) <<
 							std::move(QChar{'\''} % subject % QChar{'\''}) << std::move("--attach"_L1) << attachment_file <<
 							std::move(QChar{'\''} % address % QChar{'\''})};
 	auto *__restrict proc{new QProcess};
@@ -589,8 +577,8 @@ void OSInterface::setNetStatus(uint messages_index, bool success, QString &&mess
 	m_connectionMessages[messages_index] = std::forward<QString>(message);
 	emit connectionStatusChanged();
 	appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, std::move(appUtils()->string_strings(
-			{QString{}, m_connectionMessages.at(messages_index)}, record_separator)), Qt::AlignTop|Qt::AlignHCenter,
-																std::move(success ? "set-completed"_L1 : "error"_L1));
+								{tr("Network Status"), m_connectionMessages.at(messages_index)}, record_separator)),
+									Qt::AlignTop|Qt::AlignHCenter, std::move(success ? "set-completed"_L1 : "error"_L1));
 }
 
 void OSInterface::localServerProcessResult(const uint online_status, const QString &additional_message)
@@ -648,12 +636,13 @@ void OSInterface::setWorkingNetInterface(const int interface_index)
 				case QNetworkInterface::Wifi:		message += "WiFi"_L1;		break;
 				default:							message += "Unknown"_L1;	break;
 				}
-				message += '(' % interface.name() % "@ "_L1 % appSettings()->serverAddress() % ':' % appSettings()->serverPort();
+				message += '(' % interface.name() % "@ "_L1 % appSettings()->serverAddress() % ':' %
+																					appSettings()->serverPort() % ')';
 			}
 		}
 	} else {
 		switch (appOnlineServices()->serverStatus()) {
-		case TP_RET_CODE_SERVER_NOT_RUNNING:
+		case TPSERVER_NOT_REACHABLE:
 #ifdef LOCAL_TPSERVER
 #ifdef TPSERVER_MACHINE
 			return; //nginx is not yet initialized. Ignore serverStatus for now
@@ -673,13 +662,9 @@ void OSInterface::setWorkingNetInterface(const int interface_index)
 				message += tr("Error: cannot reach the TP Server because we don't have internet access");
 #endif
 			break;
-		case TP_RET_CODE_SERVER_PAUSED:
+		case TPSERVER_PAUSED:
 			message += tr("Error: The TP Server is currently under maintenance");
 			break;
-		case TP_RET_CODE_SERVER_UNREACHABLE: //Some other error. Report only on the console if there is internet
-			if (internetOK())
-				qDebug() << "Could not communicate with the server. Unkown error."_L1;
-			return;
 		}
 	}
 	setNetStatus(interfaceMessage, interface_index > 0, std::move(message));
@@ -696,9 +681,9 @@ void OSInterface::startLocalServerProcess()
 					appUtils()->string_strings({"Linux TP Server"_L1, "Error executing init_script("_L1
 													% QString::number(exit_code) % ')'}, record_separator)));
 			}
-			serverProcessFinished(m_severScriptProc, exit_code);
-			m_severScriptProc->close();
 			m_commandQueue.removeFirst();
+			serverProcessFinished(exit_code, m_severScriptProc->readAllStandardOutput());
+			m_severScriptProc->close();
 			if (!m_commandQueue.isEmpty()) {
 				startLocalServerProcess();
 			} else {
@@ -713,40 +698,49 @@ void OSInterface::startLocalServerProcess()
 	m_severScriptProc->start(tp_server_config_script, m_commandQueue.constFirst(), QIODeviceBase::ReadOnly);
 }
 
-void OSInterface::serverProcessFinished(QProcess *proc, const int exit_code)
+void OSInterface::serverProcessFinished(const int exit_code, const QString &output)
 {
 	switch (exit_code) {
-	case TPSERVER_ERROR:
-	case TPSERVER_PAUSED_FAILED:
-		localServerProcessResult(TP_RET_CODE_SERVER_UNREACHABLE, proc->readAllStandardOutput()
-															% "\nReturn code("_L1 % QUOTE(exit_code) % ')');
+	case TPSERVER_NOT_CONFIGURED:
+		commandLocalServer("-s"_L1, true, "Run the setup procedure to configure TPServer"_L1);
 		break;
+	case TPSERVER_NOT_REACHABLE:
 	case TPSERVER_NGINX_ERROR:
-		commandLocalServer("start"_L1, true, "Start server service?"_L1);
-		break;
 	case TPSERVER_PHPFPM_ERROR:
-		commandLocalServer("restart"_L1, true, "Restart server service?"_L1);
+	case TPSERVER_NGINX_NOT_INSTALLED:
+	case TPSERVER_PHPFPM_NOT_INSTALLED:
+		localServerProcessResult(TPSERVER_NOT_REACHABLE, output % "\nReturn code("_L1 % QUOTE(exit_code) % ')');
 		break;
-	case TPSERVER_CONFIG_ERROR:
-		commandLocalServer("setup"_L1, true, "Setup server?"_L1);
+	case TPSERVER_NGINX_NOT_RUNNING:
+		commandLocalServer("-i"_L1, true, "Start the TPServer service"_L1);
 		break;
+	case TPSERVER_PHPFPM_NOT_RUNNING:
+		commandLocalServer("-i"_L1, true, "Start the services that TPServer needs to run"_L1);
+		break;
+
 	case TPSERVER_PAUSED:
-	case TPSERVER_PAUSED_LOCALHOST:
-		commandLocalServer("pause"_L1, true, "Unpause server?"_L1);
+		commandLocalServer("-p"_L1, true, "Unpause TPServer"_L1);
 		break;
-	default: { //TPSERVER_OK or TPSERVER_OK_LOCALHOST
-		QString address{std::move(proc->readAllStandardOutput())};
-		const auto address_start{address.indexOf('(') + 1};
-		const auto port_end{address.indexOf(')', address_start + 1) - 1};
-		address.slice(address_start, port_end - address_start + 1);
-		emit serverAddressesFetched(QHash<int,QString>{std::pair<int,QString>{-1, address}});
+	default: { //TP_RET_CODE_SUCCESS
+		if (output.contains("up and running", Qt::CaseInsensitive)) {
+			const auto address_start{output.indexOf('(') + 1};
+			if (address_start > 0) {
+				const auto port_end{output.indexOf(')', address_start + 1) - 1};
+				if (port_end > 0) {
+					emit serverAddressesFetched(QHash<int,QString>{std::pair<int,QString>{-1,
+														output.sliced(address_start, port_end - address_start + 1)}});
+					return;
+				}
+			}
+		}
+		emit serverAddressesFetched(QHash<int,QString>{std::pair<int,QString>{-1, QString{}}});
 		}
 		break;
 	}
 }
 
 OSInterface::clsRetCode OSInterface::commandLocalServer(const QString &command, const bool as_su,
-																					const QString &title)
+																					const QString &message)
 {
 	if (std::find_if(m_commandQueue.cbegin(), m_commandQueue.cend(), [command] (const QStringList &args) {
 			return command == args.constFirst();
@@ -766,15 +760,15 @@ OSInterface::clsRetCode OSInterface::commandLocalServer(const QString &command, 
 					startLocalServerProcess();
 				} else {
 					appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, std::move(
-					appUtils()->string_strings({title, "Operation canceled by the user"_L1}, record_separator)));
+					appUtils()->string_strings({"Operation canceled"_L1, message}, record_separator)));
 				}
 				waiting_for_password = false;
 			}
 		});
 		if (!waiting_for_password) {
 			waiting_for_password = true;
-			appItemManager()->showPasswordDialog(requestid, appItemManager()->appHomePage(), title,
-																		"Your system user password is required"_L1);
+			appItemManager()->showPasswordDialog(requestid, appItemManager()->appHomePage(),
+																	tr("System password required"), message);
 			return CLS_OK_WAITING_FOR_PASSWORD;
 		} else {
 			return CLS_ERROR_WAITING_FOR_PASSWORD;

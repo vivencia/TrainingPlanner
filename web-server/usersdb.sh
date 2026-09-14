@@ -149,26 +149,31 @@ get_id() {
 	VALUE="'$VALUE'" #sqlite3 needs single quotes for string values
 	REQUESTED_ID=$($SQLITE -line "$USERS_DB" "SELECT userid FROM users_table WHERE $FIELD=$VALUE;")
 	if [[ $REQUESTED_ID != "" ]]; then
+		PASSWD_FILE="$ADMIN_DIR/.passwds"
 		REQUESTED_ID=$(echo "${REQUESTED_ID}" | cut -d '=' -f 2)
 		REQUESTED_ID=$(echo "${REQUESTED_ID}" | cut -d ' ' -f 2)
-		PASSWORD="$2"
-		/usr/bin/htpasswd -vb "$ADMIN_DIR/.passwds" "${REQUESTED_ID}" "$PASSWORD" > /dev/null 2>&1
-		return_var="$?"
-		if [ "$return_var" -eq 0 ]; then
-			error_string="${REQUESTED_ID}"
-		else
-			case "$return_var" in
-				3) error_string="Verification entry didn't match";;
-				6) error_string="Username  contains illegal characters";;
-				2) error_string="Syntax problem with the command line";;
-				*) error_string="Other error";;
-			esac
+		if grep $REQUESTED_ID -F "$PASSWD_FILE" &>/dev/null; then
+			PASSWORD="$2"
+			/usr/bin/htpasswd -vb "$ADMIN_DIR/.passwds" "${REQUESTED_ID}" "$PASSWORD" > /dev/null 2>&1
+			return_var="$?"
+			if [ "$return_var" -eq 0 ]; then
+				error_string="${REQUESTED_ID}"
+			else
+				case "$return_var" in
+					3) error_string="User exists, but password is wrong";;
+					6) error_string="User ID contains illegal characters";;
+					2) error_string="Syntax problem with the command line";;
+					*) error_string="Other error";;
+				esac
+			fi
+		else #the userid exists in the SQLite database but is not recorded in the htpasswd file, Why??
+			return_var=get_return_code "user does not exist"
+			error_string="User does not exist"
 		fi
-	else
+	else #the userid does not exist in the SQLite database
 		return_var=get_return_code "user does not exist"
 		error_string="User does not exist"
 	fi
-	error_string=$return_var": $error_string"
 	echo "$error_string"
 	return "$return_var"
 }
