@@ -61,6 +61,7 @@ Popup {
 	property TPMouseArea mouse_area: null
 
 	enum ShowBehavior { PARENT_PAGE_ACTIVE, ALWAYS_VISIBLE }
+	enum CloseActionType { DEFAULT_ACTION = 0, BTN_CLOSE = -1, SWIPE = -2, BACK_KEY = -3 }
 	readonly property int realY: parentPage ? parentPage.mapToGlobal(parentPage.x, parentPage.y).y : 0;
 
 //private:
@@ -78,13 +79,14 @@ Popup {
 	property int _key_pressed
 	property int _normal_width: 0
 	property int _normal_height: 0
+	property int _close_action_type: TPPopup.DEFAULT_ACTION
 
 	readonly property Transition _transition_in: !_use_alternate_transition ? (_use_burst_transition ? burstOutTransition : slideInTransition) : alternateCloseTransition
 	readonly property Transition _transition_out: !_use_alternate_transition ? (_use_burst_transition ? burstInTransition : slideOutTransition) : alternateCloseTransition
 	readonly property int titleBarHeight: AppSettings.itemDefaultHeight + 5
 
 	enter: _transition_in
-	exit: _transition_out
+	exit: _close_action_type !== TPPopup.SWIPE ? _transition_out : null
 
 	onClosed: {
 		if (!_hidden && (modal || keepAbove))
@@ -297,12 +299,15 @@ Popup {
 			function finishCreation() {
 				mouse_area = component.createObject(_control.mouseItem, { enabled: _control.enabled,
 						movableWidget: _control, canSlide: _control.canSlideToClose,
-						movingWidget: _control.mouseItem, lockMovingToYAxis: _control.lockMovingToYAxis });
+						movingWidget: _control.mouseItem, lockMovingToYAxis: _control.lockMovingToYAxis,
+						movableWidgetCanGoOutsideBounds: canSlideToClose });
 				mouse_area.mousePressed.connect(mouseAreaPressed);
 				mouse_area.movingFinished.connect(mouseAreaMovingFinished);
 				mouse_area.mouseClicked.connect(mouseItemClicked);
-				if (canSlideToClose)
+				if (canSlideToClose) {
 					mouse_area.slideOutToSide.connect(mouseAreaSlide);
+					mouse_area.widgetOutOfBounds.connect(function() { closePopup(TPPopup.SWIPE); });
+				}
 			}
 			function checkComponentStatus() {
 				switch (component.status) {
@@ -360,7 +365,7 @@ Popup {
 			alternateCloseTransition.property_name = "y";
 			break;
 		}
-		closePopup(-2);
+		closePopup(TPPopup.SWIPE);
 		_use_alternate_transition = false;
 	}
 
@@ -453,7 +458,7 @@ Popup {
 
 	function tpopen__(): void {
 		if (savePopupState) {
-			let saved_size = AppSettings.getCustomValue(configFieldName + ".size", normal_size);
+			const saved_size = AppSettings.getCustomValue(configFieldName + ".size", normal_size);
 			width = saved_size.width;
 			height = saved_size.height;
 			if (!_minimized && !_maximized) {
@@ -483,17 +488,27 @@ Popup {
 		tpopen__();
 	}
 
+	Timer {
+		id: waitForSwipeTimer
+		interval: 500
+		onTriggered: closeActionExeced(TPPopup.SWIPE);
+	}
+
 	function closePopup(btn_id: int): void {
+		_close_action_type = btn_id;
 		close();
-		closeActionExeced(btn_id);
-		//when a action button is clicked, the dialog maybe immediately reopened for a follow up.
+		if (btn_id !== TPPopup.SWIPE)
+			closeActionExeced(btn_id);
+		else
+			waitForSwipeTimer.start();
+		//when a action button is clicked, the dialog may be immediately reopened for a follow up.
 		//When it's closed via btnClose or swipe or backkey (btn_id = -1, and -2, and -3 respectively), no
-		_can_reopen = btn_id >= 0;
+		_can_reopen = btn_id >= TPPopup.DEFAULT_ACTION;
 	}
 
 	//This function can be overridden in a derived QML object to perform other actions
 	function backKeyPressed(): void {
-		closePopup(-3);
+		closePopup(BACK_KEY);
 	}
 
 	function hide(): void {

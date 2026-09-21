@@ -277,6 +277,7 @@ void TPMessagesManager::startMessagesManager()
 				}
 #endif
 				appQmlEngine()->setObjectOwnership(m_messagesManagerDialog, QQmlEngine::CppOwnership);
+				emit graphicalInterfaceReady();
 				startMessagesManager();
 				break;
 			case QQmlComponent::Loading:

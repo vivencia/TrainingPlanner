@@ -9,6 +9,14 @@ import TpQml.Widgets
 TPPane {
 	id: _control
 	maxHeight: AppSettings.pageHeight
+	customHeaderWidget: Item {
+		TPLabel
+		objectName: "customHeader"
+		text: _control.header
+		multiLine: false
+		boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
+		width: _control.width
+	}
 
 	required property TPLogs logsModel
 
@@ -52,7 +60,7 @@ TPPane {
 				id: bufferTimer
 				interval: 500
 				onTriggered: {
-					listView.delegatesHeight += delegate.height * 1.2;
+					listView.delegatesHeight += delegate.height + 2*listView.spacing;
 					delegate.setupLayout(); //Now that size reached its final value, layout the widgets inside TPRadioButtonOrCheckBox
 				}
 			}

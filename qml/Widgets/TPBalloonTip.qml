@@ -10,6 +10,7 @@ TPPopup {
 	id: _balloon
 	keepAbove: false
 	showTitleBar: false
+	enableEffects: true
 	focus: false
 	open_in_window: true
 	width: AppSettings.pageWidth * 0.8
@@ -115,7 +116,7 @@ TPPopup {
 
 				onClicked: {
 					_balloon.button1Clicked();
-					_balloon.closePopup(0);
+					_balloon.closePopup(TPPopup.DEFAULT_ACTION);
 				}
 			}
 
@@ -157,28 +158,49 @@ TPPopup {
 	}
 
 	Timer {
-		id: hideTimer
+		id: timer
 		running: false
 		repeat: false
 
+		property bool paused: false
+
 		onTriggered: {
-			if (_balloon._close_on_timer_finished)
-				_balloon.closePopup(-2); //close as if it were swiped away
-			else
-				_balloon.tpOpen();
+			if (!paused) {
+				if (_balloon._close_on_timer_finished)
+					_balloon.closePopup(TPPopup.SWIPE); //close as if it were swiped away
+				else
+					_balloon.tpOpen();
+			}
+		}
+	}
+
+	Connections {
+		target: mouse_area
+		//won't be caught when a slide to close happen because the popup will disappear(close)
+		function onMouseReleased(mouse: MouseEvent): void {
+			if (timer.paused) {
+				timer.paused = false;
+				timer.interval = 1;
+				timer.start();
+			}
 		}
 	}
 
 	function showTimed(timeout: int): void {
 		_balloon.tpOpen();
 		_close_on_timer_finished = true;
-		hideTimer.interval = timeout;
-		hideTimer.start();
+		timer.interval = timeout;
+		timer.start();
 	}
 
 	function showLate(timeout: int): void {
 		_close_on_timer_finished = false;
-		hideTimer.interval = timeout;
-		hideTimer.start();
+		timer.interval = timeout;
+		timer.start();
+	}
+
+	//While the mouse/tap is pressed do not let the timer run because we don't know what the user wants to do
+	function mouseAreaPressed(): void {
+		timer.paused = true;
 	}
 }

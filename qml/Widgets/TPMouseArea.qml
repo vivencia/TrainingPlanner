@@ -27,8 +27,10 @@ MouseArea {
 
 	signal mouseClicked(mouse: MouseEvent)
 	signal mousePressed(mouse: MouseEvent)
+	signal mouseReleased(mouse: MouseEvent)
 	signal movingFinished(x: int, y: int)
 	signal slideOutToSide(side: int)
+	signal widgetOutOfBounds()
 
 //private:
 	property point _mouse_pos_within_widget
@@ -43,6 +45,7 @@ MouseArea {
 		if (_pressed_and_held) {
 			_pressed_and_held = false;
 			mouse.accepted = true;
+			mouseReleased(mouse);
 			if (_moved) {
 				if (!movableWidgetCanGoOutsideBounds) { //Prevent the control from going out sight
 					if (!lockMovingToYAxis) {
@@ -57,7 +60,10 @@ MouseArea {
 						else if (movableWidget.y + movableWidget.height > AppSettings.windowHeight)
 							movableWidget.y = AppSettings.windowHeight - movableWidget.height;
 					}
+				} else {
+					widgetOutOfBounds();
 				}
+
 				movingFinished(movableWidget.x, movableWidget.y);
 				_moved = false;
 			}

@@ -42,6 +42,7 @@ public slots:
 	void sendTPMessage(const QStringList &users, const QString &message, const QString &filename);
 
 signals:
+	void graphicalInterfaceReady();
 	void messagesModelChanged();
 	void TPMessageSent(const int requestid, const bool success);
 

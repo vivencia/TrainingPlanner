@@ -105,9 +105,13 @@ void DBUserModel::initUserSession()
 #ifdef ENABLE_TPMESSAGES_MANAGER
 				if (!appMessagesManager()) {
 					new TPMessagesManager{this};
+					connect(appMessagesManager(), &TPMessagesManager::graphicalInterfaceReady, this, [this] () {
+						appMessagesManager()->readAllChats();
+					}, Qt::SingleShotConnection);
 					appMessagesManager()->startMessagesManager();
+				} else {
+					appMessagesManager()->readAllChats();
 				}
-				appMessagesManager()->readAllChats();
 #endif
 				if (!appWSServer())
 					new WSServer{userId(0), this};

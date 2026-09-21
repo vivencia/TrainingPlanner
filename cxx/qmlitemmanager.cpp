@@ -343,8 +343,8 @@ void QmlItemManager::getStatisticsPage()
 		appPagesListModel()->openPage(m_statisticsPage);
 }
 
-void QmlItemManager::displayWindowMessage(const int message_id, const int msecs, QFlags<Qt::AlignmentFlag> position,
-																			const QString &title, const QString &message)
+void QmlItemManager::displayWindowMessage(const int message_id, const QString &title, const QString &message,
+															  const int msecs, QFlags<Qt::AlignmentFlag> position)
 {
 	displayMessageOnAppWindow(message_id, std::move(appUtils()->string_strings({title, message}, record_separator)),
 																							position, QString{}, msecs);
@@ -373,6 +373,7 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, QString &&m
 	if (message_id < TP_RET_CODE_CUSTOM_ERROR) {
 		icon_to_use = MI_OK;
 		switch (message_id) {
+		case TP_RET_CODE_SUCCESS:
 		case TP_RET_CODE_CUSTOM_SUCCESS:
 			title = std::move(appUtils()->getCompositeValue(0, message, record_separator));
 			message = std::move(appUtils()->getCompositeValue(1, message, record_separator));

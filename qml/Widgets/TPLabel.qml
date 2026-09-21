@@ -8,7 +8,7 @@ Label {
 	color: enabled ? fontColor : AppSettings.disabledFontColor
 	wrapMode: singleLine ? Label.NoWrap : Label.WrapAtWordBoundaryOrAnywhere
 	font: AppGlobals.regularFont
-	minimumPixelSize: AppSettings.smallFontSize * 0.5
+	minimumPixelSize: singleLine ? AppSettings.smallFontSize * 0.5 : AppSettings.smallFontSize
 	fontSizeMode: singleLine ? Label.Fit : Label.VerticalFit
 	verticalAlignment: Label.AlignVCenter
 	horizontalAlignment: Label.AlignLeft
@@ -19,15 +19,31 @@ Label {
 	rightInset: 0
 	padding: 0
 
+	FontMetrics {
+		id: fm
+		font: _control.font
+	}
+
 	property string fontColor: AppSettings.fontColor
 	property bool singleLine: true
 	property bool useBackground: false
-	property string backgroundColor: AppSettings.primaryDarkColor
+	property string backgroundColor: AppSettings.primaryLightColor
 
 	Rectangle {
 		id: itemBack
 		color: _control.enabled ? _control.backgroundColor : "transparent"
 		radius: 8
 		opacity: 0.7
+	}
+
+	function preferredHeight(): int {
+		const br_w = fm.boundingRect(text).width;
+		let ph = 0;
+		if (width < br_w) {
+			ph = Math.ceil(fm.height * (fm.boundingRect(text).width / width));
+			return ph;
+		} else {
+			return Math.max(fm.height, height);
+		}
 	}
 }

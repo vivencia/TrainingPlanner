@@ -154,6 +154,7 @@ set( CXX_SOURCES
 		cxx/dbworkoutsorsplitstable.h cxx/dbworkoutsorsplitstable.cpp
 		cxx/dbusertable.h cxx/dbusertable.cpp
 		cxx/dbmodelinterface.h cxx/dbmodelinterface.cpp
+		cxx/tplistmodel.h cxx/tplistmodel.cpp
 
 		cxx/weather/openweathermapbackend.h cxx/weather/openweathermapbackend.cpp
 		cxx/statistics/tpstatistics.h cxx/statistics/tpstatistics.cpp

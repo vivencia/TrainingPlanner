@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 
-ListView {
+ListView {	
 	readonly property ScrollBar vBar: _vBar
 
 	boundsBehavior: ListView.StopAtBounds
@@ -11,6 +11,13 @@ ListView {
 	focus: true
 	spacing: 2
 
+//public:
+	property bool canSelectItems: false
+	property bool allItemsSelected: false
+
+//protected:
+	property bool items_selectable: false
+
 	ScrollBar.vertical: ScrollBar {
 		id: _vBar
 		policy: ScrollBar.AsNeeded
@@ -19,5 +26,17 @@ ListView {
 
 	ScrollBar.horizontal: ScrollBar {
 		policy: ScrollBar.AsNeeded
+	}
+
+	function search(text: string): void {
+
+	}
+
+	function selectAll(): void {
+
+	}
+
+	function showFilterDialog(): void {
+
 	}
 }

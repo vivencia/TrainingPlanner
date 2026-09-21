@@ -71,9 +71,8 @@ public:
 	Q_INVOKABLE void showLogs();
 	Q_INVOKABLE void getStatisticsPage();
 
-	Q_INVOKABLE void displayWindowMessage(const int message_id, const int msecs,
-										QFlags<Qt::AlignmentFlag> position = Qt::AlignTop|Qt::AlignHCenter,
-										const QString &title = QString{}, const QString &message = QString{});
+	Q_INVOKABLE void displayWindowMessage(const int message_id, const QString &title, const QString &message,
+							const int msecs = 4000, QFlags<Qt::AlignmentFlag> position = Qt::AlignTop|Qt::AlignHCenter);
 
 	void displayMessageOnAppWindow(const int message_id, QString &&message = QString{},
 										QFlags<Qt::AlignmentFlag> position = Qt::AlignTop|Qt::AlignHCenter,

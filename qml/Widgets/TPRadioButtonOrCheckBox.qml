@@ -4,8 +4,8 @@ import TpQml
 
 TPBackRec {
 	id: _control
-	height: defaultHeight
 	backColor: "transparent"
+	height: AppSettings.itemDefaultHeight + 10
 
 //public:
 	property alias image: img.source
@@ -22,8 +22,6 @@ TPBackRec {
 	property bool actionable: enabled
 	property int boxType: TPRadioButtonOrCheckBox.TP_RADIOBOX
 	property TPButtonGroup buttonGroup: null
-	readonly property int preferredWidth: label.preferredWidth + _preferred_width
-	readonly property int defaultHeight: AppSettings.itemDefaultHeight + 10
 
 	enum BoxType { TP_RADIOBOX, TP_CHECKBOX, TP_NONEBOX }
 	signal clicked()
@@ -34,30 +32,32 @@ TPBackRec {
 	property Item _bottom_control: null
 	property Item _left_control: null
 	property Item _right_control: null
-	property int _preferred_width;
+	property bool _component_completed: false
 
 	readonly property int _control_subtype: {
 		if (img.OK) {
-			_preferred_width = img.width;
 			if (boxType !== TPRadioButtonOrCheckBox.TP_NONEBOX)
 				return imageAfterIndicator ? TPRadioButtonOrCheckBox.INDICATOR_PLUS_IMAGE : TPRadioButtonOrCheckBox.IMAGE_PLUS_INDICATOR;
 			else
 				return TPRadioButtonOrCheckBox.IMAGE_ONLY;
 		} else {
 			if (boxType !== TPRadioButtonOrCheckBox.TP_NONEBOX) {
-				_preferred_width = indicator.width;
 				return TPRadioButtonOrCheckBox.INDICATOR_ONLY;
 			} else {
-			return TPRadioButtonOrCheckBox.TEXT_ONLY;
+				return TPRadioButtonOrCheckBox.TEXT_ONLY;
 			}
 		}
+	}
+
+	onWidthChanged: {
+		if (_component_completed && width > AppSettings.itemDefaultHeight)
+			setupLayout();
 	}
 
 	TPLabel {
 		id: label
 		singleLine: !_control.multiLine
 		padding: 5
-		readonly property int preferredWidth: lineCount <= 1 ? contentWidth : contentWidth/lineCount
 	}
 
 	Rectangle {
@@ -96,13 +96,14 @@ TPBackRec {
 	}
 
 	Component.onCompleted: {
-		if (width > AppSettings.itemDefaultHeight && height > AppSettings.itemDefaultHeight)
-			setupLayout();
 		if (boxType === TPRadioButtonOrCheckBox.TP_RADIOBOX && buttonGroup) {
 			buttonGroup.addButton(this);
 			if (checked)
 				buttonGroup.setChecked(this, true);
 		}
+		_component_completed = true;
+		if (width > AppSettings.itemDefaultHeight)
+			setupLayout();
 	}
 
 	Component.onDestruction: {
@@ -228,10 +229,12 @@ TPBackRec {
 	}
 
 	function anchorLabel(): void {
-		label.anchors.top = _control._top_control ? _control._top_control.bottom : _control.top;
-		label.anchors.bottom = _control._bottom_control ? _control._bottom_control.top : _control.bottom;
-		label.anchors.left = _control._left_control ? _control._left_control.right : _control.left;
-		label.anchors.right = _control._right_control ? _control._right_control.left : _control.right;
+		label.anchors.top = _top_control ? _top_control.bottom : top;
+		label.anchors.bottom = _bottom_control ? _bottom_control.top : bottom;
+		label.anchors.left = _left_control ? _left_control.right : left;
+		label.anchors.right = _right_control ? _right_control.left : right;
+		height = Math.max(label.preferredHeight()) + (_top_control ? _top_control.height : 0) +
+											(_bottom_control ? _bottom_control.height : 0) + 10
 	}
 
 	function mouseClicked(): void {
@@ -243,7 +246,7 @@ TPBackRec {
 			if (!_control.buttonGroup)
 				_control.checked = true;
 			else
-				_control.buttonGroup.setChecked(_control, true)
+				_control.buttonGroup.setChecked(_control, true);
 		}
 		_control.clicked();
 	}

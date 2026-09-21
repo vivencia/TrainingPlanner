@@ -13,6 +13,7 @@ set( QML_WIDGETS
 	"TPLabel.qml"
 	"TPLayout.qml"
 	"TPListView.qml"
+	"TPListViewHeader.qml"
 	"TPMediaPlayer.qml"
 	"TPMouseArea.qml"
 	"TPMultiLineEdit.qml"
