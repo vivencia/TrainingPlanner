@@ -13,7 +13,7 @@ import "./WeatherPageElements"
 TPPage {
 	id: weatherPage
 	objectName: "weatherPage"
-	imageSource: AppSettings.weatherBackground
+	image: AppSettings.weatherBackground
 	backgroundOpacity: 0.6
 
 	WeatherInfo {
@@ -41,7 +41,7 @@ TPPage {
 			Layout.maximumHeight: AppSettings.itemDefaultHeight * 2
 
 			TPButton {
-				imageSource: "gps.png"
+				image: "gps.png"
 				enabled: weatherInfo.canUseGps
 				width: 30
 				height: 30
@@ -95,7 +95,7 @@ TPPage {
 					}
 
 					TPButton {
-						imageSource: "remove"
+						image: "remove"
 						width: AppSettings.itemDefaultHeight
 						enabled: delegate.index === weatherInfo.currentlyViewedLocationIndex
 

@@ -108,7 +108,7 @@ Drawer {
 
 			TPButton {
 				id: btnSettings
-				imageSource: "settings"
+				image: "settings"
 				width: AppSettings.itemExtraLargeHeight
 				height: width
 
@@ -126,7 +126,7 @@ Drawer {
 
 			TPButton {
 				id: btnMessages
-				imageSource: "messages"
+				image: "messages"
 				visible: AppUserModel.onlineAccount
 				checkable: true
 				checked: !AppSettings.showOnlineMessagesDialog
@@ -143,7 +143,7 @@ Drawer {
 
 			TPButton {
 				id: btnMessagesLog
-				imageSource: "logs_"
+				image: "logs_"
 				width: AppSettings.itemLargeHeight
 				height: width
 
@@ -187,7 +187,7 @@ Drawer {
 			}
 
 			TPButton {
-				imageSource: "switch-user.png"
+				image: "switch-user.png"
 				width: AppSettings.itemDefaultHeight
 				height: AppSettings.itemDefaultHeight
 				visible: { return Qt.platform.os !== "android"}
@@ -278,7 +278,7 @@ Drawer {
 	TPButton {
 		id: btnExit
 		text: qsTr("Exit")
-		imageSource: "application-exit.png"
+		image: "application-exit.png"
 		iconOnTheLeft: true
 		rounded: false
 

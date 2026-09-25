@@ -26,8 +26,7 @@ TPPopup {
 	}
 
 	TPButton {
-		imageSource: _control.shown ? "fold-up.png" : "fold-down.png"
-		hasDropShadow: false
+		image: _control.shown ? "fold-up.png" : "fold-down.png"
 		width: AppSettings.itemDefaultHeight
 		height: width
 		z: 1

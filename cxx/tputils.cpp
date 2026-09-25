@@ -1266,6 +1266,9 @@ QString TPUtils::stripInvalidCharacters(const QString &string) const
 
 bool TPUtils::containsAllWords(const QString &mainString, const QStringList &wordSet, const bool precise)
 {
+	if (mainString.isEmpty() || wordSet.isEmpty())
+		return true;
+
 	const QStringList &searched_words{precise ? mainString.split(' ', Qt::SkipEmptyParts) :
 												stripDiacriticsFromString(mainString).split(' ', Qt::SkipEmptyParts)};
 	QStringList::const_iterator haystack{searched_words.constBegin()};

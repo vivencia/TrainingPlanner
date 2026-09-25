@@ -92,14 +92,5 @@ ApplicationWindow {
 				horizontalCenter: parent.horizontalCenter
 			}
 		}
-		TPButton {
-			id: btnMessage
-			text: "New Message"
-			onClicked: ItemManager.displayWindowMessage(0, "Custom Title", "Custom Message");
-			anchors {
-				top: btnLogs.bottom
-				horizontalCenter: parent.horizontalCenter
-			}
-		}
 	}
 }

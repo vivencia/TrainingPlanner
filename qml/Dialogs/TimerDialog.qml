@@ -318,7 +318,6 @@ TPPopup {
 				id: btnDone
 				text: qsTr("Done")
 				visible: _dlg_timer.timePickerOnly
-				autoSize: true
 				Layout.alignment: Qt.AlignHCenter
 
 				onClicked: {

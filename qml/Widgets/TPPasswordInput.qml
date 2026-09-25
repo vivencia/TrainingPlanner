@@ -13,8 +13,7 @@ TPTextInput {
 
 	TPButton {
 		id: btnShowHidePassword
-		imageSource: show ? "hide-password.png" : "show-password.png"
-		hasDropShadow: false
+		image: show ? "hide-password.png" : "show-password.png"
 		width: AppSettings.itemDefaultHeight
 		height: width
 		focus: false

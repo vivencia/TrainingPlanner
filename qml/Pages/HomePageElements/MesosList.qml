@@ -130,7 +130,7 @@ Item {
 				TPButton {
 					id: btnMesoInfo
 					text: qsTr("View Program")
-					imageSource: "mesocycle.png"
+					image: "mesocycle.png"
 					textUnderIcon: true
 					rounded: false
 					width: parent.width / 2 - 10
@@ -150,7 +150,7 @@ Item {
 				TPButton {
 					id: btnMesoCalendar
 					text: qsTr("Calendar")
-					imageSource: "meso-calendar.png"
+					image: "meso-calendar.png"
 					rounded: false
 					textUnderIcon: true
 					enabled: delegate.haveCalendar
@@ -171,7 +171,7 @@ Item {
 				TPButton {
 					id: btnMesoPlan
 					text: qsTr("Exercises Sheet")
-					imageSource: "meso-splitplanner.png"
+					image: "meso-splitplanner.png"
 					rounded: false
 					enabled: delegate.mesoSplitsAvailable
 					textUnderIcon: true
@@ -192,7 +192,7 @@ Item {
 				TPButton {
 					id: btnExport
 					text: qsTr("Export")
-					imageSource: "export.png"
+					image: "export.png"
 					rounded: false
 					textUnderIcon: true
 					enabled: delegate.mesoExportable
@@ -237,9 +237,7 @@ Item {
 
 				TPButton {
 					text: qsTr("Remove Program")
-					imageSource: "remove"
-					hasDropShadow: false
-					autoSize: true
+					image: "remove"
 					z: 1
 
 					anchors {
@@ -257,7 +255,7 @@ Item {
 					id: msgDlg
 					title: qsTr("Remove ") + meso_name + "?"
 					message: qsTr("This action cannot be undone.")
-					imageSource: "remove"
+					image: "remove"
 					keepAbove: true
 					parentPage: ItemManager.appPagesManager.homePage() as TPPage
 
@@ -348,7 +346,7 @@ Item {
 			TPButton {
 				id: btnAddMeso
 				text: qsTr("New Training Program")
-				imageSource: "mesocycle-add.png"
+				image: "mesocycle-add.png"
 				visible: _control.mesoSubModel.type !== MesocyclesModel.MT_MESO_FOR_CLIENT
 				Layout.preferredWidth: preferredWidth
 				Layout.maximumWidth: parent.width
@@ -361,7 +359,7 @@ Item {
 			TPButton {
 				id: btnImportMeso
 				text: qsTr("Import program from file")
-				imageSource: "import.png"
+				image: "import.png"
 				Layout.preferredWidth: preferredWidth
 				Layout.maximumWidth: parent.width
 				Layout.maximumHeight: AppSettings.itemDefaultHeight
@@ -373,7 +371,7 @@ Item {
 			TPButton {
 				id: btnWorkout
 				text: qsTr("Today's workout")
-				imageSource: "workout.png"
+				image: "workout.png"
 				enabled: _control.mesoSubModel.canHaveTodaysWorkout
 				Layout.preferredWidth: preferredWidth
 				Layout.maximumHeight: AppSettings.itemDefaultHeight

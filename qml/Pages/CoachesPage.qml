@@ -11,7 +11,7 @@ import TpQml.User
 TPPage {
 	id: coachesPage
 	objectName: "CoachesPage"
-	imageSource: AppSettings.coachesBackground
+	image: AppSettings.coachesBackground
 	backgroundOpacity: 0.6
 
 //private:
@@ -122,7 +122,6 @@ TPPage {
 
 				TPButton {
 					text: qsTr("Accept")
-					autoSize: true
 					rounded: false
 					Layout.alignment: Qt.AlignCenter
 
@@ -130,7 +129,6 @@ TPPage {
 				}
 				TPButton {
 					text: qsTr("Decline")
-					autoSize: true
 					rounded: false
 					Layout.alignment: Qt.AlignCenter
 
@@ -229,7 +227,7 @@ TPPage {
 
 		sourceComponent: TPBalloonTip {
 			parentPage: coachesPage
-			imageSource: "remove"
+			image: "remove"
 			keepAbove: true
 			message: removeUserDlgLoader.decline ?
 				qsTr("The coach will receive your reply, but might choose to send another answer unless you block them") :

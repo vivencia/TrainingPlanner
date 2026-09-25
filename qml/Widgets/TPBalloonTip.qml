@@ -25,7 +25,7 @@ TPPopup {
 	property string title: ""
 	property string button1Text: qsTr("Yes")
 	property string button2Text: qsTr("No")
-	property string imageSource: ""
+	property alias image: imgElement.source
 	property string textColor: AppSettings.fontColor
 	property string subImageLabel: ""
 	property bool highlightMessage: false
@@ -64,8 +64,7 @@ TPPopup {
 
 			TPImage {
 				id: imgElement
-				source: _balloon.imageSource
-				visible: _balloon.imageSource.length > 0
+				visible: OK
 				enabled: _balloon.imageEnabled
 				Layout.preferredWidth: AppSettings.itemExtraLargeHeight
 				Layout.preferredHeight: AppSettings.itemExtraLargeHeight
@@ -112,7 +111,7 @@ TPPopup {
 				text: _balloon.button1Text
 				visible: _balloon.button1Text.length > 0
 				Layout.alignment: Qt.AlignCenter
-				Layout.preferredWidth: Math.min(_balloon.availableWidth - btn2.width - 10, preferredWidth)
+				Layout.preferredWidth: Math.min(_balloon.availableWidth - btn2.width - 10, btn1.preferredWidth)
 
 				onClicked: {
 					_balloon.button1Clicked();
@@ -125,7 +124,7 @@ TPPopup {
 				text: _balloon.button2Text
 				visible: _balloon.button2Text.length > 0
 				Layout.alignment: Qt.AlignCenter
-				Layout.preferredWidth: Math.min(preferredWidth, _balloon.availableWidth / 2 - 10)
+				Layout.preferredWidth: Math.min(btn2.preferredWidth, _balloon.availableWidth / 2 - 10)
 
 				onClicked: {
 					_balloon.button2Clicked();

@@ -13,8 +13,7 @@ TPToolBar {
 
 	TPButton {
 		id: btnBack
-		imageSource: "back.png"
-		hasDropShadow: false
+		image: "back.png"
 		width: AppSettings.itemLargeHeight
 		height: width
 		enabled: ItemManager.appPagesManager.currentIndex > 0
@@ -30,8 +29,7 @@ TPToolBar {
 
 	TPButton {
 		id: btnForward
-		imageSource: "next.png"
-		hasDropShadow: false
+		image: "next.png"
 		width: AppSettings.itemLargeHeight
 		height: width
 		enabled: ItemManager.appPagesManager.currentIndex < ItemManager.appPagesManager.count - 1
@@ -46,8 +44,7 @@ TPToolBar {
 
 	TPButton {
 		id: btnHome
-		imageSource: "home.png"
-		hasDropShadow: false
+		image: "home.png"
 		width: AppSettings.itemLargeHeight
 		height: width
 		enabled: btnBack.enabled
@@ -62,8 +59,7 @@ TPToolBar {
 
 	TPButton {
 		id: btnMainMenu
-		imageSource: "mainmenu"
-		hasDropShadow: false
+		image: "mainmenu"
 		width: AppSettings.itemLargeHeight
 		height: width
 
@@ -78,8 +74,7 @@ TPToolBar {
 
 	TPButton {
 		id: btnCalendar
-		imageSource: "calendar"
-		hasDropShadow: false
+		image: "calendar"
 		width: AppSettings.itemLargeHeight
 		height: width
 
@@ -110,8 +105,7 @@ TPToolBar {
 
 	TPButton {
 		id: btnTimer
-		imageSource: "timer"
-		hasDropShadow: false
+		image: "timer"
 		width: AppSettings.itemLargeHeight
 		height: width
 
@@ -140,8 +134,7 @@ TPToolBar {
 
 	TPButton {
 		id: btnWeather
-		imageSource: "weather"
-		hasDropShadow: false
+		image: "weather"
 		width: AppSettings.itemLargeHeight
 		height: width
 		enabled: AppOsInterface.internetOK
@@ -157,8 +150,7 @@ TPToolBar {
 
 	TPButton {
 		id: btnExercisesList
-		imageSource: "exercisesdb"
-		hasDropShadow: false
+		image: "exercisesdb"
 		width: AppSettings.itemLargeHeight
 		height: width
 
@@ -172,8 +164,7 @@ TPToolBar {
 	}
 
 	TPButton {
-		imageSource: "statistics"
-		hasDropShadow: false
+		image: "statistics"
 		width: AppSettings.itemLargeHeight
 		height: width
 

@@ -28,11 +28,11 @@ TPBackRec {
 
 	TPButton {
 		id: btnClose
-		imageSource: "close.png"
-		hasDropShadow: false
+		image: !_control.parentPopup.resizeable ? "close.png" : "close_control.png"
+		imageHeight: AppSettings.itemSmallHeight
 		visible: _control.parentPopup.showCloseButton
-		width: AppSettings.itemSmallHeight
-		height: width
+		width: imageHeight
+		height: imageHeight
 		z: 2
 
 		anchors {
@@ -151,11 +151,11 @@ TPBackRec {
 
 			TPButton {
 				id: btnMaxRestoreWindow
-				imageSource: _control.parentPopup._maximized ? "restore.png" : "maximize.png"
-				hasDropShadow: false
+				image: _control.parentPopup._maximized ? "restore.png" : "maximize.png"
+				imageHeight: AppSettings.itemSmallHeight
 				visible: _control.parentPopup.show_maximize_button
-				width: AppSettings.itemSmallHeight
-				height: width
+				width: imageHeight
+				height: imageHeight
 				z: 2
 
 				anchors {
@@ -169,12 +169,12 @@ TPBackRec {
 
 			TPButton {
 				id: btnMinimizeWindow
-				imageSource: "minimize.png"
-				hasDropShadow: false
+				image: "minimize.png"
+				imageHeight: AppSettings.itemSmallHeight
 				visible: _control.parentPopup.show_minimize_button
 				enabled: !_control.parentPopup._minimized
-				width: AppSettings.itemSmallHeight
-				height: width
+				width: imageHeight
+				height: imageHeight
 				z: 2
 
 				anchors {
@@ -280,7 +280,7 @@ TPBackRec {
 				//reverse expand so that popup ends up inside the page
 				parentPopup._end_y_pos = parentPopup.y - parentPopup._normal_height;
 				if (parentPopup._end_y_pos < 0)
-					parentPopup._end_y_pos = 0;
+					parentPopup._end_y_pos = parentPopup.realY;
 			} else {
 				parentPopup._end_y_pos = parentPopup.y; //popup, heightwise, after expansion will be is inside page, do nothing
 			}

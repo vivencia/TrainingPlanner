@@ -71,8 +71,7 @@ TPPopup {
 
 	TPButton {
 		id: btnShowHideList
-		imageSource: _dlgMuscularGroup.shown ? "fold-up.png" : "fold-down.png"
-		hasDropShadow: false
+		image: _dlgMuscularGroup.shown ? "fold-up.png" : "fold-down.png"
 		width: AppSettings.itemDefaultHeight
 		height: width
 		z: 1
@@ -133,8 +132,6 @@ TPPopup {
 	TPButton {
 		id: btnMakeFilter
 		text: _dlgMuscularGroup.buttonLabel
-		autoSize: true
-		//visible: _dlgMuscularGroup.shown
 
 		readonly property int margin: (_dlgMuscularGroup.width - width)/2
 

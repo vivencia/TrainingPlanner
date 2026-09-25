@@ -153,7 +153,7 @@ TPPage {
 
 							TPButton {
 								id: btnStartDate
-								imageSource: "calendar.png"
+								image: "calendar.png"
 								width: 30
 								height: 30
 
@@ -188,7 +188,7 @@ TPPage {
 
 							TPButton {
 								id: btnEndDate
-								imageSource: "calendar.png"
+								image: "calendar.png"
 								width: 30
 								height: 30
 

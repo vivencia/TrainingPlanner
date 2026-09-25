@@ -32,8 +32,7 @@ Item {
 		}
 
 		TPButton {
-			imageSource: setNotesArea.visible ? "fold-up.png" : "fold-down.png"
-			hasDropShadow: false
+			image: setNotesArea.visible ? "fold-up.png" : "fold-down.png"
 			width: AppSettings.itemSmallHeight
 			height: width
 

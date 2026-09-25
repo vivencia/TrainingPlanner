@@ -28,6 +28,7 @@ Label {
 	property bool singleLine: true
 	property bool useBackground: false
 	property string backgroundColor: AppSettings.primaryLightColor
+	readonly property int preferredWidth: Math.min(fm.boundingRect(text).width, AppSettings.pageWidth * 0.9)
 
 	Rectangle {
 		id: itemBack
@@ -37,10 +38,13 @@ Label {
 	}
 
 	function preferredHeight(): int {
+		if (singleLine)
+			return fm.height * 1.05;
+
 		const br_w = fm.boundingRect(text).width;
 		let ph = 0;
 		if (width < br_w) {
-			ph = Math.ceil(fm.height * (fm.boundingRect(text).width / width));
+			ph = Math.floor(fm.height * (fm.boundingRect(text).width / width));
 			return ph;
 		} else {
 			return Math.max(fm.height, height);

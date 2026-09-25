@@ -38,7 +38,7 @@ TPPopup {
 
 	TPButton {
 		id: btnUp
-		imageSource: "upward"
+		image: "upward"
 		visible: _control.visible && _control.showUpButton
 		focus: false
 		width: _control._button_size
@@ -55,7 +55,7 @@ TPPopup {
 
 	TPButton {
 		id: btnDown
-		imageSource: "downward"
+		image: "downward"
 		visible: _control.visible && _control.showDownButton
 		focus: false
 		width: _control._button_size

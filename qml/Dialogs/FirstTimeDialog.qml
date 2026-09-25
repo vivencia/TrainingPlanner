@@ -103,10 +103,8 @@ TPPopup {
 		TPButton {
 			id: btnPrev
 			text: qsTr("Previous")
-			imageSource: "back.png"
-			hasDropShadow: false
+			image: "back.png"
 			iconOnTheLeft: true
-			autoSize: true
 			enabled: stackLayout.currentIndex > 0
 
 			property var conn
@@ -134,9 +132,7 @@ TPPopup {
 		TPButton {
 			id: btnNext
 			text: stackLayout.currentIndex < stackLayout.count - 1 ? qsTr("Next") : qsTr("Conclude")
-			imageSource: "next.png"
-			hasDropShadow: false
-			autoSize: true
+			image: "next.png"
 			enabled: stackLayout.currentIndex < stackLayout.count ? _firstTimeDlg.isModuleReady(stackLayout.currentIndex) : false
 
 			anchors {

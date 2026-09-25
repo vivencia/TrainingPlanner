@@ -96,7 +96,6 @@ ColumnLayout {
 		id: btnCheckEMail
 		text: AppUserModel.checkEmailLabel
 		enabled: _can_click && txtEmail.inputOK && passwordControl.passwordOK
-		autoSize: true
 		Layout.alignment: Qt.AlignCenter
 
 		property bool _can_click: true

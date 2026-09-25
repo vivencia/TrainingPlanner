@@ -60,8 +60,7 @@ TextField {
 		_control.textRemovedKeyPressed = false;
 		switch (event.key) {
 		case Qt.Key_Enter:
-		case Qt.Key_Return:
-			{
+		case Qt.Key_Return: {
 				event.accepted = true;
 				let mod_key = 0;
 				if (event.modifiers) {
@@ -99,8 +98,7 @@ TextField {
 
 	TPButton {
 		id: btnClearText
-		imageSource: "edit-clear"
-		hasDropShadow: false
+		image: "edit-clear"
 		visible: _control.showClearTextButton && _control.text.length > 0
 		width: AppSettings.itemDefaultHeight
 		height: width
@@ -123,17 +121,16 @@ TextField {
 		if (heightAdjustable && text.length > 20) {
 			const textWidth = currentFontMetrics.boundingRect(text).width;
 			height = implicitHeight = textWidth > width ? (Math.ceil(textWidth/width) + 1) * suggestedHeight : suggestedHeight;
-		}
-		else
+		} else {
 			height = implicitHeight = suggestedHeight;
+		}
 	}
 
 	function positionCaret(): void {
 		if (readOnly) {
 			ensureVisible(0);
 			cursorPosition = 0;
-		}
-		else {
+		} else {
 			const len = text.length;
 			ensureVisible(len-1);
 			cursorPosition = len;

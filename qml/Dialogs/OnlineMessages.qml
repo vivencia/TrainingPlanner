@@ -17,6 +17,7 @@ TPPopup {
 	defaultBackgroundColor: "transparent"
 	mouseItem: _minimized ? mainIcon : titleBar
 	showBehavior: AppSettings.showOnlineMessagesDialog ? TPPopup.ALWAYS_VISIBLE : TPPopup.PARENT_PAGE_ACTIVE
+	show_position: Qt.AlignBaseline
 	defaultCoordinates: Qt.point(80, 180)
 	normal_size: Qt.size(AppSettings.pageWidth * 0.8, AppSettings.pageWidth * 0.8)
 	minimized_size: Qt.size(mainIcon.width, mainIcon.height)
@@ -67,7 +68,7 @@ TPPopup {
 		anchors {
 			top: parent.top
 			left: parent.left
-			leftMargin: 10
+			margins: 5
 		}
 	}
 
@@ -79,8 +80,8 @@ TPPopup {
 
 		anchors {
 			left: smallIcon.right
-			leftMargin: 10
 			verticalCenter: smallIcon.verticalCenter
+			margins: 5
 		}
 	}
 
@@ -408,7 +409,7 @@ TPPopup {
 		}
 
 		TPButton {
-			imageSource: mainLayout.currentIndex !== 2 ? "add-new.png" : "revert.png"
+			image: mainLayout.currentIndex !== 2 ? "add-new.png" : "revert.png"
 			width: AppSettings.itemDefaultHeight
 			height: width
 			visible: !onlineMsgsDlg._minimized

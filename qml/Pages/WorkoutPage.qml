@@ -13,7 +13,7 @@ import "./WorkoutElements"
 
 TPPage {
 	id: workoutPage
-	imageSource: ":/images/backgrounds/backimage-workout.jpg"
+	image: ":/images/backgrounds/backimage-workout.jpg"
 	backgroundOpacity: 0.6
 	objectName: "workoutPage"
 
@@ -49,11 +49,9 @@ TPPage {
 		TPButton {
 			id: btnWorkoutInfo
 			text: qsTr("--- WORKOUT INFO ---")
-			imageSource: layoutMain.visible ? "fold-up.png" : "fold-down.png"
-			hasDropShadow: false
+			image: layoutMain.visible ? "fold-up.png" : "fold-down.png"
 			flat: true
 			rounded: false
-			autoSize: true
 
 			anchors {
 				horizontalCenter: parent.horizontalCenter
@@ -236,7 +234,7 @@ TPPage {
 
 						TPButton {
 							id: btnInTime
-							imageSource: "time.png"
+							image: "time.png"
 							width: AppSettings.itemDefaultHeight
 							height: width
 
@@ -288,7 +286,7 @@ TPPage {
 
 						TPButton {
 							id: btnOutTime
-							imageSource: "time.png"
+							image: "time.png"
 							width: AppSettings.itemDefaultHeight
 							height: width
 
@@ -335,11 +333,9 @@ TPPage {
 		TPButton {
 			id: btnExercises
 			text: qsTr("--- EXERCISES ---")
-			imageSource: exercisesFrame.visible ? "fold-up.png" : "fold-down.png"
-			autoSize: true
+			image: exercisesFrame.visible ? "fold-up.png" : "fold-down.png"
 			flat: true
 			rounded: false
-			hasDropShadow: false
 			visible: workoutPage.workoutModel.splitLetter !== "R"
 
 			anchors {
@@ -447,7 +443,7 @@ TPPage {
 
 		TPButton {
 			text: qsTr("Add exercise")
-			imageSource: "exercises-add.png"
+			image: "exercises-add.png"
 			multiline: true
 			rounded: false
 			textUnderIcon: true
@@ -550,7 +546,7 @@ TPPage {
 																			qsTr(" seconds")) + qsTr("</b> until end of training session!");
 			button1Text: qsTr("I'm almost finished!")
 			button2Text: ""
-			imageSource: "sound-off"
+			image: "sound-off"
 			onClosed: {
 				workoutPage.silenceTimeWarning();
 				timeWarningDialogLoader.active = false;
@@ -640,7 +636,7 @@ TPPage {
 			parentPage: workoutPage
 			title: qsTr("Reset workout?")
 			message: qsTr("Exercises will not be afected")
-			imageSource: "reset.png"
+			image: "reset.png"
 			onClosed: resetWorkoutDlgLoader.active = false;
 			onButton1Clicked: workoutPage.workoutManager.resetWorkout();
 			Component.onCompleted: resetWorkoutDlgLoader._reset_dlg = this;

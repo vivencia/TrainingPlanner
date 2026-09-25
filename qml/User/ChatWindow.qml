@@ -378,8 +378,7 @@ TPPopup {
 
 		TPButton {
 			id: btnScrollDown
-			imageSource: "downward"
-			hasDropShadow: false
+			image: "downward"
 			border.color: _chatWindow.chatManager.hasUnreadMessages ? AppSettings.primaryLightColor : "transparent"
 			border.width: 2
 			width: AppSettings.itemDefaultHeight
@@ -417,7 +416,7 @@ TPPopup {
 
 		TPButton {
 			id: btnSendFile
-			imageSource: "attach_"
+			image: "attach_"
 			width: AppSettings.itemDefaultHeight
 			height: width
 
@@ -432,7 +431,7 @@ TPPopup {
 
 		TPButton {
 			id: btnSend
-			imageSource: "send-message"
+			image: "send-message"
 			width: AppSettings.itemDefaultHeight
 			height: width
 			enabled: txtMessage.text.length > 0

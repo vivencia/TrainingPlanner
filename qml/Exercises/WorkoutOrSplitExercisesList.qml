@@ -64,7 +64,7 @@ TPListView {
 			keepAbove: true
 			title: qsTr("Remove Exercise?")
 			message: delExerciseLoader._exerciseName + qsTr("\nThis action cannot be undone.")
-			imageSource: "remove"
+			image: "remove"
 			onButton1Clicked: _control.exercisesModel.delExercise(_control.exercisesModel.workingExercise);
 			onClosed: delExerciseLoader.active = false;
 			Component.onCompleted: delExerciseLoader._balloon = this;
@@ -96,7 +96,7 @@ TPListView {
 			keepAbove: true
 			title: quickQuestionLoader.title
 			message: quickQuestionLoader.message
-			imageSource: quickQuestionLoader.icon
+			image: quickQuestionLoader.icon
 			button1Text: quickQuestionLoader.button1Text
 			button2Text: quickQuestionLoader.button2Text
 			onButton1Clicked: quickQuestionLoader.delegate.quickQuestionAnswered(1);
@@ -131,7 +131,7 @@ TPListView {
 		sourceComponent: TPBalloonTip {
 			title: qsTr("Remove all exercises?")
 			message: qsTr("This action cannot be undone.")
-			imageSource: "remove"
+			image: "remove"
 			keepAbove: true
 			onButton1Clicked: _control.exercisesModel.clearExercises();
 			parentPage: _control.workoutPageManager ? _control.workoutPageManager.qmlPage() as TPPage : _control.splitPageManager.qmlPage() as TPPage

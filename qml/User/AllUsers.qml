@@ -86,7 +86,7 @@ TPPopup {
 			readonly property int buttonSize: parent.width * 0.3 - 5
 
 			TPButton {
-				imageSource: "switch-user.png"
+				image: "switch-user.png"
 				text: qsTr("Switch")
 				enabled: allUsersList.currentRow >= 0 ? AppUserModel.allUsers.userId !== AppUserModel.userId : false
 				width: buttonsRow.buttonSize
@@ -99,7 +99,7 @@ TPPopup {
 			}
 
 			TPButton {
-				imageSource: "remove"
+				image: "remove"
 				text: qsTr("Remove")
 				enabled: allUsersList.currentRow >= 0 ? AppUserModel.allUsers.userId !== AppUserModel.userId : false
 				width: buttonsRow.buttonSize
@@ -112,7 +112,7 @@ TPPopup {
 			}
 
 			TPButton {
-				imageSource: "add-new_"
+				image: "add-new_"
 				text: qsTr("New user")
 				width: buttonsRow.buttonSize
 				height: AppSettings.itemDefaultHeight

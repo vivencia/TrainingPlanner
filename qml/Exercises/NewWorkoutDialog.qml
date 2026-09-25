@@ -85,7 +85,6 @@ TPPopup {
 	TPButton {
 		id: btnOK
 		text: tr("Schedule workout")
-		autoSize: true
 		enabled: grpDates.selectedOption >= 0
 		anchors {
 			top: optAnyWorkout.bottom
@@ -97,7 +96,6 @@ TPPopup {
 	TPButton {
 		id: btnCancel
 		text: tr("Cancel")
-		autoSize: true
 		anchors {
 			top: optAnyWorkout.bottom
 			right: _control.contentItem.right

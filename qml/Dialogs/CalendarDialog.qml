@@ -108,7 +108,6 @@ TPPopup {
 		TPButton {
 			id: btnOK
 			text: "OK"
-			autoSize: true
 			Layout.alignment: Qt.AlignCenter
 
 			onClicked: _control.selectDate();

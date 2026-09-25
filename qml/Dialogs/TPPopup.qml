@@ -46,7 +46,7 @@ Popup {
 	property bool show_maximize_button: true
 	property int showBehavior: TPPopup.PARENT_PAGE_ACTIVE
 	property int backgroundRotation: 0
-	property int show_position: Qt.AlignCenter //Use Qt.AlignBaseline when position(x,y) is retrieved from a config file
+	property int show_position: 0 //Use Qt.AlignBaseline when position(x,y) is retrieved from a config file.
 	property point defaultCoordinates
 	property size minimized_size: Qt.size(titleBar !== null ? titleBar.width : AppSettings.itemDefaultHeight, titleBarHeight)
 	property size normal_size
@@ -62,7 +62,7 @@ Popup {
 
 	enum ShowBehavior { PARENT_PAGE_ACTIVE, ALWAYS_VISIBLE }
 	enum CloseActionType { DEFAULT_ACTION = 0, BTN_CLOSE = -1, SWIPE = -2, BACK_KEY = -3 }
-	readonly property int realY: parentPage ? parentPage.mapToGlobal(parentPage.x, parentPage.y).y : 0;
+	readonly property int realY: AppSettings.windowHeight - AppSettings.pageHeight;
 
 //private:
 	property bool _use_burst_transition: true
@@ -508,7 +508,7 @@ Popup {
 
 	//This function can be overridden in a derived QML object to perform other actions
 	function backKeyPressed(): void {
-		closePopup(BACK_KEY);
+		closePopup(TPPopup.BACK_KEY);
 	}
 
 	function hide(): void {

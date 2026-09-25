@@ -5,26 +5,34 @@ import TpQml
 TPBackRec {
 	id: _control
 	backColor: "transparent"
-	height: AppSettings.itemDefaultHeight + 10
+	height: label.preferredHeight()
+	width: preferredWidth
 
 //public:
 	property alias image: img.source
 	property alias text: label.text
 	property alias elideMode: label.elide
 	property alias font: label.font //When overriding any font property, all the font properties are reset; so other properties must be reapplied
-	property int imageHeight: AppSettings.itemDefaultHeight
+	property int imageHeight: AppSettings.itemSmallHeight
 	property int imageWidth: image.length > 0 ? imageHeight : 0
-	property int indicatorPos: Qt.AlignLeft | Qt.AlignVCenter
-	property int imagePos: Qt.AlignLeft | Qt.AlignVCenter
+	property int indicatorPos: Qt.AlignLeft|Qt.AlignVCenter
+	property int imagePos: Qt.AlignLeft|Qt.AlignVCenter
 	property bool imageAfterIndicator: true
-	property bool checked: false
+	property bool isChecked: false
 	property bool multiLine: false
 	property bool actionable: enabled
+	property bool useDropShadow: false
+	property bool enableCheckOutsideIndicator: true
+	property bool enableClicks: false
 	property int boxType: TPRadioButtonOrCheckBox.TP_RADIOBOX
 	property TPButtonGroup buttonGroup: null
+	readonly property int preferredWidth: 10 + label.preferredWidth + (_left_control ? _left_control.width : 0)
+																		+ (_right_control ? _right_control.width : 0)
 
 	enum BoxType { TP_RADIOBOX, TP_CHECKBOX, TP_NONEBOX }
+	//only if enableClicks is true. If enableCheckOutsideIndicator is true both clicked() and checked() will be emitted
 	signal clicked()
+	signal checked(check: bool)
 
 //private:
 	enum BoxControls { INDICATOR_ONLY, INDICATOR_PLUS_IMAGE, IMAGE_ONLY, IMAGE_PLUS_INDICATOR, TEXT_ONLY }
@@ -50,7 +58,7 @@ TPBackRec {
 	}
 
 	onWidthChanged: {
-		if (_component_completed && width > AppSettings.itemDefaultHeight)
+		if (_component_completed && width >= AppSettings.itemSmallHeight)
 			setupLayout();
 	}
 
@@ -58,16 +66,22 @@ TPBackRec {
 		id: label
 		singleLine: !_control.multiLine
 		padding: 5
+
+		MouseArea {
+			enabled: _control.enableCheckOutsideIndicator || _control.enableClicks
+			anchors.fill: parent
+			onClicked: _control.enableCheckOutsideIndicator ? _control.mouseClicked() : _control.clicked();
+		}
 	}
 
 	Rectangle {
 		id: indicator
-		width: _control.boxType !== TPRadioButtonOrCheckBox.TP_NONE ? AppSettings.itemSmallHeight : 0
+		width: _control.boxType !== TPRadioButtonOrCheckBox.TP_NONEBOX ? AppSettings.itemSmallHeight : 0
 		height: width
 		radius: _control.boxType === TPRadioButtonOrCheckBox.TP_RADIOBOX ? implicitWidth / 2 : 4
 		color: "transparent"
 		border.color: _control.enabled ? AppSettings.fontColor : AppSettings.disabledFontColor
-		visible: _control.boxType !== TPRadioButtonOrCheckBox.TP_NONE
+		visible: _control.boxType !== TPRadioButtonOrCheckBox.TP_NONEBOX
 		anchors.margins: 2
 
 		Rectangle {
@@ -78,7 +92,13 @@ TPBackRec {
 			x: (indicator.width - width) / 2
 			y: x
 			border.color: _control.enabled ? AppSettings.fontColor : AppSettings.disabledFontColor
-			visible: _control.checked
+			visible: _control.isChecked
+		}
+
+		MouseArea {
+			enabled: !_control.enableCheckOutsideIndicator
+			anchors.fill: parent
+			onClicked: _control.mouseClicked();
 		}
 	}
 
@@ -86,29 +106,30 @@ TPBackRec {
 		id: img
 		height: _control.imageHeight
 		width: _control.imageWidth
-		dropShadow: false
+		dropShadow: _control.useDropShadow
 		visible: source.length > 0
 		anchors.margins: 2
-	}
-
-	TapHandler { // Evaluates clicks/taps on top without stealing the events from underneath items
-		onTapped: _control.mouseClicked();
+		MouseArea {
+			enabled: _control.enableCheckOutsideIndicator || _control.enableClicks
+			anchors.fill: parent
+			onClicked: _control.enableCheckOutsideIndicator ? _control.mouseClicked() : _control.clicked();
+		}
 	}
 
 	Component.onCompleted: {
 		if (boxType === TPRadioButtonOrCheckBox.TP_RADIOBOX && buttonGroup) {
-			buttonGroup.addButton(this);
-			if (checked)
+			buttonGroup.addRadio(this);
+			if (isChecked)
 				buttonGroup.setChecked(this, true);
 		}
 		_component_completed = true;
-		if (width > AppSettings.itemDefaultHeight)
+		if (width >= AppSettings.itemSmallHeight)
 			setupLayout();
 	}
 
 	Component.onDestruction: {
 		if (boxType === TPRadioButtonOrCheckBox.TP_RADIOBOX && buttonGroup)
-			buttonGroup.removeButton(this);
+			buttonGroup.removeRadio(this);
 	}
 
 	function setupLayout(): void {
@@ -128,7 +149,8 @@ TPBackRec {
 			case TPRadioButtonOrCheckBox.TEXT_ONLY:
 				break;
 		}
-		anchorLabel();
+		if (_control.text.length > 0)
+			anchorLabel();
 	}
 
 	function anchorOneControl(pos: int, control: Item): void {
@@ -238,16 +260,20 @@ TPBackRec {
 	}
 
 	function mouseClicked(): void {
-		if (_control.boxType === TPRadioButtonOrCheckBox.TP_CHECKBOX)
-			_control.checked = !_control.checked;
-		else if (_control.boxType === TPRadioButtonOrCheckBox.TP_RADIOBOX) {
-			if (_control.checked)
-				return;
-			if (!_control.buttonGroup)
-				_control.checked = true;
-			else
-				_control.buttonGroup.setChecked(_control, true);
+		if (_control.boxType === TPRadioButtonOrCheckBox.TP_CHECKBOX) {
+			_control.isChecked = !_control.isChecked;
+			_control.checked(_control.isChecked);
+		} else if (_control.boxType === TPRadioButtonOrCheckBox.TP_RADIOBOX) {
+			if (!control.isChecked) {
+				if (!_control.buttonGroup) {
+					_control.isChecked = true;
+					_control.checked(true);
+				} else {
+					_control.buttonGroup.setChecked(_control, true);
+				}
+			}
 		}
-		_control.clicked();
+		if (_control.enableClicks)
+			_control.clicked();
 	}
 }

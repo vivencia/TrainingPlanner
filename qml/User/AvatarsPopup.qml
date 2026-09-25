@@ -39,7 +39,7 @@ TPPopup {
 
 		TPButton {
 			id: btnChooseImage
-			imageSource: "choose-avatar"
+			image: "choose-avatar"
 			width: AppSettings.itemDefaultHeight
 			height: AppSettings.itemDefaultHeight
 

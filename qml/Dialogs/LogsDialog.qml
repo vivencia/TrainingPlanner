@@ -1,19 +1,19 @@
 import QtQuick
-import QtQuick.Controls
-import QtQuick.Layouts
 
 import TpQml
+import TpQml.Pages
 import TpQml.Widgets
 
 import "./LogsDialogComponents"
 
 TPPopup {
+	objectName: "LogsDialog"
 	id: _dialog
 	keepAbove: true
 	useShape: true
 	showTitleBar: true
-	mouseItem: _minimized ? mainIcon : titleBar
 	showBehavior: TPPopup.ALWAYS_VISIBLE
+	show_position: Qt.AlignBaseline
 	defaultCoordinates: Qt.point((width - AppSettings.windowWidth) / 2, (height - AppSettings.windowHeight) / 2)
 	normal_size: Qt.size(AppSettings.pageWidth * 0.8, AppSettings.pageWidth * 0.8)
 	resizeable: true
@@ -31,7 +31,7 @@ TPPopup {
 	}
 
 	TPScrollView {
-		parentPage: ItemManager.appHomePage()
+		parentPage: ItemManager.appHomePage() as TPPage
 		enableNavButtons: false
 
 		anchors {

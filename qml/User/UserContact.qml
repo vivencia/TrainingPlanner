@@ -66,7 +66,7 @@ ColumnLayout {
 
 		TPButton {
 			id: btnWhatsApp
-			imageSource: "whatsapp"
+			image: "whatsapp"
 			enabled: userContactModule.userIdx !== 0 && userContactModule.bPhoneOK
 			width: AppSettings.itemDefaultHeight
 			height: width
@@ -76,7 +76,7 @@ ColumnLayout {
 
 		TPButton {
 			id: btnTelegram
-			imageSource: "telegram"
+			image: "telegram"
 			enabled: userContactModule.userIdx !== 0 && userContactModule.bPhoneOK
 			width: AppSettings.itemDefaultHeight
 			height: width
@@ -124,7 +124,7 @@ ColumnLayout {
 		}
 
 		TPButton {
-			imageSource: "email"
+			image: "email"
 			enabled: userContactModule.userIdx !== 0 && userContactModule.bEmailOK
 			width: AppSettings.itemDefaultHeight
 			height: width
@@ -185,7 +185,7 @@ ColumnLayout {
 
 		TPButton {
 			id: btnOpenSocialMedia
-			imageSource: "openurl"
+			image: "openurl"
 			enabled: userContactModule.bSocialOK
 			width: AppSettings.itemDefaultHeight
 			height: width

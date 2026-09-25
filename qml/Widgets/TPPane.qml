@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 
@@ -44,11 +46,8 @@ Flickable {
 	// Expose placecholder's children as the default property
 	//default property alias placeholderContent: placeholder.children
 
-	Timer {
-		id: bufferTimer
-		interval: 500
-		onTriggered: customHeaderWidget.width = headerWidth;
-	}
+//private:
+	readonly property Item contentChild: children[0].children[1]
 
 	onHeaderWidthChanged: {
 		if (customHeaderWidget !== placeholder) {
@@ -59,8 +58,11 @@ Flickable {
 		}
 	}
 
-//private:
-	readonly property Item contentChild: children[0].children[1]
+	Timer {
+		id: bufferTimer
+		interval: 500
+		onTriggered: _control.customHeaderWidget.width = _control.headerWidth;
+	}
 
 	ScrollBar.horizontal: ScrollBar {
 		id: hBar
@@ -93,7 +95,7 @@ Flickable {
 		width: _control.vExpandable ? _control.width : _control.height
 		height: placeholder.height
 		transform: [ Rotation	{ origin.x: 0; origin.y: 0; angle: _control.vExpandable ? 0 : 270},
-					 Translate	{y: _control.vExpandable ? 0 : height}
+					 Translate	{y: _control.vExpandable ? 0 : _headerWidget.height}
 					]
 
 		MouseArea {
@@ -136,7 +138,7 @@ Flickable {
 			id: imgIcon
 			source: _control.icon
 			dropShadow: false
-			width: visible ? AppSettings.itemDefaultHeight : 0
+			width: visible ? AppSettings.itemSmallHeight : 0
 			height: width
 			visible: _control.icon.length > 0
 

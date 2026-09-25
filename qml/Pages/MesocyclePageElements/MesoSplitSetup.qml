@@ -167,7 +167,7 @@ Pane {
 
 				TPButton {
 					id: btnMuscularGroups
-					imageSource: "choose.png"
+					image: "choose.png"
 					enabled: cboSplit.currentIndex !== 6
 					Layout.preferredWidth: _control.col3Width
 					Layout.preferredHeight: _control.col3Width
@@ -187,7 +187,6 @@ Pane {
 	TPButton {
 		text: qsTr("Exercises Planner")
 		enabled: _control.mesoManager.splitOK
-		autoSize: true
 
 		anchors {
 			bottom: parent.bottom

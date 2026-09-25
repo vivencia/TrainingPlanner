@@ -86,8 +86,7 @@ Item {
 
 		TPButton {
 			id: btnClearText
-			imageSource: "edit-clear"
-			hasDropShadow: false
+			image: "edit-clear"
 			width: 20
 			height: 20
 			visible: !txtField.readOnly
@@ -108,7 +107,7 @@ Item {
 
 	TPButton {
 		id: btnEditExercise
-		imageSource: "edit.png"
+		image: "edit.png"
 		width: AppSettings.itemDefaultHeight
 		height: width
 		visible: _control.showEditButton
@@ -129,7 +128,7 @@ Item {
 
 	TPButton {
 		id: btnShowList
-		imageSource: "list.png"
+		image: "list.png"
 		width: AppSettings.itemDefaultHeight
 		height: width
 		visible: _control.showExercisesListButton
@@ -146,7 +145,7 @@ Item {
 
 	TPButton {
 		id: btnRemoveExercise
-		imageSource: "remove"
+		image: "remove"
 		width: AppSettings.itemDefaultHeight
 		height: width
 		visible: _control.showRemoveButton

@@ -3,11 +3,15 @@
 #include "tputils.h"
 
 enum metaFields {
-	MF_SELECTED	= 1000,
-	MF_VISIBLE	= 1001,
+	MF_REAL_INDEX = 1000,
+	MF_VIRTUAL_INDEX = 1001,
+	MF_SELECTED	= 1002,
+	MF_VISIBLE	= 1003,
 };
 
 enum RoleNames {
+	createRole(realIndex,		MF_REAL_INDEX)
+	createRole(virtualIndex,	MF_VIRTUAL_INDEX)
 	createRole(selected,		MF_SELECTED)
 	createRole(itemVisible,		MF_VISIBLE)
 };
@@ -21,15 +25,15 @@ TPListModel::TPListModel(QObject *parent, const uint n_cols) : QAbstractListMode
 {
 	roleToString(selected)
 	roleToString(itemVisible)
-	connect(this, &QAbstractItemModel::rowsInserted, this, [this] (const QModelIndex &parent, int first, int last) {
+	connect(this, &TPListModel::rowsInserted, this, [this] (const QModelIndex &parent, int first, int last) {
 		for (int i{first}; i <= last; ++i)
-			insertMetaData(i);
+			insertMetaData(realRow(i));
 	});
-	connect(this, &QAbstractItemModel::rowsRemoved, this, [this] (const QModelIndex &parent, int first, int last) {
+	connect(this, &TPListModel::rowsRemoved, this, [this] (const QModelIndex &parent, int first, int last) {
 		for (int i{last}; i <= first; --i)
-			removeMetaData(i);
+			removeMetaData(realRow(i));
 	});
-	connect(this, &QAbstractItemModel::modelReset, this, [this] () {
+	connect(this, &TPListModel::modelReset, this, [this] () {
 		clear();
 	});
 }
@@ -64,28 +68,13 @@ QList<int> TPListModel::selectedInfo(const bool return_real_indices) const
 	return selected;
 }
 
-QStringList TPListModel::selectedInfo(const int field, const bool return_real_indices) const
-{
-	QStringList selected;
-	const QList<int> &selected_i{selectedInfo(return_real_indices)};
-	for (const auto &index : selected_i) {
-		if (field == -1)
-			selected.append(std::move(QString::number(index)));
-		else {
-			const int real_index{return_real_indices ? index : realRow(index)};
-			selected.append(m_modelData.at(real_index).at(field));
-		}
-	}
-	return selected;
-}
-
 void TPListModel::applyFilter(const QString &filter, const uint field)
 {
 	if (field < m_totalCols) {
-		if (filter != m_filter || field != m_fieldFilter) {
+		if (filter != m_filter || field != m_filterField) {
 			m_filter = filter;
 			if (!m_filter.isEmpty()) {
-				m_fieldFilter = field;
+				m_filterField = field;
 				uint virtual_row{0};
 				const QStringList &words_list{prepareSearchTerm(m_filter)};
 				for (uint row{0}; row < m_rowsMetadata.count(); ++row) {
@@ -94,12 +83,13 @@ void TPListModel::applyFilter(const QString &filter, const uint field)
 					setVisible(row, visible);
 				}
 			} else {
-				m_fieldFilter = -1;
+				m_filterField = -1;
 				for (uint row{0}; row < m_rowsMetadata.count(); ++row) {
 					m_rowsMetadata[row].virt_index = row;
 					setVisible(row, true);
 				}
 			}
+			emit filterAppliedChanged();
 			if (m_sortField >= 0)
 				sort(true, m_ascendingSort.value(), m_sortField);
 			if (m_searchField >= 0)
@@ -110,18 +100,23 @@ void TPListModel::applyFilter(const QString &filter, const uint field)
 
 void TPListModel::sort(const bool enable_sorting, const bool ascending, const uint field)
 {
-	if (!m_ascendingSort.has_value() || m_ascendingSort.value() != ascending) {
-		if (enable_sorting) {
+	bool do_emit{false};
+	if (enable_sorting) {
+		if (m_ascendingSort.value() != ascending) {
 			m_sortField = field;
 			m_ascendingSort = ascending;
 			for (uint row{0}; row < m_rowsMetadata.count() - 1; ++row)
 				doSort(row);
-		} else {
-			m_ascendingSort = std::nullopt;
-			m_sortField = -1;
-			applyFilter(m_filter, m_fieldFilter);
+			do_emit = true;
 		}
+	} else {
+		do_emit = m_sortField >= 0;
+		m_sortField = -1;
+		if (filterApplied())
+			applyFilter(m_filter, m_filterField);
 	}
+	if (do_emit)
+		emit sortingChanged();
 }
 
 void TPListModel::search(const QString &search_term, int field)
@@ -166,13 +161,18 @@ int TPListModel::find(const bool visible_rows, const QString &needle, int field)
 			const QStringList &words_list{appUtils()->stripDiacriticsFromString(needle).split(' ', Qt::SkipEmptyParts)};
 			bool found{false};
 			if (field >= 0) {
-				found = appUtils()->containsAllWords(m_modelData.at(row_data.real_index).at(field), words_list);
+				found = appUtils()->containsAllWords(dataValue(row_data.real_index, field), words_list);
 			} else {
-				for (const auto &field_value : std::as_const(m_modelData.at(row_data.real_index))) {
-					if (appUtils()->containsAllWords(field_value, words_list)) {
-						found = true;
-						break;
+				for (uint row{0}; row < m_rowsMetadata.count(); ++row) {
+					for (uint column{0}; column < m_totalCols; ++column) {
+						const QString &field_value{dataValue(row, column)};
+						if (appUtils()->containsAllWords(field_value, words_list)) {
+							found = true;
+							break;
+						}
 					}
+					if (found)
+						break;
 				}
 			}
 			if (found)
@@ -187,6 +187,8 @@ QVariant TPListModel::data(const QModelIndex &index, int role) const
 	const int row{realRow(index.row())};
 	if (row >= 0) {
 		switch (role) {
+		case realIndexRole: return m_rowsMetadata.at(row).real_index;
+		case virtualIndexRole: return m_rowsMetadata.at(row).virt_index;
 		case selectedRole: return isSelected(row, index.column());
 		case itemVisibleRole: return visible(row, index.column());
 		default: return data(role, row, index.column());
@@ -220,7 +222,7 @@ void TPListModel::clear()
 	m_searchTerm.clear();
 	m_ascendingSort = std::nullopt;
 	m_nSelected = m_nVisibleRows = 0;
-	m_currentRow = m_fieldFilter = m_sortField =  m_searchField = -1;
+	m_currentRow = m_filterField = m_sortField =  m_searchField = -1;
 }
 
 void TPListModel::doSort(const uint row)
@@ -229,7 +231,7 @@ void TPListModel::doSort(const uint row)
 		m_rowsMetadata[row].virt_index = 0;
 		uint next_row{row + 1};
 		while (next_row < m_rowsMetadata.count()) {
-			const auto res{m_modelData.at(row).at(m_sortField).compare(m_modelData.at(next_row).at(m_sortField), Qt::CaseInsensitive)};
+			const auto res{dataValue(row, m_sortField).compare(dataValue(next_row, m_sortField))};
 			if (res == 0)
 				continue;
 			if (m_ascendingSort.value()) {
@@ -305,12 +307,38 @@ void TPListModel::setSelected(const int row, const bool selected, const uint vis
 	}
 }
 
-void TPListModel::insertMetaData(const int row)
+void TPListModel::syncMetadata(const uint modeldata_count)
 {
+	m_rowsMetadata.reserve(modeldata_count);
+	for (uint row{0}; row < modeldata_count; ++row) {
+		st_rowData row_data;
+		row_data.real_index = row;
+		if (m_selectEntireRow) {
+			row_data.visible.append(true);
+			row_data.selected.append(false);
+		} else {
+			row_data.visible.reserve(m_totalCols);
+			row_data.selected.reserve(m_totalCols);
+			for (uint i{0}; i < m_totalCols; ++i) {
+				row_data.visible.append(true);
+				row_data.selected.append(false);
+			}
+		}
+		m_rowsMetadata.append(std::move(row_data));
+	}
+}
+
+void TPListModel::insertMetaData(int row)
+{
+	if (row < 0) {
+		if (row == -2)
+			row = m_rowsMetadata.count();
+		else
+			return; //invalid index
+	}
 	st_rowData row_data;
-	row_data.real_index = row;
-	const bool visible{m_fieldFilter >= 0 ? itemShouldBeVisible(row, prepareSearchTerm(m_filter)) : true};
-	++m_nVisibleRows;
+	row_data.real_index = row_data.virt_index = row;
+	bool visible{m_filterField >= 0 ? itemShouldBeVisible(row, prepareSearchTerm(m_filter)) : true};
 	if (m_selectEntireRow) {
 		row_data.visible.append(visible);
 		row_data.selected.append(false);
@@ -327,7 +355,7 @@ void TPListModel::insertMetaData(const int row)
 			doSort(row);
 		if (m_searchField >= 0) {
 			if (m_selectEntireRow) {
-				row_data.visible[0] = itemShouldRemainVisible(row, prepareSearchTerm(m_searchTerm));
+				row_data.visible[0] = visible = itemShouldRemainVisible(row, prepareSearchTerm(m_searchTerm));
 			} else {
 				for (uint i{0}; i < m_totalCols; ++i) {
 					if (i != m_searchField)
@@ -337,20 +365,36 @@ void TPListModel::insertMetaData(const int row)
 				}
 			}
 		}
+		if (visible)
+			++m_nVisibleRows;
 	}
+	m_rowsMetadata.append(std::move(row_data));
 }
 
 void TPListModel::removeMetaData(const int row)
 {
-
+	const int start_virt_row{m_rowsMetadata.at(row).virt_index};
+	int start_row{row};
+	m_rowsMetadata.removeAt(row);
+	if (m_sortField >= 0)
+		start_row = 0;
+	for (auto &row_data : m_rowsMetadata | std::views::drop(start_row)) {
+		row_data.real_index = start_row++;
+		if (row_data.virt_index >= start_virt_row)
+			--row_data.virt_index;
+	}
 }
 
 inline int TPListModel::realRow(const int visible_row) const
 {
-	if (visible_row >= 0 && visible_row < m_nVisibleRows) {
-		for (const auto &row_data : m_rowsMetadata) {
-			if (row_data.virt_index == visible_row)
-				return row_data.real_index;
+	if (visible_row >= 0) {
+		if (visible_row < m_nVisibleRows) {
+			for (const auto &row_data : m_rowsMetadata) {
+				if (row_data.virt_index == visible_row)
+					return row_data.real_index;
+			}
+		} else if (visible_row == m_nVisibleRows) {
+			return -2;
 		}
 	}
 	return -1;
@@ -358,16 +402,17 @@ inline int TPListModel::realRow(const int visible_row) const
 
 inline bool TPListModel::itemShouldBeVisible(const uint real_row, const QStringList &filters) const
 {
-	return appUtils()->containsAllWords(m_modelData.at(real_row).at(m_fieldFilter), filters);
+	return appUtils()->containsAllWords(dataValue(real_row, m_filterField), filters);
 }
 
 inline bool TPListModel::itemShouldRemainVisible(const uint real_row, const QStringList &search_terms) const
 {
 	bool visible{false};
 	if (m_searchField >= 0) {
-		visible = appUtils()->containsAllWords(m_modelData.at(real_row).at(m_searchField), search_terms);
+		visible = appUtils()->containsAllWords(dataValue(real_row, m_searchField), search_terms);
 	} else {
-		for (const auto &field_value : std::as_const(m_modelData.at(real_row))) {
+		for (uint column{0}; column < m_totalCols; ++column) {
+			const QString &field_value{dataValue(real_row, column)};
 			if (appUtils()->containsAllWords(field_value, search_terms)) {
 				visible = true;
 				break;

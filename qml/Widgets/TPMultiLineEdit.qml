@@ -37,7 +37,7 @@ Item {
 		}
 
 		TPButton {
-			imageSource: "copy_"
+			image: "copy_"
 			focus: false
 			enabled: _control.textControl.length > 0
 			width: AppSettings.itemDefaultHeight
@@ -46,7 +46,7 @@ Item {
 																					_control.textControl.selectionEnd));
 		}
 		TPButton {
-			imageSource: "paste_"
+			image: "paste_"
 			focus: false
 			enabled: _control.textControl.canPaste
 			width: AppSettings.itemDefaultHeight
@@ -54,7 +54,7 @@ Item {
 			onClicked: _control.textControl.paste()
 		}
 		TPButton {
-			imageSource: "undo_"
+			image: "undo_"
 			enabled: _control.textControl.canUndo
 			focus: false
 			width: AppSettings.itemDefaultHeight
@@ -62,7 +62,7 @@ Item {
 			onClicked: _control.textControl.undo();
 		}
 		TPButton {
-			imageSource: "redo_"
+			image: "redo_"
 			enabled: _control.textControl.canRedo
 			focus: false
 			width: AppSettings.itemDefaultHeight
@@ -72,7 +72,7 @@ Item {
 
 		TPButton {
 			id: btnItalic
-			imageSource: "italic_"
+			image: "italic_"
 			checkable: true
 			focus: false
 			enabled: _control.textControl.length > 0
@@ -85,7 +85,7 @@ Item {
 		}
 		TPButton {
 			id: btnUnderline
-			imageSource: "underscore_"
+			image: "underscore_"
 			checkable: true
 			focus: false
 			enabled: _control.textControl.length > 0
@@ -98,7 +98,7 @@ Item {
 		}
 		TPButton {
 			id: btnCase
-			imageSource: "upperlowercase_"
+			image: "upperlowercase_"
 			checkable: true
 			focus: false
 			enabled: _control.textControl.length > 0
@@ -214,7 +214,7 @@ Item {
 
 	TPButton {
 		id: btnClearText
-		imageSource: "edit-clear"
+		image: "edit-clear"
 		enabled: _control.textControl.length > 0
 		width: AppSettings.itemDefaultHeight
 		height: width
@@ -233,7 +233,7 @@ Item {
 
 	TPButton {
 		id: btnShowToolBox
-		imageSource: "toolbox_"
+		image: "toolbox_"
 		checkable: true
 		width: AppSettings.itemDefaultHeight
 		height: width

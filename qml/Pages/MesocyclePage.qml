@@ -13,7 +13,7 @@ import "./MesocyclePageElements"
 
 TPPage {
 	id: mesoPage
-	imageSource: ":/images/backgrounds/backimage-meso.jpg"
+	image: ":/images/backgrounds/backimage-meso.jpg"
 	backgroundOpacity: 0.6
 	objectName: "mesoPage"
 
@@ -36,7 +36,7 @@ TPPage {
 
 		sourceComponent: TPBalloonTip {
 			parentPage: mesoPage
-			imageSource: "set-completed"
+			image: "set-completed"
 			show_position: Qt.AlignBottom|Qt.AlignHCenter
 			title: mesoPage.mesoManager.wrongFieldsCounter > 0 ? qsTr("New program setup incomplete") : qsTr("New program setup complete!");
 			message: mesoPage.wrongFieldsMessage()
@@ -147,7 +147,7 @@ TPPage {
 
 				TPButton {
 					id: btnNameOK
-					imageSource: "set-completed"
+					image: "set-completed"
 					enabled: mesoPage.mesoManager.mesoNameOK
 					width: text.length > 0 ? parent.width: AppSettings.itemDefaultHeight
 					height: AppSettings.itemDefaultHeight
@@ -342,7 +342,7 @@ TPPage {
 
 				TPButton {
 					id: btnStartDate
-					imageSource: "calendar.png"
+					image: "calendar.png"
 					width: AppSettings.itemDefaultHeight
 					height: width
 
@@ -367,7 +367,7 @@ TPPage {
 				onClicked: mesoPage.mesoManager.realMeso = checked;
 
 				TPButton {
-					imageSource: "question.png"
+					image: "question.png"
 					width: AppSettings.itemDefaultHeight
 					height: width
 
@@ -430,7 +430,7 @@ TPPage {
 
 				TPButton {
 					id: btnEndDate
-					imageSource: "calendar.png"
+					image: "calendar.png"
 					width: AppSettings.itemDefaultHeight
 					height: width
 
@@ -472,7 +472,7 @@ TPPage {
 
 				TPButton {
 					id: btnNotesOK
-					imageSource: "set-completed"
+					image: "set-completed"
 					enabled: notes_changed
 					width: text.length > 0 ? parent.width * 0.3 : AppSettings.itemDefaultHeight
 					height: AppSettings.itemDefaultHeight

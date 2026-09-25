@@ -96,7 +96,6 @@ TPPopup {
 
 		TPButton {
 			text: qsTr("Proceed")
-			autoSize: true
 			enabled: intentGroup.selectedOption !== -1
 			Layout.alignment: Qt.AlignCenter
 

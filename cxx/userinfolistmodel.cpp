@@ -123,10 +123,10 @@ void UserInfoListModel::setSelectedUsers(const QStringList &users)
 
 void UserInfoListModel::applyFilter(const QString &filter, int field)
 {
-	if (filter != m_filter || field != m_fieldFilter) {
+	if (filter != m_filter || field != m_filterField) {
 		if (field >= -1 && field < DBUserModel::USER_N_FIELDS) {
 			m_filter = filter;
-			m_fieldFilter = field;
+			m_filterField = field;
 			changeVisibilityAsPerCategory();
 		}
 	}
@@ -256,7 +256,7 @@ void UserInfoListModel::clear()
 	m_filter.clear();
 	m_nSelected = 0;
 	m_currentRow = -1;
-	m_fieldFilter = -1;
+	m_filterField = -1;
 }
 
 QVariant UserInfoListModel::allUsersData(int role, int row, const int column) const
@@ -414,11 +414,11 @@ void UserInfoListModel::changeVisibilityAsPerCategory()
 			if (_visible)
 				_visible = (m_showAvailable == m_extraInfo.at(i).at(EF_ISAVAILABLE).toBool());
 			if (_visible) {
-				if (m_fieldFilter != -1) {
+				if (m_filterField != -1) {
 					if (!m_filter.isEmpty()) {
 						const QStringList &words_list{appUtils()->stripDiacriticsFromString(m_filter).split(' ', Qt::SkipEmptyParts)};
 						_visible = appUtils()->containsAllWords(appUserModel()->m_usersData.at(
-										m_extraInfo.at(i).at(EF_USERIDX).toUInt()).at(m_fieldFilter), words_list, false);
+										m_extraInfo.at(i).at(EF_USERIDX).toUInt()).at(m_filterField), words_list, false);
 					}
 				}
 			}

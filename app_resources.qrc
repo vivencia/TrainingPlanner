@@ -242,5 +242,8 @@
         <file>images/logs_red.png</file>
         <file>images/logs_green.png</file>
         <file>images/logs_blue.png</file>
+        <file>images/flat/sort_up.png</file>
+        <file>images/flat/sort_down.png</file>
+        <file>images/flat/close_control.png</file>
     </qresource>
 </RCC>

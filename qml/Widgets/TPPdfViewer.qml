@@ -117,7 +117,7 @@ Item {
 
 			TPButton {
 				id: btnSearch
-				imageSource: "search.png"
+				image: "search.png"
 				enabled: false
 				width: AppSettings.itemDefaultHeight
 				height: width
@@ -126,7 +126,7 @@ Item {
 
 			TPButton {
 				id: btnNextResult
-				imageSource: "down.png"
+				image: "down.png"
 				enabled: pdfViewer.searchModel.currentResult < pdfViewer.searchModel.count
 				width: AppSettings.itemDefaultHeight
 				height: width
@@ -134,7 +134,7 @@ Item {
 			}
 			TPButton {
 				id: btnPrevResult
-				imageSource: "up.png"
+				image: "up.png"
 				enabled: pdfViewer.searchModel.currentResult >= 1
 				width: AppSettings.itemDefaultHeight
 				height: width

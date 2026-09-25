@@ -13,7 +13,7 @@ import TpQml.User
 TPPage {
 	id: settingsPage
 	objectName: "settingsPage"
-	imageSource: AppSettings.settingsBackground
+	image: AppSettings.settingsBackground
 	backgroundOpacity: 0.6
 	implicitWidth: AppSettings.pageWidth
 	implicitHeight: AppSettings.pageHeight
@@ -37,7 +37,7 @@ TPPage {
 		sourceComponent: TPBalloonTip {
 			id: applyTip
 			message: qsTr("The App must be restarted in order to reflect the changes")
-			imageSource: "settings.png"
+			image: "settings.png"
 			parentPage: settingsPage
 			button1Text: qsTr("Restart now")
 			button2Text: qsTr("Later");
@@ -308,7 +308,7 @@ TPPage {
 					width: parent.width * 0.4
 				}
 				TPButton {
-					imageSource: "color-choose"
+					image: "color-choose"
 					width: AppSettings.itemDefaultHeight
 					height: width
 					Layout.leftMargin: -5
@@ -325,7 +325,7 @@ TPPage {
 					Layout.leftMargin: 20
 				}
 				TPButton {
-					imageSource: "color-choose"
+					image: "color-choose"
 					width: AppSettings.itemDefaultHeight
 					height: width
 					Layout.leftMargin: 5

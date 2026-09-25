@@ -10,7 +10,7 @@ import TpQml.Pages
 TPPage {
 	id: homePage
 	objectName: "homePage"
-	imageSource: ":/images/backgrounds/backimage-home.jpg"
+	image: ":/images/backgrounds/backimage-home.jpg"
 
 	property bool loadMesosFromCoaches: false
 	property bool loadMesosForSelf: false

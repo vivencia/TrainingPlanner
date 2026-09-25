@@ -150,7 +150,6 @@ Rectangle {
 	TPButton {
 		id: button
 		text: _control.buttonString
-		autoSize: true
 		rounded: false
 		enabled: workingModel.currentRow >= 0
 		visible: _control.buttonString.length > 0

@@ -89,7 +89,7 @@ TPPopup {
 			}
 			TPButton {
 				id: btnChoose
-				imageSource: "choose-flle"
+				image: "choose-flle"
 				onClicked: chooseFileDlg.open();
 			}
 		}
@@ -98,7 +98,6 @@ TPPopup {
 			id: btnSend
 			text: qsTr("Send")
 			enabled: usersList.anySelected && txtMessage.text.length > 0
-			autoSize: true
 
 			onClicked: {
 				_dialog.sendMessage(usersList.selectedUsers(), txtMessage.text, _dialog._selected_file);
@@ -109,7 +108,6 @@ TPPopup {
 		TPButton {
 			id: btnClose
 			text: qsTr("Cancel")
-			autoSize: true
 			onClicked: _dialog.close();
 		}
 	}//Layout

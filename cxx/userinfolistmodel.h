@@ -148,7 +148,7 @@ private:
 	QList<QVariantList> m_extraInfo;
 	QString m_filter;
 	uint m_nSelected{0}, m_totalCols{0}, m_nVisibleRows{0};
-	int m_currentRow{-1}, m_fieldFilter{-1};
+	int m_currentRow{-1}, m_filterField{-1};
 	bool m_selectEntireRow{false}, m_showClients{false}, m_showCoaches{false}, m_showConfirmed{false}, m_showAvailable{false};
 #ifndef Q_OS_ANDROID
 	bool m_allUsers{false};

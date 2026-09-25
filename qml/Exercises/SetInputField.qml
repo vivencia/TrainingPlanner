@@ -81,8 +81,7 @@ FocusScope {
 
 		TPButton {
 			id: btnIncreaseMinutes
-			imageSource: "plus"
-			hasDropShadow: false
+			image: "plus"
 			width: AppSettings.itemSmallHeight
 			height: width
 			visible: _control.showButtons && _control.type === DBExercisesModel.TimeType
@@ -103,8 +102,7 @@ FocusScope {
 
 		TPButton {
 			id: btnDecrease
-			imageSource: "minus"
-			hasDropShadow: false
+			image: "minus"
 			width: AppSettings.itemSmallHeight
 			height: width
 			visible: _control.showButtons
@@ -189,8 +187,7 @@ FocusScope {
 
 		TPButton {
 			id: btnIncrease
-			imageSource: "plus"
-			hasDropShadow: false
+			image: "plus"
 			width: AppSettings.itemSmallHeight
 			height: width
 			visible: _control.showButtons
@@ -213,8 +210,7 @@ FocusScope {
 
 		TPButton {
 			id: btnDecreaseSeconds
-			imageSource: "minus"
-			hasDropShadow: false
+			image: "minus"
 			width: AppSettings.itemSmallHeight
 			height: width
 			visible: _control.showButtons && _control.type === DBExercisesModel.TimeType

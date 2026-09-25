@@ -95,7 +95,7 @@ ColumnLayout {
 
 		TPButton {
 			id: btnChooseFilters
-			imageSource: "filter.png"
+			image: "filter.png"
 			width: AppSettings.itemSmallHeight
 			height: width
 
@@ -121,7 +121,7 @@ ColumnLayout {
 			id: lstExercises
 			model: AppExercisesList
 			anchors.fill: parent
-			anchors.margins: 4
+			anchors.margins: 5
 
 			delegate: SwipeDelegate {
 				id: delegate

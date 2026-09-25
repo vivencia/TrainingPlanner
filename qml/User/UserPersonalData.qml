@@ -77,7 +77,7 @@ ColumnLayout {
 		}
 
 		TPButton {
-			imageSource: "chat_"
+			image: "chat_"
 			width: AppSettings.itemDefaultHeight
 			height: width
 			visible: userPersonalModule.userIdx != 0 && AppUserModel.onlineAccount
@@ -97,9 +97,8 @@ ColumnLayout {
 		id: btnChangePassword
 		text: AppUserModel.mainUserConfigured ? qsTr("Change password") : qsTr("Set password")
 		rounded: false
-		imageSource: "password"
+		image: "password"
 		visible: userPersonalModule.userIdx === 0
-		autoSize: true
 		Layout.alignment: Qt.AlignHCenter
 
 		onClicked: AppUserModel.showPasswordDialogForMainUser(ItemManager.DM_CHANGE_PASSWORD, parentPage);
@@ -137,7 +136,7 @@ ColumnLayout {
 
 		TPButton {
 			id: btnBirthDate
-			imageSource: "calendar.png"
+			image: "calendar.png"
 			width: AppSettings.itemDefaultHeight
 			height: width
 			enabled: userPersonalModule.bPasswordOK && userPersonalModule.userIdx === 0
@@ -212,7 +211,7 @@ ColumnLayout {
 		onClicked: AppUserModel.onlineAccount = checked;
 
 		TPButton {
-			imageSource: "question.png"
+			image: "question.png"
 			width: AppSettings.itemDefaultHeight
 			height: width
 

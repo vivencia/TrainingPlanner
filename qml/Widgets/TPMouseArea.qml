@@ -38,6 +38,7 @@ MouseArea {
 	property bool _pressed: false
 	property bool _pressed_and_held: false
 	property bool _moved: false
+	readonly property int _out_of_bounds_margin: AppSettings.itemDefaultHeight
 
 	onClicked: (mouse) => mouse.accepted = false;
 
@@ -47,29 +48,39 @@ MouseArea {
 			mouse.accepted = true;
 			mouseReleased(mouse);
 			if (_moved) {
-				if (!movableWidgetCanGoOutsideBounds) { //Prevent the control from going out sight
-					if (!lockMovingToYAxis) {
-						if (movableWidget.x < 0)
+				//The following code assumes movingWidget is a title bar-like object(i.e. extends from
+				//left to right of movableWidget and is at the top. TODO: take into account the dimensions and position
+				//of the movingWidget before deciding what the out of bounds margins are.
+				let out_of_bounds = false;
+				if (!lockMovingToYAxis) {
+					if (movableWidget.x + movableWidget.width <= _out_of_bounds_margin) {
+						out_of_bounds = true;
+						if (!movableWidgetCanGoOutsideBounds)
 							movableWidget.x = 0;
-						else if (movableWidget.x + movableWidget.width > AppSettings.windowWidth)
+					} else if (movableWidget.x >= AppSettings.windowWidth - _out_of_bounds_margin) {
+						out_of_bounds = true;
+						if (!movableWidgetCanGoOutsideBounds)
 							movableWidget.x = AppSettings.pageWidth - movableWidget.width;
 					}
-					if (!lockMovingToXAxis) {
-						if (movableWidget.y < 0)
+				}
+				if (!lockMovingToXAxis) {
+					if (movableWidget.y <= 0) {
+						out_of_bounds = true;
+						if (!movableWidgetCanGoOutsideBounds)
 							movableWidget.y = 0;
-						else if (movableWidget.y + movableWidget.height > AppSettings.windowHeight)
+					} else if (movableWidget.y >= AppSettings.windowHeight - _out_of_bounds_margin) {
+						out_of_bounds = true;
+						if (!movableWidgetCanGoOutsideBounds)
 							movableWidget.y = AppSettings.windowHeight - movableWidget.height;
 					}
-				} else {
-					widgetOutOfBounds();
 				}
-
+				if (out_of_bounds)
+					widgetOutOfBounds();
 				movingFinished(movableWidget.x, movableWidget.y);
 				_moved = false;
 			}
 		} else if (_pressed) {
 			_pressed = false;
-			//mouse.accepted = false;
 			mouseClicked(mouse);
 		} else {
 			mouse.accepted = false;

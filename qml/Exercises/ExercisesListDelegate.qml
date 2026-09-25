@@ -176,7 +176,7 @@ ItemDelegate {
 
 			TPButton {
 				id: btnPrevExercise
-				imageSource: "goto-prev"
+				image: "goto-prev"
 				width: AppSettings.itemDefaultHeight
 				height: width
 				enabled: delegate.exerciseNumber === delegate.exercisesModel.workingExercise && delegate.exerciseNumber > 0
@@ -196,7 +196,7 @@ ItemDelegate {
 
 			TPButton {
 				id: btnNextExercise
-				imageSource: "goto-next"
+				image: "goto-next"
 				width: AppSettings.itemDefaultHeight
 				height: width
 				enabled: delegate.exerciseNumber === delegate.exercisesModel.workingExercise &&
@@ -217,7 +217,7 @@ ItemDelegate {
 
 			TPButton {
 				id: btnDelExercise
-				imageSource: "remove"
+				image: "remove"
 				width: AppSettings.itemDefaultHeight
 				height: width
 				enabled: delegate.exerciseNumber === delegate.exercisesModel.workingExercise
@@ -233,8 +233,7 @@ ItemDelegate {
 
 			TPButton {
 				id: btnMoveExerciseUp
-				imageSource: "up.png"
-				hasDropShadow: false
+				image: "up.png"
 				width: AppSettings.itemDefaultHeight
 				height: width
 				enabled: delegate.exerciseNumber === delegate.exercisesModel.workingExercise ?
@@ -251,8 +250,7 @@ ItemDelegate {
 
 			TPButton {
 				id: btnMoveExerciseDown
-				imageSource: "down.png"
-				hasDropShadow: false
+				image: "down.png"
 				width: AppSettings.itemDefaultHeight
 				height: width
 				enabled: delegate.exerciseNumber === delegate.exercisesModel.workingExercise ? (
@@ -276,8 +274,7 @@ ItemDelegate {
 
 			TPButton {
 				id: btnAddSubExercise
-				imageSource: "plus"
-				hasDropShadow: false
+				image: "plus"
 				width: AppSettings.itemDefaultHeight
 				height: width
 
@@ -331,8 +328,7 @@ ItemDelegate {
 
 			TPButton {
 				id: btnDelSubExercise
-				imageSource: "minus"
-				hasDropShadow: false
+				image: "minus"
 				width: AppSettings.itemDefaultHeight
 				height: width
 
@@ -442,8 +438,7 @@ ItemDelegate {
 
 					TPButton {
 						id: btnAddSet
-						imageSource: "plus"
-						hasDropShadow: false
+						image: "plus"
 						width: AppSettings.itemDefaultHeight
 						height: width
 
@@ -526,8 +521,7 @@ ItemDelegate {
 
 					TPButton {
 						id: btnDelSet
-						imageSource: "minus"
-						hasDropShadow: false
+						image: "minus"
 						enabled: setsGroup.nSets > 0
 						width: AppSettings.itemDefaultHeight
 						height: width
@@ -554,8 +548,7 @@ ItemDelegate {
 
 					TPButton {
 						id: btnDelAllSets
-						imageSource: "remove"
-						hasDropShadow: false
+						image: "remove"
 						enabled: setsGroup.nSets > 0
 						width: AppSettings.itemDefaultHeight
 						height: width

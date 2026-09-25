@@ -10,7 +10,7 @@ import TpQml.Exercises
 
 TPPage {
 	id: pagePlanner
-	imageSource: ":/images/backgrounds/backimage-splits.jpg"
+	image: ":/images/backgrounds/backimage-splits.jpg"
 	backgroundOpacity: 0.6
 	objectName: "exercisesPlanner"
 
@@ -48,7 +48,7 @@ TPPage {
 				padding: 0
 
 				TPButton {
-					imageSource: "prev"
+					image: "prev"
 					Layout.preferredWidth: AppSettings.itemDefaultHeight
 					Layout.preferredHeight: AppSettings.itemDefaultHeight
 
@@ -70,7 +70,7 @@ TPPage {
 				}
 
 				TPButton {
-					imageSource: "next"
+					image: "next"
 					Layout.preferredWidth: AppSettings.itemDefaultHeight
 					Layout.preferredHeight: AppSettings.itemDefaultHeight
 
@@ -252,7 +252,7 @@ TPPage {
 		TPButton {
 			id: btnClearPlan
 			text: qsTr("Clear")
-			imageSource: "clear.png"
+			image: "clear.png"
 			textUnderIcon: true
 			rounded: false
 			enabled: pagePlanner.splitManager.haveExercises
@@ -271,7 +271,7 @@ TPPage {
 		TPButton {
 			id: btnSwapPlan
 			text: pagePlanner.splitManager.currentSplitLetter + " <-> " + pagePlanner.splitManager.currentSwappableLetter
-			imageSource: "swap.png"
+			image: "swap.png"
 			textUnderIcon: true
 			visible: pagePlanner.splitManager.canSwapExercises
 			rounded: false
@@ -289,7 +289,7 @@ TPPage {
 
 		TPButton {
 			text: qsTr("+Exercise")
-			imageSource: "exercises-add.png"
+			image: "exercises-add.png"
 			textUnderIcon: true
 			rounded: false
 			width: bottomToolBar.buttonWidth * 1.3

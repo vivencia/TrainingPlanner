@@ -226,7 +226,6 @@ TPPopup {
 		TPButton {
 			id: hrsButton
 			text: _timePicker.hrsDisplay
-			autoSize: true
 			checked: !minutesButton.checked
 			checkable: true
 			Layout.alignment: Qt.AlignRight
@@ -242,7 +241,6 @@ TPPopup {
 		TPButton {
 			id: minutesButton
 			text: _timePicker.minutesDisplay
-			autoSize: true
 			checked: !hrsButton.checked
 			checkable: true
 			Layout.alignment: Qt.AlignLeft
@@ -299,7 +297,7 @@ TPPopup {
 		}
 
 		TPButton {
-			imageSource: _timePicker.useWorkTimes? "work.png" : "time.png"
+			image: _timePicker.useWorkTimes? "work.png" : "time.png"
 			width: AppSettings.itemDefaultHeight
 			height: width
 			visible: !_timePicker.pickMinutes
@@ -483,7 +481,6 @@ TPPopup {
 		TPButton {
 			id: btnCancel
 			text: qsTr("Cancel")
-			autoSize: true
 
 			anchors {
 				left: parent.left
@@ -497,7 +494,6 @@ TPPopup {
 		TPButton {
 			id: btnOK
 			text: qsTr("OK")
-			autoSize: true
 			enabled: _timePicker.modified
 
 			anchors {

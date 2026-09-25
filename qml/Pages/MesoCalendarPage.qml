@@ -9,7 +9,7 @@ import TpQml.Widgets
 
 TPPage {
 	id: mesoCalendarPage
-	imageSource: ":/images/backgrounds/backimage-calendar.jpg"
+	image: ":/images/backgrounds/backimage-calendar.jpg"
 	backgroundOpacity: 0.6
 	objectName: "mesoCalendarPage"
 
@@ -214,7 +214,7 @@ TPPage {
 		TPButton {
 			id: btnChangeCalendar
 			text: qsTr("Change Calendar")
-			imageSource: "edit-calendar.png"
+			image: "edit-calendar.png"
 			enabled: optChangeOnlyThisDay.checked || optChangeAfterThisDay.checked
 			width: parent.width * 0.65
 
@@ -235,7 +235,7 @@ TPPage {
 		TPButton {
 			id: btnViewWorkout
 			text: qsTr("Workout")
-			imageSource: "workout.png"
+			image: "workout.png"
 			width: parent.width * 0.3
 
 			anchors {

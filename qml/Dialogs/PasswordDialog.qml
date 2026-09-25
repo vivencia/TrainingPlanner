@@ -192,7 +192,7 @@ TPPopup {
 		id: chkStorePassword
 		boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
 		text: qsTr("Save password")
-		checked: _passwdDlg.store_password
+		isChecked: _passwdDlg.store_password
 		visible: _passwdDlg.show_store_option
 
 		readonly property int item_height: visible ? defaultHeight + 10 : 0
@@ -222,7 +222,6 @@ TPPopup {
 		TPButton {
 			id: btn1
 			text: "OK"
-			autoSize: true
 			enabled: txtPassword.getPassword().length > 4
 			Layout.alignment: Qt.AlignHCenter
 			onClicked: _passwdDlg.closePopup(0);
@@ -231,7 +230,6 @@ TPPopup {
 		TPButton {
 			id: btn2
 			text: qsTr("Cancel")
-			autoSize: true
 			Layout.alignment: Qt.AlignHCenter
 			onClicked: _passwdDlg.closePopup(1);
 		}
