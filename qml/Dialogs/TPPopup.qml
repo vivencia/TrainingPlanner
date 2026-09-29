@@ -175,7 +175,7 @@ Popup {
 		}
 
 		sourceComponent: TitleBar {
-			parentPopup: _control
+			parentPopup: _control as TPPopup
 			Component.onCompleted: {
 				_control.titleBar = this;
 				if (!_control.mouseItem)
@@ -491,7 +491,7 @@ Popup {
 	Timer {
 		id: waitForSwipeTimer
 		interval: 500
-		onTriggered: closeActionExeced(TPPopup.SWIPE);
+		onTriggered: _control.closeActionExeced(TPPopup.SWIPE);
 	}
 
 	function closePopup(btn_id: int): void {

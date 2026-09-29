@@ -27,12 +27,14 @@ Label {
 	property string fontColor: AppSettings.fontColor
 	property bool singleLine: true
 	property bool useBackground: false
+	property bool showBorder: false
 	property string backgroundColor: AppSettings.primaryLightColor
 	readonly property int preferredWidth: Math.min(fm.boundingRect(text).width, AppSettings.pageWidth * 0.9)
 
 	Rectangle {
 		id: itemBack
-		color: _control.enabled ? _control.backgroundColor : "transparent"
+		color: _control.enabled ? _control.backgroundColor : Qt.lighter(_control.backgroundColor, 1.5)
+		border.color: _control.showBorder ? AppSettings.fontColor : "transparent"
 		radius: 8
 		opacity: 0.7
 	}

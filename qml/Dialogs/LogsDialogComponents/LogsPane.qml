@@ -8,14 +8,13 @@ import TpQml.Widgets
 
 TPPane {
 	id: _control
-	maxHeight: AppSettings.pageHeight
 
 	required property TPLogs logsModel
 
 	TPListView {
 		id: listView
 		model: _control.logsModel
-		constrainedHeight: true
+		//contentHeight: delegatesHeight
 		height: Math.min(_control.maxHeight, minimumHeight + delegatesHeight)
 
 		property int delegatesHeight: 0
@@ -31,7 +30,7 @@ TPPane {
 		delegate: SwipeDelegate {
 			id: delegate
 			width: parent ? parent.width : 0
-			height: logEntryItem.preferredHeight
+			height: itemVisible ? logEntryItem.preferredHeight : 0
 			visible: itemVisible
 			spacing: 0
 
@@ -62,7 +61,7 @@ TPPane {
 				id: bufferTimer
 				interval: 500
 				onTriggered: {
-					if (index > 0) //TPListView minimum size already accounts for the first item
+					if (index > 0 && delegate.itemVisible) //TPListView minimum size already accounts for the first item
 						listView.delegatesHeight += delegate.height + 2*listView.spacing;
 					delegate.setupLayout(); //Now that size reached its final value, layout the widgets inside TPRadioButtonOrCheckBox
 				}
@@ -124,8 +123,9 @@ TPPane {
 					id: lblTitle
 					text: delegate.logTitle + "  [" + delegate.logTime + "]"
 					elideMode: Text.ElideLeft
-					boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
+					boxType: listView.items_selectable ? TPRadioButtonOrCheckBox.TP_CHECKBOX : TPRadioButtonOrCheckBox.TP_NONEBOX
 					indicatorPos: Qt.AlignRight | Qt.AlignVCenter
+					enableCheckOutsideIndicator: false
 					font.weight: Font.Bold
 					font.pixelSize: AppSettings.fontSize
 					onChecked: (check) => _control.logsModel.setSelected(delegate.index, check);

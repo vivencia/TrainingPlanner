@@ -20,17 +20,17 @@ Item {
 		case TPMessage.AT_BUTTON:
 			_component = Qt.createComponent("TpQml.Widgets", TPButton);
 			_item = _component.createObject(_control, { text: label });
-			_item.clicked.connect(function(btn_id) { execAction(index, btn_id); });
+			_item.buttonClicked.connect(function(btn_id) { execAction(index, btn_id); });
 			break;
 		case TPMessage.AT_CHECKBOX:
 			_component = Qt.createComponent("TpQml.Widgets", TPRadioButtonOrCheckBox);
 			_item = _component.createObject(_control, { text: label, boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX});
-			_item.onChecked.connect(function(check) { execAction(index, check); });
+			_item.checked.connect(function(check) { execAction(index, check); });
 			break;
 		case TPMessage.AT_RADIO:
 			_component = Qt.createComponent("TpQml.Widgets", TPRadioButtonOrCheckBox);
 			_item = _component.createObject(_control, { text: label, boxType: TPRadioButtonOrCheckBox.TP_RADIOBOX});
-			_item.onChecked.connect(function(check) { execAction(index, check); });
+			_item.checked.connect(function(check) { execAction(index, check); });
 			break;
 		case TPMessage.AT_NONE:
 			_item = null;

@@ -201,7 +201,7 @@ void PagesListModel::openPopup(QObject *popup, QQuickItem *parentPage, const int
 		popup->setProperty("parentPage", std::move(QVariant::fromValue(parentPage)));
 	if (widget)
 		popup->setProperty("reference_widget", std::move(QVariant::fromValue(widget)));
-	if (popup->property("show_position").toInt() != 0) //do not override a set value
+	if (popup->property("show_position").toInt() == 0) //do not override a set value
 		popup->setProperty("show_position", std::move(QVariant{position}));
 	popup->setProperty("open_in_window", std::move(QVariant{widget == nullptr}));
 

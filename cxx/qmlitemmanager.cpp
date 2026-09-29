@@ -120,8 +120,8 @@ void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
 			appSettings()->setCurrentUser(arg);
 		}
 	}
-	if (m_testType & TT_CORE && !(m_testType & TT_QML)) { //test with no GUI
-		if (runTests())
+	if (m_testType != TT_NO_TEST) {
+		if (runTests()) //test with no GUI
 			::exit(0);
 	}
 	#endif
@@ -648,7 +648,10 @@ void QmlItemManager::generalMessagesPopupModallyClosed()
 //Return: true for exiting the app upon return; false for letting some other function call ::exit() when appropriate
 bool QmlItemManager::runTests()
 {
-	return true;
+	for (uint i{0}; i < 10; ++i) {
+		log(TPLogs::LT_DEBUG, "TPListModel Tests"_L1, std::move("Title %1"_L1.arg(QString::number(i))), std::move("Message %1"_L1.arg(QString::number(10-i))));
+	}
+	return false;
 }
 #endif
 #endif

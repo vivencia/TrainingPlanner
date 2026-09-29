@@ -13,6 +13,9 @@ enum LogRoleNames {
 TPLogs::TPLogs(LogType type, const QString &category, QObject *parent)
 	: TPListModel{parent, LF_N_FIELDS}, m_type{type}, m_category{category}
 {
+	//setSortField(LF_MESSAGE);
+	//setSortDirection(SORT_DOWN);
+	setFieldsNames();
 	roleToString(logOrigin)
 	roleToString(logTitle)
 	roleToString(logMessage)
@@ -54,17 +57,11 @@ void TPLogs::copyLog(const int entry)
 		appUtils()->copyToClipboard(condensedLog(entry));
 }
 
-void TPLogs::removeSelected()
+void TPLogs::setFieldsNames()
 {
-	QList<int> indexes;
-	int index{0};
-	for (const auto &entry : std::as_const(m_entries)) {
-		if (entry.selected)
-			indexes.append(index);
-		++index;
-	}
-	if (!indexes.isEmpty())
-		remove(indexes);
+	m_fieldsNames.append(std::move(tr("Header")));
+	m_fieldsNames.append(std::move(tr("Message")));
+	m_fieldsNames.append(std::move(tr("Time")));
 }
 
 QVariant TPLogs::data(const uint role, const uint row, const int column) const
@@ -93,10 +90,12 @@ const QString &TPLogs::_d_time(const uint row) const
 
 void TPLogs::remove(const QList<int> &entries)
 {
-	beginRemoveRows(QModelIndex{}, entries.constFirst(), entries.constLast());
-	for (const auto entry : entries | std::views::reverse) {
-		m_entries.removeAt(entry);
-		emit entryRemoved(entry);
+	if (!entries.isEmpty()) {
+		beginRemoveRows(QModelIndex{}, entries.constFirst(), entries.constLast());
+		for (const auto entry : entries | std::views::reverse) {
+			m_entries.removeAt(entry);
+			emit entryRemoved(entry);
+		}
+		endRemoveRows();
 	}
-	endRemoveRows();
 }

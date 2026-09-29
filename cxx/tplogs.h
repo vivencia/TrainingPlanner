@@ -62,17 +62,7 @@ public:
 	}
 
 	Q_INVOKABLE void copyLog(const int entry);
-	Q_INVOKABLE void removeSelected();
-	Q_INVOKABLE void setSelected(const int entry, const bool selected)
-	{
-		m_entries[entry].selected = selected;
-	}
-	Q_INVOKABLE bool isSelected(const int entry) const
-	{
-		if (entry >= 0 && entry < m_entries.count())
-			return m_entries.at(entry).selected;
-		return false;
-	}
+	Q_INVOKABLE inline void removeSelected() { remove(selectedInfo()); }
 
 	inline QString condensedLog(const uint entry) const
 	{
@@ -86,6 +76,7 @@ public:
 		return m_entries.at(entry).m_tooltip;
 	}
 
+	void setFieldsNames() override final;
 	inline const QString &dataValue(const uint real_row, const uint column) const override final
 	{
 		switch (column) {
@@ -111,7 +102,6 @@ private:
 	struct st_LogEntry {
 		QString origin, title, message, m_time, m_tooltip, m_ptime;
 		QDateTime d_time;
-		bool selected;
 	};
 
 	mutable QList<st_LogEntry> m_entries;

@@ -26,8 +26,8 @@ TPBackRec {
 	property bool enableClicks: false
 	property int boxType: TPRadioButtonOrCheckBox.TP_RADIOBOX
 	property TPButtonGroup buttonGroup: null
-	readonly property int preferredWidth: 10 + label.preferredWidth + (_left_control ? _left_control.width : 0)
-																		+ (_right_control ? _right_control.width : 0)
+	readonly property int preferredWidth: label.preferredWidth + (_left_control ? _left_control.width : 0)
+																		+ (_right_control ? _right_control.width : 0) + 10
 
 	enum BoxType { TP_RADIOBOX, TP_CHECKBOX, TP_NONEBOX }
 	//only if enableClicks is true. If enableCheckOutsideIndicator is true both clicked() and checked() will be emitted
@@ -42,18 +42,12 @@ TPBackRec {
 	property Item _right_control: null
 	property bool _component_completed: false
 
-	readonly property int _control_subtype: {
-		if (img.OK) {
-			if (boxType !== TPRadioButtonOrCheckBox.TP_NONEBOX)
-				return imageAfterIndicator ? TPRadioButtonOrCheckBox.INDICATOR_PLUS_IMAGE : TPRadioButtonOrCheckBox.IMAGE_PLUS_INDICATOR;
-			else
-				return TPRadioButtonOrCheckBox.IMAGE_ONLY;
-		} else {
-			if (boxType !== TPRadioButtonOrCheckBox.TP_NONEBOX) {
-				return TPRadioButtonOrCheckBox.INDICATOR_ONLY;
-			} else {
-				return TPRadioButtonOrCheckBox.TEXT_ONLY;
-			}
+	property int _control_subtype: getControlSubType();
+
+	onBoxTypeChanged: {
+		if (_component_completed) {
+			_control_subtype = getControlSubType();
+			setupLayout();
 		}
 	}
 
@@ -65,12 +59,13 @@ TPBackRec {
 	TPLabel {
 		id: label
 		singleLine: !_control.multiLine
+		enabled: parent.enabled
 		padding: 5
 
 		MouseArea {
-			enabled: _control.enableCheckOutsideIndicator || _control.enableClicks
+			enabled: _control.enabled && _control.enableCheckOutsideIndicator || _control.enableClicks
 			anchors.fill: parent
-			onClicked: _control.enableCheckOutsideIndicator ? _control.mouseClicked() : _control.clicked();
+			onClicked: _control.enableCheckOutsideIndicator ? _control.checkFunction() : _control.clicked();
 		}
 	}
 
@@ -78,7 +73,7 @@ TPBackRec {
 		id: indicator
 		width: _control.boxType !== TPRadioButtonOrCheckBox.TP_NONEBOX ? AppSettings.itemSmallHeight : 0
 		height: width
-		radius: _control.boxType === TPRadioButtonOrCheckBox.TP_RADIOBOX ? implicitWidth / 2 : 4
+		radius: _control.boxType === TPRadioButtonOrCheckBox.TP_RADIOBOX ? width / 2 : 4
 		color: "transparent"
 		border.color: _control.enabled ? AppSettings.fontColor : AppSettings.disabledFontColor
 		visible: _control.boxType !== TPRadioButtonOrCheckBox.TP_NONEBOX
@@ -96,9 +91,9 @@ TPBackRec {
 		}
 
 		MouseArea {
-			enabled: !_control.enableCheckOutsideIndicator
+			enabled: _control.enabled
 			anchors.fill: parent
-			onClicked: _control.mouseClicked();
+			onClicked: _control.checkFunction();
 		}
 	}
 
@@ -110,9 +105,9 @@ TPBackRec {
 		visible: source.length > 0
 		anchors.margins: 2
 		MouseArea {
-			enabled: _control.enableCheckOutsideIndicator || _control.enableClicks
+			enabled: _control.enabled && _control.enableCheckOutsideIndicator || _control.enableClicks
 			anchors.fill: parent
-			onClicked: _control.enableCheckOutsideIndicator ? _control.mouseClicked() : _control.clicked();
+			onClicked: _control.enableCheckOutsideIndicator ? _control.checkFunction() : _control.clicked();
 		}
 	}
 
@@ -130,6 +125,22 @@ TPBackRec {
 	Component.onDestruction: {
 		if (boxType === TPRadioButtonOrCheckBox.TP_RADIOBOX && buttonGroup)
 			buttonGroup.removeRadio(this);
+	}
+
+	function getControlSubType(): int
+	{
+		if (img.OK) {
+			if (boxType !== TPRadioButtonOrCheckBox.TP_NONEBOX)
+				return imageAfterIndicator ? TPRadioButtonOrCheckBox.INDICATOR_PLUS_IMAGE : TPRadioButtonOrCheckBox.IMAGE_PLUS_INDICATOR;
+			else
+				return TPRadioButtonOrCheckBox.IMAGE_ONLY;
+		} else {
+			if (boxType !== TPRadioButtonOrCheckBox.TP_NONEBOX) {
+				return TPRadioButtonOrCheckBox.INDICATOR_ONLY;
+			} else {
+				return TPRadioButtonOrCheckBox.TEXT_ONLY;
+			}
+		}
 	}
 
 	function setupLayout(): void {
@@ -259,12 +270,12 @@ TPBackRec {
 											(_bottom_control ? _bottom_control.height : 0) + 10
 	}
 
-	function mouseClicked(): void {
+	function checkFunction(): void {
 		if (_control.boxType === TPRadioButtonOrCheckBox.TP_CHECKBOX) {
 			_control.isChecked = !_control.isChecked;
 			_control.checked(_control.isChecked);
 		} else if (_control.boxType === TPRadioButtonOrCheckBox.TP_RADIOBOX) {
-			if (!control.isChecked) {
+			if (!_control.isChecked) {
 				if (!_control.buttonGroup) {
 					_control.isChecked = true;
 					_control.checked(true);
@@ -273,7 +284,5 @@ TPBackRec {
 				}
 			}
 		}
-		if (_control.enableClicks)
-			_control.clicked();
 	}
 }

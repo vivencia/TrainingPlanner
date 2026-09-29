@@ -14,16 +14,21 @@ ComboBox {
 	valueRole: "value"
 	padding: 0
 	spacing: 0
+	currentIndex: -1
 
 //public:
 	property string textColor: AppSettings.fontColor
 	property string backgroundColor: AppSettings.primaryDarkColor
 	property bool completeModel: false
 	property bool selectable: true
+	//When set to a value >= 0 and < model.count, when the item at the specified index is activated, instead of activated
+	//reflect the item's actual index, it will return -100. Also, the activated index of all the other items after specialIndex
+	//will be as if specialIndex did not exist
+	property int specialIndex: -1
+
+	signal itemActivated(int real_index, int index, string value)
 
 //private:
-	//Prevents the combo box from erasing the current text after the fist click on the combo box when no item is selected
-	property int _current_index;
 	property bool _ignore_index_change: false
 
 	onCurrentIndexChanged: {
@@ -31,13 +36,16 @@ ComboBox {
 			_ignore_index_change = false;
 			return;
 		}
-
-		if (currentIndex === -1 && _current_index !== -1)
-			currentIndex = _current_index;
-		else
-			_current_index = currentIndex;
+		if (currentIndex < 0 && specialIndex >= 0)
+			setCurIndex(specialIndex);
 	}
-	Component.onCompleted: _current_index = currentIndex;
+
+	Component.onCompleted: {
+		if (currentIndex < 0 && specialIndex >= 0)
+			setCurIndex(specialIndex);
+		else
+			setCurIndex(currentIndex);
+	}
 
 	delegate: ItemDelegate {
 		id: delegate
@@ -80,7 +88,7 @@ ComboBox {
 
 	indicator: Canvas {
 		id: canvas
-		x: _control.width - width - _control.rightPadding
+		x: _control.width - width - 5
 		y: _control.topPadding + (_control.availableHeight - height) / 2
 		width: AppSettings.itemDefaultHeight / 2
 		height: width
@@ -136,51 +144,233 @@ ComboBox {
 	}
 
 	popup: Popup {
+		id: _popup
 		y: _control.height - 1
 		width: _control.width
-		implicitHeight: contentItem.implicitHeight
-		padding: 0
+		padding: 5
 		spacing: 0
+		clip: true
 
-		contentItem: ListView {
-			implicitHeight: contentHeight
-			model: _control.popup.visible ? _control.delegateModel : null
-			currentIndex: _control.highlightedIndex
-			highlight: _control.selectable ? highlight_component : null
-			highlightFollowsCurrentItem: false
-			delegateModelAccess: DelegateModel.ReadOnly
-			enabled: _control.selectable
+		property int preferredHeight: 0
 
-			Component {
-				id:	highlight_component
-				Rectangle {
-					width: ListView.view.width - 10
-					height: AppSettings.itemDefaultHeight
-					x: 5
-					color: AppSettings.primaryColor
-					radius: 8
-					y: ListView.view.currentItem ? ListView.view.currentItem.y + 2 : 2
-
-					Behavior on y {
-						SpringAnimation {
-							spring: 3
-							damping: 0.2
-						}
-					}
-				}
+		enter: Transition {
+			PropertyAnimation {
+				target: _popup
+				property: "height"
+				from: 0
+				to: Math.min(AppSettings.pageHeight / 3, _popup.preferredHeight)
+				duration: 300
+				easing.type: Easing.InCubic
 			}
 		}
 
-		background: Rectangle {
-			border.color: _control.textColor
-			color: _control.backgroundColor
-			opacity: 0.9
-			radius: 8
+		exit: Transition {
+			PropertyAnimation {
+				target: _popup
+				property: "height"
+				from: _popup.height
+				to: 0
+				duration: 300
+				easing.type: Easing.InCubic
+			}
+		}
+
+		contentItem: Flickable {
+			contentWidth: width
+			contentHeight: itemsRepeater.height
+
+			ScrollBar.vertical: ScrollBar {
+				id: vBar
+				policy: ScrollBar.AsNeeded
+				interactive: Qt.platform.os !== "android"
+
+				anchors {
+					top: parent.top
+					bottom: parent.bottom
+					right: parent.right
+				}
+			}
+
+			Repeater {
+				id: itemsRepeater
+				model: _control.modelSize()
+				delegateModelAccess: DelegateModel.ReadOnly
+				enabled: _control.selectable
+
+				anchors {
+					left: parent.left
+					right: parent.right
+					top: parent.top
+					margins: 3
+				}
+
+				property list<int> separator_indices
+				property int last_actual_pos: -1
+				property int n_skipped: 0
+				property bool first_item: false
+				readonly property int spacing: 5
+
+				function positionItem(index: int, item: Item): void {
+					item.y = itemsRepeater.height;
+					itemsRepeater.height += item.height + spacing;
+					_popup.preferredHeight += item.height + spacing;
+				}
+
+				onItemAdded: (index, item) => {
+					if (!first_item) {
+						if (index !== 0) {
+							n_skipped++;
+							return;
+						} else
+							first_item = true;
+					}
+					if (n_skipped === 0) {
+						positionItem(index, item);
+					} else {
+						for (let i = 0; i < _control.modelSize(); ++i)
+							positionItem(i, itemAt(i));
+					}
+				}
+
+				delegate: Item {
+					id: popupDelegate
+					height: !separator ? label.height : AppSettings.itemSmallHeight
+					width: parent.width
+
+					required property int index
+					readonly property bool separator: _control.isSeparator(index)
+					property int real_index
+					property int actual_pos
+
+					Component.onCompleted: {
+						if (!separator) {
+							actual_pos = itemsRepeater.last_actual_pos + 1;
+							itemsRepeater.last_actual_pos++;
+							if (index !== _control.specialIndex) {
+								let _real_index = _control.specialIndex < 0 ? index : index < _control.specialIndex ? index : index - 1;
+								for (let i = 0; i < itemsRepeater.separator_indices.length; ++i) {
+									if (index > itemsRepeater.separator_indices[i])
+										--_real_index;
+									else
+										break;
+								}
+								real_index = _real_index;
+							} else {
+								real_index = _control.specialIndex;
+							}
+						} else {
+							itemsRepeater.separator_indices.push(index);
+							real_index = -1000;
+						}
+					}
+
+					Rectangle {
+						id: line
+						color: AppSettings.fontColor
+						visible: popupDelegate.separator
+						height: 2
+						width: parent.width * 0.8
+
+						anchors {
+							verticalCenter: parent.verticalCenter
+							horizontalCenter: parent.horizontalCenter
+						}
+					}
+
+					TPLabel {
+						id: label
+						text: _control.getText(popupDelegate.index)
+						useBackground: true
+						backgroundColor: popupDelegate.actual_pos % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2
+						enabled: _control.isEnabled(popupDelegate.index)
+						visible: !popupDelegate.separator
+						x: popupDelegate.index !== _control.currentIndex ? 0 : -itemsRepeater.spacing
+						y: popupDelegate.index !== _control.currentIndex ? 0 : -2*itemsRepeater.spacing
+						width: popupDelegate.index !== _control.currentIndex ? parent.width : parent.width + _popup.width
+						height: popupDelegate.index !== _control.currentIndex ? preferredHeight() : preferredHeight() + 4*itemsRepeater.spacing
+
+						Behavior on y {
+							SpringAnimation {
+								spring: 3
+								damping: 0.2
+							}
+						}
+						Behavior on height {
+							NumberAnimation {
+								easing.type: Easing.InOutBack
+							}
+						}
+						Behavior on width {
+							NumberAnimation {
+								easing.type: Easing.InOutBack
+							}
+						}
+
+						MouseArea {
+							anchors.fill: parent
+							hoverEnabled: true
+							onClicked: (mouse) => {
+								mouse.accepted = true;
+								_control.currentIndex = popupDelegate.index;
+								_control.displayText = label.text;
+								_control.itemActivated(popupDelegate.real_index, popupDelegate.index, _control.getValue(popupDelegate.index));
+								_popup.close();
+							}
+							onEntered: label.y += 3
+							onExited: label.y -= 3
+						}
+					}
+				} //Repeater
+			} //Flickable
+		}
+
+		background: TPBackRec {
+			useShape: true
+			showBorder: true
 		}
 	}
 
 	function setCurIndex(new_index: int): void {
+		displayText = getText(new_index);
 		_control._ignore_index_change = true;
 		_control.currentIndex = new_index;
+	}
+
+	function modelSize(): int {
+		if (model) {
+			if (model instanceof ListModel)
+				return model.count;
+			else
+				return model.length;
+		}
+		return 0;
+	}
+
+	function getText(index: int): string {
+		if (model) {
+			if (model instanceof ListModel)
+				return model.get(index).text;
+			else
+				return model[index];
+		}
+		return "";
+	}
+
+	function isSeparator(index: int): bool {
+		return getText(index) === "--";
+	}
+
+	function getValue(index: int): string {
+		if (model instanceof ListModel)
+			return model.get(index).value;
+		else
+			return model[index];
+	}
+
+	function isEnabled(index: int): bool {
+		if (model instanceof ListModel)
+			return model.get(index).enabled;
+		else
+			return true;
 	}
 }

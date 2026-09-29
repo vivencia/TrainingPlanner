@@ -1247,12 +1247,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/LogsDialog.qml" line="56"/>
+        <location filename="../qml/Dialogs/LogsDialog.qml" line="57"/>
         <source>Core</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/LogsDialog.qml" line="68"/>
+        <location filename="../qml/Dialogs/LogsDialog.qml" line="70"/>
         <source>Debug</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2192,22 +2192,22 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="658"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="661"/>
         <source>Application Messages</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="659"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="662"/>
         <source>Core Messages</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="661"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="664"/>
         <source>Debug Messages</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="713"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="716"/>
         <source>Statistics</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2639,20 +2639,46 @@
     </message>
 </context>
 <context>
+    <name>TPListModel</name>
+    <message>
+        <location filename="../cxx/tplistmodel.cpp" line="31"/>
+        <source>Unsorted</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>TPListViewHeader</name>
     <message>
-        <location filename="../qml/Widgets/TPListViewHeader.qml" line="34"/>
-        <source>Search: </source>
+        <location filename="../qml/Widgets/TPListViewHeader.qml" line="97"/>
+        <source>Filter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Widgets/TPListViewHeader.qml" line="120"/>
+        <location filename="../qml/Widgets/TPListViewHeader.qml" line="134"/>
         <source>Selectable</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Widgets/TPListViewHeader.qml" line="135"/>
+        <location filename="../qml/Widgets/TPListViewHeader.qml" line="149"/>
         <source>Select All</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>TPLogs</name>
+    <message>
+        <location filename="../cxx/tplogs.cpp" line="62"/>
+        <source>Header</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/tplogs.cpp" line="63"/>
+        <source>Message</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/tplogs.cpp" line="64"/>
+        <source>Time</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

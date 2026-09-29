@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 
@@ -24,6 +26,8 @@ TextField {
 
 //public:
 	property bool showClearTextButton: false
+	property bool showSearchButton: false
+	property bool showSearchIcon: false
 	property bool heightAdjustable: true
 	property bool textRemovedKeyPressed: false
 	property bool enableRegex: true
@@ -34,6 +38,7 @@ TextField {
 	readonly property int defaultPadding: showClearTextButton ? (text.length > 0 ? btnClearText.width : 0) : 5
 
 	signal enterOrReturnKeyPressed(mod_key: int);
+	signal searchButtonClicked();
 	signal textCleared();
 
 //private:
@@ -104,7 +109,7 @@ TextField {
 		height: width
 
 		anchors {
-			right: _control.right
+			right: !_control.showSearchIcon && !_control.showSearchButton ? _control.right : searchLoader.left
 			rightMargin: 5
 			verticalCenter: _control.verticalCenter
 		}
@@ -114,6 +119,31 @@ TextField {
 			_control.forceActiveFocus();
 			if (_control.readOnly)
 				_control.textCleared();
+		}
+	}
+
+	Loader {
+		id: searchLoader
+		asynchronous: true
+		active: _control.showSearchIcon || _control.showSearchButton
+
+		anchors {
+			right: _control.right
+			rightMargin: 5
+			verticalCenter: _control.verticalCenter
+		}
+
+		sourceComponent: TPButton {
+			image: "search.png"
+			enableCheckOutsideIndicator: false
+			enableClicks: _control.showSearchButton
+			width: AppSettings.itemDefaultHeight
+			height: width
+
+			onClicked: {
+				_control.forceActiveFocus();
+				_control.searchButtonClicked();
+			}
 		}
 	}
 

@@ -3,12 +3,13 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 
+import TpQml
+
 Item {
 	id: _control
-	height: !constrainedHeight ? _headerLoader.height + _listView.height : minimumHeight
+	height: minimumHeight
 
 //public:
-	property bool constrainedHeight: false
 	property bool showHeader: true
 	property bool canFilter: showHeader
 	property bool canSearch: showHeader
@@ -21,6 +22,10 @@ Item {
 	property alias model: _listView.model
 	property alias currentIndex: _listView.currentIndex
 	property alias spacing: _listView.spacing
+	property alias contentHeight: _listView.contentHeight
+
+//protected:
+	property bool items_selectable: false
 
 	Loader {
 		id: _headerLoader
@@ -31,11 +36,13 @@ Item {
 		property TPListViewHeader _header: null
 
 		sourceComponent: TPListViewHeader {
-			listView: _listView
+			listView: _control as TPListView
 			showFilter: _control.canFilter
 			showSearch: _control.canSearch
 			showSort: _control.canSort
 			showSelectionOptions: _control.canSelectItems
+			enableShadow: true
+
 			Component.onCompleted: _headerLoader._header = this;
 		}
 
@@ -49,11 +56,32 @@ Item {
 	ListView {
 		id: _listView
 		boundsBehavior: ListView.StopAtBounds
-		delegateModelAccess: DelegateModel.ReadOnly
+		contentWidth: width
 		reuseItems: true
+		highlight: highlight_component
+		highlightFollowsCurrentItem: false
 		clip: true
 		focus: true
 		spacing: 2
+
+		Component {
+			id:	highlight_component
+			Rectangle {
+				width: ListView.view.width - 10
+				height: AppSettings.itemDefaultHeight
+				x: 5
+				color: AppSettings.primaryColor
+				radius: 8
+				y: ListView.view.currentItem ? ListView.view.currentItem.y + 2 : 2
+
+				Behavior on y {
+					SpringAnimation {
+						spring: 3
+						damping: 0.2
+					}
+				}
+			}
+		}
 
 		ScrollBar.vertical: ScrollBar {
 			id: _vBar
@@ -69,7 +97,7 @@ Item {
 			top: _control.showHeader ? _headerLoader.bottom : parent.top
 			left: parent.left
 			right: parent.right
-			bottom: !_control.constrainedHeight ? undefined : parent.bottom
+			bottom: parent.bottom
 			topMargin: 15
 		}
 	} //ListView

@@ -40,55 +40,40 @@ ApplicationWindow {
 			}
 		}
 
-		TPPane {
-			id: pane
-			maxHeight: 300
-			width: 200
-			header: "Test a really long header"
-			icon: "messages"
-			customHeaderWidget: TPRadioButtonOrCheckBox {
-				objectName: "checkbox"
-				text: pane.header
-				multiLine: true
-				boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
-				width: pane.headerWidth
-			}
-			x: 0
-			y: 150
-			ColumnLayout {
-				width: pane.width
-				height: 5 * (100 + spacing)
-				anchors { top: pane.headerWidget.bottom; left: parent.left; topMargin: 10 }
-
-				Repeater {
-					model: 5
-					Layout.fillHeight: true
-					delegate: Rectangle {
-						id: delegate
-						required property int index
-						height: 100
-						width: parent.width
-						border.color: "white"
-						color: {
-							switch (delegate.index) {
-							case 0: return "blue";
-							case 1: return "green";
-							case 2: return "red";
-							case 3: return "yellow";
-							case 4: return "orange";
-							}
-						}
-					}
-				}
-			}
-		}
-
 		TPButton {
 			id: btnLogs
 			text: "Show logs"
 			onClicked: ItemManager.showLogs();
 			anchors {
-				top: pane.bottom
+				bottom: parent.bottom
+				horizontalCenter: parent.horizontalCenter
+			}
+		}
+
+		TPComboBox {
+			id: cbo1
+			specialIndex: 0
+			currentIndex: -1
+			model: ["Special Item", "--", "Item1", "Item2", "Item3", "--", "Item4", "Item5", "Item6"]
+			width: parent.width * 0.8
+			onItemActivated: (real_index, index, value) => console.log("Activated: ", real_index, index, value);
+			anchors {
+				verticalCenter: parent.verticalCenter
+				horizontalCenter: parent.horizontalCenter
+			}
+		}
+
+		TPComboBox {
+			id: cbo2
+			specialIndex: 0
+			currentIndex: -1
+			model: ItemManager.debugLog.fieldsNames
+
+			width: parent.width * 0.8
+			onItemActivated: (real_index, index, value) => console.log("Activated: ", real_index, index, value);
+			anchors {
+				top: cbo1.bottom
+				topMargin: 20
 				horizontalCenter: parent.horizontalCenter
 			}
 		}

@@ -44,6 +44,7 @@ TPPopup {
 			header: qsTr("Messages")
 			icon: "messages"
 			logsModel: ItemManager.messagesLog
+			maxHeight: _dialog.height * 0.9
 
 			anchors {
 				top: parent.top
@@ -56,6 +57,7 @@ TPPopup {
 			header: qsTr("Core")
 			icon: "logs_"
 			logsModel: ItemManager.coreLog
+			maxHeight: _dialog.height * 0.9
 
 			anchors {
 				top: messagesPane.bottom
@@ -68,6 +70,7 @@ TPPopup {
 			header: qsTr("Debug")
 			icon: "logs_"
 			logsModel: ItemManager.debugLog
+			maxHeight: _dialog.height * 0.9
 			visible: ItemManager.debugLog !== null
 
 			anchors {

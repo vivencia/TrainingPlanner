@@ -5,21 +5,20 @@ import TpQml.Widgets
 
 TPBackRec {
 	id: _control
-	enabled: listView.count > 0
-	showBorder: true
+	enabled: listModel ? listModel.count > 0 : false
 	height: {
 		let ret = 0;
 		if (showSearch)
-			ret = 3*_margins + lblSearch.height + txtSearch.height;
-		else
-			ret = 2*_margins + (showFilter || showSort ? AppSettings.itemSmallHeight : 0);
+			ret = 3*_margins + txtSearch.height;
+		if (showFilter|| showSort)
+			ret += 2*_margins + AppSettings.itemSmallHeight;
 		if (showSelectionOptions)
 			ret += 2*_margins + chkEnableSelection.height;
 		return ret;
 	}
 
 //public:
-	required property ListView listView
+	required property TPListView listView
 	property bool showFilter: true
 	property bool showSearch: true
 	property bool showSort: true
@@ -29,34 +28,18 @@ TPBackRec {
 	readonly property TPListModel listModel: listView.model as TPListModel
 	property int _margins: 5
 
-	TPLabel {
-		id: lblSearch
-		text: qsTr("Search: ")
-		width: _control.width * 0.3
-		height: AppSettings.itemDefaultHeight
-		visible: _control.showSearch
-
-		anchors {
-			left: parent.left
-			top: parent.top
-			margins: _control._margins
-		}
-	}
-
 	TPButtonGroup {
 		id: sortGroup
 	}
 
-	TPButton {
-		id: btnSortDown
-		buttonGroup: sortGroup
-		checkable: true
-		image: "sort_down.png"
-		imageHeight: AppSettings.itemSmallHeight
-		width: 2*imageHeight + 5
-		height: imageHeight
+	TPComboBox {
+		id: cboSortFields
+		model: _control.listModel.fieldsNames
+		specialIndex: 0
+		currentIndex: _control.listModel.sortField
 		visible: _control.showSort
-		onChecked: (check) => _control.listModel.sortDown = check;
+		width: parent.width * 0.3
+		onItemActivated: (real_index, index, value) => _control.listModel.sortField = real_index;
 
 		anchors {
 			right: parent.right
@@ -65,16 +48,42 @@ TPBackRec {
 		}
 	}
 
-	TPButton {
+	TPRadioButtonOrCheckBox {
+		id: btnSortDown
+		buttonGroup: sortGroup
+		isChecked: _control.listModel.sortDirection === TPListModel.SORT_DOWN
+		image: "sort_down.png"
+		imageHeight: AppSettings.itemSmallHeight
+		width: 2*imageHeight + 5
+		height: imageHeight
+		visible: _control.showSort
+		enabled: _control.listModel.sortField !== -1
+		onChecked: (check) => {
+			if (check)
+				_control.listModel.sortDirection = TPListModel.SORT_DOWN;
+		}
+
+		anchors {
+			right: cboSortFields.left
+			top: parent.top
+			margins: _control._margins
+		}
+	}
+
+	TPRadioButtonOrCheckBox {
 		id: btnSortUp
 		buttonGroup: sortGroup
-		checkable: true
+		isChecked: _control.listModel.sortDirection === TPListModel.SORT_UP
 		image: "sort_up.png"
 		imageHeight: AppSettings.itemSmallHeight
 		width: 2*imageHeight + 5
 		height: imageHeight
 		visible: _control.showSort
-		onChecked: (check) => _control.listModel.sortUp = check;
+		enabled: _control.listModel.sortField !== -1
+		onChecked: (check) => {
+			if (check)
+				_control.listModel.sortDirection = TPListModel.SORT_UP;
+		}
 
 		anchors {
 			right: btnSortDown.left
@@ -85,28 +94,33 @@ TPBackRec {
 
 	TPButton {
 		id: btnFilter
+		text: qsTr("Filter")
+		rounded: false
 		checkable: true
 		isChecked: _control.listModel.filterApplied
 		image: "filter.png"
 		imageHeight: AppSettings.itemSmallHeight
-		width: 2*imageHeight + 5
+		width: parent.width * 0.35
 		height: imageHeight
 		onButtonClicked: (btn_id) => _control.listView.showFilterDialog();
+		onChecked: (check) => _control.listModel.applyFilters;
 
 		anchors {
-			right: _control.showSort ? btnSortUp.left : parent.right
+			left: parent.left
 			top: parent.top
 			margins: _control._margins
+
 		}
 	}
 
 	TPTextInput {
 		id: txtSearch
 		showClearTextButton: true
+		showSearchIcon: true
 		visible: _control.showSearch
 
 		anchors {
-			top: lblSearch.bottom
+			top: _control.showFilter ? btnFilter.bottom : (_control.showSort ? cboSortFields.bottom : _control.top)
 			left: parent.left
 			right: parent.right
 			margins: _control._margins
@@ -135,7 +149,7 @@ TPBackRec {
 		text: qsTr("Select All")
 		boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
 		visible: _control.showSelectionOptions
-		enabled: _control.enabled && chkEnableSelection.checked
+		enabled: _control.enabled && chkEnableSelection.isChecked
 		onClicked: _control.listModel.selectAll();
 
 		anchors {

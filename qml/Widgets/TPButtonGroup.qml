@@ -38,7 +38,6 @@ QtObject {
 				_radios[i].isChecked = true;
 				selectedOption = Math.abs(_radios.length - i - 1);
 			} else {
-				_radios[i].checked(false);
 				_radios[i].isChecked = false;
 			}
 		}	
