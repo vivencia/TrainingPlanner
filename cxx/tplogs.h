@@ -56,13 +56,7 @@ public:
 	const QString &d_time(int row = -1, const bool full_time = true) const;
 
 	void appendLog(const QString &origin, QString &&title, QString &&message);
-	Q_INVOKABLE inline void removeEntry(const int entry){
-		if (entry >= 0 && entry < m_entries.count())
-			remove({entry});
-	}
-
 	Q_INVOKABLE void copyLog(const int entry);
-	Q_INVOKABLE inline void removeSelected() { remove(selectedInfo()); }
 
 	inline QString condensedLog(const uint entry) const
 	{
@@ -89,9 +83,6 @@ public:
 		}
 	}
 
-signals:
-	void entryRemoved(const int entry);
-
 protected:
 	QVariant data(const uint role, const uint row, const int column = -1) const override final;
 
@@ -106,6 +97,6 @@ private:
 
 	mutable QList<st_LogEntry> m_entries;
 
+	void addFilters();
 	const QString &_d_time(const uint row) const;
-	void remove(const QList<int> &entries);
 };

@@ -49,33 +49,5 @@ ApplicationWindow {
 				horizontalCenter: parent.horizontalCenter
 			}
 		}
-
-		TPComboBox {
-			id: cbo1
-			specialIndex: 0
-			currentIndex: -1
-			model: ["Special Item", "--", "Item1", "Item2", "Item3", "--", "Item4", "Item5", "Item6"]
-			width: parent.width * 0.8
-			onItemActivated: (real_index, index, value) => console.log("Activated: ", real_index, index, value);
-			anchors {
-				verticalCenter: parent.verticalCenter
-				horizontalCenter: parent.horizontalCenter
-			}
-		}
-
-		TPComboBox {
-			id: cbo2
-			specialIndex: 0
-			currentIndex: -1
-			model: ItemManager.debugLog.fieldsNames
-
-			width: parent.width * 0.8
-			onItemActivated: (real_index, index, value) => console.log("Activated: ", real_index, index, value);
-			anchors {
-				top: cbo1.bottom
-				topMargin: 20
-				horizontalCenter: parent.horizontalCenter
-			}
-		}
 	}
 }

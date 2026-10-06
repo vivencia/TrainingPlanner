@@ -13,11 +13,8 @@ TPPane {
 
 	TPListView {
 		id: listView
-		model: _control.logsModel
-		//contentHeight: delegatesHeight
-		height: Math.min(_control.maxHeight, minimumHeight + delegatesHeight)
-
-		property int delegatesHeight: 0
+		listModel: _control.logsModel
+		height: Math.min(_control.maxHeight, contentHeight)
 
 		anchors {
 			top: _control.headerWidget.bottom;
@@ -27,12 +24,11 @@ TPPane {
 			margins: 5
 		}
 
-		delegate: SwipeDelegate {
+		delegate: TPListViewDelegate {
 			id: delegate
-			width: parent ? parent.width : 0
-			height: itemVisible ? logEntryItem.preferredHeight : 0
-			visible: itemVisible
-			spacing: 0
+			_index: index
+			_itemVisible: itemVisible
+			tpListView: listView
 
 			required property int index
 			required property bool itemVisible
@@ -42,44 +38,15 @@ TPPane {
 			required property string logTime
 			required property string logTooltip
 
-			onHeightChanged: {
-				if (bufferTimer.running)
-					return;
-				else
-					bufferTimer.start();
-			}
-
-			Connections {
-				target: _control.logsModel
-				function onEntryRemoved(entry: int): void {
-					if (entry > 0 && entry === delegate.index)
-						listView.delegatesHeight -= delegate.height;
-				}
-			}
-
-			Timer {
-				id: bufferTimer
-				interval: 500
-				onTriggered: {
-					if (index > 0 && delegate.itemVisible) //TPListView minimum size already accounts for the first item
-						listView.delegatesHeight += delegate.height + 2*listView.spacing;
-					delegate.setupLayout(); //Now that size reached its final value, layout the widgets inside TPRadioButtonOrCheckBox
-				}
-			}
-
-			ToolTip {
-				id: logMessageTip
-				closePolicy: Popup.CloseOnPressOutside
-				z: 2
-			}
-
-			function setupLayout(): void {
-				lblTitle.setupLayout();
-			}
-
-			contentItem: Item {
+			itemContent: Item {
 				id: logEntryItem
-				readonly property int preferredHeight: lblTitle.height + lblMessage.height + 10
+				height: lblTitle.height + lblMessage.height + 10
+
+				ToolTip {
+					id: logMessageTip
+					closePolicy: Popup.CloseOnPressOutside
+					z: 2
+				}
 
 				Item {
 					id: buttonsRec
@@ -128,7 +95,7 @@ TPPane {
 					enableCheckOutsideIndicator: false
 					font.weight: Font.Bold
 					font.pixelSize: AppSettings.fontSize
-					onChecked: (check) => _control.logsModel.setSelected(delegate.index, check);
+					onChecked: (check) => _control.logsModel.setIsSelected(delegate.index, check);
 
 					anchors {
 						top: parent.top
@@ -149,42 +116,7 @@ TPPane {
 						margins: -5
 					}
 				}
-			}//contentItem
-
-			background: TPBackRec {
-				id:	backgroundColor
-				useGradient: true
-				showBorder: true
-				opacity: 0.9
-			}
-
-			swipe.right: Rectangle {
-				width: parent.width
-				height: parent.height
-				clip: false
-				color: SwipeDelegate.pressed ? "#555" : "#666"
-				radius: 5
-
-				TPImage {
-					source: "remove"
-					width: AppSettings.itemDefaultHeight
-					height: width
-					opacity: 2 * -delegate.swipe.position
-
-					anchors {
-						right: parent.right
-						rightMargin: 20
-						verticalCenter: parent.verticalCenter
-					}
-				}
-			} //swipe.right
-
-			swipe.onCompleted: {
-				if (_control.logsModel.isSelected(delegate.index))
-					_control.logsModel.removeSelected();
-				else
-					_control.logsModel.removeEntry(delegate.index);
-			}
-		} //delegate: SwipeDelegate
-	}
+			} //itemContent
+		} //delegateItem: TPListViewDelegate
+	} //TPListView
 }

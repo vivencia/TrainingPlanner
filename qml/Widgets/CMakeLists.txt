@@ -3,6 +3,7 @@ set( QML_WIDGETS
 	"TPBackRec.qml"
 	"TPBalloonTip.qml"
 	"TPButton.qml"
+	"TPButton2.qml"
 	"TPButtonGroup.qml"
 	"TPCalendarEntry.qml"
 	"TPColorRectangle.qml"
@@ -13,7 +14,6 @@ set( QML_WIDGETS
 	"TPLabel.qml"
 	"TPLayout.qml"
 	"TPListView.qml"
-	"TPListViewHeader.qml"
 	"TPMediaPlayer.qml"
 	"TPMouseArea.qml"
 	"TPMultiLineEdit.qml"
@@ -31,6 +31,8 @@ set( QML_WIDGETS
 	"TPTabButton.qml"
 	"TPTextInput.qml"
 	"TPToolBar.qml"
+	"ListViewComponents/TPListViewDelegate.qml"
+	"ListViewComponents/TPListViewHeader.qml"
 )
 
 qt_add_library(tp_widgets_module STATIC)

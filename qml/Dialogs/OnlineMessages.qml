@@ -367,7 +367,7 @@ TPPopup {
 					margins: 5
 				}
 
-				TPButton {
+				TPButton2 {
 					text: qsTr("Chat")
 					sourceImage: "chat.png"
 					enabled: newChatOrMessagePane._useridx > 0
@@ -378,7 +378,7 @@ TPPopup {
 						mainLayout.currentIndex = 1;
 					}
 				}
-				TPButton {
+				TPButton2 {
 					text: qsTr("Send message")
 					sourceImage: "send-message.png"
 					enabled: newChatOrMessagePane._useridx > 0
@@ -408,8 +408,8 @@ TPPopup {
 			rightMargin: 10
 		}
 
-		TPButton {
-			image: mainLayout.currentIndex !== 2 ? "add-new.png" : "revert.png"
+		TPButton2 {
+			imageSource: mainLayout.currentIndex !== 2 ? "add-new.png" : "revert.png"
 			width: AppSettings.itemDefaultHeight
 			height: width
 			visible: !onlineMsgsDlg._minimized

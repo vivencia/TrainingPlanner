@@ -26,7 +26,7 @@ TPBackRec {
 	readonly property int _min_width: _control.parentPopup.minimum_size.width
 	readonly property int _min_height: _control.parentPopup.minimum_size.height
 
-	TPButton {
+	TPButton2 {
 		id: btnClose
 		image: !_control.parentPopup.resizeable ? "close.png" : "close_control.png"
 		imageHeight: AppSettings.itemSmallHeight
@@ -149,7 +149,7 @@ TPBackRec {
 				}
 			}
 
-			TPButton {
+			TPButton2 {
 				id: btnMaxRestoreWindow
 				image: _control.parentPopup._maximized ? "restore.png" : "maximize.png"
 				imageHeight: AppSettings.itemSmallHeight
@@ -167,7 +167,7 @@ TPBackRec {
 				onClicked: _control.restore();
 			}
 
-			TPButton {
+			TPButton2 {
 				id: btnMinimizeWindow
 				image: "minimize.png"
 				imageHeight: AppSettings.itemSmallHeight

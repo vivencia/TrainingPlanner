@@ -5,7 +5,7 @@ import TpQml.Widgets
 
 TPBackRec {
 	id: _control
-	enabled: listModel ? listModel.count > 0 : false
+	enabled: listModel ? (_control.listModel.enableFilters ? true : listModel.count > 0) : false
 	height: {
 		let ret = 0;
 		if (showSearch)
@@ -18,14 +18,14 @@ TPBackRec {
 	}
 
 //public:
-	required property TPListView listView
+	required property TPListView tpListView
 	property bool showFilter: true
 	property bool showSearch: true
 	property bool showSort: true
 	property bool showSelectionOptions: true
 
 //private:
-	readonly property TPListModel listModel: listView.model as TPListModel
+	readonly property TPListModel listModel: tpListView.listModel
 	property int _margins: 5
 
 	TPButtonGroup {
@@ -39,7 +39,14 @@ TPBackRec {
 		currentIndex: _control.listModel.sortField
 		visible: _control.showSort
 		width: parent.width * 0.3
-		onItemActivated: (real_index, index, value) => _control.listModel.sortField = real_index;
+		onItemActivated: (real_index, index, value) => {
+			_control.listModel.sortField = real_index;
+			//need to force an update because isChecked is not responding to (or not receiving) the TPListModel.sortChanged() signal
+			if (real_index == -1) {
+				btnSortDown.isChecked = false;
+				btnSortUp.isChecked = false;
+			}
+		}
 
 		anchors {
 			right: parent.right
@@ -92,18 +99,18 @@ TPBackRec {
 		}
 	}
 
-	TPButton {
+	TPButton2 {
 		id: btnFilter
 		text: qsTr("Filter")
 		rounded: false
 		checkable: true
-		isChecked: _control.listModel.filterApplied
+		isChecked: _control.listModel.enableFilters
 		image: "filter.png"
 		imageHeight: AppSettings.itemSmallHeight
 		width: parent.width * 0.35
 		height: imageHeight
-		onButtonClicked: (btn_id) => _control.listView.showFilterDialog();
-		onChecked: (check) => _control.listModel.applyFilters;
+		onButtonClicked: (btn_id) => _control.listModel.showFiltersDialog();
+		onChecked: (check) => _control.listModel.enableFilters = check;
 
 		anchors {
 			left: parent.left
@@ -135,7 +142,7 @@ TPBackRec {
 		boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
 		visible: _control.showSelectionOptions
 		width: _control.width / 2 - 5
-		onChecked: (check) => _control.listView.items_selectable = check;
+		onChecked: (check) => _control.tpListView.items_selectable = check;
 
 		anchors {
 			bottom: parent.bottom

@@ -5,7 +5,6 @@ import QtQuick.Window
 import QtQuick.Controls
 
 import TpQml
-import TpQml.Widgets
 import TpQml.Dialogs
 import TpQml.Pages
 
@@ -90,27 +89,5 @@ ApplicationWindow {
 
 	function clearWindowsStack(): void {
 		stackView.clear();
-	}
-
-	Loader {
-		id: sendFileDialogLoader
-		asynchronous: true
-		active: false
-
-		property SendFileToDialog _dialog
-
-		sourceComponent: SendFileToDialog {
-			modal: true
-			keepAbove: true
-			parentPage: homePage
-			onClosed: sendFileDialogLoader.active = false;
-			Component.onCompleted: tpFileLoader._dialog = this;
-		}
-
-		onLoaded: _dialog.tpQmlOpen(homePage);
-	}
-	function openSendFileDialog(handle: int): void {
-		SendFileToDialog.handle = handle;
-		tpFileLoader.active = true;
 	}
 } //ApplicationWindow

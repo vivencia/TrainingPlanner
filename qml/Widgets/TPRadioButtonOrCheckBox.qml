@@ -5,13 +5,14 @@ import TpQml
 TPBackRec {
 	id: _control
 	backColor: "transparent"
-	height: label.preferredHeight()
+	height: preferredHeight
 	width: preferredWidth
 
 //public:
 	property alias image: img.source
 	property alias text: label.text
 	property alias elideMode: label.elide
+	property alias helpString: label.helpString
 	property alias font: label.font //When overriding any font property, all the font properties are reset; so other properties must be reapplied
 	property int imageHeight: AppSettings.itemSmallHeight
 	property int imageWidth: image.length > 0 ? imageHeight : 0
@@ -28,6 +29,7 @@ TPBackRec {
 	property TPButtonGroup buttonGroup: null
 	readonly property int preferredWidth: label.preferredWidth + (_left_control ? _left_control.width : 0)
 																		+ (_right_control ? _right_control.width : 0) + 10
+	readonly property int preferredHeight: label.preferredHeight()
 
 	enum BoxType { TP_RADIOBOX, TP_CHECKBOX, TP_NONEBOX }
 	//only if enableClicks is true. If enableCheckOutsideIndicator is true both clicked() and checked() will be emitted
@@ -204,11 +206,11 @@ TPBackRec {
 				second_control_anchored = true;
 			}
 		} else if (first_pos & Qt.AlignTop) {
-			h_pos1 = first_pos ^ Qt.AlignVTop;
-			h_pos2 = second_pos ^ Qt.AlignVTop;
+			h_pos1 = first_pos ^ Qt.AlignTop;
+			h_pos2 = second_pos ^ Qt.AlignTop;
 			if (h_pos1 === h_pos2) {
 				if (label.contentWidth >= _control.width - first_control.width - second_control.width) {
-					item.anchors.top = _control.top;
+					first_control.anchors.top = _control.top;
 					second_control.anchors.top = first_control.bottom;
 					second_control.anchors.horizontalCenter = first_control.horizontalCenter;
 					second_control_anchored = true;
@@ -268,6 +270,8 @@ TPBackRec {
 		label.anchors.right = _right_control ? _right_control.left : right;
 		height = Math.max(label.preferredHeight()) + (_top_control ? _top_control.height : 0) +
 											(_bottom_control ? _bottom_control.height : 0) + 10
+		if (_right_control)
+			label.questionMarkOffset = _control.width - label.width;
 	}
 
 	function checkFunction(): void {

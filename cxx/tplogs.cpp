@@ -13,9 +13,12 @@ enum LogRoleNames {
 TPLogs::TPLogs(LogType type, const QString &category, QObject *parent)
 	: TPListModel{parent, LF_N_FIELDS}, m_type{type}, m_category{category}
 {
-	//setSortField(LF_MESSAGE);
-	//setSortDirection(SORT_DOWN);
+	setObjectName(category);
+	setSortField(LF_MESSAGE);
+	setSortDirection(SORT_UP);
 	setFieldsNames();
+	addFilters();
+	m_removeField = LF_TIME;
 	roleToString(logOrigin)
 	roleToString(logTitle)
 	roleToString(logMessage)
@@ -59,6 +62,7 @@ void TPLogs::copyLog(const int entry)
 
 void TPLogs::setFieldsNames()
 {
+	m_identifier = std::move(tr("Logs"));
 	m_fieldsNames.append(std::move(tr("Header")));
 	m_fieldsNames.append(std::move(tr("Message")));
 	m_fieldsNames.append(std::move(tr("Time")));
@@ -77,6 +81,20 @@ QVariant TPLogs::data(const uint role, const uint row, const int column) const
 	return QVariant{};
 }
 
+void TPLogs::addFilters()
+{
+	TPFilterModel *filter{new TPFilterModel{this}};
+	filter->setDataAcquisitionFunc([this] (uint index, uint column) -> QPair<bool,QString> {
+		if (index < m_entries.count())
+			return {true, dataValue(index, column)};
+		else
+			return {false, QString{}};
+	});
+	for (uint i{LF_TITLE}; i <= LF_TIME; ++i)
+		filter->addFilterField(i, [this,i] () -> QString { return m_fieldsNames.at(i+1); }, std::move(QString{}));
+	setFiltersManager(filter);
+}
+
 const QString &TPLogs::_d_time(const uint row) const
 {
 	if (m_entries.isEmpty())
@@ -86,16 +104,4 @@ const QString &TPLogs::_d_time(const uint row) const
 						static_cast<int>(TPUtils::DF_DATABASE)|static_cast<int>(TPUtils::TF_DATABASE), QLatin1Char{0}));
 	}
 	return m_entries.at(row).m_ptime;
-}
-
-void TPLogs::remove(const QList<int> &entries)
-{
-	if (!entries.isEmpty()) {
-		beginRemoveRows(QModelIndex{}, entries.constFirst(), entries.constLast());
-		for (const auto entry : entries | std::views::reverse) {
-			m_entries.removeAt(entry);
-			emit entryRemoved(entry);
-		}
-		endRemoveRows();
-	}
 }

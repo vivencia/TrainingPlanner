@@ -83,11 +83,14 @@ public:
 				const PASSWORD_DIALOG_MODE mode = DM_GET_PASSWORD, const std::optional<bool> store_passwd = std::nullopt);
 	void showImportWorkoutDialog(DBExercisesModel *new_workout, QQuickItem *parent_page, DBCalendarModel *cal_model,
 																							const QChar &split_letter);
+	void showRemoveDialog(const int requestid, QQuickItem *parent_page, const QString &identifier, const QString &title,
+																									const QString &message);
 
 signals:
 	void selectedExerciseFromSimpleExercisesList(QQuickItem *parentPage);
 	void mesoForImportSelected();
 	void qmlPasswordDialogClosed(int resultCode, QString password);
+	void removeDialogClosed(const int request_id, const int close_action_type);
 	void logsChanged();
 	void passwordAcquired(const bool proceed, const int request_id, const QString &passwd, const bool store);
 	void passwordCreated(const bool proceed, const int request_id, const QString &passwd, const bool store);
@@ -106,17 +109,19 @@ signals:
 public slots:
 	inline void qmlPasswordDialogClosed_slot(int resultCode, const QString &password) { emit qmlPasswordDialogClosed(resultCode, password); }
 	void generalMessagesPopupClosed(const int btn_id);
+	void removeDialogClosed_slot(int close_action_type);
 	void generalMessagesPopupModallyClosed();
 
 private:
 	QmlExercisesDatabaseInterface *m_exercisesListManager{nullptr};
 	QQmlComponent *m_simpleExercisesListComponent{nullptr}, *m_weatherComponent{nullptr},
 		*m_statisticsComponent{nullptr}, *m_firstTimeDlgComponent{nullptr}, *m_generalMessagesPopupComponent{nullptr},
-		*m_passwordDialogComponent{nullptr}, *m_importWorkoutComponent{nullptr}, *m_logsDialogComponent{nullptr};
+		*m_passwordDialogComponent{nullptr}, *m_importWorkoutComponent{nullptr}, *m_logsDialogComponent{nullptr},
+		*m_removeDialogComponent{nullptr};
 	QQuickItem *m_homePage{nullptr}, *m_appPagesVisualParent{nullptr}, *m_popupsVisualParent{nullptr},
 															*m_weatherPage{nullptr}, *m_statisticsPage{nullptr};
 	QObject *m_simpleExercisesList{nullptr}, *m_firstTimeDlg{nullptr}, *m_generalMessagesPopup{nullptr},
-							*m_passwordDialog{nullptr}, *m_importWorkoutDialog{nullptr}, *m_logsDialog{nullptr};
+				*m_passwordDialog{nullptr}, *m_importWorkoutDialog{nullptr}, *m_logsDialog{nullptr}, *m_removeDialog{nullptr};
 	QVariantMap m_simpleExercisesListProperties, m_generalMessagesPopupProperties;
 	QList<st_generalMessage*> m_messagesQueue;
 	QList<uint16_t> m_bufferProperties;
@@ -147,7 +152,6 @@ private:
 
 	void startLogs();
 	void createGeneralMessagesPopup();
-	void createLogsDialog();
 	void createStatisticsPage_part2();
 	QmlUserInterface *usersManager();
 };

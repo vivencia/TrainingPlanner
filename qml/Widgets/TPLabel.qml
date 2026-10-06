@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 
@@ -19,15 +21,12 @@ Label {
 	rightInset: 0
 	padding: 0
 
-	FontMetrics {
-		id: fm
-		font: _control.font
-	}
-
 	property string fontColor: AppSettings.fontColor
 	property bool singleLine: true
 	property bool useBackground: false
 	property bool showBorder: false
+	property string helpString
+	property int questionMarkOffset: 0
 	property string backgroundColor: AppSettings.primaryLightColor
 	readonly property int preferredWidth: Math.min(fm.boundingRect(text).width, AppSettings.pageWidth * 0.9)
 
@@ -37,6 +36,31 @@ Label {
 		border.color: _control.showBorder ? AppSettings.fontColor : "transparent"
 		radius: 8
 		opacity: 0.7
+	}
+
+	Loader {
+		id: helpLoader
+		asynchronous: true
+		active: _control.helpString.length > 0
+
+		sourceComponent: TPButton {
+			imageSource: "question.png"
+			width: AppSettings.itemDefaultHeight
+			height: width
+
+			anchors {
+				verticalCenter: parent.verticalCenter
+				left: parent.right
+				leftMargin: _control.questionMarkOffset
+			}
+
+			onClicked: ToolTip.show(_control.helpString, 5000);
+		}
+	}
+
+	FontMetrics {
+		id: fm
+		font: _control.font
 	}
 
 	function preferredHeight(): int {

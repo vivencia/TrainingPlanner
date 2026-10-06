@@ -14,7 +14,7 @@ TPPopup {
 	showTitleBar: true
 	showBehavior: TPPopup.ALWAYS_VISIBLE
 	show_position: Qt.AlignBaseline
-	defaultCoordinates: Qt.point((width - AppSettings.windowWidth) / 2, (height - AppSettings.windowHeight) / 2)
+	defaultCoordinates: Qt.point((AppSettings.windowWidth - width)/2, (AppSettings.windowHeight - height)/2)
 	normal_size: Qt.size(AppSettings.pageWidth * 0.8, AppSettings.pageWidth * 0.8)
 	resizeable: true
 	savePopupState: true

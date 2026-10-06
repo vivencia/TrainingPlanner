@@ -1,12 +1,15 @@
 set( QML_DIALOGS
 	"CalendarDialog.qml"
 	"FirstTimeDialog.qml"
+	"LogsDialog.qml"
 	"MainMenu.qml"
+	"ModelFiltersDialog.qml"
 	"MuscularGroupPicker.qml"
 	"NavBar.qml"
 	"NewTPMessageDialog.qml"
 	"OnlineMessages.qml"
 	"PasswordDialog.qml"
+	"RemoveDialog.qml"
 	"SendFileToDialog.qml"
 	"TimePicker.qml"
 	"TimerDialog.qml"
@@ -25,5 +28,4 @@ qt_add_qml_module(tp_dialogs_module
 		${QML_DIALOGS}
 	RESOURCE_PREFIX
 		"/"
-		QML_FILES LogsDialog.qml
 )

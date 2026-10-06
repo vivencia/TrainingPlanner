@@ -1,0 +1,3 @@
+module TPQml.Widgets.ListViewComponents
+TPListViewDelegate 1.0 TPListViewDelegate.qml
+TPListViewHeader 1.0 TPListViewHeader.qml

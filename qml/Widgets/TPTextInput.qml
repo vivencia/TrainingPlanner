@@ -101,7 +101,7 @@ TextField {
 		regularExpression: /^[^#!?&="']*$/
 	}
 
-	TPButton {
+	TPButton2 {
 		id: btnClearText
 		image: "edit-clear"
 		visible: _control.showClearTextButton && _control.text.length > 0
@@ -133,7 +133,7 @@ TextField {
 			verticalCenter: _control.verticalCenter
 		}
 
-		sourceComponent: TPButton {
+		sourceComponent: TPButton2 {
 			image: "search.png"
 			enableCheckOutsideIndicator: false
 			enableClicks: _control.showSearchButton

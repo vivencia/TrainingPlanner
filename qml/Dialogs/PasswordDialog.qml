@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Layouts
 
@@ -6,12 +8,12 @@ import TpQml.Dialogs
 import TpQml.Widgets
 
 TPPopup {
-	id: _passwdDlg
+	id: _dialog
 	keepAbove: true
 	dim: true
 	width: AppSettings.pageWidth * 0.8
-	height: titleBar.height + topRow.height + newPasswordLoader.item_height + txtPassword.item_height
-																+ chkStorePassword.item_height + bottomRow.height
+	height: titleBar.height + topRow.height + newPasswordLoader.height + txtPassword.height + chkStorePassword.height
+																											+ bottomRow.height
 	useShape: true
 	showBorder: true
 	showTitleBar: true
@@ -49,18 +51,18 @@ TPPopup {
 		txtPassword.forceActiveFocus();
 	}
 
-	onCloseActionExeced: (btn_id) => {
-		if (btn_id === 0) {
+	onCloseActionExeced: (action_type) => {
+		if (action_type === 0) {
 			switch (mode) {
 				case ItemManager.DM_GET_PASSWORD:
-					passwordAcquired(true, _passwdDlg.request_id, txtPassword.getPassword(), chkStorePassword.checked);
+					passwordAcquired(true, _dialog.request_id, txtPassword.getPassword(), chkStorePassword.isChecked);
 					break;
 				case ItemManager.DM_NEW_PASSWORD:
-					passwordCreated(true, _passwdDlg.request_id, txtNewPassword.getPassword(), chkStorePassword.checked);
+					passwordCreated(true, _dialog.request_id, txtNewPassword.getPassword(), chkStorePassword.isChecked);
 					break;
 				case ItemManager.DM_CHANGE_PASSWORD:
-					passwordChanged(true, _passwdDlg.request_id, txtPassword.getPassword(), txtNewPassword.getPassword(),
-																							chkStorePassword.checked);
+					passwordChanged(true, _dialog.request_id, txtPassword.getPassword(), txtNewPassword.getPassword(),
+																							chkStorePassword.isChecked);
 					break;
 			}
 		} else {
@@ -80,23 +82,24 @@ TPPopup {
 
 	TPLabel {
 		id: lblTitle
-		text: _passwdDlg.title
+		text: _dialog.title
 		horizontalAlignment: Text.AlignHCenter
 		anchors {
-			top: _passwdDlg.contentItem.top
-			left: _passwdDlg.contentItem.left
-			right: _passwdDlg.contentItem.right
+			top: _dialog.contentItem.top
+			left: _dialog.contentItem.left
+			right: _dialog.contentItem.right
 			margins: 5
-			rightMargin: _passwdDlg.titleBar.titleBarButtons.width
+			rightMargin: _dialog.titleBar.titleBarButtons.width
 		}
 	}
 
 	RowLayout {
 		id: topRow
+
 		anchors {
 			top: lblTitle.bottom
-			left: _passwdDlg.contentItem.left
-			right: _passwdDlg.contentItem.right
+			left: _dialog.contentItem.left
+			right: _dialog.contentItem.right
 			margins: 5
 			topMargin: 10
 		}
@@ -111,25 +114,24 @@ TPPopup {
 
 		TPLabel {
 			id: lblMessage
-			text: _passwdDlg.message
+			text: _dialog.message
 			singleLine: false
 			horizontalAlignment: Text.AlignJustify
-			visible: _passwdDlg.message.length > 0
-			Layout.preferredWidth: _passwdDlg.width - imgElement.width - 20
+			visible: _dialog.message.length > 0
+			Layout.preferredWidth: _dialog.width - imgElement.width - 20
 		}
 	}
 
 	Loader {
 		id: newPasswordLoader
 		asynchronous: true
-		active: _passwdDlg.mode !== ItemManager.DM_GET_PASSWORD
-
-		readonly property int item_height: item ? item.height + 10 : 0
+		active: _dialog.mode !== ItemManager.DM_GET_PASSWORD
+		height: 0
 
 		anchors {
 			top: topRow.bottom
-			left: _passwdDlg.contentItem.left
-			right: _passwdDlg.contentItem.right
+			left: _dialog.contentItem.left
+			right: _dialog.contentItem.right
 			margins: 5
 		}
 
@@ -148,7 +150,10 @@ TPPopup {
 					margins: 2
 				}
 
-				Component.onCompleted: _passwdDlg.txtNewPassword = this;
+				Component.onCompleted: {
+					_dialog.txtNewPassword = this;
+					newPasswordLoader.height = height;
+				}
 			}
 
 			TPPassword {
@@ -164,74 +169,72 @@ TPPopup {
 					margins: 2
 				}
 
-				Component.onCompleted: _passwdDlg.txtConfirmNewPassword = this;
+				Component.onCompleted: _dialog.txtConfirmNewPassword = this;
 			}
 		}
 	}
 
 	TPPassword {
 		id: txtPassword
-		label: show_password_label ? (_passwdDlg.mode !== ItemManager.DM_CHANGE_PASSWORD
+		label: _dialog.show_password_label ? (_dialog.mode !== ItemManager.DM_CHANGE_PASSWORD
 													? AppUserModel.passwordLabel : qsTr("Current password: ")) : ""
-		visible: _passwdDlg.mode !== ItemManager.DM_NEW_PASSWORD
-		enabled: _passwdDlg.txtConfirmNewPassword ? _passwdDlg.txtConfirmNewPassword.passwordOK : true
-
-		readonly property int item_height: visible ? defaultHeight + 10 : 0
+		visible: _dialog.mode !== ItemManager.DM_NEW_PASSWORD
+		enabled: _dialog.txtConfirmNewPassword ? _dialog.txtConfirmNewPassword.passwordOK : true
+		height: visible ? defaultHeight : 0
 
 		anchors {
 			top: newPasswordLoader.active ? newPasswordLoader.bottom : topRow.bottom
-			left: _passwdDlg.contentItem.left
-			right: _passwdDlg.contentItem.right
+			left: _dialog.contentItem.left
+			right: _dialog.contentItem.right
 			margins: 5
 		}
 
-		onPasswordEntered: _passwdDlg.closePopup(0);
+		onPasswordEntered: _dialog.closePopup(0);
 	}
 
 	TPRadioButtonOrCheckBox {
 		id: chkStorePassword
 		boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
 		text: qsTr("Save password")
-		isChecked: _passwdDlg.store_password
-		visible: _passwdDlg.show_store_option
-
-		readonly property int item_height: visible ? defaultHeight + 10 : 0
+		isChecked: _dialog.store_password
+		visible: _dialog.show_store_option
+		height: visible ? preferredHeight : 0
 
 		anchors {
 			bottom: bottomRow.top
-			left: _passwdDlg.contentItem.left
-			right: _passwdDlg.contentItem.right
+			left: _dialog.contentItem.left
+			right: _dialog.contentItem.right
 			margins: 5
 		}
 
-		onClicked: _passwdDlg.store_password = !_passwdDlg.store_password;
+		onClicked: _dialog.store_password = !_dialog.store_password;
 	}
 
 	Row {
 		id: bottomRow
-		spacing: (_passwdDlg.width - btn1.width - btn2.width) / 3
+		spacing: (_dialog.width - btn1.width - btn2.width) / 3
 
 		anchors {
-			bottom: _passwdDlg.contentItem.bottom
-			left: _passwdDlg.contentItem.left
-			right: _passwdDlg.contentItem.right
+			bottom: _dialog.contentItem.bottom
+			left: _dialog.contentItem.left
+			right: _dialog.contentItem.right
 			margins: 5
 			leftMargin: spacing
 		}
 
-		TPButton {
+		TPButton2 {
 			id: btn1
 			text: "OK"
 			enabled: txtPassword.getPassword().length > 4
 			Layout.alignment: Qt.AlignHCenter
-			onClicked: _passwdDlg.closePopup(0);
+			onButtonClicked: _dialog.closePopup(TPPopup.DEFAULT_ACTION);
 		}
 
-		TPButton {
+		TPButton2 {
 			id: btn2
 			text: qsTr("Cancel")
 			Layout.alignment: Qt.AlignHCenter
-			onClicked: _passwdDlg.closePopup(1);
+			onButtonClicked: _dialog.closePopup(TPPopup.BTN_CLOSE);
 		}
 	}
 }

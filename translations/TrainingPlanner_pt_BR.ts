@@ -1518,12 +1518,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="379"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="363"/>
         <source>A Mesocycle is a short-term program, with defined starting and ending points and a specific goal in sight</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="483"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="482"/>
         <source>Save</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1579,6 +1579,14 @@
         <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="173"/>
         <source>Exercises Sheet</source>
         <translation>Planilha de exercícios</translation>
+    </message>
+</context>
+<context>
+    <name>ModelFiltersDialog</name>
+    <message>
+        <location filename="../qml/Dialogs/ModelFiltersDialog.qml" line="124"/>
+        <source>Select what to filter</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1843,27 +1851,27 @@
 <context>
     <name>PasswordDialog</name>
     <message>
-        <location filename="../qml/Dialogs/PasswordDialog.qml" line="141"/>
+        <location filename="../qml/Dialogs/PasswordDialog.qml" line="142"/>
         <source>New password: </source>
         <translation type="unfinished">Nova senha: </translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PasswordDialog.qml" line="156"/>
+        <location filename="../qml/Dialogs/PasswordDialog.qml" line="160"/>
         <source>Confirm new password: </source>
         <translation type="unfinished">Confirme a nova senha: </translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PasswordDialog.qml" line="175"/>
+        <location filename="../qml/Dialogs/PasswordDialog.qml" line="179"/>
         <source>Current password: </source>
         <translation type="unfinished">Senha atual: </translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PasswordDialog.qml" line="194"/>
+        <location filename="../qml/Dialogs/PasswordDialog.qml" line="197"/>
         <source>Save password</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PasswordDialog.qml" line="232"/>
+        <location filename="../qml/Dialogs/PasswordDialog.qml" line="234"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>
@@ -2027,22 +2035,22 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="661"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="723"/>
         <source>Application Messages</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="662"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="724"/>
         <source>Core Messages</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="664"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="726"/>
         <source>Debug Messages</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="716"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="773"/>
         <source>Statistics</source>
         <translation>Estatísticas</translation>
     </message>
@@ -2327,6 +2335,34 @@
         <location filename="../cxx/qmlworkoutinterface.cpp" line="659"/>
         <source>You should press Finish to save your workout</source>
         <translation>Você deve tocar em Concluir para salvar seu treino</translation>
+    </message>
+</context>
+<context>
+    <name>RemoveDialog</name>
+    <message>
+        <location filename="../qml/Dialogs/RemoveDialog.qml" line="89"/>
+        <source>This action cannot be undone</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/RemoveDialog.qml" line="96"/>
+        <source>Don&apos;t ask again for </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/RemoveDialog.qml" line="97"/>
+        <source>For the duration of this session, any subsequent removal request will repeat whatever you choose now without confirmation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/RemoveDialog.qml" line="128"/>
+        <source>Yes</source>
+        <translation type="unfinished">Sim</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/RemoveDialog.qml" line="135"/>
+        <source>Cancel</source>
+        <translation type="unfinished">Cancelar</translation>
     </message>
 </context>
 <context>
@@ -2641,25 +2677,50 @@
 <context>
     <name>TPListModel</name>
     <message>
-        <location filename="../cxx/tplistmodel.cpp" line="31"/>
+        <location filename="../cxx/tplistmodel.cpp" line="68"/>
         <source>Unsorted</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/tplistmodel.cpp" line="107"/>
+        <source>Filter Logs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/tplistmodel.cpp" line="357"/>
+        <source>Remove the selected entry(ies)?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/tplistmodel.cpp" line="360"/>
+        <source>Remove %1?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/tplistmodel.cpp" line="366"/>
+        <source>Remove these entries?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/tplistmodel.cpp" line="369"/>
+        <source>Remove </source>
+        <translation type="unfinished">Remover </translation>
     </message>
 </context>
 <context>
     <name>TPListViewHeader</name>
     <message>
-        <location filename="../qml/Widgets/TPListViewHeader.qml" line="97"/>
+        <location filename="../qml/Widgets/ListViewComponents/TPListViewHeader.qml" line="104"/>
         <source>Filter</source>
         <translation type="unfinished">Filtrar</translation>
     </message>
     <message>
-        <location filename="../qml/Widgets/TPListViewHeader.qml" line="134"/>
+        <location filename="../qml/Widgets/ListViewComponents/TPListViewHeader.qml" line="141"/>
         <source>Selectable</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Widgets/TPListViewHeader.qml" line="149"/>
+        <location filename="../qml/Widgets/ListViewComponents/TPListViewHeader.qml" line="156"/>
         <source>Select All</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2667,17 +2728,22 @@
 <context>
     <name>TPLogs</name>
     <message>
-        <location filename="../cxx/tplogs.cpp" line="62"/>
+        <location filename="../cxx/tplogs.cpp" line="65"/>
+        <source>Logs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/tplogs.cpp" line="66"/>
         <source>Header</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tplogs.cpp" line="63"/>
+        <location filename="../cxx/tplogs.cpp" line="67"/>
         <source>Message</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tplogs.cpp" line="64"/>
+        <location filename="../cxx/tplogs.cpp" line="68"/>
         <source>Time</source>
         <translation type="unfinished"></translation>
     </message>

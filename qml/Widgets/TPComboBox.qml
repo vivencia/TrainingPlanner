@@ -17,16 +17,21 @@ ComboBox {
 	currentIndex: -1
 
 //public:
+	property string textWhenCurIndexIsInvalid: ""
 	property string textColor: AppSettings.fontColor
 	property string backgroundColor: AppSettings.primaryDarkColor
 	property bool completeModel: false
 	property bool selectable: true
+	property bool checkable: false
 	//When set to a value >= 0 and < model.count, when the item at the specified index is activated, instead of activated
 	//reflect the item's actual index, it will return -100. Also, the activated index of all the other items after specialIndex
 	//will be as if specialIndex did not exist
 	property int specialIndex: -1
 
 	signal itemActivated(int real_index, int index, string value)
+	signal itemChecked(int real_index, int index, bool checked)
+	signal clearAllCheckedPopupItems();
+	signal checkAllPopupItems();
 
 //private:
 	property bool _ignore_index_change: false
@@ -36,16 +41,10 @@ ComboBox {
 			_ignore_index_change = false;
 			return;
 		}
-		if (currentIndex < 0 && specialIndex >= 0)
-			setCurIndex(specialIndex);
+		setCurIndex();
 	}
 
-	Component.onCompleted: {
-		if (currentIndex < 0 && specialIndex >= 0)
-			setCurIndex(specialIndex);
-		else
-			setCurIndex(currentIndex);
-	}
+	Component.onCompleted: setCurIndex();
 
 	delegate: ItemDelegate {
 		id: delegate
@@ -62,7 +61,7 @@ ComboBox {
 		required property var model
 
 		contentItem: TPLabel {
-			text: delegate.model.text
+			text: !_control.checkable ? delegate.model.text : _control.displayText
 			elide: Text.ElideRight
 			minimumPixelSize: AppSettings.smallFontSize * 0.8
 			leftPadding: _control.completeModel ? AppSettings.itemDefaultHeight + 5 : 5
@@ -150,6 +149,7 @@ ComboBox {
 		padding: 5
 		spacing: 0
 		clip: true
+		z: 2
 
 		property int preferredHeight: 0
 
@@ -158,7 +158,7 @@ ComboBox {
 				target: _popup
 				property: "height"
 				from: 0
-				to: Math.min(AppSettings.pageHeight / 3, _popup.preferredHeight)
+				to: Math.min(AppSettings.pageHeight / 3, _popup.preferredHeight * 1.1)
 				duration: 300
 				easing.type: Easing.InCubic
 			}
@@ -208,7 +208,13 @@ ComboBox {
 				property int last_actual_pos: -1
 				property int n_skipped: 0
 				property bool first_item: false
+				property bool ready: false
 				readonly property int spacing: 5
+
+				onReadyChanged: {
+					if (_control.currentIndex >= 0)
+						setCurIndex(_control.currentIndex);
+				}
 
 				function positionItem(index: int, item: Item): void {
 					item.y = itemsRepeater.height;
@@ -216,6 +222,17 @@ ComboBox {
 					_popup.preferredHeight += item.height + spacing;
 				}
 
+				function indexFromRealIndex(real_index: int): int {
+					for(let i = 0; i < _control.modelSize(); ++i) {
+						if (itemAt(i).real_index == real_index)
+							return i;
+					}
+					return -1;
+				}
+
+				//Sometimes, items are added from first to last, othertimes, the opposite.
+				//Could not determine when or why that happens. This algorithm analyses the index of the added item and either
+				//position it if the index is in crescent order, or wait until index 0 to position all items in crescent order
 				onItemAdded: (index, item) => {
 					if (!first_item) {
 						if (index !== 0) {
@@ -226,9 +243,12 @@ ComboBox {
 					}
 					if (n_skipped === 0) {
 						positionItem(index, item);
+						if (index === modelSize())
+							ready = true;
 					} else {
-						for (let i = 0; i < _control.modelSize(); ++i)
+						for (let i = 0; i < n_skipped; ++i)
 							positionItem(i, itemAt(i));
+						ready = true;
 					}
 				}
 
@@ -256,7 +276,7 @@ ComboBox {
 								}
 								real_index = _real_index;
 							} else {
-								real_index = _control.specialIndex;
+								real_index = -1;
 							}
 						} else {
 							itemsRepeater.separator_indices.push(index);
@@ -277,17 +297,31 @@ ComboBox {
 						}
 					}
 
-					TPLabel {
+					TPRadioButtonOrCheckBox {
 						id: label
 						text: _control.getText(popupDelegate.index)
-						useBackground: true
-						backgroundColor: popupDelegate.actual_pos % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2
+						boxType: !_control.checkable ? TPRadioButtonOrCheckBox.TP_NONEBOX : TPRadioButtonOrCheckBox.TP_CHECKBOX
+						backColor: enabled ? strBackColor : Qt.lighter(strBackColor, 1.5)
 						enabled: _control.isEnabled(popupDelegate.index)
 						visible: !popupDelegate.separator
 						x: popupDelegate.index !== _control.currentIndex ? 0 : -itemsRepeater.spacing
 						y: popupDelegate.index !== _control.currentIndex ? 0 : -2*itemsRepeater.spacing
 						width: popupDelegate.index !== _control.currentIndex ? parent.width : parent.width + _popup.width
-						height: popupDelegate.index !== _control.currentIndex ? preferredHeight() : preferredHeight() + 4*itemsRepeater.spacing
+						height: popupDelegate.index !== _control.currentIndex ? preferredHeight : preferredHeight + 4*itemsRepeater.spacing
+
+						readonly property string strBackColor: popupDelegate.actual_pos % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2
+
+						onChecked: (check) => _control.itemChecked(popupDelegate.real_index, popupDelegate.index, check);
+
+						Connections {
+							target: _control
+							function onClearAllCheckedPopupItems(): void {
+								label.isChecked = false;
+							}
+							function onCheckAllPopupItems(): void {
+								label.isChecked = true;
+							}
+						}
 
 						Behavior on y {
 							SpringAnimation {
@@ -309,12 +343,17 @@ ComboBox {
 						MouseArea {
 							anchors.fill: parent
 							hoverEnabled: true
+							propagateComposedEvents: _control.checkable
 							onClicked: (mouse) => {
-								mouse.accepted = true;
-								_control.currentIndex = popupDelegate.index;
-								_control.displayText = label.text;
-								_control.itemActivated(popupDelegate.real_index, popupDelegate.index, _control.getValue(popupDelegate.index));
-								_popup.close();
+								if (!_control.checkable) {
+									mouse.accepted = true;
+									_control.currentIndex = popupDelegate.index;
+									_control.displayText = label.text;
+									_control.itemActivated(popupDelegate.real_index, popupDelegate.index, _control.getValue(popupDelegate.index));
+									_popup.close();
+								} else {
+									mouse.accepted = false;
+								}
 							}
 							onEntered: label.y += 3
 							onExited: label.y -= 3
@@ -330,10 +369,19 @@ ComboBox {
 		}
 	}
 
+	//Setting the currentIndex from a client will most likely use indices from an enum or other list. This may not correspond
+	//with the combo indices if there are separators and/or a specialIndex. I could ignore currentIndex altogether and use my
+	//own current index equivalent property, but that name is very apt and I'd like to keep using it
 	function setCurIndex(new_index: int): void {
-		displayText = getText(new_index);
-		_control._ignore_index_change = true;
-		_control.currentIndex = new_index;
+		let _cur_index = -1;
+		if (currentIndex < 0 && specialIndex >= 0)
+			_cur_index = specialIndex;
+		else
+			_cur_index = itemsRepeater.ready ? itemsRepeater.indexFromRealIndex(currentIndex) : currentIndex;
+
+		displayText = _cur_index >= 0 ? getText(_cur_index) : textWhenCurIndexIsInvalid;
+		_ignore_index_change = true;
+		currentIndex = _cur_index;
 	}
 
 	function modelSize(): int {
@@ -368,9 +416,13 @@ ComboBox {
 	}
 
 	function isEnabled(index: int): bool {
-		if (model instanceof ListModel)
-			return model.get(index).enabled;
-		else
-			return true;
+		if (enabled) {
+			if (model instanceof ListModel)
+				return model.get(index).enabled;
+			else
+				return true;
+		} else {
+			return false;
+		}
 	}
 }

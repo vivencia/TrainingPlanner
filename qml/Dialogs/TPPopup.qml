@@ -84,6 +84,7 @@ Popup {
 	readonly property Transition _transition_in: !_use_alternate_transition ? (_use_burst_transition ? burstOutTransition : slideInTransition) : alternateCloseTransition
 	readonly property Transition _transition_out: !_use_alternate_transition ? (_use_burst_transition ? burstInTransition : slideOutTransition) : alternateCloseTransition
 	readonly property int titleBarHeight: AppSettings.itemDefaultHeight + 5
+	readonly property int titleBarWidth: showTitleBar ? (showCloseButton ? AppSettings.itemSmallHeight : 0) + (resizeable ? 2*AppSettings.itemSmallHeight : 0) : 0
 
 	enter: _transition_in
 	exit: _close_action_type !== TPPopup.SWIPE ? _transition_out : null
@@ -494,16 +495,16 @@ Popup {
 		onTriggered: _control.closeActionExeced(TPPopup.SWIPE);
 	}
 
-	function closePopup(btn_id: int): void {
-		_close_action_type = btn_id;
+	function closePopup(action_type: int): void {
+		_close_action_type = action_type;
 		close();
-		if (btn_id !== TPPopup.SWIPE)
-			closeActionExeced(btn_id);
+		if (action_type !== TPPopup.SWIPE)
+			closeActionExeced(action_type);
 		else
 			waitForSwipeTimer.start();
 		//when a action button is clicked, the dialog may be immediately reopened for a follow up.
 		//When it's closed via btnClose or swipe or backkey (btn_id = -1, and -2, and -3 respectively), no
-		_can_reopen = btn_id >= TPPopup.DEFAULT_ACTION;
+		_can_reopen = action_type >= TPPopup.DEFAULT_ACTION;
 	}
 
 	//This function can be overridden in a derived QML object to perform other actions

@@ -3,6 +3,11 @@
 #include <QAbstractListModel>
 #include <QQmlEngine>
 
+#include "tpfiltermodel.h"
+
+QT_FORWARD_DECLARE_CLASS(QQmlComponent)
+QT_FORWARD_DECLARE_CLASS(QQuickItem)
+
 class TPListModel : public QAbstractListModel
 {
 
@@ -17,14 +22,13 @@ Q_PROPERTY(int currentRow READ currentRow WRITE setCurrentRow NOTIFY currentRowC
 Q_PROPERTY(int sortField READ sortField WRITE setSortField NOTIFY sortFieldChanged FINAL)
 Q_PROPERTY(int sortDirection READ sortDirection WRITE setSortDirection NOTIFY sortChanged FINAL)
 Q_PROPERTY(int filterField READ filterField WRITE setFilterField NOTIFY filterFieldChanged FINAL)
-Q_PROPERTY(bool filterApplied READ filterApplied NOTIFY filterAppliedChanged FINAL)
-Q_PROPERTY(bool canApplyFilter READ canApplyFilter WRITE setCanApplyFilter NOTIFY canApplyFilterChanged FINAL)
+Q_PROPERTY(bool enableFilters READ enableFilters WRITE setEnableFilters NOTIFY enableFiltersChanged FINAL)
 Q_PROPERTY(bool selectEntireRow READ selectEntireRow WRITE setSelectEntireRow NOTIFY selectEntireRowChanged FINAL)
 Q_PROPERTY(bool anySelected READ anySelected NOTIFY selectedChanged FINAL)
 Q_PROPERTY(bool allSelected READ allSelected NOTIFY selectedChanged FINAL)
 Q_PROPERTY(bool noneSelected READ noneSelected NOTIFY selectedChanged FINAL)
-Q_PROPERTY(QStringList filters READ filters WRITE setFilters NOTIFY filterChanged FINAL)
 Q_PROPERTY(QStringList fieldsNames READ fieldsNames NOTIFY fieldsNamesChanged FINAL)
+Q_PROPERTY(TPFilterModel filters READ filters NOTIFY filtersChanged FINAL)
 
 public:
 	enum SortDirection {
@@ -36,7 +40,7 @@ public:
 
 	explicit TPListModel(QObject *parent = nullptr, const uint n_cols = 1);
 
-	inline uint count() const { return m_nVisibleRows; }
+	inline uint count() const { return m_rowsMetadata.count(); }
 	inline uint colCount() const { return m_totalCols; }
 
 	inline int currentRow() const { return m_currentRow; }
@@ -48,49 +52,27 @@ public:
 		}
 	}
 
-	inline bool canApplyFilter() const { return m_canApplyFilter; }
-	void setCanApplyFilter(const bool apply)
-	{
-		if (m_canApplyFilter != apply) {
-			m_canApplyFilter = apply;
-			emit canApplyFilterChanged();
-		}
-	}
+	Q_INVOKABLE void showFiltersDialog();
 	inline int filterField() const { return m_filterField; }
 	inline void setFilterField(const uint filter_field)
 	{
 		if (filter_field < m_totalCols && filter_field != m_filterField) {
-			const bool re_filter{m_filterField >= 0};
 			m_filterField = filter_field;
 			emit filterFieldChanged();
-			if (re_filter)
+			if (m_enableFilters)
 				applyFilters();
 		}
 	}
-	inline QStringList filters() const { return m_filters; }
-	inline void setFilters(const QStringList &filters)
+	inline TPFilterModel *filters() const { return m_filters; }
+	inline bool enableFilters() const { return m_enableFilters; }
+	inline void setEnableFilters(const bool enable)
 	{
-			m_filters = filters;
-			emit filterChanged();
-	}
-	Q_INVOKABLE void insertFilter(const QString &filter)
-	{
-		if (!filter.isEmpty() && !m_filters.contains(filter)) {
-			m_filters.append(filter);
-			emit filterChanged();
+		if (m_filters && enable != m_enableFilters) {
+			m_enableFilters = enable;
+			emit enableFiltersChanged();
+			applyFilters();
 		}
 	}
-	Q_INVOKABLE void removeFilter(const QString &filter)
-	{
-		if (!filter.isEmpty()) {
-			const auto f_index{m_filters.indexOf(filter)};
-			if (f_index >= 0) {
-				m_filters.removeAt(f_index);
-				emit filterChanged();
-			}
-		}
-	}
-	inline bool filterApplied() const { return m_filterApplied; }
 
 	/**
 	 * Name of the sortable fields to be included in TPListViewHeader. Don't override setFieldsNames() and the selectable
@@ -159,20 +141,12 @@ public:
 	QList<int> selectedInfo(const bool return_real_indices = true) const;
 
 	/**
-	 * Functions as a first round of searching, but works on real rows/indices.
-	 * Limits the visible items to a certain condition, e.g. split A(filter = "A",
-	 * field = MESO_FIELD_SPLITA), or completed exercises (filter = "1", field =  EXERCISES_FIELD_COMPLETED)
-	 * @see sort() and search()
-	 */
-	Q_INVOKABLE void applyFilters();
-
-	/**
 	 * Works on visible/virtual rows/indices. Second round of searching. Uses QString::compare()
 	 * @field: -1 gives the chance for a derived class to set m_sortField before calling this and the sort will
 	 * be done on that field. Otherwise, the default sort field is 0.
 	 * @see applyFilter() and search()
 	 **/
-	void sort();
+	void sort(const bool do_layout_signals = true);
 
 	/**
 	 * If field < 0, search()/find() will look in all fields of the visible/virtual rows/indices.
@@ -180,13 +154,25 @@ public:
 	 * This is the third round of searching.
 	 * @see applyFilter() and sort()
 	 **/
-	Q_INVOKABLE void search(const QString &search_term, int field = -1);
+	Q_INVOKABLE void search(const QString &search_term, int field = -1, const bool do_layout_signals = true);
 
 	/** Searches the model without any sort of change
 	 *  @note Does not modify the visibility of an item.
 	 *  @return -1 if nothing is found, real row/index if visible_rows is false, virtual/visible row/index otherwise
 	 **/
 	Q_INVOKABLE int find(const bool visible_rows, const QString &needle, int field = -1) const;
+
+	Q_INVOKABLE void setParentPage(QQuickItem *parent_page) { m_parentPage = parent_page; }
+	Q_INVOKABLE inline void removeItem(const int visible_row) {
+		const auto real_row{realRow(visible_row)};
+		if (real_row < 0)
+			return;
+		m_rowsToRemove.clear();
+		m_rowsToRemove.append(real_row);
+		remove(true);
+	}
+
+	Q_INVOKABLE inline void removeSelected() { m_rowsToRemove = std::move(selectedInfo()); remove(true); }
 
 	/**
 	 * @brief dataValue
@@ -206,19 +192,35 @@ public:
 	// return the roles mapping to be used by QML
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
 
+public slots:
+	/**
+	 * Functions as a first round of searching, but works on real rows/indices.
+	 * Limits the visible items to a certain condition, e.g. split A(filter = "A",
+	 * field = MESO_FIELD_SPLITA), or completed exercises (filter = "1", field =  EXERCISES_FIELD_COMPLETED)
+	 * @see sort() and search()
+	 */
+	void applyFilters();
+	inline void removeDialogClosed(int close_action_type)
+	{
+		if (close_action_type == 0)
+			remove(false);
+	}
+
 signals:
 	void selectEntireRowChanged();
 	void countChanged();
 	void filterFieldChanged();
+	void enableFiltersChanged();
 	void sortFieldChanged();
 	void currentRowChanged();
 	void selectedChanged();
 	void visibleChanged();
-	void filterChanged();
+	void filtersChanged();
 	void fieldsNamesChanged();
-	void filterAppliedChanged();
 	void canApplyFilterChanged();
 	void sortChanged();
+	void itemAdded(const int index);
+	void itemRemoved(const int index);
 
 protected:
 	/** Derived classes *must* implement this function and "can not" implement data(const QModelIndex &index, int role)
@@ -250,14 +252,15 @@ protected:
 	 * @param row = real row/index
 	 */
 	void insertMetaData(int row);
-	void removeMetaData(const int row);
+	void removeMetaData(const int row, const bool do_layout_signals = true);
 	int realRow(const int visible_row) const;
+	void setFiltersManager(TPFilterModel *filter_model);
 
 	QHash<int, QByteArray> m_roleNames;
 	QList<QStringList> m_modelData;
-	QString m_searchTerm;
-	int m_filterField{-1}, m_sortField{-1}, m_searchField{-1};
-	QStringList m_filters, m_fieldsNames;
+	QString m_identifier, m_searchTerm;
+	int m_filterField{-1}, m_sortField{-1}, m_searchField{-1}, m_removeField{-1};
+	QStringList m_fieldsNames;
 
 private:
 	struct st_rowData {
@@ -268,16 +271,22 @@ private:
 	};
 
 	QList<st_rowData> m_rowsMetadata;
+	QList<int> m_rowsToRemove;
 	uint m_nSelected{0}, m_totalCols{1}, m_nVisibleRows{0};
 	int m_currentRow{-1};
-	bool m_selectEntireRow{true}, m_filterApplied{false}, m_canApplyFilter{false};
+	bool m_selectEntireRow{true}, m_enableFilters{false};
 	SortDirection m_sortDirection{NO_SORT};
+	TPFilterModel *m_filters{nullptr};
+	QQmlComponent *m_filtersDialogComponent{nullptr};
+	QObject *m_filtersDialog{nullptr};
+	QQuickItem *m_parentPage{nullptr};
 
 	void clear();
+	void remove(const bool from_qml);
 	void fixVirtualIndices();
 	void insertSort(const uint row);
 	const bool visible(const int row, const uint column = 0) const;
-	void setVisible(const uint row, bool visible, const uint column = 0);
+	void setVisible(const uint row, bool visible, const uint column = 0, const bool emit_signals = true);
 	bool selected(const int row, const uint visible_column = 0) const;
 	void setSelected(const int row, const bool selected, const uint visible_column = 0);
 	bool itemShouldBeVisible(const uint real_row) const;

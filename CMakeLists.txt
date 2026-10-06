@@ -124,6 +124,8 @@ set( CXX_SOURCES_QML_INTEGRATION
 		cxx/dbcalendarmodel.h cxx/dbcalendarmodel.cpp
 		cxx/dbusermodel.h cxx/dbusermodel.cpp
 		cxx/pageslistmodel.h cxx/pageslistmodel.cpp
+		cxx/tpfiltermodel.h cxx/tpfiltermodel.cpp
+		cxx/tplistmodel.h cxx/tplistmodel.cpp
 		cxx/userinfolistmodel.h cxx/userinfolistmodel.cpp
 
 		cxx/qmluserinterface.h cxx/qmluserinterface.cpp
@@ -154,7 +156,6 @@ set( CXX_SOURCES
 		cxx/dbworkoutsorsplitstable.h cxx/dbworkoutsorsplitstable.cpp
 		cxx/dbusertable.h cxx/dbusertable.cpp
 		cxx/dbmodelinterface.h cxx/dbmodelinterface.cpp
-		cxx/tplistmodel.h cxx/tplistmodel.cpp
 
 		cxx/weather/openweathermapbackend.h cxx/weather/openweathermapbackend.cpp
 		cxx/statistics/tpstatistics.h cxx/statistics/tpstatistics.cpp

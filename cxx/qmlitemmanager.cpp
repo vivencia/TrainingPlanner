@@ -618,6 +618,56 @@ void QmlItemManager::showImportWorkoutDialog(DBExercisesModel *new_workout, QQui
 	}
 }
 
+void QmlItemManager::showRemoveDialog(const int requestid, QQuickItem *parent_page, const QString &identifier,
+																			const QString &title, const QString &message)
+{
+	if (!m_removeDialogComponent) {
+		m_removeDialogComponent = new QQmlComponent{appQmlEngine(), "TpQml.Dialogs"_L1, "ModelFiltersDialog"_L1, QQmlComponent::Asynchronous};
+		connect(m_removeDialogComponent, &QQmlComponent::statusChanged, this, [&,this] (QQmlComponent::Status status) {
+			showRemoveDialog(requestid, parent_page, identifier, title, message);
+		});
+	} else {
+		if (!m_removeDialog) {
+			switch (m_removeDialogComponent->status()) {
+			case QQmlComponent::Ready:
+				m_removeDialogComponent->disconnect();
+				m_removeDialog = m_removeDialogComponent->create(appQmlEngine()->rootContext());
+#ifndef QT_NO_DEBUG
+				if (!m_removeDialog) {
+					appItemManager()->log(TPLogs::LT_DEBUG, QmlItemManager::logOriginQmlEngine,
+						std::move("Component creation failed"_L1), std::move(m_removeDialogComponent->errorString()));
+					return;
+				}
+#endif
+				connect(m_removeDialog, SIGNAL(closeActionExeced(int)), this, SLOT(removeDialogClosed_slot(int)));
+				appQmlEngine()->setObjectOwnership(m_removeDialog, QQmlEngine::CppOwnership);
+				showRemoveDialog(requestid, parent_page, identifier, title, message);
+				break;
+			case QQmlComponent::Loading:
+				return;
+			case QQmlComponent::Null:
+			case QQmlComponent::Error:
+#ifndef QT_NO_DEBUG
+				qDebug() << m_removeDialogComponent->errorString();
+#endif
+				return;
+			}
+		} else {
+			const QStringList &dont_show_list{m_removeDialog->property("dontAskAgainList").toStringList()};
+			if (dont_show_list.contains(identifier)) {
+				const int close_action_type{m_removeDialog->property("closeActionList").toInt()};
+				emit removeDialogClosed(requestid, close_action_type);
+			} else {
+				m_removeDialog->setProperty("requestid", std::move(QVariant{requestid}));
+				m_removeDialog->setProperty("identifier", std::move(QVariant{identifier}));
+				m_removeDialog->setProperty("title", std::move(QVariant{title}));
+				m_removeDialog->setProperty("message", std::move(QVariant{message}));
+				appItemManager()->appPagesManager()->openPopup(m_removeDialog, parent_page);
+			}
+		}
+	}
+}
+
 void QmlItemManager::generalMessagesPopupClosed(const int btn_id)
 {
 	m_canDisplayMessage = m_messagesQueue.isEmpty();
@@ -636,6 +686,12 @@ void QmlItemManager::generalMessagesPopupClosed(const int btn_id)
 	}
 }
 
+void QmlItemManager::removeDialogClosed_slot(int close_action_type)
+{
+	const int requestid{m_removeDialog->property("requestid").toInt()};
+	emit removeDialogClosed(requestid, close_action_type);
+}
+
 //Restore properties to the default
 void QmlItemManager::generalMessagesPopupModallyClosed()
 {
@@ -645,11 +701,17 @@ void QmlItemManager::generalMessagesPopupModallyClosed()
 
 #ifndef Q_OS_ANDROID
 #ifndef QT_NO_DEBUG
+
 //Return: true for exiting the app upon return; false for letting some other function call ::exit() when appropriate
 bool QmlItemManager::runTests()
 {
+	//log(TPLogs::LT_DEBUG, "TPListModel Tests"_L1, std::move("Title %1"_L1.arg(QString::number(11))), std::move("Message %1"_L1.arg(QString::number(11))));
 	for (uint i{0}; i < 10; ++i) {
-		log(TPLogs::LT_DEBUG, "TPListModel Tests"_L1, std::move("Title %1"_L1.arg(QString::number(i))), std::move("Message %1"_L1.arg(QString::number(10-i))));
+		//log(TPLogs::LT_DEBUG, "TPListModel Tests"_L1, i % 2 == 0 ? std::move("Title %1"_L1.arg(QString::number(i)))
+		//	: std::move("Header %1"_L1.arg(QString::number(i))), i % 2 == 0 ? std::move("Message %1"_L1.arg(QString::number(10-i)))
+		//	: std::move("Content %1"_L1.arg(QString::number(10-i))));
+		log(TPLogs::LT_DEBUG, "TPListModel Tests"_L1, std::move("Title %1"_L1.arg(QString::number(i))),
+							std::move("Message %1"_L1.arg(QString::number(10-i))));
 	}
 	return false;
 }
@@ -701,11 +763,6 @@ void QmlItemManager::createGeneralMessagesPopup()
 			}
 		}
 	}
-}
-
-void QmlItemManager::createLogsDialog()
-{
-
 }
 
 void QmlItemManager::createStatisticsPage_part2()

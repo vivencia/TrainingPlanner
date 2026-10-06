@@ -359,12 +359,13 @@ TPPage {
 			TPRadioButtonOrCheckBox {
 				text: qsTr("Mesocycle-style program")
 				boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
-				checked: mesoPage.mesoManager.realMeso
+				isChecked: mesoPage.mesoManager.realMeso
+				helpString: qsTr("A Mesocycle is a short-term program, with defined starting and ending points and a specific goal in sight")
 				Layout.preferredWidth: 0.9 * parent.width
 				Layout.topMargin: 15
 				Layout.bottomMargin: 15
 
-				onClicked: mesoPage.mesoManager.realMeso = checked;
+				onChecked: (check) => mesoPage.mesoManager.realMeso = check;
 
 				TPButton {
 					image: "question.png"
@@ -375,8 +376,6 @@ TPPage {
 						verticalCenter: parent.verticalCenter
 						left: parent.right
 					}
-
-					onClicked: ToolTip.show(qsTr("A Mesocycle is a short-term program, with defined starting and ending points and a specific goal in sight"), 5000);
 				}
 			}
 
